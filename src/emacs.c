@@ -1,6 +1,6 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
-   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2001,02,03,2004
-      Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1998, 1999, 2001,
+     2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2430,7 +2430,16 @@ syms_of_emacs ()
 Many arguments are deleted from the list as they are processed.  */);
 
   DEFVAR_LISP ("system-type", &Vsystem_type,
-	       doc: /* Value is symbol indicating type of operating system you are using.  */);
++	       doc: /* Value is symbol indicating type of operating system you are using.
++Special values:
++  `gnu/linux'   compiled for a GNU/Linux system.
++  `darwin'      compiled for Darwin (GNU-Darwin, Mac OS X, ...).
++  `macos'       compiled for Mac OS 9.
++  `ms-dos'      compiled as an MS-DOS application.
++  `windows-nt'  compiled as a native W32 application.
++  `cygwin'      compiled using the Cygwin library.
++  `vax-vms' or `axp-vms': compiled for a (Open)VMS system.
++Anything else indicates some sort of Unix system.  */);
   Vsystem_type = intern (SYSTEM_TYPE);
 
   DEFVAR_LISP ("system-configuration", &Vsystem_configuration,

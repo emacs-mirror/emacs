@@ -4075,7 +4075,7 @@ update_window (w, force_p)
   if (redisplay_dont_pause)
     force_p = 1;
   else
-    detect_input_pending ();
+    detect_input_pending_ignore_squeezables ();
 
   /* If forced to complete the update, or if no input is pending, do
      the update.  */
@@ -4149,7 +4149,7 @@ update_window (w, force_p)
 	       scrolling large windows with repeated scroll-up
 	       commands will too quickly pause redisplay.  */
 	    if (!force_p && ++n_updated % preempt_count == 0)
-	      detect_input_pending ();
+	      detect_input_pending_ignore_squeezables ();
 
 	    changed_p |= update_window_line (w, vpos,
 					     &mouse_face_overwritten_p);
@@ -5093,7 +5093,7 @@ update_frame_1 (f, force_p, inhibit_id_p)
 
   if (redisplay_dont_pause)
     force_p = 1;
-  else if (!force_p && detect_input_pending ())
+  else if (!force_p && detect_input_pending_ignore_squeezables ())
     {
       pause = 1;
       goto do_pause;
@@ -5149,7 +5149,7 @@ update_frame_1 (f, force_p, inhibit_id_p)
 	    }
 
 	  if ((i - 1) % preempt_count == 0)
-	    detect_input_pending ();
+	    detect_input_pending_ignore_squeezables ();
 
 	  update_frame_line (f, i);
 	}
@@ -5842,7 +5842,7 @@ mode_line_string (w, part, x, y, charpos, object, dx, dy, width, height)
          it's the one we were looking for.  */
       glyph = row->glyphs[TEXT_AREA];
       end = glyph + row->used[TEXT_AREA];
-      for (x0 = *x; glyph < end && x0 > glyph->pixel_width; ++glyph)
+      for (x0 = *x; glyph < end && x0 >= glyph->pixel_width; ++glyph)
 	x0 -= glyph->pixel_width;
       *x = glyph - row->glyphs[TEXT_AREA];
       if (glyph < end)
@@ -5934,7 +5934,7 @@ marginal_area_string (w, part, x, y, charpos, object, dx, dy, width, height)
 
       glyph = row->glyphs[area];
       end = glyph + row->used[area];
-      for (x0 = *x - x0; glyph < end && x0 > glyph->pixel_width; ++glyph)
+      for (x0 = *x - x0; glyph < end && x0 >= glyph->pixel_width; ++glyph)
 	x0 -= glyph->pixel_width;
       *x = glyph - row->glyphs[area];
       if (glyph < end)

@@ -1,3 +1,8 @@
+2005-01-22  Klaus Straubinger  <KSNetz@Arcor.DE>  (tiny change)
+
+	* url-http.el (url-http-parse-headers) <302>: Reset url-http-data
+	to nil, like for the 303 response.
+
 2005-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url.el (url-retrieve-synchronously): Use accept-process-output rather

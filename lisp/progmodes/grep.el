@@ -527,7 +527,8 @@ This command uses a special history list for its arguments, so you can
 easily repeat a find command."
   (interactive
    (progn
-     (unless grep-find-command
+     (unless (and grep-command
+		  (or (not grep-use-null-device) (eq grep-use-null-device t)))
        (grep-compute-defaults))
      (if grep-find-command
 	 (list (read-from-minibuffer "Run find (like this): "
@@ -540,6 +541,9 @@ easily repeat a find command."
   (when (and grep-find-command command-args)
     (let ((null-device nil))		; see grep
       (grep command-args))))
+
+;;;###autoload
+(defalias 'find-grep 'grep-find)
 
 (defun grep-expand-command-macros (command &optional regexp files dir excl case-fold)
   "Patch grep COMMAND replacing <D>, etc."

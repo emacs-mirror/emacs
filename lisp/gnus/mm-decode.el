@@ -1,5 +1,5 @@
 ;;; mm-decode.el --- Functions for decoding MIME things
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -1032,27 +1032,10 @@ external if displayed external."
 
 (defun mm-insert-part (handle)
   "Insert the contents of HANDLE in the current buffer."
-  (let ((cur (current-buffer)))
-    (save-excursion
-      (if (member (mm-handle-media-supertype handle) '("text" "message"))
-	  (with-temp-buffer
-	    (insert-buffer-substring (mm-handle-buffer handle))
-	    (prog1
-		(mm-decode-content-transfer-encoding
-		 (mm-handle-encoding handle)
-		 (mm-handle-media-type handle))
-	      (let ((temp (current-buffer)))
-		(set-buffer cur)
-		(insert-buffer-substring temp))))
-	(mm-with-unibyte-buffer
-	  (insert-buffer-substring (mm-handle-buffer handle))
-	  (prog1
-	      (mm-decode-content-transfer-encoding
-	       (mm-handle-encoding handle)
-	       (mm-handle-media-type handle))
-	    (let ((temp (current-buffer)))
-	      (set-buffer cur)
-	      (insert-buffer-substring temp))))))))
+  (save-excursion
+    (insert (if (mm-multibyte-p)
+		(mm-string-as-multibyte (mm-get-part handle))
+	      (mm-get-part handle)))))
 
 (defun mm-file-name-delete-whitespace (file-name)
   "Remove all whitespace characters from FILE-NAME."

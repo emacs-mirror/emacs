@@ -1214,7 +1214,7 @@ queries the server for the existing fields and displays a corresponding form."
 ;;; Load the options file
 (if (and (not noninteractive)
 	 (and (locate-library eudc-options-file)
-	      (message ""))		; Remove modeline message
+	      (progn (message "") t))   ; Remove modeline message
 	 (not (featurep 'eudc-options-file)))
     (load eudc-options-file))
 

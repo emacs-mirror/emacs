@@ -1,7 +1,7 @@
 ;;; simple.el --- basic editing commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;               2000, 2001, 2002, 2003, 2004
+;;               2000, 2001, 2002, 2003, 2004, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -647,13 +647,13 @@ If BACKWARD-ONLY is non-nil, only delete spaces before point."
        (skip-chars-backward " \t")
        (constrain-to-field nil orig-pos)))))
 
-(defun just-one-space (n)
+(defun just-one-space (&optional n)
   "Delete all spaces and tabs around point, leaving one space (or N spaces)."
   (interactive "*p")
   (let ((orig-pos (point)))
     (skip-chars-backward " \t")
     (constrain-to-field nil orig-pos)
-    (dotimes (i n)
+    (dotimes (i (or n 1))
       (if (= (following-char) ?\ )
 	  (forward-char 1)
 	(insert ?\ )))
@@ -3179,10 +3179,31 @@ Outline mode sets this."
       (or (memq prop buffer-invisibility-spec)
 	  (assq prop buffer-invisibility-spec)))))
 
+;; Perform vertical scrolling of tall images if necessary.
+(defun line-move (arg &optional noerror to-end)
+  (if auto-window-vscroll
+      (let ((forward (> arg 0))
+	    (pvis (pos-visible-in-window-p (window-start) nil t)))
+	(if (and pvis (null (nth 2 pvis))
+		 (> (nth (if forward 4 3) pvis) 0))
+	    (set-window-vscroll nil
+				(if forward
+				    (+ (window-vscroll nil t)
+				       (min (nth 4 pvis)
+					    (* (frame-char-height) arg)))
+				  (max 0
+				       (- (window-vscroll nil t)
+					  (min (nth 3 pvis)
+					       (* (frame-char-height) (- arg))))))
+				t)
+	  (set-window-vscroll nil 0)
+	  (line-move-1 arg noerror to-end)))
+    (line-move-1 arg noerror to-end)))
+
 ;; This is the guts of next-line and previous-line.
 ;; Arg says how many lines to move.
 ;; The value is t if we can move the specified number of lines.
-(defun line-move (arg &optional noerror to-end)
+(defun line-move-1 (arg &optional noerror to-end)
   ;; Don't run any point-motion hooks, and disregard intangibility,
   ;; for intermediate positions.
   (let ((inhibit-point-motion-hooks t)
@@ -4001,7 +4022,7 @@ when it is off screen)."
 		(setq matching-paren
 		      (let ((syntax (syntax-after blinkpos)))
 			(and (consp syntax)
-			     (eq (car syntax) 4)
+			     (eq (logand (car syntax) 255) 4)
 			     (cdr syntax)))
 		      mismatch
 		      (or (null matching-paren)

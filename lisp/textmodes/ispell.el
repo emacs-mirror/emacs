@@ -1091,7 +1091,7 @@ Protects against bogus binding of `enable-multibyte-characters' in XEmacs."
     table))
 
 ;; Return a string decoded from Nth element of the current dictionary
-;; while splice equivalent characters into the string.  This splicing
+;; while splicing equivalent characters into the string.  This splicing
 ;; is done only if the string is a regular expression of the form
 ;; "[...]" because, otherwise, splicing will result in incorrect
 ;; regular expression matching.
@@ -2794,6 +2794,15 @@ Point is placed at end of skipped region."
     string))
 
 
+(defun ispell-looking-at (string)
+  (let ((coding (ispell-get-coding-system))
+	(len (length string)))
+    (and (<= (+ (point) len) (point-max))
+	 (equal (encode-coding-string string coding)
+		(encode-coding-string (buffer-substring-no-properties
+				       (point) (+ (point) len))
+				      coding)))))
+
 ;;; Avoid error messages when compiling for these dynamic variables.
 (eval-when-compile
   (defvar start)
@@ -2842,12 +2851,7 @@ Returns the sum shift due to changes in word replacements."
 
 	    ;; Alignment cannot be tracked and this error will occur when
 	    ;; `query-replace' makes multiple corrections on the starting line.
-	    (if (/= (+ word-len (point))
-		    (progn
-		      ;; NB: Search can fail with Mule coding systems that don't
-		      ;;  display properly.  Ignore the error in this case?
-		      (search-forward (car poss) (+ word-len (point)) t)
-		      (point)))
+	    (or (ispell-looking-at (car poss))
 		;; This occurs due to filter pipe problems
 		(error (concat "Ispell misalignment: word "
 			       "`%s' point %d; probably incompatible versions")

@@ -390,8 +390,9 @@ problems."
       (and (interactive-p)
            (message "Type Break mode is already enabled")))
      (type-break-mode
-      (with-current-buffer (find-file-noselect type-break-file-name 'nowarn)
-        (setq buffer-save-without-query t))
+      (when type-break-file-name
+	(with-current-buffer (find-file-noselect type-break-file-name 'nowarn)
+	  (setq buffer-save-without-query t)))
 
       (or global-mode-string
           (setq global-mode-string '("")))

@@ -37,6 +37,10 @@ Boston, MA 02111-1307, USA.  */
 #define BSD_SYSTEM
 /* #define VMS */
 
+#ifndef	DARWIN
+#define	DARWIN 1
+#endif
+
 /* MAC_OS is used to conditionally compile code common to both MAC_OS8
    and MAC_OSX.  */
 #ifdef MAC_OSX
@@ -103,9 +107,17 @@ Boston, MA 02111-1307, USA.  */
 
 /*
  *	Define HAVE_PTYS if the system supports pty devices.
+ *      Note: PTYs are broken on darwin <6.  Use at your own risk.
  */
 
 #define HAVE_PTYS
+
+/**
+ * PTYs only work correctly on Darwin 7 or higher.  So make the
+ * default for process-connection-type dependent on the kernel
+ * version.
+ */
+#define MIN_PTY_KERNEL_VERSION '7' 
 
 /*
  *	Define NONSYSTEM_DIR_LIBRARY to make Emacs emulate

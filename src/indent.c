@@ -2071,6 +2071,7 @@ whether or not it is currently displayed in some window.  */)
   else
     {
       int it_start;
+      int oselective;
 
       SET_TEXT_POS (pt, PT, PT_BYTE);
       start_display (&it, w, pt);
@@ -2084,7 +2085,11 @@ whether or not it is currently displayed in some window.  */)
       it_start = IT_CHARPOS (it);
       reseat_at_previous_visible_line_start (&it);
       it.current_x = it.hpos = 0;
+      /* Temporarily disable selective display so we don't move too far */
+      oselective = it.selective;
+      it.selective = 0;
       move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
+      it.selective = oselective;
 
       /* Move back if we got too far.  This may happen if
 	 truncate-lines is on and PT is beyond right margin.  */

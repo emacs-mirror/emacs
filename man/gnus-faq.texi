@@ -1,6 +1,6 @@
 @c Insert  "\input texinfo" at 1st line before texing this file alone.
 @c -*-texinfo-*-
-@c Copyright (C) 1995, 2001, 2003, 2004 Free Software Foundation, Inc.
+@c Copyright (C) 1995, 2001, 2003, 2004, 2005 Free Software Foundation, Inc.
 @setfilename gnus-faq.info
 
 @c Frequently Asked Questions, FAQ - Introduction, Emacs for Heathens, Top
@@ -857,7 +857,7 @@ Answer:
 
  If you enter the group by saying 
  @samp{RET}
- in summary buffer with point over the group, only unread and ticked messages are loaded. Say
+ in group buffer with point over the group, only unread and ticked messages are loaded. Say
  @samp{C-u RET}
  instead to load all available messages. If you want only the e.g. 300 newest say
  @samp{C-u 300 RET}

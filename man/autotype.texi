@@ -400,7 +400,7 @@ directory for which Emacs could determine no specialized mode
   In Lisp (@pxref{(emacs)Init File}) you can use the function
 @code{define-auto-insert} to add to or modify
 @code{auto-insert-alist}.  See its documentation with @kbd{C-h f
-auto-insert-alist}.
+define-auto-insert}.
 
 @vindex auto-insert
   The variable @code{auto-insert} says what to do when @code{auto-insert} is
