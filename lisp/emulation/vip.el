@@ -169,8 +169,7 @@ No message."
 ;; changing mode
 
 (defun vip-change-mode (new-mode)
-  "Change mode to NEW-MODE.  NEW-MODE is either emacs-mode, vi-mode,
-or insert-mode."
+  "Change mode to NEW-MODE---either emacs-mode, vi-mode, or insert-mode."
   (or (eq new-mode vip-current-mode)
       (progn
 	(cond ((eq new-mode 'vi-mode)
@@ -278,74 +277,19 @@ Type `n' to quit this window for now.\n")
 
 ;; escape to emacs mode temporarily
 
-(defun vip-get-editor-command (l-map g-map &optional str)
-  "Read characters from keyboard until an editor command is formed, using
-local keymap L-MAP and global keymap G-MAP.  If the command is a
-self-insert-command, the character just read is returned instead.  Optional
-string STR is used as initial input string."
-  (let (char l-bind g-bind)
-    (setq char
-	  (if (or (null str) (string= str ""))
-	      (read-char)
-	    (string-to-char str)))
-    (setq last-command-char char)
-    (setq l-bind (vip-binding-of char l-map))
-    (if (null l-bind)
-	;; since local binding is empty, we concentrate on global one.
-	(progn
-	  (setq g-bind (vip-binding-of char g-map))
-	  (if (null g-bind)
-	      nil ;; return nil, since both bindings are void.
-	    (if (keymapp g-bind)
-		(vip-get-editor-command nil g-bind (vip-string-tail str))
-	      (if (eq g-bind 'self-insert-command) char g-bind))))
-      ;; local binding is nonvoid
-      (if (keymapp l-bind)
-	  ;; since l-bind is a keymap, we consider g-bind as well.
-	  (progn
-	    (setq g-bind (vip-binding-of char g-map))
-	    (if (null g-bind)
-		(vip-get-editor-command l-bind nil (vip-string-tail str))
-	      (if (keymapp g-bind)
-		  ;; both bindings are keymap
-		  (vip-get-editor-command l-bind g-bind (vip-string-tail str))
-		;; l-bind is a keymap, so we neglect g-bind
-		(vip-get-editor-command l-bind nil (vip-string-tail str)))))
-	;; l-bind is a command
-	(if (eq l-bind 'self-insert-command) char l-bind)))))
-
-(defun vip-binding-of (char map)
-  "Return key-binding of CHAR under keymap MAP.  It is nil if the binding
-is void, or a command, or a keymap"
-  (let ((val (if (listp map)
-		 (cdr (assq char map))
-	       (aref map char))))
-    (cond ((null val) nil)
-	  ((keymapp val)
-	   (if (symbolp val) (symbol-function val) val))
-	  (t
-	   ;; otherwise, it is a function which is either a real function or
-	   ;; a keymap fset to val.
-	   (let ((fun (symbol-function val)))
-	     (if (or (null fun) (keymapp fun)) fun val))))))
-
-(defun vip-escape-to-emacs (arg &optional char)
-  "Escape to emacs mode and execute one emacs command and then return to
-vi mode.  ARG is used as the prefix value for the executed command.  If
-CHAR is given it becomes the first character of the command."
+(defun vip-escape-to-emacs (arg &optional events)
+  "Escape to Emacs mode for one Emacs command.
+ARG is used as the prefix value for the executed command.  If
+EVENTS is a list of events, which become the beginning of the command."
   (interactive "P")
-  (let (com (buff (current-buffer)) (first t))
-    (if char (setq unread-command-events (list char)))
+  (let (com key (old-map (current-local-map)))
+    (if events (setq unread-command-events events))
     (setq prefix-arg arg)
-    (while (or first unread-command-events)
-      ;; this while loop is executed until unread command char will be
-      ;; exhausted.
-      (setq first nil)
-      (setq com (vip-get-editor-command vip-emacs-local-map global-map))
-      (if (numberp com)
-	  (vip-loop (vip-p-val prefix-arg)
-		    (insert (char-to-string com)))
-	(command-execute com prefix-arg)))
+    (use-local-map vip-emacs-local-map)
+    (unwind-protect
+	(setq com (key-binding (setq key (read-key-sequence nil))))
+      (use-local-map old-map))
+    (command-execute com prefix-arg)
     (setq prefix-arg nil)  ;; reset prefix arg
     ))
 
@@ -360,22 +304,22 @@ CHAR is given it becomes the first character of the command."
 (defun vip-ESC (arg)
   "Emulate ESC key in Emacs mode."
   (interactive "P")
-  (vip-escape-to-emacs arg ?\e))
+  (vip-escape-to-emacs arg '(?\e)))
 
 (defun vip-ctl-c (arg)
   "Emulate C-c key in Emacs mode."
   (interactive "P")
-  (vip-escape-to-emacs arg ?\C-c))
+  (vip-escape-to-emacs arg '(?\C-c)))
 
 (defun vip-ctl-x (arg)
   "Emulate C-x key in Emacs mode."
   (interactive "P")
-  (vip-escape-to-emacs arg ?\C-x))
+  (vip-escape-to-emacs arg '(?\C-x)))
 
 (defun vip-ctl-h (arg)
   "Emulate C-h key in Emacs mode."
   (interactive "P")
-  (vip-escape-to-emacs arg ?\C-h))
+  (vip-escape-to-emacs arg '(?\C-h)))
 
 
 ;; prefix argmument for vi mode
@@ -1881,12 +1825,7 @@ the query replace mode will toggle between string replace and regexp replace."
   (let ((char (read-char)))
     (if (and (<= ?A char) (<= char ?Z))
 	(setq char (- char (- ?A ?\C-a))))
-	  (setq prefix-arg arg)
-	  (command-execute
-	   (vip-get-editor-command
-	    vip-emacs-local-map global-map
-	    (format "%s%s" key (char-to-string char))))))
-  
+    (vip-escape-to-emacs arg (list (aref key 0) char))))
 
 ;; commands in insertion mode
 
