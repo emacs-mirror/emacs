@@ -2179,9 +2179,10 @@ is specified, returning t if it is specified."
 ;; This case is safe because the user gets to check it before it is used.
 (put 'compile-command 'safe-local-variable 'stringp)
 
-(defun risky-local-variable-p (sym val)
+(defun risky-local-variable-p (sym &optional val)
   "Non-nil if SYM could be dangerous as a file-local variable with value VAL.
-If VAL is nil, the question is whether any value might be dangerous."
+If VAL is nil or omitted, the question is whether any value might be
+dangerous."
   (let ((safep (get sym 'safe-local-variable)))
     (or (memq sym ignored-local-variables)
 	(get sym 'risky-local-variable)
