@@ -258,6 +258,7 @@ extern Lisp_Object Qface, Qinvisible, Qimage;
 
 Lisp_Object Qspace, QCalign_to, QCrelative_width, QCrelative_height;
 Lisp_Object Qleft_margin, Qright_margin, Qspace_width, Qheight, Qraise;
+Lisp_Object Qmargin;
 
 /* Non-nil means highlight trailing whitespace.  */
 
@@ -2212,8 +2213,11 @@ handle_display_prop (it)
     return HANDLED_NORMALLY;
 
   space_or_image_found_p = 0;
-  if (CONSP (prop) && CONSP (XCAR (prop)))
+  if (CONSP (prop)
+      && CONSP (XCAR (prop))
+      && !EQ (Qmargin, XCAR (XCAR (prop))))
     {
+      /* A list of sub-properties.  */
       while (CONSP (prop))
 	{
 	  if (handle_single_display_prop (it, XCAR (prop), object, position))
@@ -2431,8 +2435,8 @@ handle_single_display_prop (it, prop, object, position)
     }
   else if (!it->string_from_display_prop_p)
     {
-      /* `(left-margin VALUE)' or `(right-margin VALUE)
-	 or `(nil VALUE)' or VALUE.  */
+      /* `((margin left-margin) VALUE)' or `((margin right-margin)
+	 VALUE) or `((margin nil) VALUE)' or VALUE. */
       Lisp_Object location, value;
       struct text_pos start_pos;
       int valid_p;
@@ -2447,14 +2451,26 @@ handle_single_display_prop (it, prop, object, position)
 	 text properties change there.  */
       it->stop_charpos = position->charpos;
 
-      if (CONSP (prop)
-	  && !EQ (XCAR (prop), Qspace)
-	  && !EQ (XCAR (prop), Qimage))
+      location = Qunbound;
+      if (CONSP (prop) && CONSP (XCAR (prop)))
 	{
-	  location = XCAR (prop);
+	  Lisp_Object tem;
+	  
 	  value = XCDR (prop);
+	  if (CONSP (value))
+	    value = XCAR (value);
+
+	  tem = XCAR (prop);
+	  if (EQ (XCAR (tem), Qmargin)
+	      && (tem = XCDR (tem),
+		  tem = CONSP (tem) ? XCAR (tem) : Qnil,
+		  (NILP (tem)
+		   || EQ (tem, Qleft_margin)
+		   || EQ (tem, Qright_margin))))
+	    location = tem;
 	}
-      else
+
+      if (EQ (location, Qunbound))
 	{
 	  location = Qnil;
 	  value = prop;
@@ -8203,6 +8219,12 @@ compute_window_start_on_continuation_line (w)
     {
       struct it it;
       struct glyph_row *row;
+
+      /* Handle the case that the window start is out of range.  */
+      if (CHARPOS (start_pos) < BEGV)
+	SET_TEXT_POS (start_pos, BEGV, BEGV_BYTE);
+      else if (CHARPOS (start_pos) > ZV)
+	SET_TEXT_POS (start_pos, ZV, ZV_BYTE);
       
       /* Find the start of the continued line.  This should be fast
 	 because scan_buffer is fast (newline cache).  */
@@ -12611,9 +12633,8 @@ syms_of_xdisp ()
   staticpro (&Qinhibit_point_motion_hooks);
   Qinhibit_point_motion_hooks = intern ("inhibit-point-motion-hooks");
 
-  staticpro (&Qdisplay);
   Qdisplay = intern ("display");
-  staticpro (&Qleft_margin);
+  staticpro (&Qdisplay);
   Qspace_width = intern ("space-width");
   staticpro (&Qspace_width);
   Qheight = intern ("height");
@@ -12622,9 +12643,12 @@ syms_of_xdisp ()
   staticpro (&Qraise);
   Qspace = intern ("space");
   staticpro (&Qspace);
+  Qmargin = intern ("margin");
+  staticpro (&Qmargin);
   Qleft_margin = intern ("left-margin");
-  staticpro (&Qright_margin);
+  staticpro (&Qleft_margin);
   Qright_margin = intern ("right-margin");
+  staticpro (&Qright_margin);
   Qalign_to = intern ("align-to");
   staticpro (&Qalign_to);
   QCalign_to = intern (":align-to");
@@ -12640,9 +12664,9 @@ syms_of_xdisp ()
   QCeval = intern (":eval");
   staticpro (&QCeval);
   Qwhen = intern ("when");
+  staticpro (&Qwhen);
   QCfile = intern (":file");
   staticpro (&QCfile);
-  staticpro (&Qwhen);
   Qfontified = intern ("fontified");
   staticpro (&Qfontified);
   Qfontification_functions = intern ("fontification-functions");
@@ -12652,10 +12676,10 @@ syms_of_xdisp ()
   Qimage = intern ("image");
   staticpro (&Qimage);
 
-  staticpro (&last_arrow_position);
-  staticpro (&last_arrow_string);
   last_arrow_position = Qnil;
   last_arrow_string = Qnil;
+  staticpro (&last_arrow_position);
+  staticpro (&last_arrow_string);
   
   echo_buffer[0] = echo_buffer[1] = Qnil;
   staticpro (&echo_buffer[0]);
