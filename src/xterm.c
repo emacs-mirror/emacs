@@ -2940,7 +2940,16 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		       || IsKeypadKey (keysym) /* 0xff80 <= x < 0xffbe */
 		       || IsFunctionKey (keysym) /* 0xffbe <= x < 0xffe1 */
 		       || x_is_vendor_fkey (orig_keysym))
-		      && ! IsModifierKey (orig_keysym)) /* wherever */
+		      && ! (IsModifierKey (orig_keysym)
+#ifndef HAVE_X11R5
+#ifdef XK_Mode_switch
+			    || ((unsigned)(orig_keysym) == XK_Mode_switch)
+#endif
+#ifdef XK_Num_Lock
+			    || ((unsigned)(orig_keysym) == XK_Num_Lock)
+#endif
+#endif /* not HAVE_X11R5 */
+			    ))
 		    {
 		      if (temp_index == sizeof temp_buffer / sizeof (short))
 			temp_index = 0;
