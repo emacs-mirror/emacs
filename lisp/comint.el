@@ -1400,8 +1400,8 @@ applications."
         (done nil))
     (while (not done)
       (if stars
-          (message "%s%s" prompt (make-string (length ans) ?*))
-        (message prompt))
+	  (message "%s%s" prompt (make-string (length ans) ?*))
+	(message "%s" prompt))
       ;; Use this instead of `read-char' to avoid "Non-character input-event".
       (setq c (read-char-exclusive))
       (cond ((= c ?\C-g)
