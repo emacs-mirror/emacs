@@ -1,3 +1,7 @@
+2001-10-31  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* s/hpux11.h: New file.
+
 2001-10-31  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* emacs.c (USAGE1): Show command line option --no-window-system
