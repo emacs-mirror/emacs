@@ -1881,12 +1881,20 @@ but the contents viewed as characters do change.")
       set_intervals_multibyte (1);
     }
 
+  /* Changing the multibyteness of a buffer means that all windows
+     showing that buffer must be updated thoroughly.  */
+  current_buffer->prevent_redisplay_optimizations_p = 1;
+  ++windows_or_buffers_changed;
+
   /* Copy this buffer's new multibyte status
      into all of its indirect buffers.  */
   for (other = all_buffers; other; other = other->next)
     if (other->base_buffer == current_buffer && !NILP (other->name))
-      other->enable_multibyte_characters
-	= current_buffer->enable_multibyte_characters;
+      {
+	other->enable_multibyte_characters
+	  = current_buffer->enable_multibyte_characters;
+	other->prevent_redisplay_optimizations_p = 1;
+      }
 
   return flag;
 }
