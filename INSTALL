@@ -591,3 +591,9 @@ and info are accessed as subdirectories of the HOME directory.
 MSDOG is a not a multitasking operating system, so Emacs features such
 as asynchronous subprocesses that depend on multitasking will not
 work.  Synchronous subprocesses do work.
+
+The current version of djgpp 2.0 (as of August 1996) has two bugs that
+affect Emacs.  We've included corrected versions of two files from
+djgpp in the msdos subdirectory: is_exec.c and sigaction.c.  To work
+around the bugs, compile these files and link them into temacs.  The
+next version of djgpp should have these bugs fixed.
