@@ -628,6 +628,7 @@ enum move_it_result
 
 /* Function prototypes.  */
 
+static int cursor_row_p P_ ((struct window *, struct glyph_row *));
 static int redisplay_mode_lines P_ ((Lisp_Object, int));
 static char *decode_mode_spec_coding P_ ((Lisp_Object, char *, int));
 static int invisible_text_between_p P_ ((struct it *, int, int));
@@ -700,7 +701,6 @@ static void compute_line_metrics P_ ((struct it *));
 static void run_redisplay_end_trigger_hook P_ ((struct it *));
 static int get_overlay_strings P_ ((struct it *));
 static void next_overlay_string P_ ((struct it *));
-void set_iterator_to_next P_ ((struct it *));
 static void reseat P_ ((struct it *, struct text_pos, int));
 static void reseat_1 P_ ((struct it *, struct text_pos, int));
 static void back_to_previous_visible_line_start P_ ((struct it *));
@@ -726,7 +726,7 @@ static void init_to_row_start P_ ((struct it *, struct window *,
 static void init_to_row_end P_ ((struct it *, struct window *,
 				 struct glyph_row *));
 static void back_to_previous_line_start P_ ((struct it *));
-static void forward_to_next_line_start P_ ((struct it *));
+static int forward_to_next_line_start P_ ((struct it *, int *));
 static struct text_pos string_pos_nchars_ahead P_ ((struct text_pos,
 						    Lisp_Object, int));
 static struct text_pos string_pos P_ ((int, Lisp_Object));
@@ -1530,7 +1530,7 @@ start_display (it, w, pos)
 	      if (it->current.dpvec_index >= 0
 		  || it->current.overlay_string_index >= 0)
 		{
-		  set_iterator_to_next (it);
+		  set_iterator_to_next (it, 1);
 		  move_it_in_display_line_to (it, -1, -1, 0);
 		}
 	  
@@ -1607,6 +1607,7 @@ init_from_display_pos (it, w, pos)
       relative_index = (it->current.overlay_string_index
 			% OVERLAY_STRING_CHUNK_SIZE);
       it->string = it->overlay_strings[relative_index];
+      xassert (STRINGP (it->string));
       it->current.string_pos = pos->string_pos;
       it->method = next_element_from_string;
     }
@@ -1686,7 +1687,6 @@ handle_stop (it)
 
   it->dpvec = NULL;
   it->current.dpvec_index = -1;
-  it->add_overlay_start = 0;
 
   do
     {
@@ -2245,7 +2245,6 @@ handle_invisible_prop (it)
 	    = TEXT_PROP_MEANS_INVISIBLE_WITH_ELLIPSIS (prop);
 
 	  handled = HANDLED_RECOMPUTE_PROPS;
-	  it->add_overlay_start = IT_CHARPOS (*it);
 	  
 	  /* Loop skipping over invisible text.  The loop is left at
 	     ZV or with IT on the first char being visible again.  */
@@ -2976,12 +2975,13 @@ load_overlay_strings (it)
      struct it *it;
 {
   extern Lisp_Object Qafter_string, Qbefore_string, Qwindow, Qpriority;
-  Lisp_Object ov, overlay, window, str;
+  Lisp_Object ov, overlay, window, str, invisible;
   int start, end;
   int size = 20;
-  int n = 0, i, j;
+  int n = 0, i, j, invis_p;
   struct overlay_entry *entries
     = (struct overlay_entry *) alloca (size * sizeof *entries);
+  int charpos = IT_CHARPOS (*it);
 
   /* Append the overlay string STRING of overlay OVERLAY to vector
      `entries' which has size `size' and currently contains `n'
@@ -3020,14 +3020,12 @@ load_overlay_strings (it)
       start = OVERLAY_POSITION (OVERLAY_START (overlay));
       end = OVERLAY_POSITION (OVERLAY_END (overlay));
       
-      if (end < IT_CHARPOS (*it))
+      if (end < charpos)
 	break;
 
       /* Skip this overlay if it doesn't start or end at IT's current
 	 position.  */
-      if (end != IT_CHARPOS (*it)
-	  && start != IT_CHARPOS (*it)
-	  && it->add_overlay_start != IT_CHARPOS (*it))
+      if (end != charpos && start != charpos)
 	continue;
       
       /* Skip this overlay if it doesn't apply to IT->w.  */
@@ -3035,15 +3033,20 @@ load_overlay_strings (it)
       if (WINDOWP (window) && XWINDOW (window) != it->w)
 	continue;
 
+      /* If the text ``under'' the overlay is invisible, both before-
+	 and after-strings from this overlay are visible; start and
+	 end position are indistinguishable.  */
+      invisible = Foverlay_get (overlay, Qinvisible);
+      invis_p = TEXT_PROP_MEANS_INVISIBLE (invisible);
+
       /* If overlay has a non-empty before-string, record it.  */
-      if ((start == IT_CHARPOS (*it)
-	   || start == it->add_overlay_start)
+      if ((start == charpos || (end == charpos && invis_p))
 	  && (str = Foverlay_get (overlay, Qbefore_string), STRINGP (str))
 	  && XSTRING (str)->size)
 	RECORD_OVERLAY_STRING (overlay, str, 0);
       
       /* If overlay has a non-empty after-string, record it.  */
-      if (end == IT_CHARPOS (*it)
+      if ((end == charpos || (start == charpos && invis_p))
 	  && (str = Foverlay_get (overlay, Qafter_string), STRINGP (str))
 	  && XSTRING (str)->size)
 	RECORD_OVERLAY_STRING (overlay, str, 1);
@@ -3057,14 +3060,12 @@ load_overlay_strings (it)
       start = OVERLAY_POSITION (OVERLAY_START (overlay));
       end = OVERLAY_POSITION (OVERLAY_END (overlay));
 
-      if (start > IT_CHARPOS (*it))
+      if (start > charpos)
 	break;
       
       /* Skip this overlay if it doesn't start or end at IT's current
 	 position.  */
-      if (end != IT_CHARPOS (*it)
-	  && start != IT_CHARPOS (*it)
-	  && it->add_overlay_start != IT_CHARPOS (*it))
+      if (end != charpos && start != charpos)
 	continue;
 
       /* Skip this overlay if it doesn't apply to IT->w.  */
@@ -3072,15 +3073,19 @@ load_overlay_strings (it)
       if (WINDOWP (window) && XWINDOW (window) != it->w)
 	continue;
       
+      /* If the text ``under'' the overlay is invisible, it has a zero
+	 dimension, and both before- and after-strings apply.  */
+      invisible = Foverlay_get (overlay, Qinvisible);
+      invis_p = TEXT_PROP_MEANS_INVISIBLE (invisible);
+
       /* If overlay has a non-empty before-string, record it.  */
-      if ((start == IT_CHARPOS (*it)
-	   || start == it->add_overlay_start)
+      if ((start == charpos || (end == charpos && invis_p))
 	  && (str = Foverlay_get (overlay, Qbefore_string), STRINGP (str))
 	  && XSTRING (str)->size)
 	RECORD_OVERLAY_STRING (overlay, str, 0);
 			       
       /* If overlay has a non-empty after-string, record it.  */
-      if (end == IT_CHARPOS (*it)
+      if ((end == charpos || (start == charpos && invis_p))
 	  && (str = Foverlay_get (overlay, Qafter_string), STRINGP (str))
 	  && XSTRING (str)->size)
 	RECORD_OVERLAY_STRING (overlay, str, 1);
@@ -3089,7 +3094,7 @@ load_overlay_strings (it)
 #undef RECORD_OVERLAY_STRING
    
   /* Sort entries.  */
-  if (n)
+  if (n > 1)
     qsort (entries, n, sizeof *entries, compare_overlay_entries);
 
   /* Record the total number of strings to process.  */
@@ -3246,14 +3251,74 @@ back_to_previous_line_start (it)
 }
 
 
-/* Set IT's current position to the next line start.  */
+/* Move IT to the next line start.
+   
+   Value is non-zero if a newline was found.  Set *SKIPPED_P to 1 if
+   we skipped over part of the text (as opposed to moving the iterator
+   continuously over the text).  Otherwise, don't change the value
+   of *SKIPPED_P.
+   
+   Newlines may come from buffer text, overlay strings, or strings
+   displayed via the `display' property.  That's the reason we can't
+   simply use find_next_newline_no_quit.  */
 
-static void
-forward_to_next_line_start (it)
+static int
+forward_to_next_line_start (it, skipped_p)
      struct it *it;
+     int *skipped_p;
 {
-  IT_CHARPOS (*it) = find_next_newline_no_quit (IT_CHARPOS (*it), 1);
-  IT_BYTEPOS (*it) = CHAR_TO_BYTE (IT_CHARPOS (*it));
+  int newline_found_p, n;
+  const int MAX_NEWLINE_DISTANCE = 500;
+
+  /* Scan for a newline within MAX_NEWLINE_DISTANCE display elements
+     from buffer text.  */
+  n = newline_found_p = 0;
+  while (n < MAX_NEWLINE_DISTANCE
+	 && get_next_display_element (it)
+	 && !newline_found_p)
+    {
+      newline_found_p = ITERATOR_AT_END_OF_LINE_P (it);
+      set_iterator_to_next (it, 0);
+      if (!STRINGP (it->string))
+	++n;
+    }
+
+  /* If we didn't find a newline near enough, see if we can use a
+     short-cut.  */
+  if (!newline_found_p && n == MAX_NEWLINE_DISTANCE)
+    {
+      int start = IT_CHARPOS (*it);
+      int limit = find_next_newline_no_quit (start, 1);
+      Lisp_Object pos;
+
+      xassert (!STRINGP (it->string));
+
+      /* If there isn't any `display' property in sight, and no
+	 overlays, we can just use the position of the newline in
+	 buffer text.  */
+      if (it->stop_charpos >= limit
+	  || ((pos = Fnext_single_property_change (make_number (start),
+						   Qdisplay,
+						   Qnil, make_number (limit)),
+	       NILP (pos))
+	      && next_overlay_change (start) == ZV))
+	{
+	  IT_CHARPOS (*it) = limit;
+	  IT_BYTEPOS (*it) = CHAR_TO_BYTE (limit);
+	  *skipped_p = newline_found_p = 1;
+	}
+      else
+	{
+	  while (get_next_display_element (it)
+		 && !newline_found_p)
+	    {
+	      newline_found_p = ITERATOR_AT_END_OF_LINE_P (it);
+	      set_iterator_to_next (it, 0);
+	    }
+	}
+    }
+
+  return newline_found_p;
 }
 
 
@@ -3334,56 +3399,38 @@ reseat_at_next_visible_line_start (it, on_newline_p)
      struct it *it;
      int on_newline_p;
 {
-  /* Restore the buffer position when currently not delivering display
-     elements from the current buffer.  This is the case, for example,
-     when called at the end of a truncated overlay string.  */
-  while (it->sp)
-    pop_it (it);
-  it->method = next_element_from_buffer;
-  
-  /* Otherwise, scan_buffer would not work.  */
-  if (IT_CHARPOS (*it) < ZV)
+  int newline_found_p, skipped_p = 0;
+
+  newline_found_p = forward_to_next_line_start (it, &skipped_p);
+
+  /* Skip over lines that are invisible because they are indented
+     more than the value of IT->selective.  */
+  if (it->selective > 0)
+    while (IT_CHARPOS (*it) < ZV
+           && indented_beyond_p (IT_CHARPOS (*it), IT_BYTEPOS (*it),
+				 it->selective))
+      newline_found_p = forward_to_next_line_start (it, &skipped_p);
+
+  /* Position on the newline if that's what's requested.  */
+  if (on_newline_p && newline_found_p)
     {
-      /* If on a newline, advance past it.  Otherwise, find the next
-	 newline which automatically gives us the position following
-	 the newline.  */
-      if (FETCH_BYTE (IT_BYTEPOS (*it)) == '\n')
+      if (STRINGP (it->string))
 	{
-	  ++IT_CHARPOS (*it);
-	  ++IT_BYTEPOS (*it);
+	  if (IT_STRING_CHARPOS (*it) > 0)
+	    {
+	      --IT_STRING_CHARPOS (*it);
+	      --IT_STRING_BYTEPOS (*it);
+	    }
 	}
-      else
-	forward_to_next_line_start (it);
-
-      /* We must either have reached the end of the buffer or end up
-	 after a newline.  */
-      xassert (IT_CHARPOS (*it) == ZV
-	       || FETCH_BYTE (IT_BYTEPOS (*it) - 1) == '\n');
-
-      /* Skip over lines that are invisible because they are indented
-	 more than the value of IT->selective.  */
-      if (it->selective > 0)
-	while (IT_CHARPOS (*it) < ZV
-	       && indented_beyond_p (IT_CHARPOS (*it), IT_BYTEPOS (*it),
-				     it->selective))
-	  forward_to_next_line_start (it);
-
-      /* Position on the newline if we should.  */
-      if (on_newline_p
-	  && IT_CHARPOS (*it) > BEGV
-	  && FETCH_BYTE (IT_BYTEPOS (*it) - 1) == '\n')
+      else if (IT_CHARPOS (*it) > BEGV)
 	{
 	  --IT_CHARPOS (*it);
-	  IT_BYTEPOS (*it) = CHAR_TO_BYTE (IT_CHARPOS (*it));
+	  --IT_BYTEPOS (*it);
+	  reseat (it, it->current.pos, 0);
 	}
-      
-      /* Set the iterator there.  The 0 as the last parameter of
-	 reseat means don't force a text property lookup.  The lookup
-	 is then only done if we've skipped past the iterator's
-	 check_charpos'es.  This optimization is important because
-	 text property lookups tend to be expensive.  */
-      reseat (it, it->current.pos, 0);
     }
+  else if (skipped_p)
+    reseat (it, it->current.pos, 0);
   
   CHECK_IT (it);
 }
@@ -3724,6 +3771,9 @@ get_next_display_element (it)
 
 /* Move IT to the next display element.
 
+   RESEAT_P non-zero means if called on a newline in buffer text,
+   skip to the next visible line start.
+
    Functions get_next_display_element and set_iterator_to_next are
    separate because I find this arrangement easier to handle than a
    get_next_display_element function that also increments IT's
@@ -3735,15 +3785,16 @@ get_next_display_element (it)
    decrement position function which would not be easy to write.  */
 
 void
-set_iterator_to_next (it)
+set_iterator_to_next (it, reseat_p)
      struct it *it;
+     int reseat_p;
 {
   if (it->method == next_element_from_buffer)
     {
       /* The current display element of IT is a character from
 	 current_buffer.  Advance in the buffer, and maybe skip over
 	 invisible lines that are so because of selective display.  */
-      if (ITERATOR_AT_END_OF_LINE_P (it))
+      if (ITERATOR_AT_END_OF_LINE_P (it) && reseat_p)
 	reseat_at_next_visible_line_start (it, 0);
       else
 	{
@@ -3806,7 +3857,7 @@ set_iterator_to_next (it)
 	  else if (it->dpvec_char_len > 0)
 	    {
 	      it->len = it->dpvec_char_len;
-	      set_iterator_to_next (it);
+	      set_iterator_to_next (it, reseat_p);
 	    }
 	}
     }
@@ -4365,7 +4416,7 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 
       if (it->area != TEXT_AREA)
 	{
-	  set_iterator_to_next (it);
+	  set_iterator_to_next (it, 1);
 	  continue;
 	}
 
@@ -4423,7 +4474,7 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 		      ++it->hpos;
 		      it->current_x = new_x;
 		      if (i == it->nglyphs - 1)
-			set_iterator_to_next (it);
+			set_iterator_to_next (it, 1);
 		    }
 		  else
 		    {
@@ -4473,7 +4524,7 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
       
       /* The current display element has been consumed.  Advance
 	 to the next.  */
-      set_iterator_to_next (it);
+      set_iterator_to_next (it, 1);
       
       /* Stop if lines are truncated and IT's current x-position is
 	 past the right edge of the window now.  */
@@ -4632,7 +4683,7 @@ move_it_to (it, to_charpos, to_x, to_y, to_vpos, op)
 	  goto out;
 
 	case MOVE_NEWLINE_OR_CR:
-	  set_iterator_to_next (it);
+	  set_iterator_to_next (it, 1);
 	  it->continuation_lines_width = 0;
 	  break;
 
@@ -6998,7 +7049,7 @@ display_tool_bar_line (it)
       if (ITERATOR_AT_END_OF_LINE_P (it))
 	break;
 
-      set_iterator_to_next (it);
+      set_iterator_to_next (it, 1);
     }
 
  out:;
@@ -8904,17 +8955,11 @@ try_cursor_movement (window, startp, scroll_step)
 
 	      /* The end position of a row equals the start position
 		 of the next row.  If PT is there, we would rather
-		 display it in the next line.  Exceptions are when the
-		 row ends in the middle of a character, or ends in
-		 ZV.  */
-	      if (MATRIX_ROW_BOTTOM_Y (row) < last_y
-		  && MATRIX_ROW_END_CHARPOS (row) == PT
-		  && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row)
-		  && !row->ends_at_zv_p)
-		{
-		  xassert (row->enabled_p);
-		  ++row;
-		}
+		 display it in the next line.  */
+	      while (MATRIX_ROW_BOTTOM_Y (row) < last_y
+		     && MATRIX_ROW_END_CHARPOS (row) == PT
+		     && !cursor_row_p (w, row))
+		++row;
 
 	      /* If within the scroll margin, scroll.  Note that
 		 MATRIX_ROW_BOTTOM_Y gives the pixel position at which
@@ -11394,11 +11439,15 @@ append_space (it, default_face_p)
       if (it->glyph_row->glyphs[TEXT_AREA] + n
 	  < it->glyph_row->glyphs[1 + TEXT_AREA])
 	{
-	  /* Save some values that must not be changed.  */
-	  int saved_x = it->current_x;
-	  struct text_pos saved_pos;
+	  /* Save some values that must not be changed.
+	     Must save IT->c and IT->len because otherwise
+	     ITERATOR_AT_END_P wouldn't work anymore after
+	     append_space has been called.  */
 	  int saved_what = it->what;
+	  int saved_c = it->c, saved_len = it->len;
+	  int saved_x = it->current_x;
 	  int saved_face_id = it->face_id;
+	  struct text_pos saved_pos;
 	  Lisp_Object saved_object;
 	  struct face *face;
 
@@ -11423,6 +11472,8 @@ append_space (it, default_face_p)
 	  it->position = saved_pos;
 	  it->what = saved_what;
 	  it->face_id = saved_face_id;
+	  it->len = saved_len;
+	  it->c = saved_c;
 	  return 1;
 	}
     }
@@ -11581,6 +11632,38 @@ highlight_trailing_whitespace (f, row)
 }
 
 
+/* Value is non-zero if glyph row ROW in window W should be
+   used to put the cursor on.  */
+
+static int
+cursor_row_p (w, row)
+     struct window *w;
+     struct glyph_row *row;
+{
+  if (PT == MATRIX_ROW_END_CHARPOS (row))
+    {
+      /* If PT is at the end of ROW, and that row ends with a
+	 newline from a string, we don't want the cursor there.  */
+      if (row->end.overlay_string_index >= 0
+	  && ((truncate_partial_width_windows
+	       && !WINDOW_FULL_WIDTH_P (w))
+	      || !NILP (current_buffer->truncate_lines)))
+	return 0;
+
+      /* If PT is at the end of ROW, we normally want the cursor
+	 at the start of the row below, except when ROW ends
+	 at ZV or in the middle of a character.  */
+      if (MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row)
+	  || row->ends_at_zv_p)
+	return 1;
+
+      return 0;
+    }
+
+  return 1;
+}
+
+
 /* Construct the glyph row IT->glyph_row in the desired matrix of
    IT->w from text at the current position of IT.  See dispextern.h
    for an overview of struct it.  Value is non-zero if
@@ -11691,7 +11774,7 @@ display_line (it)
 	  row->phys_ascent = max (row->phys_ascent, it->max_phys_ascent);
 	  row->phys_height = max (row->phys_height,
 				  it->max_phys_ascent + it->max_phys_descent);
-	  set_iterator_to_next (it);
+	  set_iterator_to_next (it, 1);
 	  continue;
 	}
 
@@ -11753,7 +11836,7 @@ display_line (it)
 		      it->continuation_lines_width += new_x;
 		      ++it->hpos;
 		      if (i == nglyphs - 1)
-			set_iterator_to_next (it);
+			set_iterator_to_next (it, 1);
 		    }
 		  else if (CHAR_GLYPH_PADDING_P (*glyph)
 			   && !FRAME_WINDOW_P (it->f))
@@ -11862,14 +11945,14 @@ display_line (it)
 	    row->glyphs[TEXT_AREA]->charpos = CHARPOS (it->position);
 	  
 	  /* Consume the line end.  This skips over invisible lines.  */
-	  set_iterator_to_next (it);
+	  set_iterator_to_next (it, 1);
 	  it->continuation_lines_width = 0;
 	  break;
 	}
 
       /* Proceed with next display element.  Note that this skips 
 	 over lines invisible because of selective display.  */
-      set_iterator_to_next (it);
+      set_iterator_to_next (it, 1);
 
       /* If we truncate lines, we are done when the last displayed
 	 glyphs reach past the right margin of the window.  */
@@ -11955,17 +12038,9 @@ display_line (it)
   /* Maybe set the cursor.  */
   if (it->w->cursor.vpos < 0
       && PT >= MATRIX_ROW_START_CHARPOS (row)
-      && PT <= MATRIX_ROW_END_CHARPOS (row))
-    {
-      /* Also see redisplay_window, case cursor movement in unchanged
-	 window.  */
-      if (MATRIX_ROW_END_CHARPOS (row) == PT
-	  && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row)
-	  && !row->ends_at_zv_p)
-	;
-      else
-	set_cursor_from_row (it->w, row, it->w->desired_matrix, 0, 0, 0, 0);
-    }
+      && PT <= MATRIX_ROW_END_CHARPOS (row)
+      && cursor_row_p (it->w, row))
+    set_cursor_from_row (it->w, row, it->w->desired_matrix, 0, 0, 0, 0);
 
   /* Highlight trailing whitespace.  */
   if (!NILP (Vshow_trailing_whitespace))
@@ -13260,7 +13335,7 @@ display_string (string, lisp_string, face_string, face_string_pos,
 	  break;
 	}
 
-      set_iterator_to_next (it);
+      set_iterator_to_next (it, 1);
 
       /* Stop if truncating at the right edge.  */
       if (it->truncate_lines_p
