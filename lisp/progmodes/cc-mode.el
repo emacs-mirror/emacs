@@ -326,7 +326,7 @@
 	       'c-indent-new-comment-line)))
 
   ;; now set their values
-  (setq require-final-newline t
+  (setq require-final-newline c-require-final-newline
 	parse-sexp-ignore-comments t
 	indent-line-function 'c-indent-line
 	indent-region-function 'c-indent-region

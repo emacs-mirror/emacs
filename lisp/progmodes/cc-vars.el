@@ -704,6 +704,13 @@ space."
   :type 'function
   :group 'c)
 
+(defcustom c-require-final-newline t
+  "*Controls whether a final newline is added to the file when saved.
+This value is given to `require-final-newline' at mode initialization;
+see that variable for details."
+  :type 'symbol
+  :group 'c)
+
 (defcustom c-electric-pound-behavior nil
   "*List of behaviors for electric pound insertion.
 Only currently supported behavior is `alignleft'."
