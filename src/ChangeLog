@@ -1,5 +1,8 @@
 2004-11-21  Kim F. Storm  <storm@cua.dk>
 
+	* indent.c (Fvertical_motion): Fix last change.  Use another
+	method to detect if iterator moved too far ahead after reseat.
+
 	* xdisp.c (IT_EXPAND_MATRIX_WIDTH): New macro.  Do not
 	expand matrix width for overflow in zero-width area.
 	(append_glyph, append_composite_glyph, produce_image_glyph)
