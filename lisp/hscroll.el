@@ -62,7 +62,7 @@
 (defcustom hscroll-global-mode nil
   "Toggle horizontal scrolling.
 This variable should be set only with \\[customize], which is equivalent
-to using the function `hscroll-global-mode'.
+to using the function `hscroll-global-mode'."
   :set (lambda (symbol value)
 	 (hscroll-global-mode (if value 1 -1)))
   :initialize 'custom-initialize-default

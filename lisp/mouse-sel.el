@@ -153,7 +153,7 @@
   "Toggle Mouse Sel mode.
 When Mouse Sel mode is enabled, mouse selection is enhanced in various ways.
 This variable should be set only with \\[customize], which is equivalent
-to using the function `mouse-sel-mode'.
+to using the function `mouse-sel-mode'."
   :set (lambda (symbol value)
 	 (mouse-sel-mode (or value 0)))
   :initialize 'custom-initialize-default

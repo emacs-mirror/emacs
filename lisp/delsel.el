@@ -78,7 +78,7 @@ any selection."
   "Toggle Delete Selection mode.
 See command `delete-selection-mode'.
 This variable should be set only with \\[customize], which is equivalent
-to using the function `delete-selection-mode'.
+to using the function `delete-selection-mode'."
   :set (lambda (symbol value)
 	 (delete-selection-mode (or value 0)))
   :initialize 'custom-initialize-default
