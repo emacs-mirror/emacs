@@ -823,7 +823,10 @@ symbols.
 @item M-x c-set-style @key{RET} @var{style} @key{RET}
 Select predefined indentation style @var{style}.  Type @kbd{?} when
 entering @var{style} to see a list of supported styles; to find out what
-a style looks like, select it and reindent some C code.
+a style looks like, select it and reindent some C code, e.g., by typing
+@key{TAB} at the leftmost column of a few lines.  @xref{C Indent
+Styles}, for more details about available styles and their
+customizations.
 
 @item C-c C-o @var{symbol} @key{RET} @var{offset} @key{RET}
 Set the indentation offset for syntactic symbol @var{symbol}
@@ -1124,14 +1127,17 @@ modes, including @code{gnu}, @code{k&r}, @code{bsd}, @code{stroustrup},
 @code{ellemtel}, @code{cc-mode}, and @code{user}.
 
 @findex c-set-style
-@vindex c-default-style
   To choose the style you want, use the command @kbd{M-x c-set-style}.
 Specify a style name as an argument (case is not significant in C style
 names).  The chosen style only affects newly visited buffers, not those
-you are already editing.  You can also set the variable
-@code{c-default-style} to specify the style for various major modes.
-Its value should be an alist, in which each element specifies one major
-mode and which indentation style to use for it.  For example,
+you are already editing; to reindent an existing buffer, switch to that
+buffer and type @kbd{C-x h C-M-\}.
+
+@vindex c-default-style
+  You can also set the variable @code{c-default-style} to specify the
+style for various major modes.  Its value should be an alist, in which
+each element specifies one major mode and which indentation style to use
+for it.  For example,
 
 @example
 (setq c-default-style
@@ -1142,7 +1148,7 @@ mode and which indentation style to use for it.  For example,
 specifies an explicit choice for Java mode, and the default @samp{gnu}
 style for the other C-like modes.
 
-  The style @code{gnu} defines the formatting recommend by the GNU
+  The @code{gnu} style defines the formatting recommend by the GNU
 Project; it is the default, so as to encourage the indentation we
 recommend.  However, if you make changes in variables such as
 @code{c-basic-offset} and @code{c-offsets-alist} in your
@@ -1194,9 +1200,10 @@ correct matches are specified in the syntax table.
   Three variables control parenthesis match display.
 @code{blink-matching-paren} turns the feature on or off; @code{nil}
 turns it off, but the default is @code{t} to turn match display on.
-@code{blink-matching-delay} says how many seconds to wait; the default
-is 1, but on some systems it is useful to specify a fraction of a
-second.  @code{blink-matching-paren-distance} specifies how many
+@code{blink-matching-delay} says how many seconds to wait after moving
+the cursor to the matching open parenthesis, before moving it back; the
+default is 1, but on some systems it is useful to specify a fraction of
+a second.  @code{blink-matching-paren-distance} specifies how many
 characters back to search to find the matching opening delimiter.  If
 the match is not found in that far, scanning stops, and nothing is
 displayed.  This is to prevent scanning for the matching delimiter from
