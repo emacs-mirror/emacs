@@ -69,6 +69,7 @@ With argument, join this line to following line."
 	;; If the second line started with the fill prefix,
 	;; delete the prefix.
 	(if (and fill-prefix
+		 (<= (+ (point) (length fill-prefix)) (point-max))
 		 (string= fill-prefix
 			  (buffer-substring (point)
 					    (+ (point) (length fill-prefix)))))
@@ -1570,7 +1571,7 @@ In programs, it is faster to call `forward-word' with negative arg."
   "Kill characters forward until encountering the end of a word.
 With argument, do this that many times."
   (interactive "p")
-  (kill-region (point) (progn (forward-word arg) (point))))
+  (kill-region (point) (save-excursion (forward-word arg) (point))))
 
 (defun backward-kill-word (arg)
   "Kill characters backward until encountering the end of a word.
