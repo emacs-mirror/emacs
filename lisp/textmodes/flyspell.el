@@ -370,24 +370,8 @@ property of the major mode name.")
       (define-key map "\M-\t" #'flyspell-auto-correct-word)))
     map))
 
-;;;###autoload
-(defvar flyspell-mode-map (make-sparse-keymap))
-
-;; mouse, keyboard bindings and misc definition
-(when (or (assoc 'flyspell-mode minor-mode-map-alist)
-	  (setq minor-mode-map-alist
-		(cons (cons 'flyspell-mode flyspell-mode-map)
-		      minor-mode-map-alist)))
-  (define-key flyspell-mode-map "\M-\t" 'flyspell-auto-correct-word)
-  (define-key flyspell-mode-map [(mouse-2)]
-    (function flyspell-correct-word/local-keymap)))
-
-
 ;; the name of the overlay property that defines the keymap
-(defvar flyspell-overlay-keymap-property-name
-  (if (string-match "19.*XEmacs" emacs-version)
-      'keymap
-    'local-map))
+(defvar flyspell-overlay-keymap-property-name 'keymap)
 
 ;; dash character machinery
 (defvar flyspell-consider-dash-as-word-delimiter-flag nil
@@ -433,7 +417,7 @@ Bindings:
 \\[flyspell-correct-word] (or mouse-2): popup correct words.
 
 Hooks:
-flyspell-mode-hook is run after flyspell is entered.
+This runs `flyspell-mode-hook' after flyspell is entered.
 
 Remark:
 `flyspell-mode' uses `ispell-mode'.  Thus all Ispell options are
@@ -445,9 +429,8 @@ consider adding:
 \(add-hook 'tex-mode-hook (function (lambda () (setq ispell-parser 'tex))))
 in your .emacs file.
 
-flyspell-region checks all words inside a region.
-
-flyspell-buffer checks the whole buffer."
+\\[flyspell-region] checks all words inside a region.
+\\[flyspell-buffer] checks the whole buffer."
   (interactive "P")
   (let ((old-flyspell-mode flyspell-mode))
     ;; Mark the mode as on or off.
@@ -465,21 +448,11 @@ flyspell-buffer checks the whole buffer."
 ;*    Autoloading                                                      */
 ;*---------------------------------------------------------------------*/
 ;;;###autoload
-(if (fboundp 'add-minor-mode)
-    (add-minor-mode 'flyspell-mode
-		    'flyspell-mode-line-string
-		    flyspell-mode-map
-		    nil
-		    'flyspell-mode)
-  (or (assoc 'flyspell-mode minor-mode-alist)
-      (setq minor-mode-alist
-	    (cons '(flyspell-mode flyspell-mode-line-string)
-		  minor-mode-alist)))
-
-  (or (assoc 'flyspell-mode minor-mode-map-alist)
-      (setq minor-mode-map-alist
- 	    (cons (cons 'flyspell-mode flyspell-mode-map)
- 		  minor-mode-map-alist))))
+(add-minor-mode 'flyspell-mode
+		'flyspell-mode-line-string
+		nil
+		nil
+		'flyspell-mode)
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-buffers ...                                             */
@@ -532,10 +505,8 @@ flyspell-buffer checks the whole buffer."
   ;; we put the `flyspel-deplacement' property on some commands
   (flyspell-deplacement-commands)
   ;; we bound flyspell action to post-command hook
-  (make-local-hook 'post-command-hook)
   (add-hook 'post-command-hook (function flyspell-post-command-hook) t t)
   ;; we bound flyspell action to pre-command hook
-  (make-local-hook 'pre-command-hook)
   (add-hook 'pre-command-hook (function flyspell-pre-command-hook) t t)
   ;; we bound flyspell action to after-change hook
   (make-local-variable 'after-change-functions)
@@ -545,12 +516,6 @@ flyspell-buffer checks the whole buffer."
   (let ((mode-predicate (get major-mode 'flyspell-mode-predicate)))
     (if mode-predicate
 	(setq flyspell-generic-check-word-p mode-predicate)))
-  ;; work around the fact that the `local-map' text-property replaces the
-  ;; buffer's local map rather than shadowing it.
-  (set (make-local-variable 'flyspell-mouse-map)
-       (let ((map (copy-keymap flyspell-mouse-map)))
-	 (set-keymap-parent map (current-local-map))
-	 map))
   ;; the welcome message
   (if (and flyspell-issue-welcome-flag (interactive-p))
       (let ((binding (where-is-internal 'flyspell-auto-correct-word
@@ -560,16 +525,6 @@ flyspell-buffer checks the whole buffer."
 	     (format "Welcome to flyspell. Use %s or Mouse-2 to correct words."
 		     (key-description binding))
 	   "Welcome to flyspell. Use Mouse-2 to correct words."))))
-  
-  ;; Use this so that we can still get major mode bindings at a
-  ;; misspelled word (unless they're overridden by
-  ;; `flyspell-mouse-map').
-  (set (make-local-variable 'flyspell-local-mouse-map)
-       (let ((map (copy-keymap flyspell-mouse-map)))
-	 (if (eq flyspell-emacs 'xemacs)
-	     (set-keymap-parents (list (current-local-map)))
-	   (set-keymap-parent map (current-local-map)))
-	 map))
 
   ;; we end with the flyspell hooks
   (run-hooks 'flyspell-mode-hook))
@@ -1357,13 +1312,6 @@ Word syntax described by `ispell-dictionary-alist' (which see)."
 (defun flyspell-region (beg end)
   "Flyspell text between BEG and END."
   (interactive "r")
-  (unless (boundp 'flyspell-local-mouse-map)
-    (set (make-local-variable 'flyspell-local-mouse-map)
-	 (let ((map (copy-keymap flyspell-mouse-map)))
-	   (if (eq flyspell-emacs 'xemacs)
-	       (set-keymap-parents (list (current-local-map)))
-	     (set-keymap-parent map (current-local-map)))
-	   map)))
   (if (= beg end)
       ()
     (save-excursion
@@ -1495,7 +1443,7 @@ for the overlay."
     (if flyspell-use-local-map
 	(overlay-put flyspell-overlay
 		     flyspell-overlay-keymap-property-name
-		     flyspell-local-mouse-map))
+		     flyspell-mouse-map))
     flyspell-overlay))
     
 ;*---------------------------------------------------------------------*/
