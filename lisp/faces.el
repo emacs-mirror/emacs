@@ -270,9 +270,12 @@ If the face already exists, it is unmodified."
 ;;		(bgp (or (x-get-resource (concat name ".attributeBackgroundPixmap")
 ;;					 "Face.AttributeBackgroundPixmap")
 ;;			 (and set-anyway (face-background-pixmap face))))
-		(ulp (or (x-get-resource (concat name ".attributeUnderline")
-					 "Face.AttributeUnderline")
-			 (and set-anyway (face-underline-p face))))
+		(ulp (let ((resource (x-get-resource
+				      (concat name ".attributeUnderline")
+				      "Face.AttributeUnderline")))
+		       (if resource
+			   (member (downcase resource) '("on" "true"))
+			 (and set-anyway (face-underline-p face)))))
 		)
 	   (if fn
 	       (condition-case ()
@@ -812,9 +815,9 @@ selected frame."
 
       (if (cdr (or (assq 'reverse parameters)
 		   (assq 'reverse default-frame-alist)
-		   (cons nil
-			 (member (x-get-resource "reverseVideo" "ReverseVideo")
-				 '("on" "true")))))
+		   (cons nil (member (downcase (x-get-resource "reverseVideo"
+							       "ReverseVideo"))
+				     '("on" "true")))))
 	  (let ((params (frame-parameters frame)))
 	    (modify-frame-parameters
 	     frame
