@@ -963,15 +963,14 @@ Default is `bs--current-sort-function'."
          bs--current-sort-function)))
     (save-excursion
       (goto-char (point-min))
-      (if (and window-system
-        (nth 2 sort-description)
-        (search-forward-regexp (nth 2 sort-description) nil t))
-   (let ((inhibit-read-only t))
-     (put-text-property (match-beginning 0)
-          (match-end 0)
-          'face
-          (or (nth 3 sort-description)
-       'region)))))))
+      (if (and (nth 2 sort-description)
+	       (search-forward-regexp (nth 2 sort-description) nil t))
+	  (let ((inhibit-read-only t))
+	    (put-text-property (match-beginning 0)
+			       (match-end 0)
+			       'face
+			       (or (nth 3 sort-description)
+				   'region)))))))
 
 (defun bs-toggle-show-all ()
   "Toggle show all buffers / show buffers with current configuration."
