@@ -295,8 +295,9 @@ internal_self_insert (c1, noautofill)
   Lisp_Object tem;
   register enum syntaxcode synt;
   register int c = c1;
-  Lisp_Object overwrite = current_buffer->overwrite_mode;
+  Lisp_Object overwrite;
 
+  overwrite = current_buffer->overwrite_mode;
   if (!NILP (Vbefore_change_function) || !NILP (Vafter_change_function))
     hairy = 1;
 
