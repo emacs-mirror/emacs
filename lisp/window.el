@@ -522,7 +522,7 @@ header-line."
 	(set-window-vscroll window 0)
 	(while (and (< desired-height max-height)
 		    (= desired-height (window-height window))
-		    (not (pos-visible-in-window-p end window t)))
+		    (not (pos-visible-in-window-p end window)))
 	  (enlarge-window 1)
 	  (setq desired-height (1+ desired-height)))))))
 
