@@ -257,7 +257,7 @@ static void mycopy(mps_addr_t object, mps_addr_t to)
  mycell *boj = object;
  mycell *toj = to;
 
- asserts(boj->tag = MCdata, "copy: non-data object");
+ asserts(boj->tag == MCdata, "copy: non-data object");
 
  INCCOUNT(COPY_COUNT);
  commentif(formatcomments, "copy: %li: %p -> %p\n",
@@ -348,8 +348,8 @@ static void myfwd(mps_addr_t object, mps_addr_t to)
 
 void setref(mycell *obj, int n, mycell *to)
 {
- asserts(obj->tag = MCdata, "setref: from non-data object.");
- asserts((to==NULL)||(to->tag = MCdata), "setref: to non-data object.");
+ asserts(obj->tag == MCdata, "setref: from non-data object.");
+ asserts((to==NULL)||(to->tag == MCdata), "setref: to non-data object.");
  asserts(obj->data.numrefs > n, "setref: access beyond object size.");
 
  obj->data.ref[n].addr = to;
@@ -358,7 +358,7 @@ void setref(mycell *obj, int n, mycell *to)
 
 mycell *getref(mycell *obj, int n)
 {
- asserts(obj->tag = MCdata, "getref: from non-data object.");
+ asserts(obj->tag == MCdata, "getref: from non-data object.");
  asserts(obj->data.numrefs > n, "getref: access beyond object size.");
  return obj->data.ref[n].addr;
 }
@@ -370,19 +370,19 @@ mps_addr_t getdata(mycell *obj)
 
 long int getid(mycell *obj)
 {
- asserts(obj->tag = MCdata, "getid: non-data object.");
+ asserts(obj->tag == MCdata, "getid: non-data object.");
  return obj->data.id;
 }
 
 long int getcopycount(mycell *obj)
 {
- asserts(obj->tag = MCdata, "getcopycount: non-data object.");
+ asserts(obj->tag == MCdata, "getcopycount: non-data object.");
  return obj->data.copycount;
 }
 
 long int getsize(mycell *obj)
 {
- asserts(obj->tag = MCdata, "getsize: non-data object.");
+ asserts(obj->tag == MCdata, "getsize: non-data object.");
  return obj->data.numrefs;
 }
 
@@ -395,13 +395,13 @@ long int getsize(mycell *obj)
    checkflags to zero.
 */
 
-static void checkloop(mycell *obj, mps_word_t dir)
+static void checkloop(mycell *obj, int dir)
 {
  mycell *toj;
  int tid;
  int i;
 
- asserts(obj->tag = MCdata,
+ asserts(obj->tag == MCdata,
   "checkfrom: non data object in graph at %p.", obj);
 
  if (obj->data.checkedflag != dir)
@@ -418,7 +418,7 @@ static void checkloop(mycell *obj, mps_word_t dir)
    {
     toj = (obj->data.ref[i].addr);
     tid = (obj->data.ref[i].id);
-    asserts(toj->data.id = tid,
+    asserts(toj->data.id == tid,
      "checkfrom: corrupt graph at %p, %d.", obj, i);
     checkloop(toj, dir);
    }
