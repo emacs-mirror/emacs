@@ -41,6 +41,9 @@
 			   (progn (skip-chars-forward "^\"") (point))))
 
 
+(if (and (file-accessible-directory-p "../lisp/")
+	 (null (file-writable-p "../lisp/version.el")))
+    (delete-file "../lisp/version.el"))
 (write-region (point-min) (point-max) "../lisp/version.el" nil 'nomsg)
 (erase-buffer)
 (set-buffer-modified-p nil)
