@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:platform.h(trunk.3) $
+/* $HopeName: MMQA_harness!testlib:platform.h(trunk.4) $
 platform.h
    load appropriate header files to do platform-specific
    stuff.
@@ -31,7 +31,7 @@ void *memmove(void *to, void *from, size_t bytes);
 
 
 #ifdef MPS_OS_W3
-#ifdef MMQA_VERS_BQ
+#if (defined MMQA_VERS_BQ || defined MMQA_VERS_SW)
 
 /* in interface version BQ, we are required to include mpsw3.h on
    windows platforms
