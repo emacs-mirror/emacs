@@ -506,57 +506,73 @@ do not put this buffer at the front of the list of recently selected ones."
     (pop-to-buffer buffer t norecord)
     (raise-frame (window-frame (selected-window)))))
 
-(defun find-file (filename)
+(defun find-file (filename &optional coding-system)
   "Edit file FILENAME.
 Switch to a buffer visiting file FILENAME,
-creating one if none already exists."
-  (interactive "FFind file: ")
-  (switch-to-buffer (find-file-noselect filename)))
+creating one if none already exists.
+A prefix argument enables user to specify the coding-system interactively."
+  (interactive "FFind file: \nZCoding-system: ")
+  (if coding-system
+      (let ((coding-system-for-read coding-system))
+	(switch-to-buffer (find-file-noselect filename)))
+    (switch-to-buffer (find-file-noselect filename))))
 
-(defun find-file-other-window (filename)
+(defun find-file-other-window (filename &optional coding-system)
   "Edit file FILENAME, in another window.
 May create a new window, or reuse an existing one.
+A prefix argument enables user to specify the coding-system interactively.
 See the function `display-buffer'."
-  (interactive "FFind file in other window: ")
-  (switch-to-buffer-other-window (find-file-noselect filename)))
+  (interactive "FFind file in other window: \nZCoding-system: ")
+  (if coding-system
+      (let ((coding-system-for-read coding-system))
+	(switch-to-buffer-other-window (find-file-noselect filename)))
+    (switch-to-buffer-other-window (find-file-noselect filename))))
 
-(defun find-file-other-frame (filename)
+(defun find-file-other-frame (filename &optional coding-system)
   "Edit file FILENAME, in another frame.
 May create a new frame, or reuse an existing one.
+A prefix argument enables user to specify the coding-system interactively.
 See the function `display-buffer'."
-  (interactive "FFind file in other frame: ")
-  (switch-to-buffer-other-frame (find-file-noselect filename)))
+  (interactive "FFind file in other frame: \nZCoding-system: ")
+  (if coding-system
+      (let ((coding-system-for-read coding-system))
+	(switch-to-buffer-other-frame (find-file-noselect filename)))
+    (switch-to-buffer-other-frame (find-file-noselect filename))))
 
-(defun find-file-read-only (filename)
+(defun find-file-read-only (filename &optional coding-system)
   "Edit file FILENAME but don't allow changes.
 Like \\[find-file] but marks buffer as read-only.
+A prefix argument enables user to specify the coding-system interactively.
 Use \\[toggle-read-only] to permit editing."
-  (interactive "fFind file read-only: ")
-  (find-file filename)
+  (interactive "fFind file read-only: \nZCoding-system: ")
+  (find-file filename coding-system)
   (setq buffer-read-only t)
   (current-buffer))
 
-(defun find-file-read-only-other-window (filename)
+(defun find-file-read-only-other-window (filename &optional coding-system)
   "Edit file FILENAME in another window but don't allow changes.
 Like \\[find-file-other-window] but marks buffer as read-only.
+A prefix argument enables user to specify the coding-system interactively.
 Use \\[toggle-read-only] to permit editing."
-  (interactive "fFind file read-only other window: ")
-  (find-file-other-window filename)
+  (interactive "fFind file read-only other window: \nZCoding-system: ")
+  (find-file-other-window filename coding-system)
   (setq buffer-read-only t)
   (current-buffer))
 
-(defun find-file-read-only-other-frame (filename)
+(defun find-file-read-only-other-frame (filename &optional coding-system)
   "Edit file FILENAME in another frame but don't allow changes.
 Like \\[find-file-other-frame] but marks buffer as read-only.
+A prefix argument enables user to specify the coding-system interactively.
 Use \\[toggle-read-only] to permit editing."
-  (interactive "fFind file read-only other frame: ")
-  (find-file-other-frame filename)
+  (interactive "fFind file read-only other frame: \nZCoding-system: ")
+  (find-file-other-frame filename coding-system)
   (setq buffer-read-only t)
   (current-buffer))
 
-(defun find-alternate-file-other-window (filename)
+(defun find-alternate-file-other-window (filename &optional coding-system)
   "Find file FILENAME as a replacement for the file in the next window.
-This command does not select that window."
+This command does not select that window.
+A prefix argument enables user to specify the coding-system interactively."
   (interactive
    (save-selected-window
      (other-window 1)
@@ -567,17 +583,20 @@ This command does not select that window."
 	    (setq file-name (file-name-nondirectory file)
 		  file-dir (file-name-directory file)))
        (list (read-file-name
-	      "Find alternate file: " file-dir nil nil file-name)))))
+	      "Find alternate file: " file-dir nil nil file-name)
+	     (if current-prefix-arg
+		 (read-coding-system "Coding-system: "))))))
   (if (one-window-p)
-      (find-file-other-window filename)
+      (find-file-other-window filename coding-system)
     (save-selected-window
       (other-window 1)
-      (find-alternate-file filename))))
+      (find-alternate-file filename coding-system))))
 
-(defun find-alternate-file (filename)
+(defun find-alternate-file (filename &optional coding-system)
   "Find file FILENAME, select its buffer, kill previous buffer.
 If the current buffer now contains an empty file that you just visited
-\(presumably by mistake), use this command to visit the file you really want."
+\(presumably by mistake), use this command to visit the file you really want.
+A prefix argument enables user to specify the coding-system interactively."
   (interactive
    (let ((file buffer-file-name)
 	 (file-name nil)
@@ -586,7 +605,9 @@ If the current buffer now contains an empty file that you just visited
 	  (setq file-name (file-name-nondirectory file)
 		file-dir (file-name-directory file)))
      (list (read-file-name
-	    "Find alternate file: " file-dir nil nil file-name))))
+	    "Find alternate file: " file-dir nil nil file-name)
+	   (if current-prefix-arg
+	       (read-coding-system "Coding-system: ")))))
   (and (buffer-modified-p) (buffer-file-name)
        ;; (not buffer-read-only)
        (not (yes-or-no-p (format "Buffer %s is modified; kill anyway? "
@@ -606,7 +627,7 @@ If the current buffer now contains an empty file that you just visited
 	  (setq buffer-file-name nil)
 	  (setq buffer-file-number nil)
 	  (setq buffer-file-truename nil)
-	  (find-file filename))
+	  (find-file filename coding-system))
       (cond ((eq obuf (current-buffer))
 	     (setq buffer-file-name ofile)
 	     (setq buffer-file-number onum)
@@ -753,7 +774,9 @@ file name handlers and remote file access uses a file name handler."
   "Read file FILENAME into a buffer and return the buffer.
 If a buffer exists visiting FILENAME, return that one, but
 verify that the file has not changed since visited or saved.
-The buffer is not selected, just returned to the caller."
+The buffer is not selected, just returned to the caller.
+Optional first arg NOWARN non-nil means suppress any warning messages.
+Optional second arg RAWFILE non-nil means the file is read literally"
   (setq filename
 	(abbreviate-file-name
 	 (expand-file-name filename)))
@@ -1554,7 +1577,7 @@ the old visited file has been renamed to the new name FILENAME."
        (not along-with-file)
        (set-buffer-modified-p t)))
 
-(defun write-file (filename &optional confirm)
+(defun write-file (filename &optional confirm coding-system)
   "Write current buffer into file FILENAME.
 Makes buffer visit that file, and marks it not modified.
 If the buffer is already visiting a file, you can specify
@@ -1563,7 +1586,10 @@ old name in that directory.
 
 If optional second arg CONFIRM is non-nil,
 ask for confirmation for overwriting an existing file.
-Interactively, confirmation is required unless you supply a prefix argument."
+Interactively, confirmation is required unless you supply a prefix argument.
+
+A prefix argument also enables user to interactively specify a
+coding-system for encoding the file."
 ;;  (interactive "FWrite file: ")
   (interactive
    (list (if buffer-file-name
@@ -1573,7 +1599,10 @@ Interactively, confirmation is required unless you supply a prefix argument."
 			       (cdr (assq 'default-directory
 					  (buffer-local-variables)))
 			       nil nil (buffer-name)))
-	 (not current-prefix-arg)))
+	 (not current-prefix-arg)
+	 (if current-prefix-arg
+	     (read-coding-system "Coding-system: "))
+	 ))
   (or (null filename) (string-equal filename "")
       (progn
 	;; If arg is just a directory,
@@ -1587,7 +1616,13 @@ Interactively, confirmation is required unless you supply a prefix argument."
 		 (error "Canceled")))
 	(set-visited-file-name filename (not confirm))))
   (set-buffer-modified-p t)
-  (save-buffer))
+  (if coding-system
+      (let ((coding-system-for-write coding-system))
+	;; It is convenient to change buffer-file-coding-system to the
+	;; specified one.
+	(set-buffer-file-coding-system coding-system)
+	(save-buffer))
+    (save-buffer)))
 
 (defun backup-buffer ()
   "Make a backup of the disk file visited by the current buffer, if appropriate.
@@ -2116,27 +2151,36 @@ With arg, set read-only iff arg is positive."
             (> (prefix-numeric-value arg) 0)))
   (force-mode-line-update))
 
-(defun insert-file (filename)
+(defun insert-file (filename &optional coding-system)
   "Insert contents of file FILENAME into buffer after point.
 Set mark after the inserted text.
+A prefix argument enables user to specify the coding-system interactively.
 
 This function is meant for the user to run interactively.
 Don't call it from programs!  Use `insert-file-contents' instead.
 \(Its calling sequence is different; see its documentation)."
-  (interactive "*fInsert file: ")
+  (interactive "*fInsert file: \nZCoding-system: ")
   (if (file-directory-p filename)
       (signal 'file-error (list "Opening input file" "file is a directory"
 				filename)))
-  (let ((tem (insert-file-contents filename)))
+  (let ((tem
+	 (if coding-system
+	     (let ((coding-system-for-read coding-system))
+	       (insert-file-contents filename))
+	   (insert-file-contents filename))))
     (push-mark (+ (point) (car (cdr tem))))))
 
-(defun append-to-file (start end filename)
+(defun append-to-file (start end filename &optional coding-system)
   "Append the contents of the region to the end of file FILENAME.
 When called from a function, expects three arguments,
 START, END and FILENAME.  START and END are buffer positions
-saying what text to write."
-  (interactive "r\nFAppend to file: ")
-  (write-region start end filename t))
+saying what text to write.
+A prefix argument enables user to specify the coding-system interactively."
+  (interactive "r\nFAppend to file: \nZCoding-system: ")
+  (if coding-system
+      (let ((coding-system-for-write coding-system))
+	(write-region start end filename t))
+    (write-region start end filename t)))
 
 (defun file-newest-backup (filename)
   "Return most recent backup file for FILENAME or nil if no backups exist."
@@ -2355,7 +2399,9 @@ non-nil, it is called instead of rereading visited file contents."
 				 file file-name)))
 	     (yes-or-no-p (format "Recover auto save file %s? " file-name)))
 	   (switch-to-buffer (find-file-noselect file t))
-	   (let ((buffer-read-only nil))
+	   (let ((buffer-read-only nil)
+		 ;; Auto-saved file shoule be read without any code conversion.
+		 (coding-system-for-read 'no-conversion))
 	     (erase-buffer)
 	     (insert-file-contents file-name nil))
 	   (after-find-file nil nil t))
