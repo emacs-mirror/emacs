@@ -1,6 +1,6 @@
 ;;; iso-acc.el --- minor mode providing electric accent keys
 
-;; Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1996, 2001 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans
 ;; Maintainer: FSF
@@ -319,7 +319,7 @@ the language you choose)."
 	   entry))
       ;; Otherwise, advance and schedule the second key for execution.
       (setq unread-command-events
-	    (cons (list second-char) unread-command-events))
+	    (push second-char unread-command-events))
       (vector first-char))))
 
 ;; It is a matter of taste if you want the minor mode indicated
