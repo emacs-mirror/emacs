@@ -314,9 +314,9 @@ according to `smerge-match-conflict'.")
   "Pop up the Smerge mode context menu under mouse."
   (interactive "e")
   (if (and smerge-mode
-	   (save-excursion (mouse-set-point event) (smerge-check 1)))
+	   (save-excursion (posn-set-point (event-end event)) (smerge-check 1)))
       (progn
-	(mouse-set-point event)
+	(posn-set-point (event-end event))
 	(smerge-match-conflict)
 	(let ((i (smerge-get-current))
 	      o)
