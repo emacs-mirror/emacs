@@ -2776,8 +2776,8 @@ Transposing beyond buffer boundaries is an error.")
 			 start1_byte, start1_byte + len1_byte,
 			 start2_byte, start2_byte + len2_byte);
 
-      replace_range (text1, start2, end2, 1, 0, 1);
-      replace_range (text2, start1, end1, 1, 0, 1);
+      replace_range (start2, end2, text1, 1, 0, 1);
+      replace_range (start1, end1, text2, 1, 0, 1);
 
       UNGCPRO;
       return Qnil;
