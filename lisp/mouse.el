@@ -371,7 +371,15 @@ and selects that window."
 	 (list "Buffer Menu"
 	       (cons "Select Buffer"
 		     (let ((tail (buffer-list))
+			   (maxbuf 0)
 			   head)
+		       (while tail
+			 (or (eq ?\ (aref (buffer-name (car tail)) 0))
+			     (setq maxbuf
+				   (max maxbuf
+					(length (buffer-name (car tail))))))
+			 (setq tail (cdr tail)))
+		       (setq tail (buffer-list))
 		       (while tail
 			 (let ((elt (car tail)))
 			   (if (not (string-match "^ "
@@ -379,8 +387,14 @@ and selects that window."
 			       (setq head (cons
 					   (cons
 					    (format
-					     "%-14s   %s"
+					     (format "%%%ds  %%s%%s  %%s"
+						     maxbuf)
 					     (buffer-name elt)
+					     (if (buffer-modified-p elt)
+						 "*" " ")
+					     (save-excursion
+					       (set-buffer elt)
+					       (if buffer-read-only "%" " "))
 					     (or (buffer-file-name elt) ""))
 					    elt)
 					   head))))
