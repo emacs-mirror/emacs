@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.25) $
+ * $HopeName: MMsrc!poolawl.c(trunk.26) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.25) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.26) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -244,16 +244,25 @@ static void AWLFinish(Pool pool)
 
 /* AWLBufferInit -- the buffer init method
  *
- * This just sets rankSet.
+ * This just sets rankSet from the client passed parameter.
  */
 
 static Res AWLBufferInit(Pool pool, Buffer buffer, va_list args)
 {
+  Rank rank;
+
   AVERT(Pool, pool);
   AVERT(AWL, PoolPoolAWL(pool));
-  UNUSED(args);
 
-  buffer->rankSet = RankSetSingle(RankWEAK);
+  /* Assumes pun compatibility between Rank and mps_rank_t */
+  /* Which is checkd by mpsi_check in impl.c.mpsi */
+  rank = va_arg(args, Rank);
+
+  AVER(RankCheck(rank));
+  /* AWL only accepts two ranks */
+  AVER(rank == RankEXACT || rank == RankWEAK);
+
+  buffer->rankSet = RankSetSingle(rank);
   return ResOK;
 }
 
