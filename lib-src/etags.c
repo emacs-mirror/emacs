@@ -31,7 +31,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 11.8";
+char pot_etags_version[] = "@(#) pot revision number is 11.9";
 
 #ifdef MSDOS
 #include <fcntl.h>
@@ -291,12 +291,14 @@ int noindentypedefs;		/* -S: ignore indentation in C */
 /* Name this program was invoked with.  */
 char *progname;
 
-struct option longopts[] = {
+struct option longopts[] =
+{
   { "append",			no_argument,	   NULL, 'a' },
   { "backward-search",		no_argument,	   NULL, 'B' }, 
   { "c++",			no_argument,	   NULL, 'C' },
   { "cxref",			no_argument,	   NULL, 'x' },
   { "defines",			no_argument,	   NULL, 'd' },
+  { "help",			no_argument,	   NULL, 'h' },
   { "help",			no_argument,	   NULL, 'H' },
   { "ignore-indentation",	no_argument,	   NULL, 'S' },
   { "include",			required_argument, NULL, 'i' },
@@ -531,18 +533,18 @@ names from stdin.\n\n", progname);
       puts ("-l LANG, --language=LANG\n\
         Force the following files to be considered as written in the\n\
 	named language up to the next --language=LANG option.");
+    }
+
 #ifdef ETAGS_REGEXPS
-      puts ("-r /REGEXP/, --regex=/REGEXP/\n\
+  puts ("-r /REGEXP/, --regex=/REGEXP/\n\
         Make a tag for each line matching pattern REGEXP in the\n\
  	following files.  REGEXP is anchored (as if preceded by ^).\n\
 	The form /REGEXP/NAME/ creates a named tag.  For example Tcl\n\
 	named tags can be created with:\n\
 	--regex=/proc[ \\t]+\\([^ \\t]+\\)/\\1/.");
-      puts ("-R, --no-regex\n\
+  puts ("-R, --no-regex\n\
         Don't create tags from regexps for the following files.");
 #endif /* ETAGS_REGEXPS */
-    }
-
   puts ("-o FILE, --output=FILE\n\
         Write the tags to FILE.");
   puts ("-S, --ignore-indentation\n\
@@ -581,7 +583,7 @@ names from stdin.\n\n", progname);
 
   puts ("-V, --version\n\
         Print the version of the program.\n\
--H, --help\n\
+-h, --help\n\
         Print this help message.");
 
   print_language_names ();
@@ -771,7 +773,7 @@ main (argc, argv)
   while (1)
     {
       int opt = getopt_long (argc, argv,
-			     "-aCdDf:l:o:r:RStTi:BuvxwVH", longopts, 0);
+			     "-aCdDf:l:o:r:RStTi:BuvxwVhH", longopts, 0);
 
       if (opt == EOF)
 	break;
@@ -842,6 +844,7 @@ main (argc, argv)
 	case 'V':
 	  print_version ();
 	  break;
+	case 'h':
 	case 'H':
 	  print_help ();
 	  break;
@@ -852,16 +855,12 @@ main (argc, argv)
 	  typedefs++;
 	  typedefs_and_cplusplus++;
 	  break;
-
 #if (!CTAGS)
-
 	  /* Etags options */
 	case 'i':
 	  included_files[nincluded_files++] = optarg;
 	  break;
-
 #else /* CTAGS */
-
 	  /* Ctags options. */
 	case 'B':
 	  searchar = '?';
@@ -878,9 +877,7 @@ main (argc, argv)
 	case 'w':
 	  no_warnings++;
 	  break;
-
 #endif /* CTAGS */
-
 	default:
 	  fprintf (stderr,
 		   "%s: -%c flag not recognised.\n", progname, opt);
