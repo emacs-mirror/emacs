@@ -355,7 +355,7 @@ Boston, MA 02111-1307, USA.  */
 
 #if defined __i386__ || defined __sparc__ || defined __mc68000__ \
     || defined __alpha__ || defined __mips__ || defined __s390__ \
-    || defined __arm__ || defined __powerpc__
+    || defined __arm__ || defined __powerpc__ || defined __amd64__
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
 #ifdef __mc68000__
