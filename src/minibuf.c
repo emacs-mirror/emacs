@@ -1019,7 +1019,7 @@ Each car of each element of ALIST is tested to see if it begins with STRING.\n\
 All that match are compared together; the longest initial sequence\n\
 common to all matches is returned as a string.\n\
 If there is no match at all, nil is returned.\n\
-For an exact match, t is returned.\n\
+For a unique match which is exact, t is returned.\n\
 \n\
 ALIST can be an obarray instead of an alist.\n\
 Then the print names of all symbols in the obarray are the possible matches.\n\
