@@ -1,3 +1,8 @@
+2003-02-10  KAWABATA, Taichi  <batta@beige.ocn.ne.jp>
+
+	* language/ind-util.el (indian-itrans-v5-table): Add entries for
+	"E" and "O".
+
 2003-02-10  Martin Stjernholm  <mast@lysator.liu.se>
 
 	* progmodes/cc-styles.el (c-set-offset): Don't find a default
