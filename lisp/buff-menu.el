@@ -373,7 +373,9 @@ in the selected frame."
 	(others ())
 	tem)
     (goto-char (point-min))
-    (while (search-forward "\n>" nil t)
+    (unless Buffer-menu-use-header-line
+      (forward-line 1))
+    (while (re-search-forward "^>" nil t)
       (setq tem (Buffer-menu-buffer t))
       (let ((buffer-read-only nil))
 	(delete-char -1)
