@@ -2874,6 +2874,12 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		      || keysym == XK_Delete
 		      || IsCursorKey (keysym)       /* 0xff50 <= x < 0xff60 */
 		      || IsMiscFunctionKey (keysym) /* 0xff60 <= x < 0xff80 */
+#ifdef HPUX
+		      /* This recognizes the "extended function keys".
+			 It seems there's no cleaner way.  */
+		      || ((unsigned) (keysym) >= XK_Select
+			  && (unsigned)(keysym) < XK_KP_Space)
+#endif
 		      || IsKeypadKey (keysym)       /* 0xff80 <= x < 0xffbe */
 		      || IsFunctionKey (keysym))    /* 0xffbe <= x < 0xffe1 */
 		    {
