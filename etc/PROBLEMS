@@ -1083,8 +1083,8 @@ backtraces like this:
    4 _rld_text_resolve(0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0)
  ["/comp2/mtibuild/v73/workarea/v7.3/rld/rld_bridge.s":175, 0xfb6032c]
 
-(`rld' is the dynamic linker.)  We don't know yet why does this
-happen, but setting the environment variable LD_BIND_NOW to 1 (which
+(`rld' is the dynamic linker.)  We don't know yet why this
+happens, but setting the environment variable LD_BIND_NOW to 1 (which
 forces the dynamic linker to bind all shared objects early on) seems
 to work around the problem.
 
