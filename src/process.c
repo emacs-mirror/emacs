@@ -3850,6 +3850,8 @@ text to PROCESS after you call this function.")
     send_process (proc, "\004", 1, Qnil);
   else
     {
+      int old_outfd, new_outfd;
+
 #ifdef HAVE_SHUTDOWN
       /* If this is a network connection, or socketpair is used
 	 for communication with the subprocess, call shutdown to cause EOF.
@@ -3864,7 +3866,19 @@ text to PROCESS after you call this function.")
 #else /* not HAVE_SHUTDOWN */
       close (XINT (XPROCESS (proc)->outfd));
 #endif /* not HAVE_SHUTDOWN */
-      XSETINT (XPROCESS (proc)->outfd, open (NULL_DEVICE, O_WRONLY));
+      new_outfd = open (NULL_DEVICE, O_WRONLY);
+      old_outfd = XINT (XPROCESS (proc)->outfd);
+
+      if (!proc_encode_coding_system[new_outfd])
+	proc_encode_coding_system[new_outfd]
+	  = (struct coding_system *) xmalloc (sizeof (struct coding_system));
+      bcopy (proc_encode_coding_system[old_outfd],
+	     proc_encode_coding_system[new_outfd],
+	     sizeof (struct coding_system));
+      bzero (proc_encode_coding_system[old_outfd],
+	     sizeof (struct coding_system));
+
+      XSETINT (XPROCESS (proc)->outfd, new_outfd);
     }
 #endif /* VMS */
   return process;
