@@ -3842,7 +3842,7 @@ syms_of_coding ()
 
   DEFVAR_LISP ("coding-system-for-read", &Vcoding_system_for_read,
     "Specify the coding system for read operations.\n\
-It is useful to bind this variable with `let', but do not set it globally.
+It is useful to bind this variable with `let', but do not set it globally.\n\
 If the value is a coding system, it is used for decoding on read operation.\n\
 If not, an appropriate element is used from one of the coding system alists:\n\
 There are three such tables, `file-coding-system-alist',\n\
@@ -3851,7 +3851,7 @@ There are three such tables, `file-coding-system-alist',\n\
 
   DEFVAR_LISP ("coding-system-for-write", &Vcoding_system_for_write,
     "Specify the coding system for write operations.\n\
-It is useful to bind this variable with `let', but do not set it globally.
+It is useful to bind this variable with `let', but do not set it globally.\n\
 If the value is a coding system, it is used for encoding on write operation.\n\
 If not, an appropriate element is used from one of the coding system alists:\n\
 There are three such tables, `file-coding-system-alist',\n\
