@@ -62,6 +62,7 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
 		   (not before-change-functions)
 		   ;; Make sure there are no markers here.
 		   (not (buffer-has-markers-at (1- (point))))
+		   (not (buffer-has-markers-at (point)))
 		   ;; Make sure no text properties want to know
 		   ;; where the change was.
 		   (not (get-char-property (1- (point)) 'modification-hooks))
@@ -93,11 +94,13 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
 	  (self-insert-command (prefix-numeric-value arg))
 	;; If we get an error in self-insert-command, put point at right place.
 	(if flag (forward-char 1))))
-    ;; If we did *not* get an error, cancel that forward-char.
-    (if flag (backward-char 1))
+    ;; Even if we did *not* get an error, keep that forward-char;
+    ;; all further processing should apply to the newline that the user
+    ;; thinks he inserted.
+
     ;; Mark the newline(s) `hard'.
     (if use-hard-newlines
-	(set-hard-newline-properties 
+	(set-hard-newline-properties
 	 (- (point) (if arg (prefix-numeric-value arg) 1)) (point)))
     ;; If the newline leaves the previous line blank,
     ;; and we have a left margin, delete that from the blank line.
@@ -108,7 +111,6 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
 	  (and (looking-at "[ \t]$")
 	       (> (current-left-margin) 0)
 	       (delete-region (point) (progn (end-of-line) (point))))))
-    (if flag (forward-char 1))
     ;; Indent the line after the newline, except in one case:
     ;; when we added the newline at the beginning of a line
     ;; which starts a page.
