@@ -1,3 +1,8 @@
+2005-04-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dired.el (dired-copy-filename-as-kill): Make `-' arg behave like
+	`-1'.  Doc fix.
+
 2005-04-04  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-insert-mode-line-in-empty-file): Changed
