@@ -1,3 +1,31 @@
+2000-03-04  Jason Rumney  <jasonr@gnu.org>
+
+	* xfaces.c Change many FRAME_X... macros to FRAME_WINDOW... or
+	other non-platform-specific equivalents.
+	[WINDOWSNT]: include w32term.h, fontset.h and define X
+	specific functions and macros as their w32 equivalents where
+	non-platform-specifics are not available.
+	[HAVE_X_WINDOWS]: Change most of these to HAVE_WINDOW_SYSTEM.
+	(x_create_gc, x_free_gc) [WINDOWSNT]: Add W32 versions.
+	(clear_font_table) [WINDOWSNT]: Call w32_unload_font.
+	(frame_update_line_height): Use macros to access f->output_data.
+	(defined_color): Remove FIXME comments; fixed.
+	(x_face_list_fonts, prepare_face_for_display): Put X specifics
+	into #ifdef blocks. Add WINDOWSNT blocks.
+	(Fx_list_fonts): Use macros for accessing font data.
+	(set_lface_from_font_name): Different default fonts for X and
+	WINDOWSNT.
+	(font_scalable_p) [WINDOWSNT]: Treat wildcard XLFD_AVGWIDTH as
+	scalable for backward compatibility.
+	(realize_tty_face) [MSDOS]: do the same for WINDOWSNT.
+	(syms_of_xfaces) [WINDOWSNT]: Allow scalable fonts by default.
+
+	* emacs.c (main) [HAVE_NTGUI]: call syms_of_xfaces instead of
+	syms_of_w32faces.
+
+	* makefile.nt (w32faces.obj): Remove.
+	(xfaces.obj): Add.
+
 2000-03-03  Jason Rumney  <jasonr@gnu.org>
 
 	* keyboard.c (make_lispy_event): Call buffer_posn_from_coords with
