@@ -1,6 +1,6 @@
 /* impl.c.fmtdy: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!fmtdy.c(trunk.12) $
+ *  $HopeName: MMsrc!fmtdy.c(trunk.13) $
  *  Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  *
  *  All objects, B:
@@ -70,6 +70,17 @@
 #define unused(param)   ((void)param)
 
 #define ALIGN           sizeof(mps_word_t)
+
+#ifdef FMTDY_COUNTING
+#define FMTDY_COUNT(x) x
+#define FMTDY_FL_LIMIT 16
+static unsigned long dylan_vff_counts[4*8];
+static unsigned long dylan_fl_counts[FMTDY_FL_LIMIT];
+static unsigned long dylan_fl_oversize_count;
+static unsigned long dylan_fw_counts[2];
+#else
+#define FMTDY_COUNT(x)
+#endif /* FMTDY_COUNTING */
 
 
 #ifndef NDEBUG
@@ -343,11 +354,14 @@ static mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
   if(h & 3) {
     mps_addr_t l;
 
-    if((h & 3) == 1)            /* single-word */
+    if((h & 3) == 1) {
+      /* single-word */
       l = (mps_addr_t)(p + 1);
-    else {                      /* multi-word */
+      FMTDY_COUNT(++dylan_fw_counts[0]);
+    } else {                      /* multi-word */
       assert((h & 3) == 2);
       l = (mps_addr_t)p[1];
+      FMTDY_COUNT(++dylan_fw_counts[1]);
     }
 
     *object_io = l;
@@ -368,6 +382,8 @@ static mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
   /* It might be worth inlining common cases here, for example, */
   /* pairs.  This can be done by examining fh as a whole. */
 
+  FMTDY_COUNT(fl < FMTDY_FL_LIMIT ? ++dylan_fl_counts[fl] :
+                                       ++dylan_fl_oversize_count);
   if(fl > 0) {
     q = p + fl;                 /* set q to end of fixed part */
     switch(fh & 3) {            /* switch on the fixed format */
@@ -395,6 +411,7 @@ static mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
   /* Variable Part */
   vh = w[WV];
   vf = vh & 7;                  /* get variable part format */
+  FMTDY_COUNT(++dylan_vff_counts[(vf << 2)|(fh&3)]);
   if(vf != 7)
   {
     vt = *(mps_word_t *)p;      /* total vector length */
