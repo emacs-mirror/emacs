@@ -1,166 +1,219 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1997, 1999 Free Software Foundation, Inc.
+@c Copyright (C) 1997, 1999, 2000 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 
 @node Antinews, MS-DOS, Command Arguments, Top
-@appendix Emacs 19 Antinews
+@appendix Emacs 20 Antinews
 
   For those users who live backwards in time, here is information about
-downgrading to Emacs version 19.  We hope you will enjoy the greater
-simplicity that results from the absence of certain Emacs 20 features.
+downgrading to Emacs version 20.  We hope you will enjoy the greater
+simplicity that results from the absence of many Emacs 21 features.
 
 @itemize @bullet
 @item
-The multibyte character and end-of-line conversion support have been
-eliminated entirely.  (Some users consider this a tremendous
-improvement.)  Character codes are limited to the range 0 through 255
-and files imported onto Unix-like systems may have a ^M at the end of
-each line to remind you to control MS-DOG type files.
+The good, old, vintage Emacs 19 display engine is back, eliminating most
+of the unnecessary complications introduced with Emacs 21.  To wit:
+
+@itemize @minus
+@item
+Variable-size characters are not supported anymore: you cannot use fonts
+which contain oversized characters, and using italics fonts can totally
+screw up your display.  Find one font that works and stick to it!
 
 @item
-Fontsets, coding systems and input methods have been eliminated as well.
+Likewise, Emacs cannot display images, play sounds, and do anything
+except displaying text.  Multimedia is for Netrape!
 
 @item
-The mode line normally displays the string @samp{Emacs}, in case you
-forget what editor you are using.
+Toolkit scrollbars are not supported.  Emacs bare-bones X scrollbars are
+so much leaner and meaner.  There are no toggle buttons and radio
+buttons in menus.  @code{LessTif} is not supported either.
 
 @item
-Scroll bars always appear on the right-hand side of the window.
-This clearly separates them from the text in the window.
+There are no toolbars and no tooltips; in particular, the @acronym{GUD}
+mode cannot display variable values in tooltips.  Emacs is an editor,
+not some fancy GUI program!
 
 @item
-The @kbd{M-x customize} feature has been replaced with a very simple
-feature, @kbd{M-x edit-options}.  This shows you @emph{all} the user
-options right from the start, so you don't have to hunt for the ones you
-want.  It also provides a few commands, such as @kbd{s} and @kbd{x}, to
-set a user option.
+Colors are not available on character terminals.  If you @emph{must}
+have colors, but cannot afford running X, use the MS-DOG version of
+Emacs inside a DOS emulator.
 
 @item
-The @key{DELETE} key does nothing special in Emacs 19 when you use it
-after selecting a region with the mouse.  It does exactly the same thing
-in that situation as it does at all other times: delete one character
-backwards.
+The mode line is no longer mouse-sensitive.  You will have to remember
+all the necessary commands to switch between buffers, toggle read-only
+and modified status, switch minor modes on and off, etc.
 
 @item
-@kbd{C-x C-w} no longer changes the major mode according to the new file
-name.  If you want to change the mode, use @kbd{M-x normal-mode}.
+The support for ``wheeled'' mice on XFree86 has been removed.  Go away,
+MS-Windows weenies!  Busy-cursor display has gone down the drain, too,
+for the same reasons.  Meanwhile, the cursor blinking is no longer under
+your control.
 
 @item
-In Transient Mark mode, each window displays highlighting for the region
-as it exists in that window.
+Some aspects of Emacs appearance, such as the colors of the scroll bar
+and the menus, can only be controlled via X resources.  Users who aren't
+privy to X arcana, should learn to be happy with the default colors.
 
 @item
-Outline mode doesn't use overlay properties; instead, it hides a line by
-converting the preceding newline into code 015.  Magically, however, if
-you save the file, the 015 character appears in the file as a newline.
+Highlighting of trailing whitespace is not available; you need to move
+the cursor into the suspect area to find out whether there is slack
+whitespace there.  Empty lines at the end of the buffer cannot be marked
+in any way, either, since each user should know where the buffer ends
+without any help.
 
 @item
-There is now a clever way you can activate the minibuffer recursively
-even if @code{enable-recursive-minibuffers} is @code{nil}.  All you have
-to do is @emph{switch windows} to a non-minibuffer window, and then use a
-minibuffer command.  You can pile up any number of minibuffer levels
-this way, but @kbd{M-x top-level} will get you out of all of them.
-
-@item
-We have removed the limit on the length of minibuffer history lists;
-they now contain all the minibuffer arguments you have used since the
-beginning of the session.
-
-@item
-Dynamic abbrev expansion now handles case conversion in a very simple
-and straightforward way.  If you have requested preserving case, it
-always converts the entire expansion to the case pattern of the abbrev
-that you have typed in.
-
-@item
-The @code{compose-mail} command does not exist; @kbd{C-x m} now
-runs @code{mail} directly.
-
-@item
-There is no way to quote a file name with special characters in it.
-What you see is what you get: if the name looks remote, it is remote.
-
-@item
-@kbd{M-x grep-find} has been eliminated, because @code{grep} has never
-been lost.
-
-@ignore
-@item
-Truth in advertising: @kbd{M-x grep} by default uses @code{grep}, the
-whole @code{grep}, and nothing but the @code{grep}.  If you want it to
-use @code{zgrep}, you'll have to edit the search command by hand.
-@end ignore
-
-@item
-Some Dired commands have been rearranged: two-character sequences
-have been replaced with quick single-character commands:
-
-@itemize @bullet
-@item
-For @code{dired-mark-executables}, type @kbd{*}.
-@item
-For @code{dired-mark-directories}, type @kbd{/}.
-@item
-For @code{dired-mark-symlinks}, type @kbd{@@}.
-@item
-For @code{dired-change-marks}, type @kbd{c}.
-@item
-For @code{dired-unmark-all-files}, type @kbd{C-M-?}.
-@item
-For @code{dired-unmark-all-marks}, type @kbd{C-M-? @key{RET}}.
+You cannot control the spacing between text lines on the display; you
+are now entirely at the mercy of the font designer and the window
+manager.  Complain to them if your display looks ugly.
 @end itemize
 
-But if you want to use @code{dired-flag-garbage-files}, @kbd{&}, you'll
-just have to stop living in the past.
+@item
+Emacs 20 has less elaborate support for multi-lingual editing.  While
+not as radical as Emacs 19 (which doesn't support anything but
+single-byte European characters), it goes a long way toward eliminating
+some of the annoying features:
 
-@item 
-In C mode, you can now specify your preferred style for block comments.
-If you want to use the style
-
-@example
-/*       
-blah     
-blah     
-*/       
-@end example
-
-@noindent
-then you should set the variable @code{c-block-comments-indent-p} to
-@code{t}.
+@itemize @minus
+@item
+Translations of the Emacs reference cards to other languages are gone.
+Every Emacs user should know English better than their national
+languages.
 
 @item
-To customize faces used by Font Lock mode, use the variable
-@code{font-lock-face-attributes}.  See its documentation string for
-details.
+To avoid extra confusion, many language environments have been
+eliminated.  For example, @samp{Polish} and @samp{Celtic} (Latin-8)
+environments are not supported, and you cannot have the Euro characters,
+since the Latin-9 environment is gone, too.
 
 @item
-For efficiency, Font Lock mode now uses by default the minimum supported
-level of decoration for the selected major mode.
+Emacs no longer uses the most preferred coding system if it is suitable
+for saving the buffer.  Instead, it always prompts you for a coding
+system, so that you get to know its name better.
 
 @item
-If you kill a buffer, any registers holding saved positions in that
-buffer are changed to point into limbo.
+Commands which provide detailed information about character sets and
+coding systems, such as @code{list-charset-chars},
+@code{describe-character-set}, and the @kbd{C-u C-x =} key-sequence, no
+longer exist.  User feedback suggests that telling too much about
+non-@sc{ascii} characters is confusing and unnecessary.
 
 @item
-The function @code{set-frame-font} has been renamed to
-@code{set-default-font}.
+The terminal coding system cannot be set to something CCL-based, so
+keyboards which produce @code{KOI8} and DOS/Windows codepage codes
+cannot be supported directly.  Leim is so much simpler!
+@end itemize
 
 @item
-The variable @code{tex-main-file} doesn't exist.  Of course, you can
-create the variable by setting it, but that won't do anything special.
+Systems which are deemed unimportant or still in vaporware phase are no
+longer supported:
+
+@itemize @minus
+@item
+Emacs cannot be built on GNU/Linux systems running on IA64 machines,
+and you cannot build a 64-bit Emacs for SPARC/Solaris systems which
+support 64-bit executables.  Thus, Emacs contributes to stability of
+these systems by preventing you from corrupting files larger than 128MB.
 
 @item
-The @code{scroll-preserve-screen-position} variable has been eliminated;
-and so has the feature that it controls.
+LynxOS is also not supported.
+@end itemize
 
 @item
-We have eliminated the functions @code{add-untranslated-filesystem} and
-@code{remove-untranslated-filesystem}, and replaced them with a simpler
-function, @code{using-unix-filesystems}.
+The menu bar is no longer @acronym{CUA}-compliant.  We think that
+uniformity of look-and-feel is boring, and that @acronym{CUA} is not
+suitable for Emacs anyway.
 
 @item
-To keep up with decreasing computer memory capacity, many other
-functions and files have been eliminated in Emacs 19.  There's no need
-to mention them all here.  If you try to use one of them, you'll get an
-error message to tell you that it is undefined or unbound.
+You cannot save the options set via the @samp{Options} menu-bar menu;
+instead, you need to set all the options again each time you start a new
+session.  This will gradually make your acquaintance with the options
+better and better, until eventually you will be able to set all the
+options without looking at the screen.  Unless you start Emacs once and
+never stop it, that is.
+
+@item
+Emacs no longer pops up a buffer with error messages when an error is
+signaled during loading of the user's init file.  Gurus who can debug
+init files by the seat of their pants will regain their due honor which
+they lost with Emacs 21.
+
+@item
+Many commands duly ignore the active region when Transient Mark mode is
+in effect.  (Transient Mark mode is alien to Emacs mantra in the first
+place, its introduction was a grave mistake, and we are planning to
+remove it altogether in one of the previous versions; stay tuned.)
+
+@item
+@kbd{C-down-mouse-3} does nothing special when menu bar is not
+displayed.  Users who don't like the menu bar should be amply punished
+by forcing them to use the @code{tmm-menubar} replacement, even if they
+do have the mouse.
+
+@item
+The @key{delete} function key produces the same effect as the @key{DEL}
+key, on both TTY and windowed displays.  Never again will you be
+confused by this terrible @emph{dichotomy}!
+
+@item
+The ability to save backup files in special subdirectories has been
+eliminated.  This makes finding your backup files much easier.
+
+@item
+Emacs no longer refuses to load Lisp files compiled by incompatible
+versions of other Emacsen, which may contain invalid byte-code.
+Instead, Emacs now dumps core when it encounters such byte-code.
+
+@item
+You cannot delete all frames but the current one with @kbd{C-x 5 1}.
+Delete them one by one instead.  If you have many frames, it's tough on
+you.
+
+@item
+CC Mode is now much harder to customize, due to subtle aspects of local
+and global bindings.  In particular, if you change the indentation style
+as appropriate for Java, the indentation in C and C@t{++} buffers is
+messed up, and vice versa.
+
+@item
+Isearch no longer highlights matches besides the current one, and
+@kbd{mouse-2} in the echo area during incremental search now signals an
+error, since nobody in their right mind will use a mouse while
+searching.
+
+@item
+You cannot specify a port number with @code{ange-ftp}.  Instead, you
+need to rely on undocumented features (@emph{use the source, Luke!}) to
+sneak the port in.  Time stamps for remote files are not supported, and
+Windows-style ftp clients which output the @samp{^M} character at the
+end of each line wreak havoc with @code{ange-ftp}, making your life more
+interesting.
+
+@item
+Many advanced display features, such as highlighting of mouse-sensitive
+text regions and popping up help strings for menu items, don't work in
+the MS-DOS version.  Ispell and Eshell don't work on MS-DOS, either.
+MS-DOG users should be aware of their inferiority at all times!
+
+@item
+There's no woman.el package, so Emacs users on non-Posix systems should
+learn to read Troff sources of manual pages.  This is a Good Thing,
+since Troff is such a nice, intuitive language.
+
+@item
+recentf.el is not available, so you will have to memorize your
+frequently edited files by heart, or use desktop.el.
+
+@item
+Many additional packages that were unnecessarily complicating your lives
+are no longer with us.  You cannot browse C@t{++} classes with Ebrowse,
+edit Delphi sources, access @acronym{SQL} data bases, edit PostScript
+files and context diffs, access LDAP and other directory servers, edit
+TODO files conveniently.  Emacs doesn't need all that crud.
+
+@item
+To keep up with decreasing computer memory capacity and disk space, many
+other functions and files have been eliminated in Emacs 20.  There's no
+need to mention them all here.  If you try to use one of them, you'll
+get an error message to tell you that it is undefined or unbound.
 @end itemize
