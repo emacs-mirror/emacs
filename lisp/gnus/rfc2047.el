@@ -265,10 +265,11 @@ The buffer may be narrowed."
   (let* ((buff (current-buffer))
 	 (mime-charset (with-temp-buffer
 			 (insert-buffer-substring buff b e)
-			 (mm-find-mime-charset-region b e)))
+			 (mm-find-mime-charset-region 1 (point-max))))
 	 (cs (if (> (length mime-charset) 1)
-		 (mm-charset-to-coding-system mime-charset)
-	       (error "Can't encode word: %s" (buffer-substring b e))))
+		 (error "Can't encode word: %s" (buffer-substring b e))
+	       (setq mime-charset (car mime-charset))
+	       (mm-charset-to-coding-system mime-charset)))
 	 (encoding (or (cdr (assq mime-charset
 				  rfc2047-charset-encoding-alist))
 		       'B))
