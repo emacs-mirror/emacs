@@ -1,3 +1,44 @@
+2004-11-12  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-graph.el (calc-dumb-map):  Declared it.
+	(calc-graph-show-dumb):  Check if calc-dumb-map is non-nil rather
+	than unbound. 
+
+	(calc-graph-name):  Made `end' a local variable.
+	(calc-graph-lookup):  Made `varname' a local variable.
+
+	(var-DUMMY, var-DUMMY2, var-PlotRejects, calc-gnuplot-trail-mark): 
+	Declared them. 
+
+	(calc-graph-format-data):  Don't check if var-PlotRejects is
+	bound. 
+
+	(calc-graph-plot, calc-graph-compute-3d):  Removed references to
+	the unused variable y3vec.
+
+	(calc-graph-show-dumb):  Removed reference to unused variable
+	found-pt. 
+
+	(calc-graph-kill-hook, calc-graph-plot):  Removed reference to
+	calc-graph-prev-kill-hook. 
+
+	(calc-graph-yvalue, calc-graph-yvec, calc-graph-numsteps)
+	(calc-graph-numsteps3, calc-graph-xvalue, calc-graph-xvec)
+	(calc-graph-xname, calc-graph-yname, calc-graph-xstep)
+	(calc-graph-ycache, calc-graph-ycacheptr, calc-graph-refine)
+	(calc-graph-keep-file, calc-graph-xval, calc-graph-xlow)
+	(calc-graph-xhigh, calc-graph-yval, calc-graph-yp, calc-graph-xp)
+	(calc-graph-zp, calc-graph-yvector, calc-graph-resolution)
+	(calc-graph-y3value, calc-graph-y3name)
+	(calc-graph-y3step, calc-graph-y3step, calc-graph-zval)
+	(calc-graph-stepcount, calc-graph-is-splot)
+	(calc-graph-surprise-splot, calc-graph-blank)
+	(calc-graph-non-blank, calc-graph-curve-num):  New variables. 
+	(calc-graph-plot, calc-graph-compute-2d, calc-graph-refine-2d)
+	(calc-graph-recompute-2d, calc-graph-compute-3d)
+	(calc-graph-format-data): Replaced undeclared variables with the
+	above newly declared variables. 
+
 2004-11-12  Diane Murray  <dsm@muenster.de>  (tiny change)
 
 	* mail/rmail.el (rmail-get-new-mail): Use the renamed variables
