@@ -8,6 +8,9 @@ For older news, see the file ONEWS
 
 * Changes in Emacs 21.2
 
+** Byte compiler warning and error messages have been brought more
+in line with the output of other GNU tools.
+
 ** Lisp-mode now uses font-lock-docstring-face for the docstrings.
 
 ** perl-mode has a new variable `perl-indent-continued-arguments'.
