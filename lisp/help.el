@@ -445,7 +445,9 @@ C-w print information on absence of warranty for GNU Emacs."
 	(error nil))
       (condition-case ()
 	  (save-excursion
-	    (forward-sexp -1)
+	    (and (or (eq (char-syntax (preceding-char)) ?_)
+		     (eq (char-syntax (preceding-char)) ?w))
+		 (forward-sexp -1))
 	    (skip-chars-forward "'")
 	    (let ((obj (read (current-buffer))))
 	      (and (symbolp obj) (fboundp obj) obj)))
@@ -540,7 +542,9 @@ C-w print information on absence of warranty for GNU Emacs."
 (defun variable-at-point ()
   (condition-case ()
       (save-excursion
-	(forward-sexp -1)
+	(and (or (eq (char-syntax (preceding-char)) ?_)
+		 (eq (char-syntax (preceding-char)) ?w))
+	     (forward-sexp -1))
 	(skip-chars-forward "'")
 	(let ((obj (read (current-buffer))))
 	  (and (symbolp obj) (boundp obj) obj)))
