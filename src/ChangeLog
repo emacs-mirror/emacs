@@ -1,3 +1,8 @@
+2001-12-11  Andrew Innes  <andrewi@gnu.org>
+
+	* insdel.c (make_gap) [DOUG_LEA_MALLOC]: Call make_gap_smaller if
+	arg is negative.
+
 2001-12-11  Richard M. Stallman  <rms@gnu.org>
 
 	* m/hp800.h: Split the __hpux conditional into the parts
