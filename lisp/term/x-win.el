@@ -1,4 +1,8 @@
-;; Parse switches controlling how Emacs interfaces with X window system.
+;;; x-win.el --- parse switches controlling interface with X window system
+
+;; Author: FSF
+;; Keywords: terminals
+
 ;; Copyright (C) 1990 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -18,6 +22,7 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
 
 ;; X-win.el:  this file is loaded from ../lisp/startup.el when it recognizes
 ;; that X windows are to be used.  Command line switches are parsed and those
@@ -26,6 +31,8 @@
 
 ;; startup.el will then examine startup files, and eventually call the hooks
 ;; which create the first window (s).
+
+;;; Code:
 
 ;; These are the standard X switches from the Xt Initialize.c file of
 ;; Release 4.
@@ -520,3 +527,5 @@ This returns ARGS with the arguments that have been processed removed."
 ;;; Turn off window-splitting optimization; X is usually fast enough
 ;;; that this is only annoying.
 (setq split-window-keep-point t)
+
+;;; x-win.el ends here
