@@ -1,6 +1,7 @@
 ;;; mouse.el --- window system-independent mouse support
 
-;; Copyright (C) 1993, 1994, 1995, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1999, 2000, 2001
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: hardware, mouse
@@ -264,7 +265,7 @@ This command must be bound to a mouse click."
     (delete-window window)))
 
 (defun mouse-delete-other-windows ()
-  "Delete all window except the one you click on."
+  "Delete all windows except the one you click on."
   (interactive "@")
   (delete-other-windows))
 
