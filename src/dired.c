@@ -116,10 +116,6 @@ extern int completion_ignore_case;
 extern Lisp_Object Vcompletion_regexp_list;
 extern Lisp_Object Vfile_name_coding_system, Vdefault_file_name_coding_system;
 
-#ifdef MSDOS
-extern Lisp_Object Fmsdos_downcase_filename P_ ((Lisp_Object));
-#endif
-
 Lisp_Object Vcompletion_ignored_extensions;
 Lisp_Object Qcompletion_ignore_case;
 Lisp_Object Qdirectory_files;

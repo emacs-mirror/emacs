@@ -89,7 +89,6 @@ extern int errno;
 #ifdef MSDOS
 #include "msdos.h"
 #include <sys/param.h>
-extern Lisp_Object Fmsdos_downcase_filename P_ ((Lisp_Object));
 #if __DJGPP__ >= 2
 #include <fcntl.h>
 #include <string.h>
