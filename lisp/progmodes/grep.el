@@ -181,6 +181,7 @@ See `compilation-error-screen-columns'"
   (let ((map (cons 'keymap compilation-minor-mode-map)))
     (define-key map " " 'scroll-up)
     (define-key map "\^?" 'scroll-down)
+    (define-key map "\C-c\C-f" 'next-error-follow-mode)
 
     ;; This is intolerable -- rms
 ;;;    (define-key map [remap next-line] 'compilation-next-error)
