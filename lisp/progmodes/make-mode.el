@@ -14,7 +14,7 @@
 
 ;; So, for the meantime, this is not the default mode for makefiles.
 
-;; $Id: makefile.el,v 1.18 1994/10/12 08:55:27 simon Exp rms $
+;; $Id: makefile.el,v 1.19 1994/10/30 21:20:42 rms Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -504,6 +504,10 @@ makefile-special-targets-list:
   ;; Imenu.
   (make-local-variable 'imenu-create-index-function)
   (setq imenu-create-index-function 'makefile-menu-index-function)
+
+  ;; Dabbrev.
+  (make-local-variable 'dabbrev-abbrev-skip-leading-regexp)
+  (setq dabbrev-abbrev-skip-leading-regexp "\\$")
 
   ;; Comment stuff.
   (make-local-variable 'comment-start)
