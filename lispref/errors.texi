@@ -1,0 +1,123 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Emacs Lisp Reference Manual.
+@c Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc. 
+@c See the file elisp.texi for copying conditions.
+@setfilename ../info/errors
+@node Standard Errors, Standard Buffer-Local Variables, GNU Emacs Internals, Top
+@appendix Standard Errors
+
+  Here is the complete list of the error symbols in standard Emacs,
+grouped by concept.  The list includes each symbol's message (on the
+@code{error-message} property of the symbol), and a cross reference to a
+description of how the error can occur.
+
+  Each error symbol has an @code{error-conditions} property which is a
+list of symbols.  Normally, this list includes the error symbol itself,
+and the symbol @code{error}.  Occasionally it includes additional
+symbols, which are intermediate classifications, narrower than @code{error}
+but broader than a single error symbol.  For example, all the errors
+in accessing files have the condition @code{file-error}.
+
+  As a special exception, the error symbol @code{quit} does not have the
+condition @code{error}, because quitting is not considered an error.
+
+  @xref{Errors}, for an explanation of how errors are generated and
+handled.
+
+@table @code
+@item @var{symbol}
+@var{string}; @var{reference}.
+
+@item error
+@code{"error"}@*
+@xref{Errors}.
+
+@item quit
+@code{"Quit"}@*
+@xref{Quitting}.
+
+@item args-out-of-range
+@code{"Args out of range"}@*
+@xref{Sequences Arrays Vectors}.
+
+@item arith-error
+@code{"Arithmetic error"}@*
+See @code{/} and @code{%} in @ref{Numbers}.
+
+@item beginning-of-buffer
+@code{"Beginning of buffer"}@*
+@xref{Motion}.
+
+@item buffer-read-only
+@code{"Buffer is read-only"}@*
+@xref{Read Only Buffers}.
+
+@item end-of-buffer
+@code{"End of buffer"}@*
+@xref{Motion}.
+
+@item end-of-file
+@code{"End of file during parsing"}@*
+This is not a @code{file-error}.@*
+@xref{Input Functions}.
+
+@item file-error
+This error, and its subcategories, do not have
+error-strings, because the error message is constructed from the data
+items alone when the error condition @code{file-error} is present.@*
+@xref{Files}.
+
+@item file-locked     
+This is a @code{file-error}.@*
+@xref{File Locks}.
+
+@item file-already-exists
+This is a @code{file-error}.@*
+@xref{Writing to Files}.
+
+@item file-supersession
+This is a @code{file-error}.@*
+@xref{Buffer Modification}.
+
+@item invalid-function
+@code{"Invalid function"}@*
+@xref{Classifying Lists}.
+
+@item invalid-read-syntax
+@code{"Invalid read syntax"}@*
+@xref{Input Functions}.
+
+@item invalid-regexp
+@code{"Invalid regexp"}@*
+@xref{Regular Expressions}.
+
+@item no-catch
+@code{"No catch for tag"}@*
+@xref{Catch and Throw}.
+
+@item search-failed
+@code{"Search failed"}@*
+@xref{Searching and Matching}.
+
+@item setting-constant
+@code{"Attempt to set a constant symbol"}@* 
+The values of the symbols @code{nil} and @code{t}
+may not be changed.@*
+@xref{Constant Variables, , Variables that Never Change}.
+
+@item void-function
+@code{"Symbol's function definition is void"}@*
+@xref{Function Cells}.
+
+@item void-variable
+@code{"Symbol's value as variable is void"}@*
+@xref{Accessing Variables}.
+
+@item wrong-number-of-arguments
+@code{"Wrong number of arguments"}@*
+@xref{Classifying Lists}.
+
+@item wrong-type-argument
+@code{"Wrong type argument"}@*
+@xref{Type Predicates}.
+@end table
