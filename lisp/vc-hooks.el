@@ -161,14 +161,15 @@ Otherwise, not displayed.")
 		   (vc-file-setprop file 'vc-name (car name-and-type))
 		   (vc-file-setprop file 'vc-backend (cdr name-and-type))))))))
 
-(defun vc-toggle-read-only ()
+(defun vc-toggle-read-only (&optional verbose)
   "Change read-only status of current buffer, perhaps via version control.
 If the buffer is visiting a file registered with version control,
 then check the file in or out.  Otherwise, just change the read-only flag
-of the buffer."
-  (interactive)
+of the buffer.
+If you provide a prefix argument, we pass it on to `vc-next-action'."
+  (interactive "P")
   (if (vc-backend-deduce (buffer-file-name))
-      (vc-next-action nil)
+      (vc-next-action verbose)
     (toggle-read-only)))
 (define-key global-map "\C-x\C-q" 'vc-toggle-read-only)
 
