@@ -285,9 +285,6 @@ gotten from `http://www.cs.brown.edu/people/nwv/'."
 		    (t (error "WebJump URL expression for \"%s\" invalid."
 			      name)))))))
 
-(defun webjump-adult-p ()
-  (and (boundp 'age) (integerp age) (>= age 21)))
-
 (defun webjump-builtin (expr name)
   (if (< (length expr) 1)
       (error "WebJump URL builtin for \"%s\" empty." name))
