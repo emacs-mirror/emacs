@@ -368,4 +368,7 @@ Boston, MA 02111-1307, USA.  */
 #undef min
 #endif
 
+/* We need a little extra space, see ../../lisp/loadup.el */
+#define SYSTEM_PURESIZE_EXTRA 15000
+
 /* ============================================================ */
