@@ -432,26 +432,6 @@ If the charset is `composition', return the actual one."
       enable-multibyte-characters
     (featurep 'mule)))
 
-(defun mm-iso-8859-x-to-15-region (&optional b e)
-  (if (fboundp 'char-charset)
-      (let (charset item c inconvertible)
-	(save-restriction
-	  (if e (narrow-to-region b e))
-	  (goto-char (point-min))
-	  (skip-chars-forward "\0-\177")
-	  (while (not (eobp))
-	    (cond 
-	     ((not (setq item (assq (char-charset (setq c (char-after))) 
-				    mm-iso-8859-x-to-15-table)))
-	      (forward-char))
-	     ((memq c (cdr (cdr item)))
-	      (setq inconvertible t)
-	      (forward-char))
-	     (t
-	      (insert (prog1 (+ c (car (cdr item))) (delete-char 1))))
-	    (skip-chars-forward "\0-\177"))))
-	(not inconvertible))))
-
 (defun mm-sort-coding-systems-predicate (a b)
   (> (length (memq a mm-coding-system-priorities))
      (length (memq b mm-coding-system-priorities))))
