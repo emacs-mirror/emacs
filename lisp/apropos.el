@@ -51,12 +51,15 @@ Makes them run 2 or 3 times slower.  Set this non-nil if you have a fast
 machine.")
 
 ;;;###autoload
-(defun apropos (regexp &optional do-all pred)
+(defun apropos (regexp &optional do-all pred no-header)
   "Show all symbols whose names contain matches for REGEXP.
 If optional argument DO-ALL is non-nil (prefix argument if interactive),
 or if `apropos-do-all' is non-nil, does more (time-consuming) work such as
 showing key bindings.  Optional argument PRED is called with each symbol, and
 if it returns nil, the symbol is not shown.
+
+Optional argument NO-HEADER means don't print `Function:' or `Variable:'
+in the output.
 
 Returns list of symbols and documentation found."
   (interactive "sApropos (regexp): \nP")
@@ -66,14 +69,9 @@ Returns list of symbols and documentation found."
 	(message "No apropos matches for `%s'" regexp)
       (apropos-get-doc apropos-accumulate)
       (with-output-to-temp-buffer "*Help*"
-	(apropos-print-matches apropos-accumulate regexp nil do-all)))
+	(apropos-print-matches apropos-accumulate regexp nil
+			       do-all no-header)))
     apropos-accumulate))
-
-;; If "C-h a" still has its original binding of command-apropos, change it to
-;; use fast-command-apropos.  I don't use substitute-key-definition because
-;; it's slow.
-;(if (eq 'command-apropos (lookup-key help-map "a"))
-;    (define-key help-map "a" 'fast-command-apropos))
 
 ;; Takes LIST of symbols and adds documentation.  Modifies LIST in place.
 ;; Resulting alist is of form ((symbol fn-doc var-doc) ...).  Should only be
@@ -186,7 +184,8 @@ Returns list of symbols and documentation found."
 ;; consulting key bindings.  Should only be called within a
 ;; with-output-to-temp-buffer.
 
-(defun apropos-print-matches (matches &optional regexp spacing do-all)
+(defun apropos-print-matches (matches &optional regexp
+				      spacing do-all no-header)
   (setq matches (sort matches (function
 			       (lambda (a b)
 				 (string-lessp (car a) (car b))))))
@@ -217,12 +216,22 @@ Returns list of symbols and documentation found."
 		 (princ "(not bound to any keys)"))))
 	(terpri)
 	(cond ((setq tem (nth 1 item))
-	       (princ "  Function: ")
-	       (princ (if do-all (substitute-command-keys tem) tem))))
+	       (let ((substed (if do-all (substitute-command-keys tem) tem)))
+		 (if no-header
+		     (princ "  ")
+		   (princ "  Function: ")
+		   (if (> (length substed) 67)
+		       (princ "\n  ")))
+		 (princ substed))))
 	(or (bolp) (terpri))
 	(cond ((setq tem (nth 2 item))
-	       (princ "  Variable: ")
-	       (princ (if do-all (substitute-command-keys tem) tem))))
+	       (let ((substed (if do-all (substitute-command-keys tem) tem)))
+		 (if no-header
+		     (princ "  ")
+		   (princ "  Variable: ")
+		   (if (> (length substed) 67)
+		       (princ "\n  ")))
+		 (princ substed))))
 	(or (bolp) (terpri)))))
   t)
 
