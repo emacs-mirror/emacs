@@ -23,6 +23,14 @@
 
 ;; Avishai Yacobi suggested some menu rearrangements.
 
+;;; User options:
+
+(defvar buffers-menu-max-size 10
+  "*Maximum number of entries which may appear on the Buffers menu.
+If this is 10, then only the ten most-recently-selected buffers are shown.
+If this is nil, then all buffers are shown.
+A large number or nil slows down menu responsiveness.")
+
 ;;; Code:
 
 ;; Don't clobber an existing menu-bar keymap, to preserve any menu-bar key
@@ -423,12 +431,6 @@ Do the same for the keys of the same name."
 ;; It gets overridden below when menu-bar-update-buffers is called.
 (define-key global-map [menu-bar buffer]
   (cons "Buffers" (make-sparse-keymap "Buffers")))
-
-(defvar buffers-menu-max-size 10
-  "*Maximum number of entries which may appear on the Buffers menu.
-If this is 10, then only the ten most-recently-selected buffers are shown.
-If this is nil, then all buffers are shown.
-A large number or nil slows down menu responsiveness.")
 
 (defvar list-buffers-directory nil)
 
