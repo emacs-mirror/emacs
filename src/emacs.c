@@ -2052,14 +2052,9 @@ all of which are called before Emacs is actually killed.  */)
   if (STRINGP (Vauto_save_list_file_name))
     unlink (SDATA (Vauto_save_list_file_name));
 
-  exit (INTEGERP (arg) ? XINT (arg)
-#ifdef VMS
-	: 1
-#else
-	: 0
-#endif
-	);
+  exit (INTEGERP (arg) ? XINT (arg) : EXIT_SUCCESS);
   /* NOTREACHED */
+  return 0;
 }
 
 
