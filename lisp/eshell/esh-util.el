@@ -236,7 +236,7 @@ then quoting is done by a backslash, rather than a doubled delimiter."
 (defun eshell-sublist (l &optional n m)
   "Return from LIST the N to M elements.
 If N or M is nil, it means the end of the list."
-  (let* ((a (eshell-copy-list l))
+  (let* ((a (copy-sequence l))
 	 result)
     (if (and m (consp (nthcdr m a)))
 	(setcdr (nthcdr m a) nil))
@@ -710,22 +710,13 @@ Unless optional argument INPLACE is non-nil, return a new string."
 		      (setq entry nil)))))))
       (or entry (funcall handler 'file-attributes file)))))
 
-(defun eshell-copy-list (list)
-  "Return a copy of a list, which may be a dotted list.
-The elements of the list are not copied, just the list structure itself."
-  (if (consp list)
-      (let ((res nil))
-	(while (consp list) (push (pop list) res))
-	(prog1 (nreverse res) (setcdr res list)))
-    (car list)))
-
 (defun eshell-copy-tree (tree &optional vecp)
   "Make a copy of TREE.
 If TREE is a cons cell, this recursively copies both its car and its cdr.
 Contrast to copy-sequence, which copies only along the cdrs.  With second
 argument VECP, this copies vectors as well as conses."
   (if (consp tree)
-      (let ((p (setq tree (eshell-copy-list tree))))
+      (let ((p (setq tree (copy-sequence tree))))
 	(while (consp p)
 	  (if (or (consp (car p)) (and vecp (vectorp (car p))))
 	      (setcar p (eshell-copy-tree (car p) vecp)))
