@@ -1,3 +1,7 @@
+2004-09-20  Jesper Harder  <harder@ifa.au.dk>
+
+	* progmodes/tcl.el (inferior-tcl): Use pop-to-buffer.
+
 2004-09-21  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* subr.el (after-change-major-mode-hook): Doc fix.
