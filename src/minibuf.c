@@ -1286,7 +1286,7 @@ DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 8, 0,
 PROMPT is a string to prompt with; normally it ends in a colon and a space.\n\
 TABLE is an alist whose elements' cars are strings, or an obarray.\n\
 PREDICATE limits completion to a subset of TABLE.\n\
-See `try-completion' and `all-completions' for more details
+See `try-completion' and `all-completions' for more details\n\
  on completion, TABLE, and PREDICATE.\n\
 \n\
 If REQUIRE-MATCH is non-nil, the user is not allowed to exit unless\n\
