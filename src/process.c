@@ -251,6 +251,7 @@ int proc_buffered_char[MAXDESC];
 static Lisp_Object get_process ();
 
 extern EMACS_TIME timer_check ();
+extern int timers_run;
 
 /* Maximum number of bytes to send to a pty without an eof.  */
 static int pty_max_bytes;
@@ -2078,7 +2079,10 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (read_kbd >= 0)
 	{
 	  EMACS_TIME timer_delay;
+	  int old_timers_run = timers_run;
 	  timer_delay = timer_check (1);
+	  if (timers_run != old_timers_run && do_display)
+	    redisplay_preserve_echo_area ();
 	  if (! EMACS_TIME_NEG_P (timer_delay) && time_limit != -1)
 	    {
 	      EMACS_TIME difference;
