@@ -608,6 +608,9 @@ A numeric argument serves as a repeat count."
     (and modified (not (buffer-modified-p))
 	 (delete-auto-save-file-if-necessary))))
 
+(defvar pending-undo-list nil
+  "Within a run of consecutive undo commands, list remaining to be undone.")
+
 (defun undo-start ()
   "Set `pending-undo-list' to the front of the undo list.
 The next call to `undo-more' will undo the most recently made change."
