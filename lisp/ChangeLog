@@ -1,3 +1,13 @@
+2003-09-11  Richard M. Stallman  <rms@gnu.org>
+
+	* dired.el (dired-mode-map): Bind M-g to dired-goto-file.
+
+2003-09-11  Paul Pogonyshev  <pogonyshev@gmx.net>  (tiny change)
+
+	* window.el (kill-buffer-and-window): Remove `yes-or-no-p' so that
+	the function is less noisy.  Now only `kill-buffer' can ask
+	questions.
+
 2003-09-10  Mario Lang  <mlang@delysid.org>
 
 	* battery.el: Update Commentary and Copyright.
@@ -151,7 +161,7 @@
 	(dired-view-command-alist): Use %s to substitute file name.
 	Handle .ps_pages, .eps, .jpg, .gif, .png.
 
-2003-08-29  Paul Pogonyshev  <pogonyshev@gmx.net>
+2003-08-29  Paul Pogonyshev  <pogonyshev@gmx.net>  (tiny change)
 
 	* info.el (Info-mode-map): Bind S-tab and <backtab> to
 	`Info-prev-reference', instead of M-tab.

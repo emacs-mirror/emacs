@@ -1,3 +1,13 @@
+2003-09-10  Richard M. Stallman  <rms@gnu.org>
+
+	* emacsclient.c	(main): Use socket_name.
+
+2003-09-10  Andreas_B,A|(Bsching  <crunchy@tzi.de>  (tiny change)
+
+	* emacsclient.c (socket_name): New variable.
+	(longopts, decode_options, print_help_and_exit):
+	Handle --socket-name argument.
+
 2003-08-25  Takaaki Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
 
 	* etags.c (consider_token): check C++ `operator' only when the

@@ -1,3 +1,14 @@
+2003-09-11  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.texi (Intro to Minibuffers): Explain that the minibuffer
+	changes variables that record input events.
+	(Minibuffer Misc): Add minibuffer-selected-window.
+
+	* lists.texi (Building Lists): Add copy-tree.
+
+	* display.texi (Fontsets): Add char-displayable-p.
+	(Scroll Bars): New node.
+
 2003-09-08  Lute Kamstra  <Lute.Kamstra@cwi.nl>
 
 	* modes.texi (%-Constructs): Document new `%i' and `%I'
