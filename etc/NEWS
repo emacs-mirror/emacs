@@ -1950,13 +1950,13 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
-** New functions posn-at-point and posn-at-x-y returns mouse click
-like position information for a visible buffer position or a window
-pixel coordinate.
+** New functions posn-at-point and posn-at-x-y returns
+click-event-style position information for a given visible buffer
+position or for a given window pixel coordinate.
 
-** Function pos-visible-in-window-p how return pixel coordinates and
-partial visiblity state of corresponding row if `partially' arg is
-non-nil.
+** Function pos-visible-in-window-p now returns the pixel coordinates
+and partial visiblity state of the corresponding row, if the PARTIALLY
+arg is non-nil.
 
 ** The function `eql' is now available without requiring the CL package.
 
