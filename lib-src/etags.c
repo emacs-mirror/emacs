@@ -30,8 +30,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *
  *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer.
  */
-char pot_etags_version[] = "@(#) pot revision number is 11.21";
 
+char pot_etags_version[] = "@(#) pot revision number is 11.24";
 
 #ifdef MSDOS
 #include <fcntl.h>
@@ -910,14 +910,8 @@ main (argc, argv)
 	      /* Input file named "-" means read file names from stdin
 		 and use them. */
 	      if (streq (this_file, "-"))
-		{
-		  while (!feof (stdin))
-		    {
-		      (void) readline_internal (&filename_lb, stdin);
-		      if (strlen (filename_lb.buffer) > 0)
-			process_file (filename_lb.buffer);
-		    }
-		}
+		while (readline_internal (&filename_lb, stdin) > 0)
+		  process_file (filename_lb.buffer);
 	      else
 		process_file (this_file);
 #ifdef VMS
@@ -926,6 +920,7 @@ main (argc, argv)
 	  break;
 	}
     }
+
   if (!CTAGS)
     {
       while (nincluded_files-- > 0)
@@ -1132,7 +1127,6 @@ find_entries (file, inf)
 }
 
 /* Record a tag. */
-/* Should take a TOKEN* instead!! */
 void
 pfnote (name, is_func, named, linestart, linelen, lno, cno)
      char *name;		/* tag name */
@@ -2061,7 +2055,8 @@ C_entries (c_ext, inf)
 			      while (token_str.size < strsize)
 				{
 				  token_str.size *= 2;
-				  xrealloc (token_str.buffer, token_str.size);
+				  token_str.buffer = xrealloc(token_str.buffer,
+							      token_str.size);
 				}
 			      strcpy (token_str.buffer, structtag);
 			      strcat (token_str.buffer, "::");
@@ -2074,7 +2069,8 @@ C_entries (c_ext, inf)
 			      while (token_str.size < toklen + 1)
 				{
 				  token_str.size *= 2;
-				  xrealloc (token_str.buffer, token_str.size);
+				  token_str.buffer = xrealloc(token_str.buffer,
+							      token_str.size);
 				}
 			      strncpy (token_str.buffer,
 				       newlb.buffer+tokoff, toklen);
@@ -2318,6 +2314,7 @@ C_entries (c_ext, inf)
 	      if (structdef == sinbody)
 		free (structtag);
 #endif
+
 	      structdef = snone;
 	      structtag = "<error>";
 	    }
