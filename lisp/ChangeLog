@@ -2,6 +2,11 @@
 
 	* international/encoded-kb.el: Don't alter minor-mode-alist.
 
+2001-11-20  Kai Grossjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+        * files.el (auto-save-file-name-transforms): Put remote files in
+        temporary-file-directory rather than /tmp.
+
 2001-11-20  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* progmodes/tcl.el (tcl-indent-for-comment): Handle the case where
@@ -14,11 +19,9 @@
 
 2001-11-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* play/landmark.el: Mark lm-mode as special.  Suggested by Klaus
-	Straubinger <ksnetz@arcor.de>.
+	* play/landmark.el: Mark lm-mode as special.
 
-	* play/gomoku.el: Mark gomoku-mode as special.  Suggested by Klaus
-	Straubinger <ksnetz@arcor.de>.
+	* play/gomoku.el: Mark gomoku-mode as special.
 
 2001-11-20  Stefan Monnier  <monnier@cs.yale.edu>
 
