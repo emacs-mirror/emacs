@@ -141,6 +141,7 @@ setwins=subdirs=`find $$wd -type d -print`; \
 
 # Have to define the list of subdirs manually when not using sh.
 WINS=\
+	calc \
 	calendar \
 	emacs-lisp \
 	emulation \
@@ -150,6 +151,7 @@ WINS=\
 	language \
 	mail \
 	net \
+	obsolete \
 	play \
 	progmodes \
 	term \
