@@ -1,3 +1,9 @@
+2000-05-28  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* international/codepage.el (cp-coding-system-for-codepage-1): Add
+	eight-bit-graphic and eight-bit-control to safe charsets for cpNNN
+	coding systems.
+
 2000-05-26  Dave Love  <fx@gnu.org>
 
 	* disp-table.el (standard-display-underline): Don't use
