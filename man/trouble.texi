@@ -388,15 +388,16 @@ command, or don't know for certain how the command is supposed to work,
 then it might actually be working right.  Rather than jumping to
 conclusions, show the problem to someone who knows for certain.
 
-  Finally, a command's intended definition may not be best for editing
-with.  This is a very important sort of problem, but it is also a matter of
-judgment.  Also, it is easy to come to such a conclusion out of ignorance
-of some of the existing features.  It is probably best not to complain
-about such a problem until you have checked the documentation in the usual
-ways, feel confident that you understand it, and know for certain that what
-you want is not available.  If you are not sure what the command is
-supposed to do after a careful reading of the manual, check the index and
-glossary for any terms that may be unclear.
+  Finally, a command's intended definition may not be the best
+possible definition for editing with.  This is a very important sort
+of problem, but it is also a matter of judgment.  Also, it is easy to
+come to such a conclusion out of ignorance of some of the existing
+features.  It is probably best not to complain about such a problem
+until you have checked the documentation in the usual ways, feel
+confident that you understand it, and know for certain that what you
+want is not available.  If you are not sure what the command is
+supposed to do after a careful reading of the manual, check the index
+and glossary for any terms that may be unclear.
 
   If after careful rereading of the manual you still do not understand
 what the command should do, that indicates a bug in the manual, which
