@@ -1,6 +1,8 @@
 @echo off
 rem   ----------------------------------------------------------------------
 rem   Configuration script for MSDOS
+rem   Copyright (C) 1994 Free Software Foundation, Inc.
+
 rem   This file is part of GNU Emacs.
 
 rem   GNU Emacs is free software; you can redistribute it and/or modify
@@ -19,23 +21,35 @@ rem   the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 rem   ----------------------------------------------------------------------
 rem   YOU'LL NEED THE FOLLOWING UTILITIES TO MAKE EMACS:
 rem
-rem   + djgpp version 1,11
-rem   + make utility that allows breaking of 128 chars limit of commands.
-rem     ndmake (as of version 4.5) won't work due to a line length limit.
+rem   + msdos version 3 or better.
+rem   + djgpp version 1,11 maint 4 or better.
+rem   + make utility that allows breaking of the 128 chars limit on
+rem     command lines.  ndmake (as of version 4.5) won't work due to a
+rem     line length limit.
 rem   + rm, mv, chmod (From GNU file utilities).
 rem   + sed.
+rem
+rem   You must install in directory c:/emacs or change this script.
 rem   ----------------------------------------------------------------------
 if not "%2" == "" goto usage
 if "%1" == "msdos" goto msdos
+if "%1" == "msdos-X11" goto msdos11
 :usage
 echo Usage: config msdos
+rem echo    or  config msdos-X11 -- don't even think about it
 echo [Read the script before you run it; also check that you have all the
 echo necessary utilities.]
 goto end
 rem   ----------------------------------------------------------------------
+:msdos11
+set X11=y
+goto msdoscommon
+rem   ----------------------------------------------------------------------
 :msdos
-rem   Change to the Emacs root
-cd c:\emacs
+set X11=
+:msdoscommon
+rem   Change to the Emacs root -- assume we are there
+rem cd c:\emacs
 rem   ----------------------------------------------------------------------
 Echo Configuring the source directory...
 cd src
@@ -69,8 +83,13 @@ rm -f paths.h
 sed -e "s!/lib/emacs!!" -e "s!/usr/local!c:/emacs!" -e "s!/data!/etc!" <%PATHSH% >paths.h
 
 rem   Create "config.h"
-rm -f config.h
-sed -f ../msdos/sed2.inp <%CONFIGH% >config.h
+rm -f config.h config.tmp
+cp %CONFIGH% config.tmp
+if "%X11%" == "" goto src4
+sed -f ../msdos/sed4.inp <%CONFIGH% >config.tmp
+:src4
+sed -f ../msdos/sed2.inp <config.tmp >config.h
+rm -f config.tmp
 
 rem   On my system dir.h gets in the way.  It's a VMS file so who cares.
 if exist dir.h ren dir.h vmsdir.h
@@ -85,11 +104,17 @@ rem   ----------------------------------------------------------------------
 Echo Configuring the library source directory...
 cd lib-src
 rem   Create "makefile" from "makefile.in".
-copy makefile makefile.bak >nul
-sed -f ../msdos/sed3.inp <makefile.in >makefile
+sed -e "s@^# \(Generated.*\)$@/* \1 */@" -e "s@/\*\*/#\(.*\)$@/* \1 */@" <Makefile.in >junk.c
+gcc -E -I. -I../src junk.c | sed -e "s/^ /	/" -e "/^#/d" -e "/^[ 	]*$/d" >Makefile.new
+sed -f ../msdos/sed3.inp <makefile.new >makefile
 cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the main directory...
 copy msdos\mainmake makefile >nul
 rem   ----------------------------------------------------------------------
 :end
+set X11=
+set MAKEFILEIN=
+set PATHSH=
+set CONFIGH=
+
