@@ -1,3 +1,5 @@
+;;; icon.el --- mode for editing Icon code
+
 ;; Note: use
 ;;  (autoload 'icon-mode "icon" nil t)
 ;;  (setq auto-mode-alist (cons '("\\.icn$" . icon-mode) auto-mode-alist))
@@ -547,3 +549,4 @@ Returns nil if line starts inside a string, t if in a comment."
 		(if (re-search-forward comment-start-skip (save-excursion (end-of-line) (point)) t)
 		    (progn (indent-for-comment) (beginning-of-line))))))))))
 
+;;; icon.el ends here

@@ -1,4 +1,5 @@
-;; Rebindings to imitate Gosmacs.
+;;; gosmacs.el --- rebindings to imitate Gosmacs.
+
 ;; Copyright (C) 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -101,3 +102,5 @@ From the window at the lower right corner, select the one at the upper left."
   "Scroll the selected window up so that the current line is at the top."
   (interactive)
   (recenter 0))
+
+;;; gosmacs.el ends here

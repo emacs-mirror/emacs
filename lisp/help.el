@@ -1,4 +1,5 @@
-;; Help commands for Emacs
+;;; help.el --- help commands for Emacs
+
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -383,3 +384,5 @@ to the specified name LIBRARY (a la calling `load' instead of `load-library')."
      load-path)
     (message "No library %s in search path" library)
     nil))
+
+;;; help.el ends here

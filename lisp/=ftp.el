@@ -1,4 +1,5 @@
-;; File input and output over Internet using FTP
+;;; ftp.el --- file input and output over Internet using FTP
+
 ;; Copyright (C) 1987 Free Software Foundation, Inc.
 ;; Author mly@prep.ai.mit.edu.
 
@@ -384,3 +385,5 @@ USER and PASSWORD are defaulted from the values used when
 	 (= (process-exit-status process) 0)
 	 (set-buffer-modified-p nil))
     (message "Reverted")))
+
+;;; ftp.el ends here

@@ -1,5 +1,4 @@
-;; helper - utility help package for modes which want to provide help
-;; without relinquishing control, e.g. `electric' modes.
+;;; helper.el --- utility help package supporting help in electric modes
 
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 ;; Principal author K. Shane Hartman
@@ -147,4 +146,6 @@
 	     (ding)
 	     (setq continue nil))))))
 
-(provide 'helper)			
+(provide 'helper)
+
+;;; helper.el ends here

@@ -1,4 +1,5 @@
-;;; Post news commands for GNUS newsreader
+;;; gnuspost.el --- post news commands for GNUS newsreader
+
 ;; Copyright (C) 1989 Fujitsu Laboratories LTD.
 ;; Copyright (C) 1989, 1990 Masanobu UMEDA
 ;; $Header: gnuspost.el,v 1.2 90/03/23 13:25:16 umerin Locked $
@@ -671,3 +672,5 @@ containing the organization."
     ))
 
 (provide 'gnuspost)
+
+;;; gnuspost.el ends here

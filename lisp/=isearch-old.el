@@ -1,4 +1,5 @@
-;; Incremental search
+;;; isearch.el --- incremental search commands
+
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -621,3 +622,5 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
     (setq command-history (cons (list function string) command-history))
     ;; Go ahead and search.
     (funcall function string)))
+
+;;; isearch.el ends here

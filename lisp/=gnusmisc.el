@@ -1,4 +1,5 @@
-;;; Miscellaneous commands for GNUS newsreader
+;;; gnusmisc.el --- miscellaneous commands for GNUS newsreader
+
 ;; Copyright (C) 1989 Fujitsu Laboratories LTD.
 ;; Copyright (C) 1989, 1990 Masanobu UMEDA
 ;; $Header: gnusmisc.el,v 1.2 90/03/23 13:25:04 umerin Locked $
@@ -213,3 +214,5 @@ inserting it before the newsgroup on the line containging point."
     ))
 
 (provide 'gnusmisc)
+
+;;; gnusmisc.el ends here

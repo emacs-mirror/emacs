@@ -1,3 +1,5 @@
+;;; float.el --- floating point arithmetic package.
+
 ;; Copyright (C) 1986 Free Software Foundation, Inc.
 ;; Author Bill Rosenblatt
 
@@ -17,8 +19,6 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; Floating point arithmetic package.
-;;
 ;; Floating point numbers are represented by dot-pairs (mant . exp)
 ;; where mant is the 24-bit signed integral mantissa and exp is the
 ;; base 2 exponent.
@@ -447,3 +447,4 @@ are recognized."
 
 (provide 'float)
 
+;;; float.el ends here

@@ -1,8 +1,6 @@
-;
-; hanoi - towers of hanoi in GNUmacs
-;
+;;; hanoi.el --- towers of hanoi in GNUmacs
+
 ; Author (a) 1985, Damon Anton Permezel
-;
 
 ;;;
 ;;; hanoi-topos - direct cursor addressing

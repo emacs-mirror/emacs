@@ -1,4 +1,5 @@
-;; Set up char tables for ISO 8859/1 for Swedish/Finnish terminals.
+;;; iso-swed.el --- set up char tables for ISO 8859/1 for Swedish/Finnish terminals.
+
 ;; Copyright (C) 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -138,3 +139,5 @@
 (standard-display-ascii 255 "{\"y}") ; small y with diaeresis or umlaut mark
 
 (provide 'iso8859-1-swedish)
+
+;;; iso-swed.el ends here

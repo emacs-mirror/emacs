@@ -1,4 +1,5 @@
-;;; Mail reply commands for GNUS newsreader
+;;; gnusmail.el --- mail reply commands for GNUS newsreader
+
 ;; Copyright (C) 1990 Masanobu UMEDA
 ;; $Header: gnusmail.el,v 1.1 90/03/23 13:24:39 umerin Locked $
 
@@ -147,3 +148,5 @@ The command \\[mh-yank-cur-msg] yanks the original message into current buffer."
     (setq mh-sent-from-msg 1)))
 
 (provide 'gnusmail)
+
+;;; gnusmail.el ends here

@@ -1,4 +1,5 @@
-;;; Fortran mode for GNU Emacs  (version 1.28.3, July 15, 1991)
+;;; fortran.el --- Fortran mode for GNU Emacs  (version 1.28.3, July 15, 1991)
+
 ;;; Copyright (c) 1991 Free Software Foundation, Inc.
 ;;; Written by Michael D. Prange (prange@erl.mit.edu)
 ;;; Maintained (as of version 1.28) by Stephen A. Wood (saw@hallc1.cebaf.gov)
@@ -995,3 +996,4 @@ character format style."
 
 (provide 'fortran)
 
+;;; fortran.el ends here

@@ -1,4 +1,5 @@
-;; Gomoku game between you and Emacs
+;;; gomoku.el --- Gomoku game between you and Emacs
+
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -1157,4 +1158,4 @@ If the game is finished, this command requests for another game."
 
 (provide 'gomoku)
 
-
+;;; gomoku.el ends here

@@ -1,4 +1,5 @@
-;;; GNUS: an NNTP-based News Reader for GNU Emacs
+;;; gnus.el --- GNUS: an NNTP-based News Reader for GNU Emacs
+
 ;; Copyright (C) 1987, 1988, 1989 Fujitsu Laboratories LTD.
 ;; Copyright (C) 1987, 1988, 1989, 1990 Masanobu UMEDA
 ;; $Header: gnus.el,v 3.13 90/03/23 13:24:27 umerin Locked $
@@ -6080,3 +6081,5 @@ Range of OBJ is expressed as `((beg1 . end1) (beg2 . end2) ...)."
 ;;end:
 
 (provide 'gnus)
+
+;;; gnus.el ends here

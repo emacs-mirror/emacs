@@ -1,4 +1,5 @@
-;; Load this file to increment the recorded Emacs version number.
+;;; inc-vers.el --- load this to increment the recorded Emacs version number.
+
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -41,3 +42,5 @@
 (set-buffer-modified-p nil)
 
 (kill-emacs)
+
+;;; inc-vers.el ends here

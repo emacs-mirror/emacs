@@ -1,4 +1,5 @@
-;; Info support functions package for Emacs
+;;; informat.el --- info support functions package for Emacs
+
 ;; Copyright (C) 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -413,3 +414,5 @@ For example, invoke \"emacs -batch -f batch-info-validate $info/ ~/*.info\""
 			   (save-buffer))))
 	    (error (message ">> Error: %s" (prin1-to-string err))))))
       (kill-emacs error))))
+
+;;; informat.el ends here

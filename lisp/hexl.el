@@ -1,5 +1,5 @@
-;; -*-Emacs-Lisp-*-
-;; hexl-mode -- Edit a file in a hex dump format.
+;;; hexl-mode.el --- edit a file in a hex dump format.
+
 ;; Copyright (C) 1989 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -656,4 +656,4 @@ You may also type up to 3 octal digits, to insert a character with that code"
     (define-key hexl-mode-map "\C-x\C-s" 'hexl-save-buffer)
     (define-key hexl-mode-map "\C-x\C-t" 'undefined))
 
-;; The End.
+;;; hexl.el ends here

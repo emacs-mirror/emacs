@@ -1,3 +1,5 @@
+;;; grow-vers.el --- increment Emacs version number
+
 ;; Load this file to add a new level (starting at zero)
 ;; to the Emacs version number recorded in version.el.
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
@@ -28,3 +30,5 @@
 ;; so that we do not alter the current version.
 (delete-file "lisp/version.el")
 (write-region (point-min) (point-max) "lisp/version.el" nil 'nomsg)
+
+;;; grow-vers.el ends here

@@ -1,4 +1,5 @@
-;; Holiday functions.
+;;; holidays.el --- holiday functions for the calendar package
+
 ;; Copyright (C) 1989, 1990, 1991 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -586,3 +587,4 @@ checked.  If nil, the holiday (car (cdr (cdr X))), if there, is checked."
 
 (provide 'holidays)
 
+;;; holidays.el ends here

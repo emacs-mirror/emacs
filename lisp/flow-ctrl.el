@@ -1,5 +1,5 @@
-;;; Help for lusers on cu(1) or terminals with wired-in ^S/^Q flow control
-;;;
+;;; flow-ctrl.el --- help for lusers on cu(1) or terminals with wired-in ^S/^Q flow control
+
 ;;; Copyright (C) 1990 Free Software Foundation, Inc.
 ;;; Copyright (C) 1991 Kevin Gallagher
 ;;; Adapted for Emacs 19 by Eric S. Raymond <eric@snark.thyrsus.com>
@@ -80,7 +80,6 @@ and C-q characters to OS."
     (and (memstr= term losing-terminal-types) (evade-flow-control)))
   )
 
-;;; flow-ctrl.el ends here
-
 (provide 'flow-ctrl)
 
+;;; flow-ctrl.el ends here

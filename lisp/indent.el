@@ -1,4 +1,5 @@
-;; Indentation commands for Emacs
+;;; indent.el --- indentation commands for Emacs
+
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -244,3 +245,5 @@ Use \\[edit-tab-stops] to edit them interactively."
 (define-key esc-map "\034" 'indent-region)
 (define-key ctl-x-map "\t" 'indent-rigidly)
 (define-key esc-map "i" 'tab-to-tab-stop)
+
+;;; indent.el ends here

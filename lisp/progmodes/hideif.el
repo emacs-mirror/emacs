@@ -1,5 +1,5 @@
-;;; hide-ifdef-mode.el   Hides selected code within ifdef.
-;;;
+;;; hide-ifdef-mode.el --- ides selected code within ifdef.
+
 ;;; Copyright (C) 1988 Brian Marick and Daniel LaLiberte
 ;;; Written by Brian Marick, at Gould, Computer Systems Division, Urbana IL.
 ;;; Extensively modified by Daniel LaLiberte (while at Gould).
@@ -1004,4 +1004,5 @@ Turn off hiding by calling show-ifdef."
       (error "No define list for %s" name))
     (if hide-ifdef-hiding (hide-ifdefs))))
 
-;===%%SF%% exports (End)  ===
+;;; hideif.el ends here
+

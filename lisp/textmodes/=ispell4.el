@@ -1,5 +1,6 @@
-;;This is the GNU EMACS interface to GNU ISPELL version 3.
-;;   Copyright (C) 1990, 1991 Free Software Foundation, Inc.
+;;; ispell.el --- this is the GNU EMACS interface to GNU ISPELL version 3.
+
+;;Copyright (C) 1990, 1991 Free Software Foundation, Inc.
 ;;
 ;;This file is part of GNU ISPELL.
 ;;
@@ -547,3 +548,4 @@ L lookup; Q quit\n")
       (kill-emacs 1))
   (write-region (point-min) (point-max) "ispell.info"))
 
+;;; ispell.el ends here

@@ -1,4 +1,5 @@
-;;Additions to shell mode for use with kermit, etc.
+;;; kermit.el --- additions to shell mode for use with kermit, etc.
+
 ;;Feb 1988, Jeff Norden - jeff@colgate.csnet
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
@@ -136,4 +137,4 @@ command \"kermit | tr -d '\\015'\"."
   (interactive)
   (set-process-filter (get-buffer-process (current-buffer)) nil))
 
-
+;;; kermit.el ends here

@@ -1,4 +1,5 @@
-;; Insert functions for ISO 8859/1.
+;;; iso-insert.el --- insert functions for ISO 8859/1.
+
 ;; Copyright (C) 1987 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -618,3 +619,5 @@
 )
 
 (provide 'iso8859-1-insert)
+
+;;; iso-insert.el ends here

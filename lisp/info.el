@@ -1,4 +1,5 @@
-;; Info package for Emacs  -- could use a "create node" feature.
+;;; info.el --- info package for Emacs  -- could use a "create node" feature.
+
 ;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -995,3 +996,4 @@ Interactively, if the binding is execute-extended-command, a command is read."
 
 (provide 'info)
 
+;;; info.el ends here
