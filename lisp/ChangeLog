@@ -1,3 +1,9 @@
+2001-10-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-beginning-of-member-init-list):
+	Better handling of C++ template args to avoid confusion with `<'
+	and `>' used as operators in member init expressions.
+
 2001-10-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* replace.el (perform-replace): Move START and END parameters
@@ -6,8 +12,7 @@
 	* progmodes/ebrowse.el, progmodes/etags.el: Adapt to change in
 	perform-replace.
 
-	* international/fontset.el (x-must-resolve-font-name): New
-	function.
+	* international/fontset.el (x-must-resolve-font-name): New function.
 	(x-complement-fontset-spec): Use it.
 
 2001-10-23  Gerd Moellmann  <gerd@gnu.org>
@@ -26,8 +31,8 @@
 
 2001-10-22  Gerd Moellmann  <gerd@gnu.org>
 
-	* progmodes/compile.el (compilation-set-window-height): Select
-	old window only if it's still live.
+	* progmodes/compile.el (compilation-set-window-height):
+	Select old window only if it's still live.
 
 2001-10-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -42,8 +47,7 @@
 	* tooltip.el (tooltip-x-offset, tooltip-y-offset): Mention in the
 	doc string the effect of `left' and `top' parameters in
 	tooltip-frame-parameters, the default values, and the units.
-	(tooltip-frame-parameters): Mention `top' and `left' in the doc
-	string.
+	(tooltip-frame-parameters): Mention `top' and `left' in the doc string.
 	(tooltip-show): Mention in the doc string the `top' and `left'
 	parameters in tooltip-frame-parameters, and x-max-tooltip-size.
 	(tooltip-set-param): Doc fix.
@@ -52,7 +56,7 @@
 
 	* saveplace.el (save-place): Require `saveplace'.
 
-	* progmodes/cwarn.el (cwarn-font-lock-feature-keywords-alist): 
+	* progmodes/cwarn.el (cwarn-font-lock-feature-keywords-alist):
 	Use `sexp' for :value-type instead of `face'.
 
 2001-10-20  Gerd Moellmann  <gerd@gnu.org>
@@ -62,8 +66,7 @@
 2001-10-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* files.el (auto-mode-alist): Associate .indent.pro with
-	Fundamental mode.  Suggested by Samuel Padgett
-	<spadgett1@nc.rr.com>.
+	Fundamental mode.  Suggested by Samuel Padgett <spadgett1@nc.rr.com>.
 
 2001-10-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
