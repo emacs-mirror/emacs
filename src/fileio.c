@@ -4343,16 +4343,18 @@ actually used.")
       && (coding.type == coding_type_no_conversion
 	  || coding.type == coding_type_raw_text))
     {
-      /* Visiting a file with these coding system always make the buffer
-	 unibyte. */
+      /* Visiting a file with these coding systems should always make
+	 the buffer unibyte.  If we happen to be replacing text in a
+	 multibyte buffer (this happens when reverting an RMAIL
+	 buffer), positions in the buffer, markers etc. may have byte
+	 positions != character positions, so just setting
+	 enable_multibyte_characters to nil doesn't suffice.  */
       if (!NILP (replace)
 	  && !NILP (current_buffer->enable_multibyte_characters))
 	Fset_buffer_multibyte (Qnil);
       else
-	{
-	  current_buffer->enable_multibyte_characters = Qnil;
-	  coding.dst_multibyte = 0;
-	}
+	current_buffer->enable_multibyte_characters = Qnil;
+      coding.dst_multibyte = 0;
     }
 
   if (inserted > 0 || coding.type == coding_type_ccl)
