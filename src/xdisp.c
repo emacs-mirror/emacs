@@ -488,6 +488,11 @@ static int display_last_displayed_message_p;
 
 int message_buf_print;
 
+/* The symbol `inhibit-menubar-update' and its DEFVAR_BOOL variable.  */
+
+Lisp_Object Qinhibit_menubar_update;
+int inhibit_menubar_update;
+
 /* Maximum height for resizing mini-windows.  Either a float
    specifying a fraction of the available height, or an integer
    specifying a number of lines.  */
@@ -6989,6 +6994,12 @@ update_menu_bar (f, save_match_data)
   Lisp_Object window;
   register struct window *w;
 
+  /* If called recursively during a menu update, do nothing.  This can
+     happen when, for instance, an activate-menubar-hook causes a
+     redisplay.  */
+  if (inhibit_menubar_update)
+    return;
+
   window = FRAME_SELECTED_WINDOW (f);
   w = XWINDOW (window);
   
@@ -7022,6 +7033,8 @@ update_menu_bar (f, save_match_data)
 	{
 	  struct buffer *prev = current_buffer;
 	  int count = BINDING_STACK_SIZE ();
+
+	  specbind (Qinhibit_menubar_update, Qt);
 
 	  set_buffer_internal_1 (XBUFFER (w->buffer));
 	  if (save_match_data)
@@ -14045,6 +14058,8 @@ syms_of_xdisp ()
   staticpro (&Qmessage_truncate_lines);
   Qgrow_only = intern ("grow-only");
   staticpro (&Qgrow_only);
+  Qinhibit_menubar_update = intern ("inhibit-menubar-update");
+  staticpro (&Qinhibit_menubar_update);
 
   last_arrow_position = Qnil;
   last_arrow_string = Qnil;
@@ -14269,6 +14284,10 @@ Bind this around calls to `message' to let it take effect.");
     "Normal hook run for clicks on menu bar, before displaying a submenu.\n\
 Can be used to update submenus whose contents should vary.");
   Vmenu_bar_update_hook = Qnil;
+  
+  DEFVAR_BOOL ("inhibit-menubar-update", &inhibit_menubar_update,
+    "Non-nil means don't update menu bars.  Internal use only.");
+  inhibit_menubar_update = 0;
 }
 
 
