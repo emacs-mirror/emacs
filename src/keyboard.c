@@ -1057,7 +1057,7 @@ DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 
 
 Lisp_Object Fcommand_execute ();
 static int read_key_sequence ();
-static void safe_run_hooks ();
+void safe_run_hooks ();
 
 Lisp_Object
 command_loop_1 ()
@@ -1458,7 +1458,7 @@ safe_run_hooks_error (data)
    to be nil.  Also inhibit quits, so that C-g won't cause the hook
    to mysteriously evaporate.  */
 
-static void
+void
 safe_run_hooks (hook)
      Lisp_Object hook;
 {
@@ -4791,6 +4791,23 @@ read_char_x_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
       value = Fx_popup_menu (prev_event, Flist (nmaps1, realmaps));
       if (CONSP (value))
 	{
+	  Lisp_Object tem;
+
+	  /* If we got multiple events, unread all but
+	     the first.
+	     There is no way to prevent those unread events
+	     from showing up later in last_nonmenu_event.
+	     So turn symbol and integer events into lists,
+	     to indicate that they came from a mouse menu,
+	     so that when present in last_nonmenu_event
+	     they won't confuse things.  */
+	  for (tem = XCONS (value)->cdr; !NILP (tem);
+	       tem = XCONS (tem)->cdr)
+	    if (SYMBOLP (XCONS (tem)->car)
+		|| INTEGERP (XCONS (tem)->car))
+	      XCONS (tem)->car
+		= Fcons (XCONS (tem)->car, Qnil);
+
 	  /* If we got more than one event, put all but the first
 	     onto this list to be read later.
 	     Return just the first event now.  */
