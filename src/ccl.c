@@ -827,6 +827,7 @@ while(0)
       }							\
     else if (ccl->last_block)				\
       {							\
+	REG = -1;					\
         ic = eof_ic;					\
         goto ccl_repeat;				\
       }							\
