@@ -207,6 +207,7 @@ is okay.  See `mode-line-format'.")
 
 	;; man
 	"^No manpage [0-9]* found$"
+	"^Can't find the .* manpage$"
 
 	;; etags
 	"^No tags table in use; use .* to select one$"
@@ -232,7 +233,6 @@ is okay.  See `mode-line-format'.")
 	"^This command is inapplicable in the present context$"
 	"^This session group has no parent$"
 	"^Can't hide active session, $"
-	"^Sorry, I don't do this for everyone...$"
 	"^Ediff: something wrong--no multiple diffs buffer$"
 	"^Can't make context diff for Session $"
 	"^The patch buffer wasn't found$"
