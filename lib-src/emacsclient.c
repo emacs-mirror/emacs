@@ -1,5 +1,5 @@
 /* Client process that communicates with GNU Emacs acting as server.
-   Copyright (C) 1986, 1987, 1994, 1999, 2000, 2001, 2003
+   Copyright (C) 1986, 1987, 1994, 1999, 2000, 2001, 2003, 2004
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -358,9 +358,10 @@ main (argc, argv)
 
   {
     int sock_status = 0;
+    int default_sock = !socket_name;
     int saved_errno;
 
-    if (! socket_name)
+    if (default_sock)
       {
 	socket_name = alloca (system_name_length + 100);
 	sprintf (socket_name, "/tmp/emacs%d-%s/server",
@@ -370,13 +371,16 @@ main (argc, argv)
     if (strlen (socket_name) < sizeof (server.sun_path))
       strcpy (server.sun_path, socket_name);
     else
-      fprintf (stderr, "%s: socket-name %s too long",
-	       argv[0], socket_name);
+      {
+	fprintf (stderr, "%s: socket-name %s too long",
+		 argv[0], socket_name);
+	exit (1);
+      }
 
     /* See if the socket exists, and if it's owned by us. */
     sock_status = socket_status (server.sun_path);
     saved_errno = errno;
-    if (sock_status)
+    if (sock_status && default_sock)
       {
 	/* Failing that, see if LOGNAME or USER exist and differ from
 	   our euid.  If so, look for a socket based on the UID
@@ -393,8 +397,18 @@ main (argc, argv)
 	    if (pw && (pw->pw_uid != geteuid ()))
 	      {
 		/* We're running under su, apparently. */
-		sprintf (server.sun_path, "/tmp/emacs%d-%s/server",
+		sprintf (socket_name, "/tmp/emacs%d-%s/server",
 			 (int) pw->pw_uid, system_name);
+
+		if (strlen (socket_name) < sizeof (server.sun_path))
+		  strcpy (server.sun_path, socket_name);
+		else
+		  {
+		    fprintf (stderr, "%s: socket-name %s too long",
+			     argv[0], socket_name);
+		    exit (1);
+		  }
+
 		sock_status = socket_status (server.sun_path);
 		saved_errno = errno;
 	      }
