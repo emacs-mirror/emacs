@@ -286,25 +286,6 @@ composed.")
     ))
 
 
-(defun reporter-calculate-separator ()
-  ;; returns the string regexp matching the mail separator
-  (save-excursion
-    (re-search-forward
-     (concat
-      "^\\("				;beginning of line
-      (mapconcat
-       'identity
-       (list "[\t ]*"			;simple SMTP form
-	     "-+"			;mh-e form
-	     (regexp-quote 
-	      mail-header-separator))	;sendmail.el form
-       "\\|")				;or them together
-      "\\)$")				;end of line
-     nil
-     'move)				;search for and move
-    (buffer-substring (match-beginning 0) (match-end 0))))
-
-
 (defun reporter-compose-outgoing ()
   ;; compose the outgoing mail buffer, and return the selected
   ;; paradigm, with the current-buffer tacked onto the beginning of
@@ -364,29 +345,25 @@ composed.")
       ;; back somewhere
       (and pop-up-windows (display-buffer reporter-eval-buffer)))
     (goto-char (point-min))
-    ;; different mailers use different separators, some may not even
-    ;; use mail-header-separator, but sendmail.el stuff must have this
-    ;; variable bound.
-    (let ((mail-header-separator (reporter-calculate-separator)))
-      (mail-position-on-field "to")
-      (insert address)
-      ;; insert problem summary if available
-      (if (and reporter-prompt-for-summary-p problem pkgname)
-	  (progn
-	    (mail-position-on-field "subject")
-	    (insert pkgname "; " problem)))
-      ;; move point to the body of the message
-      (mail-text)
-      (forward-line 1)
-      (setq after-sep-pos (point))
-      (and salutation (insert "\n" salutation "\n\n"))
-      (unwind-protect
-	  (progn
-	    (setq final-resting-place (point-marker))
-	    (insert "\n\n")
-	    (reporter-dump-state pkgname varlist pre-hooks post-hooks)
-	    (goto-char final-resting-place))
-	(set-marker final-resting-place nil)))
+    (mail-position-on-field "to")
+    (insert address)
+    ;; insert problem summary if available
+    (if (and reporter-prompt-for-summary-p problem pkgname)
+	(progn
+	  (mail-position-on-field "subject")
+	  (insert pkgname "; " problem)))
+    ;; move point to the body of the message
+    (mail-text)
+    (forward-line 1)
+    (setq after-sep-pos (point))
+    (and salutation (insert "\n" salutation "\n\n"))
+    (unwind-protect
+	(progn
+	  (setq final-resting-place (point-marker))
+	  (insert "\n\n")
+	  (reporter-dump-state pkgname varlist pre-hooks post-hooks)
+	  (goto-char final-resting-place))
+      (set-marker final-resting-place nil))
 
     ;; save initial text and set up the `no-empty-submission' hook.
     ;; This only works for mailers that support a pre-send hook, and
