@@ -1226,7 +1226,7 @@ if beginning or end of buffer was reached.")
   else
     window = selected_window;
 
-  pos = *vmotion (point, XINT (lines), XWINDOW (window));
+  pos = *vmotion (point, (int) XINT (lines), XWINDOW (window));
 
   SET_PT (pos.bufpos);
   return make_number (pos.vpos);
