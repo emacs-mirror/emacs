@@ -1,3 +1,21 @@
+2000-02-20  Dave Love  <fx@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-mouse-map): Change definition
+	and assignments to it.
+	(flyspell-mode-on): Define flyspell-local-mouse-map, inheriting
+	current local map.
+	(make-flyspell-overlay): Use it.
+	(flyspell-correct-word/mouse-keymap): Change XEmacs test.
+
+	* emacs-lisp/lisp-mnt.el: Don't require emacsbug at top level.
+	(lm-get-header-re): Defun, not defsubst.
+	(lm-get-package-name): Defun, not defsubst.  Simplify.
+	(lm-version): Doc fix.  Simplify.
+	(lm-header, lm-header-multiline, lm-header-multiline, lm-summary)
+	(lm-crack-address, lm-last-modified-date, lm-commentary)
+	(lm-verify, lm-synopsis): Simplify.
+	(lm-report-bug): Require emacsbug.  Use compose-mail.
+
 2000-02-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* dired.el (dired-mode): Call propertized-buffer-identification
