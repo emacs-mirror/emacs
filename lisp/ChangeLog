@@ -1,5 +1,7 @@
 1999-12-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* icomplete.el (icomplete-exhibit): Adapt to prompt in buffer.
+
 	* progmodes/cc-cmds.el (c-fill-paragraph): Don't delete white
 	space in front of a C-style comment end.
 
