@@ -2130,7 +2130,7 @@ list5 (arg1, arg2, arg3, arg4, arg5)
 
 
 DEFUN ("list", Flist, Slist, 0, MANY, 0,
-  doc: /* Return a newly created list with specified arguments as elements.
+       doc: /* Return a newly created list with specified arguments as elements.
 Any number of arguments, even zero arguments, are allowed.
 usage: (list &rest OBJECTS)  */)
      (nargs, args)
@@ -2403,7 +2403,7 @@ make_sub_char_table (defalt)
 
 
 DEFUN ("vector", Fvector, Svector, 0, MANY, 0,
-  doc: /* Return a newly created vector with specified arguments as elements.
+       doc: /* Return a newly created vector with specified arguments as elements.
 Any number of arguments, even zero arguments, are allowed.
 usage: (vector &rest OBJECTS)  */)
      (nargs, args)
