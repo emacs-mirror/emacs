@@ -72,6 +72,8 @@
 ;; Use directory-file-name; code cleanup.  mernst 6 Sep 97
 ;; Add uniquify-ignore-buffers-re.
 ;;  Andre Srinivasan <andre@visigenic.com> 9 Sep 97
+;; Add uniquify-list-buffers-directory-modes
+;;   Stefan Monnier <monnier@cs.yale.edu> 17 Nov 2000
 
 ;; Valuable feedback was provided by
 ;; Paul Smith <psmith@baynetworks.com>,
@@ -157,6 +159,10 @@ variable is ignored."
   :type 'boolean
   :group 'uniquify)
 
+(defvar uniquify-list-buffers-directory-modes '(dired-mode cvs-mode)
+  "List of modes for which uniquify should obey `list-buffers-directory'.
+That means that when `buffer-file-name' is set to nil, `list-buffers-directory'
+contains the name of the directory which the buffer is visiting.")
 
 ;;; Utilities
 
@@ -186,7 +192,7 @@ variable is ignored."
 ;;; Main entry point.
 
 (defun uniquify-rationalize-file-buffer-names (&optional newbuffile newbuf)
-  "Makes file buffer names unique by adding segments from file name.
+  "Make file buffer names unique by adding segments from file name.
 If `uniquify-min-dir-content' > 0, always pulls that many
 file name elements.  Arguments cause only a subset of buffers to be renamed."
   (interactive)
@@ -226,13 +232,12 @@ file name elements.  Arguments cause only a subset of buffers to be renamed."
 ;; uniquify's version of buffer-file-name; result never contains trailing slash
 (defun uniquify-buffer-file-name (buffer)
   "Return name of file BUFFER is visiting, or nil if none.
-Works on dired buffers and ordinary file-visiting buffers, but no others."
+Works on ordinary file-visiting buffers and buffers whose mode is mentioned
+in `uniquify-list-buffers-directory-modes', otherwise returns nil."
   (or (buffer-file-name buffer)
-      (and (featurep 'dired)
-      (save-excursion
-	(set-buffer buffer)
+      (with-current-buffer buffer
 	(and
-	 (eq major-mode 'dired-mode)	; do nothing if not a dired buffer
+	 (memq major-mode uniquify-list-buffers-directory-modes)
 	 (if (boundp 'list-buffers-directory) ; XEmacs mightn't define this
 	     (and list-buffers-directory
 		  (directory-file-name list-buffers-directory))
@@ -242,7 +247,7 @@ Works on dired buffers and ordinary file-visiting buffers, but no others."
 		 (directory-file-name
 		  (if (consp dired-directory)
 		      (car dired-directory)
-		    dired-directory))))))))))
+		    dired-directory)))))))))
 
 ;; This examines the filename components in reverse order.
 (defun uniquify-filename-lessp (s1 s2)
