@@ -939,11 +939,14 @@ set_time_zone_rule (tzstring)
   int envptrs;
   char **from, **to, **newenv;
 
+  /* Make the ENVIRON vector longer with room for TZSTRING.  */
   for (from = environ; *from; from++)
     continue;
   envptrs = from - environ + 2;
   newenv = to = (char **) xmalloc (envptrs * sizeof (char *)
 				   + (tzstring ? strlen (tzstring) + 4 : 0));
+
+  /* Add TZSTRING to the end of environ, as a value for TZ.  */
   if (tzstring)
     {
       char *t = (char *) (to + envptrs);
@@ -952,6 +955,9 @@ set_time_zone_rule (tzstring)
       *to++ = t;
     }
 
+  /* Copy the old environ vector elements into NEWENV,
+     but don't copy the TZ variable.
+     So we have only one definition of TZ, which came from TZSTRING.  */
   for (from = environ; *from; from++)
     if (strncmp (*from, "TZ=", 3) != 0)
       *to++ = *from;
@@ -959,7 +965,49 @@ set_time_zone_rule (tzstring)
 
   environ = newenv;
 
+  /* If we do have a TZSTRING, NEWENV points to the vector slot where
+     the TZ variable is stored.  If we do not have a TZSTRING,
+     TO points to the vector slot which has the terminating null.  */
+
 #ifdef LOCALTIME_CACHE
+  {
+    /* In SunOS 4.1.3_U1 and 4.1.4, if TZ has a value like
+       "US/Pacific" that loads a tz file, then changes to a value like
+       "XXX0" that does not load a tz file, and then changes back to
+       its original value, the last change is (incorrectly) ignored.
+       Also, if TZ changes twice in succession to values that do
+       not load a tz file, tzset can dump core (see Sun bug#1225179).
+       The following code works around these bugs.  */
+
+    /* These two values are known to load tz files in buggy implementations.
+       Their values shouldn't matter in non-buggy implementations.  */
+    char *tz1 = "TZ=GMT0";
+    char *tz2 = "TZ=GMT1";
+
+    if (tzstring)
+      {
+	/* Temporarily set TZ to a value that loads a tz file
+	   and that differs from tzstring.  */
+	char *tz = *newenv;
+	*newenv = strcmp (tzstring, tz1 + 3) == 0 ? tz2 : tz1;
+	tzset ();
+	*newenv = tz;
+      }
+    else
+      {
+	/* The implied tzstring is unknown, so temporarily set TZ to
+	   two different values that each load a tz file.  */
+	*to = tz1;
+	to[1] = 0;
+	tzset ();
+	*to = tz2;
+	tzset ();
+	*to = 0;
+      }
+
+    /* Now TZ has the desired value, and tzset can be invoked safely.  */
+  }
+
   tzset ();
 #endif
 }
