@@ -1653,7 +1653,7 @@ extern struct specbinding *specpdl;
 extern struct specbinding *specpdl_ptr;
 extern int specpdl_size;
 
-extern EMACS_INT max_specpdl_size;
+extern int max_specpdl_size;
 
 #define BINDING_STACK_SIZE()	(specpdl_ptr - specpdl)
 
