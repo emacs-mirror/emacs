@@ -185,6 +185,9 @@ corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
 	     ((loop
 	       (read-multibyte-character r0 r1)
 	       (translate-character ,encoder r0 r1)
+	       (if (r0 != ,(charset-id 'eight-bit-graphic))
+		   (if (r0 != ,(charset-id 'eight-bit-control))
+		     (r1 = ??)))
 	       (write-repeat r1)))))))
     `(let ((translation-table (cp-make-translation-table ,v))
 	   (codes (cp-valid-codes ,v)))
