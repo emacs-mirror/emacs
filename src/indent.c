@@ -116,7 +116,7 @@ current_column ()
   else
     stop = GAP_END_ADDR;
 
-  if (tab_width <= 0 || tab_width > 20) tab_width = 8;
+  if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
   col = 0, tab_seen = 0, post_tab = 0;
 
@@ -197,7 +197,7 @@ even if that goes past COLUMN; by default, MIN is zero.")
   if (fromcol == mincol)
     return make_number (mincol);
 
-  if (tab_width <= 0 || tab_width > 20) tab_width = 8;
+  if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
   if (indent_tabs_mode)
     {
@@ -243,7 +243,7 @@ position_indentation (pos)
   register unsigned char *p;
   register unsigned char *stop;
   
-  if (tab_width <= 0 || tab_width > 20) tab_width = 8;
+  if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
   
   stop = &FETCH_CHAR (BUFFER_CEILING_OF (pos)) + 1;
   p = &FETCH_CHAR (pos);
@@ -299,7 +299,7 @@ and if COLUMN is in the middle of a tab character, change it to spaces.")
   int prev_col;
   int c;
 
-  if (tab_width <= 0 || tab_width > 20) tab_width = 8;
+  if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
   CHECK_NATNUM (column, 0);
   goal = XINT (column);
 
@@ -437,7 +437,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
     = (selective && dp && XTYPE (DISP_INVIS_VECTOR (dp)) == Lisp_Vector
        ? XVECTOR (DISP_INVIS_VECTOR (dp))->size : 0);
 
-  if (tab_width <= 0 || tab_width > 20) tab_width = 8;
+  if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
   for (pos = from; pos < to; pos++)
     {
       /* Stop if past the target screen position.  */
