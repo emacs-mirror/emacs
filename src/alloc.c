@@ -167,7 +167,7 @@ xrealloc (block, size)
      reallocs don't do this.  */
   if (! block)
     val = (long *) malloc (size);
-  ese
+  else
     val = (long *) realloc (block, size);
 
   if (!val && size) memory_full ();
