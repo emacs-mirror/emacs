@@ -812,6 +812,7 @@ you are such a person.")
 	       (copy-face 'secondary-selection face))))
     ))
       
+(add-to-list 'facemenu-unlisted-faces 'ediff-current-diff-face-A)
 (defvar ediff-current-diff-face-A
   (if (ediff-window-display-p)
       (progn
@@ -830,6 +831,7 @@ you are such a person.")
 	'ediff-current-diff-face-A))
   "Face for highlighting the selected difference in buffer A.")
 
+(add-to-list 'facemenu-unlisted-faces 'ediff-current-diff-face-B)
 (defvar ediff-current-diff-face-B
   (if (ediff-window-display-p)
       (progn
@@ -849,6 +851,7 @@ you are such a person.")
   "Face for highlighting the selected difference in buffer B.")
     
 
+(add-to-list 'facemenu-unlisted-faces 'ediff-current-diff-face-C)
 (defvar ediff-current-diff-face-C
   (if (ediff-window-display-p)
       (progn
@@ -867,6 +870,7 @@ you are such a person.")
 	'ediff-current-diff-face-C))
   "Face for highlighting the selected difference in buffer C.")
 
+(add-to-list 'facemenu-unlisted-faces 'ediff-current-diff-face-Ancestor)
 (defvar ediff-current-diff-face-Ancestor
   (if (ediff-window-display-p)
       (progn
@@ -876,6 +880,7 @@ you are such a person.")
 	     'ediff-current-diff-face-C 'ediff-current-diff-face-Ancestor))))
   "Face for highlighting the selected difference in the ancestor buffer.")
 
+(add-to-list 'facemenu-unlisted-faces 'ediff-fine-diff-face-A)
 (defvar ediff-fine-diff-face-A
   (if (ediff-window-display-p)
       (progn
@@ -890,6 +895,7 @@ you are such a person.")
 	'ediff-fine-diff-face-A))
   "Face for highlighting the refinement of the selected diff in buffer A.")
 
+(add-to-list 'facemenu-unlisted-faces 'ediff-fine-diff-face-B)
 (defvar ediff-fine-diff-face-B
   (if (ediff-window-display-p)
       (progn
@@ -902,6 +908,7 @@ you are such a person.")
 	'ediff-fine-diff-face-B))
   "Face for highlighting the refinement of the selected diff in buffer B.")
     
+(add-to-list 'facemenu-unlisted-faces 'ediff-fine-diff-face-C)
 (defvar ediff-fine-diff-face-C
   (if (ediff-window-display-p)
       (progn
@@ -915,6 +922,7 @@ you are such a person.")
 	'ediff-fine-diff-face-C))
   "Face for highlighting the refinement of the selected diff in buffer C.")
 
+(add-to-list 'facemenu-unlisted-faces 'ediff-fine-diff-face-Ancestor)
 (defvar ediff-fine-diff-face-Ancestor
   (if (ediff-window-display-p)
       (progn
@@ -926,6 +934,7 @@ you are such a person.")
 Presently, this is not used, as difference regions are not refined in the
 ancestor buffer.")
     
+(add-to-list 'facemenu-unlisted-faces 'ediff-even-diff-face-A)
 (defvar ediff-even-diff-face-A
   (if (ediff-window-display-p)
       (progn
@@ -941,6 +950,7 @@ ancestor buffer.")
 	'ediff-even-diff-face-A))
   "Face used to highlight even-numbered differences in buffer A.")
       
+(add-to-list 'facemenu-unlisted-faces 'ediff-even-diff-face-B)
 (defvar ediff-even-diff-face-B
   (if (ediff-window-display-p)
       (progn
@@ -956,6 +966,7 @@ ancestor buffer.")
 	'ediff-even-diff-face-B))
   "Face used to highlight even-numbered differences in buffer B.")
     
+(add-to-list 'facemenu-unlisted-faces 'ediff-even-diff-face-C)
 (defvar ediff-even-diff-face-C
   (if (ediff-window-display-p)
       (progn
@@ -965,6 +976,7 @@ ancestor buffer.")
 	'ediff-even-diff-face-C))
   "Face used to highlight even-numbered differences in buffer C.")
 
+(add-to-list 'facemenu-unlisted-faces 'ediff-even-diff-face-Ancestor)
 (defvar ediff-even-diff-face-Ancestor
   (if (ediff-window-display-p)
       (progn
@@ -974,6 +986,7 @@ ancestor buffer.")
 	'ediff-even-diff-face-Ancestor))
   "Face highlighting even-numbered differences in the ancestor buffer.")
   
+(add-to-list 'facemenu-unlisted-faces 'ediff-odd-diff-face-A)
 (defvar ediff-odd-diff-face-A
   (if (ediff-window-display-p)
       (progn
@@ -989,6 +1002,7 @@ ancestor buffer.")
 	'ediff-odd-diff-face-A))
   "Face used to highlight odd-numbered differences in buffer A.")
       
+(add-to-list 'facemenu-unlisted-faces 'ediff-odd-diff-face-B)
 (defvar ediff-odd-diff-face-B
   (if (ediff-window-display-p)
       (progn
@@ -1004,6 +1018,7 @@ ancestor buffer.")
 	'ediff-odd-diff-face-B))
   "Face used to highlight odd-numbered differences in buffer B.")
     
+(add-to-list 'facemenu-unlisted-faces 'ediff-odd-diff-face-C)
 (defvar ediff-odd-diff-face-C
   (if (ediff-window-display-p)
       (progn
@@ -1013,6 +1028,7 @@ ancestor buffer.")
 	'ediff-odd-diff-face-C))
   "Face used to highlight odd-numbered differences in buffer C.")
 
+(add-to-list 'facemenu-unlisted-faces 'ediff-odd-diff-face-Ancestor )
 (defvar ediff-odd-diff-face-Ancestor 
   (if (ediff-window-display-p)
       (progn
