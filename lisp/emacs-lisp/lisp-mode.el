@@ -149,24 +149,24 @@ ine-condition\\|ine-widget\\|face\\)\\s-+'?\\(\\sw\\(\\sw\\|\\s_\\)+\\)")
     (- (match-end 0) (match-beginning 0))))
 
 
-(defvar shared-lisp-mode-map ()
+(defvar lisp-mode-shared-map ()
   "Keymap for commands shared by all sorts of Lisp modes.")
 
-(if shared-lisp-mode-map
+(if lisp-mode-shared-map
     ()
-   (setq shared-lisp-mode-map (make-sparse-keymap))
-   (define-key shared-lisp-mode-map "\e\C-q" 'indent-sexp)
-   (define-key shared-lisp-mode-map "\177" 'backward-delete-char-untabify))
+   (setq lisp-mode-shared-map (make-sparse-keymap))
+   (define-key lisp-mode-shared-map "\e\C-q" 'indent-sexp)
+   (define-key lisp-mode-shared-map "\177" 'backward-delete-char-untabify))
 
 (defvar emacs-lisp-mode-map ()
   "Keymap for Emacs Lisp mode.
-All commands in `shared-lisp-mode-map' are inherited by this map.")
+All commands in `lisp-mode-shared-map' are inherited by this map.")
 
 (if emacs-lisp-mode-map
     ()
   (let ((map (make-sparse-keymap "Emacs-Lisp")))
     (setq emacs-lisp-mode-map (make-sparse-keymap))
-    (set-keymap-parent emacs-lisp-mode-map shared-lisp-mode-map)
+    (set-keymap-parent emacs-lisp-mode-map lisp-mode-shared-map)
     (define-key emacs-lisp-mode-map "\e\t" 'lisp-complete-symbol)
     (define-key emacs-lisp-mode-map "\e\C-x" 'eval-defun)
     (define-key emacs-lisp-mode-map [menu-bar] (make-sparse-keymap))
@@ -252,12 +252,12 @@ if that value is non-nil."
 
 (defvar lisp-mode-map
   (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map shared-lisp-mode-map)
+    (set-keymap-parent map lisp-mode-shared-map)
     (define-key map "\e\C-x" 'lisp-eval-defun)
     (define-key map "\C-c\C-z" 'run-lisp)
     map)
   "Keymap for ordinary Lisp mode.
-All commands in `shared-lisp-mode-map' are inherited by this map.")
+All commands in `lisp-mode-shared-map' are inherited by this map.")
 
 (defun lisp-mode ()
   "Major mode for editing Lisp code for Lisps other than GNU Emacs Lisp.
@@ -288,13 +288,13 @@ if that value is non-nil."
 
 (defvar lisp-interaction-mode-map
   (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map shared-lisp-mode-map)
+    (set-keymap-parent map lisp-mode-shared-map)
     (define-key map "\e\C-x" 'eval-defun)
     (define-key map "\e\t" 'lisp-complete-symbol)
     (define-key map "\n" 'eval-print-last-sexp)
     map)
   "Keymap for Lisp Interaction mode.
-All commands in `shared-lisp-mode-map' are inherited by this map.")
+All commands in `lisp-mode-shared-map' are inherited by this map.")
 
 (defun lisp-interaction-mode ()
   "Major mode for typing and evaluating Lisp forms.
@@ -400,9 +400,11 @@ With argument, print output into current buffer."
 	(setq debug-on-error new-value))
       value)))
       
-;; Change defvar into defconst within FORM,
-;; and likewise for other constructs as necessary.
 (defun eval-defun-1 (form)
+  "Change defvar into defconst within FORM.
+Likewise for other constructs as necessary."
+  ;; The code in edebug-defun should be consistent with this, but not
+  ;; the same, since this gets a macroexpended form.
   (cond ((and (eq (car form) 'defvar)
 	      (cdr-safe (cdr-safe form)))
 	 ;; Force variable to be bound.
@@ -840,8 +842,8 @@ ENDPOS is encountered."
 	(and endpos
 	     (<= next-depth 0)
 	     (progn
-	       (setq indent-stack (append indent-stack
-					  (make-list (- next-depth) nil))
+	       (setq indent-stack (nconc indent-stack
+					 (make-list (- next-depth) nil))
 		     last-depth (- last-depth next-depth)
 		     next-depth 0)))
 	(or outer-loop-done endpos
