@@ -157,6 +157,15 @@ The variables are saved only when they really are local.")
   "^/[^/:]*:"
   "Regexp identifying files whose buffers are to be excluded from saving.")
 
+(defvar desktop-buffer-major-mode nil
+  "When desktop creates a buffer, this holds the desired Major mode.")
+
+(defvar desktop-buffer-file-name nil
+  "When desktop creates a buffer, this holds the file name to visit.")
+
+(defvar desktop-buffer-name nil
+  "When desktop creates a buffer, this holds the desired buffer name.")
+
 (defvar desktop-buffer-handlers
   '(desktop-buffer-dired
     desktop-buffer-rmail
@@ -164,11 +173,11 @@ The variables are saved only when they really are local.")
     desktop-buffer-info
     desktop-buffer-file)
   "*List of functions to call in order to create a buffer.
-The functions are called without explicit parameters but may access
-the the major mode as `mam', the file name as `fn', the buffer name as
-`bn', the default directory as `dd'.  If some function returns non-nil
-no further functions are called.  If the function returns t then the
-buffer is considered created.")
+The functions are called without explicit parameters but can use the
+variables `desktop-buffer-major-mode', `desktop-buffer-file-name',
+`desktop-buffer-name'.
+If one function returns non-nil, no further functions are called.
+If the function returns t then the buffer is considered created.")
 
 (defvar desktop-create-buffer-form "(desktop-create-buffer 205"
   "Opening of form for creation of new buffers.")
@@ -477,30 +486,30 @@ to provide correct modes for autoloaded files."
 ;; Note: the following functions use the dynamic variable binding in Lisp.
 ;;
 (defun desktop-buffer-info () "Load an info file."
-  (if (eq 'Info-mode mam)
+  (if (eq 'Info-mode desktop-buffer-major-mode)
       (progn
 	(require 'info)
 	(Info-find-node (nth 0 misc) (nth 1 misc))
 	t)))
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-rmail () "Load an RMAIL file."
-  (if (eq 'rmail-mode mam)
+  (if (eq 'rmail-mode desktop-buffer-major-mode)
       (condition-case error
-	  (progn (rmail-input fn) t)
+	  (progn (rmail-input desktop-buffer-file-name) t)
 	(file-locked
 	 (kill-buffer (current-buffer))
 	 'ignored))))
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-mh () "Load a folder in the mh system."
-  (if (eq 'mh-folder-mode mam)
+  (if (eq 'mh-folder-mode desktop-buffer-major-mode)
       (progn
 	(require 'mh-e)
 	(mh-find-path)
-	(mh-visit-folder bn)
+	(mh-visit-folder desktop-buffer-name)
 	t)))
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-dired () "Load a directory using dired."
-  (if (eq 'dired-mode mam)
+  (if (eq 'dired-mode desktop-buffer-major-mode)
       (if (file-directory-p (file-name-directory (car misc)))
 	  (progn
 	    (dired (car misc))
@@ -511,18 +520,20 @@ to provide correct modes for autoloaded files."
 	'ignored)))
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-file () "Load a file."
-  (if fn
-      (if (or (file-exists-p fn)
+  (if desktop-buffer-file-name
+      (if (or (file-exists-p desktop-buffer-file-name)
 	      (and desktop-missing-file-warning
 		   (y-or-n-p (format
 			      "File \"%s\" no longer exists. Re-create? "
-			      fn))))
-	  (progn (find-file fn) t)
+			      desktop-buffer-file-name))))
+	  (progn (find-file desktop-buffer-file-name) t)
 	'ignored)))
 ;; ----------------------------------------------------------------------------
 ;; Create a buffer, load its file, set is mode, ...;  called from Desktop file
 ;; only.
-(defun desktop-create-buffer (ver fn bn mam mim pt mk ro misc &optional locals)
+(defun desktop-create-buffer (ver desktop-buffer-file-name desktop-buffer-name
+				  desktop-buffer-major-mode
+				  mim pt mk ro misc &optional locals)
   (let ((hlist desktop-buffer-handlers)
 	(result)
 	(handler))
@@ -532,8 +543,8 @@ to provide correct modes for autoloaded files."
       (setq hlist (cdr hlist)))
     (if (eq result t)
 	(progn
-	  (if (not (equal (buffer-name) bn))
-	      (rename-buffer bn))
+	  (if (not (equal (buffer-name) desktop-buffer-name))
+	      (rename-buffer desktop-buffer-name))
 	  (auto-fill-mode (if (nth 0 mim) 1 0))
 	  (goto-char pt)
 	  (if (consp mk)
@@ -557,8 +568,11 @@ to provide correct modes for autoloaded files."
 	  ))))
 
 ;; Backward compatibility -- update parameters to 205 standards.
-(defun desktop-buffer (fn bn mam mim pt mk ro tl fc cfs cr misc)
-  (desktop-create-buffer 205 fn bn mam (cdr mim) pt mk ro misc
+(defun desktop-buffer (desktop-buffer-file-name desktop-buffer-name
+		       desktop-buffer-major-mode
+		       mim pt mk ro tl fc cfs cr misc)
+  (desktop-create-buffer 205 desktop-buffer-file-name desktop-buffer-name
+			 desktop-buffer-major-mode (cdr mim) pt mk ro misc
 			 (list (cons 'truncate-lines tl)
 			       (cons 'fill-column fc)
 			       (cons 'case-fold-search cfs)
