@@ -45,20 +45,13 @@ Boston, MA 02111-1307, USA.  */
 #define USE_XAW
 #endif /* not USE_MOTIF && USE_LUCID */
 #endif
-#if defined (USE_OLIT)
-#include "lwlib-Xol.h"
-#endif
 #if defined (USE_XAW)
 #include <X11/Xaw/Paned.h>
 #include "lwlib-Xaw.h"
 #endif
 
-#if !defined (USE_LUCID) && !defined (USE_MOTIF) && !defined (USE_OLIT)
-ERROR!  At least one of USE_LUCID, USE_MOTIF or USE_OLIT must be defined.
-#endif
-
-#if defined (USE_MOTIF) && defined (USE_OLIT)
-ERROR! no more than one of USE_MOTIF and USE_OLIT may be defined.
+#if !defined (USE_LUCID) && !defined (USE_MOTIF)
+ #error  At least one of USE_LUCID or USE_MOTIF must be defined.
 #endif
 
 #ifndef max
@@ -113,7 +106,7 @@ void
 lwlib_memset (address, value, length)
      char *address;
      int value;
-     int length;
+     size_t length;
 {
   int i;
 
@@ -192,7 +185,7 @@ malloc_widget_value ()
       wv = (widget_value *) malloc (sizeof (widget_value));
       malloc_cpt++;
     }
-  lwlib_memset (wv, 0, sizeof (widget_value));
+  lwlib_memset ((void*) wv, 0, sizeof (widget_value));
   return wv;
 }
 
@@ -337,11 +330,18 @@ mark_widget_destroyed (widget, closure, call_data)
     instance->widget = NULL;
 }
 
+/* The messy #ifdef PROTOTYPES here and elsewhere are prompted by a
+   flood of warnings about argument promotion from proprietary ISO C
+   compilers.  (etags still only makes one entry for each function.)  */
 static widget_instance *
+#ifdef PROTOTYPES
+allocate_widget_instance (widget_info* info, Widget parent, Boolean pop_up_p)
+#else
 allocate_widget_instance (info, parent, pop_up_p)
      widget_info* info;
      Widget parent;
      Boolean pop_up_p;
+#endif
 {
   widget_instance* instance =
     (widget_instance*)malloc (sizeof (widget_instance));
@@ -368,9 +368,13 @@ free_widget_instance (instance)
 }
 
 static widget_info *
+#ifdef PROTOTYPES
+get_widget_info (LWLIB_ID id, Boolean remove_p)
+#else
 get_widget_info (id, remove_p)
      LWLIB_ID id;
      Boolean remove_p;
+#endif
 {
   widget_info* info;
   widget_info* prev;
@@ -401,9 +405,13 @@ lw_get_widget_info (id)
 }
 
 static widget_instance *
+#ifdef PROTOTYPES
+get_widget_instance (Widget widget, Boolean remove_p)
+#else
 get_widget_instance (widget, remove_p)
      Widget widget;
      Boolean remove_p;
+#endif
 {
   widget_info* info;
   widget_instance* instance;
@@ -437,10 +445,14 @@ lw_get_widget_instance (widget)
 }
 
 static widget_instance*
+#ifdef PROTOTYPES
+find_instance (LWLIB_ID id, Widget parent, Boolean pop_up_p)
+#else
 find_instance (id, parent, pop_up_p)
      LWLIB_ID id;
      Widget parent;
      Boolean pop_up_p;
+#endif
 {
   widget_info* info = get_widget_info (id, False);
   widget_instance* instance;
@@ -669,10 +681,14 @@ name_to_widget (instance, name)
 }
 
 static void
+#ifdef PROTOTYPES
+set_one_value (widget_instance* instance, widget_value* val, Boolean deep_p)
+#else
 set_one_value (instance, val, deep_p)
      widget_instance* instance;
      widget_value* val;
      Boolean deep_p;
+#endif
 {
   Widget widget = name_to_widget (instance, val->name);
   
@@ -686,10 +702,6 @@ set_one_value (instance, val, deep_p)
       if (lw_motif_widget_p (instance->widget))
 	xm_update_one_widget (instance, widget, val, deep_p);
 #endif
-#if defined (USE_OLIT)
-      if (lw_olit_widget_p (instance->widget))
-	xol_update_one_widget (instance, widget, val, deep_p);
-#endif
 #if defined (USE_XAW)
       if (lw_xaw_widget_p (instance->widget))
 	xaw_update_one_widget (instance, widget, val, deep_p);
@@ -698,9 +710,13 @@ set_one_value (instance, val, deep_p)
 }
 
 static void
+#ifdef PROTOTYPES
+update_one_widget_instance (widget_instance* instance, Boolean deep_p)
+#else
 update_one_widget_instance (instance, deep_p)
      widget_instance* instance;
      Boolean deep_p;
+#endif
 {
   widget_value *val;
 
@@ -714,9 +730,13 @@ update_one_widget_instance (instance, deep_p)
 }
 
 static void
+#ifdef PROTOTYPES
+update_all_widget_values (widget_info* info, Boolean deep_p)
+#else
 update_all_widget_values (info, deep_p)
      widget_info* info;
      Boolean deep_p;
+#endif
 {
   widget_instance* instance;
   widget_value* val;
@@ -729,10 +749,14 @@ update_all_widget_values (info, deep_p)
 }
 
 int
+#ifdef PROTOTYPES
+lw_modify_all_widgets (LWLIB_ID id, widget_value* val, Boolean deep_p)
+#else
 lw_modify_all_widgets (id, val, deep_p)
      LWLIB_ID id;
      widget_value* val;
      Boolean deep_p;
+#endif
 {
   widget_info* info = get_widget_info (id, False);
   widget_value* new_val;
@@ -862,10 +886,6 @@ instantiate_widget_instance (instance)
   if (!function)
     function = find_in_table (instance->info->type, xm_creation_table);
 #endif
-#if defined (USE_OLIT)
-  if (!function)
-    function = find_in_table (instance->info->type, xol_creation_table);
-#endif
 #if defined (USE_XAW)
   if (!function)
     function = find_in_table (instance->info->type, xaw_creation_table);
@@ -885,9 +905,6 @@ instantiate_widget_instance (instance)
 #if defined (USE_XAW)
 	  if (!function)
 	    function = xaw_create_dialog;
-#endif
-#if defined (USE_OLIT)
-	  /* not yet */
 #endif
 	}
     }
@@ -925,10 +942,14 @@ lw_register_widget (type, name, id, val, pre_activate_cb,
 }
 
 Widget
+#ifdef PROTOTYPES
+lw_get_widget (LWLIB_ID id, Widget parent, Boolean pop_up_p)
+#else
 lw_get_widget (id, parent, pop_up_p)
      LWLIB_ID id;
      Widget parent;
      Boolean pop_up_p;
+#endif
 {
   widget_instance* instance;
   
@@ -937,10 +958,14 @@ lw_get_widget (id, parent, pop_up_p)
 }
 
 Widget
+#ifdef PROTOTYPES
+lw_make_widget (LWLIB_ID id, Widget parent, Boolean pop_up_p)
+#else
 lw_make_widget (id, parent, pop_up_p)
      LWLIB_ID id;
      Widget parent;
      Boolean pop_up_p;
+#endif
 {
   widget_instance* instance;
   widget_info* info;
@@ -960,6 +985,12 @@ lw_make_widget (id, parent, pop_up_p)
 }
 
 Widget
+#ifdef PROTOTYPES
+lw_create_widget (char* type, char* name, LWLIB_ID id, widget_value* val,
+		  Widget parent, Boolean pop_up_p,
+		  lw_callback pre_activate_cb, lw_callback selection_cb,
+		  lw_callback post_activate_cb, lw_callback highlight_cb)
+#else
 lw_create_widget (type, name, id, val, parent, pop_up_p, pre_activate_cb,
 		  selection_cb, post_activate_cb, highlight_cb)
      char* type;
@@ -972,6 +1003,7 @@ lw_create_widget (type, name, id, val, parent, pop_up_p, pre_activate_cb,
      lw_callback selection_cb;
      lw_callback post_activate_cb;
      lw_callback highlight_cb;
+#endif
 {
   lw_register_widget (type, name, id, val, pre_activate_cb, selection_cb,
 		      post_activate_cb, highlight_cb);
@@ -1009,11 +1041,6 @@ destroy_one_instance (instance)
 #if defined (USE_MOTIF)
       if (lw_motif_widget_p (instance->widget))
 	xm_destroy_instance (instance);
-      else
-#endif
-#if defined (USE_OLIT)
-      if (lw_olit_widget_p (instance->widget))
-	xol_destroy_instance (instance);
       else
 #endif
 #if defined (USE_XAW)
@@ -1126,9 +1153,13 @@ lw_raise_all_pop_up_widgets ()
 }
 
 static void
+#ifdef PROTOTYPES
+lw_pop_all_widgets (LWLIB_ID id, Boolean up)
+#else
 lw_pop_all_widgets (id, up)
      LWLIB_ID id;
      Boolean up;
+#endif
 {
   widget_info* info = get_widget_info (id, False);
   widget_instance* instance;
@@ -1149,13 +1180,6 @@ lw_pop_all_widgets (id, up)
 	    {
 	      XtRealizeWidget (instance->widget);
 	      xm_pop_instance (instance, up);
-	    }
-#endif
-#if defined (USE_OLIT)
-	  if (lw_olit_widget_p (instance->widget))
-	    {
-	      XtRealizeWidget (instance->widget);
-	      xol_pop_instance (instance, up);
 	    }
 #endif
 #if defined (USE_XAW)
@@ -1196,10 +1220,6 @@ lw_popup_menu (widget, event)
   if (lw_motif_widget_p (widget))
     xm_popup_menu (widget, event);
 #endif
-#if defined (USE_OLIT)
-  if (lw_olit_widget_p (widget))
-    xol_popup_menu (widget, event);
-#endif
 #if defined (USE_XAW)
   if (lw_xaw_widget_p (widget))
     xaw_popup_menu (widget, event);
@@ -1223,10 +1243,6 @@ get_one_value (instance, val)
 #if defined (USE_MOTIF)
       if (lw_motif_widget_p (instance->widget))
 	xm_update_one_value (instance, widget, val);
-#endif
-#if defined (USE_OLIT)
-      if (lw_olit_widget_p (instance->widget))
-	xol_update_one_value (instance, widget, val);
 #endif
 #if defined (USE_XAW)
       if (lw_xaw_widget_p (instance->widget))
@@ -1361,9 +1377,13 @@ lw_set_keyboard_focus (parent, w)
 
 /* Show busy */
 static void
+#ifdef PROTOTYPES
+show_one_widget_busy (Widget w, Boolean flag)
+#else
 show_one_widget_busy (w, flag)
      Widget w;
      Boolean flag;
+#endif
 {
   Pixel foreground = 0;
   Pixel background = 1;
@@ -1382,9 +1402,13 @@ show_one_widget_busy (w, flag)
 }
 
 void
+#ifdef PROTOTYPES
+lw_show_busy (Widget w, Boolean busy)
+#else
 lw_show_busy (w, busy)
      Widget w;
      Boolean busy;
+#endif
 {
   widget_instance* instance = get_widget_instance (w, False);
   widget_info* info;
@@ -1406,9 +1430,13 @@ lw_show_busy (w, busy)
 /* This hack exists because Lucid/Athena need to execute the strange
    function below to support geometry management. */
 void
+#ifdef PROTOTYPES
+lw_refigure_widget (Widget w, Boolean doit)
+#else
 lw_refigure_widget (w, doit)
      Widget w;
      Boolean doit;
+#endif
 {
 #if defined (USE_XAW)  
   XawPanedSetRefigureMode (w, doit);
@@ -1455,9 +1483,13 @@ lw_set_main_areas (parent, menubar, work_area)
 /* Manage resizing for Motif.  This disables resizing when the menubar
    is about to be modified. */
 void
+#ifdef PROTOTYPES
+lw_allow_resizing (Widget w, Boolean flag)
+#else
 lw_allow_resizing (w, flag)
      Widget w;
      Boolean flag;
+#endif
 {
 #if defined (USE_MOTIF)
   xm_manage_resizing (w, flag);
