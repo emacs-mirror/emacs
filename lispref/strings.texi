@@ -260,12 +260,18 @@ Lists}.
 @end defun
 
 @defun split-string string separators omit-nulls
-This function splits @var{string} into substrings at matches for the regular
-expression @var{separators}.  Each match for @var{separators} defines a
-splitting point; the substrings between the splitting points are made
-into a list, which is the value returned by @code{split-string}.  If
-@var{omit-nulls} is @code{t}, null strings will be removed from the
-result list.  Otherwise, null strings are left in the result.
+This function splits @var{string} into substrings at matches for the
+regular expression @var{separators}.  Each match for @var{separators}
+defines a splitting point; the substrings between the splitting points
+are made into a list, which is the value returned by
+@code{split-string}.
+
+If @var{omit-nulls} is @code{nil}, the result contains null strings
+whenever there are two consecutive matches for @var{separators}, or a
+match is adjacent to the beginning or end of @var{string}.  If
+@var{omit-nulls} is @code{t}, these null strings are omitted from the
+result list.
+
 If @var{separators} is @code{nil} (or omitted),
 the default is the value of @code{split-string-default-separators}.
 
