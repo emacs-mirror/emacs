@@ -1733,7 +1733,7 @@ If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
 with the command \\[tags-loop-continue].
 
 See documentation of variable `tags-file-name'."
-  (interactive (query-replace-read-args "Tags query replace (regexp)" t))
+  (interactive (query-replace-read-args "Tags query replace (regexp)" t t))
   (setq tags-loop-scan `(let ,(unless (equal from (downcase from))
 				'((case-fold-search nil)))
 			  (if (re-search-forward ',from nil t)
