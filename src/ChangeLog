@@ -1,3 +1,10 @@
+2005-04-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* alloc.c (allocate_string_data): Call BLOCK_INPUT before calling
+	mallopt.
+
+	* ralloc.c (r_alloc_init): Ditto.
+
 2005-04-01  Kenichi Handa  <handa@m17n.org>
 
 	* lisp.h (Vascii_upcase_table, Vascii_canon_table,

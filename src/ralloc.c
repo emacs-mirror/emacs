@@ -1255,7 +1255,9 @@ r_alloc_init ()
 #endif
 
 #ifdef DOUG_LEA_MALLOC
-    mallopt (M_TOP_PAD, 64 * 4096);
+  BLOCK_INPUT;
+  mallopt (M_TOP_PAD, 64 * 4096);
+  UNBLOCK_INPUT;
 #else
 #ifndef SYSTEM_MALLOC
   /* Give GNU malloc's morecore some hysteresis
