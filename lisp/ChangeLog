@@ -3,6 +3,46 @@
 	* calendar/calendar.el (generate-calendar-window): Use
 	`fit-window-to-buffer'.
 
+2000-11-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* gud.el (gud-minor-mode): New var.
+	(gud-symbol, gud-val): New functions.
+	(gud-find-file): Copy gud-minor-mode to the new buffer.
+	(gud-menu-map): Include entries for commands that are not always
+	available, using :enable to (de)activate them.
+	(gud-minor-mode-map): New map.  Add it to minor-mode-map-alist.
+	(gud-mode-map): New map.
+	(gud-gdb-find-file, gud-sdb-find-file, gud-dbx-find-file) 
+	(gud-xdb-find-file, gud-perldb-find-file, gud-pdb-find-file):
+	Don't set up gud's menu (it's done by the minor-mode).
+	(gud-minibuffer-local-map): New.
+	Replace gdb-minibuffer-local-map and pdb-minibuffer-local-map.
+	(gud-query-cmdline): New function.
+	(gdb, sdb, dbx, xdb, perldb, pdb, jdb): Use it.  Set gud-minor-mode.
+	(gud-mode): Use define-derived-mode.
+	Don't set up gud's menu (it's done by the minor-mode).
+	(gud-chop-words): Remove.
+	(gud-common-init): Use split-string instead.
+	(gud-new-keymap, gud-make-debug-menu): Eradicate.
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-keymap):
+	Add keyword arg :name.
+
+	* diff-mode.el (diff-mode-menu): Add entry for applying hunk.
+	(diff-count-matches, diff-split-hunk): New functions.
+	(diff-mode-map): Bind C-c C-s to diff-split-hunk.
+
+	* pcvs-info.el (cvs-fi-conflict-face): New var.
+
+	* progmodes/sh-script.el (sh-mode-syntax-table) <defvar>:
+	Make it into a simple syntax-table, shared among all submodes.
+	(sh-heredoc-face): Re-introduce.
+	(sh-font-lock-syntactic-face-function): New function.
+	(sh-mode): Use it.  Also use define-derived-mode.
+	Remove old bogus setting of indent-region-function.
+	(sh-set-shell): Don't set the syntax-table any more.
+	(sh-mode-syntax-table) <defun>: Remove.
+
 2000-11-12  Miles Bader  <miles@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-mode-on): Only output welcome
@@ -30,11 +70,9 @@
 	* progmodes/etags.el (visit-tags-table-buffer): Beware of `t' in
 	tags-table-list.
 
-	* net/browse-url.el (browse-url-browser-function): Update
-	:version.
+	* net/browse-url.el (browse-url-browser-function): Update :version.
 
-	* mail/sendmail.el (mail-font-lock-keywords): Use [:alpha:], not
-	a-z.
+	* mail/sendmail.el (mail-font-lock-keywords): Use [:alpha:], not a-z.
 	(mail-mode): Use [:alnum:] in some regexps.
 
 2000-11-10  Dave Love  <fx@gnu.org>
