@@ -136,6 +136,11 @@ The format is (FUNCTION ARGS...).")
 
 (setq-default help-xref-stack nil help-xref-stack-item nil)
 
+(defcustom help-mode-hook nil
+  "Hook run by `help-mode'."
+  :type 'hook
+  :group 'help)
+
 (defun help-mode ()
   "Major mode for viewing help text and navigating references in it.
 Entry to this mode runs the normal hook `help-mode-hook'.
