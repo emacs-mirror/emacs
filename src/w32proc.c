@@ -1351,7 +1351,7 @@ sys_kill (int pid, int sig)
 		     "for pid %lu\n", GetLastError (), pid));
 	  errno = EINVAL;
 	  rc = -1;
-    }
+	}
     }
   else
     {
