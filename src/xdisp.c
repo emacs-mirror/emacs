@@ -6085,7 +6085,7 @@ message_with_string (m, string, log)
 
 	  args[0] = build_string (m);
 	  args[1] = message = string;
-	  GCPRO2 (args, message);
+	  GCPRO2 (args[0], message);
 	  gcpro1.nvars = 2;
 	  
 	  message = Fformat (2, args);
