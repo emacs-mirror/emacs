@@ -1373,7 +1373,7 @@ sys_kill (int pid, int sig)
   return rc;
 }
 
-extern int report_file_error (char *, Lisp_Object);
+/* extern int report_file_error (char *, Lisp_Object); */
 
 /* The following two routines are used to manipulate stdin, stdout, and
    stderr of our child processes.
