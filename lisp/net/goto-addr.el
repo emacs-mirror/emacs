@@ -147,6 +147,8 @@ and `goto-address-fontify-p'."
 		(overlay-put this-overlay
                              'mouse-face goto-address-url-mouse-face)
 		(overlay-put this-overlay
+			     'help-echo "mouse-2: follow URL")
+		(overlay-put this-overlay
                              'local-map goto-address-highlight-keymap)))
 	    (goto-char (point-min))
 	    (while (re-search-forward goto-address-mail-regexp nil t)
@@ -157,6 +159,8 @@ and `goto-address-fontify-p'."
                      (overlay-put this-overlay 'face goto-address-mail-face))
                 (overlay-put this-overlay 'mouse-face
                              goto-address-mail-mouse-face)
+		(overlay-put this-overlay
+			     'help-echo "mouse-2: follow URL")
                 (overlay-put this-overlay
                              'local-map goto-address-highlight-keymap)))))
       (and (buffer-modified-p)
