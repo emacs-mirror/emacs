@@ -2233,44 +2233,43 @@ default directory."
 (defun vc-backend-diff (file &optional oldvers newvers cmp)
   ;; Get a difference report between two versions of FILE.
   ;; Get only a brief comparison report if CMP, a difference report otherwise.
-  (let ((backend (vc-backend file)))
+  (let ((backend (vc-backend file)) options status
+        (diff-switches-list (if (listp diff-switches) 
+                                diff-switches 
+                              (list diff-switches))))
     (cond
      ((eq backend 'SCCS)
       (setq oldvers (vc-lookup-triple file oldvers))
-      (setq newvers (vc-lookup-triple file newvers)))
+      (setq newvers (vc-lookup-triple file newvers))
+      (setq options (append (list (and cmp "--brief") "-q"
+                                  (and oldvers (concat "-r" oldvers))
+                                  (and newvers (concat "-r" newvers)))
+                            (and (not cmp) diff-switches-list)))
+      (apply 'vc-do-command "*vc-diff*" 1 "vcdiff" file 'MASTER options))
      ((eq backend 'RCS)
       (if (not oldvers) (setq oldvers (vc-workfile-version file)))
       ;; If we know that --brief is not supported, don't try it.
-      (setq cmp (and cmp (not (eq vc-rcsdiff-knows-brief 'no))))))
-     ;; SCCS and RCS shares a lot of code.
-    (cond
-     ((or (eq backend 'SCCS) (eq backend 'RCS))
-      (let* ((command (if (eq backend 'SCCS) "vcdiff" "rcsdiff"))
-	     (mode (if (eq backend 'RCS) 'WORKFILE 'MASTER))
-	     (options (append (list (and cmp "--brief")
-				    "-q"
-				    (and oldvers (concat "-r" oldvers))
-				    (and newvers (concat "-r" newvers)))
-			      (and (not cmp)
-				   (if (listp diff-switches)
-				       diff-switches
-				     (list diff-switches)))))
-	     (status (apply 'vc-do-command "*vc-diff*" 2 
-			    command file mode options)))
-	;; If --brief didn't work, do a double-take and remember it 
-        ;; for the future.
-	(if (eq status 2)
-            (prog1
-                (apply 'vc-do-command "*vc-diff*" 1 command file 'WORKFILE
-                       (if cmp (cdr options) options))
-              (if cmp (setq vc-rcsdiff-knows-brief 'no)))
-          ;; If --brief DID work, remember that, too.
-	  (and cmp (not vc-rcsdiff-knows-brief)
-               (setq vc-rcsdiff-knows-brief 'yes))
-          status)))
+      (setq cmp (and cmp (not (eq vc-rcsdiff-knows-brief 'no))))
+      (setq options (append (list (and cmp "--brief") "-q"
+                                  (concat "-r" oldvers)
+                                  (and newvers (concat "-r" newvers)))
+                            (and (not cmp) diff-switches-list)))
+      (setq status (apply 'vc-do-command "*vc-diff*" 2 
+                          "rcsdiff" file 'WORKFILE options))
+      ;; If --brief didn't work, do a double-take and remember it 
+      ;; for the future.
+      (if (eq status 2)
+          (prog1
+              (apply 'vc-do-command "*vc-diff*" 1 "rcsdiff" file 'WORKFILE
+                     (if cmp (cdr options) options))
+            (if cmp (setq vc-rcsdiff-knows-brief 'no)))
+        ;; If --brief DID work, remember that, too.
+        (and cmp (not vc-rcsdiff-knows-brief)
+             (setq vc-rcsdiff-knows-brief 'yes))
+        status))
      ;; CVS is different.  
      ((eq backend 'CVS)
-      (if (string= (vc-workfile-version file) "0") ;CVS
+      (if (string= (vc-workfile-version file) "0")
 	  ;; This file is added but not yet committed; there is no master file.
 	  (if (or oldvers newvers)
 	      (error "No revisions of %s exist" file)
