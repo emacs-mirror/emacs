@@ -480,7 +480,8 @@ wait_for_termination (pid)
 #else /* neither BSD_SYSTEM nor UNIPLUS: random sysV */
 #ifdef POSIX_SIGNALS    /* would this work for LINUX as well? */
       sigblock (sigmask (SIGCHLD));
-      if (0 > kill (pid, 0))
+      errno = 0;
+      if (kill (pid, 0) == -1 && errno == ESRCH)
 	{
 	  sigunblock (sigmask (SIGCHLD));
 	  break;
