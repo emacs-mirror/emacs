@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.55 2003/04/23 12:49:25 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.56 2003/04/23 13:14:16 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -279,15 +279,12 @@ committed and support display of sticky tags."
 
 (defun vc-cvs-dired-state-info (file)
   "CVS-specific version of `vc-dired-state-info'."
-  (let* ((cvs-state (vc-state file))
-	 (state (cond ((eq cvs-state 'edited)	"modified")
-		      ((eq cvs-state 'needs-patch)	"patch")
-		      ((eq cvs-state 'needs-merge)	"merge")
-		      ;; FIXME: those two states cannot occur right now
-		      ((eq cvs-state 'unlocked-changes)	"conflict")
-		      ((eq cvs-state 'locally-added)	"added")
-		      )))
-    (if state (concat "(" state ")"))))
+  (let ((cvs-state (vc-state file)))
+    (cond ((eq cvs-state 'edited)
+	   (if (equal (vc-workfile-version) "0")
+	       "(added)" "(modified)"))
+	  ((eq cvs-state 'needs-patch) "(patch)")
+	  ((eq cvs-state 'needs-merge) "(merge)"))))
 
 
 ;;;
@@ -448,7 +445,7 @@ REV is the revision to check out into WORKFILE."
 	    (if (and (file-exists-p file) (not rev))
 		;; If no revision was specified, just make the file writable
 		;; if necessary (using `cvs-edit' if requested).
-                (and editable (not (eq (vc-cvs-checkout-model file) 'implicit))
+      (and editable (not (eq (vc-cvs-checkout-model file) 'implicit))
                      (if vc-cvs-use-edit
                          (vc-cvs-command nil 0 file "edit")
                        (set-file-modes file (logior (file-modes file) 128))
@@ -567,7 +564,9 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
           ;; Note: this is NOT a "cvs diff".
           (apply 'vc-do-command "*vc-diff*"
                  1 "diff" file
-                 (append diff-switches-list '("/dev/null"))))
+                 (append diff-switches-list '("/dev/null")))
+	  ;; Even if it's empty, it's locally modified.
+	  1)
       (setq status
             (apply 'vc-cvs-command "*vc-diff*"
                    (if (and (vc-cvs-stay-local-p file)
@@ -725,52 +724,55 @@ and that it passes `vc-cvs-global-switches' to it before FLAGS."
 (defun vc-cvs-stay-local-p (file)
   "Return non-nil if VC should stay local when handling FILE.
 See `vc-cvs-stay-local'."
-  (if vc-cvs-stay-local
-      (let* ((dirname (if (file-directory-p file)
-			  (directory-file-name file)
-			(file-name-directory file)))
-	     (prop
-	      (or (vc-file-getprop dirname 'vc-cvs-stay-local-p)
-		  (let ((rootname (expand-file-name "CVS/Root" dirname)))
-		    (vc-file-setprop
-		     dirname 'vc-cvs-stay-local-p
-		     (when (file-readable-p rootname)
-                       (with-temp-buffer
-                         (vc-insert-file rootname)
-                         (goto-char (point-min))
-                         (looking-at "\\([^\n]*\\)")
-                         (let* ((cvs-root-members
-                                 (vc-cvs-parse-root (match-string 1)))
-                                (hostname (nth 2 cvs-root-members)))
-                           (if (not hostname)
-                               'no
-                             (let ((stay-local t) rx)
-                               (cond
-                                ;; vc-cvs-stay-local: rx
-                                ((stringp vc-cvs-stay-local)
-                                 (setq rx vc-cvs-stay-local))
-                                ;; vc-cvs-stay-local: '( [except] rx ... )
-                                ((consp vc-cvs-stay-local)
-                                 (setq rx (mapconcat
-                                           (function
-                                            (lambda (elt)
-                                              elt))
-                                           (if (not (eq (car vc-cvs-stay-local)
-                                                        'except))
-                                               vc-cvs-stay-local
-                                             (setq stay-local nil)
-                                             (cdr vc-cvs-stay-local))
-                                           "\\|"))))
-                               (if (not rx)
-                                   'yes
-                                 (if (not (string-match rx hostname))
-                                     (setq stay-local (not stay-local)))
-                                 (if stay-local
-                                     'yes
-                                   'no))))))))))))
-        (if (eq prop 'yes) t nil))))
+  (when vc-cvs-stay-local
+    (let* ((dirname (if (file-directory-p file)
+			(directory-file-name file)
+		      (file-name-directory file)))
+	   (prop
+	    (or (vc-file-getprop dirname 'vc-cvs-stay-local-p)
+		(vc-file-setprop
+		 dirname 'vc-cvs-stay-local-p
+		 (let ((rootname (expand-file-name "CVS/Root" dirname)))
+		   (when (file-readable-p rootname)
+		     (with-temp-buffer
+		       (let ((coding-system-for-read
+			      (or file-name-coding-system
+				  default-file-name-coding-system)))
+			 (vc-insert-file rootname))
+		       (goto-char (point-min))
+		       (let* ((cvs-root-members
+			       (vc-cvs-parse-root
+				(buffer-substring (point)
+						  (line-end-position))))
+			      (hostname (nth 2 cvs-root-members)))
+			 (if (not hostname)
+			     'no
+			   (let* ((stay-local t)
+				  (rx
+				   (cond
+				    ;; vc-cvs-stay-local: rx
+				    ((stringp vc-cvs-stay-local)
+				     vc-cvs-stay-local)
+				    ;; vc-cvs-stay-local: '( [except] rx ... )
+				    ((consp vc-cvs-stay-local)
+				     (mapconcat
+				      'identity
+				      (if (not (eq (car vc-cvs-stay-local)
+						   'except))
+					  vc-cvs-stay-local
+					(setq stay-local nil)
+					(cdr vc-cvs-stay-local))
+				      "\\|")))))
+			     (if (not rx)
+				 'yes
+			       (if (not (string-match rx hostname))
+				   (setq stay-local (not stay-local)))
+			       (if stay-local
+				   'yes
+				 'no))))))))))))
+      (if (eq prop 'yes) t nil))))
 
-(defun vc-cvs-parse-root ( root )
+(defun vc-cvs-parse-root (root)
   "Split CVS ROOT specification string into a list of fields.
 A CVS root specification of the form
   [:METHOD:][[USER@]HOSTNAME:]/path/to/repository
