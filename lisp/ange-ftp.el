@@ -694,9 +694,11 @@ If non-nil but not a string, you are prompted for the name.
 If nil, the value of `ange-ftp-netrc-default-user' is used.
 If that is nil too, then your login name is used.
 
-To change the user name foir a host that you have already used in this
-session, you must use `ange-ftp-set-user' to change the cached
-information about that host.")
+Once a connection to a given host has been initiated, the user name
+and password information for that host are cached and re-used by
+ange-ftp.  Use `ange-ftp-set-user' to change the cached values,
+since setting `ange-ftp-default-user' directly does not affect
+the cached information.")  
 
 (defvar ange-ftp-netrc-default-user nil
   "Alternate default user name to use when none is specified.
