@@ -1,5 +1,10 @@
 2004-05-18  Kim F. Storm  <storm@cua.dk>
 
+	* blockinput.h (INPUT_BLOCKED_P): New macros.
+
+	* keyboard.c (Frecursive_edit): Return immediately if input blocked.
+	(Ftop_level): Unblock input if blocked.
+
 	* buffer.h (GET_OVERLAYS_AT): New macro.
 	* msdos.c (IT_note_mouse_highlight): Use it.
 	* textprop.c (get_char_property_and_overlay): Use it.
