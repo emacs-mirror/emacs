@@ -2511,6 +2511,9 @@ it were the arg to `interactive' (which see) to interactively read the value."
 		    (let ((print-length 20))
 		      (princ "\n\nCurrent value: ")
 		      (prin1 (symbol-value var))))
+		(save-excursion
+		  (set-buffer standard-output)
+		  (help-mode))
 		nil)))))
      (list var
 	   (let ((prop (get var 'variable-interactive)))
