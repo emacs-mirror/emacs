@@ -179,6 +179,3 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Use setsid to handle terminals for subprocesses.  */
 #define HAVE_SETSID
-
-/* Implementation of uname is broken on Irix as of version 3.3 */
-#define HAVE_GETHOSTNAME

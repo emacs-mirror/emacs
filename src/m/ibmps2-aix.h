@@ -123,7 +123,6 @@ so disable it for them.  */
 #endif
 
 #define BSTRING
-#define HAVE_DUP2
 #define HAVE_GETTIMEOFDAY
 #define HAVE_SELECT
 #define HAVE_TIMEVAL

@@ -221,7 +221,6 @@ NOTE-END  */
    The `select' in the system won't work for pipes,
    so don't use it.  */
 
-#define HAVE_DUP2
 #define HAVE_GETWD
 #define HAVE_GETTIMEOFDAY
 

@@ -119,10 +119,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
   
 #undef SIGIO
 
-/* Some additional system facilities exist.  */
-
-#define HAVE_DUP2
-
 /* Other than 68020 use ld16, as32, or undefine (defaults ld and as). */
 
 #define ASS as32

@@ -168,7 +168,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include </usr/include/bsd/BSDtoAIX.h>
 #define BSTRING
-#define HAVE_DUP2
 #define HAVE_GETTIMEOFDAY
 #define HAVE_SELECT
 #define HAVE_TIMEVAL

@@ -224,11 +224,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Some additional system facilities exist.  */
 
-#define HAVE_DUP2
 #define HAVE_GETTIMEOFDAY
-
-/* Implementation of uname is broken on hpux.  Use gethostname.  */
-#define HAVE_GETHOSTNAME
 
 #define HAVE_VFORK
 #define HAVE_PERROR  /* Delete this line for version 6.  */

@@ -119,7 +119,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define C_SWITCH_MACHINE -D_BSD
 #define LIBS_MACHINE -lrts
 #define START_FILES
-#define HAVE_DUP2
 #define HAVE_GETTIMEOFDAY
 #define HAVE_SYSVIPC
 #define HAVE_SETSID
