@@ -35,7 +35,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 				   window inside a widget instead of one 
 				   that Xt creates... */
 #include <X11/StringDefs.h>
-#include <X11/Xaw/Box.h>
 #endif
 
 /* Define a queue for X-events.  One such queue is used for mouse clicks.
