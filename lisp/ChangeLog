@@ -1,3 +1,40 @@
+2000-06-02  Dave Love  <fx@gnu.org>
+
+	* wid-edit.el: byte-compile-dynamic since we typically don't use
+	all the widgets.  Don't require cl or widget.  Remove
+	eval-and-compile.  Don't autoload finder-commentary.  Doc fixes.
+	(widget-read-event): Removed.  Callers changed to use read-event.
+	(widget-button-release-event-p): Renamed from
+	button-release-event-p.
+	(widget-field-add-space, widget-field-use-before-change):
+	Uncustomize.
+	(widget-specify-field): Use keymap property, not local-map.
+	(widget-specify-button): Obey :suppress-face.
+	(widget-specify-insert): Use modern backquote syntax.
+	(widget-image-directory): Renamed from widget-glyph-directory.
+	(widget-image-enable): Renamed from widget-glyph-enable.
+	(widget-image-find): Replaces widget-glyph-find.
+	(widget-button-pressed-face): Move defvar.
+	(widget-image-insert): Replaces widget-glyph-insert.
+	(widget-convert): Use keywordp.
+	(widget-leave-text, widget-children-value-delete): Use mapc.
+	(widget-keymap): Remove XEmacs stuff.
+	(widget-field-keymap, widget-text-keymap): Define all inside
+	defvar.
+	(widget-button-click): Don't set point at the click, but re-centre
+	if we scroll out of window.  Rewritten for images v. glyphs &c.
+	(widget-tabable-at): Use POS arg, not point.
+	(widget-beginning-of-line, widget-end-of-line)
+	(widget-item-value-create, widget-sublist, widget-princ-to-string)
+	(widget-sexp-prompt-value, widget-echo-help): Simplify.
+	(widget-default-create): Use widget-image-insert; some rewriting.
+	(widget-visibility-value-create)
+	(widget-push-button-value-create, widget-toggle-value-create): Use
+	widget-image-insert.
+	(checkbox): Create on and off images dynamically.
+	(documentation-link): Change :help-echo.
+	(widget-documentation-link-echo-help): Remove.
+
 2000-06-02  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* log-edit.el (log-edit-done): Thinko in the "same comment" detection.
