@@ -431,9 +431,12 @@ by simultaneous editing and requires your immediate attention.
 @xref{Interlocking,, Simultaneous Editing}.
 
 @vindex require-final-newline
-  If the variable @code{require-final-newline} is non-@code{nil}, Emacs
-puts a newline at the end of any file that doesn't already end in one,
-every time a file is saved or written.  The default is @code{nil}.
+  If the value of the variable @code{require-final-newline} is @code{t},
+Emacs silently puts a newline at the end of any file that doesn't
+already end in one, every time a file is saved or written.  If the value
+is @code{nil}, Emacs leaves the end of the file unchanged; if it's
+neither @code{nil} nor @code{t}, Emacs asks you whether to add a
+newline.  The default is @code{nil}.
 
 @menu
 * Backup::              How Emacs saves the old version of your file.
