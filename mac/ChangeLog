@@ -1,6 +1,6 @@
 2001-11-16  Pavel Janík  <Pavel@Janik.cz>
 
-	* src/macterm.c (waiting_for_input): Remove unnecessary prototype.
+	* src/macterm.c (waiting_for_input): Remove unnecessary declaration.
 
 2001-11-16  Kim F. Storm  <storm@cua.dk>
 

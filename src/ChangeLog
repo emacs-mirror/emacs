@@ -53,12 +53,9 @@
 
 	* keyboard.h (clear_waiting_for_input): Remove duplicated prototype.
 
-	* xterm.c (waiting_for_input): Remove unnecessary prototype.
+	* xterm.c (waiting_for_input): Remove unnecessary declaration.
 
-	* data.c (Ftimes): Doc fix.
-	(Fquo): Likewise.
-	(Frem): Likewise.
-	(Fmod): Likewise.
+	* data.c (Ftimes, Fquo, Frem, Fmod): Doc fix.
 
 2001-11-16  Stefan Monnier  <monnier@cs.yale.edu>
 
