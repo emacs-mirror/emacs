@@ -30,8 +30,6 @@
   (interactive)
   (setup-english-environment)
 
-  (setq primary-language "Chinese-GB")
-
   (set-default-coding-systems 'chinese-iso-8bit)
   (setq coding-category-iso-8-2 'chinese-iso-8bit)
   (setq coding-category-iso-7-else 'chinese-iso-7bit)
@@ -58,8 +56,6 @@
   (interactive)
   (setup-english-environment)
 
-  (setq primary-language "Chinese-BIG5")
-
   (set-default-coding-systems 'chinese-big5)
   (setq coding-category-iso-8-2 'chinese-big5)
   (setq coding-category-iso-7-else 'chinese-iso-7bit)
@@ -84,8 +80,6 @@
   "Setup multilingual environment (MULE) for Chinese CNS11643 family users."
   (interactive)
   (setup-english-environment)
-
-  (setq primary-language "Chinese-CNS")
 
   (setq coding-category-iso-7-else 'chinese-iso-7bit)
   (setq coding-category-big5 'chinese-big5)
