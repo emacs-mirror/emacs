@@ -862,6 +862,17 @@ the Bugs section of the Emacs manual or the file BUGS.", argv[0]);
 
   init_callproc_1 ();	/* Must precede init_cmdargs and init_sys_modes.  */
   init_cmdargs (argc, argv, skip_args);	/* Must precede init_lread.  */
+
+  if (initialized)
+    {
+      /* Erase any pre-dump messages in the message log, to avoid confusion */
+      Lisp_Object old_log_max;
+      old_log_max = Vmessage_log_max;
+      XSETFASTINT (Vmessage_log_max, 0);
+      message_dolog ("", 0, 1);
+      Vmessage_log_max = old_log_max;
+    }
+
   init_callproc ();	/* Must follow init_cmdargs but not init_sys_modes.  */
   init_lread ();
 
@@ -1010,13 +1021,6 @@ the Bugs section of the Emacs manual or the file BUGS.", argv[0]);
 
   if (initialized)
     {
-      /* Erase any pre-dump messages in the message log, to avoid confusion */
-      Lisp_Object old_log_max;
-      old_log_max = Vmessage_log_max;
-      XSETFASTINT (Vmessage_log_max, 0);
-      message_dolog ("", 0, 1);
-      Vmessage_log_max = old_log_max;
-
 #ifdef HAVE_TZSET
       {
 	/* If the execution TZ happens to be the same as the dump TZ,
