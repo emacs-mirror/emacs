@@ -782,6 +782,22 @@ runs in XEmacs, and look for the prologue files in a wrong directory.
 
 The solution is to upgrade X-Symbol to a later version.
 
+* lpr commands don't work on MS-Windows with some cheap printers.
+
+This problem may also strike other platforms, but the solution is
+likely to be a global one, and not Emacs specific.
+
+Many cheap inkjet, and even some cheap laser printers, do not
+print plain text anymore, they will only print through graphical
+printer drivers. A workaround on MS-Windows is to use Windows' basic
+built in editor to print (this is possibly the only useful purpose it
+has):
+
+(setq printer-name "")         ;; notepad takes the default
+(setq lpr-command "notepad")   ;; notepad
+(setq lpr-switches nil)        ;; not needed
+(setq lpr-printer-switch "/P") ;; run notepad as batch printer
+
 * On systems with shared libraries you might encounter run-time errors
 from the dynamic linker telling you that it is unable to find some
 shared libraries, for instance those for Xaw3d or image support.
