@@ -1,12 +1,12 @@
 ;; tcl.el --- Tcl code editing commands for Emacs
 
-;; Copyright (C) 1994, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1998, 1999 Free Software Foundation, Inc.
 
 ;; Maintainer: Tom Tromey <tromey@busco.lanl.gov>
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.51 $
+;; Version: $Revision: 1.52 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1996/09/12 17:02:52 $|$Revision: 1.51 $|~/modes/tcl.el.Z|
+;; $Date: 1998/07/02 17:47:49 $|$Revision: 1.52 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,11 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.52  1998/07/02 17:47:49  tromey
+;; Some itcl additions:
+;; (tcl-typeword-list): Added private, itk_option.
+;; (tcl-proc-list): Added body, configbody, class.
+;;
 ;; Revision 1.51  1996/09/12 17:02:52  tromey
 ;; (tcl-indent-command): Use insert-tab, not self-insert-command.
 ;;
@@ -356,7 +361,8 @@
 
 ;; FIXME this will break on Emacs 19.100.
 (defconst tcl-using-emacs-19-23
-  (string-match "19\\.\\(2[3-9]\\|[3-9][0-9]\\)" emacs-version)
+  (or (string-match "19\\.\\(2[3-9]\\|[3-9][0-9]\\)" emacs-version)
+      (string-match "^20\\." emacs-version))
   "Nil unless using Emacs 19-23 or later.")
 
 (defconst tcl-using-xemacs-19 (string-match "XEmacs" emacs-version)
@@ -373,7 +379,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.51 $")
+(defconst tcl-version "$Revision: 1.52 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
