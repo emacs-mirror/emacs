@@ -322,8 +322,8 @@ no args, if that value is non-nil."
   (setq comment-start-skip "(\\*+ *\\|{ *")
   (make-local-variable 'comment-end)
   (setq comment-end "}")
-  (make-local-variable 'font-lock-keywords)
-  (setq font-lock-keywords pascal-font-lock-keywords)
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults '(pascal-font-lock-keywords nil t))
   (run-hooks 'pascal-mode-hook))
 
 
