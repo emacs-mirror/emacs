@@ -2324,7 +2324,7 @@ init_system_name ()
 	  strcpy (fqdn, hostname);
 	  if (domain[0] == '.')
 	    strcpy (fqdn + hostlen, domain);
-	  else
+	  else if (domain[0] != 0)
 	    {
 	      fqdn[hostlen] = '.';
 	      strcpy (fqdn + hostlen + 1, domain);
