@@ -62,16 +62,16 @@ Boston, MA 02111-1307, USA.  */
 #define PT_ADDR (BYTE_POS_ADDR (current_buffer->pt_byte))
 
 /* Address of beginning of gap in buffer.  */
-#define GPT_ADDR (current_buffer->text->beg + current_buffer->text->gpt_byte - 1)
+#define GPT_ADDR (current_buffer->text->beg + current_buffer->text->gpt_byte - BEG_BYTE)
 
 /* Address of end of gap in buffer.  */
-#define GAP_END_ADDR (current_buffer->text->beg + current_buffer->text->gpt_byte + current_buffer->text->gap_size - 1)
+#define GAP_END_ADDR (current_buffer->text->beg + current_buffer->text->gpt_byte + current_buffer->text->gap_size - BEG_BYTE)
 
 /* Address of end of accessible range of buffer.  */
 #define ZV_ADDR (BYTE_POS_ADDR (current_buffer->zv_byte))
 
 /* Address of end of buffer.  */
-#define Z_ADDR (current_buffer->text->beg + current_buffer->text->gap_size + current_buffer->text->z_byte - 1)
+#define Z_ADDR (current_buffer->text->beg + current_buffer->text->gap_size + current_buffer->text->z_byte - BEG_BYTE)
 
 /* Size of gap.  */
 #define GAP_SIZE (current_buffer->text->gap_size)
@@ -102,8 +102,8 @@ Boston, MA 02111-1307, USA.  */
    Note that many of these evaluate the buffer argument more than once.  */
 
 /* Position of beginning of buffer.  */
-#define BUF_BEG(buf) (1)
-#define BUF_BEG_BYTE(buf) (1)
+#define BUF_BEG(buf) (BEG)
+#define BUF_BEG_BYTE(buf) (BEG_BYTE)
 
 /* Position of beginning of accessible range of buffer.  */
 #define BUF_BEGV(buf) ((buf)->begv)
@@ -129,13 +129,13 @@ Boston, MA 02111-1307, USA.  */
 #define BUF_BEG_ADDR(buf) ((buf)->text->beg)
 
 /* Address of beginning of gap of buffer.  */
-#define BUF_GPT_ADDR(buf) ((buf)->text->beg + (buf)->text->gpt_byte - 1)
+#define BUF_GPT_ADDR(buf) ((buf)->text->beg + (buf)->text->gpt_byte - BEG_BYTE)
 
 /* Address of end of buffer.  */
-#define BUF_Z_ADDR(buf) ((buf)->text->beg + (buf)->text->gap_size + (buf)->text->z_byte - 1)
+#define BUF_Z_ADDR(buf) ((buf)->text->beg + (buf)->text->gap_size + (buf)->text->z_byte - BEG_BYTE)
 
 /* Address of end of gap in buffer.  */
-#define BUF_GAP_END_ADDR(buf) ((buf)->text->beg + (buf)->text->gpt_byte + (buf)->text->gap_size - 1)
+#define BUF_GAP_END_ADDR(buf) ((buf)->text->beg + (buf)->text->gpt_byte + (buf)->text->gap_size - BEG_BYTE)
 
 /* Size of gap.  */
 #define BUF_GAP_SIZE(buf) ((buf)->text->gap_size)
@@ -280,14 +280,14 @@ else
 /* Return the address of byte position N in current buffer.  */
 
 #define BYTE_POS_ADDR(n) \
-  (((n) >= GPT_BYTE ? GAP_SIZE : 0) + (n) + BEG_ADDR - 1)
+  (((n) >= GPT_BYTE ? GAP_SIZE : 0) + (n) + BEG_ADDR - BEG_BYTE)
 
 /* Return the address of char position N.  */
 
 #define CHAR_POS_ADDR(n)			\
   (((n) >= GPT ? GAP_SIZE : 0)			\
    + buf_charpos_to_bytepos (current_buffer, n)	\
-   + BEG_ADDR - 1)
+   + BEG_ADDR - BEG_BYTE)
 
 /* Convert a character position to a byte position.  */
 
@@ -303,8 +303,8 @@ else
 
 #define PTR_BYTE_POS(ptr) \
 ((ptr) - (current_buffer)->text->beg					    \
- - (ptr - (current_buffer)->text->beg < (unsigned) GPT_BYTE ? 0 : GAP_SIZE) \
- + 1)
+ - (ptr - (current_buffer)->text->beg <= (unsigned) (GPT_BYTE - BEG_BYTE) ? 0 : GAP_SIZE) \
+ + BEG_BYTE)
 
 /* Return character at position POS.  */
 
@@ -327,7 +327,7 @@ extern int _fetch_multibyte_char_len;
 
 #define FETCH_MULTIBYTE_CHAR(pos)				 	\
   (_fetch_multibyte_char_p = (((pos) >= GPT_BYTE ? GAP_SIZE : 0) 	\
-			       + (pos) + BEG_ADDR - 1),		 	\
+			       + (pos) + BEG_ADDR - BEG_BYTE),		 	\
    _fetch_multibyte_char_len						\
       = ((pos) >= GPT_BYTE ? ZV_BYTE : GPT_BYTE) - (pos),		\
    STRING_CHAR (_fetch_multibyte_char_p, _fetch_multibyte_char_len))
@@ -340,14 +340,14 @@ extern int _fetch_multibyte_char_len;
    Note that both arguments can be computed more than once.  */
 
 #define BUF_BYTE_ADDRESS(buf, pos) \
-((buf)->text->beg + (pos) - 1		\
+((buf)->text->beg + (pos) - BEG_BYTE		\
  + ((pos) >= (buf)->text->gpt_byte ? (buf)->text->gap_size : 0))
 
 /* Return the address of character at char position POS in buffer BUF.
    Note that both arguments can be computed more than once.  */
 
 #define BUF_CHAR_ADDRESS(buf, pos) \
-((buf)->text->beg + buf_charpos_to_bytepos ((buf), (pos)) - 1	\
+((buf)->text->beg + buf_charpos_to_bytepos ((buf), (pos)) - BEG_BYTE	\
  + ((pos) >= (buf)->text->gpt ? (buf)->text->gap_size : 0))
 
 /* Convert PTR, the address of a char in buffer BUF,
@@ -355,9 +355,9 @@ extern int _fetch_multibyte_char_len;
 
 #define BUF_PTR_BYTE_POS(buf, ptr)				\
 ((ptr) - (buf)->text->beg					\
- - (ptr - (buf)->text->beg < (unsigned) BUF_GPT_BYTE ((buf))	\
+ - (ptr - (buf)->text->beg <= (unsigned) (BUF_GPT_BYTE ((buf)) - BEG_BYTE)\
     ? 0 : BUF_GAP_SIZE ((buf)))					\
- + 1)
+ + BEG_BYTE)
 
 /* Return the character at byte position POS in buffer BUF.   */
 
@@ -378,7 +378,7 @@ extern int _fetch_multibyte_char_len;
 #define BUF_FETCH_MULTIBYTE_CHAR(buf, pos)				\
   (_fetch_multibyte_char_p						\
      = (((pos) >= BUF_GPT_BYTE (buf) ? BUF_GAP_SIZE (buf) : 0)		\
-        + (pos) + BUF_BEG_ADDR (buf) - 1),				\
+        + (pos) + BUF_BEG_ADDR (buf) - BEG_BYTE),			\
    _fetch_multibyte_char_len						\
      = (((pos) >= BUF_GPT_BYTE (buf) ? BUF_ZV_BYTE (buf) : BUF_GPT_BYTE (buf)) \
         - (pos)),							\
