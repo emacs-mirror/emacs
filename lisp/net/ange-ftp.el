@@ -3161,12 +3161,12 @@ system TYPE.")
 	       (coding-system-used last-coding-system-used))
 	  (unwind-protect
 	      (progn
-		(let ((executing-kbd-macro t)
-		      (filename (buffer-file-name))
+		(let ((filename (buffer-file-name))
 		      (mod-p (buffer-modified-p)))
 		  (unwind-protect
 		      (progn
-			(ange-ftp-real-write-region start end temp nil visit)
+			(ange-ftp-real-write-region start end temp nil
+						    (or visit 'quiet))
 			(setq coding-system-used last-coding-system-used))
 		    ;; cleanup forms
 		    (setq coding-system-used last-coding-system-used)
