@@ -1364,13 +1364,16 @@ Creates a buffer if necessary."
 (defun dired-mouse-find-file-other-window (event)
   "In Dired, visit the file or directory name you click on."
   (interactive "e")
-  (let (file)
+  (let (window pos file)
     (save-excursion
-      (set-buffer (window-buffer (posn-window (event-end event))))
-      (save-excursion
-	(goto-char (posn-point (event-end event)))
-	(setq file (dired-get-file-for-visit))))
-    (select-window (posn-window (event-end event)))
+      (setq window (posn-window (event-end event))
+	    pos (posn-point (event-end event)))
+      (if (not (windowp window))
+	  (error "No file chosen"))
+      (set-buffer (window-buffer window))
+      (goto-char pos)
+      (setq file (dired-get-file-for-visit)))
+    (select-window window)
     (find-file-other-window (file-name-sans-versions file t))))
 
 (defcustom dired-view-command-alist
@@ -3006,6 +3009,8 @@ true then the type of the file linked to by FILE is printed instead."
   t)
 
 (autoload 'dired-run-shell-command "dired-aux")
+
+(autoload 'dired-query "dired-aux")
 
 (if (eq system-type 'vax-vms)
     (load "dired-vms"))
