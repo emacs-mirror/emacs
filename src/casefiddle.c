@@ -255,7 +255,8 @@ casify_region (flag, b, e)
 				   start + 1, i + fromlen,
 				   str, 1, tolen,
 				   1);
-		  opoint_byte += tolen - fromlen;
+		  if (opoint > start)
+		    opoint_byte += tolen - fromlen;
 		}
 	    }
 	  if ((int) flag >= (int) CASE_CAPITALIZE)
