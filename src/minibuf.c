@@ -867,6 +867,19 @@ If optional third arg REQUIRE-MATCH is non-nil, only existing buffer names are a
     }
 }
 
+static Lisp_Object
+minibuf_conform_representation (string, basis)
+     Lisp_Object string, basis;
+{
+  if (STRING_MULTIBYTE (string) == STRING_MULTIBYTE (basis))
+    return string;
+
+  if (STRING_MULTIBYTE (string))
+    return Fstring_make_unibyte (string);
+  else
+    return Fstring_make_multibyte (string);
+}
+
 DEFUN ("try-completion", Ftry_completion, Stry_completion, 2, 3, 0,
   "Return common substring of all completions of STRING in ALIST.\n\
 Each car of each element of ALIST is tested to see if it begins with STRING.\n\
@@ -1062,7 +1075,7 @@ or the symbol from the obarray.")
      don't change the case of what the user typed.  */
   if (completion_ignore_case && bestmatchsize == XSTRING (string)->size
       && XSTRING (bestmatch)->size > bestmatchsize)
-    return string;
+    return minibuf_conform_representation (string, bestmatch);
 
   /* Return t if the supplied string is an exact match (counting case);
      it does not require any change to be made.  */
@@ -1821,7 +1834,7 @@ It can find the completion buffer in `standard-output'.")
       write_string ("Possible completions are:", -1);
       for (tail = completions, i = 0; !NILP (tail); tail = Fcdr (tail), i++)
 	{
-	  Lisp_Object tem;
+	  Lisp_Object tem, string;
 	  int length;
 	  Lisp_Object startpos, endpos;
 
@@ -1887,15 +1900,22 @@ It can find the completion buffer in `standard-output'.")
 				    Qnil, Vstandard_output);
 	    }
 
-	  /* Output this element and update COLUMN.  */
+	  /* Output this element.
+	     If necessary, convert it to unibyte first.  */
 	  if (CONSP (elt))
-	    {
-	      Fprinc (Fcar (elt), Qnil);
-	      Fprinc (Fcar (Fcdr (elt)), Qnil);
-	    }
+	    string = Fcar (elt);
 	  else
-	    Fprinc (elt, Qnil);
+	    string = elt;
+	  if (NILP (current_buffer->enable_multibyte_characters)
+	      && STRING_MULTIBYTE (string))
+	    string = Fstring_make_unibyte (string);
+	  Fprinc (string, Qnil);
 
+	  /* Output the annotation for this element.  */
+	  if (CONSP (elt))
+	    Fprinc (Fcar (Fcdr (elt)), Qnil);
+
+	  /* Update COLUMN for what we have output.  */
 	  column += length;
 
 	  /* If output is to a buffer, recompute COLUMN in a way
