@@ -282,7 +282,7 @@ This is a good place to add Ada environment specific bindings.")
   :type 'string
   :group 'ada)
 
-(defcustom ada-tmp-directory "/tmp/"
+(defcustom ada-tmp-directory temporary-file-directory
   "*Directory to store the temporary file for the Ada pretty printer."
   :type 'string
   :group 'ada)
