@@ -3680,8 +3680,8 @@ If `ps-prefix-quote' is nil, it's set to t after generating string."
 
 
 (defun ps-comment-string (str value)
-  "Return a comment string like \";; STR = VALUE\\n\"."
-  (format ";; %s = %s\n" str (ps-value-string value)))
+  "Return a comment string like \";; STR = VALUE\"."
+  (format ";; %s = %s" str (ps-value-string value)))
 
 
 (defun ps-value (alist-sym key)
