@@ -194,6 +194,7 @@ Setting this variable outside customize has no effect."
 (defconst utf-translate-cjk-charsets '(chinese-gb2312
 				       chinese-big5-1 chinese-big5-2
 				       japanese-jisx0208 japanese-jisx0212
+				       katakana-jisx0201
 				       korean-ksc5601)
   "List of charsets supported by `utf-translate-cjk-mode'.")
 
