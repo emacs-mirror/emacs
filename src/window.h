@@ -200,6 +200,8 @@ struct window
     /* If redisplay in this window goes beyond this buffer position,
        must run the redisplay-end-trigger-hook.  */
     Lisp_Object redisplay_end_trigger;
+    /* Non-nil means don't delete this window for becoming "too small".  */
+    Lisp_Object too_small_ok;
     
     /* No Lisp data may follow below this point without changing
        mark_object in alloc.c.  The member current_matrix must be the
