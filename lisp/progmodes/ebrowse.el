@@ -1295,7 +1295,6 @@ With PREFIX, insert that many filenames."
 	(let ((tree (ebrowse-tree-at-point))
 	      start
 	      file-name-existing)
-	  (unless tree return)
 	  (beginning-of-line)
 	  (skip-chars-forward " \t*a-zA-Z0-9_")
 	  (setq start (point)
