@@ -1,3 +1,8 @@
+2005-03-22  Kim F. Storm  <storm@cua.dk>
+
+	* tooltip.el (tooltip-show-help-function): Ignore negative mouse
+	position values.
+
 2005-03-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* menu-bar.el (showhide-date-time): Remove.
