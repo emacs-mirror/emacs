@@ -3,6 +3,8 @@
 
 ;; Author: Johan Vromans <jv@mh.nl>
 ;; Version: 1.7
+;; Maintainer: FSF
+;; Keywords: i18n
 
 ;; This file is part of GNU Emacs.
 
@@ -34,7 +36,9 @@
 ;;   '  (minute)    -> grave accent
 ;;   `  (backtick)  -> acute accent
 ;;   "  (second)    -> diaeresis
-;;   ^  (caret)     -> circonflexe
+;;   ^  (caret)     -> circumflex
+;;   ~  (tilde)     -> tilde over the character
+;;   /  (slash)     -> slash through the character.
 ;;
 ;; The action taken depends on the key that follows the pseudo accent.
 ;; In general: 
@@ -61,11 +65,13 @@
     ((?' ?I) ?\315)
     ((?' ?O) ?\323)
     ((?' ?U) ?\332)
+    ((?' ?Y) ?\335)
     ((?' ?a) ?\341)
     ((?' ?e) ?\351)
     ((?' ?i) ?\355)
     ((?' ?o) ?\363)
     ((?' ?u) ?\372)
+    ((?' ?Y) ?\375)
     ((?' ?') ?\264)
     ((?' ? ) ?')
     ((?` ?A) ?\300)
@@ -102,8 +108,21 @@
     ((?\" ?i) ?\357)
     ((?\" ?o) ?\366)
     ((?\" ?u) ?\374)
+    ((?\" ?y) ?\377)
     ((?\" ? ) ?\")
     ((?\" ?\") ?\250)
+    ((?\~ ?A) ?\303)
+    ((?\~ ?C) ?\307)
+    ((?\~ ?D) ?\320)
+    ((?\~ ?N) ?\321)
+    ((?\~ ?O) ?\325)
+    ((?\~ ?a) ?\343)
+    ((?\~ ?c) ?\307)
+    ((?\~ ?d) ?\360)
+    ((?\~ ?n) ?\361)
+    ((?\~ ?o) ?\365)
+    ((?\/ ?O) ?\330)
+    ((?\/ ?o) ?\370)
     )
   "Association list for ISO accent combinations.")
 
@@ -161,14 +180,8 @@ See `iso-accents-mode'.")
 (define-key key-translation-map "`"  'iso-accents-accent-key)
 (define-key key-translation-map "^"  'iso-accents-accent-key)
 (define-key key-translation-map "\"" 'iso-accents-accent-key)
-;; For sequences starting with a compose key,
-;; always do the compose processing.
-(define-key key-translation-map [compose ?\']  'iso-accents-compose-key)
-(define-key key-translation-map [compose ?\`]  'iso-accents-compose-key)
-(define-key key-translation-map [compose ?^]  'iso-accents-compose-key)
-(define-key key-translation-map [compose ?\"] 'iso-accents-compose-key)
-;; The way to make compose work is to translate some other key sequence
-;; into it, using key-translation-map.
+(define-key key-translation-map "~" 'iso-accents-accent-key)
+(define-key key-translation-map "/" 'iso-accents-accent-key)
 
 ;; It is a matter of taste if you want the minor mode indicated
 ;; in the mode line...
@@ -183,8 +196,11 @@ See `iso-accents-mode'.")
   "Toggle a minor mode in which accents modify the following letter.
 This permits easy insertion of accented characters according to ISO-8859-1.
 When Iso-accents mode is enabled, accent character keys
-\(', \", ^ and ~) do not self-insert; instead, they modify the following
+\(`, ', \", ^, / and ~) do not self-insert; instead, they modify the following
 letter key so that it inserts an ISO accented letter.
+
+Special combinations: ~c gives a c with cedilla,
+~d gives a d with dash.
 
 With an argument, a positive argument enables ISO-accents mode, 
 and a negative argument disables it."
