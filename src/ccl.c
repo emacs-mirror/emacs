@@ -909,7 +909,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	  i = reg[RRR];
 	  j = XINT (ccl_prog[ic]);
 	  op = field1 >> 6;
-	  ic++;
+	  jump_address = ic + 1;
 	  goto ccl_set_expr;
 
 	case CCL_WriteRegister:	/* CCCCCCCCCCCCCCCCCCCrrrXXXXX */
@@ -929,6 +929,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	  i = reg[RRR];
 	  j = reg[Rrr];
 	  op = field1 >> 6;
+	  jump_address = ic;
 	  goto ccl_set_expr;
 
 	case CCL_Call:		/* 1:CCCCCCCCCCCCCCCCCCCCFFFXXXXX */
@@ -1105,6 +1106,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	    {
 	      i = reg[rrr];
 	      CCL_WRITE_CHAR (i);
+	      ic = jump_address;
 	    }
 	  else if (!reg[rrr])
 	    ic = jump_address;
