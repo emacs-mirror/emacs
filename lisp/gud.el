@@ -926,40 +926,27 @@ comint mode, which see."
 ;; into the buffer.  The hard work is done by the method that is
 ;; the value of gud-marker-filter.
 
-;; Rather than duplicating all the work of comint-output-filter, perhaps
-;; gud-filter should be implemented by adding appropriate hooks to
-;; comint-output-filter.  Would somebody like to volunteer to do that?
 (defun gud-filter (proc string)
   ;; Here's where the actual buffer insertion is done
   (let ((inhibit-quit t))
     (save-excursion
       (set-buffer (process-buffer proc))
-      (let (moving output-after-point)
-	(save-excursion
-	  (goto-char (process-mark proc))
-	  ;; If we have been so requested, delete the debugger prompt.
-	  (if (marker-buffer gud-delete-prompt-marker)
-	      (progn
-		(delete-region (point) gud-delete-prompt-marker)
-		(set-marker gud-delete-prompt-marker nil)))
-	  (setq string (gud-marker-filter string))
-	  (insert-before-markers string)
-	  (and comint-last-input-end
-	       (marker-buffer comint-last-input-end)
-	       (= (point) comint-last-input-end)
-	       (set-marker comint-last-input-end
-			   (- comint-last-input-end (length string))))
-	  (setq moving (= (point) (process-mark proc)))
-	  (setq output-after-point (< (point) (process-mark proc)))
-	  ;; Check for a filename-and-line number.
-	  ;; Don't display the specified file
-	  ;; unless (1) point is at or after the position where output appears
-	  ;; and (2) this buffer is on the screen.
-	  (if (and gud-last-frame
-		   (not output-after-point)
-		   (get-buffer-window (current-buffer)))
-	      (gud-display-frame)))
-	(if moving (goto-char (process-mark proc)))))))
+      ;; If we have been so requested, delete the debugger prompt.
+      (if (marker-buffer gud-delete-prompt-marker)
+	  (progn
+	    (delete-region (process-mark proc) gud-delete-prompt-marker)
+	    (set-marker gud-delete-prompt-marker nil)))
+      ;; Let the comint filter do the actual insertion.
+      ;; That lets us inherit various comint features.
+      (comint-output-filter proc (gud-marker-filter string))
+      ;; Check for a filename-and-line number.
+      ;; Don't display the specified file
+      ;; unless (1) point is at or after the position where output appears
+      ;; and (2) this buffer is on the screen.
+      (if (and gud-last-frame
+	       (>= (point) (process-mark proc))
+	       (get-buffer-window (current-buffer)))
+	  (gud-display-frame)))))
 
 (defun gud-sentinel (proc msg)
   (cond ((null (buffer-name (process-buffer proc)))
