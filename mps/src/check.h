@@ -1,6 +1,6 @@
 /* impl.h.check: ASSERTION INTERFACE
  *
- * $HopeName: MMsrc!check.h(trunk.2) $
+ * $HopeName: MMsrc!check.h(trunk.3) $
  *
  * This header defines a family of AVER and NOTREACHED macros. The
  * macros should be used to instrument and annotate code with
@@ -72,7 +72,13 @@ extern void AssertFail(const char *cond, const char *id,
                __LINE__); \
   END
 
-#define CHECKC(cond)    BEGIN if(cond) NOOP; else return FALSE; END
+#define CHECKC(cond) \
+  BEGIN \
+    if(cond) NOOP; else \
+      AssertFail(#cond, FileSrcIdStruct.hopename, \
+                 FileSrcIdStruct.file, __LINE__); \
+  END
+
 
 
 /* CHECKT -- check type simply
