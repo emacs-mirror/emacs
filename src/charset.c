@@ -120,7 +120,7 @@ non_ascii_char_to_string (c, workbuf, str)
 	}
       else
 	{
-	  error ("Invalid characer: %d", c);
+	  error ("Invalid character: %d", c);
 	}
     }
 
@@ -129,7 +129,7 @@ non_ascii_char_to_string (c, workbuf, str)
       || ! CHARSET_DEFINED_P (charset)
       || c1 >= 0 && c1 < 32
       || c2 >= 0 && c2 < 32)
-    error ("Invalid characer: %d", c);
+    error ("Invalid character: %d", c);
 
   *str = workbuf;
   *workbuf++ = CHARSET_LEADING_CODE_BASE (charset);
