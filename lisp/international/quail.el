@@ -68,11 +68,6 @@ See the documentation of `quail-package-alist' for the format.")
 (defvar quail-guidance-win nil)
 (make-variable-buffer-local 'quail-guidance-win)
 
-(defvar quail-mode nil
-  "Non-nil if in Quail minor mode.")
-(make-variable-buffer-local 'quail-mode)
-(put 'quail-mode 'permanent-local t)
-
 (defvar quail-overlay nil
   "Overlay which covers the current translation region of Quail.")
 (make-variable-buffer-local 'quail-overlay)
@@ -83,9 +78,11 @@ See the documentation of `quail-package-alist' for the format.")
 
 (defvar quail-current-key nil
   "Current key for translation in Quail mode.")
+(make-variable-buffer-local 'quail-current-key)
 
 (defvar quail-current-str nil
   "Currently selected translation of the current key.")
+(make-variable-buffer-local 'quail-current-str)
 
 (defvar quail-current-translations nil
   "Cons of indices and vector of possible translations of the current key.
@@ -94,6 +91,7 @@ CURRENT is an index of the current translation,
 START and END are indices of the start and end of the current block,
 BLOCK is the current block index,
 BLOCKS is a number of  blocks of translation.")
+(make-variable-buffer-local 'quail-current-translations)
 
 (defvar quail-current-data nil
   "Any Lisp object holding information of current translation status.
@@ -102,11 +100,6 @@ of actual translation and some Lisp object to be refered
 for translating the longer key sequence, this variable is set
 to that Lisp object.")
 (make-variable-buffer-local 'quail-current-data)
-
-;; A flag to control conversion region.  Normally nil, but if set to
-;; t, it means we must start the new conversion region if new key to
-;; be translated is input.
-(defvar quail-reset-conversion-region nil)
 
 ;; Quail package handlers.
 
@@ -232,49 +225,11 @@ LEIM is available from the same ftp directory as Emacs."))
 	    (setq libraries (cdr libraries))))))
   (quail-select-package package-name)
   (setq current-input-method-title (quail-title))
-  (quail-mode 1))
+  (quail-activate))
 
-(defun quail-inactivate ()
-  "Turn off Quail input method."
-  (interactive)
-  (setq overriding-terminal-local-map nil)
-  (quail-mode -1))
-
-(or (assq 'quail-mode minor-mode-alist)
-    (setq minor-mode-alist
-	  (cons '(quail-mode " Quail") minor-mode-alist)))
-
-(defvar quail-mode-map 
+(defconst quail-translation-keymap
   (let ((map (make-keymap))
-	(i ? ))
-    (while (< i 127)
-      (define-key map (char-to-string i) 'quail-start-translation)
-      (setq i (1+ i)))
-    (setq i 128)
-    (while (< i 256)
-      (define-key map (vector i) 'quail-start-translation)
-      (setq i (1+ i)))
-    map)
-  "Keymap for Quail mode.")
-
-(or (assq 'quail-mode minor-mode-map-alist)
-    (setq minor-mode-map-alist
-	  (cons (cons 'quail-mode quail-mode-map) minor-mode-map-alist)))
-
-;; Since some Emacs Lisp programs (e.g. viper.el) make
-;; minor-mode-map-alist buffer-local, we must be sure to register
-;; quail-mode-map in default-value of minor-mode-map-alist.
-(if (local-variable-p 'minor-mode-map-alist)
-    (let ((map (default-value 'minor-mode-map-alist)))
-      (or (assq 'quail-mode map)
-	  (set-default 'minor-mode-map-alist (cons 'quail-mode map)))))
-
-(defvar quail-translation-keymap
-  (let ((map (make-keymap))
-	(i 0))
-    (while (< i ?\ )
-      (define-key map (char-to-string i) 'quail-execute-non-quail-command)
-      (setq i (1+ i)))
+	(i ?\ ))
     (while (< i 127)
       (define-key map (char-to-string i) 'quail-self-insert-command)
       (setq i (1+ i)))
@@ -300,8 +255,6 @@ LEIM is available from the same ftp directory as Emacs."))
     (define-key map [mouse-2] 'quail-mouse-choose-completion)
     (define-key map [down-mouse-2] nil)
     (define-key map "\C-h" 'quail-translation-help)
-;;; This interferes with handling of escape sequences on non-X terminals.
-;;;    (define-key map "\e" '(keymap (t . quail-execute-non-quail-command)))
     (define-key map [?\C- ] 'quail-select-current)
     (define-key map [tab] 'quail-completion)
     (define-key map [delete] 'quail-delete-last-char)
@@ -309,56 +262,38 @@ LEIM is available from the same ftp directory as Emacs."))
     (let ((meta-map (make-sparse-keymap)))
       (define-key map (char-to-string meta-prefix-char) meta-map)
       (define-key map [escape] meta-map))
-    (define-key map (vector meta-prefix-char t)
-      'quail-execute-non-quail-command)
-    ;; At last, define default key binding.
-    (define-key map [t] 'quail-execute-non-quail-command)
     map)
   "Keymap used processing translation in complex Quail modes.
 Only a few especially complex input methods use this map;
 most use `quail-simple-translation-keymap' instead.
 This map is activated while translation region is active.")
 
-(defvar quail-simple-translation-keymap
+(defconst quail-simple-translation-keymap
   (let ((map (make-keymap))
-	(i 0))
-    (while (< i ?\ )
-      (define-key map (char-to-string i) 'quail-execute-non-quail-command)
-      (setq i (1+ i)))
+	(i ?\ ))
     (while (< i 127)
       (define-key map (char-to-string i) 'quail-self-insert-command)
       (setq i (1+ i)))
     (define-key map "\177" 'quail-delete-last-char)
     (define-key map [delete] 'quail-delete-last-char)
     (define-key map [backspace] 'quail-delete-last-char)
-;;; This interferes with handling of escape sequences on non-X terminals.
-;;;    (define-key map "\e" '(keymap (t . quail-execute-non-quail-command)))
     (let ((meta-map (make-sparse-keymap)))
       (define-key map (char-to-string meta-prefix-char) meta-map)
       (define-key map [escape] meta-map))
-    (define-key map (vector meta-prefix-char t)
-      'quail-execute-non-quail-command)
-    ;; At last, define default key binding.
-    (define-key map [t]
-      'quail-execute-non-quail-command)
     map)
   "Keymap used while processing translation in simple Quail modes.
 A few especially complex input methods use `quail--translation-keymap' instead.
 This map is activated while translation region is active.")
 
-(defvar quail-conversion-keymap
+(defconst quail-conversion-keymap
   (let ((map (make-keymap))
-	(i 0))
-    (while (< i ?\ )
-      (define-key map (char-to-string i) 'quail-execute-non-quail-command)
-      (setq i (1+ i)))
+	(i ?\ ))
     (while (< i 127)
-      (define-key map (char-to-string i)
-	'quail-start-translation-in-conversion-mode)
+      (define-key map (char-to-string i) 'quail-self-insert-command)
       (setq i (1+ i)))
     (setq i 128)
     (while (< i 256)
-      (define-key map (vector i) 'quail-start-translation-in-conversion-mode)
+      (define-key map (vector i) 'quail-self-insert-command)
       (setq i (1+ i)))
     (define-key map "\C-b" 'quail-conversion-backward-char)
     (define-key map "\C-f" 'quail-conversion-forward-char)
@@ -366,18 +301,9 @@ This map is activated while translation region is active.")
     (define-key map "\C-e" 'quail-conversion-end-of-region)
     (define-key map "\C-d" 'quail-conversion-delete-char)
     (define-key map "\C-h" 'quail-conversion-help)
-;;; This interferes with handling of escape sequences on non-X terminals.
-;;;    (define-key map "\e" '(keymap (t . quail-execute-non-quail-command)))
     (define-key map "\177" 'quail-conversion-backward-delete-char)
     (define-key map [delete] 'quail-conversion-backward-delete-char)
     (define-key map [backspace] 'quail-conversion-backward-delete-char)
-    (let ((meta-map (make-sparse-keymap)))
-      (define-key map (char-to-string meta-prefix-char) meta-map)
-      (define-key map [escape] meta-map))
-    (define-key map (vector meta-prefix-char t)
-      'quail-execute-non-quail-command)
-    ;; At last, define default key binding.
-    (define-key map [t] 'quail-execute-non-quail-command)
     map)
   "Keymap used for processing conversion in Quail mode.
 This map is activated while convesion region is active but translation
@@ -523,9 +449,9 @@ non-Quail commands."
 
 ;; Delete overlays used in Quail mode.
 (defun quail-delete-overlays ()
-  (if (overlayp quail-overlay)
+  (if (and (overlayp quail-overlay) (overlay-start quail-overlay))
       (delete-overlay quail-overlay))
-  (if (overlayp quail-conv-overlay)
+  (if (and (overlayp quail-conv-overlay) (overlay-start quail-conv-overlay))
       (delete-overlay quail-conv-overlay)))
 
 ;; Kill Quail guidance buffer.  Set in kill-buffer-hook.
@@ -533,48 +459,33 @@ non-Quail commands."
   (if (buffer-live-p quail-guidance-buf)
       (kill-buffer quail-guidance-buf)))
 
-(defun quail-mode (&optional arg)
-  "Toggle Quail minor mode.
-With arg, turn Quail mode on if and only if arg is positive.
+(defun quail-inactivate ()
+  "Inactivate Quail input method."
+  (interactive)
+  (quail-activate -1))
 
-In Quail mode, all printable characters are bound to
-`quail-start-translation'.  This function checks if the current input
-method will translate the last input key.  If not, the key is handled
-out of Quail mode, i.e, in another activated minor mode or in the
-current major mode.
-\\{quail-mode-map}
-Unlike the other minor modes, this is not an interactive function.
-Use the commands \\[toggle-input-method] (`toggle-input-method') or
-\\[set-input-method] (`set-input-method') which automatically turn on
-Quail mode with an appropriate Quail package, or turn it off."
-  (setq quail-mode
-	(if (null arg) (null quail-mode)
-	  (> (prefix-numeric-value arg) 0)))
-  (if (null quail-mode)
-      ;; Let's turn off Quail mode.
-      (progn
-	(quail-hide-guidance-buf)
-	(quail-delete-overlays)
-	(setq describe-current-input-method-function nil)
-	(run-hooks 'quail-mode-exit-hook))
-    ;; Let's turn on Quail mode.
-    ;; At first, be sure that quail-mode is at the first element of
-    ;; minor-mode-map-alist.
-    (or (eq (car minor-mode-map-alist) 'quail-mode)
-	(let ((l minor-mode-map-alist))
-	  (while (cdr l)
-	    (if (eq (car (cdr l)) 'quail-mode)
-		(progn
-		  (setcdr l (cdr (cdr l)))
-		  (setq l nil))
-	      (setq l (cdr l))))
-	  (setq minor-mode-map-alist (cons 'quail-mode minor-mode-map-alist))))
+(defun quail-activate (&optional arg)
+  "Activate Quail input method.
+With arg, activate Quail input method if and only if arg is positive.
+
+While this input method is active, the variable
+`input-method-function' is bound to the function `quail-input-method'."
+  (if (and arg
+	  (< (prefix-numeric-value arg) 0))
+      ;; Let's inactivate Quail input method.
+      (unwind-protect
+	  (progn
+	    (quail-hide-guidance-buf)
+	    (quail-delete-overlays)
+	    (setq describe-current-input-method-function nil)
+	    (run-hooks 'quail-inactivate-hook))
+	(kill-local-variable 'input-method-function))
+    ;; Let's active Quail input method.
     (if (null quail-current-package)
 	;; Quail package is not yet selected.  Select one now.
 	(let (name)
 	  (if quail-package-alist
 	      (setq name (car (car quail-package-alist)))
-	    (setq quail-mode nil)
 	    (error "No Quail package loaded"))
 	  (quail-select-package name)))
     (setq inactivate-current-input-method-function 'quail-inactivate)
@@ -585,65 +496,16 @@ Quail mode with an appropriate Quail package, or turn it off."
     ;; before exiting.
     (if (eq (selected-window) (minibuffer-window))
 	(add-hook 'minibuffer-exit-hook 'quail-exit-from-minibuffer))
-    (make-local-hook 'post-command-hook)
     (make-local-hook 'kill-buffer-hook)
     (add-hook 'kill-buffer-hook 'quail-kill-guidance-buf nil t)
-    (run-hooks 'quail-mode-hook))
-  (force-mode-line-update))
+    (run-hooks 'quail-activate-hook)
+    (make-local-variable 'input-method-function)
+    (setq input-method-function 'quail-input-method)))
 
 (defun quail-exit-from-minibuffer ()
   (inactivate-input-method)
   (if (<= (minibuffer-depth) 1)
       (remove-hook 'minibuffer-exit-hook 'quail-exit-from-minibuffer)))
-
-(defvar quail-saved-current-map nil)
-(defvar quail-saved-current-buffer nil)
-
-;; Toggle Quail mode.  This function is added to `post-command-hook'
-;; in Quail mode, to turn Quail mode temporarily off, or back on after
-;; one non-Quail command.
-(defun quail-toggle-mode-temporarily ()
-  (if quail-mode
-      ;; We are going to handle following events out of Quail mode.
-      (setq quail-saved-current-buffer (current-buffer)
-	    quail-saved-current-map overriding-terminal-local-map
-	    quail-mode nil
-	    overriding-terminal-local-map nil)
-    ;; We have just executed one non-Quail command.  We don't need
-    ;; this hook any more.
-    (remove-hook 'post-command-hook 'quail-toggle-mode-temporarily t)
-    (if (eq (current-buffer) quail-saved-current-buffer)
-	;; We should go back to Quail mode only when the current input
-	;; method was not turned off by the last command.
-	(when current-input-method
-	  (setq quail-mode t
-		overriding-terminal-local-map quail-saved-current-map)
-	  (if input-method-exit-on-invalid-key
-	      (inactivate-input-method)))
-      ;; The last command changed the current buffer, we should not go
-      ;; back to Quail mode in this new buffer, but should turn on
-      ;; Quail mode in the original buffer.
-      (save-excursion
-	(set-buffer quail-saved-current-buffer)
-	(setq quail-mode t)
-	(quail-delete-overlays)))))
-
-(defun quail-execute-non-quail-command ()
-  "Execute one non-Quail command out of Quail mode.
-The current translation and conversion are terminated."
-  (interactive)
-  (let* ((key (this-command-keys))
-	 (keylist (listify-key-sequence key)))
-    (setq unread-command-events (append keylist unread-command-events)))
-  (reset-this-command-lengths)
-  (quail-terminate-translation)
-  (quail-delete-overlays)
-  (setq overriding-terminal-local-map nil)
-  (if (buffer-live-p quail-guidance-buf)
-      (save-excursion
-	(set-buffer quail-guidance-buf)
-	(erase-buffer)))
-  (add-hook 'post-command-hook 'quail-toggle-mode-temporarily nil t))
 
 ;; Keyboard layout translation handlers.
 
@@ -984,67 +846,116 @@ The returned value is a Quail map specific to KEY."
 	  ))
     map))
 
-;; If set to non-nil, exit conversion mode before starting new translation.
-(defvar quail-exit-conversion-mode nil)
+(put 'quail-error 'error-conditions '(quail-error error))
+(defun quail-error (&rest args)
+  (signal 'quail-error (apply 'format args)))
 
-(defvar quail-prefix-arg nil)
+(defvar quail-translating nil)
+(defvar quail-converting nil)
 
-(defun quail-start-translation (arg)
-  "Start translating the typed character in Quail mode."
-  (interactive "*p")
-  (setq prefix-arg current-prefix-arg)
-  (setq quail-prefix-arg arg)
-  (setq unread-command-events
-	(cons last-command-event unread-command-events))
-  ;; Check the possibility of translating the last key.
-  (if (and (integerp last-command-event)
-	   (assq (if (quail-kbd-translate)
-		     (quail-keyboard-translate last-command-event)
-		   last-command-event)
+(defun quail-input-method (key)
+  (if (or buffer-read-only
+	  (and (or overriding-terminal-local-map
+		   overriding-local-map)
+	       (>= key ?0) (<= key ?9)))
+      (list key)
+    (quail-setup-overlays (quail-conversion-keymap))
+    (let ((modified-p (buffer-modified-p)))
+      (unwind-protect
+	  (if (quail-conversion-keymap)
+	      (quail-start-conversion key)
+	    (quail-start-translation key))
+	(set-buffer-modified-p modified-p)
+	(quail-delete-overlays)))))
+
+(defun quail-overlay-region-events (overlay)
+  (let ((start (overlay-start overlay))
+	(end (overlay-end overlay)))
+    (if (< start end)
+	(prog1
+	    (string-to-list (buffer-substring start end))
+	  (delete-region start end)))))
+
+(defun quail-start-translation (key)
+  "Start translation of the typed character KEY by the current Quail package."
+  ;; Check the possibility of translating KEY.
+  (if (and (integerp key)
+	   (assq (if (quail-kbd-translate) (quail-keyboard-translate key) key)
 		 (cdr (quail-map))))
       ;; Ok, we can start translation.
-      (if (quail-conversion-keymap)
-	  ;; We must start translation in conversion mode.
-	  (setq quail-exit-conversion-mode nil
-		overriding-terminal-local-map (quail-conversion-keymap))
-	(quail-setup-overlays nil)
-	(setq quail-current-key "")
-	(setq overriding-terminal-local-map (quail-translation-keymap)))
-    ;; Since the last event doesn't start any translation, handle it
-    ;; out of Quail mode.  We come back to Quail mode later by setting
-    ;; function `quail-toggle-mode-temporarily' in
-    ;; `post-command-hook'.
-    (add-hook 'post-command-hook 'quail-toggle-mode-temporarily nil t)))
+      (let* ((translation-keymap (quail-translation-keymap))
+	     (overriding-terminal-local-map translation-keymap)
+	     (generated-events nil)
+	     (input-method-function nil))
+	(setq quail-current-key ""
+	      quail-current-str nil
+	      quail-translating t
+	      unread-command-events (cons key unread-command-events))
+	(while quail-translating
+	  (let* ((echo-keystrokes 0)
+		 (keyseq (read-key-sequence nil))
+		 (cmd (lookup-key translation-keymap keyseq t)))
+	    (if (commandp cmd)
+		(progn
+		  (setq last-command-event (aref keyseq 0))
+		  (condition-case err
+		      (call-interactively cmd)
+		    (quail-error (message "%s" (cdr err)) (beep))))
+	      ;; KEYSEQ is not defined in the translation keymap.
+	      ;; Let's return the event(s) to the caller.
+	      (setq generated-events (string-to-list keyseq)
+		    quail-translating nil))))
+	(setq generated-events
+	      (append (quail-overlay-region-events quail-overlay)
+		      generated-events))
+	generated-events)
 
-(defsubst quail-point-in-conversion-region ()
-  "Return non-nil value if the point is in conversion region of Quail mode."
-  (let (start pos)
-    (and (setq start (overlay-start quail-conv-overlay))
-	 (>= (setq pos (point)) start)
-	 (<= pos (overlay-end quail-conv-overlay)))))
+    ;; Since KEY doesn't start any translation, just return it.
+    (list key)))
 
-(defun quail-start-translation-in-conversion-mode ()
-  "Start translating the typed character in conversion mode of Quail mode."
-  (interactive "*")
-  (setq unread-command-events
-	(cons last-command-event unread-command-events))
-  ;; Check the possibility of translating the last key.
-  (if (and (integerp last-command-event)
-	   (assq (if (quail-kbd-translate)
-		     (quail-keyboard-translate last-command-event)
-		   last-command-event)
+(defun quail-start-conversion (key)
+  "Start conversion of the typed character KEY by the current Quail package."
+  ;; Check the possibility of translating KEY.
+  (if (and (integerp key)
+	   (assq (if (quail-kbd-translate) (quail-keyboard-translate key) key)
 		 (cdr (quail-map))))
-      ;; Ok, we can start translation.
-      (progn
-	(quail-setup-overlays t)
-	(setq quail-current-key "")
-	(setq overriding-terminal-local-map (quail-translation-keymap))
-	(move-overlay quail-overlay (point) (point)))
-    ;; Since the last event doesn't start any translation, handle it
-    ;; out of Quail mode.  We come back to Quail mode later by setting
-    ;; function `quail-toggle-mode-temporarily' in
-    ;; `post-command-hook'.
-    (add-hook 'post-command-hook 'quail-toggle-mode-temporarily nil t)))
+      ;; Ok, we can start translation and conversion.
+      (let* ((conversion-keymap (quail-conversion-keymap))
+	     (overriding-terminal-local-map conversion-keymap)
+	     (generated-events nil)
+	     (input-method-function nil))
+	(setq quail-current-key ""
+	      quail-current-str nil
+	      quail-converting t
+	      quail-translating t
+	      unread-command-events (cons key unread-command-events))
+	(while quail-converting
+	  (or quail-translating
+	      (progn
+		(setq quail-current-key ""
+		      quail-current-str nil
+		      quail-translating t)
+		(quail-setup-overlays nil)))
+	  (let* ((echo-keystrokes 0)
+		 (keyseq (read-key-sequence nil))
+		 (cmd (lookup-key conversion-keymap keyseq t)))
+	    (if (commandp cmd)
+		(progn
+		  (setq last-command-event (aref keyseq 0))
+		  (condition-case err
+		      (call-interactively cmd)
+		    (quail-error (message "%s" (cdr err)) (beep))))
+	      ;; KEYSEQ is not defined in the conversion keymap.
+	      ;; Let's return the event(s) to the caller.
+	      (setq generated-events (string-to-list keyseq)
+		    quail-converting nil))))
+	(setq generated-events
+	      (append (quail-overlay-region-events quail-conv-overlay)
+		      generated-events))
+	generated-events)
+
+    ;; Since KEY doesn't start any translation, just return it.
+    (list key)))
 
 (defsubst quail-delete-region ()
   "Delete the text in the current translation region of Quail."
@@ -1054,38 +965,11 @@ The returned value is a Quail map specific to KEY."
 
 (defun quail-terminate-translation ()
   "Terminate the translation of the current key."
-  (when (overlayp quail-overlay)
-    (let ((start (overlay-start quail-overlay)))
-      (if (and start
-	       (< start (overlay-end quail-overlay)))
-	  ;; Here we simulate self-insert-command.
-	  (let ((seq (string-to-sequence
-		      (buffer-substring (overlay-start quail-overlay)
-					(overlay-end quail-overlay))
-		      'list))
-		last-command-char)
-	    (goto-char start)
-	    (quail-delete-region)
-	    (setq last-command-char (car seq))
-	    (self-insert-command (or quail-prefix-arg 1))
-	    (setq quail-prefix-arg nil)
-	    (setq seq (cdr seq))
-	    (while seq
-	      (setq last-command-char (car seq))
-	      (self-insert-command 1)
-	      (setq seq (cdr seq))))))
-    (delete-overlay quail-overlay))
+  (setq quail-translating nil)
   (if (buffer-live-p quail-guidance-buf)
       (save-excursion
 	(set-buffer quail-guidance-buf)
-	(erase-buffer)))
-  (setq overriding-terminal-local-map
-	(quail-conversion-keymap))
-  ;; Run this hook only when the current input method doesn't require
-  ;; conversion.  When conversion is required, the conversion function
-  ;; should run this hook at a proper timing.
-  (unless (quail-conversion-keymap)
-    (run-hooks 'input-method-after-insert-chunk-hook)))
+	(erase-buffer))))
 
 (defun quail-select-current ()
   "Select the current text shown in Quail translation region."
@@ -1095,7 +979,7 @@ The returned value is a Quail map specific to KEY."
 ;; Update the current translation status according to CONTROL-FLAG.
 ;; If CONTROL-FLAG is integer value, it is the number of keys in the
 ;; head quail-current-key which can be translated.  The remaining keys
-;; are put back to unread-command-events to be handled again.
+;; are put back to unread-input-method-events to be handled again.
 ;; If CONTROL-FLAG is t, terminate the translation for the whole keys
 ;; in quail-current-key.
 ;; If CONTROL-FLAG is nil, proceed the translation with more keys.
@@ -1109,9 +993,9 @@ The returned value is a Quail map specific to KEY."
 	  (let ((len (length quail-current-key)))
 	    (while (> len control-flag)
 	      (setq len (1- len))
-	      (setq unread-command-events
+	      (setq unread-input-method-events
 		    (cons (aref quail-current-key len)
-			  unread-command-events)))
+			  unread-input-method-events)))
 	    ;; Insert the translated sequence.
 	    ;; It is a string containing multibyte characters.
 	    ;; If enable-multibyte-characters, just insert it.
@@ -1127,7 +1011,7 @@ The returned value is a Quail map specific to KEY."
 		    (setq char (sref char 0)))
 		(if (= (length (split-char char)) 2)
 		    (insert-char (logand char 255) 1)
-		  (error "Three-byte characters require enabling multibyte characters")))))
+		  (quail-error "Three-byte characters require enabling multibyte characters")))))
 	(insert (or quail-current-str quail-current-key)))))
   (quail-update-guidance)
   (if control-flag
@@ -1143,7 +1027,7 @@ The returned value is a Quail map specific to KEY."
 	    t)
     ;; If someone throws for `quail-tag' by value nil, we exit from
     ;; translation mode.
-    (setq overriding-terminal-local-map nil)))
+    (setq quail-translating nil)))
 
 ;; Return the actual definition part of Quail map MAP.
 (defun quail-map-definition (map)
@@ -1294,7 +1178,9 @@ sequence counting from the head."
 	  (setcar indices (1+ (car indices)))
 	  (quail-update-current-translations)
 	  (quail-update-translation nil)))
-    (quail-execute-non-quail-command)))
+    (setq unread-command-events
+	  (cons last-command-event unread-command-events))
+    (quail-terminate-translation)))
 
 (defun quail-prev-translation ()
   "Select previous translation in the current batch of candidates."
@@ -1307,7 +1193,9 @@ sequence counting from the head."
 	  (setcar indices (1- (car indices)))
 	  (quail-update-current-translations)
 	  (quail-update-translation nil)))
-    (quail-execute-non-quail-command)))
+    (setq unread-command-events
+	  (cons last-command-event unread-command-events))
+    (quail-terminate-translation)))
 
 (defun quail-next-translation-block ()
   "Select from the next block of translations."
@@ -1321,7 +1209,9 @@ sequence counting from the head."
 	  (setcar indices (+ (nth 2 indices) offset))
 	  (quail-update-current-translations)
 	  (quail-update-translation nil)))
-    (quail-execute-non-quail-command)))
+    (setq unread-command-events
+	  (append (string-to-list unread-command-events)))
+    (quail-terminate-translation)))
 
 (defun quail-prev-translation-block ()
   "Select the previous batch of 10 translation candidates."
@@ -1339,7 +1229,9 @@ sequence counting from the head."
 		(setcar indices (+ (nth 1 indices) offset))
 		(quail-update-current-translations)))
 	  (quail-update-translation nil)))
-    (quail-execute-non-quail-command)))
+    (setq unread-command-events
+	  (cons last-command-event unread-command-events))
+    (quail-terminate-translation)))
 
 (defun quail-abort-translation ()
   "Abort translation and delete the current Quail key sequence."
@@ -1360,13 +1252,15 @@ sequence counting from the head."
 (defun quail-conversion-backward-char ()
   (interactive)
   (if (<= (point) (overlay-start quail-conv-overlay))
-      (error "Beginning of conversion region"))
+      (quail-error "Beginning of conversion region"))
+  (setq quail-translating nil)
   (forward-char -1))
 
 (defun quail-conversion-forward-char ()
   (interactive)
   (if (>= (point) (overlay-end quail-conv-overlay))
-      (error "End of conversion region"))
+      (quail-error "End of conversion region"))
+  (setq quail-translating nil)
   (forward-char 1))
 
 (defun quail-conversion-beginning-of-region ()
@@ -1380,22 +1274,20 @@ sequence counting from the head."
 (defun quail-conversion-delete-char ()
   (interactive)
   (if (>= (point) (overlay-end quail-conv-overlay))
-      (error "End of conversion region"))
+      (quail-error "End of conversion region"))
   (delete-char 1)
-  (when (= (overlay-start quail-conv-overlay)
-	   (overlay-end quail-conv-overlay))
-    (quail-delete-overlays)
-    (setq overriding-terminal-local-map nil)))
+  (if (= (overlay-start quail-conv-overlay)
+	 (overlay-end quail-conv-overlay))
+      (setq quail-converting nil)))
 
 (defun quail-conversion-backward-delete-char ()
   (interactive)
   (if (<= (point) (overlay-start quail-conv-overlay))
-      (error "Beginning of conversion region"))
+      (quail-error "Beginning of conversion region"))
   (delete-char -1)
-  (when (= (overlay-start quail-conv-overlay)
-	   (overlay-end quail-conv-overlay))
-    (quail-delete-overlays)
-    (setq overriding-terminal-local-map nil)))
+  (if (= (overlay-start quail-conv-overlay)
+	 (overlay-end quail-conv-overlay))
+      (setq quail-converting nil)))
 
 (defun quail-do-conversion (func &rest args)
   "Call FUNC to convert text in the current conversion region of Quail.
@@ -1406,8 +1298,7 @@ Remaining args are for FUNC."
 (defun quail-no-conversion ()
   "Do no conversion of the current conversion region of Quail."
   (interactive)
-  (quail-delete-overlays)
-  (setq overriding-terminal-local-map nil)
+  (setq quail-converting nil)
   (run-hooks 'input-method-after-insert-chunk-hook))
 
 ;; Guidance, Completion, and Help buffer handlers.
@@ -1752,7 +1643,7 @@ All possible translations of the current key and whole possible longer keys
 	  (if (and (not (bobp)) (get-text-property (1- (point)) 'mouse-face))
 	      (setq end (1- (point)) beg (point)))
 	  (if (null beg)
-	      (error "No completion here"))
+	      (quail-error "No completion here"))
 	  (setq beg (previous-single-property-change beg 'mouse-face))
 	  (setq end (or (next-single-property-change end 'mouse-face)
 			(point-max)))
@@ -1782,7 +1673,7 @@ All possible translations of the current key and whole possible longer keys
 	     (or (not (active-minibuffer-window))
 		 (not (equal buffer
 			     (window-buffer (active-minibuffer-window))))))
-	(error "Minibuffer is not active for completion")
+	(quail-error "Minibuffer is not active for completion")
       ;; Insert the completion into the buffer where completion was requested.
       (set-buffer buffer)
 ;      (if base-size
@@ -1821,11 +1712,6 @@ All possible translations of the current key and whole possible longer keys
 		  (quail-docstring))
 	  (newline)
 	  (if (quail-show-layout) (quail-show-kbd-layout))
-	  (quail-help-insert-keymap-description
-	   quail-mode-map
-	   "---- Key bindings (before starting translation) ----
-key		binding
----		-------\n")
 	  (quail-help-insert-keymap-description
 	   (quail-translation-keymap)
 	   "--- Key bindings (while translating) ---
