@@ -159,10 +159,9 @@ electric-buffer-menu-mode-hook if it is non-nil."
 (put 'Electric-buffer-menu-undefined 'suppress-keymap t)
 (if electric-buffer-menu-mode-map
     nil
-  (let ((map (make-keymap)) (submap (make-keymap)))
+  (let ((map (make-keymap)))
     (fillarray (car (cdr map)) 'Electric-buffer-menu-undefined)
-    (define-key map "\e" submap)
-    (fillarray (car (cdr submap)) 'Electric-buffer-menu-undefined)
+    (define-key map "\e" nil)
     (define-key map "\C-z" 'suspend-emacs)
     (define-key map "v" 'Electric-buffer-menu-mode-view-buffer)
     (define-key map (char-to-string help-char) 'Helper-help)
