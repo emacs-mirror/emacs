@@ -1,6 +1,6 @@
 /* impl.h.mpstd: HARLEQUIN MEMORY POOL SYSTEM TARGET DETECTION
  *
- * $HopeName: MMsrc!mpstd.h(trunk.19) $
+ * $HopeName: MMsrc!mpstd.h(trunk.20) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  * Detect the target platform using predefined preprocessor symbols
@@ -9,7 +9,8 @@
  * References to the documentation appear above each detection line.
  *
  * .hack.align:  All alignments have been hacked to be at least 8.
- *   This is a short term fix to meet req.epcore.attr.align
+ * This is a short term fix to meet req.epcore.attr.align.  (some
+ * of them really ought to be 8, others should be smaller)
  */
 
 #ifndef mpstd_h
@@ -225,6 +226,19 @@
 #define MPS_PF_LII3GC
 #define MPS_OS_LI
 #define MPS_ARCH_I3
+#define MPS_BUILD_GC
+#define MPS_T_WORD      unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    8 /* .hack.align */
+
+/* GCC 2.7.2, gcc -E -dM */
+/* platform.lippgc knocked up very quickly by drj */
+
+#elif defined(__linux__) && defined(__PPC__) && defined(__GNUC__)
+#define MPS_PF_LIPPGC
+#define MPS_OS_LI
+#define MPS_ARCH_PP
 #define MPS_BUILD_GC
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
