@@ -294,7 +294,7 @@ ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAG) -I. -I${srcdi
 #ifdef HAVE_MENUS
 
 /* Include xmenu.o in the list of X object files.  */
-XOBJ= xterm.o xfns.o xfaces.o xselect.o xrdb.o
+XOBJ= xterm.o xfns.o xfaces.o xselect.o xrdb.o fontset.o
 
 /* The X Menu stuff is present in the X10 distribution, but missing
    from X11.  If we have X10, just use the installed library;
@@ -315,7 +315,7 @@ LIBXMENU= -lXMenu
 
 /* Otherwise, omit xmenu.o from the list of X object files, and
    don't worry about the menu library at all.  */
-XOBJ= xterm.o xfns.o xfaces.o xselect.o xrdb.o
+XOBJ= xterm.o xfns.o xfaces.o xselect.o xrdb.o fontset.o
 LIBXMENU=
 #endif /* not HAVE_MENUS */
 
@@ -497,6 +497,7 @@ ALL_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_MACHINE LD_SWITCH_SITE $(LDFLAGS)
 /* lastfile must follow all files
    whose initialized data areas should be dumped as pure by dump-emacs.  */
 obj=    dispnew.o frame.o scroll.o xdisp.o xmenu.o window.o \
+	charset.o coding.o category.o ccl.o\
 	cm.o term.o $(XOBJ) \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
 	buffer.o filelock.o insdel.o marker.o INTERVAL_OBJ \
@@ -640,6 +641,23 @@ lisp= \
 	${lispsource}loadup.el \
 	${lispsource}loaddefs.el \
 	${lispsource}map-ynp.elc \
+	${lispsource}mule.elc \
+	${lispsource}mule-conf.el \
+	${lispsource}mule-cmds.elc \
+	${lispsource}characters.elc \
+	${lispsource}language/chinese.elc \
+	${lispsource}language/cyrillic.elc \
+	${lispsource}language/devanagari.elc \
+	${lispsource}language/ethiopic.elc \
+	${lispsource}language/european.elc \
+	${lispsource}language/greek.elc \
+	${lispsource}language/hebrew.elc \
+	${lispsource}language/indian.elc \
+	${lispsource}language/japanese.elc \
+	${lispsource}language/korean.elc \
+	${lispsource}language/thai.elc \
+	${lispsource}language/vietnamese.elc \
+	${lispsource}language/misc-lang.elc \
 	${lispsource}page.elc \
 	${lispsource}paragraphs.elc \
 	${lispsource}paths.el \
@@ -676,6 +694,23 @@ shortlisp= \
 	../lisp/loadup.el \
 	../lisp/loaddefs.el \
 	../lisp/map-ynp.elc \
+	../lisp/mule.elc \
+	../lisp/mule-conf.el \
+	../lisp/mule-cmds.elc \
+	../lisp/characters.elc \
+	../lisp/language/chinese.elc \
+	../lisp/language/cyrillic.elc \
+	../lisp/language/devanagari.elc \
+	../lisp/language/ethiopic.elc \
+	../lisp/language/european.elc \
+	../lisp/language/greek.elc \
+	../lisp/language/hebrew.elc \
+	../lisp/language/indian.elc \
+	../lisp/language/japanese.elc \
+	../lisp/language/korean.elc \
+	../lisp/language/thai.elc \
+	../lisp/language/vietnamese.elc \
+	../lisp/language/misc-lang.elc \
 	../lisp/page.elc \
 	../lisp/paragraphs.elc \
 	../lisp/paths.el \
@@ -914,42 +949,50 @@ alloca.o : alloca.s $(config_h)
 
 abbrev.o: abbrev.c buffer.h window.h commands.h $(config_h)
 buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
-   INTERVAL_SRC blockinput.h $(config_h)
+   INTERVAL_SRC blockinput.h charset.h $(config_h)
 callint.o: callint.c window.h commands.h buffer.h mocklisp.h \
    keyboard.h $(config_h)
 callproc.o: callproc.c paths.h buffer.h commands.h $(config_h) \
-	process.h systty.h syssignal.h
+	process.h systty.h syssignal.h charset.h coding.h
 casefiddle.o: casefiddle.c syntax.h commands.h buffer.h $(config_h)
 casetab.o: casetab.c buffer.h $(config_h)
+category.o: category.c category.h buffer.h charset.h $(config_h)
+ccl.o: ccl.c ccl.h charset.h coding.h $(config_h)
+charset.o: charset.c charset.h buffer.h coding.h $(config_h)
+coding.o: coding.c coding.h buffer.h charset.h $(config_h)
 cm.o: cm.c cm.h termhooks.h $(config_h)
-cmds.o: cmds.c syntax.h buffer.h commands.h window.h $(config_h)
+cmds.o: cmds.c syntax.h buffer.h charset.h commands.h window.h $(config_h)
 pre-crt0.o: pre-crt0.c
 ecrt0.o: ecrt0.c $(config_h)
 	CRT0_COMPILE ${srcdir}/ecrt0.c
 dired.o: dired.c commands.h buffer.h $(config_h) regex.h
-dispnew.o: dispnew.c commands.h frame.h window.h buffer.h dispextern.h \
+dispnew.o: dispnew.c  commands.h frame.h window.h buffer.h dispextern.h \
    termchar.h termopts.h termhooks.h cm.h disptab.h systty.h systime.h \
-   xterm.h blockinput.h $(config_h)
+   xterm.h blockinput.h charset.h $(config_h)
 doc.o: doc.c $(config_h) paths.h buffer.h keyboard.h
-doprnt.o: doprnt.c $(config_h)
+doprnt.o: doprnt.c charset.h $(config_h)
 dosfns.o: buffer.h termchar.h termhooks.h frame.h msdos.h dosfns.h $(config_h)
-editfns.o: editfns.c window.h buffer.h systime.h INTERVAL_SRC $(config_h)
+editfns.o: editfns.c window.h buffer.h systime.h INTERVAL_SRC charset.h \
+   $(config_h)
 emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
    INTERVAL_SRC $(config_h)
-fileio.o: fileio.c window.h buffer.h systime.h INTERVAL_SRC $(config_h)
+fileio.o: fileio.c window.h buffer.h systime.h INTERVAL_SRC charset.h \
+   coding.h $(config_h)
 filelock.o: filelock.c buffer.h paths.h $(config_h)
 filemode.o: filemode.c  $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
-   buffer.h $(config_h)
+   buffer.h charset.h fontset.h $(config_h)
+fontset.o: fontset.h fontset.c ccl.h charset.h frame.h $(config_h)
 getloadavg.o: getloadavg.c $(config_h)
 indent.o: indent.c frame.h window.h indent.h buffer.h $(config_h) termchar.h \
-   termopts.h disptab.h region-cache.h
-insdel.o: insdel.c window.h buffer.h INTERVAL_SRC blockinput.h $(config_h)
-keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h \
+   termopts.h disptab.h region-cache.h charset.h
+insdel.o: insdel.c window.h buffer.h INTERVAL_SRC blockinput.h charset.h\
+   $(config_h)
+keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h charset.h \
    commands.h frame.h window.h macros.h disptab.h keyboard.h syssignal.h \
    systty.h systime.h dispextern.h intervals.h blockinput.h xterm.h $(config_h)
 keymap.o: keymap.c buffer.h commands.h keyboard.h termhooks.h blockinput.h \
-   puresize.h $(config_h)
+   puresize.h charset.h $(config_h)
 lastfile.o: lastfile.c  $(config_h)
 macros.o: macros.c window.h buffer.h commands.h macros.h keyboard.h $(config_h)
 malloc.o: malloc.c $(config_h)
@@ -958,26 +1001,27 @@ ralloc.o: ralloc.c $(config_h)
 vm-limit.o: vm-limit.c mem-limits.h $(config_h)
 marker.o: marker.c buffer.h $(config_h)
 minibuf.o: minibuf.c syntax.h dispextern.h frame.h window.h \
-   buffer.h commands.h $(config_h)
+   buffer.h commands.h charset.h $(config_h)
 mktime.o: mktime.c $(config_h)
 mocklisp.o: mocklisp.c buffer.h $(config_h)
 msdos.o: msdos.c msdos.h dosfns.h systime.h termhooks.h dispextern.h \
    termopts.h frame.h window.h $(config_h)
 process.o: process.c process.h buffer.h window.h termhooks.h termopts.h \
    commands.h syssignal.h systime.h systty.h syswait.h frame.h \
-   blockinput.h $(config_h)
-regex.o: regex.c syntax.h buffer.h $(config_h) regex.h
+   blockinput.h charset.h coding.h $(config_h)
+regex.o: regex.c syntax.h buffer.h $(config_h) regex.h category.h charset.h
 region-cache.o: region-cache.c buffer.h region-cache.h
 scroll.o: scroll.c termchar.h dispextern.h frame.h $(config_h)
 search.o: search.c regex.h commands.h buffer.h region-cache.h syntax.h \
-   blockinput.h $(config_h)
+   blockinput.h category.h charset.h $(config_h)
 strftime.o: strftime.c $(config_h)
 	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) -Dstrftime=emacs_strftime $<
-syntax.o: syntax.c syntax.h buffer.h commands.h $(config_h)
+syntax.o: syntax.c syntax.h buffer.h commands.h category.h charset.h \
+   $(config_h)
 sysdep.o: sysdep.c $(config_h) dispextern.h termhooks.h termchar.h termopts.h \
    frame.h syssignal.h systty.h systime.h syswait.h blockinput.h window.h
 term.o: term.c termchar.h termhooks.h termopts.h $(config_h) cm.h frame.h \
-   disptab.h keyboard.h
+   disptab.h keyboard.h charset.h coding.h
 termcap.o: termcap.c $(config_h)
 terminfo.o: terminfo.c $(config_h)
 tparam.o: tparam.c $(config_h)
@@ -991,17 +1035,18 @@ widget.o: widget.c xterm.h frame.h dispextern.h widgetprv.h \
 window.o: window.c indent.h commands.h frame.h window.h buffer.h termchar.h \
    termhooks.h disptab.h keyboard.h $(config_h)
 xdisp.o: xdisp.c macros.h commands.h indent.h buffer.h dispextern.h \
-   termchar.h frame.h window.h disptab.h termhooks.h $(config_h)
+   termchar.h frame.h window.h disptab.h termhooks.h charset.h $(config_h)
 xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h \
-   window.h $(config_h)
-xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h \
-   ../lwlib/lwlib.h blockinput.h paths.h $(config_h)
+   window.h charset.h $(config_h)
+xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h\
+   ../lwlib/lwlib.h blockinput.h paths.h charset.h $(config_h)
 xmenu.o: xmenu.c xterm.h termhooks.h window.h dispextern.h frame.h keyboard.h \
    ../lwlib/lwlib.h blockinput.h puresize.h msdos.h $(config_h)
 xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h \
   dispextern.h frame.h disptab.h blockinput.h systime.h syssignal.h \
-  keyboard.h gnu.h sink.h sinkmask.h $(config_h)
-xselect.o: xselect.c dispextern.h frame.h xterm.h blockinput.h $(config_h)
+  keyboard.h gnu.h sink.h sinkmask.h charset.h ccl.h fontset.h $(config_h)
+xselect.o: xselect.c dispextern.h frame.h xterm.h blockinput.h charset.h \
+  $(config_h)
 xrdb.o: xrdb.c $(config_h)
 hftctl.o: hftctl.c $(config_h)
 
@@ -1010,13 +1055,14 @@ hftctl.o: hftctl.c $(config_h)
 alloc.o: alloc.c frame.h window.h buffer.h  puresize.h syssignal.h keyboard.h \
  blockinput.h $(config_h) INTERVAL_SRC
 bytecode.o: bytecode.c buffer.h syntax.h $(config_h)
-data.o: data.c buffer.h puresize.h syssignal.h keyboard.h $(config_h)
+data.o: data.c buffer.h puresize.h charset.h syssignal.h keyboard.h $(config_h)
 eval.o: eval.c commands.h keyboard.h blockinput.h $(config_h)
 floatfns.o: floatfns.c $(config_h)
 fns.o: fns.c commands.h $(config_h) frame.h buffer.h keyboard.h \
  frame.h window.h INTERVAL_SRC
-print.o: print.c process.h frame.h window.h buffer.h keyboard.h $(config_h)
-lread.o: lread.c commands.h keyboard.h buffer.h paths.h $(config_h) \
+print.o: print.c process.h frame.h window.h buffer.h keyboard.h charset.h\
+   $(config_h)
+lread.o: lread.c commands.h keyboard.h buffer.h paths.h charset.h $(config_h) \
  termhooks.h
 
 /* Text properties support */
@@ -1064,7 +1110,7 @@ relock:
    which includes ../lisp/TAGS by reference.  */
 ctagsfiles = [a-zA-Z]*.[hc]
 lisptagsfiles = ../lisp/[a-zA-Z]*.el
-TAGS: $(srcdir)/$(ctagsfiles)
+TAGS: $(srcir)/$(ctagsfiles)
 	export DIR; DIR=`pwd`; cd ${srcdir}; \
 	$$DIR/../lib-src/etags --include=../lisp/TAGS \
 	--regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' $(ctagsfiles)
