@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!18.c(trunk.6) $
  summary = create lots of pools at once (and cause to run out of memory)
  language = c
  link = testlib.o newfmt.o
@@ -10,47 +10,62 @@ END_HEADER
 */
 
 #include "testlib.h"
+#include "mpsavm.h"
 #include "mpscamc.h"
 #include "mpscmv.h"
 #include "newfmt.h"
 
+
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
+
+
 void *stackpointer;
 
-static void test(void) {
- mps_space_t space;
+
+static void test(void)
+{
+ mps_arena_t arena;
  mps_pool_t pool;
  mps_thr_t thread;
  mps_fmt_t format;
+ mps_chain_t chain;
  mps_root_t root;
  mps_addr_t q;
  mps_res_t res;
-
  int p;
 
- die(mps_space_create(&space), "create");
- die(mps_thread_reg(&thread, space), "register thread");
- die(mps_root_create_reg(&root, space, MPS_RANK_AMBIG, 0, thread,
-  mps_stack_scan_ambig, stackpointer, 0), "create root");
- die(mps_fmt_create_A(&format, space, &fmtA), "create format");
+ cdie(mps_arena_create(&arena, mps_arena_class_vm(), mmqaArenaSIZE),
+      "create arena");
+ die(mps_thread_reg(&thread, arena), "register thread");
+ die(mps_root_create_reg(&root, arena, MPS_RANK_AMBIG, 0, thread,
+                         mps_stack_scan_ambig, stackpointer, 0),
+     "create root");
+ die(mps_fmt_create_A(&format, arena, &fmtA), "create format");
+ die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
- die(mps_pool_create(&pool, space, mps_class_mv(),
-  1024*32, 1024*16, 1024*256), "pool");
+ die(mps_pool_create(&pool, arena, mps_class_mv(),
+                     1024*32, 1024*16, 1024*256),
+     "pool");
 
  do {
   res = mps_alloc(&q, pool, 64*1024);
  } while (res==MPS_RES_OK);
 
- p=0;
+ p = 0;
 
  while (1) {
   p++;
-  die(mps_pool_create(&pool, space, mps_class_amc(), format),
-   "create pool");
+  die(mmqa_pool_create_chain(&pool, arena, mps_class_amc(), format, chain),
+      "create pool");
   report("pool", "%i", p);
  }
 
  asserts(1, "Unreachable!");
 }
+
 
 int main(void)
 {
