@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.24) $
+ * $HopeName: MMsrc!poolawl.c(trunk.25) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.24) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.25) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -308,10 +308,12 @@ found:
     Index i, j;
     i = AddrOffset(SegBase(group->seg), base) >> awl->alignShift;
     j = AddrOffset(SegBase(group->seg), limit) >> awl->alignShift;
+    AVER(i < j);
     BTSetRange(group->alloc, i, j);
     /* Objects are allocated black */
     BTSetRange(group->mark, i, j);
     BTSetRange(group->scanned, i, j);
+    group->free -= j - i;
   }
   *segReturn = group->seg;
   *baseReturn = base;
