@@ -344,7 +344,8 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
 		       (insert-file-contents user-init-file)
 		       (re-search-forward
 			(concat
-			 "(setq inhibit-startup-echo-area-message[ \t\n]+"
+			 "([ \t\n]*setq[ \t\n]+"
+			 "inhibit-startup-echo-area-message[ \t\n]+"
 			 (regexp-quote
 			  (prin1-to-string
 			   (if (string= init-file-user "")
