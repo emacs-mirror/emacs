@@ -696,7 +696,7 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\".")
   ;; Safely skip over one balanced sexp, if there is one.  Return t if success.
   (` (condition-case error
 	 (progn
-	   (goto-char (scan-sexps (point) (, arg)))
+	   (goto-char (or (scan-sexps (point) (, arg)) (point)))
 	   t)
        (error
 	;; #### kludge kludge kludge kludge kludge kludge kludge !!!
