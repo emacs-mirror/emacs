@@ -115,7 +115,7 @@
   "*Shell to be used for calling compression programs.
 The value of this variable only matters if you want to discard the
 stderr of a compression/decompression program (see the documentation
-for jka-compr-compression-info-list).")
+for `jka-compr-compression-info-list').")
 
 
 (defvar jka-compr-use-shell t)
@@ -184,7 +184,7 @@ invoked.")
 (defun jka-compr-get-compression-info (filename)
   "Return information about the compression scheme of FILENAME.
 The determination as to which compression scheme, if any, to use is
-based on the filename itself and jka-compr-compression-info-list."
+based on the filename itself and `jka-compr-compression-info-list'."
   (catch 'compression-info
     (let ((case-fold-search nil))
       (mapcar
@@ -316,7 +316,7 @@ the BEGth char."
 (defvar jka-compr-temp-name-template
   "/tmp/jka-com"
   "Prefix added to all temp files created by jka-compr.
-There should be no more than seven characters after the final '/'")
+There should be no more than seven characters after the final `/'")
 
 (defvar jka-compr-temp-name-table (make-vector 31 nil))
 
@@ -656,7 +656,7 @@ There should be no more than seven characters after the final '/'")
 
 (defvar jka-compr-file-name-handler-entry
   nil
-  "The entry in file-name-handler-alist used by the jka-compr I/O functions.")
+  "The entry in `file-name-handler-alist' used by the jka-compr I/O functions.")
 
 
 (defun jka-compr-handler (operation &rest args)
@@ -671,12 +671,24 @@ There should be no more than seven characters after the final '/'")
 		      file-name-handler-alist))
 	  (if jka-op
 	      (apply jka-op args)
-	    (apply operation args)))
+	    (jka-compr-run-real-handler operation args)))
 
       (setq file-name-handler-alist
 	    (cons jka-compr-file-name-handler-entry
 		  file-name-handler-alist))
       (store-match-data match-data))))
+
+;; If we are given an operation that we don't handle,
+;; call the Emacs primitive for that operation,
+;; and manipulate the inhibit variables
+;; to prevent the primitive from calling our handler again.
+(defun jka-compr-run-real-handler (operation args)
+  (let ((inhibit-file-name-handlers
+	 (cons 'jka-compr-handler
+	       (and (eq inhibit-file-name-operation operation)
+		    inhibit-file-name-handlers)))
+	(inhibit-file-name-operation operation))
+    (apply operation args)))
 
   
 (defvar jka-compr-op-table
@@ -749,7 +761,7 @@ Returns the new status of auto compression (non-nil means on)."
 
 (defun jka-compr-install ()
   "Install jka-compr.
-Appropriate entries are added to file-name-handler-alist and auto-mode-alist."
+This adds entries to `file-name-handler-alist' and `auto-mode-alist'."
 
   (setq jka-compr-file-name-handler-entry
 	(cons (jka-compr-build-file-regexp) 'jka-compr-handler))
@@ -770,8 +782,8 @@ Appropriate entries are added to file-name-handler-alist and auto-mode-alist."
 
 (defun jka-compr-uninstall ()
   "Uninstall jka-compr.
-Entries in file-name-handler-alist and auto-mode-alist that were created by
-jka-compr-installed are removed."
+This removes the entries in `file-name-handler-alist' and `auto-mode-alist'
+that were created by `jka-compr-installed'."
 
   (let* ((fnha (cons nil file-name-handler-alist))
 	 (last fnha))
@@ -799,7 +811,7 @@ jka-compr-installed are removed."
       
 (defun jka-compr-installed-p ()
   "Return non-nil if jka-compr is installed.
-The return value is the entry in file-name-handler-alist for jka-compr."
+The return value is the entry in `file-name-handler-alist' for jka-compr."
 
   (let ((fnha file-name-handler-alist)
 	(installed nil))
