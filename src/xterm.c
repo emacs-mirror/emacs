@@ -4493,7 +4493,7 @@ x_wm_set_size_hint (f, prompting)
   XSizeHints size_hints;
   Window window = FRAME_X_WINDOW (f);
 
-  size_hints.flags = PResizeInc | PMinSize | PMaxSize;
+  size_hints.flags = PResizeInc | PMinSize /* | PMaxSize */;
 
   flexlines = f->height;
 
@@ -4503,9 +4503,10 @@ x_wm_set_size_hint (f, prompting)
   size_hints.width = PIXEL_WIDTH (f);
   size_hints.width_inc = FONT_WIDTH (f->display.x->font);
   size_hints.height_inc = FONT_HEIGHT (f->display.x->font);
+#if 0
   size_hints.max_width = x_screen_width - CHAR_TO_PIXEL_WIDTH (f, 0);
   size_hints.max_height = x_screen_height - CHAR_TO_PIXEL_HEIGHT (f, 0);
-    
+#endif    
   {
     int base_width, base_height;
 
