@@ -1277,9 +1277,7 @@ graft_intervals_into_buffer (source, position, buffer)
    an invisible interval which is not displayed with a special glyph,
    skip intervals until we find one.  Point may be at the first
    position of an invisible interval, if it is displayed with a
-   special glyph.
-
-   This is the only place `PT' is an lvalue in all of emacs. */
+   special glyph. */
 
 void
 set_point (position, buffer)
@@ -1352,8 +1350,9 @@ set_point (position, buffer)
   else
     buffer->text.pt = to->position;
 
-  /* We should run point-left and point-entered hooks here, iff the
-     two intervals are not equivalent. */
+  /* We run point-left and point-entered hooks here, iff the
+     two intervals are not equivalent.  These hooks take
+     (old_point, new_point) as arguments. */
   if (! intervals_equal (from, to))
     {
       Lisp_Object val;
@@ -1549,7 +1548,7 @@ copy_intervals (tree, start, length)
 
 /* Give STRING the properties of BUFFER from POSITION to LENGTH. */
 
-void
+INLINE void
 copy_intervals_to_string (string, buffer, position, length)
      Lisp_Object string, buffer;
      int position, length;
