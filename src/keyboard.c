@@ -2090,11 +2090,16 @@ make_lispy_event (event)
     case ascii_keystroke:
       {
 	int c = XFASTINT (event->code);
-	/* Include the bits for control and shift
-	   only if the basic ASCII code can't indicate them.  */
-	if ((event->modifiers & ctrl_modifier)
-	    && c >= 040)
-	  c |= ctrl_modifier;
+	/* Turn ASCII characters into control characters
+	   when proper.  */
+	if (event->modifiers & ctrl_modifier)
+	  {
+	    if (c >= 0100 && c < 0140)
+	      c &= ~040;
+	    /* Include the bits for control and shift
+	       only if the basic ASCII code can't indicate them.  */
+	    c |= ctrl_modifier;
+	  }
 	/* Set the shift modifier for a control char
 	   made from a shifted letter.  But only for letters!  */
 	if (XFASTINT (event->code) >= 'A' - 0100
