@@ -1947,7 +1947,15 @@ before each command.")
   return window;
 }
 
-/* Deiconify the frame containing the window WINDOW, then return WINDOW.  */
+/* Deiconify the frame containing the window WINDOW,
+   unless it is the selected frame;
+   then return WINDOW.
+
+   The reason for the exception for the selected frame
+   is that it seems better not to change the selected frames visibility
+   merely because of displaying a different buffer in it.
+   The deiconification is useful when a buffer gets shown in
+   another frame that you were not using lately.  */
 
 static Lisp_Object
 display_buffer_1 (window)
@@ -1956,7 +1964,8 @@ display_buffer_1 (window)
 #ifdef MULTI_FRAME
   FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
   FRAME_SAMPLE_VISIBILITY (f);
-  if (FRAME_ICONIFIED_P (f))
+  if (FRAME_ICONIFIED_P (f)
+      && f != selected_frame)
     Fmake_frame_visible (WINDOW_FRAME (XWINDOW (window)));
 #endif
   return window;
