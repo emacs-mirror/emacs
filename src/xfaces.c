@@ -35,7 +35,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "window.h"
 
 /* Compensate for bug in Xos.h on hpux.  */
-#if HPUX
+#ifdef HPUX
 #include <time.h>
 #define __TIMEVAL__
 #endif
