@@ -2,6 +2,7 @@
 
 	* w32fns.c (enum_font_cb2): Don't let charsets unknown to Windows
 	match each other.
+	(w32_load_system_font): Prevent Cleartype fonts from loading.
 
 2002-02-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
