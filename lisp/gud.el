@@ -1156,7 +1156,7 @@ comint mode, which see."
       (if w
 	  (setcar w file)))
     (apply 'make-comint (concat "gud" filepart) program nil
-	   (if file-word (funcall massage-args file args) args)))
+	   (funcall massage-args file args)))
   ;; Since comint clobbered the mode, we don't set it until now.
   (gud-mode)
   (make-local-variable 'gud-marker-filter)
