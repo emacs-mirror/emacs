@@ -3663,7 +3663,7 @@ timer_check (do_it_now)
 	}
       vector = XVECTOR (chosen_timer)->contents;
 	
-      /* If timer is rupe, run it if it hasn't been run.  */
+      /* If timer is ripe, run it if it hasn't been run.  */
       if (EMACS_TIME_NEG_P (difference)
 	  || (EMACS_SECS (difference) == 0
 	      && EMACS_USECS (difference) == 0))
