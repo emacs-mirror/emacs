@@ -43,8 +43,9 @@
 ;; and show it until input arrives.
 (defun show-paren-command-hook ()
   ;; Do nothing if no window system to display results with.
+  ;; Do nothing if executing keyboard macro.
   ;; Do nothing if input is pending.
-  (if (and window-system (sit-for 0))
+  (if (and window-system (not executing-kbd-macro) (sit-for 0))
       (let (pos dir mismatch (oldpos (point))
 		(face show-paren-face))
 	(cond ((eq (char-syntax (following-char)) ?\()
