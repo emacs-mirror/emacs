@@ -296,10 +296,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.35 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.36 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.35 1998/07/17 14:01:15 stephen Exp kwzh $")
+  $Id: forms.el,v 2.36 1998/10/06 23:19:46 kwzh Exp rms $")
 
 (defcustom forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode."
@@ -1545,7 +1545,8 @@ Commands:                        Equivalent keys in read-only mode:
   (set-buffer-modified-p nil)
   (setq buffer-read-only forms-read-only)
   (setq mode-line-process
-	(concat " " forms--current-record "/" forms--total-records)))
+	(concat " " (int-to-string forms--current-record)
+		"/" (int-to-string forms--total-records))))
 
 (defun forms--parse-form ()
   "Parse contents of form into list of strings."
@@ -2001,6 +2002,7 @@ after writing out the data."
   (interactive)
   (let ((inhibit-read-only t)
 	(save-record forms--current-record)
+	(total-nb-records forms--total-records)
 	(nb-record 1)
 	(record nil))
     (while (<= nb-record forms--total-records)
@@ -2011,7 +2013,7 @@ after writing out the data."
 	(goto-char (buffer-end 1))
 	(insert record)
 	(setq buffer-read-only nil)
-	(if (< nb-record forms--total-records)
+	(if (< nb-record total-nb-records)
 	    (insert "\n\n")))
       (setq nb-record (1+ nb-record)))
     (save-excursion
