@@ -1027,34 +1027,45 @@ For more information about PostScript document comments, see:
   "*The name of a local printer for printing PostScript files.
 
 On Unix-like systems, a string value should be a name understood by
-lpr's -P option; otherwise the value should be nil.
+lpr's -P option; a value of nil means use the value of `printer-name'
+instead.  Any other value will be ignored.
 
-On MS-DOS and MS-Windows systems, if the value is a string, then it is
-taken as the name of the device to which PostScript files are written.
-By default it is the same as `printer-name'; typical non-default
-settings would be \"LPT1\" to \"LPT3\" for parallel printers, or
-\"COM1\" to \"COM4\" or \"AUX\" for serial printers, or
-\"//hostname/printer\" for a shared network printer.  You can also set
-it to a name of a file, in which case the output gets appended to that
-file.  \(Note that `ps-print' package already has facilities for
-printing to a file, so you might as well use them instead of changing
-the setting of this variable.\) If you want to silently discard the
-printed output, set this to \"NUL\".
-
-On DOS/Windows, if the value is anything but a string, PostScript files
-will be piped to the program given by `ps-lpr-command', with switches
-given by `ps-lpr-switches', which see."
-  :type '(choice file (other :tag "Pipe to ps-lpr-command" pipe))
+On MS-DOS and MS-Windows systems, a string value is taken as the name of
+the printer device or port to which PostScript files are written,
+provided `ps-lpr-command' is \"\".  By default it is the same as
+`printer-name'; typical non-default settings would be \"LPT1\" to
+\"LPT3\" for parallel printers, or \"COM1\" to \"COM4\" or \"AUX\" for
+serial printers, or \"//hostname/printer\" for a shared network printer.
+You can also set it to a name of a file, in which case the output gets
+appended to that file.  \(Note that `ps-print' package already has
+facilities for printing to a file, so you might as well use them instead
+of changing the setting of this variable.\) If you want to silently
+discard the printed output, set this to \"NUL\"."
+  :type '(choice file)
   :group 'ps-print)
 
 (defcustom ps-lpr-command lpr-command
-  "*The shell command for printing a PostScript file."
+  "*Name of program for printing a PostScript file.
+
+On MS-DOS and MS-Windows systems, if the value is an empty string then
+Emacs will write directly to the printer port named by `ps-printer-name'.
+The programs `print' and `nprint' (the standard print programs on Windows
+NT and Novell Netware respectively) are handled specially, using
+`ps-printer-name' as the destination for output; any other program is
+treated like `lpr' except that an explicit filename is given as the last
+argument."
   :type 'string
   :group 'ps-print)
 
 (defcustom ps-lpr-switches lpr-switches
   "*A list of extra switches to pass to `ps-lpr-command'."
   :type '(repeat string)
+  :group 'ps-print)
+
+(defcustom ps-print-region-function nil
+  "Function to call to print the region on a PostScript printer.
+See definition of `ps-do-despool' for calling conventions."
+  :type 'function
   :group 'ps-print)
 
 ;;; Page layout
@@ -4229,28 +4240,12 @@ If FACE is not a valid face name, it is used default face."
 		 (and (stringp ps-printer-name)
 		      (list (concat "-P" ps-printer-name)))
 		 ps-lpr-switches)))
-	  (if (and (memq system-type '(ms-dos windows-nt))
-		   (or (and (boundp 'dos-ps-printer)
-			    (stringp (symbol-value 'dos-ps-printer)))
-		       (stringp ps-printer-name)))
-	      (let ((printer (or (and (boundp 'dos-ps-printer)
-				      (stringp (symbol-value 'dos-ps-printer))
-				      (symbol-value 'dos-ps-printer))
-				 ps-printer-name))
-		    ;; It seems that we must be careful about the
-		    ;; directory name that gets added by write-region
-		    ;; when using the standard "PRN" or "LPTx" ports.
-		    ;; The call can fail if the directory is on a
-		    ;; network drive.
-		    (safe-dir (or (getenv "windir") (getenv "TMPDIR") "c:/")))
-		(write-region (point-min) (point-max)
-			      (expand-file-name printer safe-dir) t 0))
-	    (apply 'call-process-region
-		   (point-min) (point-max) ps-lpr-command nil
-		   (and (fboundp 'start-process) 0)
-		   nil
-		   (ps-flatten-list	; dynamic evaluation
-		    (mapcar 'ps-eval-switch ps-lpr-switches))))))
+	  (apply (or ps-print-region-function 'call-process-region)
+		 (point-min) (point-max) ps-lpr-command nil
+		 (and (fboundp 'start-process) 0)
+		 nil
+		 (ps-flatten-list	; dynamic evaluation
+		  (mapcar 'ps-eval-switch ps-lpr-switches)))))
       (and ps-razzle-dazzle (message "Printing...done")))
     (kill-buffer ps-spool-buffer)))
 
