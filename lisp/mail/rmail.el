@@ -2527,12 +2527,14 @@ which is an element of rmail-msgref-vector."
          (require 'rfc822)
          (let ((tem (car (rfc822-addresses from))))
            (if message-id
-               (if (string-match
-                    (regexp-quote (if (string-match "@[^@]*\\'" tem)
-                                      (substring tem 0 (match-beginning 0))
-                                      tem))
-                    message-id)
-                   ;; Message-ID is sufficiently informative
+               (if (or (not tem)
+		       (string-match
+			(regexp-quote (if (string-match "@[^@]*\\'" tem)
+					  (substring tem 0
+						     (match-beginning 0))
+					tem))
+			message-id))
+                   ;; missing From, or Message-ID is sufficiently informative
                    message-id
                    (concat message-id " (" tem ")"))
 	     ;; Copy TEM, discarding text properties.
