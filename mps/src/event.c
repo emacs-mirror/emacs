@@ -1,7 +1,7 @@
 /* impl.c.event: EVENT LOGGING
  *
- * $HopeName: MMsrc!event.c(trunk.9) $
- * Copyright (C) 1997 Harlequin Group, all rights reserved.
+ * $HopeName$
+ * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MPS developers.
  * .sources: mps.design.event
@@ -12,7 +12,7 @@
  * isn't right.
  *
  * .trans.log: The log file will be re-created if the lifetimes of 
- * spaces don't overlap, but shared if they do.  mps_io_create cannot
+ * arenas don't overlap, but shared if they do.  mps_io_create cannot
  * be called twice, but EventInit avoids this anyway.
  *
  * .trans.ifdef: This file should logically be split into two, event.c
@@ -26,9 +26,11 @@
 #include "event.h"
 #include "mpsio.h"
 
-SRCID(event, "$HopeName: MMsrc!event.c(trunk.9) $");
+SRCID(event, "$HopeName$");
+
 
 #ifdef EVENT /* .trans.ifdef */
+
 
 static Bool eventInited = FALSE;
 static mps_io_t eventIO;
@@ -39,6 +41,7 @@ static Serial EventInternSerial;
 EventUnion Event; /* Used by macros in impl.h.event */
 char *EventNext, *EventLimit; /* Used by macros in impl.h.event */
 Word EventKindControl; /* Bit set used to control output. */
+
 
 Res EventFlush(void)
 {
@@ -54,6 +57,19 @@ Res EventFlush(void)
 
   return ResOK;
 }
+
+
+/* EventSync -- synchronize the event stream with the buffers */
+
+Res EventSync(void)
+{
+  Res resEv, resIO;
+
+  resEv = EventFlush();
+  resIO = mps_io_flush(eventIO);
+  return (resEv != ResOK) ? resEv : resIO;
+}
+
 
 Res (EventInit)(void)
 {
@@ -78,16 +94,17 @@ Res (EventInit)(void)
   return ResOK;
 }
 
+
 void (EventFinish)(void)
 {
   AVER(eventInited);
   AVER(eventUserCount > 0);
-  
-  (void)EventFlush();
-  (void)mps_io_flush(eventIO);
+
+  (void)EventSync();
 
   --eventUserCount;
 }
+
 
 /* EventControl -- Change or read control word
  *
@@ -112,6 +129,7 @@ Word EventControl(Word resetMask, Word flipMask)
   return oldValue;
 }
 
+
 Word EventInternString(const char *label)
 {
   Word id;
@@ -124,6 +142,7 @@ Word EventInternString(const char *label)
   return id;
 }
 
+
 void EventLabelAddr(Addr addr, Word id)
 {
   AVER((Serial)id < EventInternSerial);
@@ -131,17 +150,27 @@ void EventLabelAddr(Addr addr, Word id)
   EVENT_AW(Label, addr, id);
 }
 
+
 #else /* EVENT, not */
+
+
+Res EventSync(void)
+{
+  return(ResOK);  
+}
+
 
 Res (EventInit)(void)
 {
   return(ResOK);  
 }
 
+
 void (EventFinish)(void)
 {
   NOOP;
 }
+
 
 Word (EventControl)(Word resetMask, Word flipMask)
 {
@@ -151,6 +180,7 @@ Word (EventControl)(Word resetMask, Word flipMask)
   return (Word)0;
 }
 
+
 Word (EventInternString)(const char *label)
 {
   UNUSED(label);
@@ -158,10 +188,12 @@ Word (EventInternString)(const char *label)
   return (Word)0;
 }
 
+
 void (EventLabelAddr)(Addr addr, Word id)
 {
   UNUSED(addr);
   UNUSED(id);
 }
+
 
 #endif /* EVENT */
