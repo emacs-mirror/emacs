@@ -1,3 +1,8 @@
+2003-01-15  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (message_dolog): Fix bug of the case that *Message*
+	buffer is unibyte.
+
 2003-01-15  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* fns.c (Fsubstring): Clarify doc string.

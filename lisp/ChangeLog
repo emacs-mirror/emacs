@@ -1,5 +1,8 @@
 2003-01-15  YAMAMOTO Mitsuharu <mituharu@math.s.chiba-u.ac.jp>  (tiny change)
 
+	* international/mule.el (optimize-char-coding-system-table):
+	  Optimize it.
+
 	* term/mac-win.el: Setup the fontset "fontset-mac" correctly.
 
 2003-01-14  Nick Roberts  <nick@nick.uklinux.net>
