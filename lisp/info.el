@@ -966,7 +966,7 @@ Bind this in case the user sets it to nil."
 If FORK is non-nil (interactively with a prefix arg), show the node in
 a new info buffer.
 If FORK is a string, it is the name to use for the new buffer."
-  (interactive (list (Info-read-node-name "Goto node: ") current-prefix-arg))
+  (interactive (list (Info-read-node-name "Go to node: ") current-prefix-arg))
   (info-initialize)
   (if fork
       (set-buffer
@@ -1880,11 +1880,7 @@ ERRORSTRING optional fourth argument, controls action on no match
 Like \\[Info-menu], \\[Info-follow-reference], \\[Info-next], \\[Info-prev] or \\[Info-up] command, depending on where you click.
 At end of the node's text, moves to the next node, or up if none."
   (interactive "e")
-  (let* ((start (event-start click))
-	 (window (car start))
-	 (pos (car (cdr start))))
-    (select-window window)
-    (goto-char pos))
+  (mouse-set-point click)
   (and (not (Info-try-follow-nearest-node))
        (save-excursion (forward-line 1) (eobp))
        (Info-next-preorder)))
@@ -2001,7 +1997,7 @@ If no reference to follow, moves to the next node, or up if none."
    ("Reference" ["You should never see this" report-emacs-bug t])
    ["Search..." Info-search
     :help "Search for regular expression in this Info file"]
-   ["Goto Node..." Info-goto-node
+   ["Go to Node..." Info-goto-node
     :help "Go to a named node"]
    ["Last" Info-last :active Info-history
     :help "Go to the last node you were at"]
@@ -2399,7 +2395,7 @@ the variable `Info-file-list-for-emacs'."
 	      (put-text-property nbeg nend 'mouse-face 'highlight)
 	      (put-text-property tbeg nend
 				 'help-echo
-				 (concat "Goto node "
+				 (concat "Go to node "
 					 (buffer-substring nbeg nend)))
 	      (let ((fun (cdr (assoc tag '(("Prev" . Info-prev)
 					   ("Next" . Info-next)
@@ -2430,10 +2426,10 @@ the variable `Info-file-list-for-emacs'."
       (while (re-search-forward "\\*Note[ \n\t]+\\([^:]*\\):" nil t)
 	(if (= (char-after (1- (match-beginning 0))) ?\") ; hack
 	    nil
-	  (put-text-property (match-beginning 1) (match-end 1)
-			     'face 'info-xref)
-	  (put-text-property (match-beginning 1) (match-end 1)
-			     'mouse-face 'highlight)))
+	  (add-text-properties (match-beginning 1) (match-end 1)
+			       '(face info-xref
+				 mouse-face highlight
+				 help-echo "mouse-2: go to this node"))))
       (goto-char (point-min))
       (if (and (search-forward "\n* Menu:" nil t)
 	       (not (string-match "\\<Index\\>" Info-current-node))
@@ -2555,7 +2551,7 @@ specific node to expand."
 	nil))))
 
 (defun Info-speedbar-goto-node (text node indent)
-  "When user clicks on TEXT, goto an info NODE.
+  "When user clicks on TEXT, go to an info NODE.
 The INDENT level is ignored."
   (select-frame speedbar-attached-frame)
   (let* ((buff (or (get-buffer "*info*")
