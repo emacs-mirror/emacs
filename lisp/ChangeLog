@@ -40,7 +40,7 @@
 	contents can be reverted locally; pass new arg CONTENTS-DONE
 	down to the backend.
 
-	* vc-{cvs,rcs,sccs}.el (vc-*-revert-file): Handle new
+	* vc-cvs.el, vc-rcs.el, vc-sccs.el (vc-*-revert-file): Handle new
 	optional arg CONTENTS-DONE.
 
 2001-08-28  Andrew Innes  <andrewi@gnu.org>
