@@ -1,3 +1,8 @@
+2000-10-29  Michael Kifer  <kifer@cs.sunysb.edu>
+	
+	* ediff.texi: Replaced @command with @code & acknowledgements.
+	* viper.texi: acknowledgements.
+	
 2000-10-28  John Wiegley  <johnw@gnu.org>
 
 	* eshell.texi: Further editing, and finished the "bugs" section.
