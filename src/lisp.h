@@ -1486,7 +1486,18 @@ extern Lisp_Object memory_signal_data;
    Tells GC how to save a copy of the stack.  */
 extern char *stack_bottom;
 
-/* Check quit-flag and quit if it is non-nil.  */
+/* Check quit-flag and quit if it is non-nil.
+   Typing C-g does not directly cause a quit; it only sets Vquit_flag.
+   So the program needs to do QUIT at times when it is safe to quit.
+   Every loop that might run for a long time or might not exit
+   ought to do QUIT at least once, at a safe place.
+   Unless that is impossible, of course.
+   But it is very desirable to avoid creating loops where QUIT is impossible.
+
+   Exception: if you set immediate_quit to nonzero,
+   then the handler that responds to the C-g does the quit itself.
+   This is a good thing to do around a loop that has no side effects
+   and (in particular) cannot call arbitrary Lisp code.  */
 
 #define QUIT \
   if (!NILP (Vquit_flag) && NILP (Vinhibit_quit)) \
@@ -1570,7 +1581,12 @@ struct gcpro
     struct gcpro *next;
     Lisp_Object *var;		/* Address of first protected variable */
     int nvars;			/* Number of consecutive protected variables */
+#ifdef DEBUG_GCPRO
+    int level;
+#endif
   };
+
+#ifndef DEBUG_GCPRO
 
 #define GCPRO1(varname) \
  {gcpro1.next = gcprolist; gcpro1.var = &varname; gcpro1.nvars = 1; \
@@ -1602,11 +1618,57 @@ struct gcpro
   gcpro5.next = &gcpro4; gcpro5.var = &varname5; gcpro5.nvars = 1; \
   gcprolist = &gcpro5; }
 
-/* Call staticpro (&var) to protect static variable `var'.  */
-
-void staticpro P_ ((Lisp_Object *));
-
 #define UNGCPRO (gcprolist = gcpro1.next)
+
+#else
+
+extern int gcpro_level;
+
+#define GCPRO1(varname) \
+ {gcpro1.next = gcprolist; gcpro1.var = &varname; gcpro1.nvars = 1; \
+  gcpro1.level = gcpro_level++; \
+  gcprolist = &gcpro1; }
+
+#define GCPRO2(varname1, varname2) \
+ {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
+  gcpro1.level = gcpro_level; \
+  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
+  gcpro2.level = gcpro_level++; \
+  gcprolist = &gcpro2; }
+
+#define GCPRO3(varname1, varname2, varname3) \
+ {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
+  gcpro1.level = gcpro_level; \
+  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
+  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
+  gcpro3.level = gcpro_level++; \
+  gcprolist = &gcpro3; }
+
+#define GCPRO4(varname1, varname2, varname3, varname4) \
+ {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
+  gcpro1.level = gcpro_level; \
+  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
+  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
+  gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
+  gcpro4.level = gcpro_level++; \
+  gcprolist = &gcpro4; }
+
+#define GCPRO5(varname1, varname2, varname3, varname4, varname5) \
+ {gcpro1.next = gcprolist; gcpro1.var = &varname1; gcpro1.nvars = 1; \
+  gcpro1.level = gcpro_level; \
+  gcpro2.next = &gcpro1; gcpro2.var = &varname2; gcpro2.nvars = 1; \
+  gcpro3.next = &gcpro2; gcpro3.var = &varname3; gcpro3.nvars = 1; \
+  gcpro4.next = &gcpro3; gcpro4.var = &varname4; gcpro4.nvars = 1; \
+  gcpro5.next = &gcpro4; gcpro5.var = &varname5; gcpro5.nvars = 1; \
+  gcpro5.level = gcpro_level++; \
+  gcprolist = &gcpro5; }
+
+#define UNGCPRO					\
+ ((--gcpro_level != gcpro1.level)		\
+  ? (abort (), 0)				\
+  : ((gcprolist = gcpro1.next), 0))
+
+#endif /* DEBUG_GCPRO */
 
 /* Evaluate expr, UNGCPRO, and then return the value of expr.  */
 #define RETURN_UNGCPRO(expr)			\
@@ -1618,6 +1680,10 @@ do						\
       return ret_ungc_val;			\
     }						\
 while (0)
+
+/* Call staticpro (&var) to protect static variable `var'.  */
+
+void staticpro P_ ((Lisp_Object *));
 
 /* Declare a Lisp-callable function.  The MAXARGS parameter has the same
    meaning as in the DEFUN macro, and is used to construct a prototype.  */
