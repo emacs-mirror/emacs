@@ -713,13 +713,13 @@ popmail (user, outfile, preserve, password, reverse_order)
   server = pop_open (0, user, password, POP_NO_GETPASS);
   if (! server)
     {
-      error (pop_error);
+      error ("Error connecting to POP server: %s", pop_error);
       return (1);
     }
 
   if (pop_stat (server, &nmsgs, &nbytes))
     {
-      error (pop_error);
+      error ("Error getting message count from POP server: %s", pop_error);
       return (1);
     }
 
@@ -805,7 +805,7 @@ popmail (user, outfile, preserve, password, reverse_order)
       {
 	if (pop_delete (server, i))
 	  {
-	    error (pop_error);
+	    error ("Error from POP server: %s", pop_error);
 	    pop_close (server);
 	    return (1);
 	  }
@@ -813,7 +813,7 @@ popmail (user, outfile, preserve, password, reverse_order)
 
   if (pop_quit (server))
     {
-      error (pop_error);
+      error ("Error from POP server: %s", pop_error);
       return (1);
     }
     
@@ -831,8 +831,10 @@ pop_retr (server, msgno, arg)
 
   if (pop_retrieve_first (server, msgno, &line))
     {
-      strncpy (Errmsg, pop_error, sizeof (Errmsg));
+      char *error = concat ("Error from POP server: ", pop_error, "");
+      strncpy (Errmsg, error, sizeof (Errmsg));
       Errmsg[sizeof (Errmsg)-1] = '\0';
+      free(error);
       return (NOTOK);
     }
 
@@ -851,8 +853,10 @@ pop_retr (server, msgno, arg)
 
   if (ret)
     {
-      strncpy (Errmsg, pop_error, sizeof (Errmsg));
+      char *error = concat ("Error from POP server: ", pop_error, "");
+      strncpy (Errmsg, error, sizeof (Errmsg));
       Errmsg[sizeof (Errmsg)-1] = '\0';
+      free(error);
       return (NOTOK);
     }
 
