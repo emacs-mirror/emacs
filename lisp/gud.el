@@ -1188,7 +1188,7 @@ It is saved for when this flag is not set.")
 
 (defun gud-filter (proc string)
   ;; Here's where the actual buffer insertion is done
-  (let (output)
+  (let (output process-window)
     (if (buffer-name (process-buffer proc))
 	(if gud-filter-defer-flag
 	    ;; If we can't process any text now,
@@ -1216,17 +1216,23 @@ It is saved for when this flag is not set.")
 	      ;; Don't display the specified file
 	      ;; unless (1) point is at or after the position where output appears
 	      ;; and (2) this buffer is on the screen.
-	      (if (and gud-last-frame
-		       (>= (point) (process-mark proc))
-		       (get-buffer-window (current-buffer)))
-		  (gud-display-frame))
-	      ;; Let the comint filter do the actual insertion.
-	      ;; That lets us inherit various comint features.
-	      (comint-output-filter proc output))
-	    ;; If we deferred text that arrived during this processing,
-	    ;; handle it now.
-	    (if gud-filter-pending-text
-		(gud-filter proc "")))))))
+	      (setq process-window
+		    (and gud-last-frame
+			 (>= (point) (process-mark proc))
+			 (get-buffer-window (current-buffer))))))
+	  (if process-window
+	      (save-selected-window
+		(select-window process-window)
+		(gud-display-frame)))
+
+	  ;; Let the comint filter do the actual insertion.
+	  ;; That lets us inherit various comint features.
+	  (comint-output-filter proc output)
+
+	  ;; If we deferred text that arrived during this processing,
+	  ;; handle it now.
+	  (if gud-filter-pending-text
+	      (gud-filter proc ""))))))
 
 (defun gud-sentinel (proc msg)
   (cond ((null (buffer-name (process-buffer proc)))
