@@ -435,7 +435,7 @@ inserts them automatically in front of the Ex command.
 @item Insert state
 Insert state is the Vi insertion mode.  @key{ESC} will take you back to
 Vi state.  Insert state editing can be done, including auto-indentation.  By
-default, Viper disables Emacs keybindings in Insert state.
+default, Viper disables Emacs key bindings in Insert state.
 
 @item Replace state
 Commands like @kbd{cw} invoke the Replace state.  When you cross the
@@ -462,7 +462,7 @@ those special modes (typing @kbd{C-h m} in a buffer provides
 help with key bindings for the major mode of that buffer).
 
 If you switch to Vi in Dired or similar modes---no harm is done.  It is just
-that the special keybindings provided by those modes will be temporarily
+that the special key bindings provided by those modes will be temporarily
 overshadowed by Viper's bindings.  Switching back to Viper's Emacs state
 will revive the environment provided by the current major mode.
 
@@ -1608,13 +1608,13 @@ that you can use directly.
 
 @menu
 * Rudimentary Changes::          Simple constant definitions.
-* Keybindings::                  Enabling Emacs Keys, Rebinding keys, etc.
+* Key Bindings::                 Enabling Emacs Keys, Rebinding keys, etc.
 * Packages that Change Keymaps:: How to deal with such beasts.
 * Viper Specials::               Special Viper commands.
 * Vi Macros::                    How to do Vi style macros.
 @end menu
 
-@node Rudimentary Changes,Keybindings,Customization,Customization
+@node Rudimentary Changes,Key Bindings,Customization,Customization
 @section Rudimentary Changes
 
 @cindex setting variables
@@ -1979,10 +1979,10 @@ can include a line like this in your @file{.viper} file:
 @vindex @code{viper-replace-state-hook}
 @vindex @code{viper-emacs-state-hook}
 
-@node Keybindings, Packages that Change Keymaps, Rudimentary Changes,Customization
-@section Keybindings
+@node Key Bindings, Packages that Change Keymaps, Rudimentary Changes,Customization
+@section Key Bindings
 
-@cindex keybindings
+@cindex key bindings
 @cindex keymaps
 
 Viper lets you define hot keys, i.e., you can associate keyboard keys
@@ -2214,7 +2214,7 @@ bindings in Emacs.
 @findex @code{viper-add-local-keys}
 @findex @code{viper-zap-local-keys}
 
-@node Packages that Change Keymaps,Viper Specials,Keybindings,Customization
+@node Packages that Change Keymaps,Viper Specials,Key Bindings,Customization
 @subsection Packages that Change Keymaps
 @cindex C-c and Viper
 @cindex Viper and C-c
@@ -2881,7 +2881,7 @@ on a function key, such as @kbd{up} or @kbd{f13}.
 This is very useful if you run out of function keys on your keyboard; it
 makes Viper macro facility a @emph{keyboard doubler}, so to speak.
 
-Elsewhere (@xref{Keybindings}, for details), we review
+Elsewhere (@xref{Key Bindings}, for details), we review
 the standard Emacs mechanism for binding function keys to commands.
 For instance,
 
@@ -4090,7 +4090,7 @@ is typed in Minibuffer.  File completion and history are supported.
 @node Mapping, Shell Commands, File and Buffer Handling, Commands
 @section Mapping
 
-@cindex keybindings
+@cindex key bindings
 @cindex key mapping
 
 @table @kbd

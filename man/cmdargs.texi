@@ -526,9 +526,9 @@ The value of this variable should be the two-character encoding of the
 foreground (the first character) and the background (the second
 character) colors of the default face.  Each character should be the
 hexadecimal code for the desired color on a standard PC text-mode
-display.  For example, to get blue text on a lightgray backgraound,
+display.  For example, to get blue text on a light gray background,
 specify @samp{EMACSCOLORS=17}, since 1 is the code of the blue color and
-7 is the code of the lightgray color.
+7 is the code of the light gray color.
 
 The PC display usually supports only eight background colors.  However,
 Emacs switches the DOS display to a mode where all 16 colors can be used
@@ -1126,7 +1126,7 @@ Color of the mouse cursor.
 
 @ignore
 @item @code{privateColormap} (class @code{PrivateColormap})
-If @samp{on}, use a private colormap, in the case where the ``default
+If @samp{on}, use a private color map, in the case where the ``default
 visual'' of class PseudoColor and Emacs is using it.
 @end ignore
 

@@ -1217,13 +1217,13 @@ wide variety of MUAs, it does not install all of its commands directly
 into the reply buffer's keymap.  Instead, it puts its commands on a
 keymap prefix, then installs this prefix onto the buffer's keymap.  What
 this means is that you typically have to type more characters to invoke
-a Supercite command, but Supercite's keybindings can be made much more
+a Supercite command, but Supercite's key bindings can be made much more
 consistent across MUAs.
 
 You can control what key Supercite uses as its keymap prefix by changing
 the variable @code{sc-mode-map-prefix}.  By default, this variable is
 set to @code{C-c C-p}; a finger twister perhaps, but unfortunately the
-best default due to the scarcity of available keybindings in many MUAs.
+best default due to the scarcity of available key bindings in many MUAs.
 
 @item
 @emph{Turns on Supercite minor mode.}

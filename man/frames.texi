@@ -52,7 +52,7 @@ available in Emacs version 21.1 on MS-Windows.
 * Menu Bars::	        Enabling and disabling the menu bar.
 * Tool Bars::           Enabling and disabling the tool bar.
 * Dialog Boxes::        Controlling use of dialog boxes.
-* Tooltips::            Showing "tooltips", AKA "ballon help" for active text.
+* Tooltips::            Showing "tooltips", AKA "balloon help" for active text.
 * Mouse Avoidance::     Moving the mouse pointer out of the way.
 * Non-Window Terminals::  Multiple frames on terminals that show only one.
 * XTerm Mouse::         Using the mouse in an XTerm terminal emulator.
@@ -791,7 +791,7 @@ Menu Bar mode.  @xref{Resources X}.
   Expert users often turn off the menu bar, especially on text-only
 terminals, where this makes one additional line available for text.
 If the menu bar is off, you can still pop up a menu of its contents
-with @kbd{C-Mouse-3} on a display which supports popup menus.
+with @kbd{C-Mouse-3} on a display which supports pop-up menus.
 @xref{Menu Mouse Clicks}.
 
   @xref{Menu Bar}, for information on how to invoke commands with the
@@ -866,7 +866,7 @@ move the mouse in several ways:
 
 @table @code
 @item banish
-Move the mouse to the upper-right corner on any keypress;
+Move the mouse to the upper-right corner on any key-press;
 @item exile
 Move the mouse to the corner only if the cursor gets too close,
 and allow it to return once the cursor is out of the way;

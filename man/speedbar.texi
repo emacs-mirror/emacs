@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
 @c
-@c $Id: speedbar.texi,v 1.7 2001/02/17 17:02:12 rms Exp $
+@c $Id: speedbar.texi,v 1.8 2001/08/20 01:19:13 rms Exp $
 @c
 
 @c This file is part of GNU Emacs
@@ -161,18 +161,18 @@ system, and look.  If one mode is learned, then the other modes are easy
 to use.
 
 @menu
-* Basic Keybindings::
+* Basic Key Bindings::
 * Basic Visuals::
 * Mouse Bindings::
 * Displays Submenu::
 @end menu
 
-@node Basic Keybindings, Basic Visuals, Basic Navigation, Basic Navigation
+@node Basic Key Bindings, Basic Visuals, Basic Navigation, Basic Navigation
 @comment  node-name,  next,  previous,  up
-@section Basic Keybindings
-@cindex keybindings
+@section Basic Key Bindings
+@cindex key bindings
 
-These keybindings are common across all modes:
+These key bindings are common across all modes:
 
 @table @kbd
 @item delete, SPC
@@ -244,7 +244,7 @@ flushed.  This is similar to a power click.  @xref{Mouse Bindings}.
 Contract the current group, hiding sub items.
 @end table
 
-@node Basic Visuals, Mouse Bindings, Basic Keybindings, Basic Navigation
+@node Basic Visuals, Mouse Bindings, Basic Key Bindings, Basic Navigation
 @comment  node-name,  next,  previous,  up
 @section Basic Visuals
 @cindex visuals
@@ -292,7 +292,7 @@ file uses square brackets.
 In all modes, a group can be `edited' by pressing @kbd{RET}, meaning a
 file will be opened, or a directory explicitly opened in speedbar.  A
 group can be expanded or contracted using @kbd{+} or
-@kbd{-}.  @xref{Basic Keybindings}.
+@kbd{-}.  @xref{Basic Key Bindings}.
 
 Sometimes groups may have a @samp{?} in its indicator box.  This means
 that it is a group type, but there are no contents, or no known way of
@@ -423,7 +423,7 @@ Advanced behavior, like copying and renaming files, is also provided.
 @menu
 * Directory Display::   What the display means.
 * Hidden Files::        How to display hidden files.
-* File Keybindings::    Performing file operations.
+* File Key Bindings::   Performing file operations.
 @end menu
 
 @node Directory Display, Hidden Files, File Mode, File Mode
@@ -510,7 +510,7 @@ Some group names may say something like @samp{speedbar-t to speedbar-v},
 indicating that all symbols which alphabetically fall between those
 categories are included in that sub-group.  @xref{Tag Hierarchy Methods}.
 
-@node Hidden Files, File Keybindings, Directory Display, File Mode
+@node Hidden Files, File Key Bindings, Directory Display, File Mode
 @comment  node-name,  next,  previous,  up
 @section Hidden Files
 @cindex hidden files
@@ -537,12 +537,12 @@ Object files fall into the category of level 2 hidden files.  You can
 determine their presence by the @samp{#} and @samp{!} file indicators.
 @xref{Directory Display}.
 
-@node File Keybindings, , Hidden Files, File Mode
+@node File Key Bindings, , Hidden Files, File Mode
 @comment  node-name,  next,  previous,  up
-@section File Keybindings
-@cindex file keybindings
+@section File Key Bindings
+@cindex file key bindings
 
-File mode has keybindings permitting different file system operations
+File mode has key bindings permitting different file system operations
 such as copy or rename.  These commands all operate on the @dfn{current
 file}.  In this case, the current file is the file at point, or clicked
 on when pulling up the menu.
@@ -589,7 +589,7 @@ These buffers can have their tags expanded in the same way as files,
 and uses the same unknown file indicator (@pxref{File Mode}).
 
 Buffer mode does not have file operation bindings, but the following
-buffer specific keybindings are available:
+buffer specific key bindings are available:
 
 @table @kbd
 @item k
@@ -622,7 +622,7 @@ In these cases, a minor display mode is needed.  A minor display mode
 will override any major display mode currently being displayed for the
 duration of the specialized buffer's use.  Minor display modes
 will follow the general rules of their major counterparts in terms of
-keybindings and visuals, but will have specialized behaviors.
+key bindings and visuals, but will have specialized behaviors.
 
 @menu
 * RMAIL::  Managing folders in speedbar
@@ -895,7 +895,7 @@ Hooks run when speedbar is loaded.
 @cindex @code{speedbar-reconfigure-keymaps-hook}
 @item speedbar-reconfigure-keymaps-hook
 Hooks run when the keymaps are regenerated.  Keymaps are reconfigured
-whenever modes change.  This will let you add custom keybindings.
+whenever modes change.  This will let you add custom key bindings.
 @cindex @code{speedbar-before-popup-hook}
 @item speedbar-before-popup-hook
 Hooks called before popping up the speedbar frame.
@@ -1279,5 +1279,5 @@ Two good values are @code{nil} and @code{'statictag}.
 @printindex cp
 
 @bye
-@c  LocalWords:  speedbar's xref Keybindings slowbar kbd subsubsection
+@c  LocalWords:  speedbar's xref slowbar kbd subsubsection
 @c  LocalWords:  keybindings

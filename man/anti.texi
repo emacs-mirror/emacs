@@ -93,7 +93,7 @@ line with @kbd{C-n} or a down-arrow.
 @item
 The variable @code{show-trailing-whitespace} has no special meaning, so
 trailing whitespace on a line is now always displayed correctly: as
-empty space.  To see if a line ends with spaces or TABs, type @kbd{C-e}
+empty space.  To see if a line ends with spaces or tabs, type @kbd{C-e}
 on that line.  Likewise, empty lines at the end of the buffer are not
 marked in any way; use @kbd{M->} to see where the end of the buffer is.
 

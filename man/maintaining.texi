@@ -309,7 +309,7 @@ In Erlang code, the tags are the functions, records, and macros defined
 in the file.
 
 @item
-In Fortran code, functions, subroutines and blockdata are tags.
+In Fortran code, functions, subroutines and block data are tags.
 
 @item
 In makefiles, targets are tags.
@@ -492,7 +492,7 @@ matching, to recognize tags in @file{los.er}.
   You can specify a regular expression for a particular language, by
 writing @samp{@{lang@}} in front of it.  Then @code{etags} will use
 the regular expression only for files of that language.  (@samp{etags
---help} prints the list of languages recognised by @code{etags}.)  The
+--help} prints the list of languages recognized by @code{etags}.)  The
 following example tags the @code{DEFVAR} macros in the Emacs source
 files, for the C language only:
 

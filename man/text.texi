@@ -1174,13 +1174,13 @@ visible.  Now to look under one of the level-2 headings, position the
 cursor on it and use @kbd{C-c C-z} again.  This exposes the level-2 body
 and its level-3 child subheadings and narrows the buffer again.  Zooming
 in on successive subheadings can be done as much as you like.  A string
-in the modeline shows how deep you've gone.
+in the mode line shows how deep you've gone.
 
   When zooming in on a heading, to see only the child subheadings specify
 a numeric argument: @kbd{C-u C-c C-z}.  The number of levels of children
 can be specified too (compare @kbd{M-x show-children}), e.g.@: @kbd{M-2
 C-c C-z} exposes two levels of child subheadings.  Alternatively, the
-body can be spcified with a negative argument: @kbd{M-- C-c C-z}.  The
+body can be specified with a negative argument: @kbd{M-- C-c C-z}.  The
 whole subtree can be expanded, similarly to @kbd{C-c C-s} (@kbd{M-x
 show-subtree}), by specifying a zero argument: @kbd{M-0 C-c C-z}.
 
@@ -1561,7 +1561,7 @@ get the cross-references right.
 @vindex tex-start-options-string
   The value of the variable @code{tex-start-options-string} specifies
 options for the @TeX{} run.  The default value causes @TeX{} to run in
-nonstopmode.  To run @TeX{} interactively, set the variable to @code{""}.
+nonstop mode.  To run @TeX{} interactively, set the variable to @code{""}.
 
 @vindex tex-main-file
   Large @TeX{} documents are often split into several files---one main

@@ -114,7 +114,7 @@ needed.@refill
 * Viewing Cross-References::         Who references or cites what?
 
 * RefTeXs Menu::                     The Ref menu in the menubar.
-* Keybindings::                      The default keybindings.
+* Key Bindings::                      The default key bindings.
 * Faces::                            Fontification of RefTeX's buffers.
 * Multifile Documents::              Document spread over many files.
 * Language Support::                 How to support other languages.
@@ -2550,7 +2550,7 @@ in the variable @code{reftex-view-crossref-extra}.
 @chapter All the Rest
 @end iftex
 
-@node RefTeXs Menu, Keybindings, Viewing Cross-References, Top
+@node RefTeXs Menu, Key Bindings, Viewing Cross-References, Top
 @section @b{Ref@TeX{}}'s Menu
 @cindex RefTeXs Menu
 @cindex Menu, in the menu bar
@@ -2561,11 +2561,11 @@ which support this.  From this menu you can access all of
 @code{Customize} submenu which can be used to access @b{Ref@TeX{}}'s
 entire set of options.@refill
 
-@node Keybindings, Faces, RefTeXs Menu, Top
-@section Default Keybindings
-@cindex Keybindings, summary
+@node Key Bindings, Faces, RefTeXs Menu, Top
+@section Default Key Bindings
+@cindex Key Bindings, summary
 
-Here is a summary of the available keybindings.
+Here is a summary of the available key bindings.
 
 @kindex C-c =
 @kindex C-c (
@@ -2601,7 +2601,7 @@ easier access.@refill
 
 @c FIXME: Do we need bindings for the Index macros here as well?
 @c C-c i   C-c I or so????
-@c How about keybindings for reftex-reset-mode and reftex-parse-document?
+@c How about key bindings for reftex-reset-mode and reftex-parse-document?
 @kindex C-c t
 @kindex C-c l
 @kindex C-c r
@@ -2620,7 +2620,7 @@ easier access.@refill
 @end example
 
 @noindent These keys are reserved for the user, so I cannot bind them by
-default.  If you want to have these keybindings available, set in your
+default.  If you want to have these key bindings available, set in your
 @file{.emacs} file:
 
 @vindex reftex-extra-bindings
@@ -2629,11 +2629,11 @@ default.  If you want to have these keybindings available, set in your
 @end lisp
 
 @vindex reftex-load-hook
-Changing and adding to @b{Ref@TeX{}}'s keybindings is best done in the hook
+Changing and adding to @b{Ref@TeX{}}'s key bindings is best done in the hook
 @code{reftex-load-hook}.  For information on the keymaps
 which should be used to add keys, see @ref{Keymaps and Hooks}.
 
-@node Faces, AUCTeX, Keybindings, Top
+@node Faces, AUCTeX, Key Bindings, Top
 @section Faces
 @cindex Faces
 
@@ -3313,7 +3313,7 @@ this bug gets fixed, a real idle timer can be requested with
 @item
 @b{Viper mode}@*
 @cindex Viper mode
-@cindex Keybindings, problems with Viper mode
+@cindex Key bindings, problems with Viper mode
 @findex viper-harness-minor-mode
 With @i{Viper} mode prior to Vipers version 3.01, you need to protect
 @b{Ref@TeX{}}'s keymaps with@refill
@@ -3389,7 +3389,7 @@ MicroEmacs at the time).@refill
 Here is a summary of @b{Ref@TeX{}}'s commands which can be executed from
 LaTeX files.  Command which are executed from the special buffers are
 not described here.  All commands are available from the @code{Ref}
-menu.  For keybindings, @pxref{Keybindings}.
+menu.  See @xref{Key Bindings}.
 
 @deffn Command reftex-toc
 Show the table of contents for the current document.  When called with
@@ -4796,7 +4796,7 @@ Face name for index entries.
 @defopt reftex-extra-bindings
 Non-@code{nil} means, make additional key bindings on startup.  These
 extra bindings are located in the users @samp{C-c letter}
-map. @xref{Keybindings}.@refill
+map.  @xref{Key Bindings}.@refill
 @end defopt
 
 @defopt reftex-plug-into-AUCTeX
@@ -5391,7 +5391,7 @@ Multiple @code{thebibliography} environments recognized.
 @itemize @bullet
 @item
 New option @code{reftex-toc-max-level} to limit the depth of the toc.
-New keybinding @kbd{t} in the @file{*toc*} buffer to change this
+New key binding @kbd{t} in the @file{*toc*} buffer to change this
 setting.@refill 
 @item
 RefTeX maintaines an @file{Index Phrases} file in which phrases can be 

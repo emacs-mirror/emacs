@@ -622,7 +622,7 @@ you'd see @samp{C/ah}.
 @findex toggle-hungry-state (c-)
 @findex toggle-auto-state (c-)
 @findex toggle-auto-hungry-state (c-)
-@ccmode{} provides keybindings which allow you to toggle the minor
+@ccmode{} provides key bindings which allow you to toggle the minor
 modes on the fly while editing code.  To toggle just the auto-newline
 state, hit @kbd{C-c C-a} (@code{c-toggle-auto-state}).  When you do
 this, you should see the @samp{a} indicator either appear or disappear
@@ -1838,7 +1838,7 @@ empty, so that all syntactic symbols are set by the style system.
 @findex set-offset (c-)
 You can use the command @kbd{C-c C-o} (@code{c-set-offset}) as the way
 to set offsets, both interactively and from your mode
-hook@footnote{Obviously, you use the keybinding interactively, and the
+hook@footnote{Obviously, you use the key binding interactively, and the
 function call programmatically!}.
 
 @vindex c-basic-offset
@@ -4568,7 +4568,7 @@ will also be posted to the Usenet newsgroups @code{gnu.emacs.sources},
         indent-tabs-mode nil)
   ;; we like auto-newline and hungry-delete
   (c-toggle-auto-hungry-state 1)
-  ;; keybindings for all supported languages.  We can put these in
+  ;; key bindings for all supported languages.  We can put these in
   ;; c-mode-base-map because c-mode-map, c++-mode-map, objc-mode-map,
   ;; java-mode-map, idl-mode-map, and pike-mode-map inherit from it.
   (define-key c-mode-base-map "\C-m" 'c-context-line-break)

@@ -737,7 +737,7 @@ an icon instead of @samp{Mail} by customizing
 line.  You can customize @code{display-time-mail-face} to make the mail
 indicator prominent.
 
-@cindex mode line, 3D appearence
+@cindex mode line, 3D appearance
 @cindex attributes of mode line, changing
 @cindex non-integral number of lines in a window
   By default, the mode line is drawn on graphics displays with

@@ -203,11 +203,11 @@ and news readers.
 
 It is often used as an enhanced email address book.
 
-EUDC considers BBDB as a directory server backend just like LDAP or
-PH/QI servers though BBDB has no client/server protocol and thus always
+EUDC considers BBDB as a directory server back end just like LDAP or
+PH/QI servers, though BBDB has no client/server protocol and thus always
 resides locally on your machine.  The point in this is not to offer an
 alternate way to query your BBDB database (BBDB itself provides much
-more flexible ways to do that) but rather to offer an interface to your
+more flexible ways to do that), but rather to offer an interface to your
 local directory that is consistent with the interface to external
 directories (LDAP, PH/QI).  This is particularly interesting when
 performing queries on multiple servers.
@@ -278,7 +278,7 @@ submenu of the @samp{Tools} submenu.
 * Display of Query Results::    Controlling how query results are presented
 * Inline Query Expansion::      How to use and customize inline queries
 * The Server Hotlist::          How to use and manage the server hotlist
-* Multi-server Queries::        How to query multiple servers sucessively
+* Multi-server Queries::        How to query multiple servers successively
 * Creating BBDB Records::       How to insert query results into your BBDB
 * Server/Protocol Locals::      Customizing on a per server/protocol basis
 @end menu
@@ -324,7 +324,7 @@ may be specified by appending a colon and a number to the name of the
 server. You will not need this unless your server runs on a port other
 than the default (which depends on the protocol).
 If the directory server resides on your own computer (which is the case
-if you use the BBDB backend) then `localhost' is a reasonable value but
+if you use the BBDB back end) then `localhost' is a reasonable value but
 it will be ignored anyway.
 @end defvar
 
@@ -407,11 +407,11 @@ default method for all fields or a method for each individual field.
 
 @defvar eudc-duplicate-attribute-handling-method
 A method to handle entries containing duplicate attributes.  This is
-either an alist @code{(@var{attr} . @var{method})} or a symbol
+either an alist of elements @code{(@var{attr} . @var{method})}, or a symbol
 @var{method}.  The alist form of the variable associates a method to an
-individual attribute name, the second form specifies a method applicable
+individual attribute name; the second form specifies a method applicable
 to all attribute names. Available methods are: @code{list},
-@code{first}, @code{concat}, @code{duplicate} (see above).  Defaults to
+@code{first}, @code{concat}, and @code{duplicate} (see above).  The default is
 @code{list}.
 @end defvar
 
@@ -483,8 +483,9 @@ are controlled by @code{eudc-default-return-attributes} (@pxref{Return
 Attributes}).  
 
 The display of each individual field can be performed by an arbitrary
-function which allows specific processing for binary values like images
-or audio samples as well as values with computer semantics like URLs.
+function which allows specific processing for binary values, such as
+images or audio samples, as well as values with semantics, such as
+URLs.
 
 @defvar eudc-attribute-display-method-alist
 An alist specifying methods to display attribute values.  Each member of
@@ -695,7 +696,7 @@ loaded.
 The hotlist edit buffer offers a means to manage a list of frequently
 used servers.  Commands are available in the context pop-up menu
 generally bound to the right mouse button.  Those commands also have
-equivalent keybindings.
+equivalent key bindings.
 
 @deffn Command eudc-hotlist-add-server
 Bound to @kbd{a}.
@@ -766,7 +767,7 @@ With EUDC, you can automatically create BBDB records
 directory server. You do this by moving point to the appropriate
 record in a query result display buffer and invoking the command
 @kbd{M-x eudc-insert-record-at-point-into-bbdb} with the
-keyboard binding @kbd{b} @footnote{This keybinding does not actually
+keyboard binding @kbd{b} @footnote{This key binding does not actually
 call @code{eudc-insert-record-at-point-into-bbdb} but uses
 @code{eudc-try-bbdb-insert} instead.}, or with the menu. EUDC
 cannot update an existing BBDB record and will signal an error if you
@@ -902,7 +903,7 @@ Return non-@code{nil} if @var{var} has protocol-local bindings
 @end defun
 
 The following functions allow you to set the value of a variable with
-various degrees of localness.
+various degrees of locality.
 
 @defun eudc-default-set var val
 Set the EUDC default value of @var{var} to @var{val}.
