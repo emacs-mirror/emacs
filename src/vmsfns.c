@@ -850,7 +850,7 @@ static Lisp_Object
 vms_trnlog (arg1, arg2)
      Lisp_Object arg1, arg2;
 {
-  char str[100];
+  char str[256];		/* Max logical translation is 255 bytes.  */
   int status, symdsc[2];
   int strdsc[2] = { sizeof (str), str };
   short length, level;
@@ -870,7 +870,7 @@ static Lisp_Object
 vms_symbol (arg1, arg2)
      Lisp_Object arg1, arg2;
 {
-  char str[100];
+  char str[1025];		/* Max symbol translation is 1024 bytes.  */
   int status, symdsc[2];
   int strdsc[2] = { sizeof (str), str };
   short length, level;
