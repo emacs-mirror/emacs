@@ -72,10 +72,14 @@ move forward across N balanced expressions."
 (defun mark-sexp (&optional arg)
   "Set mark ARG sexps from point.
 The place mark goes is the same place \\[forward-sexp] would
-move to with the same argument."
+move to with the same argument.
+If this command is repeated, it marks the next ARG sexps after the ones
+already marked."
   (interactive "p")
   (push-mark
     (save-excursion
+      (if (and (eq last-command this-command) (mark t))
+	  (goto-char (mark)))
       (forward-sexp (or arg 1))
       (point))
     nil t))
