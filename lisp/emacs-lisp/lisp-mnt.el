@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Created: 14 Jul 1992
-;; Version: $Id: lisp-mnt.el,v 1.12 1996/01/14 07:34:30 erik Exp kwzh $
+;; Version: $Id: lisp-mnt.el,v 1.13 1996/01/25 00:55:13 kwzh Exp rms $
 ;; Keywords: docs
 ;; X-Bogus-Bureaucratic-Cruft: Gruad will get you if you don't watch out!
 
@@ -335,7 +335,7 @@
 
 ;;; Verification and synopses
 
-(defun insert-at-column (col &rest pieces)
+(defun lm-insert-at-column (col &rest pieces)
    (if (> (current-column) col) (insert "\n"))
    (move-to-column-force col)
    (apply 'insert pieces))
@@ -357,11 +357,11 @@ a temporary buffer."
 		  (if status
 		      (progn
 			(insert f ":")
-			(insert-at-column lm-comment-column status "\n"))
+			(lm-insert-at-column lm-comment-column status "\n"))
 		    (and showok
 			 (progn
 			   (insert f ":")
-			   (insert-at-column lm-comment-column "OK\n")))))))
+			   (lm-insert-at-column lm-comment-column "OK\n")))))))
 	(directory-files file))
     )
   (save-excursion
@@ -388,6 +388,7 @@ a temporary buffer."
 If FILE is a directory, recurse on its files and generate a report into
 a temporary buffer.  If SHOWALL is on, also generate a line for files
 which do not include a recognizable synopsis."
+  (interactive "fSynopsis for (file or dir): ")
   (if (and file (file-directory-p file))
       (progn
 	(switch-to-buffer (get-buffer-create "*lm-verify*"))
@@ -399,11 +400,11 @@ which do not include a recognizable synopsis."
 		  (if syn
 		      (progn
 			(insert f ":")
-			(insert-at-column lm-comment-column syn "\n"))
+			(lm-insert-at-column lm-comment-column syn "\n"))
 		    (and showall
 			 (progn
 			   (insert f ":")
-			   (insert-at-column lm-comment-column "NA\n")))))))
+			   (lm-insert-at-column lm-comment-column "NA\n")))))))
 	 (directory-files file))
 	)
     (save-excursion
