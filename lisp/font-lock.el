@@ -60,16 +60,40 @@
 ;; properties appropriately.
 ;;
 ;; Fontification normally involves syntactic (i.e., strings and comments) and
-;; regexp (i.e., keywords and everything else) passes.  The syntactic pass
-;; involves a syntax table and a syntax parsing function to determine the
-;; context of different parts of a region of text.  It is necessary because
-;; generally strings and/or comments can span lines, and so the context of a
-;; given region is not necessarily apparent from the content of that region.
-;; Because the regexp pass only works within a given region, it is not
-;; generally appropriate for syntactic fontification.  The regexp pass involves
-;; searching for given regexps (or calling given functions) within the given
-;; region.  For each match of the regexp (or non-nil value of the called
-;; function), `face' text properties are added appropriately.
+;; regexp (i.e., keywords and everything else) passes.  There are actually
+;; three passes; (a) the syntactic keyword pass, (b) the syntactic pass and (c)
+;; the keyword pass.  Confused?
+;;
+;; The syntactic keyword pass places `syntax-table' text properties in the
+;; buffer according to the variable `font-lock-syntactic-keywords'.  It is
+;; necessary because Emacs' syntax table is not powerful enough to describe all
+;; the different syntactic constructs required by the sort of people who decide
+;; that a single quote can be syntactic or not depending on the time of day.
+;; (What sort of person could decide to overload the meaning of a quote?)
+;; Obviously the syntactic keyword pass must occur before the syntactic pass.
+;;
+;; The syntactic pass places `face' text properties in the buffer according to
+;; syntactic context, i.e., according to the buffer's syntax table and buffer
+;; text's `syntax-table' text properties.  It involves using a syntax parsing
+;; function to determine the context of different parts of a region of text.  A
+;; syntax parsing function is necessary because generally strings and/or
+;; comments can span lines, and so the context of a given region is not
+;; necessarily apparent from the content of that region.  Because the keyword
+;; pass only works within a given region, it is not generally appropriate for
+;; syntactic fontification.  This is the first fontification pass that makes
+;; changes visible to the user; it fontifies strings and comments.
+;;
+;; The keyword pass places `face' text properties in the buffer according to
+;; the variable `font-lock-keywords'.  It involves searching for given regexps
+;; (or calling given search functions) within the given region.  This is the
+;; second fontification pass that makes changes visible to the user; it
+;; fontifies language reserved words, etc.
+;;
+;; Oh, and the answer is, "Yes, obviously just about everything should be done
+;; in a single syntactic pass, but the only syntactic parser available
+;; understands only strings and comments."  Perhaps one day someone will write
+;; some syntactic parsers for common languages and a son-of-font-lock.el could
+;; use them rather then relying so heavily on the keyword (regexp) pass.
 
 ;;; How Font Lock mode supports modes or is supported by modes:
 
@@ -92,10 +116,9 @@
 
 ;; See the documentation for the variable `font-lock-keywords'.
 ;;
-;; Nasty regexps of the form "bar\\(\\|lo\\)\\|f\\(oo\\|u\\(\\|bar\\)\\)\\|lo"
-;; are made thusly: (make-regexp '("foo" "fu" "fubar" "bar" "barlo" "lo")) for
-;; efficiency.  See /pub/gnu/emacs/elisp-archive/functions/make-regexp.el.Z on
-;; archive.cis.ohio-state.edu for this and other functions not just by sm.
+;; Efficient regexps for use as MATCHERs for `font-lock-keywords' and
+;; `font-lock-syntactic-keywords' can be generated via the function
+;; `regexp-opt', and their depth counted via the function `regexp-opt-depth'.
 
 ;;; Adding patterns for modes that already support Font Lock:
 
@@ -198,7 +221,7 @@
   "Extra mode-specific type names for highlighting declarations."
   :group 'font-lock)
 
-;; Define support mode groups here for nicer `font-lock' group order.
+;; Define support mode groups here to impose `font-lock' group order.
 (defgroup fast-lock nil
   "Font Lock support mode to cache fontification."
   :link '(custom-manual "(emacs)Support Modes")
@@ -271,7 +294,7 @@ for buffers in Rmail mode, and size is irrelevant otherwise."
 ;; Fontification variables:
 
 (defvar font-lock-keywords nil
-  "*A list of the keywords to highlight.
+  "A list of the keywords to highlight.
 Each element should be of the form:
 
  MATCHER
@@ -297,10 +320,10 @@ MATCH-HIGHLIGHT should be of the form:
 
 Where MATCHER can be either the regexp to search for, or the function name to
 call to make the search (called with one argument, the limit of the search).
-MATCH is the subexpression of MATCHER to be highlighted.  MATCH can be
-calculated via the function `font-lock-keyword-depth'.  FACENAME is an
-expression whose value is the face name to use.  FACENAME's default attributes
-can be modified via \\[customize].
+MATCHER regexps can be generated via the function `regexp-opt'.  MATCH is the
+subexpression of MATCHER to be highlighted.  MATCH can be calculated via the
+function `regexp-opt-depth'.  FACENAME is an expression whose value is the face
+name to use.  Face default attributes can be modified via \\[customize].
 
 OVERRIDE and LAXMATCH are flags.  If OVERRIDE is t, existing fontification can
 be overwritten.  If `keep', only parts not already fontified are highlighted.
@@ -495,6 +518,20 @@ This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-keywords-case-fold-search nil
   "*Non-nil means the patterns in `font-lock-keywords' are case-insensitive.
+This is normally set via `font-lock-defaults'.")
+
+(defvar font-lock-syntactic-keywords nil
+  "A list of the syntactic keywords to highlight.
+Can be the list or the name of a function or variable whose value is the list.
+See `font-lock-keywords' for a description of the form of this list;
+the differences are listed below.  MATCH-HIGHLIGHT should be of the form:
+
+ (MATCH SYNTAX OVERRIDE LAXMATCH)
+
+where SYNTAX can be of the form (SYNTAX-CODE . MATCHING-CHAR), the name of a
+syntax table, or an expression whose value is such a form or a syntax table.
+OVERRIDE cannot be `prepend' or `append'.
+
 This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-syntax-table nil
@@ -998,7 +1035,9 @@ The value of this variable is used when Font Lock mode is turned on."
     (setq font-lock-fontified nil)))
 
 (defun font-lock-default-fontify-region (beg end loudly)
-  (save-buffer-state ((old-syntax-table (syntax-table)))
+  (save-buffer-state
+      ((parse-sexp-lookup-properties font-lock-syntactic-keywords)
+       (old-syntax-table (syntax-table)))
     (unwind-protect
 	(save-restriction
 	  (widen)
@@ -1007,6 +1046,8 @@ The value of this variable is used when Font Lock mode is turned on."
 	    (set-syntax-table font-lock-syntax-table))
 	  ;; Now do the fontification.
 	  (font-lock-unfontify-region beg end)
+	  (when font-lock-syntactic-keywords
+	    (font-lock-fontify-syntactic-keywords-region beg end))
 	  (unless font-lock-keywords-only
 	    (font-lock-fontify-syntactically-region beg end loudly))
 	  (font-lock-fontify-keywords-region beg end loudly))
@@ -1023,7 +1064,7 @@ The value of this variable is used when Font Lock mode is turned on."
 
 (defun font-lock-default-unfontify-region (beg end)
   (save-buffer-state nil
-    (remove-text-properties beg end '(face nil))))
+    (remove-text-properties beg end '(face nil syntax-table nil))))
 
 ;; Called when any modification is made to buffer text.
 (defun font-lock-after-change-function (beg end old-len)
@@ -1060,67 +1101,6 @@ delimit the region to fontify."
 (define-key facemenu-keymap "\M-g" 'font-lock-fontify-block)
 
 ;;; End of Fontification functions.
-
-;;; Syntactic fontification functions.
-
-;; These record the parse state at a particular position, always the start of a
-;; line.  Used to make `font-lock-fontify-syntactically-region' faster.
-;; Previously, `font-lock-cache-position' was just a buffer position.  However,
-;; under certain situations, this occasionally resulted in mis-fontification.
-;; I think the "situations" were deletion with Lazy Lock mode's deferral.  sm.
-(defvar font-lock-cache-state nil)
-(defvar font-lock-cache-position nil)
-
-(defun font-lock-fontify-syntactically-region (start end &optional loudly)
-  "Put proper face on each string and comment between START and END.
-START should be at the beginning of a line."
-  (let ((cache (marker-position font-lock-cache-position))
-	state string beg)
-    (if loudly (message "Fontifying %s... (syntactically...)" (buffer-name)))
-    (goto-char start)
-    ;;
-    ;; Find the state at the `beginning-of-line' before `start'.
-    (if (eq start cache)
-	;; Use the cache for the state of `start'.
-	(setq state font-lock-cache-state)
-      ;; Find the state of `start'.
-      (if (null font-lock-beginning-of-syntax-function)
-	  ;; Use the state at the previous cache position, if any, or
-	  ;; otherwise calculate from `point-min'.
-	  (if (or (null cache) (< start cache))
-	      (setq state (parse-partial-sexp (point-min) start))
-	    (setq state (parse-partial-sexp cache start nil nil
-					    font-lock-cache-state)))
-	;; Call the function to move outside any syntactic block.
-	(funcall font-lock-beginning-of-syntax-function)
-	(setq state (parse-partial-sexp (point) start)))
-      ;; Cache the state and position of `start'.
-      (setq font-lock-cache-state state)
-      (set-marker font-lock-cache-position start))
-    ;;
-    ;; If the region starts inside a string or comment, show the extent of it.
-    (when (or (nth 3 state) (nth 4 state))
-      (setq string (nth 3 state) beg (point))
-      (setq state (parse-partial-sexp (point) end nil nil state 'syntax-table))
-      (put-text-property beg (point) 'face 
-			 (if string 
-			     font-lock-string-face
-			   font-lock-comment-face)))
-    ;;
-    ;; Find each interesting place between here and `end'.
-    (while (and (< (point) end)
-		(progn
-		  (setq state (parse-partial-sexp (point) end nil nil state
-						  'syntax-table))
-		  (or (nth 3 state) (nth 4 state))))
-      (setq string (nth 3 state) beg (nth 8 state))
-      (setq state (parse-partial-sexp (point) end nil nil state 'syntax-table))
-      (put-text-property beg (point) 'face 
-			 (if string 
-			     font-lock-string-face
-			   font-lock-comment-face)))))
-
-;;; End of Syntactic fontification functions.
 
 ;;; Additional text property functions.
 
@@ -1203,7 +1183,162 @@ Optional argument OBJECT is the string or buffer containing the text."
 
 ;;; End of Additional text property functions.
 
-;;; Regexp fontification functions.
+;;; Syntactic regexp fontification functions.
+
+;; These syntactic keyword pass functions are identical to those keyword pass
+;; functions below, with the following exceptions; (a) they operate on
+;; `font-lock-syntactic-keywords' of course, (b) they are all `defun' as speed
+;; is less of an issue, (c) eval of property value does not occur JIT as speed
+;; is less of an issue, (d) OVERRIDE cannot be `prepend' or `append' as it
+;; makes no sense for `syntax-table' property values, (e) they do not do it
+;; LOUDLY as it is not likely to be intensive.
+
+(defun font-lock-apply-syntactic-highlight (highlight)
+  "Apply HIGHLIGHT following a match.
+HIGHLIGHT should be of the form MATCH-HIGHLIGHT,
+see `font-lock-syntactic-keywords'."
+  (let* ((match (nth 0 highlight))
+	 (start (match-beginning match)) (end (match-end match))
+	 (value (nth 1 highlight))
+	 (override (nth 2 highlight)))
+    (unless (numberp (car value))
+      (setq value (eval value)))
+    (cond ((not start)
+	   ;; No match but we might not signal an error.
+	   (or (nth 3 highlight)
+	       (error "No match %d in highlight %S" match highlight)))
+	  ((not override)
+	   ;; Cannot override existing fontification.
+	   (or (text-property-not-all start end 'syntax-table nil)
+	       (put-text-property start end 'syntax-table value)))
+	  ((eq override t)
+	   ;; Override existing fontification.
+	   (put-text-property start end 'syntax-table value))
+	  ((eq override 'keep)
+	   ;; Keep existing fontification.
+	   (font-lock-fillin-text-property start end 'syntax-table value)))))
+
+(defun font-lock-fontify-syntactic-anchored-keywords (keywords limit)
+  "Fontify according to KEYWORDS until LIMIT.
+KEYWORDS should be of the form MATCH-ANCHORED, see `font-lock-keywords',
+LIMIT can be modified by the value of its PRE-MATCH-FORM."
+  (let ((matcher (nth 0 keywords)) (lowdarks (nthcdr 3 keywords)) highlights
+	;; Evaluate PRE-MATCH-FORM.
+	(pre-match-value (eval (nth 1 keywords))))
+    ;; Set LIMIT to value of PRE-MATCH-FORM or the end of line.
+    (if (and (numberp pre-match-value) (> pre-match-value (point)))
+	(setq limit pre-match-value)
+      (save-excursion (end-of-line) (setq limit (point))))
+    (save-match-data
+      ;; Find an occurrence of `matcher' before `limit'.
+      (while (if (stringp matcher)
+		 (re-search-forward matcher limit t)
+	       (funcall matcher limit))
+	;; Apply each highlight to this instance of `matcher'.
+	(setq highlights lowdarks)
+	(while highlights
+	  (font-lock-apply-syntactic-highlight (car highlights))
+	  (setq highlights (cdr highlights)))))
+    ;; Evaluate POST-MATCH-FORM.
+    (eval (nth 2 keywords))))
+
+(defun font-lock-fontify-syntactic-keywords-region (start end)
+  "Fontify according to `font-lock-syntactic-keywords' between START and END.
+START should be at the beginning of a line."
+  ;; If `font-lock-syntactic-keywords' is a symbol, get the real keywords.
+  (when (symbolp font-lock-syntactic-keywords)
+    (setq font-lock-syntactic-keywords (font-lock-eval-keywords
+					font-lock-syntactic-keywords)))
+  ;; If `font-lock-syntactic-keywords' is not compiled, compile it.
+  (unless (eq (car font-lock-syntactic-keywords) t)
+    (setq font-lock-syntactic-keywords (font-lock-compile-keywords
+					font-lock-syntactic-keywords)))
+  ;; Get down to business.
+  (let ((case-fold-search font-lock-keywords-case-fold-search)
+	(keywords (cdr font-lock-syntactic-keywords))
+	keyword matcher highlights)
+    (while keywords
+      ;; Find an occurrence of `matcher' from `start' to `end'.
+      (setq keyword (car keywords) matcher (car keyword))
+      (goto-char start)
+      (while (if (stringp matcher)
+		 (re-search-forward matcher end t)
+	       (funcall matcher end))
+	;; Apply each highlight to this instance of `matcher', which may be
+	;; specific highlights or more keywords anchored to `matcher'.
+	(setq highlights (cdr keyword))
+	(while highlights
+	  (if (numberp (car (car highlights)))
+	      (font-lock-apply-syntactic-highlight (car highlights))
+	    (font-lock-fontify-syntactic-anchored-keywords (car highlights)
+							   end))
+	  (setq highlights (cdr highlights))))
+      (setq keywords (cdr keywords)))))
+
+;;; End of Syntactic regexp fontification functions.
+
+;;; Syntactic fontification functions.
+
+;; These record the parse state at a particular position, always the start of a
+;; line.  Used to make `font-lock-fontify-syntactically-region' faster.
+;; Previously, `font-lock-cache-position' was just a buffer position.  However,
+;; under certain situations, this occasionally resulted in mis-fontification.
+;; I think the "situations" were deletion with Lazy Lock mode's deferral.  sm.
+(defvar font-lock-cache-state nil)
+(defvar font-lock-cache-position nil)
+
+(defun font-lock-fontify-syntactically-region (start end &optional loudly)
+  "Put proper face on each string and comment between START and END.
+START should be at the beginning of a line."
+  (let ((cache (marker-position font-lock-cache-position))
+	state string beg)
+    (if loudly (message "Fontifying %s... (syntactically...)" (buffer-name)))
+    (goto-char start)
+    ;;
+    ;; Find the state at the `beginning-of-line' before `start'.
+    (if (eq start cache)
+	;; Use the cache for the state of `start'.
+	(setq state font-lock-cache-state)
+      ;; Find the state of `start'.
+      (if (null font-lock-beginning-of-syntax-function)
+	  ;; Use the state at the previous cache position, if any, or
+	  ;; otherwise calculate from `point-min'.
+	  (if (or (null cache) (< start cache))
+	      (setq state (parse-partial-sexp (point-min) start))
+	    (setq state (parse-partial-sexp cache start nil nil
+					    font-lock-cache-state)))
+	;; Call the function to move outside any syntactic block.
+	(funcall font-lock-beginning-of-syntax-function)
+	(setq state (parse-partial-sexp (point) start)))
+      ;; Cache the state and position of `start'.
+      (setq font-lock-cache-state state)
+      (set-marker font-lock-cache-position start))
+    ;;
+    ;; If the region starts inside a string or comment, show the extent of it.
+    (when (or (nth 3 state) (nth 4 state))
+      (setq string (nth 3 state) beg (point))
+      (setq state (parse-partial-sexp (point) end nil nil state 'syntax-table))
+      (put-text-property beg (point) 'face 
+			 (if string 
+			     font-lock-string-face
+			   font-lock-comment-face)))
+    ;;
+    ;; Find each interesting place between here and `end'.
+    (while (and (< (point) end)
+		(progn
+		  (setq state (parse-partial-sexp (point) end nil nil state
+						  'syntax-table))
+		  (or (nth 3 state) (nth 4 state))))
+      (setq string (nth 3 state) beg (nth 8 state))
+      (setq state (parse-partial-sexp (point) end nil nil state 'syntax-table))
+      (put-text-property beg (point) 'face 
+			 (if string 
+			     font-lock-string-face
+			   font-lock-comment-face)))))
+
+;;; End of Syntactic fontification functions.
+
+;;; Keyword regexp fontification functions.
 
 (defsubst font-lock-apply-highlight (highlight)
   "Apply HIGHLIGHT following a match.
@@ -1259,7 +1394,7 @@ LIMIT can be modified by the value of its PRE-MATCH-FORM."
 (defun font-lock-fontify-keywords-region (start end &optional loudly)
   "Fontify according to `font-lock-keywords' between START and END.
 START should be at the beginning of a line."
-  (unless (eq (car-safe font-lock-keywords) t)
+  (unless (eq (car font-lock-keywords) t)
     (setq font-lock-keywords (font-lock-compile-keywords font-lock-keywords)))
   (let ((case-fold-search font-lock-keywords-case-fold-search)
 	(keywords (cdr font-lock-keywords))
@@ -1287,7 +1422,7 @@ START should be at the beginning of a line."
 	  (setq highlights (cdr highlights))))
       (setq keywords (cdr keywords)))))
 
-;;; End of Regexp fontification functions.
+;;; End of Keyword regexp fontification functions.
 
 ;; Various functions.
 
@@ -1316,6 +1451,14 @@ START should be at the beginning of a line."
 	 (list (car keyword) (cdr keyword)))
 	(t					; (MATCHER HIGHLIGHT ...)
 	 keyword)))
+
+(defun font-lock-eval-keywords (keywords)
+  ;; Evalulate KEYWORDS if a function (funcall) or variable (eval) name.
+  (if (symbolp keywords)
+      (font-lock-eval-keywords (if (fboundp keywords)
+				   (funcall keywords)
+				 (eval keywords)))
+    keywords))
 
 (defun font-lock-value-in-major-mode (alist)
   ;; Return value in ALIST for `major-mode', or ALIST if it is not an alist.
@@ -1357,7 +1500,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 	   (local (cdr (assq major-mode font-lock-keywords-alist))))
       ;; Regexp fontification?
       (set (make-local-variable 'font-lock-keywords)
-	   (if (fboundp keywords) (funcall keywords) (eval keywords)))
+	   (font-lock-compile-keywords (font-lock-eval-keywords keywords)))
       ;; Local fontification?
       (while local
 	(font-lock-add-keywords nil (car (car local)) (cdr (car local)))
@@ -1393,7 +1536,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 	(while alist
 	  (let ((variable (car (car alist))) (value (cdr (car alist))))
 	    (unless (boundp variable)
-	      (setq variable nil))
+	      (set variable nil))
 	    (set (make-local-variable variable) value)
 	    (setq alist (cdr alist))))))))
 
@@ -1517,11 +1660,9 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-function-name-face
-  ;; Currently, Emacs/Custom does not support a :reverse or :invert spec.
   '((((class color) (background light)) (:foreground "Blue"))
     (((class color) (background dark)) (:foreground "LightSkyBlue"))
-    (t ;(:reverse t :bold t)
-     (:italic t :bold t)))
+    (t (:inverse-video t :bold t)))
   "Font Lock mode face used to highlight function names."
   :group 'font-lock-highlighting-faces)
 
@@ -1557,11 +1698,9 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-warning-face
-  ;; Currently, Emacs/Custom does not support a :reverse or :invert spec.
   '((((class color) (background light)) (:foreground "Red" :bold t))
     (((class color) (background dark)) (:foreground "Pink" :bold t))
-    (t ;(:reverse t :bold t)
-     (:italic t :bold t)))
+    (t (:inverse-video t :bold t)))
   "Font Lock mode face used to highlight warnings."
   :group 'font-lock-highlighting-faces)
 
@@ -1682,10 +1821,11 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 Matches after point, but ignores leading whitespace and `*' characters.
 Does not move further than LIMIT.
 
-The expected syntax of a declaration/definition item is `word', possibly ending
-with optional whitespace and a `('.  Everything following the item (but
-belonging to it) is expected to by skip-able by `scan-sexps', and items are
-expected to be separated with a `,' and to be terminated with a `;'.
+The expected syntax of a declaration/definition item is `word' (preceded by
+optional whitespace and `*' characters and proceeded by optional whitespace)
+optionally followed by a `('.  Everything following the item (but belonging to
+it) is expected to by skip-able by `scan-sexps', and items are expected to be
+separated with a `,' and to be terminated with a `;'.
 
 Thus the regexp matches after point:	word (
 					^^^^ ^
@@ -1707,14 +1847,6 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 	      (goto-char (or (scan-sexps (point) 1) (point-max))))
 	    (goto-char (match-end 2)))
 	(error t)))))
-
-(defun font-lock-keyword-depth (keyword)
-  "Return the depth of KEYWORD regexp.
-This means the number of parenthesized expressions."
-  (let ((count 0) start)
-    (while (string-match "\\\\(" keyword start)
-      (setq count (1+ count) start (match-end 0)))
-    count))
 
 
 (defconst lisp-font-lock-keywords-1
@@ -1754,40 +1886,30 @@ This means the number of parenthesized expressions."
      (list
       ;;
       ;; Control structures.  Emacs Lisp forms.
-      (cons (concat "(\\("
-;	(make-regexp
-;	 '("cond" "if" "while" "let\\*?" "prog[nv12*]?" "catch" "throw"
-;	   "inline" "save-restriction" "save-excursion" "save-window-excursion"
-;	   "save-selected-window" "save-match-data" "save-current-buffer"
-;	   "unwind-protect" "condition-case" "track-mouse" "dont-compile"
-;	   "eval-after-load" "eval-and-compile" "eval-when" "eval-when-compile"
-;	   "with-output-to-temp-buffer" "with-timeout" "with-current-buffer"
-;	   "with-temp-buffer" "with-temp-file"))
-		    "c\\(atch\\|ond\\(\\|ition-case\\)\\)\\|dont-compile\\|"
-		    "eval-\\(a\\(fter-load\\|nd-compile\\)\\|"
-		    "when\\(\\|-compile\\)\\)\\|"
-		    "i\\(f\\|nline\\)\\|let\\*?\\|prog[nv12*]?\\|"
-		    "save-\\(current-buffer\\|excursion\\|match-data\\|"
-		    "restriction\\|selected-window\\|window-excursion\\)\\|"
-		    "t\\(hrow\\|rack-mouse\\)\\|unwind-protect\\|"
-		    "w\\(hile\\|ith-\\(current-buffer\\|"
-		    "output-to-temp-buffer\\|"
-		    "t\\(emp-\\(buffer\\|file\\)\\|imeout\\)\\)\\)"
-		    "\\)\\>")
+      (cons (concat
+	     "(" (regexp-opt
+		  '("cond" "if" "while" "catch" "throw" "let" "let*"
+		    "prog" "progn" "progv" "prog1" "prog2" "prog*"
+		    "inline" "save-restriction" "save-excursion"
+		    "save-window-excursion" "save-selected-window"
+		    "save-match-data" "save-current-buffer" "unwind-protect"
+		    "condition-case" "track-mouse" "dont-compile"
+		    "eval-after-load" "eval-and-compile" "eval-when-compile"
+		    "eval-when" "with-output-to-temp-buffer" "with-timeout"
+		    "with-current-buffer" "with-temp-buffer"
+		    "with-temp-file") t)
+	     "\\>")
 	    1)
       ;;
       ;; Control structures.  Common Lisp forms.
-      (cons (concat "(\\("
-;	(make-regexp
-;	 '("when" "unless" "case" "ecase" "typecase" "etypecase"
-;	   "loop" "do\\*?" "dotimes" "dolist"
-;	   "proclaim" "declaim" "declare"
-;	   "lexical-let\\*?" "flet" "labels" "return" "return-from"))
-		    "case\\|d\\(ecla\\(im\\|re\\)\\|o\\(\\*?\\|"
-		    "list\\|times\\)\\)\\|e\\(case\\|typecase\\)\\|flet\\|"
-		    "l\\(abels\\|exical-let\\*?\\|oop\\)\\|proclaim\\|"
-		    "return\\(\\|-from\\)\\|typecase\\|unless\\|when"
-		    "\\)\\>")
+      (cons (concat
+	     "(" (regexp-opt
+		  '("when" "unless" "case" "ecase" "typecase" "etypecase"
+		    "loop" "do" "do*" "dotimes" "dolist"
+		    "proclaim" "declaim" "declare"
+		    "lexical-let" "lexical-let*" "flet" "labels"
+		    "return" "return-from") t)
+	     "\\>")
 	    1)
       ;;
       ;; Feature symbols as references.
@@ -1837,23 +1959,19 @@ This means the number of parenthesized expressions."
 	       nil t))
      ;;
      ;; Control structures.
-;(make-regexp '("begin" "call-with-current-continuation" "call/cc"
-;	       "call-with-input-file" "call-with-output-file" "case" "cond"
-;	       "do" "else" "for-each" "if" "lambda"
-;	       "let\\*?" "let-syntax" "letrec" "letrec-syntax"
-;	       ;; Hannes Haug <hannes.haug@student.uni-tuebingen.de> wants:
-;	       "and" "or" "delay"
-;	       ;; Stefan Monnier <stefan.monnier@epfl.ch> says don't bother:
-;	       ;;"quasiquote" "quote" "unquote" "unquote-splicing"
-;	       "map" "syntax" "syntax-rules"))
      (cons
-      (concat "(\\("
-	      "and\\|begin\\|c\\(a\\(ll\\(-with-\\(current-continuation\\|"
-	      "input-file\\|output-file\\)\\|/cc\\)\\|se\\)\\|ond\\)\\|"
-	      "d\\(elay\\|o\\)\\|else\\|for-each\\|if\\|"
-	      "l\\(ambda\\|et\\(-syntax\\|\\*?\\|rec\\(\\|-syntax\\)\\)\\)\\|"
-	      "map\\|or\\|syntax\\(\\|-rules\\)"
-	      "\\)\\>") 1)
+      (concat
+       "(" (regexp-opt
+	    '("begin" "call-with-current-continuation" "call/cc"
+	      "call-with-input-file" "call-with-output-file" "case" "cond"
+	      "do" "else" "for-each" "if" "lambda"
+	      "let" "let*" "let-syntax" "letrec" "letrec-syntax"
+	      ;; Hannes Haug <hannes.haug@student.uni-tuebingen.de> wants:
+	      "and" "or" "delay"
+	      ;; Stefan Monnier <stefan.monnier@epfl.ch> says don't bother:
+	      ;;"quasiquote" "quote" "unquote" "unquote-splicing"
+	      "map" "syntax" "syntax-rules") t)
+       "\\>") 1)
      ;;
      ;; David Fox <fox@graphics.cs.nyu.edu> for SOS/STklos class specifiers.
      '("\\<<\\sw+>\\>" . font-lock-type-face)
@@ -1976,21 +2094,20 @@ See also `c-font-lock-extra-types'.")
 See also `c-font-lock-extra-types'.")
 
 (let* ((c-keywords
-;	("break" "continue" "do" "else" "for" "if" "return" "switch" "while")
-	"break\\|continue\\|do\\|else\\|for\\|if\\|return\\|switch\\|while")
+	(eval-when-compile
+	  (regexp-opt '("break" "continue" "do" "else" "for" "if" "return"
+			"switch" "while") t)))
        (c-type-types
-;	("auto" "extern" "register" "static" "typedef" "struct" "union" "enum"
-;	 "signed" "unsigned" "short" "long" "int" "char" "float" "double"
-;	 "void" "volatile" "const")
 	`(mapconcat 'identity
 	  (cons 
-	   (,@ (concat "auto\\|c\\(har\\|onst\\)\\|double\\|"
-		       "e\\(num\\|xtern\\)\\|float\\|int\\|long\\|register\\|"
-		       "s\\(hort\\|igned\\|t\\(atic\\|ruct\\)\\)\\|typedef\\|"
-		       "un\\(ion\\|signed\\)\\|vo\\(id\\|latile\\)"))
+	   (,@ (eval-when-compile
+		 (regexp-opt
+		  '("auto" "extern" "register" "static" "typedef" "struct"
+		    "union" "enum" "signed" "unsigned" "short" "long"
+		    "int" "char" "float" "double" "void" "volatile" "const"))))
 	   c-font-lock-extra-types)
 	  "\\|"))
-       (c-type-depth `(font-lock-keyword-depth (,@ c-type-types)))
+       (c-type-depth `(regexp-opt-depth (,@ c-type-types)))
        )
  (setq c-font-lock-keywords-1
   (list
@@ -2032,7 +2149,7 @@ See also `c-font-lock-extra-types'.")
       (cons (concat "\\<\\(" (,@ c-type-types) "\\)\\>") 'font-lock-type-face))
     ;;
     ;; Fontify all builtin keywords (except case, default and goto; see below).
-    (concat "\\<\\(" c-keywords "\\)\\>")
+    (concat "\\<" c-keywords "\\>")
     ;;
     ;; Fontify case/goto keywords and targets, and case default/goto tags.
     '("\\<\\(case\\|goto\\)\\>[ \t]*\\(-?\\sw+\\)?"
@@ -2119,7 +2236,7 @@ See also `c++-font-lock-extra-types'.")
 		       "[ \t*&]*"
 		       ;; This is `c++-type-spec' from below.  (Hint hint!)
 		       "\\(\\sw+\\)"				; The instance?
-		       "\\(<\\(\\sw+\\)[ \t*&]*>\\)?"		; Or template?
+		       "\\([ \t]*<\\([^>\n]+\\)[ \t*&]*>\\)?"	; Or template?
 		       "\\([ \t]*::[ \t*~]*\\(\\sw+\\)\\)?"	; Or member?
 		       ;; Match any trailing parenthesis.
 		       "[ \t]*\\((\\)?")))
@@ -2136,15 +2253,13 @@ See also `c++-font-lock-extra-types'.")
 	(error t)))))
 
 (let* ((c++-keywords
-;      ("break" "continue" "do" "else" "for" "if" "return" "switch" "while"
-;       "asm" "catch" "delete" "new" "operator" "sizeof" "this" "throw" "try"
-;       ;; Eric Hopper <hopper@omnifarious.mn.org> says these are new.
-;       "static_cast" "dynamic_cast" "const_cast" "reinterpret_cast")
-	(concat "asm\\|break\\|c\\(atch\\|on\\(st_cast\\|tinue\\)\\)\\|"
-		"d\\(elete\\|o\\|ynamic_cast\\)\\|else\\|for\\|if\\|new\\|"
-		"operator\\|re\\(interpret_cast\\|turn\\)\\|"
-		"s\\(izeof\\|tatic_cast\\|"
-		"witch\\)\\|t\\(h\\(is\\|row\\)\\|ry\\)\\|while"))
+	(eval-when-compile
+	  (regexp-opt
+	   '("break" "continue" "do" "else" "for" "if" "return" "switch"
+	     "while" "asm" "catch" "delete" "new" "operator" "sizeof" "this"
+	     "throw" "try"
+	     ;; Eric Hopper <hopper@omnifarious.mn.org> says these are new.
+	     "static_cast" "dynamic_cast" "const_cast" "reinterpret_cast") t)))
        (c++-operators
 	(mapconcat 'identity
 	 (mapcar 'regexp-quote
@@ -2156,34 +2271,28 @@ See also `c++-font-lock-extra-types'.")
 		       #'(lambda (a b) (> (length a) (length b)))))
 	 "\\|"))
        (c++-type-types
-;      ("auto" "extern" "register" "static" "typedef" "struct" "union" "enum"
-;       "signed" "unsigned" "short" "long" "int" "char" "float" "double"
-;       "void" "volatile" "const" "inline" "friend" "bool"
-;       "virtual" "complex" "template"
-;       ;; Eric Hopper <hopper@omnifarious.mn.org> says these are new.
-;       "namespace" "using")
 	`(mapconcat 'identity
 	  (cons 
-	   (,@ (concat "auto\\|bool\\|c\\(har\\|o\\(mplex\\|nst\\)\\)\\|"
-		       "double\\|e\\(num\\|xtern\\)\\|f\\(loat\\|riend\\)\\|"
-		       "in\\(line\\|t\\)\\|long\\|namespace\\|register\\|"
-		       "s\\(hort\\|igned\\|t\\(atic\\|ruct\\)\\)\\|"
-		       "t\\(emplate\\|ypedef\\)\\|"
-		       "u\\(n\\(ion\\|signed\\)\\|sing\\)\\|"
-		       "v\\(irtual\\|o\\(id\\|latile\\)\\)"))	; 12 ()s deep.
+	   (,@ (eval-when-compile
+		 (regexp-opt
+		  '("auto" "extern" "register" "static" "typedef" "struct"
+		    "union" "enum" "signed" "unsigned" "short" "long"
+		    "int" "char" "float" "double" "void" "volatile" "const"
+		    "inline" "friend" "bool" "virtual" "complex" "template"
+		    "namespace" "using"))))
 	   c++-font-lock-extra-types)
 	  "\\|"))
        ;;
        ;; A brave attempt to match templates following a type and/or match
        ;; class membership.  See and sync the above function
        ;; `font-lock-match-c++-style-declaration-item-and-skip-to-next'.
-       (c++-type-suffix (concat "\\(<\\(\\sw+\\)[ \t*&]*>\\)?"
+       (c++-type-suffix (concat "\\([ \t]*<\\([^>\n]+\\)[ \t*&]*>\\)?"
 				"\\([ \t]*::[ \t*~]*\\(\\sw+\\)\\)?"))
        ;; If the string is a type, it may be followed by the cruft above.
        (c++-type-spec (concat "\\(\\sw+\\)\\>" c++-type-suffix))
        ;;
        ;; Parenthesis depth of user-defined types not forgetting their cruft.
-       (c++-type-depth `(font-lock-keyword-depth
+       (c++-type-depth `(regexp-opt-depth
 			 (concat (,@ c++-type-types) (,@ c++-type-suffix))))
        )
  (setq c++-font-lock-keywords-1
@@ -2234,7 +2343,7 @@ See also `c++-font-lock-extra-types'.")
 	   (1 font-lock-reference-face)))
     ;;
     ;; Fontify other builtin keywords.
-    (cons (concat "\\<\\(" c++-keywords "\\)\\>") 'font-lock-keyword-face)
+    (concat "\\<" c++-keywords "\\>")
     ;;
     ;; Eric Hopper <hopper@omnifarious.mn.org> says `true' and `false' are new.
     '("\\<\\(false\\|true\\)\\>" . font-lock-reference-face)
@@ -2312,26 +2421,21 @@ See also `objc-font-lock-extra-types'.")
 ;; Regexps written with help from Stephen Peters <speters@us.oracle.com> and
 ;; Jacques Duthen Prestataire <duthen@cegelec-red.fr>.
 (let* ((objc-keywords
-;	'("break" "continue" "do" "else" "for" "if" "return" "switch" "while"
-;	  "sizeof" "self" "super")
-	(concat "break\\|continue\\|do\\|else\\|for\\|if\\|return\\|"
-		"s\\(elf\\|izeof\\|uper\\|witch\\)\\|while"))
+	(eval-when-compile
+	  (regexp-opt '("break" "continue" "do" "else" "for" "if" "return"
+			"switch" "while" "sizeof" "self" "super") t)))
        (objc-type-types
 	`(mapconcat 'identity
 	  (cons
-;	   '("auto" "extern" "register" "static" "typedef" "struct" "union"
-;	     "enum" "signed" "unsigned" "short" "long" "int" "char"
-;	     "float" "double" "void" "volatile" "const"
-;	     "id" "oneway" "in" "out" "inout" "bycopy" "byref")
-	   (,@ (concat "auto\\|by\\(copy\\|ref\\)\\|c\\(har\\|onst\\)\\|"
-		       "double\\|e\\(num\\|xtern\\)\\|float\\|"
-		       "i\\([dn]\\|n\\(out\\|t\\)\\)\\|long\\|"
-		       "o\\(neway\\|ut\\)\\|register\\|s\\(hort\\|igned\\|"
-		       "t\\(atic\\|ruct\\)\\)\\|typedef\\|"
-		       "un\\(ion\\|signed\\)\\|vo\\(id\\|latile\\)"))
+	   (,@ (eval-when-compile
+		 (regexp-opt
+		  '("auto" "extern" "register" "static" "typedef" "struct"
+		    "union" "enum" "signed" "unsigned" "short" "long"
+		    "int" "char" "float" "double" "void" "volatile" "const"
+		    "id" "oneway" "in" "out" "inout" "bycopy" "byref"))))
 	   objc-font-lock-extra-types)
 	  "\\|"))
-       (objc-type-depth `(font-lock-keyword-depth (,@ objc-type-types)))
+       (objc-type-depth `(regexp-opt-depth (,@ objc-type-types)))
        )
  (setq objc-font-lock-keywords-1
   (append
@@ -2377,7 +2481,7 @@ See also `objc-font-lock-extra-types'.")
 	    'font-lock-type-face))
     ;;
     ;; Fontify all builtin keywords (except case, default and goto; see below).
-    (concat "\\<\\(" objc-keywords "\\)\\>")
+    (concat "\\<" objc-keywords "\\>")
     ;;
     ;; Fontify case/goto keywords and targets, and case default/goto tags.
     '("\\<\\(case\\|goto\\)\\>[ \t]*\\(-?\\sw+\\)?"
@@ -2454,40 +2558,35 @@ See also `java-font-lock-extra-types'.")
 ;; Regexps written with help from Fred White <fwhite@bbn.com> and
 ;; Anders Lindgren <andersl@csd.uu.se>.
 (let* ((java-keywords
-	(concat "\\<\\("
-;		'("catch" "do" "else" "super" "this" "finally" "for" "if"
-;;		  ;; Anders Lindgren <andersl@csd.uu.se> says these have gone.
-;;		  "cast" "byvalue" "future" "generic" "operator" "var"
-;;		  "inner" "outer" "rest"
-;		  "interface" "return" "switch" "throw" "try" "while")
-		"catch\\|do\\|else\\|f\\(inally\\|or\\)\\|"
-		"i\\(f\\|nterface\\)\\|return\\|s\\(uper\\|witch\\)\\|"
-		"t\\(h\\(is\\|row\\)\\|ry\\)\\|while"
-		"\\)\\>"))
+	(eval-when-compile
+	  (regexp-opt
+	   '("catch" "do" "else" "super" "this" "finally" "for" "if"
+	     ;; Anders Lindgren <andersl@csd.uu.se> says these have gone.
+	     ;; "cast" "byvalue" "future" "generic" "operator" "var"
+	     ;; "inner" "outer" "rest"
+	     "interface" "return" "switch" "throw" "try" "while") t)))
        ;;
        ;; These are immediately followed by an object name.
        (java-minor-types
-	(mapconcat 'identity
-	 '("boolean" "char" "byte" "short" "int" "long"
-	   "float" "double" "void")
-	 "\\|"))
+	(eval-when-compile
+	  (regexp-opt '("boolean" "char" "byte" "short" "int" "long"
+			"float" "double" "void"))))
        ;;
        ;; These are eventually followed by an object name.
        (java-major-types
-;	'("abstract" "const" "final" "synchronized" "transient" "static"
-;;	  ;; Anders Lindgren <andersl@csd.uu.se> says this has gone.
-;;	  "threadsafe"
-;	  "volatile" "public" "private" "protected" "native")
-	(concat "abstract\\|const\\|final\\|native\\|"
-		"p\\(r\\(ivate\\|otected\\)\\|ublic\\)\\|"
-		"s\\(tatic\\|ynchronized\\)\\|transient\\|volatile"))
+	(eval-when-compile
+	  (regexp-opt
+	   '("abstract" "const" "final" "synchronized" "transient" "static"
+	     ;; Anders Lindgren <andersl@csd.uu.se> says this has gone.
+	     ;; "threadsafe"
+	     "volatile" "public" "private" "protected" "native"))))
        ;;
        ;; Random types immediately followed by an object name.
        (java-other-types
 	'(mapconcat 'identity (cons "\\sw+\\.\\sw+" java-font-lock-extra-types)
 		    "\\|"))
-       (java-other-depth `(font-lock-keyword-depth (,@ java-other-types)))
-      )
+       (java-other-depth `(regexp-opt-depth (,@ java-other-types)))
+       )
  (setq java-font-lock-keywords-1
   (list
    ;;
@@ -2509,7 +2608,7 @@ See also `java-font-lock-extra-types'.")
 	  'font-lock-type-face)
     ;;
     ;; Fontify all builtin keywords (except below).
-    (concat "\\<\\(" java-keywords "\\)\\>")
+    (concat "\\<" java-keywords "\\>")
     ;;
     ;; Fontify keywords and targets, and case default/goto tags.
     (list "\\<\\(break\\|case\\|continue\\|goto\\)\\>[ \t]*\\(-?\\sw+\\)?"
