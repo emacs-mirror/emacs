@@ -1,3 +1,8 @@
+2005-03-27  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* programs.texi: Reformat and update copyright years.
+	(Fortran): Update section.
+
 2005-03-26  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* files.texi: Several small changes in addition to:
