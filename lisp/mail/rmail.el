@@ -778,7 +778,8 @@ argument causes us to read a file name and use that file as the inbox."
 	     (condition-case nil
 		 (copy-file file tofile nil)
 	       (error
-		(rename-file file tofile nil)))
+		;; Third arg is t so we can replace existing file TOFILE.
+		(rename-file file tofile t)))
 	     ;; Make the real inbox file empty.
 	     ;; Leaving it deleted could cause lossage
 	     ;; because mailers often won't create the file.
