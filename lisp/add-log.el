@@ -68,9 +68,11 @@ This defaults to the value of `user-mail-address'."
 (defvar change-log-font-lock-keywords
   '(;;
     ;; Date lines, new and old styles.
-    ("^\\sw........."
+    ("^\\sw.........[0-9: ]*"
      (0 font-lock-string-face)
-     ("[A-Z][^\n<]+" nil nil (0 font-lock-reference-face)))
+     ("\\([^<]+\\)<\\([A-Za-z0-9_.-]+@[A-Za-z0-9_.-]+\\)>" nil nil
+      (1 font-lock-reference-face)
+      (2 font-lock-variable-name-face)))
     ;;
     ;; File names.
     ("^\t\\* \\([^ ,:([\n]+\\)"
