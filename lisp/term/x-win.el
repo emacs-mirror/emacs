@@ -648,12 +648,12 @@ This is in addition to the primary selection.")
 
 (if (fboundp 'new-fontset)
     (progn
-      ;; Create a default fontset.
-      (create-fontset-from-fontset-spec default-fontset-spec)
-      ;; Create variants of a default fontset.
-      (create-fontset-from-fontset-spec default-fontset-spec 'bold)
-      (create-fontset-from-fontset-spec default-fontset-spec 'italic)
-      (create-fontset-from-fontset-spec default-fontset-spec 'bold-italic)
+      ;; Create the standard fontset.
+      (create-fontset-from-fontset-spec standard-fontset-spec)
+      ;; Create variants of the standard fontset.
+      (create-fontset-from-fontset-spec standard-fontset-spec 'bold)
+      (create-fontset-from-fontset-spec standard-fontset-spec 'italic)
+      (create-fontset-from-fontset-spec standard-fontset-spec 'bold-italic)
 
       ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1, ...).
       (create-fontset-from-x-resource)
@@ -669,30 +669,30 @@ This is in addition to the primary selection.")
       (let ((font (or (cdr (assq 'font initial-frame-alist))
 		      (cdr (assq 'font default-frame-alist))
 		      (x-get-resource "font" "Font")))
-	    xlfd-fields fontlist)
+	    xlfd-fields)
 	(if (and font
 		 (not (query-fontset font))
 		 (setq xlfd-fields (x-decompose-font-name font)))
-	    (let (alias)
-	      (or (string= "fontset"
-			   (aref xlfd-fields xlfd-regexp-registry-subnum))
-		  (progn
-		    ;; Create a fontset from FONT.  The name is also
-		    ;; generated from FONT.
-		    (setq fontlist (list (cons 'ascii font)))
-		    (aset xlfd-fields xlfd-regexp-foundry-subnum nil)
-		    (aset xlfd-fields xlfd-regexp-family-subnum nil)
-		    (aset xlfd-fields xlfd-regexp-adstyle-subnum nil)
-		    (aset xlfd-fields xlfd-regexp-avgwidth-subnum nil)
-		    (aset xlfd-fields xlfd-regexp-registry-subnum "fontset")
-		    (aset xlfd-fields xlfd-regexp-encoding-subnum "startup")
-		    (setq alias font
-			  font (x-compose-font-name xlfd-fields))))
-	      (new-fontset font
-			   (x-complement-fontset-spec xlfd-fields fontlist))
-	      (if alias
-		  (setq fontset-alias-alist
-			(cons (cons font alias) fontset-alias-alist)))
+	    (if (string= "fontset"
+			 (aref xlfd-fields xlfd-regexp-registry-subnum))
+		(new-fontset font (x-complement-fontset-spec xlfd-fields nil))
+	      (let (fontset fontset-spec)
+		;; Create a fontset from FONT.  The name is also
+		;; generated from FONT.
+		(aset xlfd-fields xlfd-regexp-foundry-subnum nil)
+		(aset xlfd-fields xlfd-regexp-family-subnum nil)
+		(aset xlfd-fields xlfd-regexp-adstyle-subnum nil)
+		(aset xlfd-fields xlfd-regexp-avgwidth-subnum nil)
+		(aset xlfd-fields xlfd-regexp-registry-subnum "fontset")
+		(aset xlfd-fields xlfd-regexp-encoding-subnum "startup")
+		(setq fontset (x-compose-font-name xlfd-fields))
+		(setq fontset-spec (concat fontset ", ascii:" font))
+		(create-fontset-from-fontset-spec fontset-spec)
+		(create-fontset-from-fontset-spec fontset-spec 'bold)
+		(create-fontset-from-fontset-spec fontset-spec 'italic)
+		(create-fontset-from-fontset-spec fontset-spec 'bold-italic)
+		(setq fontset-alias-alist
+		      (cons (cons fontset font) fontset-alias-alist)))
 	      )))))
 
 ;; Sun expects the menu bar cut and paste commands to use the clipboard.
