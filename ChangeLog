@@ -1,3 +1,7 @@
+2001-12-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure: regenerated.
+
 2001-12-29  Kim F. Storm  <storm@cua.dk>
 
 	* INSTALL: <CONFIGURATION BY HAND> Now requires autoconf 2.51.
