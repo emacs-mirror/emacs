@@ -5,7 +5,7 @@
 ;; Author: Ken Manheimer <klm@nist.gov>
 ;; Maintainer: Ken Manheimer <klm@nist.gov>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: $Id: allout.el,v 4.1 1994/05/05 23:52:43 klm Exp klm $||
+;; Version: $Id: allout.el,v 1.7 1994/05/09 06:36:19 rms Exp rms $||
 ;; Keywords: outline mode
 
 ;; This file is part of GNU Emacs.
@@ -408,7 +408,7 @@ behavior.")
 ;;;_  - Version
 ;;;_   = outline-version
 (defvar outline-version
-  (let ((rcs-rev "$Revision: 4.1 $"))
+  (let ((rcs-rev "$Revision: 1.7 $"))
     (condition-case err
 	(save-match-data
 	  (string-match "\\$Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
@@ -782,9 +782,7 @@ the following two lines in your emacs init file:
 		 'ask)
 		((message
 		  "Allout outline mode auto-activation and -layout enabled.")
-		 t)))
-		   
-t)))))
+		 t)))))
 ;;;_  > outline-mode (&optional toggle)
 ;;;_   : Defun:
 (defun outline-mode (&optional toggle)
