@@ -592,9 +592,10 @@ Commands for sorting the summary:
 			(select-window window)
 			(rmail-show-message msg-num))
 		    (select-window owin))
-		(save-excursion
-		  (set-buffer rmail-buffer)
-		  (rmail-show-message msg-num)))))))))
+		(if (buffer-name rmail-buffer)
+		    (save-excursion
+		      (set-buffer rmail-buffer)
+		      (rmail-show-message msg-num))))))))))
 
 (defvar rmail-summary-mode-map nil)
 
@@ -666,6 +667,12 @@ Commands for sorting the summary:
 
 (define-key rmail-summary-mode-map [menu-bar classify]
   (cons "Classify" (make-sparse-keymap "Classify")))
+
+(define-key rmail-summary-mode-map [menu-bar classify output-menu]
+  '("Output (Rmail Menu)..." . rmail-summary-output-menu))
+
+(define-key rmail-summary-mode-map [menu-bar classify input-menu]
+  '("Input Rmail file (menu)..." . rmail-input-menu))
 
 (define-key rmail-summary-mode-map [menu-bar classify output-inbox]
   '("Output (inbox)..." . rmail-summary-output))
@@ -1106,6 +1113,19 @@ buffer visiting that file."
     (set-buffer rmail-buffer)
     (let ((rmail-delete-after-output nil))
       (call-interactively 'rmail-output-to-rmail-file)))
+  (if rmail-delete-after-output
+      (rmail-summary-delete-forward nil)))
+
+(defun rmail-summary-output-menu ()
+  "Output current message to another Rmail file, chosen with a menu.
+Also set the default for subsequent \\[rmail-output-to-rmail-file] commands.
+The variables `rmail-secondary-file-directory' and
+`rmail-secondary-file-regexp' control which files are offered in the menu."
+  (interactive)
+  (save-excursion
+    (set-buffer rmail-buffer)
+    (let ((rmail-delete-after-output nil))
+      (call-interactively 'rmail-output-menu)))
   (if rmail-delete-after-output
       (rmail-summary-delete-forward nil)))
 
