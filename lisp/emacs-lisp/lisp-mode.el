@@ -426,7 +426,8 @@ of the start of the containing expression."
 	      (method
 		(funcall method state indent-point)))))))
 
-(defconst lisp-body-indent 2 "")
+(defconst lisp-body-indent 2
+  "Number of columns to indent the second line of a `(def...)' form.")
 
 (defun lisp-indent-specform (count state indent-point normal-indent)
   (let ((containing-form-start (elt state 1))
