@@ -4669,6 +4669,7 @@ hash_clear (h)
 			   Weak Hash Tables
  ************************************************************************/
 
+#ifndef BOEHM_GC
 /* Sweep weak hash table H.  REMOVE_ENTRIES_P non-zero means remove
    entries from the table that don't survive the current GC.
    REMOVE_ENTRIES_P zero means mark entries that are in use.  Value is
@@ -4791,7 +4792,11 @@ sweep_weak_hash_tables ()
       h = XHASH_TABLE (table);
       next = h->next_weak;
 
+#ifdef BOEHM_GC
+      if (GC_is_marked (h))
+#else
       if (h->size & ARRAY_MARK_FLAG)
+#endif
 	{
 	  /* TABLE is marked as used.  Sweep its contents.  */
 	  if (XFASTINT (h->count) > 0)
@@ -4805,8 +4810,7 @@ sweep_weak_hash_tables ()
 
   Vweak_hash_tables = used;
 }
-
-
+#endif /* BOEHM_GC */
 
 /***********************************************************************
 			Hash Code Computation
