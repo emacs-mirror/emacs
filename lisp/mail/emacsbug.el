@@ -4,7 +4,7 @@
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
-;; Keywords: maint
+;; Keywords: maint mail
 
 ;; Not fully installed because it can work only on Internet hosts.
 ;; This file is part of GNU Emacs.
@@ -37,6 +37,11 @@
 
 (require 'sendmail)
 
+(defgroup emacsbug nil
+  "Sending Emacs bug reports."
+  :group 'maint
+  :group 'mail)
+
 (defvar bug-gnu-emacs "bug-gnu-emacs@prep.ai.mit.edu"
   "Address of mailing list for GNU Emacs bugs.")
 
@@ -46,9 +51,15 @@
 (defvar report-emacs-bug-orig-text nil
   "The automatically-created initial text of bug report.")
 
-;;;###autoload
-(defvar report-emacs-bug-run-tersely nil
-  "*If non-nil, suppress confirmations for novice users.")
+(defcustom report-emacs-bug-no-confirmation nil
+  "*If non-nil, suppress the confirmations asked for the sake of novice users."
+  :group 'emacsbug
+  :type 'boolean)
+
+(defcustom report-emacs-bug-no-explanations nil
+  "*If non-nil, suppress the explanations given for the sake of novice users."
+  :group 'emacsbug
+  :type 'boolean)
 
 ;;;###autoload
 (defun report-emacs-bug (topic &optional recent-keys)
@@ -71,17 +82,18 @@ Prompts for bug subject.  Leaves you in a mail buffer."
     ;; if the user was asked to confirm and said no.
     (goto-char (point-min))
     (re-search-forward (concat "^" (regexp-quote mail-header-separator) "\n"))
-    ;; Insert warnings for novice users.
-    (insert "This bug report will be sent to the Free Software Foundation,\n")
-    (let ((pos (point)))
-      (insert " not to your local site managers!!")
-      (put-text-property pos (point) 'face 'highlight))
-    (insert "\nPlease write in ")
-    (let ((pos (point)))
-      (insert "English")
-      (put-text-property pos (point) 'face 'highlight))
-    (insert ", because the Emacs maintainers do not have
-translators to read other languages for them.\n\n")
+    (unless report-emacs-bug-no-explanations
+      ;; Insert warnings for novice users.
+      (insert "This bug report will be sent to the Free Software Foundation,\n")
+      (let ((pos (point)))
+	(insert " not to your local site managers!!")
+	(put-text-property pos (point) 'face 'highlight))
+      (insert "\nPlease write in ")
+      (let ((pos (point)))
+	(insert "English")
+	(put-text-property pos (point) 'face 'highlight))
+      (insert ", because the Emacs maintainers do not have
+translators to read other languages for them.\n\n"))
 
     (insert "In " (emacs-version) "\n")
     (if (and system-configuration-options
@@ -169,7 +181,7 @@ Type SPC to scroll through this section and its subsections.")))
     (let ((charsets (delq 'ascii
 			  (find-charset-region (point-min) (point-max)))))
       (if charsets
-	  (if (or report-emacs-bug-run-tersely
+	  (if (or report-emacs-bug-no-confirmation
 		  (y-or-n-p "Convert non-ASCII letters to hexadecimal? "))
 	      (save-excursion
 		(goto-char (point-min))
@@ -183,7 +195,7 @@ Type SPC to scroll through this section and its subsections.")))
 	    (error "Please convert non-ASCII characters to something else"))))
 
     ;; The last warning for novice users.
-    (if (or report-emacs-bug-run-tersely
+    (if (or report-emacs-bug-no-confirmation
 	    (yes-or-no-p
 	     "Send this bug report to the Emacs maintainers? "))
 	;; Just send the current mail.
