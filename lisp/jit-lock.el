@@ -46,6 +46,8 @@ Preserves the `buffer-modified-p' state of the current buffer."
 	   buffer-file-name
 	   buffer-file-truename)
        ,@body
+       ;; Calling set-buffer-modified causes redisplay to consider
+       ;; all windows because that function sets update_mode_lines.
        (set-buffer-modified-p modified))))
   
 
