@@ -292,6 +292,12 @@ int fatal_error_code;
 /* Nonzero if handling a fatal error already */
 int fatal_error_in_progress;
 
+/* If non-null, call this function from fata_error_signal before
+   committing suicide.  */
+
+void (*fatal_error_signal_hook) P_ ((void));
+
+
 #ifdef SIGUSR1
 SIGTYPE
 handle_USR1_signal (sig)
@@ -351,6 +357,10 @@ fatal_error_signal (sig)
 #ifndef MSDOS
   sigunblock (sigmask (fatal_error_code));
 #endif
+
+  if (fatal_error_signal_hook)
+    fatal_error_signal_hook ();
+  
   kill (getpid (), fatal_error_code);
 #endif /* not VMS */
 }
