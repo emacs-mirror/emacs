@@ -5848,7 +5848,7 @@ face_at_buffer_position (w, pos, region_beg, region_end,
 
   /* W must display the current buffer.  We could write this function
      to use the frame and buffer of W, but right now it doesn't.  */
-  xassert (XBUFFER (w->buffer) == current_buffer);
+  /* xassert (XBUFFER (w->buffer) == current_buffer); */
 
   XSETFRAME (frame, f);
   XSETFASTINT (position, pos);
