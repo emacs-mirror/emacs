@@ -70,7 +70,11 @@
 ;; Dependencies:
 
 (require 'timer)
-(eval-when-compile (require 'cl))
+(autoload 'dired-get-filename "dired")
+
+(eval-when-compile
+  (defvar dired-directory)
+  (require 'cl))
 
 
 ;; Custom Group:
@@ -267,7 +271,7 @@ Use `auto-revert-mode' to revert a particular buffer."
 
 (defun auto-revert-dired-file-list ()
   "Return list of dired files."
-  (let (list)
+  (let (file list)
     (save-excursion
       (goto-char (point-min))
       (while (not (eobp))
@@ -296,7 +300,7 @@ Use `auto-revert-mode' to revert a particular buffer."
       (and (not (buffer-modified-p))
 	   (if (buffer-file-name)
 	       (and (file-readable-p (buffer-file-name))
-		    (not (verify-visited-file-modtime buf)))
+		    (not (verify-visited-file-modtime (current-buffer))))
 	     (and revert-buffer-function
 		  (or (and global-auto-revert-mode
 			   global-auto-revert-non-file-buffers)
