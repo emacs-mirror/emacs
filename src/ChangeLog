@@ -1,3 +1,8 @@
+2000-10-12  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* window.c (coordinates_in_window): Fix detection of vertical line
+	on character terminals.
+
 2000-10-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* editfns.c (save_excursion_save): Additionally record the
