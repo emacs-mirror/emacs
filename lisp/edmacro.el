@@ -75,8 +75,6 @@
 
 ;;; The user-level commands for editing macros.
 
-;;;###autoload (define-key ctl-x-map "\C-k" 'edit-kbd-macro)
-
 ;;;###autoload
 (defvar edmacro-eight-bits nil
   "*Non-nil if edit-kbd-macro should leave 8-bit characters intact.
