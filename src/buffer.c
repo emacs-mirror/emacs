@@ -139,7 +139,7 @@ Lisp_Object Qget_file_buffer;
 
 Lisp_Object Qoverlayp;
 
-Lisp_Object Qpriority, Qwindow;
+Lisp_Object Qpriority, Qwindow, Qevaporate;
 
 Lisp_Object Qmodification_hooks;
 Lisp_Object Qinsert_in_front_hooks;
@@ -1833,13 +1833,16 @@ buffer.")
   CHECK_NUMBER_COERCE_MARKER (beg, 1);
   CHECK_NUMBER_COERCE_MARKER (end, 1);
 
-  specbind (Qinhibit_quit, Qt);
+  if (XINT (beg) == XINT (end) && ! NILP (Foverlay_get (overlay, Qevaporate)))
+    return Fdelete_overlay (overlay);
 
   if (XINT (beg) > XINT (end))
     {
       Lisp_Object temp;
       temp = beg; beg = end; end = temp;
     }
+
+  specbind (Qinhibit_quit, Qt);
 
   obuffer = Fmarker_buffer (OVERLAY_START (overlay));
   b = XBUFFER (buffer);
@@ -2118,6 +2121,7 @@ DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
      Lisp_Object overlay, prop, value;
 {
   Lisp_Object plist, tail, buffer;
+  int changed;
 
   CHECK_OVERLAY (overlay, 0);
 
@@ -2130,27 +2134,27 @@ DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
        tail = XCONS (XCONS (tail)->cdr)->cdr)
     if (EQ (XCONS (tail)->car, prop))
       {
-	/* If actually changing the property, mark redisplay needed.  */
-	if (! NILP (buffer) && !EQ (XCONS (XCONS (tail)->cdr)->car, value))
-	  redisplay_region (XBUFFER (buffer),
-			    marker_position (OVERLAY_START (overlay)),
-			    marker_position (OVERLAY_END   (overlay)));
-
-	return XCONS (XCONS (tail)->cdr)->car = value;
+	changed = !EQ (XCONS (XCONS (tail)->cdr)->car, value);
+	XCONS (XCONS (tail)->cdr)->car = value;
+	goto found;
       }
-
-  /* Actually changing the property; mark redisplay needed.  */
-  if (! NILP (buffer))
-    redisplay_region (XBUFFER (buffer),
-		      marker_position (OVERLAY_START (overlay)),
-		      marker_position (OVERLAY_END   (overlay)));
-
+  /* It wasn't in the list, so add it to the front.  */
+  changed = !NILP (value);
   if (! CONSP (XCONS (overlay)->cdr))
     XCONS (overlay)->cdr = Fcons (Qnil, Qnil);
-
-  XCONS (XCONS (overlay)->cdr)->cdr
-    = Fcons (prop, Fcons (value, plist));
-
+  XCONS (XCONS (overlay)->cdr)->cdr = Fcons (prop, Fcons (value, plist));
+ found:
+  if (! NILP (buffer))
+    {
+      if (changed)
+	redisplay_region (XBUFFER (buffer),
+			  marker_position (OVERLAY_START (overlay)),
+			  marker_position (OVERLAY_END   (overlay)));
+      if (EQ (prop, Qevaporate) && ! NILP (value)
+	  && (OVERLAY_POSITION (OVERLAY_START (overlay))
+	      == OVERLAY_POSITION (OVERLAY_END (overlay))))
+	Fdelete_overlay (overlay);
+    }
   return value;
 }
 
@@ -2294,6 +2298,45 @@ call_overlay_mod_hooks (list, overlay, start, end)
       list = Fcdr (list);
     }
   UNGCPRO;
+}
+
+/* Delete any zero-sized overlays at position POS, if the `evaporate'
+   property is set.  */
+void
+evaporate_overlays (pos)
+     int pos;
+{
+  Lisp_Object tail, overlay, hit_list;
+
+  hit_list = Qnil;
+  if (pos <= XFASTINT (current_buffer->overlay_center))
+    for (tail = current_buffer->overlays_before; CONSP (tail);
+	 tail = XCONS (tail)->cdr)
+      {
+	int endpos;
+	overlay = XCONS (tail)->car;
+	endpos = OVERLAY_POSITION (OVERLAY_END (overlay));
+	if (endpos < pos)
+	  break;
+	if (endpos == pos && OVERLAY_POSITION (OVERLAY_START (overlay)) == pos
+	    && Foverlay_get (overlay, Qevaporate))
+	  hit_list = Fcons (overlay, hit_list);
+      }
+  else
+    for (tail = current_buffer->overlays_after; CONSP (tail);
+	 tail = XCONS (tail)->cdr)
+      {
+	int startpos;
+	overlay = XCONS (tail)->cdr;
+	startpos = OVERLAY_POSITION (OVERLAY_START (overlay));
+	if (startpos > pos)
+	  break;
+	if (startpos == pos && OVERLAY_POSITION (OVERLAY_END (overlay)) == pos
+	    && Foverlay_get (overlay, Qevaporate))
+	  hit_list = Fcons (overlay, hit_list);
+      }
+  for (; CONSP (hit_list); hit_list = XCONS (hit_list)->cdr)
+    Fdelete_overlay (XCONS (hit_list)->car);
 }
 
 /* Somebody has tried to store NEWVAL into the buffer-local slot with
@@ -2480,6 +2523,8 @@ syms_of_buffer ()
   staticpro (&Qpermanent_local);
   staticpro (&Qkill_buffer_hook);
   staticpro (&Qoverlayp);
+  Qevaporate = intern ("evaporate");
+  staticpro (&Qevaporate);
   staticpro (&Qmodification_hooks);
   Qmodification_hooks = intern ("modification-hooks");
   staticpro (&Qinsert_in_front_hooks);
