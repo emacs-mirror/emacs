@@ -697,9 +697,13 @@ current frame, rather than all frames, regardless of value of
 
 (defun iswitchb-get-bufname (win)
   "Used by `iswitchb-get-buffers-in-frames' to walk through all windows."
-  (setq iswitchb-bufs-in-frame
-	(cons (buffer-name (window-buffer win))
-	      iswitchb-bufs-in-frame)))
+  (let ((buf (buffer-name (window-buffer win))))
+	(if (not (member buf iswitchb-bufs-in-frame))
+	    ;; Only add buf if it is not already in list.
+	    ;; This prevents same buf in two different windows being
+	    ;; put into the list twice.
+	    (setq iswitchb-bufs-in-frame
+		  (cons buf iswitchb-bufs-in-frame)))))
 
 
 ;;; FIND MATCHING BUFFERS
