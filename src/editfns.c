@@ -79,7 +79,11 @@ init_editfns ()
      or the effective uid if those are unset.  */
   user_name = (char *) getenv ("LOGNAME");
   if (!user_name)
+#ifdef WINDOWSNT
+    user_name = (char *) getenv ("USERNAME");	/* it's USERNAME on NT */
+#else  /* WINDOWSNT */
     user_name = (char *) getenv ("USER");
+#endif /* WINDOWSNT */
   if (!user_name)
     {
       pw = (struct passwd *) getpwuid (geteuid ());
@@ -681,6 +685,41 @@ The number of options reflects the strftime(3) function.")
       /* If buffer was too small, make it bigger.  */
       size *= 2;
     }
+}
+
+DEFUN ("decode-time", Fdecode_time, Sdecode_time, 0, 1, 0,
+  "Decode a time value as (SEC MINUTE HOUR DAY MONTH YEAR DOW DST ZONE).\n\
+The optional SPECIFIED-TIME should be a list of (HIGH LOW . IGNORED)\n\
+or (HIGH . LOW), as from `current-time' and `file-attributes', or `nil'\n\
+to use the current time.  The list has the following nine members:\n\
+SEC is an integer between 0 and 59.  MINUTE is an integer between 0 and 59.\n\
+HOUR is an integer between 0 and 23.  DAY is an integer between 1 and 31.\n\
+MONTH is an integer between 1 and 12.  YEAR is an integer indicating the\n\
+four-digit year.  DOW is the day of week, an integer between 0 and 6, where\n\
+0 is Sunday.  DST is t if daylight savings time is effect, otherwise nil.\n\
+ZONE is an integer indicating the number of seconds east of Greenwich.\n\
+(Note that Common Lisp has different meanings for DOW and ZONE.)")
+  (specified_time)
+     Lisp_Object specified_time;
+{
+  time_t time_spec;
+  struct tm *decoded_time;
+  Lisp_Object list_args[9];
+  
+  if (! lisp_time_argument (specified_time, &time_spec))
+    error ("Invalid time specification");
+
+  decoded_time = localtime (&time_spec);
+  list_args[0] = XFASTINT (decoded_time->tm_sec);
+  list_args[1] = XFASTINT (decoded_time->tm_min);
+  list_args[2] = XFASTINT (decoded_time->tm_hour);
+  list_args[3] = XFASTINT (decoded_time->tm_mday);
+  list_args[4] = XFASTINT (decoded_time->tm_mon + 1);
+  list_args[5] = XFASTINT (decoded_time->tm_year + 1900);
+  list_args[6] = XFASTINT (decoded_time->tm_wday);
+  list_args[7] = (decoded_time->tm_isdst)? Qt : Qnil;
+  list_args[8] = XFASTINT (decoded_time->tm_gmtoff);
+  return Flist (9, list_args);
 }
 
 DEFUN ("current-time-string", Fcurrent_time_string, Scurrent_time_string, 0, 1, 0,
@@ -2159,6 +2198,7 @@ syms_of_editfns ()
   defsubr (&Semacs_pid);
   defsubr (&Scurrent_time);
   defsubr (&Sformat_time_string);
+  defsubr (&Sdecode_time);
   defsubr (&Scurrent_time_string);
   defsubr (&Scurrent_time_zone);
   defsubr (&Ssystem_name);
