@@ -72,7 +72,7 @@ be determined."
 (defun image-type-available-p (type)
   "Value is non-nil if image type TYPE is available.
 Image types are symbols like `xbm' or `jpeg'."
-  (not (null (memq type image-types))))
+  (and (boundp 'image-types) (not (null (memq type image-types)))))
 
 
 ;;;###autoload
