@@ -482,7 +482,7 @@ The solution is to remove the corresponding lines from the appropriate
 * Large file support is disabled on HP-UX.  See the comments in
 src/s/hpux10.h.
 
-* Crashes when displaying uncompressed GIFs with version
+* Crashes when displaying GIF images in Emacs built with version
 libungif-4.1.0 are resolved by using version libungif-4.1.0b1.
 
 * Font Lock displays portions of the bufefr in incorrect faces.
@@ -1645,8 +1645,9 @@ screen during scrolling or some other screen operations (e.g., selective
 display or when killing a region).  M-x recenter will cause the screen
 to be completely redisplayed and the "extra" characters will disappear.
 
-This is known to occur under Exceed 6, and possibly earlier versions as
-well.  The problem lies in the X-server settings.
+This is known to occur under Exceed 6, and possibly earlier versions
+as well; it is reportedly solved in version 6.2.0.16 and later.  The
+problem lies in the X-server settings.
 
 There are reports that you can solve the problem with Exceed by
 running `Xconfig' from within NT, choosing "X selection", then
