@@ -1,6 +1,6 @@
-/* impl.c.mv2test: POOLMV2 STRESS TEST
+/* impl.c.mv2test: POOLMVT STRESS TEST
  *
- * $HopeName: MMsrc!mv2test.c(trunk.4) $
+ * $HopeName: MMsrc!mv2test.c(trunk.5) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  */
 
@@ -300,14 +300,14 @@ static void stress_with_arena_class(mps_arena_class_t aclass)
   mean = 42;
   max = 8192;
   
-  die(stress(mps_class_mv2(), arena, randomSize,
+  die(stress(mps_class_mvt(), arena, randomSize,
              min,               /* min_size */
              mean,              /* median_size */
              max,               /* maximum_size */
              (mps_count_t)TEST_SET_SIZE/2, /* reserve_depth */
              30                 /* fragmentation_limit */
              ),
-      "stress MV2");
+      "stress MVT");
 
   mps_arena_destroy(arena);
 
