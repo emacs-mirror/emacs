@@ -1,3 +1,11 @@
+2001-12-06  Paul Eggert  <eggert@twinsun.com>
+
+	* configure.in (AC_PREREQ): Bump from 2.50 to 2.51; needed for vfork.
+	(AC_FUNC_VFORK): Remove.
+	(AC_FUNC_FORK): Add.
+	(HAVE_DES_H, HAVE_KRB5_H): Properly quote args of AC_CHECK_HEADERS;
+	this is required by recent Autoconf versions.
+
 2001-12-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* make-dist: Do not try to link removed files (aclocal.m4, _emacs,
