@@ -266,7 +266,10 @@ install: ${SUBDIR} install-arch-dep install-arch-indep;
 
 ### Note that we copy the DOC-* files from the build etc directory
 ### as well as lots of things from ${srcdir}/etc.
-install-arch-dep: mkdir
+
+## The docfile isn't really architecture-dependent, but we want to
+## install it along with the version of Emacs that it's keyed to.
+install-arch-dep: mkdir install-doc
 	(cd lib-src; \
 	  $(MAKE) install $(MFLAGS) prefix=${prefix} \
 	    exec_prefix=${exec_prefix} bindir=${bindir} libdir=${libdir} \
@@ -276,8 +279,13 @@ install-arch-dep: mkdir
 	rm -f ${bindir}/$(EMACS)
 	-ln ${bindir}/emacs-${version} ${bindir}/$(EMACS)
 
-### Note that we copy the DOC-* files from the build etc directory
-### as well as lots of things from ${srcdir}/etc.
+install-doc: mkdir
+	if [ `(cd ./etc; /bin/pwd)` != `(cd ${docdir}; /bin/pwd)` ]; \
+	then \
+	   echo "Copying etc/DOC* ..." ; \
+	   (cd etc; tar -cf - DOC*)|(cd ${docdir}; umask 0; tar -xvf - ); \
+	else true; fi
+
 install-arch-indep: mkdir
 	-set ${COPYDESTS} ; \
 	 for dir in ${COPYDIR} ; do \
@@ -301,11 +309,6 @@ install-arch-indep: mkdir
 		 rm -f  $${subdir}/*~ ; \
 	       done) ; \
 	 done
-	if [ `(cd ./etc; /bin/pwd)` != `(cd ${docdir}; /bin/pwd)` ]; \
-	then \
-	   echo "Copying etc/DOC* ..." ; \
-	   (cd etc; tar -cf - DOC*)|(cd ${docdir}; umask 0; tar -xvf - ); \
-	else true; fi
 	thisdir=`pwd`; \
 	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd ${infodir} && /bin/pwd)` ]; \
 	then \
@@ -327,7 +330,7 @@ install-arch-indep: mkdir
 ### instead of mkdir.  Not all systems' mkdirs have the `-p' flag.
 mkdir: FRC.mkdir
 	./lib-src/make-path ${COPYDESTS} ${lockdir} ${infodir} ${mandir} \
-	  ${bindir} ${datadir} ${libdir} \
+	  ${bindir} ${datadir} ${docdir} ${libdir} \
 	  `echo ${locallisppath} | sed 's/:/ /'`
 	-chmod 777 ${lockdir}
 
