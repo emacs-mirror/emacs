@@ -173,7 +173,7 @@ DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
   for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
     {
       frame = XCONS (tail)->car;
-      if (XFRAME (frame)->garbaged && XFRAME (frame)->visible)
+      if (FRAME_GARBAGED_P (XFRAME (frame)) && FRAME_VISIBLE_P (XFRAME (frame)))
 	Fredraw_frame (frame);
     }
   return Qnil;
