@@ -754,7 +754,7 @@ lread.o : lread.c commands.h keyboard.h buffer.h paths.h $(config_h) \
 
 /* Text properties support */
 textprop.o : textprop.c buffer.h intervals.h $(config_h)
-intervals.o : intervals.c buffer.h intervals.h $(config_h)
+intervals.o : intervals.c buffer.h intervals.h puresize.h $(config_h)
 
 /* System-specific programs to be made.
    OTHER_FILES, OBJECTS_SYSTEM and OBJECTS_MACHINE
