@@ -1778,7 +1778,7 @@ to_multibyte (p, end, nchars)
   int nbytes;
 
   parse_str_as_multibyte (read_buffer, *p - read_buffer, &nbytes, nchars);
-  if (nbytes > read_buffer_size)
+  if (read_buffer_size < 2 * nbytes)
     {
       int offset = *p - read_buffer;
       read_buffer_size *= 2;
