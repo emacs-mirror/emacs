@@ -297,45 +297,43 @@ is active."
 Defaults to the whole buffer.  END can be out of bounds."
   (with-buffer-prepared-for-jit-lock
    (save-excursion
-     (save-restriction
-       (widen)
-       (unless start (setq start (point-min)))
-       (setq end (if end (min end (point-max)) (point-max)))
-       ;; This did bind `font-lock-beginning-of-syntax-function' to
-       ;; nil at some point, for an unknown reason.  Don't do this; it
-       ;; can make highlighting slow due to expensive calls to
-       ;; `parse-partial-sexp' in function
-       ;; `font-lock-fontify-syntactically-region'.  Example: paging
-       ;; from the end of a buffer to its start, can do repeated
-       ;; `parse-partial-sexp' starting from `point-min', which can
-       ;; take a long time in a large buffer.
-       (let (next)
-	 (save-match-data
-	   ;; Fontify chunks beginning at START.  The end of a
-	   ;; chunk is either `end', or the start of a region
-	   ;; before `end' that has already been fontified.
-	   (while start
-	     ;; Determine the end of this chunk.
-	     (setq next (or (text-property-any start end 'fontified t)
-			    end))
+     (unless start (setq start (point-min)))
+     (setq end (if end (min end (point-max)) (point-max)))
+     ;; This did bind `font-lock-beginning-of-syntax-function' to
+     ;; nil at some point, for an unknown reason.  Don't do this; it
+     ;; can make highlighting slow due to expensive calls to
+     ;; `parse-partial-sexp' in function
+     ;; `font-lock-fontify-syntactically-region'.  Example: paging
+     ;; from the end of a buffer to its start, can do repeated
+     ;; `parse-partial-sexp' starting from `point-min', which can
+     ;; take a long time in a large buffer.
+     (let (next)
+       (save-match-data
+	 ;; Fontify chunks beginning at START.  The end of a
+	 ;; chunk is either `end', or the start of a region
+	 ;; before `end' that has already been fontified.
+	 (while start
+	   ;; Determine the end of this chunk.
+	   (setq next (or (text-property-any start end 'fontified t)
+			  end))
 
-	     ;; Decide which range of text should be fontified.
-	     ;; The problem is that START and NEXT may be in the
-	     ;; middle of something matched by a font-lock regexp.
-	     ;; Until someone has a better idea, let's start
-	     ;; at the start of the line containing START and
-	     ;; stop at the start of the line following NEXT.
-	     (goto-char next)  (setq next (line-beginning-position 2))
-	     (goto-char start) (setq start (line-beginning-position))
+	   ;; Decide which range of text should be fontified.
+	   ;; The problem is that START and NEXT may be in the
+	   ;; middle of something matched by a font-lock regexp.
+	   ;; Until someone has a better idea, let's start
+	   ;; at the start of the line containing START and
+	   ;; stop at the start of the line following NEXT.
+	   (goto-char next)  (setq next (line-beginning-position 2))
+	   (goto-char start) (setq start (line-beginning-position))
 	     
-	     ;; Fontify the chunk, and mark it as fontified.
-	     ;; We mark it first, to make sure that we don't indefinitely
-	     ;; re-execute this fontification if an error occurs.
-	     (put-text-property start next 'fontified t)
-	     (run-hook-with-args 'jit-lock-functions start next)
+	   ;; Fontify the chunk, and mark it as fontified.
+	   ;; We mark it first, to make sure that we don't indefinitely
+	   ;; re-execute this fontification if an error occurs.
+	   (put-text-property start next 'fontified t)
+	   (run-hook-with-args 'jit-lock-functions start next)
 
-	     ;; Find the start of the next chunk, if any.
-	     (setq start (text-property-any next end 'fontified nil)))))))))
+	   ;; Find the start of the next chunk, if any.
+	   (setq start (text-property-any next end 'fontified nil))))))))
 
 
 ;;; Stealth fontification.
