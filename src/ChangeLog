@@ -1,3 +1,9 @@
+2004-04-29  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (null_glyph_slice): New var.
+	(append_glyph, append_composite_glyph, append_stretch_glyph):
+	Use it to initialize glyph slice.
+
 2004-04-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (x_produce_glyphs): Fix the proverbial int/Lisp_Object mixup.
