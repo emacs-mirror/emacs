@@ -1,3 +1,9 @@
+2000-12-09  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* syntax.c (scan_lists): Check that the right quote char has the
+	right Sstring syntax when jumping over strings.
+	(init_syntax_once): Use Smax rather than 13.
+
 2000-12-09  Miles Bader  <miles@gnu.org>
 
 	* window.c (Fpos_visible_in_window_p): Replace FULLY parameter
