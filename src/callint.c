@@ -592,7 +592,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 		if (!  first)
 		  {
 		    message ("Please enter a number.");
-		    sit_for (1, 0, 0, 0);
+		    sit_for (1, 0, 0, 0, 0);
 		  }
 		first = 0;
 
