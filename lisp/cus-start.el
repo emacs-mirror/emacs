@@ -259,7 +259,7 @@
 	     (x-bitmap-file-path installation
 				 (repeat (directory :format "%v")))
 	     ;; xterm.c
-             (autoselect-window display boolean "21.3")
+             (mouse-autoselect-window display boolean "21.3")
 	     (x-use-underline-position-properties display boolean "21.3")
 	     (x-stretch-cursor display boolean "21.1")))
       this symbol group type native-p version
