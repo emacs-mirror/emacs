@@ -35,7 +35,7 @@
  *
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 16.54";
+char pot_etags_version[] = "@(#) pot revision number is $Revision: 16.55 $";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -1871,6 +1871,7 @@ pfnote (name, is_func, linestart, linelen, lno, cno)
 {
   register node *np;
 
+  assert (name == NULL || name[0] != '\0');
   if (CTAGS && name == NULL)
     return;
 
@@ -5727,6 +5728,7 @@ substitute (in, out, regs)
       size -= 1;
 
   /* Allocate space and do the substitutions. */
+  assert (size >= 0);
   result = xnew (size + 1, char);
 
   for (t = result; *out != '\0'; out++)
@@ -5741,7 +5743,8 @@ substitute (in, out, regs)
       *t++ = *out;
   *t = '\0';
 
-  assert (t <= result + size && t - result == (int)strlen (result));
+  assert (t <= result + size);
+  assert (t - result == (int)strlen (result));
 
   return result;
 }
@@ -5828,8 +5831,9 @@ regex_tag_multiline ()
 		if (buffer[charno++] == '\n')
 		  lineno++, linecharno = charno;
 	      name = rp->name;
-	      if (name[0] != '\0')
-		/* Make a named tag. */
+	      if (name[0] == '\0')
+		name = NULL;
+	      else /* make a named tag */
 		name = substitute (buffer, rp->name, &rp->regs);
 	      if (rp->force_explicit_name)
 		/* Force explicit tag name, if a name is there. */
@@ -6151,8 +6155,9 @@ readline (lbp, stream)
 	    default:
 	      /* Match occurred.  Construct a tag. */
 	      name = rp->name;
-	      if (name[0] != '\0')
-		/* Make a named tag. */
+	      if (name[0] == '\0')
+		name = NULL;
+	      else /* make a named tag */
 		name = substitute (lbp->buffer, rp->name, &rp->regs);
 	      if (rp->force_explicit_name)
 		/* Force explicit tag name, if a name is there. */
