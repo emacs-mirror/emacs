@@ -3,7 +3,7 @@
 ;; Copyright (C) 1992, 1993 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
-;; Version: 5.4
+;; Version: 5.5
 
 ;; This file is part of GNU Emacs.
 
@@ -1292,11 +1292,12 @@ From a program, any arguments are passed to the `rcs2log' script."
 				   (vc-match-substring 1))))))
 		   latest-val))
 	     (prog1
-		 (and (re-search-forward p nil t)
-		      (let ((value (vc-match-substring 1)))
-			(if file
-			    (vc-file-setprop file (car properties) value))
-			value))
+		 (let ((value nil))
+		   (if (re-search-forward p nil t)
+		       (setq value (vc-match-substring 1)))
+		   (if file
+		       (vc-file-setprop file (car properties) value))
+		   value)
 	       (setq properties (cdr properties)))))
 	  patterns)
   )
