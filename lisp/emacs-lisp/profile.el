@@ -83,7 +83,7 @@
 
 (defvar profile-timer-process nil "Process running the timer.")
 (defvar profile-time-list nil 
-    "List of accumulative time for each profiled function.")
+    "List of cumulative calls and time for each profiled function.")
 (defvar profile-init-list nil
     "List of entry time for each function. \n\
 Both how many times invoked and real time of start.")
@@ -99,7 +99,7 @@ Both how many times invoked and real time of start.")
 (defun profile-functions (&optional flist)
   "Profile all the functions listed in `profile-functions-list'.\n\
 With argument FLIST, use the list FLIST instead."
-  (interactive "*P")
+  (interactive "P")
   (if (null flist) (setq flist profile-functions-list))
   (mapcar 'profile-a-function flist))
 
@@ -115,34 +115,33 @@ With argument FLIST, use the list FLIST instead."
 
 (defun profile-print (entry)
   "Print one ENTRY (from `profile-time-list')."
-  (let ((time (cdr entry)) str (offset 5))
-    (insert (format "%s" (car entry)) space)
-    (move-to-column ref-column)
-    (setq str (int-to-string (car time)))
-    (insert str)
-    (if (>= (length str) offset) nil
-      (move-to-column ref-column)
-      (insert (substring spaces 0 (- offset (length str))))
-      (forward-char (length str)))
-    (setq str (int-to-string (cdr time)))
-    (insert "." (substring "000000" 0 (- 6 (length str))) str "\n")))
-
-(defconst spaces "                                                         ")
+  (let* ((calls (car (cdr entry)))
+	 (timec (cdr (cdr entry)))
+	 (time (+ (car timec) (/ (cdr timec) (float profile-million))))
+	 (avgtime 0.0))
+    (insert (format (concat "%-"
+			    (int-to-string profile-max-fun-name)
+			    "s%8d%11d.%06d")
+		    (car entry) calls (car timec) (cdr timec))
+	    (if (zerop calls)
+		"\n"
+	      (format "%12d.%06d\n"
+		      (truncate (setq avgtime (/ time calls)))
+		      (truncate (* (- avgtime (ftruncate avgtime))
+				   profile-million))))
+	    )))
 
 (defun profile-results ()
   "Display profiling results in the buffer `*profile*'.
 \(The buffer name comes from `profile-buffer'.)"
   (interactive)
-  (let* ((ref-column (+ 8 profile-max-fun-name))
-	 (space (substring spaces 0 ref-column)))
-    (switch-to-buffer profile-buffer)
-    (erase-buffer)
-    (insert "Function" space)
-    (move-to-column ref-column)
-    (insert "Time (Seconds.Useconds)\n" "========" space )
-    (move-to-column ref-column)
-    (insert	"=======================\n")
-    (mapcar 'profile-print profile-time-list)))
+  (switch-to-buffer profile-buffer)
+  (erase-buffer)
+  (insert "Function" (make-string (- profile-max-fun-name 6) ? ))
+  (insert " Calls  Total time (sec)  Avg time per call\n")
+  (insert (make-string profile-max-fun-name ?=) "  ")
+  (insert "======  ================  =================\n")
+  (mapcar 'profile-print profile-time-list))
     
 (defun profile-reset-timer ()
   (process-send-string profile-timer-process "z\n"))
@@ -197,12 +196,16 @@ With argument FLIST, use the list FLIST instead."
   ;; assumes that profile-time contains the current time
   (let ((init-time (profile-find-function fun profile-init-list))
 	(accum (profile-find-function fun profile-time-list))
-	sec usec)
+	calls time sec usec)
     (if (or (null init-time)
 	    (null accum)) (error "Function %s missing from list" fun))
+    (setq calls (car accum))
+    (setq time (cdr accum))
     (setcar init-time (1- (car init-time))) ; pop one level in recursion
     (if (not (zerop (car init-time))) 
-	nil				; in some recursion level, do not update accum. time
+	nil				; in some recursion level,
+					; do not update cumulated time
+      (setcar accum (1+ calls))
       (setq init-time (cdr init-time))
       (setq sec (- (car profile-time) (car init-time))
 	    usec (- (cdr profile-time) (cdr init-time)))
@@ -211,11 +214,11 @@ With argument FLIST, use the list FLIST instead."
       (if (>= usec 0) nil
 	(setq usec (+ usec profile-million))
 	(setq sec (1- sec)))
-      (setcar accum (+ sec (car accum)))
-      (setcdr accum (+ usec (cdr accum)))
-      (if (< (cdr accum) profile-million) nil
-	(setcar accum (1+ (car accum)))
-	(setcdr accum (- (cdr accum) profile-million)))
+      (setcar time (+ sec (car time)))
+      (setcdr time (+ usec (cdr time)))
+      (if (< (cdr time) profile-million) nil
+	(setcar time (1+ (car time)))
+	(setcdr time (- (cdr time) profile-million)))
       )))
 
 (defun profile-convert-byte-code (function)
@@ -243,7 +246,7 @@ With argument FLIST, use the list FLIST instead."
     (if (eq (car def) 'lambda) nil
       (error "To profile: %s must be a user-defined function" fun))
     (setq profile-time-list		; add a new entry
-	  (cons (cons fun (cons 0 0)) profile-time-list))
+	  (cons (cons fun (cons 0 (cons 0 0))) profile-time-list))
     (setq profile-init-list		; add a new entry
 	  (cons (cons fun (cons 0 (cons 0 0))) profile-init-list))
     (if (< profile-max-fun-name funlen) (setq profile-max-fun-name funlen))
