@@ -83,7 +83,7 @@ is a list of menu items, as above."
 	       (setq name (if (string-match "^-+$" item) "" item)))
 	      ((consp item)
 	       (setq command (easy-menu-keymap (car item) (cdr item)))
-	       (setq name (concat (car item) "...")))
+	       (setq name (car item)))
 	      ((vectorp item)
 	       (setq command (make-symbol (format "menu-function-%d"
 						  easy-menu-item-count)))
