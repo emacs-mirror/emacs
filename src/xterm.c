@@ -12869,9 +12869,11 @@ x_term_init (display_name, xrm_option, resource_name)
 	if (!EQ (XSYMBOL (Qvendor_specific_keysyms)->function, Qunbound))
 	  {
 	    char *vendor = ServerVendor (dpy);
+	    UNBLOCK_INPUT;
 	    dpyinfo->kboard->Vsystem_key_alist
 	      = call1 (Qvendor_specific_keysyms,
 		       build_string (vendor ? vendor : ""));
+	    BLOCK_INPUT;
 	  }
 
 	dpyinfo->kboard->next_kboard = all_kboards;
