@@ -1431,6 +1431,14 @@ Optional DEFAULT is password to start with."
 				    (and (re-search-forward "\n\n" nil t)
 					 (1- (point)))))
 		      (case-fold-search t)
+		      (quoted-printable-header-field-end
+		       (save-excursion
+			 ;; Back up to end of previous line, in case the
+			 ;; Content-Transfer-Encoding field comes first.
+			 (forward-char -1)
+			 (re-search-forward
+			  "\ncontent-transfer-encoding\\(\n?[\t ]\\)*:\\(\n?[\t ]\\)*quoted-printable\\(\n?[\t ]\\)*"
+			  header-end t)))
 		      (size
 		       ;; Get the numeric value from the Content-Length field.
 		       (save-excursion
@@ -1460,18 +1468,29 @@ Optional DEFAULT is password to start with."
 				     (looking-at "From "))))
 			  (goto-char (+ header-end size))
 			(message "Ignoring invalid Content-Length field")
-			(sit-for 1 0 t))))
+			(sit-for 1 0 t)))
+		 (if (re-search-forward
+		      (concat "^[\^_]?\\("
+			      rmail-unix-mail-delimiter
+			      "\\|"
+			      rmail-mmdf-delim1 "\\|"
+			      "^BABYL OPTIONS:\\|"
+			      "\^L\n[01],\\)") nil t)
+		     (goto-char (match-beginning 1))
+		   (goto-char (point-max)))
+		 (setq count (1+ count))
+		 (if quoted-printable-header-field-end
+		     (save-excursion
+		       (save-restriction
+			 (narrow-to-region header-end (point))
+			 (require 'gnus-art)
+			 (article-mime-decode-quoted-printable-buffer))
+		       ;; Change "quoted-printable" to "8bit",
+		       ;; to reflect the decoding we just did.
+		       (goto-char quoted-printable-header-field-end)
+		       (zap-to-char -1 ?:)
+		       (insert ": 8bit"))))
 
-	       (if (re-search-forward
-		    (concat "^[\^_]?\\("
-			    rmail-unix-mail-delimiter
-			    "\\|"
-			    rmail-mmdf-delim1 "\\|"
-			    "^BABYL OPTIONS:\\|"
-			    "\^L\n[01],\\)") nil t)
-		   (goto-char (match-beginning 1))
-		 (goto-char (point-max)))
-	       (setq count (1+ count))
 	       (save-excursion
 		 (save-restriction
 		   (narrow-to-region start (point))
