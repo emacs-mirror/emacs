@@ -1343,7 +1343,7 @@ update_frame (f, force, inhibit_hairy_id)
 	  /* These cases apply only to the frame that contains
 	     the active minibuffer window.  */
 	  && FRAME_HAS_MINIBUF_P (f)
-	  && EQ (FRAME_MINIBUF_WINDOW (f), minibuf_window))
+	  && EQ (FRAME_MINIBUF_WINDOW (f), echo_area_window))
 	{
 	  int top = XINT (XWINDOW (FRAME_MINIBUF_WINDOW (f))->top);
 	  int row, col;
