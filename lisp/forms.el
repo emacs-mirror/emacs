@@ -2,7 +2,7 @@
 ;;; Copyright (C) 1991, 1993 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans <jv@nl.net>
-;; Version: $Revision: 2.6 $
+;; Version: $Revision: 2.7 $
 
 ;; This file is part of GNU Emacs.
 
@@ -266,10 +266,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.6 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.7 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.6 1994/05/22 22:07:37 rms Exp rms $")
+  $Id: forms.el,v 2.7 1994/06/13 12:07:44 rms Exp rms $")
 
 (defvar forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode.")
@@ -1572,8 +1572,8 @@ it is called to fill (some of) the fields with default values."
 	  (goto-line ln)
 	  ;; Use delete-region instead of kill-region, to avoid
 	  ;; adding junk to the kill-ring.
-	  (delete-region (save-excursion (beginning-of-line) (point))
-			 (save-excursion (end-of-line) (1+ (point)))))
+	  (delete-region (progn (beginning-of-line) (point))
+			 (progn (beginning-of-line 2) (point))))
 	(setq forms--total-records (1- forms--total-records))
 	(if (> forms--current-record forms--total-records)
 	    (setq forms--current-record forms--total-records))
