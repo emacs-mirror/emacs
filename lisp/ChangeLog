@@ -1,5 +1,13 @@
 2004-12-31  Richard M. Stallman  <rms@gnu.org>
 
+	* faces.el (read-face-name):
+	Don't treat an attribute spec as a list of faces.
+
+	* simple.el (undo): Use undo-equiv-table to detect
+	unexpected changes since previous undo.
+	(undo-list-saved): Variable deleted.
+	(buffer-disable-undo): Don't alter undo-list-saved.
+
 	* files.el (require-final-newline): Allow `visit' and `visit-save'.
 	(mode-require-final-newline): New option.
 	(after-find-file): Handle require-final-newline with new values.

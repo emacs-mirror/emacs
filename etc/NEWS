@@ -98,10 +98,11 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
-** calculator.el now has radix grouping mode.  In this mode a
-separator character is used between every few digits, making it
-easier to indicate byte boundries etc.  See the documentation of
-the `calculator-radix-grouping-mode' custom variable.
+** calculator.el now has radix grouping mode, which is available when
+`calculator-output-radix' is non-nil.  In this mode a separator
+character is used every few digits, making it easier to see byte
+boundries etc.  For more info, see the documentation of the variable
+`calculator-radix-grouping-mode'.
 
 ** You can now follow links by clicking Mouse-1 on the link.
 
@@ -131,6 +132,24 @@ drag-mouse-1 action, typically copy the text.
 
 You can customize the new Mouse-1 behaviour via the new user option
 `mouse-1-click-follows-link'.
+
++++
+** require-final-newline now has two new possible values:
+
+`visit' means add a newline (as an undoable change) if it's needed
+when visiting the file.
+
+`visit-save' means add a newline (as an undoable change) if it's
+needed when visiting the file, and also add a newline if it's needed
+when saving the file.
+
++++
+** The new option mode-require-final-newline controls how certain
+major modes enable require-final-newline.  Any major mode that's
+designed for a kind of file that should normally end in a newline
+sets require-final-newline based on mode-require-final-newline.
+So you can customize mode-require-final-newline to control what these
+modes do.
 
 +++
 ** When the undo information of the current command gets really large
@@ -1804,12 +1823,15 @@ The functions c-hungry-backspace and c-hungry-delete-forward can be
 bound to keys to get this feature without toggling a mode.
 Contributed by Kevin Ryde.
 
-*** Better control over require-final-newline.
-The variable that controls how to handle a final newline when the
-buffer is saved, require-final-newline, is now customizable on a
-per-mode basis through c-require-final-newline.  The default is to set
-it to t only in languages that mandate a final newline in source files
-(C, C++ and Objective-C).
+*** Better control over require-final-newline.  The variable that
+controls how to handle a final newline when the buffer is saved,
+require-final-newline, is now customizable on a per-mode basis through
+c-require-final-newline.  That is a list of modes, and only those
+modes set require-final-newline.  By default that's C, C++ and
+Objective-C.
+
+The specified modes set require-final-newline based on 
+mode-require-final-newline, as usual.
 
 *** Format change for syntactic context elements.
 The elements in the syntactic context returned by c-guess-basic-syntax

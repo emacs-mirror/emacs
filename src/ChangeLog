@@ -1,3 +1,9 @@
+2004-12-31  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (window_scroll_pixel_based): Only look at
+	Vscroll_preserve_screen_position if the old PT can't be kept.
+	(syms_of_window) <scroll-preserve-screen-position>: Doc fix.
+
 2004-12-30  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (get_line_height_property): New function extracted from

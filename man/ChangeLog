@@ -1,5 +1,9 @@
 2004-12-31  Richard M. Stallman  <rms@gnu.org>
 
+	* dired.texi (Shell Commands in Dired): Delete the ? example.
+
+	* display.texi (Scrolling): Correct scroll-preserve-screen-position.
+
 	* files.texi (Saving): Describe new require-final-newline features
 	and mode-require-final-newline.
 

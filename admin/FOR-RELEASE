@@ -4,8 +4,6 @@ Tasks needed before the next release.
 
 ** Face remapping.
 
-** Let mouse-1 follow links.
-
 ** Make Rmail find the best version of movemail.
 To be done by Sergey Poznyakoff <gray@Mirddin.farlep.net>.
 
@@ -35,6 +33,8 @@ invalid pointer from string_free_list.
 ** Fix up url-ldap.el.
 
 * BUGS
+
+** Incomplete overlay mouse-face highlight bug (Ralf Angeli, Oct 18)
 
 ** Ange-ftp should ignore irrelevant IPv6 errors:
 
