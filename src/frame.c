@@ -1410,7 +1410,7 @@ before calling this function on it, like this.\n\
   /* I think this should be done with a hook.  */
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (XFRAME (frame)))
-    /* Warping the mouse will cause  enternotify and focus events. */
+    /* Warping the mouse will cause enternotify and focus events.  */
     x_set_mouse_position (XFRAME (frame), XINT (x), XINT (y));
 #else
 #if defined (MSDOS) && defined (HAVE_MOUSE)
@@ -1442,7 +1442,7 @@ before calling this function on it, like this.\n\
   /* I think this should be done with a hook.  */
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (XFRAME (frame)))
-    /* Warping the mouse will cause  enternotify and focus events. */
+    /* Warping the mouse will cause enternotify and focus events.  */
     x_set_mouse_pixel_position (XFRAME (frame), XINT (x), XINT (y));
 #else
 #if defined (MSDOS) && defined (HAVE_MOUSE)
@@ -1461,7 +1461,7 @@ static void make_frame_visible_1 P_ ((Lisp_Object));
 
 DEFUN ("make-frame-visible", Fmake_frame_visible, Smake_frame_visible,
        0, 1, "",
-  "Make the frame FRAME visible (assuming it is an X-window).\n\
+  "Make the frame FRAME visible (assuming it is an X window).\n\
 If omitted, FRAME defaults to the currently selected frame.")
   (frame)
      Lisp_Object frame;
@@ -1482,7 +1482,7 @@ If omitted, FRAME defaults to the currently selected frame.")
 
   make_frame_visible_1 (XFRAME (frame)->root_window);
 
-  /* Make menu bar update for the Buffers and Frams menus.  */
+  /* Make menu bar update for the Buffers and Frames menus.  */
   windows_or_buffers_changed++;
 
   return frame;
@@ -1513,7 +1513,7 @@ make_frame_visible_1 (window)
 
 DEFUN ("make-frame-invisible", Fmake_frame_invisible, Smake_frame_invisible,
        0, 2, "",
-  "Make the frame FRAME invisible (assuming it is an X-window).\n\
+  "Make the frame FRAME invisible (assuming it is an X window).\n\
 If omitted, FRAME defaults to the currently selected frame.\n\
 Normally you may not make FRAME invisible if all other frames are invisible,\n\
 but if the second optional argument FORCE is non-nil, you may do so.")
@@ -1549,7 +1549,7 @@ but if the second optional argument FORCE is non-nil, you may do so.")
     x_make_frame_invisible (XFRAME (frame));
 #endif
 
-  /* Make menu bar update for the Buffers and Frams menus.  */
+  /* Make menu bar update for the Buffers and Frames menus.  */
   windows_or_buffers_changed++;
 
   return Qnil;
@@ -1588,7 +1588,7 @@ If omitted, FRAME defaults to the currently selected frame.")
       x_iconify_frame (XFRAME (frame));
 #endif
 
-  /* Make menu bar update for the Buffers and Frams menus.  */
+  /* Make menu bar update for the Buffers and Frames menus.  */
   windows_or_buffers_changed++;
 
   return Qnil;
