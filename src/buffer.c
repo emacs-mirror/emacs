@@ -1295,6 +1295,9 @@ the normal hook `change-major-mode-hook'.")
    Store in *LEN_PTR the size allocated for the vector.
    Store in *NEXT_PTR the next position after POS where an overlay starts,
      or ZV if there are no more overlays.
+   Store in *PREV_PTR the previous position after POS where an overlay ends,
+     or BEGV if there are no previous overlays.
+   NEXT_PTR and/or PREV_PTR may be 0, meaning don't store that info.
 
    *VEC_PTR and *LEN_PTR should contain a valid vector and size
    when this function is called.
@@ -1305,25 +1308,27 @@ the normal hook `change-major-mode-hook'.")
    But we still return the total number of overlays.  */
 
 int
-overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr)
+overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
      int pos;
      int extend;
      Lisp_Object **vec_ptr;
      int *len_ptr;
      int *next_ptr;
+     int *prev_ptr;
 {
   Lisp_Object tail, overlay, start, end, result;
   int idx = 0;
   int len = *len_ptr;
   Lisp_Object *vec = *vec_ptr;
   int next = ZV;
+  int prev = BEGV;
   int inhibit_storing = 0;
 
   for (tail = current_buffer->overlays_before;
        XGCTYPE (tail) == Lisp_Cons;
        tail = XCONS (tail)->cdr)
     {
-      int startpos;
+      int startpos, endpos;
 
       overlay = XCONS (tail)->car;
       if (XGCTYPE (overlay) != Lisp_Overlay)
@@ -1331,8 +1336,15 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr)
 
       start = OVERLAY_START (overlay);
       end = OVERLAY_END (overlay);
-      if (OVERLAY_POSITION (end) <= pos)
-	break;
+      endpos = OVERLAY_POSITION (end);
+      if (endpos < pos)
+	{
+	  if (prev < endpos)
+	    prev = endpos;
+	  break;
+	}
+      if (endpos == pos)
+	continue;
       startpos = OVERLAY_POSITION (start);
       if (startpos <= pos)
 	{
@@ -1363,7 +1375,7 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr)
        XGCTYPE (tail) == Lisp_Cons;
        tail = XCONS (tail)->cdr)
     {
-      int startpos;
+      int startpos, endpos;
 
       overlay = XCONS (tail)->car;
       if (XGCTYPE (overlay) != Lisp_Overlay)
@@ -1378,7 +1390,8 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr)
 	    next = startpos;
 	  break;
 	}
-      if (pos < OVERLAY_POSITION (end))
+      endpos = OVERLAY_POSITION (end);
+      if (pos < endpos)
 	{
 	  if (idx == len)
 	    {
@@ -1396,9 +1409,14 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr)
 	    vec[idx] = overlay;
 	  idx++;
 	}
+      else if (endpos < pos && endpos > prev)
+	prev = endpos;
     }
 
-  *next_ptr = next;
+  if (next_ptr)
+    *next_ptr = next;
+  if (prev_ptr)
+    *prev_ptr = prev;
   return idx;
 }
 
@@ -2005,7 +2023,6 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
      Lisp_Object pos;
 {
   int noverlays;
-  int endpos;
   Lisp_Object *overlay_vec;
   int len;
   Lisp_Object result;
@@ -2017,7 +2034,7 @@ DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
 
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.  */
-  noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len, &endpos);
+  noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len, NULL, NULL);
 
   /* Make a list of them all.  */
   result = Flist (noverlays, overlay_vec);
@@ -2037,7 +2054,6 @@ If there are no more overlay boundaries after POS, return (point-max).")
   int endpos;
   Lisp_Object *overlay_vec;
   int len;
-  Lisp_Object result;
   int i;
 
   CHECK_NUMBER_COERCE_MARKER (pos, 0);
@@ -2048,7 +2064,7 @@ If there are no more overlay boundaries after POS, return (point-max).")
   /* Put all the overlays we want in a vector in overlay_vec.
      Store the length in len.
      endpos gets the position where the next overlay starts.  */
-  noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len, &endpos);
+  noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len, &endpos, NULL);
 
   /* If any of these overlays ends before endpos,
      use its ending point instead.  */
@@ -2065,6 +2081,46 @@ If there are no more overlay boundaries after POS, return (point-max).")
 
   xfree (overlay_vec);
   return make_number (endpos);
+}
+
+DEFUN ("previous-overlay-change", Fprevious_overlay_change,
+       Sprevious_overlay_change, 1, 1, 0,
+  "Return the previous position before POS where an overlay starts or ends.\n\
+If there are no more overlay boundaries after POS, return (point-min).")
+  (pos)
+     Lisp_Object pos;
+{
+  int noverlays;
+  int prevpos;
+  Lisp_Object *overlay_vec;
+  int len;
+  int i;
+
+  CHECK_NUMBER_COERCE_MARKER (pos, 0);
+
+  len = 10;
+  overlay_vec = (Lisp_Object *) xmalloc (len * sizeof (Lisp_Object));
+
+  /* Put all the overlays we want in a vector in overlay_vec.
+     Store the length in len.
+     prevpos gets the position of an overlay end.  */
+  noverlays = overlays_at (XINT (pos), 1, &overlay_vec, &len, NULL, &prevpos);
+
+  /* If any of these overlays starts before endpos,
+     maybe use its starting point instead.  */
+  for (i = 0; i < noverlays; i++)
+    {
+      Lisp_Object ostart;
+      int ostartpos;
+
+      ostart = OVERLAY_START (overlay_vec[i]);
+      ostartpos = OVERLAY_POSITION (ostart);
+      if (ostartpos > prevpos && ostartpos < XINT (pos))
+	prevpos = ostartpos;
+    }
+
+  xfree (overlay_vec);
+  return make_number (prevpos);
 }
 
 /* These functions are for debugging overlays.  */
@@ -2960,6 +3016,7 @@ is a member of the list.");
   defsubr (&Soverlay_properties);
   defsubr (&Soverlays_at);
   defsubr (&Snext_overlay_change);
+  defsubr (&Sprevious_overlay_change);
   defsubr (&Soverlay_recenter);
   defsubr (&Soverlay_lists);
   defsubr (&Soverlay_get);
