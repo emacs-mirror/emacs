@@ -2178,7 +2178,7 @@ With 3 \\[universal-argument]'s, marks this version
  to become a backup when the next save is done,
  and unconditionally makes the previous version into a backup file.
 
-With argument of 0, never makes the previous version into a backup file.
+With argument of 0, never make the previous version into a backup file.
 
 If a file's name is FOO, the names of its numbered backup versions are
  FOO.~i~ for various integers i.  A non-numbered backup file is called FOO~.
@@ -2193,6 +2193,10 @@ We don't want excessive versions piling up, so there are variables
 `dired-kept-versions' controls dired's clean-directory (.) command.
 If `delete-old-versions' is nil, system will query user
  before trimming versions.  Otherwise it does it silently.
+
+If `vc-make-backup-files' is nil, which is the default,
+ no backup files are made for files managed by version control.
+ (This is because the version control system itself records previous versions.)
 
 See the subroutine `basic-save-buffer' for more information."
   (interactive "p")
