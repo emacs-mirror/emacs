@@ -1,3 +1,8 @@
+2000-10-03  Miles Bader  <miles@gnu.org>
+
+	* play/yow.el (yow): Don't display multi-line quotations in a *Help*
+	buffer, since the echo area will now grow to accommodate them.
+
 2000-10-02  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-hooks.el (vc-registered): If FILE used to be registered under
