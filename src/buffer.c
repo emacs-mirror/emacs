@@ -2424,32 +2424,26 @@ evaporate_overlays (pos)
     Fdelete_overlay (XCONS (hit_list)->car);
 }
 
-/* Somebody has tried to store NEWVAL into the buffer-local slot with
-   offset XUINT (valcontents), and NEWVAL has an unacceptable type.  */
+/* Somebody has tried to store a value with an unacceptable type
+   into the buffer-local slot with offset OFFSET.  */
 void
-buffer_slot_type_mismatch (valcontents, newval)
-     Lisp_Object valcontents, newval;
+buffer_slot_type_mismatch (offset)
+     int offset;
 {
-  unsigned int offset = XUINT (valcontents);
-  unsigned char *symbol_name =
-    (XSYMBOL (*(Lisp_Object *)(offset + (char *)&buffer_local_symbols))
-     ->name->data);
+  Lisp_Object sym;
   char *type_name;
-  
+  sym = *(Lisp_Object *)(offset + (char *)&buffer_local_symbols);
   switch (XINT (*(Lisp_Object *)(offset + (char *)&buffer_local_types)))
     {
     case Lisp_Int:	type_name = "integers";  break;
     case Lisp_String:	type_name = "strings";   break;
-    case Lisp_Misc:	type_name = "markers";   break;
     case Lisp_Symbol:	type_name = "symbols";   break;
-    case Lisp_Cons:	type_name = "lists";     break;
-    case Lisp_Vector:	type_name = "vectors";   break;
     default:
       abort ();
     }
 
   error ("only %s should be stored in the buffer-local variable %s",
-	 type_name, symbol_name);
+	 type_name, XSYMBOL (sym)->name->data);
 }
 
 init_buffer_once ()
