@@ -12,7 +12,7 @@
 
 # Author: Paul Eggert <eggert@twinsun.com>
 
-# $Id: rcs2log,v 1.19 1995/03/21 05:37:42 eggert Exp eggert $
+# $Id: rcs2log,v 1.20 1995/03/21 23:14:41 eggert Exp eggert $
 
 # Copyright 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
 
@@ -273,7 +273,7 @@ $logins
 EOF
 esac
 output_authors='/^date: / {
-	if ($2 ~ /^[0-9]*[-/][0-9][0-9][-/][0-9][0-9]$/ && $3 ~ /^[0-9][0-9]:[0-9][0-9]:[0-9][0-9][-+0-9]*;$/ && $4 == "author:" && $5 ~ /^[^;]*;$/) {
+	if ($2 ~ /^[0-9]*[-\/][0-9][0-9][-\/][0-9][0-9]$/ && $3 ~ /^[0-9][0-9]:[0-9][0-9]:[0-9][0-9][-+0-9]*;$/ && $4 == "author:" && $5 ~ /^[^;]*;$/) {
 		print substr($5, 1, length($5)-1)
 	}
 }'
