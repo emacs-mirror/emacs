@@ -1616,6 +1616,7 @@ Prefix arg will make the entry nonmarking."
 		    (diary-name-pattern calendar-month-name-array t)
 		    "\\)"))
 	   (day "[0-9]+")
+           (month "[0-9]+")
 	   (year "-?[0-9]+"))
        (mapconcat 'eval calendar-date-display-form ""))
      "\\(\\(: .*\\)\\|\\(\n +.*\\)\\)*\n=+$")

@@ -1,3 +1,8 @@
+2002-11-18  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+
+	* calendar/diary-lib.el (fancy-diary-font-lock-keywords): Grok
+	month numbers, too.
+
 2002-11-18  Juanma Barranquero  <lektu@terra.es>
 
 	* mail/smtpmail.el (smtpmail-send-queued-mail): Add autoload cookie.
