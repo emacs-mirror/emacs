@@ -139,4 +139,6 @@ BODY."
 ;;; no-byte-compile: t
 ;;; no-update-autoloads: t
 ;;; End:
+
+;; arch-tag: 1e3638af-cad3-4c69-8427-bc8eb6e5e4fa
 ;;; mh-gnus.el ends here
