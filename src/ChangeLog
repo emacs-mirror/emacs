@@ -1,5 +1,11 @@
 2000-12-06  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispnew.c (adjust_glyph_matrix): Don't reuse a window's current
+	matrix if the window's left position has changed; we need to
+	redraw it in this case.
+
+	* dispextern.h (struct glyph_matrix): Add member window_left_x.
+
 	* window.c (coordinates_in_window): Check mouse on mode-line or
 	header-line first.
 
