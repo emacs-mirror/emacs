@@ -697,6 +697,17 @@ This variable is meaningful on MS-DOG and Windows NT.
 On those systems, it is automatically local in every buffer.
 On other systems, this variable is normally always nil.")
 
+;; This should probably be written in C (i.e., without using `walk-windows').
+(defun get-buffer-window-list (buffer &optional frame)
+  "Return windows currently displaying BUFFER, or nil if none.
+See `get-buffer-window' for the meaning of FRAME."
+  (let (windows)
+    (walk-windows (function (lambda (window)
+			      (if (eq (window-buffer window) buffer)
+				  (setq windows (cons window windows)))))
+		  nil frame)
+    windows))
+
 (defun ignore (&rest ignore)
   "Do nothing and return nil.
 This function accepts any number of arguments, but ignores them."
