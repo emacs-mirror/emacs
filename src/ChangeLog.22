@@ -1,3 +1,46 @@
+2003-12-29  Kenichi Handa  <handa@m17n.org>
+
+	* ccl.c (Fccl_execute_on_string): Fix the condition of loop.
+
+	* charset.h (charset_table_used): Delete extern.
+
+	* charset.c (charset_table_used): Make it static.
+	(map_charset_chars): Fix args to c_function with.
+
+	* chartab.c (map_sub_char_table_for_charset): Fix args to
+	c_function with.
+
+	* coding.h (enum coding_result_code): Delete
+	CODING_RESULT_INSUFFICIENT_CMP, add CODING_RESULT_INVALID_SRC.
+
+	* coding.c (Qinsufficient_source, Qinconsistent_eol)
+	(Qinvalid_source, Qinterrupted, Qinsufficient_memory): New
+	variables.
+	(Vlast_code_conversion_error): New variables.
+	(syms_of_coding): DEFSYM or DEFVAR_LISP them. 
+	(ONE_MORE_BYTE): Record error if any instead of signaling an
+	error.  If non-ASCII multibyte char is found, return the negative
+	value of the code.  All callers changed to check it.
+	(ONE_MORE_BYTE_NO_CHECK): Likewise.
+	(record_conversion_result): New function.  All codes setting
+	coding->result are changed to call this function.
+	(detect_coding_utf_8): Don't use the local variable incomplete.
+	(decode_coding_utf_8): Likewise.
+	(emacs_mule_char): Change the second arg to `const'.
+	(detect_coding_emacs_mule): Don't use the local variable
+	incomplete.
+	(detect_coding_sjis): Likewise.
+	(detect_coding_big5): Likewise.
+	(decode_coding): Fix of flushing out unprocessed data.
+	(make_conversion_work_buffer): Fix making of a work buffer.
+	(decode_coding_object): Return coding->dst_object;
+
+	* fontset.c (set_fontset_font): Fix args.
+
+	* lisp.h (CHARACTERBITS): Define as 22.
+
+	* process.c (send_process): Be sure to set coding->src_multibyte.
+
 2003-12-02  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding): Fix previous change.
