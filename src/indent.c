@@ -51,17 +51,16 @@ int last_known_column_modified;
 
 /* Get the display table to use for the current buffer.  */
 
-struct Lisp_Vector *
+struct Lisp_Char_Table *
 buffer_display_table ()
 {
   Lisp_Object thisbuf;
 
   thisbuf = current_buffer->display_table;
-  if (VECTORP (thisbuf) && XVECTOR (thisbuf)->size == DISP_TABLE_SIZE)
-    return XVECTOR (thisbuf);
-  if (VECTORP (Vstandard_display_table)
-      && XVECTOR (Vstandard_display_table)->size == DISP_TABLE_SIZE)
-    return XVECTOR (Vstandard_display_table);
+  if (DISP_TABLE_P (thisbuf))
+    return XCHAR_TABLE (thisbuf);
+  if (DISP_TABLE_P (Vstandard_display_table))
+    return XCHAR_TABLE (Vstandard_display_table);
   return 0;
 }
 
@@ -72,7 +71,7 @@ buffer_display_table ()
 static int
 character_width (c, dp)
      int c;
-     struct Lisp_Vector *dp;
+     struct Lisp_Char_Table *dp;
 {
   Lisp_Object elt;
 
@@ -106,7 +105,7 @@ character_width (c, dp)
    invalidate the buffer's width_run_cache.  */
 int
 disptab_matches_widthtab (disptab, widthtab)
-     struct Lisp_Vector *disptab;
+     struct Lisp_Char_Table *disptab;
      struct Lisp_Vector *widthtab;
 {
   int i;
@@ -126,7 +125,7 @@ disptab_matches_widthtab (disptab, widthtab)
 void
 recompute_width_table (buf, disptab)
      struct buffer *buf;
-     struct Lisp_Vector *disptab;
+     struct Lisp_Char_Table *disptab;
 {
   int i;
   struct Lisp_Vector *widthtab;
@@ -202,7 +201,7 @@ current_column ()
   register int c;
   register int tab_width = XINT (current_buffer->tab_width);
   int ctl_arrow = !NILP (current_buffer->ctl_arrow);
-  register struct Lisp_Vector *dp = buffer_display_table ();
+  register struct Lisp_Char_Table *dp = buffer_display_table ();
   int stopchar;
 
   if (point == last_known_column_point
@@ -289,7 +288,7 @@ string_display_width (string, beg, end)
   register int c;
   register int tab_width = XINT (current_buffer->tab_width);
   int ctl_arrow = !NILP (current_buffer->ctl_arrow);
-  register struct Lisp_Vector *dp = buffer_display_table ();
+  register struct Lisp_Char_Table *dp = buffer_display_table ();
   int b, e;
 
   if (NILP (end))
@@ -485,7 +484,7 @@ and if COLUMN is in the middle of a tab character, change it to spaces.")
   register int end;
   register int tab_width = XINT (current_buffer->tab_width);
   register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
-  register struct Lisp_Vector *dp = buffer_display_table ();
+  register struct Lisp_Char_Table *dp = buffer_display_table ();
 
   Lisp_Object val;
   int prev_col;
@@ -649,7 +648,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
   register int c;
   register int tab_width = XFASTINT (current_buffer->tab_width);
   register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
-  register struct Lisp_Vector *dp = window_display_table (win);
+  register struct Lisp_Char_Table *dp = window_display_table (win);
   int selective
     = (INTEGERP (current_buffer->selective_display)
        ? XINT (current_buffer->selective_display)
