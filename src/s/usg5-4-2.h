@@ -19,6 +19,10 @@
 #undef sigsetmask
 #undef HAVE_SYSV_SIGPAUSE
 
+/* Motif needs -lgen.  */
+#undef LIBS_SYSTEM
+#define LIBS_SYSTEM -lsocket -lnsl -lelf -lgen
+
 /* This is the same definition as in usg5-4.h, but with sigblock/sigunblock
    rather than sighold/sigrelse, which appear to be BSD4.1 specific and won't
    work if POSIX_SIGNALS is defined.  It may also be appropriate for SVR4.x
