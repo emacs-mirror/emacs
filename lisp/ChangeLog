@@ -1,3 +1,7 @@
+2004-06-18  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in: Double percent signs in for loops.
+
 2004-06-17  David Kastrup  <dak@gnu.org>
 
 	* replace.el (query-replace-read-args): Only warn about use of \n
