@@ -2233,6 +2233,11 @@ init_lread ()
   char *normal;
   int turn_off_warning = 0;
 
+#ifdef HAVE_SETLOCALE
+  /* Make sure numbers are parsed as we expect.  */
+  setlocale (LC_NUMERIC, "C");
+#endif /* HAVE_SETLOCALE */
+
   /* Compute the default load-path.  */
 #ifdef CANNOT_DUMP
   normal = PATH_LOADSEARCH;
