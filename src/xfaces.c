@@ -6107,7 +6107,7 @@ realize_basic_faces (f)
     {
       realize_named_face (f, Qmode_line, MODE_LINE_FACE_ID);
       realize_named_face (f, Qtool_bar, TOOL_BAR_FACE_ID);
-      realize_named_face (f, Qfringe, BITMAP_AREA_FACE_ID);
+      realize_named_face (f, Qfringe, FRINGE_FACE_ID);
       realize_named_face (f, Qheader_line, HEADER_LINE_FACE_ID);
       realize_named_face (f, Qscroll_bar, SCROLL_BAR_FACE_ID);
       realize_named_face (f, Qborder, BORDER_FACE_ID);
