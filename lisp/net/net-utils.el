@@ -218,6 +218,10 @@ These options can be used to limit how many ICMP packets are emitted."
   :type  'regexp
   )
 
+;; Internal variables
+(defvar network-connection-service nil)
+(defvar network-connection-host    nil)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Nslookup goodies
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -816,6 +820,29 @@ from SEARCH-STRING.  With argument, prompt for whois server."
 ;;; General Network connection
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Using a derived mode gives us keymaps, hooks, etc.
+(define-derived-mode 
+  network-connection-mode comint-mode "Network-Connection"
+  "Major mode for interacting with the network-connection program."
+  )
+
+(defun network-connection-mode-setup (host service)
+  (let ((network-abbrev-table
+	 (or 
+	  (assoc service network-connection-service-abbrev-alist)
+	 (and (rassoc service network-connection-service-alist)
+	      (assoc 
+	       (elt (rassoc service network-connection-service-alist) 0)
+	       network-connection-service-abbrev-alist)))))
+    (make-local-variable 'network-connection-host)
+    (setq network-connection-host host)
+    (make-local-variable 'network-connection-service) 
+    (setq network-connection-service service)
+    (and network-abbrev-table
+	 (setq local-abbrev-table (cdr network-abbrev-table))
+	 (abbrev-mode t)
+	 )))
+
 ;;;###autoload
 (defun network-connection-to-service (host service)
   "Open a network connection to SERVICE on HOST."
@@ -842,15 +869,19 @@ from SEARCH-STRING.  With argument, prompt for whois server."
 (defun network-service-connection (host service)
   "Open a network connection to SERVICE on HOST."
   (require 'comint)
-  (let (
+  (let* (
 	(process-name (concat "Network Connection [" host " " service "]"))
 	(portnum (string-to-number service))
+	(buf (get-buffer-create (concat "*" process-name "*")))
 	)
     (or (zerop portnum) (setq service portnum))
     (make-comint 
      process-name
      (cons host service))
-    (pop-to-buffer (get-buffer (concat "*" process-name "*")))
+    (set-buffer buf)
+    (network-connection-mode)
+    (network-connection-mode-setup host service)
+    (pop-to-buffer buf)
     ))
 
 (provide 'net-utils)
