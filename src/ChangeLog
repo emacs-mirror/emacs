@@ -1,3 +1,16 @@
+2000-06-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* abbrev.c (syms_of_abbrev): Set buffer_default's abbrev table
+	to Vfundamental_mode_abbrev_table.
+
+	* alloc.c (mark_object) [GC_CHECK_MARKED_OBJECTS]: Check that no
+	bogus objects are marked.  This slows down GC by ~80 percent, but
+	it might be worth trying when debugging GC-related problems.
+	This feature requires conservative stack marking to be enabled.
+
+	* xterm.c (XTread_socket) <KeyPress>: In case XmbLookupString
+	returns XLookupChars, reset `modifiers' to zero.
+
 2000-06-19  Dave Love  <fx@gnu.org>
 
 	* mktime.c: Unprotoized.
