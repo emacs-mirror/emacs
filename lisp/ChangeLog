@@ -1,3 +1,7 @@
+2002-04-24  Simon Josefsson  <jas@extundo.com>
+
+	* net/netrc.el: New file.
+
 2002-04-24  Thomas DeWeese <tdeweese@rochester.rr.com>
 
 	* term/x-win.el (x-select-text, x-cut-buffer-or-selection-value):
