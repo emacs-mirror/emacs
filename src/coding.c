@@ -3625,6 +3625,10 @@ ccl_coding_driver (coding, source, destination, src_bytes, dst_bytes, encodep)
     case CCL_STAT_SUSPEND_BY_DST:
       result = CODING_FINISH_INSUFFICIENT_DST;
       break;
+    case CCL_STAT_QUIT:
+    case CCL_STAT_INVALID_CMD:
+      result = CODING_FINISH_INTERRUPT;
+      break;
     default:
       result = CODING_FINISH_NORMAL;
       break;
@@ -4253,6 +4257,11 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
       src += coding->consumed;
       dst += inserted_byte;
 
+      if (result == CODING_FINISH_NORMAL)
+	{
+	  src += len_byte;
+	  break;
+	}
       if (! encodep && result == CODING_FINISH_INCONSISTENT_EOL)
 	{
 	  unsigned char *pend = dst, *p = pend - inserted_byte;
@@ -4317,6 +4326,20 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 	  inserted_byte += len_byte;
 	  while (len_byte--)
 	    *dst++ = *src++;
+	  fake_multibyte = 1;
+	  break;
+	}
+      if (result == CODING_FINISH_INTERRUPT)
+	{
+	  /* The conversion procedure was interrupted by a user.  */
+	  fake_multibyte = 1;
+	  break;
+	}
+      /* Now RESULT == CODING_FINISH_INSUFFICIENT_DST  */
+      if (coding->consumed < 1)
+	{
+	  /* It's quite strange to require more memory without
+	     consuming any bytes.  Perhaps CCL program bug.  */
 	  fake_multibyte = 1;
 	  break;
 	}
