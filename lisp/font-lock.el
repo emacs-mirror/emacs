@@ -846,6 +846,7 @@ turned on in a buffer if its major mode is one of `font-lock-global-modes'."
 ;; This variable was originally a `defvar' to keep track of
 ;; whether Global Font Lock mode was turned on or not.  As a `defcustom' with
 ;; special `:set' and `:require' forms, we can provide custom mode control.
+;;;###autoload
 (defcustom global-font-lock-mode nil
   "Toggle Global Font Lock mode.
 When Global Font Lock mode is enabled, Font Lock mode is automagically
@@ -854,6 +855,7 @@ Setting this variable directly does not take effect;
 use either \\[customize] or the function `global-font-lock-mode'."
   :set (lambda (symbol value)
 	 (global-font-lock-mode (or value 0)))
+  :initialize 'custom-initialize-default
   :type 'boolean
   :group 'font-lock
   :require 'font-lock)
