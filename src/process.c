@@ -3321,7 +3321,7 @@ sigchld_handler (signo)
       /* Find the process that signaled us, and record its status.  */
 
       p = 0;
-      for (tail = Vprocess_alist; XSYMBOL (tail) != XSYMBOL (Qnil); tail = XCONS (tail)->cdr)
+      for (tail = Vprocess_alist; CONSP (tail); tail = XCONS (tail)->cdr)
 	{
 	  proc = XCONS (XCONS (tail)->car)->cdr;
 	  p = XPROCESS (proc);
@@ -3333,7 +3333,7 @@ sigchld_handler (signo)
       /* Look for an asynchronous process whose pid hasn't been filled
 	 in yet.  */
       if (p == 0)
-	for (tail = Vprocess_alist; XSYMBOL (tail) != XSYMBOL (Qnil); tail = XCONS (tail)->cdr)
+	for (tail = Vprocess_alist; CONSP (tail); tail = XCONS (tail)->cdr)
 	  {
 	    proc = XCONS (XCONS (tail)->car)->cdr;
 	    p = XPROCESS (proc);
