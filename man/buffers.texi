@@ -152,7 +152,7 @@ If several buffers are modified, it may be time to save some with @kbd{C-x s}
 current buffer.  Here is an example of a buffer list:@refill
 
 @smallexample
-CRM Buffer                Size  Mode             File
+CRM Buffer                Size  Mode              File
 . * .emacs                3294  Emacs-Lisp        ~/.emacs
  %  *Help*                 101  Help
     search.c             86055  C                 ~/cvs/emacs/src/search.c
