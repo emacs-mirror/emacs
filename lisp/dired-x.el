@@ -951,7 +951,7 @@ dired."
                   " " dired-guess-shell-znew-switches))
 
    ;; gzip'ed archives
-   (list "\\.t\\(ar\\.\\)g?z$"
+   (list "\\.t\\(ar\\.\\)?gz$"
          '(if dired-guess-shell-gnutar
               (concat dired-guess-shell-gnutar " zxvf")
             (concat "gunzip -qc * | tar xvf -"))
