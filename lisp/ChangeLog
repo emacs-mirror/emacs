@@ -1,3 +1,7 @@
+2003-11-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* cus-start.el (all): Add use-file-dialog.
+
 2003-11-27  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (posn-object-x-y): New defun.

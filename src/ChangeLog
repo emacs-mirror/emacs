@@ -1,3 +1,11 @@
+2003-11-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* fileio.c (Fread_file_name): Check use_file_dialog also before
+	calling Fx_file_dialog.
+
+	* fns.c: use_file_dialog: New variable.
+	(syms_of_fns): DEFVAR_BOOL use-file-dialog.
+
 2003-11-29  Kim F. Storm  <storm@cua.dk>
 
 	* msdos.c (Qcursor_type, Qbar, Qhbar): Declare extern.

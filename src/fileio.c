@@ -134,6 +134,7 @@ extern int errno;
 
 #include "commands.h"
 extern int use_dialog_box;
+extern int use_file_dialog;
 
 #ifndef O_WRONLY
 #define O_WRONLY 1
@@ -6212,6 +6213,7 @@ provides a file dialog box.  */)
 #if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK)
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
       && use_dialog_box
+      && use_file_dialog
       && have_menus_p ())
     {
       /* If DIR contains a file name, split it.  */

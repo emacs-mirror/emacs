@@ -59,6 +59,10 @@ Boston, MA 02111-1307, USA.  */
    asked by mouse commands.  */
 int use_dialog_box;
 
+/* Nonzero enables use of a file dialog for file name
+   questions asked by mouse commands.  */
+int use_file_dialog;
+
 extern int minibuffer_auto_raise;
 extern Lisp_Object minibuf_window;
 extern Lisp_Object Vlocale_coding_system;
@@ -5638,6 +5642,13 @@ This applies to `y-or-n-p' and `yes-or-no-p' questions asked by commands
 invoked by mouse clicks and mouse menu items.  */);
   use_dialog_box = 1;
 
+  DEFVAR_BOOL ("use-file-dialog", &use_file_dialog,
+    doc: /* *Non-nil means mouse commands use a file dialog to ask for files.
+This applies to commands from menus and tool bar buttons.  The value of
+`use-dialog-box' takes precedence over this variable, so a file dialog is only
+used if both `use-dialog-box' and this variable are non-nil.  */);
+  use_file_dialog = 1;
+  
   defsubr (&Sidentity);
   defsubr (&Srandom);
   defsubr (&Slength);
