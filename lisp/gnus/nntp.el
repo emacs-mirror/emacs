@@ -906,7 +906,12 @@ This function is supposed to be called from `nntp-server-opened-hook'."
       (insert "\n"))
     ;; Insert `.' at end of buffer (end of text mark).
     (goto-char (point-max))
-    (insert "." nntp-end-of-line)))
+    (insert ".\n")
+    (goto-char (point-min))
+    (while (not (eobp))
+      (end-of-line)
+      (delete-char 1)
+      (insert nntp-end-of-line))))
 
 (defun nntp-retrieve-headers-with-xover (articles &optional fetch-old)
   (set-buffer nntp-server-buffer)
