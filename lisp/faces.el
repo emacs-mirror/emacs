@@ -823,6 +823,12 @@ If that can't be done, return nil."
   "Given an X font specification, make a non-italic version of it.
 If that can't be done, return nil."
   (x-frob-font-slant font "r"))
+
+(defun x-make-font-bold-italic (font)
+  "Given an X font specification, make a bold and italic version of it.
+If that can't be done, return nil."
+  (and (setq font (x-make-font-bold font))
+       (x-make-font-italic font)))
 
 ;;; non-X-specific interface
 
