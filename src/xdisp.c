@@ -3392,7 +3392,14 @@ back_to_previous_line_start (it)
    
    Newlines may come from buffer text, overlay strings, or strings
    displayed via the `display' property.  That's the reason we can't
-   simply use find_next_newline_no_quit.  */
+   simply use find_next_newline_no_quit.
+
+   Note that this function may not skip over invisible text that is so
+   because of text properties and immediately follows a newline.  If
+   it would, function reseat_at_next_visible_line_start, when called
+   from set_iterator_to_next, would effectively make invisible
+   characters following a newline part of the wrong glyph row, which
+   leads to wrong cursor motion.  */
 
 static int
 forward_to_next_line_start (it, skipped_p)
@@ -3402,9 +3409,18 @@ forward_to_next_line_start (it, skipped_p)
   int old_selective, newline_found_p, n;
   const int MAX_NEWLINE_DISTANCE = 500;
 
+  /* If already on a newline, just consume it to avoid unintended
+     skipping over invisible text below.  */
+  if (ITERATOR_AT_END_OF_LINE_P (it))
+    {
+      set_iterator_to_next (it, 0);
+      return 1;
+    }
+
   /* Don't handle selective display in the following.  It's (a)
-     unnecessary and (b) leads to an infinite recursion because
-     next_element_from_ellipsis indirectly calls this function.  */
+     unnecessary because it's done by the caller, and (b) leads to an
+     infinite recursion because next_element_from_ellipsis indirectly
+     calls this function.  */
   old_selective = it->selective;
   it->selective = 0;
 
@@ -11851,7 +11867,7 @@ highlight_trailing_whitespace (f, row)
 
 
 /* Value is non-zero if glyph row ROW in window W should be
-   used to put the cursor on.  */
+   used to hold the cursor.  */
 
 static int
 cursor_row_p (w, row)
