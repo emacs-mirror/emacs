@@ -1,3 +1,8 @@
+2005-01-19  Steven Tamm  <steventamm@mac.com>
+
+	* configure.in: Check for <sys/utsname.h>.
+	* configure: Regenerate.
+
 2004-12-11  Kim F. Storm  <storm@cua.dk>
 
 	* Makefile.in (info): Undo 2004-12-05 change.
