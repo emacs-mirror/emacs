@@ -171,7 +171,7 @@ the manpage buffer.")
   '("" mode-line-modified
        mode-line-buffer-identification "   "
        global-mode-string
-       Man-page-mode-string
+       " " Man-page-mode-string
        "    %[(" mode-name minor-mode-alist mode-line-process ")%]----"
        (-3 . "%p") "-%-")
   "*Mode line format for manual mode buffer.")
