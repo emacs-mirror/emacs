@@ -7,7 +7,7 @@
 ;; Date: 1994/08/18 19:27:42
 ;; Keywords: dired extensions files
 
-;; Copyright (C) 1993, 1994, 1997, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1997, 2001, 2003 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -470,8 +470,8 @@ buffer and try again."
 (defvar dired-omit-localp 'no-dir
   "The LOCALP argument `dired-omit-expunge' passes to `dired-get-filename'.
 If it is 'no-dir, omitting is much faster, but you can only match
-against the basename of the file.  Set it to nil if you need to match the
-whole pathname.")
+against the non-directory part of the file name.  Set it to nil if you
+need to match the entire file name.")
 
 ;; \017=^O for Omit - other packages can chose other control characters.
 (defvar dired-omit-marker-char ?\017
@@ -570,7 +570,7 @@ This functions works by temporarily binding `dired-marker-char' to
 ;; Returns t if any work was done, nil otherwise.
 (defun dired-mark-unmarked-files (regexp msg &optional unflag-p localp)
   "Mark unmarked files matching REGEXP, displaying MSG.
-REGEXP is matched against the complete pathname.
+REGEXP is matched against the entire file name.
 Does not re-mark files which already have a mark.
 With prefix argument, unflag all those files.
 Second optional argument LOCALP is as in `dired-get-filename'."
@@ -1122,7 +1122,7 @@ results in
           file2 (expand-file-name file2)
           len1 (length file1)
           len2 (length file2))
-    ;; Find common initial pathname components:
+    ;; Find common initial file name components:
     (let (next)
       (while (and (setq next (string-match "/" file1 index))
                   (setq next (1+ next))
@@ -1140,7 +1140,7 @@ results in
             sub (substring file1 0 index)
             name1 (substring file1 index)))
     (if (string-equal sub "/")
-        ;; No common initial pathname found
+        ;; No common initial file name found
         (setq name1 file1)
       ;; Else they have a common parent directory
       (let ((tem (substring file2 index))
@@ -1168,19 +1168,19 @@ This creates relative symbolic links like
 
 not absolute ones like
 
-    foo -> /ugly/path/that/may/change/any/day/bar/foo"
+    foo -> /ugly/file/name/that/may/change/any/day/bar/foo"
   (interactive "P")
   (dired-do-create-files 'relsymlink (function dired-make-relative-symlink)
                            "RelSymLink" arg dired-keep-marker-relsymlink))
 
-(defun dired-do-relsymlink-regexp (regexp newname &optional whole-path)
+(defun dired-do-relsymlink-regexp (regexp newname &optional whole-name)
   "RelSymlink all marked files containing REGEXP to NEWNAME.
 See functions `dired-do-rename-regexp' and `dired-do-relsymlink'
 for more info."
   (interactive (dired-mark-read-regexp "RelSymLink"))
   (dired-do-create-files-regexp
    (function dired-make-relative-symlink)
-   "RelSymLink" nil regexp newname whole-path dired-keep-marker-relsymlink))
+   "RelSymLink" nil regexp newname whole-name dired-keep-marker-relsymlink))
 
 
 ;;; VISIT ALL MARKED FILES SIMULTANEOUSLY.

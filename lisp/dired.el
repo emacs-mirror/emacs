@@ -1,6 +1,6 @@
 ;;; dired.el --- directory-browsing commands
 
-;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 1997, 2000, 2001
+;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 1997, 2000, 2001, 2003
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
@@ -59,7 +59,7 @@ some of the `ls' switches are not supported; see the doc string of
   :type 'string
   :group 'dired)
 
-; Don't use absolute paths as /bin should be in any PATH and people
+; Don't use absolute file names as /bin should be in any PATH and people
 ; may prefer /usr/local/gnu/bin or whatever.  However, chown is
 ; usually not in PATH.
 
@@ -1517,7 +1517,7 @@ Optional arg GLOBAL means to replace all matches."
       (replace-match newtext t literal string))))
 
 (defun dired-make-absolute (file &optional dir)
-  ;;"Convert FILE (a pathname relative to DIR) to an absolute pathname."
+  ;;"Convert FILE (a file name relative to DIR) to an absolute file name."
   ;; We can't always use expand-file-name as this would get rid of `.'
   ;; or expand in / instead default-directory if DIR=="".
   ;; This should be good enough for ange-ftp, but might easily be
@@ -1679,8 +1679,8 @@ regardless of the language.")
 (defun dired-copy-filename-as-kill (&optional arg)
   "Copy names of marked (or next ARG) files into the kill ring.
 The names are separated by a space.
-With a zero prefix arg, use the complete pathname of each marked file.
-With \\[universal-argument], use the relative pathname of each marked file.
+With a zero prefix arg, use the absolute file name of each marked file.
+With \\[universal-argument], use the file name sans directory of each marked file.
 
 If on a subdir headerline, use subdirname instead; prefix arg is ignored
 in this case.
@@ -1799,8 +1799,8 @@ You can then feed the file name(s) to other commands with \\[yank]."
     (string-match (concat "^" (regexp-quote dir)) file)))
 
 (defun dired-normalize-subdir (dir)
-  ;; Prepend default-directory to DIR if relative path name.
-  ;; dired-get-filename must be able to make a valid filename from a
+  ;; Prepend default-directory to DIR if relative file name.
+  ;; dired-get-filename must be able to make a valid file name from a
   ;; file and its directory DIR.
   (file-name-as-directory
    (if (file-name-absolute-p dir)
@@ -1944,7 +1944,7 @@ instead of `dired-actual-switches'."
 (defun dired-goto-file (file)
   "Go to file line of FILE in this dired buffer."
   ;; Return value of point on success, else nil.
-  ;; FILE must be an absolute pathname.
+  ;; FILE must be an absolute file name.
   ;; Loses if FILE contains control chars like "\007" for which ls
   ;; either inserts "?" or "\\007" into the buffer, so we won't find
   ;; it in the buffer.
@@ -2992,9 +2992,8 @@ As each match is found, the user must type a character saying
   what to do with it.  For directions, type \\[help-command] at that time.
 NEWNAME may contain \\=\\<n> or \\& as in `query-replace-regexp'.
 REGEXP defaults to the last regexp used.
-With a zero prefix arg, renaming by regexp affects the complete
-  pathname - usually only the non-directory part of file names is used
-  and changed."
+With a zero prefix arg, renaming by regexp affects the full file name;
+usually only the non-directory part of file names is used and changed."
   t)
 
 (autoload 'dired-do-copy-regexp "dired-aux"
