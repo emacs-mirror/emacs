@@ -2111,7 +2111,8 @@ MULE encoding should use `emacs-mule-unix'.  `no-conversion' is only
 appropriate for reading truly binary files.
 
 ** Code that relies on the obsolete `before-change-function' and
-`after-change-function' to detect buffer changes will now fail.
+`after-change-function' to detect buffer changes will now fail.  Use
+`before-change-functions' and `after-change-functions' instead.
 
 ** Code that uses `concat' with integer args now gets an error, as
 long promised.
