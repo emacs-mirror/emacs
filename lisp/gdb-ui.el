@@ -36,7 +36,6 @@
 (defvar gdb-display-in-progress nil)
 (defvar gdb-dive nil)
 (defvar gdb-first-time nil)
-(defvar gdb-proc nil "The process associated with gdb.")
 
 ;;;###autoload
 (defun gdba (command-line)
@@ -120,7 +119,6 @@ The following interactive lisp functions help control operation :
   (setq gdb-display-in-progress nil)
   (setq gdb-dive nil)
 
-  (setq gdb-proc (get-buffer-process (current-buffer)))
   (gdb-make-instance)
   (gdb-clear-inferior-io)
 
@@ -181,15 +179,11 @@ with a gdb instance.")
        (defvar ,name ,default ,doc)
        (if (not (memq ',name gdb-instance-variables))
 	   (push ',name gdb-instance-variables))
-       ,(and accessor
-	     `(defun ,accessor ()
-		(let ((buffer (gdb-get-instance-buffer 'gdba)))
-		  (and buffer (buffer-local-value ',name buffer)))))
-       ,(and setter
-	     `(defun ,setter (val)
-		(let ((buffer (gdb-get-instance-buffer 'gdba)))
-		  (and buffer (with-current-buffer buffer
-				(setq ,name val)))))))))
+       (defun ,accessor ()
+	 (buffer-local-value ',name gud-comint-buffer))
+       (defun ,setter (val)
+	 (with-current-buffer gud-comint-buffer
+	   (setq ,name val))))))
 
 (def-gdb-var buffer-type nil
   "One of the symbols bound in gdb-instance-buffer-rules")
@@ -235,17 +229,15 @@ handlers.")
 
 (defun in-gdb-instance-context (form)
   "Funcall FORM in the GUD buffer."
-  (save-excursion
-    (set-buffer (gdb-get-instance-buffer 'gdba))
+  (with-current-buffer gud-comint-buffer
     (funcall form)))
 
 ;; end of instance vars
 
 (defun gdb-make-instance ()
-  "Create a gdb instance object from a gdb process."
-  (with-current-buffer (process-buffer gdb-proc)
-    (mapc 'make-local-variable gdb-instance-variables)
-    (setq gdb-buffer-type 'gdba)))
+  "Create a gdb instance object from the current buffer."
+  (mapc 'make-local-variable gdb-instance-variables)
+  (setq gdb-buffer-type 'gdba))
 
 (defun gdb-instance-target-string ()
   "The apparent name of the program being debugged by a gdb instance.
@@ -285,12 +277,15 @@ The key should be one of the cars in `gdb-instance-buffer-rules-assoc'."
       (let* ((rules (assoc key gdb-instance-buffer-rules-assoc))
 	     (name (funcall (gdb-rules-name-maker rules)))
 	     (new (get-buffer-create name)))
-	(save-excursion
-	  (set-buffer new)
-	  (make-variable-buffer-local 'gdb-buffer-type)
-	  (setq gdb-buffer-type key)
+	(with-current-buffer new
+	  ;; FIXME: This should be set after calling the function, since the
+	  ;; function should run kill-all-local-variables.
+	  (set (make-local-variable 'gdb-buffer-type) key)
 	  (if (cdr (cdr rules))
 	      (funcall (car (cdr (cdr rules)))))
+	  (set (make-local-variable 'gud-comint-buffer) gud-comint-buffer)
+	  (set (make-local-variable 'gud-minor-mode) 'gdba)
+	  (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
 	  new))))
 
 (defun gdb-rules-name-maker (rules) (car (cdr rules)))
@@ -321,9 +316,8 @@ The key should be one of the cars in `gdb-instance-buffer-rules-assoc'."
   (let ((binding (assoc buffer-type gdb-instance-buffer-rules-assoc)))
     (if binding
 	(setcdr binding rules)
-      (setq gdb-instance-buffer-rules-assoc
-	    (cons (cons buffer-type rules)
-		  gdb-instance-buffer-rules-assoc)))))
+      (push (cons buffer-type rules)
+	    gdb-instance-buffer-rules-assoc))))
 
 ;; GUD buffers are an exception to the rules
 (gdb-set-instance-buffer-rules 'gdba 'error)
@@ -370,40 +364,38 @@ The key should be one of the cars in `gdb-instance-buffer-rules-assoc'."
   (make-comint-in-buffer
    (substring (buffer-name) 1 (- (length (buffer-name)) 1))
    (current-buffer) "/bin/cat")
-  (set (make-local-variable 'gud-minor-mode) 'gdba)
-  (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
   (setq comint-input-sender 'gdb-inferior-io-sender))
 
 (defun gdb-inferior-io-sender (proc string)
-  (save-excursion
-    (set-buffer (process-buffer proc))
-      (set-buffer (gdb-get-instance-buffer 'gdba))
-	(process-send-string gdb-proc string)
-	(process-send-string gdb-proc "\n")))
+  ;; PROC is the pseudo-process created to satisfy comint.
+  (with-current-buffer (process-buffer proc)
+    (setq proc (get-buffer-process gud-comint-buffer))
+    (process-send-string proc string)
+    (process-send-string proc "\n")))
 
 (defun gdb-inferior-io-interrupt ()
   "Interrupt the program being debugged."
   (interactive)
   (interrupt-process
-   (get-buffer-process (gdb-get-instance-buffer 'gdba)) comint-ptyp))
+   (get-buffer-process gud-comint-buffer) comint-ptyp))
 
 (defun gdb-inferior-io-quit ()
   "Send quit signal to the program being debugged."
   (interactive)
   (quit-process
-   (get-buffer-process (gdb-get-instance-buffer 'gdba)) comint-ptyp))
+   (get-buffer-process gud-comint-buffer) comint-ptyp))
 
 (defun gdb-inferior-io-stop ()
   "Stop the program being debugged."
   (interactive)
   (stop-process
-   (get-buffer-process (gdb-get-instance-buffer 'gdba)) comint-ptyp))
+   (get-buffer-process gud-comint-buffer) comint-ptyp))
 
 (defun gdb-inferior-io-eof ()
   "Send end-of-file to the program being debugged."
   (interactive)
   (process-send-eof
-   (get-buffer-process (gdb-get-instance-buffer 'gdba))))
+   (get-buffer-process gud-comint-buffer)))
 
 
 ;;
@@ -594,11 +586,12 @@ This sends the next command (if any) to gdb."
   (if (stringp item)
       (progn
 	(set-gdb-instance-output-sink 'user)
-	(process-send-string gdb-proc item))
+	(process-send-string (get-buffer-process gud-comint-buffer) item))
     (progn
       (gdb-clear-partial-output)
       (set-gdb-instance-output-sink 'pre-emacs)
-      (process-send-string gdb-proc (car item)))))
+      (process-send-string (get-buffer-process gud-comint-buffer)
+			   (car item)))))
 
 (defun gdb-pre-prompt (ignored)
   "An annotation handler for `pre-prompt'. This terminates the collection of
@@ -1349,8 +1342,7 @@ buffer."
 	  (end-of-line))))))
 
 (defun gdb-breakpoints-buffer-name ()
-  (save-excursion
-    (set-buffer (process-buffer gdb-proc))
+  (with-current-buffer gud-comint-buffer
     (concat "*breakpoints of " (gdb-instance-target-string) "*")))
 
 (defun gdb-display-breakpoints-buffer ()
@@ -1384,8 +1376,6 @@ buffer."
   (setq major-mode 'gdb-breakpoints-mode)
   (setq mode-name "Breakpoints")
   (use-local-map gdb-breakpoints-mode-map)
-  (set (make-local-variable 'gud-minor-mode) 'gdba)
-  (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
   (setq buffer-read-only t)
   (gdb-invalidate-breakpoints))
 
@@ -1423,7 +1413,7 @@ buffer."
 (defvar gdb-source-window nil)
 
 (defun gdb-goto-bp-this-line ()
-"Display the file at the specified breakpoint."
+  "Display the file at the specified breakpoint."
   (interactive)
   (save-excursion
     (beginning-of-line 1)
@@ -1431,12 +1421,13 @@ buffer."
     (looking-at "\\(\\S-*\\):\\([0-9]+\\)"))
   (let ((line (match-string 2))
 	(file (match-string 1)))
-    (set-window-buffer gdb-source-window
-		       (find-file-noselect
-			(if (file-exists-p file)
-			    file
-			  (expand-file-name file gdb-cdir))))
-    (goto-line (string-to-number line))))
+    (save-selected-window
+      (select-window gdb-source-window)
+      (switch-to-buffer (find-file-noselect
+			 (if (file-exists-p file)
+			     file
+			   (expand-file-name file gdb-cdir))))
+      (goto-line (string-to-number line)))))
 
 ;;
 ;; Frames buffers.  These display a perpetually correct bactracktrace
@@ -1469,8 +1460,7 @@ buffer."
 	(forward-line 1)))))
 
 (defun gdb-stack-buffer-name ()
-  (save-excursion
-    (set-buffer (process-buffer gdb-proc))
+  (with-current-buffer gud-comint-buffer
     (concat "*stack frames of "
 	    (gdb-instance-target-string) "*")))
 
@@ -1496,8 +1486,6 @@ buffer."
 \\{gdb-frames-mode-map}"
   (setq major-mode 'gdb-frames-mode)
   (setq mode-name "Frames")
-  (set (make-local-variable 'gud-minor-mode) 'gdba)
-  (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
   (setq buffer-read-only t)
   (use-local-map gdb-frames-mode-map)
   (gdb-invalidate-frames))
@@ -1519,7 +1507,7 @@ buffer."
 	(setq selection (gdb-get-frame-number))))
     (select-window (posn-window (event-end e)))
     (save-excursion
-      (set-buffer (gdb-get-instance-buffer 'gdba))
+      (set-buffer gud-comint-buffer)
   (gdb-instance-enqueue-idle-input
    (list (gud-format-command "server frame %p\n" selection)
 	 'ignore))
@@ -1553,15 +1541,12 @@ buffer."
 \\{gdb-registers-mode-map}"
   (setq major-mode 'gdb-registers-mode)
   (setq mode-name "Registers")
-  (set (make-local-variable 'gud-minor-mode) 'gdba)
-  (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
   (setq buffer-read-only t)
   (use-local-map gdb-registers-mode-map)
   (gdb-invalidate-registers))
 
 (defun gdb-registers-buffer-name ()
-  (save-excursion
-    (set-buffer (process-buffer gdb-proc))
+  (with-current-buffer gud-comint-buffer
     (concat "*registers of " (gdb-instance-target-string) "*")))
 
 (defun gdb-display-registers-buffer ()
@@ -1593,11 +1578,14 @@ buffer."
     (save-excursion
       (set-buffer buf)
       (goto-char (point-min))
-      (replace-regexp "^ .*\n" "")
+      (while (re-search-forward "^ .*\n" nil t)
+	(replace-match "" nil nil))
       (goto-char (point-min))
-      (replace-regexp "{[-0-9, {}\]*\n" "(array);\n")))
+      (while (re-search-forward "{[-0-9, {}\]*\n" nil t)
+	(replace-match "(array);\n" nil nil))
       (goto-char (point-min))
-      (replace-regexp "{.*=.*\n" "(structure);\n")
+      (while (re-search-forward "{.*=.*\n" nil t)
+	(replace-match "(structure);\n" nil nil))))
   (let ((buf (gdb-get-instance-buffer 'gdb-locals-buffer)))
     (and buf (save-excursion
 	       (set-buffer buf)
@@ -1627,15 +1615,12 @@ buffer."
 \\{gdb-locals-mode-map}"
   (setq major-mode 'gdb-locals-mode)
   (setq mode-name "Locals")
-  (set (make-local-variable 'gud-minor-mode) 'gdba)
-  (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
   (setq buffer-read-only t)
   (use-local-map gdb-locals-mode-map)
   (gdb-invalidate-locals))
 
 (defun gdb-locals-buffer-name ()
-  (save-excursion
-    (set-buffer (process-buffer gdb-proc))
+  (with-current-buffer gud-comint-buffer
     (concat "*locals of " (gdb-instance-target-string) "*")))
 
 (defun gdb-display-locals-buffer ()
@@ -1685,15 +1670,12 @@ buffer."
 \\{gdb-display-mode-map}"
   (setq major-mode 'gdb-display-mode)
   (setq mode-name "Display")
-  (set (make-local-variable 'gud-minor-mode) 'gdba)
-  (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
   (setq buffer-read-only t)
   (use-local-map gdb-display-mode-map)
   (gdb-invalidate-display))
 
 (defun gdb-display-buffer-name ()
-  (save-excursion
-    (set-buffer (process-buffer gdb-proc))
+  (with-current-buffer gud-comint-buffer
     (concat "*Displayed expressions of " (gdb-instance-target-string) "*")))
 
 (defun gdb-display-display-buffer ()
@@ -2200,8 +2182,6 @@ BUFFER nil or omitted means use the current buffer."
 \\{gdb-assembler-mode-map}"
   (setq major-mode 'gdb-assembler-mode)
   (setq mode-name "Assembler")
-  (set (make-local-variable 'gud-minor-mode) 'gdba)
-  (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
   (setq left-margin-width 2)
   (setq buffer-read-only t)
   (use-local-map gdb-assembler-mode-map)
@@ -2209,8 +2189,7 @@ BUFFER nil or omitted means use the current buffer."
   (gdb-invalidate-breakpoints))
 
 (defun gdb-assembler-buffer-name ()
-  (save-excursion
-    (set-buffer (process-buffer gdb-proc))
+  (with-current-buffer gud-comint-buffer
     (concat "*Machine Code " (gdb-instance-target-string) "*")))
 
 (defun gdb-display-assembler-buffer ()
@@ -2244,7 +2223,7 @@ BUFFER nil or omitted means use the current buffer."
 
 	;; take previous disassemble command off the queue
 	(save-excursion
-	  (set-buffer (gdb-get-instance-buffer 'gdba))
+	  (set-buffer gud-comint-buffer)
 	  (let ((queue gdb-idle-input-queue) (item))
 	    (while queue
 	      (setq item (car queue))
