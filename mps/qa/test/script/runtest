@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:runtest(trunk.4) $
+# $HopeName: MMQA_harness!script:runtest(trunk.5) $
 #
 # provides subroutines to run tests and testsets
 #
@@ -14,15 +14,21 @@
 sub run_exe {
  local ($exefile, $interact, $stdin) = @_;
 
- if (! defined $stdin) {
-  $stdin = "STDIN";
- } else {
-  $stdin = $DATA_DIR."/".$stdin;
- }
-
  &log_system($exefile, $interact, $testlogfile, $stdin);
  &read_results($testlogfile);
  &verdict;
+}
+
+sub setstdin {
+ local ($stdin);
+ $stdin = $STDIN;
+ if (!defined $stdin || $stdin eq "") {
+  $stdin = $DATA_DIR."/".$test_header{"stdin"};
+ }
+ if (!defined $stdin || $stdin eq "") {
+  $stdin = "STDIN";
+ }
+ return $stdin;
 }
 
 sub clib {
@@ -59,13 +65,14 @@ sub run_test {
  for $lang ($test_header{"language"}) {
 
   if ($lang =~ /^c$/) {
+   $stdin = &setstdin;
    $linkfiles = $test_header{"link"};
    $objfile = "$obj_dir/tmp_test";
    unless (&compile_and_link($testfile, $objfile, $linkfiles)) {
     die "Compilation failed on test ".$testfile.".\n";
    }
    $testlogfile = "$obj_dir/tmp_log.log";
-   &run_exe($objfile, $interact, $test_header{"stdin"});
+   &run_exe($objfile, $interact, $stdin);
    &describe_test($report_type);
    last;
   };
@@ -88,6 +95,7 @@ sub run_from_testset {
   &logcomment("Skipping test $testfile: don't know how to run it in batch mode.");
   $testsetresults{$testfile}="/";
  } else {
+  $stdin = $setstdin;
   $linkfiles = $test_header{"link"};
   $objfile = "$obj_dir/tmp_test";
   $testlogfile = "$obj_dir/tmp_log.log";
@@ -96,7 +104,7 @@ sub run_from_testset {
    &logcomment("Compilation failed on $testfile.");
    $testsetresults{$testfile}="C";
   } else {
-   &run_exe($objfile, "no", $test_header{"stdin"});
+   &run_exe($objfile, "no", $stdin);
    &describe_test("summary");
    &describe_test("summary", LOG_SUMMARY);
    &describe_test("results", LOG_RESULTS);
