@@ -1,4 +1,4 @@
-\input texinfo                                  @c -*-texinfo-*-
+@c \input texinfo                                  @c -*-texinfo-*-
 @comment %**start of header
 @setfilename ../info/eintr
 @c sethtmlfilename emacs-lisp-intro.html
@@ -26,6 +26,8 @@
 
 @ignore
  ## Summary of shell commands to create various output formats:
+
+    pushd /usr/local/src/emacs/lispintro/
 
     ## Info output
     makeinfo --no-split --paragraph-indent=0 --verbose emacs-lisp-intro.texi
@@ -6088,7 +6090,7 @@ number.  This number is multiplied by the buffer size in the following
 expression:
 
 @smallexample
-(* (buffer-size) (prefix-numeric-value arg)
+(* (buffer-size) (prefix-numeric-value arg))
 @end smallexample
 
 @noindent
