@@ -1,7 +1,7 @@
 /* impl.c.vmso: VIRTUAL MEMORY MAPPING FOR SOLARIS 2.x
  *
- * $HopeName: MMsrc!vmso.c(trunk.13) $
- * Copyright (C) 1998, Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!vmso.c(trunk.14) $
+ * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * DESIGN
  *
@@ -53,7 +53,7 @@
 /* unistd for _SC_PAGESIZE */
 #include <unistd.h>
 
-SRCID(vmso, "$HopeName: MMsrc!vmso.c(trunk.13) $");
+SRCID(vmso, "$HopeName: MMsrc!vmso.c(trunk.14) $");
 
 
 /* Fix up unprototyped system calls.  */
@@ -269,6 +269,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
 
   vm->mapped += size;
 
+  EVENT_PAA(VMMap, vm, base, limit);
   return ResOK;
 }
 
@@ -300,4 +301,6 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   AVER(addr == (caddr_t)base);
 
   vm->mapped -= size;
+
+  EVENT_PAA(VMUnmap, vm, base, limit);
 }

@@ -1,7 +1,7 @@
 /* impl.c.vmsu: VIRTUAL MEMORY MAPPING FOR SUNOS 4
  *
- * $HopeName: MMsrc!vmsu.c(trunk.16) $
- * Copyright (C) 1995, 1997, 1998 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!vmsu.c(trunk.17) $
+ * Copyright (C) 1995, 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * Design: design.mps.vm
  *
@@ -54,7 +54,7 @@
 #include <errno.h>
 #include <sys/errno.h>
 
-SRCID(vmsu, "$HopeName: MMsrc!vmsu.c(trunk.16) $");
+SRCID(vmsu, "$HopeName: MMsrc!vmsu.c(trunk.17) $");
 
 
 /* Fix up unprototyped system calls.  */
@@ -262,6 +262,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
 
   vm->mapped += size;
 
+  EVENT_PAA(VMMap, vm, base, limit);
   return ResOK;
 }
 
@@ -292,4 +293,6 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   AVER(addr == (caddr_t)base);
 
   vm->mapped -= size;
+
+  EVENT_PAA(VMUnmap, vm, base, limit);
 }
