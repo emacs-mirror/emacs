@@ -45,6 +45,14 @@ extern long timezone;
 #endif
 #endif
 
+/* On some configurations (hpux8.0, X11R4), sys/time.h and X11/Xos.h
+   disagree about the name of the guard symbol.  */
+#ifdef _STRUCT_TIMEVAL
+#ifndef __TIMEVAL__
+#define __TIMEVAL__
+#endif
+#endif
+
 
 /* EMACS_TIME is the type to use to represent temporal intervals -
    struct timeval on some systems, int on others.  It can be passed as
