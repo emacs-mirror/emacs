@@ -9,7 +9,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.45 $")
+(defconst byte-compile-version "$Revision: 2.46 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -358,7 +358,7 @@ The call tree also lists those functions which are not known to be called
 invoked interactively are excluded from this list."
   :group 'bytecomp
   :type '(choice (const :tag "Yes" t) (const :tag "No" nil)
-		 (const :tag "Ask" lambda)))
+		 (other :tag "Ask" lambda)))
 
 (defconst byte-compile-call-tree nil "Alist of functions and their call tree.
 Each element looks like
