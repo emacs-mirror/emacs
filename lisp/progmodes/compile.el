@@ -437,6 +437,14 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2)
     ;; in unnamed entity at line 4 char 8 of file:///home/reto/test/group.xml
     ("Warning:.*\n.* line \\([0-9]+\\) char \\([0-9]+\\) of file://\\(.+\\)"
      3 1 2)
+
+    ;; See http://ant.apache.org/faq.html
+    ;; Ant Java: works for jikes
+    ("^\\s-*\\[[^]]*\\]\\s-*\\(.+\\):\\([0-9]+\\):\\([0-9]+\\):[0-9]+:[0-9]+:" 1 2 3)
+
+    ;; Ant Java: works for javac
+    ("^\\s-*\\[[^]]*\\]\\s-*\\(.+\\):\\([0-9]+\\):" 1 2)
+
     )
 
   "Alist that specifies how to match errors in compiler output.
