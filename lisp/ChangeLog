@@ -1,5 +1,9 @@
 2001-04-10  Gerd Moellmann  <gerd@gnu.org>
 
+	* simple.el (completion-list-mode-finish): New function.
+	(toplevel): Add completion-list-mode-finish to
+	temp-buffer-show-hook.
+
 	* language/european.el ("Polish"): Change sample text.
 	From: jsbien@mimuw.edu.pl (Janusz S. Bie,Bq(B).
 
