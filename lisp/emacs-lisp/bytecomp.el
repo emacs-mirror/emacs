@@ -1204,6 +1204,8 @@ With prefix arg (noninteractively: 2nd arg), load the file after compiling."
     (setq output-buffer (byte-compile-from-buffer input-buffer filename))
     (if byte-compiler-error-flag
 	nil
+      (if byte-compile-verbose
+	  (message "Compiling %s...done" filename))
       (kill-buffer input-buffer)
       (save-excursion
 	(set-buffer output-buffer)
