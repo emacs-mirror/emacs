@@ -133,17 +133,20 @@ EVENT should be a scroll bar click or drag event."
 If you click outside the slider, the window scrolls to bring the slider there."
   (interactive "e")
   (let* (done)
+    (or point-before-scroll
+	(setq point-before-scroll (point)))
     (scroll-bar-drag-1 event)
-    (track-mouse
-      (while (not done)
-	(setq event (read-event))
-	(if (eq (car-safe event) 'mouse-movement)
-	    (setq event (read-event)))
-	(cond ((eq (car-safe event) 'scroll-bar-movement)
-	       (scroll-bar-drag-1 event))
-	      (t
-	       ;; Exit when we get the drag event; ignore that event.
-	       (setq done t)))))))
+    (let (point-before-scroll)
+      (track-mouse
+	(while (not done)
+	  (setq event (read-event))
+	  (if (eq (car-safe event) 'mouse-movement)
+	      (setq event (read-event)))
+	  (cond ((eq (car-safe event) 'scroll-bar-movement)
+		 (scroll-bar-drag-1 event))
+		(t
+		 ;; Exit when we get the drag event; ignore that event.
+		 (setq done t))))))))
 
 (defun scroll-bar-scroll-down (event)
   "Scroll the window's top line down to the location of the scroll bar click.
@@ -155,9 +158,13 @@ EVENT should be a scroll bar click."
 	  (let* ((end-position (event-end event))
 		 (window (nth 0 end-position))
 		 (portion-whole (nth 2 end-position)))
-	    (select-window window)
-	    (scroll-down
-	     (scroll-bar-scale portion-whole (1- (window-height))))))
+	    (let (point-before-scroll)
+	      (select-window window))
+	    (or point-before-scroll
+		(setq point-before-scroll (point)))
+	    (let (point-before-scroll)
+	      (scroll-down
+	       (scroll-bar-scale portion-whole (1- (window-height)))))))
       (select-window old-selected-window))))
 
 (defun scroll-bar-scroll-up (event)
@@ -170,9 +177,13 @@ EVENT should be a scroll bar click."
 	  (let* ((end-position (event-end event))
 		 (window (nth 0 end-position))
 		 (portion-whole (nth 2 end-position)))
-	    (select-window window)
-	    (scroll-up
-	     (scroll-bar-scale portion-whole (1- (window-height))))))
+	    (let (point-before-scroll)
+	      (select-window window))
+	    (or point-before-scroll
+		(setq point-before-scroll (point)))
+	    (let (point-before-scroll)
+	      (scroll-up
+	       (scroll-bar-scale portion-whole (1- (window-height)))))))
       (select-window old-selected-window))))
 
 
