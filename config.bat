@@ -22,17 +22,17 @@ rem   ----------------------------------------------------------------------
 rem   YOU'LL NEED THE FOLLOWING UTILITIES TO MAKE EMACS:
 rem
 rem   + msdos version 3 or better.
-rem   + djgpp version 1,11 maint 4 or better.
+rem   + djgpp version 1,11 maint 4 or better (but not version 2).
 rem   + make utility that allows breaking of the 128 chars limit on
 rem     command lines.  ndmake (as of version 4.5) won't work due to a
-rem     line length limit.
+rem     line length limit.  The make that comes with djgpp does work.
 rem   + rm, mv, chmod (From GNU file utilities).
 rem   + sed.
 rem
-rem   You should be able to get all the above utilities from all
-rem   Simtel repositories, e.g., oak.oakland.edu in the directories
-rem   "/pub/msdos/djgpp" and "/pub/msdos/gnuish".  As usual, please
-rem   use your local mirroring site to reduce trans-Atlantic traffic.
+rem   You should be able to get all the above utilities from
+rem   oak.oakland.edu in the directories
+rem   "/pub/msdos/djgpp" and "/pub/msdos/gnuish".  There are other mirror
+rem   sites as well.
 rem   ----------------------------------------------------------------------
 set X11=
 set nodebug=
