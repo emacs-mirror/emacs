@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.65) $
+ * $HopeName: MMsrc!trace.c(trunk.66) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * .design: design.mps.trace.
@@ -8,7 +8,7 @@
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.65) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.66) $");
 
 
 /* Types
@@ -853,7 +853,7 @@ static Res TraceScan(TraceSet ts, Rank rank,
 }
 
 
-void TraceAccess(Arena arena, Seg seg, AccessSet mode)
+void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
 {
   Res res;
   TraceId ti;

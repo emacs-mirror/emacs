@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.79) $
+ * $HopeName$
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  */
 
@@ -278,6 +278,7 @@ extern void PoolDestroy(Pool pool);
 extern Res PoolAlloc(Addr *pReturn, Pool pool, Size size);
 extern void PoolFree(Pool pool, Addr old, Size size);
 extern Res PoolTraceBegin(Pool pool, Trace trace);
+extern Res PoolAccess(Pool pool, Seg seg, Addr addr, AccessSet mode);
 extern Res PoolWhiten(Pool pool, Trace trace, Seg seg);
 extern void PoolGrey(Pool pool, Trace trace, Seg seg);
 extern void PoolBlacken(Pool pool, TraceSet traceSet, Seg seg);
@@ -392,7 +393,7 @@ extern Res TraceFlip(Trace trace);
 extern void TraceDestroy(Trace trace);
 extern Res TraceStep(Trace trace);
 extern void TracePoll(Trace trace);
-extern void TraceAccess(Arena arena, Seg seg, AccessSet mode);
+extern void TraceSegAccess(Arena arena, Seg seg, AccessSet mode);
 
 extern Res TraceFix(ScanState ss, Ref *refIO);
 extern Res TraceFixEmergency(ScanState ss, Ref *refIO);

@@ -1,7 +1,7 @@
 /* impl.c.arena: ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arena.c(trunk.32) $
- * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
+ * $HopeName$
+ * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  *
  * .readership: Any MPS developer
  *
@@ -36,7 +36,7 @@
 #include "poolmrg.h"
 #include "mps.h"
 
-SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.32) $");
+SRCID(arena, "$HopeName: MMsrc!arena.c(trunk.31) $");
 
 
 /* All static data objects are declared here. See .static */
@@ -482,8 +482,8 @@ Bool ArenaAccess(Addr addr, AccessSet mode)
     ArenaEnter(arena);     /* design.mps.arena.lock.arena */
     AVERT(Arena, arena);   /* can't AVER until we've got the lock */
     /* @@@@ The code below assumes that Roots and Segs are disjoint. */
-    /* It will fall over (in TraceAccess) if there is a protected */
-    /* root on a segment. */
+    /* It will fall over (in TraceSegAccess probably) if there is a */
+    /* protected root on a segment. */
     /* It is possible to overcome this restriction. */
     if(SegOfAddr(&seg, arena, addr)) {
       LockReleaseMPM(&arenaRingLock);
@@ -494,7 +494,7 @@ Bool ArenaAccess(Addr addr, AccessSet mode)
        */
       mode &= SegPM(seg);
       if(mode != AccessSetEMPTY)
-        TraceAccess(arena, seg, mode);
+        PoolAccess(SegPool(seg), seg, addr, mode);
       ArenaLeave(arena);
       return TRUE;
     } else if(RootOfAddr(&root, arena, addr)) {

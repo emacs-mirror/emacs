@@ -1,18 +1,43 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.46) $
+ * $HopeName: MMsrc!pool.c(trunk.47) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
- * This is the implementation of the generic pool interface.  The
- * functions here dispatch to pool-specific methods.
+ * READERSHIP
  *
- * See impl.h.mpmst for definition of Pool.  
- * See design.mps.pool for design. 
+ * .readership: any MPS developer
+ *
+ * DESIGN
+ *
+ * .design: See design.mps.class-interface and design.mps.pool [both of
+ * these are somewhat dated, but still useful in part -- drj 1998-04-17]
+ *
+ * PURPOSE
+ *
+ * .purpose: This is the implementation of the generic pool interface.
+ * There are three sorts of functions provided:
+ * .purpose.support: Support functions for manipulating and accessing
+ * Pool and PoolClass objects (create, destroy, check, various
+ * accessors, and other miscellaneous functions).
+ * .purpose.dispatch: Dispatch functions that implement the generic
+ * function dispatch mechanism for Pool Classes (PoolAlloc, PoolFix,
+ * etc).
+ * .purpose.core: A selection of default, trivial, or useful methods
+ * that Pool Classes can use as the implementations for some of their
+ * methods. (such as PoolTrivWhiten, PoolNoFix, PoolCollectAct, etc).
+ *
+ * SOURCES
+ *
+ * .source: See .design also.  PoolStruct and PoolClassStruct, the
+ * central types for this module, are defined in impl.h.mpmst, the
+ * corresponding abstract types in impl.h.mpmtypes.  Declarations and
+ * prototypes are in impl.h.mpm.  Several functions have macro versions
+ * defined in impl.h.mpm.
  */
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.46) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.47) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -265,6 +290,17 @@ Res PoolTraceBegin(Pool pool, Trace trace)
   AVERT(Trace, trace);
   AVER(PoolArena(pool) == trace->arena);
   return (*pool->class->traceBegin)(pool, trace);
+}
+
+Res PoolAccess(Pool pool, Seg seg, Addr addr, AccessSet mode)
+{
+  AVERT(Pool, pool);
+  AVERT(Seg, seg);
+  AVER(SegBase(seg) <= addr);
+  AVER(addr < SegLimit(seg));
+  /* Can't check mode as there is no check method */
+
+  return (*pool->class->access)(pool, seg, addr, mode);
 }
 
 Res PoolWhiten(Pool pool, Trace trace, Seg seg)
@@ -682,6 +718,13 @@ Res PoolTrivTraceBegin(Pool pool, Trace trace)
   return ResOK;
 }
 
+/* NoAccess
+ *
+ * Should be used (for the access method) by Pool Classes which do
+ * not expect to ever have pages which the mutator will fault on.
+ * That is, no protected pages, or only pages which are inaccessible
+ * by the mutator are protected.
+ */
 Res PoolNoAccess(Pool pool, Seg seg, Addr addr, AccessSet mode)
 {
   AVERT(Pool, pool);
@@ -694,16 +737,29 @@ Res PoolNoAccess(Pool pool, Seg seg, Addr addr, AccessSet mode)
   return ResUNIMPL;
 }
 
+/* SegAccess
+ *
+ * Should be used (for the access method) by Pool Classes which intend
+ * to handle page faults by scanning the entire segment and lowering
+ * the barrier.
+ */
 Res PoolSegAccess(Pool pool, Seg seg, Addr addr, AccessSet mode)
 {
+  Arena arena;
+  Res res;
+  TraceId ti;
+
   AVERT(Pool, pool);
   AVERT(Seg, seg);
   AVER(SegBase(seg) <= addr);
   AVER(addr < SegLimit(seg));
+  AVER(SegPool(seg) == pool);
   /* can't check AccessSet as there is no Check method */
 
-  NOTREACHED;
-  return ResUNIMPL;
+  UNUSED(addr);
+  UNUSED(pool);
+  TraceSegAccess(PoolArena(pool), seg, mode);
+  return ResOK;
 }
 
 Res PoolTrivWhiten(Pool pool, Trace trace, Seg seg)
