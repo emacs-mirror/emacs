@@ -992,7 +992,7 @@ typedef unsigned char UCHAR;
   do { if (!SYMBOLP ((x))) x = wrong_type_argument (Qsymbolp, (x)); } while (0)
 
 #define CHECK_CHAR_TABLE(x, i) \
-  do { if (!CHAR_TABLE_P ((x)) && !NILP (x))				\
+  do { if (!CHAR_TABLE_P ((x)))	\
 	 x = wrong_type_argument (Qchar_table_p, (x)); } while (0)
 
 #define CHECK_VECTOR(x, i) \
