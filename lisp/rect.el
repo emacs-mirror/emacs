@@ -1,8 +1,8 @@
 ;;; rect.el --- rectangle functions for GNU Emacs.
 
-;; Copyright (C) 1985, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1999 Free Software Foundation, Inc.
 
-;; Maintainer: FSF
+;; Maintainer: Didier Verna <verna@inf.enst.fr>
 ;; Keywords: internal
 
 ;; This file is part of GNU Emacs.
@@ -27,14 +27,23 @@
 ;; This package provides the operations on rectangles that are ocumented
 ;; in the Emacs manual.
 
+;; ### NOTE: this file has been almost completely rewritten by Didier Verna
+;; <verna@inf.enst.fr> in July 1999. The purpose of this rewrite is to be less
+;; intrusive and fill lines with whitespaces only when needed. A few functions
+;; are untouched though, as noted above their definition.
+
+
 ;;; Code:
 
 ;;;###autoload
-(defun move-to-column-force (column)
+(defun move-to-column-force (column &optional flag)
   "Move point to column COLUMN rigidly in the current line.
 If COLUMN is within a multi-column character, replace it by
-spaces and tab."
-  (let ((col (move-to-column column t)))
+spaces and tab.
+
+As for `move-to-column', passing anything but nil or t in FLAG will move to
+the desired column only if the line is long enough."
+  (let ((col (move-to-column column (or flag t))))
     (if (> col column)
 	(let (pos)
 	  (delete-char -1)
@@ -44,10 +53,13 @@ spaces and tab."
 	  (goto-char pos)))
     column))
 
+;; not used any more --dv
 ;; extract-rectangle-line stores lines into this list
 ;; to accumulate them for extract-rectangle and delete-extract-rectangle.
 (defvar operate-on-rectangle-lines)
 
+;; ### NOTE: this function is untouched, but not used anymore appart in
+;; `delete-whitespace-rectangle'. `apply-on-rectangle' is used instead. --dv
 (defun operate-on-rectangle (function start end coerce-tabs)
   "Call FUNCTION for each line of rectangle with corners at START, END.
 If COERCE-TABS is non-nil, convert multi-column characters
@@ -95,34 +107,92 @@ Point is at the end of the segment of this line within the rectangle."
        (forward-line 1)))
     (- endcol startcol)))
 
-(defun delete-rectangle-line (startdelpos ignore ignore)
-  (delete-region startdelpos (point)))
+;; The replacement for `operate-on-rectangle' -- dv
+(defun apply-on-rectangle (function start end &rest args)
+  "Call FUNCTION for each line of rectangle with corners at START, END.
+FUNCTION is called with two arguments: the start and end columns of the
+rectangle, plus ARGS extra arguments. Point is at the beginning of line when
+the function is called."
+  (let (startcol startpt endcol endpt)
+    (save-excursion
+      (goto-char start)
+      (setq startcol (current-column))
+      (beginning-of-line)
+      (setq startpt (point))
+      (goto-char end)
+      (setq endcol (current-column))
+      (forward-line 1)
+      (setq endpt (point-marker))
+      ;; ensure the start column is the left one.
+      (if (< endcol startcol)
+	  (let ((col startcol))
+	    (setq startcol endcol endcol col)))
+      ;; start looping over lines
+      (goto-char startpt)
+      (while (< (point) endpt)
+	(apply function startcol endcol args)
+	(forward-line 1)))
+    ))
 
-(defun delete-extract-rectangle-line (startdelpos begextra endextra)
-  (save-excursion
-   (extract-rectangle-line startdelpos begextra endextra))
-  (delete-region startdelpos (point)))
+(defun delete-rectangle-line (startcol endcol fill)
+  (let ((pt (point-at-eol)))
+    (when (= (move-to-column-force startcol (or fill 'coerce)) startcol)
+      (if (and (not fill) (<= pt endcol))
+	  (delete-region (point) pt)
+	;; else
+	(setq pt (point))
+	(move-to-column-force endcol)
+	(delete-region pt (point))))
+    ))
 
-(defun extract-rectangle-line (startdelpos begextra endextra)
-  (let ((line (buffer-substring startdelpos (point)))
-	(end (point)))
-    (goto-char startdelpos)
+(defun delete-extract-rectangle-line (startcol endcol lines fill)
+  (let ((pt (point-at-eol)))
+    (if (< (move-to-column-force startcol (or fill 'coerce)) startcol)
+	(setcdr lines (cons (spaces-string (- endcol startcol))
+			    (cdr lines)))
+      ;; else
+      (setq pt (point))
+      (move-to-column-force endcol)
+      (setcdr lines (cons (buffer-substring pt (point)) (cdr lines)))
+      (delete-region pt (point)))
+    ))
+
+;; ### NOTE: this is actually the only function that needs to do complicated
+;; stuff like what's happening in `operate-on-rectangle', because the buffer
+;; might be read-only. --dv
+(defun extract-rectangle-line (startcol endcol lines)
+  (let (start end begextra endextra line)
+    (move-to-column startcol)
+    (setq start (point)
+	  begextra (- (current-column) startcol))
+    (move-to-column endcol)
+    (setq end (point)
+	  endextra (- endcol (current-column)))
+    (setq line (buffer-substring start (point)))
+    (if (< begextra 0)
+	(setq endextra (+ endextra begextra)
+	      begextra 0))
+    (if (< endextra 0)
+	(setq endextra 0))
+    (goto-char start)
     (while (search-forward "\t" end t)
       (let ((width (- (current-column)
 		      (save-excursion (forward-char -1)
 				      (current-column)))))
 	(setq line (concat (substring line 0 (- (point) end 1))
 			   (spaces-string width)
-			   (substring line (+ (length line) (- (point) end)))))))
+			   (substring line (+ (length line)
+					      (- (point) end)))))))
     (if (or (> begextra 0) (> endextra 0))
 	(setq line (concat (spaces-string begextra)
 			   line
 			   (spaces-string endextra))))
-    (setq operate-on-rectangle-lines (cons line operate-on-rectangle-lines))))
+    (setcdr lines (cons line (cdr lines)))))
 
 (defconst spaces-strings
   '["" " " "  " "   " "    " "     " "      " "       " "        "])
 
+;; this one is untouched --dv
 (defun spaces-string (n)
   (if (<= n 8) (aref spaces-strings n)
     (let ((val ""))
@@ -132,52 +202,61 @@ Point is at the end of the segment of this line within the rectangle."
       (concat val (aref spaces-strings n)))))
     
 ;;;###autoload
-(defun delete-rectangle (start end)
-  "Delete (don't save) text in rectangle with point and mark as corners.
-The same range of columns is deleted in each line starting with the line
-where the region begins and ending with the line where the region ends."
-  (interactive "r")
-  (operate-on-rectangle 'delete-rectangle-line start end t))
+(defun delete-rectangle (start end &optional fill)
+  "Delete (don't save) text in rectangle with corners at point and mark (START
+and END when called from a program). The same range of columns is deleted in
+each line starting with the line where the region begins and ending with the
+line where the region ends.
+
+With a prefix (or a FILL) argument, also fill lines where nothing has to be
+deleted."
+  (interactive "r\nP")
+  (apply-on-rectangle 'delete-rectangle-line start end fill))
 
 ;;;###autoload
-(defun delete-extract-rectangle (start end)
-  "Delete contents of rectangle and return it as a list of strings.
-Arguments START and END are the corners of the rectangle.
-The value is list of strings, one for each line of the rectangle."
-  (let (operate-on-rectangle-lines)
-    (operate-on-rectangle 'delete-extract-rectangle-line
-			  start end t)
-    (nreverse operate-on-rectangle-lines)))
+(defun delete-extract-rectangle (start end &optional fill)
+  "Delete the contents of the rectangle with corners at START and END, and
+return it as a list of strings, one for each line of the rectangle.
+
+With an optional FILL argument, also fill lines where nothing has to be
+deleted."
+  (let ((lines (list nil)))
+    (apply-on-rectangle 'delete-extract-rectangle-line start end lines fill)
+    (nreverse (cdr lines))))
 
 ;;;###autoload
 (defun extract-rectangle (start end)
-  "Return contents of rectangle with corners at START and END.
-Value is list of strings, one for each line of the rectangle."
-  (let (operate-on-rectangle-lines)
-    (operate-on-rectangle 'extract-rectangle-line start end nil)
-    (nreverse operate-on-rectangle-lines)))
+  "Return the contents of the rectangle with corners at START and END,
+as a list of strings, one for each line of the rectangle."
+  (let ((lines (list nil)))
+    (apply-on-rectangle 'extract-rectangle-line start end lines)
+    (nreverse (cdr lines))))
 
 (defvar killed-rectangle nil
   "Rectangle for yank-rectangle to insert.")
 
 ;;;###autoload
-(defun kill-rectangle (start end)
-  "Delete rectangle with corners at point and mark; save as last killed one.
-Calling from program, supply two args START and END, buffer positions.
-But in programs you might prefer to use `delete-extract-rectangle'."
-  (interactive "r")
-  (if buffer-read-only
-      (progn
-	(setq killed-rectangle (extract-rectangle start end))
-	(barf-if-buffer-read-only)))
-  (setq killed-rectangle (delete-extract-rectangle start end)))
+(defun kill-rectangle (start end &optional fill)
+  "Delete the rectangle with corners at point and mark (START and END when
+called from a program) and save it as the last killed one. You might prefer to
+use `delete-extract-rectangle' from a program.
 
+With a prefix (or a FILL) argument, also fill lines where nothing has to be
+deleted."
+  (interactive "r\nP")
+  (when buffer-read-only
+    (setq killed-rectangle (extract-rectangle start end))
+    (barf-if-buffer-read-only))
+  (setq killed-rectangle (delete-extract-rectangle start end fill)))
+
+;; this one is untouched --dv
 ;;;###autoload
 (defun yank-rectangle ()
   "Yank the last killed rectangle with upper left corner at point."
   (interactive)
   (insert-rectangle killed-rectangle))
 
+;; this one is untoutched --dv
 ;;;###autoload
 (defun insert-rectangle (rectangle)
   "Insert text of RECTANGLE with upper left corner at point.
@@ -201,96 +280,87 @@ and point is at the lower right corner."
       (setq lines (cdr lines)))))
 
 ;;;###autoload
-(defun open-rectangle (start end)
-  "Blank out rectangle with corners at point and mark, shifting text right.
-The text previously in the region is not overwritten by the blanks,
-but instead winds up to the right of the rectangle."
-  (interactive "r")
-  (operate-on-rectangle 'open-rectangle-line start end nil)
+(defun open-rectangle (start end &optional fill)
+  "Blank out rectangle with corners at point and mark (START and END when
+called from a program), shifting text right. The text previously in the region
+is not overwritten by the blanks, but instead winds up to the right of the
+rectangle.
+
+With a prefix (or a FILL) argument, fill with blanks even if there is no text
+on the right side of the rectangle."
+  (interactive "r\nP")
+  (apply-on-rectangle 'open-rectangle-line start end fill)
   (goto-char start))
 
-(defun open-rectangle-line (startpos begextra endextra)
-  ;; Column where rectangle ends.
-  (let ((endcol (+ (current-column) endextra))
-	whitewidth)
-    (goto-char startpos)
-    ;; Column where rectangle begins.
-    (let ((begcol (- (current-column) begextra)))
-      (if (> begextra 0)
-	  (move-to-column-force begcol))
-      (skip-chars-forward " \t")
-      ;; Width of whitespace to be deleted and recreated.
-      (setq whitewidth (- (current-column) begcol)))
-    ;; Delete the whitespace following the start column.
-    (delete-region startpos (point))
-    ;; Open the desired width, plus same amount of whitespace we just deleted.
-    (indent-to (+ endcol whitewidth))))
+(defun open-rectangle-line (startcol endcol fill)
+  (let (spaces)
+    (when (= (move-to-column-force startcol (or fill 'coerce)) startcol)
+      (unless (and (not fill)
+		   (= (point) (point-at-eol)))
+	(indent-to endcol)))
+    ))
+
+(defun delete-whitespace-rectangle-line (startcol endcol fill)
+  (when (= (move-to-column-force startcol (or fill 'coerce)) startcol)
+    (unless (= (point) (point-at-eol))
+      (delete-region (point) (progn (skip-syntax-forward " ") (point))))
+    ))
 
 ;;;###autoload (defalias 'close-rectangle 'delete-whitespace-rectangle) ;; Old name
 ;;;###autoload
-(defun delete-whitespace-rectangle (start end)
+(defun delete-whitespace-rectangle (start end &optional fill)
   "Delete all whitespace following a specified column in each line.
 The left edge of the rectangle specifies the position in each line
 at which whitespace deletion should begin.  On each line in the
-rectangle, all continuous whitespace starting at that column is deleted."
-  (interactive "r")
-  (operate-on-rectangle '(lambda (startpos begextra endextra)
-			   (save-excursion
-			     (goto-char startpos)
-			     (delete-region (point)
-					    (progn
-					      (skip-syntax-forward " ")
-					      (point)))))
-			start end t))
+rectangle, all continuous whitespace starting at that column is deleted.
 
+With a prefix (or a FILL) argument, also fill too short lines."
+  (interactive "r\nP")
+  (apply-on-rectangle 'delete-whitespace-rectangle-line start end fill))
+
+;; not used any more --dv
 ;; string-rectangle uses this variable to pass the string
 ;; to string-rectangle-line.
 (defvar string-rectangle-string)
 
 ;;;###autoload
 (defun string-rectangle (start end string)
-  "Replace rectangle contents with STRING on each line.
-The length of STRING need not be the same as the rectangle width.
-
-Called from a program, takes three args; START, END and STRING."
+  "Insert STRING on each line of the rectangle with corners at point and mark
+(START and END when called from a program), shifting text right. The left edge
+of the rectangle specifies the column for insertion. This command does not
+delete or overwrite any existing text."
   (interactive "r\nsString rectangle: ")
-  (let ((string-rectangle-string string))
-    (operate-on-rectangle 'string-rectangle-line start end t)))
+  (apply-on-rectangle 'string-rectangle-line start end string))
 
-(defun string-rectangle-line (startpos begextra endextra)
-  (let (whitespace)
-    ;; Delete the width of the rectangle.
-    (delete-region startpos (point))
-    ;; Compute horizontal width of following whitespace.
-    (let ((ocol (current-column)))
-      (skip-chars-forward " \t")
-      (setq whitespace (- (current-column) ocol)))
-    ;; Delete the following whitespace.
-    (delete-region startpos (point))
-    ;; Insert the desired string.
-    (insert string-rectangle-string)
-    ;; Insert the same width of whitespace that we had before.
-    (indent-to (+ (current-column) whitespace))))
+(defun string-rectangle-line (startcol endcol string)
+  (move-to-column-force startcol)
+  (insert string))
 
 ;;;###autoload
-(defun clear-rectangle (start end)
-  "Blank out rectangle with corners at point and mark.
-The text previously in the region is overwritten by the blanks.
-When called from a program, requires two args which specify the corners."
-  (interactive "r")
-  (operate-on-rectangle 'clear-rectangle-line start end t))
+(defun clear-rectangle (start end &optional fill)
+  "Blank out the rectangle with corners at point and mark (START and END when
+called from a program). The text previously in the region is overwritten with
+blanks.
 
-(defun clear-rectangle-line (startpos begextra endextra)
-  ;; Find end of whitespace after the rectangle.
-  (skip-chars-forward " \t")
-  (let ((column (+ (current-column) endextra)))
-    ;; Delete the text in the rectangle, and following whitespace.
-    (delete-region (point)
-                   (progn (goto-char startpos)
-			  (skip-chars-backward " \t")
-			  (point)))
-    ;; Reindent out to same column that we were at.
-    (indent-to column)))
+With a prefix (or a FILL) argument, also fill with blanks the parts of the
+rectangle which were empty."
+  (interactive "r\nP")
+  (apply-on-rectangle 'clear-rectangle-line start end fill))
+
+(defun clear-rectangle-line (startcol endcol fill)
+  (let ((pt (point-at-eol))
+	spaces)
+    (when (= (move-to-column-force startcol (or fill 'coerce)) startcol)
+      (if (and (not fill)
+	       (<= (save-excursion (goto-char pt) (current-column)) endcol))
+	  (delete-region (point) pt)
+	;; else
+	(setq pt (point))
+	(move-to-column-force endcol)
+	(setq spaces (- (point) pt))
+	(delete-region pt (point))
+	(indent-to (+ (current-column) spaces))))
+    ))
 
 (provide 'rect)
 
