@@ -387,7 +387,7 @@ This function returns a timer object which you can use in `cancel-timer'."
   (let ((timer (timer-create)))
     (timer-set-function timer function args)
     (timer-set-idle-time timer secs repeat)
-    (timer-activate-when-idle timer t)
+    (timer-activate-when-idle timer)
     timer))
 
 (defun with-timeout-handler (tag)
