@@ -1127,9 +1127,6 @@ Does not copy symbols.")
   (obj)
      register Lisp_Object obj;
 {
-  register Lisp_Object new, tem;
-  register int i;
-
   if (NILP (Vpurify_flag))
     return obj;
 
@@ -1137,47 +1134,33 @@ Does not copy symbols.")
       && (PNTR_COMPARISON_TYPE) XPNTR (obj) >= (PNTR_COMPARISON_TYPE) pure)
     return obj;
 
-#ifdef SWITCH_ENUM_BUG
-  switch ((int) XTYPE (obj))
-#else
-  switch (XTYPE (obj))
-#endif
-    {
-    case Lisp_Misc:
-      switch (XMISC (obj)->type)
-	{
-	case Lisp_Misc_Marker:
-	  error ("Attempt to copy a marker to pure storage");
-
-	default:
-	  abort ();
-	}
-
-    case Lisp_Cons:
-      return pure_cons (XCONS (obj)->car, XCONS (obj)->cdr);
-
+  if (CONSP (obj))
+    return pure_cons (XCONS (obj)->car, XCONS (obj)->cdr);
 #ifdef LISP_FLOAT_TYPE
-    case Lisp_Float:
-      return make_pure_float (XFLOAT (obj)->data);
+  else if (FLOATP (obj))
+    return make_pure_float (XFLOAT (obj)->data);
 #endif /* LISP_FLOAT_TYPE */
+  else if (STRINGP (obj))
+    return make_pure_string (XSTRING (obj)->data, XSTRING (obj)->size);
+  else if (COMPILEDP (obj) || VECTORP (obj))
+    {
+      register struct Lisp_Vector *vec;
+      register int i, size;
 
-    case Lisp_String:
-      return make_pure_string (XSTRING (obj)->data, XSTRING (obj)->size);
-
-    case Lisp_Compiled:
-    case Lisp_Vector:
-      new = make_pure_vector (XVECTOR (obj)->size);
-      for (i = 0; i < XVECTOR (obj)->size; i++)
-	{
-	  tem = XVECTOR (obj)->contents[i];
-	  XVECTOR (new)->contents[i] = Fpurecopy (tem);
-	}
-      XSETTYPE (new, XTYPE (obj));
-      return new;
-
-    default:
+      size = XVECTOR (obj)->size;
+      vec = XVECTOR (make_pure_vector (size));
+      for (i = 0; i < size; i++)
+	vec->contents[i] = Fpurecopy (XVECTOR (obj)->contents[i]);
+      if (COMPILEDP (obj))
+	XSETCOMPILED (obj, vec);
+      else
+	XSETVECTOR (obj, vec);
       return obj;
     }
+  else if (MARKERP (obj))
+    error ("Attempt to copy a marker to pure storage");
+  else
+    return obj;
 }
 
 /* Recording what needs to be marked for gc.  */
