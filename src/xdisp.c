@@ -5477,11 +5477,9 @@ move_it_by_lines (it, dvpos, need_y_p)
       struct it it2;
       int start_charpos, i;
       
-      /* If we start in the middle of a line, move to the beginning
-	 of that line first.  */
-      if (IT_CHARPOS (*it) > BEGV
-	  && FETCH_BYTE (IT_BYTEPOS (*it) - 1) != '\n')
-	back_to_previous_visible_line_start (it);
+      /* Start at the beginning of the screen line containing IT's
+	 position.  */
+      move_it_vertically_backward (it, 0);
       
       /* Go back -DVPOS visible lines and reseat the iterator there.  */
       start_charpos = IT_CHARPOS (*it);
