@@ -1727,7 +1727,9 @@ It returns t if it got any new messages."
 		     (insert "X-Coding-System: "
 			     (symbol-name last-coding-system-used)
 			     "\n")))
-	       (narrow-to-region (point) (point-max)))
+	       (narrow-to-region (point) (point-max))
+	       (and (= 0 (% count 10))
+		    (message "Converting to Babyl...%d" count)))
 	      ;;*** MMDF format
 	      ((let ((case-fold-search t))
 		 (looking-at rmail-mmdf-delim1))
@@ -1752,7 +1754,9 @@ It returns t if it got any new messages."
 			 (symbol-name last-coding-system-used)
 			 "\n"))
 	       (narrow-to-region (point) (point-max))
-	       (setq count (1+ count)))
+	       (setq count (1+ count))
+	       (and (= 0 (% count 10))
+		    (message "Converting to Babyl...%d" count)))
 	      ;;*** Mail format
 	      ((looking-at "^From ")
 	       (insert "\^L\n0, unseen,,\n*** EOOH ***\n")
@@ -1858,7 +1862,9 @@ It returns t if it got any new messages."
 		 (insert "X-Coding-System: "
 			 (symbol-name last-coding-system-used)
 			 "\n"))
-	       (narrow-to-region (point) (point-max)))
+	       (narrow-to-region (point) (point-max))
+	       (and (= 0 (% count 10))
+		    (message "Converting to Babyl...%d" count)))
 	      ;;
 	      ;; This kludge is because some versions of sendmail.el
 	      ;; insert an extra newline at the beginning that shouldn't
