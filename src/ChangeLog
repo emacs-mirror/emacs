@@ -1,5 +1,8 @@
 2002-04-02  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* keyboard.c (make_lispy_event): Handle unknown keysyms together
+	with system-specific keysyms.  Use it also for unknown function keys.
+
 	* doc.c (reread_doc_file): Return whether reload was attempted.
 	(Fdocumentation, Fdocumentation_property): Don't try to reload
 	if the doc is 0 and only ask once.
