@@ -2419,6 +2419,9 @@ This command is intended for styles where you write a comment per line,
 starting a new comment (and terminating it if necessary) on each line.
 If you want to continue one comment across several lines, use \\[newline-and-indent].
 
+If a fill column is specified, it overrides the use of the comment column
+or comment indentation.
+
 The inserted newline is marked hard if `use-hard-newlines' is true, 
 unless optional argument SOFT is non-nil."
   (interactive)
@@ -2428,59 +2431,60 @@ unless optional argument SOFT is non-nil."
 		   (progn (skip-chars-forward " \t")
 			  (point)))
     (if soft (insert-and-inherit ?\n) (newline 1))
-    (if (not comment-multi-line)
-	(save-excursion
-	  (if (and comment-start-skip
-		   (let ((opoint (point)))
-		     (forward-line -1)
-		     (re-search-forward comment-start-skip opoint t)))
-	      ;; The old line is a comment.
-	      ;; Set WIN to the pos of the comment-start.
-	      ;; But if the comment is empty, look at preceding lines
-	      ;; to find one that has a nonempty comment.
-
-	      ;; If comment-start-skip contains a \(...\) pair,
-	      ;; the real comment delimiter starts at the end of that pair.
-	      (let ((win (or (match-end 1) (match-beginning 0))))
-		(while (and (eolp) (not (bobp))
-			    (let (opoint)
-			      (beginning-of-line)
-			      (setq opoint (point))
-			      (forward-line -1)
-			      (re-search-forward comment-start-skip opoint t)))
-		  (setq win (or (match-end 1) (match-beginning 0))))
-		;; Indent this line like what we found.
-		(goto-char win)
-		(setq comcol (current-column))
-		(setq comstart
-		      (buffer-substring (point) (match-end 0)))))))
-    (if comcol
-	(let ((comment-column comcol)
-	      (comment-start comstart)
-	      (comment-end comment-end))
-	  (and comment-end (not (equal comment-end ""))
-;	       (if (not comment-multi-line)
-		   (progn
-		     (forward-char -1)
-		     (insert comment-end)
-		     (forward-char 1))
-;		 (setq comment-column (+ comment-column (length comment-start))
-;		       comment-start "")
-;		   )
-	       )
-	  (if (not (eolp))
-	      (setq comment-end ""))
-	  (insert-and-inherit ?\n)
-	  (forward-char -1)
-	  (indent-for-comment)
+    (if fill-prefix
+	(progn
+	  (indent-to-left-margin)
+	  (insert-and-inherit fill-prefix))
+      (if (not comment-multi-line)
 	  (save-excursion
-	    ;; Make sure we delete the newline inserted above.
-	    (end-of-line)
-	    (delete-char 1)))
-      (if (null fill-prefix)
-	  (indent-according-to-mode)
-	(indent-to-left-margin)
-	(insert-and-inherit fill-prefix)))))
+	    (if (and comment-start-skip
+		     (let ((opoint (point)))
+		       (forward-line -1)
+		       (re-search-forward comment-start-skip opoint t)))
+		;; The old line is a comment.
+		;; Set WIN to the pos of the comment-start.
+		;; But if the comment is empty, look at preceding lines
+		;; to find one that has a nonempty comment.
+
+		;; If comment-start-skip contains a \(...\) pair,
+		;; the real comment delimiter starts at the end of that pair.
+		(let ((win (or (match-end 1) (match-beginning 0))))
+		  (while (and (eolp) (not (bobp))
+			      (let (opoint)
+				(beginning-of-line)
+				(setq opoint (point))
+				(forward-line -1)
+				(re-search-forward comment-start-skip opoint t)))
+		    (setq win (or (match-end 1) (match-beginning 0))))
+		  ;; Indent this line like what we found.
+		  (goto-char win)
+		  (setq comcol (current-column))
+		  (setq comstart
+			(buffer-substring (point) (match-end 0)))))))
+      (if comcol
+	  (let ((comment-column comcol)
+		(comment-start comstart)
+		(comment-end comment-end))
+	    (and comment-end (not (equal comment-end ""))
+  ;	       (if (not comment-multi-line)
+		     (progn
+		       (forward-char -1)
+		       (insert comment-end)
+		       (forward-char 1))
+  ;		 (setq comment-column (+ comment-column (length comment-start))
+  ;		       comment-start "")
+  ;		   )
+		 )
+	    (if (not (eolp))
+		(setq comment-end ""))
+	    (insert-and-inherit ?\n)
+	    (forward-char -1)
+	    (indent-for-comment)
+	    (save-excursion
+	      ;; Make sure we delete the newline inserted above.
+	      (end-of-line)
+	      (delete-char 1)))
+	(indent-according-to-mode)))))
 
 (defun set-selective-display (arg)
   "Set `selective-display' to ARG; clear it if no arg.
