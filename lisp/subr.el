@@ -403,7 +403,6 @@ as returned by the `event-start' and `event-end' functions."
 
 ;;;; Obsolescent names for functions.
 
-(defalias 'make-syntax-table 'copy-syntax-table)
 (defalias 'dot 'point)
 (defalias 'dot-marker 'point-marker)
 (defalias 'dot-min 'point-min)
@@ -654,6 +653,30 @@ Wildcards and redirection are handle as usual in the shell."
 			   "\\" (substring argument end (1+ end)))
 	    start (1+ end)))
     (concat result (substring argument start))))
+
+(defun make-syntax-table ()
+  "Return a new syntax table.
+It inherits all letters and control characters from the standard
+syntax table; other characters are copied from the standard syntax table."
+  (let ((table (copy-syntax-table))
+	i)
+    (setq i 0)
+    (while (<= i 31)
+      (aset table i 13)
+      (setq i (1+ i)))
+    (setq i ?A)
+    (while (<= i ?Z)
+      (aset table i 13)
+      (setq i (1+ i)))
+    (setq i ?a)
+    (while (<= i ?z)
+      (aset table i 13)
+      (setq i (1+ i)))
+    (setq i 128)
+    (while (<= i 255)
+      (aset table i 13)
+      (setq i (1+ i)))
+    table))
 
 ;; now in fns.c
 ;(defun nth (n list)
