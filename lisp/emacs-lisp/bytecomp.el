@@ -2850,7 +2850,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	      (cons (cons (nth 1 (nth 1 form))
 			  (nth 1 (nth 2 form)))
 		    byte-compile-function-environment))))
-  (byte-compile-normal-call form)))
+  (byte-compile-normal-call form))
 
 ;; Turn off warnings about prior calls to the function being defalias'd.
 ;; This could be smarter and compare those calls with
