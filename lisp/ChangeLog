@@ -1,3 +1,9 @@
+2001-05-18  Simon Josefsson  <simon@josefsson.org>
+
+	* mail/smtpmail.el (maybe-append-domain): Renamed to
+	`smtpmail-maybe-append-domain'.
+	(smtpmail-via-smtp): Use the new name.
+
 2001-05-18  Miles Bader  <miles@gnu.org>
 
 	* simple.el (delete-horizontal-space, just-one-space): Use

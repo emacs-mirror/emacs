@@ -1,3 +1,8 @@
+2001-05-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (xlfd_point_size): Don't divide pixel size from
+	transformation matrix by 10.
+
 2001-05-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (x_set_foreground_color): Change frame's cursor_pixel
