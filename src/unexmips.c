@@ -36,8 +36,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <scnhdr.h>
 #include <sym.h>
 
-#ifdef IRIS_4D
+#if defined (IRIS_4D) || defined (sony)
 #include "getpagesize.h"
+#include <fcntl.h>
 #endif
 
 static void fatal_unexec ();
@@ -112,11 +113,11 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
       && hdr.fhdr.f_magic != (MIPSELMAGIC | 1)
       && hdr.fhdr.f_magic != (MIPSEBMAGIC | 1))
     {
-      fprintf(stderr,
-	      "unexec: input file magic number is %x, not %x, %x, %x or %x.\n",
-	      hdr.fhdr.f_magic,
-	      MIPSELMAGIC, MIPSEBMAGIC,
-	      MIPSELMAGIC | 1, MIPSEBMAGIC | 1);
+      fprintf (stderr,
+	       "unexec: input file magic number is %x, not %x, %x, %x or %x.\n",
+	       hdr.fhdr.f_magic,
+	       MIPSELMAGIC, MIPSEBMAGIC,
+	       MIPSELMAGIC | 1, MIPSEBMAGIC | 1);
       exit(1);
     }
 #else /* not MIPS2 */
@@ -163,9 +164,14 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
   CHECK_SCNHDR (sdata_section, _SDATA, STYP_SDATA);
   CHECK_SCNHDR (sbss_section,  _SBSS,  STYP_SBSS);
   CHECK_SCNHDR (bss_section,   _BSS,   STYP_BSS);
+#if 0 /* Apparently this error check goes off on irix 3.3,
+	 but it doesn't indicate a real problem.  */
   if (i != hdr.fhdr.f_nscns)
     fprintf (stderr, "unexec: %d sections found instead of %d.\n",
 	     i, hdr.fhdr.f_nscns);
+#endif
+
+  text_section->s_scnptr = 0;
 
   pagesize = getpagesize ();
   brk = (sbrk (0) + pagesize - 1) & (-pagesize);
