@@ -1,5 +1,8 @@
 2002-04-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* international/mule-diag.el (list-input-methods-1): Doc fix
+	(LEIM is now part of the standard distribution).
+
 	* tmm.el (tmm-completion-prompt): Doc fix.
 
 	* hilit-chg.el (global-highlight-changes): Capitalize status

@@ -1,3 +1,8 @@
+2002-04-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* quail/hanja.el ("Od"): Remove rule.
+	From Koaunghi Un <koaunghi@ling.cnu.ac.kr>.
+
 2002-04-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* quail/indian.el: Replace commented-out lines with a condition
