@@ -266,6 +266,31 @@ skip_invisible (pos, next_boundary_p, to, window)
   return pos;
 }
 
+/* If a composition starts at POS/POS_BYTE and it doesn't stride over
+   POINT, set *LEN/*LEN_BYTE to the character and byte lengths, *WIDTH
+   to the width, and return 1.  Otherwise, return 0.  */
+
+static int
+check_composition (pos, pos_byte, point, len, len_byte, width)
+     int pos, pos_byte, point;
+     int *len, *len_byte, *width;
+{
+  Lisp_Object prop;
+  int start, end;
+  int id;
+
+  if (! find_composition (pos, -1, &start, &end, &prop, Qnil)
+      || pos != start || point < end)
+    return 0;
+  if ((id = get_composition_id (pos, pos_byte, end - pos, prop, Qnil)) < 0)
+    return 0;
+
+  *len = COMPOSITION_LENGTH (prop);
+  *len_byte = CHAR_TO_BYTE (end) - pos_byte;
+  *width = composition_table[id]->width;
+  return 1;
+}
+
 /* Set variables WIDTH and BYTES for a multibyte sequence starting at P.
 
    DP is a display table or NULL.
@@ -273,23 +298,23 @@ skip_invisible (pos, next_boundary_p, to, window)
    This macro is used in current_column_1, Fmove_to_column, and
    compute_motion.  */
 
-#define MULTIBYTE_BYTES_WIDTH(p, dp)					  \
-  do {									  \
-    int c;								  \
-    									  \
-    wide_column = 0;							  \
-    c = STRING_CHAR_AND_LENGTH (p, MAX_LENGTH_OF_MULTI_BYTE_FORM, bytes); \
-    if (BYTES_BY_CHAR_HEAD (*p) != bytes)				  \
-      width = bytes * 4;						  \
-    else								  \
-      {									  \
-	if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))		  \
-	  width = XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;		  \
-	else								  \
-	  width = WIDTH_BY_CHAR_HEAD (*p);				  \
-	if (width > 1)							  \
-	  wide_column = width;						  \
-      }									  \
+#define MULTIBYTE_BYTES_WIDTH(p, dp)					\
+  do {									\
+    int c;								\
+    									\
+    wide_column = 0;							\
+    c = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, bytes);	\
+    if (BYTES_BY_CHAR_HEAD (*p) != bytes)				\
+      width = bytes * 4;						\
+    else								\
+      {									\
+	if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))		\
+	  width = XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;		\
+	else								\
+	  width = WIDTH_BY_CHAR_HEAD (*p);				\
+	if (width > 1)							\
+	  wide_column = width;						\
+      }									\
   } while (0)
 
 DEFUN ("current-column", Fcurrent_column, Scurrent_column, 0, 0, 0,
@@ -463,6 +488,21 @@ current_column_1 ()
 	    scan_byte = CHAR_TO_BYTE (scan);
 	  next_boundary_byte = CHAR_TO_BYTE (next_boundary);
 	}
+
+      /* Check composition sequence.  */
+      {
+	int len, len_byte, width;
+
+	if (check_composition (scan, scan_byte, opoint,
+			       &len, &len_byte, &width))
+	  {
+	    scan += len;
+	    scan_byte += len_byte;
+	    if (scan <= opoint)
+	      col += width;
+	    continue;
+	  }
+      }
 
       c = FETCH_BYTE (scan_byte);
       if (dp != 0
@@ -839,6 +879,19 @@ The return value is the current column.")
 	 character on which the cursor will appear.  */
       if (col >= goal)
 	break;
+
+      /* Check composition sequence.  */
+      {
+	int len, len_byte, width;
+
+	if (check_composition (pos, pos_byte, Z, &len, &len_byte, &width))
+	  {
+	    pos += len;
+	    pos_byte += len_byte;
+	    col += width;
+	    continue;
+	  }
+      }
 
       c = FETCH_BYTE (pos_byte);
       if (dp != 0
@@ -1321,6 +1374,20 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
       else
 	{
 	  c = FETCH_BYTE (pos_byte);
+
+	  /* Check composition sequence.  */
+	  {
+	    int len, len_byte, width;
+
+	    if (check_composition (pos, pos_byte, to, &len, &len_byte, &width))
+	      {
+		pos += len;
+		pos_byte += len_byte;
+		hpos += width;
+		continue;
+	      }
+	  }
+
 	  pos++, pos_byte++;
 
 	  /* Perhaps add some info to the width_run_cache.  */
