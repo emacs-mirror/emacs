@@ -77,7 +77,7 @@
 		   "Type anything to %s"))
 	    blurb)
 	  (setq continue (read-char))
-	  (cond ((and (memq continue '(?\ ?\C-v)) (< state 2))
+	  (cond ((and (memq continue '(?\s ?\C-v)) (< state 2))
 		 (scroll-up))
 		((= continue ?\C-l)
 		 (recenter))
