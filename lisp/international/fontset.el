@@ -358,6 +358,7 @@ STYLE is a style of FONTSET, one of the followings:
   bold-italic, demibold-italic, bold-oblique, demibold-oblique.
 BASE-FONTSET is a name of fontset base from which FONSET is instantiated.")
 
+;;;###autoload
 (defun create-fontset-from-fontset-spec (fontset-spec &optional style noerror)
   "Create a fontset from fontset specification string FONTSET-SPEC.
 FONTSET-SPEC is a string of the format:
