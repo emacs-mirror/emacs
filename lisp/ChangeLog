@@ -1,3 +1,7 @@
+2004-11-29  Kim F. Storm  <storm@cua.dk>
+
+	* macros.el (insert-kbd-macro): Handle kmacro functions.
+
 2004-11-28  Juri Linkov  <juri@jurta.org>
 
 	* compare-w.el (compare-windows-highlight): Attach each overlay
