@@ -238,11 +238,20 @@ coding-spec (see the function `make-coding-system')."
 	    (get coding-system 'coding-system)))))
 
 ;;;###autoload
-(defun coding-system-unification-table (coding-system)
-  "Return unification-table property of CODING-SYSTEM."
+(defun coding-system-unification-table-for-decode (coding-system)
+  "Return unification-table-for-decode property of CODING-SYSTEM."
   (and coding-system
        (symbolp coding-system)
-       (or (get coding-system 'unification-table)
+       (or (get coding-system 'unification-table-for-decode)
+	   (coding-system-unification-table
+	    (get coding-system 'coding-system)))))
+
+;;;###autoload
+(defun coding-system-unification-table-for-encode (coding-system)
+  "Return unification-table-for-encode property of CODING-SYSTEM."
+  (and coding-system
+       (symbolp coding-system)
+       (or (get coding-system 'unification-table-for-encode)
 	   (coding-system-unification-table
 	    (get coding-system 'coding-system)))))
 
