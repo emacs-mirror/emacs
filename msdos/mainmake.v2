@@ -83,6 +83,7 @@ install: all
 	if exist etags.exe mv -f etags.exe ../bin
 	if exist ctags.exe mv -f ctags.exe ../bin
 	if exist b2m.exe mv -f b2m.exe ../bin
+	if exist ebrowse.exe mv -f ebrowse.exe ../bin
 	if exist fns.el update fns.el ../bin/fns.el
 	cd ..
 	cd src
