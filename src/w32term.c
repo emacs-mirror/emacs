@@ -1411,10 +1411,13 @@ w32_encode_char (c, char2b, font_info, two_byte_p)
       temp[0] = BYTE1 (*char2b);
       temp[1] = BYTE2 (*char2b);
       temp[2] = '\0';
-      if (temp[0])
-        MultiByteToWideChar (codepage, 0, temp, 2, char2b, 1);
-      else
-        MultiByteToWideChar (codepage, 0, temp+1, 1, char2b, 1);
+      if (codepage != CP_UNICODE)
+        {
+          if (temp[0])
+            MultiByteToWideChar (codepage, 0, temp, 2, char2b, 1);
+          else
+            MultiByteToWideChar (codepage, 0, temp+1, 1, char2b, 1);
+        }
       unicode_p = 1;
       *two_byte_p = 1;
     }
@@ -2521,7 +2524,8 @@ w32_use_unicode_for_codepage (codepage)
 {
   /* If the current codepage is supported, use Unicode for output. */
   return (w32_enable_unicode_output
-          && codepage != CP_DEFAULT && IsValidCodePage (codepage));
+          && codepage != CP_8BIT
+          && (codepage == CP_UNICODE || IsValidCodePage (codepage)));
 }
 
 
@@ -10199,8 +10203,6 @@ w32_initialize ()
 void
 syms_of_w32term ()
 {
-  Lisp_Object codepage;
-
   staticpro (&w32_display_name_list);
   w32_display_name_list = Qnil;
 
