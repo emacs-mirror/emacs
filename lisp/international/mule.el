@@ -990,9 +990,9 @@ or a function symbol which, when called, returns such a cons cell."
 Each argument is a list of the form (FROM . TO),
 where FROM is a character to be translated to TO.
 
-FROM can be a generic character (see make-char).  In this case, TO is
-a generic character containing the same number of charcters or a
-oridinal character.  If FROM and TO are both generic characters, all
+FROM can be a generic character (see `make-char').  In this case, TO is
+a generic character containing the same number of characters, or a
+ordinary character.  If FROM and TO are both generic characters, all
 characters belonging to FROM are translated to characters belonging to TO
 without changing their position code(s)."
   (let ((table (make-char-table 'translation-table))
@@ -1050,8 +1050,8 @@ without changing their position code(s)."
 See the documentation of the function `make-translation-table' for the
 meaning of ARGS.
 
-This function sets properties translation-table and
-translation-table-id of SYMBOL to the created table itself and
+This function sets properties `translation-table' and
+`translation-table-id' of SYMBOL to the created table itself and
 identification number of the table respectively."
   (let ((table (apply 'make-translation-table args))
 	(len (length translation-table-vector))
