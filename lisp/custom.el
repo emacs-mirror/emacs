@@ -131,7 +131,7 @@ not using the factory setting.  Otherwise, use the `set-default'."
 		((eq keyword :get)
 		 (put symbol 'custom-get value))
 		((eq keyword :require)
-		 (push value requests))
+		 (setq requests (cons value requests)))
 		((eq keyword :type)
 		 (put symbol 'custom-type value))
 		((eq keyword :options)
