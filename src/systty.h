@@ -114,6 +114,10 @@ static struct sensemode {
 #endif /* not HAVE_TERMIOS */
 #endif /* not HAVE_TERMIO */
 
+#ifdef __GNU_LIBRARY__
+#include <termios.h>
+#endif
+
 #ifdef AIX
 /* Get files for keyboard remapping */
 #define HFNKEYS 2
