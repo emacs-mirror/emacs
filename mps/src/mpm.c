@@ -1,6 +1,6 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(trunk.17) $
+ * $HopeName: MMsrc!mpm.c(trunk.18) $
  * Copyright (C) 1996, 1997 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
@@ -13,7 +13,7 @@
 
 #include "mpm.h"
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.17) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.18) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -416,7 +416,7 @@ Res WriteF(mps_lib_FILE *stream, ...)
 /* StringLength -- Substitute for strlen
  */
 
-size_t StringLength(char *s) {
+size_t StringLength(const char *s) {
   size_t i;
   AVER(s != NULL);
 
