@@ -1,6 +1,6 @@
 /* impl.c.dbgpool: POOL DEBUG MIXIN
  *
- * $HopeName: MMsrc!dbgpool.c(trunk.3) $
+ * $HopeName: MMsrc!dbgpool.c(trunk.4) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .source: design.mps.object-debug
@@ -13,7 +13,7 @@
 #include <stdarg.h>
 
 
-/* tagStruct -- tags for storing info baout allocated objects */
+/* tagStruct -- tags for storing info about allocated objects */
 
 typedef struct tagStruct {
   /* We don't want to pay the expense of a sig in every tag */
@@ -470,7 +470,7 @@ void mps_pool_check_fenceposts(mps_pool_t mps_pool)
   Pool pool = (Pool)mps_pool;
   Arena arena;
   
-  AVER(CHECKT(Pool, pool));
+  AVERT(Pool, pool);
   arena = PoolArena(pool);
 
   ArenaEnter(arena);
