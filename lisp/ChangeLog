@@ -1,3 +1,8 @@
+1999-11-30  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* progmodes/cperl-mode.el (cperl-under-as-char):
+	Use nil as default.
+
 1999-11-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* speedbar.el (toplevel): Remove compatibility code for Emacs
