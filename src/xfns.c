@@ -40,6 +40,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef HAVE_X_WINDOWS
 extern void abort ();
 
+/* On some systems, the character-composition stuff is broken in X11R5.  */
+#if defined (HAVE_X11R5) && ! defined (HAVE_X11R6)
+#ifdef X11R5_INHIBIT_I18N
+#undef HAVE_X_I18N
+#endif
+#endif
+
 #ifndef VMS
 #if 1 /* Used to be #ifdef EMACS_BITMAP_FILES, but this should always work.  */
 #include "bitmaps/gray.xbm"
