@@ -1621,6 +1621,8 @@ keys_of_frame ()
 /* If we're not using multi-frame stuff, we still need to provide some
    support functions.  */
 
+Lisp_Object Vterminal_frame;
+
 /* Unless this function is defined, providing set-frame-height and
    set-frame-width doesn't help compatibility any, since they both
    want this as their first argument.  */
@@ -1812,6 +1814,10 @@ and nil for X and Y.")
 
 syms_of_frame ()
 {
+  DEFVAR_LISP ("terminal-frame", &Vterminal_frame,
+    "The initial frame-object, which represents Emacs's stdout.");
+  XFASTINT (Vterminal_frame) = 0;
+
   defsubr (&Sselected_frame);
   defsubr (&Sframep);
   defsubr (&Sframe_char_height);
@@ -1835,7 +1841,3 @@ keys_of_frame ()
 }
 
 #endif /* not MULTI_FRAME */
-
-
-
-
