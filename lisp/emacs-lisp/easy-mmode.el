@@ -90,11 +90,12 @@ BODY contains code that will be executed each time the mode is (dis)activated.
   It will be executed after any toggling but before running the hooks.
   BODY can start with a list of CL-style keys specifying additional arguments.
   The following keyword arguments are supported:
-:group   Followed by the group name to use for any generated `defcustom'.
-:global  If non-nil specifies that the minor mode is not meant to be
-         buffer-local.  By default, the variable is made buffer-local.
-:init-value  Same as the INIT-VALUE argument.
-:lighter  Same as the LIGHTER argument."
+:group GROUP	Group name to use for any generated `defcustom'.
+:global GLOBAL	If non-nil specifies that the minor mode is not meant to be
+              	buffer-local.  By default, the variable is made buffer-local.
+:init-value VAL	Same as the INIT-VALUE argument.
+:lighter SPEC	Same as the LIGHTER argument.
+:require SYM	Same as defcustom's :require argument."
   ;; Allow skipping the first three args.
   (cond
    ((keywordp init-value)
@@ -109,6 +110,7 @@ BODY contains code that will be executed each time the mode is (dis)activated.
 	 (globalp nil)
 	 (group nil)
 	 (extra-args nil)
+	 (require t)
 	 (keymap-sym (if (and keymap (symbolp keymap)) keymap
 		       (intern (concat mode-name "-map"))))
 	 (hook (intern (concat mode-name "-hook")))
@@ -123,6 +125,7 @@ BODY contains code that will be executed each time the mode is (dis)activated.
 	(:global (setq globalp (pop body)))
 	(:extra-args (setq extra-args (pop body)))
 	(:group (setq group (nconc group (list :group (pop body)))))
+	(:require (setq require (pop body)))
 	(t (pop body))))
 
     (unless group
@@ -159,12 +162,12 @@ use either \\[customize] or the function `%s'."
 	       :initialize 'custom-initialize-default
 	       ,@group
 	       :type 'boolean
-	       ,@(when curfile
-		   (list
-		    :require
-		    (list 'quote
-			  (intern (file-name-nondirectory
-				   (file-name-sans-extension curfile)))))))))
+	       ,@(cond
+		  ((not (and curfile require)) nil)
+		  ((not (eq require t)) `(:require ,require))
+		  (t `(:require
+		       ',(intern (file-name-nondirectory
+				  (file-name-sans-extension curfile)))))))))
 
        ;; The actual function.
        (defun ,mode (&optional arg ,@extra-args)
@@ -224,7 +227,7 @@ With zero or negative ARG turn mode off.
 			       (symbol-value ',keymap-sym))))
        
        ;; If the mode is global, call the function according to the default.
-       ,(if globalp
+       ,(if (and globalp (null init-value))
 	    `(if (and load-file-name ,mode)
 		 (eval-after-load load-file-name '(,mode 1)))))))
 
