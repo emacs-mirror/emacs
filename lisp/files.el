@@ -1913,17 +1913,18 @@ and we don't even do that unless it would come from the file name."
 	(let ((name buffer-file-name))
 	  ;; Remove backup-suffixes from file name.
 	  (setq name (file-name-sans-versions name))
-	  (while (not done)
+	  (while name
 	    ;; Find first matching alist entry.
 	    (let ((case-fold-search
 		   (memq system-type '(vax-vms windows-nt cygwin))))
 	      (if (and (setq mode (assoc-default name auto-mode-alist
 						 'string-match))
+		       (setq done t)
 		       (consp mode)
 		       (cadr mode))
 		  (setq mode (car mode)
 			name (substring name 0 (match-beginning 0)))
-		(setq done t)))
+		(setq name)))
 	    (if mode
 		;; When JUST-FROM-FILE-NAME is set, we are working on behalf
 		;; of set-visited-file-name.  In that case, if the major mode
