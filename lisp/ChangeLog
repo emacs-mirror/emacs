@@ -1,3 +1,8 @@
+2004-01-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (read-directory-name): Adapt the docstring to recent
+	change in Fread_file_name.
+
 2004-01-30  Jonathan Yavner  <jyavner@member.fsf.org>
 
 	* ses.el (ses-print-cell): If print format too wide for column

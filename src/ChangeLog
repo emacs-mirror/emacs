@@ -1,3 +1,12 @@
+2004-01-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fileio.c (Fread_file_name_internal): Correctly handle the case
+	where insert-default-directory is nil.
+	(Fread_file_name): Always return an empty string if the user exits
+	with an empty minibuffer.  Adapt the docstring accordingly.
+	(syms_of_fileio): Adapt the docstring of insert-default-directory
+	to the change in Fread_file_name.
+
 2004-01-29  Eli Zaretskii  <eliz@elta.co.il>
 
 	* alloca.c [!alloca]: Fix the prototype for xfree.
