@@ -42,7 +42,10 @@
 	      (nconc start
 		     (list (expand-file-name "../info/" data-directory)))))
     start)
-  "List of directories to search for Info documentation files.")
+  "List of directories to search for Info documentation files.
+They are searched in the order they are given in this list.
+Therefore, the directory of Info files that come with Emacs
+normally should come last (so that local files override standard ones).")
 
 (defvar news-path "/usr/spool/news/"
   "The root directory below which all news files are stored.")
