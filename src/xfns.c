@@ -895,6 +895,13 @@ x_set_menu_bar_lines (f, value, oldval)
   int nlines;
   int olines = FRAME_MENU_BAR_LINES (f);
 
+  /* Right now, menu bars don't work properly in minibuf-only frames;
+     most of the commands try to apply themselves to the minibuffer
+     frame itslef, and get an error because you can't switch buffers
+     in or split the minibuffer window.  */
+  if (FRAME_MINBUF_ONLY_P (f))
+    return;
+
   if (XTYPE (value) == Lisp_Int)
     nlines = XINT (value);
   else
