@@ -2431,6 +2431,9 @@ which can parse the output from a DIR listing for a host of type TYPE.")
 (defvar ange-ftp-before-parse-ls-hook nil
   "Normal hook run before parsing the text of an ftp directory listing.")
 
+(defvar ange-ftp-after-parse-ls-hook nil
+  "Normal hook run after parsing the text of an ftp directory listing.")
+
 (defun ange-ftp-ls (file lsargs parse &optional no-error wildcard)
   "Return the output of an `DIR' or `ls' command done over ftp.
 FILE is the full name of the remote file, LSARGS is any args to pass to the
@@ -2502,6 +2505,11 @@ away in the internal cache."
 					   ange-ftp-parse-list-func-alist)))
 			       (funcall parse-func)
 			     (ange-ftp-parse-dired-listing lsargs))))
+                      ;; Place this hook here to convert the contents of the
+                      ;; buffer to a ls compatible format if the host system
+                      ;; that is being queried is other than Unix i.e. VMS
+                      ;; returns an ls format that really sucks.
+                      (run-hooks 'ange-ftp-after-parse-ls-hook)
 		      (setq ange-ftp-ls-cache-file key
 			    ange-ftp-ls-cache-lsargs lsargs
 					; For dumb hosts-types this is
@@ -4767,7 +4775,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 			(substring name (match-beginning 3) (match-end 3))))
 	      (and dir
 		   (setq dir (subst-char-in-string
-                              ?. ?/ (substring dir 1 -1) t)))
+                              ?/ ?. (substring dir 1 -1) t)))
 	      (concat (and drive
 			   (concat "/" drive "/"))
 		      dir (and dir "/")
@@ -4780,7 +4788,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 		  name (substring name (match-end 0))))
 	(setq tmp (file-name-directory name))
 	(if tmp
-	    (setq dir (subst-char-in-string ?. ?/ (substring tmp 0 -1) t)))
+	    (setq dir (subst-char-in-string ?/ ?. (substring tmp 0 -1) t)))
 	(setq file (file-name-nondirectory name))
 	(concat drive
 		(and dir (concat "[" (if drive nil ".") dir "]"))
