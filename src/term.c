@@ -785,8 +785,8 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
 {
   GLYPH *src_start = src, *src_end = src + src_len;
   unsigned char *dst_start = dst, *dst_end = dst + dst_len;
-  register GLYPH g = *src;
-  int c = GLYPH_CHAR (selected_frame, g);
+  register GLYPH g;
+  unsigned int c;
   unsigned char workbuf[4], *buf;
   int len, produced, processed;
   register int tlen = GLYPH_TABLE_LENGTH;
@@ -798,7 +798,12 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
       /* We must skip glyphs to be padded for a wide character.  */
       if (! (g & GLYPH_MASK_PADDING))
 	{
-	  c = GLYPH_CHAR (selected_frame, g);
+	  if ((c = GLYPH_CHAR (selected_frame, g)) > MAX_CHAR)
+	    {
+	      c = ' ';
+	      g = MAKE_GLYPH (selected_frame, c,
+			      GLYPH_FACE (selected_frame, g));
+	    }
 	  if (COMPOSITE_CHAR_P (c))
 	    {
 	      /* If C is a composite character, we can display
@@ -817,7 +822,7 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
 	    /* We set the multi-byte form of C at BUF.  */
 	    len = CHAR_STRING (c, workbuf, buf);
 	  else
-	    /* We have the multi-byte form in Vglyph_table.  */
+	    /* We have a string in Vglyph_table.  */
 	    len = GLYPH_LENGTH (tbase, g), buf = GLYPH_STRING (tbase, g);
 	  
 	  produced = encode_coding (&terminal_coding, buf, dst,
