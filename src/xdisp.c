@@ -226,6 +226,7 @@ Lisp_Object Qinhibit_point_motion_hooks;
 Lisp_Object QCeval, Qwhen, QCfile, QCdata;
 Lisp_Object Qfontified;
 Lisp_Object Qgrow_only;
+Lisp_Object Qinhibit_eval_during_redisplay;
 
 /* Functions called to fontify regions of text.  */
 
@@ -256,7 +257,7 @@ Lisp_Object Vinhibit_redisplay, Qinhibit_redisplay;
 
 /* Non-zero means Lisp evaluation during redisplay is inhibited.  */
 
-int inhibit_eval_during_redisplay, Qinhibit_eval_during_redisplay;
+int inhibit_eval_during_redisplay;
 
 /* Names of text properties relevant for redisplay.  */
 
