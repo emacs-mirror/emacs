@@ -2187,7 +2187,8 @@ Normally include CC: to all other recipients of original message;
 prefix argument means ignore them.  While composing the reply,
 use \\[mail-yank-original] to yank the original message into it."
   (interactive "P")
-  (let (from reply-to cc subject date to message-id resent-reply-to
+  (let (from reply-to cc subject date to message-id
+	     resent-to resent-cc resent-reply-to
 	     (msgnum rmail-current-message)
 	     (rmail-buffer (current-buffer)))
     (save-excursion
@@ -2205,28 +2206,33 @@ use \\[mail-yank-original] to yank the original message into it."
 	  (narrow-to-region (point)
 			    (progn (search-forward "\n*** EOOH ***\n")
 				   (beginning-of-line) (point))))
-	(setq resent-reply-to (mail-fetch-field "resent-reply-to" t)
-	      from (mail-fetch-field "from")
-	      reply-to (or resent-reply-to
-			   (mail-fetch-field "reply-to" nil t)
+	(setq from (mail-fetch-field "from")
+	      reply-to (or (mail-fetch-field "reply-to" nil t)
 			   from)
-	      cc (cond (just-sender nil)
-		       (resent-reply-to (mail-fetch-field "resent-cc" t))
-		       (t (mail-fetch-field "cc" nil t)))
-	      subject (or (and resent-reply-to
-			       (mail-fetch-field "resent-subject" t))
-			  (mail-fetch-field "subject"))
-	      date (or (and resent-reply-to
-			    (mail-fetch-field "resent-date" t))
-		       (mail-fetch-field "date"))
-	      to (cond (resent-reply-to
-			(or (mail-fetch-field "resent-to" t)) "")
-		       ((mail-fetch-field "to" nil t))
-		       ;((mail-fetch-field "apparently-to")) ack gag barf
-		       (t ""))
-	      message-id (cond (resent-reply-to
-				(mail-fetch-field "resent-message-id" t))
-			       ((mail-fetch-field "message-id"))))))
+	      cc (and (not just-sender)
+		      (mail-fetch-field "cc" nil t))
+	      subject (mail-fetch-field "subject")
+	      date (mail-fetch-field "date")
+	      to (or (mail-fetch-field "to" nil t) "")
+	      message-id (mail-fetch-field "message-id")
+	      resent-reply-to (mail-fetch-field "resent-reply-to" t)
+	      resent-cc (and (not just-sender)
+			     (mail-fetch-field "resent-cc" nil t))
+	      resent-to (or (mail-fetch-field "resent-to" nil t) "")
+;;;	      resent-subject (mail-fetch-field "resent-subject")
+;;;	      resent-date (mail-fetch-field "resent-date")
+;;;	      resent-message-id (mail-fetch-field "resent-message-id")
+	      )))
+    ;; Merge the resent-to and resent-cc into the to and cc.
+    (if (and resent-to (not (equal resent-to "")))
+	(if (not (equal to ""))
+	    (setq to (concat to ", " resent-to))
+	  (setq to resent-to)))
+    (if (and resent-cc (not (equal resent-cc "")))
+	(if (not (equal cc ""))
+	    (setq cc (concat cc ", " resent-cc))
+	  (setq cc resent-cc)))
+    ;; Add `Re: ' to subject if not there already.
     (and (stringp subject)
 	 (setq subject
 	       (concat rmail-reply-prefix
