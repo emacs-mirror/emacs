@@ -639,9 +639,9 @@ merge in the changes into your working copy."
 (defun vc-register (&optional override comment)
   "Register the current file into your version-control system."
   (interactive "P")
+  (or buffer-file-name
+      (error "No visited file"))
   (let ((master (vc-name buffer-file-name)))
-    (or buffer-file-name
-	(error "No visited file"))
     (and master (file-exists-p master)
 	 (error "This file is already registered"))
     (and master
