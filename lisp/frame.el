@@ -579,14 +579,16 @@ When called interactively, prompt for the name of the font to use."
 When called interactively, prompt for the name of the color to use."
   (interactive "sColor: ")
   (modify-frame-parameters (selected-frame)
-			   (list (cons 'background-color color-name))))
+			   (list (cons 'background-color color-name)))
+  (frame-update-face-colors (selected-frame)))
 
 (defun set-foreground-color (color-name)
   "Set the foreground color of the selected frame to COLOR.
 When called interactively, prompt for the name of the color to use."
   (interactive "sColor: ")
   (modify-frame-parameters (selected-frame)
-			   (list (cons 'foreground-color color-name))))
+			   (list (cons 'foreground-color color-name)))
+  (frame-update-face-colors (selected-frame)))
 
 (defun set-cursor-color (color-name)
   "Set the text cursor color of the selected frame to COLOR.
