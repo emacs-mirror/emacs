@@ -149,6 +149,9 @@ we're in the GUD buffer)."
 ;; ======================================================================
 ;; gdb functions
 
+;;; History of argument lists passed to gdb.
+(defvar gud-gdb-history nil)
+
 (defun gud-gdb-debugger-startup (file args)
   (apply 'make-comint (concat "gud-" file) "gdb" nil "-fullname" args))
 
@@ -176,7 +179,13 @@ we're in the GUD buffer)."
   "Run gdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
-  (interactive "sRun gdb (like this): gdb ")
+  (interactive
+   (list (read-from-minibuffer "Run gdb (like this): gdb "
+			       (if (consp gud-gdb-history)
+				   (car gud-gdb-history)
+				 "")
+			       nil nil
+			       '(gud-gdb-history . 1))))
   (gud-overload-functions '((gud-debugger-startup . gud-gdb-debugger-startup)
 			    (gud-marker-filter    . gud-gdb-marker-filter)
 			    (gud-find-file        . gud-gdb-find-file)
@@ -203,6 +212,9 @@ and source-file directory for your debugger."
 
 ;; ======================================================================
 ;; sdb functions
+
+;;; History of argument lists passed to sdb.
+(defvar gud-sdb-history nil)
 
 (defvar gud-sdb-needs-tags (not (file-exists-p "/var"))
   "If nil, we're on a System V Release 4 and don't need the tags hack.")
@@ -247,7 +259,13 @@ and source-file directory for your debugger."
   "Run sdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
-  (interactive "sRun sdb (like this): sdb ")
+  (interactive
+   (list (read-from-minibuffer "Run sdb (like this): sdb "
+			       (if (consp gud-sdb-history)
+				   (car gud-sdb-history)
+				 "")
+			       nil nil
+			       '(gud-sdb-history . 1))))
   (if (and gud-sdb-needs-tags
 	   (not (and (boundp 'tags-file-name) (file-exists-p tags-file-name))))
       (error "The sdb support requires a valid tags table to work."))
@@ -274,6 +292,9 @@ and source-file directory for your debugger."
 ;; ======================================================================
 ;; dbx functions
 
+;;; History of argument lists passed to dbx.
+(defvar gud-dbx-history nil)
+
 (defun gud-dbx-debugger-startup (file args)
   (apply 'make-comint (concat "gud-" file) "dbx" nil args))
 
@@ -295,7 +316,13 @@ and source-file directory for your debugger."
   "Run dbx on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
-  (interactive "sRun dbx (like this): dbx")
+  (interactive
+   (list (read-from-minibuffer "Run dbx (like this): dbx "
+			       (if (consp gud-dbx-history)
+				   (car gud-dbx-history)
+				 "")
+			       nil nil
+			       '(gud-dbx-history . 1))))
   (gud-overload-functions '((gud-debugger-startup . gud-dbx-debugger-startup)
 			    (gud-marker-filter    . gud-dbx-marker-filter)
 			    (gud-find-file        . gud-dbx-find-file)
@@ -320,6 +347,9 @@ and source-file directory for your debugger."
 
 ;; ======================================================================
 ;; xdb (HP PARISC debugger) functions
+
+;;; History of argument lists passed to xdb.
+(defvar gud-xdb-history nil)
 
 (defvar gud-xdb-directories nil
   "*A list of directories that xdb should search for source code.
@@ -387,7 +417,13 @@ and source-file directory for your debugger.
 
 You can set the variable 'gud-xdb-directories' to a list of program source
 directories if your program contains sources from more than one directory."
-  (interactive "sRun xdb (like this): xdb")
+  (interactive
+   (list (read-from-minibuffer "Run xdb (like this): xdb "
+			       (if (consp gud-xdb-history)
+				   (car gud-xdb-history)
+				 "")
+			       nil nil
+			       '(gud-xdb-history . 1))))
   (gud-overload-functions '((gud-debugger-startup . gud-xdb-debugger-startup)
 			    (gud-marker-filter    . gud-xdb-marker-filter)
 			    (gud-find-file        . gud-xdb-find-file)))
