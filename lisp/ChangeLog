@@ -10,6 +10,9 @@
 
 2004-05-13  Juanma Barranquero  <lektu@terra.es>
 
+	* files.el (file-truename): Don't mention COUNTER and PREV-DIRS
+	arguments in the docstring, they're used only in recursive calls.
+
 	* help-fns.el (help-arg-highlighting-function)
 	(help-argument-name): Delete.
 	(help-default-arg-highlight): New function.
