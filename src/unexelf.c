@@ -1,5 +1,5 @@
-/* Copyright (C) 1985, 1986, 1987, 1988, 1990, 1992, 1999, 2000, 01, 02
-   Free Software Foundation, Inc.
+/* Copyright (C) 1985, 1986, 1987, 1988, 1990, 1992, 1999, 2000, 2001, 2002,
+   2003 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -971,8 +971,13 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	}
       else
 	{
-	  /* Any section that was original placed AFTER the bss
-	     section should now be off by NEW_DATA2_SIZE. */
+	  /* Any section that was originally placed after the .bss
+	     section should now be off by NEW_DATA2_SIZE.  If a
+	     section overlaps the .bss section, consider it to be
+	     placed after the .bss section.  Overlap can occur if the
+	     section just before .bss has less-strict alignment; this
+	     was observed between .symtab and .bss on Solaris 2.5.1
+	     (sparc) with GCC snapshot 960602.  */
 #ifdef SOLARIS_POWERPC
 	  /* On PPC Reference Platform running Solaris 2.5.1
 	     the plt section is also of type NOBI like the bss section.
@@ -986,9 +991,8 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	      >= OLD_SECTION_H (old_bss_index-1).sh_offset)
 	    NEW_SECTION_H (nn).sh_offset += new_data2_size;
 #else
-	  if (round_up (NEW_SECTION_H (nn).sh_offset,
-			OLD_SECTION_H (old_bss_index).sh_addralign)
-	      >= new_data2_offset)
+	  if (NEW_SECTION_H (nn).sh_offset + NEW_SECTION_H (nn).sh_size
+	      > new_data2_offset)
 	    NEW_SECTION_H (nn).sh_offset += new_data2_size;
 #endif
 	  /* Any section that was originally placed after the section
