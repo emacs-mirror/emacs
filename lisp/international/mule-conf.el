@@ -211,27 +211,25 @@
 ;; `make-coding-system'.
 
 (put 'no-conversion 'coding-system
-     (vector nil ?= "Do no conversion" nil nil))
+     (vector nil ?= "Do no conversion"
+	     (list 'coding-category 'coding-category-binary
+		   'alias-coding-systems '(no-conversion))
+	     nil))
 (put 'no-conversion 'eol-type 0)
+(put 'coding-category-binary 'coding-systems '(no-conversion))
+(setq coding-system-list '(no-conversion))
+(setq coding-system-alist '(("no-conversion")))
 
 (define-coding-system-alias 'binary 'no-conversion)
 
-(put 'undecided-unix 'coding-system 'undecided)
-(put 'undecided-unix 'eol-type 0)
-(put 'undecided-unix 'eol-variant t)
-(put 'undecided-dos 'coding-system 'undecided)
-(put 'undecided-dos 'eol-type 1)
-(put 'undecided-dos 'eol-variant t)
-(put 'undecided-mac 'coding-system 'undecided)
-(put 'undecided-mac 'eol-type 2)
-(put 'undecided-mac 'eol-variant t)
 (put 'undecided 'coding-system
      (vector t ?- "No conversion on encoding, automatic conversion on decoding"
-	     nil nil))
+	     (list 'alias-coding-systems '(undecided))
+	     nil))
+(setq coding-system-list (cons 'undecided coding-system-list))
+(setq coding-system-alist (cons '("undecided") coding-system-alist))
 (put 'undecided 'eol-type
-     (vector 'undecided-unix
-	     'undecided-dos
-	     'undecided-mac))
+     (make-subsidiary-coding-system 'undecided))
 
 ;; Coding systems not specific to each language environment.
 
