@@ -13181,6 +13181,20 @@ x_term_init (display_name, xrm_option, resource_name)
 #endif
 #endif
 
+  /* See if we should run in synchronous mode.  This is useful
+     for debugging X code.  */
+  {
+    Lisp_Object value;
+    value = display_x_get_resource (dpyinfo,
+				    build_string ("synchronous"),
+				    build_string ("Synchronous"),
+				    Qnil, Qnil);
+    if (STRINGP (value)
+	&& (!strcmp (XSTRING (value)->data, "true")
+	    || !strcmp (XSTRING (value)->data, "on")))
+      XSynchronize (dpyinfo->display, True);
+  }
+  
   UNBLOCK_INPUT;
 
   return dpyinfo;

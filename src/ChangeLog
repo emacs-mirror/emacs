@@ -1,12 +1,18 @@
+2000-03-14  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_term_init): Add support for X resource `synchronous'.
+	If set, call XSynchronize.
+
 2000-03-13  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* regex.c: Declare a new type `re_char' used throughout the code for the
-	string char type.  It's `const unsigned char' to match the rest of Emacs.
-	Consistently make sure all pointers to strings use it and make sure all
-	pointers into the pattern use `unsigned char'.
+	* regex.c: Declare a new type `re_char' used throughout the code
+	for the string char type.  It's `const unsigned char' to match the
+	rest of Emacs.  Consistently make sure all pointers to strings use
+	it and make sure all pointers into the pattern use `unsigned
+	char'.
 	(re_match_2_internal): Use `PREFETCH+STRING_CHAR' instead of
-	GET_CHAR_AFTER_2.
-	Also merge wordbound and notwordbound to reduce code duplication.
+	GET_CHAR_AFTER_2.  Also merge wordbound and notwordbound to reduce
+	code duplication.
 
 	* charset.h (GET_CHAR_AFTER_2): Remove.
 	(GET_CHAR_BEFORE_2): Use unsigned chars, like everywhere else.
