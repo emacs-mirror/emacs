@@ -1,5 +1,50 @@
 2003-05-13  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* textmodes/ispell.el (xemacsp): Remove.  Use (featurep 'xemacs).
+	(ispell-graphic-p): Inline and then remove.
+	(toplevel): Get rid of unnecessary loop.
+	(ispell-parse-output, ispell-complete-word): Replace (substring s 0 1)
+	with a call to aref.
+	(ispell-get-line): Remove unused arg `reg-end'.
+	(ispell-region): Update corresponding call.
+
+	* progmodes/cpp.el (cpp-make-overlay-hidden): Don't make intangible.
+
+	* progmodes/compile.el (compile-internal): Use with-current-buffer.
+	(compilation-set-window-height): Use save-selected-window.
+
+	* progmodes/ada-xref.el (ada-xref-update-project-menu): Use easymenu.
+	(ada-goto-declaration-other-frame): Remove unused arg other-frame.
+	(ada-gdb-application): Remove unused vars comint-exec, in-post-mode,
+	and gud-gdb-massage-args.
+
+	* progmodes/cc-langs.el (c-lang-defvar-init-form-tail):
+	This is actually not a constant.
+
+	* progmodes/autoconf.el (autoconf-current-defun-function):
+	Copy the syntax table before modifying it.
+
+	* progmodes/ada-mode.el (ada-in-comment-p, ada-in-string-p)
+	(ada-in-string-or-comment-p): Use line-beginning-position.
+
+	* textmodes/reftex.el (reftex-select-with-char): Don't assume
+	that point-min == 1.
+
+	* textmodes/reftex-toc.el (reftex-toc-visit-location):
+	Don't switch the current window if the new buffer is in another.
+	(reftex-toc): Don't assume that point-min == 1.
+
+	* textmodes/reftex-parse.el (reftex-what-macro): Don't assume
+	that point-min == 1.
+
+	* textmodes/reftex-cite.el (reftex-extract-bib-entries)
+	(reftex-extract-bib-entries-from-thebibliography): New arg re-list.
+	(reftex-extract-bib-entries): Use ^ rather than \(\`\|[\n\r]\).
+	Use member-ignore-case.  Don't add unnecessary trailing \n.
+	(reftex-offer-bib-menu): Consolidate duplicated code from
+	reftex-extract-bib-entries and
+	reftex-extract-bib-entries-from-thebibliography.
+
 	* simple.el (back-to-indentation): Simplify.
 	(undo-equiv-table, undo-in-region, undo-no-redo): New vars.
 	(undo): Use them to implement the no-redo form of undo.

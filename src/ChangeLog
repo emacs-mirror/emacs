@@ -1,3 +1,7 @@
+2003-05-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keyboard.c (adjust_point_for_property): Ensure termination.
+
 2003-05-10  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* keyboard.c (follow_key): Remove dead variable `did_meta'.
