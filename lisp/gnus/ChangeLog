@@ -1,3 +1,9 @@
+2002-02-03  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* message.el (message-forward-rmail-make-body): Directly use
+	rmail-msg-restore-non-pruned-header to avoid calling
+	vertical-motion.
+
 2002-01-27  Richard M. Stallman  <rms@gnu.org>
 
 	* time-date.el: Add autoload cookies.  Many doc fixes.
@@ -5,17 +11,20 @@
 	(time-subtract): Renamed from subtract-time.
 	(subtract-time): New alias for time-subtract.
 	
-2002-01-08  ShengHuo ZHU  <zsh@cs.rochester.edu>
-	
+2002-01-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
 	* gnus-start.el (gnus-read-init-file): Cleaned up.
+
+2002-01-03  Dave Love  <d.love@dl.ac.uk>
+
 	* gnus-start.el (gnus-startup-file-coding-system): Removed.
 	(gnus-read-init-file): Don't use it.
-	* gnus-start.el (gnus-read-init-file): Don't force coding system
-	for ~/.gnus.  
-	From Lars Magne Ingebrigtsen  <larsi@gnus.org>
-	From Dave Love <fx@gnu.org>
- 	From Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
+2002-01-03  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* gnus-start.el (gnus-read-init-file): Don't force coding system
+	for ~/.gnus.  From Dave Love <fx@gnu.org>.
+	
 2002-01-03  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* mm-util.el (mm-charset-to-coding-system): Don't setq charset.

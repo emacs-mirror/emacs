@@ -4288,8 +4288,8 @@ Optional DIGEST will use digest to forward."
 (defun message-forward-rmail-make-body (forward-buffer)
   (save-window-excursion
     (set-buffer forward-buffer)
-    (let (rmail-enable-mime)
-      (rmail-toggle-header 0)))
+    (if (rmail-msg-is-pruned)
+	(rmail-msg-restore-non-pruned-header)))
   (message-forward-make-body forward-buffer))
 
 ;;;###autoload
