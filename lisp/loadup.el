@@ -56,6 +56,7 @@
       (load "frame")
       (load "mouse")
       (garbage-collect)
+      (load "menu-bar")
       (load "scroll-bar")
       (load "select")))
 (garbage-collect)
@@ -113,6 +114,17 @@
 
 ;; We specify .el in case someone compiled version.el by mistake.
 (load "version.el")
+
+;; Precompute the keyboard equivalents in the menu bar items.
+(if (fboundp 'x-popup-menu)
+    (let ((submap (lookup-key global-map [menu-bar])))
+      (while submap
+	(and (consp (car submap))
+	     (symbolp (car (car submap)))
+	     (stringp (car-safe (cdr (car submap))))
+	     (keymapp (cdr (cdr (car submap))))
+	     (x-popup-menu nil (cdr (cdr (car submap)))))
+	(setq submap (cdr submap)))))
 
 ;If you want additional libraries to be preloaded and their
 ;doc strings kept in the DOC file rather than in core,
