@@ -4212,9 +4212,9 @@ in the current display table (if there is one).");
   DEFVAR_PER_BUFFER ("enable-multibyte-characters",
 		     &current_buffer->enable_multibyte_characters,
 		     make_number (-1),
-    "*Non-nil means the buffer contents are regarded as multi-byte form\n\
-of characters, not a binary code.  This affects the display, file I/O,\n\
-and behaviors of various editing commands.");
+    "*Non-nil means the buffer contents are regarded as multi-byte characters.\n\
+Otherwise they are regarded as unibyte.  This affects the display,\n\
+file I/O and the behavior of various editing commands.");
 
   DEFVAR_PER_BUFFER ("buffer-file-coding-system",
 		     &current_buffer->buffer_file_coding_system, Qnil,
