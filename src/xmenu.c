@@ -653,7 +653,7 @@ list_of_items (vector, names, pane)  /* get list from emacs and put to vector */
 
   if (XTYPE (pane) != Lisp_Cons) pane = wrong_type_argument (Qlistp, pane);
 
-  i = XFASTINT (Flength (pane, 1));
+  i = XFASTINT (Flength (pane));
 
   *vector = (Lisp_Object *) xmalloc (i * sizeof (Lisp_Object));
   *names = (char **) xmalloc (i * sizeof (char *));
