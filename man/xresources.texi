@@ -2,449 +2,22 @@
 @c Copyright (C) 1987,93,94,95,1997,2001 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node X Resources, Antinews, Command Arguments, Top
-@appendix X Resources
+@appendix X Options and Resources
 
-  Some aspects of Emacs behavior can be customized using X resources,
-as is usual for programs that use X.  X resources are the only way to
-customize tooltip windows and LessTif menus, since the libraries that
-implement them don't provide for customization through Emacs.  This
-appendix describes the X resources that Emacs recognizes and what they
-mean.
-
-  One way to experiment with the effect of different resource settings
-is to use the @code{editres} program.  Select @samp{Get Tree} from the
-@samp{Commands} menu, then click on an Emacs frame.  This will display
-a tree showing the structure of X toolkit widgets used in an Emacs
-frame.  Select one of them, such as @samp{menubar}, then select
-@samp{Show Resource Box} from the @samp{Commands} menu.  This displays
-a list of all the meaningful X resources and allows you to edit them.
-Changes take effect immediately if you click on the @samp{Apply} button.
+  You can customize some X-related aspects of Emacs behavior using X
+resources, as is usual for programs that use X.  X resources are the
+only way to customize tooltip windows and LessTif menus, since the
+libraries that implement them don't provide for customization through
+Emacs.  This appendix describes the X resources that Emacs recognizes
+and how to use them.
 
 @menu
-* Display X::           Changing the default display and using remote login.
-* Font X::	        Choosing a font for text, under X.
-* Colors X::	        Choosing colors, under X.
-* Window Size X::       Start-up window size, under X.
-* Borders X::	        Internal and external borders, under X.
-* Title X::             Specifying the initial frame's title.
-* Icons X::             Choosing what sort of icon to use, under X.
-* Resources X::         Advanced use of classes and resources, under X.
+* Resources::           Using X resources with Emacs (in general).
+* Table of Resources::  Table of specific X resources that affect Emacs.
+* Face Resources::      X resources for customizing faces.
 * Lucid Resources::     X resources for Lucid menus.
 * LessTif Resources::   X resources for LessTif and Motif menus.
 @end menu
-
-@node Display X
-@appendixsec Specifying the Display Name 
-@cindex display name (X Window System)
-@cindex @env{DISPLAY} environment variable
-
-  The environment variable @env{DISPLAY} tells all X clients, including
-Emacs, where to display their windows.  Its value is set by default
-in ordinary circumstances, when you start an X server and run jobs
-locally.  Occasionally you may need to specify the display yourself; for
-example, if you do a remote login and want to run a client program
-remotely, displaying on your local screen.
-
-  With Emacs, the main reason people change the default display is to
-let them log into another system, run Emacs on that system, but have the
-window displayed at their local terminal.  You might need to log in
-to another system because the files you want to edit are there, or
-because the Emacs executable file you want to run is there.
-
-  The syntax of the @env{DISPLAY} environment variable is
-@samp{@var{host}:@var{display}.@var{screen}}, where @var{host} is the
-host name of the X Window System server machine, @var{display} is an
-arbitrarily-assigned number that distinguishes your server (X terminal)
-from other servers on the same machine, and @var{screen} is a
-rarely-used field that allows an X server to control multiple terminal
-screens.  The period and the @var{screen} field are optional.  If
-included, @var{screen} is usually zero.
-
-  For example, if your host is named @samp{glasperle} and your server is
-the first (or perhaps the only) server listed in the configuration, your
-@env{DISPLAY} is @samp{glasperle:0.0}.
-
-  You can specify the display name explicitly when you run Emacs, either
-by changing the @env{DISPLAY} variable, or with the option @samp{-d
-@var{display}} or @samp{--display=@var{display}}.  Here is an example:
-
-@smallexample
-emacs --display=glasperle:0 &
-@end smallexample
-
-  You can inhibit the direct use of the window system and GUI with the
-@samp{-nw} option.  It tells Emacs to display using ordinary ASCII on
-its controlling terminal.  This is also an initial option.
-
-  Sometimes, security arrangements prevent a program on a remote system
-from displaying on your local system.  In this case, trying to run Emacs
-produces messages like this:
-
-@smallexample
-Xlib:  connection to "glasperle:0.0" refused by server
-@end smallexample
-
-@noindent
-You might be able to overcome this problem by using the @code{xhost}
-command on the local system to give permission for access from your
-remote machine.
-
-@node Font X
-@appendixsec Font Specification Options
-@cindex font name (X Window System)
-
-  By default, Emacs displays text in the font named @samp{9x15}, which
-makes each character nine pixels wide and fifteen pixels high.  You can
-specify a different font on your command line through the option
-@samp{-fn @var{name}} (or @samp{--font}, which is an alias for
-@samp{-fn}).
-
-@table @samp
-@item -fn @var{name}
-@opindex -fn
-@itemx --font=@var{name}
-@opindex --font
-@cindex specify default font from the command line
-Use font @var{name} as the default font.
-@end table
-
-  Under X, each font has a long name which consists of eleven words or
-numbers, separated by dashes.  Some fonts also have shorter
-nicknames---@samp{9x15} is such a nickname.  You can use either kind of
-name.  You can use wildcard patterns for the font name; then Emacs lets
-X choose one of the fonts that match the pattern.  Here is an example,
-which happens to specify the font whose nickname is @samp{6x13}:
-
-@smallexample
-emacs -fn "-misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1" &
-@end smallexample
-
-@noindent
-You can also specify the font in your @file{.Xdefaults} file:
-
-@smallexample
-emacs.font: -misc-fixed-medium-r-semicondensed--13-*-*-*-c-60-iso8859-1
-@end smallexample
-
-  A long font name has the following form:
-
-@smallexample
--@var{maker}-@var{family}-@var{weight}-@var{slant}-@var{widthtype}-@var{style}@dots{}
-@dots{}-@var{pixels}-@var{height}-@var{horiz}-@var{vert}-@var{spacing}-@var{width}-@var{charset}
-@end smallexample
-
-@table @var
-@item maker
-This is the name of the font manufacturer.
-@item family
-This is the name of the font family---for example, @samp{courier}.
-@item weight
-This is normally @samp{bold}, @samp{medium} or @samp{light}.  Other
-words may appear here in some font names.
-@item slant
-This is @samp{r} (roman), @samp{i} (italic), @samp{o} (oblique),
-@samp{ri} (reverse italic), or @samp{ot} (other).
-@item widthtype
-This is normally @samp{condensed}, @samp{extended}, @samp{semicondensed}
-or @samp{normal}.  Other words may appear here in some font names.
-@item style
-This is an optional additional style name.  Usually it is empty---most
-long font names have two hyphens in a row at this point.
-@item pixels
-This is the font height, in pixels.
-@item height
-This is the font height on the screen, measured in tenths of a printer's
-point---approximately 1/720 of an inch.  In other words, it is the point
-size of the font, times ten.  For a given vertical resolution,
-@var{height} and @var{pixels} are proportional; therefore, it is common
-to specify just one of them and use @samp{*} for the other.
-@item horiz
-This is the horizontal resolution, in pixels per inch, of the screen for
-which the font is intended.
-@item vert
-This is the vertical resolution, in pixels per inch, of the screen for
-which the font is intended.  Normally the resolution of the fonts on
-your system is the right value for your screen; therefore, you normally
-specify @samp{*} for this and @var{horiz}.
-@item spacing
-This is @samp{m} (monospace), @samp{p} (proportional) or @samp{c}
-(character cell).
-@item width
-This is the average character width, in pixels, multiplied by ten.
-@item charset
-This is the character set that the font depicts.
-Normally you should use @samp{iso8859-1}.
-@end table
-
-@cindex listing system fonts
-  You will probably want to use a fixed-width default font---that is,
-a font in which all characters have the same width.  Any font with
-@samp{m} or @samp{c} in the @var{spacing} field of the long name is a
-fixed-width font.  Here's how to use the @code{xlsfonts} program to
-list all the fixed-width fonts available on your system:
-
-@example
-xlsfonts -fn '*x*' | egrep "^[0-9]+x[0-9]+"
-xlsfonts -fn '*-*-*-*-*-*-*-*-*-*-*-m*'
-xlsfonts -fn '*-*-*-*-*-*-*-*-*-*-*-c*'
-@end example
-
-@noindent
-To see what a particular font looks like, use the @code{xfd} command.
-For example:
-
-@example
-xfd -fn 6x13
-@end example
-
-@noindent
-displays the entire font @samp{6x13}.
-
-  While running Emacs, you can set the font of the current frame
-(@pxref{Frame Parameters}) or for a specific kind of text
-(@pxref{Faces}).
-
-@node Colors X
-@appendixsec Window Color Options
-@cindex color of window
-@cindex text colors, from command line
-
-@findex list-colors-display
-@cindex available colors
-  On a color display, you can specify which color to use for various
-parts of the Emacs display.  To find out what colors are available on
-your system, type @kbd{M-x list-colors-display}, or press
-@kbd{C-Mouse-2} and select @samp{Display Colors} from the pop-up menu.
-If you do not specify colors, on windowed displays the default for the
-background is white and the default for all other colors is black.  On a
-monochrome display, the foreground is black, the background is white,
-and the border is gray if the display supports that.  On terminals, the
-background is usually black and the foreground is white.
-
-  Here is a list of the command-line options for specifying colors:
-
-@table @samp
-@item -fg @var{color}
-@opindex -fg
-@itemx --foreground-color=@var{color}
-@opindex --foreground-color
-@cindex foreground color, command-line argument
-Specify the foreground color.  @var{color} should be a standard color
-name, or a numeric specification of the color's red, green, and blue
-components as in @samp{#4682B4} or @samp{RGB:46/82/B4}.
-@item -bg @var{color}
-@opindex -bg
-@itemx --background-color=@var{color}
-@opindex --background-color
-@cindex background color, command-line argument
-Specify the background color.
-@item -bd @var{color}
-@opindex -bd
-@itemx --border-color=@var{color}
-@opindex --border-color
-@cindex border color, command-line argument
-Specify the color of the border of the X window.
-@item -cr @var{color}
-@opindex -cr
-@itemx --cursor-color=@var{color}
-@opindex --cursor-color
-@cindex cursor color, command-line argument
-Specify the color of the Emacs cursor which indicates where point is.
-@item -ms @var{color}
-@opindex -ms
-@itemx --mouse-color=@var{color}
-@opindex --mouse-color
-@cindex mouse pointer color, command-line argument
-Specify the color for the mouse cursor when the mouse is in the Emacs window.
-@item -r
-@opindex -r
-@itemx -rv
-@opindex -rv
-@itemx --reverse-video
-@opindex --reverse-video
-@cindex reverse video, command-line argument
-Reverse video---swap the foreground and background colors.
-@end table
-
-  For example, to use a coral mouse cursor and a slate blue text cursor,
-enter:
-
-@example
-emacs -ms coral -cr 'slate blue' &
-@end example
-
-  You can reverse the foreground and background colors through the
-@samp{-rv} option or with the X resource @samp{reverseVideo}.
-
-  The @samp{-fg}, @samp{-bg}, and @samp{-rv} options function on
-text-only terminals as well as on window systems.
-
-@node Window Size X
-@appendixsec Options for Window Geometry
-@cindex geometry of Emacs window
-@cindex position and size of Emacs frame
-@cindex width and height of Emacs frame
-
-  The @samp{--geometry} option controls the size and position of the
-initial Emacs frame.  Here is the format for specifying the window
-geometry:
-
-@table @samp
-@item -g @var{width}x@var{height}@r{[@{}+-@r{@}}@var{xoffset}@r{@{}+-@r{@}}@var{yoffset}@r{]]}
-@opindex -g
-Specify window size @var{width} and @var{height} (measured in character
-columns and lines), and positions @var{xoffset} and @var{yoffset}
-(measured in pixels).
-
-@item --geometry=@var{width}x@var{height}@r{[@{}+-@r{@}}@var{xoffset}@r{@{}+-@r{@}}@var{yoffset}@r{]]}
-@opindex --geometry
-This is another way of writing the same thing.
-@end table
-
-@noindent
-@code{@r{@{}+-@r{@}}} means either a plus sign or a minus sign.  A plus
-sign before @var{xoffset} means it is the distance from the left side of
-the screen; a minus sign means it counts from the right side.  A plus
-sign before @var{yoffset} means it is the distance from the top of the
-screen, and a minus sign there indicates the distance from the bottom.
-The values @var{xoffset} and @var{yoffset} may themselves be positive or
-negative, but that doesn't change their meaning, only their direction.
-
-  Emacs uses the same units as @code{xterm} does to interpret the geometry.
-The @var{width} and @var{height} are measured in characters, so a large font
-creates a larger frame than a small font.  (If you specify a proportional
-font, Emacs uses its maximum bounds width as the width unit.)  The
-@var{xoffset} and @var{yoffset} are measured in pixels.
-
-  Since the mode line and the echo area occupy the last 2 lines of the
-frame, the height of the initial text window is 2 less than the height
-specified in your geometry.  In non-X-toolkit versions of Emacs, the
-menu bar also takes one line of the specified number.  But in the X
-toolkit version, the menu bar is additional and does not count against
-the specified height.  The tool bar, if present, is also additional.
-
-  You do not have to specify all of the fields in the geometry
-specification.
-
-  If you omit both @var{xoffset} and @var{yoffset}, the window manager
-decides where to put the Emacs frame, possibly by letting you place
-it with the mouse.  For example, @samp{164x55} specifies a window 164
-columns wide, enough for two ordinary width windows side by side, and 55
-lines tall.
-
-  The default width for Emacs is 80 characters and the default height is
-40 lines.  You can omit either the width or the height or both.  If
-you start the geometry with an integer, Emacs interprets it as the
-width.  If you start with an @samp{x} followed by an integer, Emacs
-interprets it as the height.  Thus, @samp{81} specifies just the width;
-@samp{x45} specifies just the height.
-
-  If you start with @samp{+} or @samp{-}, that introduces an offset,
-which means both sizes are omitted.  Thus, @samp{-3} specifies the
-@var{xoffset} only.  (If you give just one offset, it is always
-@var{xoffset}.)  @samp{+3-3} specifies both the @var{xoffset} and the
-@var{yoffset}, placing the frame near the bottom left of the screen.
-
-  You can specify a default for any or all of the fields in
-@file{.Xdefaults} file, and then override selected fields with a
-@samp{--geometry} option.
-
-@node Borders X
-@appendixsec Internal and External Borders
-@cindex borders (X Window System)
-
-  An Emacs frame has an internal border and an external border.  The
-internal border is an extra strip of the background color around the
-text portion of the frame.  Emacs itself draws the internal border.
-The external border is added by the window manager outside the frame;
-depending on the window manager you use, it may contain various boxes
-you can click on to move or iconify the window.
-
-@table @samp
-@item -ib @var{width}
-@opindex -ib
-@itemx --internal-border=@var{width}
-@opindex --internal-border
-@cindex border width, command-line argument
-Specify @var{width} as the width of the internal border, in pixels.
-
-@item -bw @var{width}
-@opindex -bw
-@itemx --border-width=@var{width}
-@opindex --border-width
-Specify @var{width} as the width of the main border, in pixels.
-@end table
-
-  When you specify the size of the frame, that does not count the
-borders.  The frame's position is measured from the outside edge of the
-external border.
-
-  Use the @samp{-ib @var{n}} option to specify an internal border
-@var{n} pixels wide.  The default is 1.  Use @samp{-bw @var{n}} to
-specify the width of the external border (though the window manager may
-not pay attention to what you specify).  The default width of the
-external border is 2.
-
-@node Title X
-@appendixsec Frame Titles
-
-  An Emacs frame may or may not have a specified title.  The frame
-title, if specified, appears in window decorations and icons as the
-name of the frame.  If an Emacs frame has no specified title, the
-default title has the form @samp{@var{invocation-name}@@@var{machine}}
-(if there is only one frame) or the selected window's buffer name (if
-there is more than one frame).
-
-  You can specify a title for the initial Emacs frame with a command
-line option:
-
-@table @samp
-@item -title @var{title}
-@opindex --title
-@itemx --title=@var{title}
-@itemx -T @var{title}
-@opindex -T
-@cindex frame title, command-line argument
-Specify @var{title} as the title for the initial Emacs frame.
-@end table
-
-  The @samp{--name} option (@pxref{Resources X}) also specifies the title
-for the initial Emacs frame.
-
-@node Icons X
-@appendixsec Icons
-@cindex icons (X Window System)
-
-  Most window managers allow the user to ``iconify'' a frame, removing
-it from sight, and leaving a small, distinctive ``icon'' window in its
-place.  Clicking on the icon window makes the frame itself appear again.
-If you have many clients running at once, you can avoid cluttering up
-the screen by iconifying most of the clients.
-
-@table @samp
-@item -i
-@opindex -i
-@itemx --icon-type
-@opindex --icon-type
-@cindex Emacs icon, a gnu
-Use a picture of a gnu as the Emacs icon.
-
-@item -iconic
-@opindex --iconic
-@itemx --iconic
-@cindex start iconified, command-line argument
-Start Emacs in iconified state.
-@end table
-
-  The @samp{-i} or @samp{--icon-type} option tells Emacs to use an icon
-window containing a picture of the GNU gnu.  If omitted, Emacs lets the
-window manager choose what sort of icon to use---usually just a small
-rectangle containing the frame's title.
-
-  The @samp{-iconic} option tells Emacs to begin running as an icon,
-rather than showing a frame right away.  In this situation, the icon
-is the only indication that Emacs has started; the text frame doesn't
-appear until you deiconify it.
 
 @node Resources X
 @appendixsec X Resources
@@ -551,8 +124,20 @@ You can also use @samp{#include "@var{filename}"} to include a file full
 of resource specifications.  Resource values specified with @samp{-xrm}
 take precedence over all other resource specifications.
 
-  The following table lists the resource names that designate options
-for Emacs, each with the class that it belongs to:
+  One way to experiment with the effect of different resource settings
+is to use the @code{editres} program.  Select @samp{Get Tree} from the
+@samp{Commands} menu, then click on an Emacs frame.  This will display
+a tree showing the structure of X toolkit widgets used in an Emacs
+frame.  Select one of them, such as @samp{menubar}, then select
+@samp{Show Resource Box} from the @samp{Commands} menu.  This displays
+a list of all the meaningful X resources and allows you to edit them.
+Changes take effect immediately if you click on the @samp{Apply} button.
+
+@node Table of Resources
+@appendixsec Table of X Resources for Emacs
+
+  This table lists the resource names that designate options for
+Emacs, each with the class that it belongs to:
 
 @table @asis
 @item @code{background} (class @code{Background})
@@ -652,8 +237,11 @@ Give frames scroll bars if @samp{on}; don't have scroll bars if
 @samp{off}.
 @end table
 
-  Here are resources for controlling the appearance of particular faces
-(@pxref{Faces}):
+@node Face Resources
+@appendixsec X Resources for Faces
+
+  You can also use resources to customize the appearance of particular
+faces (@pxref{Faces}):
 
 @table @code
 @item @var{face}.attributeFont
