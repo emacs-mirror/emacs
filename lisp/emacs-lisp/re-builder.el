@@ -226,21 +226,13 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
       (define-key reb-mode-map "\C-c\C-e" 'reb-enter-subexp-mode)
       (define-key reb-mode-map "\C-c\C-u" 'reb-force-update)))
 
-(defun reb-mode ()
-  "Major mode for interactively building Regular Expressions.
-\\{reb-mode-map}"
-  (interactive)
-
-  (setq major-mode       'reb-mode
-        mode-name        "RE Builder")
-  (use-local-map reb-mode-map)
-  (reb-mode-common)
-  (run-hooks 'reb-mode-hook))
+(define-derived-mode reb-mode nil "RE Builder"
+  "Major mode for interactively building Regular Expressions."
+  (reb-mode-common))
 
 (define-derived-mode reb-lisp-mode
   emacs-lisp-mode "RE Builder Lisp"
-  "Major mode for interactively building symbolic Regular Expressions.
-\\{reb-lisp-mode-map}"
+  "Major mode for interactively building symbolic Regular Expressions."
   (cond ((eq reb-re-syntax 'lisp-re)	; Pull in packages
 	 (require 'lisp-re))		; as needed
 	((eq reb-re-syntax 'sregex)	; sregex is not autoloaded
@@ -252,28 +244,16 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
 (define-key reb-lisp-mode-map "\C-c"
   (lookup-key reb-mode-map "\C-c"))
 
-(if (boundp 'font-lock-defaults-alist)
-    (setq font-lock-defaults-alist
-	  (cons (cons 'reb-lisp-mode
-		      (cdr (assoc 'emacs-lisp-mode
-				  font-lock-defaults-alist)))
-		font-lock-defaults-alist)))
-
-(defvar reb-subexp-mode-map nil
+(defvar reb-subexp-mode-map 
+  (let ((m (make-keymap)))
+    (suppress-keymap m)
+    ;; Again share the "\C-c" keymap for the commands
+    (define-key m "\C-c" (lookup-key reb-mode-map "\C-c"))
+    (define-key m "q" 'reb-quit-subexp-mode)
+    (dotimes (digit 10)
+      (define-key m (int-to-string digit) 'reb-display-subexp))
+    m)
   "Keymap used by the RE Builder for the subexpression mode.")
-
-(if (not reb-subexp-mode-map)
-    (progn
-      (setq reb-subexp-mode-map (make-sparse-keymap))
-      (suppress-keymap reb-subexp-mode-map)
-      ;; Again share the "\C-c" keymap for the commands
-      (define-key reb-subexp-mode-map "\C-c"
-	(lookup-key reb-mode-map "\C-c"))
-      (define-key reb-subexp-mode-map "q" 'reb-quit-subexp-mode)
-      (mapcar (lambda (digit)
-		(define-key reb-subexp-mode-map (int-to-string digit)
-		  'reb-display-subexp))
-	      '(0 1 2 3 4 5 6 7 8 9))))
 
 (defun reb-mode-common ()
   "Setup functions common to functions `reb-mode' and `reb-mode-lisp'."
@@ -411,7 +391,6 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
 (defun reb-enter-subexp-mode ()
   "Enter the subexpression mode in the RE Builder."
   (interactive)
-
   (setq reb-subexp-mode t)
   (reb-update-modestring)
   (use-local-map reb-subexp-mode-map)
@@ -434,7 +413,6 @@ If the optional PAUSE is non-nil then pause at the end in any case."
 (defun reb-quit-subexp-mode ()
   "Quit the subexpression mode in the RE Builder."
   (interactive)
-
   (setq reb-subexp-mode nil
 	reb-subexp-displayed nil)
   (reb-update-modestring)
