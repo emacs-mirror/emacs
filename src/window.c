@@ -493,7 +493,16 @@ DEFUN ("window-end", Fwindow_end, Swindow_end, 0, 1, 0,
   "Return position at which display currently ends in WINDOW.\n\
 This is updated by redisplay, when it runs to completion.\n\
 Simply changing the buffer text or setting `window-start'\n\
-does not update this value.")
+does not update this value.\n\
+\n\
+This function returns nil if the position is not currently known.\n\
+That happens when redisplay is preempted and doesn't finish.\n\
+If in that case you want to compute where the end of the window would\n\
+have been if redisplay had finished, do this:\n\
+    (save-excursion\n\
+      (goto-char (window-start window))\n\
+      (vertical-motion (1- (window-height window)) window)\n\
+      (point))")
   (window)
      Lisp_Object window;
 {
@@ -503,6 +512,13 @@ does not update this value.")
 
   buf = w->buffer;
   CHECK_BUFFER (buf, 0);
+
+  /* If we don't know the end position, return nil.
+     The user can compute it with vertical-motion if he wants to.
+     It would be nicer to do it automatically,
+     but that's so slow that it would probably bother people.  */
+  if (NILP (w->window_end_valid))
+    return Qnil;
 
   XSET (value, Lisp_Int,
 	BUF_Z (XBUFFER (buf)) - XFASTINT (w->window_end_pos));
