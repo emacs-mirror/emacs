@@ -31,7 +31,8 @@
 ;; Grand Unification (sdb/dbx support) by Eric S. Raymond <esr@thyrsus.com>
 ;; The overloading code was then rewritten by Barry Warsaw <bwarsaw@cen.com>,
 ;; who also hacked the mode to use comint.el.  Shane Hartman <shane@spr.com>
-;; added support for xdb (HPUX debugger).
+;; added support for xdb (HPUX debugger).  Rick Sladkey <jrs@world.std.com>
+;; wrote the GDB command completion code.
 
 ;;; Code:
 
@@ -252,9 +253,93 @@ and source-file directory for your debugger."
   (gud-def gud-down   "down %p"      ">" "Down N stack frames (numeric arg).")
   (gud-def gud-print  "print %e"     "\C-p" "Evaluate C expression at point.")
 
+  (local-set-key "\C-i" 'gud-gdb-complete-command)
   (setq comint-prompt-regexp "^(.*gdb[+]?) *")
   (run-hooks 'gdb-mode-hook)
   )
+
+;; One of the nice features of GDB is its impressive support for
+;; context-sensitive command completion.  We preserve that feature
+;; in the GUD buffer by using a GDB command designed just for Emacs.
+
+;; The completion process filter indicates when it is finished.
+(defvar gud-gdb-complete-in-progress)
+
+;; Since output may arrive in fragments we accumulate partials strings here.
+(defvar gud-gdb-complete-string)
+
+;; We need to know how much of the completion to chop off.
+(defvar gud-gdb-complete-break)
+
+;; The completion list is constructed by the process filter.
+(defvar gud-gdb-complete-list)
+
+(defun gud-gdb-complete-command ()
+  "Perform completion on the GDB command preceding point.
+This is implemented using the GDB `complete' command which isn't
+available with older versions of GDB."
+  (interactive)
+  (let* ((end (point))
+	 (command (save-excursion
+		    (beginning-of-line)
+		    (and (looking-at comint-prompt-regexp)
+			 (goto-char (match-end 0)))
+		    (buffer-substring (point) end)))
+	 command-word)
+    ;; Find the word break.  This match will always succeed.
+    (string-match "\\(\\`\\| \\)\\([^ ]*\\)\\'" command)
+    (setq gud-gdb-complete-break (match-beginning 2)
+	  command-word (substring command gud-gdb-complete-break))
+    (unwind-protect
+	(progn
+	  ;; Temporarily install our filter function.
+	  (gud-overload-functions
+	   '((gud-marker-filter . gud-gdb-complete-filter)))
+	  ;; Issue the command to GDB.
+	  (gud-basic-call (concat "complete " command))
+	  (setq gud-gdb-complete-in-progress t
+		gud-gdb-complete-string nil
+		gud-gdb-complete-list nil)
+	  ;; Slurp the output.
+	  (while gud-gdb-complete-in-progress
+	    (accept-process-output (get-buffer-process gud-comint-buffer))))
+      ;; Restore the old filter function.
+      (gud-overload-functions '((gud-marker-filter . gud-gdb-marker-filter))))
+    ;; Protect against old versions of GDB.
+    (and gud-gdb-complete-list
+	 (string-match "^Undefined command: \"complete\""
+		       (car gud-gdb-complete-list))
+	 (error "This version of GDB doesn't support the `complete' command."))
+    ;; Sort the list like readline.
+    (setq gud-gdb-complete-list
+	  (sort gud-gdb-complete-list (function string-lessp)))
+    ;; Remove duplicates.
+    (let ((first gud-gdb-complete-list)
+	  (second (cdr gud-gdb-complete-list)))
+      (while second
+	(if (string-equal (car first) (car second))
+	    (setcdr first (setq second (cdr second)))
+	  (setq first second
+		second (cdr second)))))
+    ;; Let comint handle the rest.
+    (comint-dynamic-simple-complete command-word gud-gdb-complete-list)))
+    
+;; The completion process filter is installed temporarily to slurp the
+;; output of GDB up to the next prompt and build the completion list.
+(defun gud-gdb-complete-filter (string)
+  (setq string (concat gud-gdb-complete-string string))
+  (while (string-match "\n" string)
+    (setq gud-gdb-complete-list
+	  (cons (substring string gud-gdb-complete-break (match-beginning 0))
+		gud-gdb-complete-list))
+    (setq string (substring string (match-end 0))))
+  (if (string-match comint-prompt-regexp string)
+      (progn
+	(setq gud-gdb-complete-in-progress nil)
+	string)
+    (progn
+      (setq gud-gdb-complete-string string)
+      "")))
 
 
 ;; ======================================================================
