@@ -1,5 +1,14 @@
 2002-06-10  Miles Bader  <miles@gnu.org>
 
+	* files.el (revert-buffer): Correct typo: variable name is
+	`buffer-file-format', not `buffer-file-formats'.
+
+	* comint.el (comint-send-input, comint-output-filter): Use the
+	`font-lock-face' property instead of `face'.  Don't check the
+	highlight-enabling variables anymore.
+	(comint-highlight-input, comint-highlight-prompt): Variables
+	removed.
+	
 	* faces.el (display-supports-face-attributes-p): New function.
 	(face-spec-set-match-display): Support `supports' predicate.
 	(italic): Try underlining for displays that don't support real italics.
