@@ -112,35 +112,61 @@
 (set-font-encoding "ISO8859-1" 'ascii 0)
 (set-font-encoding "JISX0201" 'latin-jisx0201 0)
 
+;; Allow display of arbitrary characters with an iso-10646-encoded
+;; (`Unicode') font.
+(define-translation-table 'ucs-mule-to-mule-unicode
+  ucs-mule-to-mule-unicode)
+
 (define-ccl-program ccl-encode-unicode-font
   `(0
-    (if (r0 == ,(charset-id 'ascii))
-	((r2 = r1)
-	 (r1 = 0))
-      (if (r0 == ,(charset-id 'latin-iso8859-1))
-	  ((r2 = (r1 + 128))
-	   (r1 = 0))
-	(if (r0 == ,(charset-id 'mule-unicode-0100-24ff))
-	    ((r1 *= 96)
-	     (r1 += r2)
-	     (r1 += ,(- #x100 (* 32 96) 32))
-	     (r1 >8= 0)
-	     (r2 = r7))
-	  (if (r0 == ,(charset-id 'mule-unicode-2500-33ff))
-	      ((r1 *= 96)
-	       (r1 += r2)
-	       (r1 += ,(- #x2500 (* 32 96) 32))
-	       (r1 >8= 0)
-	       (r2 = r7))
-	    (if (r0 == ,(charset-id 'mule-unicode-e000-ffff))
-		((r1 *= 96)
-		 (r1 += r2)
-		 (r1 += ,(- #xe000 (* 32 96) 32))
-		 (r1 >8= 0)
-		 (r2 = r7)))))))))
+    ;; r0: charset-id
+    ;; r1: 1st position code
+    ;; r2: 2nd position code (if r0 is 2D charset)
+    ((if (r0 == ,(charset-id 'ascii))
+	 ((r2 = r1)
+	  (r1 = 0))
+       ((if (r2 >= 0)
+	    ;; This is a 2D charset.
+	    (r1 = ((r1 << 7) | r2)))
+	;; Look for a translation for non-ASCII chars.
+	(translate-character ucs-mule-to-mule-unicode r0 r1)
+	(if (r0 == ,(charset-id 'latin-iso8859-1))
+	    ((r2 = (r1 + 128))
+	     (r1 = 0))
+	  ((r2 = (r1 & #x7F))
+	   (r1 >>= 7)
+	   (if (r0 == ,(charset-id 'mule-unicode-0100-24ff))
+	       ((r1 *= 96)
+		(r1 += r2)
+		(r1 += ,(- #x100 (* 32 96) 32))
+		(r1 >8= 0)
+		(r2 = r7))
+	     (if (r0 == ,(charset-id 'mule-unicode-2500-33ff))
+		 ((r1 *= 96)
+		  (r1 += r2)
+		  (r1 += ,(- #x2500 (* 32 96) 32))
+		  (r1 >8= 0)
+		  (r2 = r7))
+	       (if (r0 == ,(charset-id 'mule-unicode-e000-ffff))
+		   ((r1 *= 96)
+		    (r1 += r2)
+		    (r1 += ,(- #xe000 (* 32 96) 32))
+		    (r1 >8= 0)
+		    (r2 = r7))
+		 ;; No way, use the glyph for U+FFFD.
+		 ((r1 = #xFF)
+		  (r2 = #xFD)))))))))))
+  "Encode characters for display with iso10646 font.
+Translate through the translation-table named
+`ucs-mule-to-mule-unicode' initially.")
 
+;; Use the above CCL encoder for Unicode fonts.  Please note that the
+;; regexp is not simply "ISO10646-1" because there exists, for
+;; instance, the following Devanagari Unicode fonts:
+;;	-misc-fixed-medium-r-normal--24-240-72-72-c-120-iso10646.indian-1
+;;	-sibal-devanagari-medium-r-normal--24-240-75-75-P--iso10646-dev
 (setq font-ccl-encoder-alist
-      (cons '("ISO10646-1" . ccl-encode-unicode-font)
+      (cons '("ISO10646.*-*" . ccl-encode-unicode-font)
 	    font-ccl-encoder-alist))
 
 ;; Setting for suppressing XLoadQueryFont on big fonts.
