@@ -1,5 +1,7 @@
 2005-03-23  Lute Kamstra  <lute@gnu.org>
 
+	* generic.el (generic-make-keywords-list): Add autoload cookie.
+
 	* calendar/time-date.el: Add comment on time value formats.  Don't
 	require parse-time.
 	(with-decoded-time-value): New macro.
