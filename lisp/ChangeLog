@@ -1116,7 +1116,7 @@
 2003-07-22  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/hideshow.el (hs-special-modes-alist):
-	Clarify MDATA-SELECTOR doc; nfc.
+	Clarify MDATA-SELECTOR doc; nfc.  Thanks to Michael Ernst.
 
 2003-07-21  Markus Rost  <rost@math.ohio-state.edu>
 
