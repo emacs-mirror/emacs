@@ -6,6 +6,18 @@
 	(ps-right-header, ps-right-footer): Initialization and doc fix.
 	(ps-time-stamp-locale-default): New fun.
 
+2001-07-06  MORIOKA Tomohiko  <tomo@kanji.zinbun.kyoto-u.ac.jp>
+
+	* mail/rmailout.el (rmail-output): Fix duplicate MIME-Version:
+	field problem with MIME-mode.
+
+	* mail/rmailout.el (rmail-output): Fix bug in MIME-mode.
+
+2001-07-06  MORIOKA Tomohiko  <tomo@kanji.zinbun.kyoto-u.ac.jp>
+
+	* mail/rmail.el (rmail-reply): Don't forget to narrow header in
+	MIME-mode.
+
 2001-07-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* bindings.el (mode-line-mule-info): Don't show the tip with
