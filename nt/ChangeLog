@@ -1,3 +1,8 @@
+2001-03-26  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* configure.bat: Make the checkw32api* labels be distinct in the
+        first 8 characters.
+
 2001-03-17  Andrew Innes  <andrewi@gnu.org>
 
 	* cmdproxy.c (get_next_token): Fix indefinite loop bug scanning
