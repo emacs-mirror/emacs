@@ -20,12 +20,13 @@ Boston, MA 02111-1307, USA.  */
 
 
 #include <config.h>
+#include <stdio.h>
+#include <string.h>
 #include "termchar.h"
 #include "lisp.h"
 #include "dispextern.h"
 #include "frame.h"
-
-extern struct display_line **ophys_lines;
+#include "window.h"
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
@@ -57,6 +58,13 @@ struct matrix_elt
        or delete for the cost in writecost. */
     unsigned char writecount;
   };
+
+static void do_direct_scrolling P_ ((struct glyph_matrix *,
+				     struct matrix_elt *,
+				     int, int));
+static void do_scrolling P_ ((struct glyph_matrix *,
+			      struct matrix_elt *,
+			      int, int));
 
 
 /* Determine, in matrix[i,j], the cost of updating the first j old
@@ -96,7 +104,7 @@ calculate_scrolling (frame, matrix, window_size, lines_below,
 
   int lines_moved = window_size + (scroll_region_ok ? 0 : lines_below);
   /* first_insert_cost[I] is the cost of doing the first insert-line
-     at the I'th line of the lines we are considering,
+     at the i'th line of the lines we are considering,
      where I is origin 1 (as it is below).  */
   int *first_insert_cost
     = &FRAME_INSERT_COST (frame)[frame_height - 1 - lines_moved];
@@ -220,150 +228,162 @@ calculate_scrolling (frame, matrix, window_size, lines_below,
 	p->deletecount = (cost < cost1) ? 1 : p1->deletecount + 1;
       }
 }
+
+
 
-/* Perform insert-lines and delete-lines operations on FRAME according
-   to the costs in MATRIX, using the general scrolling method.
-   Update the frame's current_glyphs info to record what was done.
+/* Perform insert-lines and delete-lines operations on CURRENT_MATRIX
+   according to the costs in MATRIX, using the general scrolling
+   method that is used if the terminal does not support the setting of
+   scroll windows (scroll_region_ok == 0).  
 
    WINDOW_SIZE is the number of lines being considered for scrolling
-   and UNCHANGED_AT_TOP is the vpos of the first line being considered.
-   These two arguments can specify any contiguous range of lines.
+   and UNCHANGED_AT_TOP is the vpos of the first line being
+   considered.  These two arguments can specify any contiguous range
+   of lines.  */
  
-   We also shuffle the charstarts vectors for the lines
-   along with the glyphs; but the results are not quite right,
-   since we cannot offset them for changes in amount of text
-   in this line or that line.  Luckily it doesn't matter,
-   since update_frame and update_line will copy in the proper
-   new charstarts vectors from the frame's desired_glyphs.  */
-
 static void
-do_scrolling (frame, matrix, window_size, unchanged_at_top)
-     FRAME_PTR frame;
+do_scrolling (current_matrix, matrix, window_size, unchanged_at_top)
+     struct glyph_matrix *current_matrix;
      struct matrix_elt *matrix;
      int window_size;
      int unchanged_at_top;
 {
-  register struct matrix_elt *p;
-  register int i, j;
-  register struct frame_glyphs *current_frame;
-  /* temp_frame->enable[i] means line i has been moved to current_frame.  */
-  register struct frame_glyphs *temp_frame;
-  struct queue { int count, pos; } *queue;
-  int offset = unchanged_at_top;
-  int qi = 0;
-  int window = 0;
-  register int tem;
-  int next;
+  struct matrix_elt *p;
+  int i, j, k;
 
-  queue = (struct queue *) alloca (FRAME_HEIGHT (frame)
-				   * sizeof (struct queue));
+  /* Set to 1 if we have set a terminal window with
+     set_terminal_window.  */
+  int terminal_window_p = 0;
 
-  current_frame = FRAME_CURRENT_GLYPHS (frame);
-  temp_frame = FRAME_TEMP_GLYPHS (frame);
+  /* A queue for line insertions to be done.  */
+  struct queue { int count, pos; };
+  struct queue *queue_start
+    = (struct queue *) alloca (current_matrix->nrows * sizeof (struct queue));
+  struct queue *queue = queue_start;
+  
+  char *retained_p = (char *) alloca (window_size * sizeof (char));
+  int *copy_from = (int *) alloca (window_size * sizeof (int));
 
-  bcopy (current_frame->glyphs, temp_frame->glyphs,
-	 current_frame->height * sizeof (GLYPH *));
-  bcopy (current_frame->charstarts, temp_frame->charstarts,
-	 current_frame->height * sizeof (int *));
-  bcopy (current_frame->used, temp_frame->used,
-	 current_frame->height * sizeof (int));
-  bcopy (current_frame->highlight, temp_frame->highlight,
-	 current_frame->height * sizeof (char));
-  bzero (temp_frame->enable, temp_frame->height * sizeof (char));
-  bcopy (current_frame->bufp, temp_frame->bufp,
-	 current_frame->height * sizeof (int));
+  /* Zero means line is empty.  */
+  bzero (retained_p, window_size * sizeof (char));
+  for (k = 0; k < window_size; ++k)
+    copy_from[k] = -1;
 
-#ifdef HAVE_WINDOW_SYSTEM
-  if (FRAME_WINDOW_P (frame))
-    {
-      bcopy (current_frame->top_left_x, temp_frame->top_left_x,
-	     current_frame->height * sizeof (short));
-      bcopy (current_frame->top_left_y, temp_frame->top_left_y,
-	     current_frame->height * sizeof (short));
-      bcopy (current_frame->pix_width, temp_frame->pix_width,
-	     current_frame->height * sizeof (short));
-      bcopy (current_frame->pix_height, temp_frame->pix_height,
-	     current_frame->height * sizeof (short));
-      bcopy (current_frame->max_ascent, temp_frame->max_ascent,
-	     current_frame->height * sizeof (short));
-    }
-#endif
+#define CHECK								\
+  do									\
+    {									\
+      int k;								\
+      for (k = 0; k < window_size; ++k)					\
+	xassert (copy_from[k] == -1					\
+		 || (copy_from[k] >= 0 && copy_from[k] < window_size));	\
+    }									\
+  while (0);
 
+  /* When j is advanced, this corresponds to deleted lines.
+     When i is advanced, this corresponds to inserted lines.  */
   i = j = window_size;
-
   while (i > 0 || j > 0)
     {
       p = matrix + i * (window_size + 1) + j;
-      tem = p->insertcost;
-      if (tem < p->writecost && tem < p->deletecost)
+      
+      if (p->insertcost < p->writecost && p->insertcost < p->deletecost)
 	{
-	  /* Insert should be done at vpos i-1, plus maybe some before */
-	  queue[qi].count = p->insertcount;
+	  /* Insert should be done at vpos i-1, plus maybe some before.
+	     Queue the screen operation to be performed.  */
+	  queue->count = p->insertcount;
+	  queue->pos = i + unchanged_at_top - p->insertcount;
+	  ++queue;
+
+	  /* By incrementing I, we leave room in the result rows
+	     for the empty rows opened up.  */
 	  i -= p->insertcount;
-	  queue[qi++].pos = i + unchanged_at_top;
 	}
       else if (p->deletecost < p->writecost)
 	{
-	  /* Old line at vpos j-1, and maybe some before it,
-	     should be deleted */
+	  /* Old line at vpos j-1, and maybe some before it, should be
+	     deleted.  By decrementing J, we skip some lines in the
+	     temp_rows which is equivalent to omitting these lines in
+	     the result rows, thus deleting them.  */
 	  j -= p->deletecount;
- 	  if (!window)
+
+	  /* Set the terminal window, if not done already.  */
+ 	  if (! terminal_window_p)
 	    {
 	      set_terminal_window (window_size + unchanged_at_top);
-	      window = 1;
+	      terminal_window_p = 1;
 	    }
+
+	  /* Delete lines on the terminal.  */
 	  ins_del_lines (j + unchanged_at_top, - p->deletecount);
 	}
       else
 	{
-	  /* Best thing done here is no insert or delete */
-	  /* Old line at vpos j-1 ends up at vpos i-1 */
-	  current_frame->glyphs[i + offset - 1]
-	    = temp_frame->glyphs[j + offset - 1];
-	  current_frame->charstarts[i + offset - 1]
-	    = temp_frame->charstarts[j + offset - 1];
-	  current_frame->used[i + offset - 1]
-	    = temp_frame->used[j + offset - 1];
-	  current_frame->highlight[i + offset - 1]
-	    = temp_frame->highlight[j + offset - 1];
+	  /* Best thing done here is no insert or delete, i.e. a write.  */
+	  --i, --j;
+	  xassert (i >= 0 && i < window_size);
+	  xassert (j >= 0 && j < window_size);
+	  copy_from[i] = j;
+	  retained_p[j] = 1;
 
-	  temp_frame->enable[j + offset - 1] = 1;
-	  i--;
-	  j--;
+#if GLYPH_DEBUG
+	  CHECK;
+#endif
 	}
     }
 
-  if (!window && qi)
+  /* Now do all insertions queued above.  */
+  if (queue > queue_start)
     {
-      set_terminal_window (window_size + unchanged_at_top);
-      window = 1;
-    }
+      int next = -1;
 
-  /* Now do all insertions */
-
-  next = unchanged_at_top;
-  for (i = qi - 1; i >= 0; i--)
-    {
-      ins_del_lines (queue[i].pos, queue[i].count);
-
-      /* Mark the inserted lines as clear,
-	 and put into them the line-contents strings
-	 that were discarded during the deletions.
-	 Those are the ones for which temp_frame->enable was not set.  */
-      tem = queue[i].pos;
-      for (j = tem + queue[i].count - 1; j >= tem; j--)
+      /* Set the terminal window if not yet done.  */
+      if (!terminal_window_p)
 	{
-	  current_frame->enable[j] = 0;
-	  while (temp_frame->enable[next])
-	    next++;
-	  current_frame->glyphs[j] = temp_frame->glyphs[next];
-	  current_frame->charstarts[j] = temp_frame->charstarts[next++];
+	  set_terminal_window (window_size + unchanged_at_top);
+	  terminal_window_p = 1;
 	}
+
+      do
+	{
+	  --queue;
+
+	  /* Do the deletion on the terminal.  */
+	  ins_del_lines (queue->pos, queue->count);
+
+	  /* All lines in the range deleted become empty in the glyph
+	     matrix.  Assign to them glyph rows that are not retained.
+	     K is the starting position of the deleted range relative
+	     to the window we are working in.  */
+	  k = queue->pos - unchanged_at_top;
+	  for (j = 0; j < queue->count; ++j)
+	    {
+	      /* Find the next row not retained.  */
+	      while (retained_p[++next])
+		;
+
+	      /* Record that this row is to be used for the empty
+		 glyph row j.  */
+	      copy_from[k + j] = next;
+	    }
+	}
+      while (queue > queue_start);
+	  
     }
 
-  if (window)
+  for (k = 0; k < window_size; ++k)
+    xassert (copy_from[k] >= 0 && copy_from[k] < window_size);
+
+  /* Perform the row swizzling.  */
+  mirrored_line_dance (current_matrix, unchanged_at_top, window_size,
+		       copy_from, retained_p);
+
+  /* Some sanity checks if GLYPH_DEBUG != 0.  */
+  CHECK_MATRIX (current_matrix);
+  
+  if (terminal_window_p)
     set_terminal_window (0);
 }
+
 
 /* Determine, in matrix[i,j], the cost of updating the first j
    old lines into the first i new lines using the direct
@@ -611,186 +631,179 @@ calculate_direct_scrolling (frame, matrix, window_size, lines_below,
 	p->deletecost = cost;
       }
 }
+
+
 
-/* Perform insert-lines and delete-lines operations on FRAME according
-   to the costs in MATRIX, using the direct scrolling method.
-   Update the frame's current_glyphs info to record what was done.
+/* Perform insert-lines and delete-lines operations on CURRENT_MATRIX
+   according to the costs in MATRIX, using the direct scrolling method
+   which is used when the terminal supports setting a scroll window
+   (scroll_region_ok).
 
    WINDOW_SIZE is the number of lines being considered for scrolling
-   and UNCHANGED_AT_TOP is the vpos of the first line being considered.
-   These two arguments can specify any contiguous range of lines.
+   and UNCHANGED_AT_TOP is the vpos of the first line being
+   considered.  These two arguments can specify any contiguous range
+   of lines.
  
-   We also shuffle the charstarts vectors for the lines
-   along with the glyphs; but the results are not quite right,
-   since we cannot offset them for changes in amount of text
-   in this line or that line.  Luckily it doesn't matter,
-   since update_frame and update_line will copy in the proper
-   new charstarts vectors from the frame's desired_glyphs.
-
    In the direct scrolling method, a new scroll window is selected
    before each insertion or deletion, so that groups of lines can be
    scrolled directly to their final vertical positions.  This method
-   is described in more detail in calculate_direct_scrolling,
-   where the cost matrix for this approach is constructed. */
+   is described in more detail in calculate_direct_scrolling, where
+   the cost matrix for this approach is constructed. */
 
 static void
-do_direct_scrolling (frame, matrix, window_size, unchanged_at_top)
-     FRAME_PTR frame;
-     struct matrix_elt *matrix;
+do_direct_scrolling (current_matrix, cost_matrix, window_size,
+		     unchanged_at_top)
+     struct glyph_matrix *current_matrix;
+     struct matrix_elt *cost_matrix;
      int window_size;
      int unchanged_at_top;
 {
-  register struct matrix_elt *p;
-  register int i, j;
-  register struct frame_glyphs *current_frame;
-  /* temp_frame->enable[i] means line i has been moved to current_frame.  */
-  register struct frame_glyphs *temp_frame;
-  struct alt_queue { int count, pos, window; } *queue;
-  int offset = unchanged_at_top;
-  int qi = 0;
-  int window = 0;
-  register int tem;
-  int next;
+  struct matrix_elt *p;
+  int i, j;
+
+  /* A queue of deletions and insertions to be performed.  */
+  struct alt_queue { int count, pos, window; };
+  struct alt_queue *queue_start = (struct alt_queue *)
+    alloca (window_size * sizeof *queue_start);
+  struct alt_queue *queue = queue_start;
+
+  /* Set to 1 if a terminal window has been set with
+     set_terminal_window: */
+  int terminal_window_p = 0;
 
   /* A nonzero value of write_follows indicates that a write has been
-     selected, allowing either an insert or a delete to be selected next.
-     When write_follows is zero, a delete cannot be selected unless j < i,
-     and an insert cannot be selected unless i < j.  This corresponds to
-     a similar restriction (with the ordering reversed) in
-     calculate_direct_scrolling, which is intended to ensure that lines
-     marked as inserted will be blank. */
-  int write_follows = 1;
+     selected, allowing either an insert or a delete to be selected
+     next.  When write_follows is zero, a delete cannot be selected
+     unless j < i, and an insert cannot be selected unless i < j.
+     This corresponds to a similar restriction (with the ordering
+     reversed) in calculate_direct_scrolling, which is intended to
+     ensure that lines marked as inserted will be blank. */
+  int write_follows_p = 1;
 
-  queue = (struct alt_queue *) alloca (FRAME_HEIGHT (frame)
-				       * sizeof (struct alt_queue));
+  /* For each row in the new matrix what row of the old matrix it is.  */
+  int *copy_from = (int *) alloca (window_size * sizeof (int));
 
-  current_frame = FRAME_CURRENT_GLYPHS (frame);
-  temp_frame = FRAME_TEMP_GLYPHS (frame);
+  /* Non-zero for each row in the new matrix that is retained from the
+     old matrix.  Lines not retained are empty.  */
+  char *retained_p = (char *) alloca (window_size * sizeof (char));
 
-  bcopy (current_frame->glyphs, temp_frame->glyphs,
-	 current_frame->height * sizeof (GLYPH *));
-  bcopy (current_frame->charstarts, temp_frame->charstarts,
-	 current_frame->height * sizeof (GLYPH *));
-  bcopy (current_frame->used, temp_frame->used,
-	 current_frame->height * sizeof (int));
-  bcopy (current_frame->highlight, temp_frame->highlight,
-	 current_frame->height * sizeof (char));
-  bzero (temp_frame->enable, temp_frame->height * sizeof (char));
-  bcopy (current_frame->bufp, temp_frame->bufp,
-	 current_frame->height * sizeof (int));
+  bzero (retained_p, window_size * sizeof (char));
 
-#ifdef HAVE_WINDOW_SYSTEM
-  if (FRAME_WINDOW_P (frame))
-    {
-      bcopy (current_frame->top_left_x, temp_frame->top_left_x,
-	     current_frame->height * sizeof (short));
-      bcopy (current_frame->top_left_y, temp_frame->top_left_y,
-	     current_frame->height * sizeof (short));
-      bcopy (current_frame->pix_width, temp_frame->pix_width,
-	     current_frame->height * sizeof (short));
-      bcopy (current_frame->pix_height, temp_frame->pix_height,
-	     current_frame->height * sizeof (short));
-      bcopy (current_frame->max_ascent, temp_frame->max_ascent,
-	     current_frame->height * sizeof (short));
-    }
-#endif
+  /* Perform some sanity checks when GLYPH_DEBUG is on.  */
+  CHECK_MATRIX (current_matrix);
 
+  /* We are working on the line range UNCHANGED_AT_TOP ...
+     UNCHANGED_AT_TOP + WINDOW_SIZE (not including) in CURRENT_MATRIX.
+     We step through lines in this range from the end to the start.  I
+     is an index into new lines, j an index into old lines.  The cost
+     matrix determines what to do for ranges of indices.
+
+     If i is decremented without also decrementing j, this corresponds
+     to inserting empty lines in the result.  If j is decremented
+     without also decrementing i, this corresponds to omitting these
+     lines in the new rows, i.e. rows are deleted.  */
   i = j = window_size;
-
+  
   while (i > 0 || j > 0)
     {
-      p = matrix + i * (window_size + 1) + j;
-      tem = p->insertcost;
-      if (tem < p->writecost && tem < p->deletecost
-	  && (write_follows || i < j))
+      p = cost_matrix + i * (window_size + 1) + j;
+      
+      if (p->insertcost < p->writecost
+	  && p->insertcost < p->deletecost
+	  && (write_follows_p || i < j))
 	{
-	  /* Insert should be done at vpos i-1, plus maybe some before.
-	     Setting count to 0 in the queue marks this as an insert. */
-	  write_follows = 0;
-	  queue[qi].window = i + unchanged_at_top;
-	  queue[qi].count = 0;
+	  /* Insert is cheaper than deleting or writing lines.  Leave
+	     a hole in the result display that will be filled with
+	     empty lines when the queue is emptied.  */
+	  queue->count = 0;
+	  queue->window = i;
+	  queue->pos = i - p->insertcount;
+	  ++queue;
+	  
 	  i -= p->insertcount;
-	  queue[qi++].pos = i + unchanged_at_top;
+	  write_follows_p = 0;
 	}
-      else if (p->deletecost < p->writecost && (write_follows || i > j))
+      else if (p->deletecost < p->writecost
+	       && (write_follows_p || i > j))
 	{
-	  /* Delete should be done at vpos j-1, plus maybe some before. */
-	  write_follows = 0;
+	  /* Deleting lines is cheaper.  By decrementing J, omit
+	     deletecount lines from the original.  */
+	  write_follows_p = 0;
 	  j -= p->deletecount;
 	}
       else
 	{
-	  /* One or more lines should be retained. */
-	  write_follows = 1;
-	  tem = p->writecount;
+	  /* One or more lines should be written.  In the direct
+	     scrolling method we do this by scrolling the lines to the
+	     place they belong.  */
+	  int n_to_write = p->writecount;
+	  write_follows_p = 1;
+	  xassert (n_to_write > 0); 
+
 	  if (i > j)
 	    {
-	      /* Immediately scroll a group of lines downward */
+	      /* Immediately insert lines */
 	      set_terminal_window (i + unchanged_at_top);
-	      window = 1;
-	      ins_del_lines (j - tem + unchanged_at_top, i - j);
+	      terminal_window_p = 1;
+	      ins_del_lines (j - n_to_write + unchanged_at_top, i - j);
 	    }
 	  else if (i < j)
 	    {
-	      /* Queue the upward scrolling of a group of lines */
-	      queue[qi].pos = i - tem + unchanged_at_top;
-	      queue[qi].window = j + unchanged_at_top;
-	      queue[qi++].count = i - j;
+	      /* Queue the deletion of a group of lines */
+	      queue->pos = i - n_to_write + unchanged_at_top;
+	      queue->window = j + unchanged_at_top;
+	      queue->count = i - j;
+	      ++queue;
 	    }
 
-	  /* Now copy the line-contents strings */
-	  while (tem > 0)
+	  while (n_to_write > 0)
 	    {
-	      i--;
-	      j--;
-	      tem--;
-	      current_frame->glyphs[i + offset]
-		= temp_frame->glyphs[j + offset];
-	      current_frame->charstarts[i + offset]
-		= temp_frame->charstarts[j + offset];
-	      current_frame->used[i + offset]
-		= temp_frame->used[j + offset];
-	      current_frame->highlight[i + offset]
-		= temp_frame->highlight[j + offset];
-
-	      temp_frame->enable[j + offset] = 1;
+	      --i, --j, --n_to_write;
+	      copy_from[i] = j;
+	      retained_p[j] = 1;
 	    }
 	}
     }
 
-  /* Now do all the upward scrolling, and copy the line-contents
-     strings for the blank lines of the recorded inserts. */
-
-  next = unchanged_at_top;
-  for (i = qi - 1; i >= 0; i--)
+  /* Do queued operations.  */
+  if (queue > queue_start)
     {
-      if (queue[i].count)
+      int next = -1;
+
+      do
 	{
-	  set_terminal_window (queue[i].window);
-	  window = 1;
-	  ins_del_lines (queue[i].pos, queue[i].count);
-	}
-      else
-	{
-	  /* Mark the inserted lines as clear,
-	     and put into them the line-contents strings
-	     that were discarded during the deletions.
-	     Those are the ones for which temp_frame->enable was not set. */
-	  tem = queue[i].pos;
-	  for (j = queue[i].window - 1; j >= tem; j--)
+	  --queue;
+	  if (queue->count)
 	    {
-	      current_frame->enable[j] = 0;
-	      while (temp_frame->enable[next])
-		next++;
-	      current_frame->glyphs[j] = temp_frame->glyphs[next];
-	      current_frame->charstarts[j] = temp_frame->charstarts[next++];
+	      set_terminal_window (queue->window);
+	      terminal_window_p = 1;
+	      ins_del_lines (queue->pos, queue->count);
+	    }
+	  else
+	    {
+	      for (j = queue->window - 1; j >= queue->pos; --j)
+		{
+		  while (retained_p[++next])
+		    ;
+		  copy_from[j] = next;
+		}
 	    }
 	}
+      while (queue > queue_start);
     }
 
-  if (window)
+  /* Now, for each row I in the range of rows we are working on,
+     copy_from[i] gives the original line to copy to I, and
+     retained_p[copy_from[i]] is zero if line I in the new display is
+     empty.  */
+  mirrored_line_dance (current_matrix, unchanged_at_top, window_size,
+		       copy_from, retained_p);
+
+  if (terminal_window_p)
     set_terminal_window (0);
 }
+
+
 
 void
 scrolling_1 (frame, window_size, unchanged_at_top, unchanged_at_bottom,
@@ -813,22 +826,26 @@ scrolling_1 (frame, window_size, unchanged_at_top, unchanged_at_bottom,
 				  unchanged_at_bottom,
 				  draw_cost, old_draw_cost, 
 				  old_hash, new_hash, free_at_end);
-      do_direct_scrolling (frame, matrix, window_size, unchanged_at_top);
+      do_direct_scrolling (frame->current_matrix,
+			   matrix, window_size, unchanged_at_top);
     }
   else
     {
       calculate_scrolling (frame, matrix, window_size, unchanged_at_bottom,
 			   draw_cost, old_hash, new_hash,
 			   free_at_end);
-      do_scrolling (frame, matrix, window_size, unchanged_at_top);
+      do_scrolling (frame->current_matrix, matrix, window_size,
+		    unchanged_at_top);
     }
 }
+
+
 
-/* Return number of lines in common between current and desired frame contents
-   described to us only as vectors of hash codes OLDHASH and NEWHASH.
-   Consider only vpos range START to END (not including END).
-   Ignore short lines on the assumption that
-   avoiding redrawing such a line will have little weight.  */
+/* Return number of lines in common between current and desired frame
+   contents described to us only as vectors of hash codes OLDHASH and
+   NEWHASH.  Consider only vpos range START to END (not including
+   END).  Ignore short lines on the assumption that avoiding redrawing
+   such a line will have little weight.  */
 
 int
 scrolling_max_lines_saved (start, end, oldhash, newhash, cost)
@@ -851,11 +868,9 @@ scrolling_max_lines_saved (start, end, oldhash, newhash, cost)
 
   bzero (lines, sizeof lines);
 
-  /* Put new lines' hash codes in hash table.
-     Ignore lines shorter than the threshold.
-     Thus, if the lines that are in common
-     are mainly the ones that are short,
-     they won't count.  */
+  /* Put new lines' hash codes in hash table.  Ignore lines shorter
+     than the threshold.  Thus, if the lines that are in common are
+     mainly the ones that are short, they won't count.  */
   for (i = start; i < end; i++)
     {
       if (cost[i] > threshold)
@@ -866,9 +881,8 @@ scrolling_max_lines_saved (start, end, oldhash, newhash, cost)
 	}
     }
 
-  /* Look up old line hash codes in the hash table.
-     Count number of matches between old lines and new.  */
-
+  /* Look up old line hash codes in the hash table.  Count number of
+     matches between old lines and new.  */
   for (i = start; i < end; i++)
     {
       h = oldhash[i] & 0777;
@@ -883,11 +897,10 @@ scrolling_max_lines_saved (start, end, oldhash, newhash, cost)
   return matchcount;
 }
 
-/* Return a measure of the cost of moving the lines
-   starting with vpos FROM, up to but not including vpos TO,
-   down by AMOUNT lines (AMOUNT may be negative).
-   These are the same arguments that might be given to
-   scroll_frame_lines to perform this scrolling.  */
+/* Return a measure of the cost of moving the lines starting with vpos
+   FROM, up to but not including vpos TO, down by AMOUNT lines (AMOUNT
+   may be negative).  These are the same arguments that might be given
+   to scroll_frame_lines to perform this scrolling.  */
 
 int
 scroll_cost (frame, from, to, amount)
