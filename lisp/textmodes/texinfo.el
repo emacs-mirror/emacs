@@ -367,9 +367,9 @@ value of texinfo-mode-hook."
   (setq comment-start-skip "@c +")
   (make-local-variable 'words-include-escapes)
   (setq words-include-escapes t)
-  (make-local-variable 'texinfo-start-of-header)
+  (make-local-variable 'tex-start-of-header)
   (setq tex-start-of-header "%**start")
-  (make-local-variable 'texinfo-end-of-header)
+  (make-local-variable 'tex-end-of-header)
   (setq tex-end-of-header "%**end")
   (run-hooks 'text-mode-hook 'texinfo-mode-hook))
 
