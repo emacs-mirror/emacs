@@ -99,8 +99,7 @@
 	(setq kill-ring (cons shortbuf kill-ring))
 	(if (> (length kill-ring) kill-ring-max)
 	    (setcdr (nthcdr (1- kill-ring-max) kill-ring) nil))
-	(setq kill-ring-yank-pointer kill-ring))))
-)
+	(setq kill-ring-yank-pointer kill-ring)))))
 
 (defun calc-do-calc-eval (str separator args)
   (calc-check-defines)
@@ -238,8 +237,7 @@
 					 (and buf (or separator ", "))
 					 (math-format-value (car res) 1000))
 			     res (cdr res)))
-		     buf))))))))
-)
+		     buf)))))))))
 
 (defun calc-eval-error (msg)
   (if (and (boundp 'calc-eval-error)
@@ -247,24 +245,21 @@
       (if (eq calc-eval-error 'string)
 	  (nth 1 msg)
 	(error "%s" (nth 1 msg)))
-    msg)
-)
+    msg))
 
 
 ;;;; Reading an expression in algebraic form.
 
 (defun calc-auto-algebraic-entry (&optional prefix)
   (interactive "P")
-  (calc-algebraic-entry prefix t)
-)
+  (calc-algebraic-entry prefix t))
 
 (defun calc-algebraic-entry (&optional prefix auto)
   (interactive "P")
   (calc-wrapper
    (let ((calc-language (if prefix nil calc-language))
 	 (math-expr-opers (if prefix math-standard-opers math-expr-opers)))
-     (calc-alg-entry (and auto (char-to-string last-command-char)))))
-)
+     (calc-alg-entry (and auto (char-to-string last-command-char))))))
 
 (defun calc-alg-entry (&optional initial prompt)
   (let* ((sel-mode nil)
@@ -293,8 +288,7 @@
 	  (setq alg-exp (cdr alg-exp)
 		nvals (cdr nvals)
 		calc-dollar-used 0)))
-      (calc-handle-whys)))
-)
+      (calc-handle-whys))))
 
 (defun calc-do-alg-entry (&optional initial prompt no-normalize)
   (let* ((calc-buffer (current-buffer))
@@ -332,15 +326,13 @@
       (setq calc-aborted-prefix "alg'")
       (or no-normalize
 	  (and alg-exp (setq alg-exp (mapcar 'calc-normalize alg-exp))))
-      alg-exp))
-)
+      alg-exp)))
 
 (defun calcAlg-plus-minus ()
   (interactive)
   (if (calc-minibuffer-contains ".* \\'")
       (insert "+/- ")
-    (insert " +/- "))
-)
+    (insert " +/- ")))
 
 (defun calcAlg-mod ()
   (interactive)
@@ -350,8 +342,7 @@
       (if calc-previous-modulo
 	  (insert (math-format-flat-expr calc-previous-modulo 0))
 	(beep))
-    (insert "mod "))
-)
+    (insert "mod ")))
 
 (defun calcAlg-previous ()
   (interactive)
@@ -359,8 +350,7 @@
       (if calc-previous-alg-entry
 	  (insert calc-previous-alg-entry)
 	(beep))
-    (insert "'"))
-)
+    (insert "'")))
 
 (defun calcAlg-equals ()
   (interactive)
@@ -368,8 +358,7 @@
       (calcAlg-enter)
     (if (consp alg-exp)
 	(progn (setq prefix-arg (length alg-exp))
-	       (calc-unread-command ?=))))
-)
+	       (calc-unread-command ?=)))))
 
 (defun calcAlg-escape ()
   (interactive)
@@ -377,8 +366,7 @@
   (save-excursion
     (calc-select-buffer)
     (use-local-map calc-mode-map))
-  (calcAlg-enter)
-)
+  (calcAlg-enter))
 
 (defun calcAlg-edit ()
   (interactive)
@@ -388,8 +376,7 @@
       (insert "`")
     (setq alg-exp (minibuffer-contents))
     (and (> (length alg-exp) 0) (setq calc-previous-alg-entry alg-exp))
-    (exit-minibuffer))
-)
+    (exit-minibuffer)))
 (setq calc-plain-entry nil)
 
 (defun calcAlg-enter ()
@@ -411,8 +398,7 @@
 			'((incomplete vec))
 		      exp))
       (and (> (length str) 0) (setq calc-previous-alg-entry str))
-      (exit-minibuffer)))
-)
+      (exit-minibuffer))))
 
 (defun calcAlg-blink-matching-open ()
   (let ((oldpos (point))
@@ -438,8 +424,7 @@
 			 (lsh (char-after (1- oldpos)) 8)))
 		(blink-matching-open))
 	    (aset (syntax-table) (char-after blinkpos) saved)))
-      (blink-matching-open)))
-)
+      (blink-matching-open))))
 
 
 (defun calc-alg-digit-entry ()
@@ -449,23 +434,20 @@
 	 ((eq last-command-char ?#) (format "%d#" calc-number-radix))
 	 ((eq last-command-char ?_) "-")
 	 ((eq last-command-char ?@) "0@ ")
-	 (t (char-to-string last-command-char))))
-)
+	 (t (char-to-string last-command-char)))))
 
 (defun calcDigit-algebraic ()
   (interactive)
   (if (calc-minibuffer-contains ".*[@oh] *[^'m ]+[^'m]*\\'")
       (calcDigit-key)
     (setq calc-digit-value (minibuffer-contents))
-    (exit-minibuffer))
-)
+    (exit-minibuffer)))
 
 (defun calcDigit-edit ()
   (interactive)
   (calc-unread-command)
   (setq calc-digit-value (minibuffer-contents))
-  (exit-minibuffer)
-)
+  (exit-minibuffer))
 
 
 ;;; Algebraic expression parsing.   [Public]
@@ -487,8 +469,7 @@
 	  (list 'error exp-old-pos val)
 	(if (equal exp-token 'end)
 	    val
-	  (list 'error exp-old-pos "Syntax error")))))
-)
+	  (list 'error exp-old-pos "Syntax error"))))))
 
 (defun math-read-expr-list ()
   (let* ((exp-keep-spaces nil)
@@ -499,8 +480,7 @@
       (let ((rest (list (math-read-expr-level 0))))
 	(setcdr last rest)
 	(setq last rest)))
-    val)
-)
+    val))
 
 (setq calc-user-parse-table nil)
 (setq calc-last-main-parse-table nil)
@@ -527,8 +507,7 @@
 								 (length y)))))
 					    "\\|")
 		calc-last-main-parse-table mtab
-		calc-last-lang-parse-table ltab))))
-)
+		calc-last-lang-parse-table ltab)))))
 
 (defun math-find-user-tokens (p)   ; uses "toks"
   (while p
@@ -552,8 +531,7 @@
 	   (math-find-user-tokens (nth 1 (car p)))
 	   (or (eq (car (car p)) '\?)
 	       (math-find-user-tokens (nth 2 (car p))))))
-    (setq p (cdr p)))
-)
+    (setq p (cdr p))))
 
 (defun math-read-token ()
   (if (>= exp-pos (length exp-str))
@@ -721,8 +699,7 @@
 		 (setq ch ?\,))
 	     (setq exp-token 'punc
 		   exp-data (char-to-string ch)
-		   exp-pos (1+ exp-pos))))))
-)
+		   exp-pos (1+ exp-pos)))))))
 
 
 (defun math-read-expr-level (exp-prec &optional exp-term)
@@ -790,8 +767,7 @@
 			     x
 			     (math-read-expr-level (nth 3 op) exp-term))))
 	    first nil))
-    x)
-)
+    x))
 
 (defun calc-check-user-syntax (&optional x prec)
   (let ((p calc-user-parse-table)
@@ -877,8 +853,7 @@
 				    exp-data save-exp-data
 				    exp-pos save-exp-pos)))))))
       (setq p (cdr p)))
-    (and p match))
-)
+    (and p match)))
 
 (defun calc-match-user-syntax (p &optional term)
   (let ((matches nil)
@@ -937,8 +912,7 @@
 	      exp-token save-exp-token
 	      exp-data save-exp-data
 	      matches "Failed"))
-    matches)
-)
+    matches))
 
 (defconst math-alg-inequalities
   '(calcFunc-lt calcFunc-gt calcFunc-leq calcFunc-geq
@@ -948,23 +922,20 @@
   (if (string-match "\\`\\(.*\\)-\\(.*\\)\\'" x)
       (math-remove-dashes
        (concat (math-match-substring x 1) "#" (math-match-substring x 2)))
-    x)
-)
+    x))
 
 (defun math-restore-dashes (x)
   (if (string-match "\\`\\(.*\\)[#_]\\(.*\\)\\'" x)
       (math-restore-dashes
        (concat (math-match-substring x 1) "-" (math-match-substring x 2)))
-    x)
-)
+    x))
 
 (defun math-read-if (cond op)
   (let ((then (math-read-expr-level 0)))
     (or (equal exp-data ":")
 	(throw 'syntax "Expected ':'"))
     (math-read-token)
-    (list 'calcFunc-if cond then (math-read-expr-level (nth 3 op))))
-)
+    (list 'calcFunc-if cond then (math-read-expr-level (nth 3 op)))))
 
 (defun math-factor-after ()
   (let ((exp-pos exp-pos)
@@ -974,8 +945,7 @@
 	(and (assoc exp-data '(("-") ("+") ("!") ("|") ("/")))
 	     (assoc (concat "u" exp-data) math-expr-opers))
 	(eq (nth 2 (assoc exp-data math-expr-opers)) -1)
-	(assoc exp-data '(("(") ("[") ("{")))))
-)
+	(assoc exp-data '(("(") ("[") ("{"))))))
 
 (defun math-read-factor ()
   (let (op)
@@ -1157,8 +1127,6 @@
 	  ((equal exp-data "<")
 	   (calc-extensions)
 	   (math-read-angle-brackets))
-	  (t (throw 'syntax "Expected a number"))))
-)
+	  (t (throw 'syntax "Expected a number")))))
 
-
-
+;;; calc-aent.el ends here
