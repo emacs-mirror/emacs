@@ -1,3 +1,12 @@
+2000-06-19  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/isearch-x.el (isearch-minibuffer-input-method)
+	(isearch-minibuffer-input-method-function): These variables
+	deleted.
+	(isearch-with-input-method): Don't use the above variables.
+	(isearch-process-search-multibyte-characters): Likewise.  Call
+	read-string with the arg INHERIT-INPUT-METHOD t.
+
 2000-06-17  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* font-lock.el (font-lock-after-fontify-buffer)
