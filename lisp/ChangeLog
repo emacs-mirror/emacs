@@ -1,5 +1,10 @@
 2005-04-05  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
+	* progmodes/sh-script.el (sh-builtins) <bash>: Add `caller'.
+	(sh-escaped-newline): New face.
+	(sh-font-lock-keywords) <shell>: Improve regexp for escaped
+	newline, and use sh-escaped-newline face.
+
 	* progmodes/tcl.el (tcl-escaped-newline): New face.
 	(tcl-builtin-list): New variable.
 	(tcl-set-font-lock-keywords): Add builtins, variables, and escaped
