@@ -1,3 +1,8 @@
+2004-12-28  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (back_to_previous_visible_line_start):
+	Don't call handle_display_prop.
+
 2004-12-28  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* coding.c (decode_coding_XXX, decode_composition_emacs_mule)
