@@ -188,3 +188,6 @@ clean mostlyclean:
 distclean maintainer-clean:
 	if test -f stamp-subdir; then rm -rf ${SUBDIRS} stamp-subdir; fi
 	rm -f Makefile
+
+extraclean: distclean
+	-rm -f *~ \#* m/?*~ s/?*~
