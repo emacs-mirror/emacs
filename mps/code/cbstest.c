@@ -607,7 +607,7 @@ extern int main(int argc, char *argv[])
       "failed to allocate block");
   dummyBlock = (Addr)p; /* avoid pun */
 
-  printf("Allocated block [%p, %p)\n", dummyBlock,
+  printf("Allocated block [%p, %p)\n", (void*)dummyBlock,
          (char *)dummyBlock + ArraySize);
 
   checkCBS(cbs, allocTable, dummyBlock);
