@@ -1150,7 +1150,9 @@ pop_down_file_dialog (arg)
      Lisp_Object arg;
 {
   struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
+  BLOCK_INPUT;
   gtk_widget_destroy (GTK_WIDGET (p->pointer));
+  UNBLOCK_INPUT;
   return Qnil;
 }
 
