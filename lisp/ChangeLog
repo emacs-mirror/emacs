@@ -1,9 +1,9 @@
-2002-12-11  Markus Rost  <rost@math.ohio-state.edu>
+2002-12-12  Markus Rost  <rost@math.ohio-state.edu>
 
-	* international/mule-cmds.el
-	(current-language-environment-custom-type): New fun.
-	(set-language-info): Use it.
-	(current-language-environment): Fix custom type.
+	* international/mule-cmds.el (current-language-environment): Fix
+	custom type.
+	(set-language-info): Update custom-type of
+	current-language-environment.
 
 2002-12-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
