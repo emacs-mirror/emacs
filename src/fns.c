@@ -799,7 +799,7 @@ concat (nargs, args, target_type, last_special)
 			+= CHAR_STRING (XINT (elt),
 					SDATA (val) + toindex_byte);
 		    else
-		      SREF (val, toindex_byte++) = XINT (elt);
+		      SSET (val, toindex_byte++, XINT (elt));
 		    if (some_multibyte
 			&& toindex_byte > 0
 			&& count_combining (SDATA (val),
@@ -815,7 +815,7 @@ concat (nargs, args, target_type, last_special)
 		    int c = XINT (elt);
 		    /* P exists as a variable
 		       to avoid a bug on the Masscomp C compiler.  */
-		    unsigned char *p = & SREF (val, toindex_byte);
+		    unsigned char *p = SDATA (val) + toindex_byte;
 
 		    toindex_byte += CHAR_STRING (c, p);
 		    toindex++;
@@ -1698,7 +1698,7 @@ to be sure of changing the value of `foo'.  */)
 	{
 	  if (STRING_MULTIBYTE (seq))
 	    {
-	      c = STRING_CHAR (&SREF (seq, ibyte),
+	      c = STRING_CHAR (SDATA (seq) + ibyte,
 			       SBYTES (seq) - ibyte);
 	      cbytes = CHAR_BYTES (c);
 	    }
@@ -1729,7 +1729,7 @@ to be sure of changing the value of `foo'.  */)
 	    {
 	      if (STRING_MULTIBYTE (seq))
 		{
-		  c = STRING_CHAR (&SREF (seq, ibyte),
+		  c = STRING_CHAR (SDATA (seq) + ibyte,
 				   SBYTES (seq) - ibyte);
 		  cbytes = CHAR_BYTES (c);
 		}
@@ -1741,8 +1741,8 @@ to be sure of changing the value of `foo'.  */)
 
 	      if (!INTEGERP (elt) || c != XINT (elt))
 		{
-		  unsigned char *from = &SREF (seq, ibyte);
-		  unsigned char *to   = &SREF (tem, nbytes);
+		  unsigned char *from = SDATA (seq) + ibyte;
+		  unsigned char *to   = SDATA (tem) + nbytes;
 		  EMACS_INT n;
 
 		  ++nchars;
