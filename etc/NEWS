@@ -88,6 +88,8 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
+** Under X, mouse-wheel-mode is turned on by default.
+
 ** The X resource useXIM can be used to turn off use of XIM, which may
 speed up Emacs with slow networking to the X server.
 
