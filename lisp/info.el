@@ -329,6 +329,14 @@ to read a file name from the minibuffer."
 	  (goto-char (nth 2 (car hl)))
 	(Info-restore-point (cdr hl)))))
 
+(defun Info-restore-point (hl)
+  "If this node has been visited, restore the point value when we left."
+  (if hl
+      (if (and (equal (nth 0 (car hl)) Info-current-file)
+	       (equal (nth 1 (car hl)) Info-current-node))
+	  (goto-char (nth 2 (car hl)))
+	(Info-restore-point (cdr hl)))))
+
 (defvar Info-last-search nil
   "Default regexp for \\<info-mode-map>\\[Info-search] command to search for.")
 
@@ -706,6 +714,57 @@ Completion is allowed, and the menu item point is on is the default."
   (switch-to-buffer (prog1 (other-buffer (current-buffer))
 			   (bury-buffer (current-buffer)))))
 
+(defun Info-next-menu-item ()
+  (interactive)
+  (save-excursion
+    (forward-line -1)
+    (search-forward "\n* menu:" nil t)
+    (or (search-forward "\n* " nil t)
+	(error "No more items in menu"))
+    (Info-goto-node (Info-extract-menu-node-name))))
+
+(defun Info-last-menu-item ()
+  (interactive)
+  (save-excursion
+    (forward-line 1)
+    (search-backward "\n* menu:" nil t)
+    (or (search-backward "\n* " nil t)
+	(error "No previous items in menu"))
+    (Info-goto-node (Info-extract-menu-node-name))))
+
+(defmacro no-error (&rest body)
+  (list 'condition-case nil (cons 'progn (append body '(t))) '(error nil)))
+
+(defun Info-next-preorder ()
+  "Go to the next node, popping up a level if there is none."
+  (interactive)
+  (cond ((no-error (Info-next-menu-item))	)
+	((no-error (Info-up)) 			(forward-line 1))
+	(t 					(error "No more nodes"))))
+
+(defun Info-last-preorder ()
+  "Go to the last node, popping up a level if there is none."
+  (interactive)
+  (cond ((no-error (Info-last-menu-item))	)
+	((no-error (Info-up)) 			(forward-line -1))
+	(t 					(error "No previous nodes"))))
+
+(defun Info-scroll-up ()
+  "Read the next screen.  If end of buffer is visible, go to next entry."
+  (interactive)
+  (if (pos-visible-in-window-p (point-max))
+      (Info-next-preorder)
+      (scroll-up))
+  )
+
+(defun Info-scroll-down ()
+  "Read the previous screen.  If start of buffer is visible, go to last entry."
+  (interactive)
+  (if (pos-visible-in-window-p (point-min))
+      (Info-last-preorder)
+      (scroll-down))
+  )
+
 (defun Info-undefined ()
   "Make command be undefined in Info."
   (interactive)
@@ -804,7 +863,8 @@ At end of the node's text, moves to the next node."
   (setq Info-mode-map (make-keymap))
   (suppress-keymap Info-mode-map)
   (define-key Info-mode-map "." 'beginning-of-buffer)
-  (define-key Info-mode-map " " 'scroll-up)
+  (define-key Info-mode-map " " 'Info-scroll-up)
+  (define-key Info-mode-map "\C-m" 'Info-next-preorder)
   (define-key Info-mode-map "1" 'Info-first-menu-item)
   (define-key Info-mode-map "2" 'Info-second-menu-item)
   (define-key Info-mode-map "3" 'Info-third-menu-item)
