@@ -1143,7 +1143,7 @@ to be replaced by asterisks to highlight it whenever it is in the window."
   (interactive "P")
   (set-buffer (get-buffer-create calendar-buffer))
   (calendar-mode)
-  (setq calendar-window-configuration (current-window-configuration))
+;;;  (setq calendar-window-configuration (current-window-configuration))
   (let* ((completion-ignore-case t)
          (pop-up-windows t)
          (split-height-threshold 1000)
@@ -1832,21 +1832,27 @@ concatenated and the result truncated."
                calendar-mode-line-format ?  (frame-width))))))
 
 (defun exit-calendar ()
-  "Get out of the calendar window and bury it and related buffers."
+  "Delete the calendar window, and bury the calendar and related buffers."
   (interactive)
   (let ((diary-buffer (get-file-buffer diary-file))
         (d-buffer (get-buffer fancy-diary-buffer))
         (h-buffer (get-buffer holiday-buffer)))
     (if (not diary-buffer)
         (progn
-          (set-window-configuration calendar-window-configuration)
+	  ;; Restoring the configuration is undesirable because
+	  ;; it restores the value of point in other windows.
+;;;          (set-window-configuration calendar-window-configuration)
+	  (or (one-window-p t)
+	      (delete-window))
           (bury-buffer calendar-buffer)
           (if d-buffer (bury-buffer d-buffer))
           (if h-buffer (bury-buffer h-buffer)))
       (if (or (not (buffer-modified-p diary-buffer))
               (yes-or-no-p "Diary modified; do you really want to exit the calendar? "))
           (progn
-            (set-window-configuration calendar-window-configuration)
+;;;            (set-window-configuration calendar-window-configuration)
+	    (or (one-window-p t)
+		(delete-window))
             (bury-buffer calendar-buffer)
             (if d-buffer (bury-buffer d-buffer))
             (if h-buffer (bury-buffer h-buffer))
