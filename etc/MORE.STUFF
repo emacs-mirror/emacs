@@ -80,8 +80,6 @@ You might find bug-fixes or enhancements in these places.
 
  * PC Selection: <URL:ftp://ftp.thp.uni-duisburg.de/pub/source/elisp/>
 
- * PCL-CVS: <URL:ftp://rum.cs.yale.edu/pub/monnier/pcl-cvs>
-
  * PS mode: <URL:http://odur.let.rug.nl/%7Ekleiweg/postscript/>
 
  * PS-print: <URL:ftp://ftp.cpqd.com.br/pub/users/vinicius/>
@@ -98,7 +96,7 @@ You might find bug-fixes or enhancements in these places.
 
  * Webjump: <URL:http://nwv.www.media.mit.edu/people/nwv/projects/webjump>
 
- * Whitespace; <URL:http://www.dsmit.com/lisp/>
+ * Whitespace: <URL:http://www.dsmit.com/lisp/>
 
 * Auxilliary files
 
@@ -107,8 +105,8 @@ You might find bug-fixes or enhancements in these places.
    * Scheme: <URL:ftp://ftp-swiss.ai.mit.edu/pub/scm/r5rs.info.tar.gz>
    * LaTeX: <URL:ftp://ctan.tug.org/tex-archive/info/latex2e-help-texinfo/
        latex2e.texi> (or CTAN mirrors)
-   * Perl: <URL:ftp://ftp.cpan.org/CPAN/doc/manual/texinfo/perl5/> (or
-   CPAN mirrors)
+   * Perl: <URL:ftp://ftp.cpan.org/pub/CPAN/doc/manual/texinfo/perl5/>
+       (or CPAN mirrors)
 
 * Packages and add-ons not bundled with Emacs
 
