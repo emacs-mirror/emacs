@@ -926,9 +926,9 @@ go into regular Calc (with @kbd{M-# c}) to change the mode settings.
 
 @noindent
 @dfn{Keypad Mode} is a mouse-based interface to the Calculator.
-It is designed for use with the X window system.  If you don't
-have X, you will have to operate keypad mode with your arrow
-keys (which is probably more trouble than it's worth).  Keypad
+It is designed for use with terminals that support a mouse.  If you
+don't have a mouse, you will have to operate keypad mode with your
+arrow keys (which is probably more trouble than it's worth).  Keypad
 mode is currently not supported under Emacs 19.
 
 Type @kbd{M-# k} to turn Keypad Mode on or off.  Once again you
