@@ -148,8 +148,13 @@ directory name of the directory where the `.emacs' file was looked for.")
       (run-hooks 'emacs-startup-hook)
       (and term-setup-hook
 	   (run-hooks 'term-setup-hook))
+      ;; Modify the initial frame based on what .emacs puts into
+      ;; ...-frame-alist.
       (if (fboundp 'frame-notice-user-settings)
 	  (frame-notice-user-settings))
+      ;; Now we know the user's default font, so add it to the menu.
+      (if (fboundp 'font-menu-add-default)
+	  (font-menu-add-default))
       (and window-setup-hook
 	   (run-hooks 'window-setup-hook)))))
 
