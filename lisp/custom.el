@@ -233,9 +233,9 @@ The following keywords are meaningful:
         Load file FILE (a string) before displaying this customization
         item.  Loading is done with `load', and only if the file is
         not already loaded.
-:set-after VARIABLE
-	Specifies that SYMBOL should be set after VARIABLE when
-	both have been customized.
+:set-after VARIABLES
+	Specifies that SYMBOL should be set after the list of variables
+        VARIABLES when both have been customized.
 
 Read the section about customization in the Emacs Lisp manual for more
 information."
@@ -517,7 +517,7 @@ in every Customization buffer.")
 (defun custom-set-variables (&rest args)
   "Initialize variables according to user preferences.
 
-The arguments should be a list where each entry has the form:
+The arguments should each be a list of the form:
 
   (SYMBOL VALUE [NOW [REQUEST [COMMENT]]])
 
