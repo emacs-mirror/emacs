@@ -3,6 +3,8 @@
 	* iswitchb.el (iswitchb-exhibit): Use insert instead of
 	insert-string.
 
+	* icomplete.el (icomplete-exhibit): Likewise.
+
 2001-11-25  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* diff-mode.el (diff-end-of-hunk): Watch out for ambiguities.
