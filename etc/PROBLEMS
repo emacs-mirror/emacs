@@ -1,7 +1,7 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
-* Characters from the mule-unicode charsets aren't displayed.
+* Characters from the mule-unicode charsets aren't displayed under X.
 
 XFree86 4 contains many fonts in iso10646-1 encoding which have
 minimal character repertoires (whereas the encoding is meant to be a
