@@ -225,7 +225,11 @@ act as a paragraph-separator."
       (move-to-left-margin)
       (setq start (point))
       (setq first-line-prefix
-	    (cond ((looking-at paragraph-start) nil)
+	    ;; We don't need to consider `paragraph-start' here since it
+	    ;; will be explicitly checked later on.
+	    ;; Also setting first-line-prefix to nil prevents
+	    ;; second-line-prefix from being used.
+	    (cond ;; ((looking-at paragraph-start) nil)
 		  ((and adaptive-fill-regexp (looking-at adaptive-fill-regexp))
 		   (buffer-substring-no-properties start (match-end 0)))
 		  (adaptive-fill-function (funcall adaptive-fill-function))))
@@ -756,9 +760,9 @@ space does not end a sentence, so don't break a line there."
   (let (end beg fill-pfx)
     (save-restriction
       (goto-char (max from to))
-      (if to-eop
-	  (progn (skip-chars-backward "\n")
-		 (forward-paragraph)))
+      (when to-eop
+	(skip-chars-backward "\n")
+	(forward-paragraph))
       (setq end (point))
       (goto-char (setq beg (min from to)))
       (beginning-of-line)
