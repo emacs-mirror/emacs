@@ -3368,7 +3368,8 @@ This does code conversion according to the value of\n\
 
   /* Decide the coding-system of the file.  */
   {
-    Lisp_Object val = Qnil;
+    Lisp_Object val;
+    val = Qnil;
 
     if (!NILP (Vcoding_system_for_read))
       val = Vcoding_system_for_read;
@@ -3376,8 +3377,10 @@ This does code conversion according to the value of\n\
       /* In REPLACE mode, we can use the same coding system
 	 that was used to visit the file.  */
       val = current_buffer->buffer_file_coding_system;
-    else
+    else if (! not_regular)
       {
+	/* Don't try looking inside a file for a coding system specification
+	   if it is not seekable.  */
 	if (! NILP (Vset_auto_coding_function))
 	  {
 	    /* Find a coding system specified in the heading two lines
@@ -3493,10 +3496,11 @@ This does code conversion according to the value of\n\
 	  {
 	    Lisp_Object args[6], coding_systems;
 
-	    args[0] = Qinsert_file_contents, args[1] = orig_filename,
-	      args[2] = visit, args[3] = beg, args[4] = end, args[5] = replace;
+	    args[0] = Qinsert_file_contents, args[1] = orig_filename;
+	    args[2] = visit, args[3] = beg, args[4] = end, args[5] = replace;
 	    coding_systems = Ffind_operation_coding_system (6, args);
-	    if (CONSP (coding_systems)) val = XCONS (coding_systems)->car;
+	    if (CONSP (coding_systems))
+	      val = XCONS (coding_systems)->car;
 	  }
       }
 
