@@ -122,8 +122,8 @@ by the programs that invoke the emacs server.")
       (save-excursion
 	(set-buffer "*server*")
 	(goto-char (point-max))
-	(insert string)
-	(or (bobp) (newline)))))
+	(insert (current-time-string) " " string)
+	(or (bolp) (newline)))))
 
 (defun server-sentinel (proc msg)
   (cond ((eq (process-status proc) 'exit)
