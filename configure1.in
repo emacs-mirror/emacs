@@ -273,11 +273,17 @@ Set it to either \`yes' or \`no'."
 done
 
 if [ "${configuration}" = "" ]; then
-  (echo "${progname}: You must specify a configuration name as an argument."
-   echo "${short_usage}") >&2
-  exit 1
+  echo '- You did not tell me what kind of host system you want to configure.
+- I will attempt to guess the kind of system this is.' 1>&2
+  guesssys=`echo ${progname} | sed 's/configure$/config.guess/'`
+  if configuration=`${guesssys}` ; then
+    echo "- Looks like this is a ${configuration}" 1>&2
+  else
+    echo '- Failed to guess the system type.  You need to tell me.' 1>&2
+    echo "${short_usage}") >&2
+    exit 1
+  fi
 fi
-
 
 #### Decide where the source is.
 case "${srcdir}" in
