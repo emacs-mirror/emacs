@@ -242,6 +242,34 @@
 	     (msdos-color-translate
 	      (msdos-approximate-color (string-to-number
 					(substring name 1) 16)))))))
+;;;
+;;; This is copied from etc/rgb.txt, except that some values were changed
+;;; a bit to make them consistent with DOS console colors.  The order of
+;;; the colors is according to the PC text mode color codes.
+;;;
+;;; If you want to change the RGB values, keep in mind that various pieces
+;;; of Emacs think that a color whose RGB values add up to less than 0.6 of
+;;; the values for WHITE (i.e. less than 459) are ``dark'', otherwise the
+;;; color is ``light''; see `frame-set-background-mode' in lisp/faces.el for
+;;; an example.
+(defvar msdos-color-values
+  '(("black"          0   0   0)
+    ("blue"           0   0 255)
+    ("green"          0 255   0)
+    ("cyan"           0 255 255)
+    ("red"          255   0   0)
+    ("magenta"      139   0 139)	; dark magenta
+    ("brown"        165  42  42)
+    ("lightgray"    211 211 211)
+    ("darkgray"     102 102 102)	; gray40
+    ("lightblue"    173 216 230)
+    ("lightgreen"   144 238 144)
+    ("lightcyan"    224 255 255)
+    ("lightred"     255  52 179)	; maroon1
+    ("lightmagenta" 238   0 238)	; magenta2
+    ("yellow"       255 255   0)
+    ("white"        255 255 255))
+  "A list of MS-DOS console colors and their RGB values.")
 
 (defun msdos-approximate-color (num)
   "Return a DOS color name which is the best approximation for the number NUM."
@@ -279,6 +307,12 @@
 
 (defun msdos-face-setup ()
   (modify-frame-parameters terminal-frame default-frame-alist)
+  (face-clear-tty-colors)
+  (let ((colors msdos-color-values)
+	(i 0))
+    (while colors
+      (face-register-tty-color (car (car colors)) i)
+      (setq colors (cdr colors) i (1+ i))))
 
   (modify-frame-parameters terminal-frame
 			   (list (cons 'background-mode
@@ -343,34 +377,6 @@
 (defun x-display-visual-class (&optional frame) 'static-color)
 (fset 'x-display-save-under 'ignore)
 (fset 'x-get-resource 'ignore)
-;;;
-;;; This is copied from etc/rgb.txt, except that some values were changed
-;;; a bit to make them consistent with DOS console colors.  The order of
-;;; the colors is according to the PC text mode color codes.
-;;;
-;;; If you want to change the RGB values, keep in mind that various pieces
-;;; of Emacs think that a color whose RGB values add up to less than 0.6 of
-;;; the values for WHITE (i.e. less than 459) are ``dark'', otherwise the
-;;; color is ``light''; see `frame-set-background-mode' in lisp/faces.el for
-;;; an example.
-(defvar msdos-color-values
-  '(("black"          0   0   0)
-    ("blue"           0   0 255)
-    ("green"          0 255   0)
-    ("cyan"           0 255 255)
-    ("red"          255   0   0)
-    ("magenta"      139   0 139)	; dark magenta
-    ("brown"        165  42  42)
-    ("lightgray"    211 211 211)
-    ("darkgray"     102 102 102)	; gray40
-    ("lightblue"    173 216 230)
-    ("lightgreen"   144 238 144)
-    ("lightcyan"    224 255 255)
-    ("lightred"     255  52 179)	; maroon1
-    ("lightmagenta" 238   0 238)	; magenta2
-    ("yellow"       255 255   0)
-    ("white"        255 255 255))
-  "A list of MS-DOS console colors and their RGB values.")
 
 (defun x-color-values (color &optional frame)
   "Return a description of the color named COLOR on frame FRAME.\n\
@@ -407,6 +413,13 @@ If FRAME is omitted or nil, use the selected frame."
 The argument FRAME specifies which frame to try.
 The value may be different for frames on different X displays."
   x-colors)
+
+(defun face-color-supported-p (color)
+  (x-color-defined-p color))
+
+(defun face-color-gray-p (color)
+  (member (msdos-color-translate color)
+	  '("black" "lightgray" "darkgray" "white")))
 
 ;; From lisp/term/w32-win.el
 ;
