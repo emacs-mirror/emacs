@@ -27,11 +27,13 @@
 
 ;;; Code:
 
+;; Fixme: Is this actually used?  if so, it should be in language,
+;; possibly as a feature property of Swedish, probably defining a
+;; `swascii' coding system.
+
 ;; Written by Howard Gayle.  See case-table.el for details.
 
 ;; See iso-swed.el for a description of the character set.
-
-(require 'latin-1)
 
 (defvar swedish-re
   "[ \t\n]\\(och\\|att\\|en\\|{r\\|\\[R\\|p}\\|P\\]\\|som\\|det\\|av\\|den\\|f|r\\|F\\\\R\\)[ \t\n.,?!:;'\")}]"
