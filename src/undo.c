@@ -412,8 +412,9 @@ Return what remains of the list.")
   next = Qnil;
   GCPRO2 (next, list);
 
-  /* Don't let read-only properties interfere with undo.  */
-  if (!NILP (current_buffer->read_only))
+  /* In a writable buffer, enable undoing read-only text that is so
+     because of text properties.  */
+  if (NILP (current_buffer->read_only))
     specbind (Qinhibit_read_only, Qt);
 
   /* Don't let `intangible' properties interfere with undo.  */
