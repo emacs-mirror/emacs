@@ -1,3 +1,21 @@
+2001-12-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* emacs-lisp/elint.el (elint-unknown-builtin-args): Remove
+	mocklisp entries.
+
+	* subr.el (insert-string): Moved from mocklisp.c, reimplemented in
+	Lisp.  Obsoleted.
+
+	* obsolete/mlsupport.el: Moved there from lisp/emulation.
+
+	* emacs-lisp/find-gc.el (source-files): Remove mocklisp.c.
+
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker): Remove
+	mocklisp-case.
+
+	* help-fns.el (describe-function-1): Remove mocklisp function
+	case.
+
 2001-12-22  Miles Bader  <miles@gnu.org>
 
 	* textmodes/refill.el (refill-mode): Don't barf when redundantly
