@@ -52,20 +52,20 @@
 	     (new-seq
 	      (cond
 	       ((not (string= old-date cur-date))
-		"00") ;; reset sequeence number
+		"00") ;; reset sequence number
 	       ((>= old-seq-num 99)
-		(error "Serial number's sequenece cannot increment beyond 99"))
+		(error "Serial number's sequence cannot increment beyond 99"))
 	       (t
 		(format "%02d" (1+ old-seq-num)))))
 	     (old-serial (concat old-date old-seq))
 	     (new-serial (concat cur-date new-seq)))
 	(if (string-lessp new-serial old-serial)
-	    (error (format "Serial numbers want to move backwards from %s to %s!" old-serial new-serial))
+	    (error (format "Serial numbers want to move backwards from %s to %s" old-serial new-serial))
 	  (replace-match (concat cur-date new-seq old-flag) t t))))))
   
 ;;;###autoload
 (defun zone-mode-update-serial-hook ()
-  "Update the serial number in a zone if the file was modified"
+  "Update the serial number in a zone if the file was modified."
   (interactive)
   (if (buffer-modified-p (current-buffer))
       (zone-mode-update-serial))
@@ -76,7 +76,7 @@
   "Zone-mode's syntax table.")
 
 (defun zone-mode-load-time-setup ()
-  "init zone-mode stuff"
+  "Initialise `zone-mode' stuff."
   (setq zone-mode-syntax-table (make-syntax-table))
   (modify-syntax-entry ?\; "<" zone-mode-syntax-table)
   (modify-syntax-entry ?\n ">" zone-mode-syntax-table))
@@ -92,7 +92,6 @@ Zone-mode does two things:
 
 	- fontification"
 
-  (make-local-hook 'write-file-hooks)
   (add-hook 'write-file-hooks 'zone-mode-update-serial-hook)
 
   (if (null zone-mode-syntax-table)
