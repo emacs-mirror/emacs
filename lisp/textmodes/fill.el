@@ -1,6 +1,6 @@
 ;;; fill.el --- fill commands for Emacs
 
-;; Copyright (C) 1985, 86, 92, 94, 95, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 92, 94, 95, 96, 1997 Free Software Foundation, Inc.
 
 ;; Keywords: wp
 
@@ -183,45 +183,60 @@ act as a paragraph-separator."
     (if (eolp) (forward-line 1))
     ;; Move to the second line unless there is just one.
     (let ((firstline (point))
+	  first-line-prefix
 	  ;; Non-nil if we are on the second line.
 	  at-second
-	  result)
+	  second-line-prefix
+	  start)
+      (move-to-left-margin)
+      (setq start (point))
+      (setq first-line-prefix
+	    (cond ((looking-at paragraph-start) nil)
+		  ((and adaptive-fill-regexp (looking-at adaptive-fill-regexp))
+		   (buffer-substring-no-properties start (match-end 0)))
+		  (adaptive-fill-function (funcall adaptive-fill-function))))
       (forward-line 1)
       (if (>= (point) to)
 	  (goto-char firstline)
-	(setq at-second t))
-      (move-to-left-margin)
-      (let ((start (point)))
-	(setq result
-	      (if (not (looking-at paragraph-start))
-		  (cond ((and adaptive-fill-regexp (looking-at adaptive-fill-regexp))
-			 (buffer-substring-no-properties start (match-end 0)))
-			(adaptive-fill-function (funcall adaptive-fill-function)))))
-	(if at-second
-	    ;; If we get a fill prefix from the second line,
-	    ;; make sure it's on the first line too.
-	    (and result
-		 (save-excursion
-		   (forward-line -1)
-		   (if (looking-at (regexp-quote result))
-		       result)))
-	  ;; If we get a fill prefix from a one-line paragraph,
-	  ;; maybe change it to whitespace,
-	  ;; and check that it isn't a paragraph starter.
-	  (if result
-	      (progn
-		;; If RESULT comes from the first line,
-		;; see if it seems reasonable to use for all lines.
-		;; If not, replace it with whitespace.
-		(or (and first-line-regexp
-			 (string-match first-line-regexp result))
-		    (and comment-start-skip
-			 (string-match comment-start-skip result))
-		    (setq result (make-string (string-width result) ?\ )))
-		;; But either way, reject it if it indicates
-		;; the start of a paragraph.
-		(if (not (eq 0 (string-match paragraph-start result)))
-		    result))))))))
+	(setq at-second t)
+	(move-to-left-margin)
+	(setq start (point))
+	(setq second-line-prefix
+	      (cond ((looking-at paragraph-start) nil)
+		    ((and adaptive-fill-regexp (looking-at adaptive-fill-regexp))
+		     (buffer-substring-no-properties start (match-end 0)))
+		    (adaptive-fill-function (funcall adaptive-fill-function)))))
+      (if at-second
+	  ;; If we get a fill prefix from the second line,
+	  ;; make sure it or something compatible is on the first line too.
+	  (and second-line-prefix
+	       (if (or (string-match (regexp-quote second-line-prefix)
+				     first-line-prefix)
+		       (and (string-match "[ \t]" second-line-prefix)
+			    (>= (string-width first-line-prefix)
+				(string-width second-line-prefix))))
+		     second-line-prefix))
+	;; If we get a fill prefix from a one-line paragraph,
+	;; maybe change it to whitespace,
+	;; and check that it isn't a paragraph starter.
+	(if first-line-prefix
+	    (let ((result
+		   ;; If first-line-prefix comes from the first line,
+		   ;; see if it seems reasonable to use for all lines.
+		   ;; If not, replace it with whitespace.
+		   (if (or (and first-line-regexp
+				(string-match first-line-regexp
+					      first-line-prefix))
+			   (and comment-start-skip
+				(string-match comment-start-skip
+					      first-line-prefix)))
+		       first-line-prefix
+		     (make-string (string-width first-line-prefix) ?\ ))))
+	      ;; But either way, reject it if it indicates the start
+	      ;; of a paragraph when text follows it.
+	      (if (not (eq 0 (string-match paragraph-start
+					   (concat result "a"))))
+		  result))))))))
 
 (defun fill-region-as-paragraph (from to &optional justify
 				      nosqueeze squeeze-after)
