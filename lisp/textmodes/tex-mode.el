@@ -395,10 +395,10 @@ subshell is initiated, `tex-shell-hook' is run."
 ^\\\\chapter\\>\\|^\\\\section\\>\\|\
 ^\\\\subsection\\>\\|^\\\\subsubsection\\>\\|\
 ^\\\\paragraph\\>\\|^\\\\subparagraph\\>\\|\
-^\\\\item[ \t]*$\\|^\\\\bibitem[ \t]*$\\|^\\\\newline[ \t]*$\\|^\\\\noindent[ \t]*$\\|\
-^\\\\[a-z]*space[ \t]*$\\|^\\\\[a-z]*skip[ \t]*$\\|\
-^\\\\newpage[ \t]*$\\|^\\\\[a-z]*page[a-z]*[ \t]*$\\|^\\\\footnote[ \t]*$\\|\
-^\\\\marginpar[ \t]*$\\|^\\\\parbox[ \t]*$\\|^\\\\caption[ \t]*$")
+\\(^\\\\item\\|^\\\\bibitem\\|^\\\\newline\\|^\\\\noindent\\|\
+^\\\\[a-z]*space\\|^\\\\[a-z]*skip\\|\
+^\\\\newpage\\|^\\\\[a-z]*page[a-z]*\\|^\\\\footnote\\|\
+^\\\\marginpar\\|^\\\\parbox\\|^\\\\caption\\)[ \t]*\\($\\|%\\)")
   (run-hooks 'text-mode-hook 'tex-mode-hook 'latex-mode-hook))
 
 ;;;###autoload
