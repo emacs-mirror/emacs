@@ -2301,11 +2301,11 @@ decode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 
 /* Instead of encoding character C, produce one or two `?'s.  */
 
-#define ENCODE_UNSAFE_CHARACTER(c)					\
-  do {									\
-    ENCODE_ISO_CHARACTER (CODING_INHIBIT_CHARACTER_SUBSTITUTION);	\
-    if (CHARSET_WIDTH (CHAR_CHARSET (c)) > 1)				\
-      ENCODE_ISO_CHARACTER (CODING_INHIBIT_CHARACTER_SUBSTITUTION);	\
+#define ENCODE_UNSAFE_CHARACTER(c)				\
+  do {								\
+    ENCODE_ISO_CHARACTER (CODING_REPLACEMENT_CHARACTER);	\
+    if (CHARSET_WIDTH (CHAR_CHARSET (c)) > 1)			\
+      ENCODE_ISO_CHARACTER (CODING_REPLACEMENT_CHARACTER);	\
   } while (0)
 
 
@@ -2534,6 +2534,9 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
   Lisp_Object translation_table;
   Lisp_Object safe_chars;
 
+  if (coding->flags & CODING_FLAG_ISO_SAFE)
+    coding->mode |= CODING_MODE_INHIBIT_UNENCODABLE_CHAR;
+
   safe_chars = coding_safe_chars (coding->symbol);
 
   if (NILP (Venable_character_translation))
@@ -2601,7 +2604,7 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 		    }
 		  else
 		    {
-		      if (coding->flags & CODING_FLAG_ISO_SAFE
+		      if (coding->mode & CODING_MODE_INHIBIT_UNENCODABLE_CHAR
 			  && ! CODING_SAFE_CHAR_P (safe_chars, c))
 			ENCODE_UNSAFE_CHARACTER (c);
 		      else
@@ -2670,7 +2673,7 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
 	  *dst++ = c;
 	  coding->errors++;
 	}
-      else if (coding->flags & CODING_FLAG_ISO_SAFE
+      else if (coding->mode & CODING_MODE_INHIBIT_UNENCODABLE_CHAR
 	       && ! CODING_SAFE_CHAR_P (safe_chars, c))
 	ENCODE_UNSAFE_CHARACTER (c);
       else
@@ -3113,6 +3116,12 @@ encode_coding_sjis_big5 (coding, source, destination,
 		EMIT_ONE_BYTE (c1 | 0x80);
 	      else if (charset == charset_latin_jisx0201)
 		EMIT_ONE_BYTE (c1);
+	      else if (coding->mode & CODING_MODE_INHIBIT_UNENCODABLE_CHAR)
+		{
+		  EMIT_ONE_BYTE (CODING_REPLACEMENT_CHARACTER);
+		  if (CHARSET_WIDTH (charset) > 1)
+		    EMIT_ONE_BYTE (CODING_REPLACEMENT_CHARACTER);
+		}
 	      else
 		/* There's no way other than producing the internal
 		   codes as is.  */
@@ -3124,6 +3133,12 @@ encode_coding_sjis_big5 (coding, source, destination,
 		{
 		  ENCODE_BIG5 (charset, c1, c2, c1, c2);
 		  EMIT_TWO_BYTES (c1, c2);
+		}
+	      else if (coding->mode & CODING_MODE_INHIBIT_UNENCODABLE_CHAR)
+		{
+		  EMIT_ONE_BYTE (CODING_REPLACEMENT_CHARACTER);
+		  if (CHARSET_WIDTH (charset) > 1)
+		    EMIT_ONE_BYTE (CODING_REPLACEMENT_CHARACTER);
 		}
 	      else
 		/* There's no way other than producing the internal
@@ -7023,7 +7038,7 @@ DEFUN ("set-terminal-coding-system-internal", Fset_terminal_coding_system_intern
   CHECK_SYMBOL (coding_system);
   setup_coding_system (Fcheck_coding_system (coding_system), &terminal_coding);
   /* We had better not send unsafe characters to terminal.  */
-  terminal_coding.flags |= CODING_FLAG_ISO_SAFE;
+  terminal_coding.mode |= CODING_MODE_INHIBIT_UNENCODABLE_CHAR;
   /* Character composition should be disabled.  */
   terminal_coding.composing = COMPOSITION_DISABLED;
   /* Error notification should be suppressed.  */
