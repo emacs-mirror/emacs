@@ -95,6 +95,12 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
++++
+** There are now two new regular expression operators, \_< and \_>,
+for matching the beginning and end of a symbol.  A symbol is a
+non-empty sequence of either word or symbol constituent characters, as
+specified by the syntax table.
+
 ** Passing resources on the command line now works on MS Windows.
 You can use --xrm to pass resource settings to Emacs, overriding any
 existing values.  For example:
