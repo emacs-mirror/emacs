@@ -5,8 +5,8 @@
 ;; Author:     Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:   wp, ebnf, PostScript
-;; Time-stamp: <2000/08/27 14:24:32 vinicius>
-;; Version:    3.3
+;; Time-stamp: <2000/12/19 15:17:15 vinicius>
+;; Version:    3.4
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/Emacs.html
 
 ;; This file is part of GNU Emacs.
@@ -26,8 +26,8 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-(defconst ebnf-version "3.3"
-  "ebnf2ps.el, v 3.2 <2000/08/27 vinicius>
+(defconst ebnf-version "3.4"
+  "ebnf2ps.el, v 3.4 <2000/12/19 vinicius>
 
 Vinicius's last change version.  When reporting bugs, please also
 report the version of Emacs, if any, that ebnf2ps was running with.
@@ -1881,6 +1881,8 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
   "Return the current ebnf2ps setup."
   (format
    "
+;;; ebnf2ps.el version %s
+
 \(setq ebnf-special-font                %s
       ebnf-special-shape               %s
       ebnf-special-shadow              %S
@@ -1933,7 +1935,10 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
       ebnf-yac-ignore-error-recovery   %S
       ebnf-ignore-empty-rule           %S
       ebnf-optimize                    %S)
+
+;;; ebnf2ps.el - end of settings
 "
+   ebnf-version
    (ps-print-quote ebnf-special-font)
    (ps-print-quote ebnf-special-shape)
    ebnf-special-shadow
@@ -4100,6 +4105,18 @@ end
 ;; Internal functions
 
 
+;; function `ebnf-range-regexp' is used to avoid a bug of `skip-chars-forward'
+;; on version 20.4.1, that is, it doesn't accept ranges like "\240-\377" (or
+;; "\177-\237"), but it accepts the character sequence from \240 to \377 (or
+;; from \177 to \237).  It seems that version 20.7 has the same problem.
+(defun ebnf-range-regexp (prefix from to)
+  (let (str)
+    (while (<= from to)
+      (setq str  (concat str (char-to-string from))
+	    from (1+ from)))
+    (concat prefix str)))
+
+
 (defvar ebnf-map-name
   (let ((map (make-vector 256 ?\_)))
     (mapcar #'(lambda (char)
@@ -4944,16 +4961,8 @@ end
      (point))))
 
 
-;; to avoid a bug of `skip-chars-forward' on version 20.4.1, that is, it
-;; doesn't accept the range "\240-\377", but it accepts the character sequence
-;; from \240 to \377.  It seems that version 20.7 has the same problem.
-(defconst ebnf-8-bit-chars
-  (let ((char ?\240)
-	str)
-    (while (<= char ?\377)
-      (setq str (concat str (char-to-string char))
-	    char (1+ char)))
-    str))
+;; replace the range "\240-\377" (see `ebnf-range-regexp').
+(defconst ebnf-8-bit-chars (ebnf-range-regexp "" ?\240 ?\377))
 
 
 (defun ebnf-string (chars eos-char kind)
