@@ -879,9 +879,9 @@ Return 0 if current buffer is not a mini-buffer."
 Repeat this command to undo more changes.
 A numeric argument serves as a repeat count.
 
-Just C-u as argument requests selective undo,
-limited to changes within the current region.
-Likewise in Transient Mark mode when the mark is active."
+In Transient Mark mode when the mark is active, only undo changes within
+the current region.  Similarly, when not in Transient Mark mode, just C-u
+as an argument limits undo to changes within the current region."
   (interactive "*P")
   ;; If we don't get all the way thru, make last-command indicate that
   ;; for the following command.
@@ -890,12 +890,16 @@ Likewise in Transient Mark mode when the mark is active."
 	(recent-save (recent-auto-save-p)))
     (or (eq (selected-window) (minibuffer-window))
 	(message "Undo!"))
-    (or (eq last-command 'undo)
-	(progn (if (or arg (and transient-mark-mode mark-active))
-		   (undo-start (region-beginning) (region-end))
-		 (undo-start))
-	       (undo-more 1)))
-    (undo-more (if arg (prefix-numeric-value arg) 1))
+    (unless (eq last-command 'undo)
+      (if (if transient-mark-mode mark-active (and arg (not (numberp arg))))
+	  (undo-start (region-beginning) (region-end))
+	(undo-start))
+      ;; get rid of initial undo boundary
+      (undo-more 1))
+    (undo-more
+     (if (or transient-mark-mode (numberp arg))
+	 (prefix-numeric-value arg)
+       1))
     ;; Don't specify a position in the undo record for the undo command.
     ;; Instead, undoing this should move point to where the change is.
     (let ((tail buffer-undo-list)
