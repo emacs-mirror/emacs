@@ -646,7 +646,7 @@ of rows-numbered."
   (message "Working...")
   (array-update-buffer-position)
   (let* ((main-buffer (buffer-name (current-buffer)))
-	 (temp-buffer (make-temp-name "Array"))
+	 (temp-buffer (generate-new-buffer " *Array*"))
 	 (temp-max-row max-row)
 	 (temp-max-column max-column)
 	 (old-rows-numbered rows-numbered)
