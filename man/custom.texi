@@ -505,12 +505,19 @@ when they are finished editing a field.  To insert a newline within an
 editable field, use @kbd{C-o} or @kbd{C-q C-j}.
 
 @cindex saving option value
+@cindex customized options, saving
   Setting the option changes its value in the current Emacs session;
 @dfn{saving} the value changes it for future sessions as well.  This
 works by writing code into your @file{~/.emacs} file so as to set the
 option variable again each time you start Emacs.  To save the option,
 invoke @samp{[State]} and select the @samp{Save for Future Sessions}
 operation.
+
+  If Emacs was invoked with the @option{-q} or @option{--no-init-file}
+options (@pxref{Initial Options}), it will not let you save your
+customizations in your @file{~/.emacs} init file.  This is because
+saving customizations from such a session would wipe out all the other
+customizations you might have on your init file.
 
   You can also restore the option to its standard value by invoking
 @samp{[State]} and selecting the @samp{Erase Customization}
