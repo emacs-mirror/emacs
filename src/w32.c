@@ -73,6 +73,7 @@ Boston, MA 02111-1307, USA.
 #undef gethostname
 #undef gethostbyname
 #undef getservbyname
+#undef shutdown
 #endif
 
 #include "w32.h"
@@ -1777,6 +1778,29 @@ sys_getservbyname(const char * name, const char * proto)
   if (!serv)
     set_errno ();
   return serv;
+}
+
+int
+sys_shutdown (int s, int how)
+{
+  int rc;
+
+  if (winsock_lib == NULL)
+    {
+      h_errno = ENETDOWN;
+      return SOCKET_ERROR;
+    }
+
+  check_errno ();
+  if (fd_info[s].flags & FILE_SOCKET)
+    {
+      int rc = pfn_shutdown (SOCK_HANDLE (s), how);
+      if (rc == SOCKET_ERROR)
+	set_errno ();
+      return rc;
+    }
+  h_errno = ENOTSOCK;
+  return SOCKET_ERROR;
 }
 
 #endif /* HAVE_SOCKETS */
