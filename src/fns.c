@@ -3440,6 +3440,7 @@ static unsigned sxhash_string P_ ((unsigned char *, int));
 static unsigned sxhash_list P_ ((Lisp_Object, int));
 static unsigned sxhash_vector P_ ((Lisp_Object, int));
 static unsigned sxhash_bool_vector P_ ((Lisp_Object));
+static int sweep_weak_table P_ ((struct Lisp_Hash_Table *, int));
 
 
 
@@ -4022,6 +4023,86 @@ hash_clear (h)
 			   Weak Hash Tables
  ************************************************************************/
 
+/* Sweep weak hash table H.  REMOVE_ENTRIES_P non-zero means remove
+   entries from the table that don't survive the current GC.
+   REMOVE_ENTRIES_P zero means mark entries that are in use.  Value is
+   non-zero if anything was marked.  */
+
+static int
+sweep_weak_table (h, remove_entries_p)
+     struct Lisp_Hash_Table *h;
+     int remove_entries_p;
+{
+  int bucket, n, marked;
+  
+  n = XVECTOR (h->index)->size & ~ARRAY_MARK_FLAG;
+  marked = 0;
+  
+  for (bucket = 0; bucket < n; ++bucket)
+    {
+      Lisp_Object idx, prev;
+
+      /* Follow collision chain, removing entries that
+	 don't survive this garbage collection.  */
+      idx = HASH_INDEX (h, bucket);
+      prev = Qnil;
+      while (!GC_NILP (idx))
+	{
+	  int remove_p;
+	  int i = XFASTINT (idx);
+	  Lisp_Object next;
+
+	  if (EQ (h->weak, Qkey))
+	    remove_p = !survives_gc_p (HASH_KEY (h, i));
+	  else if (EQ (h->weak, Qvalue))
+	    remove_p = !survives_gc_p (HASH_VALUE (h, i));
+	  else if (EQ (h->weak, Qt))
+	    remove_p = (!survives_gc_p (HASH_KEY (h, i))
+			|| !survives_gc_p (HASH_VALUE (h, i)));
+	  else
+	    abort ();
+		      
+	  next = HASH_NEXT (h, i);
+
+	  if (remove_entries_p)
+	    {
+	      if (remove_p)
+		{
+		  /* Take out of collision chain.  */
+		  if (GC_NILP (prev))
+		    HASH_INDEX (h, i) = next;
+		  else
+		    HASH_NEXT (h, XFASTINT (prev)) = next;
+		  
+		  /* Add to free list.  */
+		  HASH_NEXT (h, i) = h->next_free;
+		  h->next_free = idx;
+		  
+		  /* Clear key, value, and hash.  */
+		  HASH_KEY (h, i) = HASH_VALUE (h, i) = Qnil;
+		  HASH_HASH (h, i) = Qnil;
+		  
+		  h->count = make_number (XFASTINT (h->count) - 1);
+		}
+	    }
+	  else
+	    {
+	      if (!remove_p)
+		{
+		  /* Make sure key and value survive.  */
+		  mark_object (&HASH_KEY (h, i));
+		  mark_object (&HASH_VALUE (h, i));
+		  marked = 1;
+		}
+	    }
+
+	  idx = next;
+	}
+    }
+
+  return marked;
+}
+
 /* Remove elements from weak hash tables that don't survive the
    current garbage collection.  Remove weak tables that don't survive
    from Vweak_hash_tables.  Called from gc_sweep.  */
@@ -4030,8 +4111,29 @@ void
 sweep_weak_hash_tables ()
 {
   Lisp_Object table;
-  struct Lisp_Hash_Table *h = 0, *prev;
+  struct Lisp_Hash_Table *h, *prev;
+  int marked;
 
+  /* Mark all keys and values that are in use.  Keep on marking until
+     there is no more change.  This is necessary for cases like
+     value-weak table A containing an entry X -> Y, where Y is used in a
+     key-weak table B, Z -> Y.  If B comes after A in the list of weak
+     tables, X -> Y might be removed from A, although when looking at B
+     one finds that it shouldn't.  */
+  do
+    {
+      marked = 0;
+      for (table = Vweak_hash_tables; !GC_NILP (table); table = h->next_weak)
+	{
+	  h = XHASH_TABLE (table);
+	  if (h->size & ARRAY_MARK_FLAG)
+	    marked |= sweep_weak_table (h, 0);
+	}
+    }
+  while (marked);
+
+  /* Remove tables and entries that aren't used.  */
+  prev = NULL;
   for (table = Vweak_hash_tables; !GC_NILP (table); table = h->next_weak)
     {
       prev = h;
@@ -4040,64 +4142,7 @@ sweep_weak_hash_tables ()
       if (h->size & ARRAY_MARK_FLAG)
 	{
 	  if (XFASTINT (h->count) > 0)
-	    {
-	      int bucket, n;
-
-	      n = XVECTOR (h->index)->size & ~ARRAY_MARK_FLAG;
-	      for (bucket = 0; bucket < n; ++bucket)
-		{
-		  Lisp_Object idx, prev;
-
-		  /* Follow collision chain, removing entries that
-		     don't survive this garbage collection.  */
-		  idx = HASH_INDEX (h, bucket);
-		  prev = Qnil;
-		  while (!GC_NILP (idx))
-		    {
-		      int remove_p;
-		      int i = XFASTINT (idx);
-		      Lisp_Object next;
-
-		      if (EQ (h->weak, Qkey))
-			remove_p = !survives_gc_p (HASH_KEY (h, i));
-		      else if (EQ (h->weak, Qvalue))
-			remove_p = !survives_gc_p (HASH_VALUE (h, i));
-		      else if (EQ (h->weak, Qt))
-			remove_p = (!survives_gc_p (HASH_KEY (h, i))
-				    || !survives_gc_p (HASH_VALUE (h, i)));
-		      else
-			abort ();
-		      
-		      next = HASH_NEXT (h, i);
-		      if (remove_p)
-			{
-			  /* Take out of collision chain.  */
-			  if (GC_NILP (prev))
-			    HASH_INDEX (h, i) = next;
-			  else
-			    HASH_NEXT (h, XFASTINT (prev)) = next;
-
-			  /* Add to free list.  */
-			  HASH_NEXT (h, i) = h->next_free;
-			  h->next_free = idx;
-
-			  /* Clear key, value, and hash.  */
-			  HASH_KEY (h, i) = HASH_VALUE (h, i) = Qnil;
-			  HASH_HASH (h, i) = Qnil;
-
-			  h->count = make_number (XFASTINT (h->count) - 1);
-			}
-		      else
-			{
-			  /* Make sure key and value survive.  */
-			  mark_object (&HASH_KEY (h, i));
-			  mark_object (&HASH_VALUE (h, i));
-			}
-
-		      idx = next;
-		    }
-		}
-	    }
+	    sweep_weak_table (h, 1);
 	}
       else
 	{
