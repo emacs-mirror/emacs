@@ -33,7 +33,7 @@ Boston, MA 02111-1307, USA.  */
    you as part of the interpreter's command loop or as the result of
    calling Lisp functions like `sit-for'.  The C function `redisplay'
    in xdisp.c is the only entry into the inner redisplay code.  (Or,
-   let's say almost---see the the description of direct update
+   let's say almost---see the description of direct update
    operations, below.).
 
    The following diagram shows how redisplay code is invoked.  As you
@@ -88,7 +88,7 @@ Boston, MA 02111-1307, USA.  */
 
    Direct operations.
 
-   You will find a lot of of redisplay optimizations when you start
+   You will find a lot of redisplay optimizations when you start
    looking at the innards of redisplay.  The overall goal of all these
    optimizations is to make redisplay fast because it is done
    frequently.
@@ -123,7 +123,7 @@ Boston, MA 02111-1307, USA.  */
    interface functions taking a iterator structure (struct it)
    argument.
 
-   Iteration over things to be be displayed is then simple.  It is
+   Iteration over things to be displayed is then simple.  It is
    started by initializing an iterator with a call to init_iterator.
    Calls to get_next_display_element fill the iterator structure with
    relevant information about the next thing to display.  Calls to
