@@ -1,3 +1,13 @@
+2002-12-03  Dave Love  <fx@gnu.org>
+
+	* buffer.c (Qucs_set_table_for_input): New.
+	(Fget_buffer_create): Use it.
+	(Qset_buffer_major_mode_hook): Deleted.
+	(Fset_buffer_major_mode): Revert previous change.
+	(init_buffer_once): Intern ucs-set-table-for-input.
+	(syms_of_buffer): Delete Qset_buffer_major_mode_hook.  Add
+	&Qucs_set_table_for_input.
+
 2002-12-03  Andreas Schwab  <schwab@suse.de>
 
 	* callint.c (Fcall_interactively): Use next_event only if less
