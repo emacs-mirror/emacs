@@ -4781,11 +4781,9 @@ and redisplay normally--don't erase and redraw the frame.  */)
   /* Set the new window start.  */
   set_marker_both (w->start, w->buffer, charpos, bytepos);
   w->window_end_valid = Qnil;
-#if 0 /* This is wrong because the whole idea is that point is
-	 on the screen.  If it moves away before redisplay,
-	 we should not override that.  */
-  w->force_start = Qt;
-#endif
+  
+  w->optional_new_start = Qt;
+
   if (bytepos == BEGV_BYTE || FETCH_BYTE (bytepos - 1) == '\n')
     w->start_at_line_beg = Qt;
   else
