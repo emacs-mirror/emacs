@@ -79,6 +79,9 @@
 ;; For filling.
 (define-category ?| "While filling, we can break a line at this character.")
 
+;; For indentation calculation.
+(define-category ?\  "This character counts as a space for indentation purposes.")
+
 ;; Keep the followings for `kinsoku' processing.  See comments in
 ;; kinsoku.el.
 (define-category ?> "A character which can't be placed at beginning of line.")
@@ -278,6 +281,12 @@
 (modify-category-entry (make-char 'latin-iso8859-3) ?l)
 (modify-category-entry (make-char 'latin-iso8859-4) ?l)
 (modify-category-entry (make-char 'latin-iso8859-9) ?l)
+
+(modify-category-entry (make-char 'latin-iso8859-1 160) ?\ )
+(modify-category-entry (make-char 'latin-iso8859-2 160) ?\ )
+(modify-category-entry (make-char 'latin-iso8859-3 160) ?\ )
+(modify-category-entry (make-char 'latin-iso8859-4 160) ?\ )
+(modify-category-entry (make-char 'latin-iso8859-9 160) ?\ )
 
 ;; Greek character set (ISO-8859-7)
 
