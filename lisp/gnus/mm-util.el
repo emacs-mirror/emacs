@@ -110,7 +110,8 @@
 		    mm-mime-mule-charset-alist)
 	    nil t))))
      (string-as-unibyte . identity)
-      )))
+     (multibyte-string-p . ignore)
+     )))
 
 (eval-and-compile
   (defalias 'mm-char-or-char-int-p
