@@ -289,13 +289,15 @@ language environment LANG-ENV."
 ;;;###autoload
 (defmacro with-coding-priority (coding-systems &rest body)
   "Execute BODY like `progn' with CODING-SYSTEMS at the front of priority list.
-CODING-SYSTEMS is a list of coding systems."
+CODING-SYSTEMS is a list of coding systems.  See
+`set-coding-priority'.  This affects the implicit sorting of lists of
+coding sysems returned by operations such as `find-coding-systems-region'."
   (let ((current (make-symbol "current")))
-  `(let ((,current (coding-system-priorities)))
-     (apply #'set-coding-priority ,coding-systems)
+  `(let ((,current (coding-system-priority-list)))
+     (apply #'set-coding-system-priority ,coding-systems)
      (unwind-protect
 	 (progn ,@body)
-       (set-coding-priority ,current)))))
+       (apply #'set-coding-system-priority ,current)))))
 (put 'with-coding-priority 'lisp-indent-function 1)
 (put 'with-coding-priority 'edebug-form-spec t)
 
