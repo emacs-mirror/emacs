@@ -503,10 +503,40 @@ is not copied.")
 	      XVECTOR (elt)->contents[i] =
 		Fcopy_keymap (XVECTOR (elt)->contents[i]);
 	}
-      else if (CONSP (elt)
-	       && XTYPE (XCONS (elt)->cdr) != Lisp_Symbol
-	       && ! NILP (Fkeymapp (XCONS (elt)->cdr)))
-	XCONS (elt)->cdr = Fcopy_keymap (XCONS (elt)->cdr);
+      else if (CONSP (elt))
+	{
+	  /* Skip the optional menu string.  */
+	  if (CONSP (XCONS (elt)->cdr)
+	      && STRINGP (XCONS (XCONS (elt)->cdr)->car))
+	    {
+	      Lisp_Object tem;
+
+	      /* Copy the cell, since copy-alist didn't go this deep.  */
+	      XCONS (elt)->cdr = Fcons (XCONS (XCONS (elt)->cdr)->car,
+					XCONS (XCONS (elt)->cdr)->cdr);
+	      elt = XCONS (elt)->cdr;
+
+	      /* Also skip the optional menu help string.  */
+	      if (CONSP (XCONS (elt)->cdr)
+		  && STRINGP (XCONS (XCONS (elt)->cdr)->car))
+		{
+		  XCONS (elt)->cdr = Fcons (XCONS (XCONS (elt)->cdr)->car,
+					    XCONS (XCONS (elt)->cdr)->cdr);
+		  elt = XCONS (elt)->cdr;
+		}
+	      /* There may also be a list that caches key equivalences.
+		 Just delete it for the new keymap.  */
+	      if (CONSP (XCONS (elt)->cdr)
+		  && CONSP (XCONS (XCONS (elt)->cdr)->car)
+		  && (NILP (tem = XCONS (XCONS (XCONS (elt)->cdr)->car)->car)
+		      || VECTORP (tem)))
+		XCONS (elt)->cdr = XCONS (XCONS (elt)->cdr)->cdr;
+	    }
+	  if (CONSP (elt)
+	      && ! SYMBOLP (XCONS (elt)->cdr)
+	      && ! NILP (Fkeymapp (XCONS (elt)->cdr)))
+	    XCONS (elt)->cdr = Fcopy_keymap (XCONS (elt)->cdr);
+	}
     }
 
   return copy;
