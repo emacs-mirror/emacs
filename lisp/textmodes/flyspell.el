@@ -27,7 +27,8 @@
 ;; Flyspell is a minor Emacs mode performing on-the-fly spelling
 ;; checking.
 ;;                                                                  
-;; To enter the flyspell minor mode, Meta-x flyspell-mode.
+;; To enable Flyspell minor mode, type Meta-x flyspell-mode.
+;; This applies only to the current buffer.
 ;;                                                                  
 ;; Note: consider setting the variable ispell-parser to `tex' to
 ;; avoid TeX command checking; use `(setq ispell-parser 'tex)'
@@ -44,6 +45,9 @@
 (require 'font-lock)
 (require 'ispell)
 
+;*---------------------------------------------------------------------*/
+;*    Group ...                                                        */
+;*---------------------------------------------------------------------*/
 (defgroup flyspell nil
   "Spellchecking on the fly."
   :tag "FlySpell"
@@ -70,26 +74,20 @@ Non-nil means use highlight, nil means use minibuffer messages."
   :group 'flyspell
   :type 'boolean)
 
-(defcustom flyspell-auto-correct-binding "\M-\t"
-  "*Non-nil means that its value (a binding) will bound to the flyspell
-auto-correct."
-  :group 'flyspell
-  :type '(choice (const nil) string))
-
 (defcustom flyspell-command-hook t
   "*Non-nil means that `post-command-hook' is used to check already-typed words."
   :group 'flyspell
   :type 'boolean)
 
-(defcustom flyspell-duplicate-distance -1
-  "*The distance from duplication.
--1 means no limit.
-0 means no window."
+(defcustom flyspell-duplicate-distance 10000
+  "*The maximum distance between duplicate mispelled words, for flagging them.
+-1 means no limit (search the whole buffer).
+0 means do not search for duplicate misspelled words."
   :group 'flyspell
   :type 'number)
 
 (defcustom flyspell-delay 3
-  "*The number of seconds to wait before checking words, for a \"delayed\" command."
+  "*The number of seconds to wait before checking, after a \"delayed\" command."
   :group 'flyspell
   :type 'number)
 
@@ -114,12 +112,13 @@ See `flyspell-delayed-commands'."
 
 (defcustom flyspell-delayed-commands nil
   "List of commands that are \"delayed\" for Flyspell mode.
-These commands do not activate flyspell checking."
+After these commands, Flyspell checking is delayed for a short time,
+whose length is specified by `flyspell-delay'."
   :group 'flyspell
   :type '(repeat (symbol)))
 
 (defcustom flyspell-issue-welcome-flag t
-  "*Non-nil means that Flyspell issues a welcome message when started."
+  "*Non-nil means that Flyspell should display a welcome message when started."
   :group 'flyspell
   :type 'boolean)
 
@@ -202,7 +201,7 @@ property of the major mode name.")
     'xemacs)
    (t
     'emacs))
-  "The Emacs we are currently running.")
+  "The type of Emacs we are currently running.")
 
 ;*---------------------------------------------------------------------*/
 ;*    The minor mode declaration.                                      */
@@ -222,9 +221,8 @@ property of the major mode name.")
 	  (cons (cons 'flyspell-mode flyspell-mode-map)
 		minor-mode-map-alist)))
 
-(if flyspell-auto-correct-binding
-    (define-key flyspell-mode-map flyspell-auto-correct-binding
-      (function flyspell-auto-correct-word)))
+(define-key flyspell-mode-map "\M-\t" 'flyspell-auto-correct-word)
+
 ;; mouse bindings
 (cond
  ((eq flyspell-emacs 'xemacs)
@@ -239,22 +237,21 @@ property of the major mode name.")
   (if (string-match "19.*XEmacs" emacs-version)
       'keymap
     'local-map))
-  
+   
 ;*---------------------------------------------------------------------*/
 ;*    Highlighting                                                     */
 ;*---------------------------------------------------------------------*/
 (defface flyspell-incorrect-face
-  '((((class color)) (:foreround "OrangeRed"))
+  '((((class color)) (:foreground "OrangeRed" :bold t :underline t))
     (t (:bold t)))
   "Face used for showing misspelled words in Flyspell."
   :group 'flyspell)
 
 (defface flyspell-duplicate-face
-  '((((class color)) (:foreround "Gold3"))
+  '((((class color)) (:foreground "Gold3" :bold t :underline t))
     (t (:bold t)))
   "Face used for showing misspelled words in Flyspell."
   :group 'flyspell)
-
 
 (defvar flyspell-overlay nil)
 
@@ -315,7 +312,7 @@ flyspell-buffer checks the whole buffer."
 	(make-variable-buffer-local 'ispell-filter-continue)
 	(make-variable-buffer-local 'ispell-process-directory)
 	(make-variable-buffer-local 'ispell-parser)))
-  ;; we initialize delayed commands symbol
+  ;; We put the `flyspel-delayed' property on some commands.
   (flyspell-delay-commands)
   ;; we bound flyspell action to post-command hook
   (if flyspell-command-hook
@@ -333,17 +330,21 @@ flyspell-buffer checks the whole buffer."
 		  (function flyspell-pre-command-hook)
 		  t
 		  t)))
+
+  ;; Set flyspell-generic-check-word-p based on the major mode.
   (let ((mode-predicate (get major-mode 'flyspell-mode-predicate)))
     (if mode-predicate
 	(setq flyspell-generic-check-word-p mode-predicate)))
  
   ;; the welcome message
   (if flyspell-issue-welcome-flag
-      (message
-       (if flyspell-auto-correct-binding
-	   (format "Welcome to flyspell. Use %S or mouse-2 to correct words."
-		   (key-description flyspell-auto-correct-binding))
-	 "Welcome to flyspell. Use mouse-2 to correct words.")))
+      (let ((binding (where-is-internal 'flyspell-auto-correct-word
+					nil 'non-ascii)))
+	(message
+	 (if binding
+	     (format "Welcome to flyspell.  Use %s or Mouse-2 to correct words."
+		     (key-description binding))
+	   "Welcome to flyspell.  Use Mouse-2 to correct words."))))
   ;; we have to kill the flyspell process when the buffer is deleted.
   ;; (thanks to Jeff Miller and Roland Rosenfeld who sent me this
   ;; improvement).
@@ -423,8 +424,10 @@ COMMAND is the name of the command to be delayed."
 ;*---------------------------------------------------------------------*/
 (defun flyspell-mode-off ()
   "Turn flyspell mode off.  Do not use this--use `flyspell-mode' instead."
-  ;; we stop the running ispell
-  (ispell-kill-ispell t)
+  ;; If we have an Ispell process for each buffer,
+  ;; kill the one for this buffer.
+  (if flyspell-multi-language-p
+      (ispell-kill-ispell t))
   ;; we remove the hooks
   (if flyspell-command-hook
       (progn
@@ -485,7 +488,8 @@ before the current command."
 	(not (bufferp flyspell-pre-buffer))
 	(not (buffer-live-p flyspell-pre-buffer)))
     nil)
-   ((or (= flyspell-pre-point (- (point) 1))
+   ((or (and (= flyspell-pre-point (- (point) 1))
+	     (eq (char-syntax (char-after flyspell-pre-point)) ?w))
 	(= flyspell-pre-point (point))
 	(= flyspell-pre-point (+ (point) 1)))
     nil)
@@ -568,6 +572,10 @@ before the current command."
 	    ;; put in verbose mode
 	    (process-send-string ispell-process
 				 (concat "^" word "\n"))
+	    ;; we mark the ispell process so it can be killed
+	    ;; when emacs is exited without query
+	    (if (fboundp 'process-kill-without-query)
+		(process-kill-without-query ispell-process))
 	    ;; wait until ispell has processed word
 	    (while (progn
 		     (accept-process-output ispell-process)
@@ -622,8 +630,7 @@ before the current command."
 				   t)))))
 		   (if flyspell-highlight-flag
 		       (flyspell-highlight-duplicate-region start end)
-		     (message (format "misspelling duplicate `%s'"
-				      word))))
+		     (message (format "duplicate `%s'" word))))
 		  (t
 		   ;; incorrect highlight the location
 		   (if flyspell-highlight-flag
@@ -769,13 +776,17 @@ Word syntax described by `ispell-dictionary-alist' (which see)."
   "Flyspell text between BEG and END."
   (interactive "r")
   (save-excursion
+  (if (> beg end)
+      (let ((old beg))
+	(setq beg end)
+	(setq end old)))
     (goto-char beg)
     (let ((count 0))
       (while (< (point) end)
 	(if (= count 100)
 	    (progn
 	      (message "Spell Checking...%d%%"
-		       (* 100 (/ (float (point)) (- end beg))))
+		       (* 100 (/ (float (- (point) beg)) (- end beg))))
 	      (setq count 0))
 	  (setq count (+ 1 count)))
 	(flyspell-word)
@@ -834,9 +845,12 @@ Word syntax described by `ispell-dictionary-alist' (which see)."
 ;*    -------------------------------------------------------------    */
 ;*    Is there an highlight properties at position pos?                */
 ;*---------------------------------------------------------------------*/
-(defun flyspell-properties-at-p (beg)
-  "Return the text property at position BEG."
-  (let ((prop (text-properties-at beg))
+(defun flyspell-properties-at-p (pos)
+  "Return t if there is a text property at POS, not counting `local-map'.
+If variable `flyspell-highlight-properties' is set to nil,
+text with properties are not checked.  This function is used to discover
+if the character at POS has any other property."
+  (let ((prop (text-properties-at pos))
 	(keep t))
     (while (and keep (consp prop))
       (if (and (eq (car prop) 'local-map) (consp (cdr prop)))
@@ -867,7 +881,7 @@ for the overlay."
 (defun flyspell-highlight-incorrect-region (beg end)
   "Set up an overlay on a misspelled word, in the buffer from BEG to END."
   (run-hook-with-args 'flyspell-incorrect-hook beg end)
-  (if (or (not (flyspell-properties-at-p beg)) flyspell-highlight-properties)
+  (if (or flyspell-highlight-properties (not (flyspell-properties-at-p beg)))
       (progn
 	;; we cleanup current overlay at the same position
 	(if (and (not flyspell-persistent-highlight)
@@ -888,7 +902,7 @@ for the overlay."
 ;*---------------------------------------------------------------------*/
 (defun flyspell-highlight-duplicate-region (beg end)
   "Set up an overlay on a duplicated word, in the buffer from BEG to END."
-  (if (or (not (flyspell-properties-at-p beg)) flyspell-highlight-properties)
+  (if (or flyspell-highlight-properties (not (flyspell-properties-at-p beg)))
       (progn
 	;; we cleanup current overlay at the same position
 	(if (and (not flyspell-persistent-highlight)
@@ -915,7 +929,10 @@ for the overlay."
 ;*    flyspell-auto-correct-word ...                                   */
 ;*---------------------------------------------------------------------*/
 (defun flyspell-auto-correct-word (pos)
-  "Auto-correct the word at position POS."
+  "Correct the word at POS.
+This command proposes various successive corrections for the word at POS.
+The variable `flyspell-auto-correct-binding' specifies the key to bind
+to this command."
   (interactive "d")
   ;; use the correct dictionary
   (ispell-accept-buffer-local-defs)
@@ -1135,7 +1152,7 @@ The word checked is the word at the mouse position."
 	       (insert word))))))
 
 ;*---------------------------------------------------------------------*/
-;*    flyspell-emacs-popup                                          */
+;*    flyspell-emacs-popup ...                                         */
 ;*---------------------------------------------------------------------*/
 (defun flyspell-emacs-popup (event poss word)
   "The Emacs popup menu."
@@ -1178,7 +1195,7 @@ The word checked is the word at the mouse position."
 			     menu)))))
 
 ;*---------------------------------------------------------------------*/
-;*    flyspell-xemacs-popup                                            */
+;*    flyspell-xemacs-popup ...                                        */
 ;*---------------------------------------------------------------------*/
 (defun flyspell-xemacs-popup (event poss word cursor-location start end)
   "The xemacs popup menu."
