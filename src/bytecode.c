@@ -239,7 +239,7 @@ struct byte_stack
 {
   /* Program counter.  This points into the byte_string below
      and is relocated when that string is relocated.  */
-  unsigned char *pc;
+  const unsigned char *pc;
 
   /* Top and bottom of stack.  The bottom points to an area of memory
      allocated with alloca in Fbyte_code.  */
@@ -249,7 +249,7 @@ struct byte_stack
      Storing this here protects it from GC because mark_byte_stack
      marks it.  */
   Lisp_Object byte_string;
-  unsigned char *byte_string_start;
+  const unsigned char *byte_string_start;
 
   /* The vector of constants used during byte-code execution.  Storing
      this here protects it from GC because mark_byte_stack marks it.  */
