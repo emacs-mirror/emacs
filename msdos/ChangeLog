@@ -1,3 +1,19 @@
+2001-03-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* README: New file.
+
+	* sed1.inp: Add copyright.
+	* sed1v2.inp: Add copyright.
+	* sed2.inp: Add copyright.
+	* sed2x.inp: Add copyright.
+	* sed3.inp: Add copyright.
+	* sed3v2.inp: Add copyright.
+	* sed4.inp: Add copyright.
+	* sed5x.inp: Add copyright.
+	* sed6.inp: Add copyright.
+	* sedleim.inp: Add copyright.
+	* sedlisp.inp: Add copyright.
+
 2001-02-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mainmake.v2, mainmake: Add copyright.

@@ -1,6 +1,21 @@
 # -sed3.inp-------------------------------------------------------------
 # Configuration script for lib-src/makefile
 # ----------------------------------------------------------------------
+#
+# Copyright (C) 1993, 1994, 1995
+#   Free Software Foundation, Inc.
+#
+# This file is part of GNU Emacs.
+#
+# This file is free software; as a special exception, the author gives
+# unlimited permission to copy and/or distribute it, with or without
+# modifications, as long as this notice is preserved.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# ----------------------------------------------------------------------
 /^# DIST: /d
 /^SHELL *=/s/^/# /
 /^CC *=/s/=.*$/=gcc/
