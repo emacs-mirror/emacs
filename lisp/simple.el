@@ -1095,9 +1095,7 @@ system cut and paste."
 	      ;; If user quit, deactivate the mark
 	      ;; as C-g would as a command.
 	      (and quit-flag mark-active
-		   (progn
-		     (message "foo")	;XXX what is this here for?  --roland
-		     (deactivate-mark))))
+		   (deactivate-mark)))
 	  (let* ((killed-text (current-kill 0))
 		 (message-len (min (length killed-text) 40)))
 	    (if (= (point) beg)
@@ -1262,6 +1260,7 @@ a mistake; see the documentation of `set-mark'."
 ;; run deactivate-mark-hook.  This shorthand should simplify.
 (defsubst deactivate-mark ()
   "Deactivate the mark by setting `mark-active' to nil.
+\(That makes a difference only in Transient Mark mode.)
 Also runs the hook `deactivate-mark-hook'."
   (setq mark-active nil)
   (run-hooks 'deactivate-mark-hook))
@@ -1283,9 +1282,13 @@ store it in a Lisp variable.  Example:
 
    (let ((beg (point))) (forward-line 1) (delete-region beg (point)))."
 
-  (setq mark-active t)
-  (run-hooks 'activate-mark-hook)
-  (set-marker (mark-marker) pos (current-buffer)))
+  (if pos
+      (progn
+	(setq mark-active t)
+	(run-hooks 'activate-mark-hook)
+	(set-marker (mark-marker) pos (current-buffer)))
+    (deactivate-mark)
+    (set-marker (mark-marker) pos (current-buffer))))
 
 (defvar mark-ring nil
   "The list of saved former marks of the current buffer,
