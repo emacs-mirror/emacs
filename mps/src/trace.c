@@ -1,12 +1,14 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.49) $
+ * $HopeName: MMsrc!trace.c(trunk.50) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
+ *
+ * .sources: design.mps.tracer.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.49) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.50) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -37,6 +39,7 @@ Bool ScanStateCheck(ScanState ss)
 Bool TraceIdCheck(TraceId ti)
 {
   CHECKL(ti == TraceIdNONE || ti < TRACE_MAX);
+  UNUSED(ti); /* impl.c.mpm.check.unused */
   return TRUE;
 }
 
@@ -46,6 +49,7 @@ Bool TraceIdCheck(TraceId ti)
 Bool TraceSetCheck(TraceSet ts)
 {
   CHECKL(ts < (1uL << TRACE_MAX));
+  UNUSED(ts); /* impl.c.mpm.check.unused */
   return TRUE;
 }
 
@@ -221,10 +225,10 @@ Res TraceStart(Trace trace)
     double scan = trace->foundation + surviving;
     /* double reclaim = trace->condemned - surviving; */
     double alloc = 1024*1024L; /* reclaim / 2; */
-    if(alloc > 0)
+    /* if(alloc > 0) */
       trace->rate = 1 + (Size)(scan * ARENA_POLL_MAX / (4096 * alloc));
-    else
-      trace->rate = 1 + (Size)(scan / 4096);
+    /* else */
+      /* trace->rate = 1 + (Size)(scan / 4096); */
   }
 
   trace->state = TraceUNFLIPPED;
@@ -346,7 +350,7 @@ void TraceSegGreyen(Arena arena, Seg seg, TraceSet ts)
     /* Temporary hack to add to grey list for */
     /* change.dylan.sunflower.7.170421. */
     AVER(RankSetIsSingle(SegRankSet(seg)));
-    if(segGrey == RefSetEMPTY) {
+    if(segGrey == TraceSetEMPTY) {
       switch(SegRankSet(seg)) {
       case RankSetSingle(RankAMBIG):
         RingInsert(&arena->greyRing[RankAMBIG], SegGreyRing(seg));
@@ -841,6 +845,7 @@ Res TracePoll(Trace trace)
 
 Size TraceGreyEstimate(Arena arena, RefSet refSet)
 {
+  UNUSED(refSet);
   return ArenaCommitted(arena);
 }
 
