@@ -1,5 +1,11 @@
 2000-10-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* cmuscheme.el (cmuscheme-program-name): Renamed from
+	scheme-program-name because xscheme.el contains a defcustom with
+	the same name.  As a consequence, customizing group `cmuscheme'
+	loaded `xscheme' which redefined run-scheme.
+	(run-scheme): Use cmuscheme-program-name.
+
 	* ps-print.el (ps-print-emacs-type): Move into the
 	eval-and-compile.
 
