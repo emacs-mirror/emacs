@@ -1767,6 +1767,7 @@ If the language name is nil, there is no corresponding language environment.")
     (".*8859[-_]?9\\>" . "Latin-5")
     (".*8859[-_]?14\\>" . "Latin-8")
     (".*8859[-_]?15\\>" . "Latin-9")
+    (".*@euro\\>" . "Latin-9")
     )
   "List of pairs of locale regexps and charset language names.
 The first element whose locale regexp matches the start of a downcased locale
