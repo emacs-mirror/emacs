@@ -325,7 +325,8 @@ This is used after reading your `.emacs' file to initialize
 if you have not already set `auto-save-list-file-name' yourself.
 Set this to nil if you want to prevent `auto-save-list-file-name'
 from being initialized."
-  :type 'string
+  :type '(choice (const :tag "Don't record a session's auto save list" nil)
+		 string)
   :group 'auto-save)
 
 (defvar init-file-debug nil)
