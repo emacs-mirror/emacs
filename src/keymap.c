@@ -483,10 +483,23 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
   /* Handle the special meta -> esc mapping. */
   if (INTEGERP (idx) && XUINT (idx) & meta_modifier)
     {
-      map = get_keymap_1 (access_keymap
-			  (map, meta_prefix_char, t_ok, noinherit, autoload),
-			  0, autoload);
-      XSETINT (idx, XFASTINT (idx) & ~meta_modifier);
+      Lisp_Object meta_map;
+
+      /* See if there is a meta-map.  If there's none, there is
+         no binding for IDX, unless a default binding exists in MAP.  */
+      meta_map = access_keymap (map, meta_prefix_char, t_ok, noinherit,
+				autoload);
+      if (KEYMAPP (meta_map))
+	{
+	  map = get_keymap_1 (meta_map, 0, autoload);
+	  idx = make_number (XUINT (idx) & ~meta_modifier);
+	}
+      else if (t_ok)
+	/* Set IDX to t, so that we only find a default binding.  */
+	idx = Qt;
+      else
+	/* We know there is no binding.  */
+	return Qnil;
     }
 
   {
@@ -495,7 +508,9 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 
     t_binding = Qnil;
     for (tail = XCDR (map);
-	 CONSP (tail) || (tail = get_keymap_1(tail, 0, autoload), CONSP (tail));
+	 (CONSP (tail)
+	  || (tail = get_keymap_1 (tail, 0, autoload),
+	      CONSP (tail)));
 	 tail = XCDR (tail))
       {
 	Lisp_Object binding;
