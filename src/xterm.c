@@ -12452,8 +12452,9 @@ x_destroy_window (f)
 	unload_color (f, f->output_data.x->white_relief.pixel);
       if (f->output_data.x->black_relief.allocated_p)
 	unload_color (f, f->output_data.x->black_relief.pixel);
-      
+
       free_frame_faces (f);
+      x_free_gcs (f);
       XFlush (FRAME_X_DISPLAY (f));
     }
 
