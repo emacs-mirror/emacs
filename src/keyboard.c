@@ -7081,8 +7081,7 @@ detect_input_pending ()
   return input_pending;
 }
 
-/* Return nonzero if input events are pending.
-   Execute timers immediately; don't make events for them.  */
+/* Return nonzero if input events are pending, and run any pending timers.  */
 
 detect_input_pending_run_timers (do_display)
      int do_display;
@@ -7105,6 +7104,18 @@ clear_input_pending ()
 {
   input_pending = 0;
 }
+
+/* Return nonzero if there are pending requeued events.
+   This isn't used yet.  The hope is to make wait_reading_process_input
+   call it, and return return if it runs Lisp code that unreads something.
+   The problem is, kbd_buffer_get_event needs to be fixed to know what
+   to do in that case.  It isn't trivial.  */
+
+requeued_events_pending_p ()
+{
+  return (!NILP (Vunread_command_events) || unread_command_char != -1);
+}
+
 
 DEFUN ("input-pending-p", Finput_pending_p, Sinput_pending_p, 0, 0, 0,
   "T if command input is currently available with no waiting.\n\
