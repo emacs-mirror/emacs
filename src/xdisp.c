@@ -763,7 +763,8 @@ static void compute_string_pos P_ ((struct text_pos *, struct text_pos,
 static int face_before_or_after_it_pos P_ ((struct it *, int));
 static int next_overlay_change P_ ((int));
 static int handle_single_display_prop P_ ((struct it *, Lisp_Object,
-					   Lisp_Object, struct text_pos *));
+					   Lisp_Object, struct text_pos *,
+					   int));
 static int underlying_face_id P_ ((struct it *));
 
 #define face_before_it_pos(IT) face_before_or_after_it_pos ((IT), 1)
@@ -2560,7 +2561,7 @@ handle_display_prop (it)
 {
   Lisp_Object prop, object;
   struct text_pos *position;
-  int space_or_image_found_p;
+  int display_replaced_p = 0;
 
   if (STRINGP (it->string))
     {
@@ -2589,34 +2590,33 @@ handle_display_prop (it)
   if (NILP (prop))
     return HANDLED_NORMALLY;
 
-  space_or_image_found_p = 0;
   if (CONSP (prop)
       && CONSP (XCAR (prop))
       && !EQ (Qmargin, XCAR (XCAR (prop))))
     {
       /* A list of sub-properties.  */
-      while (CONSP (prop))
+      for (; CONSP (prop); prop = XCDR (prop))
 	{
-	  if (handle_single_display_prop (it, XCAR (prop), object, position))
-	    space_or_image_found_p = 1;
-	  prop = XCDR (prop);
+	  if (handle_single_display_prop (it, XCAR (prop), object,
+					  position, display_replaced_p))
+	    display_replaced_p = 1;
 	}
     }
   else if (VECTORP (prop))
     {
       int i;
-      for (i = 0; i < XVECTOR (prop)->size; ++i)
-	if (handle_single_display_prop (it, XVECTOR (prop)->contents[i],
-					object, position))
-	  space_or_image_found_p = 1;
+      for (i = 0; i < ASIZE (prop); ++i)
+	if (handle_single_display_prop (it, AREF (prop, i), object,
+					position, display_replaced_p))
+	  display_replaced_p = 1;
     }
   else
     {
-      if (handle_single_display_prop (it, prop, object, position))
-	space_or_image_found_p = 1;
+      if (handle_single_display_prop (it, prop, object, position, 0))
+	display_replaced_p = 1;
     }
 
-  return space_or_image_found_p ? HANDLED_RETURN : HANDLED_NORMALLY;
+  return display_replaced_p ? HANDLED_RETURN : HANDLED_NORMALLY;
 }
 
 
@@ -2646,22 +2646,28 @@ display_prop_end (it, object, start_pos)
 
 /* Set up IT from a single `display' sub-property value PROP.  OBJECT
    is the object in which the `display' property was found.  *POSITION
-   is the position at which it was found.
+   is the position at which it was found.  DISPLAY_REPLACED_P non-zero
+   means that we previously saw a display sub-property which already
+   replaced text display with something else, for example an image;
+   ignore such properties after the first one has been processed.
 
    If PROP is a `space' or `image' sub-property, set *POSITION to the
    end position of the `display' property.
 
-   Value is non-zero if a `space' or `image' property value was found.  */
+   Value is non-zero something was found which replaces the display
+   of buffer or string text.  */
 
 static int
-handle_single_display_prop (it, prop, object, position)
+handle_single_display_prop (it, prop, object, position,
+			    display_replaced_before_p)
      struct it *it;
      Lisp_Object prop;
      Lisp_Object object;
      struct text_pos *position;
+     int display_replaced_before_p;
 {
   Lisp_Object value;
-  int space_or_image_found_p = 0;
+  int replaces_text_display_p = 0;
   Lisp_Object form;
 
   /* If PROP is a list of the form `(when FORM . VALUE)', FORM is
@@ -2854,9 +2860,10 @@ handle_single_display_prop (it, prop, object, position)
       if ((EQ (location, Qleft_margin)
 	   || EQ (location, Qright_margin)
 	   || NILP (location))
-	  && valid_p)
+	  && valid_p
+	  && !display_replaced_before_p)
 	{
-	  space_or_image_found_p = 1;
+	  replaces_text_display_p = 1;
 	  
 	  /* Save current settings of IT so that we can restore them
 	     when we are finished with the glyph property value.  */
@@ -2913,7 +2920,7 @@ handle_single_display_prop (it, prop, object, position)
 	*position = start_pos;
     }
 
-  return space_or_image_found_p;
+  return replaces_text_display_p;
 }
 
 
@@ -2978,8 +2985,8 @@ display_prop_intangible_p (prop)
     {
       /* A vector of sub-properties.  */
       int i;
-      for (i = 0; i < XVECTOR (prop)->size; ++i)
-	if (single_display_prop_intangible_p (XVECTOR (prop)->contents[i]))
+      for (i = 0; i < ASIZE (prop); ++i)
+	if (single_display_prop_intangible_p (AREF (prop, i)))
 	  return 1;
     }
   else
@@ -5974,27 +5981,25 @@ with_echo_area_buffer_unwind_data (w)
   if (NILP (vector))
     vector = Fmake_vector (make_number (7), Qnil);
   
-  XSETBUFFER (XVECTOR (vector)->contents[i], current_buffer); ++i;
-  XVECTOR (vector)->contents[i++] = Vdeactivate_mark;
-  XVECTOR (vector)->contents[i++] = make_number (windows_or_buffers_changed);
+  XSETBUFFER (AREF (vector, i), current_buffer); ++i;
+  AREF (vector, i) = Vdeactivate_mark, ++i;
+  AREF (vector, i) = make_number (windows_or_buffers_changed), ++i;
   
   if (w)
     {
-      XSETWINDOW (XVECTOR (vector)->contents[i], w); ++i;
-      XVECTOR (vector)->contents[i++] = w->buffer;
-      XVECTOR (vector)->contents[i++]
-	= make_number (XMARKER (w->pointm)->charpos);
-      XVECTOR (vector)->contents[i++]
-	= make_number (XMARKER (w->pointm)->bytepos);
+      XSETWINDOW (AREF (vector, i), w); ++i;
+      AREF (vector, i) = w->buffer; ++i;
+      AREF (vector, i) = make_number (XMARKER (w->pointm)->charpos); ++i;
+      AREF (vector, i) = make_number (XMARKER (w->pointm)->bytepos); ++i;
     }
   else
     {
       int end = i + 4;
-      while (i < end)
-	XVECTOR (vector)->contents[i++] = Qnil;
+      for (; i < end; ++i)
+	AREF (vector, i) = Qnil;
     }
 
-  xassert (i == XVECTOR (vector)->size);
+  xassert (i == ASIZE (vector));
   return vector;
 }
 
@@ -12664,12 +12669,12 @@ display_menu_bar (w)
       Lisp_Object string;
 
       /* Stop at nil string.  */
-      string = XVECTOR (items)->contents[i + 1];
+      string = AREF (items, i + 1);
       if (NILP (string))
 	break;
 
       /* Remember where item was displayed.  */
-      XSETFASTINT (XVECTOR (items)->contents[i + 3], it.hpos);
+      AREF (items, i + 3) = make_number (it.hpos);
 
       /* Display the item, pad with one space.  */
       if (it.current_x < it.last_visible_x)
@@ -13197,7 +13202,7 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
       eolvalue = Fget (coding_system, Qeol_type);
 
       if (multibyte)
-	*buf++ = XFASTINT (XVECTOR (val)->contents[1]);
+	*buf++ = XFASTINT (AREF (val, 1));
 
       if (eol_flag)
 	{
