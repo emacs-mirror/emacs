@@ -1427,8 +1427,9 @@ sort_overlays (overlay_vec, noverlays, w)
   for (i = 0, j = 0; i < noverlays; i++)
     {
       Lisp_Object tem;
-      Lisp_Object overlay = overlay_vec[i];
+      Lisp_Object overlay;
 
+      overlay = overlay_vec[i];
       if (OVERLAY_VALID (overlay)
 	  && OVERLAY_POSITION (OVERLAY_START (overlay)) > 0
 	  && OVERLAY_POSITION (OVERLAY_END (overlay)) > 0)
@@ -1664,8 +1665,8 @@ BEG and END may be integers or markers.")
 
   if (XINT (beg) > XINT (end))
     {
-      Lisp_Object temp = beg;
-      beg = end; end = temp;
+      Lisp_Object temp;
+      temp = beg; beg = end; end = temp;
     }
 
   b = XBUFFER (buffer);
@@ -1725,8 +1726,8 @@ buffer.")
 
   if (XINT (beg) > XINT (end))
     {
-      Lisp_Object temp = beg;
-      beg = end; end = temp;
+      Lisp_Object temp;
+      temp = beg; beg = end; end = temp;
     }
 
   obuffer = Fmarker_buffer (OVERLAY_START (overlay));
