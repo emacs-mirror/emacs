@@ -456,8 +456,7 @@ internal_self_insert (c, noautofill)
 	}
 
       replace_range (PT, PT + chars_to_delete, string, 1, 1);
-      SET_PT_BOTH (PT + 1 + spaces_to_insert,
-		   PT_BYTE + XSTRING (string)->size);
+      Fforward_char (make_number (1 + spaces_to_insert));
     }
   else
     insert_and_inherit (str, len);
