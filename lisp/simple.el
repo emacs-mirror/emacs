@@ -2843,10 +2843,14 @@ or go back to just one window (by deleting all but the selected window)."
 	((and transient-mark-mode
 	      mark-active)
 	 (deactivate-mark))
+	((> (recursion-depth) 0)
+	 (exit-recursive-edit))
 	(buffer-quit-function
 	 (funcall buffer-quit-function))
 	((not (one-window-p t))
-	 (delete-other-windows))))
+	 (delete-other-windows))
+	((string-match "^ \\*" (buffer-name (current-buffer)))
+	 (bury-buffer))))
 
 (define-key global-map "\e\e\e" 'keyboard-escape-quit)
 
