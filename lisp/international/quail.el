@@ -277,6 +277,10 @@ This map is activated while translation region is active.")
     (while (< i 127)
       (define-key map (char-to-string i) 'quail-self-insert-command)
       (setq i (1+ i)))
+    (setq i 128)
+    (while (< i 256)
+      (define-key map (vector i) 'quail-self-insert-command)
+      (setq i (1+ i)))
     (define-key map "\177" 'quail-delete-last-char)
     (define-key map [delete] 'quail-delete-last-char)
     (define-key map [backspace] 'quail-delete-last-char)
@@ -570,6 +574,15 @@ The command `quail-set-keyboard-layout' usually sets this variable.")
   aAsSdDfFgGhHjJkKlL\366\326\344\304~|    \
 <>yYxXcCvVbBnNmM,;.:-_        \
                               ")
+
+   '("pc102-de" . "\
+                              \
+^\2601!2\"3\2474$5%6&7/8(9)0=\337?\264`#'  \
+  qQwWeErRtTzZuUiIoOpP\374\334+*    \
+  aAsSdDfFgGhHjJkKlL\366\326\344\304      \
+<>yYxXcCvVbBnNmM,;.:-_        \
+                              ")
+
    (cons "standard" quail-keyboard-layout-standard))
   "Alist of keyboard names and corresponding layout strings.
 See the documentation of `quail-keyboard-layout' for the format of
