@@ -1181,7 +1181,7 @@ These two lines must come in the order given.
 
 ;; Applying Viper customization -- runs after (load .viper)
 
-;; Save user settings or Viper defaults for vars controled by
+;; Save user settings or Viper defaults for vars controlled by
 ;; viper-expert-level 
 (if (null viper-saved-user-settings)
     (setq viper-saved-user-settings 
