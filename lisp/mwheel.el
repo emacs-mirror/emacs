@@ -98,13 +98,12 @@ This can be slightly disconcerting, but some people may prefer it."
 ;;; Note this definition must be at the end of the file, because
 ;;; `define-minor-mode' actually calls the mode-function if the
 ;;; associated variable is non-nil, which requires that all needed
-;;; functions be already defined.  [This is arguably a bug in d-m-m]
+;;; functions be already defined.
 ;;;###autoload
 (define-minor-mode mouse-wheel-mode
   "Toggle mouse wheel support.
 With prefix argument ARG, turn on if positive, otherwise off.
 Returns non-nil if the new state is enabled."
-  nil nil nil
   :global t
   :group 'mouse
   ;; In the latest versions of XEmacs, we could just use
