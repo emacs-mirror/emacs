@@ -252,6 +252,30 @@ act as a paragraph-separator."
 The predicate is called with no arguments, with point at the place
 to be tested.  If it returns t, fill commands do not break the line there.")
 
+(let ((alist '((katakana-jisx0201 . kinsoku)
+	       (chinese-gb2312 . kinsoku)
+	       (japanese-jisx0208 . kinsoku)
+	       (japanese-jisx0212 . kinsoku)
+	       (chinese-big5-1 . kinsoku)
+	       (chinese-big5-2 . kinsoku))))
+  (while alist
+    (put-charset-property (car (car alist)) 'fill-find-break-point-function
+			  (cdr (car alist)))
+    (setq alist (cdr alist))))
+
+(defun fill-find-break-point (charset limit)
+  "Move point to a proper line wrapping position of the current line.
+
+CHARSET is a non-ascii character set before or after the current position.
+Don't move back past the buffer position LIMIT.
+
+If CHARSET has the property `fill-find-break-point-function', this
+function calls the property value as a function with one arg LINEBEG.
+If CHARSET has no such property, do nothing."
+  (let ((func (get-charset-property charset 'fill-find-break-point-function)))
+    (if func
+	(funcall func limit))))
+
 (defun fill-region-as-paragraph (from to &optional justify
 				      nosqueeze squeeze-after)
   "Fill the region as one paragraph.
@@ -474,13 +498,17 @@ space does not end a sentence, so don't break a line there."
 			(setq first nil)))
 		  ;; Normally, move back over the single space between the words.
 		  (if (= (preceding-char) ?\ ) (forward-char -1))
-		  ;; Do KINSOKU processing.
-		  (if (and enable-multibyte-characters enable-kinsoku
-			   (save-excursion
-			     (goto-char (point-min))
-			     (skip-chars-forward "\0-\177")
-			     (/= (point) (point-max))))
-		      (kinsoku linebeg)))
+
+		  (if enable-multibyte-characters
+		      ;; If we are going to break the line after or
+		      ;; before a non-ascii character, we may have to
+		      ;; run a special function for the charset of the
+		      ;; character to find the correct break point.
+		      (let ((charset (charset-after (1- (point)))))
+			(if (eq charset 'ascii)
+			    (setq charset (charset-after (point))))
+			(if (not (eq charset 'ascii))
+			    (fill-find-break-point charset linebeg)))))
 
 		;; If the left margin and fill prefix by themselves
 		;; pass the fill-column, keep at least one word.
