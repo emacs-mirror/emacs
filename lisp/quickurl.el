@@ -102,6 +102,7 @@
 
 (defgroup quickurl nil
   "Insert an URL based on text at point in buffer."
+  :version "21.1"
   :group  'abbrev
   :prefix "quickurl-")
 
