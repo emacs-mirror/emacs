@@ -124,6 +124,9 @@
 	       (repeat (cons :format "%v"
 			     (symbol :tag "Parameter")
 			     (sexp :tag "Value"))))
+	     (mouse-highlight mouse (choice (const :tag "disabled" nil)
+					    (const :tag "always shown" t)
+					    (other :tag "hidden by keypress" 1)))
 	     ;; indent.c
 	     (indent-tabs-mode fill boolean)
 	     ;; keyboard.c
