@@ -1,5 +1,9 @@
 2000-10-22  Miles Bader  <miles@gnu.org>
 
+	* comint.el (comint-highlight-input, comint-highlight-prompt):
+	Renamed, `-face' at end removed.
+	(comint-send-input, comint-output-filter): Use renamed faces.
+
 	* window.el (fit-window-to-buffer): Change defaulting of
 	MAX-HEIGHT slightly.
 
