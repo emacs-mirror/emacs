@@ -2177,7 +2177,7 @@ display_text_line (w, start, vpos, hpos, taboffset)
 	    {
 	      Lisp_Object position, limit, endpos, prop, ww;
 	      XFASTINT (position) = pos;
-	      XSET (ww, Lisp_Window, w);
+	      XSETWINDOW (ww, w);
 	      prop = Fget_char_property (position, Qinvisible, ww);
 	      /* This is just an estimate to give reasonable
 		 performance; nothing should go wrong if it is too small.  */
