@@ -1,3 +1,20 @@
+2004-01-18  Kenichi Handa  <handa@m17n.org>
+
+	* print.c: Include charset.h.
+	(Vprint_charset_text_property): New variable.
+	(Qdefault): Extern it.
+	(PRINT_STRING_NON_CHARSET_FOUND)
+	(PRINT_STRING_UNSAFE_CHARSET_FOUND): New macros.
+	(print_check_string_result): New variable.
+	(print_check_string_charset_prop): New function.
+	(print_prune_charset_plist): New variable.
+	(print_prune_string_charset): New function.
+	(print_object): Call print_prune_string_charset if
+	Vprint_charset_text_property is not t.
+	(print_interval): Print nothing if itnerval->plist is nil.
+	(syms_of_print): Declare Vprint_charset_text_property as a lisp
+	variable.  Init and staticpro print_prune_charset_plist.
+
 2004-01-15  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (new_fontset_from_font_name): Use the specified font
