@@ -77,8 +77,38 @@
 (require 'select)
 (require 'menu-bar)
 
-;; Disable until scrollbars are fully functional
-(scroll-bar-mode nil)
+;; Because Windows scrollbars look and act quite differently compared
+;; with the standard X scroll-bars, we don't try to use the normal
+;; scroll bar routines.
+
+(defun win32-handle-scroll-bar-event (event)
+  "Handle Win32 scroll bar events to do normal Window style scrolling."
+  (interactive "e")
+  (let* ((position (event-start event))
+	 (window (nth 0 position))
+	 (portion-whole (nth 2 position))
+	 (bar-part (nth 4 position)))
+    (save-excursion
+      (select-window window)
+      (cond
+       ((eq bar-part 'up-arrow)
+	(scroll-down 1))
+       ((eq bar-part 'above-handle)
+	(scroll-down))
+       ((eq bar-part 'handle)
+	(scroll-bar-drag-1 event))
+       ((eq bar-part 'below-handle)
+	(scroll-up))
+       ((eq bar-part 'down-arrow)
+	(scroll-up 1))
+       ))))
+
+;; The following definition is used for debugging.
+;(defun win32-handle-scroll-bar-event (event) (interactive "e") (princ event))
+
+(global-set-key [vertical-scroll-bar mouse-1] 'win32-handle-scroll-bar-event)
+
+;; (scroll-bar-mode nil)
 
 (defvar x-invocation-args)
 
