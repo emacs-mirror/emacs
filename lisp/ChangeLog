@@ -1,3 +1,8 @@
+2000-07-25  Sam Steingold  <sds@gnu.org>
+
+	* midnight.el (midnight-buffer-display-time): Use
+	`with-current-buffer'.
+
 2000-07-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* find-dired.el: Update copyright notice.
@@ -113,7 +118,7 @@
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
-	* cc-mode.texi Documented the change of cpp-macro. 
+	* cc-mode.texi Documented the change of cpp-macro.
 
 2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
@@ -125,7 +130,7 @@
 	c-guess-basic-syntax): Fixed recognition of inheritance lists
 	when the lines begins with a comma.
 
-	* cc-mode.texi: Updated doc for c-lineup-multi-inher. 
+	* cc-mode.texi: Updated doc for c-lineup-multi-inher.
 
 	* cc-vars.el (c-offsets-alist): Changed default for
 	member-init-cont to c-lineup-multi-inher since it now handles
@@ -274,7 +279,7 @@
 	c-special-indent-hook as a style variable.  Don't talk about
 	doing (c-make-styles-buffer-local t) in a mode hook, since
 	that's already too late to work right.
-	
+
 	* cc-styles.el (c-make-styles-buffer-local): Flag style
 	variable localness in c-style-variables-are-local-p to make
 	the compatibility measure in c-common-init work well.
@@ -476,13 +481,13 @@
 	(ada-prj-load-from-file): New function
 	(ada-prj-save): Always save fields that depend on the current buffer
 	(ada-prj-show-value): New function
-	
+
 	* ada-stmt.el (ada-stmt-add-to-ada-menu): Hide the menu if not in
 	Ada mode. This will allow us to display the Ada menu in any buffer
 	we want (for project items).
 	(ada-header-tmpl): Use ada-fill-comment-prefix to put the correct
 	number of spaces in the header.
-	
+
 2000-07-24  Dave Love  <fx@gnu.org>
 
 	* ediff-init.el (ediff-region-help-echo): Bind face-help.

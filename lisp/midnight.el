@@ -76,8 +76,7 @@ call `cancel-timer' or `timer-activate' on `midnight-timer' instead."
 
 (defun midnight-buffer-display-time (&optional buf)
   "Return the time-stamp of the given buffer, or current buffer, as float."
-  (save-excursion
-    (set-buffer (or buf (current-buffer)))
+  (with-current-buffer (or buf (current-buffer))
     (when buffer-display-time (midnight-float-time buffer-display-time))))
 
 ;;; clean-buffer-list stuff
