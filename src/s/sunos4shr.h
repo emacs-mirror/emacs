@@ -26,3 +26,6 @@
 #undef	SYSTEM_MALLOC
 #define	GNU_MALLOC
 #define	REL_ALLOC
+
+/* khera@cs.duke.edu says this is needed.  */
+#define memmove(to, from, size) bcopy (from, to, size)
