@@ -1,14 +1,14 @@
 @rem impl.bat.gathconf: GATHERING A RELEASE FOR CONFIGURA
 @rem
-@rem $HopeName$
+@rem $HopeName: MMsrc!gathconf.bat(trunk.1) $
 @rem Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 
 mkdir release
 mkdir release\include
 mkdir release\lib
 mkdir release\lib\w3i3
-mkdir release\lib\w3i3\we
-mkdir release\lib\w3i3\ce
+mkdir release\lib\w3i3\release
+mkdir release\lib\w3i3\debug
 mkdir release\src
 copy mps.h release\include
 copy mpsavm.h release\include
@@ -24,9 +24,9 @@ copy mpslib.h release\include
 copy mpstd.h release\include
 copy mpsw3.h release\include
 copy mpswin.h release\include
-copy w3i3mv\we\mps_conf.lib release\lib\w3i3\we
-copy w3i3mv\ce\mps_conf.lib release\lib\w3i3\ce
-copy w3i3mv\we\mpsplan.lib release\lib\w3i3\we
-copy w3i3mv\ce\mpsplan.lib release\lib\w3i3\ce
+copy w3i3mv\we\mps_conf.lib release\lib\w3i3\release
+copy w3i3mv\ce\mps_conf.lib release\lib\w3i3\debug
+copy w3i3mv\we\mpsplan.lib release\lib\w3i3\release
+copy w3i3mv\ce\mpsplan.lib release\lib\w3i3\debug
 copy mpsliban.c release\src
 copy mpsioan.c release\src
