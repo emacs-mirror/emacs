@@ -472,10 +472,13 @@ The key should be one of the cars in `gdb-instance-buffer-rules-assoc'."
 	  (gdb-instance-target-string)
 	  "*"))
 
-(define-key comint-mode-map "\C-c\C-c" 'gdb-inferior-io-interrupt)
-(define-key comint-mode-map "\C-c\C-z" 'gdb-inferior-io-stop)
-(define-key comint-mode-map "\C-c\C-\\" 'gdb-inferior-io-quit)
-(define-key comint-mode-map "\C-c\C-d" 'gdb-inferior-io-eof)
+(defvar gdb-inferior-io-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-c" 'gdb-inferior-io-interrupt)
+    (define-key map "\C-c\C-z" 'gdb-inferior-io-stop)
+    (define-key map "\C-c\C-\\" 'gdb-inferior-io-quit)
+    (define-key map "\C-c\C-d" 'gdb-inferior-io-eof)
+    map))
 
 (define-derived-mode gdb-inferior-io-mode comint-mode "Debuggee I/O"
   "Major mode for gdb inferior-io."
@@ -825,23 +828,18 @@ output from the current command if that happens to be appropriate."
 	     (set-buffer (get-buffer-create gdb-expression-buffer-name)))
 	    (gdb-expressions-mode)
 	    (setq gdb-dive-display-number number)))
-;else
       (set-buffer (get-buffer-create gdb-expression-buffer-name))
       (if (and (display-graphic-p) (not gdb-dive))
 	  (catch 'frame-exists
-	    (let ((frames (frame-list)))
-	      (while frames
-		(if (string-equal (frame-parameter (car frames) 'name)
-				  gdb-expression-buffer-name)
-		    (throw 'frame-exists nil))
-		(setq frames (cdr frames)))
-	      (if (not frames)
-		  (progn
-		    (gdb-expressions-mode)
-		    (make-frame '((height . 20) (width . 40)
-				  (tool-bar-lines . nil)
-				  (menu-bar-lines . nil)
-				  (minibuffer . nil))))))))))
+	    (dolist (frame (frame-list))
+	      (if (string-equal (frame-parameter frame 'name)
+				gdb-expression-buffer-name)
+		  (throw 'frame-exists nil)))
+	    (gdb-expressions-mode)
+	    (make-frame '((height . 20) (width . 40)
+			  (tool-bar-lines . nil)
+			  (menu-bar-lines . nil)
+			  (minibuffer . nil)))))))
   (set-buffer (gdb-get-instance-buffer 'gdb-partial-output-buffer))
   (setq gdb-dive nil))
 
@@ -850,6 +848,10 @@ output from the current command if that happens to be appropriate."
 (defvar gdb-expression)
 (defvar gdb-point)
 (defvar gdb-annotation-arg)
+
+(defun gdb-delete-line ()
+  "Delete the current line."
+  (delete-region (line-beginning-position) (line-beginning-position 2)))
 
 (defun gdb-display-end (ignored)
   (set-buffer (gdb-get-instance-buffer 'gdb-partial-output-buffer))
@@ -901,7 +903,6 @@ output from the current command if that happens to be appropriate."
     (if (looking-at "array-section-begin")
 	(progn
 	  (gdb-delete-line)
-	  (beginning-of-line)
 	  (setq gdb-point (point))
 	  (gdb-array-format)))
     (if (looking-at "field-begin \\(.\\)")
@@ -996,11 +997,11 @@ output from the current command if that happens to be appropriate."
   (gdb-delete-line)
   (setq gdb-nesting-level (- gdb-nesting-level 1)))
 
-(defvar gdb-dive-map nil)
-
-(setq gdb-dive-map (make-keymap))
-(define-key gdb-dive-map [mouse-2] 'gdb-dive)
-(define-key gdb-dive-map [S-mouse-2] 'gdb-dive-new-frame)
+(defvar gdb-dive-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mouse-2] 'gdb-dive)
+    (define-key map [S-mouse-2] 'gdb-dive-new-frame)
+    map))
 
 (defun gdb-dive (event)
   "Dive into structure."
@@ -1092,9 +1093,10 @@ output from the current command if that happens to be appropriate."
 (defvar gdb-array-start)
 (defvar gdb-array-stop)
 
-(defvar gdb-array-slice-map nil)
-(setq gdb-array-slice-map (make-keymap))
-(define-key gdb-array-slice-map [mouse-2] 'gdb-array-slice)
+(defvar gdb-array-slice-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mouse-2] 'gdb-array-slice)
+    map))
 
 (defun gdb-array-slice (event)
   "Select an array slice to display."
@@ -1125,8 +1127,8 @@ output from the current command if that happens to be appropriate."
 	   (index 0) (num 0) (array-start "")
 	   (array-stop "") (array-slice "") (array-range nil)
 	   (flag t) (indices-string ""))
-      (while gdb-value-list
-	(string-match "{*\\([^}]*\\)\\(}*\\)" (car gdb-value-list))
+      (dolist (gdb-value gdb-value-list)
+	(string-match "{*\\([^}]*\\)\\(}*\\)" gdb-value)
 	(setq num 0)
 	(while (< num depth)
 	  (setq indices-string
@@ -1139,7 +1141,7 @@ output from the current command if that happens to be appropriate."
 	    (aset gdb-array-size num (aref indices num)))
 	  (setq num (+ num 1)))
 	(if flag
-	    (let ((gdb-display-value (match-string 1 (car gdb-value-list))))
+	    (let ((gdb-display-value (match-string 1 gdb-value)))
 	      (setq gdb-display-string (concat gdb-display-string " "
 					       gdb-display-value))
 	      (insert
@@ -1150,14 +1152,12 @@ output from the current command if that happens to be appropriate."
 	(setq index (- (- depth 1)
 		       (- (match-end 2) (match-beginning 2))))
 	;;don't set for very last brackets
-	(if (>= index 0)
-	    (progn
-	      (aset indices index (+ 1 (aref indices index)))
-	      (setq num (+ 1 index))
-	      (while (< num depth)
-		(aset indices num 0)
-		(setq num (+ num 1)))))
-	(setq gdb-value-list (cdr gdb-value-list)))
+	(when (>= index 0)
+	  (aset indices index (+ 1 (aref indices index)))
+	  (setq num (+ 1 index))
+	  (while (< num depth)
+	    (aset indices num 0)
+	    (setq num (+ num 1)))))
       (setq num 0)
       (while (< num depth)
 	(if (= (aref gdb-array-start num) -1)
@@ -1397,10 +1397,8 @@ buffer."
   gdb-info-breakpoints-custom)
 
 (defvar gdb-cdir nil "Compilation directory.")
-(defvar breakpoint-enabled-icon 
-  "Icon for enabled breakpoint in display margin")
-(defvar breakpoint-disabled-icon 
-  "Icon for disabled breakpoint in display margin")
+(defvar breakpoint-enabled-icon) 
+(defvar breakpoint-disabled-icon)
 
 ;-put breakpoint icons in relevant margins (even those set in the GUD buffer)
 (defun gdb-info-breakpoints-custom ()
@@ -1486,22 +1484,19 @@ buffer."
   (switch-to-buffer-other-frame
    (gdb-get-create-instance-buffer 'gdb-breakpoints-buffer)))
 
-(defvar gdb-breakpoints-mode-map nil)
-(setq gdb-breakpoints-mode-map (make-keymap))
-(suppress-keymap gdb-breakpoints-mode-map)
+(defvar gdb-breakpoints-mode-map
+  (let ((map (make-sparse-keymap))
+	(menu (make-sparse-keymap "Breakpoints")))
+    (define-key menu [toggle] '("Toggle" . gdb-toggle-bp-this-line))
+    (define-key menu [delete] '("Delete" . gdb-delete-bp-this-line))
+    (define-key menu [goto] '("Goto"   . gdb-goto-bp-this-line))
 
-(define-key gdb-breakpoints-mode-map [menu-bar breakpoints]
-  (cons "Breakpoints" (make-sparse-keymap "Breakpoints")))
-(define-key gdb-breakpoints-mode-map [menu-bar breakpoints toggle]
-  '("Toggle" . gdb-toggle-bp-this-line))
-(define-key gdb-breakpoints-mode-map [menu-bar breakpoints delete]
-  '("Delete" . gdb-delete-bp-this-line))
-(define-key gdb-breakpoints-mode-map [menu-bar breakpoints goto]
-  '("Goto"   . gdb-goto-bp-this-line))
-
-(define-key gdb-breakpoints-mode-map " " 'gdb-toggle-bp-this-line)
-(define-key gdb-breakpoints-mode-map "d" 'gdb-delete-bp-this-line)
-(define-key gdb-breakpoints-mode-map "g" 'gdb-goto-bp-this-line)
+    (suppress-keymap map)
+    (define-key map [menu-bar breakpoints] (cons "Breakpoints" menu))
+    (define-key map " " 'gdb-toggle-bp-this-line)
+    (define-key map "d" 'gdb-delete-bp-this-line)
+    (define-key map "g" 'gdb-goto-bp-this-line)
+    map))
 
 (defun gdb-breakpoints-mode ()
   "Major mode for gdb breakpoints.
@@ -1610,11 +1605,11 @@ buffer."
   (switch-to-buffer-other-frame
    (gdb-get-create-instance-buffer 'gdb-stack-buffer)))
 
-(defvar gdb-frames-mode-map nil)
-(setq gdb-frames-mode-map (make-keymap))
-(suppress-keymap gdb-frames-mode-map)
-(define-key gdb-frames-mode-map [mouse-2]
-  'gdb-frames-select-by-mouse)
+(defvar gdb-frames-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    (define-key map [mouse-2]'gdb-frames-select-by-mouse)
+    map))
 
 (defun gdb-frames-mode ()
   "Major mode for gdb frames.
@@ -1668,9 +1663,10 @@ buffer."
 			       'gdb-registers-buffer-name
 			       'gdb-registers-mode)
 
-(defvar gdb-registers-mode-map nil)
-(setq gdb-registers-mode-map (make-keymap))
-(suppress-keymap gdb-registers-mode-map)
+(defvar gdb-registers-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    map))
 
 (defun gdb-registers-mode ()
   "Major mode for gdb registers.
@@ -1741,9 +1737,10 @@ buffer."
 			       'gdb-locals-buffer-name
 			       'gdb-locals-mode)
 
-(defvar gdb-locals-mode-map nil)
-(setq gdb-locals-mode-map (make-keymap))
-(suppress-keymap gdb-locals-mode-map)
+(defvar gdb-locals-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    map))
 
 (defun gdb-locals-mode ()
   "Major mode for gdb locals.
@@ -1791,19 +1788,17 @@ buffer."
 ;       recompiled program.
 )
 
-(defvar gdb-display-mode-map nil)
-(setq gdb-display-mode-map (make-keymap))
-(suppress-keymap gdb-display-mode-map)
+(defvar gdb-display-mode-map
+  (let ((map (make-sparse-keymap))
+	(menu (make-sparse-keymap "Display")))
+    (define-key menu [toggle] '("Toggle" . gdb-toggle-disp-this-line))
+    (define-key menu [delete] '("Delete" . gdb-delete-disp-this-line))
 
-(define-key gdb-display-mode-map [menu-bar display]
-  (cons "Display" (make-sparse-keymap "Display")))
-(define-key gdb-display-mode-map [menu-bar display toggle]
-  '("Toggle" . gdb-toggle-disp-this-line))
-(define-key gdb-display-mode-map [menu-bar display delete]
-  '("Delete" . gdb-delete-disp-this-line))
-
-(define-key gdb-display-mode-map " " 'gdb-toggle-disp-this-line)
-(define-key gdb-display-mode-map "d" 'gdb-delete-disp-this-line)
+    (suppress-keymap map)
+    (define-key map [menu-bar display] (cons "Display" menu))
+    (define-key map " " 'gdb-toggle-disp-this-line)
+    (define-key map "d" 'gdb-delete-disp-this-line)
+    map))
 
 (defun gdb-display-mode ()
   "Major mode for gdb display.
@@ -1876,9 +1871,13 @@ buffer."
 			   (throw 'frame-found nil)))
 		(setq frames (cdr frames))))))))))
 
-(defvar gdb-expressions-mode-map nil)
-(setq gdb-expressions-mode-map (make-keymap))
-(suppress-keymap gdb-expressions-mode-map)
+(defvar gdb-expressions-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    (define-key map "v" 'gdb-array-visualise)
+    (define-key map "q" 'gdb-delete-display)
+    (define-key map [mouse-3] 'gdb-expressions-popup-menu)
+    map))
 
 (defvar gdb-expressions-mode-menu
   '("GDB Expressions Commands"
@@ -1886,10 +1885,6 @@ buffer."
     ["Visualise" gdb-array-visualise t]
     ["Delete" 	 gdb-delete-display  t])
   "Menu for `gdb-expressions-mode'.")
-
-(define-key gdb-expressions-mode-map "v" 'gdb-array-visualise)
-(define-key gdb-expressions-mode-map "q" 'gdb-delete-display)
-(define-key gdb-expressions-mode-map [mouse-3] 'gdb-expressions-popup-menu)
 
 (defun gdb-expressions-popup-menu (event)
   "Explicit Popup menu as this buffer doesn't have a menubar."
@@ -1971,58 +1966,37 @@ buffer."
   (gdb-display-buffer
    (gdb-get-create-instance-buffer 'gdba)))
 
-(defun gdb-make-windows-menu (map)
-  ;; FIXME: This adds to the DBX, PerlDB, ... menu as well :-(
-  ;; Probably we should create gdb-many-windows-map and put those menus
-  ;; on that map.
-  (define-key map [menu-bar displays]
-    (cons "GDB-Windows" (make-sparse-keymap "GDB-Windows")))
-  (define-key map [menu-bar displays gdb]
-    '("Gdb" . gdb-display-gdb-buffer))
-  (define-key map [menu-bar displays locals]
-    '("Locals" . gdb-display-locals-buffer))
-  (define-key map [menu-bar displays registers]
-    '("Registers" . gdb-display-registers-buffer))
-  (define-key map [menu-bar displays frames]
-    '("Stack" . gdb-display-stack-buffer))
-  (define-key map [menu-bar displays breakpoints]
-    '("Breakpoints" . gdb-display-breakpoints-buffer))
-  (define-key map [menu-bar displays display]
-    '("Display" . gdb-display-display-buffer))
-  (define-key map [menu-bar displays assembler]
-    '("Assembler" . gdb-display-assembler-buffer)))
-
+;; FIXME: changing GUD's behavior: bad bad bad!!!
 (define-key gud-minor-mode-map "\C-c\M-\C-r" 'gdb-display-registers-buffer)
 (define-key gud-minor-mode-map "\C-c\M-\C-f" 'gdb-display-stack-buffer)
 (define-key gud-minor-mode-map "\C-c\M-\C-b" 'gdb-display-breakpoints-buffer)
 
-(gdb-make-windows-menu gud-minor-mode-map)
+(let ((menu (make-sparse-keymap "GDB-Windows")))
+  (define-key gud-minor-mode-map [menu-bar debug displays]
+    `(menu-item "GDB-Windows" ,menu :visible (memq gud-minor-mode '(gdba))))
+  (define-key menu [gdb] '("Gdb" . gdb-display-gdb-buffer))
+  (define-key menu [locals] '("Locals" . gdb-display-locals-buffer))
+  (define-key menu [registers] '("Registers" . gdb-display-registers-buffer))
+  (define-key menu [frames] '("Stack" . gdb-display-stack-buffer))
+  (define-key menu [breakpoints] '("Breakpoints" . gdb-display-breakpoints-buffer))
+  (define-key menu [display] '("Display" . gdb-display-display-buffer))
+  (define-key menu [assembler] '("Assembler" . gdb-display-assembler-buffer)))
 
 (defun gdb-frame-gdb-buffer ()
   (interactive)
   (switch-to-buffer-other-frame
    (gdb-get-create-instance-buffer 'gdba)))
 
-(defun gdb-make-frames-menu (map)
-  (define-key map [menu-bar frames]
-    (cons "GDB-Frames" (make-sparse-keymap "GDB-Frames")))
-  (define-key map [menu-bar frames gdb]
-    '("Gdb" . gdb-frame-gdb-buffer))
-  (define-key map [menu-bar frames locals]
-    '("Locals" . gdb-frame-locals-buffer))
-  (define-key map [menu-bar frames registers]
-    '("Registers" . gdb-frame-registers-buffer))
-  (define-key map [menu-bar frames frames]
-    '("Stack" . gdb-frame-stack-buffer))
-  (define-key map [menu-bar frames breakpoints]
-    '("Breakpoints" . gdb-frame-breakpoints-buffer))
-  (define-key map [menu-bar frames display]
-    '("Display" . gdb-frame-display-buffer))
-  (define-key map [menu-bar frames  assembler]
-    '("Assembler" . gdb-frame-assembler-buffer)))
-
-(if (display-graphic-p)
-    (gdb-make-frames-menu gud-minor-mode-map))
+(let ((menu (make-sparse-keymap "GDB-Frames")))
+  (define-key gud-minor-mode-map [menu-bar debug frames]
+    `(menu-item "GDB-Frames" ,menu :visible (memq gud-minor-mode '(gdba))))
+  (define-key menu [gdb] '("Gdb" . gdb-frame-gdb-buffer))
+  (define-key menu [locals] '("Locals" . gdb-frame-locals-buffer))
+  (define-key menu [registers] '("Registers" . gdb-frame-registers-buffer))
+  (define-key menu [frames] '("Stack" . gdb-frame-stack-buffer))
+  (define-key menu [breakpoints] '("Breakpoints" . gdb-frame-breakpoints-buffer))
+  (define-key menu [display] '("Display" . gdb-frame-display-buffer))
+  (define-key menu [assembler] '("Assembler" . gdb-frame-assembler-buffer)))
 
 (defvar gdb-main-file nil "Source file from which program execution begins.")
 
@@ -2103,11 +2077,13 @@ static char *magick[] = {
 };"
 "XPM file used for breakpoint icon.")
 
-(setq breakpoint-enabled-icon (find-image
-			       `((:type xpm :data ,breakpoint-xpm-data))))
-(setq breakpoint-disabled-icon  (find-image
-			       `((:type xpm :data ,breakpoint-xpm-data
-					    :conversion laplace))))
+(defvar breakpoint-enabled-icon
+  (find-image `((:type xpm :data ,breakpoint-xpm-data)))
+  "Icon for enabled breakpoint in display margin")
+(defvar breakpoint-disabled-icon
+  (find-image `((:type xpm :data ,breakpoint-xpm-data
+		       :conversion laplace)))
+  "Icon for disabled breakpoint in display margin")
 
 (defun gdb-quit ()
   "Kill the GUD and ancillary (including source) buffers.
@@ -2237,28 +2213,28 @@ BUFFER nil or omitted means use the current buffer."
 (defun gdb-array-visualise ()
   "Visualise arrays and slices using graph program from plotutils."
   (interactive)
-  (if (and (display-graphic-p) gdb-display-string)
-     (let ((n 0) m)
-       (catch 'multi-dimensional
-       (while (eq (aref gdb-array-start n) (aref gdb-array-stop n))
-	 (setq n (+ n 1)))
-       (setq m (+ n 1))
-       (while (< m (length gdb-array-start))
-	 (if (not (eq (aref gdb-array-start m) (aref gdb-array-stop m)))
-	     (progn
-	       (x-popup-dialog
-		t `(,(concat "Only one dimensional data can be visualised.\n"
-			     "Use an array slice to reduce the number of\n"
-			     "dimensions") ("OK" t)))
-	       (throw 'multi-dimensional nil))
-	   (setq m (+ m 1))))
-       (shell-command (concat "echo" gdb-display-string " | graph -a 1 "
-			      (int-to-string (aref gdb-array-start n))
-			      " -x "
-			      (int-to-string (aref gdb-array-start n))
-			      " "
-			      (int-to-string (aref gdb-array-stop  n))
-			      " 1 -T X"))))))
+  (when (and (display-graphic-p) gdb-display-string)
+    (let ((n 0) m)
+      (catch 'multi-dimensional
+	(while (eq (aref gdb-array-start n) (aref gdb-array-stop n))
+	  (setq n (+ n 1)))
+	(setq m (+ n 1))
+	(while (< m (length gdb-array-start))
+	  (if (not (eq (aref gdb-array-start m) (aref gdb-array-stop m)))
+	      (progn
+		(x-popup-dialog
+		 t `(,(concat "Only one dimensional data can be visualised.\n"
+			      "Use an array slice to reduce the number of\n"
+			      "dimensions") ("OK" t)))
+		(throw 'multi-dimensional nil))
+	    (setq m (+ m 1))))
+	(shell-command (concat "echo" gdb-display-string " | graph -a 1 "
+			       (int-to-string (aref gdb-array-start n))
+			       " -x "
+			       (int-to-string (aref gdb-array-start n))
+			       " "
+			       (int-to-string (aref gdb-array-stop  n))
+			       " 1 -T X"))))))
 
 (defun gdb-delete-display ()
   "Delete displayed expression and its frame."
@@ -2338,9 +2314,10 @@ BUFFER nil or omitted means use the current buffer."
 			       'gdb-assembler-buffer-name
 			       'gdb-assembler-mode)
 
-(defvar gdb-assembler-mode-map nil)
-(setq gdb-assembler-mode-map (make-keymap))
-(suppress-keymap gdb-assembler-mode-map)
+(defvar gdb-assembler-mode-map
+  (let ((map (make-sparse-keymap)))
+    (suppress-keymap map)
+    map))
 
 (defun gdb-assembler-mode ()
   "Major mode for viewing code assembler.
@@ -2407,13 +2384,6 @@ BUFFER nil or omitted means use the current buffer."
 	 (cons 'gdb-invalidate-assembler
 	       (gdb-instance-pending-triggers)))
 	(setq gdb-prev-main-or-pc gdb-main-or-pc))))
-
-(defun gdb-delete-line ()
-  "Delete the current line."
-(interactive)
-  (let ((start (progn (beginning-of-line) (point)))
-	(end (progn (end-of-line) (+ (point) 1))))
-    (delete-region start end)))
 
 (provide 'gdb-ui)
 
