@@ -34,7 +34,7 @@
 ### each time we use config.status, and the program name will get larger
 ### and larger.  This wouldn't be a problem, except that since progname
 ### gets recorded in all the Makefiles this script produces,
-### move-if-changed thinks they're different when they're not.
+### move-if-change thinks they're different when they're not.
 ###
 ### It would be nice if we could put the ./ in a \( \) group and then
 ### apply the * operator to that, so we remove as many leading ./././'s
@@ -63,9 +63,7 @@ The --with-x, --with-x11 and --with-x10 options specify what window
 
 The --srcdir=DIR option specifies that the configuration and build
 	processes should look for the Emacs source code in DIR, when
-	DIR is not the current directory.  To use this, you must build
-	Emacs using a \`make' program which supports the \`VPATH'
-	feature.
+	DIR is not the current directory.  This option doesn't work yet.
 
 If successful, ${progname} leaves its status in config.status.  If
 unsuccessful after disturbing the status quo, it removes config.status."
@@ -143,6 +141,8 @@ Set it to either \`yes' or \`no'."
 	    shift; val="$1"
 	  fi
           srcdir="${val}"
+
+	  echo "${progname}: Beware - the \`--srcdir' option doesn't work yet." >&2
 	;;
 
 	## Has the user asked for some help?
@@ -175,32 +175,41 @@ fi
 #### Decide where the source is.
 case "${srcdir}" in
 
-  ## By default, it's in the current directory.
+  ## If it's not specified, see if  `.' or `..' might work.
   "" )
-    srcdir=`pwd`
+    if [ -f "./src/lisp.h" -a -f "./lisp/version.el" ]; then
+      srcdir=`pwd`
+    else
+      if [ -f "../src/lisp.h" -a -f "../lisp/version.el" ]; then
+	srcdir=`(cd .. ; pwd)`
+      else
+	(echo "\
+${progname}: Neither the current directory nor its parent seem to
+contain the Emacs sources.  If you do not want to build Emacs in its
+source tree, you should run \`${progname}' in the directory in which
+you wish to build Emacs, using its \`--srcdir' option to say where the
+sources may be found."
+	 echo "${short_usage}") >&2
+	exit 1
+      fi
+    fi
   ;;
 
-  ## Otherwise, make sure it's a directory at all.
+  ## Otherwise, check if the directory they specified is okay.
   * )
-    if [ ! -d "${srcdir}" ]; then
-      (echo "${progname}: The path specified with the `--srcdir' option"
-       echo "isn't a valid directory."
+    if [ ! -d "${srcdir}" -o ! -f "${srcdir}/src/lisp.h" -o ! -f "${srcdir}/lisp/version.el" ]; then
+      (echo "\
+${progname}: The directory specified with the \`--srcdir' option,
+\`${srcdir}', doesn't seem to contain the Emacs sources.  You should
+either run the \`${progname}' script at the top of the Emacs source
+tree, or use the \`--srcdir' option to specify where the Emacs sources
+are."
        echo "${short_usage}") >&2
       exit 1
     fi
   ;;
 
 esac
-
-### Check that the source directory actually contains the source.
-if [ ! -f "${srcdir}/src/lisp.h" -o ! -f "${srcdir}/lisp/version.el" ]; then
-  (echo "The directory \`${srcdir}' doesn't contain the Emacs sources."
-   echo "You should either run the \`${progname}' script at the top of"
-   echo "the Emacs source tree, or use the \`--srcdir' option to specify"
-   echo "where the Emacs sources are."
-   echo "${short_usage}") >&2
-  exit 1
-fi
 
 ### Make the necessary directories, if they don't exist.
 if [ ! -d ./src ]; then
@@ -212,6 +221,9 @@ fi
 if [ ! -d ./cpp ]; then
   mkdir ./cpp
 fi
+if [ ! -d ./oldXMenu ]; then
+  mkdir ./oldXMenu
+fi
 
 
 #### Given the configuration name, set machfile and opsysfile to the
@@ -219,7 +231,7 @@ fi
 
 ### Canonicalize the configuration name.
 echo "Checking the configuration name."
-if configuration=`./config.sub "${configuration}"` ; then : ; else
+if configuration=`${srcdir}/config.sub "${configuration}"` ; then : ; else
   exit $?
 fi
 
@@ -791,8 +803,9 @@ echo "Examining the machine- and system-dependent files to find out"
 echo " - which libraries the lib-src programs will want, and"
 echo " - whether the GNU malloc routines are usable."
 tempcname="configure.tmp.$$.c"
-echo '#include "src/'${opsysfile}'"
-#include "src/'${machfile}'"
+echo '
+#include "'${srcdir}'/src/'${opsysfile}'"
+#include "'${srcdir}'/src/'${machfile}'"
 #ifndef LIBS_MACHINE
 #define LIBS_MACHINE
 #endif
@@ -812,6 +825,8 @@ eval `${default_cc} -E ${tempcname} \
 rm ${tempcname}
 
 # Do the opsystem or machine files prohibit the use of the GNU malloc?
+# Assume not, until told otherwise.
+GNU_MALLOC=yes
 if [ "${system_malloc}" = "yes" ]; then
   GNU_MALLOC=no
   GNU_MALLOC_reason="
@@ -823,6 +838,17 @@ if [ ! "${REL_ALLOC}" ]; then
 fi
 
 LISP_FLOAT_TYPE=yes
+
+
+#### Find out which version of Emacs this is.
+version=`grep 'defconst[	 ]*emacs-version' ${srcdir}/lisp/version.el \
+	 | sed -e 's/^.*"\([0-9][0-9]*\.[0-9][0-9]*\)\..*$/\1/'`
+if [ ! "${version}" ]; then
+  echo "${progname}: can't find current emacs version in
+	\`${srcdir}/lisp/version.el'." >&2
+  exit 1
+fi
+
 
 #### Make the proper settings in `src/config.h'.
 rm -f config.status
@@ -855,25 +881,29 @@ rm -f ./src/config.h.tmp
  echo "   \`${srcdir}/src/config.h.in' itself." 
  eval '/bin/sed '${sed_flags}' < "${srcdir}/src/config.h.in"'
 ) > src/config.h.tmp
-./move-if-change src/config.h.tmp src/config.h
+${srcdir}/move-if-change src/config.h.tmp src/config.h
 ### Remind people not to edit this.
 chmod -w src/config.h
 
 
-### Modify the parameters in the top makefile.
-echo "Producing \`./Makefile' from \`${srcdir}/Makefile.in'."
+#### Modify the parameters in the top-level Makefile.
+echo "Producing \`Makefile' from \`${srcdir}/Makefile.in'."
 rm -f Makefile.tmp
 (echo "\
-# This file is generated by \`${progname}' from \`${srcdir}/Makefile.in'.
+# This file is generated by \`${progname}' from
+# \`${srcdir}/Makefile.in'.
 # If you are thinking about editing it, you should seriously consider
-# editing \`./Makefile.in' itself, or running \`${progname}' instead."
- /bin/sed < ${srcdir}/Makefile.in			\
- -e 's/^CC=.*$/CC='"${default_cc}"'/'			\
- -e 's/^CFLAGS=.*$/CFLAGS='"${default_cflags}"'/'	\
- -e '/^# DIST: /d') > ./Makefile.tmp
-./move-if-change ./Makefile.tmp ./Makefile
-# Remind people not to edit this.
-chmod -w ./Makefile
+# running \`${progname}' instead, or editing
+# \`${srcdir}/Makefile.in' itself."
+ /bin/sed < ${srcdir}/Makefile.in				\
+ -e 's|^configname *=.*$|configname='"${configuration}"'|'	\
+ -e 's|^version *=.*$|version='"${version}"'|' 		\
+ -e 's|^srcdir *=.*$|srcdir='"${srcdir}"'|' 			\
+ -e 's|^CC *=.*$|CC='"${default_cc}"'|'			\
+ -e 's|^CONFIG_CFLAGS *=.*$|CONFIG_CFLAGS='"${default_cflags}"'|'	\
+ -e 's|^LOADLIBES *=.*$|LOADLIBES='"${libsrc_libs}"'|'	\
+ -e '/^# DIST: /d') > Makefile.tmp
+${srcdir}/move-if-change Makefile.tmp Makefile
 
 ### I'm commenting out this section until I bring the `build-install' script
 ### into line with the rest of the configuration stuff.
@@ -892,82 +922,41 @@ chmod -w ./Makefile
 ###  -e 's;^\(datadir=\).*$;\1'"${datadir};"		\
 ###  -e 's;^\(lockdir=\).*$;\1'"${lockdir};"		\
 ###  -e 's;^\(libdir=\).*$;\1'"${libdir};") > ./build-install.tmp
-### ./move-if-change build-install.tmp build-install
+### ${srcdir}/move-if-change build-install.tmp build-install
 ### # Remind people not to edit this.
 ### chmod -w build-install
 ### chmod +x build-install
 
-# Modify the parameters in the src makefile.
-echo "Producing \`./src/Makefile' from \`${srcdir}/src/Makefile.in'."
-rm -f src/Makefile.tmp
-(echo "# This file is generated by \`${progname}' from \`Makefile.in'.
-# If you are thinking about editing it, you should seriously consider
-# editing \`Makefile.in' itself, or running \`${progname}' instead."
- /bin/sed < src/Makefile.in				\
- -e 's;^\(CC *=\).*$;\1'"${default_cc};"		\
- -e 's;^\(CFLAGS *=\).*$;\1'"${default_cflags};"	\
- -e '/^# DIST: /d') > src/Makefile.tmp
-./move-if-change src/Makefile.tmp src/Makefile
-# Remind people not to edit this.
-chmod -w src/Makefile
 
-# Modify the parameters in the lib-src makefile.
-echo "Producing lib-src/Makefile from lib-src/Makefile.in."
-rm -f lib-src/Makefile.tmp
-(echo "# This file is generated by \`${progname}' from \`Makefile.in'.
-# If you are thinking about editing it, you should seriously consider
-# editing \`Makefile.in' itself, or running \`${progname}' instead."
- /bin/sed < lib-src/Makefile.in				\
- -e '/^# DIST: /d'					\
- -e 's;^\(CONFIG_CFLAGS=\).*$;\1'"${c_switch_site};"	\
- -e 's;^\(LOADLIBES=\).*$;\1'"${libsrc_libs};"		\
- -e 's;^\(CC=\).*$;\1'"${cc};") > lib-src/Makefile.tmp
-./move-if-change lib-src/Makefile.tmp lib-src/Makefile
-# Remind people not to edit this.
-chmod -w lib-src/Makefile
+#### Describe the results.
 
-
-# Create a verbal description of what we have done.
+### Create a verbal description of what we have done.
 message="Configured for \`${configuration}'.
 
-The following values have been set in ./Makefile and ./build-install:
-  \`make install' or \`build-install' will place executables in
-        ${bindir}.
-  Emacs's lisp search path will be
-        \`${lisppath}'.
-  Emacs will look for its architecture-independent data in
-        ${datadir}.
-  Emacs will look for its utility programs and other architecture-
-  dependent data in
-        ${libdir}.
-  Emacs will keep track of file-locking in
-        ${lockdir}.
-
-The following values have been set in src/config.h:
   What operating system and machine description files should Emacs use?
         \`${opsysfile}' and \`${machfile}'
   Should Emacs use the GNU version of malloc?             ${GNU_MALLOC}${GNU_MALLOC_reason}
   Should Emacs use the relocating allocator for buffers?  ${REL_ALLOC}
-  Should Emacs support a floating point data type?        ${lisp_float_type}
   What window system should Emacs use?                    ${window_system}
-  What compiler should emacs be built with?               ${cc}
-  Should the compilation use \`-g' and/or \`-O'?           ${c_switch_site- neither}"
+  What compiler should emacs be built with?               ${default_cc}
+  Should the compilation use \`-g' and/or \`-O'?            ${default_cflags- neither}"
 
-# Document the damage we have done by writing config.status.
+### Write config.status, documenting the damage we have done.
 
-echo '#!/bin/sh' > config.status
+(echo "\
+#!/bin/sh
+### This file is generated by \`${progname}.'
+### If you are thinking about editing it, you should seriously consider
+### running \`${progname}' instead.
+"
+ echo "${message}" | sed -e 's/^/# /'
+ echo "exec '${progname}' ${arguments} "'$@') > config.status
 
-echo "# This file is generated by \`${progname}.'
-# If you are thinking about editing it, you should seriously consider
-# running \`${progname}' instead.
-" >> config.status
-echo "${message}" | sed -e 's/^/# /' >> config.status
-echo "'${progname}' ${arguments} "'$@' >> config.status
-# Remind people not to edit this.
+### Remind people not to edit this.
 chmod -w config.status
 chmod +x config.status
 
-# Print the description.
+### Print the description.
 echo
 echo "${message}"
 
