@@ -1,3 +1,10 @@
+2003-11-05  Juri Linkov  <juri@jurta.org>
+
+	* desktop.el (desktop-locals-to-save): Add buffer-file-coding-system.
+	(desktop-buffer-file): Use saved buffer-file-coding-system
+	for file reading.  Set auto-insert to nil to prevent automatic
+	insertion into restored empty files.
+
 2003-11-04  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* files.el (risky-local-variable-p): Make second argument optional.
