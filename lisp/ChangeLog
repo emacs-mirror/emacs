@@ -1,3 +1,8 @@
+2003-02-17  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-cvs.el (vc-cvs-dir-state): Protect against DIR not being
+	under CVS control.  Suggested by Masanobu UMEDA.
+
 2003-02-17  Kenichi Handa  <handa@m17n.org>
 
 	* files.el (insert-directory): Add workaround for the case that we
