@@ -1,5 +1,5 @@
 ;;; reftex-global.el - Operations on entire documents with RefTeX
-;;; Version: 4.5
+;;; Version: 4.6
 ;;;
 ;;; See main file reftex.el for licensing information
 

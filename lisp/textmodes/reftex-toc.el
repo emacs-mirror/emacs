@@ -1,5 +1,5 @@
 ;;; reftex-toc.el - RefTeX's table of contents mode
-;;; Version: 4.5
+;;; Version: 4.6
 ;;;
 ;;; See main file reftex.el for licensing information
 

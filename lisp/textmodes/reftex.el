@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version:    4.5
+;; Version:    4.6
 ;; Keywords:   tex
 
 ;; This file is not part of GNU Emacs.
@@ -259,7 +259,7 @@
 ;;; Define the formal stuff for a minor mode named RefTeX.
 ;;;
 
-(defconst reftex-version "RefTeX version 4.5"
+(defconst reftex-version "RefTeX version 4.6"
   "Version string for RefTeX.")
 
 (defvar reftex-mode nil

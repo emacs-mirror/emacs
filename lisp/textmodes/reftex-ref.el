@@ -1,5 +1,5 @@
 ;;; reftex-ref.el - Code to create labels and references with RefTeX
-;;; Version: 4.5
+;;; Version: 4.6
 ;;;
 ;;; See main file reftex.el for licensing information
 
@@ -287,14 +287,16 @@ also applies `reftex-translate-to-ascii-function' to the string."
                ((equal letter "u")
                 (or (user-login-name) ""))
 	       ((equal letter "S")
-		(let* (macro level)
+		(let* (macro level-exp level)
 		  (save-excursion
 		    (save-match-data
 		      (when (re-search-backward reftex-section-regexp nil t)
 			(setq macro (reftex-match-string 2)
-			      level 
-			      (abs 
-			       (cdr (assoc macro reftex-section-levels-all)))))
+			      level-exp (cdr (assoc macro reftex-section-levels-all))
+			      level (if (symbolp level-exp)
+					(abs (save-match-data
+					       (funcall level-exp)))
+				      (abs level-exp))))
 		      (cdr (or (assoc macro reftex-section-prefixes)
 			       (assoc level reftex-section-prefixes)
 			       (assq t reftex-section-prefixes)
