@@ -249,6 +249,8 @@ int proc_buffered_char[MAXDESC];
 
 static Lisp_Object get_process ();
 
+extern EMACS_TIME timer_check ();
+
 /* Maximum number of bytes to send to a pty without an eof.  */
 static int pty_max_bytes;
 
@@ -2051,6 +2053,22 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       else
 	{
 	  EMACS_SET_SECS_USECS (timeout, 100000, 0);
+	}
+
+      /* If our caller will not immediately handle keyboard events,
+	 run timer events directly.
+	 (Callers that will immediately read keyboard events
+	 call timer_delay on their own.)  */
+      if (read_kbd >= 0)
+	{
+	  EMACS_TIME timer_delay = timer_check (1);
+	  if (! EMACS_TIME_NEG_P (timer_delay))
+	    {
+	      EMACS_TIME difference;
+	      EMACS_SUB_TIME (difference, timer_delay, timeout);
+	      if (EMACS_TIME_NEG_P (difference))
+		timeout = timer_delay;
+	    }
 	}
 
       /* Cause C-g and alarm signals to take immediate action,
