@@ -214,6 +214,14 @@
 ;;; If you have a "smart" ftp program that allows you to issue commands like
 ;;; "USER foo@bar" which do nice proxy things, then look at the variables
 ;;; ange-ftp-smart-gateway and ange-ftp-smart-gateway-port.
+;;;
+;;; Otherwise, if there is an alternate ftp program that implements proxy in
+;;; a transparent way (i.e. w/o specifying the proxy host), that will
+;;; connect you directly to the desired destination host:
+;;; Set ange-ftp-gateway-ftp-program-name to that program's name.
+;;; Set ange-ftp-local-host-regexp to a value as stated earlier on.
+;;; Leave ange-ftp-gateway-host set to nil.
+;;; Set ange-ftp-smart-gateway to t.
 
 ;;; Tips for using ange-ftp:
 ;;;
@@ -711,7 +719,7 @@ If nil then prompt the user for a password.")
 (defvar ange-ftp-local-host-regexp ".*"
   "*Regexp selecting hosts which can be reached directly with ftp.
 For other hosts the FTP process is started on \`ange-ftp-gateway-host\'
-instead.")
+instead, and/or reached via \`ange-ftp-gateway-ftp-program-name\'.")
 
 (defvar ange-ftp-gateway-program-interactive nil
   "*If non-nil then the gateway program should  give a shell prompt.
@@ -738,8 +746,9 @@ This command should stop the terminal from echoing each command, and
 arrange to strip out trailing ^M characters.")
 
 (defvar ange-ftp-smart-gateway nil
-  "*Non-nil means the ftp gateway is smart.
-Don't bother telnetting, etc., just issue a user@host command instead.")
+  "*Non-nil means the ftp gateway and/or the gateway ftp program is smart.
+Don't bother telnetting, etc., already connected to desired host transparently,
+or just issue a user@host command in case \`ange-ftp-gateway-host\' is non-nil.")
 
 (defvar ange-ftp-smart-gateway-port "21"
   "*Port on gateway machine to use when smart gateway is in operation.")
@@ -765,7 +774,7 @@ outputs a suitable response to the HASH command.")
   "*Name of FTP program to run.")
 
 (defvar ange-ftp-gateway-ftp-program-name "ftp"
-  "*Name of FTP program to run on gateway machine.
+  "*Name of FTP program to run when accessing non-local hosts.
 Some AT&T folks claim to use something called `pftp' here.")
 
 (defvar ange-ftp-ftp-program-args '("-i" "-n" "-g" "-v")
@@ -851,7 +860,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.55 $")
+(defconst ange-ftp-version "$Revision: 1.56 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -1757,7 +1766,10 @@ been queued with no result.  CONT will still be called, however."
 If HOST is only ftp-able through a gateway machine then spawn a shell
 on the gateway machine to do the ftp instead."
   (let* ((use-gateway (ange-ftp-use-gateway-p host))
-	 (ftp-prog (if use-gateway 
+	 (use-smart-ftp (and (not ange-ftp-gateway-host)
+			     (ange-ftp-use-smart-gateway-p host)))
+	 (ftp-prog (if (or use-gateway
+			   use-smart-ftp) 
 		       ange-ftp-gateway-ftp-program-name
 		     ange-ftp-ftp-program-name))
 	 (args (append (list ftp-prog) ange-ftp-ftp-program-args))
@@ -1920,7 +1932,8 @@ Create a new process if needed."
 	(setq proc (ange-ftp-start-process host user name))
 	
 	;; login to FTP server.
-	(if (ange-ftp-use-smart-gateway-p host)
+	(if (and (ange-ftp-use-smart-gateway-p host)
+		 ange-ftp-gateway-host)
 	    (ange-ftp-smart-login host user pass account proc)
 	  (ange-ftp-normal-login host user pass account proc))
       
