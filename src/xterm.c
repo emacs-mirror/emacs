@@ -7728,6 +7728,7 @@ x_connection_closed (dpy, error_message)
   struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
   Lisp_Object frame, tail;
   int count;
+  int index = SPECPDL_INDEX ();
 
   error_msg = (char *) alloca (strlen (error_message) + 1);
   strcpy (error_msg, error_message);
@@ -7775,6 +7776,9 @@ x_connection_closed (dpy, error_message)
   if (dpyinfo)
     dpyinfo->display = 0;
 
+  /* Inhibit redisplay while frames are being deleted. */
+  specbind (Qinhibit_redisplay, Qt);
+
   /* First delete frames whose mini-buffers are on frames
      that are on the dead display.  */
   FOR_EACH_FRAME (tail, frame)
@@ -7821,6 +7825,7 @@ x_connection_closed (dpy, error_message)
   sigunblock (sigmask (SIGALRM));
   TOTALLY_UNBLOCK_INPUT;
 
+  unbind_to (index, Qnil);
   clear_waiting_for_input ();
   error ("%s", error_msg);
 }
