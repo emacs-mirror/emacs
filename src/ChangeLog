@@ -1,3 +1,26 @@
+2000-04-03  Gerd Moellmann  <gerd@gnu.org>
+
+	* keyboard.c (lispy_mouse_names): Variable removed.
+	(Vlispy_mouse_stem): New variable.
+	(syms_of_keyboard): Initialize Vlispy_mouse_stem.
+	(make_lispy_event) <mouse_click, scroll_bar_click>: Don't abort
+	for any mouse button number.  Increase size of mouse_syms and
+	button_down_location as needed.  Call modify_event_symbol with
+	different arguments.
+	(make_lispy_event) <scroll_bar_click> [USE_TOOLKIT_SCROLL_BARS]:
+	Call modify_event_symbol with different arguments.
+	(make_lispy_event) <w32_scroll_bar_click> [WINDOWSNT]: Don't abort
+	for any button number.  Call modify_event_symbol with different
+	arguments.
+	(modify_event_symbol): Rename NAME_ALIST to NAME_ALIST_OR_STEM.
+	Accept a string for NAME_ALIST_OR_STEM.
+
+	* lisp.h (larger_vector): Add prototype.
+
+	* fns.c (larger_vector): Make externally visible.
+
+	* termhooks.h (NUM_MOUSE_BUTTONS): Removed.
+
 2000-04-02  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.c (PTR_TO_OFFSET) [!emacs]: Remove.
@@ -66,13 +89,13 @@
 	(handle_fontified_prop, add_to_log): Pass int, not Lisp_Object, as
 	count arg to variable-arg routines like Frun_hook_with_args and
 	Fformat.
-	(back_to_previous_visible_line_start,
-	build_desired_tool_bar_string): Pass Lisp_Object, not int, to
+	(back_to_previous_visible_line_start)
+	(build_desired_tool_bar_string): Pass Lisp_Object, not int, to
 	fixed-arg routines like Fget_char_property and Fmake_string.
 	(reconsider_clip_changes): Use XINT when comparing integer lisp
 	objects, or passing them as int arguments.
-	(mark_window_display_accurate, insert_left_trunc_glyphs,
-	append_space, extend_face_to_end_of_line): Use make_number when
+	(mark_window_display_accurate, insert_left_trunc_glyphs)
+	(append_space, extend_face_to_end_of_line): Use make_number when
 	storing or passing integer values as lisp objects.
 	(set_cursor_from_row, highlight_trailing_whitespace): Use
 	INTEGERP, not implicit test against zero, for glyph object.
