@@ -445,6 +445,34 @@ detected automatically.  Nth element of the vector is the subsidiary
 coding system whose eol-type is N."
   (get coding-system 'eol-type))
 
+(defun coding-system-lessp (x y)
+  (cond ((eq x 'no-conversion) t)
+	((eq y 'no-conversion) nil)
+	((eq x 'emacs-mule) t)
+	((eq y 'emacs-mule) nil)
+	((eq x 'undecided) t)
+	((eq y 'undecided) nil)
+	(t (let ((c1 (coding-system-mnemonic x))
+		 (c2 (coding-system-mnemonic y)))
+	     (or (< (downcase c1) (downcase c2))
+		 (and (not (> (downcase c1) (downcase c2)))
+		      (< c1 c2)))))))
+
+;; Add CODING-SYSTEM to coding-system-list while keeping it sorted.
+(defun add-to-coding-system-list (coding-system)
+  (if (or (null coding-system-list)
+	  (coding-system-lessp coding-system (car coding-system-list)))
+      (setq coding-system-list (cons coding-system coding-system-list))
+    (let ((len (length coding-system-list))
+	  mid (tem coding-system-list))
+      (while (> len 1)
+	(setq mid (nthcdr (/ len 2) tem))
+	(if (coding-system-lessp (car mid) coding-system)
+	    (setq tem mid
+		  len (- len (/ len 2)))
+	  (setq len (/ len 2))))
+      (setcdr tem (cons coding-system (cdr tem))))))
+
 ;; Make subsidiary coding systems (eol-type variants) of CODING-SYSTEM.
 (defun make-subsidiary-coding-system (coding-system)
   (let ((coding-spec (coding-system-spec coding-system))
@@ -456,8 +484,7 @@ coding system whose eol-type is N."
     (while (< i 3)
       (put (aref subsidiaries i) 'coding-system coding-spec)
       (put (aref subsidiaries i) 'eol-type i)
-      (setq coding-system-list
-	    (cons (aref subsidiaries i) coding-system-list))
+      (add-to-coding-system-list (aref subsidiaries i))
       (setq coding-system-alist
 	    (cons (list (symbol-name (aref subsidiaries i)))
 		  coding-system-alist))
@@ -653,7 +680,7 @@ a value of `safe-charsets' in PLIST."
 
   ;; At last, register CODING-SYSTEM in `coding-system-list' and
   ;; `coding-system-alist'.
-  (setq coding-system-list (cons coding-system coding-system-list))
+  (add-to-coding-system-list coding-system)
   (setq coding-system-alist (cons (list (symbol-name coding-system))
 				  coding-system-alist))
 
@@ -678,7 +705,7 @@ a value of `safe-charsets' in PLIST."
   "Define ALIAS as an alias for coding system CODING-SYSTEM."
   (put alias 'coding-system (coding-system-spec coding-system))
   (nconc (coding-system-get alias 'alias-coding-systems) (list alias))
-  (setq coding-system-list (cons alias coding-system-list))
+  (add-to-coding-system-list alias)
   (setq coding-system-alist (cons (list (symbol-name alias))
 				  coding-system-alist))
   (let ((eol-type (coding-system-eol-type coding-system)))
