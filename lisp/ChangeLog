@@ -1,3 +1,7 @@
+2000-12-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* pcmpl-linux.el: Fix copy/paste error.
+
 2000-12-19  Andrew Innes  <andrewi@gnu.org>
 
 	* simple.el (delete-key-deletes-forward-mode): Fix typo in
