@@ -918,18 +918,17 @@ See documentation of variable `tags-file-name'."
       ;;   \1 is the string to match;
       ;;   \2 is not interesting;
       ;;   \3 is the guessed tag name; XXX guess should be better eg DEFUN
-      ;;   \4 is the char to start searching at;
-      ;;   \5 is the line to start searching at;
-      ;;   \6 is not interesting;
-      ;;   \7 is the explicitly-specified tag name.
+      ;;   \4 is not interesting;
+      ;;   \5 is the explicitly-specified tag name.
+      ;;   \6 is the line to start searching at;
+      ;;   \7 is the char to start searching at.
       (while (re-search-forward
 	      "^\\(\\(.+[^-a-zA-Z0-9_$]+\\)?\\([-a-zA-Z0-9_$]+\\)\
-\[^-a-zA-Z0-9_$]*\\)\177\
-\\([0-9]+\\),\\([0-9]+\\)\\(,\001\\([^\n]+\\)\\)?\n"
+\[^-a-zA-Z0-9_$]*\\)\177\\(\\([^\n\001]+\\)\001\\)?\\([0-9]+\\),\\([0-9]+\\)\n"
 	      nil t)
-	(intern	(if (match-beginning 6)
+	(intern	(if (match-beginning 5)
 		    ;; There is an explicit tag name.
-		    (buffer-substring (match-beginning 6) (match-end 6))
+		    (buffer-substring (match-beginning 5) (match-end 5))
 		  ;; No explicit tag name.  Best guess.
 		  (buffer-substring (match-beginning 3) (match-end 3)))
 		table)))
@@ -941,6 +940,8 @@ See documentation of variable `tags-file-name'."
     (setq tag-text (buffer-substring (1- (point))
 				     (save-excursion (beginning-of-line)
 						     (point))))
+    ;; Skip explicit tag name if present.
+    (search-forward "\001" (save-excursion (forward-line 1) (point)) t)
     (search-forward ",")
     (setq startpos (string-to-int (buffer-substring
 				   (point)
