@@ -392,7 +392,7 @@ If optional argument QUERY is non-nil, query for the help mode."
     ;; info buffer since that can print messages
     (unless (or ignore-case
                 (string-equal item (car entry)))
-      (message "Found in differnt case: %s" (car entry)))
+      (message "Found in different case: %s" (car entry)))
     (or doc-found
 	(error "Info documentation for lookup was not found"))
     ;; Don't leave the Info buffer if the help item couldn't be looked up.
