@@ -3556,7 +3556,7 @@ DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
   Fset_marker (OVERLAY_START (overlay), Qnil, Qnil);
   Fset_marker (OVERLAY_END   (overlay), Qnil, Qnil);
 
-  /* WHen deleting on overlay with before or after strings, turn off
+  /* When deleting an overlay with before or after strings, turn off
      display optimizations for the affected buffer, on the basis that
      these strings may contain newlines.  This is easier to do than to
      check for that situation during redisplay.  */
