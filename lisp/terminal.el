@@ -100,6 +100,9 @@ performance."
 (if terminal-map
     nil
   (let ((map (make-sparse-keymap)))
+    ;; Prevent defining [menu-bar] as te-pass-through
+    ;; so we allow the global menu bar to be visible.
+    (define-key map [menu-bar] (make-sparse-keymap))
     (define-key map [t] 'te-pass-through)
     (define-key map [switch-frame] 'handle-switch-frame)
     (define-key map "\e" terminal-meta-map)
@@ -247,12 +250,9 @@ Other chars following \"%s\" are interpreted as follows:\n"
 			(where-is-internal 'te-escape-extended-command
 					   terminal-escape-map t)
 			'te-escape-extended-command))
-	 (let ((l (if (fboundp 'sortcar)
-		      (sortcar (copy-sequence te-escape-command-alist)
-			       'string<)
-		      (sort (copy-sequence te-escape-command-alist)
-			    (function (lambda (a b)
-                              (string< (car a) (car b))))))))
+	 (let ((l (sort (copy-sequence te-escape-command-alist)
+			(function (lambda (a b)
+				    (string< (car a) (car b)))))))
 	   (while l
 	     (let ((doc (or (documentation (cdr (car l)))
 			    "Not documented")))
