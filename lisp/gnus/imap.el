@@ -719,8 +719,8 @@ LOGINFUNC is passed a username and a password, it should return t if
 it where sucessful authenticating itself to the server, nil otherwise.
 Returns t if login was successful, nil otherwise."
   (with-current-buffer buffer
-    (make-variable-buffer-local 'imap-username)
-    (make-variable-buffer-local 'imap-password)
+    (make-local-variable 'imap-username)
+    (make-local-variable 'imap-password)
     (let (user passwd ret)
       ;;      (condition-case ()
       (while (or (not user) (not passwd))
@@ -887,7 +887,7 @@ necessery.  If nil, the buffer name is generated."
   (with-current-buffer (get-buffer-create buffer)
     (if (imap-opened buffer)
 	(imap-close buffer))
-    (mapcar 'make-variable-buffer-local imap-local-variables)
+    (mapcar 'make-local-variable imap-local-variables)
     (imap-disable-multibyte)
     (buffer-disable-undo)
     (setq imap-server (or server imap-server))
@@ -957,8 +957,8 @@ password is remembered in the buffer."
 	(or (eq imap-state 'auth)
 	    (eq imap-state 'select)
 	    (eq imap-state 'examine))
-      (make-variable-buffer-local 'imap-username)
-      (make-variable-buffer-local 'imap-password)
+      (make-local-variable 'imap-username)
+      (make-local-variable 'imap-password)
       (if user (setq imap-username user))
       (if passwd (setq imap-password passwd))
       (if (funcall (nth 2 (assq imap-auth imap-authenticator-alist)) buffer)
@@ -1751,21 +1751,21 @@ Return nil if no complete line has arrived."
 ;;
 ;;   addr-adl        = nstring
 ;;                       ; Holds route from [RFC-822] route-addr if
-;;                       ; non-NIL
+;;                       ; non-nil
 ;;
 ;;   addr-host       = nstring
-;;                       ; NIL indicates [RFC-822] group syntax.
+;;                       ; nil indicates [RFC-822] group syntax.
 ;;                       ; Otherwise, holds [RFC-822] domain name
 ;;
 ;;   addr-mailbox    = nstring
-;;                       ; NIL indicates end of [RFC-822] group; if
-;;                       ; non-NIL and addr-host is NIL, holds
+;;                       ; nil indicates end of [RFC-822] group; if
+;;                       ; non-nil and addr-host is nil, holds
 ;;                       ; [RFC-822] group name.
 ;;                       ; Otherwise, holds [RFC-822] local-part
 ;;                       ; after removing [RFC-822] quoting
 ;;
 ;;   addr-name       = nstring
-;;                       ; If non-NIL, holds phrase from [RFC-822]
+;;                       ; If non-nil, holds phrase from [RFC-822]
 ;;                       ; mailbox after removing [RFC-822] quoting
 ;;
 
@@ -2455,7 +2455,7 @@ Return nil if no complete line has arrived."
 	(push (imap-parse-nstring) body);; body-fld-desc
 	(imap-forward)
 	;; next `or' for Sun SIMS bug, it regard body-fld-enc as a
-	;; nstring and return NIL instead of defaulting back to 7BIT
+	;; nstring and return nil instead of defaulting back to 7BIT
 	;; as the standard says.
 	(push (or (imap-parse-nstring) "7BIT") body);; body-fld-enc
 	(imap-forward)

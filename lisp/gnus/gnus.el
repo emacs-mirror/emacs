@@ -1,6 +1,6 @@
 ;;; gnus.el --- a newsreader for GNU Emacs
-;; Copyright (C) 1987, 1988, 1989, 1990, 1993, 1994, 1995, 1996,
-;;        1997, 1998, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1988, 1989, 1990, 1993, 1994, 1995, 1996, 1997,
+;;               1998, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -1024,7 +1024,7 @@ Should be set in paths.el, and shouldn't be touched by the user.")
 (defcustom gnus-local-domain nil
   "Local domain name without a host name.
 The DOMAINNAME environment variable is used instead if it is defined.
-If the `system-name' function returns the full Internet name, there is
+If the function `system-name' returns the full Internet name, there is
 no need to set this variable."
   :group 'gnus-message
   :type '(choice (const :tag "default" nil)

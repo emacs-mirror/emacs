@@ -56,6 +56,8 @@
 (defvoo nnultimate-groups nil)
 (defvoo nnultimate-headers nil)
 (defvoo nnultimate-articles nil)
+(defvar nnultimate-table-regexp
+  "postings.*editpost\\|forumdisplay\\|Forum[0-9]+/HTML\\|getbio")
 
 ;;; Interface functions
 
@@ -74,13 +76,17 @@
 	   (old-total (or (nth 6 entry) 1))
 	   (furl "forumdisplay.cgi?action=topics&number=%d&DaysPrune=1000")
 	   (furls (list (concat nnultimate-address (format furl sid))))
+	   (nnultimate-table-regexp
+	    "postings.*editpost\\|forumdisplay\\|getbio")
 	   headers article subject score from date lines parent point
 	   contents tinfo fetchers map elem a href garticles topic old-max
-	   inc datel table string current-page total-contents pages
+	   inc datel table current-page total-contents pages
 	   farticles forum-contents parse furl-fetched mmap farticle)
       (setq map mapping)
       (while (and (setq article (car articles))
 		  map)
+	;; Skip past the articles in the map until we reach the
+	;; article we're looking for.
 	(while (and map
 		    (or (> article (caar map))
 			(< (cadar map) (caar map))))
@@ -101,7 +107,7 @@
 		    fetchers))
 	    (pop articles)
 	    (setq article (car articles)))))
-      ;; Now we have the mapping from/to Gnus/nnultimate article numbers,
+   ;; Now we have the mapping from/to Gnus/nnultimate article numbers,
       ;; so we start fetching the topics that we need to satisfy the
       ;; request.
       (if (not fetchers)
@@ -128,22 +134,27 @@
 	      (setq contents
 		    (ignore-errors (w3-parse-buffer (current-buffer))))
 	      (setq table (nnultimate-find-forum-table contents))
-	      (setq string (mapconcat 'identity (nnweb-text table) ""))
-	      (when (string-match "topic is \\([0-9]\\) pages" string)
-		(setq pages (string-to-number (match-string 1 string)))
-		(setcdr table nil)
-		(setq table (nnultimate-find-forum-table contents)))
+	      (goto-char (point-min))
+	      (when (re-search-forward "topic is \\([0-9]+\\) pages" nil t)
+		(setq pages (string-to-number (match-string 1))))
 	      (setq contents (cdr (nth 2 (car (nth 2 table)))))
 	      (setq total-contents (nconc total-contents contents))
 	      (incf current-page))
-	    ;;(setq total-contents (nreverse total-contents))
-	    (dolist (art (cdr elem))
-	      (if (not (nth (1- (cdr art)) total-contents))
-		  ()			;(debug)
-		(push (list (car art)
-			    (nth (1- (cdr art)) total-contents)
-			    subject)
-		      nnultimate-articles)))))
+	    (when t
+	      (let ((i 0))
+		(dolist (co total-contents)
+		  (push (list (or (nnultimate-topic-article-to-article
+				   group (car elem) (incf i))
+				  1)
+			      co subject)
+			nnultimate-articles))))
+	    (when nil
+	      (dolist (art (cdr elem))
+		(when (nth (1- (cdr art)) total-contents)
+		  (push (list (car art)
+			      (nth (1- (cdr art)) total-contents)
+			      subject)
+			nnultimate-articles))))))
 	(setq nnultimate-articles
 	      (sort nnultimate-articles 'car-less-than-car))
 	;; Now we have all the articles, conveniently in an alist
@@ -161,17 +172,26 @@
 	      (setq date (substring (car datel) (match-end 0))
 		    datel nil))
 	    (pop datel))
-	  (setq date (delete "" (split-string date "[- \n\t\r    ]")))
-	  (if (or (member "AM" date)
-		  (member "PM" date))
+	  (when date
+	    (setq date (delete "" (split-string
+				   date "[-, \n\t\r    ]")))
+	    (if (or (member "AM" date)
+		    (member "PM" date))
+		(setq date (format
+			    "%s %s %s %s"
+			    (nth 1 date)
+			    (if (and (>= (length (nth 0 date)) 3)
+				     (assoc (downcase
+					     (substring (nth 0 date) 0 3))
+					    parse-time-months))
+				(substring (nth 0 date) 0 3)
+			      (car (rassq (string-to-number (nth 0 date))
+					  parse-time-months)))
+			    (nth 2 date) (nth 3 date)))
 	      (setq date (format "%s %s %s %s"
-				 (car (rassq (string-to-number (nth 0 date))
+				 (car (rassq (string-to-number (nth 1 date))
 					     parse-time-months))
-				 (nth 1 date) (nth 2 date) (nth 3 date)))
-	    (setq date (format "%s %s %s %s"
-			       (car (rassq (string-to-number (nth 1 date))
-					   parse-time-months))
-			       (nth 0 date) (nth 2 date) (nth 3 date))))
+				 (nth 0 date) (nth 2 date) (nth 3 date)))))
 	  (push
 	   (cons
 	    article
@@ -180,7 +200,7 @@
 	     from (or date "")
 	     (concat "<" (number-to-string sid) "%"
 		     (number-to-string article)
-		     "@ultimate>")
+		     "@ultimate." server ">")
 	     "" 0
 	     (/ (length (mapconcat
 			 'identity
@@ -198,6 +218,16 @@
 	    (dolist (header nnultimate-headers)
 	      (nnheader-insert-nov (cdr header))))))
       'nov)))
+
+(defun nnultimate-topic-article-to-article (group topic article)
+  (catch 'found
+    (dolist (elem (nth 5 (assoc group nnultimate-groups)))
+      (when (and (= topic (nth 2 elem))
+		 (>= article (nth 3 elem))
+		 (< article (+ (- (nth 1 elem) (nth 0 elem)) 1
+			       (nth 3 elem))))
+	(throw 'found
+	       (+ (nth 0 elem) (- article (nth 3 elem))))))))
 
 (deffoo nnultimate-request-group (group &optional server dont-check)
   (nnultimate-possibly-change-server nil server)
@@ -330,7 +360,7 @@
       ;; the group is entered, there's 2 new articles in topic one
       ;; and 1 in topic three.  Then Gnus article number 8-9 be 5-6
       ;; in topic one and 10 will be the 2 in topic three.
-      (dolist (row (reverse forum-contents))
+      (dolist (row (nreverse forum-contents))
 	(setq row (nth 2 row))
 	(when (setq a (nnweb-parse-find 'a row))
 	  (setq subject (car (last (nnweb-text a)))
@@ -403,7 +433,7 @@
 	nnultimate-groups-alist)
   (with-temp-file (expand-file-name "groups" nnultimate-directory)
     (prin1 nnultimate-groups-alist (current-buffer))))
-    
+
 (defun nnultimate-init (server)
   "Initialize buffers and such."
   (unless (file-exists-p nnultimate-directory)
@@ -438,9 +468,7 @@
 		     (nth 2 parse))))
     (let ((href (cdr (assq 'href (nth 1 (nnweb-parse-find 'a parse 20)))))
 	  case-fold-search)
-      (when (and href (string-match
-		       "postings\\|forumdisplay\\|Forum[0-9]+/HTML\\|getbio"
-		       href))
+      (when (and href (string-match nnultimate-table-regexp href))
 	t))))
 
 (provide 'nnultimate)

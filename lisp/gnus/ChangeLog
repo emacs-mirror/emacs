@@ -1,3 +1,9 @@
+2002-02-03  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* message.el (message-forward-rmail-make-body): Directly use
+	rmail-msg-restore-non-pruned-header to avoid calling
+	vertical-motion.
+
 2002-01-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-start.el (gnus-read-init-file): Cleaned up.
@@ -12,9 +18,164 @@
 	* gnus-start.el (gnus-read-init-file): Don't force coding system
 	for ~/.gnus.  From Dave Love <fx@gnu.org>.
 	
+2002-01-03  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* mm-util.el (mm-charset-to-coding-system): Don't setq charset.
+	* mm-util.el (mm-use-find-coding-systems-region): New variable.
+	(mm-find-mime-charset-region): Use it.
+	* nntp.el (nntp-send-buffer): Use mm-with-unibyte-current-buffer.
+	* nnspool.el (nnspool-request-post): Ditto.
+
+2002-01-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* message.el, gnus-art.el, gnus.el, gnus-cite.el: 
+	Adapt face definitions to use :weight and :slant.
+
+2001-12-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+
+	* gnus-mlspl.el (gnus-group-split-fancy): Doc fix (add reference
+	to variable, follow doc-string conventions).
+
+2001-12-05  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* mm-view.el (mm-inline-text): w3-coding-system-for-mime-charset
+	may not defined. From: Raja R Harinath <harinath@cs.umn.edu>.
+
+	* mm-view.el (mm-inline-message): Insert a newline unless bolp.
+
+	* gnus-sum.el (gnus-summary-save-article): Nix
+	gnus-display-mime-function and gnus-article-prepare-hook.
+
+2001-12-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* message.el (message-mail): Add send-actions.
+
+2001-11-28  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-sum.el (gnus-summary-limit-to-author): Fix the number of
+	arguments.
+
+2001-11-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* imap.el (imap-interactive-login, imap-open, imap-authenticate):
+	Use make-local-variable rather than make-variable-buffer-local.
+
+2001-11-25  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* message.el (message-forward-rmail-make-body): Use
+	save-window-excursion.
+	(message-encode-message-body): Use noerror when search.
+	(message-setup-1): Convert compose-mail send-actions to
+	message-send-actions.
+
+	* message.el (message-forward-subject-author-subject): Don't use
+	message-news-p, which widens the buffer.
+	(message-forward-make-body): New function.
+	(message-forward): Use it.
+	(message-insinuate-rmail): New function.
+	(message-forward-rmail-make-body): New function.
+
+	* gnus-util.el (gnus-directory-sep-char-regexp): New variable.
+	* gnus-score.el (gnus-score-find-bnews): Use it.
+	* mm-util.el (mm-iso-8859-x-to-15-region): Use
+	insert-before-markers.
+	From Jesper Harder <harder@ifa.au.dk>
+	* mm-util.el (mm-coding-system-priorities): Add backslash in the doc.
+	* mm-util.el (mm-coding-system-priorities): New variable.
+	(mm-sort-coding-systems-predicate): New function.
+	(mm-find-mime-charset-region): Resort coding systems if needed.
+	Suggested by Katsumi Yamaoka <yamaoka@jpl.org>.
+
+	* mm-util.el (mm-iso-8859-15-compatible): Fix doc.
+	(mm-hack-charsets): Fix doc.
+	
+	* mm-util.el (mm-iso-8859-15-compatible): Add inconvertible chars.
+	(mm-iso-8859-x-to-15-table): Ditto.
+	(mm-iso-8859-x-to-15-region): Ditto.
+	(mm-find-mime-charset-region): Ditto.
+	
+	* gnus-sum.el (gnus-summary-limit-to-subject): An exclusion version.
+	(gnus-summary-limit-to-author): Ditto.
+	(gnus-summary-limit-to-extra): Ditto.
+	(gnus-summary-find-matching): Support not-matching argument.
+
+	* message.el (message-wash-subject): Use `insert' rather than
+	`insert-string', which is deprecated.
+	From  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+2001-11-14  Sam Steingold  <sds@gnu.org>
+
+	* gnus-score.el: Fixed some doc strings to properly quote symbols.
+
+2001-11-10  Pavel Jan,Al(Bk  <Pavel@Janik.cz>
+
+	* gnus.el (gnus-local-domain): Reformat the doc-string to refer to
+	function `system-name' instead of both function and variable.
+
+2001-11-07  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* mml.el (mml-preview): Bind mail-header-separator.
+
+2001-11-05  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* mml.el (mml-generate-mime-1): Use mm-with-unibyte-current-buffer.
+	Suggested by  Dave Love  <fx@gnu.org>.
+
+2001-11-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* mm-util.el (mm-charset-synonym-alist): Revert (some).
+
+2001-10-30  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* mm-util.el (mm-iso-8859-x-to-15-region): New function.
+	(mm-hack-charsets): New variable.
+	(mm-iso-8859-15-compatible): New variable.
+	(mm-iso-8859-x-to-15-table): New variable.
+	(mm-find-mime-charset-region): Add parameter hack-charsets.
+
+	* mm-util.el (mm-charset-to-coding-system): Return nil, if charset
+	is nil.
+
+	* nnultimate.el, nnweb.el, nnslashdot.el: Update, because the web
+	pages are changed.
+
+	* mm-util.el (mm-mime-mule-charset-alist): Move down and call
+	mm-coding-system-p. Don't correct it only in XEmacs.
+	(mm-charset-to-coding-system): Use mm-coding-system-p and
+	mm-get-coding-system-list.
+	(mm-emacs-mule, mm-mule4-p): New.
+	(mm-enable-multibyte, mm-disable-multibyte,
+	mm-enable-multibyte-mule4, mm-disable-multibyte-mule4,
+	mm-with-unibyte-current-buffer,
+	mm-with-unibyte-current-buffer-mule4): Use them.
+	(mm-find-mime-charset-region): Treat iso-2022-jp.
+
+	From  Dave Love  <fx@gnu.org>:
+
+	* mm-util.el (mm-mime-mule-charset-alist): Make it correct by
+	construction.
+	(mm-charset-synonym-alist): Remove windows-125[02].  Make other
+	entries conditional on not having a coding system defined for
+	them.
+	(mm-mule-charset-to-mime-charset): Use
+	find-coding-systems-for-charsets if defined.
+	(mm-charset-to-coding-system): Don't use
+	mm-get-coding-system-list.  Look in mm-charset-synonym-alist
+	later.  Add last resort search of coding systems.
+	(mm-enable-multibyte-mule4, mm-disable-multibyte-mule4)
+	(mm-with-unibyte-current-buffer-mule4): Just treat Mule 5 like
+	Mule 4.
+	(mm-find-mime-charset-region): Re-write.
+	(mm-with-unibyte-current-buffer): Restore buffer as well as
+	multibyteness.
+
 2001-10-30  Simon Josefsson  <jas@extundo.com>
 
 	* nnimap.el (nnimap-date-days-ago): Defeat locale.
+
+2001-10-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* gnus-msg.el (gnus-setup-message): Setup reaper for MML buffers.
 
 2001-09-27  Gerd Moellmann  <gerd@gnu.org>
 
@@ -23,8 +184,8 @@
 
 2001-09-19  Sam Steingold  <sds@gnu.org>
 
-	* gnus-win.el (gnus-buffer-configuration): Respect
-	`gnus-bug-create-help-buffer'.
+	* gnus-win.el (gnus-buffer-configuration):
+	Respect `gnus-bug-create-help-buffer'.
 
 2001-09-18  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
@@ -34,8 +195,8 @@
 
 2001-09-18  Gerd Moellmann  <gerd@gnu.org>
 
-	* gnus-sum.el (gnus-select-newsgroup): Make
-	`gnus-current-select-method' buffer-local.
+	* gnus-sum.el (gnus-select-newsgroup):
+	Make `gnus-current-select-method' buffer-local.
 	From TSUCHIYA Masatoshi <tsuchiya@pine.kuee.kyoto-u.ac.jp>.
 
 	* gnus-art.el (gnus-request-article-this-buffer): Refer to
@@ -2840,7 +3001,7 @@
 	* gnus-draft.el (gnus-draft-send): Move gnus-draft-setup inside of
 	let.
 
-2000-04-26  Pavel Janik ml. <Pavel.Janik@inet.cz>
+2000-04-26  Pavel Jan,Al(Bk <Pavel@Janik.cz>
 
 	* gnus-draft.el (gnus-draft-setup): Fix comments.
 
@@ -5663,9 +5824,9 @@
 
 	* pop3.el: New version.
 
-1999-07-05  Simon Josefsson
+1999-07-05  Simon Josefsson  <jas@pdc.kth.se>
 
-        * gnus-srvr.el (gnus-browse-foreign-server): Use read.
+	* gnus-srvr.el (gnus-browse-foreign-server): Use read.
 
 1999-07-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

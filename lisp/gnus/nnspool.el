@@ -1,7 +1,8 @@
 ;;; nnspool.el --- spool access for GNU Emacs
 
 ;; Copyright (C) 1988, 1989, 1990, 1993, 1994, 1995, 1996, 1997, 1998,
-;;	2000 Free Software Foundation, Inc.
+;;               2000, 2002 
+;;               Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; 	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -327,7 +328,8 @@ there.")
 	  ()
 	(nnheader-report 'nnspool "")
 	(set-process-sentinel proc 'nnspool-inews-sentinel)
-	(process-send-region proc (point-min) (point-max))
+	(mm-with-unibyte-current-buffer
+	  (process-send-region proc (point-min) (point-max)))
 	;; We slap a condition-case around this, because the process may
 	;; have exited already...
 	(ignore-errors

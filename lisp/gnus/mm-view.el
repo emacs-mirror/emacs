@@ -50,10 +50,11 @@
      `(lambda () (remove-images ,b (1+ ,b))))))
 
 (defun mm-inline-image-xemacs (handle)
+  (insert "\n")
+  (forward-char -1)
   (let ((b (point))
 	(annot (make-annotation (mm-get-image handle) nil 'text))
 	buffer-read-only)
-    (insert "\n")
     (mm-handle-set-undisplayer
      handle
      `(lambda ()
@@ -104,11 +105,14 @@
 		    (and (boundp 'w3-meta-charset-content-type-regexp)
 			 (re-search-forward
 			  w3-meta-charset-content-type-regexp nil t)))
-		(setq charset (or (w3-coding-system-for-mime-charset 
-				   (buffer-substring-no-properties 
-				    (match-beginning 2) 
-				    (match-end 2)))
-				  charset)))
+		(setq charset
+		      (or (let ((bsubstr (buffer-substring-no-properties
+					  (match-beginning 2)
+					  (match-end 2))))
+			    (if (fboundp 'w3-coding-system-for-mime-charset)
+				(w3-coding-system-for-mime-charset bsubstr)
+			      (mm-charset-to-coding-system bsubstr)))
+			  charset)))
 	    (delete-region (point-min) (point-max))
 	    (insert (mm-decode-string text charset))
 	    (save-window-excursion
@@ -120,7 +124,21 @@
 		      (url-standalone-mode t))
 		  (condition-case var
 		      (w3-region (point-min) (point-max))
-		    (error)))))
+		    (error
+		     (delete-region (point-min) (point-max))
+		     (let ((b (point))
+			   (charset (mail-content-type-get
+				     (mm-handle-type handle) 'charset)))
+		       (if (or (eq charset 'gnus-decoded)
+			       (eq mail-parse-charset 'gnus-decoded))
+			   (save-restriction
+			     (narrow-to-region (point) (point))
+			     (mm-insert-part handle)
+			     (goto-char (point-max)))
+			 (insert (mm-decode-string (mm-get-part handle)
+						   charset))))
+		     (message
+		      "Error while rendering html; showing as text/plain"))))))
 	    (mm-handle-set-undisplayer
 	     handle
 	     `(lambda ()
@@ -133,33 +151,28 @@
 			      '(background background-pixmap foreground)))
 		  (delete-region ,(point-min-marker)
 				 ,(point-max-marker)))))))))
-     ((or (equal type "enriched")
-	  (equal type "richtext"))
-      (save-excursion
-	(mm-with-unibyte-buffer
-	  (mm-insert-part handle)
-	  (save-window-excursion
-	    (enriched-decode (point-min) (point-max))
-	    (setq text (buffer-string)))))
-      (mm-insert-inline handle text))
      ((equal type "x-vcard")
       (mm-insert-inline
        handle
        (concat "\n-- \n"
-	       (if (fboundp 'vcard-pretty-print)
-		   (vcard-pretty-print (mm-get-part handle))
-		 (vcard-format-string
-		  (vcard-parse-string (mm-get-part handle)
-				      'vcard-standard-filter))))))
+	       (ignore-errors
+		 (if (fboundp 'vcard-pretty-print)
+		     (vcard-pretty-print (mm-get-part handle))
+		   (vcard-format-string
+		    (vcard-parse-string (mm-get-part handle)
+					'vcard-standard-filter)))))))
      (t
       (let ((b (point))
 	    (charset (mail-content-type-get
 		      (mm-handle-type handle) 'charset)))
 	(if (or (eq charset 'gnus-decoded)
 		;; This is probably not entirely correct, but
-		;; makes rfc822 parts with embedded multiparts work. 
+		;; makes rfc822 parts with embedded multiparts work.
 		(eq mail-parse-charset 'gnus-decoded))
-	    (mm-insert-part handle)
+	    (save-restriction
+	      (narrow-to-region (point) (point))
+	      (mm-insert-part handle)
+	      (goto-char (point-max)))
 	  (insert (mm-decode-string (mm-get-part handle) charset)))
 	(when (and (equal type "plain")
 		   (equal (cdr (assoc 'format (mm-handle-type handle)))
@@ -172,6 +185,9 @@
 	(save-restriction
 	  (narrow-to-region b (point))
 	  (set-text-properties (point-min) (point-max) nil)
+	  (when (or (equal type "enriched")
+		    (equal type "richtext"))
+	    (enriched-decode (point-min) (point-max)))
 	  (mm-handle-set-undisplayer
 	   handle
 	   `(lambda ()
@@ -219,6 +235,7 @@
 
 (defun mm-inline-message (handle)
   (let ((b (point))
+	(bolp (bolp))
 	(charset (mail-content-type-get
 		  (mm-handle-type handle) 'charset))
 	gnus-displaying-mime handles)
@@ -232,13 +249,16 @@
 	(narrow-to-region b b)
 	(mm-insert-part handle)
 	(let (gnus-article-mime-handles
-	      ;; disable prepare hook 
-	      gnus-article-prepare-hook  
+	      ;; disable prepare hook
+	      gnus-article-prepare-hook
 	      (gnus-newsgroup-charset
 	       (or charset gnus-newsgroup-charset)))
 	  (run-hooks 'gnus-article-decode-hook)
 	  (gnus-article-prepare-display)
 	  (setq handles gnus-article-mime-handles))
+	(goto-char (point-min))
+	(unless bolp
+	  (insert "\n"))
 	(goto-char (point-max))
 	(unless (bolp)
 	  (insert "\n"))

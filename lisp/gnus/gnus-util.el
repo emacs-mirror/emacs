@@ -1003,6 +1003,11 @@ Entries without port tokens default to DEFAULTPORT."
 	(remove-text-properties start end properties object))
     t))
 
+(defvar gnus-directory-sep-char-regexp "/"
+  "The regexp of directory separator character.
+If you find some problem with the directory separator character, try
+\"[/\\\\\]\" for some systems.")
+
 (provide 'gnus-util)
 
 ;;; gnus-util.el ends here

@@ -274,7 +274,7 @@ to return a true or false shell value for the validity.")
 
 (defcustom mailcap-download-directory nil
   "*Directory to which `mailcap-save-binary-file' downloads files by default.
-Nil means your home directory."
+nil means your home directory."
   :type '(choice (const :tag "Home directory" nil)
 		 directory)
   :group 'mailcap)
