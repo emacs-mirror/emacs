@@ -261,7 +261,7 @@ The returned string has no composition information."
 (defun tibetan-decompose-region (from to)
   "Decompose Tibetan text in the region FROM and TO.
 This is different from decompose-region because precomposed Tibetan characters
-are decomposed into normal Tiebtan character sequences."
+are decomposed into normal Tibetan character sequences."
   (interactive "r")
   (save-restriction
     (narrow-to-region from to)
@@ -281,7 +281,7 @@ are decomposed into normal Tiebtan character sequences."
 (defun tibetan-decompose-string (str)
   "Decompose Tibetan string STR.
 This is different from decompose-string because precomposed Tibetan characters
-are decomposed into normal Tiebtan character sequences."
+are decomposed into normal Tibetan character sequences."
   (let ((new "")
 	(len (length str))
 	(idx 0)
