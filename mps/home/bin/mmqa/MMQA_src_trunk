@@ -2,12 +2,12 @@
 #
 # Build the MMsrc compound at tip of the trunk, and run QA tests
 # 
-# $HopeName: HOMEmm!bin:mmqa:MMQA_src_trunk(trunk.1) $
+# $HopeName: HOMEmm!bin:mmqa:MMQA_src_trunk(trunk.2) $
 
 
 script="`basename $0`"
 platform=$1
-varieties="wi hi ci ti we he ce ii"
+varieties="ci hi we"
 
 
 msg () {
