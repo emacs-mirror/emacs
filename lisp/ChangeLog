@@ -4,8 +4,7 @@
 
 2003-02-24  Ramakrishnan M  <rama@gnu.org>  (tiny change)
 
-	* language/mlm-util.el (mlm-char-glyph): Fix several composing
-	rules.
+	* language/mlm-util.el (mlm-char-glyph): Fix several composing rules.
 
 2003-02-24  Kenichi Handa  <handa@m17n.org>
 
@@ -43,6 +42,47 @@
 	* files.el (revert-buffer): Different error message
 	for reverting a nonexistent file.
 
+2003-02-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/cperl-mode.el: Merge changes from CPerl-5.0.
+	(toplevel): Require man.
+	(condition-case): Don't autoload tmm-prompt (it's in loaddefs.el).
+	(cperl-electric-backspace-untabify): New var.
+	(cperl-electric-backspace): Use it.
+	(cperl-vc-header-alist): Extract numeric version from the Id.
+	(cperl-build-manpage): New fun.
+	(cperl-menu): Use it.  Add toggle-autohelp.
+	(cperl-mode) <defun-prompt_regexp>: Understand prototypes.
+	(cperl-electric-brace): Use `cperl-after-block-p' for detection.
+	(cperl-electric-keyword): Make $if (etc: "$@%&*") non-electric.
+	'(' after keyword would insert a doubled paren.
+	(cperl-calculate-indent): Update syntaxification before checks.
+	Fix wrong indent of blocks starting with POD.
+	(cperl-find-pods-heres): If no end of HERE-doc found, mark to the end
+	of buffer.  This enables recognition of end of HERE-doc "as one types".
+	Require "\n" after trailing tag of HERE-doc.
+	\( made non-quoting outside of string/comment (gdj-contributed).
+	Likewise for \$.  Remove `here-doc-group' text property at start
+	(makes this property reliable).
+	Text property `first-format-line' ==> t.
+	Do not recognize $opt_s and $opt::s as s///.
+	(cperl-after-block-p): Optional arg pre-block to check for a pre-block
+	Recognize `continue' blocks too.
+	(cperl-after-expr-p): Update syntaxification before checks.  Work after
+	here-docs, formats, and PODs too (affects many electric constructs).
+	(cperl-fix-line-spacing): Allow "_" in $vars of foreach etc.
+	(cperl-perldoc): Use case-sensitive search.
+
+	* progmodes/cperl-mode.el: Merge changes from CPerl-4.35.
+	(cperl-xemacs-p): Move.
+	(cperl-can-font-lock): New var to replace window-system.
+	(cperl-enable-font-lock): Use it.
+	(cperl-use-major-mode): New var.
+	(cperl-mode): Use it.
+	(cperl-calculate-indent): Remove code whose removal was missed
+	in some earlier merge.
+	(cperl-tags-hier-init): Use display-popup-menus-p.
+
 2003-02-22  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* files.el (abbreviate-file-name): Shorten docstring: variables
@@ -64,6 +104,10 @@
 	Do not encapsulate the error data; it's read by humans here.
 	Do not split windows when displaying the *Message* buffer.
 
+2003-02-20  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* subr.el (with-syntax-table): Don't copy the table any more.
+
 2003-02-20  Ehud Karni  <ehud@unix.mvs.co.il>  (tiny change)
 
 	* mail/rmail.el (rmail-insert-inbox-text): Make the pop3 mechanism
@@ -71,8 +115,8 @@
 
 2003-02-20  Juanma Barranquero  <lektu@terra.es>
 
-	* progmodes/ebrowse.el (ebrowse-show-file-name-at-point): Remove
-	useless check.
+	* progmodes/ebrowse.el (ebrowse-show-file-name-at-point):
+	Remove useless check.
 
 2003-02-20  Andreas Schwab  <schwab@suse.de>
 
@@ -95,7 +139,7 @@
 
 2003-02-19  Andre Spiegel  <spiegel@gnu.org>
 
-	* vc.el (vc-binary-assoc, vc-binary-suffixes): Removed; these
+	* vc.el (vc-binary-assoc, vc-binary-suffixes): Remove; these
 	were accidentally left over during the VC redesign in 2000.
 
 2003-02-18  Juanma Barranquero  <lektu@terra.es>
@@ -133,8 +177,8 @@
 
 2003-02-17  Markus Rost  <rost@math.ohio-state.edu>
 
-	* calendar/calendar.el (diary-file-name-prefix-function): Fix
-	custom type.
+	* calendar/calendar.el (diary-file-name-prefix-function):
+	Fix custom type.
 
 2003-02-17  Andre Spiegel  <spiegel@gnu.org>
 
