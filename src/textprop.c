@@ -1087,6 +1087,21 @@ is the string or buffer containing the text.")
   (start, end, properties, object)
      Lisp_Object start, end, properties, object;
 {
+  return set_text_properties (start, end, properties, object, Qt);
+}
+
+
+/* Replace properties of text from START to END with new list of
+   properties PROPERTIES.  OBJECT is the buffer or string containing
+   the text.  OBJECT nil means use the current buffer.
+   SIGNAL_AFTER_CHANGE_P nil means don't signal after changes.  Value
+   is non-nil if properties were replaced; it is nil if there weren't
+   any properties to replace.  */
+
+Lisp_Object
+set_text_properties (start, end, properties, object, signal_after_change_p)
+     Lisp_Object start, end, properties, object, signal_after_change_p;
+{
   register INTERVAL i, unchanged;
   register INTERVAL prev_changed = NULL_INTERVAL;
   register int s, len;
@@ -1148,7 +1163,7 @@ is the string or buffer containing the text.")
 	  copy_properties (unchanged, i);
 	  i = split_interval_left (i, len);
 	  set_properties (properties, i, object);
-	  if (BUFFERP (object))
+	  if (BUFFERP (object) && !NILP (signal_after_change_p))
 	    signal_after_change (XINT (start), XINT (end) - XINT (start),
 				 XINT (end) - XINT (start));
 
@@ -1159,7 +1174,7 @@ is the string or buffer containing the text.")
 
       if (LENGTH (i) == len)
 	{
-	  if (BUFFERP (object))
+	  if (BUFFERP (object) && !NILP (signal_after_change_p))
 	    signal_after_change (XINT (start), XINT (end) - XINT (start),
 				 XINT (end) - XINT (start));
 
@@ -1188,7 +1203,7 @@ is the string or buffer containing the text.")
 	  set_properties (properties, i, object);
 	  if (!NULL_INTERVAL_P (prev_changed))
 	    merge_interval_left (i);
-	  if (BUFFERP (object))
+	  if (BUFFERP (object) && !NILP (signal_after_change_p))
 	    signal_after_change (XINT (start), XINT (end) - XINT (start),
 				 XINT (end) - XINT (start));
 	  return Qt;
@@ -1208,7 +1223,7 @@ is the string or buffer containing the text.")
       i = next_interval (i);
     }
 
-  if (BUFFERP (object))
+  if (BUFFERP (object) && !NILP (signal_after_change_p))
     signal_after_change (XINT (start), XINT (end) - XINT (start),
 			 XINT (end) - XINT (start));
   return Qt;
