@@ -1403,6 +1403,16 @@ Buffers menu is regenerated."
 	 (unless menu-bar-buffers-menu-command-entries
 	   (setq menu-bar-buffers-menu-command-entries
 		 (list '(command-separator "--")
+		       (list 'next-buffer
+			     'menu-item
+			     "Next Buffer"
+			     'next-buffer
+			     :help "Switch to the \"next\" buffer in a cyclic order")
+		       (list 'prev-buffer
+			     'menu-item
+			     "Previous Buffer"
+			     'prev-buffer
+			     :help "Switch to the \"previous\" buffer in a cyclic order")
 		       (list 'select-named-buffer
 			     'menu-item
 			     "Select Named Buffer..."
