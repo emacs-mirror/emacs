@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.35) $
+ * $HopeName: MMsrc!mpm.h(trunk.36) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -117,6 +117,11 @@ extern Shift SizeFloorLog2(Size size);
 extern Res WriteF(mps_lib_FILE *stream, ...);
 
 
+/* Miscellaneous support -- see impl.c.mpm */
+
+extern size_t StringLength(char *s);
+
+
 /* Ring Interface -- see design.mps.ring, impl.c.ring */
 
 extern Bool RingCheck(Ring ring);
@@ -201,7 +206,9 @@ extern Ring (RingNext)(Ring ring);
 /* Bit Table Interface -- see design.mps.bt.if.* for the interface doc */
 
 /* design.mps.bt.if.size */
-extern Size BTSize(unsigned long length);
+extern Size (BTSize)(unsigned long length);
+#define BTSize(n) (((n)+MPS_WORD_WIDTH-1)/MPS_WORD_WIDTH*sizeof(Word))
+
 
 /* design.mps.bt.if.get */
 extern int (BTGet)(BT bt, Index index);

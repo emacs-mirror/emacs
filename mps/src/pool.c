@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.31) $
+ * $HopeName: MMsrc!pool.c(trunk.32) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the generic pool interface.  The
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.31) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.32) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -233,7 +233,7 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size)
   /* Make sure that the allocated address was in the pool's memory. */
   AVER(PoolHasAddr(pool, *pReturn));
 
-  EVENT_PAU(PoolAlloc, pool, *pReturn, size);
+  EVENT_PAW(PoolAlloc, pool, *pReturn, size);
 
   return ResOK;
 }
@@ -247,7 +247,7 @@ void PoolFree(Pool pool, Addr old, Size size)
   AVER(size > 0);
   (*pool->class->free)(pool, old, size);
   
-  EVENT_PAU(PoolFree, pool, old, size);
+  EVENT_PAW(PoolFree, pool, old, size);
 }
 
 Res PoolTraceBegin(Pool pool, Trace trace, Action action)
