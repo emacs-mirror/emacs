@@ -839,7 +839,7 @@ XTclear_end_of_line (first_unused)
 	      CHAR_TO_PIXEL_COL (f, curs_x),
 	      CHAR_TO_PIXEL_ROW (f, curs_y),
 	      FONT_WIDTH (f->display.x->font) * (first_unused - curs_x),
-	      FONT_HEIGHT (f->display.x->font), False);
+	      f->display.x->line_height, False);
 #if 0
   redraw_previous_char (f, curs_x, curs_y);
 #endif
@@ -848,7 +848,7 @@ XTclear_end_of_line (first_unused)
 	   CHAR_TO_PIXEL_COL (f, curs_x),
 	   CHAR_TO_PIXEL_ROW (f, curs_y),
 	   FONT_WIDTH (f->display.x->font) * (first_unused - curs_x),
-	   FONT_HEIGHT (f->display.x->font),
+	   f->display.x->line_height,
 	   f->display.x->background_pixel);	
 #endif /* ! defined (HAVE_X11) */
 
@@ -879,7 +879,7 @@ redraw_previous_char (f, x, y)
 		  CHAR_TO_PIXEL_COL (f, x - 1),
 		  CHAR_TO_PIXEL_ROW (f, y),
 		  FONT_WIDTH (f->display.x->font),
-		  FONT_HEIGHT (f->display.x->font), False);
+		  f->display.x->line_height, False);
 
       dumpglyphs (f, CHAR_TO_PIXEL_COL (f, start_x),
 		  CHAR_TO_PIXEL_ROW (f, y),
@@ -1118,14 +1118,14 @@ stufflines (n)
 		 FRAME_X_WINDOW (f), f->display.x->normal_gc,
 		 intborder, CHAR_TO_PIXEL_ROW (f, topregion),
 		 f->width * FONT_WIDTH (f->display.x->font),
-		 length * FONT_HEIGHT (f->display.x->font), intborder,
+		 length * f->display.x->line_height, intborder,
 		 CHAR_TO_PIXEL_ROW (f, newtop));
 #else /* ! defined (HAVE_X11) */
       XMoveArea (FRAME_X_WINDOW (f),
 		 intborder, CHAR_TO_PIXEL_ROW (f, topregion),
 		 intborder, CHAR_TO_PIXEL_ROW (f, newtop),
 		 f->width * FONT_WIDTH (f->display.x->font),
-		 length * FONT_HEIGHT (f->display.x->font));
+		 length * f->display.x->line_height);
       /* Now we must process any ExposeRegion events that occur
 	 if the area being copied from is obscured.
 	 We can't let it wait because further i/d operations
@@ -1142,13 +1142,13 @@ stufflines (n)
       XClearArea (x_current_display, FRAME_X_WINDOW (f), intborder, 
 		  CHAR_TO_PIXEL_ROW (f, topregion),
 		  f->width * FONT_WIDTH (f->display.x->font),
-		  n * FONT_HEIGHT (f->display.x->font), False);
+		  n * f->display.x->line_height, False);
 #else /* ! defined (HAVE_X11) */
       XPixSet (FRAME_X_WINDOW (f),
 	       intborder,
 	       CHAR_TO_PIXEL_ROW (f, topregion),
 	       f->width * FONT_WIDTH (f->display.x->font),
-	       n * FONT_HEIGHT (f->display.x->font),
+	       n * f->display.x->line_height,
 	       f->display.x->background_pixel);
 #endif /* ! defined (HAVE_X11) */
     }
@@ -1180,12 +1180,12 @@ scraplines (n)
 	  XClearArea (x_current_display, FRAME_X_WINDOW (f), intborder,
 		      CHAR_TO_PIXEL_ROW (f, curs_y),
 		      f->width * FONT_WIDTH (f->display.x->font),
-		      (flexlines - curs_y) * FONT_HEIGHT (f->display.x->font), False);
+		      (flexlines - curs_y) * f->display.x->line_height, False);
 #else /* ! defined (HAVE_X11) */
 	  XPixSet (FRAME_X_WINDOW (f),
 		   intborder, CHAR_TO_PIXEL_ROW (f, curs_y),
 		   f->width * FONT_WIDTH (f->display.x->font),
-		   (flexlines - curs_y) * FONT_HEIGHT (f->display.x->font),
+		   (flexlines - curs_y) * f->display.x->line_height,
 		   f->display.x->background_pixel);
 #endif /* ! defined (HAVE_X11) */
 	}
@@ -1198,20 +1198,20 @@ scraplines (n)
 		 intborder,
 		 CHAR_TO_PIXEL_ROW (f, curs_y + n),
 		 f->width * FONT_WIDTH (f->display.x->font),
-		 (flexlines - (curs_y + n)) * FONT_HEIGHT (f->display.x->font),
+		 (flexlines - (curs_y + n)) * f->display.x->line_height,
 		 intborder, CHAR_TO_PIXEL_ROW (f, curs_y));
       XClearArea (x_current_display, FRAME_X_WINDOW (f),
 		  intborder,
 		  CHAR_TO_PIXEL_ROW (f, flexlines - n),
 		  f->width * FONT_WIDTH (f->display.x->font),
-		  n * FONT_HEIGHT (f->display.x->font), False);
+		  n * f->display.x->line_height, False);
 #else /* ! defined (HAVE_X11) */
       XMoveArea (FRAME_X_WINDOW (f),
 		 intborder,
 		 CHAR_TO_PIXEL_ROW (f, curs_y + n),
 		 intborder, CHAR_TO_PIXEL_ROW (f, curs_y),
 		 f->width * FONT_WIDTH (f->display.x->font),
-		 (flexlines - (curs_y + n)) * FONT_HEIGHT (f->display.x->font));
+		 (flexlines - (curs_y + n)) * f->display.x->line_height);
       /* Now we must process any ExposeRegion events that occur
 	 if the area being copied from is obscured.
 	 We can't let it wait because further i/d operations
@@ -1220,7 +1220,7 @@ scraplines (n)
       XPixSet (FRAME_X_WINDOW (f), intborder,
 	       CHAR_TO_PIXEL_ROW (f, flexlines - n),
 	       f->width * FONT_WIDTH (f->display.x->font),
-	       n * FONT_HEIGHT (f->display.x->font), f->display.x->background_pixel);
+	       n * f->display.x->line_height, f->display.x->background_pixel);
 #endif /* ! defined (HAVE_X11) */
     }
 }
@@ -1281,8 +1281,8 @@ dumprectangle (f, left, top, cols, rows)
     /* If the rectangle includes any of the internal border area,
        redisplay the border emphasis.  */
     if (top < intborder || left < intborder
-	|| bottom > intborder + f->height * FONT_HEIGHT (f->display.x->font)
-	|| right > intborder + f->width * FONT_WIDTH (f->display.x->font))
+	|| bottom > intborder + f->height * f->display.x->line_height
+	|| right > intborder + f->width * f->display.x->line_height)
       dumpborder (f, 0);
   }
 #endif /* not HAVE_X11		Window manger does this for X11. */
@@ -1291,7 +1291,7 @@ dumprectangle (f, left, top, cols, rows)
      Round down for left and top, up for right and bottom.  */
   top  = PIXEL_TO_CHAR_ROW (f, top);
   left = PIXEL_TO_CHAR_COL (f, left);
-  bottom += (FONT_HEIGHT (f->display.x->font) - 1);
+  bottom += (f->display.x->line_height - 1);
   right += (FONT_WIDTH (f->display.x->font) - 1);
   bottom = PIXEL_TO_CHAR_ROW (f, bottom);
   right = PIXEL_TO_CHAR_COL (f, right);
@@ -1406,7 +1406,7 @@ x_do_pending_expose ()
 			/ FONT_WIDTH (f->display.x->font));
 	  temp_height = ((windowinfo.height- 2 * intborder
 			  - f->display.x->h_scroll_bar_height)
-			 / FONT_HEIGHT (f->display.x->font));
+			 / f->display.x->line_height);
 	  if (temp_width != f->width || temp_height != f->height)
 	    {
 	      change_frame_size (f, max (1, temp_height),
@@ -1773,7 +1773,7 @@ pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds, noclip)
   if (pix_x < 0)
     pix_x -= FONT_WIDTH ((f)->display.x->font) - 1;
   if (pix_y < 0)
-    pix_y -= FONT_HEIGHT ((f)->display.x->font) - 1;
+    pix_y -= (f)->display.x->line_height - 1;
 
   pix_x = PIXEL_TO_CHAR_COL (f, pix_x);
   pix_y = PIXEL_TO_CHAR_ROW (f, pix_y);
@@ -1781,7 +1781,7 @@ pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds, noclip)
   if (bounds)
     {
       bounds->width  = FONT_WIDTH  (f->display.x->font);
-      bounds->height = FONT_HEIGHT (f->display.x->font);
+      bounds->height = f->display.x->line_height;
       bounds->x = CHAR_TO_PIXEL_COL (f, pix_x);
       bounds->y = CHAR_TO_PIXEL_ROW (f, pix_y);
     }
@@ -4209,7 +4209,7 @@ x_draw_box (f)
   int left = CHAR_TO_PIXEL_COL (f, f->cursor_x);
   int top  = CHAR_TO_PIXEL_ROW (f, f->cursor_y);
   int width = FONT_WIDTH (f->display.x->font);
-  int height = FONT_HEIGHT (f->display.x->font);
+  int height = f->display.x->line_height;
 
 #ifdef HAVE_X11
   XDrawRectangle (x_current_display, FRAME_X_WINDOW (f),
@@ -4255,7 +4255,7 @@ clear_cursor (f)
   XPixSet (FRAME_X_WINDOW (f),
 	   CHAR_TO_PIXEL_COL (f, f->phys_cursor_x),
 	   CHAR_TO_PIXEL_ROW (f, f->phys_cursor_y),
-	   FONT_WIDTH (f->display.x->font), FONT_HEIGHT (f->display.x->font),
+	   FONT_WIDTH (f->display.x->font), f->display.x->line_height,
 	   f->display.x->background_pixel);
 #endif /* ! defined (HAVE_X11) */
   f->phys_cursor_x = -1;
@@ -4330,7 +4330,7 @@ x_display_bar_cursor (f, on)
 		      f->display.x->cursor_gc,
 		      CHAR_TO_PIXEL_COL (f, curs_x),
 		      CHAR_TO_PIXEL_ROW (f, curs_y),
-		      1, FONT_HEIGHT (f->display.x->font));
+		      1, f->display.x->line_height);
 
       f->phys_cursor_x = curs_x;
       f->phys_cursor_y = curs_y;
@@ -4898,8 +4898,12 @@ x_new_font (f, fontname)
       XSetFont (x_current_display, f->display.x->cursor_gc,
 		f->display.x->font->fid);
 
-      x_set_window_size (f, 0, f->width, f->height);
+      frame_update_line_height (f);
     }
+  else
+    /* If we are setting a new frame's font for the first time,
+       there are no faces yet, so this font's height is the line height.  */
+    f->display.x->line_height = FONT_HEIGHT (f);
 
   {
     Lisp_Object lispy_name;
@@ -5082,7 +5086,7 @@ x_set_resize_hint (f)
 		  2 * f->display.x->internal_border_width,
 		  2 * f->display.x->internal_border_width,
 		  FONT_WIDTH (f->display.x->font),
-		  FONT_HEIGHT (f->display.x->font));
+		  f->display.x->line_height);
 }
 #endif /* HAVE_X11 */
 
@@ -5099,7 +5103,7 @@ x_set_mouse_position (f, x, y)
 #endif
 
   pix_x = CHAR_TO_PIXEL_COL (f, x) + FONT_WIDTH  (f->display.x->font) / 2;
-  pix_y = CHAR_TO_PIXEL_ROW (f, y) + FONT_HEIGHT (f->display.x->font) / 2;
+  pix_y = CHAR_TO_PIXEL_ROW (f, y) + f->display.x->line_height / 2;
 
   if (pix_x < 0) pix_x = 0;
   if (pix_x > PIXEL_WIDTH (f)) pix_x = PIXEL_WIDTH (f);
@@ -5544,7 +5548,7 @@ x_wm_set_size_hint (f, prompting, change_gravity, spec_x, spec_y)
   size_hints.width = PIXEL_WIDTH (f);
 #endif /* not USE_X_TOOLKIT */
   size_hints.width_inc = FONT_WIDTH (f->display.x->font);
-  size_hints.height_inc = FONT_HEIGHT (f->display.x->font);
+  size_hints.height_inc = f->display.x->line_height;
 #if 0
   size_hints.max_width = x_screen_width - CHAR_TO_PIXEL_WIDTH (f, 0);
   size_hints.max_height = x_screen_height - CHAR_TO_PIXEL_HEIGHT (f, 0);
