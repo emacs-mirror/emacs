@@ -708,7 +708,7 @@ most coding systems can only handle some of the possible characters.
 This means that you can insert characters that cannot be encoded with
 the coding system that will be used to save the buffer.  For example,
 you could start with an ASCII file and insert a few Latin-1 characters
-into it, or or you could edit a text file in Polish encoded in
+into it, or you could edit a text file in Polish encoded in
 @code{iso-8859-2} and add to it translations of several Polish words
 into Russian.  When you save the buffer, Emacs cannot use the current
 value of @code{buffer-file-coding-system}, because the characters you
