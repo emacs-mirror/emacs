@@ -172,8 +172,8 @@ Echo Coptic date unless NOECHO is t."
   ["Maskarram" "Tekemt" "Hadar" "Tahsas" "Tarr" "Yekatit" "Magawit" "Miaziah"
    "Genbot" "Sanni" "Hamle" "Nas'hi" "Pagnem"])
 
-(defconst ethiopic-calendar-epoch (calendar-absolute-from-julian '(8 29 7))
-  "Absolute date of start of Ethiopic calendar = August 29, 7 A.D. (Julian).")
+(defconst ethiopic-calendar-epoch -2006079
+  "Absolute date of start of Ethiopic calendar = August 29, 5493 B.C.E. (Julian).")
 
 (defconst ethiopic-name "Ethiopic")
 
