@@ -5146,9 +5146,12 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 }
 
 
-/* Move IT forward to a specified buffer position TO_CHARPOS, TO_X,
-   TO_Y, TO_VPOS.  OP is a bit-mask that specifies where to stop.  See
-   the description of enum move_operation_enum.
+/* Move IT forward until it satisfies one or more of the criteria in
+   TO_CHARPOS, TO_X, TO_Y, and TO_VPOS.
+
+   OP is a bit-mask that specifies where to stop, and in particular,
+   which of those four position arguments makes a difference.  See the
+   description of enum move_operation_enum.
    
    If TO_CHARPOS is in invisible text, e.g. a truncated part of a
    screen line, this function will set IT to the next position >
