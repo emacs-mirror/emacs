@@ -465,8 +465,23 @@ print_string (string, printcharfun)
       else if (EQ (printcharfun, Qt)
 	       ? ! NILP (buffer_defaults.enable_multibyte_characters)
 	       : ! NILP (current_buffer->enable_multibyte_characters))
-	chars = multibyte_chars_in_text (XSTRING (string)->data,
-					 STRING_BYTES (XSTRING (string)));
+	{
+	  /* If unibyte string STRING contains 8-bit codes, we must
+	     convert STRING to a multibyte string containing the same
+	     character codes.  */
+	  Lisp_Object newstr;
+	  int bytes;
+
+	  chars = STRING_BYTES (XSTRING (string));
+	  bytes = parse_str_to_multibyte (XSTRING (string)->data, chars);
+	  if (chars < bytes)
+	    {
+	      newstr = make_uninit_multibyte_string (chars, bytes);
+	      bcopy (XSTRING (string)->data, XSTRING (newstr)->data, chars);
+	      str_to_multibyte (XSTRING (newstr)->data, bytes, chars);
+	      string = newstr;
+	    }
+	}
       else
 	chars = STRING_BYTES (XSTRING (string));
 
