@@ -224,6 +224,7 @@ Lisp_Object Qfile_readable_p;
 Lisp_Object Qfile_symlink_p;
 Lisp_Object Qfile_writable_p;
 Lisp_Object Qfile_directory_p;
+Lisp_Object Qfile_regular_p;
 Lisp_Object Qfile_accessible_directory_p;
 Lisp_Object Qfile_modes;
 Lisp_Object Qset_file_modes;
@@ -2528,9 +2529,9 @@ This is the sort of file that holds an ordinary stream of data bytes.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (abspath, Qfile_directory_p);
+  handler = Ffind_file_name_handler (abspath, Qfile_regular_p);
   if (!NILP (handler))
-    return call2 (handler, Qfile_directory_p, abspath);
+    return call2 (handler, Qfile_regular_p, abspath);
 
   if (stat (XSTRING (abspath)->data, &st) < 0)
     return Qnil;
@@ -4230,6 +4231,7 @@ syms_of_fileio ()
   Qfile_symlink_p = intern ("file-symlink-p");
   Qfile_writable_p = intern ("file-writable-p");
   Qfile_directory_p = intern ("file-directory-p");
+  Qfile_regular_p = intern ("file-regular-p");
   Qfile_accessible_directory_p = intern ("file-accessible-directory-p");
   Qfile_modes = intern ("file-modes");
   Qset_file_modes = intern ("set-file-modes");
@@ -4259,6 +4261,7 @@ syms_of_fileio ()
   staticpro (&Qfile_symlink_p);
   staticpro (&Qfile_writable_p);
   staticpro (&Qfile_directory_p);
+  staticpro (&Qfile_regular_p);
   staticpro (&Qfile_accessible_directory_p);
   staticpro (&Qfile_modes);
   staticpro (&Qset_file_modes);
