@@ -9,11 +9,11 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	print, PostScript
-;; Time-stamp:	<98/11/13  9:32:27 vinicius>
-;; Version:	4.1.2
+;; Time-stamp:	<98/11/23 15:02:20 vinicius>
+;; Version:	4.1.3
 
-(defconst ps-print-version "4.1.2"
-  "ps-print.el, v 4.1.2 <98/11/13 vinicius>
+(defconst ps-print-version "4.1.3"
+  "ps-print.el, v 4.1.3 <98/11/23 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs,
