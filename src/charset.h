@@ -412,6 +412,15 @@ extern Lisp_Object Vchar_charset_set;
    : decode_char ((charset), (code)))
 
 
+/* If CHARSET is a simple offset base charset, return it's offset,
+   otherwise return -1.  */
+#define CHARSET_OFFSET(charset)				\
+  (((charset)->method == CHARSET_METHOD_OFFSET		\
+    && (charset)->code_linear_p				\
+    && ! (charset)->unified_p)				\
+   ? (charset)->code_offset - (charset)->min_code	\
+   : -1)
+
 extern Lisp_Object charset_work;
 
 /* Return a code point of CHAR in CHARSET.
