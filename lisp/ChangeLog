@@ -1,3 +1,7 @@
+2003-04-09  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (file-chase-links): Fix previous change.
+
 2003-04-09  Juanma Barranquero  <lektu@terra.es>
 
 	* frame.el (new-frame): Add obsolescence declaration.
