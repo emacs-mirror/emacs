@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs commit log
-;; Revision: $Id: log-edit.el,v 1.14 2000/12/18 03:17:31 monnier Exp $
+;; Revision: $Id: log-edit.el,v 1.15 2001/03/07 00:26:25 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -496,8 +496,5 @@ Sort REGIONS front-to-back first."
       (when (cdr buffer-entry) (newline)))))
 
 (provide 'log-edit)
-
-;;; Change Log:
-;; $log$
 
 ;;; log-edit.el ends here
