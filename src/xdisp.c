@@ -4215,14 +4215,22 @@ get_next_display_element (it)
 	     the translation.  This could easily be changed but I
 	     don't believe that it is worth doing.
 
-	     Non-printable multibyte characters are also translated
-	     octal form.  */
-	  else if ((it->c < ' '
+	     If it->multibyte_p is nonzero, eight-bit characters and
+	     non-printable multibyte characters are also translated to
+	     octal form.
+
+	     If it->multibyte_p is zero, eight-bit characters that
+	     don't have corresponding multibyte char code are also
+	     translated to octal form.  */
+	  else if (((it->c < ' ' || it->c == 127)
 		    && (it->area != TEXT_AREA
 			|| (it->c != '\n' && it->c != '\t')))
-		   || (it->c >= 127
-		       && it->len == 1)
-		   || !CHAR_PRINTABLE_P (it->c))
+		   || (it->multibyte_p
+		       ? ((it->c >= 127
+			   && it->len == 1)
+			  || !CHAR_PRINTABLE_P (it->c))
+		       : (it->c >= 128
+			  && it->c == unibyte_char_to_multibyte (it->c))))
 	    {
 	      /* IT->c is a control character which must be displayed
 		 either as '\003' or as `^C' where the '\\' and '^'
