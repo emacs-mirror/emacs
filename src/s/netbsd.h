@@ -40,6 +40,7 @@
 /* Netbsd has POSIX-style pgrp behavior.  */
 #undef BSD_PGRPS
 
+#ifndef NO_SHARED_LIBS
 /* These definitions should work for either dynamic or static linking,
    whichever is the default for `cc -nostdlib'.  */
 #define HAVE_TEXT_START		/* No need to define `start_of_text'.  */
@@ -53,6 +54,7 @@
 #define N_BSSADDR(x) (N_ALIGN(x, N_DATADDR(x)+x.a_data))
 #define N_TRELOFF(x) N_RELOFF(x)
 #endif
+#endif /* not NO_SHARED_LIBS */
 
 /* Reread the time zone on startup.  */
 #define LOCALTIME_CACHE
