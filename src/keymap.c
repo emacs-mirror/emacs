@@ -1652,8 +1652,12 @@ describe_map (map, keys, partial, shadow)
   register Lisp_Object keysdesc;
 
   if (!NILP (keys) && XFASTINT (Flength (keys)) > 0)
-    keysdesc = concat2 (Fkey_description (keys),
-			build_string (" "));
+    {
+      Lisp_Object tem;
+      /* Call Fkey_description first, to avoid GC bug for the other string.  */
+      tem = Fkey_description (keys);
+      keysdesc = concat2 (tem, build_string (" "));
+    }
   else
     keysdesc = Qnil;
 
