@@ -110,7 +110,7 @@ buffer.")
 --> Nil means never save bookmarks, except when `bookmark-save' is
     explicitly called \(\\[bookmark-save]\).
 --> t means save bookmarks when Emacs is killed.
---> Otherise, it should be a number that is the frequency with which
+--> Otherwise, it should be a number that is the frequency with which
     the bookmark list is saved \(i.e.: the number of times which
     Emacs' bookmark list may be modified before it is automatically
     saved.\).  If it is a number, Emacs will also automatically save
@@ -503,7 +503,7 @@ this name."
         ;; free-standing strings, apparently.
         (set-text-properties 0 (length stripped-name) nil stripped-name))
     (if (and (bookmark-get-bookmark stripped-name) (not overwrite))
-        ;; already existing boookmark under that name and
+        ;; already existing bookmark under that name and
         ;; no prefix arg means just overwrite old bookmark
         (setcdr (bookmark-get-bookmark stripped-name)
                 (list (bookmark-make-cell annotation)))
@@ -831,7 +831,7 @@ the bookmark (and file, and point) specified in buffer local variables."
 
 (defvar bookmark-read-annotation-text-func 'bookmark-default-annotation-text
   "A variable containing a function which returns the text to insert
-into an annotation compisition buffer.  It takes the name of the bookmark,
+into an annotation composition buffer.  It takes the name of the bookmark,
 as a string, as an arg.")
 
 
@@ -1166,7 +1166,7 @@ argument.  If called with two strings, then no prompting is done.  You
 must pass at least OLD when calling from Lisp.
 
 While you are entering the new name, consecutive C-w's insert
-consectutive words from the text of the buffer into the new bookmark
+consecutive words from the text of the buffer into the new bookmark
 name."
   (interactive (bookmark-completing-read "Old bookmark name"))
   (bookmark-maybe-historicize-string old)
@@ -1231,7 +1231,7 @@ probably because we were called from there."
   (let ((will-go (bookmark-get-bookmark bookmark)))
     (setq bookmark-alist (delq will-go bookmark-alist))
     ;; Added by db, nil bookmark-current-bookmark if the last
-    ;; occurence has been deleted
+    ;; occurrence has been deleted
     (or (bookmark-get-bookmark bookmark-current-bookmark)
         (setq bookmark-current-bookmark nil)))
   ;; Don't rebuild the list
@@ -1471,7 +1471,7 @@ deletion, or > if it is flagged for displaying."
     (bookmark-maybe-sort-alist)
     (mapcar
      (lambda (full-record)
-       ;; if a bookmark has an annotation, preceed it with a "*"
+       ;; if a bookmark has an annotation, prepend a "*"
        ;; in the list of bookmarks.
        (let ((annotation (bookmark-get-annotation
                           (bookmark-name-from-full-record full-record))))
@@ -1498,7 +1498,7 @@ deletion, or > if it is flagged for displaying."
   "Major mode for editing a list of bookmarks.
 Each line describes one of the bookmarks in Emacs.
 Letters do not insert themselves; instead, they are commands.
-Bookmark names preceeded by a \"*\" have annotations.
+Bookmark names preceded by a \"*\" have annotations.
 \\<bookmark-bmenu-mode-map>
 \\[bookmark-bmenu-mark] -- mark bookmark to be displayed.
 \\[bookmark-bmenu-select] -- select bookmark of line point is on.
@@ -2092,7 +2092,7 @@ passed as an argument.  If called with two strings, then no prompting
 is done.  You must pass at least OLD-BOOKMARK when calling from Lisp.
 
 While you are entering the new name, consecutive C-w's insert
-consectutive words from the text of the buffer into the new bookmark
+consecutive words from the text of the buffer into the new bookmark
 name.
 
 Warning: this function only takes an EVENT as argument.  Use the
