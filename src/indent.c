@@ -805,25 +805,31 @@ vmotion (from, vtarget, width, hscroll, window)
   goto retry;
 }
 
-DEFUN ("vertical-motion", Fvertical_motion, Svertical_motion, 1, 1, 0,
+DEFUN ("vertical-motion", Fvertical_motion, Svertical_motion, 1, 2, 0,
   "Move to start of screen line LINES lines down.\n\
 If LINES is negative, this is moving up.\n\
+The optional second argument WINDOW specifies the window\n\
+ to use for computations.\n\
 Sets point to position found; this may be start of line\n\
  or just the start of a continuation line.\n\
 Returns number of lines moved; may be closer to zero than LINES\n\
  if beginning or end of buffer was reached.")
-  (lines)
-     Lisp_Object lines;
+  (lines, window)
+     Lisp_Object lines, window;
 {
   struct position pos;
   register struct window *w = XWINDOW (selected_window);
   int width = window_internal_width (w) - 1;
 
   CHECK_NUMBER (lines, 0);
+  if (! NILP (window))
+    CHECK_WINDOW (window, 0);
+  else
+    XSET (window, Lisp_Window, selected_window);
 
   pos = *vmotion (point, XINT (lines), width,
 		  /* Not XFASTINT since perhaps could be negative */
-		  XINT (w->hscroll), selected_window);
+		  XINT (w->hscroll), window);
 
   SET_PT (pos.bufpos);
   return make_number (pos.vpos);
