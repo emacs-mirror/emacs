@@ -56,6 +56,7 @@ created in the future.
 With a numeric argument, if the argument is negative,
 turn off scroll bars; otherwise, turn on scroll bars."
   (interactive "P")
+  (if flag (setq flag (prefix-numeric-value flag)))
 
   ;; Obtain the current setting by looking at default-frame-alist.
   (let ((scroll-bar-mode
