@@ -1,5 +1,7 @@
 2001-10-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* emacs.c (main): Remove extra `;'.
+
 	* atimer.h (struct atimer): Fix typos in a comment.
 
 	* atimer.c: Fix typo.
