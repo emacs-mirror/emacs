@@ -692,31 +692,25 @@ You can return to the previous mode with:
   C-c C-c Which also strips trailing whitespace from every line.
 	    Stripping is suppressed by supplying an argument.
 
-Entry to this mode calls the value of  picture-mode-hook  if non-nil.
+Entry to this mode calls the value of `picture-mode-hook' if non-nil.
 
 Note that Picture mode commands will work outside of Picture mode, but
 they are not defaultly assigned to keys."
   (interactive)
   (if (eq major-mode 'picture-mode)
       (error "You are already editing a picture")
-    (make-local-variable 'picture-mode-old-local-map)
-    (setq picture-mode-old-local-map (current-local-map))
+    (set (make-local-variable 'picture-mode-old-local-map) (current-local-map))
     (use-local-map picture-mode-map)
-    (make-local-variable 'picture-mode-old-mode-name)
-    (setq picture-mode-old-mode-name mode-name)
-    (make-local-variable 'picture-mode-old-major-mode)
-    (setq picture-mode-old-major-mode major-mode)
+    (set (make-local-variable 'picture-mode-old-mode-name) mode-name)
+    (set (make-local-variable 'picture-mode-old-major-mode) major-mode)
     (setq major-mode 'picture-mode)
-    (make-local-variable 'picture-killed-rectangle)
-    (setq picture-killed-rectangle nil)
-    (make-local-variable 'tab-stop-list)
-    (setq tab-stop-list (default-value 'tab-stop-list))
-    (make-local-variable 'picture-tab-chars)
-    (setq picture-tab-chars (default-value 'picture-tab-chars))
+    (set (make-local-variable 'picture-killed-rectangle) nil)
+    (set (make-local-variable 'tab-stop-list) (default-value 'tab-stop-list))
+    (set (make-local-variable 'picture-tab-chars)
+	 (default-value 'picture-tab-chars))
     (make-local-variable 'picture-vertical-step)
     (make-local-variable 'picture-horizontal-step)
-    (make-local-variable 'picture-mode-old-truncate-lines)
-    (setq picture-mode-old-truncate-lines truncate-lines)
+    (set (make-local-variable 'picture-mode-old-truncate-lines) truncate-lines)
     (setq truncate-lines t)
     (picture-set-motion 0 1)
 
