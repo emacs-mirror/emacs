@@ -1,6 +1,6 @@
 /*  impl.c.vmw3: VIRTUAL MEMORY MAPPING FOR WIN32
  *
- *  $HopeName: MMsrc!vmw3.c(trunk.23) $
+ *  $HopeName: MMsrc!vmw3.c(trunk.24) $
  *  Copyright (C) 1997, 1998 Harlequin Group, all rights reserved
  *
  *  Design: design.mps.vm
@@ -55,7 +55,7 @@
 
 #include "mpswin.h"
 
-SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.23) $");
+SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.24) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -174,12 +174,11 @@ Res VMCreate(VM *vmReturn, Size size)
   GetSystemInfo(&si);
   align = (Align)si.dwPageSize;
   AVER(SizeIsP2(align));    /* see .assume.sysalign */
-
   size = SizeAlignUp(size, align);
-  AVER(size != 0);
+  if((size == 0) || (size > (Size)(DWORD)-1))
+    return ResRESOURCE;
 
-  /* Allocate some store for the space descriptor.
-   * This is likely to be wasteful see issue.vmnt.waste */
+  /* Allocate the vm descriptor.  This is likely to be wasteful. */
   vbase = VirtualAlloc(NULL, SizeAlignUp(sizeof(VMStruct), align),
 		       MEM_COMMIT, PAGE_READWRITE);
   if(vbase == NULL)
