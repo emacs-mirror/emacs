@@ -21,6 +21,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "config.h"
 #endif
 
+#include <stdio.h>
+
 #if 1 /* I'd really appreciate it if this code could go away...  -JimB */
 /* this avoids lossage in the `dual-universe' headers on AT&T SysV X11 */
 #ifdef USG5
@@ -71,13 +73,215 @@ extern struct passwd *getpwuid ();
 extern struct passwd *getpwnam ();
 #endif
 
+/* Make sure not to #include anything after these definitions.  Let's
+   not step on anyone's prototypes.  */
+#ifdef emacs
+#define malloc xmalloc
+#define realloc xrealloc
+#define free xfree
+#endif
+
+char *x_get_string_resource ();
+static int file_p ();
+
+
+/* X file search path processing.  */
+
+
+/* The string which gets substituted for the %C escape in XFILESEARCHPATH
+   and friends, or zero if none was specified.  */
+char *x_customization_string;
+
+
+/* Return the value of the emacs.customization (Emacs.Customization)
+   resource, for later use in search path decoding.  If we find no
+   such resource, return zero.  */
+char *
+x_get_customization_string (db, name, class)
+     XrmDatabase db;
+     char *name, *class;
+{
+  char *full_name
+    = (char *) alloca (strlen (name) + sizeof ("customization") + 3);
+  char *full_class
+    = (char *) alloca (strlen (class) + sizeof ("Customization") + 3);
+  char *result;
+
+  sprintf (full_name,  "%s.%s", name,  "customization");
+  sprintf (full_class, "%s.%s", class, "Customization");
+
+  result = x_get_string_resource (db, full_name, full_class);
+
+  if (result)
+    return strcpy ((char *) malloc (strlen (result) + 1), result);
+  else
+    return 0;
+}
+
+
+/* Expand all the Xt-style %-escapes in STRING, whose length is given
+   by STRING_LEN.  Here are the escapes we're supposed to recognize:
+
+	%N	The value of the application's class name
+	%T	The value of the type parameter ("app-defaults" in this
+		context)
+	%S	The value of the suffix parameter ("" in this context)
+	%L	The language string associated with the specified display
+		(We use the "LANG" environment variable here, if it's set.)
+	%l	The language part of the display's language string
+		(We treat this just like %L.  If someone can tell us what
+		 we're really supposed to do, dandy.)
+	%t	The territory part of the display's language string
+	        (This never gets used.)
+	%c	The codeset part of the display's language string
+	        (This never gets used either.)
+	%C	The customization string retrieved from the resource
+		database associated with display.
+		(This is x_customization_string.)
+
+   Return the expanded file name if it exists and is readable, and
+   refers to %L only when the LANG environment variable is set, or
+   otherwise provided by X.
+
+   ESCAPED_SUFFIX and SUFFIX are postpended to STRING if they are
+   non-zero.  %-escapes in ESCAPED_SUFFIX are expanded; STRING is left
+   alone.
+
+   Return NULL otherwise.  */
+
 static char *
-gethomedir (dirname)
-     char *dirname;
+magic_file_p (string, string_len, class, escaped_suffix, suffix)
+     char *string;
+     int string_len;
+     char *class, *escaped_suffix, *suffix;
+{
+  char *lang = getenv ("LANG");
+
+  int path_size = 100;
+  char *path = (char *) malloc (path_size);
+  int path_len = 0;
+
+  char *p = string;
+
+  while (p < string + string_len)
+    {
+      /* The chunk we're about to stick on the end of result.  */
+      char *next;
+      int next_len;
+
+      if (*p == '%')
+	{
+	  p++;
+
+	  if (p >= string + string_len)
+	    next_len = 0;
+	  else
+	    switch (*p)
+	      {
+	      case '%':
+		next = "%";
+		next_len = 1;
+		break;
+
+	      case 'C':
+		next = (x_customization_string
+			? x_customization_string
+			: "");
+		next_len = strlen (next);
+		break;
+
+	      case 'N':
+		next = class;
+		next_len = strlen (class);
+		break;
+
+	      case 'T':
+		next = "app-defaults";
+		next_len = strlen (next);
+		break;
+
+	      default:
+	      case 'S':
+		next_len = 0;
+		break;
+
+	      case 'L':
+	      case 'l':
+		if (! lang)
+		  {
+		    free (path);
+		    return NULL;
+		  }
+		
+		next = lang;
+		next_len = strlen (next);
+		break;
+	      
+	      case 't':
+	      case 'c':
+		free (path);
+		return NULL;
+	      }
+	}
+      else
+	next = p, next_len = 1;
+
+      /* Do we have room for this component followed by a '\0' ?  */
+      if (path_len + next_len + 1 > path_size)
+	{
+	  path_size = (path_len + next_len + 1) * 2;
+	  path = (char *) realloc (path, path_size);
+	}
+      
+      bcopy (next, path + path_len, next_len);
+      path_len += next_len;
+
+      p++;
+
+      /* If we've reached the end of the string, append ESCAPED_SUFFIX.  */
+      if (p >= string + string_len && escaped_suffix)
+	{
+	  string = escaped_suffix;
+	  string_len = strlen (string);
+	  p = string;
+	  escaped_suffix = NULL;
+	}
+    }
+
+  /* Perhaps we should add the SUFFIX now.  */
+  if (suffix)
+    {
+      int suffix_len = strlen (suffix);
+
+      if (path_len + suffix_len + 1 > path_size)
+	{
+	  path_size = (path_len + suffix_len + 1);
+	  path = (char *) realloc (path, path_size);
+	}
+
+      bcopy (suffix, path + path_len, suffix_len);
+      path_len += suffix_len;
+    }
+
+  path[path_len] = '\0';
+
+  if (! file_p (path))
+    {
+      free (path);
+      return NULL;
+    }
+
+  return path;
+}
+
+
+static char *
+gethomedir ()
 {
   int uid;
   struct passwd *pw;
   char *ptr;
+  char *copy;
 
   if ((ptr = getenv ("HOME")) == NULL)
     {
@@ -88,25 +292,21 @@ gethomedir (dirname)
 	  uid = getuid ();
 	  pw = getpwuid (uid);
 	}
+
       if (pw)
 	ptr = pw->pw_dir;
-      else
-	{
-	  ptr = NULL;
-	  *dirname = '\0';
-	}
     }
 
-  if (ptr != NULL) 
-    strcpy (dirname, ptr);
+  if (ptr == NULL) 
+    return "/";
 
-  dirname += strlen (dirname);
-  *dirname = '/';
-  dirname++;
-  *dirname = '\0';
+  copy = (char *) malloc (strlen (ptr) + 2);
+  strcpy (copy, ptr);
+  strcat (copy, "/");
 
-  return dirname;
+  return copy;
 }
+
 
 static int
 file_p (path)
@@ -119,81 +319,30 @@ file_p (path)
 	  && (status.st_mode & S_IFDIR) == 0);	/* not a directory */
 }
 
-#if 0
-#define X_DEFAULT_SEARCH_PATH "/usr/lib/X11/"
-#endif
 
-/* Isn't this just disgusting? */
+/* Find the first element of SEARCH_PATH which exists and is readable,
+   after expanding the %-escapes.  Return 0 if we didn't find any, and 
+   the path name of the one we found otherwise.  */
 
-#define X_DEFAULT_SEARCH_PATH "/usr/lib/X11/%L/%T/%N%S:/usr/lib/X11/%l/%T/%N%S:/usr/lib/X11/%T/%N%S"
-
-static int
-decode_magic (string, file, return_path)
-     char *string, *file, *return_path;
+static char *
+search_magic_path (search_path, class, escaped_suffix, suffix)
+     char *search_path, *class, *escaped_suffix, *suffix;
 {
-  char *p = string;
-  char *t = return_path;
+  register char *s, *p;
 
-  while (*p)
+  for (s = search_path; *s; s = p)
     {
-      if (*p == '%')
-	switch (*++p)
-	  {
-	  case '%':
-	    *t++ = '%';
-	    p++;
-	    break;
-
-	  case 'N':
-	  case 'T':
-	  case 'S':
-	  case 'L':
-	  case 'l':
-	  case 't':
-	  case 'c':
-	  default:
-	    p++;
-	    if (*t == '/' && *p == '/')
-	      p++;
-	    break;
-	  }
-      else
-	*t++ = *p++;
-    }
-  *t = '\0';
-  strcat (return_path, file);
-
-  if (file_p (return_path))
-    return 1;
-
-  return_path[0] = '\0';
-  return 0;
-}
-
-static int
-magic_searchpath_decoder (incantation_string, file, return_path)
-     char *incantation_string, *return_path, *file;
-{
-  register char *s = incantation_string;
-  register char *p;
-
-  /* Must be big enough for "%N%S".  */
-  register int string_size = MAXPATHLEN;
-  register char *string = (char *) alloca (string_size * sizeof (*string));
-
-  while (*s)
-    {
-      p = s;
-
-      while (*p && *p != ':')
-	p++;
-
+      for (p = s; *p && *p != ':'; p++)
+	;
+      
       if (*p == ':' && *(p + 1) == ':')
 	{
-	  /* We know string is big enough for this.  */
-	  bcopy ("%N%S", string, 5);
-	  if (decode_magic (string, file, return_path))
-	    return 1;
+	  char *path;
+
+	  s = "%N%S";
+	  path = magic_file_p (s, strlen (s), class, escaped_suffix, suffix);
+	  if (path)
+	    return path;
 
 	  s = p + 1;
 	  continue;
@@ -201,45 +350,42 @@ magic_searchpath_decoder (incantation_string, file, return_path)
 
       if (p > s)
 	{
-	  int len = p - s;
-
-	  if (string_size < len+1)
-	    {
-	      string_size = 2 * len;
-	      string = (char *) alloca (string_size * sizeof (*string));
-	    }
-	  bcopy (s, string, len);
-	  string[len] = '\0';
-	  if (decode_magic (string, file, return_path))
-	    return 1;
+	  char *path = magic_file_p (s, p - s, class, escaped_suffix, suffix);
+	  if (path)
+	    return path;
 	}
 
-      if (p && *p != 0)
-	s = p + 1;
-      else
-	return 0;
+      if (*p == ':')
+	p++;
     }
 
   return 0;
 }
 
+/* Producing databases for individual sources.  */
+
+#define X_DEFAULT_SEARCH_PATH "/usr/lib/X11/%L/%T/%N%C%S:/usr/lib/X11/%l/%T/%N%C%S:/usr/lib/X11/%T/%N%C%S:/usr/lib/X11/%L/%T/%N%S:/usr/lib/X11/%l/%T/%N%S:/usr/lib/X11/%T/%N%S"
+
 static XrmDatabase
 get_system_app (class)
      char *class;
 {
-  XrmDatabase db;
-  char path[MAXPATHLEN];
-  char *p;
+  XrmDatabase db = NULL;
+  char *path;
 
-  if ((p = getenv ("XFILESEARCHPATH")) == NULL)
-    p = X_DEFAULT_SEARCH_PATH;
+  path = getenv ("XFILESEARCHPATH");
+  if (! path) path = X_DEFAULT_SEARCH_PATH;
 
-  if (! magic_searchpath_decoder (p, class, path))
-    return NULL;
+  path = search_magic_path (path, class, 0, 0);
+  if (path)
+    {
+      db = XrmGetFileDatabase (path);
+      free (path);
+    }
 
-  db = XrmGetFileDatabase (path);
   return db;
 }
+
 
 static XrmDatabase
 get_fallback (display)
@@ -250,45 +396,39 @@ get_fallback (display)
   return NULL;
 }
 
+
 static XrmDatabase
 get_user_app (class)
      char *class;
 {
-  XrmDatabase db;
-  char *magic_path;
-  char path[MAXPATHLEN];
+  char *path;
+  char *file = 0;
 
-  if ((magic_path = getenv ("XUSERFILESEARCHPATH")) == NULL)
+  /* Check for XUSERFILESEARCHPATH.  It is a path of complete file
+     names, not directories.  */
+  if (((path = getenv ("XUSERFILESEARCHPATH"))
+       && (file = search_magic_path (path, class, 0, 0)))
+
+      /* Check for APPLRESDIR; it is a path of directories.  In each,
+	 we have to search for LANG/CLASS and then CLASS.  */
+      || ((path = getenv ("XAPPLRESDIR"))
+	  && ((file = search_magic_path (path, class, "/%L/%N", 0))
+	      || (file = search_magic_path (path, class, "/%N", 0))))
+      
+      /* Check in the home directory.  This is a bit of a hack; let's
+	 hope one's home directory doesn't contain any %-escapes.  */
+      || (path = gethomedir (),
+	  ((file = search_magic_path (path, class, "%L/%N", 0))
+	   || (file = search_magic_path (path, class, "%N", 0)))))
     {
-      char homedir[MAXPATHLEN];
-      char *default_magic;
-      char *p;
-
-      gethomedir (homedir);
-
-      if ((p = getenv ("XAPPLRESDIR")) == NULL)
-	{
-	  default_magic = "%s/%%L/%%N:%s/%%l/%%N:%s/%%N";
-	  magic_path = (char *) alloca ((3 * strlen (homedir))
-					+ strlen (default_magic));
-	  sprintf (magic_path, default_magic, homedir, homedir, homedir);
-	}
-      else
-	{
-	  default_magic = "%s/%%L/%%N:%s/%%l/%%N:%s/%%N:%s/%%N";
-	  magic_path = (char *) alloca ((3 * strlen (p))
-					+ strlen (default_magic)
-					+ strlen (homedir));
-	  sprintf (magic_path, default_magic, p, p, p, homedir);
-	}
+      XrmDatabase db = XrmGetFileDatabase (file);
+      free (file);
+      return db;
     }
-
-  if (! magic_searchpath_decoder (magic_path, class, path))
+  else
     return NULL;
-  
-  db = XrmGetFileDatabase (path);
-  return db;
 }
+
 
 static XrmDatabase
 get_user_db (display)
@@ -307,11 +447,16 @@ get_user_db (display)
     db = XrmGetStringDatabase (xdefs);
   else
     {
-      char xdefault[MAXPATHLEN];
+      char *home;
+      char *xdefault;
 
-      gethomedir (xdefault);
+      home = gethomedir ();
+      xdefault = (char *) malloc (strlen (home) + sizeof (".Xdefaults"));
+      strcpy (xdefault, home);
       strcat (xdefault, ".Xdefaults");
       db = XrmGetFileDatabase (xdefault);
+      free (home);
+      free (xdefault);
     }
 
 #ifdef XlibSpecificationRelease
@@ -334,20 +479,44 @@ get_environ_db ()
 {
   XrmDatabase db;
   char *p;
-  char path[MAXPATHLEN];
+  char *path = 0, *home = 0, *host = 0;
 
   if ((p = getenv ("XENVIRONMENT")) == NULL)
     {
-      gethomedir (path);
-      strcat (path, ".Xdefaults-");
-      gethostname (path + strlen (path), MAXPATHLEN - strlen (path));
+      home = gethomedir ();
+
+      {
+	int host_size = 100;
+	host = (char *) malloc (host_size);
+	
+	for (;;)
+	  {
+	    host[host_size - 1] = '\0';
+	    gethostname (host, host_size - 1);
+	    if (strlen (host) < host_size - 1)
+	      break;
+	    host = (char *) realloc (host, host_size *= 2);
+	  }
+      }
+
+      path = (char *) malloc (strlen (home)
+			      + sizeof (".Xdefaults-")
+			      + strlen (host));
+      sprintf (path, "%s%s%s", home, ".Xdefaults-", host);
       p = path;
     }
 
   db = XrmGetFileDatabase (p);
+
+  if (path) free (path);
+  if (home) free (home);
+  if (host) free (host);
+
   return db;
 }
 
+/* External interface.  */
+
 /* Types of values that we can find in a database */
 
 #define XrmStringType "String"	/* String representation */
@@ -356,17 +525,27 @@ XrmRepresentation x_rm_string;	/* Quark representation */
 /* Load X resources based on the display and a possible -xrm option. */
 
 XrmDatabase
-x_load_resources (display, xrm_string, myclass)
+x_load_resources (display, xrm_string, myname, myclass)
      Display *display;
-     char *xrm_string, *myclass;
+     char *xrm_string, *myname, *myclass;
 {
   char *xdefs;
+  XrmDatabase user_database;
   XrmDatabase rdb;
   XrmDatabase db;
 
   x_rm_string = XrmStringToQuark (XrmStringType);
   XrmInitialize ();
   rdb = XrmGetStringDatabase ("");
+
+  user_database = get_user_db (display);
+
+  /* Figure out what the "customization string" is, so we can use it
+     to decode paths.  */
+  if (x_customization_string)
+    free (x_customization_string);
+  x_customization_string
+    = x_get_customization_string (user_database, myname, myclass);
 
   /* Get application system defaults */
   db = get_system_app (myclass);
@@ -384,9 +563,8 @@ x_load_resources (display, xrm_string, myclass)
     XrmMergeDatabases (db, &rdb);
 
   /* get User defaults */
-  db = get_user_db (display);
-  if (db != NULL)
-    XrmMergeDatabases (db, &rdb);
+  if (user_database != NULL)
+    XrmMergeDatabases (user_database, &rdb);
 
   /* Get Environment defaults. */
   db = get_environ_db ();
@@ -403,6 +581,7 @@ x_load_resources (display, xrm_string, myclass)
 
   return rdb;
 }
+
 
 /* Retrieve the value of the resource specified by NAME with class CLASS
    and of type TYPE from database RDB.  The value is returned in RET_VALUE. */
@@ -452,9 +631,30 @@ x_get_string_resource (rdb, name, class)
   return (char *) 0;
 }
 
+/* Stand-alone test facilities.  */
+
 #ifdef TESTRM
-#include <stdio.h>
-#include "arg-list.h"
+
+typedef char **List;
+#define arg_listify(len, list) (list)
+#define car(list) (*(list))
+#define cdr(list) (list + 1)
+#define NIL(list) (! *(list))
+#define free_arglist(list)
+
+static List
+member (elt, list)
+     char *elt;
+     List list;
+{
+  List p;
+
+  for (p = list; ! NIL (p); p = cdr (p))
+    if (! strcmp (elt, car (p)))
+      return p;
+
+  return p;
+}
 
 static void
 fatal (msg, prog, x1, x2, x3, x4, x5)
@@ -475,9 +675,9 @@ main (argc, argv)
     char **argv;
 {
   Display *display;
-  char *displayname, *resource_string, *class;
+  char *displayname, *resource_string, *class, *name;
   XrmDatabase xdb;
-  List *arg_list, *lp;
+  List arg_list, lp;
 
   arg_list = arg_listify (argc, argv);
 
@@ -499,32 +699,41 @@ main (argc, argv)
   else
     class = "Emacs";
 
+  lp = member ("-n", arg_list);
+  if (! NIL (lp))
+    name = car (cdr (lp));
+  else
+    name = "emacs";
+
   free_arglist (arg_list);
-
-
 
   if (!(display = XOpenDisplay (displayname)))
     fatal ("Can't open display '%s'\n", XDisplayName (displayname));
 
-  xdb = x_load_resources (display, resource_string, class);
+  xdb = x_load_resources (display, resource_string, name, class);
 
-#if 0
   /* In a real program, you'd want to also do this: */
   display->db = xdb;
-#endif
 
   while (1)
     {
-      char line[90];
+      char query_name[90];
+      char query_class[90];
 
-      printf ("String: ");
-      gets (line);
-      if (strlen (line))
+      printf ("Name: ");
+      gets (query_name);
+
+      if (strlen (query_name))
 	{
-	  char *value = x_get_string_resource (xdb, line, class);
+	  char *value;
+
+	  printf ("Class: ");
+	  gets (query_class);
+
+	  value = x_get_string_resource (xdb, query_name, query_class);
 
 	  if (value != NULL)
-	    printf ("\t%s:  %s\n\n", line, value);
+	    printf ("\t%s(%s):  %s\n\n", query_name, query_class, value);
 	  else
 	    printf ("\tNo Value.\n\n");
 	}
