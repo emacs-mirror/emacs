@@ -1,3 +1,9 @@
+2002-05-24  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* net/ange-ftp.el (read-file-name-internal): Remove the
+	`ange-ftp' property.
+	(ange-ftp-real-read-file-name-internal): Remove.
+
 2002-05-24  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/f90.el: (f90-end-of-subprogram): Remove the final
@@ -26,7 +32,7 @@
 	(apropos-documentation-check-doc-file)
 	(apropos-documentation-check-elc-file): Use them to filter out
 	false matches where only one keyword matches, but more than once.
-	
+
 	* apropos.el (apropos-show-scores, apropos-orig-regexp)
 	(apropos-all-regexp, apropos-synonyms, apropos-words)
 	(apropos-all-words): New variables.
@@ -43,13 +49,13 @@
 
 	* info.el (Info-mode-hook): Change `font-lock-mode' to
 	`turn-on-font-lock'.
-	
+
 	* font-core.el (font-lock-function): New variable.
 	(font-lock-default-function): New function, created from
 	`font-lock-mode'.
 	(font-lock-mode): Just funcall `font-lock-default-function'.
 	(font-lock-symbol-category-alist): New variable.
-	
+
 2002-05-22  Markus Rost  <rost@math.ohio-state.edu>
 
 	* files.el (file-newest-backup): Use file-name-sans-versions.
