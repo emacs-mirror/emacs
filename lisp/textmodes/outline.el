@@ -342,9 +342,10 @@ at the end of the buffer."
 (defsubst outline-invisible-p ()
   "Non-nil if the character after point is invisible."
   (get-char-property (point) 'invisible))
+
 (defun outline-visible ()
-  "Obsolete.  Use `outline-invisible-p'."
   (not (outline-invisible-p)))
+(make-obsolete 'outline-visible 'outline-invisible-p)
 
 (defun outline-back-to-heading (&optional invisible-ok)
   "Move to previous heading line, or beg of this line if it's a heading.
