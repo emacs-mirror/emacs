@@ -1871,8 +1871,9 @@ this is a reply."
 	      (setq v (with-temp-buffer
 			(insert-file-contents v)
 			(goto-char (point-max))
-			(while (bolp)
-			  (delete-char -1))
+			(skip-chars-backward "\n")
+			(delete-region (+ (point) (if (bolp) 0 1))
+				       (point-max))
 			(buffer-string))))
 	    (setq results (delq (assoc element results) results))
 	    (push (cons element v) results))))

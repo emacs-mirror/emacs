@@ -1,5 +1,9 @@
 2004-10-29  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* gnus-msg.el (gnus-configure-posting-styles): Work with empty
+	signature file.  Suggested by Manoj Srivastava
+	<srivasta@golden-gryphon.com>.
+
 	* mm-util.el (mm-coding-system-priorities): Prefer iso-8859-1 than
 	iso-2022-jp even in the Japanese language environment.  Suggested
 	by Jason Rumney <jasonr@gnu.org>.
