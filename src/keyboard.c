@@ -1053,6 +1053,7 @@ command_loop_1 ()
   int was_locked = single_kboard;
 #endif
 
+  current_kboard->Vprefix_arg = Qnil;
   Vdeactivate_mark = Qnil;
   waiting_for_input = 0;
   cancel_echoing ();
