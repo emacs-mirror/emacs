@@ -1,3 +1,7 @@
+2000-11-23  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* xdisp.c (syms_of_xdisp): Make fontification-functions buffer-local.
+
 2000-11-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* buffer.c (Fmake_indirect_buffer): Don't treat nil as a

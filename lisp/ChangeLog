@@ -1,3 +1,11 @@
+2000-11-23  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/ada-stmt.el (ada-template-map): Initialize
+	and bind it to C-c t in ada-mode-map.
+	(ada-stmt-mode-hook): New function extracted from old code.
+	Only change the buffer-local side of skeleton-*.
+	(ada-mode-hook): Use it.
+
 2000-11-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* iswitchb.el (iswitchb-minibuf-depth): New variable.
