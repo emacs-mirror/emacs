@@ -1,14 +1,26 @@
+2004-10-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-view.el (mm-display-inline-fontify): Inhibit font-lock when
+	running the major-mode function.
+
+2004-10-21  Kevin Greiner  <kevin.greiner@compsol.cc>
+
+	* gnus-start.el (gnus-convert-old-newsrc): Two of the converters
+	have been backported to 'Gnus v5.11' from 'No Gnus v0.2'.  Added a
+	boolean check to not apply converters that apply to future
+	versions of gnus.
+
 2004-10-19  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sum.el (gnus-update-summary-mark-positions): Search for
 	dummy marks in the right way.
 
-2004-10-18  Kevin Greiner  <kgreiner@compsol.cc>
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
 
 	* nnagent.el (nnagent-request-type): Bind gnus-agent to nil to
 	avoid infinite recursion via gnus-get-function.
 
-2004-10-18  Kevin Greiner  <kgreiner@compsol.cc>
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
 
 	* gnus-agent.el (gnus-agent-synchronize-group-flags): When
 	necessary, pass full group name to gnus-request-set-marks.
@@ -16,13 +28,13 @@
 	tick marks.
         (gnus-agent-synchronize-flags-server): Be silent when writing file.
 
-2004-10-18  Kevin Greiner  <kgreiner@compsol.cc>
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
 
 	* gnus-agent.el (gnus-agent-synchronize-group-flags): Replaced
 	gnus-request-update-info with explicit code to sync the in-memory
 	info read flags with the marks being sync'd to the backend.
 
-2004-10-18  Kevin Greiner  <kgreiner@compsol.cc>
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
 
 	* gnus-agent.el (gnus-agent-possibly-synchronize-flags): Ignore
 	servers that are offline.  Avoids having gnus-agent-toggle-plugged
@@ -45,7 +57,7 @@
 	method, to ensure that synchronization updates marks in the
 	backend and in the info (in memory) structure.
 
-2004-10-18  Kevin Greiner  <kgreiner@compsol.cc>
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
 
 	* gnus-agent.el (gnus-agent-synchronize-flags-server): Do nothing
 	unless plugged.  Disable the agent so that an open failure causes
@@ -57,7 +69,7 @@
 	(gnus-agent-expire-unagentized-dirs)
 	(gnus-agent-auto-agentize-methods): Add :version.
 
-2004-10-18  Kevin Greiner  <kgreiner@compsol.cc>
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
 
 	* legacy-gnus-agent.el (gnus-agent-convert-to-compressed-agentview-prompt):
 	New function. Used internally to only display 'gnus converting
@@ -70,7 +82,7 @@
 	gnus-agent-unfetch-articles in place of gnus-agent-expire to
 	improve performance.
 
-2004-10-18  Kevin Greiner  <kgreiner@compsol.cc>
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
 
 	* gnus-agent.el (gnus-agent-cat-groups): rewrote avoiding defsetf
 	to avoid run-time CL dependencies.

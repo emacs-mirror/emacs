@@ -2247,9 +2247,9 @@ If FORCE is non-nil, the .newsrc file is read."
                          gnus-convert-old-ticks)
                         ("Oort Gnus v0.08"     "legacy-gnus-agent"
                          gnus-agent-convert-to-compressed-agentview)
-                        ("No Gnus v0.2"        "legacy-gnus-agent"
+                        ("Gnus v5.11"          "legacy-gnus-agent"
                          gnus-agent-unlist-expire-days)
-                        ("No Gnus v0.2"        "legacy-gnus-agent" 
+                        ("Gnus v5.11"          "legacy-gnus-agent" 
                          gnus-agent-unhook-expire-days)))
               #'car-less-than-car)))
         ;; Skip converters older than the file version
@@ -2258,7 +2258,8 @@ If FORCE is non-nil, the .newsrc file is read."
 
         ;; Perform converters to bring older version up to date.
 	(when (and converters (< fcv (caar converters)))
-	  (while (and converters (< fcv (caar converters)))
+	  (while (and converters (< fcv (caar converters))
+		      (<= (caar converters) gnus-version))
             (let* ((converter-spec  (pop converters))
                    (convert-to      (nth 1 converter-spec))
                    (load-from       (nth 2 converter-spec))

@@ -466,8 +466,12 @@
 	  (progn
 	    (buffer-disable-undo)
 	    (mm-insert-part handle)
-	    (funcall mode)
 	    (require 'font-lock)
+	    ;; Inhibit font-lock this time (*-mode-hook might run
+	    ;; `turn-on-font-lock') so that jit-lock may not turn off
+	    ;; font-lock immediately after this.
+	    (let ((font-lock-mode t))
+	      (funcall mode))
 	    (let ((font-lock-verbose nil))
 	      ;; I find font-lock a bit too verbose.
 	      (font-lock-fontify-buffer))
