@@ -8,7 +8,7 @@
 
 ;;; Added by TEP
 (defvar m2-mode-syntax-table nil
-  "Syntax table in use in Modula-2-mode buffers.")
+  "Syntax table in use in Modula-2 buffers.")
 
 (defvar m2-compile-command "m2c"
   "Command to compile Modula-2 programs")
@@ -76,28 +76,28 @@
 (defvar m2-indent 5 "*This variable gives the indentation in Modula-2-Mode")
   
 (defun modula-2-mode ()
-"This is a mode intended to support program development in Modula-2.
-All control constructs of Modula-2 can be reached by typing
-Control-C followed by the first character of the construct.
-\\{m2-mode-map}
-  Control-c b begin         Control-c c case
-  Control-c d definition    Control-c e else
-  Control-c f for           Control-c h header
-  Control-c i if            Control-c m module
-  Control-c l loop          Control-c o or
-  Control-c p procedure     Control-c Control-w with
-  Control-c r record        Control-c s stdio
-  Control-c t type          Control-c u until
-  Control-c v var           Control-c w while
-  Control-c x export        Control-c y import
-  Control-c { begin-comment Control-c } end-comment
-  Control-c Control-z suspend-emacs     Control-c Control-t toggle
-  Control-c Control-c compile           Control-x ` next-error
-  Control-c Control-l link
+  "This is a mode intended to support program development in Modula-2.
+All control constructs of Modula-2 can be reached by typing C-c
+followed by the first character of the construct.
+\\<m2-mode-map>
+  \\[m2-begin] begin         \\[m2-case] case
+  \\[m2-definition] definition    \\[m2-else] else
+  \\[m2-for] for           \\[m2-header] header
+  \\[m2-if] if            \\[m2-module] module
+  \\[m2-loop] loop          \\[m2-or] or
+  \\[m2-procedure] procedure     Control-c Control-w with
+  \\[m2-record] record        \\[m2-stdio] stdio
+  \\[m2-type] type          \\[m2-until] until
+  \\[m2-var] var           \\[m2-while] while
+  \\[m2-export] export        \\[m2-import] import
+  \\[m2-begin-comment] begin-comment \\[m2-end-comment] end-comment
+  \\[suspend-emacs] suspend Emacs     \\[m2-toggle] toggle
+  \\[m2-compile] compile           \\[m2-next-error] next-error
+  \\[m2-link] link
 
-   m2-indent controls the number of spaces for each indentation.
-   m2-compile-command holds the command to compile a Modula-2 program.
-   m2-link-command holds the command to link a Modula-2 program."
+   `m2-indent' controls the number of spaces for each indentation.
+   `m2-compile-command' holds the command to compile a Modula-2 program.
+   `m2-link-command' holds the command to link a Modula-2 program."
   (interactive)
   (kill-all-local-variables)
   (use-local-map m2-mode-map)
@@ -303,14 +303,14 @@ Control-C followed by the first character of the construct.
 (defun m2-stdio ()
   (interactive)
   (insert "
->FROM TextIO IMPORT 
+FROM TextIO IMPORT 
    WriteCHAR, ReadCHAR, WriteINTEGER, ReadINTEGER,
    WriteCARDINAL, ReadCARDINAL, WriteBOOLEAN, ReadBOOLEAN,
    WriteREAL, ReadREAL, WriteBITSET, ReadBITSET,
    WriteBasedCARDINAL, ReadBasedCARDINAL, WriteChars, ReadChars,
    WriteString, ReadString, WhiteSpace, EndOfLine;
 
->FROM SysStreams IMPORT sysIn, sysOut, sysErr;
+FROM SysStreams IMPORT sysIn, sysOut, sysErr;
 
 "))
 

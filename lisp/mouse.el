@@ -21,7 +21,7 @@
 
 
 (defun mouse-select ()
-  "Select Emacs window the mouse is on."
+  "Select the Emacs window the mouse is on."
   (interactive "@"))
 
 (defun mouse-delete-window ()
