@@ -1,3 +1,7 @@
+2001-01-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dired-x.el (dired-virtual-guess-dir): Doc fix.
+
 2001-01-05  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/cl-seq.el (remove, remq): Remove.
