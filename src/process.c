@@ -2342,12 +2342,12 @@ process_send_signal (process, signo, current_group, nomsg)
 	case SIGINT:
 	  tcgetattr (XFASTINT (p->infd), &t);
 	  send_process (proc, &t.c_cc[VINTR], 1);
-	  return Qnil;
+	  return;
 
 	case SIGQUIT:
 	  tcgetattr (XFASTINT (p->infd), &t);
   	  send_process (proc, &t.c_cc[VQUIT], 1);
-  	  return Qnil;
+  	  return;
 
   	case SIGTSTP:
 	  tcgetattr (XFASTINT (p->infd), &t);
@@ -2356,7 +2356,7 @@ process_send_signal (process, signo, current_group, nomsg)
 #else
 	  send_process (proc, &t.c_cc[VSUSP], 1);
 #endif
-  	  return Qnil;
+  	  return;
 	}
 
 #else /* ! HAVE_TERMIOS */
@@ -3166,6 +3166,8 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (nfds >= 0)
 	break;
     }
+
+  start_polling ();
 
   return 0;
 }
