@@ -1517,12 +1517,12 @@ searching for an executable resp. an elisp file.
 
 ** Variable aliases have been implemented:
 
-- Macro: defvaralias ALIAS-VAR BASE-VAR [DOCSTRING]
+- Function: defvaralias ALIAS-VAR BASE-VAR [DOCSTRING]
 
-This defines the symbol ALIAS-VAR as a variable alias for symbol
-BASE-VAR.  This means that retrieving the value of ALIAS-VAR returns
-the value of BASE-VAR, and changing the value of ALIAS-VAR changes the
-value of BASE-VAR.
+This function defines the symbol ALIAS-VAR as a variable alias for
+symbol BASE-VAR.  This means that retrieving the value of ALIAS-VAR
+returns the value of BASE-VAR, and changing the value of ALIAS-VAR
+changes the value of BASE-VAR.
 
 DOCSTRING, if present, is the documentation for ALIAS-VAR; else it has
 the same documentation as BASE-VAR.

@@ -1676,7 +1676,7 @@ chosen, or because its meaning has partly changed---it can be useful
 to keep the old name as an @emph{alias} of the new one for
 compatibility.  You can do this with @code{defvaralias}.
 
-@defmac defvaralias alias-var base-var [docstring]
+@defun defvaralias alias-var base-var [docstring]
 This function defines the symbol @var{alias-var} as a variable alias
 for symbol @var{base-var}. This means that retrieving the value of
 @var{alias-var} returns the value of @var{base-var}, and changing the
@@ -1685,7 +1685,7 @@ value of @var{alias-var} changes the value of @var{base-var}.
 If the @var{docstring} argument is present, it specifies the documentation for
 @var{alias-var}; otherwise, it has the same documentation as @var{base-var},
 if any.
-@end defmac
+@end defun
 
 @defun indirect-variable variable
 This function returns the variable at the end of the chain of aliases
