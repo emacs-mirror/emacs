@@ -206,6 +206,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define IS_DIRECTORY_SEP(_c_) ((_c_) == '/' || (_c_) == '\\')
 #define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_) || IS_DEVICE_SEP (_c_))
 
+/* Call init_gettimeofday when TZ changes.  */
+#define LOCALTIME_CACHE
+#define tzset init_gettimeofday
+
 /* bcopy under djgpp is quite safe */
 #define GAP_USE_BCOPY
 #define BCOPY_UPWARD_SAFE 1
