@@ -115,6 +115,7 @@ static void describe_translation P_ ((Lisp_Object, Lisp_Object));
 static void describe_map P_ ((Lisp_Object, Lisp_Object,
 			      void (*) P_ ((Lisp_Object, Lisp_Object)),
 			      int, Lisp_Object, Lisp_Object*, int));
+static void silly_event_symbol_error P_ ((Lisp_Object));
 
 /* Keymap object support - constructors and predicates.			*/
 
@@ -1011,11 +1012,8 @@ the front of KEYMAP.  */)
       if (CONSP (c) && lucid_event_type_list_p (c))
 	c = Fevent_convert_list (c);
 
-      if (SYMBOLP (c) && ! NILP (Fassoc (Fsymbol_name (c), exclude_keys)))
-	error ("To bind the key %s, use; use \"%s\", not [%s]",
-	       XSYMBOL (c)->name->data,
-	       XSTRING (XCDR (Fassoc (Fsymbol_name (c), exclude_keys)))->data,
-	       XSYMBOL (c)->name->data);
+      if (SYMBOLP (c))
+	silly_event_symbol_error (c);
 
       if (INTEGERP (c)
 	  && (XINT (c) & meta_bit)
@@ -1156,6 +1154,52 @@ append_key (key_sequence, key)
   return Fvconcat (2, args);
 }
 
+/* Given a event type C which is a symbol,
+   signal an error if is a mistake such as RET or M-RET or C-DEL, etc.  */
+
+static void
+silly_event_symbol_error (c)
+     Lisp_Object c;
+{
+  Lisp_Object parsed, base, name, assoc;
+  int modifiers;
+	  
+  parsed = parse_modifiers (c);
+  modifiers = (int) XUINT (XCAR (XCDR (parsed)));
+  base = XCAR (parsed);
+  name = Fsymbol_name (base);
+  /* This alist includes elements such as ("RET" . "\\r").  */
+  assoc = Fassoc (name, exclude_keys);
+
+  if (! NILP (assoc))
+    {
+      char new_mods[sizeof ("\\A-\\C-\\H-\\M-\\S-\\s-")];
+      char *p = new_mods;
+      Lisp_Object keystring;
+      if (modifiers & alt_modifier)
+	{ *p++ = '\\'; *p++ = 'A'; *p++ = '-'; }
+      if (modifiers & ctrl_modifier)
+	{ *p++ = '\\'; *p++ = 'C'; *p++ = '-'; }
+      if (modifiers & hyper_modifier)
+	{ *p++ = '\\'; *p++ = 'H'; *p++ = '-'; }
+      if (modifiers & meta_modifier)
+	{ *p++ = '\\'; *p++ = 'M'; *p++ = '-'; }
+      if (modifiers & shift_modifier)
+	{ *p++ = '\\'; *p++ = 'S'; *p++ = '-'; }
+      if (modifiers & super_modifier)
+	{ *p++ = '\\'; *p++ = 's'; *p++ = '-'; }
+      *p = 0;
+
+      c = reorder_modifiers (c);
+      keystring = concat2 (build_string (new_mods), XCDR (assoc));
+		
+      error ((modifiers & ~meta_modifier
+	      ? "To bind the key %s, use [?%s], not [%s]"
+	      : "To bind the key %s, use \"%s\", not [%s]"),
+	     XSYMBOL (c)->name->data, XSTRING (keystring)->data,
+	     XSYMBOL (c)->name->data);
+    }
+}
 
 /* Global, local, and minor mode keymap stuff.				*/
 
