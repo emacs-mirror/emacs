@@ -3,7 +3,7 @@
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 ;; Created: February 2, 1994
-;; Version: 1.64.2
+;; Version of last Kifer changes: 1.64.2
 ;; Keywords: comparing, merging, patching, version control.
 
 ;; This file is part of GNU Emacs.
@@ -1028,19 +1028,6 @@ Commands:
   (kill-all-local-variables)
   (setq major-mode 'ediff-mode)
   (setq mode-name "Ediff"))
-
-(defvar ediff-version "1.64"
-  "The current version of Ediff.")
-(defvar ediff-date "June 28, 1994"
-  "Date of last update.")  
-
-(defun ediff-version ()
-  "Return string describing the version of Ediff.
-When called interactively, displays the version."
-  (interactive)
-  (if (interactive-p)
-      (message "Ediff version %s" (ediff-version))
-    ediff-version))
 
 
 ;; Hook variables
@@ -3408,8 +3395,6 @@ up an appropriate window config."
 Hit \\[ediff-recenter] to reset the windows afterward."
   (interactive)
   (with-output-to-temp-buffer " *ediff-info*"
-    (princ (format "Ediff version:  %s  of  %s\n\n"
-		   ediff-version ediff-date))
     (ediff-eval-in-buffer ediff-A-buffer
 			   (if buffer-file-name
 			       (princ
