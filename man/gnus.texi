@@ -11353,6 +11353,9 @@ some reason or other, Gnus let you treat it similar to a POP server
 and fetches articles from a given @sc{imap} mailbox.  @xref{IMAP}, for
 more information.
 
+Note that for SSL support you may need external programs and libraries,
+@xref{IMAP}.
+
 Keywords:
 
 @table @code
@@ -13768,7 +13771,8 @@ manipulate mails stored on the @sc{imap} server.  This is the kind of
 usage explained in this section.
 
 A server configuration in @code{~/.gnus} with a few @sc{imap} servers
-might look something like this:
+might look something like the following. (Note that for SSL, you need
+external programs and libraries, see below.)
 
 @lisp
 (setq gnus-secondary-select-methods 
@@ -13866,7 +13870,8 @@ SSL)@.  Requires the library @file{starttls.el} and program
 @command{starttls}.
 @item
 @dfn{ssl:} Connect through SSL@.  Requires OpenSSL (the
-program @command{openssl}) or SSLeay (@command{s_client}).
+program @command{openssl}) or SSLeay (@command{s_client}) as well as the
+external library @samp{ssl.el}.
 @item
 @dfn{shell:} Use a shell command to start an @sc{imap} connection.
 @item
@@ -13886,7 +13891,8 @@ and nnimap supports it too.  However, the most recent versions of
 SSLeay, 0.9.x, are known to have serious bugs making it
 useless.  Earlier versions, especially 0.8.x, of SSLeay are known to
 work. The variable @code{imap-ssl-program} contains parameters to pass
-to OpenSSL/SSLeay.
+to OpenSSL/SSLeay.  You also need @samp{ssl.el} (from the W3
+distribution, for instance).
 
 @vindex imap-shell-program
 @vindex imap-shell-host
