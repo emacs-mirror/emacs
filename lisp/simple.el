@@ -3219,14 +3219,16 @@ unless optional argument SOFT is non-nil."
       (if (not comment-multi-line)
 	  (save-excursion
 	    (if (and comment-start-skip
-		     (let ((opoint (point))
+		     (let ((opoint (1- (point)))
 			   inside)
 		       (forward-line -1)
 		       ;; Determine (more or less) whether
 		       ;; target position is inside a comment.
-		       (while (and (setq inside (re-search-forward comment-start-skip opoint t))
-				   (not (setq inside (not (search-forward comment-end opoint t))))))))
-		;; The old line is a comment.
+		       (while (and (re-search-forward comment-start-skip opoint t)
+				   (not (setq inside (or (equal comment-end "")
+							 (not (search-forward comment-end opoint t)))))))
+		       inside))
+		;; The old line has a comment and point was inside the comment.
 		;; Set WIN to the pos of the comment-start.
 		;; But if the comment is empty, look at preceding lines
 		;; to find one that has a nonempty comment.
