@@ -53,6 +53,16 @@
 	xfaces.c, xmenu.c, xselect.c : Update usage of CHECK_ macros
 	(remove unused second argument).
 
+2001-11-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* syntax.c (describe_syntax): New wrapper.
+	(Finternal_describe_syntax_value): Rename from describe_syntax.
+	Don't insert space at front and \n at the end.
+	(syms_of_syntax): Defsubr Sinternal_describe_syntax_value.
+
+	* regex.c (re_wctype): Try to fix some warnings.
+	(regcomp, regexec): Don't forget the __restrict.
+
 2001-11-02  Richard M. Stallman  <rms@gnu.org>
 
 	* textprop.c (Fget_char_property): Doc fix.
