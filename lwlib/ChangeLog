@@ -1,3 +1,8 @@
+2001-03-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* lwlib-Xm.c (xm_popup_menu): Don't set XmNmenuPost unless
+	necessary.  From Rick Scott <rwscott@alumni.uwaterloo.ca>.
+
 2001-02-28  Gerd Moellmann  <gerd@gnu.org>
 
 	* lwlib-Xm.c (xm_arm_callback): Don't compare widgets with `None',
