@@ -1,13 +1,13 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(trunk.4) $
+ * $HopeName: MMsrc!amcss.c(trunk.5) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  */
 
+#include "testlib.h"
 #include "mps.h"
 #include "mpscamc.h"
 #include "fmtdy.h"
-#include "testlib.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
