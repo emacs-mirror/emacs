@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.58) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.59) $
  * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -35,7 +35,6 @@ typedef Word Size;                      /* design.mps.type.size */
 typedef Word Count;                     /* design.mps.type.count */
 typedef Word Index;                     /* design.mps.type.index */
 typedef Word Align;                     /* design.mps.type.align */
-typedef double Accumulation;            /* design.mps.type.accumulation */
 typedef unsigned Shift;                 /* design.mps.type.shift */
 typedef Addr Ref;                       /* design.mps.type.ref */
 typedef void *Pointer;                  /* design.mps.type.pointer */
