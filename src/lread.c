@@ -793,8 +793,12 @@ Return t if file exists.  */)
 	    {
 	      safe_p = 0;
 	      if (!load_dangerous_libraries)
-		error ("File `%s' was not compiled in Emacs",
-		       SDATA (found));
+		{
+		  if (fd >= 0)
+		    emacs_close (fd);
+		  error ("File `%s' was not compiled in Emacs",
+			 SDATA (found));
+		}
 	      else if (!NILP (nomessage))
 		message_with_string ("File `%s' not compiled in Emacs", found, 1);
 	    }
