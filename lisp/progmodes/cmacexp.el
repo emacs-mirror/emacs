@@ -3,7 +3,7 @@
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; Author: Francesco Potorti` <pot@cnuce.cnr.it>
-;; Version: $Id: cmacexp.el,v 1.11 1994/04/20 06:12:03 rms Exp rms $
+;; Version: $Id: cmacexp.el 1.14 1994/04/20 15:50:48 pot Exp $
 ;; Adapted-By: ESR
 ;; Keywords: c
 
@@ -25,39 +25,28 @@
 
 ;; USAGE =============================================================
 
-;; In C mode C-M-x is bound to c-macro-expand.  The result of the
-;; expansion is put in a separate buffer.  The buffer is put in
-;; view-mode if the Inge Frick's view.el is installed.  A user option
-;; allows the window displaying the buffer to be optimally sized.
+;; In C mode C-C C-e is bound to c-macro-expand.  The result of the
+;; expansion is put in a separate buffer.  A user option allows the
+;; window displaying the buffer to be optimally sized.
 ;;
 ;; When called with a C-u prefix, c-macro-expand replaces the selected
 ;; region with the expansion.  Both the preprocessor name and the
-;; initial flag can be set by the user.  If c-macro-prompt-p
-;; is set to a non-nil value the user is offered to change the flags
-;; to the preprocessor each time c-macro-expand is invoked.
-;; Preprocessor arguments default to the last ones entered.
-;; If c-macro-prompt is nil, one must use M-x set-variable to set a
-;; different value for c-macro-cppflags.
+;; initial flag can be set by the user.  If c-macro-prompt-flag is set
+;; to a non-nil value the user is offered to change the options to the
+;; preprocessor each time c-macro-expand is invoked.  Preprocessor
+;; arguments default to the last ones entered.  If c-macro-prompt-flag
+;; is nil, one must use M-x set-variable to set a different value for
+;; c-macro-cppflags.
 
 ;; A c-macro-expansion function is provided for non-interactive use.
 
 ;; INSTALLATION ======================================================
 
-;; Put this file on your load-path, byte compile it for increased
-;; speed and put part or all of the following in your ~/.emacs file.
+;; Put the following in your ~/.emacs file.
 
-;; To make a directory ~/emacs be in front of your load-path:
-;;(setq load-path (cons (expand-file-name "~/emacs") load-path))
-;;
-;; Suggested keybinding (work only in c-mode):
-;;(if (boundp 'c-mode-map)
-;;  (define-key c-mode-map "\C-x\C-e" 'c-macro-expand))
-;;(if (boundp 'c++-mode-map)
-;;  (define-key c++-mode-map "\C-x\C-e" 'c-macro-expand))
-;;
 ;; If you want the *Macroexpansion* window to be not higher than
 ;; necessary: 
-;;(setq c-macro-shrink-window-p t)
+;;(setq c-macro-shrink-window-flag t)
 ;;
 ;; If you use a preprocessor other than /lib/cpp (be careful to set a
 ;; -C option or equivalent in order to make the preprocessor not to
@@ -68,7 +57,7 @@
 ;;(setq c-macro-cppflags "-I /usr/include/local -DDEBUG"
 ;;
 ;; If you want the "Preprocessor arguments: " prompt:
-;;(setq c-macro-prompt-p t)
+;;(setq c-macro-prompt-flag t)
 
 ;; BUG REPORTS =======================================================
 
@@ -83,23 +72,12 @@
 ;;   comment or a region #ifdef'd away by cpp. cpp is invoked with -C,
 ;;   making comments visible in the expansion.
 ;; - All work is done in core memory, no need for temporary files.
-;; - The /lib/cpp process is run synchronously.  This fixes an
-;;   infinite loop bug on Motorola Delta (cpp waiting forever for
-;;   end-of-file, don't know why).  Fixes a similar intermittent
-;;   problem on SunOS 4.1.
 
 ;; ACKNOWLEDGEMENTS ==================================================
 
 ;; A lot of thanks to Don Maszle who did a great work of testing, bug
-;; reporting and suggestion of new features and to Inge Fricks for her
-;; help with view.el.  This work has been partially inspired by Don
-;; Maszle and Jonathan Segal's.
-
-;; By the way, I recommend you Inge Frick's view.el.  It works like
-;; the standard view, but *it is not recursive* and has some more
-;; commands.  Moreover it is a minor mode, so you preserve all your
-;; major mode keybindings (well, not always :).  Mail me to obtain a
-;; copy, or get it by anonymous ftp in fly.cnuce.cnr.it:pub/view.el.
+;; reporting and suggestion of new features.  This work has been
+;; partially inspired by Don Maszle and Jonathan Segal's.
 
 ;; BUGS ==============================================================
 
@@ -143,17 +121,12 @@ For use inside Lisp programs, see also `c-macro-expansion'."
 	(displaybuf (if subst
 			(get-buffer c-macro-buffer-name)
 		      (get-buffer-create c-macro-buffer-name)))
-	(expansion "")
-	(mymsg ""))
+	(expansion ""))
     ;; Build the command string.
     (if c-macro-prompt-flag
 	(setq c-macro-cppflags
 	      (read-string "Preprocessor arguments: "
 			   c-macro-cppflags)))
-    (setq mymsg (format "Invoking %s%s%s on region..."
-			c-macro-preprocessor
-			(if (string= "" c-macro-cppflags) "" " ")
-			c-macro-cppflags))
     ;; Decide where to display output.
     (if (and subst
 	     (and buffer-read-only (not inhibit-read-only))
@@ -166,11 +139,9 @@ For use inside Lisp programs, see also `c-macro-expansion'."
 	  (or displaybuf
 	      (setq displaybuf (get-buffer-create c-macro-buffer-name)))))
     ;; Expand the macro and output it.
-    (message mymsg)
     (setq expansion (c-macro-expansion start end
 				       (concat c-macro-preprocessor " "
-					       c-macro-cppflags)))
-    (message (concat mymsg "done"))
+					       c-macro-cppflags) t))
     (if subst
 	(let ((exchange (= (point) start)))
 	  (delete-region start end)
@@ -235,11 +206,12 @@ For use inside Lisp programs, see also `c-macro-expansion'."
 	    (select-window oldwin))))))
 
 
-(defun c-macro-expansion (start end cppcommand)
+(defun c-macro-expansion (start end cppcommand &optional display)
   "Run a preprocessor on region and return the output as a string.
 Expand the region between START and END in the current buffer using
 the shell command CPPCOMMAND (e.g. \"/lib/cpp -C -DDEBUG\").
-Be sure to use a -C (don't strip comments) or equivalent option."
+Be sure to use a -C (don't strip comments) or equivalent option.
+Optional arg DISPLAY non-nil means show messages in the echo area."
 
 ;; Copy the current buffer's contents to a temporary hidden buffer.
 ;; Delete from END to end of buffer.  Insert a preprocessor #line
@@ -259,9 +231,15 @@ Be sure to use a -C (don't strip comments) or equivalent option."
 					 buffer-file-name))
 		      (substring buffer-file-name (match-end 0))
 		    (buffer-name)))
-	(start-state)
+	(mymsg (format "Invoking %s%s%s on region..."
+		       c-macro-preprocessor
+		       (if (string= "" c-macro-cppflags) "" " ")
+		       c-macro-cppflags))
+	(uniquestring "???!!!???!!! start of c-macro expansion ???!!!???!!!")
+	(startlinenum 0)
 	(linenum 0)
-	(linelist ()))
+	(startstat ())
+	(startmarker ""))
     (unwind-protect
 	(save-excursion
 	  (save-restriction
@@ -275,69 +253,73 @@ Be sure to use a -C (don't strip comments) or equivalent option."
 	  ;; We have copied inbuf to outbuf.  Point is at end of
 	  ;; outbuf.  Insert a space at the end, so cpp can correctly
 	  ;; parse a token ending at END. 
-
 	  (insert " ")
 
-	  (save-excursion
-	    (goto-char start)
-	    (setq start-state (parse-partial-sexp 1 (point))))
+	  ;; Save sexp status and line number at START.
+	  (setq startstat (parse-partial-sexp 1 start))
+	  (setq startlinenum (+ (count-lines 1 (point))
+				(if (bolp) 1 0)))
+
 	  ;; Now we insert the #line directives after all #endif or
-	  ;; #else following START. 
+	  ;; #else following START going backward, so the lines we
+	  ;; insert don't change the line numbers.
 	  ;(switch-to-buffer outbuf) (debug)	;debugging instructions
+	  (goto-char (point-max))
 	  (while (re-search-backward "\n#\\(endif\\|else\\)\\>" start 'move)
-	    (if (equal (nthcdr 3 (parse-partial-sexp start (point) start-state))
+	    (if (equal (nthcdr 3 (parse-partial-sexp start (point)
+						     nil nil startstat))
 		       '(nil nil nil 0 nil)) ;neither in string nor in
-					;comment nor after quote
+					     ;comment nor after quote
 		(progn
 		  (goto-char (match-end 0))
-;;;		  (setq linenum (count-lines 1 (point)))
-		  (setq linelist
-			;; This used to be a #line command
-			;; but it's not guaranteed that the output
-			;; will have properly matching commands.
-			;; Only the *line numbers* have to agree!
-			(cons (format "\n???!!!???!!!!\n")
-			      linelist))
-		  (insert (car linelist))
-		  (skip-chars-backward "^#")
-		  (insert "line")
-	      (goto-char (match-beginning 0)))))
+		  (setq linenum (+ startlinenum
+				   (count-lines start (point))))
+		  (insert (format "\n#line %d \"%s\"\n" linenum filename))
+		  (goto-char (match-beginning 0)))))
 
-	  ;; We are at START.  Insert the first #line directive.  This
-	  ;; must work even inside a string or comment, or after a
+	  ;; Now we are at START.  Insert the first #line directive.
+	  ;; This must work even inside a string or comment, or after a
 	  ;; quote.
-;;;	  (setq linenum (+ (count-lines 1 (point))
-;;;			   (if (bolp) 1 0)))
-	  (setq linelist
-		(cons
-		 (let* ((startstat (parse-partial-sexp 1 start))
-			(startinstring (nth 3 startstat))
-			(startincomment (nth 4 startstat))
-			(startafterquote (nth 5 startstat))
-			(startinbcomment (nth 6 startstat)))
-		   (concat (if startafterquote " ")
-			   (cond (startinstring (char-to-string startinstring))
-				 (startincomment "*/"))
-			   (format "\n???!!!???!!!!")
-			   (cond (startinstring (char-to-string startinstring))
-				 (startincomment "/*")
-				 (startinbcomment "//"))
-			   (if startafterquote "\\")))
-		 linelist))
-	  (insert (car linelist))
-	  (skip-chars-backward "^#")
-	  (insert "line")
+	  (let* ((startinstring (nth 3 startstat))
+		 (startincomment (nth 4 startstat))
+		 (startafterquote (nth 5 startstat))
+		 (startinbcomment (nth 7 startstat)))
+	    (insert (if startafterquote " " "")
+		    (cond (startinstring
+			   (char-to-string startinstring))
+			  (startincomment "*/")
+			  (""))
+		    (format "\n#line %d \"%s\"\n" startlinenum filename)
+		    (setq startmarker
+			  (concat uniquestring
+				  (cond (startinstring
+					 (char-to-string startinstring))
+					(startincomment "/*")
+					(startinbcomment "//"))
+				  (if startafterquote "\\")))))
 
 	  ;; Call the preprocessor.
+	  (if display (message mymsg))
 	  (call-process-region 1 (point-max) "sh" t t nil "-c"
 			       (concat cppcommand " 2>/dev/null"))
+	  (if display (message (concat mymsg "done")))
 
-	  (while (search-backward "\n???!!!???!!!!" nil t)
-	    (replace-match ""))
-	  
+	  ;; Find and delete the mark of the start of the expansion.
+	  ;; Look for `# nn "file.c"' lines and delete them.
+	  (goto-char (point-min))
+	  (search-forward startmarker)
+	  (delete-region 1 (point))
+	  (while (re-search-forward (concat "^# [0-9]+ \""
+					    (regexp-quote filename)
+					    "\"") nil t)
+	    (beginning-of-line)
+	    (let ((beg (point)))
+	      (forward-line 1)
+	      (delete-region beg (point))))
+
 	  ;; Compute the return value, keeping in account the space
 	  ;; inserted at the end of the buffer.
-	  (buffer-substring (point) (max (point) (- (point-max) 1))))
+	  (buffer-substring 1 (max 1 (- (point-max) 1))))
 
       ;; Cleanup.
       (kill-buffer outbuf))))
