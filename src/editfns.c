@@ -402,7 +402,7 @@ Executes BODY just like `progn'.")
   register Lisp_Object val;
   int count = specpdl_ptr - specpdl;
 
-  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+  record_unwind_protect (set_buffer_if_live, Fcurrent_buffer ());
 
   val = Fprogn (args);
   return unbind_to (count, val);
