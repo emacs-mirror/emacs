@@ -206,14 +206,14 @@ even if that goes past COLUMN; by default, MIN is zero.")
       XFASTINT (n) = mincol / tab_width - fromcol / tab_width;
       if (XFASTINT (n) != 0)
 	{
-	  Finsert_char (make_number ('\t'), n);
+	  Finsert_char (make_number ('\t'), n, Qt);
 
 	  fromcol = (mincol / tab_width) * tab_width;
 	}
     }
 
   XFASTINT (col) = mincol - fromcol;
-  Finsert_char (make_number (' '), col);
+  Finsert_char (make_number (' '), col, Qt);
 
   last_known_column = mincol;
   last_known_column_point = point;
