@@ -875,7 +875,16 @@ direct_output_for_insert (g)
       || (MINI_WINDOW_P (w) && echo_area_glyphs))
     return 0;
 
-  current_frame->glyphs[vpos][hpos] = g;
+  {
+#ifdef HAVE_X_WINDOWS
+    int dummy;
+    int face = compute_char_face (frame, w, point, &dummy);
+#else
+    int face = 0;
+#endif
+				  
+    current_frame->glyphs[vpos][hpos] = MAKE_GLYPH (g, face);
+  }
   unchanged_modified = MODIFF;
   beg_unchanged = GPT - BEG;
   XFASTINT (w->last_point) = point;
