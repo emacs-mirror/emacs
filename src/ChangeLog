@@ -1,3 +1,21 @@
+2000-07-15  Miles Bader  <miles@gnu.org>
+
+	* editfns.c (char_property_eq, char_property_stickiness): Renamed
+	from `text_property_eq' and `text_property_stickiness', respectively.
+	(find_field, Fconstrain_to_field, char_property_eq)
+	(char_property_stickiness): Changed to call char-property functions
+	instead of text-property-only ones.
+
+	* textprop.c (Fnext_single_char_property_change): Made a subr (was
+	`next_single_char_property_change').  Do more error checking, and
+	cleanup limit behavior.
+	(Fprevious_single_char_property_change): New function.
+	(syms_of_textprop): Initialize new subrs.
+
+	* xdisp.c (display_prop_end, invisible_text_between_p):
+	Call Fnext_single_char_property_change instead of
+	next_single_char_property_change.
+
 2000-07-15  Jason Rumney  <jasonr@gnu.org>
 
 	* w32menu.c (w32_menu_show): Call free_menubar_widget_value_tree
