@@ -420,163 +420,21 @@ This returns ARGS with the arguments that have been processed removed."
       (and (x-defined-color this-color)
 	   (setq defined-colors (cons this-color defined-colors))))
     defined-colors))
+
+;;;; Function keys
+
+;;; Give some common function keys reasonable definitions.
+(define-key global-map [home] 'beginning-of-line)
+(define-key global-map [left] 'backward-char)
+(define-key global-map [up] 'previous-line)
+(define-key global-map [right] 'forward-char)
+(define-key global-map [down] 'next-line)
+(define-key global-map [prior] 'scroll-down)
+(define-key global-map [next] 'scroll-up)
+(define-key global-map [begin] 'beginning-of-buffer)
+(define-key global-map [end] 'end-of-buffer)
 
 
-;;
-;; Function key processing under X.  Function keys are received through
-;; in the input stream as Lisp symbols.
-;;
-
-(defun define-function-key (map sym definition)
-  (let ((exist (assq sym (cdr map))))
-    (if exist
-	(setcdr exist definition)
-      (setcdr map
-	      (cons (cons sym definition)
-		    (cdr map))))))
-
-;; For unused keysyms.  If this happens, it's probably a server or
-;; Xlib bug.
-
-(defun weird-x-keysym ()
-  (interactive)
-  (error "Bizarre X keysym received."))
-(define-function-key global-function-map 'xk-not-serious 'weird-x-keysym)
-
-;; Keypad type things
-
-(define-function-key global-function-map 'xk-home 'beginning-of-line)
-(define-function-key global-function-map 'xk-left 'backward-char)
-(define-function-key global-function-map 'xk-up 'previous-line)
-(define-function-key global-function-map 'xk-right 'forward-char)
-(define-function-key global-function-map 'xk-down 'next-line)
-(define-function-key global-function-map 'xk-prior 'previous-line)
-(define-function-key global-function-map 'xk-next 'next-line)
-(define-function-key global-function-map 'xk-end 'end-of-line)
-(define-function-key global-function-map 'xk-begin 'beginning-of-line)
-
- ;;  IsMiscFunctionKey 
-
-(define-function-key global-function-map 'xk-select nil)
-(define-function-key global-function-map 'xk-print nil)
-(define-function-key global-function-map 'xk-execute nil)
-(define-function-key global-function-map 'xk-insert nil)
-(define-function-key global-function-map 'xk-undo nil)
-(define-function-key global-function-map 'xk-redo nil)
-(define-function-key global-function-map 'xk-menu nil)
-(define-function-key global-function-map 'xk-find nil)
-(define-function-key global-function-map 'xk-cancel nil)
-(define-function-key global-function-map 'xk-help nil)
-(define-function-key global-function-map 'xk-break nil)
-
- ;;  IsKeypadKey 
-
-(define-function-key global-function-map 'xk-kp-space
-  '(lambda nil (interactive)
-     (insert " ")))
-(define-function-key global-function-map 'xk-kp-tab
-  '(lambda nil (interactive)
-     (insert "\t")))
-(define-function-key global-function-map 'xk-kp-enter
-  '(lambda nil (interactive)
-     (insert "\n")))
-
-(define-function-key global-function-map 'xk-kp-f1 nil)
-(define-function-key global-function-map 'xk-kp-f2 nil)
-(define-function-key global-function-map 'xk-kp-f3 nil)
-(define-function-key global-function-map 'xk-kp-f4 nil)
-
-(define-function-key global-function-map 'xk-kp-equal
-  '(lambda nil (interactive)
-     (insert "=")))
-(define-function-key global-function-map 'xk-kp-multiply
-  '(lambda nil (interactive)
-     (insert "*")))
-(define-function-key global-function-map 'xk-kp-add
-  '(lambda nil (interactive)
-     (insert "+")))
-(define-function-key global-function-map 'xk-kp-separator
-  '(lambda nil (interactive)
-     (insert ";")))
-(define-function-key global-function-map 'xk-kp-subtract
-  '(lambda nil (interactive)
-     (insert "-")))
-(define-function-key global-function-map 'xk-kp-decimal
-  '(lambda nil (interactive)
-     (insert ".")))
-(define-function-key global-function-map 'xk-kp-divide
-  '(lambda nil (interactive)
-     (insert "/")))
-
-(define-function-key global-function-map 'xk-kp-0
-  '(lambda nil (interactive)
-     (insert "0")))
-(define-function-key global-function-map 'xk-kp-1
-  '(lambda nil (interactive)
-     (insert "1")))
-(define-function-key global-function-map 'xk-kp-2
-  '(lambda nil (interactive)
-     (insert "2")))
-(define-function-key global-function-map 'xk-kp-3
-  '(lambda nil (interactive)
-     (insert "3")))
-(define-function-key global-function-map 'xk-kp-4
-  '(lambda nil (interactive)
-     (insert "4")))
-(define-function-key global-function-map 'xk-kp-5
-  '(lambda nil (interactive)
-     (insert "5")))
-(define-function-key global-function-map 'xk-kp-6
-  '(lambda nil (interactive)
-     (insert "6")))
-(define-function-key global-function-map 'xk-kp-7
-  '(lambda nil (interactive)
-     (insert "7")))
-(define-function-key global-function-map 'xk-kp-8
-  '(lambda nil (interactive)
-     (insert "8")))
-(define-function-key global-function-map 'xk-kp-9
-  '(lambda nil (interactive)
-     (insert "9")))
-
- ;;  IsFunctionKey 
-
-(define-function-key global-function-map 'xk-f1 'rmail)
-(define-function-key global-function-map 'xk-f2 nil)
-(define-function-key global-function-map 'xk-f3 nil)
-(define-function-key global-function-map 'xk-f4 nil)
-(define-function-key global-function-map 'xk-f5 nil)
-(define-function-key global-function-map 'xk-f6 nil)
-(define-function-key global-function-map 'xk-f7 nil)
-(define-function-key global-function-map 'xk-f8 nil)
-(define-function-key global-function-map 'xk-f9 nil)
-(define-function-key global-function-map 'xk-f10 nil)
-(define-function-key global-function-map 'xk-f11 nil)
-(define-function-key global-function-map 'xk-f12 nil)
-(define-function-key global-function-map 'xk-f13 nil)
-(define-function-key global-function-map 'xk-f14 nil)
-(define-function-key global-function-map 'xk-f15 nil)
-(define-function-key global-function-map 'xk-f16 nil)
-(define-function-key global-function-map 'xk-f17 nil)
-(define-function-key global-function-map 'xk-f18 nil)
-(define-function-key global-function-map 'xk-f19 nil)
-(define-function-key global-function-map 'xk-f20 nil)
-(define-function-key global-function-map 'xk-f21 nil)
-(define-function-key global-function-map 'xk-f22 nil)
-(define-function-key global-function-map 'xk-f23 nil)
-(define-function-key global-function-map 'xk-f24 nil)
-(define-function-key global-function-map 'xk-f25 nil)
-(define-function-key global-function-map 'xk-f26 nil)
-(define-function-key global-function-map 'xk-f27 nil)
-(define-function-key global-function-map 'xk-f28 nil)
-(define-function-key global-function-map 'xk-f29 nil)
-(define-function-key global-function-map 'xk-f30 nil)
-(define-function-key global-function-map 'xk-f31 nil)
-(define-function-key global-function-map 'xk-f32 nil)
-(define-function-key global-function-map 'xk-f33 nil)
-(define-function-key global-function-map 'xk-f34 nil)
-(define-function-key global-function-map 'xk-f35 nil)
-
 ;;; Do the actual X Windows setup here; the above code just defines
 ;;; functions and variables that we use now.
 
