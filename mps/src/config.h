@@ -1,6 +1,6 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(trunk.35) $
+ * $HopeName: MMsrc!config.h(trunk.36) $
  * Copyright (C) 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * PURPOSE
@@ -263,7 +263,7 @@
  */
 
 #define EVENT_BUFFER_SIZE ((size_t)4096)
-#define EventStringLengthMAX ((size_t)256) /* Including NUL */
+#define EventStringLengthMAX ((size_t)255) /* Not including NUL */
 
 
 /* Assert Buffer
