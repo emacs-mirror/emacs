@@ -1,3 +1,7 @@
+2000-11-30  Dave Love  <fx@gnu.org>
+
+	* cus-start.el: Fix read-buffer-function type.
+
 2000-11-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* md5.el: Removed.  There's a built-in function, now.
