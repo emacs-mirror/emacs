@@ -50,7 +50,7 @@
     ("^....-.*" . font-lock-type-face)				; Unread.
     ;; Neither of the below will be highlighted if either of the above are:
     ("^....[^D-] \\(......\\)" 1 font-lock-keyword-face)	; Date.
-    ("{ \\([^}]+\\),}" 1 font-lock-comment-face))		; Labels.
+    ("{ \\([^\n}]+\\),}" 1 font-lock-comment-face))		; Labels.
   "Additional expressions to highlight in Rmail Summary mode.")
 
 ;; Entry points for making a summary buffer.
