@@ -608,7 +608,7 @@ list_of_items (pane)
     {
       item = Fcar (tail);
       if (STRINGP (item))
-	push_menu_item (item, Qnil, Qnil);
+	push_menu_item (item, Qnil, Qnil, Qnil);
       else
 	{
 	  CHECK_CONS (item, 0);
