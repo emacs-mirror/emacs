@@ -269,7 +269,11 @@ that file, but does not copy any new mail into the file."
 	   ;; so we don't lose the Labels: file attribute, etc.
 	   (let ((buffer-read-only nil))
 	     (insert "BABYL OPTIONS: -*- rmail -*-\n")))
+	  ((equal (point-min) (point-max))
+	   ;; Empty RMAIL file.  Just insert the header.
+	   (rmail-insert-rmail-file-header))
 	  (t
+	   ;; Non-empty file in non-RMAIL format.  Add header and convert.
 	   (setq convert t)
 	   (rmail-insert-rmail-file-header)))
     ;; If file was not a Babyl file or if there are
@@ -292,8 +296,8 @@ that file, but does not copy any new mail into the file."
 	  (rmail-convert-to-babyl-format)
 	  (message "Converting to Babyl format...done")))))
 
-; I have checked that adding "-*- rmail -*-" to the BABYL OPTIONS line
-; will not cause emacs 18.55 problems.
+;;; I have checked that adding "-*- rmail -*-" to the BABYL OPTIONS line
+;;; will not cause emacs 18.55 problems.
 
 (defun rmail-insert-rmail-file-header ()
   (let ((buffer-read-only nil))
@@ -1830,7 +1834,9 @@ see the documentation of `rmail-resend'."
 			       rmail-current-message)))
 	  (save-excursion
 	    ;; Insert after header separator--before signature if any.
-	    (search-forward-regexp (concat "^" mail-header-separator))
+	    (goto-char (point-min))
+	    (search-forward-regexp
+	     (concat "^" (regexp-quote mail-header-separator)))
 	    (forward-line 1)
 	    (insert-buffer forward-buffer))))))
 
