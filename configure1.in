@@ -64,10 +64,12 @@ The --with-x, --with-x11 and --with-x10 options specify what window
 	system to use; if all are omitted, use X11 if present.  If you
 	don't want X, specify \`--with-x=no'.
 
-The --x-includes=DIR option tells the build process where to search for
-	the X Windows header files.  If this option is omitted, the
-	build process assumes they exist in a directory the compiler
-	checks by default.
+The --x-includes=DIR option tells the build process where to search
+	for the X Windows header files.  DIR should have a
+	subdirectory called \`X11' which contains \`X.h', \`Xlib.h', and
+	the rest of the header files; DIR should not contain \`X11'
+	itself.  If this option is omitted, the build process assumes
+	they exist in a directory the compiler checks by default.
 
 The --x-libraries=DIR option tells the build process where to look for
 	the X windows libraries.  If this option is omitted, the build
@@ -95,7 +97,7 @@ unsuccessful after disturbing the status quo, it removes config.status."
 ### names.
 config_h_opts=" \
 HAVE_X_WINDOWS HAVE_X11 HAVE_X_MENU \
-SIGTYPE GNU_MALLOC REL_ALLOC LISP_FLOAT_TYPE HAVE_CONST\
+SIGTYPE GNU_MALLOC REL_ALLOC LISP_FLOAT_TYPE HAVE_CONST \
 LD_SWITCH_X_SITE C_SWITCH_X_SITE HAVE_XFREE386"
 
 ### Record all the arguments, so we can save them in config.status.
@@ -126,6 +128,7 @@ while [ $# != 0 ]; do
       esac
 
       ## Change `-' in the option name to `_'.
+      optname="${opt}"
       opt="`echo ${opt} | tr - _`"
 
       ## Process the option.
@@ -138,7 +141,7 @@ while [ $# != 0 ]; do
 	    y | ye | yes )	val=yes ;;
 	    n | no )		val=no  ;;
 	    * )
-	      (echo "${progname}: the \`--${opt}' option is supposed to have a boolean value.
+	      (echo "${progname}: the \`--${optname}' option is supposed to have a boolean value.
 Set it to either \`yes' or \`no'."
 	       echo "${short_usage}") >&2
 	      exit 1
@@ -154,7 +157,7 @@ Set it to either \`yes' or \`no'."
 	    y | ye | yes )	val=yes ;;
 	    n | no )		val=no  ;;
 	    * )
-	      (echo "${progname}: the \`--${opt}' option is supposed to have a boolean value.
+	      (echo "${progname}: the \`--${optname}' option is supposed to have a boolean value.
 Set it to either \`yes' or \`no'."
 	       echo "${short_usage}") >&2
 	      exit 1
@@ -169,8 +172,8 @@ Set it to either \`yes' or \`no'."
 	  if [ "${valomitted}" = "yes" ]; then
 	    ## Get the next argument from the argument list, if there is one.
             if [ $# = 1 ]; then
-	      (echo "${progname}: You must give a value for the \`--${opt}' option, as in
-    \`--${opt}=FOO'."
+	      (echo "${progname}: You must give a value for the \`--${optname}' option, as in
+    \`--${optname}=FOO'."
 	       echo "${short_usage}") >&2
 	      exit 1
 	    fi
@@ -185,13 +188,13 @@ Set it to either \`yes' or \`no'."
 	## I think these are dopey, but no less than three alpha
 	## testers, at large sites, have said they have their X files
 	## installed in odd places.
-	"x-includes" )
+	"x_includes" )
 	  ## If the value was omitted, get it from the next argument.
 	  if [ "${valomitted}" = "yes" ]; then
 	    ## Get the next argument from the argument list, if there is one.
             if [ $# = 1 ]; then
-	      (echo "${progname}: You must give a value for the \`--${opt}' option, as in
-    \`--${opt}=FOO'."
+	      (echo "${progname}: You must give a value for the \`--${optname}' option, as in
+    \`--${optname}=FOO'."
 	       echo "${short_usage}") >&2
 	      exit 1
 	    fi
@@ -200,13 +203,13 @@ Set it to either \`yes' or \`no'."
 	  x_includes="${val}"
 	  C_SWITCH_X_SITE="-I${x_includes}"
         ;;
-	"x-libraries" )
+	"x_libraries" )
 	  ## If the value was omitted, get it from the next argument.
 	  if [ "${valomitted}" = "yes" ]; then
 	    ## Get the next argument from the argument list, if there is one.
             if [ $# = 1 ]; then
-	      (echo "${progname}: You must give a value for the \`--${opt}' option, as in
-    \`--${opt}=FOO'."
+	      (echo "${progname}: You must give a value for the \`--${optname}' option, as in
+    \`--${optname}=FOO'."
 	       echo "${short_usage}") >&2
 	      exit 1
 	    fi
@@ -794,7 +797,7 @@ case "${window_system}" in
     window_system=none
     if [ -r /usr/lib/libX11.a \
 	 -o -d /usr/include/X11 \
-         -o -d /usr/X386/include]; then
+         -o -d /usr/X386/include ]; then
       window_system=x11
     fi
   ;;
@@ -836,7 +839,7 @@ case ${window_system} in
     if [ -d /usr/X386/include ]; then
       HAVE_XFREE386=yes
       if [ "${C_SWITCH_X_SITE}" = "" ]; then
-	C_SWITCH_X_SITE="-I/usr/X386/include
+	C_SWITCH_X_SITE="-I/usr/X386/include"
       fi
     fi
   ;;
