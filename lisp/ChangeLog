@@ -1,5 +1,11 @@
 2000-03-30  Peter Breton  <pbreton@ne.mediaone.net>
 
+	* net/net-utils.el:
+	(network-connection-host, network-connection-service): New variables
+	(network-connection-mode): New mode, derived from comint-mode
+	(network-connection-mode-setup): New function, saves host and
+	service information in local variables.	
+
 	* lisp/locate.el:
 	(locate-word-at-point): Added this function
 	(locate): Default to using locate-word-at-point as input
