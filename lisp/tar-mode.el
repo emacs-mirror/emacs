@@ -1,6 +1,7 @@
 ;;; tar-mode.el --- simple editing of tar files from GNU emacs
 
-;; Copyright (C) 1990, 1991, 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1990,91,93,94,95,96,97,98,99,2000,2001
+;; Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;; Maintainer: FSF
