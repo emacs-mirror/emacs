@@ -7401,7 +7401,21 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		fkey_next = fkey_map;
 
 	      fkey_next
-		= get_keyelt (access_keymap (fkey_next, key, 1, 0), 0);
+		= get_keyelt (access_keymap (fkey_next, key, 1, 0), 1);
+
+	      /* Handle symbol with autoload definition.  */
+	      if (SYMBOLP (keytran_next) && ! NILP (Ffboundp (keytran_next))
+		  && CONSP (XSYMBOL (keytran_next)->function)
+		  && EQ (XCONS (XSYMBOL (keytran_next)->function)->car, Qautoload))
+		do_autoload (XSYMBOL (keytran_next)->function,
+			     keytran_next);
+
+	      /* Handle a symbol whose function definition is a keymap
+		 or an array.  */
+	      if (SYMBOLP (keytran_next) && ! NILP (Ffboundp (keytran_next))
+		  && (!NILP (Farrayp (XSYMBOL (keytran_next)->function))
+		      || !NILP (Fkeymapp (XSYMBOL (keytran_next)->function))))
+		keytran_next = XSYMBOL (keytran_next)->function;
 
 #if 0 /* I didn't turn this on, because it might cause trouble
 	 for the mapping of return into C-m and tab into C-i.  */
@@ -7511,15 +7525,18 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    keytran_next
 	      = get_keyelt (access_keymap (keytran_next, key, 1, 0), 1);
 
+	    /* Handle symbol with autoload definition.  */
 	    if (SYMBOLP (keytran_next) && ! NILP (Ffboundp (keytran_next))
 		&& CONSP (XSYMBOL (keytran_next)->function)
 		&& EQ (XCONS (XSYMBOL (keytran_next)->function)->car, Qautoload))
 	      do_autoload (XSYMBOL (keytran_next)->function,
 			   keytran_next);
 
-	    /* Handle a symbol whose function definition is a keymap.  */
+	    /* Handle a symbol whose function definition is a keymap
+	       or an array.  */
 	    if (SYMBOLP (keytran_next) && ! NILP (Ffboundp (keytran_next))
-		&& !NILP (Fkeymapp (XSYMBOL (keytran_next)->function)))
+		&& (!NILP (Farrayp (XSYMBOL (keytran_next)->function))
+		    || !NILP (Fkeymapp (XSYMBOL (keytran_next)->function))))
 	      keytran_next = XSYMBOL (keytran_next)->function;
 	    
 	    /* If the key translation map gives a function, not an
