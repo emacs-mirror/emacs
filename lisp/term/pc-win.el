@@ -84,7 +84,8 @@
 
 (defun msdos-handle-reverse-video (frame parameters)
   "Handle the reverse-video frame parameter on MS-DOS frames."
-  (when (cdr (assq 'reverse parameters))
+  (when (cdr (or (assq 'reverse parameters)
+		 (assq 'reverse default-frame-alist)))
       (let* ((params (frame-parameters frame))
 	     (fg (cdr (assq 'foreground-color params)))
 	     (bg (cdr (assq 'background-color params))))
