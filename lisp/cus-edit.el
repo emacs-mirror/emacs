@@ -856,6 +856,39 @@ are shown; the contents of those subgroups are initially hidden."
 				(custom-unlispify-tag-name symbol))))
 
 ;;;###autoload
+(defun customize-changed-options (since-version)
+  "Customize all user option variables whose default values changed recently.
+This means, in other words, variables defined with a `:new' option."
+  (interactive "sCustomize options changed, since version (default all versions): ")
+  (if (equal since-version "")
+      (setq since-version nil))
+  (let ((found nil))
+    (mapatoms (lambda (symbol)
+		(and (boundp symbol)
+		     (let ((version (get symbol 'custom-version)))
+		       (and version
+			    (or (null since-version)
+				(customize-version-lessp since-version version))))
+		     (setq found
+			   (cons (list symbol 'custom-variable) found)))))
+    (if (not found)
+	(error "No user options have changed defaults in recent Emacs versions")
+      (custom-buffer-create (custom-sort-items found t nil)
+			    "*Customize Changed Options*"))))
+
+(defun customize-version-lessp (version1 version2)
+  (let (major1 major2 minor1 minor2)
+    (string-match "\\([0-9]+\\)[.]\\([0-9]+\\)" version1)
+    (setq major1 (read (match-string 1 version1)))
+    (setq minor1 (read (match-string 2 version1)))
+    (string-match "\\([0-9]+\\)[.]\\([0-9]+\\)" version2)
+    (setq major2 (read (match-string 1 version2)))
+    (setq minor2 (read (match-string 2 version2)))
+    (or (< major1 major2)
+	(and (= major1 major2)
+	     (< minor1 minor2)))))
+  
+;;;###autoload
 (defalias 'customize-variable-other-window 'customize-option-other-window)
 
 ;;;###autoload
