@@ -2232,6 +2232,8 @@ key.  Will untabify if `cperl-electric-backspace-untabify' is non-nil."
 	  (backward-delete-char-untabify arg)
 	(delete-backward-char arg)))))
 
+(put 'cperl-electric-backspace 'delete-selection 'supersede)
+
 (defun cperl-inside-parens-p ()
   (condition-case ()
       (save-excursion
