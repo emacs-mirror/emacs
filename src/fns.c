@@ -4311,14 +4311,14 @@ DEFUN ("copy-hash-table", Fcopy_hash_table, Scopy_hash_table, 1, 1, 0,
 
 DEFUN ("makehash", Fmakehash, Smakehash, 0, MANY, 0,
        "Create a new hash table.\n\
-Optional first argument SIZE is a hint to the implementation as\n\
-to how many elements will be put in the table.  Default is 65.\n\
-\n\
-Optional second argument TEST specifies how to compare keys in\n\
+Optional first argument TEST specifies how to compare keys in\n\
 the table.  Predefined tests are `eq', `eql', and `equal'.  Default\n\
 is `eql'.  New tests can be defined with `define-hash-table-test'.\n\
 \n\
-Optional third argument WEAK must be one of nil, t, `key',\n\
+Optional second argument SIZE is a hint to the implementation as\n\
+to how many elements will be put in the table.  Default is 65.\n\
+\n\
+Optional third argument WEAKNESS must be one of nil, t, `key',\n\
  or `value'.  Default is nil.  Elements of weak hash tables\n\
 are removed when their key, value or both are otherwise unreferenced.\n\
 \n\
@@ -4340,15 +4340,9 @@ Default is 0.8.")
   Lisp_Object args2[nargs + 6];
   int i, j;
 
-  /* Recognize size argument.  */
   i = j = 0;
-  if (INTEGERP (args[i]))
-    {
-      args2[j++] = QCsize;
-      args2[j++] = args[i++];
-    }
-
-  /* Recognize test argument.  */
+  
+  /* Recognize TEST argument.  */
   if (SYMBOLP (args[i])
       && !EQ (args[i], QCrehash_size)
       && !EQ (args[i], QCrehash_threshold)
@@ -4358,7 +4352,14 @@ Default is 0.8.")
       args2[j++] = args[i++];
     }
 
-  /* Recognize weakness argument.  */
+  /* Recognize SIZE argument.  */
+  if (INTEGERP (args[i]))
+    {
+      args2[j++] = QCsize;
+      args2[j++] = args[i++];
+    }
+
+  /* Recognize WEAKNESS argument.  */
   if (EQ (args[i], Qt)
       || NILP (args[i])
       || EQ (args[i], Qkey)
