@@ -551,13 +551,22 @@ number you specify is whether it is greater than zero.)
 
 @item screen-gamma
 @cindex gamma correction
-If this is a number, Emacs performs ``gamma correction'' on colors.  The
-value should be the screen gamma of your display, a floating point
-number.  Usual PC monitors have a screen gamma of 2.2, so the default is
-to display for that gamma value.  Specifying a smaller value results in
-darker colors, which is desirable for a monitor that tends to display
-colors too light.  A screen gamma value of 1.5 may give good results for
-LCD color displays.
+If this is a number, Emacs performs ``gamma correction'' which adjusts
+the brightness of all colors.  The value should be the screen gamma of
+your display, a floating point number.
+
+Usual PC monitors have a screen gamma of 2.2, so color values in
+Emacs, and in X windows generally, are calibrated to display properly
+on a monitor with that gamma value.  If you specify 2.2 for
+@code{screen-gamma}, that means no correction is needed.  Other values
+request correction, designed to make the corrected colors appear on
+your screen they way they would have appeared without correction on an
+ordinary monitor with a gamma value of 2.2.
+
+If your monitor displays colors too light, you should specify a
+@code{screen-gamma} value smaller than 2.2.  This requests correction
+that makes colors darker.  A screen gamma value of 1.5 may give good
+results for LCD color displays.
 
 @item tool-bar-lines
 The number of lines to use for the toolbar.  A value of @code{nil} means
