@@ -2973,7 +2973,8 @@ setup_coding_system (coding_system, coding)
 	      }
 	    else if (CONSP (flags[i]))
 	      {
-		Lisp_Object tail = flags[i];
+		Lisp_Object tail;
+		tail = flags[i];
 
 		coding->flags |= CODING_FLAG_ISO_DESIGNATION;
 		if (INTEGERP (XCONS (tail)->car)
@@ -3057,9 +3058,10 @@ setup_coding_system (coding_system, coding)
       coding->common_flags
 	|= CODING_REQUIRE_DECODING_MASK | CODING_REQUIRE_ENCODING_MASK;
       {
-	Lisp_Object val = XVECTOR (coding_spec)->contents[4];
+	Lisp_Object val;
 	Lisp_Object decoder, encoder;
 
+	val = XVECTOR (coding_spec)->contents[4];
 	if (CONSP  (val)
 	    && SYMBOLP (XCONS (val)->car)
 	    && !NILP (decoder = Fget (XCONS (val)->car, Qccl_program_idx))
@@ -3135,7 +3137,8 @@ setup_raw_text_coding_system (coding)
       coding->type = coding_type_raw_text;
       if (coding->eol_type != CODING_EOL_UNDECIDED)
 	{
-	  Lisp_Object subsidiaries = Fget (Qraw_text, Qeol_type);
+	  Lisp_Object subsidiaries;
+	  subsidiaries = Fget (Qraw_text, Qeol_type);
 
 	  if (VECTORP (subsidiaries)
 	      && XVECTOR (subsidiaries)->size == 3)
@@ -3388,8 +3391,9 @@ detect_coding (coding, src, src_bytes)
 {
   unsigned int idx;
   int skip, mask, i;
-  Lisp_Object val = Vcoding_category_list;
+  Lisp_Object val;
 
+  val = Vcoding_category_list;
   mask = detect_coding_mask (src, src_bytes, coding_priorities, &skip);
   coding->heading_ascii = skip;
 
@@ -3405,8 +3409,9 @@ detect_coding (coding, src, src_bytes)
 
   if (coding->eol_type != CODING_EOL_UNDECIDED)
     {
-      Lisp_Object tmp = Fget (val, Qeol_type);
+      Lisp_Object tmp;
 
+      tmp = Fget (val, Qeol_type);
       if (VECTORP (tmp))
 	val = XVECTOR (tmp)->contents[coding->eol_type];
     }
@@ -4045,12 +4050,15 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
   int len = to - from, len_byte = to_byte - from_byte;
   int require, inserted, inserted_byte;
   int head_skip, tail_skip, total_skip;
-  Lisp_Object saved_coding_symbol = Qnil;
+  Lisp_Object saved_coding_symbol;
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   int first = 1;
   int fake_multibyte = 0;
   unsigned char *src, *dst;
-  Lisp_Object deletion = Qnil;
+  Lisp_Object deletion;
+
+  deletion = Qnil;
+  saved_coding_symbol = Qnil;
 
   if (from < PT && PT < to)
     SET_PT_BOTH (from, from_byte);
@@ -4402,9 +4410,10 @@ code_convert_string (str, coding, encodep, nocopy)
   int from = 0, to = XSTRING (str)->size;
   int to_byte = STRING_BYTES (XSTRING (str));
   struct gcpro gcpro1;
-  Lisp_Object saved_coding_symbol = Qnil;
+  Lisp_Object saved_coding_symbol;
   int result;
 
+  saved_coding_symbol = Qnil;
   if (encodep && !NILP (coding->pre_write_conversion)
       || !encodep && !NILP (coding->post_read_conversion))
     {
@@ -5092,7 +5101,9 @@ This function is internal use only.")
   ()
 {
   int i = 0, idx;
-  Lisp_Object val = Vcoding_category_list;
+  Lisp_Object val;
+
+  val = Vcoding_category_list;
 
   while (CONSP (val) && i < CODING_CATEGORY_IDX_MAX)
     {
