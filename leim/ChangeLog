@@ -1,3 +1,7 @@
+2002-05-22  Kenichi Handa  <handa@etl.go.jp>
+
+	* Makefile.in (RUN-EMACS): Add LC_ALL=C.
+
 2002-02-10  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in ($(TIT)): Don't depend on $(SUBDIRS).
@@ -8,7 +12,7 @@
 	* quail/latin-pre.el (french-prefix): ", " => "," and "~ " => "~".
 	Don't define "~," at all.
 
-2002-01-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-01-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* quail/latin-pre.el (latin-2-prefix): Add ,BL(B and ,Bl(B.
 	From "Dr. Eduard Werner" <edi.werner@gmx.de>.
@@ -66,7 +70,7 @@
 	("lithuanian-numeric", "lithuanian-keyboard", "latvian-keyboard"):
 	New.
 
-2001-12-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* COPYING: New file.
 
@@ -171,7 +175,7 @@
 	"chinese-py".
 	("chinese-tonepy-punct"): Copy the QUAIL-MAP of "chinese-tonepy".
 
-2001-07-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-07-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* ja-dic/ja-dic.el, quail/cyril-jis.el, quail/cyrillic.el,
 	quail/czech.el, quail/devanagari.el, quail/ethiopic.el,
@@ -327,7 +331,7 @@
 
 	* quail/slovak.el ("slovak"): Translate "=q" to "`".
 
-2001-03-16  Pavel Jan,Bm(Bk ml.  <Pavel@Janik.cz>
+2001-03-16  Pavel Jan,Am(Bk ml.  <Pavel@Janik.cz>
 
 	* quail/slovak.el ("slovak"): Delete translations of "q", "Q",
 	"=q", "+q", "=Q", and "+Q".
@@ -413,8 +417,8 @@
 
 2000-12-18  Dave Love  <fx@gnu.org>
 
-	* quail/latin-pre.el <latin-9-prefix>: Delete duplicate ,b((B entry.
-	Change ,b=(B, ,b<(B, ,b6(B.
+	* quail/latin-pre.el <latin-9-prefix>: Delete duplicate ,B9(B entry.
+	Change ,b=(B, ,b<(B, ,A6(B.
 
 2000-12-16  Kenichi Handa  <handa@etl.go.jp>
 

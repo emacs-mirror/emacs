@@ -7,6 +7,8 @@
 
 2002-05-22  Kenichi Handa  <handa@etl.go.jp>
 
+	* Makefile.in: Cancel the 2002-05-17 change of mine.
+
 	* international/fontset.el: Add setting for unicode font at the
 	end of the default fontset.
 
