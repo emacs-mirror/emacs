@@ -1,5 +1,7 @@
 2001-10-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* isearch.el (isearch-mode-map): Bind `mouse-movement' to nil.
+
 	* obsolete/hilit19.el (hilit-lookup-face-create): Call
 	set-face-font only if display-graphic-p.
 	(toplevel): Remove references to window-system.
