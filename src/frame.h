@@ -707,16 +707,21 @@ extern Lisp_Object selected_frame;
    marks, overlay arrows.  This is 0 for terminal frames.  */
 
 #ifdef HAVE_WINDOW_SYSTEM
+
 #define FRAME_FLAGS_AREA_COLS(F) \
-     (FRAME_WINDOW_P ((F)) ? FRAME_X_FLAGS_AREA_COLS ((F)) : 0)
-#define FRAME_FLAGS_AREA_WIDTH(F) FRAME_X_FLAGS_AREA_WIDTH (F)
-#define FRAME_LEFT_FLAGS_AREA_WIDTH(F) FRAME_X_LEFT_FLAGS_AREA_WIDTH (F)
+     (FRAME_WINDOW_P (F) ? FRAME_X_FLAGS_AREA_COLS (F) : 0)
+#define FRAME_FLAGS_AREA_WIDTH(F) \
+     (FRAME_WINDOW_P (F) ? FRAME_X_FLAGS_AREA_WIDTH (F) : 0)
+#define FRAME_LEFT_FLAGS_AREA_WIDTH(F) \
+     (FRAME_WINDOW_P (F) ? FRAME_X_LEFT_FLAGS_AREA_WIDTH (F) : 0)
      
-#else
+#else /* not HAVE_WINDOW_SYSTEM */
+
 #define FRAME_FLAGS_AREA_WIDTH(F)	0
 #define FRAME_FLAGS_AREA_COLS(F)	0
 #define FRAME_LEFT_FLAGS_AREA_WIDTH(F)  0
-#endif
+
+#endif /* not HAVE_WINDOW_SYSTEM */
      
 
 
