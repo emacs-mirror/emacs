@@ -14,3 +14,5 @@
 #ifndef THIS_IS_MAKEFILE
 #undef C_SWITCH_SYSTEM
 #endif
+
+#undef SA_RESTART
