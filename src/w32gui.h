@@ -22,10 +22,12 @@ Boston, MA 02111-1307, USA.  */
 #define __W32GUI_H__
 
 #include <windows.h>
+#include "w32bdf.h"
 
 typedef struct W32FontStruct {
   TEXTMETRIC tm;
   HFONT hfont;
+  bdffont *bdf;
 } W32FontStruct;
 
 typedef HBITMAP Pixmap;
