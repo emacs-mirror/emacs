@@ -5383,8 +5383,8 @@ free_image_cache (f)
       for (i = 0; i < c->used; ++i)
 	free_image (f, c->images[i]);
       xfree (c->images);
-      xfree (c);
       xfree (c->buckets);
+      xfree (c);
       FRAME_X_IMAGE_CACHE (f) = NULL;
     }
 }
@@ -5841,7 +5841,7 @@ enum xbm_token
    Both the file and data forms may contain the additional entries
    `:background COLOR' and `:foreground COLOR'.  If not present,
    foreground and background of the frame on which the image is
-   displayed, is used.  */
+   displayed is used.  */
 
 static int
 xbm_image_p (object)
@@ -6111,7 +6111,6 @@ xbm_read_bitmap_file_data (file, width, height, data)
 
   if (v10)
     {
-      
       for (i = 0; i < nbytes; i += 2)
 	{
 	  int val = value;
@@ -7957,6 +7956,7 @@ struct my_jpeg_error_mgr
   jmp_buf setjmp_buffer;
 };
 
+
 static void
 my_error_exit (cinfo)
      j_common_ptr cinfo;
@@ -7964,6 +7964,7 @@ my_error_exit (cinfo)
   struct my_jpeg_error_mgr *mgr = (struct my_jpeg_error_mgr *) cinfo->err;
   longjmp (mgr->setjmp_buffer, 1);
 }
+
 
 /* Init source method for JPEG data source manager.  Called by
    jpeg_read_header() before any data is actually read.  See
@@ -8329,6 +8330,7 @@ typedef struct
 }
 tiff_memory_source;
 
+
 static size_t
 tiff_read_from_memory (data, buf, size)
      thandle_t data;
@@ -8344,6 +8346,7 @@ tiff_read_from_memory (data, buf, size)
   return size;
 }
 
+
 static size_t
 tiff_write_from_memory (data, buf, size)
      thandle_t data;
@@ -8352,6 +8355,7 @@ tiff_write_from_memory (data, buf, size)
 {
   return (size_t) -1;
 }
+
 
 static toff_t
 tiff_seek_in_memory (data, off, whence)
@@ -8387,6 +8391,7 @@ tiff_seek_in_memory (data, off, whence)
   return src->index;
 }
 
+
 static int
 tiff_close_memory (data)
      thandle_t data;
@@ -8394,6 +8399,7 @@ tiff_close_memory (data)
   /* NOOP */
   return 0;
 }
+
 
 static int
 tiff_mmap_memory (data, pbase, psize)
@@ -8405,6 +8411,7 @@ tiff_mmap_memory (data, pbase, psize)
   return 0;
 }
 
+
 static void
 tiff_unmap_memory (data, base, size)
      thandle_t data;
@@ -8414,12 +8421,14 @@ tiff_unmap_memory (data, base, size)
   /* We don't need to do this. */
 }
 
+
 static toff_t
 tiff_size_of_memory (data)
      thandle_t data;
 {
   return ((tiff_memory_source *) data)->len;
 }
+
 
 /* Load TIFF image IMG for use on frame F.  Value is non-zero if
    successful.  */
@@ -8612,6 +8621,7 @@ static struct image_type gif_type =
   NULL
 };
 
+
 /* Return non-zero if OBJECT is a valid GIF image specification.  */
 
 static int
@@ -8630,6 +8640,7 @@ gif_image_p (object)
   return fmt[GIF_FILE].count + fmt[GIF_DATA].count == 1;
 }
 
+
 /* Reading a GIF image from memory
    Based on the PNG memory stuff to a certain extent. */
 
@@ -8640,6 +8651,7 @@ typedef struct
   int index;
 }
 gif_memory_source;
+
 
 /* Make the current memory source available to gif_read_from_memory.
    It's done this way because not all versions of libungif support
@@ -9747,7 +9759,7 @@ TIMEOUT nil means use the default timeout of 5 seconds.")
       /* Let the row go over the full width of the frame.  */
       row->full_width_p = 1;
 
-      /* There's a glyph at the end of rows that is use to place
+      /* There's a glyph at the end of rows that is used to place
 	 the cursor there.  Don't include the width of this glyph.  */
       if (row->used[TEXT_AREA])
 	{
