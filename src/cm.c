@@ -100,6 +100,35 @@ addcol (n) {
 #endif
 
 /*
+ * Terminals with magicwrap (xn) don't all behave identically.
+ * The VT100 leaves the cursor in the last column but will wrap before
+ * printing the next character.  I hear that the Concept terminal does
+ * the wrap immediately but ignores the next newline it sees.  And some
+ * terminals just have buggy firmware, and think that the cursor is still
+ * in limbo if we use direct cursor addressing from the phantom column.
+ * The only guaranteed safe thing to do is to emit a CRLF immediately
+ * after we reach the last column; this takes us to a known state.
+ */
+void
+cmcheckmagic ()
+{
+  if (curX == FrameCols)
+    {
+      if (!MagicWrap || curY >= FrameRows - 1)
+	abort ();
+      if (termscript)
+	putc ('\r', termscript);
+      putchar ('\r');
+      if (termscript)
+	putc ('\n', termscript);
+      putchar ('\n');
+      curX = 0;
+      curY++;
+    }
+}
+
+
+/*
  * (Re)Initialize the cost factors, given the output speed of the terminal
  * in the variable ospeed.  (Note: this holds B300, B9600, etc -- ie stuff
  * out of <sgtty.h>.)
