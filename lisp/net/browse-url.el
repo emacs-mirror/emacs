@@ -1,6 +1,6 @@
 ;;; browse-url.el --- pass a URL to a WWW browser
 
-;; Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001
+;; Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Denis Howe <dbh@doc.ic.ac.uk>
@@ -1352,8 +1352,8 @@ don't offer a form of remote control."
   (interactive (browse-url-interactive-arg "URL: "))
   (if (not browse-url-generic-program)
     (error "No browser defined (`browse-url-generic-program')"))
-  (apply 'start-process (concat browse-url-generic-program url) nil
-	 browse-url-generic-program
+  (apply 'call-process browse-url-generic-program nil
+	 0 nil
 	 (append browse-url-generic-args (list url))))
 
 ;;;###autoload
