@@ -354,9 +354,6 @@ struct frame
   int scroll_bar_pixel_width;
   int scroll_bar_cols;
 
-  /* Width of area for drawing truncation marks and overlay arrow.  */
-  int trunc_area_pixel_width, trunc_area_cols;
-
   /* The baud rate that was used to calculate costs for this frame.  */
   int cost_calculation_baud_rate;
 
@@ -646,6 +643,7 @@ typedef struct frame *FRAME_PTR;
 
 
 extern Lisp_Object Qframep, Qframe_live_p, Qicon;
+extern Lisp_Object Qleft_fringe, Qright_fringe;
 
 extern struct frame *last_nonminibuf_frame;
 
@@ -729,12 +727,15 @@ extern Lisp_Object selected_frame;
      (FRAME_WINDOW_P (F) ? FRAME_X_FRINGE_WIDTH (F) : 0)
 #define FRAME_LEFT_FRINGE_WIDTH(F) \
      (FRAME_WINDOW_P (F) ? FRAME_X_LEFT_FRINGE_WIDTH (F) : 0)
+#define FRAME_RIGHT_FRINGE_WIDTH(F) \
+     (FRAME_WINDOW_P (F) ? FRAME_X_RIGHT_FRINGE_WIDTH (F) : 0)
      
 #else /* not HAVE_WINDOW_SYSTEM */
 
 #define FRAME_FRINGE_WIDTH(F)	0
 #define FRAME_FRINGE_COLS(F)	0
 #define FRAME_LEFT_FRINGE_WIDTH(F)  0
+#define FRAME_RIGHT_FRINGE_WIDTH(F) 0
 
 #endif /* not HAVE_WINDOW_SYSTEM */
      
