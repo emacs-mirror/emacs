@@ -271,6 +271,7 @@ chapter."
   (define-key keymap "\C-c\C-t\C-d"    'texinfo-delete-from-print-queue)
   (define-key keymap "\C-c\C-t\C-q"    'tex-show-print-queue)
   (define-key keymap "\C-c\C-t\C-p"    'texinfo-tex-print)
+  (define-key keymap "\C-c\C-t\C-v"    'texinfo-tex-view)
   (define-key keymap "\C-c\C-t\C-i"    'texinfo-texindex)
 
   (define-key keymap "\C-c\C-t\C-r"    'texinfo-tex-region)
@@ -443,9 +444,13 @@ value of texinfo-mode-hook."
   (make-local-variable 'outline-level)
   (setq outline-level 'texinfo-outline-level)
   (make-local-variable 'tex-start-of-header)
-  (setq tex-start-of-header "%**start")
+  (setq tex-start-of-header "%\\*\\*start")
   (make-local-variable 'tex-end-of-header)
-  (setq tex-end-of-header "%**end")
+  (setq tex-end-of-header "%\\*\\*end")
+  (make-local-variable 'tex-first-line-header-regexp)
+  (setq tex-first-line-header-regexp "^\\\\input")
+  (make-local-variable 'tex-trailer)
+  (setq tex-trailer "@bye\n")
   (run-hooks 'text-mode-hook 'texinfo-mode-hook))
 
 
@@ -689,94 +694,16 @@ inclusive.  The header must start in the first 100 lines.
 The value of `texinfo-tex-trailer' is appended to the temporary file after the region."
   (interactive "r")
   (require 'tex-mode)
-  (if (get-buffer "*tex-shell*")
-      (tex-kill-job)
-    (tex-start-shell))
-  (or tex-zap-file (setq tex-zap-file (make-temp-name "#tz")))
-  (let ((tex-out-file (concat tex-zap-file ".tex"))
-	(temp-buffer (get-buffer-create " tex-Output-Buffer"))
-	(zap-directory
-         (file-name-as-directory (expand-file-name tex-directory))))
-    (save-excursion
-      (save-restriction
-	(widen)
-	(goto-char (point-min))
-	(forward-line 100)
-	(let ((search-end (point))
-	      (hbeg (point-min)) (hend (point-min))
-	      (default-directory zap-directory))
-	  (goto-char (point-min))
-          
-          ;; Copy first line, the `\input texinfo' line, to temp file
-	  (write-region (point) 
-                        (save-excursion (end-of-line) (point))
-                        tex-out-file nil nil)
-          
-          ;; Don't copy first line twice if region includes it.
-          (forward-line 1)
-          (if (< beg (point)) (setq beg (point)))
-          
-          ;; Initialize the temp file with either the header or nothing
-          (if (search-forward tex-start-of-header search-end t)
-              (progn
-                (beginning-of-line)
-                (setq hbeg (point))	; Mark beginning of header.
-                (if (search-forward tex-end-of-header nil t)
-                    (progn (beginning-of-line)
-                           (setq hend (point)))	; Mark end of header.
-                  (setq hbeg (point-min))))) ; Else no header.
-          
-          ;; Copy  header  to temp file.
-          (write-region (min hbeg beg) hend tex-out-file t nil)
-          
-          ;; Copy  region  to temp file.
-          (write-region (max beg hend) end tex-out-file t nil))
-        
-        ;; This is  a kludge to insert the tex-trailer into the tex-out-file.
-        ;;  We have to create a special buffer in which to insert
-        ;;  the tex-trailer first because there is no function with
-        ;;  which to append a literal string directly to a file.
-        (let ((local-tex-trailer texinfo-tex-trailer))
-          (set-buffer temp-buffer)
-          (erase-buffer)
-          ;; make sure trailer isn't hidden by a comment
-          (insert-string "\n")
-          (if local-tex-trailer (insert-string local-tex-trailer))
-          (tex-set-buffer-directory temp-buffer zap-directory)
-          (write-region (point-min) (point-max) tex-out-file t nil))
-
-;;; The following is sufficient in Emacs 19.
-;;;	(write-region (concat "\n" texinfo-tex-trailer) nil
-;;;		      tex-out-file t nil)
-	))
-    
-    (tex-set-buffer-directory "*tex-shell*" zap-directory)
-    (tex-send-command tex-shell-cd-command zap-directory)
-    (tex-send-command texinfo-tex-command tex-out-file))
-  (tex-recenter-output-buffer 0))
+  (let ((tex-command texinfo-tex-command)
+	(tex-trailer "@bye\n"))
+    (tex-region beg end)))
 
 (defun texinfo-tex-buffer ()
   "Run TeX on visited file, once or twice, to make a correct `.dvi' file."
   (interactive)
-
-  ;; Make sure TeX shell is running.
   (require 'tex-mode)
-  (if (get-buffer "*tex-shell*")
-      (quit-process (get-process "tex-shell") t)
-    (tex-start-shell))
-
-  (cond ((null buffer-file-name)
-         (error "Buffer not visiting any file!"))
-        ((buffer-modified-p)
-         (error "Buffer has been modified since last saved!")))
-
-  (setq tex-zap-file buffer-file-name)
-
-  (tex-send-command tex-shell-cd-command (file-name-directory tex-zap-file))
-
-  (tex-send-command texinfo-texi2dvi-command tex-zap-file)
-
-  (tex-recenter-output-buffer 0))
+  (let ((tex-command texinfo-texi2dvi-command))
+    (tex-buffer)))
 
 (defun texinfo-texindex ()
   "Run `texindex' on unsorted index files.
@@ -792,8 +719,14 @@ This runs the shell command defined by `texinfo-texindex-command'."
 This runs the shell command defined by `tex-dvi-print-command'."
   (interactive)
   (require 'tex-mode)
-  (tex-send-command tex-dvi-print-command (concat tex-zap-file ".dvi"))
-  (tex-recenter-output-buffer nil))
+  (tex-print))
+
+(defun texinfo-tex-view ()
+  "View `.dvi' file made by \\[texinfo-tex-region] or \\[texinfo-tex-buffer].
+This runs the shell command defined by `tex-dvi-view-command'."
+  (interactive)
+  (require 'tex-mode)
+  (tex-view))
 
 (defun texinfo-quit-job ()
   "Quit currently running TeX job, by sending an `x' to it."
