@@ -607,6 +607,9 @@ L lookup; Q quit\n")
       (kill-emacs 1))
   (write-region (point-min) (point-max) "ispell.info"))
 
+(defvar ispell-message-cite-regexp "^    "
+  "*Regular expression to match lines cited from one message into another.")
+
 (defun ispell-message ()
   "Check the spelling for an outgoing mail message."
   (interactive)
