@@ -1,3 +1,10 @@
+2004-07-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el: Describe `Auto Revert Tail Mode' in `Commentary'
+	section.
+	(auto-revert-handler): Do not check `auto-revert-tail-mode' for
+	non-file buffers.  We know it is nil.
+
 2004-07-17  Kai Grossjohann  <kai.grossjohann@gmx.net>
 
 	Sync with Tramp 2.0.43.
@@ -8,7 +15,7 @@
 	global lock.
 	(tramp-sh-file-name-handler): Use them to implement the global
 	lock.
-	
+
 2004-07-13  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (all): Code cleanup.  Change all `tramp-handle-xxx'
@@ -36,7 +43,7 @@
 
 	* net/tramp-vc.el (all): Code cleanup.  Change all
 	`tramp-handle-xxx' calls to respective `xxx` calls.
-	
+
 2004-07-17  Jonathan Yavner  <jyavner@member.fsf.org>
 
 	* emacs-lisp/testcover.el: New category "potentially-1valued" for
