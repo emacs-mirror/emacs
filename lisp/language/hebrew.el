@@ -72,6 +72,14 @@ Right-to-left writing is not yet supported.")))
   :mime-charset 'windows-1255)
 (define-coding-system-alias 'cp1255 'windows-1255)
 
+(define-coding-system 'cp862
+  "DOS codepage 862 (Portuguese)"
+  :coding-type 'charset
+  :mnemonic ?D
+  :charset-list '(cp862)
+  :mime-charset 'cp862)
+(define-coding-system-alias 'ibm862 'cp862)
+
 (provide 'hebrew)
 
 ;;; hebrew.el ends here
