@@ -149,8 +149,10 @@ Boston, MA 02111-1307, USA.  */
 
 #define UNEXEC unexelf.o
 
+#ifndef __GNUC__
 #define C_SWITCH_SYSTEM -belf
 #define LD_SWITCH_SYSTEM -belf
+#endif
 
 /* SCO has a working alloca in libPW */
 #define HAVE_ALLOCA
