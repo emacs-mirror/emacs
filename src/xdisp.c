@@ -9005,9 +9005,11 @@ mark_window_display_accurate_1 (w, accurate_p)
   if (accurate_p)
     {
       w->window_end_valid = w->buffer;
+#if 0 /* This is incorrect with variable-height lines.  */
       xassert (XINT (w->window_end_vpos)
 	       < (XINT (w->height)
 		  - (WINDOW_WANTS_MODELINE_P (w) ? 1 : 0)));
+#endif
       w->update_mode_line = Qnil;
     }
 }
