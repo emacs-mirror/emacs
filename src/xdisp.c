@@ -259,11 +259,9 @@ extern Lisp_Object Qface, Qinvisible, Qimage;
 Lisp_Object Qspace, QCalign_to, QCrelative_width, QCrelative_height;
 Lisp_Object Qleft_margin, Qright_margin, Qspace_width, Qheight, Qraise;
 
-/* Name of the variable controlling the highlighting of trailing
-   whitespace.  The implementation uses find_symbol_value to get its
-   value.  */
+/* Non-nil means highlight trailing whitespace.  */
 
-Lisp_Object Qshow_trailing_whitespace;
+Lisp_Object Vshow_trailing_whitespace;
 
 /* Name of the face used to highlight trailing whitespace.  */
 
@@ -1223,11 +1221,6 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
      attribute changes of named faces, recompute them.  */
   if (FRAME_FACE_CACHE (it->f)->used == 0)
     recompute_basic_faces (it->f);
-
-  /* Should we highlight trailing whitespace?  */
-  value = find_symbol_value (Qshow_trailing_whitespace);
-  it->show_trailing_whitespace_p 
-    = EQ (value, Qunbound) ? 0 : !NILP (value);
 
   /* Current value of the `space-width', and 'height' properties.  */
   it->space_width = Qnil;
@@ -6697,6 +6690,7 @@ redisplay_internal (preserve_echo_area)
 	       && (w == XWINDOW (current_buffer->last_selected_window)
 		   || highlight_nonselected_windows)
 	       && NILP (w->region_showing)
+	       && NILP (Vshow_trailing_whitespace)
 	       && !cursor_in_echo_area)
 	{
 	  struct it it;
@@ -7890,6 +7884,7 @@ redisplay_window (window, just_this_one_p)
       && !(!NILP (Vtransient_mark_mode)
 	   && !NILP (current_buffer->mark_active))
       && NILP (w->region_showing)
+      && NILP (Vshow_trailing_whitespace)
       /* Right after splitting windows, last_point may be nil.  */
       && INTEGERP (w->last_point)
       /* This code is not used for mini-buffer for the sake of the case
@@ -8063,6 +8058,7 @@ redisplay_window (window, just_this_one_p)
 	   && !(!NILP (Vtransient_mark_mode)
 		&& !NILP (current_buffer->mark_active))
 	   && NILP (w->region_showing)
+	   && NILP (Vshow_trailing_whitespace)
 	   /* Overlay arrow position and string not changed.  */
 	   && EQ (last_arrow_position, COERCE_MARKER (Voverlay_arrow_position))
 	   && EQ (last_arrow_string, Voverlay_arrow_string)
@@ -8506,7 +8502,8 @@ try_window_reusing_current_matrix (w)
   /* Can't do this if region may have changed.  */
   if ((!NILP (Vtransient_mark_mode)
        && !NILP (current_buffer->mark_active))
-      || !NILP (w->region_showing))
+      || !NILP (w->region_showing)
+      || !NILP (Vshow_trailing_whitespace))
     return 0;
 
   /* If top-line visibility has changed, give up.  */
@@ -10159,7 +10156,12 @@ trailing_whitespace_p (charpos)
 	     c == ' ' || c == '\t'))
     ++bytepos;
 
-  return bytepos >= ZV_BYTE || c == '\n' || c == '\r';
+  if (bytepos >= ZV_BYTE || c == '\n' || c == '\r')
+    {
+      if (bytepos != PT_BYTE)
+	return 1;
+    }
+  return 0;
 }
 
 
@@ -10212,7 +10214,6 @@ highlight_trailing_whitespace (f, row)
 	}
     }
 }
-
 
 
 /* Construct the glyph row IT->glyph_row in the desired matrix of
@@ -10586,7 +10587,7 @@ display_line (it)
     set_cursor_from_row (it->w, row, it->w->desired_matrix, 0, 0, 0, 0);
 
   /* Highlight trailing whitespace.  */
-  if (it->show_trailing_whitespace_p)
+  if (!NILP (Vshow_trailing_whitespace))
     highlight_trailing_whitespace (it->f, it->glyph_row);
 
   /* Prepare for the next line.  This line starts horizontally at (X
@@ -11981,8 +11982,6 @@ syms_of_xdisp ()
   staticpro (&Qfontified);
   Qfontification_functions = intern ("fontification-functions");
   staticpro (&Qfontification_functions);
-  Qshow_trailing_whitespace = intern ("show-trailing-whitespace");
-  staticpro (&Qshow_trailing_whitespace);
   Qtrailing_whitespace = intern ("trailing-whitespace");
   staticpro (&Qtrailing_whitespace);
   Qimage = intern ("image");
@@ -11992,6 +11991,11 @@ syms_of_xdisp ()
   staticpro (&last_arrow_string);
   last_arrow_position = Qnil;
   last_arrow_string = Qnil;
+
+  DEFVAR_LISP ("show-trailing-whitespace", &Vshow_trailing_whitespace,
+    "Non-nil means highlight trailing whitespace.\n\
+The face used for trailing whitespace is `trailing-whitespace'.");
+  Vshow_trailing_whitespace = Qnil;
 
   DEFVAR_LISP ("inhibit-redisplay", &Vinhibit_redisplay,
     "Non-nil means don't actually do any redisplay.\n\
