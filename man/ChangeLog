@@ -1,3 +1,8 @@
+2005-01-04  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Rewrite rules): Remove an exercise (on 0^0) which is
+	no longer applicable.
+
 2005-01-03  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* custom.texi (Saving Customizations): Emacs no longer loads
