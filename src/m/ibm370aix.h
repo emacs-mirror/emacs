@@ -8,6 +8,11 @@
 #undef INTEL386
 #undef aix386
 
+/* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
+   is the most significant byte.  */
+
+#define WORDS_BIG_ENDIAN
+
 #undef TEXT_START
 #undef SEGMENT_MASK
 #undef DATA_SECTION_ALIGNMENT

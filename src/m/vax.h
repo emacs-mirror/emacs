@@ -59,6 +59,11 @@ NOTE-END  */
 
 #define LONGBITS 32		/* Number of bits in a long */
 
+/* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
+   is the most significant byte.  */
+
+#undef WORDS_BIG_ENDIAN
+
 /* #define vax    -- appears to be done automatically  */
 
 /* Use type int rather than a union, to represent Lisp_Object */

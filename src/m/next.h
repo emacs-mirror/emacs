@@ -33,6 +33,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define LONGBITS 32		/* Number of bits in a long */
 
+/* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
+   is the most significant byte.  */
+
+/* Let the compiler tell us.  */
+#ifdef __BIG_ENDIAN__
+#define WORDS_BIG_ENDIAN
+#endif
+
 /* Define how to take a char and sign-extend into an int.
    On machines where char is signed, this is a no-op.  */
 

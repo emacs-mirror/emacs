@@ -36,6 +36,11 @@ NOTE-END  */
 
 #define LONGBITS 32		/* Number of bits in a long */
 
+/* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
+   is the most significant byte.  */
+
+#define WORDS_BIG_ENDIAN
+
 /* XINT must explicitly sign-extend */
 
 #define EXPLICIT_SIGN_EXTEND

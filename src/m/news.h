@@ -41,6 +41,11 @@ NOTE-END  */
 
 #define LONGBITS 32		/* Number of bits in a long */
 
+/* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
+   is the most significant byte.  */
+
+#define WORDS_BIG_ENDIAN
+
 /* One CRT0 Dummy variable */
 
 #if 0 /* larry@mitra.com says Sony's as doesn't like this.  */
