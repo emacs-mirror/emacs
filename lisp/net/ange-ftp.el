@@ -1000,7 +1000,7 @@ Don't use any other value."
   "It t, try to use passive mode in ftp, if the client program supports it."
   :group 'ange-ftp
   :type 'boolean
-  :version 21.1)
+  :version "21.1")
 
 (defcustom ange-ftp-passive-host-alist nil
   "Alist of FTP servers that need \"passive\" mode.
@@ -1012,7 +1012,7 @@ or nil meaning don't change it."
   :type '(repeat (cons regexp (choice (const :tag "On" "on")
 				      (const :tag "Off" "off")
 				      (const :tag "Don't change" nil))))
-  :version 21.4)
+  :version "21.4")
 
 ;;;; ------------------------------------------------------------
 ;;;; Hash table support.
