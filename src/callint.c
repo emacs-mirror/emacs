@@ -351,7 +351,7 @@ supply if the command inquires which events were used to invoke it.  */)
     {
       Lisp_Object form;
       GCPRO2 (function, prefix_arg);
-      Finteractive_form (function);
+      form = Finteractive_form (function);
       UNGCPRO;
       if (CONSP (form))
 	specs = filter_specs = Fcar (XCDR (form));
