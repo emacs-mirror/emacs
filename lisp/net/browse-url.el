@@ -494,6 +494,13 @@ negation if a prefix argument was given."
 	(not (eq (null browse-url-new-window-p)
 		 (null current-prefix-arg)))))
 
+;; interactive-p needs to be called at a function's top-level, hence
+;; the macro.
+(defmacro browse-url-maybe-new-window (arg)
+  `(if (interactive-p)
+       ,arg
+     browse-url-new-window-p))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Browse current buffer
 
@@ -599,6 +606,8 @@ narrowed."
 Prompts for a URL, defaulting to the URL at or before point.  Variable
 `browse-url-browser-function' says which browser to use."
   (interactive (browse-url-interactive-arg "URL: "))
+  (unless (interactive-p)
+    (setq args (list browse-url-new-window-p)))
   (if (functionp browse-url-browser-function)
       (apply browse-url-browser-function url args)
     ;; The `function' can be an alist; look down it for first match
@@ -614,12 +623,15 @@ Prompts for a URL, defaulting to the URL at or before point.  Variable
 	     url))))
 
 ;;;###autoload
-(defun browse-url-at-point ()
+(defun browse-url-at-point (&optional arg)
   "Ask a WWW browser to load the URL at or before point.
 Doesn't let you edit the URL like `browse-url'.  Variable
 `browse-url-browser-function' says which browser to use."
-  (interactive)
-  (browse-url (browse-url-url-at-point)))
+  (interactive "P")
+  (browse-url (browse-url-url-at-point)
+	      (if arg
+		  (not browse-url-new-window-p)
+		browse-url-new-window-p)))
 
 (defun browse-url-event-buffer (event)
   (window-buffer (posn-window (event-start event))))
@@ -706,7 +718,9 @@ used instead of `browse-url-new-window-p'."
 			     (if new-window '("-noraise"))
 			     (list "-remote"
 				   (concat "openURL(" url
-					   (if new-window ",new-window")
+					   (if (browse-url-maybe-new-window
+						new-window)
+					       ",new-window")
 					   ")"))))))))
     (set-process-sentinel process
 			  (list 'lambda '(process change)
@@ -771,7 +785,7 @@ used instead of `browse-url-new-window-p'."
 	(save-excursion
 	  (find-file (format "/tmp/Mosaic.%d" pid))
 	  (erase-buffer)
-	  (insert (if new-window
+	  (insert (if (browse-url-maybe-new-window new-window)
 		      "newwin\n"
 		    "goto\n")
 		  url "\n")
@@ -838,7 +852,7 @@ used instead of `browse-url-new-window-p'."
   ;; Todo: start browser if fails
   (process-send-string "browse-url"
 		       (concat "get url (" url ") output "
-			       (if new-window
+			       (if (browse-url-maybe-new-window new-window)
 				   "new"
 				 "current")
 			       "\r\n"))
@@ -871,7 +885,7 @@ When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-p'."
   (interactive (browse-url-interactive-arg "W3 URL: "))
   (require 'w3)				; w3-fetch-other-window not autoloaded
-  (if new-window
+  (if (browse-url-maybe-new-window new-window)
       (w3-fetch-other-window url)
     (w3-fetch url)))
 
@@ -884,7 +898,9 @@ The `browse-url-gnudoit-program' program is used with options given by
   (interactive (browse-url-interactive-arg "W3 URL: "))
     (apply 'start-process (concat "gnudoit:" url) nil
 	   browse-url-gnudoit-program
-	   (append browse-url-gnudoit-args (list (concat "(w3-fetch \"" url "\")") "(raise-frame)"))))
+	   (append browse-url-gnudoit-args
+		   (list (concat "(w3-fetch \"" url "\")")
+			 "(raise-frame)"))))
 
 ;; --- Lynx in an xterm ---
 
@@ -897,7 +913,8 @@ in an Xterm window using the Xterm program named by `browse-url-xterm-program'
 with possible additional arguments `browse-url-xterm-args'."
   (interactive (browse-url-interactive-arg "Lynx URL: "))
   (apply #'start-process `(,(concat "lynx" url) nil ,browse-url-xterm-program
-             ,@browse-url-xterm-args "-e" "lynx" ,url)))
+             ,@browse-url-xterm-args "-e" "lynx"
+	     ,url)))
 
 ;; --- Lynx in an Emacs "term" window ---
 
@@ -920,13 +937,13 @@ used instead of `browse-url-new-window-p'."
 	 (buf (get-buffer "*lynx*"))
 	 (proc (and buf (get-buffer-process buf)))
 	 (n browse-url-lynx-input-attempts))
-    (if (and new-buffer buf)
+    (if (and (browse-url-maybe-new-window new-buffer) buf)
 	;; Rename away the OLD buffer. This isn't very polite, but
 	;; term insists on working in a buffer named *lynx* and would
 	;; choke on *lynx*<1>
 	(progn (set-buffer buf)
 	       (rename-uniquely)))
-    (if (or new-buffer
+    (if (or (browse-url-maybe-new-window new-buffer)
 	    (not buf)
 	    (not proc)
 	    (not (memq (process-status proc) '(run stop))))
@@ -934,7 +951,8 @@ used instead of `browse-url-new-window-p'."
 	(progn
           (setq buf
                 (apply #'make-term
-                       `("lynx" "lynx" nil ,@browse-url-lynx-emacs-args ,url)))
+                       `("lynx" "lynx" nil ,@browse-url-lynx-emacs-args
+			 ,url)))
           (switch-to-buffer buf)
           (term-char-mode)
           (set-process-sentinel
@@ -1005,7 +1023,7 @@ used instead of `browse-url-new-window-p'."
     (let ((to (if (string-match "^mailto:" url)
 		  (substring url 7)
 		url)))
-      (if new-window
+      (if (browse-url-maybe-new-window new-window)
 	  (compose-mail-other-window to nil nil nil
 				     (list 'insert-buffer (current-buffer)))
 	(compose-mail to nil nil nil nil
