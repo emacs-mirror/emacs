@@ -1,6 +1,6 @@
 ;;; thingatpt.el --- Get the `thing' at point
 
-;; Copyright (C) 1991,1992,1993 Free Software Foundation, Inc.
+;; Copyright (C) 1991,1992,1993,1994,1995 Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mikew@gopher.dosli.govt.nz>
 ;; Keywords: extensions, matching, mouse
@@ -173,6 +173,18 @@ bounds-of-thing-at-point."
       (if (re-search-backward "\\(\\sw\\|\\s_\\)+" nil nil)
 	  (skip-syntax-backward "w_"))
       (setq ARG (1+ ARG)))))
+
+;;--- Syntax blocks ---
+
+(defun forward-same-syntax (&optional arg)
+  (interactive "p")
+  (while (< arg 0)
+    (skip-syntax-backward 
+     (char-to-string (char-syntax (char-after (1- (point))))))
+    (setq arg (1+ arg)))
+  (while (> arg 0)
+    (skip-syntax-forward (char-to-string (char-syntax (char-after (point)))))
+    (setq arg (1- arg))))
 
 ;;=== Aliases =============================================================
 
