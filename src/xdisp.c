@@ -19270,7 +19270,7 @@ fast_find_position (w, charpos, hpos, vpos, x, y, stop)
 {
   struct glyph_row *row, *first;
   struct glyph *glyph, *end;
-  int i, past_end = 0;
+  int past_end = 0;
 
   first = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
   row = row_containing_pos (w, charpos, first, NULL, 0);
