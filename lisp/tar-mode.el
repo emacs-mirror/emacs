@@ -1196,7 +1196,8 @@ Leaves the region wide."
 	;; I suppose this is run in a context where changing the buffer is bad.
 	;; (tar-pad-to-blocksize)
 	(write-region tar-header-offset (point-max) buffer-file-name nil t)
-	(tar-clear-modification-flags))
+	(tar-clear-modification-flags)
+	(set-buffer-modified-p nil))
     (narrow-to-region 1 tar-header-offset))
   ;; return T because we've written the file.
   t)
