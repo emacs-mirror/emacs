@@ -32,7 +32,9 @@
 #      Still more severe - delete backup and autosave files, too.
 
 SHELL = /bin/sh
-MAKE = make  # BSD doesn't have it as a default.
+
+# If Make doesn't predefine MAKE, set it here.
+@SET_MAKE@
 
 # ==================== Things `configure' Might Edit ====================
 
