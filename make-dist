@@ -186,6 +186,7 @@ echo "Making links to \`lisp'."
  ln ChangeLog Makefile ChangeLog.? README dired.todo ../${tempdir}/lisp
  cd ../${tempdir}/lisp
  rm -f TAGS =*
+ rm -f subdirs.el
  rm -f site-init site-init.el site-init.elc
  rm -f site-load site-load.el site-load.elc
  rm -f default default.el default.elc)
