@@ -4387,7 +4387,7 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 	  len = ZV - BEGV;
 	  new = Fcurrent_buffer ();
 	  set_buffer_internal_1 (prev);
-	  del_range_2 (from, from_byte, to, to_byte);
+	  del_range_2 (from, from_byte, to, to_byte, 0);
 	  TEMP_SET_PT_BOTH (from, from_byte);
 	  insert_from_buffer (XBUFFER (new), 1, len, 0);
 	  Fkill_buffer (new);

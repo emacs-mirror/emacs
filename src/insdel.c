@@ -2053,16 +2053,19 @@ void
 del_range (from, to)
      register int from, to;
 {
-  del_range_1 (from, to, 1);
+  del_range_1 (from, to, 1, 0);
 }
 
-/* Like del_range; PREPARE says whether to call prepare_to_modify_buffer.  */
+/* Like del_range; PREPARE says whether to call prepare_to_modify_buffer.
+   RET_STRING says to return the deleted text. */
 
-void
-del_range_1 (from, to, prepare)
-     int from, to, prepare;
+Lisp_Object
+del_range_1 (from, to, prepare, ret_string)
+     int from, to, prepare, ret_string;
 {
   int from_byte, to_byte;
+  Lisp_Object deletion;
+  struct gcpro gcpro1;
 
   /* Make args be valid */
   if (from < BEGV)
@@ -2071,7 +2074,7 @@ del_range_1 (from, to, prepare)
     to = ZV;
 
   if (to <= from)
-    return;
+    return Qnil;
 
   if (prepare)
     {
@@ -2083,8 +2086,11 @@ del_range_1 (from, to, prepare)
   from_byte = CHAR_TO_BYTE (from);
   to_byte = CHAR_TO_BYTE (to);
 
-  del_range_2 (from, from_byte, to, to_byte);
+  deletion = del_range_2 (from, from_byte, to, to_byte, ret_string);
+  GCPRO1(deletion);
   signal_after_change (from, to - from, 0);
+  UNGCPRO;
+  return deletion;
 }
 
 /* Like del_range_1 but args are byte positions, not char positions.  */
@@ -2120,7 +2126,7 @@ del_range_byte (from_byte, to_byte, prepare)
 	to_byte = CHAR_TO_BYTE (to);
     }
 
-  del_range_2 (from, from_byte, to, to_byte);
+  del_range_2 (from, from_byte, to, to_byte, 0);
   signal_after_change (from, to - from, 0);
 }
 
@@ -2158,17 +2164,18 @@ del_range_both (from, from_byte, to, to_byte, prepare)
 	to_byte = CHAR_TO_BYTE (to);
     }
 
-  del_range_2 (from, from_byte, to, to_byte);
+  del_range_2 (from, from_byte, to, to_byte, 0);
   signal_after_change (from, to - from, 0);
 }
 
 /* Delete a range of text, specified both as character positions
    and byte positions.  FROM and TO are character positions,
-   while FROM_BYTE and TO_BYTE are byte positions.  */
+   while FROM_BYTE and TO_BYTE are byte positions.
+   If RET_STRING is true, the deleted area is returned as a string. */
 
-void
-del_range_2 (from, from_byte, to, to_byte)
-     int from, from_byte, to, to_byte;
+Lisp_Object
+del_range_2 (from, from_byte, to, to_byte, ret_string)
+     int from, from_byte, to, to_byte, ret_string;
 {
   register int nbytes_del, nchars_del;
   int combined_after_bytes;
@@ -2199,12 +2206,15 @@ del_range_2 (from, from_byte, to, to_byte)
   else
     from_byte_1 = from_byte;
 
-  if (! EQ (current_buffer->undo_list, Qt))
+  if (ret_string || ! EQ (current_buffer->undo_list, Qt))
     deletion
       = make_buffer_string_both (from - !!combined_after_bytes,
 				 from_byte_1,
 				 to + combined_after_bytes,
 				 to_byte + combined_after_bytes, 1);
+  else
+    deletion = Qnil;
+
   if (combined_after_bytes)
     /* COMBINED_AFTER_BYTES nonzero means that the above code moved
        the gap.  We must move the gap again to a proper place.  */
@@ -2286,6 +2296,8 @@ del_range_2 (from, from_byte, to, to_byte)
   CHECK_MARKERS ();
 
   evaporate_overlays (from);
+
+  return deletion;
 }
 
 /* Call this if you're about to change the region of BUFFER from

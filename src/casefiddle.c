@@ -265,7 +265,7 @@ casify_region (flag, b, e)
 		  error ("Can't casify letters that change length");
 #if 0 /* This is approximately what we'd like to be able to do here */
 		  if (tolen < fromlen)
-		    del_range_1 (i + tolen, i + fromlen, 0);
+		    del_range_1 (i + tolen, i + fromlen, 0, 0);
 		  else if (tolen > fromlen)
 		    {
 		      TEMP_SET_PT (i + fromlen);

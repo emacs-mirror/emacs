@@ -3688,7 +3688,7 @@ actually used.")
 	  emacs_close (fd);
 	  specpdl_ptr--;
 	  /* Truncate the buffer to the size of the file.  */
-	  del_range_1 (same_at_start, same_at_end, 0);
+	  del_range_1 (same_at_start, same_at_end, 0, 0);
 	  goto handled;
 	}
       immediate_quit = 1;

@@ -2509,6 +2509,16 @@ positions (integers or markers) specifying the stretch to be deleted.")
   del_range (XINT (start), XINT (end));
   return Qnil;
 }
+
+DEFUN ("delete-and-extract-region", Fdelete_and_extract_region,
+       Sdelete_and_extract_region, 2, 2, 0,
+  "Delete the text between START and END and return it.")
+  (start, end)
+     Lisp_Object start, end;
+{
+  validate_region (&start, &end);
+  return del_range_1 (XINT (start), XINT (end), 1, 1);
+}
 
 DEFUN ("widen", Fwiden, Swiden, 0, 0, "",
   "Remove restrictions (narrowing) from current buffer.\n\
@@ -3767,6 +3777,7 @@ functions if all the text being accessed has this property.");
   defsubr (&Ssubst_char_in_region);
   defsubr (&Stranslate_region);
   defsubr (&Sdelete_region);
+  defsubr (&Sdelete_and_extract_region);
   defsubr (&Swiden);
   defsubr (&Snarrow_to_region);
   defsubr (&Ssave_restriction);
