@@ -955,7 +955,7 @@ run `normal-mode' explicitly."
     ("ChangeLog.[0-9]+\\'" . change-log-mode)
     ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
     ("\\.scm\\.[0-9]*\\'" . scheme-mode)
-    ("\\.c?sh\\'\\|\\.shar\\'\\|/\\.z?profile\\'" . sh-mode)
+    ("\\.[ck]?sh\\'\\|\\.shar\\'\\|/\\.z?profile\\'" . sh-mode)
     ("/\\.\\(bash_profile\\|z?login\\|bash_login\\|z?logout\\)\\'" . sh-mode)
     ("/\\.\\(bash_logout\\|[kz]shrc\\|bashrc\\|t?cshrc\\|esrc\\)\\'" . sh-mode)
     ("/\\.\\([kz]shenv\\|xinitrc\\|startxrc\\|xsession\\)\\'" . sh-mode)
@@ -1487,8 +1487,10 @@ Makes buffer visit that file, and marks it not modified.
 If the buffer is already visiting a file, you can specify
 a directory name as FILENAME, to write a file of the same
 old name in that directory.
+
 If optional second arg CONFIRM is non-nil,
-ask for confirmation for overwriting an existing file."
+ask for confirmation for overwriting an existing file.
+Interactively, confirmation is required unless you supply a prefix argument."
 ;;  (interactive "FWrite file: ")
   (interactive
    (list (if buffer-file-name
@@ -1498,7 +1500,7 @@ ask for confirmation for overwriting an existing file."
 			       (cdr (assq 'default-directory
 					  (buffer-local-variables)))
 			       nil nil (buffer-name)))
-	 t))
+	 (not current-prefix-arg)))
   (or (null filename) (string-equal filename "")
       (progn
 	;; If arg is just a directory,
