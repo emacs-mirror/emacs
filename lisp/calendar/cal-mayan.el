@@ -1,6 +1,6 @@
 ;;; cal-mayan.el --- calendar functions for the Mayan calendars.
 
-;; Copyright (C) 1992, 1993, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1995, 1997 Free Software Foundation, Inc.
 
 ;; Author: Stewart M. Clamen <clamen@cs.cmu.edu>
 ;;	Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -44,6 +44,8 @@
 ;; Comments, improvements, and bug reports should be sent to Reingold.
 
 ;; Technical details of the Mayan calendrical calculations can be found in
+;; ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
+;; Cambridge University Press (1997), and in
 ;; ``Calendrical Calculations, Part II: Three Historical Calendars''
 ;; by E. M. Reingold,  N. Dershowitz, and S. M. Clamen,
 ;; Software--Practice and Experience, Volume 23, Number 4 (April, 1993),

@@ -1,6 +1,6 @@
 ;;; cal-china.el --- calendar functions for the Chinese calendar.
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: calendar
@@ -36,6 +36,10 @@
 ;; tables--but no two pairs of published tables agree perfectly either!  Liu's
 ;; rules produce a calendar for 2033 which is not accepted by all authorities.
 ;; The date of Chinese New Year is correct from 1644-2051.
+
+;; Technical details of all the calendrical calculations can be found in
+;; ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
+;; Cambridge University Press (1997).
 
 ;; Comments, corrections, and improvements should be sent to
 ;;  Edward M. Reingold               Department of Computer Science

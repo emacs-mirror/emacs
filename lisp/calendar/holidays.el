@@ -1,6 +1,6 @@
 ;;; holidays.el --- holiday functions for the calendar package
 
-;; Copyright (C) 1989, 1990, 1992, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 90, 92, 93, 94, 1997 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: holidays, calendar
@@ -27,13 +27,11 @@
 ;; This collection of functions implements the holiday features as described
 ;; in calendar.el.
 
-;; Comments, corrections, and improvements should be sent to
-;;  Edward M. Reingold               Department of Computer Science
-;;  (217) 333-6733                   University of Illinois at Urbana-Champaign
-;;  reingold@cs.uiuc.edu             1304 West Springfield Avenue
-;;                                   Urbana, Illinois 61801
-
 ;; Technical details of all the calendrical calculations can be found in
+;; ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
+;; Cambridge University Press (1997).
+
+;; An earlier version of the technical details appeared in
 ;; ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
 ;; Software--Practice and Experience, Volume 20, Number 9 (September, 1990),
 ;; pages 899-928.  ``Calendrical Calculations, Part II: Three Historical
@@ -44,6 +42,12 @@
 ;; Hard copies of these two papers can be obtained by sending email to
 ;; reingold@cs.uiuc.edu with the SUBJECT "send-paper-cal" (no quotes) and
 ;; the message BODY containing your mailing address (snail).
+
+;; Comments, corrections, and improvements should be sent to
+;;  Edward M. Reingold               Department of Computer Science
+;;  (217) 333-6733                   University of Illinois at Urbana-Champaign
+;;  reingold@cs.uiuc.edu             1304 West Springfield Avenue
+;;                                   Urbana, Illinois 61801
 
 ;;; Code:
 

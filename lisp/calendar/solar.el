@@ -47,6 +47,10 @@
 ;;    2. Equinox/solstice times will be accurate to the minute for years
 ;;       1951--2050.  For other years the times will be within +/- 1 minute.
 
+;; Technical details of all the calendrical calculations can be found in
+;; ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
+;; Cambridge University Press (1997).
+
 ;; Comments, corrections, and improvements should be sent to
 ;;  Edward M. Reingold               Department of Computer Science
 ;;  (217) 333-6733                   University of Illinois at Urbana-Champaign

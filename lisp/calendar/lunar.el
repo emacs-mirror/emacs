@@ -1,6 +1,6 @@
 ;;; lunar.el --- calendar functions for phases of the moon.
 
-;; Copyright (C) 1992, 1993, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1995, 1997 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: calendar
@@ -36,6 +36,10 @@
 
 ;; The author would be delighted to have an astronomically more sophisticated
 ;; person rewrite the code for the lunar calculations in this file!
+
+;; Technical details of all the calendrical calculations can be found in
+;; ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
+;; Cambridge University Press (1997).
 
 ;; Comments, corrections, and improvements should be sent to
 ;;  Edward M. Reingold               Department of Computer Science

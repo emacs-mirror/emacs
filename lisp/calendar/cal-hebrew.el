@@ -1,6 +1,6 @@
 ;;; cal-hebrew.el --- calendar functions for the Hebrew calendar.
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997 Free Software Foundation, Inc.
 
 ;; Author: Nachum Dershowitz <nachum@cs.uiuc.edu>
 ;;      Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -28,6 +28,10 @@
 
 ;; This collection of functions implements the features of calendar.el and
 ;; diary.el that deal with the Hebrew calendar.
+
+;; Technical details of all the calendrical calculations can be found in
+;; ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
+;; Cambridge University Press (1997).
 
 ;; Comments, corrections, and improvements should be sent to
 ;;  Edward M. Reingold               Department of Computer Science

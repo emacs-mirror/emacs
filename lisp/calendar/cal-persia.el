@@ -1,6 +1,6 @@
 ;;; cal-persia.el --- calendar functions for the Persian calendar.
 
-;; Copyright (C) 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: calendar
@@ -27,6 +27,10 @@
 
 ;; This collection of functions implements the features of calendar.el and
 ;; diary.el that deal with the Persian calendar.
+
+;; Technical details of all the calendrical calculations can be found in
+;; ``Calendrical Calculations'' by Nachum Dershowitz and Edward M. Reingold,
+;; Cambridge University Press (1997).
 
 ;; Comments, corrections, and improvements should be sent to
 ;;  Edward M. Reingold               Department of Computer Science
