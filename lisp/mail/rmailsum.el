@@ -849,7 +849,9 @@ Commands for sorting the summary:
     (if message-not-found
 	(overlay-put rmail-summary-overlay 'face nil)
       (move-overlay rmail-summary-overlay
-		    (save-excursion (beginning-of-line) (1+ (point)))
+		    (save-excursion (beginning-of-line)
+				    (skip-chars-forward " ")
+				    (point))
 		    (save-excursion (end-of-line) (point)))
       (overlay-put rmail-summary-overlay 'face 'highlight))
     (beginning-of-line)
