@@ -1,3 +1,7 @@
+2001-12-28  Richard M. Stallman  <rms@gnu.org>
+
+	* net/ldap.el (ldap-search-internal): Handle <file://...> in results.
+
 2001-12-26  Markus Rost  <rost@math.ohio-state.edu>
 
 	* find-dired.el (find-dired-sentinel): Precede exit message by
