@@ -4,7 +4,7 @@
 
 2002-03-06  Gerd Moellmann  <gerd@gnu.org>
 
-	* keyboard.c (echo_prompt, echo_char, echo_dash, echo_now) 
+	* keyboard.c (echo_prompt, echo_char, echo_dash, echo_now)
 	(cancel_echoing, echo_length, echo_truncate): Changed to
 	work with new kboard definition.
 	(echo_now): Use message3_nolog instead of message2_nolog.
@@ -28,6 +28,12 @@
 	* frame.c (default-frame-alist): Explain that setting it doesn't
 	affect existing frames.
 
+2002-03-05  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* indent.c (skip_invisible): Fix my brain fart.
+
+	* dispnew.c (sit_for): Don't wait if executing a kbd macro.
+
 2002-03-04  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* dosfns.c, dosfns.h, dispnew.c, dispextern.h, commands.h, charset.c,
@@ -35,6 +41,8 @@
 	* lisp.h, lread.c, sysdep.c, termcap.c, termchar.h, w32term.c,
 	* window.c, xdisp.c, xselect.c, xterm.c: Change defvar_int definition
 	and variables to use EMACS_INT instead of just int.
+
+	* buffer.c (syms_of_buffer): Allow non-string `mode-name'.
 
 2002-03-04  Eli Zaretskii  <eliz@is.elta.co.il>
 

@@ -9,8 +9,8 @@
 	name does not contain characters that are invalid for DOS/Windows
 	filesystems.
 
-	* dos-fns.el, w32-fns.el: (make-auto-save-file-name): Remove
-	replacement functions.
+	* dos-fns.el, w32-fns.el: (make-auto-save-file-name):
+	Remove replacement functions.
 
 2002-03-06  Gerd Moellmann  <gerd@gnu.org>
 
@@ -58,43 +58,52 @@
 	`make-temp-name'.
 
 	* vc-cvs.el (vc-cvs-diff-tree): Fix typo in parameter names.
-	
+
 2002-03-05  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
+
 	* ediff-init.el: comments.
-	
+
 	* ediff-hook.el: Got rid of autoloads. Not needed, since the hook
 	is loaded.
-	
-	* ediff-mult.el (ediff-intersect-directories,
-	ediff-prepare-meta-buffer,ediff-get-directory-files-under-revision):
-	cleanup.
-	(ediff-draw-dir-diffs): now supports the "C" command in directory
+
+	* ediff-mult.el (ediff-intersect-directories)
+	(ediff-prepare-meta-buffer,ediff-get-directory-files-under-revision):
+	Cleanup.
+	(ediff-draw-dir-diffs): Now supports the "C" command in directory
 	difference buffer.
-	(ediff-dir-diff-copy-file): new function that implements copying
+	(ediff-dir-diff-copy-file): New function that implements copying
 	of files from one Ediff dir to another
-	(ediff-bury-dir-diffs-buffer): kills the buffer instead.
-	(ediff-append-custom-diff): better error msgs.
-	
-	* ediff-util.el (ediff-compute-custom-diffs-maybe): buglet fix.
+	(ediff-bury-dir-diffs-buffer): Kills the buffer instead.
+	(ediff-append-custom-diff): Better error msgs.
+
+	* ediff-util.el (ediff-compute-custom-diffs-maybe): Buglet fix.
 	(ediff-inferior-compare-regions): Use
 	ediff-clone-buffer-for-region-comparison. Better and simpler interface.
-	
+
 	* ediff.el (ediff-directories-internal): Cleanup.
 	(ediff-clone-buffer-for-region-comparison): Better interface.
-	
+
 2002-03-04  Richard M. Stallman  <rms@gnu.org>
 
-	* emacs-lisp/easy-mmode.el (define-minor-mode): 
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
 	Use "P" in interactive spec of minor mode commands.
+
+2002-03-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* faces.el (face-spec-choose): Allow `t' to appear before the end.
+	(mode-line, tool-bar, minibuffer-prompt, region, fringe, bold, italic)
+	(bold-italic, underline, highlight, secondary-selection, fixed-pitch)
+	(variable-pitch, trailing-whitespace): Don't use the old-style entries.
+	(mode-line-inactive, header-line): Move the `t' section to the
+	beginning so the `:inherit' setting can be shared.
 
 2002-03-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* net/snmp-mode.el: Require tempo when compiling to prevent
 	warnings.  Update copyright notice.
 
-	* help.el (describe-key-briefly, describe-key): Interpret
-	`undefined' like not defined at all.
+	* help.el (describe-key-briefly, describe-key): Interpret `undefined'
+	like not defined at all.
 
 2002-03-03  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -164,9 +173,8 @@
 
 2002-03-03  Thien-Thi Nguyen  <ttn@gnu.org>
 
-	* calendar/diary-lib.el (list-diary-entries): Use
-	`buffer-substring' instead of `buffer-substring-no-properties' to
-	support enriched mode.
+	* calendar/diary-lib.el (list-diary-entries): Use `buffer-substring'
+	instead of `buffer-substring-no-properties' to support enriched mode.
 
 2002-03-02  Richard M. Stallman  <rms@gnu.org>
 
@@ -188,8 +196,8 @@
 
 2002-03-01  Andreas Schwab  <schwab@suse.de>
 
-	* textmodes/texnfo-upd.el (texinfo-start-menu-description): Remove
-	extra paren in regexp.
+	* textmodes/texnfo-upd.el (texinfo-start-menu-description):
+	Remove extra paren in regexp.
 
 2002-03-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -199,12 +207,10 @@
 
 2002-02-28  Colin Walters  <walters@verbum.org>
 
-	* eshell/esh-var.el (eshell-parse-variable-ref): Use
-	`make-temp-file'.
+	* eshell/esh-var.el (eshell-parse-variable-ref): Use `make-temp-file'.
 
 	* calc/calc-graph.el (calc-gnuplot-tempfile): Don't expand against
-	`temporary-file-directory'; we now do that in
-	`calc-graph-file-cache'.
+	`temporary-file-directory'; we now do that in `calc-graph-file-cache'.
 	(calc-temp-file-name): Use `make-temp-file'.
 
 2002-02-28  Richard M. Stallman  <rms@gnu.org>
@@ -275,8 +281,7 @@
 
 	* winner.el (winner-boring-buffers, winner-set): A window which
 	displays a buffer whose name is in the list
-	`winner-boring-buffers', will no longer be restored by
-	`winner-undo'.
+	`winner-boring-buffers', will no longer be restored by `winner-undo'.
 	(winner-sorted-window-list): Used to improve comparison between
 	window configurations.
 	(winner-win-data): Simplified and moved.
@@ -341,8 +346,7 @@
 
 2002-02-25  Per Abrahamsen  <abraham@dina.kvl.dk>
 
-	* ps-print.el (ps-print-printer): Added `lpr' customize group
-	member.
+	* ps-print.el (ps-print-printer): Added `lpr' customize group member.
 
 2002-02-25  Juanma Barranquero  <lektu@terra.es>
 
