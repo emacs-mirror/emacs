@@ -1404,9 +1404,7 @@ main (argc, argv, envp)
   init_xdisp ();
   init_macros ();
   init_editfns ();
-#ifdef LISP_FLOAT_TYPE
   init_floatfns ();
-#endif
 #ifdef VMS
   init_vmsfns ();
 #endif /* VMS */

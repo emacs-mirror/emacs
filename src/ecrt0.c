@@ -347,9 +347,7 @@ static foo () {
 _start ()
 {
 #ifdef sun
-#ifdef LISP_FLOAT_TYPE
   finitfp_();
-#endif
 #endif     
 /* On 68000, _start pushes a6 onto stack  */
   start1 ();

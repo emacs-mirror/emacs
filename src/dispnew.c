@@ -5509,16 +5509,11 @@ Emacs was built without floating point support.\n\
     CHECK_NUMBER (milliseconds, 1);
   usec = XINT (milliseconds) * 1000;
 
-#ifdef LISP_FLOAT_TYPE
   {
     double duration = extract_float (seconds);
     sec = (int) duration;
     usec += (duration - sec) * 1000000;
   }
-#else
-  CHECK_NUMBER (seconds, 0);
-  sec = XINT (seconds);
-#endif
 
 #ifndef EMACS_HAS_USECS
   if (sec == 0 && usec != 0)
@@ -5641,16 +5636,11 @@ Value is t if waited the full time with no input arriving.")
     CHECK_NUMBER (milliseconds, 1);
   usec = XINT (milliseconds) * 1000;
 
-#ifdef LISP_FLOAT_TYPE
   {
     double duration = extract_float (seconds);
     sec = (int) duration;
     usec += (duration - sec) * 1000000;
   }
-#else
-  CHECK_NUMBER (seconds, 0);
-  sec = XINT (seconds);
-#endif
 
 #ifndef EMACS_HAS_USECS
   if (usec != 0 && sec == 0)

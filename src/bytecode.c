@@ -434,11 +434,9 @@ If the third argument is incorrect, Emacs may crash.")
     {
 #ifdef BYTE_CODE_SAFE
       if (top > stacke)
-	error ("Byte code stack overflow (byte compiler bug), pc %d, depth %d",
-	       stack.pc - stack.byte_string_start, stacke - top);
+	abort ();
       else if (top < stack.bottom - 1)
-	error ("Byte code stack underflow (byte compiler bug), pc %d",
-	       stack.pc - stack.byte_string_start);
+	abort ();
 #endif
 
 #ifdef BYTE_CODE_METER
@@ -1042,7 +1040,6 @@ If the third argument is incorrect, Emacs may crash.")
 	    CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (v1, 0);
 	    CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (v2, 0);
 	    AFTER_POTENTIAL_GC ();
-#ifdef LISP_FLOAT_TYPE
 	    if (FLOATP (v1) || FLOATP (v2))
 	      {
 		double f1, f2;
@@ -1052,7 +1049,6 @@ If the third argument is incorrect, Emacs may crash.")
 		TOP = (f1 == f2 ? Qt : Qnil);
 	      }
 	    else
-#endif
 	      TOP = (XINT (v1) == XINT (v2) ? Qt : Qnil);
 	    break;
 	  }
@@ -1532,15 +1528,11 @@ If the third argument is incorrect, Emacs may crash.")
 #ifdef BYTE_CODE_SAFE
 	  if (op < Bconstant)
 	    {
-	      BEFORE_POTENTIAL_GC ();
-	      error ("unknown bytecode %d (byte compiler bug)", op);
-	      AFTER_POTENTIAL_GC ();
+	      abort ();
 	    }
 	  if ((op -= Bconstant) >= const_length)
 	    {
-	      BEFORE_POTENTIAL_GC ();
-	      error ("no constant number %d (byte compiler bug)", op);
-	      AFTER_POTENTIAL_GC ();
+	      abort ();
 	    }
 	  PUSH (vectorp[op]);
 #else

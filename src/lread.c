@@ -31,15 +31,12 @@ Boston, MA 02111-1307, USA.  */
 #include <errno.h>
 #include "lisp.h"
 #include "intervals.h"
-
-#ifndef standalone
 #include "buffer.h"
 #include "charset.h"
 #include <epaths.h>
 #include "commands.h"
 #include "keyboard.h"
 #include "termhooks.h"
-#endif
 
 #ifdef lint
 #include <sys/inode.h>
@@ -60,9 +57,7 @@ Boston, MA 02111-1307, USA.  */
 #define X_OK 01
 #endif
 
-#ifdef LISP_FLOAT_TYPE
 #include <math.h>
-#endif /* LISP_FLOAT_TYPE */
 
 #ifdef HAVE_SETLOCALE
 #include <locale.h>
@@ -408,9 +403,6 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
 		     input_method)
      int no_switch_frame, ascii_required, error_nonascii, input_method;
 {
-#ifdef standalone
-  return make_number (getchar ());
-#else
   register Lisp_Object val, delayed_switch_frame;
 
   delayed_switch_frame = Qnil;
@@ -471,7 +463,6 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
     unread_switch_frame = delayed_switch_frame;
 
   return val;
-#endif
 }
 
 DEFUN ("read-char", Fread_char, Sread_char, 0, 2, 0,
@@ -1130,8 +1121,6 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag, unibyte, read
   unbind_to (count, Qnil);
 }
 
-#ifndef standalone
-
 DEFUN ("eval-buffer", Feval_buffer, Seval_buffer, 0, 5, "",
   "Execute the current buffer as Lisp code.\n\
 Programs can pass two arguments, BUFFER and PRINTFLAG.\n\
@@ -1246,7 +1235,6 @@ This function does not move point.")
   return unbind_to (count, Qnil);
 }
 
-#endif /* standalone */
 
 DEFUN ("read", Fread, Sread, 0, 1, 0,
   "Read one Lisp expression as text from STREAM, return as Lisp object.\n\
@@ -1272,10 +1260,8 @@ STREAM or the value of `standard-input' may be:\n\
   new_backquote_flag = 0;
   read_objects = Qnil;
 
-#ifndef standalone
   if (EQ (stream, Qread_char))
     return Fread_minibuffer (build_string ("Lisp expression: "), Qnil);
-#endif
 
   if (STRINGP (stream))
     return Fcar (Fread_from_string (stream, Qnil, Qnil));
@@ -2004,7 +1990,6 @@ read1 (readcharfun, pch, first_in_list)
 
     case '.':
       {
-#ifdef LISP_FLOAT_TYPE
 	/* If a period is followed by a number, then we should read it
 	   as a floating point number.  Otherwise, it denotes a dotted
 	   pair.  */
@@ -2012,7 +1997,6 @@ read1 (readcharfun, pch, first_in_list)
 	UNREAD (next_char);
 
 	if (! (next_char >= '0' && next_char <= '9'))
-#endif
 	  {
 	    *pch = c;
 	    return Qnil;
@@ -2035,11 +2019,6 @@ read1 (readcharfun, pch, first_in_list)
 	  while (c > 040
 		 && !(c == '\"' || c == '\'' || c == ';' || c == '?'
 		      || c == '(' || c == ')'
-#ifndef LISP_FLOAT_TYPE
-		      /* If we have floating-point support, then we need
-			 to allow <digits><dot><digits>.  */
-		      || c =='.'
-#endif /* not LISP_FLOAT_TYPE */
 		      || c == '[' || c == ']' || c == '#'
 		      ))
 	    {
@@ -2086,17 +2065,13 @@ read1 (readcharfun, pch, first_in_list)
 	    if (p1 != p)
 	      {
 		while (p1 != p && (c = *p1) >= '0' && c <= '9') p1++;
-#ifdef LISP_FLOAT_TYPE
 		/* Integers can have trailing decimal points.  */
 		if (p1 > read_buffer && p1 < p && *p1 == '.') p1++;
-#endif
 		if (p1 == p)
 		  /* It is an integer. */
 		  {
-#ifdef LISP_FLOAT_TYPE
 		    if (p1[-1] == '.')
 		      p1[-1] = '\0';
-#endif
 		    if (sizeof (int) == sizeof (EMACS_INT))
 		      XSETINT (val, atoi (read_buffer));
 		    else if (sizeof (long) == sizeof (EMACS_INT))
@@ -2106,7 +2081,6 @@ read1 (readcharfun, pch, first_in_list)
 		    return val;
 		  }
 	      }
-#ifdef LISP_FLOAT_TYPE
 	    if (isfloat_string (read_buffer))
 	      {
 		/* Compute NaN and infinities using 0.0 in a variable,
@@ -2139,7 +2113,6 @@ read1 (readcharfun, pch, first_in_list)
 
 		return make_float (negative ? - value : value);
 	      }
-#endif
 	  }
 
 	if (uninterned_symbol)
@@ -2271,8 +2244,6 @@ substitute_in_interval (interval, arg)
 }
 
 
-#ifdef LISP_FLOAT_TYPE
-
 #define LEAD_INT 1
 #define DOT_CHAR 2
 #define TRAIL_INT 4
@@ -2342,7 +2313,7 @@ isfloat_string (cp)
 	      || state == (LEAD_INT|DOT_CHAR|TRAIL_INT|E_CHAR|EXP_INT)
 	      || state == (DOT_CHAR|TRAIL_INT|E_CHAR|EXP_INT)));
 }
-#endif /* LISP_FLOAT_TYPE */
+
 
 static Lisp_Object
 read_vector (readcharfun, bytecodeflag)
@@ -3022,8 +2993,6 @@ defvar_lisp (namestring, address)
   staticpro (address);
 }
 
-#ifndef standalone
-
 /* Similar but define a variable whose value is the Lisp Object stored in
    the current buffer.  address is the address of the slot in the buffer
    that is current now. */
@@ -3054,7 +3023,6 @@ defvar_per_buffer (namestring, address, type, doc)
     abort ();
 }
 
-#endif /* standalone */
 
 /* Similar but define a variable whose value is the Lisp Object stored
    at a particular offset in the current kboard object.  */

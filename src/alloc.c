@@ -151,9 +151,7 @@ int undo_strong_limit;
 
 int total_conses, total_markers, total_symbols, total_vector_size;
 int total_free_conses, total_free_markers, total_free_symbols;
-#ifdef LISP_FLOAT_TYPE
 int total_free_floats, total_floats;
-#endif /* LISP_FLOAT_TYPE */
 
 /* Points to memory space allocated as "spare", to be freed if we run
    out of memory.  */
@@ -1345,8 +1343,6 @@ make_uninit_multibyte_string (nchars, nbytes)
 			   Float Allocation
  ***********************************************************************/
 
-#ifdef LISP_FLOAT_TYPE
-
 /* We store float cells inside of float_blocks, allocating a new
    float_block with malloc whenever necessary.  Float cells reclaimed
    by GC are put on a free list to be reallocated before allocating
@@ -1430,8 +1426,6 @@ make_float (float_value)
   floats_consed++;
   return val;
 }
-
-#endif /* LISP_FLOAT_TYPE */
 
 
 
@@ -2031,7 +2025,6 @@ pure_cons (car, cdr)
   return new;
 }
 
-#ifdef LISP_FLOAT_TYPE
 
 Lisp_Object
 make_pure_float (num)
@@ -2069,8 +2062,6 @@ make_pure_float (num)
   return new;
 }
 
-#endif /* LISP_FLOAT_TYPE */
-
 Lisp_Object
 make_pure_vector (len)
      EMACS_INT len;
@@ -2103,10 +2094,8 @@ Does not copy symbols.  Copies strings without text properties.")
 
   if (CONSP (obj))
     return pure_cons (XCAR (obj), XCDR (obj));
-#ifdef LISP_FLOAT_TYPE
   else if (FLOATP (obj))
     return make_pure_float (XFLOAT_DATA (obj));
-#endif /* LISP_FLOAT_TYPE */
   else if (STRINGP (obj))
     return make_pure_string (XSTRING (obj)->data, XSTRING (obj)->size,
 			     STRING_BYTES (XSTRING (obj)),
@@ -2417,12 +2406,8 @@ Garbage collection happens automatically if you cons more than\n\
 		    make_number (total_free_markers));
   total[3] = Fcons (make_number (total_string_size),
 		    make_number (total_vector_size));
-#ifdef LISP_FLOAT_TYPE
   total[4] = Fcons (make_number (total_floats),
 		    make_number (total_free_floats));
-#else
-  total[4] = Fcons (make_number (0), make_number (0));
-#endif
   total[5] = Fcons (make_number (total_intervals),
 		    make_number (total_free_intervals));
   total[6] = Fcons (make_number (total_strings),
@@ -2885,11 +2870,9 @@ mark_object (argptr)
 	goto loop;
       }
 
-#ifdef LISP_FLOAT_TYPE
     case Lisp_Float:
       XMARK (XFLOAT (obj)->type);
       break;
-#endif /* LISP_FLOAT_TYPE */
 
     case Lisp_Int:
       break;
@@ -3057,11 +3040,9 @@ survives_gc_p (obj)
       survives_p = XMARKBIT (XCAR (obj));
       break;
 
-#ifdef LISP_FLOAT_TYPE
     case Lisp_Float:
       survives_p = XMARKBIT (XFLOAT (obj)->type);
       break;
-#endif /* LISP_FLOAT_TYPE */
 
     default:
       abort ();
@@ -3130,7 +3111,6 @@ gc_sweep ()
     total_free_conses = num_free;
   }
 
-#ifdef LISP_FLOAT_TYPE
   /* Put all unmarked floats on free list */
   {
     register struct float_block *fblk;
@@ -3177,7 +3157,6 @@ gc_sweep ()
     total_floats = num_used;
     total_free_floats = num_free;
   }
-#endif /* LISP_FLOAT_TYPE */
 
   /* Put all unmarked intervals on free list */
   {
@@ -3499,9 +3478,7 @@ init_alloc_once ()
   init_cons ();
   init_symbol ();
   init_marker ();
-#ifdef LISP_FLOAT_TYPE
   init_float ();
-#endif /* LISP_FLOAT_TYPE */
   INIT_INTERVALS;
 
 #ifdef REL_ALLOC

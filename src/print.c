@@ -40,7 +40,6 @@ Lisp_Object Qtemp_buffer_setup_hook;
 /* These are used to print like we read.  */
 extern Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
 
-#ifdef LISP_FLOAT_TYPE
 Lisp_Object Vfloat_output_format, Qfloat_output_format;
 
 /* Work around a problem that happens because math.h on hpux 7
@@ -88,8 +87,6 @@ Lisp_Object Vfloat_output_format, Qfloat_output_format;
 #else
 #define DOUBLE_DIGITS_BOUND ((int) ceil (log10 (pow (FLT_RADIX, DBL_MANT_DIG))))
 #endif
-
-#endif /* LISP_FLOAT_TYPE */
 
 /* Avoid actual stack overflow in print.  */
 int print_depth;
@@ -914,7 +911,6 @@ print_error_message (data, stream)
   UNGCPRO;
 }
 
-#ifdef LISP_FLOAT_TYPE
 
 /*
  * The buffer should be at least as large as the max string size of the
@@ -1053,7 +1049,7 @@ float_to_string (buf, data)
 	}
     }
 }
-#endif /* LISP_FLOAT_TYPE */
+
 
 static void
 print (obj, printcharfun, escapeflag)
@@ -1269,7 +1265,6 @@ print_object (obj, printcharfun, escapeflag)
       strout (buf, -1, -1, printcharfun, 0);
       break;
 
-#ifdef LISP_FLOAT_TYPE
     case Lisp_Float:
       {
 	char pigbuf[350];	/* see comments in float_to_string */
@@ -1278,7 +1273,6 @@ print_object (obj, printcharfun, escapeflag)
 	strout (pigbuf, -1, -1, printcharfun, 0);
       }
       break;
-#endif
 
     case Lisp_String:
       if (!escapeflag)
@@ -1886,7 +1880,6 @@ or the symbol t (output appears in the echo area).");
   Qstandard_output = intern ("standard-output");
   staticpro (&Qstandard_output);
 
-#ifdef LISP_FLOAT_TYPE
   DEFVAR_LISP ("float-output-format", &Vfloat_output_format,
     "The format descriptor string used to print floats.\n\
 This is a %-spec like those accepted by `printf' in C,\n\
@@ -1905,7 +1898,6 @@ that represents the number without losing information.");
   Vfloat_output_format = Qnil;
   Qfloat_output_format = intern ("float-output-format");
   staticpro (&Qfloat_output_format);
-#endif /* LISP_FLOAT_TYPE */
 
   DEFVAR_LISP ("print-length", &Vprint_length,
     "Maximum length of list to print before abbreviating.\n\

@@ -75,9 +75,7 @@ enum Lisp_Type
     /* Cons.  XCONS (object) points to a struct Lisp_Cons.  */
     Lisp_Cons,
 
-#ifdef LISP_FLOAT_TYPE
     Lisp_Float,
-#endif /* LISP_FLOAT_TYPE */
 
     /* This is not a type code.  It is for range checking.  */
     Lisp_Type_Limit
@@ -1027,8 +1025,7 @@ union Lisp_Misc
     struct Lisp_Kboard_Objfwd u_kboard_objfwd;
   };
 
-#ifdef LISP_FLOAT_TYPE
-/* Optional Lisp floating point type */
+/* Lisp floating point type */
 struct Lisp_Float
   {
     Lisp_Object type;		/* essentially used for mark-bit
@@ -1045,7 +1042,6 @@ struct Lisp_Float
 #else
 #define XFLOAT_DATA(f)	(XFLOAT (f)->data)
 #endif
-#endif /* LISP_FLOAT_TYPE */
 
 /* A character, declared with the following typedef, is a member
    of some character set associated with the current buffer.  */
@@ -1168,13 +1164,8 @@ typedef unsigned char UCHAR;
 #define NILP(x)  (XFASTINT (x) == XFASTINT (Qnil))
 #define GC_NILP(x) GC_EQ (x, Qnil)
 
-#ifdef LISP_FLOAT_TYPE
 #define NUMBERP(x) (INTEGERP (x) || FLOATP (x))
 #define GC_NUMBERP(x) (GC_INTEGERP (x) || GC_FLOATP (x))
-#else
-#define NUMBERP(x) (INTEGERP (x))
-#define GC_NUMBERP(x) (GC_INTEGERP (x))
-#endif
 #define NATNUMP(x) (INTEGERP (x) && XINT (x) >= 0)
 #define GC_NATNUMP(x) (GC_INTEGERP (x) && XINT (x) >= 0)
 
@@ -1191,13 +1182,8 @@ typedef unsigned char UCHAR;
 #define CONSP(x) (XTYPE ((x)) == Lisp_Cons)
 #define GC_CONSP(x) (XGCTYPE ((x)) == Lisp_Cons)
 
-#ifdef LISP_FLOAT_TYPE
 #define FLOATP(x) (XTYPE ((x)) == Lisp_Float)
 #define GC_FLOATP(x) (XGCTYPE ((x)) == Lisp_Float)
-#else
-#define FLOATP(x) (0)
-#define GC_FLOATP(x) (0)
-#endif
 #define VECTORP(x) (VECTORLIKEP (x) && !(XVECTOR (x)->size & PSEUDOVECTOR_FLAG))
 #define GC_VECTORP(x) (GC_VECTORLIKEP (x) && !(XVECTOR (x)->size & PSEUDOVECTOR_FLAG))
 #define OVERLAYP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Overlay)
@@ -1318,8 +1304,6 @@ typedef unsigned char UCHAR;
   do { if (MARKERP ((x))) XSETFASTINT (x, marker_position (x)); \
     else if (!INTEGERP ((x))) x = wrong_type_argument (Qinteger_or_marker_p, (x)); } while (0)
 
-#ifdef LISP_FLOAT_TYPE
-
 #define XFLOATINT(n) extract_float((n))
 
 #define CHECK_FLOAT(x, i)		\
@@ -1334,15 +1318,6 @@ typedef unsigned char UCHAR;
   do { if (MARKERP (x)) XSETFASTINT (x, marker_position (x));	\
   else if (!INTEGERP (x) && !FLOATP (x))		\
     x = wrong_type_argument (Qnumber_or_marker_p, (x)); } while (0)
-
-#else  /* Not LISP_FLOAT_TYPE */
-
-#define CHECK_NUMBER_OR_FLOAT CHECK_NUMBER
-
-#define CHECK_NUMBER_OR_FLOAT_COERCE_MARKER CHECK_NUMBER_COERCE_MARKER
-
-#define XFLOATINT(n) XINT((n))
-#endif /* LISP_FLOAT_TYPE */
 
 #define CHECK_OVERLAY(x, i) \
   do { if (!OVERLAYP ((x))) x = wrong_type_argument (Qoverlayp, (x));} while (0)
@@ -1742,9 +1717,7 @@ extern Lisp_Object Qboundp, Qfboundp;
 extern Lisp_Object Qbuffer_or_string_p;
 extern Lisp_Object Qcdr;
 
-#ifdef LISP_FLOAT_TYPE
 extern Lisp_Object Qfloatp, Qinteger_or_floatp, Qinteger_or_float_or_marker_p;
-#endif /* LISP_FLOAT_TYPE */
 
 extern Lisp_Object Qframep;
 
@@ -1767,11 +1740,9 @@ EXFUN (Fmarkerp, 1);
 EXFUN (Fsubrp, 1);
 EXFUN (Fchar_or_string_p, 1);
 EXFUN (Finteger_or_marker_p, 1);
-#ifdef LISP_FLOAT_TYPE
 EXFUN (Ffloatp, 1);
 EXFUN (Finteger_or_floatp, 1);
 EXFUN (Finteger_or_float_or_marker_p, 1);
-#endif /* LISP_FLOAT_TYPE */
 
 EXFUN (Fcar, 1);
 EXFUN (Fcar_safe, 1);
@@ -1986,10 +1957,8 @@ extern void map_char_table P_ ((void (*) (Lisp_Object, Lisp_Object, Lisp_Object)
 extern void syms_of_fns P_ ((void));
 
 /* Defined in floatfns.c */
-#ifdef LISP_FLOAT_TYPE
 extern double extract_float P_ ((Lisp_Object));
 EXFUN (Ffloat, 1);
-#endif /* LISP_FLOAT_TYPE */
 EXFUN (Ftruncate, 2);
 extern void init_floatfns P_ ((void));
 extern void syms_of_floatfns P_ ((void));
@@ -2125,9 +2094,7 @@ extern Lisp_Object make_sub_char_table P_ ((Lisp_Object));
 extern Lisp_Object Qchar_table_extra_slots;
 extern struct Lisp_Vector *allocate_vectorlike P_ ((EMACS_INT));
 extern int gc_in_progress;
-#ifdef LISP_FLOAT_TYPE
 extern Lisp_Object make_float P_ ((double));
-#endif /* LISP_FLOAT_TYPE */
 extern void display_malloc_warning P_ ((void));
 extern int inhibit_garbage_collection P_ ((void));
 extern void free_marker P_ ((Lisp_Object));

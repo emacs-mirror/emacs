@@ -49,8 +49,6 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "syssignal.h"
 
-#ifdef LISP_FLOAT_TYPE
-
 #if STDC_HEADERS
 #include <float.h>
 #endif
@@ -717,8 +715,6 @@ This is the same as the exponent of a float.")
   return val;
 }
 
-#endif /* LISP_FLOAT_TYPE */
-
 
 /* the rounding functions  */
 
@@ -737,7 +733,6 @@ rounding_driver (arg, divisor, double_round, int_round2, name)
 
       CHECK_NUMBER_OR_FLOAT (divisor, 1);
 
-#ifdef LISP_FLOAT_TYPE
       if (FLOATP (arg) || FLOATP (divisor))
 	{
 	  double f1, f2;
@@ -751,7 +746,6 @@ rounding_driver (arg, divisor, double_round, int_round2, name)
 	  FLOAT_TO_INT2 (f1, arg, name, arg, divisor);
 	  return arg;
 	}
-#endif
 
       i1 = XINT (arg);
       i2 = XINT (divisor);
@@ -763,7 +757,6 @@ rounding_driver (arg, divisor, double_round, int_round2, name)
       return arg;
     }
 
-#ifdef LISP_FLOAT_TYPE
   if (FLOATP (arg))
     {
       double d;
@@ -771,7 +764,6 @@ rounding_driver (arg, divisor, double_round, int_round2, name)
       IN_FLOAT (d = (*double_round) (XFLOAT_DATA (arg)), name, arg);
       FLOAT_TO_INT (d, arg, name, arg);
     }
-#endif
 
   return arg;
 }
@@ -881,7 +873,6 @@ With optional DIVISOR, truncate ARG/DIVISOR.")
 			  "truncate");
 }
 
-#ifdef LISP_FLOAT_TYPE
 
 Lisp_Object
 fmod_float (x, y)
@@ -1018,17 +1009,9 @@ init_floatfns ()
   in_float = 0;
 }
 
-#else /* not LISP_FLOAT_TYPE */
-
-init_floatfns ()
-{}
-
-#endif /* not LISP_FLOAT_TYPE */
-
 void
 syms_of_floatfns ()
 {
-#ifdef LISP_FLOAT_TYPE
   defsubr (&Sacos);
   defsubr (&Sasin);
   defsubr (&Satan);
@@ -1066,7 +1049,6 @@ syms_of_floatfns ()
   defsubr (&Sabs);
   defsubr (&Sfloat);
   defsubr (&Slogb);
-#endif /* LISP_FLOAT_TYPE */
   defsubr (&Sceiling);
   defsubr (&Sfloor);
   defsubr (&Sround);

@@ -25,16 +25,10 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "puresize.h"
 #include "charset.h"
-
-#ifndef standalone
 #include "buffer.h"
 #include "keyboard.h"
 #include "frame.h"
-#endif
-
 #include "syssignal.h"
-
-#ifdef LISP_FLOAT_TYPE
 
 #ifdef STDC_HEADERS
 #include <float.h>
@@ -61,7 +55,6 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #include <math.h>
-#endif /* LISP_FLOAT_TYPE */
 
 #if !defined (atof)
 extern double atof ();
@@ -93,10 +86,8 @@ Lisp_Object Qad_advice_info, Qad_activate_internal;
 Lisp_Object Qrange_error, Qdomain_error, Qsingularity_error;
 Lisp_Object Qoverflow_error, Qunderflow_error;
 
-#ifdef LISP_FLOAT_TYPE
 Lisp_Object Qfloatp;
 Lisp_Object Qnumberp, Qnumber_or_marker_p;
-#endif
 
 static Lisp_Object Qinteger, Qsymbol, Qstring, Qcons, Qmarker, Qoverlay;
 static Lisp_Object Qfloat, Qwindow_configuration, Qwindow;
@@ -252,10 +243,8 @@ for example, (type-of 1) returns `integer'.")
 	return Qhash_table;
       return Qvector;
 
-#ifdef LISP_FLOAT_TYPE
     case Lisp_Float:
       return Qfloat;
-#endif
 
     default:
       abort ();
@@ -506,7 +495,6 @@ DEFUN ("number-or-marker-p", Fnumber_or_marker_p,
   return Qnil;
 }
 
-#ifdef LISP_FLOAT_TYPE
 DEFUN ("floatp", Ffloatp, Sfloatp, 1, 1, 0,
        "Return t if OBJECT is a floating point number.")
   (object)
@@ -516,7 +504,7 @@ DEFUN ("floatp", Ffloatp, Sfloatp, 1, 1, 0,
     return Qt;
   return Qnil;
 }
-#endif /* LISP_FLOAT_TYPE */
+
 
 /* Extract and set components of lists */
 
@@ -1939,7 +1927,6 @@ arithcompare (num1, num2, comparison)
   double f1, f2;
   int floatp = 0;
 
-#ifdef LISP_FLOAT_TYPE
   CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (num1, 0);
   CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (num2, 0);
 
@@ -1949,10 +1936,6 @@ arithcompare (num1, num2, comparison)
       f1 = (FLOATP (num1)) ? XFLOAT_DATA (num1) : XINT (num1);
       f2 = (FLOATP (num2)) ? XFLOAT_DATA (num2) : XINT (num2);
     }
-#else
-  CHECK_NUMBER_COERCE_MARKER (num1, 0);
-  CHECK_NUMBER_COERCE_MARKER (num2, 0);
-#endif /* LISP_FLOAT_TYPE */
 
   switch (comparison)
     {
@@ -2045,7 +2028,6 @@ DEFUN ("zerop", Fzerop, Szerop, 1, 1, 0, "Return t if NUMBER is zero.")
   (number)
      register Lisp_Object number;
 {
-#ifdef LISP_FLOAT_TYPE
   CHECK_NUMBER_OR_FLOAT (number, 0);
 
   if (FLOATP (number))
@@ -2054,9 +2036,6 @@ DEFUN ("zerop", Fzerop, Szerop, 1, 1, 0, "Return t if NUMBER is zero.")
 	return Qt;
       return Qnil;
     }
-#else
-  CHECK_NUMBER (number, 0);
-#endif /* LISP_FLOAT_TYPE */
 
   if (!XINT (number))
     return Qt;
@@ -2101,9 +2080,6 @@ NUMBER may be an integer or a floating point number.")
 {
   char buffer[VALBITS];
 
-#ifndef LISP_FLOAT_TYPE
-  CHECK_NUMBER (number, 0);
-#else
   CHECK_NUMBER_OR_FLOAT (number, 0);
 
   if (FLOATP (number))
@@ -2113,7 +2089,6 @@ NUMBER may be an integer or a floating point number.")
       float_to_string (pigbuf, XFLOAT_DATA (number));
       return build_string (pigbuf);
     }
-#endif /* LISP_FLOAT_TYPE */
 
   if (sizeof (int) == sizeof (EMACS_INT))
     sprintf (buffer, "%d", XINT (number));
@@ -2187,10 +2162,8 @@ If the base used is not 10, floating point is not recognized.")
   else if (*p == '+')
     p++;
   
-#ifdef LISP_FLOAT_TYPE
   if (isfloat_string (p) && b == 10)
     return make_float (negative * atof (p));
-#endif /* LISP_FLOAT_TYPE */
 
   while (1)
     {
@@ -2237,15 +2210,11 @@ arith_driver (code, nargs, args)
   for (argnum = 0; argnum < nargs; argnum++)
     {
       val = args[argnum];    /* using args[argnum] as argument to CHECK_NUMBER_... */
-#ifdef LISP_FLOAT_TYPE
       CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (val, argnum);
 
       if (FLOATP (val)) /* time to do serious math */
 	return (float_arith_driver ((double) accum, argnum, code,
 				    nargs, args));
-#else
-      CHECK_NUMBER_COERCE_MARKER (val, argnum);
-#endif /* LISP_FLOAT_TYPE */
       args[argnum] = val;    /* runs into a compiler bug. */
       next = XINT (args[argnum]);
       switch (SWITCH_ENUM_CAST (code))
@@ -2278,8 +2247,6 @@ arith_driver (code, nargs, args)
 
 #undef isnan
 #define isnan(x) ((x) != (x))
-
-#ifdef LISP_FLOAT_TYPE
 
 Lisp_Object
 float_arith_driver (accum, argnum, code, nargs, args)
@@ -2344,7 +2311,7 @@ float_arith_driver (accum, argnum, code, nargs, args)
 
   return make_float (accum);
 }
-#endif /* LISP_FLOAT_TYPE */
+
 
 DEFUN ("+", Fplus, Splus, 0, MANY, 0,
   "Return sum of any number of arguments, which are numbers or markers.")
@@ -2436,17 +2403,11 @@ Both X and Y must be numbers or markers.")
   Lisp_Object val;
   EMACS_INT i1, i2;
 
-#ifdef LISP_FLOAT_TYPE
   CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (x, 0);
   CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (y, 1);
 
   if (FLOATP (x) || FLOATP (y))
     return fmod_float (x, y);
-
-#else /* not LISP_FLOAT_TYPE */
-  CHECK_NUMBER_COERCE_MARKER (x, 0);
-  CHECK_NUMBER_COERCE_MARKER (y, 1);
-#endif /* not LISP_FLOAT_TYPE */
 
   i1 = XINT (x);
   i2 = XINT (y);
@@ -2566,14 +2527,10 @@ Markers are converted to integers.")
   (number)
      register Lisp_Object number;
 {
-#ifdef LISP_FLOAT_TYPE
   CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (number, 0);
 
   if (FLOATP (number))
     return (make_float (1.0 + XFLOAT_DATA (number)));
-#else
-  CHECK_NUMBER_COERCE_MARKER (number, 0);
-#endif /* LISP_FLOAT_TYPE */
 
   XSETINT (number, XINT (number) + 1);
   return number;
@@ -2585,14 +2542,10 @@ Markers are converted to integers.")
   (number)
      register Lisp_Object number;
 {
-#ifdef LISP_FLOAT_TYPE
   CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (number, 0);
 
   if (FLOATP (number))
     return (make_float (-1.0 + XFLOAT_DATA (number)));
-#else
-  CHECK_NUMBER_COERCE_MARKER (number, 0);
-#endif /* LISP_FLOAT_TYPE */
 
   XSETINT (number, XINT (number) - 1);
   return number;
@@ -2660,11 +2613,9 @@ syms_of_data ()
   Qboundp = intern ("boundp");
   Qfboundp = intern ("fboundp");
 
-#ifdef LISP_FLOAT_TYPE
   Qfloatp = intern ("floatp");
   Qnumberp = intern ("numberp");
   Qnumber_or_marker_p = intern ("number-or-marker-p");
-#endif /* LISP_FLOAT_TYPE */
 
   Qchar_table_p = intern ("char-table-p");
   Qvector_or_char_table_p = intern ("vector-or-char-table-p");
@@ -2770,7 +2721,6 @@ syms_of_data ()
   Fput (Qtext_read_only, Qerror_message,
 	build_string ("Text is read-only"));
 
-#ifdef LISP_FLOAT_TYPE
   Qrange_error = intern ("range-error");
   Qdomain_error = intern ("domain-error");
   Qsingularity_error = intern ("singularity-error");
@@ -2807,7 +2757,6 @@ syms_of_data ()
   staticpro (&Qsingularity_error);
   staticpro (&Qoverflow_error);
   staticpro (&Qunderflow_error);
-#endif /* LISP_FLOAT_TYPE */
 
   staticpro (&Qnil);
   staticpro (&Qt);
@@ -2855,11 +2804,9 @@ syms_of_data ()
   staticpro (&Qmarkerp);
   staticpro (&Qbuffer_or_string_p);
   staticpro (&Qinteger_or_marker_p);
-#ifdef LISP_FLOAT_TYPE
   staticpro (&Qfloatp);
   staticpro (&Qnumberp);
   staticpro (&Qnumber_or_marker_p);
-#endif /* LISP_FLOAT_TYPE */
   staticpro (&Qchar_table_p);
   staticpro (&Qvector_or_char_table_p);
 
@@ -2924,9 +2871,7 @@ A keyword symbol is a symbol whose name starts with a colon (`:').");
   defsubr (&Sinteger_or_marker_p);
   defsubr (&Snumberp);
   defsubr (&Snumber_or_marker_p);
-#ifdef LISP_FLOAT_TYPE
   defsubr (&Sfloatp);
-#endif /* LISP_FLOAT_TYPE */
   defsubr (&Snatnump);
   defsubr (&Ssymbolp);
   defsubr (&Skeywordp);

@@ -28,10 +28,6 @@ Boston, MA 02111-1307, USA.  */
 /* These are all defined in the top-level Makefile by configure.
    They're here only for reference.  */
 
-/* Define LISP_FLOAT_TYPE if you want emacs to support floating-point
-   numbers. */
-#undef LISP_FLOAT_TYPE
-
 /* Define GNU_MALLOC if you want to use the GNU memory allocator. */
 #undef GNU_MALLOC
 

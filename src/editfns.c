@@ -2963,7 +2963,6 @@ Use %% to put a single % into the output.")
 	/* Would get MPV otherwise, since Lisp_Int's `point' to low memory.  */
 	else if (INTEGERP (args[n]) && *format != 's')
 	  {
-#ifdef LISP_FLOAT_TYPE
 	    /* The following loop assumes the Lisp type indicates
 	       the proper way to pass the argument.
 	       So make sure we have a flonum if the argument should
@@ -2971,7 +2970,6 @@ Use %% to put a single % into the output.")
 	    if (*format == 'e' || *format == 'f' || *format == 'g')
 	      args[n] = Ffloat (args[n]);
 	    else
-#endif
 	      if (*format != 'd' && *format != 'o' && *format != 'x'
 		  && *format != 'i' && *format != 'X' && *format != 'c')
 		error ("Invalid format operation %%%c", *format);
@@ -2990,14 +2988,12 @@ Use %% to put a single % into the output.")
 		thissize = STRING_BYTES (XSTRING (args[n]));
 	      }
 	  }
-#ifdef LISP_FLOAT_TYPE
 	else if (FLOATP (args[n]) && *format != 's')
 	  {
 	    if (! (*format == 'e' || *format == 'f' || *format == 'g'))
 	      args[n] = Ftruncate (args[n], Qnil);
 	    thissize = 200;
 	  }
-#endif
 	else
 	  {
 	    /* Anything but a string, convert to a string using princ.  */

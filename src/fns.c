@@ -1852,10 +1852,8 @@ internal_equal (o1, o2, depth)
 
   switch (XTYPE (o1))
     {
-#ifdef LISP_FLOAT_TYPE
     case Lisp_Float:
       return (extract_float (o1) == extract_float (o2));
-#endif
 
     case Lisp_Cons:
       if (!internal_equal (XCAR (o1), XCAR (o2), depth + 1))

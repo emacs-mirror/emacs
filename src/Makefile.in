@@ -127,11 +127,7 @@ CC = C_COMPILER
 #endif
 
 #ifndef LIB_MATH
-# ifdef LISP_FLOAT_TYPE
 #  define LIB_MATH -lm
-# else /* ! defined (LISP_FLOAT_TYPE) */
-#  define LIB_MATH
-# endif /* ! defined (LISP_FLOAT_TYPE) */
 #endif /* LIB_MATH */
 
 /* Some s/SYSTEM.h files define this to request special switches in ld.  */
@@ -628,11 +624,7 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
 #define FACE_SUPPORT
 #endif
 
-#ifdef LISP_FLOAT_TYPE
 #define FLOAT_SUPPORT ${lispsource}float-sup.elc
-#else
-#define FLOAT_SUPPORT
-#endif
 
 #ifdef HAVE_MOUSE
 #define MOUSE_SUPPORT ${lispsource}mouse.elc \
