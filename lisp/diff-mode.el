@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.28 2000/10/04 21:29:59 miles Exp $
+;; Revision: $Id: diff-mode.el,v 1.29 2000/10/15 04:49:55 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -168,15 +168,23 @@ when editing big diffs)."
 ;;;; 
 
 (defface diff-header-face
-  '((((class color) (background light))
+  '((((type tty pc) (class color) (background light))
+     (:foreground "lightblue"))
+    (((type tty pc) (class color) (background dark))
+     (:foreground "green"))
+    (((class color) (background light))
      (:background "grey85"))
     (t (:bold t)))
-  "`diff-mode' face inherited by hunk, file and index header faces."
+  "`diff-mode' face inherited by hunk and index header faces."
   :group 'diff-mode)
 (defvar diff-header-face 'diff-header-face)
 
 (defface diff-file-header-face
-  '((((class color) (background light))
+  '((((type tty pc) (class color) (background light))
+     (:foreground "yellow"))
+    (((type tty pc) (class color) (background dark))
+     (:foreground "cyan"))
+    (((class color) (background light))
      (:background "grey70" :bold t))
     (t (:bold t)))			; :height 1.3
   "`diff-mode' face used to highlight file header lines."
@@ -208,7 +216,11 @@ when editing big diffs)."
 (defvar diff-added-face 'diff-added-face)
 
 (defface diff-changed-face
-  '((t ()))
+  '((((type tty pc) (class color) (background light))
+     (:foreground "magenta"))
+    (((type tty pc) (class color) (background dark))
+     (:foreground "yellow"))
+    (t ()))
   "`diff-mode' face used to highlight changed lines."
   :group 'diff-mode)
 (defvar diff-changed-face 'diff-changed-face)
