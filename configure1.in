@@ -817,10 +817,11 @@ fi
 #### Some other nice autoconf tests.
 ]
 AC_PROG_CPP
-AC_HAVE_HEADERS(sys/timeb.h)
+AC_HAVE_HEADERS(sys/timeb.h sys/time.h)
 AC_RETSIGTYPE
 AC_ALLOCA
 AC_HAVE_FUNCS(gettimeofday gethostname dup2)
+AC_STRUCT_TM
 AC_CONST
 [
 
@@ -942,7 +943,10 @@ echo '
 @configure@ system_malloc=no
 #endif
 ' > ${tempcname}
-eval `${CPP} ${tempcname} \
+# The value of CPP is a quoted variable reference, so we need to do this
+# to get its actual value...
+foo=`eval "echo $CPP"`
+eval `${foo} ${tempcname} \
        | grep '@configure@' \
        | sed -e 's/^@configure@ \([^=]*=\)\(.*\)$/\1"\2"/'`
 rm ${tempcname}
