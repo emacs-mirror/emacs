@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.12
+;; Version:    5.13
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -26,6 +26,9 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
+
+(eval-when-compile
+  (require 'cc-defs))
 
 
 (defun c-calculate-state (arg prevstate)
@@ -193,7 +196,7 @@ the brace is inserted inside a literal."
 	    blink-paren-function
 	    (insertion-point (point))
 	    delete-temp-newline
-	    (preserve-p (eq 32 (char-syntax (char-before))))
+	    (preserve-p (eq ?\  (char-syntax (char-before))))
 	    ;; shut this up too
 	    (c-echo-syntactic-information-p nil)
 	    (syntax (progn
@@ -638,7 +641,7 @@ comment."
 
 ;; set up electric character functions to work with pending-del,
 ;; (a.k.a. delsel) mode.  All symbols get the t value except
-;; c-electric-delete which gets 'supersede.
+;; the functions which delete, which gets 'supersede.
 (mapcar
  (function
   (lambda (sym)
@@ -651,8 +654,10 @@ comment."
    c-electric-semi&comma
    c-electric-lt-gt
    c-electric-colon))
-(put 'c-electric-delete 'delete-selection 'supersede) ; delsel
-(put 'c-electric-delete 'pending-delete   'supersede) ; pending-del
+(put 'c-electric-delete    'delete-selection 'supersede) ; delsel
+(put 'c-electric-delete    'pending-delete   'supersede) ; pending-del
+(put 'c-electric-backspace 'delete-selection 'supersede) ; delsel
+(put 'c-electric-backspace 'pending-delete   'supersede) ; pending-del
 
 
 ;; This is used by indent-for-comment to decide how much to indent a
