@@ -28,6 +28,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 #endif
 
+#ifdef HAVE_TZNAME
+#ifndef tzname		/* For SGI.  */
+extern char *tzname[];	/* RS6000 and others want it this way.  */
+#endif
+#endif
+
 /* SVr4 doesn't actually declare this in its #include files.  */
 #ifdef USG5_4
 extern long timezone;
