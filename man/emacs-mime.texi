@@ -1,0 +1,1308 @@
+\input texinfo                  @c -*-texinfo-*-
+
+@setfilename emacs-mime
+@settitle Emacs MIME Manual
+@synindex fn cp
+@synindex vr cp
+@synindex pg cp
+@dircategory Editors
+@direntry
+* Emacs MIME: (emacs-mime).   The MIME de/composition library.
+@end direntry
+@iftex
+@finalout
+@end iftex
+@setchapternewpage odd
+
+@ifnottex
+
+This file documents the Emacs MIME interface functionality.
+
+Copyright (C) 1998,99,2000 Free Software Foundation, Inc.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with the
+Invariant Sections being none, with the Front-Cover texts being ``A GNU
+Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License''.
+
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
+@end ifnottex
+
+@tex
+
+@titlepage
+@title Emacs MIME Manual
+
+@author by Lars Magne Ingebrigtsen
+@page
+
+@vskip 0pt plus 1filll
+Copyright @copyright{} 1998,99,2000 Free Software Foundation, Inc.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with the
+Invariant Sections being none, with the Front-Cover texts being ``A GNU
+Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License''.
+
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
+@end titlepage
+@page
+
+@end tex
+
+@node Top
+@top Emacs MIME
+
+This manual documents the libraries used to compose and display
+@sc{mime} messages.
+
+This is not a manual meant for users; it's a manual directed at people
+who want to write functions and commands that manipulate @sc{mime}
+elements.
+
+@sc{mime} is short for @dfn{Multipurpose Internet Mail Extensions}.
+This standard is documented in a number of RFCs; mainly RFC2045 (Format
+of Internet Message Bodies), RFC2046 (Media Types), RFC2047 (Message
+Header Extensions for Non-ASCII Text), RFC2048 (Registration
+Procedures), RFC2049 (Conformance Criteria and Examples).  It is highly
+recommended that anyone who intends writing @sc{mime}-compliant software
+read at least RFC2045 and RFC2047.
+
+@menu
+* Interface Functions::   An abstraction over the basic functions.
+* Basic Functions::       Utility and basic parsing functions.
+* Decoding and Viewing::  A framework for decoding and viewing.
+* Composing::             MML; a language for describing MIME parts.
+* Standards::             A summary of RFCs and working documents used.
+* Index::                 Function and variable index.
+@end menu
+
+
+@node Interface Functions
+@chapter Interface Functions
+@cindex interface functions
+@cindex mail-parse
+
+The @code{mail-parse} library is an abstraction over the actual
+low-level libraries that are described in the next chapter.
+
+Standards change, and so programs have to change to fit in the new
+mold.  For instance, RFC2045 describes a syntax for the
+@code{Content-Type} header that only allows ASCII characters in the
+parameter list.  RFC2231 expands on RFC2045 syntax to provide a scheme
+for continuation headers and non-ASCII characters.
+
+The traditional way to deal with this is just to update the library
+functions to parse the new syntax.  However, this is sometimes the wrong
+thing to do.  In some instances it may be vital to be able to understand
+both the old syntax as well as the new syntax, and if there is only one
+library, one must choose between the old version of the library and the
+new version of the library.
+
+The Emacs MIME library takes a different tack.  It defines a series of
+low-level libraries (@file{rfc2047.el}, @file{rfc2231.el} and so on)
+that parses strictly according to the corresponding standard.  However,
+normal programs would not use the functions provided by these libraries
+directly, but instead use the functions provided by the
+@code{mail-parse} library.  The functions in this library are just
+aliases to the corresponding functions in the latest low-level
+libraries.  Using this scheme, programs get a consistent interface they
+can use, and library developers are free to create write code that
+handles new standards.
+
+The following functions are defined by this library:
+
+@table @code
+@item mail-header-parse-content-type
+@findex mail-header-parse-content-type
+Parse a @code{Content-Type} header and return a list on the following
+format:
+
+@lisp
+("type/subtype"
+ (attribute1 . value1)
+ (attribute2 . value2)
+ ...)
+@end lisp
+
+Here's an example:
+
+@example
+(mail-header-parse-content-type
+ "image/gif; name=\"b980912.gif\"")
+@result{} ("image/gif" (name . "b980912.gif"))
+@end example
+
+@item mail-header-parse-content-disposition
+@findex mail-header-parse-content-disposition
+Parse a @code{Content-Disposition} header and return a list on the same
+format as the function above.
+
+@item mail-content-type-get
+@findex mail-content-type-get
+Takes two parameters---a list on the format above, and an attribute.
+Returns the value of the attribute.
+
+@example
+(mail-content-type-get
+ '("image/gif" (name . "b980912.gif")) 'name)
+@result{} "b980912.gif"
+@end example
+
+@item mail-header-encode-parameter
+@findex mail-header-encode-parameter
+Takes a parameter string and returns an encoded version of the string.
+This is used for parameters in headers like @code{Content-Type} and
+@code{Content-Disposition}.
+
+@item mail-header-remove-comments
+@findex mail-header-remove-comments
+Return a comment-free version of a header.
+
+@example
+(mail-header-remove-comments
+ "Gnus/5.070027 (Pterodactyl Gnus v0.27) (Finnish Landrace)")
+@result{} "Gnus/5.070027  "
+@end example
+
+@item mail-header-remove-whitespace
+@findex mail-header-remove-whitespace
+Remove linear white space from a header.  Space inside quoted strings
+and comments is preserved.
+
+@example
+(mail-header-remove-whitespace
+ "image/gif; name=\"Name with spaces\"")
+@result{} "image/gif;name=\"Name with spaces\""
+@end example
+
+@item mail-header-get-comment
+@findex mail-header-get-comment
+Return the last comment in a header.
+
+@example
+(mail-header-get-comment
+ "Gnus/5.070027 (Pterodactyl Gnus v0.27) (Finnish Landrace)")
+@result{} "Finnish Landrace"
+@end example
+
+@item mail-header-parse-address
+@findex mail-header-parse-address
+Parse an address and return a list containing the mailbox and the
+plaintext name.
+
+@example
+(mail-header-parse-address
+ "Hrvoje Niksic <hniksic@@srce.hr>")
+@result{} ("hniksic@@srce.hr" . "Hrvoje Niksic")
+@end example
+
+@item mail-header-parse-addresses
+@findex mail-header-parse-addresses
+Parse a string with list of addresses and return a list of elements like
+the one described above.
+
+@example
+(mail-header-parse-addresses
+ "Hrvoje Niksic <hniksic@@srce.hr>, Steinar Bang <sb@@metis.no>")
+@result{} (("hniksic@@srce.hr" . "Hrvoje Niksic")
+     ("sb@@metis.no" . "Steinar Bang"))
+@end example
+
+@item mail-header-parse-date
+@findex mail-header-parse-date
+Parse a date string and return an Emacs time structure.
+
+@item mail-narrow-to-head
+@findex mail-narrow-to-head
+Narrow the buffer to the header section of the buffer.  Point is placed
+at the beginning of the narrowed buffer.
+
+@item mail-header-narrow-to-field
+@findex mail-header-narrow-to-field
+Narrow the buffer to the header under point.
+
+@item mail-encode-encoded-word-region
+@findex mail-encode-encoded-word-region
+Encode the non-ASCII words in the region.  For instance,
+@samp{Naïve} is encoded as @samp{=?iso-8859-1?q?Na=EFve?=}.
+
+@item mail-encode-encoded-word-buffer
+@findex mail-encode-encoded-word-buffer
+Encode the non-ASCII words in the current buffer.  This function is
+meant to be called narrowed to the headers of a message.
+
+@item mail-encode-encoded-word-string
+@findex mail-encode-encoded-word-string
+Encode the words that need encoding in a string, and return the result.
+
+@example
+(mail-encode-encoded-word-string
+ "This is naïve, baby")
+@result{} "This is =?iso-8859-1?q?na=EFve,?= baby"
+@end example
+
+@item mail-decode-encoded-word-region
+@findex mail-decode-encoded-word-region
+Decode the encoded words in the region.
+
+@item mail-decode-encoded-word-string
+@findex mail-decode-encoded-word-string
+Decode the encoded words in the string and return the result.
+
+@example
+(mail-decode-encoded-word-string
+ "This is =?iso-8859-1?q?na=EFve,?= baby")
+@result{} "This is naïve, baby"
+@end example
+
+@end table
+
+Currently, @code{mail-parse} is an abstraction over @code{ietf-drums},
+@code{rfc2047}, @code{rfc2045} and @code{rfc2231}.  These are documented
+in the subsequent sections.
+
+
+
+@node Basic Functions
+@chapter Basic Functions
+
+This chapter describes the basic, ground-level functions for parsing and
+handling.  Covered here is parsing @code{From} lines, removing comments
+from header lines, decoding encoded words, parsing date headers and so
+on.  High-level functionality is dealt with in the next chapter
+(@pxref{Decoding and Viewing}).
+
+@menu
+* rfc2045::      Encoding @code{Content-Type} headers.
+* rfc2231::      Parsing @code{Content-Type} headers.
+* ietf-drums::   Handling mail headers defined by RFC822bis.
+* rfc2047::      En/decoding encoded words in headers.
+* time-date::    Functions for parsing dates and manipulating time.
+* qp::           Quoted-Printable en/decoding.
+* base64::       Base64 en/decoding.
+* binhex::       Binhex decoding.
+* uudecode::     Uuencode decoding.
+* rfc1843::      Decoding HZ-encoded text.
+* mailcap::      How parts are displayed is specified by the @file{.mailcap} file
+@end menu
+
+
+@node rfc2045
+@section rfc2045
+
+RFC2045 is the ``main'' @sc{mime} document, and as such, one would
+imagine that there would be a lot to implement.  But there isn't, since
+most of the implementation details are delegated to the subsequent
+RFCs.
+
+So @file{rfc2045.el} has only a single function:
+
+@table @code
+@item rfc2045-encode-string
+@findex rfc2045-encode-string
+Takes a parameter and a value and returns a @samp{PARAM=VALUE} string.
+@var{value} will be quoted if there are non-safe characters in it.
+@end table
+
+
+@node rfc2231
+@section rfc2231
+
+RFC2231 defines a syntax for the @code{Content-Type} and
+@code{Content-Disposition} headers.  Its snappy name is @dfn{MIME
+Parameter Value and Encoded Word Extensions: Character Sets, Languages,
+and Continuations}.
+
+In short, these headers look something like this:
+
+@example
+Content-Type: application/x-stuff;
+ title*0*=us-ascii'en'This%20is%20even%20more%20;
+ title*1*=%2A%2A%2Afun%2A%2A%2A%20;
+ title*2="isn't it!"
+@end example
+
+They usually aren't this bad, though.
+
+The following functions are defined by this library:
+
+@table @code
+@item rfc2231-parse-string
+@findex rfc2231-parse-string
+Parse a @code{Content-Type} header and return a list describing its
+elements.
+
+@example
+(rfc2231-parse-string
+ "application/x-stuff;
+ title*0*=us-ascii'en'This%20is%20even%20more%20;
+ title*1*=%2A%2A%2Afun%2A%2A%2A%20;
+ title*2=\"isn't it!\"")
+@result{} ("application/x-stuff"
+    (title . "This is even more ***fun*** isn't it!"))
+@end example
+
+@item rfc2231-get-value
+@findex rfc2231-get-value
+Takes one of the lists on the format above and returns
+the value of the specified attribute.
+
+@item rfc2231-encode-string
+@findex rfc2231-encode-string
+Encode a parameter in headers likes @code{Content-Type} and
+@code{Content-Disposition}.
+
+@end table
+
+
+@node ietf-drums
+@section ietf-drums
+
+@dfn{drums} is an IETF working group that is working on the replacement
+for RFC822.
+
+The functions provided by this library include:
+
+@table @code
+@item ietf-drums-remove-comments
+@findex ietf-drums-remove-comments
+Remove the comments from the argument and return the results.
+
+@item ietf-drums-remove-whitespace
+@findex ietf-drums-remove-whitespace
+Remove linear white space from the string and return the results.
+Spaces inside quoted strings and comments are left untouched.
+
+@item ietf-drums-get-comment
+@findex ietf-drums-get-comment
+Return the last most comment from the string.
+
+@item ietf-drums-parse-address
+@findex ietf-drums-parse-address
+Parse an address string and return a list that contains the mailbox and
+the plain text name.
+
+@item ietf-drums-parse-addresses
+@findex ietf-drums-parse-addresses
+Parse a string that contains any number of comma-separated addresses and
+return a list that contains mailbox/plain text pairs.
+
+@item ietf-drums-parse-date
+@findex ietf-drums-parse-date
+Parse a date string and return an Emacs time structure.
+
+@item ietf-drums-narrow-to-header
+@findex ietf-drums-narrow-to-header
+Narrow the buffer to the header section of the current buffer.
+
+@end table
+
+
+@node rfc2047
+@section rfc2047
+
+RFC2047 (Message Header Extensions for Non-ASCII Text) specifies how
+non-ASCII text in headers are to be encoded.  This is actually rather
+complicated, so a number of variables are necessary to tweak what this
+library does.
+
+The following variables are tweakable:
+
+@table @code
+@item rfc2047-default-charset
+@vindex rfc2047-default-charset
+Characters in this charset should not be decoded by this library.
+This defaults to @code{iso-8859-1}.
+
+@item rfc2047-header-encoding-list
+@vindex rfc2047-header-encoding-list
+This is an alist of header / encoding-type pairs.  Its main purpose is
+to prevent encoding of certain headers.
+
+The keys can either be header regexps, or @code{t}.
+
+The values can be either @code{nil}, in which case the header(s) in
+question won't be encoded, or @code{mime}, which means that they will be
+encoded.
+
+@item rfc2047-charset-encoding-alist
+@vindex rfc2047-charset-encoding-alist
+RFC2047 specifies two forms of encoding---@code{Q} (a
+Quoted-Printable-like encoding) and @code{B} (base64).  This alist
+specifies which charset should use which encoding.
+
+@item rfc2047-encoding-function-alist
+@vindex rfc2047-encoding-function-alist
+This is an alist of encoding / function pairs.  The encodings are
+@code{Q}, @code{B} and @code{nil}.
+
+@item rfc2047-q-encoding-alist
+@vindex rfc2047-q-encoding-alist
+The @code{Q} encoding isn't quite the same for all headers.  Some
+headers allow a narrower range of characters, and that is what this
+variable is for.  It's an alist of header regexps / allowable character
+ranges.
+
+@item rfc2047-encoded-word-regexp
+@vindex rfc2047-encoded-word-regexp
+When decoding words, this library looks for matches to this regexp.
+
+@end table
+
+Those were the variables, and these are this functions:
+
+@table @code
+@item rfc2047-narrow-to-field
+@findex rfc2047-narrow-to-field
+Narrow the buffer to the header on the current line.
+
+@item rfc2047-encode-message-header
+@findex rfc2047-encode-message-header
+Should be called narrowed to the header of a message.  Encodes according
+to @code{rfc2047-header-encoding-alist}.
+
+@item rfc2047-encode-region
+@findex rfc2047-encode-region
+Encodes all encodable words in the region specified.
+
+@item rfc2047-encode-string
+@findex rfc2047-encode-string
+Encode a string and return the results.
+
+@item rfc2047-decode-region
+@findex rfc2047-decode-region
+Decode the encoded words in the region.
+
+@item rfc2047-decode-string
+@findex rfc2047-decode-string
+Decode a string and return the results.
+
+@end table
+
+
+@node time-date
+@section time-date
+
+While not really a part of the @sc{mime} library, it is convenient to
+document this library here.  It deals with parsing @code{Date} headers
+and manipulating time.  (Not by using tesseracts, though, I'm sorry to
+say.)
+
+These functions convert between five formats: A date string, an Emacs
+time structure, a decoded time list, a second number, and a day number.
+
+The functions have quite self-explanatory names, so the following just
+gives an overview of which functions are available.
+
+@example
+(parse-time-string "Sat Sep 12 12:21:54 1998 +0200")
+@result{} (54 21 12 12 9 1998 6 nil 7200)
+
+(date-to-time "Sat Sep 12 12:21:54 1998 +0200")
+@result{} (13818 19266)
+
+(time-to-seconds '(13818 19266))
+@result{} 905595714.0
+
+(seconds-to-time 905595714.0)
+@result{} (13818 19266 0)
+
+(time-to-day '(13818 19266))
+@result{} 729644
+
+(days-to-time 729644)
+@result{} (961933 65536)
+
+(time-since '(13818 19266))
+@result{} (0 430)
+
+(time-less-p '(13818 19266) '(13818 19145))
+@result{} nil
+
+(subtract-time '(13818 19266) '(13818 19145))
+@result{} (0 121)
+
+(days-between "Sat Sep 12 12:21:54 1998 +0200"
+              "Sat Sep 07 12:21:54 1998 +0200")
+@result{} 5
+
+(date-leap-year-p 2000)
+@result{} t
+
+(time-to-day-in-year '(13818 19266))
+@result{} 255
+
+@end example
+
+And finally, we have @code{safe-date-to-time}, which does the same as
+@code{date-to-time}, but returns a zero time if the date is
+syntactically malformed.
+
+
+
+@node qp
+@section qp
+
+This library deals with decoding and encoding Quoted-Printable text.
+
+Very briefly explained, qp encoding means translating all 8-bit
+characters (and lots of control characters) into things that look like
+@samp{=EF}; that is, an equal sign followed by the byte encoded as a hex
+string.
+
+The following functions are defined by the library:
+
+@table @code
+@item quoted-printable-decode-region
+@findex quoted-printable-decode-region
+QP-decode all the encoded text in the specified region.
+
+@item quoted-printable-decode-string
+@findex quoted-printable-decode-string
+Decode the QP-encoded text in a string and return the results.
+
+@item quoted-printable-encode-region
+@findex quoted-printable-encode-region
+QP-encode all the encodable characters in the specified region.  The third
+optional parameter @var{fold} specifies whether to fold long lines.
+(Long here means 72.)
+
+@item quoted-printable-encode-string
+@findex quoted-printable-encode-string
+QP-encode all the encodable characters in a string and return the
+results.
+
+@end table
+
+
+@node base64
+@section base64
+@cindex base64
+
+Base64 is an encoding that encodes three bytes into four characters,
+thereby increasing the size by about 33%.  The alphabet used for
+encoding is very resistant to mangling during transit.
+
+The following functions are defined by this library:
+
+@table @code
+@item base64-encode-region
+@findex base64-encode-region
+base64 encode the selected region.  Return the length of the encoded
+text.  Optional third argument @var{no-line-break} means do not break
+long lines into shorter lines.
+
+@item base64-encode-string
+@findex base64-encode-string
+base64 encode a string and return the result.
+
+@item base64-decode-region
+@findex base64-decode-region
+base64 decode the selected region.  Return the length of the decoded
+text.  If the region can't be decoded, return @code{nil} and don't
+modify the buffer.
+
+@item base64-decode-string
+@findex base64-decode-string
+base64 decode a string and return the result.  If the string can't be
+decoded, @code{nil} is returned.
+
+@end table
+
+
+@node binhex
+@section binhex
+@cindex binhex
+@cindex Apple
+@cindex Macintosh
+
+@code{binhex} is an encoding that originated in Macintosh environments.
+The following function is supplied to deal with these:
+
+@table @code
+@item binhex-decode-region
+@findex binhex-decode-region
+Decode the encoded text in the region.  If given a third parameter, only
+decode the @code{binhex} header and return the filename.
+
+@end table
+
+
+@node uudecode
+@section uudecode
+@cindex uuencode
+@cindex uudecode
+
+@code{uuencode} is probably still the most popular encoding of binaries
+used on Usenet, although @code{base64} rules the mail world.
+
+The following function is supplied by this package:
+
+@table @code
+@item uudecode-decode-region
+@findex uudecode-decode-region
+Decode the text in the region.
+@end table
+
+
+@node rfc1843
+@section rfc1843
+@cindex rfc1843
+@cindex HZ
+@cindex Chinese
+
+RFC1843 deals with mixing Chinese and ASCII characters in messages.  In
+essence, RFC1843 switches between ASCII and Chinese by doing this:
+
+@example
+This sentence is in ASCII.
+The next sentence is in GB.~@{<:Ky2;S@{#,NpJ)l6HK!#~@}Bye.
+@end example
+
+Simple enough, and widely used in China.
+
+The following functions are available to handle this encoding:
+
+@table @code
+@item rfc1843-decode-region
+Decode HZ-encoded text in the region.
+
+@item rfc1843-decode-string
+Decode a HZ-encoded string and return the result.
+
+@end table
+
+
+@node mailcap
+@section mailcap
+
+The @file{~/.mailcap} file is parsed by most @sc{mime}-aware message
+handlers and describes how elements are supposed to be displayed.
+Here's an example file:
+
+@example
+image/*; gimp -8 %s
+audio/wav; wavplayer %s
+@end example
+
+This says that all image files should be displayed with @code{gimp}, and
+that realaudio files should be played by @code{rvplayer}.
+
+The @code{mailcap} library parses this file, and provides functions for
+matching types.
+
+@table @code
+@item mailcap-mime-data
+@vindex mailcap-mime-data
+This variable is an alist of alists containing backup viewing rules.
+
+@end table
+
+Interface functions:
+
+@table @code
+@item mailcap-parse-mailcaps
+@findex mailcap-parse-mailcaps
+Parse the @code{~/.mailcap} file.
+
+@item mailcap-mime-info
+Takes a @sc{mime} type as its argument and returns the matching viewer.
+
+@end table
+
+
+
+
+@node Decoding and Viewing
+@chapter Decoding and Viewing
+
+This chapter deals with decoding and viewing @sc{mime} messages on a
+higher level.
+
+The main idea is to first analyze a @sc{mime} article, and then allow
+other programs to do things based on the list of @dfn{handles} that are
+returned as a result of this analysis.
+
+@menu
+* Dissection::     Analyzing a @sc{mime} message.
+* Handles::        Handle manipulations.
+* Display::        Displaying handles.
+* Customization::  Variables that affect display.
+* New Viewers::    How to write your own viewers.
+@end menu
+
+
+@node Dissection
+@section Dissection
+
+The @code{mm-dissect-buffer} is the function responsible for dissecting
+a @sc{mime} article.  If given a multipart message, it will recursively
+descend the message, following the structure, and return a tree of
+@sc{mime} handles that describes the structure of the message.
+
+
+@node Handles
+@section Handles
+
+A @sc{mime} handle is a list that fully describes a @sc{mime}
+component.
+
+The following macros can be used to access elements in a handle:
+
+@table @code
+@item mm-handle-buffer
+@findex mm-handle-buffer
+Return the buffer that holds the contents of the undecoded @sc{mime}
+part.
+
+@item mm-handle-type
+@findex mm-handle-type
+Return the parsed @code{Content-Type} of the part.
+
+@item mm-handle-encoding
+@findex mm-handle-encoding
+Return the @code{Content-Transfer-Encoding} of the part.
+
+@item mm-handle-undisplayer
+@findex mm-handle-undisplayer
+Return the object that can be used to remove the displayed part (if it
+has been displayed).
+
+@item mm-handle-set-undisplayer
+@findex mm-handle-set-undisplayer
+Set the undisplayer object.
+
+@item mm-handle-disposition
+@findex mm-handle-disposition
+Return the parsed @code{Content-Disposition} of the part.
+
+@item mm-handle-disposition
+@findex mm-handle-disposition
+Return the description of the part.
+
+@item mm-get-content-id
+Returns the handle(s) referred to by @code{Content-ID}.
+
+@end table
+
+
+@node Display
+@section Display
+
+Functions for displaying, removing and saving.
+
+@table @code
+@item mm-display-part
+@findex mm-display-part
+Display the part.
+
+@item mm-remove-part
+@findex mm-remove-part
+Remove the part (if it has been displayed).
+
+@item mm-inlinable-p
+@findex mm-inlinable-p
+Say whether a @sc{mime} type can be displayed inline.
+
+@item mm-automatic-display-p
+@findex mm-automatic-display-p
+Say whether a @sc{mime} type should be displayed automatically.
+
+@item mm-destroy-part
+@findex mm-destroy-part
+Free all resources occupied by a part.
+
+@item mm-save-part
+@findex mm-save-part
+Offer to save the part in a file.
+
+@item mm-pipe-part
+@findex mm-pipe-part
+Offer to pipe the part to some process.
+
+@item mm-interactively-view-part
+@findex mm-interactively-view-part
+Prompt for a mailcap method to use to view the part.
+
+@end table
+
+
+@node Customization
+@section Customization
+
+@table @code
+
+@item mm-inline-media-tests
+This is an alist where the key is a @sc{mime} type, the second element
+is a function to display the part @dfn{inline} (i.e., inside Emacs), and 
+the third element is a form to be @code{eval}ed to say whether the part
+can be displayed inline.
+
+This variable specifies whether a part @emph{can} be displayed inline,
+and, if so, how to do it.  It does not say whether parts are
+@emph{actually} displayed inline.
+
+@item mm-inlined-types
+This, on the other hand, says what types are to be displayed inline, if
+they satisfy the conditions set by the variable above.  It's a list of
+@sc{mime} media types.
+
+@item mm-automatic-display
+This is a list of types that are to be displayed ``automatically'', but
+only if the above variable allows it.  That is, only inlinable parts can
+be displayed automatically.
+
+@item mm-attachment-override-types
+Some @sc{mime} agents create parts that have a content-disposition of
+@samp{attachment}.  This variable allows overriding that disposition and 
+displaying the part inline.  (Note that the disposition is only
+overridden if we are able to, and want to, display the part inline.)
+
+@item mm-discouraged-alternatives
+List of @sc{mime} types that are discouraged when viewing
+@samp{multipart/alternative}.  Viewing agents are supposed to view the
+last possible part of a message, as that is supposed to be the richest.
+However, users may prefer other types instead, and this list says what
+types are most unwanted.  If, for instance, @samp{text/html} parts are
+very unwanted, and @samp{text/richtech} parts are somewhat unwanted,
+then the value of this variable should be set to:
+
+@lisp
+("text/html" "text/richtext")
+@end lisp
+
+@item mm-inline-large-images-p
+When displaying inline images that are larger than the window, XEmacs
+does not enable scrolling, which means that you cannot see the whole
+image.  To prevent this, the library tries to determine the image size
+before displaying it inline, and if it doesn't fit the window, the
+library will display it externally (e.g. with @samp{ImageMagick} or
+@samp{xv}).  Setting this variable to @code{t} disables this check and
+makes the library display all inline images as inline, regardless of
+their size.
+
+@item mm-inline-override-p
+@code{mm-inlined-types} may include regular expressions, for example to
+specify that all @samp{text/.*} parts be displayed inline.  If a user
+prefers to have a type that matches such a regular expression be treated
+as an attachment, that can be accomplished by setting this variable to a
+list containing that type.  For example assuming @code{mm-inlined-types}
+includes @samp{text/.*}, then including @samp{text/html} in this
+variable will cause @samp{text/html} parts to be treated as attachments.
+
+@end table
+
+
+@node New Viewers
+@section New Viewers
+
+Here's an example viewer for displaying @code{text/enriched} inline:
+
+@lisp
+(defun mm-display-enriched-inline (handle)
+  (let (text)
+    (with-temp-buffer
+      (mm-insert-part handle)
+      (save-window-excursion
+        (enriched-decode (point-min) (point-max))
+        (setq text (buffer-string))))
+    (mm-insert-inline handle text)))
+@end lisp
+
+We see that the function takes a @sc{mime} handle as its parameter.  It
+then goes to a temporary buffer, inserts the text of the part, does some 
+work on the text, stores the result, goes back to the buffer it was
+called from and inserts the result.
+
+The two important helper functions here are @code{mm-insert-part} and
+@code{mm-insert-inline}.  The first function inserts the text of the
+handle in the current buffer.  It handles charset and/or content
+transfer decoding.  The second function just inserts whatever text you
+tell it to insert, but it also sets things up so that the text can be
+``undisplayed' in a convenient manner.
+
+
+@node Composing
+@chapter Composing
+@cindex Composing
+@cindex MIME Composing
+@cindex MML
+@cindex MIME Meta Language
+
+Creating a @sc{mime} message is boring and non-trivial.  Therefore, a
+library called @code{mml} has been defined that parses a language called
+MML (@sc{mime} Meta Language) and generates @sc{mime} messages.
+
+@findex mml-generate-mime
+The main interface function is @code{mml-generate-mime}.  It will
+examine the contents of the current (narrowed-to) buffer and return a
+string containing the @sc{mime} message.
+
+@menu
+* Simple MML Example::             An example MML document.
+* MML Definition::                 All valid MML elements.
+* Advanced MML Example::           Another example MML document.
+* Charset Translation::            How charsets are mapped from @sc{mule} to MIME.
+* Conversion::                     Going from @sc{mime} to MML and vice versa.
+@end menu
+
+
+@node Simple MML Example
+@section Simple MML Example
+
+Here's a simple @samp{multipart/alternative}:
+
+@example
+<#multipart type=alternative>
+This is a plain text part.
+<#part type=text/enriched>
+<center>This is a centered enriched part</center>
+<#/multipart>
+@end example
+
+After running this through @code{mml-generate-mime}, we get this:
+
+@example
+Content-Type: multipart/alternative; boundary="=-=-="
+
+
+--=-=-=
+
+
+This is a plain text part.
+
+--=-=-=
+Content-Type: text/enriched
+
+
+<center>This is a centered enriched part</center>
+
+--=-=-=--
+@end example
+
+
+@node MML Definition
+@section MML Definition
+
+The MML language is very simple.  It looks a bit like an SGML
+application, but it's not.
+
+The main concept of MML is the @dfn{part}.  Each part can be of a
+different type or use a different charset.  The way to delineate a part
+is with a @samp{<#part ...>} tag.  Multipart parts can be introduced
+with the @samp{<#multipart ...>} tag.  Parts are ended by the
+@samp{<#/part>} or @samp{<#/multipart>} tags.  Parts started with the
+@samp{<#part ...>} tags are also closed by the next open tag.
+
+There's also the @samp{<#external ...>} tag.  These introduce
+@samp{external/message-body} parts.
+
+Each tag can contain zero or more parameters on the form
+@samp{parameter=value}.  The values may be enclosed in quotation marks,
+but that's not necessary unless the value contains white space.  So
+@samp{filename=/home/user/#hello$^yes} is perfectly valid.
+
+The following parameters have meaning in MML; parameters that have no
+meaning are ignored.  The MML parameter names are the same as the
+@sc{mime} parameter names; the things in the parentheses say which
+header it will be used in.
+
+@table @samp
+@item type
+The @sc{mime} type of the part (@code{Content-Type}).
+
+@item filename
+Use the contents of the file in the body of the part
+(@code{Content-Disposition}).
+
+@item charset
+The contents of the body of the part are to be encoded in the character
+set speficied (@code{Content-Type}).
+
+@item name
+Might be used to suggest a file name if the part is to be saved
+to a file (@code{Content-Type}).
+
+@item disposition
+Valid values are @samp{inline} and @samp{attachment}
+(@code{Content-Disposition}).
+
+@item encoding
+Valid values are @samp{7bit}, @samp{8bit}, @samp{quoted-printable} and
+@samp{base64} (@code{Content-Transfer-Encoding}).
+
+@item description
+A description of the part (@code{Content-Description}).
+
+@item creation-date
+RFC822 date when the part was created (@code{Content-Disposition}).
+
+@item modification-date
+RFC822 date when the part was modified (@code{Content-Disposition}).
+
+@item read-date
+RFC822 date when the part was read (@code{Content-Disposition}).
+
+@item size
+The size (in octets) of the part (@code{Content-Disposition}).
+
+@end table
+
+Parameters for @samp{application/octet-stream}:
+
+@table @samp
+@item type
+Type of the part; informal---meant for human readers
+(@code{Content-Type}).
+@end table
+
+Parameters for @samp{message/external-body}:
+
+@table @samp
+@item access-type
+A word indicating the supported access mechanism by which the file may
+be obtained.  Values include @samp{ftp}, @samp{anon-ftp}, @samp{tftp},
+@samp{localfile}, and @samp{mailserver}.  (@code{Content-Type}.)
+
+@item expiration
+The RFC822 date after which the file may no longer be fetched.
+(@code{Content-Type}.)
+
+@item size
+The size (in octets) of the file.  (@code{Content-Type}.)
+
+@item permission
+Valid values are @samp{read} and @samp{read-write}
+(@code{Content-Type}).
+
+@end table
+
+
+@node Advanced MML Example
+@section Advanced MML Example
+
+Here's a complex multipart message.  It's a @samp{multipart/mixed} that
+contains many parts, one of which is a @samp{multipart/alternative}.
+
+@example
+<#multipart type=mixed>
+<#part type=image/jpeg filename=~/rms.jpg disposition=inline>
+<#multipart type=alternative>
+This is a plain text part.
+<#part type=text/enriched name=enriched.txt>
+<center>This is a centered enriched part</center>
+<#/multipart>
+This is a new plain text part.
+<#part disposition=attachment>
+This plain text part is an attachment.
+<#/multipart>
+@end example
+
+And this is the resulting @sc{mime} message:
+
+@example
+Content-Type: multipart/mixed; boundary="=-=-="
+
+
+--=-=-=
+
+
+
+--=-=-=
+Content-Type: image/jpeg;
+ filename="~/rms.jpg"
+Content-Disposition: inline;
+ filename="~/rms.jpg"
+Content-Transfer-Encoding: base64
+
+/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRof
+Hh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAAwADABAREA/8QAHwAA
+AQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQR
+BRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RF
+RkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ip
+qrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/9oACAEB
+AAA/AO/rifFHjldNuGsrDa0qcSSHkA+gHrXKw+LtWLrMb+RgTyhbr+HSug07xNqV9fQtZrNI
+AyiaE/NuBPOOOP0rvRNE880KOC8TbXXGCv1FPqjrF4LDR7u5L7SkTFT/ALWOP1xXgTuXfc7E
+sx6nua6rwp4IvvEM8chCxWxOdzn7wz6V9AaB4S07w9p5itow0rDLSY5Pt9K43xO66P4xs71m
+2QXiGCbA4yOVJ9+1aYORkdK434lyNH4ahCnG66VT9Nj15JFbPdX0MS43M4VQf5/yr2vSpLnw
+5ZW8dlCZ8KFXjOPX0/mK6rSPEGt3Angu44fNEReHYNvIH3TzXDeKNO8RX+kSX2ouZkicTIOc
+L+g7E810ulFjpVtv3bwgB3HJyK5L4quY/C9sVxk3ij/xx6850u7t1mtp/wDlpEw3An3Jr3Dw
+34gsbWza4nBlhC5LDsaW6+IFgupQyCF3iHH7gA7c9R9ay7zx6t7aX9jHC4smhfBkGCvHGfrm
+tLQ7hbnRrV1GPkAP1x1/Hr+Ncr8Vzjwrbf8AX6v/AKA9eQRyYlQk8Yx9K6XTNbkgia2ciSIn
+7p5Ga9Atte0LTLKO6it4i7dVRFJDcZ4PvXN+JvEMF9bILVGXJLSZ4zkjivRPDaeX4b08HOTC
+pOffmua+KkbS+GLVUGT9tT/0B68eeIpIFYjB70+OOVXyoOM9+M1eaWeCLzHPyHGO/NVWvJJm
+jQ8KGH1NfQWhXSXmh2c8eArRLwO3HSv/2Q==
+
+--=-=-=
+Content-Type: multipart/alternative; boundary="==-=-="
+
+
+--==-=-=
+
+
+This is a plain text part.
+
+--==-=-=
+Content-Type: text/enriched;
+ name="enriched.txt"
+
+
+<center>This is a centered enriched part</center>
+
+--==-=-=--
+
+--=-=-=
+
+This is a new plain text part.
+
+--=-=-=
+Content-Disposition: attachment
+
+
+This plain text part is an attachment.
+
+--=-=-=--
+@end example
+
+@node Charset Translation
+@section Charset Translation
+@cindex charsets
+
+During translation from MML to @sc{mime}, for each @sc{mime} part which
+has been composed inside Emacs, an appropriate charset has to be chosen.
+
+@vindex mail-parse-charset
+If you are running a non-@sc{mule} Emacs, this process is simple: If the
+part contains any non-ASCII (8-bit) characters, the @sc{mime} charset
+given by @code{mail-parse-charset} (a symbol) is used.  (Never set this
+variable directly, though.  If you want to change the default charset,
+please consult the documentation of the package which you use to process
+@sc{mime} messages.
+@xref{Various Message Variables, , Various Message Variables, message, 
+      Message Manual}, for example.)
+If there are only ASCII characters, the @sc{mime} charset US-ASCII is
+used, of course.
+
+@cindex MULE
+@cindex UTF-8
+@cindex Unicode
+@vindex mm-mime-mule-charset-alist
+Things are slightly more complicated when running Emacs with @sc{mule}
+support.  In this case, a list of the @sc{mule} charsets used in the
+part is obtained, and the @sc{mule} charsets are translated to @sc{mime}
+charsets by consulting the variable @code{mm-mime-mule-charset-alist}.
+If this results in a single @sc{mime} charset, this is used to encode
+the part.  But if the resulting list of @sc{mime} charsets contains more
+than one element, two things can happen: If it is possible to encode the
+part via UTF-8, this charset is used.  (For this, Emacs must support
+the @code{utf-8} coding system, and the part must consist entirely of
+characters which have Unicode counterparts.)  If UTF-8 is not available
+for some reason, the part is split into several ones, so that each one
+can be encoded with a single @sc{mime} charset.  The part can only be
+split at line boundaries, though---if more than one @sc{mime} charset is
+required to encode a single line, it is not possible to encode the part.
+
+@node Conversion
+@section Conversion
+
+@findex mime-to-mml
+A (multipart) @sc{mime} message can be converted to MML with the
+@code{mime-to-mml} function.  It works on the message in the current
+buffer, and substitutes MML markup for @sc{mime} boundaries.
+Non-textual parts do not have their contents in the buffer, but instead
+have the contents in separate buffers that are referred to from the MML
+tags.
+
+@findex mml-to-mime
+An MML message can be converted back to @sc{mime} by the
+@code{mml-to-mime} function.
+
+These functions are in certain senses ``lossy''---you will not get back
+an identical message if you run @sc{mime-to-mml} and then
+@sc{mml-to-mime}.  Not only will trivial things like the order of the
+headers differ, but the contents of the headers may also be different.
+For instance, the original message may use base64 encoding on text,
+while @sc{mml-to-mime} may decide to use quoted-printable encoding, and
+so on.
+
+In essence, however, these two functions should be the inverse of each
+other.  The resulting contents of the message should remain equivalent,
+if not identical.
+
+
+@node Standards
+@chapter Standards
+
+The Emacs @sc{mime} library implements handling of various elements
+according to a (somewhat) large number of RFCs, drafts and standards
+documents.  This chapter lists the relevant ones.  They can all be
+fetched from @samp{http://quimby.gnus.org/notes/}.
+
+@table @dfn
+@item RFC822
+@itemx STD11
+Standard for the Format of ARPA Internet Text Messages.
+
+@item RFC1036
+Standard for Interchange of USENET Messages
+
+@item RFC2045
+Format of Internet Message Bodies
+
+@item RFC2046
+Media Types
+
+@item RFC2047
+Message Header Extensions for Non-ASCII Text
+
+@item RFC2048
+Registration Procedures
+
+@item RFC2049
+Conformance Criteria and Examples
+
+@item RFC2231
+MIME Parameter Value and Encoded Word Extensions: Character Sets,
+Languages, and Continuations
+
+@item RFC1843
+HZ - A Data Format for Exchanging Files of Arbitrarily Mixed Chinese and
+ASCII characters
+
+@item draft-ietf-drums-msg-fmt-05.txt
+Draft for the successor of RFC822
+
+@item RFC2112
+The MIME Multipart/Related Content-type
+
+@item RFC1892
+The Multipart/Report Content Type for the Reporting of Mail System
+Administrative Messages
+
+@item RFC2183
+Communicating Presentation Information in Internet Messages: The
+Content-Disposition Header Field
+
+@end table
+
+
+@node Index
+@chapter Index
+@printindex cp
+
+@summarycontents
+@contents
+@bye
+
+@c End:
