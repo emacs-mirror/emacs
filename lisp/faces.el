@@ -102,12 +102,12 @@ Otherwise report on the defaults for face FACE (for new frames)."
  (aref (internal-get-face face frame) 7))
 
 
-(defun internat-set-face-1 (face name value index frame)
+(defun internal-set-face-1 (face name value index frame)
   (let ((inhibit-quit t))
     (if (null frame)
 	(let ((frames (frame-list)))
 	  (while frames
-	    (internat-set-face-1 (face-name face) name value index (car frames))
+	    (internal-set-face-1 (face-name face) name value index (car frames))
 	    (setq frames (cdr frames)))
 	  (aset (internal-get-face (if (symbolp face) face (face-name face)) t)
 		index value)
@@ -146,21 +146,21 @@ Otherwise report on the defaults for face FACE (for new frames)."
 If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
   (interactive (internal-face-interactive "font"))
-  (internat-set-face-1 face 'font font 3 frame))
+  (internal-set-face-1 face 'font font 3 frame))
 
 (defsubst set-face-foreground (face color &optional frame)
   "Change the foreground color of face FACE to COLOR (a string).
 If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
   (interactive (internal-face-interactive "foreground"))
-  (internat-set-face-1 face 'foreground color 4 frame))
+  (internal-set-face-1 face 'foreground color 4 frame))
 
 (defsubst set-face-background (face color &optional frame)
   "Change the background color of face FACE to COLOR (a string).
 If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
   (interactive (internal-face-interactive "background"))
-  (internat-set-face-1 face 'background color 5 frame))
+  (internal-set-face-1 face 'background color 5 frame))
 
 (defsubst set-face-background-pixmap (face name &optional frame)
   "Change the background pixmap of face FACE to PIXMAP.
@@ -174,14 +174,14 @@ and DATA is a string, containing the raw bits of the bitmap.
 If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
   (interactive (internal-face-interactive "background-pixmap"))
-  (internat-set-face-1 face 'background-pixmap name 6 frame))
+  (internal-set-face-1 face 'background-pixmap name 6 frame))
 
 (defsubst set-face-underline-p (face underline-p &optional frame)
   "Specify whether face FACE is underlined.  (Yes if UNDERLINE-P is non-nil.)
 If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
   (interactive (internal-face-interactive "underline-p" "underlined"))
-  (internat-set-face-1 face 'underline underline-p 7 frame))
+  (internal-set-face-1 face 'underline underline-p 7 frame))
 
 
 (defun make-face (name)
@@ -730,12 +730,13 @@ If NOERROR is non-nil, return nil on failure."
 ;;;	(set-face-foreground modeline (face-foreground default frame) frame))
     frame))
 
-(setq frame-creation-function 'x-create-frame-with-faces)
-
 ;; Set up the faces of all existing frames.
 (let ((frames (frame-list)))
   (while frames
-    (x-initialize-frame-faces (car frames))
+    (if (eq (framep (car frames)) 'x)
+	(x-initialize-frame-faces (car frames)))
     (setq frames (cdr frames))))
+
+(provide 'faces)
 
 ;;; faces.el ends here
