@@ -28,69 +28,96 @@
 
 ;;; Code:
 
+;; This is the overlay used to highlight the matching paren.
 (defvar show-paren-overlay nil)
+;; This is the overlay used to highlight the closeparen
+;; right before point.
+(defvar show-paren-overlay-1 nil)
+
+(defvar show-paren-mismatch-face nil)
 
 ;; Find the place to show, if there is one,
 ;; and show it until input arrives.
 (defun show-paren-command-hook ()
   (if window-system
       (let (pos dir mismatch (oldpos (point))
-		(face (if (face-equal 'highlight 'region)
-			  'underline 'highlight)))
+		(face 'region))
 	(cond ((eq (char-syntax (following-char)) ?\()
 	       (setq dir 1))
 	      ((eq (char-syntax (preceding-char)) ?\))
 	       (setq dir -1)))
-	(save-excursion
-	  (save-restriction
-	    ;; Determine the range within which to look for a match.
-	    (if blink-matching-paren-distance
-		(narrow-to-region (max (point-min)
-				       (- (point) blink-matching-paren-distance))
-				  (min (point-max)
-				       (+ (point) blink-matching-paren-distance))))
-	    ;; Scan across one sexp within that range.
-	    (condition-case ()
-		(setq pos (scan-sexps (point) dir))
-	      (error nil))
-	    ;; See if the "matching" paren is the right kind of paren
-	    ;; to match the one we started at.
-	    (if pos
-		(let ((beg (min pos oldpos)) (end (max pos oldpos)))
-		  (and (/= (char-syntax (char-after beg)) ?\$)
-		       (setq mismatch
-			     (/= (char-after (1- end))
-				 (logand (lsh (aref (syntax-table)
-						    (char-after beg))
-					      -8)
-					 255))))))
-	    ;; If they don't properly match, don't show.
-	    (if mismatch
-		(progn
-		  (message "Paren mismatch")
-    ;;;	      (setq pos nil)
-		  ))))
+	(if dir
+	    (save-excursion
+	      (save-restriction
+		;; Determine the range within which to look for a match.
+		(if blink-matching-paren-distance
+		    (narrow-to-region (max (point-min)
+					   (- (point) blink-matching-paren-distance))
+				      (min (point-max)
+					   (+ (point) blink-matching-paren-distance))))
+		;; Scan across one sexp within that range.
+		(condition-case ()
+		    (setq pos (scan-sexps (point) dir))
+		  (error nil))
+		;; See if the "matching" paren is the right kind of paren
+		;; to match the one we started at.
+		(if pos
+		    (let ((beg (min pos oldpos)) (end (max pos oldpos)))
+		      (and (/= (char-syntax (char-after beg)) ?\$)
+			   (setq mismatch
+				 (/= (char-after (1- end))
+				     (logand (lsh (aref (syntax-table)
+							(char-after beg))
+						  -8)
+					     255))))))
+		;; If they don't properly match, use a different face,
+		;; or print a message.
+		(if mismatch
+		    (progn
+		      (and (null show-paren-mismatch-face)
+			   (x-display-color-p)
+			   (or (setq show-paren-mismatch-face
+				     (internal-find-face 'paren-mismatch))
+			       (progn
+				 (setq show-paren-mismatch-face
+				       (make-face 'paren-mismatch))
+				 (set-face-background 'paren-mismatch 'purple))))
+		      (if show-paren-mismatch-face
+			  (setq face show-paren-mismatch-face)
+			(message "Paren mismatch"))))
+		)))
 	(cond (pos
+	       (if (= dir -1)
+		   ;; If matching backwards, highlight the closeparen
+		   ;; before point as well as its matching open.
+		   (progn
+		     (if show-paren-overlay-1
+			 (move-overlay show-paren-overlay-1 (+ (point) dir) (point))
+		       (setq show-paren-overlay-1
+			     (make-overlay (- pos dir) pos)))
+		     (overlay-put show-paren-overlay-1 'face face))
+		 ;; Otherwise, turn off any such highlighting.
+		 (and show-paren-overlay-1
+		      (overlay-buffer show-paren-overlay-1)
+		      (delete-overlay show-paren-overlay-1)))
+	       ;; Turn on highlighting for the matching paren.
 	       (if show-paren-overlay
 		   (move-overlay show-paren-overlay (- pos dir) pos)
 		 (setq show-paren-overlay
 		       (make-overlay (- pos dir) pos)))
-	       (overlay-put show-paren-overlay 'face face)
-    ;;; This is code to blink the highlighting.
-    ;;; It is desirable to avoid this because
-    ;;; it would interfere with auto-save and gc when idle.
-;;;	   (while (sit-for 1)
-;;;	     (overlay-put show-paren-overlay
-;;;			  'face
-;;;			  (if (overlay-get show-paren-overlay
-;;;					   'face)
-;;;			      nil face)))
-	       )
+	       (overlay-put show-paren-overlay 'face face))
 	      (t
+	       ;; If not at a paren that has a match,
+	       ;; turn off any previous paren highlighting.
 	       (and show-paren-overlay (overlay-buffer show-paren-overlay)
-		    (delete-overlay show-paren-overlay)))))))
+		    (delete-overlay show-paren-overlay))
+	       (and show-paren-overlay-1 (overlay-buffer show-paren-overlay-1)
+		    (delete-overlay show-paren-overlay-1)))))))
 
-(add-hook 'post-command-hook 'show-paren-command-hook)
+(if window-system
+    (progn
+      (setq blink-paren-function nil)
+      (add-hook 'post-command-hook 'show-paren-command-hook)))
 
 (provide 'paren)
 
