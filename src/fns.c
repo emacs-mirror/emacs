@@ -3045,7 +3045,7 @@ SUBFEATURE can be used to check a specific subfeature of FEATURE.  */)
   CHECK_SYMBOL (feature);
   tem = Fmemq (feature, Vfeatures);
   if (!NILP (tem) && !NILP (subfeature))
-    tem = Fmemq (subfeature, Fget (feature, Qsubfeatures));
+    tem = Fmember (subfeature, Fget (feature, Qsubfeatures));
   return (NILP (tem)) ? Qnil : Qt;
 }
 
@@ -3058,6 +3058,7 @@ particular subfeatures supported in this version of FEATURE.  */)
 {
   register Lisp_Object tem;
   CHECK_SYMBOL (feature);
+  CHECK_LIST (subfeatures);
   if (!NILP (Vautoload_queue))
     Vautoload_queue = Fcons (Fcons (Vfeatures, Qnil), Vautoload_queue);
   tem = Fmemq (feature, Vfeatures);
