@@ -1,22 +1,20 @@
 2001-01-19  Michael Kifer  <kifer@cs.sunysb.edu>
 
-        * viper.el: call initial-major-mode on startup.
+	* viper.el: Call initial-major-mode on startup.
 	
-	* ediff.el (ediff-patch-file): use better defaults.
+	* ediff.el (ediff-patch-file): Use better defaults.
 	
-	* ediff-vers.el: fix for 8+3 DOS file systems
+	* ediff-vers.el: Fix for 8+3 DOS file systems
 	
 2001-01-19  Colin Walters <walters@cis.ohio-state.edu>
 	
-	* ediff-util.el (ediff-compare-custom-diffs-maybe): put diff in
+	* ediff-util.el (ediff-compare-custom-diffs-maybe): Put diff in
 	diff mode, if available.
 	
-2001-01-19  Vin Shelton <acs@xemacs.org>
+2001-01-19  Michael Kifer  <kifer@cs.sunysb.edu>
 	
-	* ediff-hook.el (ediff-xemacs-init-menus): fixed add-menu-button
+	* ediff-hook.el (ediff-xemacs-init-menus): Fixed add-menu-button
 	
-2001-01-19  Steve Youngs  <youngs@xemacs.org>
-
 	* ediff-init.el (subst-char-in-string): Define and use it, unless
 	it's already defined.
 	

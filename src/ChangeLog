@@ -1,3 +1,8 @@
+2001-01-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (message_dolog, message2, message2_nolog): Rename
+	parameter LEN to NBYTES.
+
 2001-01-19  Kenichi Handa  <handa@etl.go.jp>
 
 	* charset.c (strwidth): Use c_string_width.
