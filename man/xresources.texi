@@ -46,6 +46,9 @@ collection of related options, for one program or for several programs
 Emacs compiled for Windows looks for X resources in the Windows
 Registry, under the key @samp{HKEY_CURRENT_USER\SOFTWARE\GNU\Emacs}
 and then under the key @samp{HKEY_LOCAL_MACHINE\SOFTWARE\GNU\Emacs}.
+The menu and scrollbars are native widgets on MS-Windows, so they are
+only customizable via the system-wide settings in the Display Control
+Panel.
 
   Programs define named resources with particular meanings.  They also
 define how to group resources into named classes.  For instance, in
