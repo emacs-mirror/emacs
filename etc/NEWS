@@ -593,6 +593,9 @@ be used (only once) in place of a file name on the command line.  Etags
 will read from standard input and mark the produced tags as belonging to
 the file FILE.
 
+*** Regular expressions can use char escape sequences as in Gcc
+These are the escapes \a, \b, \d, \e, \f, \n, \r, \t, \v.
+
 +++
 ** The command line option --no-windows has been changed to
 --no-window-system.  The old one still works, but is deprecated.

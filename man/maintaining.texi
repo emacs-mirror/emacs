@@ -485,9 +485,30 @@ where @var{tagregexp} is used to match the lines to tag.  It is always
 anchored, that is, it behaves as if preceded by @samp{^}.  If you want
 to account for indentation, just match any initial number of blanks by
 beginning your regular expression with @samp{[ \t]*}.  In the regular
-expressions, @samp{\} quotes the next character, and @samp{\t} stands
-for the tab character.  Note that @code{etags} does not handle the other
-C escape sequences for special characters.
+expressions, @samp{\} quotes the next character, and all the
+@code{gcc} character escape sequences are supported.  Here is the list
+of the character escape sequences:
+
+@table @samp
+@item \a
+BEL (bell).
+@item \b
+BS (back space).
+@item \d
+DEL (delete).
+@item \e
+ESC (delete).
+@item \f
+FF (form feed).
+@item \n
+NL (new line).
+@item \r
+CR (carriage return).
+@item \t
+TAB (horizontal tab).
+@item \v
+VT (vertical tab).
+@end table
 
   The syntax of regular expressions in @code{etags} is the same as in
 Emacs.  However, non-greedy operators and shy groups are not
