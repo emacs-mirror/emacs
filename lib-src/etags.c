@@ -50,6 +50,7 @@ char pot_etags_version[] = "@(#) pot revision number is 11.59";
 # include <stdlib.h>
 # include <fcntl.h>
 # include <string.h>
+# include <io.h>
 # define MAXPATHLEN _MAX_PATH
 #endif
 
