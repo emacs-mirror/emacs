@@ -9,7 +9,7 @@
 ;; Created:    a long, long, time ago. adapted from the original c-mode.el
 ;; Keywords:   c languages oop
 
-(defconst c-version "5.20"
+(defconst c-version "5.21"
   "CC Mode version number.")
 
 ;; NOTE: Read the commentary below for the right way to submit bug reports!
@@ -79,6 +79,9 @@
 
 ;;; Code:
 
+
+(require 'cc-defs)
+
 ;; sigh.  give in to the pressure, but make really sure all the
 ;; definitions we need are here
 (if (or (not (fboundp 'functionp))
@@ -88,9 +91,13 @@
 	(not (fboundp 'unless)))
     (require 'cc-mode-19))
 
-(eval-when-compile
-  (require 'cc-menus))
-(require 'cc-defs)
+(require 'cc-menus)
+(require 'cc-vars)
+(require 'cc-engine)
+(require 'cc-langs)
+(require 'cc-align)
+(require 'cc-styles)
+(require 'cc-cmds)
 
 (defvar c-buffer-is-cc-mode nil
   "Non-nil for all buffers with a `major-mode' derived from CC Mode.
@@ -101,9 +108,6 @@ other non-CC Mode mode that calls `c-initialize-cc-mode'
 (make-variable-buffer-local 'c-buffer-is-cc-mode)
 (put 'c-buffer-is-cc-mode 'permanent-local t)
 
-(defvar c-initialize-on-load t
-  "When non-nil, CC Mode initializes when the cc-mode.el file is loaded.")
-  
 
 
 ;; Other modes and packages which depend on CC Mode should do the
@@ -116,15 +120,7 @@ other non-CC Mode mode that calls `c-initialize-cc-mode'
 ;;;###autoload
 (defun c-initialize-cc-mode (&optional skip-styles)
   (setq c-buffer-is-cc-mode t)
-  ;; make sure all necessary components of CC Mode are loaded in.
   (let ((initprop 'cc-mode-is-initialized))
-    (require 'cc-vars)
-    (require 'cc-engine)
-    (require 'cc-langs)
-    (require 'cc-menus)
-    (require 'cc-align)
-    (require 'cc-styles)
-    (require 'cc-cmds)
     ;; run the initialization hook, but only once
     (or (get 'c-initialize-cc-mode initprop)
 	(progn
@@ -416,18 +412,8 @@ Key bindings:
 	  (format "c-emacs-features: %s\n" c-features)
 	  )))
       nil
-      "Dear Barry,"
+      "Dear Barry and Martin,"
       ))))
-
-
-;; Initialize everything.  This is backwards compatible with older
-;; .emacs files that just did a (require 'cc-mode) and expected
-;; everything to work (e.g. for CC Mode 4).  Maybe this should just
-;; happen by default, but previous versions of CC Mode 5 did not
-;; initialize by default.  I'm really not sure what is the right thing
-;; to do.
-(when c-initialize-on-load
-  (c-initialize-cc-mode))
 
 
 (provide 'cc-mode)
