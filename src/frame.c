@@ -656,7 +656,7 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 	      || FRAME_ICONIFIED_P (XFRAME (this))
 	      /* Allow deleting the terminal frame when at least
 		 one X frame exists!  */
-	      || FRAME_X_P (XFRAME (this)) && !FRAME_X_P (f))
+	      || (FRAME_X_P (XFRAME (this)) && !FRAME_X_P (f)))
 	    count++;
 	}
       if (count == 1)
