@@ -4101,7 +4101,7 @@ This is the same as (default-value 'ctl-arrow).");
  
    DEFVAR_LISP_NOPRO ("default-enable-multibyte-characters",
  	      &buffer_defaults.enable_multibyte_characters,
-     "Default value of `enable-multibyte-characters' for buffers not overriding it.\n\
+     "*Default value of `enable-multibyte-characters' for buffers not overriding it.\n\
 This is the same as (default-value 'enable-multibyte-characters).");
  
    DEFVAR_LISP_NOPRO ("default-buffer-file-coding-system",
