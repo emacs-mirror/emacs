@@ -302,7 +302,7 @@ That buffer should be current already."
   (debugger-make-xrefs))
 
 (defun debugger-make-xrefs (&optional buffer)
-  "Attach cross-references to symbol names in the `*Backtrace*' buffer."
+  "Attach cross-references to function names in the `*Backtrace*' buffer."
   (interactive "b")
   (save-excursion
     (set-buffer (or buffer (current-buffer)))
@@ -353,6 +353,7 @@ That buffer should be current already."
       ;; Scan the new part of the backtrace, inserting xrefs.
       (goto-char (point-min))
       (while (progn
+	       (goto-char (+ (point) 2))
 	       (skip-syntax-forward "^w_")
 	       (not (eobp)))
 	(let* ((beg (point))
@@ -364,8 +365,8 @@ That buffer should be current already."
 	    (goto-char beg)
 	    ;; help-xref-button needs to operate on something matched
 	    ;; by a regexp, so set that up for it.
-	    (re-search-forward "\\(\\(\\sw\\|\\s_\\)+\\)")
-	    (help-xref-button 1 'help-function-def sym file)))
+	    (re-search-forward "\\(\\sw\\|\\s_\\)+")
+	    (help-xref-button 0 'help-function-def sym file)))
 	(forward-line 1))
       (widen))
     (setq debugger-previous-backtrace (buffer-string))))
