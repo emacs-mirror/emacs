@@ -43,7 +43,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifndef BSD4_2
 #ifndef USG
 #ifndef MSDOS
+#ifndef WINDOWSNT
 #include <sys/vlimit.h>
+#endif /* not WINDOWSNT */
 #endif /* not MSDOS */
 #endif /* not USG */
 #else /* if BSD4_2 */
@@ -130,6 +132,16 @@ get_lim_data ()
 }
 
 #else /* not USG */
+#ifdef WINDOWSNT
+
+static void
+get_lim_data ()
+{
+  extern unsigned long data_region_size;
+  lim_data = data_region_size;
+}
+
+#else
 #if !defined (BSD4_2) && !defined (__osf__)
 
 #ifdef MSDOS
@@ -164,5 +176,6 @@ get_lim_data ()
 #endif
 }
 #endif /* BSD4_2 */
+#endif /* not WINDOWSNT */
 #endif /* not USG */
 #endif /* not NO_LIM_DATA */
