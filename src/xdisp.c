@@ -1,5 +1,5 @@
 /* Display generation from window structure and buffer text.
-   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 97, 98, 99, 2000, 2001
+   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 97, 98, 99, 2000, 2001, 2002
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -11201,16 +11201,20 @@ sync_frame_with_window_matrix_rows (w)
 
   /* If W is a full-width window, glyph pointers in W's current matrix
      have, by definition, to be the same as glyph pointers in the
-     corresponding frame matrix.  */
+     corresponding frame matrix.  Note that frame matrices have no
+     marginal areas (see build_frame_matrix).  */
   window_row = w->current_matrix->rows;
   window_row_end = window_row + w->current_matrix->nrows;
   frame_row = f->current_matrix->rows + XFASTINT (w->top);
   while (window_row < window_row_end)
     {
-      int area;
-      
-      for (area = LEFT_MARGIN_AREA; area <= LAST_AREA; ++area)
-	frame_row->glyphs[area] = window_row->glyphs[area];
+      struct glyph *start = window_row->glyphs[LEFT_MARGIN_AREA];
+      struct glyph *end = window_row->glyphs[LAST_AREA];
+
+      frame_row->glyphs[LEFT_MARGIN_AREA] = start;
+      frame_row->glyphs[TEXT_AREA] = start;
+      frame_row->glyphs[RIGHT_MARGIN_AREA] = end;
+      frame_row->glyphs[LAST_AREA] = end;
 
       /* Disable frame rows whose corresponding window rows have
 	 been disabled in try_window_id.  */
@@ -12237,6 +12241,16 @@ glyphs in short form, otherwise show glyphs in long form.")
   fprintf (stderr, "=============================================\n");
   dump_glyph_matrix (w->current_matrix,
 		     NILP (glyphs) ? 0 : XINT (glyphs));
+  return Qnil;
+}
+
+
+DEFUN ("dump-frame-glyph-matrix", Fdump_frame_glyph_matrix,
+       Sdump_frame_glyph_matrix, 0, 0, "", doc: /* */)
+     ()
+{
+  struct frame *f = XFRAME (selected_frame);
+  dump_glyph_matrix (f->current_matrix, 1);
   return Qnil;
 }
 
@@ -14675,6 +14689,7 @@ syms_of_xdisp ()
   staticpro (&Qinhibit_redisplay);
 
 #if GLYPH_DEBUG
+  defsubr (&Sdump_frame_glyph_matrix);
   defsubr (&Sdump_glyph_matrix);
   defsubr (&Sdump_glyph_row);
   defsubr (&Sdump_tool_bar_row);

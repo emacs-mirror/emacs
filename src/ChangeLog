@@ -1,3 +1,10 @@
+2002-04-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (sync_frame_with_window_matrix_rows): Don't give frame
+	rows marginal areas.
+	(Fdump_frame_glyph_matrix) [GLYPH_DEBUG]: New function.
+	(syms_of_xdisp) [GLYPH_DEBUG]: Defsubr it.
+
 2002-04-01  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* xterm.c (x_set_toolkit_scroll_bar_thumb) <USE_MOTIF>:
