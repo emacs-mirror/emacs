@@ -1,3 +1,7 @@
+2001-12-18  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* yow.c (main): Use time_t, not long, to avoid a compiler warning.
+
 2001-12-18  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* test-distrib.c: Fix previous change.

@@ -1,3 +1,8 @@
+2001-12-18  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Makefile.in (lisp, shortlisp): Synchronize with changes to
+	lisp/Makefile.in:DONTCOMPILE.
+
 2001-12-18  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xdisp.c (window_box_height): Do not return negative values.
