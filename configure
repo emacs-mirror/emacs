@@ -21987,7 +21987,6 @@ echo
 
 if test $USE_XASSERTS = yes; then
    echo "  Compiling with asserts turned on."
-   CFLAGS="$CFLAGS -DXASSERTS=1"
    CPPFLAGS="$CPPFLAGS -DXASSERTS=1"
    echo
 fi

@@ -881,13 +881,13 @@ The command \\[yank] can retrieve it from there."
 	 (while (setq x (cdr x))
 	   (calc-embedded-find-vars (car x))))))
 
-
+(defvar math-ms-args)
 (defun calc-embedded-evaluate-expr (x)
   (let ((calc-embed-vars-used (aref calc-embedded-info 10)))
     (or calc-embed-vars-used (calc-embedded-find-vars x))
     (if calc-embed-vars-used
 	(let ((active (assq (aref calc-embedded-info 0) calc-embedded-active))
-	      (args nil))
+	      (math-ms-args nil))
 	  (save-excursion
 	    (calc-embedded-original-buffer t)
 	    (or active
@@ -911,7 +911,7 @@ The command \\[yank] can retrieve it from there."
 	(list 'calcFunc-assign
 	      (nth 1 x)
 	      (calc-embedded-subst (nth 2 x)))
-      (calc-normalize (math-evaluate-expr-rec (math-multi-subst x nil nil))))))
+      (calc-normalize (math-evaluate-expr-rec (math-multi-subst-rec x))))))
 
 (defun calc-embedded-eval-get-var (var base)
   (let ((entry base)
@@ -938,7 +938,7 @@ The command \\[yank] can retrieve it from there."
 		    (setq val (nth 2 val)))
 		(if (eq (car-safe val) 'calcFunc-assign)
 		    (setq val (nth 2 val)))
-		(setq args (cons (cons var val) args)))
+		(setq math-ms-args (cons (cons var val) math-ms-args)))
 	    (calc-embedded-activate)
 	    (calc-embedded-eval-get-var var base))))))
 

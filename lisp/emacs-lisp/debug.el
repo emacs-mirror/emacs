@@ -97,14 +97,6 @@ This is to optimize `debugger-make-xrefs'.")
 This variable is used by `debugger-jump', `debugger-step-through',
 and `debugger-reenable' to temporarily disable debug-on-entry.")
 
-;; When you change this, you may also need to change the number of
-;; frames that the debugger skips.
-(defconst debug-entry-code
-  '(if (or inhibit-debug-on-entry debugger-jumping-flag)
-       nil
-     (debug 'debug))
-  "Code added to a function to cause it to call the debugger upon entry.")
-
 ;;;###autoload
 (setq debugger 'debug)
 ;;;###autoload
@@ -200,7 +192,7 @@ first will be printed into the backtrace buffer."
 		  (kill-emacs))
 		(if (eq (car debugger-args) 'debug)
 		    ;; Skip the frames for backtrace-debug, byte-code,
-		    ;; and debug-entry-code.
+		    ;; and implement-debug-on-entry.
 		    (backtrace-debug 4 t))
 		(message "")
 		(let ((standard-output nil)
@@ -264,7 +256,7 @@ That buffer should be current already."
 		 (progn
 		   (search-forward "\n  debug(")
 		   (forward-line (if (eq (car debugger-args) 'debug)
-				     2	; Remove debug-entry-code frame.
+				     2	; Remove implement-debug-on-entry frame.
 				   1))
 		   (point)))
   (insert "Debugger entered")
@@ -432,8 +424,8 @@ removes itself from that hook."
 	  (count 0))
       (while (not (eq (cadr (backtrace-frame count)) 'debug))
 	(setq count (1+ count)))
-      ;; Skip debug-entry-code frame.
-      (when (member '(debug (quote debug)) (cdr (backtrace-frame (1+ count))))
+      ;; Skip implement-debug-on-entry frame.
+      (when (eq 'implement-debug-on-entry (cadr (backtrace-frame (1+ count))))
 	(setq count (1+ count)))
       (goto-char (point-min))
       (when (looking-at "Debugger entered--\\(Lisp error\\|returning value\\):")
@@ -623,6 +615,16 @@ Complete list of commands:
   (use-local-map debugger-mode-map)
   (run-mode-hooks 'debugger-mode-hook))
 
+;; When you change this, you may also need to change the number of
+;; frames that the debugger skips.
+(defun implement-debug-on-entry ()
+  "Conditionally call the debugger.
+A call to this function is inserted by `debug-on-entry' to cause
+functions to break on entry."
+  (if (or inhibit-debug-on-entry debugger-jumping-flag)
+      nil
+    (funcall debugger 'debug)))
+
 ;;;###autoload
 (defun debug-on-entry (function)
   "Request FUNCTION to invoke debugger each time it is called.
@@ -647,7 +649,7 @@ Redefining FUNCTION also cancels it."
       (debug-convert-byte-code function))
   (or (consp (symbol-function function))
       (error "Definition of %s is not a list" function))
-  (fset function (debug-on-entry-1 function (symbol-function function) t))
+  (fset function (debug-on-entry-1 function t))
   (or (memq function debug-function-list)
       (push function debug-function-list))
   function)
@@ -664,7 +666,7 @@ If argument is nil or an empty string, cancel for all functions."
 	   (if name (intern name)))))
   (if (and function (not (string= function "")))
       (progn
-	(let ((f (debug-on-entry-1 function (symbol-function function) nil)))
+	(let ((f (debug-on-entry-1 function nil)))
 	  (condition-case nil
 	      (if (and (equal (nth 1 f) '(&rest debug-on-entry-args))
 		       (eq (car (nth 3 f)) 'apply))
@@ -695,8 +697,9 @@ If argument is nil or an empty string, cancel for all functions."
 	      (setq body (cons (documentation function) body)))
 	  (fset function (cons 'lambda (cons (car contents) body)))))))
 
-(defun debug-on-entry-1 (function defn flag)
-  (let ((tail defn))
+(defun debug-on-entry-1 (function flag)
+  (let* ((defn (symbol-function function))
+	 (tail defn))
     (if (subrp tail)
 	(error "%s is a built-in function" function)
       (if (eq (car tail) 'macro) (setq tail (cdr tail)))
@@ -708,10 +711,10 @@ If argument is nil or an empty string, cancel for all functions."
       ;; Skip the interactive form.
       (when (eq 'interactive (car-safe (cadr tail)))
 	(setq tail (cdr tail)))
-      (unless (eq flag (equal (cadr tail) debug-entry-code))
+      (unless (eq flag (equal (cadr tail) '(implement-debug-on-entry)))
 	;; Add/remove debug statement as needed.
 	(if flag
-	    (setcdr tail (cons debug-entry-code (cdr tail)))
+	    (setcdr tail (cons '(implement-debug-on-entry) (cdr tail)))
 	  (setcdr tail (cddr tail))))
       defn)))
 

@@ -1,7 +1,11 @@
+2005-03-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Explain how to default Tramp to FTP.
+
 2005-03-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* NEWS: Mention Carbon build on Mac OS 9.
-	
+
 2005-03-01  David Kastrup  <dak@gnu.org>
 
 	* DEBUG: Add information about `-fno-crossjumping' for GCC.
@@ -49,7 +53,7 @@
 2005-01-13  Cheng Gao  <chenggao@gmail.com>
 
 	* MORE.STUFF: Add entries of some well known and widely used packages.
-	
+
 2005-01-07  Lars Hansen  <larsh@math.ku.dk>
 
 	* NEWS: Describe desktop package lazy restore feature.

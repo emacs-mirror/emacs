@@ -104,7 +104,10 @@
   (set-case-syntax-pair 222 254 tbl)	;latin letter thorn (Icelandic)
   (set-case-syntax 223 "w" tbl)		;latin small letter sharp s (German)
   (set-case-syntax 247 "_" tbl)		;division sign
-  (set-case-syntax 255 "w" tbl))	;latin small letter y with diaeresis
+  ;; The following setting should be suppressed when we are loading
+  ;; this file for setting syntax of multibyte characters.
+  (or set-case-syntax-set-multibyte
+      (set-case-syntax 255 "w" tbl)))	;latin small letter y with diaeresis
 
 ;; When preloading this file, don't provide the feature.
 ;; Explicit `require' is used to load this for 8-bit characters.

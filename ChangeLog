@@ -1,3 +1,8 @@
+2005-03-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in: Only add XASSERTS to cppflags.
+	* configure: Regenerate.
+
 2005-03-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in: Added --enable-asserts.
