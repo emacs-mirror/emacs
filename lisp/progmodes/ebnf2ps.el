@@ -5,8 +5,8 @@
 ;; Author:     Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:   wp, ebnf, PostScript
-;; Time-stamp: <2000/07/29 13:09:47 vinicius>
-;; Version:    3.2
+;; Time-stamp: <2000/08/27 14:24:32 vinicius>
+;; Version:    3.3
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/Emacs.html
 
 ;; This file is part of GNU Emacs.
@@ -26,8 +26,8 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-(defconst ebnf-version "3.2"
-  "ebnf2ps.el, v 3.2 <2000/07/29 vinicius>
+(defconst ebnf-version "3.3"
+  "ebnf2ps.el, v 3.2 <2000/08/27 vinicius>
 
 Vinicius's last change version.  When reporting bugs, please also
 report the version of Emacs, if any, that ebnf2ps was running with.
@@ -607,7 +607,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; `ebnf-line-color'			Specify flow line color.
 ;;
-;; `ebnf-user-arrow'			Specify a user arrow shape (a
+;; `ebnf-user-arrow'			Specify a sexp for user arrow shape (a
 ;;					PostScript code).
 ;;
 ;; `ebnf-debug-ps'			Non-nil means to generate PostScript
@@ -1503,9 +1503,10 @@ See documentation for `ebnf-non-terminal-shape'."
 
 
 (defcustom ebnf-user-arrow nil
-  "*Specify a user arrow shape (a PostScript code).
+  "*Specify a sexp for user arrow shape (a PostScript code).
 
-PostScript code should draw a right arrow.
+When evaluated, the sexp should return nil or a string containing PostScript
+code.  PostScript code should draw a right arrow.
 
 The anatomy of a right arrow is:
 
@@ -1535,17 +1536,8 @@ values, if you need to modify them.
 The relation between these variables is: hT = 2 * hT2 = 4 * hT4.
 
 The variable `ebnf-user-arrow' is only used when `ebnf-arrow-shape' is set to
-symbol `user'.
-
-See function `ebnf-user-arrow' for valid values and how values are processed."
-  :type '(radio :tag "User Arrow Shape"
-		(const nil)
-		string
-		symbol
-		(repeat :tag "List"
-			(radio string
-			       symbol
-			       sexp)))
+symbol `user'."
+  :type '(sexp :tag "User Arrow Shape")
   :group 'ebnf-shape)
 
 
@@ -4380,17 +4372,16 @@ end
      "\n%%DocumentNeededResources: font "
      (or ebnf-fonts-required
 	 (setq ebnf-fonts-required
-	       (let ((fonts (ps-remove-duplicates
-			     (mapcar 'ebnf-font-name-select
-				     (list ebnf-production-font
-					   ebnf-terminal-font
-					   ebnf-non-terminal-font
-					   ebnf-special-font
-					   ebnf-except-font
-					   ebnf-repeat-font)))))
-		 (concat (car fonts)
-			 (and (cdr fonts) "\n%%+ font ")
-			 (mapconcat 'identity (cdr fonts) "\n%%+ font ")))))
+	       (mapconcat 'identity
+			  (ps-remove-duplicates
+			   (mapcar 'ebnf-font-name-select
+				   (list ebnf-production-font
+					 ebnf-terminal-font
+					 ebnf-non-terminal-font
+					 ebnf-special-font
+					 ebnf-except-font
+					 ebnf-repeat-font)))
+			  "\n%%+ font ")))
      "\n%%Pages: 0\n%%EndComments\n\n%%BeginPrologue\n"
      ebnf-eps-prologue)
     (ebnf-insert-ebnf-prologue)
@@ -4553,56 +4544,13 @@ end
 		      (ebnf-shape-value ebnf-chart-shape
 					ebnf-terminal-shape-alist))
 	      (format "/UserArrow{%s}def\n"
-		      (ebnf-user-arrow ebnf-user-arrow))
+		      (let ((arrow (eval ebnf-user-arrow)))
+			(if (stringp arrow)
+			    arrow
+			  "")))
 	      "\n% === end   EBNF settings\n\n"
 	      (and ebnf-debug-ps ebnf-debug))))
    ebnf-prologue))
-
-
-(defun ebnf-user-arrow (user-arrow)
-  "Return a user arrow shape from USER-ARROW (a PostScript code).
-
-This function is only called when `ebnf-arrow-shape' is set to symbol `user'.
-
-If is a string, should be a PostScript procedure body.
-If is a variable symbol, should contain a string.
-If is a function symbol, it is called and the result is applied recursively.
-If is a cons and car is a function symbol, it is called as:
-   (funcall (car cons) (cdr cons))
-and the result is applied recursively.
-If is a cons and car is not a function symbol, it is applied recursively on
-car and cdr, and the results are concatened as:
-   (concat RESULT-FROM-CAR \" \" RESULT-FROM-CDR)
-If is a list and car is a function symbol, it is called as:
-   (apply (car list) (cdr list))
-and the result is applied recursively.
-If is a list and car is not a function symbol, it is applied recursively on
-each element and the resulting list is concatened as:
-   (mapconcat 'identity RESULTING-LIST \" \")
-Otherwise, it is treated as an empty string."
-  (cond
-   ((null user-arrow)
-    "")
-   ((stringp user-arrow)
-    user-arrow)
-   ((and (symbolp user-arrow) (fboundp user-arrow))
-    (ebnf-user-arrow (funcall user-arrow)))
-   ((and (symbolp user-arrow) (boundp user-arrow))
-    (ebnf-user-arrow (symbol-value user-arrow)))
-   ((consp user-arrow)
-    (if (and (symbolp (car user-arrow)) (fboundp (car user-arrow)))
-	(ebnf-user-arrow (funcall (car user-arrow) (cdr user-arrow)))
-      (concat (ebnf-user-arrow (car user-arrow))
-	      " "
-	      (ebnf-user-arrow (cdr user-arrow)))))
-   ((listp user-arrow)
-    (if (and (symbolp (car user-arrow))
-	     (fboundp (car user-arrow)))
-	(ebnf-user-arrow (apply (car user-arrow) (cdr user-arrow)))
-      (mapconcat 'ebnf-user-arrow user-arrow " ")))
-   (t
-    "")
-   ))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
