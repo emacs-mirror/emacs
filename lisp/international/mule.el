@@ -774,82 +774,78 @@ LIST is a list of coding categories ordered by priority."
 
 ;;; FILE I/O
 
-(defun set-auto-coding (size)
-  "Return coding system for a file of which SIZE bytes follow point.
+(defun set-auto-coding (string)
+  "Return coding system for a file which has STRING at the head and tail.
+STRING is a concatination of the first 1K-byte and
+ the last 3K-byte of the file.
 
-It checks for a -*- coding: tag in the first one or two lines
-following point.  If no coding: tag is found, it checks local
-variables spec in the last 3K-byte of SIZE bytes.
+It checks for a -*- coding: tag in the first one or two lines of STRING.
+If there's no coding: tag in the head, it checks local variables spec
+in the tailing 3K-byte oof STRING.
 
 The return value is the specified coding system,
 or nil if nothing specified.
 
 The variable `set-auto-coding-function' (which see) is set to this
 function by default."
-  (let* ((case-fold-search t)
-	 (head-start (point))
-	 (head-end (+ head-start (min size 1024)))
-	 (tail-start (+ head-start (max (- size 3072) 0)))
-	 (tail-end (+ head-start size))
-	 coding-system head-found tail-found pos)
-    ;; Try a short cut by searching for the string "coding:" at the
-    ;; head and tail of SIZE bytes.
-    (setq head-found (search-forward "coding:" head-end t))
-    (if (and head-found (> head-found tail-start))
-	;; Head and tail are overlapped.
-	(setq tail-found head-found)
-      (goto-char tail-start)
-      (setq tail-found (search-forward "coding:" tail-end t)))
+  (condition-case nil
+      (let ((case-fold-search t)
+	    (len (length string))
+	    (limit (string-match "\n" string))
+	    (coding-system nil))
 
-    ;; At first check the head.
-    (when head-found
-      (goto-char head-start)
-      (setq pos (re-search-forward "[\n\r]" head-end t))
-      (if (and pos
-	       (= (char-after head-start) ?#)
-	       (= (char-after (1+ head-start)) ?!))
-	  ;; If the file begins with "#!" (exec interpreter magic),
-	  ;; look for coding frobs in the first two lines.  You cannot
-	  ;; necessarily put them in the first line of such a file
-	  ;; without screwing up the interpreter invocation.
-	  (setq pos (search-forward "\n" head-end t)))
-      (if pos (setq head-end pos))
-      (when (< head-found head-end)
-	(goto-char head-start)
-	(if (re-search-forward
-	     "-\\*-\\(.*;\\)?[ \t]*coding:[ \t]*\\([^ ;]+\\)" head-end t)
-	    (progn
-	      (setq coding-system (intern (match-string 2)))
+	;; At first check the head.
+	(if limit
+	    (when (string-match "^#!" string)
+	      ;; If the file begins with "#!" (exec interpreter
+	      ;; magic), look for coding frobs in the first two lines.
+	      ;; You cannot necessarily put them in the first line of
+	      ;; such a file without screwing up the interpreter
+	      ;; invocation.
+	      (setq limit (string-match "\n" string limit))
+	      (or limit
+		  (setq limit len)))
+	  (setq limit len))
+	(when (and (string-match "-\\*-\\(.*;\\)?[ \t]*coding:[ \t]*\\([^ ;]+\\)" string)
+		   (< (match-beginning 2) limit))
+	  (setq coding-system
+		(intern (substring string (match-beginning 2) (match-end 2))))
+	  (if (not (coding-system-p coding-system))
+	      (setq coding-system nil)))
+
+	;; If no coding system is specified in the head, check the tail.
+	(when (and (not coding-system)
+		   (let ((idx (if (> len 3000) (- len 3000) 0))
+			 start)
+		     (while (setq start (string-match "\n\^L" string idx))
+		       (setq idx (+ start 2)))
+		     (string-match
+		      "^\\(.*\\)[ \t]*Local Variables:[ \t]*\\(.*\\)$"
+		      string idx)))
+	  ;; The prefix is what comes before "local variables:" in its line.
+	  ;; The suffix is what comes after "local variables:" in its line.
+	  (let* ((idx (1+ (match-end 0)))
+		 (prefix (regexp-quote
+			  (substring string
+				     (match-beginning 1) (match-end 1))))
+		 (suffix (regexp-quote
+			  (substring string
+				     (match-beginning 2) (match-end 2))))
+		 (re-coding (concat "^" prefix
+				    "coding[ \t]*:[ \t]*\\([^ \t\n]+\\)[ \t]*"
+				    suffix "$"))
+		 (re-end (concat "^" prefix "end *:[ \t]*" suffix "$"))
+		 (limit (or (string-match re-end string idx) len)))
+	    (when (and (setq idx (string-match re-coding string idx))
+		       (< idx limit))
+	      (setq coding-system
+		    (intern (substring string
+				       (match-beginning 1) (match-end 1))))
 	      (or (coding-system-p coding-system)
-		  (setq coding-system nil))))))
+		  (setq coding-system nil)))))
 
-    ;; If no coding: tag in the head, check the tail.
-    (when (and tail-found (not coding-system))
-      (goto-char tail-start)
-      (search-forward "\n\^L" nil t)
-      (if (re-search-forward
-	   "^\\(.*\\)[ \t]*Local Variables:[ \t]*\\(.*\\)$" tail-end t)
-	  ;; The prefix is what comes before "local variables:" in its
-	  ;; line.  The suffix is what comes after "local variables:"
-	  ;; in its line.
-	  (let* ((prefix (regexp-quote (match-string 1)))
-		 (suffix (regexp-quote (match-string 2)))
-		 (re-coding (concat
-			     "^" prefix
-			     "coding[ \t]*:[ \t]*\\([^ \t]+\\)[ \t]*"
-			     suffix "$"))
-		 (re-end (concat
-			  "^" prefix "end *:[ \t]*" suffix "$"))
-		 (pos (point)))
-	    (re-search-forward re-end tail-end 'move)
-	    (setq tail-end (point))
-	    (goto-char pos)
-	    (if (re-search-forward re-coding tail-end t)
-		(progn
-		  (setq coding-system (intern (match-string 1)))
-		  (or (coding-system-p coding-system)
-		      (setq coding-system nil)))))))
-    coding-system))
+	coding-system)
+    (error nil)))
 
 (setq set-auto-coding-function 'set-auto-coding)
 
