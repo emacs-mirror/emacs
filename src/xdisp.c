@@ -124,10 +124,9 @@ Boston, MA 02111-1307, USA.  */
    argument.
 
    Iteration over things to be be displayed is then simple.  It is
-   started by initializing an iterator with a call to init_iterator
-   (or init_string_iterator for that matter).  Calls to
-   get_next_display_element fill the iterator structure with relevant
-   information about the next thing to display.  Calls to
+   started by initializing an iterator with a call to init_iterator.
+   Calls to get_next_display_element fill the iterator structure with
+   relevant information about the next thing to display.  Calls to
    set_iterator_to_next move the iterator to the next thing.
 
    Besides this, an iterator also contains information about the
