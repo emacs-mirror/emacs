@@ -1089,7 +1089,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
 
   if (NILP (current_buffer->enable_multibyte_characters))
     outgoing_nbytes = nchars;
-  else if (nchars == nbytes)
+  else if (! STRING_MULTIBYTE (string))
     outgoing_nbytes
       = count_size_as_multibyte (&XSTRING (string)->data[pos_byte],
 				 nbytes);
@@ -1111,11 +1111,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
   /* Copy the string text into the buffer, perhaps converting
      between single-byte and multibyte.  */
   copy_text (XSTRING (string)->data + pos_byte, GPT_ADDR, nbytes,
-	     /* If these are equal, it is a single-byte string.
-		Its chars are either ASCII, in which case copy_text
-		won't change it, or single-byte non-ASCII chars,
-		that need to be changed.  */
-	     nchars != nbytes,
+	     STRING_MULTIBYTE (string),
 	     ! NILP (current_buffer->enable_multibyte_characters));
 
   /* We have copied text into the gap, but we have not altered
@@ -1539,7 +1535,7 @@ replace_range (from, to, new, prepare, inherit, nomarkers)
 
   if (NILP (current_buffer->enable_multibyte_characters))
     outgoing_insbytes = inschars;
-  else if (inschars == insbytes)
+  else if (! STRING_MULTIBYTE (new))
     outgoing_insbytes
       = count_size_as_multibyte (XSTRING (new)->data, insbytes);
 
@@ -1590,11 +1586,7 @@ replace_range (from, to, new, prepare, inherit, nomarkers)
   /* Copy the string text into the buffer, perhaps converting
      between single-byte and multibyte.  */
   copy_text (XSTRING (new)->data, GPT_ADDR, insbytes,
-	     /* If these are equal, it is a single-byte string.
-		Its chars are either ASCII, in which case copy_text
-		won't change it, or single-byte non-ASCII chars,
-		that need to be changed.  */
-	     inschars != insbytes,
+	     STRING_MULTIBYTE (new),
 	     ! NILP (current_buffer->enable_multibyte_characters));
 
   /* We have copied text into the gap, but we have not altered
