@@ -1215,7 +1215,7 @@ The value of this variable is used when Font Lock mode is turned on."
 					   'font-lock-multiline nil)
 			(point-max)))
 	  (goto-char end)
-	  (setq end (line-end-position))
+	  (setq end (line-beginning-position 2))
 	  ;; Now do the fontification.
 	  (font-lock-unfontify-region beg end)
 	  (when font-lock-syntactic-keywords
@@ -1741,13 +1741,11 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 	(set (make-local-variable 'font-lock-beginning-of-syntax-function)
 	     (nth 4 defaults)))
       ;; Variable alist?
-      (let ((alist (nthcdr 5 defaults)))
-	(while alist
-	  (let ((variable (car (car alist))) (value (cdr (car alist))))
-	    (unless (boundp variable)
-	      (set variable nil))
-	    (set (make-local-variable variable) value)
-	    (setq alist (cdr alist))))))))
+      (dolist (x (nthcdr 5 defaults))
+	(let ((variable (car x)) (value (cdr x)))
+	  (unless (boundp variable)
+	    (set variable nil))		;why ?
+	  (set (make-local-variable variable) value))))))
 
 (defun font-lock-unset-defaults ()
   "Unset fontification defaults.  See function `font-lock-set-defaults'."
