@@ -1176,6 +1176,9 @@ calc-kill calc-kill-region calc-yank))))
 
 ;;;; Miscellaneous.
 
+;; calc-command-flags is declared in calc.el
+(defvar calc-command-flags)
+
 (defun calc-clear-command-flag (f)
   (setq calc-command-flags (delq f calc-command-flags)))
 
@@ -1654,7 +1657,8 @@ calc-kill calc-kill-region calc-yank))))
 
 
 (defvar calc-gnuplot-process nil)
-
+(defvar calc-gnuplot-input)
+(defvar calc-gnuplot-buffer)
 
 (defun calc-gnuplot-alive ()
   (and calc-gnuplot-process
@@ -2217,6 +2221,11 @@ calc-kill calc-kill-region calc-yank))))
 	     (math-normalize (car a))
 	   (error "Can't use multi-valued function in an expression")))))
 
+;; The variable math-normalize-a is local to math-normalize in calc.el,
+;; but is used by math-normalize-nonstandard, which is called by
+;; math-normalize.
+(defvar math-normalize-a)
+
 (defun math-normalize-nonstandard ()
   (if (consp calc-simplify-mode)
       (progn
@@ -2655,6 +2664,10 @@ calc-kill calc-kill-region calc-yank))))
 		(boundp (nth 2 expr))
 		(eq (car-safe (symbol-value (nth 2 expr))) 'special-const))
 	   (memq (nth 2 expr) '(var-inf var-uinf var-nan)))))
+
+;; The variable math-integral-cache is originally declared in calcalg2.el,
+;; but is set by math-defintegral and math-definitegral2.
+(defvar math-integral-cache)
 
 (defmacro math-defintegral (funcs &rest code)
   (setq math-integral-cache nil)
