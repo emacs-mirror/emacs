@@ -1,5 +1,5 @@
 /* Random utility Lisp functions.
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 99, 2000 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2471,13 +2471,18 @@ mapcar1 (leni, vals, fn, seq)
   register int i;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
-  /* Don't let vals contain any garbage when GC happens.  */
-  for (i = 0; i < leni; i++)
-    vals[i] = Qnil;
+  if (vals)
+    {
+      /* Don't let vals contain any garbage when GC happens.  */
+      for (i = 0; i < leni; i++)
+	vals[i] = Qnil;
 
-  GCPRO3 (dummy, fn, seq);
-  gcpro1.var = vals;
-  gcpro1.nvars = leni;
+      GCPRO3 (dummy, fn, seq);
+      gcpro1.var = vals;
+      gcpro1.nvars = leni;
+    }
+  else
+    GCPRO2 (fn, seq);
   /* We need not explicitly protect `tail' because it is used only on lists, and
     1) lists are not relocated and 2) the list is marked via `seq' so will not be freed */
 
@@ -2486,7 +2491,9 @@ mapcar1 (leni, vals, fn, seq)
       for (i = 0; i < leni; i++)
 	{
 	  dummy = XVECTOR (seq)->contents[i];
-	  vals[i] = call1 (fn, dummy);
+	  dummy = call1 (fn, dummy);
+	  if (vals)
+	    vals[i] = dummy;
 	}
     }
   else if (BOOL_VECTOR_P (seq))
@@ -2500,7 +2507,9 @@ mapcar1 (leni, vals, fn, seq)
 	  else
 	    dummy = Qnil;
 
-	  vals[i] = call1 (fn, dummy);
+	  dummy = call1 (fn, dummy);
+	  if (vals)
+	    vals[i] = dummy;
 	}
     }
   else if (STRINGP (seq) && ! STRING_MULTIBYTE (seq))
@@ -2509,7 +2518,9 @@ mapcar1 (leni, vals, fn, seq)
       for (i = 0; i < leni; i++)
 	{
 	  XSETFASTINT (dummy, XSTRING (seq)->data[i]);
-	  vals[i] = call1 (fn, dummy);
+	  dummy = call1 (fn, dummy);
+	  if (vals)
+	    vals[i] = dummy;
 	}
     }
   else if (STRINGP (seq))
@@ -2524,7 +2535,9 @@ mapcar1 (leni, vals, fn, seq)
 
 	  FETCH_STRING_CHAR_ADVANCE (c, seq, i, i_byte);
 	  XSETFASTINT (dummy, c);
-	  vals[i_before] = call1 (fn, dummy);
+	  dummy = call1 (fn, dummy);
+	  if (vals)
+	    vals[i_before] = dummy;
 	}
     }
   else   /* Must be a list, since Flength did not get an error */
@@ -2532,7 +2545,9 @@ mapcar1 (leni, vals, fn, seq)
       tail = seq;
       for (i = 0; i < leni; i++)
 	{
-	  vals[i] = call1 (fn, Fcar (tail));
+	  dummy = call1 (fn, Fcar (tail));
+	  if (vals)
+	    vals[i] = dummy;
 	  tail = XCDR (tail);
 	}
     }
@@ -2593,6 +2608,21 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.")
   mapcar1 (leni, args, function, sequence);
 
   return Flist (leni, args);
+}
+
+DEFUN ("mapc", Fmapc, Smapc, 2, 2, 0,
+  "Apply FUNCTION to each element of SEQUENCE for side effects only.\n\
+Unlike `mapcar', don't accumulate the results.  Return SEQUENCE.\n\
+SEQUENCE may be a list, a vector, a bool-vector, or a string.")
+  (function, sequence)
+     Lisp_Object function, sequence;
+{
+  register int leni;
+
+  leni = XFASTINT (Flength (sequence));
+  mapcar1 (leni, 0, function, sequence);
+
+  return sequence;
 }
 
 /* Anything that calls this function must protect from GC!  */
@@ -3944,6 +3974,7 @@ hash_lookup (h, key, hash)
   start_of_bucket = hash_code % XVECTOR (h->index)->size;
   idx = HASH_INDEX (h, start_of_bucket);
 
+  /* We need not gcpro idx since it's either an integer or nil.  */
   while (!NILP (idx))
     {
       int i = XFASTINT (idx);
@@ -4010,6 +4041,7 @@ hash_remove (h, key)
   idx = HASH_INDEX (h, start_of_bucket);
   prev = Qnil;
 
+  /* We need not gcpro idx, prev since they're either integers or nil.  */
   while (!NILP (idx))
     {
       int i = XFASTINT (idx);
@@ -4626,7 +4658,7 @@ If KEY is not found, return DFLT which defaults to nil.")
 
 
 DEFUN ("puthash", Fputhash, Sputhash, 3, 3, 0,
-  "Associate KEY with VALUE is hash table TABLE.\n\
+  "Associate KEY with VALUE in hash table TABLE.\n\
 If KEY is already present in table, replace its current value with\n\
 VALUE.")
   (key, value, table)
