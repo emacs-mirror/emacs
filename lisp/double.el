@@ -42,8 +42,6 @@
 ;; The default mapping is for getting Danish/Norwegian keyboard layout
 ;; using ISO Latin 1 on a US keyboard.
 ;;
-;; Requires FSF Emacs 19.20 or later.
-;;
 ;; Imprtant node: While I would like to hear comments, bug reports,
 ;; suggestions, please do @strong{not} expect me to put other mappings
 ;; that the default into this file.  There are billions and billions
@@ -76,7 +74,7 @@ Each entry is a list with three elements:
 3. The string to be inserted when the key is pressed twice.")
 
 (defvar double-prefix-only t
-  "*Non-nil means that double mode mapping only works for prefix keys.
+  "*Non-nil means that Double mode mapping only works for prefix keys.
 That is, for any key `X' in `double-map',  `X' alone will be mapped
 but not `C-u X' or `ESC X' since the X is not the prefix key.")
 
@@ -141,8 +139,8 @@ but not `C-u X' or `ESC X' since the X is not the prefix key.")
 
 (defvar default-key-translation-map
   (or key-translation-map (make-sparse-keymap))
-  "Key translation you want to have effect, regardless of double mode.
-This will default to the value of `key-translation-map' when double was
+  "Key translation you want to have effect, regardless of Double mode.
+This defaults to the value of `key-translation-map' when double was
 first loaded.")
 
 (make-variable-buffer-local 'key-translation-map)
@@ -163,18 +161,20 @@ first loaded.")
 
 (or (assq 'double-mode minor-mode-alist)
     (setq minor-mode-alist
-	  (cons '(double-mode (" " double-mode-name)) minor-mode-alist)))
+	  (cons '(double-mode " Double") minor-mode-alist)))
 
-(defvar double-mode-name "Double")
-;; Name of current double mode.
-  (make-variable-buffer-local 'double-mode-name)
+;; This feature seemed useless and it confused describe-mode,
+;;  so I deleted it.
+;;;(defvar double-mode-name "Double")
+;;;;; Name of current double mode.
+;;; (make-variable-buffer-local 'double-mode-name)
 
 ;;;###autoload
 (defun double-mode (arg)
-  "Toggle double mode.
-With prefix arg, turn double mode on iff arg is positive.
+  "Toggle Double mode.
+With prefix arg, turn Double mode on iff arg is positive.
 
-When double mode is on, some keys will insert will insert different
+When Double mode is on, some keys will insert will insert different
 strings when pressed twice.  See variable `double-map' for details."
   (interactive "P")
   (if (or (and (null arg) double-mode)
