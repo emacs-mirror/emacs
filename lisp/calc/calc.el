@@ -2232,62 +2232,72 @@ See calc-keypad for details."
 (defvar math-eval-rules-cache)
 (defvar math-eval-rules-cache-other)
 ;;; Reduce an object to canonical (normalized) form.  [O o; Z Z] [Public]
-(defun math-normalize (a)
+
+(defvar math-normalize-a)
+(defun math-normalize (math-normalize-a)
   (cond
-   ((not (consp a))
-    (if (integerp a)
-	(if (or (>= a 1000000) (<= a -1000000))
-	    (math-bignum a)
-	  a)
-      a))
-   ((eq (car a) 'bigpos)
-    (if (eq (nth (1- (length a)) a) 0)
-	(let* ((last (setq a (copy-sequence a))) (digs a))
+   ((not (consp math-normalize-a))
+    (if (integerp math-normalize-a)
+	(if (or (>= math-normalize-a 1000000) (<= math-normalize-a -1000000))
+	    (math-bignum math-normalize-a)
+	  math-normalize-a)
+      math-normalize-a))
+   ((eq (car math-normalize-a) 'bigpos)
+    (if (eq (nth (1- (length math-normalize-a)) math-normalize-a) 0)
+	(let* ((last (setq math-normalize-a 
+                           (copy-sequence math-normalize-a))) (digs math-normalize-a))
 	  (while (setq digs (cdr digs))
 	    (or (eq (car digs) 0) (setq last digs)))
 	  (setcdr last nil)))
-    (if (cdr (cdr (cdr a)))
-	a
+    (if (cdr (cdr (cdr math-normalize-a)))
+	math-normalize-a
       (cond
-       ((cdr (cdr a)) (+ (nth 1 a) (* (nth 2 a) 1000)))
-       ((cdr a) (nth 1 a))
+       ((cdr (cdr math-normalize-a)) (+ (nth 1 math-normalize-a) 
+                                        (* (nth 2 math-normalize-a) 1000)))
+       ((cdr math-normalize-a) (nth 1 math-normalize-a))
        (t 0))))
-   ((eq (car a) 'bigneg)
-    (if (eq (nth (1- (length a)) a) 0)
-	(let* ((last (setq a (copy-sequence a))) (digs a))
+   ((eq (car math-normalize-a) 'bigneg)
+    (if (eq (nth (1- (length math-normalize-a)) math-normalize-a) 0)
+	(let* ((last (setq math-normalize-a (copy-sequence math-normalize-a))) 
+               (digs math-normalize-a))
 	  (while (setq digs (cdr digs))
 	    (or (eq (car digs) 0) (setq last digs)))
 	  (setcdr last nil)))
-    (if (cdr (cdr (cdr a)))
-	a
+    (if (cdr (cdr (cdr math-normalize-a)))
+	math-normalize-a
       (cond
-       ((cdr (cdr a)) (- (+ (nth 1 a) (* (nth 2 a) 1000))))
-       ((cdr a) (- (nth 1 a)))
+       ((cdr (cdr math-normalize-a)) (- (+ (nth 1 math-normalize-a) 
+                                           (* (nth 2 math-normalize-a) 1000))))
+       ((cdr math-normalize-a) (- (nth 1 math-normalize-a)))
        (t 0))))
-   ((eq (car a) 'float)
-    (math-make-float (math-normalize (nth 1 a)) (nth 2 a)))
-   ((or (memq (car a) '(frac cplx polar hms date mod sdev intv vec var quote
-			     special-const calcFunc-if calcFunc-lambda
-			     calcFunc-quote calcFunc-condition
-			     calcFunc-evalto))
-	(integerp (car a))
-	(and (consp (car a)) (not (eq (car (car a)) 'lambda))))
+   ((eq (car math-normalize-a) 'float)
+    (math-make-float (math-normalize (nth 1 math-normalize-a)) 
+                     (nth 2 math-normalize-a)))
+   ((or (memq (car math-normalize-a) 
+              '(frac cplx polar hms date mod sdev intv vec var quote
+                     special-const calcFunc-if calcFunc-lambda
+                     calcFunc-quote calcFunc-condition
+                     calcFunc-evalto))
+	(integerp (car math-normalize-a))
+	(and (consp (car math-normalize-a)) 
+             (not (eq (car (car math-normalize-a)) 'lambda))))
     (calc-extensions)
-    (math-normalize-fancy a))
+    (math-normalize-fancy math-normalize-a))
    (t
     (or (and calc-simplify-mode
 	     (calc-extensions)
 	     (math-normalize-nonstandard))
-	(let ((args (mapcar 'math-normalize (cdr a))))
+	(let ((args (mapcar 'math-normalize (cdr math-normalize-a))))
 	  (or (condition-case err
-		  (let ((func (assq (car a) '( ( + . math-add )
-					       ( - . math-sub )
-					       ( * . math-mul )
-					       ( / . math-div )
-					       ( % . math-mod )
-					       ( ^ . math-pow )
-					       ( neg . math-neg )
-					       ( | . math-concat ) ))))
+		  (let ((func 
+                         (assq (car math-normalize-a) '( ( + . math-add )
+                                                         ( - . math-sub )
+                                                         ( * . math-mul )
+                                                         ( / . math-div )
+                                                         ( % . math-mod )
+                                                         ( ^ . math-pow )
+                                                         ( neg . math-neg )
+                                                         ( | . math-concat ) ))))
 		    (or (and var-EvalRules
 			     (progn
 			       (or (eq var-EvalRules math-eval-rules-cache-tag)
@@ -2295,51 +2305,54 @@ See calc-keypad for details."
 				     (calc-extensions)
 				     (math-recompile-eval-rules)))
 			       (and (or math-eval-rules-cache-other
-					(assq (car a) math-eval-rules-cache))
+					(assq (car math-normalize-a) 
+                                              math-eval-rules-cache))
 				    (math-apply-rewrites
-				     (cons (car a) args)
+				     (cons (car math-normalize-a) args)
 				     (cdr math-eval-rules-cache)
 				     nil math-eval-rules-cache))))
 			(if func
 			    (apply (cdr func) args)
-			  (and (or (consp (car a))
-				   (fboundp (car a))
+			  (and (or (consp (car math-normalize-a))
+				   (fboundp (car math-normalize-a))
 				   (and (not calc-extensions-loaded)
 					(calc-extensions)
-					(fboundp (car a))))
-			       (apply (car a) args)))))
+					(fboundp (car math-normalize-a))))
+			       (apply (car math-normalize-a) args)))))
 		(wrong-number-of-arguments
 		 (calc-record-why "*Wrong number of arguments"
-				  (cons (car a) args))
+				  (cons (car math-normalize-a) args))
 		 nil)
 		(wrong-type-argument
-		 (or calc-next-why (calc-record-why "Wrong type of argument"
-						    (cons (car a) args)))
+		 (or calc-next-why 
+                     (calc-record-why "Wrong type of argument"
+                                      (cons (car math-normalize-a) args)))
 		 nil)
 		(args-out-of-range
-		 (calc-record-why "*Argument out of range" (cons (car a) args))
+		 (calc-record-why "*Argument out of range" 
+                                  (cons (car math-normalize-a) args))
 		 nil)
 		(inexact-result
 		 (calc-record-why "No exact representation for result"
-				  (cons (car a) args))
+				  (cons (car math-normalize-a) args))
 		 nil)
 		(math-overflow
 		 (calc-record-why "*Floating-point overflow occurred"
-				  (cons (car a) args))
+				  (cons (car math-normalize-a) args))
 		 nil)
 		(math-underflow
 		 (calc-record-why "*Floating-point underflow occurred"
-				  (cons (car a) args))
+				  (cons (car math-normalize-a) args))
 		 nil)
 		(void-variable
 		 (if (eq (nth 1 err) 'var-EvalRules)
 		     (progn
 		       (setq var-EvalRules nil)
-		       (math-normalize (cons (car a) args)))
+		       (math-normalize (cons (car math-normalize-a) args)))
 		   (calc-record-why "*Variable is void" (nth 1 err)))))
-	      (if (consp (car a))
+	      (if (consp (car math-normalize-a))
 		  (math-dimension-error)
-		(cons (car a) args))))))))
+		(cons (car math-normalize-a) args))))))))
 
 
 
