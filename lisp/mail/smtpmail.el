@@ -378,6 +378,7 @@ This is relative to `smtpmail-queue-dir'.")
       (if (bufferp errbuf)
 	  (kill-buffer errbuf)))))
 
+;;;###autoload
 (defun smtpmail-send-queued-mail ()
   "Send mail that was queued as a result of setting `smtpmail-queue-mail'."
   (interactive)
