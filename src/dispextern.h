@@ -1697,7 +1697,9 @@ enum face_box_type
 
 enum face_underline_type
 {
-	/* Note: Order matches the order of the Smulx terminfo extension. */
+  /* Note: order matches the order of the Smulx terminfo extension, and
+     is also relied on to remain in its present order by
+     x_draw_glyph_string and company.  */
   FACE_NO_UNDERLINE = 0,
   FACE_UNDERLINE_SINGLE,
   FACE_UNDERLINE_DOUBLE_LINE,

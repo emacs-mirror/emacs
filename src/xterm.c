@@ -10764,13 +10764,11 @@ x_get_scale_factor (struct x_display_info *dpyinfo,
 static void
 x_draw_underwave (struct glyph_string *s, int decoration_width)
 {
-  Display *display;
   struct x_display_info *dpyinfo;
   /* Adjust for scale/HiDPI.  */
   int scale_x, scale_y;
 
   dpyinfo = FRAME_DISPLAY_INFO (s->f);
-  display = dpyinfo->display;
   x_get_scale_factor (dpyinfo, &scale_x, &scale_y);
 
   int wave_height = 3 * scale_y, wave_length = 2 * scale_x;
@@ -10779,6 +10777,7 @@ x_draw_underwave (struct glyph_string *s, int decoration_width)
   x_draw_horizontal_wave (s->f, s->gc, s->x, s->ybase - wave_height + 3,
 			  decoration_width, wave_height, wave_length);
 #else  /* not USE_CAIRO */
+  Display *display;
   int dx, dy, x0, y0, width, x1, y1, x2, y2, xmax, thickness = scale_y;;
   bool odd;
   XRectangle wave_clip, string_clip, final_clip;
@@ -10801,6 +10800,7 @@ x_draw_underwave (struct glyph_string *s, int decoration_width)
   if (!gui_intersect_rectangles (&wave_clip, &string_clip, &final_clip))
     return;
 
+  display = dpyinfo->display;
   XSetClipRectangles (display, s->gc, 0, 0, &final_clip, 1, Unsorted);
 
   /* Draw the waves */
@@ -10833,6 +10833,98 @@ x_draw_underwave (struct glyph_string *s, int decoration_width)
 #endif	/* not USE_CAIRO */
 }
 
+/* Draw a dashed underline of thickness THICKNESS and width WIDTH onto F
+   at a vertical offset of OFFSET from the position of the glyph string
+   S, with each segment SEGMENT pixels in length.  */
+
+static void
+x_draw_dash (struct frame *f, struct glyph_string *s, int width,
+	     char segment, int offset, int thickness)
+{
+#ifndef USE_CAIRO
+  GC gc;
+  Display *display;
+  XGCValues gcv;
+  int y_center;
+
+  /* Configure the GC, the dash pattern and a suitable offset.  */
+  gc = s->gc;
+  display = FRAME_X_DISPLAY (f);
+
+  XGetGCValues (display, s->gc, GCLineStyle, &gcv);
+  gcv.line_style = LineOnOffDash;
+  gcv.line_width = thickness;
+  XChangeGC (display, s->gc, GCLineStyle | GCLineWidth, &gcv);
+  XSetDashes (display, s->gc, s->x, &segment, 1);
+
+  /* Offset the origin of the line by half the line width. */
+  y_center = s->ybase + offset + thickness / 2;
+  XDrawLine (display, FRAME_X_DRAWABLE (f), gc,
+	     s->x, y_center, s->x + width, y_center);
+
+  /* Restore the initial line style.  */
+  gcv.line_style = LineSolid;
+  gcv.line_width = 1;
+  XChangeGC (display, s->gc, GCLineStyle | GCLineWidth, &gcv);
+#else /* USE_CAIRO */
+  cairo_t *cr;
+  double cr_segment, y_center;
+
+  cr = x_begin_cr_clip (f, s->gc);
+  cr_segment = (double) segment;
+  y_center = s->ybase + offset + (thickness / 2.0);
+
+  x_set_cr_source_with_gc_foreground (f, s->gc, false);
+  cairo_set_dash (cr, &cr_segment, 1, s->x);
+  cairo_set_line_width (cr, thickness);
+  cairo_move_to (cr, s->x, y_center);
+  cairo_line_to (cr, s->x + width, y_center);
+  cairo_stroke (cr);
+  x_end_cr_clip (f);
+#endif /* USE_CAIRO */
+}
+
+/* Draw an underline of STYLE onto F at an offset of POSITION from the
+   baseline of the glyph string S, DECORATION_WIDTH in length, and
+   THICKNESS in height.  */
+
+static void
+x_fill_underline (struct frame *f, struct glyph_string *s,
+		  enum face_underline_type style, int position,
+		  int decoration_width, int thickness)
+{
+  int segment;
+  char x_segment;
+
+  segment = thickness * 3;
+
+  switch (style)
+    {
+      /* FACE_UNDERLINE_DOUBLE_LINE is treated identically to SINGLE, as
+	 the second line will be filled by another invocation of this
+	 function.  */
+    case FACE_UNDERLINE_SINGLE:
+    case FACE_UNDERLINE_DOUBLE_LINE:
+      x_fill_rectangle (f, s->gc, s->x, s->ybase + position,
+			decoration_width, thickness, false);
+      break;
+
+    case FACE_UNDERLINE_DOTS:
+      segment = thickness;
+      FALLTHROUGH;
+
+    case FACE_UNDERLINE_DASHES:
+      x_segment = min (segment, CHAR_MAX);
+      x_draw_dash (f, s, decoration_width, x_segment, position,
+		   thickness);
+      break;
+
+    case FACE_NO_UNDERLINE:
+    case FACE_UNDERLINE_WAVE:
+    default:
+      emacs_abort ();
+    }
+}
 
 /* Draw glyph string S.  */
 
@@ -10973,16 +11065,13 @@ x_draw_glyph_string (struct glyph_string *s)
                   XSetForeground (display, s->gc, xgcv.foreground);
                 }
             }
-          else if (s->face->underline == FACE_UNDERLINE_SINGLE
-		   || s->face->underline == FACE_UNDERLINE_DOUBLE_LINE)
+          else if (s->face->underline >= FACE_UNDERLINE_SINGLE)
             {
               unsigned long thickness, position;
-              int y;
 
               if (s->prev
-		  && ((s->prev->face->underline == FACE_UNDERLINE_SINGLE)
-		      || (s->prev->face->underline
-			  == FACE_UNDERLINE_DOUBLE_LINE))
+		  && (s->prev->face->underline != FACE_UNDERLINE_WAVE
+		      && s->prev->face->underline >= FACE_UNDERLINE_SINGLE)
 		  && (s->prev->face->underline_at_descent_line_p
 		      == s->face->underline_at_descent_line_p)
 		  && (s->prev->face->underline_pixels_above_descent_line
@@ -11064,19 +11153,15 @@ x_draw_glyph_string (struct glyph_string *s)
 		Display *display = FRAME_X_DISPLAY (s->f);
 		XGCValues xgcv;
 
-		y = s->ybase + position;
-		if (s->face->underline_defaulted_p)
-		  x_fill_rectangle (s->f, s->gc,
-				    s->x, y, decoration_width, thickness,
-				    false);
-		else
+		if (!s->face->underline_defaulted_p)
 		  {
 		    XGetGCValues (display, s->gc, GCForeground, &xgcv);
 		    XSetForeground (display, s->gc, s->face->underline_color);
-		    x_fill_rectangle (s->f, s->gc,
-				      s->x, y, decoration_width, thickness,
-				      false);
 		  }
+
+		x_fill_underline (s->f, s, s->face->underline,
+				  position, decoration_width,
+				  thickness);
 
 		/* Place a second underline above the first if this was
 		   requested in the face specification.  */
@@ -11085,9 +11170,9 @@ x_draw_glyph_string (struct glyph_string *s)
 		  {
 		    /* Compute the position of the second underline.  */
 		    position = position - thickness - 1;
-		    y        = s->ybase + position;
-		    x_fill_rectangle (s->f, s->gc, s->x, y, decoration_width,
-				      thickness, false);
+		    x_fill_underline (s->f, s, s->face->underline,
+				      position, decoration_width,
+				      thickness);
 		  }
 
 		if (!s->face->underline_defaulted_p)
