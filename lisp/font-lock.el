@@ -109,6 +109,7 @@ slow things down!")
 (defvar font-lock-verbose t
   "*Non-nil means `font-lock-fontify-buffer' should print status messages.")
 
+;;;###autoload
 (defvar font-lock-mode-hook nil
   "Function or functions to run on entry to Font Lock mode.")
 
