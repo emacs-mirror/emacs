@@ -87,14 +87,14 @@ cus-load.el:
 custom-deps: cus-load.el doit
 	wd=$(lisp); $(setwins); \
 	echo Directories: $$wins; \
-	$(emacs) -l cus-dep -f custom-make-dependencies $$wins
+	$(EMACS) $(EMACSOPT) -l cus-dep -f custom-make-dependencies $$wins
 
 finder-inf.el:
 	echo "(provide 'finder-inf)" >> $@
 finder-data: finder-inf.el doit
 	wd=$(lisp); $(setwins); \
 	echo Directories: $$wins; \
-	$(emacs) -l finder -f finder-compile-keywords-make-dist $$wins
+	$(EMACS) $(EMACSOPT) -l finder -f finder-compile-keywords-make-dist $$wins
 
 loaddefs.el:
 	echo ";;; loaddefs.el --- automatically extracted autoloads" >> $@
@@ -109,7 +109,7 @@ loaddefs.el:
 autoloads: loaddefs.el doit
 	wd=$(lisp); $(setwins); \
 	echo Directories: $$wins; \
-	$(emacs) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
+	$(EMACS) $(EMACSOPT) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
 
 subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
@@ -175,7 +175,7 @@ compile: backup-compiled-files compile-files
 # .elc is present.
 
 recompile: doit
-	$(emacs) -f batch-byte-recompile-directory $(lisp)
+	$(EMACS) $(EMACSOPT) -f batch-byte-recompile-directory $(lisp)
 
 # Prepare a bootstrap in the lisp subdirectory.  Build loaddefs.el,
 # because it's not sure it's up-to-date, and if it's not, that might
