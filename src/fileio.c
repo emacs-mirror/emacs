@@ -5222,7 +5222,12 @@ This does code conversion according to the value of
     return Qnil;
 
   if (!auto_saving)
-    message_with_string ("Wrote %s", visit_file, 1);
+    message_with_string ((! INTEGERP (append)
+			  ? "Updated %s"
+			  : ! NILP (append)
+			  ? "Added to %s"
+			  : "Wrote %s"),
+			 visit_file, 1);
 
   return Qnil;
 }
