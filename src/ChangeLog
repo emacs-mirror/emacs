@@ -1,3 +1,9 @@
+2003-02-12  Kim F. Storm  <storm@cua.dk>
+
+	* macros.c (Fstart_kbd_macro): If appending, and last keyboard
+	macro is a string, convert meta modifiers in string when copying
+	the string into a vector.
+
 2003-02-11  Kim F. Storm  <storm@cua.dk>
 
 	* keymap.c (Fremap_command): Return nil if arg is not a symbol.
