@@ -26,6 +26,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifndef NULL
 #define NULL (void *)0
 #endif
+
+/* Test for membership, allowing for t (actually any non-cons) to mean the
+   universal set.  */
+
+#define TMEM(sym, set) (CONSP (set) ? ! NILP (Fmemq (sym, set)) : ! NILP (set))
 
 
 /* NOTES:  previous- and next- property change will have to skip
@@ -66,6 +71,10 @@ Lisp_Object Qfront_sticky, Qrear_nonsticky;
 Lisp_Object Vinhibit_point_motion_hooks;
 Lisp_Object Vdefault_text_properties;
 
+/* verify_interval_modification saves insertion hooks here
+   to be run later by report_interval_modification.  */
+Lisp_Object interval_insert_behind_hooks;
+Lisp_Object interval_insert_in_front_hooks;
 
 /* Extract the interval at the position pointed to by BEGIN from
    OBJECT, a string or buffer.  Additionally, check that the positions
@@ -1394,7 +1403,218 @@ copy_text_properties (start, end, src, pos, dest, prop)
 
   return modified ? Qt : Qnil;
 }
+
+/* Call the modification hook functions in LIST, each with START and END.  */
 
+static void
+call_mod_hooks (list, start, end)
+     Lisp_Object list, start, end;
+{
+  struct gcpro gcpro1;
+  GCPRO1 (list);
+  while (!NILP (list))
+    {
+      call2 (Fcar (list), start, end);
+      list = Fcdr (list);
+    }
+  UNGCPRO;
+}
+
+/* Check for read-only intervals and signal an error if we find one.
+   Then check for any modification hooks in the range START up to
+   (but not including) END.  Create a list of all these hooks in
+   lexicographic order, eliminating consecutive extra copies of the
+   same hook.  Then call those hooks in order, with START and END - 1
+   as arguments.  */
+
+void
+verify_interval_modification (buf, start, end)
+     struct buffer *buf;
+     int start, end;
+{
+  register INTERVAL intervals = BUF_INTERVALS (buf);
+  register INTERVAL i, prev;
+  Lisp_Object hooks;
+  register Lisp_Object prev_mod_hooks;
+  Lisp_Object mod_hooks;
+  struct gcpro gcpro1;
+
+  hooks = Qnil;
+  prev_mod_hooks = Qnil;
+  mod_hooks = Qnil;
+
+  interval_insert_behind_hooks = Qnil;
+  interval_insert_in_front_hooks = Qnil;
+
+  if (NULL_INTERVAL_P (intervals))
+    return;
+
+  if (start > end)
+    {
+      int temp = start;
+      start = end;
+      end = temp;
+    }
+
+  /* For an insert operation, check the two chars around the position.  */
+  if (start == end)
+    {
+      INTERVAL prev;
+      Lisp_Object before, after;
+
+      /* Set I to the interval containing the char after START,
+	 and PREV to the interval containing the char before START.
+	 Either one may be null.  They may be equal.  */
+      i = find_interval (intervals, start);
+
+      if (start == BUF_BEGV (buf))
+	prev = 0;
+      else if (i->position == start)
+	prev = previous_interval (i);
+      else if (i->position < start)
+	prev = i;
+      if (start == BUF_ZV (buf))
+	i = 0;
+
+      /* If Vinhibit_read_only is set and is not a list, we can
+	 skip the read_only checks.  */
+      if (NILP (Vinhibit_read_only) || CONSP (Vinhibit_read_only))
+	{
+	  /* If I and PREV differ we need to check for the read-only
+	     property together with its stickyness. If either I or
+	     PREV are 0, this check is all we need.
+	     We have to take special care, since read-only may be
+	     indirectly defined via the category property.  */
+	  if (i != prev)
+	    {
+	      if (! NULL_INTERVAL_P (i))
+		{
+		  after = textget (i->plist, Qread_only);
+		  
+		  /* If interval I is read-only and read-only is
+		     front-sticky, inhibit insertion.
+		     Check for read-only as well as category.  */
+		  if (! NILP (after)
+		      && NILP (Fmemq (after, Vinhibit_read_only)))
+		    {
+		      Lisp_Object tem;
+
+		      tem = textget (i->plist, Qfront_sticky);
+		      if (TMEM (Qread_only, tem)
+			  || (NILP (Fplist_get (i->plist, Qread_only))
+			      && TMEM (Qcategory, tem)))
+			error ("Attempt to insert within read-only text");
+		    }
+		}
+
+	      if (! NULL_INTERVAL_P (prev))
+		{
+		  before = textget (prev->plist, Qread_only);
+		  
+		  /* If interval PREV is read-only and read-only isn't
+		     rear-nonsticky, inhibit insertion.
+		     Check for read-only as well as category.  */
+		  if (! NILP (before)
+		      && NILP (Fmemq (before, Vinhibit_read_only)))
+		    {
+		      Lisp_Object tem;
+
+		      tem = textget (prev->plist, Qrear_nonsticky);
+		      if (! TMEM (Qread_only, tem)
+			  && (! NILP (Fplist_get (prev->plist,Qread_only))
+			      || ! TMEM (Qcategory, tem)))
+			error ("Attempt to insert within read-only text");
+		    }
+		}
+	    }
+	  else if (! NULL_INTERVAL_P (i))
+	    {
+	      after = textget (i->plist, Qread_only);
+		  
+	      /* If interval I is read-only and read-only is
+		 front-sticky, inhibit insertion.
+		 Check for read-only as well as category.  */
+	      if (! NILP (after) && NILP (Fmemq (after, Vinhibit_read_only)))
+		{
+		  Lisp_Object tem;
+
+		  tem = textget (i->plist, Qfront_sticky);
+		  if (TMEM (Qread_only, tem)
+		      || (NILP (Fplist_get (i->plist, Qread_only))
+			  && TMEM (Qcategory, tem)))
+		    error ("Attempt to insert within read-only text");
+
+		  tem = textget (prev->plist, Qrear_nonsticky);
+		  if (! TMEM (Qread_only, tem)
+		      && (! NILP (Fplist_get (prev->plist, Qread_only))
+			  || ! TMEM (Qcategory, tem)))
+		    error ("Attempt to insert within read-only text");
+		}
+	    }
+	}
+
+      /* Run both insert hooks (just once if they're the same).  */
+      if (!NULL_INTERVAL_P (prev))
+	interval_insert_behind_hooks
+	  = textget (prev->plist, Qinsert_behind_hooks);
+      if (!NULL_INTERVAL_P (i))
+	interval_insert_in_front_hooks
+	  = textget (i->plist, Qinsert_in_front_hooks);
+    }
+  else
+    {
+      /* Loop over intervals on or next to START...END,
+	 collecting their hooks.  */
+
+      i = find_interval (intervals, start);
+      do
+	{
+	  if (! INTERVAL_WRITABLE_P (i))
+	    error ("Attempt to modify read-only text");
+
+	  mod_hooks = textget (i->plist, Qmodification_hooks);
+	  if (! NILP (mod_hooks) && ! EQ (mod_hooks, prev_mod_hooks))
+	    {
+	      hooks = Fcons (mod_hooks, hooks);
+	      prev_mod_hooks = mod_hooks;
+	    }
+
+	  i = next_interval (i);
+	}
+      /* Keep going thru the interval containing the char before END.  */
+      while (! NULL_INTERVAL_P (i) && i->position < end);
+
+      GCPRO1 (hooks);
+      hooks = Fnreverse (hooks);
+      while (! EQ (hooks, Qnil))
+	{
+	  call_mod_hooks (Fcar (hooks), make_number (start),
+			  make_number (end));
+	  hooks = Fcdr (hooks);
+	}
+      UNGCPRO;
+    }
+}
+
+/* Run the interval hooks for an insertion.
+   verify_interval_modification chose which hooks to run;
+   this function is called after the insertion happens
+   so it can indicate the range of inserted text.  */
+
+void
+report_interval_modification (start, end)
+     Lisp_Object start, end;
+{
+  if (! NILP (interval_insert_behind_hooks))
+    call_mod_hooks (interval_insert_behind_hooks,
+		    make_number (start), make_number (end));
+  if (! NILP (interval_insert_in_front_hooks)
+      && ! EQ (interval_insert_in_front_hooks,
+	       interval_insert_behind_hooks))
+    call_mod_hooks (interval_insert_in_front_hooks,
+		    make_number (start), make_number (end));
+}
+
 void
 syms_of_textprop ()
 {
@@ -1408,6 +1628,12 @@ character that does not have its own value for that property.");
    "If non-nil, don't run `point-left' and `point-entered' text properties.\n\
 This also inhibits the use of the `intangible' text property.");
   Vinhibit_point_motion_hooks = Qnil;
+
+  staticpro (&interval_insert_behind_hooks);
+  staticpro (&interval_insert_in_front_hooks);
+  interval_insert_behind_hooks = Qnil;
+  interval_insert_in_front_hooks = Qnil;
+
 	       
   /* Common attributes one might give text */
 
