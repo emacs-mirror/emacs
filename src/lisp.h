@@ -874,6 +874,10 @@ struct Lisp_Symbol
   /* Interned state of the symbol.  This is an enumerator from
      enum symbol_interned.  */
   unsigned interned : 2;
+  
+  /* Non-zero means that this variable has been explicitly declared
+     special (with `defvar' etc), and shouldn't be lexically bound.  */
+  unsigned declared_special : 1;
 
   /* The symbol's name, as a Lisp string.
 
@@ -1245,6 +1249,7 @@ typedef unsigned char UCHAR;
 #define COMPILED_STACK_DEPTH 3
 #define COMPILED_DOC_STRING 4
 #define COMPILED_INTERACTIVE 5
+#define COMPILED_PUSH_ARGS 6
 
 /* Flag bits in a character.  These also get used in termhooks.h.
    Richard Stallman <rms@gnu.ai.mit.edu> thinks that MULE
@@ -2533,7 +2538,7 @@ extern Lisp_Object call4 P_ ((Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object
 extern Lisp_Object call5 P_ ((Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object));
 extern Lisp_Object call6 P_ ((Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object));
 EXFUN (Fdo_auto_save, 2);
-extern Lisp_Object apply_lambda P_ ((Lisp_Object, Lisp_Object, int));
+extern Lisp_Object apply_lambda P_ ((Lisp_Object, Lisp_Object, int, Lisp_Object));
 extern Lisp_Object internal_catch P_ ((Lisp_Object, Lisp_Object (*) (Lisp_Object), Lisp_Object));
 extern Lisp_Object internal_condition_case P_ ((Lisp_Object (*) (void), Lisp_Object, Lisp_Object (*) (Lisp_Object)));
 extern Lisp_Object internal_condition_case_1 P_ ((Lisp_Object (*) (Lisp_Object), Lisp_Object, Lisp_Object, Lisp_Object (*) (Lisp_Object)));
@@ -2949,11 +2954,13 @@ extern int read_bytecode_char P_ ((int));
 
 /* defined in bytecode.c */
 extern Lisp_Object Qbytecode;
-EXFUN (Fbyte_code, 3);
+EXFUN (Fbyte_code, MANY);
 extern void syms_of_bytecode P_ ((void));
 extern struct byte_stack *byte_stack_list;
 extern void mark_byte_stack P_ ((void));
 extern void unmark_byte_stack P_ ((void));
+extern Lisp_Object exec_byte_code P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
+				       Lisp_Object, int, Lisp_Object *));
 
 /* defined in macros.c */
 extern Lisp_Object Qexecute_kbd_macro;
