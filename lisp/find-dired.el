@@ -7,8 +7,8 @@
 ;; Maintainer: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Keywords: unix
 
-(defconst find-dired-version (substring "$Revision: 1.15 $" 11 -2)
-  "$Id: find-dired.el,v 1.15 1994/04/24 08:15:55 rms Exp kwzh $")
+(defconst find-dired-version (substring "$Revision: 1.16 $" 11 -2)
+  "$Id: find-dired.el,v 1.16 1994/05/03 23:39:55 kwzh Exp rms $")
 
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 ;;    find-dired|Roland McGrath, Sebastian Kremer
 ;;    |roland@gnu.ai.mit.edu, sk@thp.uni-koeln.de
 ;;    |Run a `find' command and dired the output
-;;    |$Date: 1994/04/24 08:15:55 $|$Revision: 1.15 $|
+;;    |$Date: 1994/05/03 23:39:55 $|$Revision: 1.16 $|
 
 ;; INSTALLATION ======================================================
 
@@ -215,25 +215,6 @@ Thus ARG can also contain additional grep options."
 	      ;; Force mode line redisplay soon.
 	      (set-buffer-modified-p (buffer-modified-p))))
 	  (message "find-dired %s finished." (current-buffer))))))
-
-(or (fboundp 'start-process-shell-command)
-    ;; From version 19 subr.el.
-(defun start-process-shell-command (name buffer &rest args)
-  "Start a program in a subprocess.  Return the process object for it.
-Args are NAME BUFFER COMMAND &rest COMMAND-ARGS.
-NAME is name for process.  It is modified if necessary to make it unique.
-BUFFER is the buffer or (buffer-name) to associate with the process.
- Process output goes at end of that buffer, unless you specify
- an output stream or filter function to handle the output.
- BUFFER may be also nil, meaning that this process is not associated
- with any buffer
-Third arg is command name, the name of a shell command.
-Remaining arguments are the arguments for the command.
-Wildcards and redirection are handled as usual in the shell."
-  (if (eq system-type 'vax-vms)
-      (apply 'start-process name buffer args)
-    (start-process name buffer shell-file-name "-c"
-		   (concat "exec " (mapconcat 'identity args " "))))))
 
 (provide 'find-dired)
 
