@@ -3,6 +3,7 @@
 ;; Copyright (C) 1993, 94, 95, 97, 98, 99 Free Software Foundation, Inc.
 
 ;; Author: Lars Lindberg <Lars.G.Lindberg@capgemini.se>
+;; Maintainer: FSF
 ;; Created: 8 Oct 1993
 ;; Lindberg's last update version: 3.34
 ;; Keywords: mouse buffer menu
@@ -223,11 +224,10 @@ use either \\[customize] or the function `msb-mode'."
 (defun msb-custom-set (symbol value)
   "Set the value of custom variables for msb."
   (set symbol value)
-  (if (featurep 'msb)
+  (if (and (featurep 'msb) msb-mode)
       ;; wait until package has been loaded before bothering to update
       ;; the buffer lists.
-      (menu-bar-update-buffers t))
-)
+      (msb-menu-bar-update-buffers t)))
 
 (defcustom msb-menu-cond msb--very-many-menus
   "*List of criteria for splitting the mouse buffer menu.
@@ -517,8 +517,8 @@ If the argument is left out or nil, then the current buffer is considered."
   (and (> (length (buffer-name buffer)) 0)
        (eq ?\ (aref (buffer-name buffer) 0))))
 
-;; Strip one hierarchy level from the end of DIR.
 (defun msb--strip-dir (dir)
+  "Strip one hierarchy level from the end of DIR."
   (file-name-directory (directory-file-name dir)))
 
 ;; Create an alist with all buffers from LIST that lies under the same
@@ -563,8 +563,8 @@ If the argument is left out or nil, then the current buffer is considered."
        ;; Add the last result to the list
        (list (cons path buffers))))))
 
-;; Format a suitable title for the menu item.
 (defun msb--format-title (top-found-p path number-of-items)
+  "Format a suitable title for the menu item."
   (let ((new-path path))
     (when (and msb--home-dir
 	       (string-match (concat "^" msb--home-dir) path))
@@ -577,8 +577,8 @@ If the argument is left out or nil, then the current buffer is considered."
 (defvar msb--choose-file-menu-list)
 (defvar msb--choose-file-menu-arg-list)
 
-;; Choose file-menu with respect to directory for every buffer in LIST.
 (defun msb--choose-file-menu (list)
+  "Choose file-menu with respect to directory for every buffer in LIST."
   (setq msb--choose-file-menu-arg-list list)
   (let ((buffer-alist (msb--init-file-alist list))
 	(final-list nil)
@@ -674,11 +674,11 @@ If the argument is left out or nil, then the current buffer is considered."
     (setq top-found-p nil)
     (nreverse final-list)))
 
-;; Create a vector as:
-;; [BUFFER-LIST-VARIABLE CONDITION MENU-SORT-KEY MENU-TITLE ITEM-HANDLER SORTER)
-;; from an element in `msb-menu-cond'.  See that variable for a
-;; description of its elements.
 (defun msb--create-function-info (menu-cond-elt)
+  "Create a vector from an element MENU-COND-ELT of `msb-menu-cond'.
+This takes the form:
+\]BUFFER-LIST-VARIABLE CONDITION MENU-SORT-KEY MENU-TITLE ITEM-HANDLER SORTER)
+See `msb-menu-cond' for a description of its elements."
   (let* ((list-symbol (make-symbol "-msb-buffer-list"))
 	 (tmp-ih (and (> (length menu-cond-elt) 3)
 		      (nth 3 menu-cond-elt)))
@@ -737,10 +737,10 @@ If the argument is left out or nil, then the current buffer is considered."
       (error "No catch-all in msb-menu-cond!"))
     function-info-list))
 
-;; Adds BUFFER to the menu depicted by FUNCTION-INFO
-;; All side-effects.  Adds an element of form (BUFFER-TITLE . BUFFER)
-;; to the buffer-list variable in function-info.
 (defun msb--add-to-menu (buffer function-info max-buffer-name-length)
+  "Add BUFFER to the menu depicted by FUNCTION-INFO.
+All side-effects.  Adds an element of form (BUFFER-TITLE . BUFFER)
+to the buffer-list variable in function-info."
   (let ((list-symbol (aref function-info 0))) ;BUFFER-LIST-VARIABLE
     ;; Here comes the hairy side-effect!
     (set list-symbol
@@ -750,10 +750,10 @@ If the argument is left out or nil, then the current buffer is considered."
 		     buffer)
 	       (eval list-symbol)))))
  
-;; Selects the appropriate menu for BUFFER.
-;; This is all side-effects, folks!
-;; This should be optimized.
 (defsubst msb--choose-menu (buffer function-info-vector max-buffer-name-length)
+  "Select the appropriate menu for BUFFER."
+  ;; This is all side-effects, folks!
+  ;; This should be optimized.
   (unless (and (not msb-display-invisible-buffers-p)
 	       (msb-invisible-buffer-p buffer))
     (condition-case nil
@@ -770,9 +770,8 @@ If the argument is left out or nil, then the current buffer is considered."
 		      (buffer-name buffer)))
 	       (error "%s" msb--error))))))
 
-;; Return (SORT-KEY TITLE . BUFFER-LIST) or nil if the
-;; buffer-list is empty.
 (defun msb--create-sort-item (function-info)
+  "Return (SORT-KEY TITLE . BUFFER-LIST) or nil if the buffer-list is empty."
   (let ((buffer-list (eval (aref function-info 0))))
     (when buffer-list
       (let ((sorter (aref function-info 5)) ;SORTER
@@ -789,18 +788,21 @@ If the argument is left out or nil, then the current buffer is considered."
 		       (t
 			(sort buffer-list sorter))))))))))
 
-;; Return ALIST as a sorted, aggregated alist, where all items with
-;; the same car element (according to SAME-PREDICATE) are aggregated
-;; together. The alist is first sorted by SORT-PREDICATE.
-;; Example:
-;; (msb--aggregate-alist
-;;  '((a . a1) (a . a2) (b . b1) (c . c3) (a . a4) (a . a3) (b . b3) (b . b2))
-;;  (function string=)
-;;  (lambda (item1 item2)
-;;    (string< (symbol-name item1) (symbol-name item2))))
-;; results in
-;; ((a a1 a2 a4 a3) (b b1 b3 b2) (c c3))
 (defun msb--aggregate-alist (alist same-predicate sort-predicate)
+  "Return ALIST as a sorted, aggregated alist.
+
+In the result all items with the same car element (according to
+SAME-PREDICATE) are aggregated together.  The alist is first sorted by
+SORT-PREDICATE.
+
+Example:
+(msb--aggregate-alist
+ '((a . a1) (a . a2) (b . b1) (c . c3) (a . a4) (a . a3) (b . b3) (b . b2))
+ (function string=)
+ (lambda (item1 item2)
+   (string< (symbol-name item1) (symbol-name item2))))
+results in
+((a a1 a2 a4 a3) (b b1 b3 b2) (c c3))"
   (when (not (null alist))
     (let (result
 	  same
@@ -851,9 +853,9 @@ If the argument is left out or nil, then the current buffer is considered."
 	     (lambda (item1 item2)
 	       (string< (cdr item1) (cdr item2)))))))
 
-;; Returns a list on the form ((TITLE . BUFFER-LIST)) for
-;; the most recently used buffers.
 (defun msb--most-recently-used-menu (max-buffer-name-length)
+  "Return a list for the most recently used buffers.
+It takes the form ((TITLE . BUFFER-LIST)...)."
   (when (and (numberp msb-display-most-recently-used)
  	     (> msb-display-most-recently-used 0))
     (let* ((buffers (cdr (buffer-list)))
@@ -981,15 +983,13 @@ If the argument is left out or nil, then the current buffer is considered."
     (save-excursion
       (msb--create-buffer-menu-2))))
 
-;;;
-;;; Multi purpose function for selecting a buffer with the mouse.
-;;;
 (defun msb--toggle-menu-type ()
+  "Multi purpose function for selecting a buffer with the mouse."
   (interactive)
   (setq msb-files-by-directory (not msb-files-by-directory))
   ;; This gets a warning, but it is correct,
   ;; because this file redefines menu-bar-update-buffers.
-  (menu-bar-update-buffers t))
+  (msb-menu-bar-update-buffers t))
 
 (defun mouse-select-buffer (event)
   "Pop up several menus of buffers, for selection with the mouse.
@@ -1115,7 +1115,8 @@ variable `msb-menu-cond'."
 		  (msb--split-menus buffers))))))
      raw-menu)))
 
-(defun menu-bar-update-buffers (&optional arg)
+(defun msb-menu-bar-update-buffers (&optional arg)
+  "A re-written version of `menu-bar-update-buffers'."
   ;; If user discards the Buffers item, play along.
   (when (and (lookup-key (current-global-map) [menu-bar buffer])
 	     (or (not (fboundp 'frame-or-buffer-changed-p))
@@ -1176,8 +1177,12 @@ different buffer menu using the function `msb'."
 		     (> (prefix-numeric-value arg) 0)
 		   (not msb-mode)))
   (if msb-mode
-      (add-hook 'menu-bar-update-hook 'menu-bar-update-buffers)
-    (remove-hook 'menu-bar-update-hook 'menu-bar-update-buffers)))
+      (progn
+	(add-hook 'menu-bar-update-hook 'msb-menu-bar-update-buffers)
+	(remove-hook 'menu-bar-update-hook 'menu-bar-update-buffers))
+    (remove-hook 'menu-bar-update-hook 'msb-menu-bar-update-buffers)
+    (add-hook 'menu-bar-update-hook 'menu-bar-update-buffers))
+  (run-hooks 'menu-bar-update-hook))
 
 (add-to-list 'minor-mode-map-alist (cons 'msb-mode msb-mode-map))
 
