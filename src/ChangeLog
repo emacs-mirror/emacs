@@ -1,3 +1,7 @@
+2000-07-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* fns.c (Fputhash): Return `value' rather than nil.
+
 2000-06-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* frame.c (next_frame): Don't check focus redirection in case
