@@ -1,3 +1,10 @@
+2000-01-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (x_create_im): New function to set IM and IC of a frame.
+	Check that input style is supported before trying to create an
+	IC for it.
+	(x_window): Call x_create_im.
+	
 2000-01-04  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (current_gif_memory_src): New variable.
