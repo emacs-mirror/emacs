@@ -12,6 +12,27 @@
 	* progmodes/compile.el (compilation-setup):
 	Don't set buffer-read-only if MINOR is non-nil.
 
+2004-10-19  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-emacs-type-19, calc-emacs-type-epoch)
+	(calc-emacs-type-gnu19): Removed.
+	(calc-digit-map, calc-read-key-sequence, calc-read-key): Removed
+	check for old emacs versions.
+
+	* calc/calc-ext.el (calc-fancy-prefix): Removed emacs version check.
+	(calc-init-extensions): Define `calc-alg-map' and `calc-alg-esc-map'
+	for current Emacs.
+
+	* calc/calc-aent.el (calcAlg-previous): Check to see if looking at
+	the end of the minibuffer.
+	(calc-do-alg-entry): Remove Emacs version check.  Use `copy-keymap' to
+	copy `esc-map'.
+
+	* calc/calc-graph.el (calc-graph-plot): Removed emacs version check.
+
+	* calc/calc-mode.el (calc-total-algebraic-mode): Removed error
+	call that would be given when the current emacs was used.
+
 2004-10-19  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar/icalendar.el: Set coding to utf-8.
@@ -39,6 +60,12 @@
 2004-10-19  Richard M. Stallman  <rms@gnu.org>
 
 	* paths.el (news-path): Fix previous change.
+
+2004-10-18 Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-help.el (calc-describe-bindings):  Set 
+	`buffer-read-only' to nil while working in the keybindings buffer;
+	remove some extra information from the keybindings buffer.
 
 2004-10-18  David Ponce  <david@dponce.com>
 
@@ -221,6 +248,16 @@
 	(event-modifiers): Use push.
 	(mouse-movement-p, with-temp-buffer): Simplify.
 
+2004-10-12  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-help.el (calc-help-function-list, calc-help-variable-list):
+	New variables. 	
+	(calc-help-index-entries): New function.
+	(calc-describe-function):  Use `calc-help-function-list' instead of
+	obarray for completion. 
+	(calc-describe-variable):  Use `calc-help-variable-list' instead
+	of obarray for completion. 
+
 2004-10-12  Richard M. Stallman  <rms@gnu.org>
 
 	* info-look.el (info-lookup-file): Add info-file property.
@@ -282,6 +319,15 @@
 
 	* subr.el (substitute-key-definition): Mention command remapping
 	in doc string.
+
+2004-10-11  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-misc.el (calc-info-goto-node): New function.
+	(calc-tutorial, calc-info-summary): Go to appropriate Calc info
+	node in one step. 
+	(calc-describe-copying, calc-describe-distribution)
+	(calc-describe-thing, calc-describe-no-warranty, calc-describe-key):
+	Go to appropriate info node in one step.
 
 2004-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -648,6 +694,12 @@
 
 	* progmodes/tcl.el (inferior-tcl): Use pop-to-buffer.
 
+2004-09-21  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-graph.el (calc-graph-add-curve): Moved the call to
+	`calc-graph-set-styles' so the gnuplot buffer will appear in a
+	separate window. 
+
 2004-09-21  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* subr.el (after-change-major-mode-hook): Doc fix.
@@ -661,6 +713,10 @@
 
 	* descr-text.el (describe-char): Checking of quail activation
 	fixed.
+
+2004-09-21  Jay Belanger  <belanger@truman.edu>
+	
+	* calc/calc.el (calc-mode-var-list): Removed unnecessary quotes.
 
 2004-09-20  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -747,6 +803,11 @@
 	* calc/calc-units.el (calc-quick-units): Fix overzealous
 	s/or/unless/.
 
+2004-09-17  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-mode-var-list): Fixed the value of
+	`calc-matrix-brackets'. 
+	
 2004-09-17  Romain Francoise  <romain@orebokech.com>
 
 	* ibuf-ext.el (define-ibuffer-filter filename):
@@ -777,6 +838,44 @@
 	(term-mem): Delete ununsed function.
 	(term-protocol-version): Increment.
 	(term-current-face): Set to default.
+
+2004-09-15  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-mode-var-list): Define this variable.
+	(calc-always-load-extensions, calc-line-numbering)
+	(calc-line-breaking, calc-display-just, calc-display-origin)
+	(calc-number-radix, calc-leading-zeros, calc-group-digits)
+	(calc-group-char, calc-point-char, calc-frac-format)
+	(calc-prefer-frac, calc-hms-format, calc-date-format)
+	(calc-float-format, calc-full-float-format, calc-complex-format)
+	(calc-complex-mode, calc-infinite-mode, calc-display-strings)
+	(calc-matrix-just, calc-break-vectors, calc-full-vectors)
+	(calc-full-trail-vectors, calc-vector-commas, calc-vector-brackets)
+	(calc-matrix-brackets, calc-language, calc-language-option)
+	(calc-left-label, calc-right-label, calc-word-size)
+	(calc-previous-modulo, calc-simplify-mode, calc-auto-recompute)
+	(calc-display-raw, calc-internal-prec, calc-angle-mode)
+	(calc-algebraic-mode, calc-incomplete-algebraic-mode)
+	(calc-symbolic-mode, calc-matrix-mode, calc-shift-prefix)
+	(calc-window-height, calc-display-trail, calc-show-selections)
+	(calc-use-selections, calc-assoc-selections)
+	(calc-display-working-message, calc-auto-why, calc-timing)
+	(calc-mode-save-mode, calc-standard-date-formats)
+	(calc-autorange-units, calc-was-keypad-mode, calc-full-mode)
+	(calc-user-parse-tables, calc-gnuplot-default-device)
+	(calc-gnuplot-default-output, calc-gnuplot-print-device)
+	(calc-gnuplot-print-output, calc-gnuplot-geometry)
+	(calc-graph-default-resolution, calc-graph-default-resolution-3d)
+	(calc-invocation-macro, calc-show-banner): Give these values as
+	part of `calc-mode-var-list's initialization after the variables
+	are declared with defvar.
+	(calc-bug-address):  Changed email address to send bug
+	reports to. Also changed the maintainer address at the top.
+	(calc-mode): Compare `calc-settings-file' to `user-init-file' rather
+	than "\\.emacs" to determine if it is the user-init-file.
+
+	* calc/calc-embed.el (calc-embedded-set-modes): Use
+	`calc-mode-var-list' correctly.
 
 2004-09-15  Thien-Thi Nguyen  <ttn@gnu.org>
 
