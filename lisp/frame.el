@@ -401,8 +401,9 @@ where
   "Restore the frames to the state described by CONFIGURATION.
 Each frame listed in CONFIGURATION has its position, size, window
 configuration, and other parameters set as specified in CONFIGURATION.
-Unless optional second argument NODELETE is given and non-nil, deletes
-all existing frames not listed in CONFIGURATION."
+Ordinarily, this function deletes all existing frames not
+listed in CONFIGURATION.  But if optional second argument NODELETE
+is given and non-nil, the unwanted frames are made invisible instead."
   (or (frame-configuration-p configuration)
       (signal 'wrong-type-argument
 	      (list 'frame-configuration-p configuration)))
@@ -424,8 +425,9 @@ all existing frames not listed in CONFIGURATION."
 		       (set-window-configuration (nth 2 parameters)))
 		   (setq frames-to-delete (cons frame frames-to-delete))))))
 	    (frame-list))
-    (or nodelete
-	(mapcar 'delete-frame frames-to-delete))))
+    (if nodelete
+	(mapcar 'make-frame-invisible frames-to-delete)
+      (mapcar 'delete-frame frames-to-delete))))
 
 (defun frame-configuration-p (object)
   "Return non-nil if OBJECT seems to be a frame configuration.
