@@ -50,6 +50,13 @@ NOTE-END  */
 #define HAVE_ALLOCA
 #endif
 
-/* I *think* this is what mcc@timessqr.gc.cuny.edu says is needed.
-   But I'm not sure; this might not even be the right file.  */
+/* mcc@timessqr.gc.cuny.edu says this makes Emacs work with DECnet.
+   If you don't have DECnet and this causes trouble,
+   just delete the definition.  */
 #define LIBS_MACHINE -ldnet
+
+#if 0 /* mcc@timessqr.gc.cuny.edu says it is /vmunix on Ultrix 4.2a.  */
+/* dob@tis.inel.gov says this is needed.  */
+#undef KERNEL_FILE
+#define KERNEL_FILE "/unix"
+#endif
