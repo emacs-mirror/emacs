@@ -1,3 +1,8 @@
+2004-09-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* newcomment.el (uncomment-region): Bind comment-use-global-state
+	to nil.
+
 2004-09-03  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* autorevert.el (auto-revert-handler): Bind `buffer-read-only'
