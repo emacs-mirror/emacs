@@ -3,6 +3,7 @@
 	* lwlib-Xm.c (xm_arm_callback): New function.
 	(make_menu_in_widget): Set xm_arm_callback as XmNarmCallback and
 	XmNdisarmCallback for buttons (not supported for other widgets).
+	(make_menubar): Set XmNresizeHeight and XmNresizeWidth to False.
 
 	* lwlib-Xlw.c (highlight_hook): New function.
 	(xlw_create_menubar, xlw_create_popup_menu): Add highlight_hook as
