@@ -401,6 +401,8 @@ static void x_draw_bar_cursor P_ ((struct window *, struct glyph_row *, int,
 				   enum text_cursor_kinds));
 static void expose_frame P_ ((struct frame *, int, int, int, int));
 static int expose_window_tree P_ ((struct window *, RECT *));
+static void expose_overlaps P_ ((struct window *, struct glyph_row *,
+				 struct glyph_row *));
 static int expose_window P_ ((struct window *, RECT *));
 static void expose_area P_ ((struct window *, struct glyph_row *,
 			     RECT *, enum glyph_row_area));
@@ -5771,6 +5773,39 @@ x_phys_cursor_in_rect_p (w, r)
 }
 
 
+/* Redraw those parts of glyphs rows during expose event handling that
+   overlap other rows.  Redrawing of an exposed line writes over parts
+   of lines overlapping that exposed line; this function fixes that.
+
+   W is the window being exposed.  FIRST_OVERLAPPING_ROW is the first
+   row in W's current matrix that is exposed and overlaps other rows.
+   LAST_OVERLAPPING_ROW is the last such row.  */
+
+static void
+expose_overlaps (w, first_overlapping_row, last_overlapping_row)
+     struct window *w;
+     struct glyph_row *first_overlapping_row;
+     struct glyph_row *last_overlapping_row;
+{
+  struct glyph_row *row;
+  
+  for (row = first_overlapping_row; row <= last_overlapping_row; ++row)
+    if (row->overlapping_p)
+      {
+	xassert (row->enabled_p && !row->mode_line_p);
+	  
+	if (row->used[LEFT_MARGIN_AREA])
+	  x_fix_overlapping_area (w, row, LEFT_MARGIN_AREA);
+  
+	if (row->used[TEXT_AREA])
+	  x_fix_overlapping_area (w, row, TEXT_AREA);
+  
+	if (row->used[RIGHT_MARGIN_AREA])
+	  x_fix_overlapping_area (w, row, RIGHT_MARGIN_AREA);
+      }
+}
+
+
 /* Redraw the part of window W intersection rectagle FR.  Pixel
    coordinates in FR are frame relative.  Call this function with
    input blocked.  Value is non-zero if the exposure overwrites
@@ -5812,6 +5847,7 @@ expose_window (w, fr)
       int yb = window_text_bottom_y (w);
       struct glyph_row *row;
       int cursor_cleared_p;
+      struct glyph_row *first_overlapping_row, *last_overlapping_row;
 
       TRACE ((stderr, "expose_window (%d, %d, %d, %d)\n",
 	      r.left, r.top, r.right, r.bottom));
@@ -5832,7 +5868,8 @@ expose_window (w, fr)
       else
 	cursor_cleared_p = 0;
 
-      /* Find the first row intersecting the rectangle R.  */
+      /* Update lines intersecting rectangle R.  */
+      first_overlapping_row = last_overlapping_row = NULL;
       for (row = w->current_matrix->rows;
 	   row->enabled_p;
 	   ++row)
@@ -5845,6 +5882,13 @@ expose_window (w, fr)
 	      || (r.top >= y0 && r.top < y1)
 	      || (r.bottom > y0 && r.bottom < y1))
 	    {
+	      if (row->overlapping_p)
+		{
+		  if (first_overlapping_row == NULL)
+		    first_overlapping_row = row;
+		  last_overlapping_row = row;
+		}
+	      
 	      if (expose_line (w, row, &r))
 		mouse_face_overwritten_p = 1;
 	    }
@@ -5865,6 +5909,10 @@ expose_window (w, fr)
 
       if (!w->pseudo_window_p)
 	{
+	  /* Fix the display of overlapping rows.  */
+	  if (first_overlapping_row)
+	    expose_overlaps (w, first_overlapping_row, last_overlapping_row);
+          
 	  /* Draw border between windows.  */
 	  x_draw_vertical_border (w);
 
@@ -9617,7 +9665,7 @@ x_erase_phys_cursor (w)
      cursor glyph at hand.  */
   if (w->phys_cursor.hpos >= cursor_row->used[TEXT_AREA])
     goto mark_cursor_off;
-	 
+
   /* If the cursor is in the mouse face area, redisplay that when
      we clear the cursor.  */
   if (! NILP (dpyinfo->mouse_face_window)
@@ -9711,6 +9759,7 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
   struct frame *f = XFRAME (w->frame);
   int new_cursor_type;
   int new_cursor_width;
+  int cursor_off_state = 0;
   struct glyph_matrix *current_glyphs;
   struct glyph_row *glyph_row;
   struct glyph *glyph;
@@ -9751,59 +9800,69 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
      the cursor type given by the frame parameter.  If explicitly
      marked off, draw no cursor.  In all other cases, we want a hollow
      box cursor.  */
-  cursor_non_selected 
-    = !NILP (Fbuffer_local_value (Qcursor_in_non_selected_windows,
-				  w->buffer));
   new_cursor_width = -1;
+  new_cursor_type = -2;
+
+  /* Echo area */
   if (cursor_in_echo_area
       && FRAME_HAS_MINIBUF_P (f)
       && EQ (FRAME_MINIBUF_WINDOW (f), echo_area_window))
     {
       if (w == XWINDOW (echo_area_window))
 	new_cursor_type = FRAME_DESIRED_CURSOR (f);
+      else if (NILP (Fbuffer_local_value (Qcursor_in_non_selected_windows,
+					  w->buffer)))
+	new_cursor_type = NO_CURSOR;
       else
-	{
-	  if (cursor_non_selected)
-	    new_cursor_type = HOLLOW_BOX_CURSOR;
-	  else
-	    new_cursor_type = NO_CURSOR;
-	  active_cursor = 0;
-	}
+	cursor_off_state = 1;
     }
-  else
+
+  /* Nonselected window or nonselected frame.  */
+  else if (f != FRAME_X_DISPLAY_INFO (f)->w32_highlight_frame
+	   || w != XWINDOW (f->selected_window))
     {
-      if (f != FRAME_W32_DISPLAY_INFO (f)->w32_highlight_frame
-          || w != XWINDOW (f->selected_window))
-        {
-	  active_cursor = 0;
-
-          if (MINI_WINDOW_P (w) 
-              || !cursor_non_selected
-              || NILP (XBUFFER (w->buffer)->cursor_type))
-            new_cursor_type = NO_CURSOR;
-          else
-            new_cursor_type = HOLLOW_BOX_CURSOR;
-        }
+      if ((MINI_WINDOW_P (w) && minibuf_level == 0)
+	  || NILP (Fbuffer_local_value (Qcursor_in_non_selected_windows,
+					w->buffer))
+	  || NILP (XBUFFER (w->buffer)->cursor_type))
+	new_cursor_type = NO_CURSOR;
       else
-        {
-	  struct buffer *b = XBUFFER (w->buffer);
-
-	  if (EQ (b->cursor_type, Qt))
-            new_cursor_type = FRAME_DESIRED_CURSOR (f);
-	  else
-	    new_cursor_type = x_specified_cursor_type (b->cursor_type, 
-						       &new_cursor_width);
-	  if (w->cursor_off_p)
-	    {
-	      if (new_cursor_type == FILLED_BOX_CURSOR)
-		new_cursor_type = HOLLOW_BOX_CURSOR;
-	      else if (new_cursor_type == BAR_CURSOR && new_cursor_width > 1)
-		new_cursor_width = 1;
-	      else
-		new_cursor_type = NO_CURSOR;
-	    }
-	}
+	cursor_off_state = 1;
     }
+
+  /* If new_cursor_type isn't decided yet, decide it now.  */
+  if (new_cursor_type == -2)
+    {
+      struct buffer *b = XBUFFER (w->buffer);
+
+      if (EQ (b->cursor_type, Qt))
+	{
+	  new_cursor_type = FRAME_DESIRED_CURSOR (f);
+	  new_cursor_width = FRAME_CURSOR_WIDTH (f);
+	}
+      else
+	new_cursor_type = x_specified_cursor_type (b->cursor_type, 
+						   &new_cursor_width);
+    }
+
+  /* If cursor has blinked off, use the other specified state.  */
+  if (w->cursor_off_p)
+    {
+      new_cursor_type = FRAME_BLINK_OFF_CURSOR (f);
+      new_cursor_width = FRAME_BLINK_OFF_CURSOR_WIDTH (f);
+    }
+  /* Dim out or hollow out the cursor for nonselected windows.  */
+  if (cursor_off_state)
+    {
+      if (new_cursor_type == FILLED_BOX_CURSOR)
+	new_cursor_type = HOLLOW_BOX_CURSOR;
+      else if (new_cursor_type == BAR_CURSOR && new_cursor_width > 1)
+	new_cursor_width = 1;
+      else
+	new_cursor_type = NO_CURSOR;
+    }
+
+  /* Now new_cursor_type is correct.  */
 
   /* If cursor is currently being shown and we don't want it to be or
      it is in the wrong place, or the cursor type is not what we want,
@@ -9817,9 +9876,12 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 	      && new_cursor_width != w->phys_cursor_width)))
     x_erase_phys_cursor (w);
 
-  /* If the cursor is now invisible and we want it to be visible,
-     display it.  */
-  if (on && !w->phys_cursor_on_p)
+  /* Don't check phys_cursor_on_p here because that flag is only set
+     to zero in some cases where we know that the cursor has been
+     completely erased, to avoid the extra work of erasing the cursor
+     twice.  In other words, phys_cursor_on_p can be 1 and the cursor
+     still not be visible, or it has only been partly erased.  */
+  if (on)
     {
       w->phys_cursor_ascent = glyph_row->ascent;
       w->phys_cursor_height = glyph_row->height;
