@@ -153,7 +153,7 @@ The value is a list of regular expressions.
 If the file name matches one of these regular expressions,
 then `revert-buffer' reverts the file without querying
 if the file has changed on disk and you have not edited the buffer."
-  :type 'boolean
+  :type '(repeat regexp)
   :group 'find-file)
 
 (defvar buffer-file-number nil
