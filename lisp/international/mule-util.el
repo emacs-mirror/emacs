@@ -432,6 +432,7 @@ overall glyph is updated as follows:
 
 ;; Return a string for char CH to be embedded in multibyte form of
 ;; composite character.
+;;;###autoload
 (defun compose-chars-component (ch)
   (if (< ch 128)
       (format "\240%c" (+ ch 128))
