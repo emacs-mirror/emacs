@@ -118,6 +118,8 @@
 
 (defgroup cwarn nil
   "Highlight suspicious C and C++ constructions."
+  :version "21.1"
+  :link '(url-link "http://www.andersl.com/emacs")
   :group 'faces)
 
 (defvar cwarn-mode nil
@@ -127,14 +129,14 @@ Never set this variable directly, use the command `cwarn-mode'
 instead.")
 
 (defcustom global-cwarn-mode nil
-  "*When on, suspicious C and C++ constructions are highlighted.
+  "When on, suspicious C and C++ constructions are highlighted.
 
 Set this variable using \\[customize] or use the command
 `global-cwarn-mode'."
   :group 'cwarn
   :initialize 'custom-initialize-default
-  :set '(lambda (symbol value)
-	  (global-cwarn-mode (or value 0)))
+  :set (lambda (symbol value)
+	 (global-cwarn-mode (or value 0)))
   :type 'boolean
   :require 'cwarn)
 
@@ -152,16 +154,21 @@ on one of three forms:
 
 See variable `cwarn-font-lock-feature-keywords-alist' for available
 features."
+  :type '(repeat sexp)
   :group 'cwarn)
 
 (defcustom cwarn-font-lock-feature-keywords-alist
   '((assign    . cwarn-font-lock-assignment-keywords)
     (semicolon . cwarn-font-lock-semicolon-keywords)
     (reference . cwarn-font-lock-reference-keywords))
-  "*Maps a CWarn feature to font-lock keywords.
+  "An alist mapping a CWarn feature to font-lock keywords.
 The keywords could either a font-lock keyword list or a symbol.
 If it is a symbol it is assumed to be a variable containing a font-lock
 keyword list."
+  :type '(alist :key-type (choice (const assign)
+				  (const semicolon)
+				  (const reference))
+		:value-type face)
   :group 'cwarn)
 
 (defcustom cwarn-verbose t
@@ -211,7 +218,7 @@ would only waste precious space."
 
 ;;;###autoload
 (defun cwarn-mode (&optional arg)
-  "Minor mode that hightlight suspicious C and C++ constructions.
+  "Minor mode that highlights suspicious C and C++ constructions.
 
 Note, in addition to enabling this minor mode, the major mode must
 be included in the variable `cwarn-configuration'.  By default C and
