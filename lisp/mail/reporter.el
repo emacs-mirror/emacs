@@ -1,26 +1,29 @@
 ;;; reporter.el --- customizable bug reporting of lisp programs
-;; Copyright (C) 1993 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw, Century Computing Inc. <bwarsaw@cen.com>
 ;; Maintainer:      bwarsaw@cen.com
 ;; Created:         19-Apr-1993
+;; Version:         1.23
+;; Last Modified:   1993/09/02 20:28:36
 ;; Keywords: bug reports lisp
 
+;; Copyright (C) 1993 Free Software Foundation, Inc.
+
 ;; This file is part of GNU Emacs.
-;;
-;; This program is free software; you can redistribute it and/or modify
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2 of the License, or
-;; (at your option) any later version.
-;; 
-;; This program is distributed in the hope that it will be useful,
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, write to the Free Software
-;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;; Introduction
 ;; ============
@@ -56,15 +59,15 @@
 ;; I've set up a mailing list to report bugs or suggest enhancements,
 ;; etc. This list's intended audience is elisp package authors who are
 ;; using reporter and want to stay current with releases. Here are the
-;; relevant addresses:
+;; relevent addresses:
 ;;
 ;; Administrivia: reporter-request@anthem.nlm.nih.gov
 ;; Submissions:   reporter@anthem.nlm.nih.gov
 
 ;; LCD Archive Entry:
-;; reporter|Barry A. Warsaw|warsaw@cen.com|
+;; reporter|Barry A. Warsaw|bwarsaw@cen.com|
 ;; Customizable bug reporting of lisp programs.|
-;; 1993/05/22 00:29:49|1.18|~/misc/reporter.el.Z|
+;; 1993/09/02 20:28:36|1.23|~/misc/reporter.el.Z|
 
 ;;; Code:
 
@@ -72,8 +75,12 @@
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ;; user defined variables
 
-(defvar reporter-mailer 'mail
-  "*Mail package to use to generate bug report buffer.")
+(defvar reporter-mailer '(vm-mail mail)
+  "*Mail package to use to generate bug report buffer.
+This can either be a function symbol or a list of function symbols.
+If a list, it tries to use each specified mailer in order until an
+existing one is found.")
+
 
 ;; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ;; end of user defined variables
@@ -83,6 +90,7 @@
 This is necessary to properly support the printing of buffer-local
 variables.  Current buffer will always be the mail buffer being
 composed.")
+
 
 (defun reporter-dump-variable (varsym)
   "Pretty-print the value of the variable in symbol VARSYM."
@@ -150,13 +158,28 @@ the name of the mode (you must explicitly concat any version numbers).
 VARLIST is the list of variables to dump (do a `\\[describe-function] reporter-dump-state'
 for details). Optional PRE-HOOKS and POST-HOOKS are passed to
 `reporter-dump-state'. Optional SALUTATION is inserted at the top of the
-mail buffer, and point is left after the salutation.
+mail buffer, and point is left after the saluation.
 
 The mailer used is described in the variable `reporter-mailer'."
-
   (let ((reporter-eval-buffer (current-buffer))
-	(mailbuf (progn (call-interactively reporter-mailer)
-			(current-buffer))))
+	(mailbuf
+	 (progn
+	   (call-interactively
+	    (if (nlistp reporter-mailer)
+		reporter-mailer
+	      (let ((mlist reporter-mailer)
+		    (mailer nil))
+		(while mlist
+		  (if (commandp (car mlist))
+		      (setq mailer (car mlist)
+			    mlist nil)
+		    (setq mlist (cdr mlist))))
+		(if (not mailer)
+		    (error
+		     "variable `%s' does not contain a command for mailing."
+		     "reporter-mailer"))
+		mailer)))
+	   (current-buffer))))
     (require 'sendmail)
     (pop-to-buffer reporter-eval-buffer)
     (pop-to-buffer mailbuf)
