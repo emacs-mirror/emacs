@@ -120,7 +120,7 @@ is not defined).
 only when done before Emacs is started.
 
 @cindex home directory shorthand
-  You can use the @file{~/} in a file name to mean your home directory,
+  You can use @file{~/} in a file name to mean your home directory,
 or @file{~@var{user-id}/} to mean the home directory of a user whose
 login name is @code{user-id}.  (On DOS and Windows systems, where a user
 doesn't have a home directory, Emacs substitutes @file{~/} with the
@@ -208,11 +208,13 @@ While in the minibuffer, you can abort @kbd{C-x C-f} by typing
 about this, see @ref{Completion Options}.
 
 @cindex file selection dialog
-  When Emacs is built with a suitable GUI toolkit, it pops up the
-standard File Selection dialog of that toolkit instead of prompting for
-the file name in the minibuffer.  On Unix and GNU/Linux platforms, Emacs
-does that when built with LessTif and Motif toolkits; on MS-Windows, the
-GUI version does that by default.
+  When Emacs is built with a suitable GUI toolkit, commands invoked
+with the mouse or the menu bar use the toolkit's standard File
+Selection dialog instead of prompting for the file name in the
+minibuffer.  On Unix and GNU/Linux platforms, Emacs does that when
+built with GTK, LessTif, and Motif toolkits; on MS-Windows, the GUI
+version does that by default.  @xref{Dialog Boxes}, for info
+on customization of this.
 
   Your confirmation that @kbd{C-x C-f} has completed successfully is the
 appearance of new text on the screen and a new buffer name in the mode
@@ -253,10 +255,10 @@ carriage-return linefeed or just carriage-return if appropriate.
 @vindex find-file-run-dired
   If the file you specify is actually a directory, @kbd{C-x C-f} invokes
 Dired, the Emacs directory browser, so that you can ``edit'' the contents
-of the directory (@pxref{Dired}).  Dired is a convenient way to delete,
-look at, or operate on the files in the directory.  However, if the
-variable @code{find-file-run-dired} is @code{nil}, then it is an error
-to try to visit a directory.
+of the directory (@pxref{Dired}).  Dired is a convenient way to view, delete,
+or operate on the files in the directory.  However, if the variable
+@code{find-file-run-dired} is @code{nil}, then it is an error to try
+to visit a directory.
 
   Files which are actually collections of other files, or @dfn{file
 archives}, are visited in special modes which invoke a Dired-like
@@ -407,6 +409,9 @@ about other buffers.
 View the buffer that you are currently being asked about.  When you exit
 View mode, you get back to @code{save-some-buffers}, which asks the
 question again.
+@item d
+Diff the buffer against its corresponding file, so you can see
+what changes you would be saving.
 @item C-h
 Display a help message about these options.
 @end table
@@ -3085,26 +3090,24 @@ syntax:
 @end example
 
 @noindent
-When you do this, Emacs may use the FTP program to access files on the
-remote host, or Emacs may use a remote-login program (such as
-@command{ssh}, @command{rlogin}, or @command{telnet}) to do this.
-
-You can always specify in the file name which method should be used to
-access the remote files, for example
+To carry out this request, Emacs uses either the FTP program or a
+remote-login program such as @command{ssh}, @command{rlogin}, or
+@command{telnet}.  You can always specify in the file name which
+method to use---for example,
 @file{/ftp:@var{user}@@@var{host}:@var{filename}} uses FTP, whereas
 @file{/ssh:@var{user}@@@var{host}:@var{filename}} uses @command{ssh}.
-When you don't specify a method in the file name, Emacs determines a
-default method according to the following rules:
+When you don't specify a method in the file name, Emacs chooses
+the method as follows:
 
 @enumerate
 @item
-If the host name starts with @samp{ftp.} (with dot), then Emacs assumes
-the @command{ftp} method.
+If the host name starts with @samp{ftp.} (with dot), then Emacs uses
+FTP.
 @item
-If the user name is @samp{ftp} or @samp{anonymous}, then Emacs assumes
-the @command{ftp} method.
+If the user name is @samp{ftp} or @samp{anonymous}, then Emacs uses
+FTP.
 @item
-Otherwise, Emacs assumes the @command{ssh} method.
+Otherwise, Emacs uses @command{ssh}.
 @end enumerate
 
 @noindent
