@@ -266,6 +266,67 @@ skip_invisible (pos, next_boundary_p, to, window)
   return pos;
 }
 
+/* Set variables WIDTH and BYTES for a multibyte sequence starting at P.
+
+   C is *P which should satisfy `BASE_LEADING_CODE_P (c)'.
+
+   DP is a display table or NULL.
+
+   This macro is used in current_column_1, Fmove_to_column, and
+   compute_motion.  */
+
+#define MULTIBYTE_BYTES_WIDTH(p, c, dp)					\
+  do {									\
+    unsigned char *pend = p + 1;					\
+    									\
+    wide_column = 0;							\
+    while (! CHAR_HEAD_P (*pend)) pend++;				\
+    									\
+    if (c == LEADING_CODE_COMPOSITION)					\
+      {									\
+	int id = str_cmpchar_id (p, pend - p);				\
+	int ch = MAKE_COMPOSITE_CHAR (id);				\
+									\
+	if (id >= 0)							\
+	  {								\
+	    bytes = cmpchar_table[id]->len;				\
+	    if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, ch)))		\
+	      width = XVECTOR (DISP_CHAR_VECTOR (dp, ch))->size;	\
+	    else							\
+	      wide_column = width = cmpchar_table[id]->width;		\
+	  }								\
+	else								\
+	  {								\
+	    bytes = 1;							\
+	    width = 4;							\
+	  }								\
+      }									\
+    else								\
+      {									\
+	bytes = BYTES_BY_CHAR_HEAD (c);					\
+	if (bytes >= 2 && bytes <= pend - p)				\
+	  {								\
+	    int ch;							\
+	    								\
+	    if (dp && (ch = STRING_CHAR (p, bytes),			\
+		       VECTORP (DISP_CHAR_VECTOR (dp, ch))))		\
+	      width = XVECTOR (DISP_CHAR_VECTOR (dp, ch))->size;	\
+	    else							\
+	      wide_column = width = WIDTH_BY_CHAR_HEAD (c);		\
+	  }								\
+	else								\
+	  {								\
+	    bytes = 1;							\
+	    width = 4;							\
+	  }								\
+      }									\
+    if (p + bytes < pend)						\
+      {									\
+	width += 4 * (pend - (p + bytes));				\
+	bytes = pend - p;						\
+      }									\
+  } while (0)
+
 DEFUN ("current-column", Fcurrent_column, Scurrent_column, 0, 0, 0,
   "Return the horizontal position of point.  Beginning of line is column 0.\n\
 This is calculated by adding together the widths of all the displayed\n\
@@ -439,7 +500,9 @@ current_column_1 ()
 	}
 
       c = FETCH_BYTE (scan_byte);
-      if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
+      if (dp != 0
+	  && ! (multibyte && BASE_LEADING_CODE_P (c))
+	  && VECTORP (DISP_CHAR_VECTOR (dp, c)))
 	{
 	  col += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
 	  scan++;
@@ -460,42 +523,14 @@ current_column_1 ()
 	}
       else if (multibyte && BASE_LEADING_CODE_P (c))
 	{
+	  unsigned char *ptr;
+	  int bytes, width, wide_column;
+
 	  scan_byte--;
-	  /* Start of multi-byte form.  */
-	  if (c == LEADING_CODE_COMPOSITION)
-	    {
-	      unsigned char *ptr = BYTE_POS_ADDR (scan_byte);
-
-	      int cmpchar_id
-		= str_cmpchar_id (ptr, next_boundary_byte - scan_byte);
-	      if (cmpchar_id >= 0)
-		{
-		  scan_byte += cmpchar_table[cmpchar_id]->len;
-		  col += cmpchar_table[cmpchar_id]->width;
-		}
-	      else
-		{		/* invalid composite character */
-		  scan_byte++;
-		  col += 4;
-		}
-	    }
-	  else
-	    {
-	      /* Here, we check that the following bytes are valid
-		 constituents of multi-byte form.  */
-	      int len = BYTES_BY_CHAR_HEAD (c), i;
-
-	      for (i = 1, scan_byte++; i < len; i++, scan_byte++)
-		/* We don't need range checking for PTR because there
-		   are anchors (`\0') at GAP and Z.  */
-		if (CHAR_HEAD_P (FETCH_BYTE (scan_byte)))
-		  break;
-
-	      if (i < len)
-		col += 4, scan_byte -= i - 1;
-	      else
-		col += WIDTH_BY_CHAR_HEAD (c);
-	    }
+	  ptr = BYTE_POS_ADDR (scan_byte);
+	  MULTIBYTE_BYTES_WIDTH (ptr, c, dp);
+	  scan_byte += bytes;
+	  col += width;
 	}
       else if (ctl_arrow && (c < 040 || c == 0177))
         col += 2;
@@ -838,7 +873,9 @@ The return value is the current column.")
 	break;
 
       c = FETCH_BYTE (pos_byte);
-      if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
+      if (dp != 0
+	  && ! (multibyte && BASE_LEADING_CODE_P (c))
+	  && VECTORP (DISP_CHAR_VECTOR (dp, c)))
 	{
 	  col += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
 	  pos_byte++;
@@ -867,41 +904,13 @@ The return value is the current column.")
 	{
 	  /* Start of multi-byte form.  */
 	  unsigned char *ptr;
+	  int bytes, width, wide_column;
 
-	  pos_byte--;		/* rewind to the character head */
+	  pos_byte--;
 	  ptr = BYTE_POS_ADDR (pos_byte);
-	  if (c == LEADING_CODE_COMPOSITION)
-	    {
-	      int cmpchar_id = str_cmpchar_id (ptr, end_byte - pos_byte);
-
-	      if (cmpchar_id >= 0)
-		{
-		  col += cmpchar_table[cmpchar_id]->width;
-		  pos_byte += cmpchar_table[cmpchar_id]->len;
-		}
-	      else
-		{		/* invalid composite character */
-		  col += 4;
-		  pos_byte++;
-		}
-	    }
-	  else
-	    {
-	      /* Here, we check that the following bytes are valid
-		 constituents of multi-byte form.  */
-	      int len = BYTES_BY_CHAR_HEAD (c), i;
-
-	      for (i = 1, ptr++; i < len; i++, ptr++)
-		/* We don't need range checking for PTR because there
-		   are anchors (`\0') both at GPT and Z.  */
-		if (CHAR_HEAD_P (*ptr))
-		  break;
-
-	      if (i < len)
-		col += 4, pos_byte++;
-	      else
-		col += WIDTH_BY_CHAR_HEAD (c), pos_byte += i;
-	    }
+	  MULTIBYTE_BYTES_WIDTH (ptr, c, dp);
+	  pos_byte += bytes;
+	  col += width;
 	}
       else
 	col += 4;
@@ -1046,8 +1055,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
   Lisp_Object window;
 
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
-  int wide_column = 0;		/* Set to 1 when a previous character
-				   is wide-colomn.  */
+  int wide_column_end_hpos = 0;	/* Horizontal position at the end of
+				   last wide-column character.  */
   int prev_pos;			/* Previous buffer position.  */
   int prev_pos_byte;		/* Previous buffer position.  */
   int contin_hpos;		/* HPOS of last column of continued line.  */
@@ -1187,7 +1196,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	      /* Remember the previous value.  */
 	      prev_tab_offset = tab_offset;
 
-	      if (wide_column)
+	      if (wide_column_end_hpos > width)
 		{
 		  hpos -= prev_hpos;
 		  tab_offset += prev_hpos;
@@ -1223,7 +1232,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	   */
 
 	  if (contin_hpos && prev_hpos == 0
-	      && contin_hpos < width && !wide_column)
+	      && contin_hpos < width && !wide_column_end_hpos)
 	    {
 	      /* Line breaking occurs in the middle of multi-column
 		 character.  Go back to previous line.  */
@@ -1240,7 +1249,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
       if (vpos > tovpos || vpos == tovpos && hpos >= tohpos)
 	{
 	  if (contin_hpos && prev_hpos == 0
-	      && ((hpos > tohpos && contin_hpos == width) || wide_column))
+	      && ((hpos > tohpos && contin_hpos == width)
+		  || (wide_column_end_hpos > width)))
 	    { /* Line breaks because we can't put the character at the
 		 previous line any more.  It is not the multi-column
 		 character continued in middle.  Go back to previous
@@ -1260,7 +1270,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
       prev_hpos = hpos;
       prev_pos = pos;
       prev_pos_byte = pos_byte;
-      wide_column = 0;
+      wide_column_end_hpos = 0;
 
       /* Consult the width run cache to see if we can avoid inspecting
          the text character-by-character.  */
@@ -1348,8 +1358,9 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		}
 	    }
 
-	  if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c))
-	      && ! (multibyte && BASE_LEADING_CODE_P (c)))
+	  if (dp != 0
+	      && ! (multibyte && BASE_LEADING_CODE_P (c))
+	      && VECTORP (DISP_CHAR_VECTOR (dp, c)))
 	    hpos += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
 	  else if (c >= 040 && c < 0177)
 	    hpos++;
@@ -1429,37 +1440,14 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	    {
 	      /* Start of multi-byte form.  */
 	      unsigned char *ptr;
-	      int len, actual_len;
+	      int bytes, width, wide_column;
 
-	      pos--, pos_byte--;		/* rewind POS */
-
+	      pos_byte--;	/* rewind POS_BYTE */
 	      ptr = BYTE_POS_ADDR (pos_byte);
-	      len = BUFFER_CEILING_OF (pos_byte) - pos_byte + 1;
-
-	      c = STRING_CHAR_AND_LENGTH (ptr, len, actual_len);
-
-	      if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
-		hpos += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
-	      else if (actual_len == 1)
-		hpos += 4;
-	      else if (COMPOSITE_CHAR_P (c))
-		{
-		  int id = COMPOSITE_CHAR_ID (c);
-		  int width = (id < n_cmpchars) ? cmpchar_table[id]->width : 0;
-		  hpos += width;
-		  if (width > 1)
-		    wide_column = 1;
-		}
-	      else
-		{
-		  int width = WIDTH_BY_CHAR_HEAD (*ptr);
-		  hpos += width;
-		  if (width > 1)
-		    wide_column = 1;
-		}
-
-	      pos++;
-	      pos_byte += actual_len;
+	      MULTIBYTE_BYTES_WIDTH (ptr, c, dp);
+	      pos_byte += bytes;
+	      wide_column_end_hpos = hpos + wide_column;
+	      hpos += width;
 	    }
 	  else
 	    hpos += (ctl_arrow && c < 0200) ? 2 : 4;
