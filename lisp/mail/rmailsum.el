@@ -1460,16 +1460,15 @@ see the documentation of `rmail-resend'."
   "Append the current message to an Rmail file named FILE-NAME.
 If the file does not exist, ask if it should be created.
 If file is being visited, the message is appended to the Emacs
-buffer visiting that file."
+buffer visiting that file.
+
+A prefix argument N says to output N consecutive messages
+starting with the current one.  Deleted messages are skipped and don't count."
   (interactive)
-  (save-excursion
-    (set-buffer rmail-buffer)
-    (let ((rmail-delete-after-output nil))
-      (if file-name
-	  (rmail-output-to-rmail-file file-name)
-	(call-interactively 'rmail-output-to-rmail-file))))
-  (if rmail-delete-after-output
-      (rmail-summary-delete-forward nil)))
+  (with-current-buffer rmail-buffer
+    (if file-name
+	(rmail-output-to-rmail-file file-name)
+      (call-interactively 'rmail-output-to-rmail-file))))
 
 (defun rmail-summary-output-menu ()
   "Output current message to another Rmail file, chosen with a menu.
