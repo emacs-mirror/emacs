@@ -417,6 +417,13 @@ The optional second argument PARAMETERS specifies additional frame parameters."
   (interactive "sMake frame on display: ")
   (make-frame (cons (cons 'display display) parameters)))
 
+(defun make-frame-command ()
+  "Make a new frame, and select it if the terminal displays only one frame."
+  (interactive)
+  (if window-system
+      (make-frame)
+    (select-frame (make-frame))))
+
 ;; Alias, kept temporarily.
 (defalias 'new-frame 'make-frame)
 (defun make-frame (&optional parameters)
@@ -705,7 +712,7 @@ should use `set-frame-width' instead."
 (defalias 'ctl-x-5-prefix ctl-x-5-map)
 (define-key ctl-x-map "5" 'ctl-x-5-prefix)
 
-(define-key ctl-x-5-map "2" 'make-frame)
+(define-key ctl-x-5-map "2" 'make-frame-command)
 (define-key ctl-x-5-map "0" 'delete-frame)
 (define-key ctl-x-5-map "o" 'other-frame)
 
