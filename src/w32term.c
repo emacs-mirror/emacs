@@ -544,16 +544,21 @@ w32_clear_window (f)
 /* Start an update of frame F.  This function is installed as a hook
    for update_begin, i.e. it is called when update_begin is called.
    This function is called prior to calls to x_update_window_begin for
-   each window being updated.  Currently, there is nothing to do here
-   because all interesting stuff is done on a window basis.  */
+   each window being updated.  */
 
 static void
 x_update_begin (f)
      struct frame *f;
 {
-  /* Nothing to do.  We have to do something though, otherwise the
-     function gets optimized away and the hook is no longer valid. */
-  struct frame *cf = f;
+  struct w32_display_info *display_info = FRAME_W32_DISPLAY_INFO (f);
+
+  /* Regenerate display palette before drawing if list of requested
+     colors has changed. */
+  if (display_info->regen_palette)
+  {
+    w32_regenerate_palette (f);
+    display_info->regen_palette = FALSE;
+  }
 }
 
 
@@ -572,14 +577,6 @@ x_update_window_begin (w)
   set_output_cursor (&w->cursor);
 
   BLOCK_INPUT;
-
-  /* Regenerate display palette before drawing if list of requested
-     colors has changed. */
-  if (display_info->regen_palette)
-  {
-    w32_regenerate_palette (f);
-    display_info->regen_palette = FALSE;
-  }
 
   if (f == display_info->mouse_face_mouse_frame)
     {
