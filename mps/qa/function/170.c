@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!170.c(trunk.1) $
+ id = $HopeName: MMQA_test_function!170.c(trunk.2) $
  summary = spare_commit_limit tests
  language = c
  link = testlib.o rankfmt.o
@@ -17,8 +17,10 @@ END_HEADER
 #include "mpscmvff.h"
 #include "mpsavm.h"
 
+
 #define MVFF_HI_PARMS EXTEND,AVGSIZE,ALIGN,1,1,0
 #define MVFF_LO_PARMS EXTEND,AVGSIZE,ALIGN,0,0,1
+
 
 enum {
  SPARE_EMPTY,
@@ -39,9 +41,11 @@ enum {
  OBJ_BIG
 };
 
+
 mps_arena_t arena;
 mps_pool_t poollo, poolhi;
 mps_addr_t objlo, objhi;
+
 
 #define SMALL_SIZE 4096
 #define BIG_SIZE   (1024ul*1024ul*10)
@@ -52,8 +56,10 @@ mps_addr_t objlo, objhi;
 #define SPARE_LIMIT HUGE
 #define SPARE_ZERO 0
 
+
 static void t_alloc(int spare, int spare_total, int commit, int obj_size) { 
- size_t size, spsize, losize, hisize, comsize, comlimit;
+ size_t size, hisize, comsize, comlimit;
+ size_t spsize = 0, losize = 0; /* stop warnings */
  mps_res_t res, res_expected;
 
  if (obj_size == OBJ_SMALL) size = SMALL_SIZE; else size = BIG_SIZE;
@@ -74,6 +80,9 @@ static void t_alloc(int spare, int spare_total, int commit, int obj_size) {
   break;
  case SPARE_MORE:
   spsize = size+DIFF_SIZE;
+  break;
+ default:
+  error("Illegal spare.\n");
   break;
  }
 
@@ -144,7 +153,7 @@ static void t_alloc(int spare, int spare_total, int commit, int obj_size) {
 
  comsize = arena_committed_and_used(arena);
 
-/* allow for 1/16th memory overhead in setting commit limit */
+ /* allow for 1/16th memory overhead in setting commit limit */
 
  if (commit == COMMIT_EXACT) {
   comlimit = comsize+size+(size/16);
@@ -186,7 +195,7 @@ static void test(void)
  mps_thr_t thread;
  int spare, spare_total, commit, obj;
 
-/* create a VM arena of 100MB */
+ /* create a VM arena of 100MB */
 
  cdie(mps_arena_create(&arena,mps_arena_class_vmnz(),(size_t)(1024*1024*100)),
   "create arena");
@@ -210,8 +219,8 @@ static void test(void)
 
  mps_arena_destroy(arena);
  comment("Destroyed arena.");
-
 }
+
 
 int main(void)
 {
@@ -219,4 +228,3 @@ int main(void)
  pass();
  return 0;
 }
-
