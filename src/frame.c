@@ -544,7 +544,7 @@ A screen may not be deleted if its minibuffer is used by other screens.")
 
       for (screens = Vscreen_list;
 	   CONSP (screens);
-	   screen = XCONS (screens)->cdr)
+	   screens = XCONS (screens)->cdr)
 	{
 	  s = XSCREEN (XCONS (screens)->car);
 	  if (!SCREEN_MINIBUF_ONLY_P (s))
