@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.80) $
+ * $HopeName: MMsrc!trace.c(trunk.81) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .design: design.mps.trace.
@@ -9,7 +9,7 @@
 #include "mpm.h"
 
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.80) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.81) $");
 
 
 /* Types
@@ -22,6 +22,101 @@ enum {TraceAccountingPhaseRootScan,
       TraceAccountingPhaseSingleScan};
 typedef int TraceAccountingPhase;
 
+#define TraceMessageSig ((Sig)0x51926359)
+
+typedef struct TraceMessageStruct  {
+  Sig sig;
+  Size liveSize;
+  Size condemnedSize;
+  Size notCondemnedSize;
+  MessageStruct messageStruct;
+} TraceMessageStruct, *TraceMessage;
+
+#define TraceMessageMessage(traceMessage) (&((traceMessage)->messageStruct))
+#define MessageTraceMessage(message) \
+  (PARENT(TraceMessageStruct, messageStruct, (message)))
+
+static Bool TraceMessageCheck(TraceMessage traceMessage) 
+{
+  CHECKS(TraceMessage, traceMessage);
+  CHECKD(Message, TraceMessageMessage(traceMessage));
+  CHECKL(MessageGetType(TraceMessageMessage(traceMessage)) == 
+         MessageTypeCollectionStats);
+  /* Can't check sizes */
+
+  return TRUE;
+}
+
+static void TraceMessageDelete(Message message)
+{
+  TraceMessage traceMessage;
+  Arena arena;
+
+  AVERT(Message, message);
+  traceMessage = MessageTraceMessage(message);
+  AVERT(TraceMessage, traceMessage);
+
+  arena = MessageArena(message);
+  ArenaFree(arena, (void *)traceMessage, sizeof(TraceMessageStruct));
+}
+
+static Size TraceMessageLiveSize(Message message) 
+{
+  TraceMessage traceMessage;
+
+  AVERT(Message, message);
+  traceMessage = MessageTraceMessage(message);
+  AVERT(TraceMessage, traceMessage);
+
+  return traceMessage->liveSize;
+}
+
+static Size TraceMessageCondemnedSize(Message message) 
+{
+  TraceMessage traceMessage;
+
+  AVERT(Message, message);
+  traceMessage = MessageTraceMessage(message);
+  AVERT(TraceMessage, traceMessage);
+
+  return traceMessage->condemnedSize;
+}
+
+static Size TraceMessageNotCondemnedSize(Message message) 
+{
+  TraceMessage traceMessage;
+
+  AVERT(Message, message);
+  traceMessage = MessageTraceMessage(message);
+  AVERT(TraceMessage, traceMessage);
+
+  return traceMessage->notCondemnedSize;
+}
+
+static MessageClassStruct TraceMessageClassStruct = {
+  MessageClassSig,               /* sig */
+  "TraceCollectionStats",        /* name */
+  TraceMessageDelete,            /* Delete */
+  MessageNoFinalizationRef,      /* FinalizationRef */
+  TraceMessageLiveSize,          /* CollectionStatsLiveSize */
+  TraceMessageCondemnedSize,     /* CollectionStatsCondemnedSize */
+  TraceMessageNotCondemnedSize,  /* CollectionStatsNotCondemnedSize */
+  MessageClassSig                /* design.mps.message.class.sig.double */
+};
+
+static void TraceMessageInit(Arena arena, TraceMessage traceMessage)
+{
+  AVERT(Arena, arena);
+  MessageInit(arena, TraceMessageMessage(traceMessage),
+              &TraceMessageClassStruct, MessageTypeCollectionStats);
+  traceMessage->liveSize = (Size)0;
+  traceMessage->condemnedSize = (Size)0;
+  traceMessage->notCondemnedSize = (Size)0;
+
+  traceMessage->sig = TraceMessageSig;
+
+  AVERT(TraceMessage, traceMessage);
+}
 
 /* ScanStateCheck -- check consistency of a ScanState object */
 
@@ -82,7 +177,10 @@ void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
   ss->whiteSegRefCount = (Count)0;
   ss->nailCount = (Count)0;
   ss->snapCount = (Count)0;
-  ss->forwardCount = (Count)0;
+  ss->forwardedCount = (Count)0;
+  ss->forwardedSize = (Size)0;
+  ss->preservedInPlaceCount = (Count)0;
+  ss->preservedInPlaceSize = (Size)0;
   ss->copiedSize = (Size)0;
   ss->scannedSize = (Size)0;
   ss->sig = ScanStateSig;
@@ -202,7 +300,10 @@ static void TraceUpdateCounts(Trace trace, ScanState ss,
   trace->whiteSegRefCount += ss->whiteSegRefCount;
   trace->nailCount += ss->nailCount;
   trace->snapCount += ss->snapCount;
-  trace->forwardCount += ss->forwardCount;
+  trace->forwardedCount += ss->forwardedCount;
+  trace->forwardedSize += ss->forwardedSize;
+  trace->preservedInPlaceCount += ss->preservedInPlaceCount;
+  trace->preservedInPlaceSize += ss->preservedInPlaceSize;
 
   return;
 }
@@ -374,8 +475,8 @@ Res TraceCondemnRefSet(Trace trace, RefSet condemnedSet)
       if((SegPool(seg)->class->attr & AttrGC) != 0 &&
          RefSetSuper(condemnedSet, RefSetOfSeg(arena, seg))) {
         res = TraceAddWhite(trace, seg);
-	if(res != ResOK)
-	  return res;
+        if(res != ResOK)
+          return res;
       }
     } while(SegNext(&seg, arena, base));
   }
@@ -580,6 +681,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
   Ring ring, node;
   Arena arena;
   Seg seg;
+  Size size;
 
   AVERT(Trace, trace);
   AVER(trace->state == TraceINIT);
@@ -599,6 +701,7 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
     Addr base;
     do {
       base = SegBase(seg);
+      size = SegSize(seg);
       /* Segment should be either black or white by now. */
       AVER(!TraceSetIsMember(SegGrey(seg), trace->ti));
 
@@ -615,9 +718,13 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
         /* approximation to the white set. */
         if(RefSetInter(SegSummary(seg), trace->white) != RefSetEMPTY) {
           PoolGrey(SegPool(seg), trace, seg);
-	  if(TraceSetIsMember(SegGrey(seg), trace->ti))
-	    trace->foundation += SegSize(seg);
+          if(TraceSetIsMember(SegGrey(seg), trace->ti))
+            trace->foundation += size;
         }
+        
+        if((SegPool(seg)->class->attr & AttrGC) &&
+           !TraceSetIsMember(SegWhite(seg), trace->ti))
+          trace->notCondemned += size;
       }
     } while(SegNext(&seg, arena, base));
   }
@@ -703,6 +810,7 @@ found:
   trace->state = TraceINIT;
   trace->emergency = FALSE;
   trace->condemned = (Size)0;   /* nothing condemned yet */
+  trace->notCondemned = (Size)0; 
   trace->foundation = (Size)0;  /* nothing grey yet */
   trace->rate = (Size)0;        /* no scanning to be done yet */
   trace->rootScanCount = (Count)0;
@@ -719,7 +827,10 @@ found:
   trace->whiteSegRefCount = (Count)0;
   trace->nailCount = (Count)0;
   trace->snapCount = (Count)0;
-  trace->forwardCount = (Count)0;
+  trace->forwardedCount = (Count)0;
+  trace->forwardedSize = (Size)0;
+  trace->preservedInPlaceCount = (Count)0;
+  trace->preservedInPlaceSize = (Size)0;
   trace->faultCount = (Count)0;
   trace->reclaimCount = (Count)0;
   trace->reclaimSize = (Size)0;
@@ -763,6 +874,29 @@ void TraceDestroy(Trace trace)
   EVENT_P(TraceDestroy, trace);
 }
 
+static void TracePostMessage(Trace trace)
+{
+  Arena arena;
+  void *p;
+  TraceMessage traceMessage;
+  Res res;
+
+  AVERT(Trace, trace);
+  AVER(trace->state == TraceFINISHED);
+
+  arena = trace->arena;
+  res = ArenaAlloc(&p, arena, sizeof(TraceMessageStruct));
+  if(res == ResOK) {
+    traceMessage = (TraceMessage)p;
+    TraceMessageInit(arena, traceMessage);
+    traceMessage->liveSize = trace->forwardedSize + trace->preservedInPlaceSize;
+    traceMessage->condemnedSize = trace->condemned;
+    traceMessage->notCondemnedSize = trace->notCondemned;
+    MessagePost(arena, TraceMessageMessage(traceMessage));
+  }
+
+  return;
+}
 
 static void TraceReclaim(Trace trace)
 {
@@ -791,11 +925,11 @@ static void TraceReclaim(Trace trace)
         /* the same as the one above, but in that case it's new and */
         /* still shouldn't be white for this trace. */
 
-	/* The code from the class-specific reclaim methods to */
-	/* unwhiten the segment could in fact be moved here.   */
+        /* The code from the class-specific reclaim methods to */
+        /* unwhiten the segment could in fact be moved here.   */
         {
-          Seg nonWhiteSeg = NULL;	/* prevents compiler warning */
-	  AVER_CRITICAL(!(SegOfAddr(&nonWhiteSeg, arena, base)
+          Seg nonWhiteSeg = NULL;       /* prevents compiler warning */
+          AVER_CRITICAL(!(SegOfAddr(&nonWhiteSeg, arena, base)
                           && TraceSetIsMember(SegWhite(nonWhiteSeg),
                                               trace->ti)));
         }
@@ -804,6 +938,8 @@ static void TraceReclaim(Trace trace)
   }
 
   trace->state = TraceFINISHED;
+
+  TracePostMessage(trace);
 
   return;
 }
@@ -1240,7 +1376,7 @@ Res TraceFixEmergency(ScanState ss, Ref *refIO)
   } else {
     /* See design.mps.trace.exact.legal */
     AVER(ss->rank < RankEXACT ||
-	 !ArenaIsReservedAddr(ss->arena, ref));
+         !ArenaIsReservedAddr(ss->arena, ref));
   }
 
   /* See design.mps.trace.fix.fixed.all */
