@@ -9,26 +9,21 @@
 ;;	Hebrew calendar, Islamic calendar, ISO calendar, Julian day number,
 ;;	diary, holidays
 
-(defun calendar-version ()
-  (interactive)
-  (message "Version 5.3, January 25, 1994"))
-
 ;; This file is part of GNU Emacs.
 
-;; GNU Emacs is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY.  No author or distributor
-;; accepts responsibility to anyone for the consequences of using it
-;; or for whether it serves any particular purpose or works at all,
-;; unless he says so in writing.  Refer to the GNU Emacs General Public
-;; License for full details.
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
 
-;; Everyone is granted permission to copy, modify and redistribute
-;; GNU Emacs, but only under the conditions described in the
-;; GNU Emacs General Public License.   A copy of this license is
-;; supposed to have been given to you along with GNU Emacs so you
-;; can know your rights and responsibilities.  It should be in a
-;; file named COPYING.  Among other things, the copyright notice
-;; and this notice must be preserved on all copies.
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;;; Commentary:
 
@@ -104,6 +99,10 @@
 
 ;;; Code:
 
+(defun calendar-version ()
+  (interactive)
+  (message "Version 5.3, January 25, 1994"))
+
 ;;;###autoload
 (defvar calendar-week-start-day 0
   "*The day of the week on which a week in the calendar begins.
@@ -111,7 +110,7 @@
 
 ;;;###autoload
 (defvar view-diary-entries-initially nil
-  "*If t, the diary entries for the current date will be displayed on entry.
+  "*Non-nil means display current date's diary entries on entry.
 The diary is displayed in another window when the calendar is first displayed,
 if the current date is visible.  The number of days of diary entries displayed
 is governed by the variable `number-of-diary-entries'.")
@@ -123,18 +122,21 @@ This variable affects the diary display when the command M-x diary is used,
 or if the value of the variable `view-diary-entries-initially' is t.  For
 example, if the default value 1 is used, then only the current day's diary
 entries will be displayed.  If the value 2 is used, then both the current
-day's and the next day's entries will be displayed.  The value can also be
-a vector such as [0 2 2 2 2 4 1]; this value will cause no diary entries to
-be displayed on Sunday, the current date's and the next day's diary entries
-to be displayed Monday through Thursday, Friday through Monday's entries to
-be displayed on Friday, and only Saturday's entries to be displayed on
-Saturday.  This variable does not affect the diary display with the `d'
-command from the calendar; in that case, the prefix argument controls the
+day's and the next day's entries will be displayed.
+
+The value can also be a vector such as [0 2 2 2 2 4 1]; this value
+says to display no diary entries on Sunday, the display the entries
+for the current date and the day after on Monday through Thursday,
+display Friday through Monday's entries on Friday, and display only
+Saturday's entries on Saturday.
+
+This variable does not affect the diary display with the `d' command
+from the calendar; in that case, the prefix argument controls the
 number of days of diary entries displayed.")
 
 ;;;###autoload
 (defvar mark-diary-entries-in-calendar nil
-  "*If t, dates with diary entries will be marked in the calendar window.
+  "*Non-nil means mark dates with diary entries, in the calendar window.
 The marking symbol is specified by the variable `diary-entry-marker'.")
 
 (defvar diary-entry-marker
@@ -174,49 +176,42 @@ Can be either a single-character string or a face.")
 
 ;;;###autoload
 (defvar view-calendar-holidays-initially nil
-  "*If t, holidays for current three month period will be displayed on entry.
+  "*Non-nil means display holidays for current three month period on entry.
 The holidays are displayed in another window when the calendar is first
 displayed.")
 
 ;;;###autoload
 (defvar mark-holidays-in-calendar nil
-  "*If t, dates of holidays will be marked in the calendar window.
+  "*Non-nil means mark dates of holidays in the calendar window.
 The marking symbol is specified by the variable `calendar-holiday-marker'.")
 
 ;;;###autoload
 (defvar all-hebrew-calendar-holidays nil
   "*If nil, show only major holidays from the Hebrew calendar.
+This means only those Jewish holidays that appear on secular calendars.
 
-If nil, the only holidays from the Hebrew calendar shown will be those days of
-such major interest as to appear on secular calendars.
-
-If t, the holidays shown in the calendar will include all special days that
-would be shown on a complete Hebrew calendar.")
+If t, show all the holidays that would appear in a complete Hebrew calendar.")
 
 ;;;###autoload
 (defvar all-christian-calendar-holidays nil
   "*If nil, show only major holidays from the Christian calendar.
+This means only those Christian holidays that appear on secular calendars.
 
-If nil, the only holidays from the Christian calendar shown will be those days
-of such major interest as to appear on secular calendars.
-
-If t, the holidays shown in the calendar will include all special days that
-would be shown on a complete Christian calendar.")
+If t, show all the holidays that would appear in a complete Christian
+calendar.")
 
 ;;;###autoload
 (defvar all-islamic-calendar-holidays nil
   "*If nil, show only major holidays from the Islamic calendar.
+This means only those Islamic holidays that appear on secular calendars.
 
-If nil, the only holidays from the Islamic calendar shown will be those days
-of such major interest as to appear on secular calendars.
-
-If t, the holidays shown in the calendar will include all special days that
-would be shown on a complete Islamic calendar.")
+If t, show all the holidays that would appear in a complete Islamic
+calendar.")
 
 ;;;###autoload
 (defvar calendar-load-hook nil
   "*List of functions to be called after the calendar is first loaded.
-This is the place to add key bindings to calendar-mode-map.")
+This is the place to add key bindings to `calendar-mode-map'.")
 
 ;;;###autoload
 (defvar initial-calendar-window-hook nil
@@ -313,8 +308,8 @@ entries (in the default American style):
      &* 15 time cards due.
 
 If the first line of a diary entry consists only of the date or day name with
-no trailing blanks or punctuation, then that line will not be displayed in the
-diary window; only the continuation lines will be shown.  For example, the
+no trailing blanks or punctuation, then that line is not displayed in the
+diary window; only the continuation lines is shown.  For example, the
 single diary entry
 
      02/11/1989
@@ -538,7 +533,7 @@ Can be used for appointment notification.")
 ;;;###autoload
 (defvar diary-display-hook nil
   "*List of functions that handle the display of the diary.
-If nil (the default), `simple-diary-display' will be used.  Use `ignore' for no
+If nil (the default), `simple-diary-display' is used.  Use `ignore' for no
 diary display.
 
 Ordinarily, this just displays the diary buffer (with holidays indicated in
@@ -597,13 +592,15 @@ are holidays.")
 
 ;;;###autoload
 (defvar holidays-in-diary-buffer t
-  "*If t, the holidays will be indicated in the diary display.
-The holidays will be given in the mode line of the diary buffer, or in the
+  "*Non-nil means include holidays in the diary display.
+The holidays appear in the mode line of the diary buffer, or in the
 fancy diary buffer next to the date.  This slows down the diary functions
-somewhat; setting it to nil will make the diary display faster.")
+somewhat; setting it to nil makes the diary display faster.")
 
 (defvar calendar-mark-ring nil)
 
+;;;###autoload
+(put 'general-holidays 'risky-local-variable t)
 ;;;###autoload
 (defvar general-holidays
   '((holiday-fixed 1 1 "New Year's Day")
@@ -627,15 +624,21 @@ somewhat; setting it to nil will make the diary display faster.")
 See the documentation for `calendar-holidays' for details.")
 
 ;;;###autoload
+(put 'local-holidays 'risky-local-variable t)
+;;;###autoload
 (defvar local-holidays nil
   "*Local holidays.
 See the documentation for `calendar-holidays' for details.")
 
 ;;;###autoload
+(put 'other-holidays 'risky-local-variable t)
+;;;###autoload
 (defvar other-holidays nil
   "*User defined holidays.
 See the documentation for `calendar-holidays' for details.")
 
+;;;###autoload
+(put 'hebrew-holidays-1 'risky-local-variable t)
 ;;;###autoload
 (defvar hebrew-holidays-1
   '((holiday-rosh-hashanah-etc)
@@ -654,6 +657,8 @@ See the documentation for `calendar-holidays' for details.")
                  22
                21))) "\"Tal Umatar\" (evening)"))))
 
+;;;###autoload
+(put 'hebrew-holidays-2 'risky-local-variable t)
 ;;;###autoload
 (defvar hebrew-holidays-2
   '((if all-hebrew-calendar-holidays
@@ -674,6 +679,8 @@ See the documentation for `calendar-holidays' for details.")
     (if all-hebrew-calendar-holidays
         (holiday-hebrew 11 15 "Tu B'Shevat"))))
 
+;;;###autoload
+(put 'hebrew-holidays-3 'risky-local-variable t)
 ;;;###autoload
 (defvar hebrew-holidays-3
   '((if all-hebrew-calendar-holidays
@@ -706,6 +713,8 @@ See the documentation for `calendar-holidays' for details.")
          "Shabbat Shirah"))))
 
 ;;;###autoload
+(put 'hebrew-holidays-4 'risky-local-variable t)
+;;;###autoload
 (defvar hebrew-holidays-4
   '((holiday-passover-etc)
     (if (and all-hebrew-calendar-holidays
@@ -723,11 +732,15 @@ See the documentation for `calendar-holidays' for details.")
         (holiday-tisha-b-av-etc))))
 
 ;;;###autoload
+(put 'hebrew-holidays 'risky-local-variable t)
+;;;###autoload
 (defvar hebrew-holidays (append hebrew-holidays-1 hebrew-holidays-2
 				hebrew-holidays-3 hebrew-holidays-4)
   "*Jewish holidays.
 See the documentation for `calendar-holidays' for details.")
 
+;;;###autoload
+(put 'christian-holidays 'risky-local-variable t)
 ;;;###autoload
 (defvar christian-holidays
   '((if all-christian-calendar-holidays
@@ -745,6 +758,8 @@ See the documentation for `calendar-holidays' for details.")
   "*Christian holidays.
 See the documentation for `calendar-holidays' for details.")
 
+;;;###autoload
+(put 'islamic-holidays 'risky-local-variable t)
 ;;;###autoload
 (defvar islamic-holidays
   '((holiday-islamic
@@ -776,6 +791,8 @@ See the documentation for `calendar-holidays' for details.")
   "*Islamic holidays.
 See the documentation for `calendar-holidays' for details.")
 
+;;;###autoload
+(put 'solar-holidays 'risky-local-variable t)
 ;;;###autoload
 (defvar solar-holidays
   '((if (fboundp 'atan)
@@ -809,6 +826,8 @@ See the documentation for `calendar-holidays' for details.")
   "*Sun-related holidays.
 See the documentation for `calendar-holidays' for details.")
 
+;;;###autoload
+(put 'calendar-holidays 'risky-local-variable t)
 (defvar calendar-holidays
   (append general-holidays local-holidays other-holidays
           christian-holidays hebrew-holidays islamic-holidays
@@ -1694,7 +1713,7 @@ To find the times of sunrise and sunset and lunar phases use
        \\[calendar-sunrise-sunset]  show times of sunrise and sunset
        \\[calendar-phases-of-moon]  show times of quarters of the moon
 
-The times given will be for location `calendar-location-name' at latitude
+The times given apply to location `calendar-location-name' at latitude
 `calendar-latitude', longitude `calendar-longitude'; set these variables for
 your location.  The following variables are also consulted, and you must set
 them if your system does not initialize them properly: `calendar-time-zone',
@@ -1707,27 +1726,27 @@ To exit from the calendar use
 
        \\[exit-calendar]  exit from calendar
 
-The variable `view-diary-entries-initially', whose default is nil, can be
-set to to t cause diary entries for the current date will be displayed in
+Set `view-diary-entries-initially' to a non-nil value to display 
+diary entries for the current date in
 another window when the calendar is first displayed, if the current date is
 visible.  The variable `number-of-diary-entries' controls number of days of
-diary entries that will be displayed initially or with the command M-x
-diary.  For example, if the default value 1 is used, then only the current
-day's diary entries will be displayed.  If the value 2 is used, both the
-current day's and the next day's entries will be displayed.  The value can
-also be a vector: If the value is [0 2 2 2 2 4 1] then no diary entries
-will be displayed on Sunday, the current date's and the next day's diary
-entries will be displayed Monday through Thursday, Friday through Monday's
-entries will be displayed on Friday, while on Saturday only that day's
-entries will be displayed.
+diary entries that to display initially or with the command M-x
+diary.  For example, the default value 1 says to display only the current
+day's diary entries.  The value 2 says to display both the
+current day's and the next day's entries.
 
-The variable `view-calendar-holidays-initially' can be set to t to cause the
-holidays for the current three month period will be displayed on entry to the
-calendar.  The holidays are displayed in another window.
+The value can also be a vector such as [0 2 2 2 2 4 1]; this value
+says to display no diary entries on Sunday, the display the entries
+for the current date and the day after on Monday through Thursday,
+display Friday through Monday's entries on Friday, and display only
+Saturday's entries on Saturday.
 
-The variable `mark-diary-entries-in-calendar' can be set to t to cause any
-dates visible with calendar entries to be marked with the symbol specified by
-the variable `diary-entry-marker'.
+Set `view-calendar-holidays-initially' to a non-nil value to display
+holidays for the current three month period on entry to the calendar.
+
+Set `mark-diary-entries-in-calendar' to a non-nil value to mark in the
+calendar all the dates that have diary entries.  The variable
+`diary-entry-marker' controls how to mark them.
 
 The variable `calendar-load-hook', whose default value is nil, is list of
 functions to be called when the calendar is first loaded.
