@@ -1,3 +1,7 @@
+2004-07-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frame.el (modify-all-frames-parameters): Minor doc fix.
+
 2004-07-20  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/fill.el (fill-comment-paragraph): Handle indent-tabs-mode.
