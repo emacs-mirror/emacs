@@ -950,7 +950,11 @@ values have changed since the previous major Emacs release.
 
 With argument SINCE-VERSION (a string), customize all user option
 variables that were added (or their meanings were changed) since that
-version."
+version.
+
+Custom version numbers are actually associated to symbols. A symbol
+with version number VERSION will be listed with all its definitions as
+custom variable, face, or group."
 
   (interactive "sCustomize options changed, since version (default all versions): ")
   (if (equal since-version "")
@@ -961,52 +965,35 @@ version."
       (signal 'wrong-type-argument (list 'numberp since-version))))
   (unless since-version
     (setq since-version customize-changed-options-previous-release))
-  (let ((found nil)
-	(versions nil))
-    (mapatoms (lambda (symbol)
-		(and (or (boundp symbol)
-			 ;; For variables not yet loaded.
-			 (get symbol 'standard-value)
-			 ;; For groups the previous test fails, this one
-			 ;; could be used to determine if symbol is a
-			 ;; group. Is there a better way for this?
-			 (get symbol 'group-documentation))
-		     (let ((version (get symbol 'custom-version)))
-		       (and version
-			    (or (null since-version)
-				(customize-version-lessp since-version version))
-			    (if (member version versions)
-				t
-			      ;;; Collect all versions that we use.
-			      (push version versions))))
-		     (setq found
-			   ;; We have to set the right thing here,
-			   ;; depending if we have a group or a
-			   ;; variable.
-			   (if (get  symbol 'group-documentation)
-			       (cons (list symbol 'custom-group) found)
-			     (cons (list symbol 'custom-variable) found))))))
-    (if (not found)
-	(error "No user option defaults have been changed since Emacs %s"
-	       since-version)
-      (let ((flist nil))
-	(while versions
-	  (push (copy-sequence
-		 (cdr (assoc (car versions)  custom-versions-load-alist)))
-		flist)
-	  (setq versions (cdr versions)))
-	(put 'custom-versions-load-alist 'custom-loads
-	     ;; Get all the files that correspond to element from the
-	     ;; VERSIONS list. This could use some simplification.
-	     (apply 'nconc flist)))
-      ;; Because we set all the files needed to be loaded as a
-      ;; `custom-loads' property to `custom-versions-load-alist' this
-      ;; call will actually load them.
-      (custom-load-symbol 'custom-versions-load-alist)
-      ;; Clean up
-      (put 'custom-versions-load-alist 'custom-loads nil)
-      (custom-buffer-create (custom-sort-items found t 'first)
-			    "*Customize Changed Options*"))))
+
+  ;; Load the information for versions since since-version.  We use
+  ;; custom-load-symbol for this.
+  (put 'custom-versions-load-alist 'custom-loads nil)
+  (dolist (elt custom-versions-load-alist)
+     (if (customize-version-lessp since-version (car elt))
+	 (dolist (load (cdr elt))
+	   (custom-add-load 'custom-versions-load-alist load))))
+  (custom-load-symbol 'custom-versions-load-alist)
+  (put 'custom-versions-load-alist 'custom-loads nil)
+
+  (let (found)
+    (mapatoms
+     (lambda (symbol)
+       (let ((version (get symbol 'custom-version)))
+	 (if version
+	     (when (customize-version-lessp since-version version)
+	       (if (or (get symbol 'custom-group)
+		       (get symbol 'group-documentation))
+		   (push (list symbol 'custom-group) found))
+	       (if (custom-variable-p symbol)
+		   (push (list symbol 'custom-variable) found))
+	       (if (custom-facep symbol)
+		   (push (list symbol 'custom-face) found)))))))
+    (if found
+	(custom-buffer-create (custom-sort-items found t 'first)
+			      "*Customize Changed Options*")
+      (error "No user option defaults have been changed since Emacs %s"
+	     since-version))))
 
 (defun customize-version-lessp (version1 version2)
   ;; Why are the versions strings, and given that they are, why aren't
