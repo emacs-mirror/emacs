@@ -904,6 +904,7 @@ Its value and function definition are void, and its property list is nil.")
     }
   p = XSYMBOL (val);
   p->name = XSTRING (name);
+  p->obarray = Qnil;
   p->plist = Qnil;
   p->value = Qunbound;
   p->function = Qunbound;
