@@ -1,5 +1,9 @@
 2000-09-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* ehelp.el (electric-help): New defgroup.
+	(electric-help-shrink-window): New user-option.
+	(with-electric-help): Use it.
+
 	* window.el (shrink-window-if-larger-than-buffer): If face
 	`mode-line' has a :box, and we're on a graphical frame, add 1
 	to the needed window height.
