@@ -1577,10 +1577,12 @@ If NOT-ALL is non-nil, save the `.dvi' file."
 
 (defvar tex-compile-commands
   '(((concat "pdf" tex-command
-	     " " (shell-quote-argument tex-start-commands) " %f")
+	     " " (if (< 0 (length tex-start-commands))
+		     (shell-quote-argument tex-start-commands)) " %f")
      t "%r.pdf")
     ((concat tex-command
-	     " " (shell-quote-argument tex-start-commands) " %f")
+	     " " (if (< 0 (length tex-start-commands))
+		     (shell-quote-argument tex-start-commands)) " %f")
      t "%r.dvi")
     ("xdvi %r &" "%r.dvi")
     ("advi %r &" "%r.dvi")
