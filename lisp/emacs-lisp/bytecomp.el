@@ -152,6 +152,8 @@
 ;;;     buffer, and that buffer is modified, you are asked whether you want
 ;;;     to save the buffer before compiling.
 
+(require 'backquote)
+
 (or (fboundp 'defsubst)
     ;; This really ought to be loaded already!
     (load-library "byte-run"))
@@ -2972,6 +2974,8 @@ For example, invoke \"emacs -batch -f batch-byte-compile $emacs/ ~/*.el\""
 			'temp-buffer-show-function)
 (make-obsolete-variable 'inhibit-local-variables
 		"use enable-local-variables (with the reversed sense.)")
+(make-obsolete-variable 'unread-command-char
+  "use unread-command-event; now nil means `no event', instead of -1.")
 
 (provide 'byte-compile)
 
