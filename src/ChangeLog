@@ -1,3 +1,9 @@
+2003-09-03  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (get_window_cursor_type): Partially undo 2002-03-01
+	change (superseded by 2002-08-30 change); the default blink-off
+	cursor is now again "no cursor".
+
 2003-09-01  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (alloca.o): Remove.
