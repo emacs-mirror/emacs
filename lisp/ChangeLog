@@ -1,5 +1,11 @@
 2001-10-24  Gerd Moellmann  <gerd@gnu.org>
 
+	* replace.el (perform-replace): Move START and END parameters
+	to the end of the argument list and make them optional.
+
+	* progmodes/ebrowse.el, progmodes/etags.el: Adapt to change in
+	perform-replace.
+
 	* international/fontset.el (x-must-resolve-font-name): New
 	function.
 	(x-complement-fontset-spec): Use it.
