@@ -346,8 +346,8 @@ buffer."
   (setq shell-dirtrackp t)
   (add-hook 'comint-input-filter-functions 'shell-directory-tracker nil t)
   (setq comint-input-autoexpand shell-input-autoexpand)
-  (make-local-variable 'list-buffers-directory)
-  (setq list-buffers-directory (expand-file-name default-directory))
+  ;; We used to set list-buffers-directory here, but that was wrong.
+  ;; A shell buffer is not a way of editing a directory.
   ;; shell-dependent assignments.
   (let ((shell (file-name-nondirectory (car
 		 (process-command (get-buffer-process (current-buffer)))))))
