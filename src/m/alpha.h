@@ -169,12 +169,15 @@ NOTE-END
 #define LIBS_MACHINE -ldnet_stub
 #endif
 
+#if 0 /* Rainer Schoepf <schoepf@uni-mainz.de> says this loses with X11R6
+	 since it has only shared libraries.  */
 #ifndef __GNUC__
 /* This apparently is for the system ld as opposed to Gnu ld.  */
 #ifdef OSF1
 #define LD_SWITCH_MACHINE      -non_shared
 #endif
 #endif
+#endif /* 0 */
 
 #define LIBS_DEBUG
 #define START_FILES pre-crt0.o
@@ -230,7 +233,12 @@ NOTE-END
 
 /* We need to prototype these for the lib-src programs even if we don't
    use the system malloc for the Emacs proper.  */
+/* These declarations are designed to match the ones in gmalloc.c.  */
+#if defined (__STDC__) && __STDC__
 extern void *malloc (), *realloc ();
+#else
+extern char *malloc (), *realloc ();
+#endif
 
 extern long *xmalloc (), *xrealloc ();
 
