@@ -51,7 +51,7 @@ Lisp_Object Vmark_even_if_inactive;
 
 Lisp_Object Vmouse_leave_buffer_hook, Qmouse_leave_buffer_hook;
 
-Lisp_Object Qlist, Qlet, Qletx, Qsave_excursion;
+Lisp_Object Qlist, Qlet, Qletx, Qsave_excursion, Qprogn;
 static Lisp_Object preserved_fns;
 
 /* Marker used within call-interactively to refer to point.  */
@@ -196,6 +196,7 @@ supply if the command inquires which events were used to invoke it.  */)
   Lisp_Object fun;
   Lisp_Object funcar;
   Lisp_Object specs;
+  Lisp_Object filter_specs;
   Lisp_Object teml;
   Lisp_Object enable;
   int speccount = SPECPDL_INDEX ();
@@ -243,6 +244,10 @@ supply if the command inquires which events were used to invoke it.  */)
 
   specs = Qnil;
   string = 0;
+  /* The idea of FILTER_SPECS is to provide away to
+     specify how to represent the arguments in command history.
+     The feature is not fully implemented.  */
+  filter_specs = Qnil;
 
   /* Decode the kind of function.  Either handle it and return,
      or go to `lose' if not interactive, or go to `retry'
@@ -278,6 +283,7 @@ supply if the command inquires which events were used to invoke it.  */)
       specs = Fassq (Qinteractive, Fcdr (XCDR (fun)));
       if (NILP (specs))
 	goto lose;
+      filter_specs = Fnth (make_number (1), specs);
       specs = Fcar (Fcdr (specs));
     }
   else
@@ -298,7 +304,9 @@ supply if the command inquires which events were used to invoke it.  */)
       i = num_input_events;
       input = specs;
       /* Compute the arg values using the user's expression.  */
+      GCPRO2 (input, filter_specs);
       specs = Feval (specs);
+      UNGCPRO;
       if (i != num_input_events || !NILP (record_flag))
 	{
 	  /* We should record this command on the command history.  */
@@ -315,7 +323,8 @@ supply if the command inquires which events were used to invoke it.  */)
 	      car = XCAR (input);
 	      /* Skip through certain special forms.  */
 	      while (EQ (car, Qlet) || EQ (car, Qletx)
-		     || EQ (car, Qsave_excursion))
+		     || EQ (car, Qsave_excursion)
+		     || EQ (car, Qprogn))
 		{
 		  while (CONSP (XCDR (input)))
 		    input = XCDR (input);
@@ -836,6 +845,8 @@ syms_of_callint ()
   staticpro (&Qletx);
   Qsave_excursion = intern ("save-excursion");
   staticpro (&Qsave_excursion);
+  Qprogn = intern ("progn");
+  staticpro (&Qprogn);
 
   Qminus = intern ("-");
   staticpro (&Qminus);
