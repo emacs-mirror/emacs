@@ -3022,9 +3022,9 @@ sys_accept (int s, struct sockaddr * addr, int * addrlen)
   check_errno ();
   if (fd_info[s].flags & FILE_SOCKET)
     {
-      SOCKET s = pfn_accept (SOCK_HANDLE (s), addr, addrlen);
-      if (s != INVALID_SOCKET)
-	return socket_to_fd (s);
+      SOCKET t = pfn_accept (SOCK_HANDLE (s), addr, addrlen);
+      if (t != INVALID_SOCKET)
+	return socket_to_fd (t);
 
       set_errno ();
       return -1;
