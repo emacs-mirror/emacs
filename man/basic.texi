@@ -165,9 +165,11 @@ Move to the beginning of the line (@code{beginning-of-line}).
 @item C-e
 Move to the end of the line (@code{end-of-line}).
 @item C-f
-Move forward one character (@code{forward-char}).
+Move forward one character (@code{forward-char}).  The @key{->} right
+arrow key, if your keyboard has it, does the same.
 @item C-b
-Move backward one character (@code{backward-char}).
+Move backward one character (@code{backward-char}).  The @key{<-} left
+arrow key has the same effect.
 @item M-f
 Move forward one word (@code{forward-word}).
 @item M-b
@@ -175,9 +177,11 @@ Move backward one word (@code{backward-word}).
 @item C-n
 Move down one line, vertically (@code{next-line}).  This command
 attempts to keep the horizontal position unchanged, so if you start in
-the middle of one line, you end in the middle of the next.
+the middle of one line, you end in the middle of the next.  The down
+arrow key, if your keyboard has it, does the same.
 @item C-p
-Move up one line, vertically (@code{previous-line}).
+Move up one line, vertically (@code{previous-line}).  The up arrow key
+has the same effect.
 @item M-r
 Move point to left margin, vertically centered in the window
 (@code{move-to-window-line}).  Text does not move on the screen.
@@ -186,6 +190,13 @@ A numeric argument says which screen line to place point on.  It counts
 screen lines down from the top of the window (zero for the top line).  A
 negative argument counts lines from the bottom (@minus{}1 for the bottom
 line).
+@item C-v
+Scroll the display forward one windowfull.  If your keyboard has a
+@key{PageDown} key, it does the same.  Scrolling commands are further
+described in @ref{Scrolling}.
+@item M-v
+Scroll the display backward one windowfull.  The @key{PageUp} key has
+the same effect.  @xref{Scrolling}.
 @item M-<
 Move to the top of the buffer (@code{beginning-of-buffer}).  With
 numeric argument @var{n}, move to @var{n}/10 of the way from the top.
