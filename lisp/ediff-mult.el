@@ -40,19 +40,20 @@
 ;;	3. Provide a list of pairs or triples of file names (or buffers,
 ;;	   depending on the particular Ediff operation you want to invoke)
 ;;	   in the following format:
-;;	  	(descriptor (obj1 obj2 obj3) (...) ...)
+;;	  	(descriptor-header (nil nil (obj1 nil) (obj2 nil) (obj3 nil))
+;;                                 (...) ...)
+;;         The function ediff-make-new-meta-list-element can be used to create
+;;         2nd and subsequent elements of that list.
 ;;	   Actually, the format of this list is pretty much up to the
 ;;	   developer.  The only thing is that it must be a list of lists,
 ;;	   and the first list must describe the meta session, and subsequent
 ;;	   elements must describe individual sessions.
-;;	   This descriptor must be a list of two, three, or four elements (nil
-;;	   or string).  The function ediff-redraw-registry-buffer displays the
-;;	   second through last of these in the registry buffer. 
+;;	   This descriptor-header must be a list of SIX elements (nil or
+;;         string).  The function ediff-redraw-registry-buffer displays the 
+;;	   1st - 4th of these in the registry buffer. 
 ;;	   Also, keep in mind that the function ediff-prepare-meta-buffer
-;;	   (which see) prepends the session group buffer to the descriptor, and
-;;	   nil in front of each subsequent list (i.e., the above list 
-;;	   will become
-;;              ((meta-buf descriptor) (nil obj1 obj2 obj3) (nil ...) ...)
+;;	   (which see) prepends the session group buffer to the descriptor, so
+;;	   the descriptor becomes 7-long.
 ;;	   Ediff expects that your function (in 2 above) will arrange to
 ;;	   replace this prepended nil (via setcar) with the actual ediff
 ;;	   control buffer associated with an appropriate Ediff session.
@@ -225,9 +226,14 @@ buffers."
 
 ;;; API for ediff-meta-list
 
+;; A meta-list is either ediff-meta-list, which contains a header and the list
+;; of ediff sessions or ediff-dir-difference-list, which is a header followed
+;; by the list of differences among the directories (i.e., files that are not
+;; in all directories). The header is the same in all meta lists, but the rest
+;; is different.
 ;; Structure of the meta-list:
 ;; (HEADER SESSION1 SESSION2 ...)
-;;    HEADER: (GROUP-BUF REGEXP OBJA OBJB OBJC SAVE-DIR)
+;;    HEADER: (GROUP-BUF REGEXP OBJA OBJB OBJC SAVE-DIR COMPARISON-FUNC)
 ;;               OBJA - first directory
 ;;               OBJB - second directory
 ;;               OBJC - third directory
@@ -247,11 +253,14 @@ buffers."
   (nth 4 (car meta-list)))
 (defsubst ediff-get-group-merge-autostore-dir (meta-list)
   (nth 5 (car meta-list)))
+(defsubst ediff-get-group-comparison-func (meta-list)
+  (nth 6 (car meta-list)))
 
 ;; ELT is a session meta descriptor (what is being preserved as
 ;; 'ediff-meta-info)
 ;;  The structure is:  (SESSION-CTL-BUFFER STATUS OBJA OBJB OBJC)
-;;   STATUS is ?I, ?*, ?H
+;;   STATUS is ?I (hidden or invalid), ?* (marked for operation), ?H (hidden)
+;;             nil (nothing)
 ;;   OBJA/B/C is (FILENAME EQSTATUS)
 ;;     EQSTATUS is ?= or nil (?= means that this file is equal to some other
 ;;     	       	       	       file in this session)
@@ -280,6 +289,20 @@ buffers."
   (nth 1 elt))
 (defsubst ediff-set-file-eqstatus (elt value)
   (setcar (cdr elt) value))
+
+;; Create a new element for the meta list out of obj1/2/3, which usually are
+;; files
+;;
+;; The first nil in such an is later replaced with the session buffer.  The
+;; second nil is reserved for session status.
+;;
+;; Also, session objects A/B/C are turned into lists of the form (obj nil).
+;; This nill is a placeholder for eq-indicator. It is either nil or =.
+;; If it is discovered that this file is = to some other
+;; file in the same session, eq-indicator is changed to `='.
+;; Curently, the eq-indicator is used only for 2 and 3-file jobs.
+(defun ediff-make-new-meta-list-element (obj1 obj2 obj3)
+  (list nil nil (list obj1 nil) (list obj2 nil) (list obj3 nil)))
 
 ;; The activity marker is either or + (active session, i.e., ediff is currently
 ;; run in it), or - (finished session, i.e., we've ran ediff in it and then
@@ -331,6 +354,7 @@ buffers."
   ;; modify ediff-meta-buffer-map here
   (run-hooks 'ediff-meta-buffer-keymap-setup-hook))
 
+
 (defun ediff-meta-mode ()
   "This mode controls all operations on Ediff session groups.
 It is entered through one of the following commands:
@@ -363,6 +387,10 @@ Commands:
 (define-key ediff-dir-diffs-buffer-map "n" 'next-line)
 (define-key ediff-dir-diffs-buffer-map "\C-?" 'previous-line)
 (define-key ediff-dir-diffs-buffer-map "p" 'previous-line)
+(define-key ediff-dir-diffs-buffer-map "C" 'ediff-dir-diff-copy-file)
+(if ediff-emacs-p
+    (define-key ediff-dir-diffs-buffer-map [mouse-2] 'ediff-dir-diff-copy-file)
+  (define-key ediff-dir-diffs-buffer-map [button2] 'ediff-dir-diff-copy-file))
 (define-key ediff-dir-diffs-buffer-map [delete] 'previous-line)
 (define-key ediff-dir-diffs-buffer-map [backspace] 'previous-line)
 
@@ -440,6 +468,16 @@ behavior."
   (ediff-update-meta-buffer (current-buffer) 'must-redraw))
 
 
+;; These are used to encode membership of files in directory1/2/3
+;; Membership code of a file is a product of codes for the directories where
+;; this file is in
+(defvar ediff-membership-code1 2)
+(defvar ediff-membership-code2 3)
+(defvar ediff-membership-code3 5)
+(defvar ediff-product-of-memcodes (* ediff-membership-code1
+				     ediff-membership-code2
+				     ediff-membership-code3))
+
 ;; DIR1, DIR2, DIR3 are directories.  DIR3 can be nil.
 ;; OUTPUT-DIR is a directory for auto-storing the results of merge jobs.
 ;;	      Can be nil.
@@ -448,21 +486,23 @@ behavior."
 ;; included in the intersection.  However, a regular file that is a dir in dir3
 ;; is included, since dir3 files are supposed to be ancestors for merging.
 ;; Returns a list of the form:
-;;	((dir1 dir2 dir3) (f1 f2 f3) (f1 f2 f3) ...)
+;;	(DIFF-LIST META-HEADER (f1 f2 f3) (f1 f2 f3) ...)
 ;; dir3, f3 can be nil if intersecting only 2 directories.
 ;; If COMPARISON-FUNC is given, use it.  Otherwise, use string=
-;; DIFF-VAR contains the name of the variable in which to return the
-;; difference list (which represents the differences among the contents of
-;; directories).  The diff list is of the form:
-;;	((dir1 dir2 dir3) (file . num) (file . num)...)
+;; DIFF-LIST is of the form:
+;;	(META-HEADER (file . num) (file . num)...)
 ;; where num encodes the set of dirs where the file is found:
 ;; 2 - only dir1; 3 - only dir2; 5 - only dir3; 6 - dir1&2; 10 - dir1&3; etc.
+;; META-HEADER is of the form
+;;       It contains the meta info about this ediff operation
+;;       (regexp dir1 dir2 dir3 merge-auto-store-dir comparison-func)
+;;       Later the meta-buffer is prepended to this list.
 (defun ediff-intersect-directories (jobname
-				    diff-var regexp dir1 dir2
+				    regexp dir1 dir2
 				    &optional
 				    dir3 merge-autostore-dir comparison-func)
   (setq comparison-func (or comparison-func 'string=))
-  (let (lis1 lis2 lis3 common auxdir1 auxdir2 auxdir3 difflist)
+  (let (lis1 lis2 lis3 common auxdir1 auxdir2 auxdir3 common-part difflist)
 
     (setq auxdir1	(file-name-as-directory dir1)
 	  lis1		(directory-files auxdir1 nil regexp)
@@ -514,39 +554,56 @@ behavior."
     (setq difflist (mapcar (lambda (elt) (cons elt 1)) difflist))
 
     ;; check for files belonging to lis1/2/3
+    ;; Each elt is of the norm (file . number)
+    ;; Number encodes the directories to which file belongs.
+    ;; It is a product of a subset of ediff-membership-code1=2,
+    ;; ediff-membership-code2=3, and ediff-membership-code3=5.
+    ;; If file belongs to dir 1 only, the membership code is 2.
+    ;; If it is in dir1 and dir3, then the membership code is 2*5=10;
+    ;; if it is in dir1 and dir2, then the membership code is 2*3=6, etc.
     (mapcar (lambda (elt)
 	      (if (member (car elt) lis1)
-		  (setcdr elt (* (cdr elt) 2)))
+		  (setcdr elt (* (cdr elt) ediff-membership-code1)))
 	      (if (member (car elt) lis2)
-		  (setcdr elt (* (cdr elt) 3)))
+		  (setcdr elt (* (cdr elt) ediff-membership-code2)))
 	      (if (member (car elt) lis3)
-		  (setcdr elt (* (cdr elt) 5)))
+		  (setcdr elt (* (cdr elt) ediff-membership-code3)))
 	      )
 	    difflist)
-    (setq difflist (cons (list regexp auxdir1 auxdir2 auxdir3) difflist))
+    (setq difflist (cons
+		    ;; diff metalist header
+		    (list regexp
+			  auxdir1 auxdir2 auxdir3
+			  merge-autostore-dir
+			  comparison-func)
+		    difflist))
     
-    ;; return the difference list back to the calling function
-    (set diff-var difflist)
-
+    (setq common-part
+	  (cons 
+	   ;; metalist header
+	   (list regexp
+		 auxdir1 auxdir2 auxdir3
+		 merge-autostore-dir
+		 comparison-func)
+	   (mapcar
+	    (lambda (elt) 
+	      (ediff-make-new-meta-list-element
+	       (concat auxdir1 elt)
+	       (concat auxdir2 elt)
+	       (if lis3
+		   (progn
+		     ;; The following is done because: In merging with
+		     ;; ancestor, we don't intersect with lis3.  So, it is
+		     ;; possible that elt is a file in auxdir1/2 but a
+		     ;; directory in auxdir3 Or elt may not exist in auxdir3 at
+		     ;; all.  In the first case, we add a slash at the end.  In
+		     ;; the second case, we insert nil.
+		     (setq elt (ediff-add-slash-if-directory auxdir3 elt))
+		     (if (file-exists-p (concat auxdir3 elt))
+			 (concat auxdir3 elt))))))
+	    common)))
     ;; return result
-    (cons (list regexp auxdir1 auxdir2 auxdir3 merge-autostore-dir)
-	  (mapcar
-	   (lambda (elt) 
-	     (list (concat auxdir1 elt)
-		   (concat auxdir2 elt)
-		   (if lis3
-		       (progn
-			 ;; The following is done because:
-			 ;;   In merging with ancestor, we don't intersect
-			 ;;   with lis3.  So, it is possible that elt is a
-			 ;;   file in auxdir1/2 but a directory in auxdir3
-			 ;;   Or elt may not exist in auxdir3 at all.
-			 ;;   In the first case, we add a slash at the end.
-			 ;;   In the second case, we insert nil.
-			 (setq elt (ediff-add-slash-if-directory auxdir3 elt))
-			 (if (file-exists-p (concat auxdir3 elt))
-			     (concat auxdir3 elt))))))
-	   common))
+    (cons common-part difflist)
     ))
 
 ;; find directory files that are under revision.  Include subdirectories, since
@@ -592,9 +649,13 @@ behavior."
     (setq common (sort (ediff-copy-list common) 'string-lessp))
 
     ;; return result
-    (cons (list regexp auxdir1 nil nil merge-autostore-dir)
-	  (mapcar (lambda (elt) (list (concat auxdir1 elt) nil nil))
-		  common))
+    (cons 
+     ;; header -- has 6 elements. Meta buffer is prepended later by
+     ;; ediff-prepare-meta-buffer 
+     (list regexp auxdir1 nil nil merge-autostore-dir nil)
+     (mapcar (lambda (elt) (ediff-make-new-meta-list-element
+			    (concat auxdir1 elt) nil nil))
+	     common))
     ))
       
 
@@ -657,30 +718,11 @@ behavior."
 	    ;; meta-buffs.
 	    (define-key
 	      ediff-meta-buffer-map "M" 'ediff-show-meta-buff-from-registry))
-	;; Initialize the meta list -- don't do this for registry.
-	;;
-	;; We prepend '(nil nil) to all elts of meta-list, except the first.
-	;; The first nil will later be replaced by the session buffer.  The
-	;; second is reserved for session status.
-	;;
-	;; (car ediff-meta-list) gets cons'ed with the session group buffer.
-	;; Also, session objects A/B/C are turned into lists of the form
-	;; (obj eq-indicator).  Eq-indicator is either nil or =. Initialized to
-	;; nil.  If later it is discovered that this file is = to some other
-	;; file in the same session, eq-indicator is changed to `='.
-	;; For now, the eq-indicator is used only for 2 and 3-file jobs.
+	;; Initialize the meta list -- we don't do this for registry.
 	(setq ediff-meta-list
+	      ;; add meta-buffer to the list header
 	      (cons (cons meta-buffer (car meta-list))
-		    (mapcar
-		     (lambda (elt)
-		       (cons nil
-			     (cons nil
-				   ;; convert each obj to (obj nil),
-				   ;; where nil is the initial value
-				   ;; for eq-indicator -- see above
-				   (mapcar (lambda (obj) (list obj nil))
-					   elt))))
-		     (cdr meta-list)))))
+		    (cdr meta-list))))
 	
       (or (eq meta-buffer ediff-registry-buffer)
 	  (setq ediff-session-registry
@@ -1048,52 +1090,46 @@ behavior."
     (if dir3 (insert "*** Directory C: " dir3 "\n"))
     (insert "\n")))
 
-(defun ediff-draw-dir-diffs (diff-list)
+(defun ediff-draw-dir-diffs (diff-list &optional buf-name)
   (if (null diff-list) (error "Lost difference info on these directories"))
-  (let* ((buf-name (ediff-unique-buffer-name
-		    "*Ediff File Group Differences" "*"))
-	 (regexp (ediff-get-group-regexp diff-list))
+  (setq buf-name
+	(or buf-name
+	    (ediff-unique-buffer-name "*Ediff File Group Differences" "*")))
+  (let* ((regexp (ediff-get-group-regexp diff-list))
 	 (dir1 (ediff-abbreviate-file-name (ediff-get-group-objA diff-list)))
 	 (dir2 (ediff-abbreviate-file-name (ediff-get-group-objB diff-list)))
 	 (dir3 (ediff-get-group-objC diff-list))
 	 (dir3 (if (stringp dir3) (ediff-abbreviate-file-name dir3)))
 	 (meta-buf (ediff-get-group-buffer diff-list))
 	 (underline (make-string 26 ?-))
-	 file code 
+	 file membership-code saved-point
 	 buffer-read-only)
     ;; skip the directory part
     (setq diff-list (cdr diff-list))
     (setq ediff-dir-diffs-buffer (get-buffer-create buf-name))
     (ediff-with-current-buffer ediff-dir-diffs-buffer
+      (setq saved-point (point))
       (use-local-map ediff-dir-diffs-buffer-map)
       (erase-buffer)
       (setq ediff-meta-buffer meta-buf)
       (insert "\t\t*** Directory Differences ***\n")
       (insert "
 Useful commands:
-     `q': hide this buffer
-   n,SPC: next line
-   p,DEL: previous line\n\n")
+  C,button2: over file name -- copy this file to directory that doesn't have it
+          q: hide this buffer
+      n,SPC: next line
+      p,DEL: previous line\n\n")
 
+      (insert (format "\n*** Directory A: %s\n" dir1))
+      (if dir2 (insert (format "*** Directory B: %s\n" dir2)))
+      (if dir3 (insert (format "*** Directory C: %s\n" dir3)))
       (if (and (stringp regexp) (> (length regexp) 0))
 	  (insert
-	   (format "\n*** Filter-through regular expression: %s\n" regexp)))
+	   (format "*** Filter-through regular expression: %s\n" regexp)))
       (insert "\n")
-      (insert (format "\n%-27s%-26s"
-		      (ediff-truncate-string-left
-		       (ediff-abbreviate-file-name
-			(file-name-as-directory dir1))
-		       25)
-		      (ediff-truncate-string-left
-		       (ediff-abbreviate-file-name
-			(file-name-as-directory dir2))
-		       25)))
+      (insert (format "\n%-27s%-26s" "Directory A" "Directory B"))
       (if dir3
-	  (insert (format " %-25s\n"
-			  (ediff-truncate-string-left
-			   (ediff-abbreviate-file-name
-			    (file-name-as-directory dir3))
-			   25)))
+	  (insert (format " %-25s\n" "Directory C"))
 	(insert "\n"))
       (insert (format "%s%s" underline underline))
       (if (stringp dir3)
@@ -1105,47 +1141,64 @@ Useful commands:
 
       (while diff-list
 	(setq file (car (car diff-list))
-	      code (cdr (car diff-list))
+	      membership-code (cdr (car diff-list))
 	      diff-list (cdr diff-list))
-	(if (= (mod code 2) 0) ; dir1
-	    (insert (format "%-27s"
-			    (ediff-truncate-string-left
-			     (ediff-abbreviate-file-name
-			      (if (file-directory-p (concat dir1 file))
-				  (file-name-as-directory file)
-				file))
-			     24)))
+	(if (= (mod membership-code ediff-membership-code1) 0) ; dir1
+	    (let ((beg (point)))
+	      (insert (format "%-27s"
+			      (ediff-truncate-string-left
+			       (ediff-abbreviate-file-name
+				(if (file-directory-p (concat dir1 file))
+				    (file-name-as-directory file)
+				  file))
+			       24)))
+	      ;; format of meta info in the dir-diff-buffer:
+	      ;;    (filename-tail filename-full otherdir1 otherdir2 otherdir3)
+	      (ediff-set-meta-overlay
+	       beg (point)
+	       (list meta-buf file (concat dir1 file) dir1 dir2 dir3)))
 	  (insert (format "%-27s" "---")))
-	(if (= (mod code 3) 0) ; dir2
-	    (insert (format "%-26s"
-			    (ediff-truncate-string-left
-			     (ediff-abbreviate-file-name
-			      (if (file-directory-p (concat dir2 file))
-				  (file-name-as-directory file)
-				file))
-			     24)))
+	(if (= (mod membership-code ediff-membership-code2) 0) ; dir2
+	    (let ((beg (point)))
+	      (insert (format "%-26s"
+			      (ediff-truncate-string-left
+			       (ediff-abbreviate-file-name
+				(if (file-directory-p (concat dir2 file))
+				    (file-name-as-directory file)
+				  file))
+			       24)))
+	      (ediff-set-meta-overlay
+	       beg (point)
+	       (list meta-buf file (concat dir2 file) dir1 dir2 dir3)))
 	  (insert (format "%-26s" "---")))
 	(if (stringp dir3)
-	    (if (= (mod code 5) 0) ; dir3
-		(insert (format " %-25s" 
-				(ediff-truncate-string-left
-				 (ediff-abbreviate-file-name
-				  (if (file-directory-p (concat dir3 file))
-				      (file-name-as-directory file)
-				    file))
-				 24)))
+	    (if (= (mod membership-code ediff-membership-code3) 0) ; dir3
+		(let ((beg (point)))
+		  (insert (format " %-25s" 
+				  (ediff-truncate-string-left
+				   (ediff-abbreviate-file-name
+				    (if (file-directory-p (concat dir3 file))
+					(file-name-as-directory file)
+				      file))
+				   24)))
+		  (ediff-set-meta-overlay
+		   beg (point)
+		   (list meta-buf file (concat dir3 file) dir1 dir2 dir3)))
 	      (insert (format " %-25s" "---"))))
 	(insert "\n"))
       (setq buffer-read-only t)
-      (set-buffer-modified-p nil)) ; eval in diff buffer
+      (set-buffer-modified-p nil)
+      (goto-char saved-point)) ; end eval in diff buffer
   ))
 
 (defun ediff-bury-dir-diffs-buffer ()
   "Bury the directory difference buffer.  Display the meta buffer instead."
   (interactive)
+  ;; ediff-meta-buffer is set in ediff-draw-dir-diffs so the directory
+  ;; difference buffer remembers the meta buffer
   (let ((buf ediff-meta-buffer)
 	wind)
-    (bury-buffer)
+    (ediff-kill-buffer-carefully ediff-dir-diffs-buffer)
     (if (setq wind (ediff-get-visible-buffer-window buf))
 	(select-window wind)
       (set-window-buffer (selected-window) buf))))
@@ -1163,6 +1216,70 @@ Useful commands:
     (other-window 1)
     (set-window-buffer (selected-window) buf)
     (goto-char (point-min))))
+
+;; Format of meta info in dir-diff-buffer:
+;;               (filename-tail filename-full otherdir1 otherdir2)
+(defun ediff-dir-diff-copy-file ()
+  "Copy file described at point to directories where this file is missing."
+  (interactive)
+  (let* ((pos (ediff-event-point last-command-event))
+	 (info (ediff-get-meta-info (current-buffer) pos 'noerror))
+	 (meta-buf (car info))
+	 (file-tail (nth 1 info))
+	 (file-abs  (nth 2 info))
+	 (otherdir1 (nth 3 info))
+	 (otherfile1 (if otherdir1 (concat otherdir1 file-tail)))
+	 (otherdir2 (nth 4 info))
+	 (otherfile2 (if otherdir2 (concat otherdir2 file-tail)))
+	 (otherdir3 (nth 5 info))
+	 (otherfile3 (if otherdir3 (concat otherdir3 file-tail)))
+	 meta-list dir-diff-list
+	 )
+    (if (null info)
+	(error "No file suitable for copying described at this location"))
+    (ediff-with-current-buffer meta-buf
+      (setq meta-list ediff-meta-list
+	    dir-diff-list ediff-dir-difference-list))
+
+    ;; copy file to directories where it doesn't exist, update
+    ;; ediff-dir-difference-list and redisplay
+    (mapcar
+     (lambda (otherfile-struct)
+       (let ((otherfile (car otherfile-struct))
+	     (file-mem-code (cdr otherfile-struct)))
+	 (if otherfile
+	     (or (file-exists-p otherfile)
+		 (if (y-or-n-p
+		      (format "Copy %s to %s ? " file-abs otherfile))
+		     (let* ((file-diff-record (assoc file-tail dir-diff-list))
+			    (new-mem-code
+			     (* (cdr file-diff-record) file-mem-code)))
+		       (copy-file file-abs otherfile)
+		       (setcdr file-diff-record new-mem-code)
+		       (ediff-draw-dir-diffs dir-diff-list (buffer-name))
+		       (sit-for 0)
+		       ;; if file is in all three dirs or in two dirs and only
+		       ;; two dirs are involved, delete this file's record
+		       (if (or (= new-mem-code ediff-product-of-memcodes)
+			       (and (> new-mem-code ediff-membership-code3)
+				    (null otherfile3)))
+			   (delq file-diff-record dir-diff-list))
+		       ))))
+	 ))
+     ;; 2,3,5 are numbers used to encode membership of a file in
+     ;;       dir1/2/3. See ediff-intersect-directories.
+     (list (cons otherfile1 2) (cons otherfile2 3) (cons otherfile3 5)))
+
+    (if (and (file-exists-p otherfile1)
+	     (file-exists-p otherfile2)
+	     (or (not otherfile3) (file-exists-p otherfile3)))
+	;; update ediff-meta-list by direct modification
+	(nconc meta-list
+	       (list (ediff-make-new-meta-list-element
+		      otherfile1 otherfile2 otherfile3)))
+      )
+    (ediff-update-meta-buffer meta-buf 'must-redraw)
+  ))
 
 (defun ediff-up-meta-hierarchy ()
   "Go to the parent session group buffer."
@@ -1404,6 +1521,8 @@ Useful commands:
 	     (save-excursion
 	       (setq numMarked (1+ numMarked))
 	       (funcall operation elt sessionNum)))
+	    ;; The following goes into a session represented by a subdirectory
+	    ;; and applies operation to marked sessions there
 	    ((and  (ediff-meta-session-p elt) 
 		   (ediff-buffer-live-p 
 		    (setq session-buf (ediff-get-session-buffer elt))))
@@ -1420,7 +1539,7 @@ Useful commands:
 
 (defun ediff-append-custom-diff (session sessionNum)
   (or (ediff-collect-diffs-metajob)
-      (error "Hmm, I'd hate to do it to you ..."))
+      (error "Can't compute multifile patch in this context"))
   (let ((session-buf (ediff-get-session-buffer session))
 	(meta-diff-buff ediff-meta-diff-buffer)
 	(metajob ediff-metajob-name)
@@ -1433,14 +1552,17 @@ Useful commands:
 		(setq custom-diff-buf ediff-custom-diff-buffer)))))
 
     (or (ediff-buffer-live-p meta-diff-buff)
-	(error "Ediff: something wrong--no multiple diffs buffer"))
+	(error "Ediff: something wrong--killed multiple diff's buffer"))
 
     (cond ((ediff-buffer-live-p custom-diff-buf)
+	   ;; for live session buffers we do them first because the user may
+	   ;; have changed them with respect to the underlying files
 	   (save-excursion
 	     (set-buffer meta-diff-buff)
 	     (goto-char (point-max))
 	     (insert-buffer custom-diff-buf)
 	     (insert "\n")))
+	  ;; if ediff session is not live, run diff directly on the files
 	  ((memq metajob '(ediff-directories 
 			   ediff-merge-directories
 			   ediff-merge-directories-with-ancestor))
@@ -1460,7 +1582,8 @@ Useful commands:
 	     (insert-buffer tmp-buf)
 	     (insert "\n")))
 	  (t
-	   (error "Can't make context diff for Session %d" sessionNum )))
+	   (ediff-kill-buffer-carefully meta-diff-buff)
+	   (error "Session %d compares versions of file. Such session must be active to enable multifile patch collection" sessionNum )))
     ))
 
 (defun ediff-collect-custom-diffs ()
@@ -1475,6 +1598,7 @@ all marked sessions must be active."
 	    (get-buffer-create
 	     (ediff-unique-buffer-name "*Ediff Multifile Diffs" "*"))))
   (ediff-with-current-buffer ediff-meta-diff-buffer
+    (setq buffer-read-only nil)
     (erase-buffer))
   (if (> (ediff-operate-on-marked-sessions 'ediff-append-custom-diff) 0)
       ;; did something

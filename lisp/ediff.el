@@ -6,8 +6,8 @@
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, tools, unix
 
-(defconst ediff-version "2.76.1" "The current version of Ediff")
-(defconst ediff-date "January 4, 2002" "Date of last update")  
+(defconst ediff-version "2.77" "The current version of Ediff")
+(defconst ediff-date "March 5, 2002" "Date of last update")  
 
 
 ;; This file is part of GNU Emacs.
@@ -154,7 +154,7 @@
 ;; Last directory used by an Ediff command for the ancestor file.
 (defvar ediff-last-dir-ancestor nil)
 ;; Last directory used by an Ediff command as the output directory for merge.
-(defvar ediff-last-merge-autostore-dir)
+(defvar ediff-last-merge-autostore-dir nil)
 
 
 ;; Used as a startup hook to set `_orig' patch file read-only.
@@ -688,8 +688,11 @@ names.  Only the files that are under revision control are taken into account."
       (or (stringp merge-autostore-dir)
 	  (error "%s: Directory for storing merged files must be a string"
 		 jobname)))
-  (let (diffs ; var where ediff-intersect-directories returns the diff list
-	file-list meta-buf)
+  (let (;; dir-diff-struct is of the form (common-list diff-list) 
+	;; It is a structure where ediff-intersect-directories returns
+	;; commonalities and differences among directories
+	dir-diff-struct
+	meta-buf)
     (if (and ediff-autostore-merges
 	     (ediff-merge-metajob jobname)
 	     (not merge-autostore-dir))
@@ -715,9 +718,9 @@ names.  Only the files that are under revision control are taken into account."
 		    "Directory for saving merged files = Ancestor Directory.  Sure? ")
 		   (error "Directory merge aborted")))))
     
-    (setq file-list (ediff-intersect-directories 
-		     jobname 'diffs
-		     regexp dir1 dir2 dir3 merge-autostore-dir))
+    (setq dir-diff-struct (ediff-intersect-directories 
+			   jobname
+			   regexp dir1 dir2 dir3 merge-autostore-dir))
     (setq startup-hooks
 	  ;; this sets various vars in the meta buffer inside
 	  ;; ediff-prepare-meta-buffer
@@ -725,11 +728,12 @@ names.  Only the files that are under revision control are taken into account."
 		   ;; tell what to do if the user clicks on a session record
 		   (setq ediff-session-action-function (quote ,action))
 		   ;; set ediff-dir-difference-list 
-		   (setq ediff-dir-difference-list (quote ,diffs)))
+		   (setq ediff-dir-difference-list
+			 (cdr (quote ,dir-diff-struct))))
 		startup-hooks))
     (setq meta-buf (ediff-prepare-meta-buffer 
 		    'ediff-filegroup-action
-		    file-list
+		    (car dir-diff-struct)
 		    "*Ediff Session Group Panel"
 		    'ediff-redraw-directory-group-buffer
 		    jobname
@@ -839,10 +843,10 @@ If WIND-B is nil, use window next to WIND-A."
 	      end-B (window-end))))
     (setq buffer-A
 	  (ediff-clone-buffer-for-window-comparison
-	   buffer-A wind-A "-Window1-")
+	   buffer-A wind-A "-Window.A-")
 	  buffer-B
 	  (ediff-clone-buffer-for-window-comparison
-	   buffer-B wind-B "-Window2-"))
+	   buffer-B wind-B "-Window.B-"))
     (ediff-regions-internal
      buffer-A beg-A end-A buffer-B beg-B end-B
      startup-hooks job-name word-mode nil)))
@@ -853,18 +857,32 @@ If WIND-B is nil, use window next to WIND-A."
 		      buff-name
 		      (concat buff-name region-name
 			      (symbol-name (gensym)))))
-	(wind (ediff-get-visible-buffer-window buff-name)))
+	(wind (ediff-get-visible-buffer-window buff-name))
+	(pop-up-windows t)
+	other-wind
+	msg-buf)
     (ediff-with-current-buffer cloned-buff
       (setq ediff-temp-indirect-buffer t))
     (if (window-live-p wind)
 	(set-window-buffer wind cloned-buff))
     (pop-to-buffer cloned-buff)
-    (message 
-     "Mark a region in buffer %s; then type %s. Use %s to abort."
-     (buffer-name cloned-buff)
-     (ediff-format-bindings-of 'exit-recursive-edit)
-     (ediff-format-bindings-of 'abort-recursive-edit))
-    (recursive-edit)
+    (with-temp-buffer
+      (erase-buffer)
+      (insert
+       (format "\n   *******  Mark a region in buffer %s  *******\n"
+	       (buffer-name cloned-buff)))
+      (insert
+       (format "\n\t      When done, type %s       Use %s to abort\n    "
+	       (ediff-format-bindings-of 'exit-recursive-edit)
+	       (ediff-format-bindings-of 'abort-recursive-edit)))
+      (goto-char (point-min))
+      (setq msg-buf (current-buffer))
+      (other-window 1)
+      (set-window-buffer (selected-window) msg-buf)
+      (shrink-window-if-larger-than-buffer)
+      (select-window wind)
+      (recursive-edit)
+      )
     cloned-buff))
 
 (defun ediff-clone-buffer-for-window-comparison (buff wind region-name)
@@ -910,9 +928,9 @@ lines.  For large regions, use `ediff-regions-linewise'."
   
   
   (let ((buffer-A
-         (ediff-clone-buffer-for-region-comparison buffer-A "-Region1-"))
+         (ediff-clone-buffer-for-region-comparison buffer-A "-Region.A-"))
 	(buffer-B
-         (ediff-clone-buffer-for-region-comparison buffer-B "-Region2-"))
+         (ediff-clone-buffer-for-region-comparison buffer-B "-Region.B-"))
         reg-A-beg reg-A-end reg-B-beg reg-B-end)
     (save-excursion
       (set-buffer buffer-A)
@@ -954,9 +972,9 @@ lines.  For small regions, use `ediff-regions-wordwise'."
       (error "Buffer %S doesn't exist" buffer-B))
   
   (let ((buffer-A
-         (ediff-clone-buffer-for-region-comparison buffer-A "-Region1-"))
+         (ediff-clone-buffer-for-region-comparison buffer-A "-Region.A-"))
 	(buffer-B
-         (ediff-clone-buffer-for-region-comparison buffer-B "-Region2-"))
+         (ediff-clone-buffer-for-region-comparison buffer-B "-Region.B-"))
         reg-A-beg reg-A-end reg-B-beg reg-B-end)
     (save-excursion
       (set-buffer buffer-A)

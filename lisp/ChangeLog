@@ -1,3 +1,27 @@
+2002-03-05  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* ediff-init.el: comments.
+	
+	* ediff-hook.el: Got rid of autoloads. Not needed, since the hook
+	is loaded.
+	
+	* ediff-mult.el (ediff-intersect-directories,
+	ediff-prepare-meta-buffer,ediff-get-directory-files-under-revision):
+	cleanup.
+	(ediff-draw-dir-diffs): now supports the "C" command in directory
+	difference buffer.
+	(ediff-dir-diff-copy-file): new function that implements copying
+	of files from one Ediff dir to another
+	(ediff-bury-dir-diffs-buffer): kills the buffer instead.
+	(ediff-append-custom-diff): better error msgs.
+	
+	* ediff-util.el (ediff-compute-custom-diffs-maybe): buglet fix.
+	(ediff-inferior-compare-regions): Use
+	ediff-clone-buffer-for-region-comparison. Better and simpler interface.
+	
+	* ediff.el (ediff-directories-internal): Cleanup.
+	(ediff-clone-buffer-for-region-comparison): Better interface.
+	
 2002-03-04  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): 

@@ -344,12 +344,13 @@ It needs to be killed when we quit the session.")
       (ediff-patch-metajob metajob)
       ;; add more here
       ))
+;; jobs suitable for the operation of collecting diffs into a multifile patch
 (defsubst ediff-collect-diffs-metajob (&optional metajob)
   (memq (or metajob ediff-metajob-name)
 	'(ediff-directories
-	  ediff-directory-revisions
 	  ediff-merge-directories
 	  ediff-merge-directories-with-ancestor
+	  ediff-directory-revisions
 	  ediff-merge-directory-revisions
 	  ediff-merge-directory-revisions-with-ancestor
 	  ;; add more here

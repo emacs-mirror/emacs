@@ -3302,6 +3302,7 @@ Without an argument, it saves customized diff argument, if available
 	    )
     (save-buffer)))
 
+;; This function operates only from an ediff control buffer
 (defun ediff-compute-custom-diffs-maybe ()
   (let ((buf-A-file-name (buffer-file-name ediff-buffer-A))
 	(buf-B-file-name (buffer-file-name ediff-buffer-B))
@@ -3317,6 +3318,9 @@ Without an argument, it saves customized diff argument, if available
 	(setq ediff-custom-diff-buffer
 	      (get-buffer-create
 	       (ediff-unique-buffer-name "*ediff-custom-diff" "*"))))
+    (ediff-with-current-buffer ediff-custom-diff-buffer
+      (setq buffer-read-only nil)
+      (erase-buffer))
     (ediff-exec-process
      ediff-custom-diff-program ediff-custom-diff-buffer 'synchronize
      ediff-custom-diff-options file-A file-B)
@@ -3373,6 +3377,7 @@ Ediff Control Panel to restore highlighting."
 
     (cond ((ediff-merge-job)
 	   (setq bufB ediff-buffer-C)
+	   ;; ask which buffer to compare to the merge buffer
 	   (while (cond ((eq answer ?A)
 			 (setq bufA ediff-buffer-A
 			       possibilities '(?B))
@@ -3387,10 +3392,12 @@ Ediff Control Panel to restore highlighting."
 			   (sit-for 2)
 			   t))
 	     (let ((cursor-in-echo-area t))
-	       (message "Which buffer to compare to the merge buffer (A/B)? ")
+	       (message
+		"Which buffer to compare to the merge buffer (A or B)? ")
 	       (setq answer (capitalize (read-char-exclusive))))))
 
 	  ((ediff-3way-comparison-job)
+	   ;; ask which two buffers to compare
 	   (while (cond ((memq answer possibilities)
 			 (setq possibilities (delq answer possibilities))
 			 (setq bufA
@@ -3407,7 +3414,7 @@ Ediff Control Panel to restore highlighting."
 			   t))
 	     (let ((cursor-in-echo-area t))
 	       (message "Enter the 1st buffer you want to compare (%s): "
-			(mapconcat 'char-to-string possibilities "/"))
+			(mapconcat 'char-to-string possibilities " or "))
 	       (setq answer (capitalize (read-char-exclusive)))))
 	   (setq answer "") ; silence error msg
 	   (while (cond ((memq answer possibilities)
@@ -3433,9 +3440,9 @@ Ediff Control Panel to restore highlighting."
 		 bufB ediff-buffer-B
 		 possibilities nil)))
 
+    (setq bufA (ediff-clone-buffer-for-region-comparison
+		(buffer-name bufA) "-Region.A-"))
     (ediff-with-current-buffer bufA
-      (or (mark t)
-	  (error "You forgot to specify a region in buffer %s" (buffer-name)))
       (setq begA (region-beginning)
 	    endA (region-end))
       (goto-char begA)
@@ -3445,9 +3452,10 @@ Ediff Control Panel to restore highlighting."
       (end-of-line)
       (or (eobp) (forward-char)) ; include the newline char
       (setq endA (point)))
+
+    (setq bufB (ediff-clone-buffer-for-region-comparison
+		(buffer-name bufB) "-Region.B-"))
     (ediff-with-current-buffer bufB
-      (or (mark t)
-	  (error "You forgot to specify a region in buffer %s" (buffer-name)))
       (setq begB (region-beginning)
 	    endB (region-end))
       (goto-char begB)
@@ -3457,52 +3465,6 @@ Ediff Control Panel to restore highlighting."
       (end-of-line)
       (or (eobp) (forward-char)) ; include the newline char
       (setq endB (point)))
-
-    (ediff-unselect-and-select-difference
-     ediff-current-difference 'unselect-only)
-    (ediff-paint-background-regions 'unhighlight)
-
-    (ediff-with-current-buffer bufA
-      (goto-char begA)
-      (set-mark endA)
-      (narrow-to-region begA endA)
-      ;; (ediff-activate-mark)
-      )
-    ;; (sit-for 0)
-    (ediff-with-current-buffer bufB
-      (goto-char begB)
-      (set-mark endB)
-      (narrow-to-region begB endB)
-      ;; (ediff-activate-mark)
-      )
-    ;; (sit-for 0)
-    
-    ;; At this point, possibilities contains either the window char A/B/C
-    ;; that was not selected, or it is nil.  We delete the window that is not
-    ;; selected.
-    (if possibilities
-	(ediff-with-current-buffer ctl-buf
-	  (let* ((wind-to-delete (eval
-				  (ediff-get-symbol-from-alist
-				   (car possibilities)
-				    ediff-window-alist)))
-		 (frame (window-frame wind-to-delete)))
-	    (delete-window wind-to-delete)
-	    (select-frame frame)
-	    (balance-windows))))
-    (or (y-or-n-p 
-	 "Please check regions selected for comparison.  Continue? ")
-	(setq quit-now t))
-    
-    (ediff-with-current-buffer bufA
-      (widen))
-    (ediff-with-current-buffer bufB
-      (widen))
-    (if quit-now
-	(ediff-with-current-buffer ctl-buf
-	  (ediff-recenter)
-	  (sit-for 0)
-	  (error "All right.  Make up your mind and come back...")))
 
     (ediff-regions-internal
      bufA begA endA bufB begB endB
