@@ -17,11 +17,6 @@ Small but important fixes needed in existing features:
 
 Important features:
 
-* Write an INTRO_CVS file with basic instructions how to build emacs
-  from CVS (make bootstrap), some information on how the config
-  and build system is tied together, and all sorts of tips and tricks
-  (FAQ) which may be of interest to new (and old) emacs hackers.
-
 * Provide user-friendly ways to list all available font families,
   display a font as a sample, etc.
 
@@ -34,7 +29,8 @@ Important features:
 * Implement primitive and higher-level functions to allow filling
   properly with variable-pitch faces.
 
-* Implement a smoother vertical scroll facility.
+* Implement a smoother vertical scroll facility, one that allows
+  C-v to scroll through a tall image.
 
 * Implement other text formatting properties.
 ** Footnotes that can appear either in place or at the end of the page.
@@ -182,12 +178,44 @@ Other features we would like:
 * Add support for SVG (Scalable Vector Graphics) rendering to 
   Emacs.
 
+* Allow unknown image types to be rendered via an external program
+  converting them to, say, PBM (in the same way as PostScript?).
+
+* Allow displaying an X window from an external program in a buffer,
+  e.g. to render graphics from Java applets.  [gerd and/or wmperry
+  thought this was feasible.]
+
+* Allow images (not just text) in the margin to be mouse-sensitive.
+  (Requires recursing through display properties).  Provide some way
+  to simulate mouse-clicks on marginal text without a mouse.
+
+* Implement Lisp functions to determine properly whether a character
+  is displayable (particularly needed in XFree 4, sigh).  Use it to
+  define useful glyphs that may be displayed as images or unicodes
+  (with ASCIIfied fallback via latin1-disp).  Examples include
+  box-drawing graphics in Custom buffers, W3 rules and tables, and
+  tree displays generally, mode-line mail indicator.  [See work done
+  already for Emacs 22 and consult fx.]
+
+* Do something to make rms happy with fx's dynamic loading, and use it
+  to implement things like auto-loaded buffer parsers and database
+  access in cases which need more than Lisp.
+
+* Extend ps-print to deal with multiple font sizes, images, and extra
+  encodings.
+
+* Provide portable undumping using mmap (per gerd design).
+
+* Replace gmalloc.c with the modified Doug Lea code from the current
+  GNU libc so that the special mmapping of buffers can be removed  --
+  that apparently loses under Solaris, at least.
+
 * Use the XIE X extension, if available, for image display.
 
 * Add support for rendering antialiased text, probably using
   XRender/Freetype.
 
-* Rewrite make-docfile to something sane.
+* Rewrite make-docfile to be clean and maintainable.
 
 * Port the conservative stack marking code of Emacs' garbage collector
   to more systems, so that we can completely get rid of GCPROs.

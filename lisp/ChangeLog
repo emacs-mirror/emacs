@@ -1,3 +1,14 @@
+2002-10-29  Richard M. Stallman  <rms@gnu.org>
+
+	* server.el (server-switch-buffer): Say when no server buffers remain.
+
+	* net/goto-addr.el (goto-address-url-regexp): Don't match `mailto'.
+
+2002-10-28  Masayuki Ataka  <ataka@milk.freemail.ne.jp>  (tiny change)
+
+	* make-mode.el (makefile-warn-continuations): Call
+	re-search-forward with NOERROR t.
+
 2002-10-29  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-wide-find-dirs-or-files): Fixed problem that caused
@@ -143,10 +154,32 @@
 
 2002-10-23  Francis J. Wright  <F.J.Wright@qmul.ac.uk>
 
-	* woman.el: Updated user interface generally, especially Cygwin
-	compatibility.  Added some support for long groff names of the
-	form [xxx].  Added preprocessor detection and preliminary support
-	for tables using tbl/.TS/.TE.
+	* woman.el (woman-version): Update to 0.551 (beta).
+	(woman-parse-colon-path): Add support for current Cygwin mount
+	conventions.
+	(woman-Cyg-to-Win): New function to convert absolute filename from
+	Cygwin to Windows form by executing external program cygpath if
+	possible.
+	(woman-man.conf-path): Update default to current common locations
+	and to support Cygwin; update documentation.
+	(woman-parse-man.conf): Generalize regexp to "man.*\\.conf" to
+	match possible names of man.conf file; tidy code and documentation.
+	(woman-manpath): Simplify default and documentation; essentially
+	move code that was here into `woman-parse-colon-path'.
+	(woman-default-indent): Change Linux to GNU in documentation.
+	(woman-addition-face): Make documentation consistent with other
+	WoMan faces.
+	(woman-emulate-tbl): New variable, determines whether tbl
+	emulation is required.
+	(woman-decode-region): Add check for preprocessor requests.
+	(woman0-process-escapes, woman-special-characters)
+	(woman-get-next-char, woman-parse-numeric-value): Add support for
+	long groff names of the form [xxx].
+	(woman-strings, woman-change-fonts): Now call `woman-match-name'.
+	(woman2-PD, woman2-na): Doc fix.
+	(woman-match-name): New function.
+	(woman2-TS): New function.
+	(woman2-TE): New alias for `woman2-fi'.
 
 2002-10-23  Kim F. Storm  <storm@cua.dk>
 
