@@ -198,9 +198,7 @@ This command must be bound to a mouse click."
 	should-enlarge-minibuffer
 	event mouse minibuffer y top bot edges wconfig params growth)
     (setq params (frame-parameters))
-    (if (and (not (setq minibuffer (cdr (assq 'minibuffer params))))
-	     (one-window-p t))
-	(error "Attempt to resize sole window"))
+    (setq minibuffer (cdr (assq 'minibuffer params)))
     (track-mouse
       (progn
 	;; enlarge-window only works on the selected window, so
@@ -256,6 +254,11 @@ This command must be bound to a mouse click."
 		 ;; compute size change needed
 		 (setq growth (- y bot -1)
 		       wconfig (current-window-configuration))
+		 ;; Check for an error case.
+		 (if (and (/= growth 0)
+			  (not minibuffer)
+			  (one-window-p t))
+		     (error "Attempt to resize sole window"))
 		 ;; grow/shrink minibuffer?
 		 (if should-enlarge-minibuffer
 		     (progn
