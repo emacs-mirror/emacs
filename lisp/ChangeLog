@@ -1,3 +1,9 @@
+2003-12-29  Eli Zaretskii  <eliz@elta.co.il>
+
+	* emacs-lisp/tcover-unsafep.el, emacs-lisp/tcover-ses.el: Renamed
+	from testcover-unsafep.el and testcover-ses.el to avoid file-name
+	clashes on 8+3 DOS filesystems.
+
 2003-12-29  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/flyspell.el (mail-mode-flyspell-verify):
