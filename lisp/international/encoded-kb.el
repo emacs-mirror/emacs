@@ -189,23 +189,27 @@ The following key sequence may cause multilingual text insertion."
     (aset encoded-kbd-iso2022-invocations 2 nil)
     (setq unread-command-events (cons char unread-command-events))))
 
-(defun encoded-kbd-self-insert-iso2022-8bit ()
-  (interactive)
+(defun encoded-kbd-self-insert-iso2022-8bit (arg)
+  (interactive "p")
   (cond
    ((= last-command-char ?\216)		; SS2 (Single Shift 2)
     (aset encoded-kbd-iso2022-invocations 2 2))
    ((= last-command-char ?\217)		; SS3 (Single Shift 3)
     (aset encoded-kbd-iso2022-invocations 2 3))
    (t
-  (let* ((charset (aref encoded-kbd-iso2022-designations
-			(or (aref encoded-kbd-iso2022-invocations 2)
-			    (aref encoded-kbd-iso2022-invocations 1))))
-	 (char (if (= (charset-dimension charset) 1)
-		   (make-char charset last-command-char)
+    (let* ((charset (aref encoded-kbd-iso2022-designations
+			  (or (aref encoded-kbd-iso2022-invocations 2)
+			      (aref encoded-kbd-iso2022-invocations 1))))
+	   (char (if (= (charset-dimension charset) 1)
+		     (make-char charset last-command-char)
 		   (make-char charset last-command-char
 			      (read-char-exclusive)))))
-    (aset encoded-kbd-iso2022-invocations 2 nil)
-      (setq unread-command-events (cons char unread-command-events))))))
+      (aset encoded-kbd-iso2022-invocations 2 nil)
+      ;; As simply setting unread-command-events may result in
+      ;; infinite-loop for characters 160..255, this is a temporary
+      ;; workaround until we found a better solution.
+      (let ((last-command-char char))
+	(self-insert-command arg))))))
 
 (defun encoded-kbd-self-insert-sjis ()
   (interactive)
@@ -311,7 +315,7 @@ as a multilingual text encoded in a coding system set by
 	       (setq encoded-kbd-mode nil)
 	       (error "No coding system for keyboard input is set"))
 
-	      ((eq (coding-system-type coding) 'sjis)
+	      ((eq (coding-system-type coding) 'shift-jis)
 	       (set-input-mode
 		(nth 0 saved-input-mode) (nth 1 saved-input-mode)
 		'use-8th-bit (nth 3 saved-input-mode))
