@@ -161,7 +161,7 @@ used by that frame.")
 {
 #ifdef MULTI_FRAME
   if (NILP (frame))
-    XSET (frame, Lisp_Frame, selected_frame);
+    XSETFRAME (frame, selected_frame);
   else
     CHECK_LIVE_FRAME (frame, 0);
 #endif
@@ -446,7 +446,7 @@ column 0.")
 
 #ifdef MULTI_FRAME
   if (NILP (frame))
-    XSET (frame, Lisp_Frame, selected_frame);
+    XSETFRAME (frame, selected_frame);
   else
     CHECK_LIVE_FRAME (frame, 2);
 #endif
@@ -522,8 +522,8 @@ does not update this value.")
     return Qnil;
 #endif
 
-  XSET (value, Lisp_Int,
-	BUF_Z (XBUFFER (buf)) - XFASTINT (w->window_end_pos));
+  XSETINT (value,
+	   BUF_Z (XBUFFER (buf)) - XFASTINT (w->window_end_pos));
 
   return value;
 }
@@ -953,7 +953,7 @@ DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
 		   If that happens, go back to the selected frame
 		   so we can complete the cycle.  */
 		if (EQ (tem, tem1))
-		  XSET (tem, Lisp_Frame, selected_frame);
+		  XSETFRAME (tem, selected_frame);
 	      }
 #endif
 	    tem = FRAME_ROOT_WINDOW (XFRAME (tem));
@@ -1097,7 +1097,7 @@ DEFUN ("previous-window", Fprevious_window, Sprevious_window, 0, 3, 0,
 		   If that happens, go back to the selected frame
 		   so we can complete the cycle.  */
 		if (EQ (tem, tem1))
-		  XSET (tem, Lisp_Frame, selected_frame);
+		  XSETFRAME (tem, selected_frame);
 	      }
 #endif
 	    /* If this frame has a minibuffer, find that window first,
@@ -1905,7 +1905,7 @@ Returns the window displaying BUFFER.")
       frames = Qnil;      
 #ifdef MULTI_FRAME
       if (FRAME_MINIBUF_ONLY_P (selected_frame))
-	XSET (frames, Lisp_Frame, last_nonminibuf_frame);
+	XSETFRAME (frames, last_nonminibuf_frame);
 #endif
       /* Don't try to create a window if would get an error */
       if (split_height_threshold < window_min_height << 1)
@@ -2652,7 +2652,7 @@ redraws with point in the center of the current window.")
   if (XINT (n) < 0)
     XSETINT (n, XINT (n) + ht);
 
-  XSET (window, Lisp_Window, w);
+  XSETWINDOW (window, w);
   pos = *vmotion (point, - XINT (n), window_internal_width (w) - 1,
 		  XINT (w->hscroll), window);
 
@@ -2689,7 +2689,7 @@ negative means relative to bottom of window.")
     }
 
   start = marker_position (w->start);
-  XSET (window, Lisp_Window, w);
+  XSETWINDOW (window, w);
   if (start < BEGV || start > ZV)
     {
       Fvertical_motion (make_number (- (height / 2)), window);
@@ -3127,15 +3127,15 @@ redirection (see `redirect-frame-focus').")
   XFASTINT (data->frame_height) = FRAME_HEIGHT (f);
   XFASTINT (data->frame_menu_bar_lines) = FRAME_MENU_BAR_LINES (f);
 #ifdef MULTI_FRAME
-  XSET (data->selected_frame, Lisp_Frame, selected_frame);
+  XSETFRAME (data->selected_frame, selected_frame);
 #endif
   data->current_window = FRAME_SELECTED_WINDOW (f);
-  XSET (data->current_buffer, Lisp_Buffer, current_buffer);
+  XSETBUFFER (data->current_buffer, current_buffer);
   data->minibuf_scroll_window = Vminibuf_scroll_window;
   data->root_window = FRAME_ROOT_WINDOW (f);
   data->focus_frame = FRAME_FOCUS_FRAME (f);
-  XSET (data->min_height, Lisp_Int, window_min_height);
-  XSET (data->min_width, Lisp_Int, window_min_width);
+  XSETINT (data->min_height, window_min_height);
+  XSETINT (data->min_width, window_min_width);
   tem = Fmake_vector (make_number (n_windows), Qnil);
   data->saved_windows = tem;
   for (i = 0; i < n_windows; i++)
@@ -3143,7 +3143,7 @@ redirection (see `redirect-frame-focus').")
       = Fmake_vector (make_number (SAVED_WINDOW_VECTOR_SIZE), Qnil);
   save_window_save (FRAME_ROOT_WINDOW (f),
 		    XVECTOR (tem), 0);
-  XSET (tem, Lisp_Window_Configuration, data);
+  XSETWINDOW_CONFIGURATION (tem, data);
   return (tem);
 }
 
