@@ -1,7 +1,0 @@
-*.elc
-MANIFEST
-Makefile
-elc.tar.gz
-cus-load.el
-finder-inf.el
-subdirs.el
