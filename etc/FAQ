@@ -134,7 +134,7 @@ Common Things People Want To Do
 67:  How can I force Emacs to scroll only one line when I move past the
      bottom of the screen?
 68:  How can I replace highlighted text with what I type?
-69:  How can I edit MS-DOS files using Emacs?
+69:  How can I edit MS-DOS-style text files using Emacs?
 70:  How can I tell Emacs to fill paragraphs with a single space after
      each period?
 
@@ -171,7 +171,7 @@ Finding/Getting Emacs and Related Packages
 93:  What is the difference between Emacs and XEmacs (formerly "Lucid
      Emacs")?
 94:  Where can I get Emacs for my PC running MS-DOS?
-95:  Where can I get Emacs for Microsoft Windows, Windows '95, or Windows
+95:  Where can I get Emacs for Microsoft Windows, Windows 9x, or Windows
      NT?
 96:  Where can I get Emacs for my PC running OS/2?
 97:  Where can I get Emacs for my Atari ST?
@@ -473,7 +473,7 @@ General Questions
   postings from, but pretty much everything is there.  The latest archives
   are available at
  
-    ftp://ftp.gnu.org/pub/gnu/MailingListArchives/current
+    ftp://gnudist.gnu.org/pub/gnu/MailingListArchives/current
 
   Web-based Usenet search services, such as DejaNews, also archive the
   gnu.* groups.  You can reach DejaNews at
@@ -631,9 +631,9 @@ On-line Help, Printed Manuals, Other Sources of Help
   format.  Texinfo source for the manual (along with pregenerated Info
   files) is available at
 
-    ftp://ftp.gnu.org/pub/gnu/elisp-manual-20-2.5.tar.gz
+    ftp://gnudist.gnu.org/pub/gnu/elisp-manual-20-2.5.tar.gz
 
-  and all mirrors of ftp.gnu.org (See question 92 for a list).  See
+  and all mirrors of gnudist.gnu.org (See question 92 for a list).  See
   question 17 if you want to install the Info files, or question 18 if you
   want to use the Texinfo source to print the manual yourself.
 
@@ -648,9 +648,9 @@ On-line Help, Printed Manuals, Other Sources of Help
   using the stand-alone "makeinfo" program, available as part of the latest
   Texinfo package at
 
-    ftp://ftp.gnu.org/pub/gnu/texinfo-3.12.tar.gz
+    ftp://gnudist.gnu.org/pub/gnu/texinfo-3.12.tar.gz
 
-  and all mirrors of ftp.gnu.org (see question 92 for a list).
+  and all mirrors of gnudist.gnu.org (see question 92 for a list).
 
   For information about the Texinfo format, read the Texinfo manual which
   comes with Emacs.  This manual also comes installed in Info format, so
@@ -740,9 +740,9 @@ On-line Help, Printed Manuals, Other Sources of Help
   * Xinfo, a stand-alone version of the Info program that runs under X
     Windows.  You can get it at
 
-      ftp://ftp.gnu.org/pub/gnu/xinfo-1.01.01.tar.gz
+      ftp://gnudist.gnu.org/pub/gnu/xinfo-1.01.01.tar.gz
 
-    and all mirrors of ftp.gnu.org (See question 92 for a list).
+    and all mirrors of gnudist.gnu.org (See question 92 for a list).
 
   * Tkinfo, an Info viewer that runs under X Windows and uses Tcl/Tk.  You
     can get Tkinfo at
@@ -777,7 +777,7 @@ On-line Help, Printed Manuals, Other Sources of Help
 
   Latest versions of some of the above files are also available at
 
-    ftp://ftp.gnu.org/pub/gnu/GNUinfo/
+    ftp://gnudist.gnu.org/pub/gnu/GNUinfo/
 
   More GNU information, including back issues of the "GNU's Bulletin", are at
 
@@ -791,7 +791,7 @@ On-line Help, Printed Manuals, Other Sources of Help
 
   The file etc/SERVICE (see question 4 if you're not sure where that is)
   lists companies and individuals willing to sell you help in installing or
-  using Emacs.  An up-to-date version this file is available on ftp.gnu.org
+  using Emacs.  An up-to-date version this file is available on gnudist.gnu.org
   (see question 20).
 
 22:  Where can I get the latest version of this document (the FAQ list)?
@@ -1301,6 +1301,9 @@ Common Things People Want To Do
 
       (setq visible-bell t)
 
+  There is also a way to turn off _all_ effects of a bell, by defining
+  a custom `ring-bell-function' that does nothing.
+
 46:  How do I turn down the bell volume in Emacs running under X Windows?
 
   You can adjust the bell volume and duration for all programs with the
@@ -1566,7 +1569,7 @@ Common Things People Want To Do
 
   If you're tired of seeing backup files whenever you do an "ls" at the
   Unix shell, try GNU ls with the "-B" option.  GNU ls is part of the GNU
-  fileutils package, available at mirrors of ftp.gnu.org (see question 92).
+  fileutils package, available at mirrors of gnudist.gnu.org (see question 92).
 
   To disable or change how backups are made, see "Backup Names" in the
   on-line manual.
@@ -1770,7 +1773,7 @@ Common Things People Want To Do
   This mode also allows you to delete (not kill) the highlighted region by
   pressing DEL.
 
-69:  How can I edit MS-DOS files using Emacs?
+69:  How can I edit MS-DOS-style text files using Emacs?
 
   As of Emacs 20, detection and handling of MS-DOS (and Windows) files is
   performed transparently.  You can open an MS-DOS file on a Unix system
@@ -2153,22 +2156,22 @@ Difficulties Building/Installing/Porting Emacs
   from scratch.  You will need:
 
   * Emacs sources.  See question 92 for a list of ftp sites that make them
-    available.  On ftp.gnu.org, the main GNU distribution site, sources are
+    available.  On gnudist.gnu.org, the main GNU distribution site, sources are
     available at
 
-      ftp://ftp.gnu.org/pub/gnu/emacs-20.4.tar.gz
+      ftp://gnudist.gnu.org/pub/gnu/emacs-20.4.tar.gz
 
     The above will obviously change as new versions of Emacs come out.  For
     instance, when Emacs 20.5 is released, it will most probably be
     available at
 
-      ftp://ftp.gnu.org/pub/gnu/emacs-20.5.tar.gz
+      ftp://gnudist.gnu.org/pub/gnu/emacs-20.5.tar.gz
 
     Again, you should use one of the mirror sites in question 92 (and
-    adjust the URL accordingly) so as to reduce load on ftp.gnu.org.
+    adjust the URL accordingly) so as to reduce load on gnudist.gnu.org.
 
   * Gzip, the GNU compression utility.  You can get gzip via anonymous ftp
-    at mirrors of ftp.gnu.org sites; it should compile and install without
+    at mirrors of gnudist.gnu.org sites; it should compile and install without
     much trouble on most systems.  Once you have retrieved the Emacs
     sources, you will probably be able to uncompress them with the command
 
@@ -2190,7 +2193,7 @@ Difficulties Building/Installing/Porting Emacs
     two `v's force verbose output, and the `f' tells tar to use a disk
     file, rather than one on tape.
 
-    If you're using GNU tar (available at mirrors of ftp.gnu.org), you can
+    If you're using GNU tar (available at mirrors of gnudist.gnu.org), you can
     combine this step and the previous one by using the command
 
       tar -zxvvf emacs-20.4.tar.gz
@@ -2299,7 +2302,7 @@ Finding/Getting Emacs and Related Packages
   It is also possible that the package is on your system, but has not been
   loaded.  To see which packages are available for loading, look through your
   computer's lisp directory (see question 4) or use the Finder (C-h p) to
-  search under keywords.  The Lisp source to most most packages contains a
+  search under keywords.  The Lisp source to most packages contains a
   short description of how they should be loaded, invoked, and configured --
   so before you use or modify a Lisp package, see if the author has provided
   any hints in the source code.
@@ -2400,9 +2403,9 @@ Finding/Getting Emacs and Related Packages
 92:  Where can I get other up-to-date GNU stuff?
 
   The most up-to-date official GNU software is normally kept on
-  ftp.gnu.org and is available at
+  gnudist.gnu.org and is available at
 
-    ftp://ftp.gnu.org/pub/gnu
+    ftp://gnudist.gnu.org/pub/gnu
 
   Read the files etc/DISTRIB and etc/FTP for more information.
 
@@ -2454,7 +2457,7 @@ Finding/Getting Emacs and Related Packages
          ftp://vixen.cso.uiuc.edu/gnu,
          ftp://wuarchive.wustl.edu/systems/gnu
 
-  The directory at ftp.uu.net is a mirror of ftp.gnu.org except that files
+  The directory at ftp.uu.net is a mirror of gnudist.gnu.org except that files
   larger than one megabyte are split into multiple parts.  If you have
   trouble transferring large files, you should try that site.  A file
   normally named "XXX" is split into files XXX-split/part[0-9][0-9], and
@@ -2492,8 +2495,8 @@ Finding/Getting Emacs and Related Packages
 94:  Where can I get Emacs for my PC running MS-DOS?
 
   A pre-built binary distribution of Emacs is available from the Simtel
-  archives.  This version works under MS-DOS and Windows (3.x, 95, and NT) and
-  supports long file names under Windows 95.  More information is available
+  archives.  This version works under MS-DOS and Windows (3.x, 9x, and NT) and
+  supports long file names under Windows 9x.  More information is available
   from:
 
         ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2gnu/emacs.README
@@ -2512,7 +2515,7 @@ Finding/Getting Emacs and Related Packages
 
   Compiler: djgpp version 1.12 maint 1 or later.  Djgpp 2.0 or later is
             recommended, since 1.x is being phased out.  Djgpp 2 supports
-            long filenames under Windows 95.
+            long filenames under Windows 9x.
 
             You can get the latest release of djgpp by retrieving
             all of the files in
@@ -2536,8 +2539,8 @@ Finding/Getting Emacs and Related Packages
 
               ftp://ftp.simtel.net/pub/simtelnet/gnu/gnuish
 
-  The files INSTALL and PROBLEMS in the top-level directory of the Emacs
-  source contains some additional information regarding Emacs under MS-DOS.
+  The files INSTALL and etc/PROBLEMS in the Emacs source contains some
+  additional information regarding Emacs under MS-DOS.
 
   For a list of other MS-DOS implementations of Emacs (and Emacs
   look-alikes), consult the list of "Emacs implementations and literature,"
@@ -2548,7 +2551,7 @@ Finding/Getting Emacs and Related Packages
   Note that while many of these programs look similar to Emacs, they often
   lack certain features, particularly as the Emacs Lisp extension language.
 
-95:  Where can I get Emacs for Microsoft Windows, Windows '95, or Windows
+95:  Where can I get Emacs for Microsoft Windows, Windows 9x, or Windows
      NT?
 
   GNU Emacs has been fully ported to Windows NT and Windows 95/98.  
@@ -2667,9 +2670,9 @@ Finding/Getting Emacs and Related Packages
 
   If you are on a Unix machine, try using the "nslookup" command, included
   in the Berkeley BIND package.  For example, to find the IP address of
-  "ftp.gnu.org", you would type
+  "gnudist.gnu.org", you would type
 
-    nslookup ftp.gnu.org
+    nslookup gnudist.gnu.org
 
   Your computer should then provide the IP address of that computer.
 
@@ -2724,7 +2727,7 @@ Major Emacs Lisp Packages, Emacs Extensions, and Related Programs
   Author: Dave Gillespie <daveg@csvax.cs.caltech.edu>
   Latest version: 2.02f
   Anonymous FTP:
-    ftp://ftp.gnu.org/pub/gnu/calc-2.02f.tar.gz
+    ftp://gnudist.gnu.org/pub/gnu/calc-2.02f.tar.gz
   NOTE: Unlike Wolfram Research, Dave has never threatened to sue
         anyone for having a program with a similar command language to
         Calc.  :-)
