@@ -1222,7 +1222,8 @@ menu_highlight_callback (widget, id, call_data)
   /* Store the help event.  */
   help = wv && wv->help ? build_string (wv->help) : Qnil;
   buf.kind = HELP_EVENT;
-  buf.frame_or_window = Fcons (frame, help);
+  buf.frame_or_window = frame;
+  buf.arg = help;
   kbd_buffer_store_event (&buf);
 }
 
@@ -1280,27 +1281,31 @@ menubar_selection_callback (widget, id, client_data)
 	      Lisp_Object frame;
 
 	      XSETFRAME (frame, f);
-	      buf.kind = menu_bar_event;
-	      buf.frame_or_window = Fcons (frame, Fcons (Qmenu_bar, Qnil));
+	      buf.kind = MENU_BAR_EVENT;
+	      buf.frame_or_window = frame;
+	      buf.arg = frame;
 	      kbd_buffer_store_event (&buf);
 
 	      for (j = 0; j < submenu_depth; j++)
 		if (!NILP (subprefix_stack[j]))
 		  {
-		    buf.kind = menu_bar_event;
-		    buf.frame_or_window = Fcons (frame, subprefix_stack[j]);
+		    buf.kind = MENU_BAR_EVENT;
+		    buf.frame_or_window = frame;
+		    buf.arg = subprefix_stack[j];
 		    kbd_buffer_store_event (&buf);
 		  }
 
 	      if (!NILP (prefix))
 		{
-		  buf.kind = menu_bar_event;
-		  buf.frame_or_window = Fcons (frame, prefix);
+		  buf.kind = MENU_BAR_EVENT;
+		  buf.frame_or_window = frame;
+		  buf.arg = prefix;
 		  kbd_buffer_store_event (&buf);
 		}
 
-	      buf.kind = menu_bar_event;
-	      buf.frame_or_window = Fcons (frame, entry);
+	      buf.kind = MENU_BAR_EVENT;
+	      buf.frame_or_window = frame;
+	      buf.arg = entry;
 	      kbd_buffer_store_event (&buf);
 
 	      return;
