@@ -1252,10 +1252,10 @@ window_loop (type, obj, mini, frames)
 	    {
 	      struct window *best_window_ptr = XWINDOW (best_window);
 	      struct window *w_ptr = XWINDOW (w);
-	      if (NILP (best_window) ||
-		  (XFASTINT (w_ptr->height) * XFASTINT (w_ptr->width))
-		  > (XFASTINT (best_window_ptr->height)
-		     * XFASTINT (best_window_ptr->width)))
+	      if (NILP (best_window)
+		  || (XFASTINT (w_ptr->height) * XFASTINT (w_ptr->width)
+		      > (XFASTINT (best_window_ptr->height)
+			 * XFASTINT (best_window_ptr->width))))
 		best_window = w;
 	    }
 	    break;
@@ -2072,12 +2072,6 @@ change_window_height (delta, widthflag)
 
   sizep = &CURSIZE (window);
 
-  if (*sizep + delta < MINSIZE (window))
-    {
-      Fdelete_window (window);
-      return;
-    }
-
   {
     register int maxdelta;
 
@@ -2093,13 +2087,19 @@ change_window_height (delta, widthflag)
 	 the full frame, or make the only window aside from the
 	 minibuffer the full frame.  */
       delta = maxdelta;
-
-    if (delta == 0)
-      return;
   }
 
-  if (!NILP (p->next) &&
-      (*sizefun) (p->next) - delta >= MINSIZE (p->next))
+  if (*sizep + delta < MINSIZE (window))
+    {
+      Fdelete_window (window);
+      return;
+    }
+
+  if (delta == 0)
+    return;
+
+  if (!NILP (p->next)
+      && (*sizefun) (p->next) - delta >= MINSIZE (p->next))
     {
       (*setsizefun) (p->next, (*sizefun) (p->next) - delta, 0);
       (*setsizefun) (window, *sizep + delta, 0);
@@ -2108,8 +2108,8 @@ change_window_height (delta, widthflag)
 	 but it propagates the new top edge to its children */
       (*setsizefun) (p->next, (*sizefun) (p->next), 0);
     }
-  else if (!NILP (p->prev) &&
-	   (*sizefun) (p->prev) - delta >= MINSIZE (p->prev))
+  else if (!NILP (p->prev)
+	   && (*sizefun) (p->prev) - delta >= MINSIZE (p->prev))
     {
       (*setsizefun) (p->prev, (*sizefun) (p->prev) - delta, 0);
       CURBEG (window) -= delta;
@@ -2713,8 +2713,8 @@ by `current-window-configuration' (which see).")
 		  /* As documented in Fcurrent_window_configuration, don't
 		     save the location of point in the buffer which was current
 		     when the window configuration was recorded.  */
-		  if (!EQ (p->buffer, new_current_buffer) &&
-		      XBUFFER (p->buffer) == current_buffer)
+		  if (!EQ (p->buffer, new_current_buffer)
+		      && XBUFFER (p->buffer) == current_buffer)
 		    Fgoto_char (w->pointm);
 		}
 	      else if (NILP (w->buffer) || NILP (XBUFFER (w->buffer)->name))
