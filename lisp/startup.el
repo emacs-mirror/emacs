@@ -333,6 +333,26 @@ from being initialized."
 
 (defvar init-file-had-error nil)
 
+(defun normal-top-level-add-subdirs-to-load-path ()
+  "Add all subdirectories of current directory to `load-path'."
+  (let (dirs 
+	(pending (list default-directory)))
+    ;; This loop does a breadth-first tree walk on DIR's subtree,
+    ;; putting each subdir into DIRS as its contents are examined.
+    (while pending
+      (setq dirs (cons (car pending) dirs))
+      (setq pending (cdr pending))
+      (let ((contents (directory-files (car dirs)))
+	    (default-directory (car dirs)))
+	(while contents
+	  (unless (member (car contents)
+			  '("." ".." "RCS"))
+	    (when (file-directory-p (car contents))
+	      (setq pending (nconc pending
+				   (list (expand-file-name (car contents)))))))
+	  (setq contents (cdr contents)))))
+    (normal-top-level-add-to-load-path dirs)))
+
 ;; This function is called from the subdirs.el file.
 (defun normal-top-level-add-to-load-path (dirs)
   (let ((tail load-path)
