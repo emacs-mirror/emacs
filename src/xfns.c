@@ -2863,9 +2863,11 @@ unwind_create_frame (frame)
 
       x_free_frame_resources (f);
 
+#if GLYPH_DEBUG
       /* Check that reference counts are indeed correct.  */
       xassert (dpyinfo->reference_count == dpyinfo_refcount);
       xassert (dpyinfo->image_cache->refcount == image_cache_refcount);
+#endif
       return Qt;
     }
 
@@ -4087,7 +4089,7 @@ Value is VALUE.  */)
 
   if (! NILP (outer_p)) w = FRAME_OUTER_WINDOW (f);
   else w = FRAME_X_WINDOW (f);
- 
+
   XChangeProperty (FRAME_X_DISPLAY (f), w,
 		   prop_atom, target_type, element_format, PropModeReplace,
 		   data, nelements);
@@ -5256,7 +5258,7 @@ or directory must exist.  ONLY-DIR-P is ignored."  */)
           if (keysym == XK_g && (event.xkey.state & ControlMask) != 0)
             XtUnmanageChild (dialog);
         }
-  
+
       (void) x_dispatch_event (&event, FRAME_X_DISPLAY (f));
     }
 
