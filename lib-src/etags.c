@@ -105,6 +105,8 @@ extern int errno;
 #define streq(s,t)	(strcmp (s, t) == 0)
 #define strneq(s,t,n)	(strncmp (s, t, n) == 0)
 
+#define lowcase(c)	((c) | ' ')
+
 #define	iswhite(arg)	(_wht[arg])	/* T if char is white		*/
 #define	begtoken(arg)	(_btk[arg])	/* T if char can start token	*/
 #define	intoken(arg)	(_itk[arg])	/* T if char can be in token	*/
@@ -165,8 +167,9 @@ Lang_function TeX_functions;
 Lang_function just_read_file;
 #else				/* so let's write it this way */
 void Asm_labels ();
-void default_C_entries ();
 void C_entries ();
+void default_C_entries ();
+void plain_C_entries ();
 void Cplusplus_entries ();
 void Cstar_entries ();
 void Fortran_functions ();
@@ -309,7 +312,7 @@ struct pattern *patterns = NULL;
 /* Language stuff. */
 struct lang_entry
 {
-  char *extension;
+  char *suffix;
   Lang_function *function;
 };
 
@@ -333,8 +336,8 @@ struct lang_entry lang_names[] =
   { NULL, NULL }
 };
 
-/* Table of file extensions and corresponding language functions. */
-struct lang_entry lang_extensions[] =
+/* Table of file name suffixes and corresponding language functions. */
+struct lang_entry lang_suffixes[] =
 {
   /* Assume that ".s" or ".a" is assembly code. -wolfgang.
      Or even ".sa". */
@@ -375,10 +378,13 @@ struct lang_entry lang_extensions[] =
   { "t", Scheme_functions },
   /* FIXME Can't do the `SCM' or `scm' prefix with a version number */
 
-  /* Note that ".c" and ".h" can be considered C++, if the --c++
-     flag was given.  That is why default_C_entries is called here. */
+  /* Note that .c and .h can be considered C++, if the --c++ flag was
+     given.  That is why default_C_entries is called here. */
   { "c", default_C_entries },
   { "h", default_C_entries },
+
+  /* .pc is a Pro*C file. */
+  { "pc", plain_C_entries },
 
   /* .C or .H or .c++ or .cc or .cpp or .cxx or .h++ or .hh or .hxx:
      a C++ file */
@@ -424,18 +430,18 @@ print_language_names ()
   struct lang_entry *name, *ext;
 
   puts ("\nThese are the currently supported languages, along with the\n\
-default extensions for files:");
-  for (name = lang_names; name->extension; ++name)
+default file name suffixes:");
+  for (name = lang_names; name->suffix; ++name)
     {
-      printf ("\t%s\t", name->extension);
-      for (ext = lang_extensions; ext->extension; ++ext)
+      printf ("\t%s\t", name->suffix);
+      for (ext = lang_suffixes; ext->suffix; ++ext)
 	if (name->function == ext->function)
-	  printf (" .%s", ext->extension);
+	  printf (" .%s", ext->suffix);
       puts ("");
     }
-  puts ("Where `auto' means use default language for files based on filename\n\
-extension, and `none' means only do regexp processing on files.\n\
-If no language is specified and no extension is found for some file,\n\
+  puts ("Where `auto' means use default language for files based on file\n\
+name suffix, and `none' means only do regexp processing on files.\n\
+If no language is specified and no matching suffix is found,\n\
 Fortran is tried first; if no tags are found, C is tried next.");
 }
 
@@ -467,7 +473,7 @@ names from stdin.\n\n", progname);
         backward-search command instead of '/', the forward-search command.");
 
   puts ("-C, --c++\n\
-        Treat files whose extension defaults to C language as C++ files.");
+        Treat files whose name suffix defaults to C language as C++ files.");
 
   if (CTAGS)
     puts ("-d, --defines\n\
@@ -994,9 +1000,9 @@ get_language (language, func)
 {
   struct lang_entry *lang;
 
-  for (lang = lang_names; lang->extension; ++lang)
+  for (lang = lang_names; lang->suffix; ++lang)
     {
-      if (streq (language, lang->extension))
+      if (streq (language, lang->suffix))
 	{
 	  *func = lang->function;
 	  return TRUE;
@@ -1117,9 +1123,9 @@ find_entries (file, inf)
   if (cp)
     {
       ++cp;
-      for (lang = lang_extensions; lang->extension; ++lang)
+      for (lang = lang_suffixes; lang->suffix; ++lang)
 	{
-	  if (streq (cp, lang->extension))
+	  if (streq (cp, lang->suffix))
 	    {
 	      lang->function (inf);
 	      fclose (inf);
@@ -1774,16 +1780,16 @@ consider_token (str, len, c, c_ext, cblev, is_func)
 
   /* Detect GNU macros. */
   if (definedef == dnone)
-    if (strneq (str, "DEFUN", 5) /* Used in emacs */
+    if (strneq (str, "DEFUN", len)	/* Used in emacs */
 #if FALSE	
 	   These are defined inside C functions, so currently they
 	   are not met anyway.
-	|| strneq (str, "EXFUN", 5) /* Used in glibc */
+	|| strneq (str, "EXFUN", len) /* Used in glibc */
 	|| strneq (str, "DEFVAR_", 7) /* Used in emacs */
 #endif
-	|| strneq (str, "SYSCALL", 7) /* Used in glibc (mach) */
-	|| strneq (str, "ENTRY", 5) /* Used in glibc */
-	|| strneq (str, "PSEUDO", 6)) /* Used in glibc */
+	|| strneq (str, "SYSCALL", len) /* Used in glibc (mach) */
+	|| strneq (str, "ENTRY", len) /* Used in glibc */
+	|| strneq (str, "PSEUDO", len)) /* Used in glibc */
 
       {
 	next_token_is_func = TRUE;
@@ -2376,6 +2382,14 @@ default_C_entries (inf)
   C_entries (cplusplus ? C_PLPL : 0, inf);
 }
 
+/* Always do plain ANSI C. */
+void
+plain_C_entries (inf)
+     FILE *inf;
+{
+  C_entries (0, inf);
+}
+
 /* Always do C++. */
 void
 Cplusplus_entries (inf)
@@ -2410,9 +2424,9 @@ tail (cp)
 {
   register int len = 0;
 
-  while (*cp && (*cp | ' ') == (dbp[len] | ' '))
+  while (*cp && lowcase(*cp) == lowcase(dbp[len]))
     cp++, len++;
-  if (*cp == 0)
+  if (*cp == 0 && !intoken(dbp[len]))
     {
       dbp += len;
       return TRUE;
@@ -2430,8 +2444,11 @@ takeprec ()
   dbp++;
   while (isspace (*dbp))
     dbp++;
-  if (tail ("(*)"))
-    return;
+  if (strneq (dbp, "(*)", 3))
+    {
+      dbp += 3;
+      return;
+    }
   if (!isdigit (*dbp))
     {
       --dbp;			/* force failure */
@@ -2494,7 +2511,7 @@ Fortran_functions (inf)
 	dbp++;
       if (*dbp == 0)
 	continue;
-      switch (*dbp | ' ')
+      switch (lowcase (*dbp))
 	{
 	case 'i':
 	  if (tail ("integer"))
@@ -2529,7 +2546,7 @@ Fortran_functions (inf)
 	dbp++;
       if (*dbp == 0)
 	continue;
-      switch (*dbp | ' ')
+      switch (lowcase (*dbp))
 	{
 	case 'f':
 	  if (tail ("function"))
@@ -2762,7 +2779,7 @@ Pascal_functions (inf)
       else if (!incomment && !inquote && !found_tag)
 	{
 	  /* check for proc/fn keywords */
-	  switch (c | ' ')
+	  switch (lowcase (c))
 	    {
 	    case 'p':
 	      if (tail ("rocedure"))	/* c = 'p', dbp has advanced */
