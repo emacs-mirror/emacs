@@ -1241,12 +1241,14 @@ and can edit it until it as been confirmed.")
       GCPRO1 (pane);
       menu = Fcons (prompt, Fcons (Fcons (prompt, pane), Qnil));
       obj = Fx_popup_dialog (Qt, menu);
+#ifndef USE_X_TOOLKIT
       if (!NILP (obj))
 	{
 	  prompt = build_string ("Confirm");
 	  menu = Fcons (prompt, Fcons (Fcons (prompt, pane), Qnil));
 	  obj = Fx_popup_dialog (Qt, menu);
 	}
+#endif
       UNGCPRO;
       return obj;
     }
