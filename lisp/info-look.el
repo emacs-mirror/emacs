@@ -368,7 +368,7 @@ If optional argument QUERY is non-nil, query for the help mode."
 		      (goto-char (match-beginning 0))
 		      (and (display-color-p) info-lookup-highlight-face
 			   ;; Search again for ITEM so that the first
-			   ;; occurence of ITEM will be highlighted.
+			   ;; occurrence of ITEM will be highlighted.
 			   (re-search-forward (regexp-quote item))
 			   (let ((start (match-beginning 0))
 				 (end (match-end 0)))

@@ -8193,7 +8193,7 @@ but not if inside a comment or quote)."
 	   (setq prompt (match-string 1))
 	   (replace-match "")
 	   (setq string (vhdl-template-field prompt nil t))
-	   ;; replace occurences of same prompt
+	   ;; replace occurrences of same prompt
 	   (while (re-search-forward (concat "<\\(" prompt "\\)>") end t)
 	     (replace-match (or string "")))
 	   (goto-char position)))
