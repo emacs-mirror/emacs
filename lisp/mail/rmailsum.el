@@ -973,7 +973,7 @@ Completion is performed over known labels when reading."
 While composing the message, use \\[mail-yank-original] to yank the
 original message into it."
   (interactive)
-  (mail-other-window nil nil nil nil nil rmail-buffer)
+  (rmail-start-mail nil nil nil nil nil rmail-buffer)
   (use-local-map (copy-keymap (current-local-map)))
   (define-key (current-local-map)
     "\C-c\C-c" 'rmail-summary-send-and-exit))
@@ -981,39 +981,30 @@ original message into it."
 (defun rmail-summary-continue ()
   "Continue composing outgoing message previously being composed."
   (interactive)
-  (mail-other-window t))
+  (rmail-start-mail t))
 
 (defun rmail-summary-reply (just-sender)
   "Reply to the current message.
 Normally include CC: to all other recipients of original message;
-prefix argument means ignore them.
-While composing the reply, use \\[mail-yank-original] to yank the
-original message into it."
+prefix argument means ignore them.  While composing the reply,
+use \\[mail-yank-original] to yank the original message into it."
   (interactive "P")
-  (let (mailbuf)
-    (save-window-excursion
-      (set-buffer rmail-buffer)
-      (rmail-reply just-sender)
-      (setq mailbuf (current-buffer)))
-    (pop-to-buffer mailbuf)
-    (use-local-map (copy-keymap (current-local-map)))
-    (define-key (current-local-map)
-      "\C-c\C-c" 'rmail-summary-send-and-exit)))
+  (set-buffer rmail-buffer)
+  (rmail-reply just-sender)
+  (use-local-map (copy-keymap (current-local-map)))
+  (define-key (current-local-map)
+    "\C-c\C-c" 'rmail-summary-send-and-exit))
 
 (defun rmail-summary-retry-failure ()
   "Edit a mail message which is based on the contents of the current message.
 For a message rejected by the mail system, extract the interesting headers and
 the body of the original message; otherwise copy the current message."
   (interactive)
-  (let (mailbuf)
-    (save-window-excursion
-      (set-buffer rmail-buffer)
-      (rmail-retry-failure)
-      (setq mailbuf (current-buffer)))
-    (pop-to-buffer mailbuf)
-    (use-local-map (copy-keymap (current-local-map)))
-    (define-key (current-local-map)
-      "\C-c\C-c" 'rmail-summary-send-and-exit)))
+  (set-buffer rmail-buffer)
+  (rmail-retry-failure)
+  (use-local-map (copy-keymap (current-local-map)))
+  (define-key (current-local-map)
+    "\C-c\C-c" 'rmail-summary-send-and-exit))
 
 (defun rmail-summary-send-and-exit ()
   "Send mail reply and return to summary buffer."
