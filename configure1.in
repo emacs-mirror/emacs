@@ -100,8 +100,13 @@ inst_paths=''
 prefix='/usr/local'
 exec_prefix='${prefix}'
 
-while [ $# != 0 ]; do
-  arg="$1"
+### Don't use shift -- that destroys the argument list, which autoconf needs
+### to produce config.status.  It turns out that "set - ${arguments}" doesn't
+### work portably.
+index=0
+while [ $index -lt $# ]; do
+  index=`expr $index + 1`
+  arg=`eval echo '$'$index`
   case "${arg}" in
 
     ## Anything starting with a hyphen we assume is an option.
@@ -168,13 +173,14 @@ Set it to either \`yes' or \`no'."
 	  ## If the value was omitted, get it from the next argument.
 	  if [ "${valomitted}" = "yes" ]; then
 	    ## Get the next argument from the argument list, if there is one.
-            if [ $# = 1 ]; then
+            if [ $index = $# ]; then
 	      (echo "${progname}: You must give a value for the \`--${optname}' option, as in
     \`--${optname}=FOO'."
 	       echo "${short_usage}") >&2
 	      exit 1
 	    fi
-	    shift; val="$1"
+            index=`expr $index + 1`
+            val=`eval echo '$'$index`
 	  fi
           srcdir="${val}"
 	;;
@@ -187,13 +193,14 @@ Set it to either \`yes' or \`no'."
 	  ## If the value was omitted, get it from the next argument.
 	  if [ "${valomitted}" = "yes" ]; then
 	    ## Get the next argument from the argument list, if there is one.
-            if [ $# = 1 ]; then
+            if [ $index = $# ]; then
 	      (echo "${progname}: You must give a value for the \`--${optname}' option, as in
     \`--${optname}=FOO'."
 	       echo "${short_usage}") >&2
 	      exit 1
 	    fi
-	    shift; val="$1"
+            index=`expr $index + 1`
+            val=`eval echo '$'$index`
 	  fi
 	  x_includes="${val}"
 	  C_SWITCH_X_SITE="-I${x_includes}"
@@ -202,13 +209,14 @@ Set it to either \`yes' or \`no'."
 	  ## If the value was omitted, get it from the next argument.
 	  if [ "${valomitted}" = "yes" ]; then
 	    ## Get the next argument from the argument list, if there is one.
-            if [ $# = 1 ]; then
+            if [ $index = $# ]; then
 	      (echo "${progname}: You must give a value for the \`--${optname}' option, as in
     \`--${optname}=FOO'."
 	       echo "${short_usage}") >&2
 	      exit 1
 	    fi
-	    shift; val="$1"
+            index=`expr $index + 1`
+            val=`eval echo '$'$index`
 	  fi
 	  x_libraries="${val}"
 	  LD_SWITCH_X_SITE="-L${x_libraries}"
@@ -225,13 +233,14 @@ Set it to either \`yes' or \`no'."
 	  ## If the value was omitted, get it from the next argument.
 	  if [ "${valomitted}" = "yes" ]; then
 	    ## Get the next argument from the argument list, if there is one.
-            if [ $# = 1 ]; then
+            if [ $index = $# ]; then
 	      (echo "${progname}: You must give a value for the \`--${optname}' option, as in
     \`--${optname}=FOO'."
 	       echo "${short_usage}") >&2
 	      exit 1
 	    fi
-	    shift; val="$1"
+            index=`expr $index + 1`
+            val=`eval echo '$'$index`
 	  fi
 	  prefix="${val}"
         ;;
@@ -241,13 +250,14 @@ Set it to either \`yes' or \`no'."
 	  ## If the value was omitted, get it from the next argument.
 	  if [ "${valomitted}" = "yes" ]; then
 	    ## Get the next argument from the argument list, if there is one.
-            if [ $# = 1 ]; then
+            if [ $index = $# ]; then
 	      (echo "${progname}: You must give a value for the \`--${optname}' option, as in
     \`--${optname}=FOO'."
 	       echo "${short_usage}") >&2
 	      exit 1
 	    fi
-	    shift; val="$1"
+            index=`expr $index + 1`
+            val=`eval echo '$'$index`
 	  fi
 	  exec_prefix="${val}"
         ;;
@@ -269,7 +279,6 @@ Set it to either \`yes' or \`no'."
     ;;
 
   esac
-  shift
 done
 
 if [ "${configuration}" = "" ]; then
@@ -1148,9 +1157,5 @@ Configured for \`${configuration}'.
   Where do we find X Windows libraries?                   }${x_libraries}
 
 "
-
-### Restore the arguments to this script, so autoconf can record them
-### in the config.status file.
-set -- ${arguments}
 ]
 AC_OUTPUT(Makefile)
