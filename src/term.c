@@ -1260,7 +1260,7 @@ term_get_fkeys_1 ()
   extern char *tgetstr ();
   int i;
 
-  char **address = term_get_fkeys_address;
+  char **address = term_get_fkeys_arg;
 
   /* This can happen if CANNOT_DUMP or with strange options.  */
   if (!initialized)
