@@ -29,7 +29,7 @@
 
 ;; See iso-swed.el for a description of the character set.
 
-(require 'iso-syntax)
+(require 'latin-1)
 
 (defvar swedish-re
   "[ \t\n]\\(och\\|att\\|en\\|{r\\|\\[R\\|p}\\|P\\]\\|som\\|det\\|av\\|den\\|f|r\\|F\\\\R\\)[ \t\n.,?!:;'\")}]"
