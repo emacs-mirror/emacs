@@ -79,7 +79,9 @@ N to do nothing (command remains disabled)."))
 	 (ding)
 	 (message "Please type y, n or Space: "))))
     (if (= char ?y)
-	(if (y-or-n-p "Enable command for future editing sessions also? ")
+	(if (and user-init-file
+		 (not (string= "" user-init-file))
+		 (y-or-n-p "Enable command for future editing sessions also? "))
 	    (enable-command this-command)
 	  (put this-command 'disabled nil)))
     (if (/= char ?n)
@@ -93,7 +95,7 @@ to future sessions."
   (interactive "CEnable command: ")
   (put command 'disabled nil)
   (save-excursion
-   (set-buffer (find-file-noselect 
+   (set-buffer (find-file-noselect
 		(substitute-in-file-name user-init-file)))
    (goto-char (point-min))
    (if (search-forward (concat "(put '" (symbol-name command) " ") nil t)
@@ -115,7 +117,7 @@ to future sessions."
       (error "Invalid command name `%s'" command))
   (put command 'disabled t)
   (save-excursion
-   (set-buffer (find-file-noselect 
+   (set-buffer (find-file-noselect
 		(substitute-in-file-name user-init-file)))
    (goto-char (point-min))
    (if (search-forward (concat "(put '" (symbol-name command) " ") nil t)
