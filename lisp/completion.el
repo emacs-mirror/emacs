@@ -528,8 +528,13 @@ Used to decide whether to save completions.")
 ;;-----------------------------------------------
 
 (defun cmpl-make-standard-completion-syntax-table ()
-  (let ((table (make-syntax-table)) ;; default syntax is whitespace
+  (let ((table (make-syntax-table))
 	i)
+    ;; Default syntax is whitespace.
+    (setq i 0)
+    (while (< i 256)
+      (modify-syntax-entry i " " table)
+      (setq i (1+ i)))
     ;; alpha chars
     (setq i 0)
     (while (< i 26)
@@ -2612,6 +2617,10 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
 (define-key lisp-mode-map "=" 'self-insert-command)
 (define-key lisp-mode-map "^" 'self-insert-command)
 
+;; Avoid warnings.
+(defvar c-mode-map)
+(defvar fortran-mode-map)
+
 ;; C mode diffs.
 (defun completion-c-mode-hook ()
   (def-completion-wrapper electric-c-semi :separator)
@@ -2670,5 +2679,7 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
 
 (cmpl-statistics-block
   (record-completion-file-loaded))
+
+(provide 'completion)
 
 ;;; completion.el ends here
