@@ -9,6 +9,8 @@
 
 2002-11-18  Markus Rost  <rost@math.ohio-state.edu>
 
+	* pcvs.el (cvs-minor-mode, cvs-mode-commit-hook): Add group.
+
 	* textmodes/refill.el (defgroup refill): New group.
 
 	* emacs-lisp/checkdoc.el (checkdoc-minor-mode): Add group.
@@ -21,6 +23,8 @@
 	(compilation-minor-mode): Add group.
 
 	* reveal.el (global-reveal-mode): Add group.
+
+	* bookmark.el (bookmark-menu-length): Fix group name.
 
 2002-11-17  Richard M. Stallman  <rms@gnu.org>
 
@@ -57,10 +61,6 @@
 	* language/lao.el (lao): Make it safe.
 
 	* language/thai.el (thai-tis620): Make it safe.
-
-2002-11-18  Markus Rost  <rost@math.ohio-state.edu>
-
-	* bookmark.el (bookmark-menu-length): Fix group name.
 
 2002-11-17  Markus Rost  <rost@math.ohio-state.edu>
 
