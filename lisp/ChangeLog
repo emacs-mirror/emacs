@@ -1,3 +1,7 @@
+2005-02-11  Lute Kamstra  <lute@gnu.org>
+
+	* apropos.el (apropos-score-doc): Prevent division by zero.
+
 2005-02-11  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar/icalendar.el (icalendar--get-event-property): Doc fix.
