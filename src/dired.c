@@ -308,7 +308,6 @@ file_name_completion (file, dirname, all_flag, ver_flag)
   file = FILE_SYSTEM_CASE (file);
 #endif
   bestmatch = Qnil;
-  dirname = Qnil;
   GCPRO3 (file, dirname, bestmatch);
   dirname = Fexpand_file_name (dirname, Qnil);
 
