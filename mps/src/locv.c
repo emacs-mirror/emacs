@@ -1,6 +1,6 @@
 /* impl.c.locv: Leaf Object Pool Class Coverage Test
  *
- * $HopeName: MMsrc!locv.c(trunk.12) $
+ * $HopeName: MMsrc!locv.c(trunk.13) $
  *
  * Copyright (C) 1996,1997 Harlequin Group, all rights reserved
  *
@@ -95,7 +95,9 @@ int main(void)
 
 static mps_res_t scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 {
-  (void)(ss, base, limit);
+  testlib_unused(ss);
+  testlib_unused(base);
+  testlib_unused(limit);
   die(MPS_RES_FAIL, "Error in Test, scan called unexpectedly");
   return MPS_RES_FAIL;
 }
@@ -113,14 +115,15 @@ static mps_addr_t skip(mps_addr_t object)
 
 static void move(mps_addr_t object, mps_addr_t to)
 {
-  (void)(object, to);
+  testlib_unused(object);
+  testlib_unused(to);
   assert(0);
 }
 
 
 static mps_addr_t isMoved(mps_addr_t object)
 {
-  (void)object;
+  testlib_unused(object);
   assert(0);
   return (mps_addr_t)NULL;
 }
@@ -128,13 +131,15 @@ static mps_addr_t isMoved(mps_addr_t object)
 
 static void copy(mps_addr_t old, mps_addr_t new)
 {
-  (void)(old, new);
+  testlib_unused(old);
+  testlib_unused(new);
   assert(0);
 }
 
 
 static void pad(mps_addr_t base, size_t size)
 {
-  (void)(base, size);
+  testlib_unused(base);
+  testlib_unused(size);
   assert(0);
 }
