@@ -1,3 +1,8 @@
+2000-08-20  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* etags.c (canonicalize_filename) [DOS_NT]: Upcase the first
+	letter only if it is a drive letter.
+
 2000-07-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* ebrowse.c (xrealloc, xmalloc): Renamed from yrealloc and
