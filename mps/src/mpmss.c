@@ -1,6 +1,6 @@
 /*  impl.c.mpmss: MPM STRESS TEST
  *
- * $HopeName: MMsrc!mpmss.c(trunk.15) $
+ * $HopeName: MMsrc!mpmss.c(trunk.16) $
  * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
  */
 
@@ -25,7 +25,7 @@
 extern mps_class_t PoolClassMFS(void);
 
 
-#define testArenaSIZE   ((size_t)64<<20)
+#define testArenaSIZE   ((((size_t)64)<<20) - 4)
 #define TEST_SET_SIZE 200
 #define TEST_LOOPS 10
 
