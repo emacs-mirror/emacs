@@ -1,3 +1,11 @@
+2002-06-13  Richard M. Stallman  <rms@gnu.org>
+
+	* play/zone.el (zone-timer): New variable holds the idle timer.
+	(zone): Don't fiddle with the idle timer at all.
+	(zone-when-idle): Put the idle timer in zone-timer. 
+	If one is already set up, cancel it and make a new one.
+	(zone-leave-me-alone): Likewise.
+
 2002-06-13  Jason Rumney  <jasonr@gnu.org>
 
 	* w32-fns.el (w32-charset-info-alist): Reorder.
