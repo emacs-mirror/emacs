@@ -304,3 +304,7 @@ all subdirectories with the buffer's default switches using
 @printindex cp
 
 @bye
+
+@ignore
+   arch-tag: 75c33f13-32c6-41b6-9537-847a312e2e49
+@end ignore
