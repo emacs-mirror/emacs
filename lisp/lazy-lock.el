@@ -4,7 +4,7 @@
 
 ;; Author: Simon Marshall <simon@gnu.ai.mit.edu>
 ;; Keywords: faces files
-;; Version: 2.08.02
+;; Version: 2.08.03
 
 ;;; This file is part of GNU Emacs.
 
@@ -256,6 +256,7 @@
 ;; - Added Custom support
 ;; 2.08--2.09:
 ;; - Removed `byte-*' variables from `eval-when-compile' (Erik Naggum hint)
+;; - Made various wrapping `inhibit-point-motion-hooks' (Vinicius Latorre hint)
 
 ;;; Code:
 
@@ -312,7 +313,7 @@ The value returned is the value of the last form in BODY."
 ;  "Submit via mail a bug report on lazy-lock.el."
 ;  (interactive)
 ;  (let ((reporter-prompt-for-summary-p t))
-;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "lazy-lock 2.08.02"
+;    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "lazy-lock 2.08.03"
 ;     '(lazy-lock-minimum-size lazy-lock-defer-on-the-fly
 ;       lazy-lock-defer-on-scrolling lazy-lock-defer-contextually
 ;       lazy-lock-defer-time lazy-lock-stealth-time
@@ -421,7 +422,7 @@ The value of this variable is used when Lazy Lock mode is turned on."
   :group 'lazy-lock)
 
 (defcustom lazy-lock-defer-time
-  (if (featurep 'lisp-float-type) (/ (float 1) (float 3)) 1)
+  (if (featurep 'lisp-float-type) (/ (float 1) (float 4)) 1)
   "*Time in seconds to delay before beginning deferred fontification.
 Deferred fontification occurs if there is no input within this time.
 If nil, means fontification is never deferred, regardless of the values of the
@@ -705,10 +706,11 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
   ;; Called from `window-scroll-functions'.
   ;; Fontify WINDOW from WINDOW-START following the scroll.  We cannot use
   ;; `window-end' so we work out what it would be via `vertical-motion'.
-  (save-excursion
-    (goto-char window-start)
-    (vertical-motion (window-height window) window)
-    (lazy-lock-fontify-region window-start (point)))
+  (let ((inhibit-point-motion-hooks t))
+    (save-excursion
+      (goto-char window-start)
+      (vertical-motion (window-height window) window)
+      (lazy-lock-fontify-region window-start (point))))
   ;; A prior deletion that did not cause scrolling, followed by a scroll, would
   ;; result in an unnecessary trigger after this if we did not cancel it now.
   (set-window-redisplay-end-trigger window nil))
@@ -770,10 +772,11 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
   ;; out what it would be via `vertical-motion'.
   ;; We could probably just use `lazy-lock-fontify-after-scroll' without loss:
   ;;  (lazy-lock-fontify-after-scroll window (window-start window))
-  (save-excursion
-    (goto-char (window-start window))
-    (vertical-motion (window-height window) window)
-    (lazy-lock-fontify-region trigger-point (point))))
+  (let ((inhibit-point-motion-hooks t))
+    (save-excursion
+      (goto-char (window-start window))
+      (vertical-motion (window-height window) window)
+      (lazy-lock-fontify-region trigger-point (point)))))
 
 ;; 2.  Modified text must be marked as unfontified so it can be identified and
 ;;     fontified later when Emacs is idle.  Deferral occurs by adding one of
@@ -930,32 +933,33 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 
 (defun lazy-lock-fontify-chunk ()
   ;; Fontify the nearest chunk, for stealth, in the current buffer.
-  (save-excursion
-    (save-restriction
-      (widen)
-      ;; Move to end of line in case the character at point is not fontified.
-      (end-of-line)
-      ;; Find where the previous, and next, unfontified regions end, and begin.
-      (let ((prev (previous-single-property-change (point) 'lazy-lock))
-	    (next (text-property-any (point) (point-max) 'lazy-lock nil)))
-	;; Fontify from the nearest unfontified position.
-	(if (or (null prev) (and next (< (- next (point)) (- (point) prev))))
-	    ;; The next, or neither, region is the nearest not fontified.
+  (let ((inhibit-point-motion-hooks t))
+    (save-excursion
+      (save-restriction
+	(widen)
+	;; Move to end of line in case the character at point is not fontified.
+	(end-of-line)
+	;; Find where the previous (next) unfontified regions end (begin).
+	(let ((prev (previous-single-property-change (point) 'lazy-lock))
+	      (next (text-property-any (point) (point-max) 'lazy-lock nil)))
+	  ;; Fontify from the nearest unfontified position.
+	  (if (or (null prev) (and next (< (- next (point)) (- (point) prev))))
+	      ;; The next, or neither, region is the nearest not fontified.
+	      (lazy-lock-fontify-region
+	       (progn (goto-char (or next (point-min)))
+		      (beginning-of-line)
+		      (point))
+	       (progn (goto-char (or next (point-min)))
+		      (forward-line lazy-lock-stealth-lines)
+		      (point)))
+	    ;; The previous region is the nearest not fontified.
 	    (lazy-lock-fontify-region
-	     (progn (goto-char (or next (point-min)))
-		    (beginning-of-line)
+	     (progn (goto-char prev)
+		    (forward-line (- lazy-lock-stealth-lines))
 		    (point))
-	     (progn (goto-char (or next (point-min)))
-		    (forward-line lazy-lock-stealth-lines)
-		    (point)))
-	  ;; The previous region is the nearest not fontified.
-	  (lazy-lock-fontify-region
-	   (progn (goto-char prev)
-		  (forward-line (- lazy-lock-stealth-lines))
-		  (point))
-	   (progn (goto-char prev)
-		  (forward-line)
-		  (point))))))))
+	     (progn (goto-char prev)
+		    (forward-line)
+		    (point)))))))))
 
 (defun lazy-lock-fontify-window (window)
   ;; Fontify in WINDOW between `window-start' and `window-end'.
@@ -968,13 +972,14 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
   ;; Where we cannot use `window-start' and `window-end' we do `window-height'
   ;; lines around point.  That way we guarantee to have done enough.
   (with-current-buffer (window-buffer window)
-    (lazy-lock-fontify-region
-     (save-excursion
-       (goto-char (window-point window))
-       (vertical-motion (- (window-height window)) window) (point))
-     (save-excursion
-       (goto-char (window-point window))
-       (vertical-motion (window-height window) window) (point)))))
+    (let ((inhibit-point-motion-hooks t))
+      (lazy-lock-fontify-region
+       (save-excursion
+	 (goto-char (window-point window))
+	 (vertical-motion (- (window-height window)) window) (point))
+       (save-excursion
+	 (goto-char (window-point window))
+	 (vertical-motion (window-height window) window) (point))))))
 
 (defun lazy-lock-unfontified-p ()
   ;; Return non-nil if there is anywhere still to be fontified.
