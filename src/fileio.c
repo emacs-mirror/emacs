@@ -3765,14 +3765,9 @@ DIR defaults to current buffer's directory default.")
 
 #if 0				/* Old version */
 DEFUN ("read-file-name", Fread_file_name, Sread_file_name, 1, 5, 0,
-  "Read file name, prompting with PROMPT and completing in directory DIR.\n\
-Value is not expanded---you must call `expand-file-name' yourself.\n\
-Default name to DEFAULT if user enters a null string.\n\
- (If DEFAULT is omitted, the visited file name is used.)\n\
-Fourth arg MUSTMATCH non-nil means require existing file's name.\n\
- Non-nil and non-t means also require confirmation after completion.\n\
-Fifth arg INITIAL specifies text to start with.\n\
-DIR defaults to current buffer's directory default.")
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
   (prompt, dir, defalt, mustmatch, initial)
      Lisp_Object prompt, dir, defalt, mustmatch, initial;
 {
