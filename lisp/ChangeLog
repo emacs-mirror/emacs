@@ -1,3 +1,26 @@
+2005-01-11  Juri Linkov  <juri@jurta.org>
+
+	* toolbar/back_arrow.xpm, toolbar/back_arrow.pbm,
+	* toolbar/lc-back_arrow.xpm, toolbar/lc-fwd_arrow.xpm,
+	* toolbar/fwd_arrow.xpm, toolbar/fwd_arrow.pbm: New icons.
+
+	* info.el (Info-history-forward): New variable.
+	(Info-select-node): Reset Info-history-forward to nil.
+	(Info-last): Turn into defalias.
+	(Info-history-back): Rename from Info-last.
+	Add current node to Info-history-forward.
+	(Info-history-forward): New fun.
+	(Info-mode-map): Replace Info-last by Info-history-back.
+	Bind Info-history-forward to "r".
+	(Info-mode-menu): Replace Info-last by Info-history-back.
+	Fix menu item text.  Add menu item for Info-history-forward.
+	(info-tool-bar-map): Replace Info-last by Info-history-back.
+	Replace its icon "undo" by "back_arrow".  Add icon "fwd_arrow"
+	for Info-history-forward.
+	(Info-mode): Replace Info-last by Info-history-back in docstring.
+	Add local variable Info-history-forward.
+	(Info-goto-emacs-command-node): Replace Info-last by Info-history-back.
+
 2005-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mouse.el (mouse-drag-mode-line-1, mouse-drag-vertical-line)
@@ -3224,7 +3247,7 @@
 	* menu-bar.el (menu-bar-files-menu): Make "Open File..." call
 	find-file-existing.  Add "New File..." that calls find-file.
 
-	* diropen.pbm diropen.xpm: New files.
+	* diropen.pbm, diropen.xpm: New files.
 
 	* toolbar/tool-bar.el (tool-bar-setup): Tool bar item dired uses
 	icon diropen.  New tool bar item find-file-existing uses icon open.
