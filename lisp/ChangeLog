@@ -1,10 +1,15 @@
+2002-05-06  Markus Rost  <rost@math.ohio-state.edu>
+
+	* emacs-lisp/find-func.el (find-function-search-for-symbol): Use
+	with-syntax-table.
+
 2002-05-06  Francesco Potorti`  <pot@gnu.org>
 
 	* mail/rmail.el (rmail-font-lock-keywords): Highlight Resent-[Ff]rom:.
 
 2002-05-05  Markus Rost  <rost@math.ohio-state.edu>
 
-	* time-stamp.el (time-stamp-format):  Doc fix: escape open
+	* time-stamp.el (time-stamp-format): Doc fix: escape open
 	parenthesis in column 0.
 
 2002-05-04  Richard M. Stallman  <rms@gnu.org>
