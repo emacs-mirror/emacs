@@ -1,10 +1,5 @@
-/* x_handle_selection_notify
-x_reply_selection_request
-XFree
-x_selection_timeout initial value  */
-
 /* X Selection processing for emacs
-   Copyright (C) 1990-1993 Free Software Foundation.
+   Copyright (C) 1993 Free Software Foundation.
 
 This file is part of GNU Emacs.
 
@@ -21,6 +16,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
+/* x_handle_selection_notify
+x_reply_selection_request
+XFree
+x_selection_timeout initial value  */
 
 /* Rewritten by jwz */
 

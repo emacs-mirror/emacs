@@ -1,5 +1,5 @@
 /* Simple built-in editing commands.
-   Copyright (C) 1985, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

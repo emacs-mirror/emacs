@@ -1,5 +1,5 @@
 /* "Face" primitives.
-   Copyright (C) 1992, 1993 Free Software Foundation.
+   Copyright (C) 1993 Free Software Foundation.
 
 This file is part of GNU Emacs.
 

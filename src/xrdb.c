@@ -1,5 +1,5 @@
 /* Deal with the X Resource Manager.
-   Copyright (C) 1990, 1992 Free Software Foundation.
+   Copyright (C) 1990, 1993 Free Software Foundation.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

@@ -1,6 +1,6 @@
 /* Lisp parsing and input streams.
    Copyright (C) 1985, 1986, 1987, 1988, 1989,
-   1992 Free Software Foundation, Inc.
+   1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

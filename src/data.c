@@ -1,5 +1,5 @@
 /* Primitive operations on Lisp data types for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 1986, 1988, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1988, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
