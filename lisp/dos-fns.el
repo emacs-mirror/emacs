@@ -35,7 +35,8 @@
    'global-mode-string
    (purecopy "   %[(")
    (purecopy "%t:")
-   'mode-name 'mode-line-process 'minor-mode-alist "%n"
+   'mode-name 'mode-line-process 'minor-mode-alist
+   (purecopy "%n")
    (purecopy ")%]--")
    (purecopy '(line-number-mode "L%l--"))
    (purecopy '(-3 . "%p"))
@@ -53,7 +54,7 @@
 					; Unix stuff
     ("\\.tp[ulpw]$" . t)
 					; Borland Pascal stuff
-    ("[:/]tags$" . t ) 
+    ("[:/]tags$" . t)
 					; Emacs TAGS file
     )
   "*Alist for distinguishing text files from binary files.
@@ -104,22 +105,17 @@ against the file name, and TYPE is nil for text, t for binary.")
 (defvar msdos-shells '("command.com" "4dos.com" "ndos.com")
   "*List of shells that use `/c' instead of `-c' and a backslashed command.")
 
-(defconst register-name-by-word-alist
+(defconst register-name-alist
   '((ax . 0) (bx . 1) (cx . 2) (dx . 3) (si . 4) (di . 5)
-    (cflag . 6) (flags . 7)))
-
-(defconst register-name-by-byte-alist
-  '((al . (0 . 0)) (ah . (0 . 1))
-    (bl . (1 . 0)) (bh . (1 . 1))
-    (cl . (2 . 0)) (ch . (2 . 1))
-    (dl . (3 . 0)) (dh . (3 . 1))))
+    (cflag . 6) (flags . 7)
+    (al . (0 . 0)) (bl . (1 . 0)) (cl . (2 . 0)) (dl . (3 . 0))
+    (ah . (0 . 1)) (bh . (1 . 1)) (ch . (2 . 1)) (dh . (3 . 1))))
 
 (defun make-register ()
   (make-vector 8 0))
 
 (defun register-value (regs name)
-  (let ((where (or (cdr (assoc name register-name-by-word-alist))
-		   (cdr (assoc name register-name-by-byte-alist)))))
+  (let ((where (cdr (assoc name register-name-alist))))
     (cond ((consp where)
 	   (let ((tem (aref regs (car where))))
 	     (if (zerop (cdr where))
@@ -131,20 +127,18 @@ against the file name, and TYPE is nil for text, t for binary.")
 
 (defun set-register-value (regs name value)
   (and (numberp value)
-       (> value 0)
-       (let ((where (or (cdr (assoc name register-name-by-word-alist))
-			(cdr (assoc name register-name-by-byte-alist)))))
+       (>= value 0)
+       (let ((where (cdr (assoc name register-name-alist))))
 	 (cond ((consp where)
-		(setq value (% value 256))	; 0x100
-		(let* ((tem (aref regs (car where)))
-		       (l (% tem 256))
-		       (h (/ tem 256)))
-		  (if (zerop (cdr where))
-		      (aset regs (car where) (+ (* h 256) value))
-		    (aset regs (car where) (+ (* value 256) h)))))
+		(let ((tem (aref regs (car where)))
+		      (value (logand value 255)))
+		  (aset regs
+			(car where)
+			(if (zerop (cdr where))
+			    (logior (logand tem 65280) value)
+			  (logior (logand tem 255) (lsh value 8))))))
 	       ((numberp where)
-		(setq value (% value 65536))	; 0x10000
-		(aset regs where value)))))
+		(aset regs where (logand value 65535))))))
   regs)
 
 (defsubst intdos (regs)
