@@ -632,8 +632,8 @@ do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
   "Regexp matching the end of a TYPE, INTERFACE, BLOCK DATA section.")
 
 (defconst f90-type-def-re
-  "\\<\\(type\\)\\([^(\n]*\\)\\(::\\)?[ \t]*\\b\\(\\sw+\\)"
-  "Regexp matching the declaration of a variable of derived type.")
+  "\\<\\(type\\)[ \t]+\\(\\sw+\\)\\>"
+  "Regexp matching the definition of a derived type.")
 
 (defconst f90-no-break-re
   (regexp-opt '("**" "//" "=>") 'paren)
@@ -977,7 +977,7 @@ NAME is nil if the statement has no label."
 NAME is non-nil only for type."
   (cond
    ((looking-at f90-type-def-re)
-    (list (match-string 1) (match-string 4)))
+    (list (match-string 1) (match-string 2)))
    ((looking-at "\\(interface\\|block[\t]*data\\)\\>")
     (list (match-string 1) nil))))
 
