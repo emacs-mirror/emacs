@@ -2155,6 +2155,27 @@ readable_events ()
 /* Set this for debugging, to have a way to get out */
 int stop_character;
 
+#ifdef MULTI_PERDISPLAY
+static PERDISPLAY *
+event_to_perdisplay (event)
+     struct input_event *event;
+{
+  Lisp_Object frame;
+  frame = event->frame_or_window;
+  if (CONSP (frame))
+    frame = XCONS (frame)->car;
+  else if (WINDOWP (frame))
+    frame = WINDOW_FRAME (XWINDOW (frame));
+
+  /* There are still some events that don't set this field.
+     For now, just ignore the problem.  */
+  if (!FRAMEP (frame))
+    return 0;
+  else
+    return get_perdisplay (XFRAME (frame));
+}
+#endif
+
 /* Store an event obtained at interrupt level into kbd_buffer, fifo */
 
 void
@@ -2178,6 +2199,32 @@ kbd_buffer_store_event (event)
       if (c == quit_char)
 	{
 	  extern SIGTYPE interrupt_signal ();
+#ifdef MULTI_PERDISPLAY
+	  PERDISPLAY *perd;
+	  struct input_event *sp;
+
+	  if (display_locked
+	      && (perd = get_perdisplay (XFRAME (event->frame_or_window)),
+		  perd != current_perdisplay))
+	    {
+	      perd->kbd_queue
+		= Fcons (make_lispy_switch_frame (event->frame_or_window),
+			 Fcons (make_number (c), Qnil));
+	      perd->kbd_queue_has_data = 1;
+	      for (sp = kbd_fetch_ptr; sp != kbd_store_ptr; sp++)
+		{
+		  if (sp == kbd_buffer + KBD_BUFFER_SIZE)
+		    sp = kbd_buffer;
+
+		  if (event_to_perdisplay (sp) == perd)
+		    {
+		      sp->kind = no_event;
+		      sp->frame_or_window = Qnil;
+		    }
+		}
+	      return;
+	    }
+#endif
 
 #ifdef MULTI_FRAME
 	  /* If this results in a quit_char being returned to Emacs as
@@ -2320,20 +2367,13 @@ kbd_buffer_get_event (PERDISPLAY **perdp)
 
       last_event_timestamp = event->timestamp;
 
-      {
-	Lisp_Object frame;
-	frame = event->frame_or_window;
-	if (CONSP (frame))
-	  frame = XCONS (frame)->car;
-	else if (WINDOWP (frame))
-	  frame = WINDOW_FRAME (XWINDOW (frame));
-	/* There are still some events that don't set this field.
-	   For now, just ignore the problem.  */
-	if (!FRAMEP (frame))
-	  *perdp = all_perdisplays;
-	else
-	  *perdp = get_perdisplay (XFRAME (frame));
-      }
+#ifdef MULTI_PERDISPLAY
+      *perdp = event_to_perdisplay (event);
+      if (*perdp == 0)
+	*perdp = all_perdisplays;  /* Better than returning null ptr?  */
+#else
+      *perdp = &the_only_perdisplay;
+#endif
 
       obj = Qnil;
 
@@ -2405,8 +2445,11 @@ kbd_buffer_get_event (PERDISPLAY **perdp)
 	  kbd_fetch_ptr = event + 1;
 	}
       /* Just discard these, by returning nil.
-	 (They shouldn't be found in the buffer,
-	 but on some machines it appears they do show up.)  */
+	 With MULTI_PERDISPLAY, these events are used as placeholders
+	 when we need to randomly delete events from the queue.
+	 (They shouldn't otherwise be found in the buffer,
+	 but on some machines it appears they do show up
+	 even without MULTI_PERDISPLAY.)  */
       else if (event->kind == no_event)
 	kbd_fetch_ptr = event + 1;
 
@@ -5059,16 +5102,24 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    struct frame *interrupted_frame = selected_frame;
 	    if (setjmp (wrong_display_jmpbuf))
 	      {
+		if (!NILP (delayed_switch_frame))
+		  {
+		    interrupted_perdisplay->kbd_queue
+		      = Fcons (delayed_switch_frame,
+			       interrupted_perdisplay->kbd_queue);
+		    delayed_switch_frame = Qnil;
+		  }
 		while (t > 0)
 		  interrupted_perdisplay->kbd_queue
 		    = Fcons (keybuf[--t], interrupted_perdisplay->kbd_queue);
-		/* Ensure that the side queue begins with a switch-frame, so
-		   we'll be in the right context when we replay it later.  */
-		if (!(CONSP (interrupted_perdisplay->kbd_queue)
-		      && (key = XCONS (interrupted_perdisplay->kbd_queue)->car,
-			  EVENT_HAS_PARAMETERS (key))
-		      && EQ (EVENT_HEAD_KIND (EVENT_HEAD (key)),
-			     Qswitch_frame)))
+
+		/* If the side queue is non-empty, ensure it begins with a
+		   switch-frame, so we'll replay it in the right context.  */
+		if (CONSP (interrupted_perdisplay->kbd_queue)
+		    && (key = XCONS (interrupted_perdisplay->kbd_queue)->car,
+			!(EVENT_HAS_PARAMETERS (key)
+			  && EQ (EVENT_HEAD_KIND (EVENT_HEAD (key)),
+				 Qswitch_frame))))
 		  {
 		    Lisp_Object frame;
 		    XSETFRAME (frame, interrupted_frame);
