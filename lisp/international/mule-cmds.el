@@ -522,18 +522,18 @@ inputting at minibuffer if this flag is t.")
 
 
 (defun setup-specified-language-environment ()
-  "Setup multi-lingual environment convenient for the specified language."
+  "Set up multi-lingual environment convenient for the specified language."
   (interactive)
-  (let (language-name func)
+  (let (language-name)
     (if (and (symbolp last-command-event)
 	     (or (not (eq last-command-event 'Default))
 		 (setq last-command-event 'English))
-	     (setq language-name (symbol-name last-command-event))
-	     (setq func (get-language-info language-name 'setup-function)))
-	(progn
-	  (funcall func)
-	  (force-mode-line-update t))
+	     (setq language-name (symbol-name last-command-event)))
+	(set-language-environment language-name)
       (error "Bogus calling sequence"))))
+
+(defvar current-language-environment "English"
+  "The last language environment specified with `set-language-environment'.")
 
 ;;;###autoload
 (defun set-language-environment (language-name)
@@ -541,11 +541,14 @@ inputting at minibuffer if this flag is t.")
 This sets the coding system priority and the default input method
 and sometimes other things."
   (interactive (list (read-language-name 'setup-function "Language: ")))
+  (if (member (downcase language-name) '("default"))
+      (setq language-name "english"))
   (if (or (null language-name)
 	  (null (get-language-info language-name 'setup-function)))
-      (error "No way to setup environment for the specified language"))
-  (let ((last-command-event (intern language-name)))
-    (setup-specified-language-environment)))
+      (error "Language environment not defined: %S" language-name))
+  (funcall (get-language-info language-name 'setup-function))
+  (setq current-language-environment language-name)
+  (force-mode-line-update t))
 
 ;; Print all arguments with `princ', then print "\n".
 (defsubst princ-list (&rest args)
@@ -569,6 +572,8 @@ and sometimes other things."
 (defun describe-language-environment (language-name)
   "Describe how Emacs supports language environment LANGUAGE-NAME."
   (interactive (list (read-language-name 'documentation "Language: ")))
+  (if (null language-name)
+      (setq language-name current-language-environment))
   (if (or (null language-name)
 	  (null (get-language-info language-name 'documentation)))
       (error "No documentation for the specified language"))
