@@ -26,10 +26,16 @@ Boston, MA 02111-1307, USA.  */
 #endif
 #include <time.h>
 
+#ifndef MAC_OSX
+/* On Mac OS X, defining this conflicts with precompiled headers.  */
+
 /* Note on some machines this defines `vector' as a typedef,
    so make sure we don't use that name in this file.  */
 #undef vector
 #define vector *****
+
+#endif  /* ! MAC_OSX */
+
 #include "lisp.h"
 #include "commands.h"
 #include "charset.h"

@@ -198,6 +198,8 @@ Boston, MA 02111-1307, USA.  */
 #endif
 #ifdef MAC_OS
 #include "macterm.h"
+
+Cursor No_Cursor;
 #endif
 
 #ifndef FRAME_X_OUTPUT
@@ -18341,9 +18343,6 @@ x_write_glyphs (start, len)
 		   hpos, hpos + len,
 		   DRAW_NORMAL_TEXT, 0);
 
-#ifndef HAVE_CARBON  
-  /* ++KFS: Why not on MAC ? */
-
   /* Invalidate old phys cursor if the glyph at its hpos is redrawn.  */
   if (updated_area == TEXT_AREA
       && updated_window->phys_cursor_on_p
@@ -18351,7 +18350,6 @@ x_write_glyphs (start, len)
       && updated_window->phys_cursor.hpos >= hpos
       && updated_window->phys_cursor.hpos < hpos + len)
     updated_window->phys_cursor_on_p = 0;
-#endif
 
   UNBLOCK_INPUT;
 
@@ -18710,16 +18708,6 @@ notice_overwritten_cursor (w, area, x0, x1, y0, y1)
      enum glyph_row_area area;
      int x0, y0, x1, y1;
 {
-#ifdef HAVE_CARBON
-  /* ++KFS:  Why is there a special version of this for the mac ? */
-  if (area == TEXT_AREA
-      && w->phys_cursor_on_p
-      && y0 <= w->phys_cursor.y
-      && y1 >= w->phys_cursor.y + w->phys_cursor_height
-      && x0 <= w->phys_cursor.x
-      && (x1 < 0 || x1 > w->phys_cursor.x))
-    w->phys_cursor_on_p = 0;
-#else
   if (area == TEXT_AREA && w->phys_cursor_on_p)
     {
       int cx0 = w->phys_cursor.x;
@@ -18750,7 +18738,6 @@ notice_overwritten_cursor (w, area, x0, x1, y0, y1)
 	    w->phys_cursor_on_p = 0;
 	}
     }
-#endif
 }
 
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -18834,16 +18821,12 @@ draw_phys_cursor_glyph (w, row, hl)
 			hl, 0);
       w->phys_cursor_on_p = on_p;
 
-#ifndef HAVE_CARBON
-      /* ++KFS: MAC version did not adjust phys_cursor_width (bug?) */
       if (hl == DRAW_CURSOR)
 	w->phys_cursor_width = x1 - w->phys_cursor.x;
-      else
-#endif
       /* When we erase the cursor, and ROW is overlapped by other
 	 rows, make sure that these overlapping parts of other rows
 	 are redrawn.  */
-      if (hl == DRAW_NORMAL_TEXT && row->overlapped_p)
+      else if (hl == DRAW_NORMAL_TEXT && row->overlapped_p)
 	{
 	  if (row > w->current_matrix->rows
 	      && MATRIX_ROW_OVERLAPS_SUCC_P (row - 1))
@@ -19497,90 +19480,6 @@ fast_find_string_pos (w, pos, object, hpos, vpos, x, y, right_p)
 }
 
 
-#ifdef HAVE_CARBON  
-
-/* ++KFS: Why does MAC have its own version here?  Looks like OLD CODE!! */
-
-/* Take proper action when mouse has moved to the mode or header line of
-   window W, x-position X.  MODE_LINE_P non-zero means mouse is on the
-   mode line.  X is relative to the start of the text display area of
-   W, so the width of fringes and scroll bars must be subtracted
-   to get a position relative to the start of the mode line.  */
-
-static void
-note_mode_line_highlight (w, x, mode_line_p)
-     struct window *w;
-     int x, mode_line_p;
-{
-  struct frame *f = XFRAME (w->frame);
-  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
-  Cursor *cursor = dpyinfo->vertical_scroll_bar_cursor;
-  struct glyph_row *row;
-
-  if (mode_line_p)
-    row = MATRIX_MODE_LINE_ROW (w->current_matrix);
-  else
-    row = MATRIX_HEADER_LINE_ROW (w->current_matrix);
-
-  if (row->enabled_p)
-    {
-      struct glyph *glyph, *end;
-      Lisp_Object help, map;
-      int x0;
-
-      /* Find the glyph under X.  */
-      glyph = row->glyphs[TEXT_AREA];
-      end = glyph + row->used[TEXT_AREA];
-      x0 = - (FRAME_LEFT_SCROLL_BAR_WIDTH (f) * CANON_X_UNIT (f)
-	      + FRAME_X_LEFT_FRINGE_WIDTH (f));
-
-      while (glyph < end
-	     && x >= x0 + glyph->pixel_width)
-	{
-	  x0 += glyph->pixel_width;
-	  ++glyph;
-	}
-
-      if (glyph < end
-	  && STRINGP (glyph->object)
-	  && STRING_INTERVALS (glyph->object)
-	  && glyph->charpos >= 0
-	  && glyph->charpos < SCHARS (glyph->object))
-	{
-	  /* If we're on a string with `help-echo' text property,
-	     arrange for the help to be displayed.  This is done by
-	     setting the global variable help_echo_string to the help
-	     string.  */
-	  help = Fget_text_property (make_number (glyph->charpos),
-				     Qhelp_echo, glyph->object);
-	  if (!NILP (help))
-            {
-              help_echo_string = help;
-              XSETWINDOW (help_echo_window, w);
-              help_echo_object = glyph->object;
-              help_echo_pos = glyph->charpos;
-            }
-
-	  /* Change the mouse pointer according to what is under X/Y.  */
-	  map = Fget_text_property (make_number (glyph->charpos),
-				    Qlocal_map, glyph->object);
-	  if (KEYMAPP (map))
-	    cursor = f->output_data.mac->nontext_cursor;
-	  else
-	    {
-	      map = Fget_text_property (make_number (glyph->charpos),
-					Qkeymap, glyph->object);
-	      if (KEYMAPP (map))
-		cursor = f->output_data.mac->nontext_cursor;
-	    }
-	}
-    }
-
-  rif->define_frame_cursor (f, cursor);
-}
-
-#else
-
 /* Take proper action when mouse has moved to the mode or header line
    or marginal area AREA of window W, x-position X and y-position Y.
    X is relative to the start of the text display area of W, so the
@@ -19630,8 +19529,6 @@ note_mode_line_or_margin_highlight (w, x, y, area)
 
   rif->define_frame_cursor (f, cursor);
 }
-
-#endif /* !HAVE_CARBON */
 
 
 /* EXPORT:
@@ -19702,16 +19599,6 @@ note_mouse_highlight (f, x, y)
       return;
     }
 
-#ifdef HAVE_CARBON
-  /* ++KFS: Why does MAC have its own version here?  Looks like OLD CODE!! */
-
-  /* Mouse is on the mode or header line?  */
-  if (part == ON_MODE_LINE || part == ON_HEADER_LINE)
-    {
-      note_mode_line_highlight (w, x, part == ON_MODE_LINE);
-      return;
-    }
-#else
   /* Mouse is on the mode, header line or margin?  */
   if (part == ON_MODE_LINE || part == ON_HEADER_LINE
       || part == ON_LEFT_MARGIN || part == ON_RIGHT_MARGIN)
@@ -19719,7 +19606,6 @@ note_mouse_highlight (f, x, y)
       note_mode_line_or_margin_highlight (w, x, y, part);
       return;
     }
-#endif
 
   if (part == ON_VERTICAL_BORDER)
     cursor = FRAME_X_OUTPUT (f)->horizontal_drag_cursor;
@@ -20087,7 +19973,11 @@ note_mouse_highlight (f, x, y)
 
  set_cursor:
 
+#ifndef HAVE_CARBON
   if (cursor != No_Cursor)
+#else
+  if (bcmp (&cursor, &No_Cursor, sizeof (Cursor)))
+#endif
     rif->define_frame_cursor (f, cursor);
 }
 

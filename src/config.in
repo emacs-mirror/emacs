@@ -1013,6 +1013,8 @@ typedef unsigned size_t;
 #  endif
 #endif
 
+#ifndef MAC_OSX
+/* On Mac OS X, macros already defined in precompiled headers.  */
 /* avoid deprecated functions */
 #if HAVE_MEMCPY
 #  define bcopy(a,b,s) memcpy (b,a,s)
@@ -1024,6 +1026,7 @@ typedef unsigned size_t;
 #  define BCMP memcmp
 #  define bcmp memcmp
 #endif
+#endif /* MAC_OSX */
 
 #endif /* EMACS_CONFIG_H */
 

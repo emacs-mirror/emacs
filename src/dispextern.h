@@ -58,9 +58,38 @@ typedef struct x_display_info Display_Info;
 typedef struct w32_display_info Display_Info;
 #endif
 
-#ifdef MAC_OS
+#ifdef HAVE_CARBON
 #include "macgui.h"
 typedef struct mac_display_info Display_Info;
+
+/* Include Carbon.h to define Cursor and Rect.  */
+#undef mktime
+#undef DEBUG
+#undef Z
+#undef free
+#undef malloc
+#undef realloc
+/* Macros max and min defined in lisp.h conflict with those in
+   precompiled header Carbon.h.  */
+#undef max
+#undef min
+#undef init_process
+#include <Carbon/Carbon.h>
+#undef Z
+#define Z (current_buffer->text->z)
+#undef free
+#define free unexec_free
+#undef malloc
+#define malloc unexec_malloc
+#undef realloc
+#define realloc unexec_realloc
+#undef min
+#define min(a, b) ((a) < (b) ? (a) : (b))
+#undef max
+#define max(a, b) ((a) > (b) ? (a) : (b))
+#undef init_process
+#define init_process emacs_init_process
+
 #endif
 
 

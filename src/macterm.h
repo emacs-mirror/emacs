@@ -23,6 +23,36 @@ Boston, MA 02111-1307, USA.  */
 #include "macgui.h"
 #include "frame.h"
 
+/* Include Carbon.h to define Cursor and Rect.  */
+#ifdef HAVE_CARBON
+#undef mktime
+#undef DEBUG
+#undef Z
+#undef free
+#undef malloc
+#undef realloc
+/* Macros max and min defined in lisp.h conflict with those in
+   precompiled header Carbon.h.  */
+#undef max
+#undef min
+#undef init_process
+#include <Carbon/Carbon.h>
+#undef Z
+#define Z (current_buffer->text->z)
+#undef free
+#define free unexec_free
+#undef malloc
+#define malloc unexec_malloc
+#undef realloc
+#define realloc unexec_realloc
+#undef min
+#define min(a, b) ((a) < (b) ? (a) : (b))
+#undef max
+#define max(a, b) ((a) > (b) ? (a) : (b))
+#undef init_process
+#define init_process emacs_init_process
+#endif /* MAC_OSX */
+
 /* The class of this X application.  */
 #define EMACS_CLASS "Emacs"
 
@@ -96,7 +126,7 @@ struct mac_display_info
   Window root_window;
 
   /* The cursor to use for vertical scroll bars.  */
-  struct Cursor *vertical_scroll_bar_cursor;
+  Cursor vertical_scroll_bar_cursor;
 
 #if 0
   /* color palette information.  */
@@ -328,11 +358,12 @@ struct mac_output {
   unsigned long scroll_bar_background_pixel;
 
   /* Descriptor for the cursor in use for this window.  */
-  struct Cursor *text_cursor;
-  struct Cursor *nontext_cursor;
-  struct Cursor *modeline_cursor;
-  struct Cursor *hand_cursor;
-  struct Cursor *hourglass_cursor;
+  Cursor text_cursor;
+  Cursor nontext_cursor;
+  Cursor modeline_cursor;
+  Cursor hand_cursor;
+  Cursor hourglass_cursor;
+  Cursor horizontal_drag_cursor;
 #if 0
   /* Window whose cursor is hourglass_cursor.  This window is temporarily
      mapped to display a hourglass-cursor.  */

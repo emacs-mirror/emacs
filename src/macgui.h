@@ -30,8 +30,6 @@ typedef int Display;  /* fix later */
 
 typedef unsigned long Time;
 
-#define No_Cursor (0)  /* fix later */
-
 #if MAC_OSX
 typedef struct OpaqueWindowPtr* Window;
 #else

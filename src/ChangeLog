@@ -1,3 +1,24 @@
+2003-03-24  Andrew Choi  <akochoi@shaw.ca>
+
+	* config.in [MAC_OSX]: Do not redefine bcopy, bzero, and bcmp.
+
+	* dispextern.h [HAVE_CARBON]: Include Carbon.h.
+
+	* fns.c [MAC_OSX]: Do not redefine vector.
+
+	* keyboard.c [MAC_OSX]: Handle SIGINT with interrupt_signal.
+
+	* macgui.h: Remove definition of No_Cursor.
+
+	* macterm.h: Include Carbon.h.  Replace (struct Cursor *) by
+	Cursor.
+
+	* xdisp.c: Define No_Cursor.
+	(x_write_glyphs, notice_overwritten_cursor)
+	(draw_phys_cursor_glyph, note_mode_line_or_margin_highlight)
+	(note_mouse_highlight): Remove Mac-specific code.
+	(note_mouse_highlight): Use bcmp instead of == to compare Cursors.
+	
 2003-03-24  John Paul Wallington  <jpw@gnu.org>
 
 	* xdisp.c (redisplay_window): If mini window's buffer is not
