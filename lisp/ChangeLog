@@ -1,3 +1,18 @@
+2003-04-19  Richard M. Stallman  <rms@gnu.org>
+
+	* desktop.el (desktop-buffer-mh): Don't require mh-e;
+	it causes trouble in compilation.
+
+	* add-log.el (add-log-current-defun-function): Add autoload cookie.
+
+	* newcomment.el (comment-use-syntax): Add autoload cookie.
+
+	* emacs-lisp/bytecomp.el (byte-compile-log-file)
+	(byte-recompile-directory): Don't use byte-goto-log-buffer.
+	Instead, set default-directory and then call compilation-mode.
+	(byte-compile-from-buffer): Force byte-compile-last-position
+	to end of buffer before issuing final warnings.
+
 2003-04-18  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emulation/cua-base.el (cua-mode): Use define-minor-mode.

@@ -1,3 +1,9 @@
+2003-04-19  Richard M. Stallman  <rms@gnu.org>
+
+	* internals.texi (Writing Emacs Primitives): Strings are
+	no longer special for GCPROs.  Mention GCPRO5, GCPRO6.
+	Explain GCPRO convention for varargs function args.
+
 2003-04-16  Richard M. Stallman  <rms@gnu.org>
 
 	* minibuf.texi (Minibuffer Misc): Document fn minibuffer-message.
