@@ -263,7 +263,7 @@ directory with a different name; as long as the old version remains
 installed, its files will remain unmodified in the places where they are
 expected to be.
 
-  However, if you have build Emacs yourself and use it from the
+  However, if you have built Emacs yourself and use it from the
 directory where you built it, you will experience this problem
 occasionally if you edit and recompile Lisp files.  When it happens, you
 can cure the problem by reloading the file after recompiling it.
