@@ -962,7 +962,7 @@ If t, `ffap-tex-init' will initialize this when needed.")
     ;; * no commas (good for latex)
     (file "--:$+<>@-Z_a-z~*?" "<@" "@>;.,!:")
     ;; An url, or maybe a email/news message-id:
-    (url "--:=&?$+@-Z_a-z~#,%;" "^A-Za-z0-9" ":;.,!?")
+    (url "--:=&?$+@-Z_a-z~#,%;*" "^A-Za-z0-9" ":;.,!?")
     ;; Find a string that does *not* contain a colon:
     (nocolon "--9$+<>@-Z_a-z~" "<@" "@>;.,!?")
     ;; A machine:
