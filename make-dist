@@ -90,7 +90,11 @@ fi
 ### Check for .elc files with no corresponding .el file.
 ls -1 lisp/*.el | sed 's/\.el$/.elc/' > /tmp/el
 ls -1 lisp/*.elc > /tmp/elc
-comm -13 /tmp/el /tmp/elc
+bogosities="`comm -13 /tmp/el /tmp/elc`"
+if [ "${bogosities}" != "" ]; then
+  echo "The following .elc files have no corresponding .el files:"
+  echo "${bogosities}"
+fi
 
 echo "Creating staging directory: \`${tempparent}'"
 mkdir ${tempparent}
