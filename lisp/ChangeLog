@@ -6,7 +6,7 @@
 	(fancy-diary-display): Make `marks', `temp-face', `faceinfo'
 	local.
 	(diary-mail-entries): There is no fancy-diary-buffer if there are
-	no diary entries.
+	no diary entries.  Use call-interactively.
 	(mark-diary-entries): Make `temp' local.
 	(mark-sexp-diary-entries): Make `marks' local, remove `temp'.
 	(list-sexp-diary-entries): Make `temp' local.
