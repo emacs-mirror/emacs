@@ -923,8 +923,15 @@ and selects that window."
   (interactive
    (x-popup-menu last-nonmenu-event x-fixed-font-alist))
   (if font
-      (modify-frame-parameters (selected-frame)
-			       (list (cons 'font font)))))
+      (progn (modify-frame-parameters (selected-frame)
+				      (list (cons 'font font)))
+	     ;; Update some standard faces too.
+	     (set-face-font 'bold nil (selected-frame)) 
+	     (make-face-bold 'bold (selected-frame) t)
+	     (set-face-font 'italic nil (selected-frame))
+	     (make-face-italic 'italic (selected-frame) t)
+	     (set-face-font 'bold-italic nil (selected-frame))
+	     (make-face-bold-italic 'bold-italic (selected-frame) t))))
 
 ;;; Bindings for mouse commands.
 
