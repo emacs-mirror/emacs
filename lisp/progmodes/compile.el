@@ -66,8 +66,9 @@
 ;; These are the value of the `message' text-properties in the compilation
 ;; buffer.
 
-
 ;;; Code:
+
+(eval-when-compile (require 'cl))
 
 (defgroup compilation nil
   "Run compiler as inferior of Emacs, parse error messages."
@@ -673,33 +674,45 @@ Faces `compilation-error-face', `compilation-warning-face',
 	       (if (consp file) (setq fmt (cdr file)	  file (car file)))
 	       (if (consp line) (setq end-line (cdr line) line (car line)))
 	       (if (consp col)	(setq end-col (cdr col)	  col (car col)))
+	  
+	       (if (symbolp line)
+		   ;; The old compile.el had here an undocumented hook that
+		   ;; allowed `line' to be a function that computed the actual
+		   ;; error location.  Let's do our best.
+		   `(,(car item)
+		     (0 (compilation-compat-error-properties
+			 (funcall ',line (list* (match-string ,file)
+						default-directory
+						',(nthcdr 4 item))
+				  ,(if col `(match-string ,col)))))
+		     (,file compilation-error-face t))
+		    
+		 `(,(nth 0 item)
 
-	       `(,(nth 0 item)
+		   ,@(when (integerp file)
+		       `((,file ,(if (consp type)
+				     `(compilation-face ',type)
+				   (aref [compilation-info-face
+					  compilation-warning-face
+					  compilation-error-face]
+					 (or type 2))))))
 
-		 ,@(when (integerp file)
-		     `((,file ,(if (consp type)
-				   `(compilation-face ',type)
-				 (aref [compilation-info-face
-					compilation-warning-face
-					compilation-error-face]
-				       (or type 2))))))
+		   ,@(when line
+		       `((,line compilation-line-face nil t)))
+		   ,@(when end-line
+		       `((,end-line compilation-line-face nil t)))
 
-		 ,@(when line
-		     `((,line compilation-line-face nil t)))
-		 ,@(when end-line
-		     `((,end-line compilation-line-face nil t)))
+		   ,@(when col
+		       `((,col compilation-column-face nil t)))
+		   ,@(when end-col
+		       `((,end-col compilation-column-face nil t)))
 
-		 ,@(when col
-		     `((,col compilation-column-face nil t)))
-		 ,@(when end-col
-		     `((,end-col compilation-column-face nil t)))
-
-		 ,@(nthcdr 6 item)
-		 (,(or (nth 5 item) 0)
-		  (compilation-error-properties ',file ,line ,end-line
-						,col ,end-col ',(or type 2)
-						',fmt)
-		  append))))		; for compilation-message-face
+		   ,@(nthcdr 6 item)
+		   (,(or (nth 5 item) 0)
+		    (compilation-error-properties ',file ,line ,end-line
+						  ,col ,end-col ',(or type 2)
+						  ',fmt)
+		    append)))))		; for compilation-message-face
 	   compilation-error-regexp-alist)
 
    compilation-mode-font-lock-keywords))
