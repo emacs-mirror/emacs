@@ -3776,6 +3776,25 @@ This does code conversion according to the value of\n\
 	  inserted = (NILP (current_buffer->enable_multibyte_characters)
 		      ? coding.produced : coding.produced_char);
 	}
+      else if (!NILP (current_buffer->enable_multibyte_characters))
+	{
+	  int inserted_byte = inserted;
+
+	  /* At first, reset positions to the state of before
+             insertion.  */
+	  GAP_SIZE += inserted;
+	  GPT_BYTE -= inserted;
+	  ZV_BYTE -= inserted;
+	  Z_BYTE -= inserted;
+	  GPT -= inserted;
+	  ZV -= inserted;
+	  Z -= inserted;
+
+	  /* Then adjust positions.  */
+	  inserted = multibyte_chars_in_text (GPT_ADDR, inserted);
+	  adjust_after_replace (PT, PT_BYTE, PT, PT_BYTE,
+				inserted, inserted_byte);
+	}
 
 #ifdef DOS_NT
       /* Use the conversion type to determine buffer-file-type
@@ -3787,24 +3806,6 @@ This does code conversion according to the value of\n\
       else
 	current_buffer->buffer_file_type = Qt;
 #endif
-
-      record_insert (PT, inserted);
-
-      /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
-      offset_intervals (current_buffer, PT, inserted);
-      MODIFF++;
-
-      if (! NILP (coding.post_read_conversion))
-	{
-	  Lisp_Object val;
-
-	  val = call1 (coding.post_read_conversion, make_number (inserted));
-	  if (!NILP (val))
-	    {
-	      CHECK_NUMBER (val, 0);
-	      inserted = XFASTINT (val);
-	    }
-	}
     }
 
   set_coding_system = 1;
