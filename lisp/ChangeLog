@@ -1,5 +1,7 @@
 2001-03-07  Richard M. Stallman  <rms@gnu.org>
 
+	* info.el (Info-scroll-down): Fix previous change.
+
 	* mail/rmail.el (rmail-toggle-header): Use a window which
 	is showing the Rmail buffer, rather than the selected window.
 
