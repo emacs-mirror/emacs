@@ -387,9 +387,12 @@
 	       ((Math-negp a) 1)
 	       ((Math-zerop a) 2)
 	       ((eq (car a) 'intv)
-		(cond ((Math-zerop (nth 2 a)) 6)
-		      ((Math-zerop (nth 3 a)) 3)
-		      (t 7)))
+		(cond 
+                 ((math-known-posp (nth 2 a)) 4)
+                 ((math-known-negp (nth 3 a)) 1)
+                 ((Math-zerop (nth 2 a)) 6)
+                 ((Math-zerop (nth 3 a)) 3)
+                 (t 7)))
 	       ((eq (car a) 'sdev)
 		(if (math-known-realp (nth 1 a)) 7 15))
 	       (t 8)))
@@ -1750,10 +1753,10 @@
         '(var nan var-nan)
       (math-reject-arg (list '^ a b) "*Indeterminate form")))
    ;; 0^positive = 0
-   ((math-posp b)
+   ((math-known-posp b)
     a)
    ;; 0^negative is undefined (let math-div handle it)
-   ((math-negp b)
+   ((math-known-negp b)
     (math-div 1 a))
    ;; 0^infinity is undefined
    ((math-infinitep b)
