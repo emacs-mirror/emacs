@@ -427,7 +427,7 @@ concat (nargs, args, target_type, last_special)
 		ch = XVECTOR (this)->contents[i];
 		if (! INTEGERP (ch))
 		  wrong_type_argument (Qintegerp, ch);
-		leni += Fchar_bytes (ch);
+		leni += XFASTINT (Fchar_bytes (ch));
 	      }
 	  else
 	    for (; CONSP (this); this = XCONS (this)->cdr)
@@ -435,7 +435,7 @@ concat (nargs, args, target_type, last_special)
 		ch = XCONS (this)->car;
 		if (! INTEGERP (ch))
 		  wrong_type_argument (Qintegerp, ch);
-		leni += Fchar_bytes (ch);
+		leni += XFASTINT (Fchar_bytes (ch));
 	      }
 	}
       else
