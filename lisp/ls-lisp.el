@@ -107,6 +107,7 @@ are: A a c i r S s t u"
 		 short
 		 (file-list (directory-files dir nil wildcard))
 		 file-alist 
+		 (now (current-time))
 		 ;; do all bindings here for speed
 		 fil attr)
 	    (cond ((memq ?A switches)
@@ -141,7 +142,7 @@ are: A a c i r S s t u"
 		    attr (cdr elt))
 	      (and attr
 		   (setq sum (+ sum (nth 7 attr)))
-		   (insert (ls-lisp-format short attr switches))))
+		   (insert (ls-lisp-format short attr switches now))))
 	    ;; Fill in total size of all files:
 	    (save-excursion
 	      (search-backward "total \007")
@@ -152,7 +153,8 @@ are: A a c i r S s t u"
 	;; file-attributes will not recognize a symlink to a directory
 	;; must make it a relative filename as ls does:
 	(setq file (file-name-nondirectory file))
-	(insert (ls-lisp-format file (file-attributes file) switches))))))
+	(insert (ls-lisp-format file (file-attributes file) switches
+				(current-time)))))))
 
 (defun ls-lisp-delete-matching (regexp list)
   ;; Delete all elements matching REGEXP from LIST, return new list.
@@ -204,7 +206,7 @@ are: A a c i r S s t u"
 	     (< lo0 lo1)))))
 
 
-(defun ls-lisp-format (file-name file-attr &optional switches)
+(defun ls-lisp-format (file-name file-attr switches now)
   (let ((file-type (nth 0 file-attr)))
     (concat (if (memq ?i switches)	; inode number
 		(format "%6d " (nth 10 file-attr)))
@@ -226,7 +228,7 @@ are: A a c i r S s t u"
 		      (int-to-string (nth 3 file-attr)))	; gid
 		    (nth 7 file-attr)	; size in bytes
 		    )
-	    (ls-lisp-format-time file-attr switches)
+	    (ls-lisp-format-time file-attr switches now)
 	    " "
 	    file-name
 	    (if (stringp file-type)	; is a symbolic link
@@ -243,29 +245,25 @@ are: A a c i r S s t u"
    ;; default is last modtime
    (t 5)))
 
-(defun ls-lisp-format-time (file-attr switches)
+(defun ls-lisp-format-time (file-attr switches now)
   ;; Format time string for file with attributes FILE-ATTR according
   ;; to SWITCHES (a list of ls option letters of which c and u are recognized).
-  ;; file-attributes's time is in a braindead format
-  ;; Emacs 19 can format it using a new optional argument to
-  ;; current-time-string, for Emacs 18 we just return the faked fixed
-  ;; date "Jan 00 00:00 ".
-  (condition-case error-data
-      (let* ((time (current-time-string
-		    (nth (ls-lisp-time-index switches) file-attr)))
-	     (date (substring time 4 11)) ; "Apr 30 "
-	     (clock (substring time 11 16)) ; "11:27"
-	     (year (substring time 19 24)) ; " 1992"
-	     (same-year (equal year (substring (current-time-string) 19 24))))
-	(concat date			; has trailing SPC
-		(if same-year
-		    ;; this is not exactly the same test used by ls
-		    ;; ls tests if the file is older than 6 months
-		    ;; but we can't do time differences easily
-		    clock
-		  year)))
-    (error
-     "Jan 00 00:00")))
+  ;; Use the same method as `ls' to decide whether to show time-of-day or year,
+  ;; depending on distance between file date and NOW.
+  (let* ((time (nth (ls-lisp-time-index switches) file-attr))
+	 (diff16 (- (car time) (car now)))
+	 (diff (+ (ash diff16 16) (- (car (cdr time)) (car (cdr now)))))
+	 (past-cutoff (- (* 6 30 24 60 60)))	; 6 30-day months
+	 (future-cutoff (* 60 60)))		; 1 hour
+    (format-time-string
+     (if (and
+	  (<= past-cutoff diff) (<= diff future-cutoff)
+	  ;; Sanity check in case `diff' computation overflowed.
+	  (<= (1- (ash past-cutoff -16)) diff16)
+	  (<= diff16 (1+ (ash future-cutoff -16))))
+	 "%b %e %H:%M"
+       "%b %e  %Y")
+     time)))
 
 (provide 'ls-lisp)
 
