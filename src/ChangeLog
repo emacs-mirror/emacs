@@ -1,3 +1,7 @@
+2000-11-29  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* eval.c (Frun_hooks): Allow 0 arguments.
+
 2000-11-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (XTmouse_position) [USE_X_TOOLKIT]: When the mouse

@@ -2140,7 +2140,7 @@ Thus, (apply '+ 1 2 '(3 4)) returns 10.")
 
 enum run_hooks_condition {to_completion, until_success, until_failure};
 
-DEFUN ("run-hooks", Frun_hooks, Srun_hooks, 1, MANY, 0,
+DEFUN ("run-hooks", Frun_hooks, Srun_hooks, 0, MANY, 0,
   "Run each hook in HOOKS.  Major mode functions use this.\n\
 Each argument should be a symbol, a hook variable.\n\
 These symbols are processed in the order specified.\n\
