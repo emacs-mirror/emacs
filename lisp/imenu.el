@@ -902,7 +902,9 @@ The returned value is of the form (INDEX-NAME . INDEX-POSITION)."
 NAME is a string used to name the menu bar item.
 See the command `imenu' for more information."
   (interactive "sImenu menu item name: ")
-  (if (or (and (fboundp imenu-prev-index-position-function)
+  (if (or (not (eq imenu-create-index-function
+                   'imenu-default-create-index-function))
+          (and (fboundp imenu-prev-index-position-function)
 		   (fboundp imenu-extract-index-name-function))
 	      (and imenu-generic-expression))
 	 (let ((newmap (make-sparse-keymap))
