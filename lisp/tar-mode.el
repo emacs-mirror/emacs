@@ -682,21 +682,17 @@ appear on disk when you save the tar-file's buffer."
     (let* ((tar-buffer (current-buffer))
 	   (tar-buffer-multibyte enable-multibyte-characters)
 	   (tarname (buffer-name))
-	   (bufname (generate-new-buffer-name
-		     (concat (file-name-nondirectory name)
-			     " ("
+	   (bufname (concat (file-name-nondirectory name)
+			    " ("
 			     tarname
-			     ")")))
+			     ")"))
 	   (read-only-p (or buffer-read-only view-p))
-	   (buffer (get-buffer bufname))
-	   (just-created nil)
 	   (new-buffer-file-name (expand-file-name
 				  ;; `:' is not allowed on Windows
-				  (concat tarname "!" name))))
-      (if (and buffer
-	       ;; Check that the buffer is visiting the same file
-	       (equal (buffer-file-name buffer) new-buffer-file-name))
-	  nil
+				  (concat tarname "!" name)))
+	   (buffer (get-file-buffer new-buffer-file-name))
+	   (just-created nil))
+      (unless buffer
 	(setq buffer (generate-new-buffer bufname))
 	(setq bufname (buffer-name buffer))
 	(setq just-created t)
