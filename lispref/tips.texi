@@ -127,6 +127,10 @@ not absolutely prohibited, but if you do that, the major mode binding
 may be shadowed from time to time by minor modes.
 
 @item
+Function keys @key{F5} through @key{F9} without modifier keys are
+reserved for users to define.
+
+@item
 You should not bind @kbd{C-h} following any prefix character (including
 @kbd{C-c}).  If you don't bind @kbd{C-h}, it is automatically available
 as a help character for listing the subcommands of the prefix character.
