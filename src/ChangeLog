@@ -1,3 +1,7 @@
+2002-11-18  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (x_build_heuristic_mask): Filter palette info from color.
+
 2002-11-18  Dave Love  <fx@gnu.org>
 
 	* m/orion105.h (HAVE_ALLOCA): Don't define.
