@@ -4,7 +4,7 @@
 
 ;; Author: Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.29 1997/10/28 21:47:12 os10000 Exp os10000 $
+;; Version: $Id: todo-mode.el,v 1.30 1997/10/28 21:59:48 os10000 Exp os10000 $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -96,7 +96,7 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.29 1997/10/28 21:47:12 os10000 Exp os10000 $
+;;      $Id: todo-mode.el,v 1.30 1997/10/28 21:59:48 os10000 Exp os10000 $
 ;;
 ;;  Pre-Requisites
 ;;
@@ -120,7 +120,7 @@
 ;;          E  to edit a multi-line entry
 ;;          f  to file the current entry, including a
 ;;            			    comment and timestamp
-;;          i  to insert a new entry
+;;          i  to insert a new entry, with prefix, omit category
 ;;          I  to insert a new entry at current cursor position
 ;;	    j  jump to category
 ;;          k  to kill the current entry
@@ -267,6 +267,9 @@
 ;;; Change Log:
 
 ;; $Log: todo-mode.el,v $
+;; Revision 1.30  1997/10/28 21:59:48  os10000
+;; Improved documentation, fixed insertion with prefix.
+;;
 ;; Revision 1.29  1997/10/28 21:47:12  os10000
 ;; Implemented "insert-under-cursor" as suggested by
 ;; Kai Grossjohann <grossjohann@ls6.cs.uni-dortmund.de>.
@@ -750,7 +753,7 @@ Use `todo-categories' instead.")
   0)
 
 ;;;### autoload
-(defun todo-add-item-non-interactively (new-item category ARG)
+(defun todo-add-item-non-interactively (new-item category)
   "Insert NEW-ITEM in TODO list as a new entry in CATEGORY."
   (save-excursion
     (todo-show))
@@ -762,24 +765,21 @@ Use `todo-categories' instead.")
             (if cat-exists
                 (- (length todo-categories) (length cat-exists))
               (todo-add-category category))))
-    (if (not ARG)
-	(progn
-	  (todo-show)
-	  (setq todo-previous-line 0)
-	  (let ((top 1)
-		(bottom (1+ (count-lines (point-min) (point-max)))))
-	    (while (> (- bottom top) todo-insert-threshold)
-	      (let* ((current (/ (+ top bottom) 2))
-		     (answer (if (< current bottom)
-				 (todo-more-important-p current) nil)))
-		(if answer
-		    (setq bottom current)
-		  (setq top (1+ current)))))
-	    (setq top (/ (+ top bottom) 2))
-	    ;; goto-line doesn't have the desired behavior in a narrowed buffer
-	    (goto-char (point-min))
-	    (forward-line (1- top))))
-      (beginning-of-line))
+    (todo-show)
+    (setq todo-previous-line 0)
+    (let ((top 1)
+	  (bottom (1+ (count-lines (point-min) (point-max)))))
+      (while (> (- bottom top) todo-insert-threshold)
+	(let* ((current (/ (+ top bottom) 2))
+	       (answer (if (< current bottom)
+			   (todo-more-important-p current) nil)))
+	  (if answer
+	      (setq bottom current)
+	    (setq top (1+ current)))))
+      (setq top (/ (+ top bottom) 2))
+      ;; goto-line doesn't have the desired behavior in a narrowed buffer
+      (goto-char (point-min))
+      (forward-line (1- top)))
     (insert new-item "\n")
     (todo-backward-item)
     (todo-save)
@@ -808,15 +808,22 @@ category."
 	       (concat "Category ["
 		       current-category "]: ")
 	       (todo-category-alist) nil nil nil history))))
-      (todo-add-item-non-interactively new-item category ARG))))
+      (todo-add-item-non-interactively new-item category))))
 
 (defalias 'todo-cmd-inst 'todo-insert-item)
 
 ;;;### autoload
 (defun todo-insert-item-here ()
   "Insert new TODO list entry under the cursor."
-  (interactive)
-  (todo-insert-item t))
+  (interactive "")
+  (save-excursion
+    (if (not (string-equal mode-name "TODO")) (todo-show))
+    (let* ((new-item (concat todo-prefix " "
+			     (read-from-minibuffer
+			      "New TODO entry: "
+			      (if todo-entry-prefix-function
+				  (funcall todo-entry-prefix-function))))))
+      (insert (concat new-item "\n")))))
 
 (defun todo-more-important-p (line)
   "Ask whether entry is more important than the one at LINE."
