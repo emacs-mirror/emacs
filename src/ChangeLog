@@ -1,3 +1,10 @@
+2001-10-19  Miles Bader  <miles@gnu.org>
+
+	* cmds.c (Fbeginning_of_line, Fend_of_line): Clarify interaction
+	with fields and suggest using `forward-line' to avoid them.
+	* editfns.c (Fline_beginning_position, Fline_end_position):
+	Clarify documentation.
+
 2001-10-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (redisplay_internal): Don't clear echo area if the
