@@ -26,10 +26,13 @@
 (defvar help-map (make-sparse-keymap)
   "Keymap for characters following the Help key.")
 
-(define-key global-map "\C-h" 'help-command)
+(defvar help-key "\C-h"
+  "*Key used to invoke electric help.")
+
+(define-key global-map help-key 'help-command)
 (fset 'help-command help-map)
 
-(define-key help-map "\C-h" 'help-for-help)
+(define-key help-map help-key 'help-for-help)
 (define-key help-map "?" 'help-for-help)
 
 (define-key help-map "\C-c" 'describe-copying)
@@ -200,7 +203,7 @@ describes the minor mode."
     (print-help-return-message)))
 
 (defun help-for-help ()
-  "You have typed C-h, the help character.  Type a Help option:
+  "You have typed \\[help-for-help], the help character.  Type a Help option:
 
 A  command-apropos.   Give a substring, and see a list of commands
               (functions interactively callable) that contain
@@ -228,7 +231,7 @@ C-n print news of recent Emacs changes.
 C-w print information on absence of warranty for GNU Emacs."
   (interactive)
   (message
- "A B C F I K L M N S T V W C-c C-d C-n C-w.  Type C-h again for more help: ")
+ "A B C F I K L M N S T V W C-c C-d C-n C-w.  Type \\[help-for-help] again for more help: ")
   (let ((char (read-char)))
     (if (or (= char ?\C-h) (= char ??))
 	(save-window-excursion

@@ -539,7 +539,7 @@ and use this command with a prefix argument (the value does not matter)."
   ;; Query user and return nil or t.
   ;; Store answer in symbol VAR (which must initially be bound to nil).
   ;; Format PROMPT with ARGS.
-  ;; Binding variable help-form will help the user who types C-h.
+  ;; Binding variable help-form will help the user who types the help key.
   (let* ((char (symbol-value qs-var))
 	 (action (cdr (assoc char dired-query-alist))))
     (cond ((eq 'yes action)

@@ -29,9 +29,6 @@
 
 (require 'electric)
 
-(defvar help-key "\C-h"
-  "*Key used to invoke electric help.")
-
 ;; this depends on the format of list-buffers (from src/buffer.c) and
 ;; on stuff in lisp/buff-menu.el
 
@@ -159,7 +156,7 @@ electric-buffer-menu-mode-hook if it is non-nil."
     (fillarray (lookup-key map "\e") 'Electric-buffer-menu-undefined)
     (define-key map "\C-z" 'suspend-emacs)
     (define-key map "v" 'Electric-buffer-menu-mode-view-buffer)
-    (define-key map help-key 'Helper-help)
+    (define-key map help-char 'Helper-help)
     (define-key map "?" 'Helper-describe-bindings)
     (define-key map "\C-c" nil)
     (define-key map "\C-c\C-c" 'Electric-buffer-menu-quit)
