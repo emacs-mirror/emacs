@@ -1,3 +1,13 @@
+2003-02-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* process.h: Removed subtty field from struct Lisp_Process.
+
+	* process.c (create_process): Remove setting of subtty.
+	(emacs_get_tty_pgrp): New function.
+	(Fprocess_running_child_p, process_send_signal): Call
+	emacs_get_tty_pgrp instead of ioctl.
+	(process_send_signal): Call EMACS_KILLPG if ioctl TIOCSIGSEND fails.
+
 2003-02-21  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* keymap.c (Fdefine_key): Doc fix.

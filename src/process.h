@@ -33,9 +33,6 @@ struct Lisp_Process
     Lisp_Object infd;
     /* Descriptor by which we write to this process */
     Lisp_Object outfd;
-    /* Descriptor for the tty which this process is using.
-       nil if we didn't record it (on some systems, there's no need).  */
-    Lisp_Object subtty;
     /* Name of subprocess terminal.  */
     Lisp_Object tty_name;
     /* Name of this process */

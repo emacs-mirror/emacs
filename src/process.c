@@ -1782,11 +1782,12 @@ create_process (process, new_argv, current_dir)
   chan_process[inchannel] = process;
   XSETINT (XPROCESS (process)->infd, inchannel);
   XSETINT (XPROCESS (process)->outfd, outchannel);
-  /* Record the tty descriptor used in the subprocess.  */
-  if (forkin < 0)
-    XPROCESS (process)->subtty = Qnil;
-  else
-    XSETFASTINT (XPROCESS (process)->subtty, forkin);
+
+  /* Previously we recorded the tty descriptor used in the subprocess.
+     It was only used for getting the foreground tty process, so now
+     we just reopen the device (see emacs_get_tty_pgrp) as this is
+     more portable (see USG_SUBTTY_WORKS above).  */
+
   XPROCESS (process)->pty_flag = (pty_flag ? Qt : Qnil);
   XPROCESS (process)->status = Qrun;
   setup_process_coding_systems (process);
@@ -2044,7 +2045,6 @@ create_process (process, new_argv, current_dir)
 	EMACS_SET_SECS_USECS (offset, 1, 0);
 	timer = start_atimer (ATIMER_RELATIVE, offset, create_process_1, 0);
 
-	XPROCESS (process)->subtty = Qnil;
 	if (forkin >= 0)
 	  emacs_close (forkin);
 
@@ -5107,6 +5107,33 @@ Output from processes can arrive in between bunches.  */)
   return Qnil;
 }
 
+/* Return the foreground process group for the tty/pty that
+   the process P uses.  */
+static int
+emacs_get_tty_pgrp (p)
+     struct Lisp_Process *p;
+{
+  int gid = -1;
+
+#ifdef TIOCGPGRP 
+  if (ioctl (XINT (p->infd), TIOCGPGRP, &gid) == -1 && ! NILP (p->tty_name))
+    {
+      int fd;
+      /* Some OS:es (Solaris 8/9) does not allow TIOCGPGRP from the
+	 master side.  Try the slave side.  */
+      fd = emacs_open (XSTRING (p->tty_name)->data, O_RDONLY, 0);
+
+      if (fd != -1)
+	{
+	  ioctl (fd, TIOCGPGRP, &gid);
+	  emacs_close (fd);
+	}
+    }
+#endif /* defined (TIOCGPGRP ) */
+
+  return gid;
+}
+
 DEFUN ("process-running-child-p", Fprocess_running_child_p,
        Sprocess_running_child_p, 0, 1, 0,
        doc: /* Return t if PROCESS has given the terminal to a child.
@@ -5117,7 +5144,7 @@ return t unconditionally.  */)
 {
   /* Initialize in case ioctl doesn't exist or gives an error,
      in a way that will cause returning t.  */
-  int gid = 0;
+  int gid;
   Lisp_Object proc;
   struct Lisp_Process *p;
 
@@ -5131,12 +5158,7 @@ return t unconditionally.  */)
     error ("Process %s is not active",
 	   SDATA (p->name));
 
-#ifdef TIOCGPGRP
-  if (!NILP (p->subtty))
-    ioctl (XFASTINT (p->subtty), TIOCGPGRP, &gid);
-  else
-    ioctl (XINT (p->infd), TIOCGPGRP, &gid);
-#endif /* defined (TIOCGPGRP ) */
+  gid = emacs_get_tty_pgrp (p);
 
   if (gid == XFASTINT (p->pid))
     return Qnil;
@@ -5288,19 +5310,13 @@ process_send_signal (process, signo, current_group, nomsg)
 	 But, TIOCGPGRP does not work on E50 ;-P works fine on E60"
 	 His patch indicates that if TIOCGPGRP returns an error, then
 	 we should just assume that p->pid is also the process group id.  */
-      {
-	int err;
 
-	if (!NILP (p->subtty))
-	  err = ioctl (XFASTINT (p->subtty), TIOCGPGRP, &gid);
-	else
-	  err = ioctl (XINT (p->infd), TIOCGPGRP, &gid);
-
-	if (err == -1)
-	  /* If we can't get the information, assume
-	     the shell owns the tty.  */
-	  gid = XFASTINT (p->pid);
-      }
+      gid = emacs_get_tty_pgrp (p);
+	
+      if (gid == -1)
+	/* If we can't get the information, assume
+	   the shell owns the tty.  */
+	gid = XFASTINT (p->pid);
 
       /* It is not clear whether anything really can set GID to -1.
 	 Perhaps on some system one of those ioctls can or could do so.
@@ -5362,7 +5378,10 @@ process_send_signal (process, signo, current_group, nomsg)
   /* gid may be a pid, or minus a pgrp's number */
 #ifdef TIOCSIGSEND
   if (!NILP (current_group))
-    ioctl (XINT (p->infd), TIOCSIGSEND, signo);
+    {
+      if (ioctl (XINT (p->infd), TIOCSIGSEND, signo) == -1)
+	EMACS_KILLPG (gid, signo);
+    }
   else
     {
       gid = - XFASTINT (p->pid);
