@@ -2695,7 +2695,7 @@ If argument UNREAD is non-nil, only unread article is selected."
 	   (gnus-summary-goto-article gnus-newsgroup-end))
 	  (t
 	   ;; Select next newsgroup automatically if requested.
-	   (let ((cmd (string-to-char (this-command-keys)))
+	   (let ((cmd (aref (this-command-keys) 0))
 		 (group (gnus-summary-search-group))
 		 (auto-select
 		  (and gnus-auto-select-next
@@ -2713,20 +2713,22 @@ If argument UNREAD is non-nil, only unread article is selected."
 		       ;; Ignore characters typed ahead.
 		       (not (input-pending-p))
 		       )))
+	     ;; Keep just the event type of CMD.
+	     (if (listp cmd)
+		 (setq cmd (car cmd)))
 	     (message "No more%s articles%s"
 		      (if unread " unread" "")
 		      (if (and auto-select
 			       (not (eq gnus-auto-select-next 'quietly)))
 			  (if group
 			      (format " (Type %s for %s [%d])"
-				      (key-description (char-to-string cmd))
+				      (single-key-description cmd)
 				      group
 				      (nth 1 (gnus-gethash group
 							   gnus-unread-hashtb)))
 			    (format " (Type %s to exit %s)"
-				    (key-description (char-to-string cmd))
-				    gnus-newsgroup-name
-				    ))
+				    (single-key-description cmd)
+				    gnus-newsgroup-name))
 			""))
 	     ;; Select next unread newsgroup automagically.
 	     (cond ((and auto-select
@@ -2735,10 +2737,14 @@ If argument UNREAD is non-nil, only unread article is selected."
 		    (gnus-summary-next-group nil))
 		   (auto-select
 		    ;; Confirm auto selection.
-		    (let ((char (read-char)))
-		      (if (= char cmd)
+		    (let* ((event (read-event))
+			   (type
+			    (if (listp event)
+				(car event)
+			      event)))
+		      (if (eq char type)
 			  (gnus-summary-next-group nil)
-			(setq unread-command-char char))))
+			(setq unread-command-events (list event)))))
 		   )
 	     ))
 	  )))
