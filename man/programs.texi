@@ -1062,7 +1062,7 @@ inserting a terminator on the old line, and not inserting a starter on
 the new line.  In languages where multi-line comments work, the choice
 of value for this variable is a matter of taste.
 
-@cindex @code{comment-indent-function} property
+@vindex comment-indent-function
   The variable @code{comment-indent-function} should contain a function
 that will be called to compute the indentation for a newly inserted
 comment or for aligning an existing comment.  It is set differently by
