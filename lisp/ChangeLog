@@ -1,5 +1,11 @@
 2003-07-05  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
+	* files.el (auto-mode-alist, interpreter-mode-alist): Removed
+	entries to CC Mode modes to avoid duplicates; they are now added
+	with autoload directives in cc-mode.el.
+
+2003-07-05  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
 	* progmodes/cc-langs.el, progmodes/cc-styles.el (c-style-alist,
 	c-lang-variable-inits, c-lang-variable-inits-tail): The values of
 	these are changed, so declare them as variables and not constants.
