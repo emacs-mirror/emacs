@@ -5160,21 +5160,22 @@ This is the same as (default-value 'indicate-empty-lines).  */);
   
   DEFVAR_LISP_NOPRO ("default-scroll-up-aggressively",
 		     &buffer_defaults.scroll_up_aggressively,
-		     doc: /* Default value of `scroll-up-aggressively' for buffers that
-don't override it.  This is the same as (default-value
-'scroll-up-aggressively).  */);
+		     doc: /* Default value of `scroll-up-aggressively'.
+This value applies in buffers that don't have their own local values.
+This variable is an alias for (default-value 'scroll-up-aggressively).  */);
   
   DEFVAR_LISP_NOPRO ("default-scroll-down-aggressively",
 		     &buffer_defaults.scroll_down_aggressively,
-		     doc: /* Default value of `scroll-down-aggressively' for buffers that
-don't override it.  This is the same as (default-value
-'scroll-down-aggressively).  */);
+		     doc: /* Default value of `scroll-down-aggressively'.
+This value applies in buffers that don't have their own local values.
+This variable is an alias for (default-value 'scroll-down-aggressively).  */);
   
   DEFVAR_PER_BUFFER ("header-line-format",
 		     &current_buffer->header_line_format,
 		     Qnil,
-		     doc: /* Analogous to `mode-line-format', but for the mode line that can be
-displayed at the top of a window.  */);
+		     doc: /* Analogous to `mode-line-format', but controls the header line.
+The header line appears, optionally, at the top of a window;
+the mode line appears at the bottom.  */);
   
   DEFVAR_PER_BUFFER ("mode-line-format", &current_buffer->mode_line_format,
 		     Qnil,
@@ -5290,8 +5291,8 @@ This variable is never applied to a way of decoding a file while reading it.  */
 		     doc: /* *Non-nil means lines in the buffer are displayed right to left.  */);
 
   DEFVAR_PER_BUFFER ("truncate-lines", &current_buffer->truncate_lines, Qnil,
-		     doc: /* *Non-nil means do not display continuation lines;
-give each line of text one screen line.
+		     doc: /* *Non-nil means do not display continuation lines.
+Instead, give each line of text just one screen line.
 
 Note that this is overridden by the variable
 `truncate-partial-width-windows' if that variable is non-nil
@@ -5332,8 +5333,8 @@ and then abbreviated with `abbreviate-file-name'.  */);
   DEFVAR_PER_BUFFER ("buffer-auto-save-file-name",
 		     &current_buffer->auto_save_file_name,
 		     make_number (Lisp_String),
-		     doc: /* Name of file for auto-saving current buffer,
-or nil if buffer should not be auto-saved.  */);
+		     doc: /* Name of file for auto-saving current buffer.
+If it is nil, that means don't auto-save this buffer.  */);
 
   DEFVAR_PER_BUFFER ("buffer-read-only", &current_buffer->read_only, Qnil,
 		     doc: /* Non-nil if this buffer is read-only.  */);
@@ -5349,11 +5350,12 @@ Backing up is done before the first time the file is saved.  */);
 
   DEFVAR_PER_BUFFER ("selective-display", &current_buffer->selective_display,
 		     Qnil,
-		     doc: /* Non-nil enables selective display:
-Integer N as value means display only lines
- that start with less than n columns of space.
-A value of t means, after a ^M, all the rest of the line is invisible.
- Then ^M's in the file are written into files as newlines.  */);
+		     doc: /* Non-nil enables selective display.
+An Integer N as value means display only lines
+that start with less than n columns of space.
+A value of t means that the character ^M makes itself and
+all the rest of the line invisible; also, when saving the buffer
+in a file, save the ^M as a newline.  */);
 
 #ifndef old
   DEFVAR_PER_BUFFER ("selective-display-ellipses",
