@@ -197,11 +197,23 @@ main (argc, argv)
   char *spool_name;
 #endif
 
+#ifdef MAIL_USE_POP
+  int pop_reverse_order = 0;
+# define ARGSTR "pr"
+#else /* ! MAIL_USE_POP */
+# define ARGSTR "p"
+#endif /* MAIL_USE_POP */
+
   delete_lockname = 0;
 
-  while ((c = getopt (argc, argv, "p")) != EOF)
+  while ((c = getopt (argc, argv, ARGSTR)) != EOF)
     {
       switch (c) {
+#ifdef MAIL_USE_POP
+      case 'r':
+	pop_reverse_order = 1;
+	break;
+#endif
       case 'p':
 	preserve_mail++;
 	break;
@@ -263,7 +275,8 @@ main (argc, argv)
       int status;
 
       status = popmail (inname + 3, outname, preserve_mail,
-			(argc - optind == 3) ? argv[optind+2] : NULL);
+			(argc - optind == 3) ? argv[optind+2] : NULL,
+			pop_reverse_order);
       exit (status);
     }
 
@@ -682,11 +695,12 @@ char ibuffer[BUFSIZ];
 char obuffer[BUFSIZ];
 char Errmsg[80];
 
-popmail (user, outfile, preserve, password)
+popmail (user, outfile, preserve, password, reverse_order)
      char *user;
      char *outfile;
      int preserve;
      char *password;
+     int reverse_order;
 {
   int nmsgs, nbytes;
   register int i;
@@ -694,6 +708,7 @@ popmail (user, outfile, preserve, password)
   FILE *mbf;
   char *getenv ();
   popserver server;
+  int start, end, increment;
 
   server = pop_open (0, user, password, POP_NO_GETPASS);
   if (! server)
@@ -732,7 +747,20 @@ popmail (user, outfile, preserve, password)
       return (1);
     }
 
-  for (i = 1; i <= nmsgs; i++)
+  if (reverse_order)
+    {
+      start = nmsgs;
+      end = 1;
+      increment = -1;
+    }
+  else
+    {
+      start = 1;
+      end = nmsgs;
+      increment = 1;
+    }
+
+  for (i = start; i * increment <= end * increment; i += increment)
     {
       mbx_delimit_begin (mbf);
       if (pop_retr (server, i, mbf) != OK)
