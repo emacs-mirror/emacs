@@ -118,6 +118,10 @@ If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
 `find-variable-regexp' is used.   The search is done in library LIBRARY."
   (if (null library)
       (error "Don't know where `%s' is defined" symbol))
+  ;; Some functions are defined as part of the construct
+  ;; that defines something else.
+  (while (get symbol 'definition-name)
+    (setq symbol (get symbol 'definition-name)))
   (save-match-data
     (if (string-match "\\.el\\(c\\)\\'" library)
 	(setq library (substring library 0 (match-beginning 1))))
