@@ -698,7 +698,7 @@ making them as if they had never been customized at all."
   (interactive)
   (let ((children custom-options))
     (mapc (lambda (widget)
-	    (and (get (widget-value widget) 'standard-value)
+	    (and (widget-apply widget :custom-standard-value)
 		 (if (memq (widget-get widget :custom-state)
 			   '(modified set changed saved rogue))
 		     (widget-apply widget :custom-reset-standard))))
@@ -2051,7 +2051,8 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   :custom-save 'custom-variable-save
   :custom-reset-current 'custom-redraw
   :custom-reset-saved 'custom-variable-reset-saved
-  :custom-reset-standard 'custom-variable-reset-standard)
+  :custom-reset-standard 'custom-variable-reset-standard
+  :custom-standard-value 'custom-variable-standard-value)
 
 (defun custom-variable-type (symbol)
   "Return a widget suitable for editing the value of SYMBOL.
@@ -2269,6 +2270,9 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 		      (t 'rogue))))
     (widget-put widget :custom-state state)))
 
+(defun custom-variable-standard-value (widget)
+  (get (widget-value widget) 'standard-value))
+
 (defvar custom-variable-menu
   '(("Set for Current Session" custom-variable-set
      (lambda (widget)
@@ -2475,22 +2479,24 @@ restoring it to the state of a variable that has never been customized."
 
 (defun custom-face-edit-fix-value (widget value)
   "Ignoring WIDGET, convert :bold and :italic in VALUE to new form."
-  (let (result)
-    (while value
-      (let ((key (car value))
-	    (val (car (cdr value))))
-	(cond ((eq key :italic)
-	       (push :slant result)
-	       (push (if val 'italic 'normal) result))
-	      ((eq key :bold)
-	       (push :weight result)
-	       (push (if val 'bold 'normal) result))
-	      (t 
-	       (push key result)
-	       (push val result))))
-      (setq value (cdr (cdr value))))
-    (setq result (nreverse result))
-    result))
+  (if (listp value)
+      (let (result)
+	(while value
+	  (let ((key (car value))
+		(val (car (cdr value))))
+	    (cond ((eq key :italic)
+		   (push :slant result)
+		   (push (if val 'italic 'normal) result))
+		  ((eq key :bold)
+		   (push :weight result)
+		   (push (if val 'bold 'normal) result))
+		  (t 
+		   (push key result)
+		   (push val result))))
+	  (setq value (cdr (cdr value))))
+	(setq result (nreverse result))
+	result)
+    value))
 
 (defun custom-face-edit-convert-widget (widget)
   "Convert :args as widget types in WIDGET."
@@ -2662,6 +2668,7 @@ Only match frames that support the specified face attributes.")
   :custom-reset-current 'custom-redraw
   :custom-reset-saved 'custom-face-reset-saved
   :custom-reset-standard 'custom-face-reset-standard
+  :custom-standard-value 'custom-face-standard-value
   :custom-menu 'custom-face-menu-create)
 
 (define-widget 'custom-face-all 'editable-list
@@ -2979,7 +2986,8 @@ Optional EVENT is the location for the menu."
       ;; face-set-spec ignores empty attribute lists, so just give it
       ;; something harmless instead.
       (face-spec-set symbol '((t :foreground unspecified))))
-    (put symbol 'saved-face value)
+    (unless (eq (widget-get widget :custom-state) 'standard)
+      (put symbol 'saved-face value))
     (put symbol 'customized-face nil)
     (put symbol 'face-comment comment)
     (put symbol 'customized-face-comment nil)
@@ -3006,6 +3014,9 @@ Optional EVENT is the location for the menu."
     (widget-value-set comment-widget (or comment ""))
     (custom-face-state-set widget)
     (custom-redraw-magic widget)))
+
+(defun custom-face-standard-value (widget)
+  (get (widget-value widget) 'face-defface-spec))
 
 (defun custom-face-reset-standard (widget)
   "Restore WIDGET to the face's standard settings.
@@ -3681,11 +3692,10 @@ or (if there were none) at the end of the buffer."
       (mapcar
        (lambda (symbol)
 	 (let ((value (get symbol 'saved-face))
-	       (now (not (or (get 'default 'face-defface-spec)
-			     (and (not (custom-facep 'default))
-				  (not (get 'default 'force-face))))))
-	       (comment (get 'default 'saved-face-comment)))
-	   (unless (eq symbol 'default))
+	       (now (not (or (get symbol 'face-defface-spec)
+			     (and (not (custom-facep symbol))
+				  (not (get symbol 'force-face))))))
+	       (comment (get symbol 'saved-face-comment)))
 	   ;; Don't print default face here.
 	   (unless (bolp)
 	     (princ "\n"))
