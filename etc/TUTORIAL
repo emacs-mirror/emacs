@@ -84,9 +84,10 @@ time, so it would be of great benefit if you learn them now.
 >> Move into the line with C-f's and then up with C-p's.
    See what C-p does when the cursor is in the middle of the line.
 
-Each text line ends with a Newline character, which serves to separate
-it from the following line.  The last line in your file ought to have
-a Newline at the end (but Emacs does not require it to have one).
+Each line of text ends with a Newline character, which serves to
+separate it from the following line.  The last line in your file ought
+to have a Newline at the end (but Emacs does not require it to have
+one).
 
 >> Try to C-b at the beginning of a line.  It should move to
    the end of the previous line.  This is because it moves back
@@ -368,18 +369,13 @@ C-w.  That kills all the text between the two positions.
 >> Type C-w.  This will kill the text starting from the Y,
    and ending just before the n.
 
-When you delete more than one character at a time, Emacs saves the
-deleted text so that you can bring it back.  Bringing back killed text
-is called "yanking".  You can yank the killed text either at the same
-place where it was killed, or at some other place in the text.  You
-can yank the text several times in order to make multiple copies of
-it.  The command to yank is C-y.
-
-Note that the difference between "Killing" and "Deleting" something is
-that "Killed" things can be yanked back, and "Deleted" things cannot.
-Generally, the commands that can remove a lot of text save the text,
-while the commands that delete just one character, or just blank lines
-and spaces, do not save the deleted text.
+The difference between "killing" and "deleting" is that "killed" text
+can be reinserted, whereas "deleted" things cannot be reinserted.
+Reinsertion of killed text is called "yanking".  Generally, the
+commands that can remove a lot of text kill the text (they set up so
+that you can yank the text), while the commands that remove just one
+character, or just blank lines and spaces, do deletion (so you cannot
+yank that text).
 
 >> Move the cursor to the  beginning of a line which is not empty.
    Then type C-k to kill the text on that line.
@@ -392,15 +388,20 @@ treats a numeric argument specially: it kills that many lines AND
 their contents.  This is not mere repetition.  C-u 2 C-k kills two
 lines and their newlines; typing C-k twice would not do that.
 
-To retrieve the last killed text and put it where the cursor currently
-is, type C-y.
+Bringing back killed text is called "yanking".  (Think of it as
+yanking back, or pulling back, some text that was taken away.)  You
+can yank the killed text either at the same place where it was killed,
+or at some other place in the buffer, or even in a different file.
+You can yank the text several times, which makes multiple copies of
+it.
+
+The command for yanking is C-y.  It reinserts the last killed text,
+at the current cursor position.
 
 >> Try it; type C-y to yank the text back.
 
-Think of C-y as if you were yanking something back that someone took
-away from you.  Notice that if you do several C-k's in a row, all of
-the killed text is saved together, so that one C-y will yank all of
-the lines.
+If you do several C-k's in a row, all of the killed text is saved
+together, so that one C-y will yank all of the lines at once.
 
 >> Do this now, type C-k several times.
 
@@ -456,6 +457,10 @@ is why we provide C-x u as well.  On some terminals, you can type C-_
 by typing / while holding down CONTROL.
 
 A numeric argument to C-_ or C-x u acts as a repeat count.
+
+You can undo deletion of text just as you can undo killing of text.
+The distinction between killing something and deleting it affects
+whether you can yank it with C-y; it makes no difference for undo.
 
 
 * FILES
