@@ -84,7 +84,7 @@
 ;; scroll bar routines.
 
 (defun w32-handle-scroll-bar-event (event)
-  "Handle W32 scroll bar events to do normal Window style scrolling."
+  "Handle W32 scroll bar EVENT to do normal Window style scrolling."
   (interactive "e")
   (let ((old-window (selected-window)))
     (unwind-protect
@@ -121,7 +121,7 @@
   "*Number of lines to scroll per click of the mouse wheel.")
 
 (defun mouse-wheel-scroll-line (event)
-  "Scroll the current buffer by `mouse-wheel-scroll-amount'."
+  "Scroll the window in which EVENT occurred by `mouse-wheel-scroll-amount'."
   (interactive "e")
   (condition-case nil
       (if (< (car (cdr (cdr event))) 0)
@@ -134,7 +134,7 @@
 (setq scroll-command-groups (list '(mouse-wheel-scroll-line)))
 
 (defun mouse-wheel-scroll-screen (event)
-  "Scroll the current buffer by `mouse-wheel-scroll-amount'."
+  "Scroll the window in which EVENT occurred by `mouse-wheel-scroll-amount'."
   (interactive "e")
   (condition-case nil
       (if (< (car (cdr (cdr event))) 0)
@@ -146,13 +146,13 @@
 (global-set-key [mouse-wheel] 'mouse-wheel-scroll-line)
 (global-set-key [C-mouse-wheel] 'mouse-wheel-scroll-screen)
 
-(defun w32-drag-n-drop-debug (event) 
-  "Print the drag-n-drop event in a readable form."
-  (interactive "e") 
+(defun w32-drag-n-drop-debug (event)
+  "Print the drag-n-drop EVENT in a readable form."
+  (interactive "e")
   (princ event))
 
 (defun w32-drag-n-drop (event)
-  "Edit the files listed in the drag-n-drop event.
+  "Edit the files listed in the drag-n-drop EVENT.
 Switch to a buffer editing the last file dropped."
   (interactive "e")
   (save-excursion
@@ -169,7 +169,7 @@ Switch to a buffer editing the last file dropped."
   (raise-frame)))
 
 (defun w32-drag-n-drop-other-frame (event)
-  "Edit the files listed in the drag-n-drop event, in other frames.
+  "Edit the files listed in the drag-n-drop EVENT, in other frames.
 May create new frames, or reuse existing ones.  The frame editing
 the last file dropped is selected."
   (interactive "e")
@@ -259,8 +259,9 @@ the last file dropped is selected."
     ("-bd" border-color)
     ("-bw" border-width)))
 
-;; Handler for switches of the form "-switch value" or "-switch".
+
 (defun x-handle-switch (switch)
+  "Handle SWITCH of the form \"-switch value\" or \"-switch\"."
   (let ((aelt (assoc switch x-switch-definitions)))
     (if aelt
 	(if (nth 2 aelt)
@@ -273,13 +274,14 @@ the last file dropped is selected."
 		      default-frame-alist)
 		x-invocation-args (cdr x-invocation-args))))))
 
-;; Make -iconic apply only to the initial frame!
 (defun x-handle-iconic (switch)
+  "Make \"-iconic\" SWITCH apply only to the initial frame."
   (setq initial-frame-alist
 	(cons '(visibility . icon) initial-frame-alist)))
 
-;; Handler for switches of the form "-switch n"
+
 (defun x-handle-numeric-switch (switch)
+  "Handle SWITCH of the form \"-switch n\"."
   (let ((aelt (assoc switch x-switch-definitions)))
     (if aelt
 	(setq default-frame-alist
@@ -289,15 +291,15 @@ the last file dropped is selected."
 	      x-invocation-args
 	      (cdr x-invocation-args)))))
 
-;; Handle the -xrm option.
 (defun x-handle-xrm-switch (switch)
+  "Handle the \"-xrm\" SWITCH."
   (or (consp x-invocation-args)
       (error "%s: missing argument to `%s' option" (invocation-name) switch))
   (setq x-command-line-resources (car x-invocation-args))
   (setq x-invocation-args (cdr x-invocation-args)))
 
-;; Handle the geometry option
 (defun x-handle-geometry (switch)
+  "Handle the \"-geometry\" SWITCH."
   (let ((geo (x-parse-geometry (car x-invocation-args))))
     (setq initial-frame-alist
 	  (append initial-frame-alist
@@ -308,10 +310,11 @@ the last file dropped is selected."
 		  geo)
 	  x-invocation-args (cdr x-invocation-args))))
 
+(defun x-handle-name-rn-switch (switch)
+  "Handle a \"-name\" or \"-rn\" SWITCH."
 ;; Handle the -name and -rn options.  Set the variable x-resource-name
 ;; to the option's operand; if the switch was `-name', set the name of
 ;; the initial frame, too.
-(defun x-handle-name-rn-switch (switch)
   (or (consp x-invocation-args)
       (error "%s: missing argument to `%s' option" (invocation-name) switch))
   (setq x-resource-name (car x-invocation-args)
@@ -324,6 +327,7 @@ the last file dropped is selected."
   "The display name specifying server and frame.")
 
 (defun x-handle-display (switch)
+  "Handle the \"-display\" SWITCH."
   (setq x-display-name (car x-invocation-args)
 	x-invocation-args (cdr x-invocation-args)))
 
@@ -567,15 +571,18 @@ This returns ARGS with the arguments that have been processed removed."
 This is in addition to the primary selection.")
 
 (defun x-select-text (text &optional push)
-  (if x-select-enable-clipboard 
+  "Make TEXT the last selected text.
+If `x-select-enable-clipboard' is non-nil, copy the text to the system
+clipboard as well. Optional PUSH is ignored on Windows."
+  (if x-select-enable-clipboard
       (w32-set-clipboard-data text))
   (setq x-last-selected-text text))
     
-;;; Return the value of the current selection.
-;;; Consult the selection, then the cut buffer.  Treat empty strings
-;;; as if they were unset.
 (defun x-get-selection-value ()
-  (if x-select-enable-clipboard 
+  "Return the value of the current selection.
+Consult the selection, then the cut buffer.  Treat empty strings as if
+they were unset."
+  (if x-select-enable-clipboard
       (let (text)
 	;; Don't die if x-get-selection signals an error.
 	(condition-case c
@@ -634,91 +641,43 @@ This is in addition to the primary selection.")
 ;; we define our own standard fontset here.
 (defvar w32-standard-fontset-spec
  "-*-Courier New-normal-r-*-*-13-*-*-*-c-*-fontset-standard"
- "String of fontset spec of the standard fontset. This defines a
-fontset consisting of the Courier New variations for European
-languages which are distributed with Windows as \"Multilanguage Support\".
+ "String of fontset spec of the standard fontset.
+This defines a fontset consisting of the Courier New variations for
+European languages which are distributed with Windows as
+\"Multilanguage Support\".
 
 See the documentation of `create-fontset-from-fontset-spec for the format.")
 
-; (if (fboundp 'new-fontset)
-;     (progn
-;       (defun w32-create-initial-fontsets ()
-;         "Create fontset-startup, fontset-standard and any fontsets
-; specified in X resources."
-;         ;; Create the standard fontset.
-;         (create-fontset-from-fontset-spec w32-standard-fontset-spec t)
+(if (fboundp 'new-fontset)
+    (progn
+      ;; Create the standard fontset.
+      (create-fontset-from-fontset-spec w32-standard-fontset-spec t)
+      ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1,...).
+      (create-fontset-from-x-resource)
+      ;; Try to create a fontset from a font specification which comes
+      ;; from initial-frame-alist, default-frame-alist, or X resource.
+      ;; A font specification in command line argument (i.e. -fn XXXX)
+      ;; should be already in default-frame-alist as a `font'
+      ;; parameter.  However, any font specifications in site-start
+      ;; library, user's init file (.emacs), and default.el are not
+      ;; yet handled here.
 
-;         ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1,...).
-;         (create-fontset-from-x-resource)
-
-;         ;; Try to create a fontset from a font specification which comes
-;         ;; from initial-frame-alist, default-frame-alist, or X resource.
-;         ;; A font specification in command line argument (i.e. -fn XXXX)
-;         ;; should be already in default-frame-alist as a `font'
-;         ;; parameter.  However, any font specifications in site-start
-;         ;; library, user's init file (.emacs), and default.el are not
-;         ;; yet handled here.
-
-;         (let ((font (or (cdr (assq 'font initial-frame-alist))
-;                         (cdr (assq 'font default-frame-alist))
-;                         (x-get-resource "font" "Font")))
-;               xlfd-fields resolved-name)
-;           (if (and font
-;                    (not (query-fontset font))
-;                    (setq resolved-name (x-resolve-font-name font))
-;                    (setq xlfd-fields (x-decompose-font-name font)))
-;               (if (string= "fontset"
-;                            (aref xlfd-fields xlfd-regexp-registry-subnum))
-;                   (new-fontset font
-;                                (x-complement-fontset-spec xlfd-fields nil))
-;                 ;; Create a fontset from FONT.  The fontset name is
-;                 ;; generated from FONT.  Create style variants of the
-;                 ;; fontset too.  Font names in the variants are
-;                 ;; generated automatially unless X resources
-;                 ;; XXX.attribyteFont explicitly specify them.
-;                 (let ((styles (mapcar 'car x-style-funcs-alist))
-;                       (faces '(bold italic bold-italic))
-;                       face face-font fontset fontset-spec)
-;                   (while faces
-;                     (setq face (car faces))
-;                     (setq face-font (x-get-resource (concat (symbol-name face)
-;                                                             ".attributeFont")
-;                                                     "Face.AttributeFont"))
-;                     (if face-font
-;                         (setq styles (cons (cons face face-font)
-;                                            (delq face styles))))
-;                     (setq faces (cdr faces)))
-;                   (aset xlfd-fields xlfd-regexp-foundry-subnum nil)
-;                   (aset xlfd-fields xlfd-regexp-family-subnum nil)
-;                   (aset xlfd-fields xlfd-regexp-registry-subnum "fontset")
-;                   (aset xlfd-fields xlfd-regexp-encoding-subnum "startup")
-;                   ;; The fontset name should have concrete values in
-;                   ;; weight and slant field.
-;                   (let ((weight (aref xlfd-fields xlfd-regexp-weight-subnum))
-;                         (slant (aref xlfd-fields xlfd-regexp-slant-subnum))
-;                         xlfd-temp)
-;                     (if (or (not weight) (string-match "[*?]*" weight))
-;                         (progn
-;                           (setq xlfd-temp
-;                                 (x-decompose-font-name resolved-name))
-;                           (aset xlfd-fields xlfd-regexp-weight-subnum
-;                                 (aref xlfd-temp xlfd-regexp-weight-subnum))))
-;                     (if (or (not slant) (string-match "[*?]*" slant))
-;                         (progn
-;                           (or xlfd-temp
-;                               (setq xlfd-temp
-;                                     (x-decompose-font-name resolved-name)))
-;                           (aset xlfd-fields xlfd-regexp-slant-subnum
-;                                 (aref xlfd-temp xlfd-regexp-slant-subnum)))))
-;                   (setq fontset (x-compose-font-name xlfd-fields))
-;                   (create-fontset-from-fontset-spec
-;                    (concat fontset ", ascii:" font) styles)
-;                   )))))
-;       ;; This cannot be run yet, as creating fontsets requires a
-;       ;; Window to be initialised so the fonts can be listed.
-;       ;; Add it to a hook so it gets run later.
-;       (add-hook 'before-init-hook 'w32-create-initial-fontsets)
-;       ))
+      (let ((font (or (cdr (assq 'font initial-frame-alist))
+                      (cdr (assq 'font default-frame-alist))
+                      (x-get-resource "font" "Font")))
+            xlfd-fields resolved-name)
+        (if (and font
+                 (not (query-fontset font))
+                 (setq resolved-name (x-resolve-font-name font))
+                 (setq xlfd-fields (x-decompose-font-name font)))
+            (if (string= "fontset"
+                         (aref xlfd-fields xlfd-regexp-registry-subnum))
+                (new-fontset font
+                             (x-complement-fontset-spec xlfd-fields nil))
+              ;; Create a fontset from FONT.  The fontset name is
+              ;; generated from FONT.
+              (create-fontset-from-ascii-font font
+					      resolved-name "startup"))))))
 
 ;; Apply a geometry resource to the initial frame.  Put it at the end
 ;; of the alist, so that anything specified on the command line takes
@@ -761,7 +720,8 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
       (setq x-selection-timeout (string-to-number res-selection-timeout))))
 
 (defun x-win-suspend-error ()
-  (error "Suspending an emacs running under W32 makes no sense"))
+  "Report an error when a suspend is attempted."
+  (error "Suspending an Emacs running under W32 makes no sense"))
 (add-hook 'suspend-hook 'x-win-suspend-error)
 
 ;;; Arrange for the kill and yank functions to set and check the clipboard.
@@ -808,8 +768,9 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 
 ;; Redefine the font selection to use the standard W32 dialog
 (defvar w32-use-w32-font-dialog t
-  "*Use the standard font dialog if 't' - otherwise pop up a menu of
-some standard fonts like X does - including fontsets")
+  "*Use the standard font dialog if 't'.
+Otherwise pop up a menu of some standard fonts like X does - including
+fontsets.")
 
 (defvar w32-fixed-font-alist
   '("Font menu"
@@ -884,22 +845,22 @@ some standard fonts like X does - including fontsets")
      ("11 bold italic" "-*-Courier New-bold-i-*-*-15-*-*-*-c-*-iso8859-1")
      ("12 bold italic" "-*-Courier New-bold-i-*-*-16-*-*-*-c-*-iso8859-1")
      ))
-    "Fonts suitable for use in Emacs. Initially this is a list of some
-fixed width fonts that most people will have like Terminal and
-Courier. These fonts are used in the font menu if the variable
-`w32-use-w32-font-dialog' is nil.")
+    "Fonts suitable for use in Emacs.
+Initially this is a list of some fixed width fonts that most people
+will have like Terminal and Courier. These fonts are used in the font
+menu if the variable `w32-use-w32-font-dialog' is nil.")
 
 ;;; Enable Japanese fonts on Windows to be used by default.
-(put-charset-property 'katakana-jisx0201 'x-charset-registry "JISX0208-SJIS")
-(put-charset-property 'latin-jisx0201 'x-charset-registry "JISX0208-SJIS")
-(put-charset-property 'japanese-jisx0208 'x-charset-registry "JISX0208-SJIS")
-(put-charset-property 'japanese-jisx0208-1978 'x-charset-registry
-                      "JISX0208-SJIS")
+(set-fontset-font t (make-char 'katakana-jisx0201) "JISX0208-SJIS")
+(set-fontset-font t (make-char 'latin-jisx0201) "JISX0208-SJIS")
+(set-fontset-font t (make-char 'japanese-jisx0208) "JISX0208-SJIS")
+(set-fontset-font t (make-char 'japanese-jisx0208-1978) "JISX0208-SJIS")
 
 (defun mouse-set-font (&rest fonts)
-  "Select a font. If `w32-use-w32-font-dialog' is non-nil (the default),
-use the Windows font dialog. Otherwise use a pop-up menu (like Emacs
-on other platforms) initialized with the fonts in
+  "Select a font.
+If `w32-use-w32-font-dialog' is non-nil (the default), use the Windows
+font dialog to get the matching FONTS. Otherwise use a pop-up menu
+(like Emacs on other platforms) initialized with the fonts in
 `w32-fixed-font-alist'."
   (interactive
    (if w32-use-w32-font-dialog
