@@ -1,5 +1,10 @@
 2003-12-02  Kenichi Handa  <handa@m17n.org>
 
+	* coding.c (detect_coding): Fix previous change.
+	(detect_coding_system): Likewise.
+
+2003-12-02  Kenichi Handa  <handa@m17n.org>
+
 	* composite.c (syms_of_composite): Don't make the compostion hash
 	table week.
 
