@@ -28,16 +28,13 @@
 
 ;; Send Mail to smtp host from smtpmail temp buffer.
 
-;; Please add these lines in your .emacs(_emacs).
+;; Please add these lines in your .emacs(_emacs) or use customize.
 ;;
-;;(setq send-mail-function 'smtpmail-send-it)
+;;(setq send-mail-function 'smtpmail-send-it) ; if you use `mail'
+;;(setq message-send-mail-function 'smtpmail-send-it) ; if you use `message'
 ;;(setq smtpmail-default-smtp-server "YOUR SMTP HOST")
-;;(setq smtpmail-smtp-service "smtp")
 ;;(setq smtpmail-local-domain "YOUR DOMAIN NAME")
-;;(setq smtpmail-debug-info t)
-;;(load-library "smtpmail")
-;;(setq smtpmail-code-conv-from nil)
-;;(setq user-full-name "YOUR NAME HERE")
+;;(setq smtpmail-debug-info t) ; only to debug problems
 
 ;; To queue mail, set smtpmail-queue-mail to t and use 
 ;; smtpmail-send-queued-mail to send.
@@ -110,6 +107,7 @@ This is relative to `smtpmail-queue-dir'.")
 ;;;
 ;;;
 
+;;;###autoload
 (defun smtpmail-send-it ()
   (require 'mail-utils)
   (let ((errbuf (if mail-interactive
@@ -298,7 +296,8 @@ This is relative to `smtpmail-queue-dir'.")
 
 (defun smtpmail-via-smtp (recipient smtpmail-text-buffer)
   (let ((process nil)
-	(host smtpmail-smtp-server)
+	(host (or smtpmail-smtp-server
+		  (error "`smtpmail-smtp-server' not defined")))
 	(port smtpmail-smtp-service)
 	response-code
 	greeting
