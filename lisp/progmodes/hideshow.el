@@ -1,11 +1,11 @@
 ;;; hideshow.el --- minor mode cmds to selectively display blocks of code
 
-;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000 Free Software Foundation
+;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01 Free Software Foundation
 
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;;      Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: C C++ java lisp tools editing comments blocks hiding outlines
-;; Maintainer-Version: 5.22
+;; Maintainer-Version: 5.26
 ;; Time-of-Day-Author-Most-Likely-to-be-Recalcitrant: early morning
 
 ;; This file is part of GNU Emacs.
@@ -33,12 +33,12 @@
 ;; are available, implementing block hiding and showing.  They (and their
 ;; keybindings) are:
 ;;
-;;   hs-hide-block                      C-c C-h
-;;   hs-show-block                      C-c C-s
-;;   hs-hide-all                        C-c C-M-h
-;;   hs-show-all                        C-c C-M-s
-;;   hs-hide-level                      C-c C-l
-;;   hs-toggle-hiding                   C-c C-c
+;;   hs-hide-block                      C-c @ C-h
+;;   hs-show-block                      C-c @ C-s
+;;   hs-hide-all                        C-c @ C-M-h
+;;   hs-show-all                        C-c @ C-M-s
+;;   hs-hide-level                      C-c @ C-l
+;;   hs-toggle-hiding                   C-c @ C-c
 ;;   hs-mouse-toggle-hiding             [(shift button-2)]
 ;;   hs-hide-initial-comment-block
 ;;
@@ -862,12 +862,12 @@ Key bindings:
              (if (aref ent 0) ent "-----"))
            ;; These bindings roughly imitate those used by Outline mode.
            ;; menu entry      command                key
-           '(["Hide Block"    hs-hide-block          "\C-c\C-h"]
-             ["Show Block"    hs-show-block          "\C-c\C-s"]
-             ["Hide All"      hs-hide-all            "\C-c\C-\M-h"]
-             ["Show All"      hs-show-all            "\C-c\C-\M-s"]
-             ["Hide Level"    hs-hide-level          "\C-c\C-l"]
-             ["Toggle Hiding" hs-toggle-hiding       "\C-c\C-c"]
+           '(["Hide Block"    hs-hide-block          "\C-c@\C-h"]
+             ["Show Block"    hs-show-block          "\C-c@\C-s"]
+             ["Hide All"      hs-hide-all            "\C-c@\C-\M-h"]
+             ["Show All"      hs-show-all            "\C-c@\C-\M-s"]
+             ["Hide Level"    hs-hide-level          "\C-c@\C-l"]
+             ["Toggle Hiding" hs-toggle-hiding       "\C-c@\C-c"]
              [nil             hs-mouse-toggle-hiding [(shift button2)]]
              )))))
 
