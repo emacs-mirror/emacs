@@ -1,3 +1,7 @@
+2004-03-21  Juanma Barranquero  <lektu@terra.es>
+
+	* allout.el (allout-mode): Fix docstring.
+
 2004-03-20  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* files.el (insert-directory): Fix bug if SWITCHES is a list.
