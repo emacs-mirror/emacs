@@ -1,5 +1,11 @@
 2001-10-23  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_draw_glyphs): Remove parameters READ_START and 
+	REAL_END.  Notice if cursor gets overwritten.
+	(notice_overwritten_cursor): Take X positions as parameters.
+	(x_draw_phys_cursor_glyph): Save state of w->phys_cursor_on_p
+	around call to x_draw_glyphs.
+
 	* xdisp.c (display_line): For a tab continued to the next line,
 	set row's ends_in_middle_of_char_p.
 
