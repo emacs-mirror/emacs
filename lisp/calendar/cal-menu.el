@@ -217,6 +217,7 @@
 If event is not on a specific date, signals an error if optional parameter
 ERROR is t, otherwise just returns nil."
   (save-excursion
+    (set-buffer (window-buffer (posn-window (event-start last-input-event))))
     (goto-char (posn-point (event-start last-input-event)))
     (calendar-cursor-to-date error)))
 
@@ -250,49 +251,49 @@ ERROR is t, otherwise just returns nil."
   "Show sunrise/sunset times for mouse-selected date."
   (interactive)
   (save-excursion
-    (calendar-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (calendar-event-to-date))
     (calendar-sunrise-sunset)))
 
 (defun calendar-mouse-holidays ()
   "Show holidays for mouse-selected date."
   (interactive)
   (save-excursion
-    (calendar-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (calendar-event-to-date))
     (calendar-cursor-holidays)))
 
 (defun calendar-mouse-view-diary-entries ()
   "View diary entries on mouse-selected date."
   (interactive)
   (save-excursion
-    (calendar-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (calendar-event-to-date))
     (view-diary-entries 1)))
 
 (defun calendar-mouse-view-other-diary-entries ()
   "View diary entries from alternative file on mouse-selected date."
   (interactive)
   (save-excursion
-    (calendar-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (calendar-event-to-date))
     (call-interactively 'view-other-diary-entries)))
 
 (defun calendar-mouse-insert-diary-entry ()
   "Insert diary entry for mouse-selected date."
   (interactive)
   (save-excursion
-    (calendar-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (calendar-event-to-date))
     (insert-diary-entry nil)))
 
 (defun calendar-mouse-set-mark ()
   "Mark the date under the cursor."
   (interactive)
   (save-excursion
-    (calendar-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (calendar-event-to-date))
     (calendar-set-mark nil)))
 
 (defun cal-tex-mouse-day ()
   "Make a buffer with LaTeX commands for the day mouse is on."
   (interactive)
   (save-excursion
-    (calendar-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (calendar-event-to-date))
     (cal-tex-cursor-day nil)))
 
 (defun cal-tex-mouse-week ()
@@ -300,7 +301,7 @@ ERROR is t, otherwise just returns nil."
 Holidays are included if `cal-tex-holidays' is t."
   (interactive)
   (save-excursion
-    (calendar-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (calendar-event-to-date))
     (cal-tex-cursor-week nil)))
 
 (defun cal-tex-mouse-week2 ()
@@ -308,7 +309,7 @@ Holidays are included if `cal-tex-holidays' is t."
 The printed output will be on two pages."
   (interactive)
   (save-excursion
-    (calendar-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (calendar-event-to-date))
     (cal-tex-cursor-week2 nil)))
 
 (defun cal-tex-mouse-week-iso ()
@@ -316,28 +317,28 @@ The printed output will be on two pages."
 Holidays are included if `cal-tex-holidays' is t."
   (interactive)
   (save-excursion
-    (calendar-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (calendar-event-to-date))
     (cal-tex-cursor-week-iso nil)))
 
 (defun cal-tex-mouse-week-monday ()
   "One page calendar for week indicated by cursor."
   (interactive)
   (save-excursion
-    (calendar-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (calendar-event-to-date))
     (cal-tex-cursor-week-monday nil)))
 
 (defun cal-tex-mouse-filofax-2week ()
   "One page Filofax calendar for week indicated by cursor."
   (interactive)
   (save-excursion
-    (calendar-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (calendar-event-to-date))
     (cal-tex-cursor-filofax-2week nil)))
 
 (defun cal-tex-mouse-filofax-week ()
   "Two page Filofax calendar for week indicated by cursor."
   (interactive)
   (save-excursion
-    (calendar-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (calendar-event-to-date))
     (cal-tex-cursor-filofax-week nil)))
 
 (defun cal-tex-mouse-month ()
@@ -345,7 +346,7 @@ Holidays are included if `cal-tex-holidays' is t."
 Calendar is condensed onto one page."
   (interactive)
   (save-excursion
-    (calendar-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (calendar-event-to-date))
     (cal-tex-cursor-month nil)))
 
 (defun cal-tex-mouse-month-landscape ()
@@ -353,28 +354,28 @@ Calendar is condensed onto one page."
 The output is in landscape format, one month to a page."
   (interactive)
   (save-excursion
-    (calendar-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (calendar-event-to-date))
     (cal-tex-cursor-month-landscape nil)))
 
 (defun cal-tex-mouse-year ()
   "Make a buffer with LaTeX commands for the year cursor is on."
   (interactive)
   (save-excursion
-    (calendar-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (calendar-event-to-date))
     (cal-tex-cursor-year nil)))
 
 (defun cal-tex-mouse-filofax-year ()
   "Make a buffer with LaTeX commands for Filofax calendar of year cursor is on."
   (interactive)
   (save-excursion
-    (calendar-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (calendar-event-to-date))
     (cal-tex-cursor-filofax-year nil)))
 
 (defun cal-tex-mouse-year-landscape ()
   "Make a buffer with LaTeX commands for the year cursor is on."
   (interactive)
   (save-excursion
-    (calendar-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (calendar-event-to-date))
     (cal-tex-cursor-year-landscape nil)))
 
 (defun calendar-mouse-print-dates ()
@@ -427,8 +428,12 @@ The output is in landscape format, one month to a page."
   "Show Chinese equivalent for mouse-selected date."
   (interactive)
   (save-excursion
-    (calendar-goto-date (calendar-event-to-date))
+    (calendar-mouse-goto-date (calendar-event-to-date))
     (calendar-print-chinese-date)))
+
+(defun calendar-mouse-goto-date (date)
+  (set-buffer (window-buffer (posn-window (event-start last-input-event))))
+  (calendar-goto-date date))
 
 (defun calendar-mouse-2-date-menu (event)
   "Pop up menu for Mouse-2 for selected date in the calendar window."
