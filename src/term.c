@@ -1050,6 +1050,8 @@ write_glyphs (string, len)
   int produced, consumed;
   struct frame *sf = XFRAME (selected_frame);
   struct frame *f = updating_frame ? updating_frame : sf;
+  unsigned char conversion_buffer[1024];
+  int conversion_buffer_size = sizeof conversion_buffer;
 
   if (write_glyphs_hook
       && ! FRAME_TERMCAP_P (f))
@@ -1092,9 +1094,9 @@ write_glyphs (string, len)
 
       while (n > 0)
 	{
-	  /* We use a shared conversion buffer of the current size
-	     (1024 bytes at least).  Usually it is sufficient, but if
-	     not, we just repeat the loop.  */
+	  /* We use a fixed size (1024 bytes) of conversion buffer.
+	     Usually it is sufficient, but if not, we just repeat the
+	     loop.  */
 	  produced = encode_terminal_code (string, conversion_buffer,
 					   n, conversion_buffer_size,
 					   &consumed);
@@ -1176,6 +1178,8 @@ insert_glyphs (start, len)
   while (len-- > 0)
     {
       int produced, consumed;
+      unsigned char conversion_buffer[1024];
+      int conversion_buffer_size = sizeof conversion_buffer;
 
       OUTPUT1_IF (TS_ins_char);
       if (!start)
@@ -1200,8 +1204,8 @@ insert_glyphs (start, len)
 	    /* This is the last glyph.  */
 	    terminal_coding.mode |= CODING_MODE_LAST_BLOCK;
 
-	  /* We use shared conversion buffer of the current size (1024
-	     bytes at least).  It is surely sufficient for just one glyph.  */
+	  /* The size of conversion buffer (1024 bytes) is surely
+	     sufficient for just one glyph.  */
 	  produced = encode_terminal_code (glyph, conversion_buffer, 1,
 					   conversion_buffer_size, &consumed);
 	}
