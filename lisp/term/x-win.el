@@ -282,6 +282,7 @@ that it should abort the window system shutdown."
       (delete-file filename))
     (with-current-buffer buf
       (let ((cancel-shutdown (condition-case nil
+				 ;; A return of t means cancel the shutdown.
 				 (run-hook-with-args-until-success 
 				  'emacs-save-session-functions)
 			       (error t))))
