@@ -1,11 +1,13 @@
 ;;; tq.el --- utility to maintain a transaction queue
 
-;;; Copyright (C) 1992 Scott Draves (spot@cs.cmu.edu)
-;;; 
+;; Author: Scott Draves <spot@cs.cmu.edu>
+;; Adapted-By: ESR
+
+;; Commentary:
+ 
 ;;; manages receiving a stream asynchronously, 
 ;;; parsing it into transactions, and then calling
 ;;; handler functions
-
 
 ;;; Our basic structure is the queue/process/buffer triple.  Each entry
 ;;; of the queue is a regexp/closure/function triple.  We buffer
@@ -13,6 +15,7 @@
 ;;; queue.  Then we call the function with the closure and the
 ;;; collected bytes.
 
+;;; Code:
 
 (provide 'tq)
 
