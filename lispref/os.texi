@@ -796,6 +796,11 @@ averages, which indicate the average number of processes trying to run.
 If @var{use-float} is non-@code{nil}, then they are returned
 as floating point numbers and without multiplying by 100.
 
+An error is thrown if the load average can't be obtained.  In some
+cases making it work would require Emacs being installed setuid or
+setgid so that it can read kernel information, and that usually isn't
+advisable.
+
 @example
 @group
 (load-average)
