@@ -1,5 +1,8 @@
 2001-02-26  Gerd Moellmann  <gerd@gnu.org>
 
+	* lazy-lock.el (lazy-lock-fontify-after-idle): Make sure to 
+	fontify in the right buffer.
+
 	* allout.el (outline-flag-region): Move macro in front of first
 	use to avoid a run-time error.
 

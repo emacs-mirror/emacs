@@ -1,3 +1,7 @@
+2001-02-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c: Check HAVE_TERM_H before including term.h.
+
 2001-02-24  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in: Update copyright notice.
