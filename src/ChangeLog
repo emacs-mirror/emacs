@@ -1,11 +1,11 @@
 2004-06-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
-        
-        * macterm.c (do_window_activate, do_window_deactivate): Remove.
-        (XTread_socket): Send mouse button events to the toolbox
-        dispatcher even when the mouse is grabbed.  Don't process window
-        activate events for non-Emacs windows.  Replace function calls to
-        do_window_activate and do_window_deactivate with their contents.
-        Reset mouse grabbing status when a window is deactivated.
+	
+	* macterm.c (do_window_activate, do_window_deactivate): Remove.
+	(XTread_socket): Send mouse button events to the toolbox
+	dispatcher even when the mouse is grabbed.  Don't process window
+	activate events for non-Emacs windows.	Replace function calls to
+	do_window_activate and do_window_deactivate with their contents.
+	Reset mouse grabbing status when a window is deactivated.
 
 2004-06-29  Steven Tamm  <steventamm@mac.com>
 
