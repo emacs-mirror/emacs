@@ -191,10 +191,13 @@
 	`(defvar ,symbol ,value ,doc))))
 
 (eval-when-compile
-  (if (fboundp 'defgroup)
-      (defgroup ispell nil
-	"User variables for emacs ispell interface."
-	:group 'applications)))
+  (if (not (fboundp 'defgroup))
+      (defmacro defgroup (&rest args)
+	"Empty replacement for defgroup when not supplied.")))
+
+(defgroup ispell nil
+  "User variables for emacs ispell interface."
+  :group 'applications)
 
 (if (not (fboundp 'buffer-substring-no-properties))
     (defun buffer-substring-no-properties (start end)
