@@ -1,3 +1,7 @@
+2000-02-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/cl-macs.el (caar, cadr, cdar, cddr): Add defsetfs.
+
 2000-02-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/cl-indent.el (lisp-indent-259): Indentation fix.
