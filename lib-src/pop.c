@@ -1,5 +1,5 @@
 /* pop.c: client routines for talking to a POP3-protocol post-office server
-   Copyright (c) 1991, 1993, 1996 Free Software Foundation, Inc.
+   Copyright (c) 1991, 1993, 1996, 1997 Free Software Foundation, Inc.
    Written by Jonathan Kamens, jik@security.ov.com.
 
 This file is part of GNU Emacs.
@@ -72,22 +72,41 @@ extern struct servent *hes_getservbyname (/* char *, char * */);
 #include <netdb.h>
 #include <errno.h>
 #include <stdio.h>
+#ifdef STDC_HEADERS
+#include <string.h>
+#endif
 
 #ifdef KERBEROS
-#ifndef KRB5
-#ifndef SOLARIS2
-#include <des.h>
-#include <krb.h>
-#else /* not SOLARIS2 */
-#include <kerberos/des.h>
-#include <kerberos/krb.h>
-#endif /* not SOLARIS2 */
-#else /* KRB5 */
-#include <krb5/krb5.h>
-#include <krb5/ext-proto.h>
-#include <ctype.h>
-#endif /* KRB5 */
+# ifdef HAVE_KRB5_H
+#  include <krb5.h>
+# endif
+# ifdef HAVE_DES_H
+#  include <des.h>
+# else
+#  ifdef HAVE_KERBEROSIV_DES_H
+#   include <kerberosIV/des.h>
+#  else
+#   ifdef HAVE_KERBEROS_DES_H
+#    include <kerberos/des.h>
+#   endif
+#  endif
+# endif
+# ifdef HAVE_KRB_H
+#  include <krb.h>
+# else
+#  ifdef HAVE_KERBEROSIV_KRB_H
+#   include <kerberosIV/krb.h>
+#  else
+#   ifdef HAVE_KERBEROS_KRB_H
+#    include <kerberos/krb.h>
+#   endif
+#  endif
+# endif
+# ifdef HAVE_COM_ERR_H
+#  include <com_err.h>
+# endif
 #endif /* KERBEROS */
+
 
 extern char *getenv (/* char * */);
 extern char *getlogin (/* void */);
@@ -96,13 +115,13 @@ extern char *strerror (/* int */);
 extern char *index ();
 
 #ifdef KERBEROS
-#ifndef KRB5
+#ifndef KERBEROS5
 extern int krb_sendauth (/* long, int, KTEXT, char *, char *, char *,
 			    u_long, MSG_DAT *, CREDENTIALS *, Key_schedule,
 			    struct sockaddr_in *, struct sockaddr_in *,
 			    char * */);
 extern char *krb_realmofhost (/* char * */);
-#endif /* ! KRB5 */
+#endif /* ! KERBEROS5 */
 #endif /* KERBEROS */
 
 #ifndef WINDOWSNT
@@ -131,11 +150,7 @@ static char *find_crlf (/* char * */);
 #define POP_SERVICE "pop"
 #endif
 #ifdef KERBEROS
-#ifdef KRB5
-#define KPOP_SERVICE "k5pop";
-#else
 #define KPOP_SERVICE "kpop"
-#endif
 #endif
 
 char pop_error[ERROR_MAX];
@@ -993,8 +1008,10 @@ socket_connection (host, flags)
   char *service;
   int sock;
 #ifdef KERBEROS
-#ifdef KRB5
+#ifdef KERBEROS5
   krb5_error_code rem;
+  krb5_context kcontext = 0;
+  krb5_auth_context auth_context = 0;
   krb5_ccache ccdef;
   krb5_principal client, server;
   krb5_error *err_ret;
@@ -1006,7 +1023,7 @@ socket_connection (host, flags)
   Key_schedule schedule;
   int rem;
   char *realhost;
-#endif /* KRB5 */
+#endif /* KERBEROS5 */
 #endif /* KERBEROS */
 
   int try_count = 0;
@@ -1068,14 +1085,14 @@ socket_connection (host, flags)
 	}
     }
 
-#define SOCKET_ERROR "Could not create socket for POP connection: "
+#define POP_SOCKET_ERROR "Could not create socket for POP connection: "
 
   sock = socket (PF_INET, SOCK_STREAM, 0);
   if (sock < 0)
     {
-      strcpy (pop_error, SOCKET_ERROR);
+      strcpy (pop_error, POP_SOCKET_ERROR);
       strncat (pop_error, strerror (errno),
-	       ERROR_MAX - sizeof (SOCKET_ERROR));
+	       ERROR_MAX - sizeof (POP_SOCKET_ERROR));
       return (-1);
 	  
     }
@@ -1105,12 +1122,14 @@ socket_connection (host, flags)
 #define KRB_ERROR "Kerberos error connecting to POP server: "
   if (! (flags & POP_NO_KERBEROS))
     {
-#ifdef KRB5
-      krb5_init_ets ();
-
-      if (rem = krb5_cc_default (&ccdef))
+#ifdef KERBEROS5
+      if ((rem = krb5_init_context (&kcontext)))
 	{
 	krb5error:
+	  if (auth_context)
+	    krb5_auth_con_free (kcontext, auth_context);
+	  if (kcontext)
+	    krb5_free_context (kcontext);
 	  strcpy (pop_error, KRB_ERROR);
 	  strncat (pop_error, error_message (rem),
 		   ERROR_MAX - sizeof(KRB_ERROR));
@@ -1118,10 +1137,14 @@ socket_connection (host, flags)
 	  return (-1);
 	}
 
-      if (rem = krb5_cc_get_principal (ccdef, &client))
-	{
-	  goto krb5error;
-	}
+      if ((rem = krb5_auth_con_init (kcontext, &auth_context)))
+	goto krb5error;
+      
+      if (rem = krb5_cc_default (kcontext, &ccdef))
+	goto krb5error;
+
+      if (rem = krb5_cc_get_principal (kcontext, ccdef, &client))
+	goto krb5error;
 
       for (cp = hostent->h_name; *cp; cp++)
 	{
@@ -1131,22 +1154,20 @@ socket_connection (host, flags)
 	    }
 	}
 
-      if (rem = krb5_sname_to_principal (hostent->h_name, POP_SERVICE,
-					 FALSE, &server))
-	{
-	  goto krb5error;
-	}
+      if (rem = krb5_sname_to_principal (kcontext, hostent->h_name,
+					 POP_SERVICE, FALSE, &server))
+	goto krb5error;
 
-      rem = krb5_sendauth ((krb5_pointer) &sock, "KPOPV1.0", client, server,
+      rem = krb5_sendauth (kcontext, &auth_context,
+			   (krb5_pointer) &sock, "KPOPV1.0", client, server,
 			  AP_OPTS_MUTUAL_REQUIRED,
 			  0,	/* no checksum */
 			  0,	/* no creds, use ccache instead */
 			  ccdef,
-			  0,	/* don't need seq # */
-			  0,	/* don't need subsession key */
 			  &err_ret,
+			  0,	/* don't need subsession key */
 			  0);	/* don't need reply */
-      krb5_free_principal (server);
+      krb5_free_principal (kcontext, server);
       if (rem)
 	{
 	  if (err_ret && err_ret->text.length)
@@ -1169,12 +1190,14 @@ socket_connection (host, flags)
 		       ERROR_MAX - sizeof (KRB_ERROR));
 	    }
 	  if (err_ret)
-	    krb5_free_error (err_ret);
+	    krb5_free_error (kcontext, err_ret);
+	  krb5_auth_con_free (kcontext, auth_context);
+	  krb5_free_context (kcontext);
 
 	  CLOSESOCKET (sock);
 	  return (-1);
 	}
-#else  /* ! KRB5 */	  
+#else  /* ! KERBEROS5 */	  
       ticket = (KTEXT) malloc (sizeof (KTEXT_ST));
       realhost = strdup (hostent->h_name);
       rem = krb_sendauth (0L, sock, ticket, "pop", realhost,
@@ -1193,7 +1216,7 @@ socket_connection (host, flags)
 	  CLOSESOCKET (sock);
 	  return (-1);
 	}
-#endif /* KRB5 */
+#endif /* KERBEROS5 */
     }
 #endif /* KERBEROS */
 
