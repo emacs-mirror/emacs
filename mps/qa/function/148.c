@@ -1,9 +1,10 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!148.c(trunk.2) $
  summary = SNC scanning test
  language = c
  link = testlib.o rankfmt.o
+ harness = 2.1
 OUTPUT_SPEC
  inc1 = 1
  inc2 = 0
@@ -69,17 +70,17 @@ static void test(void)
 
  /* push, alloc, check object is scanned */
 
- com = mps_arena_committed(arena);
+ com = arena_committed_and_used(arena);
  report("com", "%ld", com);
  cdie(mps_ap_frame_push(&frame1, sap), "push");
  p = allocone(sap, 2, MPS_RANK_EXACT);
  q = allocdumb(ap, BIGSIZE, MPS_RANK_EXACT);
  setref(p, 0, q);
  q = allocdumb(ap, SMALLSIZE, MPS_RANK_EXACT);
- report("com", "%ld", mps_arena_committed(arena));
+ report("com", "%ld", arena_committed_and_used(arena));
  comment("collect...");
  mps_arena_collect(arena);
- com1 = mps_arena_committed(arena);
+ com1 = arena_committed_and_used(arena);
  mps_arena_release(arena);
  report("com", "%ld", com1);
  report("inc1", "%d", (com1-com)/BIGSIZE);
@@ -89,7 +90,7 @@ static void test(void)
  cdie(mps_ap_frame_pop(sap, frame1), "pop");
  comment("collect...");
  mps_arena_collect(arena);
- com1 = mps_arena_committed(arena);
+ com1 = arena_committed_and_used(arena);
  mps_arena_release(arena);
  report("com", "%ld", com1);
  report("inc2", "%ld", (com1-com)/BIGSIZE);
@@ -101,7 +102,7 @@ static void test(void)
  setref(p, 1, q);
  q = allocdumb(ap, SMALLSIZE, MPS_RANK_EXACT);
  mps_arena_collect(arena);
- com2 = mps_arena_committed(arena);
+ com2 = arena_committed_and_used(arena);
  mps_arena_release(arena);
  report("inc3", "%ld", (com2-com1)/BIGSIZE);
 
@@ -112,7 +113,7 @@ static void test(void)
  }
  q = allocdumb(ap, SMALLSIZE, MPS_RANK_EXACT);
  mps_arena_collect(arena);
- com2 = mps_arena_committed(arena);
+ com2 = arena_committed_and_used(arena);
  mps_arena_release(arena);
  report("inc4", "%ld", (com2-com1)/BIGSIZE);
 
