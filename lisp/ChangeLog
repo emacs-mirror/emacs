@@ -1,5 +1,9 @@
 2001-03-05  Kenichi Handa  <handa@etl.go.jp>
 
+	* language/ethio-util.el (ethio-toggle-space): Update
+	current-input-method-title if necessary.
+	(ethio-toggle-punctuation): Likewise.
+
 	* international/quail.el (quail-title): Fix for the case that a
 	title of an input method is specified by a list of the same form
 	as used in mode-line-format.
