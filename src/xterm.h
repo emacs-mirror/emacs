@@ -593,7 +593,7 @@ struct scroll_bar {
    Knowledge of which factors affect the overall size of the window should
    be hidden in these macros, if that's possible.
 
-/* Return the upper/left pixel position of the character cell on frame F
+   Return the upper/left pixel position of the character cell on frame F
    at ROW/COL.  */
 #define CHAR_TO_PIXEL_ROW(f, row) \
   ((f)->display.x->internal_border_width \
