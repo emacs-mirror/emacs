@@ -694,7 +694,7 @@ Finishes by calling the functions in `find-file-hooks'."
 	   (msg
 	    (cond ((and error (file-attributes buffer-file-name))
 		   (setq buffer-read-only t)
-		   "File exists, but is read-protected.")
+		   "File exists, but cannot be read.")
 		  ((not buffer-read-only)
 		   (if (and warn
 			    (file-newer-than-file-p (make-auto-save-file-name)
