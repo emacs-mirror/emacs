@@ -103,7 +103,7 @@ Lisp_Object interval_insert_in_front_hooks;
 #define soft 0
 #define hard 1
 
-static INTERVAL
+INTERVAL
 validate_interval_range (object, begin, end, force)
      Lisp_Object object, *begin, *end;
      int force;
@@ -1422,6 +1422,124 @@ copy_text_properties (start, end, src, pos, dest, prop)
 
   return modified ? Qt : Qnil;
 }
+
+
+/* Return a list representing the text properties of OBJECT between
+   START and END.  if PROP is non-nil, report only on that property.
+   Each result list element has the form (S E PLIST), where S and E
+   are positions in OBJECT and PLIST is a property list containing the
+   text properties of OBJECT between S and E.  Value is nil if OBJECT
+   doesn't contain text properties between START and END.  */
+
+Lisp_Object
+text_property_list (object, start, end, prop)
+     Lisp_Object object, start, end, prop;
+{
+  struct interval *i;
+  Lisp_Object result;
+  int s, e;
+
+  result = Qnil;
+  
+  i = validate_interval_range (object, &start, &end, soft);
+  if (!NULL_INTERVAL_P (i))
+    {
+      int s = XINT (start);
+      int e = XINT (end);
+      
+      while (s < e)
+	{
+	  int interval_end, len;
+	  Lisp_Object plist;
+	  
+	  interval_end = i->position + LENGTH (i);
+	  if (interval_end > e)
+	    interval_end = e;
+	  len = interval_end - s;
+	  
+	  plist = i->plist;
+
+	  if (!NILP (prop))
+	    for (; !NILP (plist); plist = Fcdr (Fcdr (plist)))
+	      if (EQ (Fcar (plist), prop))
+		{
+		  plist = Fcons (prop, Fcons (Fcar (Fcdr (plist)), Qnil));
+		  break;
+		}
+
+	  if (!NILP (plist))
+	    result = Fcons (Fcons (make_number (s),
+				   Fcons (make_number (s + len),
+					  Fcons (plist, Qnil))),
+			    result);
+	  
+	  i = next_interval (i);
+	  if (NULL_INTERVAL_P (i))
+	    break;
+	  s = i->position;
+	}
+    }
+  
+  return result;
+}
+
+
+/* Add text properties to OBJECT from LIST.  LIST is a list of triples
+   (START END PLIST), where START and END are positions and PLIST is a
+   property list containing the text properties to add.  Adjust START
+   and END positions by DELTA before adding properties.  Value is
+   non-zero if OBJECT was modified.  */
+
+int
+add_text_properties_from_list (object, list, delta)
+     Lisp_Object object, list, delta;
+{
+  struct gcpro gcpro1, gcpro2;
+  int modified_p = 0;
+  
+  GCPRO2 (list, object);
+  
+  for (; CONSP (list); list = XCDR (list))
+    {
+      Lisp_Object item, start, end, plist, tem;
+      
+      item = XCAR (list);
+      start = make_number (XINT (XCAR (item)) + XINT (delta));
+      end = make_number (XINT (XCAR (XCDR (item))) + XINT (delta));
+      plist = XCAR (XCDR (XCDR (item)));
+      
+      tem = Fadd_text_properties (start, end, plist, object);
+      if (!NILP (tem))
+	modified_p = 1;
+    }
+
+  UNGCPRO;
+  return modified_p;
+}
+
+
+
+/* Modify end-points of ranges in LIST destructively.  LIST is a list
+   as returned from text_property_list.  Change end-points equal to
+   OLD_END to NEW_END.  */
+
+void
+extend_property_ranges (list, old_end, new_end)
+     Lisp_Object list, old_end, new_end;
+{
+  for (; CONSP (list); list = XCDR (list))
+    {
+      Lisp_Object item, end;
+      
+      item = XCAR (list);
+      end = XCAR (XCDR (item));
+
+      if (EQ (end, old_end))
+	XCONS (XCDR (item))->car = new_end;
+    }
+}
+
+
 
 /* Call the modification hook functions in LIST, each with START and END.  */
 
