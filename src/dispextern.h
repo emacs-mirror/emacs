@@ -104,7 +104,7 @@ enum window_part
 };
 
 /* Number of bits allocated to store fringe bitmap numbers.  */
-#define FRINGE_ID_BITS  8
+#define FRINGE_ID_BITS  16
 
 
 
@@ -714,23 +714,23 @@ struct glyph_row
   /* Left fringe bitmap number (enum fringe_bitmap_type).  */
   unsigned left_user_fringe_bitmap : FRINGE_ID_BITS;
 
-  /* Face of the left fringe glyph.  */
-  unsigned left_user_fringe_face_id : FACE_ID_BITS;
-
   /* Right fringe bitmap number (enum fringe_bitmap_type).  */
   unsigned right_user_fringe_bitmap : FRINGE_ID_BITS;
-
-  /* Face of the right fringe glyph.  */
-  unsigned right_user_fringe_face_id : FACE_ID_BITS;
 
   /* Left fringe bitmap number (enum fringe_bitmap_type).  */
   unsigned left_fringe_bitmap : FRINGE_ID_BITS;
 
-  /* Face of the left fringe glyph.  */
-  unsigned left_fringe_face_id : FACE_ID_BITS;
-
   /* Right fringe bitmap number (enum fringe_bitmap_type).  */
   unsigned right_fringe_bitmap : FRINGE_ID_BITS;
+
+  /* Face of the left fringe glyph.  */
+  unsigned left_user_fringe_face_id : FACE_ID_BITS;
+
+  /* Face of the right fringe glyph.  */
+  unsigned right_user_fringe_face_id : FACE_ID_BITS;
+
+  /* Face of the left fringe glyph.  */
+  unsigned left_fringe_face_id : FACE_ID_BITS;
 
   /* Face of the right fringe glyph.  */
   unsigned right_fringe_face_id : FACE_ID_BITS;
@@ -2047,11 +2047,11 @@ struct it
   /* Left fringe bitmap number (enum fringe_bitmap_type).  */
   unsigned left_user_fringe_bitmap : FRINGE_ID_BITS;
 
-  /* Face of the left fringe glyph.  */
-  unsigned left_user_fringe_face_id : FACE_ID_BITS;
-
   /* Right fringe bitmap number (enum fringe_bitmap_type).  */
   unsigned right_user_fringe_bitmap : FRINGE_ID_BITS;
+
+  /* Face of the left fringe glyph.  */
+  unsigned left_user_fringe_face_id : FACE_ID_BITS;
 
   /* Face of the right fringe glyph.  */
   unsigned right_user_fringe_face_id : FACE_ID_BITS;
