@@ -4,7 +4,7 @@
 
 ;; Author: Simon Marshall <simon@gnu.ai.mit.edu>
 ;; Keywords: faces files
-;; Version: 3.07
+;; Version: 3.08
 
 ;;; This file is part of GNU Emacs.
 
@@ -148,6 +148,8 @@
 ;; - XEmacs: Add `fast-lock-after-fontify-buffer' to the Font Lock hook.
 ;; - Made `fast-lock-cache-name' explain the use of `directory-abbrev-alist'.
 ;; - Made `fast-lock-mode' use `buffer-file-truename' not `buffer-file-name'.
+;; 3.07--3.08:
+;; - Made `fast-lock-read-cache' set `fast-lock-cache-filename'.
 
 (require 'font-lock)
 
@@ -159,7 +161,7 @@
   "Submit via mail a bug report on fast-lock.el."
   (interactive)
   (let ((reporter-prompt-for-summary-p t))
-    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "fast-lock 3.07"
+    (reporter-submit-bug-report "simon@gnu.ai.mit.edu" "fast-lock 3.08"
      '(fast-lock-cache-directories fast-lock-minimum-size
        fast-lock-save-others fast-lock-save-events fast-lock-save-faces)
      nil nil
@@ -256,6 +258,8 @@ For saving, see variables `fast-lock-minimum-size', `fast-lock-save-events',
 
 Use \\[fast-lock-submit-bug-report] to send bug reports or feedback."
   (interactive "P")
+  ;; Only turn on if we are visiting a file.  We could use `buffer-file-name',
+  ;; but many packages temporarily wrap that to nil when doing their own thing.
   (set (make-local-variable 'fast-lock-mode)
        (and buffer-file-truename
 	    (if arg (> (prefix-numeric-value arg) 0) (not fast-lock-mode))))
@@ -285,18 +289,24 @@ See `fast-lock-mode'."
   (let ((directories fast-lock-cache-directories)
 	(modified (buffer-modified-p)) (inhibit-read-only t)
 	(fontified font-lock-fontified))
-    (setq fast-lock-cache-filename nil)
     (set (make-local-variable 'font-lock-fontified) nil)
     ;; Keep trying directories until fontification is turned off.
     (while (and directories (not font-lock-fontified))
-      (let* ((directory (fast-lock-cache-directory (car directories) nil))
-	     (file (and directory (fast-lock-cache-name directory))))
-	(condition-case nil
-	    (and file (file-readable-p file) (load file t t t))
-	  (error nil) (quit nil))
+      (let ((directory (fast-lock-cache-directory (car directories) nil)))
+	(if (not directory)
+	    nil
+	  (setq fast-lock-cache-filename (fast-lock-cache-name directory))
+	  (condition-case nil
+	      (if (file-readable-p fast-lock-cache-filename)
+		  (load fast-lock-cache-filename t t t))
+	    (error nil) (quit nil)))
 	(setq directories (cdr directories))))
+    ;; Unset `fast-lock-cache-filename', and restore `font-lock-fontified', if
+    ;; we don't use a cache.  (Note that `fast-lock-cache-data' sets the value
+    ;; of `fast-lock-cache-timestamp'.)
     (set-buffer-modified-p modified)
-    (or font-lock-fontified (setq font-lock-fontified fontified))))
+    (if (not font-lock-fontified)
+	(setq fast-lock-cache-filename nil font-lock-fontified fontified))))
 
 (defun fast-lock-save-cache (&optional buffer)
   "Save the Font Lock cache of BUFFER or the current buffer.
@@ -499,11 +509,8 @@ See `fast-lock-cache-directory'."
 	       (cond ((eq loaded 'error) "failed")
 		     ((eq loaded 'quit) "aborted")
 		     (t "done"))))
-    ;; If we used the text properties, stop fontification and keep timestamp.
-    ;; Kludge warning: `file' comes from sole caller `fast-lock-read-cache'.
     (setq font-lock-fontified (eq loaded t)
-	  fast-lock-cache-timestamp (and (eq loaded t) timestamp)
-	  fast-lock-cache-filename (and (eq loaded t) file))))
+	  fast-lock-cache-timestamp (and (eq loaded t) timestamp))))
 
 ;; Text Properties Processing Functions:
 
