@@ -99,6 +99,7 @@ is nil, raise an error."
     (mapcar
      (function (lambda (x) 
 		 (cond ((stringp x) nil)
+		       ((consp x) nil)
 		       ((boundp x) (makunbound x))
 		       ((fboundp x)
 			(fmakunbound x)
