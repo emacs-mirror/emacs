@@ -856,4 +856,5 @@ If prefix argument ALL is non-nil, all articles are marked as read."
 
 (provide 'gnus-gl)
 
+;;; arch-tag: 6f1bab2c-c2a3-4764-9ef6-0714cd5902a4
 ;;; gnus-gl.el ends here

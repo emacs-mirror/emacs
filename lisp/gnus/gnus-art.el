@@ -4910,4 +4910,5 @@ For example:
 
 (run-hooks 'gnus-art-load-hook)
 
+;;; arch-tag: 2654516f-6279-48f9-a83b-05c1fa450c33
 ;;; gnus-art.el ends here

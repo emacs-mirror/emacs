@@ -181,4 +181,5 @@ ftp://ftp.math.psu.edu/pub/simpson/chinese/hzp/hzp.doc"
 
 (provide 'rfc1843)
 
+;;; arch-tag: 5149c301-a6ca-4731-9c9d-ba616e2cb687
 ;;; rfc1843.el ends here

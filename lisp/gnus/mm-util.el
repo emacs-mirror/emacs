@@ -424,7 +424,7 @@ If the charset is `composition', return the actual one."
     (mm-mule-charset-to-mime-charset charset)))
 
 (defun mm-delete-duplicates (list)
-  "Simple  substitute for CL `delete-duplicates', testing with `equal'."
+  "Simple substitute for CL `delete-duplicates', testing with `equal'."
   (let (result head)
     (while list
       (setq head (car list))
@@ -670,4 +670,5 @@ If INHIBIT is non-nil, inhibit mm-inhibit-file-name-handlers."
 
 (provide 'mm-util)
 
+;;; arch-tag: 94dc5388-825d-4fd1-bfa5-2100aa351238
 ;;; mm-util.el ends here

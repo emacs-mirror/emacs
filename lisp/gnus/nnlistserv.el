@@ -1,6 +1,6 @@
 ;;; nnlistserv.el --- retrieving articles via web mailing list archives
 
-;; Copyright (C) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000, 2004 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -127,7 +127,7 @@
     (nnweb-decode-entities)
     (while headers
       (goto-char (point-min))
-      (re-search-forward (format "<!-- %s=\"\\([^\"]+\\)" (car headers) nil t))
+      (re-search-forward (format "<!-- %s=\"\\([^\"]+\\)" (car headers)) nil t)
       (set (pop headers) (match-string 1)))
     (goto-char (point-min))
     (search-forward "<!-- body" nil t)
@@ -154,4 +154,5 @@
 
 (provide 'nnlistserv)
 
+;;; arch-tag: 7705176f-d332-4a5e-a520-d0d319445617
 ;;; nnlistserv.el ends here

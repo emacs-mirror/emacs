@@ -162,4 +162,5 @@ With arg, turn displaying on if and only if arg is positive."
 
 (provide 'smiley)
 
+;;; arch-tag: e726728a-14fb-4e6a-9aef-889941bdf7ad
 ;;; smiley-ems.el ends here

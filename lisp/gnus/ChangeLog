@@ -1,3 +1,17 @@
+2004-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-mode): Fix last change.
+
+2004-03-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-mode): Set comment-start-skip.
+
+2004-02-08  Andreas Schwab  <schwab@suse.de>
+
+	* nnlistserv.el (nnlistserv-kk-wash-article): Fix paren nesting.
+
+	* gnus-score.el (gnus-summary-increase-score): Fix format string.
+
 2003-06-25  Sam Steingold  <sds@gnu.org>
 
 	* gnus-group.el (gnus-group-suspend): Avoid some consing.
@@ -24,8 +38,8 @@
 
 2003-05-06  Jesper Harder  <harder@ifa.au.dk>
 
-	* gnus-cus.el (gnus-group-customize, gnus-score-parameters): Don't
-	quote nil and t in docstrings.
+	* gnus-cus.el (gnus-group-customize, gnus-score-parameters):
+	Don't quote nil and t in docstrings.
 
 	* gnus-score.el (gnus-score-lower-thread): Likewise.
 
@@ -41,8 +55,7 @@
 
 2003-02-18  Juanma Barranquero  <lektu@terra.es>
 
-	* ietf-drums.el (ietf-drums-remove-whitespace): Fix character
-	constant.
+	* ietf-drums.el (ietf-drums-remove-whitespace): Fix character constant.
 
 2003-02-14  Juanma Barranquero  <lektu@terra.es>
 
@@ -11178,3 +11191,5 @@
     Copyright (C) 2002 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: 3f33a3e7-090d-492b-bedd-02a1417d32b4

@@ -264,4 +264,5 @@
 
 (provide 'nndraft)
 
+;;; arch-tag: 3ce26ca0-41cb-48b1-8703-4dad35e188aa
 ;;; nndraft.el ends here
