@@ -1528,6 +1528,12 @@
 
 2000-09-04  Dave Love  <fx@gnu.org>
 
+	* mouse.el (mouse-major-mode-menu, mouse-popup-menubar): Run
+	menu-bar-update-hook.
+
+	* help.el (help-manyarg-func-alist): Add
+	find-operation-coding-system.
+
 	* wid-edit.el (widget-sexp-validate): Fix garbled code.
 
 	* custom.el (custom-set-variables): Print message about errors in
