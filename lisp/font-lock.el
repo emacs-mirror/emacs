@@ -2372,7 +2372,11 @@ See also `c-font-lock-extra-types'.")
 	  (list 1 'font-lock-keyword-face)
 	  (list ,(+ c-type-specs-depth 2) 'font-lock-type-face nil t)
 	  (list 'font-lock-match-c-style-declaration-item-and-skip-to-next
-		  nil nil
+		  nil 
+		  ;; Finish with point after the variable name if
+		  ;; there is one.
+		  `(if (match-end 2) 
+		       (goto-char (match-end 2)))
 		  ;; Fontify as a variable or function name.
 		  '(1 (if (match-beginning 2)
 			  font-lock-function-name-face
