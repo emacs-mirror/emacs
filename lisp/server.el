@@ -209,6 +209,46 @@ New clients have no properties."
     (setq server-clients (cons (cons proc nil)
 			       server-clients))))
 
+;;;###autoload
+(defun server-getenv (variable &optional frame)
+  "Get the value of VARIABLE in the client environment of frame FRAME.
+VARIABLE should be a string.  Value is nil if VARIABLE is undefined in
+the environment.  Otherwise, value is a string.
+
+If FRAME is an emacsclient frame, then the variable is looked up
+in the environment of the emacsclient process; otherwise the
+function consults the environment of the Emacs process.
+
+If FRAME is nil or missing, then the selected frame is used."
+  (when (not frame) (setq frame (selected-frame)))
+  (let ((client (frame-parameter frame 'client)) env)
+    (if (null client)
+	(getenv variable)
+      (setq env (server-client-get client 'environment))
+      (if (null env)
+	  (getenv variable)
+	(cdr (assoc variable env))))))
+
+(defmacro server-with-client-environment (client vars &rest body)
+  "Evaluate BODY with environment variables VARS set to those of CLIENT.
+The environment variables are then restored to their previous values.
+
+VARS should be a list of strings."
+  (declare (indent 2))
+  (let ((oldvalues (make-symbol "oldvalues"))
+	(var (make-symbol "var"))
+	(value (make-symbol "value"))
+	(pair (make-symbol "pair")))
+    `(let (,oldvalues)
+       (dolist (,var (quote ,vars))
+	 (let ((,value (cdr (assoc ,var (server-client-get ,client 'environment)))))
+	   (setq ,oldvalues (cons (cons ,var (getenv ,var)) ,oldvalues))
+	   (setenv ,var ,value)))
+       (unwind-protect
+	   (progn ,@body)
+	 (dolist (,pair ,oldvalues)
+	   (setenv (car ,pair) (cdr ,pair)))))))
+
 (defun server-delete-client (client &optional noframe)
   "Delete CLIENT, including its buffers, displays and frames.
 If NOFRAME is non-nil, let the frames live.  (To be used from
@@ -506,7 +546,15 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 		    (setq request (substring request (match-end 0)))
 		    (unless (server-client-get client 'version)
 		      (error "Protocol error; make sure you use the correct version of emacsclient"))
-		    (setq frame (make-frame-on-tty tty type (list (cons 'client proc))))
+		    ;; Set up client's environment for tgetent(3)
+		    ;; according to ncurses(3).
+		    (server-with-client-environment proc
+			("BAUDRATE" "COLUMNS" "ESCDELAY" "HOME" "LINES"
+			 "NCURSES_ASSUMED_COLORS" "NCURSES_NO_PADDING"
+			 "NCURSES_NO_SETBUF" "TERM" "TERMCAP" "TERMINFO"
+			 "TERMINFO_DIRS" "TERMPATH")
+		      (setq frame (make-frame-on-tty tty type
+						     `((client . ,proc)))))
 		    (select-frame frame)
 		    (server-client-set client 'frame frame)
 		    (server-client-set client 'tty (display-name frame))
@@ -889,26 +937,6 @@ With prefix arg, silently save all file-visiting buffers, then kill."
       (save-buffers-kill-emacs))))
 
 (global-set-key "\C-x#" 'server-edit)
-
-;;;###autoload
-(defun server-getenv (variable &optional frame)
-  "Get the value of VARIABLE in the client environment of frame FRAME.
-VARIABLE should be a string.  Value is nil if VARIABLE is undefined in
-the environment.  Otherwise, value is a string.
-
-If FRAME is an emacsclient frame, then the variable is looked up
-in the environment of the emacsclient process; otherwise the
-function consults the environment of the Emacs process.
-
-If FRAME is nil or missing, then the selected frame is used."
-  (when (not frame) (setq frame (selected-frame)))
-  (let ((client (frame-parameter frame 'client)) env)
-    (if (null client)
-	(getenv variable)
-      (setq env (server-client-get client 'environment))
-      (if (null env)
-	  (getenv variable)
-	(cdr (assoc variable env))))))
 
 (defun server-unload-hook ()
   "Unload the server library."
