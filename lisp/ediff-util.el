@@ -2899,33 +2899,37 @@ Hit \\[ediff-recenter] to reset the windows afterward."
     f)) 
   
 ;; If PREFIX is given, then it is used as a prefix for the temp file
-;; name. Otherwise, `ediff_' is used. If FILE is given, use this
+;; name. Otherwise, `ediff' is used. If FILE is given, use this
 ;; file and don't create a new one.
-;; On MS-DOS, make sure the prefix isn't longer than 7 characters, or
-;; else `make-temp-name' isn't guaranteed to return a unique filename.
+;; On MS-DOS, make sure the prefix isn't too long, or else
+;; `make-temp-name' isn't guaranteed to return a unique filename.
 ;; Also, save buffer from START to END in the file.
 ;; START defaults to (point-min), END to (point-max)
 (defun ediff-make-temp-file (buff &optional prefix given-file start end)
-  (let ((p (or prefix "ediff"))
-	f)
-    (if (and (eq system-type 'ms-dos) (> (length p) 7))
-	(setq p (substring p 0 7)))
+  (let* ((p (ediff-convert-standard-filename (or prefix "ediff")))
+	 (short-p p)
+	 f short-f)
+    (if (and (fboundp 'msdos-long-file-names)
+	     (not (msdos-long-file-names))
+	     (> (length p) 2))
+	(setq short-p (substring p 0 2)))
 
     (setq f (concat ediff-temp-file-prefix p)
+	  short-f (concat ediff-temp-file-prefix short-p)
 	  f (cond (given-file)
 		  ((find-file-name-handler f 'find-file-noselect)
 		   ;; to thwart file handlers in write-region, e.g., if file
 		   ;; name ends with .Z or .gz
 		   ;; This is needed so that patches produced by ediff will
 		   ;; have more meaningful names
-		   (make-temp-name f))
+		   (make-temp-name short-f))
 		  ;; Prefix is most often the same as the file name for the
 		  ;; variant. Here we are trying to use the original file name
 		  ;; but in the temp directory.
 		  ((and prefix (not (file-exists-p f))) f)
 		  ;; If a file with the orig name exists, add some random stuff
 		  ;; to it.
-		  (t (make-temp-name f))))
+		  (t (make-temp-name short-f))))
     
     ;; create the file
     (ediff-with-current-buffer buff
@@ -2935,7 +2939,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 		    nil          ; don't append---erase
 		    'no-message) 
       (set-file-modes f ediff-temp-file-mode)
-      (ediff-convert-standard-filename (expand-file-name f)))))
+      (expand-file-name f))))
 
 ;; Quote metacharacters (using \) when executing diff in Unix, but not in
 ;; EMX OS/2
