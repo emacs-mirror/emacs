@@ -40,7 +40,7 @@
  'utf-7 0 ?U
  "UTF-7 encoding of Unicode (RFC 2152)"
  nil
- `((safe-chars . ,(coding-system-get 'utf-16-be 'safe-chars))
+ `((safe-chars . ,(coding-system-get 'utf-16be 'safe-chars))
    (mime-charset . utf-7)
    (pre-write-conversion . utf-7-pre-write-conversion)
    (post-read-conversion . utf-7-post-read-conversion)))
@@ -49,7 +49,7 @@
 ;;  'utf-7-imap 0 ?u
 ;;  "UTF-7 encoding of Unicode, IMAP version (RFC 2060)"
 ;;  nil
-;;  `((safe-chars . ,(coding-system-get 'utf-16-be 'safe-chars))
+;;  `((safe-chars . ,(coding-system-get 'utf-16be 'safe-chars))
 ;;    (pre-write-conversion . utf-7-imap-pre-write-conversion)
 ;;    (post-read-conversion . utf-7-imap-post-read-conversion)))
 
@@ -75,7 +75,7 @@ IMAP non-nil means use the IMAP version."
 		  (if imap
 		      (subst-char-in-region p (point) ?, ?/))
 		  (base64-decode-region p (point)))
-		(decode-coding-region p (point) 'utf-16-be)
+		(decode-coding-region p (point) 'utf-16be)
 		(save-excursion
 		  (goto-char p)
 		  (delete-backward-char 1)))))))
@@ -116,7 +116,7 @@ ESC and SKIP-CHARS are adjusted for the normal and IMAP versions."
 	    (save-restriction
 	      ;; encode-coding-region doesn't preserve point
 	      (narrow-to-region p (point))
-	      (encode-coding-region p (point-max) 'utf-16-be)
+	      (encode-coding-region p (point-max) 'utf-16be)
 	      (base64-encode-region p (point-max))
 	      (if imap
 		  (subst-char-in-region p (point-max) ?/ ?,))

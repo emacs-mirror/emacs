@@ -520,8 +520,8 @@ for decoding and encoding files, process I/O, etc."
       coding-category-iso-8-else	'iso-2022-8bit-ss2
       coding-category-ccl		nil
       coding-category-utf-8		'mule-utf-8
-      coding-category-utf-16-be         'mule-utf-16-be-with-signature
-      coding-category-utf-16-le         'mule-utf-16-le-with-signature
+      coding-category-utf-16-be         'mule-utf-16be-with-signature
+      coding-category-utf-16-le         'mule-utf-16le-with-signature
       coding-category-big5		'chinese-big5
       coding-category-raw-text		'raw-text
       coding-category-binary		'no-conversion)
