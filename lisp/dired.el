@@ -398,9 +398,11 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	(if switches			; ... but new switches
 	    (dired-sort-other switches))	; this calls dired-revert
       ;; Else a new buffer
-      (setq default-directory (if (file-directory-p dirname)
-				  dirname
-				(file-name-directory dirname)))
+      (setq default-directory
+	    (abbreviate-file-name
+	     (if (file-directory-p dirname)
+		 dirname
+	       (file-name-directory dirname))))
       (or switches (setq switches dired-listing-switches))
       (dired-mode dirname switches)
       ;; default-directory and dired-actual-switches are set now
