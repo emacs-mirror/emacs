@@ -341,9 +341,15 @@ dec_bytepos (bytepos)
   return bytepos;
 }
 
-/* Find a defun-start that is the last one before POS (or nearly the last).
-   We record what we find, so that another call in the same area
-   can return the same value right away.  
+/* Return a defun-start position before before POS and not too far before.
+   It should be the last one before POS, or nearly the last.
+
+   When open_paren_in_column_0_is_defun_start is nonzero,
+   the beginning of every line is treated as a defun-start.
+
+   We record the information about where the scan started
+   and what its result was, so that another call in the same area
+   can return the same value very quickly.
 
    There is no promise at which position the global syntax data is
    valid on return from the subroutine, so the caller should explicitly
