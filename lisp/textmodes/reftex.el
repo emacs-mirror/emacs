@@ -755,7 +755,7 @@ COUNTERS           Show counters.  This just numbers the labels in the menu.
 NO-CONTEXT         Non-nil means do NOT show the short context.
 FOLLOW             Follow full context in other window.
 SHOW-COMMENTED     Show labels from regions which are commented out.
-MATCH-IN-TOC       Searches in label menu will also match in toc lines.
+MATCH-IN-TOC       Obsolete flag.
 SHOW FILES         Show begin and end of included files.
 
 Each of these flags can be set to t or nil, or to a string of type letters
@@ -778,7 +778,7 @@ get one interactively during selection from the label menu."
     (choice :tag "Hide short context              " ,@reftex-tmp)
     (choice :tag "Follow context in other window  " ,@reftex-tmp)
     (choice :tag "Show commented labels           " ,@reftex-tmp)
-    (choice :tag "Searches match in toc lines     " ,@reftex-tmp)
+    (choice :tag "Obsolete flag,  Don't use.      " ,@reftex-tmp)
     (choice :tag "Show begin/end of included files" ,@reftex-tmp)))
 
 (defcustom reftex-vref-is-default nil
@@ -1234,7 +1234,7 @@ When nil, follow-mode will be suspended for stuff in unvisited files."
 ;;; Define the formal stuff for a minor mode named RefTeX.
 ;;;
 
-;; This file corresponds to RefTeX version 3.21
+;; This file corresponds to RefTeX version 3.22
 
 (defvar reftex-mode nil
   "Determines if RefTeX minor mode is active.")
@@ -2513,8 +2513,6 @@ When called with 2 C-u prefix args, disable magic word recognition."
          (follow  (reftex-typekey-check
                    typekey reftex-label-menu-flags 4))
          (commented (nth 5 reftex-label-menu-flags))
-         (match-everywhere (reftex-typekey-check
-                            typekey reftex-label-menu-flags 6))
 	 (prefix "")
 	 selection-buffers
          offset rtn key data last-data entry)
@@ -2565,8 +2563,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
                      reftex-select-label-help
 		     reftex-select-label-map
                      offset
-                     'reftex-select-label-callback follow
-                     match-everywhere))
+                     'reftex-select-label-callback follow))
               (setq key       (car rtn)
                     data      (nth 1 rtn)
                     last-data (nth 2 rtn)
@@ -4689,7 +4686,7 @@ bibliography statement (e.g. if it was changed)."
 
 (defun reftex-select-item (prompt help-string keymap
 				  &optional offset
-				  call-back cb-flag match-everywhere)
+				  call-back cb-flag)
 ;; Select an item, using PROMPT. The function returns a key indicating
 ;; an exit status, along with a data structure indicating which item was
 ;; selected.
@@ -4701,8 +4698,6 @@ bibliography statement (e.g. if it was changed)."
 ;; When CALL-BACK is given, it is a function which is called with the index
 ;; of the element.
 ;; CB-FLAG is the initial value of that flag.
-;; When MATCH-EVERYWHERE is t, searches will also match in non-selectable
-;; places.
 
   (let* (ev data last-data callback-fwd (selection-buffer (current-buffer)))
 
@@ -4767,7 +4762,6 @@ bibliography statement (e.g. if it was changed)."
 (defvar last-data)
 (defvar call-back)
 (defvar help-string)
-(defvar match-everywhere)
 (defvar callback-fwd)
 (defvar varioref)
 
