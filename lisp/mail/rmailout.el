@@ -121,7 +121,10 @@ starting with the current one.  Deleted messages are skipped and don't count."
 		  (let ((buf (find-buffer-visiting file-name))
 			(cur (current-buffer))
 			(beg (1+ (rmail-msgbeg rmail-current-message)))
-			(end (1+ (rmail-msgend rmail-current-message))))
+			(end (1+ (rmail-msgend rmail-current-message)))
+			(coding-system-for-write
+			 (or rmail-file-coding-system
+			     'emacs-mule-unix)))
 		    (if (not buf)
 			;; Output to a file.
 			(if rmail-fields-not-to-output
@@ -163,11 +166,11 @@ starting with the current one.  Deleted messages are skipped and don't count."
 				  (rmail-select-summary
 				    (rmail-update-summary)))
 			      (rmail-show-message msg))
-		;; Output file not in rmail mode => just insert at the end.
-		(narrow-to-region (point-min) (1+ (buffer-size)))
-		(goto-char (point-max))
-		(insert-buffer-substring cur beg end)
-		(rmail-delete-unwanted-fields)))))))
+			  ;; Output file not in rmail mode => just insert at the end.
+			  (narrow-to-region (point-min) (1+ (buffer-size)))
+			  (goto-char (point-max))
+			  (insert-buffer-substring cur beg end)
+			  (rmail-delete-unwanted-fields)))))))
 	      (rmail-set-attribute "filed" t))
 	  (if redelete (rmail-set-attribute "deleted" t))))
       (setq count (1- count))
