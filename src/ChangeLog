@@ -1,5 +1,9 @@
 2001-11-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_draw_bar_cursor): If the background color of the
+	glyph under the cursor equals the frame's cursor color, use
+	the glyph's foreground color for drawing the bar cursor.
+
 	* dispnew.c (direct_output_forward_char): Fix character/byte
 	position comparison.
 
