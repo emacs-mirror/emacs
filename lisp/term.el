@@ -719,6 +719,7 @@ Buffer local variable.")
 
 (when (fboundp 'make-face)
 ;;; --- Simple faces ---
+  (copy-face 'default 'term-default)
   (make-face 'term-default-fg)
   (make-face 'term-default-bg)
   (make-face 'term-default-fg-inv)
