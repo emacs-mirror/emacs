@@ -720,6 +720,7 @@ adjust_lnnoptrs (writedesc, readdesc, new_name)
      char *new_name;
 {
   register int nsyms;
+  register int naux;
   register int new;
 #ifdef amdahl_uts
   SYMENT symentry;
@@ -742,7 +743,7 @@ adjust_lnnoptrs (writedesc, readdesc, new_name)
   for (nsyms = 0; nsyms < f_hdr.f_nsyms; nsyms++)
     {
       read (new, &symentry, SYMESZ);
-      if (symentry.n_numaux)
+      for (naux = 0; naux < symentry.n_numaux; naux++)
 	{
 	  read (new, &auxentry, AUXESZ);
 	  nsyms++;
