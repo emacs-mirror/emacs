@@ -1,3 +1,15 @@
+2003-05-09  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* uniquify.el: Use the original buffer-name as `base' in place of the
+	nondirectory part of the file name.
+	(uniquify-rationalize-file-buffer-names):
+	Split the `newbuffile' arg into `base' and `dirname'.
+	Reuse old uniquify-items to avoid recomputing their base&dirname.
+	(uniquify-buffer-file-name): Only return the directory part.
+	(uniquify-rerationalize-w/o-cb): Don't bother reseting proposed names.
+	(rename-buffer): Use the `newname' arg as base.
+	(create-file-buffer): Split the file name into base and dirname.
+
 2003-05-09  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
 
 	* mail/smtpmail.el (smtpmail-send-queued-mail): Don't use kill-line.
@@ -1014,48 +1026,6 @@
 
 	* language/ind-util.el (indian-2-column-to-ucs-region): Fix for
 	the case of replacing multibyte characters.
-
-2003-04-09  Stefan Monnier  <monnier@cs.yale.edu>
-
-	* textmodes/bibtex.el: Update copyright and Author list.
-	Don't require `compile' since it seems unnecessary.
-	(bibtex-version): Remove.
-	(bibtex-sort-ignore-string-entries, bibtex-maintain-sorted-entries)
-	(bibtex-field-name-for-parsing): Don't make auto-buffer-local.
-	(bibtex-comment-start): Don't include the space.
-	(zmacs-regions, reporter-prompt-for-summary-p):
-	Declare to quieten the byte-compiler.
-	(bibtex-reference-key, bibtex-mode-syntax-table): Remove =
-	because it can't be part of a string's key.
-	(bibtex-parse-field-name): Use prog1.
-	(bibtex-font-lock-syntactic-keywords): New var.
-	(bibtex-font-lock-keywords): Remove the entry for @Comment.
-	(bibtex-search-entry): Simplify.
-	(bibtex-empty-re): New var.
-	(bibtex-format-entry): Slightly restructure some loops to avoid code
-	duplication.  Use looking-at rather than `substring + string-match'.
-	Use bibtex-empty-re (which removes unnecessary \(..\) in regexps).
-	Remove now unused end-name.  Use bibtex-find-crossref.
-	Don't downcase since case-fold-search is t.
-	(bibtex-autokey-get-yearfield): Use bibtex-find-crossref.
-	(bibtex-parse-keys): Use unless and push.
-	Parse even if bibtex-maintain-sorted-entries is nil.
-	(bibtex-complete): Use push.  Don't sort completions.
-	(bibtex-mode): Use push.  Update comment-start-skip.
-	Improve defun-prompt-regexp and outline-regexp.
-	Add bibtex-font-lock-syntactic-keywords to font-lock-defaults.
-	(bibtex-end-of-entry): Remove unused \(...\).
-	(bibtex-sort-key): New fun.
-	(bibtex-sort-buffer, bibtex-validate): Use it.
-	(bibtex-find-crossref): New fun.
-	(bibtex-validate): Use push & dolist; remove \(...\).
-	(bibtex-clean-entry): Use unless and friends.
-	Don't add the key to the list if the list hasn't been built yet.
-	(bibtex-fill-entry): Remove unused begin-name and end-name.
-	(bibtex-reformat): Kill local var instead of setting it to nil.
-	(bibtex-convert-alien): Use deactivate-mark rather than the
-	non-existent bibtex-mark-active variable.
-	(bibtex-String): Simplify.
 
 2003-04-09  Richard M. Stallman  <rms@gnu.org>
 
