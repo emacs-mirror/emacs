@@ -7,7 +7,7 @@
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.43 $
+;; Ada Core Technologies's version:   $Revision: 1.44 $
 ;; Keywords: languages ada
 
 ;; This file is part of GNU Emacs.
@@ -283,8 +283,8 @@ An example is:
 
 (defcustom ada-fill-comment-prefix "--  "
   "*Text inserted in the first columns when filling a comment paragraph.
-Note: if you modify this variable, you will have to restart the `ada-mode' to
-reread this variable."
+Note: if you modify this variable, you will have to invoke `ada-mode'
+again to take account of the new value."
   :type 'string :group 'ada)
 
 (defcustom ada-fill-comment-postfix " --"
@@ -4149,16 +4149,13 @@ The paragraph is indented on the first line."
     (goto-char opos)
 
     ;;  Find beginning of paragraph
-    (back-to-indentation)
-    (while (and (not (bobp)) (looking-at "--[ \t]*[^ \t\n]"))
-      (forward-line -1)
-      (back-to-indentation))
-
-    ;;  We want one line to above the first one, unless we are at the beginning
-    ;;  of the buffer
-    (unless (bobp)
-      (forward-line 1))
     (beginning-of-line)
+    (while (and (not (bobp)) (looking-at "[ \t]*--[ \t]*[^ \t\n]"))
+      (forward-line -1))
+    ;;  If we found a paragraph-separating line,
+    ;;  don't actually include it in the paragraph.
+    (unless (looking-at "[ \t]*--[ \t]*[^ \t\n]")
+      (forward-line 1))
     (setq from (point-marker))
 
     ;;  Calculate the indentation we will need for the paragraph
