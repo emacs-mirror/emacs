@@ -692,7 +692,7 @@ feature is not enabled.
 select it (give it focus), the selected window and cursor position
 normally changes according to the mouse click position.  If you set
 the variable x-mouse-click-focus-ignore-position to t, the selected
-window and cursor position do not changes when you click on a frame
+window and cursor position do not change when you click on a frame
 to give it focus.
 
 +++
