@@ -445,7 +445,8 @@ Older version of this page was called `perl5', newer `perl'."
   :type 'regexp
   :group 'cperl)
 
-(defcustom cperl-noscan-files-regexp "/\\(\\.\\.?\\|SCCS\\|RCS\\|blib\\)$"
+(defcustom cperl-noscan-files-regexp
+  "/\\(\\.\\.?\\|SCCS\\|RCS\\|CVS\\|blib\\)$"
   "*Regexp to match files/dirs to skip when generating TAGS."
   :type 'regexp
   :group 'cperl)
