@@ -639,13 +639,13 @@ Do the same for the keys of the same name."
 			(show-paren-mode)))
 (define-key menu-bar-options-menu [transient-mark-mode]
   (menu-bar-make-toggle toggle-transient-mark-mode transient-mark-mode
-			"Transient Mark Mode (highlights region)"
+			"Highlight Active Region"
 			"Transient Mark mode %s"
-			"Highlight the marked region when it's active"))
+			"Highlight marked region when active"))
 (define-key menu-bar-options-menu [toggle-global-lazy-font-lock-mode]
   (menu-bar-make-toggle toggle-global-lazy-font-lock-mode global-font-lock-mode
-			"Highlight Syntax (Global Font Lock)"
-			"Syntax Highlighting %s"
+			"Highlight Syntactically"
+			"Global Font Lock mode %s"
 			"Highlight text based on language syntax"
 			(global-font-lock-mode)))
 
