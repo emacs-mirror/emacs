@@ -4,7 +4,6 @@
 
 ;; Author: Boris Goldowsky <boris@cs.rochester.edu>
 ;; Keywords: mouse
-;; Version: 1.10
 
 ;; This file is part of GNU Emacs.
 
@@ -28,12 +27,9 @@
 ;;; this mode moves the mouse pointer - either just a little out of
 ;;; the way, or all the way to the corner of the frame. 
 ;;; To use, load or evaluate this file and type M-x mouse-avoidance-mode .
-;;; To set up permanently, put this file on your load-path and put the
-;;; following in your .emacs: 
+;;; To set up permanently, put the following in your .emacs: 
 ;;;
-;;; (cond (window-system
-;;;        (require 'avoid)
-;;;        (mouse-avoidance-mode 'animate)))
+;;; (if window-system (mouse-avoidance-mode 'animate))
 ;;;
 ;;; The 'animate can be 'jump or 'banish or 'exile or 'protean if you prefer.
 ;;; See the documentation for function `mouse-avoidance-mode' for
@@ -42,12 +38,11 @@
 ;;; For added silliness, make the animatee animate...
 ;;; put something similar to the following into your .emacs:
 ;;;
-;;; (cond (window-system
-;;;       (setq x-pointer-shape 
+;;; (if window-system
+;;;     (mouse-avoidance-set-pointer-shape
 ;;;	     (eval (nth (random 4)
 ;;;			'(x-pointer-man x-pointer-spider
-;;;			  x-pointer-gobbler x-pointer-gumby))))
-;;;       (set-mouse-color (cdr (assoc 'mouse-color (frame-parameters))))))
+;;;			  x-pointer-gobbler x-pointer-gumby)))))
 ;;;
 ;;; For completely random pointer shape, replace the setq above with:
 ;;; (setq x-pointer-shape (mouse-avoidance-random-shape))
@@ -55,10 +50,9 @@
 ;;; Bugs / Warnings / To-Do:
 ;;;
 ;;; - Using this code does slow emacs down.  "banish" mode shouldn't
-;;;   ever be too bad though, and on my workstation even "animate" doesn't
-;;;   seem to have a noticable effect during editing.
+;;;   be too bad, and on my workstation even "animate" is reasonable.
 ;;;
-;;; - It should find out where any overlapping frames are and avoid them,
+;;; - It ought to find out where any overlapping frames are and avoid them,
 ;;;   rather than always raising the frame.
 
 ;;; Credits:
@@ -102,6 +96,11 @@ Only applies in mouse-avoidance-modes `animate' and `jump'.")
 (defvar mouse-avoidance-n-pointer-shapes 0)
 
 ;;; Functions:
+
+(defsubst mouse-avoidance-set-pointer-shape (shape)
+  "Set the shape of the mouse pointer to SHAPE."
+  (setq x-pointer-shape shape)
+  (set-mouse-color nil))
 
 (defun mouse-avoidance-point-position ()
   "Return the position of point as (FRAME X . Y).
@@ -205,17 +204,15 @@ You can redefine this if you want the mouse banished to a different corner."
 		(+ (cdr mouse-avoidance-state) deltay)))
     (if (or (eq mouse-avoidance-mode 'animate) 
 	    (eq mouse-avoidance-mode 'proteus))
-	(let ((i 0.0)
-	      (color (cdr (assoc 'mouse-color (frame-parameters)))))
+	(let ((i 0.0))
 	  (while (<= i 1)
 	    (mouse-avoidance-set-mouse-position 
 	     (cons (+ (car cur-pos) (round (* i deltax)))
 		   (+ (cdr cur-pos) (round (* i deltay)))))
     	    (setq i (+ i (max .1 (/ 1.0 mouse-avoidance-nudge-dist))))
 	    (if (eq mouse-avoidance-mode 'proteus)
-		(progn
-		  (setq x-pointer-shape (mouse-avoidance-random-shape))
-		  (set-mouse-color color)))
+		(mouse-avoidance-set-pointer-shape 
+		 (mouse-avoidance-random-shape)))
 	    (sit-for mouse-avoidance-animation-delay)))
       (mouse-avoidance-set-mouse-position (cons (+ (car (cdr cur)) deltax)
 						(+ (cdr (cdr cur)) deltay))))))
@@ -270,10 +267,9 @@ redefine this function to suit your own tastes."
 	   (mouse-avoidance-too-close-p (mouse-position)))
       (let ((old-pos (mouse-position)))
 	(mouse-avoidance-nudge-mouse)
-	(if (not (eq (selected-frame) (car old-pos))) ; move went awry
-	    (set-mouse-position old-pos (car old-pos) ; sigh..
-				(car (cdr old-pos))
-				(cdr (cdr old-pos)))))))
+	(if (not (eq (selected-frame) (car old-pos)))
+	    ;; This should never happen.
+	    (apply 'set-mouse-position old-pos)))))
 
 (defun mouse-avoidance-kbd-command (key)
   "Return t if the KEYSEQENCE is composed of keyboard events only.
@@ -290,6 +286,7 @@ Return nil if there are any lists in the key sequence."
 	       (setq i (1+ i))))
 	   t))))
 
+;;;###autoload
 (defun mouse-avoidance-mode (&optional mode)
   "Set cursor avoidance mode to MODE.
 MODE should be one of the symbols `banish', `exile', `jump', `animate',
