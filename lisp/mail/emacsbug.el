@@ -52,7 +52,19 @@ Prompts for bug subject.  Leaves you in a mail buffer."
   (re-search-forward (concat "^" (regexp-quote mail-header-separator) "\n"))
   (insert "In " (emacs-version) "\nconfigured using "
 	  system-configuration-options "\n\n")
-  (message (substitute-command-keys "Type \\[mail-send-and-exit] to send bug report."))
+  ;; This is so the user has to type something
+  ;; in order to send easily.
+  (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
+  (define-key (current-local-map) "\C-c\C-i" 'report-emacs-bug-info)
+  (with-output-to-temp-buffer "*Bug Help*"
+    (princ (substitute-command-keys
+	    "Type \\[mail-send-and-exit] to send the bug report.\n"))
+    (terpri)
+    (princ (substitute-command-keys
+	    "Type \\[report-emacs-bug-info] to visit in Info the Emacs Manual section
+about when and how to write a bug report,
+and what information to supply so that the bug can be fixed.
+Type SPC to scroll through this section and its subsections.")))
   ;; Make it less likely people will send empty messages.
   (make-local-variable 'mail-send-hook)
   (add-hook 'mail-send-hook 'report-emacs-bug-hook)
@@ -61,6 +73,14 @@ Prompts for bug subject.  Leaves you in a mail buffer."
     (skip-chars-backward " \t\n")
     (make-local-variable 'report-emacs-bug-orig-text)
     (setq report-emacs-bug-orig-text (buffer-substring (point-min) (point)))))
+
+(defun report-emacs-bug-info ()
+  "Go to the Info node on reporting Emacs bugs."
+  (interactive)
+  (info)
+  (Info-directory)
+  (Info-menu "emacs")
+  (Info-goto-node "Bugs"))
 
 (defun report-emacs-bug-hook ()
   (save-excursion
