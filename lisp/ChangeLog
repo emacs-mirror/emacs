@@ -1,5 +1,7 @@
 2004-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc.el (vc-maybe-resolve-conflicts): Don't prompt the user.
+
 	* calc/calc.el (calc-mode-map): Use mapc.
 
 	* apropos.el (apropos-mode): Don't autoload.
