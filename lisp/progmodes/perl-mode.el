@@ -638,8 +638,16 @@ changed by, or (parse-state) if line starts in a quoted string."
 		 (skip-chars-forward " \t\f")
 		 (cond ((looking-at "\\(\\w\\|\\s_\\)+:[^:]")
 			(setq indent (max 1 (+ indent perl-label-offset))))
-		       ((= (following-char) ?})
-			(setq indent (- indent perl-indent-level)))
+		       ((= (char-syntax (following-char)) ?\))
+			(setq indent
+			      (save-excursion
+				(forward-char 1)
+				(forward-sexp -1)
+				(forward-char 1)
+				(if (perl-hanging-paren-p)
+				    (- indent perl-indent-level)
+				  (forward-char -1)
+				  (current-column)))))
 		       ((= (following-char) ?{)
 			(setq indent (+ indent perl-brace-offset))))
 		 (- indent (current-column)))))
@@ -670,6 +678,12 @@ changed by, or (parse-state) if line starts in a quoted string."
     (perl-backward-to-noncomment))
   ;; Now we get the answer.
   (not (memq (preceding-char) '(?\; ?\} ?\{))))
+
+(defun perl-hanging-paren-p ()
+  "Non-nil if we are right after a hanging parenthesis-like char."
+  (and (looking-at "[ \t]*$")
+       (save-excursion
+	 (skip-syntax-backward " (") (not (bolp)))))
 
 (defun perl-calculate-indent (&optional parse-start)
   "Return appropriate indentation for current line as Perl code.
@@ -715,10 +729,24 @@ Optional argument PARSE-START should be the position of `beginning-of-defun'."
 	     ;; line is expression, not statement:
 	     ;; indent to just after the surrounding open.
 	     (goto-char (1+ containing-sexp))
-	     (if perl-indent-continued-arguments
-		 (+ perl-indent-continued-arguments (current-indentation))
-	       (skip-chars-forward " \t")
-	       (current-column)))
+	     (if (perl-hanging-paren-p)
+		 ;; We're indenting an arg of a call like:
+		 ;;    $a = foobarlongnamefun (
+		 ;;             arg1
+		 ;;             arg2
+		 ;;         );
+		 (progn
+		   (skip-syntax-backward "(")
+		   (condition-case err
+		       (while (save-excursion
+				(skip-syntax-backward " ") (not (bolp)))
+			 (forward-sexp -1))
+		     (scan-error nil))
+		   (+ (current-column) perl-indent-level))
+	       (if perl-indent-continued-arguments
+		   (+ perl-indent-continued-arguments (current-indentation))
+		 (skip-chars-forward " \t")
+		 (current-column))))
 	    (t
 	     ;; Statement level.  Is it a continuation or a new statement?
 	     (if (perl-continuation-line-p containing-sexp)
@@ -740,14 +768,9 @@ Optional argument PARSE-START should be the position of `beginning-of-defun'."
 	       ;; Position at last unclosed open.
 	       (goto-char containing-sexp)
 	       (or
-		 ;; If open paren is in col 0, close brace is special
-		 (and (bolp)
-		      (save-excursion (goto-char indent-point)
-				      (looking-at "[ \t]*}"))
-		      perl-indent-level)
-		 ;; Is line first statement after an open-brace?
-		 ;; If no, find that first statement and indent like it.
-		 (save-excursion
+		;; Is line first statement after an open-brace?
+		;; If no, find that first statement and indent like it.
+		(save-excursion
 		  (forward-char 1)
 		  ;; Skip over comments and labels following openbrace.
 		  (while (progn
