@@ -206,8 +206,8 @@
 (require 'calc-macs)
 
 ;;;###autoload
-(defvar calc-settings-file user-init-file
-  "*File in which to record permanent settings; default is `user-init-file'.")
+(defvar calc-settings-file (convert-standard-filename "~/.calc.el")
+  "*File in which to record permanent settings.")
 
 (defvar calc-bug-address "belanger@truman.edu"
   "Address of the author of Calc, for use by `report-calc-bug'.")
