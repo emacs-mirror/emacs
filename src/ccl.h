@@ -88,7 +88,8 @@ extern Lisp_Object Vfont_ccl_encoder_alist;
    execution of ccl program CCL_PROG (symbol or vector).  */
 extern int setup_ccl_program P_ ((struct ccl_program *, Lisp_Object));
 
-extern void ccl_driver P_ ((struct ccl_program *, int *, int *, int, int));
+extern void ccl_driver P_ ((struct ccl_program *, int *, int *, int, int,
+			    Lisp_Object));
 
 /* Vector of CCL program names vs corresponding program data.  */
 extern Lisp_Object Vccl_program_table;
