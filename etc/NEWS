@@ -42,6 +42,13 @@ lacks unexec, asynchronous processes, and networking support.
 * Changes in Emacs 21.1
 
 +++
+** The new command `msdos-set-mouse-buttons' forces Emacs to behave
+as if the mouse had a specified number of buttons.  This comes handy
+with mice that don't report their number of buttons correctly.  One
+example is the wheeled mice, which report 3 buttons, but clicks on the
+middle button are not passed to the MS-DOS version of Emacs.
+
++++
 ** The default for user-option `next-line-add-newlines' has been
 changed to nil, i.e. C-n will no longer add newlines at the end of a
 buffer by default.
