@@ -278,6 +278,13 @@ to a function that generates a unique name."
   (save-some-buffers (not compilation-ask-about-save) nil)
   (compile-internal compile-command "No more errors"))
 
+;;; run compile with the default command line
+(defun recompile ()
+  "Re-compile the program including the current buffer."
+  (interactive)
+  (save-some-buffers (not compilation-ask-about-save) nil)
+  (compile-internal compile-command "No more errors"))
+  
 ;;;###autoload
 (defun grep (command-args)
   "Run grep, with user-specified args, and collect output in a buffer.
@@ -416,6 +423,28 @@ Returns the compilation buffer created."
   (let ((map (cons 'keymap compilation-minor-mode-map)))
     (define-key map " " 'scroll-up)
     (define-key map "\^?" 'scroll-down)
+    ;; Set up the menu-bar
+    (define-key map [menu-bar compilation-menu]
+      (cons "Compile" (make-sparse-keymap "Compile")))
+
+    (define-key map [menu-bar compilation-menu compilation-mode-kill-compilation]
+      '("Stop compilation" . kill-compilation))
+    (define-key map [menu-bar compilation-menu compilation-mode-separator2]
+      '("----" . nil))
+    (define-key map [menu-bar compilation-menu compilation-mode-first-error]
+      '("First error" . first-error))
+    (define-key map [menu-bar compilation-menu compilation-mode-previous-error]
+      '("Previous error" . previous-error))
+    (define-key map [menu-bar compilation-menu compilation-mode-next-error]
+      '("Next error" . next-error))
+    (define-key map [menu-bar compilation-menu compilation-separator2]
+      '("----" . nil))
+    (define-key map [menu-bar compilation-menu compilation-mode-grep]
+      '("Grep" . grep))
+    (define-key map [menu-bar compilation-menu compilation-mode-recompile]
+      '("Recompile" . recompile))
+    (define-key map [menu-bar compilation-menu compilation-mode-compile]
+      '("Compile" . compile))
     map)
   "Keymap for compilation log buffers.
 `compilation-minor-mode-map' is a cdr of this.")
@@ -835,6 +864,19 @@ See variables `compilation-parse-errors-function' and
 				(prefix-numeric-value argp))
 			   (consp argp))))
 ;;;###autoload (define-key ctl-x-map "`" 'next-error)
+
+(defun previous-error ()
+  "Visit previous compilation error message and corresponding source code.
+This operates on the output from the \\[compile] command."
+  (interactive)
+  (next-error '-1))
+
+(defun first-error ()
+  "Reparse the error message buffer and start at the first error
+Visit corresponding source code.
+This operates on the output from the \\[compile] command."
+  (interactive)
+  (next-error '(1.1)))
 
 (defun compilation-next-error-locus (&optional move reparse silent)
   "Visit next compilation error and return locus in corresponding source code.
