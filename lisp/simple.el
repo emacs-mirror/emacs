@@ -1756,12 +1756,19 @@ ring directly.")
 (defvar kill-ring-yank-pointer nil
   "The tail of the kill ring whose car is the last thing yanked.")
 
-(defun kill-new (string &optional replace)
+(defun kill-new (string &optional replace yank-handler)
   "Make STRING the latest kill in the kill ring.
 Set `kill-ring-yank-pointer' to point to it.
 If `interprogram-cut-function' is non-nil, apply it to STRING.
 Optional second argument REPLACE non-nil means that STRING will replace
-the front of the kill ring, rather than being added to the list."
+the front of the kill ring, rather than being added to the list.
+
+Optional third arguments YANK-HANDLER controls how the STRING is later
+inserted into a buffer; see `insert-for-yank' for details."
+  (when (> (length string) 0)
+    (if yank-handler 
+	(put-text-property 0 1 'yank-handler yank-handler string)
+      (remove-text-properties 0 1 '(yank-handler nil) string)))
   (and (fboundp 'menu-bar-update-yank-menu)
        (menu-bar-update-yank-menu string (and replace (car kill-ring))))
   (if (and replace kill-ring)
@@ -1773,15 +1780,20 @@ the front of the kill ring, rather than being added to the list."
   (if interprogram-cut-function
       (funcall interprogram-cut-function string (not replace))))
 
-(defun kill-append (string before-p)
+(defun kill-append (string before-p &optional yank-handler)
   "Append STRING to the end of the latest kill in the kill ring.
 If BEFORE-P is non-nil, prepend STRING to the kill.
-If `interprogram-cut-function' is set, pass the resulting kill to
-it."
-  (kill-new (if before-p
-		(concat string (car kill-ring))
-	      (concat (car kill-ring) string))
-	    t))
+Optional third argument YANK-HANDLER specifies the yank-handler text
+property to be set on the combined kill ring string.  If the specified
+yank-handler arg differs from the yank-handler property of the latest
+kill string, STRING is added as a new kill ring element instead of
+being appending to the last kill. 
+If `interprogram-cut-function' is set, pass the resulting kill to it."
+  (let* ((cur (car kill-ring)))
+    (kill-new (if before-p (concat string cur) (concat cur string))
+	      (or (= (length cur) 0)
+		  (equal yank-handler (get-text-property 0 'yank-handler cur)))
+	      yank-handler)))
 
 (defun current-kill (n &optional do-not-move)
   "Rotate the yanking point by N places, and then return that kill.
@@ -1823,7 +1835,7 @@ yanking point; just return the Nth kill forward."
      '(text-read-only buffer-read-only error))
 (put 'text-read-only 'error-message "Text is read-only")
 
-(defun kill-region (beg end)
+(defun kill-region (beg end &optional yank-handler)
   "Kill between point and mark.
 The text is deleted but saved in the kill ring.
 The command \\[yank] can retrieve it from there.
@@ -1842,15 +1854,18 @@ Supply two arguments, character numbers indicating the stretch of text
 Any command that calls this function is a \"kill command\".
 If the previous command was also a kill command,
 the text killed this time appends to the text killed last time
-to make one entry in the kill ring."
+to make one entry in the kill ring.
+
+In lisp code, optional third arg YANK-HANDLER specifies the yank-handler
+text property to be set on the killed text.  See `insert-for-yank'." 
   (interactive "r")
   (condition-case nil
       (let ((string (delete-and-extract-region beg end)))
 	(when string			;STRING is nil if BEG = END
 	  ;; Add that string to the kill ring, one way or another.
 	  (if (eq last-command 'kill-region)
-	      (kill-append string (< end beg))
-	    (kill-new string)))
+	      (kill-append string (< end beg) yank-handler)
+	    (kill-new string nil yank-handler)))
 	(setq this-command 'kill-region))
     ((buffer-read-only text-read-only)
      ;; The code above failed because the buffer, or some of the characters
@@ -1941,13 +1956,16 @@ The argument is used for internal purposes; do not supply one."
 
 ;; This is actually used in subr.el but defcustom does not work there.
 (defcustom yank-excluded-properties
-  '(read-only invisible intangible field mouse-face help-echo local-map keymap)
+  '(read-only invisible intangible field mouse-face help-echo local-map keymap
+    yank-handler)
   "*Text properties to discard when yanking."
   :type '(choice (const :tag "All" t) (repeat symbol))
   :group 'editing
   :version "21.4")
 
 (defvar yank-window-start nil)
+(defvar yank-undo-function nil
+  "If non-nil, function used by `yank-pop' to delete last stretch of yanked text.")
 
 (defun yank-pop (arg)
   "Replace just-yanked stretch of killed text with a different stretch.
@@ -1968,7 +1986,8 @@ comes the newest one."
   (setq this-command 'yank)
   (let ((inhibit-read-only t)
 	(before (< (point) (mark t))))
-    (delete-region (point) (mark t))
+    (funcall (or yank-undo-function 'delete-region) (point) (mark t))
+    (setq yank-undo-function nil)
     (set-marker (mark-marker) (point) (current-buffer))
     (insert-for-yank (current-kill arg))
     ;; Set the window start back where it was in the yank command,
@@ -2007,7 +2026,8 @@ See also the command \\[yank-pop]."
       (goto-char (prog1 (mark t)
 		   (set-marker (mark-marker) (point) (current-buffer)))))
   ;; If we do get all the way thru, make this-command indicate that.
-  (setq this-command 'yank)
+  (if (eq this-command t)
+      (setq this-command 'yank))
   nil)
 
 (defun rotate-yank-pointer (arg)
