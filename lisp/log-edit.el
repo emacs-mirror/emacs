@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs commit log
 ;; Version: $Name:  $
-;; Revision: $Id: log-edit.el,v 1.4 2000/05/10 22:20:51 monnier Exp $
+;; Revision: $Id: log-edit.el,v 1.5 2000/05/21 02:13:26 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -28,10 +28,8 @@
 
 ;; Todo:
 
-;; - Remove a single leading `* <file>' in log-edit-insert-changelog
 ;; - Move in VC's code
 ;; - Add compatibility for VC's hook variables
-;; - add compatibility with cvs-edit.el
 
 ;;; Code:
 
@@ -177,7 +175,8 @@ Several other handy support commands are provided of course and
 the package from which this is used might also provide additional
 commands (under C-x v for VC, for example).
 
-\\{log-edit-mode-map}")
+\\{log-edit-mode-map}"
+  (make-local-variable 'vc-comment-ring-index))
 
 (defun log-edit-hide-buf (&optional buf where)
   (when (setq buf (get-buffer (or buf log-edit-files-buf)))
@@ -205,7 +204,10 @@ If you want to abort the commit, simply delete the buffer."
       (save-excursion
 	(goto-char (point-max))
 	(insert ?\n)))
-  (if (boundp 'vc-comment-ring) (ring-insert vc-comment-ring (buffer-string)))
+  (let ((comment (buffer-string)))
+    (when (and (boundp 'vc-comment-ring) (ring-p vc-comment-ring)
+	       (not (equal comment (ring-ref vc-comment-ring 0))))
+      (ring-insert vc-comment-ring comment)))
   (let ((win (get-buffer-window log-edit-files-buf)))
     (if (and log-edit-confirm
 	     (not (and (eq log-edit-confirm 'changed)
