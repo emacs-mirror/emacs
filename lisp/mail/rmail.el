@@ -2871,7 +2871,7 @@ This has an effect only if a summary buffer exists."
 
 (defcustom rmail-summary-window-size nil
   "*Non-nil means specify the height for an Rmail summary window."
-  :type 'boolean
+  :type '(choice (const :tag "Disabled" nil) integer)
   :group 'rmail-summary)
 
 ;; Put the summary buffer back on the screen, if user wants that.
