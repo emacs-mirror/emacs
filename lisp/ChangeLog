@@ -1,3 +1,15 @@
+2001-02-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* startup.el (fancy-splash-text): Add a line for ordering
+	manuals.  Reverse order of splash screens shown.
+	(use-fancy-splash-screens-p): Adapt to the text line added.
+
+	* menu-bar.el (menu-bar-help-menu): Add an item for ordering
+	manuals from the FSF.
+
+	* help.el (view-order-manuals): New function.
+	(toplevel): Bind C-h C-m to this function.
+
 2001-02-21  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* newcomment.el (comment-forward): Skip the comment-start before

@@ -1,5 +1,9 @@
 2001-02-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* vms-pp.c, vmsdir.h, vmsmap.c, vmsproc.h, vms-pp.trans, vmsfns.c,
+	* vmspaths.h, vmstime.c, vms-pwd.h, vmsgmalloc.c, vmsproc.c,
+	* vmstime.h: Files removed.
+	
 	* unexencap.c, unexfx2800.c: Files removed.
 
 	* dispnew.c (direct_output_for_insert): Give up if we are showing
