@@ -107,6 +107,10 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 22.1
 
+** In Thai language environment, such word-oriented commands as M-f,
+M-b, M-d, M-DEL, M-t, and M-q are remapped to commands that recognize
+Thai word segument.
+
 ** iso-acc.el is now obsolete.  Use one of the latin input methods instead.
 
 ---
