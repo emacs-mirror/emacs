@@ -5709,7 +5709,7 @@ x_make_frame_visible (f)
        because the window manager may choose the position
        and we don't want to override it.  */
 
-    if (! FRAME_VISIBLE_P (f)
+    if (! FRAME_VISIBLE_P (f) && ! FRAME_ICONIFIED_P (f)
 	&& f->output_data.x->win_gravity == NorthWestGravity
 	&& previously_visible)
       {
