@@ -122,13 +122,22 @@ The value should look like the `cdr' of an item in `font-lock-defaults-alist'.")
 
 (defvar font-lock-defaults-alist
   (let ((tex-mode-defaults '(tex-font-lock-keywords nil nil ((?$ . "\""))))
-	(lisp-mode-defaults '(lisp-font-lock-keywords
-			      nil nil ((?: . "w") (?- . "w") (?* . "w")))))
+	(c-mode-defaults
+	 '((c-font-lock-keywords c-font-lock-keywords-1 c-font-lock-keywords-2)
+	   nil nil ((?_ . "w"))))
+	(c++-mode-defaults
+	 '((c++-font-lock-keywords c++-font-lock-keywords-1 
+				   c++-font-lock-keywords-2)
+	   nil nil ((?_ . "w"))))
+	(lisp-mode-defaults
+	 '((lisp-font-lock-keywords lisp-font-lock-keywords-1
+				    lisp-font-lock-keywords-2)
+	   nil nil ((?: . "w") (?- . "w") (?* . "w")))))
     (list
      (cons 'bibtex-mode		tex-mode-defaults)
-     '(c++-c-mode .		(c-font-lock-keywords nil nil ((?_ . "w"))))
-     '(c++-mode .		(c++-font-lock-keywords nil nil ((?_ . "w"))))
-     '(c-mode .			(c-font-lock-keywords nil nil ((?_ . "w"))))
+     (cons 'c++-c-mode		c-mode-defaults)
+     (cons 'c++-mode		c++-mode-defaults)
+     (cons 'c-mode		c-mode-defaults)
      (cons 'emacs-lisp-mode	lisp-mode-defaults)
      (cons 'latex-mode		tex-mode-defaults)
      (cons 'lisp-mode		lisp-mode-defaults)
@@ -139,11 +148,12 @@ The value should look like the `cdr' of an item in `font-lock-defaults-alist'.")
   "*Alist of default major mode and Font Lock defaults.
 Each item should be a list of the form:
  (MAJOR-MODE . (FONT-LOCK-KEYWORDS KEYWORDS-ONLY CASE-FOLD FONT-LOCK-SYNTAX))
-where both MAJOR-MODE and FONT-LOCK-KEYWORDS are symbols.  If KEYWORDS-ONLY is
-non-nil, syntactic fontification (strings and comments) is not performed.
-If CASE-FOLD is non-nil, the case of the keywords is ignored when fontifying.
-FONT-LOCK-SYNTAX should be a list of cons pairs of the form (CHAR . STRING), it
-is used to set the local Font Lock syntax table for keyword fontification.")
+where MAJOR-MODE is a symbol, and FONT-LOCK-KEYWORDS may be a symbol or a list
+of symbols.  If KEYWORDS-ONLY is non-nil, syntactic fontification (strings and
+comments) is not performed.  If CASE-FOLD is non-nil, the case of the keywords
+is ignored when fontifying.  FONT-LOCK-SYNTAX should be a list of cons pairs of
+the form (CHAR . STRING), it is used to set the local Font Lock syntax table
+for keyword fontification.")
 
 (defvar font-lock-keywords-case-fold-search nil
   "*Non-nil means the patterns in `font-lock-keywords' are case-insensitive.")
@@ -158,10 +168,9 @@ If this is nil, the major mode's syntax table is used.")
 ;;;###autoload
 (defvar font-lock-maximum-decoration nil
   "Non-nil means use the maximum decoration for fontifying.
-If a number, means use that level of decoration (or, if that is not available,
-the maximum).  If t, use the maximum decoration available.
-
-It is up to packages defining Font Lock keywords to respect this variable.")
+If nil, use the default decoration (typically the minimum available).
+If t, use the maximum decoration available.
+If a number, use that level of decoration (or if not available the maximum).")
 
 (defvar font-lock-maximum-size
   (if font-lock-maximum-decoration (* 150 1024) (* 300 1024))
@@ -611,7 +620,7 @@ variable `font-lock-face-attributes', and Font Lock mode default settings in
 the variable `font-lock-defaults-alist'.
 
 Where modes support different levels of fontification, you can use the variable
-`font-lock-maximum-decoration' to specify which you generally prefer.
+`font-lock-maximum-decoration' to specify which level you generally prefer.
 When you turn Font Lock mode on/off the buffer is fontified/defontified, though
 fontification occurs only if the buffer is less than `font-lock-maximum-size'.
 To fontify a buffer without turning on Font Lock mode, and regardless of buffer
@@ -727,8 +736,7 @@ size, you can use \\[font-lock-fontify-buffer]."
 		 "[ \t']*\\([^ \t\n\(\)]+\\)?")
 	 '(1 font-lock-keyword-face) '(4 font-lock-function-name-face nil t))
    )
- "For consideration as a value of `lisp-font-lock-keywords'.
-This does fairly subdued highlighting.")
+ "Subdued level highlighting Lisp modes.")
 
 (defconst lisp-font-lock-keywords-2
   (append lisp-font-lock-keywords-1
@@ -738,14 +746,15 @@ This does fairly subdued highlighting.")
       ;; Control structures.
       ;; ELisp:
 ;    ("cond" "if" "while" "let\\*?" "prog[nv12*]?" "catch" "throw"
-;     "save-restriction" "save-excursion"
-;     "save-window-excursion" "save-match-data" "unwind-protect"
+;     "save-restriction" "save-excursion" "save-window-excursion"
+;     "save-selected-window" "save-match-data" "unwind-protect"
 ;     "condition-case" "track-mouse")
       (cons
        (concat
 	"(\\("
 	"c\\(atch\\|ond\\(\\|ition-case\\)\\)\\|if\\|let\\*?\\|prog[nv12*]?\\|"
-	"save-\\(excursion\\|match-data\\|restriction\\|window-excursion\\)\\|"
+	"save-\\(excursion\\|match-data\\|restriction\\|"
+	"selected-window\\|window-excursion\\)\\|"
 	"t\\(hrow\\|rack-mouse\\)\\|unwind-protect\\|while"
 	"\\)\\>") 1)
       ;; CLisp:
@@ -768,30 +777,23 @@ This does fairly subdued highlighting.")
       ;; & keywords as types
       '("\\&\\(optional\\|rest\\|whole\\)\\>" . font-lock-type-face)
       )))
-  "For consideration as a value of `lisp-font-lock-keywords'.
-This does a lot more highlighting.")
+  "Gaudy level highlighting for Lisp modes.")
 
-(defvar lisp-font-lock-keywords (if font-lock-maximum-decoration
-				    lisp-font-lock-keywords-2
-				  lisp-font-lock-keywords-1)
-  "Additional expressions to highlight in Lisp modes.")
+(defvar lisp-font-lock-keywords lisp-font-lock-keywords-1
+  "Default expressions to highlight in Lisp modes.")
 
 
 (defconst c-font-lock-keywords-1 nil
-  "For consideration as a value of `c-font-lock-keywords'.
-This does fairly subdued highlighting.")
+  "Subdued level highlighting for C modes.")
 
 (defconst c-font-lock-keywords-2 nil
-  "For consideration as a value of `c-font-lock-keywords'.
-This does a lot more highlighting.")
+  "Gaudy level highlighting for C modes.")
 
 (defconst c++-font-lock-keywords-1 nil
-  "For consideration as a value of `c++-font-lock-keywords'.
-This does fairly subdued highlighting.")
+  "Subdued level highlighting for C++ modes.")
 
 (defconst c++-font-lock-keywords-2 nil
-  "For consideration as a value of `c++-font-lock-keywords'.
-This does a lot more highlighting.")
+  "Gaudy level highlighting for C++ modes.")
 
 (let ((c-keywords
 ;      ("break" "continue" "do" "else" "for" "if" "return" "switch" "while")
@@ -908,26 +910,14 @@ This does a lot more highlighting.")
     '("^[ \t]*\\(\\sw+\\)[ \t]*:[^:]" 1 font-lock-reference-face))))
  )
 
-(defvar c-font-lock-keywords (if font-lock-maximum-decoration
-				 c-font-lock-keywords-2
-			       c-font-lock-keywords-1)
-  "Additional expressions to highlight in C mode.")
+(defvar c-font-lock-keywords c-font-lock-keywords-1
+  "Default expressions to highlight in C mode.")
 
-(defvar c++-font-lock-keywords (if font-lock-maximum-decoration
-				   c++-font-lock-keywords-2
-				 c++-font-lock-keywords-1)
-  "Additional expressions to highlight in C++ mode.")
+(defvar c++-font-lock-keywords c++-font-lock-keywords-1
+  "Default expressions to highlight in C++ mode.")
 
 (defvar tex-font-lock-keywords
-;;   '("\\(\\\\\\([a-zA-Z@]+\\|.\\)\\)" 1 font-lock-keyword-face t)
-;;   '("{\\\\em\\([^}]+\\)}" 1 font-lock-comment-face t)
-;;   '("{\\\\bf\\([^}]+\\)}" 1 font-lock-keyword-face t)
-;;   '("^[ \t\n]*\\\\def[\\\\@]\\(\\w+\\)" 1 font-lock-function-name-face t)
-;;   '("\\\\\\(begin\\|end\\){\\([a-zA-Z0-9\\*]+\\)}"
-;;     2 font-lock-function-name-face t)
-;;   '("\\(^\\|[^\\\\]\\)\\$\\([^$]*\\)\\$" 2 font-lock-string-face t)
-;;;   '("\\$\\([^$]*\\)\\$" 1 font-lock-string-face t)
-  ;; Regexps updated by simon@gnu with help from Ulrik Dickow <dickow@nbi.dk>.
+  ;; Regexps updated with help from Ulrik Dickow <dickow@nbi.dk>.
   '(("\\\\\\(begin\\|end\\|newcommand\\){\\([a-zA-Z0-9\\*]+\\)}"
      2 font-lock-function-name-face)
     ("\\\\\\(cite\\|label\\|pageref\\|ref\\){\\([^} \t\n]+\\)}"
@@ -940,10 +930,23 @@ This does a lot more highlighting.")
     ("^[ \t\n]*\\\\def[\\\\@]\\(\\w+\\)" 1 font-lock-function-name-face keep))
   "Additional expressions to highlight in TeX mode.")
 
+(defun font-lock-choose-keywords (keywords level)
+  ;; Return evaled LEVELth element of KEYWORDS.  A LEVEL of nil is equal to a
+  ;; LEVEL of 0, a LEVEL of t is equal to (1- (length KEYWORDS)).
+  (eval (cond ((symbolp keywords)
+	       keywords)
+	      ((numberp level)
+	       (or (nth level keywords) (car (reverse keywords))))
+	      ((eq level t)
+	       (car (reverse keywords)))
+	      (t
+	       (car keywords)))))
+
 (defun font-lock-set-defaults ()
   "Set fontification defaults appropriately for this mode.
 Sets `font-lock-keywords', `font-lock-no-comments', `font-lock-syntax-table'
-and `font-lock-keywords-case-fold-search' using `font-lock-defaults-alist'."
+and `font-lock-keywords-case-fold-search' using `font-lock-defaults' (or, if
+nil, using `font-lock-defaults-alist') and `font-lock-maximum-decoration'."
   ;; Set face defaults.
   (font-lock-make-faces)
   ;; Set fontification defaults.
@@ -951,7 +954,8 @@ and `font-lock-keywords-case-fold-search' using `font-lock-defaults-alist'."
       (let ((defaults (or font-lock-defaults
 			  (cdr (assq major-mode font-lock-defaults-alist)))))
 	;; Keywords?
-	(setq font-lock-keywords (eval (nth 0 defaults)))
+	(setq font-lock-keywords (font-lock-choose-keywords (nth 0 defaults)
+				  font-lock-maximum-decoration))
 	;; Syntactic?
 	(if (nth 1 defaults)
 	    (set (make-local-variable 'font-lock-no-comments) t))
@@ -961,8 +965,8 @@ and `font-lock-keywords-case-fold-search' using `font-lock-defaults-alist'."
 	;; Syntax table?
 	(if (nth 3 defaults)
 	    (let ((slist (nth 3 defaults)))
-	      (make-local-variable 'font-lock-syntax-table)
-	      (setq font-lock-syntax-table (copy-syntax-table (syntax-table)))
+	      (set (make-local-variable 'font-lock-syntax-table)
+		   (copy-syntax-table (syntax-table)))
 	      (while slist
 		(modify-syntax-entry (car (car slist)) (cdr (car slist))
 				     font-lock-syntax-table)
