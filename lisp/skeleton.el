@@ -38,7 +38,7 @@
 ;; page 3:	mirror-mode, an example for setting up paired insertion
 
 
-(defvar skeleton-transformation nil
+(defvar skeleton-transformation 'identity
   "*If non-nil, function applied to literal strings before they are inserted.
 It should take strings and characters and return them transformed, or nil
 which means no transformation.
@@ -301,17 +301,16 @@ When done with skeleton, but before going back to `_'-point call
     (and skeleton-regions
 	 (setq skeleton-regions
 	       (if (> skeleton-regions 0)
-		   (list (point-marker)
+		   (list (copy-marker (point) t)
 			 (save-excursion (forward-word skeleton-regions)
 					 (point-marker)))
 		 (setq skeleton-regions (- skeleton-regions))
 		 ;; copy skeleton-regions - 1 elements from `mark-ring'
 		 (let ((l1 (cons (mark-marker) mark-ring))
-		       (l2 (list (point-marker))))
+		       (l2 (list (copy-marker (point) t))))
 		   (while (and l1 (> skeleton-regions 0))
-		     (setq l2 (cons (car l1) l2)
-			   skeleton-regions (1- skeleton-regions)
-			   l1 (cdr l1)))
+		     (push (copy-marker (pop l1) t) l2)
+		     (setq skeleton-regions (1- skeleton-regions)))
 		   (sort l2 '<))))
 	 (goto-char (car skeleton-regions))
 	 (setq skeleton-regions (cdr skeleton-regions)))
@@ -378,13 +377,12 @@ automatically, and you are prompted to fill in the variable parts.")))
 (defun skeleton-internal-list (skeleton &optional str recursive)
   (let* ((start (save-excursion (beginning-of-line) (point)))
 	 (column (current-column))
-	 (line (buffer-substring start
-				 (save-excursion (end-of-line) (point))))
+	 (line (buffer-substring start (line-end-position)))
 	 opoint)
     (or str
 	(setq str `(setq str (skeleton-read ',(car skeleton) nil ,recursive))))
     (when (and (eq (cadr skeleton) '\n)
-	       (<= (current-column) (current-indentation)))
+	       (save-excursion (skip-chars-backward " \t") (bolp)))
       (setq skeleton (cons nil (cons '> (cddr skeleton)))))
     (while (setq skeleton-modified (eq opoint (point))
 		 opoint (point)
@@ -395,8 +393,8 @@ automatically, and you are prompted to fill in the variable parts.")))
 	 (if (eq (cdr quit) 'recursive)
 	     (setq recursive 'quit
 		   skeleton (memq 'resume: skeleton))
-	   ;; remove the subskeleton as far as it has been shown
-	   ;; the subskeleton shouldn't have deleted outside current line
+	   ;; Remove the subskeleton as far as it has been shown
+	   ;; the subskeleton shouldn't have deleted outside current line.
 	   (end-of-line)
 	   (delete-region start (point))
 	   (insert line)
@@ -410,68 +408,79 @@ automatically, and you are prompted to fill in the variable parts.")))
       (signal 'quit 'recursive)
     recursive))
 
-
 (defun skeleton-internal-1 (element &optional literal)
-  (cond ((char-or-string-p element)
-	 (if (and (integerp element)	; -num
-		  (< element 0))
-	     (if skeleton-untabify
-		 (backward-delete-char-untabify (- element))
-	       (delete-backward-char (- element)))
-	   (insert-before-markers (if (and skeleton-transformation
-					   (not literal))
-				      (funcall skeleton-transformation element)
-				    element))))
-	((eq element '\n)		; actually (eq '\n 'n)
-	 (cond
-	  ((and skeleton-regions (eq (nth 1 skeleton) '_))
-	   (or (eolp) (newline))
-	   (indent-region (line-beginning-position)
-			  (car skeleton-regions) nil))
-	  ;; \n as last element only inserts \n if not at eol.
-	  ((and (null (cdr skeleton)) (eolp)) nil)
-	  (skeleton-newline-indent-rigidly
-	   (indent-to (prog1 (current-indentation) (newline))))
-	  (t (newline) (indent-according-to-mode))))
-	((eq element '>)
-	 (if (and skeleton-regions (eq (nth 1 skeleton) '_))
-	     (indent-region (line-beginning-position)
-			    (car skeleton-regions) nil)
-	   (indent-according-to-mode)))
-	((eq element '_)
-	 (if skeleton-regions
-	     (progn
-	       (goto-char (car skeleton-regions))
-	       (setq skeleton-regions (cdr skeleton-regions))
-	       (and (<= (current-column) (current-indentation))
-		    (eq (nth 1 skeleton) '\n)
-		    (end-of-line 0)))
-	   (or skeleton-point
-	       (setq skeleton-point (point)))))
+  (cond
+   ((char-or-string-p element)
+    (if (and (integerp element)		; -num
+	     (< element 0))
+	(if skeleton-untabify
+	    (backward-delete-char-untabify (- element))
+	  (delete-backward-char (- element)))
+      (insert (if (and skeleton-transformation
+		       (not literal))
+		  (funcall skeleton-transformation element)
+		element))))
+   ((or (eq element '\n)			; actually (eq '\n 'n)
+	;; The sequence `> \n' is handled specially so as to indent the first
+	;; line after inserting the newline (to get the proper indentation).
+	(and (eq element '>) (eq (nth 1 skeleton) '\n) (pop skeleton)))
+    (let ((pos (if (eq element '>) (point))))
+      (cond
+       ((and skeleton-regions (eq (nth 1 skeleton) '_))
+	(or (eolp) (newline))
+	(if pos (save-excursion (goto-char pos) (indent-according-to-mode)))
+	(indent-region (line-beginning-position)
+		       (car skeleton-regions) nil))
+       ;; \n as last element only inserts \n if not at eol.
+       ((and (null (cdr skeleton)) (eolp))
+	(if pos (indent-according-to-mode)))
+       (skeleton-newline-indent-rigidly
+	(let ((pt (point)))
+	  (newline)
+	  (indent-to (save-excursion
+		       (goto-char pt)
+		       (if pos (indent-according-to-mode))
+		       (current-indentation)))))
+       (t (if pos (reindent-then-newline-and-indent)
+	    (newline)
+	    (indent-according-to-mode))))))
+   ((eq element '>)
+    (if (and skeleton-regions (eq (nth 1 skeleton) '_))
+	(indent-region (line-beginning-position)
+		       (car skeleton-regions) nil)
+      (indent-according-to-mode)))
+   ((eq element '_)
+    (if skeleton-regions
+	(progn
+	  (goto-char (pop skeleton-regions))
+	  (and (<= (current-column) (current-indentation))
+	       (eq (nth 1 skeleton) '\n)
+	       (end-of-line 0)))
+      (or skeleton-point
+	  (setq skeleton-point (point)))))
 	((eq element '&)
-	 (when skeleton-modified (pop skeleton)))
-	((eq element '|)
-	 (unless skeleton-modified (pop skeleton)))
-	((eq element '@)
-	 (push (point) skeleton-positions)
-	 (unless skeleton-point (setq skeleton-point (point))))
-	((eq 'quote (car-safe element))
-	 (eval (nth 1 element)))
-	((or (stringp (car-safe element))
-	     (consp (car-safe element)))
-	 (if (symbolp (car-safe (car element)))
-	     (while (skeleton-internal-list element nil t))
-	   (setq literal (car element))
-	   (while literal
-	     (skeleton-internal-list element (car literal))
-	     (setq literal (cdr literal)))))
-	((null element))
-	((skeleton-internal-1 (eval element) t))))
-
-
+    (when skeleton-modified (pop skeleton)))
+   ((eq element '|)
+    (unless skeleton-modified (pop skeleton)))
+   ((eq element '@)
+    (push (point) skeleton-positions)
+    (unless skeleton-point (setq skeleton-point (point))))
+   ((eq 'quote (car-safe element))
+    (eval (nth 1 element)))
+   ((or (stringp (car-safe element))
+	(consp (car-safe element)))
+    (if (symbolp (car-safe (car element)))
+	(while (skeleton-internal-list element nil t))
+      (setq literal (car element))
+      (while literal
+	(skeleton-internal-list element (car literal))
+	(setq literal (cdr literal)))))
+   ((null element))
+   (t (skeleton-internal-1 (eval element) t))))
+
 ;; Maybe belongs into simple.el or elsewhere
-;; ;###autoload
-;;; (define-skeleton local-variables-section
+;; ;;;###autoload
+;; (define-skeleton local-variables-section
 ;;  "Insert a local variables section.  Use current comment syntax if any."
 ;;  (completing-read "Mode: " obarray
 ;;		   (lambda (symbol)
