@@ -557,18 +557,20 @@ EVENT is the client message.  FRAME is where the mouse is now.
 WINDOW is the window within FRAME where the mouse is now.
 FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
   (cond ((equal "XdndEnter" message)
-	 (let ((version (ash (car (aref data 1)) -8))
-	       (more-than-3 (cdr (aref data 1)))
-	       (dnd-source (aref data 0)))
-	   (x-dnd-save-state 
-	    window nil nil
-	    (if (> more-than-3 0)
-		(x-window-property "XdndTypeList"
-				   frame "AnyPropertyType"
-				   dnd-source nil t)
-	      (vector (x-get-atom-name (aref data 2))
-		      (x-get-atom-name (aref data 3))
-		      (x-get-atom-name (aref data 4)))))))
+	 (let* ((flags (aref data 1))
+		(version (and (consp flags) (ash (car flags) -8)))
+		(more-than-3 (and (consp flags) (cdr flags)))
+		(dnd-source (aref data 0)))
+	   (if version  ;; If flags is bad, version will be nil.
+	       (x-dnd-save-state
+		window nil nil
+		(if (> more-than-3 0)
+		    (x-window-property "XdndTypeList"
+				       frame "AnyPropertyType"
+				       dnd-source nil t)
+		  (vector (x-get-atom-name (aref data 2))
+			  (x-get-atom-name (aref data 3))
+			  (x-get-atom-name (aref data 4))))))))
 
 	((equal "XdndPosition" message)
 	 (let* ((x (car (aref data 2)))
