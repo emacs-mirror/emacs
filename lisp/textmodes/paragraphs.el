@@ -31,15 +31,59 @@
 
 (defvar use-hard-newlines nil
     "Non-nil means to distinguish hard and soft newlines.
-When this is non-nil, the functions `newline' and `open-line' add the
-text-property `hard' to newlines that they insert.  Also, a line is
-only considered as a candidate to match `paragraph-start' or
-`paragraph-separate' if it follows a hard newline.  Newlines not
-marked hard are called \"soft\", and are always internal to
-paragraphs.  The fill functions always insert soft newlines.
-
-Each buffer has its own value of this variable.")
+See documentation for the `use-hard-newlines' function.")
 (make-variable-buffer-local 'use-hard-newlines)
+
+(defun use-hard-newlines (&optional arg insert)
+  "Minor mode to distinguish hard and soft newlines.
+When active, the functions `newline' and `open-line' add the
+text-property `hard' to newlines that they insert, and a line is
+only considered as a candidate to match `paragraph-start' or
+`paragraph-separate' if it follows a hard newline.
+
+Prefix argument says to turn mode on if positive, off if negative.
+When the mode is turned on, if there are newlines in the buffer but no hard
+newlines, ask the user whether to mark as hard any newlines preceeding a 
+`paragraph-start' line.  From a program, second arg INSERT specifies whether
+to do this; it can be `never' to change nothing, t or `always' to force
+marking, `guess' to try to do the right thing with no questions, nil 
+or anything else to ask the user.
+
+Newlines not marked hard are called \"soft\", and are always internal
+to paragraphs.  The fill functions insert and delete only soft newlines."
+  (interactive (list current-prefix-arg nil))
+  (if (or (<= (prefix-numeric-value arg) 0)
+	  (and use-hard-newlines (null arg)))
+      ;; Turn mode off
+      (setq use-hard-newlines nil)
+    ;; Turn mode on
+    ;; Intuit hard newlines --
+    ;;   mark as hard any newlines preceding a paragraph-start line.
+    (if (or (eq insert t) (eq insert 'always)
+	    (and (not (eq 'never insert))
+		 (not use-hard-newlines)
+		 (not (text-property-any (point-min) (point-max) 'hard t))
+		 (save-excursion
+		   (goto-char (point-min))
+		   (search-forward "\n" nil t))
+		 (or (eq insert 'guess)
+		     (y-or-n-p "Make newlines between paragraphs hard? "))))
+	(save-excursion
+	  (goto-char (point-min))
+	  (while (search-forward "\n" nil t)
+	    (let ((pos (point)))
+	      (move-to-left-margin)
+	      (if (looking-at paragraph-start)
+		  (progn
+		    (set-hard-newline-properties (1- pos) pos)
+		    ;; If paragraph-separate, newline after it is hard too.
+		    (if (looking-at paragraph-separate)
+			(progn
+			  (end-of-line)
+			  (if (not (eobp))
+			      (set-hard-newline-properties
+			       (point) (1+ (point))))))))))))
+    (setq use-hard-newlines t)))
 
 (defconst paragraph-start "[ \t\n\f]" "\
 *Regexp for beginning of a line that starts OR separates paragraphs.
