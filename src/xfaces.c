@@ -2470,12 +2470,19 @@ font_list (f, pattern, family, registry, fonts)
       registry_str = (NILP (registry) ? "*" : (char *) XSTRING (registry)->data);
       
       pattern_str = (char *) alloca (strlen (family_str)
-				 + strlen (registry_str)
-				 + 10);
-      if (index (family_str, '-'))
-	sprintf (pattern_str, "-%s-*-%s", family_str, registry_str);
-      else
-	sprintf (pattern_str, "-*-%s-*-%s", family_str, registry_str);
+				     + strlen (registry_str)
+				     + 10);
+      strcpy (pattern_str, index (family_str, '-') ? "-" : "-*-");
+      strcat (pattern_str, family_str);
+      strcat (pattern_str, "-*-");
+      strcat (pattern_str, registry_str);
+      if (!index (registry_str, '-'))
+	{
+	  if (registry_str[strlen (registry_str) - 1] == '*')
+	    strcat (pattern_str, "-*");
+	  else
+	    strcat (pattern_str, "*-*");
+	}
     }
   else
     pattern_str = (char *) XSTRING (pattern)->data;
