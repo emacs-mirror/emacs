@@ -111,7 +111,7 @@ doprnt1 (lispstrings, buffer, bufsize, format, format_end, nargs, args)
   char *fmtcpy;
   int minlen;
   int size;			/* Field width factor; e.g., %90d */
-  char charbuf[5];		/* Used for %c.  */
+  unsigned char charbuf[5];	/* Used for %c.  */
 
   if (format_end == 0)
     format_end = format + strlen (format);
