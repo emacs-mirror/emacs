@@ -27,9 +27,86 @@ Boston, MA 02111-1307, USA.  */
 #undef close
 #undef signal
 
-
-#if !defined (HAVE_SOCKETS) && !defined (HAVE_SYSVIPC)
 #include <stdio.h>
+#include <getopt.h>
+
+char *getenv (), *getwd ();
+char *getcwd ();
+int geteuid ();
+
+/* This is defined with -D from the compilation command,
+   which extracts it from ../lisp/version.el.  */
+
+#ifndef VERSION
+#define VERSION "unspecified"
+#endif
+
+/* Name used to invoke this program.  */
+char *progname;
+
+/* Nonzero means don't wait for a response from Emacs.  --nowait.  */
+int nowait = 0;
+
+struct option longopts[] =
+{
+  { "nowait",	no_argument,	   NULL, 'n' },
+  { "help",	no_argument,	   NULL, 'H' },
+  { "version",	no_argument,	   NULL, 'V' },
+  { 0 }
+};
+
+/* Decode the options from argv and argc.
+   Return the number of remaining arguments.  */
+
+int
+decode_options (argc, argv)
+     int argc;
+     char **argv;
+{
+  while (1)
+    {
+      int opt = getopt_long (argc, argv,
+			     "VHn", longopts, 0);
+
+      if (opt == EOF)
+	break;
+
+      switch (opt)
+	{
+	case 0:
+	  /* If getopt returns 0, then it has already processed a
+	     long-named option.  We should do nothing.  */
+	  break;
+
+	case 'n':
+	  nowait = 1;
+	  break;
+
+	case 'V':
+	  fprintf (stderr, "Version %s\n", VERSION);
+	  exit (1);
+	  break;
+
+	case 'H':
+	default:
+	  print_help_and_exit ();
+	}
+    }
+
+  return argc;
+}
+
+print_help_and_exit ()
+{
+  fprintf (stderr,
+	   "Usage: %s [-n] [--nowait] [+linenumber] filename\n",
+	   progname);
+  fprintf (stderr,
+	   "Report bugs to bug-gnu-emacs@prep.ai.mit.edu.\n");
+  exit (1);
+}
+
+#if !defined (HAVE_SOCKETS) && !defined (HAVE_SYSVIPC)
 
 main (argc, argv)
      int argc;
@@ -50,7 +127,6 @@ main (argc, argv)
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <sys/stat.h>
-#include <stdio.h>
 #include <errno.h>
 
 extern char *strerror ();
@@ -67,17 +143,19 @@ main (argc, argv)
   struct sockaddr_un server;
   char *homedir, *cwd, *str;
   char string[BUFSIZ];
+  int args_left;
 
-  char *getenv (), *getwd ();
-  char *getcwd ();
-  int geteuid ();
-  int nowait = 0;
+  progname = argv[0];
+
+  /* Process options.  */
+  args_left = decode_options (argc, argv);
+
+  /* Advance argv and decrement argc for the options that were skipped.  */
+  argv += argc - args_left;
+  argc = args_left;
 
   if (argc < 2)
-    {
-      fprintf (stderr, "Usage: %s [+linenumber] filename\n", argv[0]);
-      exit (1);
-    }
+    print_help_and_exit ();
 
   /* 
    * Open up an AF_UNIX socket in this person's home directory
@@ -239,14 +317,18 @@ main (argc, argv)
   char gwdirb[BUFSIZ];
   char *cwd;
   char *temp;
-  char *progname = argv[0];
-  int nowait = 0;
+
+  progname = argv[0];
+
+  /* Process options.  */
+  args_left = decode_options (argc, argv);
+
+  /* Advance argv and decrement argc for the options that were skipped.  */
+  argv += argc - args_left;
+  argc = args_left;
 
   if (argc < 2)
-    {
-      fprintf (stderr, "Usage: %s [+linenumber] filename\n", argv[0]);
-      exit (1);
-    }
+    print_help_and_exit ();
 
   /*
    * Create a message queue using ~/.emacs-server as the path for ftok
