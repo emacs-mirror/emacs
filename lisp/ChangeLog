@@ -1,3 +1,19 @@
+2004-04-11  Juri Linkov  <juri@jurta.org>
+
+	* dired.el (dired-faces): New defgroup.
+	(dired-header, dired-mark, dired-marked, dired-flagged)
+	(dired-warning, dired-directory, dired-symlink, dired-ignored):
+	New faces.
+	(dired-header-face, dired-mark-face, dired-marked-face)
+	(dired-flagged-face, dired-warning-face, dired-directory-face)
+	(dired-symlink-face, dired-ignored-face): New face variables.
+	(dired-font-lock-keywords): Use them instead of font-lock faces.
+	Split the rule for dired marks into 3 separate rules: for marks,
+	marked file names and flagged file names.
+
+	* help-mode.el (help-make-xrefs): Add a final newline to the
+	*Help* buffer.
+
 2004-04-11  John Paul Wallington  <jpw@gnu.org>
 
 	* replace.el (occur-engine): Distinguish between one and several
