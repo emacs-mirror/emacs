@@ -63,14 +63,14 @@ Argument is a character, naming the register."
   "Store the window configuration of the selected frame in register REGISTER.
 Use \\[jump-to-register] to restore the configuration.
 Argument is a character, naming the register."
-  (interactive "cPoint to register: \nP")
+  (interactive "cWindow configuration to register: \nP")
   (set-register char (current-window-configuration)))
 
 (defun frame-configuration-to-register (char &optional arg)
   "Store the window configuration of all frames in register REGISTER.
 Use \\[jump-to-register] to restore the configuration.
 Argument is a character, naming the register."
-  (interactive "cPoint to register: \nP")
+  (interactive "cFrame configuration to register: \nP")
   (set-register char (current-frame-configuration)))
 
 (defalias 'register-to-point 'jump-to-register)
