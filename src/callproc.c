@@ -19,6 +19,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
 #include <signal.h>
+#include <errno.h>
 
 #include "config.h"
 
@@ -104,7 +105,7 @@ If you quit, the process is killed with SIGKILL.")
      int nargs;
      register Lisp_Object *args;
 {
-  Lisp_Object display, buffer, path;
+  Lisp_Object display, infile, buffer, path, current_dir;
   int fd[2];
   int filefd;
   register int pid;
@@ -118,23 +119,27 @@ If you quit, the process is killed with SIGKILL.")
 #endif
   CHECK_STRING (args[0], 0);
 
-  if (nargs <= 1 || NILP (args[1]))
-    args[1] = build_string ("/dev/null");
+  if (nargs >= 2 && ! NILP (args[1]))
+    {
+      infile = Fexpand_file_name (args[1], current_buffer->directory);
+      CHECK_STRING (infile, 1);
+    }
   else
-    args[1] = Fexpand_file_name (args[1], current_buffer->directory);
-
-  CHECK_STRING (args[1], 1);
+    infile = build_string ("/dev/null");
 
   {
     register Lisp_Object tem;
-    buffer = tem = args[2];
-    if (nargs <= 2)
+    if (nargs < 3)
       buffer = Qnil;
-    else if (!(EQ (tem, Qnil) || EQ (tem, Qt)
-	       || XFASTINT (tem) == 0))
+    else 
       {
-	buffer = Fget_buffer (tem);
-	CHECK_BUFFER (buffer, 2);
+	buffer = tem = args[2];
+	if (!(EQ (tem, Qnil) || EQ (tem, Qt)
+	      || XFASTINT (tem) == 0))
+	  {
+	    buffer = Fget_buffer (tem);
+	    CHECK_BUFFER (buffer, 2);
+	  }
       }
   }
 
@@ -152,10 +157,10 @@ If you quit, the process is killed with SIGKILL.")
     new_argv[i - 3] = 0;
   }
 
-  filefd = open (XSTRING (args[1])->data, O_RDONLY, 0);
+  filefd = open (XSTRING (infile)->data, O_RDONLY, 0);
   if (filefd < 0)
     {
-      report_file_error ("Opening process input file", Fcons (args[1], Qnil));
+      report_file_error ("Opening process input file", Fcons (infile, Qnil));
     }
   /* Search for program; barf if not found.  */
   openp (Vexec_path, args[0], "", &path, 1);
@@ -176,6 +181,14 @@ If you quit, the process is killed with SIGKILL.")
       set_exclusive_use (fd[0]);
 #endif
     }
+
+  /* Make sure that the child will be able to chdir to the current
+     buffer's current directory.  We can't just have the child check
+     for an error when it does the chdir, since it's in a vfork.  */
+  current_dir = expand_and_dir_to_file (current_buffer->directory, Qnil);
+  if (NILP (Ffile_accessible_directory_p (current_dir)))
+    report_file_error ("Setting current directory",
+		       Fcons (current_buffer->directory, Qnil));
 
   {
     /* child_setup must clobber environ in systems with true vfork.
@@ -204,7 +217,7 @@ If you quit, the process is killed with SIGKILL.")
 #else
         setpgrp (pid, pid);
 #endif /* USG */
-	child_setup (filefd, fd1, fd1, new_argv, env, 0);
+	child_setup (filefd, fd1, fd1, new_argv, env, 0, current_dir);
       }
 
 #if 0
@@ -338,13 +351,19 @@ If you quit, the process is killed with SIGKILL.")
    ENV is the environment for the subprocess.
 
    SET_PGRP is nonzero if we should put the subprocess into a separate
-   process group.  */
+   process group.  
 
-child_setup (in, out, err, new_argv, env, set_pgrp)
+   CURRENT_DIR is an elisp string giving the path of the current
+   directory the subprocess should have.  Since we can't really signal
+   a decent error from within the child, this should be verified as an
+   executable directory by the parent.  */
+
+child_setup (in, out, err, new_argv, env, set_pgrp, current_dir)
      int in, out, err;
      register char **new_argv;
      char **env;
      int set_pgrp;
+     Lisp_Object current_dir;
 {
   register int pid = getpid();
 
@@ -361,21 +380,24 @@ child_setup (in, out, err, new_argv, env, set_pgrp)
      the superior's static variables as if the superior had done alloca
      and will be cleaned up in the usual way.  */
 
-  if (XTYPE (current_buffer->directory) == Lisp_String)
-    {
-      register unsigned char *temp;
-      register int i;
+  {
+    register unsigned char *temp;
+    register int i;
 
-      i = XSTRING (current_buffer->directory)->size;
-      temp = (unsigned char *) alloca (i + 2);
-      bcopy (XSTRING (current_buffer->directory)->data, temp, i);
-      if (temp[i - 1] != '/') temp[i++] = '/';
-      temp[i] = 0;
-      /* Switch to that directory, and report any error.  */
-      if (chdir (temp) < 0)
-	report_file_error ("In chdir",
-			   Fcons (current_buffer->directory, Qnil));
-    }
+    i = XSTRING (current_dir)->size;
+    temp = (unsigned char *) alloca (i + 2);
+    bcopy (XSTRING (current_dir)->data, temp, i);
+    if (temp[i - 1] != '/') temp[i++] = '/';
+    temp[i] = 0;
+
+    /* We can't signal an Elisp error here; we're in a vfork.  Since
+       the callers check the current directory before forking, this
+       should only return an error if the directory's permissions
+       are changed between the check and this chdir, but we should
+       at least check.  */
+    if (chdir (temp) < 0)
+      exit (errno);
+  }
 
   /* Set `env' to a vector of the strings in Vprocess_environment.  */
   {
@@ -435,7 +457,7 @@ getenv_internal (var, varlen, value, valuelen)
      char *var;
      int varlen;
      char **value;
-     int **valuelen;
+     int *valuelen;
 {
   Lisp_Object scan;
 
@@ -448,7 +470,7 @@ getenv_internal (var, varlen, value, valuelen)
 	  && XSTRING (entry)->data[varlen] == '='
 	  && ! bcmp (XSTRING (entry)->data, var, varlen))
 	{
-	  *value    = XSTRING (entry)->data + (varlen + 1);
+	  *value    = (char *) XSTRING (entry)->data + (varlen + 1);
 	  *valuelen = XSTRING (entry)->size - (varlen + 1);
 	  return 1;
 	}
