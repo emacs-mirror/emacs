@@ -18,7 +18,7 @@
 .\" Boston, MA 02111-1307, USA.
 .\"
 '\" t
-.TH EMACS 1 "1995 December 7"
+.TH EMACS 1 "2001 November 23"
 .UC 4
 .SH NAME
 emacs \- GNU project Emacs
@@ -56,8 +56,7 @@ has an extensive interactive help facility,
 but the facility assumes that you know how to manipulate
 .I Emacs
 windows and buffers.
-CTRL-h (backspace
-or CTRL-h) enters the Help facility.  Help Tutorial (CTRL-h t)
+CTRL-h or F1 enters the Help facility.  Help Tutorial (CTRL-h t)
 requests an interactive tutorial which can teach beginners the fundamentals
 of 
 .I Emacs 
@@ -102,8 +101,24 @@ Go to the line specified by
 (do not insert a space between the "+" sign and
 the number).
 .TP
+.BI \+ line:column
+Go to the specified
+.I line
+and
+.I column
+.TP
 .B \-q
 Do not load an init file.
+.TP
+.B \-no-site-file
+Do not load the site-wide startup file.
+.TP
+.BI \-debug-init
+Enable 
+.I Emacs
+Lisp debugger during the processing of the user init file
+.BI ~/.emacs.
+This is useful for debugging problems in the init file.
 .TP
 .BI \-u " user"
 Load
@@ -115,6 +130,11 @@ Use specified
 .I file
 as the terminal instead of using stdin/stdout.
 This must be the first argument specified in the command line.
+.TP
+.B \-version
+Display
+.I Emacs
+version information and exit.
 .PP
 The following options are lisp-oriented
 (these options are processed in the order encountered):
@@ -126,6 +146,10 @@ Execute the lisp function
 .BI \-l " file"
 Load the lisp code in the file
 .I file.
+.TP
+.BI \-eval " expr"
+Evaluate the Lisp expression
+.I expr.
 .PP
 The following options are useful when running
 .I Emacs
@@ -140,6 +164,13 @@ options to specify files to execute and functions to call.
 Exit 
 .I Emacs 
 while in batch mode.
+.TP
+.BI \-L " directory"
+Add
+.I directory
+to the list of directories 
+.I Emacs
+searches for Lisp files.
 .\" START DELETING HERE IF YOU'RE NOT USING X
 .PP
 .SM Using Emacs with X
@@ -504,17 +535,16 @@ Copyright
 .if n (c)
 1995, 1999, 2000, 2001 Free Software Foundation, Inc.
 .PP
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1
-or any later version published by the Free Software Foundation;
-with no Invariant Sections, with no Front-Cover Texts, and no
-Back-Cover Texts.
+Permission is granted to make and distribute verbatim copies of this
+document provided the copyright notice and this permission notice are
+preserved on all copies.
 .PP
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
-A copy of the license is included in the
-.BR gfdl ( 1 )
-man page, and in the section entitled "GNU Free Documentation
-License" in the Emacs manual.
+Permission is granted to copy and distribute modified versions of
+this document under the conditions for verbatim copying, provided that
+the entire resulting derived work is distributed under the terms of
+a permission notice identical to this one.
+.PP
+Permission is granted to copy and distribute translations of this
+document into another language, under the above conditions for
+modified versions, except that this permission notice may be stated
+in a translation approved by the Free Software Foundation.
