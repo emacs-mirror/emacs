@@ -11061,7 +11061,8 @@ x_build_heuristic_mask (f, img, how)
 	{
 	  char color_name[30];
 	  sprintf (color_name, "#%04x%04x%04x", rgb[0], rgb[1], rgb[2]);
-	  bg = x_alloc_image_color (f, img, build_string (color_name), 0);
+	  bg = x_alloc_image_color (f, img, build_string (color_name), 0)
+	    & 0xffffff; // Filter out palette info.
 	  use_img_background = 0;
 	}
     }
