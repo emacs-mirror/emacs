@@ -1206,66 +1206,66 @@ Remaining arguments are strings to give program as arguments.")
 		     BUF_ZV (XBUFFER (buffer)),
 		     BUF_ZV_BYTE (XBUFFER (buffer)));
 
-  if (!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters)
-      || NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters))
-    {
-      XPROCESS (proc)->decode_coding_system = Qnil;
-      XPROCESS (proc)->encode_coding_system = Qnil;
-    }
-  else
-    {
-      /* Setup coding systems for communicating with the process.  */
-      /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
-      Lisp_Object coding_systems = Qt;
-      Lisp_Object val, *args2;
-      struct gcpro gcpro1;
+  {
+    /* Setup coding systems for communicating with the process.  */
+    /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
+    Lisp_Object coding_systems = Qt;
+    Lisp_Object val, *args2;
+    struct gcpro gcpro1;
 
-      if (!NILP (Vcoding_system_for_read))
-	val = Vcoding_system_for_read;
-      else if (NILP (current_buffer->enable_multibyte_characters))
-	val = Qraw_text;
-      else
-	{
-	  args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
-	  args2[0] = Qstart_process;
-	  for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
-	  GCPRO1 (proc);
-	  coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
-	  UNGCPRO;
-	  if (CONSP (coding_systems))
-	    val = XCONS (coding_systems)->car;
-	  else if (CONSP (Vdefault_process_coding_system))
-	    val = XCONS (Vdefault_process_coding_system)->car;
-	  else
-	    val = Qnil;
-	}
-      XPROCESS (proc)->decode_coding_system = val;
+    if (!NILP (Vcoding_system_for_read))
+      val = Vcoding_system_for_read;
+    else if (!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters)
+	     || (NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters)))
+      /* The user will normally expect EOL conversion to take place, so
+	 specify `raw-text' as the decoding system; when that is not
+	 desired, the process coding system should be set explicitly to
+	 `no-conversion'.  The encoding system will be updated to match
+	 when the EOL convention has been established, which seems
+	 reasonable.  */
+      val = Qraw_text;
+    else
+      {
+	args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
+	args2[0] = Qstart_process;
+	for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
+	GCPRO1 (proc);
+	coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
+	UNGCPRO;
+	if (CONSP (coding_systems))
+	  val = XCONS (coding_systems)->car;
+	else if (CONSP (Vdefault_process_coding_system))
+	  val = XCONS (Vdefault_process_coding_system)->car;
+	else
+	  val = Qnil;
+      }
+    XPROCESS (proc)->decode_coding_system = val;
 
-      if (!NILP (Vcoding_system_for_write))
-	val = Vcoding_system_for_write;
-      else if (NILP (current_buffer->enable_multibyte_characters))
-	val = Qnil;
-      else
-	{
-	  if (EQ (coding_systems, Qt))
-	    {
-	      args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof args2);
-	      args2[0] = Qstart_process;
-	      for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
-	      GCPRO1 (proc);
-	      coding_systems =
-		Ffind_operation_coding_system (nargs + 1, args2);
-	      UNGCPRO;
-	    }
-	  if (CONSP (coding_systems))
-	    val = XCONS (coding_systems)->cdr;
-	  else if (CONSP (Vdefault_process_coding_system))
-	    val = XCONS (Vdefault_process_coding_system)->cdr;
-	  else
-	    val = Qnil;
-	}
-      XPROCESS (proc)->encode_coding_system = val;
-    }
+    if (!NILP (Vcoding_system_for_write))
+      val = Vcoding_system_for_write;
+    else if (!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters)
+	     || (NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters)))
+      val = Qnil;
+    else
+      {
+	if (EQ (coding_systems, Qt))
+	  {
+	    args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof args2);
+	    args2[0] = Qstart_process;
+	    for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
+	    GCPRO1 (proc);
+	    coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
+	    UNGCPRO;
+	  }
+	if (CONSP (coding_systems))
+	  val = XCONS (coding_systems)->cdr;
+	else if (CONSP (Vdefault_process_coding_system))
+	  val = XCONS (Vdefault_process_coding_system)->cdr;
+	else
+	  val = Qnil;
+      }
+    XPROCESS (proc)->encode_coding_system = val;
+  }
 
   XPROCESS (proc)->decoding_buf = make_uninit_string (0);
   XPROCESS (proc)->decoding_carryover = make_number (0);
@@ -1988,67 +1988,61 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   if (inch > max_process_desc)
     max_process_desc = inch;
 
-  if (!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters)
-      || NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters))
-    {
-      XPROCESS (proc)->decode_coding_system = Qnil;
-      XPROCESS (proc)->encode_coding_system = Qnil;
-    }
-  else
-    {
-      /* Setup coding systems for communicating with the network stream.  */
-      struct gcpro gcpro1;
-      /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
-      Lisp_Object coding_systems = Qt;
-      Lisp_Object args[5], val;
+  {
+    /* Setup coding systems for communicating with the network stream.  */
+    struct gcpro gcpro1;
+    /* Qt denotes we have not yet called Ffind_operation_coding_system.  */
+    Lisp_Object coding_systems = Qt;
+    Lisp_Object args[5], val;
 
-      if (!NILP (Vcoding_system_for_read))
-	val = Vcoding_system_for_read;
-      else if (NILP (current_buffer->enable_multibyte_characters))
-	/* We dare not decode end-of-line format by setting VAL to
-           Qraw_text, because the existing Emacs Lisp libraries
-           assume that they receive bare code including a sequene of
-           CR LF.  */
-	val = Qnil;
-      else
-	{
-	  args[0] = Qopen_network_stream, args[1] = name,
-	    args[2] = buffer, args[3] = host, args[4] = service;
-	  GCPRO1 (proc);
-	  coding_systems = Ffind_operation_coding_system (5, args);
-	  UNGCPRO;
-	  if (CONSP (coding_systems))
-	    val = XCONS (coding_systems)->car;
-	  else if (CONSP (Vdefault_process_coding_system))
-	    val = XCONS (Vdefault_process_coding_system)->car;
-	  else
-	    val = Qnil;
-	}
-      XPROCESS (proc)->decode_coding_system = val;
+    if (!NILP (Vcoding_system_for_read))
+      val = Vcoding_system_for_read;
+    else if (!NILP (buffer) && NILP (XBUFFER (buffer)->enable_multibyte_characters)
+	     || NILP (buffer) && NILP (buffer_defaults.enable_multibyte_characters))
+      /* We dare not decode end-of-line format by setting VAL to
+	 Qraw_text, because the existing Emacs Lisp libraries
+	 assume that they receive bare code including a sequene of
+	 CR LF.  */
+      val = Qnil;
+    else
+      {
+	args[0] = Qopen_network_stream, args[1] = name,
+	  args[2] = buffer, args[3] = host, args[4] = service;
+	GCPRO1 (proc);
+	coding_systems = Ffind_operation_coding_system (5, args);
+	UNGCPRO;
+	if (CONSP (coding_systems))
+	  val = XCONS (coding_systems)->car;
+	else if (CONSP (Vdefault_process_coding_system))
+	  val = XCONS (Vdefault_process_coding_system)->car;
+	else
+	  val = Qnil;
+      }
+    XPROCESS (proc)->decode_coding_system = val;
 
-      if (!NILP (Vcoding_system_for_write))
-	val = Vcoding_system_for_write;
-      else if (NILP (current_buffer->enable_multibyte_characters))
-	val = Qnil;
-      else
-	{
-	  if (EQ (coding_systems, Qt))
-	    {
-	      args[0] = Qopen_network_stream, args[1] = name,
-		args[2] = buffer, args[3] = host, args[4] = service;
-	      GCPRO1 (proc);
-	      coding_systems = Ffind_operation_coding_system (5, args);
-	      UNGCPRO;
-	    }
-	  if (CONSP (coding_systems))
-	    val = XCONS (coding_systems)->cdr;
-	  else if (CONSP (Vdefault_process_coding_system))
-	    val = XCONS (Vdefault_process_coding_system)->cdr;
-	  else
-	    val = Qnil;
-	}
-      XPROCESS (proc)->encode_coding_system = val;
-    }
+    if (!NILP (Vcoding_system_for_write))
+      val = Vcoding_system_for_write;
+    else if (NILP (current_buffer->enable_multibyte_characters))
+      val = Qnil;
+    else
+      {
+	if (EQ (coding_systems, Qt))
+	  {
+	    args[0] = Qopen_network_stream, args[1] = name,
+	      args[2] = buffer, args[3] = host, args[4] = service;
+	    GCPRO1 (proc);
+	    coding_systems = Ffind_operation_coding_system (5, args);
+	    UNGCPRO;
+	  }
+	if (CONSP (coding_systems))
+	  val = XCONS (coding_systems)->cdr;
+	else if (CONSP (Vdefault_process_coding_system))
+	  val = XCONS (Vdefault_process_coding_system)->cdr;
+	else
+	  val = Qnil;
+      }
+    XPROCESS (proc)->encode_coding_system = val;
+  }
 
   if (!proc_decode_coding_system[inch])
     proc_decode_coding_system[inch]
