@@ -1,3 +1,21 @@
+2001-03-16  John Wiegley  <johnw@gnu.org>
+
+	* calendar/timeclock.el (timeclock-reread-log): Fixed problem with
+	first-time checkins.
+	(timeclock-log-data): Fixed problem with reading timelog log file.
+	Resulting data in the "day list" was incorrect.
+	(timeclock-find-discrep): Check if `timeclock-file' is readable
+	before opening it.
+	(timeclock-time-less-p): New function.
+	(timeclock-day-base): New function.
+	(timeclock-geometric-mean): New function.
+	(timeclock-generate-report): Generate a summary report based on
+	the contents of the log file.  This uses `timeclock-log-data', and
+	is an example of writing a timelog manipulation function.
+	(timeclock-visit-timelog): A quick command for opening the timelog
+	file.
+	(timeclock-log-data): Bound the variable event.
+
 2001-03-16  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-cmds.el (select-safe-coding-system): Fix
