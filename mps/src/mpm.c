@@ -1,6 +1,6 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(trunk.13) $
+ * $HopeName: MMsrc!mpm.c(trunk.14) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
@@ -13,7 +13,7 @@
 
 #include "mpm.h"
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.13) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.14) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -76,6 +76,15 @@ Bool FunCheck(Fun f)
 {
   AVER(f != NULL);
   /* Could assert various platform-specific things here. */
+  return TRUE;
+}
+
+
+/* ShiftCheck -- check that a shift is valid */
+
+Bool ShiftCheck(Shift shift)
+{
+  AVER(shift < MPS_WORD_WIDTH);         /* standard.ansic 6.3.7 */
   return TRUE;
 }
 
