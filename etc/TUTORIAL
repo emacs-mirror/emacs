@@ -606,7 +606,7 @@ messages that have appeared on the bottom line during your Emacs
 session.
 
 >> Type C-x b *Messages* <Return> to look at the buffer of messages.
-   Then type C-b TUTORIAL <Return> to come back to this tutorial.
+   Then type C-x b TUTORIAL <Return> to come back to this tutorial.
 
 If you make changes to the text of one file, then find another file,
 this does not save the first file.  Its changes remain inside Emacs,
@@ -994,7 +994,8 @@ a command character or sequence; then Emacs displays a very brief
 description of the command.
 
 >> Type C-h c C-p.
-  The message should be something like
+
+The message should be something like this:
 
 	C-p runs the command previous-line
 
