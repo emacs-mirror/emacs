@@ -5333,9 +5333,6 @@ a_write (desc, string, pos, nchars, annot, coding)
   return 0;
 }
 
-#ifndef WRITE_BUF_SIZE
-#define WRITE_BUF_SIZE (16 * 1024)
-#endif
 
 /* Write text in the range START and END into descriptor DESC,
    encoding them with coding system CODING.  If STRING is nil, START
@@ -5349,8 +5346,6 @@ e_write (desc, string, start, end, coding)
      int start, end;
      struct coding_system *coding;
 {
-  int return_val = 0;
-
   if (STRINGP (string))
     {
       start = 0;
@@ -5359,56 +5354,55 @@ e_write (desc, string, start, end, coding)
 
   /* We used to have a code for handling selective display here.  But,
      now it is handled within encode_coding.  */
-  do
+  if (STRINGP (string))
     {
-      if (STRINGP (string))
+      coding->src_multibyte = SCHARS (string) < SBYTES (string);
+      if (CODING_REQUIRE_ENCODING (coding))
 	{
-	  coding->src_multibyte = SCHARS (string) < SBYTES (string);
-	  if (CODING_REQUIRE_ENCODING (coding))
-	    encode_coding_object (coding, string,
-				  start, string_char_to_byte (string, start),
-				  end, string_char_to_byte (string, end), Qt);
-	  else
-	    coding->dst_object = string, coding->produced = SBYTES (string);
+	  encode_coding_object (coding, string,
+				start, string_char_to_byte (string, start),
+				end, string_char_to_byte (string, end), Qt);
 	}
       else
 	{
-	  int start_byte = CHAR_TO_BYTE (start);
-	  int end_byte = CHAR_TO_BYTE (end);
-
-	  coding->src_multibyte = (end - start) < (end_byte - start_byte);
-	  if (CODING_REQUIRE_ENCODING (coding))
-	    encode_coding_object (coding, Fcurrent_buffer (),
-				  start, CHAR_TO_BYTE (start),
-				  end, CHAR_TO_BYTE (end), Qt);
-	  else
-	    {
-	      coding->dst_object = Qnil;
-	      coding->produced = end - start;
-	      coding->dst_pos_byte = start_byte;
-	    }
+	  coding->dst_object = string;
+	  coding->produced = SBYTES (string);
 	}
-
-      if (coding->produced > 0)
-	{
-	  coding->produced -=
-	    emacs_write (desc,
-			 STRINGP (coding->dst_object)
-			 ? SDATA (coding->dst_object)
-			 : BYTE_POS_ADDR (coding->dst_pos_byte),
-			 coding->produced);
-
-	  if (coding->produced)
-	    {
-	      return_val = -1;
-	      break;
-	    }
-	}
-      start += coding->consumed_char;
     }
-  while (start < end);
+  else
+    {
+      int start_byte = CHAR_TO_BYTE (start);
+      int end_byte = CHAR_TO_BYTE (end);
 
-  return return_val;
+      coding->src_multibyte = (end - start) < (end_byte - start_byte);
+      if (CODING_REQUIRE_ENCODING (coding))
+	{
+	  encode_coding_object (coding, Fcurrent_buffer (),
+				start, CHAR_TO_BYTE (start),
+				end, CHAR_TO_BYTE (end), Qt);
+	}
+      else
+	{
+	  coding->dst_object = Qnil;
+	  coding->produced = end - start;
+	  coding->dst_pos_byte = start_byte;
+	}
+    }
+
+  if (coding->produced > 0)
+    {
+      coding->produced -=
+	emacs_write (desc,
+		     STRINGP (coding->dst_object)
+		     ? SDATA (coding->dst_object)
+		     : BYTE_POS_ADDR (coding->dst_pos_byte),
+		     coding->produced);
+
+      if (coding->produced)
+	return -1;
+    }
+
+  return 0;
 }
 
 DEFUN ("verify-visited-file-modtime", Fverify_visited_file_modtime,
