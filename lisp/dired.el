@@ -907,7 +907,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (define-key map "*\177" 'dired-unmark-backward)
     (define-key map "*\C-n" 'dired-next-marked-file)
     (define-key map "*\C-p" 'dired-prev-marked-file)
-    (define-key map "*t" 'dired-do-toggle)
+    (define-key map "*t" 'dired-toggle-marks)
     ;; Lower keys for commands not operating on all the marked files
     (define-key map "a" 'dired-find-alternate-file)
     (define-key map "d" 'dired-flag-file-deletion)
@@ -926,7 +926,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (define-key map "p" 'dired-previous-line)
     (define-key map "q" 'quit-window)
     (define-key map "s" 'dired-sort-toggle-or-edit)
-    (define-key map "t" 'dired-do-toggle)
+    (define-key map "t" 'dired-toggle-marks)
     (define-key map "u" 'dired-unmark)
     (define-key map "v" 'dired-view-file)
     (define-key map "w" 'dired-copy-filename-as-kill)
@@ -1107,7 +1107,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
       '(menu-item "Mark" dired-mark
 		  :help "Mark current line's file for future operations"))
     (define-key map [menu-bar mark toggle-marks]
-      '(menu-item "Toggle Marks" dired-do-toggle
+      '(menu-item "Toggle Marks" dired-toggle-marks
 		  :help "Mark unmarked files, unmark marked ones"))
 
     (define-key map [menu-bar operate]
@@ -2359,9 +2359,8 @@ Optional prefix ARG says how many lines to unflag; default is one line."
   (interactive "p")
   (dired-unmark (- arg)))
 
-(defun dired-do-toggle ()
-  "Toggle marks.
-That is, currently marked files become unmarked and vice versa.
+(defun dired-toggle-marks ()
+  "Toggle marks: marked files become unmarked, and vice versa.
 Files marked with other flags (such as `D') are not affected.
 `.' and `..' are never toggled.
 As always, hidden subdirs are not affected."
