@@ -5229,9 +5229,6 @@ detect_coding (coding)
 					|| c == ISO_CODE_SO)))
 	    break;
 	}
-      /* Skipped bytes must be even for utf-16 detector.  */
-      if (i % 2)
-	src--;
       coding->head_ascii = src - (coding->source + coding->consumed);
 
       if (coding->head_ascii < coding->src_bytes)
@@ -6711,9 +6708,6 @@ detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
 					|| c == ISO_CODE_SO)))
 	    break;
 	}
-      /* Skipped bytes must be even for utf-16 detecor.  */
-      if (i % 2)
-	src--;
       coding.head_ascii = src - coding.source;
 
       if (src < src_end)
