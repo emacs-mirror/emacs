@@ -351,12 +351,6 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.")
 
   if (p == beg)
     return Qnil;
-#ifdef WINDOWSNT
-  /* We can consider the partial UNC name //machine to be a
-     directory name, but not just // on its own. */
-  if (p == beg + 1 && IS_DIRECTORY_SEP (p[-1]))
-    return Qnil;
-#endif
 #ifdef DOS_NT
   /* Expansion of "c:" to drive and default directory.  */
   if (p == beg + 2 && beg[1] == ':')
