@@ -1,9 +1,7 @@
 /* impl.c.vmo1: VIRTUAL MEMORY MAPPING FOR DIGITAL UNIX
  *
- * $HopeName: MMsrc!vmo1.c(trunk.6) $
- * Copyright (C) 1995, 1997, 1998 Harlequin Group plc.  All rights reserved.
- *
- * Readership: Any MPS developer
+ * $HopeName: MMsrc!vmo1.c(trunk.7) $
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * Design: design.mps.vm, design.mps.vmo1
  *
@@ -62,7 +60,7 @@
 /* for getpagesize(2),close(2) */
 #include <unistd.h>
 
-SRCID(vmo1, "$HopeName: MMsrc!vmo1.c(trunk.6) $");
+SRCID(vmo1, "$HopeName: MMsrc!vmo1.c(trunk.7) $");
 
 
 /* Fix unprototyped system calls
@@ -91,11 +89,15 @@ typedef struct VMStruct {
 } VMStruct;
 
 
+/* VMAlign -- return the page size */
+
 Align VMAlign(VM vm)
 {
   return vm->align;
 }
 
+
+/* VMCheck -- check a VM structure */
 
 Bool VMCheck(VM vm)
 {
@@ -120,17 +122,18 @@ Res VMCreate(VM *vmReturn, Size size)
   Align align;
   int none_fd;
   VM vm;
+  Res res;
 
   AVER(vmReturn != NULL);
 
   align = (Align)getpagesize();
   AVER(SizeIsP2(align));
   size = SizeAlignUp(size, align);
-  if((size == 0) || (size > (Size)(size_t)-1))
+  if ((size == 0) || (size > (Size)(size_t)-1))
     return ResRESOURCE;
 
   none_fd = open("/etc/passwd", O_RDONLY);
-  if(none_fd == -1) {
+  if (none_fd == -1) {
     return ResFAIL;
   }
 
@@ -139,14 +142,11 @@ Res VMCreate(VM *vmReturn, Size size)
               PROT_READ | PROT_WRITE,
               MAP_ANONYMOUS | MAP_PRIVATE | MAP_VARIABLE,
               -1, 0);
-  if(addr == (void *)-1) {
+  if (addr == (void *)-1) {
     int e = errno;
     AVER(e == ENOMEM); /* .assume.mmap.err */
-    close(none_fd);
-    if(e == ENOMEM)
-      return ResMEMORY;
-    else
-      return ResFAIL;
+    res = (e == ENOMEM) ? ResRESOURCE : ResFAIL;
+    goto failVMMap;
   }
   vm = (VM)addr;
 
@@ -157,14 +157,11 @@ Res VMCreate(VM *vmReturn, Size size)
   addr = mmap(0, (size_t)size,
               PROT_NONE, MAP_FILE | MAP_SHARED | MAP_VARIABLE,
               none_fd, 0);
-  if(addr == (void *)-1) {
+  if (addr == (void *)-1) {
     int e = errno;
     AVER(e == ENOMEM); /* .assume.mmap.err */
-    close(none_fd);
-    if(e == ENOMEM)
-      return ResRESOURCE;
-    else
-      return ResFAIL;
+    res = (e == ENOMEM) ? ResRESOURCE : ResFAIL;
+    goto failReserve;
   }
 
   vm->base = (Addr)addr;
@@ -173,19 +170,25 @@ Res VMCreate(VM *vmReturn, Size size)
   vm->mapped = (Size)0;
 
   vm->sig = VMSig;
-
   AVERT(VM, vm);
-
   EVENT_PAA(VMCreate, vm, vm->base, vm->limit);
-
   *vmReturn = vm;
   return ResOK;
+
+failReserve:
+  (void)munmap((void *)vm, (size_t)SizeAlignUp(sizeof(VMStruct), align));
+failVMMap:
+  (void)close(none_fd); /* see .close.fail */
+  return res;
 }
 
+
+/* VMDestroy -- destroy the VM structure */
 
 void VMDestroy(VM vm)
 {
   int r;
+  int none_fd;
 
   AVERT(VM, vm);
   AVER(vm->mapped == (Size)0);
@@ -196,16 +199,20 @@ void VMDestroy(VM vm)
   /* discovered if sigs were being checked. */
   vm->sig = SigInvalid;
 
-  close(vm->none_fd);
+  none_fd = vm->none_fd;
   r = munmap((void *)vm->base, (size_t)AddrOffset(vm->base, vm->limit));
   AVER(r == 0);
-  r = munmap((void *)vm,
-             (size_t)SizeAlignUp(sizeof(VMStruct), vm->align));
+  r = munmap((void *)vm, (size_t)SizeAlignUp(sizeof(VMStruct), vm->align));
   AVER(r == 0);
+  /* .close.fail: We ignore failure from close() as there's very */
+  /* little we can do anyway. */
+  (void)close(none_fd);
 
   EVENT_P(VMDestroy, vm);
 }
 
+
+/* VMBase -- return the base address of the memory reserved */
 
 Addr VMBase(VM vm)
 {
@@ -213,6 +220,9 @@ Addr VMBase(VM vm)
 
   return vm->base;
 }
+
+
+/* VMLimit -- return the limit address of the memory reserved */
 
 Addr VMLimit(VM vm)
 {
@@ -222,12 +232,17 @@ Addr VMLimit(VM vm)
 }
 
 
+/* VMReserved -- return the amount of address space reserved */
+
 Size VMReserved(VM vm)
 {
   AVERT(VM, vm);
 
   return vm->reserved;
 }
+
+
+/* VMMapped -- return the amount of memory actually mapped */
 
 Size VMMapped(VM vm)
 {
@@ -236,6 +251,8 @@ Size VMMapped(VM vm)
   return vm->mapped;
 }
 
+
+/* VMMap -- map the given range of memory */
 
 Res VMMap(VM vm, Addr base, Addr limit)
 {
@@ -252,11 +269,11 @@ Res VMMap(VM vm, Addr base, Addr limit)
 
   size = AddrOffset(base, limit);
 
-  if(mmap((void *)base, (size_t)size,
+  if (mmap((void *)base, (size_t)size,
           PROT_READ | PROT_WRITE | PROT_EXEC,
           MAP_ANONYMOUS | MAP_PRIVATE | MAP_FIXED,
           -1, 0)
-     == (void *)-1) {
+      == (void *)-1) {
     AVER(errno == ENOMEM); /* .assume.mmap.err */
     return ResMEMORY;
   }
@@ -268,7 +285,11 @@ Res VMMap(VM vm, Addr base, Addr limit)
 }
 
 
-/* see design.mps.vmo1.fun.unmap */
+/* VMUnmap -- unmap the given range of memory
+ *
+ * See design.mps.vmo1.fun.unmap.
+ */
+
 void VMUnmap(VM vm, Addr base, Addr limit)
 {
   Size size;
