@@ -820,9 +820,6 @@ If this is nil, no message will be displayed."
 		   "For information about the GNU Project and its goals, type C-h C-p."
 		 (substitute-command-keys
 		  "For information about the GNU Project and its goals, type \\[describe-project]."))))
-  (when (and (not noninteractive)
-	     (memq window-system '(x w32 pc)))
-    (make-mode-line-mouse-sensitive))
   (if (null command-line-args-left)
       (cond ((and (not inhibit-startup-message) (not noninteractive)
 		  ;; Don't clobber a non-scratch buffer if init file
