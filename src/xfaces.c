@@ -280,8 +280,13 @@ Lisp_Object Qx_charset_registry;
 
 /* Names of basic faces.  */
 
-Lisp_Object Qdefault, Qmodeline, Qtool_bar, Qregion, Qmargin;
-Lisp_Object Qheader_line;
+Lisp_Object Qdefault, Qmodeline, Qtool_bar, Qregion, Qfringe;
+Lisp_Object Qheader_line, Qscroll_bar, Qcursor, Qborder, Qmouse;;
+
+/* Names of frame parameters related to faces.  */
+
+extern Lisp_Object Qscroll_bar_foreground, Qscroll_bar_background;
+extern Lisp_Object Qborder_color, Qcursor_color, Qmouse_color;
 
 /* Default stipple pattern used on monochrome displays.  This stipple
    pattern is used on monochrome displays instead of shades of gray
@@ -708,9 +713,10 @@ free_frame_faces (f)
 }
 
 
-/* Recompute basic faces for frame F.  Call this after changing frame
-   parameters on which those faces depend, or when realized faces have
-   been freed due to changing attributes of named faces.  */
+/* Clear face caches, and recompute basic faces for frame F.  Call
+   this after changing frame parameters on which those faces depend,
+   or when realized faces have been freed due to changing attributes
+   of named faces. */
 
 void
 recompute_basic_faces (f)
@@ -718,7 +724,9 @@ recompute_basic_faces (f)
 {
   if (FRAME_FACE_CACHE (f))
     {
-      int realized_p = realize_basic_faces (f);
+      int realized_p;
+      clear_face_cache (0);
+      realized_p = realize_basic_faces (f);
       xassert (realized_p);
     }
 }
@@ -3421,14 +3429,61 @@ frame.")
     }
 
 #ifdef HAVE_X_WINDOWS
-  /* Changed font-related attributes of the `default' face are
-     reflected in changed `font' frame parameters.  */
-  if (EQ (face, Qdefault)
-      && !EQ (frame, Qt)
-      && font_related_attr_p
-      && lface_fully_specified_p (XVECTOR (lface)->contents)
+
+  if (!EQ (frame, Qt)
+      && !UNSPECIFIEDP (value)
       && NILP (Fequal (old_value, value)))
-    set_font_frame_param (frame, lface);
+    {
+      Lisp_Object param;
+
+      param = Qnil;
+      
+      if (EQ (face, Qdefault))
+	{
+	  /* Changed font-related attributes of the `default' face are
+	     reflected in changed `font' frame parameters. */
+	  if (font_related_attr_p
+	      && lface_fully_specified_p (XVECTOR (lface)->contents))
+	    set_font_frame_param (frame, lface);
+	  else if (EQ (attr, QCforeground))
+	    param = Qforeground_color;
+	  else if (EQ (attr, QCbackground))
+	    param = Qbackground_color;
+	}
+      else if (EQ (face, Qscroll_bar))
+	{
+	  /* Changing the colors of `scroll-bar' sets frame parameters
+	     `scroll-bar-foreground' and `scroll-bar-background'. */
+	  if (EQ (attr, QCforeground))
+	    param = Qscroll_bar_foreground;
+	  else if (EQ (attr, QCbackground))
+	    param = Qscroll_bar_background;
+	}
+      else if (EQ (face, Qborder))
+	{
+	  /* Changing background color of `border' sets frame parameter
+	     `border-color'.  */
+	  if (EQ (attr, QCbackground))
+	    param = Qborder_color;
+	}
+      else if (EQ (face, Qcursor))
+	{
+	  /* Changing background color of `cursor' sets frame parameter
+	     `cursor-color'.  */
+	  if (EQ (attr, QCbackground))
+	    param = Qcursor_color;
+	}
+      else if (EQ (face, Qmouse))
+	{
+	  /* Changing background color of `mouse' sets frame parameter
+	     `mouse-color'.  */
+	  if (EQ (attr, QCbackground))
+	    param = Qmouse_color;
+	}
+
+      if (SYMBOLP (param))
+	Fmodify_frame_parameters (frame, Fcons (Fcons (param, value), Qnil));
+    }
 
 #endif /* HAVE_X_WINDOWS */
   
@@ -3486,6 +3541,57 @@ set_font_frame_param (frame, lface)
 	  store_frame_param (f, Qfont, build_string (font));
 	  xfree (font);
 	}
+    }
+}
+
+
+/* Update the corresponding face when frame parameter PARAM on frame F
+   has been assigned the value NEW_VALUE.  */
+
+void
+update_face_from_frame_parameter (f, param, new_value)
+     struct frame *f;
+     Lisp_Object param, new_value;
+{
+  Lisp_Object lface;
+
+  /* If there are no faces yet, give up.  This is the case when called
+     from Fx_create_frame, and we do the necessary things later in
+     face-set-after-frame-defaults. */
+  if (NILP (f->face_alist))
+    return;
+  
+  if (EQ (param, Qforeground_color))
+    {
+      lface = lface_from_face_name (f, Qdefault, 1);
+      LFACE_FOREGROUND (lface) = (STRINGP (new_value)
+				  ? new_value : Qunspecified);
+      realize_basic_faces (f);
+    }
+  else if (EQ (param, Qbackground_color))
+    {
+      lface = lface_from_face_name (f, Qdefault, 1);
+      LFACE_BACKGROUND (lface) = (STRINGP (new_value)
+				  ? new_value : Qunspecified);
+      realize_basic_faces (f);
+    }
+  if (EQ (param, Qborder_color))
+    {
+      lface = lface_from_face_name (f, Qborder, 1);
+      LFACE_BACKGROUND (lface) = (STRINGP (new_value)
+				  ? new_value : Qunspecified);
+    }
+  else if (EQ (param, Qcursor_color))
+    {
+      lface = lface_from_face_name (f, Qcursor, 1);
+      LFACE_BACKGROUND (lface) = (STRINGP (new_value)
+				  ? new_value : Qunspecified);
+    }
+  else if (EQ (param, Qmouse_color))
+    {
+      lface = lface_from_face_name (f, Qmouse, 1);
+      LFACE_BACKGROUND (lface) = (STRINGP (new_value)
+				  ? new_value : Qunspecified);
     }
 }
 
@@ -5131,8 +5237,12 @@ realize_basic_faces (f)
     {
       realize_named_face (f, Qmodeline, MODE_LINE_FACE_ID);
       realize_named_face (f, Qtool_bar, TOOL_BAR_FACE_ID);
-      realize_named_face (f, Qmargin, BITMAP_AREA_FACE_ID);
+      realize_named_face (f, Qfringe, BITMAP_AREA_FACE_ID);
       realize_named_face (f, Qheader_line, HEADER_LINE_FACE_ID);
+      realize_named_face (f, Qscroll_bar, SCROLL_BAR_FACE_ID);
+      realize_named_face (f, Qborder, BORDER_FACE_ID);
+      realize_named_face (f, Qcursor, CURSOR_FACE_ID);
+      realize_named_face (f, Qmouse, MOUSE_FACE_ID);
       success_p = 1;
     }
 
@@ -6246,10 +6356,18 @@ syms_of_xfaces ()
   staticpro (&Qtool_bar);
   Qregion = intern ("region");
   staticpro (&Qregion);
-  Qmargin = intern ("margin");
-  staticpro (&Qmargin);
+  Qfringe = intern ("fringe");
+  staticpro (&Qfringe);
   Qheader_line = intern ("header-line");
   staticpro (&Qheader_line);
+  Qscroll_bar = intern ("scroll-bar");
+  staticpro (&Qscroll_bar);
+  Qcursor = intern ("cursor");
+  staticpro (&Qcursor);
+  Qborder = intern ("border");
+  staticpro (&Qborder);
+  Qmouse = intern ("mouse");
+  staticpro (&Qmouse);
 
   defsubr (&Sinternal_make_lisp_face);
   defsubr (&Sinternal_lisp_face_p);
