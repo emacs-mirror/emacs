@@ -1,3 +1,9 @@
+2002-07-04  Miles Bader  <miles@gnu.org>
+
+	* comint.el (comint-displayed-dynamic-completions): New variable.
+	(comint-dynamic-list-completions): Be more careful about choosing
+	when to scroll an existing completions window.
+
 2002-07-03  Andreas Schwab  <schwab@suse.de>
 
 	* net/tramp.el (tramp-handle-ange-ftp): Move interactive spec
