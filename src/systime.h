@@ -1,4 +1,4 @@
-/* systerm.h - System-dependent definitions for time manipulations.
+/* systime.h - System-dependent definitions for time manipulations.
    Copyright (C) 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -25,13 +25,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    use this guard either not at all, or similarly.  */
 #ifndef _h_BSDTYPES
 #include <time.h>
-#endif
-#else /* not NEED_TIME_H */
+#endif /* _h_BSDTYPES */
+#else /* ! defined (NEED_TIME_H) */
 #ifdef HAVE_TIMEVAL
 #include <sys/time.h>
-#endif /* HAVE_TIMEVAL */
-#endif /* not NEED_TIME_H */
+#endif /* ! defined (HAVE_TIMEVAL) */
+#endif /* ! defined (NEED_TIME_H) */
 
+
 /* EMACS_TIME is the type to use to represent temporal intervals -
    struct timeval on some systems, int on others.  It can be passed as
    the timeout argument to the select () system call.
@@ -97,7 +98,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    || ((time).tv_sec == 0					\
        && (time).tv_usec < 0))
 
-#else /* not def HAVE_TIMEVAL */
+#else /* ! defined (HAVE_TIMEVAL) */
 
 #define EMACS_TIME int
 #define EMACS_SECS(time)		    (time)
@@ -108,7 +109,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define EMACS_SUB_TIME(dest, src1, src2) ((dest) = (src1) - (src2))
 #define EMACS_TIME_NEG_P(t) ((t) < 0)
 
-#endif /* def HAVE_TIMEVAL */
+#endif /* ! defined (HAVE_TIMEVAL) */
 
 #define EMACS_SET_SECS_USECS(time, secs, usecs) 		\
   (EMACS_SET_SECS (time, secs), EMACS_SET_USECS (time, usecs))
@@ -123,7 +124,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
     utime ((path), tv);						\
   }
 
-#else
+#else /* ! defined (USE_UTIME) */
 
 #define EMACS_SET_UTIMES(path, atime, mtime)			\
   {								\
@@ -133,4 +134,100 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
     utimes ((path), tv);					\
   }
 
-#endif
+#endif /* ! defined (USE_UTIME) */
+
+
+
+/* EMACS_CURRENT_TIME_ZONE (int *OFFSET, int *SAVINGS_FLAG,
+                            char *STANDARD_ABBR, char *SAVINGS_ABBR);
+   expands to a statement which stores information about the current
+   time zone in its arguments.
+
+   *OFFSET is set to the number of minutes west of Greenwich at which
+   the site's time zone is located.  This should describe the offset
+   to standard time only; if some sort of daylight savings time is in
+   effect, that should not affect this value.  Note that the tm_gmtoff
+   member of the struct tm returned by localtime is adjusted for
+   daylight savings, so you don't want to use localtime to set
+   *OFFSET; gettimeofday does the right thing.
+
+   *SAVINGS_FLAG is set to 1 if some sort of daylight savings time is
+   currently in effect, or 0 if no seasonal adjustment is currently
+   active.
+
+   *STANDARD_ABBR points to an array of at least 10 characters, which
+   should be set to the standard abbreviation for the time zone name
+   when daylight savings time is not active.  For example, EDT would
+   be appropriate for the Eastern time zone of the USA.
+
+   *SAVINGS_ABBR points to an array of at least 10 characters, which
+   should be set to the standard abbreviation for the time zone name
+   when daylight savings time is active.  For example, EST would be
+   appropriate for the Eastern time zone of the USA.
+
+   If the operating system cannot provide all this information, then
+   this macro will not be defined.  */
+
+
+/* The operating system configuration file can define
+   EMACS_CURRENT_TIME_ZONE.   If not, we'll take a shot at it here.  */
+
+#ifndef EMACS_CURRENT_TIME_ZONE
+
+/* If we have timeval, then we have gettimeofday; that's half the battle.  */
+#ifdef HAVE_TIMEVAL
+#define EMACS_GET_TZ_OFFSET_AND_SAVINGS(offset, savings_flag)		\
+  do {									\
+    struct timeval dummy;						\
+    struct timezone zoneinfo;						\
+									\
+    gettimeofday (&dummy, &zoneinfo);					\
+    *(offset) = zoneinfo.tz_minuteswest;				\
+    *(savings_flag) = zoneinfo.tz_dsttime;				\
+  } while (0)
+#endif /* ! defined (HAVE_TIMEVAL) */
+
+
+/* The following sane systems have a tzname array.  The timezone() function
+   is a stupid idea; timezone names can only be determined geographically,
+   not by Greenwich offset.  */
+#if defined (ultrix) || defined (hpux) || defined (_AIX)
+
+#define EMACS_GET_TZ_NAMES(standard, savings)				\
+  do {									\
+    extern char *tzname[2];						\
+    strcpy ((standard), tzname[0]);					\
+    strcpy ((savings), tzname[1]);					\
+  } while (0)
+
+#else /* ! defined (ultrix) || defined (hpux) || defined (_AIX) */
+/* If we are running SunOS, Mt. Xinu BSD, or MACH 2.5, these systems have a
+   timezone() function.  */
+#if (defined (hp9000) && ! defined (hpux) && defined (unix)) || defined (MACH) || defined (sun)
+
+#define EMACS_GET_TZ_NAMES(standard, savings)				\
+  do {									\
+    struct timeval dummy;						\
+    struct timezone zoneinfo;						\
+    extern char *timezone ();						\
+									\
+    gettimeofday (&dummy, &zoneinfo);					\
+    strcpy ((standard), timezone (zoneinfo.tz_minuteswest, 0));		\
+    strcpy ((savings),  timezone (zoneinfo.tz_minuteswest, 1));		\
+  } while (0)
+
+#endif /* ! (defined (hp9000) && ! defined (hpux) && defined (unix)) || defined (MACH) || defined (sun) */
+#endif /* ! defined (ultrix) || defined (hpux) || defined (_AIX) */
+
+/* If we can get all the information we need, let's define the macro!  */
+#if defined (EMACS_GET_TZ_OFFSET_AND_SAVINGS) && defined (EMACS_GET_TZ_NAMES)
+
+#define EMACS_CURRENT_TIME_ZONE(offset, savings_flag, standard, savings)\
+  do {									\
+    EMACS_GET_TZ_OFFSET_AND_SAVINGS (offset, savings_flag);		\
+    EMACS_GET_TZ_NAMES (standard, savings);				\
+  } while (0)
+
+#endif /* ! defined (EMACS_GET_TZ_OFFSET_AND_SAVINGS) && defined (EMACS_GET_TZ_NAMES) */
+
+#endif /* EMACS_CURRENT_TIME_ZONE */

@@ -162,11 +162,11 @@ typedef struct frame *FRAME_PTR;
 
 #define FRAMEP(f) (XTYPE(f) == Lisp_Frame)
 #define FRAME_LIVE_P(f) ((f)->display.nothing != 0)
-#define FRAME_IS_TERMCAP(f) ((f)->output_method == output_termcap)
-#define FRAME_IS_X(f) ((f)->output_method == output_x_window)
+#define FRAME_TERMCAP_P(f) ((f)->output_method == output_termcap)
+#define FRAME_X_P(f) ((f)->output_method == output_x_window)
 #define FRAME_MINIBUF_ONLY_P(f) \
   EQ (FRAME_ROOT_WINDOW (f), FRAME_MINIBUF_WINDOW (f))
-#define FRAME_HAS_MINIBUF(f) ((f)->has_minibuffer)
+#define FRAME_HAS_MINIBUF_P(f) ((f)->has_minibuffer)
 #define FRAME_CURRENT_GLYPHS(f) (f)->current_glyphs
 #define FRAME_DESIRED_GLYPHS(f) (f)->desired_glyphs
 #define FRAME_TEMP_GLYPHS(f) (f)->temp_glyphs
@@ -262,10 +262,10 @@ extern int message_buf_print;
 
 #define FRAMEP(f) (XTYPE(f) == Lisp_Frame)
 #define FRAME_LIVE_P(f) 1
-#define FRAME_IS_TERMCAP(f) 1
-#define FRAME_IS_X(f) 0
+#define FRAME_TERMCAP_P(f) 1
+#define FRAME_X_P(f) 0
 #define FRAME_MINIBUF_ONLY_P(f) 0
-#define FRAME_HAS_MINIBUF(f) 1
+#define FRAME_HAS_MINIBUF_P(f) 1
 #define FRAME_CURRENT_GLYPHS(f) the_only_frame.current_glyphs
 #define FRAME_DESIRED_GLYPHS(f) the_only_frame.desired_glyphs
 #define FRAME_TEMP_GLYPHS(f) the_only_frame.temp_glyphs
@@ -293,8 +293,8 @@ extern int message_buf_print;
 #define FRAME_SCROLL_BOTTOM_VPOS(f) the_only_frame.scroll_bottom_vpos
 #define FRAME_FOCUS_FRAME(f) 0
 
-#define CHECK_FRAME(x, i) { ; }
-#define CHECK_LIVE_FRAME(x, y) { ; }
+#define CHECK_FRAME(x, i) do; while (0)
+#define CHECK_LIVE_FRAME(x, y) do; while (0)
 
 /* FOR_EACH_FRAME (LIST_VAR, FRAME_VAR) followed by a statement is a
    `for' loop which iterates over the elements of Vframe_list.  The
