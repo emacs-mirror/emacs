@@ -264,11 +264,19 @@ A large number or nil slows down menu responsiveness.")
 (defun menu-bar-update-buffers ()
   (let ((buffers (buffer-list))
 	(frames (frame-list))
+	buffers-info
 	buffers-menu frames-menu)
-    (if (and (equal buffers menu-bar-update-buffers-last-buffers)
+    (setq buffers-info
+	  (mapcar (function (lambda (buffer)
+			      (list buffer (buffer-modified-p buffer)
+				    (save-excursion
+				      (set-buffer buffer)
+				      buffer-read-only))))
+		  buffers))
+    (if (and (equal buffers-info menu-bar-update-buffers-last-buffers)
 	     (equal frames menu-bar-update-buffers-last-frames))
 	nil
-      (setq menu-bar-update-buffers-last-buffers buffers)
+      (setq menu-bar-update-buffers-last-buffers buffers-info)
       (setq menu-bar-update-buffers-last-frames frames)
       ;; If requested, list only the N most recently selected buffers.
       (if (and (integerp buffers-menu-max-size)
