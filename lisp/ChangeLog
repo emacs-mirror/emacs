@@ -1,3 +1,8 @@
+2002-03-27  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (bootstrap-clean-SH): Use for loop, instead of
+	relying on shell globbing.
+
 2002-03-27  Colin Walters  <walters@debian.org>
 
 	* ibuffer.el (ibuffer-help-buffer-modes): New variable.
