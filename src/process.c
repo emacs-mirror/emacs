@@ -760,7 +760,7 @@ See `set-process-sentinel' for more info on sentinels.")
 DEFUN ("process-kill-without-query", Fprocess_kill_without_query,
   Sprocess_kill_without_query, 1, 2, 0,
   "Say no query needed if PROCESS is running when Emacs is exited.\n\
-Optional second argument if non-nill says to require a query.\n\
+Optional second argument if non-nil says to require a query.\n\
 Value is t if a query was formerly required.")
   (proc, value)
      register Lisp_Object proc, value;
