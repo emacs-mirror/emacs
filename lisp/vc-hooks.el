@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.128 2000/11/06 13:19:38 monnier Exp $
+;; $Id: vc-hooks.el,v 1.130 2000/11/20 14:01:18 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -33,8 +33,8 @@
 
 ;;; Code:
 
-;(eval-when-compile
-;  (require 'vc))
+(eval-when-compile
+  (require 'cl))
 
 ;; Customization Variables (the rest is in vc.el)
 
