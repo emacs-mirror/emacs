@@ -1,5 +1,9 @@
 2001-12-28  Richard M. Stallman  <rms@gnu.org>
 
+	* mouse.el (mouse-drag-mode-line-1): When dragging a mode line upward,
+	shrink the windows above as necessary to get space.
+	(mouse-drag-move-window-bottom, mouse-drag-window-above): New fns.
+
 	* net/ange-ftp.el (ange-ftp-allow-child-lookup): Always return nil.
 	This fixes a bug that treated all files as directories.
 	(ange-ftp-insert-directory): Explicitly follow symlinks.
