@@ -129,6 +129,8 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
 
 (defvar init-file-debug nil)
 
+(defvar init-file-had-error nil)
+
 (defun normal-top-level ()
   (if command-line-processed
       (message "Back to top level.")
@@ -271,11 +273,14 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
 	;; Do this without a condition-case if the user wants to debug.
 	(funcall inner)
       (condition-case error
-	  (funcall inner)
+	  (progn
+	    (funcall inner)
+	    (setq init-file-had-error nil))
 	(error (message "Error in init file: %s%s%s"
 			(get (car error) 'error-message)
 			(if (cdr error) ": ")
-			(mapconcat 'prin1-to-string (cdr error) ", "))))))
+			(mapconcat 'prin1-to-string (cdr error) ", "))
+	       (setq init-file-had-error t)))))
 
   (run-hooks 'after-init-hook)
 
@@ -304,7 +309,7 @@ this variable, if non-nil; 2. `~/.emacs'; 3. `default.el'.")
   (if noninteractive (kill-emacs t)))
 
 (defun command-line-1 (command-line-args-left)
-  (or noninteractive (input-pending-p)
+  (or noninteractive (input-pending-p) init-file-had-error
       (message (if (eq (key-binding "\C-h\C-p") 'describe-project)
 		   "For information about the GNU Project and its goals, type C-h C-p."
 		 (substitute-command-keys
