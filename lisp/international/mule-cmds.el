@@ -1633,7 +1633,7 @@ of buffer-file-coding-system set by this function."
     ;; Users who specify "en" explicitly typically want Latin-1, not ASCII.
     ("en" . "Latin-1") ; English
     ("eo" . "Latin-3") ; Esperanto
-    ("es" . "Latin-1") ; Spanish
+    ("es" . "Spanish")
     ("et" . "Latin-4") ; Estonian
     ("eu" . "Latin-1") ; Basque
     ; fa Persian
@@ -1688,7 +1688,7 @@ of buffer-file-coding-system set by this function."
     ; my Burmese
     ; na Nauru
     ("ne" . "Devanagari") ; Nepali
-    ("nl" . "Latin-1") ; Dutch
+    ("nl" . "Dutch")
     ("no" . "Latin-1") ; Norwegian
     ; oc Occitan
     ; om (Afan) Oromo
