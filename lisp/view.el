@@ -162,8 +162,8 @@ This is local in each buffer, once it is used.")
 	  (cons (list 'view-mode
 		      (propertize " View"
 				  'help-echo "mouse-2: exit View mode"
-				  'keymap (make-mode-line-mouse2-map
-					   #'view-mode)))
+				  'local-map (make-mode-line-mouse2-map
+					      #'view-mode)))
 		minor-mode-alist)))
 
 ;; Define keymap inside defvar to make it easier to load changes.
