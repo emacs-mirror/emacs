@@ -478,9 +478,9 @@ reset_buffer_local_variables (b)
   b->mode_name = QSFundamental;
   b->minor_modes = Qnil;
   b->downcase_table = Vascii_downcase_table;
-  b->upcase_table = Vascii_upcase_table;
-  b->case_canon_table = Vascii_canon_table;
-  b->case_eqv_table = Vascii_eqv_table;
+  b->upcase_table = XCHAR_TABLE (Vascii_downcase_table)->extras[0];
+  b->case_canon_table = XCHAR_TABLE (Vascii_downcase_table)->extras[1];
+  b->case_eqv_table = XCHAR_TABLE (Vascii_downcase_table)->extras[2];
   b->buffer_file_type = Qnil;
   b->invisibility_spec = Qt;
 
