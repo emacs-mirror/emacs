@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.49 2002/10/17 15:43:48 lektu Exp $
+;; $Id: vc-cvs.el,v 1.50 2002/12/26 14:05:48 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -207,19 +207,21 @@ See also variable `vc-cvs-sticky-date-format-string'."
 
 (defun vc-cvs-dir-state (dir)
   "Find the CVS state of all files in DIR."
-  (if (vc-cvs-stay-local-p dir)
-      (vc-cvs-dir-state-heuristic dir)
-    (let ((default-directory dir))
-      ;; Don't specify DIR in this command, the default-directory is
-      ;; enough.  Otherwise it might fail with remote repositories.
-      (with-temp-buffer
-	(vc-cvs-command t 0 nil "status" "-l")
-	(goto-char (point-min))
-	(while (re-search-forward "^=+\n\\([^=\n].*\n\\|\n\\)+" nil t)
-	  (narrow-to-region (match-beginning 0) (match-end 0))
-	  (vc-cvs-parse-status)
-	  (goto-char (point-max))
-	  (widen))))))
+  ;; if DIR is not under CVS control, don't do anything
+  (if (file-readable-p (expand-file-name "CVS/Entries" dir))
+      (if (vc-cvs-stay-local-p dir)
+          (vc-cvs-dir-state-heuristic dir)
+        (let ((default-directory dir))
+          ;; Don't specify DIR in this command, the default-directory is
+          ;; enough.  Otherwise it might fail with remote repositories.
+          (with-temp-buffer
+            (vc-do-command t 0 "cvs" nil "status" "-l")
+            (goto-char (point-min))
+            (while (re-search-forward "^=+\n\\([^=\n].*\n\\|\n\\)+" nil t)
+              (narrow-to-region (match-beginning 0) (match-end 0))
+              (vc-cvs-parse-status)
+              (goto-char (point-max))
+              (widen)))))))
 
 (defun vc-cvs-workfile-version (file)
   "CVS-specific version of `vc-workfile-version'."
