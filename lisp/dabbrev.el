@@ -297,8 +297,8 @@ this list.")
 ;; The buffer we last did a completion in.
 (defvar dabbrev--last-completion-buffer nil)
 
-;; Non-nil means we should upcase
-;; when copying successive words.
+;; If non-nil, a function to use when copying successive words.
+;; It should be `upcase' or `downcase'.
 (defvar dabbrev--last-case-pattern nil)
 
 ;; Same as dabbrev-check-other-buffers, but is set for every expand.
@@ -433,7 +433,7 @@ if there is a suitable one already."
 	  (message "Repeat `%s' to see all completions"
 		   (key-description (this-command-keys)))
 	(message "The only possible completion"))
-      (dabbrev--substitute-expansion nil abbrev init))
+      (dabbrev--substitute-expansion nil abbrev init nil))
      (t
       ;; * String is a common substring completion already.  Make list.
       (message "Making completion list...")
@@ -510,8 +510,6 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 		 (concat "\\(\\(" dabbrev--abbrev-char-regexp "\\)+\\)"))
 		(setq expansion (buffer-substring-no-properties
 				 dabbrev--last-expansion-location (point)))
-		(if dabbrev--last-case-pattern
-		    (setq expansion (upcase expansion)))
 
 		;; Record the end of this expansion, in case we repeat this.
 		(setq dabbrev--last-expansion-location (point)))
@@ -567,17 +565,8 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 		(copy-marker dabbrev--last-expansion-location)))
       ;; Success: stick it in and return.
       (setq buffer-undo-list (cons orig-point buffer-undo-list))
-      (dabbrev--substitute-expansion old abbrev expansion)
-
-      ;; If we are not copying successive words now,
-      ;; set dabbrev--last-case-pattern.
-      (and record-case-pattern
-	   (setq dabbrev--last-case-pattern
-		 (and (if (eq dabbrev-case-fold-search 'case-fold-search)
-			  case-fold-search
-			dabbrev-case-fold-search)
-		      (not dabbrev-upcase-means-case-search)
-		      (equal abbrev (upcase abbrev)))))
+      (dabbrev--substitute-expansion old abbrev expansion
+				     record-case-pattern)
 
       ;; Save state for re-expand.
       (setq dabbrev--last-expansion expansion)
@@ -769,19 +758,18 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 		    (funcall dabbrev-select-buffers-function))
 	      (if dabbrev-check-all-buffers
 		  (setq non-friend-buffer-list
-			(nreverse
-			 (dabbrev-filter-elements
-			  buffer (buffer-list)
-			  (let ((bn (buffer-name buffer)))
-			    (and (not (member bn dabbrev-ignored-buffer-names))
-				 (not (memq buffer dabbrev--friend-buffer-list))
-				 (not
-				  (let ((tail dabbrev-ignored-regexps)
-					(match nil))
-				    (while (and tail (not match))
-				      (setq match (string-match (car tail) bn)
-					    tail (cdr tail)))
-				    match))))))
+			(dabbrev-filter-elements
+			 buffer (buffer-list)
+			 (let ((bn (buffer-name buffer)))
+			   (and (not (member bn dabbrev-ignored-buffer-names))
+				(not (memq buffer dabbrev--friend-buffer-list))
+				(not
+				 (let ((tail dabbrev-ignored-regexps)
+				       (match nil))
+				   (while (and tail (not match))
+				     (setq match (string-match (car tail) bn)
+					   tail (cdr tail)))
+				   match)))))
 			dabbrev--friend-buffer-list
 			(append dabbrev--friend-buffer-list
 				non-friend-buffer-list)))))
@@ -814,11 +802,15 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
     (replace-match string fixedcase literal)))
 
 ;;;----------------------------------------------------------------
-;;; Substitute the current string in buffer with the expansion
-;;; OLD is nil or the last expansion substring.
-;;; ABBREV is the abbreviation we are working with.
-;;; EXPANSION is the expansion substring.
-(defun dabbrev--substitute-expansion (old abbrev expansion)
+(defun dabbrev--substitute-expansion (old abbrev expansion record-case-pattern)
+  "Replace OLD with EXPANSION in the buffer.
+OLD is text currently in the buffer, perhaps the abbreviation
+or perhaps another expansion that was tried previously.
+ABBREV is the abbreviation we are expanding.
+It is \" \" if we are copying subsequent words.
+EXPANSION is the expansion substring to be used this time.
+RECORD-CASE-PATTERN, if non-nil, means set `dabbrev--last-case-pattern'
+to record whether we upcased the expansion, downcased it, or did neither."
   ;;(undo-boundary)
   (let ((use-case-replace (and (if (eq dabbrev-case-fold-search 'case-fold-search)
 				   case-fold-search
@@ -828,9 +820,14 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 			       (if (eq dabbrev-case-replace 'case-replace)
 				   case-replace
 				 dabbrev-case-replace))))
-    (and nil use-case-replace
-	 (setq old (concat abbrev (or old "")))
-	 (setq expansion (concat abbrev expansion)))
+
+    ;; If we upcased or downcased the original expansion,
+    ;; do likewise for the subsequent words when we copy them.
+    (and (equal abbrev " ")
+	 dabbrev--last-case-pattern
+	 (setq expansion
+	       (funcall dabbrev--last-case-pattern expansion)))
+
     ;; If the expansion has mixed case
     ;; and it is not simply a capitalized word,
     ;; or if the abbrev has mixed case,
@@ -850,6 +847,16 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	(setq use-case-replace nil))
     (if use-case-replace
 	(setq expansion (downcase expansion)))
+
+    ;; In case we insert subsequent words,
+    ;; record if we upcased or downcased the first word,
+    ;; in order to do likewise for subsequent words.
+    (and record-case-pattern
+	 (setq dabbrev--last-case-pattern 
+	       (and use-case-replace
+		    (cond ((equal abbrev (upcase abbrev)) 'upcase)
+			  ((equal abbrev (downcase abbrev)) 'downcase)))))
+
     (if old
 	(save-excursion
 	  (search-backward old))
