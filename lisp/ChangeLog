@@ -1,3 +1,7 @@
+2005-02-20  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/scheme.el (scheme-font-lock-keywords-2): Handle named-let.
+
 2005-02-20  Jonathan Yavner  <jyavner@member.fsf.org>
 
 	* ses.el (undo-more): restore defadvice, but only the part that
