@@ -1813,15 +1813,17 @@ XlwMenuSetValues (current, request, new)
 
       redisplay = True;
       
-      for (i = 0; i < oldmw->menu.windows_length; i++)
-	{
-	  XSetWindowBackground (XtDisplay (oldmw),
-				oldmw->menu.windows [i].window,
-				newmw->core.background_pixel);
-	  /* clear windows and generate expose events */
-	  XClearArea (XtDisplay (oldmw), oldmw->menu.windows[i].window,
-		      0, 0, 0, 0, True);
-	}
+      if (XtIsRealized (oldmw))
+	/* If the menu is currently displayed, change the display.  */
+	for (i = 0; i < oldmw->menu.windows_length; i++)
+	  {
+	    XSetWindowBackground (XtDisplay (oldmw),
+				  oldmw->menu.windows [i].window,
+				  newmw->core.background_pixel);
+	    /* clear windows and generate expose events */
+	    XClearArea (XtDisplay (oldmw), oldmw->menu.windows[i].window,
+			0, 0, 0, 0, True);
+	  }
     }
 
   return redisplay;
