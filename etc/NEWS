@@ -20,6 +20,15 @@ so we will look at it
 `--program-suffix' and `--program-transform-name' that affect the names of
 installed programs.
 
+** By default, Emacs now uses a setgid helper program to update game
+scores.  Game scores are normally stored in ${prefix}/var/games/emacs.
+This may be controlled by the configure option `--with-game-dir'.  The
+specific user that Emacs uses to own the game scores is controlled by
+`--with-game-user'.  If access to a game user is not available
+(e.g. Emacs is not being built as root, or the specified game user
+doesn't exist), then scores will be stored separately in each user's
+home directory.
+
 ---
 ** Leim is now part of the Emacs distribution.
 You no longer need to download a separate tarball in order to build
@@ -104,6 +113,13 @@ enabled.
 of text properties, overlays, and widgets at point, and lets you get
 more information about them, by clicking on mouse-sensitive areas or
 moving there and pressing RET.
+
++++
+** The new command `multi-occur' is just like `occur', except it can
+search multiple buffers.  There is also a new command
+`multi-occur-by-filename-regexp' which allows you to specify the
+buffers to search by their filename.  Internally, Occur mode has been
+rewritten, and now uses font-lock, among other changes.
 
 ** Emacs normally highlights mouse sensitive text whenever the mouse
 is over the text.  By setting the new variable `mouse-highlight', you
@@ -654,6 +670,9 @@ SQL buffer.
    (function (lambda ()
 	       (master-set-slave sql-buffer))))
 
+*** The new package ibuffer provides a powerful, completely
+customizable replacement for buff-menu.el.
+
 ** Support for `magic cooky' standout modes has been removed.
 Emacs will still work on terminals that require magic cookies in order
 to use standout mode, however they will not be able to display
@@ -1126,9 +1145,6 @@ current syntactic context (as returned by parse-partial-sexp).
 
 *** The TCL package tcl-mode.el was replaced by tcl.el.
 This was actually done in Emacs-21.1, and was not documented.
-
-*** The new package Ibuffer provides a powerful, completely
-customizable replacement for buff-menu.el.
 
 *** The new package button.el implements simple and fast `clickable buttons'
 in emacs buffers.  `buttons' are much lighter-weight than the `widgets'
