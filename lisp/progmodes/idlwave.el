@@ -5,7 +5,7 @@
 ;;         Chris Chase <chase@att.com>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
 ;; Version: 4.14
-;; Date: $Date: 2002/06/14 19:03:30 $
+;; Date: $Date: 2002/07/18 18:58:07 $
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.
@@ -198,7 +198,7 @@ The following lines receive the same indentation as the first."
   "*Maximum additional indentation for special continuation indent.
 Several special indentations are tried to help line up continuation
 lines in routine calls or definitions, other statements with
-parentheses, or assigment statements.  This variable specifies a
+parentheses, or assignment statements.  This variable specifies a
 maximum amount by which this special indentation can exceed the
 standard continuation indentation, otherwise defaulting to a fixed
 offset.  Set to 0 to effectively disable all special continuation
