@@ -121,6 +121,9 @@ Lisp_Object Vafter_insert_file_functions;
 /* Functions to be called to create text property annotations for file.  */
 Lisp_Object Vwrite_region_annotate_functions;
 
+/* File name in which we write a list of all our auto save files.  */
+Lisp_Object Vauto_save_list_file_name;
+
 /* Nonzero means, when reading a filename in the minibuffer,
  start out by inserting the default directory into the minibuffer. */
 int insert_default_directory;
@@ -2645,6 +2648,17 @@ and (2) it puts less data in the undo list.")
      with the file contents.  Avoid replacing text at the
      beginning or end of the buffer that matches the file contents;
      that preserves markers pointing to the unchanged parts.  */
+#ifdef MSDOS
+  /* On MSDOS, replace mode doesn't really work, except for binary files,
+     and it's not worth supporting just for them.  */
+  if (!NILP (replace))
+    {
+      replace = Qnil;
+      XFASTINT (beg) = 0;
+      XFASTINT (end) = st.st_size;
+      del_range_1 (BEGV, ZV, 0);
+    }
+#else /* MSDOS */
   if (!NILP (replace))
     {
       char buffer[1 << 14];
@@ -2737,6 +2751,7 @@ and (2) it puts less data in the undo list.")
       /* Insert from the file at the proper position.  */
       SET_PT (same_at_start);
     }
+#endif /* MSDOS */
 
   total = XINT (end) - XINT (beg);
 
@@ -3457,6 +3472,15 @@ auto_save_1 ()
 		   Qnil, Qlambda);
 }
 
+static Lisp_Object
+do_auto_save_unwind (stream)  /* used as unwind-protect function */
+     Lisp_Object stream;
+{
+  close (*(int *)XPNTR (stream));
+  xfree (XPNTR (stream));
+  return Qnil;
+}
+
 DEFUN ("do-auto-save", Fdo_auto_save, Sdo_auto_save, 0, 2, "",
   "Auto-save all buffers that need it.\n\
 This is all buffers that have auto-saving enabled\n\
@@ -3478,6 +3502,10 @@ Non-nil second argument means save only current buffer.")
   extern int minibuf_level;
   int do_handled_files;
   Lisp_Object oquit;
+  int listdesc;
+  Lisp_Object lispstream;
+  int count = specpdl_ptr - specpdl;
+  int *ptr;
 
   /* Ordinarily don't quit within this function,
      but don't make it impossible to quit (in case we get hung in I/O).  */
@@ -3494,6 +3522,28 @@ Non-nil second argument means save only current buffer.")
   if (!NILP (Vrun_hooks))
     call1 (Vrun_hooks, intern ("auto-save-hook"));
 
+  if (STRINGP (Vauto_save_list_file_name))
+    {
+#ifdef MSDOS
+      listdesc = open (XSTRING (Vauto_save_list_file_name)->data, 
+		       O_WRONLY | O_TRUNC | O_CREAT | O_TEXT,
+		       S_IREAD | S_IWRITE);
+#else /* not MSDOS */
+      listdesc = creat (XSTRING (Vauto_save_list_file_name)->data, 0666);
+#endif /* not MSDOS */
+    }
+  else
+    listdesc = -1;
+
+  /* We may not be able to store STREAM itself as a Lisp_Object pointer
+     since that is guaranteed to work only for data that has been malloc'd.
+     So malloc a full-size pointer, and record the address of that pointer.  */
+  ptr = (int *) xmalloc (sizeof (int));
+  *ptr = listdesc;
+  XSET (lispstream, Lisp_Internal_Stream, (int) ptr);
+  
+  record_unwind_protect (do_auto_save_unwind, lispstream);
+
   /* First, save all files which don't have handlers.  If Emacs is
      crashing, the handlers may tweak what is causing Emacs to crash
      in the first place, and it would be a shame if Emacs failed to
@@ -3505,11 +3555,21 @@ Non-nil second argument means save only current buffer.")
       {
 	buf = XCONS (XCONS (tail)->car)->cdr;
 	b = XBUFFER (buf);
+      
+	/* Record all the buffers that have auto save mode
+	   in the special file that lists them.  */
+	if (XTYPE (b->auto_save_file_name) == Lisp_String
+	    && listdesc >= 0 && do_handled_files == 0)
+	  {
+	    write (listdesc, XSTRING (b->auto_save_file_name)->data,
+		   XSTRING (b->auto_save_file_name)->size);
+	    write (listdesc, "\n", 1);
+	  }
 
 	if (!NILP (current_only)
 	    && b != current_buffer)
 	  continue;
-      
+
 	/* Check for auto save enabled
 	   and file changed since last auto save
 	   and file changed since last real save.  */
@@ -3581,6 +3641,7 @@ Non-nil second argument means save only current buffer.")
   Vquit_flag = oquit;
 
   auto_saving = 0;
+  unbind_to (count, Qnil);
   return Qnil;
 }
 
@@ -4006,6 +4067,10 @@ This applies only to the operation `inhibit-file-name-operation'.");
   DEFVAR_LISP ("inhibit-file-name-operation", &Vinhibit_file_name_operation,
     "The operation for which `inhibit-file-name-handlers' is applicable.");
   Vinhibit_file_name_operation = Qnil;
+
+  DEFVAR_LISP ("auto-save-list-file-name", &Vauto_save_list_file_name,
+    "File name in which we write a list of all auto save file names.");
+  Vauto_save_list_file_name = Qnil;
 
   defsubr (&Sfind_file_name_handler);
   defsubr (&Sfile_name_directory);
