@@ -906,6 +906,25 @@ See also `comint-read-input-ring'."
 	     (kill-buffer nil))))))
 
 
+(defvar comint-dynamic-list-input-ring-window-conf)
+
+(defun comint-dynamic-list-input-ring-select ()
+  "Choose the input history entry that point is in or next to."
+  (interactive)
+  (let (beg end completion (buffer completion-reference-buffer)
+	(base-size completion-base-size))
+    (if (and (not (eobp)) (get-text-property (point) 'mouse-face))
+	(setq end (point) beg (1+ (point))))
+    (if (and (not (bobp)) (get-text-property (1- (point)) 'mouse-face))
+	(setq end (1- (point)) beg (point)))
+    (if (null beg)
+	(error "No history entry here"))
+    (setq beg (previous-single-property-change beg 'mouse-face))
+    (setq end (or (next-single-property-change end 'mouse-face) (point-max)))
+    (setq completion (buffer-substring beg end))
+    (set-window-configuration comint-dynamic-list-input-ring-window-conf)
+    (choose-completion-string completion buffer base-size)))
+
 (defun comint-dynamic-list-input-ring ()
   "List in help buffer the buffer's input history."
   (interactive)
@@ -925,11 +944,16 @@ See also `comint-read-input-ring'."
       (with-output-to-temp-buffer history-buffer
 	(display-completion-list history)
 	(set-buffer history-buffer)
+	(let ((keymap (make-sparse-keymap)))
+	  (set-keymap-parent keymap (current-local-map))
+	  (define-key keymap "\C-m" 'comint-dynamic-list-input-ring-select)
+	  (use-local-map keymap))
 	(forward-line 3)
 	(while (search-backward "completion" nil 'move)
 	  (replace-match "history reference")))
       (sit-for 0)
       (message "Hit space to flush")
+      (setq comint-dynamic-list-input-ring-window-conf conf)
       (let ((ch (read-event)))
 	(if (eq ch ?\ )
 	    (set-window-configuration conf)
