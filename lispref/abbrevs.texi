@@ -20,15 +20,17 @@ in the same major mode share one abbrev table.  There is also a global
 abbrev table.  Normally both are used.
 
   An abbrev table is represented as an obarray containing a symbol for
-each abbreviation.  The symbol's name is the abbreviation; its value is
-the expansion; its function definition is the hook function to do the
-expansion (@pxref{Defining Abbrevs}); its property list cell contains
-the use count, the number of times the abbreviation has been expanded.
-Because these symbols are not interned in the usual obarray, they will
-never appear as the result of reading a Lisp expression; in fact,
-normally they are never used except by the code that handles abbrevs.
-Therefore, it is safe to use them in an extremely nonstandard way.
-@xref{Creating Symbols}.
+each abbreviation.  The symbol's name is the abbreviation; its value
+is the expansion; its function definition is the hook function to do
+the expansion (@pxref{Defining Abbrevs}); its property list cell
+typically contains the use count, the number of times the abbreviation
+has been expanded.  (Alternatively, the use count is on the
+@code{count} property and the system-abbrev flag is on the
+@code{system-type} property.)  Because these symbols are not interned
+in the usual obarray, they will never appear as the result of reading
+a Lisp expression; in fact, normally they are never used except by the
+code that handles abbrevs.  Therefore, it is safe to use them in an
+extremely nonstandard way.  @xref{Creating Symbols}.
 
   For the user-level commands for abbrevs, see @ref{Abbrevs,, Abbrev
 Mode, emacs, The GNU Emacs Manual}.
@@ -79,11 +81,12 @@ leaving it empty.  It always returns @code{nil}.
 @end defun
 
 @defun define-abbrev-table tabname definitions
-This function defines @var{tabname} (a symbol) as an abbrev table name,
-i.e., as a variable whose value is an abbrev table.  It defines abbrevs
-in the table according to @var{definitions}, a list of elements of the
-form @code{(@var{abbrevname} @var{expansion} @var{hook}
-@var{usecount})}.  The return value is always @code{nil}.
+This function defines @var{tabname} (a symbol) as an abbrev table
+name, i.e., as a variable whose value is an abbrev table.  It defines
+abbrevs in the table according to @var{definitions}, a list of
+elements of the form @code{(@var{abbrevname} @var{expansion}
+@var{hook} @var{usecount} @r{[}@var{system-flag}@r{]})}.  The return
+value is always @code{nil}.
 @end defun
 
 @defvar abbrev-table-name-list
@@ -124,13 +127,15 @@ abbrev, or @code{nil} if the user declines to confirm redefining an
 existing abbrev.
 @end defun
 
-@defun define-abbrev table name expansion &optional hook count
+@defun define-abbrev table name expansion &optional hook count system-flag
 This function defines an abbrev named @var{name}, in @var{table}, to
-expand to @var{expansion} and call @var{hook}.  The value of
-@var{count}, if specified, initializes the abbrev's usage-count.  If
-@var{count} is not specified or @code{nil}, the use count is initialized
-to zero.  The return value is a symbol that represents the abbrev inside
-Emacs; its name is @var{name}.
+expand to @var{expansion} and call @var{hook}.  The return value is a
+symbol that represents the abbrev inside Emacs; its name is
+@var{name}.
+
+The value of @var{count}, if specified, initializes the abbrev's
+usage-count.  If @var{count} is not specified or @code{nil}, the use
+count is initialized to zero.
 
 The argument @var{name} should be a string.  The argument
 @var{expansion} is normally the desired expansion (a string), or
@@ -150,6 +155,13 @@ the self-inserting input character that triggered the expansion.  If
 of the character.  By contrast, if @var{hook} returns @code{nil},
 @code{expand-abbrev} also returns @code{nil}, as if expansion had not
 really occurred.
+
+Normally the function @code{define-abbrev} sets the variable
+@code{abbrevs-changed} to @code{t}.  But if @var{system-flag} is
+non-@code{nil}, that says the abbrev is a ``system'' abbrev.  In that
+case, @code{define-abbrev} does not alter @code{abbrevs-changed}.
+Instead it marks the abbrev as a ``system'' abbrev with the
+@code{system-type} property.
 @end defun
 
 @defopt only-global-abbrevs
@@ -195,16 +207,17 @@ the file to save the abbrevs in.
 @end defopt
 
 @defvar abbrevs-changed
-This variable is set non-@code{nil} by defining or altering any 
-abbrevs.  This serves as a flag for various Emacs commands to offer to
-save your abbrevs.
+This variable is set non-@code{nil} by defining or altering any
+abbrevs (except ``system'' abbrevs).  This serves as a flag for
+various Emacs commands to offer to save your abbrevs.
 @end defvar
 
 @deffn Command write-abbrev-file &optional filename
-Save all abbrev definitions, in all abbrev tables, in the file
-@var{filename}, in the form of a Lisp program that when loaded will
-define the same abbrevs.  If @var{filename} is @code{nil} or omitted,
-@code{abbrev-file-name} is used.  This function returns @code{nil}.
+Save all abbrev definitions (except ``system'' abbrevs), in all abbrev
+tables, in the file @var{filename}, in the form of a Lisp program that
+when loaded will define the same abbrevs.  If @var{filename} is
+@code{nil} or omitted, @code{abbrev-file-name} is used.  This function
+returns @code{nil}.
 @end deffn
 
 @node Abbrev Expansion, Standard Abbrev Tables, Abbrev Files, Abbrevs
