@@ -111,6 +111,10 @@ static int sequence_number;
 /* Nonzero after init_window_once has finished.  */
 static int window_initialized;
 
+/* Hook to run when window config changes.  */
+Lisp_Object Qwindow_configuration_change_hook;
+Lisp_Object Vwindow_configuration_change_hook;
+
 /* Nonzero means scroll commands try to put point
    at the same screen height as previously.  */
 static int scroll_preserve_screen_position;
@@ -786,6 +790,18 @@ DEFUN ("delete-window", Fdelete_window, Sdelete_window, 0, 1, "",
   (window)
      register Lisp_Object window;
 {
+  delete_window (window);
+
+  if (! NILP (Vwindow_configuration_change_hook)
+      && ! NILP (Vrun_hooks))
+    call1 (Vrun_hooks, Qwindow_configuration_change_hook);
+
+  return Qnil;
+}
+
+delete_window (window)
+     register Lisp_Object window;
+{
   register Lisp_Object tem, parent, sib;
   register struct window *p;
   register struct window *par;
@@ -910,8 +926,6 @@ DEFUN ("delete-window", Fdelete_window, Sdelete_window, 0, 1, "",
 
   /* Mark this window as deleted.  */
   p->buffer = p->hchild = p->vchild = Qnil;
-
-  return Qnil;
 }
 
 
@@ -1719,7 +1733,7 @@ set_window_height (window, height, nodelete)
       && ! NILP (w->parent)
       && height < window_min_height)
     {
-      Fdelete_window (window);
+      delete_window (window);
       return;
     }
 
@@ -1783,7 +1797,7 @@ set_window_width (window, width, nodelete)
 
   if (!nodelete && width < window_min_width && !NILP (w->parent))
     {
-      Fdelete_window (window);
+      delete_window (window);
       return;
     }
 
@@ -1909,6 +1923,10 @@ BUFFER can be a buffer or buffer name.")
   if (! NILP (Vwindow_scroll_functions))
     run_hook_with_args_2 (Qwindow_scroll_functions, window,
 			  Fmarker_position (w->start));
+
+  if (! NILP (Vwindow_configuration_change_hook)
+      && ! NILP (Vrun_hooks))
+    call1 (Vrun_hooks, Qwindow_configuration_change_hook);
 
   unbind_to (count, Qnil);
 
@@ -2420,8 +2438,6 @@ and put SIZE columns in the first of the pair.")
   p->parent = o->parent;
   p->buffer = Qt;
 
-  Fset_window_buffer (new, o->buffer);
-
   /* Apportion the available frame space among the two new windows */
 
   if (!NILP (horflag))
@@ -2441,6 +2457,8 @@ and put SIZE columns in the first of the pair.")
       XSETFASTINT (p->top, XFASTINT (o->top) + size_int);
     }
 
+  Fset_window_buffer (new, o->buffer);
+
   return new;
 }
 
@@ -2452,6 +2470,10 @@ From program, optional second arg non-nil means grow sideways ARG columns.")
 {
   CHECK_NUMBER (arg, 0);
   change_window_height (XINT (arg), !NILP (side));
+
+  if (! NILP (Vwindow_configuration_change_hook))
+    call1 (Vrun_hooks, Qwindow_configuration_change_hook);
+
   return Qnil;
 }
 
@@ -2463,6 +2485,10 @@ From program, optional second arg non-nil means shrink sideways arg columns.")
 {
   CHECK_NUMBER (arg, 0);
   change_window_height (-XINT (arg), !NILP (side));
+
+  if (! NILP (Vwindow_configuration_change_hook))
+    call1 (Vrun_hooks, Qwindow_configuration_change_hook);
+
   return Qnil;
 }
 
@@ -2552,7 +2578,7 @@ change_window_height (delta, widthflag)
 
   if (*sizep + delta < MINSIZE (window))
     {
-      Fdelete_window (window);
+      delete_window (window);
       return;
     }
 
@@ -3377,6 +3403,11 @@ by `current-window-configuration' (which see).")
     Fset_buffer (new_current_buffer);
 
   Vminibuf_scroll_window = data->minibuf_scroll_window;
+
+  if (! NILP (Vwindow_configuration_change_hook)
+      && ! NILP (Vrun_hooks))
+    call1 (Vrun_hooks, Qwindow_configuration_change_hook);
+
   return (Qnil);
 }
 
@@ -3583,6 +3614,10 @@ init_window_once ()
 
 syms_of_window ()
 {
+  staticpro (&Qwindow_configuration_change_hook);
+  Qwindow_configuration_change_hook
+    = intern ("window-configuration-change-hook");
+
   Qwindowp = intern ("windowp");
   staticpro (&Qwindowp);
 
@@ -3721,6 +3756,12 @@ If there is only one window, it is split regardless of this value.");
 	       &scroll_preserve_screen_position,
     "*Nonzero means scroll commands move point to keep its screen line unchanged.");
   scroll_preserve_screen_position = 0;
+
+  DEFVAR_LISP ("window-configuration-change-hook",
+	       &Vwindow_configuration_change_hook,
+    "Functions to call when window configuration changes.\n\
+The selected frae is the one whose configuration has changed.");
+  Vwindow_configuration_change_hook = Qnil;
 
   defsubr (&Sselected_window);
   defsubr (&Sminibuffer_window);
