@@ -2278,6 +2278,7 @@ EXFUN (Felt, 2);
 EXFUN (Fmember, 2);
 EXFUN (Frassq, 2);
 EXFUN (Fdelq, 2);
+EXFUN (Fdelete, 2);
 EXFUN (Fsort, 2);
 EXFUN (Freverse, 1);
 EXFUN (Fnreverse, 1);
@@ -2369,6 +2370,7 @@ extern void adjust_after_replace P_ ((int, int, Lisp_Object, int, int));
 extern void adjust_after_replace_noundo P_ ((int, int, int, int, int, int));
 extern void adjust_after_insert P_ ((int, int, int, int, int));
 extern void replace_range P_ ((int, int, Lisp_Object, int, int, int));
+extern void replace_range_2 P_ ((int, int, int, int, char *, int, int, int));
 extern void syms_of_insdel P_ ((void));
 
 /* Defined in dispnew.c */
