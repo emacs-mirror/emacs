@@ -66,14 +66,14 @@
   "Set the screen 132 characters wide."
   (interactive)
   (send-string-to-terminal "\e[?3h")
-  (set-screen-width 132)
+  (set-frame-width (selected-frame) 132)
   (setq vt-wide-p t))
 
 (defun vt-narrow nil
   "Set the screen 80 characters wide."
   (interactive)
   (send-string-to-terminal "\e[?3l")
-  (set-screen-width 80)
+  (set-frame-width (selected-frame) 80)
   (setq vt-wide-p nil))
 
 (defun vt-toggle-screen nil
