@@ -1774,6 +1774,8 @@ With prefix argument, set the default directory."
 				   (concat "Ispell misalignment: word "
 					   "`%s' point %d; please retry")
 				   (car poss) word-start))
+                              (if (not (pos-visible-in-window-p))
+                                  (sit-for 0))
 			      (if ispell-keep-choices-win
 				  (setq replace
 					(ispell-command-loop
