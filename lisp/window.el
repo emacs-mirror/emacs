@@ -127,11 +127,14 @@ Anything else means restrict to the selected frame."
   (eq window (active-minibuffer-window)))
 
 (defmacro save-selected-window (&rest body)
-  "Execute BODY, then select the window that was selected before BODY."
+  "Execute BODY, then select the window that was selected before BODY.
+However, if that window has become dead, don't get an error,
+just refrain from switching to it."
   `(let ((save-selected-window-window (selected-window)))
      (unwind-protect
 	 (progn ,@body)
-       (select-window save-selected-window-window))))
+       (if (window-live-p save-selected-window-window)
+	   (select-window save-selected-window-window)))))
 
 (defun count-windows (&optional minibuf)
    "Return the number of visible windows.

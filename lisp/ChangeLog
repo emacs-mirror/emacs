@@ -1,5 +1,9 @@
 2002-02-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* window.el (save-selected-window): If the saved window has
+	become dead while macro body was running, refrain from switching
+	to it.
+
 	* progmodes/pascal.el (pascal-imenu-generic-expression): Add
 	menu-title and fix parentheses.
 
