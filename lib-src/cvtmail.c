@@ -39,8 +39,6 @@ Boston, MA 02111-1307, USA.  */
 
 #include <stdio.h>
 
-char *malloc ();
-char *realloc ();
 char *getenv ();
 
 char *xmalloc ();
