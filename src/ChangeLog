@@ -1,5 +1,8 @@
 2001-01-22  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (Ftool_bar_lines_needed): New function.
+	(syms_of_xdisp): Defsubr it.
+
 	* editfns.c (Fformat): Don't extend text properties from arguments
 	to padding chars in the result.
 
