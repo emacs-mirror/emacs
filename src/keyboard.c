@@ -554,6 +554,8 @@ Lisp_Object Qmouse_wheel;
 Lisp_Object Qlanguage_change;
 #endif
 Lisp_Object Qdrag_n_drop;
+Lisp_Object Qsave_session;
+
 /* Lisp_Object Qmouse_movement; - also an event header */
 
 /* Properties of event headers.  */
@@ -3731,6 +3733,11 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
+      else if (event->kind == save_session_event)
+        {
+          obj = Fcons (Qsave_session, Qnil);
+	  kbd_fetch_ptr = event + 1;
+        }
       /* Just discard these, by returning nil.
 	 With MULTI_KBOARD, these events are used as placeholders
 	 when we need to randomly delete events from the queue.
@@ -5394,6 +5401,9 @@ make_lispy_event (event)
     case USER_SIGNAL_EVENT:
       /* A user signal.  */
       return *lispy_user_signals[event->code];
+      
+    case save_session_event:
+      return Qsave_session;
       
       /* The 'kind' field of the event is something we don't recognize.  */
     default:
@@ -10357,6 +10367,9 @@ syms_of_keyboard ()
   Qdrag_n_drop = intern ("drag-n-drop");
   staticpro (&Qdrag_n_drop);
 
+  Qsave_session = intern ("save-session");
+  staticpro(&Qsave_session);
+  
   Qusr1_signal = intern ("usr1-signal");
   staticpro (&Qusr1_signal);
   Qusr2_signal = intern ("usr2-signal");
@@ -10941,4 +10954,6 @@ keys_of_keyboard ()
 			    "ignore-event");
   initial_define_lispy_key (Vspecial_event_map, "make-frame-visible",
 			    "ignore-event");
+  initial_define_lispy_key (Vspecial_event_map, "save-session",
+			    "handle-save-session");
 }
