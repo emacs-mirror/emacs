@@ -1506,11 +1506,7 @@ duplicates what `expand-file-name' does.")
 }
 
 /* A slightly faster and more convenient way to get
-   (directory-file-name (expand-file-name FOO)).  The return value may
-   have had its last character zapped with a '\0' character, meaning
-   that it is acceptable to system calls, but not to other lisp
-   functions.  Callers should make sure that the return value doesn't
-   escape.  */
+   (directory-file-name (expand-file-name FOO)).  */
 
 Lisp_Object
 expand_and_dir_to_file (filename, defdir)
@@ -1530,11 +1526,8 @@ expand_and_dir_to_file (filename, defdir)
      stat behaves differently depending!  */
   if (XSTRING (abspath)->size > 1
       && XSTRING (abspath)->data[XSTRING (abspath)->size - 1] == '/')
-    {
-      if (EQ (abspath, filename))
-	abspath = Fcopy_sequence (abspath);
-      XSTRING (abspath)->data[XSTRING (abspath)->size - 1] = 0;
-    }
+    abspath = Fsubstring (abspath, make_number (0),
+			  make_number (XSTRING (abspath)->size - 1));
 #endif
   return abspath;
 }
