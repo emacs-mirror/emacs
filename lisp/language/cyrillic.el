@@ -463,6 +463,8 @@ Support for Russian using koi8-r and the russian-computer input method.")
 	 ?\$,1(V(B ?\$,1(W(B ?\$,1(X(B ?\$,1(Y(B ?\$,1(Z(B ?\$,1([(B ?\$,1(\(B ?\$,1(](B ?\$,1(^(B ?\$,1(_(B ?\$,1(`(B ?\$,1(a(B ?\$,1(b(B ?\$,1(c(B ?\$,1(d(B ?\$,1(e(B ?\$,1(f(B
 	 ?\$,1(g(B ?\$,1(h(B ?\$,1(i(B ?\$,1(j(B ?\$,1(k(B ?\$,1(l(B ?\$,1(m(B ?\$,1(n(B ?\$,1(o(B] nil ?b)))
 
+(define-coding-system-alias 'cp1251 'windows-1251)
+
 (set-language-info-alist
  "Bulgarian" `((coding-system windows-1251)
 		  (coding-priority windows-1251)
