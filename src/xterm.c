@@ -5889,6 +5889,8 @@ x_term_init (display_name, xrm_option, resource_name)
 
 #ifdef HAVE_X_I18N
   setlocale (LC_ALL, "");
+  /* In case we just overrode what init_lread did, redo it.  */
+  setlocale (LC_NUMERIC, "C");
 #endif
 
 #ifdef USE_X_TOOLKIT
