@@ -5,24 +5,24 @@
 
 ;; Author: Jim Thompson (was <thompson@wg2.waii.com>)
 ;;	Jacques Duthen (was <duthen@cegelec-red.fr>)
-;;	Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
-;;	Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Time-stamp: <2003/02/12 14:05:44 vinicius>
-;; Version: 6.5.9
+;; Time-stamp: <2003/03/05 21:54:55 vinicius>
+;; Version: 6.6
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.5.9"
-  "ps-print.el, v 6.5.9 <2003/02/12 vinicius>
+(defconst ps-print-version "6.6"
+  "ps-print.el, v 6.6 <2003/03/05 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
 report the version of Emacs, if any, that ps-print was distributed with.
 
 Please send all bug fixes and enhancements to
-	Vinicius Jose Latorre <vinicius@cpqd.com.br>.")
+	Vinicius Jose Latorre <viniciusjl@ig.com.br>.")
 
 ;; This file is part of GNU Emacs.
 
@@ -1075,7 +1075,7 @@ Please send all bug fixes and enhancements to
 ;;    (face...)	list of faces whose background color will be used.
 ;;
 ;; Any other value will be treated as t.
-;; The default value is t.
+;; The default value is nil.
 ;;
 ;;
 ;; How Ps-Print Deals With Color
@@ -1211,7 +1211,7 @@ Please send all bug fixes and enhancements to
 ;; New since version 2.8
 ;; ---------------------
 ;;
-;; [vinicius] Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; [vinicius] Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;
 ;;    20010619
 ;;	 `ps-time-stamp-locale-default'
@@ -1263,7 +1263,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; `ps-print-region-function'
 ;;
-;; [vinicius] Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; [vinicius] Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;
 ;;    19990301
 ;;	 PostScript tumble and setpagedevice.
@@ -1276,7 +1276,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Multi-byte buffer handling.
 ;;
-;; [vinicius] Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; [vinicius] Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;
 ;;    19980306
 ;;	 Skip invisible text.
@@ -1708,7 +1708,7 @@ more requirements put them first in `ps-print-prologue-header' using the
 requirements and set %%LanguageLevel: to 2, do:
 
  (setq ps-print-prologue-header
-      \"%%+ numcopies(3) jog\\n%%LanguageLevel: 2\\n\")
+       \"%%+ numcopies(3) jog\\n%%LanguageLevel: 2\\n\")
 
 The duplex requirement is inserted by ps-print (see `ps-spool-duplex').
 
@@ -1906,7 +1906,7 @@ If nil, print all pages.
 
 If a list, the lists element may be an integer or a cons cell (FROM . TO)
 designating FROM page to TO page; any invalid element is ignored, that is, an
-integer less than one or if FROM is greater than TO.
+integer lesser than one or if FROM is greater than TO.
 
 Otherwise, it's treated as nil.
 
@@ -2918,7 +2918,33 @@ Any other value is treated as t."
   :group 'ps-print-color)
 
 (defcustom ps-default-fg '(0.0 0.0 0.0) ; black
-  "*RGB values of the default foreground color.  Defaults to black."
+  "*RGB values of the default foreground color.  Defaults to black.
+
+The `ps-default-fg' variable contains the default foreground color used by
+ps-print, that is, if there is a face in a text that doesn't have a foreground
+color, the `ps-default-fg' color should be used.
+
+Valid values are:
+
+   t		The foreground color of Emacs session will be used.
+
+   NUMBER	It's a real value between 0.0 (black) and 1.0 (white) that
+		indicate the gray color.
+
+   COLOR-NAME	It's a string wich contains the color name.  For example:
+		\"yellow\".
+
+   LIST		It's a list of RGB values, that is a list of three real values
+		of the form:
+
+		  (RED, GREEN, BLUE)
+
+		Where RED, GREEN and BLUE are reals between 0.0 (no color) and
+		1.0 (full color).
+
+Any other value is ignored and it's used the black color.
+
+It's used only when `ps-print-color-p' is non-nil."
   :type '(choice :menu-tag "Default Foreground Gray/Color"
 		 :tag "Default Foreground Gray/Color"
 		 (const :tag "Session Foreground" t)
@@ -2931,7 +2957,35 @@ Any other value is treated as t."
   :group 'ps-print-color)
 
 (defcustom ps-default-bg '(1.0 1.0 1.0) ; white
-  "*RGB values of the default background color.  Defaults to white."
+  "*RGB values of the default background color.  Defaults to white.
+
+The `ps-default-bg' variable contains the default background color used by
+ps-print, that is, if there is a face in a text that doesn't have a background
+color, the `ps-default-bg' color should be used.
+
+Valid values are:
+
+   t		The background color of Emacs session will be used.
+
+   NUMBER	It's a real value between 0.0 (black) and 1.0 (white) that
+		indicate the gray color.
+
+   COLOR-NAME	It's a string wich contains the color name.  For example:
+		\"yellow\".
+
+   LIST		It's a list of RGB values, that is a list of three real values
+		of the form:
+
+		  (RED, GREEN, BLUE)
+
+		Where RED, GREEN and BLUE are reals between 0.0 (no color) and
+		1.0 (full color).
+
+Any other value is ignored and it's used the white color.
+
+It's used only when `ps-print-color-p' is non-nil.
+
+See also `ps-use-face-background'."
   :type '(choice :menu-tag "Default Background Gray/Color"
 		 :tag "Default Background Gray/Color"
 		 (const :tag "Session Background" t)
@@ -3817,6 +3871,7 @@ Note: No major/minor-mode is activated and no local variables are evaluated for
 
 (defvar ps-current-font 0)
 (defvar ps-default-foreground nil)
+(defvar ps-default-background nil)
 (defvar ps-default-color nil)
 (defvar ps-current-color nil)
 (defvar ps-current-bg nil)
@@ -5385,11 +5440,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	       "/ZebraColor       "
 	       (ps-format-color ps-zebra-color 0.95)
 	       "def\n/BackgroundColor  "
-	       (ps-format-color
-		(if (eq ps-default-bg t)
-		    (ps-face-background-name 'default)
-		  ps-default-bg)
-		1.0)
+	       (ps-format-color ps-default-background 1.0)
 	       "def\n/UseSetpagedevice "
 	       (if (eq ps-spool-config 'setpagedevice)
 		   "/setpagedevice where{pop languagelevel 2 eq}{false}ifelse"
@@ -5573,10 +5624,19 @@ XSTART YSTART are the relative position for the first page in a sheet.")
   (ps-get-size (symbol-value font-sym) "font size" font-sym))
 
 
-(defsubst ps-rgb-color (color default)
-  (cond ((and color (listp color)) color)
+(defun ps-rgb-color (color default)
+  (cond ((and color (listp color) (= (length color) 3)
+	      (let ((cl color)
+		    (ok t) e)
+		(while (and ok cl)
+		  (setq e  (car cl)
+			cl (cdr cl)
+			ok (and (floatp e) (<= 0.0 e) (<= e 1.0))))
+		ok))
+	 color)
+	((and (floatp color) (<= 0.0 color) (<= color 1.0))
+	 (list color color color))
 	((stringp color) (ps-color-scale color))
-	((numberp color) (list color color color))
 	(t (list default default default))
 	))
 
@@ -5650,6 +5710,11 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	      ((eq ps-print-control-characters 'control)
 	       "[\000-\037\177]")
 	      (t "[\t\n\f]"))
+	ps-default-background (ps-rgb-color
+			       (if (eq ps-default-bg t)
+				   (ps-face-background-name 'default)
+				 ps-default-bg)
+			       1.0)
 	ps-default-foreground (ps-rgb-color
 			       (if (eq ps-default-fg t)
 				   (ps-face-foreground-name 'default)
@@ -5665,7 +5730,14 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				 (float (car (ps-color-values "white")))
 			       1.0))
   ;; initialize page dimensions
-  (ps-get-page-dimensions))
+  (ps-get-page-dimensions)
+  ;; final check
+  (and ps-color-p
+       (equal ps-default-background ps-default-foreground)
+       (error
+	(concat
+	 "`ps-default-fg' and `ps-default-bg' have the same color.\n"
+	 "Text won't appear on page.  Please, check these variables."))))
 
 
 (defun ps-page-number ()
