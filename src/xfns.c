@@ -1574,6 +1574,8 @@ x_window (f)
   f->display.x->wm_hints.input = True;
   f->display.x->wm_hints.flags |= InputHint;
   XSetWMHints (x_current_display, FRAME_X_WINDOW (f), &f->display.x->wm_hints);
+  XSetWMProtocols (x_current_display, FRAME_X_WINDOW (f),
+		   &Xatom_wm_delete_window, 1);
 
   /* x_set_name normally ignores requests to set the name if the
      requested name is the same as the current name.  This is the one
