@@ -225,7 +225,7 @@ no args if that value is non-nil."
   (set (make-local-variable 'paragraph-separate) paragraph-start)
   (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
   (set (make-local-variable 'require-final-newline) t)
-  (set (make-local-variable 'parse-sexp-ignore-comments) nil)
+  (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (run-hooks 'c++-mode-hook)
   (if c++-electric-colon
       (define-key c++-mode-map ":" 'electric-c++-terminator)))
