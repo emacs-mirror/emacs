@@ -1,5 +1,31 @@
 2001-05-25  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* textmodes/tex-mode.el (tex-mode-syntax-table): Add ^.
+	(tex-font-lock-keywords-1, tex-font-lock-keywords-2):
+	Allow spaces around macro arguments.
+	(tex-mode-map): Inherit from text-mode-map, but rebind \t to
+	indent-for-tab-command.
+	(latex-mode-map, plain-tex-mode-map): New keymaps.
+	Inherit from tex-mode-map.
+	(tex-common-initialization): Don't setup the keymap any more
+	since it's now done right by define-derived-mode.
+	(latex-mode): Set skeleton-end-hook to nil.
+	(latex-skeleton-end-hook): Remove.
+	(tex-latex-block, latex-insert-item): Simplify.
+	(latex-syntax-after): Use following-char rather than char-after.
+	(tex-discount-args-cmds, tex-count-words): New functions.
+
+	* textmodes/tildify.el (tildify-ignored-environments-alist):
+	Recognize \verb* as well.
+
+	* progmodes/perl-mode.el (perl-mode): Use define-derived-mode.
+	(perl-comment-indent): Simplify to let newcomment.el do its job.
+	(perl-electric-terminator, perl-calculate-indent, perl-indent-exp)
+	(perl-mark-function): Cleanup the namespace.
+	(perl-calculate-indent): Don't be fooled by nested functions.
+
+	* speedbar.el (speedbar-find-selected-file): RE-quote the filename.
+
 	* emacs-lisp/byte-opt.el (byte-compile-inline-expand):
 	Fix the arg of `load'.  From Dave Love <fx@gnu.org>.
 
