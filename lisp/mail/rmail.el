@@ -3170,19 +3170,44 @@ This has an effect only if a summary buffer exists."
 	    (add-text-properties (point-min) (point-max) '(rmail-fontified t))
 	    (font-lock-fontify-region (point-min) (point-max))
 	    (and (not modified) (buffer-modified-p) (set-buffer-modified-p nil)))))))
-
+
 ;;; Speedbar support for RMAIL files.
-(eval-when-compile (require 'speedbspec))
+(eval-when-compile (require 'speedbar))
+
+(defvar rmail-speedbar-match-folder-regexp "^[A-Z0-9]+\\(\\.[A-Z0-9]+\\)?$"
+  "*This regex us used to match folder names to be displayed in speedbar.
+Enabling this will permit speedbar to display your folders for easy
+browsing, and moving of messages.")
 
 (defvar rmail-speedbar-last-user nil
   "The last user to be displayed in the speedbar.")
 
+(defvar rmail-speedbar-key-map nil
+  "Keymap used when in rmail display mode.")
+
+(defun rmail-install-speedbar-variables ()
+  "Install those variables used by speedbar to enhance rmail."
+  (if rmail-speedbar-key-map
+      nil
+    (setq rmail-speedbar-key-map (speedbar-make-specialized-keymap))
+
+    (define-key rmail-speedbar-key-map "e" 'speedbar-edit-line)
+    (define-key rmail-speedbar-key-map "r" 'speedbar-edit-line)
+    (define-key rmail-speedbar-key-map "\C-m" 'speedbar-edit-line)
+    (define-key rmail-speedbar-key-map "M"
+      'rmail-speedbar-move-message-to-folder-on-line)))
+
 (defvar rmail-speedbar-menu-items
-  '(["Browse Item On Line" speedbar-edit-line t]
-    ["Move message to folder" rmail-move-message-to-folder-on-line
+  '(["Read Folder" speedbar-edit-line t]
+    ["Move message to folder" rmail-speedbar-move-message-to-folder-on-line
      (save-excursion (beginning-of-line)
 		     (looking-at "<M> "))])
   "Additional menu-items to add to speedbar frame.")
+
+;; Make sure our special speedbar major mode is loaded
+(if (featurep 'speedbar)
+    (rmail-install-speedbar-variables)
+  (add-hook 'speedbar-load-hook 'rmail-install-speedbar-variables))
 
 (defun rmail-speedbar-buttons (buffer)
   "Create buttons for BUFFER containing rmail messages.
@@ -3215,7 +3240,7 @@ current message into that RMAIL folder."
       (let* ((case-fold-search nil)
 	     (df (directory-files (save-excursion (set-buffer buffer)
 						  default-directory)
-				  nil "^[A-Z0-9]+\\(\\.[A-Z0-9]+\\)?$")))
+				  nil rmail-speedbar-match-folder-regexp)))
 	(while df
 	  (speedbar-insert-button "<M>" 'speedbar-button-face 'highlight
 				  'rmail-speedbar-move-message (car df))
@@ -3236,7 +3261,7 @@ TOKEN and INDENT are not used."
    (message "Loading in RMAIL file %s..." text)
    (find-file text)))
 
-(defun rmail-move-message-to-folder-on-line ()
+(defun rmail-speedbar-move-message-to-folder-on-line ()
   "If the current line is a folder, move current message to it."
   (interactive)
   (save-excursion
