@@ -519,7 +519,7 @@ Actually, Ediff restores the scope of visibility that existed at startup.")
 (defvar ediff-keep-variants t
   "*Nil means that non-modified variant buffers should be removed after some
 interrogation.
-Supplying a prefix agument to the quit command `q' temporarily reverses the
+Supplying a prefix argument to the quit command `q' temporarily reverses the
 meaning of this variable.")
 
 (ediff-defvar-local ediff-highlight-all-diffs t
@@ -1283,7 +1283,7 @@ More precisely, a regexp to match any one such character.")
 	    ;; If ediff-grab-mouse = t, then mouse won't be grabbed for
 	    ;; sessions that are not part of a group (this is done in
 	    ;; ediff-recenter). The condition below affects only terminating
-	    ;; sessions in session groups (in whhich case mouse is warped into
+	    ;; sessions in session groups (in which case mouse is warped into
 	    ;; a meta buffer).
 	    (and (eq ediff-grab-mouse 'maybe)
 		 (memq this-command '(ediff-quit ediff-update-diffs)))
@@ -1307,10 +1307,10 @@ More precisely, a regexp to match any one such character.")
 		  (cdr (cdr (mouse-pixel-position))))
 	     (not (and (< (abs (- (car (cdr ediff-mouse-pixel-position))
 				  (car (cdr (mouse-pixel-position)))))
-			  ediff-mouse-pixel-threshhold)
+			  ediff-mouse-pixel-threshold)
 		       (< (abs (- (cdr (cdr ediff-mouse-pixel-position))
 				  (cdr (cdr (mouse-pixel-position)))))
-			  ediff-mouse-pixel-threshhold))))
+			  ediff-mouse-pixel-threshold))))
 	    (t nil))))
     
 (defsubst ediff-frame-char-height (frame)
