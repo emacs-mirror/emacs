@@ -807,10 +807,8 @@ See the documentation for `calendar-holidays' for details.")
         '(format "Daylight Savings Time Begins %s"
                   (if (fboundp 'atan)
                       (solar-time-string
-                       (/ calendar-daylight-savings-starts-time
-                          (float 60))
-                       date
-                       'standard)
+                       (/ calendar-daylight-savings-starts-time (float 60))
+                       calendar-standard-time-zone-name)
                     ""))))
     (funcall
      'holiday-sexp
@@ -818,11 +816,8 @@ See the documentation for `calendar-holidays' for details.")
      '(format "Daylight Savings Time Ends %s"
               (if (fboundp 'atan)
                   (solar-time-string
-                   (/ (- calendar-daylight-savings-ends-time
-                         calendar-daylight-time-offset)
-                      (float 60))
-                   date
-                   'daylight)
+                   (/ calendar-daylight-savings-ends-time (float 60))
+                   calendar-daylight-time-zone-name)
                 ""))))
   "*Sun-related holidays.
 See the documentation for `calendar-holidays' for details.")
