@@ -1,6 +1,6 @@
 ;;; tpu-doc.el --- Documentation for TPU-edt
 
-;; Copyright (C) 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
@@ -21,9 +21,6 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-
-(defconst tpu-doc-revision "$Revision: 1.5 $"
-  "TPU-edt documentation revision number.")
 
 
 ;; This is documentation for the TPU-edt editor for GNU emacs.  Major
@@ -48,12 +45,12 @@
 
 ;; %% Introduction
 
-;;    TPU-edt is based on tpu.el by Jeff Kowalski.  TPU-edt endeavors
-;;    to be even more like TPU's EDT emulation than the original tpu.el.
-;;    Considerable effort has been expended to that end.  Still, emacs
-;;    is emacs and there are differences between TPU-edt and the real
-;;    thing.  Please read the "Differences Between TPU-edt and the Real
-;;    Thing" and "Starting TPU-edt" sections before running TPU-edt.
+;;    TPU-edt is based on tpu.el by Jeff Kowalski and Bob Covey.  TPU-edt
+;;    endeavors to be even more like TPU's EDT emulation than the original
+;;    tpu.el.  Considerable effort has been expended to that end.  Still,
+;;    emacs is emacs and there are differences between TPU-edt and the
+;;    real thing.  Please read the "Differences Between TPU-edt and the
+;;    Real Thing" and "Starting TPU-edt" sections before running TPU-edt.
 
 
 ;; %% Terminal Support
