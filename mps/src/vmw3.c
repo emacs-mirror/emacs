@@ -1,6 +1,6 @@
 /*  impl.c.vmnt: VIRTUAL MEMORY MAPPING FOR WIN32
  *
- *  $HopeName: MMsrc!vmnt.c(trunk.14) $
+ *  $HopeName: MMsrc!vmnt.c(trunk.15) $
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
  *  Design: design.mps.vm
@@ -49,10 +49,13 @@
 #ifndef MPS_OS_W3
 #error "vmnt.c is Win32 specific, but MPS_OS_W3 is not set"
 #endif
+#ifdef VM_RM
+#error "vmnt.c compiled with VM_RM set"
+#endif
 
 #include <windows.h>
 
-SRCID(vmnt, "$HopeName: MMsrc!vmnt.c(trunk.14) $");
+SRCID(vmnt, "$HopeName: MMsrc!vmnt.c(trunk.15) $");
 
 
 #define SpaceVM(space)  (&(space)->arenaStruct.vmStruct)

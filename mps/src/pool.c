@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.20) $
+ * $HopeName: MMsrc!pool.c(trunk.21) $
  * Copyright (C) 1994,1995,1996 Harlequin Group, all rights reserved
  *
  * This is the implementation of the generic pool interface.  The
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.20) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.21) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -91,7 +91,7 @@ Res PoolInitV(Pool pool, Space space, PoolClass class, va_list args)
   RingInit(&pool->spaceRing);
   RingInit(&pool->bufferRing);
   RingInit(&pool->segRing);
-  pool->alignment = ARCH_ALIGN;
+  pool->alignment = MPS_PF_ALIGN;
   RingAppend(SpacePoolRing(space), &pool->spaceRing);
 
   /* Initialise signature last; see design.mps.sig */

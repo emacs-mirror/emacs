@@ -1,6 +1,6 @@
 /* impl.c.poolmfs: MANUAL FIXED SMALL UNIT POOL
  *
- * $HopeName: MMsrc!poolmfs.c(trunk.13) $
+ * $HopeName: MMsrc!poolmfs.c(trunk.14) $
  * Copyright (C) 1994,1995,1996 Harlequin Group, all rights reserved
  *
  * This is the implementation of the MFS pool class.
@@ -35,7 +35,7 @@
 #include "mpm.h"
 #include "poolmfs.h"
 
-SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(trunk.13) $");
+SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(trunk.14) $");
 
 
 /*  == Round up ==
@@ -95,7 +95,7 @@ static Res MFSInit(Pool pool, va_list arg)
 
   mfs->unroundedUnitSize = unitSize;
 
-  unitSize = SizeAlignUp(unitSize, ARCH_ALIGN);
+  unitSize = SizeAlignUp(unitSize, MPS_PF_ALIGN);
   extendBy = SizeAlignUp(extendBy, ArenaAlign(space));
 
   mfs->extendBy = extendBy;

@@ -1,6 +1,6 @@
 /*  impl.c.qs:                QUICKSORT
  *
- *  $HopeName: MMsrc!qs.c(trunk.7) $
+ *  $HopeName: MMsrc!qs.c(trunk.8) $
  *
  *  Copyright (C) 1995,1996 Harlequin Group, all rights reserved
  *
@@ -22,11 +22,13 @@
  *
  */
 
-
 #include "testlib.h"
 #include "mps.h"
 #include "mpscamc.h"
 #include "mpscmv.h"
+#ifdef MPS_OS_SU
+#include "ossu.h"
+#endif
 
 #include <assert.h>
 #include <stdio.h>

@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(trunk.27) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.28) $
 #
 # Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
 #
@@ -27,7 +27,7 @@ TESTLIB = <testlib>
 
 # ==== ALMOST GENERIC PRODUCT BUILD FOR NMAKE ====
 #
-# $HopeName: MMsrc!nti3mv.nmk(trunk.27) $
+# $HopeName: MMsrc!nti3mv.nmk(trunk.28) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -122,9 +122,9 @@ ECHO = echo
 
 !ifdef TARGET
 !if "$(TARGET)" == "mmsw.lib"
-CFLAGSTARGET = /ML /DTARGET_VM_RM
+CFLAGSTARGET = /ML /DCONFIG_PROD_EPCORE
 !else
-CFLAGSTARGET = /MT
+CFLAGSTARGET = /MT /DCONFIG_PROD_MPS
 !endif
 !endif
 
@@ -135,19 +135,19 @@ CFLAGSCOMMON = /nologo /W3 /WX $(PFMDEFS) $(CFLAGSTARGET)
 # [Used to use /Zi instead of /Z7.  /Z7 generates debugging output in the
 #  object and linked files themselves, whereas /Zi generated debugging
 #  output in a .PDB file.]
-CFDF = /DTARGET_VAR_DF /Z7
+CFDF = /DCONFIG_VAR_DF /Z7
 
-CFDP = /DTARGET_VAR_DP /Z7
+CFDP = /DCONFIG_VAR_DP /Z7
 
-CFDS = /DTARGET_VAR_DS /Z7
+CFDS = /DCONFIG_VAR_DS /Z7
 
 # "release" variety flags
 # Microsoft documentation is not very clear on the point of using bothing
 # optimzation and debug information
-CFRO = /DTARGET_VAR_RO /Z7 /O2
+CFRO = /DCONFIG_VAR_RO /Z7 /O2
 
 # "cover" variety flags
-CFCV = /DTARGET_VAR_DP /Z7
+CFCV = /DCONFIG_VAR_DP /Z7
 
 # LINKER FLAGS
 # %%VARIETY: define a macro containing the flags for the new variety
