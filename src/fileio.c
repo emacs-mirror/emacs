@@ -289,6 +289,18 @@ restore_point_unwind (location)
   Fset_marker (location, Qnil, Qnil);
   return Qnil;
 }
+
+/* Kill the working buffer for code conversion.  */
+
+static Lisp_Object
+kill_workbuf_unwind (workbuf)
+     Lisp_Object workbuf;
+{
+  if (! NILP (workbuf) && ! NILP (Fbuffer_live_p (workbuf)))
+    Fkill_buffer (workbuf);
+  return Qnil;
+}
+
 
 Lisp_Object Qexpand_file_name;
 Lisp_Object Qsubstitute_in_file_name;
@@ -4032,12 +4044,12 @@ actually used.  */)
       unsigned char *decoded;
       int temp;
       int this_count = BINDING_STACK_SIZE ();
+      int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
       Lisp_Object conversion_buffer
-	= make_conversion_work_buffer (! NILP (current_buffer
-					       ->enable_multibyte_characters));
+	= make_conversion_work_buffer (-1, multibyte);
       struct gcpro1;
 
-      record_unwind_protect (code_conversion_restore, save_excursion_save ());
+      record_unwind_protect (kill_workbuf_unwind, conversion_buffer);
 
       /* First read the whole file, performing code conversion into
 	 CONVERSION_BUFFER.  */
