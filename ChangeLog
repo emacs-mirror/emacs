@@ -1,3 +1,13 @@
+2000-12-11  Paul Eggert  <eggert@twinsun.com>
+
+	* aclocal.m4 (AC_SYS_LARGEFILE, AC_SYS_LARGEFILE_MACRO_VALUE):
+	Merge fixes from latest GNU tar version.  These macros no longer
+	futz with _XOPEN_SOURCE, as that was not portable in practice.
+	(AC_FUNC_FSEEKO): New macro.
+	
+	* configure.in: Use it instead of invoking AC_CHECK_FUNCS on
+	ftello.
+	
 2000-12-05  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (TAGS, info): Avoid tab-prefixed comments in rules.
@@ -44,7 +54,7 @@
 	* configure.in: Fix last change.
 
 	* GETTING.GNU.SOFTWARE: Deleted.
-	* FTP: new file to replace it.
+	* FTP: New file to replace it.
 	* make-dist: Add FTP, remove GETTING.GNU.SOFTWARE.
 
 2000-11-20  Gerd Moellmann  <gerd@gnu.org>

@@ -1,3 +1,13 @@
+2000-12-11  Paul Eggert  <eggert@twinsun.com>
+
+	* config.in (HAVE_FTELLO): Remove.
+	(HAVE_FSEEKO): Add.
+	(_XOPEN_SOURCE): Remove; the large-file code no longer needs it.
+	* lread.c (file_offset, file_tell): Depend on HAVE_FSEEKO, not
+	HAVE_FTELLO.
+	* s/hpux10.h (_FILE_OFFSET_BITS): Do not undef.
+	* s/isc3-0.h, s/osf5-0.h: Update comment about _XOPEN_SOURCE.
+	
 2000-12-11  Miles Bader  <miles@gnu.org>
 
 	* window.c (displayed_window_lines): Don't round up when
