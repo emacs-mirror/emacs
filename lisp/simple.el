@@ -647,13 +647,13 @@ If BACKWARD-ONLY is non-nil, only delete spaces before point."
        (skip-chars-backward " \t")
        (constrain-to-field nil orig-pos)))))
 
-(defun just-one-space (n)
+(defun just-one-space (&optional n)
   "Delete all spaces and tabs around point, leaving one space (or N spaces)."
   (interactive "*p")
   (let ((orig-pos (point)))
     (skip-chars-backward " \t")
     (constrain-to-field nil orig-pos)
-    (dotimes (i n)
+    (dotimes (i (or n 1))
       (if (= (following-char) ?\ )
 	  (forward-char 1)
 	(insert ?\ )))
