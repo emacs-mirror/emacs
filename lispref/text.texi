@@ -2262,23 +2262,23 @@ along with the characters; this includes such diverse functions as
 @code{substring}, @code{insert}, and @code{buffer-substring}.
 
 @menu
-* Examining Properties::	Looking at the properties of one character.
-* Changing Properties::		Setting the properties of a range of text.
-* Property Search::		Searching for where a property changes value.
-* Special Properties::		Particular properties with special meanings.
-* Format Properties::           Properties for representing formatting of text.
-* Sticky Properties::           How inserted text gets properties from
-                                  neighboring text.
-* Saving Properties::           Saving text properties in files, and reading
-                                  them back.
-* Lazy Properties::             Computing text properties in a lazy fashion
-                                  only when text is examined.
-* Clickable Text::              Using text properties to make regions of text
-                                  do something when you click on them.
-* Fields::                      The @code{field} property defines
-                                  fields within the buffer.
-* Not Intervals::		Why text properties do not use
-				  Lisp-visible text intervals.
+* Examining Properties::   Looking at the properties of one character.
+* Changing Properties::	   Setting the properties of a range of text.
+* Property Search::	   Searching for where a property changes value.
+* Special Properties::	   Particular properties with special meanings.
+* Format Properties::      Properties for representing formatting of text.
+* Sticky Properties::      How inserted text gets properties from
+                             neighboring text.
+* Saving Properties::      Saving text properties in files, and reading
+                             them back.
+* Lazy Properties::        Computing text properties in a lazy fashion
+                             only when text is examined.
+* Clickable Text::         Using text properties to make regions of text
+                             do something when you click on them.
+* Fields::                 The @code{field} property defines
+                             fields within the buffer.
+* Not Intervals::	   Why text properties do not use
+			     Lisp-visible text intervals.
 @end menu
 
 @node Examining Properties
