@@ -1,5 +1,27 @@
 2000-06-05  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* autoarg.el (autoarg-mode, autoarg-kp-mode):
+	* hl-line.el (hl-line-mode): Use the new :global key argument.
+
+	* tar-mode.el (tar-header-block-recompute-checksum): Remove.
+	(tar-clip-time-string): Prepend a space.
+	(tar-grind-file-mode): Construct a string rather than modifying one.
+	(tar-header-block-summarize): Fix docstring.
+	Use `format' rather than an error-prone set of copy-loops.
+
+	* diff-mode.el (diff-font-lock-keywords, diff-hunk-header-re)
+	(diff-goto-source, diff-unified->context, diff-context->unified)
+	(diff-reverse-direction, diff-fixup-modifs): Fix the regexps to
+	understand the format output by the `-p' argument to diff.
+
+	* progmodes/sh-script.el (sh-symbol-list, sh-number-or-symbol-list) 
+	(sh-re-done): Use defconst.
+	(sh-indent-supported-here, sh-electric-rparen-needed-here): Add defvar.
+	(sh-help-string-for-variable, sh-guess-basic-offset):
+	Don't quote lambdas.
+	(sh-electric-rparen, sh-electric-hash, sh-search-word): Docstring typo.
+	(sh-regexp-for-done, sh-kw-alist, sh-kw): Moved to before their use.
+
 	* mail/mh-comp.el (mh-send-sub): Check mh-etc is bound before using it.
 	(mh-letter-mode): Derive from text-mode.
 	This implicitly means that it now calls kill-all-local-variables.
