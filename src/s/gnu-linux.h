@@ -255,3 +255,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifndef HAVE_XSCREENNUMBEROFSCREEN
 #define HAVE_XSCREENNUMBEROFSCREEN
 #endif
+#ifndef HAVE_XRMSETDATABASE
+#define HAVE_XRMSETDATABASE
+#endif
