@@ -1450,6 +1450,9 @@ incremental search, \\[beginning-of-buffer], and \\[end-of-buffer]."
 (defun pop-global-mark ()
   "Pop off global mark ring and jump to the top location."
   (interactive)
+  ;; Pop entries which refer to non-existent buffers.
+  (while (and global-mark-ring (not (marker-buffer (car global-mark-ring))))
+    (setq global-mark-ring (cdr global-mark-ring)))
   (or global-mark-ring
       (error "No global mark set"))
   (let* ((marker (car global-mark-ring))
