@@ -1363,7 +1363,10 @@ any other value the current frame is used.")
 ;;;###autoload
 (defun calendar (&optional arg)
   "Choose between the one frame, two frame, or basic calendar displays.
-The original function `calendar' has been renamed `calendar-basic-setup'."
+If called with an optional prefix argument, prompts for month and year.
+
+The original function `calendar' has been renamed `calendar-basic-setup'.
+See the documentation of that function for more information."
   (interactive "P")
   (cond ((equal calendar-setup 'one-frame) (calendar-one-frame-setup arg))
         ((equal calendar-setup 'two-frames) (calendar-two-frame-setup arg))
