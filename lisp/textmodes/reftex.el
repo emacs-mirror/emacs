@@ -5201,7 +5201,7 @@ With argument, actually select the window showing the cross reference."
            ((not match2) match1)
            ((< (abs (- pos (car match1))) (abs (- pos (car match2)))) match1)
            (t match2)))
-    (if match (progn (store-match-data match) t) nil)))
+    (if match (progn (set-match-data match) t) nil)))
 
 (defun reftex-auto-mode-alist ()
   ;; Return an `auto-mode-alist' with only the .gz (etc) thingies.
