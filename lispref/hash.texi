@@ -27,9 +27,9 @@ There is no way to share structure between two hash tables,
 the way two alists can share a common tail.
 @end itemize
 
-  Emacs Lisp (starting with Emacs 21) provides a general-purpose hash
-table data type, along with a series of functions for operating on them.
-Hash tables have no read syntax, and print in hash notation, like this:
+  Emacs Lisp provides a general-purpose hash table data type, along
+with a series of functions for operating on them.  Hash tables have no
+read syntax, and print in hash notation, like this:
 
 @example
 (make-hash-table)
