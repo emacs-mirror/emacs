@@ -1,6 +1,6 @@
 ;;; mouse-sel.el --- multi-click selection support for Emacs 19
 
-;; Copyright (C) 1993, 1994, 1995, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1993,1994,1995,2001,2002 Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mdub@bigfoot.com>
 ;; Keywords: mouse
@@ -231,50 +231,73 @@ primary selection and region."
 
 ;;=== Key bindings ========================================================
 
-(defun mouse-sel-bindings (bind)
-  (cond ((not bind)
-	 ;; These bindings are taken from mouse.el, i.e., they are the default
-	 ;; bindings.  It would be better to restore the previous bindings.
-	 ;; Primary selection bindings.
-	 (global-set-key [mouse-1]	'mouse-set-point)
-	 (global-set-key [mouse-2]	'mouse-yank-at-click)
-	 (global-set-key [mouse-3]	'mouse-save-then-kill)
-	 (global-set-key [down-mouse-1]		'mouse-drag-region)
-	 (global-set-key [drag-mouse-1]		'mouse-set-region)
-	 (global-set-key [double-mouse-1]	'mouse-set-point)
-	 (global-set-key [triple-mouse-1]	'mouse-set-point)
-	 ;; Secondary selection bindings.
-	 (global-set-key [M-mouse-1]	'mouse-start-secondary)
-	 (global-set-key [M-mouse-2]	'mouse-yank-secondary)
-	 (global-set-key [M-mouse-3]	'mouse-secondary-save-then-kill)
-	 (global-set-key [M-drag-mouse-1]	'mouse-set-secondary)
-	 (global-set-key [M-down-mouse-1]	'mouse-drag-secondary))
-	(mouse-sel-default-bindings
-	 ;;
-	 ;; Primary selection bindings.
+(defconst mouse-sel-bound-events
+  '([down-mouse-1] [mouse-1] [drag-mouse-1]
+    [mouse-2]
+    [down-mouse-3] [mouse-3]
+    [M-mouse-2]
+    [M-down-mouse-1] [M-mouse-1] [M-drag-mouse-1]
+    [M-down-mouse-3] [M-mouse-3])
+  "A list of events that mouse-sel binds.")
 
-	 ;; Bind keys to `ignore' instead of unsetting them because
-	 ;; modes may bind `down-mouse-1', for instance, without
-	 ;; binding other `up-mouse-1' or `mouse-1'.  If we unset
-	 ;; `mouse-1', this leads to a bitch_at_user when the mouse
-	 ;; goes up because no matching binding is found for that.
-	 (global-set-key [mouse-1] 'ignore)
-	 (global-set-key [drag-mouse-1] 'ignore)
-	 (global-set-key [mouse-3] 'ignore)
-	 (global-set-key [down-mouse-1]	'mouse-select)
-	 (unless (eq mouse-sel-default-bindings 'interprogram-cut-paste)
-	   (global-set-key [mouse-2]	'mouse-insert-selection)
-	   (setq interprogram-cut-function nil
-		 interprogram-paste-function nil))
-	 (global-set-key [down-mouse-3]	'mouse-extend)
-	 ;;
-	 ;; Secondary selection bindings.
-	 (global-set-key [M-mouse-1] 'ignore)
-	 (global-set-key [M-drag-mouse-1] 'ignore)
-	 (global-set-key [M-mouse-3] 'ignore)
-	 (global-set-key [M-down-mouse-1]	'mouse-select-secondary)
-	 (global-set-key [M-mouse-2] 		'mouse-insert-secondary)
-	 (global-set-key [M-down-mouse-3] 	'mouse-extend-secondary))))
+(defun mouse-sel-save-original-bindings ()
+  "Save the current bindings for `mouse-sel-bound-events'."
+  (setq mouse-sel-original-bindings nil)
+  (mapc (function 
+         (lambda (event)
+           (setq mouse-sel-original-bindings
+                 (cons (cons event (lookup-key global-map event))
+                       mouse-sel-original-bindings))))
+        mouse-sel-bound-events))
+
+(defun mouse-sel-restore-original-bindings ()
+  "Restore the original bindings for `mouse-sel-bound-events'."
+  (mapc (function 
+         (lambda (binding)
+           (if (cdr binding)
+               (global-set-key (car binding) (cdr binding))
+             (global-unset-key (car binding)))))
+        mouse-sel-original-bindings))
+
+(defun mouse-sel-bindings (bind)
+  (cond 
+
+   ;; Default mouse-sel bindings
+   ((and bind mouse-sel-default-bindings) 
+
+    ;; Save original bindings
+    (mouse-sel-save-original-bindings)
+
+    ;; Primary selection bindings.
+    ;;
+    ;; Bind keys to `ignore' instead of unsetting them because
+    ;; modes may bind `down-mouse-1', for instance, without
+    ;; binding other `up-mouse-1' or `mouse-1'.  If we unset
+    ;; `mouse-1', this leads to a bitch_at_user when the mouse
+    ;; goes up because no matching binding is found for that.
+    (global-set-key [mouse-1]           'ignore)
+    (global-set-key [drag-mouse-1]      'ignore)
+    (global-set-key [mouse-3]           'ignore)
+    (global-set-key [down-mouse-1]	'mouse-select)
+    (unless (eq mouse-sel-default-bindings 'interprogram-cut-paste)
+      (global-set-key [mouse-2]         'mouse-insert-selection)
+      (setq interprogram-cut-function nil
+            interprogram-paste-function nil))
+    (global-set-key [down-mouse-3]      'mouse-extend)
+
+    ;; Secondary selection bindings.
+    (global-set-key [M-mouse-1]         'ignore)
+    (global-set-key [M-drag-mouse-1]    'ignore)
+    (global-set-key [M-mouse-3]         'ignore)
+    (global-set-key [M-down-mouse-1]	'mouse-select-secondary)
+    (global-set-key [M-mouse-2]         'mouse-insert-secondary)
+    (global-set-key [M-down-mouse-3] 	'mouse-extend-secondary))
+   
+   ((not bind)
+    ;; Restore original bindings
+    (mouse-sel-restore-original-bindings))
+
+   ))
 
 ;;=== Command Variable ====================================================
 
@@ -715,29 +738,6 @@ If `mouse-yank-at-point' is non-nil, insert at point instead."
   "Remove the overlay for a lost selection."
   (let ((overlay (mouse-sel-selection-overlay selection)))
     (delete-overlay overlay)))
-
-;;=== Bug reporting =======================================================
-
-;(defconst mouse-sel-maintainer-address "mikew@gopher.dosli.govt.nz")
-
-;(defun mouse-sel-submit-bug-report ()
-;  "Submit a bug report on mouse-sel.el via mail."
-;  (interactive)
-;  (require 'reporter)
-;  (reporter-submit-bug-report
-;   mouse-sel-maintainer-address
-;   (concat "mouse-sel.el "
-;	    (or (condition-case nil mouse-sel-version (error))
-;		"(distributed with Emacs)"))
-;   (list 'transient-mark-mode
-;	 'delete-selection-mode
-;	 'mouse-sel-default-bindings
-;	 'mouse-sel-leave-point-near-mouse
-;	 'mouse-sel-cycle-clicks
-;	 'mouse-sel-selection-alist
-;	 'mouse-sel-set-selection-function
-;	 'mouse-sel-get-selection-function
-;	 'mouse-yank-at-point)))
 
 (provide 'mouse-sel)
 
