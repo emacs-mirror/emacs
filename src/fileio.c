@@ -152,14 +152,6 @@ extern char *strerror ();
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
-/* Encode the file name NAME using the specified coding system
-   for file names, if any.  */
-#define ENCODE_FILE(name)					\
-  (! NILP (Vfile_name_coding_system)				\
-   && XFASTINT (Vfile_name_coding_system) != 0			\
-   ? Fencode_coding_string (name, Vfile_name_coding_system, Qt)	\
-   : name)
-
 /* Nonzero during writing of auto-save files */
 int auto_saving;
 
@@ -169,6 +161,10 @@ int auto_save_mode_bits;
 
 /* Coding system for file names, or nil if none.  */
 Lisp_Object Vfile_name_coding_system;
+
+/* Coding system for file names used only when
+   Vfile_name_coding_system is nil.  */
+Lisp_Object Vdefault_file_name_coding_system;
 
 /* Alist of elements (REGEXP . HANDLER) for file names
    whose I/O is done with a special handler.  */
@@ -379,7 +375,7 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.")
 #ifdef DOS_NT
   beg = strcpy (alloca (strlen (beg) + 1), beg);
 #endif
-  p = beg + XSTRING (filename)->size;
+  p = beg + XSTRING (filename)->size_byte;
 
   while (p != beg && !IS_DIRECTORY_SEP (p[-1])
 #ifdef VMS
@@ -589,7 +585,7 @@ On VMS, converts \"[X]FOO.DIR\" to \"[X.FOO]\", etc.")
   if (!NILP (handler))
     return call2 (handler, Qfile_name_as_directory, file);
 
-  buf = (char *) alloca (XSTRING (file)->size + 10);
+  buf = (char *) alloca (XSTRING (file)->size_byte + 10);
   return build_string (file_name_as_directory (buf, XSTRING (file)->data));
 }
 
@@ -784,9 +780,9 @@ it returns a file name such as \"[X]Y.DIR.1\".")
   /* 20 extra chars is insufficient for VMS, since we might perform a
      logical name translation. an equivalence string can be up to 255
      chars long, so grab that much extra space...  - sss */
-  buf = (char *) alloca (XSTRING (directory)->size + 20 + 255);
+  buf = (char *) alloca (XSTRING (directory)->size_byte + 20 + 255);
 #else
-  buf = (char *) alloca (XSTRING (directory)->size + 20);
+  buf = (char *) alloca (XSTRING (directory)->size_byte + 20);
 #endif
   directory_file_name (XSTRING (directory)->data, buf);
   return build_string (buf);
@@ -1809,7 +1805,7 @@ duplicates what `expand-file-name' does.")
   CORRECT_DIR_SEPS (nm);
   substituted = (strcmp (nm, XSTRING (filename)->data) != 0);
 #endif
-  endp = nm + XSTRING (filename)->size;
+  endp = nm + XSTRING (filename)->size_byte;
 
   /* If /~ or // appears, discard everything through first slash.  */
 
@@ -1902,7 +1898,7 @@ duplicates what `expand-file-name' does.")
 
   /* If substitution required, recopy the string and do it */
   /* Make space in stack frame for the new copy */
-  xnm = (unsigned char *) alloca (XSTRING (filename)->size + total + 1);
+  xnm = (unsigned char *) alloca (XSTRING (filename)->size_byte + total + 1);
   x = xnm;
 
   /* Copy the rest of the name through, replacing $ constructs with values */
@@ -2021,7 +2017,7 @@ expand_and_dir_to_file (filename, defdir)
   absname = Fexpand_file_name (filename, defdir);
 #ifdef VMS
   {
-    register int c = XSTRING (absname)->data[XSTRING (absname)->size - 1];
+    register int c = XSTRING (absname)->data[XSTRING (absname)->size_byte - 1];
     if (c == ':' || c == ']' || c == '>')
       absname = Fdirectory_file_name (absname);
   }
@@ -2029,8 +2025,8 @@ expand_and_dir_to_file (filename, defdir)
   /* Remove final slash, if any (unless this is the root dir).
      stat behaves differently depending!  */
   if (XSTRING (absname)->size > 1
-      && IS_DIRECTORY_SEP (XSTRING (absname)->data[XSTRING (absname)->size - 1])
-      && !IS_DEVICE_SEP (XSTRING (absname)->data[XSTRING (absname)->size-2]))
+      && IS_DIRECTORY_SEP (XSTRING (absname)->data[XSTRING (absname)->size_byte - 1])
+      && !IS_DEVICE_SEP (XSTRING (absname)->data[XSTRING (absname)->size_byte-2]))
     /* We cannot take shortcuts; they might be wrong for magic file names.  */
     absname = Fdirectory_file_name (absname);
 #endif
@@ -2881,7 +2877,8 @@ Otherwise returns nil.")
     }
   val = make_string (buf, valsize);
   xfree (buf);
-  return Fdecode_coding_string (val, Vfile_name_coding_system, Qt);
+  val = DECODE_FILE (val);
+  return val;
 #else /* not S_IFLNK */
   return Qnil;
 #endif /* not S_IFLNK */
@@ -4790,11 +4787,11 @@ A non-nil CURRENT-ONLY argument means save only current buffer.")
 	    if (!NILP (b->filename))
 	      {
 		fwrite (XSTRING (b->filename)->data, 1,
-			XSTRING (b->filename)->size, stream);
+			XSTRING (b->filename)->size_byte, stream);
 	      }
 	    putc ('\n', stream);
 	    fwrite (XSTRING (b->auto_save_file_name)->data, 1,
-		    XSTRING (b->auto_save_file_name)->size, stream);
+		    XSTRING (b->auto_save_file_name)->size_byte, stream);
 	    putc ('\n', stream);
 	  }
 
@@ -5069,7 +5066,7 @@ DIR defaults to current buffer's directory default.")
       && IS_DIRECTORY_SEP (XSTRING (dir)->data[strlen (homedir)]))
     {
       dir = make_string (XSTRING (dir)->data + strlen (homedir) - 1,
-			 XSTRING (dir)->size - strlen (homedir) + 1);
+			 XSTRING (dir)->size_byte - strlen (homedir) + 1);
       XSTRING (dir)->data[0] = '~';
     }
 
@@ -5244,8 +5241,20 @@ syms_of_fileio ()
 #endif /* DOS_NT */
 
   DEFVAR_LISP ("file-name-coding-system", &Vfile_name_coding_system,
-    "*Coding system for encoding file names.");
+    "*Coding system for encoding file names.\n\
+If it is nil, default-file-name-coding-system (which see) is used.");
   Vfile_name_coding_system = Qnil;
+
+  DEFVAR_LISP ("default-file-name-coding-system",
+	       &Vdefault_file_name_coding_system,
+    "Default coding system for encoding file names.\n\
+This variable is used only when file-name-coding-system is nil.\n\
+\n\
+This variable is set/changed by the command set-language-environment.\n\
+User should not set this variable manually,\n\
+instead use file-name-coding-system to get a constant encoding\n\
+of file names regardless of the current language environment.");
+  Vdefault_file_name_coding_system = Qnil;
 
   DEFVAR_LISP ("auto-save-file-format", &Vauto_save_file_format,
     "*Format in which to write auto-save files.\n\
