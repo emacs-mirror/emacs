@@ -1033,6 +1033,13 @@ Should include ?e, ?o (page even/odd) and either ?n (nroff) or ?t (troff).
 Default is '(?n ?e ?o).  Set via `woman-emulation'.")
 
 
+;;; Button types:
+
+(define-button-type 'woman-xref
+  'action (lambda (button) (woman (button-label button)))
+  'help-echo "RET, mouse-2: display this man page")
+
+
 ;;; Specialized utility functions:
 
 ;;; Fast deletion without saving on the kill ring (cf. simple.el):
@@ -1700,8 +1707,10 @@ Leave point at end of new text.  Return length of inserted text."
 
 (if woman-mode-map
     ()
-  ;; Set up the keymap, mostly inherited from Man-mode-map:
-  (setq woman-mode-map (make-sparse-keymap))
+  ;; Set up the keymap, mostly inherited from Man-mode-map.  Normally
+  ;; button-buffer-map is used as a parent keymap, but we can't have two
+  ;; parents, so we just copy it.
+  (setq woman-mode-map (copy-keymap button-buffer-map))
   (set-keymap-parent woman-mode-map Man-mode-map)
   ;; Above two lines were
   ;; (setq woman-mode-map (cons 'keymap Man-mode-map))
@@ -1709,19 +1718,14 @@ Leave point at end of new text.  Return length of inserted text."
   (define-key woman-mode-map "w" 'woman)
   (define-key woman-mode-map "\en" 'WoMan-next-manpage)
   (define-key woman-mode-map "\ep" 'WoMan-previous-manpage)
-  (define-key woman-mode-map [mouse-2] 'woman-mouse-2)
-  (define-key woman-mode-map [M-mouse-2] 'woman-mouse-2))
+  (define-key woman-mode-map [M-mouse-2] 'woman-follow-word))
 
-(defun woman-mouse-2 (event)
+(defun woman-follow-word (event)
   "Run WoMan with word under mouse as topic.
-Require it to be mouse-highlighted unless Meta key used.
 Argument EVENT is the invoking mouse event."
   (interactive "e")			; mouse event
-  (let ((pos (cadr (cadr event))))	; extract buffer position
-    (when (or (eq (car event) 'M-mouse-2)
-	      (get-text-property pos 'mouse-face))
-      (goto-char pos)
-      (woman (current-word t)))))
+  (goto-char (posn-point (event-start event)))
+  (woman (current-word t)))
 
 ;; WoMan menu bar and pop-up menu:
 (easy-menu-define			; (SYMBOL MAPS DOC MENU)
@@ -1944,11 +1948,8 @@ Otherwise use Man and record start of formatting time."
       (while (re-search-forward Man-reference-regexp end t)
 	;; Highlight reference when mouse is over it.
 	;; (NB: WoMan does not hyphenate!)
-	;; [See (elisp)Clickable Text]
-	(add-text-properties (match-beginning 1) (match-end 1)
-			     '(mouse-face highlight
-			       help-echo "mouse-2: display this man page"))
-	))))
+	(make-text-button (match-beginning 1) (match-end 1)
+			  'type 'woman-xref)))))
 
 
 ;;; Buffer handling:
