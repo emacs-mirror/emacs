@@ -283,7 +283,7 @@ if it is quoted with double-quotes."
       (setq mail-aliases (cons (cons name definition) mail-aliases)
 	    mail-names t))))
 
-
+;;;###autoload
 (defun mail-complete (arg)
   "Perform completion on header field or word preceding point.
 Completable headers are according to `mail-complete-alist'.  If none matches
