@@ -1,6 +1,7 @@
 ;;; pcvs-defs.el --- variable definitions for PCL-CVS
 
-;; Copyright (C) 1991, 92, 93, 94, 95, 96, 97, 98, 99, 2000  Free Software Foundation, Inc.
+;; Copyright (C) 1991, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2003
+;;           Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
@@ -479,7 +480,7 @@ It is expected to call the function.")
     (define-key m [examine]
       '(menu-item "Examine Directory" cvs-examine
 		  :help "Examine the current state of a workarea"))
-    m))
+    (fset 'cvs-global-menu m)))
 
 
 ;; cvs-1.10 and above can take file arguments in other directories
