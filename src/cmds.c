@@ -269,7 +269,7 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long.")
   while (XINT (arg) > 0)
     {
       if (flag)
-	insert (&c1, 1);
+	insert_and_inherit (&c1, 1);
       else
 	internal_self_insert ('\n', !NILP (arg1));
       /* Ok since old and new vals both nonneg */
