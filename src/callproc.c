@@ -627,7 +627,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
        are changed between the check and this chdir, but we should
        at least check.  */
     if (chdir (temp) < 0)
-      exit (errno);
+      _exit (errno);
 
     /* Strip trailing slashes for PWD, but leave "/" and "//" alone.  */
     while (i > 2 && temp[i - 1] == '/')
