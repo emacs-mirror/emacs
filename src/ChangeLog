@@ -1,3 +1,8 @@
+2000-01-24  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (IT_menu_display): Truncate long menu lines at the right
+	screen boundary.
+
 2000-01-23  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (w32_defined_color): Apply gamma correction before
