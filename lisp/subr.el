@@ -174,6 +174,18 @@ Unibyte strings are converted to multibyte for comparison."
 	  (setq element (car alist)))
       (setq alist (cdr alist)))
     element))
+
+(defun member-ignore-case (elt list)
+  "Like `member', but ignores differences in case and text representation.
+ELT must be a string.  Upper-case and lower-case letters are treated as equal.
+Unibyte strings are converted to multibyte for comparison."
+  (let (element)
+    (while (and list (not element))
+      (if (eq t (compare-strings elt 0 nil (car list) 0 nil t))
+	  (setq element (car list)))
+      (setq list (cdr list)))
+      element))
+
 
 ;;;; Keymap support.
 
