@@ -825,6 +825,7 @@ and nil for X and Y.")
   Lisp_Object lispy_dummy;
   enum scroll_bar_part party_dummy;
   Lisp_Object x, y;
+  int col, row;
   unsigned long long_dummy;
 
   f = selected_frame;
@@ -836,7 +837,11 @@ and nil for X and Y.")
 			    &lispy_dummy, &party_dummy,
 			    &x, &y,
 			    &long_dummy);
-
+  col = XINT (x);
+  row = XINT (y);
+  glyph_to_pixel_coords (f, col, row, &col, &row);
+  XSETINT (x, col);
+  XSETINT (y, row);
   XSET (lispy_dummy, Lisp_Frame, f);
   return Fcons (lispy_dummy, Fcons (x, y));
 }
@@ -1769,6 +1774,11 @@ and nil for X and Y.")
 			    &x, &y,
 			    &long_dummy);
 
+  col = XINT (x);
+  row = XINT (y);
+  glyph_to_pixel_coords (f, col, row, &col, &row);
+  XSETINT (x, col);
+  XSETINT (y, row);
   /* Always return nil for frame.  */
   return Fcons (Qnil, Fcons (x, y));
 }
