@@ -8,7 +8,7 @@
 
 @c The edition number appears in several places in this file
 @set EDITION   Fourteenth
-@set EMACSVER  21.1.95
+@set EMACSVER  21.2
 
 @ifnottex
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},
@@ -65,7 +65,7 @@ Copyright @copyright{} 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 199
 @sp 2
 @value{EDITION} Edition @*
 Updated for Emacs Version @value{EMACSVER}, @*
-August 2000
+March 2002
 
 ISBN 1-882114-06-X
 @sp 1

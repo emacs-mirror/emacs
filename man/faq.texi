@@ -7,7 +7,7 @@
 @setchapternewpage odd
 
 @c This is used in many places
-@set VER 21.1
+@set VER 21.2
 
 @c The @ifinfo stuff only appears in the Info version
 @ifinfo
@@ -1260,7 +1260,7 @@ interested in performing frequently requested, basic tasks.
 @cindex Syntax highlighting on a TTY
 @cindex Console, colors
 
-As of Emacs 21.1, colors and faces are supported in non-windowed mode,
+In Emacs 21.1 and later, colors and faces are supported in non-windowed mode,
 i.e.@: on Unix and GNU/Linux text-only terminals and consoles, and when
 invoked as @samp{emacs -nw} on X and MS-Windows.  (Colors and faces were
 supported in the MS-DOS port since Emacs 19.29.)  Emacs automatically
@@ -3699,10 +3699,10 @@ Many XEmacs features have found their way into recent versions of Emacs,
 and more features can be expected in the future, but there are still many
 differences between the two.
 
-The latest stable version of XEmacs as of this writing is 21.1; you can
+The latest stable version of XEmacs as of this writing is 21.1.14; you can
 get it at
 
-@uref{ftp://ftp.xemacs.org/pub/xemacs/current/xemacs-21.1.13.tar.gz}
+@uref{ftp://ftp.xemacs.org/pub/xemacs/xemacs-21.1/xemacs-21.1.14.tar.gz}
 
 More information about XEmacs, including a list of frequently asked
 questions (FAQ), is available at
@@ -3723,12 +3723,12 @@ Windows (3.X, 9X, ME, NT, and 2000) and supports long file names under
 Windows 9X, Windows ME, and Windows 2000.  More information is available
 from
 
-@uref{ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2gnu/emacs.README}
+@uref{http://www.simtel.net/pub/gnu/djgpp/v2gnu/emacs.README}
 
 The binary itself is available in the files @file{em*.zip} in the
 directory
 
-@uref{ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2gnu/}
+@uref{http://www.simtel.net/pub/gnu/djgpp/v2gnu/}
 
 If you prefer to compile Emacs for yourself, you can do so with the
 current distribution directly.  You will need a 386 (or
@@ -3747,7 +3747,7 @@ long file names on Windows 9X/ME/2K.
 You can get the latest release of DJGPP by retrieving all of
 the files in
 
-@uref{ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2*}
+@uref{http://www.simtel.net/pub/gnu/djgpp/v2*}
 
 @item Unpacking program
 The easiest way is to use @code{djtar} which comes with DJGPP v2.x,
@@ -3766,11 +3766,11 @@ actually prevent Emacs from building successfully!
 @item make, mv, sed, and rm
 All of these utilities are available at
 
-@uref{ftp://ftp.simtel.net/pub/simtelnet/gnu/djgpp/v2gnu}
+@uref{http://www.simtel.net/pub/gnu/djgpp/v2gnu}
 
 16-bit utilities can be found in GNUish, at
 
-@uref{ftp://ftp.simtel.net/pub/simtelnet/gnu/gnuish}
+@uref{http://www.simtel.net/pub/gnu/gnuish}
 
 @noindent
 (@code{mv} and @code{rm} are in the Fileutils package, @code{sed} and
