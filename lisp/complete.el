@@ -523,7 +523,7 @@ See `PC-complete' for details."
 		;; If totally ambiguous, display a list of completions
 		(if (or completion-auto-help
 			(eq mode 'help))
-		    (with-output-to-temp-buffer " *Completions*"
+		    (with-output-to-temp-buffer "*Completions*"
 		      (display-completion-list (sort helpposs 'string-lessp)))
 		  (PC-temp-minibuffer-message " (Next char not unique)"))
 		nil)))))
