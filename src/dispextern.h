@@ -2030,6 +2030,7 @@ extern int toolbar_button_relief;
 
 /* Defined in xdisp.c */
 
+int resize_mini_window P_ ((struct window *));
 int try_window P_ ((Lisp_Object, struct text_pos));
 void window_box P_ ((struct window *, int, int *, int *, int *, int *));
 int window_box_height P_ ((struct window *));
