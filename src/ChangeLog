@@ -1,3 +1,7 @@
+2003-08-21  Dave Love  <fx@gnu.org>
+
+	* m/iris4d.h: Use _MIPS_SZLONG, not _LP64.
+
 2003-08-21  Kenichi Handa  <handa@m17n.org>
 
 	* term.c (term_init): Fix previous change; don't rely on the
