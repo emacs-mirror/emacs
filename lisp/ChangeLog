@@ -1,3 +1,9 @@
+2001-08-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* mail/sendmail.el (mail-mode): Use adaptive-fill-regexp.
+
+	* textmodes/fill.el (adaptive-fill-regexp): Admit tabs as well.
+
 2001-08-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* simple.el (line-number-mode): Mention the variable
