@@ -87,7 +87,7 @@ Lisp_Object Qboundp, Qfboundp;
 Lisp_Object Qchar_table_p, Qvector_or_char_table_p;
 
 Lisp_Object Qcdr;
-Lisp_Object Qad_advice_info, Qad_activate;
+Lisp_Object Qad_advice_info, Qad_activate_internal;
 
 Lisp_Object Qrange_error, Qdomain_error, Qsingularity_error;
 Lisp_Object Qoverflow_error, Qunderflow_error;
@@ -682,7 +682,7 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
   /* Handle automatic advice activation */
   if (CONSP (XSYMBOL (symbol)->plist) && !NILP (Fget (symbol, Qad_advice_info)))
     {
-      call2 (Qad_activate, symbol, Qnil);
+      call2 (Qad_activate_internal, symbol, Qnil);
       definition = XSYMBOL (symbol)->function;
     }
   return definition;
@@ -2623,7 +2623,7 @@ syms_of_data ()
 
   /* Handle automatic advice activation */
   Qad_advice_info = intern ("ad-advice-info");
-  Qad_activate = intern ("ad-activate");
+  Qad_activate_internal = intern ("ad-activate-internal");
 
   error_tail = Fcons (Qerror, Qnil);
 
@@ -2810,7 +2810,7 @@ syms_of_data ()
   staticpro (&Qfboundp);
   staticpro (&Qcdr);
   staticpro (&Qad_advice_info);
-  staticpro (&Qad_activate);
+  staticpro (&Qad_activate_internal);
 
   /* Types that type-of returns.  */
   Qinteger = intern ("integer");
