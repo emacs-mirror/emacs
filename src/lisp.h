@@ -1122,36 +1122,33 @@ typedef unsigned char UCHAR;
 
 /* The glyph datatype, used to represent characters on the display.  */
 
-/* The low 19 bits (CHARACTERBITS) are the character code, and the
-   bits above them except for the topmost two bits are the numeric
-   face ID.  If FID is the face ID of a glyph on a frame F, then
-   F->display.x->faces[FID] contains the description of that face.
-   This is an int instead of a short, so we can support a good bunch
-   of face ID's (i.e. 2^(32 - 19 - 2) = 2048 ID's) ; given that we
+/* Glyph code to use as an index to the glyph table.  If it is out of
+   range for the glyph table, or the corresonding element in the table
+   is nil, the low 8 bits are the single byte character code, and the
+   bits above are the numeric face ID.  If FID is the face ID of a
+   glyph on a frame F, then F->display.x->faces[FID] contains the
+   description of that face.  This is an int instead of a short, so we
+   can support a good bunch of face ID's (2^(31 - 8)); given that we
    have no mechanism for tossing unused frame face ID's yet, we'll
-   probably run out of 255 pretty quickly.  */
-#define GLYPH unsigned int
+   probably run out of 255 pretty quickly.
+   This is always -1 for a multibyte character.  */
+#define GLYPH int
 
-/* Mask bit for a glyph of a character which should be written from
-   right to left.  */
-#define GLYPH_MASK_REV_DIR 0x80000000
-/* Mask bit for a padding glyph of a multi-column character.  */
-#define GLYPH_MASK_PADDING 0x40000000
 /* Mask bits for face.  */
-#define GLYPH_MASK_FACE    0x3FF80000
-/* Mask bits for character code.  */
-#define GLYPH_MASK_CHAR    0x0007FFFF /* The lowest 19 bits */
+#define GLYPH_MASK_FACE    0x7FFFFF00
+ /* Mask bits for character code.  */
+#define GLYPH_MASK_CHAR    0x000000FF /* The lowest 8 bits */
 
 /* The FAST macros assume that we already know we're in an X window.  */
 
-/* Given a character code and a face ID, return the appropriate glyph.  */
-#define FAST_MAKE_GLYPH(char, face) ((char) | ((face) << CHARACTERBITS))
+/* Set a character code and a face ID in a glyph G.  */
+#define FAST_MAKE_GLYPH(char, face) ((char) | ((face) << 8))
 
 /* Return a glyph's character code.  */
 #define FAST_GLYPH_CHAR(glyph) ((glyph) & GLYPH_MASK_CHAR)
 
 /* Return a glyph's face ID.  */
-#define FAST_GLYPH_FACE(glyph) (((glyph) & GLYPH_MASK_FACE) >> CHARACTERBITS)
+#define FAST_GLYPH_FACE(glyph) (((glyph) & GLYPH_MASK_FACE) >> 8)
 
 /* Slower versions that test the frame type first.  */
 #define MAKE_GLYPH(f, char, face) (FAST_MAKE_GLYPH (char, face))
