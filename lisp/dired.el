@@ -1197,8 +1197,8 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     ;; misc
     (define-key map "?" 'dired-summary)
     (define-key map "\177" 'dired-unmark-backward)
-    (define-key map "\C-_" 'dired-undo)
-    (define-key map "\C-xu" 'dired-undo)
+    (define-key map [remap undo] 'dired-undo)
+    (define-key map [remap advertised-undo] 'dired-undo)
 
     ;; Make menu bar items.
 
