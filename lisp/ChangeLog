@@ -126,7 +126,7 @@
 	(c-require-final-newline): Added a variable to make the
 	initialization of `require-final-newline' more configurable.
 
-2003-01-26  Jan D.  <jan.h.d@swipnet.se>
+2003-01-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* emacs-lisp/authors.el (authors-aliases): Add Jan D.
 	Set iso-2022-7bit coding: cookie.
@@ -11943,7 +11943,7 @@
 	* ibuffer.el (ibuffer-redisplay-current): Don't move point when
 	redisplaying a line.
 
-2002-03-12  Jan D.  <Jan.Djarv@mbox200.swipnet.se>
+2002-03-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (emacs-session-restore): Take previous id as
 	an argument.
@@ -12015,7 +12015,7 @@
 
 	* play/mpuz.el: Use defface instead of facemenu-get-face.
 
-2002-03-10  Jan D.  <Jan.Djarv@mbox200.swipnet.se>
+2002-03-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* startup.el (command-line): Add call to emacs-session-restore if
 	both x-session-id and x-session-previous-id are strings.
@@ -13675,7 +13675,7 @@
 
 	* dired-aux.el (dired-do-shell-command): Doc fix.
 
-2002-01-13  Jan Djarv  <Jan.Djarv@mbox200.swipnet.se>
+2002-01-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* startup.el (command-line-x-option-alist): New options "-fs",
 	"-fw", "-fh", "--fullscreen", "--fullwidth", and "--fullheight".

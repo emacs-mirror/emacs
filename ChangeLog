@@ -12,11 +12,11 @@
 
 	* Makefile.in (bootstrap): Make bootstrap-after.
 
-2003-01-20  Jan D.  <jan.h.d@swipnet.se>
+2003-01-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in: Fix --with-gtk.
 
-2003-01-19  Jan D.  <jan.h.d@swipnet.se>
+2003-01-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in: Add --with-gtk, --with-x-toolkit=gtk
 
@@ -285,7 +285,7 @@
 
 	* configure.in: Support AIX 5.1.
 
-2002-03-10  Jan D.  <Jan.Djarv@mbox200.swipnet.se>
+2002-03-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in: Added test for X Session Management (HAVE_X_SM).
 

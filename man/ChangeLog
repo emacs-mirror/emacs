@@ -2,7 +2,7 @@
 
 	* killing.texi (Rectangles): Document C-x c r.
 
-2003-01-19  Jan D.  <jan.h.d@swipnet.se>
+2003-01-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xresources.texi (GTK resources): New node.
 	(GTK widget names): New node.
