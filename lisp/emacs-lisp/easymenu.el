@@ -357,22 +357,24 @@ Do it if `easy-menu-precalculate-equivalent-keybindings' is on,"
 	(setq menu (symbol-value menu)))
     (if (keymapp menu) (x-popup-menu nil menu))))
 
-(defun easy-menu-add-item (menu path item &optional before)
-  "At the end of the submenu of MENU with path PATH add ITEM.
+(defun easy-menu-add-item (map path item &optional before)
+  "At the end of the submenu of MAP with path PATH add ITEM.
 If ITEM is already present in this submenu, then this item will be changed.
 otherwise ITEM will be added at the end of the submenu, unless the optional
 argument BEFORE is present, in which case ITEM will instead be added
 before the item named BEFORE.
-MENU is either a symbol, which have earlier been used as the first
-argument in a call to `easy-menu-define', or the value of such a symbol
-i.e. a menu, or nil which stands for the menu-bar itself.
+
+MAP should normally be a keymap; nil stands for the global menu-bar keymap.
+It can also be a symbol, which has earlier been used as the first
+argument in a call to `easy-menu-define', or the value of such a symbol.
+
 PATH is a list of strings for locating the submenu where ITEM is to be
-added.  If PATH is nil, MENU itself is used.  Otherwise, the first
-element should be the name of a submenu directly under MENU.  This
+added.  If PATH is nil, MAP itself is used.  Otherwise, the first
+element should be the name of a submenu directly under MAP.  This
 submenu is then traversed recursively with the remaining elements of PATH.
 ITEM is either defined as in `easy-menu-define' or a menu defined earlier
 by `easy-menu-define' or `easy-menu-create-menu'."
-  (setq menu (easy-menu-get-map menu path))
+  (setq map (easy-menu-get-map map path))
   (if (or (keymapp item)
 	  (and (symbolp item) (keymapp (symbol-value item))))
       ;; Item is a keymap, find the prompt string and use as item name.
@@ -383,32 +385,33 @@ by `easy-menu-define' or `easy-menu-create-menu'."
 	  (if (stringp (car tail)) (setq name (car tail)) ; Got a name.
 	    (setq tail (cdr tail))))
 	(setq item (cons name item))))
-  (easy-menu-do-add-item menu item before))
+  (easy-menu-do-add-item map item before))
 
-(defun easy-menu-item-present-p (menu path name)
-  "In submenu of MENU with path PATH, return true iff item NAME is present.
-MENU and PATH are defined as in `easy-menu-add-item'.
+(defun easy-menu-item-present-p (map path name)
+  "In submenu of MAP with path PATH, return true iff item NAME is present.
+MAP and PATH are defined as in `easy-menu-add-item'.
 NAME should be a string, the name of the element to be looked for."
-  (lookup-key (easy-menu-get-map menu path) (vector (intern name))))
+  (lookup-key (easy-menu-get-map map path) (vector (intern name))))
 
-(defun easy-menu-remove-item (menu path name)
-  "From submenu of MENU with path PATH remove item NAME.
-MENU and PATH are defined as in `easy-menu-add-item'.
+(defun easy-menu-remove-item (map path name)
+  "From submenu of MAP with path PATH remove item NAME.
+MAP and PATH are defined as in `easy-menu-add-item'.
 NAME should be a string, the name of the element to be removed."
-  (easy-menu-define-key (easy-menu-get-map menu path) (intern name) nil))
+  (easy-menu-define-key (easy-menu-get-map map path) (intern name) nil))
 
-(defun easy-menu-get-map (menu path)
+(defun easy-menu-get-map (map path)
   ;; Return a sparse keymap in which to add or remove an item.
-  ;; MENU and PATH are as defined in `easy-menu-add-item'.
-  (if (null menu)
-      (setq menu (key-binding (vconcat '(menu-bar) (mapcar 'intern path))))
-    (if (and (symbolp menu) (not (keymapp menu)))
-	(setq menu (symbol-value menu)))
-    (if path (setq menu (lookup-key menu (vconcat (mapcar 'intern path))))))
-  (while (and (symbolp menu) (keymapp menu))
-    (setq menu (symbol-function menu)))
-  (or (keymapp menu) (error "Malformed menu in easy-menu: (%s)" menu))
-  menu)
+  ;; MAP and PATH are as defined in `easy-menu-add-item'.
+  (if (null map)
+      (setq map (lookup-key global-map
+			     (vconcat '(menu-bar) (mapcar 'intern path))))
+    (if (and (symbolp map) (not (keymapp map)))
+	(setq map (symbol-value map)))
+    (if path (setq map (lookup-key map (vconcat (mapcar 'intern path))))))
+  (while (and (symbolp map) (keymapp map))
+    (setq map (symbol-function map)))
+  (or (keymapp map) (error "Malformed menu in easy-menu: (%s)" map))
+  map)
 
 (provide 'easymenu)
 
