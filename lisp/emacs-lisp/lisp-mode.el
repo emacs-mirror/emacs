@@ -1182,7 +1182,7 @@ and initial semicolons."
       ;; The `fill-column' is temporarily bound to
       ;; `emacs-lisp-docstring-fill-column' if that value is an integer.
       (let ((paragraph-start (concat paragraph-start
-				     "\\|\\s-*\\([\(;:\"]\\|`\(\\)"))
+				     "\\|\\s-*\\([\(;:\"]\\|`\(\\|#'\(\\)"))
 	    (paragraph-separate
 	     (concat paragraph-separate "\\|\\s-*\".*[,\\.]$"))
             (fill-column (if (integerp emacs-lisp-docstring-fill-column)
