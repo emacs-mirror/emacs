@@ -2450,10 +2450,10 @@ the variable `Info-file-list-for-emacs'."
 		  (put-text-property (match-beginning 0)
 				     (1+ (match-beginning 0))
 				     'face 'info-menu-5))
-	      (put-text-property (match-beginning 1) (match-end 1)
-				 'face 'info-xref)
-	      (put-text-property (match-beginning 1) (match-end 1)
-				 'mouse-face 'highlight))))
+	      (add-text-properties (match-beginning 1) (match-end 1)
+				   '(face info-xref
+				     mouse-face highlight
+				     help-echo "mouse-2: go to this node")))))
       (set-buffer-modified-p nil))))
 
 
