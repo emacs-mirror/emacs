@@ -1,3 +1,7 @@
+2002-11-14  Kenichi Handa  <handa@m17n.org>
+
+	* progmodes/cc-vars.el: Don't cc-bytecomp-defun char-table-p.
+
 2002-11-14  Kim F. Storm  <storm@cua.dk>
 
 	* textmodes/fill.el (fill-nobreak-invisible): New var.
@@ -1229,7 +1233,7 @@
 	once Emacs is started up; initialize to "" at loadup time.
 	(command-line): "", not nil, means user-mail-address not set yet.
 
-2002-09-29  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-29  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.24 released.
 	(tramp-methods, tramp-completion-function-alist):
@@ -1617,7 +1621,7 @@
 	* mail/sendmail.el (sendmail-send-it): If user's buffer
 	is unibyte, make tembuf unibyte.
 
-2002-09-22  Kai Gro,b_(Bjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
+2002-09-22  Kai Gro,A_(Bjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
 
 	* net/tramp.el: Version 2.0.22 released.
 	(tramp-parse-rhosts, tramp-parse-shosts)
@@ -1634,7 +1638,7 @@
 	(tramp-completion-function-alist): Add completion function for "ftp".
 	From Michael Albinus <Michael.Albinus@alcatel.de>.
 
-2002-09-22  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-22  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.21 released.
 	(tramp-handle-file-newer-than-file-p): If mtime of both files is
@@ -1648,11 +1652,11 @@
 	(tramp-method-out-of-band-p): Correct number of args for
 	`tramp-get-rsh-program' and similar functions.
 
-2002-09-22  Kai Gro,b_(Bjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
+2002-09-22  Kai Gro,A_(Bjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
 
 	* net/tramp.el: Version 2.0.20 released.
 
-2002-09-20  Kai Gro,b_(Bjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
+2002-09-20  Kai Gro,A_(Bjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
 
 	* net/tramp.el (tramp-completion-function-alist): Escape open
 	paren in docstring.
@@ -1681,24 +1685,24 @@
 	`tramp-find-method'.  Update callers.
 	(tramp-find-method): New function.
 
-2002-09-20  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-20  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-handle-insert-directory): Handle "--dired"
 	in SWITCHES (by removing it).
 
-2002-09-18  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-18  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-file-name-handler): Add `file-remote-p' property.
 
-2002-09-17  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-17  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (top-level): Maybe autoload uudecode-decode-region.
 
-2002-09-16  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-16  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-bug): Add tramp-methods.
 
-2002-09-16  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-16  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-methods): Update docstring:
 	tramp-encoding-command, tramp-decoding-command,
@@ -1706,7 +1710,7 @@
 	parameters anymore.
 	(tramp-uuencode-region): Autoload it.
 
-2002-09-13  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-13  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	Version 2.0.19 released.
 
@@ -1716,11 +1720,11 @@
 	Use `tramp-uuencode-region' as local encoder for the uuencode based
 	entries.
 
-2002-09-13  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-13  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-handle-write-region): Wrong parens.
 
-2002-09-13  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-13  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	Version 2.0.18 released.
 
@@ -1728,14 +1732,14 @@
 	older versions of Perl.  Now tested with 5.004.  Suggestion from
 	Michael Albinus.
 
-2002-09-12  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-12  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-find-inline-encoding):
 	Call tramp-call-local-coding-command with nil for INPUT and OUTPUT.
 	(tramp-call-local-coding-command): OUTPUT equals nil means to
 	discard the output.  INPUT equals nil means /dev/null.
 
-2002-09-12  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-12  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-encoding-shell): Default to environment
 	variable COMSPEC on Windows.
@@ -1748,7 +1752,7 @@
 	Define `result1'.
 	(tramp-parse-hosts-group): Discard IPv6 entries.
 
-2002-09-11  Kai Gro,b_(Bjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
+2002-09-11  Kai Gro,A_(Bjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
 
 	* net/tramp.el (tramp-post-connection): Only send Perl
 	mime-encode/decode implementations when using inline method.
@@ -1771,7 +1775,7 @@
 	(tramp-get-decoding-function, tramp-set-decoding-function):
 	Old functions, removed.
 
-2002-09-10  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-10  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-open-connection-setup-interactive-shell):
 	Change command to invoke /bin/sh slightly to make it compatible
@@ -1782,7 +1786,7 @@
 	* net/tramp.el (tramp-handle-write-region): Added missing
 	`)'.  Hope it's the right place.
 
-2002-09-09  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-09  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-open-connection-setup-interactive-shell):
 	Do "exec env PS1='$ ' /bin/sh" instead of just "exec /bin/sh" in
@@ -1836,7 +1840,7 @@
 	`tramp-get-completion-su' (the previous place for this stuff)
 	doesn't exist any longer.
 
-2002-09-07  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-07  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-enter-password):
 	Use `tramp-password-end-of-line' to terminate the line.
@@ -1848,7 +1852,7 @@
 	(tramp-wait-for-output, tramp-post-connection): Allow "\r" at end
 	of line of the output delimiter.
 
-2002-09-06  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-06  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-handle-file-local-copy, tramp-find-shell)
 	(tramp-open-connection-setup-interactive-shell): Add some comments
@@ -1866,7 +1870,7 @@
 	(tramp-completion-mode): Replace `last-input-char' by modern
 	`last-input-event'. Check for `event-modifiers'.
 
-2002-09-06  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-06  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (file-expand-wildcards): Corrected check to see if
 	advising is necessary.
@@ -1987,7 +1991,7 @@
 	(tramp-completion-handle-file-name-all-completions):
 	Apply `tramp-completion-run-real-handler'.
 	(tramp-parse-rhosts)
-	(tramp-parse-shosts): Use `with-temp-buffer'. `result,b4(B renamed to
+	(tramp-parse-shosts): Use `with-temp-buffer'. `result,B.(B renamed to
 	`res' (otherwise side effects in XEmacs).
 
 2002-08-24  Michael Albinus  <Michael.Albinus@alcatel.de>
@@ -2066,13 +2070,13 @@
 	list in order to avoid nested lists, f.e. when invoked from
 	`tramp-handle-dired-call-process'.
 
-2002-09-05  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-05  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-chunksize): New kluge variable.
 	(tramp-send-region): If tramp-chunksize is non-nil, send region in
 	parts and sleep 0.1 seconds between chunks.
 
-2002-09-03  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-03  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-handle-insert-directory):
 	Use `insert-buffer-substring' instead of `insert-buffer', which is not
@@ -2083,12 +2087,12 @@
 	(file-expand-wildcards): Don't advise unless "[" and "]" are used
 	in the filename format.
 
-2002-09-01  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-01  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-methods): Remove duplicate definition of
 	ssh1-old and ssh2-old.
 
-2002-09-22  Kai Gro,b_(Bjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
+2002-09-22  Kai Gro,A_(Bjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
 
 	* dired.el (dired-insert-directory): Always add "--dired" to to
 	SWITCHES for remote files.
@@ -2645,7 +2649,7 @@
 	(ps-print-color-p, ps-page-dimensions-database): Autoload var.
 	(ps-print-code, ps-print-preprint-region): Adjust code.
 
-2002-09-10  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-10  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* files.el (auto-mode-alist): ~/.gnus, ~/.viper are in
 	emacs-lisp-mode, like ~/.emacs.
@@ -4491,7 +4495,7 @@
 	(encode-char): Use ucs-mule-to-mule-unicode.
 
 	* international/characters.el: Fix settings of U+2000-U+2027.
-	Remove $,1uf(B.
+	Remove $(C'Y(B.
 
 	* international/mule-cmds.el (locale-language-names): Fix be, add
 	sr_YU@cyrillic, modify tg.
