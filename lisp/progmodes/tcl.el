@@ -1,6 +1,7 @@
 ;;; tcl.el --- Tcl code editing commands for Emacs
 
-;; Copyright (C) 1994,98,1999,2000,01,02,2003,2004  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;;           Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Author: Tom Tromey <tromey@redhat.com>
@@ -469,10 +470,7 @@ Uses variables `tcl-proc-regexp' and `tcl-keyword-list'."
 	 ;; Keywords.  Only recognized if surrounded by whitespace.
 	 ;; FIXME consider using "not word or symbol", not
 	 ;; "whitespace".
-	 (cons (concat "\\(\\s-\\|^\\)"
-		       ;; FIXME Use regexp-quote?
-		       (regexp-opt tcl-keyword-list t)
-		       "\\(\\s-\\|$\\)")
+	 (cons (concat "\\_<" (regexp-opt tcl-keyword-list t) "\\_>")
 	       2))))
 
 (if tcl-proc-regexp
@@ -1507,5 +1505,5 @@ The first line is assumed to look like \"#!.../program ...\"."
 
 (provide 'tcl)
 
-;;; arch-tag: 8a032554-c3ef-422e-b84c-acec0522179d
+;; arch-tag: 8a032554-c3ef-422e-b84c-acec0522179d
 ;;; tcl.el ends here

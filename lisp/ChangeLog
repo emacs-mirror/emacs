@@ -1,5 +1,7 @@
 2005-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/tcl.el (tcl-set-font-lock-keywords): Use new \_< ops.
+
 	* pcvs.el (cvs-checkout): Prompt for cvsroot as well.
 
 2005-04-03  Glenn Morris  <gmorris@ast.cam.ac.uk>
