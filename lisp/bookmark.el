@@ -1482,7 +1482,7 @@ method buffers use to resolve name collisions."
     nil
   (setq bookmark-bmenu-mode-map (make-keymap))
   (suppress-keymap bookmark-bmenu-mode-map t)
-  (define-key bookmark-bmenu-mode-map "q" 'bookmark-bmenu-quit)
+  (define-key bookmark-bmenu-mode-map "q" 'quit-window)
   (define-key bookmark-bmenu-mode-map "v" 'bookmark-bmenu-select)
   (define-key bookmark-bmenu-mode-map "w" 'bookmark-bmenu-locate)
   (define-key bookmark-bmenu-mode-map "2" 'bookmark-bmenu-2-window)
@@ -1940,14 +1940,6 @@ The current window remains selected."
   (let ((bookmark (bookmark-bmenu-bookmark)))
     (if (bookmark-bmenu-check-position)
 	(bookmark-edit-annotation bookmark))))
-
-
-(defun bookmark-bmenu-quit ()
-  "Quit the bookmark menu."
-  (interactive)
-  (let ((buffer (current-buffer)))
-    (switch-to-buffer (other-buffer))
-    (bury-buffer buffer)))
 
 
 (defun bookmark-bmenu-unmark (&optional backup)
