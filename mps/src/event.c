@@ -1,9 +1,8 @@
 /* impl.c.event: EVENT LOGGING
  *
- * $HopeName: MMsrc!event.c(trunk.12) $
- * Copyright (C) 1997, 1998, 1999 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!event.c(trunk.13) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
- * .readership: MPS developers.
  * .sources: mps.design.event
  *
  * TRANSGRESSIONS (rule.impl.trans)
@@ -26,7 +25,7 @@
 #include "event.h"
 #include "mpsio.h"
 
-SRCID(event, "$HopeName: MMsrc!event.c(trunk.12) $");
+SRCID(event, "$HopeName: MMsrc!event.c(trunk.13) $");
 
 
 #ifdef EVENT /* .trans.ifdef */
@@ -34,7 +33,7 @@ SRCID(event, "$HopeName: MMsrc!event.c(trunk.12) $");
 
 static Bool eventInited = FALSE;
 static mps_io_t eventIO;
-static char eventBuffer[EVENT_BUFFER_SIZE];
+static char eventBuffer[EventBufferSIZE];
 static Count eventUserCount;
 static Serial EventInternSerial;
 
@@ -42,6 +41,8 @@ EventUnion EventMould; /* Used by macros in impl.h.event */
 char *EventNext, *EventLimit; /* Used by macros in impl.h.event */
 Word EventKindControl; /* Bit set used to control output. */
 
+
+/* EventFlush -- flush event buffer to the event stream */
 
 Res EventFlush(void)
 {
@@ -52,7 +53,7 @@ Res EventFlush(void)
   res = (Res)mps_io_write(eventIO, (void *)eventBuffer,
                           EventNext - eventBuffer);
   EventNext = eventBuffer;
-  if(res != ResOK) return res;
+  if (res != ResOK) return res;
 
   return ResOK;
 }
@@ -70,18 +71,20 @@ Res EventSync(void)
 }
 
 
+/* EventInit -- start using the event system, initialize if necessary */
+
 Res EventInit(void)
 {
   Res res;
 
-  /* Initialize the event system if this is the first call. */
+  /* Only if this is the first call. */
   if(!eventInited) { /* See .trans.log */
     AVER(EventNext == 0);
     AVER(EventLimit == 0);
     res = (Res)mps_io_create(&eventIO);
     if(res != ResOK) return res;
     EventNext = eventBuffer;
-    EventLimit = &eventBuffer[EVENT_BUFFER_SIZE];
+    EventLimit = &eventBuffer[EventBufferSIZE];
     eventUserCount = (Count)1;
     eventInited = TRUE;
     EventKindControl = (Word)mps_lib_telemetry_control();
@@ -94,6 +97,8 @@ Res EventInit(void)
   return ResOK;
 }
 
+
+/* EventFinish -- stop using the event system */
 
 void EventFinish(void)
 {
@@ -130,6 +135,8 @@ Word EventControl(Word resetMask, Word flipMask)
 }
 
 
+/* EventInternString -- emit an Intern event on the (null-term) string given */
+
 Word EventInternString(const char *label)
 {
   Word id;
@@ -143,6 +150,8 @@ Word EventInternString(const char *label)
 }
 
 
+/* EventInternGenString -- emit an Intern event on the string given */
+
 Word EventInternGenString(size_t len, const char *label)
 {
   Word id;
@@ -155,6 +164,8 @@ Word EventInternGenString(size_t len, const char *label)
   return id;
 }
 
+
+/* EventLabelAddr -- emit event to label address with the given id */
 
 void EventLabelAddr(Addr addr, Word id)
 {
