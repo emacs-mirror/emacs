@@ -1,7 +1,7 @@
 ;;; mh-utils.el --- MH-E code needed for both sending and reading
 
 ;; Copyright (C) 1993, 95, 1997,
-;;  2000, 01, 02, 2003 Free Software Foundation, Inc.
+;;  2000, 01, 02, 03, 2004 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -37,14 +37,28 @@
 (defvar mh-xemacs-flag (featurep 'xemacs)
   "Non-nil means the current Emacs is XEmacs.")
 
-(require 'cl)
+;; The Emacs coding conventions require that the cl package not be required at
+;; runtime. However, the cl package in versions of Emacs prior to 21.4 left cl
+;; routines in their macro expansions. Use mh-require-cl to provide the cl
+;; routines in the best way possible.
+(eval-when-compile (require 'cl))
+(defmacro mh-require-cl ()
+  (if (eq (car (macroexpand '(setf (gethash foo bar) baz))) 'cl-puthash)
+      `(require 'cl)
+    `(eval-when-compile (require 'cl))))
+
+(mh-require-cl)
 (require 'gnus-util)
 (require 'font-lock)
+(require 'mouse)
+(load "tool-bar" t t)
 (require 'mh-loaddefs)
 (require 'mh-customize)
+(require 'mh-inc)
 
 (load "mm-decode" t t)                  ; Non-fatal dependency
 (load "mm-view" t t)                    ; Non-fatal dependency
+(load "hl-line" t t)                    ; Non-fatal dependency
 (load "executable" t t)                 ; Non-fatal dependency on
                                         ; executable-find
 
@@ -52,7 +66,6 @@
 (defvar font-lock-auto-fontify)
 (defvar font-lock-defaults)
 (defvar mark-active)
-(defvar tool-bar-mode)
 
 ;;; Autoloads
 (autoload 'gnus-article-highlight-citation "gnus-cite")
@@ -80,6 +93,9 @@ This directory contains, among other things, the mhl program.")
 
 (defvar mh-nmh-flag nil
   "Non-nil means nmh is installed on this system instead of MH.")
+
+(defvar mh-flists-present-flag nil
+  "Non-nil means that we have `flists'.")
 
 ;;;###autoload
 (put 'mh-progs 'risky-local-variable t)
@@ -311,7 +327,7 @@ passed through `regexp-quote' before being used by functions like
 
 ;; Copy of `goto-address-mail-regexp'
 (defvar mh-address-mail-regexp
-  "[-a-zA-Z0-9._]+@[-a-zA-z0-9_]+\\.+[a-zA-Z0-9]+"
+  "[-a-zA-Z0-9._]+@\\([-a-zA-z0-9_]+\\.\\)+[a-zA-Z0-9]+"
   "A regular expression probably matching an e-mail address.")
 
 ;; From goto-addr.el, which we don't want to force-load on users.
@@ -434,6 +450,10 @@ Argument LIMIT limits search."
            (2 font-lock-constant-face nil t)
            (4 font-lock-comment-face nil t)))))))
   "Additional expressions to highlight in MH-show mode.")
+
+(defvar mh-letter-font-lock-keywords
+  `(,@mh-show-font-lock-keywords-with-cite
+    (mh-font-lock-field-data (1 'mh-letter-header-field-face prepend t))))
 
 (defun mh-show-font-lock-fontify-region (beg end loudly)
   "Limit font-lock in `mh-show-mode' to the header.
@@ -632,6 +652,39 @@ Stronger than `save-excursion', weaker than `save-window-excursion'."
 
 (put 'mh-in-show-buffer 'lisp-indent-hook 'defun)
 
+(defmacro mh-do-at-event-location (event &rest body)
+  "Switch to the location of EVENT and execute BODY.
+After BODY has been executed return to original window. The modification flag
+of the buffer in the event window is preserved."
+  (let ((event-window (make-symbol "event-window"))
+        (event-position (make-symbol "event-position"))
+        (original-window (make-symbol "original-window"))
+        (original-position (make-symbol "original-position"))
+        (modified-flag (make-symbol "modified-flag")))
+    `(save-excursion
+       (let* ((,event-window
+               (or (mh-funcall-if-exists posn-window (event-start ,event))
+                   (mh-funcall-if-exists event-window ,event)))
+              (,event-position
+               (or (mh-funcall-if-exists posn-point (event-start ,event))
+                   (mh-funcall-if-exists event-closest-point ,event)))
+              (,original-window (selected-window))
+              (,original-position (progn
+                                   (set-buffer (window-buffer ,event-window))
+                                   (set-marker (make-marker) (point))))
+              (,modified-flag (buffer-modified-p))
+              (buffer-read-only nil))
+         (unwind-protect (progn
+                           (select-window ,event-window)
+                           (goto-char ,event-position)
+                           ,@body)
+           (set-buffer-modified-p ,modified-flag)
+           (goto-char ,original-position)
+           (set-marker ,original-position nil)
+           (select-window ,original-window))))))
+
+(put 'mh-do-at-event-location 'lisp-indent-hook 'defun)
+
 (defmacro mh-make-seq (name msgs)
   "Create sequence NAME with the given MSGS."
   (list 'cons name msgs))
@@ -761,6 +814,8 @@ still visible.\n")
              (prog1 (call-interactively (function ,original-function))
                (setq normal-exit t))
            (mh-funcall-if-exists deactivate-mark)
+           (when (eq major-mode 'mh-folder-mode)
+             (mh-funcall-if-exists hl-line-highlight))
            (cond ((not normal-exit)
                   (set-window-configuration config))
                  ,(if dont-return
@@ -823,8 +878,11 @@ still visible.\n")
 (mh-defun-show-buffer mh-show-put-msg-in-seq mh-put-msg-in-seq)
 (mh-defun-show-buffer mh-show-msg-is-in-seq mh-msg-is-in-seq)
 (mh-defun-show-buffer mh-show-widen mh-widen)
-(mh-defun-show-buffer mh-show-narrow-to-subject
-                      mh-narrow-to-subject)
+(mh-defun-show-buffer mh-show-narrow-to-subject mh-narrow-to-subject)
+(mh-defun-show-buffer mh-show-narrow-to-from mh-narrow-to-from)
+(mh-defun-show-buffer mh-show-narrow-to-cc mh-narrow-to-cc)
+(mh-defun-show-buffer mh-show-narrow-to-range mh-narrow-to-range)
+(mh-defun-show-buffer mh-show-narrow-to-to mh-narrow-to-to)
 (mh-defun-show-buffer mh-show-store-msg mh-store-msg)
 (mh-defun-show-buffer mh-show-page-digest mh-page-digest)
 (mh-defun-show-buffer mh-show-page-digest-backwards
@@ -854,6 +912,9 @@ still visible.\n")
 (mh-defun-show-buffer mh-show-junk-blacklist mh-junk-blacklist)
 (mh-defun-show-buffer mh-show-junk-whitelist mh-junk-whitelist)
 (mh-defun-show-buffer mh-show-index-new-messages mh-index-new-messages)
+(mh-defun-show-buffer mh-show-index-ticked-messages mh-index-ticked-messages)
+(mh-defun-show-buffer mh-show-index-sequenced-messages
+                      mh-index-sequenced-messages)
 
 ;;; Populate mh-show-mode-map
 (gnus-define-keys mh-show-mode-map
@@ -898,6 +959,7 @@ still visible.\n")
 
 (gnus-define-keys (mh-show-folder-map "F" mh-show-mode-map)
   "?"    mh-prefix-help
+  "'"    mh-index-ticked-messages
   "S"    mh-show-sort-folder
   "f"    mh-show-visit-folder
   "i"    mh-index-search
@@ -905,6 +967,7 @@ still visible.\n")
   "l"    mh-show-list-folders
   "n"    mh-index-new-messages
   "o"    mh-show-visit-folder
+  "q"    mh-show-index-sequenced-messages
   "r"    mh-show-rescan-folder
   "s"    mh-show-search-folder
   "t"    mh-show-toggle-threads
@@ -912,6 +975,7 @@ still visible.\n")
   "v"    mh-show-visit-folder)
 
 (gnus-define-keys (mh-show-sequence-map "S" mh-show-mode-map)
+  "'"    mh-show-narrow-to-tick
   "?"    mh-prefix-help
   "d"    mh-show-delete-msg-from-seq
   "k"    mh-show-delete-seq
@@ -940,7 +1004,11 @@ still visible.\n")
 (gnus-define-keys (mh-show-limit-map "/" mh-show-mode-map)
   "'"    mh-show-narrow-to-tick
   "?"    mh-prefix-help
+  "c"    mh-show-narrow-to-cc
+  "f"    mh-show-narrow-to-from
+  "r"    mh-show-narrow-to-range
   "s"    mh-show-narrow-to-subject
+  "t"    mh-show-narrow-to-to
   "w"    mh-show-widen)
 
 (gnus-define-keys (mh-show-extract-map "X" mh-show-mode-map)
@@ -1039,8 +1107,10 @@ still visible.\n")
 ;;; Ensure new buffers won't get this mode if default-major-mode is nil.
 (put 'mh-show-mode 'mode-class 'special)
 
-;; Avoid compiler warning
-(defvar tool-bar-map)
+;; Avoid compiler warnings in XEmacs and Emacs 20
+(eval-when-compile
+  (defvar tool-bar-mode)
+  (defvar tool-bar-map))
 
 (define-derived-mode mh-show-mode text-mode "MH-Show"
   "Major mode for showing messages in MH-E.\\<mh-show-mode-map>
@@ -1051,6 +1121,8 @@ be called, with no arguments, upon entry to this mode."
   (mh-show-unquote-From)
   (mh-show-xface)
   (mh-show-addr)
+  (setq buffer-invisibility-spec '((vanish . t) t))
+  (set (make-local-variable 'line-move-ignore-invisible) t)
   (make-local-variable 'font-lock-defaults)
   ;;(set (make-local-variable 'font-lock-support-mode) nil)
   (cond
@@ -1067,8 +1139,7 @@ be called, with no arguments, upon entry to this mode."
   (if (and mh-xemacs-flag
            font-lock-auto-fontify)
       (turn-on-font-lock))
-  (if (and (boundp 'tool-bar-mode) tool-bar-mode)
-      (set (make-local-variable 'tool-bar-map) mh-show-tool-bar-map))
+  (set (make-local-variable 'tool-bar-map) mh-show-tool-bar-map)
   (mh-funcall-if-exists mh-toolbar-init :show)
   (when mh-decode-mime-flag
     (mh-make-local-hook 'kill-buffer-hook)
@@ -1318,8 +1389,8 @@ If optional arg MSG is non-nil, display that message instead."
 (defun mh-show (&optional message)
   "Show message at cursor.
 If optional argument MESSAGE is non-nil, display that message instead.
-Force a two-window display with the folder window on top (size
-`mh-summary-height') and the show buffer below it.
+Force a two-window display with the folder window on top (size given by the
+variable `mh-summary-height') and the show buffer below it.
 If the message is already visible, display the start of the message.
 
 Display of the message is controlled by setting the variables
@@ -1338,6 +1409,14 @@ Type \"\\[mh-header-display]\" to see the message with all its headers."
   (mouse-set-point EVENT)
   (mh-show))
 
+(defun mh-summary-height ()
+  "Return ideal value for the variable `mh-summary-height'.
+The current frame height is taken into consideration."
+  (or (and (fboundp 'frame-height)
+           (> (frame-height) 24)
+           (min 10 (/ (frame-height) 6)))
+      4))
+
 (defun mh-show-msg (msg)
   "Show MSG.
 The value of `mh-show-hook' is a list of functions to be called, with no
@@ -1347,6 +1426,7 @@ arguments, after the message has been displayed."
   (mh-showing-mode t)
   (setq mh-page-to-next-msg-flag nil)
   (let ((folder mh-current-folder)
+        (folders (list mh-current-folder))
         (clean-message-header mh-clean-message-header-flag)
         (show-window (get-buffer-window mh-show-buffer)))
     (if (not (eq (next-window (minibuffer-window)) (selected-window)))
@@ -1358,22 +1438,29 @@ arguments, after the message has been displayed."
             (goto-char (point-min))
             (if (not clean-message-header)
                 (mh-start-of-uncleaned-message)))
-        (mh-display-msg msg folder))))
-  (if (not (= (1+ (window-height)) (frame-height))) ;not horizontally split
-      (shrink-window (- (window-height) mh-summary-height)))
-  (mh-recenter nil)
-  (if (not (memq msg mh-seen-list))
-      (setq mh-seen-list (cons msg mh-seen-list)))
-  (when mh-update-sequences-after-mh-show-flag
-    (if mh-index-data (mh-index-update-unseen msg))
-    (mh-update-sequences))
-  (run-hooks 'mh-show-hook))
+        (mh-display-msg msg folder)))
+    (if (not (= (1+ (window-height)) (frame-height))) ;not horizontally split
+        (shrink-window (- (window-height) (or mh-summary-height
+                                              (mh-summary-height)))))
+    (mh-recenter nil)
+    (if (not (memq msg mh-seen-list))
+        (setq mh-seen-list (cons msg mh-seen-list)))
+    (when mh-update-sequences-after-mh-show-flag
+      (mh-update-sequences)
+      (when mh-index-data
+        (setq folders
+              (append (mh-index-delete-from-sequence mh-unseen-seq (list msg))
+                      folders)))
+      (when (mh-speed-flists-active-p)
+        (apply #'mh-speed-flists t folders)))
+    (run-hooks 'mh-show-hook)))
 
 (defun mh-modify (&optional message)
   "Edit message at cursor.
 If optional argument MESSAGE is non-nil, edit that message instead.
-Force a two-window display with the folder window on top (size
-`mh-summary-height') and the message editing buffer below it.
+Force a two-window display with the folder window on top (size given by the
+value of the variable `mh-summary-height') and the message editing buffer below
+it.
 
 The message is displayed in raw form."
   (interactive)
@@ -1533,8 +1620,10 @@ lines to display. INVISIBLE-HEADERS is ignored if VISIBLE-HEADERS is non-nil."
           (beginning-of-line)
           (mh-delete-line 1)
           (while (looking-at "[ \t]")
-            (mh-delete-line 1))))
-      (unlock-buffer))))
+            (mh-delete-line 1)))))
+    (let ((mh-compose-skipped-header-fields ()))
+      (mh-letter-hide-all-skipped-fields))
+    (unlock-buffer)))
 
 (defun mh-delete-line (lines)
   "Delete the next LINES lines."
@@ -1550,9 +1639,26 @@ If NOTATION is nil then no change in the buffer occurs."
         (with-mh-folder-updating (t)
           (beginning-of-line)
           (forward-char offset)
-          (let ((notation (or notation (char-after))))
-            (delete-char 1)
-            (insert notation))))))
+          (let* ((change-stack-flag (and (stringp notation)
+                                         (equal offset (1+ mh-cmd-note))
+                                         (not (eq notation mh-note-seq))))
+                 (msg (and change-stack-flag (or msg (mh-get-msg-num nil))))
+                 (stack (and msg (gethash msg mh-sequence-notation-history)))
+                 (notation (or notation (char-after))))
+            (if stack
+                ;; The presence of the stack tells us that we don't need to
+                ;; notate the message, since the notation would be replaced
+                ;; by a sequence notation. So we will just put the notation
+                ;; at the bottom of the stack. If the sequence is deleted,
+                ;; the correct notation will be shown.
+                (setf (gethash msg mh-sequence-notation-history)
+                      (reverse (cons (aref notation 0) (cdr (reverse stack)))))
+              ;; Since we don't have any sequence notations in the way, just
+              ;; notate the scan line.
+              (delete-char 1)
+              (insert notation))
+            (when change-stack-flag
+              (mh-thread-update-scan-line-map msg notation offset)))))))
 
 (defun mh-find-msg-get-num (step)
   "Return the message number of the message nearest the cursor.
@@ -1666,7 +1772,8 @@ arguments, after these variable have been set."
       (setq mh-previous-seq (mh-get-profile-field "Previous-Sequence:"))
       (if mh-previous-seq
           (setq mh-previous-seq (intern mh-previous-seq)))
-      (run-hooks 'mh-find-path-hook))))
+      (run-hooks 'mh-find-path-hook)
+      (mh-collect-folder-names))))
 
 (defun mh-file-command-p (file)
   "Return t if file FILE is the name of a executable regular file."
@@ -1710,7 +1817,9 @@ directory names and set `mh-nmh-flag' if we detect nmh instead of MH."
                           mh-nmh-flag t)))
             (kill-buffer tmp-buffer))))
       (unless (and mh-progs mh-lib mh-lib-progs)
-        (error "Unable to determine paths from `mhparam' command")))))
+        (error "Unable to determine paths from `mhparam' command"))
+      (setq mh-flists-present-flag
+            (file-exists-p (expand-file-name "flists" mh-progs))))))
 
 (defun mh-path-search (path file)
   "Search PATH, a list of directory names, for FILE.
@@ -1799,18 +1908,21 @@ addition.
 
 If DONT-ANNOTATE-FLAG is non-nil then the annotations in the folder buffer are
 not updated."
-  (let ((entry (mh-find-seq seq)))
+  (let ((entry (mh-find-seq seq))
+        (internal-seq-flag (mh-internal-seq seq)))
     (if (and msgs (atom msgs)) (setq msgs (list msgs)))
+    (unless internal-flag
+      (mh-add-to-sequence seq msgs)
+      (when (not dont-annotate-flag)
+        (mh-iterate-on-range msg msgs
+          (unless (memq msg (cdr entry))
+            (mh-add-sequence-notation msg internal-seq-flag)))))
     (if (null entry)
         (setq mh-seq-list
               (cons (mh-make-seq seq (mh-canonicalize-sequence msgs))
                     mh-seq-list))
       (if msgs (setcdr entry (mh-canonicalize-sequence
-                              (append msgs (mh-seq-msgs entry))))))
-    (cond ((not internal-flag)
-           (mh-add-to-sequence seq msgs)
-           (unless dont-annotate-flag
-             (mh-notate-seq seq mh-note-seq (1+ mh-cmd-note)))))))
+                              (append msgs (mh-seq-msgs entry))))))))
 
 (defun mh-canonicalize-sequence (msgs)
   "Sort MSGS in decreasing order and remove duplicates."
@@ -1824,6 +1936,54 @@ not updated."
 
 (defvar mh-sub-folders-cache (make-hash-table :test #'equal))
 (defvar mh-current-folder-name nil)
+(defvar mh-flists-partial-line "")
+(defvar mh-flists-process nil)
+
+;; Initialize mh-sub-folders-cache...
+(defun mh-collect-folder-names ()
+  "Collect folder names by running `flists'."
+  (unless mh-flists-process
+    (setq mh-flists-process
+          (mh-exec-cmd-daemon "folders" 'mh-collect-folder-names-filter
+                              "-recurse" "-fast"))))
+
+(defun mh-collect-folder-names-filter (process output)
+  "Read folder names.
+PROCESS is the flists process that was run to collect folder names and the
+function is called when OUTPUT is available."
+  (let ((position 0)
+	(prevailing-match-data (match-data))
+	line-end folder)
+    (unwind-protect
+	(while (setq line-end (string-match "\n" output position))
+	  (setq folder (format "+%s%s"
+                               mh-flists-partial-line
+                               (substring output position line-end)))
+	  (setq mh-flists-partial-line "")
+          (unless (equal (aref folder 1) ?.)
+            (mh-populate-sub-folders-cache folder))
+	  (setq position (1+ line-end)))
+      (set-match-data prevailing-match-data))
+    (setq mh-flists-partial-line (substring output position))))
+
+(defun mh-populate-sub-folders-cache (folder)
+  "Tell `mh-sub-folders-cache' about FOLDER."
+  (let* ((last-slash (mh-search-from-end ?/ folder))
+         (child1 (substring folder (1+ (or last-slash 0))))
+         (parent (and last-slash (substring folder 0 last-slash)))
+         (parent-slash (and parent (mh-search-from-end ?/ parent)))
+         (child2 (and parent (substring parent (1+ (or parent-slash 0)))))
+         (grand-parent (and parent-slash (substring parent 0 parent-slash)))
+         (cache-entry (gethash parent mh-sub-folders-cache)))
+    (unless (loop for x in cache-entry when (equal (car x) child1) return t
+                  finally return nil)
+      (push (list child1) cache-entry)
+      (setf (gethash parent mh-sub-folders-cache)
+            (sort cache-entry (lambda (x y) (string< (car x) (car y)))))
+      (when parent
+        (loop for x in (gethash grand-parent mh-sub-folders-cache)
+              when (equal (car x) child2)
+              do (progn (setf (cdr x) t) (return)))))))
 
 (defun mh-normalize-folder-name (folder &optional empty-string-okay
                                         dont-remove-trailing-slash)
@@ -1979,9 +2139,12 @@ This variable should never be set.")
 (defvar mh-folder-completion-map (copy-keymap minibuffer-local-completion-map))
 (define-key mh-folder-completion-map " " 'minibuffer-complete)
 
+(defvar mh-speed-flists-inhibit-flag nil)
+
 (defun mh-speed-flists-active-p ()
   "Check if speedbar is running with message counts enabled."
   (and (featurep 'mh-speed)
+       (not mh-speed-flists-inhibit-flag)
        (> (hash-table-count mh-speed-flists-cache) 0)))
 
 (defun mh-folder-completion-function (name predicate flag)
@@ -2119,14 +2282,19 @@ Any output is assumed to be an error and is shown to the user.
 The output is not read or parsed by MH-E."
   (save-excursion
     (set-buffer (get-buffer-create mh-log-buffer))
-    (let ((initial-size (mh-truncate-log-buffer)))
-      (apply 'call-process
-             (expand-file-name command mh-progs) nil t nil
-             (mh-list-to-string args))
-      (if (> (buffer-size) initial-size)
-          (save-window-excursion
-            (switch-to-buffer-other-window mh-log-buffer)
-            (sit-for 5))))))
+    (let* ((initial-size (mh-truncate-log-buffer))
+           (start (point))
+           (args (mh-list-to-string args)))
+      (apply 'call-process (expand-file-name command mh-progs) nil t nil args)
+      (when (> (buffer-size) initial-size)
+        (save-excursion
+          (goto-char start)
+          (insert "Errors when executing: " command)
+          (loop for arg in args do (insert " " arg))
+          (insert "\n"))
+        (save-window-excursion
+          (switch-to-buffer-other-window mh-log-buffer)
+          (sit-for 5))))))
 
 (defun mh-exec-cmd-error (env command &rest args)
   "In environment ENV, execute mh-command COMMAND with ARGS.
@@ -2161,7 +2329,8 @@ ARGS are passed to COMMAND as command line arguments."
                          command nil
                          (expand-file-name command mh-progs)
                          (mh-list-to-string args))))
-    (set-process-filter process (or filter 'mh-process-daemon))))
+    (set-process-filter process (or filter 'mh-process-daemon))
+    process))
 
 (defun mh-exec-cmd-env-daemon (env command filter &rest args)
   "In ennvironment ENV, execute mh-command COMMAND in the background.
@@ -2282,6 +2451,23 @@ Put the output into buffer after point.  Set mark after inserted text."
             (t (error "Bad element in mh-list-to-string: %s" (car l))))
       (setq l (cdr l)))
     new-list))
+
+(defun mh-replace-in-string (regexp newtext string)
+  "Replace REGEXP with NEWTEXT everywhere in STRING and return result.
+NEWTEXT is taken literally---no \\DIGIT escapes will be recognized.
+
+The function body was copied from `dired-replace-in-string' in dired.el.
+Emacs21 has `replace-regexp-in-string' while XEmacs has `replace-in-string'.
+Neither is present in Emacs20. The file gnus-util.el in Gnus 5.10.1 and above
+has `gnus-replace-in-string'. We should use that when we decide to not support
+older versions of Gnus."
+  (let ((result "") (start 0) mb me)
+    (while (string-match regexp string start)
+      (setq mb (match-beginning 0)
+            me (match-end 0)
+            result (concat result (substring string start mb) newtext)
+            start me))
+    (concat result (substring string start))))
 
 (provide 'mh-utils)
 

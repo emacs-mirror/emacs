@@ -1,3 +1,7 @@
+2004-07-12  Bill Wohler  <wohler@newt.com>
+
+	* NEWS, MH-E-NEWS: Upgraded to MH-E version 7.4.4.
+
 2004-07-08  David Kastrup  <dak@gnu.org>
 
 	* NEWS (Lisp changes in 21.4): document (match-data t) change.

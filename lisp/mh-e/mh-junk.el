@@ -36,14 +36,11 @@
 
 ;; Interactive functions callable from the folder buffer
 ;;;###mh-autoload
-(defun mh-junk-blacklist (msg-or-seq)
-  "Blacklist MSG-OR-SEQ as spam.
-Default is the displayed message.
-If optional prefix argument is provided, then prompt for the message sequence.
-If variable `transient-mark-mode' is non-nil and the mark is active, then the
-selected region is blacklisted.
-In a program, MSG-OR-SEQ can be a message number, a list of message numbers, a
-region in a cons cell, or a sequence.
+(defun mh-junk-blacklist (range)
+  "Blacklist RANGE as spam.
+
+Check the documentation of `mh-interactive-range' to see how RANGE is read in
+interactive use.
 
 First the appropriate function is called depending on the value of
 `mh-junk-choice'. Then if `mh-junk-mail-folder' is a string then the message is
@@ -58,7 +55,7 @@ for the different spam fighting programs:
   - `mh-bogofilter-blacklist'
   - `mh-spamprobe-blacklist'
   - `mh-spamassassin-blacklist'"
-  (interactive (list (mh-interactive-msg-or-seq "Blacklist")))
+  (interactive (list (mh-interactive-range "Blacklist")))
   (let ((blacklist-func (nth 1 (assoc mh-junk-choice mh-junk-function-alist))))
     (unless blacklist-func
       (error "Customize `mh-junk-program' appropriately"))
@@ -70,7 +67,7 @@ for the different spam fighting programs:
                        (concat mh-current-folder "/"
                                (substring mh-junk-mail-folder 1)))
                       (t (concat "+" mh-junk-mail-folder)))))
-      (mh-iterate-on-msg-or-seq msg msg-or-seq
+      (mh-iterate-on-range msg range
         (funcall (symbol-function blacklist-func) msg)
         (if dest
             (mh-refile-a-msg nil (intern dest))
@@ -78,25 +75,22 @@ for the different spam fighting programs:
       (mh-next-msg))))
 
 ;;;###mh-autoload
-(defun mh-junk-whitelist (msg-or-seq)
-  "Whitelist MSG-OR-SEQ incorrectly classified as spam.
-Default is the displayed message.
-If optional prefix argument is provided, then prompt for the message sequence.
-If variable `transient-mark-mode' is non-nil and the mark is active, then the
-selected region is whitelisted.
-In a program, MSG-OR-SEQ can be a message number, a list of message numbers, a
-region in a cons cell, or a sequence.
+(defun mh-junk-whitelist (range)
+  "Whitelist RANGE incorrectly classified as spam.
+
+Check the documentation of `mh-interactive-range' to see how RANGE is read in
+interactive use.
 
 First the appropriate function is called depending on the value of
 `mh-junk-choice'. Then the message is refiled to `mh-inbox'.
 
 To change the spam program being used, customize `mh-junk-program'. Directly
 setting `mh-junk-choice' is not recommended."
-  (interactive (list (mh-interactive-msg-or-seq "Whitelist")))
+  (interactive (list (mh-interactive-range "Whitelist")))
   (let ((whitelist-func (nth 2 (assoc mh-junk-choice mh-junk-function-alist))))
     (unless whitelist-func
       (error "Customize `mh-junk-program' appropriately"))
-    (mh-iterate-on-msg-or-seq msg msg-or-seq
+    (mh-iterate-on-range msg range
       (funcall (symbol-function whitelist-func) msg)
       (mh-refile-a-msg nil (intern mh-inbox)))
     (mh-next-msg)))
@@ -302,7 +296,7 @@ be done by adding the following to your crontab:
       (when mh-sa-learn-executable
           (message "Recategorizing this message as spam...")
           (call-process mh-sa-learn-executable msg-file mh-log-buffer nil
-                        "--single" "--spam" "--local --no-rebuild"))
+                        "--single" "--spam" "--local" "--no-rebuild"))
       (message "Blacklisting address...")
       (set-buffer (get-buffer-create mh-temp-buffer))
       (erase-buffer)

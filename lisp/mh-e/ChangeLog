@@ -1,5 +1,1264 @@
-2004-04-26  Lars Hansen  <larsh@math.ku.dk>
-	* mh-e.el (mh-folder-mode): Bind desktop-save-buffer to t.
+2004-07-10  Bill Wohler  <wohler@newt.com>
+
+	* Released MH-E version 7.4.4.
+
+	* MH-E-NEWS, README: Updated for release 7.4.4.
+
+	* mh-e.el (Version, mh-version): Updated for release 7.4.4.
+	
+	* This patch release contains the following patches:
+
+	* mh-xemacs.el: New file from concatenation of mh-xemacs-compat.el
+	and mh-xemacs-icons.el which were removed since their names
+	exceeded DOS 8+3 limits.
+
+	* Makefile:
+	(mh-e-autoloads.el): Add target to make `mh-e-autoloads.el', a
+	file containg usual entry commands into MH-E to be used for users
+	installing MH-E separately from Emacs.
+	(XEMACS_LOADDEFS_FILE): New.  Used to generate mh-loaddefs.el
+	in XEmacs.
+	(XEMACS_LOADDEFS_COOKIE): Ditto.
+	(XEMACS_LOADDEFS_PKG_NAME): Ditto.
+	(XEMACS_OPTIONS): Add '-no-autoloads' to give a cleaner build
+	environment.
+	(MH-E-SRC): Moved mh-xemacs.el to new variable MH-E-XEMACS-SRC.
+	(MH-E-XEMACS-SRC): New variable to hold XEmacs source files.
+	(MH-E-XEMACS-OBJ): New variable to hold XEmacs object files.
+	(clean): Moved XEmacs-specific code to clean-xemacs.
+	(xemacs): Added clean-xemacs prerequisite. Moved down to XEmacs
+	section of file. Add target to build mh-loaddefs.el in XEmacs
+	(loaddefs-xemacs): New rule to build mh-loaddefs.el in XEmacs.
+	(clean-xemacs): New target to remove XEmacs-specific files.
+	(compile-xemacs): New. It allows for the '-no-autoloads' option
+	and byte-compiles all the source files with a single instance of
+	XEmacs.
+	(dist): Added $(MH-E-XEMACS-SRC) to tarball.
+	(AUTO_PRELOADS): Removed, in favour of 'AUTOLOAD_PACKAGE_NAME' and
+	'AUTOLOAD_FILE'.
+	(AUTOLOAD_PACKAGE_NAME): New.
+	(AUTOLOAD_FILE): New.
+	(all): Don't set $EMACS_HOME if building with XEmacs.
+	(xemacs): Use 'compile-xemacs' instead of 'compile'.
+	(auto-autoloads.elc): Use new $AUTOLOAD_* vars and allow for
+	'-no-autoloads'.
+	(custom-load.elc): Allow for '-no-autoloads'.
+
+	* mh-e.el: Don't require mh-xemacs-compat which no longer exists.
+	The XEmacs stuff gets required by mh-customize.el which is
+	required by mh-utils.el which is required by mh-e.el. This all
+	happens before mh-xemacs-compat was required, so all should be
+	well.
+	(mh-restore-desktop-buffer): Move from desktop.el. Add Parameters.
+	(mh-restore-desktop-buffer): Delete with-no-warnings.
+	(mh-folder-mode): Bind desktop-save-buffer to t.
+	(Courtesy Lars Hansen).
+
+	* mh-alias.el (mh-assoc-ignore-case): New macro to use
+	assoc-string when available (Emacs 21.4+); assoc-ignore-case
+	otherwise.
+	(mh-alias-reload, mh-alias-expand,
+	mh-alias-minibuffer-confirm-address): Use it.
+
+	* mh-seq.el: Added mh-autoload to mh-read-seq-default.
+
+	* mh-utils.el (mh-require-cl): The Emacs coding conventions
+	require that the cl package not be required at runtime. However,
+	the cl package in versions of Emacs prior to 21.4 left cl routines
+	in their macro expansions. Use mh-require-cl to provide the cl
+	routines in the best way possible.
+	(require 'mouse): To shush compiler.
+
+	* Use new function mh-require-cl throughout.
+	
+	* Add arch taglines (courtesy Miles Bader).
+	
+	* mh-unit.el (mh-unit-files): Replaced mh-xemacs-compat.el and
+	mh-xemacs-icons.el with mh-xemacs.el.
+
+	* import-emacs: Also grab the ChangeLog.
+
+	* *.pbm: Regenerated using GIMP to be consistent with other Emacs
+	icons.
+	1. Edit .xpm image in GIMP.
+	2. Image > Mode > Indexed. Check Use Black/White Palette and No
+	   Color Dithering.
+	3. File > Save As file.xbm.
+	4. Run xbmtopbm < file.xbm > file.pbm.
+	Thanks to jan.h.d@swipnet.se for the help.
+
+2003-11-18  Bill Wohler  <wohler@newt.com>
+
+	* Released MH-E version 7.4.3.
+
+	* MH-E-NEWS, README: Updated for release 7.4.3.
+
+	* mh-e.el (Version, mh-version): Updated for release 7.4.3.
+	
+	* mh-identity.el (mh-identity-make-menu): Removed condition on
+	mh-auto-fields-list. Use it to enable or disable menu item
+	instead.
+
+	* mh-customize.el (mh-identity-list): Removed defvar and moved
+	defcustom before mh-auto-fields-list so that defvar wouldn't
+	clobber user's customization settings.
+
+2003-08-19  Bill Wohler  <wohler@newt.com>
+
+	* Released MH-E version 7.4.2.
+
+	* MH-E-NEWS, README: Updated for release 7.4.2.
+
+	* mh-e.el (Version, mh-version): Updated for release 7.4.2.
+
+	* mh-e.el (mh-folder-size, mh-folder-size-folder)
+	(mh-folder-size-flist): If flist is not present use folder to find
+	the number of messages in the folder. Also the .mh_sequences file
+	is read to find the number of unseen messages (patch from 1.349
+	and branched for 7.4.2, closes SF #791021).
+
+	* mh-utils.el (mh-flists-present-flag, mh-find-progs): Introduce a
+	new variable to test for the presence of the flists program and
+	set it in mh-find-progs.
+	(mh-collect-folder-names): Use folders instead of flists. One
+	advantage is that folders is available on MH while flists is not.
+	Another is that if an explicit -sequence argument isn't given and
+	Unseen-Sequence profile is not present then flists croaks while
+	folders doesn't.
+	(mh-collect-folder-names-filter): Don't consider folder names that
+	start with a `.' character. This is needed since the folders
+	command doesn't filter them out like flists does.
+	(patches from 1.307 and 1.309 and branched for 7.4.2, closes SF
+	#791021).
+
+2003-06-25  Bill Wohler  <wohler@newt.com>
+
+	* Released MH-E version 7.4.1.
+
+	* MH-E-NEWS, README: Updated for release 7.4.1.
+
+	* mh-e.el (Version, mh-version): Updated for release 7.4.1.
+
+2003-06-25  Bill Wohler  <wohler@newt.com>
+
+	* mh-unit.el (require 'cl): Added. Needed when compiling
+	separately.
+
+	* Makefile (clean): Now a double-colon rule. Added a second clean
+	target to remove mh-unit.elc.
+	(compile): Removed mh-unit.elc.
+	(mh-unit.elc): New target used to compile mh-unit.
+
+2003-06-24  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (Version, mh-version):  Set to 7.4+cvs.
+
+2003-06-24  Bill Wohler  <wohler@newt.com>
+
+	* Released MH-E version 7.4.
+
+	* MH-E-NEWS, README: Updated for release 7.4.
+
+	* mh-e.el (Version, mh-version): Updated for release 7.4.
+
+2003-06-24  Bill Wohler  <wohler@newt.com>
+
+	* mh-alias.el (mh-alias-gecos-name, mh-alias-local-users)
+	(mh-alias-suggest-alias): s/gcos/gecos. The original acronym was
+	GECOS but was later renamed to GCOS (see
+	http://info.astrian.net/jargon/terms/g/GCOS.html). But the term
+	really needs to match the field named pw_gecos in struct passwd in
+	/usr/include/pwd.h
+
+	* mh-customize.el (mh-letter-faces): New group to house
+	mh-letter-header-field-face.
+	(mh-interpret-number-as-range-flag)
+	(mh-kill-folder-suppress-prompt-hook): Use "you" instead of "the
+	user" to make text more friendly.
+	(mh-index-ticked-messages-folders, mh-visible-headers)
+	(mh-visible-header-fields): Alphabetized.
+	(mh-alias-passwd-gcos-comma-separator-flag): Alphabetized and
+	s/gcos/gecos.
+	(mh-alias-local-users-prefix): Fixed docstring. Prefixes are
+	prepended, not appended. Additional checkdoc fix.
+	(mh-letter-header-field-face): Set group to new group
+	mh-letter-faces and moved option into this group.
+
+	* mh-index.el (mh-index-sequenced-messages): Improved wording of
+	docstring and mentioned use of prefix argument.
+
+	* mh-seq.el (mh-widen): Made docstring more accurate (hopefully!).
+
+2003-06-18  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-index.el (mh-replace-string): Modified to preserve case of
+	replacement text.
+	(mh-index-parse-search-regexp): Preserve case of search terms.
+	This is needed to take advantage of the acronym indexing in
+	swish++	(closes SF #755718).
+
+2003-06-13  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-utils.el (mh-show-index-sequenced-messages): Interactive
+	function callable from the show buffer.
+	(mh-show-folder-map): Add key binding for "F q".
+
+	* mh-e.el (mh-folder-map): Same as above.
+
+	* mh-index.el (mh-index-sequenced-messages): Add interactive spec
+	to the function (closes SF #718833).
+
+2003-06-13  Bill Wohler  <wohler@newt.com>
+
+	* mh-index.el (mh-flists-execute): Needed to expand mhpath too.
+
+2003-06-12  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-index.el (mh-flists-execute): Modified so that flists
+	present in mh-progs is called.
+
+2003-06-07  Jeffrey C Honig  <jch@honig.net>
+
+	* mh-comp.el (mh-forward, mh-forward): Use (mh-mail-header-end) to
+	find the end of headers instead of doing an re-search-forward
+	based on mh-mail-header-separator.
+
+2003-06-06  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-comp.el (mh-letter-toggle-header-field-display): Make the
+	function callable from the show buffer. This means that the
+	buffer is temporarily made writable and the modification status
+	of the buffer restored to the original value.
+
+2003-06-06  Peter S Galbraith  <psg@debian.org>
+
+	* mh-utils.el (mh-address-mail-regexp): Bug fix!  It wasn't a true
+	copy of the goto-addr variable.  My modification only recognized
+	addresses with one dot after the @.  Sorry about that.
+
+2003-06-05  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-utils.el (mh-replace-in-string): Move comment into doc
+	string to satisfy checkdoc.
+
+	* mh-alias.el (mh-alias-apropos): Checkdoc fix.
+
+2003-06-05  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el (mh-identity-list): Fixed typo in docstring.
+
+2003-06-05  Peter S Galbraith  <psg@debian.org>
+
+	* mh-comp.el (mh-letter-complete-function-alist): Add bcc an reply-to.
+
+2003-06-04  Peter S Galbraith  <psg@debian.org>
+
+	* mh-comp.el (mh-letter-complete-function-alist): Add dcc.
+
+2003-06-03  Peter S Galbraith  <psg@debian.org>
+
+	* mh-utils.el (mh-replace-in-string): New function name instead of
+	`dired-replace-in-string'.
+	* mh-alias.el (mh-alias-gcos-name): Use it.
+	
+	* mh-alias.el (mh-alias-apropos): New command. Show all aliases
+	that match REGEXP either in name or content.
+
+	* mh-alias.el (mh-alias-suggest-alias): Add no-comma-swap optional
+	arg.
+	(mh-alias-canonicalize-suggestion): Change a comma to a period in
+	created aliases.
+	(mh-alias-local-users): Call `mh-alias-suggest-alias' with
+	`no-comma-swap' arg set to t.
+
+	* mh-alias.el (mh-alias-local-users): Fix case of nil
+	`mh-alias-passwd-gcos-comma-separator-flag'.
+
+	* mh-alias.el (mh-alias-gcos-name): Fix for case of empty gcos
+	name field.
+	(mh-alias-local-users): Fix same.
+
+	* mh-alias.el (mh-alias-canonicalize-suggestion): Replace use by
+	verbose `replace-regexp' by a looped `replace-match'
+
+2003-06-02  Peter S Galbraith  <psg@debian.org>
+
+	* mh-utils.el (dired-replace-in-string): Bind if not already
+	defined.  Borrowed from dired.el 
+
+	* mh-alias.el (mh-alias-gcos-name): switch to using
+	dired-replace-in-string.
+
+2003-06-02  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-utils.el (mh-letter-font-lock-keywords): Fontify header
+	fields in the draft buffer that aren't skipped when navigating
+	with TAB (or S-TAB).
+
+	* mh-customize.el (mh-clean-message-header-flag)
+	(mh-invisible-headers, mh-invisible-header-fields)
+	(mh-alias-passwd-gcos-comma-separator-flag): Checkdoc fix.
+	(mh-letter-header-field-face): New face to fontify the header
+	fields.
+
+	* mh-comp.el (mh-insert-auto-fields-done-local): Checkdoc fix.
+	(mh-letter-mode, mh-letter-mail-header-end-marker): Remember the
+	end of the message header in a marker. This is used to fontify the
+	header fields.
+	(mh-font-lock-field-data, mh-letter-header-end): Functions used
+	to fontify message header fields.
+
+	* mh-alias.el (mh-alias-gcos-name): Checkdoc fix.
+
+2003-06-02  Peter S Galbraith  <psg@debian.org>
+
+	* mh-alias.el (mh-alias-gcos-name): New function. Return a usable
+	address string from a GCOS-NAME and USERNAME.
+	(mh-alias-local-users): Use it.
+
+	* mh-customize.el (mh-alias-passwd-gcos-comma-separator-flag): New
+	defcustom. Whether the gcos field in the passwd file uses comma as
+	a separator.
+
+	* mh-customize.el (mh-alias-local-users-prefix): New
+	defcustom. String to append to the real names of users from the
+	passwd file. If nil, use the username string unmodified instead of
+	the real name from the gcos field of the passwd file.
+
+	* mh-alias.el (mh-alias-local-users): Use it to generate aliases
+	which by default are now the real name prefixed by "local."
+
+2003-06-01  Peter S Galbraith  <psg@debian.org>
+
+	* mh-comp.el (mh-modify-header-field): Bug fix.  Calling with with
+	a value that was already inserted causes it to get inserted a
+	second time.  I have wrapped the value around \b word delimiters.
+	Hope there are no side effects for other code.
+
+	* mh-comp.el (mh-insert-auto-fields): Attempt regardless of 
+	`mh-insert-auto-fields-done-local' flag in interactive use.
+
+	* mh-comp.el (mh-insert-auto-fields-done-local): Keep track of
+	whether `mh-insert-auto-fields' was called in a buffer.
+	(mh-insert-auto-fields): Set it and use it.  Also, don't enter an
+	identity if one was already entered manually.
+	(mh-send-letter): Call `mh-insert-auto-fields' again when sending
+	message.
+	(mh-compose-and-send-mail): Call `mh-insert-auto-fields' _after_
+	`mh-letter-mode' so `mh-identity-local' doesn't get cleared by the
+	mode invocation.
+
+2003-06-01  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-loaddefs.el: Regenerated.
+
+	* mh-seq.el (mh-thread-parse-scan-line): The value of
+	mh-scan-field-from-start-offset was hardcoded in one place. The
+	change fixes that.
+
+	* mh-utils.el (mh-show-mode): Setup mh-show-mode to display
+	elipsis for truncated header fields and to skip over them quickly.
+	(mh-clean-msg-header): Make another pass over the message header
+	fields truncating long headers.
+
+	* mh-comp.el (mh-letter-complete): Remove unnecessary autoload.
+	(mh-letter-toggle-header-field-display): Take into account that
+	an empty line can also end the message header. The function was
+	originally written with the draft buffer in mind.
+
+2003-06-01  Mark D. Baushke  <mdb@gnu.org>
+
+	* mh-comp.el (mh-letter-mode-map): Do not steal C-t. Use C-c C-t
+	for the mh-letter-toggle-header-field-display command.
+
+2003-05-31  Peter S Galbraith  <psg@debian.org>
+
+	* mh-customize.el (mh-visible-headers): Changed to a defvar that
+	will be set using new `mh-visible-headers' function using
+	`mh-visible-header-fields' as input.
+	(mh-visible-headers): New function, described above.
+	(mh-visible-header-fields): New defcustom.  The UI to set
+	`mh-visible-headers'.
+	(mh-invisible-header-fields-set): Deleted.  Code merged into
+	defcustom since it's so short.
+
+2003-05-31  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-comp.el (mh-letter-toggle-header-field-display): Extended to
+	truncate headers if they are too long.
+	(mh-letter-truncate-header-field): Make code that would be
+	duplicated into a function.
+	(mh-letter-hide-all-skipped-fields): Modified so that fields that
+	are important are hidden if they are too long.
+
+2003-05-31  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-utils.el ("tool-bar"): Since tool-bar isn't available on
+	XEmacs, requiring it causes problems. So load it instead.
+	(mh-do-at-event-location): New macro to do stuff at location of
+	events. This has been refactored out of mh-push-button.
+
+	* mh-mime.el (mh-push-button): Simplified since it now uses the
+	mh-do-at-event-location macro.
+
+	* mh-comp.el (mh-hidden-header-keymap): Keymap to make mouse
+	clicks on header toggle its display.
+	(mh-letter-toggle-header-field-display-button): Interactive
+	function to toggle header display when mouse button is clicked.
+
+2003-05-31  Peter S Galbraith  <psg@debian.org>
+
+	* mh-e.el (mh-folder-mode): Remove conditional on tool-bar-mode.
+
+	* mh-comp.el (mh-letter-mode): Same.
+
+	* mh-utils.el (mh-show-mode): Same.
+
+2003-05-30  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-utils.el (tool-bar): Load tool-bar explicitly. This avoids
+	problems with incorrect initialization of tool-bar-map otherwise.
+
+2003-05-30  Peter S Galbraith  <psg@mixed.dyndns.org>
+
+	* mh-comp.el (mh-modify-header-field): Minor fix of spaces for
+	when an entry already existed.
+	(mh-insert-auto-fields): Make interactive. Add optional `quiet'
+	arg for use when called systematically on every buffer.  Won't be
+	used interactively for more verbose output.
+	(mh-letter-mode-map): Add \C-c\M-d keybinding for
+	mh-insert-auto-fields.
+
+	* mh-identity.el (mh-identity-make-menu): Add a menu entry in
+	Identity menu for mh-insert-auto-fields.
+
+	* mh-customize.el (mh-invisible-header-fields): Add entries for
+	`Envelope-to' and `X-Original-To'.
+
+2003-05-30  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-comp.el (mh-letter-mode): Skip over invisible text quickly.
+
+2003-05-30  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-comp.el (mh-letter-mode): Use text properties to achieve
+	invisibility. This is more portable and the same code can be used
+	for all Emacs versions.
+	(mh-letter-toggle-header-field-display): Rewritten to use text
+	properties.
+	(mh-dead-overlay-p, mh-letter-hidden-header-fields)): Removed.
+
+2003-05-29  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-comp.el (mh-letter-hidden-header-fields, mh-letter-mode): Add
+	a hash table, initialized it in mh-letter-mode, to remember the
+	overlays introduced to hide long headers fields.
+	(mh-insert-x-mailer): checkdoc fix.
+	(mh-compose-and-send-mail): Hide unimportant message header
+	fields.
+	(mh-letter-header-field-regexp, mh-letter-header-field-at-point)
+	(mh-letter-next-header-field, mh-letter-previous-header-field):
+	Add a variable that contains the header-field name regexp and use
+	it instead of the regexp directly.
+	(mh-letter-toggle-header-field-display, mh-letter-mode-map): Add
+	new key binding in mh-letter-mode that toggles display of long
+	header fields, in mh-letter-mode.
+	(mh-dead-overlay-p): A predicate which checks if a given header
+	field has an active overlay hiding it.
+	(mh-letter-hide-all-skipped-fields): New function that shortens
+	uninteresting headers.
+
+2003-05-29  Eric Ding  <ericding@acorn.bethesda.net>
+
+	* mh-comp.el (mh-letter-next-header-field-or-indent): Call
+	indent-relative rather than indent-for-tab-command.
+
+2003-05-29  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-comp.el (mh-letter-complete-or-space): The meaning of the
+	customizable variable was reversed. Also make the doc string more
+	accurate.
+
+2003-05-28  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-customize.el (mh-compose-skipped-header-fields): New
+	customizable variable that lists headers that are skipped.
+	(mh-compose-space-does-completion-flag): Option to do completion
+	with space (closes SF #745634).
+
+	* mh-comp.el (mh-insert-x-mailer): Check the value of
+	mh-insert-x-mailer-flag in this function instead of in its caller.
+	(mh-compose-and-send-mail, mh-send-letter): Insert X-Mailer and
+	X-Face headers when the draft is first presented to the user
+	instead of when the mail is sent (closes SF #745624).
+	(mh-letter-complete-or-space): Allow for this key binding to be
+	overridden.
+	(mh-letter-next-header-field): Fix a problem with multiline header
+	fields.
+	(mh-letter-next-header-field, mh-letter-previous-header-field):
+	Make these functions skip unwanted header fields.
+	(mh-letter-skipped-header-field-p): New predicate that checks if a
+	header field is to be skipped.
+
+	* mh-seq.el (mh-thread-inc): Inc'ing email in threaded mode was
+	causing duplication of the current notation. The change fixes that.
+
+2003-05-28  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-comp.el (mh-beginning-of-word): Generalize it to skip
+	arbitrary number of words.
+	(mh-letter-complete-or-space): New interactive function that
+	allows space character to be used for completion.
+	(mh-letter-mode-map): Add key binding to allow space to be used
+	for completion.
+
+2003-05-27  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-customize.el (mh-compose-prompt-flag): Customizable variable
+	that controls whether the user is prompted when composing a draft.
+	It replaces mh-dont-prompt-for-address-flag (closes SF #745622).
+
+	* mh-comp.el (mh-letter-next-header-field): If the point is in
+	the header field name, then go the start of the header field
+	instead of the next field.
+	(mh-interactive-read-address, mh-interactive-read-string)
+	(mh-letter-adjust-point): Use mh-compose-prompt-flag instead of
+	mh-dont-prompt-for-address-flag.
+
+2003-05-27  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-customize.el (mh-tool-bar-define): Fix incorrect usage of
+	set-specifier (closes SF #745655). Also the button enabling code
+	interacts poorly with font-lock in XEmacs. So disable that.
+
+2003-05-26  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-e.el (mh-folder-from-address): The function
+	message-fetch-field expects that the buffer is narrowed to the
+	mail header. The change makes sure that this is indeed the case.
+
+	* mh-mime.el (mh-add-missing-mime-version-header)
+	(mh-decode-message-body): Same as above.
+
+2003-05-25  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-alias.el (mh-alias-minibuffer-confirm-address): Modified to
+	use mh-beginning-of-word.
+
+	* mh-comp.el (mh-letter-confirm-address): Calling
+	mh-alias-reload-maybe can be expensive. So do it only if we really
+	need to.
+
+2003-05-25  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-loaddefs.el: Regenerated.
+
+	* mh-comp.el (mh-letter-confirm-address): Load aliases if not yet
+	loaded.
+
+	* mh-alias.el (mh-alias-reload-maybe): Autoload it since it is
+	used in mh-comp.el.
+
+2003-05-24  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-comp.el (mh-letter-skip-leading-whitespace-in-header-field):
+	New function to skip leading space and tab characters when placing
+	point in a header field.
+	(mh-letter-next-header-field, mh-letter-previous-header-field):
+	Skip leading whitespace when using TAB to navigate to header
+	fields.
+	(mh-letter-confirm-address): New interactive function that
+	displays the last expansion of the last alias when "," is typed.
+	(mh-letter-mode-map): Add key binding for "," (closes SF #745634).
+
+2003-05-23  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-comp.el (mh-edit-again, mh-forward, mh-send)
+	(mh-send-other-window, mh-send-sub): Modified so that if
+	mh-dont-prompt-for-address-flag is non-nil, then MH-E won't prompt
+	for addresses to send mail to and instead directly jump to the
+	draft (closes SF #745622).
+	(mh-letter-complete-function-alist): An alist that is used to
+	decide which completion function to use in which header. This
+	variable should probably be customizable.
+	(mh-letter-complete): Now uses mh-letter-complete-function-alist.
+	(mh-letter-header-field-at-point, mh-letter-next-header-field)
+	(mh-letter-next-header-field-or-indent)
+	(mh-letter-previous-header-field): Commands for easier navigation
+	to header fields.
+	(mh-dont-prompt-for-address-flag): Variable which controls
+	whether MH-E prompts for addresses.
+	(mh-interactive-read-address, mh-interactive-read-string): Two
+	functions to ask user for input depending on the value of the
+	above flag.
+	(mh-letter-adjust-point): New function that sets point to the
+	first header field.
+	(mh-letter-mode-map): Add key bindings for TAB and S-TAB (closes
+	SF #745627).
+
+2003-05-23  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-loaddefs.el: Regenerated.
+
+	* mh-comp.el (mh-complete-word): New function which is
+	approximately equivalent to mail-abbrev-complete-alias.
+	(mh-beginning-of-word): Refactor repeated code into its own
+	function.
+	(mh-folder-expand-at-point): Make Fcc completion work in XEmacs
+	by not using mail-abbrev-complete-alias.
+
+	* mh-alias.el (mh-alias-letter-expand-alias): Make alias
+	expansion work in XEmacs. Replace the use of the function
+	mail-abbrev-complete-alias, which isn't present in XEmacs.
+
+	* mh-mime.el (mh-mml-to-mime): If a MIME message is created
+	immediately after starting MH-E then invoking mh-mml-to-mime
+	causes an error because "message" isn't being loaded. The change
+	works around this problem.
+	(mh-mime-maybe-display-alternatives): Give better indication of
+	which MIME parts are alternatives.
+
+2003-05-22  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-e.el (mh-add-sequence-notation, mh-remove-sequence-notation):
+	Just delete and add the same character in the scan line to make
+	font-lock refontify it. The previous trick of removing all text
+	properties didn't work in XEmacs.
+
+	* mh-seq.el (mh-put-msg-in-seq): Complain if the user tries to
+	create an invalid MH sequence.
+
+	* mh-mime.el (mh-mime-display-alternative): Modified to
+	optionally display alternatives as buttons.
+	(mh-mime-maybe-display-alternatives): New function which displays
+	alternative MIME parts as buttons.
+	(mh-mime-save-part): Initially mh-mime-save-parts-directory is
+	nil and calling file-name-as-directory with nil arg leads to an
+	error. So fall back on the default-directory in that case.
+
+	* mh-customize.el (mh-display-buttons-for-alternatives-flag): New
+	customizable variable that controls display of the alternative
+	MIME parts (closes SF #741288).
+
+2003-05-22  Peter S Galbraith  <psg@debian.org>
+
+	* mh-customize.el (mh-invisible-header-fields): Commented out
+	"User-Agent:".  It's similar to X-Mailer, so display it.
+
+2003-05-21  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-customize.el (mh-tool-bar-define): Add an optional argument
+	to the button description that can dynamically enable/disable
+	buttons.
+	(mh-tool-bar-define): The alias grabbing button is disabled if the
+	current message doesn't have a From header or if the sender is
+	already in the user's alias. This functionality was inadvertently
+	lost when the Emacs/XEmacs toolbar unification took place.
+
+2003-05-20  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-unit.el (mh-unit-construct-call-graph): Be more aggressive
+	and flag interactive functions that aren't autoloaded or have no
+	key bindings.
+	(mh-unit-interactive-function-p): Remove now unused function.
+	(mh-unit, mh-unit-construct-call-graph): Replace mh-files with
+	mh-unit-files.
+
+2003-05-20  Bill Wohler  <wohler@newt.com>
+
+	* mh-unit.el (mh-prune-trailing-spaces): Renamed to
+	mh-unit-prune-trailing-spaces to clean up the namespace.
+	(mh-files): Renamed to mh-unit-files. Ditto.
+	(mh-unit): Checkdoc fix.
+
+	* mh-index.el (mh-index-p): Added autoload cookie since mh-index-p
+	is used by mh-customize.el. This calls for another mh-unit test
+	that looks for mh-autoloads for functions that are no longer used
+	in other files.
+
+	* mh-loaddefs.el: Regenerated.
+
+2003-05-20  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-unit.el (mh-unit-construct-call-graph): Factor out the code
+	to read the lisp files to a separate function. Also change it to
+	construct a function call-graph. Autoloaded functions are taken
+	into account.
+	(mh-unit-find-all-used-functions, mh-unit-called-functions)
+	(mh-unit-find-all-unused-functions): Find all unused functions by
+	computing a fixed point starting from the set of top level
+	functions.
+	(mh-unit-analyze-block): Removed.
+	(mh-unit-update-call-graph): mh-unit-functions-called was renamed
+	with modifications to update the function call graph.
+
+2003-05-19  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-loaddefs.el: Regenerated.
+
+	* mh-utils.el (mh-notate): Modified to keep track of notation
+	that was replaced when sequence notation is added. Thus when the
+	sequence is deleted, the original notation is recovered.
+	(mh-add-msgs-to-seq): Modified to work with the new sequence
+	notation code.
+
+	* mh-seq.el (mh-delete-seq, mh-put-msg-in-seq): Simplified since
+	we don't need to handle tick and unseen sequences specially any
+	more.
+	(mh-narrow-to-seq): Don't need to call mh-notate-user-sequences
+	since mh-copy-seq-to-eob already does that.
+	(mh-widen): Remove sequence notation, so that notation when
+	messages are replied to aren't lost.
+	(mh-copy-seq-to-eob): Simplified with the use of
+	mh-iterate-on-range.
+	(mh-thread-inc): This function doesn't need to notate user
+	sequences since its callers already do that.
+	(mh-thread-parse-scan-line): Simplified since mh-note-seq doesn't
+	appear in scan lines it is given as arguments.
+	(mh-thread-update-scan-line-map): Remove the test, since its
+	caller already does the required check.
+	(mh-thread-folder): Simplified by the use of mh-iterate-on-range.
+	(mh-tick-add-overlay, mh-tick-remove-overlay, mh-notate-tick):
+	These functions aren't needed any more, since overlays aren't used
+	any more. Also overlays aren't portable to XEmacs, so nasty
+	conditional code that used overlays in Emacs and extents in Xemacs
+	have been eliminated.
+	(mh-toggle-tick): Generalize it to work on a range of messages
+	like the other interactive messages.
+
+	* mh-funcs.el (mh-undo-folder): Use mh-remove-all-notation
+	instead of mh-unmark-all-headers.
+
+	* mh-e.el (mh-folder-font-lock-keywords): The entry for unseen
+	sequence highlighting is now done by the macro.
+	(mh-generate-sequence-font-lock): New macro to highlight any
+	arbitrary sequence. This macro is invoked twice to get the
+	highlighting for unseen and tick sequences.
+	(mh-sequence-notation-history, mh-folder-mode): New variable that
+	keeps track of the old notation when a message is notated with
+	mh-note-seq.
+	(mh-regenerate-headers, mh-get-new-mail): Add appropriate calls to
+	mh-notate-user-sequences and mh-remove-all-notation.
+	(mh-unmark-all-headers): Add comment that this function shouldn't
+	be used any more.
+	(mh-add-sequence-notation, mh-remove-sequence-notation): New
+	functions to notate message with mh-note-seq and to remove it.
+	(mh-remove-all-notation): Simplified to use mh-iterate-on-range.
+	(mh-process-commands): Use mh-remove-all-notation instead of
+	mh-unmark-all-headers.
+	(mh-notate-user-sequences, mh-delete-msg-from-seq): Simplified
+	since the tick and unseen sequences don't need special handling
+	any more.
+	(mh-internal-seq): Make it possible to dynamically change what
+	sequences are treated as internal (internal means font lock is
+	used to highlight the sequence).
+	(mh-clear-text-properties): Removed since it isn't needed
+	anymore.
+
+2003-05-19  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-unit.el (mh-unit-analyze-block, mh-unit-interactive-function-p)
+	(mh-unit-find-all-unused-functions): Change argument name bl to
+	block.
+
+2003-05-19  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-unit.el (mh-unit-find-all-unused-functions): New interactive
+	function to find all unused functions in MH-E.
+	(mh-unit-analyze-block, mh-unit-interactive-function-p)
+	(mh-unit-functions-called): Functions used by
+	mh-unit-find-all-unused-functions do its job.
+
+	* Makefile (compile): Byte-compile mh-unit.el, since the analysis
+	to find unused code runs faster when compiled.
+
+2003-05-18  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-loaddefs.el: Regenerated.
+
+	* mh-seq.el (mh-notate-deleted-and-refiled): Add autoload
+	declaration since this function is used in mh-index.el.
+
+	* mh-e.el, mh-customize.el, mh-utils.el: Adjust require/provide
+	statements so that mh-e.el isn't loaded twice.
+
+2003-05-15  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-utils.el (mh-defun-show-buffer): Arrange for the current
+	line in the folder buffer to be highlighted even when we are in
+	the show buffer.
+
+2003-05-14  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-seq.el (mh-read-range): Allow this to work on invalid
+	sequences that only MH-E knows about.
+
+	* mh-index.el (mh-create-sequence-map, mh-index-add-to-sequence)
+	(mh-index-delete-from-sequence): Don't consider sequences that
+	aren't valid MH sequences.
+
+	* mh-e.el (mh-valid-seq-p): New predicate to check if a symbol
+	could be a MH sequence.
+	(mh-undefine-sequence, mh-define-sequence): Don't execute "mark"
+	unless the sequence name is a valid MH sequence.
+
+	* mh-utils.el (mh-exec-cmd): In case an error happens in the
+	call-process and non-strings are present in ARGS, then the error
+	message isn't properly displayed. The change fixes this.
+
+2003-05-14  Peter S Galbraith  <psg@debian.org>
+
+	* mh-mime.el (mh-mime-save-part): Bug Fix: Make sure
+	`mm-default-directory' gets a trailing "/" if
+	`mh-mime-save-parts-directory' doesn't have one.  Otherwise the
+	default in the prompt of `mh-mm-save-part' will be wrong.  Perhaps
+	`mh-mm-save-part' needs to do this check itself.
+
+2003-05-14  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-index.el (mh-unpropagated-sequences): New function and
+	variable to keep track of sequences that shouldn't be propagated.
+	(mh-create-sequence-map, mh-index-add-to-sequence)
+	(mh-index-delete-from-sequence): Use mh-unpropagated-sequences to
+	stop changes to some sequences being reflected back to the source
+	folders.
+
+2003-05-13  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-loaddefs.el: Regenerated.
+
+	* mh-e.el (mh-process-commands): Preserve sequences when messages
+	are refiled (closes SF #737128).
+
+	* mh-index.el (mh-create-sequence-map)
+	(mh-index-create-sequences): Refactor code that is reused into a
+	new function.
+
+	* mh-customize.el (mh-refile-preserves-sequences-flag): New
+	customizable flag that controls whether sequences are preserved
+	when messages are refiled.
+
+2003-05-13  Eric Ding  <ericding@alum.mit.edu>
+
+	* mh-e.el (mh-scan-format): The argument for scan format files
+	should be -form, not -format.
+
+2003-05-13  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-seq.el (mh-widen): The scan line map stack was not being
+	properly updated when ALL-FLAG is non-nil. The change fixes that.
+
+	* mh-e.el (mh-reset-threads-and-narrowing): The change resets the
+	scan line map stack.
+
+2003-05-12  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-loaddefs.el: Regenerated.
+
+	* mh-seq.el (mh-thread-scan-line-map-stack)
+	(mh-thread-old-scan-line-map): Instead of the old scan line map,
+	now we need to maintain a stack of scan line maps.
+	(mh-narrow-to-seq): Modified so that multiple level of narrowings
+	can be done. We now maintain a stack of old views instead of
+	hiding the old scan lines. This makes it possible to have
+	multiple levels of narrowings.
+	(mh-widen): A optional prefix arg was added to allow undoing all
+	narrowing.
+	(mh-read-seq-default, mh-read-range): Don't use
+	mh-narrowed-to-seq, since it doesn't exist any more.
+	(mh-thread-initialize-hash, mh-thread-initialize): The
+	mh-thread-initialize function has been refactored.
+	(mh-thread-update-scan-line-map): Maintain notations in the stack
+	of scan line maps.
+	(mh-notate-tick, mh-toggle-tick): Simplified, since we don't have
+	mh-narrowed-to-seq any more. This means there is a slight loss of
+	functionality. Earlier if we narrowed to the tick sequence the
+	ticked messages weren't highlighted. This feature isn't present
+	any more.
+
+	* mh-e.el (mh-execute-commands, mh-reset-threads-and-narrowing)
+	(mh-folder-sequence-menu, mh-get-new-mail): Use
+	mh-folder-view-stack instead of the now removed
+	mh-narrowed-to-seq.
+	(mh-narrowed-to-seq, mh-tick-seq-changed-when-narrowed-flag):
+	These variables have been removed.
+	(mh-folder-view-stack): New variable to keep track of a stack of
+	narrowings.
+	(mh-execute-commands, mh-get-new-mail): Add extra argument to
+	mh-widen so that all narrowings are undone.
+
+	* Makefile (MH-E-SRC, MH-E-OTHERS): Move mh-gnus.el from MH-E-SRC
+	to MH-E-OTHERS so that it isn't byte compiled.
+
+2003-05-10  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-seq.el (mh-read-seq): Improve the function a bit by adding
+	history to the sequence prompt.
+
+2003-05-09  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-gnus.el: New file that won't be byte-compiled. From now on
+	having different Gnus versions at run-time and compile-time won't
+	cause errors in MH-E.
+
+	* mh-mime.el (mh-small-show-buffer-p, mh-display-smileys)
+	(mh-display-emphasis): Handle all legal values of
+	font-lock-maximum-size. The existing code assumed didn't consider
+	the case where it could be an alist.
+	(mh-small-image-p): Simplified, so that aliasing XEmacs functions
+	in Emacs isn't necessary any more.
+	(mh-mm-display-part): Remove unnecessary call to fboundp. The
+	mh-funcall-if-exists does that for us any way.
+	(mh-defun-compat, gnus-local-map-property, mm-merge-handles)
+	(mm-set-handle-multipart-parameter, mm-readable-p)
+	(mm-long-lines-p, mm-keep-viewer-alive-p, mm-destroy-parts)
+	(mh-mm-save-part, mm-handle-multipart-ctl-parameter): These
+	compatibility functions have been moved to mh-gnus.el.
+
+	* Makefile (MH-E-SRC): Add mh-gnus.el.
+
+	* mh-seq.el (mh-narrow-to-header-field)
+	(mh-current-message-header-field): Checkdoc fixes.
+
+	* mh-e.el (mh-undefine-sequence): Since mh-coalesce-msg-list
+	returns a list, apply is needed.
+
+2003-05-09  Noel Cragg  <noel@red-bean.com> (tiny change)
+
+	* mh-junk.el (mh-spamassassin-blacklist): Separate "--local" and
+	"--no-rebuild" arguments to call-process.
+	[Patch committed by satyaki]
+
+2003-05-08  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-seq.el (mh-translate-range): Take into account differnt
+	semantics of split-string in Emacs and XEmacs.
+	(mh-read-pick-regexp, mh-narrow-to-from, mh-narrow-to-cc)
+	(mh-narrow-to-to, mh-narrow-to-header-field)
+	(mh-current-message-header-field, mh-narrow-to-range): New
+	narrowing functions that can select messages based on different
+	message headers.
+
+	* mh-utils.el (mh-show-limit-map): Add new narrowing functions
+	callable from the show buffer.
+
+	* mh-e.el (mh-help-messages): Add help text for new functions.
+	(mh-limit-map): Add new narrowing functions (closes SF #732823).
+
+2003-05-07  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-utils.el (mh-collect-folder-names): Use mh-exec-daemon to
+	run flists. This means we don't have to remember to expand the MH
+	executable in the mh-progs path.
+	(mh-exec-cmd-daemon): Return the new process object produced.
+
+2003-05-06  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-e.el (mh-folder-font-lock-unseen): Use mh-seq-list to do
+	unseen sequence highlighting instead of reading the .mh_sequences
+	file from disk every time.
+
+2003-05-05  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-utils.el (mh-show-sequence-map): Add key binding for S'
+	(closes SF #732825).
+
+	* mh-e.el (mh-sequence-map): Ditto.
+	(mh-help-messages): Updated for S'.
+
+2003-05-04  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-index.el (mh-index-write-data): The with-temp-buffer macro
+	is a bit better than write-file, so use that instead.
+
+2003-05-03  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-index.el (mh-index-update-maps, mh-index-search)
+	(mh-index-sequenced-messages): Write index data to disk. This
+	allows us to recover index folder information if Emacs is
+	restarted, or the index folder is visited after the buffer has
+	been killed (closes SF #701762).
+	(mh-index-write-data, mh-index-read-data)
+	(mh-index-write-hashtable, mh-index-read-hashtable): Functions to
+	store and read index data information to disk.
+	(mh-index-insert-folder-headers, mh-index-group-by-folder): We
+	can no longer use object identity to compare strings, since they
+	might have been read back from disk.
+
+	* mh-e.el (mh-index-data-file): New variable that stores the name
+	of the file that keeps track of index folder data.
+	(mh-make-folder): Read index folder data if available.
+
+	* mh-utils.el (mh-show, mh-summary-height, mh-modify): Make
+	checkdoc happy.
+
+	* mh-seq.el (mh-tick-add-overlay): Rearrange code to make code
+	more uniform.
+
+	* mh-loaddefs.el: Regenerated.
+
+2003-05-02  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-seq.el (mh-tick-add-overlay): If a message with a short scan
+	line is ticked, then the highlighting didn't extend to the right
+	margin. This change fixes that.
+
+2003-05-01  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (mh-help-messages): Added brackets around / and
+	downcased limit to be consistent with other commands with
+	punctuation keybindings. Don't document aliases.
+
+2003-05-01  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-loaddefs.el: Regenerated.
+
+	* mh-seq.el (mh-read-range): Fix comment.
+
+2003-04-30  Mark D. Baushke  <mdb@gnu.org>
+
+	* mh-e.el (mh-help-messages): Better documentation for the F map.
+
+2003-04-30  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-utils.el (mh-find-path): Cache folder names so that
+	folder name completion is always fast.
+	(mh-flists-partial-line, mh-flists-process): Variables used for
+	pre-caching folder names.
+	(mh-collect-folder-names, mh-collect-folder-names-filter)
+	(mh-populate-sub-folders-cache): Functions to pre-cache folder
+	names.
+	(mh-exec-cmd): Produce more info in *MH-E Log*.
+
+	* mh-index.el (mh-index-search): Call the correct function.
+	(mh-index-sequenced-messages): If folders is nil, then all mail
+	is searched. The change restores that.
+
+2003-04-30  Peter S Galbraith  <psg@debian.org>
+
+	* mh-customize.el (mh-summary-height): Move variable integer out
+	of defcustom, and instead specify that `nil' means to calculate
+	that size dynamically.  Fixes SF #723267.
+
+	* mh-utils.el (mh-summary-height): New function. Return ideal
+	mh-summary-height value for current frame height.
+	(mh-show-msg): Use it.
+
+2003-04-30  Mark D. Baushke  <mdb@gnu.org>
+
+	* mh-index.el (mh-index-ticked-messages): Fix prompt and
+	description string.
+	(mh-index-new-messages): Ditto.
+
+	* mh-loaddefs.el: Regenerated.
+
+	* mh-index.el (mh-index-sequenced-messages): Renamed from
+	mh-index-new-messages with minor argument change.
+	(mh-index-new-messages): Implement by calling
+	mh-index-sequenced-messages with the appropriate arguments.
+	(mh-index-ticked-messages): New function. Does the same thing as
+	mh-index-new-messages, but on its own set of folders and using the
+	mh-tick-seq instead of mh-unseen-seq.
+
+	* mh-e.el (mh-folder-map): Add "F'" to the map for
+	mh-index-ticked-messages.
+	(mh-help-messages): Replace broken [t]hread with [n]ew messages.
+	
+	* mh-customize.el (mh-index-ticked-messages-folders): New user
+	customizable flag that controls the folders to be searched by
+	mh-index-ticked-messages.
+
+	* mh-utils.el (mh-show-index-ticked-messages): Wrapper for
+	mh-index-ticked-messages.
+	(mh-show-folder-map): Add "F'" to the map for
+	mh-index-ticked-messages.
+
+2003-04-30  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-index.el (mh-index-search): The old cur in the source folder
+	might not exist. This could cause mh-exec-cmd to fail. So don't
+	add an error message in that case.
+
+2003-04-29  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-e.el (mh-folder-from-address): Modified to allow multiple
+	Cc: headers to work properly.
+	(mh-inc-folder, mh-visit-folder): Fix an off by one error.
+
+	* mh-utils.el (mh-notate): Update the scan line map. This fixes a
+	tiny bug. In threaded view, if a message is replied to then the
+	message is notated with a "-". Now if inc is done then the "-"
+	added is lost. The change fixes this.
+
+	* mh-seq.el (mh-translate-range): Use the correct function.
+	(mh-thread-update-scan-line-map): New function that updates the
+	scan line map when a message is notated.
+
+2003-04-28  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-index.el (mh-index-parse-search-regexp): Avoid compiler
+	warning in GNU Emacs 21.3.
+
+	* mh-seq.el (mh-widen): Ditto.
+
+2003-04-28  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-customize.el (mh-interpret-number-as-range-flag): New user
+	customizable flag that controls whether a single number, N is
+	interpreted as the range last:N.
+
+	* mh-seq.el (mh-read-range): Generalize it for use when reading
+	range to scan.
+	(mh-interactive-range): Modified to use the new mh-read-range.
+
+	* mh-speed.el (mh-speed-view): Use mh-read-range instead of the
+	now removed mh-read-msg-range function.
+
+	* mh-funcs.el (mh-pack-folder): Ditto.
+
+	* mh-e.el (mh-rescan-folder, mh-visit-folder): Ditto.
+	(mh-read-msg-range): Removed.
+
+	* mh-loaddefs.el: Regenerated
+
+2003-04-27  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-loaddefs.el: Regenerated.
+
+	* mh-seq.el (mh-range-completion-function): Fix checkdoc warning.
+	(mh-iterate-on-range): Mention that the macro can iterate over a
+	MH message range too.
+
+2003-04-27  Bill Wohler  <wohler@newt.com>
+
+	* mh-unit.el (mh-unit): As it turns out, lm-crack-copyright has
+	been updated to handle multiple-line copyrights in 21.3, so
+	updated code to run lm-verify only if user has 21.3 or greater.
+	Delete buffers after use, unless user already had buffer open.	
+
+2003-04-27  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-loaddefs.el: Regenerated.
+
+	* mh-index.el (mh-index-search): The MH command "refile" changes
+	cur. The change restores cur in source folders.
+	(mh-index-new-messages): Use the appropriate arguments for
+	mh-read-seq.
+
+	* mh-seq.el (mh-read-seq-default, mh-read-seq): Restore these
+	functions to just read sequence names.
+	(mh-range-seq-names, mh-range-history, mh-range-completion-map)
+	(mh-range-completion-function, mh-read-range): New function which
+	reads MH range with completion and history.
+	(mh-interactive-range): Use mh-read-range instead of
+	mh-read-seq-default.
+	(mh-put-msg-in-seq): Change documentation about MH message range.
+
+	* mh-junk.el (mh-junk-blacklist, mh-junk-whitelist): Change
+	documentation about MH message range.
+
+	* mh-funcs.el (mh-copy-msg, mh-print-msg): Ditto.
+
+	* mh-e.el (mh-delete-msg, mh-delete-msg-no-motion)
+	(mh-refile-msg, mh-undo, mh-delete-msg-from-seq): Ditto.
+
+	* mh-comp.el (mh-forward): Ditto.
+
+2003-04-26  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-comp.el, mh-e.el, mh-funcs.el, mh-junk.el, mh-seq.el:
+	Replace msg-or-seq with range everywhere.
+
+	* mh-loaddefs.el: Regenerated.
+
+2003-04-25  Satyaki Das  <satyakid@stanford.edu>
+
+	* mh-e.el (mh-index-sequence-search-flag, mh-folder-mode): New
+	local variable to remember that a folder buffer contains results
+	from a sequence search. This is needed so that "C-u F i" will work
+	as expected.
+	(mh-visit-folder): Create sequences in the index folder.
+	(mh-process-commands, mh-delete-msg-from-seq): If speedbar is on
+	then update the speedbar message counts immediately.
+	(mh-delete-msg-from-seq): Make the code faster by calling "mark"
+	just once. Also update source folder sequence if messages are
+	being deleted from a sequence in an index folder.
+	(mh-undefine-sequence): Simplified to remove the speedbar updating
+	code. Also DTRT and don't change any sequence when called with an
+	empty list of messages.
+	(mh-refile-msg, mh-delete-msg): Move to next message only if the
+	current message has been deleted or refiled, as the case may be.
+
+	* mh-utils.el (mh-show-msg): Update the message counts in the
+	speedbar, if it is on, immediately.
+	(mh-speed-flists-active-p, mh-speed-flists-inhibit-flag): A new
+	flag has been added which inhibits updating of the speedbar. This
+	is used to avoid needless speedbar updates when
+	mh-execute-commands is called in index folders.
+
+	* mh-speed.el (mh-speed-flists): Extended so that multiple
+	folders can be given as arguments. Also the code that kept track
+	of the current folder, needed since flists adds an extra ?+ char
+	at the end of the current folder name, wasn't entirely correct.
+	That has also been fixed.
+
+	* mh-seq.el (mh-delete-seq, mh-put-msg-in-seq): Modified so that
+	sequence in source folder is updated if we delete a sequence in an
+	index folder.
+	(mh-read-seq, mh-read-seq-default, mh-translate-range)
+	(mh-interactive-msg-or-seq): The mh-interactive-msg-or-seq
+	function can read in an arbitrary MH message range.
+	(mh-iterate-on-msg-or-seq): The macro has been extended to work on
+	a MH range.
+	(mh-subject-to-sequence, mh-subject-to-sequence-unthreaded)
+	(mh-subject-to-sequence-threaded, mh-thread-find-msg-subject): Fix
+	the mh-subject-to-sequence function so that it will work in
+	threaded folders too.
+	(mh-tick-add-overlay): Fix a leak of overlays.
+	(mh-toggle-tick): Ticking, or unticking, messages in the index
+	folder is propagated to the source folders (closes SF #709664).
+
+	* mh-index.el (mh-flists-results-folder, mh-flists-sequence)
+	(mh-flists-called-flag): New variables to implement searching for
+	arbitrary sequences.
+	(mh-index-generate-pretty-name): Updated so that folder names are
+	generated for flists search that can take any sequence name.
+	(mh-index-search): Since sequences are now properly maintained the
+	unseen-flag argument isn't needed and hence removed. Also redoing
+	a sequence search with "C-u F i" is handled correctly. Finally
+	the speedbar is updated to reflect the new index folder created.
+	(mh-index-create-sequences): New function that creates sequences
+	in the index folder.
+	(mh-index-matching-source-msgs, mh-index-execute-commands):
+	Improved so that scan lines for refiled/deleted messages are
+	removed from the source folders as well.
+	(mh-index-add-to-sequence, mh-index-delete-from-sequence): New
+	functions to update sequences in source folder to reflect changes
+	in index folder.
+	(mh-index-quote-for-shell): A utility function to that quotes
+	characters with special meaning to /bin/sh.
+	(mh-flists-execute, mh-index-new-messages): Updated to search for
+	arbitrary sequences (closes SF #718833).
+
+	* mh-loaddefs.el: Regenerated.
+
+2003-04-25  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el (mh-kill-folder-suppress-prompt-hook): New hook
+	used by mh-kill-folder to suppress the prompt.
+
+	* mh-funcs.el (mh-kill-folder): Suppress prompt not if
+	mh-index-data is non-nil, but if any functions in
+	mh-kill-folder-suppress-prompt-hook return non-nil.
+
+	* mh-index.el (mh-index-p): New function with returns non-nil if
+	the current folder was generated by an index search for use by
+	mh-kill-folder-suppress-prompt-hook
+
+	* mh-unit.el (mh-unit): Commented out lm-verify step until code
+	updated to handle split Copyright lines.
+
+	* mh-e.el (mh-version): Set to 7.3+cvs.
 
 2003-04-24  Bill Wohler  <wohler@newt.com>
 
@@ -50,10 +1309,6 @@
 	runs checkdoc and lm-verify which is useful before releasing the
 	software. It can and should be expanded to do real unit tests.
 
-2004-04-22  Lars Hansen  <larsh@math.ku.dk>
-
-	* mh-e.el (mh-restore-desktop-buffer): Delete with-no-warnings.
-
 2003-04-22  Mark D Baushke  <mdb@gnu.org>
 
 	* mh-alias.el: Update Copyright.
@@ -77,11 +1332,6 @@
 	split-string behaves differently in XEmacs than it does in GNU
 	Emacs.
 	(mh-exec-cmd-error): Add a comment, so that we change it later on.
-
-2004-04-21  Lars Hansen  <larsh@math.ku.dk>
-	
-	* mh-e.el (mh-restore-desktop-buffer): Move from
-	desktop.el. Add Parameters.
 
 2003-04-18  Steve Youngs  <youngs@xemacs.org>
 
@@ -7589,7 +8839,7 @@
 	(dist): Leave release in current directory.
 
  
-Copyright (C) 2003 Free Software Foundation, Inc.
+Copyright (C) 2003, 2004 Free Software Foundation, Inc.
 	
 Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
