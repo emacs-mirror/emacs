@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 ;; Keywords: convenience, extensions
 ;; Version: 2.02g
 
@@ -237,7 +236,7 @@ This can safely be nil as long as the Calc files are on the load-path.")
 (defvar calc-gnuplot-print-command "lp %s"
   "*Name of command for printing GNUPLOT output; %s = file name to print.")
 
-(defvar calc-bug-address "deego@gnufans.org"
+(defvar calc-bug-address "belanger@truman.edu"
   "Address of the author of Calc, for use by `report-calc-bug'.")
 
 (defvar calc-scan-for-dels t
