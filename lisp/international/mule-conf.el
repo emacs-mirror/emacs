@@ -301,7 +301,7 @@
 
 (setq file-coding-system-alist
       '(("\\.elc$" . (no-conversion . no-conversion))
-	("loaddefs.el$" . (no-conversion . no-conversion))
+	("\\(\\`\\|/\\)loaddefs.el$" . (no-conversion . no-conversion))
 	("\\.tar$" . (no-conversion . no-conversion))
 	("" . (undecided . nil))))
 
