@@ -716,7 +716,7 @@ the user from the mailer."
 This has higher priority than `default-buffer-file-coding-system'
 and `default-sendmail-coding-system',
 but lower priority than the local value of `buffer-file-coding-system'.
-See also the function `select-sendmail-coding-system'.")
+See also the function `select-message-coding-system'.")
 
 ;;;###autoload
 (defvar default-sendmail-coding-system 'iso-latin-1
@@ -727,7 +727,7 @@ This variable is set/changed by the command set-language-environment.
 User should not set this variable manually,
 instead use sendmail-coding-system to get a constant encoding
 of outgoing mails regardless of the current language environment.
-See also the function `select-sendmail-coding-system'.")
+See also the function `select-message-coding-system'.")
 
 (defun sendmail-send-it ()
   (require 'mail-utils)
