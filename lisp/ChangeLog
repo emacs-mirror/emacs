@@ -1,3 +1,18 @@
+2002-05-01  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el: Yet more doc string, commment and whitespace
+	changes.
+	(f90-imenu-flag): New name for internal variable f90-imenu.
+	(f90-blocks-re, f90-program-block-re, f90-end-if-re,
+	f90-no-break-re): Use regexp-opt.
+	(f90-end-type-re): Add closing "\\>".
+	(f90-indent-region): Correctly indent comments embedded in
+	continued lines.
+	(f90-indent-new-line): Make it indent the current line, as it should.
+
+	* progmodes/fortran.el (fortran-strip-sequence-nos): Rename from
+	typo `fortran-strip-sqeuence-nos'.
+
 2002-05-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* simple.el (clone-indirect-buffer-other-window): Fix a typo in
