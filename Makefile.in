@@ -177,7 +177,7 @@ INSTALL_DATA = @INSTALL_DATA@
 SUBDIR = lib-src src
 
 # The makefiles of the directories in $SUBDIR.
-SUBDIR_MAKEFILES = lib-src/Makefile src/Makefile oldXMenu/Makefile
+SUBDIR_MAKEFILES = lib-src/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile
 
 # Subdirectories to install, and where they'll go.
 # lib-src's makefile knows how to install it, so we don't do that here.
@@ -232,6 +232,9 @@ lib-src/Makefile: lib-src/Makefile.in config.status
 oldXMenu/Makefile: oldXMenu/Makefile.in config.status
 	./config.status
 
+lwlib/Makefile: lwlib/Makefile.in config.status
+	./config.status
+
 # ==================== Installation ====================
 
 ## If we let lib-src do its own installation, that means we
@@ -240,6 +243,8 @@ oldXMenu/Makefile: oldXMenu/Makefile.in config.status
 
 ## On AIX, use tar xBf.
 ## On Xenix, use tar xpf.
+
+.PHONY: install do-install mkdir
 
 ## We delete each directory in ${COPYDESTS} before we copy into it;
 ## that way, we can reinstall over directories that have been put in
@@ -344,6 +349,8 @@ FRC.mostlyclean FRC.clean FRC.distclean FRC.realclean:
 
 # ==================== Cleaning up and miscellanea ====================
 
+.PHONY: mostlyclean clean distclean realclean extraclean
+
 ### `mostlyclean'
 ###      Like `clean', but may refrain from deleting a few files that people
 ###      normally don't want to recompile.  For example, the `mostlyclean'
@@ -352,6 +359,7 @@ FRC.mostlyclean FRC.clean FRC.distclean FRC.realclean:
 mostlyclean: FRC.mostlyclean
 	(cd src;      $(MAKE) $(MFLAGS) mostlyclean)
 	(cd oldXMenu; $(MAKE) $(MFLAGS) mostlyclean)
+	(cd lwlib;    $(MAKE) $(MFLAGS) mostlyclean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) mostlyclean)
 	-(cd man;     $(MAKE) $(MFLAGS) mostlyclean)
 
@@ -366,6 +374,7 @@ mostlyclean: FRC.mostlyclean
 clean: FRC.clean
 	(cd src;      $(MAKE) $(MFLAGS) clean)
 	(cd oldXMenu; $(MAKE) $(MFLAGS) clean)
+	(cd lwlib;    $(MAKE) $(MFLAGS) clean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) clean)
 	-(cd man;     $(MAKE) $(MFLAGS) clean)
 
@@ -382,6 +391,7 @@ top_distclean=\
 distclean: FRC.distclean
 	(cd src;      $(MAKE) $(MFLAGS) distclean)
 	(cd oldXMenu; $(MAKE) $(MFLAGS) distclean)
+	(cd lwlib;    $(MAKE) $(MFLAGS) distclean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) distclean)
 	(cd man;      $(MAKE) $(MFLAGS) distclean)
 	${top_distclean}
@@ -401,6 +411,7 @@ distclean: FRC.distclean
 realclean: FRC.realclean
 	(cd src;      $(MAKE) $(MFLAGS) realclean)
 	(cd oldXMenu; $(MAKE) $(MFLAGS) realclean)
+	(cd lwlib;    $(MAKE) $(MFLAGS) realclean)
 	(cd lib-src;  $(MAKE) $(MFLAGS) realclean)
 	-(cd man;     $(MAKE) $(MFLAGS) realclean)
 	${top_distclean}
@@ -428,6 +439,8 @@ extraclean:
 SOURCES = ChangeLog GETTING.GNU.SOFTWARE INSTALL Makefile.in PROBLEMS \
 	README build-install.in configure make-dist move-if-change
 
+.PHONY: unlock relock
+
 unlock:
 	chmod u+w $(SOURCES) cpp/*
 	-(cd elisp; chmod u+w Makefile README *.texi)
@@ -437,6 +450,7 @@ unlock:
 	(cd lisp/term; chmod u+w README *.el)
 	(cd man; chmod u+w *texi* ChangeLog split-man)
 	(cd oldXMenu; chmod u+w *.[ch] Makefile README)
+	(cd lwlib; chmod u+w *.[ch] Makefile README)
 	(cd src; $(MAKE) $(MFLAGS) unlock)
 
 relock:
@@ -448,6 +462,7 @@ relock:
 	(cd lisp/term; chmod u+w README *.el)
 	(cd man; chmod u+w *texi* ChangeLog split-man)
 	(cd oldXMenu; chmod u+w *.[ch] Makefile README)
+	(cd lwlib; chmod u+w *.[ch] Makefile README)
 	(cd src; $(MAKE) $(MFLAGS) relock)
 
 TAGS tags:	lib-src
