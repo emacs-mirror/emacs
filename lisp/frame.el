@@ -1043,11 +1043,23 @@ should use `set-frame-height' instead."
 
 (defun delete-other-frames (&optional frame)
   "Delete all frames except FRAME.
-FRAME nil or omitted means delete all frames except the selected frame."
+If FRAME uses another frame's minibuffer, the minibuffer frame is
+left untouched.  FRAME nil or omitted means use the selected frame."
   (interactive)
   (unless frame
     (setq frame (selected-frame)))
-  (mapcar 'delete-frame (delq frame (frame-list))))
+  (let* ((mini-frame (window-frame (minibuffer-window frame)))
+	 (frames (delq mini-frame (delq frame (frame-list)))))
+    ;; Delete mon-minibuffer-only frames first, because `delete-frame'
+    ;; signals an error when trying to delete a mini-frame that's
+    ;; still in use by another frame.
+    (dolist (frame frames)
+      (unless (eq (frame-parameter frame 'minibuffer) 'only)
+	(delete-frame frame)))
+    ;; Delete minibuffer-only frames.
+    (dolist (frame frames)
+      (when (eq (frame-parameter frame 'minibuffer) 'only)
+	(delete-frame frame)))))
 
 
 (make-obsolete 'screen-height 'frame-height) ;before 19.15
