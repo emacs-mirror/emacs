@@ -1,3 +1,12 @@
+2000-10-02  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* syntax.c (forw_comment): Match nestedness of ender/starter.
+	(Fforward_comment): Treat an unmatched \n comment-ender as whitespace.
+	(prev_char_comstart_first): Remove.
+	(back_comment): Check two-char comment markers more carefully
+	to better handle overlapping cases like *//* or /* */* */ ...
+	Match nestedness of ender/starter.
+
 2000-10-02  Dave Love  <fx@gnu.org>
 
 	* config.in (HAVE_GAI_STRERROR): Add undef.
