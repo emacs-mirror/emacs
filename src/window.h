@@ -248,6 +248,11 @@ extern int echo_area_glyphs_length;
   as it is no longer requested to appear. */
 extern char *previous_echo_glyphs;
 
+/* This is the window where the echo area message was displayed.
+   It is always a minibuffer window, but it may not be the
+   same window currently active as a minibuffer.  */
+extern Lisp_Object echo_area_window;
+
 /* Depth in recursive edits.  */
 extern int command_loop_level;
 
