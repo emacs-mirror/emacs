@@ -1,5 +1,14 @@
 2001-04-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (Vmotif_version_string) [USE_MOTIF]: New variable.
+	(syms_of_xfns): DEFVAR_LISP it.  Initialize from XmVERSION_STRING.
+
+	* xmenu.c (free_frame_menubar) [USE_MOTIF]: Preserve the
+	shell widget's position only if it is non-null.
+
+	* xterm.c (x_free_frame_resources) [USE_X_TOOLKIT]: Set 
+	f->output_data.x->widget to null after destroying it.
+
 	* fns.c (Frequire): Doc fix.  Rename parameter FILE_NAME to
 	FILENAME to bring it in synch with the documentation.
 
