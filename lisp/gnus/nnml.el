@@ -99,8 +99,8 @@ all.  This may very well take some time.")
 	    (number (length sequence))
 	    (count 0)
 	    ;; 1997/8/12 by MORIOKA Tomohiko
-	    ;;	for XEmacs/mule.
-	    (pathname-coding-system 'binary)
+	    (file-name-coding-system 'binary) ; for Emacs 20
+	    (pathname-coding-system 'binary)  ; for XEmacs/mule
 	    beg article)
 	(if (stringp (car sequence))
 	    'headers
@@ -164,8 +164,8 @@ all.  This may very well take some time.")
   (nnml-possibly-change-directory group server)
   (let* ((nntp-server-buffer (or buffer nntp-server-buffer))
 	 ;; 1997/8/12 by MORIOKA Tomohiko
-	 ;;	for XEmacs/mule.
-	 (pathname-coding-system 'binary)
+	 (file-name-coding-system 'binary) ; for Emacs 20
+	 (pathname-coding-system 'binary)  ; for XEmacs/mule
 	 path gpath group-num)
     (if (stringp id)
 	(when (and (setq group-num (nnml-find-group-number id))
@@ -195,8 +195,8 @@ all.  This may very well take some time.")
 
 (deffoo nnml-request-group (group &optional server dont-check)
   ;; 1997/8/12 by MORIOKA Tomohiko
-  ;;	for XEmacs/mule.
-  (let ((pathname-coding-system 'binary))
+  (let ((file-name-coding-system 'binary) ; for Emacs 20
+	(pathname-coding-system 'binary)) ; for XEmacs/mule
     (cond
      ((not (nnml-possibly-change-directory group server))
       (nnheader-report 'nnml "Invalid group (no such directory)"))
@@ -248,6 +248,7 @@ all.  This may very well take some time.")
     ;; 1997/8/12 by MORIOKA Tomohiko
     ;;	for XEmacs/mule.
     (let ((nnmail-file-coding-system nnmail-active-file-coding-system)
+	  (file-name-coding-system 'binary) ; for Emacs 20
 	  (pathname-coding-system 'binary)) ; for XEmacs/mule
       (nnmail-find-file nnml-active-file)
       )
@@ -563,8 +564,8 @@ all.  This may very well take some time.")
       t
     (let ((pathname (nnmail-group-pathname group nnml-directory))
 	  ;; 1997/8/14 by MORIOKA Tomohiko
-	  ;;	for XEmacs/mule.
-	  (pathname-coding-system 'binary))
+	  (file-name-coding-system 'binary) ; for Emacs 20
+	  (pathname-coding-system 'binary)) ; for XEmacs/mule
       (when (not (equal pathname nnml-current-directory))
 	(setq nnml-current-directory pathname
 	      nnml-current-group group
