@@ -1,5 +1,7 @@
 2000-08-24  Gerd Moellmann  <gerd@gnu.org>
 
+	* bytecode.c (mark_byte_stack): Add a comment.
+
 	* frame.h (FRAME_FLAGS_AREA_COLS, FRAME_FLAGS_AREA_WIDTH) 
 	(FRAME_LEFT_FLAGS_AREA_WIDTH): Return 0 unless frame is 
 	a graphical frame.

@@ -191,6 +191,10 @@ even if @samp{--unibyte} is specified; see @ref{Enabling Multibyte}.)
 Setting the environment variable @env{EMACS_UNIBYTE} has the same
 effect.
 
+The exception to the rule are Emacs Lisp files.  An Emacs Lisp file that
+doesn't contain the tag @samp{unibyte: t} is loaded in multibyte mode,
+and thus strings created while loading will be multibyte.
+
 @item --multibyte
 Inhibit the effect of @env{EMACS_UNIBYTE}, so that Emacs
 uses multibyte characters by default, as usual.

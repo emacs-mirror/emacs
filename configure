@@ -684,17 +684,17 @@ fi
 
 
 #### Make srcdir absolute, if it isn't already.  It's important to
-#### avoid running the path through pwd unnecessary, since pwd can
+#### avoid running the path through pwd unnecessarily, since pwd can
 #### give you automounter prefixes, which can go away.  We do all this
 #### so Emacs can find its files when run uninstalled.
+## Make sure CDPATH doesn't affect cd (in case PWD is relative).
+unset CDPATH
 case "${srcdir}" in
   /* ) ;;
   . )
     ## We may be able to use the $PWD environment variable to make this
     ## absolute.  But sometimes PWD is inaccurate.
-    ## Make sure CDPATH doesn't affect cd (in case PWD is relative).
-    unset CDPATH
-    if test "${PWD}" != "" && test "`(cd ${PWD} ; sh -c pwd)`" = "`pwd`"  ;
+    if test ".${PWD}" != "." && test ".`(cd ${PWD} ; sh -c pwd)`" = ".${PWD}"  ;
     then
       srcdir="$PWD"
     else
