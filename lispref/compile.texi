@@ -455,7 +455,7 @@ inside @var{body}.
 
 We recommend that you use this construct around the smallest
 possible piece of code.
-@end defun
+@end defmac
 
 @node Byte-Code Objects
 @section Byte-Code Function Objects
