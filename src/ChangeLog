@@ -1,3 +1,7 @@
+2001-07-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_fill_stretch_glyph_string): Remove an assertion.
+
 2001-07-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* dispnew.c (update_window): Don't set the cursor at the end
