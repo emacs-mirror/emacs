@@ -1,3 +1,7 @@
+2005-03-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* simple.el (goto-line): Remove unbalanced final parentheses.
+
 2005-03-05  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (goto-line): Use a number at point as the default.
