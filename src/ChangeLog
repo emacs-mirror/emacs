@@ -1,3 +1,13 @@
+2004-02-26  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (handle_single_display_prop): Handle left-fringe and
+	right-fringe similar to a display margin image.  Specifically,
+	the characters having the fringe prop are no longer shown, and
+	we use IT_IMAGE/next_element_from_image with image_id = -1 to
+	do this.  Set fringe bitmap face_id in it->face_id.
+	(produce_image_glyph): Handle image_id < 0 as "no image" case, but
+	still realize it->face (i.e. the fringe bitmap face).
+
 2004-02-25  Miles Bader  <miles@gnu.org>
 
 	* xdisp.c (check_it): Check string/string_pos consistency.
