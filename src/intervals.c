@@ -1886,7 +1886,7 @@ set_point_both (buffer, charpos, bytepos)
 						   Qintangible, Qnil);
 
 	  /* If following char is intangible,
-	     skip back over all chars with matching intangible property.  */
+	     skip forward over all chars with matching intangible property.  */
 	  if (! NILP (intangible_propval))
 	    while (XINT (pos) < BUF_ZV (buffer)
 		   && EQ (Fget_char_property (pos, Qintangible, Qnil),
@@ -2001,7 +2001,7 @@ move_if_not_intangible (position)
 					       Qintangible, Qnil);
 
       /* If following char is intangible,
-	 skip back over all chars with matching intangible property.  */
+	 skip forward over all chars with matching intangible property.  */
       if (! NILP (intangible_propval))
 	while (XINT (pos) < ZV
 	       && EQ (Fget_char_property (pos, Qintangible, Qnil),
