@@ -6053,7 +6053,7 @@ We suppose that the regexp is scanned already."
     (cperl-beautify-regexp-piece b e nil)))
 
 (defun cperl-invert-if-unless ()
-  "Changes `if (A) {B}' into `B if A;' if possible."
+  "Change `if (A) {B}' into `B if A;' if possible."
   (interactive)
   (or (looking-at "\\<")
 	(forward-sexp -1))
@@ -6137,7 +6137,76 @@ We suppose that the regexp is scanned already."
 	  (error "`%s' not with an (EXPR)" s0)))
     (error "Not at `if', `unless', `while', or `unless'")))
 
-(defvar Man-filter-list)
+;;; Getting help on modules in C-h f ?
+;;; This is a modified version of `man'.
+;;; Need to teach it how to lookup functions
+(defun cperl-perldoc (word)
+  "Run `perldoc' on WORD."
+  (interactive
+   (list (let* ((default-entry (cperl-word-at-point))
+                (input (read-string
+                        (format "perldoc entry%s: "
+                                (if (string= default-entry "")
+                                    ""
+                                  (format " (default %s)" default-entry))))))
+           (if (string= input "")
+               (if (string= default-entry "")
+                   (error "No perldoc args given")
+                 default-entry)
+             input))))
+  (let* ((is-func (and 
+		   (string-match "^[a-z]+$" word)
+		   (string-match (concat "^" word "\\>")
+				 (documentation-property
+				  'cperl-short-docs
+				  'variable-documentation))))
+	 (manual-program (if is-func "perldoc -f" "perldoc")))
+    (require 'man)
+    (Man-getpage-in-background word)))
+
+(defun cperl-perldoc-at-point ()
+  "Run a `perldoc' on the word around point."
+  (interactive)
+  (cperl-perldoc (cperl-word-at-point)))
+
+(defcustom pod2man-program "pod2man"
+  "*File name for `pod2man'."
+  :type 'file
+  :group 'cperl)
+
+(defun cperl-pod-to-manpage ()
+  "Create a virtual manpage in Emacs from the Perl Online Documentation."
+  (interactive)
+  (require 'man)
+  (let* ((pod2man-args (concat buffer-file-name " | nroff -man "))
+	 (bufname (concat "Man " buffer-file-name))
+	 (buffer (generate-new-buffer bufname)))
+    (save-excursion
+      (set-buffer buffer)
+      (let ((process-environment (copy-sequence process-environment)))
+        ;; Prevent any attempt to use display terminal fanciness.
+        (setenv "TERM" "dumb")
+        (set-process-sentinel
+         (start-process pod2man-program buffer "sh" "-c"
+                        (format (cperl-pod2man-build-command) pod2man-args))
+         'Man-bgproc-sentinel)))))
+
+(defun cperl-pod2man-build-command ()
+  "Builds the entire background manpage and cleaning command."
+  (let ((command (concat pod2man-program " %s 2>/dev/null"))
+        (flist Man-filter-list))
+    (while (and flist (car flist))
+      (let ((pcom (car (car flist)))
+            (pargs (cdr (car flist))))
+        (setq command
+              (concat command " | " pcom " "
+                      (mapconcat '(lambda (phrase)
+                                    (if (not (stringp phrase))
+                                        (error "Malformed Man-filter-list"))
+                                    phrase)
+                                 pargs " ")))
+        (setq flist (cdr flist))))
+    command))
 
 (defun cperl-lazy-install ())		; Avoid a warning
 
