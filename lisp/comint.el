@@ -1190,7 +1190,7 @@ it just adds completion characters to the end of the filename."
 	   (message "No completions of %s" pathname)
 	   (ding))
 	  ((eql completion t)
-	   (message "Unique completion"))
+	   (message "Sole completion"))
 	  (t				; this means a string was returned.
 	   (goto-char (match-end 0))
 	   (insert (substring completion (length pathnondir)))))))
