@@ -1,11 +1,7 @@
 /* ebrowse.c --- parsing files for the ebrowse C++ browser
 
-   Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-	         2000, 2001
-      Free Software Foundation Inc.
-
-   Author: Gerd Moellmann <gerd@gnu.org>
-   Maintainer: FSF
+   Copyright (C) 1992, 93, 94, 95, 96, 97, 98, 99,
+                 2000, 2001   Free Software Foundation Inc.
 
    This file is part of GNU Emacs.
 
@@ -20,8 +16,9 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with GNU Emacs; see the file COPYING.  If not, write to
-   the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
+   along with GNU Emacs; see the file COPYING.  If not, write to the
+   Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+   Boston, MA 02111-1307, USA.  */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
