@@ -2341,8 +2341,9 @@ and the mark is active, by acting on the region instead of their usual
 default part of the buffer's text.  Examples of such command include
 \\[comment-dwim], \\[flush-lines], \\[ispell], \\[keep-lines],
 \\[query-replace], \\[query-replace-regexp], and \\[undo].  Invoke
-\\[apropos-documentation] and type \"transient\" at the prompt, to see
-the documentation of commands which are sensitive to the Transient Mark mode."
+\\[apropos-documentation] and type \"transient\" or \"mark.*active\" at
+the prompt, to see the documentation of commands which are sensitive to
+the Transient Mark mode."
   (interactive "P")
   (setq transient-mark-mode
 	(if (null arg)
