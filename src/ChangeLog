@@ -1,3 +1,8 @@
+2001-11-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* unexelf.c (unexec): Use mmap/munmap to allocate buffers 
+	instead of malloc/free.
+
 2001-11-05  Richard M. Stallman  <rms@gnu.org>
 
 	* m/news-risc.h (BROKEN_PROTOTYPES): Defined.
