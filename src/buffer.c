@@ -544,7 +544,7 @@ No argument or nil as argument means use current buffer as BUFFER.")
 }
 
 DEFUN ("rename-buffer", Frename_buffer, Srename_buffer, 1, 2,
-       "sRename buffer (to new name): \nP",
+       "BRename buffer (to new name): \nP",
   "Change current buffer's name to NEWNAME (a string).\n\
 If second arg UNIQUE is nil or omitted, it is an error if a\n\
 buffer named NEWNAME already exists.\n\
