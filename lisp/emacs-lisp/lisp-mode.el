@@ -329,9 +329,14 @@ With argument, insert value in current buffer after the defun."
 		(end-of-defun)
 		(beginning-of-defun)
 		(read (current-buffer)))))
-    (if (and (eq (car form) 'defvar)
-	     (cdr-safe (cdr-safe form)))
-	(setq form (cons 'defconst (cdr form))))
+    (cond ((and (eq (car form) 'defvar)
+		(cdr-safe (cdr-safe form)))
+	   ;; Force variable to be bound.
+	   (setq form (cons 'defconst (cdr form))))
+	  ((and (eq (car form) 'defcustom)
+		(default-boundp (nth 1 form)))
+	   ;; Force variable to be bound.
+	   (set-default (nth 1 form) (eval (nth 2 form)))))
     (prin1 (eval form))))
 
 (defun lisp-comment-indent ()
