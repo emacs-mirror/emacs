@@ -159,7 +159,12 @@ extern void _XEditResCheckMessages ();
 #define abs(x)	((x) < 0 ? -(x) : (x))
 
 /* Default to using XIM if available.  */
+#ifdef USE_XIM
 int use_xim = 1;
+#else
+int use_xim = 0;  /* configure --without-xim */
+#endif
+
 
 
 /* Non-nil means Emacs uses toolkit scroll bars.  */
