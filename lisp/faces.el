@@ -46,7 +46,8 @@
 ;;;; Functions for manipulating face vectors.
 
 ;;; A face vector is a vector of the form:
-;;;    [face NAME ID FONT FOREGROUND BACKGROUND STIPPLE UNDERLINE INVERSE]
+;;;    [face NAME ID FONT FOREGROUND BACKGROUND STIPPLE
+;;;          UNDERLINE-P INVERSE-VIDEO-P FONT-EXPLICIT-P BOLD-P ITALIC-P]
 
 ;;; Type checkers.
 (defsubst internal-facep (x)
@@ -288,7 +289,7 @@ in that frame; otherwise change each frame."
 	  (t value))))
 
 (defun modify-face (face foreground background stipple
-		    bold-p italic-p underline-p &optional frame)
+		    bold-p italic-p underline-p &optional inverse-p frame)
   "Change the display attributes for face FACE.
 If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame.
@@ -297,9 +298,10 @@ FOREGROUND and BACKGROUND should be a colour name string (or list of strings to
 try) or nil.  STIPPLE should be a stipple pattern name string or nil.
 If nil, means do not change the display attribute corresponding to that arg.
 
-BOLD-P, ITALIC-P, and UNDERLINE-P specify whether the face should be set bold,
-in italic, and underlined, respectively.  If neither nil or t, means do not
-change the display attribute corresponding to that arg.
+BOLD-P, ITALIC-P, UNDERLINE-P, and INVERSE-P specify whether
+the face should be set bold, italic, underlined or in inverse-video,
+respectively.  If one of these arguments is neither nil or t, it means do not
+change the display attribute corresponding to that argument.
 
 If called interactively, prompts for a face name and face attributes."
   (interactive
@@ -338,6 +340,7 @@ If called interactively, prompts for a face name and face attributes."
 	  (bold-p	(y-or-n-p (concat "Should face " face " be bold ")))
 	  (italic-p	(y-or-n-p (concat "Should face " face " be italic ")))
 	  (underline-p	(y-or-n-p (concat "Should face " face " be underlined ")))
+	  (inverse-p	(y-or-n-p (concat "Should face " face " be inverse-video ")))
 	  (all-frames-p	(y-or-n-p (concat "Modify face " face " in all frames "))))
      (message "Face %s: %s" face
       (mapconcat 'identity
@@ -346,10 +349,18 @@ If called interactively, prompts for a face name and face attributes."
 	      (and background (concat (downcase background) " background"))
 	      (and stipple (concat (downcase new-stipple-string) " stipple"))
 	      (and bold-p "bold") (and italic-p "italic")
+	      (and inverse-p "inverse")
 	      (and underline-p "underline"))) ", "))
      (list (intern face) foreground background stipple
-	   bold-p italic-p underline-p
+	   bold-p italic-p underline-p inverse-p
 	   (if all-frames-p nil (selected-frame)))))
+  ;; Clear this before we install the new foreground and background;
+  ;; otherwise, clearing it after would swap them!
+  (when (and (or foreground background) (face-inverse-video-p face))
+    (set-face-inverse-video-p face frame nil)
+    ;; Arrange to restore it after, if we are not setting it now.
+    (or (memq inverse-p '(t nil))
+	(setq inverse-p t)))
   (condition-case nil
       (face-try-color-list 'set-face-foreground face foreground frame)
     (error nil))
@@ -359,6 +370,9 @@ If called interactively, prompts for a face name and face attributes."
   (condition-case nil
       (set-face-stipple face stipple frame)
     (error nil))
+  ;; Now that we have the new colors, 
+  (if (memq inverse-p '(nil t))
+      (set-face-inverse-video-p face inverse-p frame))
   (cond ((eq bold-p nil)
 	 (if (face-font face frame)
 	     (make-face-unbold face frame t)))
@@ -1259,7 +1273,7 @@ See `defface' for information about SPEC."
 	  ;; to allow it to be set it again.
 	  (unless (face-font-explicit face frame)
 	    (set-face-font face nil frame))
-	  (modify-face face nil nil nil nil nil nil frame)
+	  (modify-face face '(nil) '(nil) nil nil nil nil nil frame)
 	  (face-spec-set-1 face frame attrs ':foreground 'set-face-foreground)
 	  (face-spec-set-1 face frame attrs ':background 'set-face-background)
 	  (face-spec-set-1 face frame attrs ':stipple 'set-face-stipple)
