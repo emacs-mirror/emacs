@@ -1,3 +1,8 @@
+2005-04-06  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/copyright.el (copyright-update-year): Replace the
+	right subexpression.  Suggested by Jay Bingham <jay.bingham@hp.com>.
+
 2005-04-05  Lute Kamstra  <lute@gnu.org>
 
 	* generic.el (generic-mode-internal): Fix 2005-03-31 change.
