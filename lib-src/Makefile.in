@@ -65,7 +65,7 @@ ALLOCA=@ALLOCA@
 LOADLIBES=LIBS_SYSTEM LIBS_MACHINE
 YACC=@YACC@
 version=@version@
-configname=@configuration@
+configuration=@configuration@
 
 /* ==================== Where To Install Things ==================== */
 
@@ -159,8 +159,8 @@ CPP_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -Demacs -DHAVE_CONFIG_H \
 all: ${UTILITIES} ${INSTALLABLES}
 
 #ifdef MOVEMAIL_NEEDS_BLESSING
-blessmail: ../src/temacs
-	../src/temacs -batch -l blessmail.el
+blessmail: ../src/emacs
+	../src/emacs -batch -l blessmail.el
 	chmod +x blessmail
 #endif
 
@@ -179,7 +179,14 @@ ${archlibdir}: all BLESSMAIL
 	  done ; \
 	fi
 #ifdef MOVEMAIL_NEEDS_BLESSING
-	./blessmail ${archlibdir}/movemail
+/* Don't charge ahead and do it!  Let the installer decide.
+	  ./blessmail ${archlibdir}/movemail  */
+	@if [ "`wc -l blessmail`" != "      2 blessmail" ] ; then \
+	  dir=`sed -n -e 's/echo mail directory = \(.*\)/\1/p' blessmail`; \
+	  echo Assuming $$dir is really the mail spool directory, you should; \
+	  echo run  ./blessmail ${archlibdir}/movemail; \
+	  echo as root, to make  movemail  setuid or setgid.; \
+	fi
 #endif
 
 /* We don't need to install `wakeup' explicitly, because it will be
