@@ -1,10 +1,18 @@
 2002-11-07  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* format.el (format-decode): Be careful with the order in `format'.
+
+	* eshell/esh-cmd.el (function-p-func): Avoid `xemacs-p'.
+
+	* eshell/em-glob.el: Require esh-util.
+	(eshell-glob-initialize): Don't assume
+	eshell-special-chars-outside-quoting is available.
+
 	* textmodes/fill.el (fill-paragraph): Consider a comment-start as
 	a paragraph starter when filling non-comments.
-	(fill-comment-paragraph): Use comment-search-forward.
+	(fill-comment-paragraph): Don't narrow while doing the fill.
 	Recognize paragraph starters and separators within comments.
-	Use adaptive-fill-prefix when it works.  Don't narrow while doing the fill.
+	Use adaptive-fill-prefix when it works.  Use comment-search-forward.
 
 	* progmodes/compile.el (grep-default-command): New fun.
 	(grep): Use it.
