@@ -4733,6 +4733,10 @@ code_convert_region1 (start, end, coding_system, encodep)
   if (setup_coding_system (Fcheck_coding_system (coding_system), &coding) < 0)
     error ("Invalid coding system: %s", XSYMBOL (coding_system)->name->data);
 
+  /* The code conversion routine can not preserve text properties for
+     now.  So, we must remove all text properties in the region.  */
+  Fset_text_properties (start, end, Qnil, Qnil);
+
   coding.mode |= CODING_MODE_LAST_BLOCK;
   code_convert_region (from, CHAR_TO_BYTE (from), to, CHAR_TO_BYTE (to),
 		       &coding, encodep, 1);
