@@ -2704,7 +2704,8 @@ gettimeofday (tp, tzp)
 
   tp->tv_sec = time ((long *)0);    
   tp->tv_usec = 0;
-  tzp->tz_minuteswest = -1;
+  if (tzp != 0)
+    tzp->tz_minuteswest = -1;
 }
  
 #endif
