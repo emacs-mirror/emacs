@@ -1799,7 +1799,12 @@ for Japanese in Japan using the `japanese-iso-8bit' coding-system.
 If LOCALE-NAME is nil, its value is taken from the environment.
 
 The locale names supported by your system can typically be found in a
-directory named `/usr/share/locale' or `/usr/lib/locale'."
+directory named `/usr/share/locale' or `/usr/lib/locale'.  LOCALE-NAME
+may be translated according to the table specified by
+`locale-translation-file-name'.
+
+See also `locale-charset-language-names', `locale-language-names',
+`locale-preferred-coding-systems' and `locale-coding-system'."
 
   ;; Do this at runtime for the sake of binaries possibly transported
   ;; to a system without X.
