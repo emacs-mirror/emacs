@@ -1,5 +1,9 @@
 1999-11-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c (set_lface_from_font_name): New parameter may_fail_p.
+	Callers changed.  If specified font name is bogus, and mail_fail_p
+	is not set, try to use a reasonable default.
+
 	* dispnew.c (direct_output_for_insert): Set glyph row's
 	displays_text_p flag.  Correct window's window_end_vpos if
 	necessary.
