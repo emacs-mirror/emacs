@@ -68,6 +68,8 @@ Boston, MA 02111-1307, USA.  */
 #include "dispextern.h"
 
 #ifdef HAVE_X_WINDOWS
+/*  Defining HAVE_MULTILINGUAL_MENU would mean that the toolkit menu
+    code accepts the Emacs internal encoding.  */
 #undef HAVE_MULTILINGUAL_MENU
 #ifdef USE_X_TOOLKIT
 #include "widget.h"
@@ -125,6 +127,22 @@ static void popup_get_selection ();
 #define HAVE_BOXES 1
 extern void set_frame_menubar ();
 static Lisp_Object xdialog_show ();
+#endif
+
+/* This is how to deal with multibyte text if HAVE_MULTILINGUAL_MENU
+   isn't defined.  The use of HAVE_MULTILINGUAL_MENU could probably be
+   confined to an extended version of this with sections of code below
+   using it unconditionally.  */
+#ifdef USE_GTK
+/* gtk just uses utf-8.  */
+# define ENCODE_MENU_STRING(str) ENCODE_UTF_8 (str)
+#else
+/* I'm not convinced ENCODE_SYSTEM is defined correctly, or maybe
+   something else should be used here.  Except under MS-Windows it
+   just converts to unibyte, but encoding with `locale-coding-system'
+   seems better -- X may actually display the result correctly, and
+   it's not necessarily equivalent to the unibyte text.  -- fx  */
+# define ENCODE_MENU_STRING(str) ENCODE_SYSTEM (str)
 #endif
 
 static void push_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
@@ -633,7 +651,7 @@ list_of_panes (menu)
       elt = Fcar (tail);
       pane_name = Fcar (elt);
       CHECK_STRING (pane_name);
-      push_menu_pane (pane_name, Qnil);
+      push_menu_pane (ENCODE_MENU_STRING (pane_name), Qnil);
       pane_data = Fcdr (elt);
       CHECK_CONS (pane_data);
       list_of_items (pane_data);
@@ -654,7 +672,8 @@ list_of_items (pane)
     {
       item = Fcar (tail);
       if (STRINGP (item))
-	push_menu_item (item, Qnil, Qnil, Qt, Qnil, Qnil, Qnil, Qnil);
+	push_menu_item (ENCODE_MENU_STRING (item), Qnil, Qnil, Qt,
+			Qnil, Qnil, Qnil, Qnil);
       else if (NILP (item))
 	push_left_right_boundary ();
       else
@@ -662,7 +681,8 @@ list_of_items (pane)
 	  CHECK_CONS (item);
 	  item1 = Fcar (item);
 	  CHECK_STRING (item1);
-	  push_menu_item (item1, Qt, Fcdr (item), Qt, Qnil, Qnil, Qnil, Qnil);
+	  push_menu_item (ENCODE_MENU_STRING (item1), Qt, Fcdr (item),
+			  Qt, Qnil, Qnil, Qnil, Qnil);
 	}
     }
 }
@@ -1697,13 +1717,13 @@ digest_single_submenu (start, end, top_level_items)
 #ifndef HAVE_MULTILINGUAL_MENU
           if (STRING_MULTIBYTE (item_name))
 	    {
-	      item_name = ENCODE_SYSTEM (item_name);
+	      item_name = ENCODE_MENU_STRING (item_name);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_NAME) = item_name;
 	    }
 
           if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
 	    {
-	      descrip = ENCODE_SYSTEM (descrip);
+	      descrip = ENCODE_MENU_STRING (descrip);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY) = descrip;
 	    }
 #endif /* not HAVE_MULTILINGUAL_MENU */
@@ -2377,7 +2397,6 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
   XButtonPressedEvent dummy;
   LWLIB_ID menu_id;
   Widget menu;
-  Window child;
 
   menu_id = widget_id_tick++;
   menu = lw_create_widget ("popup", first_wv->name, menu_id, first_wv,
@@ -2561,13 +2580,13 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 #ifndef HAVE_MULTILINGUAL_MENU
           if (STRINGP (item_name) && STRING_MULTIBYTE (item_name))
 	    {
-	      item_name = ENCODE_SYSTEM (item_name);
+	      item_name = ENCODE_MENU_STRING (item_name);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_NAME) = item_name;
 	    }
 
           if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
 	    {
-	      descrip = ENCODE_SYSTEM (descrip);
+	      descrip = ENCODE_MENU_STRING (descrip);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY) = descrip;
 	    }
 #endif /* not HAVE_MULTILINGUAL_MENU */
@@ -2627,7 +2646,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 
 #ifndef HAVE_MULTILINGUAL_MENU
       if (STRING_MULTIBYTE (title))
-	title = ENCODE_SYSTEM (title);
+	title = ENCODE_MENU_STRING (title);
 #endif
 
       wv_title->name = (char *) SDATA (title);
