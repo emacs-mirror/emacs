@@ -1777,6 +1777,8 @@ set_window_size (fd, height, width)
 void
 reset_sys_modes ()
 {
+  struct frame *sf;
+  
   if (noninteractive)
     {
       fflush (stdout);
@@ -1796,10 +1798,11 @@ reset_sys_modes ()
       )
     return;
 #endif
-  cursor_to (FRAME_HEIGHT (selected_frame) - 1, 0);
-  clear_end_of_line (FRAME_WIDTH (selected_frame));
+  sf = SELECTED_FRAME ();
+  cursor_to (FRAME_HEIGHT (sf) - 1, 0);
+  clear_end_of_line (FRAME_WIDTH (sf));
   /* clear_end_of_line may move the cursor */
-  cursor_to (FRAME_HEIGHT (selected_frame) - 1, 0);
+  cursor_to (FRAME_HEIGHT (sf) - 1, 0);
 #if defined (IBMR2AIX) && defined (AIXHFT)
   {
     /* HFT devices normally use ^J as a LF/CR.  We forced it to 
@@ -2001,7 +2004,7 @@ kbd_input_ast ()
       struct input_event e;
       e.kind = ascii_keystroke;
       XSETINT (e.code, c);
-      XSETFRAME (e.frame_or_window, selected_frame);
+      e.frame_or_window = selected_frame;
       kbd_buffer_store_event (&e);
     }
   if (input_available_clear_time)
@@ -2677,7 +2680,7 @@ read_input_waiting ()
 
       /* Scan the chars for C-g and store them in kbd_buffer.  */
       e.kind = ascii_keystroke;
-      XSETFRAME (e.frame_or_window, selected_frame);
+      e.frame_or_window = selected_frame;
       e.modifiers = 0;
       for (i = 0; i < nread; i++)
 	{
