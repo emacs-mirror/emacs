@@ -147,7 +147,7 @@ extern void (*set_vertical_scroll_bar_hook)
    away is a real pain - can you say set-window-configuration?
    Instead, we just assert at the beginning of redisplay that *all*
    scroll bars are to be removed, and then save scroll bars from the
-   firey pit when we actually redisplay their window.  */
+   fiery pit when we actually redisplay their window.  */
 
 /* Arrange for all scroll bars on FRAME to be removed at the next call
    to `*judge_scroll_bars_hook'.  A scroll bar may be spared if
