@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.19) $
+ * $HopeName: MMsrc!arenavm.c(trunk.20) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
@@ -14,7 +14,7 @@
 #include "mpm.h"
 
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.19) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.20) $");
 
 
 /* Space Arena Projection
@@ -141,7 +141,7 @@ Res ArenaCreate(Space *spaceReturn, Size size, Addr base)
     VMDestroy(space);
     return res;
   }
-  arena->freeTable = (BT)arena->base;
+  arena->allocTable = (BT)arena->base;
   arena->pageTable = (Page)AddrAdd(arena->base, f_size);
 
   /* .tablepages: pages whose page index is < tablePages are recorded as
@@ -151,7 +151,7 @@ Res ArenaCreate(Space *spaceReturn, Size size, Addr base)
    * being bogus see .addr.free.
    */
   arena->tablePages = arena->tablesSize >> arena->pageShift;
-  BTResRange(arena->freeTable, 0, arena->pages);
+  BTResRange(arena->allocTable, 0, arena->pages);
 
   /* Set the zone shift to divide the arena into the same number of
    * zones as will fit into a reference set (the number of bits in a
@@ -237,9 +237,9 @@ Bool ArenaCheck(Arena arena)
   CHECKL((Addr)arena->pageTable >= arena->base);
   CHECKL((Addr)&arena->pageTable[arena->pages] <=
            AddrAdd(arena->base, arena->tablesSize));
-  CHECKL(arena->freeTable != NULL);
-  CHECKL((Addr)arena->freeTable >= arena->base);
-  CHECKL((Addr)&arena->freeTable[(arena->pages + MPS_WORD_WIDTH-1)>>MPS_WORD_SHIFT] <=
+  CHECKL(arena->allocTable != NULL);
+  CHECKL((Addr)arena->allocTable >= arena->base);
+  CHECKL((Addr)&arena->allocTable[(arena->pages + MPS_WORD_WIDTH-1)>>MPS_WORD_SHIFT] <=
            arena->limit);
   /* .improve.check-table: Could check the consistency of the tables. */
   return TRUE;
@@ -337,7 +337,7 @@ static Bool SegAllocInArea(Index *baseReturn,
   pages = size >> arena->pageShift;
 
   if(!BTFindResRange(&start, &end,
-                     arena->freeTable,
+                     arena->allocTable,
                      basePage, limitPage,
                      pages))
     return FALSE;
@@ -463,15 +463,15 @@ Res SegAlloc(Seg *segReturn, SegPref pref, Space space, Size size, Pool pool)
   /* Allocate the first page, and, if there is more than one page, */
   /* allocate the rest of the pages and store the multi-page information */
   /* in the page table. */
-  AVER(!BTGet(arena->freeTable, base));
-  BTSet(arena->freeTable, base);
+  AVER(!BTGet(arena->allocTable, base));
+  BTSet(arena->allocTable, base);
   pages = size >> arena->pageShift;
   if(pages > 1) {
     Addr limit = PageBase(arena, base + pages);
     SegSetSingle(seg, FALSE);
     for(i = base + 1; i < base + pages; ++i) {
-      AVER(!BTGet(arena->freeTable, i));
-      BTSet(arena->freeTable, i);
+      AVER(!BTGet(arena->allocTable, i));
+      BTSet(arena->allocTable, i);
       PageTail(&arena->pageTable[i])->pool = NULL;
       PageTail(&arena->pageTable[i])->seg = seg;
       PageTail(&arena->pageTable[i])->limit = limit;
@@ -518,8 +518,8 @@ void SegFree(Space space, Seg seg)
   pl = i + pn;
   /* .free.loop: */
   while(i < pl) {
-    AVER(BTGet(arena->freeTable, i));
-    BTRes(arena->freeTable, i);
+    AVER(BTGet(arena->allocTable, i));
+    BTRes(arena->allocTable, i);
     ++i;
   }
 
@@ -630,7 +630,7 @@ Bool SegOfAddr(Seg *segReturn, Space space, Addr addr)
     /* .addr.free: If the page is recorded as being free then */
     /* either the page is free or it is */
     /* part of the arena tables (see .tablepages) */
-    if(BTGet(arena->freeTable, i)) {
+    if(BTGet(arena->allocTable, i)) {
       Page page = &arena->pageTable[i];
 
       if(SegPool(PageSeg(page)) != NULL)
@@ -665,7 +665,7 @@ static Bool SegSearch(Seg *segReturn, Arena arena, Index i)
   /* so we don't bother checking them here as well */
 
   while(i < arena->pages &&
-        (!BTGet(arena->freeTable, i) ||
+        (!BTGet(arena->allocTable, i) ||
          SegPool(PageSeg(&arena->pageTable[i])) == NULL)) {
     ++i;
   }
