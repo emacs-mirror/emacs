@@ -77,6 +77,12 @@
 (put-charset-property
  'ascii :long-name "ASCII (ISO646 IRV)")
 (put-charset-property
+ 'iso-8859-1 :docstring "Latin-1 (ISO/IEC 8859-1)")
+(put-charset-property
+ 'iso-8859-1 :short-name "Latin-1")
+(put-charset-property
+ 'iso-8859-1 :long-name "Latin-1")
+(put-charset-property
  'unicode :docstring "Unicode (ISO10646)")
 (put-charset-property
  'unicode :short-name "Unicode")
@@ -91,13 +97,6 @@
   :code-space [ 0 255 0 255 0 63 ]
   :code-offset 0
   :supplementary-p t)
-
-(define-charset 'iso-8859-1
-  "Latin-1 (ISO/IEC 8859-1)"
-  :short-name "Latin-1"
-  :ascii-compatible-p t
-  :code-space [0 255]
-  :code-offset 0)
 
 (define-charset 'latin-iso8859-1
   "Right-Hand Part of ISO/IEC 8859/1 (Latin-1): ISO-IR-100"
