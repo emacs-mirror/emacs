@@ -183,6 +183,7 @@ DEFUN ("string-bytes", Fstring_bytes, Sstring_bytes, 1, 1, 0,
   "Return the number of bytes in STRING.\n\
 If STRING is a multibyte string, this is greater than the length of STRING.")
   (string)
+     Lisp_Object string;
 {
   CHECK_STRING (string, 1);
   return make_number (XSTRING (string)->size_byte);
