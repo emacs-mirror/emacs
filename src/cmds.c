@@ -290,11 +290,12 @@ internal_self_insert (c1, noautofill)
       && NILP (current_buffer->read_only)
       && point > BEGV && SYNTAX (FETCH_CHAR (point - 1)) == Sword)
     {
+      int modiff = MODIFF;
       Fexpand_abbrev ();
       /* We can't trust the value of Fexpand_abbrev,
-	 but if the buffer is now changed, this is "hairy"
-	 and not suitable for direct output.  */
-      if (MODIFF <= current_buffer->save_modified)
+	 but if Fexpand_abbrev changed the buffer,
+	 assume it expanded something.  */
+      if (MODIFF != modiff)
 	hairy = 1;
     }
   if ((c == ' ' || c == '\n')
