@@ -11039,7 +11039,7 @@ xim_open_dpy (dpyinfo, resource_name)
 }
 
 
-#ifdef HAVE_X11R6
+#ifdef HAVE_X11R6_XIM
 
 struct xim_inst_t
 {
@@ -11096,7 +11096,7 @@ xim_instantiate_callback (display, client_data, call_data)
     }
 }
 
-#endif /* HAVE_X11R6 */
+#endif /* HAVE_X11R6_XIM */
 
 
 /* Open a connection to the XIM server on display DPYINFO.
@@ -11109,7 +11109,7 @@ xim_initialize (dpyinfo, resource_name)
      struct x_display_info *dpyinfo;
      char *resource_name;
 {
-#ifdef HAVE_X11R6
+#ifdef HAVE_X11R6_XIM
   struct xim_inst_t *xim_inst;
   int len;
   
@@ -11123,10 +11123,10 @@ xim_initialize (dpyinfo, resource_name)
 				  resource_name, EMACS_CLASS,
 				  xim_instantiate_callback,
 				  (XPointer)xim_inst);
-#else /* not HAVE_X11R6 */
+#else /* not HAVE_X11R6_XIM */
   dpyinfo->xim = NULL;
   xim_open_dpy (dpyinfo, resource_name);
-#endif /* not HAVE_X11R6 */
+#endif /* not HAVE_X11R6_XIM */
 }
 
 
@@ -11136,17 +11136,17 @@ static void
 xim_close_dpy (dpyinfo)
      struct x_display_info *dpyinfo;
 {
-#ifdef HAVE_X11R6
+#ifdef HAVE_X11R6_XIM
   XUnregisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
 				    NULL, EMACS_CLASS,
 				    xim_instantiate_callback, NULL);
-#endif /* HAVE_X11R6 */
+#endif /* not HAVE_X11R6_XIM */
   XCloseIM (dpyinfo->xim);
   dpyinfo->xim = NULL;
   XFree (dpyinfo->xim_styles);
 }
 
-#endif /* HAVE_X_I18N */
+#endif /* not HAVE_X11R6_XIM */
 
 
 
