@@ -149,18 +149,16 @@ corresponding to the mode line clicked."
     ,(propertize
       "%Z"
       'help-echo
-      (purecopy (lambda (window object point)
-		  (save-window-excursion
-		    (select-window window)
-		    ;; Don't show this tip if the coding system is nil,
-		    ;; it reads like a bug, and is not useful anyway.
-		    (when buffer-file-coding-system
-		      (if enable-multibyte-characters
-			  (concat (symbol-name buffer-file-coding-system)
-				  " buffer; mouse-3: describe coding system")
-			(concat "Unibyte "
-				(symbol-name buffer-file-coding-system)
-				" buffer"))))))
+      #'(lambda (window object point)
+	  (with-current-buffer (window-buffer window)
+	    ;; Don't show this tip if the coding system is nil,
+	    ;; it reads like a bug, and is not useful anyway.
+	    (when buffer-file-coding-system
+	      (if enable-multibyte-characters
+		  (concat (symbol-name buffer-file-coding-system)
+			  " buffer; mouse-3: describe coding system")
+		(concat "Unibyte " (symbol-name buffer-file-coding-system)
+			" buffer")))))
       'local-map mode-line-coding-system-map))
   "Mode-line control for displaying information of multilingual environment.
 Normally it displays current input method (if any activated) and
