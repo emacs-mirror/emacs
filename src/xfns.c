@@ -187,7 +187,7 @@ Lisp_Object Qauto_raise;
 Lisp_Object Qauto_lower;
 Lisp_Object Qborder_color;
 Lisp_Object Qborder_width;
-Lisp_Object Qbox;
+extern Lisp_Object Qbox;
 Lisp_Object Qcursor_color;
 Lisp_Object Qcursor_type;
 Lisp_Object Qgeometry;
