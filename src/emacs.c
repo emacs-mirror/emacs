@@ -47,6 +47,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "lisp.h"
 #include "commands.h"
+#include "intervals.h"
 
 #include "systty.h"
 
@@ -516,6 +517,9 @@ main (argc, argv, envp)
       syms_of_frame ();
       syms_of_syntax ();
       syms_of_undo ();
+
+      /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
+      syms_of_textprop ();
 #ifdef VMS
       syms_of_vmsproc ();
 #endif /* VMS */
