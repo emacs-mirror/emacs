@@ -491,7 +491,8 @@ But that is hard to define.")
 }
 
 DEFUN ("window-start", Fwindow_start, Swindow_start, 0, 1, 0,
-  "Return position at which display currently starts in WINDOW.")
+  "Return position at which display currently starts in WINDOW.\n\
+This is updated by redisplay or by calling `set-window-start'.")
   (window)
      Lisp_Object window;
 {
