@@ -1,3 +1,7 @@
+2004-05-21  Masayuki Ataka  <ataka@milk.freemail.ne.jp>  (tiny change)
+
+	* international/characters.el: Modify syntax of more characters.
+
 2004-05-21  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/etags.el (tags-apropos, list-tags): Require
