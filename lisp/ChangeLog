@@ -1,3 +1,10 @@
+2005-01-08  Kim F. Storm  <storm@cua.dk>
+
+	* info.el (Info-mode-map, Info-next-link-keymap)
+	(Info-prev-link-keymap, Info-up-link-keymap):
+	Map follow-link to mouse-face.
+	(Info-fontify-node): Add "mouse-2: " prefix to tooltip.
+
 2005-01-08  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc.el (calc-settings-file): Change default value.
