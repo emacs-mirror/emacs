@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.12 2000/09/11 13:49:38 miles Exp $
+;; Revision: $Id: diff-mode.el,v 1.13 2000/09/12 11:24:28 miles Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -881,75 +881,86 @@ Only works for unified diffs."
 			      nil t)
 	   (equal (match-string 1) (match-string 2)))))
 
-(defun diff-hunk-text (hunk dest)
-  "Returns the literal source text from HUNK, if DEST is nil, otherwise
-the destination text."
+(defun diff-hunk-text (hunk destp &optional line-offset)
+  "Returns the literal source text from HUNK, if DESTP is nil, otherwise the
+destination text.  If LINE-OFFSET is non-nil, it should be a line-offset in
+HUNK, and instead of a string, a cons cell is returned who's car is the
+appropriate text, and who's cdr is the corresponding line-offset."
   (with-temp-buffer
-    (erase-buffer)
-    (insert hunk)
-    (goto-char (point-min))
-    (let ((src nil)
-	  (dst nil)
-	  (divider nil)
-	  (num-pfx-chars 2))
-      (cond ((looking-at "^@@")
-	     ;; unified diff
-	     (setq num-pfx-chars 1)
-	     (forward-line 1)
-	     (setq src (point) dst (point)))
-	    ((looking-at "^\\*\\*")
-	     ;; context diff
-	     (forward-line 2)
-	     (setq src (point))
-	     (re-search-forward "^--- " nil t)
-	     (forward-line 0)
-	     (setq divider (point))
-	     (forward-line 1)
-	     (setq dst (point)))
-	    ((looking-at "^[0-9]+a[0-9,]+$")
-	     ;; normal diff, insert
-	     (forward-line 1)
-	     (setq dst (point)))
-	    ((looking-at "^[0-9,]+d[0-9]+$")
-	     ;; normal diff, delete
-	     (forward-line 1)
-	     (setq src (point)))
-	    ((looking-at "^[0-9,]+c[0-9,]+$")
-	     ;; normal diff, change
-	     (forward-line 1)
-	     (setq src (point))
-	     (re-search-forward "^---$" nil t)
-	     (forward-line 0)
-	     (setq divider (point))
-	     (forward-line 1)
-	     (setq dst (point)))
-	    (t
-	     (error "Unknown diff hunk type")))
+     (erase-buffer)
+     (insert hunk)
+     (goto-char (point-min))
+     (let ((src-pos nil)
+	   (dst-pos nil)
+	   (divider-pos nil)
+	   (num-pfx-chars 2))
+       ;; Set the following variables:
+       ;;  SRC-POS     buffer pos of the source part of the hunk or nil if none
+       ;;  DST-POS     buffer pos of the destination part of the hunk or nil
+       ;;  DIVIDER-POS buffer pos of any divider line separating the src & dst
+       ;;  NUM-PFX-CHARS  number of line-prefix characters used by this format"
+       (cond ((looking-at "^@@")
+	      ;; unified diff
+	      (setq num-pfx-chars 1)
+	      (forward-line 1)
+	      (setq src-pos (point) dst-pos (point)))
+	     ((looking-at "^\\*\\*")
+	      ;; context diff
+	      (forward-line 2)
+	      (setq src-pos (point))
+	      (re-search-forward "^--- " nil t)
+	      (forward-line 0)
+	      (setq divider-pos (point))
+	      (forward-line 1)
+	      (setq dst-pos (point)))
+	     ((looking-at "^[0-9]+a[0-9,]+$")
+	      ;; normal diff, insert
+	      (forward-line 1)
+	      (setq dst-pos (point)))
+	     ((looking-at "^[0-9,]+d[0-9]+$")
+	      ;; normal diff, delete
+	      (forward-line 1)
+	      (setq src-pos (point)))
+	     ((looking-at "^[0-9,]+c[0-9,]+$")
+	      ;; normal diff, change
+	      (forward-line 1)
+	      (setq src-pos (point))
+	      (re-search-forward "^---$" nil t)
+	      (forward-line 0)
+	      (setq divider-pos (point))
+	      (forward-line 1)
+	      (setq dst-pos (point)))
+	     (t
+	      (error "Unknown diff hunk type")))
+    (if (if destp (null dst-pos) (null src-pos))
+	;; Implied empty text
+	(if line-offset '("" . 0) "")
 
-      (if (if dest (null dst) (null src))
-	  ;; Implied empty text
-	  ""
+      (when line-offset
+	(goto-char (point-min))
+	(forward-line line-offset))
 
-	;; Explicit text
-
+      ;; Get rid of anything except the desired text.
+      (save-excursion
 	;; Delete unused text region
-	(let ((keep (if dest dst src))
-	      (kill (or divider (if dest src dst))))
+	(let ((keep (if destp dst-pos src-pos))
+	      (kill (or divider-pos (if destp src-pos dst-pos))))
 	  (when (and kill (> kill keep))
 	    (delete-region kill (point-max)))
 	  (delete-region (point-min) keep))
-
-	;; Remove line-prefix characters, and unneeded lines (for
-	;; unified diffs).
-	(let ((kill-char (if dest ?- ?+)))
-  (goto-char (point-min))
-  (while (not (eobp))
+	;; Remove line-prefix characters, and unneeded lines (unified diffs).
+	(let ((kill-char (if destp ?- ?+)))
+	  (goto-char (point-min))
+	  (while (not (eobp))
 	    (if (eq (char-after) kill-char)
-	(delete-region (point) (progn (forward-line 1) (point)))
+		(delete-region (point) (progn (forward-line 1) (point)))
 	      (delete-char num-pfx-chars)
-      (forward-line 1))))
+	      (forward-line 1)))))
 
-	(buffer-substring-no-properties (point-min) (point-max))))))
+      (let ((text (buffer-substring-no-properties (point-min) (point-max))))
+	(if line-offset
+	    (cons text (count-lines (point-min) (point)))
+	  text))))))
 
 (defun diff-find-text (text line)
   "Return the buffer position of the nearest occurance of TEXT to line LINE.
@@ -1000,19 +1011,23 @@ was non-nil."
   (let* ((loc (diff-find-source-location other-file))
 	 (buf (find-file-noselect (car loc)))
 	 (patch-line (cadr loc))
+	 hunk-line-offset
 	 (hunk
-	  (save-excursion
-	    (diff-beginning-of-hunk)
-	    (unless (looking-at diff-hunk-header-re)
-	      (error "Malformed hunk"))
-	    (buffer-substring (point) (progn (diff-end-of-hunk) (point)))))
-	 (src (diff-hunk-text hunk reverse))
-	 (dst (diff-hunk-text hunk (not reverse)))
+	  (let ((orig-point (point)))
+	    (save-excursion
+	      (diff-beginning-of-hunk)
+	      (setq hunk-line-offset (count-lines (point) orig-point))
+	      (unless (looking-at diff-hunk-header-re)
+		(error "Malformed hunk"))
+	      (buffer-substring (point) (progn (diff-end-of-hunk) (point))))))
+	 (old (diff-hunk-text hunk reverse hunk-line-offset))
+	 (new (diff-hunk-text hunk (not reverse) hunk-line-offset))
 	 (pos
-	  (with-current-buffer buf (diff-find-text src patch-line)))
+	  (with-current-buffer buf (diff-find-text (car old) patch-line)))
 	 (reversed-pos
 	  (and (null pos)
-	       (with-current-buffer buf (diff-find-text dst patch-line)))))
+	       (with-current-buffer buf
+		 (diff-find-text (car new) patch-line)))))
 
     (when (and reversed-pos popup)
       ;; A reversed patch was detected, perhaps apply it in reverse
@@ -1021,16 +1036,17 @@ was non-nil."
 	      (save-window-excursion
 		(pop-to-buffer buf)
 		(goto-char reversed-pos)
+		(forward-line (cdr new))
 		(if reverse
 		    (y-or-n-p
 		     "Hunk hasn't been applied yet, so can't reverse it; apply it now? ")
 		  (y-or-n-p "Hunk has already been applied; undo it? "))))
 
 	  ;; Set up things to reverse the diff
-	  (let ((swap dst))
+	  (let ((swap new))
 	    (setq pos reversed-pos)
-	    (setq src dst)
-	    (setq dst swap))
+	    (setq old new)
+	    (setq new swap))
 
 	;; The user has chosen not to apply the reversed hunk, but we
 	;; don't want to given an error message, so set things up so
@@ -1048,25 +1064,30 @@ was non-nil."
 	  ;; Apply the hunk
 	  (with-current-buffer buf
 	    (goto-char pos)
-	    (delete-char (length src))
-	    (insert dst)))
+	    (delete-char (length (car old)))
+	    (insert (car new))))
 
 	(when popup
-	  ;; Show a message describing what was done
-	  (let ((real-line
-		 (1+ (with-current-buffer buf (count-lines (point-min) pos))))
-		(msg 
-		 (if dry-run
-		     (if reversed "already applied" "not yet applied")
-		   (if reversed "undone" "applied"))))
-	    (cond ((= real-line patch-line)
-		   (message "Hunk %s" msg))
-		  ((= real-line (1+ patch-line))
-		   (message "Hunk %s at offset 1 line" msg))
-		  (t
-		   (message "Hunk %s at offset %d lines"
-			    msg
-			    (- real-line patch-line)))))
+	  (with-current-buffer buf
+	    ;; Show a message describing what was done
+	    (let ((real-line (1+ (count-lines (point-min) pos)))
+		  (msg
+		   (if dry-run
+		       (if reversed "already applied" "not yet applied")
+		     (if reversed "undone" "applied"))))
+	      (cond ((= real-line patch-line)
+		     (message "Hunk %s" msg))
+		    ((= real-line (1+ patch-line))
+		     (message "Hunk %s at offset 1 line" msg))
+		    (t
+		     (message "Hunk %s at offset %d lines"
+			      msg
+			      (- real-line patch-line)))))
+
+	    ;; fixup POS to reflect the hunk line offset
+	    (goto-char pos)
+	    (forward-line (cdr new))
+	    (setq pos (point)))
 
 	  ;; Display BUF in a window, and maybe select it
 	  (let ((win (display-buffer buf)))
