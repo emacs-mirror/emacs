@@ -2248,7 +2248,7 @@ specification of the form @code{(space . @var{props})}, where
 values).  You can put this property on one or more consecutive
 characters; a space of the specified height and width is displayed in
 place of @emph{all} of those characters.  These are the properties you
-can use to specify the weight of the space:
+can use in @var{props} to specify the weight of the space:
 
 @table @code
 @item :width @var{width}
@@ -2268,8 +2268,8 @@ value @var{hpos} is measured in units of the normal character width.  It
 may be an interer or a floating point number.
 @end table
 
-  Exactly one of the above properties should be used.  You can also
-specify the height of the space, with other properties:
+  You should use one and only one of the above properties.  You can
+also specify the height of the space, with other properties:
 
 @table @code
 @item :height @var{height}
@@ -2287,8 +2287,7 @@ baseline.  The value of @var{ascent} must be a non-negative number no
 greater than 100.
 @end table
 
-  You should not use both @code{:height} and @code{:relative-height}
-together.
+  Don't use both @code{:height} and @code{:relative-height} together.
 
 @node Other Display Specs
 @subsection Other Display Specifications
@@ -2306,9 +2305,8 @@ instead of the text that has the display specification, at the same
 position as that text.  This is a special case of marginal display
 (@pxref{Display Margins}).
 
-Recursive display specifications are not supported, i.e.@: string
-display specifications that have a display specification property
-themselves.
+Recursive display specifications are not supported---string display
+specifications must not have @code{display} properties themselves.
 
 @item (space-width @var{factor})
 This display specification affects all the space characters within the
