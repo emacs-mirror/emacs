@@ -1,3 +1,10 @@
+2002-03-24  Gerd Moellmann  <gerd@gnu.org>
+
+	* eval.c (Qdeclare, Vmacro_declaration_function): New variables.
+	(Fdefmacro): Handle `(declare ...)'.
+	(syms_of_eval) <Qdeclare>: Initialize and staticpro.
+	(syms_of_eval) <Vmacro_declaration_function>: DEFVAR_LISP.
+
 2002-03-24  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (xbm_scan, xbm_load_image, xbm_read_bitmap_data)

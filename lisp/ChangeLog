@@ -8,7 +8,7 @@
 
 2002-03-24  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* facemenu.el (facemenu-get-face): Remove unised variable
+	* facemenu.el (facemenu-get-face): Remove unused variable
 	`foreground'.
 
 	* enriched.el (enriched-face-ans): Support FACE of the form
