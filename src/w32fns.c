@@ -189,6 +189,8 @@ extern Lisp_Object Qunsplittable, Qmenu_bar_lines, Qbuffer_predicate, Qtitle;
 
 extern Lisp_Object Vwindow_system_version;
 
+Lisp_Object Qface_set_after_frame_default;
+
 extern Lisp_Object last_mouse_scroll_bar;
 extern int last_mouse_scroll_bar_pos;
 
@@ -2046,6 +2048,7 @@ x_set_font (f, arg, oldval)
      Lisp_Object arg, oldval;
 {
   Lisp_Object result;
+  Lisp_Object frame;
 
   CHECK_STRING (arg, 1);
 
@@ -2064,6 +2067,9 @@ x_set_font (f, arg, oldval)
     }
   else
     abort ();
+
+  XSETFRAME (frame, f);
+  call1 (Qface_set_after_frame_default, frame);
 }
 
 void
@@ -4844,7 +4850,7 @@ enum_font_cb1 (lplf, lptm, FontType, lpef)
 }
 
 
-DEFUN ("x-list-fonts", Fx_list_fonts, Sx_list_fonts, 1, 3, 0,
+DEFUN ("x-list-fonts", Fx_list_fonts, Sx_list_fonts, 1, 4, 0,
   "Return a list of the names of available fonts matching PATTERN.\n\
 If optional arguments FACE and FRAME are specified, return only fonts\n\
 the same size as FACE on FRAME.\n\
@@ -4859,9 +4865,12 @@ The return value is a list of strings, suitable as arguments to\n\
 set-face-font.\n\
 \n\
 Fonts Emacs can't use (i.e. proportional fonts) may or may not be excluded\n\
-even if they match PATTERN and FACE.")
-  (pattern, face, frame)
-    Lisp_Object pattern, face, frame;
+even if they match PATTERN and FACE.\n\
+\n\
+The optional fourth argument MAXIMUM sets a limit on how many\n\
+fonts to match.  The first MAXIMUM fonts are reported.")
+  (pattern, face, frame, maximum)
+    Lisp_Object pattern, face, frame, maximum;
 {
   int num_fonts;
   char **names;
@@ -5645,6 +5654,9 @@ syms_of_w32fns ()
   Qdisplay = intern ("display");
   staticpro (&Qdisplay);
   /* This is the end of symbol initialization.  */
+
+  Qface_set_after_frame_default = intern ("face-set-after-frame-default");
+  staticpro (&Qface_set_after_frame_default);
 
   Fput (Qundefined_color, Qerror_conditions,
 	Fcons (Qundefined_color, Fcons (Qerror, Qnil)));
