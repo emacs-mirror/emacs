@@ -1,4 +1,4 @@
-/* $Header: /gd/gnu/cvsroot/emacs/oldXMenu/Activate.c,v 1.1 1999/10/03 19:34:50 fx Exp $ */
+/* $Header: /gd/gnu/cvsroot/emacs/oldXMenu/Activate.c,v 1.2 2000/01/27 15:31:20 gerd Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 #include "copyright.h"
@@ -311,7 +311,8 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
 		    }
 		}			  
 		cur_s = (XMSelect *)event_xmw;
-		help_callback (cur_s->help_string);
+		help_callback (cur_s->help_string,
+			       cur_p->serial, cur_s->serial);
 		
 		/*
 		 * If the pane we are in is active and the
