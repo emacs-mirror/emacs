@@ -29,6 +29,8 @@ Boston, MA 02111-1307, USA.  */
 #include "keyboard.h"
 #include "blockinput.h"
 #include "buffer.h"
+#include "charset.h"
+#include "coding.h"
 
 /* This may include sys/types.h, and that somehow loses
    if this is not done before the other system files.  */
@@ -69,8 +71,8 @@ typedef struct _widget_value
   char*		value;
   /* keyboard equivalent. no implications for XtTranslations */ 
   char*		key;
-  /* Help string.  */
-  char* 	help;
+  /* Help string or null if none.  */
+  char		*help;
   /* true if enabled */
   Boolean	enabled;
   /* true if selected */
@@ -1172,7 +1174,7 @@ single_submenu (item_key, item_name, maps)
 	  prefix = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
 #ifndef HAVE_MULTILINGUAL_MENU
 	  if (STRINGP (pane_name) && STRING_MULTIBYTE (pane_name))
-	    pane_name = string_make_unibyte (pane_name);
+	    pane_name = ENCODE_SYSTEM (pane_name);
 #endif
 	  pane_string = (NILP (pane_name)
 			 ? "" : (char *) XSTRING (pane_name)->data);
@@ -1210,8 +1212,6 @@ single_submenu (item_key, item_name, maps)
 	  Lisp_Object item_name, enable, descrip, def, type, selected;
           Lisp_Object help;
 
-          /* NTEMACS_TODO: implement popup/modeline help for menus. */
-
 	  item_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_NAME];
 	  enable = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_ENABLE];
 	  descrip
@@ -1223,9 +1223,9 @@ single_submenu (item_key, item_name, maps)
 
 #ifndef HAVE_MULTILINGUAL_MENU
 	  if (STRING_MULTIBYTE (item_name))
-	    item_name = string_make_unibyte (item_name);
+	    item_name = ENCODE_SYSTEM (item_name);
 	  if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
-	    descrip = string_make_unibyte (descrip);
+	    descrip = ENCODE_SYSTEM (descrip);
 #endif
 
 	  wv = xmalloc_widget_value ();
@@ -1619,7 +1619,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 	  prefix = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
 #ifndef HAVE_MULTILINGUAL_MENU
 	  if (!NILP (pane_name) && STRING_MULTIBYTE (pane_name))
-	    pane_name = string_make_unibyte (pane_name);
+	    pane_name = ENCODE_SYSTEM (pane_name);
 #endif
 	  pane_string = (NILP (pane_name)
 			 ? "" : (char *) XSTRING (pane_name)->data);
@@ -1671,9 +1671,9 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 
 #ifndef HAVE_MULTILINGUAL_MENU
           if (STRINGP (item_name) && STRING_MULTIBYTE (item_name))
-            item_name = string_make_unibyte (item_name);
+            item_name = ENCODE_SYSTEM (item_name);
           if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
-            descrip = string_make_unibyte (descrip);
+            descrip = ENCODE_SYSTEM (descrip);
 #endif
 
 	  wv = xmalloc_widget_value ();
@@ -1725,7 +1725,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 
 #ifndef HAVE_MULTILINGUAL_MENU
       if (STRING_MULTIBYTE (title))
-	title = string_make_unibyte (title);
+	title = ENCODE_SYSTEM (title);
 #endif
       wv_title->name = (char *) XSTRING (title)->data;
       wv_title->enabled = True;
