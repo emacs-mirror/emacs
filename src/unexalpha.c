@@ -398,8 +398,10 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
 	 stat.st_size - ohdr.fhdr.f_symptr - cbHDRR,
 	 "writing symbol table of %s", new_name);
 
-
-  update_dynamic_symbols (oldptr, new_name, new, nhdr.aout);
+#ifdef _REL_DYN
+  if (rel_dyn_section)
+    update_dynamic_symbols (oldptr, new_name, new, nhdr.aout);
+#endif
 
 #undef symhdr
 
