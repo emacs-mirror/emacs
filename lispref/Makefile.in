@@ -147,6 +147,8 @@ clean:
 	rm -f make.out core 
 	rm -f index.texi
 
+distclean: clean
+
 maintainer-clean: clean
 	rm -f elisp elisp-* elisp.dvi elisp.oaux
 
