@@ -483,10 +483,7 @@ load_font_get_repertory (f, face, font_def, fontset)
   int charset;
 
   font_name = choose_face_font (f, face->lface, AREF (font_def, 0), NULL);
-  if (NATNUMP (AREF (font_def, 1)))
-    charset = XINT (AREF (font_def, 1));
-  else
-    charset = -1;
+  charset = XINT (AREF (font_def, 1));
   if (! (font_info = fs_load_font (f, font_name, charset)))
     return -1;
 
@@ -1031,8 +1028,8 @@ find_font_encoding (fontname)
 	      : CONSP (XCDR (elt)) && CHARSETP (XCAR (XCDR (elt)))))
 	return (XCDR (elt));
     }
-  /* We don't know the encoding of this font.  */
-  return Qnil;
+  /* We don't know the encoding of this font.  Let's assume `ascii'.  */
+  return Qascii;
 }
 
 
@@ -1300,17 +1297,46 @@ generate_ascii_font_name (name, ascii_spec)
   return build_font_name_from_vector (vec);
 }
 
-static void
-set_fontset_font (arg, range)
-     Lisp_Object arg, range;
-{
-  Lisp_Object fontset, font_def, add;
+/* Variables referred in set_fontset_font.  They are set before
+   map_charset_chars is called in Fset_fontset_font.  */
+static Lisp_Object font_def_arg, add_arg;
+static int from_arg, to_arg;
 
-  fontset = XCAR (arg);
-  font_def = XCAR (XCDR (arg));
-  add = XCAR (XCDR (XCDR (arg)));
-  FONTSET_ADD (fontset, range, font_def, add);
-  free_realized_fontsets (fontset);
+/* Callback function for map_charset_chars in Fset_fontset_font.  In
+   FONTSET, set font_def_arg in a fashion specified by add_arg for
+   characters in RANGE while ignoring the range between from_arg and
+   to_arg.  */
+
+static void
+set_fontset_font (fontset, range)
+     Lisp_Object fontset, range;
+{
+  if (from_arg < to_arg)
+    {
+      int from = XINT (XCAR (range)), to = XINT (XCDR (range));
+
+      if (from < from_arg)
+	{
+	  if (to > to_arg)
+	    {
+	      Lisp_Object range2;
+
+	      range2 = Fcons (make_number (to_arg), XCDR (range));
+	      FONTSET_ADD (fontset, range, font_def_arg, add_arg);
+	      to = to_arg;
+	    }
+	  if (to > from_arg)
+	    range = Fcons (XCAR (range), make_number (from_arg));
+	}
+      else if (to <= to_arg)
+	return;
+      else
+	{
+	  if (from < to_arg)
+	    range = Fcons (make_number (to_arg), XCDR (range));
+	}
+    }
+  FONTSET_ADD (fontset, range, font_def_arg, add_arg);
 }
 
 
@@ -1353,6 +1379,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
   Lisp_Object font_def, registry;
   Lisp_Object encoding, repertory;
   Lisp_Object range_list;
+  struct charset *charset = NULL;
 
   fontset = check_fontset_name (name);
 
@@ -1410,9 +1437,6 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
     encoding = find_font_encoding ((char *) SDATA (font_spec));
   else
     encoding = find_font_encoding ((char *) SDATA (registry));
-  if (NILP (encoding))
-    /* We don't know how to use this font.  */
-    return Qnil;
   if (SYMBOLP (encoding))
     {
       CHECK_CHARSET (encoding);
@@ -1460,11 +1484,8 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 			  val);
 	  range_list = XCDR (val);
 	}
-      else if (CHARSETP (target))
+      if (CHARSETP (target))
 	{
-	  struct charset *charset;
-
-	  CHECK_CHARSET_GET_CHARSET (target, charset);
 	  if (EQ (target, Qascii))
 	    {
 	      if (VECTORP (font_spec))
@@ -1476,15 +1497,10 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 	    }
 	  else
 	    {
-	      map_charset_chars (set_fontset_font, Qnil,
-				 list3 (fontset, font_def, add), charset,
-				 CHARSET_MIN_CODE (charset),
-				 CHARSET_MAX_CODE (charset));
-	      return Qnil;
+	      CHECK_CHARSET_GET_CHARSET (target, charset);
 	    }
 	}
-
-      if (NILP (range_list))
+      else if (NILP (range_list))
 	error ("Invalid script or charset name: %s",
 	       SDATA (SYMBOL_NAME (target)));
     }
@@ -1493,6 +1509,21 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
   else
     error ("Invalid target for setting a font");
 
+
+  if (charset)
+    {
+      font_def_arg = font_def;
+      add_arg = add;
+      if (NILP (range_list))
+	from_arg = to_arg = 0;
+      else
+	from_arg = XINT (XCAR (XCAR (range_list))),
+	  to_arg = XINT (XCDR (XCAR (range_list)));
+
+      map_charset_chars (set_fontset_font, Qnil, fontset, charset,
+			 CHARSET_MIN_CODE (charset),
+			 CHARSET_MAX_CODE (charset));
+    }
   for (; CONSP (range_list); range_list = XCDR (range_list))
     FONTSET_ADD (fontset, XCAR (range_list), font_def, add);
 
@@ -1605,10 +1636,10 @@ new_fontset_from_font_name (Lisp_Object fontname)
       ASET (vec, 13, build_string (temp));
       name = build_font_name_from_vector (vec);
     }
-  name = Fnew_fontset (name, Fcons (Fcons (Fcons (make_number (0),
+  name = Fnew_fontset (name, list2 (list2 (Qascii, fontname),
+				    list2 (Fcons (make_number (0),
 						  make_number (MAX_CHAR)),
-					   Fcons (fontname, Qnil)),
-				    Qnil));
+					   fontname)));
   id = fs_query_fontset (name, 0);
   auto_fontset_alist
     = Fcons (Fcons (fontname, make_number (id)), auto_fontset_alist);
