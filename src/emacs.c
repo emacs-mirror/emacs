@@ -1426,7 +1426,6 @@ main (argc, argv
 
   init_callproc ();	/* Must follow init_cmdargs but not init_sys_modes.  */
   init_lread ();
-  init_charset ();
 
   /* Intern the names of all standard functions and variables;
      define standard keys.  */
@@ -1567,6 +1566,8 @@ main (argc, argv
       globals_of_w32menu ();
 #endif  /* end #ifdef HAVE_NTGUI */
     }
+
+  init_charset ();
 
   if (!noninteractive)
     {
