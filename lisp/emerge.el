@@ -853,11 +853,11 @@ This is *not* a user option, since Emerge uses it for its own processing.")
    (let (f)
      (list current-prefix-arg
 	   (setq f (emerge-read-file-name "File A to merge" emerge-last-dir-A
-					  nil nil))
-	   (emerge-read-file-name "File B to merge" emerge-last-dir-B nil f)
+					  nil nil t))
+	   (emerge-read-file-name "File B to merge" emerge-last-dir-B nil f t)
 	   (and current-prefix-arg
 		(emerge-read-file-name "Output file" emerge-last-dir-output
-				       f f)))))
+				       f f nil)))))
   (emerge-files-internal
    file-A file-B startup-hooks
    (if file-out
@@ -874,13 +874,13 @@ This is *not* a user option, since Emerge uses it for its own processing.")
    (let (f)
      (list current-prefix-arg
 	   (setq f (emerge-read-file-name "File A to merge" emerge-last-dir-A
-					  nil nil))
-	   (emerge-read-file-name "File B to merge" emerge-last-dir-B nil f)
+					  nil nil t))
+	   (emerge-read-file-name "File B to merge" emerge-last-dir-B nil f t)
 	   (emerge-read-file-name "Ancestor file" emerge-last-dir-ancestor
-				  nil f)
+				  nil f t)
 	   (and current-prefix-arg
 		(emerge-read-file-name "Output file" emerge-last-dir-output
-				       f f)))))
+				       f f nil)))))
   (emerge-files-with-ancestor-internal
    file-A file-B file-ancestor startup-hooks
    (if file-out
@@ -2737,7 +2737,7 @@ keymap.  Leaves merge in fast mode."
 ;; Read a file name, handling all of the various defaulting rules.
 
 (defun emerge-read-file-name (prompt alternative-default-dir default-file
-			      A-file)
+			      A-file must-match)
   ;; `prompt' should not have trailing ": ", so that it can be modified
   ;; according to context.
   ;; If alternative-default-dir is non-nil, it should be used as the default
@@ -2765,7 +2765,7 @@ keymap.  Leaves merge in fast mode."
 		    alternative-default-dir
 		    (concat alternative-default-dir
 			    (file-name-nondirectory A-file))
-		    'confirm))
+		    (and must-match 'confirm)))
    ;; If there is a default file, use it.
    (default-file
      (read-file-name (format "%s (default %s): " prompt default-file)
@@ -2774,7 +2774,7 @@ keymap.  Leaves merge in fast mode."
 		     ;; Emerge as the default for this argument.
 		     (and emerge-default-last-directories
 			  alternative-default-dir)
-		     default-file 'confirm))
+		     default-file (and must-match 'confirm)))
    (t
     (read-file-name (concat prompt ": ")
 		    ;; If emerge-default-last-directories is set, use the
@@ -2782,7 +2782,7 @@ keymap.  Leaves merge in fast mode."
 		    ;; Emerge as the default for this argument.
 		    (and emerge-default-last-directories
 			 alternative-default-dir)
-		    nil 'confirm))))
+		    nil (and must-match 'confirm)))))
 
 ;; Revise the mode line to display which difference we have selected
 
