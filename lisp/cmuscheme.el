@@ -231,7 +231,7 @@ Defaults to a regexp ignoring all inputs of 0, 1, or 2 letters."
 		 (scheme-args-to-list (substring string pos
 						 (length string)))))))))
 
-(defcustom scheme-program-name "scheme"
+(defcustom cmuscheme-program-name "scheme"
   "*Program invoked by the run-scheme command"
   :type 'string
   :group 'cmuscheme)
@@ -241,19 +241,19 @@ Defaults to a regexp ignoring all inputs of 0, 1, or 2 letters."
   "Run an inferior Scheme process, input and output via buffer *scheme*.
 If there is a process already running in `*scheme*', switch to that buffer.
 With argument, allows you to edit the command line (default is value
-of `scheme-program-name').  Runs the hooks `inferior-scheme-mode-hook'
+of `cmuscheme-program-name').  Runs the hooks `inferior-scheme-mode-hook'
 \(after the `comint-mode-hook' is run).
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
 
   (interactive (list (if current-prefix-arg
-			 (read-string "Run Scheme: " scheme-program-name)
-			 scheme-program-name)))
+			 (read-string "Run Scheme: " cmuscheme-program-name)
+			 cmuscheme-program-name)))
   (if (not (comint-check-proc "*scheme*"))
       (let ((cmdlist (scheme-args-to-list cmd)))
 	(set-buffer (apply 'make-comint "scheme" (car cmdlist)
 			   nil (cdr cmdlist)))
 	(inferior-scheme-mode)))
-  (setq scheme-program-name cmd)
+  (setq cmuscheme-program-name cmd)
   (setq scheme-buffer "*scheme*")
   (pop-to-buffer "*scheme*"))
 ;;;###autoload (add-hook 'same-window-buffer-names "*scheme*")
