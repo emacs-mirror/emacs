@@ -1043,6 +1043,10 @@ extern Lisp_Object Fintern (), Fintern_soft (), Fload ();
 extern Lisp_Object Fget_file_char (), Fread_char ();
 extern Lisp_Object Feval_current_buffer (), Feval_region ();
 extern Lisp_Object intern (), oblookup ();
+#define LOADHIST_ATTACH(x) \
+ if (initialized) Vcurrent_load_list = Fcons (x, Vcurrent_load_list)
+extern Lisp_Object Vcurrent_load_list;
+extern Lisp_Object Vload_history;
 
 /* Defined in eval.c */
 extern Lisp_Object Qautoload, Qexit, Qinteractive, Qcommandp, Qdefun, Qmacro;
@@ -1249,3 +1253,4 @@ extern long *xmalloc (), *xrealloc ();
 extern void xfree ();
 
 extern char *egetenv ();
+ 
