@@ -5676,17 +5676,18 @@ Other orders of $ and _ seem to all work just fine.")
 ;; If a drive letter has been added, remote it.  Otherwise, if the drive
 ;; letter existed before, leave it.
 (defun ange-ftp-real-expand-file-name-actual (&rest args)
-  (setq old-name (car args))
-  (setq new-name (ange-ftp-run-real-handler 'expand-file-name args))
-  (setq drive-letter (substring new-name 0 2))
-  ;; I'd like to distill the following lines into one (if) statement
-  ;;   removing the need for the temp final variable
-  (setq final new-name)
-  (if (not (equal (substring old-name 0 1) "~"))
-      (if (or (< (length old-name) 2)
-	      (not (string-match "/[a-zA-Z]:" old-name)))
-	  (setq final (substring new-name 2))))
-  final)
+  (let (old-name new-name final drive-letter)
+    (setq old-name (car args))
+    (setq new-name (ange-ftp-run-real-handler 'expand-file-name args))
+    (setq drive-letter (substring new-name 0 2))
+    ;; I'd like to distill the following lines into one (if) statement
+    ;;   removing the need for the temp final variable
+    (setq final new-name)
+    (if (not (equal (substring old-name 0 1) "~"))
+	(if (or (< (length old-name) 2)
+		(not (string-match "/[a-zA-Z]:" old-name)))
+	    (setq final (substring new-name 2))))
+    final))
 
 
 ;;;; ------------------------------------------------------------
