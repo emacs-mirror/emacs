@@ -748,12 +748,14 @@ Returns the documentation as a string, also."
 	  ;; anything expects the current format.)
 	  (let ((file-name (describe-function-find-file variable)))
 	    (when file-name
-	      (princ "\n\nDefined in `")
+	      ;; Don't quote this, or it can get re-interpreted later
+	      ;; by `help-make-xrefs'.
+	      (princ "\n\nDefined in ")
 	      (princ file-name)
-	      (princ "'.")
+	      (princ ".")
 	      (with-current-buffer "*Help*"
 		(save-excursion
-		  (re-search-backward "`\\([^`']+\\)'" nil t)
+		  (re-search-backward "Defined in \\([^.]+\\)." nil t)
 		  (help-xref-button 1 (lambda (arg)
 					(let ((location
 					       (find-variable-noselect arg)))
