@@ -1,3 +1,12 @@
+2004-10-12  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (setup_coding_system): If coding_system is nil, use
+	Qundecided.
+	(Fterminal_coding_system): Return nil if terminal coding system is
+	`undecided'.
+	(syms_of_coding): Define coding-system `undecided' here.  Setup
+	terminal_coding as `undecided'.
+
 2004-10-04  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (message_dolog, set_message_1): Call
