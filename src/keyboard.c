@@ -4444,6 +4444,14 @@ make_lispy_event (event)
 	return lispy_c;
       }
 
+    case multibyte_char_keystroke:
+      {
+	Lisp_Object lispy_c;
+
+	XSETFASTINT (lispy_c, event->code);
+	return lispy_c;
+      }
+
       /* A function key.  The symbol may need to have modifier prefixes
 	 tacked onto it.  */
     case non_ascii_keystroke:
@@ -5464,7 +5472,7 @@ reorder_modifiers (symbol)
 
    Alternatively, NAME_ALIST_OR_STEM is either an alist mapping codes
    into symbol names, or a string specifying a name stem used to
-   contruct a symbol name or the form `STEM-N', where N is the decimal
+   construct a symbol name or the form `STEM-N', where N is the decimal
    representation of SYMBOL_NUM.  NAME_ALIST_OR_STEM is used if it is
    non-nil; otherwise NAME_TABLE is used.
 
