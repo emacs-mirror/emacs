@@ -47,6 +47,8 @@
 
 (defun indent-for-tab-command (&optional prefix-arg)
   "Indent line in proper way for current major mode.
+If initial point was within line's indentation, position after
+the indentation.  Else stay at same point in text.
 The function actually called is determined by the value of
 `indent-line-function'."
   (interactive "P")
