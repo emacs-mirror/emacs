@@ -792,15 +792,13 @@ Emacs.mode-line.AttributeBox: off
 @cindex non-selected windows, mode line appearance
 @vindex mode-line-in-non-selected-windows
   By default, the mode line of non-selected windows is displayed in a
-different face, called @code{mode-line-inactive}.  You can control
-this behavior by customizing the value of the variable
-@code{mode-line-in-non-selected-windows}.  If its value is
-non-@code{nil}, non-selected windows are displayed in the
-@code{mode-line-inactive} face.  If the value is @code{t}, the
-selected window is displayed in the @code{mode-line} face even when
-you type at the minibuffer prompt.  If the value is @code{nil}, all
-mode lines are displayed in the @code{mode-line} face, even when the
-window is not selected.  The default is @code{t}.
+different face, called @code{mode-line-inactive}.  Only the selected
+window is displayed in the @code{mode-line} face.  When you type at
+the minibuffer prompt, the window in @code{minibuffer-scroll-window}
+is considered to be the selected window.  You can disable this
+behavior by setting the value of the variable
+@code{mode-line-in-non-selected-windows} to @code{nil}; then all mode
+lines are displayed in the @code{mode-line} face.
 
 @node Text Display
 @section How Text Is Displayed

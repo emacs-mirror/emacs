@@ -1,3 +1,14 @@
+2002-02-13  Kim F. Storm  <no-spam@cua.dk>
+
+	* window.c: (Vmode_line_in_non_selected_windows): Removed.
+	(mode_line_in_non_selected_windows): New variable.
+	(syms_of_window): DEFVAR_BOOL it.
+
+	* dispextern.h (CURRENT_MODE_LINE_FACE_ID_3): Use
+	mode_line_in_non_selected_windows.
+	(mode_line_in_non_selected_windows): Declare extern.
+	(Vmode_line_in_non_selected_windows): Removed extern.
+
 2002-02-13  Richard M. Stallman  <rms@gnu.org>
 
 	* keyboard.c (Fthis_command_keys, Fthis_command_keys_vector) 
