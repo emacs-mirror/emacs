@@ -970,12 +970,12 @@ KEY is a string representing a sequence of keystrokes."
   (interactive "kUnset key globally: ")
   (global-set-key key nil))
 
-(defun local-unset-key
+(defun local-unset-key (key)
   "Remove local binding of KEY.
 KEY is a string representing a sequence of keystrokes."
   (interactive "kUnset key locally: ")
   (if (current-local-map)
-      (local-set-key (current-local-map) key nil))
+      (local-set-key key nil))
   nil)
 
 ;; now in fns.c
