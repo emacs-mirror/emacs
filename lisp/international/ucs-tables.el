@@ -157,10 +157,6 @@ Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
   "Used as `translation-table-for-encode' for iso-8859-15.
 Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
 
-;; Probably defined by utf-8.el.
-(defvar ucs-mule-to-mule-unicode (make-translation-table))
-(unless (get 'ucs-mule-to-mule-unicode 'translation-table)
-  (define-translation-table 'ucs-mule-to-mule-unicode ucs-mule-to-mule-unicode))
 ;;; Set up the tables.
 
 ;; Most of these tables were derived from ones in Mule-UCS.
@@ -1102,42 +1098,41 @@ Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
 	 (nreverse l))))
 
   ;; Convert the lists to the basic char tables.
-  (dolist (n (list 15 14 9 8 7 5 4 3 2 1))
-    (let ((alist (symbol-value (intern (format "ucs-8859-%d-alist" n)))))
-      (dolist (pair alist)
-	(let ((mule (car pair))
-	      (uc (cdr pair))
-	      (mu (decode-char 'ucs (cdr pair))))
-	  (aset ucs-mule-8859-to-ucs-table mule uc)
-	  ;; 	  (aset ucs-ucs-to-mule-8859-table uc mule)
-	  ;; 	  (aset ucs-mule-unicode-to-mule-8859 mu mule)
-	  (aset ucs-mule-8859-to-mule-unicode mule mu)
-	  (aset ucs-mule-to-mule-unicode mule mu)))))
-  ;; The table optimizing here and elsewhere probably isn't very
-  ;; useful, but seems good practice.
-  (optimize-char-table ucs-mule-to-mule-unicode)
-  (optimize-char-table ucs-mule-8859-to-mule-unicode)
-  ;; Derive tables that can be used as per-coding-system
-  ;; `translation-table-for-encode's.
-  (dolist (n (list 15 14 9 8 7 5 4 3 2 1))
-    (let* ((alist (symbol-value (intern (format "ucs-8859-%d-alist" n))))
-	   (encode-translator (set (intern (format "ucs-8859-%d-encode-table"
-						   n))
-				   (make-translation-table)))
-	   elt)
-      ;; Start with the mule-unicode component.
-      (dolist (pair alist)
-	(let ((mule (car pair))
-	      (mu (decode-char 'ucs (cdr pair))))
-	  (aset encode-translator mu mule)))
-      ;; Find characters from other 8859 sets which map to the same
-      ;; unicode as some character in this set.
-      (map-char-table (lambda (k v)
-			(if (and (setq elt (rassq v alist))
-				 (not (assq k alist)))
-			    (aset encode-translator k (car elt))))
-		      ucs-mule-8859-to-ucs-table)
-      (optimize-char-table encode-translator))))
+  ;; Ensure `decode-char' doesn't use the fragmentation table.
+  ;; Fixme: handa suggests using the RESTRICTION arg.
+  (let (utf-8-translation-table-for-decode)
+    (dolist (n (list 15 14 9 8 7 5 4 3 2 1))
+      (let ((alist (symbol-value (intern (format "ucs-8859-%d-alist" n)))))
+	(dolist (pair alist)
+	  (let ((mule (car pair))
+		(uc (cdr pair))
+		(mu (decode-char 'ucs (cdr pair))))
+	    (aset ucs-mule-8859-to-ucs-table mule uc)
+	    ;; 	  (aset ucs-ucs-to-mule-8859-table uc mule)
+	    ;; 	  (aset ucs-mule-unicode-to-mule-8859 mu mule)
+	    (aset ucs-mule-8859-to-mule-unicode mule mu)
+	    (aset ucs-mule-to-mule-unicode mule mu)))))
+    ;; Derive tables that can be used as per-coding-system
+    ;; `translation-table-for-encode's.
+    (dolist (n (list 15 14 9 8 7 5 4 3 2 1))
+      (let* ((alist (symbol-value (intern (format "ucs-8859-%d-alist" n))))
+	     (encode-translator (set (intern (format "ucs-8859-%d-encode-table"
+						     n))
+				     (make-translation-table)))
+	     elt)
+	;; Start with the mule-unicode component.
+	(dolist (pair alist)
+	  (let ((mule (car pair))
+		(mu (decode-char 'ucs (cdr pair))))
+	    (aset encode-translator mu mule)))
+	;; Find characters from other 8859 sets which map to the same
+	;; unicode as some character in this set.
+	(map-char-table (lambda (k v)
+			  (if (and (setq elt (rassq v alist))
+				   (not (assq k alist)))
+			      (aset encode-translator k (car elt))))
+			ucs-mule-8859-to-ucs-table)
+	(optimize-char-table encode-translator)))))
 
 ;; Register for use in CCL.
 (define-translation-table 'ucs-mule-8859-to-mule-unicode
@@ -1158,10 +1153,11 @@ everything on input operations."
   (unless encode-only
     ;; Unify 8859 on decoding.  (Non-CCL coding systems only.)
     (if utf-8-fragment-on-decoding
-	(map-char-table
-	 (lambda (k v)
-	   (if v (aset ucs-mule-to-mule-unicode v nil)))
-	 utf-8-translation-table-for-decode)
+	(progn (map-char-table
+		(lambda (k v)
+		  (if v (aset ucs-mule-to-mule-unicode v nil)))
+		utf-8-translation-table-for-decode)
+	       (optimize-char-table ucs-mule-to-mule-unicode))
       ;; Reset in case it was changed.
       (map-char-table
        (lambda (k v)
@@ -2459,7 +2455,6 @@ Interactively, prompts for a hex string giving the code."
 				  encode-translator))
 	      ((memq cs '(lao thai-tis620 tibetan-iso-8bit))
 	       (coding-system-put cs 'translation-table-for-input cs)))))
-    (optimize-char-table ucs-mule-to-mule-unicode)
     (dolist (c safe-charsets)
       (aset table (make-char c) t))
     (coding-system-put 'mule-utf-8 'safe-charsets
