@@ -473,28 +473,30 @@ Optional second arg ANNOTATION gives it an annotation.
 Optional third arg OVERWRITE means replace any existing bookmarks with
 this name."
   (bookmark-maybe-load-default-file)
-  (if (and (bookmark-get-bookmark name) (not overwrite))
-      ;; already existing boookmark under that name and
-      ;; no prefix arg means just overwrite old bookmark
-      (setcdr (bookmark-get-bookmark name)
-              (list (bookmark-make-cell annotation)))
+  (let ((stripped-name (copy-sequence name)))
+    (set-text-properties 0 (length stripped-name) nil stripped-name)
+    (if (and (bookmark-get-bookmark stripped-name) (not overwrite))
+        ;; already existing boookmark under that name and
+        ;; no prefix arg means just overwrite old bookmark
+        (setcdr (bookmark-get-bookmark stripped-name)
+                (list (bookmark-make-cell annotation)))
+      
+      ;; otherwise just cons it onto the front (either the bookmark
+      ;; doesn't exist already, or there is no prefix arg.  In either
+      ;; case, we want the new bookmark consed onto the alist...)
+      
+      (setq bookmark-alist
+            (cons
+             (list stripped-name 
+                   (bookmark-make-cell annotation))
+             bookmark-alist)))
     
-    ;; otherwise just cons it onto the front (either the bookmark
-    ;; doesn't exist already, or there is no prefix arg.  In either
-    ;; case, we want the new bookmark consed onto the alist...)
-    
-    (setq bookmark-alist
-          (cons
-           (list name 
-                 (bookmark-make-cell annotation))
-           bookmark-alist)))
-
-  ;; Added by db
-  (setq bookmark-current-bookmark name)
-  (setq bookmark-alist-modification-count
-        (1+ bookmark-alist-modification-count))
-  (if (bookmark-time-to-save-p)
-      (bookmark-save)))
+    ;; Added by db
+    (setq bookmark-current-bookmark stripped-name)
+    (setq bookmark-alist-modification-count
+          (1+ bookmark-alist-modification-count))
+    (if (bookmark-time-to-save-p)
+        (bookmark-save))))
 
 
 (defun bookmark-make-cell (annotation)
@@ -504,23 +506,15 @@ being set.  This will change soon."
   (` ((filename . (, (bookmark-buffer-file-name)))
       (front-context-string
        . (, (if (>= (- (point-max) (point)) bookmark-search-size)
-                ;; strip text props via `format':
-		(let ((string
-                        (buffer-substring 
-                         (point)
-                         (+ (point) bookmark-search-size))))
-                  (set-text-properties 0 (length string) nil string)
-                  string)
+                (buffer-substring-no-properties
+                 (point)
+                 (+ (point) bookmark-search-size))
               nil)))
       (rear-context-string
        . (, (if (>= (- (point) (point-min)) bookmark-search-size)
-                ;; strip text props via `format':
-		(let ((string
-                        (buffer-substring 
-                         (point)
-                         (- (point) bookmark-search-size))))
-                  (set-text-properties 0 (length string) nil string)
-                  string)
+                (buffer-substring-no-properties
+                 (point)
+                 (- (point) bookmark-search-size))
               nil)))
       (position . (, (point)))
       (annotation . (, annotation)))))
@@ -957,7 +951,7 @@ In Info, return the current node."
   (let ((string (save-excursion
                     (set-buffer bookmark-current-buffer)
                     (goto-char bookmark-yank-point)
-                    (buffer-substring
+                    (buffer-substring-no-properties
                      (point)
                      (save-excursion
                        (forward-word 1)
