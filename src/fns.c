@@ -3852,12 +3852,9 @@ hashfn_eq (h, key)
      struct Lisp_Hash_Table *h;
      Lisp_Object key;
 {
-  /* Lisp strings can change their address.  Don't try to compute a
-     hash code for a string from its address.  */
-  if (STRINGP (key))
-    return sxhash_string (XSTRING (key)->data, XSTRING (key)->size);
-  else
-    return XUINT (key) ^ XGCTYPE (key);
+  unsigned hash = XUINT (key) ^ XGCTYPE (key);
+  xassert ((hash & ~VALMASK) == 0);
+  return hash;
 }
 
 
@@ -3870,14 +3867,13 @@ hashfn_eql (h, key)
      struct Lisp_Hash_Table *h;
      Lisp_Object key;
 {
-  /* Lisp strings can change their address.  Don't try to compute a
-     hash code for a string from its address.  */
-  if (STRINGP (key))
-    return sxhash_string (XSTRING (key)->data, XSTRING (key)->size);
-  else if (FLOATP (key))
-    return sxhash (key, 0);
+  unsigned hash;
+  if (FLOATP (key))
+    hash = sxhash (key, 0);
   else
-    return XUINT (key) ^ XGCTYPE (key);
+    hash = XUINT (key) ^ XGCTYPE (key);
+  xassert ((hash & ~VALMASK) == 0);
+  return hash;
 }
 
 
@@ -3890,7 +3886,9 @@ hashfn_equal (h, key)
      struct Lisp_Hash_Table *h;
      Lisp_Object key;
 {
-  return sxhash (key, 0);
+  unsigned hash = sxhash (key, 0);
+  xassert ((hash & ~VALMASK) == 0);
+  return hash;
 }
 
 
@@ -4445,7 +4443,8 @@ sweep_weak_hash_tables ()
       + (unsigned)(Y))
 
 
-/* Return a hash for string PTR which has length LEN.  */
+/* Return a hash for string PTR which has length LEN.  The hash
+   code returned is guaranteed to fit in a Lisp integer.  */
 
 static unsigned
 sxhash_string (ptr, len)
@@ -4465,7 +4464,7 @@ sxhash_string (ptr, len)
       hash = ((hash << 3) + (hash >> 28) + c);
     }
 
-  return hash & 07777777777;
+  return hash & VALMASK;
 }
 
 
