@@ -24,6 +24,9 @@
 
 ;;; Commentary:
 
+;; This file defines korean-hangul keyboards:
+;; - hangul keyboard type 3 keyboard input method
+
 ;;; Code:
 
 (require 'quail)

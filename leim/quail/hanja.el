@@ -24,6 +24,9 @@
 
 ;;; Commentary:
 
+;; This file defines korean-hanja keyboards:
+;; - hanja input method with hangul keyboard type 2
+
 ;;; Code:
 
 (require 'quail)
