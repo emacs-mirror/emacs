@@ -1,3 +1,13 @@
+2002-09-09  Dave Love  <d.love@dl.ac.uk>
+
+	* wid-edit.el (widget-string-complete): New.
+	(widget-coding-system-prompt-value-history): Deleted.
+	(coding-system): Use coding-system-value-history.
+
+	* international/mule-cmds.el (charset): New widget.
+	(language-info-custom-alist): Use it.
+	(default-input-method): Modify :type.
+
 2002-09-08  Dave Love  <fx@gnu.org>
 
 	* language/ind-util.el (ucs-devanagari-to-is13194-alist)
