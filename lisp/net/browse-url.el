@@ -405,7 +405,7 @@ These might set its size, for instance."
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
-(defcustom browse-url-lynx-emacs-args (and (not window-system) 
+(defcustom browse-url-lynx-emacs-args (and (not window-system)
                                            '("-show_cursor"))
   "A list of strings defining options for Lynx in an Emacs buffer.
 
@@ -540,14 +540,9 @@ Use variable `browse-url-filename-alist' to map filenames to URLs."
   (while (string-match "[*\"()',=;? ]" file)
     (let ((enc (format "%%%x" (aref file (match-beginning 0)))))
       (setq file (replace-match enc t t file))))
-  (let ((maps browse-url-filename-alist))
-    (while maps
-      (let* ((map (car maps))
-	     (from-re (car map))
-	     (to-string (cdr map)))
-	(setq maps (cdr maps))
-	(and (string-match from-re file)
-	     (setq file (replace-match to-string t nil file))))))
+  (dolist (map browse-url-filename-alist)
+    (when (and map (string-match (car map) file))
+      (setq file (replace-match (cdr map) t nil file))))
   file)
 
 ;;;###autoload
