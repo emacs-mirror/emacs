@@ -1,5 +1,8 @@
 2005-01-19  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c (note_mode_line_or_margin_highlight): Fix :pointer
+	image property.
+
 	* fns.c (sweep_weak_table): Advance prev pointer when we keep a pair.
 
 2005-01-18  Kim F. Storm  <storm@cua.dk>
