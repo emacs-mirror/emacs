@@ -266,7 +266,10 @@ the file.  Don't use outside `eval-when-compile'."
 Don't use within `eval-when-compile'."
   `(eval-when-compile
      (if (get ',symbol 'byte-obsolete-variable)
-	 (cc-bytecomp-put ',symbol 'byte-obsolete-variable nil))))
+	 (cc-bytecomp-put ',symbol 'byte-obsolete-variable nil)
+       ;; This avoids a superfluous compiler warning
+       ;; about calling `get' for effect.
+       t)))
 
 (defun cc-bytecomp-ignore-obsolete (form)
   ;; Wraps a call to `byte-compile-obsolete' that suppresses the warning.
