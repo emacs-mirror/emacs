@@ -120,6 +120,15 @@ if any subprocesses are still running, @kbd{C-x C-c} asks for
 confirmation about them, since killing Emacs will kill the subprocesses
 immediately.
 
+@vindex confirm-kill-emacs
+  If the value of the variable @code{confirm-kill-emacs} is
+non-@code{nil}, @kbd{C-x C-c} assumes that its value is a predicate
+function, and calls that function.  If the result is non-@code{nil}, the
+session is killed, otherwise Emacs continues to run.  One convenient
+function to use as the value of @code{confirm-kill-emacs} is the
+function @code{yes-or-no-p}.  The default value of
+@code{confirm-kill-emacs} is @code{nil}.
+
   There is no way to restart an Emacs session once you have killed it.
 You can, however, arrange for Emacs to record certain session
 information, such as which files are visited, when you kill it, so that
