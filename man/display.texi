@@ -67,7 +67,11 @@ you can change the foreground and background colors of a specific face
 with @kbd{M-x set-face-foreground} and @kbd{M-x set-face-background}.
 These commands prompt in the minibuffer for a face name and a color
 name, with completion, and then set that face to use the specified
-color.
+color.  Changing the colors of the @code{default} face also changes
+the foreground and background colors on all frames, both existing and
+those to be created in the future.  (You can also set foreground and
+background colors for the current frame only; see @ref{Frame
+Parameters}.)
 
   Emacs 21 can correctly display variable-width fonts, but Emacs
 commands that calculate width and indentation do not know how to
