@@ -1,7 +1,7 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.74) $
- * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!mpsi.c(trunk.75) $
+ * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
  * impl.h.mps, and the internal MPM interfaces, as defined by
@@ -51,8 +51,9 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 #include "sac.h"
+#include "chain.h"
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.74) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.75) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -1033,7 +1034,7 @@ mps_bool_t mps_ap_trip(mps_ap_t mps_ap, mps_addr_t p, size_t size)
 /* mps_sac_create -- create an SAC object */
 
 mps_res_t mps_sac_create(mps_sac_t *mps_sac_o, mps_pool_t mps_pool,
-                         size_t classes_count, mps_sac_classes_t mps_classes)
+                         size_t classes_count, mps_sac_classes_s *mps_classes)
 {
   Pool pool = (Pool)mps_pool;
   Arena arena;
@@ -1486,8 +1487,7 @@ mps_word_t mps_collections(mps_arena_t mps_arena)
 }
 
 
-/* mps_finalize -- register for finalize
- */
+/* mps_finalize -- register for finalize */
 
 mps_res_t mps_finalize(mps_arena_t mps_arena, mps_addr_t *refref)
 {
@@ -1816,6 +1816,8 @@ mps_res_t mps_ap_alloc_pattern_reset(mps_ap_t mps_ap)
 
 
 /* Low memory reservoir */
+
+
 void mps_reservoir_limit_set(mps_arena_t mps_arena, size_t size)
 {
   Arena arena = (Arena)mps_arena;
@@ -1853,4 +1855,47 @@ size_t mps_reservoir_available(mps_arena_t mps_arena)
   ArenaLeave(arena);
 
   return size;
+}
+
+
+/* Chains */
+
+
+/* mps_chain_create -- create a chain */
+
+mps_res_t mps_chain_create(mps_chain_t *chain_o, mps_arena_t mps_arena,
+                           size_t gen_count, mps_gen_param_s *params)
+{
+  Arena arena = (Arena)mps_arena;
+  Chain chain;
+  Res res;
+
+  ArenaEnter(arena);
+
+  AVER(gen_count > 0);
+  res = ChainCreate(&chain, arena, gen_count, (GenParamStruct *)params);
+
+  ArenaLeave(arena);
+
+  if (res != ResOK) return res;
+  *chain_o = (mps_chain_t)chain;
+  return MPS_RES_OK;
+}
+
+
+/* mps_chain_destroy -- destroy a chain */
+
+void mps_chain_destroy(mps_chain_t mps_chain)
+{
+  Arena arena;
+  Chain chain = (Chain)mps_chain;
+
+  AVER(CHECKT(Chain, chain));
+  arena = chain->arena;
+
+  ArenaEnter(arena);
+
+  ChainDestroy(chain);
+
+  ArenaLeave(arena);
 }
