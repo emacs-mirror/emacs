@@ -49,13 +49,17 @@ struct frame
      Only EMACS_INT values can be intermixed with them.
      That ensures they are all aligned normally.  */
 
-  /* Name of this frame: a Lisp string.  See also `explicit_name'
-     and `namebuf'.  */
+  /* Name of this frame: a Lisp string.  It is used for looking up resources,
+     as well as for the title in some cases.  */
   Lisp_Object name;
 
   /* The name to use for the icon, the last time
      it was refreshed.  nil means not explicitly specified.  */
   Lisp_Object icon_name;
+
+  /* This is the frame title specified explicitly, if any.
+     Usually it is nil.  */
+  Lisp_Object title;
 
   /* The frame which should receive keystrokes that occur in this
      frame, or nil if they should go to the frame itself.  This is
