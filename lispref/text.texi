@@ -1244,6 +1244,12 @@ calls @code{undo-boundary} after each replacement, so that the user can
 undo individual replacements one by one.
 @end defun
 
+@defvar undo-in-progress
+This variable is normally @code{nil}, but the undo commands bind it to
+@code{t}.  This is so that various kinds of change hooks can tell when
+they're being called for the sake of undoing.
+@end defvar
+
 @defun primitive-undo count list
 This is the basic function for undoing elements of an undo list.
 It undoes the first @var{count} elements of @var{list}, returning
@@ -1256,6 +1262,8 @@ list value at the beginning of a sequence of undo operations.  Then the
 undo operations use and update the saved value.  The new elements added
 by undoing are not part of this saved value, so they don't interfere with
 continuing to undo.
+
+This function does not bind @code{undo-in-progress}.
 @end defun
 
 @node Maintaining Undo
