@@ -1,6 +1,6 @@
 ;;; tool-bar.el --- setting up the tool bar
 ;;
-;; Copyright (C) 2000 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 ;;
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: mouse frames
@@ -164,8 +164,14 @@ function."
 	(setq submap (eval submap)))
       (unless (image-mask-p image)
 	(setq image (append image '(:mask heuristic))))
-      (define-key-after tool-bar-map (vector key)
-	(append (cdr (assq key (cdr submap))) (list :image image) props)))))
+      (let ((defn (assq key (cdr submap))))
+	(if (eq (cadr defn) 'menu-item)
+	    (define-key-after tool-bar-map (vector key)
+	      (append (cdr defn) (list :image image) props))
+	  (setq defn (cdr defn))
+	  (define-key-after tool-bar-map (vector key)
+	    (append `(menu-item ,(car defn) ,(cddr defn))
+		    (list :image image) props)))))))
 
 ;;; Set up some global items.  Additions/deletions up for grabs.
 
