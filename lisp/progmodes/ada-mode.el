@@ -3822,9 +3822,11 @@ If that is the case remember the name of that function."
 
 ;; used by outline-minor-mode
 (defun ada-outline-level ()
-  (save-excursion
-    (skip-chars-forward "\t ")
-    (current-column)))
+  ;; This so that `current-column' DTRT in otherwise-hidden text.
+  (let (buffer-invisibility-spec)
+    (save-excursion
+      (skip-chars-forward "\t ")
+      (current-column))))
 
 ;;;
 ;;; generate body
