@@ -1205,7 +1205,8 @@ Instead, C-h would jump to previous difference."
   :group 'ediff)
   
 (defcustom ediff-temp-file-prefix
-  (file-name-as-directory temporary-file-directory)
+  (file-name-as-directory
+   (or small-temporary-file-directory temporary-file-directory))
   "*Prefix to put on Ediff temporary file names.
 Do not start with `~/' or `~USERNAME/'."
   :type 'string
