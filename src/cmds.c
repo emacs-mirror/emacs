@@ -447,7 +447,7 @@ internal_self_insert (c, noautofill)
 
   if (chars_to_delete)
     {
-      string = make_multibyte_string (str, 1, len);
+      string = make_string_from_bytes (str, 1, len);
       if (spaces_to_insert)
 	{
 	  tem = Fmake_string (make_number (spaces_to_insert),
