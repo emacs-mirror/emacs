@@ -474,6 +474,15 @@ struct buffer
     struct region_cache *newline_cache;
     struct region_cache *width_run_cache;
 
+    /* Changes in the buffer are recorded here for undo.
+       t means don't record anything.
+       This information belongs to the base buffer of an indirect buffer,
+       But we can't store it in the  struct buffer_text
+       because local variables have to be right in the  struct buffer.
+       So we copy it around in set_buffer_internal.
+       This comes before `name' because it is marked in a special way.  */
+    Lisp_Object undo_list;
+
     /* Everything from here down must be a Lisp_Object */
 
 
@@ -573,14 +582,6 @@ struct buffer
     Lisp_Object display_table;
     /* t means the mark and region are currently active.  */
     Lisp_Object mark_active;
-
-    /* Changes in the buffer are recorded here for undo.
-       t means don't record anything.
-       This information belongs to the base buffer of an indirect buffer,
-       But we can't store it in the  struct buffer_text
-       because local variables have to be right in the  struct buffer.
-       So we copy it around in set_buffer_internal.  */
-    Lisp_Object undo_list;
 
     /* List of overlays that end at or before the current center,
        in order of end-position.  */
