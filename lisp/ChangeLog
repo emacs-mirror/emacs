@@ -1,3 +1,8 @@
+2001-12-19  Richard M. Stallman  <rms@gnu.org>
+
+	* international/mule-cmds.el (describe-language-environment): 
+	Fix calls to help-xref-button.
+	
 2001-12-19  Miles Bader  <miles@gnu.org>
 
 	* international/fontset.el: Require `ind-util' when compiling.
