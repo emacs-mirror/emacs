@@ -249,6 +249,8 @@ detailed description of this mode.
   (gdb-enqueue-input (list "server list MAIN__\n" 'ignore))   ; Fortran program
   (gdb-enqueue-input (list "server info source\n" 'gdb-source-info))
   ;;
+  (set-window-dedicated-p (get-buffer-window gud-comint-buffer) t)
+  ;;
   (run-hooks 'gdba-mode-hook))
 
 (defcustom gdb-use-colon-colon-notation nil
@@ -1584,39 +1586,24 @@ static char *magick[] = {
 
 
 ;;;; Window management
-
-;;; The way we abuse the dedicated-p flag is pretty gross, but seems
-;;; to do the right thing.  Seeing as there is no way for Lisp code to
-;;; get at the use_time field of a window, I'm not sure there exists a
-;;; more elegant solution without writing C code.
-
 (defun gdb-display-buffer (buf &optional size)
   (let ((must-split nil)
 	(answer nil))
-    (unwind-protect
-	(progn
-	  (walk-windows
-	   #'(lambda (win)
-	      (if (eq gud-comint-buffer (window-buffer win))
-		  (set-window-dedicated-p win t))))
-	  (setq answer (get-buffer-window buf 'visible))
-	  (if (not answer)
-	      (let ((window (get-lru-window 'visible)))
-		(if window
-		    (progn
-		      (set-window-buffer window buf)
-		      (setq answer window))
-		  (setq must-split t)))))
-      (walk-windows
-       #'(lambda (win)
-	  (if (eq gud-comint-buffer (window-buffer win))
-	      (set-window-dedicated-p win nil)))))
+    (setq answer (get-buffer-window buf 'visible))
+    (if (not answer)
+	(let ((window (get-lru-window)))
+	  (if window
+	      (progn
+		(set-window-buffer window buf)
+		(setq answer window))
+	    (setq must-split t))))
     (if must-split
-	(let* ((largest (get-largest-window 'visible))
+	(let* ((largest (get-largest-window))
 	       (cur-size (window-height largest))
 	       (new-size (and size (< size cur-size) (- cur-size size))))
 	  (setq answer (split-window largest new-size))
 	  (set-window-buffer answer buf)))
+    (set-window-dedicated-p answer t)
     answer))
 
 (defun gdb-display-source-buffer (buffer)
@@ -1715,6 +1702,11 @@ static char *magick[] = {
   :group 'gud
   :version "21.4")
 
+(defun dedicated-switch-to-buffer (name)
+  (set-window-dedicated-p 
+   (get-buffer-window
+    (switch-to-buffer name)) t))
+
 (defun gdb-setup-windows ()
   "Layout the window pattern for gdb-many-windows."
   (gdb-display-locals-buffer)
@@ -1722,14 +1714,14 @@ static char *magick[] = {
   (delete-other-windows)
   (gdb-display-breakpoints-buffer)
   (delete-other-windows)
-  (switch-to-buffer gud-comint-buffer)
+  (dedicated-switch-to-buffer gud-comint-buffer)
   (split-window nil ( / ( * (window-height) 3) 4))
   (split-window nil ( / (window-height) 3))
   (split-window-horizontally)
   (other-window 1)
-  (switch-to-buffer (gdb-locals-buffer-name))
+  (dedicated-switch-to-buffer (gdb-locals-buffer-name))
   (other-window 1)
-  (switch-to-buffer
+  (dedicated-switch-to-buffer
    (if (and gdb-view-source
 	    (eq gdb-selected-view 'source))
        (if gud-last-last-frame
@@ -1739,12 +1731,12 @@ static char *magick[] = {
   (when gdb-use-inferior-io-buffer
     (split-window-horizontally)
     (other-window 1)
-    (switch-to-buffer (gdb-inferior-io-name)))
+    (dedicated-switch-to-buffer (gdb-inferior-io-name)))
   (other-window 1)
-  (switch-to-buffer (gdb-stack-buffer-name))
+  (dedicated-switch-to-buffer (gdb-stack-buffer-name))
   (split-window-horizontally)
   (other-window 1)
-  (switch-to-buffer (gdb-breakpoints-buffer-name))
+  (dedicated-switch-to-buffer (gdb-breakpoints-buffer-name))
   (other-window 1))
 
 (defcustom gdb-many-windows nil
@@ -1781,7 +1773,7 @@ This arrangement depends on the value of `gdb-many-windows'."
     (delete-other-windows)
     (split-window)
     (other-window 1)
-    (switch-to-buffer
+    (dedicated-switch-to-buffer
      (if (and gdb-view-source
 	      (eq gdb-selected-view 'source))
 	 (if gud-last-last-frame
@@ -1801,6 +1793,7 @@ Kills the gdb buffers and resets the source buffers."
 		(kill-buffer nil)
 	      (gdb-remove-breakpoint-icons (point-min) (point-max) t)
 	      (setq gud-minor-mode nil)
+	      (set-window-dedicated-p (get-buffer-window buffer) nil)
 	      (kill-local-variable 'tool-bar-map)
 	      (setq gud-running nil))))))
   (when (markerp gdb-overlay-arrow-position)
