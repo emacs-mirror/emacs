@@ -1,3 +1,11 @@
+2000-06-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* subdirs.el: Add eshell subdirectory.
+
+	* eshell: New subdirectory containing the Eshell package.
+
+	* pcomplete.el: New file.
+
 2000-06-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* files.el (make-backup-file-name-1): On DOS/Windows, run the
