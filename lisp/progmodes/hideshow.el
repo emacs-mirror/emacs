@@ -408,8 +408,8 @@ Note that `mode-line-format' is buffer-local.")
   (let ((ovs (overlays-in from to)))
     (while ovs
       (let ((ov (car ovs)))
-	(when (overlay-get ov 'hs)
-	  (delete-overlay ov)))
+        (when (overlay-get ov 'hs)
+          (delete-overlay ov)))
       (setq ovs (cdr ovs)))))
 
 (defun hs-isearch-show (ov)
@@ -429,16 +429,16 @@ OV is shown.
 This function is meant to be used as the `isearch-open-invisible-temporary'
 property of an overlay."
   (setq hs-headline
-	(if hide-p
-	    nil
-	  (or hs-headline
-	      (let ((start (overlay-start ov)))
-		(buffer-substring
-		 (save-excursion (goto-char start)
-				 (beginning-of-line)
-				 (skip-chars-forward " \t")
-				 (point))
-		 start)))))
+        (if hide-p
+            nil
+          (or hs-headline
+              (let ((start (overlay-start ov)))
+                (buffer-substring
+                 (save-excursion (goto-char start)
+                                 (beginning-of-line)
+                                 (skip-chars-forward " \t")
+                                 (point))
+                 start)))))
   (force-mode-line-update)
   (overlay-put ov 'invisible (and hide-p 'hs)))
 
@@ -460,10 +460,10 @@ on what kind of block is to be hidden."
                   ;; deprecated backward compatibility -- `block'<=>`code'
                   (and (eq 'block hs-isearch-open)
                        (eq 'code  flag)))
-	  (overlay-put overlay 'isearch-open-invisible 'hs-isearch-show)
-	  (overlay-put overlay
-		       'isearch-open-invisible-temporary
-		       'hs-isearch-show-temporary))
+          (overlay-put overlay 'isearch-open-invisible 'hs-isearch-show)
+          (overlay-put overlay
+                       'isearch-open-invisible-temporary
+                       'hs-isearch-show-temporary))
         overlay))))
 
 (defun hs-forward-sexp (match-data arg)
@@ -519,10 +519,10 @@ and then further adjusted to be at the end of the line."
 
 (defun hs-safety-is-job-n ()
   "Warn if `buffer-invisibility-spec' does not contain symbol `hs'."
-    (unless (and (listp buffer-invisibility-spec)
-                 (assq 'hs buffer-invisibility-spec))
-      (message "Warning: `buffer-invisibility-spec' does not contain hs!!")
-      (sit-for 2)))
+  (unless (and (listp buffer-invisibility-spec)
+               (assq 'hs buffer-invisibility-spec))
+    (message "Warning: `buffer-invisibility-spec' does not contain hs!!")
+    (sit-for 2)))
 
 (defun hs-inside-comment-p ()
   "Return non-nil if point is inside a comment, otherwise nil.
@@ -566,7 +566,7 @@ as cdr."
             (while (and (< (point) q)
                         (> (point) p)
                         (not (looking-at hs-c-start-regexp)))
-              (setq p (point));; use this to avoid an infinite cycle
+              (setq p (point)) ;; use this to avoid an infinite cycle
               (forward-comment 1)
               (skip-chars-forward " \t\n\f"))
             (when (or (not (looking-at hs-c-start-regexp))
@@ -646,7 +646,7 @@ Return point, or nil if original point was not in a block."
         (hs-hide-level-recursive (1- arg) minp maxp)
       (goto-char (match-beginning hs-block-start-mdata-select))
       (hs-hide-block-at-point t)))
-    (hs-safety-is-job-n)
+  (hs-safety-is-job-n)
   (goto-char maxp))
 
 (defmacro hs-life-goes-on (&rest body)
@@ -676,8 +676,8 @@ and `case-fold-search' are both t."
     (let ((overlays (overlays-at (point)))
           (found nil))
       (while (and (not found) (overlayp (car overlays)))
-           (setq found (overlay-get (car overlays) 'hs)
-                 overlays (cdr overlays)))
+        (setq found (overlay-get (car overlays) 'hs)
+              overlays (cdr overlays)))
       found)))
 
 (defun hs-c-like-adjust-block-beginning (initial)
@@ -725,7 +725,7 @@ If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
                    (funcall hs-hide-all-non-comment-function)
                  (hs-hide-block-at-point t)))
            ;; found a comment, probably
-           (let ((c-reg (hs-inside-comment-p)))         ; blech!
+           (let ((c-reg (hs-inside-comment-p))) ; blech!
              (when (and c-reg (car c-reg))
                (if (> (count-lines (car c-reg) (nth 1 c-reg)) 1)
                    (hs-hide-block-at-point t c-reg)
@@ -774,17 +774,17 @@ See documentation for functions `hs-hide-block' and `run-hooks'."
     ;; first see if we have something at the end of the line
     (catch 'eol-begins-hidden-region-p
       (let ((here (point))
-	    (ovs (save-excursion (end-of-line) (overlays-at (point)))))
-	(while ovs
-	  (let ((ov (car ovs)))
-	    (when (overlay-get ov 'hs)
-	      (goto-char
-	       (cond (end (overlay-end ov))
-		     ((eq 'comment (overlay-get ov 'hs)) here)
-		     (t (+ (overlay-start ov) (overlay-get ov 'hs-ofs)))))
-	      (delete-overlay ov)
-	      (throw 'eol-begins-hidden-region-p t)))
-	  (setq ovs (cdr ovs)))
+            (ovs (save-excursion (end-of-line) (overlays-at (point)))))
+        (while ovs
+          (let ((ov (car ovs)))
+            (when (overlay-get ov 'hs)
+              (goto-char
+               (cond (end (overlay-end ov))
+                     ((eq 'comment (overlay-get ov 'hs)) here)
+                     (t (+ (overlay-start ov) (overlay-get ov 'hs-ofs)))))
+              (delete-overlay ov)
+              (throw 'eol-begins-hidden-region-p t)))
+          (setq ovs (cdr ovs)))
         nil))
     ;; not immediately obvious, look for a suitable block
     (let ((c-reg (hs-inside-comment-p))
@@ -871,9 +871,9 @@ Key bindings:
 
   (interactive "P")
   (setq hs-headline nil
-	hs-minor-mode (if (null arg)
-			  (not hs-minor-mode)
-			(> (prefix-numeric-value arg) 0)))
+        hs-minor-mode (if (null arg)
+                          (not hs-minor-mode)
+                        (> (prefix-numeric-value arg) 0)))
   (if hs-minor-mode
       (progn
         (hs-grok-mode-type)
@@ -923,12 +923,12 @@ Key bindings:
 
 ;; make some variables permanently buffer-local
 (let ((vars '(hs-minor-mode
-	      hs-c-start-regexp
-	      hs-block-start-regexp
-	      hs-block-start-mdata-select
-	      hs-block-end-regexp
-	      hs-forward-sexp-func
-	      hs-adjust-block-beginning)))
+              hs-c-start-regexp
+              hs-block-start-regexp
+              hs-block-start-mdata-select
+              hs-block-end-regexp
+              hs-forward-sexp-func
+              hs-adjust-block-beginning)))
   (while vars
     (let ((var (car vars)))
       (make-variable-buffer-local var)
