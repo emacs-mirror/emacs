@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.23 2001/07/04 15:51:18 monnier Exp $
+;; $Id: vc-cvs.el,v 1.24 2001/08/28 17:06:36 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -522,6 +522,30 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
       (if (vc-cvs-stay-local-p file)
           1 ;; async diff, pessimistic assumption
         status))))
+
+(defun vc-cvs-diff-tree (dir &optional rev1 rev2)
+  "Diff all files at and below DIR."
+  (with-current-buffer "*vc-diff*"
+    (setq default-directory dir)
+    (if (vc-cvs-stay-local-p dir)
+        ;; local diff: do it filewise, and only for files that are modified
+        (vc-file-tree-walk
+         dir
+         (lambda (f)
+           (vc-exec-after
+            `(let ((coding-system-for-read (vc-coding-system-for-diff ',f)))
+               ;; possible optimization: fetch the state of all files
+               ;; in the tree via vc-cvs-dir-state-heuristic
+               (unless (vc-up-to-date-p ',f)
+                 (message "Looking at %s" ',f)
+                 (vc-diff-internal ',f ',rel1 ',rel2))))))
+      ;; cvs diff: use a single call for the entire tree
+      (let ((coding-system-for-read
+             (or coding-system-for-read 'undecided)))
+        (apply 'vc-do-command "*vc-diff*" 1 "cvs" nil "diff"
+               (and rel1 (concat "-r" rel1))
+               (and rel2 (concat "-r" rel2))
+               (vc-diff-switches-list cvs))))))
 
 (defun vc-cvs-annotate-command (file buffer &optional version)
   "Execute \"cvs annotate\" on FILE, inserting the contents in BUFFER.
