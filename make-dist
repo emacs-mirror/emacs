@@ -309,8 +309,8 @@ echo "Updating version number in README"
 
 echo "Creating subdirectories"
 for subdir in lisp site-lisp lispref lispintro \
-	      leim real-leim real-leim/CXTERM-DIC real-leim/MISC-DIC \
-	      real-leim/SKK-DIC real-leim/ja-dic real-leim/quail \
+	      leim leim leim/CXTERM-DIC leim/MISC-DIC \
+	      leim/SKK-DIC leim/ja-dic leim/quail \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
 	      etc etc/e lock info man msdos vms mac mac/inc mac/inc/sys \
@@ -319,9 +319,6 @@ do
   echo "  ${tempdir}/${subdir}"
   mkdir ${tempdir}/${subdir}
 done
-
-echo "Initializing \`leim' subdirectory"
-cp noleim-Makefile.in ${tempdir}/leim/Makefile.in
 
 echo "Making links to \`lisp' and its subdirectories"
 ### Don't distribute TAGS, =*.el files, site-init.el, site-load.el, or default.el.
@@ -385,31 +382,25 @@ echo "Making links to \`lisp' and its subdirectories"
    fi
  done )
 
-echo "Making links to \`leim' and its subdirectories for the LEIM distribution"
+echo "Making links to \`leim' and its subdirectories"
 ### Don't distribute TAGS, or =*.el files.
 (cd leim
- ln makefile.nt makefile.w32-in ../${tempdir}/real-leim
- ln ChangeLog README ../${tempdir}/real-leim
+ ln makefile.nt makefile.w32-in ../${tempdir}/leim
+ ln ChangeLog README ../${tempdir}/leim
 
- ln CXTERM-DIC/*.tit ../${tempdir}/real-leim/CXTERM-DIC
- ln SKK-DIC/README SKK-DIC/SKK-JISYO.L ../${tempdir}/real-leim/SKK-DIC
- ln MISC-DIC/*.* ../${tempdir}/real-leim/MISC-DIC
- ln ja-dic/*.el ja-dic/*.elc ../${tempdir}/real-leim/ja-dic
- ln Makefile.in ../${tempdir}/real-leim/Makefile.in
- ln quail/[a-z]*.el quail/[a-z]*.elc ../${tempdir}/real-leim/quail
- rm -f ../${tempdir}/real-leim/quail/quick-b5.*
- rm -f ../${tempdir}/real-leim/quail/quick-cns.*
- rm -f ../${tempdir}/real-leim/quail/tsang-b5.*
- rm -f ../${tempdir}/real-leim/quail/tsang-cns.*
+ ln CXTERM-DIC/*.tit ../${tempdir}/leim/CXTERM-DIC
+ ln SKK-DIC/README SKK-DIC/SKK-JISYO.L ../${tempdir}/leim/SKK-DIC
+ ln MISC-DIC/*.* ../${tempdir}/leim/MISC-DIC
+ ln ja-dic/*.el ja-dic/*.elc ../${tempdir}/leim/ja-dic
+ ln Makefile.in ../${tempdir}/leim/Makefile.in
+ ln quail/[a-z]*.el quail/[a-z]*.elc ../${tempdir}/leim/quail
+ rm -f ../${tempdir}/leim/quail/quick-b5.*
+ rm -f ../${tempdir}/leim/quail/quick-cns.*
+ rm -f ../${tempdir}/leim/quail/tsang-b5.*
+ rm -f ../${tempdir}/leim/quail/tsang-cns.*
 
- cd ../${tempdir}/real-leim
+ cd ../${tempdir}/leim
  rm -f TAGS =* */=*)
-
-### Move the real-leim directory outside of Emacs proper.
-(cd ${tempparent}
- mkdir ${emacsname}-leim
- mkdir ${emacsname}-leim/${emacsname}
- mv ${emacsname}/real-leim ${emacsname}-leim/${emacsname}/leim)
 
 echo "Making links to \`src'"
 ### Don't distribute =*.[ch] files, or the configured versions of
@@ -679,20 +670,17 @@ if [ "${make_tar}" = yes ]; then
     compress* ) gzip_extension=.Z ;;
     * )         gzip_extension=.gz ;;
   esac
-  echo "Creating tar files"
+  echo "Creating tar file"
   (cd ${tempparent} ; tar cvf - ${emacsname} ) \
     | ${default_gzip} \
     > ${emacsname}.tar${gzip_extension}
-  (cd ${tempparent}/${emacsname}-leim ; tar cvf - ${emacsname} ) \
-    | ${default_gzip} \
-    > leim-${version}${new_extension}.tar${gzip_extension}
 fi
 
 if [ "${clean_up}" = yes ]; then
   echo "Cleaning up the staging directory"
   rm -rf ${tempparent}
 else
-  (cd ${tempparent}; mv ${emacsname} ${emacsname}-leim ..)
+  (cd ${tempparent}; mv ${emacsname} ..)
   rm -rf ${tempparent}
 fi
 
