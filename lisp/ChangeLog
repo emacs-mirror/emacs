@@ -1,3 +1,8 @@
+2001-02-26  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-default-workfile-unchanged-p, 
+	vc-default-latest-on-branch-p): Add missing BACKEND argument.
+
 2001-02-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* lazy-lock.el (lazy-lock-fontify-after-idle): Make sure to 
