@@ -1,7 +1,7 @@
 ;;; tempo.el --- templates with hotspots
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 
-;; Author: David Kegedal <davidk@lysator.liu.se >
+;; Author: David K}gedal <davidk@lysator.liu.se >
 ;; Created: 16 Feb 1994
 ;; Version: 1.0
 ;; Keywords: extensions, languages, tools
