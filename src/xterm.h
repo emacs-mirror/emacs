@@ -977,6 +977,7 @@ extern void x_lower_frame P_ ((struct frame *));
 extern void x_make_frame_visible P_ ((struct frame *));
 extern void x_make_frame_invisible P_ ((struct frame *));
 extern void x_iconify_frame P_ ((struct frame *));
+extern void x_free_frame_resources P_ ((struct frame *));
 extern void x_destroy_window P_ ((struct frame *));
 extern void x_wm_set_size_hint P_ ((struct frame *, long, int));
 extern void x_wm_set_window_state P_ ((struct frame *, int));
