@@ -1,16 +1,16 @@
  # impl.s.sso1al: STACK SCANNING FOR DIGITAL UNIX / ALPHA
  #
- # $HopeName$
+ # $HopeName: MMsrc!sso1al.s(trunk.1) $
  # Copyright (C) 1997 Harlequin Group, all rights reserved
  #
  # .readership: Any MPS developer that is prepared to read Alpha
  # assembly code in DIGITAL UNIX 'as' syntax.
  #
- # See design.mps.sso1al for the design.
+ # See design.mps.sso1al for the design (exists).
 
 
 .globl	StackScan
-.globl	TraceScanAreaTagged
+.globl	TraceScanArea
 
 .ent	StackScan
 StackScan:
@@ -28,13 +28,13 @@ stq	$14,48($sp)
 stq	$15,56($sp)
 .prologue	1
 
- # bis $31,$16,$16 1st arg to TraceScanAreaTagged is same as our 1st arg
+ # bis $31,$16,$16 1st arg to TraceScanArea is same as our 1st arg
 bis	$31,$17,$18	# area to be scanned is from $sp to StackBot
 bis	$31,$sp,$17
 
-jsr	$26,TraceScanAreaTagged
+jsr	$26,TraceScanArea
 ldgp	$gp,0($26)
- # our result is TraceScanAreaTagged's result, so leave $0 untouched
+ # our result is TraceScanArea's result, so leave $0 untouched
 
 ldq	$26,0($sp)
 lda	$sp,+64($sp)

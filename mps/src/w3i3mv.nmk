@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc!w3i3mv.nmk(trunk.44) $
+# $HopeName: MMsrc!w3i3mv.nmk(trunk.45) $
 #
 # Copyright (C) 1995,1996,1997 Harlequin Group, all rights reserved
 #
@@ -25,6 +25,7 @@ AMS = <poolams>
 AWL = <poolawl>
 LO = <lo>
 DW  = <fmtdy>
+DWTEST = <fmtdytst>
 POOLN = <pooln>
 ARENAAN = <arenaan>
 TESTLIB = <testlib>
@@ -62,6 +63,8 @@ LOOBJ0 = $(LO:<=w3i3mv\he\)
 LOOBJ = $(LOOBJ0:>=.obj)
 DWOBJ0 = $(DW:<=w3i3mv\he\)
 DWOBJ = $(DWOBJ0:>=.obj)
+DWTESTOBJ0 = $(DWTEST:<=w3i3mv\he\)
+DWTESTOBJ = $(DWTESTOBJ0:>=.obj)
 POOLNOBJ0 = $(POOLN:<=w3i3mv\he\)
 POOLNOBJ = $(POOLNOBJ0:>=.obj)
 ARENAANOBJ0 = $(ARENAAN:<=w3i3mv\he\)
@@ -89,6 +92,8 @@ LOOBJ0 = $(LO:<=w3i3mv\ce\)
 LOOBJ = $(LOOBJ0:>=.obj)
 DWOBJ0 = $(DW:<=w3i3mv\ce\)
 DWOBJ = $(DWOBJ0:>=.obj)
+DWTESTOBJ0 = $(DWTEST:<=w3i3mv\ce\)
+DWTESTOBJ = $(DWTESTOBJ0:>=.obj)
 POOLNOBJ0 = $(POOLN:<=w3i3mv\ce\)
 POOLNOBJ = $(POOLNOBJ0:>=.obj)
 ARENAANOBJ0 = $(ARENAAN:<=w3i3mv\ce\)
@@ -116,6 +121,8 @@ LOOBJ0 = $(LO:<=w3i3mv\hi\)
 LOOBJ = $(LOOBJ0:>=.obj)
 DWOBJ0 = $(DW:<=w3i3mv\hi\)
 DWOBJ = $(DWOBJ0:>=.obj)
+DWTESTOBJ0 = $(DWTEST:<=w3i3mv\hi\)
+DWTESTOBJ = $(DWTESTOBJ0:>=.obj)
 POOLNOBJ0 = $(POOLN:<=w3i3mv\hi\)
 POOLNOBJ = $(POOLNOBJ0:>=.obj)
 ARENAANOBJ0 = $(ARENAAN:<=w3i3mv\hi\)
@@ -143,6 +150,8 @@ LOOBJ0 = $(LO:<=w3i3mv\ci\)
 LOOBJ = $(LOOBJ0:>=.obj)
 DWOBJ0 = $(DW:<=w3i3mv\ci\)
 DWOBJ = $(DWOBJ0:>=.obj)
+DWTESTOBJ0 = $(DWTEST:<=w3i3mv\ci\)
+DWTESTOBJ = $(DWTESTOBJ0:>=.obj)
 POOLNOBJ0 = $(POOLN:<=w3i3mv\ci\)
 POOLNOBJ = $(POOLNOBJ0:>=.obj)
 ARENAANOBJ0 = $(ARENAAN:<=w3i3mv\ci\)
@@ -170,6 +179,8 @@ LOOBJ0 = $(LO:<=w3i3mv\ti\)
 LOOBJ = $(LOOBJ0:>=.obj)
 DWOBJ0 = $(DW:<=w3i3mv\ti\)
 DWOBJ = $(DWOBJ0:>=.obj)
+DWTESTOBJ0 = $(DWTEST:<=w3i3mv\ti\)
+DWTESTOBJ = $(DWTESTOBJ0:>=.obj)
 POOLNOBJ0 = $(POOLN:<=w3i3mv\ti\)
 POOLNOBJ = $(POOLNOBJ0:>=.obj)
 ARENAANOBJ0 = $(ARENAAN:<=w3i3mv\ti\)
@@ -197,6 +208,8 @@ LOOBJ0 = $(LO:<=w3i3mv\wi\)
 LOOBJ = $(LOOBJ0:>=.obj)
 DWOBJ0 = $(DW:<=w3i3mv\wi\)
 DWOBJ = $(DWOBJ0:>=.obj)
+DWTESTOBJ0 = $(DWTEST:<=w3i3mv\wi\)
+DWTESTOBJ = $(DWTESTOBJ0:>=.obj)
 POOLNOBJ0 = $(POOLN:<=w3i3mv\wi\)
 POOLNOBJ = $(POOLNOBJ0:>=.obj)
 ARENAANOBJ0 = $(ARENAAN:<=w3i3mv\wi\)

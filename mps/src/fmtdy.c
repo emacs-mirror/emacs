@@ -1,6 +1,6 @@
 /* impl.c.fmtdy: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!fmtdy.c(trunk.11) $
+ *  $HopeName: MMsrc!fmtdy.c(trunk.12) $
  *  Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  *
  *  All objects, B:
@@ -21,20 +21,22 @@
  *
  *  W           WW              pointer to wrapper wrapper
  *  W+1         class           DylanWorks class pointer (traceable)
- *  W+2         (FL << 2) | FF  fixed part length and format
- *  W+3         (VS << 3) | VF  variable part format and element size
- *  W+4         (WT << 2) | 1   tagged pattern vector length
- *  W+5         pattern 0       patterns for fixed part fields
- *  W+5+WT-1    pattern WT-1
+ *  W+2         subtype_mask    DylanWorks subtype_mask (untraceable)
+ *  W+3         (FL << 2) | FF  fixed part length and format
+ *  W+4         (VS << 3) | VF  variable part format and element size
+ *  W+5         (WT << 2) | 1   tagged pattern vector length
+ *  W+6         pattern 0       patterns for fixed part fields
+ *  W+6+WT-1    pattern WT-1
  *
  *  The wrapper wrapper, WW:
  *
  *  WW          WW              WW is it's own wrapper
  *  WW+1        class           DylanWorks class of wrappers
- *  WW+2        (3 << 2) | 2    wrappers have three patterned fields
- *  WW+3        (0 << 3) | 0    wrappers have a non-traceable vector
- *  WW+4        (1 << 2) | 1    one pattern word follows
- *  WW+5        0b001           only field 0 is traceable
+ *  WW+2        subtype_mask    DylanWorks subtype_mask for WW
+ *  WW+3        (4 << 2) | 2    wrappers have four patterned fields
+ *  WW+4        (0 << 3) | 0    wrappers have a non-traceable vector
+ *  WW+5        (1 << 2) | 1    one pattern word follows
+ *  WW+6        0b001           only field 0 is traceable
  *
  *  .improve.abstract.access: There are severe common subexpression
  *  problems.  In particular, code for accessing subfields in the
@@ -72,7 +74,7 @@
 
 #ifndef NDEBUG
 
-static int dylan_wrapper_check(mps_word_t *w)
+int dylan_wrapper_check(mps_word_t *w)
 {
   mps_word_t *ww;
   mps_word_t vh;
@@ -93,34 +95,36 @@ static int dylan_wrapper_check(mps_word_t *w)
    * run-time, it would be possible to know the address of a unique
    * wrapper wrapper and check that instead. */
 
-  assert(w[0] != 0);
-  assert((w[0] & 3) == 0);          /* wrapper wrapper is aligned */
-  ww = (mps_word_t *)w[0];
-  assert(ww[0] == w[0]);            /* wrapper wrapper is own wrapper */
-  assert(ww[1] != 0);               /* wrapper class exists */
-  assert((ww[1] & 3) == 0);         /* wrapper class is aligned */
-  assert(ww[2] == ((3 << 2) | 2));  /* three fields with patterns */
-  assert((ww[3] & 0x00ffffff) == 0);/* non-traceable vector */
-  assert(((ww[3] >> (MPS_WORD_WIDTH - 8)) & 0xff) == 1 ||
-         ((ww[3] >> (MPS_WORD_WIDTH - 8)) & 0xff) == 0); /* version 0 or 1 */
-  assert(ww[4] == ((1 << 2) | 1));  /* one pattern word in wrapper wrapper */
-  assert(ww[5] == 1);               /* first field traceable */
+  assert(w[WW] != 0);
+  assert((w[WW] & 3) == 0);          /* wrapper wrapper is aligned */
+  ww = (mps_word_t *)w[WW];
+  assert(ww[WW] == w[WW]);           /* wrapper wrapper is own wrapper */
+  assert(ww[WC] != 0);               /* wrapper class exists */
+  assert((ww[WC] & 3) == 0);         /* wrapper class is aligned */
+  assert(ww[WF] == (((WS - 1) << 2) | 2));  /* fields with patterns */
+  assert((ww[WV] & 0x00ffffff) == 0);/* non-traceable vector */
+  /* Code in this file only works for version 2 */
+  assert(((ww[WV] >> (MPS_WORD_WIDTH - 8)) & 0xff) == 2);
+  assert(ww[WS] == ((1 << 2) | 1));  /* one pattern word in wrapper wrapper */
+  /* The first field is traceable, the second field can be traced, */
+  /* but doesn't need to be. */
+  assert((ww[WP] == 1) || (ww[WP] == 3));
 
   /* Unpack the wrapper. */
 
-  class = w[1];         /* class */
-  fh = w[2];            /* fixed part header word */
+  class = w[WC];         /* class */
+  fh = w[WF];            /* fixed part header word */
   fl = fh >> 2;         /* fixed part length */
   ff = fh & 3;          /* fixed part format code */
-  vh = w[3];            /* variable part header */
+  vh = w[WV];            /* variable part header */
   version = (vh >> (MPS_WORD_WIDTH - 8)) & 0xff;
-  assert(version == 0 || version == 1);
+  assert(version == 2); /* Code in this file only works for version 2 */
   reserved = (vh >> 8) & 0xff;
   assert(reserved == 0);
   vb = (vh >> 16) & 0xff;
   es = (vh & 0xff) >> 3;/* element size */
   vf = vh & 7;          /* variable part format code */
-  vt = w[4];            /* vector total word (Dylan-tagged) */
+  vt = w[WS];            /* vector total word (Dylan-tagged) */
   t = vt >> 2;          /* vector total length */
 
   /* The second word is the class of the wrapped object. */
@@ -174,7 +178,7 @@ static int dylan_wrapper_check(mps_word_t *w)
   /* The patterns are random bits, so we can't check them.  However, */
   /* the left-over bits in the last pattern should be zero. */
 
-  assert(ff != 2 || (w[4+t] >> ((fh>>2) & (MPS_WORD_WIDTH-1))) == 0);
+  assert(ff != 2 || (w[WS+t] >> ((fh>>2) & (MPS_WORD_WIDTH-1))) == 0);
 
   return 1;
 }
@@ -358,7 +362,7 @@ static mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
 
   /* Fixed Part */
 
-  fh = w[2];
+  fh = w[WF];
   fl = fh >> 2;                 /* get the fixed part length */
 
   /* It might be worth inlining common cases here, for example, */
@@ -377,7 +381,7 @@ static mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
       break;
 
       case 2:                   /* patterns */
-      res = dylan_scan_pat(mps_ss, p, q, &w[5], w[4]>>2);
+      res = dylan_scan_pat(mps_ss, p, q, &w[WP], w[WS]>>2);
       if(res) return res;
       break;
 
@@ -389,7 +393,7 @@ static mps_res_t dylan_scan1(mps_ss_t mps_ss, mps_addr_t *object_io)
   }
 
   /* Variable Part */
-  vh = w[3];
+  vh = w[WV];
   vf = vh & 7;                  /* get variable part format */
   if(vf != 7)
   {
@@ -496,7 +500,7 @@ static mps_res_t dylan_scan1_weak(mps_ss_t mps_ss, mps_addr_t *object_io)
 
   ++p;			/* skip header */
 
-  fword = w[2];
+  fword = w[WF];
   fl = fword >> 2;
   /* weak vectors should have at least one fixed field */
   /* (for assoc field) */
@@ -509,7 +513,7 @@ static mps_res_t dylan_scan1_weak(mps_ss_t mps_ss, mps_addr_t *object_io)
 
   assoc = (mps_addr_t *)p[0];
 
-  vword = w[3];
+  vword = w[WV];
   vf = vword & 7;
   vl = (mps_word_t)p[fl] >> 2;
 
@@ -579,9 +583,9 @@ static mps_addr_t dylan_skip(mps_addr_t object)
   assert(dylan_wrapper_check(w));
   ++p;
 
-  p += w[2] >> 2;               /* skip fixed part fields */
+  p += w[WF] >> 2;               /* skip fixed part fields */
 
-  vh = w[3];
+  vh = w[WV];
   vf = vh & 7;                  /* get variable part format */
   if(vf != 7)
   {
@@ -664,7 +668,7 @@ static void dylan_no_fwd(mps_addr_t old, mps_addr_t new)
   notreached();
 }
 
-static void dylan_pad(mps_addr_t addr, size_t size)
+void dylan_pad(mps_addr_t addr, size_t size)
 {
   mps_word_t *p;
 
@@ -715,86 +719,6 @@ mps_fmt_A_s *dylan_fmt_A_weak(void)
   return &dylan_fmt_A_weak_s;
 }
 
-/* Format Test Code */
-
-static mps_word_t *ww = NULL;
-static mps_word_t *tvw;
-
-mps_res_t dylan_init(mps_addr_t addr, size_t size,
-                     mps_addr_t *refs, size_t nr_refs)
-{
-
-  /* Make sure the size is aligned. */
-  assert((size & (ALIGN-1)) == 0);
-
-  if(ww == NULL) {
-    ww = malloc(sizeof(mps_word_t) * 6);
-    if(ww == NULL) return MPS_RES_MEMORY;
-    tvw = malloc(sizeof(mps_word_t) * 5);
-    if(tvw == NULL) {
-      free(ww);
-      return MPS_RES_MEMORY;
-    }
-
-    /* Build a wrapper wrapper. */
-    ww[0] = (mps_word_t)ww;
-    ww[1] = (mps_word_t)ww;     /* dummy class */
-    ww[2] = (3 << 2) | 2;
-    ww[3] = (0 << 3) | 0;
-    ww[4] = (1 << 2) | 1;
-    ww[5] = 1;
-
-    /* Build a wrapper for traceable vectors. */
-    tvw[0] = (mps_word_t)ww;
-    tvw[1] = (mps_word_t)ww;    /* dummy class */
-    tvw[2] = 0;                 /* no fixed part */
-    tvw[3] = 2;                 /* traceable variable part */
-    tvw[4] = 1;                 /* no patterns */
-  }
-
-  /* If there is enough room, make a vector, otherwise just */
-  /* make a padding object. */
-
-  if(size >= sizeof(mps_word_t) * 2) {
-    mps_word_t *p = (mps_word_t *)addr;
-    mps_word_t i, t = (size / sizeof(mps_word_t)) - 2;
-    p[0] = (mps_word_t)tvw;     /* install vector wrapper */
-    p[1] = (t << 2) | 1;        /* tag the vector length */
-    for(i = 0; i < t; ++i)
-      p[2+i] = (mps_word_t)refs[rand() % nr_refs];
-  } else
-    dylan_pad(addr, size);
-
-  return MPS_RES_OK;
-}
-
-void dylan_write(mps_addr_t addr, mps_addr_t *refs, size_t nr_refs)
-{
-  mps_word_t *p = (mps_word_t *)addr;
-
-  /* If the object is a vector, update a random entry. */
-  if(p[0] == (mps_word_t)tvw) {
-    mps_word_t t = p[1] >> 2;
-    if(t > 0)
-      p[2 + (rand() % t)] =
-        (mps_word_t)refs[rand() % nr_refs];
-  }
-}
-
-mps_addr_t dylan_read(mps_addr_t addr)
-{
-  mps_word_t *p = (mps_word_t *)addr;
-
-  /* If the object is a vector, return a random entry. */
-  if(p[0] == (mps_word_t)tvw) {
-    mps_word_t t = p[1] >> 2;
-    if(t > 0)
-      return (mps_addr_t)p[2 + (rand() % t)];
-  }
-
-  return addr;
-}
-
 mps_bool_t dylan_check(mps_addr_t addr)
 {
   assert(addr != 0);
@@ -805,3 +729,4 @@ mps_bool_t dylan_check(mps_addr_t addr)
   unused(addr);
   return 1;
 }
+

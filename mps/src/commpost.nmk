@@ -1,6 +1,6 @@
 # ==== SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpost.nmk(trunk.12) $
+# $HopeName: MMsrc!commpost.nmk(trunk.13) $
 # Copyright(C) 1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -74,7 +74,8 @@ variety: $(PFM)\$(VARIETY)\$(TARGET)
 !IFDEF VARIETY
 
 $(PFM)\$(VARIETY)\finalcv.exe: $(PFM)\$(VARIETY)\finalcv.obj \
-	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(DWOBJ) $(MRGOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ) $(DWOBJ) $(DWTESTOBJ) \
+	$(MRGOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\mpmconft.exe: $(PFM)\$(VARIETY)\mpmconft.obj \
 	$(MPMOBJ) $(PLINTHOBJ) 
@@ -92,13 +93,16 @@ $(PFM)\$(VARIETY)\qs.exe:  $(PFM)\$(VARIETY)\qs.obj \
 	$(AMCOBJ) $(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amcss.exe:  $(PFM)\$(VARIETY)\amcss.obj \
-	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(DWOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \
+	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\amsss.exe:  $(PFM)\$(VARIETY)\amsss.obj \
-	$(MPMOBJ) $(AMSOBJ) $(PLINTHOBJ) $(DWOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(AMSOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \
+	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\mpsicv.exe:  $(PFM)\$(VARIETY)\mpsicv.obj \
-	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(DWOBJ) $(TESTLIBOBJ)
+	$(MPMOBJ) $(AMCOBJ) $(PLINTHOBJ) $(DWOBJ) $(DWTESTOBJ) \
+	$(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\dwstress.exe:  $(PFM)\$(VARIETY)\dwstress.obj \
 	$(DWOBJ) $(MPMOBJ) $(PLINTHOBJ) $(AMCOBJ)

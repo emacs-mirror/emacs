@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.21) $
+ * $HopeName: MMsrc!poolawl.c(trunk.22) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.21) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.22) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -422,7 +422,7 @@ static Bool AWLDependentObject(Addr *objReturn, Addr parent)
   AVER(wrapper[0] != 0);
   /* check wrapper wrapper is wrapper wrapper wrapper */
   AVER(wrapper[0] == ((Word *)wrapper[0])[0]);
-  fword = wrapper[2];
+  fword = wrapper[3];
   ff = fword & 3;
   /* Traceable Fixed part */
   AVER(ff == 1);
