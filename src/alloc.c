@@ -766,6 +766,23 @@ lisp_align_malloc (nbytes, type)
       mallopt (M_MMAP_MAX, MMAP_MAX_AREAS);
 #endif
 
+      /* If the memory just allocated cannot be addressed thru a Lisp
+	 object's pointer, and it needs to be, that's equivalent to
+	 running out of memory.  */
+      if (type != MEM_TYPE_NON_LISP)
+	{
+	  Lisp_Object tem;
+	  char *end = (char *) base + ABLOCKS_BYTES - 1;
+	  XSETCONS (tem, end);
+	  if ((char *) XCONS (tem) != end)
+	    {
+	      lisp_malloc_loser = base;
+	      free (base);
+	      UNBLOCK_INPUT;
+	      memory_full ();
+	    }
+	}
+
       /* Initialize the blocks and put them on the free list.
 	 Is `base' was not properly aligned, we can't use the last block.  */
       for (i = 0; i < (aligned ? ABLOCKS_SIZE : ABLOCKS_SIZE - 1); i++)
@@ -787,21 +804,6 @@ lisp_align_malloc (nbytes, type)
   ABLOCKS_BUSY (abase) = (struct ablocks *) (2 + (int) ABLOCKS_BUSY (abase));
   val = free_ablock;
   free_ablock = free_ablock->x.next_free;
-
-  /* If the memory just allocated cannot be addressed thru a Lisp
-     object's pointer, and it needs to be,
-     that's equivalent to running out of memory.  */
-  if (val && type != MEM_TYPE_NON_LISP)
-    {
-      Lisp_Object tem;
-      XSETCONS (tem, (char *) val + nbytes - 1);
-      if ((char *) XCONS (tem) != (char *) val + nbytes - 1)
-	{
-	  lisp_malloc_loser = val;
-	  free (val);
-	  val = 0;
-	}
-    }
 
 #if GC_MARK_STACK && !defined GC_MALLOC_CHECK
   if (val && type != MEM_TYPE_NON_LISP)
