@@ -1,7 +1,7 @@
 #
 #              GENERIC BUILD.GC MAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!gc.gmk(trunk.17) $
+# $HopeName: MMsrc!gc.gmk(trunk.18) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -15,7 +15,8 @@
 # Parameters:
 #   PFM		platform code, e.g. "suspgc"
 #   MPM		as above for the "mpm" part
-#   MPMS	assembler sources for the "mpm" part
+#   MPMS	assembler sources for the "mpm" part (.s files)
+#   MPMPS	pre-processor assembler sources for the "mpm" part (.S files)
 #   AMC		as above for the "amc" part
 #   LO          as above for the "lo" part
 #   DW		as above for the "dw" part
@@ -106,7 +107,8 @@ CFRO = -DTARGET_VAR_RO -O
 #         part.
 
 ifdef VARIETY
-MPMOBJ = $(MPM:%.c=$(PFM)/$(VARIETY)/%.o) $(MPMS:%.s=$(PFM)/$(VARIETY)/%.o)
+MPMOBJ = $(MPM:%.c=$(PFM)/$(VARIETY)/%.o) \
+	$(MPMS:%.s=$(PFM)/$(VARIETY)/%.o) $(MPMPS:%.S=$(PFM)/$(VARIETY)/%.o)
 MPMDEP = $(MPM:%.c=$(PFM)/$(VARIETY)/%.d)
 AMCOBJ = $(AMC:%.c=$(PFM)/$(VARIETY)/%.o)
 AMCDEP = $(AMC:%.c=$(PFM)/$(VARIETY)/%.d)
@@ -141,14 +143,14 @@ endif
 # "all" builds all varieties of all targets
 # %%TARGET: Add the target to the all dependencies.
 
-all: mpmss amcss dwstress mpsicv lockcov std.a poolncv lo.a locv qs weakcv
+all: mpmss amcss dwstress mpsicv lockcov poolncv lo.a locv qs weakcv
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in all varieties.
 #
 # %%TARGET: Add a pseudo-target for the new target here.
 
-mpmss amcss dwstress mpsicv lockcov std.a poolncv lo.a locv qs weakcv: phony
+mpmss amcss dwstress mpsicv lockcov poolncv lo.a locv qs weakcv: phony
 	$(MAKE) -f $(PFM).gmk TARGET=$@ target
 
 # "clean" removes the directory containing the build results for the
@@ -237,17 +239,21 @@ endif
 
 # Object files
 
+define run-gcc
+$(ECHO) "$(PFM): $@"
+test -d $(PFM) || mkdir $(PFM)
+test -d $(PFM)/$(VARIETY) || mkdir $(PFM)/$(VARIETY)
+gcc $(CFLAGS) -c -o $@ $<
+endef
+
 $(PFM)/$(VARIETY)/%.o: %.c
-	$(ECHO) "$(PFM): $@"
-	test -d $(PFM) || mkdir $(PFM)
-	test -d $(PFM)/$(VARIETY) || mkdir $(PFM)/$(VARIETY)
-	gcc $(CFLAGS) -c -o $@ $<
+	$(run-gcc)
 
 $(PFM)/$(VARIETY)/%.o: %.s
-	$(ECHO) "$(PFM): $@"
-	test -d $(PFM) || mkdir $(PFM)
-	test -d $(PFM)/$(VARIETY) || mkdir $(PFM)/$(VARIETY)
-	gcc $(CFLAGS) -c -o $@ $<
+	$(run-gcc)
+
+$(PFM)/$(VARIETY)/%.o: %.S
+	$(run-gcc)
 
 # Dependencies
 #
