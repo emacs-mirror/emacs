@@ -10026,19 +10026,17 @@ additional notes from the summary that apply to this command.
 @kindex h f
 @pindex calc-describe-function
 The @kbd{h f} (@code{calc-describe-function}) command looks up an
-algebraic function or a command name in the Calc manual.  The
-prompt initially contains @samp{calcFunc-}; follow this with an
+algebraic function or a command name in the Calc manual.  Enter an
 algebraic function name to look up that function in the Function
-Index.  Or, backspace and enter a command name beginning with
-@samp{calc-} to look it up in the Command Index.  This command
-will also look up operator symbols that can appear in algebraic
-formulas, like @samp{%} and @samp{=>}.
+Index or enter a command name beginning with @samp{calc-} to look it 
+up in the Command Index.  This command will also look up operator
+symbols that can appear in algebraic formulas, like @samp{%} and 
+@samp{=>}.
 
 @kindex h v
 @pindex calc-describe-variable
 The @kbd{h v} (@code{calc-describe-variable}) command looks up a
-variable in the Calc manual.  The prompt initially contains the
-@samp{var-} prefix; just add a variable name like @code{pi} or
+variable in the Calc manual.  Enter a variable name like @code{pi} or
 @code{PlotRejects}.
 
 @kindex h b

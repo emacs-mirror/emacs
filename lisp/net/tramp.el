@@ -1668,6 +1668,7 @@ while (my $data = <STDIN>) {
 
     my $len = length($pending);
     my $chunk = substr($pending, 0, $len & ~3);
+    $pending = substr($pending, $len & ~3 + 1);
 
     # Easy method: translate from chars to (pregenerated) six-bit packets, join,
     # split in 8-bit chunks and convert back to char.
@@ -1883,7 +1884,11 @@ If VAR is nil, then we bind `v' to the structure and `multi-method',
 
 (put 'with-parsed-tramp-file-name 'lisp-indent-function 2)
 ;; To be activated for debugging containing this macro
-(def-edebug-spec with-parsed-tramp-file-name t)
+;; It works only when VAR is nil.  Otherwise, it can be deactivated by
+;; (def-edebug-spec with-parsed-tramp-file-name 0)
+;; I'm too stupid to write a precise SPEC for it.
+(if (functionp 'def-edebug-spec)
+  (def-edebug-spec with-parsed-tramp-file-name t))
 
 (defmacro tramp-let-maybe (variable value &rest body)
   "Let-bind VARIABLE to VALUE in BODY, but only if VARIABLE is not obsolete.
@@ -6730,6 +6735,31 @@ as default."
       (setq ad-return-value
             (tramp-make-auto-save-file-name (buffer-file-name)))
     ad-do-it))
+
+;; In Emacs < 21.4 and XEmacs < 21.5 autosaved remote files have
+;; permission 666 minus umask. This is a security threat.
+
+(defun tramp-set-auto-save-file-modes ()
+  "Set permissions of autosaved remote files to the original permissions."
+  (let ((bfn (buffer-file-name)))
+    (when (and (stringp bfn)
+	       (tramp-tramp-file-p bfn)
+	       (stringp buffer-auto-save-file-name)
+	       (not (equal bfn buffer-auto-save-file-name))
+	       (not (file-exists-p buffer-auto-save-file-name)))
+      (write-region "" nil buffer-auto-save-file-name)
+      (set-file-modes buffer-auto-save-file-name (file-modes bfn)))))
+
+(unless (or (> emacs-major-version 21)
+	    (and (featurep 'xemacs)
+		 (= emacs-major-version 21)
+		 (> emacs-minor-version 4))
+	    (and (not (featurep 'xemacs))
+		 (= emacs-major-version 21)
+		 (or (> emacs-minor-version 3)
+		     (and (string-match "^21\\.3\\.\\([0-9]+\\)" emacs-version)
+			  (>= (string-to-int (match-string 1 emacs-version)) 50)))))
+  (add-hook 'auto-save-hook 'tramp-set-auto-save-file-modes))
 
 (defun tramp-subst-strs-in-string (alist string)
   "Replace all occurrences of the string FROM with TO in STRING.

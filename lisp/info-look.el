@@ -245,6 +245,7 @@ system."
   (interactive)
   (setq info-lookup-cache nil))
 
+;;;###autoload (put 'info-lookup-symbol 'info-file "emacs")
 ;;;###autoload
 (defun info-lookup-symbol (symbol &optional mode)
   "Display the definition of SYMBOL, as found in the relevant manual.
@@ -258,6 +259,7 @@ With prefix arg a query for the symbol help mode is offered."
    (info-lookup-interactive-arguments 'symbol current-prefix-arg))
   (info-lookup 'symbol symbol mode))
 
+;;;###autoload (put 'info-lookup-file 'info-file "emacs")
 ;;;###autoload
 (defun info-lookup-file (file &optional mode)
   "Display the documentation of a file.

@@ -2,7 +2,7 @@
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
+;;; Copyright (c) 1996 - 1999, 2004 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -125,7 +125,9 @@
 
 ;;;###autoload
 (defun url-snews (url)
-  (let ((nntp-open-connection-function 'nntp-open-ssl-stream))
+  (let ((nntp-open-connection-function (if (eq 'tls url-gateway-method)
+					   nntp-open-tls-stream
+					 nntp-open-ssl-stream)))
     (url-news url)))
 
 (provide 'url-news)

@@ -1,3 +1,72 @@
+2004-10-13  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* button.el (button-activate): Allow a marker to display as an
+	action.
+
+	* help-fns.el (describe-variable): Use it to make "below" a
+	hyperlink.
+
+	* help.el (describe-mode): Use it to make minor mode list into
+	hyperlinks.
+
+2004-10-14  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/gud.el (gdb-script-beginning-of-defun): New function.
+	(gdb-script-end-of-defun): New function.
+	(gdb-script-mode): Use `gdb-script-beginning-of-defun' and
+	`gdb-script-end-of-defun' as *-of-defun-function.
+
+2004-10-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-annotate-display-select): Fix typo.
+
+	* subr.el (substitute-key-definition-key): New function.
+	(substitute-key-definition): Use it with map-keymap.
+	(event-modifiers): Use push.
+	(mouse-movement-p, with-temp-buffer): Simplify.
+
+2004-10-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.45.
+
+	* net/tramp.el (top): Apply `def-edebug-spec' only if function is
+	defined.  This is not the case for XEmacs without package "edebug".
+	(tramp-set-auto-save-file-modes): Set permissions of autosaved
+	remote files to the permissions of the original file.  This is not
+	the case for Emacs < 21.3.50 and XEmacs < 21.5.  Add function to
+	`auto-save-hook'.  Reported by Thomas Prokosch <thomas@nadev.net>.
+	(tramp-perl-decode): Fix an error in Perl implementation.
+	$pending must be cleared every loop.  Reported by Benjamin Place
+	<benjaminplace@sprintmail.com>
+
+	* net/tramp-smb.el (tramp-smb-advice-PC-do-completion):
+	Don't activate advice during definition.  This is done later on,
+	depending on test result of `substitute-in-file-name'.
+	Suggested by Stefan Monnier <monnier@iro.umontreal.ca>.
+
+2004-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-parse.el (cvs-parse-commit): Fix parsing for new commit message.
+
+	* emacs-lisp/lisp.el (mark-sexp): Preserve direction when repeating.
+
+2004-10-12  David Ponce  <david@dponce.com>
+
+	* recentf.el (recentf-edit-list): Update the menu when the recentf
+	list has been modified.
+
+2004-10-12  Simon Josefsson  <jas@extundo.com>
+
+	* net/tls.el (tls-certtool-program): New variable.
+	(tls-certificate-information): New function, based on
+	ssl-certificate-information.
+
+2004-10-12  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (coding-system-equal): Move from mule-util.el.
+
+	* international/mule-util.el (coding-system-equal): Move to mule.el.
+
 2004-10-12  Kim F. Storm  <storm@cua.dk>
 
 	* kmacro.el (kmacro-insert-counter, kmacro-add-counter): Use and
@@ -9,6 +78,12 @@
 	* subr.el (substitute-key-definition): Mention command remapping
 	in doc string.
 
+2004-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-defs.el (pcl-cvs-load-hook): Remove unused var.
+
+	* font-lock.el (font-lock-apply-highlight): Fix last change.
+
 2004-10-11  Simon Josefsson  <jas@extundo.com>
 
 	* mail/smtpmail.el (smtpmail-open-stream): Look for
@@ -16,6 +91,15 @@
 	starttls-use-gnutls is non-nil.
 	(smtpmail-open-stream): Don't overwrite user settings of
 	starttls-extra-arguments and starttls-extra-args.
+
+2004-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* comint.el (comint-mouse-insert-input): Remove.
+	(comint-insert-input): Make it work for mouse bindings.
+	(comint-mode-map): Move defs into the declaration.
+	(comint-output-filter): Typo.
+
+	* diff-mode.el (diff-current-defun): Fix 2004-06-13's change.
 
 2004-10-10  Kai Grossjohann  <kai.grossjohann@gmx.net>
 
@@ -35,6 +119,20 @@
 	(vc-annotate-display-select): Only call vc-annotate-mode
 	if we're not in that mode already.
 
+2004-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* imenu.el (imenu--completion-buffer): Don't return t for rescan.
+	(imenu-choose-buffer-index): Check here for rescan instead.
+
+	* font-lock.el (font-lock-apply-highlight): Explicitly check the case
+	where the face expression evals to nil.
+
+	* textmodes/tex-mode.el (tex-font-lock-append-prop): New fun.
+	(tex-font-lock-keywords-2): Use it.
+	(tex-font-lock-syntactic-keywords): Fix the `verbatim' treatment.
+
+	* emacs-lisp/lisp-mode.el (lisp-fill-paragraph): Fix backslashes.
+
 2004-10-09  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (progress-reporter-update): Define before first usage.
@@ -48,8 +146,8 @@
 
 2004-10-08  Peter Seibel  <peter@javamonkey.com>  (tiny change)
 
-	* emacs-lisp/lisp-mode.el (lisp-fill-paragraph): Change
-	paragraph-start regexp so we don't fill code starting with #'(
+	* emacs-lisp/lisp-mode.el (lisp-fill-paragraph):
+	Change paragraph-start regexp so we don't fill code starting with #'(.
 
 2004-10-08  Sebastien Kirche  <seki@seki.fr>  (tiny change)
 
@@ -77,13 +175,11 @@
 2004-10-08  Masatake YAMATO  <jet@gyve.org>
 
 	* server.el (server-process-filter): Wrap `process-send-region'
-	by `condition-case' to guard the case when the pipe to PROC is
-	closed.
+	by `condition-case' to guard the case when the pipe to PROC is closed.
 
 2004-10-07  Mark A. Hershberger  <mah@everybody.org>
 
-	* xml.el (xml-substitute-special): Limit handling of external
-	entities.
+	* xml.el (xml-substitute-special): Limit handling of external entities.
 
 2004-10-06  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -128,11 +224,10 @@
 
 2004-10-04  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* textmodes/enriched.el (enriched-mode-map): Give
-	`set-left-margin' and `set-right-margin' bindings that follow the
-	minor mode conventions.
+	* textmodes/enriched.el (enriched-mode-map): Give `set-left-margin' and
+	`set-right-margin' bindings that follow the minor mode conventions.
 
-2004-10-03  Stefan  <monnier@iro.umontreal.ca>
+2004-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/tex-mode.el (tex-dvi-view-command): Use `yap' on w32.
 	(tex-font-lock-keywords-1): Add url and nolinkurl for args with `_'.
@@ -196,7 +291,7 @@
 	* diff-mode.el (diff-file-header-re): Tighten up regexp a tiny bit.
 	(diff-fixup-modifs): Catch unified-diff file-headers.
 
-2004-09-28  Stefan  <monnier@iro.umontreal.ca>
+2004-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dired.el (dired-view-command-alist): Use more efficient regexps.
 	Remove dubious arguments.
@@ -236,7 +331,7 @@
 	(pr-delete-file): Check if file exists before deleting it.
 	Reported by Lennart Borgman <lennart.borgman.073@student.lu.se>.
 
-2004-09-26  Stefan  <monnier@iro.umontreal.ca>
+2004-09-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term.el (term-display-table): New variable.
 	(term-mode): Use it.
@@ -260,7 +355,7 @@
 	(term-stop-output-log): Rename from `term-stop-photo'.
 	(term-switch-to-alternate-sub-buffer): Comment out, unused.
 
-2004-09-25  Stefan  <monnier@iro.umontreal.ca>
+2004-09-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dired.el (dired-move-to-filename): Don't output a message if
 	raise-error is non-nil.  Fix return position and value.
@@ -404,7 +499,7 @@
 	* progmodes/sh-script.el (sh-mode-default-syntax-table): Set syntax
 	of = to "." (punctuation).
 
-2004-09-19  Stefan  <monnier@iro.umontreal.ca>
+2004-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (event-basic-type): Fix mask (extend to 22bits).
 

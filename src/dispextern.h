@@ -1963,8 +1963,8 @@ struct it
 
   /* Object and position where the current display element came from.
      Object can be a Lisp string in case the current display element
-     comes from an overlay string, or it is buffer.  Position is
-     a position in object.  */
+     comes from an overlay string, or it is buffer.  It may also be nil
+     during mode-line update.  Position is a position in object.  */
   Lisp_Object object;
   struct text_pos position;
 

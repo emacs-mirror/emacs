@@ -1,3 +1,35 @@
+2004-10-14  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.h: Include Xutil.h after keysym.h to work around bug
+	(incorrectly recognising AltGr key) in some X versions.
+
+2004-10-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (get_keymap): An autoload form is not a keymap.
+
+	* textprop.c (syms_of_textprop): Make `syntax-table' nonsticky.
+
+2004-10-13  Kim F. Storm  <storm@cua.dk>
+
+	* callproc.c (Fcall_process): Simplify handling of display arg.
+	Resume `display_on_the_fly' once a coding system is determined.
+
+	* xdisp.c (redisplay_preserve_echo_area): Fix last change.
+
+2004-10-12  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (redisplay_preserve_echo_area): Flush display in case
+	caller, such as call-process, is not going to poll for input.
+	(calc_line_height_property): Handle case where it->object is nil.
+
+	* xterm.c (x_redisplay_interface): Fix flush_display_optional.
+
+2004-10-12  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (get_next_display_element):
+	If unibyte_display_via_language_environment is zero, display 8-bit
+	chars in octal in unibyte buffer.
+
 2004-10-12  Kim F. Storm  <storm@cua.dk>
 
 	* doc.c (Fsubstitute_command_keys): Ignore remappings unless there
@@ -5,22 +37,21 @@
 
 2004-10-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xfns.c (syms_of_xfns): defsubr x-file-dialog for GTK also.
+	* xfns.c (syms_of_xfns): Defsubr x-file-dialog for GTK also.
 
 2004-10-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* macterm.c (x_raise_frame): Add BLOCK_INPUT around SelectWindow
-	(x_lower_frame): Add BLOCK_INPUT around SendBehind
+	* macterm.c (x_raise_frame): Add BLOCK_INPUT around SelectWindow.
+	(x_lower_frame): Add BLOCK_INPUT around SendBehind.
 	(make_mac_frame): Add BLOCK_INPUT around the making of a
-	terminal frame
-	(mac_initialize): Add BLOCK_INPUT around carbon initialization
-	* macgui.h (mktime): Use emacs_mktime
+	terminal frame.
+	(mac_initialize): Add BLOCK_INPUT around carbon initialization.
+	* macgui.h (mktime): Use emacs_mktime.
 	* macfns.c (Fx_file_dialog): Add BLOCK_INPUT around more code.
 	Make a cancel file-open dialog be like C-g.
-	* mac.c (mktime): Use emacs_mktime
-	(Fdo_applescript): Add BLOCK_INPUT around do_applescript
-	(Fmac_paste_function): Add better error handling for carbon
-	cut/paste
+	* mac.c (mktime): Use emacs_mktime.
+	(Fdo_applescript): Add BLOCK_INPUT around do_applescript.
+	(Fmac_paste_function): Add better error handling for carbon cut/paste.
 
 2004-10-10  Kim F. Storm  <storm@cua.dk>
 
@@ -34,12 +65,12 @@
 
 2004-10-08  Steven Tamm  <steventamm@mac.com>
 
-	* config.in (HAVE_MALLOC_MALLOC_H): Regenerate
+	* config.in (HAVE_MALLOC_MALLOC_H): Regenerate.
 	* macterm.c (mac_check_for_quit_char): Remove warning for using
-	NULL where 0 should be used
+	NULL where 0 should be used.
 	* unexmacosx.c: Use malloc/malloc.h on Tiger instead of
 	objc/malloc.h
-	* mac.c: Include time.h for Tiger compatibility
+	* mac.c: Include time.h for Tiger compatibility.
 
 2004-10-07  Kim F. Storm  <storm@cua.dk>
 
@@ -185,8 +216,8 @@
 	Change arg to Lisp_Object and fail if not an integer.
 	(get_fringe_bitmap_name, resolve_fringe_bitmap)
 	(destroy_fringe_bitmap): New functions.
-	(Fdestroy_fringe_bitmap): Change arg to bitmap symbol.  Use
-	destroy_fringe_bitmap.  Remove symbol from Vfringe_bitmaps and
+	(Fdestroy_fringe_bitmap): Change arg to bitmap symbol.
+	Use destroy_fringe_bitmap.  Remove symbol from Vfringe_bitmaps and
 	clear its fringe property.
 	(init_fringe_bitmap): Use destroy_fringe_bitmap instead of
 	Fdestroy_fringe_bitmap.
@@ -211,7 +242,7 @@
 
 2004-09-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* config.in: Rebuild
+	* config.in: Rebuild.
 
 2004-09-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -231,7 +262,7 @@
 	Handle the case where we reach the old displayed text,
 	out of sync with the old line boundary.
 
-2004-09-14  Stefan  <monnier@iro.umontreal.ca>
+2004-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Finsert_file_contents): Fix case of replacement in a
 	narrowed buffer.
@@ -253,7 +284,7 @@
 	(Fbyte_code): Remove dead code after `wrong_type_argument'.
 
 	* alloc.c (Fgarbage_collect): Mark keyboards, gtk data, and specpdl
-	before doing the mark_stack_check_gcpros since they are not on the stack.
+	before doing the mark_stack_check_gcpros since they're not on the stack.
 
 2004-09-12  Kim F. Storm  <storm@cua.dk>
 
@@ -272,8 +303,7 @@
 	blockinput.h.
 	(dosfns.o): Depend on blockinput.h, window.h, dispextern.h,
 	charset.h, and coding.h
-	(w16select.o): Depend on buffer.h, charset.h, coding.h, and
-	composite.h.
+	(w16select.o): Depend on buffer.h, charset.h, coding.h, and composite.h.
 	(term.o): Depend on window.h and keymap.h.
 	(abbrev.o): Depend on syntax.h.
 	(callint.o): Depend on keymap.h.
@@ -306,8 +336,8 @@
 	(lread.o): Depend on $(INTERVALS_SRC), termhooks.h, and coding.h.
 	(intervals.o): Depend on keymap.h.
 
-	* msdos.c (msdos_set_cursor_shape, IT_display_cursor): Add
-	debugging print-out to termscript.
+	* msdos.c (msdos_set_cursor_shape, IT_display_cursor):
+	Add debugging print-out to termscript.
 
 2004-09-09  Richard M. Stallman  <rms@gnu.org>
 
@@ -333,8 +363,8 @@
 2004-09-07  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* buffer.h (struct buffer): Add auto_save_file_format field.
-	* buffer.c (reset_buffer, init_buffer_once): Handle
-	auto_save_file_format field.
+	* buffer.c (reset_buffer, init_buffer_once):
+	Handle auto_save_file_format field.
 	(syms_of_buffer): Add DEFVAR_PER_BUFFER for
 	`buffer-auto-save-file-format'.
 	* fileio.c: Delete declaration for removed Vauto_save_file_format.
@@ -347,15 +377,15 @@
 
 	* w32term.h (AppendMenuW_Proc): Move declaration from w32menu.c.
 
-	* w32fns.c (w32_wnd_proc) [WM_MEASUREITEM, WM_DRAWITEM]: Handle
-	Unicode menu titles.
+	* w32fns.c (w32_wnd_proc) [WM_MEASUREITEM, WM_DRAWITEM]:
+	Handle Unicode menu titles.
 
 2004-09-07  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (set_cursor_from_row): Fix last change.  Only use 'cursor'
 	property from text property or overlay strings at point.
 
-2004-09-07  Stefan  <monnier@iro.umontreal.ca>
+2004-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xmenu.c (update_submenu_strings): YAILOM.
 	(set_frame_menubar): Make sure last_i is initialized.
@@ -844,7 +874,7 @@
 	* w32select.c (Fw32_set_clipboard_data): Update `nbytes' correctly
 	after getting a new string by pre-write-conversion.
 
-2004-06-30  Stefan  <monnier@iro.umontreal.ca>
+2004-06-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xterm.c (x_detect_focus_change): Remove unused var `nr_events'.
 	(x_calc_absolute_position): Remove unused var `child'.

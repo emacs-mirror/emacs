@@ -10788,7 +10788,7 @@ static struct redisplay_interface x_redisplay_interface =
     x_update_window_end,
     x_cursor_to,
     x_flush,
-#ifndef XFlush
+#ifdef XFlush
     x_flush,
 #else
     0,  /* flush_display_optional */

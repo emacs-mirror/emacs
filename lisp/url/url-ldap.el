@@ -28,6 +28,7 @@
 (require 'url-parse)
 (require 'url-util)
 (require 'ldap)
+(autoload 'tls-certificate-information "tls")
 
 ;; This has been implemented from RFC2255 'The LDAP URL Format' (Dec 1997)
 ;;
@@ -96,7 +97,8 @@
       (require 'ssl)
     (error nil))
   (let ((vals (if (fboundp 'ssl-certificate-information)
-		  (ssl-certificate-information data))))
+		  (ssl-certificate-information data)
+		(tls-certificate-information data))))
     (if (not vals)
 	"<b>Unable to parse certificate</b>"
       (concat "<table border=0>\n"

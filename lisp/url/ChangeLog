@@ -1,3 +1,19 @@
+2004-10-12  Simon Josefsson  <jas@extundo.com>
+
+	* url-vars.el (url-gateway-method): Add new method `tls'.
+
+	* url-news.el (url-snews): Use nntp-open-tls-stream if
+	url-gateway-method is tls.
+
+	* url-ldap.el (url-ldap-certificate-formatter): Use
+	tls-certificate-information if ssl.el is not available.
+
+	* url-https.el (url-https-create-secure-wrapper): Use tls if ssl
+	is not available.
+
+	* url-gw.el (url-open-stream): Support tls url-gateway-method.
+	(url-open-stream): Likewise.
+
 2004-10-10  Lars Hansen  <larsh@math.ku.dk>
 
 	* url-auth.el: Fix copyright notice.

@@ -3001,7 +3001,7 @@ use; you may override this using the second optional arg MODE."
   (when buffer
     (set-buffer buffer)
     (display-buffer buffer))
-  (if (not vc-annotate-parent-ref)
+  (if (not vc-annotate-parent-rev)
       (vc-annotate-mode))
   (cond ((null vc-annotate-display-mode)
 	 (vc-annotate-display-default vc-annotate-ratio))

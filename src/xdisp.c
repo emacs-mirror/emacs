@@ -4893,7 +4893,8 @@ get_next_display_element (it)
 			   && it->len == 1)
 			  || !CHAR_PRINTABLE_P (it->c))
 		       : (it->c >= 127
-			  && it->c == unibyte_char_to_multibyte (it->c))))
+			  && (!unibyte_display_via_language_environment
+			      || it->c == unibyte_char_to_multibyte (it->c)))))
 	    {
 	      /* IT->c is a control character which must be displayed
 		 either as '\003' or as `^C' where the '\\' and '^'
@@ -10402,6 +10403,9 @@ redisplay_preserve_echo_area (from_where)
     }
   else
     redisplay_internal (1);
+
+  if (rif != NULL && rif->flush_display_optional)
+    rif->flush_display_optional (NULL);
 }
 
 
@@ -18694,8 +18698,10 @@ calc_line_height_property (it, prop, font, boff, total)
 
   if (STRINGP (it->object))
     position = make_number (IT_STRING_CHARPOS (*it));
-  else
+  else if (BUFFERP (it->object))
     position = make_number (IT_CHARPOS (*it));
+  else
+    return Qnil;
 
   val = Fget_char_property (position, prop, it->object);
 

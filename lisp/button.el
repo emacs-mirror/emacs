@@ -78,6 +78,7 @@ Mode-specific keymaps may want to use this as their parent keymap.")
 (put 'default-button 'mouse-face 'highlight)
 (put 'default-button 'keymap button-map)
 (put 'default-button 'type 'button)
+;; action may be either a function to call, or a marker to go to
 (put 'default-button 'action 'ignore)
 (put 'default-button 'help-echo "mouse-2, RET: Push this button")
 ;; Make overlay buttons go away if their underlying text is deleted.
@@ -217,9 +218,14 @@ changes to a supertype are not reflected in its subtypes)."
 If USE-MOUSE-ACTION is non-nil, invoke the button's mouse-action
 instead of its normal action; if the button has no mouse-action,
 the normal action is used instead."
-  (funcall (or (and use-mouse-action (button-get button 'mouse-action))
-	       (button-get button 'action))
-	   button))
+  (let ((action (or (and use-mouse-action (button-get button 'mouse-action))
+		    (button-get button 'action))))
+    (if (markerp action)
+	(save-selected-window
+	  (select-window (display-buffer (marker-buffer action)))
+	  (goto-char action)
+	  (recenter 0))
+      (funcall action button))))
 
 (defun button-label (button)
   "Return BUTTON's text label."
@@ -373,10 +379,11 @@ instead of starting at the next button."
 
 (defun push-button (&optional pos use-mouse-action)
   "Perform the action specified by a button at location POS.
-POS may be either a buffer position or a mouse-event.
-If USE-MOUSE-ACTION is non-nil, invoke the button's mouse-action
+POS may be either a buffer position or a mouse-event.  If
+USE-MOUSE-ACTION is non-nil, invoke the button's mouse-action
 instead of its normal action; if the button has no mouse-action,
-the normal action is used instead.
+the normal action is used instead.  The action may be either a
+function to call or a marker to display.
 POS defaults to point, except when `push-button' is invoked
 interactively as the result of a mouse-event, in which case, the
 mouse event is used.

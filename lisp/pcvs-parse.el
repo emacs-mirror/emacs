@@ -511,15 +511,19 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
        (cvs-match "new revision: \\([0-9.]*\\); previous revision: .*$"
 		  (subtype 'COMMITTED) (base-rev 1)))
       (cvs-or (cvs-match "done$") t)
+      ;; In cvs-1.12.9 commit messages have been changed and became
+      ;; ambiguous.  More specifically, the `path' above is not given.
+      ;; We assume here that in future releases the corresponding info will
+      ;; be put into `file'.
       (progn
 	;; Try to remove the temp files used by VC.
-	(vc-delete-automatic-version-backups (expand-file-name path))
+	(vc-delete-automatic-version-backups (expand-file-name (or path file)))
 	;; it's important here not to rely on the default directory management
 	;; because `cvs commit' might begin by a series of Examining messages
 	;; so the processing of the actual checkin messages might begin with
 	;; a `current-dir' set to something different from ""
 	(cvs-parsed-fileinfo (cons 'UP-TO-DATE subtype)
-			     (or path file) (if path 'trust)
+			     (or path file) 'trust
 			     :base-rev base-rev)))
 
      ;; useless message added before the actual addition: ignored
