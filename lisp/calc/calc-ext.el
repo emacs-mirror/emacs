@@ -1240,20 +1240,22 @@ calc-kill calc-kill-region calc-yank))))
 
 (defun calc-reset (arg)
   (interactive "P")
+  (setq arg (if arg (prefix-numeric-value arg) nil))
   (save-excursion
     (or (eq major-mode 'calc-mode)
 	(calc-create-buffer))
     (if calc-embedded-info
 	(calc-embedded nil))
-    (or arg
-	(setq calc-stack nil))
+    (unless (and arg (> (abs arg) 0))
+      (setq calc-stack nil))
     (setq calc-undo-list nil
 	  calc-redo-list nil)
     (let (calc-stack calc-user-parse-tables calc-standard-date-formats
 		     calc-invocation-macro)
       (mapcar (function (lambda (v) (set v nil))) calc-local-var-list)
-      (mapcar (function (lambda (v) (set (car v) (nth 1 v))))
-	      calc-mode-var-list))
+      (if (and arg (<= arg 0))
+          (calc-mode-var-list-restore-default-values)
+        (calc-mode-var-list-restore-saved-values)))
     (calc-set-language nil nil t)
     (calc-mode)
     (calc-flush-caches t)
@@ -1261,7 +1263,11 @@ calc-kill calc-kill-region calc-yank))))
   (calc-wrapper
    (let ((win (get-buffer-window (current-buffer))))
      (calc-realign 0)
-     (if win
+     ;; Adjust the window height if the window is visible, but doesn't
+     ;; take up the whole height of the frame.
+     (if (and
+          win
+          (< (window-height win) (1- (frame-height))))
 	 (let ((height (- (window-height win) 2)))
 	   (set-window-point win (point))
 	   (or (= height calc-window-height)

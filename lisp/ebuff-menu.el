@@ -149,7 +149,9 @@ Letters do not insert themselves; instead, they are commands.
 
 Entry to this mode via command `electric-buffer-list' calls the value of
 `electric-buffer-menu-mode-hook'."
-  (kill-all-local-variables)
+  (let ((saved header-line-format))
+    (kill-all-local-variables)
+    (setq header-line-format saved))
   (use-local-map electric-buffer-menu-mode-map)
   (setq mode-name "Electric Buffer Menu")
   (setq mode-line-buffer-identification "Electric Buffer List")

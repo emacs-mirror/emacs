@@ -99,7 +99,15 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** Control characters and escape glyphs are now shown in the new
+escape-glyph face.
+
+** Non-breaking space and hyphens are now prefixed with an escape
+character, unless the new user variable `show-nonbreak-escape' is set
+to nil.
+
 ** display-battery has been replaced by display-battery-mode.
+
 ** calculator.el now has radix grouping mode, which is available when
 `calculator-output-radix' is non-nil.  In this mode a separator
 character is used every few digits, making it easier to see byte
@@ -397,20 +405,30 @@ saving.
 *** Buffers are saved in the desktop file in the same order as that in the
 buffer list.
 
+*** The desktop package can be customized to restore only some buffers immediately,
+remaining buffers are restored lazily (when Emacs is idle).
+
 *** New commands:
   - desktop-revert reverts to the last loaded desktop.
   - desktop-change-dir kills current desktop and loads a new.
   - desktop-save-in-desktop-dir saves desktop in the directory from which
     it was loaded.
+  - desktop-lazy-complete runs the desktop load to completion.
+  - desktop-lazy-abort aborts lazy loading of the desktop.
 
 *** New customizable variables:
   - desktop-save. Determins whether the desktop should be saved when it is
     killed.
-  - desktop-file-name-format.
+  - desktop-file-name-format. Format in which desktop file names should be saved.
   - desktop-path. List of directories in which to lookup the desktop file.
-  - desktop-locals-to-save.
-  - desktop-globals-to-clear.
-  - desktop-clear-preserve-buffers-regexp.
+  - desktop-locals-to-save. List of local variables to save.
+  - desktop-globals-to-clear. List of global variables that `desktop-clear' will clear.
+  - desktop-clear-preserve-buffers-regexp. Regexp identifying buffers that `desktop-clear'
+    should not delete.
+  - desktop-restore-eager. Number of buffers to restore immediately. Remaining buffers are
+    restored lazily (when Emacs is idle).
+  - desktop-lazy-verbose. Verbose reporting of lazily created buffers.
+  - desktop-lazy-idle-delay. Idle delay before starting to create buffers.
 
 *** New command line option --no-desktop
 

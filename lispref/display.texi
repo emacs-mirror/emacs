@@ -4049,8 +4049,9 @@ the usual Emacs @code{highlight} face.
 @kindex keymap @r{(button property)}
 The button's keymap, defining bindings active within the button
 region.  By default this is the usual button region keymap, stored
-in the variable @code{button-map}, which defines @key{RET} and
-@key{mouse-2} to invoke the button.
+in the variable @code{button-map}, which defines @key{RET},
+@key{mouse-1} (if @var{mouse-1-click-follows-link} is set),
+and @key{mouse-2} to invoke the button.
 
 @item type
 @kindex type @r{(button property)}
@@ -4234,7 +4235,8 @@ These are commands and functions for locating and operating on
 buttons in an Emacs buffer.
 
 @code{push-button} is the command that a user uses to actually `push'
-a button, and is bound by default in the button itself to @key{RET}
+a button, and is bound by default in the button itself to @key{RET},
+to @key{mouse-1} (if @var{mouse-1-click-follows-link} is set),
 and to @key{mouse-2} using a region-specific keymap.  Commands
 that are useful outside the buttons itself, such as
 @code{forward-button} and @code{backward-button} are additionally

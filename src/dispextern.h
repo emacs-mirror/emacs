@@ -1847,6 +1847,9 @@ struct it
      means that no such character is involved.  */
   int dpvec_char_len;
 
+  /* Face id to use for all characters in display vector.  -1 if unused. */
+  int dpvec_face_id;
+
   /* Face id of the iterator saved in case a glyph from dpvec contains
      a face.  The face is restored when all glyphs from dpvec have
      been delivered.  */
@@ -2757,6 +2760,7 @@ int face_at_buffer_position P_ ((struct window *, int, int, int, int *,
 				 int, int));
 int face_at_string_position P_ ((struct window *, Lisp_Object, int, int, int,
 				 int, int *, enum face_id, int));
+int merge_faces P_ ((struct frame *, Lisp_Object, int, int));
 int compute_char_face P_ ((struct frame *, int, Lisp_Object));
 void free_all_realized_faces P_ ((Lisp_Object));
 extern Lisp_Object Qforeground_color, Qbackground_color;

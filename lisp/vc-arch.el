@@ -377,7 +377,7 @@ Return non-nil if FILE is unchanged."
       (setq newvers nil))
   (if newvers
       (error "Diffing specific revisions not implemented.")
-    (let* ((async (fboundp 'start-process))
+    (let* ((async (and (not vc-disable-async-diff) (fboundp 'start-process)))
 	   ;; Run the command from the root dir.
 	   (default-directory (vc-arch-root file))
 	   (status

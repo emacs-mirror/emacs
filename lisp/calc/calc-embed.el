@@ -885,7 +885,7 @@ The command \\[yank] can retrieve it from there."
 	(list 'calcFunc-assign
 	      (nth 1 x)
 	      (calc-embedded-subst (nth 2 x)))
-      (calc-normalize (math-evaluate-expr-rec (math-multi-subst-rec x))))))
+      (calc-normalize (math-evaluate-expr-rec (math-multi-subst x nil nil))))))
 
 (defun calc-embedded-eval-get-var (var base)
   (let ((entry base)

@@ -1,3 +1,121 @@
+2005-01-10  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (merge_faces): Rename from merge_into_realized_face.
+
+	* xfaces.c (merge_faces): Rename from merge_into_realized_face.
+	Callers changed.
+	Add support to merge with lisp face id too (if face_name is t).
+
+	* xdisp.c (get_next_display_element, next_element_from_display_vector):
+	Don't lookup lface_id from display table glyphs here; instead use
+	merge_faces to merge the lisp face id into current face.
+
+2005-01-09  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (struct it): New member dpvec_face_id.
+	(merge_into_realized_face): Add prototype.
+
+	* xfaces.c (merge_into_realized_face): New function.  Used to
+	merge escape-glyph face or face from display table into current	face.
+
+	* xdisp.c (Vshow_nonbreak_escape): New lisp var.
+	(syms_of_xdisp): DEFVAR_LISP it.
+	(escape_glyph_face): Remove var.
+	(redisplay_window): Don't initialize it.
+	(setup_for_ellipsis, get_next_display_element):
+	Set it->dpvec_face_id to -1.
+	(get_next_display_element): Test Vshow_nonbreak_escape.
+	Do not setup escape_glyph_face.
+	Properly merge escape-glyph face or face from display table with
+	current face for escape and control characters.  Set
+	it->dpvec_face_id to relevant face id instead of adding it to each
+	element of display vector.
+	(next_element_from_display_vector): If it->dpvec_face_id is set,
+	use that instead of lface_id from glyph itself.
+
+2005-01-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.h (struct x_output): New member, toolbar_detached.
+
+	* gtkutil.c (xg_create_frame_widgets): Set initial tool bar height to
+	38.
+	(xg_tool_bar_detach_callback): Set toolbar_detached to 1.
+	(xg_tool_bar_attach_callback): Set toolbar_detached to 0.
+	(xg_create_tool_bar): Initialize toolbar_detached.
+	(update_frame_tool_bar): Only set FRAME_TOOLBAR_HEIGHT (f) if
+	toolbar_detached is zero.
+
+2005-01-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (create_and_show_popup_menu): Pass zero as button to
+	gtk_menu_popup if not for_click, so callbacks for the menu are called.
+
+	* gtkutil.c (xg_gtk_scroll_destroy, xg_create_scroll_bar)
+	(xg_tool_bar_callback, xg_tool_bar_help_callback)
+	(update_frame_tool_bar): Cast to EMACS_INT to avoid compiler
+	warning.
+
+	* xselect.c (x_get_foreign_selection, x_fill_property_data)
+	(Fx_get_atom_name, Fx_send_client_event): Replace XFLOAT with
+	XFLOAT_DATA to get extract number from Lisp object.
+
+2005-01-07  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (set_iterator_to_next): Fix 2004-12-13 change.
+	Set stop_charpos to current charpos instead of 0.
+
+2005-01-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (XLoadQueryFont): Correctly handle 0 size
+	font widths that are returned from some Japanese fonts.
+
+2005-01-06  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (fringe_faces): Change to Lisp_Object pointer.
+	(draw_fringe_bitmap_1): Lookup user defined fringe faces here.
+	(destroy_fringe_bitmap): Set fringe_faces element to nil.
+	(Fdefine_fringe_bitmap, init_fringe): Change allocation of
+	fringe_faces array and init elements to nil.
+	(Fset_fringe_bitmap_face): Set fringe_faces to face name instead of
+	non-persistent face id.
+	(mark_fringe_data): New function for GC.
+
+	* alloc.c (mark_fringe_data): Declare extern.
+	(Fgarbage_collect): Call mark_fringe_data.
+
+	* alloc.c (overrun_check_free): Invalidate freed memory if
+	XMALLOC_CLEAR_FREE_MEMORY is defined.
+
+2005-01-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c: Include sys/param.h.
+	[TARGET_API_MAC_CARBON] (mac_nav_event_callback): New declaration
+	and function.
+	[TARGET_API_MAC_CARBON] (Fx_file_dialog): Use MAXPATHLEN for size
+	of filename string.  Set event callback function when creating
+	dialog boxes.  Add code conversions for filenames.  Don't dispose
+	apple event descriptor record if failed to create it.
+
+	* macterm.c: Include sys/param.h.
+	[USE_CARBON_EVENTS] (mac_handle_window_event): Add handler for
+	kEventWindowUpdate.
+	(install_window_handler) [USE_CARBON_EVENTS]: Register it.
+	(do_ae_open_documents) [TARGET_API_MAC_CARBON]: Get FSRef instead
+	of FSSpec from apple event descriptor record.
+	(do_ae_open_documents) [TARGET_API_MAC_CARBON]: Use MAXPATHLEN for
+	size of filename string.
+	[TARGET_API_MAC_CARBON] (mac_do_receive_drag): Likewise.
+	[TARGET_API_MAC_CARBON] (mac_do_receive_drag): Return error when a
+	file dialog is in action.
+	[TARGET_API_MAC_CARBON] (mac_do_track_drag): Likewise.  Reject
+	only when there are no filename items.  Set background color
+	before (un)highlighting the window below the dragged items.
+	(XTread_socket) [!USE_CARBON_EVENTS]: Don't call do_window_update.
+
+2005-01-05  Romain Francoise  <romain@orebokech.com>
+
+	* term.c (encode_terminal_code): Fix buffer size computation.
+
 2005-01-04  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (Fformat_mode_line): Doc fix.

@@ -1,3 +1,19 @@
+2005-01-11  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Button Properties, Button Buffer Commands):
+	Mention mouse-1 binding.
+
+	* text.texi (Text Properties): Add "Enable Mouse-1" to submenu.
+	(Enabling Mouse-1 to Follow Links): New subsection.
+
+2005-01-06  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Special Properties): Minor change.
+
+	* os.texi (Timers): Clarify previous change.
+
+	* modes.texi (Emulating Mode Line): format-mode-line requires 1 arg.
+
 2005-01-01  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* display.texi (Face Attributes): Correct xref to renamed node.

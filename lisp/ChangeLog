@@ -1,3 +1,139 @@
+2005-01-10  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-ext.el (calc-reset): Don't adjust the window height if
+	the window takes up the whole height of the frame.
+
+2005-01-10  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* ebuff-menu.el (Electric-buffer-menu-mode):
+	Preserve value of buffer-local var header-line-format.
+
+2005-01-09  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-mode-var-list-restore-saved-values):
+	Make sure settings file exists before accessing it.
+
+	* calc/calc-embed.el (calc-embedded-subst):
+	Replace math-multi-subst-rec, which is only supposed to be called
+	by math-multi-subst, by math-multi-subst.
+
+2005-01-09  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-allow-async-revert): New user option.
+	(vc-disable-async-diff): New internal variable.
+	(vc-revert-buffer): Use them to disable asynchronous diff.
+
+	* vc-cvs.el, vc-arch.el, vc-svn.el, vc-mcvs.el (vc-cvs-diff,
+	vc-arch-diff, vc-svn-diff, vc-mcvs-diff): Don't diff
+	asynchronously if vc-disable-async-diff is t.
+
+2005-01-09  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (defcalcmodevar): New macro.
+	(calc-mode-var-list-restore-default-values)
+	(calc-mode-var-list-restore-saved-values): New functions.
+	(calc-mode-var-list): Use defcalcmodevar to define it.
+	(calc-always-load-extensions, calc-line-numbering)
+	(calc-line-breaking, calc-display-just, calc-display-origin)
+	(calc-number-radix, calc-leading-zeros, calc-group-digits)
+	(calc-group-char, calc-point-char, calc-frac-format)
+	(calc-prefer-frac, calc-hms-format, calc-date-format)
+	(calc-float-format, calc-full-float-format, calc-complex-format)
+	(calc-complex-mode, calc-infinite-mode, calc-display-strings)
+	(calc-matrix-just, calc-break-vectors, calc-full-vectors)
+	(calc-full-trail-vectors, calc-vector-commas, calc-vector-brackets)
+	(calc-matrix-brackets, calc-language, calc-language-option)
+	(calc-left-label, calc-right-label, calc-word-size)
+	(calc-previous-modulo, calc-simplify-mode, calc-auto-recompute)
+	(calc-display-raw, calc-internal-prec, calc-angle-mode)
+	(calc-algebraic-mode, calc-incomplete-algebraic-mode)
+	(calc-symbolic-mode, calc-matrix-mode, calc-shift-prefix)
+	(calc-window-height, calc-display-trail, calc-show-selections)
+	(calc-use-selections, calc-assoc-selections)
+	(calc-display-working-message, calc-auto-why, calc-timing)
+	(calc-mode-save-mode, calc-standard-date-formats, calc-autorange-units)
+	(calc-was-keypad-mode, calc-full-mode, calc-user-parse-tables)
+	(calc-gnuplot-default-device, calc-gnuplot-default-output)
+	(calc-gnuplot-print-device, calc-gnuplot-print-output)
+	(calc-gnuplot-geometry, calc-graph-default-resolution)
+	(calc-graph-default-resolution-3d, calc-invocation-macro)
+	(calc-show-banner): Use defcalcmodevar to declare them and set
+	their default values.
+
+	* calc/calc-ext.el (calc-reset): Restore saved values of variables
+	instead of default values (but restore default values if there is
+	an argument of 0).
+
+2005-01-09  David Kastrup  <dak@gnu.org>
+
+	* desktop.el (desktop-restore-eager): Fix typo in type.
+
+2005-01-08  Richard M. Stallman  <rms@gnu.org>
+
+	* cus-edit.el (customize): Delete :link.
+
+2005-01-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-mode): Remove the extension from the
+	`calc-settings-file' file name when loading it.
+
+2005-01-08  Kim F. Storm  <storm@cua.dk>
+
+	* info.el (Info-mode-map, Info-next-link-keymap)
+	(Info-prev-link-keymap, Info-up-link-keymap):
+	Map follow-link to mouse-face.
+	(Info-fontify-node): Add "mouse-2: " prefix to tooltip.
+
+2005-01-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-settings-file): Change default value.
+	Suggested by cgw in a comment in calc-mode.el.
+
+	* calc/calc-mode.el (calc-settings-file-name):
+	Compare calc-settings-file to user-init-file instead of ~/.emacs.
+	Replace ~/.emacs in a prompt by calc-settings-file.
+
+2005-01-07  Lars Hansen  <larsh@math.ku.dk>
+
+	* desktop.el (desktop-restore-eager, desktop-lazy-verbose)
+	(desktop-lazy-idle-delay): New customizable variables.
+	(desktop-buffer-args-list): New variable.
+	(desktop-append-buffer-args): New function.
+	(desktop-save): Call desktop-append-buffer-args for some buffers.
+	(desktop-lazy-create-buffer): New function.
+	(desktop-idle-create-buffers): New function.
+	(desktop-read): Add message about buffers to restore lazily.
+	(desktop-lazy-abort): New command.
+	(desktop-clear): Call desktop-lazy-abort.
+	(desktop-lazy-complete): New command.
+
+2005-01-06  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/find-func.el (find-face-definition):
+	Renamed from find-face.
+
+2005-01-06  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (completion-list-mode-map): Map follow-link to mouse-face.
+
+	* man.el (Man-xref-man-page, Man-xref-header-file)
+	(Man-xref-normal-file): Add follow-link property.
+
+2005-01-06  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-units.el: Make sure the proper macro definitions are
+	available when compiling.
+
+2005-01-06  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-lazy-highlight-update): Rename
+	`isearch-lazy-highlight-interval' to `lazy-highlight-interval'.
+
+2005-01-06  Miles Bader  <miles@gnu.org>
+
+	* isearch.el (lazy-highlight): Renamed from `lazy-highlight-face'.
+	(isearch-lazy-highlight-face): Use new name.
+
 2005-01-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* uniquify.el (uniquify-rationalize-file-buffer-names):
@@ -9,6 +145,9 @@
 	(isearch-update, isearch-done): Adjust calls accordingly.
 
 2005-01-05  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.el (custom-set-variables, custom-theme-set-variables):
+	Clarify documentation.
 
 	* emacs-lisp/find-func.el (find-variable)
 	(find-variable-other-window, find-variable-other-frame):

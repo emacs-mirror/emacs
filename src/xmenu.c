@@ -2454,10 +2454,6 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
                            G_CALLBACK (menu_highlight_callback));
   xg_crazy_callback_abort = 0;
 
-  for (i = 0; i < 5; i++)
-    if (FRAME_X_DISPLAY_INFO (f)->grabbed & (1 << i))
-      break;
-
   if (! for_click)
     {
       /* Not invoked by a click.  pop up at x/y.  */
@@ -2470,8 +2466,16 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
       popup_x_y.x = x;
       popup_x_y.y = y;
       popup_x_y.f = f;
-    }
 
+      i = 0;  /* gtk_menu_popup needs this to be 0 for a non-button popup.  */
+    }
+  else
+    {
+      for (i = 0; i < 5; i++)
+        if (FRAME_X_DISPLAY_INFO (f)->grabbed & (1 << i))
+          break;
+    }
+  
   /* Display the menu.  */
   gtk_widget_show_all (menu);
   gtk_menu_popup (GTK_MENU (menu), 0, 0, pos_func, &popup_x_y, i, 0);

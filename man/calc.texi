@@ -9981,11 +9981,16 @@ height of the Calc window.
 @kindex M-# 0
 @pindex calc-reset
 The @kbd{M-# 0} command (@code{calc-reset}; that's @kbd{M-#} followed
-by a zero) resets the Calculator to its default state.  This clears
-the stack, resets all the modes, clears the caches (@pxref{Caches}),
-and so on.  (It does @emph{not} erase the values of any variables.)
-With a numeric prefix argument, @kbd{M-# 0} preserves the contents
-of the stack but resets everything else.
+by a zero) resets the Calculator to its initial state.  This clears
+the stack, resets all the modes to their initial values (the values
+that were saved with @kbd{m m} (@code{calc-save-modes})), clears the
+caches (@pxref{Caches}), and so on.  (It does @emph{not} erase the
+values of any variables.) With an argument of 0, Calc will be reset to
+its default state; namely, the modes will be given their default values.
+With a positive prefix argument, @kbd{M-# 0} preserves the contents of
+the stack but resets everything else to its initial state; with a
+negative prefix argument, @kbd{M-# 0} preserves the contents of the
+stack but resets everything else to its default state.
 
 @pindex calc-version
 The @kbd{M-x calc-version} command displays the current version number
@@ -12247,16 +12252,18 @@ the @emph{appearance} or @emph{interpretation} of the stack's contents.
 @cindex Continuous memory
 @cindex Saving mode settings
 @cindex Permanent mode settings
-@cindex @file{.emacs} file, mode settings
-You can save all of the current mode settings in your @file{.emacs} file
-with the @kbd{m m} (@code{calc-save-modes}) command.  This will cause
-Emacs to reestablish these modes each time it starts up.  The modes saved
-in the file include everything controlled by the @kbd{m} and @kbd{d}
-prefix keys, the current precision and binary word size, whether or not
-the trail is displayed, the current height of the Calc window, and more.
-The current interface (used when you type @kbd{M-# M-#}) is also saved.
-If there were already saved mode settings in the file, they are replaced.
-Otherwise, the new mode information is appended to the end of the file.
+@cindex Calc init file, mode settings
+You can save all of the current mode settings in your Calc init file 
+(the file given by the variable @code{calc-settings-file}, typically
+@file{~/.calc.el}) with the @kbd{m m} (@code{calc-save-modes}) command.
+This will cause Emacs to reestablish these modes each time it starts up.
+The modes saved in the file include everything controlled by the @kbd{m}
+and @kbd{d} prefix keys, the current precision and binary word size,
+whether or not the trail is displayed, the current height of the Calc
+window, and more.  The current interface (used when you type @kbd{M-#
+M-#}) is also saved.  If there were already saved mode settings in the
+file, they are replaced.  Otherwise, the new mode information is
+appended to the end of the file.
 
 @kindex m R
 @pindex calc-mode-record-mode
@@ -12268,22 +12275,22 @@ options are available; @pxref{Mode Settings in Embedded Mode}.
 @kindex m F
 @pindex calc-settings-file-name
 The @kbd{m F} (@code{calc-settings-file-name}) command allows you to
-choose a different place than your @file{.emacs} file for @kbd{m m},
-@kbd{Z P}, and similar commands to save permanent information.
+choose a different file than the current value of @code{calc-settings-file}
+for @kbd{m m}, @kbd{Z P}, and similar commands to save permanent information.
 You are prompted for a file name.  All Calc modes are then reset to
 their default values, then settings from the file you named are loaded
 if this file exists, and this file becomes the one that Calc will
 use in the future for commands like @kbd{m m}.  The default settings
-file name is @file{~/.emacs}.  You can see the current file name by
+file name is @file{~/.calc.el}.  You can see the current file name by
 giving a blank response to the @kbd{m F} prompt.  See also the
 discussion of the @code{calc-settings-file} variable; @pxref{Installation}.
 
-If the file name you give contains the string @samp{.emacs} anywhere
-inside it, @kbd{m F} will not automatically load the new file.  This
-is because you are presumably switching to your @file{~/.emacs} file,
-which may contain other things you don't want to reread.  You can give
+If the file name you give is your user init file (typically
+@file{~/.emacs}), @kbd{m F} will not automatically load the new file.  This
+is because your user init file may contain other things you don't want
+to reread.  You can give 
 a numeric prefix argument of 1 to @kbd{m F} to force it to read the
-file no matter what its name.  Conversely, an argument of @mathit{-1} tells
+file no matter what.  Conversely, an argument of @mathit{-1} tells
 @kbd{m F} @emph{not} to read the new file.  An argument of 2 or @mathit{-2}
 tells @kbd{m F} not to reset the modes to their defaults beforehand,
 which is useful if you intend your new file to have a variant of the
@@ -15872,7 +15879,7 @@ No line breaking (@kbd{d b}).
 Selections show deep structure (@kbd{j b}; @pxref{Making Selections}).
 
 @item Save
-Record modes in @file{~/.emacs} (@kbd{m R}; @pxref{General Mode Commands}).
+Record modes in @file{~/.calc.el} (@kbd{m R}; @pxref{General Mode Commands}).
 
 @item Local
 Record modes in Embedded buffer (@kbd{m R}).
@@ -27759,13 +27766,14 @@ possible to create user-defined temperature units.
 
 @kindex u p
 @pindex calc-permanent-units
-@cindex @file{.emacs} file, user-defined units
+@cindex Calc init file, user-defined units
 The @kbd{u p} (@code{calc-permanent-units}) command stores the user-defined
-units in your @file{.emacs} file, so that the units will still be
-available in subsequent Emacs sessions.  If there was already a set of
-user-defined units in your @file{.emacs} file, it is replaced by the
-new set.  (@xref{General Mode Commands}, for a way to tell Calc to use
-a different file instead of @file{.emacs}.)
+units in your Calc init file (the file given by the variable
+@code{calc-settings-file}, typically @file{~/.calc.el}), so that the
+units will still be available in subsequent Emacs sessions.  If there
+was already a set of user-defined units in your Calc init file, it
+is replaced by the new set.  (@xref{General Mode Commands}, for a way to
+tell Calc to use a different file for the Calc init file.)
 
 @node Store and Recall, Graphics, Units, Top
 @chapter Storing and Recalling
@@ -28150,14 +28158,15 @@ names rather than prompting for the variable name.
 @pindex calc-permanent-variable
 @cindex Storing variables
 @cindex Permanent variables
-@cindex @file{.emacs} file, variables
+@cindex Calc init file, variables
 The @kbd{s p} (@code{calc-permanent-variable}) command saves a
-variable's value permanently in your @file{.emacs} file, so that its
-value will still be available in future Emacs sessions.  You can
-re-execute @w{@kbd{s p}} later on to update the saved value, but the
-only way to remove a saved variable is to edit your @file{.emacs} file
+variable's value permanently in your Calc init file (the file given by
+the variable @code{calc-settings-file}, typically @file{~/.calc.el}), so
+that its value will still be available in future Emacs sessions.  You
+can re-execute @w{@kbd{s p}} later on to update the saved value, but the
+only way to remove a saved variable is to edit your calc init file
 by hand.  (@xref{General Mode Commands}, for a way to tell Calc to
-use a different file instead of @file{.emacs}.)
+use a different file for the Calc init file.)
 
 If you do not specify the name of a variable to save (i.e.,
 @kbd{s p @key{RET}}), all Calc variables with defined values
@@ -28176,7 +28185,7 @@ the values of all Calc variables into a specified buffer.
 The variables are written with the prefix @code{var-} in the form of
 Lisp @code{setq} commands 
 which store the values in string form.  You can place these commands
-in your @file{.emacs} buffer if you wish, though in this case it
+in your Calc init file (or @file{.emacs}) if you wish, though in this case it
 would be easier to use @kbd{s p @key{RET}}.  (Note that @kbd{s i}
 omits the same set of variables as @w{@kbd{s p @key{RET}}}; the difference
 is that @kbd{s i} will store the variables in any buffer, and it also
@@ -28363,7 +28372,7 @@ Software Foundation's machine @samp{prep.ai.mit.edu}.)
 @vindex calc-gnuplot-name
 If you have GNUPLOT installed on your system but Calc is unable to
 find it, you may need to set the @code{calc-gnuplot-name} variable
-in your @file{.emacs} file.  You may also need to set some Lisp
+in your Calc init file or @file{.emacs}.  You may also need to set some Lisp
 variables to show Calc how to run GNUPLOT on your system; these
 are described under @kbd{g D} and @kbd{g O} below.  If you are
 using the X window system, Calc will configure GNUPLOT for you
@@ -30418,7 +30427,8 @@ on it in order to get it to notice the new annotation.
 
 Two more mode-recording modes selectable by @kbd{m R} are @code{Save}
 (which works even outside of Embedded mode), in which mode settings
-are recorded permanently in your Emacs startup file @file{~/.emacs}
+are recorded permanently in your Calc init file (the file given by the
+variable @code{calc-settings-file}, typically @file{~/.calc.el})
 rather than by annotating the current document, and no-recording
 mode (where there is no symbol like @code{Save} or @code{Local} in
 the mode line), in which mode-changing commands do not leave any
@@ -30434,8 +30444,8 @@ for @code{Save} have no effect.
 You can modify Embedded mode's behavior by setting various Lisp
 variables described here.  Use @kbd{M-x set-variable} or
 @kbd{M-x edit-options} to adjust a variable on the fly, or
-put a suitable @code{setq} statement in your @file{~/.emacs}
-file to set a variable permanently.  (Another possibility would
+put a suitable @code{setq} statement in your Calc init file (or 
+@file{~/.emacs}) to set a variable permanently.  (Another possibility would
 be to use a file-local variable annotation at the end of the
 file; @pxref{File Variables, , Local Variables in Files, emacs, the
 Emacs manual}.)
@@ -30673,15 +30683,16 @@ key we defined above.
 @pindex calc-user-define-permanent
 @cindex Storing user definitions
 @cindex Permanent user definitions
-@cindex @file{.emacs} file, user-defined commands
+@cindex Calc init file, user-defined commands
 The @kbd{Z P} (@code{calc-user-define-permanent}) command makes a key
 binding permanent so that it will remain in effect even in future Emacs
 sessions.  (It does this by adding a suitable bit of Lisp code into
-your @file{.emacs} file.)  For example, @kbd{Z P s} would register
-our @code{sincos} command permanently.  If you later wish to unregister
-this command you must edit your @file{.emacs} file by hand.
-(@xref{General Mode Commands}, for a way to tell Calc to use a
-different file instead of @file{.emacs}.)
+your Calc init file; that is, the file given by the variable
+@code{calc-settings-file}, typically @file{~/.calc.el}.)  For example,
+@kbd{Z P s} would register our @code{sincos} command permanently.  If
+you later wish to unregister this command you must edit your Calc init
+file by hand.  (@xref{General Mode Commands}, for a way to tell Calc to
+use a different file for the Calc init file.)
 
 The @kbd{Z P} command also saves the user definition, if any, for the
 command bound to the key.  After @kbd{Z F} and @kbd{Z C}, a given user
@@ -31396,12 +31407,17 @@ step of @code{myfact} could have been written
 :"n * myfact(n-1)"
 @end example
 
+A good place to put your @code{defmath} commands is your Calc init file
+(the file given by @code{calc-settings-file}, typically
+@file{~/.calc.el}), which will not be loaded until Calc starts.
 If a file named @file{.emacs} exists in your home directory, Emacs reads
 and executes the Lisp forms in this file as it starts up.  While it may
-seem like a good idea to put your favorite @code{defmath} commands here,
+seem reasonable to put your favorite @code{defmath} commands there,
 this has the unfortunate side-effect that parts of the Calculator must be
 loaded in to process the @code{defmath} commands whether or not you will
-actually use the Calculator!  A better effect can be had by writing
+actually use the Calculator!  If you want to put the @code{defmath}
+commands there (for example, if you redefine @code{calc-settings-file}
+to be @file{.emacs}), a better effect can be had by writing
 
 @example
 (put 'calc-define 'thing '(progn
@@ -34354,7 +34370,7 @@ text.  (In fact it may still have leftover text from a previous
 @defvar calc-mode-save-hook
 This hook is called by the @code{calc-save-modes} command,
 after Calc's own mode features have been inserted into the
-@file{.emacs} buffer and just before the ``End of mode settings''
+Calc init file and just before the ``End of mode settings''
 message is inserted.
 @end defvar
 
@@ -34497,8 +34513,8 @@ the same side, best if you plan to be binding single-sided pages.
 Another variable you might want to set is @code{calc-settings-file},
 which holds the file name in which commands like @kbd{m m} and @kbd{Z P}
 store ``permanent'' definitions.  The default value for this variable
-is @code{"~/.emacs"}.  If @code{calc-settings-file} does not contain
-@code{".emacs"} as a substring, and if the variable
+is @code{"~/.calc.el"}.  If @code{calc-settings-file} is not your user
+init file (typically @file{~/.emacs}) and if the variable
 @code{calc-loaded-settings-file} is @code{nil}, then Calc will
 automatically load your settings file (if it exists) the first time
 Calc is invoked.
@@ -35845,7 +35861,7 @@ as Calc variables.  Add a @samp{var-} prefix to get the name of the
 corresponding Lisp variable.
 
 The remaining variables are Lisp variables suitable for @code{setq}ing
-in your @file{.emacs} file.
+in your Calc init file or @file{.emacs} file.
 
 @printindex vr
 

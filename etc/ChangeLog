@@ -1,3 +1,7 @@
+2005-01-07  Lars Hansen  <larsh@math.ku.dk>
+
+	* NEWS: Describe desktop package lazy restore feature.
+
 2004-12-21  Richard M. Stallman  <rms@gnu.org>
 
 	* DISTRIB: Don't say "freeware".

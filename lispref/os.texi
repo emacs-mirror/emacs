@@ -1371,7 +1371,8 @@ to be annoying.
   It is usually a bad idea for timer functions to alter buffer
 contents.  When they do, they usually should call @code{undo-boundary}
 both before and after changing the buffer, to separate the timer's
-changes from user commands' changes.
+changes from user commands' changes and prevent a single undo entry
+from growing to be quite large.
 
 @deffn Command run-at-time time repeat function &rest args
 This sets up a timer that calls the function @var{function} with

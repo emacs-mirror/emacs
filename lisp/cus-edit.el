@@ -243,7 +243,6 @@
 
 (defgroup customize '((widgets custom-group))
   "Customization of the Customization support."
-  :link '(custom-manual "(emacs)Easy Customization")
   :prefix "custom-"
   :group 'help)
 

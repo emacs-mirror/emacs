@@ -1,3 +1,8 @@
+2005-01-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* spam.el (spam-face): New face.  Don't use `gnus-splash-face'
+	which is unreadable in some setups.
+
 2004-12-27  Simon Josefsson  <jas@extundo.com>
 
 	* mm-bodies.el (mm-body-encoding): Don't permit 7-bit to be used

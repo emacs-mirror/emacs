@@ -1,6 +1,6 @@
 ;;; re-builder.el --- building Regexps with visual feedback
 
-;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
 
 ;; Author: Detlev Zundel <dzu@gnu.org>
 ;; Keywords: matching, lisp, tools
@@ -61,12 +61,12 @@
 ;; even the auto updates go all the way.  Forcing an update overrides
 ;; this limit allowing an easy way to see all matches.
 
-;; Currently `re-builder' understands four different forms of input,
-;; namely `read', `string', `sregex' and `lisp-re' syntax.  Read
+;; Currently `re-builder' understands five different forms of input,
+;; namely `read', `string', `rx', `sregex' and `lisp-re' syntax.  Read
 ;; syntax and string syntax are both delimited by `"'s and behave
 ;; according to their name.  With the `string' syntax there's no need
 ;; to escape the backslashes and double quotes simplifying the editing
-;; somewhat.  The other two allow editing of symbolic regular
+;; somewhat.  The other three allow editing of symbolic regular
 ;; expressions supported by the packages of the same name.  (`lisp-re'
 ;; is a package by me and its support may go away as it is nearly the
 ;; same as the `sregex' package in Emacs)

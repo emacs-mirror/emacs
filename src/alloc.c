@@ -309,6 +309,7 @@ static void mark_glyph_matrix P_ ((struct glyph_matrix *));
 static void mark_face_cache P_ ((struct face_cache *));
 
 #ifdef HAVE_WINDOW_SYSTEM
+extern void mark_fringe_data P_ ((void));
 static void mark_image P_ ((struct image *));
 static void mark_image_cache P_ ((struct frame *));
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -704,9 +705,14 @@ overrun_check_free (block)
 		val + osize,
 		XMALLOC_OVERRUN_CHECK_SIZE))
 	abort ();
+#ifdef XMALLOC_CLEAR_FREE_MEMORY
+      val -= XMALLOC_OVERRUN_CHECK_SIZE;
+      memset (val, 0xff, osize + XMALLOC_OVERRUN_CHECK_SIZE*2);
+#else
       bzero (val + osize, XMALLOC_OVERRUN_CHECK_SIZE);
       val -= XMALLOC_OVERRUN_CHECK_SIZE;
       bzero (val, XMALLOC_OVERRUN_CHECK_SIZE);
+#endif
     }
 
   free (val);
@@ -4858,6 +4864,10 @@ returns nil, because real GC can't be done.  */)
       mark_object (handler->var);
     }
   mark_backtrace ();
+
+#ifdef HAVE_WINDOW_SYSTEM
+  mark_fringe_data ();
+#endif
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
   mark_stack ();
