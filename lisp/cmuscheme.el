@@ -68,20 +68,10 @@
 ;;=============================================================================
 ;; Some suggestions for your .emacs file.
 ;;
-;; ; If cmuscheme lives in some non-standard directory, you must tell emacs
-;; ; where to get it. This may or may not be necessary.
-;; (setq load-path (cons (expand-file-name "~jones/lib/emacs") load-path))
-;;
 ;; ; Autoload run-scheme from file cmuscheme.el
 ;; (autoload 'run-scheme "cmuscheme"
 ;;           "Run an inferior Scheme process."
 ;;           t)
-;;
-;; ; Files ending in ".scm" are Scheme source, 
-;; ; so put their buffers in scheme-mode.
-;; (setq auto-mode-alist 
-;;       (cons '("\\.scm$" . scheme-mode)  
-;;             auto-mode-alist))
 ;;
 ;; ; Define C-c t to run my favorite command in inferior scheme mode:
 ;; (setq cmuscheme-load-hook
