@@ -1,5 +1,13 @@
 2001-01-31  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (Fscroll_right, Fscroll_left): Use interactive_p
+	instead of Finteractive_p.
+
+	* lisp.h (interactive_p): Add prototype.
+
+	* eval.c (interactive_p): New function.
+	(Finteractive_p): Use it.
+
 	* alloc.c (Fmake_list): Add a QUIT in the loop; unroll the loop.
 
 2001-01-31  Dave Love  <fx@gnu.org>

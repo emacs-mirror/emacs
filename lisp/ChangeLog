@@ -8,6 +8,12 @@
 
 	* term/w32-win.el (mouse-set-font): Doc fix.
 
+2001-01-31  Stefan Monnier  <monnier@cs.yale.edu>
+	
+	* hi-lock.el (hi-lock-mode, hi-lock-line-face-buffer): Doc fix.
+	(hi-lock-find-patterns): Turn on font-lock-mode, if it is not
+	on already.
+
 2001-01-31  Markus Rost  <rost@math.ohio-state.edu>
 
 	* files.el (save-buffer): Don't give message if (buffer-file-name)
