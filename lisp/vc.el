@@ -539,7 +539,8 @@ to an optional list of FLAGS."
   (interactive "P")
   (widen)
   (let ((context (vc-buffer-context)))
-    (revert-buffer arg no-confirm)
+    ;; t means don't call normal-mode; that's to preserve various minor modes.
+    (revert-buffer arg no-confirm t)
     (vc-restore-buffer-context context)))
 
 
@@ -1875,40 +1876,40 @@ From a program, any arguments are passed to the `rcs2log' script."
 			   switches)
 		    (setq failed nil))
 		(and failed (file-exists-p filename) (delete-file filename))))
-       (let (new-version)
-	 ;; if we should go to the head of the trunk, 
-	 ;; clear the default branch first
-	 (and rev (string= rev "") 
-	      (vc-do-command nil 0 "rcs" file 'MASTER "-b"))
-	 ;; now do the checkout
-	 (apply 'vc-do-command
-		nil 0 "co" file 'MASTER
-		;; If locking is not strict, force to overwrite
-		;; the writable workfile.
-		(if (eq (vc-checkout-model file) 'implicit) "-f")
-		(if writable "-l")
-		(if rev (concat "-r" rev)
-		  ;; if no explicit revision was specified,
-		  ;; check out that of the working file
-		  (let ((workrev (vc-workfile-version file)))
-		    (if workrev (concat "-r" workrev)
-		      nil)))
-		switches)
-	 ;; determine the new workfile version
-	 (save-excursion
-	   (set-buffer "*vc*")
-	   (goto-char (point-min))
-	   (setq new-version 
-		 (if (re-search-forward "^revision \\([0-9.]+\\).*\n" nil t)
-		     (buffer-substring (match-beginning 1) (match-end 1)))))
-	 (vc-file-setprop file 'vc-workfile-version new-version)
-	 ;; if necessary, adjust the default branch
-	 (and rev (not (string= rev ""))
-	      (vc-do-command nil 0 "rcs" file 'MASTER 
-		 (concat "-b" (if (vc-latest-on-branch-p file)
-				  (if (vc-trunk-p new-version) nil
-				    (vc-branch-part new-version))
-				new-version))))))
+	  (let (new-version)
+	    ;; if we should go to the head of the trunk, 
+	    ;; clear the default branch first
+	    (and rev (string= rev "") 
+		 (vc-do-command nil 0 "rcs" file 'MASTER "-b"))
+	    ;; now do the checkout
+	    (apply 'vc-do-command
+		   nil 0 "co" file 'MASTER
+		   ;; If locking is not strict, force to overwrite
+		   ;; the writable workfile.
+		   (if (eq (vc-checkout-model file) 'implicit) "-f")
+		   (if writable "-l")
+		   (if rev (concat "-r" rev)
+		     ;; if no explicit revision was specified,
+		     ;; check out that of the working file
+		     (let ((workrev (vc-workfile-version file)))
+		       (if workrev (concat "-r" workrev)
+			 nil)))
+		   switches)
+	    ;; determine the new workfile version
+	    (save-excursion
+	      (set-buffer "*vc*")
+	      (goto-char (point-min))
+	      (setq new-version 
+		    (if (re-search-forward "^revision \\([0-9.]+\\).*\n" nil t)
+			(buffer-substring (match-beginning 1) (match-end 1)))))
+	    (vc-file-setprop file 'vc-workfile-version new-version)
+	    ;; if necessary, adjust the default branch
+	    (and rev (not (string= rev ""))
+		 (vc-do-command nil 0 "rcs" file 'MASTER 
+		    (concat "-b" (if (vc-latest-on-branch-p file)
+				     (if (vc-trunk-p new-version) nil
+				       (vc-branch-part new-version))
+				   new-version))))))
 	(if workfile  ;; CVS
 	    ;; CVS is much like RCS
 	    (let ((failed t))
