@@ -410,7 +410,8 @@ DEFUN ("append", Fappend, Sappend, 0, MANY, 0,
        doc: /* Concatenate all the arguments and make the result a list.
 The result is a list whose elements are the elements of all the arguments.
 Each argument may be a list, vector or string.
-The last argument is not copied, just used as the tail of the new list. */)
+The last argument is not copied, just used as the tail of the new list.
+usage: (append &rest SEQUENCES)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -421,7 +422,8 @@ The last argument is not copied, just used as the tail of the new list. */)
 DEFUN ("concat", Fconcat, Sconcat, 0, MANY, 0,
        doc: /* Concatenate all the arguments and make the result a string.
 The result is a string whose elements are the elements of all the arguments.
-Each argument may be a string or a list or vector of characters (integers). */)
+Each argument may be a string or a list or vector of characters (integers).
+usage: (concat &rest SEQUENCES)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -432,7 +434,8 @@ Each argument may be a string or a list or vector of characters (integers). */)
 DEFUN ("vconcat", Fvconcat, Svconcat, 0, MANY, 0,
        doc: /* Concatenate all the arguments and make the result a vector.
 The result is a vector whose elements are the elements of all the arguments.
-Each argument may be a list, vector or string. */)
+Each argument may be a list, vector or string.
+usage: (vconcat &rest SEQUENCES)   */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -2588,7 +2591,8 @@ nconc2 (s1, s2)
 
 DEFUN ("nconc", Fnconc, Snconc, 0, MANY, 0,
        doc: /* Concatenate any number of lists by altering them.
-Only the last argument is not altered, and need not be a list.  */)
+Only the last argument is not altered, and need not be a list.
+usage: (nconc &rest LISTS)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -3184,7 +3188,8 @@ later with `widget-put'.  */)
 
 DEFUN ("widget-apply", Fwidget_apply, Swidget_apply, 2, MANY, 0,
        doc: /* Apply the value of WIDGET's PROPERTY to the widget itself.
-ARGS are passed as extra arguments to the function.  */)
+ARGS are passed as extra arguments to the function.
+usage: (widget-apply WIDGET PROPERTY &rest ARGS)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -4705,7 +4710,9 @@ returned is a weak table.  Key/value pairs are removed from a weak
 hash table when there are no non-weak references pointing to their
 key, value, one of key or value, or both key and value, depending on
 WEAK.  WEAK t is equivalent to `key-and-value'.  Default value of WEAK
-is nil.  */)
+is nil.
+
+usage: (make-hash-table &rest KEYWORD-ARGS)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
