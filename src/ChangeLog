@@ -1,5 +1,7 @@
 2004-04-17  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c (update_overlay_arrows): Fix handling of up_to_date < 0.
+
 	* image.c (PNG_BG_COLOR_SHIFT): Remove.
 	(png_load): Fix calculation of transparent background color on X
 	and W32 platforms.
