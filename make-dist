@@ -358,9 +358,6 @@ echo "Making links to \`lisp' and its subdirectories"
        ;;
    esac
  done
- (cd ../${tempdir}/lisp
-  rm -rf calc
- )
 
  for file in $subdirs; do
    echo "  lisp/$file"
@@ -385,6 +382,12 @@ echo "Making links to \`lisp' and its subdirectories"
      done
    fi
  done )
+
+### Don't distribute an empty calc directory, present due to CVS
+### misfeatures.
+ (cd ../${tempdir}/lisp
+  rm -rf calc
+ )
 
 echo "Making links to \`leim' and its subdirectories for the LEIM distribution"
 ### Don't distribute TAGS, or =*.el files.
