@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.12 2000/11/16 18:10:52 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.13 2000/11/20 14:16:18 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -160,13 +160,6 @@ then VC only stays local for hosts that match it."
   (vc-cvs-registered file)
   (vc-file-getprop file 'vc-workfile-version))
 
-(defun vc-cvs-latest-on-branch-p (file)
-  "Return t iff current workfile version of FILE is the latest on its branch."
-  ;; Since this is only used as a sanity check for vc-cancel-version,
-  ;; and that is not supported under CVS at all, we can safely return t here.
-  ;; TODO: Think of getting rid of this altogether.
-  t)
-
 (defun vc-cvs-checkout-model (file)
   "CVS-specific version of `vc-checkout-model'."
   (if (or (getenv "CVSREAD")
@@ -292,9 +285,9 @@ This is only possible if CVS is responsible for FILE's directory."
     ;; if this was an explicit check-in, remove the sticky tag
     (if rev (vc-do-command t 0 "cvs" file "update" "-A"))))
 
-(defun vc-cvs-checkout (file &optional writable rev workfile)
+(defun vc-cvs-checkout (file &optional editable rev workfile)
   "Retrieve a revision of FILE into a WORKFILE.
-WRITABLE non-nil means that the file should be writable.
+EDITABLE non-nil means that the file should be writable.
 REV is the revision to check out into WORKFILE."
   (let ((filename (or workfile file))
 	(file-buffer (get-file-buffer file))
@@ -350,7 +343,7 @@ REV is the revision to check out into WORKFILE."
 	    (if (and (file-exists-p file) (not rev))
 		;; If no revision was specified, just make the file writable
 		;; if necessary (using `cvs-edit' if requested).
-		(and writable (not (eq (vc-cvs-checkout-model file) 'implicit))
+		(and editable (not (eq (vc-cvs-checkout-model file) 'implicit))
 		     (if vc-cvs-use-edit
 			 (vc-do-command nil 0 "cvs" file "edit")
 		       (set-file-modes file (logior (file-modes file) 128))
@@ -358,7 +351,7 @@ REV is the revision to check out into WORKFILE."
 	      ;; Check out a particular version (or recreate the file).
 	      (vc-file-setprop file 'vc-workfile-version nil)
 	      (apply 'vc-do-command nil 0 "cvs" file
-		     (and writable
+		     (and editable
 			  (or (not (file-exists-p file))
 			      (not (eq (vc-cvs-checkout-model file)
 				       'implicit)))
