@@ -1112,6 +1112,10 @@ ENDPOS is encountered."
 			   (if (car indent-stack)
 			       (- (car indent-stack))
 			     opoint))))
+		;; t means we are in a block comment and should
+		;; calculate accordingly.
+		(if (eq val t)
+		    (setq val (calculate-c-indent-within-comment)))
 		(setcar indent-stack
 			(setq this-indent val))))
 	    ;; Adjust line indentation according to its contents
