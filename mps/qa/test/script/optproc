@@ -118,7 +118,7 @@ sub applydefaults {
 }
 
 sub explainoptions {
- local @keys = @_;
+ local (@keys) = @_;
  local ($optname, $optcode, $optcur);
 
  $~ = "OPTLIST";
