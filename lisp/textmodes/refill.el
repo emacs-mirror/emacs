@@ -84,6 +84,10 @@
 
 ;;; Code:
 
+(defgroup refill nil
+  "Refilling paragraphs on changes."
+  :group 'fill)
+
 (defvar refill-ignorable-overlay nil
   "Portion of the most recently filled paragraph not needing filling.
 This is used to optimize refilling.")
