@@ -48,9 +48,9 @@
 		   (concat "lowercase, matches "
 			   (text-char-description (upcase ch))))
 		  (t "case-invariant")))
-      (setq i (1+ i))))
-  (with-output-to-temp-buffer "*Help*"
-    (describe-vector vector)))
+      (setq i (1+ i)))
+    (with-output-to-temp-buffer "*Help*"
+      (describe-vector vector))))
 
 (defun set-case-syntax-delims (l r string)
   "Make characters L and R a matching pair of non-case-converting delimiters.
