@@ -1187,7 +1187,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	      if (ccl->last_block)
 		{
 		  ic = ccl->eof_ic;
-		  goto ccl_finish;
+		  goto ccl_repeat;
 		}
 	      else
 		CCL_SUSPEND (CCL_STAT_SUSPEND_BY_SRC);
