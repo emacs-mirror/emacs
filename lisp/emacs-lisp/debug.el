@@ -161,7 +161,9 @@ first will be printed into the backtrace buffer."
 		    (standard-output nil)
 		    (buffer-read-only t))
 		(message "")
-		(recursive-edit))))
+		;; Make sure we unbind buffer-read-only in the right buffer.
+		(save-excursion
+		  (recursive-edit)))))
 	;; Kill or at least neuter the backtrace buffer, so that users
 	;; don't try to execute debugger commands in an invalid context.
 	(if (get-buffer-window debugger-buffer 'visible)
