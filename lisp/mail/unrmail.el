@@ -53,6 +53,8 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 	(rmail-display-summary nil)
 	(rmail-delete-after-output nil))
     (rmail file)
+    ;; Default the directory of TO-FILE based on where FILE is.
+    (setq to-file (expand-file-name to-file default-directory))
     (message "Writing messages to %s..." to-file)
     (while (< message-count rmail-total-messages)
       (rmail-show-message
