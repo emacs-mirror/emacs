@@ -265,13 +265,14 @@ the language you choose).")
 	;; Found it: return the mapped char
 	(vector entry)
       ;; Otherwise, advance and schedule the second key for execution.
-      (setq unread-command-events (list second-char))
+      (setq unread-command-events
+	    (cons (list second-char) unread-command-events))
       (vector first-char))))
 
 ;; It is a matter of taste if you want the minor mode indicated
 ;; in the mode line...
 ;; If so, uncomment the next four lines.
-;; (or (assq 'iso-accents-mode minor-mode-map-alist)
+;; (or (assq 'iso-accents-mode minor-mode-alist)
 ;;     (setq minor-mode-alist
 ;; 	  (append minor-mode-alist
 ;; 		  '((iso-accents-mode " ISO-Acc")))))
