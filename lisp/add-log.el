@@ -60,7 +60,7 @@ This defaults to the value of `user-mail-address'.")
   (or change-log-default-name
       (if (eq system-type 'vax-vms) 
 	  "$CHANGE_LOG$.TXT" 
-	(if (eq system-type 'ms-dos)
+	(if (or (eq system-type 'ms-dos) (eq system-type 'windows-nt))
 	    "changelo"
 	  "ChangeLog"))))
 
