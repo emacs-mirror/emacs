@@ -694,11 +694,16 @@ Used by `pages-directory' function."
       (terpri))
     (end-of-line 1)))
 
-(define-derived-mode pages-directory-mode nil "Pages-Directory"
+(defun pages-directory-mode ()
   "Mode for handling the pages-directory buffer.
 
 Move point to one of the lines in this buffer, then use \\[pages-directory-goto] to go
 to the same line in the pages buffer."
+
+  (kill-all-local-variables)
+  (use-local-map pages-directory-map)
+  (setq major-mode 'pages-directory-mode)
+  (setq mode-name "Pages-Directory")
   (make-local-variable 'pages-buffer)
   (make-local-variable 'pages-pos-list)
   (make-local-variable 'pages-directory-buffer-narrowing-p))
