@@ -43,6 +43,13 @@ Boston, MA 02111-1307, USA.  */
 
 #include "systime.h"
 
+#ifdef STDC_HEADERS
+#include <float.h>
+#define MAX_10_EXP	DBL_MAX_10_EXP
+#else
+#define MAX_10_EXP	310
+#endif
+
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
@@ -3270,7 +3277,7 @@ Use %% to put a single % into the output.")
 	    /* Note that we're using sprintf to print floats,
 	       so we have to take into account what that function
 	       prints.  */
-	    thissize = 200 + precision;
+	    thissize = MAX_10_EXP + 100 + precision;
 	  }
 	else
 	  {
