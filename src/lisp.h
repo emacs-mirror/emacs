@@ -1930,6 +1930,7 @@ extern void syms_of_insdel P_ ((void));
 
 /* Defined in dispnew.c */
 EXFUN (Fding, 1);
+EXFUN (Fredraw_frame, 1);
 EXFUN (Fredraw_display, 0);
 EXFUN (Fsleep_for, 2);
 EXFUN (Fsit_for, 3);
@@ -2190,6 +2191,7 @@ EXFUN (Fnarrow_to_region, 2);
 EXFUN (Fwiden, 0);
 EXFUN (Fuser_login_name, 1);
 EXFUN (Fsystem_name, 0);
+EXFUN (Fcurrent_time, 0);
 extern int clip_to_bounds P_ ((int, int, int));
 extern Lisp_Object make_buffer_string P_ ((int, int, int));
 extern Lisp_Object make_buffer_string_both P_ ((int, int, int, int, int));
@@ -2258,6 +2260,7 @@ extern void syms_of_marker P_ ((void));
 extern Lisp_Object Qfile_error;
 EXFUN (Ffind_file_name_handler, 2);
 EXFUN (Ffile_name_as_directory, 1);
+EXFUN (Fmake_temp_name, 1);
 EXFUN (Fexpand_file_name, 2);
 EXFUN (Ffile_name_nondirectory, 1);
 EXFUN (Fsubstitute_in_file_name, 1);
@@ -2428,6 +2431,7 @@ extern int compare_window_configurations P_ ((Lisp_Object, Lisp_Object, int));
 EXFUN (Fcoordinates_in_window_p, 2);
 EXFUN (Fwindow_at, 3);
 EXFUN (Fpos_visible_in_window_p, 2);
+extern void mark_window_cursors_off P_ ((struct window *));
 extern int window_internal_height P_ ((struct window *));
 extern int window_internal_width P_ ((struct window *));
 EXFUN (Frecenter, 1);
@@ -2514,6 +2518,7 @@ extern void syms_of_process P_ ((void));
 /* defined in callproc.c */
 extern Lisp_Object Vexec_path, Vexec_directory, Vdata_directory;
 extern Lisp_Object Vdoc_directory;
+EXFUN (Fcall_process, MANY);
 extern int child_setup P_ ((int, int, int, char **, int, Lisp_Object));
 extern void init_callproc_1 P_ ((void));
 extern void init_callproc P_ ((void));
@@ -2615,6 +2620,7 @@ extern void syms_of_category P_ ((void));
 extern void syms_of_ccl P_ ((void));
 
 /* Defined in dired.c */
+EXFUN (Ffile_attributes, 1);
 extern void syms_of_dired P_ ((void));
 
 /* Defined in mocklisp.c */
@@ -2634,6 +2640,7 @@ extern void syms_of_xfaces P_ ((void));
 
 #ifdef HAVE_X_WINDOWS
 /* Defined in xfns.c */
+extern void x_set_toolbar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void syms_of_xfns P_ ((void));
 #endif
 
