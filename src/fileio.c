@@ -230,6 +230,10 @@ Lisp_Object Qfile_name_history;
 
 Lisp_Object Qcar_less_than_car;
 
+static int a_write P_ ((int, char *, int, int,
+			Lisp_Object, struct coding_system *));
+static int e_write P_ ((int, char *, int, struct coding_system *));
+
 void
 report_file_error (string, data)
      char *string;
@@ -259,11 +263,11 @@ close_file_unwind (fd)
 
 /* Restore point, having saved it as a marker.  */
 
-Lisp_Object
+static Lisp_Object
 restore_point_unwind (location)
      Lisp_Object location;
 {
-  SET_PT (marker_position (location));
+  Fgoto_char (location);
   Fset_marker (location, Qnil, Qnil);
   return Qnil;
 }
@@ -449,7 +453,7 @@ DEFUN ("unhandled-file-name-directory", Funhandled_file_name_directory, Sunhandl
 A `directly usable' directory name is one that may be used without the\n\
 intervention of any file handler.\n\
 If FILENAME is a directly usable file itself, return\n\
-(file-name-directory FILENAME).\n\
+\(file-name-directory FILENAME).\n\
 The `call-process' and `start-process' functions use this function to\n\
 get a current directory to run processes in.")
   (filename)
@@ -3076,13 +3080,14 @@ Lisp_Object Qfind_buffer_file_type;
 DEFUN ("insert-file-contents", Finsert_file_contents, Sinsert_file_contents,
   1, 5, 0,
   "Insert contents of file FILENAME after point.\n\
-Returns list of absolute file name and length of data inserted.\n\
+Returns list of absolute file name and number of bytes inserted.\n\
 If second argument VISIT is non-nil, the buffer's visited filename\n\
 and last save file modtime are set, and it is marked unmodified.\n\
 If visiting and the file does not exist, visiting is completed\n\
 before the error is signaled.\n\
 The optional third and fourth arguments BEG and END\n\
 specify what portion of the file to insert.\n\
+These arguments count bytes in the file, not characters in the buffer.\n\
 If VISIT is non-nil, BEG and END must be nil.\n\
 \n\
 If optional fifth argument REPLACE is non-nil,\n\
@@ -3101,7 +3106,8 @@ This does code conversion according to the value of\n\
 {
   struct stat st;
   register int fd;
-  register int inserted = 0;
+  int inserted = 0;
+  int inserted_chars = 0;
   register int how_much;
   register int unprocessed;
   int count = specpdl_ptr - specpdl;
@@ -3114,6 +3120,7 @@ This does code conversion according to the value of\n\
   struct coding_system coding;
   unsigned char buffer[1 << 14];
   int replace_handled = 0;
+  int set_coding_system = 0;
 
   if (current_buffer->base_buffer && ! NILP (visit))
     error ("Cannot do file visiting in an indirect buffer");
@@ -3291,8 +3298,11 @@ This does code conversion according to the value of\n\
   if (!NILP (replace)
       && ! CODING_REQUIRE_DECODING (&coding))
     {
-      int same_at_start = BEGV;
-      int same_at_end = ZV;
+      /* same_at_start and same_at_end count bytes,
+	 because file access counts bytes
+	 and BEG and END count bytes.  */
+      int same_at_start = BEGV_BYTE;
+      int same_at_end = ZV_BYTE;
       int overlap;
       /* There is still a possibility we will find the need to do code
 	 conversion.  If that happens, we set this variable to 1 to
@@ -3343,7 +3353,7 @@ This does code conversion according to the value of\n\
 	    }
 
 	  bufpos = 0;
-	  while (bufpos < nread && same_at_start < ZV
+	  while (bufpos < nread && same_at_start < ZV_BYTE
 		 && FETCH_BYTE (same_at_start) == buffer[bufpos])
 	    same_at_start++, bufpos++;
 	  /* If we found a discrepancy, stop the scan.
@@ -3354,7 +3364,7 @@ This does code conversion according to the value of\n\
       immediate_quit = 0;
       /* If the file matches the buffer completely,
 	 there's no need to replace anything.  */
-      if (same_at_start - BEGV == XINT (end))
+      if (same_at_start - BEGV_BYTE == XINT (end))
 	{
 	  close (fd);
 	  specpdl_ptr--;
@@ -3372,7 +3382,7 @@ This does code conversion according to the value of\n\
 	  int total_read, nread, bufpos, curpos, trial;
 
 	  /* At what file position are we now scanning?  */
-	  curpos = XINT (end) - (ZV - same_at_end);
+	  curpos = XINT (end) - (ZV_BYTE - same_at_end);
 	  /* If the entire file matches the buffer tail, stop the scan.  */
 	  if (curpos == 0)
 	    break;
@@ -3419,26 +3429,31 @@ This does code conversion according to the value of\n\
 
       if (! giveup_match_end)
 	{
+	  int temp;
+
 	  /* We win!  We can handle REPLACE the optimized way.  */
 
 	  /* Extends the end of non-matching text area to multibyte
              character boundary.  */
 	  if (! NILP (current_buffer->enable_multibyte_characters))
-	    while (same_at_end < ZV && ! CHAR_HEAD_P (POS_ADDR (same_at_end)))
+	    while (same_at_end < ZV_BYTE
+		   && ! CHAR_HEAD_P (FETCH_BYTE (same_at_end)))
 	      same_at_end++;
 
 	  /* Don't try to reuse the same piece of text twice.  */
-	  overlap = same_at_start - BEGV - (same_at_end + st.st_size - ZV);
+	  overlap = (same_at_start - BEGV_BYTE
+		     - (same_at_end + st.st_size - ZV));
 	  if (overlap > 0)
 	    same_at_end += overlap;
 
 	  /* Arrange to read only the nonmatching middle part of the file.  */
-	  XSETFASTINT (beg, XINT (beg) + (same_at_start - BEGV));
-	  XSETFASTINT (end, XINT (end) - (ZV - same_at_end));
+	  XSETFASTINT (beg, XINT (beg) + (same_at_start - BEGV_BYTE));
+	  XSETFASTINT (end, XINT (end) - (ZV_BYTE - same_at_end));
 
-	  del_range_1 (same_at_start, same_at_end, 0);
+	  del_range_byte (same_at_start, same_at_end, 0);
 	  /* Insert from the file at the proper position.  */
-	  SET_PT (same_at_start);
+	  temp = BYTE_TO_CHAR (same_at_start);
+	  SET_PT_BOTH (temp, same_at_start);
 
 	  /* If display currently starts at beginning of line,
 	     keep it that way.  */
@@ -3460,13 +3475,14 @@ This does code conversion according to the value of\n\
      in a more optimized way.  */
   if (!NILP (replace) && ! replace_handled)
     {
-      int same_at_start = BEGV;
-      int same_at_end = ZV;
+      int same_at_start = BEGV_BYTE;
+      int same_at_end = ZV_BYTE;
       int overlap;
       int bufpos;
       /* Make sure that the gap is large enough.  */
       int bufsize = 2 * st.st_size;
       unsigned char *conversion_buffer = (unsigned char *) xmalloc (bufsize);
+      int temp;
 
       /* First read the whole file, performing code conversion into
 	 CONVERSION_BUFFER.  */
@@ -3585,7 +3601,7 @@ This does code conversion according to the value of\n\
 	same_at_end--, bufpos--;
 
       /* Don't try to reuse the same piece of text twice.  */
-      overlap = same_at_start - BEGV - (same_at_end + inserted - ZV);
+      overlap = same_at_start - BEGV_BYTE - (same_at_end + inserted - ZV_BYTE);
       if (overlap > 0)
 	same_at_end += overlap;
 
@@ -3597,11 +3613,12 @@ This does code conversion according to the value of\n\
       /* Replace the chars that we need to replace,
 	 and update INSERTED to equal the number of bytes
 	 we are taking from the file.  */
-      inserted -= (Z - same_at_end) + (same_at_start - BEG);
-      move_gap (same_at_start);
-      del_range_1 (same_at_start, same_at_end, 0);
-      SET_PT (same_at_start);
-      insert_1 (conversion_buffer + same_at_start - BEG, inserted, 0, 0);
+      inserted -= (Z_BYTE - same_at_end) + (same_at_start - BEG_BYTE);
+      del_range_byte (same_at_start, same_at_end, 0);
+      SET_PT_BOTH (GPT, GPT_BYTE);
+
+      insert_1 (conversion_buffer + same_at_start - BEG_BYTE, inserted,
+		0, 0, 0);
 
       free (conversion_buffer);
       close (fd);
@@ -3653,9 +3670,9 @@ This does code conversion according to the value of\n\
       int trytry = min (total - how_much, READ_BUF_SIZE - unprocessed);
       char *destination = (! (CODING_REQUIRE_DECODING (&coding)
 			      || CODING_REQUIRE_DETECTION (&coding))
-			   ? (char *) (POS_ADDR (PT + inserted - 1) + 1)
+			   ? (char *) (BYTE_POS_ADDR (PT_BYTE + inserted - 1) + 1)
 			   : read_buf + unprocessed);
-      int this;
+      int this, this_chars;
 
       /* Allow quitting out of the actual I/O.  */
       immediate_quit = 1;
@@ -3677,6 +3694,7 @@ This does code conversion according to the value of\n\
       if (! not_regular)
 	how_much += this;
 
+      this_chars = this;
       if (CODING_REQUIRE_DECODING (&coding)
 	  || CODING_REQUIRE_DETECTION (&coding))
 	{
@@ -3703,14 +3721,14 @@ This does code conversion according to the value of\n\
 	    }
 
 	  produced = decode_coding (&coding, read_buf,
-				    POS_ADDR (PT + inserted - 1) + 1,
+				    BYTE_POS_ADDR (PT_BYTE + inserted - 1) + 1,
 				    this, GAP_SIZE, &consumed);
 	  if (produced > 0) 
 	    {
 	      Lisp_Object temp;
 
-	      XSET (temp, Lisp_Int, Z + produced);
-	      if (Z + produced != XINT (temp))
+	      XSET (temp, Lisp_Int, Z_BYTE + produced);
+	      if (Z_BYTE + produced != XINT (temp))
 		{
 		  how_much = -2;
 		  break;
@@ -3719,18 +3737,24 @@ This does code conversion according to the value of\n\
 	  unprocessed = this - consumed;
 	  bcopy (read_buf + consumed, read_buf, unprocessed);
 	  this = produced;
+	  this_chars = chars_in_text (BYTE_POS_ADDR (PT_BYTE + inserted - 1) + 1,
+				      produced);
 	}
 
-      GPT += this;
       GAP_SIZE -= this;
-      ZV += this;
-      Z += this;
+      GPT_BYTE += this;
+      ZV_BYTE += this;
+      Z_BYTE += this;
+      GPT += this_chars;
+      ZV += this_chars;
+      Z += this_chars;
+
       if (GAP_SIZE > 0)
 	/* Put an anchor to ensure multi-byte form ends at gap.  */
 	*GPT_ADDR = 0;
       inserted += this;
+      inserted_chars += this_chars;
     }
-
 
 #ifdef DOS_NT
   /* Use the conversion type to determine buffer-file-type
@@ -3743,37 +3767,12 @@ This does code conversion according to the value of\n\
     current_buffer->buffer_file_type = Qt;
 #endif
 
-  /* We don't have to consider file type of MSDOS because all files
-     are read as binary and end-of-line format has already been
-     decoded appropriately.  */
-#if 0
-#ifdef DOS_NT
-  /* Demacs 1.1.1 91/10/16 HIRANO Satoshi, MW July 1993 */
-  /* Determine file type from name and remove LFs from CR-LFs if the file
-     is deemed to be a text file.  */
-  {
-    current_buffer->buffer_file_type
-      = call1 (Qfind_buffer_file_type, orig_filename);
-    if (NILP (current_buffer->buffer_file_type))
-      {
-	int reduced_size
-	  = inserted - crlf_to_lf (inserted, POS_ADDR (PT - 1) + 1);
-	ZV -= reduced_size;
-	Z -= reduced_size;
-	GPT -= reduced_size;
-	GAP_SIZE += reduced_size;
-	inserted -= reduced_size;
-      }
-  }
-#endif /* DOS_NT */
-#endif /* 0 */
-
   if (inserted > 0)
     {
-      record_insert (PT, inserted);
+      record_insert (PT, inserted_chars);
 
       /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
-      offset_intervals (current_buffer, PT, inserted);
+      offset_intervals (current_buffer, PT, inserted_chars);
       MODIFF++;
     }
 
@@ -3787,6 +3786,8 @@ This does code conversion according to the value of\n\
 	   XSTRING (orig_filename)->data, strerror (errno));
   else if (how_much == -2)
     error ("maximum buffer size exceeded");
+
+  set_coding_system = 1;
 
  notfound:
  handled:
@@ -3827,22 +3828,23 @@ This does code conversion according to the value of\n\
     }
 
   /* Decode file format */
-  if (inserted > 0)
+  if (inserted_chars > 0)
     {
       insval = call3 (Qformat_decode,
-		      Qnil, make_number (inserted), visit);
+		      Qnil, make_number (inserted_chars), visit);
       CHECK_NUMBER (insval, 0);
-      inserted = XFASTINT (insval);
+      inserted_chars = XFASTINT (insval);
     }
 
   /* Call after-change hooks for the inserted text, aside from the case
      of normal visiting (not with REPLACE), which is done in a new buffer
      "before" the buffer is changed.  */
-  if (inserted > 0 && total > 0
+  if (inserted_chars > 0 && total > 0
       && (NILP (visit) || !NILP (replace)))
-    signal_after_change (PT, 0, inserted);
+    signal_after_change (PT, 0, inserted_chars);
 
-  Vlast_coding_system_used = coding.symbol;
+  if (set_coding_system)
+    Vlast_coding_system_used = coding.symbol;
 
   if (inserted > 0)
     {
@@ -3852,17 +3854,18 @@ This does code conversion according to the value of\n\
 
       while (!NILP (p))
 	{
-	  insval = call1 (Fcar (p), make_number (inserted));
+	  insval = call1 (Fcar (p), make_number (inserted_chars));
 	  if (!NILP (insval))
 	    {
 	      CHECK_NUMBER (insval, 0);
-	      inserted = XFASTINT (insval);
+	      inserted_chars = XFASTINT (insval);
 	    }
 	  QUIT;
 	  p = Fcdr (p);
 	}
     }
 
+  /* ??? Retval needs to be dealt with in all cases consistently.  */
   if (NILP (val))
     val = Fcons (orig_filename,
 		 Fcons (make_number (inserted),
@@ -3871,8 +3874,8 @@ This does code conversion according to the value of\n\
   RETURN_UNGCPRO (unbind_to (count, val));
 }
 
-static Lisp_Object build_annotations ();
-extern Lisp_Object Ffile_locked_p ();
+static Lisp_Object build_annotations P_ ((Lisp_Object, Lisp_Object,
+					  Lisp_Object));
 
 /* If build_annotations switched buffers, switch back to BUF.
    Kill the temporary buffer that was selected in the meantime.
@@ -4191,7 +4194,12 @@ to the file, instead of any buffer contents, and END is ignored.")
       && coding.type == coding_type_iso2022
       && coding.flags & CODING_FLAG_ISO_DESIGNATE_AT_BOL
       && GPT > BEG && GPT_ADDR[-1] != '\n')
-    move_gap (find_next_newline (GPT, 1));
+    {
+      int opoint = PT, opoint_byte = PT_BYTE;
+      scan_newline (PT, PT_BYTE, ZV, ZV_BYTE, 1, 0);
+      move_gap_both (PT, PT_BYTE);
+      SET_PT_BOTH (opoint, opoint_byte);
+    }
 #endif
 
   failure = 0;
@@ -4205,25 +4213,23 @@ to the file, instead of any buffer contents, and END is ignored.")
     }
   else if (XINT (start) != XINT (end))
     {
-      int nwritten = 0;
+      register int end1 = CHAR_TO_BYTE (XINT (end));
+
+      tem = CHAR_TO_BYTE (XINT (start));
+
       if (XINT (start) < GPT)
 	{
-	  register int end1 = XINT (end);
-	  tem = XINT (start);
-	  failure = 0 > a_write (desc, POS_ADDR (tem),
-				 min (GPT, end1) - tem, tem, &annotations,
+	  failure = 0 > a_write (desc, BYTE_POS_ADDR (tem),
+				 min (GPT_BYTE, end1) - tem, tem, &annotations,
 				 &coding);
-	  nwritten += min (GPT, end1) - tem;
 	  save_errno = errno;
 	}
 
       if (XINT (end) > GPT && !failure)
 	{
-	  tem = XINT (start);
-	  tem = max (tem, GPT);
-	  failure = 0 > a_write (desc, POS_ADDR (tem), XINT (end) - tem,
+	  tem = max (tem, GPT_BYTE);
+	  failure = 0 > a_write (desc, BYTE_POS_ADDR (tem), end1 - tem,
 				 tem, &annotations, &coding);
-	  nwritten += XINT (end) - tem;
 	  save_errno = errno;
 	}
     }
@@ -4329,7 +4335,7 @@ to the file, instead of any buffer contents, and END is ignored.")
 
   return Qnil;
 }
-
+
 Lisp_Object merge ();
 
 DEFUN ("car-less-than-car", Fcar_less_than_car, Scar_less_than_car, 2, 2, 0,
@@ -4421,43 +4427,51 @@ build_annotations (start, end, pre_write_conversion)
   UNGCPRO;
   return annotations;
 }
-
-/* Write to descriptor DESC the LEN characters starting at ADDR,
-   assuming they start at position POS in the buffer.
+
+/* Write to descriptor DESC the NBYTES bytes starting at ADDR,
+   assuming they start at byte position BYTEPOS in the buffer.
    Intersperse with them the annotations from *ANNOT
-   (those which fall within the range of positions POS to POS + LEN),
+   which fall within the range of byte positions BYTEPOS to BYTEPOS + NBYTES,
    each at its appropriate position.
 
-   Modify *ANNOT by discarding elements as we output them.
+   We modify *ANNOT by discarding elements as we use them up.
+
    The return value is negative in case of system call failure.  */
 
-int
-a_write (desc, addr, len, pos, annot, coding)
+static int
+a_write (desc, addr, nbytes, bytepos, annot, coding)
      int desc;
      register char *addr;
-     register int len;
-     int pos;
+     register int nbytes;
+     int bytepos;
      Lisp_Object *annot;
      struct coding_system *coding;
 {
   Lisp_Object tem;
   int nextpos;
-  int lastpos = pos + len;
+  int lastpos = bytepos + nbytes;
 
   while (NILP (*annot) || CONSP (*annot))
     {
       tem = Fcar_safe (Fcar (*annot));
-      if (INTEGERP (tem) && XINT (tem) >= pos && XFASTINT (tem) <= lastpos)
-	nextpos = XFASTINT (tem);
-      else
-	return e_write (desc, addr, lastpos - pos, coding);
-      if (nextpos > pos)
+      nextpos = 0;
+      if (INTEGERP (tem))
+	nextpos = CHAR_TO_BYTE (XFASTINT (tem));
+
+      /* If there are no more annotations in this range,
+	 output the rest of the range all at once.  */
+      if (! (nextpos >= bytepos && nextpos <= lastpos))
+	return e_write (desc, addr, lastpos - bytepos, coding);
+
+      /* Output buffer text up to the next annotation's position.  */
+      if (nextpos > bytepos)
 	{
-	  if (0 > e_write (desc, addr, nextpos - pos, coding))
+	  if (0 > e_write (desc, addr, nextpos - bytepos, coding))
 	    return -1;
-	  addr += nextpos - pos;
-	  pos = nextpos;
+	  addr += nextpos - bytepos;
+	  bytepos = nextpos;
 	}
+      /* Output the annotation.  */
       tem = Fcdr (Fcar (*annot));
       if (STRINGP (tem))
 	{
@@ -4473,11 +4487,14 @@ a_write (desc, addr, len, pos, annot, coding)
 #define WRITE_BUF_SIZE (16 * 1024)
 #endif
 
-int
-e_write (desc, addr, len, coding)
+/* Write NBYTES bytes starting at ADDR into descriptor DESC,
+   encoding them with coding system CODING.  */
+
+static int
+e_write (desc, addr, nbytes, coding)
      int desc;
      register char *addr;
-     register int len;
+     register int nbytes;
      struct coding_system *coding;
 {
   char buf[WRITE_BUF_SIZE];
@@ -4487,20 +4504,20 @@ e_write (desc, addr, len, coding)
      now it is handled within encode_coding.  */
   while (1)
     {
-      produced = encode_coding (coding, addr, buf, len, WRITE_BUF_SIZE,
+      produced = encode_coding (coding, addr, buf, nbytes, WRITE_BUF_SIZE,
 				&consumed);
-      len -= consumed, addr += consumed;
+      nbytes -= consumed, addr += consumed;
       if (produced > 0)
 	{
 	  produced -= write (desc, buf, produced);
 	  if (produced) return -1;
 	}
-      if (len <= 0)
+      if (nbytes <= 0)
 	break;
     }
   return 0;
 }
-
+
 DEFUN ("verify-visited-file-modtime", Fverify_visited_file_modtime,
   Sverify_visited_file_modtime, 1, 1, 0,
   "Return t if last mod time of BUF's visited file matches what BUF records.\n\
