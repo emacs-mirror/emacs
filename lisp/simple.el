@@ -3894,7 +3894,7 @@ The completion list buffer is available as the value of `standard-output'.")
 		  (set-buffer mainbuf)
 		  (goto-char (point-max))
 		  (skip-chars-backward (format "^%c" directory-sep-char))
-		  (- (point) (point-min))))
+		  (- (point) (minibuffer-prompt-end))))
 	;; Otherwise, in minibuffer, the whole input is being completed.
 	(save-match-data
 	  (if (string-match "\\` \\*Minibuf-[0-9]+\\*\\'"
