@@ -1,5 +1,42 @@
 2000-08-20  Dave Love  <fx@gnu.org>
 
+	* wid-edit.el (widget-choose, widget-choice-mouse-down-action):
+	Don't test x-popup-menu.
+	(function) <complete-function>: Complete only fbound symbols.
+	<validate, value>: New.
+	(variable) <complete-function>: Complete only bound symbols.
+	(coding-system): Add :base-only, :complete-function, :validate,
+	:value, :prompt-match.
+	(widget-coding-system-prompt-value): Use read-coding-system and
+	act on :base-only.
+	(editable-field): Add :help-echo.
+	(widget-push-button-gui, widget-push-button-cache)
+	(widget-gui-action, widget-editable-list-gui): COmment out, along
+	with uses.
+	(widget-at): Make arg optional.
+	(widget-echo-help): Adjust for current help-echo calling sequence.
+	(widget-specify-field, widget-specify-button)
+	(widget-specify-insert, widget-get-sibling, widget-image-find)
+	(widget-convert, widget-insert, widget-leave-text)
+	(widget-beginning-of-line, widget-end-of-line, widget-kill-line)
+	(widget-setup, widget-field-find, widget-before-change)
+	(widget-after-change, widget-default-complete)
+	(widget-default-create, widget-default-delete)
+	(widget-push-button-value-create, editable-field)
+	(widget-field-prompt-value, widget-field-validate)
+	(widget-choice-value-create, widget-choice-action)
+	(widget-choice-validate, widget-checklist-add-item)
+	(widget-radio-add-item, widget-radio-chosen)
+	(widget-radio-value-inline, widget-editable-list-value-create)
+	(widget-editable-list-entry-create)
+	(widget-documentation-link-add)
+	(widget-documentation-string-value-create)
+	(widget-regexp-validate, widget-file-complete)
+	(widget-sexp-validate, widget-plist-convert-widget)
+	(widget-plist-convert-widget, widget-alist-convert-widget)
+	(widget-alist-convert-widget, widget-color-complete): Simplify,
+	particularly to avoid bindings which aren't optimized out.
+
 	* emacs-lisp/lisp.el (defun-prompt-regexp, parens-require-spaces):
 	Doc fix.
 	(down-list, backward-up-list, up-list, kill-sexp)
