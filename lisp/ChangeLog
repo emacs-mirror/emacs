@@ -1,3 +1,8 @@
+2005-01-24  Kenichi Handa  <handa@m17n.org>
+
+	* international/encoded-kb.el (encoded-kbd-iso2022-single-shift):
+	Fix setting of the element of encoded-kbd-iso2022-invocations.
+
 2005-01-24  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-goto-breakpoint, gdb-frames-select)
