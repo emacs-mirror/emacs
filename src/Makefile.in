@@ -583,7 +583,7 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
 #endif
 
 #ifdef HAVE_MOUSE
-#define MOUSE_SUPPORT ${lispsource}menu-bar.elc ${lispsource}mouse.elc \
+#define MOUSE_SUPPORT ${lispsource}mouse.elc \
   ${lispsource}select.elc ${lispsource}scroll-bar.elc
 #else
 #define MOUSE_SUPPORT
@@ -629,6 +629,8 @@ lisp= \
 	${lispsource}abbrev.elc \
 	${lispsource}buff-menu.elc \
 	${lispsource}byte-run.elc \
+	${lispsource}cus-start.elc \
+	${lispsource}custom.elc \
 	${lispsource}files.elc \
 	${lispsource}fill.elc \
 	${lispsource}format.elc \
@@ -645,6 +647,7 @@ lisp= \
 	${lispsource}loadup.el \
 	${lispsource}loaddefs.el \
 	${lispsource}map-ynp.elc \
+	${lispsource}menu-bar.elc \
 	${lispsource}mule.elc \
 	${lispsource}mule-conf.el \
 	${lispsource}mule-cmds.elc \
