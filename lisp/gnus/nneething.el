@@ -365,7 +365,7 @@ included.")
     (if (numberp article)
 	(if (setq fname (cadr (assq article nneething-map)))
 	    (expand-file-name fname dir)
-	  (make-temp-name (expand-file-name "nneething" dir)))
+	  (mm-make-temp-file (expand-file-name "nneething" dir)))
       (expand-file-name article dir))))
 
 (provide 'nneething)

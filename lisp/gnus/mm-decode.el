@@ -400,7 +400,8 @@ external if displayed external."
 		  (mm-handle-set-undisplayer handle mm)))))
 	;; The function is a string to be executed.
 	(mm-insert-part handle)
-	(let* ((dir (make-temp-name (expand-file-name "emm." mm-tmp-directory)))
+ 	(let* ((dir (mm-make-temp-file
+		     (expand-file-name "emm." mm-tmp-directory) 'dir))
 	       (filename (mail-content-type-get
 			  (mm-handle-disposition handle) 'filename))
 	       (mime-info (mailcap-mime-info
@@ -410,12 +411,11 @@ external if displayed external."
 	       (copiousoutput (assoc "copiousoutput" mime-info))
 	       file buffer)
 	  ;; We create a private sub-directory where we store our files.
-	  (make-directory dir)
 	  (set-file-modes dir 448)
 	  (if filename
 	      (setq file (expand-file-name (file-name-nondirectory filename)
 					   dir))
-	    (setq file (make-temp-name (expand-file-name "mm." dir))))
+	    (setq file (mm-make-temp-file (expand-file-name "mm." dir))))
 	  (let ((coding-system-for-write mm-binary-coding-system))
 	    (write-region (point-min) (point-max) file nil 'nomesg))
 	  (message "Viewing with %s" method)
@@ -799,7 +799,7 @@ external if displayed external."
 			  ;; (without a ton of work) is to write them
 			  ;; out to a file, and then create a file
 			  ;; specifier.
-			  (let ((file (make-temp-name
+			  (let ((file (mm-make-temp-file
 				       (expand-file-name "emm.xbm"
 							 mm-tmp-directory))))
 			    (unwind-protect

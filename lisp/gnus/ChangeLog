@@ -1,7 +1,22 @@
-2002-03-05  ShengHuo ZHU  <zsh@cs.rochester.edu>
+2002-03-21  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* mail-source.el (make-source-make-complex-temp-name): Use
+	make-temp-file.
+
+	* mm-util.el (mm-make-temp-file): New function.
+	* nneething.el (nneething-file-name): Use it.
+	* mm-decode.el (mm-display-external, mm-create-image-xemacs): Ditto.
+	* gnus-uu.el (gnus-uu-decode-binhex, gnus-uu-decode-binhex-view) 
+	(gnus-uu-digest-mail-forward, gnus-uu-initialize): Ditto.
+	* gnus-start.el (gnus-slave-save-newsrc): Ditto.
+ 
+	* message.el (message-mode): If buffer-file-name, don't set auto
+	save file name.
+	Trivial change from Geoff Greene <ggreene@wpi.edu>
+
+2002-03-05  Eli Zaretskii <eliz@is.elta.co.il>
 
 	* qp.el (quoted-printable-decode-region): Doc addition.
-	From: Eli Zaretskii <eliz@is.elta.co.il>
 
 2002-02-21  ShengHuo ZHU  <zsh@cs.rochester.edu>
 

@@ -1546,7 +1546,8 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
     (if (fboundp 'mail-abbrevs-setup)
 	(mail-abbrevs-setup)
       (mail-aliases-setup)))
-  (message-set-auto-save-file-name)
+  (unless buffer-file-name
+    (message-set-auto-save-file-name))
   (mm-enable-multibyte)
   (make-local-variable 'indent-tabs-mode) ;Turn off tabs for indentation.
   (setq indent-tabs-mode nil)

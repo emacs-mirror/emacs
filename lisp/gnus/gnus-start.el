@@ -2500,7 +2500,7 @@ If FORCE is non-nil, the .newsrc file is read."
   (save-excursion
     (set-buffer gnus-dribble-buffer)
     (let ((slave-name
-	   (make-temp-name (concat gnus-current-startup-file "-slave-")))
+	   (mm-make-temp-file (concat gnus-current-startup-file "-slave-")))
 	  (modes (ignore-errors
 		   (file-modes (concat gnus-current-startup-file ".eld")))))
       (let ((coding-system-for-write gnus-ding-file-coding-system))

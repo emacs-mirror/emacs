@@ -457,7 +457,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 			  gnus-uu-default-dir
 			  gnus-uu-default-dir))))
   (setq gnus-uu-binhex-article-name
-	(make-temp-name (concat gnus-uu-work-dir "binhex")))
+	(mm-make-temp-file (expand-file-name "binhex" gnus-uu-work-dir)))
   (gnus-uu-decode-with-method 'gnus-uu-binhex-article n dir))
 
 (defun gnus-uu-decode-uu-view (&optional n)
@@ -510,7 +510,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 	 (read-file-name "Unbinhex, view and save in dir: "
 			 gnus-uu-default-dir gnus-uu-default-dir)))
   (setq gnus-uu-binhex-article-name
-	(make-temp-name (concat gnus-uu-work-dir "binhex")))
+	(mm-make-temp-file (expand-file-name "binhex" gnus-uu-work-dir)))
   (let ((gnus-view-pseudos (or gnus-view-pseudos 'automatic)))
     (gnus-uu-decode-binhex n file)))
 
@@ -521,7 +521,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
   "Digests and forwards all articles in this series."
   (interactive "P")
   (let ((gnus-uu-save-in-digest t)
-	(file (make-temp-name (nnheader-concat gnus-uu-tmp-dir "forward")))
+	(file (mm-make-temp-file (nnheader-concat gnus-uu-tmp-dir "forward")))
 	(message-forward-as-mime message-forward-as-mime)
 	(mail-parse-charset gnus-newsgroup-charset)
 	(mail-parse-ignored-charsets gnus-newsgroup-ignored-charsets)
@@ -1779,8 +1779,7 @@ Gnus might fail to display all of it.")
 		 gnus-uu-tmp-dir)))
 
       (setq gnus-uu-work-dir
-	    (make-temp-name (concat gnus-uu-tmp-dir "gnus")))
-      (gnus-make-directory gnus-uu-work-dir)
+	    (mm-make-temp-file (concat gnus-uu-tmp-dir "gnus") 'dir))
       (set-file-modes gnus-uu-work-dir 448)
       (setq gnus-uu-work-dir (file-name-as-directory gnus-uu-work-dir))
       (push (cons gnus-newsgroup-name gnus-uu-work-dir)

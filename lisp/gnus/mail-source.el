@@ -450,13 +450,16 @@ Return the number of files that were found."
 		    (error "Cannot get new mail"))
 		  0))))))))
 
-(defun mail-source-make-complex-temp-name (prefix)
-  (let ((newname (make-temp-name prefix))
-	(newprefix prefix))
-    (while (file-exists-p newname)
-      (setq newprefix (concat newprefix "x"))
-      (setq newname (make-temp-name newprefix)))
-    newname))
+(eval-and-compile
+  (if (fboundp 'make-temp-file)
+      (defalias 'mail-source-make-complex-temp-name 'make-temp-file)
+    (defun mail-source-make-complex-temp-name (prefix)
+      (let ((newname (make-temp-name prefix))
+	    (newprefix prefix))
+	(while (file-exists-p newname)
+	  (setq newprefix (concat newprefix "x"))
+	  (setq newname (make-temp-name newprefix)))
+	newname))))
 
 (defun mail-source-callback (callback info)
   "Call CALLBACK on the mail file, and then remove the mail file.
