@@ -646,7 +646,7 @@ This is in addition to the primary selection.")
 (setq x-cut-buffer-max (min (- (/ (x-server-max-request-size) 2) 100)
 			    x-cut-buffer-max))
 
-(setq-default mode-line-buffer-identification '("  %12b"))
+(setq-default mode-line-frame-identification "")
 
 (if (fboundp 'new-fontset)
     (progn
