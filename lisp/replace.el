@@ -352,7 +352,8 @@ It serves as a menu to find any of the occurrences in this buffer.
     (with-output-to-temp-buffer "*Occur*"
       (save-excursion
 	(set-buffer standard-output)
-	(insert "Lines matching ")
+	;; We will insert the number of lines, and "lines", later.
+	(insert " matching ")
 	(prin1 regexp)
 	(insert " in buffer " (buffer-name buffer) ?. ?\n)
 	(occur-mode)
@@ -425,6 +426,10 @@ It serves as a menu to find any of the occurrences in this buffer.
 	(set-buffer standard-output)
 	;; Put positions in increasing order to go with buffer.
 	(setq occur-pos-list (nreverse occur-pos-list))
+	(goto-char (point-min))
+	(if (= (length occur-pos-list) 1)
+	    (insert "1 line")
+	  (insert (format "%d lines" (length occur-pos-list))))
 	(if (interactive-p)
 	    (message "%d matching lines." (length occur-pos-list)))))))
 
