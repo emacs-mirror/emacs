@@ -20618,8 +20618,8 @@ fast_find_position (w, charpos, hpos, vpos, x, y, stop)
 	  glyph = end + prev->used[TEXT_AREA];
 	  while (--glyph >= end
 		 && INTEGERP (glyph->object));
-	  if (glyph < end
-	      || !EQ (stop, glyph->object))
+	  if (glyph >= end
+	      && !EQ (stop, glyph->object))
 	    break;
 	  row = prev;
 	}
