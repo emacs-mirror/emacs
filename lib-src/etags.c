@@ -31,8 +31,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 11.16";
 
+char pot_etags_version[] = "@(#) pot revision number is 11.19";
 #ifdef MSDOS
 #include <fcntl.h>
 #include <sys/param.h>
@@ -1157,6 +1157,7 @@ pfnote (name, is_func, named, linestart, linelen, lno, cno)
       np->name = name;
       np->named = named;
     }
+  np->been_warned = FALSE;
   np->file = curfile;
   np->is_func = is_func;
   np->lno = lno;
@@ -2116,20 +2117,8 @@ C_entries (c_ext, inf)
 		    structdef = snone;
 		  break;
 		case dsharpseen:
-		  /* Take a quick peek ahead for a define directive,
-		     so we can avoid saving the token when not absolutely
-		     necessary. [This is a speed hack.] */
-		  if (c == 'd' && strneq (lp, "efine", 5)
-		      && iswhite (*(lp + 5)))
-		    {
-		      savetok = tok;
-		      token_saved = TRUE;
-		      definedef = ddefineseen;
-		      lp += 6;
-		    }
-		  else
-		    definedef = dignorerest;
-		  continue;
+		  savetok = tok;
+		  token_saved = TRUE;
 		}
 	      if (!yacc_rules || lp == newlb.buffer + 1)
 		{
@@ -2138,7 +2127,7 @@ C_entries (c_ext, inf)
 		  midtoken = TRUE;
 		}
 	      continue;
-	    }
+	    } /* if (begtoken) */
 	} /* if must look at token */
 
 
