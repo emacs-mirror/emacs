@@ -1,8 +1,10 @@
-;;; utf-8.el --- Limited UTF-8 decoding/encoding support
+;;; utf-8.el --- Limited UTF-8 decoding/encoding support -*- coding: iso-2022-7bit-*-
 
 ;; Copyright (C) 2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2001 Free Software Foundation, Inc.
 
+;; Author: TAKAHASHI Naoto  <ntakahas@m17n.org>
 ;; Keywords: multilingual, Unicode, UTF-8, i18n
 
 ;; This file is part of GNU Emacs.
@@ -62,6 +64,7 @@
   ;;         ascii          |       1        |       1
   ;; -----------------------+----------------+---------------
   ;;    eight-bit-control   |       2        |       2
+  ;;    eight-bit-graphic   |       2        |       1
   ;;     latin-iso8859-1    |       2        |       2
   ;; -----------------------+----------------+---------------
   ;; mule-unicode-0100-24ff |       2        |       4
@@ -75,205 +78,352 @@
   ;; Thus magnification factor is two.
   ;;
   `(2
-    ((loop
+    ((r5 = ,(charset-id 'eight-bit-control))
+     (r6 = ,(charset-id 'eight-bit-graphic))
+     (loop
       (read r0)
 
       ;; 1byte encoding, i.e., ascii
       (if (r0 < #x80)
 	  (write r0)
 
-	;; 2byte encoding
+	;; 2 byte encoding 00000yyyyyxxxxxx = 110yyyyy 10xxxxxx
 	(if (r0 < #xe0)
 	    ((read r1)
-	     (r0 &= #x1f)
-	     (r0 <<= 6)
-	     (r1 &= #x3f)
-	     (r1 += r0)
-	     ;; now r1 holds scalar value
 
-	     ;; eight-bit-control
-	     (if (r1 < 160)
-		 ((r0 = ,(charset-id 'eight-bit-control))
-		  (write-multibyte-character r0 r1))
+	     (if ((r1 & #b11000000) != #b10000000)
+		 ;; Invalid 2-byte sequence
+		 ((if (r0 < #xa0)
+		      (write-multibyte-character r5 r0)
+		    (write-multibyte-character r6 r0))
+		  (if (r1 < #x80)
+		      (write r1)
+		    (if (r1 < #xa0)
+			(write-multibyte-character r5 r1)
+		      (write-multibyte-character r6 r1))))
 
-	       ;; latin-iso8859-1
-	       (if (r1 < 256)
-		   ((r0 = ,(charset-id 'latin-iso8859-1))
-		    (r1 -= 128)
-		    (write-multibyte-character r0 r1))
+	       ((r0 &= #x1f)
+		(r0 <<= 6)
+		(r1 &= #x3f)
+		(r1 += r0)
+		;; Now r1 holds scalar value
 
-		 ;; mule-unicode-0100-24ff (< 0800)
-		 ((r0 = ,(charset-id 'mule-unicode-0100-24ff))
-		  (r1 -= #x0100)
-		  (r2 = (((r1 / 96) + 32) << 7))
-		  (r1 %= 96)
-		  (r1 += (r2 + 32))
-		  (write-multibyte-character r0 r1)))))
+		;; eight-bit-control
+		(if (r1 < 160)
+		    ((write-multibyte-character r5 r1))
+
+		  ;; latin-iso8859-1
+		  (if (r1 < 256)
+		      ((r0 = ,(charset-id 'latin-iso8859-1))
+		       (r1 -= 128)
+		       (write-multibyte-character r0 r1))
+
+		    ;; mule-unicode-0100-24ff (< 0800)
+		    ((r0 = ,(charset-id 'mule-unicode-0100-24ff))
+		     (r1 -= #x0100)
+		     (r2 = (((r1 / 96) + 32) << 7))
+		     (r1 %= 96)
+		     (r1 += (r2 + 32))
+		     (write-multibyte-character r0 r1)))))))
 
 	  ;; 3byte encoding
+	  ;; zzzzyyyyyyxxxxxx = 1110zzzz 10yyyyyy 10xxxxxx
 	  (if (r0 < #xf0)
 	      ((read r1 r2)
-	       (r3 = ((r0 & #x0f) << 12))
-	       (r3 += ((r1 & #x3f) << 6))
-	       (r3 += (r2 & #x3f))
-	       ;; now r3 holds scalar value
 
-	       ;; mule-unicode-0100-24ff (>= 0800)
-	       (if (r3 < #x2500)
-		   ((r0 = ,(charset-id 'mule-unicode-0100-24ff))
-		    (r3 -= #x0100)
-		    (r3 //= 96)
-		    (r1 = (r7 + 32))
-		    (r1 += ((r3 + 32) << 7))
-		    (write-multibyte-character r0 r1))
+	       ;; This is set to 1 if the encoding is invalid.
+	       (r4 = 0)
 
-		 ;; mule-unicode-2500-33ff
-		 (if (r3 < #x3400)
-		     ((r0 = ,(charset-id 'mule-unicode-2500-33ff))
-		      (r3 -= #x2500)
-		      (r3 //= 96)
-		      (r1 = (r7 + 32))
-		      (r1 += ((r3 + 32) << 7))
-		      (write-multibyte-character r0 r1))
+	       (r3 = (r1 & #b11000000))
+	       (r3 |= ((r2 >> 2) & #b00110000))
+	       (if (r3 != #b10100000)
+		   (r4 = 1)
+		 ((r3 = ((r0 & #x0f) << 12))
+		  (r3 += ((r1 & #x3f) << 6))
+		  (r3 += (r2 & #x3f))
+		  (if (r3 < #x0800)
+		      (r4 = 1))))
 
-		   ;; U+3400 .. U+DFFF
-		   ;; keep those bytes as eight-bit-{control|graphic}
-		   (if (r3 < #xe000)
-		       (;; #xe0 < r0 < #xf0, so r0 is eight-bit-graphic
-			(r3 = ,(charset-id 'eight-bit-graphic))
-			(write-multibyte-character r3 r0)
-			(if (r1 < #xa0)
-			    (r3 = ,(charset-id 'eight-bit-control)))
-			(write-multibyte-character r3 r1)
-			(if (r2 < #xa0)
-			    (r3 = ,(charset-id 'eight-bit-control))
-			  (r3 = ,(charset-id 'eight-bit-graphic)))
-			(write-multibyte-character r3 r2))
-
-		     ;; mule-unicode-e000-ffff
-		     ((r0 = ,(charset-id 'mule-unicode-e000-ffff))
-		      (r3 -= #xe000)
-		      (r3 //= 96)
-		      (r1 = (r7 + 32))
-		      (r1 += ((r3 + 32) << 7))
-		      (write-multibyte-character r0 r1))))))
+	       (if (r4 != 0)
+		   ;; Invalid 3-byte sequence
+		   ((if (r0 < #xa0)
+			(write-multibyte-character r5 r0)
+		      (write-multibyte-character r6 r0))
+		    (if (r1 < #x80)
+			(write r1)
+		      (if (r1 < #xa0)
+			  (write-multibyte-character r5 r1)
+			(write-multibyte-character r6 r1)))
+		    (if (r2 < #x80)
+			(write r2)
+		      (if (r2 < #xa0)
+			  (write-multibyte-character r5 r2)
+			(write-multibyte-character r6 r2))))
+		 
+		 ;; mule-unicode-0100-24ff (>= 0800)
+		 ((if (r3 < #x2500)
+		      ((r0 = ,(charset-id 'mule-unicode-0100-24ff))
+		       (r3 -= #x0100)
+		       (r3 //= 96)
+		       (r1 = (r7 + 32))
+		       (r1 += ((r3 + 32) << 7))
+		       (write-multibyte-character r0 r1))
+		    
+		    ;; mule-unicode-2500-33ff
+		    (if (r3 < #x3400)
+			((r0 = ,(charset-id 'mule-unicode-2500-33ff))
+			 (r3 -= #x2500)
+			 (r3 //= 96)
+			 (r1 = (r7 + 32))
+			 (r1 += ((r3 + 32) << 7))
+			 (write-multibyte-character r0 r1))
+		      
+		      ;; U+3400 .. U+DFFF
+		    ;; keep those bytes as eight-bit-{control|graphic}
+		      (if (r3 < #xe000)
+			  ( ;; #xe0 <= r0 < #xf0, so r0 is eight-bit-graphic
+			   (r3 = r6)
+			   (write-multibyte-character r3 r0)
+			   (if (r1 < #xa0)
+			       (r3 = r5))
+			   (write-multibyte-character r3 r1)
+			   (if (r2 < #xa0)
+			       (r3 = r5)
+			     (r3 = r6))
+			   (write-multibyte-character r3 r2))
+			
+			;; mule-unicode-e000-ffff
+			((r0 = ,(charset-id 'mule-unicode-e000-ffff))
+			 (r3 -= #xe000)
+			 (r3 //= 96)
+			 (r1 = (r7 + 32))
+			 (r1 += ((r3 + 32) << 7))
+			 (write-multibyte-character r0 r1))))))))
 
 	    ;; 4byte encoding
 	    ;; keep those bytes as eight-bit-{control|graphic}
 	    ((read r1 r2 r3)
 	     ;; r0 > #xf0, thus eight-bit-graphic
-	     (r4 = ,(charset-id 'eight-bit-graphic))
-	     (write-multibyte-character r4 r0)
+	     (write-multibyte-character r6 r0)
 	     (if (r1 < #xa0)
-		 (r4 = ,(charset-id 'eight-bit-control)))
-	     (write-multibyte-character r4 r1)
+		 (write-multibyte-character r5 r1)
+	       (write-multibyte-character r6 r1))
 	     (if (r2 < #xa0)
-		 (r4 = ,(charset-id 'eight-bit-control))
-	       (r4 = ,(charset-id 'eight-bit-graphic)))
-	     (write-multibyte-character r4 r2)
+		 (write-multibyte-character r5 r2)
+	       (write-multibyte-character r6 r2))
 	     (if (r3 < #xa0)
-		 (r4 = ,(charset-id 'eight-bit-control))
-	       (r4 = ,(charset-id 'eight-bit-graphic)))
-	     (write-multibyte-character r4 r3)))))
+		 (write-multibyte-character r5 r3)
+	       (write-multibyte-character r6 r3))))))
 
       (repeat))))
 
   "CCL program to decode UTF-8.
-Decoding is done into the charsets ascii, eight-bit-control,
-latin-iso8859-1 and mule-unicode-* only.")
+Basic decoding is done into the charsets ascii, latin-iso8859-1 and
+mule-unicode-*.  Encodings of un-representable Unicode characters are
+decoded asis into eight-bit-control and eight-bit-graphic
+characters.")
 
 (define-ccl-program ccl-encode-mule-utf-8
   `(1
-    (loop
-     (read-multibyte-character r0 r1)
+    ((r5 = -1)
+     (loop
+      (if (r5 < 0)
+	  ((r1 = -1)
+	   (read-multibyte-character r0 r1)
+	   (translate-character ucs-mule-8859-to-mule-unicode r0 r1))
+	(;; We have already done read-multibyte-character.
+	 (r0 = r5)
+	 (r1 = r6)
+	 (r5 = -1)))
 
-     (translate-character ucs-mule-8859-to-mule-unicode r0 r1)
+      (if (r0 == ,(charset-id 'ascii))
+	  (write r1)
 
-     (if (r0 == ,(charset-id 'ascii))
-	 (write r1)
+	(if (r0 == ,(charset-id 'latin-iso8859-1))
+	    ;; r1          scalar                  utf-8
+	    ;;       0000 0yyy yyxx xxxx    110y yyyy 10xx xxxx
+	    ;; 20    0000 0000 1010 0000    1100 0010 1010 0000
+	    ;; 7f    0000 0000 1111 1111    1100 0011 1011 1111
+	    ((r0 = (((r1 & #x40) >> 6) | #xc2))
+	     (r1 &= #x3f)
+	     (r1 |= #x80)
+	     (write r0 r1))
 
-       (if (r0 == ,(charset-id 'latin-iso8859-1))
-	   ;; r1          scalar                  utf-8
-	   ;;       0000 0yyy yyxx xxxx    110y yyyy 10xx xxxx
-	   ;; 20    0000 0000 1010 0000    1100 0010 1010 0000
-	   ;; 7f    0000 0000 1111 1111    1100 0011 1011 1111
-	   ((r0 = (((r1 & #x40) >> 6) | #xc2))
-	    (r1 &= #x3f)
-	    (r1 |= #x80)
-	    (write r0 r1))
-
-	 (if (r0 == ,(charset-id 'mule-unicode-0100-24ff))
-	     ((r0 = ((((r1 & #x3f80) >> 7) - 32) * 96))
-	      ;; #x3f80 == (0011 1111 1000 0000)b
-	      (r1 &= #x7f)
-	      (r1 += (r0 + 224))	; 240 == -32 + #x0100
-	      ;; now r1 holds scalar value
-	      (if (r1 < #x0800)
-		  ;; 2byte encoding
-		  ((r0 = (((r1 & #x07c0) >> 6) | #xc0))
-		   ;; #x07c0 == (0000 0111 1100 0000)b
-		   (r1 &= #x3f)
-		   (r1 |= #x80)
-		   (write r0 r1))
-		;; 3byte encoding
-		((r0 = (((r1 & #xf000) >> 12) | #xe0))
-		 (r2 = ((r1 & #x3f) | #x80))
-		 (r1 &= #x0fc0)
-		 (r1 >>= 6)
-		 (r1 |= #x80)
-		 (write r0 r1 r2))))
-
-	   (if (r0 == ,(charset-id 'mule-unicode-2500-33ff))
-	       ((r0 = ((((r1 & #x3f80) >> 7) - 32) * 96))
-		(r1 &= #x7f)
-		(r1 += (r0 + 9440))	; 9440 == -32 + #x2500
-		(r0 = (((r1 & #xf000) >> 12) | #xe0))
-		(r2 = ((r1 & #x3f) | #x80))
-		(r1 &= #x0fc0)
-		(r1 >>= 6)
-		(r1 |= #x80)
-		(write r0 r1 r2))
-
-	     (if (r0 == ,(charset-id 'mule-unicode-e000-ffff))
-		 ((r0 = ((((r1 & #x3f80) >> 7) - 32) * 96))
-		  (r1 &= #x7f)
-		  (r1 += (r0 + 57312))	; 57312 == -160 + #xe000
-		  (r0 = (((r1 & #xf000) >> 12) | #xe0))
+	  (if (r0 == ,(charset-id 'mule-unicode-0100-24ff))
+	      ((r0 = ((((r1 & #x3f80) >> 7) - 32) * 96))
+	       ;; #x3f80 == (0011 1111 1000 0000)b
+	       (r1 &= #x7f)
+	       (r1 += (r0 + 224))	; 240 == -32 + #x0100
+	       ;; now r1 holds scalar value
+	       (if (r1 < #x0800)
+		   ;; 2byte encoding
+		   ((r0 = (((r1 & #x07c0) >> 6) | #xc0))
+		    ;; #x07c0 == (0000 0111 1100 0000)b
+		    (r1 &= #x3f)
+		    (r1 |= #x80)
+		    (write r0 r1))
+		 ;; 3byte encoding
+		 ((r0 = (((r1 & #xf000) >> 12) | #xe0))
 		  (r2 = ((r1 & #x3f) | #x80))
 		  (r1 &= #x0fc0)
 		  (r1 >>= 6)
 		  (r1 |= #x80)
-		  (write r0 r1 r2))
+		  (write r0 r1 r2))))
 
-	       (if (r0 == ,(charset-id 'eight-bit-control))
-		   ;; r1          scalar                  utf-8
-		   ;;       0000 0yyy yyxx xxxx    110y yyyy 10xx xxxx
-		   ;; 80    0000 0000 1000 0000    1100 0010 1000 0000
-		   ;; 9f    0000 0000 1001 1111    1100 0010 1001 1111
-		   (write r1)
+	    (if (r0 == ,(charset-id 'mule-unicode-2500-33ff))
+		((r0 = ((((r1 & #x3f80) >> 7) - 32) * 96))
+		 (r1 &= #x7f)
+		 (r1 += (r0 + 9440))	; 9440 == -32 + #x2500
+		 (r0 = (((r1 & #xf000) >> 12) | #xe0))
+		 (r2 = ((r1 & #x3f) | #x80))
+		 (r1 &= #x0fc0)
+		 (r1 >>= 6)
+		 (r1 |= #x80)
+		 (write r0 r1 r2))
 
-		 (if (r0 == ,(charset-id 'eight-bit-graphic))
-		     ;; r1          scalar                  utf-8
-		     ;;       0000 0yyy yyxx xxxx    110y yyyy 10xx xxxx
-		     ;; a0    0000 0000 1010 0000    1100 0010 1010 0000
-		     ;; ff    0000 0000 1111 1111    1101 1111 1011 1111
-		     (write r1)
+	      (if (r0 == ,(charset-id 'mule-unicode-e000-ffff))
+		  ((r0 = ((((r1 & #x3f80) >> 7) - 32) * 96))
+		   (r1 &= #x7f)
+		   (r1 += (r0 + 57312))	; 57312 == -160 + #xe000
+		   (r0 = (((r1 & #xf000) >> 12) | #xe0))
+		   (r2 = ((r1 & #x3f) | #x80))
+		   (r1 &= #x0fc0)
+		   (r1 >>= 6)
+		   (r1 |= #x80)
+		   (write r0 r1 r2))
 
-		   ;; Unsupported character.
-		   ;; Output U+FFFD, which is `ef bf bd' in UTF-8.
-		   ((write #xef)
-		    (write #xbf)
-		    (write #xbd)))))))))
-     (repeat)))
+		(if (r0 == ,(charset-id 'eight-bit-control))
+		    ;; r1          scalar                  utf-8
+		    ;;       0000 0yyy yyxx xxxx    110y yyyy 10xx xxxx
+		    ;; 80    0000 0000 1000 0000    1100 0010 1000 0000
+		    ;; 9f    0000 0000 1001 1111    1100 0010 1001 1111
+		    ((write #xc2)
+		     (write r1))
+
+		  (if (r0 == ,(charset-id 'eight-bit-graphic))
+		      ;; r1          scalar                  utf-8
+		      ;;       0000 0yyy yyxx xxxx    110y yyyy 10xx xxxx
+		      ;; a0    0000 0000 1010 0000    1100 0010 1010 0000
+		      ;; ff    0000 0000 1111 1111    1101 1111 1011 1111
+		      ((write r1)
+		       (r1 = -1)
+		       (read-multibyte-character r0 r1)
+		       (if (r0 != ,(charset-id 'eight-bit-graphic))
+			   (if (r0 != ,(charset-id 'eight-bit-control))
+			       ((r5 = r0)
+				(r6 = r1))))
+		       (if (r5 < 0)
+			   ((read-multibyte-character r0 r2)
+			    (if (r0 != ,(charset-id 'eight-bit-graphic))
+				(if (r0 != ,(charset-id 'eight-bit-control))
+				    ((r5 = r0)
+				     (r6 = r2))))
+			    (if (r5 < 0)
+				(write r1 r2)
+			      (if (r1 < #xa0)
+				  (write r1)
+				((write #xc2)
+				 (write r1)))))))
+
+		    ;; Unsupported character.
+		    ;; Output U+FFFD, which is `ef bf bd' in UTF-8.
+		    ((write #xef)
+		     (write #xbf)
+		     (write #xbd)))))))))
+      (repeat)))
+    (if (r1 >= #xa0)
+	(write r1)
+      (if (r1 >= #x80)
+	  ((write #xc2)
+	   (write r1)))))
 
   "CCL program to encode into UTF-8.
 Only characters from the charsets ascii, eight-bit-control,
-latin-iso8859-1 and mule-unicode-* are recognized.  Others are encoded
-as U+FFFD.")
+eight-bit-graphic, latin-iso8859-1 and mule-unicode-* are recognized.
+Others are encoded as U+FFFD.")
 
-;; Dummy definition needed by the CCL program.  The real data are
-;; loaded on demand.
+;; Dummy definition so that the CCL can be checked correctly; the
+;; actual data are loaded on demand.
 (define-translation-table 'ucs-mule-8859-to-mule-unicode)
+
+(defsubst utf-8-untranslated-to-ucs ()
+  (let ((b1 (char-after))
+	(b2 (char-after (1+ (point))))
+	(b3 (char-after (+ 2 (point))))
+	(b4 (char-after (+ 4 (point)))))
+    (if (and b1 b2 b3)
+	(cond ((< b1 ?\xf0)
+	       (setq b2 (lsh (logand b2 ?\x3f) 6))
+	       (setq b3 (logand b3 ?\x3f))
+	       (logior b3 (logior b2 (lsh (logand b1 ?\x0f) 12))))
+	      (b4
+	       (setq b2 (lsh (logand b2 ?\x3f) 12))
+	       (setq b3 (lsh (logand b3 ?\x3f) 6))
+	       (setq b4 (logand b4 ?\x3f))
+	       (logior b4 (logior b3 (logior b2 (lsh (logand b1 ?\x07)
+						     18)))))))))
+
+(defun utf-8-help-echo (window object position)
+  (format "Untranslated Unicode U+%04X"
+	  (get-char-property position 'untranslated-utf-8 object)))
+
+(defvar utf-8-subst-table nil
+  "If non-nil, a hash table mapping `untranslatable utf-8' to Emacs characters.")
+
+;; We compose the untranslatable sequences into a single character.
+;; This is infelicitous for editing, because there's currently no
+;; mechanism for treating compositions as atomic, but is OK for
+;; display.  We try to compose an appropriate character from a hash
+;; table of CJK characters to display correctly.  Otherwise we use
+;; U+FFFD.  What we really should have is hash table lookup from CCL
+;; so that we could do this properly.
+(defsubst utf-8-compose ()
+  "Put a suitable composition on an untrnslatable sequence.
+Return the sequence's length."
+  (let* ((u (utf-8-untranslated-to-ucs))
+	 (l (and u (if (>= u ?\x10000)
+		       4
+		     3)))
+	 (subst (or (and utf-8-subst-table (gethash u utf-8-subst-table))
+		    ?$,3u=(B)))
+    (when u
+      (put-text-property (point) (min (point-max) (+ l (point)))
+			 'untranslated-utf-8 u)
+      (unless subst
+	(put-text-property (point) (min (point-max) (+ l (point)))
+			   'help-echo 'utf-8-help-echo))
+      (compose-region (point) (+ l (point)) subst)
+      l)))
+
+(defun utf-8-post-read-conversion (length)
+  "Compose untranslated utf-8 sequences into single characters."
+  (save-excursion
+    (while (and (skip-chars-forward (string-as-multibyte "^\341-\377"))
+		(not (eobp)))
+      (forward-char (utf-8-compose))))
+  length)
+
+(defun utf-8-pre-write-conversion (beg end)
+  (require 'ucs-tables)			; ensure translation table is loaded
+  (when (stringp beg)
+    (set-buffer (generate-new-buffer " *temp*"))
+    (insert beg)
+    (setq end (1+ (length beg)))
+    (setq beg 1))
+  ;; Look for 8-bit-graphic characters that haven't been marked as
+  ;; untranslated, and UTF-8-encode them.
+  (save-excursion
+    (save-restriction
+      (narrow-to-region beg end)
+      (goto-char beg)
+      (while (and (skip-chars-forward (string-as-multibyte "^\240-\377"))
+		  (not (eobp)))
+	(if (get-text-property (point) 'untranslated-utf-8)
+	    (forward-char)
+	  (let ((c (char-after)))
+	    (delete-char 1)
+	    (insert (make-char 'latin-iso8859-1 (- c 128))))))))
+  nil)
 
 (make-coding-system
  'mule-utf-8 4 ?u
@@ -283,18 +433,24 @@ The supported Emacs character sets are:
    eight-bit-control
    eight-bit-graphic
    latin-iso8859-1
+   latin-iso8859-2
+   latin-iso8859-3
+   latin-iso8859-4
+   cyrillic-iso8859-5
+   greek-iso8859-7
+   hebrew-iso8859-8
+   latin-iso8859-9
+   latin-iso8859-14
+   latin-iso8859-15
    mule-unicode-0100-24ff
    mule-unicode-2500-33ff
    mule-unicode-e000-ffff
 
 Unicode characters out of the ranges U+0000-U+33FF and U+E200-U+FFFF
 are decoded into sequences of eight-bit-control and eight-bit-graphic
-characters to preserve their byte sequences.  Emacs characters out of
-these ranges are encoded into U+FFFD.
-
-Note that, currently, characters in the mule-unicode charsets have no
-syntax and case information.  Thus, for instance, upper- and
-lower-casing commands won't work with them."
+characters to preserve their byte sequences and composed to behave as
+a single character when editing.  Emacs characters out of these ranges
+are encoded into U+FFFD."
 
  '(ccl-decode-mule-utf-8 . ccl-encode-mule-utf-8)
  '((safe-charsets
@@ -315,12 +471,30 @@ lower-casing commands won't work with them."
     mule-unicode-2500-33ff
     mule-unicode-e000-ffff)
    (mime-charset . utf-8)
+   (coding-category . coding-category-utf-8)
    (valid-codes (0 . 255))
-   ;; Kluge to get the real translation table loaded.
-   (pre-write-conversion . internal-require-ucs-tables)))
-
-(defun internal-require-ucs-tables (from to)
-  (require 'ucs-tables)
-  nil)
+   (post-read-conversion . utf-8-post-read-conversion)
+   (pre-write-conversion . utf-8-pre-write-conversion)))
 
 (define-coding-system-alias 'utf-8 'mule-utf-8)
+
+;; I think this needs special private charsets defined for the
+;; untranslated sequences, if it's going to work well.
+
+;; (defun utf-8-compose-function (pos to pattern &optional string)
+;;   (let* ((prop (get-char-property pos 'composition string))
+;; 	 (l (and prop (- (cadr prop) (car prop)))))
+;;     (cond ((and l (> l (- to pos)))
+;; 	   (delete-region pos to))
+;; 	  ((and (> (char-after pos) 224)
+;; 		(< (char-after pos) 256)
+;; 		(save-restriction
+;; 		  (narrow-to-region pos to)
+;; 		  (utf-8-compose)))
+;; 	   t))))
+
+;; (dotimes (i 96)
+;;   (aset composition-function-table
+;; 	(+ 128 i)
+;; 	`((,(string-as-multibyte "[\200-\237\240-\377]")
+;; 	   . utf-8-compose-function))))
