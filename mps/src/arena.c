@@ -415,6 +415,8 @@ void ArenaEnter(Arena arena)
 {
   AVER(arena != NULL);
   AVER(arena->sig == ArenaSig);
+
+  StackProbe(STACK_PROBE_DEPTH);
   LockClaim(&arena->lockStruct);
   AVERT(Arena, arena); /* can't AVER it until we've got the lock */
   ShieldEnter(arena);
