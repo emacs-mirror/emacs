@@ -1,4 +1,5 @@
-;;; Menubar support.
+;;; lmenu.el --- emulate Lucid's menubar support
+
 ;; Copyright (C) 1992, 1993 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -16,6 +17,8 @@
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Code:
 
 
 ;; First, emulate the Lucid menubar support in GNU Emacs 19.
@@ -633,3 +636,4 @@ You can control the text of the menu items by redefining the function
 
 (provide 'menubar)
 
+;;; lmenu.el ends here

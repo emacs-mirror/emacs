@@ -1,4 +1,5 @@
-;;; vms-pmail.el -- use Emacs as the editor within VMS mail.
+;;; vms-pmail.el --- use Emacs as the editor within VMS mail.
+
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; Author: Roland B Roberts <roberts@nsrl31.nsrl.rochester.edu>
@@ -111,3 +112,4 @@ If neither file exists, fails quietly."
 	(if (file-attributes "~/.signature")
 	    (insert-file-contents "~/.signature")))))
 
+;;; vms-pmail.el ends here

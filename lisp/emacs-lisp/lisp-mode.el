@@ -21,6 +21,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Code:
+
 (defvar lisp-mode-syntax-table nil "")
 (defvar emacs-lisp-mode-syntax-table nil "")
 (defvar lisp-mode-abbrev-table nil "")

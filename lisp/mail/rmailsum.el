@@ -1,4 +1,5 @@
-;; "RMAIL" mail reader for Emacs.  Make summary buffers.
+;; rmailsum.el --- make summary buffers for the mail reader
+
 ;; Copyright (C) 1985, 1993 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -20,9 +21,13 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
 ;; Extended by Bob Weiner of Motorola
 ;;   Provided all commands from rmail-mode in rmail-summary-mode and made key
 ;;   bindings in both modes wholly compatible.
+
+;;; Code:
 
 ;; Entry points for making a summary buffer.
 

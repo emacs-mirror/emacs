@@ -1,4 +1,4 @@
-;; iso8859-1.el --- set up case-conversion and syntax tables for ISO 8859/1
+;;; iso8859-1.el --- set up case-conversion and syntax tables for ISO 8859/1
 
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 
@@ -98,3 +98,5 @@
   (set-standard-case-table (list (car table))))
 
 (provide 'iso8859-1)
+
+;;; iso8859-1.el ends here

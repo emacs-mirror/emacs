@@ -1,4 +1,5 @@
-;; Emulate the Lucid event data type and associated functions.
+;;; levents.el --- emulate the Lucid event data type and associated functions.
+
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -17,7 +18,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;; Notes:
+;;; Commentary:
 
 ;; Things we cannot emulate in Lisp:
 ;; It is not possible to emulate current-mouse-event as a variable,

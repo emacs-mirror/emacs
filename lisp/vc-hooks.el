@@ -1,11 +1,11 @@
-;;; vc-hooks.el -- resident support for version-control
+;;; vc-hooks.el --- resident support for version-control
 
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 5.2
 
-;;	$Id: vc-hooks.el,v 1.9 1993/03/16 20:21:05 eggert Exp eric $	
+;;	$Id: vc-hooks.el,v 1.10 1993/03/17 14:01:56 eric Exp eric $	
 
 ;; This file is part of GNU Emacs.
 

@@ -22,7 +22,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; Commentary:
+;;; Commentary:
 
 ;; This package enables you to read mail or articles in MH folders, or
 ;; articles saved by GNUS. In any case, the file names of mail or
@@ -35,7 +35,7 @@
 ;; no way to specify hierarchical directory now.) In this case, the
 ;; name of the NNTP server passed to GNUS must be `:Mail'.
 
-;; Code:
+;;; Code:
 
 (require 'nntp)
 
