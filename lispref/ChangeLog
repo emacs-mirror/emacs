@@ -8,6 +8,8 @@
 	(elisp.dvi): Likewise.  Use $(TEXI2DVI).
 	(index.texi): Remove target.
 	(dist): Don't link $(srcdir)/permute-index.
+	(clean): Don't remove index.texi.
+
 	* permute-index, index.perm: Remove.
 	* index.texi: Rename from index.unperm.
 
