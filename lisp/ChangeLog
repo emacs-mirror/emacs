@@ -1,4 +1,4 @@
-2001-01-08  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2001-01-08  Richard M. Stallman  <rms@gnu.org>
 
 	* mouse-drag.el (mouse-drag-should-do-col-scrolling):
 	Change screen-width to frame-width.
@@ -151,7 +151,7 @@
 
 	* mail/mail-hist.el (mail-hist-text-too-long-p): Doc fix.
 
-2001-01-02  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2001-01-02  Richard M. Stallman  <rms@gnu.org>
 
 	* isearch.el (isearch-lazy-highlight-cleanup): Arg now says
 	to remove all the current alternative-match highlighting.
@@ -582,7 +582,7 @@
 
 	* mail/mh-utils.el (mh-find-path): Set read-mail-command.
 
-2000-12-15  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+2000-12-15  Richard M. Stallman  <rms@gnu.org>
 
 	* sort.el (sort-columns): Fix error message.
 
