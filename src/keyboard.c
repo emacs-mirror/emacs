@@ -4485,7 +4485,7 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_alist,
 	}
 
       if (CONSP (*symbol_table))
-	*symbol_table = Fcons (value, *symbol_table);
+        *symbol_table = Fcons (Fcons (symbol_int, value), *symbol_table);
       else
 	XVECTOR (*symbol_table)->contents[symbol_num] = value;
 
