@@ -1,5 +1,6 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 87, 93, 94, 95, 99, 2000
+     Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -307,7 +308,7 @@ If no arg yields nil, return the last arg's value.")
 }
 
 DEFUN ("if", Fif, Sif, 2, UNEVALLED, 0,
-  "(if COND THEN ELSE...): if COND yields non-nil, do THEN, else do ELSE...\n\
+  "If COND yields non-nil, do THEN, else do ELSE...\n\
 Returns the value of THEN or the value of the last of the ELSE's.\n\
 THEN must be one expression, but ELSE... can be zero or more expressions.\n\
 If COND yields nil, and there are no ELSE's, the value is nil.")
@@ -327,7 +328,7 @@ If COND yields nil, and there are no ELSE's, the value is nil.")
 }
 
 DEFUN ("cond", Fcond, Scond, 0, UNEVALLED, 0,
-  "(cond CLAUSES...): try each clause until one succeeds.\n\
+  "Try each clause until one succeeds.\n\
 Each clause looks like (CONDITION BODY...).  CONDITION is evaluated\n\
 and, if the value is non-nil, this clause succeeds:\n\
 then the expressions in BODY are evaluated and the last one's\n\
@@ -361,7 +362,7 @@ CONDITION's value if non-nil is returned from the cond-form.")
 }
 
 DEFUN ("progn", Fprogn, Sprogn, 0, UNEVALLED, 0,
-  "(progn BODY...): eval BODY forms sequentially and return value of last one.")
+  "Eval BODY forms sequentially and return value of last one.")
   (args)
      Lisp_Object args;
 {
@@ -399,7 +400,7 @@ DEFUN ("progn", Fprogn, Sprogn, 0, UNEVALLED, 0,
 }
 
 DEFUN ("prog1", Fprog1, Sprog1, 1, UNEVALLED, 0,
-  "(prog1 FIRST BODY...): eval FIRST and BODY sequentially; value from FIRST.\n\
+  "Eval FIRST and BODY sequentially; value from FIRST.\n\
 The value of FIRST is saved during the evaluation of the remaining args,\n\
 whose values are discarded.")
   (args)
@@ -432,7 +433,7 @@ whose values are discarded.")
 }
 
 DEFUN ("prog2", Fprog2, Sprog2, 2, UNEVALLED, 0,
-  "(prog2 X Y BODY...): eval X, Y and BODY sequentially; value from Y.\n\
+  "Eval X, Y and BODY sequentially; value from Y.\n\
 The value of Y is saved during the evaluation of the remaining args,\n\
 whose values are discarded.")
   (args)
@@ -467,7 +468,7 @@ whose values are discarded.")
 }
 
 DEFUN ("setq", Fsetq, Ssetq, 0, UNEVALLED, 0,
-  "(setq SYM VAL SYM VAL ...): set each SYM to the value of its VAL.\n\
+  "Set each SYM to the value of its VAL.\n\
 The symbols SYM are variables; they are literal (not evaluated).\n\
 The values VAL are expressions; they are evaluated.\n\
 Thus, (setq x (1+ y)) sets `x' to the value of `(1+ y)'.\n\
@@ -568,7 +569,7 @@ and input is currently coming from the keyboard (not in keyboard macro).")
 }
 
 DEFUN ("defun", Fdefun, Sdefun, 2, UNEVALLED, 0,
-  "(defun NAME ARGLIST [DOCSTRING] BODY...): define NAME as a function.\n\
+  "Define NAME as a function.\n\
 The definition is (lambda ARGLIST [DOCSTRING] BODY...).\n\
 See also the function `interactive'.")
   (args)
@@ -587,7 +588,7 @@ See also the function `interactive'.")
 }
 
 DEFUN ("defmacro", Fdefmacro, Sdefmacro, 2, UNEVALLED, 0,
-  "(defmacro NAME ARGLIST [DOCSTRING] BODY...): define NAME as a macro.\n\
+  "Define NAME as a macro.\n\
 The definition is (macro lambda ARGLIST [DOCSTRING] BODY...).\n\
 When the macro is called, as in (NAME ARGS...),\n\
 the function (lambda ARGLIST BODY...) is applied to\n\
@@ -609,7 +610,7 @@ and the result should be a form to be evaluated instead of the original.")
 }
 
 DEFUN ("defvar", Fdefvar, Sdefvar, 1, UNEVALLED, 0,
-  "(defvar SYMBOL INITVALUE DOCSTRING): define SYMBOL as a variable.\n\
+  "Define SYMBOL as a variable.\n\
 You are not required to define a variable in order to use it,\n\
 but the definition can supply documentation and an initial value\n\
 in a way that tags can recognize.\n\n\
@@ -649,7 +650,7 @@ If INITVALUE is missing, SYMBOL's value is not set.")
 }
 
 DEFUN ("defconst", Fdefconst, Sdefconst, 2, UNEVALLED, 0,
-  "(defconst SYMBOL INITVALUE DOCSTRING): define SYMBOL as a constant variable.\n\
+  "Define SYMBOL as a constant variable.\n\
 The intent is that neither programs nor users should ever change this value.\n\
 Always sets the value of SYMBOL to the result of evalling INITVALUE.\n\
 If SYMBOL is buffer-local, its default value is what is set;\n\
@@ -664,7 +665,10 @@ DOCSTRING is optional.")
   if (!NILP (Fcdr (Fcdr (Fcdr (args)))))
     error ("too many arguments");
 
-  Fset_default (sym, Feval (Fcar (Fcdr (args))));
+  tem = Feval (Fcar (Fcdr (args)));
+  if (!NILP (Vpurify_flag))
+    tem = Fpurecopy (tem);
+  Fset_default (sym, tem);
   tem = Fcar (Fcdr (Fcdr (args)));
   if (!NILP (tem))
     {
@@ -712,7 +716,7 @@ on its property list).")
 }  
 
 DEFUN ("let*", FletX, SletX, 1, UNEVALLED, 0,
-  "(let* VARLIST BODY...): bind variables according to VARLIST then eval BODY.\n\
+  "Bind variables according to VARLIST then eval BODY.\n\
 The value of the last form in BODY is returned.\n\
 Each element of VARLIST is a symbol (which is bound to nil)\n\
 or a list (SYMBOL VALUEFORM) (which binds SYMBOL to the value of VALUEFORM).\n\
@@ -750,7 +754,7 @@ Each VALUEFORM can refer to the symbols already bound by this VARLIST.")
 }
 
 DEFUN ("let", Flet, Slet, 1, UNEVALLED, 0,
-  "(let VARLIST BODY...): bind variables according to VARLIST then eval BODY.\n\
+  "Bind variables according to VARLIST then eval BODY.\n\
 The value of the last form in BODY is returned.\n\
 Each element of VARLIST is a symbol (which is bound to nil)\n\
 or a list (SYMBOL VALUEFORM) (which binds SYMBOL to the value of VALUEFORM).\n\
@@ -807,7 +811,7 @@ All the VALUEFORMs are evalled before any symbols are bound.")
 }
 
 DEFUN ("while", Fwhile, Swhile, 1, UNEVALLED, 0,
-  "(while TEST BODY...): if TEST yields non-nil, eval BODY... and repeat.\n\
+  "If TEST yields non-nil, eval BODY... and repeat.\n\
 The order of execution is thus TEST, BODY, TEST, BODY and so on\n\
 until TEST returns nil.")
   (args)
@@ -910,7 +914,7 @@ definitions to shadow the loaded ones for use in file byte-compilation.")
 }
 
 DEFUN ("catch", Fcatch, Scatch, 1, UNEVALLED, 0,
-  "(catch TAG BODY...): eval BODY allowing nonlocal exits using `throw'.\n\
+  "Eval BODY allowing nonlocal exits using `throw'.\n\
 TAG is evalled to get the tag to use; it must not be nil.\n\
 \n\
 Then the BODY is executed.\n\
@@ -1020,7 +1024,7 @@ unwind_to_catch (catch, value)
 }
 
 DEFUN ("throw", Fthrow, Sthrow, 2, 2, 0,
-  "(throw TAG VALUE): throw to the catch for TAG and return VALUE from it.\n\
+  "Throw to the catch for TAG and return VALUE from it.\n\
 Both TAG and VALUE are evalled.")
   (tag, value)
      register Lisp_Object tag, value;
@@ -1042,7 +1046,6 @@ Both TAG and VALUE are evalled.")
 
 DEFUN ("unwind-protect", Funwind_protect, Sunwind_protect, 1, UNEVALLED, 0,
   "Do BODYFORM, protecting with UNWINDFORMS.\n\
-Usage looks like (unwind-protect BODYFORM UNWINDFORMS...).\n\
 If BODYFORM completes normally, its value is returned\n\
 after executing the UNWINDFORMS.\n\
 If BODYFORM exits nonlocally, the UNWINDFORMS are executed anyway.")
@@ -1067,7 +1070,6 @@ struct handler *handlerlist;
 
 DEFUN ("condition-case", Fcondition_case, Scondition_case, 2, UNEVALLED, 0,
   "Regain control when an error is signaled.\n\
-Usage looks like (condition-case VAR BODYFORM HANDLERS...).\n\
 executes BODYFORM and returns its value if no error happens.\n\
 Each element of HANDLERS looks like (CONDITION-NAME BODY...)\n\
 where the BODY is made of Lisp expressions.\n\n\
