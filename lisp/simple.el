@@ -1118,7 +1118,7 @@ specifies the value of ERROR-BUFFER."
 	       (not (or (bufferp output-buffer)  (stringp output-buffer))))
 	  (let ((error-file
 		 (if error-buffer 
-		     (make-temp-name
+		     (make-temp-file
 		      (expand-file-name "scor"
 					(or small-temporary-file-directory
 					    temporary-file-directory)))
@@ -1253,7 +1253,7 @@ specifies the value of ERROR-BUFFER."
 		       shell-command-default-error-buffer)))
   (let ((error-file
 	 (if error-buffer
-	     (make-temp-name
+	     (make-temp-file
 	      (expand-file-name "scor"
 				(or small-temporary-file-directory
 				    temporary-file-directory)))
@@ -3990,5 +3990,102 @@ PREFIX is the string that represents this modifier in an event type symbol."
    (kp-decimal ?.)
    (kp-divide ?/)
    (kp-equal ?=)))
+
+;;;; 
+;;;; forking a twin copy of a buffer.
+;;;; 
+
+(defvar clone-buffer-hook nil
+  "Normal hook to run in the new buffer at the end of `clone-buffer'.")
+
+(defun clone-process (process &optional newname)
+  "Create a twin copy of PROCESS.
+If NEWNAME is nil, it defaults to PROCESS' name;
+NEWNAME is modified by adding or incrementing <N> at the end as necessary.
+If PROCESS is associated with a buffer, the new process will be associated
+  with the current buffer instead.
+Returns nil if PROCESS has already terminated."
+  (setq newname (or newname (process-name process)))
+  (if (string-match "<[0-9]+>\\'" newname)
+      (setq newname (substring newname 0 (match-beginning 0))))
+  (when (memq (process-status process) '(run stop open))
+    (let* ((process-connection-type (process-tty-name process))
+	   (old-kwoq (process-kill-without-query process nil))
+	   (new-process
+	    (if (memq (process-status process) '(open))
+		(apply 'open-network-stream newname
+		       (if (process-buffer process) (current-buffer))
+		       (process-contact process))
+	      (apply 'start-process newname
+		     (if (process-buffer process) (current-buffer))
+		     (process-command process)))))
+      (process-kill-without-query new-process old-kwoq)
+      (process-kill-without-query process old-kwoq)
+      (set-process-inherit-coding-system-flag
+       new-process (process-inherit-coding-system-flag process))
+      (set-process-filter new-process (process-filter process))
+      (set-process-sentinel new-process (process-sentinel process))
+      new-process)))
+
+;; things to maybe add (currently partly covered by `funcall mode':
+;; - syntax-table
+;; - overlays
+(defun clone-buffer (&optional newname display-flag)
+  "Create a twin copy of the current buffer.
+If NEWNAME is nil, it defaults to the current buffer's name;
+NEWNAME is modified by adding or incrementing <N> at the end as necessary.
+
+If DISPLAY-FLAG is non-nil, the new buffer is shown with `pop-to-buffer'.
+This runs the normal hook `clone-buffer-hook' in the new buffer
+after it has been set up properly in other respects."
+  (interactive (list (if current-prefix-arg (read-string "Name: "))
+		     t))
+  (if buffer-file-name
+      (error "Cannot clone a file-visiting buffer"))
+  (if (get major-mode 'no-clone)
+      (error "Cannot clone a buffer in %s mode" mode-name))
+  (setq newname (or newname (buffer-name)))
+  (if (string-match "<[0-9]+>\\'" newname)
+      (setq newname (substring newname 0 (match-beginning 0))))
+  (let ((buf (current-buffer))
+	(ptmin (point-min))
+	(ptmax (point-max))
+	(pt (point))
+	(mk (if mark-active (mark t)))
+	(modified (buffer-modified-p))
+	(mode major-mode)
+	(lvars (buffer-local-variables))
+	(process (get-buffer-process (current-buffer)))
+	(new (generate-new-buffer (or newname (buffer-name)))))
+    (save-restriction
+      (widen)
+      (with-current-buffer new
+	(insert-buffer-substring buf)))
+    (with-current-buffer new
+      (narrow-to-region ptmin ptmax)
+      (goto-char pt)
+      (if mk (set-mark mk))
+      (set-buffer-modified-p modified)
+
+      ;; Clone the old buffer's process, if any.
+      (when process (clone-process process))
+
+      ;; Now set up the major mode.
+      (funcall mode)
+
+      ;; Set up other local variables.
+      (mapcar (lambda (v)
+		(condition-case ()	;in case var is read-only
+		    (if (symbolp v)
+			(makunbound v)
+		      (set (make-local-variable (car v)) (cdr v)))
+		  (error nil)))
+	      lvars)
+
+      ;; Run any hooks (typically set up by the major mode
+      ;; for cloning to work properly).
+      (run-hooks 'clone-buffer-hook))
+    (if display-flag (pop-to-buffer new))
+    new))
 
 ;;; simple.el ends here

@@ -1,5 +1,8 @@
 1999-10-12  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* simple.el (shell-command, shell-command-on-region): use make-temp-file.
+	(clone-buffer, clone-process, clone-buffer-hook): new functions.
+
 	* subr.el (with-current-buffer): don't use backquotes to avoid
 	  bootstrapping problems.
 	loadup.el (load-path): add subdirs for bootstrapping.
