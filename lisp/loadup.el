@@ -225,9 +225,11 @@
       (setq tem (cdr tem))))
   (princ ")))\n" (current-buffer))
   (write-region (point-min) (point-max)
-		(expand-file-name (convert-standard-filename
-				   (format "../lisp/fns-%s.el" emacs-version))
-				   invocation-directory))
+		(expand-file-name
+		 (if (eq system-type 'ms-dos)
+		     "../lisp/fns.el"
+		   (format "../lisp/fns-%s.el" emacs-version))
+		 invocation-directory))
   (erase-buffer))
 (setq load-history nil)
 (set-buffer-modified-p nil)
