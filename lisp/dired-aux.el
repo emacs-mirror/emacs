@@ -1751,7 +1751,9 @@ The next char is either \\n, or \\r if DIR is hidden."
 
 ;;;###autoload
 (defun dired-mark-subdir-files ()
-  "Mark all files except `.' and `..'."
+  "Mark all files except `.' and `..' in current subdirectory.
+If the Dired buffer shows multiple directories, this command
+marks the files listed in the subdirectory that point is in."
   (interactive)
   (let ((p-min (dired-subdir-min)))
     (dired-mark-files-in-region p-min (dired-subdir-max))))
