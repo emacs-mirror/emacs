@@ -542,8 +542,8 @@ case "${canonical}" in
   ;;
 
   ## NeXT
-  m68*-next-* | i[345]86-next-* )
-    machine=next opsys=mach2
+  m68*-next-* | m68k-*-nextstep* )
+    machine=m68k opsys=nextstep
   ;;
 
   ## The complete machine from National Semiconductor
@@ -658,7 +658,7 @@ case "${canonical}" in
       ## The Sun386 didn't get past 4.0.
       i[345]86-*-sunos4	  ) opsys=sunos4-0 ;;
       *-sunos4.0*	  ) opsys=sunos4-0 ;;
-      *-sunos4.1.[3-9]* )
+      *-sunos4.1.[3-9]* | *-sunos4shr*)
 		opsys=sunos4shr
 		NON_GNU_CPP=/usr/lib/cpp
 		;;
@@ -684,6 +684,9 @@ case "${canonical}" in
 		;;
       *			  ) opsys=bsd4-2   ;;
     esac
+  ;;
+  sparc-*-nextstep* )
+    machine=sparc.h opsys=nextstep.h
   ;;
 
   ## Tadpole 68k
@@ -774,7 +777,7 @@ case "${canonical}" in
       *-bsdi2* )		opsys=bsdos2 ;;
       *-386bsd* )	        opsys=386bsd ;;
       *-freebsd* )	        opsys=freebsd ;;
-      *-nextstep* )             opsys=mach2 ;;
+      *-nextstep* )             opsys=nextstep ;;
       ## Otherwise, we'll fall through to the generic opsys code at the bottom.
     esac
   ;;
@@ -799,16 +802,16 @@ if test x"${opsys}" = x; then
     *-sysv0 | *-sysvr0 )		opsys=usg5-0 ;;
     *-sysv2 | *-sysvr2 )		opsys=usg5-2 ;;
     *-sysv2.2 | *-sysvr2.2 )		opsys=usg5-2-2 ;;
-    *-sysv3 | *-sysvr3 )		opsys=usg5-3 ;;
-    *-sysv4 | *-sysvr4 )		opsys=usg5-4 ;;
-    *-sysv4.1 | *-sysvr4.1 )
+    *-sysv3* | *-sysvr3* )		opsys=usg5-3 ;;
+    *-sysv4.1* | *-sysvr4.1* )
 	NON_GNU_CPP=/usr/lib/cpp
 	opsys=usg5-4 ;;
-    *-sysv4.2 | *-sysvr4.2 )
+    *-sysv4.[2-9]* | *-sysvr4.[2-9]* )
 	if [ x$NON_GNU_CPP = x ]; then
 	  NON_GNU_CPP=/usr/ccs/lib/cpp
 	fi
 	opsys=usg5-4-2 ;;
+    *-sysv4* | *-sysvr4* )		opsys=usg5-4 ;;
     * )
       unported=yes
     ;;
@@ -828,6 +831,9 @@ opsysfile="s/${opsys}.h"
 
 #### Choose a compiler.
 test -n "$CC" && cc_specified=yes
+
+# Save the value of CFLAGS that the user specified.
+SPECIFIED_CFLAGS="$CFLAGS"
 
 case ${with_gcc} in
   "yes" ) CC="gcc" GCC=yes ;;
@@ -920,6 +926,7 @@ AC_TRY_COMPILE([#ifdef TIME_WITH_SYS_TIME
 #endif
 #endif], [static struct timeval x; x.tv_sec = x.tv_usec;],
   [AC_MSG_RESULT(yes)
+   HAVE_TIMEVAL=yes
    AC_DEFINE(HAVE_TIMEVAL)],
   AC_MSG_RESULT(no))
 
@@ -1111,7 +1118,7 @@ CPP=`eval "echo $CPP"`
 changequote(, )dnl
 eval `${CPP} -Isrc ${tempcname} \
        | sed -n -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/p'`
-if test "x$CFLAGS" = x; then
+if test "x$SPECIFIED_CFLAGS" = x; then
   eval `${CPP} -Isrc -DTHIS_IS_CONFIGURE ${tempcname} \
 	 | sed -n -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/p'`
 else
@@ -1239,6 +1246,30 @@ AC_CHECK_LIB(m, sqrt(0.0) + t)
 AC_CHECK_FUNCS(gettimeofday gethostname dup2 rename closedir mkdir rmdir \
 random lrand48 bcopy bcmp logb frexp fmod drem ftime res_init setsid \
 strerror fpathconf select mktime eaccess getpagesize)
+
+if test $HAVE_TIMEVAL = yes; then
+AC_MSG_CHECKING(whether gettimeofday can't accept two arguments)
+AC_TRY_LINK([
+#ifdef TIME_WITH_SYS_TIME
+#include <sys/time.h>
+#include <time.h>
+#else
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
+#endif
+#endif
+  ],
+  [
+  struct timeval time;
+  struct timezone dummy;
+  gettimeofday (&time, &dummy);
+],
+  [AC_MSG_RESULT(no)],
+  [AC_MSG_RESULT(yes)
+   AC_DEFINE(GETTIMEOFDAY_ONE_ARGUMENT)])
+fi
 
 ok_so_far=yes
 AC_CHECK_FUNC(socket, , ok_so_far=no)
