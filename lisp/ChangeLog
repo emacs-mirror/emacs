@@ -1,3 +1,8 @@
+2000-06-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* woman.el (woman-man-buffer): Fix bold and underlined CJK
+	characters, which use series of two ^H characters instead of one.
+
 2000-06-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (command-line-1): Change copyright messages to year
