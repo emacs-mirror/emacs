@@ -70,9 +70,14 @@ libraries.
 The `--run-in-place' option sets up default values for the path
 variables in `./Makefile' so that Emacs will expect to find its data
 files (lisp libraries, runnable programs, and the like) in the same
-locations they occupy while Emacs builds.  This means that you don't
-have to install Emacs in order to run it; it uses its data files as
-they were unpacked.
+locations they occupy while Emacs builds.  If you use `--run-in-place'
+then you don't need to do `make install'.
+
+`--run-in-place' is pretty much obsolete now.  If you put the Emacs
+executable in a subdirectory named src, which has siblings named lisp,
+lib-src, etc, info and so on, Emacs automatically uses those sibling
+directories if the standard installation directory names don't contain
+what Emacs needs.
 
 The `--with-gcc' option specifies that the build process should
 compile Emacs using GCC.  If you don't want to use GCC, specify
@@ -178,7 +183,8 @@ and data files installed as well, run `make install'.
 By default, Emacs installs its files in the following directories:
 
 `/usr/local/bin' holds the executable programs users normally run -
-		`emacs', `etags', `ctags', `b2m', and `emacsclient'.
+		`emacs', `etags', `ctags', `b2m', `emacsclient',
+		and `rcs-checkin'.
 
 `/usr/local/lib/emacs/VERSION/lisp' holds the Emacs Lisp library;
 		`VERSION' stands for the number of the Emacs version
@@ -383,7 +389,8 @@ when running make in the subdirectories.
 
 CONFIGURATION BY HAND
 
-Running the `configure' program performs the following steps.
+Instead of running the `configure' program, you have to perform the
+following steps.
 
 1) Copy `./src/config.h.in' to `./src/config.h'.
 
@@ -400,18 +407,17 @@ files for your system and machine, do so by editing config.h, not by
 changing the s/*.h and m/*.h files.  Occasionally you may need to
 redefine parameters used in `./lib-src/movemail.c'.
 
-3) If you're going to use the make utility to build Emacs, you will
-still need to run `configure' first, giving theappropriate values for
-the variables in the sections entitled "Things `configure' Might Edit"
-and "Where To Install Things."  Note that you may only need to change
-the variables `prefix' and `exec_prefix', since the rest of the
-variables have reasonable defaults based on them.  For each Makefile
-variable of this type, there is a corresponding configure option; for
-example, to change the location of the lock directory, you might use
+3) Create src/Makefile and lib-src/Makefile from the corresponding
+`Makefile.in.in' files.  First copy `Makefile.in.in' to `Makefile.in',
+then edit in appropriate substituions for the @...@ constructs,
+and then copy the shell commands near the end of `configure'
+that run cpp to construct `Makefile'.
 
-	 ./configure --lockdir=/nfs/emacslock
+4) Create `Makefile' files in various other directories
+from the corresponding `Makefile.in' files.  This isn't so hard,
+just a matter of substitution.
 
-4) If you're going to use the build-install script to build Emacs,
+5) If you're going to use the build-install script to build Emacs,
 copy `./build-ins.in' to `./build-install', and edit the
 definitions found at the top of the script.
 
@@ -432,17 +438,17 @@ Once Emacs is configured, running `make' or running the shell script
 `./src/paths.h' from the template file `./src/paths.h.in', changing
 the paths to the values specified in `./Makefile'.
 
-2) Cd to `./lib-src' and run `make'.  This creates executables named
-`ctags' and `etags' and `wakeup' and `make-docfile' and `digest-doc'
-and `test-distrib'.  And others.
+2) Go to directory `./lib-src' and run `make'.  This creates
+executables named `ctags' and `etags' and `wakeup' and `make-docfile'
+and `digest-doc' and `test-distrib'.  And others.
 
-3) Cd to `./src' and Run `make'.  This refers to files in the `./lisp'
-and `./lib-src' subdirectories using names `../lisp' and
+3) Go to directory `./src' and Run `make'.  This refers to files in
+the `./lisp' and `./lib-src' subdirectories using names `../lisp' and
 `../lib-src'.
 
 This creates a file `./src/emacs' which is the runnable Emacs,
-assigning it a new build version number by incrementing the build
-version stored in `./lisp/version.el'.
+which has another name that contains a version number.
+Each time you do this, that version number increments in the last place.
 
 It also creates a file in `./etc' whose name is `DOC' followed by the
 current Emacs version.  This file contains documentation strings for
@@ -463,9 +469,9 @@ in `./lib-src' to their final destinations, as selected in `./src/paths.h'.
 
 Strictly speaking, not all of the executables in `./lib-src' need be copied.
 - The programs `cvtmail', `emacsserver', `fakemail', `hexl',
-    `movemail', `timer', `vcdiff', `wakeup', and `yow' are used by
-    Emacs; they do need to be copied.
-- The programs `etags', `ctags', `emacsclient', `b2m', and `rcs2log'
+    `movemail', `profile', `rcs2log', `timer', `vcdiff', `wakeup',
+    and `yow' are used by Emacs; they do need to be copied.
+- The programs `etags', `ctags', `emacsclient', `b2m', and `rcs-checkin'
     are intended to be run by users; they are handled below.
 - The programs `make-docfile', `make-path', and `test-distrib' were
     used in building Emacs, and are not needed any more.
@@ -491,15 +497,15 @@ of installing different versions.
 You can delete `./src/temacs'.
 
 5) Copy the programs `b2m', `emacsclient', `ctags', `etags', and
-`rcs2log' from `./lib-src' to `/usr/local/bin'.  These programs are
+`rcs-checkin' from `./lib-src' to `/usr/local/bin'.  These programs are
 intended for users to run.
 
 6) Copy the man pages in `./etc' for emacs, ctags, and etags into the
 appropriate man directories.
 
 7) The files in the `./src' subdirectory, except for `emacs', are not
-used by Emacs once it is built.  The source would be handy for
-debugging.
+used by Emacs once it is built.  However, it is very desirable to keep
+the source on line for debugging.
 
 
 PROBLEMS
