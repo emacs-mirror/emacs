@@ -370,10 +370,12 @@ With a prefix argument, resume handling of the previous Ispell command."
   (if resume
       (ispell-next)
     (condition-case err
-	(catch 'ispell-quit
-	  (save-window-excursion
-	    (ispell-point (point) "at point."))
-	  (ispell-dump))
+	(unwind-protect
+	    (catch 'ispell-quit
+	      (save-window-excursion
+		(ispell-point (point) "at point."))
+	      (ispell-dump))
+	  (ispell-dehighlight))
       (ispell-startup-error
        (cond ((y-or-n-p "Problem starting ispell, use old-style spell instead? ")
 	      (load-library "spell")
