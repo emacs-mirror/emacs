@@ -1,6 +1,6 @@
 ;;; lmenu.el --- emulate Lucid's menubar support
 
-;; Copyright (C) 1992, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1997 Free Software Foundation, Inc.
 
 ;; Keywords: emulations
 
@@ -124,7 +124,14 @@
       (setq menu-items (cdr menu-items)))
     menu))
 
-(defun popup-menu (menu-desc)
+;; The value of the cache-symbol for a menu
+;; is
+;;   unbound  --  nothing computed
+;;   (ORIG . TRANSL)
+;;		  ORIG is the original menu spec list
+;;		  and TRANSL is its translation.
+
+(defmacro popup-menu (arg)
   "Pop up the given menu.
 A menu is a list of menu items, strings, and submenus.
 
@@ -189,19 +196,41 @@ The syntax, more precisely:
    menu-item	:=  '['  name callback active-p [ suffix ]  ']'
 		 |  '['  name callback [ keyword ]+  ']'
    menu		:=  '(' name [ menu-item | menu | text ]+ ')'"
-  (let ((menu (make-lucid-menu-keymap (car menu-desc) (cdr menu-desc)))
-	(pos (mouse-pixel-position))
+  (if (not (symbolp arg))
+      `(popup-menu-internal ,arg nil)
+    `(popup-menu-internal ,arg
+			  ',(intern (concat "popup-menu-" (symbol-name arg))))))
+
+(defun popup-menu-internal (menu cache-symbol)
+  (if (null cache-symbol)
+      ;; If no cache symbol, translate the menu afresh each time.
+      (popup-menu-popup (make-lucid-menu-keymap (car menu) (cdr menu)))
+    ;; We have a cache symbol.  See if the cache is valid
+    ;; for the same menu we have now.
+    (or (and (boundp cache-symbol)
+	     (consp (symbol-value cache-symbol))
+	     (equal (car (symbol-value cache-symbol))
+		    menu))
+	;; If not, update it.
+	(set cache-symbol
+	     (cons menu (make-lucid-menu-keymap (car menu) (cdr menu)))))
+    ;; Use the menu in the cache.
+    (popup-menu-popup (cdr (symbol-value cache-symbol)))))
+
+;; Pop up MENU-KEYMAP which was made by make-lucid-menu-keymap.
+(defun popup-menu-popup (menu-keymap)
+  (let ((pos (mouse-pixel-position))
 	answer cmd)
-    (while (and menu
+    (while (and menu-keymap
 		(setq answer (x-popup-menu (list (list (nth 1 pos)
 						       (nthcdr 2 pos))
 						 (car pos))
-					   menu)))
-      (setq cmd (lookup-key menu (apply 'vector answer)))
+					   menu-keymap)))
+      (setq cmd (lookup-key menu-keymap (apply 'vector answer)))
       (setq menu nil)
       (and cmd
 	   (if (keymapp cmd)
-	       (setq menu cmd)
+	       (setq menu-keymap cmd)
 	     (call-interactively cmd))))))
 
 (defun popup-dialog-box (data)
