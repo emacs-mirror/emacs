@@ -640,14 +640,17 @@ swap_in_symval_forwarding (sym, valcontents)
      (REALVALUE BUFFER CURRENT-ALIST-ELEMENT . DEFAULT-VALUE)).
      
      CURRENT-ALIST-ELEMENT is a pointer to an element of BUFFER's
-     local_var_alist, that being the element whose car is this variable.
-     Or it can be a pointer to the (CURRENT-ALIST-ELEMENT . DEFAULT-VALUE), if BUFFER
-     does not have an element in its alist for this variable.
-     
-     If the current buffer is not BUFFER, we store the current REALVALUE value into
-     CURRENT-ALIST-ELEMENT, then find the appropriate alist element for
-     the buffer now current and set up CURRENT-ALIST-ELEMENT.
-     Then we set REALVALUE out of that element, and store into BUFFER.
+     local_var_alist, that being the element whose car is this
+     variable.  Or it can be a pointer to the
+     (CURRENT-ALIST-ELEMENT . DEFAULT-VALUE), if BUFFER does not have
+     an element in its alist for this variable.
+
+     If the current buffer is not BUFFER, we store the current
+     REALVALUE value into CURRENT-ALIST-ELEMENT, then find the
+     appropriate alist element for the buffer now current and set up
+     CURRENT-ALIST-ELEMENT.  Then we set REALVALUE out of that
+     element, and store into BUFFER.
+
      Note that REALVALUE can be a forwarding pointer. */
 
   register Lisp_Object tem1;
