@@ -525,7 +525,7 @@ echo_prompt (str)
   echo ();
 }
 
-/* Add C to the echo string, if echoing is going on.  
+/* Add C to the echo string, if echoing is going on.
    C can be a character, which is printed prettily ("M-C-x" and all that
    jazz), or a symbol, whose name is printed.  */
 
@@ -537,7 +537,7 @@ echo_char (c)
   if (current_perdisplay->immediate_echo)
     {
       char *ptr = current_perdisplay->echoptr;
-      
+
       if (ptr != current_perdisplay->echobuf)
 	*ptr++ = ' ';
 
@@ -762,7 +762,6 @@ unlock_display ()
       current_perdisplay->kbd_queue_has_data = 1;
     }
   Vunread_command_events = Qnil;
-  current_perdisplay = 0;
   display_locked = 0;
 }
 #endif
@@ -776,11 +775,8 @@ cmd_error (data)
   Vstandard_output = Qt;
   Vstandard_input = Qt;
   Vexecuting_macro = Qnil;
-  if (current_perdisplay)
-    {
-      clear_prefix_arg ();
-      cancel_echoing ();
-    }
+  clear_prefix_arg ();
+  cancel_echoing ();
 
   /* Avoid unquittable loop if data contains a circular list.  */
   old_level = Vprint_level;
@@ -795,8 +791,7 @@ cmd_error (data)
 
   Vinhibit_quit = Qnil;
 #ifdef MULTI_PERDISPLAY
-  if (current_perdisplay)
-    unlock_display ();
+  unlock_display ();
 #endif
 
   return make_number (0);
@@ -905,7 +900,7 @@ command_loop ()
       {
 	internal_catch (Qtop_level, top_level_1, Qnil);
 	internal_catch (Qtop_level, command_loop_2, Qnil);
-	
+
 	/* End of file in -batch run causes exit here.  */
 	if (noninteractive)
 	  Fkill_emacs (Qt);
@@ -1001,8 +996,7 @@ command_loop_1 ()
 
   Vdeactivate_mark = Qnil;
   waiting_for_input = 0;
-  if (current_perdisplay)
-    cancel_echoing ();
+  cancel_echoing ();
 
   nonundocount = 0;
   no_redisplay = 0;
@@ -1606,7 +1600,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  XSETINT (c, -1);
 	  return c;
 	}
-      
+
       c = Faref (Vexecuting_macro, make_number (executing_macro_index));
       if (STRINGP (Vexecuting_macro)
 	  && (XINT (c) & 0x80))
@@ -1653,19 +1647,36 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       if (!NILP (Vinhibit_quit))
 	Vquit_flag = Qnil;
 
+#ifdef MULTI_PERDISPLAY
+      {
+	PERDISPLAY *perd = get_perdisplay (selected_frame);
+	if (perd != current_perdisplay)
+	  {
+	    Lisp_Object *tailp = &perd->kbd_queue;
+	    /* We shouldn't get here if we were locked onto one display!  */
+	    if (display_locked)
+	      abort ();
+	    while (CONSP (*tailp))
+	      tailp = &XCONS (*tailp)->cdr;
+	    if (!NILP (*tailp))
+	      abort ();
+	    *tailp = Fcons (c, Qnil);
+	    perd->kbd_queue_has_data = 1;
+	    current_perdisplay = perd;
+	    longjmp (wrong_display_jmpbuf, 1);
+	  }
+      }
+#endif
       goto non_reread;
     }
 
-  if (current_perdisplay)
-    {
-      /* Message turns off echoing unless more keystrokes turn it on again. */
-      if (echo_area_glyphs && *echo_area_glyphs
-	  && echo_area_glyphs != current_perdisplay->echobuf)
-	cancel_echoing ();
-      else
-	/* If already echoing, continue.  */
-	echo_dash ();
-    }
+  /* Message turns off echoing unless more keystrokes turn it on again. */
+  if (echo_area_glyphs && *echo_area_glyphs
+      && echo_area_glyphs != current_perdisplay->echobuf)
+    cancel_echoing ();
+  else
+    /* If already echoing, continue.  */
+    echo_dash ();
 
   /* Try reading a character via menu prompting in the minibuf.
      Try this before the sit-for, because the sit-for
@@ -1690,9 +1701,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   /* If in middle of key sequence and minibuffer not active,
      start echoing if enough time elapses.  */
-  if (current_perdisplay
-      && minibuf_level == 0
-      && !current_perdisplay->immediate_echo
+  if (minibuf_level == 0 && !current_perdisplay->immediate_echo
       && this_command_key_count > 0
       && ! noninteractive
       && echo_keystrokes > 0
@@ -1786,33 +1795,20 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   if (NILP (c))
     {
-      PERDISPLAY *perd;
-      /* Check for something on one of the side queues.  Give priority to
-	 the current display, but if we're not locked, then check the other
-	 displays as well.  */
-      if (current_perdisplay && current_perdisplay->kbd_queue_has_data)
-	perd = current_perdisplay;
-      else if (!display_locked)
+      /* Primary consideration goes to current_perdisplay's side queue.
+	 If that's empty, then we check the other side queues and throw
+	 if we find something there.  Finally, we read from the main queue,
+	 and if that gives us something we can't use yet, we put it on the
+	 appropriate side queue and try again.  */
+      if (current_perdisplay->kbd_queue_has_data)
 	{
-	  for (perd = all_perdisplays; perd; perd = perd->next_perdisplay)
-	    if (perd->kbd_queue_has_data)
-	      break;
-	}
-      else
-	perd = 0;
-
-      /* If we found something on a side queue, use that.
-	 Otherwise, read from the main queue, and if that gives us
-	 something we can't use yet, put it on the side queue and
-	 try again.  */
-      if (perd)
-	{
-	  if (!CONSP (perd->kbd_queue))
+	  if (!CONSP (current_perdisplay->kbd_queue))
 	    abort ();
-	  c = XCONS (perd->kbd_queue)->car;
-	  perd->kbd_queue = XCONS (perd->kbd_queue)->cdr;
-	  if (NILP (perd->kbd_queue))
-	    perd->kbd_queue_has_data = 0;
+	  c = XCONS (current_perdisplay->kbd_queue)->car;
+	  current_perdisplay->kbd_queue
+	    = XCONS (current_perdisplay->kbd_queue)->cdr;
+	  if (NILP (current_perdisplay->kbd_queue))
+	    current_perdisplay->kbd_queue_has_data = 0;
 	  input_pending = readable_events ();
 #ifdef MULTI_FRAME
 	  if (EVENT_HAS_PARAMETERS (c)
@@ -1823,6 +1819,19 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	}
       else
 	{
+	  PERDISPLAY *perd;
+#ifdef MULTI_PERDISPLAY
+	  if (!display_locked)
+	    {
+	      for (perd = all_perdisplays; perd; perd = perd->next_perdisplay)
+		if (perd->kbd_queue_has_data)
+		  {
+		    current_perdisplay = perd;
+		    longjmp (wrong_display_jmpbuf, 1);
+		  }
+	    }
+#endif
+
 	wrong_display:
 	  /* Actually read a character, waiting if necessary.  */
 	  while (c = kbd_buffer_get_event (&perd), NILP (c))
@@ -1834,7 +1843,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 		  redisplay ();
 		}
 	    }
-	  if (display_locked && perd != current_perdisplay)
+#ifdef MULTI_PERDISPLAY
+	  if (perd != current_perdisplay)
 	    {
 	      Lisp_Object *tailp = &perd->kbd_queue;
 	      while (CONSP (*tailp))
@@ -1843,21 +1853,13 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 		abort ();
 	      *tailp = Fcons (c, Qnil);
 	      perd->kbd_queue_has_data = 1;
-	      goto wrong_display;
+	      if (display_locked)
+		goto wrong_display;
+	      current_perdisplay = perd;
+	      longjmp (wrong_display_jmpbuf, 1);
 	    }
-	}
-#ifdef MULTI_PERDISPLAY
-      if (perd != current_perdisplay)
-	{
-	  /* We shouldn't get here if we were locked onto one display!  */
-	  if (display_locked)
-	    abort ();
-	  perd->kbd_queue = Fcons (c, perd->kbd_queue);
-	  perd->kbd_queue_has_data = 1;
-	  current_perdisplay = perd;
-	  longjmp (wrong_display_jmpbuf, 1);
-	}
 #endif
+	}
     }
   /* Terminate Emacs in batch mode if at eof.  */
   if (noninteractive && INTEGERP (c) && XINT (c) < 0)
@@ -2111,7 +2113,7 @@ Normally, mouse motion is ignored.")
     prepare_menu_bars ();
 
   XSETFRAME (do_mouse_tracking, selected_frame);
-  
+
   val = Fprogn (args);
   return unbind_to (count, val);
 }
@@ -2455,9 +2457,6 @@ kbd_buffer_get_event (PERDISPLAY **perdp)
       Lisp_Object x, y;
       unsigned long time;
 
-      if (!current_perdisplay)
-	abort ();
-
       *perdp = current_perdisplay;
       /* Note that this uses F to determine which display to look at.
 	 If there is no valid info, it does not store anything
@@ -2486,7 +2485,7 @@ kbd_buffer_get_event (PERDISPLAY **perdp)
 	}
 #endif
 
-      /* If we didn't decide to make a switch-frame event, go ahead and 
+      /* If we didn't decide to make a switch-frame event, go ahead and
 	 return a mouse-motion event.  */
       if (!NILP (x) && NILP (obj))
 	obj = make_lispy_movement (f, bar_window, part, x, y, time);
@@ -2752,7 +2751,7 @@ static char *lispy_function_keys[] =
     0, 0, 0, 0, 0, 0, 0, "delete"
     };
 
-static char *lispy_mouse_names[] = 
+static char *lispy_mouse_names[] =
 {
   "mouse-1", "mouse-2", "mouse-3", "mouse-4", "mouse-5"
 };
@@ -2873,7 +2872,7 @@ make_lispy_event (event)
       break;
 
 #if defined (MULTI_FRAME) || defined (HAVE_MOUSE)
-      /* A mouse click.  Figure out where it is, decide whether it's 
+      /* A mouse click.  Figure out where it is, decide whether it's
          a press, click or drag, and build the appropriate structure.  */
     case mouse_click:
     case scroll_bar_click:
@@ -3241,7 +3240,7 @@ parse_modifiers_uncached (symbol, modifier_end)
   int modifiers;
 
   CHECK_SYMBOL (symbol, 1);
-  
+
   modifiers = 0;
   name = XSYMBOL (symbol)->name;
 
@@ -3357,7 +3356,7 @@ apply_modifiers_uncached (modifiers, base, base_len)
 
   {
     Lisp_Object new_name;
-    
+
     new_name = make_uninit_string (mod_len + base_len);
     bcopy (new_mods, XSTRING (new_name)->data,	       mod_len);
     bcopy (base,     XSTRING (new_name)->data + mod_len, base_len);
@@ -3470,7 +3469,7 @@ apply_modifiers (modifiers, base)
     new_symbol = XCONS (entry)->cdr;
   else
     {
-      /* We have to create the symbol ourselves.  */  
+      /* We have to create the symbol ourselves.  */
       new_symbol = apply_modifiers_uncached (modifiers,
 					     XSYMBOL (base)->name->data,
 					     XSYMBOL (base)->name->size);
@@ -3487,7 +3486,7 @@ apply_modifiers (modifiers, base)
 	    Fcons (base, lispy_modifier_list (modifiers)));
     }
 
-  /* Make sure this symbol is of the same kind as BASE.  
+  /* Make sure this symbol is of the same kind as BASE.
 
      You'd think we could just set this once and for all when we
      intern the symbol above, but reorder_modifiers may call us when
@@ -3547,12 +3546,12 @@ reorder_modifiers (symbol)
    before.  The object stored there may be a vector or an alist.
 
    SYMBOL_NUM is the number of the base name we want from NAME_TABLE.
-   
+
    MODIFIERS is a set of modifier bits (as given in struct input_events)
    whose prefixes should be applied to the symbol name.
 
    SYMBOL_KIND is the value to be placed in the event_kind property of
-   the returned symbol. 
+   the returned symbol.
 
    The symbols we create are supposed to have an
    `event-symbol-elements' property, which lists the modifiers present
@@ -3620,7 +3619,7 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_alist,
       else
 	XVECTOR (*symbol_table)->contents[symbol_num] = value;
 
-      /* Fill in the cache entries for this symbol; this also 	
+      /* Fill in the cache entries for this symbol; this also
 	 builds the Qevent_symbol_elements property, which the user
 	 cares about.  */
       apply_modifiers (modifiers & click_modifier, value);
@@ -4093,7 +4092,7 @@ input_available_signal (signo)
 void
 reinvoke_input_signal ()
 {
-#ifdef SIGIO  
+#ifdef SIGIO
   kill (0, SIGIO);
 #endif
 }
@@ -4164,7 +4163,7 @@ menu_bar_items (old)
      We do this instead of specbind because (1) errors will clear it anyway
      and (2) this avoids risk of specpdl overflow.  */
   oquit = Vinhibit_quit;
-  Vinhibit_quit = Qt; 
+  Vinhibit_quit = Qt;
 
   if (!NILP (old))
     menu_bar_items_vector = old;
@@ -4179,7 +4178,7 @@ menu_bar_items (old)
      keybuf with its symbol, or if the sequence starts with a mouse
      click and we need to switch buffers, we jump back here to rebuild
      the initial keymaps from the current buffer.  */
-  { 
+  {
     Lisp_Object *tmaps;
 
     /* Should overriding-local-map apply, here?  */
@@ -4433,7 +4432,7 @@ menu_bar_item (key, item_string, def)
    USED_MOUSE_MENU is zero, *USED_MOUSE_MENU is left alone.
 
    The prompting is done based on the prompt-string of the map
-   and the strings associated with various map elements.  
+   and the strings associated with various map elements.
 
    This can be done with X menus or with menus put in the minibuf.
    These are done in different ways, depending on how the input will be read.
@@ -4654,7 +4653,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
       /* Prompt with that and read response.  */
       message1 (menu);
 
-      /* Make believe its not a keyboard macro in case the help char 
+      /* Make believe its not a keyboard macro in case the help char
 	 is pressed.  Help characters are not recorded because menu prompting
 	 is not used on replay.
 	 */
@@ -4750,7 +4749,7 @@ follow_key (key, nmaps, current, defs, next)
   return first_binding;
 }
 
-/* Read a sequence of keys that ends with a non prefix character, 
+/* Read a sequence of keys that ends with a non prefix character,
    storing it in KEYBUF, a buffer of size BUFSIZE.
    Prompt with PROMPT.
    Return the length of the key sequence stored.
@@ -4909,13 +4908,13 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   /* Record the initial state of the echo area and this_command_keys;
      we will need to restore them if we replay a key sequence.  */
   if (INTERACTIVE)
-    echo_start = (current_perdisplay ? echo_length () : 0);
+    echo_start = echo_length ();
   keys_start = this_command_key_count;
 
 #if defined (GOBBLE_FIRST_EVENT)
   /* This doesn't quite work, because some of the things that read_char
      does cannot safely be bypassed.  It seems too risky to try to make
-     this work right.  */ 
+     this work right.  */
 
   /* Read the first char of the sequence specially, before setting
      up any keymaps, in case a filter runs and switches buffers on us.  */
@@ -4939,7 +4938,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
      keybuf with its symbol, or if the sequence starts with a mouse
      click and we need to switch buffers, we jump back here to rebuild
      the initial keymaps from the current buffer.  */
-  { 
+  {
     Lisp_Object *maps;
 
     if (!NILP (Voverriding_local_map))
@@ -4983,7 +4982,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   /* These are no-ops the first time through, but if we restart, they
      revert the echo area and this_command_keys to their original state.  */
   this_command_key_count = keys_start;
-  if (INTERACTIVE && t < mock_input && current_perdisplay)
+  if (INTERACTIVE && t < mock_input)
     echo_truncate (echo_start);
 
   /* If the best binding for the current key sequence is a keymap, or
@@ -5026,7 +5025,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	echo_local_start = echo_length ();
       keys_local_start = this_command_key_count;
       local_first_binding = first_binding;
-      
+
     replay_key:
       /* These are no-ops, unless we throw away a keystroke below and
 	 jumped back up to replay_key; in that case, these restore the
@@ -5057,11 +5056,26 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  {
 #ifdef MULTI_PERDISPLAY
 	    PERDISPLAY *interrupted_perdisplay = current_perdisplay;
+	    struct frame *interrupted_frame = selected_frame;
 	    if (setjmp (wrong_display_jmpbuf))
 	      {
 		while (t > 0)
 		  interrupted_perdisplay->kbd_queue
 		    = Fcons (keybuf[--t], interrupted_perdisplay->kbd_queue);
+		/* Ensure that the side queue begins with a switch-frame, so
+		   we'll be in the right context when we replay it later.  */
+		if (!(CONSP (interrupted_perdisplay->kbd_queue)
+		      && (key = XCONS (interrupted_perdisplay->kbd_queue)->car,
+			  EVENT_HAS_PARAMETERS (key))
+		      && EQ (EVENT_HEAD_KIND (EVENT_HEAD (key)),
+			     Qswitch_frame)))
+		  {
+		    Lisp_Object frame;
+		    XSETFRAME (frame, interrupted_frame);
+		    interrupted_perdisplay->kbd_queue
+		      = Fcons (make_lispy_switch_frame (frame),
+			       interrupted_perdisplay->kbd_queue);
+		  }
 		mock_input = 0;
 		orig_local_map = get_local_map (PT, current_buffer);
 		goto replay_sequence;
@@ -5087,7 +5101,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	      dummyflag = 1;
 	      break;
 	    }
-	  
+
 	  /* If the current buffer has been changed from under us, the
 	     keymap may have changed, so replay the sequence.  */
 	  if (BUFFERP (key))
@@ -5112,7 +5126,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  Vquit_flag = Qnil;
 	}
 
-      /* Clicks in non-text areas get prefixed by the symbol 
+      /* Clicks in non-text areas get prefixed by the symbol
 	 in their CHAR-ADDRESS field.  For example, a click on
 	 the mode line is prefixed by the symbol `mode-line'.
 
@@ -5464,7 +5478,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		  UNGCPRO;
 		  /* If the function returned something invalid,
 		     barf--don't ignore it.
-		     (To ignore it safely, we would need to gcpro a bunch of 
+		     (To ignore it safely, we would need to gcpro a bunch of
 		     other variables.)  */
 		  if (! (VECTORP (fkey_next) || STRINGP (fkey_next)))
 		    error ("Function in function-key-map returns invalid key sequence");
@@ -5497,7 +5511,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 			XSETFASTINT (keybuf[fkey_start + i],
 				     XSTRING (fkey_next)->data[i]);
 		    }
-		  
+
 		  mock_input = t;
 		  fkey_start = fkey_end = t;
 		  fkey_map = Vfunction_key_map;
@@ -5508,10 +5522,10 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 		  goto replay_sequence;
 		}
-	      
+
 	      fkey_map = get_keymap_1 (fkey_next, 0, 1);
 
-	      /* If we no longer have a bound suffix, try a new positions for 
+	      /* If we no longer have a bound suffix, try a new positions for
 		 fkey_start.  */
 	      if (NILP (fkey_map))
 		{
@@ -5564,7 +5578,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		UNGCPRO;
 		/* If the function returned something invalid,
 		   barf--don't ignore it.
-		   (To ignore it safely, we would need to gcpro a bunch of 
+		   (To ignore it safely, we would need to gcpro a bunch of
 		   other variables.)  */
 		if (! (VECTORP (keytran_next) || STRINGP (keytran_next)))
 		  error ("Function in key-translation-map returns invalid key sequence");
@@ -5612,7 +5626,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 	    keytran_map = get_keymap_1 (keytran_next, 0, 1);
 
-	    /* If we no longer have a bound suffix, try a new positions for 
+	    /* If we no longer have a bound suffix, try a new positions for
 	       keytran_start.  */
 	    if (NILP (keytran_map))
 	      {
@@ -6093,7 +6107,7 @@ On such systems, Emacs starts a subshell instead of suspending.")
   /* Run suspend-resume-hook.  */
   if (!NILP (Vrun_hooks))
     call1 (Vrun_hooks, intern ("suspend-resume-hook"));
-  
+
   UNGCPRO;
   return Qnil;
 }
@@ -6453,11 +6467,17 @@ init_keyboard ()
   Vlast_event_frame = internal_last_event_frame;
 #endif
 
-#ifndef MULTI_PERDISPLAY
-  if (initialized)
-    wipe_perdisplay (&the_only_perdisplay);
-  init_perdisplay (&the_only_perdisplay);
+  if (!initialized)
+    {
+#ifdef MULTI_PERDISPLAY
+      current_perdisplay = (PERDISPLAY *)xmalloc (sizeof (PERDISPLAY));
+      all_perdisplays = current_perdisplay;
 #endif
+      current_perdisplay->next_perdisplay = 0;
+    }
+  if (initialized)
+    wipe_perdisplay (current_perdisplay);
+  init_perdisplay (current_perdisplay);
 
   if (initialized)
     Ffillarray (kbd_buffer_frame_or_window, Qnil);
@@ -6505,7 +6525,7 @@ init_keyboard ()
 #endif
 }
 
-/* This type's only use is in syms_of_keyboard, to initialize the 
+/* This type's only use is in syms_of_keyboard, to initialize the
    event header symbols and put properties on them.  */
 struct event_head {
   Lisp_Object *var;
@@ -6749,7 +6769,7 @@ The reason for polling is to make C-g work to stop a running program.\n\
 Polling is needed only when using X windows and SIGIO does not work.\n\
 Polling is automatically disabled in all other cases.");
   polling_period = 2;
-  
+
   DEFVAR_LISP ("double-click-time", &Vdouble_click_time,
     "*Maximum time between mouse clicks to make a double-click.\n\
 Measured in milliseconds.  nil means disable double-click recognition;\n\
