@@ -278,8 +278,8 @@ if that value is non-nil."
   (set-syntax-table lisp-mode-syntax-table)
   (run-hooks 'lisp-mode-hook))
 
-;; This will do unless shell.el is loaded.
-(defun lisp-eval-defun nil
+;; This will do unless inf-lisp.el is loaded.
+(defun lisp-eval-defun (&optional and-go)
   "Send the current defun to the Lisp process made by \\[run-lisp]."
   (interactive)
   (error "Process lisp does not exist"))
@@ -395,11 +395,12 @@ With argument, print output into current buffer."
 	      (cdr-safe (cdr-safe form)))
 	 ;; Force variable to be bound.
 	 (cons 'defconst (cdr form)))
-	;; `defcustom' is now macroexpanded to `custom-declare-variable'.
+	;; `defcustom' is now macroexpanded to
+	;; `custom-declare-variable' with a quoted value arg.
 	((and (eq (car form) 'custom-declare-variable)
 	      (default-boundp (eval (nth 1 form))))
 	 ;; Force variable to be bound.
-	 (set-default (eval (nth 1 form)) (eval (nth 2 form)))
+	 (set-default (eval (nth 1 form)) (eval (nth 1 (nth 2 form))))
 	 form)
 	((eq (car form) 'progn)
 	 (cons 'progn (mapcar 'eval-defun-1 (cdr form))))
