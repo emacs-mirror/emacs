@@ -1570,17 +1570,16 @@ init_charset_once ()
 
   for (i = 0; i < 256; i++)
     bytes_by_char_head[i] = 1;
-  for (i = MIN_CHARSET_OFFICIAL_DIMENSION1;
-       i <= MAX_CHARSET_OFFICIAL_DIMENSION1; i++)
+  for (i = 128; i < MIN_CHARSET_OFFICIAL_DIMENSION2; i++)
     bytes_by_char_head[i] = 2;
-  for (i = MIN_CHARSET_OFFICIAL_DIMENSION2;
-       i <= MAX_CHARSET_OFFICIAL_DIMENSION2; i++)
+  for (; i <= MAX_CHARSET_OFFICIAL_DIMENSION2; i++)
     bytes_by_char_head[i] = 3;
+  for (; i < 160; i++)
+    bytes_by_char_head[i] = 2;
   bytes_by_char_head[LEADING_CODE_PRIVATE_11] = 3;
   bytes_by_char_head[LEADING_CODE_PRIVATE_12] = 3;
   bytes_by_char_head[LEADING_CODE_PRIVATE_21] = 4;
   bytes_by_char_head[LEADING_CODE_PRIVATE_22] = 4;
-  bytes_by_char_head[LEADING_CODE_8_BIT_CONTROL] = 2;
 
   for (i = 0; i < 128; i++)
     width_by_char_head[i] = 1;
