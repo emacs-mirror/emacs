@@ -1,3 +1,13 @@
+2000-09-29  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* diff-mode.el (diff-add-log-file-name): Remove.
+	(diff-mode): Use add-log-buffer-file-name-function.
+
+	* add-log.el (find-change-log): New arg BUFFER-FILE.
+	(add-log-file-name): Obey add-log-file-name-function.
+	(add-log-buffer-file-name-function): New var.
+	(add-change-log-entry): Use it.
+
 2000-09-29  Miles Bader  <miles@gnu.org>
 
 	* image-file.el (image-file-name-extensions): New variable.
