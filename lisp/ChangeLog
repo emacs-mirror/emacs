@@ -1,3 +1,11 @@
+2002-04-29  Kim F. Storm  <cua@cua.dk>
+
+	* subr.el (remove-yank-excluded-properties): New helper function.
+	(insert-for-yank): Use it.
+	(insert-buffer-substring-as-yank): Use it.
+
+	* simple.el (yank-excluded-properties): Added help-echo to list.
+
 2002-04-29  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* autoinsert.el (auto-insert-directory): Doc fix. 
