@@ -41,6 +41,7 @@
 
 (defvar calendar-mouse-3-map (make-sparse-keymap "Calendar"))
 (define-key calendar-mode-map [down-mouse-3] calendar-mouse-3-map)
+(define-key calendar-mode-map [C-down-mouse-3] calendar-mouse-3-map)
 
 (define-key calendar-mode-map [menu-bar moon]
   (cons "Moon" (make-sparse-keymap "Moon")))
