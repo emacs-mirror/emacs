@@ -9409,7 +9409,7 @@ x_draw_hollow_cursor (w, row)
   rect.left = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
   rect.top = (WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y)
               + row->ascent - w->phys_cursor_ascent);
-  rect.bottom = rect.top + row->height - 1;
+  rect.bottom = rect.top + row->height;
 
   /* Get the glyph the cursor is on.  If we can't tell because
      the current matrix is invalid or such, give up.  */
@@ -9421,7 +9421,7 @@ x_draw_hollow_cursor (w, row)
      glyph, and `x-stretch-block-cursor' is nil, don't draw a
      rectangle as wide as the glyph, but use a canonical character
      width instead.  */
-  wd = cursor_glyph->pixel_width - 1;
+  wd = cursor_glyph->pixel_width;
   if (cursor_glyph->type == STRETCH_GLYPH
       && !x_stretch_cursor_p)
     wd = min (CANON_X_UNIT (f), wd);
