@@ -94,7 +94,8 @@
 (defgroup generic-x nil
   "Extra modes for generic mode."
   :prefix "generic-"
-  :group 'generic)
+  :group 'generic
+  :version "20.3")
 
 (defcustom generic-extras-enable-list nil
   "*List of generic modes to enable by default.
