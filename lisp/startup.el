@@ -710,8 +710,7 @@ from being initialized."
       (cond ((and (not inhibit-startup-message) (not noninteractive)
 		  ;; Don't clobber a non-scratch buffer if init file
 		  ;; has selected it.
-		  (string= (buffer-name) "*scratch*")
-		  (not (input-pending-p)))
+		  (string= (buffer-name) "*scratch*"))
 	     ;; If there are no switches to process, we might as well
 	     ;; run this hook now, and there may be some need to do it
 	     ;; before doing any output.
@@ -738,7 +737,7 @@ from being initialized."
 	     (when (= (buffer-size) 0)
 	       (let ((buffer-undo-list t))
 		 (unwind-protect
-		     (progn
+		     (when (not (input-pending-p))
 		       (goto-char (point-max))
 		       ;; The convention for this piece of code is that
 		       ;; each piece of output starts with one or two newlines
