@@ -1,3 +1,11 @@
+2001-10-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* xterm.c: (x_insert_glyphs): Remove unused variables `real_end'
+	and `real_start'.
+	(x_draw_image_foreground): Remove unused variables `mask' and
+	`xgcv'.
+	(glyph_rect): Remove unused variable `area'.
+
 2001-10-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (try_window_reusing_current_matrix): Use
