@@ -304,7 +304,7 @@ Otherwise, START is the current point, and END is `point-max-marker'."
 	start end)
     (if (and transient-mark-mode mark-active)
 	(setq start (region-beginning)
-	      end (save-excursion (goto-char (region-end)) (point-marker)))
+	      end (copy-marker (region-end)))
       (setq start (point)
 	    end (point-max-marker)))
     (list regexp start end)))
@@ -390,33 +390,33 @@ In Transient Mark mode, if the mark is active, operate on the contents
 of the region.  Otherwise, operate from point to the end of the buffer."
   (interactive
    (keep-lines-read-args "How many matches for (regexp): "))
-  (if rstart
-      (goto-char (min rstart rend))
-    (setq rstart (point) rend (point-max-marker)))
-  (let ((count 0)
-	opoint
-	(case-fold-search (and case-fold-search
-			       (isearch-no-upper-case-p regexp t))))
-    (save-excursion
-     (while (and (< (point) rend)
-		 (progn (setq opoint (point))
-			(re-search-forward regexp rend t)))
-       (if (= opoint (point))
-	   (forward-char 1)
-	 (setq count (1+ count))))
-     (message "%d occurrences" count))))
+  (save-excursion
+    (if rstart
+	(goto-char (min rstart rend))
+      (setq rstart (point) rend (point-max-marker)))
+    (let ((count 0)
+	  opoint
+	  (case-fold-search (and case-fold-search
+				 (isearch-no-upper-case-p regexp t))))
+      (while (and (< (point) rend)
+		  (progn (setq opoint (point))
+			 (re-search-forward regexp rend t)))
+	(if (= opoint (point))
+	    (forward-char 1)
+	  (setq count (1+ count))))
+      (message "%d occurrences" count))))
 
 
-(defvar occur-mode-map ())
-(if occur-mode-map
-    ()
-  (setq occur-mode-map (make-sparse-keymap))
-  (define-key occur-mode-map [mouse-2] 'occur-mode-mouse-goto)
-  (define-key occur-mode-map "\C-c\C-c" 'occur-mode-goto-occurrence)
-  (define-key occur-mode-map "\C-m" 'occur-mode-goto-occurrence)
-  (define-key occur-mode-map "\M-n" 'occur-next)
-  (define-key occur-mode-map "\M-p" 'occur-prev)
-  (define-key occur-mode-map "g" 'revert-buffer))
+(defvar occur-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mouse-2] 'occur-mode-mouse-goto)
+    (define-key map "\C-c\C-c" 'occur-mode-goto-occurrence)
+    (define-key map "\C-m" 'occur-mode-goto-occurrence)
+    (define-key map "\M-n" 'occur-next)
+    (define-key map "\M-p" 'occur-prev)
+    (define-key map "g" 'revert-buffer)
+    map)
+  "Keymap for `occur-mode'.")
 
 
 (defvar occur-buffer nil
@@ -431,23 +431,17 @@ of the region.  Otherwise, operate from point to the end of the buffer."
 
 (put 'occur-mode 'mode-class 'special)
 
-(defun occur-mode ()
+(define-derived-mode occur-mode nil "Occur"
   "Major mode for output from \\[occur].
 \\<occur-mode-map>Move point to one of the items in this buffer, then use
 \\[occur-mode-goto-occurrence] to go to the occurrence that the item refers to.
 Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
 
 \\{occur-mode-map}"
-  (kill-all-local-variables)
-  (use-local-map occur-mode-map)
-  (setq major-mode 'occur-mode)
-  (setq mode-name "Occur")
-  (make-local-variable 'revert-buffer-function)
-  (setq revert-buffer-function 'occur-revert-function)
+  (set (make-local-variable 'revert-buffer-function) 'occur-revert-function)
   (make-local-variable 'occur-buffer)
   (make-local-variable 'occur-nlines)
-  (make-local-variable 'occur-command-arguments)
-  (run-hooks 'occur-mode-hook))
+  (make-local-variable 'occur-command-arguments))
 
 (defun occur-revert-function (ignore1 ignore2)
   "Handle revert-buffer for *Occur* buffers."
@@ -1018,8 +1012,7 @@ which will run faster and probably do exactly what you want."
 				  next-replacement ".\n\n"
 				  (substitute-command-keys
 				   query-replace-help)))
-			 (save-excursion
-			   (set-buffer standard-output)
+			 (with-current-buffer standard-output
 			   (help-mode))))
 		      ((eq def 'exit)
 		       (setq keep-going nil)
