@@ -1461,22 +1461,21 @@ Return nil if there is no such person."
      (if workfile ;; RCS
 	 ;; RCS doesn't let us check out into arbitrary file names directly.
 	 ;; Use `co -p' and make stdout point to the correct file.
-	 (let ((default-modes (default-file-modes))
-	       (vc-modes (logior (file-modes (vc-name file))
+	 (let ((vc-modes (logior (file-modes (vc-name file))
 				 (if writable 128 0)))
 	       (failed t))
 	   (unwind-protect
 	       (progn
-		   (set-default-file-modes vc-modes)
 		   (vc-do-command
 		      0 "/bin/sh" file "-c"
-		      "filename=$1; shift; exec co \"$@\" >$filename"
+		      (format "umask %o; exec >\"$1\" || exit; shift; umask %o; exec co \"$@\""
+			      (logand 511 (lognot vc-modes))
+			      (logand 511 (lognot (default-file-modes))))
 		      "" ; dummy argument for shell's $0
 		      filename
 		      (if writable "-l")
 		      (concat "-p" rev))
 		   (setq failed nil))
-	     (set-default-file-modes default-modes)
 	     (and failed (file-exists-p filename) (delete-file filename))))
        (vc-do-command 0 "co" file
 		      (if writable "-l")
