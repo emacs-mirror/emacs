@@ -148,10 +148,6 @@ Lisp_Object Qinsert_behind_hooks;
 /* For debugging; temporary.  See set_buffer_internal.  */
 /* Lisp_Object Qlisp_mode, Vcheck_symbol; */
 
-#ifdef MSDOS
-Lisp_Object Qbuffer_file_type;
-#endif
-
 nsberror (spec)
      Lisp_Object spec;
 {
@@ -2589,10 +2585,13 @@ Two arguments are passed to the function: the positions of\n\
 the beginning and end of the range of old text to be changed.\n\
 \(For an insertion, the beginning and end are at the same place.)\n\
 No information is given about the length of the text after the change.\n\
-position of the change\n\
 \n\
 Buffer changes made while executing the `before-change-function'\n\
-don't call any before-change or after-change functions.");
+don't call any before-change or after-change functions.\n\
+That's because these variables are temporarily set to nil.\n\
+As a result, a hook function cannot straightforwardly alter the value of\n\
+these variables.  See the Emacs Lisp manual for a way of\n\
+accomplishing an equivalent result by using other variables.")
   Vbefore_change_function = Qnil;
 
   DEFVAR_LISP ("after-change-function", &Vafter_change_function,
@@ -2605,7 +2604,11 @@ for a deletion, that length is the number of characters deleted,\n\
 and the post-change beginning and end are at the same place.)\n\
 \n\
 Buffer changes made while executing the `after-change-function'\n\
-don't call any before-change or after-change functions.");
+don't call any before-change or after-change functions.\n\
+That's because these variables are temporarily set to nil.\n\
+As a result, a hook function cannot straightforwardly alter the value of\n\
+these variables.  See the Emacs Lisp manual for a way of\n\
+accomplishing an equivalent result by using other variables.")
   Vafter_change_function = Qnil;
 
   DEFVAR_LISP ("before-change-functions", &Vbefore_change_functions,
@@ -2614,10 +2617,13 @@ Two arguments are passed to each function: the positions of\n\
 the beginning and end of the range of old text to be changed.\n\
 \(For an insertion, the beginning and end are at the same place.)\n\
 No information is given about the length of the text after the change.\n\
-position of the change\n\
 \n\
 Buffer changes made while executing the `before-change-functions'\n\
-don't call any before-change or after-change functions.");
+don't call any before-change or after-change functions.\n\
+That's because these variables are temporarily set to nil.\n\
+As a result, a hook function cannot straightforwardly alter the value of\n\
+these variables.  See the Emacs Lisp manual for a way of\n\
+accomplishing an equivalent result by using other variables.")
   Vbefore_change_functions = Qnil;
 
   DEFVAR_LISP ("after-change-functions", &Vafter_change_functions,
@@ -2630,7 +2636,12 @@ for a deletion, that length is the number of characters deleted,\n\
 and the post-change beginning and end are at the same place.)\n\
 \n\
 Buffer changes made while executing the `after-change-functions'\n\
-don't call any before-change or after-change functions.");
+don't call any before-change or after-change functions.\n\
+That's because these variables are temporarily set to nil.\n\
+As a result, a hook function cannot straightforwardly alter the value of\n\
+these variables.  See the Emacs Lisp manual for a way of\n\
+accomplishing an equivalent result by using other variables.")
+
   Vafter_change_functions = Qnil;
 
   DEFVAR_LISP ("first-change-hook", &Vfirst_change_hook,
