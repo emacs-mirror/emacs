@@ -1286,7 +1286,7 @@ update_menu_bar (f, save_match_data)
 
   if (FRAME_X_P (f)
       ?
-#ifdef FRAME_EXTERNAL_MENU_BAR
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
       FRAME_EXTERNAL_MENU_BAR (f) 
 #else
       FRAME_MENU_BAR_LINES (f) > 0
@@ -1745,7 +1745,7 @@ done:
   if (update_mode_line
       && (FRAME_X_P (f)
 	  ?
-#ifdef FRAME_EXTERNAL_MENU_BAR
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI)
 	  FRAME_EXTERNAL_MENU_BAR (f) 
 #else
 	  FRAME_MENU_BAR_LINES (f) > 0
@@ -3169,10 +3169,14 @@ display_menu_bar (w)
   int hpos = 0;
   int i;
 
-#if !defined (USE_X_TOOLKIT) && !defined (HAVE_NTGUI)
+#ifdef HAVE_NTGUI
+  return;
+#endif
+
+#ifdef USE_X_TOOLKIT
   if (FRAME_X_P (f))
     return;
-#endif /* not USE_X_TOOLKIT and not HAVE_NTGUI */
+#endif /* USE_X_TOOLKIT */
 
   get_display_line (f, vpos, 0);
 
