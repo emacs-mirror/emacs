@@ -1,7 +1,7 @@
 2004-09-20  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* subr.el (run-mode-hooks): Run `after-change-major-mode-hook'
-	after the mode-hooks instead of before.  Doc fix.
+	after the mode hooks instead of before.  Doc fix.
 
 2004-09-20  Jason Rumney  <jasonr@gnu.org>
 
