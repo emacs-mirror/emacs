@@ -557,17 +557,22 @@ If POSITION is at the end of OBJECT, the value is nil.")
   return textget (Ftext_properties_at (position, object), prop);
 }
 
-DEFUN ("get-char-property", Fget_char_property, Sget_char_property, 2, 3, 0,
-  "Return the value of POSITION's property PROP, in OBJECT.\n\
-OBJECT is optional and defaults to the current buffer.\n\
-If POSITION is at the end of OBJECT, the value is nil.\n\
-If OBJECT is a buffer, then overlay properties are considered as well as\n\
-text properties.\n\
-If OBJECT is a window, then that window's buffer is used, but window-specific\n\
-overlays are considered only if they are associated with OBJECT.")
-  (position, prop, object)
+/* Return the value of POSITION's property PROP, in OBJECT.
+   OBJECT is optional and defaults to the current buffer.
+   If OVERLAY is non-0, then in the case that the returned property is from
+   an overlay, the overlay found is returned in *OVERLAY, otherwise nil is
+   returned in *OVERLAY.
+   If POSITION is at the end of OBJECT, the value is nil.
+   If OBJECT is a buffer, then overlay properties are considered as well as
+   text properties.
+   If OBJECT is a window, then that window's buffer is used, but
+   window-specific overlays are considered only if they are associated
+   with OBJECT. */
+Lisp_Object
+get_char_property_and_overlay (position, prop, object, overlay)
      Lisp_Object position, object;
      register Lisp_Object prop;
+     Lisp_Object *overlay;
 {
   struct window *w = 0;
 
@@ -617,12 +622,37 @@ overlays are considered only if they are associated with OBJECT.")
 	{
 	  tem = Foverlay_get (overlay_vec[noverlays], prop);
 	  if (!NILP (tem))
-	    return (tem);
+	    {
+	      if (overlay)
+		/* Return the overlay we got the property from.  */
+		*overlay = overlay_vec[noverlays];
+	      return tem;
+	    }
 	}
     }
+
+  if (overlay)
+    /* Indicate that the return value is not from an overlay.  */
+    *overlay = Qnil;
+
   /* Not a buffer, or no appropriate overlay, so fall through to the
      simpler case.  */
-  return (Fget_text_property (position, prop, object));
+  return Fget_text_property (position, prop, object);
+}
+
+DEFUN ("get-char-property", Fget_char_property, Sget_char_property, 2, 3, 0,
+  "Return the value of POSITION's property PROP, in OBJECT.\n\
+OBJECT is optional and defaults to the current buffer.\n\
+If POSITION is at the end of OBJECT, the value is nil.\n\
+If OBJECT is a buffer, then overlay properties are considered as well as\n\
+text properties.\n\
+If OBJECT is a window, then that window's buffer is used, but window-specific\n\
+overlays are considered only if they are associated with OBJECT.")
+  (position, prop, object)
+     Lisp_Object position, object;
+     register Lisp_Object prop;
+{
+  return get_char_property_and_overlay (position, prop, object, 0);
 }
 
 DEFUN ("next-char-property-change", Fnext_char_property_change,
