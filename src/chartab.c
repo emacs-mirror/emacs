@@ -56,32 +56,31 @@ const int chartab_bits[4] =
 
 
 DEFUN ("make-char-table", Fmake_char_table, Smake_char_table, 1, 2, 0,
-       doc: /* Return a newly created char-table.
+       doc: /* Return a newly created char-table, with purpose PURPOSE.
 Each element is initialized to INIT, which defaults to nil.
 
-Optional second argument PURPOSE, if non-nil, should be a symbol
-which has a `char-table-extra-slots' property.
-The property's value should be an integer between 0 and 10
-that specify how many extra slots the char-table has.
-By default, the char-table has no extra slot.  */)
+PURPOSE should be a symbol.  If it has a `char-table-extra-slots'
+property, the property's value should be an integer between 0 and 10
+that specifies how many extra slots the char-table has.  Otherwise,
+the char-table has no extra slot.  */)
      (purpose, init)
      register Lisp_Object purpose, init;
 {
   Lisp_Object vector;
   Lisp_Object n;
-  int n_extras = 0;
+  int n_extras;
   int size;
 
   CHECK_SYMBOL (purpose);
-  if (! NILP (purpose))
+  n = Fget (purpose, Qchar_table_extra_slots);
+  if (NILP (n))
+    n_extras = 0;
+  else
     {
-      n = Fget (purpose, Qchar_table_extra_slots);
-      if (INTEGERP (n))
-	{
-	  if (XINT (n) < 0 || XINT (n) > 10)
-	    args_out_of_range (n, Qnil);
-	  n_extras = XINT (n);
-	}
+      CHECK_NATNUM (n);
+      n_extras = XINT (n);
+      if (n_extras > 10)
+	args_out_of_range (n, Qnil);
     }
 
   size = VECSIZE (struct Lisp_Char_Table) - 1 + n_extras;
