@@ -1953,13 +1953,14 @@ the current state.\n")
   /* Start with 1 so there is room for at least one lambda at the end.  */
   n = 1;
   FOR_EACH_FRAME (tail, frame)
-    n++;
+    n += 2;
   for (tail = Vbuffer_alist; CONSP (tail); tail = XCONS (tail)->cdr)
     n += 3;
   /* Reallocate the vector if it's grown, or if it's shrunk a lot.  */
   if (n > XVECTOR (frame_and_buffer_state)->size
-      || n < XVECTOR (frame_and_buffer_state)->size / 2)
-    frame_and_buffer_state = Fmake_vector (make_number (n), Qlambda);
+      || n + 20 < XVECTOR (frame_and_buffer_state)->size / 2)
+    /* Add 20 extra so we grow it less often.  */
+    frame_and_buffer_state = Fmake_vector (make_number (n + 20), Qlambda);
   vecp = XVECTOR (frame_and_buffer_state)->contents;
   FOR_EACH_FRAME (tail, frame)
     {
@@ -1976,9 +1977,15 @@ the current state.\n")
       *vecp++ = XBUFFER (buf)->read_only;
       *vecp++ = Fbuffer_modified_p (buf);
     }
-  /* If we left any slack in the vector, fill it up now.  */
-  for (; n < XVECTOR (frame_and_buffer_state)->size; ++n)
+  /* Fill up the vector with lambdas (always at least one).  */
+  *vecp++ = Qlambda;
+  while  (vecp - XVECTOR (frame_and_buffer_state)->contents
+	  < XVECTOR (frame_and_buffer_state)->size)
     *vecp++ = Qlambda;
+  /* Make sure we didn't overflow the vector.  */
+  if (vecp - XVECTOR (frame_and_buffer_state)->contents
+      > XVECTOR (frame_and_buffer_state)->size)
+    abort ();
   return Qt;
 }
 
@@ -2545,7 +2552,7 @@ syms_of_display ()
   defsubr (&Ssleep_for);
   defsubr (&Ssend_string_to_terminal);
 
-  frame_and_buffer_state = Fmake_vector (make_number (1), Qlambda);
+  frame_and_buffer_state = Fmake_vector (make_number (20), Qlambda);
   staticpro (&frame_and_buffer_state);
 
   DEFVAR_INT ("baud-rate", &baud_rate,
