@@ -1,4 +1,10 @@
-2001-08-22  Miles Bader  <miles@gnu.org>
+2001-08-28  Miles Bader  <miles@gnu.org>
+
+	* comint.el (comint-next-prompt): Don't loop infinitely if
+	{next,previous}-single-char-property-change returns its input
+	position when the search fails.
+
+2001-08-27  Miles Bader  <miles@gnu.org>
 
 	* comint.el (comint-get-old-input-default): Don't signal an error
 	if point is not on an input field; instead, return the current
