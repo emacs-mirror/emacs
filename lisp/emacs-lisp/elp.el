@@ -5,8 +5,8 @@
 ;; Author:        1994-1997 Barry A. Warsaw
 ;; Maintainer:    tools-help@python.org
 ;; Created:       26-Feb-1994
-;; Version:       2.40
-;; Last Modified: 1997/04/21 15:48:26
+;; Version:       3.0
+;; Last Modified: 1997/04/21 17:45:15
 ;; Keywords:      debugging lisp tools
 
 ;; This file is part of GNU Emacs.
@@ -191,7 +191,7 @@ In other words, a new unique buffer is create every time you run
 ;; end of user configuration variables
 
 
-(defconst elp-version "2.40"
+(defconst elp-version "3.0"
   "ELP version number.")
 
 (defconst elp-help-address "tools-help@python.org"
