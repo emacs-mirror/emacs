@@ -3554,7 +3554,7 @@ which is a list of all the arguments given to this function.")
 	  if (! NILP (Fcoding_system_p (val)))
 	    return Fcons (val, val);
 	  if (!NILP (Fboundp (val)))
-	    return call2 (val, Flist (nargs, args));
+	    return call1 (val, Flist (nargs, args));
 	  return Qnil;
 	}
     }
