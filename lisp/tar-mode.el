@@ -610,7 +610,8 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
   (widen)
   (if (and (boundp 'tar-header-offset) tar-header-offset)
       (narrow-to-region 1 tar-header-offset)
-      (tar-summarize-buffer))
+      (tar-summarize-buffer)
+      (tar-next-line 0))
   (run-hooks 'tar-mode-hook)
   )
 
@@ -743,6 +744,43 @@ appear on disk when you save the tar-file's buffer."
 		      (expand-file-name (concat tarname "!" name)))
 		(setq buffer-file-truename
 		      (abbreviate-file-name buffer-file-name))
+		;; We need to mimic the parts of insert-file-contents
+		;; which determine the coding-system and decode the text.
+		(let ((coding
+		       (and set-auto-coding-function
+			    (funcall
+			     set-auto-coding-function
+			     (if (< (point-max) 4096)
+				 (buffer-substring-no-properties 1 (point-max))
+			       (concat
+				(buffer-substring-no-properties 1  1025)
+				(buffer-substring-no-properties
+				 (- (point-max) 3072) (point-max)))))))
+		      (multibyte enable-multibyte-characters)
+		      (detected (detect-coding-region
+				 1 (min 16384 (point-max)))))
+		  (if coding
+		      (or (numberp (coding-system-eol-type coding))
+			  (setq coding (coding-system-change-eol-conversion
+					coding
+					(coding-system-eol-type detected))))
+		    (setq coding
+			  (or (find-new-buffer-file-coding-system detected)
+			      (let ((file-coding
+				     (find-operation-coding-system
+				      'insert-file-contents buffer-file-name)))
+				(if (consp file-coding)
+				    (setq file-coding (car file-coding))
+				  file-coding)))))
+		  (if (or (eq coding 'no-conversion)
+			  (eq (coding-system-type coding) 5))
+		      (setq multibyte (set-buffer-multibyte nil)))
+		  (or multibyte
+		      (setq coding
+			    (coding-system-change-text-conversion
+			     coding 'raw-text)))
+		  (decode-coding-region 1 (point-max) coding)
+		  (set-buffer-file-coding-system coding))
 		;; Set the default-directory to the dir of the
 		;; superior buffer. 
 		(setq default-directory
@@ -1057,7 +1095,8 @@ for this to be permanent."
 	        (buffer-substring start (+ start 512))
 	        chk (tar-header-name tokens))
 	      )))
-      (narrow-to-region 1 tar-header-offset))))
+      (narrow-to-region 1 tar-header-offset)
+      (tar-next-line 0))))
 
 
 (defun tar-octal-time (timeval)
@@ -1081,6 +1120,7 @@ to make your changes permanent."
   (save-excursion
   (let ((subfile (current-buffer))
 	(subfile-size (buffer-size))
+	(coding buffer-file-coding-system)
 	(descriptor tar-superior-descriptor))
     (set-buffer tar-superior-buffer)
     (let* ((tokens (tar-desc-tokens descriptor))
@@ -1102,6 +1142,9 @@ to make your changes permanent."
 	  ;; insert the new data...
 	  (goto-char data-start)
 	  (insert-buffer subfile)
+	  (setq subfile-size
+		(encode-coding-region
+		 data-start (+ data-start subfile-size) coding))
 	  ;;
 	  ;; pad the new data out to a multiple of 512...
 	  (let ((subfile-size-pad (ash (ash (+ subfile-size 511) -9) 9)))
@@ -1161,10 +1204,13 @@ to make your changes permanent."
 	(tar-pad-to-blocksize))
        (narrow-to-region 1 tar-header-offset)))
     (set-buffer-modified-p t)   ; mark the tar file as modified
+    (tar-next-line 0)
     (set-buffer subfile)
     (set-buffer-modified-p nil) ; mark the tar subfile as unmodified
     (message "Saved into tar-buffer `%s'.  Be sure to save that buffer!"
 	     (buffer-name tar-superior-buffer))
+    ;; Prevent basic-save-buffer from changing our coding-system.
+    (setq last-coding-system-used buffer-file-coding-system)
     ;; Prevent ordinary saving from happening.
     t)))
 
