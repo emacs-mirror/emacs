@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1998 Free Software Foundation, Inc.
 
-;; Author: Richard Sharman <rsharman@magma.ca>
+;; Author: Richard Sharman <rsharman@pobox.com>
 ;; Keywords: faces
 
 ;; This file is part of GNU Emacs.
