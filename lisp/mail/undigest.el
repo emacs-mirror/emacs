@@ -99,9 +99,22 @@ Leaves original message, deleted, before the undigestified messages."
 				      (progn (search-forward "\n\n"
 							     nil 'move)
 					     (point))))
-		  (if (mail-fetch-field "To") nil
+		  (if (mail-fetch-field "To")
+		      nil
 		    (goto-char (point-min))
-		    (insert "To: " digest-name "\n"))))))
+		    (insert "To: " digest-name "\n")))
+		;; Digestifiers may insert `- ' on lines that start with `-'.
+		;; Undo that.
+		(save-excursion
+		  (goto-char (point-min))
+		  (if (re-search-forward
+		       "\n\n----------------------------*\n*"
+		       nil t)
+		      (let ((end (point-marker)))
+			(goto-char (point-min))
+			(while (re-search-forward "^- " end t)
+			  (delete-char -2)))))
+		)))
 	  (setq error nil)
 	  (message "Message successfully undigestified")
 	  (let ((n rmail-current-message))
