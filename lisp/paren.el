@@ -40,6 +40,7 @@
 ;; This is the overlay used to highlight the closeparen right before point.
 (defvar show-paren-overlay-1 nil)
 
+;;;###autoload
 (defcustom show-paren-mode nil
   "*Toggle Show Paren mode.
 When Show Paren mode is enabled, any matching parenthesis is highlighted
