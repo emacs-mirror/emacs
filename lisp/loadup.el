@@ -82,8 +82,8 @@
 ;; multilingual text.
 (load "international/mule-cmds")
 (load "case-table")
-(load "international/characters")
 (load "international/utf-8")
+(load "international/characters")
 
 (let ((set-case-syntax-set-multibyte t))
   (load "international/latin-1")
