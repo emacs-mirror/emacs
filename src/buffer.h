@@ -70,10 +70,10 @@ Boston, MA 02111-1307, USA.  */
 #define BEG_ADDR (current_buffer->text->beg)
 
 /* Address of beginning of accessible range of buffer.  */ 
-#define BEGV_ADDR (&FETCH_CHAR (current_buffer->begv))
+#define BEGV_ADDR (POS_ADDR (current_buffer->begv))
 
 /* Address of point in buffer.  */ 
-#define PT_ADDR (&FETCH_CHAR (current_buffer->pt))
+#define PT_ADDR (POS_ADDR (current_buffer->pt))
 
 /* Address of beginning of gap in buffer.  */ 
 #define GPT_ADDR (current_buffer->text->beg + current_buffer->text->gpt - 1)
@@ -82,7 +82,10 @@ Boston, MA 02111-1307, USA.  */
 #define GAP_END_ADDR (current_buffer->text->beg + current_buffer->text->gpt + current_buffer->text->gap_size - 1)
 
 /* Address of end of accessible range of buffer.  */ 
-#define ZV_ADDR (&FETCH_CHAR (current_buffer->zv))
+#define ZV_ADDR (POS_ADDR (current_buffer->zv))
+
+/* Address of end of buffer.  */ 
+#define Z_ADDR (current_buffer->text->beg + current_buffer->text->gap_size + current_buffer->text->z - 1)
 
 /* Size of gap.  */
 #define GAP_SIZE (current_buffer->text->gap_size)
@@ -129,6 +132,12 @@ Boston, MA 02111-1307, USA.  */
 
 /* Address of beginning of buffer.  */
 #define BUF_BEG_ADDR(buf) ((buf)->text->beg)
+
+/* Address of beginning of gap of buffer.  */
+#define BUF_GPT_ADDR(buf) ((buf)->text->beg + (buf)->text->gpt - 1)
+
+/* Address of end of buffer.  */
+#define BUF_Z_ADDR(buf) ((buf)->text->beg + (buf)->text->gap_size + (buf)->text->z - 1)
 
 /* Macro for setting the value of BUF_ZV (BUF) to VALUE,
    by varying the end of the accessible region.  */
@@ -303,6 +312,8 @@ struct buffer
     Lisp_Object abbrev_table;
     /* This buffer's syntax table.  */
     Lisp_Object syntax_table;
+    /* This buffer's category table.  */
+    Lisp_Object category_table;
 
     /* Values of several buffer-local variables */
     /* tab-width is buffer-local so that redisplay can find it
@@ -315,6 +326,9 @@ struct buffer
     Lisp_Object auto_fill_function;
     /* nil: text, t: binary.
        This value is meaningful only on certain operating systems.  */
+    /* Actually, we don't need this flag any more because end-of-line
+       is handled correctly according to the buffer-file-coding-system
+       of the buffer.  Just keeping it for backward compatibility.  */
     Lisp_Object buffer_file_type;
 
     /* Case table for case-conversion in this buffer.
@@ -331,6 +345,8 @@ struct buffer
     Lisp_Object truncate_lines;
     /* Non-nil means display ctl chars with uparrow.  */
     Lisp_Object ctl_arrow;
+    /* Non-nil means display text from right to left.  */
+    Lisp_Object direction_reversed;
     /* Non-nil means do selective display;
        see doc string in syms_of_buffer (buffer.c) for details.  */
     Lisp_Object selective_display;
@@ -368,6 +384,10 @@ struct buffer
 
     /* Position where the overlay lists are centered.  */
     Lisp_Object overlay_center;
+
+    /* Non-nil means the buffer contents are regarded as multi-byte
+       form of characters, not a binary code.  */
+    Lisp_Object enable_multibyte_characters;
 
     /* List of symbols naming the file format used for visited file. */
     Lisp_Object file_format;
@@ -468,13 +488,36 @@ extern struct buffer buffer_local_types;
    and should be eliminated.  */
 #define point (current_buffer->pt + 0)
 
-/* Return character at position n.  No range checking.  */
-#define FETCH_CHAR(n) *(((n)>= GPT ? GAP_SIZE : 0) + (n) + BEG_ADDR - 1)
+/* Return the address of position N.  No range checking.  */
+#define POS_ADDR(n) (((n)>= GPT ? GAP_SIZE : 0) + (n) + BEG_ADDR - 1)
+
+/* Return the byte at position N.  No range checking.  */
+#define FETCH_BYTE(n) *(POS_ADDR ((n)))
+
+/* Variables used locally in FETCH_MULTIBYTE_CHAR.  */
+extern unsigned char *_fetch_multibyte_char_p;
+extern int _fetch_multibyte_char_len;
+
+/* Return character code of multi-byte form at position POS.  If POS
+   doesn't point the head of valid multi-byte form, only the byte at
+   POS is returned.  No range checking.  */
+
+#define FETCH_MULTIBYTE_CHAR(pos)				 	\
+  (_fetch_multibyte_char_p = (((pos) >= GPT ? GAP_SIZE : 0)	 	\
+			       + (pos) + BEG_ADDR - 1),		 	\
+   _fetch_multibyte_char_len = ((pos) >= GPT ? ZV : GPT) - (pos),	\
+   STRING_CHAR (_fetch_multibyte_char_p, _fetch_multibyte_char_len))
+
+/* Return character at position POS.  No range checking.  */
+#define FETCH_CHAR(pos)				      	\
+  (!NILP (current_buffer->enable_multibyte_characters)	\
+   ? FETCH_MULTIBYTE_CHAR ((pos))		      	\
+   : FETCH_BYTE ((pos)))
 
 /* BUFFER_CEILING_OF (resp. BUFFER_FLOOR_OF), when applied to n, return
    the max (resp. min) p such that
 
-   &FETCH_CHAR (p) - &FETCH_CHAR (n) == p - n       */
+   POS_ADDR (p) - POS_ADDR (n) == p - n       */
 
 #define BUFFER_CEILING_OF(n) (((n) < GPT && GPT < ZV ? GPT : ZV) - 1)
 #define BUFFER_FLOOR_OF(n) (BEGV <= GPT && GPT <= (n) ? GPT : BEGV)
