@@ -1498,10 +1498,10 @@ comes the newest one."
 	(before (< (point) (mark t))))
     (delete-region (point) (mark t))
     (set-marker (mark-marker) (point) (current-buffer))
-    (let ((opoint (point))
-	  (inhibit-read-only t))
+    (let ((opoint (point)))
       (insert (current-kill arg))
-      (remove-text-properties opoint (point) '(read-only nil)))
+      (let ((inhibit-read-only t))
+	(remove-text-properties opoint (point) '(read-only nil))))
     (if before
 	;; This is like exchange-point-and-mark, but doesn't activate the mark.
 	;; It is cleaner to avoid activation, even though the command
@@ -1523,13 +1523,13 @@ See also the command \\[yank-pop]."
   ;; for the following command.
   (setq this-command t)
   (push-mark (point))
-  (let ((opoint (point))
-	(inhibit-read-only t))
+  (let ((opoint (point)))
     (insert (current-kill (cond
 			   ((listp arg) 0)
 			   ((eq arg '-) -1)
 			   (t (1- arg)))))
-    (remove-text-properties opoint (point) '(read-only nil)))
+    (let ((inhibit-read-only t))
+      (remove-text-properties opoint (point) '(read-only nil))))
   (if (consp arg)
       ;; This is like exchange-point-and-mark, but doesn't activate the mark.
       ;; It is cleaner to avoid activation, even though the command
