@@ -1,6 +1,6 @@
 # ==== SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpost.nmk(trunk.3) $
+# $HopeName: MMsrc!commpost.nmk(trunk.4) $
 # Copyright(C) 1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -15,14 +15,14 @@
 
 all: mpmss.exe amcss.exe dwstress.exe lockutnt.exe lockcov.exe \
      mpsicv.exe poolncv.exe locv.exe qs.exe mpm.lib weakcv.exe \
-     mpmconft.exe finalcv.exe
+     mpmconft.exe finalcv.exe awlut.exe
 
 # Convenience targets
 # %%TARGET: Add a pseudo-target for the new part
 
 dwstress.exe amcss.exe lockutnt.exe lockcov.exe \
      mpmss.exe protcv.exe mpsicv.exe poolncv.exe locv.exe qs.exe \
-     weakcv.exe mpmconft.exe finalcv.exe \
+     weakcv.exe mpmconft.exe finalcv.exe awlut.exe \
      mpm.lib mmdw.lib mmsw.lib poolawl.lib:
 !IFDEF VARIETY
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ variety
@@ -112,6 +112,10 @@ $(PFM)\$(VARIETY)\poolncv.exe:  $(PFM)\$(VARIETY)\poolncv.obj \
 
 $(PFM)\$(VARIETY)\locv.exe:  $(PFM)\$(VARIETY)\locv.obj \
 	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(LOOBJ)
+
+$(PFM)\$(VARIETY)\awlut.exe:  $(PFM)\$(VARIETY)\awlut.obj \
+	$(PFM)/$(VARIETY)/fmtdy.obj \
+	$(MPMOBJ) $(PLINTHOBJ) $(TESTLIBOBJ) $(LOOBJ) $(AWLOBJ)
 
 $(PFM)\$(VARIETY)\mpm.lib: $(MPMOBJ)
 	$(ECHO) $@

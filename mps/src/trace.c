@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.25) $
+ * $HopeName: MMsrc!trace.c(trunk.26) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.25) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.26) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -94,78 +94,6 @@ Bool TraceCheck(Trace trace)
 }
 
 
-/* TraceCreate -- create a Trace object
- *
- * Allocates and initializes a new Trace object with a TraceId
- * which is not currently active.
- *
- * Returns ResLIMIT if there aren't any available trace IDs.
- *
- * Trace objects are allocated directly from a small array in the
- * space structure which is indexed by the TraceId.  This is so
- * that it's always possible to start a trace (provided there's
- * a free TraceId) even if there's no available memory.
- *
- * This code is written to be adaptable to allocating Trace
- * objects dynamically.
- */
-
-Res TraceCreate(Trace *traceReturn, Space space)
-{
-  TraceId ti;
-  Trace trace;
-
-  AVER(TRACE_MAX == 1);		/* .single-collection */
-
-  AVER(traceReturn != NULL);
-  AVERT(Space, space);
-
-  /* Find a free trace ID */
-  for(ti = 0; ti < TRACE_MAX; ++ti)
-    if(!TraceSetIsMember(space->busyTraces, ti))
-      goto found;
-
-  return ResLIMIT;		/* no trace IDs available */
-
-found:
-  trace = SpaceTrace(space, ti);
-  space->busyTraces = TraceSetAdd(space->busyTraces, ti);
-
-  trace->space = space;
-  trace->white = RefSetEMPTY;
-  trace->ti = ti;
-  trace->state = TraceINIT;
-  trace->interval = (Size)4096; /* @@@@ should be progress control */
-
-  trace->sig = TraceSig;
-  AVERT(Trace, trace);
-
-  *traceReturn = trace;
-  return ResOK;
-}
-
-
-/* TraceDestroy -- destroy a trace object
- *
- * Finish and deallocate a Trace object, freeing up a TraceId.
- *
- * This code does not allow a Trace to be destroyed while it is
- * active.  It would be possible to allow this, but the colours
- * of segments etc. would need to be reset to black.
- */
-
-void TraceDestroy(Trace trace)
-{
-  AVERT(Trace, trace);
-  AVER(trace->state == TraceFINISHED);
-  trace->sig = SigInvalid;
-  trace->space->busyTraces =
-    TraceSetDel(trace->space->busyTraces, trace->ti);
-  trace->space->flippedTraces =
-    TraceSetDel(trace->space->flippedTraces, trace->ti);
-}
-
-
 /* TraceStart -- condemn a set of objects and start collection
  *
  * TraceStart should be passed a trace with state TraceINIT, i.e.
@@ -177,21 +105,25 @@ void TraceDestroy(Trace trace)
  * it easy to destroy traces half-way through.
  */
 
-Res TraceStart(Trace trace, Pool pool)
+static Res TraceStart(Trace trace, Action action)
 {
   Res res;
   Ring ring, node;
   Space space;
   Seg seg;
+  Pool pool;
 
   AVERT(Trace, trace);
-  AVERT(Pool, pool);
-  AVER((pool->class->attr & AttrGC) != 0);
+  AVERT(Action, action);
+  AVER((action->pool->class->attr & AttrGC) != 0);
   AVER(trace->state == TraceINIT);
   AVER(trace->white == RefSetEMPTY);
 
   /* Identify the condemned set and turn it white. */
   space = trace->space;
+  pool = action->pool;
+
+  EVENT3(TraceStart, trace, pool, action);
   ring = PoolSegRing(pool);
   node = RingNext(ring);
   while(node != ring) {
@@ -202,7 +134,7 @@ Res TraceStart(Trace trace, Pool pool)
 
     /* Give the pool the opportunity to turn the segment white. */
     /* If it fails, unwind. */
-    res = PoolCondemn(pool, trace, seg);
+    res = PoolCondemn(pool, trace, seg, action);
     if(res != ResOK) goto failCondemn;
 
     /* Add the segment to the approximation of the white set the */
@@ -289,6 +221,99 @@ failCondemn:
 }
 
 
+/* TraceCreate -- create a Trace object
+ *
+ * Allocates and initializes a new Trace object with a TraceId
+ * which is not currently active.
+ *
+ * Returns ResLIMIT if there aren't any available trace IDs.
+ *
+ * Trace objects are allocated directly from a small array in the
+ * space structure which is indexed by the TraceId.  This is so
+ * that it's always possible to start a trace (provided there's
+ * a free TraceId) even if there's no available memory.
+ *
+ * This code is written to be adaptable to allocating Trace
+ * objects dynamically.
+ */
+
+Res TraceCreate(Trace *traceReturn, Space space, Action action)
+{
+  TraceId ti;
+  Trace trace;
+  Res res;
+
+  AVER(TRACE_MAX == 1);		/* .single-collection */
+
+  AVER(traceReturn != NULL);
+  AVERT(Space, space);
+  AVERT(Action, action);
+
+  /* Find a free trace ID */
+  for(ti = 0; ti < TRACE_MAX; ++ti)
+    if(!TraceSetIsMember(space->busyTraces, ti))
+      goto found;
+
+  return ResLIMIT;		/* no trace IDs available */
+
+found:
+  trace = SpaceTrace(space, ti);
+  space->busyTraces = TraceSetAdd(space->busyTraces, ti);
+
+  trace->space = space;
+  trace->action = action;
+  trace->white = RefSetEMPTY;
+  trace->ti = ti;
+  trace->state = TraceINIT;
+  trace->interval = (Size)4096; /* @@@@ should be progress control */
+
+  trace->sig = TraceSig;
+  AVERT(Trace, trace);
+
+  res = PoolTraceBegin(action->pool, trace, action);
+  if(res != ResOK) goto failBegin;
+  
+  res = TraceStart(trace, action);
+  if(res != ResOK) goto failStart;
+
+  *traceReturn = trace;
+  EVENT4(TraceCreate, space, action, trace, ti);
+  return ResOK;
+
+failStart:
+  PoolTraceEnd(action->pool, trace, action);
+failBegin:
+  trace->sig = SigInvalid;
+  space->busyTraces = TraceSetDel(space->busyTraces, ti);
+  return res;
+}
+
+
+/* TraceDestroy -- destroy a trace object
+ *
+ * Finish and deallocate a Trace object, freeing up a TraceId.
+ *
+ * This code does not allow a Trace to be destroyed while it is
+ * active.  It would be possible to allow this, but the colours
+ * of segments etc. would need to be reset to black.
+ */
+
+void TraceDestroy(Trace trace)
+{
+  AVERT(Trace, trace);
+  AVER(trace->state == TraceFINISHED);
+  
+  PoolTraceEnd(trace->action->pool, trace, trace->action);
+  
+  trace->sig = SigInvalid;
+  trace->space->busyTraces =
+    TraceSetDel(trace->space->busyTraces, trace->ti);
+  trace->space->flippedTraces =
+    TraceSetDel(trace->space->flippedTraces, trace->ti);
+  EVENT1(TraceDestroy, trace);
+}
+
+
 /* TraceSetGreyen -- turn a segment more grey
  *
  * Adds the trace set ts to the greyness of the segment and adjusts
@@ -311,6 +336,7 @@ void TraceSegGreyen(Space space, Seg seg, TraceSet ts)
      TraceSetInter(grey, space->flippedTraces) != TraceSetEMPTY)
     ShieldRaise(space, seg, AccessREAD);
   seg->grey = grey;
+  EVENT3(TraceSegGreyen, space, seg, ts);
 }
 
 
@@ -395,6 +421,8 @@ static Res TraceFlip(Trace trace)
 
   AVER(trace->state == TraceUNFLIPPED);
 
+  EVENT2(TraceFlipBegin, trace, space);
+
   TraceFlipBuffers(space);
  
   /* Update location dependency structures.  white is */
@@ -453,6 +481,8 @@ static Res TraceFlip(Trace trace)
 
   ss.sig = SigInvalid;  /* just in case */
 
+  EVENT2(TraceFlipEnd, trace, space);
+
   ShieldResume(space);
 
   return ResOK;
@@ -467,6 +497,8 @@ static void TraceReclaim(Trace trace)
   AVERT(Trace, trace);
   AVER(trace->state == TraceRECLAIM);
 
+
+  EVENT1(TraceReclaim, trace);
   space = trace->space;
   if(SegFirst(&seg, space)) {
     Addr base;
@@ -552,6 +584,8 @@ static Res TraceScan(TraceSet ts, Rank rank,
   /* The reason for scanning a segment is that it's grey. */
   AVER(TraceSetInter(ts, seg->grey) != TraceSetEMPTY);
 
+  EVENT5(TraceScan, ts, rank, space, seg, &ss);
+
   ss.rank = rank;
   ss.traces = ts;
   ss.fix = TraceFix;
@@ -607,6 +641,8 @@ void TraceAccess(Space space, Seg seg, AccessSet mode)
   AVERT(Space, space);
   AVERT(Seg, seg);
   UNUSED(mode);
+
+  EVENT3(TraceAccess, space, seg, mode);
 
   if((mode & seg->sm & AccessREAD) != 0) {     /* read barrier? */
     /* In this case, the segment must be grey for a trace which is */
@@ -675,6 +711,8 @@ Res TracePoll(Trace trace)
 
   space = trace->space;
 
+  EVENT2(TracePoll, trace, space);
+
   switch(trace->state) {
     case TraceUNFLIPPED: {
       res = TraceFlip(trace);
@@ -704,6 +742,23 @@ Res TracePoll(Trace trace)
 }
 
 
+/* TraceGreyEstimate -- estimate amount of grey stuff
+ *
+ * This function returns an estimate of the total size (in bytes)
+ * of objects which would need to be scanned in order to find
+ * all references to a certain RefSet.
+ *
+ * @@@@ This currently assumes that it's everything in the world.
+ * @@@@ Should factor in the size of the roots, especially if the stack
+ * is currently very deep.
+ */
+
+Size TraceGreyEstimate(Space space, RefSet refSet)
+{
+  return ArenaCommitted(space);
+}
+
+
 Res TraceFix(ScanState ss, Ref *refIO)
 {
   Ref ref;
@@ -714,8 +769,11 @@ Res TraceFix(ScanState ss, Ref *refIO)
   AVER(refIO != NULL);
 
   ref = *refIO;
+  EVENT4(TraceFix, ss, refIO, ref, ss->rank);
   if(SegOfAddr(&seg, ss->space, ref)) {
+    EVENT1(TraceFixSeg, seg);
     if(TraceSetInter(seg->white, ss->traces) != TraceSetEMPTY) {
+      EVENT0(TraceFixWhite);
       pool = seg->pool;
       return PoolFix(pool, ss, seg, refIO);
     }
@@ -743,6 +801,8 @@ Res TraceScanArea(ScanState ss, Addr *base, Addr *limit)
   AVER(base != NULL);
   AVER(limit != NULL);
   AVER(base < limit);
+
+  EVENT3(TraceScanArea, ss, base, limit);
 
   TRACE_SCAN_BEGIN(ss) {
     p = base;
@@ -789,6 +849,8 @@ Res TraceScanAreaMasked(ScanState ss, Addr *base, Addr *limit, Word mask)
   AVER(base != NULL);
   AVER(limit != NULL);
   AVER(base < limit);
+
+  EVENT3(TraceScanAreaTagged, ss, base, limit);
 
   TRACE_SCAN_BEGIN(ss) {
     p = base;
