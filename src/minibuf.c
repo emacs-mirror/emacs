@@ -1161,38 +1161,6 @@ DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 6, 0,
   return unbind_to (count, val);
 }
 
-/* Temporarily display the string M at the end of the current
-   minibuffer contents.  This is used to display things like
-   "[No Match]" when the user requests a completion for a prefix
-   that has no possible completions, and other quick, unobtrusive
-   messages.  */
-
-temp_echo_area_glyphs (m)
-     char *m;
-{
-  int osize = ZV;
-  int opoint = PT;
-  Lisp_Object oinhibit;
-  oinhibit = Vinhibit_quit;
-
-  /* Clear out any old echo-area message to make way for our new thing.  */
-  message (0);
-
-  SET_PT (osize);
-  insert_string (m);
-  SET_PT (opoint);
-  Vinhibit_quit = Qt;
-  Fsit_for (make_number (2), Qnil, Qnil);
-  del_range (osize, ZV);
-  SET_PT (opoint);
-  if (!NILP (Vquit_flag))
-    {
-      Vquit_flag = Qnil;
-      Vunread_command_events = Fcons (make_number (quit_char), Qnil);
-    }
-  Vinhibit_quit = oinhibit;
-}
-
 Lisp_Object Fminibuffer_completion_help ();
 Lisp_Object assoc_for_completion ();
 /* A subroutine of Fintern_soft.  */
@@ -1798,6 +1766,50 @@ DEFUN ("minibuffer-prompt-width", Fminibuffer_prompt_width,
   return width;
 }
 
+/* Temporarily display the string M at the end of the current
+   minibuffer contents.  This is used to display things like
+   "[No Match]" when the user requests a completion for a prefix
+   that has no possible completions, and other quick, unobtrusive
+   messages.  */
+
+temp_echo_area_glyphs (m)
+     char *m;
+{
+  int osize = ZV;
+  int opoint = PT;
+  Lisp_Object oinhibit;
+  oinhibit = Vinhibit_quit;
+
+  /* Clear out any old echo-area message to make way for our new thing.  */
+  message (0);
+
+  SET_PT (osize);
+  insert_string (m);
+  SET_PT (opoint);
+  Vinhibit_quit = Qt;
+  Fsit_for (make_number (2), Qnil, Qnil);
+  del_range (osize, ZV);
+  SET_PT (opoint);
+  if (!NILP (Vquit_flag))
+    {
+      Vquit_flag = Qnil;
+      Vunread_command_events = Fcons (make_number (quit_char), Qnil);
+    }
+  Vinhibit_quit = oinhibit;
+}
+
+DEFUN ("minibuffer-message", Fminibuffer_message, Sminibuffer_message,
+  1, 1, 0,
+  "Temporarily display STRING at the end of the minibuffer.\n\
+The text is displayed for two seconds,\n\
+or until the next input event arrives, whichever comes first.")
+  (string)
+     Lisp_Object string;
+{
+  temp_echo_area_glyphs (XSTRING (string)->data);
+  return Qnil;
+}
+
 init_minibuf_once ()
 {
   Vminibuffer_list = Qnil;
@@ -1948,6 +1960,7 @@ Some uses of the echo area also raise that frame (since they use it too).");
   defsubr (&Sself_insert_and_exit);
   defsubr (&Sexit_minibuffer);
 
+  defsubr (&Sminibuffer_message);
 }
 
 keys_of_minibuf ()
