@@ -76,6 +76,8 @@
 (require 'faces)
 (require 'select)
 (require 'menu-bar)
+(if (fboundp 'new-fontset)
+    (require 'fontset))
 
 ;; Because Windows scrollbars look and act quite differently compared
 ;; with the standard X scroll-bars, we don't try to use the normal
