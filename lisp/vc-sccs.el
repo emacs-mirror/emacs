@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.9 2001/02/01 17:42:44 fx Exp $
+;; $Id: vc-sccs.el,v 1.10 2001/03/10 10:51:22 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -174,12 +174,11 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
       (let ((vc-name
 	     (or project-file
 		 (format (car vc-sccs-master-templates) dirname basename)))|)
-	(apply 'vc-do-command nil 0 "admin" nil
+	(apply 'vc-do-command nil 0 "admin" vc-name
 	       (and rev (concat "-r" rev))
 	       "-fb"
-	       (concat "-i" file)
+	       (concat "-i" (file-relative-name file))
 	       (and comment (concat "-y" comment))
-	       vc-name
 	       switches))
       (delete-file file)
       (if vc-keep-workfiles
