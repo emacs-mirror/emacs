@@ -1,7 +1,7 @@
 ;;; mh-e.el --- GNU Emacs interface to the MH mail system
 
 ;; Copyright (C) 1985, 86, 87, 88, 90, 92, 93, 94, 95, 97, 1999,
-;;  2000, 01, 02, 03, 2004 Free Software Foundation, Inc.
+;;  2000, 01, 02, 03, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -2306,7 +2306,7 @@ If INTERNAL-FLAG is non-nil, then do not inform MH of the change."
 (defun mh-define-sequence (seq msgs)
   "Define the SEQ to contain the list of MSGS.
 Do not mark pseudo-sequences or empty sequences.
-Signals an error if SEQ is an illegal name."
+Signals an error if SEQ is an invalid name."
   (if (and msgs
            (mh-valid-seq-p seq)
            (not (mh-folder-name-p seq)))
