@@ -1,3 +1,13 @@
+2000-10-21  Miles Bader  <miles@gnu.org>
+
+	* window.el (window-text-height, set-window-text-height):
+	New functions.
+	(shrink-window-if-larger-than-buffer): Use `window-text-height'
+	instead of `window-height' & `mode-line-window-height-fudge'.
+	(mode-line-window-height-fudge): Add FACE parameter.
+	* help.el (resize-temp-buffer-window): Use `set-window-text-height'
+	instead of `enlarge-window' & `mode-line-window-height-fudge'.
+
 2000-10-20  Miles Bader  <miles@gnu.org>
 
 	* window.el (height-affecting-face-attributes): Use `defconst'.
