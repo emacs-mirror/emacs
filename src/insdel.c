@@ -27,6 +27,10 @@ Boston, MA 02111-1307, USA.  */
 #include "window.h"
 #include "blockinput.h"
 
+#ifndef NULL
+#define NULL 0
+#endif
+
 #define min(x, y) ((x) < (y) ? (x) : (y))
 
 static void insert_from_string_1 ();
@@ -441,7 +445,7 @@ insert_1 (string, length, inherit, prepare)
   register Lisp_Object temp;
 
   if (prepare)
-    prepare_to_modify_buffer (PT, PT);
+    prepare_to_modify_buffer (PT, PT, NULL);
 
   if (PT != GPT)
     move_gap (PT);
@@ -512,7 +516,7 @@ insert_from_string_1 (string, pos, length, inherit)
     error ("maximum buffer size exceeded");
 
   GCPRO1 (string);
-  prepare_to_modify_buffer (PT, PT);
+  prepare_to_modify_buffer (PT, PT, NULL);
 
   if (PT != GPT)
     move_gap (PT);
@@ -577,7 +581,7 @@ insert_from_buffer_1 (buf, pos, length, inherit)
   if (length + Z != XINT (temp))
     error ("maximum buffer size exceeded");
 
-  prepare_to_modify_buffer (PT, PT);
+  prepare_to_modify_buffer (PT, PT, NULL);
 
   if (PT != GPT)
     move_gap (PT);
@@ -705,9 +709,16 @@ del_range (from, to)
 
 void
 del_range_1 (from, to, prepare)
-     register int from, to, prepare;
+     int from, to, prepare;
 {
   register int numdel;
+
+  if (prepare)
+    {
+      int range_length = to - from;
+      prepare_to_modify_buffer (from, to, &from);
+      to = from + range_length;
+    }
 
   /* Make args be valid */
   if (from < BEGV)
@@ -723,9 +734,6 @@ del_range_1 (from, to, prepare)
     gap_right (from);
   if (to < GPT)
     gap_left (to, 0);
-
-  if (prepare)
-    prepare_to_modify_buffer (from, to);
 
   /* Relocate all markers pointing into the new, larger gap
      to point at the end of the text before the gap.
@@ -776,7 +784,7 @@ modify_region (buffer, start, end)
   if (buffer != old_buffer)
     set_buffer_internal (buffer);
 
-  prepare_to_modify_buffer (start, end);
+  prepare_to_modify_buffer (start, end, NULL);
 
   if (start - 1 < beg_unchanged
       || (unchanged_modified == MODIFF
@@ -796,22 +804,40 @@ modify_region (buffer, start, end)
   if (buffer != old_buffer)
     set_buffer_internal (old_buffer);
 }
-
+
 /* Check that it is okay to modify the buffer between START and END.
    Run the before-change-function, if any.  If intervals are in use,
    verify that the text to be modified is not read-only, and call
-   any modification properties the text may have. */
+   any modification properties the text may have.
+
+   If PRESERVE_PTR is nonzero, we relocate *PRESERVE_PTR
+   by holding its value temporarily in a marker.  */
 
 void
-prepare_to_modify_buffer (start, end)
+prepare_to_modify_buffer (start, end, preserve_ptr)
      int start, end;
+     int *preserve_ptr;
 {
   if (!NILP (current_buffer->read_only))
     Fbarf_if_buffer_read_only ();
 
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
   if (BUF_INTERVALS (current_buffer) != 0)
-    verify_interval_modification (current_buffer, start, end);
+    {
+      if (preserve_ptr)
+	{
+	  Lisp_Object preserve_marker;
+	  struct gcpro gcpro1;
+	  preserve_marker = Fcopy_marker (make_number (*preserve_ptr), Qnil);
+	  GCPRO1 (preserve_marker);
+	  verify_interval_modification (current_buffer, start, end);
+	  *preserve_ptr = marker_position (preserve_marker);
+	  unchain_marker (preserve_marker);
+	  UNGCPRO;
+	}
+      else
+	verify_interval_modification (current_buffer, start, end);
+    }
 
 #ifdef CLASH_DETECTION
   if (!NILP (current_buffer->file_truename)
@@ -829,7 +855,7 @@ prepare_to_modify_buffer (start, end)
 	   current_buffer->filename);
 #endif /* not CLASH_DETECTION */
 
-  signal_before_change (start, end);
+  signal_before_change (start, end, preserve_ptr);
 
   if (current_buffer->newline_cache)
     invalidate_region_cache (current_buffer,
@@ -843,29 +869,57 @@ prepare_to_modify_buffer (start, end)
   Vdeactivate_mark = Qt;
 }
 
+/* These macros work with an argument named `preserve_ptr'
+   and a local variable named `preserve_marker'.  */
+
+#define PRESERVE_VALUE							\
+  if (preserve_ptr && NILP (preserve_marker))				\
+    preserve_marker = Fcopy_marker (make_number (*preserve_ptr), Qnil)
+
+#define RESTORE_VALUE						\
+  if (! NILP (preserve_marker))					\
+    {								\
+      *preserve_ptr = marker_position (preserve_marker);	\
+      unchain_marker (preserve_marker);				\
+    }
+
 /* Signal a change to the buffer immediately before it happens.
-   START_INT and END_INT are the bounds of the text to be changed.  */
+   START_INT and END_INT are the bounds of the text to be changed.
+
+   If PRESERVE_PTR is nonzero, we relocate *PRESERVE_PTR
+   by holding its value temporarily in a marker.  */
 
 void
-signal_before_change (start_int, end_int)
+signal_before_change (start_int, end_int, preserve_ptr)
      int start_int, end_int;
+     int *preserve_ptr;
 {
   Lisp_Object start, end;
+  Lisp_Object preserve_marker;
+  struct gcpro gcpro1;
 
   start = make_number (start_int);
   end = make_number (end_int);
+  preserve_marker = Qnil;
+  GCPRO1 (preserve_marker);
 
   /* If buffer is unmodified, run a special hook for that case.  */
   if (SAVE_MODIFF >= MODIFF
       && !NILP (Vfirst_change_hook)
       && !NILP (Vrun_hooks))
-    call1 (Vrun_hooks, Qfirst_change_hook);
+    {
+      PRESERVE_VALUE;
+      call1 (Vrun_hooks, Qfirst_change_hook);
+    }
 
   /* Run the before-change-function if any.
      We don't bother "binding" this variable to nil
      because it is obsolete anyway and new code should not use it.  */
   if (!NILP (Vbefore_change_function))
-    call2 (Vbefore_change_function, start, end);
+    {
+      PRESERVE_VALUE;
+      call2 (Vbefore_change_function, start, end);
+    }
 
   /* Now run the before-change-functions if any.  */
   if (!NILP (Vbefore_change_functions))
@@ -874,6 +928,8 @@ signal_before_change (start_int, end_int)
       Lisp_Object before_change_functions;
       Lisp_Object after_change_functions;
       struct gcpro gcpro1, gcpro2;
+
+      PRESERVE_VALUE;
 
       /* "Bind" before-change-functions and after-change-functions
 	 to nil--but in a way that errors don't know about.
@@ -898,7 +954,13 @@ signal_before_change (start_int, end_int)
 
   if (!NILP (current_buffer->overlays_before)
       || !NILP (current_buffer->overlays_after))
-    report_overlay_modification (start, end, 0, start, end, Qnil);
+    {
+      PRESERVE_VALUE;
+      report_overlay_modification (start, end, 0, start, end, Qnil);
+    }
+
+  RESTORE_VALUE;
+  UNGCPRO;
 }
 
 /* Signal a change immediately after it happens.
