@@ -1,3 +1,7 @@
+2005-01-04  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (Fformat_mode_line): Doc fix.
+
 2005-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* alloc.c (refill_memory_reserve): Move.

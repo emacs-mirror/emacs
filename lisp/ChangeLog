@@ -5,6 +5,10 @@
 
 2005-01-04  Richard M. Stallman  <rms@gnu.org>
 
+	* cus-edit.el (customize): Make :link point to user doc.
+
+	* man.el (Man-fontify-manpage): Turn off undo generation.
+
 	* add-log.el (change-log-font-lock-keywords): Don't match just "From".
 
 2005-01-04  Andreas Schwab  <schwab@suse.de>
