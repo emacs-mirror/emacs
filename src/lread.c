@@ -2879,7 +2879,9 @@ dir_warning (format, dirname)
 
   fprintf (stderr, format, XSTRING (dirname)->data);
   sprintf (buffer, format, XSTRING (dirname)->data);
-  message_dolog (buffer, strlen (buffer), 0, STRING_MULTIBYTE (dirname));
+  /* Don't log the warning before we've initialized!! */
+  if (initialized)
+    message_dolog (buffer, strlen (buffer), 0, STRING_MULTIBYTE (dirname));
 }
 
 void
