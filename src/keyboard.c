@@ -393,6 +393,7 @@ int mouse_moved;
 Lisp_Object Qmouse_movement;
 Lisp_Object Qscroll_bar_movement;
 Lisp_Object Qswitch_frame;
+Lisp_Object Qdelete_frame;
 
 /* Symbols to denote kinds of events.  */
 Lisp_Object Qfunction_key;
@@ -2130,25 +2131,9 @@ kbd_buffer_get_event ()
 #ifdef HAVE_X11
       else if (event->kind == delete_window_event)
 	{
-	  Lisp_Object tail, frame;
-	  struct frame *f;
-	
-	  /* If the user destroys the only frame, Emacs should exit.
-	     Count visible frames and iconified frames.  */
-	  for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
-	    {
-	      frame = XCONS (tail)->car;
-	      if (!FRAMEP (frame) || EQ (frame, event->frame_or_window))
-		continue;
-	      f = XFRAME (frame);
-	      if (FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f))
-		break;
-	    }
-
-	  if (! CONSP (tail))
-	    Fkill_emacs (Qnil);
-
-	  Fdelete_frame (event->frame_or_window, Qt);
+	  /* Make an event (delete-frame (FRAME)).  */
+	  obj = Fcons (event->frame_or_window, Qnil);
+	  obj = Fcons (intern ("delete-frame"), Fcons (obj, Qnil));
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
@@ -5509,10 +5494,8 @@ control, run a subshell instead.\n\n\
 If optional arg STUFFSTRING is non-nil, its characters are stuffed\n\
 to be read as terminal input by Emacs's parent, after suspension.\n\
 \n\
-Before suspending, call the functions in `suspend-hook' with no args.\n\
-If any of them returns nil, don't call the rest and don't suspend.\n\
-Otherwise, suspend normally and after resumption run the normal hook\n\
-`suspend-resume-hook' if that is bound and non-nil.\n\
+Before suspending, run the normal hook `suspend-hook'.\n\
+After resumption run the normal hook `suspend-resume-hook'.\n\
 \n\
 Some operating systems cannot stop the Emacs process and resume it later.\n\
 On such systems, Emacs starts a subshell instead of suspending.")
@@ -5937,6 +5920,7 @@ struct event_head head_table[] = {
   &Qmouse_movement,	"mouse-movement",	&Qmouse_movement,
   &Qscroll_bar_movement, "scroll-bar-movement",	&Qmouse_movement,
   &Qswitch_frame,	"switch-frame",		&Qswitch_frame,
+  &Qdelete_frame,	"delete-frame",		&Qdelete_frame,
 };
 
 syms_of_keyboard ()
