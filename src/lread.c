@@ -3860,8 +3860,8 @@ as a function.  */);
 
   DEFVAR_LISP ("user-init-file", &Vuser_init_file,
 	       doc: /* File name, including directory, of user's initialization file.
-If the file loaded had extension `.elc' and there was a corresponding `.el'
-file, this variable contains the name of the .el file, suitable for use
+If the file loaded had extension `.elc', and the corresponding source file
+exists, this variable contains the name of source file, suitable for use
 by functions like `custom-save-all' which edit the init file.  */);
   Vuser_init_file = Qnil;
 
