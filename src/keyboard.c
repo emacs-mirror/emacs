@@ -8059,16 +8059,6 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   /* List of events for which a fake prefix key has been generated.  */
   volatile Lisp_Object fake_prefixed_keys = Qnil;
 
-  /* Save the status of key translation before each step,
-     so that we can restore this after downcasing.  */
-  Lisp_Object prev_fkey_map;
-  int prev_fkey_start;
-  int prev_fkey_end;
-
-  Lisp_Object prev_keytran_map;
-  int prev_keytran_start;
-  int prev_keytran_end;
-
 #if defined (GOBBLE_FIRST_EVENT)
   int junk;
 #endif
@@ -8230,6 +8220,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	 just one key.  */
       volatile int echo_local_start, keys_local_start, local_first_binding;
 
+      /* key-translation-map is applied *after* function-key-map.  */
+      eassert (keytran_end <= fkey_start);
 
       if (first_unbound < fkey_start && first_unbound < keytran_start)
 	{ /* The prefix upto first_unbound has no binding and has
@@ -8766,14 +8758,6 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
       /* Record what part of this_command_keys is the current key sequence.  */
       this_single_command_key_start = this_command_key_count - t;
 
-      prev_fkey_map = fkey_map;
-      prev_fkey_start = fkey_start;
-      prev_fkey_end = fkey_end;
-
-      prev_keytran_map = keytran_map;
-      prev_keytran_start = keytran_start;
-      prev_keytran_end = keytran_end;
-
       /* If the sequence is unbound, see if we can hang a function key
 	 off the end of it.  We only want to scan real keyboard input
 	 for function key sequences, so if mock_input says that we're
@@ -8890,13 +8874,23 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		}
 	    }
 	}
+      else if (NILP (submaps[first_binding]))
+	/* There is a global binding and it's not a prefix.
+	   There is thus no function-key in this sequence.
+	   We can probably show that there can't be any afterwards either
+	   but I can't seem to find a clear reason why not, so I'll
+	   be conservative.
+	   Moving fkey.start is important in this case to allow keytran.start
+	   to go over the sequence before we return (since we keep the
+	   invariant that keytran.end <= fkey.start).  */
+	(fkey_start = max (fkey_start, t), fkey_end = max (fkey_end, t));
 
       /* Look for this sequence in key-translation-map.  */
       {
 	Lisp_Object keytran_next;
 
 	/* Scan from keytran_end until we find a bound suffix.  */
-	while (keytran_end < t)
+	while (keytran_end < fkey_start)
 	  {
 	    Lisp_Object key;
 
@@ -8921,8 +8915,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    /* If the key translation map gives a function, not an
 	       array, then call the function with one arg and use
 	       its value instead.  */
-	    if (SYMBOLP (keytran_next) && ! NILP (Ffboundp (keytran_next))
-		&& keytran_end == t)
+	    if (SYMBOLP (keytran_next) && ! NILP (Ffboundp (keytran_next)))
 	      {
 		struct gcpro gcpro1, gcpro2, gcpro3;
 		Lisp_Object tem;
@@ -8945,36 +8938,35 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	       key translation map and it's a suffix of the current
 	       sequence (i.e. keytran_end == t), replace it with
 	       the binding and restart with keytran_start at the end. */
-	    if ((VECTORP (keytran_next) || STRINGP (keytran_next))
-		&& keytran_end == t)
+	    if ((VECTORP (keytran_next) || STRINGP (keytran_next)))
 	      {
 		int len = XFASTINT (Flength (keytran_next));
+		int i, diff = len - (keytran_end - keytran_start);
 
-		t = keytran_start + len;
-		if (t >= bufsize)
+		mock_input = max (t, mock_input);
+		if (mock_input + diff >= bufsize)
 		  error ("Key sequence too long");
 
-		if (VECTORP (keytran_next))
-		  bcopy (XVECTOR (keytran_next)->contents,
-			 keybuf + keytran_start,
-			 (t - keytran_start) * sizeof (keybuf[0]));
-		else if (STRINGP (keytran_next))
-		  {
-		    int i;
+		/* Shift the keys that are after keytran_end.  */
+		if (diff < 0)
+		  for (i = keytran_end; i < mock_input; i++)
+		    keybuf[i + diff] = keybuf[i];
+		else if (diff > 0)
+		  for (i = mock_input - 1; i >= keytran_end; i--)
+		    keybuf[i + diff] = keybuf[i];
+		/* Replace the keys between keytran_start and keytran_end
+		   with those from keytran_next.  */
+		for (i = 0; i < len; i++)
+		  keybuf[keytran_start + i]
+		    = Faref (keytran_next, make_number (i));
 
-		    for (i = 0; i < len; i++)
-		      XSETFASTINT (keybuf[keytran_start + i],
-				   XSTRING (keytran_next)->data[i]);
-		  }
-
-		mock_input = t;
-		keytran_start = keytran_end = t;
+		mock_input += diff;
+		keytran_start = keytran_end += diff;
 		keytran_map = Vkey_translation_map;
 
-		/* Don't pass the results of key-translation-map
-		   through function-key-map.  */
-		fkey_start = fkey_end = t;
-		fkey_map = Vfunction_key_map;
+		/* Adjust the function-key-map counters.  */
+		fkey_start += diff;
+		fkey_end += diff;
 
 		goto replay_sequence;
 	      }
@@ -9019,15 +9011,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	     the lower-case char is defined in the keymaps, because they
 	     might get translated through function-key-map.  */
 	  keybuf[t - 1] = new_key;
-	  mock_input = t;
-
-	  fkey_map = prev_fkey_map;
-	  fkey_start = prev_fkey_start;
-	  fkey_end = prev_fkey_end;
-
-	  keytran_map = prev_keytran_map;
-	  keytran_start = prev_keytran_start;
-	  keytran_end = prev_keytran_end;
+	  mock_input = max (t, mock_input);
 
 	  goto replay_sequence;
 	}
@@ -9056,15 +9040,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 					 XCAR (breakdown));
 
 	      keybuf[t - 1] = new_key;
-	      mock_input = t;
-
-	      fkey_map = prev_fkey_map;
-	      fkey_start = prev_fkey_start;
-	      fkey_end = prev_fkey_end;
-
-	      keytran_map = prev_keytran_map;
-	      keytran_start = prev_keytran_start;
-	      keytran_end = prev_keytran_end;
+	      mock_input = max (t, mock_input);
 
 	      goto replay_sequence;
 	    }
