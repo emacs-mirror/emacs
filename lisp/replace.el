@@ -37,16 +37,33 @@
   "Non-nil means `query-replace' uses the last search string.
 That becomes the \"string to replace\".")
 
+(defcustom query-replace-from-history-variable 'query-replace-history
+  "History list to use for the FROM argument of query-replace commands.
+The value of this variable should be a symbol; that symbol
+is used as a variable to hold a history list for the strings
+or patterns to be replaced."
+  :group 'matching
+  :type 'symbol)
+
+(defcustom query-replace-to-history-variable 'query-replace-history
+  "History list to use for the TO argument of query-replace commands.
+The value of this variable should be a symbol; that symbol
+is used as a variable to hold a history list for replacement
+strings or patterns."
+  :group 'matching
+  :type 'symbol)
+
 (defun query-replace-read-args (string regexp-flag)
   (let (from to)
     (if query-replace-interactive
 	(setq from (car (if regexp-flag regexp-search-ring search-ring)))
       (setq from (read-from-minibuffer (format "%s: " string)
 				       nil nil nil
-				       'query-replace-history nil t)))
+				       query-replace-from-history-variable
+				       nil t)))
     (setq to (read-from-minibuffer (format "%s %s with: " string from)
 				   nil nil nil
-				   'query-replace-history nil t))
+				   query-replace-to-history-variable nil t))
     (list from to current-prefix-arg)))
 
 (defun query-replace (from-string to-string &optional arg)
