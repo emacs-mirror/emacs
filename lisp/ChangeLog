@@ -1,5 +1,16 @@
 2000-07-23  Noah Friedman  <friedman@splode.com>
 
+	* type-break.el (type-break): perform autosave.
+	Suggested by Stephen Gildea <gildea@intouchsys.com>.
+	(type-break-do-query): Cancel query schedule while performing
+	actual query, to avoid possibility of a second query being made
+	while first one is already in progress.
+	(type-break-time-stamp-format): New variable.
+	(type-break-time-stamp): New function.
+	(type-break-time-warning): Use it.
+	(type-break-keystroke-warning): Use it.
+	(type-break-noninteractive-query): Use it.
+
 	* emacs-lisp/eldoc.el (eldoc-minor-mode-string): Add autoload
 	cookie.
 	Use add-minor-mode to set minor-mode-alist, if available.
