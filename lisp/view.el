@@ -184,10 +184,13 @@ This command runs the normal hook `view-mode-hook'."
 ;;;###autoload
 (defun view-mode (&optional arg)
   "Toggle View mode.
-If you use this function to turn on View mode,
-\"exiting\" View mode does nothing except turn View mode off.
-The other way to turn View mode on is by calling
-`view-mode-enter'.
+With a prefix argument, turn View mode on if the argument is >= zero
+and off if it is not.
+
+If you use this function to turn on View mode, then subsequently
+\"exiting\" View mode does nothing except turn View mode off.  The
+other way to turn View mode on is by calling `view-mode-enter';
+that is what Lisp programs usually use.
 
 Letters do not insert themselves.  Instead these commands are provided.
 Most commands take prefix arguments.  Commands dealing with lines
