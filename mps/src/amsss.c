@@ -1,6 +1,6 @@
 /* impl.c.amsss: POOL CLASS AMS STRESS TEST
  *
- * $HopeName: MMsrc!amsss.c(MMdevel_poolams.1) $
+ * $HopeName: MMsrc!amsss.c(trunk.2) $
  * Copyright (C) 1996, 1997 Harlequin Group, all rights reserved
  *
  * A direct copy of amcss.c, with trivial changes.  nickb 1997-08-14
@@ -95,6 +95,7 @@ static void *test(void *arg, size_t s)
       collections = c;
       printf("\nCollection %u, %lu objects.\n",
              c, i);
+      fflush(stdout);
       for(r = 0; r < NR_EXACT_ROOTS; ++r)
         assert(exact_roots[r] == OBJNULL ||
                dylan_check(exact_roots[r]));
@@ -104,7 +105,12 @@ static void *test(void *arg, size_t s)
       exact_roots[rnd() % NR_EXACT_ROOTS] = make();
     else
       ambig_roots[rnd() % NR_AMBIG_ROOTS] = make();
+
     ++i;
+    if (i % 256 == 0) {
+      printf(".");
+      fflush(stdout);
+    }
 
     r = rnd() % NR_EXACT_ROOTS;
     if(exact_roots[r] != OBJNULL)
