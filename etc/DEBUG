@@ -374,40 +374,6 @@ appearing on another.  Then, when the bug happens, you can go back to
 the machine where you started GDB and use the debugger from there.
 
 
-** Running Emacs with Purify
-
-Some people who are willing to use non-free software use Purify.  We
-can't ethically ask you to become a Purify user; but if you have it,
-and you test Emacs with it, we will not refuse to look at the results
-you find.
-
-Emacs compiled with Purify won't run without some hacking.  Here are
-some of the changes you might find necessary (SYSTEM-NAME and
-MACHINE-NAME are the names of your OS- and CPU-specific headers in the
-subdirectories of `src'):
-
-  - In src/s/SYSTEM-NAME.h add "#define SYSTEM_MALLOC".
-
-  - In src/m/MACHINE-NAME.h add "#define CANNOT_DUMP" and
-    "#define CANNOT_UNEXEC".
-
-  - Configure with a different --prefix= option.  If you use GCC,
-    version 2.7.2 is preferred, as Purify works a lot better with it
-    than with 2.95 or later versions.
-
-  - Type "make" then "make -k install".  You might need to run
-    "make -k install" twice.
-
-  - cd src; purify -chain-length=40 gcc <link command line for temacs>
-
-  - cd ..; src/temacs
-
-Note that Purify might print lots of false alarms for bitfields used
-by Emacs in some data structures.  If you want to get rid of the false
-alarms, you will have to hack the definitions of these data structures
-on the respective headers to remove the `:N' bitfield definitions
-(which will cause each such field to use a full int).
-
 ** Debugging problems which happen in GC
 
 The array `last_marked' (defined on alloc.c) can be used to display up
