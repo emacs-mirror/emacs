@@ -113,9 +113,7 @@ int mps_lib_callback_register(const char *name, mps_lib_function_t f)
   if(NULL == name) {
     return MPS_RES_FAIL;
   }
-  if(0) {
-    /* just to make the "else if" neater. */
-  } else if(EQ(name, "mps_lib_get_EOF")) {
+  if(EQ(name, "mps_lib_get_EOF")) {
     mps_lib_callback_global.lib_get_EOF = (int(*)(void))f;
   } else if(EQ(name, "mps_lib_get_stderr")) {
     mps_lib_callback_global.lib_get_stderr = (mps_lib_FILE *(*)(void))f;
