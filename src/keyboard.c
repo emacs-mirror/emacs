@@ -482,6 +482,8 @@ extern char *x_get_keysym_name ();
 
 static void record_menu_key ();
 
+void swallow_events ();
+
 Lisp_Object Qpolling_period;
 
 /* List of absolute timers.  Appears in order of next scheduled event.  */
@@ -1787,9 +1789,15 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       goto reread_first;
     }
 
-  if (commandflag >= 0 && !input_pending
-      && !detect_input_pending_run_timers (0))
-    redisplay ();
+  if (commandflag >= 0)
+    {
+      if (input_pending
+	  || detect_input_pending_run_timers (0))
+	swallow_events (0);
+
+      if (!input_pending)
+	redisplay ();
+    }
 
   /* Message turns off echoing unless more keystrokes turn it on again. */
   if (echo_area_glyphs && *echo_area_glyphs
