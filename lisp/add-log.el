@@ -749,6 +749,10 @@ Has a preference of looking backwards."
 		 (if (re-search-backward "^sub[ \t]+\\([^ \t\n]+\\)" nil t)
 		     (buffer-substring (match-beginning 1)
 				       (match-end 1))))
+                ((eq major-mode 'autoconf-mode)
+                 (if (re-search-backward "^\\(\\(m4_\\)?define\\|A._DEFUN\\)(\\[?\\([A-Za-z0-9_]+\\)" nil t)
+                     (buffer-substring (match-beginning 3)
+                                       (match-end 3))))
                 ((or (eq major-mode 'fortran-mode)
 		     ;; Needs work for f90, but better than nothing.
 		     (eq major-mode 'f90-mode))
