@@ -6,11 +6,6 @@
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Keywords: lisp, tools, maint
 
-;; LCD Archive Entry:
-;; edebug|Daniel LaLiberte|liberte@cs.uiuc.edu
-;; |A source level debugger for Emacs Lisp.
-;; |$Date: 1997/05/29 06:32:44 $|$Revision: 3.17 $|~/modes/edebug.el|
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -86,9 +81,7 @@
 ;;; Code:
 
 (defconst edebug-version
-  (let ((raw-version "$Revision: 3.17 $"))
-    (substring raw-version (string-match "[0-9.]*" raw-version)
-	       (match-end 0))))
+  (concat "In Emacs version " emacs-version))
      
 (require 'backquote)
 
