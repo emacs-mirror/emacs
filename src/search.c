@@ -1113,7 +1113,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 	{
 	  j = pat[i]; i += direction;
 	  if (i == dirlen) i = infinity;
-	  if ((int) trt)
+	  if (trt != 0)
 	    {
 	      k = (j = trt[j]);
 	      if (i == infinity)
@@ -1175,20 +1175,20 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 			 either kind of comparison will work as long
 			 as we don't step by infinity.  So pick the kind
 			 that works when we do step by infinity.  */
-		      if ((int) (p_limit + infinity) > (int) p_limit)
-			while ((int) cursor <= (int) p_limit)
+		      if ((EMACS_INT) (p_limit + infinity) > (EMACS_INT) p_limit)
+			while ((EMACS_INT) cursor <= (int) p_limit)
 			  cursor += BM_tab[*cursor];
 		      else
-			while ((unsigned int) cursor <= (unsigned int) p_limit)
+			while ((unsigned EMACS_INT) cursor <= (unsigned EMACS_INT) p_limit)
 			  cursor += BM_tab[*cursor];
 		    }
 		  else
 		    {
-		      if ((int) (p_limit + infinity) < (int) p_limit)
-			while ((int) cursor >= (int) p_limit)
+		      if ((EMACS_INT) (p_limit + infinity) < (EMACS_INT) p_limit)
+			while ((EMACS_INT) cursor >= (EMACS_INT) p_limit)
 			  cursor += BM_tab[*cursor];
 		      else
-			while ((unsigned int) cursor >= (unsigned int) p_limit)
+			while ((unsigned EMACS_INT) cursor >= (unsigned EMACS_INT) p_limit)
 			  cursor += BM_tab[*cursor];
 		    }
 /* If you are here, cursor is beyond the end of the searched region. */
@@ -1201,7 +1201,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 		    break;	/* a small overrun is genuine */
 		  cursor -= infinity; /* large overrun = hit */
 		  i = dirlen - direction;
-		  if ((int) trt)
+		  if (trt != 0)
 		    {
 		      while ((i -= direction) + direction != 0)
 			if (pat[i] != trt[*(cursor -= direction)])
@@ -1264,7 +1264,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt, posix)
 		  while ((i -= direction) + direction != 0)
 		    {
 		      pos -= direction;
-		      if (pat[i] != (((int) trt)
+		      if (pat[i] != (trt != 0
 				     ? trt[FETCH_CHAR(pos)]
 				     : FETCH_CHAR (pos)))
 			break;
