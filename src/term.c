@@ -562,10 +562,10 @@ clear_frame ()
 clear_end_of_line (first_unused_hpos)
      int first_unused_hpos;
 {
-  static GLYPH buf[1] = {SPACEGLYPH};
+  static GLYPH buf = SPACEGLYPH;
   if (FRAME_TERMCAP_P (selected_frame)
       && TN_standout_width == 0 && curX == 0 && chars_wasted[curY] != 0)
-    write_glyphs (buf, 1);
+    write_glyphs (&buf, 1);
   clear_end_of_line_raw (first_unused_hpos);
 }
 
@@ -1064,46 +1064,50 @@ calculate_costs (frame)
    This function scans the termcap function key sequence entries, and 
    adds entries to Vfunction_key_map for each function key it finds.  */
 
+struct fkey_table {
+  char *cap, *name;
+};
+
+static struct fkey_table keys[] = {
+  "kl", "left",
+  "kr", "right",
+  "ku", "up",
+  "kd", "down",
+  "K2", "center",
+  "k1", "f1",
+  "k2", "f2",
+  "k3", "f3",
+  "k4", "f4",
+  "k5", "f5",
+  "k6", "f6",
+  "k7", "f7",
+  "k8", "f8",
+  "k9", "f9",
+  "F1", "f11",
+  "F2", "f12",
+  "kh", "home",
+  "kH", "home-down",
+  "ka", "clear-tabs",
+  "kt", "clear-tab",
+  "kT", "set-tab",
+  "kC", "clear",
+  "kL", "deleteline",
+  "kM", "exit-insert",
+  "kE", "clear-eol",
+  "kS", "clear-eos",
+  "kI", "insert",
+  "kA", "insertline",
+  "kN", "next",
+  "kP", "prior",
+  "kF", "scroll-forward",
+  "kR", "scroll-reverse"
+  };
+
 void
 term_get_fkeys (address)
      char **address;
 {
   extern char *tgetstr ();
-  struct fkey_table {
-    char *cap, *name;
-  };
-  static struct fkey_table keys[] = {
-    "kl", "left",
-    "kr", "right",
-    "ku", "up",
-    "kd", "down",
-    "kh", "home",
-    "k1", "f1",
-    "k2", "f2",
-    "k3", "f3",
-    "k4", "f4",
-    "k5", "f5",
-    "k6", "f6",
-    "k7", "f7",
-    "k8", "f8",
-    "k9", "f9",
-    "k0", "f10",
-    "kH", "home-down",
-    "ka", "clear-tabs",
-    "kt", "clear-tab",
-    "kT", "set-tab",
-    "kC", "clear",
-    "kL", "deleteline",
-    "kM", "exit-insert",
-    "kE", "clear-eol",
-    "kS", "clear-eos",
-    "kI", "insert",
-    "kA", "insertline",
-    "kN", "next",
-    "kP", "prior",
-    "kF", "scroll-forward",
-    "kR", "scroll-reverse"
-  };
   int i;
 
   for (i = 0; i < (sizeof (keys)/sizeof (keys[0])); i++)
@@ -1114,6 +1118,30 @@ term_get_fkeys (address)
 		     build_string (sequence),
 		     Fmake_vector (make_number (1), intern (keys[i].name)));
     }
+
+  /* The uses of the "k0" capability are inconsistent; sometimes it
+     describes F10, whereas othertimes it describes F0 and "k;" describes F10.
+     We will attempt to politely accomodate both systems by testing for
+     "k;", and if it is present, assuming that "k0" denotes F0, otherwise F10.
+     */
+  {
+    char *k_semi  = tgetstr ("k;", address);
+    char *k0      = tgetstr ("k0", address);
+    char *k0_name = "f10";
+
+    if (k_semi)
+      {
+	Fdefine_key (Vfunction_key_map,
+		     build_string (k_semi),
+		     Fmake_vector (make_number (1), intern ("f10")));
+	k0_name = "f0";
+      }
+
+    if (k0)
+      Fdefine_key (Vfunction_key_map,
+		   build_string (k0),
+		   Fmake_vector (make_number (1), intern (k0_name)));
+  }
 }
 
 
