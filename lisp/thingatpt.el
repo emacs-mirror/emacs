@@ -384,7 +384,8 @@ Signal an error if the entire string was not used."
   (let* ((read-data (read-from-string str))
 	 (more-left 
 	  (condition-case nil
-	      (progn (read-from-string (substring str (cdr read-data)))
+	      ;; The call to `ignore' suppresses a warning.
+	      (progn (ignore (read-from-string (substring str (cdr read-data))))
 		     t)
 	    (end-of-file nil))))
     (if more-left
