@@ -2077,6 +2077,16 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       if (STRINGP (Vkeyboard_translate_table)
 	  && XSTRING (Vkeyboard_translate_table)->size > XFASTINT (c))
 	XSETINT (c, XSTRING (Vkeyboard_translate_table)->data[XFASTINT (c)]);
+      else if ((VECTORP (Vkeyboard_translate_table)
+		&& XVECTOR (Vkeyboard_translate_table)->size > XFASTINT (c))
+	       || CHAR_TABLE_P (Vkeyboard_translate_table))
+	{
+	  Lisp_Object d;
+	  d = Faref (Vkeyboard_translate_table, c);
+	  /* nil in keyboard-translate-table means no translation.  */
+	  if (!NILP (d))
+	    c = d;
+	}
     }
 
   /* If this event is a mouse click in the menu bar,
@@ -7370,9 +7380,12 @@ Useful to set before you dump a modified Emacs.");
   Vtop_level = Qnil;
 
   DEFVAR_LISP ("keyboard-translate-table", &Vkeyboard_translate_table,
-    "String used as translate table for keyboard input, or nil.\n\
+    "Translate table for keyboard input, or nil.\n\
 Each character is looked up in this string and the contents used instead.\n\
-If string is of length N, character codes N and up are untranslated.");
+The value may be a string, a vector, or a char-table.\n\
+If it is a string or vector of length N,\n\
+character codes N and up are untranslated.\n\
+In a vector or a char-table, an element which is nil means \"no translation\".");
   Vkeyboard_translate_table = Qnil;
 
   DEFVAR_BOOL ("cannot-suspend", &cannot_suspend,
