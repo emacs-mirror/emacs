@@ -203,7 +203,9 @@ breaks any hard links between it and other files."
 t means make numeric backup versions unconditionally.
 nil means make them for files that have some already.
 `never' means do not make them."
-  :type 'boolean
+  :type '(choice (const :tag "Never" never)
+		 (const :tag "If existing" nil)
+		 (other :tag "Always" t))
   :group 'backup
   :group 'vc)
 
@@ -218,7 +220,7 @@ nil means make them for files that have some already.
 If nil, ask confirmation.  Any other value prevents any trimming."
   :type '(choice (const :tag "Delete" t)
 		 (const :tag "Ask" nil)
-		 (sexp :tag "Leave" :format "%t\n" other))
+		 (other :tag "Leave" other))
   :group 'backup)
 
 (defcustom kept-old-versions 2
@@ -238,7 +240,7 @@ Non-nil but not t says ask user whether to add a newline when there isn't one.
 nil means don't add newlines."
   :type '(choice (const :tag "Off" nil)
 		 (const :tag "Add" t)
-		 (sexp :tag "Ask" :format "%t\n" ask))
+		 (other :tag "Ask" ask))
   :group 'editing-basics)
 
 (defcustom auto-save-default t
@@ -329,7 +331,7 @@ The command \\[normal-mode] always obeys file local variable
 specifications and ignores this variable."
   :type '(choice (const :tag "Obey" t)
 		 (const :tag "Ignore" nil)
-		 (sexp :tag "Query" :format "%t\n" other))
+		 (other :tag "Query" other))
   :group 'find-file)
 
 (defvar local-enable-local-variables t
@@ -347,7 +349,7 @@ The command \\[normal-mode] always obeys local-variables lists
 and ignores this variable."
   :type '(choice (const :tag "Obey" t)
 		 (const :tag "Ignore" nil)
-		 (sexp :tag "Query" :format "%t\n" other))
+		 (other :tag "Query" other))
   :group 'find-file)
 
 ;; Avoid losing in versions where CLASH_DETECTION is disabled.
