@@ -124,7 +124,7 @@ Here we use periods to show the stop points in the function
 @example
 (defun fac (n)
   .(if .(< 0 n.).
-      .(* n. .(fac (1- n.).).).
+      .(* n. .(fac .(1- n.).).).
     1).)
 @end example
 
