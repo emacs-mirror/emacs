@@ -861,26 +861,23 @@ width and the longest string in LIST."
 (defun ibuffer-mouse-popup-menu (event)
   "Display a menu of operations."
   (interactive "e")
-  (let ((origline (count-lines (point-min) (point))))
+  (let ((eventpt (save-excursion
+		   (mouse-set-point event)
+		   (point))))
     (unwind-protect
-	(progn
-	  (mouse-set-point event)
-	  (if (get-text-property (point) 'ibuffer-filter-group-name)
-	      (save-excursion 
-		(popup-menu ibuffer-mode-groups-popup))
-	    (setq buffer-read-only nil)
+	(if (get-text-property eventpt 'ibuffer-filter-group-name)
+	    (popup-menu ibuffer-mode-groups-popup)
+	  (let ((inhibit-read-only t))
 	    (ibuffer-save-marks
-	      ;; hm.  we could probably do this in a better fashion
-	      (ibuffer-unmark-all ?\r)
-	      (setq buffer-read-only nil)
-	      (ibuffer-set-mark ibuffer-marked-char)
-	      (setq buffer-read-only nil)
-	      (save-excursion
-		(popup-menu ibuffer-mode-operate-map)))))
-      (progn
-	(setq buffer-read-only t)
-	(goto-line (1+ origline))))))
-  
+	     ;; hm.  we could probably do this in a better fashion
+	     (ibuffer-unmark-all ?\r)
+	     (save-excursion
+	       (goto-char eventpt)
+	       (ibuffer-set-mark ibuffer-marked-char))
+	     (save-excursion
+	       (popup-menu ibuffer-mode-operate-map)))))
+      (setq buffer-read-only t))))
+
 (defun ibuffer-skip-properties (props direction)
   (while (and (not (eobp))
 	      (let ((hit nil))
