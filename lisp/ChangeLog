@@ -1,3 +1,12 @@
+2001-03-05  Alex Schroeder  <alex@gnu.org>
+
+	* sql.el (sql-sybase): Fix typo (was: query user about server two
+	times instead of server and database).
+
+	* sql.el (sql-sybase): Doc change.
+	(sql-mysql): Doc change.
+	(sql-postgres): Doc change.
+
 2001-03-05  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-conf.el (emacs-mule, raw-text): Docstring
