@@ -150,6 +150,7 @@ Lisp_Object Vinhibit_read_only;
 /* List of functions to call that can query about killing a buffer.
    If any of these functions returns nil, we don't kill it.  */
 Lisp_Object Vkill_buffer_query_functions;
+Lisp_Object Qkill_buffer_query_functions;
 
 /* List of functions to call before changing an unmodified buffer.  */
 Lisp_Object Vfirst_change_hook;
@@ -1304,18 +1305,16 @@ with SIGHUP.  */)
   {
     int count = SPECPDL_INDEX ();
     Lisp_Object list;
+    Lisp_Object arglist[1];
 
     record_unwind_protect (save_excursion_restore, save_excursion_save ());
     set_buffer_internal (b);
 
     /* First run the query functions; if any query is answered no,
        don't kill the buffer.  */
-    for (list = Vkill_buffer_query_functions; CONSP (list); list = XCDR (list))
-      {
-	tem = call0 (XCAR (list));
-	if (NILP (tem))
-	  return unbind_to (count, Qnil);
-      }
+    arglist[0] = Qkill_buffer_query_functions;
+    if (NILP (Frun_hook_with_args_until_failure (1, arglist)))
+      return unbind_to (count, Qnil);
 
     /* Then run the hooks.  */
     Frun_hooks (1, &Qkill_buffer_hook);
@@ -5150,6 +5149,9 @@ syms_of_buffer ()
   Qafter_change_functions = intern ("after-change-functions");
   staticpro (&Qafter_change_functions);
   staticpro (&Qucs_set_table_for_input);
+
+  Qkill_buffer_query_functions = intern ("kill-buffer-query-functions");
+  staticpro (&Qkill_buffer_query_functions);
 
   Fput (Qprotected_field, Qerror_conditions,
 	Fcons (Qprotected_field, Fcons (Qerror, Qnil)));
