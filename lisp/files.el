@@ -1559,7 +1559,9 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.c\\'" . c-mode)
      ("\\.h\\'" . c-mode)
      ("\\.tex\\'" . tex-mode)
+     ("\\.ins\\'" . tex-mode)		;Installation files for TeX packages.
      ("\\.ltx\\'" . latex-mode)
+     ("\\.dtx\\'" . doctex-mode)
      ("\\.el\\'" . emacs-lisp-mode)
      ("\\.scm\\'" . scheme-mode)
      ("\\.l\\'" . lisp-mode)
@@ -3421,7 +3423,7 @@ that is more recent than the visited file.
 
 This command also works for special buffers that contain text which
 doesn't come from a file, but reflects some other data base instead:
-for example, Dired buffers and buffer-list buffers.  In these cases,
+for example, Dired buffers and `buffer-list' buffers.  In these cases,
 it reconstructs the buffer contents from the appropriate data base.
 
 When called from Lisp, the first argument is IGNORE-AUTO; only offer
@@ -3533,9 +3535,8 @@ non-nil, it is called instead of rereading visited file contents."
 	       ;; Run after-revert-hook as it was before we reverted.
 	       (setq-default revert-buffer-internal-hook global-hook)
 	       (if local-hook-p
-		   (progn
-		     (make-local-variable 'revert-buffer-internal-hook)
-		     (setq revert-buffer-internal-hook local-hook))
+		   (set (make-local-variable 'revert-buffer-internal-hook)
+			local-hook)
 		 (kill-local-variable 'revert-buffer-internal-hook))
 	       (run-hooks 'revert-buffer-internal-hook))
 	     t)))))
@@ -3553,13 +3554,14 @@ non-nil, it is called instead of rereading visited file contents."
   (interactive "FRecover file: ")
   (setq file (expand-file-name file))
   (if (auto-save-file-name-p (file-name-nondirectory file))
-      (error "%s is an auto-save file" file))
+      (error "%s is an auto-save file" (abbreviate-file-name file)))
   (let ((file-name (let ((buffer-file-name file))
 		     (make-auto-save-file-name))))
     (cond ((if (file-exists-p file)
 	       (not (file-newer-than-file-p file-name file))
 	     (not (file-exists-p file-name)))
-	   (error "Auto-save file %s not current" file-name))
+	   (error "Auto-save file %s not current"
+		  (abbreviate-file-name file-name)))
 	  ((save-window-excursion
 	     (with-output-to-temp-buffer "*Directory*"
 	       (buffer-disable-undo standard-output)
