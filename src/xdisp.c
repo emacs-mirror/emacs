@@ -3716,6 +3716,7 @@ reseat_1 (it, pos, set_stop_p)
 
   it->current.pos = it->position = pos;
   XSETBUFFER (it->object, current_buffer);
+  it->end_charpos = ZV;
   it->dpvec = NULL;
   it->current.dpvec_index = -1;
   it->current.overlay_string_index = -1;
