@@ -1,3 +1,7 @@
+2002-06-29  Kim F. Storm  <storm@cua.dk>
+
+	* kmacro.el: New file.
+
 2002-06-28  John Wiegley  <johnw@gnu.org>
 
 	* pcmpl-cvs.el: Added my name as the maintainer of this file.
