@@ -1,7 +1,7 @@
 ;;; calendar.el --- calendar functions
 
-;; Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1997, 2000
-;;        Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1997, 
+;;	2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Keywords: calendar
@@ -1560,6 +1560,10 @@ Driven by the variable `calendar-date-display-form'.")
 
 (autoload 'calendar-iso-date-string "cal-iso"
   "String of ISO date of Gregorian date."
+  t)
+
+(autoload 'calendar-goto-islamic-date "cal-islam"
+  "Move cursor to Islamic date."
   t)
 
 (autoload 'calendar-print-islamic-date "cal-islam"
