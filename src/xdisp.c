@@ -9170,14 +9170,16 @@ redisplay_preserve_echo_area (from_where)
 
 
 /* Function registered with record_unwind_protect in
-   redisplay_internal.  Clears the flag indicating that a redisplay is
-   in progress.  */
+   redisplay_internal.  Reset redisplaying_p to the value it had
+   before redisplay_internal was called, and clear
+   redisplay_updating_p.  */
 
 static Lisp_Object
 unwind_redisplay (old_redisplaying_p)
      Lisp_Object old_redisplaying_p;
 {
   redisplaying_p = XFASTINT (old_redisplaying_p);
+  redisplay_updating_p = 0;
   return Qnil;
 }
 
