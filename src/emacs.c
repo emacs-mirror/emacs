@@ -784,7 +784,7 @@ main (argc, argv, envp)
       printf ("\
 Usage: %s [-t term] [--terminal term]  [-nw] [--no-windows]  [--batch]\n\
       [-q] [--no-init-file]  [-u user] [--user user]  [--debug-init]\n\
-      [--version] [--no-site-file]\n\
+      [--version] [--no-site-file] [--unibyte]\n\
       [-f func] [--funcall func]  [-l file] [--load file]  [--insert file]\n\
       [+linenum] file-to-visit  [--kill]\n\
 Report bugs to bug-gnu-emacs@prep.ai.mit.edu.  First, please see\n\
