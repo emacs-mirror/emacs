@@ -103,11 +103,13 @@ If `query-replace-interactive' is non-nil, the last incremental search
 string is used as FROM-STRING--you don't have to specify it with the
 minibuffer.
 
-Replacement transfers the case of the old text to the new text,
-if `case-replace' and `case-fold-search'
-are non-nil and FROM-STRING has no uppercase letters.
-\(Preserving case means that if the string matched is all caps, or capitalized,
-then its replacement is upcased or capitalized.)
+Matching is independent of case if `case-fold-search' is non-nil and
+FROM-STRING has no uppercase letters.  Replacement transfers the case
+pattern of the old text to the new text, if `case-replace' and
+`case-fold-search' are non-nil and FROM-STRING has no uppercase
+letters.  \(Transferring the case pattern means that if the old text
+matched is all caps, or capitalized, then its replacement is upcased
+or capitalized.)
 
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.
@@ -131,8 +133,13 @@ If `query-replace-interactive' is non-nil, the last incremental search
 regexp is used as REGEXP--you don't have to specify it with the
 minibuffer.
 
-Preserves case in each replacement if `case-replace' and `case-fold-search'
-are non-nil and REGEXP has no uppercase letters.
+Matching is independent of case if `case-fold-search' is non-nil and
+REGEXP has no uppercase letters.  Replacement transfers the case
+pattern of the old text to the new text, if `case-replace' and
+`case-fold-search' are non-nil and REGEXP has no uppercase letters.
+\(Transferring the case pattern means that if the old text matched is
+all caps, or capitalized, then its replacement is upcased or
+capitalized.)
 
 Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches surrounded by word boundaries.
