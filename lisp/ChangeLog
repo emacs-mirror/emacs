@@ -1,3 +1,34 @@
+2002-02-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* cus-edit.el (customize-save-variable): Fix typo in prompt.
+
+	These changes integrate new version of flyspell.el from its
+	maintainer, Manuel Serrano:
+
+	* textmodes/flyspell.el (flyspell-issue-message-flag): New user
+	option.
+	(flyspell-mode-on, flyspell-notify-misspell)
+	(flyspell-small-region, flyspell-external-point-words)
+	(flyspell-large-region): Use it
+	(flyspell-before-incorrect-word-string)
+	(flyspell-after-incorrect-word-string): New user options.
+	(make-flyspell-overlay): Use them.
+	(flyspell-version): New function.
+	(flyspell-incorrect-face, flyspell-duplicate-face): Adapt face
+	definitions to use :weight.
+	(flyspell-insert-function): New user option.
+	(flyspell-auto-correct-word, flyspell-correct-word)
+	(flyspell-xemacs-correct): Use it.
+	(flyspell-define-abbrev): New function.
+	(flyspell-auto-correct-word, flyspell-correct-word)
+	(flyspell-xemacs-correct): Use it.
+	(make-flyspell-overlay): Use `evaporate' property.
+	(flyspell-auto-correct-word, flyspell-correct-word): Remove overlay.
+	(flyspell-emacs-popup): Use `session' instead of `accept'.
+	(flyspell-auto-correct-previous-pos): New variable.
+	(flyspell-auto-correct-previous-hook)
+	(flyspell-auto-correct-previous-word): New functions.
+
 2002-02-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* novice.el (enable-command): If Emacs was invoked as "emacs -q",
