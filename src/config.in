@@ -167,6 +167,7 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_STDIO_EXT_H
 #undef STDC_HEADERS
 #undef TIME_WITH_SYS_TIME
+#undef HAVE_VFORK_H
 #undef HAVE_SETITIMER
 #undef HAVE_UALARM
 
@@ -283,6 +284,8 @@ Boston, MA 02111-1307, USA.  */
 #undef HAVE_INET_SOCKETS
 
 #undef HAVE_AIX_SMT_EXP
+
+#undef vfork
 
 /* Define if you have the ANSI `strerror' function.
    Otherwise you must have the variable `char *sys_errlist[]'.  */
