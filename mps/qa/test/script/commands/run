@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl
-# $HopeName: MMQA_harness!script:commands:run(trunk.2) $
+# $HopeName: MMQA_harness!script:commands:run(trunk.3) $
 #
 # run tests interactively (allows for user input, immediate results,
 # &c, and give results in standard format, and mailing results)
@@ -16,6 +16,7 @@ require "require";
 
 foreach $testfile (@qa_args) {
  &run_test($testfile, "yes", "results", "$LOG_DIR/last.log");
- &mailfile("$LOG_DIR/last.log", "MMQA-log: result of test $testfile");
+ &mailfile("$LOG_DIR/last.log",
+  "MMQA-log: ".$testconclusion."ED test $testfile");
 }
 
