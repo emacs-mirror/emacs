@@ -508,6 +508,27 @@ on `after-make-frame-functions' are run with one arg, the newly created frame."
    (function (lambda (frame)
 	       (eq frame (window-frame (minibuffer-window frame)))))))
 
+(defun frames-on-display-list (&optional display)
+  "Return a list of all frames on DISPLAY.
+DISPLAY is a name of a display, a string of the form HOST:SERVER.SCREEN.
+If DISPLAY is omitted or nil, it defaults to the selected frame's display."
+  (let* ((display (or display
+		      (cdr (assoc 'display (frame-parameters)))))
+	 (func
+	  (function (lambda (frame)
+		      (eq (cdr (assoc 'display (frame-parameters frame)))
+			  display)))))
+    (filtered-frame-list func)))
+
+(defun framep-on-display (&optional display)
+  "Return the type of frames on DISPLAY.
+DISPLAY may be a display name or a frame.  If it is a frame, its type is
+returned.
+If DISPLAY is omitted or nil, it defaults to the selected frame's display.
+All frames on a given display are of the same type."
+  (or (framep display)
+      (framep (car (frames-on-display-list display)))))
+
 (defun frame-remove-geometry-params (param-list)
   "Return the parameter list PARAM-LIST, but with geometry specs removed.
 This deletes all bindings in PARAM-LIST for `top', `left', `width',
@@ -767,6 +788,157 @@ one frame, otherwise the name is displayed on the frame's caption bar."
   (interactive "sFrame name: ")
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'name name))))
+
+;;;; Frame/display capabilities.
+(defun display-mouse-p (&optional display)
+  "Return non-nil if DISPLAY has a mouse available.
+DISPLAY can be a display name, a frame, or nil (meaning the selected
+frame's display)."
+  (let ((frame-type (framep-on-display display)))
+    (cond
+     ((eq frame-type 'pc)
+      (msdos-mouse-p))
+     ((eq system-type 'windows-nt)
+      (> w32-num-mouse-buttons 0))
+     ((memq frame-type '(x mac))
+      t)    ;; We assume X and Mac *always* have a pointing device
+     (t
+      (featurep 'xt-mouse)))))
+
+(defun display-popup-menus-p (&optional display)
+  "Return non-nil if popup menus are supported on DISPLAY.
+DISPLAY can be a display name, a frame, or nil (meaning the selected
+frame's display).
+Support for popup menus requires that the mouse be available."
+  (and
+   (let ((frame-type (framep-on-display display)))
+     (memq frame-type '(x w32 pc mac)))
+   (display-mouse-p display)))
+
+(defun display-graphic-p (&optional display)
+  "Return non-nil if DISPLAY is a graphic display.
+Graphical displays are those which are capable of displaying several
+frames and several different fonts at once.  This is true for displays
+that use a window system such as X, and false for text-only terminals.
+DISPLAY can be a display name, a frame, or nil (meaning the selected
+frame's display)."
+  (not (null (memq (framep-on-display display) '(x w32 mac)))))
+
+(defun display-selections-p (&optional display)
+  "Return non-nil if DISPLAY supports selections.
+A selection is a way to transfer text or other data between programs
+via special system buffers called `selection' or `cut buffer' or
+`clipboard'.
+DISPLAY can be a display name, a frame, or nil (meaning the selected
+frame's display)."
+  (let ((frame-type (framep-on-display display)))
+    (cond
+     ((eq frame-type 'pc)
+      ;; MS-DOG frames support selections when Emacs runs inside
+      ;; the Windows' DOS Box.
+      (not (null dos-windows-version)))
+     ((memq frame-type '(x w32 mac))
+      t)    ;; FIXME?
+     (t
+      nil))))
+
+(defun display-screens (&optional display)
+  "Return the number of screens associated with DISPLAY."
+  (let ((frame-type (framep-on-display display)))
+    (cond
+     ((memq frame-type '(x w32))
+      (x-display-screens display))
+     (t	;; FIXME: is this correct for the Mac?
+      1))))
+
+(defun display-pixel-height (&optional display)
+  "Return the height of DISPLAY's screen in pixels.
+For character terminals, each character counts as a single pixel."
+  (let ((frame-type (framep-on-display display)))
+    (cond
+     ((memq frame-type '(x w32 mac))
+      (x-display-pixel-height display))
+     (t
+      (frame-height (if (framep display) display (selected-frame)))))))
+
+(defun display-pixel-width (&optional display)
+  "Return the width of DISPLAY's screen in pixels.
+For character terminals, each character counts as a single pixel."
+  (let ((frame-type (framep-on-display display)))
+    (cond
+     ((memq frame-type '(x w32 mac))
+      (x-display-pixel-width display))
+     (t
+      (frame-width (if (framep display) display (selected-frame)))))))
+
+(defun display-mm-height (&optional display)
+  "Return the height of DISPLAY's screen in millimeters.
+If the information is unavailable, value is nil."
+  (and (memq (framep-on-display display) '(x w32 mac))
+       (x-display-mm-height display)))
+
+(defun display-mm-width (&optional display)
+  "Return the width of DISPLAY's screen in millimeters.
+If the information is unavailable, value is nil."
+  (and (memq (framep-on-display display) '(x w32 mac))
+       (x-display-mm-width display)))
+
+(defun display-backing-store (&optional display)
+  "Return the backing store capability of DISPLAY's screen.
+The value may be `always', `when-mapped', `not-useful', or nil if
+the question is inapplicable to a certain kind of display."
+  (let ((frame-type (framep-on-display display)))
+    (cond
+     ((memq frame-type '(x w32 mac))
+      (x-display-backing-store display))
+     (t
+      'not-useful))))
+
+(defun display-save-under (&optional display)
+  "Return non-nil if DISPLAY's screen supports the SaveUnder feature."
+  (let ((frame-type (framep-on-display display)))
+    (cond
+     ((memq frame-type '(x w32 mac))
+      (x-display-save-under display))
+     (t
+      'not-useful))))
+
+(defun display-planes (&optional display)
+  "Return the number of planes supported by DISPLAY."
+  (let ((frame-type (framep-on-display display)))
+    (cond
+     ((memq frame-type '(x w32 mac))
+      (x-display-planes display))
+     ((eq frame-type 'pc)
+      4)
+     (t
+      (truncate (log (length (tty-color-alist)) 2))))))
+
+(defun display-color-cells (&optional display)
+  "Return the number of color cells supported by DISPLAY."
+  (let ((frame-type (framep-on-display display)))
+    (cond
+     ((memq frame-type '(x w32 mac))
+      (x-display-color-cells display))
+     ((eq frame-type 'pc)
+      16)
+     (t
+      (length (tty-color-alist))))))
+
+(defun display-visual-class (&optional display)
+  "Returns the visual class of DISPLAY.
+The value is one of the symbols `static-gray', `gray-scale',
+`static-color', `pseudo-color', `true-color', or `direct-color'."
+  (let ((frame-type (framep-on-display display)))
+    (cond
+     ((memq frame-type '(x w32 mac))
+      (x-display-visual-class display))
+     ((and (memq frame-type '(pc t))
+	   (tty-display-color-p display))
+      'static-color)
+     (t
+      'static-gray))))
+
 
 ;;;; Aliases for backward compatibility with Emacs 18.
 (defalias 'screen-height 'frame-height)
