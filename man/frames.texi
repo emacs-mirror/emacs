@@ -53,7 +53,7 @@ such support.
 * Scroll Bars::	        How to enable and disable scroll bars; how to use them.
 * Wheeled Mice::        Using mouse wheels for scrolling.
 * Menu Bars::	        Enabling and disabling the menu bar.
-@c * Tool Bars::           Enabling and disabling the tool bar.
+* Tool Bars::           Enabling and disabling the tool bar.
 * Dialog Boxes::        Controlling use of dialog boxes.
 * Faces::	        How to change the display style using faces.
 * Font Lock::           Minor mode for syntactic highlighting using faces.
@@ -708,27 +708,35 @@ determine where and by how much buffers are scrolled.
 @cindex mode, Menu Bar
 
   You can turn display of menu bars on or off with @kbd{M-x
-menu-bar-mode}.  With no argument, this command toggles Menu Bar mode, a
+menu-bar-mode} or by customizing the option @code{menu-bar-mode}.
+With no argument, this command toggles Menu Bar mode, a
 minor mode.  With an argument, the command turns Menu Bar mode on if the
 argument is positive, off if the argument is not positive.  You can use
 the X resource @samp{menuBarLines} to control the initial setting of
-Menu Bar mode.  @xref{Resources X}.  Expert users often turn off the
-menu bar, especially on text-only terminals, where this makes one
-additional line available for text.
+Menu Bar mode.  @xref{Resources X}.
+
+Expert users often turn off the menu bar, especially on text-only
+terminals, where this makes one additional line available for text.  If
+the menu bar is off, you can still pop up a menu of its contents with
+@kbd{c-mouse-3} on a display which supports popup menus.  @xref{Menu
+Mouse Clicks}.
 
   @xref{Menu Bar}, for information on how to invoke commands with the
 menu bar.
 
-@c Presumably not useful until we make toolbar items.
-@c @node Tool Bars
-@c @section Tool Bars
-@c @cindex Tool Bar mode
-@c @cindex mode, Tool Bar
+@node Tool Bars
+@section Tool Bars
+@cindex Tool Bar mode
+@cindex mode, Tool Bar
 
-@c You can turn display of tool bars on or off with @kbd{M-x
-@c tool-bar-mode}.  With no argument, this command toggles Tool Bar mode, a
-@c minor mode.  With an argument, the command turns Tool Bar mode on if the
-@c argument is positive, off if the argument is not positive.
+You can turn display of tool bars on or off with @kbd{M-x tool-bar-mode}
+analogously to @code{menu-bar-mode}.  @xref{Menu Bars}.  This will only
+work in an Emacs built with appropriate image support to display the
+available tool bar icons.
+
+There is a global tool bar with some useful items and various modes may
+define their own tool bars.  More could be added if suitable icons are
+contributed.
 
 @node Dialog Boxes
 @section Using Dialog Boxes
