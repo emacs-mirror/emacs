@@ -1880,8 +1880,8 @@ of the function `insert-file-contents'."
 		      (coding-system-change-text-conversion coding 'raw-text)))
 	  (setq coding nil))
 	(if coding
-	    (decode-coding-region (point-min) (point-max) coding))
-	(setq last-coding-system-used coding)))))
+	    (decode-coding-region (point-min) (point-max) coding)
+	  (setq last-coding-system-used coding))))))
 
 (defun make-translation-table (&rest args)
   "Make a translation table from arguments.

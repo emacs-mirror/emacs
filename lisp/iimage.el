@@ -25,12 +25,13 @@
 
 ;;; Commentary:
 
-;; Iimage is a minor mode that display a images, when image-filename
-;; exists in buffer.
+;; Iimage is a minor mode that displays images, when image-filename
+;; exists in the buffer.
 ;; http://www.netlaputa.ne.jp/~kose/Emacs/iimage.html
 ;;
 ;; Add to your `~/.emacs':
-;; (autoload 'iimage-mode "iimage" "SUpport Inline image minor mode." t)
+;; (autoload 'iimage-mode "iimage" "Support Inline image minor mode." t)
+;; (autoload 'turn-on-iimage-mode "iimage" "Turn on Inline image minor mode." t)
 ;;
 ;; ** Display images in *Info* buffer.
 ;;
@@ -50,7 +51,7 @@
 (eval-when-compile
   (require 'image-file))
 
-(defconst iimage-version "1.0")
+(defconst iimage-version "1.1")
 (defvar iimage-mode nil)
 (defvar iimage-mode-map nil)
 
@@ -89,6 +90,10 @@ image filename regex exsamples:
      foo.JPG
 ")
 
+(defvar iimage-mode-image-search-path nil
+"*List of directories to search for image files for iimage-mode.")
+
+;;;###autoload
 (defun turn-on-iimage-mode ()
 "Unconditionally turn on iimage mode."
   (interactive)
@@ -98,6 +103,12 @@ image filename regex exsamples:
 "Unconditionally turn off iimage mode."
   (interactive)
   (iimage-mode 0))
+
+;; Emacs21.3 or earlier does not heve locate-file.
+(if (fboundp 'locate-file)
+    (defalias 'iimage-locate-file 'locate-file)
+  (defun iimage-locate-file (filename path)
+    (locate-library filename t path)))
 
 (defun iimage-mode-buffer (arg)
 "Display/Undisplay Images.
@@ -113,8 +124,9 @@ With numeric ARG, display the images if and only if ARG is positive."
       (dolist (pair iimage-mode-image-regex-alist)
 	(while (re-search-forward (car pair) nil t)
 	  (if (and (setq file (match-string (cdr pair)))
-		   (setq file (expand-file-name file default-directory))
-		   (file-exists-p file))
+		   (setq file (iimage-locate-file file
+				   (cons default-directory
+					 iimage-mode-image-search-path))))
 	      (if ing
 		  (add-text-properties (match-beginning 0) (match-end 0)
 				       (list 'display (create-image file)))
@@ -122,6 +134,7 @@ With numeric ARG, display the images if and only if ARG is positive."
 					'(display)))))))
     (set-buffer-modified-p modp)))
 
+;;;###autoload
 (define-minor-mode iimage-mode
   "Toggle inline image minor mode."
   nil " iImg" iimage-mode-map

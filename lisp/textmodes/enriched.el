@@ -282,33 +282,34 @@ the region, and the START and END of each region."
 ;;;###autoload
 (defun enriched-encode (from to orig-buf)
   (if enriched-verbose (message "Enriched: encoding document..."))
-  (save-restriction
-    (narrow-to-region from to)
-    (delete-to-left-margin)
-    (unjustify-region)
-    (goto-char from)
-    (format-replace-strings '(("<" . "<<")))
-    (format-insert-annotations
-     (format-annotate-region from (point-max) enriched-translations
-			     'enriched-make-annotation enriched-ignore))
-    (goto-char from)
-    (insert (if (stringp enriched-initial-annotation)
-		enriched-initial-annotation
-	      (save-excursion
-		;; Eval this in the buffer we are annotating.  This
-		;; fixes a bug which was saving incorrect File-Width
-		;; information, since we were looking at local
-		;; variables in the wrong buffer.
-		(if orig-buf (set-buffer orig-buf))
-		(funcall enriched-initial-annotation))))
-    (enriched-map-property-regions 'hard
-      (lambda (v b e)
-	(if (and v (= ?\n (char-after b)))
-	    (progn (goto-char b) (insert "\n"))))
-      (point) nil)
-    (if enriched-verbose (message nil))
-    ;; Return new end.
-    (point-max)))
+  (let ((inhibit-read-only t))
+    (save-restriction
+      (narrow-to-region from to)
+      (delete-to-left-margin)
+      (unjustify-region)
+      (goto-char from)
+      (format-replace-strings '(("<" . "<<")))
+      (format-insert-annotations
+       (format-annotate-region from (point-max) enriched-translations
+			       'enriched-make-annotation enriched-ignore))
+      (goto-char from)
+      (insert (if (stringp enriched-initial-annotation)
+		  enriched-initial-annotation
+		(save-excursion
+		  ;; Eval this in the buffer we are annotating.  This
+		  ;; fixes a bug which was saving incorrect File-Width
+		  ;; information, since we were looking at local
+		  ;; variables in the wrong buffer.
+		  (if orig-buf (set-buffer orig-buf))
+		  (funcall enriched-initial-annotation))))
+      (enriched-map-property-regions 'hard
+	(lambda (v b e)
+	  (if (and v (= ?\n (char-after b)))
+	      (progn (goto-char b) (insert "\n"))))
+	(point) nil)
+      (if enriched-verbose (message nil))
+      ;; Return new end.
+      (point-max))))
 
 (defun enriched-make-annotation (internal-ann positive)
   "Format an annotation INTERNAL-ANN.

@@ -1,7 +1,7 @@
 ;;; isearch.el --- incremental search minor mode
 
-;; Copyright (C) 1992, 93, 94, 95, 96, 97, 1999, 2000, 01, 2003, 2004
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1999,
+;;   2000, 2001, 2003, 2004  Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Maintainer: FSF
@@ -59,7 +59,6 @@
 
 ;; TODO
 ;; - Integrate the emacs 19 generalized command history.
-;; - Think about incorporating query-replace.
 ;; - Hooks and options for failed search.
 
 ;;; Change Log:
@@ -294,8 +293,10 @@ Default value, nil, means edit the string instead."
     (define-key map " " 'isearch-whitespace-chars)
     (define-key map [?\S-\ ] 'isearch-whitespace-chars)
 
-    (define-key map "\C-w" 'isearch-yank-word-or-char)
-    (define-key map "\C-y" 'isearch-yank-line)
+    (define-key map    "\C-w" 'isearch-yank-word-or-char)
+    (define-key map "\M-\C-w" 'isearch-del-char)
+    (define-key map "\M-\C-y" 'isearch-yank-char)
+    (define-key map    "\C-y" 'isearch-yank-line)
 
     ;; Define keys for regexp chars * ? |.
     ;; Nothing special for + because it matches at least once.
@@ -336,18 +337,27 @@ Default value, nil, means edit the string instead."
     (define-key map "\M-r" 'isearch-toggle-regexp)
     (define-key map "\M-e" 'isearch-edit-string)
 
+    (define-key map [?\M-%] 'isearch-query-replace)
+    (define-key map [?\C-\M-%] 'isearch-query-replace-regexp)
+
     map)
   "Keymap for `isearch-mode'.")
 
 (defvar minibuffer-local-isearch-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map minibuffer-local-map)
-    (define-key map "\r" 'isearch-nonincremental-exit-minibuffer)
-    (define-key map "\M-n" 'isearch-ring-advance-edit)
-    (define-key map "\M-p" 'isearch-ring-retreat-edit)
+    (define-key map "\r"    'isearch-nonincremental-exit-minibuffer)
+    (define-key map "\M-n"  'isearch-ring-advance-edit)
+    (define-key map [next]  'isearch-ring-advance-edit)
+    (define-key map [down]  'isearch-ring-advance-edit)
+    (define-key map "\M-p"  'isearch-ring-retreat-edit)
+    (define-key map [prior] 'isearch-ring-retreat-edit)
+    (define-key map [up]    'isearch-ring-retreat-edit)
     (define-key map "\M-\t" 'isearch-complete-edit)
-    (define-key map "\C-s" 'isearch-forward-exit-minibuffer)
-    (define-key map "\C-r" 'isearch-reverse-exit-minibuffer)
+    (define-key map "\C-s"  'isearch-forward-exit-minibuffer)
+    (define-key map "\C-r"  'isearch-reverse-exit-minibuffer)
+    (define-key map "\C-f"  'isearch-yank-char-in-minibuffer)
+    (define-key map [right] 'isearch-yank-char-in-minibuffer)
     map)
   "Keymap for editing isearch strings in the minibuffer.")
 
@@ -449,14 +459,14 @@ As you type characters, they add to the search string and are found.
 The following non-printing keys are bound in `isearch-mode-map'.
 
 Type \\[isearch-delete-char] to cancel last input item from end of search string.
-Type \\[isearch-del-char] to cancel last character from end of search string.
 Type \\[isearch-exit] to exit, leaving point at location found.
 Type LFD (C-j) to match end of line.
 Type \\[isearch-repeat-forward] to search again forward,\
  \\[isearch-repeat-backward] to search again backward.
-Type \\[isearch-yank-char] to yank character from buffer onto end of search\
+Type \\[isearch-yank-word-or-char] to yank word from buffer onto end of search\
  string and search for it.
-Type \\[isearch-yank-word] to yank word from buffer onto end of search\
+Type \\[isearch-del-char] to delete character from end of search string.
+Type \\[isearch-yank-char] to yank char from buffer onto end of search\
  string and search for it.
 Type \\[isearch-yank-line] to yank rest of line onto end of search string\
  and search for it.
@@ -792,7 +802,7 @@ The following additional command keys are active while editing.
 \\[isearch-ring-retreat-edit] to replace the search string with the previous item in the search ring.
 \\[isearch-complete-edit] to complete the search string using the search ring.
 \\<isearch-mode-map>
-If first char entered is \\[isearch-yank-word], then do word search instead."
+If first char entered is \\[isearch-yank-word-or-char], then do word search instead."
 
   ;; This code is very hairy for several reasons, explained in the code.
   ;; Mainly, isearch-mode must be terminated while editing and then restarted.
@@ -1048,6 +1058,32 @@ Use `isearch-exit' to quit without signaling."
   (sit-for 1)
   (isearch-update))
 
+(defun isearch-query-replace ()
+  "Start query-replace with string to replace from last search string."
+  (interactive)
+  (barf-if-buffer-read-only)
+  (let ((case-fold-search isearch-case-fold-search))
+    (isearch-done)
+    (isearch-clean-overlays)
+    (and isearch-forward isearch-other-end (goto-char isearch-other-end))
+    (perform-replace
+     isearch-string
+     (query-replace-read-to isearch-string "Query replace" isearch-regexp)
+     t isearch-regexp isearch-word)))
+
+(defun isearch-query-replace-regexp ()
+  "Start query-replace-regexp with string to replace from last search string."
+  (interactive)
+  (let ((query-replace-interactive t)
+        (case-fold-search isearch-case-fold-search))
+    ;; Put search string into the right ring
+    (setq isearch-regexp t)
+    (isearch-done)
+    (isearch-clean-overlays)
+    (and isearch-forward isearch-other-end (goto-char isearch-other-end))
+    (call-interactively 'query-replace-regexp)))
+
+
 (defun isearch-delete-char ()
   "Discard last input item and move point back.
 If no previous match was done, just beep."
@@ -1057,15 +1093,17 @@ If no previous match was done, just beep."
     (isearch-pop-state))
   (isearch-update))
 
-(defun isearch-del-char ()
-  "Discard last character and move point back.
-If there is no previous character, just beep."
-  (interactive)
-  (if (equal isearch-string "")
+(defun isearch-del-char (&optional arg)
+  "Delete character from end of search string and search again.
+If search string is empty, just beep."
+  (interactive "p")
+  (if (= 0 (length isearch-string))
       (ding)
-    (setq isearch-string (substring isearch-string 0 -1)
+    (setq isearch-string (substring isearch-string 0 (- (or arg 1)))
           isearch-message (mapconcat 'isearch-text-char-description
-                                     isearch-string "")))
+                                     isearch-string "")
+          ;; Don't move cursor in reverse search.
+          isearch-yank-flag t))
   (isearch-search-and-update))
 
 (defun isearch-yank-string (string)
@@ -1127,10 +1165,21 @@ might return the position of the end of the line."
 	  (goto-char isearch-other-end))
      (buffer-substring-no-properties (point) (funcall jumpform)))))
 
-(defun isearch-yank-char ()
+(defun isearch-yank-char-in-minibuffer (&optional arg)
+  "Pull next character from buffer into end of search string in minibuffer."
+  (interactive "p")
+  (if (eobp)
+      (insert
+       (save-excursion
+         (set-buffer (cadr (buffer-list)))
+         (buffer-substring-no-properties
+          (point) (progn (forward-char arg) (point)))))
+    (forward-char arg)))
+
+(defun isearch-yank-char (&optional arg)
   "Pull next character from buffer into search string."
-  (interactive)
-  (isearch-yank-internal (lambda () (forward-char 1) (point))))
+  (interactive "p")
+  (isearch-yank-internal (lambda () (forward-char arg) (point))))
 
 (defun isearch-yank-word-or-char ()
   "Pull next character or word from buffer into search string."
@@ -2331,5 +2380,5 @@ CASE-FOLD non-nil means the search was case-insensitive."
 	isearch-case-fold-search case-fold)
   (isearch-search))
 
-;;; arch-tag: 74850515-f7d8-43a6-8a2c-ca90a4c1e675
+;; arch-tag: 74850515-f7d8-43a6-8a2c-ca90a4c1e675
 ;;; isearch.el ends here

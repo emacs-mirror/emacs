@@ -485,6 +485,8 @@ nil t t nil nil nil nil nil nil nil t)
  ("\"" ?,A((B) ; dialytika
  ("|" ?$,1&Z(B) ; ypogegrammeni
  ("''" ?$,1q}(B) ; koronis
+ ("((" ?,A+(B) ; #x00ab
+ ("))" ?,A;(B) ; #x00bb
 
  ("A" ?$,1&q(B)
  ("B" ?$,1&r(B)

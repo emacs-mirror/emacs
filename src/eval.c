@@ -688,6 +688,7 @@ usage: (defmacro NAME ARGLIST [DOCSTRING] [DECL] BODY...)  */)
   Lisp_Object lambda_list, doc, tail;
 
   fn_name = Fcar (args);
+  CHECK_SYMBOL (fn_name);
   lambda_list = Fcar (Fcdr (args));
   tail = Fcdr (Fcdr (args));
 

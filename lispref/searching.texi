@@ -1459,8 +1459,11 @@ corresponds to @code{(match-end @var{n})}.
 All the elements are markers or @code{nil} if matching was done on a
 buffer and all are integers or @code{nil} if matching was done on a
 string with @code{string-match}.   If @var{integers} is
-non-@code{nil}, then all elements are integers or @code{nil}, even if
-matching was done on a buffer.  Also, @code{match-beginning} and
+non-@code{nil}, then the elements are integers or @code{nil}, even if
+matching was done on a buffer.  In that case, the buffer itself is
+appended as an additional element at the end of the list
+to facilitate complete restoration of the match data.  Also,
+@code{match-beginning} and
 @code{match-end} always return integers or @code{nil}.
 
 If @var{reuse} is non-@code{nil}, it should be a list.  In that case,

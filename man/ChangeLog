@@ -1,3 +1,16 @@
+2004-07-02  Juri Linkov  <juri@jurta.org>
+
+	* pcl-cvs.texi (Viewing differences): Add `d r'.
+
+2004-07-01  Juri Linkov  <juri@jurta.org>
+
+	* search.texi (Incremental Search): Add C-M-w, C-M-y, M-%, C-M-%, M-e.
+	(Regexp Search): Add M-r.
+
+2004-06-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* makefile.w32-in (EMACSSOURCES): Remove emacs-xtra.
+
 2004-06-29  Jesper Harder  <harder@ifa.au.dk>
 
 	* ses.texi, viper.texi, search.texi, flymake.texi, faq.texi:

@@ -67,14 +67,67 @@
 	(Fdocumentation, store_function_docstring): Handle interpreted
 	closures.
 
+2004-07-06  John Paul Wallington  <jpw@gnu.org>
+
+	* eval.c (Fdefmacro): Signal an error if NAME is not a symbol.
+
+2004-07-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* macterm.c (mac_initialize_display_info): Use CGGetActiveDisplayList
+	instead of CGMainDisplayID (only in OSX 10.2 and later).
+
+2004-07-04  John Paul Wallington  <jpw@gnu.org>
+
+	* fileio.c (read_file_name_completion_ignore_case): New variable.
+	(syms_of_fileio): Declare and initialise it.
+	(Fread_file_name): Bind `completion-ignore-case' to respect it.
+
+2004-07-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (dos_rawgetc): Use make_number to produce Lisp objects
+	for event.x and event.y.
+
+2004-07-01  Kenichi Handa  <handa@m17n.org>
+
+	* w32select.c (Fw32_set_clipboard_data): Update `nbytes' correctly
+	after getting a new string by pre-write-conversion.
+
+2004-06-30  Stefan  <monnier@iro.umontreal.ca>
+
+	* xterm.c (x_detect_focus_change): Remove unused var `nr_events'.
+	(x_calc_absolute_position): Remove unused var `child'.
+
+	* xfaces.c (x_supports_face_attributes_p)
+	(Fdisplay_supports_face_attributes_p): YAILOM.
+	(tty_supports_face_attributes_p): Remove unused var `i'.
+
+	* syntax.c (skip_chars): Remove unused labels fwd_unibyte_ok and
+	back_unibyte_ok.
+
+	* search.c (match_limit, Fmatch_data, Fset_match_data): YAILOM.
+
+	* fontset.c (Fset_fontset_font): Remove unused vars `family' and `registry'.
+
+	* Makefile.in (${etc}DOC): Fix file name of make-docfile.
+
+2004-06-30  Andreas Schwab  <schwab@suse.de>
+
+	* image.c (CHECK_LIB_AVAILABLE): Add third parameter LIBRARIES.
+	(Finit_image_library): Pass LIBRARIES through to
+	CHECK_LIB_AVAILABLE.  Declare parameters.  Doc fix.
+	(lookup_image_type): Pass Qnil as second argument to
+	Finit_image_library.
+
+	* lisp.h: Declare Finit_image_library.
+
 2004-06-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
-        
-        * macterm.c (do_window_activate, do_window_deactivate): Remove.
-        (XTread_socket): Send mouse button events to the toolbox
-        dispatcher even when the mouse is grabbed.  Don't process window
-        activate events for non-Emacs windows.  Replace function calls to
-        do_window_activate and do_window_deactivate with their contents.
-        Reset mouse grabbing status when a window is deactivated.
+
+	* macterm.c (do_window_activate, do_window_deactivate): Remove.
+	(XTread_socket): Send mouse button events to the toolbox
+	dispatcher even when the mouse is grabbed.  Don't process window
+	activate events for non-Emacs windows.	Replace function calls to
+	do_window_activate and do_window_deactivate with their contents.
+	Reset mouse grabbing status when a window is deactivated.
 
 2004-06-29  Steven Tamm  <steventamm@mac.com>
 
@@ -129,8 +182,7 @@
 	a buffer, add the buffer as last element to the match data.
 	(Fset_match_data): If an additional element of the match-data is a
 	buffer, restore it to last_thing_searched.
-	(save_search_regs): Save last_thing_searched as part of the match
-	data.
+	(save_search_regs): Save last_thing_searched as part of the match data.
 	(restore_match_data): Restore it again.
 
 2004-06-23  Luc Teirlinck  <teirllm@auburn.edu>
@@ -256,7 +308,7 @@
 2004-06-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_image_for_pixmap): New function.
-	(xg_get_gdk_pixmap_and_mask): Removed.
+	(xg_get_gdk_pixmap_and_mask): Remove.
 	(update_frame_tool_bar): Call xg_get_image_for_pixmap instead of
 	xg_get_gdk_pixmap_and_mask.
 
@@ -277,8 +329,7 @@
 	list of possible filenames.
 	(init_xpm_functions, init_png_functions, init_jpeg_functions)
 	(init_tiff_functions, init_gif_functions): Use `w32_delayed_load'.
-	(CHECK_LIB_AVAILABLE): Call `define_image_library' with new
-	argument.
+	(CHECK_LIB_AVAILABLE): Call `define_image_library' with new argument.
 	(Finit_image_library): New function, extracted from `init_image'.
 	Try to initialize an image library on demand and cache whether we
 	were successful or not.
@@ -402,7 +453,7 @@
 	(merge_face_ref, face_at_buffer_position, face_at_string_position):
 	Use `merge_named_face'.
 	(merge_face_inheritance): Function removed.
-	(merge_face_ref): Renamed from `merge_face_vector_with_property'.
+	(merge_face_ref): Rename from `merge_face_vector_with_property'.
 	Add new `err_msgs' and `named_merge_points' args.  Return error
 	status.  Only print error messages if ERR_MSGS is true.  Don't try to
 	do :inherit attribute validation.
@@ -462,8 +513,8 @@
 
 	* xfaces.c (x_supports_face_attributes_p): Make this function
 	conditional on HAVE_WINDOW_SYSTEM.
-	(Fdisplay_supports_face_attributes_p) [HAVE_WINDOW_SYSTEM]: Don't
-	call x_supports_face_attributes_p if it was not compiled in.
+	(Fdisplay_supports_face_attributes_p) [HAVE_WINDOW_SYSTEM]:
+	Don't call x_supports_face_attributes_p if it was not compiled in.
 
 2004-06-04  Miles Bader  <miles@gnu.org>
 
@@ -494,6 +545,8 @@
 
 2004-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* eval.c (Fcondition_case): Fix usage.  Simplify.
+
 	* mem-limits.h (EXCEEDS_LISP_PTR) [USE_LSB_TAG]: Never true.
 
 2004-05-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
@@ -502,8 +555,7 @@
 	[MAC_OSX]: Don't include QuickTime/QuickTime.h.
 	[!MAC_OSX]: Don't include alloca.h, Windows.h, Gestalt.h, or
 	TextUtils.h.
-	(Fx_create_frame): Sync with xfns.c.  Initialize cursor
-	descriptors.
+	(Fx_create_frame): Sync with xfns.c.  Initialize cursor descriptors.
 	(Fx_display_mm_height, Fx_display_mm_width): Calculate length from
 	display height/width.
 	(compute_tip_xy, Vx_max_tooltip_size): Declare.
@@ -514,8 +566,7 @@
 
 	* macgui.h [!MAC_OSX]: Include Gestalt.h.
 	(Cursor, No_Cursor): New defines.
-	[!TARGET_API_MAC_CARBON] (SetPortWindowPort): New compatibility
-	macro.
+	[!TARGET_API_MAC_CARBON] (SetPortWindowPort): New compatibility macro.
 	[!TARGET_API_MAC_CARBON] (arrow_cursor): Declare.
 
 	* macmenu.c (mac_menu_show, mac_dialog): Use SetPortWindowPort.
@@ -543,11 +594,9 @@
 	(x_scroll_bar_handle_click): Set `(PORTION . WHOLE)' part in a
 	scroll-bar click event.
 	(mac_define_frame_cursor): Change the pointer shape.
-	(x_free_frame_resources): Reset tip_window to NULL when it is
-	disposed.
+	(x_free_frame_resources): Reset tip_window to NULL when it is disposed.
 	[!TARGET_API_MAC_CARBON] (arrow_cursor): New variable.
-	[!TARGET_API_MAC_CARBON] (do_init_managers): Initialize
-	arrow_cursor.
+	[!TARGET_API_MAC_CARBON] (do_init_managers): Initialize arrow_cursor.
 	(do_window_update): Don't do anything if the updated window is the
 	tooltip window.
 	(do_mouse_moved): Handle mouse movement events here (previously in
@@ -555,8 +604,8 @@
 	dpyinfo->mouse_face_hidden is set.
 	(do_os_event, do_events): Remove (now in XTread_socket).
 	(XTread_socket): Immediately return if interrupt_input_blocked.
-	Loop until all the events in the queue are processed.  Rearrange
-	codes for mouse grabbing.  Add tooltip support.  Include the
+	Loop until all the events in the queue are processed.
+	Rearrange codes for mouse grabbing.  Add tooltip support.  Include the
 	contents of do_os_event and do_events.  Remove mouse movement
 	handling (now in do_mouse_moved).  Add the case where
 	Vmouse_highlight has an integer value.
@@ -565,8 +614,8 @@
 	excess initializations.
 	(make_mac_terminal_frame): Previous initializations in
 	make_mac_frame are moved here.
-	(mac_initialize_display_info): Initialize
-	dpyinfo->mouse_face_overlay and dpyinfo->mouse_face_hidden.
+	(mac_initialize_display_info):
+	Initialize dpyinfo->mouse_face_overlay and dpyinfo->mouse_face_hidden.
 
 	* xdisp.c [MAC_OS] (No_Cursor): Remove variable.
 	(define_frame_cursor1): Don't treat HAVE_CARBON as a special case.
