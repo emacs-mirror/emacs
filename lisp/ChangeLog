@@ -1,3 +1,9 @@
+2000-12-01  Gerd Moellmann  <gerd@gnu.org>
+
+	* hi-lock.el (hi-lock-refontify): Call jit-lock-refontify.
+
+	* play/5x5.el (5x5-play-solution): 
+
 2000-12-01  Miles Bader  <miles@gnu.org>
 
 	* window.el (fit-window-to-buffer): Handle non-nil `truncate-lines'.
@@ -214,7 +220,7 @@
 
 2000-11-28  Gerd Moellmann  <gerd@gnu.org>
 
-	* hi-lock.el: Update from author.
+	* hi-lock.el (hi-lock-refontify): Call jit-lock-refontify.
 
 	* hscroll.el: Add hints to `automatic-hscrolling' to doc strings.
 
@@ -249,7 +255,7 @@
 
 	* play/5x5.el: Remove RCS keyword.
 
-	* bs.el: Update from author.
+	* bs.el: Mistaken commit, undone 2000-11-30.
 
 2000-11-28  Milan Zamazal  <pdm@freesoft.cz>
 
@@ -296,9 +302,9 @@
 
 	* select.el (x-get-selection): Docstring fix.
 
-2000-11-27  Gerd Moellmann  <gerd@gnu.org>
+2000-11-27  Dave Pearson <davep@hagbard.demon.co.uk>
 
-	* play/5x5.el: Update from author.
+	* play/5x5.el (5x5-play-solution): Bind hinhibit-quit to t.
 
 2000-11-27  Andrew Innes  <andrewi@gnu.org>
 
@@ -9016,9 +9022,17 @@
 	XEmacs 20.4 has problems defining the group with this present.
 	We'll have this commented out till get resolve the problem.
 
-2000-06-07  Gerd Moellmann  <gerd@gnu.org>
-
-	* align.el: Update from author.
+2000-06-07  John Wiegley  <johnw@gnu.org>
+	
+	* align.el (align-dq-string-modes, align-sq-string-modes)
+	(align-open-comment-modes): Add pyhton-mode.
+	(align-rules-list): Use get-text-property instead of
+	text-properties-at.
+	(align-rules-list): Add python-assignment.
+	(align-rules-list): Change perl-comma-delimiter to
+	basic-comma-delimiter.  Use if for Perl modes and python-mode.
+	(align-rules-list): Add python-chain-logic and
+	basic-line-continuation.
 
 2000-06-07  Jari Aalto  <jari.aalto@poboxes.com>
 
