@@ -506,7 +506,10 @@ TYPE dictates what will be inserted, options are:
   `with-lookup' - Insert \"lookup <URL:url>\"
   `with-desc'   - Insert \"description <URL:url>\"
   `lookup'      - Insert the lookup for that URL"
-  (let ((url (nth (count-lines (point-min) (point)) quickurl-urls)))
+  (let ((url (nth (save-excursion
+                    (beginning-of-line)
+                    (count-lines (point-min) (point)))
+                  quickurl-urls)))
     (if url
         (with-current-buffer quickurl-list-last-buffer
           (insert
