@@ -1660,6 +1660,9 @@ This function should be in the list `comint-output-filter-functions'."
 	    ;; Advance process-mark
 	    (set-marker (process-mark process) (point))
 
+	    (run-hook-with-args 'comint-output-filter-functions string)
+	    (goto-char (process-mark process)) ; in case a filter moved it
+
 	    (unless comint-use-prompt-regexp-instead-of-fields
               (let ((inhibit-read-only t))
                 (add-text-properties comint-last-output-start (point)
@@ -1684,9 +1687,7 @@ This function should be in the list `comint-output-filter-functions'."
 		  (overlay-put comint-last-prompt-overlay
 			       'font-lock-face 'comint-highlight-prompt))))
 
-	    (goto-char saved-point)
-
-	    (run-hook-with-args 'comint-output-filter-functions string)))))))
+	    (goto-char saved-point)))))))
 
 (defun comint-preinput-scroll-to-bottom ()
   "Go to the end of buffer in all windows showing it.
@@ -1794,7 +1795,7 @@ the current line with any initial string matching the regexp
 `comint-prompt-regexp' removed."
   (let ((bof (field-beginning)))
     (if (eq (get-char-property bof 'field) 'input)
-	(field-string bof)
+	(field-string-no-properties bof)
       (comint-bol)
       (buffer-substring-no-properties (point) (line-end-position)))))
 
