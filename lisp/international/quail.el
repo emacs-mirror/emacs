@@ -271,10 +271,7 @@ LEIM is available from the same ftp directory as Emacs."))
 
 (defvar quail-translation-keymap
   (let ((map (make-keymap))
-	(i 0))
-    (while (< i ?\ )
-      (define-key map (char-to-string i) 'quail-execute-non-quail-command)
-      (setq i (1+ i)))
+	(i 32))
     (while (< i 127)
       (define-key map (char-to-string i) 'quail-self-insert-command)
       (setq i (1+ i)))
@@ -296,8 +293,14 @@ LEIM is available from the same ftp directory as Emacs."))
     (define-key map [tab] 'quail-completion)
     (define-key map [delete] 'quail-delete-last-char)
     (define-key map [backspace] 'quail-delete-last-char)
+    (let ((meta-map (make-sparse-keymap)))
+      (define-key map (char-to-string meta-prefix-char) meta-map)
+      (define-key map [escape] meta-map))
+    (define-key map (vector meta-prefix-char t)
+      'quail-execute-non-quail-command)
     ;; At last, define default key binding.
-    (append map '((t . quail-execute-non-quail-command))))
+    (define-key map [t] 'quail-execute-non-quail-command)
+    map)
   "Keymap used processing translation in complex Quail modes.
 Only a few especially complex input methods use this map;
 most use `quail-simple-translation-keymap' instead.
@@ -315,8 +318,15 @@ This map is activated while translation region is active.")
     (define-key map "\177" 'quail-delete-last-char)
 ;;; This interferes with handling of escape sequences on non-X terminals.
 ;;;    (define-key map "\e" '(keymap (t . quail-execute-non-quail-command)))
+    (let ((meta-map (make-sparse-keymap)))
+      (define-key map (char-to-string meta-prefix-char) meta-map)
+      (define-key map [escape] meta-map))
+    (define-key map (vector meta-prefix-char t)
+      'quail-execute-non-quail-command)
     ;; At last, define default key binding.
-    (append map '((t . quail-execute-non-quail-command))))
+    (define-key map (vector meta-prefix-char t)
+      'quail-execute-non-quail-command)
+    map)
   "Keymap used while processing translation in simple Quail modes.
 A few especially complex input methods use `quail--translation-keymap' instead.
 This map is activated while translation region is active.")
@@ -346,8 +356,14 @@ This map is activated while translation region is active.")
     (define-key map "\177" 'quail-conversion-backward-delete-char)
     (define-key map [delete] 'quail-conversion-backward-delete-char)
     (define-key map [backspace] 'quail-conversion-backward-delete-char)
+    (let ((meta-map (make-sparse-keymap)))
+      (define-key map (char-to-string meta-prefix-char) meta-map)
+      (define-key map [escape] meta-map))
+    (define-key map (vector meta-prefix-char t)
+      'quail-execute-non-quail-command)
     ;; At last, define default key binding.
-    (append map '((t . quail-execute-non-quail-command))))
+    (define-key map [t] 'quail-execute-non-quail-command)
+    map)
   "Keymap used for processing conversion in Quail mode.
 This map is activated while convesion region is active but translation
 region is not active.")
@@ -597,7 +613,10 @@ The command \\[describe-input-method] describes the current Quail package."
   "Execute one non-Quail command out of Quail mode.
 The current translation and conversion are terminated."
   (interactive)
-  (setq unread-command-events (cons last-input-event unread-command-events))
+  (let* ((key (this-command-keys))
+	 (keylist (listify-key-sequence key)))
+    (setq unread-command-events (append keylist unread-command-events)))
+  (reset-this-command-lengths)
   (quail-terminate-translation)
   (quail-delete-overlays)
   (setq overriding-terminal-local-map nil)
@@ -1079,12 +1098,13 @@ The returned value is a Quail map specific to KEY."
 	      ;; Otherwise, in case the user is using a single-byte
 	      ;; extended-ASCII character set,
 	      ;; try inserting the translated character.
-	      (let ((char (sref (or quail-current-str
-				    (substring quail-current-key 0 len))
-				0)))
+	      (let ((char (or quail-current-str
+			      (substring quail-current-key 0 len))))
+		(if (stringp char)
+		    (setq char (sref char 0)))
 		(if (= (length (split-char char)) 2)
-		    (insert-char (logand char 127))
-		  (error "Cannot insert three-byte character in single-byte mode")))))
+		    (insert-char (logand char 255) 1)
+		  (error "Three-byte characters require enabling multibyte characters")))))
 	(insert (or quail-current-str quail-current-key)))))
   (quail-update-guidance)
   (if control-flag
@@ -1384,7 +1404,8 @@ Remaining args are for FUNC."
 				      (cons (cons 'top newtop) fparam))))
 	   (win (frame-first-window frame)))
       (set-window-buffer win buf)
-      (set-window-dedicated-p win t))))
+      ;;(set-window-dedicated-p win t)
+      )))
 
 ;; Setup Quail completion buffer.
 (defun quail-setup-completion-buf ()
@@ -1448,7 +1469,8 @@ or in a newly created frame (if the selected frame has no other windows)."
 		    ;; which is what we wanted.
 		    (setq win (split-window win (- height 2)))))
 	      (set-window-buffer win quail-guidance-buf)
-	      (set-window-dedicated-p win t)))
+	      ;;(set-window-dedicated-p win t)
+	      ))
 	(set-window-buffer win quail-guidance-buf))
       (setq quail-guidance-win win)))
 
@@ -1473,7 +1495,7 @@ or in a newly created frame (if the selected frame has no other windows)."
 		  ;; We are using a separate frame for guidance buffer.
 		  ;;(set-window-dedicated-p win nil)
 		  (delete-frame (window-frame win)))
-	      (set-window-dedicated-p win nil)
+	      ;;(set-window-dedicated-p win nil)
 	      (delete-window win)))))))
 
 (defun quail-update-guidance ()
