@@ -580,8 +580,12 @@ init_cmdargs (argc, argv, skip_args)
   for (i = argc - 1; i >= 0; i--)
     {
       if (i == 0 || i > skip_args)
+	/* For the moment, we keep arguments as is in unibyte strings.
+	   They are decoded in the function command-line after we know
+	   locale-coding-system.  */
 	Vcommand_line_args
-	  = Fcons (build_string (argv[i]), Vcommand_line_args);
+	  = Fcons (make_unibyte_string (argv[i], strlen (argv[i])), 
+		   Vcommand_line_args);
     }
 
   unbind_to (count, Qnil);
