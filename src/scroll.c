@@ -52,11 +52,14 @@ struct matrix_elt
     /* Number of deletes so far in this run of deletes,
        for the cost in deletecost.  */
     unsigned char deletecount;
+    /* Number of writes so far since the last insert
+       or delete for the cost in writecost. */
+    unsigned char writecount;
   };
 
 
-/* Determine, in matrix[i,j], the cost of updating the first j old lines
-   into the first i new lines.
+/* Determine, in matrix[i,j], the cost of updating the first j old
+   lines into the first i new lines using the general scrolling method.
    This involves using insert or delete somewhere if i != j.
    For each matrix elements, three kinds of costs are recorded:
    the smallest cost that ends with an insert, the smallest
@@ -217,8 +220,8 @@ calculate_scrolling (frame, matrix, window_size, lines_below,
       }
 }
 
-/* Perform insert-lines and delete-lines operations on FRAME
-   according to the costs in MATRIX.
+/* Perform insert-lines and delete-lines operations on FRAME according
+   to the costs in MATRIX, using the general scrolling method.
    Update the frame's current_glyphs info to record what was done.
 
    WINDOW_SIZE is the number of lines being considered for scrolling
@@ -361,12 +364,440 @@ do_scrolling (frame, matrix, window_size, unchanged_at_top)
     set_terminal_window (0);
 }
 
+/* Determine, in matrix[i,j], the cost of updating the first j
+   old lines into the first i new lines using the direct
+   scrolling method.  When the old line and the new line have
+   different hash codes, the calculated cost of updating old
+   line j into new line i includes the cost of outputting new
+   line i, and if i != j, the cost of outputting the old line j
+   is also included, as a penalty for moving the line and then
+   erasing it.  In addition, the cost of updating a sequence of
+   lines with constant i - j includes the cost of scrolling the
+   old lines into their new positions, unless i == j.  Scrolling
+   is achieved by setting the screen window to avoid affecting
+   other lines below, and inserting or deleting lines at the top
+   of the scrolled region.  The cost of scrolling a sequence of
+   lines includes the fixed cost of specifying a scroll region,
+   plus a variable cost which can depend upon the number of lines
+   involved and the distance by which they are scrolled, and an
+   extra cost to discourage long scrolls.
+
+   As reflected in the matrix, an insert or delete does not
+   correspond directly to the insertion or deletion which is
+   used in scrolling lines.  An insert means that the value of i
+   has increased without a corresponding increase in the value
+   of j.  A delete means that the value of j has increased
+   without a corresponding increase in the value of i.  A write
+   means that i and j are both increased by the same amount, and
+   that the old lines will be moved to their new positions.
+
+   An insert following a delete is allowed only if i > j.
+   A delete following an insert is allowed only if i < j.
+   These restrictions ensure that the new lines in an insert
+   will always be blank as an effect of the neighboring writes.
+   Thus the calculated cost of an insert is simply the cost of
+   outputting the new line contents.  The direct cost of a
+   delete is zero.  Inserts and deletes indirectly affect the
+   total cost through their influence on subsequent writes. */
+
+/* The vectors draw_cost, old_hash, and new_hash have the same
+   meanings here as in calculate_scrolling, and old_draw_cost
+   is the equivalent of draw_cost for the old line contents */
+
+static void
+calculate_direct_scrolling (frame, matrix, window_size, lines_below,
+			    draw_cost, old_draw_cost, old_hash, new_hash,
+			    free_at_end)
+     FRAME_PTR frame;
+     /* matrix is of size window_size + 1 on each side.  */
+     struct matrix_elt *matrix;
+     int window_size;
+     int *draw_cost;
+     int *old_draw_cost;
+     int *old_hash;
+     int *new_hash;
+     int free_at_end;
+{
+  register int i, j;
+  int frame_height = FRAME_HEIGHT (frame);
+  register struct matrix_elt *p, *p1;
+  register int cost, cost1, delta;
+
+  /* first_insert_cost[-I] is the cost of doing the first insert-line
+     at a position I lines above the bottom line in the scroll window. */
+  int *first_insert_cost
+    = &FRAME_INSERT_COST (frame)[frame_height - 1];
+  int *first_delete_cost
+    = &FRAME_DELETE_COST (frame)[frame_height - 1];
+  int *next_insert_cost
+    = &FRAME_INSERTN_COST (frame)[frame_height - 1];
+  int *next_delete_cost
+    = &FRAME_DELETEN_COST (frame)[frame_height - 1];
+
+  int scroll_overhead;
+
+  /* Discourage long scrolls on fast lines.
+     Don't scroll nearly a full frame height unless it saves
+     at least 1/4 second.  */
+  int extra_cost = baud_rate / (10 * 4 * FRAME_HEIGHT (frame));
+
+  if (baud_rate <= 0)
+    extra_cost = 1;
+
+  /* Overhead of setting the scroll window, plus the extra cost
+     cost of scrolling by a distance of one.  The extra cost is
+     added once for consistency with the cost vectors */
+  scroll_overhead = scroll_region_cost + extra_cost;
+
+  /* initialize the top left corner of the matrix */
+  matrix->writecost = 0;
+  matrix->insertcost = INFINITY;
+  matrix->deletecost = INFINITY;
+  matrix->writecount = 0;
+  matrix->insertcount = 0;
+  matrix->deletecount = 0;
+
+  /* initialize the left edge of the matrix */
+  cost = 0;
+  for (i = 1; i <= window_size; i++)
+    {
+      p = matrix + i * (window_size + 1);
+      cost += draw_cost[i];
+      p->insertcost = cost;
+      p->writecost = INFINITY;
+      p->deletecost = INFINITY;
+      p->insertcount = i;
+      p->writecount = 0;
+      p->deletecount = 0;
+    }
+
+  /* initialize the top edge of the matrix */
+  for (j = 1; j <= window_size; j++)
+    {
+      matrix[j].deletecost = 0;
+      matrix[j].writecost = INFINITY;
+      matrix[j].insertcost = INFINITY;
+      matrix[j].deletecount = j;
+      matrix[j].writecount = 0;
+      matrix[j].insertcount = 0;
+    }
+
+  /* `i' represents the vpos among new frame contents.
+     `j' represents the vpos among the old frame contents.  */
+  p = matrix + window_size + 2;	/* matrix [1, 1] */
+
+  for (i = 1; i <= window_size; i++, p++)
+    for (j = 1; j <= window_size; j++, p++)
+      {
+	/* p contains the address of matrix [i, j] */
+
+	/* First calculate the cost assuming we do
+	   not insert or delete above this line.
+	   That is, if we update through line i-1
+	   based on old lines through j-1,
+	   and then just change old line j to new line i.
+
+	   Depending on which choice gives the lower cost,
+	   this usually involves either scrolling a single line
+	   or extending a sequence of scrolled lines, but
+	   when i == j, no scrolling is required. */
+	p1 = p - window_size - 2; /* matrix [i-1, j-1] */
+	cost = p1->insertcost;
+	if (cost > p1->deletecost)
+	  cost = p1->deletecost;
+	cost1 = p1->writecost;
+	if (i == j)
+	  {
+	    if (cost > cost1)
+	      {
+		cost = cost1;
+		p->writecount = p1->writecount + 1;
+	      }
+	    else
+	      p->writecount = 1;
+	    if (old_hash[j] != new_hash[i])
+	      {
+		cost += draw_cost[i];
+	      }
+	  }
+	else
+	  {
+	    if (i > j)
+	      {
+		delta = i - j;
+
+		/* The cost added here for scrolling the first line by
+		   a distance N includes the overhead of setting the
+		   scroll window, the cost of inserting N lines at a
+		   position N lines above the bottom line of the window,
+		   and an extra cost which is proportional to N. */
+		cost += scroll_overhead + first_insert_cost[-delta] +
+		  (delta-1) * (next_insert_cost[-delta] + extra_cost);
+
+		/* In the most general case, the insertion overhead and
+		   the multiply factor can grow linearly as the distance
+		   from the bottom of the window increases.  The incremental
+		   cost of scrolling an additional line depends upon the
+		   rate of change of these two parameters.  Each of these
+		   growth rates can be determined by a simple difference.
+		   To reduce the cumulative effects of rounding error, we
+		   vary the position at which the difference is computed. */
+		cost1 += first_insert_cost[-j] - first_insert_cost[1-j] +
+		  (delta-1) * (next_insert_cost[-j] - next_insert_cost[1-j]); 
+	      }
+	    else
+	      {
+		delta = j - i;
+		cost += scroll_overhead + first_delete_cost[-delta] +
+		  (delta-1) * (next_delete_cost[-delta] + extra_cost);
+		cost1 += first_delete_cost[-i] - first_delete_cost[1-i] +
+		  (delta-1) * ( next_delete_cost[-i] - next_delete_cost[1-i]); 
+	      }
+	    if (cost1 < cost)
+	      {
+		cost = cost1;
+		p->writecount = p1->writecount + 1;
+	      }
+	    else
+	      p->writecount = 1;
+	    if (old_hash[j] != new_hash[i])
+	      {
+		cost += draw_cost[i] + old_draw_cost[j];
+	      }
+	  }
+	p->writecost = cost;
+
+	/* Calculate the cost if we do an insert-line
+	   before outputting this line.
+	   That is, we update through line i-1
+	   based on old lines through j,
+	   do an insert-line on line i,
+	   and then output line i from scratch,
+	   leaving old lines starting from j for reuse below.  */
+	p1 = p - window_size - 1; /* matrix [i-1, j] */
+	cost = p1->writecost;
+	/* If i > j, an insert is allowed after a delete. */
+	if (i > j && p1->deletecost < cost)
+	  cost = p1->deletecost;
+	if (p1->insertcost <= cost)
+	  {
+	    cost = p1->insertcost;
+	    p->insertcount = p1->insertcount + 1;
+	  }
+	else
+	  p->insertcount = 1;
+	cost += draw_cost[i];
+	p->insertcost = cost;
+
+	/* Calculate the cost if we do a delete line after
+	   outputting this line.
+	   That is, we update through line i
+	   based on old lines through j-1,
+	   and throw away old line j.  */
+	p1 = p - 1;		/* matrix [i, j-1] */
+	cost = p1->writecost;
+	/* If i < j, a delete is allowed after an insert. */
+	if (i < j && p1->insertcost < cost)
+	  cost = p1->insertcost;
+	cost1 = p1->deletecost;
+	if (p1->deletecost <= cost)
+	  {
+	    cost = p1->deletecost;
+	    p->deletecount = p1->deletecount + 1;
+	  }
+	else
+	  p->deletecount = 1;
+	p->deletecost = cost;
+      }
+}
+
+/* Perform insert-lines and delete-lines operations on FRAME according
+   to the costs in MATRIX, using the direct scrolling method.
+   Update the frame's current_glyphs info to record what was done.
+
+   WINDOW_SIZE is the number of lines being considered for scrolling
+   and UNCHANGED_AT_TOP is the vpos of the first line being considered.
+   These two arguments can specify any contiguous range of lines.
+ 
+   We also shuffle the charstarts vectors for the lines
+   along with the glyphs; but the results are not quite right,
+   since we cannot offset them for changes in amount of text
+   in this line or that line.  Luckily it doesn't matter,
+   since update_frame and update_line will copy in the proper
+   new charstarts vectors from the frame's desired_glyphs.
+
+   In the direct scrolling method, a new scroll window is selected
+   before each insertion or deletion, so that groups of lines can be
+   scrolled directly to their final vertical positions.  This method
+   is described in more detail in calculate_direct_scrolling,
+   where the cost matrix for this approach is constructed. */
+
+static void
+do_direct_scrolling (frame, matrix, window_size, unchanged_at_top)
+     FRAME_PTR frame;
+     struct matrix_elt *matrix;
+     int window_size;
+     int unchanged_at_top;
+{
+  register struct matrix_elt *p;
+  register int i, j;
+  register struct frame_glyphs *current_frame;
+  /* temp_frame->enable[i] means line i has been moved to current_frame.  */
+  register struct frame_glyphs *temp_frame;
+  struct alt_queue { int count, pos, window; } *queue;
+  int offset = unchanged_at_top;
+  int qi = 0;
+  int window = 0;
+  register int tem;
+  int next;
+
+  /* A nonzero value of write_follows indicates that a write has been
+     selected, allowing either an insert or a delete to be selected next.
+     When write_follows is zero, a delete cannot be selected unless j < i,
+     and an insert cannot be selected unless i < j.  This corresponds to
+     a similar restriction (with the ordering reversed) in
+     calculate_direct_scrolling, which is intended to ensure that lines
+     marked as inserted will be blank. */
+  int write_follows = 1;
+
+  queue = (struct alt_queue *) alloca (FRAME_HEIGHT (frame)
+				       * sizeof (struct alt_queue));
+
+  current_frame = FRAME_CURRENT_GLYPHS (frame);
+  temp_frame = FRAME_TEMP_GLYPHS (frame);
+
+  bcopy (current_frame->glyphs, temp_frame->glyphs,
+	 current_frame->height * sizeof (GLYPH *));
+  bcopy (current_frame->charstarts, temp_frame->charstarts,
+	 current_frame->height * sizeof (GLYPH *));
+  bcopy (current_frame->used, temp_frame->used,
+	 current_frame->height * sizeof (int));
+  bcopy (current_frame->highlight, temp_frame->highlight,
+	 current_frame->height * sizeof (char));
+  bzero (temp_frame->enable, temp_frame->height * sizeof (char));
+  bcopy (current_frame->bufp, temp_frame->bufp,
+	 current_frame->height * sizeof (int));
+
+#ifdef HAVE_X_WINDOWS
+  if (FRAME_X_P (frame))
+    {
+      bcopy (current_frame->top_left_x, temp_frame->top_left_x,
+	     current_frame->height * sizeof (short));
+      bcopy (current_frame->top_left_y, temp_frame->top_left_y,
+	     current_frame->height * sizeof (short));
+      bcopy (current_frame->pix_width, temp_frame->pix_width,
+	     current_frame->height * sizeof (short));
+      bcopy (current_frame->pix_height, temp_frame->pix_height,
+	     current_frame->height * sizeof (short));
+      bcopy (current_frame->max_ascent, temp_frame->max_ascent,
+	     current_frame->height * sizeof (short));
+    }
+#endif
+
+  i = j = window_size;
+
+  while (i > 0 || j > 0)
+    {
+      p = matrix + i * (window_size + 1) + j;
+      tem = p->insertcost;
+      if (tem < p->writecost && tem < p->deletecost
+	  && (write_follows || i < j))
+	{
+	  /* Insert should be done at vpos i-1, plus maybe some before.
+	     Setting count to 0 in the queue marks this as an insert. */
+	  write_follows = 0;
+	  queue[qi].window = i + unchanged_at_top;
+	  queue[qi].count = 0;
+	  i -= p->insertcount;
+	  queue[qi++].pos = i + unchanged_at_top;
+	}
+      else if (p->deletecost < p->writecost && (write_follows || i > j))
+	{
+	  /* Delete should be done at vpos j-1, plus maybe some before. */
+	  write_follows = 0;
+	  j -= p->deletecount;
+	}
+      else
+	{
+	  /* One or more lines should be retained. */
+	  write_follows = 1;
+	  tem = p->writecount;
+	  if (i > j)
+	    {
+	      /* Immediately scroll a group of lines downward */
+	      set_terminal_window (i + unchanged_at_top);
+	      window = 1;
+	      ins_del_lines (j - tem + unchanged_at_top, i - j);
+	    }
+	  else if (i < j)
+	    {
+	      /* Queue the upward scrolling of a group of lines */
+	      queue[qi].pos = i - tem + unchanged_at_top;
+	      queue[qi].window = j + unchanged_at_top;
+	      queue[qi++].count = i - j;
+	    }
+
+	  /* Now copy the line-contents strings */
+	  while (tem > 0)
+	    {
+	      i--;
+	      j--;
+	      tem--;
+	      current_frame->glyphs[i + offset]
+		= temp_frame->glyphs[j + offset];
+	      current_frame->charstarts[i + offset]
+		= temp_frame->charstarts[j + offset];
+	      current_frame->used[i + offset]
+		= temp_frame->used[j + offset];
+	      current_frame->highlight[i + offset]
+		= temp_frame->highlight[j + offset];
+
+	      temp_frame->enable[j + offset] = 1;
+	    }
+	}
+    }
+
+  /* Now do all the upward scrolling, and copy the line-contents
+     strings for the blank lines of the recorded inserts. */
+
+  next = unchanged_at_top;
+  for (i = qi - 1; i >= 0; i--)
+    {
+      if (queue[i].count)
+	{
+	  set_terminal_window (queue[i].window);
+	  window = 1;
+	  ins_del_lines (queue[i].pos, queue[i].count);
+	}
+      else
+	{
+	  /* Mark the inserted lines as clear,
+	     and put into them the line-contents strings
+	     that were discarded during the deletions.
+	     Those are the ones for which temp_frame->enable was not set. */
+	  tem = queue[i].pos;
+	  for (j = queue[i].window - 1; j >= tem; j--)
+	    {
+	      current_frame->enable[j] = 0;
+	      while (temp_frame->enable[next])
+		next++;
+	      current_frame->glyphs[j] = temp_frame->glyphs[next];
+	      current_frame->charstarts[j] = temp_frame->charstarts[next++];
+	    }
+	}
+    }
+
+  if (window)
+    set_terminal_window (0);
+}
+
 void
 scrolling_1 (frame, window_size, unchanged_at_top, unchanged_at_bottom,
-	     draw_cost, old_hash, new_hash, free_at_end)
+	     draw_cost, old_draw_cost, old_hash, new_hash, free_at_end)
      FRAME_PTR frame;
      int window_size, unchanged_at_top, unchanged_at_bottom;
      int *draw_cost;
+     int *old_draw_cost;
      int *old_hash;
      int *new_hash;
      int free_at_end;
@@ -375,10 +806,21 @@ scrolling_1 (frame, window_size, unchanged_at_top, unchanged_at_bottom,
   matrix = ((struct matrix_elt *)
 	    alloca ((window_size + 1) * (window_size + 1) * sizeof *matrix));
 
-  calculate_scrolling (frame, matrix, window_size, unchanged_at_bottom,
-		       draw_cost, old_hash, new_hash,
-		       free_at_end);
-  do_scrolling (frame, matrix, window_size, unchanged_at_top);
+  if (scroll_region_ok)
+    {
+      calculate_direct_scrolling (frame, matrix, window_size,
+				  unchanged_at_bottom,
+				  draw_cost, old_draw_cost, 
+				  old_hash, new_hash, free_at_end);
+      do_direct_scrolling (frame, matrix, window_size, unchanged_at_top);
+    }
+  else
+    {
+      calculate_scrolling (frame, matrix, window_size, unchanged_at_bottom,
+			   draw_cost, old_hash, new_hash,
+			   free_at_end);
+      do_scrolling (frame, matrix, window_size, unchanged_at_top);
+    }
 }
 
 /* Return number of lines in common between current and desired frame contents
