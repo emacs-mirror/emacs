@@ -1,3 +1,24 @@
+2002-01-05  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (compute_tip_xy): If tooltip won't fit on the screen
+	to the left or to the right of the pointer, put it against
+	the left screen edge.
+	(x_frame_parms): Add missing braces around initializer.
+
+	* w32term.c (x_setup_relief_colors): Don't compute an image's
+	background color if it doesn't have a Pixmap.
+	(notice_overwritten_cursor): Don't depend on
+	output_cursor and updated_area.  Compare pixel coordinates with
+	window's cursor pixel coordinates.
+	(x_draw_glyphs, x_clear_end_of_line, show_mouse_face): Call
+	notice_overwritten_cursor with new arg list.
+	(show_mouse_face): Fix bug setting a row's mouse_face_p flag
+	unconditionally.
+	(x_draw_image_relief): Use predefined macro instead of
+	constant when the value of `tool_bar_button_relief' is negative.
+
+	* w32term.c (x_display_and_set_cursor): Fix PostMessage arg types.
+
 2002-01-04  Richard M. Stallman  <rms@gnu.org>
 
 	* xmenu.c (menu_highlight_callback): Hide any tooltip window.
