@@ -1,3 +1,7 @@
+2000-03-21  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/quail.el (quail-set-keyboard-layout): Typo fixed.
+
 2000-03-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* rcompile.el, rlogin.el, telnet.el, net-utils.el, quickurl.el,

@@ -1,8 +1,8 @@
 2000-03-21  Kenichi HANDA  <handa@etl.go.jp>
 
-	The following changes to make font selection based on characters,
-	not charset.  In addition, they recover fontset facilities while
-	utilizing the new font selection mechanism.
+	The following changes are to make font selection based on
+	characters, not charset.  In addition, they recover fontset
+	facilities while utilizing the new font selection mechanism.
 
 	* dispextern.h (struct glyph): New member glyph_not_available_p.
 	Use 22 bits for face_id.
