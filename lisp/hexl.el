@@ -170,6 +170,8 @@ You can use \\[hexl-find-file] to visit a file in hexl-mode.
     (make-local-variable 'write-contents-hooks)
     (add-hook 'write-contents-hooks 'hexl-save-buffer)
 
+    (make-local-variable 'hexl-max-address)
+
     (let ((modified (buffer-modified-p))
 	  (inhibit-read-only t)
 	  (original-point (1- (point))))
