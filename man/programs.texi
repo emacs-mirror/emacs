@@ -1592,6 +1592,12 @@ the topic.  For example, to read the man page for the C library function
 manual-entry @key{RET} chmod(2v) @key{RET}} (assuming @code{chmod} is in
 section @code{2v}).
 
+  If you do not specify a section, the results depend on how the
+@code{man} command works on your system.  Some of them display only the
+first man page they find, others display all the man pages, and you can
+page between them with the @kbd{M-n} and @kbd{M-p} keys.  The mode line
+shows how many manual pages are available in the Man buffer.
+
 @vindex Man-fontify-manpage-flag
   For a long man page, setting the faces properly can take substantial
 time.  By default, Emacs uses faces in man pages if Emacs can display
