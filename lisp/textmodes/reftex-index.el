@@ -9,6 +9,7 @@
 
 (defvar mark-active)
 (defvar zmacs-regions)
+(defvar transient-mark-mode)
 (defun reftex-index-selection-or-word (&optional arg)
   "Put selection or the word near point into the default index macro.
 This uses the information in `reftex-index-default-macro' to make an index

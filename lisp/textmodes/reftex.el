@@ -1995,6 +1995,15 @@ When DIE is non-nil, throw an error if file not found."
       (setq list (cdr list)))
     (nreverse rtn)))
 
+(defun reftex-uniquify (list)
+  ;; Return a list of all elements in LIST, but each only once
+  (let (new elm)
+    (while list
+      (setq elm (pop list))
+      (unless (member elm new)
+	(push elm new)))
+    (nreverse new)))
+
 (defun reftex-uniquify-by-car (alist &optional keep-list)
   ;; Return a list of all elements in ALIST, but each car only once.
   ;; Elements of KEEP-LIST are not removed even if duplicate.
