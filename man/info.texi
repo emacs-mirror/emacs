@@ -6,7 +6,7 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.16 2001/02/03 13:00:56 karl Exp $
+@comment $Id: info.texi,v 1.9 2001/04/14 11:52:21 eliz Exp $
 
 @dircategory Texinfo documentation system
 @direntry
@@ -217,10 +217,10 @@ This is line 59
 @end format
 
 If you have managed to get here, go back to the beginning with
-@kbd{DEL}, and come back here again, then you understand Space and
-DEL.  So now type an @kbd{n} ---just one character; don't type
-the quotes and don't type the Return key afterward--- to
-get to the normal start of the course.
+@kbd{DEL} (or Backspace), and come back here again, then you
+understand Space and DEL.  So now type an @kbd{n} ---just one
+character; don't type the quotes and don't type the Return key
+afterward--- to get to the normal start of the course.
 @end ifinfo
 
 @node Help, Help-P, Help-Small-Screen, Getting Started
@@ -314,12 +314,18 @@ the bottom right corner of the screen.
 @kindex BACKSPACE @r{(Info mode)}
 @findex Info-scroll-up
 @findex Info-scroll-down
-  The Space, Backspace (or DEL) and @kbd{b} commands exist to allow
-you to ``move around'' in a node that does not all fit on the screen
-at once.  Space moves forward, to show what was below the bottom of
-the screen.  DEL or Backspace moves backward, to show what was above
-the top of the screen (there is not anything above the top until you
-have typed some spaces).  In Emacs, Space runs the command
+  The Space, Backspace (or DEL)@footnote{The key which we call
+``Backspace or DEL'' in this manual is labeled differently on
+different keyboards.  Look for a key which is a little ways above the
+@key{ENTER} or @key{RET} key and which you normally use outside Emacs
+to erase the character before the cursor, i.e.@: the character you
+typed last.  It might be labeled @samp{Backspace} or @samp{<-} or
+@samp{DEL}, or sometimes @samp{Delete}.} and @kbd{b} commands exist to
+allow you to ``move around'' in a node that does not all fit on the
+screen at once.  Space moves forward, to show what was below the
+bottom of the screen.  DEL or Backspace moves backward, to show what
+was above the top of the screen (there is not anything above the top
+until you have typed some spaces).  In Emacs, Space runs the command
 @code{Info-scroll-up}, while Backspace runs @code{Info-scroll-down}.
 
 @format
