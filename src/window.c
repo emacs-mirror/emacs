@@ -2751,14 +2751,6 @@ struct save_window_data
     Lisp_Object saved_windows;
   };
 
-/* Arg to Fmake_vector */
-#define SAVE_WINDOW_DATA_SIZE						\
-  ((sizeof (struct save_window_data)					\
-    - (sizeof (struct Lisp_Vector)					\
-       /* Don't count the contents member of the struct Lisp_Vector */	\
-       - sizeof (Lisp_Object)))						\
-   / sizeof (Lisp_Object))
-
 /* This is saved as a Lisp_Vector */
 struct saved_window
   {
@@ -3138,6 +3130,7 @@ redirection (see `redirect-frame-focus').")
   register Lisp_Object tem;
   register int n_windows;
   register struct save_window_data *data;
+  register struct Lisp_Vector *vec;
   register int i;
   FRAME_PTR f;
 
@@ -3150,8 +3143,12 @@ redirection (see `redirect-frame-focus').")
     }
 
   n_windows = count_windows (XWINDOW (FRAME_ROOT_WINDOW (f)));
-  data = ((struct save_window_data *)
-	  XVECTOR (Fmake_vector (make_number (SAVE_WINDOW_DATA_SIZE), Qnil)));
+  vec = allocate_vectorlike (VECSIZE (struct save_window_data));
+  for (i = 0; i < VECSIZE (struct save_window_data); i++)
+    vec->contents[i] = Qnil;
+  vec->size = VECSIZE (struct save_window_data);
+  data = (struct save_window_data *)vec;
+
   XSETFASTINT (data->frame_width, FRAME_WIDTH (f));
   XSETFASTINT (data->frame_height, FRAME_HEIGHT (f));
   XSETFASTINT (data->frame_menu_bar_lines, FRAME_MENU_BAR_LINES (f));
