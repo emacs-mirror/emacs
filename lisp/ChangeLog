@@ -4,6 +4,22 @@
 
 2002-06-24  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* emacs-lisp/bytecomp.el (byte-compile-callargs-warn):
+	Check for `noruntime' even if the function has a known sig.
+	(byte-compile-file, byte-compile-output-docform):
+	Don't hard code point-min = 1.
+
+	* pcvs.el (cvs-parse-process): Don't save/restore point.
+	Fix last change not to introduce spurious dir FIs.
+	(cvs-move-to-goal-column): New function extracted from
+	cvs-mode-previous-line.
+	(cvs-mode-previous-line, cvs-mode-next-line): Use it.
+	(cvs-addto-collection): Use it to preserve point.
+	(cvs-vc-command-advice): Ad-hoc workaround for `cvs -q add'.
+
+	* mwheel.el (mouse-wheel-scroll-amount,mwheel-scroll,mouse-wheel-mode):
+	Don't require the first element to be modifier-free.
+
 	* pcvs-parse.el (cvs-parse-table):
 	Handle `nothing known about' with more care.
 
@@ -14,6 +30,8 @@
 	* descr-text.el (describe-property-list): Make sure there's
 	a space between the property name and its value.
 	(describe-text-properties): Don't kill a pre-existing buffer.
+
+	* mwheel.el: Undo last patch from Stephen Gildea for now.
 
 2002-06-24  Kim F. Storm  <storm@cua.dk>
 
