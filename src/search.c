@@ -2426,42 +2426,81 @@ since only regular expressions have distinguished subexpressions.")
     Finsert_and_inherit (1, &newtext);
   else
     {
-      struct gcpro gcpro1;
       int length = STRING_BYTES (XSTRING (newtext));
+      unsigned char *substed;
+      int substed_alloc_size, substed_len;
 
-      GCPRO1 (newtext);
+      substed_alloc_size = length * 2 + 100;
+      substed = (unsigned char *) xmalloc (substed_alloc_size + 1);
+      substed_len = 0;
+
+      /* Go thru NEWTEXT, producing the actual text to insert in SUBSTED.  */
 
       for (pos_byte = 0, pos = 0; pos_byte < length;)
 	{
-	  int offset = PT - search_regs.start[sub];
+	  unsigned char str[MAX_MULTIBYTE_LENGTH];
+	  unsigned char *add_stuff;
+	  int add_len;
+	  int idx = -1;
 
 	  FETCH_STRING_CHAR_ADVANCE (c, newtext, pos, pos_byte);
+
+	  /* Either set ADD_STUFF and ADD_LEN to the text to put in SUBSTED,
+	     or set IDX to a match index, which means put that part
+	     of the buffer text into SUBSTED.  */
 
 	  if (c == '\\')
 	    {
 	      FETCH_STRING_CHAR_ADVANCE (c, newtext, pos, pos_byte);
 	      if (c == '&')
-		Finsert_buffer_substring
-		  (Fcurrent_buffer (),
-		   make_number (search_regs.start[sub] + offset),
-		   make_number (search_regs.end[sub] + offset));
+		idx = sub;
 	      else if (c >= '1' && c <= '9' && c <= search_regs.num_regs + '0')
 		{
 		  if (search_regs.start[c - '0'] >= 1)
-		    Finsert_buffer_substring
-		      (Fcurrent_buffer (),
-		       make_number (search_regs.start[c - '0'] + offset),
-		       make_number (search_regs.end[c - '0'] + offset));
+		    idx = c - '0';
 		}
 	      else if (c == '\\')
-		insert_char (c);
+		add_len = 1, add_stuff = "\\";
 	      else
 		error ("Invalid use of `\\' in replacement text");
 	    }
 	  else
-	    insert_char (c);
+	    {
+	      add_len = CHAR_STRING (c, str);
+	      add_stuff = str;
+	    }
+
+	  /* If we want to copy part of a previous match,
+	     set up ADD_STUFF and ADD_LEN to point to it.  */
+	  if (idx >= 0)
+	    {
+	      int begbyte = CHAR_TO_BYTE (search_regs.start[idx]);
+	      add_len = CHAR_TO_BYTE (search_regs.end[idx]) - begbyte;
+	      if (search_regs.start[idx] < GPT && GPT < search_regs.end[idx])
+		move_gap (search_regs.start[idx]);
+	      add_stuff = BYTE_POS_ADDR (begbyte);
+	    }
+
+	  /* Now the stuff we want to add to SUBSTED
+	     is invariably ADD_LEN bytes starting at ADD_STUFF.  */
+
+	  /* Make sure SUBSTED is big enough.  */
+	  if (substed_len + add_len >= substed_alloc_size)
+	    {
+	      substed_alloc_size = substed_len + add_len + 500;
+	      substed = (unsigned char *) xrealloc (substed,
+						    substed_alloc_size + 1);
+	    }
+
+	  /* Now add to the end of SUBSTED.  */
+	  bcopy (add_stuff, substed + substed_len, add_len);
+	  substed_len += add_len;
 	}
-      UNGCPRO;
+
+      /* Now insert what we accumulated.  */
+      insert_and_inherit (substed, substed_len);
+
+      xfree (substed);
     }
 
   inslen = PT - (search_regs.start[sub]);
