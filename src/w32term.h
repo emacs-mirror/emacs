@@ -385,7 +385,8 @@ struct w32_output
   /* The extra width currently allotted for the areas in which
      truncation marks, continuation marks, and overlay arrows are
      displayed.  */
-  int fringes_extra;
+  int left_fringe_width, right_fringe_width;
+  int fringe_cols, fringes_extra;
 
   /* This is the gravity value for the specified window position.  */
   int win_gravity;
@@ -468,39 +469,22 @@ extern struct w32_output w32term_display;
 #define FRAME_X_IMAGE_CACHE(F) FRAME_W32_DISPLAY_INFO ((F))->image_cache
 
 
-/* Pixel width of the fringe bitmaps drawn to indicate truncation,
-   continuation etc.  */
-
-#define FRAME_FRINGE_BITMAP_WIDTH(f)	8
-#define FRAME_FRINGE_BITMAP_HEIGHT(f)	8
-
 /* Total width of fringes reserved for drawing truncation bitmaps,
    continuation bitmaps and alike.  The width is in canonical char
    units of the frame.  This must currently be the case because window
    sizes aren't pixel values.  If it weren't the case, we wouldn't be
    able to split windows horizontally nicely.  */
 
-#define FRAME_X_FRINGE_COLS(F)				\
-     ((F) == XFRAME (tip_frame) ? 0 :                   \
-      (2 * FRAME_FRINGE_BITMAP_WIDTH ((F)) + CANON_X_UNIT ((F)) - 1)	\
-      / CANON_X_UNIT ((F)))
+#define FRAME_X_FRINGE_COLS(F)	((F)->output_data.w32->fringe_cols)
 
 /* Total width of fringes in pixels.  */
 
-#define FRAME_X_FRINGE_WIDTH(F) \
-     (FRAME_X_FRINGE_COLS ((F)) * CANON_X_UNIT ((F)))
+#define FRAME_X_FRINGE_WIDTH(F) ((F)->output_data.w32->fringes_extra)
 
-/* Pixel-width of the left fringe.  */
+/* Pixel-width of the left and right fringe.  */
 
-#define FRAME_X_LEFT_FRINGE_WIDTH(F) \
-     (FRAME_X_FRINGE_WIDTH (F) / 2)
-
-/* Pixel-width of the right fringe.  Note that we are doing
-   integer arithmetic here, so don't loose a pixel if the total
-   width is an odd number.  */
-
-#define FRAME_X_RIGHT_FRINGE_WIDTH(F) 	\
-     (FRAME_X_FRINGE_WIDTH (F) - FRAME_X_FRINGE_WIDTH (F) / 2)
+#define FRAME_X_LEFT_FRINGE_WIDTH(F) ((F)->output_data.w32->left_fringe_width)
+#define FRAME_X_RIGHT_FRINGE_WIDTH(F) ((F)->output_data.w32->right_fringe_width)
 
 
 
