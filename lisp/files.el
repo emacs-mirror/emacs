@@ -1006,7 +1006,8 @@ If `enable-local-variables' is nil, this function does not check for a
 	      (let ((alist auto-mode-alist)
 		    (mode nil))
 		;; Find first matching alist entry.
-		(let ((case-fold-search (eq system-type 'vax-vms)))
+		(let ((case-fold-search 
+		       (memq system-type '(vax-vms windows-nt))))
 		  (while (and (not mode) alist)
 		    (if (string-match (car (car alist)) name)
 			(if (and (consp (cdr (car alist)))
