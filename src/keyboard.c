@@ -1370,22 +1370,6 @@ command_loop_1 ()
 	}
     directly_done: ;
 
-      /* Note that the value cell will never directly contain nil
-	 if the symbol is a local variable.  */
-      if (!NILP (Vpost_command_hook) && !NILP (Vrun_hooks))
-	safe_run_hooks (Qpost_command_hook);
-
-      if (!NILP (Vdeferred_action_list))
-	safe_run_hooks (Qdeferred_action_function);
-
-      if (!NILP (Vpost_command_idle_hook) && !NILP (Vrun_hooks))
-	{
-	  if (NILP (Vunread_command_events)
-	      && NILP (Vexecuting_macro)
-	      && !NILP (sit_for (0, post_command_idle_delay, 0, 1)))
-	    safe_run_hooks (Qpost_command_idle_hook);
-	}
-
       /* If there is a prefix argument,
 	 1) We don't want Vlast_command to be ``universal-argument''
 	 (that would be dumb), so don't set Vlast_command,
@@ -1405,6 +1389,22 @@ command_loop_1 ()
 	  cancel_echoing ();
 	  this_command_key_count = 0;
 	  this_single_command_key_start = 0;
+	}
+
+      /* Note that the value cell will never directly contain nil
+	 if the symbol is a local variable.  */
+      if (!NILP (Vpost_command_hook) && !NILP (Vrun_hooks))
+	safe_run_hooks (Qpost_command_hook);
+
+      if (!NILP (Vdeferred_action_list))
+	safe_run_hooks (Qdeferred_action_function);
+
+      if (!NILP (Vpost_command_idle_hook) && !NILP (Vrun_hooks))
+	{
+	  if (NILP (Vunread_command_events)
+	      && NILP (Vexecuting_macro)
+	      && !NILP (sit_for (0, post_command_idle_delay, 0, 1)))
+	    safe_run_hooks (Qpost_command_idle_hook);
 	}
 
       if (!NILP (current_buffer->mark_active) && !NILP (Vrun_hooks))
