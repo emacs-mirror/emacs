@@ -1,3 +1,8 @@
+2003-07-06  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* alloc.c (live_float_p): Check that p is not past the `floats' array,
+	now that `floats' is not the last element of the struct any more.
+
 2003-07-06  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.h (ClipboardSequence_Proc): New type.
