@@ -3,7 +3,7 @@
 /* Get most of the stuff from bsd4.3 */
 #include "bsd4-3.h"
 
-/* The folowing should be set to /netbsd if you are running netbsd > 0.8 
+/* The following should be set to /netbsd if you are running netbsd > 0.8 
    Or just link /netbsd -> /386bsd  */
 #undef KERNEL_FILE
 #define KERNEL_FILE "/386bsd"
