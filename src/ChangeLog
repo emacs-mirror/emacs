@@ -1,3 +1,10 @@
+2004-05-10  Andreas Schwab  <schwab@suse.de>
+
+	* lisp.h: Declare Fmake_symbolic_link.
+
+	* fileio.c (Frename_file): Remove extra argument in call to
+	Fmake_symbolic_link.
+
 2004-05-10  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (calc_line_height_property): Use string position when
