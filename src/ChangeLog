@@ -1,3 +1,7 @@
+2004-01-29  Eli Zaretskii  <eliz@elta.co.il>
+
+	* alloca.c [!alloca]: Fix the prototype for xfree.
+
 2004-01-29  Kenichi Handa  <handa@m17n.org>
 
 	* fns.c (string_char_to_byte): Optimize for ASCII only string.
