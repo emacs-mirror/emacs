@@ -7,7 +7,7 @@
 ;; Keywords: extensions
 ;; Created: 1995-10-06
 
-;; $Id: eldoc.el,v 1.12 1997/04/14 07:33:28 rms Exp $
+;; $Id: eldoc.el,v 1.13 1997/05/22 06:47:41 friedman Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -603,7 +603,8 @@ the mode, respectively."
  "backward-" "beginning-of-" "delete-other-windows" "delete-window"
  "end-of-" "forward-" "indent-for-tab-command" "goto-" "mouse-set-point"
  "next-" "other-window" "previous-" "recenter" "scroll-"
- "self-insert-command" "split-window-")
+ "self-insert-command" "split-window-"
+ "up-list" "down-list")
 
 (provide 'eldoc)
 
