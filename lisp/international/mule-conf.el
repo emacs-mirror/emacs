@@ -693,7 +693,7 @@ is treated as a character."
   :coding-type 'utf-16
   :mnemonic ?U
   :charset-list '(unicode)
-  :signature t
+  :bom t
   :endian 'little)
 
 (define-coding-system 'utf-16-be
@@ -701,7 +701,7 @@ is treated as a character."
   :coding-type 'utf-16
   :mnemonic ?U
   :charset-list '(unicode)
-  :signature t
+  :bom t
   :endian 'big)
 
 (define-coding-system 'iso-2022-7bit
