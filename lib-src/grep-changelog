@@ -1,7 +1,7 @@
 #! /usr/bin/perl
-# $Id: grep-changelog,v 1.1 1999/08/10 13:33:49 gerd Exp $
+# $Id: grep-changelog,v 1.2 2000/05/05 13:19:05 gerd Exp $
 
-# Copyright (C) 1999 Free Software Foundation, Inc.
+# Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -31,7 +31,7 @@ require 5;
 # Parse command line options.
 
 use Getopt::Long;
-$result = GetOptions ("author=s" => \$author, 
+$result = GetOptions ("author=s" => \$author,
 		      "text=s"  => \$regexp,
 		      "exclude=s"  => \$exclude,
 		      "from-date=s" => \$from_date,
@@ -55,7 +55,7 @@ Usage: $0 [options] [CHANGELOG...]
 Print entries in ChangeLogs matching various criteria.  Valid options
 are
 
-  --author=AUTHOR         match entries whose author line matches 
+  --author=AUTHOR         match entries whose author line matches
 			  regular expression AUTHOR
   --text=TEXT             match entries whose text matches regular
 			  expression TEXT.
@@ -68,7 +68,7 @@ are
   --help		  print this help
 
 If no CHANGELOG is specified scan the files "ChangeLog" and
-"ChangeLog.[9-1]" in the current directory.  Old-style dates in ChangeLogs 
+"ChangeLog.[9-1]" in the current directory.  Old-style dates in ChangeLogs
 are not recognized.
 USAGE
     exit $help ? 0 : 1;
@@ -110,7 +110,7 @@ sub header_match_p ($) {
 }
 
 
-# Value is non-zero if ENTRY matches the ciiteria specified on the
+# Value is non-zero if ENTRY matches the criteria specified on the
 # command line, i.e. it matches $regexp, and it doesn't match
 # $exclude.
 
@@ -118,7 +118,7 @@ sub entry_match_p ($) {
     my $entry = shift;
 
     if ($regexp) {
-	return 1 if ($entry =~ /$regexp/ 
+	return 1 if ($entry =~ /$regexp/
 		     && (!$exclude || $entry !~ $exclude));
     } else {
 	return 1 if !$exclude || $entry !~ $exclude;
@@ -167,7 +167,7 @@ sub parse_changelog ($) {
 	if ($line =~ /^\S/) {
 	    # Line is an author-line.  Print previous entry if
 	    # it matches.
-	    print_log ($header, $entry) 
+	    print_log ($header, $entry)
 		if header_match_p ($header) && entry_match_p ($entry);
 
 	    $entry = "";
@@ -177,12 +177,12 @@ sub parse_changelog ($) {
 	    while (($line = <IN>) && $line =~ /^\s*$/) {
 	        $header = "$header$line";
 	    }
-        } 
+        }
 
 	if ($line =~ /^\s*\*/) {
 	    # LINE is the first line of a ChangeLog entry.  Print
 	    # previous entry if it matches.
-	    print_log ($header, $entry) 
+	    print_log ($header, $entry)
 		if header_match_p ($header) && entry_match_p ($entry);
 	    $entry = $line;
 	} else {
@@ -192,7 +192,7 @@ sub parse_changelog ($) {
     }
 
     # Print last entry if it matches.
-    print_log ($header, $entry) 
+    print_log ($header, $entry)
 	if header_match_p ($header) && entry_match_p ($entry);
 
     close IN;
@@ -217,4 +217,4 @@ if (@ARGV > 0) {
 }
 
 
-# gre-changelog ends here.
+# grep-changelog ends here.
