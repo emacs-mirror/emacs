@@ -1,5 +1,8 @@
 2002-03-08  Gerd Moellmann  <gerd@gnu.org>
 
+	* keyboard.c (echo_char): Make sure to add a separator between
+	keys even if echo_dash hasn't been called.
+
 	* xdisp.c: Use new string macros.
 	(update_echo_area): Pass number of bytes to message3 instead of
 	number of chars.
