@@ -642,8 +642,7 @@ This function is obsolete and has no effect.  */)
 }
 
 /* Look up the element in TABLE at index CH, and return it as an
-   integer.  If the element is nil, return CH itself.  (Actually we do
-   that for any non-integer.)  */
+   integer.  If the element is not a character, return CH itself.  */
 
 int
 char_table_translate (table, ch)
@@ -652,7 +651,7 @@ char_table_translate (table, ch)
 {
   Lisp_Object value;
   value = Faref (table, make_number (ch));
-  if (! INTEGERP (value))	/* fixme: use CHARACTERP? */
+  if (! CHARACTERP (value))
     return ch;
   return XINT (value);
 }
