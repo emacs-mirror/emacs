@@ -1,3 +1,7 @@
+2002-09-29  Colin Walters  <walters@gnu.org>
+
+	* calc/calc.el (calc-dispatch-map): Actually set to keymap.
+
 2002-09-29  Mike Williams  <mdub@bigfoot.com>
 
 	* textmodes/sgml-mode.el (sgml-guess-indent): Handle
