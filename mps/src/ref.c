@@ -1,7 +1,7 @@
 /* impl.c.ref: REFERENCES
  *
- * $HopeName: MMsrc!ref.c(trunk.5) $
- * Copyright (C) 1995 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!ref.c(MMdevel_action2.3) $
+ * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved
  *
  * Ref is an alias for Addr which can be used to document where
  * references are being passed.
@@ -18,17 +18,24 @@
  * for IsMember.  Add is used to implement reference summaries,
  * which provide a remembered set.  IsMember is used to inline part
  * of the Fix function, and provide good discrimination of the
- * condemned set.  It is expected that the discrimination provided
+ * white set.  It is expected that the discrimination provided
  * will be useful for distinguishing segments and groups of segments.
  */
 
 #include "mpm.h"
 
-SRCID(ref, "$HopeName: MMsrc!ref.c(trunk.5) $");
+SRCID(ref, "$HopeName: MMsrc!ref.c(MMdevel_action2.3) $");
 
 Bool RankCheck(Rank rank)
 {
   CHECKL(rank < RankMAX);
+  return TRUE;
+}
+
+
+Bool RankSetCheck(RankSet rankSet)
+{
+  CHECKL(rankSet < (1uL << RankMAX));
   return TRUE;
 }
 

@@ -1,7 +1,7 @@
 /* impl.c.arenavm: VIRTUAL MEMORY BASED ARENA IMPLEMENTATION
  *
- * $HopeName: MMsrc!arenavm.c(trunk.13) $
- * Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
+ * $HopeName: MMsrc!arenavm.c(trunk.14) $
+ * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the Segment abstraction from the VM
  * abstraction.  Use of this arena implies use of a VM.
@@ -14,7 +14,7 @@
 #include "mpm.h"
 
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.13) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.14) $");
 
 
 /* Space Arena Projection
@@ -262,18 +262,6 @@ Bool ArenaCheck(Arena arena)
 }
 
 
-/* SegCheck -- check the consistency of a segment structure */  
-
-Bool SegCheck(Seg seg)
-{
-  CHECKU(Pool, seg->pool);
-  /* .seg.check-little: all other fields can't be checked */
-  return TRUE;
-}
-
-
-/* preferences... */
-
 Bool SegPrefCheck(SegPref pref)
 {
   CHECKS(SegPref, pref);
@@ -310,6 +298,7 @@ Res SegPrefExpress (SegPref sp, SegPrefKind kind, void *p)
     return ResOK;
   }
 }
+
 
 /* SegAlloc -- allocate a segment from the arena */
 
@@ -369,17 +358,7 @@ found:
 
   /* Initialize the generic segment structure. */
   seg = &arena->pageTable[base].the.head;
-  seg->pool = pool;
-  seg->p = NULL;
-  seg->rank = RankEXACT;    /*  exact by default */
-  seg->condemned = TraceIdNONE;
-  seg->grey = TraceSetEMPTY;
-  seg->buffer = NULL;
-  RingInit(&seg->poolRing);
-
-  seg->pm = AccessSetEMPTY; /* see impl.c.shield */
-  seg->sm = AccessSetEMPTY;
-  seg->depth = 0;
+  SegInit(seg, pool);
 
   /* Allocate the first page, and, if there is more than one page,
    * allocate the rest of the pages and store the multi-page information
@@ -427,6 +406,8 @@ void SegFree(Space space, Seg seg)
   limit = SegLimit(space, seg);
   pi = page - arena->pageTable;
   AVER(pi <= arena->pages);
+
+  SegFinish(seg);
 
   /* Remember the base address of the segment so it can be */
   /* unmapped .free.unmap */

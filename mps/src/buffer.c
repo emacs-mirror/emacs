@@ -1,7 +1,7 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.20) $
- * Copyright (C) 1996 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!buffer.c(MMdevel_action2.4) $
+ * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
  *
@@ -29,108 +29,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.20) $");
-
-
-/* BufferCreate -- create an allocation buffer in a pool
- * 
- * design.mps.buffer.method.create
- */
-
-Res BufferCreate(Buffer *bufferReturn, Pool pool, Rank rank)
-{
-  Res res;
-  Buffer buffer;
-  Space space;
-  void *p;
-
-  AVER(bufferReturn != NULL);
-  AVERT(Pool, pool);
-  /* The PoolClass should support buffer protocols */
-  AVER((pool->class->attr & AttrBUF)); /* .trans.mod */
-  AVER(RankCheck(rank));
-  
-  space = PoolSpace(pool);
-
-  /* Allocate the buffer structure. */  
-  res = SpaceAlloc(&p, space, sizeof(BufferStruct));
-  if(res != ResOK) return res;
-  buffer = p;
-
-  /* Initialize the buffer.  See impl.h.mpmst for a definition of the
-   * structure */
-  /* sig and serial comes later .init.sig-serial */
-  buffer->space = space;
-  buffer->pool = pool;
-  buffer->seg = NULL;
-  buffer->rank = rank;
-  buffer->base = (Addr)0;
-  buffer->apStruct.init = (Addr)0;
-  buffer->apStruct.alloc = (Addr)0;
-  buffer->apStruct.limit = (Addr)0;
-  buffer->alignment = pool->alignment; /* .trans.mod */
-  RingInit(&buffer->poolRing);
-  buffer->shieldMode = AccessSetEMPTY;
-  buffer->p = NULL;
-  buffer->i = 0;
-
-  /* Dispatch to the pool class method to perform any extra */
-  /* initialization of the buffer. */
-  res = (*pool->class->bufferInit)(pool, buffer);
-  if(res != ResOK) {
-    SpaceFree(space, (Addr)buffer, sizeof(BufferStruct));
-    return res;
-  }
-
-  /* .init.sig-serial: Now that it's initialized, sign the buffer,
-   * give it a serial number, and check it. */
-  buffer->sig = BufferSig;
-  buffer->serial = pool->bufferSerial; /* .trans.mod */
-  ++pool->bufferSerial;
-  AVERT(Buffer, buffer);
-
-  /* Attach the initialized buffer to the pool. */
-  RingAppend(&pool->bufferRing, &buffer->poolRing);
-
-  *bufferReturn = buffer;
-  return ResOK;
-}
-
-
-/* BufferDestroy -- destroy an allocation buffer
- *
- * design.mps.buffer.method.destroy
- */
-
-void BufferDestroy(Buffer buffer)
-{
-  Space space;
-  Pool pool;
-
-  AVERT(Buffer, buffer);
-
-  /* Make a copy of the space before the buffer gets finished. */
-  space = buffer->space;
-  pool = buffer->pool;
-
-  /* The PoolClass should support buffer protocols */
-  AVER((pool->class->attr & AttrBUF)); /* .trans.mod */
-  AVER(BufferIsReady(buffer));
-
-  /* Detach the buffer from its owning pool. */
-  RingRemove(&buffer->poolRing);
-  
-  /* Dispatch to the pool class method to finish the buffer. */
-  (*pool->class->bufferFinish)(pool, buffer);
-
-  /* Unsign the finished buffer. */
-  buffer->sig = SigInvalid;
-  
-  /* Finish off the generic buffer fields and deallocate the */
-  /* buffer structure. */
-  RingFinish(&buffer->poolRing);
-  SpaceFree(space, (Addr)buffer, sizeof(BufferStruct));
-}
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(MMdevel_action2.4) $");
 
 
 /* BufferCheck
@@ -145,26 +44,156 @@ Bool BufferCheck(Buffer buffer)
   CHECKL(buffer->serial < buffer->pool->bufferSerial); /* .trans.mod */
   CHECKU(Space, buffer->space);
   CHECKU(Pool, buffer->pool);
-  /* seg and rank checked in anomalous order */
-  CHECKL(RankCheck(buffer->rank));      /* design.mps.check.type.no-sig */
+  CHECKL(RankSetCheck(buffer->rankSet));
   if(buffer->seg != NULL) {
-    CHECKL(SegCheck(buffer->seg));      /* design.mps.check.type.no-sig */
+    CHECKL(SegCheck(buffer->seg));	/* design.mps.check.type.no-sig */
     CHECKL(buffer->seg->buffer == buffer);
-    CHECKL(buffer->rank == buffer->seg->rank);
+    CHECKL(buffer->rankSet == buffer->seg->rankSet);
   }
   CHECKL(buffer->base <= buffer->apStruct.init);
   CHECKL(buffer->apStruct.init <= buffer->apStruct.alloc);
   CHECKL(buffer->apStruct.alloc <= buffer->apStruct.limit ||
-         buffer->apStruct.limit == 0);
+	 buffer->apStruct.limit == 0);
   CHECKL(buffer->alignment == buffer->pool->alignment);
   CHECKL(AlignCheck(buffer->alignment));
   CHECKL(AddrIsAligned(buffer->base, buffer->alignment));
   CHECKL(AddrIsAligned(buffer->apStruct.init, buffer->alignment));
   CHECKL(AddrIsAligned(buffer->apStruct.alloc, buffer->alignment));
   CHECKL(AddrIsAligned(buffer->apStruct.limit, buffer->alignment));
-  CHECKL(RingCheck(&buffer->poolRing)); /* design.mps.check.type.no-sig */
+  CHECKL(RingCheck(&buffer->poolRing));	/* design.mps.check.type.no-sig */
   /* buffer->p, and buffer->i are arbitrary and cannot be checked */
   return TRUE;
+}
+
+
+/* BufferCreate -- create an allocation buffer
+ * 
+ * design.mps.buffer.method.create
+ */
+
+Res BufferCreate(Buffer *bufferReturn, Pool pool, Rank rank)
+{
+  Res res;
+  Buffer buffer;
+  Space space;
+  void *p;
+
+  AVER(bufferReturn != NULL);
+  AVERT(Pool, pool);
+  AVER(RankCheck(rank));
+
+  space = PoolSpace(pool);
+
+  /* Allocate the buffer structure. */  
+  res = SpaceAlloc(&p, space, sizeof(BufferStruct));
+  if(res != ResOK) goto failAlloc;
+  buffer = p;
+
+  res = BufferInit(buffer, pool, rank);
+  if(res != ResOK) goto failInit;
+
+  *bufferReturn = buffer;
+  return ResOK;
+
+failInit:
+  SpaceFree(space, (Addr)buffer, sizeof(BufferStruct));
+failAlloc:
+  return res;
+}
+
+
+/* BufferInit -- initialize an allocation buffer */
+
+Res BufferInit(Buffer buffer, Pool pool, Rank rank)
+{
+  Res res;
+
+  AVER(buffer != NULL);
+  AVERT(Pool, pool);
+  /* The PoolClass should support buffer protocols */
+  AVER((pool->class->attr & AttrBUF)); /* .trans.mod */
+  AVER(RankCheck(rank));
+  
+  /* Initialize the buffer.  See impl.h.mpmst for a definition of the */
+  /* structure.  sig and serial comes later .init.sig-serial */
+  buffer->space = PoolSpace(pool);
+  buffer->pool = pool;
+  buffer->seg = NULL;
+  buffer->rankSet = RankSetSingle(rank);
+  buffer->base = (Addr)0;
+  buffer->apStruct.init = (Addr)0;
+  buffer->apStruct.alloc = (Addr)0;
+  buffer->apStruct.limit = (Addr)0;
+  buffer->alignment = pool->alignment; /* .trans.mod */
+  RingInit(&buffer->poolRing);
+  buffer->p = NULL;
+  buffer->i = 0;
+
+  /* Dispatch to the pool class method to perform any extra */
+  /* initialization of the buffer. */
+  res = (*pool->class->bufferInit)(pool, buffer);
+  if(res != ResOK) return res;
+
+  /* .init.sig-serial: Now that it's initialized, sign the buffer, */
+  /* give it a serial number, and check it. */
+  buffer->sig = BufferSig;
+  buffer->serial = pool->bufferSerial; /* .trans.mod */
+  ++pool->bufferSerial;
+  AVERT(Buffer, buffer);
+
+  /* Attach the initialized buffer to the pool. */
+  RingAppend(&pool->bufferRing, &buffer->poolRing);
+
+  return ResOK;
+}
+
+
+/* BufferDestroy -- destroy an allocation buffer
+ *
+ * design.mps.buffer.method.destroy
+ */
+
+void BufferDestroy(Buffer buffer)
+{
+  Space space;
+
+  AVERT(Buffer, buffer);
+
+  space = buffer->space;
+  BufferFinish(buffer);
+  SpaceFree(space, (Addr)buffer, sizeof(BufferStruct));
+}
+
+
+/* BufferFinish -- finish an allocation buffer */
+
+void BufferFinish(Buffer buffer)
+{
+  Pool pool;
+
+  AVERT(Buffer, buffer);
+
+  pool = buffer->pool;
+
+  /* The PoolClass should support buffer protocols */
+  AVER((pool->class->attr & AttrBUF)); /* .trans.mod */
+  AVER(BufferIsReady(buffer));
+
+  /* Detach the buffer from its owning pool. */
+  RingRemove(&buffer->poolRing);
+  
+  /* Dispatch to the pool class method to finish the buffer. */
+  (*pool->class->bufferFinish)(pool, buffer);
+
+  /* Pool should make sure buffer is not attached. */
+  /* @@@@ Are there other conditions? */
+  AVER(BufferIsReset(buffer));
+
+  /* Unsign the finished buffer. */
+  buffer->sig = SigInvalid;
+  
+  /* Finish off the generic buffer fields. */
+  RingFinish(&buffer->poolRing);
 }
 
 
@@ -182,9 +211,13 @@ Bool BufferCheck(Buffer buffer)
 void BufferSet(Buffer buffer, Seg seg, Addr base, Addr init, Addr limit)
 {
   AVERT(Buffer, buffer);
-  AVER(SegCheck(seg));
   AVER(BufferIsReady(buffer));
-  /* No check for base, init, limit */
+  AVER(SegCheck(seg));
+  AVER(seg->buffer == NULL);
+  AVER(SegBase(buffer->space, seg) <= base);
+  AVER(base <= init);
+  AVER(limit == 0 || init <= limit);
+  AVER(limit == 0 || limit <= SegLimit(buffer->space, seg));
 
   buffer->seg = seg;
   seg->buffer = buffer;
@@ -198,6 +231,7 @@ void BufferReset(Buffer buffer)
 {
   AVERT(Buffer, buffer);
   AVER(BufferIsReady(buffer));
+  AVER(buffer->seg->buffer == buffer);
 
   buffer->seg->buffer = NULL;
   buffer->seg = NULL;
@@ -419,12 +453,11 @@ Res BufferDescribe(Buffer buffer, mps_lib_FILE *stream)
          "  Space $P\n",       (WriteFP)buffer->space,
          "  Pool $P\n",        (WriteFP)buffer->pool,
          "  Seg $P\n",         (WriteFP)buffer->seg,
-         "  rank $U\n",        (WriteFU)buffer->rank,
+         "  rankSet $U\n",     (WriteFU)buffer->rankSet,
          "  base $A  init $A  alloc $A  limit $A\n",
            buffer->base, buffer->apStruct.init,
            buffer->apStruct.alloc, buffer->apStruct.limit,
          "  alignment $W\n",   (WriteFW)buffer->alignment,
-         "  shieldMode $B\n",  (WriteFB)buffer->shieldMode,
          "  p $P  i $U\n",     buffer->p, (WriteFU)buffer->i,
          "} Buffer $P ($U)\n", (WriteFP)buffer, (WriteFU)buffer->serial,
          NULL);
