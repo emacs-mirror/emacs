@@ -145,8 +145,8 @@ leim-list.el: ${SUBDIRS} ${WORLD}
 	for dir in ${SUBDIRS}; do \
 	  for f in $${dir}/*.el; do \
 	    if echo ${WORLD} | grep $${f} > /dev/null; then true; \
-	    else rm -f $${f}* ; fi \
-	  done \
+	    else rm -f $${f}* ; fi; \
+	  done; \
 	done
 	${RUN-EMACS} -l ${buildlisppath}/international/quail \
 	    --eval "(update-leim-list-file \".\")"
