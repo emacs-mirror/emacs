@@ -1017,7 +1017,8 @@ where FACE is a valid face specification, as it can be used with
 		buffer-undo-list t
 		mode-line-format
 		(propertize "---- %b %-" 'face '(:weight bold))
-		timer (run-with-timer 0 5 #'fancy-splash-screens-1
+		timer (run-with-timer 0 fancy-splash-delay
+				      #'fancy-splash-screens-1
 				      splash-buffer))
 	  (recursive-edit))
       (cancel-timer timer)
