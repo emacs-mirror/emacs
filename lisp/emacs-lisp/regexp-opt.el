@@ -101,6 +101,7 @@ by \\=\\< and \\>."
   (save-match-data
     ;; Recurse on the sorted list.
     (let* ((max-lisp-eval-depth (* 1024 1024))
+	   (max-specpdl-size (* 1024 1024))
 	   (completion-ignore-case nil)
 	   (completion-regexp-list nil)
 	   (words (eq paren 'words))
