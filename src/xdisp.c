@@ -976,6 +976,46 @@ window_box_edges (w, area, top_left_x, top_left_y,
 			      Utilities
  ***********************************************************************/
 
+/* Return the bottom y-position of the line the iterator IT is in.
+   This can modify IT's settings.  */
+
+int
+line_bottom_y (it)
+     struct it *it;
+{
+  int line_height = it->max_ascent + it->max_descent;
+  int line_top_y = it->current_y;
+  
+  if (line_height == 0)
+    {
+      if (last_height)
+	line_height = last_height;
+      else if (IT_CHARPOS (*it) < ZV)
+	{
+	  move_it_by_lines (it, 1, 1);
+	  line_height = (it->max_ascent || it->max_descent
+			 ? it->max_ascent + it->max_descent
+			 : last_height);
+	}
+      else
+	{
+	  struct glyph_row *row = it->glyph_row;
+	  
+	  /* Use the default character height.  */
+	  it->glyph_row = NULL;
+	  it->what = IT_CHARACTER;
+	  it->c = ' ';
+	  it->len = 1;
+	  PRODUCE_GLYPHS (it);
+	  line_height = it->ascent + it->descent;
+	  it->glyph_row = row;
+	}
+    }
+
+  return line_top_y + line_height;
+}
+
+
 /* Return 1 if position CHARPOS is visible in window W.  Set *FULLY to
    1 if POS is visible and the line containing POS is fully visible.
    EXACT_MODE_LINE_HEIGHTS_P non-zero means compute exact mode-line
@@ -1021,40 +1061,16 @@ pos_visible_p (w, charpos, fully, exact_mode_line_heights_p)
   /* Note that we may overshoot because of invisible text.  */
   if (IT_CHARPOS (it) >= charpos)
     {
-      int line_height, line_bottom_y;
-      int line_top_y = it.current_y;
+      int top_y = it.current_y;
+      int bottom_y = line_bottom_y (&it);
       int window_top_y = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
       
-      line_height = it.max_ascent + it.max_descent;
-      if (line_height == 0)
-	{
-	  if (last_height)
-	    line_height = last_height;
-	  else if (charpos < ZV)
-	    {
-	      move_it_by_lines (&it, 1, 1);
-	      line_height = (it.max_ascent || it.max_descent
-			     ? it.max_ascent + it.max_descent
-			     : last_height);
-	    }
-	  else
-	    {
-	      /* Use the default character height.  */
-	      it.what = IT_CHARACTER;
-	      it.c = ' ';
-	      it.len = 1;
-	      PRODUCE_GLYPHS (&it);
-	      line_height = it.ascent + it.descent;
-	    }
-	}
-      line_bottom_y = line_top_y + line_height;
-
-      if (line_top_y < window_top_y)
-	visible_p = line_bottom_y > window_top_y;
-      else if (line_top_y < it.last_visible_y)
+      if (top_y < window_top_y)
+	visible_p = bottom_y > window_top_y;
+      else if (top_y < it.last_visible_y)
 	{
 	  visible_p = 1;
-	  *fully = line_bottom_y <= it.last_visible_y;
+	  *fully = bottom_y <= it.last_visible_y;
 	}
     }
   else if (it.current_y + it.max_ascent + it.max_descent > it.last_visible_y)
