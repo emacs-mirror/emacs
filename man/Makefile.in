@@ -99,7 +99,8 @@ EMACSSOURCES= \
 	${srcdir}/msdog.texi \
 	${srcdir}/gnu.texi \
 	${srcdir}/glossary.texi \
-	${srcdir}/ack.texi
+	${srcdir}/ack.texi \
+	${srcdir}/kmacro.texi
 
 info: $(INFO_TARGETS)
 
