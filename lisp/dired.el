@@ -566,7 +566,15 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 	end)
     ;; This makes sure that month names come out in English
     ;; so we can find the start of the file name.
-    (setenv "LC_ALL" "C")
+    ;; But if the user has customized the way of finding the file name,
+    ;; this is not necessary.
+    (if (and (equal dired-move-to-filename-regexp
+		    dired-standard-move-to-filename-regexp)
+	     ;; It also isn't necessary if we'd use the C locale anyway.
+	     (not (equal (or (getenv "LC_ALL") (getenv "LC_TIME")
+			     (getenv "LANGUAGE") "C")
+			 "C")))
+	(setq process-environment (cons "LC_ALL=C" process-environment)))
     (if (consp dir-or-list)
 	;; In this case, use the file names in the cdr
 	;; exactly as originally given to dired-noselect.
@@ -1243,6 +1251,10 @@ Optional arg GLOBAL means to replace all matches."
 ;;; Functions for finding the file name in a dired buffer line.
 
 (defvar dired-move-to-filename-regexp
+  "\\(Jan\\|Feb\\|Mar\\|Apr\\|May\\|Jun\\|Jul\\|Aug\\|Sep\\|Oct\\|Nov\\|Dec\\)[ ]+[0-9]+ [ 0-9][0-9][:0-9][0-9][ 0-9] "
+  "Regular expression to match a month abbreviation followed by a number.")
+
+(defconst dired-standard-move-to-filename-regexp
   "\\(Jan\\|Feb\\|Mar\\|Apr\\|May\\|Jun\\|Jul\\|Aug\\|Sep\\|Oct\\|Nov\\|Dec\\)[ ]+[0-9]+ [ 0-9][0-9][:0-9][0-9][ 0-9] "
   "Regular expression to match a month abbreviation followed by a number.")
 
