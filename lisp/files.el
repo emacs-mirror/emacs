@@ -2517,11 +2517,14 @@ After saving the buffer, this function runs `after-save-hook'."
 		      buffer-file-name nil t buffer-file-truename)))
     setmodes))
 
-(defun save-some-buffers (&optional arg exiting)
+(defun save-some-buffers (&optional arg pred)
   "Save some modified file-visiting buffers.  Asks user about each one.
 Optional argument (the prefix) non-nil means save all with no questions.
-Optional second argument EXITING means ask about certain non-file buffers
- as well as about file buffers."
+Optional second argument PRED determines which buffers are considered:
+If PRED is nil, all the file-visiting buffers are considered.
+If PRED is t, then certain non-file buffers will also be considered.
+If PRED is a zero-argument function, it indicates for each buffer whether
+  to consider it or not."
   (interactive "P")
   (save-window-excursion
     (let* ((queried nil)
@@ -2533,10 +2536,12 @@ Optional second argument EXITING means ask about certain non-file buffers
 		     (not (buffer-base-buffer buffer))
 		     (or
 		      (buffer-file-name buffer)
-		      (and exiting
+		      (and pred
 			   (progn
 			     (set-buffer buffer)
 			     (and buffer-offer-save (> (buffer-size) 0)))))
+		     (or (not (functionp pred))
+			 (with-current-buffer buffer (funcall pred)))
 		     (if arg
 			 t
 		       (setq queried t)
