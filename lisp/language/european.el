@@ -250,9 +250,9 @@ Ukranian."))				; says ISO 8859-1
 ;;;  	      . "")
 	     (documentation . "\
 This language environment is a generic one for the Latin-8 (ISO-8859-14)
-character set which supports the Celtic languages, specifically Welsh and
-Irish Gaelic (old orthography) which are not covered by other ISO-8859
-character sets."))
+character set which supports the Celtic languages which are not covered
+by other ISO-8859 character sets, specifically Welsh, Manx Gaelic and
+Irish Gaelic (old orthography)."))
  '("European"))
 
 ;; Latin-9 (ISO-8859-15)
