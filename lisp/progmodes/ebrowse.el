@@ -916,7 +916,7 @@ and TREE is a list of `ebrowse-ts' structures forming the class tree."
     ;; Read Lisp objects.  Temporarily increase `gc-cons-threshold' to
     ;; prevent a GC that would not free any memory.
     (let ((gc-cons-threshold 2000000))
-      (while (not (eobp))
+      (while (not (progn (skip-chars-forward " \t\n\r") (eobp)))
 	(let* ((root (read (current-buffer)))
 	       (old-root (ebrowse-class-in-tree root tree)))
 	  (ebrowse-show-progress "Reading data" (null tree))
@@ -927,89 +927,39 @@ and TREE is a list of `ebrowse-ts' structures forming the class tree."
     (list header tree)))
 
 
-;;;###autoload
-(defun ebrowse-load (file &optional switch)
-  "Load an Ebrowse file FILE into memory and make a tree buffer.
-Optional SWITCH non-nil means switch to the tree buffer afterwards.
-This function is normally called from a `find-file-hook'.
-Value is the tree buffer created."
-  (let (tree
-	header
-	(buffer (get-file-buffer file))
-	tree-buffer)
-    (if buffer
-	(multiple-value-setq (header tree)
-	  (ebrowse-read))
-      (save-excursion
-	;; Since find-file hooks may be involved, we must visit the
-	;; file in a way that these hooks are not called.
-	(set-buffer (create-file-buffer file))
-	(erase-buffer)
-	(insert-file file)
-	(set-buffer-modified-p nil)
-	(unwind-protect
-	    (multiple-value-setq (header tree)
-	      (ebrowse-read))
-	  (kill-buffer (current-buffer)))))
-    (when tree
-      (message "Sorting. Please be patient...")
-      (setf tree (ebrowse-sort-tree-list tree))
-      ;; Create tree buffer
-      (setf tree-buffer
-	    (ebrowse-create-tree-buffer tree file header
-					(ebrowse-build-tree-obarray tree)
-					switch buffer))
-      (message nil)
-      tree-buffer)))
-
-
 (defun ebrowse-revert-tree-buffer-from-file (ignore-auto-save noconfirm)
   "Function installed as `revert-buffer-function' in tree buffers.
 See that variable's documentation for the meaning of IGNORE-AUTO-SAVE and
 NOCONFIRM."
-  (interactive)
-  (when (or noconfirm
-	    (yes-or-no-p "Revert tree from disk? "))
-    (let ((ebrowse-file (or buffer-file-name ebrowse--tags-file-name)))
-      (loop for member-buffer in (ebrowse-same-tree-member-buffer-list)
-	    do (kill-buffer member-buffer))
-      (kill-buffer (current-buffer))
-      (switch-to-buffer (ebrowse-load ebrowse-file)))))
+  (when (or noconfirm (yes-or-no-p "Revert tree from disk? "))
+    (loop for member-buffer in (ebrowse-same-tree-member-buffer-list)
+	  do (kill-buffer member-buffer))
+    (erase-buffer)
+    (insert-file (or buffer-file-name ebrowse--tags-file-name))
+    (ebrowse-tree-mode)
+    (current-buffer)))
 
-
-(defun ebrowse-create-tree-buffer (tree tags-file header obarray pop
-					&optional find-file-buffer)
+    
+(defun ebrowse-create-tree-buffer (tree tags-file header obarray pop)
   "Create a new tree buffer for tree TREE.
 The tree was loaded from file TAGS-FILE.
 HEADER is the header structure of the file.
 OBARRAY is an obarray with a symbol for each class in the tree.
 POP non-nil means popup the buffer up at the end.
-FIND-FILE-BUFFER, if non-nil, is the buffer from which the Lisp data
-was read.
 Return the buffer created."
-  (let (name)
-    (cond (find-file-buffer
-	   (set-buffer find-file-buffer)
-	   (erase-buffer)
-	   (setq name (ebrowse-frozen-tree-buffer-name tags-file))
-	   (ebrowse-rename-buffer name))
-	  (t
-	   (setq name ebrowse-tree-buffer-name)
-	   (set-buffer (get-buffer-create name))))
-    ;; Switch to tree mode and initialize buffer local variables.
+  (let ((name ebrowse-tree-buffer-name))
+    (set-buffer (get-buffer-create name))
     (ebrowse-tree-mode)
-    (setf ebrowse--tree          tree
+    (setq ebrowse--tree tree
 	  ebrowse--tags-file-name tags-file
-	  ebrowse--tree-obarray  obarray
-	  ebrowse--header        header
-	  ebrowse--frozen-flag        (not (null find-file-buffer)))
-    ;; Switch or pop to the tree buffer; display the tree and return the
-    ;; buffer.
-    (case pop 
-      (switch (switch-to-buffer name))
-      (pop    (pop-to-buffer name)))
+	  ebrowse--tree-obarray obarray
+	  ebrowse--header header
+	  ebrowse--frozen-flag nil)
     (ebrowse-redraw-tree)
     (set-buffer-modified-p nil)
+    (case pop
+      (switch (switch-to-buffer name))
+      (pop (pop-to-buffer name)))
     (current-buffer)))
 
 
@@ -1177,22 +1127,35 @@ E.g.\\[save-buffer] writes the tree to the file it was loaded from.
 
 Tree mode key bindings:
 \\{ebrowse-tree-mode-map}"
-  (kill-all-local-variables)
-  (mapcar 'make-local-variable
-	  '(ebrowse--tags-file-name
-	    ebrowse--indentation
-	    ebrowse--tree
-	    ebrowse--header
-	    ebrowse--show-file-names-flag
-	    ebrowse--frozen-flag
-	    ebrowse--tree-obarray
-	    ebrowse--mode-strings
-	    revert-buffer-function))
-  (use-local-map ebrowse-tree-mode-map)
+  (interactive)
   (let* ((props (text-properties-at
 		 0
 		 (car (default-value 'mode-line-buffer-identification))))
-	 (ident (apply #'propertize "C++ Tree" props)))
+	 (ident (apply #'propertize "C++ Tree" props))
+	 header tree buffer-read-only)
+    
+    (kill-all-local-variables)
+    (use-local-map ebrowse-tree-mode-map)
+    
+    (unless (zerop (buffer-size))
+      (goto-char (point-min))
+      (multiple-value-setq (header tree) (ebrowse-read))
+      (message "Sorting. Please be patient...")
+      (setq tree (ebrowse-sort-tree-list tree))
+      (erase-buffer)
+      (message nil))
+    
+    (mapcar 'make-local-variable
+	    '(ebrowse--tags-file-name
+	      ebrowse--indentation
+	      ebrowse--tree
+	      ebrowse--header
+	      ebrowse--show-file-names-flag
+	      ebrowse--frozen-flag
+	      ebrowse--tree-obarray
+	      ebrowse--mode-strings
+	      revert-buffer-function))
+    
     (setf ebrowse--show-file-names-flag nil
 	  ebrowse--tree-obarray (make-vector 127 0)
 	  ebrowse--frozen-flag nil
@@ -1202,10 +1165,20 @@ Tree mode key bindings:
 	  buffer-read-only t
 	  selective-display t
 	  selective-display-ellipses t
-	  revert-buffer-function 'ebrowse-revert-tree-buffer-from-file))
-  (add-hook 'local-write-file-hooks 'ebrowse-write-file-hook-fn)
-  (modify-syntax-entry ?_ (char-to-string (char-syntax ?a)))
-  (run-hooks 'ebrowse-tree-mode-hook))
+	  revert-buffer-function 'ebrowse-revert-tree-buffer-from-file
+	  ebrowse--header header
+	  ebrowse--tree tree
+	  ebrowse--tags-file-name (buffer-file-name)
+	  ebrowse--tree-obarray (and tree (ebrowse-build-tree-obarray tree))
+	  ebrowse--frozen-flag nil)
+
+    (add-hook 'local-write-file-hooks 'ebrowse-write-file-hook-fn)
+    (modify-syntax-entry ?_ (char-to-string (char-syntax ?a)))
+    (when tree
+      (ebrowse-redraw-tree)
+      (set-buffer-modified-p nil))
+    (run-hooks 'ebrowse-tree-mode-hook)))
+    
 
 
 (defun ebrowse-update-tree-buffer-mode-line ()
