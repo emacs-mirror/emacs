@@ -2685,7 +2685,6 @@ extern void syms_of_search P_ ((void));
 
 extern Lisp_Object last_minibuf_string;
 extern void choose_minibuf_frame P_ ((void));
-extern int scmp P_ ((unsigned char *, unsigned char *, int));
 EXFUN (Fcompleting_read, 8);
 EXFUN (Fread_from_minibuffer, 7);
 EXFUN (Fread_variable, 2);
