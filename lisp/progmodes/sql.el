@@ -4,7 +4,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
-;; Version: 1.4.1
+;; Version: 1.4.2
 ;; Keywords: comm languages processes
 
 ;; This file is part of GNU Emacs.
@@ -119,6 +119,7 @@
 
 (defgroup SQL nil
   "Running a SQL interpreter from within Emacs buffers"
+  :version "20.4"
   :group 'processes)
 
 ;; These three variables will be used as defaults, if set.
