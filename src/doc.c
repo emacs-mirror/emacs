@@ -1,5 +1,5 @@
 /* Record indices of function doc strings stored in a file.
-   Copyright (C) 1985, 1986, 1993, 1994, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 93, 94, 95, 1997 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -660,7 +660,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  else if (start[-1] == '<')
 	    keymap = tem;
 	  else
-	    describe_map_tree (tem, 1, Qnil, Qnil, (char *)0, 1, 0);
+	    describe_map_tree (tem, 1, Qnil, Qnil, (char *)0, 1, 0, 0);
 	  tem = Fbuffer_string ();
 	  Ferase_buffer ();
 	  set_buffer_internal (oldbuf);
