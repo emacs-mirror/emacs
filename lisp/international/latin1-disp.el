@@ -158,7 +158,7 @@ character set: `latin-2', `hebrew' etc."
   (cond ((< char 256)
 	 ;; Single byte characters are always displayable.
 	 t)
-	(window-system
+	((display-multi-font-p)
 	 ;; On a window system, a character is displayable if we have
 	 ;; a font for that character in the default face of the
 	 ;; currently selected frame.
