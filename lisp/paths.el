@@ -103,7 +103,7 @@ Will use `gnus-startup-file'-SERVER instead if exists.")
 	 "/var/mail/")
 	;; Many GNU/Linux systems use this name.
 	((file-exists-p "/var/spool/mail")
-	 "/var/spool/mail")
+	 "/var/spool/mail/")
 	((memq system-type '(dgux hpux usg-unix-v unisoft-unix rtu irix))
 	 "/usr/mail/")
 	(t "/usr/spool/mail/"))
