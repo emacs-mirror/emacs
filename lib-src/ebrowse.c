@@ -3303,9 +3303,12 @@ globals (start_flags)
                 
                 if (LOOKING_AT ('='))
                   {
+		    MATCH ();
+		    if (LOOKING_AT (IDENT))
+		      register_namespace_alias (namespace_name, yytext);
+		      
                     if (skip_to (';') == ';')
                       MATCH ();
-                    register_namespace_alias (namespace_name, yytext);
                   }
                 else if (LOOKING_AT ('{'))
                   {
