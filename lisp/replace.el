@@ -646,6 +646,9 @@ which will run faster and probably do exactly what you want."
 		(let ((message-log-max nil))
 		  (message message from-string next-replacement))
 		(setq key (read-event))
+		;; Necessary in case something happens during read-event
+		;; that clobbers the match data.
+		(store-match-data real-match-data)
 		(setq key (vector key))
 		(setq def (lookup-key map key))
 		;; Restore the match data while we process the command.
