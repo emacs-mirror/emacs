@@ -4,7 +4,7 @@
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;; Created: 04 Apr 1990
-;; Version: 1.21
+;; Version: 1.21bis (some cleanup by ESR)
 ;; Keywords: unix
 
 ;;; This file is part of GNU Emacs.
@@ -110,7 +110,11 @@ in a tar archive has been changed, but it is bad for the same reason that
 editing a file in the tar archive at all is bad - the changed version of 
 the file never exists on disk.")
 
-
+(defvar tar-parse-info nil)
+(defvar tar-header-offset nil)
+(defvar tar-superior-buffer nil)
+(defvar tar-superior-descriptor nil)
+(defvar tar-subfile-mode nil)
 
 ;;; First, duplicate some Common Lisp functions; I used to just (require 'cl)
 ;;; but "cl.el" was messing some people up (also it's really big).
@@ -506,7 +510,7 @@ This mode redefines ^X^S to save the current buffer back into its
 associated tar-file buffer.  You must save that buffer to actually
 save your changes to disk."
   (interactive "P")
-  (or (and (boundp 'superior-tar-buffer) superior-tar-buffer)
+  (or (and (boundp 'tar-superior-buffer) tar-superior-buffer)
       (error "This buffer is not an element of a tar file."))
   (or (assq 'tar-subfile-mode minor-mode-alist)
       (setq minor-mode-alist (append minor-mode-alist
@@ -606,10 +610,10 @@ directory listing."
 		(set-visited-file-name nil)  ; nuke the name - not meaningful.
 		(rename-buffer bufname)
 		
-		(make-local-variable 'superior-tar-buffer)
-		(make-local-variable 'superior-tar-descriptor)
-		(setq superior-tar-buffer tar-buffer)
-		(setq superior-tar-descriptor descriptor)
+		(make-local-variable 'tar-superior-buffer)
+		(make-local-variable 'tar-superior-descriptor)
+		(setq tar-superior-buffer tar-buffer)
+		(setq tar-superior-descriptor descriptor)
 		(tar-subfile-mode 1)
 		
 		(setq buffer-read-only read-only-p)
@@ -930,15 +934,15 @@ for this to be permanent."
 This doesn't write anything to disk - you must save the parent tar-file buffer
 to make your changes permanent."
   (interactive)
-  (if (not (and (boundp 'superior-tar-buffer) superior-tar-buffer))
+  (if (not (and (boundp 'tar-superior-buffer) tar-superior-buffer))
     (error "this buffer has no superior tar file buffer."))
-  (if (not (and (boundp 'superior-tar-descriptor) superior-tar-descriptor))
+  (if (not (and (boundp 'tar-superior-descriptor) tar-superior-descriptor))
     (error "this buffer doesn't have an index into its superior tar file!"))
   (save-excursion
   (let ((subfile (current-buffer))
 	(subfile-size (buffer-size))
-	(descriptor superior-tar-descriptor))
-    (set-buffer superior-tar-buffer)
+	(descriptor tar-superior-descriptor))
+    (set-buffer tar-superior-buffer)
     (let* ((tokens (tar-desc-tokens descriptor))
 	   (start (tar-desc-data-start descriptor))
 	   (name (tar-header-name tokens))
@@ -1016,7 +1020,7 @@ to make your changes permanent."
     (set-buffer subfile)
     (set-buffer-modified-p nil) ; mark the tar subfile as unmodified
     (message "saved into tar-buffer \"%s\" - remember to save that buffer!"
-	     (buffer-name superior-tar-buffer))
+	     (buffer-name tar-superior-buffer))
     )))
 
 
