@@ -263,8 +263,8 @@ BASE_CFLAGS = C_SWITCH_SYSTEM C_SWITCH_MACHINE -DHAVE_CONFIG_H \
 
 all: ${DONT_INSTALL} ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
 
-# These targets copy the scripts into the build directory
-# so that they can be run from there in an uninstalled Emacs.
+/* These targets copy the scripts into the build directory
+so that they can be run from there in an uninstalled Emacs.  */
 rcs2log: $(srcdir)/rcs2log
 	cp -p $(srcdir)/rcs2log rcs2log
 
