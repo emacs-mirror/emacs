@@ -669,7 +669,7 @@ It returns the list of the buffers that are not discarded."
    (and (not (eq (current-buffer) buffer))
 	(not (dabbrev--ignore-buffer-p buffer))
 	(boundp 'dabbrev-friend-buffer-function)
-	(funcall dabbrev-friend-buffer-function buffer)))))
+	(funcall dabbrev-friend-buffer-function buffer))))
 
 (defun dabbrev--try-find (abbrev reverse n ignore-case)
   "Search for ABBREV, backwards if REVERSE, N times.
