@@ -246,7 +246,7 @@ is active."
 	   (parse-sexp-lookup-properties font-lock-syntactic-keywords)
 	   (old-syntax-table (syntax-table))
 	   (font-lock-beginning-of-syntax-function nil)
-	   next)
+	   next font-lock-start font-lock-end)
        (when font-lock-syntax-table
 	 (set-syntax-table font-lock-syntax-table))
        (save-excursion
@@ -261,17 +261,20 @@ is active."
 		   ;; Determine the end of this chunk.
 		   (setq next (or (text-property-any start end 'fontified t)
 				  end))
-		   
-		   ;; Goto to the start of the chunk.  Make sure we
-		   ;; start fontifying at the beginning of the line
-		   ;; containing the chunk start because font-lock
-		   ;; functions seem to expects this, if I believe
-		   ;; lazy-lock.
+
+		   ;; Decide which range of text should be fontified.
+		   ;; The problem is that START and NEXT may be in the
+		   ;; middle of something matched by a font-lock regexp.
+		   ;; Until someone has a better idea, let's start
+		   ;; at the start of the line containing START and
+		   ;; stop at the start of the line following NEXT.
+		   (goto-char next)
+		   (setq font-lock-end (line-beginning-position 2))
 		   (goto-char start)
-		   (setq start (line-beginning-position))
+		   (setq font-lock-start (line-beginning-position))
 		   
 		   ;; Fontify the chunk, and mark it as fontified.
-		   (font-lock-fontify-region start end nil)
+		   (font-lock-fontify-region font-lock-start font-lock-end nil)
 		   (add-text-properties start next '(fontified t))
 		   
 		   ;; Find the start of the next chunk, if any.
