@@ -368,10 +368,10 @@ fix_submap_inheritance (map, event, submap)
   /* SUBMAP is a cons that we found as a key binding.
      Discard the other things found in a menu key binding.  */
 
-  if CONSP (submap)
+  if (CONSP (submap))
     {
       /* May be an old format menu item */
-      if STRINGP (XCONS (submap)->car)
+      if (STRINGP (XCONS (submap)->car))
 	{
 	  submap = XCONS (submap)->cdr;
 	  /* Also remove a menu help string, if any,
