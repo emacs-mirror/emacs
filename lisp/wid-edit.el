@@ -173,16 +173,17 @@ This exists as a variable so it can be set locally in certain buffers.")
   "Face used for editable fields spanning only a single line."
   :group 'widget-faces)
 
-(defvar widget-single-line-display-table
-  (let ((table (make-display-table)))
-    (aset table 9  "^I")
-    (aset table 10 "^J")
-    table)
-  "Display table used for single-line editable fields.")
+;;; This causes display-table to be loaded, and not usefully.
+;;;(defvar widget-single-line-display-table
+;;;  (let ((table (make-display-table)))
+;;;    (aset table 9  "^I")
+;;;    (aset table 10 "^J")
+;;;    table)
+;;;  "Display table used for single-line editable fields.")
 
-(when (fboundp 'set-face-display-table)
-  (set-face-display-table 'widget-single-line-field-face
-			  widget-single-line-display-table))
+;;;(when (fboundp 'set-face-display-table)
+;;;  (set-face-display-table 'widget-single-line-field-face
+;;;			  widget-single-line-display-table))
 
 ;;; Utility functions.
 ;;
