@@ -1,6 +1,22 @@
 2001-01-19  Kenichi Handa  <handa@etl.go.jp>
 
+	* charset.c (strwidth): Use c_string_width.
+	(c_string_width): New function.
+	(lisp_string_width): New arguments PRECISION, NCHARS, NBYTES.
+	Caller changed.
+
+	* charset.h (c_string_width, lisp_string_width): Extern them.
+
+	* doprnt.c (doprnt1): Get byte length of Lisp string correctly. 
+
 	* indent.c (check_composition): Check validity of composition.
+
+	* xdisp.c (store_frame_title): Pay attention to width of non-ASCII
+	characters by calling c_string_width.
+	(x_consider_frame_title): Get byte length of frame tile string
+	correctly.
+	(display_mode_element): Pay attention to width of non-ASCII
+	characters by calling strwidth.
 
 2001-01-18  Gerd Moellmann  <gerd@gnu.org>
 
