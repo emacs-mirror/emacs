@@ -1,5 +1,8 @@
 2001-06-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* calendar/calendar.el (generate-calendar-month): Add help-echo to
+	mouse-highlighted text.
+
 	* net/quickurl.el (quickurl-url-file): Run through
 	convert-standard-filename.
 	(quickurl-list-populate-buffer): Add help-echo to
