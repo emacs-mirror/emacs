@@ -1,3 +1,29 @@
+2005-03-16  Naoto Takahashi  <ntakahas@m17n.org>
+
+	* international/robin.el: New file.
+
+	* language/ethiopic.el: Encoding changed to utf-8-emacs.
+	Register ethio-composition-function in composition-function-table.
+	("Ethiopic"): Coding-systems changed to utf-8-emacs.
+
+	* language/ethio-util.el: Encoding changed to utf-8-emacs.  All
+	transliteration functions rewritten to use robin.el.
+	(ethio-fidel-to-sera-map, ethio-fidel-to-tex-map)
+	(ethio-sera-to-fidel-table, ethio-implicit-period-conversion)
+	(ethio-prefer-ascii-punctuation): Deleted variables.
+	(ethio-char-to-ethiocode, ethio-convert-digit)
+	(ethio-ethiocode-to-char, ethio-fidel-to-sera-mail)
+	(ethio-fidel-to-sera-mail-or-marker, ethio-lone-consonant-p)
+	(ethio-sera-to-fidel-english, ethio-sera-to-fidel-ethio)
+	(ethio-sera-to-fidel-mail, ethio-sera-to-fidel-mail-or-marker)
+	(ethio-tilde-escape, ethio-toggle-punctuation): Deleted functions.
+	(ethio-adjust-robin, ethio-composition-function)
+	(ethio-get-consonant, ethio-prefer-amharic, ethio-process-digits)
+	(ethio-sera-to-fidel-region-ethio)
+	(ethio-sera-to-fidel-region-noethio)
+	(ethio-use-colon-for-colon, ethio-use-three-dot-question): New
+	functions.
+	
 2005-01-30  Kenichi Handa  <handa@m17n.org>
 
 	* international/uni-name.el: Re-generated.
