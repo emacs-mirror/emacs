@@ -1241,9 +1241,9 @@ If FRAME doesn't support colors, the value is nil."
 If FRAME is omitted or nil, use the selected frame.
 If COLOR is the symbol `unspecified' or one of the strings
 \"unspecified-fg\" or \"unspecified-bg\", the value is nil."
-  (if (memq color '(unspecified "unspecified-bg" "unspecified-fg"))
+  (if (member color '(unspecified "unspecified-bg" "unspecified-fg"))
       nil
-    (if (memq (framep (or frame (selected-frame))) '(x w32))
+    (if (member (framep (or frame (selected-frame))) '(x w32))
 	(xw-color-defined-p color frame)
       (numberp (tty-color-translate color frame)))))
 (defalias 'x-color-defined-p 'color-defined-p)
@@ -1256,7 +1256,7 @@ If FRAME is omitted or nil, use the selected frame.
 If FRAME cannot display COLOR, the value is nil.
 If COLOR is the symbol `unspecified' or one of the strings
 \"unspecified-fg\" or \"unspecified-bg\", the value is nil."
-  (if (memq color '(unspecified "unspecified-fg" "unspecified-bg"))
+  (if (member color '(unspecified "unspecified-fg" "unspecified-bg"))
       nil
     (if (memq (framep (or frame (selected-frame))) '(x w32))
 	(xw-color-values color frame)
@@ -1320,9 +1320,9 @@ according to the `background-mode' and `display-type' frame parameters."
 		 'dark)
 		;; Unspecified frame background color can only happen
 		;; on tty's.
-		((memq bg-color '(unspecified unspecified-bg))
+		((member bg-color '(unspecified "unspecified-bg"))
 		 'dark)
-		((eq bg-color 'unspecified-fg) ; inverted colors
+		((equal bg-color "unspecified-fg") ; inverted colors
 		 'light)
 		((>= (apply '+ (x-color-values bg-color frame))
 		    ;; Just looking at the screen, colors whose
