@@ -162,7 +162,7 @@ static int region_face;
    does not specify that display aspect.  */
 #define FACE_DEFAULT (~0)
 
-Lisp_Object Qface, Qmouse_face;
+Lisp_Object Qface;
 Lisp_Object Qpixmap_spec_p;
 
 int face_name_id_number ( /* FRAME_PTR, Lisp_Object name */ );
@@ -174,7 +174,7 @@ static void ensure_face_ready ( /* FRAME_PTR, int id */ );
 void recompute_basic_faces ( /* FRAME_PTR f */ );
 static void merge_face_list ( /* FRAME_PTR, struct face *, Lisp_Object */ );
 
-extern Lisp_Object Qforeground_color, Qbackground_color;
+extern Lisp_Object Qforeground_color, Qbackground_color, Qmouse_face;
 
 /* Allocating, copying, and comparing struct faces.  */
 
@@ -1312,8 +1312,6 @@ syms_of_xfaces ()
 #ifdef HAVE_FACES
   Qface = intern ("face");
   staticpro (&Qface);
-  Qmouse_face = intern ("mouse-face");
-  staticpro (&Qmouse_face);
   Qpixmap_spec_p = intern ("pixmap-spec-p");
   staticpro (&Qpixmap_spec_p);
 
