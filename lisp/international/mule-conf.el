@@ -471,6 +471,8 @@
 
 ;;; Miscellaneous settings.
 (aset latin-extra-code-table ?\222 t)
+(aset latin-extra-code-table ?\223 t)
+(aset latin-extra-code-table ?\224 t)
 
 (update-coding-systems-internal)
 
