@@ -99,3 +99,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 
 #define OLDXMENU_OPTIONS ${C_SWITCH_MACHINE}
+
+/* In SR10.4, unistd.h has bad prototype for getpgrp, so we don't include it. */
+#undef HAVE_UNISTD_H
