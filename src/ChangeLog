@@ -1,3 +1,10 @@
+2003-06-24  Dave Love  <fx@gnu.org>
+
+	* xterm.c (xim_initialize): Use XRegisterIMInstantiateCallback_arg6.
+
+	* strftime.c: Test HAVE_SYS__MBSTATE_H, not __hpux.  Merge changes
+	from gnulib.
+
 2003-06-21  Richard M. Stallman  <rms@gnu.org>
 
 	* fileio.c (Fwrite_region): Alternate messages
