@@ -11319,8 +11319,6 @@ display_line (it)
 	  for (i = 0; i < nglyphs; ++i, x = new_x)
 	    {
 	      glyph = row->glyphs[TEXT_AREA] + n_glyphs_before + i;
-	      if (CHAR_GLYPH_PADDING_P (*glyph))
-		continue;
 	      new_x = x + glyph->pixel_width;
 
 	      if (/* Lines are continued.  */
@@ -11347,6 +11345,31 @@ display_line (it)
 		      ++it->hpos;
 		      if (i == nglyphs - 1)
 			set_iterator_to_next (it);
+		    }
+		  else if (CHAR_GLYPH_PADDING_P (*glyph)
+			   && !FRAME_WINDOW_P (it->f))
+		    {
+		      /* A padding glyph that doesn't fit on this line.
+			 This means the whole character doesn't fit
+			 on the line.  */
+		      row->used[TEXT_AREA] = n_glyphs_before;
+		  
+		      /* Fill the rest of the row with continuation
+			 glyphs like in 20.x.  */
+		      while (row->glyphs[TEXT_AREA] + row->used[TEXT_AREA]
+			     < row->glyphs[1 + TEXT_AREA])
+			produce_special_glyphs (it, IT_CONTINUATION);
+		      
+		      row->continued_p = 1;
+		      it->current_x = x_before;
+		      it->continuation_lines_width += x_before;
+		      
+		      /* Restore the height to what it was before the
+			 element not fitting on the line.  */
+		      it->max_ascent = ascent;
+		      it->max_descent = descent;
+		      it->max_phys_ascent = phys_ascent;
+		      it->max_phys_descent = phys_descent;
 		    }
 		  else
 		    {
