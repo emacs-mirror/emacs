@@ -1,3 +1,14 @@
+2002-08-24  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el (f90-xemacs-flag, f90-xemacs-menu)
+	(f90-menu-bar-menu, f90-change-case-menu, f90-font-lock-on)
+	(f90-font-lock-off, f90-font-lock-menu):  Deleted.  Use
+	easy-menu-define instead.
+	(f90-mode): Use easy-menu-add.
+	No longer (require 'imenu) when compiling.
+	(f90-mark-subprogram, f90-indent-region, f90-fill-region)
+	(f90-abbrev-start): Use fboundp.
+
 2002-08-23  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-hooks.el (vc-kill-buffer-hook): Add it to kill-buffer-hook again.
