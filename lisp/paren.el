@@ -40,39 +40,6 @@
 ;; This is the overlay used to highlight the closeparen right before point.
 (defvar show-paren-overlay-1 nil)
 
-(defvar show-paren-idle-timer nil)
-
-(defvar show-paren-mode)  ;; Real definition comes later.
-
-;;;###autoload
-(defun show-paren-mode (&optional arg)
-  "Toggle Show Paren mode.
-With prefix ARG, turn Show Paren mode on if and only if ARG is positive.
-Returns the new status of Show Paren mode (non-nil means on).
-
-When Show Paren mode is enabled, any matching parenthesis is highlighted
-in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
-  (interactive "P")
-  (when window-system
-    (let ((on-p (if arg
-		    (> (prefix-numeric-value arg) 0)
-		  (not show-paren-mode))))
-      (setq blink-matching-paren-on-screen (not on-p))
-      (when show-paren-idle-timer
-	(cancel-timer show-paren-idle-timer))
-      (if on-p
-	  (setq show-paren-idle-timer (run-with-idle-timer
-				       show-paren-delay t
-				       'show-paren-function))
-	(and show-paren-overlay (overlay-buffer show-paren-overlay)
-	     (delete-overlay show-paren-overlay))
-	(and show-paren-overlay-1 (overlay-buffer show-paren-overlay-1)
-	     (delete-overlay show-paren-overlay-1)))
-      (setq show-paren-mode on-p))))
-
-;; Naughty hack.  This variable was originally a `defvar' to keep track of
-;; whether Show Paren mode was turned on or not.  As a `defcustom' with
-;; special `:set' and `:require' forms, we can provide custom mode control.
 (defcustom show-paren-mode nil
   "Toggle Show Paren mode.
 When Show Paren mode is enabled, any matching parenthesis is highlighted
@@ -80,6 +47,7 @@ after `show-paren-delay' seconds of Emacs idle time.
 You must modify via \\[customize] for this variable to have an effect."
   :set (lambda (symbol value)
 	 (show-paren-mode (or value 0)))
+  :initialize 'custom-initialize-default
   :type 'boolean
   :group 'paren-showing
   :require 'paren)
@@ -113,6 +81,34 @@ otherwise)."
   "Show Paren mode face used for a mismatching paren."
   :group 'faces
   :group 'paren-showing)
+
+(defvar show-paren-idle-timer nil)
+
+;;;###autoload
+(defun show-paren-mode (&optional arg)
+  "Toggle Show Paren mode.
+With prefix ARG, turn Show Paren mode on if and only if ARG is positive.
+Returns the new status of Show Paren mode (non-nil means on).
+
+When Show Paren mode is enabled, any matching parenthesis is highlighted
+in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
+  (interactive "P")
+  (when window-system
+    (let ((on-p (if arg
+		    (> (prefix-numeric-value arg) 0)
+		  (not show-paren-mode))))
+      (setq blink-matching-paren-on-screen (not on-p))
+      (when show-paren-idle-timer
+	(cancel-timer show-paren-idle-timer))
+      (if on-p
+	  (setq show-paren-idle-timer (run-with-idle-timer
+				       show-paren-delay t
+				       'show-paren-function))
+	(and show-paren-overlay (overlay-buffer show-paren-overlay)
+	     (delete-overlay show-paren-overlay))
+	(and show-paren-overlay-1 (overlay-buffer show-paren-overlay-1)
+	     (delete-overlay show-paren-overlay-1)))
+      (setq show-paren-mode on-p))))
 
 ;; Find the place to show, if there is one,
 ;; and show it until input arrives.
@@ -211,5 +207,8 @@ otherwise)."
 	(overlay-put show-paren-overlay 'face face)))))
 
 (provide 'paren)
+
+(if show-paren-mode
+    (show-paren-mode t))
 
 ;;; paren.el ends here
