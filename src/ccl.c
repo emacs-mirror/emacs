@@ -1785,7 +1785,7 @@ setup_ccl_program (ccl, ccl_prog)
 #ifdef emacs
 
 DEFUN ("ccl-program-p", Fccl_program_p, Sccl_program_p, 1, 1, 0,
-  "Return t if OBJECT is a CCL program name or a compiled CCL program code.
+  "Return t if OBJECT is a CCL program name or a compiled CCL program code.\n\
 See the documentation of  `define-ccl-program' for the detail of CCL program.")
   (object)
      Lisp_Object object;
