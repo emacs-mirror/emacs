@@ -434,7 +434,7 @@ Runs after sc-cite-original executes.")
 (defun sc-mark ()
   "Mark compatibility between emacs v18 and v19."
   (let ((zmacs-regions nil))
-    (mark)))
+    (marker-position (mark-marker))))
 
 (defun sc-update-gal (attribution)
   "Update the information alist.
