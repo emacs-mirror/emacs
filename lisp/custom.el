@@ -141,7 +141,7 @@ not the default value itself."
 		((eq keyword :get)
 		 (put symbol 'custom-get value))
 		((eq keyword :require)
-		 (setq requests (cons value requests)))
+		 (push value requests))
 		((eq keyword :type)
 		 (put symbol 'custom-type (purecopy value)))
 		((eq keyword :options)
@@ -149,7 +149,7 @@ not the default value itself."
 		     ;; Slow safe code to avoid duplicates.
 		     (mapc (lambda (option)
 			     (custom-add-option symbol option))
-			     value)
+			   value)
 		   ;; Fast code for the common case.
 		   (put symbol 'custom-options (copy-sequence value))))
 		(t
@@ -159,7 +159,7 @@ not the default value itself."
     ;; Do the actual initialization.
     (unless custom-dont-initialize
       (funcall initialize symbol default)))
-  (setq current-load-list (cons symbol current-load-list))
+  (push (cons 'defvar symbol) current-load-list)
   (run-hooks 'custom-define-hook)
   symbol)
 
