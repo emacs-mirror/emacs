@@ -2927,9 +2927,11 @@ page-height == bm + print-height + tm - ho - hh
   (save-excursion			;insert string
     (insert string))
   ;; Find and quote special characters as necessary for PS
-  (while (re-search-forward "[\000-\037\177-\377()\\]" nil t)
-    (let ((special (preceding-char)))
-      (delete-char -1)
+  ;; This skips everything except control chars, nonascii chars,
+  ;; (, ) and \.
+  (while (progn (skip-chars-forward " -'*-[]-~") (not (eobp)))
+    (let ((special (following-char)))
+      (delete-char 1)
       (insert (aref ps-string-escape-codes special))))
   (goto-char (point-max))
   (insert ")"))				;insert end-string delimiter
