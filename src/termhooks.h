@@ -105,7 +105,7 @@ struct input_event {
 				   .modifiers holds the state of the
 				   modifier keys.
 				   .x and .y give the mouse position,
-				   in pixels, within the window.
+				   in characters, within the window.
 				   .screen gives the screen the mouse
 				   click occurred in.
 				   .timestamp gives a timestamp (in

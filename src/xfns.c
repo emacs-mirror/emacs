@@ -1,11 +1,11 @@
 /* Functions for the X window system.
-   Copyright (C) 1989 Free Software Foundation.
+   Copyright (C) 1989, 1992 Free Software Foundation.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -1045,6 +1045,17 @@ x_set_name (s, arg, oldval)
 
   if (s->display.x->window_desc)
     {
+#ifdef HAVE_X11
+      XTextProperty prop;
+      prop.value = XSTRING (arg)->data;
+      prop.encoding = XA_STRING;
+      prop.format = 8;
+      prop.nitems = XSTRING (arg)->size;
+      BLOCK_INPUT;
+      XSetWMName (XDISPLAY s->display.x->window_desc, &prop);
+      XSetWMIconName (XDISPLAY s->display.x->window_desc, &prop);
+      UNBLOCK_INPUT;
+#else
       s->name = arg;
       BLOCK_INPUT;
       XStoreName (XDISPLAY s->display.x->window_desc,
@@ -1052,6 +1063,7 @@ x_set_name (s, arg, oldval)
       XSetIconName (XDISPLAY s->display.x->window_desc,
 		    (char *) XSTRING (arg)->data);
       UNBLOCK_INPUT;
+#endif
     }
 }
 
@@ -2102,8 +2114,19 @@ be shared by the new screen.")
   x_set_resize_hint (s);
 
   /* Tell the server the window's default name.  */
-
+#ifdef HAVE_X11
+  {
+    XTextProperty prop;
+    prop.value = XSTRING (s->name)->data;
+    prop.encoding = XA_STRING;
+    prop.format = 8;
+    prop.nitems = XSTRING (s->name)->size;
+    XSetWMName (XDISPLAY s->display.x->window_desc, &prop);
+  }
+#else
   XStoreName (XDISPLAY s->display.x->window_desc, XSTRING (s->name)->data);
+#endif
+
   /* Now override the defaults with all the rest of the specified
      parms.  */
   tem = x_get_arg (parms, intern ("unsplittable"), 0, 0);

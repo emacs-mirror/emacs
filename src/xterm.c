@@ -1465,10 +1465,9 @@ construct_mouse_click (result, event, s, part, prefix)
      otherwise.  */
   result->kind = no_event;
   XSET (result->code, Lisp_Int, event->button);
-  XSET (result->timestamp, Lisp_Int, event->time);
+  result->timestamp = event->time;
   result->modifiers = (x_convert_modifiers (event->state)
 		       | (event->type == ButtonRelease ? up_modifier : 0));
-  XSET (result->timestamp, Lisp_Int, (event->time & 0x7fffff));
 
   /* Notice if the mouse is still grabbed.  */
   if (event->type == ButtonPress)
@@ -1998,7 +1997,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		      XSET (bufp->code, Lisp_Int, (unsigned) keysym - 0xff50);
 		      bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
 		      bufp->modifiers = x_convert_modifiers (modifiers);
-		      XSET (bufp->timestamp, Lisp_Int, event.xkey.time);
+		      bufp->timestamp = event.xkey.time;
 		      bufp++;
 		      count++;
 		      numchars--;
@@ -2012,9 +2011,9 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			  if (modifiers & Mod1Mask)
 			    *copy_buffer |= METABIT;
 			  bufp->kind = ascii_keystroke;
-			  bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
 			  XSET (bufp->code, Lisp_Int, *copy_buffer);
-			  XSET (bufp->timestamp, Lisp_Int, event.xkey.time);
+			  bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
+			  bufp->timestamp = event.xkey.time;
 			  bufp++;
 			}
 		      else
@@ -2022,8 +2021,8 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			  {
 			    bufp->kind = ascii_keystroke;
 			    XSET (bufp->code, Lisp_Int, copy_buffer[i]);
-			    XSET (bufp->timestamp, Lisp_Int, event.xkey.time);
 			    bufp->screen = XSCREEN (SCREEN_FOCUS_SCREEN (s));
+			    bufp->timestamp = event.xkey.time;
 			    bufp++;
 			  }
 
@@ -2167,14 +2166,12 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    break;		/* Entering our own subwindow.  */
 
 	  {
-	    extern int waiting_for_input;
 	    struct screen *old_s = x_input_screen;
 
 	    s = x_window_to_screen (event.window);
 	    x_mouse_screen = s;
 
-	    if (waiting_for_input && x_focus_screen == 0)
-	      x_new_focus_screen (s);
+	    x_new_focus_screen (s);
 	  }
 	  break;
 
@@ -2592,6 +2589,14 @@ x_display_box_cursor (s, on)
 {
   struct screen_glyphs *current_glyphs = SCREEN_CURRENT_GLYPHS (s);
 
+  /* If we're not updating, then we want to use the current screen's
+     cursor position, not our local idea of where the cursor ought to be.  */
+  if (s != updating_screen)
+    {
+      curs_x = SCREEN_CURSOR_X (s);
+      curs_y = SCREEN_CURSOR_Y (s);
+    }
+
   if (! s->visible)
     return;
 
@@ -2605,8 +2610,8 @@ x_display_box_cursor (s, on)
      erase it.  */
   if (s->phys_cursor_x >= 0
       && (!on
-	  || s->phys_cursor_x != s->cursor_x
-	  || s->phys_cursor_y != s->cursor_y
+	  || s->phys_cursor_x != curs_x
+	  || s->phys_cursor_y != curs_y
 	  || (s->display.x->text_cursor_kind != hollow_box_cursor
 	      && (s != x_highlight_screen))))
     {
@@ -2626,9 +2631,9 @@ x_display_box_cursor (s, on)
 	      && s == x_highlight_screen)))
     {
       s->phys_cursor_glyph
-	= ((current_glyphs->enable[s->cursor_y]
-	    && s->cursor_x < current_glyphs->used[s->cursor_y])
-	   ? current_glyphs->glyphs[s->cursor_y][s->cursor_x]
+	= ((current_glyphs->enable[curs_y]
+	    && curs_x < current_glyphs->used[curs_y])
+	   ? current_glyphs->glyphs[curs_y][curs_x]
 	   : SPACEGLYPH);
       if (s != x_highlight_screen)
 	{
@@ -2637,13 +2642,13 @@ x_display_box_cursor (s, on)
 	}
       else
 	{
-	  x_draw_single_glyph (s, s->cursor_y, s->cursor_x,
+	  x_draw_single_glyph (s, curs_y, curs_x,
 			       s->phys_cursor_glyph, 2);
 	  s->display.x->text_cursor_kind = filled_box_cursor;
 	}
 
-      s->phys_cursor_x = s->cursor_x;
-      s->phys_cursor_y = s->cursor_y;
+      s->phys_cursor_x = curs_x;
+      s->phys_cursor_y = curs_y;
     }
 
   if (updating_screen != s)

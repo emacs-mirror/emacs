@@ -29,11 +29,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define MAX_SELECTION(dpy) (((dpy)->max_request_size << 2) - 100)
 #define SELECTION_LENGTH(len,format) ((len) * ((format) >> 2))
 
-/* The last 23 bits of the timestamp of the last mouse button event. */
-extern Time mouse_timestamp;
-
-/* An expedient hack!  Fix this!  */
-#define last_event_timestamp CurrentTime
+/* The timestamp of the last input event we received from the X server.  */
+unsigned long last_event_timestamp;
 
 /* t if a mouse button is depressed. */
 extern Lisp_Object Vmouse_grabbed;
@@ -56,8 +53,10 @@ Lisp_Object Vx_selection_value;
 /* The value of the current SECONDARY selection. */
 Lisp_Object Vx_secondary_selection_value;
 
-/* Types of selections we may make. */
-Lisp_Object Qprimary, Qsecondary, Qclipboard;
+/* Types of selections we may make.  Note that Qcut_buffer0 isn't really
+   a selection, but it acts like one for the sake of Fx_own_selection and
+   Fx_selection_value.  */
+Lisp_Object Qprimary, Qsecondary, Qclipboard, Qcut_buffer0;
 
 /* Emacs' selection property identifiers. */
 Atom Xatom_emacs_selection;
@@ -146,13 +145,18 @@ own_selection (selection_type, time)
 DEFUN ("x-own-selection", Fx_own_selection, Sx_own_selection,
   1, 2, "",
   "Make STRING the selection value.  Default is the primary selection,\n\
-but optional second argument TYPE may specify secondary or clipboard.")
+but optional second argument TYPE may specify secondary or clipboard.\n\
+\n\
+TYPE may also be cut-buffer0, indicating that Emacs should set the X\n\
+cut buffer 0 to STRING.  This is for compatibility with older X\n\
+applications which still use the cut buffers; new applications should\n\
+use X selections.")
   (string, type)
      register Lisp_Object string, type;
 {
   Atom selection_type;
   Lisp_Object val;
-  Time event_time = mouse_timestamp;
+  Time event_time = last_event_timestamp;
   CHECK_STRING (string, 0);
 
   if (NILP (type) || EQ (type, Qprimary))
@@ -163,7 +167,7 @@ but optional second argument TYPE may specify secondary or clipboard.")
 	  x_begin_selection_own = event_time;
 	  val = Vx_selection_value = string;
 	}
-	  UNBLOCK_INPUT;
+      UNBLOCK_INPUT;
     }
   else if (EQ (type, Qsecondary))
     {
@@ -180,10 +184,18 @@ but optional second argument TYPE may specify secondary or clipboard.")
       BLOCK_INPUT;
       if (own_selection (Xatom_clipboard, event_time))
 	{
-  x_begin_clipboard_own = event_time;
+	  x_begin_clipboard_own = event_time;
 	  val = Vx_clipboard_value = string;
 	}
-  UNBLOCK_INPUT;
+      UNBLOCK_INPUT;
+    }
+  else if (EQ (type, Qcut_buffer0))
+    {
+      BLOCK_INPUT;
+      XStoreBytes (x_current_display,
+		   XSTRING (string)->data,
+		   XSTRING (string)->size);
+      UNBLOCK_INPUT;
     }
   else
     error ("Invalid X selection type");
@@ -230,7 +242,7 @@ int x_selection_alloc_error;
 int x_converting_selection;
 
 /* Reply to some client's request for our selection data.  Data is
-   placed in a propery supplied by the requesting window.
+   placed in a property supplied by the requesting window.
 
    If the data exceeds the maximum amount the server can send,
    then prepare to send it incrementally, and reply to the client with
@@ -518,7 +530,7 @@ get_selection_value (type)
   Window requestor_window;
 
   BLOCK_INPUT;
-  requestor_time = mouse_timestamp;
+  requestor_time = last_event_timestamp;
   requestor_window = selected_screen->display.x->window_desc;
   XConvertSelection (x_current_display, type, XA_STRING,
 		     Xatom_emacs_selection, requestor_window, requestor_time);
@@ -565,6 +577,22 @@ selection, but optional argument TYPE may specify secondary or clipboard.")
 	return Vx_clipboard_value;
 
       return get_selection_value (Xatom_clipboard);
+    }
+  else if (EQ (type, Qcut_buffer0))
+    {
+      char *data;
+      int size;
+      Lisp_Object string;
+
+      BLOCK_INPUT;
+      data = XFetchBytes (x_current_display, &size);
+      if (data == 0)
+	string = Qnil;
+      else
+	string = make_string (data, size);
+      UNBLOCK_INPUT;
+      
+      return string;
     }
   else
     error ("Invalid X selection type");
@@ -704,6 +732,8 @@ syms_of_xselect ()
   staticpro (&Qsecondary);
   Qclipboard = intern ("clipboard");
   staticpro (&Qclipboard);
+  Qcut_buffer0 = intern ("cut-buffer0");
+  staticpro (&Qcut_buffer0);
 
   defsubr (&Sx_own_selection);
   defsubr (&Sx_selection_value);

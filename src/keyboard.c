@@ -210,7 +210,8 @@ Lisp_Object Vmouse_motion_handler;
    new screen.  */
 Lisp_Object Vlast_event_screen;
 
-/* X Windows wants this for selection ownership.  */
+/* The timestamp of the last input event we received from the X server.
+   X Windows wants this for selection ownership.  */
 unsigned long last_event_timestamp;
 
 Lisp_Object Qself_insert_command;
@@ -1610,7 +1611,7 @@ kbd_buffer_get_event ()
       if (kbd_fetch_ptr == kbd_buffer + KBD_BUFFER_SIZE)
 	kbd_fetch_ptr = kbd_buffer;
       XSET (Vlast_event_screen, Lisp_Screen, kbd_fetch_ptr->screen);
-      last_event_timestamp = XINT (kbd_fetch_ptr->timestamp);
+      last_event_timestamp = kbd_fetch_ptr->timestamp;
       obj = make_lispy_event (kbd_fetch_ptr);
       kbd_fetch_ptr->kind = no_event;
       kbd_fetch_ptr++;
@@ -1791,7 +1792,8 @@ make_lispy_event (event)
 		      Fcons (window,
 			     Fcons (posn,
 				    Fcons (Fcons (event->x, event->y),
-					   Fcons (event->timestamp,
+					   Fcons (make_number
+						  (event->timestamp),
 						  Qnil)))));
       }
 
@@ -1810,7 +1812,8 @@ make_lispy_event (event)
 		      Fcons (SCREEN_SELECTED_WINDOW (event->screen),
 			     Fcons (button,
 				    Fcons (Fcons (event->x, event->y),
-					   Fcons (event->timestamp,
+					   Fcons (make_number
+						  (event->timestamp),
 						  Qnil)))));
       }
 
@@ -1872,8 +1875,8 @@ format_modifiers (modifiers, buf)
 {
   char *p = buf;
 
-  if (modifiers & meta_modifier) { *p++ = 'M'; *p++ = '-'; }
   if (modifiers & ctrl_modifier) { *p++ = 'C'; *p++ = '-'; }
+  if (modifiers & meta_modifier) { *p++ = 'M'; *p++ = '-'; }
   if (modifiers & shift_modifier) { *p++ = 'S'; *p++ = '-'; }
   if (modifiers & up_modifier) { *p++ = 'U'; *p++ = '-'; }
   *p = '\0';
@@ -2982,17 +2985,31 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 			       Vobarray, Qcommandp,
 			       Qt, Qnil, Qnil);
 
-  /* Add the text read to this_command_keys.  */
+  /* Set this_command_keys to the concatenation of saved_keys and
+     function, followed by a RET.  */
   {
-    struct Lisp_String *func_str = XSTRING (function);
+    struct Lisp_String *str;
     int i;
     Lisp_Object tem;
 
-    for (i = 0; i < func_str->size; i++)
+    this_command_key_count = 0;
+
+    str = XSTRING (saved_keys);
+    for (i = 0; i < str->size; i++)
       {
-	XSET (tem, Lisp_Int, func_str->data[i]);
+	XFASTINT (tem) = str->data[i];
 	add_command_key (tem);
       }
+
+    str = XSTRING (function);
+    for (i = 0; i < str->size; i++)
+      {
+	XFASTINT (tem) = str->data[i];
+	add_command_key (tem);
+      }
+
+    XFASTINT (tem) = '\015';
+    add_command_key (tem);
   }
 
   UNGCPRO;

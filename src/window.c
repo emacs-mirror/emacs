@@ -1,12 +1,12 @@
 /* Window creation, deletion and examination for GNU Emacs.
    Does not include redisplay.
-   Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -357,7 +357,10 @@ coordinates_in_window (w, x, y)
 DEFUN ("coordinates-in-window-p", Fcoordinates_in_window_p,
   Scoordinates_in_window_p, 2, 2, 0,
   "Return non-nil if COORDINATES are in WINDOW.\n\
-COORDINATES is a cons of the form (X . Y), X and Y being screen-relative.\n\
+COORDINATES is a cons of the form (X . Y), X and Y being distances\n\
+measured in characters from the upper-left corner of the screen.\n\
+(0 .  0) denotes the character in the upper left corner of the\n\
+screen.\n\
 If COORDINATES are in the text portion of WINDOW,\n\
    the coordinates relative to the window are returned.\n\
 If they are in the mode line of WINDOW, 'mode-line is returned.\n\

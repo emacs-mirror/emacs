@@ -1,11 +1,11 @@
 /* Generic screen functions.
-   Copyright (C) 1989 Free Software Foundation.
+   Copyright (C) 1989, 1992 Free Software Foundation.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -194,7 +194,9 @@ make_screen_without_minibuffer (mini_window)
   if (NILP (mini_window))
     {
       if (XTYPE (Vdefault_minibuffer_screen) != Lisp_Screen)
-	error ("default-minibuffer-screen must be set when creating minibufferless screens.");
+	error ("default-minibuffer-screen must be set when creating minibufferless screens");
+      if (! SCREEN_LIVE_P (XSCREEN (Vdefault_minibuffer_screen)))
+	error ("default-minibuffer-screen must be a live screen");
       mini_window = XSCREEN (Vdefault_minibuffer_screen)->minibuffer_window;
     }
   else
@@ -492,16 +494,22 @@ A screen may not be deleted if its minibuffer is used by other screens.")
      minibuffer for any other screen?  */
   if (SCREEN_HAS_MINIBUF (XSCREEN (screen)))
     {
-      Lisp_Object screen2;
+      Lisp_Object screens;
 
-      for (screen2 = Vscreen_list; CONSP (2); screen2 = XCONS (screen2)->cdr)
-	if (! EQ (screen2, screen)
-	    && EQ (screen,
-		   (WINDOW_SCREEN
-		    (XWINDOW
-		     (SCREEN_MINIBUF_WINDOW
-		      (XSCREEN (screen2)))))))
-	  error ("Attempt to delete a surrogate minibuffer screen");
+      for (screens = Vscreen_list;
+	   CONSP (screens);
+	   screens = XCONS (screens)->cdr)
+	{
+	  Lisp_Object this = XCONS (screens)->car;
+
+	  if (! EQ (this, screen)
+	      && EQ (screen,
+		     (WINDOW_SCREEN
+		      (XWINDOW
+		       (SCREEN_MINIBUF_WINDOW
+			(XSCREEN (this)))))))
+	    error ("Attempt to delete a surrogate minibuffer screen");
+	}
     }
 
   /* Don't let the screen remain selected.  */
@@ -530,17 +538,61 @@ A screen may not be deleted if its minibuffer is used by other screens.")
      another one.  */
   if (s == last_nonminibuf_screen)
     {
+      Lisp_Object screens;
+
       last_nonminibuf_screen = 0;
 
-      for (screen = Vscreen_list; CONSP (screen); screen = XCONS (screen)->cdr)
+      for (screens = Vscreen_list;
+	   CONSP (screens);
+	   screen = XCONS (screens)->cdr)
 	{
-	  s = XSCREEN (XCONS (screen)->car);
+	  s = XSCREEN (XCONS (screens)->car);
 	  if (!SCREEN_MINIBUF_ONLY_P (s))
 	    {
 	      last_nonminibuf_screen = s;
 	      break;
 	    }
 	}
+    }
+
+  /* If we've deleted Vdefault_minibuffer_screen, try to find another
+     one.  Prefer minibuffer-only screens, but also notice screens
+     with other windows.  */
+  if (EQ (screen, Vdefault_minibuffer_screen))
+    {
+      Lisp_Object screens;
+
+      /* The last screen we saw with a minibuffer, minibuffer-only or not.  */
+      Lisp_Object screen_with_minibuf = Qnil;
+
+      for (screens = Vscreen_list;
+	   CONSP (screens);
+	   screens = XCONS (screens)->cdr)
+	{
+	  Lisp_Object this = XCONS (screens)->car;
+
+	  if (XTYPE (this) != Lisp_Screen)
+	    abort ();
+	  s = XSCREEN (this);
+
+	  if (SCREEN_HAS_MINIBUF (s))
+	    {
+	      screen_with_minibuf = this;
+	      if (SCREEN_MINIBUF_ONLY_P (s))
+		break;
+	    }
+	}
+
+      /* We know that there must be some screen with a minibuffer out
+	 there.  If this were not true, all of the screens present
+	 would have to be minibufferless, which implies that at some
+	 point their minibuffer screens must have been deleted, but
+	 that is prohibited at the top; you can't delete surrogate
+	 minibuffer screens.  */
+      if (NILP (screen_with_minibuf))
+	abort ();
+
+      Vdefault_minibuffer_screen = screen_with_minibuf;
     }
 
   return Qnil;

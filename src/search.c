@@ -47,8 +47,16 @@ Lisp_Object last_regexp;
 
    Since the registers are now dynamically allocated, we need to make
    sure not to refer to the Nth register before checking that it has
-   been allocated.  */
+   been allocated by checking search_regs.num_regs.
 
+   The regex code keeps track of whether it has allocated the search
+   buffer using bits in searchbuf.  This means that whenever you
+   compile a new pattern, it completely forgets whether it has
+   allocated any registers, and will allocate new registers the next
+   time you call a searching or matching function.  Therefore, we need
+   to call re_set_registers after compiling a new pattern or after
+   setting the match registers, so that the regex functions will be
+   able to free or re-allocate it properly.  */
 static struct re_registers search_regs;
 
 /* Nonzero if search_regs are indices in a string; 0 if in a buffer.  */
@@ -73,9 +81,10 @@ matcher_overflow ()
 
 /* Compile a regexp and signal a Lisp error if anything goes wrong.  */
 
-compile_pattern (pattern, bufp, translate)
+compile_pattern (pattern, bufp, regp, translate)
      Lisp_Object pattern;
      struct re_pattern_buffer *bufp;
+     struct re_registers *regp;
      char *translate;
 {
   CONST char *val;
@@ -84,6 +93,7 @@ compile_pattern (pattern, bufp, translate)
   if (EQ (pattern, last_regexp)
       && translate == bufp->translate)
     return;
+
   last_regexp = Qnil;
   bufp->translate = translate;
   val = re_compile_pattern ((char *) XSTRING (pattern)->data,
@@ -95,7 +105,13 @@ compile_pattern (pattern, bufp, translate)
       while (1)
 	Fsignal (Qinvalid_regexp, Fcons (dummy, Qnil));
     }
+
   last_regexp = pattern;
+
+  /* Advise the searching functions about the space we have allocated
+     for register data.  */
+  re_set_registers (bufp, regp, regp->num_regs, regp->start, regp->end);
+
   return;
 }
 
@@ -124,7 +140,7 @@ data if you want to preserve them.")
   register int i;
 
   CHECK_STRING (string, 0);
-  compile_pattern (string, &searchbuf,
+  compile_pattern (string, &searchbuf, &search_regs,
 		   !NILP (current_buffer->case_fold_search) ? DOWNCASE_TABLE : 0);
 
   immediate_quit = 1;
@@ -196,7 +212,7 @@ matched by parenthesis constructs in the pattern.")
 	args_out_of_range (string, start);
     }
 
-  compile_pattern (regexp, &searchbuf,
+  compile_pattern (regexp, &searchbuf, &search_regs,
 		   !NILP (current_buffer->case_fold_search) ? DOWNCASE_TABLE : 0);
   immediate_quit = 1;
   val = re_search (&searchbuf, (char *) XSTRING (string)->data,
@@ -506,7 +522,7 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
     return pos;
 
   if (RE)
-    compile_pattern (string, &searchbuf, (char *) trt);
+    compile_pattern (string, &searchbuf, &search_regs, (char *) trt);
   
   if (RE			/* Here we detect whether the */
 				/* generality of an RE search is */
@@ -768,6 +784,22 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 		  if (i + direction == 0)
 		    {
 		      cursor -= direction;
+
+		      /* Make sure we have registers in which to store
+			 the match position.  */
+		      if (search_regs.num_regs == 0)
+			{
+			  regoff_t *starts, *ends;
+
+			  starts =
+			    (regoff_t *) xmalloc (2 * sizeof (regoff_t));
+			  ends =
+			    (regoff_t *) xmalloc (2 * sizeof (regoff_t));
+			  re_set_registers (&searchbuf,
+					    &search_regs,
+					    2, starts, ends);
+			}
+
 		      search_regs.start[0]
 			= pos + cursor - p2 + ((direction > 0)
 					       ? 1 - len : 0);
@@ -827,6 +859,22 @@ search_buffer (string, pos, lim, n, RE, trt, inverse_trt)
 		  if (i + direction == 0)
 		    {
 		      pos -= direction;
+
+		      /* Make sure we have registers in which to store
+			 the match position.  */
+		      if (search_regs.num_regs == 0)
+			{
+			  regoff_t *starts, *ends;
+
+			  starts =
+			    (regoff_t *) xmalloc (2 * sizeof (regoff_t));
+			  ends =
+			    (regoff_t *) xmalloc (2 * sizeof (regoff_t));
+			  re_set_registers (&searchbuf,
+					    &search_regs,
+					    2, starts, ends);
+			}
+
 		      search_regs.start[0]
 			= pos + ((direction > 0) ? 1 - len : 0);
 		      search_regs.end[0] = len + search_regs.start[0];
@@ -1004,6 +1052,7 @@ Otherwise treat `\\' as special:\n\
   `\\N' means substitute what matched the Nth `\\(...\\)'.\n\
        If Nth parens didn't match, substitute nothing.\n\
   `\\\\' means insert one `\\'.\n\
+FIXEDCASE and LITERAL are optional arguments.\n\
 Leaves point at end of replacement text.")
   (string, fixedcase, literal)
      Lisp_Object string, fixedcase, literal;
@@ -1221,20 +1270,25 @@ LIST should have been created by calling `match-data' previously.")
 
     if (length > search_regs.num_regs)
       {
-	if (search_regs.start)
-	  search_regs.start =
-	    (regoff_t *) realloc (search_regs.start,
-				  length * sizeof (regoff_t));
+	if (search_regs.num_regs == 0)
+	  {
+	    search_regs.start
+	      = (regoff_t *) xmalloc (length * sizeof (regoff_t));
+	    search_regs.end
+	      = (regoff_t *) xmalloc (length * sizeof (regoff_t));
+	  }
 	else
-	  search_regs.start = (regoff_t *) malloc (length * sizeof (regoff_t));
-	if (search_regs.end)
-	  search_regs.end =
-	    (regoff_t *) realloc (search_regs.end,
-				  length * sizeof (regoff_t));
-	else
-	  search_regs.end = (regoff_t *) malloc (length * sizeof (regoff_t));
+	  {
+	    search_regs.start
+	      = (regoff_t *) xrealloc (search_regs.start,
+				       length * sizeof (regoff_t));
+	    search_regs.end
+	      = (regoff_t *) xrealloc (search_regs.end,
+				       length * sizeof (regoff_t));
+	  }
 
-	search_regs.num_regs = length;
+	re_set_registers (&searchbuf, &search_regs, length,
+			  search_regs.start, search_regs.end);
       }
   }
 

@@ -96,8 +96,9 @@ Lisp_Object Vglyph_table;
 Lisp_Object Vstandard_display_table;
 
 /* Nonzero means reading single-character input with prompt
-   so put cursor on minibuffer after the prompt.  */
-
+   so put cursor on minibuffer after the prompt.
+   positive means at end of text in echo area;
+   negative means at beginning of line.  */
 int cursor_in_echo_area;
 
 /* The currently selected screen.
@@ -1056,16 +1057,19 @@ update_screen (s, force, inhibit_hairy_id)
   /* Now just clean up termcap drivers and set cursor, etc.  */
   if (!pause)
     {
-
-      if (s == selected_screen && cursor_in_echo_area < 0)
-	cursor_to (SCREEN_HEIGHT (s) - 1, 0);
-      else if (s == selected_screen && cursor_in_echo_area
-	       && !desired_screen->used[SCREEN_HEIGHT (s) - 1])
-	cursor_to (SCREEN_HEIGHT (s), 0);
-      else if (cursor_in_echo_area)
-	cursor_to (SCREEN_HEIGHT (s) - 1,
-		   min (SCREEN_WIDTH (s) - 1,
-			desired_screen->used[SCREEN_HEIGHT (s) - 1]));
+      if (cursor_in_echo_area)
+	{
+	  if (s == selected_screen
+	      && cursor_in_echo_area < 0)
+	    cursor_to (SCREEN_HEIGHT (s) - 1, 0);
+	  else if (s == selected_screen
+		   && ! current_screen->enable[SCREEN_HEIGHT (s) - 1])
+	    cursor_to (SCREEN_HEIGHT (s) - 1, 0);
+	  else
+	    cursor_to (SCREEN_HEIGHT (s) - 1,
+		       min (SCREEN_WIDTH (s) - 1,
+			    current_screen->used[SCREEN_HEIGHT (s) - 1]));
+	}
       else
 	cursor_to (SCREEN_CURSOR_Y (s), max (min (SCREEN_CURSOR_X (s),
 						  SCREEN_WIDTH (s) - 1), 0));
@@ -1906,9 +1910,10 @@ Value is t if waited the full time with no input arriving.")
      Lisp_Object arg, millisec, nodisp;
 {
   int usec = 0;
-  int sec = 0;
+  int sec;
 
   CHECK_NUMBER (arg, 0);
+  sec = XINT (arg);
 
   if (!NILP (millisec))
     {
