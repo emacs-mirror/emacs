@@ -1,3 +1,9 @@
+2004-10-16  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/compile.el (compilation-start): Move let-binding of
+	`process-environment' into `with-current-buffer' body.
+	Reported by Matt Hodges <MPHodges@member.fsf.org>.
+
 2004-10-16  Richard M. Stallman  <rms@gnu.org>
 
 	* pcvs-util.el (cvs-bury-buffer):
@@ -271,7 +277,7 @@
 2004-10-05  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-done): Set mark after running hook.
-	Suggested by Drew Adams <drew.adams@oracle.com>.
+	Reported by Drew Adams <drew.adams@oracle.com>.
 
 	* info.el (Info-history, Info-toc): Fix Info headers.
 	(Info-toc): Narrow buffer before Info-fontify-node.
