@@ -100,12 +100,14 @@ On nonblank line, delete all blank lines that follow it."
     (save-excursion
       (beginning-of-line)
       (setq thisblank (looking-at "[ \t]*$"))
+      ;; Set singleblank if there is just one blank line here.
       (setq singleblank
 	    (and thisblank
 		 (not (looking-at "[ \t]*\n[ \t]*$"))
 		 (or (bobp)
 		     (progn (forward-line -1)
 			    (not (looking-at "[ \t]*$")))))))
+    ;; Delete preceding blank lines, and this one too if it's the only one.
     (if thisblank
 	(progn
 	  (beginning-of-line)
@@ -114,6 +116,8 @@ On nonblank line, delete all blank lines that follow it."
 			 (if (re-search-backward "[^ \t\n]" nil t)
 			     (progn (forward-line 1) (point))
 			   (point-min)))))
+    ;; Delete following blank lines, unless the current line is blank
+    ;; and there are no following blank lines.
     (if (not (and thisblank singleblank))
 	(save-excursion
 	  (end-of-line)
@@ -121,7 +125,11 @@ On nonblank line, delete all blank lines that follow it."
 	  (delete-region (point)
 			 (if (re-search-forward "[^ \t\n]" nil t)
 			     (progn (beginning-of-line) (point))
-			   (point-max)))))))
+			   (point-max)))))
+    ;; Handle the special case where point is followed by newline and eob.
+    ;; Delete the line, leaving point at eob.
+    (if (looking-at "^[ \t]*\n\\'")
+	(delete-region (point) (point-max)))))
 
 (defun back-to-indentation ()
   "Move point to the first non-whitespace character on this line."
@@ -235,7 +243,10 @@ Don't use this in Lisp programs!
     (recenter -3)))
 
 (defun mark-whole-buffer ()
-  "Put point at beginning and mark at end of buffer."
+  "Put point at beginning and mark at end of buffer.
+You probably should not use this function in Lisp programs;
+it is usually a mistake for a Lisp function to use any subroutine
+that uses or sets the mark."
   (interactive)
   (push-mark (point))
   (push-mark (point-max))
@@ -591,12 +602,12 @@ Repeating \\[universal-argument] without digits or minus sign
   (interactive nil)
   (let ((factor 4)
 	key)
-    (describe-arg (list factor) 1)
-    (setq key (read-key-sequence nil))
+;;    (describe-arg (list factor) 1)
+    (setq key (read-key-sequence nil t))
     (while (equal (key-binding key) 'universal-argument)
       (setq factor (* 4 factor))
-      (describe-arg (list factor) 1)
-      (setq key (read-key-sequence nil)))
+;;      (describe-arg (list factor) 1)
+      (setq key (read-key-sequence nil t)))
     (prefix-arg-internal key factor nil)))
 
 (defun prefix-arg-internal (key factor value)
@@ -605,19 +616,19 @@ Repeating \\[universal-argument] without digits or minus sign
 	(setq sign -1 value (- value)))
     (if (eq value '-)
 	(setq sign -1 value nil))
-    (describe-arg value sign)
+;;    (describe-arg value sign)
     (while (equal key "-")
       (setq sign (- sign) factor nil)
-      (describe-arg value sign)
-      (setq key (read-key-sequence nil)))
+;;      (describe-arg value sign)
+      (setq key (read-key-sequence nil t)))
     (while (and (= (length key) 1)
 		(not (string< key "0"))
 		(not (string< "9" key)))
       (setq value (+ (* (if (numberp value) value 0) 10)
 		     (- (aref key 0) ?0))
 	    factor nil)
-      (describe-arg value sign)
-      (setq key (read-key-sequence nil)))
+;;      (describe-arg value sign)
+      (setq key (read-key-sequence nil t)))
     (setq prefix-arg
 	  (cond (factor (list factor))
 		((numberp value) (* value sign))
@@ -627,7 +638,7 @@ Repeating \\[universal-argument] without digits or minus sign
     (if (eq (key-binding key) 'universal-argument)
 	(progn
 	  (describe-arg value sign)
-	  (setq key (read-key-sequence nil))))
+	  (setq key (read-key-sequence nil t))))
     (if (= (length key) 1)
 	;; Make sure self-insert-command finds the proper character;
 	;; unread the character and let the command loop process it.
@@ -688,10 +699,46 @@ a number counts as a prefix arg."
 		     (end-of-line)))
 		 (point))))
 
-;;;; The kill ring
+;;;; Window system cut and paste hooks.
+
+(defvar interprogram-cut-function nil
+  "Function to call to make a killed region available to other programs.
+
+Most window systems provide some sort of facility for cutting and
+pasting text between the windows of different programs.  On startup,
+this variable is set to a function which emacs will call whenever text
+is put in the kill ring to make the new kill available to other
+programs.
+
+The function takes one argument, TEXT, which is a string containing
+the text which should be made available.")
+
+(defvar interprogram-paste-function nil
+  "Function to call to get text cut from other programs.
+
+Most window systems provide some sort of facility for cutting and
+pasting text between the windows of different programs.  On startup,
+this variable is set to a function which emacs will call to obtain
+text that other programs have provided for pasting.
+
+The function should be called with no arguments.  If the function
+returns nil, then no other program has provided such text, and the top
+of the Emacs kill ring should be used.  If the function returns a
+string, that string should be put in the kill ring as the latest kill.")
+
+
+
+;;;; The kill ring data structure.
 
 (defvar kill-ring nil
-  "List of killed text sequences.")
+  "List of killed text sequences.
+Since the kill ring is supposed to interact nicely with cut-and-paste
+facilities offered by window systems, use of this variable should
+interact nicely with `interprogram-cut-function' and
+`interprogram-paste-function'.  The functions `kill-new',
+`kill-append', and `current-kill' are supposed to implement this
+interaction; you may want to use them instead of manipulating the kill
+ring directly.")
 
 (defconst kill-ring-max 30
   "*Maximum length of kill ring before oldest elements are thrown away.")
@@ -699,22 +746,60 @@ a number counts as a prefix arg."
 (defvar kill-ring-yank-pointer nil
   "The tail of the kill ring whose car is the last thing yanked.")
 
+(defun kill-new (string)
+  "Make STRING the latest kill in the kill ring.
+Set the kill-ring-yank pointer to point to it.
+If `interprogram-cut-function' is non-nil, apply it to STRING."
+  (setq kill-ring (cons string kill-ring))
+  (if (> (length kill-ring) kill-ring-max)
+      (setcdr (nthcdr (1- kill-ring-max) kill-ring) nil))
+  (setq kill-ring-yank-pointer kill-ring)
+  (if interprogram-cut-function
+      (funcall interprogram-cut-function string)))
+
 (defun kill-append (string before-p)
+  "Append STRING to the end of the latest kill in the kill ring.
+If BEFORE-P is non-nil, prepend STRING to the kill.
+If 'interprogram-cut-function' is set, pass the resulting kill to
+it."
   (setcar kill-ring
 	  (if before-p
 	      (concat string (car kill-ring))
-	      (concat (car kill-ring) string))))
+	    (concat (car kill-ring) string)))
+  (if interprogram-cut-function
+      (funcall interprogram-cut-function (car kill-ring))))
 
-(defvar interprogram-cut-function nil
-  "Function to call to make a killed region available to other programs.
+(defun current-kill (n &optional do-not-move)
+  "Rotate the yanking point by N places, and then return that kill.
+If N is zero, `interprogram-paste-function' is set, and calling it
+returns a string, then that string is added to the front of the
+kill ring and returned as the latest kill.
+If optional arg DO-NOT-MOVE is non-nil, then don't actually move the 
+yanking point; just return the Nth kill forward."
+  (let ((interprogram-paste (and (= n 0)
+				 interprogram-paste-function
+				 (funcall interprogram-paste-function))))
+    (if interprogram-paste
+	(progn
+	  ;; Disable the interprogram cut function when we add the new
+	  ;; text to the kill ring, so Emacs doesn't try to own the
+	  ;; selection, with identical text.
+	  (let ((interprogram-cut-function nil))
+	    (kill-new interprogram-paste))
+	  interprogram-paste)
+      (or kill-ring (error "Kill ring is empty"))
+      (let* ((length (length kill-ring))
+	     (ARGth-kill-element
+	      (nthcdr (% (+ n (- length (length kill-ring-yank-pointer)))
+			 length)
+		      kill-ring)))
+	(or do-not-move
+	    (setq kill-ring-yank-pointer ARGth-kill-element))
+	(car ARGth-kill-element)))))
 
-Most window systems provide some sort of facility for cutting and
-pasting text between the windows of different programs.  On startup,
-this variable is set to a function which emacs will call to make the
-most recently killed text available to other programs.
 
-The function takes one argument, TEXT, which is a string containing
-the text which should be made available.")
+
+;;;; Commands for manipulating the kill ring.
 
 (defun kill-region (beg end)
   "Kill between point and mark.
@@ -730,24 +815,22 @@ If the previous command was also a kill command,
 the text killed this time appends to the text killed last time
 to make one entry in the kill ring."
   (interactive "r")
-  (if (and (not (eq buffer-undo-list t))
-	   (not (eq last-command 'kill-region))
-	   (not (eq beg end))
-	   (not buffer-read-only))
-      ;; Don't let the undo list be truncated before we can even access it.
-      (let ((undo-high-threshold (+ (- (max beg end) (min beg end)) 100)))
-	(delete-region beg end)
-	;; Take the same string recorded for undo
-	;; and put it in the kill-ring.
-	(setq kill-ring (cons (car (car buffer-undo-list)) kill-ring))
-	(if interprogram-cut-function
-	    (funcall interprogram-cut-function (car kill-ring)))
-	(if (> (length kill-ring) kill-ring-max)
-	    (setcdr (nthcdr (1- kill-ring-max) kill-ring) nil))
-	(setq this-command 'kill-region)
-	(setq kill-ring-yank-pointer kill-ring))
+  (cond
+   (buffer-read-only
+    (copy-region-as-kill beg end))
+   ((not (or (eq buffer-undo-list t)
+	     (eq last-command 'kill-region)
+	     (eq beg end)))
+    ;; Don't let the undo list be truncated before we can even access it.
+    (let ((undo-high-threshold (+ (- (max beg end) (min beg end)) 100)))
+      (delete-region beg end)
+      ;; Take the same string recorded for undo
+      ;; and put it in the kill-ring.
+      (kill-new (car (car buffer-undo-list)))
+      (setq this-command 'kill-region)))
+   (t
     (copy-region-as-kill beg end)
-    (or buffer-read-only (delete-region beg end))))
+    (delete-region beg end))))
 
 (defun copy-region-as-kill (beg end)
   "Save the region as if killed, but don't kill it.
@@ -756,21 +839,28 @@ system cut and paste."
   (interactive "r")
   (if (eq last-command 'kill-region)
       (kill-append (buffer-substring beg end) (< end beg))
-    (setq kill-ring (cons (buffer-substring beg end) kill-ring))
-    (if (> (length kill-ring) kill-ring-max)
-	(setcdr (nthcdr (1- kill-ring-max) kill-ring) nil)))
-  (if interprogram-cut-function
-      (funcall interprogram-cut-function (car kill-ring)))
-  (setq this-command 'kill-region
-	kill-ring-yank-pointer kill-ring)
+    (kill-new (buffer-substring beg end)))
+  (setq this-command 'kill-region)
   nil)
 
 (defun kill-ring-save (beg end)
   "Save the region as if killed, but don't kill it."
   (interactive "r")
   (copy-region-as-kill beg end)
-  (message "%d characters copied to kill ring"
-	   (- (max beg end) (min beg end))))
+  (save-excursion
+    (let ((other-end (if (= (point) beg) end beg)))
+      (if (pos-visible-in-window-p other-end (selected-window))
+	  (progn
+	    (goto-char other-end)
+	    (sit-for 1))
+	(let* ((killed-text (current-kill 0))
+	       (message-len (min (length killed-text) 40)))
+	  (message
+	   (if (= (point) beg)
+	       (format "Killed until \"%s\""
+		       (substring killed-text (- message-len)))
+	     (format "Killed from \"%s\""
+		     (substring killed-text 0 message-len)))))))))
 
 (defun append-next-kill ()
   "Cause following command, if kill, to append to previous kill."
@@ -780,17 +870,6 @@ system cut and paste."
 	(setq this-command 'kill-region)
 	(message "If the next command is a kill, it will append"))
     (setq last-command 'kill-region)))
-
-(defun rotate-yank-pointer (arg)
-  "Rotate the yanking point in the kill ring."
-  (interactive "p")
-  (let ((length (length kill-ring)))
-    (if (zerop length)
-	(error "Kill ring is empty")
-      (setq kill-ring-yank-pointer
-	    (nthcdr (% (+ arg (- length (length kill-ring-yank-pointer)))
-		       length)
-		    kill-ring)))))
 
 (defun yank-pop (arg)
   "Replace just-yanked stretch of killed-text with a different stretch.
@@ -811,9 +890,8 @@ comes the newest one."
   (setq this-command 'yank)
   (let ((before (< (point) (mark))))
     (delete-region (point) (mark))
-    (rotate-yank-pointer arg)
     (set-mark (point))
-    (insert (car kill-ring-yank-pointer))
+    (insert (current-kill arg))
     (if before (exchange-point-and-mark))))
 
 (defun yank (&optional arg)
@@ -825,13 +903,20 @@ With argument n, reinsert the nth most recently killed stretch of killed
 text.
 See also the command \\[yank-pop]."
   (interactive "*P")
-  (rotate-yank-pointer (if (listp arg) 0
-			 (if (eq arg '-) -1
-			   (1- arg))))
   (push-mark (point))
-  (insert (car kill-ring-yank-pointer))
+  (insert (current-kill (cond
+			 ((listp arg) 0)
+			 ((eq arg '-) -1)
+			 (t (1- arg)))))
   (if (consp arg)
       (exchange-point-and-mark)))
+
+(defun rotate-yank-pointer (arg)
+  "Rotate the yanking point in the kill ring.
+With argument, rotate that many kills forward (or backward, if negative)."
+  (interactive "p")
+  (current-kill arg))
+
 
 (defun insert-buffer (buffer)
   "Insert after point the contents of BUFFER.
@@ -856,7 +941,8 @@ It is inserted into that buffer before its point.
 When calling from a program, give three arguments:
 BUFFER (or buffer name), START and END.
 START and END specify the portion of the current buffer to be copied."
-  (interactive "BAppend to buffer: \nr")
+  (interactive
+   (list (read-buffer "Append to buffer: " (other-buffer nil t) t)))
   (let ((oldbuf (current-buffer)))
     (save-excursion
       (set-buffer (get-buffer-create buffer))
