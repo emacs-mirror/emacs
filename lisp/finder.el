@@ -39,7 +39,9 @@
 ;;; Code:
 
 (require 'lisp-mnt)
-(require 'finder-inf)
+;; Use `load' rather than `require' so that it doesn't get loaded
+;; during byte-compilation (at which point it might be missing).
+(load "finder-inf" nil t)
 
 ;; Local variable in finder buffer.
 (defvar finder-headmark)
