@@ -1,5 +1,8 @@
 2001-01-24  Gerd Moellmann  <gerd@gnu.org>
 
+	* comint.el (comint-replace-by-expanded-history-before-point): Fix
+	change of 2000-08-03 to move point to the start of the line again.
+
 	* startup.el (tool-bar-images-pixel-height): New variable.
 	(command-line): After loading the user's init file, when
 	tool-bar-mode is on, increase the frame's size by some lines for

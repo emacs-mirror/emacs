@@ -1,5 +1,8 @@
 2001-01-24  Gerd Moellmann  <gerd@gnu.org>
 
+	* fns.c (sweep_weak_table): Fix code taking items out of
+	the hash collision chain.  Some cleanup.
+
 	* xterm.c (x_new_font): Don't change a tooltip's size.
 
 	* xfns.c (x_create_tip_frame): Prevent changing the tooltip's
