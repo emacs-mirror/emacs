@@ -313,9 +313,23 @@ EBCDIC%.map: ${GLIBC_CHARMAPS}/EBCDIC-% mapconv compact.awk
 	# Generating $@...
 	@mapconv $< '/^<.*[ 	]\/x/' GLIBC-1 compact.awk > $@
 
-install: ${CHARSETS} ${TRANS_TABLE}
-	cp ${CHARSETS} ../../etc/charsets
-	cp ${TRANS_TABLE} ../../lisp/international
+install:
+	@for f in ${CHARSETS}; do \
+	  if test -r $$f; then \
+	    if ! cmp -s $$f ../../etc/charsets/$$f; then \
+	      echo updating $$f; \
+	      cp $$f ../../etc/charsets; \
+	    fi; \
+	  fi; \
+	done
+	@for f in ${TRANS_TABLE}; do \
+	  if test -r $$f; then \
+	    if ! cmp -s $$f ../../lisp/international/$$f; then \
+	      echo updating $$f; \
+	      cp $$f ../../lisp/international; \
+	    fi; \
+	  fi; \
+	done
 
 # Clear files that are automatically generated.
 clean:
