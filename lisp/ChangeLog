@@ -1,5 +1,13 @@
 2000-06-17  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* font-lock.el (font-lock-after-fontify-buffer)
+	(font-lock-after-unfontify-buffer): No need to call back to jit-lock.
+
+	* jit-lock.el (jit-lock-mode): Force jit-refontify when turned on.
+	Use consistent make-local-variable style for font-lock-fontified.
+	(jit-lock-fontify-buffer):
+	Don't bother checking for font-lock-mode and jit-lock-mode.
+
 	* time.el: Remove trailing ^M that prevent CVS-merging.
 
 2000-06-16  Stefan Monnier  <monnier@cs.yale.edu>
