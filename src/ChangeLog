@@ -1,5 +1,8 @@
 2000-12-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (Fx_backspace_delete_keys_p): Check library and server
+	XKB versions.  Call XkbFreeKeyboard with 2nd arg 0.
+
 	* keyboard.c (echo_char): If C is an integer, always call
 	push_key_description.  Former code could signal an invalid
 	character error.
