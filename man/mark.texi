@@ -191,7 +191,9 @@ You can activate the new region by executing @kbd{C-x C-x}
 (@code{exchange-point-and-mark}).
 
 @item
-@kbd{C-s} when the mark is active does not alter the mark.
+Commands that normally set the mark before moving long distances (like
+@kbd{M-<} and @kbd{C-s}) do not alter the mark in Transient Mark mode
+when the mark is active.
 
 @item
 Some commands operate on the region if a region is active.  For
@@ -384,9 +386,10 @@ the same buffer.
   Many commands that can move long distances, such as @kbd{M-<}
 (@code{beginning-of-buffer}), start by setting the mark and saving the
 old mark on the mark ring.  This is to make it easier for you to move
-back later.  Searches set the mark if they move point.  You can tell
-when a command sets the mark because it displays @samp{Mark set} in the
-echo area.
+back later.  Searches set the mark if they move point.  However, in
+Transient Mark mode, these commands do not set the mark when the mark
+is already active.  You can tell when a command sets the mark because
+it displays @samp{Mark set} in the echo area.
 
   If you want to move back to the same place over and over, the mark
 ring may not be convenient enough.  If so, you can record the position
