@@ -66,6 +66,10 @@ struct kboard
   {
     KBOARD *next_kboard;
 
+    /* Last command executed by the editor command loop, not counting
+       commands that set the prefix argument.  */
+    Lisp_Object Vlast_command;
+
     /* The prefix argument for the next command, in raw form.  */
     Lisp_Object Vprefix_arg;
 
