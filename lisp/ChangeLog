@@ -104,6 +104,12 @@
 
 2004-03-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* log-edit.el (log-edit-font-lock-keywords): Typo.
+
+	* textmodes/tex-mode.el (tex-shell): Set error parsing function here.
+	(tex-send-tex-command): Rather than here.
+	(tex-compilation-parse-errors): Simplify.
+
 	* info.el (Info-default-dirs): Don't ignore last part of I-d-d-l.
 
 	* time.el (display-time-string-forms): Add help-echo with date on time.
