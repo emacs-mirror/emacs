@@ -250,8 +250,14 @@ Applies to lines after point."
   (define-key occur-mode-map "\M-p" 'occur-prev)
   (define-key occur-mode-map "g" 'revert-buffer))
 
-(defvar occur-buffer nil)
-(defvar occur-nlines nil)
+
+(defvar occur-buffer nil
+  "Name of buffer for last occur.")
+
+
+(defvar occur-nlines nil
+  "Number of lines of context to show around matching line.")
+
 (defvar occur-command-arguments nil
   "Arguments that were given to `occur' when it made this buffer.")
 
@@ -393,14 +399,20 @@ the matching is case-sensitive."
 		    (prefix-numeric-value nlines)
 		  list-matching-lines-default-context-lines))
 	(first t)
+	;;flag to prevent printing separator for first match
 	(occur-num-matches 0)
 	(buffer (current-buffer))
 	(dir default-directory)
 	(linenum 1)
-	(prevpos (point-min))
+	(prevpos 
+	 ;;position of most recent match
+	 (point-min))
 	(case-fold-search  (and case-fold-search
 				(isearch-no-upper-case-p regexp t)))
-	(final-context-start (make-marker)))
+	(final-context-start
+	 ;; Marker to the start of context immediately following
+	 ;; the matched text in *Occur*.
+	 (make-marker)))
 ;;;	(save-excursion
 ;;;	  (beginning-of-line)
 ;;;	  (setq linenum (1+ (count-lines (point-min) (point))))
@@ -438,24 +450,44 @@ the matching is case-sensitive."
 		(setq linenum (+ linenum (count-lines prevpos (point)))))
 	      (setq prevpos (point))
 	      (goto-char (match-end 0))
-	      (let* ((start (save-excursion
+	      (let* ((start
+		      ;;start point of text in source buffer to be put
+		      ;;into *Occur*
+		      (save-excursion
 			      (goto-char (match-beginning 0))
-			      (forward-line (if (< nlines 0) nlines (- nlines)))
+			      (forward-line (if (< nlines 0)
+						nlines
+					      (- nlines)))
 			      (point)))
-		     (end (save-excursion
-			    (goto-char (match-end 0))
-			    (if (> nlines 0)
-				(forward-line (1+ nlines))
-				(forward-line 1))
-			    (point)))
-		     (match-beg (- (match-beginning 0) start))
-		     (match-len (- (match-end 0) (match-beginning 0)))
+		     (end	
+		      ;; end point of text in source buffer to be put
+		      ;; into *Occur*
+		      (save-excursion 
+			(goto-char (match-end 0))
+			(if (> nlines 0)
+			    (forward-line (1+ nlines))
+			  (forward-line 1))
+			(point)))
+		     (match-beg
+		      ;; Amount of context before matching text
+		      (- (match-beginning 0) start))
+		     (match-len		
+		      ;; Length of matching text
+		      (- (match-end 0) (match-beginning 0)))
 		     (tag (format "%5d" linenum))
 		     (empty (make-string (length tag) ?\ ))
-		     tem 
-		     occur-marker
-		     (text-beg (make-marker))
-		     (text-end (make-marker))
+		     tem		
+		     ;; Number of lines of context to show for current match.
+		     occur-marker	
+		     ;; Marker pointing to end of match in source buffer.
+		     (text-beg
+		      ;; Marker pointing to start of text for one
+		      ;; match in *Occur*.
+		      (make-marker))
+		     (text-end 
+		      ;; Marker pointing to end of text for one match
+		      ;; in *Occur*.
+		      (make-marker))
 		     )
 		(save-excursion
 		  (setq occur-marker (make-marker))
@@ -465,25 +497,33 @@ the matching is case-sensitive."
 		  (or first (zerop nlines)
 		      (insert "--------\n"))
 		  (setq first nil)
+
+		  ;; Insert matching text including context lines from
+		  ;; source buffer into *Occur*
 		  (set-marker text-beg (point))
 		  (insert-buffer-substring buffer start end)
 		  (set-marker text-end (point))
+		  
+		  ;; Highlight text that was matched.
 		  (if list-matching-lines-face
 		      (put-text-property
 		       (+ (marker-position text-beg) match-beg)
 		       (+ (marker-position text-beg) match-beg match-len)
 		       'face list-matching-lines-face))
 
-		  ;; Identify a place for occur-next and occur-prev
-		  ;; to move to.
+		  ;; `occur-point' property is used by occur-next and
+		  ;; occur-prev to move between matching lines.
 		  (put-text-property
 		   (+ (marker-position text-beg) match-beg match-len)
 		   (+ (marker-position text-beg) match-beg match-len 1)
 		   'occur-point t)
 		  (set-marker final-context-start 
 			      (- (point) (- end (match-end 0))))
+		  
+		  ;; Now go back to the start of the matching text
+		  ;; adding the space and colon to the start of each line.
 		  (goto-char (- (point) (- end start)))
-		  ;;(setq tem nlines)
+		  ;; Insert space and colon for lines of context before match.
 		  (setq tem (if (< linenum nlines)
 				(- nlines linenum)
 			      nlines))
@@ -491,16 +531,14 @@ the matching is case-sensitive."
 		    (insert empty ?:)
 		    (forward-line 1)
 		    (setq tem (1- tem)))
-		  (let ((this-linenum linenum)
-			line-start)
+
+		  ;; Insert line number and colon for the lines of
+		  ;; matching text.
+		  (let ((this-linenum linenum))
 		    (while (< (point) final-context-start)
 		      (if (null tag)
 			  (setq tag (format "%5d" this-linenum)))
 		      (insert tag ?:)
-		      (setq line-start
-			    (save-excursion
-			      (beginning-of-line)
-			      (point)))
 		      (forward-line 1)
 		      (setq tag nil)
 		      (setq this-linenum (1+ this-linenum)))
@@ -508,6 +546,8 @@ the matching is case-sensitive."
 		      (insert empty ?:)
 		      (forward-line 1)
 		      (setq this-linenum (1+ this-linenum))))
+
+		  ;; Insert space and colon for lines of context after match.
 		  (while (and (< (point) (point-max)) (< tem nlines))
 		    (insert empty ?:)
 		    (forward-line 1)
@@ -520,11 +560,13 @@ the matching is case-sensitive."
 				     (- (marker-position text-end) 1)
 				     'mouse-face 'highlight)
 		  (put-text-property (marker-position text-beg)
-				     (- (marker-position text-end) 1)
+				     (marker-position text-end)
 				     'occur occur-marker)
 		  (goto-char (point-max)))
 		(forward-line 1)))
 	    (set-buffer standard-output)
+	    ;; Go back to top of *Occur* and finish off by printing the
+	    ;; number of matching lines.
 	    (goto-char (point-min))
 	    (let ((message-string
 		   (if (= occur-num-matches 1)
