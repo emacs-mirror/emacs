@@ -281,6 +281,21 @@ SQL buffer.
 
 * Lisp Changes in Emacs 21.3
 
+** Already true in Emacs 21.1, but not emphasized clearly enough:
+
+Multibyte buffers can now faithfully record all 256 character codes
+from 0 to 255.  As a result, most of the past reasons to use unibyte
+buffers no longer exist.  We only know of three reasons to use them
+now:
+
+1. If you prefer to use unibyte text all of the time.
+
+2. For reading files into temporary buffers, when you want to avoid
+the time it takes to convert the format.
+
+3. For binary files where format conversion would be pointless and
+wasteful.
+
 ** If text has a `keymap' property, that keymap takes precedence
 over minor mode keymaps.
 
