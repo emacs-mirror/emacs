@@ -1,3 +1,8 @@
+2002-07-04  Juanma Barranquero  <lektu@terra.es>
+
+	* keyboard.c (post_command_idle_hook): Remove redundant (and inexact)
+	obsolescence information.
+
 2002-07-03  Andrew Choi  <akochoi@shaw.ca>
 
 	* macterm.c (x_list_fonts): Fix comment.  Cache fonts matching
@@ -42,7 +47,7 @@
 	(timer_start_idle): Set that.
 	(read_key_sequence): Use that to reset timer_idleness_start_time
 	to previous value.
-	
+
 	* window.c (Frecenter): With arg, set optional_new_start.
 
 	* xdisp.c (redisplay_internal): Make optional_new_start really work.
@@ -92,7 +97,7 @@
 	(decode_mode_spec): Only add two dashes for %- in propertized
 	mode-line string.
 	(syms_of_xdisp): Init and staticpro mode_line_string_list.
-	
+
 2002-06-27  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* minibuf.c (minibuffer_completion_contents): Add return type.
