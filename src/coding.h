@@ -572,6 +572,9 @@ extern struct coding_system safe_terminal_coding;
    function `set-keyboard-coding-system'.  */
 extern struct coding_system keyboard_coding;
 
+/* Default coding system to be used to write a file.  */
+extern struct coding_system default_buffer_file_coding;
+
 /* Default coding systems used for process I/O.  */
 extern Lisp_Object Vdefault_process_coding_system;
 
