@@ -1,3 +1,23 @@
+2002-09-08  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-delete-errors): Default to nil.
+
+	* simple.el (undo-elt-in-region): Fix one-off error at END.
+	(forward-visible-line): Handle invisibility by ignoring
+	invisible newlines.  Also include entire invisible lines beyond
+	the stopping point.
+
+	* cus-edit.el (custom-save-variables, custom-save-faces): 
+	Clarify the comments written into .emacs.
+
+2002-09-08  Markus Triska  <triska@gmx.at>
+
+	* play/doctor.el (doctor-doc): Recognize question words
+	and use qlist.  Use doctor-shorten's return value.
+	(doctor-shorten): Compute a return value, don't alter `sent'.
+	(doctor-hates1): Add a question mark.
+	(doctor-strangelove): Unused function deleted.
+
 2002-09-08  Kim F. Storm  <storm@cua.dk>
 
 	* kmacro.el (kmacro-end-and-call-macro): New command to end and
