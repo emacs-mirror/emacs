@@ -1010,7 +1010,7 @@ containing the text.")
     XSET (object, Lisp_Buffer, current_buffer);
   i = validate_interval_range (object, &start, &end, soft);
   if (NULL_INTERVAL_P (i))
-    return (NILP (value) || EQ (start, end)) ? Qnil : Qt;
+    return (NILP (value) || EQ (start, end)) ? Qnil : start;
   s = XINT (start);
   e = XINT (end);
 
