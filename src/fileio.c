@@ -4076,7 +4076,7 @@ to the file, instead of any buffer contents, and END is ignored.")
       save_errno = errno;
     }
 
-  if (coding.require_flushing)
+  if (coding.require_flushing && !coding.last_block)
     {
       /* We have to flush out a data. */
       coding.last_block = 1;
