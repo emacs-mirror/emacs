@@ -577,26 +577,15 @@ else
    ? 1							\
    : multibyte_form_length (str, len))
 
-/* Set C a (possibly multibyte) character at P.  P points into a
-   string which is the virtual concatenation of STR1 (which ends at
-   END1) or STR2 (which ends at END2).  */
-
-#define GET_CHAR_AFTER_2(c, p, str1, end1, str2, end2)			    \
-  do {									    \
-    const char *dtemp = (p) == (end1) ? (str2) : (p);			    \
-    const char *dlimit = ((p) >= (str1) && (p) < (end1)) ? (end1) : (end2); \
-    c = STRING_CHAR (dtemp, dlimit - dtemp);				    \
-  } while (0)
-
 /* Set C a (possibly multibyte) character before P.  P points into a
    string which is the virtual concatenation of STR1 (which ends at
    END1) or STR2 (which ends at END2).  */
 
 #define GET_CHAR_BEFORE_2(c, p, str1, end1, str2, end2)			    \
   do {									    \
-    const char *dtemp = (p);						    \
-    const char *dlimit = ((p) > (str2) && (p) <= (end2)) ? (str2) : (str1); \
-    while (dtemp-- > dlimit && (unsigned char) *dtemp >= 0xA0);		    \
+    const unsigned char *dtemp = (p);					    \
+    const unsigned char *dlimit = ((p) > (str2) && (p) <= (end2)) ? (str2) : (str1); \
+    while (dtemp-- > dlimit && *dtemp >= 0xA0);		    \
     c = STRING_CHAR (dtemp, p - dtemp);					    \
   } while (0)
 
