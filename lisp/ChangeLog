@@ -1,3 +1,19 @@
+2004-02-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* faces.el (face-spec-set-match-display): Add a new  attribute,
+	`min-colors'. 
+	(region, highlight, secondary-selection): Use `min-colors`.
+
+	* custom.el (defface): Add documentation for `min-colors'.
+
+	* font-lock.el (font-lock-comment-face, font-lock-string-face)
+	(font-lock-keyword-face, font-lock-function-name-face)
+	(font-lock-variable-name-face, font-lock-constant-face): Use
+	`min-colors`.
+
+	* isearch.el (isearch, isearch-lazy-highlight-face): Use
+	`min-colors'. 
+
 2004-02-25  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ebnf2ps.el: Doc fix.  For compatibility with Emacs 20, define
