@@ -1,3 +1,17 @@
+2001-11-30  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* menu-bar.el (menu-bar-read-lispref, menu-bar-read-lispintro)
+	(menu-bar-read-emacs-man, search-emacs-glossary)
+	(emacs-index-search, elisp-index-search): New functions.
+	(apropso-documentation, apropos, apropos-value, apropos-variable)
+	(apropos-commands): Modify menu item names and help text.
+	(elisp-index-search, emacs-index-search, emacs-glossary): New
+	menu items.
+	(menu-bar-manuals-menu): Move the Ordering Manuals item to a
+	submenu.
+	(info-elisp, info-elintro): New menu items.
+	(apropos): Modify the menu item name.
+
 2001-11-30  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/cl-macs.el (shiftf): Fix more.  Simplify.
