@@ -827,9 +827,10 @@ SIG optional fourth argument, controls action on no match
 	     (error "No %s around position %d" errorstring pos))))))
 
 (defun Info-follow-nearest-node (click)
-  "\\<Info-mode-map>Follow a node reference near point.  Like \\[Info-menu], \\Info-follow-reference], \\[Info-next], \\[Info-previous] or \\Info-up] command.
+  "\\<Info-mode-map>Follow a node reference near point.
+Like \\[Info-menu], \\[Info-follow-reference], \\[Info-next], \\[Info-prev] or \\[Info-up] command, depending on where you click.
 At end of the node's text, moves to the next node."
-  (interactive "K")
+  (interactive "e")
   (let* ((relative-coordinates (coordinates-in-window-p (mouse-coords click)
 							(selected-window)))
 	 (rel-x (car relative-coordinates))
@@ -838,7 +839,7 @@ At end of the node's text, moves to the next node."
     (move-to-column rel-x))
   (let (node)
     (cond
-     ((setq node (Info-get-token (point) "\\*note " "\\*note \\([^:]*\\):" t))
+     ((setq node (Info-get-token (point) "\\*note[ \n]" "\\*note[ \n]\\([^:]*\\):" t))
       (Info-follow-reference node))
      ((setq node (Info-get-token (point) "\\* " "\\* \\([^:]*\\)::" t))
       (Info-goto-node node))
@@ -894,6 +895,7 @@ At end of the node's text, moves to the next node."
   (define-key Info-mode-map "s" 'Info-search)
   (define-key Info-mode-map "u" 'Info-up)
   (define-key Info-mode-map "\177" 'Info-scroll-down)
+  (define-key Info-mode-map [mouse-3] 'Info-follow-nearest-node)
   )
 
 ;; Info mode is suitable only for specially formatted data.
