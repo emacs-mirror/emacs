@@ -720,6 +720,23 @@ If this variable is non-@code{nil}, then unibyte non-@sc{ASCII}
 characters in strings are unconditionally printed as backslash sequences
 by the print functions @code{prin1} and @code{print} that print with
 quoting.
+
+Those functions also use backslash sequences for unibyte non-@sc{ASCII}
+characters, regardless of the value of this variable, when the output
+stream is a multibyte buffer or a marker pointing into one.
+@end defvar
+
+@tindex print-escape-multibyte
+@defvar print-escape-multibyte
+If this variable is non-@code{nil}, then multibyte non-@sc{ASCII}
+characters in strings are unconditionally printed as backslash sequences
+by the print functions @code{prin1} and @code{print} that print with
+quoting.
+
+Those functions also use backslash sequences for multibyte
+non-@sc{ASCII} characters, regardless of the value of this variable,
+when the output stream is a unibyte buffer or a marker pointing into
+one.
 @end defvar
 
 @defvar print-length
