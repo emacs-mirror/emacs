@@ -3243,6 +3243,25 @@ If NFRAMES is more than the number of frames, the value is nil.  */)
 
 
 void
+mark_backtrace ()
+{
+  register struct backtrace *backlist;
+  register int i;
+
+  for (backlist = backtrace_list; backlist; backlist = backlist->next)
+    {
+      mark_object (*backlist->function);
+
+      if (backlist->nargs == UNEVALLED || backlist->nargs == MANY)
+	i = 0;
+      else
+	i = backlist->nargs - 1;
+      for (; i >= 0; i--)
+	mark_object (backlist->args[i]);
+    }
+}
+
+void
 syms_of_eval ()
 {
   DEFVAR_INT ("max-specpdl-size", &max_specpdl_size,
