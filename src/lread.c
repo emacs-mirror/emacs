@@ -350,7 +350,6 @@ Return t if file exists.")
   register FILE *stream;
   register int fd = -1;
   register Lisp_Object lispstream;
-  register FILE **ptr;
   int count = specpdl_ptr - specpdl;
   Lisp_Object temp;
   struct gcpro gcpro1;
@@ -429,12 +428,9 @@ Return t if file exists.")
     message ("Loading %s...", XSTRING (str)->data);
 
   GCPRO1 (str);
-  /* We may not be able to store STREAM itself as a Lisp_Object pointer
-     since that is guaranteed to work only for data that has been malloc'd.
-     So malloc a full-size pointer, and record the address of that pointer.  */
-  ptr = (FILE **) xmalloc (sizeof (FILE *));
-  *ptr = stream;
-  XSETINTERNAL_STREAM (lispstream, (EMACS_INT) ptr);
+  lispstream = Fcons (Qnil, Qnil);
+  XSETFASTINT (XCONS (lispstream)->car, (EMACS_UINT)stream >> 16);
+  XSETFASTINT (XCONS (lispstream)->cdr, (EMACS_UINT)stream & 0xffff);
   record_unwind_protect (load_unwind, lispstream);
   record_unwind_protect (load_descriptor_unwind, load_descriptor_list);
   load_descriptor_list
@@ -458,8 +454,8 @@ static Lisp_Object
 load_unwind (stream)  /* used as unwind-protect function in load */
      Lisp_Object stream;
 {
-  fclose (*(FILE **) XSTRING (stream));
-  xfree (XPNTR (stream));
+  fclose (XFASTINT (XCONS (stream)->car) << 16
+	  | XFASTINT (XCONS (stream)->cdr));
   if (--load_in_progress < 0) load_in_progress = 0;
   return Qnil;
 }
@@ -469,6 +465,7 @@ load_descriptor_unwind (oldlist)
      Lisp_Object oldlist;
 {
   load_descriptor_list = oldlist;
+  return Qnil;
 }
 
 /* Close all descriptors in use for Floads.
