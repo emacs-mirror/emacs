@@ -365,16 +365,31 @@ can use \\[font-lock-fontify-buffer]."
     (set (make-local-variable 'font-lock-mode) on-p)
     (cond (on-p
 	   (font-lock-set-defaults)
+	   (make-local-variable 'before-revert-hook)
 	   (make-local-variable 'after-revert-hook)
-	   ;;if buffer is reverted, must repeat fontification. 
-	   (setq after-revert-hook 'font-lock-fontify-buffer)
+	   ;; If buffer is reverted, must clean up the state.
+	   (add-hook 'before-revert-hook 'font-lock-revert-setup)
+	   (add-hook 'after-revert-hook 'font-lock-revert-cleanup)
 	   (run-hooks 'font-lock-mode-hook)
 	   (or font-lock-fontified (font-lock-fontify-buffer)))
 	  (font-lock-fontified
 	   (setq font-lock-fontified nil)
-	   (setq after-revert-hook nil)
+	   (remove-hook 'before-revert-hook 'font-lock-revert-setup)
+	   (remove-hook 'after-revert-hook 'font-lock-revert-cleanup)
 	   (font-lock-unfontify-region (point-min) (point-max))))
     (force-mode-line-update)))
+
+;; If the buffer is about to be reverted, it won't be fontified.
+(defun font-lock-revert-setup ()
+  (setq font-lock-fontified nil))
+
+;; If the buffer has just been reverted, we might not even be in font-lock
+;; mode anymore, and if we are, the buffer may or may not have already been
+;; refontified.  Refontify here if it looks like we need to.
+(defun font-lock-revert-cleanup ()
+  (and font-lock-mode
+       (not font-lock-fontified)
+       (font-lock-mode 1)))
 
 (defun font-lock-fontify-buffer ()
   "Fontify the current buffer the way `font-lock-mode' would:
