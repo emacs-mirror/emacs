@@ -517,7 +517,7 @@ If `enable-multibyte-characters' is nil or point is not\n\
       XSETFASTINT (temp, FETCH_CHAR (pos));
     }
   else
-    XSETFASTINT (temp, FETCH_BYTE (point - 1));
+    XSETFASTINT (temp, FETCH_BYTE (PT - 1));
   return temp;
 }
 
