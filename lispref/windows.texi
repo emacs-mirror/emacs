@@ -1308,6 +1308,26 @@ bring point back into view.  Otherwise, it centers point.  The default
 value is zero.
 @end defopt
 
+@defopt scroll-up-aggressively
+@tindex scroll-up-aggressively
+The value of this variable should be either @code{nil} or a fraction
+@var{f} between 0 and 1.  If it is a fraction, that specifies where on
+the screen to put point when scrolling upward.  More precisely, when a
+window scrolls up because point is above the window start, the new start
+position is chosen to put point @var{f} part of the window height from
+the top.  The larger @var{f}, the more aggressive the scrolling.
+
+A value of @code{nil} is equivalent to .5, since it centers point.  This
+variable automatically becomes buffer-local when set in any fashion.
+@end defopt
+
+@defopt scroll-down-aggressively
+@tindex scroll-down-aggressively
+Likewise, for scrolling down.  The value, @var{f}, specifies how far
+point should be placed from the bottom of the window; thus, as with
+@code{scroll-up-aggressively}, a larger value scrolls more aggressively.
+@end defopt
+
 @defopt scroll-step
 This variable is an older variant of @code{scroll-conservatively}.  The
 difference is that it if its value is @var{n}, that permits scrolling
