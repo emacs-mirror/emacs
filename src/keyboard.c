@@ -2662,13 +2662,7 @@ make_lispy_event (event)
 		if (! (event->modifiers & down_modifier))
 		  return Qnil;
 
-#ifdef USE_X_TOOLKIT
-		/* The click happened in the menubar.
-		   Look for the menu item selected.  */
-		item = map_event_to_object (event, f);
-
-		XFASTINT (event->y) = 1;
-#else /* not USE_X_TOOLKIT  */
+#ifndef USE_X_TOOLKIT
 		item = Qnil;
 		items = FRAME_MENU_BAR_ITEMS (f);
 		for (i = 0; i < XVECTOR (items)->size; i += 3)
