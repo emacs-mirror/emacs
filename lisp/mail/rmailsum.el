@@ -1184,7 +1184,11 @@ Completion is performed over known labels when reading."
 While composing the message, use \\[mail-yank-original] to yank the
 original message into it."
   (interactive)
-  (rmail-start-mail nil nil nil nil nil rmail-buffer)
+  (let ((window (get-buffer-window rmail-buffer)))
+    (if window
+	(select-window window)
+      (set-buffer rmail-buffer)))
+  (rmail-start-mail nil nil nil nil nil (current-buffer))
   (use-local-map (copy-keymap (current-local-map)))
   (define-key (current-local-map)
     "\C-c\C-c" 'rmail-summary-send-and-exit))
@@ -1192,6 +1196,10 @@ original message into it."
 (defun rmail-summary-continue ()
   "Continue composing outgoing message previously being composed."
   (interactive)
+  (let ((window (get-buffer-window rmail-buffer)))
+    (if window
+	(select-window window)
+      (set-buffer rmail-buffer)))
   (rmail-start-mail t))
 
 (defun rmail-summary-reply (just-sender)
@@ -1200,7 +1208,10 @@ Normally include CC: to all other recipients of original message;
 prefix argument means ignore them.  While composing the reply,
 use \\[mail-yank-original] to yank the original message into it."
   (interactive "P")
-  (set-buffer rmail-buffer)
+  (let ((window (get-buffer-window rmail-buffer)))
+    (if window
+	(select-window window)
+      (set-buffer rmail-buffer)))
   (rmail-reply just-sender)
   (use-local-map (copy-keymap (current-local-map)))
   (define-key (current-local-map)
@@ -1211,7 +1222,10 @@ use \\[mail-yank-original] to yank the original message into it."
 For a message rejected by the mail system, extract the interesting headers and
 the body of the original message; otherwise copy the current message."
   (interactive)
-  (set-buffer rmail-buffer)
+  (let ((window (get-buffer-window rmail-buffer)))
+    (if window
+	(select-window window)
+      (set-buffer rmail-buffer)))
   (rmail-retry-failure)
   (use-local-map (copy-keymap (current-local-map)))
   (define-key (current-local-map)
@@ -1228,7 +1242,10 @@ With prefix argument, \"resend\" the message instead of forwarding it;
 see the documentation of `rmail-resend'."
   (interactive "P")
   (save-excursion
-    (set-buffer rmail-buffer)
+    (let ((window (get-buffer-window rmail-buffer)))
+      (if window
+	  (select-window window)
+	(set-buffer rmail-buffer)))
     (rmail-forward resend)
     (use-local-map (copy-keymap (current-local-map)))
     (define-key (current-local-map)
@@ -1238,7 +1255,10 @@ see the documentation of `rmail-resend'."
   "Resend current message using 'rmail-resend'."
   (interactive)
   (save-excursion
-    (set-buffer rmail-buffer)
+    (let ((window (get-buffer-window rmail-buffer)))
+      (if window
+	  (select-window window)
+	(set-buffer rmail-buffer)))
     (call-interactively 'rmail-resend)))
 
 ;; Summary output commands.
