@@ -1,3 +1,24 @@
+2000-10-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (cursor_row_p): New function.
+	(try_cursor_movement, display_line): Use it.
+	
+	* xdisp.c (append_space): Also save/restore iterator's current
+	character and its length.
+
+	* xdisp.c (init_from_display_pos): Add an assertion.
+	(handle_stop): Don't set iterator's add_overlay_start.
+	(handle_invisible_prop): Likewise.
+	(load_overlay_strings): If text under an overlay is invisible,
+	take both before- and after-strings into account when the iterator
+	is positioned either at the start or at the end of the overlay.
+	(forward_to_next_line_start): Rewritten.
+	(reseat_at_next_visible_line_start): Rewritten.
+	(set_iterator_to_next): Add parameter RESEAT_P.
+
+	* dispextern.h (struct it): Remove member add_overlay_start.
+	(set_iterator_to_next): Change prototype.
+
 2000-10-13  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (code_convert_region): Be sure to initialize
