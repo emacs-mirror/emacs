@@ -1387,27 +1387,32 @@ occur on.  If the current date is (one of) DAYS before the event indicated by
 SEXP, then a suitable message (as specified by `diary-remind-message' is
 returned.
 
-In addition to the reminders beforehand, the diary entry also appears on
-the date itself.
- 
-If optional parameter MARKING is non-nil then the reminders are marked on the
-calendar.  Marking of reminders is independent of whether the entry itself is
-a marking or nonmarking one."
-  (let ((diary-entry))
-    (if (or (not marking-diary-entries) marking)
-        (cond
-         ((integerp days)
-          (let ((date (calendar-gregorian-from-absolute
-                       (+ (calendar-absolute-from-gregorian date) days))))
-            (if (setq diary-entry (eval sexp))
-                (setq diary-entry (mapconcat 'eval diary-remind-message "")))))
-         ((and (listp days) days)
-          (setq diary-entry (diary-remind sexp (car days) marking))
-          (if (not diary-entry)
-              (setq diary-entry (diary-remind sexp (cdr days) marking))))))
-    (or diary-entry
-        (and (or (not marking-diary-entries) marking-diary-entry)
-             (eval sexp)))))
+In addition to the reminders beforehand, the diary entry also appears on the
+date itself.
+
+A `diary-nonmarking-symbol' at the beginning of the line of the diary-remind
+entry specifies that the diary entry (not the reminder) is non-marking.
+Marking of reminders is independent of whether the entry itself is a marking
+or nonmarking; if optional parameter MARKING is non-nil then the reminders are
+marked on the calendar."
+  (let ((diary-entry (eval sexp)))
+    (cond
+     ;; Diary entry applies on date
+     ((and diary-entry
+           (or (not marking-diary-entries) marking-diary-entry))
+      diary-entry)
+     ;; Diary entry may apply to `days' before date
+     ((and (integerp days)
+           (not diary-entry); Diary entry does not apply to date
+           (or (not marking-diary-entries) marking))
+      (let ((date (calendar-gregorian-from-absolute
+                   (+ (calendar-absolute-from-gregorian date) days))))
+        (if (setq diary-entry (eval sexp))
+            (mapconcat 'eval diary-remind-message ""))))
+     ;; Diary entry may apply to one of a list of days before date
+     ((and (listp days) days)
+      (or (diary-remind sexp (car days) marking)
+          (diary-remind sexp (cdr days) marking))))))
 
 (defun add-to-diary-list (date string specifier)
   "Add the entry (DATE STRING SPECIFIER) to `diary-entries-list'.
