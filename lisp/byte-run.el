@@ -131,6 +131,12 @@ The result of the body appears to the compiler as a quoted constant."
   ;; Remember, it's magic.
   (cons 'progn body))
 
+(defun with-no-warnings (&optional first &rest body)
+  "Like `progn', but prevents compiler warnings in the body."
+  ;; The implementation for the interpreter is basically trivial.
+  (if body (car (last body))
+    first))
+
 
 ;;; I nuked this because it's not a good idea for users to think of using it.
 ;;; These options are a matter of installation preference, and have nothing to
