@@ -41,6 +41,8 @@
 (define-key menu-bar-file-menu [kill-buffer]
   '("Kill Buffer" . kill-this-buffer))
 (define-key menu-bar-file-menu [delete-frame] '("Delete Frame" . delete-frame))
+(define-key menu-bar-file-menu [bookmark]
+  '("Bookmarks..." . menu-bar-bookmark-map))
 (define-key menu-bar-file-menu [print-buffer] '("Print Buffer" . print-buffer))
 (define-key menu-bar-file-menu [revert-buffer]
   '("Revert Buffer" . revert-buffer))
