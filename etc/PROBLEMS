@@ -575,7 +575,7 @@ is to use the default compiler `cc'.
 
 * The PSGML package uses the obsolete variables
 `before-change-function' and `after-change-function', which are no
-longer used by Emacs.  Please PSGML 1.2.3 or later.
+longer used by Emacs.  Please use PSGML 1.2.3 or later.
 
 * Unicode characters are not unified with other Mule charsets.
 
