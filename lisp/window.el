@@ -269,6 +269,44 @@ to the window's right, if any.  No arg means split equally."
 	 (setq size (+ (window-width) size)))
     (split-window-save-restore-data (split-window nil size t) old-w)))
 
+(defcustom mode-line-window-height-fudge nil
+  "*Amount returned by `mode-line-window-height-fudge' on graphic displays.
+This is added to the sizes of windows in some cases to compensate for the
+extra height of mode-lines on graphic display, so they don't obscure the
+last line of text.
+
+If nil, an attempt is made to calculate reasonable value.
+
+This is a kluge."
+  :type '(choice (const :tag "Guess" nil)
+		 (integer :tag "Extra lines" :value 1))
+  :group 'windows)
+
+;; List of face attributes that might change a face's height
+(defvar height-affecting-face-attributes
+  '(:family :height :box :font :inherit))
+
+(defsubst mode-line-window-height-fudge ()
+  "Return a fudge factor to compensate for the extra height of graphic mode-lines.
+On a non-graphic display, return 0.
+
+This is a kluge."
+  (if (display-graphic-p)
+      (or
+       ;; Return user-specified value
+       mode-line-window-height-fudge
+       ;; Try and detect whether mode-line face has any attributes that
+       ;; could make it bigger than a default text line, and return a
+       ;; fudge factor of 1 if so.
+       (let ((attrs height-affecting-face-attributes)
+	     (fudge 0))
+	 (while attrs
+	   (let ((val (face-attribute 'mode-line (pop attrs))))
+	     (unless (or (null val) (eq val 'unspecified))
+	       (setq fudge 1 attrs nil))))
+	 fudge))
+    0))
+
 (defun enlarge-window-horizontally (arg)
   "Make current window ARG columns wider."
   (interactive "p")
@@ -355,16 +393,11 @@ or if the window is the only window of its frame."
                    (> (nth 1 edges) (frame-parameter nil 'menu-bar-lines))))
           ;; `count-screen-lines' always works on the current buffer, so
           ;; make sure it is the buffer displayed by WINDOW.
-          (let ((text-height (with-current-buffer (window-buffer window)
-                               (count-screen-lines)))
+          (let ((text-height
+		 (+ (with-current-buffer (window-buffer window)
+		      (count-screen-lines))
+		    (mode-line-window-height-fudge)))
                 (window-height (window-height)))
-	    ;; This is a workaround that adds 1 line to the window
-	    ;; if windows have a 3D mode-line.  What's really needed
-	    ;; is to get rid of the line-based computations.  We don't
-	    ;; have the infrastructure for doing so, yet.
-	    (when (and (display-graphic-p)
-		       (face-attribute 'mode-line :box))
-	      (setq text-height (1+ text-height)))
 	    ;; Don't try to redisplay with the cursor at the end
 	    ;; on its own line--that would force a scroll and spoil things.
 	    (when (and (eobp) (bolp) (not (bobp)))
