@@ -24,31 +24,34 @@
 ;;; text inserted while the region is active will replace the region contents.
 ;;; This is a popular behavior of personal computers text editors.
 
+(defvar pending-delete-mode t
+  "*Non-nil means Pending Delete mode is enabled.
+In Pending Delete mode, when a region is highlighted,
+insertion commands first delete the region and then insert.")
+
 (defun delete-active-region (&optional killp)
-  (if (and (not buffer-read-only)
-	   (extentp primary-selection-extent)
-	   (eq (current-buffer) (extent-buffer primary-selection-extent))
-	   (< 0 (extent-start-position primary-selection-extent))
-	   (< 0 (extent-end-position primary-selection-extent)))
-      (progn
-	(if killp
-	    (kill-region (extent-start-position primary-selection-extent)
-			 (extent-end-position primary-selection-extent))
-	  (delete-region (extent-start-position primary-selection-extent)
-			 (extent-end-position primary-selection-extent)))
-	(zmacs-deactivate-region)
-	t)))
+  (if killp
+      (kill-region (point) (mark))
+    (delete-region (point) (mark)))
+  (setq mark-active nil)
+  (run-hooks 'deactivate-mark-hook)
+  t)
 
 (defun pending-delete-pre-hook ()
-  (let ((type (and (symbolp this-command)
-		   (get this-command 'pending-delete))))
-    (cond ((eq type 'kill)
-	   (delete-active-region t))
-	  ((eq type 'supersede)
-	   (if (delete-active-region ())
-	       (setq this-command '(lambda () (interactive)))))
-	  (type
-	   (delete-active-region ())))))
+  (if (and pending-delete-mode
+	   (not buffer-read-only)
+	   transient-mark-mode mark-active)
+      (let ((type (and (symbolp this-command)
+		       (get this-command 'pending-delete))))
+	(cond ((eq type 'kill)
+	       (delete-active-region t))
+	      ((eq type 'supersede)
+	       (if (delete-active-region ())
+		   (setq this-command '(lambda () (interactive)))))
+	      (type
+	       (delete-active-region ()))))))
+
+(add-hook 'pre-command-hook 'pending-delete-pre-hook)
 
 (put 'self-insert-command 'pending-delete t)
 
@@ -63,21 +66,15 @@
 (put 'newline 'pending-delete t)
 (put 'open-line 'pending-delete t)
 
-(defun pending-delete-mode ()
+(defun pending-delete-mode (arg)
   "Toggle the state of pending-delete mode.
 When ON, typed text replaces the selection if the selection is active.
 When OFF, typed text is just inserted at point."
-  (interactive)
-  (if (memq 'pending-delete-pre-hook pre-command-hook)
-      (progn
-	(remove-hook 'pre-command-hook 'pending-delete-pre-hook)
-	(message "pending delete is OFF"))
-    (progn
-      (add-hook 'pre-command-hook 'pending-delete-pre-hook)
-      (message
-       "Pending delete is ON, use M-x pending-delete to turn it OFF"))))
-
-(pending-delete-mode)
+  (interactive "P")
+  (setq pending-delete-mode
+	(if (null arg) (not pending-delete-mode)
+	  (> (prefix-numeric-value arg) 0)))
+  (set-buffer-modified-p (buffer-modified-p))) ;No-op, but updates mode line.
 
 ;; This new definition of control-G makes the first control-G disown the 
 ;; selection and the second one signal a QUIT.
@@ -87,10 +84,8 @@ When OFF, typed text is just inserted at point."
 ;; with pending delete because pending delete users use the selection more.
 (defun keyboard-quit ()
   "Signal a `quit' condition.
-If this character is typed while lisp code is executing, it will be treated
- as an interrupt.
-If this character is typed at top-level, this simply beeps.
-
+During execution of Lisp code, this character causes a quit directly.
+At top-level, as an editor command, this simply beeps.
 In Transient Mark mode, if the mark is active, just deactivate it."
   (interactive)
   (if (and transient-mark-mode mark-active)
