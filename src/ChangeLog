@@ -1,3 +1,8 @@
+2002-01-19  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* dispnew.c (update_frame): Move the variable `tem' to the block
+	where it is used.
+
 2002-01-19  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (Fx_create_frame): Bind redisplay-dont-pause around
