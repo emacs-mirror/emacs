@@ -459,7 +459,15 @@ This returns ARGS with the arguments that have been processed removed."
 
 ;;;; Function keys
 
-(substitute-key-definition 'suspend-emacs 'iconify-frame global-map)
+(defun iconify-or-deiconify-frame ()
+  "Iconify the selected frame, or deiconify if it's currently an icon."
+  (interactive)
+  (if (eq (cdr (assq 'visibility (frame-parameters))) t)
+      (iconify-frame)
+    (make-frame-visible)))
+
+(substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
+			   global-map)
 
 ;; Map certain keypad keys into ASCII characters
 ;; that people usually expect.
