@@ -714,7 +714,7 @@ Evaluate all the Lisp expressions in the region.
 Evaluate all the Lisp expressions in the buffer.
 @end table
 
-@kindex M-:
+@kindex M-@key{colon}
 @findex eval-expression
   @kbd{M-:} (@code{eval-expression}) is the most basic command for evaluating
 a Lisp expression interactively.  It reads the expression using the
