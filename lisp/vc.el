@@ -1,13 +1,13 @@
 ;;; vc.el --- drive a version-control system from within Emacs
 
-;; Copyright (C) 1992,93,94,95,96,97,98,2000,01,2003,2004
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998,
+;;   2000, 2001, 2003, 2004  Free Software Foundation, Inc.
 
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.376 2004/04/16 10:21:24 spiegel Exp $
+;; $Id$
 
 ;; This file is part of GNU Emacs.
 
@@ -394,7 +394,7 @@
 ;;
 ;;   Return the hostname that the backend will have to contact
 ;;   in order to operate on a file in DIRNAME.  If the return value
-;;   is nil, it is means that the repository is local.
+;;   is nil, it means that the repository is local.
 ;;   This function is used in `vc-stay-local-p' which backends can use
 ;;   for their convenience.
 ;;
@@ -1017,28 +1017,32 @@ Used by `vc-restore-buffer-context' to later restore the context."
 			   (vc-position-context (mark-marker))))
 	;; Make the right thing happen in transient-mark-mode.
 	(mark-active nil)
-	;; We may want to reparse the compilation buffer after revert
-	(reparse (and (boundp 'compilation-error-list) ;compile loaded
-		      ;; Construct a list; each elt is nil or a buffer
-		      ;; iff that buffer is a compilation output buffer
-		      ;; that contains markers into the current buffer.
-		      (save-current-buffer
-			(mapcar (lambda (buffer)
-				  (set-buffer buffer)
-				  (let ((errors (or
-						 compilation-old-error-list
-						 compilation-error-list))
-					(buffer-error-marked-p nil))
-				    (while (and (consp errors)
-						(not buffer-error-marked-p))
-				      (and (markerp (cdr (car errors)))
-					   (eq buffer
-					       (marker-buffer
-						(cdr (car errors))))
-					   (setq buffer-error-marked-p t))
-				      (setq errors (cdr errors)))
-				    (if buffer-error-marked-p buffer)))
-				(buffer-list))))))
+	;; The new compilation code does not use compilation-error-list any
+	;; more, so the code below is now ineffective and might as well
+	;; be disabled.  -- Stef
+	;; ;; We may want to reparse the compilation buffer after revert
+	;; (reparse (and (boundp 'compilation-error-list) ;compile loaded
+	;; 	      ;; Construct a list; each elt is nil or a buffer
+	;; 	      ;; iff that buffer is a compilation output buffer
+	;; 	      ;; that contains markers into the current buffer.
+	;; 	      (save-current-buffer
+	;; 		(mapcar (lambda (buffer)
+	;; 			  (set-buffer buffer)
+	;; 			  (let ((errors (or
+	;; 					 compilation-old-error-list
+	;; 					 compilation-error-list))
+	;; 				(buffer-error-marked-p nil))
+	;; 			    (while (and (consp errors)
+	;; 					(not buffer-error-marked-p))
+	;; 			      (and (markerp (cdr (car errors)))
+	;; 				   (eq buffer
+	;; 				       (marker-buffer
+	;; 					(cdr (car errors))))
+	;; 				   (setq buffer-error-marked-p t))
+	;; 			      (setq errors (cdr errors)))
+	;; 			    (if buffer-error-marked-p buffer)))
+	;; 			(buffer-list)))))
+	(reparse nil))
     (list point-context mark-context reparse)))
 
 (defun vc-restore-buffer-context (context)
@@ -1047,23 +1051,26 @@ CONTEXT is that which `vc-buffer-context' returns."
   (let ((point-context (nth 0 context))
 	(mark-context (nth 1 context))
 	(reparse (nth 2 context)))
-    ;; Reparse affected compilation buffers.
-    (while reparse
-      (if (car reparse)
-	  (with-current-buffer (car reparse)
-	    (let ((compilation-last-buffer (current-buffer)) ;select buffer
-		  ;; Record the position in the compilation buffer of
-		  ;; the last error next-error went to.
-		  (error-pos (marker-position
-			      (car (car-safe compilation-error-list)))))
-	      ;; Reparse the error messages as far as they were parsed before.
-	      (compile-reinitialize-errors '(4) compilation-parsing-end)
-	      ;; Move the pointer up to find the error we were at before
-	      ;; reparsing.  Now next-error should properly go to the next one.
-	      (while (and compilation-error-list
-			  (/= error-pos (car (car compilation-error-list))))
-		(setq compilation-error-list (cdr compilation-error-list))))))
-      (setq reparse (cdr reparse)))
+    ;; The new compilation code does not use compilation-error-list any
+    ;; more, so the code below is now ineffective and might as well
+    ;; be disabled.  -- Stef
+    ;; ;; Reparse affected compilation buffers.
+    ;; (while reparse
+    ;;   (if (car reparse)
+    ;; 	  (with-current-buffer (car reparse)
+    ;; 	    (let ((compilation-last-buffer (current-buffer)) ;select buffer
+    ;; 		  ;; Record the position in the compilation buffer of
+    ;; 		  ;; the last error next-error went to.
+    ;; 		  (error-pos (marker-position
+    ;; 			      (car (car-safe compilation-error-list)))))
+    ;; 	      ;; Reparse the error messages as far as they were parsed before.
+    ;; 	      (compile-reinitialize-errors '(4) compilation-parsing-end)
+    ;; 	      ;; Move the pointer up to find the error we were at before
+    ;; 	      ;; reparsing.  Now next-error should properly go to the next one.
+    ;; 	      (while (and compilation-error-list
+    ;; 			  (/= error-pos (car (car compilation-error-list))))
+    ;; 		(setq compilation-error-list (cdr compilation-error-list))))))
+    ;;   (setq reparse (cdr reparse)))
 
     ;; if necessary, restore point and mark
     (if (not (vc-context-matches-p (point) point-context))
@@ -3705,5 +3712,5 @@ Invoke FUNC f ARGS on each VC-managed file f underneath it."
 ;;
 ;;    Thus, there is no explicit recovery code.
 
-;;; arch-tag: ca82c1de-3091-4e26-af92-460abc6213a6
+;; arch-tag: ca82c1de-3091-4e26-af92-460abc6213a6
 ;;; vc.el ends here
