@@ -1648,6 +1648,10 @@ static int waiting_for_user_input_p;
      zero for no limit, or
      -1 means gobble data immediately available but don't wait for any.
 
+   microsecs is:
+     an additional duration to wait (if time_limit is greater than
+     zero), specified in millisec.
+
    read_kbd is a lisp value:
      0 to ignore keyboard input, or
      1 to return when input is available, or
