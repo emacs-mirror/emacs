@@ -1924,6 +1924,25 @@ Part of the job of this function is setting `buffer-undo-list' appropriately."
 	      (setq buffer-undo-list
 		    (cons (cons from (point-max)) undo-list-saved))))))))
 
+(defun recode-region (start end new-coding coding)
+  "Re-decode the region (previously decoded by CODING) by NEW-CODING."
+  (interactive
+   (list (region-beginning) (region-end)
+	 (read-coding-system "Text was really in: ")
+	 (let ((coding (or buffer-file-coding-system last-coding-system-used)))
+	   (read-coding-system
+	    (concat "But was interpreted as"
+		    (if coding (format " (default %S): " coding) ": "))
+	    coding))))
+  (or (and new-coding coding)
+      (error "Coding system not specified"))
+  ;; Check it before we encode the region.
+  (check-coding-system new-coding)
+  (save-restriction
+    (narrow-to-region start end)
+    (encode-coding-region (point-min) (point-max) coding)
+    (decode-coding-region (point-min) (point-max) new-coding)))
+
 (defun make-translation-table (&rest args)
   "Make a translation table from arguments.
 A translation table is a char table intended for character
