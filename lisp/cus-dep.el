@@ -103,7 +103,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 ;;; information so `custom-changed-variables' could do its job.  
 ;;; For both groups and variables we have to set `custom-version'.
 ;;; For variables we also set the `standard-value' and for groups
-;;; `group-documentation' (which is shown in the customize buffer, so
+;;; `group-documentation' (which is shown in the customize buffer), so
 ;;; we don't have to load the file containing the group.
 
 ;;; `custom-versions-load-alist' is an alist that has as car a version
