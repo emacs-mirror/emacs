@@ -1658,29 +1658,31 @@ static int waiting_for_user_input_p;
 /* Read and dispose of subprocess output while waiting for timeout to
    elapse and/or keyboard input to be available.
 
-   time_limit is:
+   TIME_LIMIT is:
      timeout in seconds, or
      zero for no limit, or
      -1 means gobble data immediately available but don't wait for any.
 
-   microsecs is:
-     an additional duration to wait (if time_limit is greater than
-     zero), specified in millisec.
+   MICROSECS is:
+     an additional duration to wait, measured in microseconds.
+     If this is nonzero and time_limit is 0, then the timeout
+     consists of MICROSECS only.
 
-   read_kbd is a lisp value:
+   READ_KBD is a lisp value:
      0 to ignore keyboard input, or
      1 to return when input is available, or
      -1 meaning caller will actually read the input, so don't throw to
        the quit handler, or
-     a cons cell, meaning wait wait until its car is non-nil, or
+     a cons cell, meaning wait wait until its car is non-nil
+       (and gobble terminal input into the buffer if any arrives), or
      a process object, meaning wait until something arrives from that
        process.  The return value is true iff we read some input from
        that process.
 
-   do_display != 0 means redisplay should be done to show subprocess
+   DO_DISPLAY != 0 means redisplay should be done to show subprocess
    output that arrives.
 
-   If read_kbd is a pointer to a struct Lisp_Process, then the
+   If READ_KBD is a pointer to a struct Lisp_Process, then the
      function returns true iff we received input from that process
      before the timeout elapsed.
    Otherwise, return true iff we received input from any process.  */
@@ -1799,7 +1801,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /* Wait till there is something to do */
 
       Available = input_wait_mask;
-      if (! XINT (read_kbd))
+      if (! XINT (read_kbd) && wait_for_cell == 0)
 	FD_CLR (0, &Available);
 
       /* If frame size has changed or the window is newly mapped,
