@@ -187,9 +187,23 @@ arguments compiles from `load-path'."
     (shrink-window-if-larger-than-buffer)
     (finder-summary)))
 
+;; Search for a file named FILE the same way `load' would search.
+(defun finder-find-library (file)
+  (if (file-name-absolute-p file)
+      file
+    (let ((dirs load-path)
+	  found)
+      (while (and dirs (not found))
+	(if (file-exists-p (expand-file-name (concat file ".el") (car dirs)))
+	    (setq found (expand-file-name file (car dirs)))
+	  (if (file-exists-p (expand-file-name file (car dirs)))
+	      (setq found (expand-file-name file (car dirs)))))
+	(setq dirs (cdr dirs)))
+      found)))
+
 (defun finder-commentary (file)
   (interactive)
-  (let* ((str (lm-commentary file)))
+  (let* ((str (lm-commentary (finder-find-library file))))
     (if (null str)
 	(error "Can't find any Commentary section."))
     (pop-to-buffer "*Finder*")
