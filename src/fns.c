@@ -1236,6 +1236,65 @@ This function allows vectors as well as strings.  */)
   return res;
 }
 
+
+DEFUN ("substring-no-properties", Fsubstring_no_properties, Ssubstring_no_properties, 1, 3, 0,
+       doc: /* Return a substring of STRING, without text properties.
+It starts at index FROM and ending before TO.
+TO may be nil or omitted; then the substring runs to the end of STRING.
+If FROM is nil or omitted, the substring starts at the beginning of STRING.
+If FROM or TO is negative, it counts from the end.
+
+With one argument, just copy STRING without its properties.  */)
+     (string, from, to)
+     Lisp_Object string;
+     register Lisp_Object from, to;
+{
+  int size, size_byte;
+  int from_char, to_char;
+  int from_byte, to_byte;
+
+  CHECK_STRING (string);
+
+  size = XSTRING (string)->size;
+  size_byte = STRING_BYTES (XSTRING (string));
+
+  if (NILP (from))
+    from_char = from_byte = 0;
+  else
+    {
+      CHECK_NUMBER (from);
+      from_char = XINT (from);
+      if (from_char < 0)
+	from_char += size;
+
+      from_byte = string_char_to_byte (string, from_char);
+    }
+
+  if (NILP (to))
+    {
+      to_char = size;
+      to_byte = size_byte;
+    }
+  else
+    {
+      CHECK_NUMBER (to);
+
+      to_char = XINT (to);
+      if (to_char < 0)
+	to_char += size;
+
+      to_byte = string_char_to_byte (string, to_char);
+    }
+
+  if (!(0 <= from_char && from_char <= to_char && to_char <= size))
+    args_out_of_range_3 (string, make_number (from_char),
+			 make_number (to_char));
+
+  return make_specified_string (XSTRING (string)->data + from_byte,
+				to_char - from_char, to_byte - from_byte,
+				STRING_MULTIBYTE (string));
+}
+
 /* Extract a substring of STRING, giving start and end positions
    both in characters and in bytes.  */
 
@@ -1941,7 +2000,71 @@ It can be retrieved with `(get SYMBOL PROPNAME)'.  */)
     = Fplist_put (XSYMBOL (symbol)->plist, propname, value);
   return value;
 }
+
+DEFUN ("lax-plist-get", Flax_plist_get, Slax_plist_get, 2, 2, 0,
+       doc: /* Extract a value from a property list, comparing with `equal'.
+PLIST is a property list, which is a list of the form
+\(PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
+corresponding to the given PROP, or nil if PROP is not
+one of the properties on the list.  */)
+     (plist, prop)
+     Lisp_Object plist;
+     Lisp_Object prop;
+{
+  Lisp_Object tail;
+  
+  for (tail = plist;
+       CONSP (tail) && CONSP (XCDR (tail));
+       tail = XCDR (XCDR (tail)))
+    {
+      if (! NILP (Fequal (prop, XCAR (tail))))
+	return XCAR (XCDR (tail));
 
+      QUIT;
+    }
+
+  if (!NILP (tail))
+    wrong_type_argument (Qlistp, prop);
+  
+  return Qnil;
+}
+
+DEFUN ("lax-plist-put", Flax_plist_put, Slax_plist_put, 3, 3, 0,
+       doc: /* Change value in PLIST of PROP to VAL, comparing with `equal'.
+PLIST is a property list, which is a list of the form
+\(PROP1 VALUE1 PROP2 VALUE2 ...).  PROP is a symbol and VAL is any object.
+If PROP is already a property on the list, its value is set to VAL,
+otherwise the new PROP VAL pair is added.  The new plist is returned;
+use `(setq x (lax-plist-put x prop val))' to be sure to use the new value.
+The PLIST is modified by side effects.  */)
+     (plist, prop, val)
+     Lisp_Object plist;
+     register Lisp_Object prop;
+     Lisp_Object val;
+{
+  register Lisp_Object tail, prev;
+  Lisp_Object newcell;
+  prev = Qnil;
+  for (tail = plist; CONSP (tail) && CONSP (XCDR (tail));
+       tail = XCDR (XCDR (tail)))
+    {
+      if (! NILP (Fequal (prop, XCAR (tail))))
+	{
+	  Fsetcar (XCDR (tail), val);
+	  return plist;
+	}
+      
+      prev = tail;
+      QUIT;
+    }
+  newcell = Fcons (prop, Fcons (val, Qnil));
+  if (NILP (prev))
+    return newcell;
+  else
+    Fsetcdr (XCDR (prev), newcell);
+  return plist;
+}
+
 DEFUN ("equal", Fequal, Sequal, 2, 2, 0,
        doc: /* Return t if two Lisp objects have similar structure and contents.
 They must have the same data type.
@@ -5352,6 +5475,7 @@ invoked by mouse clicks and mouse menu items.  */);
   defsubr (&Sstring_as_unibyte);
   defsubr (&Scopy_alist);
   defsubr (&Ssubstring);
+  defsubr (&Ssubstring_no_properties);
   defsubr (&Snthcdr);
   defsubr (&Snth);
   defsubr (&Selt);
@@ -5370,6 +5494,8 @@ invoked by mouse clicks and mouse menu items.  */);
   defsubr (&Sget);
   defsubr (&Splist_put);
   defsubr (&Sput);
+  defsubr (&Slax_plist_get);
+  defsubr (&Slax_plist_put);
   defsubr (&Sequal);
   defsubr (&Sfillarray);
   defsubr (&Schar_table_subtype);
