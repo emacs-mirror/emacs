@@ -196,6 +196,22 @@ Boston, MA 02111-1307, USA.  */
 #include "dosfns.h"
 #endif
 
+#ifdef WINDOWSNT
+#include "w32term.h"
+#include "fontset.h"
+/* Redefine X specifics to W32 equivalents to avoid cluttering the
+   code with #ifdef blocks. */
+#define FRAME_X_DISPLAY_INFO FRAME_W32_DISPLAY_INFO
+#define x_display_info w32_display_info
+#define FRAME_X_FONT_TABLE FRAME_W32_FONT_TABLE
+#define check_x check_w32
+#define x_list_fonts w32_list_fonts
+#define GCGraphicsExposures 0
+/* For historic reasons, FONT_WIDTH refers to average width on W32,
+   not maximum as on X. Redefine here. */
+#define FONT_WIDTH FONT_MAX_WIDTH
+#endif
+
 #include "buffer.h"
 #include "dispextern.h"
 #include "blockinput.h"
@@ -492,7 +508,7 @@ static Lisp_Object xlfd_symbolic_value P_ ((struct table_entry *, int,
 static struct table_entry *xlfd_lookup_field_contents P_ ((struct table_entry *, int,
 							   struct font_name *, int));
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
 
 static int split_font_name P_ ((struct frame *, struct font_name *, int));
 static int xlfd_point_size P_ ((struct frame *, struct font_name *));
@@ -502,7 +518,11 @@ static GC x_create_gc P_ ((struct frame *, unsigned long, XGCValues *));
 static void x_free_gc P_ ((struct frame *, GC));
 static void clear_font_table P_ ((struct frame *));
 
-#endif /* HAVE_X_WINDOWS */
+#ifdef WINDOWSNT
+extern Lisp_Object w32_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
+#endif /* WINDOWSNT */
+
+#endif /* HAVE_WINDOW_SYSTEM */
 
 
 /***********************************************************************
@@ -578,6 +598,38 @@ x_free_gc (f, gc)
 
 #endif /* HAVE_X_WINDOWS */
 
+#ifdef WINDOWSNT
+/* W32 emulation of GCs */
+
+static INLINE GC
+x_create_gc (f, mask, xgcv)
+     struct frame *f;
+     unsigned long mask;
+     XGCValues *xgcv;
+{
+  GC gc;
+  BLOCK_INPUT;
+  gc = XCreateGC (NULL, FRAME_W32_WINDOW (f), mask, xgcv);
+  UNBLOCK_INPUT;
+  IF_DEBUG (++ngcs);
+  return gc;
+}
+
+
+/* Free GC which was used on frame F.  */
+
+static INLINE void
+x_free_gc (f, gc)
+     struct frame *f;
+     GC gc;
+{
+  BLOCK_INPUT;
+  xassert (--ngcs >= 0);
+  xfree (gc);
+  UNBLOCK_INPUT;
+}
+
+#endif  /* WINDOWSNT */
 
 /* Like strdup, but uses xmalloc.  */
 
@@ -673,20 +725,23 @@ init_frame_faces (f)
   if (FRAME_FACE_CACHE (f) == NULL)
     FRAME_FACE_CACHE (f) = make_face_cache (f);
       
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   /* Make the image cache.  */
-  if (FRAME_X_P (f))
+  if (FRAME_WINDOW_P (f))
     {
       if (FRAME_X_IMAGE_CACHE (f) == NULL)
 	FRAME_X_IMAGE_CACHE (f) = make_image_cache ();
       ++FRAME_X_IMAGE_CACHE (f)->refcount;
     }
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 
   /* Realize basic faces.  Must have enough information in frame 
      parameters to realize basic faces at this point.  */
 #ifdef HAVE_X_WINDOWS
   if (!FRAME_X_P (f) || FRAME_X_WINDOW (f))
+#endif
+#ifdef WINDOWSNT
+  if (!FRAME_WINDOW_P (f) || FRAME_W32_WINDOW (f))
 #endif
     if (!realize_basic_faces (f))
       abort ();
@@ -707,8 +762,8 @@ free_frame_faces (f)
       FRAME_FACE_CACHE (f) = NULL;
     }
 
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (f))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (f))
     {
       struct image_cache *image_cache = FRAME_X_IMAGE_CACHE (f);
       if (image_cache)
@@ -718,7 +773,7 @@ free_frame_faces (f)
 	    free_image_cache (f);
 	}
     }
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 }
 
 
@@ -747,7 +802,7 @@ void
 clear_face_cache (clear_fonts_p)
      int clear_fonts_p;
 {
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   Lisp_Object tail, frame;
   struct frame *f;
 
@@ -762,7 +817,7 @@ clear_face_cache (clear_fonts_p)
       FOR_EACH_FRAME (tail, frame)
 	{
 	  f = XFRAME (frame);
-	  if (FRAME_X_P (f)
+	  if (FRAME_WINDOW_P (f)
 	      && FRAME_X_DISPLAY_INFO (f)->n_fonts > CLEAR_FONT_TABLE_NFONTS)
 	    {
 	      free_all_realized_faces (frame);
@@ -776,14 +831,14 @@ clear_face_cache (clear_fonts_p)
       FOR_EACH_FRAME (tail, frame)
 	{
 	  f = XFRAME (frame);
-	  if (FRAME_X_P (f))
+	  if (FRAME_WINDOW_P (f))
 	    {
 	      clear_face_gcs (FRAME_FACE_CACHE (f));
 	      clear_image_cache (f, 0);
 	    }
 	}
     }
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 }
 
 
@@ -799,7 +854,7 @@ Optional THOROUGHLY non-nil means try to free unused fonts, too.")
 
 
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
 
 
 /* Remove those fonts from the font table of frame F that are not used
@@ -814,7 +869,7 @@ clear_font_table (f)
   Lisp_Object rest, frame;
   int i;
 
-  xassert (FRAME_X_P (f));
+  xassert (FRAME_WINDOW_P (f));
 
   used = (char *) alloca (dpyinfo->n_fonts * sizeof *used);
   bzero (used, dpyinfo->n_fonts * sizeof *used);
@@ -860,7 +915,12 @@ clear_font_table (f)
 
 	/* Free the font.  */
 	BLOCK_INPUT;
+#ifdef HAVE_X_WINDOWS
 	XFreeFont (dpyinfo->display, font_info->font);
+#endif
+#ifdef WINDOWSNT
+	w32_unload_font (dpyinfo, font_info->font);
+#endif
 	UNBLOCK_INPUT;
 
 	/* Mark font table slot free.  */
@@ -870,7 +930,7 @@ clear_font_table (f)
 }
 
 
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 
 
 
@@ -878,7 +938,7 @@ clear_font_table (f)
 			      X Pixmaps
  ***********************************************************************/
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
 
 DEFUN ("bitmap-spec-p", Fbitmap_spec_p, Sbitmap_spec_p, 1, 1, 0,
   "Value is non-nil if OBJECT is a valid bitmap specification.\n\
@@ -1000,7 +1060,7 @@ load_pixmap (f, name, w_ptr, h_ptr)
   return bitmap_id;
 }
 
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 
 
 
@@ -1008,7 +1068,7 @@ load_pixmap (f, name, w_ptr, h_ptr)
 			 Minimum font bounds
  ***********************************************************************/
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
 
 /* Update the line_height of frame F.  Return non-zero if line height
    changes.  */
@@ -1019,25 +1079,25 @@ frame_update_line_height (f)
 {
   int fontset, line_height, changed_p;
   
-  fontset = f->output_data.x->fontset;
+  fontset = FRAME_FONTSET (f);
   if (fontset > 0)
     line_height = FRAME_FONTSET_DATA (f)->fontset_table[fontset]->height;
   else
-    line_height = FONT_HEIGHT (f->output_data.x->font);
+    line_height = FONT_HEIGHT (FRAME_FONT (f));
   
-  changed_p = line_height != f->output_data.x->line_height;
-  f->output_data.x->line_height = line_height;
+  changed_p = line_height != FRAME_LINE_HEIGHT (f);
+  FRAME_LINE_HEIGHT (f) = line_height;
   return changed_p;
 }
 
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 
 
 /***********************************************************************
 				Fonts
  ***********************************************************************/
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
 
 /* Load font or fontset of face FACE which is used on frame F.
    FONTSET is the fontset FACE should use or -1, if FACE doesn't use a
@@ -1102,7 +1162,7 @@ load_face_font_or_fontset (f, face, font_name, fontset)
 		build_string (font_name), Qnil);
 }
 
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 
 
 
@@ -1187,9 +1247,6 @@ defined_color (f, color_name, color_def, alloc)
 #endif
 #ifdef WINDOWSNT
   else if (FRAME_W32_P (f))
-    /* FIXME: w32_defined_color doesn't exist!  w32fns.c defines
-       defined_color which needs to be renamed, and the declaration
-       of color_def therein should be changed.  */
     return w32_defined_color (f, color_name, color_def, alloc);
 #endif
 #ifdef macintosh
@@ -1228,16 +1285,15 @@ tty_color_name (f, idx)
     return msdos_stdcolor_name (idx);
 #endif
 
-#ifdef WINDOWSNT
-  /* FIXME: When/if w32 supports colors in non-window mode, there should
-     be a call here to a w32-specific function that returns the color
-     by index using the default color mapping on a Windows console.  */
-#endif
-
   if (idx == FACE_TTY_DEFAULT_FG_COLOR)
     return build_string (unspecified_fg);
   if (idx == FACE_TTY_DEFAULT_BG_COLOR)
     return build_string (unspecified_bg);
+
+#ifdef WINDOWSNT
+  return vga_stdcolor_name (idx);
+#endif
+
   return Qunspecified;
 }
 
@@ -1403,7 +1459,7 @@ load_color (f, face, name, target_index)
   return color.pixel;
 }
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
 
 /* Load colors for face FACE which is used on frame F.  Colors are
    specified by slots LFACE_BACKGROUND_INDEX and LFACE_FOREGROUND_INDEX
@@ -1454,9 +1510,11 @@ unload_color (f, pixel)
      struct frame *f;
      unsigned long pixel;
 {
+#ifdef HAVE_X_WINDOWS
   BLOCK_INPUT;
   x_free_colors (f, &pixel, 1);
   UNBLOCK_INPUT;
+#endif
 }
 
 
@@ -1467,6 +1525,7 @@ free_face_colors (f, face)
      struct frame *f;
      struct face *face;
 {
+#ifdef HAVE_X_WINDOWS
   int class = FRAME_X_DISPLAY_INFO (f)->visual->class;
   
   /* If display has an immutable color map, freeing colors is not
@@ -1519,8 +1578,9 @@ free_face_colors (f, face)
 
       UNBLOCK_INPUT;
     }
-}
 #endif /* HAVE_X_WINDOWS */
+}
+#endif /* HAVE_WINDOW_SYSTEM */
 
 
 
@@ -1909,7 +1969,7 @@ face_numeric_swidth (width)
 }
 
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
 
 /* Return non-zero if FONT is the name of a fixed-pitch font.  */
 
@@ -2103,14 +2163,48 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p,
      int nfonts, try_alternatives_p;
      int scalable_fonts_p;
 {
-  Display *dpy = f ? FRAME_X_DISPLAY (f) : x_display_list->display;
   int n, i, j;
   char **names;
+#ifdef HAVE_X_WINDOWS
+  Display *dpy = f ? FRAME_X_DISPLAY (f) : x_display_list->display;
 
   /* Get the list of fonts matching PATTERN from the X server.  */
   BLOCK_INPUT;
   names = XListFonts (dpy, pattern, nfonts, &n);
   UNBLOCK_INPUT;
+#endif
+#ifdef WINDOWSNT
+  /* NTEMACS_TODO : currently this uses w32_list_fonts, but it may be
+     better to do it the other way around. */
+  Lisp_Object lfonts;
+  Lisp_Object lpattern, tem;
+
+  n = 0;
+  names = NULL;
+
+  lpattern = build_string (pattern);
+
+  /* Get the list of fonts matching PATTERN.  */
+  BLOCK_INPUT;
+  lfonts = w32_list_fonts (f, lpattern, 0, nfonts);
+  UNBLOCK_INPUT;
+
+  /* Count fonts returned */
+  for (tem = lfonts; CONSP (tem); tem = XCDR (tem))
+    n++;
+
+  /* Allocate array.  */
+  if (n)
+    names = (char **) xmalloc (n * sizeof (char *));
+
+  /* Extract font names into char * array.  */
+  tem = lfonts;
+  for (i = 0; i < n; i++)
+    {
+      names[i] = XSTRING (XCAR (tem))->data;
+      tem = XCDR (tem);
+    }
+#endif
 
   if (names)
     {
@@ -2143,10 +2237,12 @@ x_face_list_fonts (f, pattern, fonts, nfonts, try_alternatives_p,
 
       n = j;
 
+#ifdef HAVE_X_WINDOWS
       /* Free font names.  */
       BLOCK_INPUT;
       XFreeFontNames (names);
       UNBLOCK_INPUT;
+#endif
     }
   
 
@@ -2522,7 +2618,7 @@ the WIDTH times as wide as FACE on FRAME.")
   /* We can't simply call check_x_frame because this function may be
      called before any frame is created.  */
   f = frame_or_selected_frame (frame, 2);
-  if (!FRAME_X_P (f))
+  if (!FRAME_WINDOW_P (f))
     {
       /* Perhaps we have not yet created any frame.  */
       f = NULL;
@@ -2541,9 +2637,9 @@ the WIDTH times as wide as FACE on FRAME.")
       struct face *face = FACE_FROM_ID (f, face_id);
 
       if (face->font)
-	size = face->font->max_bounds.width;
+	size = FONT_WIDTH (face->font);
       else
-	size = FRAME_FONT (f)->max_bounds.width;
+	size = FONT_WIDTH (FRAME_FONT (f));
 
       if (!NILP (width))
 	size *= XINT (width);
@@ -2561,7 +2657,7 @@ the WIDTH times as wide as FACE on FRAME.")
   }
 }
 
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 
 
 
@@ -2780,8 +2876,7 @@ lface_fully_specified_p (attrs)
   return i == LFACE_VECTOR_SIZE;
 }
 
-
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
 
 /* Set font-related attributes of Lisp face LFACE from XLFD font name
    FONT_NAME.  If FORCE_P is zero, set only unspecified attributes of
@@ -2843,6 +2938,7 @@ set_lface_from_font_name (f, lface, font_name, force_p, may_fail_p)
     {
       if (may_fail_p)
 	return 0;
+#ifdef HAVE_X_WINDOWS
       else if (first_font_matching (f, "-adobe-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1",
 				    &font)
 	       || first_font_matching (f, "-misc-fixed-medium-r-normal-*-*-140-*-*-c-*-iso8859-1",
@@ -2854,6 +2950,19 @@ set_lface_from_font_name (f, lface, font_name, force_p, may_fail_p)
 	       || first_font_matching (f, "-*-fixed-*-*-*-*-*-140-*-*-c-*-iso8859-1",
 				       &font)
 	       || first_font_matching (f, "fixed", &font))
+#endif
+#ifdef WINDOWSNT
+      else if (first_font_matching (f, "-*-Courier New-normal-r-*-*-13-*-*-*-c-*-iso8859-1",
+				    &font)
+	       || first_font_matching (f, "-*-Courier-normal-r-*-*-13-*-*-*-c-*-iso8859-1",
+				       &font)
+	       || first_font_matching (f, "-*-FixedSys-normal-r-*-*-12-*-*-*-c-*-iso8859-1",
+				       &font)
+	       || first_font_matching (f, "-*-*-normal-r-*-*-*-*-*-*-c-*-iso8859-1",
+				       &font)
+	       || first_font_matching (f, "FixedSys",
+				       &font))
+#endif
 	free_font_name_p = 1;
       else
 	abort ();
@@ -2894,8 +3003,7 @@ set_lface_from_font_name (f, lface, font_name, force_p, may_fail_p)
   
   return 1;
 }
-
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 
 
 /* Merge two Lisp face attribute vectors FROM and TO and store the
@@ -3505,7 +3613,7 @@ frame.")
     }
   else if (EQ (attr, QCfont))
     {
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
       /* Set font-related attributes of the Lisp face from an
 	 XLFD font name.  */
       struct frame *f;
@@ -3520,7 +3628,7 @@ frame.")
 	signal_error ("Invalid font name", value);
       
       font_related_attr_p = 1;
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
     }
   else if (EQ (attr, QCbold))
     {
@@ -3550,7 +3658,7 @@ frame.")
       ++windows_or_buffers_changed;
     }
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
 
   if (!EQ (frame, Qt)
       && !UNSPECIFIEDP (value)
@@ -3572,6 +3680,7 @@ frame.")
 	  else if (EQ (attr, QCbackground))
 	    param = Qbackground_color;
 	}
+#ifndef WINDOWSNT
       else if (EQ (face, Qscroll_bar))
 	{
 	  /* Changing the colors of `scroll-bar' sets frame parameters
@@ -3581,6 +3690,7 @@ frame.")
 	  else if (EQ (attr, QCbackground))
 	    param = Qscroll_bar_background;
 	}
+#endif
       else if (EQ (face, Qborder))
 	{
 	  /* Changing background color of `border' sets frame parameter
@@ -3607,13 +3717,13 @@ frame.")
 	Fmodify_frame_parameters (frame, Fcons (Fcons (param, value), Qnil));
     }
 
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
   
   return face;
 }
 
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
 
 /* Set the `font' frame parameter of FRAME according to `default' face
    attributes LFACE.  */
@@ -3735,7 +3845,8 @@ DEFUN ("internal-face-x-get-resource", Finternal_face_x_get_resource,
   (resource, class, frame)
      Lisp_Object resource, class, frame;
 {
-  Lisp_Object value;
+  Lisp_Object value = Qnil;
+#ifndef WINDOWSNT
   CHECK_STRING (resource, 0);
   CHECK_STRING (class, 1);
   CHECK_LIVE_FRAME (frame, 2);
@@ -3743,6 +3854,7 @@ DEFUN ("internal-face-x-get-resource", Finternal_face_x_get_resource,
   value = display_x_get_resource (FRAME_X_DISPLAY_INFO (XFRAME (frame)),
 				  resource, class, Qnil, Qnil);
   UNBLOCK_INPUT;
+#endif
   return value;
 }
 
@@ -3818,8 +3930,10 @@ DEFUN ("internal-set-lisp-face-attribute-from-resource",
   return Finternal_set_lisp_face_attribute (face, attr, value, frame);
 }
 
+#endif /* HAVE_WINDOW_SYSTEM */
 
 
+#ifdef HAVE_X_WINDOWS
 /***********************************************************************
 			      Menu face
  ***********************************************************************/
@@ -4412,8 +4526,8 @@ free_realized_face (f, face)
 {
   if (face)
     {
-#ifdef HAVE_X_WINDOWS
-      if (FRAME_X_P (f))
+#ifdef HAVE_WINDOW_SYSTEM
+      if (FRAME_WINDOW_P (f))
 	{
 	  if (face->gc)
 	    {
@@ -4424,7 +4538,7 @@ free_realized_face (f, face)
 	  free_face_colors (f, face);
 	  x_destroy_bitmap (f, face->stipple);
 	}
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 
       xfree (face);
     }
@@ -4440,8 +4554,8 @@ prepare_face_for_display (f, face)
      struct frame *f;
      struct face *face;
 {
-#ifdef HAVE_X_WINDOWS
-  xassert (FRAME_X_P (f));
+#ifdef HAVE_WINDOW_SYSTEM
+  xassert (FRAME_WINDOW_P (f));
   
   if (face->gc == 0)
     {
@@ -4450,27 +4564,34 @@ prepare_face_for_display (f, face)
 
       xgcv.foreground = face->foreground;
       xgcv.background = face->background;
+#ifdef HAVE_X_WINDOWS
       xgcv.graphics_exposures = False;
-
+#endif
       /* The font of FACE may be null if we couldn't load it.  */
       if (face->font)
 	{
+#ifdef HAVE_X_WINDOWS
 	  xgcv.font = face->font->fid;
+#endif
+#ifdef WINDOWSNT
+	  xgcv.font = face->font;
+#endif
 	  mask |= GCFont;
 	}
 
       BLOCK_INPUT;
+#ifdef HAVE_X_WINDOWS
       if (face->stipple)
 	{
 	  xgcv.fill_style = FillOpaqueStippled;
 	  xgcv.stipple = x_bitmap_pixmap (f, face->stipple);
 	  mask |= GCFillStyle | GCStipple;
 	}
-
+#endif
       face->gc = x_create_gc (f, mask, &xgcv);
       UNBLOCK_INPUT;
     }
-#endif
+#endif /* HAVE_WINDOW_SYSTEM */
 }
 
 
@@ -4550,9 +4671,9 @@ static void
 clear_face_gcs (c)
      struct face_cache *c;
 {
-  if (c && FRAME_X_P (c->f))
+  if (c && FRAME_WINDOW_P (c->f))
     {
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
       int i;
       for (i = BASIC_FACE_ID_SENTINEL; i < c->used; ++i)
 	{
@@ -4563,7 +4684,7 @@ clear_face_gcs (c)
 	      face->gc = 0;
 	    }
 	}
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
     }
 }
 
@@ -4783,7 +4904,7 @@ lookup_face (f, attr, charset)
 
 #if GLYPH_DEBUG
   xassert (face == FACE_FROM_ID (f, face->id));
-  if (FRAME_X_P (f))
+  if (FRAME_WINDOW_P (f))
     xassert (charset < 0 || FACE_SUITABLE_FOR_CHARSET_P (face, charset));
 #endif /* GLYPH_DEBUG */
   
@@ -4843,7 +4964,7 @@ smaller_face (f, face_id, steps)
      struct frame *f;
      int face_id, steps;
  {
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   struct face *face;
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   int pt, last_pt, last_height;
@@ -4887,11 +5008,11 @@ smaller_face (f, face_id, steps)
 
   return new_face_id;
 
-#else /* not HAVE_X_WINDOWS */
+#else /* not HAVE_WINDOW_SYSTEM */
 
   return face_id;
   
-#endif /* not HAVE_X_WINDOWS */
+#endif /* not HAVE_WINDOW_SYSTEM */
 }
 
 
@@ -4904,7 +5025,7 @@ face_with_height (f, face_id, height)
      int face_id;
      int height;
 {
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   struct face *face;
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
 
@@ -4916,7 +5037,7 @@ face_with_height (f, face_id, height)
   bcopy (face->lface, attrs, sizeof attrs);
   attrs[LFACE_HEIGHT_INDEX] = make_number (height);
   face_id = lookup_face (f, attrs, CHARSET_ASCII);
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
   
   return face_id;
 }
@@ -5034,7 +5155,7 @@ be found.  Value is ALIST.")
 }
 
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
 
 /* Return the X registry and encoding of font name FONT_NAME on frame F.
    Value is nil if not successful.  */
@@ -5077,7 +5198,14 @@ font_scalable_p (font)
      struct font_name *font;
 {
   char *s = font->fields[XLFD_AVGWIDTH];
-  return *s == '0' && *(s + 1) == '\0';
+  return (*s == '0' && *(s + 1) == '\0')
+#ifdef WINDOWSNT
+  /* Windows implementation of XLFD is slightly broken for backward
+     compatibility with previous broken versions, so test for
+     wildcards as well as 0. */
+  || *s == '*'
+#endif
+    ;
 }
 
 
@@ -5552,7 +5680,7 @@ choose_face_fontset_font (f, attrs, fontset, charset)
   return font_name;
 }
 
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 
 
 
@@ -5613,8 +5741,8 @@ realize_default_face (f)
       lface = Finternal_make_lisp_face (Qdefault, frame);
     }
 
-#ifdef HAVE_X_WINDOWS
-  if (FRAME_X_P (f))
+#ifdef HAVE_WINDOW_SYSTEM
+  if (FRAME_WINDOW_P (f))
     {
       /* Set frame_font to the value of the `font' frame parameter.  */
       frame_font = Fassq (Qfont, f->param_alist);
@@ -5677,7 +5805,7 @@ realize_default_face (f)
 	    Vface_default_registry = build_string ("iso8859-1");
 	}
     }
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 
   if (!FRAME_WINDOW_P (f))
     {
@@ -5711,7 +5839,7 @@ realize_default_face (f)
       
       if (CONSP (color) && STRINGP (XCDR (color)))
 	LFACE_FOREGROUND (lface) = XCDR (color);
-      else if (FRAME_X_P (f))
+      else if (FRAME_WINDOW_P (f))
 	return 0;
       else if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
 	LFACE_FOREGROUND (lface) = build_string (unspecified_fg);
@@ -5726,7 +5854,7 @@ realize_default_face (f)
       Lisp_Object color = Fassq (Qbackground_color, f->param_alist);
       if (CONSP (color) && STRINGP (XCDR (color)))
 	LFACE_BACKGROUND (lface) = XCDR (color);
-      else if (FRAME_X_P (f))
+      else if (FRAME_WINDOW_P (f))
 	return 0;
       else if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
 	LFACE_BACKGROUND (lface) = build_string (unspecified_bg);
@@ -5824,7 +5952,7 @@ realize_face (c, attrs, charset)
   xassert (c != NULL);
   check_lface_attrs (attrs);
 
-  if (FRAME_X_P (c->f))
+  if (FRAME_WINDOW_P (c->f))
     face = realize_x_face (c, attrs, charset);
   else if (FRAME_TERMCAP_P (c->f) || FRAME_MSDOS_P (c->f))
     face = realize_tty_face (c, attrs, charset);
@@ -5846,14 +5974,14 @@ realize_x_face (c, attrs, charset)
      Lisp_Object *attrs;
      int charset;
 {
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   struct face *face, *default_face;
   struct frame *f;
   Lisp_Object stipple, overline, strike_through, box;
   Lisp_Object unibyte_registry;
   struct gcpro gcpro1;
 
-  xassert (FRAME_X_P (c->f));
+  xassert (FRAME_WINDOW_P (c->f));
 
   /* If realizing a face for use in unibyte text, get the X registry
      and encoding to use from Vface_default_registry.  */
@@ -6059,7 +6187,7 @@ realize_x_face (c, attrs, charset)
   xassert (face->fontset < 0);
   xassert (FACE_SUITABLE_FOR_CHARSET_P (face, charset));
   return face;
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 }
 
 
@@ -6126,28 +6254,34 @@ realize_tty_face (c, attrs, charset)
       face->foreground = load_color (c->f, face,
 				     attrs[LFACE_FOREGROUND_INDEX],
 				     LFACE_FOREGROUND_INDEX);
-#ifdef MSDOS
+
+#if defined (MSDOS) || defined (WINDOWSNT)
       /* If the foreground of the default face is the default color,
 	 use the foreground color defined by the frame.  */
+#ifdef MSDOS
       if (FRAME_MSDOS_P (c->f))
 	{
+#endif /* MSDOS */
+
 	  if (face->foreground == FACE_TTY_DEFAULT_FG_COLOR
 	      || face->foreground == FACE_TTY_DEFAULT_COLOR)
 	    {
-	      face->foreground = FRAME_FOREGROUND_PIXEL (f);
+              face->foreground = FRAME_FOREGROUND_PIXEL (c->f);
 	      attrs[LFACE_FOREGROUND_INDEX] =
-		msdos_stdcolor_name (face->foreground);
+		tty_color_name (c->f, face->foreground);
 	      face_colors_defaulted = 1;
 	    }
 	  else if (face->foreground == FACE_TTY_DEFAULT_BG_COLOR)
 	    {
-	      face->foreground = FRAME_BACKGROUND_PIXEL (f);
+	      face->foreground = FRAME_BACKGROUND_PIXEL (c->f);
 	      attrs[LFACE_FOREGROUND_INDEX] =
-		msdos_stdcolor_name (face->foreground);
+		tty_color_name (c->f, face->foreground);
 	      face_colors_defaulted = 1;
 	    }
+#ifdef MSDOS
 	}
 #endif
+#endif /* MSDOS or WINDOWSNT */
     }
 
   color = attrs[LFACE_BACKGROUND_INDEX];
@@ -6166,28 +6300,33 @@ realize_tty_face (c, attrs, charset)
       face->background = load_color (c->f, face,
 				     attrs[LFACE_BACKGROUND_INDEX],
 				     LFACE_BACKGROUND_INDEX);
-#ifdef MSDOS
+#if defined (MSDOS) || defined (WINDOWSNT)
       /* If the background of the default face is the default color,
 	 use the background color defined by the frame.  */
+#ifdef MSDOS
       if (FRAME_MSDOS_P (c->f))
 	{
+#endif /* MSDOS */
+
 	  if (face->background == FACE_TTY_DEFAULT_BG_COLOR
 	      || face->background == FACE_TTY_DEFAULT_COLOR)
 	    {
-	      face->background = FRAME_BACKGROUND_PIXEL (f);
+	      face->background = FRAME_BACKGROUND_PIXEL (c->f);
 	      attrs[LFACE_BACKGROUND_INDEX] =
-		msdos_stdcolor_name (face->background);
+		tty_color_name (c->f, face->background);
 	      face_colors_defaulted = 1;
 	    }
 	  else if (face->background == FACE_TTY_DEFAULT_FG_COLOR)
 	    {
-	      face->background = FRAME_FOREGROUND_PIXEL (f);
+	      face->background = FRAME_FOREGROUND_PIXEL (c->f);
 	      attrs[LFACE_BACKGROUND_INDEX] =
-		msdos_stdcolor_name (face->background);
+		tty_color_name (c->f, face->background);
 	      face_colors_defaulted = 1;
 	    }
+#ifdef MSDOS
 	}
 #endif
+#endif /* MSDOS or WINDOWSNT */
     }
 
   /* Swap colors if face is inverse-video.  If the colors are taken
@@ -6702,7 +6841,7 @@ syms_of_xfaces ()
   defsubr (&Sinternal_make_lisp_face);
   defsubr (&Sinternal_lisp_face_p);
   defsubr (&Sinternal_set_lisp_face_attribute);
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   defsubr (&Sinternal_set_lisp_face_attribute_from_resource);
 #endif
   defsubr (&Scolor_gray_p);
@@ -6758,15 +6897,20 @@ A value of nil means don't allow any scalable fonts.\n\
 A value of t means allow any scalable font.\n\
 Otherwise, value must be a list of regular expressions.  A font may be\n\
 scaled if its name matches a regular expression in the list.");
+#ifdef WINDOWSNT
+  /* Windows uses mainly truetype fonts, so disallowing scalable fonts
+     by default limits the fonts available severely. */
+  Vscalable_fonts_allowed = Qt;
+#else
   Vscalable_fonts_allowed = Qnil;
-  
+#endif
 #endif /* SCALABLE_FONTS */
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   defsubr (&Sbitmap_spec_p);
   defsubr (&Sx_list_fonts);
   defsubr (&Sinternal_face_x_get_resource);
   defsubr (&Sx_family_fonts);
   defsubr (&Sx_font_family_list);
-#endif /* HAVE_X_WINDOWS */
+#endif /* HAVE_WINDOW_SYSTEM */
 }
