@@ -1,6 +1,6 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.37) $
+ * $HopeName: MMsrc!mps.h(trunk.38) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -69,14 +69,18 @@ enum {
 
 
 /* Reference Ranks */
-/* .ranks: Keep in sync with impl.h.mpmtypes.ranks */
 
-enum {
-  MPS_RANK_AMBIG = 0,           /* ambiguous reference */
-  MPS_RANK_EXACT = 1,           /* exact reference */
-  MPS_RANK_FINAL = 2,           /* final reference */
-  MPS_RANK_WEAK = 3             /* weak reference */
-};
+extern mps_rank_t mps_rank_ambig(void);
+extern mps_rank_t mps_rank_exact(void);
+extern mps_rank_t mps_rank_final(void);
+extern mps_rank_t mps_rank_weak(void);
+
+/* These upper case symbolic forms are obsolescent. */
+/* Provided for source compatibility only. */
+#define MPS_RANK_AMBIG mps_rank_ambig()
+#define MPS_RANK_EXACT mps_rank_exact()
+#define MPS_RANK_FINAL mps_rank_final()
+#define MPS_RANK_WEAK mps_rank_weak()
 
 /* Root Modes */
 /* .rm: Keep in sync with impl.h.mpmtypes.rm */
