@@ -4356,9 +4356,12 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 
 	if (!NILP(default_filename))
 	  {
-	    saveName =
-	      cfstring_create_with_utf8_cstring (SDATA (ENCODE_UTF_8
-							(default_filename)));
+	    Lisp_Object utf8 = ENCODE_UTF_8 (default_filename);
+	    char *begPtr = SDATA(utf8);
+	    char *filePtr = begPtr + SBYTES(utf8);
+	    while (filePtr != begPtr && !IS_DIRECTORY_SEP(filePtr[-1]))
+	      filePtr--;
+	    saveName = cfstring_create_with_utf8_cstring (filePtr);
 	    options.saveFileName = saveName;
 	    options.optionFlags |= kNavSelectDefaultLocation;
 	  }
