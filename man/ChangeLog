@@ -1,5 +1,7 @@
 2005-03-28  Richard M. Stallman  <rms@gnu.org>
 
+	* emacs.texi (Top): Use @section for the detailed node listing.
+
 	* calendar.texi: Minor fixes to previous change.
 
 	* programs.texi (Fortran): Small fixes to previous changes.
