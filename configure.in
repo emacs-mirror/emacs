@@ -274,7 +274,11 @@ case "${canonical}" in
   m68k-motorola-sysv* | m68000-motorola-sysv* )
     machine=delta opsys=usg5-3
     if test -z "`type gnucc | grep 'not found'`"
-    then CC=gnucc
+    then
+      if test -s /etc/167config
+      then CC="gnucc -m68040"
+      else CC="gnucc -m68881"
+      fi 
     else
       if test -z "`type gcc | grep 'not found'`"
       then CC=gcc
