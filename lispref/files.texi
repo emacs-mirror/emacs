@@ -365,8 +365,9 @@ the intended name after it is clear there are no errors.  This procedure
 prevents problems such as a lack of disk space from resulting in an
 invalid file.
 
-As a side effect, backups must be made by copying.
-@xref{Rename or Copy}.
+As a side effect, backups are necessarily made by copying.  @xref{Rename
+or Copy}.  Yet, at the same time, saving a precious file always breaks
+all hard links between the file you save and other file names.
 
 Some modes set this variable non-@code{nil} locally in particular
 buffers.
@@ -396,7 +397,7 @@ command @code{insert-file} in a Lisp program, as that sets the mark.
 
 @defun insert-file-contents filename &optional visit beg end replace
 This function inserts the contents of file @var{filename} into the
-current buffer after point. It returns a list of the absolute file name
+current buffer after point.  It returns a list of the absolute file name
 and the length of the data inserted.  An error is signaled if
 @var{filename} is not the name of a file that can be read.
 
@@ -1877,8 +1878,9 @@ Here are the operations that a magic file name handler gets to handle:
 @noindent
 @code{add-name-to-file}, @code{copy-file}, @code{delete-directory},
 @code{delete-file},@*
+@code{diff-latest-backup-file},
 @code{directory-file-name},
-@code{diff-latest-backup-file}, @code{directory-files},
+@code{directory-files},
 @code{dired-compress-file}, @code{dired-uncache},
 @code{expand-file-name},@*
 @code{file-accessible-directory-p},
@@ -1889,7 +1891,8 @@ Here are the operations that a magic file name handler gets to handle:
 @code{file-name-directory}, @code{file-name-nondirectory},
 @code{file-name-sans-versions}, @code{file-newer-than-file-p},
 @code{file-readable-p}, @code{file-regular-p}, @code{file-symlink-p},
-@code{file-truename}, @code{get-file-buffer}, @code{file-writable-p},
+@code{file-truename}, @code{file-writable-p},
+@code{get-file-buffer},
 @code{insert-directory},
 @code{insert-file-contents}, @code{load}, @code{make-directory},
 @code{make-symbolic-link}, @code{rename-file}, @code{set-file-modes},
@@ -2085,6 +2088,56 @@ This command writes the current buffer contents into the file @var{file}
 in format @var{format}, and makes that format the default for future
 saves of the buffer.  The argument @var{format} is a list of format
 names.
+@end defun
+
+@defun format-find-file file format
+This command finds the file @var{file}, converting it according to
+format @var{format}.  It also makes @var{format} the default if the
+buffer is saved later.
+
+The argument @var{format} is a list of format names.  If @var{format} is
+@code{nil}, no conversion takes place.  Interactively, typing just
+@key{RET} for @var{format} specifies @code{nil}.
+@end defun
+
+@defun format-insert-file file format %optional beg end
+This command inserts the contents of file @var{file}, converting it
+according to format @var{format}.  If @var{beg} and @var{end} are
+non-@code{nil}, they specify which part of the file to read, as in
+@code{insert-file-contents} (@pxref{Reading from Files}).
+
+The return value is like what @code{insert-file-contents} returns: a
+list of the absolute file name and the length of the data inserted
+(after conversion).
+
+The argument @var{format} is a list of format names.  If @var{format} is
+@code{nil}, no conversion takes place.  Interactively, typing just
+@key{RET} for @var{format} specifies @code{nil}.
+@end defun
+
+@defun format-find-file file format
+This command finds the file @var{file}, converting it according to
+format @var{format}.  It also makes @var{format} the default if the
+buffer is saved later.
+
+The argument @var{format} is a list of format names.  If @var{format} is
+@code{nil}, no conversion takes place.  Interactively, typing just
+@key{RET} for @var{format} specifies @code{nil}.
+@end defun
+
+@defun format-insert-file file format %optional beg end
+This command inserts the contents of file @var{file}, converting it
+according to format @var{format}.  If @var{beg} and @var{end} are
+non-@code{nil}, they specify which part of the file to read,
+as in @code{insert-file-contents} (@pxref{Reading from Files}).
+
+The return value is like what @code{insert-file-contents} returns: a
+list of the absolute file name and the length of the data inserted
+(after conversion).
+
+The argument @var{format} is a list of format names.  If @var{format} is
+@code{nil}, no conversion takes place.  Interactively, typing just
+@key{RET} for @var{format} specifies @code{nil}.
 @end defun
 
 @defvar auto-save-file-format

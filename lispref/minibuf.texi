@@ -1252,7 +1252,11 @@ where @var{object} is the next object to ask about (as obtained from
 @var{list}).
 
 If not a string, @var{prompter} should be a function of one argument
-(the next object to ask about) and should return the question text.
+(the next object to ask about) and should return the question text.  If
+the value is a string, that is the question to ask the user.  The
+function can also return @code{t} meaning do act on this object (and
+don't ask the user), or @code{nil} meaning ignore this object (and don't
+ask the user).
 
 The argument @var{actor} says how to act on the answers that the user
 gives.  It should be a function of one argument, and it is called with
