@@ -176,8 +176,6 @@ parentheses exist (including human languages).
 @cindex list
 @cindex sexp
 @cindex expression
-@cindex parentheses, moving across
-@cindex matching parenthesis, moving to
   These commands fall into two classes.  Some deal only with @dfn{lists}
 (parenthetical groupings).  They see nothing except parentheses, brackets,
 braces (whichever ones must balance in the language you are working with),
@@ -232,6 +230,9 @@ Transpose expressions (@code{transpose-sexps}).
 Put mark after following expression (@code{mark-sexp}).
 @end table
 
+@cindex parentheses, moving across
+@cindex matching parenthesis and braces, moving to
+@cindex braces, moving across
 @kindex C-M-f
 @kindex C-M-b
 @findex forward-sexp
@@ -253,6 +254,7 @@ were whitespace in most modes.
 specified number of times; with a negative argument, it moves in the
 opposite direction.
 
+@cindex deleting parenthesized expressions
 @kindex C-M-k
 @findex kill-sexp
 @kindex C-M-DEL
@@ -290,7 +292,7 @@ up one or more levels.@refill
 delimiter, this is nearly the same as searching for a @samp{(}.  An
 argument specifies the number of levels of parentheses to go down.
 
-@cindex transposition
+@cindex transposition of parenthesized expressions
 @kindex C-M-t
 @findex transpose-sexps
   A somewhat random-sounding command which is nevertheless handy is
@@ -336,6 +338,8 @@ Move to end of current or following defun (@code{end-of-defun}).
 Put region around whole current or following defun (@code{mark-defun}).
 @end table
 
+@cindex move to beginning or end of function
+@cindex function, move to beginning or end
 @kindex C-M-a
 @kindex C-M-e
 @kindex C-M-h
