@@ -3059,7 +3059,9 @@ This does code conversion according to the value of\n\
   /* Decide the coding-system of the file.  */
   {
     Lisp_Object val = Vcoding_system_for_read;
-    if (NILP (val))
+    if (NILP (current_buffer->enable_multibyte_characters))
+      val = Qnil;
+    else if (NILP (val))
       {
 	Lisp_Object args[6], coding_systems;
 
@@ -3622,7 +3624,7 @@ This does code conversion according to the value of\n\
   {
     Lisp_Object val;
 
-    if (auto_saving)
+    if (auto_saving || NILP (current_buffer->enable_multibyte_characters))
       val = Qnil;
     else if (!NILP (Vcoding_system_for_write))
       val = Vcoding_system_for_write;
