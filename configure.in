@@ -168,6 +168,7 @@ case "${canonical}" in
       m68k-*-netbsd*)
 			# This is somewhat bogus.
 			machine=hp9000s300 ;;
+      powerpc-apple-netbsd*) machine=macppc ;;
       mips-*-netbsd*)	machine=pmax ;;
       ns32k-*-netbsd*)	machine=ns32000 ;;
       sparc-*-netbsd*)	machine=sparc ;;
@@ -185,7 +186,7 @@ case "${canonical}" in
       mipsel-*-openbsd*) machine=pmax ;;
       ns32k-*-openbsd*)	machine=ns32000 ;;
       sparc-*-openbsd*)	machine=sparc ;;
-      vax-*-netbsd*)	machine=vax ;;
+      vax-*-openbsd*)	machine=vax ;;
     esac
   ;;
 
