@@ -1164,7 +1164,7 @@ example, to include American presidential elections, which occur on the first
 Tuesday after the first Monday in November of years divisible by 4, add
 
      (holiday-sexp
-       (if (zerop (% year 4))
+       '(if (zerop (% year 4))
            (calendar-gregorian-from-absolute
              (1+ (calendar-dayname-on-or-before
                    1 (+ 6 (calendar-absolute-from-gregorian
@@ -2544,12 +2544,12 @@ If optional NODAY is t, does not ask for day, but just returns
                                 (calendar-current-date)))))
          (month-array calendar-month-name-array)
          (completion-ignore-case t)
-         (month (cdr (assoc-ignore-case
+         (month (cdr (assoc-string
                        (completing-read
                         "Month name: "
                         (mapcar 'list (append month-array nil))
                         nil t)
-                      (calendar-make-alist month-array 1))))
+                      (calendar-make-alist month-array 1) t)))
          (last (calendar-last-day-of-month month year)))
     (if noday
         (if (eq noday t)
