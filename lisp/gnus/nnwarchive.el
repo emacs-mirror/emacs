@@ -617,7 +617,7 @@
   (let (p refs url mime e 
 	  from subject date id 
 	  done
-	  (case-fold-serch t))
+	  (case-fold-search t))
     (save-restriction
       (goto-char (point-min))
       (when (search-forward "X-Head-End" nil t)

@@ -1,3 +1,7 @@
+2002-04-01  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* nnwarchive.el (nnwarchive-mail-archive-article): Fix typo.
+
 2002-03-21  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* mail-source.el (make-source-make-complex-temp-name): Use
