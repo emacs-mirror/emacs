@@ -779,6 +779,9 @@ static int do_verify_charstarts;
    no more than once ever 1000 redisplays.  */
 static int clear_face_cache_count;
 
+/* Record the previous terminal frame we displayed.  */
+static FRAME_PTR previous_terminal_frame;
+
 void
 redisplay ()
 {
@@ -791,6 +794,19 @@ redisplay ()
 
   if (noninteractive)
     return;
+
+#ifdef MULTI_FRAME
+  if (FRAME_TERMCAP_P (selected_frame)
+      && previous_terminal_frame != selected_frame)
+    {
+      /* Since frames on an ASCII terminal share the same display area,
+	 displaying a different frame means redisplay the whole thing.  */
+      windows_or_buffers_changed++;
+      SET_FRAME_GARBAGED (selected_frame);
+      XSETFRAME (Vterminal_frame, selected_frame);
+    }
+  previous_terminal_frame = selected_frame;
+#endif
 
   /* Set the visible flags for all frames.
      Do this before checking for resized or garbaged frames; they want
@@ -1094,7 +1110,8 @@ update:
 	FRAME_PTR mini_frame
 	  = XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)));
 	
-	if (mini_frame != selected_frame)
+	if (mini_frame != selected_frame
+	    && ! FRAME_TERMCAP_P (mini_frame))
 	  pause |= update_frame (mini_frame, 0, 0);
       }
     }
