@@ -266,7 +266,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define LIBX11_SYSTEM -lxext -lsys
 #else
 /* We need a little extra space, see ../../lisp/loadup.el */
-#define SYSTEM_PURESIZE_EXTRA 60000
+#define SYSTEM_PURESIZE_EXTRA 50000
 #endif
 
 /* Tell the garbage collector that setjmp is known to save all
