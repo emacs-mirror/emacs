@@ -715,9 +715,11 @@ dvi:
 .PHONY: maybe_bootstrap
 
 maybe_bootstrap:
-	@if [ ! -f $(srcdir)/lisp/abbrev.elc ]; then \
-	  echo "Essential Lisp files seem to be missing.  You should either"; \
-	  echo "do \`make bootstrap' or create \`lisp/abbrev.elc' somehow.";    \
+        @bar=`echo ./lisp/*.elc`; \
+	if [ "$bar" = './lisp/*.elc' ]; then \
+	  echo "Your tree does not include the compiled Lisp files."; \
+	  echo "You need to do \`make bootstrap' to build Emacs."; \
+	  echo "Emacs now requires Texinfo version 4.2."; \
 	  exit 1;\
 	fi
 
