@@ -277,7 +277,7 @@ Or click \\<occur-mode-map>\\[occur-mode-mouse-goto] on an occurrence line.
   (interactive)
   (let ((pos (occur-mode-find-occurrence)))
     (pop-to-buffer occur-buffer)
-    (goto-char (marker-position pos)))))
+    (goto-char (marker-position pos))))
 
 (defvar list-matching-lines-default-context-lines 0
   "*Default number of context lines to include around a `list-matching-lines'
