@@ -78,7 +78,7 @@
 	* Makefile.in (VERSION): Set to 2.8.
 	(manual): Use `manual-21'.
 
-	* elisp.texi (VERSION): Add and use it where the the version
+	* elisp.texi (VERSION): Add and use it where the version
 	number was used.  Set it to 2.8.
 
 	* intro.texi: Likewise.

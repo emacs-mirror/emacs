@@ -2145,9 +2145,9 @@ x_append_stretch_glyph (it, object, width, height, ascent)
    4. `:height HEIGHT' specifies that the height of the stretch produced
    should be HEIGHT, measured in canonical character units.
 
-   5. `:relative-height FACTOR' specifies that the height of the the
-   stretch should be FACTOR times the height of the characters having
-   the glyph property.
+   5. `:relative-height FACTOR' specifies that the height of the stretch
+   should be FACTOR times the height of the characters having the glyph
+   property.
 
    Either none or exactly one of 4 or 5 must be present.
 
@@ -11737,7 +11737,7 @@ profiler_exit_proc ()
 #endif
 
 /* These few functions implement Emacs as a normal Mac application
-   (almost): set up the the heap and the Toolbox, handle necessary
+   (almost): set up the heap and the Toolbox, handle necessary
    system events plus a few simple menu events.  They also set up
    Emacs's access to functions defined in the rest of this file.
    Emacs uses function hooks to perform all its terminal I/O.  A

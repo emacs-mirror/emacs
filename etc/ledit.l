@@ -98,7 +98,7 @@
 ;;; Liszt returns 0 if all was well.
 ;;; Note that in ordinary use the user will have to get used to looking
 ;;; at "%Warning: ... Compiler declared *foo* special" messages, since
-;;; you don't usually want to hunt around in your file, zap in the the
+;;; you don't usually want to hunt around in your file, zap in the
 ;;; declarations, then go back to what you were doing.
 ;;; Fortunately this doesn't cause the compiler to bomb.
 ;;; Some sleepless night I will think of a way to get around this.

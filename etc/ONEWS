@@ -1029,7 +1029,7 @@ your working file with the latest version from the master.
 *** RCS customization.
 
 There is a new variable vc-consult-headers.  If it is t (the default),
-VC searches for RCS headers in working files (like `$Id: ONEWS,v 1.4 2000/11/20 16:15:34 gerd Exp $') and
+VC searches for RCS headers in working files (like `$Id: ONEWS,v 1.5 2001/01/31 15:19:32 gerd Exp $') and
 determines the state of the file from them, not from the master file.
 This is fast and more reliable when you use branches.  (The variable
 was already present in Emacs 19.29, but didn't get mentioned in the
@@ -4739,8 +4739,7 @@ Emacs searches for X resources
 
 The paths in the variables XFILESEARCHPATH, XUSERFILESEARCHPATH, and
 XAPPLRESDIR may contain %-escapes (like the control strings passed to
-the the Emacs lisp `format' function or C printf function), which
-Emacs expands.
+the Emacs lisp `format' function or C printf function), which Emacs expands.
 
 %N is replaced by the string "Emacs" wherever it occurs.
 %T is replaced by "app-defaults" wherever it occurs.

@@ -4718,7 +4718,7 @@ This method is not recommended, though: it only solves the problem for
 those modes which bind @key{DEL} to @code{delete-backward-char}.  Modes
 which bind @key{DEL} to something else, such as @code{view-mode}, will
 not work as you expect when you press the @key{Backspace} key.  For this
-reason, we recommend the the @code{keyboard-translate} method, shown
+reason, we recommend the @code{keyboard-translate} method, shown
 above.
 
 Other popular key bindings for help are @kbd{M-?} and @kbd{C-x ?}.
