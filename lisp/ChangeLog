@@ -1,3 +1,10 @@
+2005-02-03  Stefan  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el (set-locale-environment): Set file-name
+	coding system to utf-8 on Darwin systems.
+	(set-default-coding-systems): Don't set default-file-name-coding-system
+	on Darwin systems.
+
 2005-02-03  Richard M. Stallman  <rms@gnu.org>
 
 	* hi-lock.el (hi-lock-mode): Turning on Hi-Lock turns on Font-Lock.
