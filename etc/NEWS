@@ -8,6 +8,14 @@ For older news, see the file ONEWS.
 
 * Installation Changes in Emacs 21.1
 
+** `movemail' defaults to supporting POP.  You can turn this off using
+the --without-pop configure option, should that be necessary.
+
+** There are new configure options associated with the support for
+images and toolkit scrollbars.  Use the --help option to list them.
+
+* Changes in Emacs 21.1
+
 ** Emacs now refuses to load compiled Lisp files which weren't
 compiled with Emacs.  Set `load-dangerous-libraries' to t to change
 this behavior.
@@ -60,14 +68,6 @@ resource values are `true' or `on'.
 Example:
 
   emacs.privateColormap: true
-
-** `movemail' defaults to supporting POP.  You can turn this off using
-the --without-pop configure option, should that be necessary.
-
-** There are new configure options associated with the support for
-images and toolkit scrollbars.  Use the --help option to list them.
-
-* Changes in Emacs 21.1
 
 ** The menu bar configuration has changed.  The new configuration is
 more CUA-compliant.  The most significant change is that Options is
@@ -1052,6 +1052,34 @@ Note that +++ before an item means the Lisp manual has been updated.
 --- means that I have decided it does not need to be in the Lisp manual.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
+
+** Emacs' reader supports CL read syntax for integers in bases
+other than 10.
+
+*** `#BINTEGER' or `#bINTEGER' reads INTEGER in binary (radix 2).
+INTEGER optionally contains a sign.
+
+  #b1111 
+    => 15
+  #b-1111 
+    => -15
+
+*** `#OINTEGER' or `#oINTEGER' reads INTEGER in octal (radix 8).
+
+  #o666 
+    => 438
+
+*** `#XINTEGER' or `#xINTEGER' reads INTEGER in hexadecimal (radix 16).
+
+  #xbeef 
+    => 48815
+
+*** `#RADIXrINTEGER' reads INTEGER in radix RADIX, 2 <= RADIX <= 36.
+
+  #2R-111 
+    => -7
+  #25rah 
+    => 267
 
 ** The function documentation-property now evaluates the value of
 the given property to obtain a a string if it doesn't refer to etc/DOC
