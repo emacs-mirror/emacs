@@ -35,6 +35,12 @@
 	new implementation no longer requires it.  Make sure that a
 	function body containing just a string is not mistaken for a
 	docstring.
+	(debug): Skip one more frame in case of debug on entry.
+	(debugger-setup-buffer): Delete one more frame line in case of
+	debug on entry.
+	(debugger-frame-number): Update to use the new text introduced by
+	the 1999-11-03 change.  Skip one more frame in case of debug on
+	entry.
 
 2005-02-28  Kim F. Storm  <storm@cua.dk>
 
