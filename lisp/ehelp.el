@@ -150,7 +150,10 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit."
            (if (eq (car-safe (electric-help-command-loop))
                    'retain)
                (setq config (current-window-configuration))
-               (setq bury t)))
+               (setq bury t))
+	   ;; Remove the hook.
+	   (if (memq 'electric-help-retain mouse-leave-buffer-hook)
+	       (remove-hook 'mouse-leave-buffer-hook 'electric-help-retain)))
       (message "")
       (set-buffer buffer)
       (setq buffer-read-only nil)
@@ -221,9 +224,15 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit."
 ;    (scroll-up arg)))
 
 (defun electric-help-exit ()
-  ">>>Doc"
+  "Exit `electric-help', restoring the previous window/buffer configuration.
+\(The *Help* buffer will be buried.)"
   (interactive)
-  (throw 'exit t))
+  ;; Make sure that we don't throw twice, even if two events cause
+  ;; calling this function:
+  (if (memq 'electric-help-retain mouse-leave-buffer-hook)
+      (progn
+	(remove-hook 'mouse-leave-buffer-hook 'electric-help-retain)
+	(throw 'exit t))))
 
 (defun electric-help-retain ()
   "Exit `electric-help', retaining the current window/buffer configuration.
