@@ -294,7 +294,7 @@ ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAG) -I. -I${srcdi
 #ifdef HAVE_MENUS
 
 /* Include xmenu.o in the list of X object files.  */
-XOBJ= xterm.o xfns.o xfaces.o xselect.o xrdb.o fontset.o
+XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o
 
 /* The X Menu stuff is present in the X10 distribution, but missing
    from X11.  If we have X10, just use the installed library;
@@ -315,7 +315,7 @@ LIBXMENU= -lXMenu
 
 /* Otherwise, omit xmenu.o from the list of X object files, and
    don't worry about the menu library at all.  */
-XOBJ= xterm.o xfns.o xfaces.o xselect.o xrdb.o fontset.o
+XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o
 LIBXMENU=
 #endif /* not HAVE_MENUS */
 
@@ -487,7 +487,7 @@ ALL_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_MACHINE LD_SWITCH_SITE $(LDFLAGS)
 #ifdef HAVE_X_WINDOWS
 #define MSDOS_OBJ dosfns.o msdos.o
 #else
-#define MSDOS_OBJ dosfns.o msdos.o xfaces.o w16select.o
+#define MSDOS_OBJ dosfns.o msdos.o w16select.o
 #endif
 #else
 #define MSDOS_OBJ
@@ -498,7 +498,7 @@ ALL_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_MACHINE LD_SWITCH_SITE $(LDFLAGS)
    whose initialized data areas should be dumped as pure by dump-emacs.  */
 obj=    dispnew.o frame.o scroll.o xdisp.o xmenu.o window.o \
 	charset.o coding.o category.o ccl.o\
-	cm.o term.o $(XOBJ) \
+	cm.o term.o xfaces.o $(XOBJ) \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
 	buffer.o filelock.o insdel.o marker.o INTERVAL_OBJ \
 	minibuf.o fileio.o dired.o filemode.o \
@@ -514,7 +514,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o xmenu.o window.o \
    These go in the DOC file on all machines
    in case they are needed there.  */
 SOME_MACHINE_OBJECTS = sunfns.o dosfns.o msdos.o intervals.o textprop.o \
-  xterm.o xfns.o xfaces.o xmenu.o xselect.o xrdb.o
+  xterm.o xfns.o xmenu.o xselect.o xrdb.o
 
 
 #ifdef TERMINFO
@@ -571,7 +571,7 @@ widgetobj=
 otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj)
 
 #ifdef HAVE_FACES
-#define FACE_SUPPORT ${lispsource}faces.elc ${lispsource}facemenu.elc
+#define FACE_SUPPORT ${lispsource}facemenu.elc
 #else
 #define FACE_SUPPORT
 #endif
@@ -633,6 +633,7 @@ lisp= \
 	${lispsource}byte-run.elc \
 	${lispsource}cus-start.el \
 	${lispsource}custom.elc \
+	${lispsource}faces.elc \
 	${lispsource}files.elc \
 	${lispsource}fill.elc \
 	${lispsource}format.elc \
@@ -697,6 +698,7 @@ shortlisp= \
 	../lisp/byte-run.elc \
 	../lisp/cus-start.el \
 	../lisp/custom.elc \
+	../lisp/faces.elc \
 	../lisp/files.elc \
 	../lisp/fill.elc \
 	../lisp/format.elc \
@@ -747,7 +749,7 @@ shortlisp= \
    We use ../lisp/ to start the file names
    to reduce the size of the argument list for make-docfile
    for the sake of systems which can't handle large ones.  */
-SOME_MACHINE_LISP =  ${dotdot}/lisp/faces.elc ${dotdot}/lisp/facemenu.elc \
+SOME_MACHINE_LISP = ${dotdot}/lisp/facemenu.elc \
   ${dotdot}/lisp/float-sup.elc ${dotdot}/lisp/frame.elc \
   ${dotdot}/lisp/menu-bar.elc ${dotdot}/lisp/mouse.elc \
   ${dotdot}/lisp/select.elc ${dotdot}/lisp/scroll-bar.elc \
