@@ -257,7 +257,7 @@ extern int minibuf_level;
 /* true iff we should redraw the mode lines on the next redisplay.  */
 extern int update_mode_lines;
 
-/* Minimum value of GPT since last redisplay that finished.  */
+/* Minimum value of GPT - BEG since last redisplay that finished.  */
 
 extern int beg_unchanged;
 
@@ -266,7 +266,7 @@ extern int beg_unchanged;
 extern int end_unchanged;
 
 /* MODIFF as of last redisplay that finished;
-   if it matches MODIFF, beg_unchanged and end_unchangedn
+   if it matches MODIFF, beg_unchanged and end_unchanged
    contain no useful information.  */
 extern int unchanged_modified;
 
