@@ -10764,9 +10764,13 @@ Value is t is tooltip was open, nil otherwise.")
   
   if (!NILP (tip_timer))
     {
-      Lisp_Object tem = tip_timer;
+      Lisp_Object tem;
+      struct gcpro gcpro1;
+      tem = tip_timer;
+      GCPRO1 (tem);
       tip_timer = Qnil;
       call1 (intern ("cancel-timer"), tem);
+      UNGCPRO;
     }
 
   if (FRAMEP (tip_frame))
@@ -10779,6 +10783,7 @@ Value is t is tooltip was open, nil otherwise.")
       tip_frame = Qnil;
       Fdelete_frame (frame, Qnil);
       deleted = Qt;
+      UNGCPRO;
 
 #ifdef USE_LUCID
       /* Bloodcurdling hack alert: The Lucid menu bar widget's
