@@ -1,3 +1,10 @@
+2001-01-17  Dave Love  <fx@gnu.org>
+
+	* international/latin1-disp.el: Require disp-table.
+	(latin1-display): Fix :set.
+
+	* net/eudc-vars.el (eudc-server, eudc-protocol): Fix :type.
+
 2001-01-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* isearch.el (isearch-lazy-highlight-initial-delay)
@@ -81,8 +88,8 @@
 
 2001-01-15  Alex Schroeder  <alex@gnu.org>
 
-	* ansi-color.el (ansi-colors) <defgroup>: Fix :version by Dave
-	Love <fx@gnu.org>
+	* ansi-color.el (ansi-colors) <defgroup>: Fix :version.
+	From Dave Love <fx@gnu.org>.
 	(ansi-color-for-comint-mode): Fix :version.
 
 2001-01-15  Alex Schroeder  <alex@gnu.org>
