@@ -1,3 +1,12 @@
+2002-09-04  Kenichi Handa  <handa@etl.go.jp>
+
+	* HELLO: Fix Unicode Greek line.
+
+2002-09-03  Kenichi Handa  <handa@etl.go.jp>
+
+	* TUTORIAL.ja: Updated in accordance with the latest English
+	version.
+
 2002-09-01  Andreas Schwab  <schwab@suse.de>
 
 	* TUTORIAL.de: Updated in accordance with the English version.
