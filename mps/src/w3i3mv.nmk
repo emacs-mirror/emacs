@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc/!nti3mv.nmk(trunk.8)$
+# $HopeName: MMsrc!nti3mv.nmk(trunk.10) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -11,7 +11,7 @@ STD = <asrtosan> <assert> <deque> <error> <liban> <meter> <misc> <sig>
 MPM = <poolarvm> <vmnt> <space> <pool> <poolclas> <poolmfs> \
       <poolmv> <root> <format> <buffer> <locknt> \
       <coll> <ref> <trace> <fault> <protnt> <shield> <sched> \
-      <thnti3> <ssnti3>
+      <thnti3> <ssnti3> <mpsi> <mpsint>
 AMC = <amc> <amcgroup>
 DW  = <dw> <dwformat>
 TESTLIB = <testlib>
@@ -20,7 +20,7 @@ TESTLIB = <testlib>
 
 # ==== ALMOST GENERIC PRODUCT BUILD FOR NMAKE ====
 #
-# $HopeName: MMsrc/!nti3mv.nmk(trunk.8)$
+# $HopeName: MMsrc!nti3mv.nmk(trunk.10) $
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -217,17 +217,17 @@ TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 # "all" builds all the varieties of all targets
 # %%TARGET: Add the target  to the all dependencies
 
-all: dwstress.exe amcdev.exe lockutnt.exe lockcov.exe stdcover.exe \
-    mpmstres.exe protcv.exe poolncv.exe std.lib mpm.lib
+all: amcss.exe lockutnt.exe lockcov.exe stdcover.exe \
+    mpmss.exe protcv.exe poolncv.exe std.lib mpm.lib
 
 # Convenience targets
 # %%TARGET: Add a pseudo-target for the new part
 
-dwstress.exe amcdev.exe lockutnt.exe lockcov.exe stdcover.exe \
-	mpmstres.exe protcv.exe poolncv.exe std.lib mpm.lib:
+dwstress.exe amcss.exe lockutnt.exe lockcov.exe stdcover.exe \
+	mpmss.exe protcv.exe poolncv.exe std.lib mpm.lib:
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ target
 
-amcdev.cov:
+amcss.cov:
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ VARIETY=cover variety
 
 # "clean" removes the directory containing the build results for the platform
@@ -271,7 +271,7 @@ variety: $(PFM)\$(VARIETY)\$(TARGET)
 
 $(PFM)\$(VARIETY)\stdcover.exe: $(PFM)\$(VARIETY)\stdcover.obj $(STDOBJ)
 
-$(PFM)\$(VARIETY)\mpmstres.exe: $(PFM)\$(VARIETY)\mpmstres.obj \
+$(PFM)\$(VARIETY)\mpmss.exe: $(PFM)\$(VARIETY)\mpmss.obj \
 	$(MPMOBJ) $(STDOBJ)
 
 $(PFM)\$(VARIETY)\lockcov.exe: $(PFM)\$(VARIETY)\lockcov.obj \
@@ -280,7 +280,7 @@ $(PFM)\$(VARIETY)\lockcov.exe: $(PFM)\$(VARIETY)\lockcov.obj \
 $(PFM)\$(VARIETY)\lockutnt.exe: $(PFM)\$(VARIETY)\lockutnt.obj \
 	$(MPMOBJ) $(STDOBJ)
 
-$(PFM)\$(VARIETY)\amcdev.exe:  $(PFM)\$(VARIETY)\amcdev.obj \
+$(PFM)\$(VARIETY)\amcss.exe:  $(PFM)\$(VARIETY)\amcss.obj \
 	$(MPMOBJ) $(STDOBJ) $(AMCOBJ) $(TESTLIBOBJ)
 
 $(PFM)\$(VARIETY)\dwstress.exe:  $(PFM)\$(VARIETY)\dwstress.obj \
@@ -340,4 +340,3 @@ $(PFM)\$(VARIETY)\amc.lib: $(STDOBJ) $(MPMOBJ) $(AMCOBJ)
 	$(ECHO) $@
 	$(LINKER) $(LINKFLAGS) /OUT:$@ $(**) libcmt.lib
 #!INCLUDE depend.mak
-
