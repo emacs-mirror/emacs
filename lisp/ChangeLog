@@ -1,5 +1,8 @@
 2002-05-22  Dave Love  <fx@gnu.org>
 
+	* international/mule-conf.el (code-pages): Provide for
+	compatibility.
+
 	* international/code-pages.el: Removed.
 
 2002-05-22  Kenichi Handa  <handa@etl.go.jp>
