@@ -63,9 +63,6 @@ DONTCOMPILE = \
 	$(lisp)/international/latin-8.el \
 	$(lisp)/international/latin-9.el \
 	$(lisp)/international/latin1-disp.el \
-	$(lisp)/international/ucs-tables.el \
-	$(lisp)/international/utf-8.el \
-	$(lisp)/international/utf-8-subst.el \
 	$(lisp)/international/mule-conf.el \
 	$(lisp)/language/czech.el \
 	$(lisp)/language/devanagari.el \
@@ -81,6 +78,9 @@ DONTCOMPILE = \
 	$(lisp)/language/thai.el \
 	$(lisp)/language/utf-8-lang.el \
 	$(lisp)/language/georgian.el \
+	$(lisp)/language/vietnamese.el \
+	$(lisp)/language/cyrillic.el \
+	$(lisp)/language/czech.el \
 	$(lisp)/loaddefs.el \
 	$(lisp)/loadup.el \
 	$(lisp)/mail/blessmail.el \
