@@ -1106,3 +1106,6 @@ software ("propietariedad") usando, escribiendo, y compartiendo software
 libre!
 
 
+;;; Local Variables:
+;;;   coding: latin-1
+;;; End:
