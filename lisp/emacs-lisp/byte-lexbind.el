@@ -195,9 +195,10 @@ LFORMINFO."
 		 (unless (member var ignore)
 		   (let ((vinfo
 			  (assq var (byte-compile-lforminfo-vars lforminfo))))
-		     (byte-compile-lvarinfo-note-set vinfo)
-		     (byte-compile-lforminfo-note-closure lforminfo vinfo
-							  closure-flag))))))
+		     (when vinfo
+		       (byte-compile-lvarinfo-note-set vinfo)
+		       (byte-compile-lforminfo-note-closure lforminfo vinfo
+							    closure-flag)))))))
 	    ((eq fun 'catch)
 	     ;; tag
 	     (byte-compile-lforminfo-analyze lforminfo (cadr form)
@@ -360,8 +361,12 @@ inside a lambda expression that may close over some variable in LFORMINFO."
   (not (byte-compile-lexvar-on-stack-p lexvar)))
 
 (defun byte-compile-make-lambda-lexenv (form closed-over-lexenv)
-  "Make a new lexical environment for a lambda expression FORM.
-CLOSED-OVER-LEXENV is the lexical environment in which FORM occurs."
+  "Return a new lexical environment for a lambda expression FORM.
+CLOSED-OVER-LEXENV is the lexical environment in which FORM occurs.
+The returned lexical environment contains two sets of variables:
+  * Variables that were in CLOSED-OVER-LEXENV and used by FORM
+    (all of these will be `heap' variables)
+  * Arguments to FORM (all of these will be `stack' variables."
   ;; See if this is a closure or not
   (let ((closure nil)
 	(lforminfo (byte-compile-make-lforminfo))
@@ -385,6 +390,11 @@ CLOSED-OVER-LEXENV is the lexical environment in which FORM occurs."
 	  ;; innermost environment to closures, if it's in some other
 	  ;; envionment, there must be path to it from the innermost
 	  ;; one).
+	  (unless (byte-compile-lexvar-in-heap-p vinfo)
+	    ;; To access the variable from FORM, it must be in the heap.
+	    (error
+    "Compiler error: lexical variable `%s' should be heap-allocated but is not"
+	     (car vinfo)))
 	  (byte-compile-heapenv-ensure-access
 	   byte-compile-current-heap-environment
 	   (byte-compile-lexvar-environment
@@ -406,10 +416,11 @@ CLOSED-OVER-LEXENV is the lexical environment in which FORM occurs."
 	;; Return the new lexical environment
 	lexenv))))
 
-(defun byte-compile-closure-lexenv-p (lexenv)
+(defun byte-compile-closure-initial-lexenv-p (lexenv)
   "Return non-nil if LEXENV is the initial lexical environment for a closure.
-This only works correctly when passed a new lexical environment as returned
-by `byte-compile-make-lambda-lexenv'."
+This only works correctly when passed a new lexical environment as
+returned by `byte-compile-make-lambda-lexenv' (it works by checking to
+see whether there are any heap-allocated lexical variables in LEXENV)."
   (let ((closure nil))
     (while (and lexenv (not closure))
       (when (byte-compile-lexvar-environment-p (pop lexenv))
@@ -485,12 +496,13 @@ If not, then add a new slot to HEAPENV pointing to OTHER-HEAPENV."
 (defun byte-compile-non-stack-bindings-p (clauses lforminfo)
   "Return non-nil if any lexical bindings in CLAUSES are not stack-allocated.
 LFORMINFO should be information about lexical variables being bound."
-  (or (not (= (length clauses) (length lforminfo)))
-      (progn
-	(while (and lforminfo clauses)
-	  (when (byte-compile-lvarinfo-closed-over-p (pop lforminfo))
-	    (setq clauses nil)))
-	(not clauses))))
+  (let ((vars (byte-compile-lforminfo-vars lforminfo)))
+    (or (not (= (length clauses) (length vars)))
+	(progn
+	  (while (and vars clauses)
+	    (when (byte-compile-lvarinfo-closed-over-p (pop vars))
+	      (setq clauses nil)))
+	  (not clauses)))))
 
 (defun byte-compile-let-clauses-trivial-init-p (clauses)
   "Return true if let binding CLAUSES all have a `trivial' init value.
@@ -546,10 +558,9 @@ proper scope)."
   ;; the same as the number inside the binding form that created the
   ;; currently active heap environment.
   (let ((nclosures
-	 (if lforminfo (byte-compile-lforminfo-num-closures lforminfo) -1)))
-    (if (and byte-compile-current-heap-environment
-	     (or (zerop nclosures)
-		 (= nclosures byte-compile-current-num-closures)))
+	 (and lforminfo (byte-compile-lforminfo-num-closures lforminfo))))
+    (if (or (null lforminfo)
+	    (= nclosures byte-compile-current-num-closures))
 	;; No need to push a heap environment.
 	nil
       ;; Have to push one.  A heap environment is really just a vector, so
@@ -582,12 +593,12 @@ Return non-nil if the TOS value was popped."
 	     ;; VAR is dynamic, but we have to get its
 	     ;; value out of the middle of the stack
 	     (let ((stack-pos (cdr (assq var init-lexenv))))
-	       (byte-compile-out 'byte-stack-ref stack-pos)
+	       (byte-compile-stack-ref stack-pos)
 	       (byte-compile-dynamic-variable-bind var)
 	       ;; Now we have to store nil into its temporary
 	       ;; stack position to avoid problems with GC
 	       (byte-compile-push-constant nil)
-	       (byte-compile-out 'byte-stack-set stack-pos))
+	       (byte-compile-stack-set stack-pos))
 	     nil)
 	    ((byte-compile-lvarinfo-closed-over-p vinfo)
 	     ;; VAR is lexical, but needs to be in a
@@ -612,19 +623,17 @@ Return non-nil if the TOS value was popped."
 			   byte-compile-lexical-environment))))
 	       (unless env-vec-stack-pos
 		 (error "Couldn't find location of current heap environment!"))
-	       (if init-stack-pos
-		   ;; VAR is not on the top of the stack, so get it
-		   (byte-compile-out 'byte-stack-ref init-stack-pos)
-		 ;; Record that we've popped VAR's init value
-		 (pop init-lexenv))
-	       (byte-compile-out 'byte-stack-ref env-vec-stack-pos)
+	       (when init-stack-pos
+		 ;; VAR is not on the top of the stack, so get it
+		 (byte-compile-stack-ref init-stack-pos))
+	       (byte-compile-stack-ref env-vec-stack-pos)
 	       ;; Store the variable into the vector
 	       (byte-compile-out 'byte-vec-set env-vec-pos)
 	       (when init-stack-pos
 		 ;; Store nil into VAR's temporary stack
 		 ;; position to avoid problems with GC
 		 (byte-compile-push-constant nil)
-		 (byte-compile-out 'byte-stack-set init-stack-pos))
+		 (byte-compile-stack-set init-stack-pos))
 	       ;; Push a record of VAR's new lexical binding
 	       (push (byte-compile-make-lexvar
 		      var env-vec-pos byte-compile-current-heap-environment)
@@ -658,15 +667,7 @@ binding slots have been popped."
   ;; return value of the body.
   (when init-lexenv
     ;; INIT-LEXENV contains all init values left on the stack
-    (when preserve-body-value
-      ;; Preserve the return value of the body, which is now on the
-      ;; top of the stack, by storing it directly into the stack
-      ;; position which will be at TOS after we pop.
-      (byte-compile-out 'byte-stack-set (cdr (last init-lexenv)))
-      (pop init-lexenv))
-    (while init-lexenv
-      (byte-compile-discard)
-      (pop init-lexenv))))
+    (byte-compile-discard (length init-lexenv) preserve-body-value)))
 
 
 (provide 'byte-lexbind)
