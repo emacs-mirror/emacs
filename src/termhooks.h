@@ -294,20 +294,30 @@ enum {
   up_modifier	=   1,		/* Only used on mouse buttons - always
 				   turned into a click or a drag modifier
 				   before lisp code sees the event.  */
-  down_modifier = 128,		/* Only used on mouse buttons.  */
-  drag_modifier = 256,		/* This is never used in the event
+  down_modifier =   2,		/* Only used on mouse buttons.  */
+  drag_modifier =   4,		/* This is never used in the event
 				   queue; it's only used internally by
 				   the window-system-independent code.  */
-  click_modifier= 512,		/* See drag_modifier.  */
+  click_modifier=   8,		/* See drag_modifier.  */
 
-  /* The next four modifier bits are used also
-     in keyboard events at the Lisp level.  */
-  alt_modifier	=  0x040000,	/* Under X, the XK_Alt_[LR] keysyms.  */
-  super_modifier=  0x080000,	/* Under X, the XK_Super_[LR] keysyms.  */
-  hyper_modifier=  0x100000,	/* Under X, the XK_Hyper_[LR] keysyms.  */
-  shift_modifier=  0x200000,
-  ctrl_modifier	=  0x400000,
-  meta_modifier	=  0x800000,	/* Under X, the XK_Meta_[LR] keysyms.  */
+  /* The next four modifier bits are used also in keyboard events at
+     the Lisp level.
+
+     It's probably not the greatest idea to use the 2^23 bit for any
+     modifier.  It may or may not be the sign bit, depending on
+     VALBITS, so using it to represent a modifier key means that
+     characters thus modified have different integer equivalents
+     depending on the architecture they're running on.  Oh, and
+     applying XINT to a character whose 2^23 bit is set sign-extends
+     it, so you get a bunch of bits in the mask you didn't want.
+
+     The CHAR_ macros are defined in lisp.h.  */
+  alt_modifier	=  CHAR_ALT,	/* Under X, the XK_Alt_[LR] keysyms.  */
+  super_modifier=  CHAR_SUPER,	/* Under X, the XK_Super_[LR] keysyms.  */
+  hyper_modifier=  CHAR_HYPER,	/* Under X, the XK_Hyper_[LR] keysyms.  */
+  shift_modifier=  CHAR_SHIFT,
+  ctrl_modifier	=  CHAR_CTL,
+  meta_modifier	=  CHAR_META,	/* Under X, the XK_Meta_[LR] keysyms.  */
 };
 
 #endif
