@@ -1325,18 +1325,22 @@ The variables `rmail-secondary-file-directory' and
 
 (defun rmail-summary-construct-io-menu ()
   (let ((files (rmail-find-all-files rmail-secondary-file-directory)))
-    (if (listp files)
+    (if files
 	(progn
 	  (define-key rmail-summary-mode-map [menu-bar classify input-menu]
 	    (cons "Input Rmail File" 
 		  (rmail-list-to-menu "Input Rmail File" 
-				      (cdr files) 
+				      files
 				      'rmail-summary-input)))
 	  (define-key rmail-summary-mode-map [menu-bar classify output-menu]
 	    (cons "Output Rmail File" 
 		  (rmail-list-to-menu "Output Rmail File" 
-				      (cdr files) 
-				      'rmail-summary-output-to-rmail-file)))))))
+				      files
+				      'rmail-summary-output-to-rmail-file))))
+      (define-key rmail-summary-mode-map [menu-bar classify input-menu]
+	'("Input Rmail File" . rmail-disable-menu))
+      (define-key rmail-summary-mode-map [menu-bar classify output-menu]
+	'("Output Rmail File" . rmail-disable-menu)))))
 
 
 ;; Sorting messages in Rmail Summary buffer.
