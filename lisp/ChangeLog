@@ -1,3 +1,9 @@
+2001-10-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* desktop.el (desktop-last-buffer): New variable.
+	(desktop-create-buffer): Set it.
+	(desktop-read): Bind it and switch to that buffer.
+
 2001-10-22  Gerd Moellmann  <gerd@gnu.org>
 
 	* progmodes/compile.el (compilation-set-window-height): Select
