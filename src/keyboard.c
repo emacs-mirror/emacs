@@ -332,10 +332,10 @@ static struct input_event *kbd_store_ptr;
    dequeuing functions?  Such a flag could be screwed up by interrupts
    at inopportune times.  */
 
-/* If this flag is non-zero, we will check mouse_moved to see when the
+/* If this flag is non-zero, we check mouse_moved to see when the
    mouse moves, and motion events will appear in the input stream.  If
-   it is zero, mouse motion will be ignored.  */
-int do_mouse_tracking;
+   it is zero, mouse motion is ignored.  */
+static int do_mouse_tracking;
 
 /* The window system handling code should set this if the mouse has
    moved since the last call to the mouse_position_hook.  Calling that
@@ -1299,7 +1299,11 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       Vlast_event_frame = internal_last_event_frame = Qmacro;
 #endif
 
-      if (executing_macro_index >= XFASTINT (Flength (Vexecuting_macro)))
+      /* Exit the macro if we are at the end.
+	 Also, some things replace the macro with t
+	 to force an early exit.  */
+      if (EQ (Vexecuting_macro, Qt)
+	  || executing_macro_index >= XFASTINT (Flength (Vexecuting_macro)))
 	{
 	  XSET (c, Lisp_Int, -1);
 	  return c;
@@ -3154,6 +3158,15 @@ read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
 	  realmaps[nmaps1++] = maps[mapno];
 
       value = Fx_popup_menu (prev_event, Flist (nmaps1, realmaps));
+      if (CONSP (value))
+	{
+	  /* If we got more than one event, put all but the first
+	     onto this list to be read later.
+	     Return just the first event now.  */
+	  unread_command_events
+	    = nconc2 (XCONS (value)->cdr, unread_command_events);
+	  value = XCONS (value)->car;
+	}
       if (NILP (value))
 	XSET (value, Lisp_Int, quit_char);
       if (used_mouse_menu)
