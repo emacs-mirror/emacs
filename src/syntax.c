@@ -599,8 +599,13 @@ between them, return t; otherwise return nil.")
   while (count1 > 0)
     {
       stop = ZV;
-      while (from < stop)
+      do
 	{
+	  if (from == stop)
+	    {
+	      SET_PT (from);
+	      return Qnil;
+	    }
 	  c = FETCH_CHAR (from);
 	  code = SYNTAX (c);
 	  from++;
@@ -617,45 +622,40 @@ between them, return t; otherwise return nil.")
 	      comstyle = SYNTAX_COMMENT_STYLE (FETCH_CHAR (from));
 	      from++;
 	    }
-
-	  if (code == Scomment)
-	    {
-	      while (1)
-		{
-		  if (from == stop)
-		    {
-		      immediate_quit = 0;
-		      SET_PT (from);
-		      return Qnil;
-		    }
-		  c = FETCH_CHAR (from);
-		  if (SYNTAX (c) == Sendcomment
-		      && SYNTAX_COMMENT_STYLE (c) == comstyle)
-		    /* we have encountered a comment end of the same style
-		       as the comment sequence which began this comment
-		       section */
-		    break;
-		  from++;
-		  if (from < stop && SYNTAX_COMEND_FIRST (c)
-		      && SYNTAX_COMEND_SECOND (FETCH_CHAR (from))
-		      && SYNTAX_COMMENT_STYLE (c) == comstyle)
-		    /* we have encountered a comment end of the same style
-		       as the comment sequence which began this comment
-		       section */
-		    { from++; break; }
-		}
-	      /* We have skipped one comment.  */
-	      break;
-	    }
-	  else if (code != Swhitespace && code != Sendcomment)
+	}
+      while (code == Swhitespace || code == Sendcomment);
+      if (code != Scomment)
+	{
+	  immediate_quit = 0;
+	  SET_PT (from - 1);
+	  return Qnil;
+	}
+      /* We're at the start of a comment.  */
+      while (1)
+	{
+	  if (from == stop)
 	    {
 	      immediate_quit = 0;
-	      SET_PT (from - 1);
+	      SET_PT (from);
 	      return Qnil;
 	    }
+	  c = FETCH_CHAR (from);
+	  if (SYNTAX (c) == Sendcomment
+	      && SYNTAX_COMMENT_STYLE (c) == comstyle)
+	    /* we have encountered a comment end of the same style
+	       as the comment sequence which began this comment
+	       section */
+	    break;
+	  from++;
+	  if (from < stop && SYNTAX_COMEND_FIRST (c)
+	      && SYNTAX_COMEND_SECOND (FETCH_CHAR (from))
+	      && SYNTAX_COMMENT_STYLE (c) == comstyle)
+	    /* we have encountered a comment end of the same style
+	       as the comment sequence which began this comment
+	       section */
+	    { from++; break; }
 	}
-
-      /* End of comment reached */
+      /* We have skipped one comment.  */
       count1--;
     }
 
