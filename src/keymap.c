@@ -589,14 +589,25 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 	    /* Character codes with modifiers
 	       are not included in a char-table.
 	       All character codes without modifiers are included.  */
-	    if (NATNUMP (idx)
-		&& (XFASTINT (idx) & CHAR_MODIFIER_MASK) == 0)
-	      val = Faref (binding, idx);
+	    if (NATNUMP (idx) && (XFASTINT (idx) & CHAR_MODIFIER_MASK) == 0)
+	      {
+		val = Faref (binding, idx);
+		/* `nil' has a special meaning for char-tables, so
+		   we use something else to record an explicitly
+		   unbound entry.  */
+		if (NILP (val))
+		  val = Qunbound;
+	      }
 	  }
 
 	/* If we found a binding, clean it up and return it.  */
 	if (!EQ (val, Qunbound))
 	  {
+	    if (EQ (val, Qt))
+	      /* A Qt binding is just like an explicit nil binding
+		 (i.e. it shadows any parent binding but not bindings in
+		 keymaps of lower precedence).  */
+	      val = Qnil;
 	    val = get_keyelt (val, autoload);
 	    if (KEYMAPP (val))
 	      fix_submap_inheritance (map, idx, val);
@@ -765,12 +776,13 @@ store_in_keymap (keymap, idx, def)
 	    /* Character codes with modifiers
 	       are not included in a char-table.
 	       All character codes without modifiers are included.  */
-	    if (NATNUMP (idx)
-		&& ! (XFASTINT (idx)
-		      & (CHAR_ALT | CHAR_SUPER | CHAR_HYPER
-			 | CHAR_SHIFT | CHAR_CTL | CHAR_META)))
+	    if (NATNUMP (idx) && !(XFASTINT (idx) & CHAR_MODIFIER_MASK))
 	      {
-		Faset (elt, idx, def);
+		Faset (elt, idx,
+		       /* `nil' has a special meaning for char-tables, so
+			  we use something else to record an explicitly
+			  unbound entry.  */
+		       NILP (def) ? Qt : def);
 		return def;
 	      }
 	    insertion_point = tail;
