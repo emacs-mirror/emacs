@@ -1,3 +1,22 @@
+2003-07-15  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* buffer.c (copy_overlays): Use EMACS_INT for positions.
+	(Fswitch_to_buffer): Don't signal an error when switching to the same
+	buffer in a dedicated window.
+
+	* alloc.c: Use bitmaps for cons, as was done for floats.
+	(init_float, init_cons): Let the normal code allocate the first block.
+	(CONS_BLOCK_SIZE): Redefine based on BLOCK_BYTES and bitmap size.
+	(CONS_BLOCK, CONS_INDEX, CONS_MARKED_P, CONS_MARK, CONS_UNMARK):
+	New macros.
+	(struct cons_block): Move conses to the beginning.  Add gcmarkbits.
+	(Fcons): Use lisp_align_malloc and CONS_UNMARK.
+	(live_cons_p): Check the pointer is not past the `conses' array.
+	(mark_maybe_object, mark_maybe_pointer): Use CONS_MARKED_P.
+	(mark_object, mark_buffer): Use CONS_MARKED_P and CONS_MARK.
+	(survives_gc_p): Use CONS_MARKED_P and simplify.
+	(gc_sweep): Use CONS_MARKED_P, CONS_UNMARK, and lisp_align_free.
+
 2003-07-13  Paul Eggert  <eggert@twinsun.com>
 
 	GCC 3.3 (sparc) no longer puts "int foo = 0;" into data; it
