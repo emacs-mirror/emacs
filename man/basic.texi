@@ -654,6 +654,7 @@ point.  The output might look like this:
 point=26957 of 26956(100%)  column 0 
 @end smallexample
 
+@cindex character set of character at point
   @w{@kbd{C-u C-x =}} displays additional information about a character,
 in place of the buffer coordinates and column: the character set name
 and the codes that identify the character within that character set;
@@ -668,6 +669,11 @@ as the actual glyph of A with grave accent.}:
 @smallexample
 Char: @`A (04300, 2240, 0x8c0, ext ESC , A @@) (latin-iso8859-1 64)
 @end smallexample
+
+@noindent
+@cindex font of character at point
+In addition, @w{@kbd{C-u C-x =}} shows the font used to display the
+character (if the terminal supports more than one font).
 
 @node Arguments
 @section Numeric Arguments
