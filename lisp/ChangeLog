@@ -1,5 +1,7 @@
 2001-10-29  Richard M. Stallman  <rms@gnu.org>
 
+	* files.el (find-backup-file-name): Use make-backup-file-name.
+
 	* emacs-lisp/edebug.el (edebug-window-live-p): Always alias to
 	window-live-p.
 	(edebug-set-conditional-breakpoint): Unconditionally use
