@@ -11460,6 +11460,7 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
   struct glyph_matrix *current_glyphs;
   struct glyph_row *glyph_row;
   struct glyph *glyph;
+  int cursor_non_selected;
 
   /* This is pointless on invisible frames, and dangerous on garbaged
      windows and frames; in the latter case, the frame or window may
@@ -11495,6 +11496,9 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
      the cursor type given by the frame parameter.  If explicitly
      marked off, draw no cursor.  In all other cases, we want a hollow
      box cursor.  */
+  cursor_non_selected 
+    = !NILP (Fbuffer_local_value (Qcursor_in_non_selected_windows,
+				  w->buffer));
   new_cursor_width = -1;
   if (cursor_in_echo_area
       && FRAME_HAS_MINIBUF_P (f)
@@ -11502,7 +11506,7 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
     {
       if (w == XWINDOW (echo_area_window))
 	new_cursor_type = FRAME_DESIRED_CURSOR (f);
-      else if (cursor_in_non_selected_windows)
+      else if (cursor_non_selected)
 	new_cursor_type = HOLLOW_BOX_CURSOR;
       else
 	new_cursor_type = NO_CURSOR;
@@ -11512,10 +11516,8 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
       if (f != FRAME_X_DISPLAY_INFO (f)->x_highlight_frame
 	  || w != XWINDOW (f->selected_window))
 	{
-	  extern int cursor_in_non_selected_windows;
-	  
 	  if (MINI_WINDOW_P (w)
-	      || !cursor_in_non_selected_windows
+	      || !cursor_non_selected
 	      || NILP (XBUFFER (w->buffer)->cursor_type))
 	    new_cursor_type = NO_CURSOR;
 	  else
