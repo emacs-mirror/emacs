@@ -65,7 +65,7 @@ Non-nil means use highlight, nil means use minibuffer messages."
   :type 'boolean)
 
 (defcustom flyspell-mark-duplications-flag t
-  "*Non-nil means Flyspell reports duplications as well as misspellings."
+  "*Non-nil means Flyspell reports a repeated word as an error."
   :group 'flyspell
   :type 'boolean)
 
@@ -74,15 +74,14 @@ Non-nil means use highlight, nil means use minibuffer messages."
   :group 'flyspell
   :type 'boolean)
 
-(defcustom flyspell-command-hook t
-  "*Non-nil means that `post-command-hook' is used to check already-typed words."
-  :group 'flyspell
-  :type 'boolean)
-
 (defcustom flyspell-duplicate-distance 10000
-  "*The maximum distance between duplicate mispelled words, for flagging them.
+  "*The maximum distance for finding duplicates of unrecognized words.
+This applies to the feature that when a word is not found in the dictionary,
+if the same spelling occurs elsewhere in the buffer,
+Flyspell uses a different face (`flyspell-duplicate-face') to highlight it.
+This variable specifies how far to search to find such a duplicate.
 -1 means no limit (search the whole buffer).
-0 means do not search for duplicate misspelled words."
+0 means do not search for duplicate unrecognized spellings."
   :group 'flyspell
   :type 'number)
 
@@ -246,13 +245,14 @@ property of the major mode name.")
 (defface flyspell-incorrect-face
   '((((class color)) (:foreground "OrangeRed" :bold t :underline t))
     (t (:bold t)))
-  "Face used for showing misspelled words in Flyspell."
+  "Face used for marking a misspelled word in Flyspell."
   :group 'flyspell)
 
 (defface flyspell-duplicate-face
   '((((class color)) (:foreground "Gold3" :bold t :underline t))
     (t (:bold t)))
-  "Face used for showing misspelled words in Flyspell."
+  "Face used for marking a misspelled word that appears twice in the buffer.
+See also `flyspell-duplicate-distance'."
   :group 'flyspell)
 
 (defvar flyspell-overlay nil)
@@ -317,21 +317,11 @@ flyspell-buffer checks the whole buffer."
   ;; We put the `flyspel-delayed' property on some commands.
   (flyspell-delay-commands)
   ;; we bound flyspell action to post-command hook
-  (if flyspell-command-hook
-      (progn
-	(make-local-hook 'post-command-hook)
-	(add-hook 'post-command-hook
-		  (function flyspell-post-command-hook)
-		  t
-		  t)))
+  (make-local-hook 'post-command-hook)
+  (add-hook 'post-command-hook (function flyspell-post-command-hook) t t)
   ;; we bound flyspell action to pre-command hook
-  (if flyspell-command-hook
-      (progn
-	(make-local-hook 'pre-command-hook)
-	(add-hook 'pre-command-hook
-		  (function flyspell-pre-command-hook)
-		  t
-		  t)))
+  (make-local-hook 'pre-command-hook)
+  (add-hook 'pre-command-hook (function flyspell-pre-command-hook) t t)
 
   ;; Set flyspell-generic-check-word-p based on the major mode.
   (let ((mode-predicate (get major-mode 'flyspell-mode-predicate)))
@@ -431,14 +421,8 @@ COMMAND is the name of the command to be delayed."
   (if flyspell-multi-language-p
       (ispell-kill-ispell t))
   ;; we remove the hooks
-  (if flyspell-command-hook
-      (progn
-	(remove-hook 'post-command-hook
-		     (function flyspell-post-command-hook)
-		     t)
-	(remove-hook 'pre-command-hook
-		     (function flyspell-pre-command-hook)
-		     t)))
+  (remove-hook 'post-command-hook (function flyspell-post-command-hook) t)
+  (remove-hook 'pre-command-hook (function flyspell-pre-command-hook) t)
   ;; we remove all the flyspell hilightings
   (flyspell-delete-all-overlays)
   ;; we have to erase pre cache variables
@@ -468,10 +452,10 @@ Mostly we check word delimiters."
 	   (and (looking-at (flyspell-get-not-casechars))
 		(or flyspell-consider-dash-as-word-delimiter-flag
 		    (not (looking-at "\\-"))))))
-    ;; yes because we have reached or typed a word delimiter
+    ;; yes because we have reached or typed a word delimiter.
     t)
    ((not (integerp flyspell-delay))
-    ;; yes because the user had settup a non delay configuration
+    ;; yes because the user had set up a no-delay configuration.
     t)
    (t
     (if (fboundp 'about-xemacs)
