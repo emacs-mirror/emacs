@@ -106,8 +106,9 @@
 		   nil
 		   current-input-method))
 	(if (and str (> (length str) 0))
-	    (isearch-process-search-string str str))
-	(isearch-update))
+	    (let ((unread-command-events nil))
+	      (isearch-process-search-string str str))
+	  (isearch-update)))
     (isearch-process-search-char last-char)))
 
 ;;; isearch-x.el ends here
