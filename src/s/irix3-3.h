@@ -137,10 +137,6 @@ Boston, MA 02111-1307, USA.  */
  	    sprintf (ptyname, "/dev/ttyq%d", minor (stb.st_rdev));
 
 
-/* getwd is defined.  */
-
-#define HAVE_GETWD
-
 #define HAVE_SYSVIPC
 
 /* sioctl.h should be included where appropriate.  */

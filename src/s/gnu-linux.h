@@ -207,7 +207,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define NO_SIOCTL_H           /* don't have sioctl.h */
 
-#define HAVE_GETWD            /* cure conflict with getcwd? */
 #define HAVE_WAIT_HEADER
 
 #define SYSV_SYSTEM_DIR       /* use dirent.h */

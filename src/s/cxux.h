@@ -212,8 +212,6 @@ Boston, MA 02111-1307, USA.  */
  */
 #undef const
 
-#define HAVE_GETWD
-
 #ifdef sigmask
 #undef sigmask
 #endif

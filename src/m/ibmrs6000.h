@@ -148,7 +148,6 @@ Boston, MA 02111-1307, USA.  */
 
 #define START_FILES
 #define HAVE_SYSVIPC
-#define HAVE_GETWD
 /*** BUILD 9008 - FIONREAD problem still exists in X-Windows. ***/
 #define BROKEN_FIONREAD
 

@@ -130,7 +130,6 @@ Boston, MA 02111-1307, USA.  */
 # undef LIBX11_SYSTEM
 # define LIBX11_SYSTEM -lmalloc -lnsl
 # define BSTRING
-# define HAVE_GETWD
 
 /*
  * we must have INET loaded so we have sockets
