@@ -21,6 +21,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
+#include "window.h"
 
 
 /* NOTES:  previous- and next- property change will have to skip
@@ -517,6 +518,67 @@ If POSITION is at the end of OBJECT, the value is nil.")
     return Qnil;
 
   return textget (i->plist, prop);
+}
+
+DEFUN ("get-char-property", Fget_char_property, Sget_char_property, 2, 3, 0,
+  "Return the value of position POS's property PROP, in OBJECT.\n\
+OBJECT is optional and defaults to the current buffer.\n\
+If POSITION is at the end of OBJECT, the value is nil.\n\
+If OBJECT is a buffer, then overlay properties are considered as well as\n\
+text properties.
+If OBJECT is a window, then that window's buffer is used, but window-specific
+overlays are considered only if they are associated with OBJECT.")
+  (pos, prop, object)
+     Lisp_Object pos, object;
+     register Lisp_Object prop;
+{
+  struct window *w = 0;
+
+  CHECK_NUMBER_COERCE_MARKER (pos, 0);
+
+  if (NILP (object))
+    XSET (object, Lisp_Buffer, current_buffer);
+
+  if (WINDOWP (object))
+    {
+      w = XWINDOW (object);
+      XSET (object, Lisp_Buffer, w->buffer);
+    }
+  if (BUFFERP (object))
+    {
+      int posn = XINT (pos);
+      int noverlays;
+      Lisp_Object *overlay_vec, tem;
+      int next_overlay;
+      int len;
+
+      /* First try with room for 40 overlays.  */
+      len = 40;
+      overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
+
+      noverlays = overlays_at (posn, 0, &overlay_vec, &len, &next_overlay);
+
+      /* If there are more than 40,
+	 make enough space for all, and try again.  */
+      if (noverlays > len)
+	{
+	  len = noverlays;
+	  overlay_vec = (Lisp_Object *) alloca (len * sizeof (Lisp_Object));
+	  noverlays = overlays_at (posn, 0, &overlay_vec, &len, &next_overlay);
+	}
+      noverlays = sort_overlays (overlay_vec, noverlays, w);
+
+      /* Now check the overlays in order of decreasing priority.  */
+      while (--noverlays >= 0)
+	{
+	  tem = Foverlay_get (overlay_vec[noverlays], prop);
+	  if (!NILP (tem))
+	    return (tem);
+	}
+    }
+  /* Not a buffer, or no appropriate overlay, so fall through to the
+     simpler case.  */
+  return (Fget_text_property (pos, prop, object));
 }
 
 DEFUN ("next-property-change", Fnext_property_change,
