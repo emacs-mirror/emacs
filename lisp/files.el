@@ -1914,31 +1914,37 @@ the old visited file has been renamed to the new name FILENAME."
 
 (defun write-file (filename &optional confirm)
   "Write current buffer into file FILENAME.
-Makes buffer visit that file, and marks it not modified.
-If the buffer is already visiting a file, you can specify
-a directory name as FILENAME, to write a file of the same
-old name in that directory.
+This makes the buffer visit that file, and marks it as not modified.
 
-If optional second arg CONFIRM is non-nil,
-ask for confirmation for overwriting an existing file.
+If you specify just a directory name as FILENAME, that means to use
+the default file name but in that directory.  You can also yank
+the default file name into the minibuffer to edit it, using M-n.
+
+If the buffer is not already visiting a file, the default file name
+for the output file is the buffer name.
+
+If optional second arg CONFIRM is non-nil, this function
+asks for confirmation before overwriting an existing file.
 Interactively, confirmation is required unless you supply a prefix argument."
 ;;  (interactive "FWrite file: ")
   (interactive
    (list (if buffer-file-name
 	     (read-file-name "Write file: "
 				 nil nil nil nil)
-	   (read-file-name "Write file: "
-			       (cdr (assq 'default-directory
-					  (buffer-local-variables)))
-			       nil nil (file-name-nondirectory (buffer-name))))
+	   (read-file-name "Write file: " default-directory
+			   (expand-file-name
+			    (file-name-nondirectory (buffer-name))
+			    default-directory)
+			   nil nil))
 	 (not current-prefix-arg)))
   (or (null filename) (string-equal filename "")
       (progn
 	;; If arg is just a directory,
-	;; use same file name, but in that directory.
-	(if (and (file-directory-p filename) buffer-file-name)
+	;; use the default file name, but in that directory.
+	(if (file-directory-p filename)
 	    (setq filename (concat (file-name-as-directory filename)
-				   (file-name-nondirectory buffer-file-name))))
+				   (file-name-nondirectory
+				    (or buffer-file-name (buffer-name))))))
 	(and confirm
 	     (file-exists-p filename)
 	     (or (y-or-n-p (format "File `%s' exists; overwrite? " filename))
