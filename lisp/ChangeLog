@@ -1,3 +1,7 @@
+2003-09-12  Eric Hanchrow <offby1@blarg.net>
+
+	* dired.el (dired-mode-map): Fix typo.  (tiny change)
+
 2003-09-11  Richard M. Stallman  <rms@gnu.org>
 
 	* dired.el (dired-mode-map): Bind M-g to dired-goto-file.
