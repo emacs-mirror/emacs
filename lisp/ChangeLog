@@ -1,3 +1,8 @@
+1999-11-23  Andrew Innes  <andrewi@gnu.org>
+
+	* w32-win.el (w32-drag-n-drop): Load files in current window, if
+	drop coords aren't over a specific window.
+
 1999-11-23  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Define mule funs without checking if mule package is
