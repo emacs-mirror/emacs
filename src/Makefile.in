@@ -477,9 +477,7 @@ ALL_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_MACHINE LD_SWITCH_SITE $(LDFLAGS)
 #define GETLOADAVG_OBJ getloadavg.o
 #endif
 
-/* NEXTSTEP mktime wrongly ignores TZ.
-   SCO 3.2v4.2 mktime botches time arithmetic as used by display-time.  */
-#if HAVE_MKTIME && ! defined (_NEXT_SOURCE) && ! defined (SCO_R4)
+#if HAVE_MKTIME && ! BROKEN_MKTIME
 #define MKTIME_OBJ
 #else
 #define MKTIME_OBJ mktime.o
