@@ -1088,8 +1088,12 @@ Runs the shell command defined by `tex-alt-dvi-print-command'."
 (defun tex-view ()
   "Preview the last `.dvi' file made by running TeX under Emacs.
 This means, made using \\[tex-region], \\[tex-buffer] or \\[tex-file].
-The variable `tex-dvi-view-command' specifies the shell command for preview."
+The variable `tex-dvi-view-command' specifies the shell command for preview.
+You must set that variable yourself before using this command,
+because there is no standard value that would generally work."
   (interactive)
+  (or tex-dvi-view-command
+      (error "You must set `tex-dvi-view-command'"))
   (let ((tex-dvi-print-command tex-dvi-view-command))
     (tex-print)))
 
