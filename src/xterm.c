@@ -1740,8 +1740,8 @@ construct_mouse_click (result, event, f)
 
 #if 0
     pixel_to_glyph_coords (f, event->x, event->y, &column, &row, NULL, 0);
-    XFASTINT (result->x) = column;
-    XFASTINT (result->y) = row;
+    XSETFASTINT (result->x, column);
+    XSETFASTINT (result->y, row);
 #endif
     XSETINT (result->x, event->x);
     XSETINT (result->y, event->y);
