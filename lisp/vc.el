@@ -1302,8 +1302,7 @@ If FILE is a directory, generate diffs between versions for all registered
 files in or below it."
   (interactive 
    (let ((file (read-file-name "File or directory to diff: "
-                                default-directory buffer-file-name t 
-                                (file-name-nondirectory buffer-file-name)))
+                                default-directory buffer-file-name t))
          (rel1-default nil) (rel2-default nil))
      ;; compute default versions based on the file state
      (cond
@@ -1319,8 +1318,16 @@ files in or below it."
        (setq rel2-default (vc-workfile-version file))))
      ;; construct argument list
      (list file 
-           (read-string "Older version: " rel1-default)
-           (read-string "Newer version: " rel2-default))))
+           (read-string (if rel1-default
+			    (concat "Older version: (default "
+				    rel1-default ") ")
+			  "Older version: ")
+			nil nil rel1-default)
+           (read-string (if rel2-default
+			    (concat "Newer version: (default "
+				    rel2-default ") ")
+			  "Newer version: ")
+			nil nil rel2-default))))
   (if (string-equal rel1 "") (setq rel1 nil))
   (if (string-equal rel2 "") (setq rel2 nil))
   (if (file-directory-p file)
