@@ -179,6 +179,7 @@ Lisp_Object Qinsert_behind_hooks;
 
 static void alloc_buffer_text P_ ((struct buffer *, size_t));
 static void free_buffer_text P_ ((struct buffer *b));
+static Lisp_Object copy_overlays P_ ((struct buffer *, Lisp_Object));
 
 
 /* For debugging; temporary.  See set_buffer_internal.  */
@@ -415,6 +416,49 @@ The value is never nil.")
 }
 
 
+/* Return a list of overlays which is a copy of the overlay list
+   LIST, but for buffer B.  */
+
+static Lisp_Object
+copy_overlays (b, list)
+     struct buffer *b;
+     Lisp_Object list;
+{
+  Lisp_Object result, buffer;
+
+  XSETBUFFER (buffer, b);
+
+  for (result = Qnil; CONSP (list); list = XCDR (list))
+    {
+      Lisp_Object overlay, start, end, old_overlay;
+      int charpos;
+
+      old_overlay = XCAR (list);
+      charpos = marker_position (OVERLAY_START (old_overlay));
+      start = Fmake_marker ();
+      Fset_marker (start, charpos, buffer);
+      XMARKER (start)->insertion_type
+	= XMARKER (OVERLAY_START (old_overlay))->insertion_type;
+
+      charpos = marker_position (OVERLAY_END (old_overlay));
+      end = Fmake_marker ();
+      Fset_marker (end, charpos, buffer);
+      XMARKER (end)->insertion_type
+	= XMARKER (OVERLAY_END (old_overlay))->insertion_type;
+
+      overlay = allocate_misc ();
+      XMISCTYPE (overlay) = Lisp_Misc_Overlay;
+      OVERLAY_START (overlay) = start;
+      OVERLAY_END (overlay) = end;
+      OVERLAY_PLIST (overlay) = Fcopy_sequence (OVERLAY_PLIST (old_overlay));
+      
+      result = Fcons (overlay, result);
+    }
+
+  return Fnreverse (result);
+}
+     
+
 /* Clone per-buffer values of buffer FROM.
 
    Buffer TO gets the same per-buffer values as FROM, with the
@@ -449,9 +493,10 @@ clone_per_buffer_values (from, to)
       PER_BUFFER_VALUE (to, offset) = obj;
     }
 
-  to->overlays_after = Fcopy_sequence (from->overlays_after);
-  to->overlays_before = Fcopy_sequence (to->overlays_before);
   bcopy (from->local_flags, to->local_flags, sizeof to->local_flags);
+  
+  to->overlays_before = copy_overlays (to, from->overlays_before);
+  to->overlays_after = copy_overlays (to, from->overlays_after);
 }
 
 
