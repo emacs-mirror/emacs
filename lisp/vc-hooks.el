@@ -608,7 +608,10 @@ For CVS, the full name of CVS/Entries is returned."
 	    (and (equal (vc-file-getprop file 'vc-checkout-time)
 			(nth 5 (file-attributes file)))
 		 (vc-file-setprop file 'vc-locking-user 'none))
-	    (vc-file-setprop file 'vc-locking-user (vc-file-owner file))))
+	    (let ((locker (vc-file-owner file)))
+	      (vc-file-setprop file 'vc-locking-user
+			       (if (stringp locker) locker
+				 (format "%d" locker))))))
 
        ((eq (vc-backend file) 'RCS)
 	(let (p-lock)
