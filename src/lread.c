@@ -649,15 +649,25 @@ Return t if file exists.")
 	return Qnil;
     }
 
-  /* If FD is 0, that means openp found a remote file.  */
+  /* If FD is 0, that means openp found a magic file.  */
   if (fd == 0)
     {
-      handler = Ffind_file_name_handler (found, Qload);
-      return call5 (handler, Qload, found, noerror, nomessage, Qt);
+      if (NILP (Fequal (found, file)))
+	/* If FOUND is a different file name from FILE,
+	   find its handler even if we have already inhibited
+	   the `load' operation on FILE.  */
+	handler = Ffind_file_name_handler (found, Qt);
+      else
+	handler = Ffind_file_name_handler (found, Qload);
+      if (! NILP (handler))
+	return call5 (handler, Qload, found, noerror, nomessage, Qt);
     }
 
+  /* Load .elc files directly, but not when they are
+     remote and have no handler!  */
   if (!bcmp (&(XSTRING (found)->data[XSTRING (found)->size - 4]),
-	     ".elc", 4))
+	     ".elc", 4)
+      && fd != 0)
     {
       struct stat s1, s2;
       int result;
@@ -687,7 +697,8 @@ Return t if file exists.")
       /* We are loading a source file (*.el).  */
       if (!NILP (Vload_source_file_function))
 	{
-	  close (fd);
+	  if (fd != 0)
+	    close (fd);
 	  return call4 (Vload_source_file_function, found, file,
 			NILP (noerror) ? Qnil : Qt,
 			NILP (nomessage) ? Qnil : Qt);
@@ -2108,7 +2119,7 @@ read1 (readcharfun, pch, first_in_list)
 	      {
 		/* Compute NaN and infinities using 0.0 in a variable,
 		   to cope with compilers that think they are smarter
-		   than us.  */
+		   than we are.  */
 		double zero = 0.0;
 
 		double value;
