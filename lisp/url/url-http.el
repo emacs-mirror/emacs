@@ -1,27 +1,29 @@
 ;;; url-http.el --- HTTP retrieval routines
+
+;; Copyright (c) 1999, 2001, 2004  Free Software Foundation, Inc.
+
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1999, 2001 Free Software Foundation, Inc.
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Commentary:
+
+;;; Code:
 
 (eval-when-compile
   (require 'cl)
@@ -370,8 +372,7 @@ should be shown to the user."
   (url-http-parse-response)
   (mail-narrow-to-head)
   ;;(narrow-to-region (point-min) url-http-end-of-headers)
-  (let ((version nil)
-	(class nil)
+  (let ((class nil)
 	(success nil))
     (setq class (/ url-http-response-status 100))
     (url-http-debug "Parsed HTTP headers: class=%d status=%d" class url-http-response-status)
@@ -1105,8 +1106,7 @@ CBARGS as the arguments."
 
 ;;;###autoload
 (defun url-http-file-exists-p (url)
-  (let ((version nil)
-	(status nil)
+  (let ((status nil)
 	(exists nil)
 	(buffer (url-http-head url)))
     (if (not buffer)
@@ -1219,5 +1219,5 @@ p3p
 
 (provide 'url-http)
 
-;;; arch-tag: ba7c59ae-c0f4-4a31-9617-d85f221732ee
+;; arch-tag: ba7c59ae-c0f4-4a31-9617-d85f221732ee
 ;;; url-http.el ends here
