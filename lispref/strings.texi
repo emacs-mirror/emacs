@@ -798,19 +798,18 @@ operation} error.
 @cindex numeric prefix
 @cindex field width
 @cindex padding
-  All the specification characters allow an optional numeric prefix
-between the @samp{%} and the character.  The optional numeric prefix
-defines the minimum width for the object.  If the printed
-representation of the object contains fewer characters than this, then
-it is padded.  The padding is on the left if the prefix is positive
-(or starts with zero) and on the right if the prefix is negative.  The
-padding character is normally a space, but if the numeric prefix
-starts with a zero, zeros are used for padding.  Some of these
-conventions are ignored for specification characters for which they do
-not make sense.  That is, %s, %S and %c accept a numeric prefix
+  All the specification characters allow an optional ``width'', which
+is a digit-string between the @samp{%} and the character.  If the
+printed representation of the object contains fewer characters than
+this width, then it is padded.  The padding is on the left if the
+prefix is positive (or starts with zero) and on the right if the
+prefix is negative.  The padding character is normally a space, but if
+the width starts with a zero, zeros are used for padding.  Some of
+these conventions are ignored for specification characters for which
+they do not make sense.  That is, %s, %S and %c accept a width
 starting with 0, but still pad with @emph{spaces} on the left.  Also,
-%% accepts a numeric prefix, but ignores it.  Here are some examples
-of padding:
+%% accepts a width, but ignores it.  Here are some examples of
+padding:
 
 @example
 (format "%06d is padded on the left with zeros" 123)
@@ -820,10 +819,9 @@ of padding:
      @result{} "123    is padded on the right"
 @end example
 
-  @code{format} never truncates an object's printed representation, no
-matter what width you specify.  Thus, you can use a numeric prefix to
-specify a minimum spacing between columns with no risk of losing
-information.
+If the width is too small, @code{format} does not truncate the
+object's printed representation.  Thus, you can use a width to specify
+a minimum spacing between columns with no risk of losing information.
 
   In the following three examples, @samp{%7s} specifies a minimum width
 of 7.  In the first case, the string inserted in place of @samp{%7s} has
@@ -850,6 +848,28 @@ not truncated.  In the third case, the padding is on the right.
      @result{} "The word `foo    ' actually has 3 letters in it."
 @end group
 @end smallexample
+
+  All the specification characters allow an optional ``precision''
+before the character (after the width, if present).  The precision is
+a decimal-point @samp{.} followed by a digit-string.  For the
+floating-point specifications (%e, %f, %g), the precision specifies
+how many decimal places to show; if zero, the decimal-point itself is
+also omitted.  For %s and %S, the precision truncates the string to
+the given width, so @code{"%.3s"} shows only the first three
+characters of the representation for @var{object}.  Precision is
+ignored for other specification characters.
+
+Immediately after the % and before the optional width and precision,
+you can put certain ``flag'' characters.
+
+A space @var{" "} inserts a space for positive numbers (otherwise
+nothing is inserted for positive numbers).  This flag is ignored
+except for %d, %e, %f, %g.
+
+The flag @var{"#"} indicates ``alternate form''.  For %o it ensures
+that the result begins with a 0.  For %x and %X the result is prefixed
+with ``0x'' or ``0X''. For %e, %f, and %g a decimal point is always
+shown even if the precision is zero.
 
 @node Case Conversion
 @comment node-name, next, previous, up
