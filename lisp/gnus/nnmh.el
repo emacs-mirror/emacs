@@ -76,6 +76,9 @@
 	   (large (and (numberp nnmail-large-newsgroup)
 		       (> number nnmail-large-newsgroup)))
 	   (count 0)
+	   ;; 1997/8/12 by MORIOKA Tomohiko
+	   ;;	for XEmacs/mule.
+	   (pathname-coding-system 'binary)
 	   beg article)
       (nnmh-possibly-change-directory newsgroup server)
       ;; We don't support fetching by Message-ID.
@@ -134,6 +137,9 @@
   (let ((file (if (stringp id)
 		  nil
 		(concat nnmh-current-directory (int-to-string id))))
+	;; 1997/8/12 by MORIOKA Tomohiko
+	;;	for XEmacs/mule.
+	(pathname-coding-system 'binary)
 	(nntp-server-buffer (or buffer nntp-server-buffer)))
     (and (stringp file)
 	 (file-exists-p file)
@@ -143,6 +149,9 @@
 
 (deffoo nnmh-request-group (group &optional server dont-check)
   (let ((pathname (nnmail-group-pathname group nnmh-directory))
+	;; 1997/8/12 by MORIOKA Tomohiko
+	;;	for XEmacs/mule.
+	(pathname-coding-system 'binary)
 	dir)
     (cond
      ((not (file-directory-p pathname))
@@ -181,7 +190,10 @@
 
 (deffoo nnmh-request-list (&optional server dir)
   (nnheader-insert "")
-  (let ((nnmh-toplev
+  (let (;; 1997/8/14 by MORIOKA Tomohiko
+ 	;;	for XEmacs/mule.
+ 	(pathname-coding-system 'binary)
+	(nnmh-toplev
 	 (or dir (file-truename (file-name-as-directory nnmh-directory)))))
     (nnmh-request-list-1 nnmh-toplev))
   (setq nnmh-group-alist (nnmail-get-active))
@@ -220,7 +232,9 @@
 				(expand-file-name nnmh-toplev))))
 	       dir)
 	      (nnheader-replace-chars-in-string
-	       (substring dir (match-end 0)) ?/ ?.))
+	       (decode-coding-string (substring dir (match-end 0))
+				     nnmail-pathname-coding-system)
+	       ?/ ?.))
 	    (apply 'max files)
 	    (apply 'min files)))))))
   t)
@@ -396,7 +410,10 @@
 	     (not (nnmh-server-opened server)))
     (nnmh-open-server server))
   (when newsgroup
-    (let ((pathname (nnmail-group-pathname newsgroup nnmh-directory)))
+    (let ((pathname (nnmail-group-pathname newsgroup nnmh-directory))
+	  ;; 1997/8/12 by MORIOKA Tomohiko
+	  ;;	for XEmacs/mule.
+	  (pathname-coding-system 'binary))
       (if (file-directory-p pathname)
 	  (setq nnmh-current-directory pathname)
 	(error "No such newsgroup: %s" newsgroup)))))
@@ -444,7 +461,10 @@
 (defun nnmh-active-number (group)
   "Compute the next article number in GROUP."
   (let ((active (cadr (assoc group nnmh-group-alist)))
-	(dir (nnmail-group-pathname group nnmh-directory)))
+	(dir (nnmail-group-pathname group nnmh-directory))
+	;; 1997/8/14 by MORIOKA Tomohiko
+	;;	for XEmacs/mule.
+	(pathname-coding-system 'binary))
     (unless active
       ;; The group wasn't known to nnmh, so we just create an active
       ;; entry for it.
