@@ -1190,7 +1190,8 @@ ESC or `q' to not overwrite any of the remaining files,
   "Create a new file for each marked file.
 Prompts user for target, which is a directory in which to create
   the new files.  Target may be a plain file if only one marked
-  file exists.
+  file exists.  The way the default for the target directory is
+  computed depends on the value of `dired-dwim-target-directory'.
 OP-SYMBOL is the symbol for the operation.  Function `dired-mark-pop-up'
   will determine whether pop-ups are appropriate for this OP-SYMBOL.
 FILE-CREATOR and OPERATION as in `dired-create-files'.
@@ -1342,7 +1343,9 @@ This normally preserves the last-modified date when copying.
 When operating on just the current file, you specify the new name.
 When operating on multiple or marked files, you specify a directory,
 and new copies of these files are made in that directory
-with the same names that the files currently have."
+with the same names that the files currently have.  The default
+suggested for the target directory depends on the value of
+`dired-dwim-target', which see."
   (interactive "P")
   (let ((dired-recursive-copies dired-recursive-copies))
     (dired-do-create-files 'copy (function dired-copy-file)
@@ -1356,7 +1359,9 @@ with the same names that the files currently have."
 When operating on just the current file, you specify the new name.
 When operating on multiple or marked files, you specify a directory
 and new symbolic links are made in that directory
-with the same names that the files currently have."
+with the same names that the files currently have.  The default
+suggested for the target directory depends on the value of
+`dired-dwim-target', which see."
   (interactive "P")
   (dired-do-create-files 'symlink (function make-symbolic-link)
 			   "Symlink" arg dired-keep-marker-symlink))
@@ -1367,7 +1372,9 @@ with the same names that the files currently have."
 When operating on just the current file, you specify the new name.
 When operating on multiple or marked files, you specify a directory
 and new hard links are made in that directory
-with the same names that the files currently have."
+with the same names that the files currently have.  The default
+suggested for the target directory depends on the value of
+`dired-dwim-target', which see."
   (interactive "P")
   (dired-do-create-files 'hardlink (function add-name-to-file)
 			   "Hardlink" arg dired-keep-marker-hardlink))
@@ -1376,7 +1383,9 @@ with the same names that the files currently have."
 (defun dired-do-rename (&optional arg)
   "Rename current file or all marked (or next ARG) files.
 When renaming just the current file, you specify the new name.
-When renaming multiple or marked files, you specify a directory."
+When renaming multiple or marked files, you specify a directory.
+The default suggested for the target directory depends on the value
+of `dired-dwim-target', which see."
   (interactive "P")
   (dired-do-create-files 'move (function dired-rename-file)
 			 "Move" arg dired-keep-marker-rename "Rename"))
