@@ -1,4 +1,4 @@
-;; etags.el --- etags facility for Emacs
+;;; etags.el --- etags facility for Emacs
 
 ;; Copyright (C) 1985, 1986, 1988, 1989, 1992, 1993
 ;;	Free Software Foundation, Inc.

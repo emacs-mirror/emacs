@@ -22,8 +22,11 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
 
 ; zaaaaaaap
+
+;;; Code:
 
 ;; perhaps this should be in subr.el...
 (defun shrink-window-if-larger-than-buffer (window)
@@ -187,4 +190,4 @@
 
 (provide 'electric)
 
-; electric.el ends here
+;;; electric.el ends here

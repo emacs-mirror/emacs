@@ -1,4 +1,4 @@
-;; backquote.el --- backquoting for Emacs Lisp macros
+;;; backquote.el --- backquoting for Emacs Lisp macros
 
 ;; Copyright (C) 1985 Free Software Foundation, Inc.
 

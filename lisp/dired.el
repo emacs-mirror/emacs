@@ -1,4 +1,4 @@
-;; dired.el --- directory-browsing commands
+;;; dired.el --- directory-browsing commands
 
 ;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 

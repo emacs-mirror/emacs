@@ -1,4 +1,4 @@
-;;; case-table.el ---code to extend the character set and support case tables.
+;;; case-table.el --- code to extend the character set and support case tables.
 
 ;; Copyright (C) 1988 Free Software Foundation, Inc.
 

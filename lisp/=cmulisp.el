@@ -6,6 +6,8 @@
 ;;; way you like, as long as you don't charge money for it, remove this
 ;;; notice, or hold me liable for its results.
 
+;;; Commentary:
+
 ;;; This replaces the standard inferior-lisp mode.
 ;;; Hacked from tea.el by Olin Shivers (shivers@cs.cmu.edu). 8/88
 ;;; Please send me bug reports, bug fixes, and extensions, so that I can
@@ -126,6 +128,9 @@
 
 ;;; Read the rest of this file for more information.
 
+
+;;; Code:
+
 (defvar cmulisp-filter-regexp "\\`\\s *\\(:\\(\\w\\|\\s_\\)\\)?\\s *\\'"
   "*What not to save on inferior Lisp's input history
 Input matching this regexp is not saved on the input history in cmulisp

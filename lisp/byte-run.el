@@ -1,4 +1,4 @@
-;; byte-run.el --- byte-compiler support for inlining
+;;; byte-run.el --- byte-compiler support for inlining
 
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 

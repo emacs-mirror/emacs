@@ -1,4 +1,5 @@
-;; Common-Lisp extensions for GNU Emacs Lisp.
+;;; cl.el --- Common-Lisp extensions for GNU Emacs Lisp.
+
 ;; Copyright (C) 1987, 1988, 1989, 1992  Free Software Foundation, Inc.
 
 ;; Author: Cesar Quiroz <quiroz@cs.rochester.edu>
@@ -23,6 +24,8 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
+;;; Commentary:
+
 ;;; Notes from Rob Austein on his mods
 ;; yaya:/usr/u/sra/cl/cl.el, 5-May-1991 16:01:34, sra
 ;;
@@ -45,8 +48,6 @@
 ;;     the SETF expansion fail because the SETF method isn't defined
 ;;     at compile time?  Lisp is going to check for a binding at run-time
 ;;     anyway, so maybe we should just assume the user's right here.
-
-;;; Commentary:
 
 ;;;; These are extensions to Emacs Lisp that provide some form of
 ;;;; Common Lisp compatibility, beyond what is already built-in

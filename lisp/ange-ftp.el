@@ -1,10 +1,10 @@
-;; -*-Emacs-Lisp-*-
-;;; ??? Waiting for papers from several people.
-;; Description:  transparent FTP support for GNU Emacs
+;;; ange-ftp.el --- transparent FTP support for GNU Emacs
 
 ;;; Copyright (C) 1989, 1990, 1991, 1992  Free Software Foundation, Inc.
+;;; ??? Waiting for papers from several people.
 ;;;
 ;;; Author: Andy Norman (ange@hplb.hpl.hp.com)
+;;; Keywords: tools
 ;;;
 ;;; This program is free software; you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 ;;; the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA
 ;;; 02139, USA.
 
-;;; Description:
+;;; Commentary:
 ;;;
 ;;; This package attempts to make accessing files and directories using FTP
 ;;; from within GNU Emacs as simple and transparent as possible.  A subset of
@@ -610,6 +610,8 @@
 ;;; whose names I've forgotten who have helped to debug and fix problems with
 ;;; ange-ftp.el.
 
+
+;;; Code:
 (require 'comint)
 
 ;;;; ------------------------------------------------------------
@@ -857,7 +859,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.12 $")
+(defconst ange-ftp-version "$Revision: 1.13 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -5310,3 +5312,5 @@ Other orders of $ and _ seem to all work just fine.")
 ;;;; ------------------------------------------------------------
 
 (provide 'ange-ftp)
+
+;;; ange-ftp.el ends here

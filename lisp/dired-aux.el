@@ -1,4 +1,4 @@
-;; dired-aux.el --- all of dired except what people usually use
+;;; dired-aux.el --- all of dired except what people usually use
 
 ;; Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 
