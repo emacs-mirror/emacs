@@ -446,7 +446,10 @@ With prefix argument, delete and move backward."
       (while (and (not (if backward (bobp) (eobp)))
 		  (save-excursion (beginning-of-line)
 				  (looking-at " *[0-9]+D")))
-	(forward-line (if backward -1 1))))))
+	(forward-line (if backward -1 1)))
+      ;; It looks ugly to move to the empty line at end of buffer.
+      (and (eobp) (not backward)
+	   (forward-line -1)))))
 
 (defun rmail-summary-delete-backward ()
   "Delete this message and move to previous nondeleted one.
