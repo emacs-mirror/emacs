@@ -55,13 +55,13 @@ Boston, MA 02111-1307, USA.  */
 #define SYSTEM_TYPE "windows-nt"
 #define SYMS_SYSTEM syms_of_ntterm ()
 
-#define NO_MATHERR
+#define NO_MATHERR 1
 
 /* NOMULTIPLEJOBS should be defined if your system's shell
  does not have "job control" (the ability to stop a program,
  run some other program, then continue the first one).  */
 
-/* #define NOMULTIPLEJOBS */
+/* #define NOMULTIPLEJOBS 1 */
 
 /* Emacs can read input using SIGIO and buffering characters itself,
    or using CBREAK mode and making C-g cause SIGINT.
@@ -85,7 +85,7 @@ Boston, MA 02111-1307, USA.  */
    to read the input and send it to the true Emacs process
    through a pipe. */
 
-/* #define INTERRUPT_INPUT */
+/* #define INTERRUPT_INPUT 1 */
 
 /* Letter to use in finding device name of first pty,
   if system supports pty's.  'a' means it is /dev/ptya0  */
@@ -103,27 +103,27 @@ Boston, MA 02111-1307, USA.  */
  *      supported on your system.
  */
 
-/* #define HAVE_TERMIOS */
-/* #define HAVE_TERMIO */
+/* #define HAVE_TERMIOS 1 */
+/* #define HAVE_TERMIO 1 */
 
 /*
  *      Define HAVE_TIMEVAL if the system supports the BSD style clock values.
  *      Look in <sys/time.h> for a timeval structure.
  */
 
-#define HAVE_TIMEVAL
+#define HAVE_TIMEVAL 1
 
 /*
  *      Define HAVE_SELECT if the system supports the `select' system call.
  */
 
-/* #define HAVE_SELECT */
+/* #define HAVE_SELECT 1 */
 
 /*
  *      Define HAVE_PTYS if the system supports pty devices.
  */
 
-/* #define HAVE_PTYS */
+/* #define HAVE_PTYS 1 */
 
 /*
  *      Define NONSYSTEM_DIR_LIBRARY to make Emacs emulate
@@ -134,7 +134,7 @@ Boston, MA 02111-1307, USA.  */
 
 /* NT supports Winsock which is close enough (with some hacks) */
 
-#define HAVE_SOCKETS
+#define HAVE_SOCKETS 1
 
 /* Define this symbol if your system has the functions bcopy, etc. */
 
@@ -144,7 +144,7 @@ Boston, MA 02111-1307, USA.  */
 #define bcmp(a, b, l) memcmp(a, b, l)
 
 /* bcopy (aka memmove aka memcpy at least on x86) under MSVC is quite safe */
-#define GAP_USE_BCOPY
+#define GAP_USE_BCOPY 1
 #define BCOPY_UPWARD_SAFE 1
 #define BCOPY_DOWNWARD_SAFE 1
 
@@ -154,12 +154,12 @@ Boston, MA 02111-1307, USA.  */
    This is generally OS dependent, and not supported
    under most USG systems. */
 
-#define subprocesses
+#define subprocesses 1
 
 /* If your system uses COFF (Common Object File Format) then define the
    preprocessor symbol "COFF". */
 
-#define COFF
+#define COFF 1
 
 /* define MAIL_USE_FLOCK if the mailer uses flock
    to interlock access to /usr/spool/mail/$USER.
@@ -167,14 +167,14 @@ Boston, MA 02111-1307, USA.  */
    /usr/spool/mail/$USER.lock.  */
 
 /* #define MAIL_USE_FLOCK */
-#define MAIL_USE_POP
-#define MAIL_USE_SYSTEM_LOCK
+#define MAIL_USE_POP 1
+#define MAIL_USE_SYSTEM_LOCK 1
 
 /* Define CLASH_DETECTION if you want lock files to be written
    so that Emacs can tell instantly when you try to modify
    a file that someone else has modified in his Emacs.  */
 
-/* #define CLASH_DETECTION */
+/* #define CLASH_DETECTION 1 */
 
 /* Define this if your operating system declares signal handlers to
    have a type other than the usual.  `The usual' is `void' for ANSI C
@@ -216,61 +216,61 @@ Boston, MA 02111-1307, USA.  */
 #define MAXPATHLEN      _MAX_PATH
 #endif
 
-#define LISP_FLOAT_TYPE
+#define LISP_FLOAT_TYPE 1
 
 #undef  HAVE_SYS_SELECT_H
-#define HAVE_SYS_TIMEB_H
-#define HAVE_SYS_TIME_H
-#define HAVE_UNISTD_H
+#define HAVE_SYS_TIMEB_H 1
+#define HAVE_SYS_TIME_H 1
+#define HAVE_UNISTD_H 1
 #undef  HAVE_UTIME_H
 #undef  HAVE_LINUX_VERSION_H
 #undef  HAVE_SYS_SYSTEMINFO_H
 #undef  HAVE_TERMIOS_H
 #define HAVE_LIMITS_H 1
-#define HAVE_STRING_H
+#define HAVE_STRING_H 1
 #define STDC_HEADERS 1
-#define TIME_WITH_SYS_TIME
+#define TIME_WITH_SYS_TIME 1
 
-#define HAVE_GETTIMEOFDAY
-#define HAVE_GETHOSTNAME
+#define HAVE_GETTIMEOFDAY 1
+#define HAVE_GETHOSTNAME 1
 #undef  HAVE_GETDOMAINNAME
-#define HAVE_DUP2
-#define HAVE_RENAME
-#define HAVE_CLOSEDIR
+#define HAVE_DUP2 1
+#define HAVE_RENAME 1
+#define HAVE_CLOSEDIR 1
 
 #undef  TM_IN_SYS_TIME
 #undef  HAVE_TM_ZONE
 #define HAVE_TZNAME 1
 
-#define HAVE_LONG_FILE_NAMES
+#define HAVE_LONG_FILE_NAMES 1
 
-#define HAVE_MKDIR
-#define HAVE_RMDIR
-#define HAVE_RANDOM
+#define HAVE_MKDIR 1
+#define HAVE_RMDIR 1
+#define HAVE_RANDOM 1
 #undef  HAVE_SYSINFO
 #undef  HAVE_LRAND48
-#define HAVE_BCOPY
-#define HAVE_BCMP
-#define HAVE_LOGB
-#define HAVE_FREXP
-#define HAVE_FMOD
+#define HAVE_BCOPY 1
+#define HAVE_BCMP 1
+#define HAVE_LOGB 1
+#define HAVE_FREXP 1
+#define HAVE_FMOD 1
 #undef  HAVE_RINT
 #undef  HAVE_CBRT
-#define HAVE_FTIME
+#define HAVE_FTIME 1
 #undef  HAVE_RES_INIT /* For -lresolv on Suns.  */
 #undef  HAVE_SETSID
 #undef  HAVE_FPATHCONF
 #undef  HAVE_SELECT
 #define HAVE_MKTIME 1
 #undef  HAVE_EUIDACCESS
-#define HAVE_GETPAGESIZE
+#define HAVE_GETPAGESIZE 1
 #define HAVE_TZSET 1
-#define HAVE_SETLOCALE
+#define HAVE_SETLOCALE 1
 #undef  HAVE_UTIMES
 #undef  HAVE_SETRLIMIT
 #undef  HAVE_SETPGID
 #undef  HAVE_GETCWD
-#define HAVE_SHUTDOWN
+#define HAVE_SHUTDOWN 1
 #define HAVE_STRFTIME 1
 
 #undef  LOCALTIME_CACHE
@@ -280,23 +280,25 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define if you have the ANSI `strerror' function.
    Otherwise you must have the variable `char *sys_errlist[]'.  */
-#define HAVE_STRERROR
+#define HAVE_STRERROR 1
 
 /* Define if `struct utimbuf' is declared by <utime.h>.  */
 #undef  HAVE_STRUCT_UTIMBUF
 
-#define HAVE_MOUSE
-#define HAVE_H_ERRNO
+#define HAVE_MOUSE 1
+#define HAVE_H_ERRNO 1
 
 #ifdef HAVE_NTGUI
-#define HAVE_WINDOW_SYSTEM
-#define HAVE_FACES
-#define HAVE_MENUS
+#define HAVE_WINDOW_SYSTEM 1
+#define HAVE_FACES 1
+#define HAVE_MENUS 1
 #endif
 
 #define MODE_LINE_BINARY_TEXT(_b_) (NILP ((_b_)->buffer_file_type) ? "T" : "B")
 
 /* get some redefinitions in place */
+
+#ifdef emacs
 
 /* IO calls that are emulated or shadowed */
 #undef access
@@ -338,6 +340,8 @@ Boston, MA 02111-1307, USA.  */
 #define wait    sys_wait
 #define kill    sys_kill
 #define signal  sys_signal
+
+#endif /* emacs */
 
 /* map to MSVC names */
 #define execlp    _execlp
