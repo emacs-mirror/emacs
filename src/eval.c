@@ -2642,31 +2642,35 @@ funcall_lambda (fun, nargs, arg_vector)
      int nargs;
      register Lisp_Object *arg_vector;
 {
-  Lisp_Object val, tem;
-  register Lisp_Object syms_left;
-  Lisp_Object numargs;
-  register Lisp_Object next;
+  Lisp_Object val, syms_left, next;
   int count = specpdl_ptr - specpdl;
-  register int i;
-  int optional = 0, rest = 0;
+  int i, optional, rest;
 
-  specbind (Qmocklisp_arguments, Qt);   /* t means NOT mocklisp! */
-
-  XSETFASTINT (numargs, nargs);
+  if (NILP (Vmocklisp_arguments))
+    specbind (Qmocklisp_arguments, Qt);   /* t means NOT mocklisp! */
 
   if (CONSP (fun))
-    syms_left = Fcar (Fcdr (fun));
+    {
+      syms_left = XCDR (fun);
+      if (CONSP (syms_left))
+	syms_left = XCAR (syms_left);
+      else
+	return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+    }
   else if (COMPILEDP (fun))
     syms_left = XVECTOR (fun)->contents[COMPILED_ARGLIST];
-  else abort ();
+  else
+    abort ();
 
-  i = 0;
-  for (; !NILP (syms_left); syms_left = Fcdr (syms_left))
+  i = optional = rest = 0;
+  for (; CONSP (syms_left); syms_left = XCDR (syms_left))
     {
       QUIT;
-      next = Fcar (syms_left);
+      
+      next = XCAR (syms_left);
       while (!SYMBOLP (next))
 	next = Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+      
       if (EQ (next, Qand_rest))
 	rest = 1;
       else if (EQ (next, Qand_optional))
@@ -2677,21 +2681,22 @@ funcall_lambda (fun, nargs, arg_vector)
 	  i = nargs;
 	}
       else if (i < nargs)
-	{
-	  tem = arg_vector[i++];
-	  specbind (next, tem);
-	}
+	specbind (next, arg_vector[i++]);
       else if (!optional)
-	return Fsignal (Qwrong_number_of_arguments, Fcons (fun, Fcons (numargs, Qnil)));
+	return Fsignal (Qwrong_number_of_arguments,
+			Fcons (fun, Fcons (make_number (nargs), Qnil)));
       else
 	specbind (next, Qnil);
     }
 
-  if (i < nargs)
-    return Fsignal (Qwrong_number_of_arguments, Fcons (fun, Fcons (numargs, Qnil)));
+  if (!NILP (syms_left))
+    return Fsignal (Qinvalid_function, Fcons (fun, Qnil));
+  else if (i < nargs)
+    return Fsignal (Qwrong_number_of_arguments,
+		    Fcons (fun, Fcons (make_number (nargs), Qnil)));
 
   if (CONSP (fun))
-    val = Fprogn (Fcdr (Fcdr (fun)));
+    val = Fprogn (XCDR (XCDR (fun)));
   else
     {
       /* If we have not actually read the bytecode string
@@ -2702,6 +2707,7 @@ funcall_lambda (fun, nargs, arg_vector)
 			XVECTOR (fun)->contents[COMPILED_CONSTANTS],
 			XVECTOR (fun)->contents[COMPILED_STACK_DEPTH]);
     }
+  
   return unbind_to (count, val);
 }
 
@@ -2754,40 +2760,59 @@ specbind (symbol, value)
      Lisp_Object symbol, value;
 {
   Lisp_Object ovalue;
+  extern int keyword_symbols_constant_flag;
 
   CHECK_SYMBOL (symbol, 0);
-
-  ovalue = find_symbol_value (symbol);
-
   if (specpdl_ptr == specpdl + specpdl_size)
     grow_specpdl ();
-  specpdl_ptr->func = 0;
-  specpdl_ptr->old_value = ovalue;
 
-  if (BUFFER_LOCAL_VALUEP (XSYMBOL (symbol)->value)
-      || SOME_BUFFER_LOCAL_VALUEP (XSYMBOL (symbol)->value)
-      || BUFFER_OBJFWDP (XSYMBOL (symbol)->value))
+  /* The most common case is that a non-constant symbol with a trivial
+     value.  Make that as fast as we can.  */
+  if (!MISCP (XSYMBOL (symbol)->value)
+      && !EQ (symbol, Qnil)
+      && !EQ (symbol, Qt)
+      && !(XSYMBOL (symbol)->name->data[0] == ':'
+	   && EQ (XSYMBOL (symbol)->obarray, initial_obarray)
+	   && keyword_symbols_constant_flag
+	   && !EQ (value, symbol)))
     {
-      Lisp_Object current_buffer, binding_buffer;
-      /* For a local variable, record both the symbol and which
-	 buffer's value we are saving.  */
-      current_buffer = Fcurrent_buffer ();
-      binding_buffer = current_buffer;
-      /* If the variable is not local in this buffer,
-	 we are saving the global value, so restore that.  */
-      if (NILP (Flocal_variable_p (symbol, binding_buffer)))
-	binding_buffer = Qnil;
-      specpdl_ptr->symbol
-	= Fcons (symbol, Fcons (binding_buffer, current_buffer));
+      specpdl_ptr->symbol = symbol;
+      specpdl_ptr->old_value = XSYMBOL (symbol)->value;
+      specpdl_ptr->func = NULL;
+      ++specpdl_ptr;
+      XSYMBOL (symbol)->value = value;
     }
   else
-    specpdl_ptr->symbol = symbol;
+    {
+      ovalue = find_symbol_value (symbol);
+      specpdl_ptr->func = 0;
+      specpdl_ptr->old_value = ovalue;
 
-  specpdl_ptr++;
-  if (BUFFER_OBJFWDP (ovalue) || KBOARD_OBJFWDP (ovalue))
-    store_symval_forwarding (symbol, ovalue, value);
-  else
-    set_internal (symbol, value, 0, 1);
+      if (BUFFER_LOCAL_VALUEP (XSYMBOL (symbol)->value)
+	  || SOME_BUFFER_LOCAL_VALUEP (XSYMBOL (symbol)->value)
+	  || BUFFER_OBJFWDP (XSYMBOL (symbol)->value))
+	{
+	  Lisp_Object current_buffer, binding_buffer;
+	  /* For a local variable, record both the symbol and which
+	     buffer's value we are saving.  */
+	  current_buffer = Fcurrent_buffer ();
+	  binding_buffer = current_buffer;
+	  /* If the variable is not local in this buffer,
+	     we are saving the global value, so restore that.  */
+	  if (NILP (Flocal_variable_p (symbol, binding_buffer)))
+	    binding_buffer = Qnil;
+	  specpdl_ptr->symbol
+	    = Fcons (symbol, Fcons (binding_buffer, current_buffer));
+	}
+      else
+	specpdl_ptr->symbol = symbol;
+
+      specpdl_ptr++;
+      if (BUFFER_OBJFWDP (ovalue) || KBOARD_OBJFWDP (ovalue))
+	store_symval_forwarding (symbol, ovalue, value);
+      else
+	set_internal (symbol, value, 0, 1);
+    }
 }
 
 void
@@ -2812,12 +2837,12 @@ unbind_to (count, value)
   struct gcpro gcpro1;
 
   GCPRO1 (value);
-
   Vquit_flag = Qnil;
 
   while (specpdl_ptr != specpdl + count)
     {
       --specpdl_ptr;
+      
       if (specpdl_ptr->func != 0)
 	(*specpdl_ptr->func) (specpdl_ptr->old_value);
       /* Note that a "binding" of nil is really an unwind protect,
@@ -2843,12 +2868,21 @@ unbind_to (count, value)
 	    set_internal (symbol, specpdl_ptr->old_value, XBUFFER (buffer), 1);
 	}
       else
-        set_internal (specpdl_ptr->symbol, specpdl_ptr->old_value, 0, 1);
+	{
+	  /* If variable has a trivial value (no forwarding), we can
+	     just set it.  No need to check for constant symbols here,
+	     since that was already done by specbind.  */
+	  if (!MISCP (XSYMBOL (specpdl_ptr->symbol)->value))
+	    XSYMBOL (specpdl_ptr->symbol)->value = specpdl_ptr->old_value;
+	  else
+	    set_internal (specpdl_ptr->symbol, specpdl_ptr->old_value, 0, 1);
+	}
     }
-  if (NILP (Vquit_flag) && quitf) Vquit_flag = Qt;
+  
+  if (NILP (Vquit_flag) && quitf)
+    Vquit_flag = Qt;
 
   UNGCPRO;
-
   return value;
 }
 
