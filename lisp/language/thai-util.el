@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-;;;autoload
+;;;###autoload
 (defun setup-thai-environment ()
   "Setup multilingual environment (MULE) for Thai."
   (interactive)
