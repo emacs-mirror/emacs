@@ -224,9 +224,19 @@ arguments compiles from `load-path'."
     (shrink-window-if-larger-than-buffer)
     (finder-summary)))
 
+;; Search for a file named FILE on `load-path', also trying compressed
+;; versions if jka-compr is in use.
+(defun finder-find-library (library)
+  (or (locate-library library t)
+      (if (rassq 'jka-compr-handler file-name-handler-alist)
+        (or (locate-library (concat library ".gz") t)
+            (locate-library (concat library ".Z") t)
+            ;; last resort for MS-DOG et al
+            (locate-library (concat library "z"))))))
+
 (defun finder-commentary (file)
   (interactive)
-  (let* ((str (lm-commentary (locate-library file))))
+  (let* ((str (lm-commentary (finder-find-library file))))
     (if (null str)
 	(error "Can't find any Commentary section"))
     (pop-to-buffer "*Finder*")
@@ -295,7 +305,7 @@ arguments compiles from `load-path'."
     "\\<finder-mode-map>\\[finder-select] = select, \\[finder-mouse-select] = select, \\[finder-list-keywords] = to finder directory, \\[finder-exit] = quit, \\[finder-summary] = help")))
 
 (defun finder-exit ()
-  "Exit Finder mode and kill the buffer"
+  "Exit Finder mode and kill the buffer."
   (interactive)
   (or (one-window-p t)
       (delete-window))
