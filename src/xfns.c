@@ -107,6 +107,14 @@ extern XFontStruct *xlwmenu_default_font;
 extern void free_frame_menubar ();
 extern double atof ();
 
+#ifdef USE_MOTIF
+
+/* LessTif/Motif version info.  */
+
+static Lisp_Object Vmotif_version_string;
+
+#endif /* USE_MOTIF */
+
 #endif /* USE_X_TOOLKIT */
 
 #define min(a,b) ((a) < (b) ? (a) : (b))
@@ -11521,10 +11529,15 @@ meaning don't clear the cache.");
 
 #ifdef USE_X_TOOLKIT
   Fprovide (intern ("x-toolkit"));
-#endif
+  
 #ifdef USE_MOTIF
   Fprovide (intern ("motif"));
-#endif
+
+  DEFVAR_LISP ("motif-version-string", &Vmotif_version_string,
+     "Version info for LessTif/Motif.");
+  Vmotif_version_string = build_string (XmVERSION_STRING);
+#endif /* USE_MOTIF */
+#endif /* USE_X_TOOLKIT */
 
   defsubr (&Sx_get_resource);
 
