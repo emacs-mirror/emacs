@@ -40,6 +40,8 @@
 #	provided at <http://kanji.zinbun.kyoto-u.ac.jp/~yasuoka/CJK.html>
 #   o 720.htm and 858.htm
 #	provided at <http://www.microsoft.com/globaldev/reference/oem/>
+#   o eucJP-13th.txt, eucJP-udc.txt, eucJP-ibmext.txt
+#	provided at <http://www.opengroup.or.jp/jvc/cde/>
 # OLDEMACS
 #   emacs of version 21.3.50 or later
 #
@@ -94,6 +96,8 @@ MISC =  KOI-8.map KOI8-R.map KOI8-U.map KOI8-T.map ALTERNATIVNYJ.map \
 MULE =	MULE-ethiopic.map MULE-ipa.map MULE-is13194.map \
 	MULE-sisheng.map MULE-tibetan.map \
 	MULE-lviscii.map MULE-uviscii.map
+
+TRANS_TABLE = cp51932.el eucjp-ms.el
 
 charsets: ${CHARSETS}
 
@@ -178,7 +182,8 @@ JISX0201.map: ${GLIBC_CHARMAPS}/JIS_X0201 mapconv compact.awk
 
 JISX0208.map: ${GLIBC_CHARMAPS}/EUC-JP mapconv
 	# Generating $@...
-	@mapconv $< '/^<.*[ 	]\/x[a-f]/' GLIBC-2-7 > $@
+	@mapconv $< '/^<.*[ 	]\/x[a-f]/' GLIBC-2-7 \
+	  | sed 's/0x2015/0x2014/' > $@
 
 JISX0212.map: ${GLIBC_CHARMAPS}/EUC-JP mapconv compact.awk
 	# Generating $@...
@@ -195,6 +200,15 @@ JISX2132.map: ${GLIBC_CHARMAPS}/EUC-JISX0213 mapconv
 CP932-2BYTE.map: ${MISC_CHARMAPS}/cp932.txt mapconv cp932.awk
 	# Generating $@...
 	@mapconv $< '/^0x[89A-F][0-9A-F][0-9A-F]/' UNICODE2 cp932.awk > $@
+
+cp51932.el: CP932-2BYTE.map cp51932.awk
+	@$(AWK) -f cp51932.awk < CP932-2BYTE.map > $@
+
+eucjp-ms.el: ${MISC_CHARMAPS}/eucJP-13th.txt ${MISC_CHARMAPS}/eucJP-udc.txt \
+		${MISC_CHARMAPS}/eucJP-ibmext.txt eucjp-ms.awk
+	@(cd ${MISC_CHARMAPS}; \
+	  cat eucJP-13th.txt eucJP-udc.txt eucJP-ibmext.txt) \
+	  | $(AWK) -f eucjp-ms.awk > $@
 
 JISC6226.map : ${MISC_CHARMAPS}/Uni2JIS mapconv kuten.awk
 	# Generating $@...
@@ -285,8 +299,9 @@ EBCDIC%.map: ${GLIBC_CHARMAPS}/EBCDIC-% mapconv compact.awk
 	# Generating $@...
 	@mapconv $< '/^<.*[ 	]\/x/' GLIBC-1 compact.awk > $@
 
-install: ${CHARSETS}
+install: ${CHARSETS} ${TRANS_TABLE}
 	cp ${CHARSETS} ../../etc/charsets
+	cp ${TRANS_TABLE} ../../lisp/international
 
 # Clear files that are automatically generated.
 clean:
