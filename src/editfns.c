@@ -2269,6 +2269,7 @@ The value returned is the value of the last form in BODY.\n\
 \n\
 `save-restriction' can get confused if, within the BODY, you widen\n\
 and then make changes outside the area within the saved restrictions.\n\
+See Info node `(elisp)Narrowing' for details and an appropriate technique.\n\
 \n\
 Note: if you are using both `save-excursion' and `save-restriction',\n\
 use `save-excursion' outermost:\n\
