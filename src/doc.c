@@ -491,8 +491,8 @@ when doc strings are referred to later in the dumped Emacs.")
   strcpy (name, "../etc/");
 #else /* CANNOT_DUMP */
   CHECK_STRING (Vdoc_directory);
-  name = (char *) alloca (XSTRING (filename)->size +
-			  XSTRING (Vdoc_directory)->size + 1);
+  name = (char *) alloca (XSTRING (filename)->size
+			  + XSTRING (Vdoc_directory)->size + 1);
   strcpy (name, XSTRING (Vdoc_directory)->data);
 #endif /* CANNOT_DUMP */
   strcat (name, XSTRING (filename)->data); 	/*** Add this line ***/
