@@ -1,8 +1,9 @@
 2003-01-12  Kim F. Storm  <storm@cua.dk>
 
-	* alloc.c (pure_alloc): Corrected last change; now align the
-	pointer and adjust the size rather than aligning the size and
-	adjusting the pointer.  Use a goto to handle overflow exception.
+	* alloc.c (pure_alloc): Fixed 2003-01-10 changed (caused spurious
+	crashes).  Code rewritten and simplified.  Now directly aligns the
+	pointer and recalculates pure_bytes_used, rather than aligning the
+	size and adjusting the pointer.
 
 2003-01-11  Kim F. Storm  <storm@cua.dk>
 
