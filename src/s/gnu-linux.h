@@ -182,7 +182,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #if 0 /* autoconf should take care of this.  */
 #define HAVE_RANDOM           /* is builtin */
 #endif
-#define HAVE_CLOSEDIR
 #define HAVE_GETPAGESIZE
 #define HAVE_VFORK
 #define HAVE_SYS_SIGLIST

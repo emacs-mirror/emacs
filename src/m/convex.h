@@ -136,7 +136,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Use <dirent.h>. */
 #define SYSV_SYSTEM_DIR
-#define HAVE_CLOSEDIR
 
 #ifdef _POSIX_SOURCE
 

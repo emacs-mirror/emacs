@@ -94,7 +94,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define HAVE_SOCKETS
 
 /* SX/A use SystemV style getdents/readdir. */
-#define HAVE_CLOSEDIR
 
 /* SX/A does not have sigblock(2) */
 #define sigblock(mask)	(0)
