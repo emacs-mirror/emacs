@@ -1,3 +1,8 @@
+2004-04-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* charset.h (SINGLE_BYTE_CHAR_P): Fix macro to avoid warnings
+	from GCC.
+
 2004-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* .gdbinit-union: Remove.

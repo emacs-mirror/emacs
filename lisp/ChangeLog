@@ -1,3 +1,11 @@
+2004-04-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* calendar/timeclock.el (timeclock-relative)
+	(timeclock-get-project-function, timeclock-get-workday-function)
+	(timeclock-query-out, timeclock-when-to-leave)
+	(timeclock-when-to-leave-string, timeclock-log-data)
+	(timeclock-generate-report, timeclock-in): Doc fixes.
+
 2004-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url: Import the URL package from its repository.

@@ -1,3 +1,9 @@
+2004-04-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat (lib-src): Recognize comment lines in Makefile.in
+	that have a TAB after the #, to avoid errors in preprocessing with
+	GCC 3.3.3.
+
 2004-03-31  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* Makefile.in: Mention in comment that `make maintainer-clean'
