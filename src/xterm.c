@@ -3268,7 +3268,6 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	}
     }
 
-#if 0
 #ifdef HAVE_SELECT
   if (expected && ! event_found)
     {
@@ -3285,7 +3284,6 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	kill (getpid (), SIGHUP);
     }
 #endif /* ! defined (HAVE_SELECT) */
-#endif /* ! 0 */
 
 #ifndef HAVE_X11
   if (updating_frame == 0)
@@ -4083,12 +4081,16 @@ x_calc_absolute_position (f)
 {
 #ifdef HAVE_X11
   if (f->display.x->left_pos < 0)
-    f->display.x->left_pos
-      = x_screen_width - PIXEL_WIDTH (f) + f->display.x->left_pos;
+    f->display.x->left_pos = (x_screen_width 
+			      - 2 * f->display.x->border_width
+			      - PIXEL_WIDTH (f)
+			      + f->display.x->left_pos);
 
   if (f->display.x->top_pos < 0)
-    f->display.x->top_pos
-      = x_screen_height - PIXEL_HEIGHT (f) + f->display.x->top_pos;
+    f->display.x->top_pos = (x_screen_height
+			     - 2 * f->display.x->border_width
+			     - PIXEL_HEIGHT (f)
+			     + f->display.x->top_pos);
 #else /* ! defined (HAVE_X11) */
   WINDOWINFO_TYPE parentinfo;
 
