@@ -1158,6 +1158,106 @@ syms_of_xmenu ()
   defsubr (&Sx_popup_menu);
 }
 
+/* Figure out the current keyboard equivalent of a menu item ITEM1.
+   Store the equivalent key sequence in *SAVEDKEY_PTR
+   and the textual description (to use in the menu display) in *DESCRIP_PTR.
+   Also cache them in the item itself.
+   Return the real definition to execute.  */
+
+static Lisp_Object
+menu_item_equiv_key (item1, savedkey_ptr, descrip_ptr)
+     Lisp_Object item1;
+     Lisp_Object *savedkey_ptr, *descrip_ptr;
+{
+  /* This is what is left after the menu item name.  */
+  Lisp_Object overdef;
+  /* This is the real definition--the function to run.  */
+  Lisp_Object def;
+  /* These are the saved equivalent keyboard key sequence
+     and its key-description.  */
+  Lisp_Object savedkey, descrip;
+  Lisp_Object def1;
+  int changed = 0;
+
+  overdef = def = Fcdr (item1);
+
+  /* Get out the saved equivalent-keyboard-key info.  */
+  savedkey = descrip = Qnil;
+  if (CONSP (overdef)
+      && (STRINGP (XCONS (overdef)->car)
+	  || VECTORP (XCONS (overdef)->car)))
+    {
+      savedkey = XCONS (overdef)->car;
+      def = XCONS (def)->cdr;
+      if (CONSP (def)
+	  && (STRINGP (XCONS (def)->car)
+	      || VECTORP (XCONS (def)->car)))
+	{
+	  descrip = XCONS (def)->car;
+	  def = XCONS (def)->cdr;
+	}
+    }
+
+  /* Is it still valid?  */
+  def1 = Qnil;
+  if (!NILP (savedkey))
+    def1 = Fkey_binding (savedkey, Qnil);
+  /* If not, update it.  */
+  if (! EQ (def1, def))
+    {
+      changed = 1;
+      descrip = Qnil;
+      savedkey = Fwhere_is_internal (def, Qnil, Qt, Qnil);
+      if (VECTORP (savedkey)
+	  && EQ (XVECTOR (savedkey)->contents[0], Qmenu_bar))
+	savedkey = Qnil;
+      if (!NILP (savedkey))
+	{
+	  descrip = Fkey_description (savedkey);
+	  descrip = concat2 (make_string ("  (", 3), descrip);
+	  descrip = concat2 (descrip, make_string (")", 1));
+	}
+    }
+
+  /* Store back the recorded keyboard key sequence
+     if we changed it.  */
+  if (!NILP (savedkey)
+      && CONSP (overdef)
+      && (STRINGP (XCONS (overdef)->car)
+	  || VECTORP (XCONS (overdef)->car)))
+    {
+      if (changed)
+	{
+	  XCONS (overdef)->car = savedkey;
+	  def1 = XCONS (overdef)->cdr;
+	  if (CONSP (def1)
+	      && (STRINGP (XCONS (def1)->car)
+		  || VECTORP (XCONS (def1)->car)))
+	    XCONS (def1)->car = descrip;
+	}
+    }
+  /* If we had none but need one now, add it.  */
+  else if (!NILP (savedkey))
+    XCONS (item1)->cdr
+      = overdef = Fcons (savedkey, Fcons (descrip, def));
+  /* If we had one but no longer should have one,
+     delete it.  */
+  else if (CONSP (overdef)
+	   && (STRINGP (XCONS (overdef)->car)
+	       || VECTORP (XCONS (overdef)->car)))
+    {
+      XCONS (item1)->cdr = overdef = XCONS (overdef)->cdr;
+      if (CONSP (overdef)
+	  && (STRINGP (XCONS (overdef)->car)
+	      || VECTORP (XCONS (overdef)->car)))
+	XCONS (item1)->cdr = overdef = XCONS (overdef)->cdr;
+    }
+
+  *savedkey_ptr = savedkey;
+  *descrip_ptr = descrip;
+  return def;
+}
+
 /* Construct the vectors that describe a menu
    and store them in *VECTOR, *PANES, *NAMES, *ENABLES and *ITEMS.
    Each of those four values is a vector indexed by pane number.
@@ -1299,10 +1399,15 @@ single_keymap_panes (keymap, panes, vector, names, enables, items, prefixes,
 	      item2 = XCONS (item1)->car;
 	      if (XTYPE (item2) == Lisp_String)
 		{
-		  Lisp_Object def, tem;
-		  Lisp_Object enabled;
+		  /* This is the real definition--the function to run.  */
+		  Lisp_Object def;
+		  /* These are the saved equivalent keyboard key sequence
+		     and its key-description.  */
+		  Lisp_Object savedkey, descrip;
+		  Lisp_Object tem, enabled;
 
-		  def = Fcdr (item1);
+		  def = menu_item_equiv_key (item1, &savedkey, &descrip);
+
 		  enabled = Qt;
 		  if (XTYPE (def) == Lisp_Symbol)
 		    {
@@ -1322,7 +1427,12 @@ single_keymap_panes (keymap, panes, vector, names, enables, items, prefixes,
 					  pending_maps);
 		  else
 		    {
-		      (*names)[*p_ptr][i] = (char *) XSTRING (item2)->data;
+		      Lisp_Object concat;
+		      if (!NILP (descrip))
+			concat = concat2 (item2, descrip);
+		      else
+			concat = item2;
+		      (*names)[*p_ptr][i] = (char *) XSTRING (concat)->data;
 		      /* The menu item "value" is the key bound here.  */
 		      (*vector)[*p_ptr][i] = XCONS (item)->car;
 		      (*enables)[*p_ptr][i]
@@ -1347,11 +1457,15 @@ single_keymap_panes (keymap, panes, vector, names, enables, items, prefixes,
 		  item2 = XCONS (item1)->car;
 		  if (XTYPE (item2) == Lisp_String)
 		    {
-		      Lisp_Object tem;
 		      Lisp_Object def;
-		      Lisp_Object enabled;
 
-		      def = Fcdr (item1);
+		      /* These are the saved equivalent keyboard key sequence
+			 and its key-description.  */
+		      Lisp_Object savedkey, descrip;
+		      Lisp_Object tem, enabled;
+
+		      def = menu_item_equiv_key (item1, &savedkey, &descrip);
+
 		      enabled = Qt;
 		      if (XTYPE (def) == Lisp_Symbol)
 			{
@@ -1372,7 +1486,13 @@ single_keymap_panes (keymap, panes, vector, names, enables, items, prefixes,
 					      pending_maps);
 		      else
 			{
-			  (*names)[*p_ptr][i] = (char *) XSTRING (item2)->data;
+			  Lisp_Object concat;
+			  if (!NILP (descrip))
+			    concat = concat2 (item2, descrip);
+			  else
+			    concat = item2;
+			  (*names)[*p_ptr][i]
+			    = (char *) XSTRING (concat)->data;
 			  /* The menu item "value" is the key bound here.  */
 			  (*vector)[*p_ptr][i] = character;
 			  (*enables)[*p_ptr][i]
