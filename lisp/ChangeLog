@@ -1,4 +1,20 @@
+2002-05-29  Dave Love  <fx@gnu.org>
+
+	* language/thai.el (iso-8859-11): New coding system.
+
+	* international/mule-conf.el: Doc fixes.
+	(iso-8859-11): New.
+
+2002-05-28  Dave Love  <fx@albion.dl.ac.uk>
+
+	* cus-start.el (scalable-fonts-allowed): Add.
+
 2002-05-27  Dave Love  <fx@gnu.org>
+
+	* international/mule.el (unify-8859-on-encoding-mode) 
+	(unify-8859-on-decoding-mode): Dummy versions.
+
+	* international/ucs-tables.el: Removed.
 
 	* Makefile.in (DONTCOMPILE): Add language/chinese.el,
 	language/japanese.el.

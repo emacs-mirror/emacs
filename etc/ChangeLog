@@ -1,3 +1,7 @@
+2002-05-29  Dave Love  <fx@gnu.org>
+
+	* charsets/8859-11.map: New file.
+
 2002-05-27  Dave Love  <fx@gnu.org>
 
 	* charsets/cp720.map, charsets/858.map: New files.
