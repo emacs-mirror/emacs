@@ -6,7 +6,7 @@
 ;; Maintainer: David Ponce <david@dponce.com>
 ;; Created: 24 Mar 2001
 ;; Version: 1.4
-;; Keywords: environment convenience
+;; Keywords: convenience
 
 ;; This file is part of GNU Emacs.
 
@@ -106,7 +106,7 @@
 (defgroup ruler-mode nil
   "Display a ruler in the header line."
   :version "21.4"
-  :group 'environment)
+  :group 'convenience)
 
 (defcustom ruler-mode-show-tab-stops nil
   "*If non-nil the ruler shows tab stop positions.
