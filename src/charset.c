@@ -1781,9 +1781,10 @@ An ID of a unification table is an index of this vector.");
     "Offset for converting non-ASCII unibyte codes 0240...0377 to multibyte.\n\
 This is used for converting unibyte text to multibyte,\n\
 and for inserting character codes specified by number.\n\n\
-Conversion is performed only when multibyte characters are enabled,\n\
-and it serves to convert a Latin-1 or similar 8-bit character code\n\
-to the corresponding Emacs character code.\n\
+This serves to convert a Latin-1 or similar 8-bit character code\n\
+to the corresponding Emacs multibyte character code.\n\
+Typically the value should be (- (make-char CHARSET 0) 128),\n\
+for your choice of character set.\n\
 If `nonascii-translate-table' is non-nil, it overrides this variable.");
   nonascii_insert_offset = 0;
 
