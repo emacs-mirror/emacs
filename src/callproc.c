@@ -463,15 +463,39 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 	 tem = XCONS (tem)->cdr)
       new_length++;
 
-    /* new_length + 1 to include terminating 0 */
+    /* new_length + 1 to include terminating 0.  */
     env = new_env = (char **) alloca ((new_length + 1) * sizeof (char *));
 
-    /* Copy the Vprocess_alist strings into new_env.  */
+    /* Copy the Vprocess_environment strings into new_env.  */
     for (tem = Vprocess_environment;
 	 (XTYPE (tem) == Lisp_Cons
 	  && XTYPE (XCONS (tem)->car) == Lisp_String);
 	 tem = XCONS (tem)->cdr)
-      *new_env++ = (char *) XSTRING (XCONS (tem)->car)->data;
+      {
+	char **ep = env;
+	char *string = (char *) XSTRING (XCONS (tem)->car)->data;
+	/* See if this string duplicates any string already in the env.
+	   If so, don't put it in.
+	   When an env var has multiple definitions,
+	   we keep the definition that comes first in process-environment.  */
+	for (; ep != new_env; ep++)
+	  {
+	    char *p = *ep, *q = string;
+	    while (1)
+	      {
+		if (*q == 0)
+		  /* The string is malformed; might as well drop it.  */
+		  goto duplicate;
+		if (*q != *p)
+		  break;
+		if (*q == '=')
+		  goto duplicate;
+		p++, q++;
+	      }
+	  }
+	*new_env++ = string;
+      duplicate: ;
+      }
     *new_env = 0;
   }
 
