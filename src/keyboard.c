@@ -690,14 +690,35 @@ static int cannot_suspend;
 
 void
 echo_prompt (str)
-     char *str;
+     Lisp_Object str;
 {
-  int len = strlen (str);
+  int len = STRING_BYTES (XSTRING (str));
+  int multibyte_p = STRING_MULTIBYTE (str);
 
   if (len > ECHOBUFSIZE - 4)
-    len = ECHOBUFSIZE - 4;
-  bcopy (str, current_kboard->echobuf, len);
-  current_kboard->echoptr = current_kboard->echobuf + len;
+    {
+      if (multibyte_p)
+	{
+	  unsigned char *p = XSTRING (str)->data, *lastp;
+	  unsigned char *pend = p + ECHOBUFSIZE - 4;
+
+	  while (p < pend)
+	    {
+	      int this_len;
+
+	      lastp = p;
+	      PARSE_MULTIBYTE_SEQ (p, pend - p, this_len);
+	      p += this_len;
+	    }
+	  len = lastp - XSTRING (str)->data;
+	}
+      else
+	len = ECHOBUFSIZE - 4;
+    }
+
+  current_kboard->echoptr
+    += copy_text (XSTRING (str)->data, current_kboard->echobuf, len,
+		  STRING_MULTIBYTE (str), 1);
   *current_kboard->echoptr = '\0';
 
   current_kboard->echo_after_prompt = len;
@@ -727,11 +748,20 @@ echo_char (c)
 
       if (INTEGERP (c))
 	{
+	  int ch = XINT (c);
+
 	  if (ptr - current_kboard->echobuf
 	      > ECHOBUFSIZE - KEY_DESCRIPTION_SIZE)
 	    return;
 
-	  ptr = push_key_description (XINT (c), ptr);
+	  if (ASCII_BYTE_P (ch))
+	    ptr = push_key_description (ch, ptr);
+	  else
+	    {
+	      if (SINGLE_BYTE_CHAR_P (ch))
+		ch = unibyte_char_to_multibyte (ch);	      
+	      ptr += CHAR_STRING (ch, ptr);
+	    }
 	}
       else if (SYMBOLP (c))
 	{
@@ -739,8 +769,8 @@ echo_char (c)
 	  if ((ptr - current_kboard->echobuf) + STRING_BYTES (name) + 4
 	      > ECHOBUFSIZE)
 	    return;
-	  bcopy (name->data, ptr, STRING_BYTES (name));
-	  ptr += STRING_BYTES (name);
+	  ptr += copy_text (name->data, ptr, STRING_BYTES (name),
+			    name->size_byte >= 0, 1);
 	}
 
       if (current_kboard->echoptr == current_kboard->echobuf
@@ -806,7 +836,7 @@ echo_now ()
 
   echoing = 1;
   message2_nolog (current_kboard->echobuf, strlen (current_kboard->echobuf),
-		  ! NILP (current_buffer->enable_multibyte_characters));
+		  1);
   echoing = 0;
 
   /* Record in what buffer we echoed, and from which kboard.  */
@@ -7839,7 +7869,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   if (INTERACTIVE)
     {
       if (!NILP (prompt))
-	echo_prompt (XSTRING (prompt)->data);
+	echo_prompt (prompt);
       else if (cursor_in_echo_area
 	       && (FLOATP (Vecho_keystrokes) || INTEGERP (Vecho_keystrokes))
 	       && NILP (Fzerop (Vecho_keystrokes)))
