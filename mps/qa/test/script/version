@@ -1,8 +1,8 @@
-# $HopeName: MMQA_harness!script:version(trunk.4) $
+# $HopeName: MMQA_harness!script:version(trunk.5) $
 # This file should be updated automatically whenever the test
 # harness changes. Edit with care!
 
-$HARNESS_VERSION="2.2";
+$HARNESS_VERSION="2.3";
 
 # Version history:
 # [Recorded history begins with version 2.0]
@@ -12,6 +12,7 @@ $HARNESS_VERSION="2.2";
 #  2.1 -- Addition of interface version HU. 1999-02-17
 #  2.2 -- Option display no longer prints "MMQA_" before each, as
 #         first column was getting too narrow for option names
-#
+#  2.3 -- Changed link settings on Intel NT, to link with MSVCRT and not
+#         any other defaultlib
 #
 #
