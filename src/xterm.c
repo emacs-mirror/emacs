@@ -8012,11 +8012,7 @@ xim_destroy_callback (xim, client_data, call_data)
       if (FRAME_X_DISPLAY_INFO (f) == dpyinfo)
 	{
 	  FRAME_XIC (f) = NULL;
-	  if (FRAME_XIC_FONTSET (f))
-	    {
-	      XFreeFontSet (FRAME_X_DISPLAY (f), FRAME_XIC_FONTSET (f));
-	      FRAME_XIC_FONTSET (f) = NULL;
-	    }
+          xic_free_xfontset (f);
 	}
     }
 

@@ -1,3 +1,18 @@
+2004-10-21  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
+
+        * xterm.h (x_output): New member `xic_base_fontname'.
+        (FRAME_XIC_BASE_FONTNAME): New macro.
+        (xic_free_xfontset): Declare.
+
+        * xfns.c (xic_create_xfontset): Share fontsets between frames
+        based on base_fontname.
+        (xic_free_xfontset): New function.
+        (free_frame_xic): Use it.
+        (xic_set_xfontset): Ditto.
+
+        * xterm.c (xim_destroy_callback): Ditto.
+
+
 2004-10-20  B. Anyos  <banyos@freemail.hu>  (tiny change)
 
 	* w32term.c (x_draw_glyph_string): Use overline_color for overlines.

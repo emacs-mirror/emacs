@@ -600,6 +600,7 @@ struct x_output
   XIC xic;
   XIMStyle xic_style;
   XFontSet xic_xfs;
+  char *xic_base_fontname;
 #endif
 
   /* Relief GCs, colors etc.  */
@@ -734,6 +735,7 @@ enum
 #define FRAME_X_XIM_STYLES(f) (FRAME_X_DISPLAY_INFO (f)->xim_styles)
 #define FRAME_XIC_STYLE(f) ((f)->output_data.x->xic_style)
 #define FRAME_XIC_FONTSET(f) ((f)->output_data.x->xic_xfs)
+#define FRAME_XIC_BASE_FONTNAME(f) ((f)->output_data.x->xic_base_fontname)
 
 /* Value is the smallest width of any character in any font on frame F.  */
 
@@ -1043,6 +1045,7 @@ extern void x_set_menu_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object))
 extern unsigned char * x_encode_text P_ ((Lisp_Object, Lisp_Object, int,
 					  int *, int *));
 extern void x_implicitly_set_name P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void xic_free_xfontset P_ ((struct frame *));
 extern void create_frame_xic P_ ((struct frame *));
 extern void destroy_frame_xic P_ ((struct frame *));
 extern void xic_set_preeditarea P_ ((struct window *, int, int));
