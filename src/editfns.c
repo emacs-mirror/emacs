@@ -1462,8 +1462,11 @@ by text that describes the specified date and time in TIME:\n\
 Finally, %n is a newline, %t is a tab, %% is a literal %.\n\
 \n\
 Certain flags and modifiers are available with some format controls.\n\
-The flags are `_' and `-'.  For certain characters X, %_X is like %X,\n\
-but padded with blanks; %-X is like %X, but without padding.\n\
+The flags are `_', `-', `^' and `#'.  For certain characters X,\n\
+%_X is like %X, but padded with blanks; %-X is like %X,\n\
+ut without padding.  %^X is like %X but with all textual\n\
+characters up-cased; %#X is like %X but with letter-case of\n\
+all textual characters reversed.\n\
 %NX (where N stands for an integer) is like %X,\n\
 but takes up at least N (a number) positions.\n\
 The modifiers are `E' and `O'.  For certain characters X,\n\
