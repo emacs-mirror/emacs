@@ -1,5 +1,8 @@
 2000-01-10  Gerd Moellmann  <gerd@gnu.org>
 
+	* vc-hooks.el (vc-parse-buffer): Handle mixtures of dates
+	before and after the year 2000.
+	
 	* textmodes/ispell-merged.el (xemacsp, version18p, version-20p):
 	Add ispell- prefix.
 
