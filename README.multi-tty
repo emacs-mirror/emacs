@@ -42,10 +42,10 @@ then start up the emacs server (src/emacs, M-x server-start), and then
 
 You'll hopefully have two fully working frames on separate terminals.
 If you exit emacs, both terminals should be restored to their previous
-states.
+states.  You can close the newly opened frame and return to the shell
+without exiting Emacs with C-x 5 0, i.e., delete-frame.
 
-At the moment you can not close terminals without exiting Emacs --
-this will soon be implemented.
+
 
 X, Mac, Windows and DOS support is broken, probably doesn't even
 compile -- this will be solved later.
@@ -210,10 +210,17 @@ THINGS TO DO
 
 ** Export delete_tty to the Lisp environment, for emacsclient.
 
+** Restore tty screen after closing the terminal.
+
+** 'TERM=dumb src/emacs' does not restore the terminal state.
+
 ** C-g should work on secondary terminals.
 
 ** Make parts of struct tty_output accessible from Lisp.  The device
    name and the type is sufficient.
+
+** Find out why does Emacs abort when it wants to close its
+   controlling tty.
 
 ** Implement support for starting an interactive Emacs session without
    an initial frame.  (The user would connect to it and open frames
@@ -229,7 +236,10 @@ THINGS TO DO
 ** Move optimalization parameters (costs) from union output_data to
    a backend-neutral per-device structure.
 
-** Do tty output through term_hooks, too.
+** Find out the best way to support suspending Emacs with multiple
+   ttys.
+
+** Do tty output through term_hooks, like all other display backends.
 
 ** Fix X support.
 
