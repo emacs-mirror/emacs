@@ -581,19 +581,18 @@ typedef struct frame *FRAME_PTR;
    (f)->visible = (f)->async_visible, \
    (f)->iconified = (f)->async_iconified)
 
-#define CHECK_FRAME(x, i)			\
-     if (! FRAMEP (x))				\
-       x = wrong_type_argument (Qframep, (x));	\
-     else					\
-       (void) 0
+#define CHECK_FRAME(x, i)				\
+     do {						\
+       if (! FRAMEP (x))				\
+         x = wrong_type_argument (Qframep, (x));	\
+     } while (0)
 
 #define CHECK_LIVE_FRAME(x, i)				\
-     if (! FRAMEP (x)					\
-	 || ! FRAME_LIVE_P (XFRAME (x)))		\
-       x = wrong_type_argument (Qframe_live_p, (x));	\
-     else						\
-       (void) 0
-
+     do {						\
+       if (! FRAMEP (x)					\
+	   || ! FRAME_LIVE_P (XFRAME (x)))		\
+         x = wrong_type_argument (Qframe_live_p, (x));	\
+     } while (0)
 
 /* FOR_EACH_FRAME (LIST_VAR, FRAME_VAR) followed by a statement is a
    `for' loop which iterates over the elements of Vframe_list.  The
