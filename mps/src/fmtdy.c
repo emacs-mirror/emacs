@@ -1,6 +1,6 @@
 /* impl.c.fmtdy: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!fmtdy.c(trunk.10) $
+ *  $HopeName: MMsrc!fmtdy.c(trunk.11) $
  *  Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  *
  *  All objects, B:
@@ -65,6 +65,7 @@
 
 
 #define notreached()    assert(0)
+#define unused(param)   ((void)param)
 
 #define ALIGN           sizeof(mps_word_t)
 
@@ -276,6 +277,8 @@ static mps_res_t dylan_scan_pat(mps_ss_t mps_ss,
   mps_addr_t *pp;       /* inner loop cursor */
   int b;                /* bit */
   mps_addr_t r;         /* reference to be fixed */
+
+  unused(nr_pats);
 
   MPS_SCAN_BEGIN(mps_ss) {
           p = base;
@@ -614,6 +617,7 @@ static void dylan_copy(mps_addr_t old, mps_addr_t new)
 
 static void dylan_no_copy(mps_addr_t old, mps_addr_t new)
 {
+  unused(old); unused(new);
   notreached();
 }
 
@@ -631,6 +635,7 @@ static mps_addr_t dylan_isfwd(mps_addr_t object)
 
 static mps_addr_t dylan_no_isfwd(mps_addr_t object)
 {
+  unused(object);
   notreached();
   return 0;
 }
@@ -655,6 +660,7 @@ static void dylan_fwd(mps_addr_t old, mps_addr_t new)
 
 static void dylan_no_fwd(mps_addr_t old, mps_addr_t new)
 {
+  unused(old); unused(new);
   notreached();
 }
 
@@ -673,6 +679,7 @@ static void dylan_pad(mps_addr_t addr, size_t size)
 
 static void dylan_no_pad(mps_addr_t addr, size_t size)
 {
+  unused(addr); unused(size);
   notreached();
 }
 
@@ -793,5 +800,8 @@ mps_bool_t dylan_check(mps_addr_t addr)
   assert(addr != 0);
   assert(((mps_word_t)addr & (ALIGN-1)) == 0);
   assert(dylan_wrapper_check((mps_word_t *)((mps_word_t *)addr)[0]));
+  /* .assert.unused: Asserts throw away their conditions */
+  /* in hot varieties, so UNUSED is needed. */
+  unused(addr);
   return 1;
 }
