@@ -1,6 +1,6 @@
 /* impl.c.vmli: VIRTUAL MEMORY MAPPING FOR LINUX
  *
- * $HopeName: MMsrc!vmli.c(trunk.2) $
+ * $HopeName: MMsrc!vmli.c(trunk.3) $
  * Copyright (C) 1995, 1997, 1998 Harlequin Group, all rights reserved
  *
  * Readership: Any MPS developer
@@ -64,7 +64,7 @@
 /* for sysconf(2),close(2) */
 #include <unistd.h>
 
-SRCID(vmli, "$HopeName: MMsrc!vmli.c(trunk.2) $");
+SRCID(vmli, "$HopeName: MMsrc!vmli.c(trunk.3) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -262,6 +262,7 @@ Res VMMap(VM vm, Addr base, Addr limit)
 
   vm->mapped += size;
 
+  EVENT_PAA(VMUnmap, vm, base, limit);
   return ResOK;
 }
 
@@ -289,4 +290,6 @@ void VMUnmap(VM vm, Addr base, Addr limit)
   AVER(addr == (void *)base);
 
   vm->mapped -= size;
+
+  EVENT_PAA(VMUnmap, vm, base, limit);
 }
