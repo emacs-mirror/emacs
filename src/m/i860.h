@@ -107,3 +107,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    code will not be sharable; but that's better than failing completely.  */
 
 #define NO_REMAP
+
+/* The X11 include files for i860-sysv4 need the macro SVR4 defined.
+   --Kaveh Ghazi (ghazi@noc.rutgers.edu) 8/9/94. */
+#ifdef USG5_4
+#ifndef SVR4
+#define SVR4
+#endif
+#endif
