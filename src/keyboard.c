@@ -151,6 +151,10 @@ int waiting_for_input;
 /* True while displaying for echoing.   Delays C-g throwing.  */
 static int echoing;
 
+/* True means we can start echoing at the next input pause
+   even though there is something in the echo area.  */
+static int ok_to_echo_at_next_pause;
+
 /* Nonzero means disregard local maps for the menu bar.  */
 static int inhibit_local_menu_bar_menus;
 
@@ -655,6 +659,7 @@ cancel_echoing ()
   current_kboard->immediate_echo = 0;
   current_kboard->echoptr = current_kboard->echobuf;
   current_kboard->echo_after_prompt = -1;
+  ok_to_echo_at_next_pause = 0;
 }
 
 /* Return the length of the current echo string.  */
@@ -1758,7 +1763,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   /* Message turns off echoing unless more keystrokes turn it on again. */
   if (echo_area_glyphs && *echo_area_glyphs
-      && echo_area_glyphs != current_kboard->echobuf)
+      && echo_area_glyphs != current_kboard->echobuf
+      && ! ok_to_echo_at_next_pause)
     cancel_echoing ();
   else
     /* If already echoing, continue.  */
@@ -1833,7 +1839,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       && this_command_key_count > 0
       && ! noninteractive
       && echo_keystrokes > 0
-      && (echo_area_glyphs == 0 || *echo_area_glyphs == 0))
+      && (echo_area_glyphs == 0 || *echo_area_glyphs == 0
+	  || ok_to_echo_at_next_pause))
     {
       Lisp_Object tem0;
 
@@ -2130,6 +2137,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       echo_char (c);
       if (! NILP (also_record))
 	echo_char (also_record);
+      /* Once we reread a character, echoing can happen
+	 the next time we pause to read a new one.  */
+      ok_to_echo_at_next_pause = 1;
     }
 
   /* Record this character as part of the current key.  */
