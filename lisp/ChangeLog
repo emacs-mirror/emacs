@@ -1,3 +1,8 @@
+2001-02-26  Gerd Moellmann  <gerd@gnu.org>
+
+	* allout.el (outline-flag-region): Move macro in front of first
+	use to avoid a run-time error.
+
 2001-02-24  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in: Fix copyright notice.
