@@ -2061,7 +2061,8 @@ is specified, returning t if it is specified."
 (put 'compile-command 'safe-local-variable 'stringp)
 
 (defun risky-local-variable-p (sym val)
-  "Non-nil if SYM could be dangerous as a file-local variable with value VAL."
+  "Non-nil if SYM could be dangerous as a file-local variable with value VAL.
+If VAL is nil, the question is whether any value might be dangerous."
   (let ((safep (get sym 'safe-local-variable)))
     (or (memq sym ignored-local-variables)
 	(get sym 'risky-local-variable)
@@ -2071,7 +2072,8 @@ is specified, returning t if it is specified."
 	;; If the safe-local-variable property isn't t or nil,
 	;; then it must return non-nil on the proposed value to be safe.
 	(and (not (memq safep '(t nil)))
-	     (not (funcall safep val))))))
+	     (or (null val)
+		 (not (funcall safep val)))))))
 
 (defcustom safe-local-eval-forms nil
   "*Expressions that are considered \"safe\" in an `eval:' local variable.
