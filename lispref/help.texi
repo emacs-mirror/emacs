@@ -296,6 +296,11 @@ keymap.  The summary is made by @code{describe-bindings}.
 stands for no text itself.  It is used for a side effect: it specifies
 @var{mapvar} as the keymap for any following @samp{\[@var{command}]}
 sequences in this documentation string.
+
+@item \=
+quotes the following character and is discarded; thus, @samp{\=\[} puts
+@samp{\[} into the output, and @samp{\=\=} puts @samp{\=} into the
+output.
 @end table
 
 @strong{Please note:} Each @samp{\} must be doubled when written in a
