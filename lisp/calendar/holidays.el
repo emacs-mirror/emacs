@@ -7,6 +7,7 @@
 
 ;; This file is part of GNU Emacs.
 
+
 ;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY.  No author or distributor
 ;; accepts responsibility to anyone for the consequences of using it
@@ -49,7 +50,7 @@
 
 (require 'calendar)
 
-(autoload 'calendar-holiday-function-solar-equinoxes-solstices "solar"
+(autoload 'solar-equinoxes-solstices "solar"
   "Date and time of equinoxes and solstices, if visible in the calendar window.
 Requires floating point."
   t)
@@ -109,7 +110,7 @@ The holidays are those in the list calendar-holidays."
          (msg (format "%s:  %s" date-string holiday-string)))
     (if (not holiday-list)
         (message "No holidays known for %s" date-string)
-      (if (<= (length msg) (screen-width))
+      (if (<= (length msg) (frame-width))
           (message msg)
         (set-buffer (get-buffer-create holiday-buffer))
         (setq buffer-read-only nil)
@@ -172,81 +173,65 @@ holidays are found, nil if not."
 (defun calendar-holiday-list ()
   "Form the list of holidays that occur on dates in the calendar window.
 The holidays are those in the list calendar-holidays."
-  (let ((p (eval calendar-holidays))
+  (let ((p calendar-holidays)
         (holiday-list))
     (while p
-      (let* ((function-name
-              (intern (format "calendar-holiday-function-%s" (car (car p)))))
-             (holidays
-	      (condition-case nil
-		  (if (cdr (car p));; optional arguments
-		      (funcall function-name (cdr (car p)))
-		    (funcall function-name))
-		(error
-		 (beep)
-		 (message "Bad holiday list item: %s" (car p))
-		 (sleep-for 2)))))
+      (let* ((holidays
+              (if calendar-debug-sexp
+                  (let ((stack-trace-on-error t))
+                    (eval (car p)))
+                (condition-case nil
+                    (eval (car p))
+                  (error (beep)
+                         (message "Bad holiday list item: %s" (car p))
+                         (sleep-for 2))))))
         (if holidays
             (setq holiday-list (append holidays holiday-list))))
       (setq p (cdr p)))
     (setq holiday-list (sort holiday-list 'calendar-date-compare))))
 
 ;; Below are the functions that calculate the dates of holidays; these
-;; are called by the funcall in the function calendar-holiday-list.  If you
-;; write other such functions, be sure to imitate the style used below,
-;; including the evaluation of each element in the list that constitutes
-;; the argument to the function.  If you don't do this evaluation, the
-;; list calendar-holidays cannot contain expressions (as, for example, in
-;; the entry for the Islamic new year.)  Also remember that each function
-;; must return a list of items of the form ((month day year) string);
-;; the date (month day year) should be visible in the calendar window.
+;; are eval'ed in the function calendar-holiday-list.  If you
+;; write other such functions, be sure to imitate the style used below.
+;; Remember that each function must return a list of items of the form
+;; ((month day year) string) of VISIBLE dates in the calendar window.
 
-(defun calendar-holiday-function-fixed (x)
-  "Returns the corresponding Gregorian date, if visible in the window, to
-(month day) where month is (car X) and day is (car (cdr X)).  If it is
-visible, the value returned is the list (((month day year) string)) where
-string is (car (nthcdr 2 X)).  Returns nil if it is not visible in the
-current calendar window."
-  (let* ((month (eval (car x)))
-         (day (eval (car (cdr x))))
-         (string (eval (car (nthcdr 2 x))))
-         (m displayed-month)
-         (y displayed-year))
+(defun holiday-fixed (month day string)
+  "Holiday on MONTH, DAY (Gregorian) called STRING.
+If MONTH, DAY is visible, the value returned is the list (((MONTH DAY year)
+STRING)).  Returns nil if it is not visible in the current calendar window."
+  (let ((m displayed-month)
+        (y displayed-year))
     (increment-calendar-month m y (- 11 month))
     (if (> m 9)
       (list (list (list month day y) string)))))
 
-(defun calendar-holiday-function-float (x)
-  "Returns the corresponding Gregorian date, if visible in the window, to the
-n-th occurrence (negative counts from the end of the month) of dayname in
-month where month is (car X), dayname is (car (cdr X)), and n is
-(car (nthcdr 2 X)).  If it is visible, the value returned is the list
-(((month day year) string)) where string is (car (nthcdr 3 X)).
+(defun holiday-float (month dayname n string &optional day)
+  "Holiday on MONTH, DAYNAME (Nth occurrence, Gregorian) called STRING.
+If the Nth DAYNAME in MONTH is visible, the value returned is the list
+(((MONTH DAY year) STRING)).
+
+If N<0, count backward from the end of MONTH.
+
+An optional parameter DAY means the Nth DAYNAME after/before MONTH DAY.
+
 Returns nil if it is not visible in the current calendar window."
-  (let* ((month (eval (car x)))
-         (dayname (eval (car (cdr x))))
-         (n (eval (car (nthcdr 2 x))))
-         (string (eval (car (nthcdr 3 x))))
-         (m displayed-month)
-         (y displayed-year))
+  (let ((m displayed-month)
+        (y displayed-year))
     (increment-calendar-month m y (- 11 month))
     (if (> m 9)
-      (list (list (calendar-nth-named-day n dayname month y) string)))))
+      (list (list (calendar-nth-named-day n dayname month y day) string)))))
 
-(defun calendar-holiday-function-julian (x)
-  "Returns the corresponding Gregorian date, if visible in the window, to the
-Julian date (month day) where month is (car X) and day is (car (cdr X)).
-If it is visible, the value returned is the list (((month day year) string))
-where string is (car (nthcdr 2 X)).  Returns nil if it is not visible in the
-current calendar window."
-  (let* ((month (eval (car x)))
-         (day (eval (car (cdr x))))
-         (string (eval (car (nthcdr 2 x))))
-         (m1 displayed-month)
-         (y1 displayed-year)
-         (m2 displayed-month)
-         (y2 displayed-year)
-         (year))
+(defun holiday-julian (month day string)
+  "Holiday on MONTH, DAY  (Julian) called STRING.
+If MONTH, DAY (Julian) is visible, the value returned is corresponding
+Gregorian date in the form of the list (((month day year) STRING)).  Returns
+nil if it is not visible in the current calendar window."
+  (let ((m1 displayed-month)
+        (y1 displayed-year)
+        (m2 displayed-month)
+        (y2 displayed-year)
+        (year))
     (increment-calendar-month m1 y1 -1)
     (increment-calendar-month m2 y2 1)
     (let* ((start-date (calendar-absolute-from-gregorian
@@ -264,16 +249,12 @@ current calendar window."
         (if (calendar-date-is-visible-p date)
             (list (list date string)))))))
 
-(defun calendar-holiday-function-islamic (x)
-  "Returns the corresponding Gregorian date, if visible in the window, to the
-Islamic date (month day) where month is (car X) and day is (car (cdr X)).
-If it is visible, the value returned is the list (((month day year) string))
-where string is (car (nthcdr 2 X)).  Returns nil if it is not visible in
-the current calendar window."
-  (let* ((month (eval (car x)))
-         (day (eval (car (cdr x))))
-         (string (eval (car (nthcdr 2 x))))
-         (islamic-date (calendar-islamic-from-absolute
+(defun holiday-islamic (month day string)
+  "Holiday on MONTH, DAY (Islamic) called STRING.
+If MONTH, DAY (Islamic) is visible, the value returned is corresponding
+Gregorian date in the form of the list (((month day year) STRING)).  Returns
+nil if it is not visible in the current calendar window."
+  (let* ((islamic-date (calendar-islamic-from-absolute
                         (calendar-absolute-from-gregorian
                          (list displayed-month 15 displayed-year))))
          (m (extract-calendar-month islamic-date))
@@ -288,75 +269,64 @@ the current calendar window."
             (if (calendar-date-is-visible-p date)
                 (list (list date string))))))))
 
-(defun calendar-holiday-function-hebrew (x)
-  "Returns the corresponding Gregorian date, if visible in the window, to the
-Hebrew date (month day) where month is (car X) and day is (car (cdr X)).
-If it is visible, the value returned is the list (((month day year) string))
-where string is (car (nthcdr 2 X)).  Returns nil if it is not visible in
-the current calendar window."
-  (let* ((month (eval (car x)))
-         (day (eval (car (cdr x))))
-         (string (eval (car (nthcdr 2 x)))))
-    (if (memq displayed-month;;  This test is only to speed things up a bit;
-              (list          ;;  it works fine without the test too.
-               (if (< 11 month) (- month 11) (+ month 1))
-               (if (< 10 month) (- month 10) (+ month 2))
-               (if (<  9 month) (- month  9) (+ month 3))
-               (if (<  8 month) (- month  8) (+ month 4))
-               (if (<  7 month) (- month  7) (+ month 5))))
-        (let ((m1 displayed-month)
-              (y1 displayed-year)
-              (m2 displayed-month)
-              (y2 displayed-year)
-              (year))
-          (increment-calendar-month m1 y1 -1)
-          (increment-calendar-month m2 y2 1)
-          (let* ((start-date (calendar-absolute-from-gregorian
-                              (list m1 1 y1)))
-                 (end-date (calendar-absolute-from-gregorian
-                            (list m2 (calendar-last-day-of-month m2 y2) y2)))
-                 (hebrew-start (calendar-hebrew-from-absolute start-date))
-                 (hebrew-end (calendar-hebrew-from-absolute end-date))
-                 (hebrew-y1 (extract-calendar-year hebrew-start))
-                 (hebrew-y2 (extract-calendar-year hebrew-end)))
-            (setq year (if (< 6 month) hebrew-y2 hebrew-y1))
-            (let ((date (calendar-gregorian-from-absolute
-                         (calendar-absolute-from-hebrew
-                          (list month day year)))))
-              (if (calendar-date-is-visible-p date)
-                  (list (list date string)))))))))
+(defun holiday-hebrew (month day string)
+  "Holiday on MONTH, DAY (Hebrew) called STRING.
+If MONTH, DAY (Hebrew) is visible, the value returned is corresponding
+Gregorian date in the form of the list (((month day year) STRING)).  Returns
+nil if it is not visible in the current calendar window."
+  (if (memq displayed-month;;  This test is only to speed things up a bit;
+            (list          ;;  it works fine without the test too.
+             (if (< 11 month) (- month 11) (+ month 1))
+             (if (< 10 month) (- month 10) (+ month 2))
+             (if (<  9 month) (- month  9) (+ month 3))
+             (if (<  8 month) (- month  8) (+ month 4))
+             (if (<  7 month) (- month  7) (+ month 5))))
+      (let ((m1 displayed-month)
+            (y1 displayed-year)
+            (m2 displayed-month)
+            (y2 displayed-year)
+            (year))
+        (increment-calendar-month m1 y1 -1)
+        (increment-calendar-month m2 y2 1)
+        (let* ((start-date (calendar-absolute-from-gregorian
+                            (list m1 1 y1)))
+               (end-date (calendar-absolute-from-gregorian
+                          (list m2 (calendar-last-day-of-month m2 y2) y2)))
+               (hebrew-start (calendar-hebrew-from-absolute start-date))
+               (hebrew-end (calendar-hebrew-from-absolute end-date))
+               (hebrew-y1 (extract-calendar-year hebrew-start))
+               (hebrew-y2 (extract-calendar-year hebrew-end)))
+          (setq year (if (< 6 month) hebrew-y2 hebrew-y1))
+          (let ((date (calendar-gregorian-from-absolute
+                       (calendar-absolute-from-hebrew
+                        (list month day year)))))
+            (if (calendar-date-is-visible-p date)
+                (list (list date string))))))))
 
-(defun calendar-holiday-function-if (x)
-  "Conditional holiday for dates in the calendar window.
-The boolean condition is (car X).  If t, the holiday (car (cdr X)) is
-checked.  If nil, the holiday (car (cdr (cdr X))), if there, is checked."
-  (let* ((boolean (eval (car x)))
-         (h (if boolean (car (cdr x)) (car (cdr (cdr x))))))
-    (if h
-     (let* ((function-name
-              (intern (format "calendar-holiday-function-%s" (car h))))
-            (holidays
-              (if (cdr h);; optional arguments
-                  (funcall function-name (cdr h))
-                (funcall function-name))))
-       holidays))))
-
-(defun calendar-holiday-function-sexp (x)
+(defun holiday-sexp (sexp string)
   "Sexp holiday for dates in the calendar window.
-The sexp (in `year') is (car X).  If the sexp evals to a date visible in the
-calendar window, the holiday (car (cdr X)) is on that date.  If the sexp evals
-to nil, or if the date is not visible, there is no holiday."
+SEXP is an expression in variable `year' evaluates to `date'.
+
+STRING is an expression in `date' that evaluates to the holiday description
+of `date'.
+
+If `date' is visible in the calendar window, the holiday STRING is on that
+date.  If date is nil, or if the date is not visible, there is no holiday."
   (let ((m displayed-month)
         (y displayed-year))
     (increment-calendar-month m y -1)
     (filter-visible-calendar-holidays
      (append
-      (let ((year y))
-        (list (list (eval (car x)) (eval (car (cdr x))))))
-      (let ((year (1+ y)))
-        (list (list (eval (car x)) (eval (car (cdr x))))))))))
+      (let* ((year y)
+             (date (eval sexp))
+             (string (if date (eval string))))
+        (list (list date string)))
+      (let* ((year (1+ y))
+             (date (eval sexp))
+             (string (if date (eval string))))
+        (list (list date string)))))))
 
-(defun calendar-holiday-function-advent ()
+(defun holiday-advent ()
   "Date of Advent, if visible in calendar window."
   (let ((year displayed-year)
         (month displayed-month))
@@ -368,7 +338,7 @@ to nil, or if the date is not visible, there is no holiday."
       (if (calendar-date-is-visible-p advent)
           (list (list advent "Advent"))))))
 
-(defun calendar-holiday-function-easter-etc ()
+(defun holiday-easter-etc ()
   "List of dates related to Easter, as visible in calendar window."
  (if (and (> displayed-month 5) (not all-christian-calendar-holidays))
      nil;; Ash Wednesday, Good Friday, and Easter are not visible.
@@ -437,9 +407,8 @@ to nil, or if the date is not visible, there is no holiday."
                 output-list)))
      output-list)))
 
-(defun calendar-holiday-function-greek-orthodox-easter ()
-  "Date of Easter according to the rule of the Council of Nicaea, if visible
-in the calendar window."
+(defun holiday-greek-orthodox-easter ()
+  "Date of Easter according to the rule of the Council of Nicaea."
   (let ((m displayed-month)
         (y displayed-year))
     (increment-calendar-month m y 1)
@@ -461,7 +430,7 @@ in the calendar window."
       (if (calendar-date-is-visible-p nicaean-easter)
           (list (list nicaean-easter "Pascha (Greek Orthodox Easter)"))))))
 
-(defun calendar-holiday-function-rosh-hashanah-etc ()
+(defun holiday-rosh-hashanah-etc ()
   "List of dates related to Rosh Hashanah, as visible in calendar window."
   (if (or (< displayed-month 8)
           (> displayed-month 11))
@@ -520,7 +489,7 @@ in the calendar window."
                  output-list)))
       output-list)))
 
-(defun calendar-holiday-function-hanukkah ()
+(defun holiday-hanukkah ()
   "List of dates related to Hanukkah, as visible in calendar window."
     (if (memq displayed-month;;  This test is only to speed things up a bit;
               '(10 11 12 1 2));; it works fine without the test too.
@@ -553,7 +522,7 @@ in the calendar window."
               (list (calendar-gregorian-from-absolute (+ abs-h 7))
                     "Hanukkah (eighth day)")))))))
 
-(defun calendar-holiday-function-passover-etc ()
+(defun holiday-passover-etc ()
   "List of dates related to Passover, as visible in calendar window."
  (if (< 7 displayed-month)
       nil;; None of the dates is visible
@@ -634,7 +603,7 @@ in the calendar window."
                  output-list)))
       output-list)))
 
-(defun calendar-holiday-function-tisha-b-av-etc ()
+(defun holiday-tisha-b-av-etc ()
   "List of dates around Tisha B'Av, as visible in calendar window."
   (if (or (< displayed-month 5)
           (> displayed-month 9))
