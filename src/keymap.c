@@ -871,7 +871,7 @@ usable as a general function for probing keymaps.  However, if the\n\
 optional second argument ACCEPT-DEFAULT is non-nil, `key-binding' does\n\
 recognize the default bindings, just as `read-key-sequence' does.")
   (key, accept_default)
-     Lisp_Object key;
+     Lisp_Object key, accept_default;
 {
   Lisp_Object *maps, value;
   int nmaps, i;
