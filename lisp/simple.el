@@ -1305,8 +1305,10 @@ a mistake; see the documentation of `set-mark'."
   "Deactivate the mark by setting `mark-active' to nil.
 \(That makes a difference only in Transient Mark mode.)
 Also runs the hook `deactivate-mark-hook'."
-  (setq mark-active nil)
-  (run-hooks 'deactivate-mark-hook))
+  (if transient-mark-mode
+      (progn
+	(setq mark-active nil)
+	(run-hooks 'deactivate-mark-hook))))
 
 (defun set-mark (pos)
   "Set this buffer's mark to POS.  Don't use this function!
