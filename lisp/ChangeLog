@@ -1,3 +1,8 @@
+2001-12-17  Werner Lemberg  <wl@gnu.org>
+
+	* international/mule-conf.el: Improve documentation strings of
+	character sets.
+
 2001-12-16  Richard M. Stallman  <rms@gnu.org>
 
 	* dired.el (dired-copy-filename-as-kill): Moved from dired-x.el.
