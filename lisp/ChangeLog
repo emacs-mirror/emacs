@@ -1,3 +1,11 @@
+2005-04-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* startup.el (fancy-splash-text): Shorten default text of
+	"Emacs Tutorial" line.  Also, if the current language env
+	indicates an available tutorial file other than TUTORIAL,
+	extract its title and append it to the line in parentheses.
+	(fancy-splash-insert): If arg is a thunk, funcall it.
+
 2005-04-04  Jay Belanger  <belanger@truman.edu>
 
 	* calc.el (calc-language-alist): Add tags to customization type.
