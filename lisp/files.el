@@ -956,6 +956,7 @@ REGEXP and search the list again for another match.")
     ("tcl" . tcl-mode)
     ("tclsh" . tcl-mode)
     ("awk" . awk-mode)
+    ("nawk" . awk-mode)
     ("gawk" . awk-mode)
     ("scm" . scheme-mode))
   "Alist mapping interpreter names to major modes.
