@@ -1949,10 +1949,11 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
 
   CHECK_NATNUM (length);
 
-  bits_per_value = sizeof (EMACS_INT) * BITS_PER_CHAR;
+  bits_per_value = sizeof (EMACS_INT) * BOOL_VECTOR_BITS_PER_CHAR;
 
   length_in_elts = (XFASTINT (length) + bits_per_value - 1) / bits_per_value;
-  length_in_chars = ((XFASTINT (length) + BITS_PER_CHAR - 1) / BITS_PER_CHAR);
+  length_in_chars = ((XFASTINT (length) + BOOL_VECTOR_BITS_PER_CHAR - 1)
+		     / BOOL_VECTOR_BITS_PER_CHAR);
 
   /* We must allocate one more elements than LENGTH_IN_ELTS for the
      slot `size' of the struct Lisp_Bool_Vector.  */
@@ -1969,9 +1970,9 @@ LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
     p->data[i] = real_init;
 
   /* Clear the extraneous bits in the last byte.  */
-  if (XINT (length) != length_in_chars * BITS_PER_CHAR)
+  if (XINT (length) != length_in_chars * BOOL_VECTOR_BITS_PER_CHAR)
     XBOOL_VECTOR (val)->data[length_in_chars - 1]
-      &= (1 << (XINT (length) % BITS_PER_CHAR)) - 1;
+      &= (1 << (XINT (length) % BOOL_VECTOR_BITS_PER_CHAR)) - 1;
 
   return val;
 }
