@@ -284,6 +284,8 @@ int proc_buffered_char[MAXDESC];
 /* Compute the Lisp form of the process status, p->status, from
    the numeric status that was returned by `wait'.  */
 
+Lisp_Object status_convert ();
+
 update_status (p)
      struct Lisp_Process *p;
 {
@@ -336,7 +338,7 @@ decode_status (l, symbol, code, coredump)
       *symbol = XCONS (l)->car;
       tem = XCONS (l)->cdr;
       *code = XFASTINT (XCONS (tem)->car);
-      tem = XFASTINT (XCONS (tem)->cdr);
+      tem = XCONS (tem)->cdr;
       *coredump = !NILP (tem);
     }
 }
@@ -374,7 +376,6 @@ status_message (status)
 }
 
 #ifdef HAVE_PTYS
-static int pty_process;
 
 /* Open an available pty, returning a file descriptor.
    Return -1 on failure.
@@ -2218,6 +2219,7 @@ Output from processes can arrive in between bunches.")
    If NOMSG is zero, insert signal-announcements into process's buffers
    right away.  */
 
+static void
 process_send_signal (process, signo, current_group, nomsg)
      Lisp_Object process;
      int signo;
@@ -2256,16 +2258,16 @@ process_send_signal (process, signo, current_group, nomsg)
 	case SIGINT:
 	  ioctl (XFASTINT (p->infd), TIOCGETC, &c);
 	  send_process (proc, &c.t_intrc, 1);
-	  return Qnil;
+	  return;
 	case SIGQUIT:
 	  ioctl (XFASTINT (p->infd), TIOCGETC, &c);
 	  send_process (proc, &c.t_quitc, 1);
-	  return Qnil;
+	  return;
 #ifdef SIGTSTP
 	case SIGTSTP:
 	  ioctl (XFASTINT (p->infd), TIOCGLTC, &lc);
 	  send_process (proc, &lc.t_suspc, 1);
-	  return Qnil;
+	  return;
 #endif /* SIGTSTP */
 	}
 #endif /* ! defined (TIOCGLTC) && defined (TIOCGETC) */
@@ -2279,15 +2281,15 @@ process_send_signal (process, signo, current_group, nomsg)
 	case SIGINT:
 	  ioctl (XFASTINT (p->infd), TCGETA, &t);
 	  send_process (proc, &t.c_cc[VINTR], 1);
-	  return Qnil;
+	  return;
 	case SIGQUIT:
 	  ioctl (XFASTINT (p->infd), TCGETA, &t);
 	  send_process (proc, &t.c_cc[VQUIT], 1);
-	  return Qnil;
+	  return;
 	case SIGTSTP:
 	  ioctl (XFASTINT (p->infd), TCGETA, &t);
 	  send_process (proc, &t.c_cc[VSWTCH], 1);
-	  return Qnil;
+	  return;
 	}
 #endif /* ! defined (USG) */
 
@@ -2620,8 +2622,8 @@ sigchld_handler (signo)
 	  
 	  /* If process has terminated, stop waiting for its output.  */
 	  if (WIFSIGNALED (w) || WIFEXITED (w))
-	    if (p->infd)
-	      FD_CLR (p->infd, &input_wait_mask);
+	    if (XFASTINT (p->infd))
+	      FD_CLR (XFASTINT (p->infd), &input_wait_mask);
 	}
 
 	/* There was no asynchronous process found for that id.  Check
@@ -2820,9 +2822,6 @@ t or pty (pty) or stream (socket connection).")
 #endif
 syms_of_process ()
 {
-#ifdef HAVE_PTYS
-  pty_process = intern ("pty");
-#endif
 #ifdef HAVE_SOCKETS
   stream_process = intern ("stream");
 #endif
