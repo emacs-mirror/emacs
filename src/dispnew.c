@@ -2252,7 +2252,6 @@ static void
 adjust_frame_glyphs_for_frame_redisplay (f)
      struct frame *f;
 {
-  struct dim ch_dim;
   struct dim matrix_dim;
   int pool_changed_p;
   int window_change_flags;
@@ -2260,10 +2259,6 @@ adjust_frame_glyphs_for_frame_redisplay (f)
 
   if (!FRAME_LIVE_P (f))
     return;
-
-  /* Determine the smallest character in any font for F.  On
-     console windows, all characters have dimension (1, 1).  */
-  ch_dim.width = ch_dim.height = 1;
 
   top_window_y = FRAME_TOP_MARGIN (f);
 
@@ -2353,18 +2348,9 @@ static void
 adjust_frame_glyphs_for_window_redisplay (f)
      struct frame *f;
 {
-  struct dim ch_dim;
   struct window *w;
 
   xassert (FRAME_WINDOW_P (f) && FRAME_LIVE_P (f));
-
-  /* Get minimum sizes.  */
-#ifdef HAVE_WINDOW_SYSTEM
-  ch_dim.width = FRAME_SMALLEST_CHAR_WIDTH (f);
-  ch_dim.height = FRAME_SMALLEST_FONT_HEIGHT (f);
-#else
-  ch_dim.width = ch_dim.height = 1;
-#endif
 
   /* Allocate/reallocate window matrices.  */
   allocate_matrices_for_window_redisplay (XWINDOW (FRAME_ROOT_WINDOW (f)));
