@@ -358,6 +358,6 @@ Noninteractively, this operates on text from START to END."
 	  (set-buffer (window-buffer minibuffer-scroll-window))
 	  iso-accents-mode)))
 
-(add-hook 'minibuf-setup-hook 'iso-acc-minibuf-setup)
+(add-hook 'minibuffer-setup-hook 'iso-acc-minibuf-setup)
 
 ;;; iso-acc.el ends here
