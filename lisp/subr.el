@@ -52,70 +52,6 @@ BODY should be a list of lisp expressions."
 ;;		     'args))))
 
 
-;;;; Window tree functions.
-
-(defun one-window-p (&optional nomini all-frames)
-  "Returns non-nil if the selected window is the only window (in its frame).
-Optional arg NOMINI non-nil means don't count the minibuffer
-even if it is active.
-
-The optional arg ALL-FRAMES t means count windows on all frames.
-If it is `visible', count windows on all visible frames.
-ALL-FRAMES nil or omitted means count only the selected frame, 
-plus the minibuffer it uses (which may be on another frame).
-If ALL-FRAMES is neither nil nor t, count only the selected frame."
-  (let ((base-window (selected-window)))
-    (if (and nomini (eq base-window (minibuffer-window)))
-	(setq base-window (next-window base-window)))
-    (eq base-window
-	(next-window base-window (if nomini 'arg) all-frames))))
-
-(defun walk-windows (proc &optional minibuf all-frames)
-  "Cycle through all visible windows, calling PROC for each one.
-PROC is called with a window as argument.
-
-Optional second arg MINIBUF t means count the minibuffer window even
-if not active.  MINIBUF nil or omitted means count the minibuffer iff
-it is active.  MINIBUF neither t nor nil means not to count the
-minibuffer even if it is active.
-
-Several frames may share a single minibuffer; if the minibuffer
-counts, all windows on all frames that share that minibuffer count
-too.  Therefore, when a separate minibuffer frame is active,
-`walk-windows' includes the windows in the frame from which you
-entered the minibuffer, as well as the minibuffer window.  But if the
-minibuffer does not count, only windows from WINDOW's frame count.
-
-Optional third arg ALL-FRAMES t means include windows on all frames.
-ALL-FRAMES nil or omitted means cycle within the frames as specified
-above.  ALL-FRAMES = `visible' means include windows on all visible frames.
-ALL-FRAMES = 0 means include windows on all visible and iconified frames.
-Anything else means restrict to WINDOW's frame."
-  ;; If we start from the minibuffer window, don't fail to come back to it.
-  (if (window-minibuffer-p (selected-window))
-      (setq minibuf t))
-  (let* ((walk-windows-start (selected-window))
-	 (walk-windows-current walk-windows-start))
-    (while (progn
-	     (setq walk-windows-current
-		   (next-window walk-windows-current minibuf all-frames))
-	     (funcall proc walk-windows-current)
-	     (not (eq walk-windows-current walk-windows-start))))))
-
-(defun minibuffer-window-active-p (window)
-  "Return t if WINDOW (a minibuffer window) is now active."
-  ;; nil nil means include WINDOW's frame
-  ;; and other frames using WINDOW as minibuffer,
-  ;; and include minibuffer if active.
-  (let ((prev (previous-window window nil nil)))
-    ;; If PREV equals WINDOW, WINDOW must be on a minibuffer-only frame
-    ;; and it's not currently being used.  So return nil.
-    (and (not (eq window prev))
-	 (let ((should-be-same (next-window prev nil nil)))
-	   ;; If next-window doesn't reverse previous-window,
-	   ;; WINDOW must be outside the cycle specified by nil nil.
-	   (eq should-be-same window)))))
-
 ;;;; Keymap support.
 
 (defun undefined ()
