@@ -26,6 +26,7 @@
 ;;; Commentary:
 
 ;; See Internet RFC 934 and RFC 1153
+;; Also limited support for MIME digest encapsulation
 
 ;;; Code:
 
