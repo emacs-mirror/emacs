@@ -5685,7 +5685,7 @@ message_dolog (m, nbytes, nlflag, multibyte)
 	  for (i = 0; i < nbytes; i += nbytes)
 	    {
 	      c = string_char_and_length (m + i, nbytes - i, &char_bytes);
-	      work[0] = (SINGLE_BYTE_CHAR_P (c)
+	      work[0] = (ASCII_CHAR_P (c)
 			 ? c
 			 : multibyte_char_to_unibyte (c, Qnil));
 	      insert_1_both (work, 1, 1, 1, 0, 0);
@@ -6946,7 +6946,7 @@ set_message_1 (a1, a2, nbytes, multibyte_p)
 	  for (i = 0; i < nbytes; i += n)
 	    {
 	      c = string_char_and_length (s + i, nbytes - i, &n);
-	      work[0] = (SINGLE_BYTE_CHAR_P (c)
+	      work[0] = (ASCII_CHAR_P (c)
 			 ? c
 			 : multibyte_char_to_unibyte (c, Qnil));
 	      insert_1_both (work, 1, 1, 1, 0, 0);
@@ -12707,7 +12707,7 @@ extend_face_to_end_of_line (it)
          ASCII face.  This will be automatically undone the next time
          get_next_display_element returns a multibyte character.  Note
          that the character will always be single byte in unibyte text.  */
-  if (!SINGLE_BYTE_CHAR_P (it->c))
+  if (!ASCII_CHAR_P (it->c))
     {
       it->face_id = FACE_FOR_CHAR (f, face, 0);
     }
@@ -12815,7 +12815,7 @@ highlight_trailing_whitespace (f, row)
 		  && glyph->u.ch == ' '))
 	  && trailing_whitespace_p (glyph->charpos))
 	{
-	  int face_id = lookup_named_face (f, Qtrailing_whitespace, 0);
+	  int face_id = lookup_named_face (f, Qtrailing_whitespace);
 	  
 	  while (glyph >= start
 		 && BUFFERP (glyph->object)
