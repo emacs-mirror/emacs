@@ -1,5 +1,7 @@
 2000-11-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* info.el (info-menu-5): Doc fix.
+
 	* textmodes/artist.el: New file.
 
 2000-11-19  Andre Spiegel  <spiegel@gnu.org>
