@@ -69,8 +69,6 @@
 
 ;;; Code:
 
-;; This is the parsing engine for compile:
-
 (defgroup compilation nil
   "Run compiler as inferior of Emacs, parse error messages."
   :group 'tools
@@ -169,9 +167,9 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
  \\([0-9]+\\)\\(?:[) \t]\\|:[^0-9\n]\\)" 2 3 nil (1))
 
     (caml
-     "^ *File \"\\([^,\" \n\t]+\\)\", lines? \\([0-9]+\\)-?\\([0-9]+\\)?,\
-\\(?: characters? \\([0-9]+\\)-?\\([0-9]+\\)?:\\)?\\([ \n]Warning:\\)?"
-     1 (2 . 3) (4 . 5) (6))
+     "^ *File \\(\"?\\)\\([^,\" \n\t<>]+\\)\\1, lines? \\([0-9]+\\)-?\\([0-9]+\\)?\\(?:$\\|,\
+\\(?: characters? \\([0-9]+\\)-?\\([0-9]+\\)?:\\)?\\([ \n]Warning:\\)?\\)"
+     2 (3 . 4) (5 . 6) (7))
 
     (comma
      "^\"\\([^,\" \n\t]+\\)\", line \\([0-9]+\\)\
@@ -189,8 +187,8 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
  \\(?:warnin\\(g\\)\\|informationa\\(l\\)\\)?" 1 2 3 (4 . 5))
 
     (irix
-     "^[a-z0-9/]+: \\(?:[eE]rror\\|[wW]arnin\\(g\\)\\)[0-9 ]*:\
- \\([^,\" \n\t]+\\)\\(?:, line\\|:\\) \\([0-9]+\\):" 2 3 nil (1))
+     "^[a-z0-9/]+: \\(?:[eE]rror\\|[wW]arnin\\(g\\)\\|[iI]nf\\(o\\)\\)[0-9 ]*:\
+ \\([^,\" \n\t]+\\)\\(?:, line\\|:\\) \\([0-9]+\\):" 3 4 nil (1 . 2))
 
     (java
      "^\\(?:[ \t]+at \\|==[0-9]+== +\\(?:at\\|b\\(y\\)\\)\\).+(\\([^()\n]+\\):\\([0-9]+\\))$" 2 3 nil (1))
@@ -452,7 +450,8 @@ starting the compilation process.")
     (((class color)) (:foreground "Orange" :weight bold))
     (t (:weight bold)))
   "Face used to highlight compiler warnings."
-  :group 'font-lock-highlighting-faces)
+  :group 'font-lock-highlighting-faces
+  :version "21.4")
 
 (defface compilation-info-face
   '((((type tty) (class color)) (:foreground "green" :weight bold))
@@ -460,7 +459,8 @@ starting the compilation process.")
     (((class color) (background dark)) (:foreground "Green" :weight bold))
     (t (:weight bold)))
   "Face used to highlight compiler warnings."
-  :group 'font-lock-highlighting-faces)
+  :group 'font-lock-highlighting-faces
+  :version "21.4")
 
 (defvar compilation-message-face nil
   "Face name to use for whole messages.
@@ -649,76 +649,60 @@ Faces `compilation-error-face', `compilation-warning-face',
 
 (defun compilation-mode-font-lock-keywords ()
   "Return expressions to highlight in Compilation mode."
-  (if compilation-parse-errors-function
-      ;; An old package!  Try the compatibility code.
-      '((compilation-compat-parse-errors))
-    (append
-     ;; make directory tracking
-     (if compilation-directory-matcher
-	 `((,(car compilation-directory-matcher)
-	    ,@(mapcar (lambda (elt)
-			`(,(car elt)
-			  (compilation-directory-properties
-			   ,(car elt) ,(cdr elt))
-			  t))
-		      (cdr compilation-directory-matcher)))))
+  (nconc
+   ;; make directory tracking
+   (if compilation-directory-matcher
+       `((,(car compilation-directory-matcher)
+	  ,@(mapcar (lambda (elt)
+		      `(,(car elt)
+			(compilation-directory-properties
+			 ,(car elt) ,(cdr elt))
+			t))
+		    (cdr compilation-directory-matcher)))))
 
-     ;; Compiler warning/error lines.
-     (mapcar
-      (lambda (item)
-	(if (symbolp item)
-	    (setq item (cdr (assq item
-				  compilation-error-regexp-alist-alist))))
-	(let ((file (nth 1 item))
-	      (line (nth 2 item))
-	      (col (nth 3 item))
-	      (type (nth 4 item))
-	      end-line end-col fmt)
-	  (if (consp file) (setq fmt (cdr file)	  file (car file)))
-	  (if (consp line) (setq end-line (cdr line) line (car line)))
-	  (if (consp col)	(setq end-col (cdr col)	  col (car col)))
-	  
-	  (if (symbolp line)
-	      ;; The old compile.el had here an undocumented hook that
-	      ;; allowed `line' to be a function that computed the actual
-	      ;; error location.  Let's do our best.
-	      `(,(car item)
-		(0 (compilation-compat-error-properties
-		    (funcall ',line (list* (match-string ,file)
-					  default-directory
-					  ',(nthcdr 4 item))
-			     ,(if col `(match-string ,col)))))
-		(,file compilation-error-face t))
-		    
-	    `(,(nth 0 item)
+   ;; Compiler warning/error lines.
+   (mapcar (lambda (item)
+	     (if (symbolp item)
+		 (setq item (cdr (assq item
+				       compilation-error-regexp-alist-alist))))
+	     (let ((file (nth 1 item))
+		   (line (nth 2 item))
+		   (col (nth 3 item))
+		   (type (nth 4 item))
+		   end-line end-col fmt)
+	       (if (consp file) (setq fmt (cdr file)	  file (car file)))
+	       (if (consp line) (setq end-line (cdr line) line (car line)))
+	       (if (consp col)	(setq end-col (cdr col)	  col (car col)))
 
-	      ,@(when (integerp file)
-		  `((,file ,(if (consp type)
-				`(compilation-face ',type)
-			      (aref [compilation-info-face
-				     compilation-warning-face
-				     compilation-error-face]
-				    (or type 2))))))
+	       `(,(nth 0 item)
 
-	      ,@(when line
-		  `((,line compilation-line-face nil t)))
-	      ,@(when end-line
-		  `((,end-line compilation-line-face nil t)))
+		 ,@(when (integerp file)
+		     `((,file ,(if (consp type)
+				   `(compilation-face ',type)
+				 (aref [compilation-info-face
+					compilation-warning-face
+					compilation-error-face]
+				       (or type 2))))))
 
-	      ,@(when col
-		  `((,col compilation-column-face nil t)))
-	      ,@(when end-col
-		  `((,end-col compilation-column-face nil t)))
+		 ,@(when line
+		     `((,line compilation-line-face nil t)))
+		 ,@(when end-line
+		     `((,end-line compilation-line-face nil t)))
 
-	      ,@(nthcdr 6 item)
-	      (,(or (nth 5 item) 0)
-	       (compilation-error-properties ',file ,line ,end-line
-					     ,col ,end-col ',(or type 2)
-					     ',fmt)
-	       append)))))		; for compilation-message-face
-      compilation-error-regexp-alist)
+		 ,@(when col
+		     `((,col compilation-column-face nil t)))
+		 ,@(when end-col
+		     `((,end-col compilation-column-face nil t)))
 
-     compilation-mode-font-lock-keywords)))
+		 ,@(nthcdr 6 item)
+		 (,(or (nth 5 item) 0)
+		  (compilation-error-properties ',file ,line ,end-line
+						,col ,end-col ',(or type 2)
+						',fmt)
+		  append))))		; for compilation-message-face
+	   compilation-error-regexp-alist)
+
+   compilation-mode-font-lock-keywords))
 
 
 ;;;###autoload
@@ -1044,7 +1028,8 @@ info, are considered errors."
   :type '(choice (const :tag "Warnings and info" 2)
 		 (const :tag "Info" 1)
 		 (const :tag "None" 0))
-  :group 'compilation)
+  :group 'compilation
+  :version "21.4")
 
 (defcustom compilation-skip-visited nil
   "*Compilation motion commands skip visited messages if this is t.
@@ -1052,7 +1037,8 @@ Visited messages are ones for which the file, line and column have been jumped
 to from the current content in the current compilation buffer, even if it was
 from a different message."
   :type 'boolean
-  :group 'compilation)
+  :group 'compilation
+  :version "21.4")
 
 ;;;###autoload
 (defun compilation-mode ()
@@ -1129,10 +1115,6 @@ The global commands next/previous/first-error/goto-error use this.")
   (make-local-variable 'compilation-current-error)
   (make-local-variable 'compilation-error-screen-columns)
   (setq compilation-last-buffer (current-buffer))
-  (if (and minor font-lock-defaults)
-      (font-lock-add-keywords nil (compilation-mode-font-lock-keywords))
-    (set (make-local-variable 'font-lock-defaults)
-	 '(compilation-mode-font-lock-keywords t)))
   (set (make-local-variable 'font-lock-extra-managed-props)
        '(directory message help-echo mouse-face debug))
   (set (make-local-variable 'compilation-locs)
@@ -1141,12 +1123,19 @@ The global commands next/previous/first-error/goto-error use this.")
   ;; jit-lock might fontify some things too late.
   (set (make-local-variable 'font-lock-support-mode) nil)
   (set (make-local-variable 'font-lock-maximum-size) nil)
-  (if minor
-      (if font-lock-mode
-	  (font-lock-fontify-buffer)
-	(turn-on-font-lock))
-    ;; maybe defer font-lock till after derived mode is set up
-    (run-mode-hooks 'compilation-turn-on-font-lock)))
+  (let ((fld font-lock-defaults))
+    (if (and minor fld)
+	(font-lock-add-keywords nil (compilation-mode-font-lock-keywords))
+      (setq font-lock-defaults '(compilation-mode-font-lock-keywords t)))
+    (if minor
+	(if font-lock-mode
+	    (if fld
+		(font-lock-fontify-buffer)
+	      (font-lock-change-mode)
+	      (turn-on-font-lock))
+	  (turn-on-font-lock))
+      ;; maybe defer font-lock till after derived mode is set up
+      (run-mode-hooks 'compilation-turn-on-font-lock))))
 
 ;;;###autoload
 (define-minor-mode compilation-shell-minor-mode
@@ -1486,7 +1475,8 @@ This operates on the output from the \\[compile] command."
 (defcustom compilation-context-lines next-screen-context-lines
   "*Display this many lines of leading context before message."
   :type 'integer
-  :group 'compilation)
+  :group 'compilation
+  :version "21.4")
 
 (defsubst compilation-set-window (w mk)
   ;; Align the compilation output window W with marker MK near top.
