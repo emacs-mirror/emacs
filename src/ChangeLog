@@ -1,5 +1,7 @@
 2000-12-04  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (PER_CHAR_METRIC): Removed because not used.
+	
 	* xterm.c (expose_area): Pass x-coordinate relative to the exposed
 	area to x_draw_glyphs instead of a window-relative coordinate.
 

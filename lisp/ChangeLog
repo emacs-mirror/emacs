@@ -11,6 +11,10 @@
 	* mail/rmail.el (rmail-expunge-confirmed): New function.
 	(rmail-expunge): Use it.
 
+	* progmodes/etags.el (tag-partial-file-name-match-p): New function.
+	(etags-recognize-tags-table, find-tag-in-order): New
+	functionality: interpret file names as tags.
+	
 2000-12-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info.el (Info-scroll-prefer-subnodes): New defcustom.

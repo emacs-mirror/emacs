@@ -1430,6 +1430,12 @@ of tags in the output of M-x tags-apropos.
 *** Setting tags-apropos-verbose to a non-nil value displays the
 names of tags files in the *Tags List* buffer.
 
+*** You can now search for tags that are part of the filename itself.
+If you have tagged the files topfile.c subdir/subfile.c
+/tmp/tempfile.c, you can now search for tags "topfile.c", "subfile.c",
+"dir/sub", "tempfile", "tempfile.c".  If the tag matches the filename,
+point will go to the beginning of the file.
+
 +++
 ** Emacs now attempts to determine the initial language environment
 and preferred and locale coding systems systematically from the
