@@ -1904,17 +1904,19 @@ This is a separate function so you can redefine it for customization.
 You may need to redefine `file-name-sans-versions' as well."
     (string-match "~\\'" file))
 
+(defvar backup-extract-version-start)
+
 ;; This is used in various files.
 ;; The usage of bv-length is not very clean,
 ;; but I can't see a good alternative,
 ;; so as of now I am leaving it alone.
 (defun backup-extract-version (fn)
   "Given the name of a numeric backup file, return the backup number.
-Uses the free variable `bv-length', whose value should be
+Uses the free variable `backup-extract-version-start', whose value should be
 the index in the name where the version number begins."
-  (if (and (string-match "[0-9]+~$" fn bv-length)
-	   (= (match-beginning 0) bv-length))
-      (string-to-int (substring fn bv-length -1))
+  (if (and (string-match "[0-9]+~$" fn backup-extract-version-start)
+	   (= (match-beginning 0) backup-extract-version-start))
+      (string-to-int (substring fn backup-extract-version-start -1))
       0))
 
 ;; I believe there is no need to alter this behavior for VMS;
@@ -1931,7 +1933,7 @@ If the value is nil, don't make a backup."
       (if (eq version-control 'never)
 	  (list (make-backup-file-name fn))
 	(let* ((base-versions (concat (file-name-nondirectory fn) ".~"))
-	       (bv-length (length base-versions))
+	       (backup-extract-version-start (length base-versions))
 	       possibilities
 	       (versions nil)
 	       (high-water-mark 0)
@@ -1977,21 +1979,21 @@ If this is impossible (which can happen on MSDOS and Windows
 when the file name and directory use different drive names)
 then it returns FILENAME."
   (save-match-data
-    (setq fname (expand-file-name filename)
-	  directory (file-name-as-directory
-		     (expand-file-name (or directory default-directory))))
-    ;; On Microsoft OSes, if FILENAME and DIRECTORY have different
-    ;; drive names, they can't be relative, so return the absolute name.
-    (if (and (or (eq system-type 'ms-dos)
-		 (eq system-type 'windows-nt))
-	     (not (string-equal (substring fname  0 2)
-				(substring directory 0 2))))
-	filename
-      (let ((ancestor ""))
-	(while (not (string-match (concat "^" (regexp-quote directory)) fname))
-	  (setq directory (file-name-directory (substring directory 0 -1))
-		ancestor (concat "../" ancestor)))
-	(concat ancestor (substring fname (match-end 0)))))))
+    (let ((fname (expand-file-name filename)))
+      (setq directory (file-name-as-directory
+		       (expand-file-name (or directory default-directory))))
+      ;; On Microsoft OSes, if FILENAME and DIRECTORY have different
+      ;; drive names, they can't be relative, so return the absolute name.
+      (if (and (or (eq system-type 'ms-dos)
+		   (eq system-type 'windows-nt))
+	       (not (string-equal (substring fname  0 2)
+				  (substring directory 0 2))))
+	  filename
+	(let ((ancestor ""))
+	  (while (not (string-match (concat "^" (regexp-quote directory)) fname))
+	    (setq directory (file-name-directory (substring directory 0 -1))
+		  ancestor (concat "../" ancestor)))
+	  (concat ancestor (substring fname (match-end 0))))))))
 
 (defun save-buffer (&optional args)
   "Save current buffer in visited file if modified.  Versions described below.
