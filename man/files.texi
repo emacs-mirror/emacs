@@ -2754,4 +2754,7 @@ When Auto-image-file minor mode is enabled, image files are displayed as
 images when they are visited or inserted into buffers if Emacs can
 display the relevant image type.  File names matching
 @code{image-file-name-extensions} or @code{image-file-name-regexps} are
-considered to contain images.
+considered to contain images.  Note that Emacs can only display images
+of the types for which the appropriate support libraries were linked
+into Emacs when it was built.  In particular, the MS-Windows version
+of Emacs doesn't support image files as of version 21.1.
