@@ -37,6 +37,10 @@
 (defvar rmail-summary-scroll-between-messages t
   "*Non-nil means Rmail summary scroll commands move between messages.")
 
+;;;###autoload
+(defvar rmail-summary-line-count-p t
+  "*Non-nil if Rmail summary should show the number of lines in each message.")
+
 (defvar rmail-summary-font-lock-keywords
   '(("^....D.*" . font-lock-string-face)			; Deleted.
     ("^....-.*" . font-lock-type-face)				; Unread.
@@ -404,24 +408,26 @@ nil for FUNCTION means all messages."
 						     (- len 25))
 						    (t (- mch 14))))
 				     (min len (+ lo 25))))))))
-	  (save-excursion
-	    (save-restriction
-	      (widen)
-	      (let ((beg (rmail-msgbeg msgnum))
-		    (end (rmail-msgend msgnum))
-		    lines)
-		(save-excursion
-		  (goto-char beg)
-		  ;; Count only lines in the reformatted header,
-		  ;; if we have reformatted it.
-		  (search-forward "\n*** EOOH ***\n" end t)
-		  (setq lines (count-lines (point) end)))
-		(format (cond
-			 ((<= lines     9) "   [%d]")
-			 ((<= lines    99) "  [%d]")
-			 ((<= lines   999) " [%3d]")
-			 (t		    "[%d]"))
-			lines))))
+          (if rmail-summary-line-count-p
+	      (save-excursion
+		(save-restriction
+		  (widen)
+		  (let ((beg (rmail-msgbeg msgnum))
+			(end (rmail-msgend msgnum))
+			lines)
+		    (save-excursion
+		      (goto-char beg)
+		      ;; Count only lines in the reformatted header,
+		      ;; if we have reformatted it.
+		      (search-forward "\n*** EOOH ***\n" end t)
+		      (setq lines (count-lines (point) end)))
+		    (format (cond
+			     ((<= lines     9) "   [%d]")
+			     ((<= lines    99) "  [%d]")
+			     ((<= lines   999) " [%3d]")
+			     (t		    "[%d]"))
+			    lines))))
+            " ")
 	  " #"				;The # is part of the format.
 	  (if (re-search-forward "^Subject:" nil t)
 	      (progn (skip-chars-forward " \t")
