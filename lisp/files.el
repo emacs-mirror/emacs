@@ -1,6 +1,6 @@
 ;;; files.el --- file input and output commands for Emacs
 
-;; Copyright (C) 1985, 86, 87, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001, 2002
+;; Copyright (C) 1985,86,87,92,93,94,95,96,97,98,99,2000,01,02,2003
 ;;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -2357,6 +2357,8 @@ the old visited file has been renamed to the new name FILENAME."
 	  (if (eq system-type 'vax-vms)
 	      (setq new-name (downcase new-name)))
 	  (setq default-directory (file-name-directory buffer-file-name))
+	  ;; If new-name == old-name, renaming would add a spurious <2>
+	  ;; and it's considered as a feature in rename-buffer.
 	  (or (string= new-name (buffer-name))
 	      (rename-buffer new-name t))))
     (setq buffer-backed-up nil)
@@ -2911,17 +2913,13 @@ on a DOS/Windows machine, it returns FILENAME on expanded form."
 		 (string-match re directory)
 		 (substring directory 0 (match-end 0))))))))
 	  filename
-        (unless (file-name-absolute-p filename)
-	  (setq filename (concat "/" filename)))
-        (unless (file-name-absolute-p directory)
-	  (setq directory (concat "/" directory)))
         (let ((ancestor ".")
 	      (filename-dir (file-name-as-directory filename)))
           (while
 	      (and
-	       (not (string-match (concat "^" (regexp-quote directory))
+	       (not (string-match (concat "\\`" (regexp-quote directory))
 				  filename-dir))
-	       (not (string-match (concat "^" (regexp-quote directory))
+	       (not (string-match (concat "\\`" (regexp-quote directory))
 				  filename)))
             (setq directory (file-name-directory (substring directory 0 -1))
 		  ancestor (if (equal ancestor ".")
