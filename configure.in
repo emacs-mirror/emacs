@@ -2496,6 +2496,8 @@ dnl Fixme: Not used.  Should this be HAVE_SOCKETS?
 	    [Define to 1 if you have inet sockets.])
 fi
 
+AC_CHECK_HEADERS(sys/ioctl.h net/if.h)
+
 if test -f /usr/lpp/X11/bin/smt.exp; then
   AC_DEFINE(HAVE_AIX_SMT_EXP, 1,
 	    [Define to 1 if the file /usr/lpp/X11/bin/smt.exp exists.])
