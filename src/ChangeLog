@@ -1,3 +1,10 @@
+2004-07-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* xfaces.c (Fcolor_supported_p): Doc fix.
+
+	* frame.c (Fselect_frame, Fset_frame_selected_window)
+	(Fframe_visible_p, Fraise_frame): Doc fixes.
+
 2004-07-24  Richard M. Stallman  <rms@gnu.org>
 
 	* xfns.c (x_icon_verify): New function.
