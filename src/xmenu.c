@@ -1891,6 +1891,7 @@ free_frame_menubar (f)
     {
       BLOCK_INPUT;
       lw_destroy_all_widgets ((LWLIB_ID) f->output_data.x->id);
+      f->output_data.x->menubar_widget = NULL;
       UNBLOCK_INPUT;
     }
 }
