@@ -1,3 +1,17 @@
+2005-01-11  Richard M. Stallman  <rms@gnu.org>
+
+	* programs.texi (Multi-line Indent): Fix previous change.
+	(Fortran Autofill): Simplify description of fortran-auto-fill-mode.
+
+2005-01-08  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Faces): isearch-lazy-highlight-face renamed to
+	lazy-highlight.
+
+	* search.texi (Query Replace): Mention faces query-replace
+	and lazy-highlight.
+	(Incremental Search): Update isearch highlighting info.
+
 2005-01-11  Kim F. Storm  <storm@cua.dk>
 
 	* widget.texi (Basic Types): Add :follow-link keyword.
