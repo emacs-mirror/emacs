@@ -641,7 +641,10 @@ where REGEXP is a regular expression matching
 the full remote name, and HOST, USER, and NAME are the numbers of
 parenthesized expressions in REGEXP for the components (in that order)."
   :group 'ange-ftp
-  :type 'regexp)
+  :type '(list regexp 
+	       (integer :tag "Host group")
+	       (integer :tag "User group")
+	       (integer :tag "Name group")))
 
 ;; ange-ftp-multi-skip-msgs should only match ###-, where ### is one of
 ;; the number codes corresponding to ange-ftp-good-msgs or ange-ftp-fatal-msgs.
@@ -853,7 +856,7 @@ or just issue a user@host command in case \`ange-ftp-gateway-host\' is non-nil."
 (defcustom ange-ftp-smart-gateway-port "21"
   "*Port on gateway machine to use when smart gateway is in operation."
   :group 'ange-ftp
-  :type 'integer)
+  :type 'string)
 
 (defcustom ange-ftp-send-hash t
   "*If non-nil, send the HASH command to the FTP client."
