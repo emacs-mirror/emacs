@@ -1654,7 +1654,7 @@ Return nil if there is no valid completion, else t.")
     buffer_nbytes = XSTRING (tem)->size_byte; /* ie ZV_BYTE - BEGV_BYTE */
     completion_nbytes = XSTRING (completion)->size_byte;
     i_byte = buffer_nbytes - completion_nbytes;
-    if (i > 0 ||
+    if (i_byte > 0 ||
 	0 <= scmp (buffer_string, completion_string, buffer_nbytes))
       {
 	/* Set buffer to longest match of buffer tail and completion head. */
