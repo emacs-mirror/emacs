@@ -1,3 +1,19 @@
+2005-01-04  Richard M. Stallman  <rms@gnu.org>
+
+	* cus-face.el (custom-declare-face):
+	Record defface in current-load-list.
+
+	* help-fns.el (variable-at-point): New arg ANY-SYMBOL.
+
+	* emacs-lisp/find-func.el: Doc fixes.
+	(find-face-regexp): New variable.
+	(find-function-regexp-alist): New variable.
+	(find-function-C-source): Third arg is now TYPE.
+	(find-function-search-for-symbol): Handle general TYPE.
+	(find-function-read, find-function-do-it): Handle general TYPE.
+	(find-definition-noselect, find-face): New functions.
+	(function-at-point): Alias deleted.
+
 2005-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* battery.el (display-battery-mode): Rename from display-battery.
