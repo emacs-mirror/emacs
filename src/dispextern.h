@@ -472,11 +472,13 @@ struct glyph_matrix
   /* Width and height of the matrix in columns and rows.  */
   int matrix_w, matrix_h;
 
-  /* If this structure describes a window matrix, window_top_y is the
-     top-most y-position and window_height is the height of the
-     window, and window_vscroll is the vscroll at the time the matrix
-     was last adjusted.  Only set for window-based redisplay.  */
-  int window_top_y, window_height, window_width, window_vscroll;
+  /* If this structure describes a window matrix of window W,
+     window_left_x is the value of W->left, window_top_y the value of
+     W->top, window_height and window_width are width and height of W,
+     as returned by window_box, and window_vscroll is the value of
+     W->vscroll at the time the matrix was last adjusted.  Only set
+     for window-based redisplay.  */
+  int window_left_x, window_top_y, window_height, window_width, window_vscroll;
 
   /* Number of glyphs reserved for left and right marginal areas when
      the matrix was last adjusted.  */
