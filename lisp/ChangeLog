@@ -1,3 +1,26 @@
+2000-06-20  Dave Love  <fx@gnu.org>
+
+	* faces.el (frame-background-mode): Use set-default, not set, in
+	setter.
+	(frame-update-faces, frame-update-face-colors): Define with
+	defalias.
+
+	* enriched.el (enriched-decode-foreground)
+	(enriched-decode-background): Don't use internal-find-face.
+
+	* apropos.el: Doc fixes.
+
+	* cus-edit.el (customize-changed-options): Check arg.
+	(customize-version-lessp): Don't require decimal point.
+
+	* custom.el (defcustom, defgroup): Doc fix.
+
+	* newcomment.el (comment) <defgroup>: Add :version.
+	(comment-multi-line): Doc fix.
+
+	* emulation/mlsupport.el (define-hooked-local-abbrev,
+	define-hooked-global-abbrev): Fix, using define-abbrev.
+
 2000-06-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* menu-bar.el (menu-bar-edit-menu): Add menu item for marking
