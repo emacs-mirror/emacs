@@ -4,7 +4,6 @@
 #define mps_h
 
 #include "mpstd.h"		/* detect platform */
-#include "mpsreg.h"		/* register file */
 #include <stddef.h>
 #include <stdarg.h>
 #include <limits.h>
@@ -53,18 +52,6 @@ typedef void *mps_addr_t;	/* managed address (void *) */
 typedef int mps_mc_t;		/* message code (int) */
 typedef size_t mps_align_t;	/* alignment (size_t) */
 typedef unsigned mps_rm_t;	/* root mode */
-
-
-/* Version */
-
-typedef struct mps_ver_s *mps_ver_t;
-typedef struct mps_ver_s
-{
-  char *id;		/* human-readable identification */
-  unsigned major;	/* major version (incompatible changes) */
-  unsigned minor;	/* minor version (upward compatible) */
-  unsigned serial;	/* serial number */
-} mps_ver_s;
 
 
 /* Result Code Type
@@ -230,11 +217,6 @@ extern mps_assert_t mps_assert_install(mps_assert_t handler);
 extern mps_assert_t mps_assert_default(void);
 
 
-/* Version */
-
-extern mps_ver_t mps_ver(void);
-
-
 /* Spaces */
 
 extern mps_res_t mps_space_create(mps_space_t *mps_space_o);
@@ -337,6 +319,7 @@ extern mps_bool_t (mps_commit)(mps_ap_t mps_ap, mps_addr_t p,
 extern mps_res_t mps_root_create(mps_root_t *mps_root_o,
                                  mps_space_t mps_space,
                                  mps_rank_t mps_rank,
+                                 mps_rm_t mps_rm,
                                  mps_root_scan_t mps_root_scan,
                                  void *p, size_t s);
 extern mps_res_t mps_root_create_table(mps_root_t *mps_root_o,
@@ -354,10 +337,14 @@ extern mps_res_t mps_root_create_form(mps_root_t *mps_root_o,
 extern mps_res_t mps_root_create_reg(mps_root_t *mps_root_o,
                                      mps_space_t mps_space,
                                      mps_rank_t mps_rank,
+                                     mps_rm_t mps_rm,
                                      mps_thr_t mps_thr,
                                      mps_reg_scan_t mps_reg_scan,
                                      void *reg_scan_p);
 extern void mps_root_destroy(mps_root_t root);
+
+extern mps_res_t mps_stack_scan_ambig(mps_ss_t ss, mps_reg_t reg,
+                                      void *p);
 
 
 /* Protection Trampoline and Thread Registration */
