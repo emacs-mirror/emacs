@@ -1,5 +1,10 @@
 2000-02-29  Gerd Moellmann  <gerd@gnu.org>
 
+	* atimer.c (start_atimer): Don't abort when timers are stopped.
+	(append_atimer_lists): New function.
+	(cancel_atimer, stop_other_atimers, run_all_atimers): Handle
+	arbitrary lists of stopped and running atimers.
+
 	* atimer.c (cancel_atimer): Handle canceling an atimer when
 	some timers are stopped.
 
