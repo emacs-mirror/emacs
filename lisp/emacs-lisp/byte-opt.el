@@ -1879,20 +1879,21 @@
       (setq lap0 (car rest)
 	    lap1 (nth 1 rest))
       (if (memq (car lap0) byte-constref-ops)
-	  (if (not (eq (car lap0) 'byte-constant))
-	      (or (memq (cdr lap0) byte-compile-variables)
-		  (setq byte-compile-variables (cons (cdr lap0)
-						     byte-compile-variables)))
-	    (or (memq (cdr lap0) byte-compile-constants)
+	  (if (or (eq (car lap0) 'byte-constant)
+		  (eq (car lap0) 'byte-constant2))
+	      (unless (memq (cdr lap0) byte-compile-constants)
 		(setq byte-compile-constants (cons (cdr lap0)
-						   byte-compile-constants)))))
+						   byte-compile-constants)))
+	    (unless (memq (cdr lap0) byte-compile-variables)
+	      (setq byte-compile-variables (cons (cdr lap0)
+						 byte-compile-variables)))))
       (cond (;;
 	     ;; const-C varset-X const-C  -->  const-C dup varset-X
 	     ;; const-C varbind-X const-C  -->  const-C dup varbind-X
 	     ;;
 	     (and (eq (car lap0) 'byte-constant)
 		  (eq (car (nth 2 rest)) 'byte-constant)
-		  (eq (cdr lap0) (car (nth 2 rest)))
+		  (eq (cdr lap0) (cdr (nth 2 rest)))
 		  (memq (car lap1) '(byte-varbind byte-varset)))
 	     (byte-compile-log-lap "  %s %s %s\t-->\t%s dup %s"
 				   lap0 lap1 lap0 lap0 lap1)
