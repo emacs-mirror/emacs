@@ -632,8 +632,7 @@ coordinates_in_window (w, x, y)
      scroll bars.  */
 
   if (WINDOW_WANTS_MODELINE_P (w)
-      && *y >= bottom_y - CURRENT_MODE_LINE_HEIGHT (w)
-      && *y < bottom_y)
+      && *y >= bottom_y - CURRENT_MODE_LINE_HEIGHT (w))
     {
       part = ON_MODE_LINE;
 
@@ -662,7 +661,6 @@ coordinates_in_window (w, x, y)
     }
 
   if (WINDOW_WANTS_HEADER_LINE_P (w)
-      && *y >= top_y
       && *y < top_y + CURRENT_HEADER_LINE_HEIGHT (w))
     {
       part = ON_HEADER_LINE;
@@ -708,7 +706,7 @@ coordinates_in_window (w, x, y)
 	      ? (*x >= left_x + WINDOW_LEFT_FRINGE_WIDTH (w))
 	      : (*x < left_x + lmargin_width)))
 	{
-	  *x -= x0;
+	  *x -= left_x;
 	  if (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w))
 	    *x -= WINDOW_LEFT_FRINGE_WIDTH (w);
 	  *y -= top_y;
