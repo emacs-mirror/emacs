@@ -52,7 +52,7 @@ BODY should be a list of lisp expressions."
   (list 'function (cons 'lambda cdr)))
 
 (defmacro push (newelt listname)
-  "Add NEWELT to the list which is the value of LISTNAME.
+  "Add NEWELT to the list stored in the symbol LISTNAME.
 This is equivalent to (setq LISTNAME (cons NEWELT LISTNAME)).
 LISTNAME must be a symbol."
   (list 'setq listname
