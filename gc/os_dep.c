@@ -1311,7 +1311,7 @@ word bytes;
 
 #else  /* Not RS6000 */
 
-#if defined(USE_MMAP)
+#if defined(USE_MMAP) && !defined(AVOID_MMAP)
 /* Tested only under Linux, IRIX5 and Solaris 2 */
 
 #ifdef USE_MMAP_FIXED
