@@ -1965,8 +1965,34 @@ set with @code{set!} at top level in the file.
 
 @item
 In Ada code, functions, procedures, packages, tasks, and types are
-tags.  Use the @samp{--packages-only} option to create tags for packages
-only.
+tags.  Use the @samp{--packages-only} option to create tags for
+packages only.
+
+With Ada, it is possible to have the same name used for different
+entity kind (e.g. same name for a procedure and a function).  Also,
+for things like package, procedures and functions, there is the spec
+(i.e. the interface) and the body (i.e. the implementation).  To
+facilitate the choice to the user, a tag value is appended with a
+qualifier :
+
+@table @asis
+@item function
+ @kbd{/f}
+@item procedure
+ @kbd{/p}
+@item package spec
+ @kbd{/s}
+@item package body
+ @kbd{/b}
+@item type
+ @kbd{/t}
+@item task
+ @kbd{/k}
+@end table
+
+So, as an example, @kbd{M-x find-tag bidule/b} will go directly to the
+body of the package @var{bidule} while @kbd{M-x find-tag bidule} will
+just search for any tag @var{bidule}.
 
 @item
 In assembler code, labels appearing at the beginning of a line,
