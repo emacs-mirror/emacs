@@ -278,6 +278,13 @@ case "${canonical}" in
   ;;
 
   ## Data General AViiON Machines
+  ## DG changed naming conventions with the release of 5.4.4.10, they
+  ## dropped the initial 5.4 but left the intervening R.  Because of the
+  ## R this shouldn't conflict with older versions of the OS (which I
+  ## think were named like dgux4.*).
+  m88k-dg-dguxR4.* | m88k-dg-dgux4* )
+    machine=aviion opsys=dgux4
+  ;;
   m88k-dg-dgux5.4R3* | m88k-dg-dgux5.4.3* )
     ## This name is dgux5-4-3 instead of dgux5-4r3
     ## to avoid a file name conflict on MSDOS.
