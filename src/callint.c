@@ -687,7 +687,7 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  break;
 
 	case 'z':		/* Coding-system symbol or nil */
-	  args[i] = Fread_coding_system (build_string (callint_message));
+	  args[i] = Fread_coding_system (build_string (callint_message), Qnil);
 	  visargs[i] = last_minibuf_string;
 	  break;
 
