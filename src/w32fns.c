@@ -5677,13 +5677,9 @@ This function is an internal primitive--use `make-frame' instead.  */)
   
   x_default_parameter (f, parms, Qmenu_bar_lines, make_number (1),
 		       "menuBar", "MenuBar", RES_TYPE_NUMBER);
-#ifdef HAVE_IMAGES
   x_default_parameter (f, parms, Qtool_bar_lines, make_number (1),
                        "toolBar", "ToolBar", RES_TYPE_NUMBER);
-#else
-  x_default_parameter (f, parms, Qtool_bar_lines, make_number (0),
-                       "toolBar", "ToolBar", RES_TYPE_NUMBER);
-#endif
+
   x_default_parameter (f, parms, Qbuffer_predicate, Qnil,
 		       "bufferPredicate", "BufferPredicate", RES_TYPE_SYMBOL);
   x_default_parameter (f, parms, Qtitle, Qnil,
@@ -8509,7 +8505,6 @@ image_spec_value (spec, key, found)
 }
      
 
-#ifdef HAVE_IMAGES
 DEFUN ("image-size", Fimage_size, Simage_size, 1, 3, 0,
        doc: /* Return the size of image SPEC as pair (WIDTH . HEIGHT).
 PIXELS non-nil means return the size in pixels, otherwise return the
@@ -8566,7 +8561,6 @@ or omitted means use the selected frame.  */)
 
   return mask;
 }
-#endif
 
 
 /***********************************************************************
@@ -10585,7 +10579,6 @@ colors_in_color_table (n)
 #endif /* TODO */
 
 
-#ifdef HAVE_IMAGES /* TODO */
 /***********************************************************************
 			      Algorithms
  ***********************************************************************/
@@ -11019,12 +11012,10 @@ x_build_heuristic_mask (f, img, how)
   return 0;
 #endif
 }
-#endif
 
 /***********************************************************************
 		       PBM (mono, gray, color)
  ***********************************************************************/
-#ifdef HAVE_PBM
 
 static int pbm_image_p P_ ((Lisp_Object object));
 static int pbm_load P_ ((struct frame *f, struct image *img));
@@ -11396,7 +11387,6 @@ pbm_load (f, img)
   xfree (contents);
   return 1;
 }
-#endif /* HAVE_PBM */
 
 
 /***********************************************************************
@@ -15260,7 +15250,6 @@ versions of Windows) characters.  */);
   set_frame_fontset_func = x_set_font;
   check_window_system_func = check_w32;
 
-#ifdef IMAGES
   /* Images.  */
   Qxbm = intern ("xbm");
   staticpro (&Qxbm);
@@ -15292,7 +15281,6 @@ versions of Windows) characters.  */);
   staticpro (&QCindex);
   Qpbm = intern ("pbm");
   staticpro (&Qpbm);
-#endif
 
 #if HAVE_XPM
   Qxpm = intern ("xpm");
@@ -15319,11 +15307,9 @@ versions of Windows) characters.  */);
   staticpro (&Qpng);
 #endif
 
-#ifdef HAVE_IMAGES
   defsubr (&Sclear_image_cache);
   defsubr (&Simage_size);
   defsubr (&Simage_mask_p);
-#endif
 
 #if GLYPH_DEBUG
   defsubr (&Simagep);
@@ -15352,9 +15338,7 @@ init_xfns ()
   image_types = NULL;
   Vimage_types = Qnil;
 
-#if HAVE_PBM
   define_image_type (&pbm_type);
-#endif
 
 #if 0 /* TODO : Image support for W32 */
   define_image_type (&xbm_type);
@@ -15372,7 +15356,7 @@ init_xfns ()
 #if HAVE_TIFF
   define_image_type (&tiff_type);
 #endif
-  
+
 #if HAVE_GIF
   define_image_type (&gif_type);
 #endif
