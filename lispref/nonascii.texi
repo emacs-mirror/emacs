@@ -732,7 +732,7 @@ except for its eol conversion, which is specified by @code{eol-type}.
 the end-of-line conversion from the data.
 
 @var{eol-type} may also be 0, 1 or 2, standing for @code{unix},
-@code{dos} and @code{mac}, respectively. 
+@code{dos} and @code{mac}, respectively.
 @end defun
 
 @defun coding-system-change-text-conversion eol-coding text-coding
