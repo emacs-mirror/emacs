@@ -551,7 +551,7 @@ Make numbered backups.
 Make numbered backups for files that have numbered backups already.
 Otherwise, make single backups.
 @item never
-Do not in any case make numbered backups; always make single backups.
+Never make numbered backups; always make single backups.
 @end table
 
 @noindent
