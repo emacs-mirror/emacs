@@ -1,6 +1,6 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(trunk.14) $
+ * $HopeName: MMsrc!amcss.c(trunk.15) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  */
 
@@ -21,7 +21,7 @@
 #define NR_EXACT_ROOTS  50
 #define NR_AMBIG_ROOTS  50
 #define FIELDS_MAX      2000
-#define COLLECTIONS	10
+#define COLLECTIONS	5
 #define OBJNULL         ((mps_addr_t)0xDECEA5ED)
 
 static mps_pool_t pool;
