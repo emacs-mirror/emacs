@@ -1,3 +1,21 @@
+2005-01-12  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (search-highlight, isearch, isearch-lazy-highlight):
+	Bring together isearch highlight related options.
+	(lazy-highlight): Replace group `replace' by `matching'.
+	(lazy-highlight-cleanup, lazy-highlight-initial-delay)
+	(lazy-highlight-interval, lazy-highlight-max-at-a-time)
+	(lazy-highlight): Add aliases to old names isearch-lazy-highlight-...
+	and declare them obsolete.
+	(lazy-highlight-face): Rename from isearch-lazy-highlight-face.
+	(isearch-faces): Remove defgroup.
+	(isearch-overlay, isearch-highlight, isearch-dehighlight):
+	Move isearch highlighting code closer to lazy highlighting code.
+
+	* replace.el (query-replace-lazy-highlight): Add lazy-highlight group.
+	(query-replace-highlight, query-replace-lazy-highlight)
+	(query-replace): Move definitions to the beginning of the file.
+
 2005-01-11  Juri Linkov  <juri@jurta.org>
 
 	* toolbar/back_arrow.xpm, toolbar/back_arrow.pbm,
