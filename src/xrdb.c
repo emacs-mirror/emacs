@@ -279,9 +279,12 @@ get_user_db (display)
   XrmDatabase db;
   char *xdefs;
 
-  /* Yes, I know we should probably get this using XResourceManagerString.
-     Who cares.  */
+#ifdef HAVE_X11R4
+  xdefs = XResourceManagerString (display);
+#else
   xdefs = display->xdefaults;
+#endif
+
   if (xdefs != NULL)
     db = XrmGetStringDatabase (xdefs);
   else
