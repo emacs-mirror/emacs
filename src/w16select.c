@@ -1,4 +1,4 @@
-/* Win16 Selection processing for emacs on MS-Windows
+/* 16-bit Windows Selection processing for emacs on MS-Windows
    Copyright (C) 1996, 1997 Free Software Foundation.
    
 This file is part of GNU Emacs.
@@ -168,6 +168,11 @@ alloc_xfer_buf (want_size)
   /* If the usual DJGPP transfer buffer is large enough, use that.  */
   if (want_size <= _go32_info_block.size_of_transfer_buffer)
     return __tb & 0xfffff;
+
+  /* Don't even try to allocate more than 1MB of memory: DOS cannot
+     possibly handle that (it will overflow the BX register below).  */
+  if (want_size > 0xfffff)
+    return 0;
 
   /* Need size rounded up to the nearest paragraph, and in
      paragraph units (1 paragraph = 16 bytes).  */
@@ -389,7 +394,7 @@ clipboard_compact (Size)
 static char no_mem_msg[] =
   "(Not enough DOS memory to put saved text into clipboard.)";
 
-DEFUN ("win16-set-clipboard-data", Fwin16_set_clipboard_data, Swin16_set_clipboard_data, 1, 2, 0,
+DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_data, 1, 2, 0,
        "This sets the clipboard data to the given text.")
     (string, frame)
     Lisp_Object string, frame;
@@ -444,7 +449,7 @@ DEFUN ("win16-set-clipboard-data", Fwin16_set_clipboard_data, Swin16_set_clipboa
   return (ok ? string : Qnil);
 }
 
-DEFUN ("win16-get-clipboard-data", Fwin16_get_clipboard_data, Swin16_get_clipboard_data, 0, 1, 0,
+DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_data, 0, 1, 0,
        "This gets the clipboard data in text format.")
      (frame)
      Lisp_Object frame;
@@ -540,8 +545,8 @@ and t is the same as `SECONDARY'.")
 void 
 syms_of_win16select ()
 {
-  defsubr (&Swin16_set_clipboard_data);
-  defsubr (&Swin16_get_clipboard_data);
+  defsubr (&Sw16_set_clipboard_data);
+  defsubr (&Sw16_get_clipboard_data);
   defsubr (&Sx_selection_exists_p);
 
   QPRIMARY   = intern ("PRIMARY");	staticpro (&QPRIMARY);
