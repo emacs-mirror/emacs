@@ -51,9 +51,9 @@
 
 ;;; Code:
 
-(define-prefix-command 'describe-indian-support-map)
-(define-key-after describe-language-support-map [Indian]
-  '("Indian" . describe-indian-support-map)
+(define-prefix-command 'describe-indian-environment-map)
+(define-key-after describe-language-environment-map [Indian]
+  '("Indian" . describe-indian-environment-map)
   t)
 
 (define-prefix-command 'setup-indian-environment-map)
