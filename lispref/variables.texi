@@ -1739,7 +1739,7 @@ visiting a file could take over your Emacs.  To prevent this, Emacs
 takes care not to allow local variable lists to set such variables.
 
   For one thing, any variable whose name ends in @samp{-command},
-@same{-frame-alist}, @samp{-function}, @samp{-functions},
+@samp{-frame-alist}, @samp{-function}, @samp{-functions},
 @samp{-hook}, @samp{-hooks}, @samp{-form}, @samp{-forms}, @samp{-map},
 @samp{-map-alist}, @samp{-mode-alist}, @samp{-program}, or
 @samp{-predicate} cannot be set in a local variable list.  In general,
