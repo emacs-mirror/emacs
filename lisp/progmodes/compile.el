@@ -139,7 +139,9 @@ of[ \t]+\"?\\([^\"\n]+\\)\"?:" 3 2)
     ;;  "vvouch.c", line 19.5: 1506-046 (S) Syntax error.
     ;; Unknown compiler:
     ;;  File "foobar.ml", lines 5-8, characters 20-155: blah blah
-    ("\"\\([^,\" \n\t]+\\)\", lines? \\([0-9]+\\)[:.,-]" 1 2)
+    ;; Microtec mcc68k:
+    ;;  "foo.c", line 32 pos 1; (E) syntax error; unexpected symbol: "lossage"
+    ("\"\\([^,\" \n\t]+\\)\", lines? \\([0-9]+\\)[:., -]" 1 2)
 
     ;; MIPS RISC CC - the one distributed with Ultrix:
     ;;	ccom: Error: foo.c, line 2: syntax error
