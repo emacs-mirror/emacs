@@ -459,6 +459,9 @@ type these commands at GDB's prompt:
 The debugged Emacs should now start in no-window mode with its display
 directed to the xterm window you opened above.
 
+Similar arrangement is possible on a character terminal by using the
+`screen' package.
+
 ** Running Emacs built with malloc debugging packages
 
 If Emacs exhibits bugs that seem to be related to use of memory
