@@ -2881,6 +2881,7 @@ x_catch_errors ()
   /* Set up the error buffer.  */
   x_caught_error_message =
     (char (*)[]) xmalloc (sizeof (*x_caught_error_message));
+  (*x_caught_error_message)[0] = '\0';
 
   /* Install our little error handler.  */
   XHandleError (x_error_catcher);
