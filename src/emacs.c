@@ -835,7 +835,10 @@ the Bugs section of the Emacs manual or the file BUGS.", argv[0]);
       init_alloc_once ();
       init_obarray ();
       init_eval_once ();
+      init_charset_once ();
+      init_coding_once ();
       init_syntax_once ();	/* Create standard syntax table.  */
+      init_category_once ();	/* Create standard category table.  */
 		      /* Must be done before init_buffer */
       init_casetab_once ();
       init_buffer_once ();	/* Create buffer table and some buffers */
@@ -942,6 +945,9 @@ the Bugs section of the Emacs manual or the file BUGS.", argv[0]);
       syms_of_casefiddle ();
       syms_of_casetab ();
       syms_of_callproc ();
+      syms_of_category ();
+      syms_of_ccl ();
+      syms_of_charset ();
       syms_of_cmds ();
 #ifndef NO_DIR_LIBRARY
       syms_of_dired ();
@@ -951,6 +957,7 @@ the Bugs section of the Emacs manual or the file BUGS.", argv[0]);
       syms_of_editfns ();
       syms_of_emacs ();
       syms_of_fileio ();
+      syms_of_coding ();	/* This should be after syms_of_fileio.  */
 #ifdef CLASH_DETECTION
       syms_of_filelock ();
 #endif /* CLASH_DETECTION */
@@ -983,6 +990,7 @@ the Bugs section of the Emacs manual or the file BUGS.", argv[0]);
       syms_of_xterm ();
       syms_of_xfns ();
       syms_of_xfaces ();
+      syms_of_fontset ();
 #ifdef HAVE_X11
       syms_of_xselect ();
 #endif
