@@ -355,6 +355,7 @@ the user from the mailer."
 (defun mail-do-fcc (header-end)
   (let (fcc-list
 	(rmailbuf (current-buffer))
+	(time (current-time))
 	timezone
 	(tembuf (generate-new-buffer " rmail output"))
 	(case-fold-search t))
@@ -369,8 +370,8 @@ the user from the mailer."
 			     fcc-list))
 	(delete-region (match-beginning 0)
 		       (progn (forward-line 1) (point))))
-      (let* ((foo (current-time-zone))
-	     (offset (+ (car foo) (if (nth 1 foo) 60 0)))
+      (let* ((foo (current-time-zone time))
+	     (offset (if (car foo) (/ (car foo) 60) 0))
 	     (abs (abs offset)))
 	(setq timezone (format "%s%02d%02d"
 			       (if (< offset 0) "-" "+")
@@ -379,7 +380,7 @@ the user from the mailer."
       (set-buffer tembuf)
       (erase-buffer)
       (insert "From " (user-login-name) " "
-	      (current-time-string) "\n")
+	      (current-time-string time) "\n")
       ;; Insert the time zone before the year.
       (forward-char -1)
       (forward-word -1)

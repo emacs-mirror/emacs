@@ -479,6 +479,55 @@ For example, -74.0 for New York City.")
 `calendar-longitude', calendar-latitude'.  Default value is just the latitude,
 longitude pair.")
 
+(defun calendar-current-time-zone ()
+  "Return the offset, savings state, and names for the current time zone.
+This returns a list of the form (OFFSET SAVINGS-FLAG STANDARD SAVINGS).
+This list is calculated from a heuristic that is usually correct;
+to get more reliable results, use current-time-zone.
+OFFSET is an integer specifying how many minutes east of Greenwich the
+    current time zone is located.  A negative value means west of
+    Greenwich.  This describes the standard time; if daylight
+    savings time is in effect, it does not affect this value.
+SAVINGS-FLAG is non-nil iff daylight savings time or some other sort
+    of seasonal time adjustment is in effect.
+STANDARD is a string giving the name of the time zone when no seasonal
+    time adjustment is in effect.
+SAVINGS is a string giving the name of the time zone when there is a
+    seasonal time adjustment in effect.
+If the local area does not use a seasonal time adjustment,
+SAVINGS-FLAG is always nil, and STANDARD and SAVINGS are equal.
+
+Some operating systems cannot provide all this information to Emacs;
+in this case, calendar-current-time-zone returns a list containing nil for
+the data it can't find."
+  (let* ((quarter-year-seconds 7889238.0) ; # number of seconds in 1/4 year
+	 (current-time-arithmetic-base 65536.0)
+	 (now (current-time))
+	 (now-zone (current-time-zone now))
+	 (now-offset (car now-zone))
+	 (now-name (car (cdr now-zone)))
+	 probe-zone
+	 (probe-offset now-offset)
+	 (i 0))
+    ;; Heuristic: probe the time zone offset in the next three calendar
+    ;; quarters, looking for a time zone offset different from now.
+    (while (and (< i 4) (eq now-offset probe-offset))
+      (let ((probe
+	     (list (+ (car now) (round (/ (* i quarter-year-seconds)
+					  current-time-arithmetic-base)))
+		   0 0)))
+        (setq probe-zone (current-time-zone probe))
+	(setq probe-offset (car probe-zone))
+	(setq i (1+ i))))
+    (if (or (eq now-offset probe-offset) (not now-offset) (not probe-offset))
+	(list (and now-offset (/ now-offset 60)) nil now-name now-name)
+      (let ((std-offset (min now-offset probe-offset))
+	    (probe-name (car (cdr probe-zone))))
+	(list (/ std-offset 60)
+	      t
+	      (if (eq std-offset now-offset) now-name probe-name)
+	      (if (eq std-offset now-offset) probe-name now-name))))))
+
 ;;; Since the following three defvars are marked to go into
 ;;; loaddefs.el, they will be evaluated when Emacs is dumped.
 ;;; However, these variables' appropriate values really depend on the
@@ -497,7 +546,7 @@ If this is nil, it will be set to the local time zone when the calendar
 package loads.")
 ;;; If the user has given this a real value, don't wipe it out.
 (or calendar-time-zone
-    (setq calendar-time-zone (car (current-time-zone))))
+    (setq calendar-time-zone (car (calendar-current-time-zone))))
 
 ;;;###autoload
 (defvar calendar-standard-time-zone-name nil
@@ -509,7 +558,7 @@ package loads.")
 ;;; If the user has given this a value, don't wipe it out.
 (or calendar-standard-time-zone-name
     (setq calendar-standard-time-zone-name
-          (car (nthcdr 2 (current-time-zone)))))
+          (car (nthcdr 2 (calendar-current-time-zone)))))
 
 ;;;###autoload
 (defvar calendar-daylight-time-zone-name nil
@@ -521,7 +570,7 @@ package loads.")
 ;;; If the user has given this a value, don't wipe it out.
 (or calendar-daylight-time-zone-name
     (setq calendar-daylight-time-zone-name
-          (car (nthcdr 3 (current-time-zone)))))
+          (car (nthcdr 3 (calendar-current-time-zone)))))
   
 ;;;###autoload
 (defvar calendar-daylight-savings-starts
