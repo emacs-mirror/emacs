@@ -1,3 +1,10 @@
+2002-11-28  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-xemacs): Remove defvar.  All uses changed to
+	check (featurep 'xemacs) instead.
+	(ido-visit-buffer): Use select-frame-set-input-focus
+	unconditionally.
+
 2002-11-27  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/cl-macs.el: Move `predicates for analyzing Lisp
