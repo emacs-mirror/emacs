@@ -7290,7 +7290,7 @@ void
 clear_mouse_face (dpyinfo)
      struct x_display_info *dpyinfo;
 {
-  if (tip_frame)
+  if (!NILP (tip_frame))
     return;
   
   if (! NILP (dpyinfo->mouse_face_window))
