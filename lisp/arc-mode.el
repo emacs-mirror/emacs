@@ -1577,7 +1577,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 (defun archive-zip-summarize ()
   (goto-char (- (point-max) (- 22 18)))
   (search-backward-regexp "[P]K\005\006")
-  (let ((p (1+ (archive-l-e (+ (point) 16) 4)))
+  (let ((p (+ (point-min) (archive-l-e (+ (point) 16) 4)))
         (maxlen 8)
 	(totalsize 0)
         files
