@@ -391,6 +391,7 @@ extern int errno;
 #ifdef SUNOS_5
 #include <fcntl.h>
 #include <kvm.h>
+#include <kstat.h>
 #endif
 
 #ifndef KERNEL_FILE
@@ -515,6 +516,50 @@ getloadavg (loadavg, nelem)
   errno = 0;
   elem = -1;
 #endif
+
+#if !defined (LDAV_DONE) && defined (SUNOS_5)
+/* Use libkstat because we don't have to be root.  */
+#define LDAV_DONE
+  kstat_ctl_t *kc;
+  kstat_t *ksp;
+  kstat_named_t *kn;
+
+  kc = kstat_open ();
+  if (kc == 0) return -1;
+  ksp = kstat_lookup (kc, "unix", 0, "system_misc");
+  if (ksp == 0 ) return -1;
+  if (kstat_read (kc, ksp, 0) == -1) return -1;
+  
+
+  kn = kstat_data_lookup (ksp, "avenrun_1min");
+  if (kn == 0)
+    {
+      /* Return -1 if no load average information is available.  */
+      nelem = 0;
+      elem = -1;
+    }
+
+  if (nelem >= 1)
+    loadavg[elem++] = (double) kn->value.ul/FSCALE;
+
+  if (nelem >= 2)
+    {
+      kn = kstat_data_lookup (ksp, "avenrun_5min");
+      if (kn != 0)
+	{
+	  loadavg[elem++] = (double) kn->value.ul/FSCALE;
+
+	  if (nelem >= 3)
+	    {
+	      kn = kstat_data_lookup (ksp, "avenrun_15min");
+	      if (kn != 0)
+		loadavg[elem++] = (double) kn->value.ul/FSCALE;
+	    }
+	}
+    }
+
+  kstat_close (kc);
+#endif /* SUNOS_5 */
 
 #if !defined (LDAV_DONE) && defined (__linux__)
 #define LDAV_DONE
