@@ -494,9 +494,7 @@ main (argc, argv, envp)
       syms_of_mocklisp ();
       syms_of_process ();
       syms_of_search ();
-#ifdef MULTI_FRAME
       syms_of_frame ();
-#endif
       syms_of_syntax ();
       syms_of_undo ();
 #ifdef VMS
