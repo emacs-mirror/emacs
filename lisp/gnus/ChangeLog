@@ -1,3 +1,365 @@
+2004-10-21  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-view.el (mm-display-inline-fontify): Inhibit font-lock when
+	running the major-mode function.
+
+2004-10-21  Kevin Greiner  <kevin.greiner@compsol.cc>
+
+	* gnus-start.el (gnus-convert-old-newsrc): Two of the converters
+	have been backported to 'Gnus v5.11' from 'No Gnus v0.2'.  Added a
+	boolean check to not apply converters that apply to future
+	versions of gnus.
+
+2004-10-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-update-summary-mark-positions): Search for
+	dummy marks in the right way.
+
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
+
+	* nnagent.el (nnagent-request-type): Bind gnus-agent to nil to
+	avoid infinite recursion via gnus-get-function.
+
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
+
+	* gnus-agent.el (gnus-agent-synchronize-group-flags): When
+	necessary, pass full group name to gnus-request-set-marks.
+	(gnus-agent-synchronize-group-flags): Added support for sync'ing
+	tick marks.
+        (gnus-agent-synchronize-flags-server): Be silent when writing file.
+
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
+
+	* gnus-agent.el (gnus-agent-synchronize-group-flags): Replaced
+	gnus-request-update-info with explicit code to sync the in-memory
+	info read flags with the marks being sync'd to the backend.
+
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
+
+	* gnus-agent.el (gnus-agent-possibly-synchronize-flags): Ignore
+	servers that are offline.  Avoids having gnus-agent-toggle-plugged
+	first ask if you want to open a server and then, even when you
+	responded with no, asking if you want to synchronize the server's
+	flags.
+	(gnus-agent-synchronize-flags-server): Rewrote read loop to handle
+	multi-line expressions.
+	(gnus-agent-synchronize-group-flags): New internal function.
+	Updates marks in memory (in the info structure) AND in the
+	backend.
+	(gnus-agent-check-overview-buffer): Fixed range of
+	deletion to remove entire duplicate line.  Fixes merged article
+	number bug.
+
+	* gnus-util.el (gnus-remassoc): Fixed typo in documentation.
+	
+	* nnagent.el (nnagent-request-set-mark): Use
+	gnus-agent-synchronize-group-flags, not backend's request-set-mark
+	method, to ensure that synchronization updates marks in the
+	backend and in the info (in memory) structure.
+
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
+
+	* gnus-agent.el (gnus-agent-synchronize-flags-server): Do nothing
+	unless plugged.  Disable the agent so that an open failure causes
+	an error.
+
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc> for Reiner Steib  <Reiner.Steib@gmx.de>
+	* gnus-agent.el (gnus-agent-fetched-hook): Add :version.
+	(gnus-agent-go-online): Change :version.
+	(gnus-agent-expire-unagentized-dirs)
+	(gnus-agent-auto-agentize-methods): Add :version.
+
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
+
+	* legacy-gnus-agent.el (gnus-agent-convert-to-compressed-agentview-prompt):
+	New function. Used internally to only display 'gnus converting
+	files' message when actually necessary.
+
+	* gnus-sum.el (): Removed (require 'gnus-agent) as required
+	methods now autoloaded.
+
+	* gnus-int.el (gnus-request-move-article): Use
+	gnus-agent-unfetch-articles in place of gnus-agent-expire to
+	improve performance.
+
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc>
+
+	* gnus-agent.el (gnus-agent-cat-groups): rewrote avoiding defsetf
+	to avoid run-time CL dependencies.
+	(gnus-agent-unfetch-articles): New function.
+	(gnus-agent-fetch-headers): Use gnus-agent-braid-nov to validate
+	article numbers even when local .overview file is missing.
+	(gnus-agent-read-article-number): New function. Only accepts
+	27-bit article numbers.
+	(gnus-agent-copy-nov-line, gnus-agent-uncached-articles): Use
+	gnus-agent-read-article-number.
+	(gnus-agent-braid-nov): Rewrote to validate article numbers coming
+	from backend while recognizing that article numbers in .overview
+	must be valid.
+
+	* gnus-start.el (gnus-convert-old-newsrc): Changed message text as
+	some users confused by references to .newsrc when they only have a
+	.newsrc.eld file.
+	(gnus-convert-mark-converter-prompt,
+	gnus-convert-converter-needs-prompt): Fixed use of property list.
+
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc> for Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-agent.el (gnus-agent-restore-gcc): Use ^ and regexp-quote.
+
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc> for Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-get-unread-articles-in-group): Don't do
+	stuff for non-living groups.
+
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc> for Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-agent.el (gnus-agent-synchronize-flags): Default to nil. 
+	(gnus-agent-regenerate-group): Using nil messages aren't valid. 
+
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc> for Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-agent.el (gnus-agent-read-agentview): Inline
+	gnus-uncompress-range.
+
+2004-10-18  Kevin Greiner  <kgreiner@xpediantsolutions.com>
+		
+	* legacy-gnus-agent.el
+	(gnus-agent-convert-to-compressed-agentview): Fixed typos with
+	help from Florian Weimer <fw@deneb.enyo.de>
+
+	* gnus-agent.el (gnus-agentize):
+	gnus-agent-send-mail-real-function no longer set to current value
+	of message-send-mail-function but rather a lambda that calls
+	message-send-mail-function.  The change makes the agent real-time
+	responsive to user changes to message-send-mail-function.
+
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc> for Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-start.el (gnus-get-unread-articles): Fix last commit.
+
+2004-10-18  Kevin Greiner  <kgreiner@xpediantsolutions.com>
+
+	* gnus-cache.el (gnus-cache-rename-group): New function.
+	(gnus-cache-delete-group): New function.
+
+	* gnus-agent.el (gnus-agent-rename-group): New function.
+	(gnus-agent-delete-group): New function.
+	(gnus-agent-save-group-info): Use gnus-command-method when
+	`method' parameter is nil.  Don't write nil entries into the
+	active file.
+	(gnus-agent-get-group-info): New function.
+	(gnus-agent-get-local): Added optional parameters to avoid calling
+	gnus-group-real-name and gnus-find-method-for-group.
+	(gnus-agent-set-local): Delete stored entry if either min, or max,
+	are nil.
+	(gnus-agent-fetch-session): Reworded error/quit messages.  On
+	quit, use gnus-agent-regenerate-group to record existance of any
+	articles fetched to disk before the quit occurred.
+
+	* gnus-int.el (gnus-request-delete-group): Use
+	gnus-cache-delete-group and gnus-agent-delete-group to keep the
+	local disk in sync with the server.
+	 (gnus-request-rename-group): Use
+	gnus-cache-rename-group and gnus-agent-rename-group to keep the
+	local disk in sync with the server.
+
+	* gnus-start.el (gnus-get-unread-articles): Cosmetic
+	simplification to logic.
+
+	* gnus-group.el (): (gnus-group-delete-group): No longer update
+	gnus-cache-active-altered as gnus-request-delete-group now keeps
+	the cache in sync.
+	(gnus-group-list-active): Let the agent store a server's active
+	list if currently plugged.
+
+	* gnus-util.el (gnus-rename-file): New function.
+
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc> for Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-agent.el (gnus-agent-regenerate-group): Activate the group
+	when the group's active is not available.
+
+2004-10-18  Kevin Greiner  <kevin.greiner@compsol.cc> for Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-agent.el (gnus-agent-read-agentview): Add a missing arg to
+	error.
+
+2004-10-18  Kevin Greiner <kevin.greiner@compsol.cc>
+
+	* gnus-start.el (gnus-convert-old-newsrc): Only write the
+	conversion message to newsrc-dribble when an actual conversion is
+	performed.
+
+2004-10-18  Kevin Greiner <kevin.greiner@compsol.cc>
+
+	* gnus-agent.el (gnus-agent-read-local): Bind
+	nnheader-file-coding-system to gnus-agent-file-coding-system to
+	avoid the implicit assumption that they will always be equal.
+	(gnus-agent-save-local): Bind buffer-file-coding-system, not
+	coding-system-for-write, as the with-temp-file macro first prints
+	to a buffer then saves the buffer.
+
+2004-10-18  Kevin Greiner <kgreiner@xpediantsolutions.com>
+
+	* legacy-gnus-agent.el (): New. Provides converters that are only
+	loaded when gnus-convert-old-newsrc needs to call them.
+
+	* gnus-agent.el (gnus-agent-read-agentview): Removed support for
+	old file versions.
+	(gnus-group-prepare-hook): Removed function that converted list
+	form of gnus-agent-expire-days to group properties.
+
+	* gnus-start.el (gnus-convert-old-newsrc): Registered new
+	converters to handle old agent file formats.  Added logic for a
+	"backup before upgrading warning".
+	(gnus-convert-mark-converter-prompt): Developers can mark
+	functions as needing (default), or not needing,
+	gnus-convert-old-newsrc's "backup before upgrading warning".
+	(gnus-convert-converter-needs-prompt): Tests whether the user
+	should be protected from potentially irreversable changes by the
+	function.
+
+2004-10-18  Kevin Greiner <kgreiner@xpediantsolutions.com>
+
+	* gnus-int.el (gnus-request-accept-article): Inform the agent that
+	articles are being added to a group.
+	(gnus-request-replace-article): Inform the agent that articles
+	need to be uncached as the cached contents are no longer valid.
+	
+        * gnus-agent.el (gnus-agent-file-header-cache): Removed.
+	(gnus-agent-possibly-alter-active): Avoid null in numeric
+	comparison.
+	(gnus-agent-set-local): Refuse to save null in local object table.
+	(gnus-agent-regenerate-group): The REREAD parameter can now be a
+	list of articles that will be marked as unread.
+
+2004-10-18  Kevin Greiner <kevin.greiner@compsol.cc>
+
+	* gnus-range.el (gnus-sorted-range-intersection): Now accepts
+	single-interval range of the form (min . max).  Previously the
+	range had to look like ((min . max)).  Likewise, return
+	(min . max) rather than ((min . max)).
+	(gnus-range-map): Use gnus-range-normalize to accept
+	single-interval range.
+
+	* gnus-sum.el (gnus-summary-highlight-line): Articles stored in
+	the cache, but not the agent, now appear with their usual face.
+
+2004-10-18  Kevin Greiner <kevin.greiner@compsol.cc>
+
+	* gnus-sum.el (gnus-adjust-marks): Now correctly handles a list of
+	marks consisting of a single range {for example, (3 . 5)} rather
+	than a list of a single range { ((3 . 5)) }.
+
+2004-10-18  Kevin Greiner <kevin.greiner@compsol.cc>
+
+	* gnus-sum.el (gnus-adjust-marks): Avoid splicing null INTO the
+	uncompressed list.
+
+2004-10-18  Kevin Greiner <kevin.greiner@compsol.cc>
+
+	* gnus-draft.el (gnus-group-send-queue): Pass the group name
+	"nndraft:queue" along to gnus-draft-send.  Use
+	gnus-agent-prompt-send-queue.
+	(gnus-draft-send): Rebind gnus-agent-queue-mail to nil when group
+	is "nndraft:queue".  Suggested by Gaute Strokkenes
+	<gs234@srcf.ucam.org>
+
+	* gnus-group.el (gnus-group-catchup): Use new
+	gnus-sequence-of-unread-articles, not
+	gnus-list-of-unread-articles, to avoid exhausting memory with huge
+	numbers of articles.  Use gnus-range-map to avoid having to
+	uncompress the unread list.
+	(gnus-group-archive-directory,
+	gnus-group-recent-archive-directory): Fixed invalid ange-ftp
+	reference.
+
+	* gnus-range.el (gnus-range-map): Iterate over list or sequence.
+	(gnus-sorted-range-intersection): Intersection of two ranges
+	without requiring that they first be uncompressed.
+
+	* gnus-start.el (gnus-activate-group): Unless blocked by the
+	caller, possibly expand the active range to include both cached
+	and agentized articles.
+	(gnus-convert-old-newsrc): Rewrote in anticipation of having
+	multiple version-dependent converters.
+	(gnus-groups-to-gnus-format): Replaced gnus-agent-save-groups with
+	gnus-agent-save-active.
+	(gnus-save-newsrc-file): Save dirty agent range limits.
+
+	* gnus-sum.el (gnus-select-newgroup): Replaced inline code with
+	gnus-agent-possibly-alter-active.
+	(gnus-adjust-marked-articles): Faster handling of simple lists
+
+2004-10-18  David Edmondson  <dme@dme.org>
+
+	* mm-view.el (mm-w3m-cid-retrieve-1): Don't use recursive call
+	excessively.
+
+2004-10-18  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mml.el (mml-preview): Use `pop-to-buffer'.
+
+	* message.el (message-goto-mail-followup-to): Insert after "To".
+	(message-carefully-insert-headers): Add comment.
+
+	* gnus-sum.el (gnus-summary-make-menu-bar): Add help texts.
+
+	* gnus-art.el (gnus-button-alist): Improve
+	`gnus-button-handle-library' entry.
+
+	* gnus-art.el (gnus-button-alist): Fixed regexp for manual links.
+
+	* gnus-group.el (gnus-group-get-new-news-this-group): Added
+	doc-string.
+
+	* gnus-start.el (gnus-activate-group): Added doc-string.
+
+	* gnus-art.el (gnus-button-handle-man, gnus-button-alist): Try to
+	handle manual section.
+
+	* imap.el (imap-store-password): New variable.
+	(imap-interactive-login): Use it.
+	Suggested by Mark Plaksin <happy@mcplaksin.org>.
+
+	* gnus-art.el (gnus-button-alist, gnus-header-button-alist): Allow
+	/ in mailto URLs.
+
+	* spam.el (spam-directory): Derive from `gnus-directory'.
+
+	* gnus-sum.el (gnus-pick-line-number): Add autoload.
+
+2004-10-17  Richard M. Stallman  <rms@gnu.org>
+
+	* gnus-registry.el (gnus-registry-unload-hook): 
+	Set as a variable with add-hook.
+
+	* nnspool.el (nnspool-spool-directory): Use news-directory instead
+	of news-path.
+
+	* spam-stat.el (spam-stat-unload-hook): Set as a variable w/ add-hook.
+
+	* spam.el: Delete duplicate `provide'.
+	(spam-unload-hook): Set as a variable with add-hook.
+
+2004-10-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* pop3.el (pop3-leave-mail-on-server): Describe possible problems
+	in the doc string.
+
+	* message.el (message-ignored-news-headers)
+	(message-ignored-supersedes-headers)
+	(message-ignored-resent-headers)
+	(message-forward-ignored-headers): Improve custom type.
+
+2004-10-15  Simon Josefsson  <jas@extundo.com>
+
+	* pop3.el (top-level): Don't require nnheader.
+	(pop3-read-timeout): Add.
+	(pop3-accept-process-output): Add.
+	(pop3-read-response, pop3-retr): Use it.
+
 2004-10-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-tokenize-header): Fix 2004-09-06 change
@@ -8,6 +370,10 @@
 	* net/tls.el (tls-certtool-program): New variable.
 	(tls-certificate-information): New function, based on
 	ssl-certificate-information.
+
+2004-10-11  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-bury): Use `window-dedicated-p'.
 
 2004-10-10  Reiner Steib  <Reiner.Steib@gmx.de>
 

@@ -213,11 +213,19 @@ If a regexp, then it will be matched against the buffer's name.
 If a function, it will be called with the buffer as an argument, and
 should return non-nil if this buffer should be shown.
 
-Viewing of buffers hidden because of these predicates is enabled by
-giving a non-nil prefix argument to `ibuffer-update'.  Note that this
-specialized filtering occurs before real filtering."
+Viewing of buffers hidden because of these predicates may be customized
+via `ibuffer-default-display-maybe-show-predicates' and is toggled by 
+giving a non-nil prefix argument to `ibuffer-update'.
+Note that this specialized filtering occurs before real filtering."
   :type '(repeat (choice regexp function))
   :group 'ibuffer)
+
+(defcustom ibuffer-default-display-maybe-show-predicates nil
+  "Non-nil means show buffers that match `ibuffer-maybe-show-predicates'."
+  :type 'boolean
+  :group 'ibuffer)
+
+(defvar ibuffer-display-maybe-show-predicates nil)
 
 (defvar ibuffer-current-format nil)
 
@@ -865,8 +873,8 @@ width and the longest string in LIST."
 				    default-directory)
 				default-directory))))
      (list (read-file-name "Find file: " default-directory)
-	   current-prefix-arg)))
-  (find-file file (or wildcards (interactive-p))))
+	   t)))
+  (find-file file wildcards))
 
 (defun ibuffer-mouse-visit-buffer (event)
   "Visit the buffer chosen with the mouse."
@@ -2069,11 +2077,15 @@ If optional arg SILENT is non-nil, do not display progress messages."
 
 (defun ibuffer-update (arg &optional silent)
   "Regenerate the list of all buffers.
-Display buffers whose name matches one of `ibuffer-maybe-show-predicates'
-iff arg ARG is non-nil.
+
+Prefix arg non-nil means to toggle whether buffers that match
+`ibuffer-maybe-show-predicates' should be displayed.
 
 If optional arg SILENT is non-nil, do not display progress messages."
   (interactive "P")
+  (if arg
+      (setq ibuffer-display-maybe-show-predicates
+	    (not ibuffer-display-maybe-show-predicates)))
   (ibuffer-forward-line 0)
   (let* ((bufs (buffer-list))
 	 (blist (ibuffer-filter-buffers
@@ -2086,7 +2098,7 @@ If optional arg SILENT is non-nil, do not display progress messages."
 		     (caddr bufs)
 		   (cadr bufs))
 		 (ibuffer-current-buffers-with-marks bufs)
-		 arg)))
+		 ibuffer-display-maybe-show-predicates)))
     (when (null blist)
       (if (and (featurep 'ibuf-ext)
 	       ibuffer-filtering-qualifiers)
@@ -2148,7 +2160,7 @@ If optional arg SILENT is non-nil, do not display progress messages."
      'ibuffer-filter-group
      name)))
 
-(defun ibuffer-redisplay-engine (bmarklist &optional all)
+(defun ibuffer-redisplay-engine (bmarklist &optional ignore)
   (assert (eq major-mode 'ibuffer-mode))
   (let* ((--ibuffer-insert-buffers-and-marks-format
 	  (ibuffer-current-format))
@@ -2475,6 +2487,8 @@ will be inserted before the group at point."
        ibuffer-default-sorting-reversep)
   (set (make-local-variable 'ibuffer-shrink-to-minimum-size)
        ibuffer-default-shrink-to-minimum-size)
+  (set (make-local-variable 'ibuffer-display-maybe-show-predicates)
+       ibuffer-default-display-maybe-show-predicates)
   (set (make-local-variable 'ibuffer-filtering-qualifiers) nil)
   (set (make-local-variable 'ibuffer-filter-groups) nil)
   (set (make-local-variable 'ibuffer-filter-group-kill-ring) nil)

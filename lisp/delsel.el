@@ -147,6 +147,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (define-key minibuffer-local-must-match-map "\C-g" 'abort-recursive-edit)
   (define-key minibuffer-local-isearch-map "\C-g" 'abort-recursive-edit))
 
+(add-hook 'delsel-unload-hook 'delsel-unload-hook)
+
 (provide 'delsel)
 
 ;;; arch-tag: 1e388890-1b50-4ed0-9347-763b1343b6ed

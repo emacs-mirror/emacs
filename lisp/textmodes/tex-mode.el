@@ -1946,7 +1946,6 @@ since TeX does not put file names and line numbers on the same line as
 for the error messages."
   (require 'thingatpt)
   (setq compilation-error-list nil)
-  (message "Parsing error messages...")
   (let ((default-directory		; Perhaps dir has changed meanwhile.
 	  (file-name-directory (buffer-file-name tex-last-buffer-texed)))
 	found-desired (num-errors-found 0)
@@ -2012,8 +2011,7 @@ for the error messages."
 		      compilation-error-list))
 	  (goto-char end-of-error)))))
   (set-marker compilation-parsing-end (point))
-  (setq compilation-error-list (nreverse compilation-error-list))
-  (message "Parsing error messages...done"))
+  (setq compilation-error-list (nreverse compilation-error-list)))
 
 ;;; The commands:
 

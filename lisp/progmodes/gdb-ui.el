@@ -177,7 +177,7 @@ detailed description of this mode.
 
   (setq comint-input-sender 'gdb-send)
   ;;
-  ;; (re-)initialise
+  ;; (re-)initialize
   (setq gdb-current-address "main")
   (setq gdb-previous-address nil)
   (setq gdb-previous-frame nil)
@@ -482,14 +482,14 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
 	     (name (funcall (gdb-rules-name-maker rules)))
 	     (new (get-buffer-create name)))
 	(with-current-buffer new
-	  ;; FIXME: This should be set after calling the function, since the
-	  ;; function should run kill-all-local-variables.
-	  (set (make-local-variable 'gdb-buffer-type) key)
-	  (if (cdr (cdr rules))
-	      (funcall (car (cdr (cdr rules)))))
-	  (set (make-local-variable 'gud-minor-mode)
-	       (with-current-buffer gud-comint-buffer gud-minor-mode))
-	  (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
+	  (let ((trigger))	  
+	    (if (cdr (cdr rules))
+		(setq trigger (funcall (car (cdr (cdr rules))))))
+	    (set (make-local-variable 'gdb-buffer-type) key)
+	    (set (make-local-variable 'gud-minor-mode)
+		 (with-current-buffer gud-comint-buffer gud-minor-mode))
+	    (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
+	    (if trigger (funcall trigger)))
 	  new))))
 
 (defun gdb-rules-name-maker (rules) (car (cdr rules)))
@@ -1190,13 +1190,15 @@ static char *magick[] = {
   "Major mode for gdb breakpoints.
 
 \\{gdb-breakpoints-mode-map}"
+  (kill-all-local-variables)
   (setq major-mode 'gdb-breakpoints-mode)
   (setq mode-name "Breakpoints")
   (use-local-map gdb-breakpoints-mode-map)
   (setq buffer-read-only t)
+  (run-mode-hooks 'gdb-breakpoints-mode-hook)
   (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
-      (gdb-invalidate-breakpoints)
-    (gdbmi-invalidate-breakpoints)))
+      'gdb-invalidate-breakpoints
+    'gdbmi-invalidate-breakpoints))
 
 (defun gdb-toggle-breakpoint ()
   "Enable/disable the breakpoint at current line."
@@ -1317,14 +1319,16 @@ static char *magick[] = {
   "Major mode for gdb frames.
 
 \\{gdb-frames-mode-map}"
+  (kill-all-local-variables)
   (setq major-mode 'gdb-frames-mode)
   (setq mode-name "Frames")
   (setq buffer-read-only t)
   (use-local-map gdb-frames-mode-map)
   (font-lock-mode -1)
+  (run-mode-hooks 'gdb-frames-mode-hook)
   (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
-      (gdb-invalidate-frames)
-    (gdbmi-invalidate-frames)))
+      'gdb-invalidate-frames
+    'gdbmi-invalidate-frames))
 
 (defun gdb-get-frame-number ()
   (save-excursion
@@ -1396,11 +1400,13 @@ static char *magick[] = {
   "Major mode for gdb frames.
 
 \\{gdb-threads-mode-map}"
+  (kill-all-local-variables)
   (setq major-mode 'gdb-threads-mode)
   (setq mode-name "Threads")
   (setq buffer-read-only t)
   (use-local-map gdb-threads-mode-map)
-  (gdb-invalidate-threads))
+  (run-mode-hooks 'gdb-threads-mode-hook)
+  'gdb-invalidate-threads)
 
 (defun gdb-get-thread-number ()
   (save-excursion
@@ -1444,11 +1450,13 @@ static char *magick[] = {
   "Major mode for gdb registers.
 
 \\{gdb-registers-mode-map}"
+  (kill-all-local-variables)
   (setq major-mode 'gdb-registers-mode)
   (setq mode-name "Registers")
   (setq buffer-read-only t)
   (use-local-map gdb-registers-mode-map)
-  (gdb-invalidate-registers))
+  (run-mode-hooks 'gdb-registers-mode-hook)
+  'gdb-invalidate-registers)
 
 (defun gdb-registers-buffer-name ()
   (with-current-buffer gud-comint-buffer
@@ -1518,13 +1526,15 @@ static char *magick[] = {
   "Major mode for gdb locals.
 
 \\{gdb-locals-mode-map}"
+  (kill-all-local-variables)
   (setq major-mode 'gdb-locals-mode)
   (setq mode-name (concat "Locals:" gdb-current-frame))
   (setq buffer-read-only t)
   (use-local-map gdb-locals-mode-map)
+  (run-mode-hooks 'gdb-locals-mode-hook)
   (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
-      (gdb-invalidate-locals)
-    (gdbmi-invalidate-locals)))
+      'gdb-invalidate-locals
+    'gdbmi-invalidate-locals))
 
 (defun gdb-locals-buffer-name ()
   (with-current-buffer gud-comint-buffer
@@ -1939,10 +1949,26 @@ BUFFER nil or omitted means use the current buffer."
     (suppress-keymap map)
     map))
 
+(defvar gdb-assembler-font-lock-keywords
+  '(;; <__function.name+n>
+    ("<\\(\\(\\sw\\|[_.]\\)+\\)\\(\\+[0-9]+\\)?>"
+     (1 font-lock-function-name-face))
+    ;; 0xNNNNNNNN <__function.name+n>: opcode
+    ("^0x[0-9a-f]+ \\(<\\(\\(\\sw\\|[_.]\\)+\\)\\+[0-9]+>\\)?:[ \t]+\\(\\sw+\\)"
+     (4 font-lock-keyword-face))
+    ;; %register(at least i386)
+    ("%\\sw+" . font-lock-variable-name-face)
+    ("^\\(Dump of assembler code for function\\) \\(.+\\):"
+     (1 font-lock-comment-face)
+     (2 font-lock-function-name-face))
+    ("^\\(End of assembler dump\\.\\)" . font-lock-comment-face))
+  "Font lock keywords used in `gdb-assembler-mode'.")
+
 (defun gdb-assembler-mode ()
   "Major mode for viewing code assembler.
 
 \\{gdb-assembler-mode-map}"
+  (kill-all-local-variables)
   (setq major-mode 'gdb-assembler-mode)
   (setq mode-name "Machine")
   (setq gdb-overlay-arrow-position nil)
@@ -1951,7 +1977,11 @@ BUFFER nil or omitted means use the current buffer."
   (setq fringes-outside-margins t)
   (setq buffer-read-only t)
   (use-local-map gdb-assembler-mode-map)
-  (gdb-invalidate-assembler))
+  (gdb-invalidate-assembler)
+  (set (make-local-variable 'font-lock-defaults)
+       '(gdb-assembler-font-lock-keywords))
+  (run-mode-hooks 'gdb-assembler-mode-hook)
+  'gdb-invalidate-assembler)
 
 (defun gdb-assembler-buffer-name ()
   (with-current-buffer gud-comint-buffer

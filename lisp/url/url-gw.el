@@ -1,27 +1,29 @@
 ;;; url-gw.el --- Gateway munging for URL loading
+
+;; Copyright (c) 1997, 1998, 2004 Free Software Foundation, Inc.
+
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1997, 1998, 2004 Free Software Foundation, Inc.
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Code:
+
 (eval-when-compile (require 'cl))
 (require 'url-vars)
 
@@ -115,7 +117,7 @@ linked Emacs under SunOS 4.x"
       (let ((proc (start-process " *nslookup*" " *nslookup*"
 				 url-gateway-nslookup-program host))
 	    (res host))
-	(process-kill-without-query proc)
+	(set-process-query-on-exit-flag proc nil)
 	(save-excursion
 	  (set-buffer (process-buffer proc))
 	  (while (memq (process-status proc) '(run open))
@@ -186,7 +188,7 @@ linked Emacs under SunOS 4.x"
 	 proc (concat
 	       (or url-gateway-telnet-password
 		   (setq url-gateway-telnet-password
-			 (funcall url-passwd-entry-func "Password: ")))
+			 (read-passwd "Password: ")))
 	       "\n"))
 	(erase-buffer)
 	(url-wait-for-string url-gateway-prompt-pattern proc)
@@ -266,3 +268,4 @@ Will not make a connexion if `url-gateway-unplugged' is non-nil."
 (provide 'url-gw)
 
 ;;; arch-tag: 1c4c0317-6d03-45b8-b3f3-838bd8f9d838
+;;; url-gw.el ends here

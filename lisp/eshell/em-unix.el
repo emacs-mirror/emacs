@@ -708,11 +708,7 @@ external command."
 	       (eshell-parse-command (concat "*" command)
 				     (eshell-stringify-list
 				      (eshell-flatten-list args))))
-      (let* ((compilation-process-setup-function
-	      (list 'lambda nil
-		    (list 'setq 'process-environment
-			  (list 'quote (eshell-copy-environment)))))
-	     (args (mapconcat 'identity
+      (let* ((args (mapconcat 'identity
 			      (mapcar 'shell-quote-argument
 				      (eshell-stringify-list
 				       (eshell-flatten-list args)))

@@ -369,10 +369,10 @@ Takes one argument, the input.  If non-nil, the input may be saved on the input
 history list.  Default is to save anything that isn't all whitespace.")
 
 (defvar comint-input-filter-functions '()
-  "Special hook run before input is sent to the process.
+  "Abnormal hook run before input is sent to the process.
 These functions get one argument, a string containing the text to send.")
 
-(defvar comint-output-filter-functions '(comint-postoutput-scroll-to-bottom)
+(defvar comint-output-filter-functions '(comint-postoutput-scroll-to-bottom comint-watch-for-password-prompt)
   "Functions to call after output is inserted into the buffer.
 One possible function is `comint-postoutput-scroll-to-bottom'.
 These functions get one argument, a string containing the text as originally
@@ -788,7 +788,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 
 (defun comint-insert-input (&optional event)
   "In a Comint buffer, set the current input to the previous input at point."
-  (interactive (list last-input-event))
+  (interactive "@")
   (if event (mouse-set-point event))
   (let ((pos (point)))
     (if (not (eq (get-char-property pos 'field) 'input))
@@ -1901,65 +1901,7 @@ prompt skip is done by skipping text matching the regular expression
 
 ;; These three functions are for entering text you don't want echoed or
 ;; saved -- typically passwords to ftp, telnet, or somesuch.
-;; Just enter m-x send-invisible and type in your line, or add
-;; `comint-watch-for-password-prompt' to `comint-output-filter-functions'.
-
-(defun comint-read-noecho (prompt &optional stars)
-  "Read a single line of text from user without echoing, and return it.
-Prompt with argument PROMPT, a string.  Optional argument STARS causes
-input to be echoed with '*' characters on the prompt line.  Input ends with
-RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.  C-g aborts (if
-`inhibit-quit' is set because e.g. this function was called from a process
-filter and C-g is pressed, this function returns nil rather than a string).
-
-Note that the keystrokes comprising the text can still be recovered
-\(temporarily) with \\[view-lossage].  Some people find this worrisome (see,
-however, `clear-this-command-keys').
-Once the caller uses the password, it can erase the password
-by doing (clear-string STRING)."
-  (let ((ans "")
-	(newans nil)
-	(c 0)
-	(echo-keystrokes 0)
-	(cursor-in-echo-area t)
-	(message-log-max nil)
-	(done nil))
-    (while (not done)
-      (if stars
-	  (message "%s%s" prompt (make-string (length ans) ?*))
-	(message "%s" prompt))
-      ;; Use this instead of `read-char' to avoid "Non-character input-event".
-      (setq c (read-char-exclusive))
-      (cond ((= c ?\C-g)
-	     ;; This function may get called from a process filter, where
-	     ;; inhibit-quit is set.  In later versions of emacs read-char
-	     ;; may clear quit-flag itself and return C-g.  That would make
-	     ;; it impossible to quit this loop in a simple way, so
-	     ;; re-enable it here (for backward-compatibility the check for
-	     ;; quit-flag below would still be necessary, so this seems
-	     ;; like the simplest way to do things).
-	     (setq quit-flag t
-		   done t))
-	    ((or (= c ?\r) (= c ?\n) (= c ?\e))
-	     (setq done t))
-	    ((= c ?\C-u)
-	     (clear-string ans)
-	     (setq ans ""))
-	    ((and (/= c ?\b) (/= c ?\177))
-	     (setq newans (concat ans (char-to-string c)))
-	     (clear-string ans)
-	     (setq ans newans))
-	    ((> (length ans) 0)
-	     (aset ans (1- (length ans)) 0)
-	     (setq ans (substring ans 0 -1)))))
-    (if quit-flag
-	;; Emulate a true quit, except that we have to return a value.
-	(prog1
-	    (setq quit-flag nil)
-	  (message "Quit")
-	  (beep t))
-      (message "")
-      ans)))
+;; Just enter m-x send-invisible and type in your line.
 
 (defun send-invisible (&optional prompt)
   "Read a string without echoing.
@@ -1970,7 +1912,7 @@ Security bug: your string can still be temporarily recovered with
   (interactive "P")			; Defeat snooping via C-x ESC ESC
   (let ((proc (get-buffer-process (current-buffer))))
     (if proc
-	(let ((str (comint-read-noecho (or prompt "Non-echoed text: ") t)))
+	(let ((str (read-passwd (or prompt "Non-echoed text: "))))
 	  (if (stringp str)
 	      (progn
 		(comint-snapshot-last-prompt)
@@ -2340,7 +2282,7 @@ preceding newline is removed."
 
 (defun comint-kill-whole-line (&optional arg)
   "Kill current line, ignoring read-only and field properties.
-With prefix ARG, kill that many lines starting from the current line.
+With prefix arg, kill that many lines starting from the current line.
 If arg is negative, kill backward.  Also kill the preceding newline,
 instead of the trailing one.  \(This is meant to make \\[repeat] work well
 with negative arguments.)
@@ -2488,7 +2430,7 @@ Provides a default, if there is one, and returns the result filename.
 
 See `comint-source-default' for more on determining defaults.
 
-PROMPT is the prompt string.  PREV-DIR/FILE is the (directory . file) pair
+PROMPT is the prompt string.  PREV-DIR/FILE is the (DIRECTORY . FILE) pair
 from the last source processing command.  SOURCE-MODES is a list of major
 modes used to determine what file buffers contain source files.  (These
 two arguments are used for determining defaults).  If MUSTMATCH-P is true,

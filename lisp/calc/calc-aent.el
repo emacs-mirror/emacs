@@ -295,24 +295,28 @@
 		calc-dollar-used 0)))
       (calc-handle-whys))))
 
+(defvar calc-alg-ent-map nil
+  "The keymap used for algebraic entry.")
+
+(defvar calc-alg-ent-esc-map nil
+  "The keymap used for escapes in algebraic entry.")
+
 (defun calc-do-alg-entry (&optional initial prompt no-normalize)
   (let* ((calc-buffer (current-buffer))
 	 (blink-paren-function 'calcAlg-blink-matching-open)
 	 (alg-exp 'error))
-    (unless (boundp 'calc-alg-ent-map)
+    (unless calc-alg-ent-map
       (setq calc-alg-ent-map (copy-keymap minibuffer-local-map))
       (define-key calc-alg-ent-map "'" 'calcAlg-previous)
       (define-key calc-alg-ent-map "`" 'calcAlg-edit)
       (define-key calc-alg-ent-map "\C-m" 'calcAlg-enter)
       (define-key calc-alg-ent-map "\C-j" 'calcAlg-enter)
-      (or calc-emacs-type-19
-	  (let ((i 33))
-	    (setq calc-alg-ent-esc-map (copy-sequence esc-map))
-	    (while (< i 127)
-	      (aset calc-alg-ent-esc-map i 'calcAlg-escape)
-	      (setq i (1+ i))))))
-    (unless calc-emacs-type-19
-      (define-key calc-alg-ent-map "\e" nil))
+      (let ((i 33))
+        (setq calc-alg-ent-esc-map (copy-keymap esc-map))
+        (while (< i 127)
+          (aset (nth 1 calc-alg-ent-esc-map) i 'calcAlg-escape)
+          (setq i (1+ i)))))
+    (define-key calc-alg-ent-map "\e" nil)
     (if (eq calc-algebraic-mode 'total)
 	(define-key calc-alg-ent-map "\e" calc-alg-ent-esc-map)
       (define-key calc-alg-ent-map "\ep" 'calcAlg-plus-minus)
@@ -350,7 +354,7 @@
 
 (defun calcAlg-previous ()
   (interactive)
-  (if (calc-minibuffer-contains "\\`\\'")
+  (if (calc-minibuffer-contains "\\'")
       (if calc-previous-alg-entry
 	  (insert calc-previous-alg-entry)
 	(beep))

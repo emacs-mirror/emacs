@@ -1941,27 +1941,83 @@ static XIMStyle supported_xim_styles[] =
 };
 
 
-/* Create an X fontset on frame F with base font name
-   BASE_FONTNAME.. */
+/* Create an X fontset on frame F with base font name BASE_FONTNAME.  */
 
 static XFontSet
 xic_create_xfontset (f, base_fontname)
      struct frame *f;
      char *base_fontname;
 {
-  XFontSet xfs;
-  char **missing_list;
+  XFontSet xfs = NULL;
+  char **missing_list = NULL;
   int missing_count;
   char *def_string;
+  Lisp_Object rest, frame;
 
-  xfs = XCreateFontSet (FRAME_X_DISPLAY (f),
-			base_fontname, &missing_list,
-			&missing_count, &def_string);
-  if (missing_list)
-    XFreeStringList (missing_list);
+  /* See if there is another frame already using same fontset.  */
+  FOR_EACH_FRAME (rest, frame)
+    {
+      struct frame *cf = XFRAME (frame);
+      if (cf != f && FRAME_LIVE_P (f) && FRAME_X_P (cf)
+          && FRAME_X_DISPLAY_INFO (cf) == FRAME_X_DISPLAY_INFO (f)
+          && !strcmp (FRAME_XIC_BASE_FONTNAME (cf), base_fontname))
+        {
+          xfs = FRAME_XIC_FONTSET (cf);
+          break;
+        }
+    }
 
-  /* No need to free def_string. */
+  if (!xfs)
+    {
+      /* New fontset.  */
+      xfs = XCreateFontSet (FRAME_X_DISPLAY (f),
+                            base_fontname, &missing_list,
+                            &missing_count, &def_string);
+      if (missing_list)
+        XFreeStringList (missing_list);
+    }
+
+  if (FRAME_XIC_BASE_FONTNAME (f))
+    xfree (FRAME_XIC_BASE_FONTNAME (f));
+  FRAME_XIC_BASE_FONTNAME (f) = xstrdup (base_fontname);
+
+  /* No need to free def_string.  */
   return xfs;
+}
+
+/* Free the X fontset of frame F if it is the last frame using it.  */
+
+void
+xic_free_xfontset (f)
+     struct frame *f;
+{
+  Lisp_Object rest, frame;
+  int shared_p = 0;
+
+  if (!FRAME_XIC_FONTSET (f))
+    return;
+
+  /* See if there is another frame sharing the same fontset.  */
+  FOR_EACH_FRAME (rest, frame)
+    {
+      struct frame *cf = XFRAME (frame);
+      if (cf != f && FRAME_LIVE_P (f) && FRAME_X_P (cf)
+          && FRAME_X_DISPLAY_INFO (cf) == FRAME_X_DISPLAY_INFO (f)
+          && FRAME_XIC_FONTSET (cf) == FRAME_XIC_FONTSET (f))
+        {
+          shared_p = 1;
+          break;
+        }
+    }
+
+  if (!shared_p)
+    /* The fontset is not used anymore.  It is safe to free it.  */
+    XFreeFontSet (FRAME_X_DISPLAY (f), FRAME_XIC_FONTSET (f));
+
+  if (FRAME_XIC_BASE_FONTNAME (f))
+    xfree (FRAME_XIC_BASE_FONTNAME (f));
+  FRAME_XIC_BASE_FONTNAME (f) = NULL;
+  FRAME_XIC_FONTSET (f) = NULL;
 }
 
 
@@ -2114,11 +2170,9 @@ free_frame_xic (f)
     return;
 
   XDestroyIC (FRAME_XIC (f));
-  if (FRAME_XIC_FONTSET (f))
-    XFreeFontSet (FRAME_X_DISPLAY (f), FRAME_XIC_FONTSET (f));
+  xic_free_xfontset (f);
 
   FRAME_XIC (f) = NULL;
-  FRAME_XIC_FONTSET (f) = NULL;
 }
 
 
@@ -2197,6 +2251,8 @@ xic_set_xfontset (f, base_fontname)
   XVaNestedList attr;
   XFontSet xfs;
 
+  xic_free_xfontset (f);
+
   xfs = xic_create_xfontset (f, base_fontname);
 
   attr = XVaCreateNestedList (0, XNFontSet, xfs, NULL);
@@ -2206,8 +2262,6 @@ xic_set_xfontset (f, base_fontname)
     XSetICValues (FRAME_XIC (f), XNStatusAttributes, attr, NULL);
   XFree (attr);
 
-  if (FRAME_XIC_FONTSET (f))
-    XFreeFontSet (FRAME_X_DISPLAY (f), FRAME_XIC_FONTSET (f));
   FRAME_XIC_FONTSET (f) = xfs;
 }
 

@@ -108,8 +108,7 @@ printer proceeds to the next function on the list.
 This variable is not used at present, but it is defined in hopes that
 a future Emacs interpreter will be able to use it.")
 
-(defvar cl-unload-hook '(cl-cannot-unload)
-  "Prevent unloading the feature `cl', since it does not work.")
+(add-hook 'cl-unload-hook 'cl-cannot-unload)
 (defun cl-cannot-unload ()
   (error "Cannot unload the feature `cl'"))
 

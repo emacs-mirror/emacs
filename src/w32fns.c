@@ -5370,7 +5370,7 @@ x_to_w32_font (lpxstr, lplogfont)
           setup_coding_system
             (Fcheck_coding_system (Vlocale_coding_system), &coding);
 	  coding.src_multibyte = 1;
-	  coding.dst_multibyte = 1;
+	  coding.dst_multibyte = 0;
 	  /* Need to set COMPOSITION_DISABLED, otherwise Emacs crashes in
 	     encode_coding_iso2022 trying to dereference a null pointer.  */
 	  coding.composing = COMPOSITION_DISABLED;
@@ -5607,12 +5607,14 @@ w32_font_match (fontname, pattern)
     char * fontname;
     char * pattern;
 {
-  char *regex = alloca (strlen (pattern) * 2 + 3);
-  char *font_name_copy = alloca (strlen (fontname) + 1);
+  char *font_name_copy;
   char *ptr;
+  Lisp_Object encoded_font_name;
+  char *regex = alloca (strlen (pattern) * 2 + 3);
 
-  /* Copy fontname so we can modify it during comparison.  */
-  strcpy (font_name_copy, fontname);
+  /* Convert fontname to unibyte for match.  */
+  encoded_font_name = string_make_unibyte (build_string (fontname));
+  font_name_copy = SDATA (encoded_font_name);
 
   ptr = regex;
   *ptr++ = '^';

@@ -1925,6 +1925,18 @@ to hear about anymore."
   (cvs-mode-find-file e 'dont-select))
 
 
+(defun cvs-mode-view-file (e)
+  "View the file."
+  (interactive (list last-input-event))
+  (cvs-mode-find-file e nil t))
+
+
+(defun cvs-mode-view-file-other-window (e)
+  "View the file."
+  (interactive (list last-input-event))
+  (cvs-mode-find-file e t t))
+
+
 (defun cvs-find-modif (fi)
   (with-temp-buffer
     (call-process cvs-program nil (current-buffer) nil
@@ -1935,7 +1947,7 @@ to hear about anymore."
       1)))
 
 
-(defun cvs-mode-find-file (e &optional other)
+(defun cvs-mode-find-file (e &optional other view)
   "Select a buffer containing the file.
 With a prefix, opens the buffer in an OTHER window."
   (interactive (list last-input-event current-prefix-arg))
@@ -1963,8 +1975,10 @@ With a prefix, opens the buffer in an OTHER window."
 	 (let ((buf (if rev (cvs-retrieve-revision fi rev)
 		      (find-file-noselect (cvs-fileinfo->full-path fi)))))
 	   (funcall (cond ((eq other 'dont-select) 'display-buffer)
-			  (other 'switch-to-buffer-other-window)
-			  (t 'switch-to-buffer))
+			  (other
+			   (if view 'view-buffer-other-window
+			     'switch-to-buffer-other-window))
+			  (t (if view 'view-buffer 'switch-to-buffer)))
 		    buf)
 	   (when (and cvs-find-file-and-jump (cvs-applicable-p fi 'diff-base))
 	     (goto-line (cvs-find-modif fi)))

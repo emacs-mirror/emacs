@@ -640,29 +640,27 @@
 	     (define-key calc-mode-map (format "u%c" x) 'calc-quick-units)))
 	  "0123456789")
 
- (or calc-emacs-type-19 (progn
   (let ((i ?A))
-    (while (and (<= i ?z) (vectorp calc-mode-map))
-      (if (eq (car-safe (aref calc-mode-map i)) 'keymap)
-	  (aset calc-mode-map i
-		(cons 'keymap (cons (cons ?\e (aref calc-mode-map i))
-				    (cdr (aref calc-mode-map i))))))
+    (while (<= i ?z)
+      (if (eq (car-safe (aref (nth 1 calc-mode-map) i)) 'keymap)
+	  (aset (nth 1 calc-mode-map) i
+		(cons 'keymap (cons (cons ?\e (aref (nth 1 calc-mode-map) i))
+				    (cdr (aref (nth 1 calc-mode-map) i))))))
       (setq i (1+ i))))
-
-  (setq calc-alg-map (copy-sequence calc-mode-map)
-	calc-alg-esc-map (copy-sequence esc-map))
+  
+  (setq calc-alg-map (copy-keymap calc-mode-map)
+	calc-alg-esc-map (copy-keymap esc-map))
   (let ((i 32))
     (while (< i 127)
       (or (memq i '(?' ?` ?= ??))
-	  (aset calc-alg-map i 'calc-auto-algebraic-entry))
+	  (aset (nth 1 calc-alg-map) i 'calc-auto-algebraic-entry))
       (or (memq i '(?# ?x ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9))
-	  (aset calc-alg-esc-map i (aref calc-mode-map i)))
+	  (aset (nth 1 calc-alg-esc-map) i (aref (nth 1 calc-mode-map) i)))
       (setq i (1+ i))))
   (define-key calc-alg-map "\e" calc-alg-esc-map)
   (define-key calc-alg-map "\e\t" 'calc-roll-up)
   (define-key calc-alg-map "\e\C-m" 'calc-last-args-stub)
   (define-key calc-alg-map "\e\177" 'calc-pop-above)
- ))
 
   ;; The following is a relic for backward compatability only.
   ;; The calc-define property list is now the recommended method.
@@ -1395,8 +1393,7 @@ calc-kill calc-kill-region calc-yank))))
 		       (and (>= last-command-char 0) (< last-command-char ? )
 			    (not (memq last-command-char '(?\e)))))
 		   (calc-wrapper))  ; clear flags if not a Calc command.
-	       (if calc-emacs-type-19
-		   (setq last-command-event (cdr event)))
+               (setq last-command-event (cdr event))
 	       (if (or (not (integerp last-command-char))
 		       (eq last-command-char ?-))
 		   (calc-unread-command)

@@ -1,3 +1,62 @@
+2004-10-20  John Paul Wallington  <jpw@gnu.org>
+
+	* url-gw.el (url-gateway-nslookup-host):
+	Use `set-process-query-on-exit-flag'.
+
+2004-10-10  Lars Hansen  <larsh@math.ku.dk>
+
+	* url-auth.el: Update header and footer.
+
+	* url-cache.el: Update header and footer.
+
+	* url-cid.el: Update header and footer.
+
+	* url-dired.el: Update header and footer.
+
+	* url-expand.el: Update header and footer.
+
+	* url-ftp.el: Update header and footer.
+
+	* url-gw.el: Update header and footer.
+
+	* url-imap.el: Update header and footer.
+
+	* url-irc.el: Update header and footer.
+
+	* url-misc.el: Update header and footer.
+
+	* url-news.el: Update header and footer.
+
+	* url-ns.el: Update header and footer.
+
+	* url-privacy.el: Update header and footer.
+
+	* url-proxy.el: Update header and footer.
+
+	* url-vars.el: Update header.
+
+2004-10-16  Richard M. Stallman  <rms@gnu.org>
+
+	* url.el (url-do-setup): Don't set url-passwd-entry-func.
+
+	* url-vars.el (url-passwd-entry-func): Var deleted.
+	(mm-mime-mule-charset-alist): Remove compatibility code for old Gnus.
+	(url-weekday-alist): Renamed from weekday-alist.
+	(url-monthabbrev-alist): Renamed from monthabbrev-alist.
+	(url-vars-unload-hook): Initialize hook var to hold the function.
+
+	* url-util.el (url-get-normalized-date): Use
+	url-weekday-alist and url-monthabbrev-alist.
+
+	* url-misc.el: Load cl at compile time.
+
+	* url-mailto.el: Don't load cl.
+	(url-mailto): Fix call to `push'.
+
+	* url-gw.el (url-open-telnet): Use read-passwd.
+
+	* url-auth.el (url-basic-auth, url-digest-auth): Use read-passwd.
+
 2004-10-12  Simon Josefsson  <jas@extundo.com>
 
 	* url-vars.el (url-gateway-method): Add new method `tls'.

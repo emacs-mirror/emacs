@@ -1922,7 +1922,7 @@ that change the size of windows and low-level functions that access
 window size.  Emacs does not permit overlapping windows or gaps between
 windows, so resizing one window affects other windows.
 
-@deffn Command enlarge-window size &optional horizontal
+@deffn Command enlarge-window size &optional horizontal preserve-before
 This function makes the selected window @var{size} lines taller,
 stealing lines from neighboring windows.  It takes the lines from one
 window at a time until that window is used up, then takes from another.
@@ -1945,6 +1945,11 @@ other windows are ``robbed.''  If it would be necessary to alter the
 size of a fixed-size window, @code{enlarge-window} gets an error
 instead.
 
+If @var{preserve-before} is non-@code{nil}, this function does not
+change the size of the siblings above or to the left of the selected
+window.  Only the size of the siblings below or to the right of the
+selected window are changed.
+
 If @var{size} is negative, this function shrinks the window by
 @minus{}@var{size} lines or columns.  If that makes the window smaller
 than the minimum size (@code{window-min-height} and
@@ -1965,7 +1970,7 @@ It could be defined as follows:
 @end example
 @end deffn
 
-@deffn Command shrink-window size &optional horizontal
+@deffn Command shrink-window size &optional horizontal preserve-before
 This function is like @code{enlarge-window} but negates the argument
 @var{size}, making the selected window smaller by giving lines (or
 columns) to the other windows.  If the window shrinks below

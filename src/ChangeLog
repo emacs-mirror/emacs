@@ -1,7 +1,157 @@
+2004-10-25  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_pattern_regexp): Optimize for the case that
+	PATTERN is full XLFD.
+
+2004-10-24  Kenichi Handa  <handa@m17n.org>
+
+	* regex.h (enum reg_errcode_t): New value REG_ERANGEX.
+
+	* regex.c (re_error_msgid): Add an entry for REG_ERANGEX.
+	(regex_compile): Return REG_ERANGEX if appropriate.
+
+2004-10-22  Kenichi Handa  <handa@m17n.org>
+
+	* editfns.c (Ftranslate_region_internal): New function.
+	(syms_of_editfns): Defsubr it.
+
+2004-10-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (xic_create_xfontset): Initialize missing_list to NULL.
+
+2004-10-21  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
+
+        * xterm.h (x_output): New member `xic_base_fontname'.
+        (FRAME_XIC_BASE_FONTNAME): New macro.
+        (xic_free_xfontset): Declare.
+
+        * xfns.c (xic_create_xfontset): Share fontsets between frames
+        based on base_fontname.
+        (xic_free_xfontset): New function.
+        (free_frame_xic): Use it.
+        (xic_set_xfontset): Ditto.
+
+        * xterm.c (xim_destroy_callback): Ditto.
+
+
+2004-10-20  B. Anyos  <banyos@freemail.hu>  (tiny change)
+
+	* w32term.c (x_draw_glyph_string): Use overline_color for overlines.
+
+2004-10-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.h (XSync): If USE_GTK, define XSync as process_all and then
+	XSync.
+
+	* emacs.c (my_heap_start, heap_bss_diff, MAX_HEAP_BSS_DIFF):
+	New variables and constant.
+	(main): Calculate heap_bss_diff.  If we are dumping and the
+	heap_bss_diff is greater than MAX_HEAP_BSS_DIFF, set PER_LINUX32
+	and exec ourself again.
+	(Fdump_emacs): If heap_bss_diff is greater than MAX_HEAP_BSS_DIFF
+	print a warning.
+
+	* lastfile.c: Make my_endbss and my_endbss_static available on all
+	platforms.
+
+	* Makefile.in (RUN_TEMACS): Remove @SETARCH@.
+	* config.in (HAVE_PERSONALITY_LINUX32): Regenerate.
+
+2004-10-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* data.c (Flocal_variable_if_set_p): Doc fix.
+
+2004-10-19  Jason Rumney  <jasonr@gnu.org>
+
+	* w32.c (init_environment): Set emacs_dir correctly when running
+	emacs from the build directory.
+
+2004-10-19  Richard M. Stallman  <rms@gnu.org>
+
+	* editfns.c (Fdelete_and_extract_region):
+	If region is empty, return null string.
+
+2004-10-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.h (xg_update_scrollbar_pos): Remove arguments real_left
+	and canon_width.
+	(xg_frame_cleared): Removed.
+
+	* gtkutil.c (xg_frame_cleared, xg_fixed_handle_expose,
+	xg_find_top_left_in_fixed): Removed.
+	(xg_create_scroll_bar): Put an event box widget between
+	the scroll bar widget and the edit widget.
+	(xg_show_scroll_bar): Show the parent widget (the event box).
+	(xg_remove_scroll_bar): Destroy parent (the event box) also.
+	(xg_update_scrollbar_pos): Remove arguments real_left and canon_width.
+	Move the parent (the event box) widget inside the fixed widget.
+	Move window clear to xterm.c.
+
+	* gtkutil.h (xg_frame_cleared): Removed.
+
+	* xterm.c (x_clear_frame): Remove call to xg_frame_cleared
+	(x_scroll_bar_create, XTset_vertical_scroll_bar): Remove
+	arguments left and width to xg_update_scrollbar_pos.
+	(XTset_vertical_scroll_bar): Do x_clear_area for USE_GTK also.
+
+2004-10-19  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (display_mode_element): Fix display of wide chars.
+
+2004-10-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_update_scrollbar_pos): Change XClearWindow to
+	gdk_window_clear and move gdk_window_process_all_updates after
+	clear so events are sent to the X server in correct order.
+
+2004-10-18  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fs_load_font): Use fast_string_match_ignore_case for
+	comparing font names.
+	(fs_query_fontset): Use fast_string_match for comparing fontset names.
+	(list_fontsets): Likewise.
+
+	* search.c (fast_string_match_ignore_case): New function.
+
+	* lisp.h (fast_string_match_ignore_case): Extern it.
+
+2004-10-17  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (overlay_arrow_at_row): Return overlay string rather
+	than bitmap if there is not left fringe.
+	(get_overlay_arrow_glyph_row): Also used on windows system.
+	(display_line): Display overlay string if no left fringe.
+
+2004-10-16  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_font_match): Encode font name being matched.
+
+2004-10-16  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (Fspecial_display_p): Doc fix.
+
+2004-10-15  Stefan  <monnier@iro.umontreal.ca>
+
+	* doc.c (Fsubstitute_command_keys): Fix remap-handling.
+	Don't ignore menus, because where-is-internal already does it for us.
+
+2004-10-15  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (redisplay_window): Only update fringes and vertical
+	border on window frames.
+
+2004-10-14  Andreas Schwab  <schwab@suse.de>
+
+	* m/ia64.h (DATA_SEG_BITS): Don't define.
+
 2004-10-14  Kim F. Storm  <storm@cua.dk>
 
 	* xterm.h: Include Xutil.h after keysym.h to work around bug
-	(incorrectly recognising AltGr key) in some X versions.
+	in some X versions.
+
+2004-10-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fns.c (map_char_table): Add missing gcpros.
 
 2004-10-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 

@@ -1770,6 +1770,7 @@ on the FILENAME argument, even if VISIT was a string.")
     (delete-file . tramp-handle-delete-file)
     (directory-file-name . tramp-handle-directory-file-name)
     (shell-command . tramp-handle-shell-command)
+    (process-file . tramp-handle-process-file)
     (insert-directory . tramp-handle-insert-directory)
     (expand-file-name . tramp-handle-expand-file-name)
     (file-local-copy . tramp-handle-file-local-copy)
@@ -2337,45 +2338,46 @@ If it doesn't exist, generate a new one."
 ;; This function makes the same assumption as
 ;; `tramp-handle-set-visited-file-modtime'.
 (defun tramp-handle-verify-visited-file-modtime (buf)
-  "Like `verify-visited-file-modtime' for tramp files.
-At the time `verify-visited-file-modtime' calls this function, we
-already know that the buffer is visiting a file and that
-`visited-file-modtime' does not return 0.  Do not call this
-function directly, unless those two cases are already taken care
-of."
+  "Like `verify-visited-file-modtime' for tramp files."
   (with-current-buffer buf
-    (let ((f (buffer-file-name)))
-      (with-parsed-tramp-file-name f nil
-	(let* ((attr (file-attributes f))
-	       (modtime (nth 5 attr)))
-	  (cond ((and attr (not (equal modtime '(0 0))))
-		 ;; Why does `file-attributes' return a list (HIGH
-		 ;; LOW), but `visited-file-modtime' returns a cons
-		 ;; (HIGH . LOW)?
-		 (let ((mt (visited-file-modtime)))
-		   (< (abs (tramp-time-diff
-			    modtime
-			    ;; For compatibility, deal with both the old
-			    ;; (HIGH . LOW) and the new (HIGH LOW)
-			    ;; return values of `visited-file-modtime'.
-			    (if (atom (cdr mt))
-				(list (car mt) (cdr mt))
-			      mt)))
-		      2)))
-		(attr
-		 (save-excursion
-		   (tramp-send-command
-		    multi-method method user host
-		    (format "%s -ild %s"
-			    (tramp-get-ls-command multi-method method
-						  user host)
-			    (tramp-shell-quote-argument localname)))
-		   (tramp-wait-for-output)
-		   (setq attr (buffer-substring
-			       (point) (progn (end-of-line) (point)))))
-		 (equal tramp-buffer-file-attributes attr))
-		;; If file does not exist, say it is not modified.
-		(t nil)))))))
+    ;; There is no file visiting the buffer, or the buffer has no
+    ;; recorded last modification time.
+    (if (or (not (buffer-file-name))
+	    (eq (visited-file-modtime) 0))
+      t
+      (let ((f (buffer-file-name)))
+	(with-parsed-tramp-file-name f nil
+	  (let* ((attr (file-attributes f))
+		 (modtime (nth 5 attr))
+		 (mt (visited-file-modtime)))
+	    
+ 	    (cond
+	     ;; file exists, and has a known modtime.
+	     ((and attr (not (equal modtime '(0 0))))
+	      (< (abs (tramp-time-diff
+		       modtime
+		       ;; For compatibility, deal with both the old
+		       ;; (HIGH . LOW) and the new (HIGH LOW)
+		       ;; return values of `visited-file-modtime'.
+		       (if (atom (cdr mt))
+			   (list (car mt) (cdr mt))
+			 mt)))
+		 2))
+	     ;; modtime has the don't know value.
+	     (attr
+	      (save-excursion
+		(tramp-send-command
+		 multi-method method user host
+		 (format "%s -ild %s"
+			 (tramp-get-ls-command multi-method method user host)
+			 (tramp-shell-quote-argument localname)))
+		(tramp-wait-for-output)
+		(setq attr (buffer-substring
+			    (point) (progn (end-of-line) (point)))))
+	      (equal tramp-buffer-file-attributes attr))
+	     ;; If file does not exist, say it is not modified
+	     ;; if and only if that agrees with the buffer's record.
+	     (t (equal mt '(-1 65535))))))))))
 
 (defadvice clear-visited-file-modtime (after tramp activate)
   "Set `tramp-buffer-file-attributes' back to nil.
@@ -3468,6 +3470,18 @@ This will break if COMMAND prints a newline, followed by the value of
     (tramp-run-real-handler 'shell-command
 			    (list command output-buffer error-buffer))))
 
+(defun tramp-handle-process-file (program &optional infile buffer display &rest args)
+  "Like `process-file' for Tramp files."
+  (when infile (error "Implementation does not handle input from file"))
+  (when (and (numberp buffer) (zerop buffer))
+    (error "Implementation does not handle immediate return"))
+  (when (consp buffer) (error "Implementation does not handle error files"))
+  (shell-command 
+   (mapconcat 'tramp-shell-quote-argument
+              (cons program args)
+              " ")
+   buffer))
+
 ;; File Editing.
 
 (defsubst tramp-make-temp-file ()
@@ -3959,6 +3973,8 @@ ARGS are the arguments OPERATION has been called with."
    ; COMMAND
    ((member operation
 	    (list 'dired-call-process 'shell-command
+                  ; Post Emacs 21.3 only
+                  'process-file
 	          ; XEmacs only
 		  'dired-print-file 'dired-shell-call-process))
     default-directory)

@@ -38,7 +38,11 @@
 (eval-when-compile
   (require 'cl)
   ;; Fixme: this should be a gnus variable, not nnmail-.
-  (defvar nnmail-pathname-coding-system))
+  (defvar nnmail-pathname-coding-system)
+
+  ;; Inappropriate references to other parts of Gnus.
+  (defvar gnus-emphasize-whitespace-regexp)
+  )
 (require 'time-date)
 (require 'netrc)
 
@@ -1186,7 +1190,7 @@ is run."
   "Delete by side effect any elements of LIST whose car is `equal' to KEY.
 The modified LIST is returned.  If the first member
 of LIST has a car that is `equal' to KEY, there is no way to remove it
-by side effect; therefore, write `(setq foo (remassoc key foo))' to be
+by side effect; therefore, write `(setq foo (gnus-remassoc key foo))' to be
 sure of changing the value of `foo'."
   (when alist
     (if (equal key (caar alist))
@@ -1511,6 +1515,28 @@ predicate on the elements."
 	      ")"))
 	 "")))
      (t emacs-version))))
+
+(defun gnus-rename-file (old-path new-path &optional trim)
+  "Rename OLD-PATH as NEW-PATH.  If TRIM, recursively delete
+empty directories from OLD-PATH."
+  (when (file-exists-p old-path)
+    (let* ((old-dir (file-name-directory old-path))
+	   (old-name (file-name-nondirectory old-path))
+	   (new-dir (file-name-directory new-path))
+	   (new-name (file-name-nondirectory new-path))
+	   temp)
+      (gnus-make-directory new-dir)
+      (rename-file old-path new-path t)
+      (when trim
+	(while (progn (setq temp (directory-files old-dir))
+		      (while (member (car temp) '("." ".."))
+			(setq temp (cdr temp)))
+		      (= (length temp) 0))
+	  (delete-directory old-dir)
+	  (setq old-dir (file-name-as-directory 
+			 (file-truename 
+			  (concat old-dir "..")))))))))
+
 
 (provide 'gnus-util)
 

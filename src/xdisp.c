@@ -7976,7 +7976,7 @@ store_frame_title (str, field_width, precision)
 
   /* Copy at most PRECISION chars from STR.  */
   nbytes = strlen (str);
-  n+= c_string_width (str, nbytes, precision, &dummy, &nbytes);
+  n += c_string_width (str, nbytes, precision, &dummy, &nbytes);
   while (nbytes--)
     store_frame_title_char (*str++);
 
@@ -9523,11 +9523,13 @@ update_overlay_arrows (up_to_date)
 }
 
 
-/* Return overlay arrow string at row, or nil.  */
+/* Return overlay arrow string to display at row.
+   Return t if display as bitmap in left fringe.
+   Return nil if no overlay arrow.  */
 
 static Lisp_Object
-overlay_arrow_at_row (f, row, pbitmap)
-     struct frame *f;
+overlay_arrow_at_row (it, row, pbitmap)
+     struct it *it;
      struct glyph_row *row;
      int *pbitmap;
 {
@@ -9550,9 +9552,10 @@ overlay_arrow_at_row (f, row, pbitmap)
 	  && (MATRIX_ROW_START_CHARPOS (row) == marker_position (val)))
 	{
 	  val = overlay_arrow_string_or_property (var, pbitmap);
-	  if (FRAME_WINDOW_P (f))
+	  if (FRAME_WINDOW_P (it->f)
+	      && WINDOW_LEFT_FRINGE_WIDTH (it->w) > 0)
 	    return Qt;
-	  else if (STRINGP (val))
+	  if (STRINGP (val))
 	    return val;
 	  break;
 	}
@@ -12217,7 +12220,8 @@ redisplay_window (window, just_this_one_p)
     }
 
 #ifdef HAVE_WINDOW_SYSTEM
-  if (update_window_fringes (w, 0)
+  if (FRAME_WINDOW_P (f)
+      && update_window_fringes (w, 0)
       && !just_this_one_p
       && (used_current_matrix_p || overlay_arrow_seen)
       && !w->pseudo_window_p)
@@ -14072,8 +14076,8 @@ usage: (trace-to-stderr STRING &rest OBJECTS)  */)
 		     Building Desired Matrix Rows
  ***********************************************************************/
 
-/* Return a temporary glyph row holding the glyphs of an overlay
-   arrow.  Only used for non-window-redisplay windows.  */
+/* Return a temporary glyph row holding the glyphs of an overlay arrow.
+   Used for non-window-redisplay windows, and for windows w/o left fringe.  */
 
 static struct glyph_row *
 get_overlay_arrow_glyph_row (w, overlay_arrow_string)
@@ -14954,11 +14958,11 @@ display_line (it)
      better to let it be displayed like cursors under X.  */
   if (! overlay_arrow_seen
       && (overlay_arrow_string
-	    = overlay_arrow_at_row (it->f, row, &overlay_arrow_bitmap),
+	    = overlay_arrow_at_row (it, row, &overlay_arrow_bitmap),
 	  !NILP (overlay_arrow_string)))
     {
       /* Overlay arrow in window redisplay is a fringe bitmap.  */
-      if (!FRAME_WINDOW_P (it->f))
+      if (STRINGP (overlay_arrow_string))
 	{
 	  struct glyph_row *arrow_row
 	    = get_overlay_arrow_glyph_row (it->w, overlay_arrow_string);
@@ -14983,10 +14987,12 @@ display_line (it)
 	      row->used[TEXT_AREA] = p2 - row->glyphs[TEXT_AREA];
 	    }
 	}
-
+      else
+	{
+	  it->w->overlay_arrow_bitmap = overlay_arrow_bitmap;
+	  row->overlay_arrow_p = 1;
+	}
       overlay_arrow_seen = 1;
-      it->w->overlay_arrow_bitmap = overlay_arrow_bitmap;
-      row->overlay_arrow_p = 1;
     }
 
   /* Compute pixel dimensions of this line.  */
@@ -15451,14 +15457,15 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 
 	    if (this - 1 != last)
 	      {
+		int nchars, nbytes;
+
 		/* Output to end of string or up to '%'.  Field width
 		   is length of string.  Don't output more than
 		   PRECISION allows us.  */
 		--this;
 
-		prec = chars_in_text (last, this - last);
-		if (precision > 0 && prec > precision - n)
-		  prec = precision - n;
+		prec = c_string_width (last, this - last, precision - n,
+				       &nchars, &nbytes);
 
 		if (frame_title_ptr)
 		  n += store_frame_title (last, 0, prec);
@@ -15466,9 +15473,12 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 		  {
 		    int bytepos = last - lisp_string;
 		    int charpos = string_byte_to_char (elt, bytepos);
+		    int endpos = (precision <= 0 ? SCHARS (elt)
+				  : charpos + nchars);
+
 		    n += store_mode_line_string (NULL,
 						 Fsubstring (elt, make_number (charpos),
-							     make_number (charpos + prec)),
+							     make_number (endpos)),
 						 0, 0, 0, Qnil);
 		  }
 		else

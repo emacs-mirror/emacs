@@ -2,7 +2,8 @@
 
 ;;; Copyright (C) 1988, 1990, 1992, 1994, 1995, 2004 Free Software Foundation, Inc.
 
-;; Author: Per Bothner <bothner@cygnus.com>
+;; Author: Per Bothner <per@bothner.com>
+;; Maintainer: Dan Nicolaescu <dann@ics.uci.edu>, Per Bothner <per@bothner.com>
 ;; Based on comint mode written by: Olin Shivers <shivers@cs.cmu.edu>
 ;; Keywords: processes
 

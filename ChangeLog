@@ -1,3 +1,9 @@
+2004-10-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in (HAVE_PERSONALITY_LINUX32): New test if PER_LINUX32
+	can be set.  Remove SETARCH test.
+	* configure: Rebuild
+
 2004-10-08  Steven Tamm  <steventamm@mac.com>
 
 	* configure.in (HAVE_MALLOC_MALLOC_H): Test for malloc/malloc.h

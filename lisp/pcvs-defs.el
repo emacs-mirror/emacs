@@ -374,7 +374,7 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ("r" .	cvs-mode-remove)
     ("s" .	cvs-mode-status)
     ("t" .	cvs-mode-tag)
-    ;;("v" .	cvs-mode-diff-vendor)
+    ("v" .	cvs-mode-view-file)
     ("x" .	cvs-mode-remove-handled)
     ;; cvstree bindings
     ("+" .	cvs-mode-tree)

@@ -1087,6 +1087,7 @@ Else, call `comment-indent'."
 	    (insert (comment-padleft comment-end add)))
 	  (indent-according-to-mode))))))
 
+;;;###autoload
 (defcustom comment-auto-fill-only-comments nil
   "Non-nil means to only auto-fill inside comments.
 This has no effect in modes that do not define a comment syntax."

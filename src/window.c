@@ -3214,10 +3214,13 @@ display_buffer_1 (window)
 }
 
 DEFUN ("special-display-p", Fspecial_display_p, Sspecial_display_p, 1, 1, 0,
-       doc: /* Returns non-nil if a buffer named BUFFER-NAME would be created specially.
-The value is actually t if the frame should be called with default frame
-parameters, and a list of frame parameters if they were specified.
-See `special-display-buffer-names', and `special-display-regexps'.  */)
+       doc: /* Returns non-nil if a buffer named BUFFER-NAME gets a special frame.
+If the value is t, a frame would be created for that buffer
+using the default frame parameters.  If the value is a list,
+it is a list of frame parameters that would be used
+to make a frame for that buffer.
+The variables `special-display-buffer-names'
+and `special-display-regexps' control this.  */)
      (buffer_name)
      Lisp_Object buffer_name;
 {

@@ -872,7 +872,8 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 	    (let ((xs (pop hist-new))
 		  old-autoloads)
 	      ;; Make sure the file was not already loaded before.
-	      (unless (assoc (car xs) hist-orig)
+	      (unless (or (assoc (car xs) hist-orig)
+			  (equal (car xs) "cl"))
 		(dolist (s xs)
 		  (cond
 		   ((symbolp s)
@@ -889,7 +890,18 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 		(when (and (symbolp s) (not (memq s old-autoloads)))
 		  (push s byte-compile-noruntime-functions))
 		(when (and (consp s) (eq t (car s)))
-		  (push (cdr s) old-autoloads))))))))))
+		  (push (cdr s) old-autoloads)))))))
+      (when (memq 'cl-functions byte-compile-warnings)
+	(let ((hist-new load-history)
+	      (hist-nil-new current-load-list))
+	  ;; Go through load-history, look for newly loaded files
+	  ;; and mark all the functions defined therein.
+	  (while (and hist-new (not (eq hist-new hist-orig)))
+	    (let ((xs (pop hist-new))
+		  old-autoloads)
+	      ;; Make sure the file was not already loaded before.
+	      (when (and (equal (car xs) "cl") (not (assoc (car xs) hist-orig)))
+		(byte-compile-find-cl-functions)))))))))
 
 (defun byte-compile-eval-before-compile (form)
   "Evaluate FORM for `eval-and-compile'."
@@ -928,12 +940,13 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 ;; Log something that isn't a warning.
 (defun byte-compile-log-1 (string)
   (with-current-buffer "*Compile-Log*"
-    (goto-char (point-max))
-    (byte-compile-warning-prefix nil nil)
-    (cond (noninteractive
-	   (message " %s" string))
-	  (t
-	   (insert (format "%s\n" string))))))
+    (let ((inhibit-read-only t))
+      (goto-char (point-max))
+      (byte-compile-warning-prefix nil nil)
+      (cond (noninteractive
+	     (message " %s" string))
+	    (t
+	     (insert (format "%s\n" string)))))))
 
 (defvar byte-compile-read-position nil
   "Character position we began the last `read' from.")
@@ -984,7 +997,8 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 ;; This is used as warning-prefix for the compiler.
 ;; It is always called with the warnings buffer current.
 (defun byte-compile-warning-prefix (level entry)
-  (let* ((dir default-directory)
+  (let* ((inhibit-read-only t)
+	 (dir default-directory)
 	 (file (cond ((stringp byte-compile-current-file)
 		      (format "%s:" (file-relative-name byte-compile-current-file dir)))
 		     ((bufferp byte-compile-current-file)
@@ -1030,7 +1044,8 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
        (save-excursion
 	 (set-buffer (get-buffer-create "*Compile-Log*"))
 	 (goto-char (point-max))
-	 (let* ((dir (and byte-compile-current-file
+	 (let* ((inhibit-read-only t)
+		(dir (and byte-compile-current-file
 			  (file-name-directory byte-compile-current-file)))
 		(was-same (equal default-directory dir))
 		pt)
@@ -1064,7 +1079,8 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 (defun byte-compile-log-warning (string &optional fill level)
   (let ((warning-prefix-function 'byte-compile-warning-prefix)
 	(warning-type-format "")
-	(warning-fill-prefix (if fill "    ")))
+	(warning-fill-prefix (if fill "    "))
+	(inhibit-read-only t))
     (display-warning 'bytecomp string level "*Compile-Log*")))
 
 (defun byte-compile-warn (format &rest args)
@@ -2217,17 +2233,15 @@ list that represents a doc string reference.
       (setq tail (cdr tail))))
   form)
 
-(put 'require 'byte-hunk-handler 'byte-compile-file-form-eval-boundary)
-(defun byte-compile-file-form-eval-boundary (form)
-  (let ((old-load-list current-load-list))
-    (eval form)
-    ;; (require 'cl) turns off warnings for cl functions.
-    (let ((tem current-load-list))
-      (while (not (eq tem old-load-list))
-	(when (equal (car tem) '(require . cl))
-	  (setq byte-compile-warnings
-		(remq 'cl-functions byte-compile-warnings)))
-	(setq tem (cdr tem)))))
+(put 'require 'byte-hunk-handler 'byte-compile-file-form-require)
+(defun byte-compile-file-form-require (form)
+  (let ((old-load-list current-load-list)
+	(args (mapcar 'eval (cdr form))))
+    (apply 'require args)
+    ;; Detech (require 'cl) in a way that works even if cl is already loaded.
+    (if (member (car args) '("cl" cl))
+	(setq byte-compile-warnings
+	      (remq 'cl-functions byte-compile-warnings))))
   (byte-compile-keep-pending form 'byte-compile-normal-call))
 
 (put 'progn 'byte-hunk-handler 'byte-compile-file-form-progn)

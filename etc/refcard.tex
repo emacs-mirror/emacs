@@ -1,12 +1,19 @@
 % Reference Card for GNU Emacs version 21 on Unix systems
 %**start of header
 \newcount\columnsperpage
+\newcount\letterpaper
 
 % This file can be printed with 1, 2, or 3 columns per page (see below).
-% Specify how many you want here.  Nothing else needs to be changed.
+% Specify how many you want here.
 
-\columnsperpage=1
+\columnsperpage=3
 
+% Set letterpapaer to 0 for A4 paper, 1 for letter (US) paper.  Useful
+% only when columnsperpage is 2 or 3.
+
+\letterpaper=1
+
+% Nothing else needs to be changed below this line.
 % Copyright (c) 1987, 1993, 1996, 1997 Free Software Foundation, Inc.
 
 % This file is part of GNU Emacs.
@@ -41,6 +48,10 @@
 %    ready-to-use 8.5 x 11 inch reference card.
 %    For this you need a dvi device driver that can print sideways.
 % Which mode to use is controlled by setting \columnsperpage above.
+%
+% To compile and print this document:
+% tex refcard.tex
+% dvips -t landscape refcard.dvi
 %
 % Author:
 %  Stephen Gildea
@@ -103,7 +114,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   \def\makefootline{\baselineskip10pt\hsize6.5in\line{\the\footline}}
 \else				%2 or 3 columns uses prereduced size
   \hsize 3.2in
-  \vsize 7.95in
+  \if 1\the\letterpaper
+     \vsize 7.95in
+  \else
+     \vsize 7.65in
+  \fi
   \hoffset -.75in
   \voffset -.745in
   \font\titlefont=cmbx10 \scaledmag2
@@ -123,7 +138,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   \def\bf{\eightbf}
   \def\it{\eightit}
   \def\tt{\eighttt}
-  \normalbaselineskip=.8\normalbaselineskip
+  \if 1\the\letterpaper
+     \normalbaselineskip=.8\normalbaselineskip
+  \else
+     \normalbaselineskip=.7\normalbaselineskip
+  \fi
   \normallineskip=.8\normallineskip
   \normallineskiplimit=.8\normallineskiplimit
   \normalbaselines\rm		%make definitions take effect
