@@ -19,7 +19,7 @@ infodir = @infodir@
 
 # The name of the manual:
 
-VERSION=2.5
+VERSION=2.6
 manual = elisp-manual-20-$(VERSION)
 
 # Uncomment this line for permuted index.
@@ -31,7 +31,7 @@ srcs = elisp.texi back.texi \
   abbrevs.texi advice.texi anti.texi backups.texi locals.texi buffers.texi \
   calendar.texi commands.texi compile.texi control.texi customize.texi \
   debugging.texi display.texi edebug.texi errors.texi eval.texi files.texi \
-  frames.texi functions.texi help.texi hooks.texi \
+  frames.texi functions.texi hash.texi help.texi hooks.texi \
   internals.texi intro.texi keymaps.texi lists.texi \
   loading.texi macros.texi maps.texi markers.texi \
   minibuf.texi modes.texi nonascii.texi numbers.texi objects.texi \
