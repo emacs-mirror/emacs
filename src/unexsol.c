@@ -10,8 +10,22 @@ int
 unexec (char *new_name, char *old_name, unsigned int data_start,
         unsigned int bss_start, unsigned int entry_address)
 {
-  if (dldump (0, new_name, RTLD_MEMORY))
-    report_file_error ("Cannot unexec", Fcons (build_string (new_name), Qnil));
+  Lisp_Object data;
+  Lisp_Object errstring;
 
-  return 0;
+  if (! dldump (0, new_name, RTLD_MEMORY))
+    return 0;
+
+  data = Fcons (build_string (new_name), Qnil);
+  synchronize_system_messages_locale ();
+  errstring = code_convert_string_norecord (build_string (dlerror ()),
+					    Vlocale_coding_system, 0);
+
+  /* System error messages are capitalized.  Downcase the initial
+     unless it is followed by a slash.  */
+  if (SREF (errstring, 1) != '/')
+    SSET (errstring, 0, DOWNCASE (SREF (errstring, 0)));
+
+  Fsignal (Qfile_error,
+	   Fcons (build_string ("Cannot unexec"), Fcons (errstring, data)));
 }
