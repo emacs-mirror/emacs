@@ -80,7 +80,7 @@ Including ?- has the problem of affecting dashes that have nothing to do
 with comments, so we normally turn it off.")
 
 (defvar sgml-quick-keys nil
-  "Use <, >, &, SPC and `sgml-specials' keys \"electrically\" when non-nil.
+  "Use <, >, &, /, SPC and `sgml-specials' keys \"electrically\" when non-nil.
 This takes effect when first loading the `sgml-mode' library.")
 
 
@@ -384,7 +384,7 @@ Otherwise, it is set to be buffer-local when the file has
 (define-derived-mode sgml-mode text-mode "SGML"
   "Major mode for editing SGML documents.
 Makes > match <.
-Keys <, &, SPC within <>, \" and ' can be electric depending on
+Keys <, &, SPC within <>, \", / and ' can be electric depending on
 `sgml-quick-keys'.
 
 An argument of N to a tag-inserting command means to wrap it around
@@ -450,6 +450,22 @@ Do \\[describe-key] on the following bindings to discover what they do.
 
 
 (defun sgml-slash (arg)
+  "Insert ARG slash characters.
+Behaves electrically if `sgml-quick-keys' is non-nil."
+  (interactive "p")
+  (cond
+   ((not (and (eq (char-before) ?<) (= arg 1)))
+    (sgml-slash-matching arg))
+   ((eq sgml-quick-keys 'indent)
+    (insert-char ?/ 1)
+    (indent-according-to-mode))
+   ((eq sgml-quick-keys 'close)
+    (delete-backward-char 1)
+    (sgml-insert-end-tag))
+   (t
+    (sgml-slash-matching arg))))
+
+(defun sgml-slash-matching (arg)
   "Insert `/' and display any previous matching `/'.
 Two `/'s are treated as matching if the first `/' ends a net-enabling
 start tag, and the second `/' is the corresponding null end tag."
@@ -925,6 +941,190 @@ With prefix argument, unquote the region."
 						(?> . "&gt;"))))))))
 
 
+(defsubst sgml-at-indentation-p ()
+  "Return true if point is at the first non-whitespace character on the line."
+  (save-excursion
+    (skip-chars-backward " \t")
+    (bolp)))
+
+
+;; Parsing
+
+(defstruct (sgml-tag
+            (:constructor sgml-make-tag (type start end name)))
+  type start end name)
+
+(defsubst sgml-parse-tag-name ()
+  "Skip past a tag-name, and return the name."
+  (buffer-substring-no-properties
+   (point) (progn (skip-syntax-forward "w_") (point))))
+
+(defsubst sgml-looking-back-at (s)
+  (let ((limit (max (- (point) (length s)) (point-min))))
+    (equal s (buffer-substring-no-properties limit (point)))))
+
+(defun sgml-parse-tag-backward ()
+  "Parse an SGML tag backward, and return information about the tag.
+Assume that parsing starts from within a textual context.
+Leave point at the beginning of the tag."
+  (let (tag-type tag-start tag-end name)
+    (search-backward ">")
+    (setq tag-end (1+ (point)))
+    (cond
+     ((sgml-looking-back-at "--")   ; comment
+      (setq tag-type 'comment
+            tag-start (search-backward "<!--" nil t)))
+     ((sgml-looking-back-at "]]")   ; cdata
+      (setq tag-type 'cdata
+            tag-start (search-backward "<![CDATA[" nil t)))
+     (t
+      (setq tag-start
+            (with-syntax-table sgml-tag-syntax-table
+              (goto-char tag-end)
+              (backward-sexp)
+              (point)))
+      (goto-char (1+ tag-start))
+      (case (char-after)
+        (?!                             ; declaration
+         (setq tag-type 'decl))
+        (??                             ; processing-instruction
+         (setq tag-type 'pi))
+        (?/                             ; close-tag
+         (forward-char 1)
+         (setq tag-type 'close
+               name (sgml-parse-tag-name)))
+        ((?% ?#)                        ; JSP tags etc
+         (setq tag-type 'unknown))
+        (t                              ; open or empty tag
+         (setq tag-type 'open
+               name (sgml-parse-tag-name))
+         (if (or (eq ?/ (char-before (- tag-end 1)))
+                 (sgml-empty-tag-p name))
+             (setq tag-type 'empty))))))
+    (goto-char tag-start)
+    (sgml-make-tag tag-type tag-start tag-end name)))
+
+(defsubst sgml-inside-tag-p (tag-info &optional point)
+  "Return true if TAG-INFO contains the POINT."
+  (let ((end (sgml-tag-end tag-info))
+        (point (or point (point))))
+    (or (null end)
+        (> end point))))
+
+(defun sgml-get-context (&optional full)
+  "Determine the context of the current position.
+If FULL is `empty', return even if the context is empty (i.e.
+we just skipped over some element and got to a beginning of line).
+If FULL is non-nil, parse back to the beginning of the buffer, otherwise
+parse until we find a start-tag as the first thing on a line.
+
+The context is a list of tag-info structures.  The last one is the tag
+immediately enclosing the current position."
+  (let ((here (point))
+	(ignore nil)
+	(context nil)
+	tag-info)
+    ;; CONTEXT keeps track of the tag-stack
+    ;; IGNORE keeps track of the nesting level of point relative to the
+    ;;   first (outermost) tag on the context.  This is the list of
+    ;;   enclosing start-tags we'll have to ignore.
+    (skip-chars-backward " \t\n")      ; Make sure we're not at indentation.
+    (while
+	(and (or ignore 
+                 (not (if full (eq full 'empty) context))
+		 (not (sgml-at-indentation-p))
+		 (and context
+		      (/= (point) (sgml-tag-start (car context)))
+                      (sgml-unclosed-tag-p (sgml-tag-name (car context)))))
+	     (setq tag-info (ignore-errors (sgml-parse-tag-backward))))
+      
+      ;; This tag may enclose things we thought were tags.  If so,
+      ;; discard them.
+      (while (and context
+                  (> (sgml-tag-end tag-info)
+                     (sgml-tag-end (car context))))
+        (setq context (cdr context)))
+           
+      (cond
+
+       ;; inside a tag ...
+       ((sgml-inside-tag-p tag-info here)
+	(push tag-info context))
+
+       ;; start-tag
+       ((eq (sgml-tag-type tag-info) 'open)
+	(cond
+	 ((null ignore)
+	  (if (and context
+                   (sgml-unclosed-tag-p (sgml-tag-name tag-info))
+		   (eq t (compare-strings
+			  (sgml-tag-name tag-info) nil nil
+			  (sgml-tag-name (car context)) nil nil t)))
+	      ;; There was an implicit end-tag.
+	      nil
+	    (push tag-info context)))
+	 ((eq t (compare-strings (sgml-tag-name tag-info) nil nil
+				 (car ignore) nil nil t))
+	  (setq ignore (cdr ignore)))
+	 (t
+	  ;; The open and close tags don't match.
+	  (if (not sgml-xml-mode)
+	      ;; Assume the open tag is simply not closed.
+	      (unless (sgml-unclosed-tag-p (sgml-tag-name tag-info))
+		(message "Unclosed tag <%s>" (sgml-tag-name tag-info)))
+	    (message "Unmatched tags <%s> and </%s>"
+		     (sgml-tag-name tag-info) (pop ignore))))))
+
+       ;; end-tag
+       ((eq (sgml-tag-type tag-info) 'close)
+	(if (sgml-empty-tag-p (sgml-tag-name tag-info))
+	    (message "Spurious </%s>: empty tag" (sgml-tag-name tag-info))
+	  (push (sgml-tag-name tag-info) ignore)))
+       ))
+
+    ;; return context
+    context))
+
+(defun sgml-show-context (&optional full)
+  "Display the current context.
+If FULL is non-nil, parse back to the beginning of the buffer."
+  (interactive "P")
+  (with-output-to-temp-buffer "*XML Context*"
+    (pp (save-excursion (sgml-get-context full)))))
+
+
+;; Editing shortcuts
+
+(defun sgml-insert-end-tag ()
+  "Insert an end-tag for the current element."
+  (interactive)
+  (let* ((context (save-excursion (sgml-get-context)))
+         (tag-info (car (last context)))
+         (type (and tag-info (sgml-tag-type tag-info))))
+
+    (cond
+
+     ((null context)
+      (error "Nothing to close"))
+
+     ;; inside a tag
+     ((sgml-inside-tag-p tag-info)
+      (insert (cond
+	       ((eq type 'empty) 	" />")
+	       ((eq type 'comment)	" -->")
+	       ((eq type 'cdata)	"]]>")
+	       ((eq type 'jsp) 		"%>")
+	       ((eq type 'pi) 		"?>")
+	       (t 			">"))))
+
+     ;; inside an element
+     ((eq type 'open)
+      (insert "</" (sgml-tag-name tag-info) ">")
+      (indent-according-to-mode))
+
+     (t
+      (error "Nothing to close")))))
+
 (defun sgml-empty-tag-p (tag-name)
   "Return non-nil if TAG-NAME is an implicitly empty tag."
   (and (not sgml-xml-mode)
@@ -1003,19 +1203,19 @@ With prefix argument, unquote the region."
 			(> (point) (cdr lcon)))
 		   nil
 		 (goto-char here)
-		 (nreverse (xml-lite-get-context (if unclosed nil 'empty)))))
+		 (nreverse (sgml-get-context (if unclosed nil 'empty)))))
 	      (there (point)))
 	 ;; Ignore previous unclosed start-tag in context.
 	 (while (and context unclosed
 		     (eq t (compare-strings
-			    (xml-lite-tag-name (car context)) nil nil
+			    (sgml-tag-name (car context)) nil nil
 			    unclosed nil nil t)))
 	   (setq context (cdr context)))
 	 ;; Indent to reflect nesting.
 	 (if (and context
-		  (goto-char (xml-lite-tag-end (car context)))
+		  (goto-char (sgml-tag-end (car context)))
 		  (skip-chars-forward " \t\n")
-		  (< (point) here) (xml-lite-at-indentation-p))
+		  (< (point) here) (sgml-at-indentation-p))
 	     (current-column)
 	   (goto-char there)
 	   (+ (current-column)
