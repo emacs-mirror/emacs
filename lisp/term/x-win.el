@@ -651,9 +651,9 @@ This is in addition to the primary selection.")
       ;; Create the standard fontset.
       (create-fontset-from-fontset-spec standard-fontset-spec)
       ;; Create variants of the standard fontset.
-      (create-fontset-from-fontset-spec standard-fontset-spec 'bold)
-      (create-fontset-from-fontset-spec standard-fontset-spec 'italic)
-      (create-fontset-from-fontset-spec standard-fontset-spec 'bold-italic)
+      ;;(create-fontset-from-fontset-spec standard-fontset-spec 'bold)
+      ;;(create-fontset-from-fontset-spec standard-fontset-spec 'italic)
+      ;;(create-fontset-from-fontset-spec standard-fontset-spec 'bold-italic)
 
       ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1, ...).
       (create-fontset-from-x-resource)
@@ -688,9 +688,9 @@ This is in addition to the primary selection.")
 		(setq fontset (x-compose-font-name xlfd-fields))
 		(setq fontset-spec (concat fontset ", ascii:" font))
 		(create-fontset-from-fontset-spec fontset-spec nil t)
-		(create-fontset-from-fontset-spec fontset-spec 'bold t)
-		(create-fontset-from-fontset-spec fontset-spec 'italic t)
-		(create-fontset-from-fontset-spec fontset-spec 'bold-italic t)
+		;;(create-fontset-from-fontset-spec fontset-spec 'bold t)
+		;;(create-fontset-from-fontset-spec fontset-spec 'italic t)
+		;;(create-fontset-from-fontset-spec fontset-spec 'bold-italic t)
 		(setq fontset-alias-alist
 		      (cons (cons fontset font) fontset-alias-alist)))
 	      )))))
