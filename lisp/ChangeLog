@@ -11,7 +11,7 @@
 	inserting it.
 
 	* image.el (image-type-regexps): For JPEG files, use a regexp
-	derived from the JPEG spec.
+	derived from the JFIF spec.
 	
 	* image.el (image-type-regexps): Use `\`' instead of `^' in
 	most regular expressions.
