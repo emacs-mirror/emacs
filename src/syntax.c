@@ -469,12 +469,16 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
      PARITY is current parity of quotes from the comment end.  */
   int string_style = -1;	/* Presumed outside of any string. */
   int string_lossage = 0;
+  /* Not a real lossage: indicates that we have passed a matching comment
+     starter plus an non-matching comment-ender, meaning that any matching
+     comment-starter we might see later could be a false positive (hidden
+     inside another comment).
+     Test case:  { a (* b } c (* d *) */
+  int comment_lossage = 0;
   int comment_end = from;
   int comment_end_byte = from_byte;
   int comstart_pos = 0;
   int comstart_byte;
-  /* Value that PARITY had, when we reached the position
-     in COMSTART_POS.  */
   int scanstart = from - 1;
   /* Place where the containing defun starts,
      or 0 if we didn't come across it yet.  */
@@ -548,23 +552,24 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
 	  
 	case Scomment:
 	  /* We've already checked that it is the relevant comstyle.  */
-	  if (string_style != -1 || string_lossage)
+	  if (string_style != -1 || comment_lossage || string_lossage)
 	    /* There are odd string quotes involved, so let's be careful.
 	       Test case in Pascal: " { " a { " } */
 	    goto lossage;
 
-	  if (comnested && --nesting <= 0)
+	  if (!comnested)
+	    {
+	      /* Record best comment-starter so far.  */
+	      comstart_pos = from;
+	      comstart_byte = from_byte;
+	    }
+	  else if (--nesting <= 0)
 	    /* nested comments have to be balanced, so we don't need to
 	       keep looking for earlier ones.  We use here the same (slightly
 	       incorrect) reasoning as below:  since it is followed by uniform
 	       paired string quotes, this comment-start has to be outside of
 	       strings, else the comment-end itself would be inside a string. */
 	    goto done;
-
-	  /* Record comment-starters according to that
-	     quote-parity to the comment-end.  */
-	  comstart_pos = from;
-	  comstart_byte = from_byte;
 	  break;
 
 	case Sendcomment:
@@ -578,6 +583,15 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
 		   this comment-ender rather than ours.  */
 		from = stop;	/* Break out of the loop.  */
 	    }
+	  else if (comstart_pos != 0 || c != '\n')
+	    /* We're mixing comment styles here, so we'd better be careful.
+	       The (comstart_pos != 0 || c != '\n') check is not quite correct
+	       (we should just always set comment_lossage), but removing it
+	       would imply that any multiline comment in C would go through
+	       lossage, which seems overkill.
+	       The failure should only happen in the rare cases such as
+	         { (* } *)   */
+	    comment_lossage = 1;
 	  break;
 
 	case Sopen:
@@ -594,7 +608,7 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
 	  break;
 
 	default:
-	  continue;
+	  break;
 	}
     }
 
@@ -604,12 +618,9 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
       from_byte = comment_end_byte;
       UPDATE_SYNTAX_TABLE_FORWARD (comment_end - 1);
     }
-  /* If the earliest comment starter
-     is followed by uniform paired string quotes or none,
-     we know it can't be inside a string
-     since if it were then the comment ender would be inside one.
-     So it does start a comment.  Skip back to it.  */
-  else if (!comnested)
+  /* If comstart_pos is set and we get here (ie. didn't jump to `lossage'
+     or `done'), then we've found the beginning of the non-nested comment.  */
+  else if (1)	/* !comnested */
     {
       from = comstart_pos;
       from_byte = comstart_byte;
