@@ -938,29 +938,26 @@ output from the current command if that happens to be appropriate."
 (defconst breakpoint-xpm-data "/* XPM */
 static char *magick[] = {
 /* columns rows colors chars-per-pixel */
-\"12 12 2 1\",
+\"10 10 2 1\",
 \"  c red\",
 \"+ c None\",
 /* pixels */
-\"++++++++++++\",
-\"+++      +++\",
-\"++        ++\",
-\"+          +\",
-\"+          +\",
-\"+          +\",
-\"+          +\",
-\"+          +\",
-\"+          +\",
-\"++        ++\",
-\"+++      +++\",
-\"++++++++++++\"
+\"++      ++\",
+\"+        +\",
+\"          \",
+\"          \",
+\"          \",
+\"          \",
+\"          \",
+\"          \",
+\"+        +\",
+\"++      ++\",
 };"
   "XPM data used for breakpoint icon.")
 
 (defconst breakpoint-enabled-pbm-data
 "P1
-12 12\",
-0 0 0 0 0 0 0 0 0 0 0 0
+10 10\",
 0 0 0 1 1 1 1 1 1 0 0 0
 0 0 1 1 1 1 1 1 1 1 0 0
 0 1 1 1 1 1 1 1 1 1 1 0
@@ -970,25 +967,22 @@ static char *magick[] = {
 0 1 1 1 1 1 1 1 1 1 1 0
 0 1 1 1 1 1 1 1 1 1 1 0
 0 0 1 1 1 1 1 1 1 1 0 0
-0 0 0 1 1 1 1 1 1 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0"
+0 0 0 1 1 1 1 1 1 0 0 0"
   "PBM data used for enabled breakpoint icon.")
 
 (defconst breakpoint-disabled-pbm-data
 "P1
-12 12\",
-0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 1 0 1 0 1 0 0 0 0
-0 0 1 0 1 0 1 0 1 0 0 0
-0 1 0 1 0 1 0 1 0 1 0 0
-0 0 1 0 1 0 1 0 1 0 1 0
-0 1 0 1 0 1 0 1 0 1 0 0
-0 0 1 0 1 0 1 0 1 0 1 0
-0 1 0 1 0 1 0 1 0 1 0 0
-0 0 1 0 1 0 1 0 1 0 1 0
-0 0 0 1 0 1 0 1 0 1 0 0
-0 0 0 0 1 0 1 0 1 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0"
+10 10\",
+0 0 1 0 1 0 1 0 0 0
+0 1 0 1 0 1 0 1 0 0
+1 0 1 0 1 0 1 0 1 0
+0 1 0 1 0 1 0 1 0 1
+1 0 1 0 1 0 1 0 1 0
+0 1 0 1 0 1 0 1 0 1
+1 0 1 0 1 0 1 0 1 0
+0 1 0 1 0 1 0 1 0 1
+0 0 1 0 1 0 1 0 1 0
+0 0 0 1 0 1 0 1 0 0"
   "PBM data used for disabled breakpoint icon.")
 
 (defvar breakpoint-enabled-icon
