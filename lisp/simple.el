@@ -1191,7 +1191,7 @@ If REPLACE, the optional fifth argument, is non-nil, that means insert
 the output in place of text from START to END, putting point and mark
 around it.
 
-If optional fifth sixth ERROR-BUFFER is non-nil, it is a buffer
+If optional sixth argument ERROR-BUFFER is non-nil, it is a buffer
 or buffer name to which to direct the command's standard error output.
 If it is nil, error output is mingled with regular output."
   (interactive (let ((string
