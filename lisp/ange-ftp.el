@@ -4278,7 +4278,10 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (defun ange-ftp-call-chmod (args)
   (if (< (length args) 2)
       (error "ange-ftp-call-chmod: missing mode and/or filename: %s" args))
-  (let ((mode (car args)))
+  (let ((mode (car args))
+	(rest (cdr args)))
+    (if (equal "--" (car rest))
+	(setq rest (cdr rest)))
     (mapcar
      (function
       (lambda (file)
@@ -4297,7 +4300,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 		    (call-process 
 		     ange-ftp-remote-shell
 		     nil t nil host "chmod" mode name)))))))
-     (cdr args)))
+     rest))
   (setq ange-ftp-ls-cache-file nil)	;Stop confusing Dired.
   0)
 
