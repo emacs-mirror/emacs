@@ -376,16 +376,14 @@ its file name and contents.  You can specify the language with the
 
   If the tags table data become outdated due to changes in the files
 described in the table, the way to update the tags table is the same
-way it was made in the first place.  But it is not necessary to do
-this very often.
-
-  If the tags table fails to record a tag, or records it for the wrong
-file, then Emacs cannot possibly find its definition.  However, if the
+way it was made in the first place.  If the tags table fails to record
+a tag, or records it for the wrong file, then Emacs cannot possibly
+find its definition until you update the tags table.  However, if the
 position recorded in the tags table becomes a little bit wrong (due to
-some editing in the file that the tag definition is in), the only
-consequence is a slight delay in finding the tag.  Even if the stored
-position is very wrong, Emacs will still find the tag, but it must
-search the entire file for it.
+other editing), the only consequence is a slight delay in finding the
+tag.  Even if the stored position is very far wrong, Emacs will still
+find the tag, after searching most of the file for it.  Even that
+delay is hardly noticeable with today's computers.
 
   So you should update a tags table when you define new tags that you want
 to have listed, or when you move tag definitions from one file to another,
