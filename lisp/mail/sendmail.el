@@ -58,6 +58,7 @@ The headers are be delimited by a line which is `mail-header-separator'.")
 *Name of file to write all outgoing messages in, or nil for none.
 Do not use an rmail file here!  Instead, use its inbox file.")
 
+;;;###autoload
 (defvar mail-default-reply-to nil
   "*Address to insert as default Reply-to field of outgoing messages.")
 
