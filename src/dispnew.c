@@ -72,6 +72,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif
 #endif
 
+static void change_frame_size_1 ();
+
 /* Nonzero upon entry to redisplay means do not assume anything about
    current contents of actual terminal frame; clear and redraw it.  */
 
@@ -352,7 +354,7 @@ free_frame_glyphs (frame, glyphs)
   xfree (glyphs);
 }
 
-static void
+void
 remake_frame_glyphs (frame)
      FRAME_PTR frame;
 {
@@ -385,7 +387,8 @@ remake_frame_glyphs (frame)
   FRAME_CURRENT_GLYPHS (frame) = make_frame_glyphs (frame, 0);
   FRAME_DESIRED_GLYPHS (frame) = make_frame_glyphs (frame, 0);
   FRAME_TEMP_GLYPHS (frame) = make_frame_glyphs (frame, 1);
-  SET_FRAME_GARBAGED (frame);
+  if (! FRAME_TERMCAP_P (frame) || frame == selected_frame)
+    SET_FRAME_GARBAGED (frame);
 }
 
 /* Return the hash code of contents of line VPOS in frame-matrix M.  */
@@ -2027,7 +2030,26 @@ do_pending_window_change ()
    redisplay.  Since this tries to resize windows, we can't call it
    from a signal handler.  */
 
-change_frame_size (frame, newheight, newwidth, pretend, delay)
+change_frame_size (f, newheight, newwidth, pretend, delay)
+     register FRAME_PTR f;
+     int newheight, newwidth, pretend;
+{
+  Lisp_Object tail, frame;
+  if (FRAME_TERMCAP_P (f))
+    {
+      /* When using termcap, all frames use the same screen,
+	 so a change in size affects all termcap frames.  */
+      FOR_EACH_FRAME (tail, frame)
+	if (FRAME_TERMCAP_P (XFRAME (frame)))
+	  change_frame_size_1 (XFRAME (frame), newheight, newwidth,
+			       pretend, delay);
+    }
+  else
+    change_frame_size_1 (f, newheight, newwidth, pretend, delay);
+}
+
+static void
+change_frame_size_1 (frame, newheight, newwidth, pretend, delay)
      register FRAME_PTR frame;
      int newheight, newwidth, pretend;
 {
