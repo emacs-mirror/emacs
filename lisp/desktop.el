@@ -41,11 +41,10 @@
 ;;	(desktop-load-default)
 ;;	(desktop-read)
 ;;
-;; Between the second and the third line you may wish to add something that
-;; updates the variables `desktop-globals-to-save' and/or
-;; `desktop-locals-to-save'.  If for instance you want to save the local
-;; variable `foobar' for every buffer in which it is local, you could add
-;; the line
+;; Between these two lines you may wish to add something that updates the
+;; variables `desktop-globals-to-save' and/or `desktop-locals-to-save'.  If
+;; for instance you want to save the local variable `foobar' for every buffer
+;; in which it is local, you could add the line
 ;;
 ;;	(setq desktop-locals-to-save (cons 'foobar desktop-locals-to-save))
 ;;
@@ -58,8 +57,8 @@
 ;;		     (desktop-truncate regexp-search-ring 3)))
 ;;
 ;; which will make sure that no more than three search items are saved.  You
-;; must place this line *after* the (load "desktop") line.  See also the
-;; variable desktop-save-hook.
+;; must place this line *after* the `(desktop-load-default)' line.  See also
+;; the variable `desktop-save-hook'.
 
 ;; Start Emacs in the root directory of your "project". The desktop saver
 ;; is inactive by default.  You activate it by M-x desktop-save RET.  When
@@ -69,6 +68,14 @@
 ;; left them.  If you save a desktop file in your home directory it will
 ;; act as a default desktop when you start Emacs from a directory that
 ;; doesn't have its own.  I never do this, but you may want to.
+
+;; Some words on minor modes: Most minor modes are controlled by
+;; buffer-local variables, which have a standard save / restore
+;; mechanism.  To handle all minor modes, we take the following
+;; approach: (1) check whether the variable name from
+;; `minor-mode-alist' is also a function; and (2) use translation
+;; table `desktop-minor-mode-table' in the case where the two names
+;; are not the same.
 
 ;; By the way: don't use desktop.el to customize Emacs -- the file .emacs
 ;; in your home directory is used for that.  Saving global default values
@@ -216,6 +223,20 @@ If the function returns t then the buffer is considered created."
   "Hook run before desktop saves the state of Emacs.
 This is useful for truncating history lists, for example."
   :type 'hook
+  :group 'desktop)
+
+(defcustom desktop-minor-mode-table
+  '((auto-fill-function auto-fill-mode)
+    (vc-mode nil))
+  "Table mapping minor mode variables to minor mode functions.
+Each entry has the form (NAME RESTORE-FUNCTION).
+NAME is the name of the buffer-local variable indicating that the minor
+mode is active.  RESTORE-FUNCTION is the function to activate the minor mode.
+called.  RESTORE-FUNCTION nil means don't try to restore the minor mode.
+Only minor modes for which the name of the buffer-local variable
+and the name of the minor mode function are different have to added to
+this table."
+  :type 'sexp
   :group 'desktop)
 
 ;; ----------------------------------------------------------------------------
@@ -394,7 +415,7 @@ which means to truncate VAR's value to at most MAX-SIZE elements
 	  (if (and (integerp size)
 		   (> size 0)
 		   (listp (eval var)))
-	      (desktop-truncate (eval var) size)) 
+	      (desktop-truncate (eval var) size))
 	  (insert "(setq "
 		  (symbol-name var)
 		  " "
@@ -426,14 +447,26 @@ MODE is the major mode."
 		     (concat dirname desktop-basefilename)))
 	  (info (nreverse
 		 (mapcar
-		  (function (lambda (b)
+		  (function
+		   (lambda (b)
 			      (set-buffer b)
 			      (list
 			       (buffer-file-name)
 			       (buffer-name)
 			       major-mode
-			       (list	; list explaining minor modes
-				(not (null auto-fill-function)))
+			       ;; minor modes
+			       (let (ret)
+				 (mapcar
+				  #'(lambda (mim)
+				      (and (symbol-value mim)
+					   (setq ret
+						 (cons (let ((special (assq mim desktop-minor-mode-table)))
+							(if special
+							    (cadr special)
+							  mim))
+						      ret))))
+				  (mapcar #'car minor-mode-alist))
+				 ret)
 			       (point)
 			       (list (mark t) mark-active)
 			       buffer-read-only
@@ -589,7 +622,8 @@ to provide correct modes for autoloaded files."
 ;; only.
 (defun desktop-create-buffer (ver desktop-buffer-file-name desktop-buffer-name
 				  desktop-buffer-major-mode
-				  mim pt mk ro desktop-buffer-misc &optional locals)
+				  mim pt mk ro desktop-buffer-misc
+				  &optional locals)
   (let ((hlist desktop-buffer-handlers)
 	(result)
 	(handler))
@@ -601,7 +635,12 @@ to provide correct modes for autoloaded files."
       (set-buffer result)
       (if (not (equal (buffer-name) desktop-buffer-name))
 	  (rename-buffer desktop-buffer-name))
-      (auto-fill-mode (if (nth 0 mim) 1 0))
+      ;; minor modes
+      (cond ((equal '(t) mim)   (auto-fill-mode 1))	; backwards compatible
+	    ((equal '(nil) mim) (auto-fill-mode 0))
+	    (t (mapcar #'(lambda (minor-mode)
+			   (when minor-mode (funcall minor-mode 1)))
+			   mim)))
       (goto-char pt)
       (if (consp mk)
 	  (progn
