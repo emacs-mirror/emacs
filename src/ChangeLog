@@ -1,3 +1,7 @@
+2001-01-20  Kenichi Handa  <handa@etl.go.jp>
+
+	* editfns.c (Fformat): Use lisp_string_width instead of strwidth.
+
 2001-01-19  Andrew Innes  <andrewi@gnu.org>
 
 	* w32.c (init_environment): Add a version-independent site-lisp
