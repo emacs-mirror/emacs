@@ -2396,12 +2396,15 @@ This hook doesn't let you change the behavior of Emacs's selection replies,\n\
 it merely informs you that they have happened.");
   Vx_sent_selection_hooks = Qnil;
 
+  Qcompound_text_with_extensions = intern ("compound-text-with-extensions");
+  staticpro (&Qcompound_text_with_extensions);
+
   DEFVAR_LISP ("selection-coding-system", &Vselection_coding_system,
     "Coding system for communicating with other X clients.\n\
 When sending or receiving text via cut_buffer, selection, and clipboard,\n\
 the text is encoded or decoded by this coding system.\n\
 The default value is `compound-text'.");
-  Vselection_coding_system = intern ("compound-text");
+  Vselection_coding_system = Qcompound_text_with_extensions;
 
   DEFVAR_LISP ("next-selection-coding-system", &Vnext_selection_coding_system,
     "Coding system for the next communication with other X clients.\n\
@@ -2435,8 +2438,6 @@ A value of 0 means wait as long as necessary.  This is initialized from the\n\
   QATOM	     = intern ("ATOM");		staticpro (&QATOM);
   QATOM_PAIR = intern ("ATOM_PAIR");	staticpro (&QATOM_PAIR);
   QNULL	     = intern ("NULL");		staticpro (&QNULL);
-  Qcompound_text_with_extensions = intern ("compound-text-with-extensions");
-  staticpro (&Qcompound_text_with_extensions);
 
 #ifdef CUT_BUFFER_SUPPORT
   QCUT_BUFFER0 = intern ("CUT_BUFFER0"); staticpro (&QCUT_BUFFER0);
