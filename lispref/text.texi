@@ -301,7 +301,9 @@ unless all @var{args} are either strings or characters.  The value is
 
 This function is unlike the other insertion functions in that it
 relocates markers initially pointing at the insertion point, to point
-after the inserted text.
+after the inserted text.  If an overlat begins the insertion point, the
+inserted text falls outside the overlay; if a nonempty overlay ends at
+the insertion point, the inserted text falls inside that overlay.
 @end defun
 
 @defun insert-char character count &optional inherit
