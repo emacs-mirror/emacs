@@ -2041,7 +2041,7 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
 #endif /* 0 */
 	  Lisp_Object path;
 	  openp (Vexec_path, build_string (newargv[0]), EXEC_SUFFIXES, &path,
-		 1);
+		 make_number (X_OK));
 
 	  if (NILP (path))
 	    return -1;
