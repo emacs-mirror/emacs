@@ -1,3 +1,20 @@
+2002-07-31  Dave Love  <fx@gnu.org>
+
+	* config.in: Generated with autoheader.
+
+	* xfns.c [HAVE_STDLIB_H]: Change logic (instead of fixing typo).
+
+	* m/sparc.h (HAVE_ALLOCA): Delete.
+
+	* s/irix6-5.h: Don't include strings.h.
+	(bcopy, bzero, bcmp): Don't undef.
+
+	* s/irix6-0.h (bcopy, bzero, bcmp): Don't undef.
+
+	* s/usg5-4.h (NO_SIOCTL_H): Don't define.
+	(TIOCSIGSEND): Don't test IRIX6.
+	(bcopy, bzero, bcmp): Define conditionally.
+
 2002-07-31  Kenichi Handa  <handa@etl.go.jp>
 
 	* buffer.c (Qas, Qmake, Qto): New variables.

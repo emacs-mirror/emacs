@@ -1,3 +1,15 @@
+2002-07-31  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (leim): Don't put PARALLEL in environment.
+	($(srcdir)/src/config.in, $(srcdir)/src/stamp-h.in): New.
+	(install-arch-indep, install-arch-indep): Merge changes from
+	trunk.
+
+	* configure.in: Require autoconf 2.53.  Merge changes from trunk.
+	Test for sys/mman.h, sys/param.h
+	(AC_PROG_YACC): Deleted.
+	(AH_BOTTOM): Maybe include strings.h.
+
 2002-06-11  Dave Love  <fx@gnu.org>
 
 	* configure.in: Check for pty.h.  Check for correct libungif.
