@@ -1,3 +1,7 @@
+2005-04-01  Richard M. Stallman  <rms@gnu.org>
+
+	* nonascii.texi (Coding System Basics): Clarify previous change.
+
 2005-04-01  Kenichi Handa  <handa@m17n.org>
 
 	* nonascii.texi (Coding System Basics): Describe about rondtrip
