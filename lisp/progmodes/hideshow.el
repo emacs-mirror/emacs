@@ -72,6 +72,7 @@
 
 (defgroup hideshow nil
   "Minor mode for hiding and showing program and comment blocks."
+  :prefix "hs-"
   :group 'languages)
 
 ;;;#autoload
@@ -124,6 +125,20 @@ you do `hs-show-block'."
 A good value for this would be `hs-hide-initial-comment-block' to
 hide all the comments at the beginning of the file."
   :type 'integer
+  :group 'hideshow)
+
+(defcustom hs-isearch-open 'block
+"What kind of hidden blocks to open when doing `isearch'.
+It can have the following values:
+    `block'     open only  blocks
+    `comment'   open only comments
+    t           open all of them
+    nil         don't open any.
+This only has effect iff `search-invisible' is set to `open'."
+  :type '(choice (const :tag "open only  blocks" block)
+	         (const :tag "open only comments" comment)
+	         (const :tag "open both blocks and comments" t)
+	         (const :tag "don't open any of them" nil))
   :group 'hideshow)
 
 (defvar hs-unbalance-handler-method 'top-level
@@ -286,8 +301,10 @@ See `hs-c-like-adjust-block-beginning' for an example of using this.")
 
 ;; snarfed from outline.el;
 (defun hs-flag-region (from to flag)
-  "Hides or shows lines from FROM to TO, according to FLAG.
-If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
+  "Hides or shows lines from FROM to TO, according to FLAG.  If FLAG
+is nil then text is shown, while if FLAG is non-nil the text is
+hidden. Actualy flag is realy either `comment' or `block' depending on
+what kind of block it is suppose to hide."
     (save-excursion
       (goto-char from)
       (end-of-line)
@@ -297,7 +314,17 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
 	    ;; Make overlay hidden and intangible.
 	    (overlay-put overlay 'invisible 'hs)
 	    (overlay-put overlay 'hs t)
+	    (when (or (eq hs-isearch-open t) (eq hs-isearch-open flag)) 
+		(overlay-put overlay 'isearch-open-invisible 
+			     'hs-isearch-open-invisible))
 	    (overlay-put overlay 'intangible t)))))
+
+;; This is set as an `isearch-open-invisible' property to hidden
+;; overlays.
+(defun hs-isearch-open-invisible (ov)
+  (save-excursion
+    (goto-char (overlay-start ov))
+    (hs-show-block)))
 
 ;; Remove from the region BEG ... END all overlays
 ;; with a PROP property equal to VALUE.
@@ -326,7 +353,7 @@ of the comment, or nil if the block is not a comment."
 	(goto-char (nth 1 comment-reg))
 	(unless hs-show-hidden-short-form (forward-line -1))
 	(end-of-line)
-	(hs-flag-region (car comment-reg)  (point) t) 
+	(hs-flag-region (car comment-reg)  (point) 'comment) 
 	(goto-char (if end (nth 1 comment-reg) (car comment-reg))))
       (if (looking-at hs-block-start-regexp)
 	  (let* ((p ;; p is the point at the end of the block beginning
@@ -342,7 +369,7 @@ of the comment, or nil if the block is not a comment."
 	    (end-of-line)
 	    (if (and (< p (point)) (> (count-lines p q) 
 				      (if hs-show-hidden-short-form 1 2)))
-		(hs-flag-region p (point) t))
+		(hs-flag-region p (point) 'block))
 	    (goto-char (if end q p))))))
 
 (defun hs-show-block-at-point (&optional end comment-reg)
