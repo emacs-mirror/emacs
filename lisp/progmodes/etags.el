@@ -1075,11 +1075,12 @@ See documentation of variable `tags-file-name'."
 ;; a search window which expands until it hits the start of file.
 (defun etags-goto-tag-location (tag-info)
   (let ((startpos (cdr (cdr tag-info)))
+	(line (car (cdr tag-info)))
 	offset found pat)
     (if (eq (car tag-info) t)
 	;; Direct file tag.
 	(cond (line (goto-line line))
-	      (position (goto-char position))
+	      (startpos (goto-char startpos))
 	      (t (error "etags.el BUG: bogus direct file tag")))
       ;; This constant is 1/2 the initial search window.
       ;; There is no sense in making it too small,
@@ -1095,8 +1096,8 @@ See documentation of variable `tags-file-name'."
       (if startpos (setq startpos (1+ startpos)))
       ;; If no char pos was given, try the given line number.
       (or startpos
-	  (if (car (cdr tag-info))
-	      (setq startpos (progn (goto-line (car (cdr tag-info)))
+	  (if line
+	      (setq startpos (progn (goto-line line)
 				    (point)))))
       (or startpos
 	  (setq startpos (point-min)))
@@ -1234,12 +1235,12 @@ See documentation of variable `tags-file-name'."
 ;; point should be just after a string that matches TAG.
 (defun tag-word-match-p (tag)
   (and (looking-at "\\b.*\177")
-       (save-excursion (backward-char (1+ (length tag)))
+       (save-excursion (backward-char (length tag))
 		       (looking-at "\\b"))))
 
 (defun tag-exact-file-name-match-p (tag)
   (and (looking-at ",")
-       (save-excursion (backward-char (1+ (length tag)))
+       (save-excursion (backward-char (length tag)))
 		       (looking-at "\f\n"))))
 
 ;; t if point is in a tag line with a tag containing TAG as a substring.
