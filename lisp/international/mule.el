@@ -58,13 +58,10 @@ Return t if file exists."
 	      ;; This is buffer-local.
 	      (setq enable-multibyte-characters t)
 	      (insert-file-contents fullname)
-	      ;; We must set `buffer-file-name' for `eval-buffer' and
-	      ;; `load-history'.
-	      (setq buffer-file-name file)
 	      ;; Make `kill-buffer' quiet.
 	      (set-buffer-modified-p nil))
 	    ;; Eval in the original buffer.
-	    (eval-buffer buffer))
+	    (eval-buffer buffer nil file))
 	(let (kill-buffer-hook kill-buffer-query-functions)
 	  (kill-buffer buffer)))
       (let ((hook (assoc file after-load-alist)))
