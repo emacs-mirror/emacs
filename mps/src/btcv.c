@@ -1,6 +1,6 @@
 /*  impl.c.btss: BIT TABLE COVERAGE TEST
  *
- *  $HopeName: MMsrc!btcv.c(trunk.2) $
+ *  $HopeName: MMsrc!btcv.c(trunk.3) $
  * Copyright (C) 2000 Harlequin Ltd.  All rights reserved.
  *
  * .readership: MPS developers
@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-SRCID(btcv, "$HopeName: MMsrc!btcv.c(trunk.2) $");
+SRCID(btcv, "$HopeName: MMsrc!btcv.c(trunk.3) $");
 
 
 static void die_bool(Bool res, Bool expected, const char *s)
@@ -477,35 +477,34 @@ static void btCopyTests(BT bt1, BT bt2, Count btSize,
     for (l = maxLimit; l >= limit-1; l--) {
       /* initialize a table which is all reset apart from a set bit */
       /* near each of the base and limit of the range in question */
+      Bool outside; /* true if set bits are both outside test range */
 
+      outside = (b < base) && (l > limit); 
       BTResRange(bt1, 0, btSize);
       BTSet(bt1, b);
       BTSet(bt1, l - 1);
 
       /* check copying the region to the bottom of the other table */
-      BTCopyOffsetRange(bt1, bt2, b, l, 0, l - b);
-      die_bool(BTGet(bt2, 0), TRUE, "BTGet");
-      die_bool(BTGet(bt2, l - b - 1), TRUE, "BTGet");
-      BTRes(bt2, 0);
-      BTRes(bt2, l - b - 1);
-      die_bool(BTIsResRange(bt2, 0, l - b), TRUE, "BTIsResRange");
+      BTCopyOffsetRange(bt1, bt2, base, limit, 0, limit - base);
+      die_bool(BTIsResRange(bt2, 0, limit - base), outside, "BTIsResRange");
 
       /* check copying the region to the top of the other table */
-      BTCopyOffsetRange(bt1, bt2, b, l, btSize + b - l, btSize);
-      die_bool(BTGet(bt2, btSize - 1), TRUE, "BTGet");
-      die_bool(BTGet(bt2, btSize + b - l), TRUE, "BTGet");
-      BTRes(bt2, btSize - 1);
-      BTRes(bt2, btSize + b - l);
-      die_bool(BTIsResRange(bt2, btSize + b - l, btSize), TRUE, 
+      BTCopyOffsetRange(bt1, bt2, 
+                        base, limit, btSize + base - limit, btSize);
+      die_bool(BTIsResRange(bt2, btSize + base - limit, btSize), outside, 
                "BTIsResRange");
 
-      /* copy the whole table and check its the same */
-      BTCopyRange(bt1, bt2, 0, btSize);
+      /* check copying the region to the same place in the other table */
+      BTCopyOffsetRange(bt1, bt2, base, limit, base, limit);
+      die_bool(BTIsResRange(bt2, base, limit), outside, "BTIsResRange");
+
+      /* copy the range and check its the same */
+      BTCopyRange(bt1, bt2, base, limit);
       die_bool(BTRangesSame(bt1, bt2, base, limit), TRUE, "BTRangeSame");
 
-      /* invert the table, then copy it all and check it again */
+      /* invert the table, then copy it and check it again */
       BTCopyInvertRange(bt2, bt1, 0, btSize);
-      BTCopyRange(bt1, bt2, 0, btSize);
+      BTCopyRange(bt1, bt2, base, limit);
       die_bool(BTRangesSame(bt1, bt2, base, limit), TRUE, "BTRangeSame");
     }
   }
