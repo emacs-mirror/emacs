@@ -1,6 +1,6 @@
 /* impl.c.poolamc: AUTOMATIC MOSTLY-COPYING MEMORY POOL CLASS
  *
- * $HopeName: MMsrc!poolamc.c(trunk.2) $
+ * $HopeName: MMsrc!poolamc.c(trunk.3) $
  * Copyright (C) 1995,1997,1998 Harlequin Group plc, all rights reserved
  *
  * .sources: design.mps.poolamc.
@@ -10,7 +10,7 @@
 #include "amc.h"
 #include "mpscamc.h"
 
-SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.2) $");
+SRCID(poolamc, "$HopeName: MMsrc!poolamc.c(trunk.3) $");
 
 
 /* PType enumeration -- distinguishes AMCGen and AMCNailBoard */
@@ -1485,6 +1485,7 @@ static PoolClassStruct PoolClassAMCStruct = {
   AMCBufferEmpty,                       /* bufferEmpty */
   PoolTrivBufferFinish,                 /* bufferFinish */
   PoolTrivTraceBegin,                   /* traceBegin */
+  PoolSegAccess,                        /* access */
   AMCWhiten,                            /* whiten */
   PoolTrivGrey,                         /* grey */
   PoolTrivBlacken,                      /* blacken */
@@ -1518,6 +1519,7 @@ static PoolClassStruct PoolClassAMCZStruct = {
   AMCBufferEmpty,                       /* bufferEmpty */
   PoolTrivBufferFinish,                 /* bufferFinish */
   PoolTrivTraceBegin,                   /* traceBegin */
+  PoolSegAccess,                        /* access */
   AMCWhiten,                            /* whiten */
   PoolNoGrey,                           /* grey */
   PoolTrivBlacken,                      /* blacken */

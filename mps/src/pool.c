@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.45) $
+ * $HopeName: MMsrc!pool.c(trunk.46) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is the implementation of the generic pool interface.  The
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.45) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.46) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -680,6 +680,30 @@ Res PoolTrivTraceBegin(Pool pool, Trace trace)
   AVERT(Trace, trace);
   AVER(PoolArena(pool) == trace->arena);
   return ResOK;
+}
+
+Res PoolNoAccess(Pool pool, Seg seg, Addr addr, AccessSet mode)
+{
+  AVERT(Pool, pool);
+  AVERT(Seg, seg);
+  AVER(SegBase(seg) <= addr);
+  AVER(addr < SegLimit(seg));
+  /* can't check AccessSet as there is no Check method */
+
+  NOTREACHED;
+  return ResUNIMPL;
+}
+
+Res PoolSegAccess(Pool pool, Seg seg, Addr addr, AccessSet mode)
+{
+  AVERT(Pool, pool);
+  AVERT(Seg, seg);
+  AVER(SegBase(seg) <= addr);
+  AVER(addr < SegLimit(seg));
+  /* can't check AccessSet as there is no Check method */
+
+  NOTREACHED;
+  return ResUNIMPL;
 }
 
 Res PoolTrivWhiten(Pool pool, Trace trace, Seg seg)

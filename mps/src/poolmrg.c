@@ -2,7 +2,7 @@
  * 
  * MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.25) $
+ * $HopeName: MMsrc!poolmrg.c(trunk.26) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -36,7 +36,7 @@
 #include "mpm.h"
 #include "poolmrg.h"
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.25) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.26) $");
 
 
 /* Types */
@@ -702,6 +702,7 @@ static PoolClassStruct PoolClassMRGStruct = {
   PoolNoBufferEmpty,
   PoolNoBufferFinish,
   PoolNoTraceBegin,
+  PoolNoAccess,
   PoolNoWhiten,
   PoolTrivGrey,
   PoolTrivBlacken,

@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.77) $
+ * $HopeName: MMsrc!mpm.h(trunk.78) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  */
 
@@ -312,6 +312,8 @@ extern Res PoolNoDescribe(Pool pool, mps_lib_FILE *stream);
 extern Res PoolTrivDescribe(Pool pool, mps_lib_FILE *stream);
 extern Res PoolNoTraceBegin(Pool pool, Trace trace);
 extern Res PoolTrivTraceBegin(Pool pool, Trace trace);
+extern Res PoolNoAccess(Pool pool, Seg seg, Addr addr, AccessSet mode);
+extern Res PoolSegAccess(Pool pool, Seg seg, Addr addr, AccessSet mode);
 extern Res PoolNoWhiten(Pool pool, Trace trace, Seg seg);
 extern Res PoolTrivWhiten(Pool pool, Trace trace, Seg seg);
 extern void PoolNoGrey(Pool pool, Trace trace, Seg seg);
