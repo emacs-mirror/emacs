@@ -887,7 +887,14 @@ recognize the default bindings, just as `read-key-sequence' does.")
 
   GCPRO1 (key);
 
-  if (!NILP (Voverriding_local_map))
+  if (!NILP (current_kboard->Voverriding_terminal_local_map))
+    {
+      value = Flookup_key (current_kboard->Voverriding_terminal_local_map,
+			   key, accept_default);
+      if (! NILP (value) && !INTEGERP (value))
+	RETURN_UNGCPRO (value);
+    }
+  else if (!NILP (Voverriding_local_map))
     {
       value = Flookup_key (Voverriding_local_map, key, accept_default);
       if (! NILP (value) && !INTEGERP (value))
@@ -1843,7 +1850,8 @@ nominal         alternate\n\
     /* Temporarily switch to descbuf, so that we can get that buffer's
        minor modes correctly.  */
     Fset_buffer (descbuf);
-    if (!NILP (Voverriding_local_map))
+    if (!NILP (current_kboard->Voverriding_terminal_local_map)
+	|| !NILP (Voverriding_local_map))
       nmaps = 0;
     else
       nmaps = current_minor_maps (&modes, &maps);
@@ -1877,7 +1885,9 @@ nominal         alternate\n\
   }
 
   /* Print the (major mode) local map.  */
-  if (!NILP (Voverriding_local_map))
+  if (!NILP (current_kboard->Voverriding_terminal_local_map))
+    start1 = current_kboard->Voverriding_terminal_local_map;
+  else if (!NILP (Voverriding_local_map))
     start1 = Voverriding_local_map;
   else
     start1 = XBUFFER (descbuf)->keymap;
