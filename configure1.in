@@ -922,7 +922,7 @@ case "${window_system}" in
     fi
   ;;
   * )
-    echo "Don\'t specify the window system more than once." >&2
+    echo "Don't specify the window system more than once." >&2
     exit 1
   ;;
 esac
