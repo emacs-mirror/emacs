@@ -204,7 +204,7 @@ struct buffer
     Lisp_Object filename;
     /* Dir for expanding relative pathnames */
     Lisp_Object directory;
-    /* true iff this buffer has been been backed
+    /* true iff this buffer has been backed
        up (if you write to its associated file
        and it hasn't been backed up, then a
        backup will be made) */

@@ -102,8 +102,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define Color XColor
 
 #define XExposeRegionEvent XExposeEvent
-#define Bitmap Pixmap			/* In X11, Bitmaps are are kind of
-					   Pixmap. */
+#define Bitmap Pixmap			/* In X11, Bitmaps are a kind of
+					   Pixmap.  */
 #define WINDOWINFO_TYPE XWindowAttributes
 #define XGetWindowInfo(w, i) XGetWindowAttributes (x_current_display, \
 						   (w), (i))
