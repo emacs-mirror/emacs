@@ -1,3 +1,7 @@
+2003-02-24  Ken Manheimer  <klm@zope.com>
+
+	* allout.el (allout-pre-command-business): Fix docstring.
+
 2003-02-24  Ramakrishnan M  <rama@gnu.org>  (tiny change)
 
 	* language/mlm-util.el (mlm-char-glyph): Fix several composing
@@ -25,7 +29,7 @@
 
 	* replace.el (query-replace-read-args): Return just 3 values.
 	(query-replace, query-replace-regexp)
-	(query-replace-regexp-eval, map-query-replace-regexp) 
+	(query-replace-regexp-eval, map-query-replace-regexp)
 	(replace-string, replace-regexp): Read the start and end args
 	separately so that the expressions are recorded in command-history.
 
