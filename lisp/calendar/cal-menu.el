@@ -90,6 +90,12 @@
   '("Unmark" . calendar-unmark))
 (define-key calendar-mode-map [menu-bar holidays mark]
   '("Mark" . mark-calendar-holidays))
+(define-key calendar-mode-map [menu-bar holidays previous-year]
+  '("Previous year" . cal-menu-list-holidays-previous-year))
+(define-key calendar-mode-map [menu-bar holidays following-year]
+  '("Following year" . cal-menu-list-holidays-following-year))
+(define-key calendar-mode-map [menu-bar holidays year]
+  '("Year" . cal-menu-list-holidays-year))
 (define-key calendar-mode-map [menu-bar holidays 3-mon]
   '("3 Months" . list-calendar-holidays))
 (define-key calendar-mode-map [menu-bar holidays 1-day]
@@ -166,6 +172,24 @@
   '("Forward 3 Months" . scroll-calendar-left-three-months))
 (define-key calendar-mode-map [menu-bar scroll fwd-1]
   '("Forward 1 Month" . scroll-calendar-left))
+
+(defun cal-menu-list-holidays-year ()
+  "Display a list of the holidays of the selected date's year."
+  (interactive)
+  (let ((year (extract-calendar-year (calendar-cursor-to-date))))
+    (list-holidays year year)))
+
+(defun cal-menu-list-holidays-following-year ()
+  "Display a list of the holidays of the following year."
+  (interactive)
+  (let ((year (1+ (extract-calendar-year (calendar-cursor-to-date)))))
+    (list-holidays year year)))
+
+(defun cal-menu-list-holidays-previous-year ()
+  "Display a list of the holidays of the previous year."
+  (interactive)
+  (let ((year (1- (extract-calendar-year (calendar-cursor-to-date)))))
+    (list-holidays year year)))
 
 (defun calendar-event-to-date (&optional error)
   "Date of last event.
