@@ -4272,8 +4272,10 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      }
             else if ((re_opcode_t) *p2 == charset)
 	      {
+#ifdef DEBUG
 		register unsigned char c
                   = *p2 == (unsigned char) endline ? '\n' : p2[2];
+#endif
 
                 if ((re_opcode_t) p1[3] == exactn
 		    && ! (p2[1] * BYTEWIDTH > p1[4]
