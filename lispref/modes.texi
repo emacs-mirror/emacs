@@ -2105,9 +2105,9 @@ which construct their text programmatically, such as
 If your mode does not use any of the other machinery of Font Lock
 (i.e. it only uses the @code{font-lock-face} property), you can tell
 Emacs not to load all of font-lock.el (unless it's already loaded), by
-setting the variable @code{font-lock-core-only} to non-nil as part of
-the @code{font-lock-defaults} settings.  Here is the canonical way to
-do this:
+setting the variable @code{font-lock-core-only} to non-@code{nil} as
+part of the @code{font-lock-defaults} settings.  Here is the canonical
+way to do this:
 
 @example
 (set (make-local-variable 'font-lock-defaults)

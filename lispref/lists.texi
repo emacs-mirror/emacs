@@ -384,11 +384,11 @@ If @var{n} is zero or negative, @code{nthcdr} returns all of
 @end defun
 
 @defun last list &optional n
-This function returns the last link of @var{list}.  The
-@code{car} of this link is the list's last element.  If @var{list} is
-null, @code{nil} is returned.  If @var{n} is non-nil the
-@var{n}-th-to-last link is returned instead, or the whole @var{list} if
-@var{n} is bigger than @var{list}'s length.
+This function returns the last link of @var{list}.  The @code{car} of
+this link is the list's last element.  If @var{list} is null,
+@code{nil} is returned.  If @var{n} is non-@code{nil}, the
+@var{n}th-to-last link is returned instead, or the whole of @var{list}
+if @var{n} is bigger than @var{list}'s length.
 @end defun
 
 @defun safe-length list

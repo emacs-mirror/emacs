@@ -273,8 +273,8 @@ text representations.
      @result{} t
 @end example
 
-If the optional argument @var{genericp} is non-nil, this function
-returns @code{t} if @var{charcode} is a generic character
+If the optional argument @var{genericp} is non-@code{nil}, this
+function returns @code{t} if @var{charcode} is a generic character
 (@pxref{Splitting Characters}).
 @end defun
 

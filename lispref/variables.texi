@@ -576,11 +576,12 @@ this feature is largely obsoleted by @code{defcustom}
 (@pxref{Customization}).
 
   @strong{Warning:} If the @code{defconst} and @code{defvar} special
-forms are used while the variable has a local binding, they set the
-local binding's value; the global binding is not changed.  This is not
-what you usually want.  To prevent it, use these special forms at top
-level in a file, where normally no local binding is in effect, and make
-sure to load the file before making a local binding for the variable.
+forms are used while the variable has a local binding (made with
+@code{let}, or a function argument), they set the local-binding's
+value; the top-level binding is not changed.  This is not what you
+usually want.  To prevent it, use these special forms at top level in
+a file, where normally no local binding is in effect, and make sure to
+load the file before making a local binding for the variable.
 
 @node Tips for Defining
 @section Tips for Defining Variables Robustly
@@ -1749,7 +1750,8 @@ for one of these variables is ignored.
 @end defvar
 
 @defun risky-local-variable-p sym
-Returns non-nil if @var{sym} is risky for any of the reasons stated above.
+Returns non-@code{nil} if @var{sym} is risky for any of the reasons
+stated above.
 @end defun
 
   The @samp{Eval:} ``variable'' is also a potential loophole, so Emacs

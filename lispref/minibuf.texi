@@ -184,12 +184,12 @@ arguments @var{prompt} and @var{initial} are used as in
 @code{read-from-minibuffer}.  The keymap used is
 @code{minibuffer-local-map}.
 
-The optional argument @var{history}, if non-nil, specifies a history
-list and optionally the initial position in the list.  The optional
-argument @var{default} specifies a default value to return if the user
-enters null input; it should be a string.  The optional argument
-@var{inherit-input-method} specifies whether to inherit the current
-buffer's input method.
+The optional argument @var{history}, if non-@code{nil}, specifies a
+history list and optionally the initial position in the list.  The
+optional argument @var{default} specifies a default value to return if
+the user enters null input; it should be a string.  The optional
+argument @var{inherit-input-method} specifies whether to inherit the
+current buffer's input method.
 
 This function is a simplified interface to the
 @code{read-from-minibuffer} function:
