@@ -1,3 +1,8 @@
+2001-10-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* help.el (help-for-help): Doc fix.  From Pavel@Janik.cz (Pavel
+	Janik).
+
 2001-09-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* frame.el (select-frame-by-name, other-frame): Doc fix.
