@@ -1511,9 +1511,20 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
 	  curlevel->prev = curlevel->last;
 	  break;
 
+	startincomment:
+	  if (commentstop)
+	    goto done;
+	  if (from != BEGV)
+	    {
+	      /* Enter the loop in the middle so that we find
+		 a 2-char comment ender if we start in the middle of it.  */
+	      prev = FETCH_CHAR (from - 1);
+	      goto startincomment_1;
+	    }
+	  /* At beginning of buffer, enter the loop the ordinary way.  */
+
 	case Scomment:
 	  state.incomment = 1;
-	startincomment:
 	  if (commentstop)
 	    goto done;
 	  while (1)
@@ -1527,6 +1538,7 @@ scan_sexps_forward (stateptr, from, end, targetdepth,
 		   encountered.  */
 		break;
 	      from++;
+	    startincomment_1:
 	      if (from < end && SYNTAX_COMEND_FIRST (prev)
 		  && SYNTAX_COMEND_SECOND (FETCH_CHAR (from))
 		  && SYNTAX_COMMENT_STYLE (prev) == state.comstyle)
