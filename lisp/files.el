@@ -740,14 +740,16 @@ The buffer is not selected, just returned to the caller."
 	  (after-find-file error (not nowarn))))
       buf)))
 
-(defun after-find-file (&optional error warn noauto from-revert-buffer)
+(defun after-find-file (&optional error warn noauto
+				  after-find-file-from-revert-buffer)
   "Called after finding a file and by the default revert function.
 Sets buffer mode, parses local variables.
 Optional args ERROR, WARN, and NOAUTO: ERROR non-nil means there was an
 error in reading the file.  WARN non-nil means warn if there
 exists an auto-save file more recent than the visited file.
 NOAUTO means don't mess with auto-save mode.
-FROM-REVERT-BUFFER means this call was from `revert-buffer'.
+Fourth arg AFTER-FIND-FILE-FROM-REVERT-BUFFER non-nil
+ means this call was from `revert-buffer'.
 Finishes by calling the functions in `find-file-hooks'."
   (setq buffer-read-only (not (file-writable-p buffer-file-name)))
   (if noninteractive
