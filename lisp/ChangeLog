@@ -1,3 +1,9 @@
+2001-01-19  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mail/emacsbug.el (report-emacs-bug): Report values of
+	locale-coding-system, default-enable-multibyte-characters, and the
+	environment variables LC_ALL, LC_TYPE, and LANG.
+
 2001-01-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* font-lock.el (font-lock-default-fontify-region): Fix last
