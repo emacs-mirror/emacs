@@ -522,12 +522,21 @@ command again."
 ;;; All the commands that mung the buffer's dirstack finish by calling
 ;;; this guy.
 (defun shell-dirstack-message ()
-  (let ((msg "")
-	(ds (cons default-directory shell-dirstack)))
+  (let* ((msg "")
+	 (ds (cons default-directory shell-dirstack))
+	 (home (expand-file-name (concat comint-filename-prefix "~/")))
+	 (homelen (length home)))
     (while ds
       (let ((dir (car ds)))
-	(if (string-match (format "^%s\\(/\\|$\\)" (getenv "HOME")) dir)
-	    (setq dir (concat "~/" (substring dir (match-end 0)))))
+	(and (>= (length dir) homelen) (string= home (substring dir 0 homelen))
+	    (setq dir (concat "~/" (substring dir homelen))))
+	;; Strip off comint-filename-prefix if present.
+	(and comint-filename-prefix
+	     (>= (length dir) (length comint-filename-prefix))
+	     (string= comint-filename-prefix
+		      (substring dir 0 (length comint-filename-prefix)))
+	     (setq dir (substring dir (length comint-filename-prefix)))
+	     (setcar ds dir))
 	(if (string-equal dir "~/") (setq dir "~"))
 	(setq msg (concat msg dir " "))
 	(setq ds (cdr ds))))
