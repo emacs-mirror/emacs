@@ -2086,6 +2086,7 @@ and `list-directory-verbose-switches'."
 (defun insert-directory (file switches &optional wildcard full-directory-p)
   "Insert directory listing for FILE, formatted according to SWITCHES.
 Leaves point after the inserted text.
+SWITCHES may be a string of options, or a list of strings.
 Optional third arg WILDCARD means treat FILE as shell wildcard.
 Optional fourth arg FULL-DIRECTORY-P means file is a directory and
 switches do not contain `d', so that a full listing is expected.
@@ -2122,14 +2123,31 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 		      beg (1+ (match-end 0))))
 	      (call-process shell-file-name nil t nil
 			    "-c" (concat insert-directory-program
-					 " -d " switches " "
+					 " -d "
+					 (if (stringp switches)
+					     switches
+					   (mapconcat 'identity switches " ")
+					 " "
 					 pattern)))
 	  ;; SunOS 4.1.3, SVr4 and others need the "." to list the
 	  ;; directory if FILE is a symbolic link.
-	  (call-process insert-directory-program nil t nil switches
-			(if full-directory-p
-			    (concat (file-name-as-directory file) ".")
-			  file)))))))
+	  (apply 'call-process
+		 insert-directory-program nil t nil
+		 (let (list)
+		   (if (consp switches)
+		       (setq list switches)
+		     ;; Split the switches at any spaces
+		     ;; so we can pass separate options as separate args.
+		     (while (string-match " " switches)
+		       (setq list (cons (substring switches 0 (match-beginning 0))
+					list)
+			     switches (substring switches (match-end 0))))
+		     (setq list (cons switches list)))
+		   (append list
+			   (list
+			    (if full-directory-p
+				(concat (file-name-as-directory file) ".")
+			      file))))))))))
 
 (defvar kill-emacs-query-functions nil
   "Functions to call with no arguments to query about killing Emacs.
