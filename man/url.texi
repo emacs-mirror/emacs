@@ -1,5 +1,5 @@
 \input texinfo
-@setfilename url.info
+@setfilename ../info/url
 @settitle URL Programmer's Manual
 
 @iftex
@@ -113,10 +113,6 @@ port (e.g.@: an HTTP URL specifying the SMTP port can cause mail to be
 sent).@c , but @xref{Other Variables, url-bad-port-list}.
 The meaning of
 the @var{path} component depends on the service.
-
-The library depends on MIME support provided by the @samp{mm-}
-packages from Gnus 5.8 or later.  @xref{(emacs-mime)Top, The MIME
-library}.
 
 @menu
 * Configuration::               
@@ -388,9 +384,9 @@ Currently this is just the raw header contents.
 
 HTTP URLs are retrieved into a buffer containing the HTTP headers
 followed by the body.  Since the headers are quasi-MIME, they may be
-processed using the MIME library.  @xref{(emacs-mime)Top, The MIME
-library}.  The MIME library doesn't provide a clean function to do
-that, so the URL library does.
+processed using the MIME library.  @inforef{Top, The MIME library,
+emacs-mime}.  The URL package provides a function to do this in
+general:
 
 @defun url-decode-text-part handle &optional coding
 This function decodes charset-encoded text in the current buffer.  In
