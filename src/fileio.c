@@ -795,10 +795,15 @@ See also the function `substitute-in-file-name'.")
 
      The EQ test avoids infinite recursion.  */
   if (! NILP (default_directory) && !EQ (default_directory, name)
-      /* This saves time in a common case.  */
+      /* Save time in some common cases.  */
+#ifdef DOS_NT
+      /* Detect MSDOS file names with device names.  */
       && ! (XSTRING (default_directory)->size >= 3
-	    && IS_DIRECTORY_SEP (XSTRING (default_directory)->data[0])
-	    && IS_DEVICE_SEP (XSTRING (default_directory)->data[1])))
+	    && IS_DEVICE_SEP (o[1]) && IS_DIRECTORY_SEP (o[2]))
+#endif
+      /* Detect Unix absolute file names.  */
+      && ! (XSTRING (default_directory)->size >= 2
+	    && IS_DIRECTORY_SEP (o[0])))
     {
       struct gcpro gcpro1;
 
