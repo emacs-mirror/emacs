@@ -1,5 +1,11 @@
 1999-12-30  Gerd Moellmann  <gerd@gnu.org>
 
+	* bindings.el (make-mode-line-mouse-sensitive): Copy keymap
+	assigned to mode-line-mode-menu because bindings.el is dumped with
+	Emacs, and thus the lists used for menu-item definition will be
+	copied to pure space.  Emacs' menu code (parse_menu_item) doesn't
+	like pure menu item definitions.
+
 	* expand.el (expand-abbrev-hook): Return t if expansion was
 	done, nil otherwise.
 
