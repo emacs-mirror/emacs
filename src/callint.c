@@ -70,7 +70,6 @@ e -- Mouse click that invoked this command (value of `last-nonmenu-event').\n\
 f -- Existing file name.\n\
 F -- Possibly nonexistent file name.\n\
 k -- Key sequence (string).\n\
-K -- Mouse click that invoked this command (value of `last-nonmenu-event').\n\
 m -- Value of mark as number.  Does not do I/O.\n\
 n -- Number read using minibuffer.\n\
 N -- Prefix arg converted to number, or if none, do like code `n'.\n\
@@ -183,7 +182,8 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 
  retry:
 
-  enable = Fget (function, Qenable_recursive_minibuffers);
+  if (XTYPE (function) == Lisp_Symbol)
+    enable = Fget (function, Qenable_recursive_minibuffers);
 
   fun = indirect_function (function);
 
@@ -390,9 +390,8 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  visargs[i] = Fkey_description (teml);
 	  break;
 
-	case 'K':		/* Mouse click.  */
-	case 'e':		/* New, better name.  */
-	  args[i] = last_nonmenu_event;
+	case 'e':		/* Mouse click.  */
+	  args[i] = last_command_char;
 	  if (NILP (Fmouse_click_p (args[i])))
 	    error ("%s must be bound to a mouse click.",
 		   (XTYPE (function) == Lisp_Symbol
