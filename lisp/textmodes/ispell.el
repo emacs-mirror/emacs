@@ -1700,7 +1700,7 @@ With prefix argument, set the default directory."
 			   (re-search-forward ispell-tib-ref-beginning end t)
 			   (setq ref-type 'tib))
 		      (and ispell-skip-sgml
-			   (search-forward "[<&]" end t)
+			   (re-search-forward "[<&]" end t)
 			   (setq ref-type 'sgml)))
 		  (if (or (and (eq 'tib ref-type) ; tib tag is 2 chars.
 			       (= (- (point) 2) start))
@@ -1714,7 +1714,7 @@ With prefix argument, set the default directory."
 			    (not
 			     (re-search-forward ispell-tib-ref-end reg-end t)))
 			   (and (eq 'sgml ref-type)
-				(not (search-forward "[>;]" reg-end t))))
+				(not (re-search-forward "[>;]" reg-end t))))
 			  (progn
 			    (ispell-pdict-save ispell-silently-savep)
 			    (ding)
