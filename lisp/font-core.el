@@ -25,6 +25,9 @@
 
 ;;; Code:
 
+(defvar font-lock-maximum-size)
+(defvar font-lock-verbose)
+
 ;; This variable is used by mode packages that support Font Lock mode by
 ;; defining their own keywords to use for `font-lock-keywords'.  (The mode
 ;; command should make it buffer-local and set it to provide the set up.)
@@ -209,8 +212,19 @@ your own function which is called when `font-lock-mode' is toggled via
   (funcall font-lock-function font-lock-mode)
   ;; Arrange to unfontify this buffer if we change major mode later.
   (if font-lock-mode
-      (add-hook 'change-major-mode-hook 'font-lock-unfontify-buffer nil t)
-    (remove-hook 'change-major-mode-hook 'font-lock-unfontify-buffer t)))
+      (add-hook 'change-major-mode-hook 'font-lock-change-mode nil t)
+    (remove-hook 'change-major-mode-hook 'font-lock-change-mode t)))
+
+;; Get rid of fontification for the old major mode.
+;; We do this when changing major modes.
+(defun font-lock-change-mode ()
+  (let ((inhibit-read-only t))
+    (save-restriction
+      (widen)
+      (remove-list-of-text-properties
+       (point-min) (point-max) '(font-lock-face))))
+  (when font-lock-defaults
+    (font-lock-unfontify-buffer)))
 
 (defun font-lock-default-function (font-lock-mode)
   ;; Turn on Font Lock mode.
