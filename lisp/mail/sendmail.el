@@ -405,8 +405,7 @@ Prefix arg means don't delete this window."
   "Bury this mail buffer."
   (let ((newbuf (other-buffer (current-buffer))))
     (bury-buffer (current-buffer))
-    (if (and (fboundp 'frame-parameters)
-	     (cdr (assq 'dedicated (frame-parameters)))
+    (if (and (window-dedicated-p (frame-selected-window))
 	     (not (null (delq (selected-frame) (visible-frame-list)))))
 	(delete-frame (selected-frame))
       (let (rmail-flag summary-buffer)
