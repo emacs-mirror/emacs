@@ -1,5 +1,26 @@
 2000-04-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* print.c (print_object): Treat print-length < 0 as nil.
+
+	* Makefile.in (termcapobj): Don't use TERMCAP_OBJ.
+
+	* s/freebsd.h (TERMCAP_OBJ): Removed.
+	(LIBS_TERMCAP): Don't define for __FreeBSD_version >= 400000.
+
+	* lread.c (read1): Don't treat period followed by certain
+	characters as symbol start.
+
+	* xfns.c (slurp_file): New function.
+	(xbm_image_p): Handle case of in-memory XBM files.
+	(xbm_scan): Rewritten to work on memory buffers instead of files.
+	(xbm_read_bitmap_data): Renamed from xbm_read_bitmap_file_data.
+	Work on memory buffers instead of files.  If DATA is null test
+	if buffer looks like an in-memory XBM file.
+	(xbm_load_image): Renamed from xbm_load_image_file.  Work on
+	memory buffers instead of files.
+	(xbm_file_p): New function.
+	(xbm_load): Accept :data DATA where DATA is an in-memory XBM file.
+
 	* lread.c (end_of_file_error): New function.
 	(read1): Call it instead of signaling `end-of-file' directly.
 

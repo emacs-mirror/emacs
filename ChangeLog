@@ -1,3 +1,7 @@
+2000-04-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in: Add support for `powerpc*-*-linux-gnu*'.
+
 2000-04-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in: Add support for `powerpc-*-netbsd*'.

@@ -2342,6 +2342,10 @@ DATA must be either
    3. a vector of strings or bool-vectors, one for each line of the
    bitmap.
 
+   4. a string that's an in-memory XBM file.  Neither width nor
+   height may be specified in this case because these are defined
+   in the file.
+
 **** XPM, image type `xpm'
 
 XPM images require the external library `libXpm', package

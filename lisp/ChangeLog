@@ -1,14 +1,32 @@
-2000-04-27  Dave Love  <fx@gnu.org>
-
-	* help.el (locate-library): Use mapc.
-	(help-manyarg-func-alist): Add call-process-region.
-
 2000-04-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* dired.el (dired-move-to-filename-regexp): Allow format where
+	YYYY is followed by two spaces.
+
+	* progmodes/etags.el (etags-tags-completion-table): Add a `:'
+	in the second character class of the regexp.
+
+	* mail/mh-comp.el (mh-send-sub): Look for mh-comp-formfile in
+	mh-etc, too.
+
+	* textmodes/texinfmt.el (texinfo-format-xref): Don't try to insert
+	nil.
+	
 	* subr.el (add-minor-mode): Use `set' instead of `setq'.
 
 	* gud.el (gud-gdb-find-file): Call find-file-noselect with NOWARN
 	argument.
+
+2000-04-27  Sen Nagata <sen@eccosys.com>
+	
+	* emacs-lisp/crm.el (crm-completion-table): New variable.
+	(crm-collection-fn, crm-test-completion)
+	(completing-read-multiple): Use it.
+
+2000-04-27  Dave Love  <fx@gnu.org>
+
+	* help.el (locate-library): Use mapc.
+	(help-manyarg-func-alist): Add call-process-region.
 
 2000-04-26  Gerd Moellmann  <gerd@gnu.org>
 
