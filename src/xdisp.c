@@ -11495,7 +11495,8 @@ try_window_id (w)
 	 for instance.  This is easier than to set up the iterator
 	 exactly, and it's not a frequent case, so the additional
 	 effort wouldn't really pay off.  */
-      while (MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (last_unchanged_at_beg_row)
+      while ((MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (last_unchanged_at_beg_row)
+	      || last_unchanged_at_beg_row->ends_in_newline_from_string_p)
 	     && last_unchanged_at_beg_row > w->current_matrix->rows)
 	--last_unchanged_at_beg_row;
 
@@ -13003,6 +13004,8 @@ display_line (it)
       if (ITERATOR_AT_END_OF_LINE_P (it))
 	{
 	  int used_before = row->used[TEXT_AREA];
+
+	  row->ends_in_newline_from_string_p = STRINGP (it->object);
 
 	  /* Add a space at the end of the line that is used to
 	     display the cursor there.  */
