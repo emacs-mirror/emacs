@@ -3036,11 +3036,16 @@ display_text_line (w, start, vpos, hpos, taboffset)
          covered up by the scroll bars, and it's distracting to see
          them when the scroll bar windows are flickering around to be
          reconfigured.  */
-      *p1++ = (FRAME_HAS_VERTICAL_SCROLL_BARS (f)
-	       ? ' '
-	       : (dp && INTEGERP (DISP_BORDER_GLYPH (dp))
-		  ? DISP_BORDER_GLYPH (dp)
-		  : '|'));
+      if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
+	{
+	  int i;
+	  for (i = 0; i < FRAME_SCROLL_BAR_COLS (f); i++)
+	    *p1++ = SPACEGLYPH;
+	}
+      else
+	*p1++ = (dp && INTEGERP (DISP_BORDER_GLYPH (dp))
+		 ? DISP_BORDER_GLYPH (dp)
+		 : '|');
     }
   desired_glyphs->used[vpos] = max (desired_glyphs->used[vpos],
 				   p1 - desired_glyphs->glyphs[vpos]);
