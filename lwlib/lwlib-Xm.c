@@ -61,6 +61,7 @@ Boston, MA 02111-1307, USA.  */
 #include <Xm/DialogS.h>
 #include <Xm/Form.h>
 
+#undef P_
 #if defined __STDC__ || defined PROTOTYPES
 #define P_(X) X
 #else
