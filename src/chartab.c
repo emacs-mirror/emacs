@@ -377,7 +377,7 @@ sub_char_table_set_range (table, depth, min_char, from, to, val)
 {
   int max_char = min_char + chartab_chars[depth] - 1;
 
-  if (from <= min_char && to >= max_char)
+  if (depth == 3 || from <= min_char && to >= max_char)
     *table = val;
   else
     {
@@ -390,12 +390,12 @@ sub_char_table_set_range (table, depth, min_char, from, to, val)
 	from = min_char;
       if (to > max_char)
 	to = max_char;
+      i = CHARTAB_IDX (from, depth, min_char);
       j = CHARTAB_IDX (to, depth, min_char);
-      for (i = CHARTAB_IDX (from, depth, min_char); i <= j; i++)
+      min_char += chartab_chars[depth] * i;
+      for (; i <= j; i++, min_char += chartab_chars[depth])
 	sub_char_table_set_range (XSUB_CHAR_TABLE (*table)->contents + i,
-				  depth,
-				  min_char + chartab_chars[depth] * i,
-				  from, to, val);
+				  depth, min_char, from, to, val);
     }
 }
 
