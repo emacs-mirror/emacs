@@ -339,7 +339,6 @@ subsubsection\\|paragraph\\|subparagraph\\)\\*?[ \t]*{" nil t)
   "Define the keys that we want defined both in TeX mode and in the TeX shell."
   (define-key keymap "\C-c\C-k" 'tex-kill-job)
   (define-key keymap "\C-c\C-l" 'tex-recenter-output-buffer)
-  (define-key keymap "\C-c\C-m" 'tex-feed-input)
   (define-key keymap "\C-c\C-q" 'tex-show-print-queue)
   (define-key keymap "\C-c\C-p" 'tex-print)
   (define-key keymap "\C-c\C-v" 'tex-view)
@@ -374,6 +373,8 @@ subsubsection\\|paragraph\\|subparagraph\\)\\*?[ \t]*{" nil t)
   (define-key tex-mode-map "\C-c\C-o" 'tex-latex-block)
   (define-key tex-mode-map "\C-c\C-e" 'tex-close-latex-block)
   (define-key tex-mode-map "\C-c\C-u" 'tex-goto-last-unclosed-latex-block)
+  (define-key tex-mode-map "\C-c\C-m" 'tex-feed-input)
+  (define-key tex-mode-map [(control return)] 'tex-feed-input)
   (define-key tex-mode-map [menu-bar tex tex-bibtex-file]
     '("BibTeX File" . tex-bibtex-file))
   (define-key tex-mode-map [menu-bar tex tex-validate-region]
@@ -987,9 +988,9 @@ Mark is left at original location."
       (setq tex-shell-map (nconc (make-sparse-keymap) shell-mode-map))
       (tex-define-common-keys tex-shell-map)
       (use-local-map tex-shell-map)
-      (compilation-minor-mode)
-      (run-hooks 'tex-shell-hook)
+      (compilation-shell-minor-mode t)
       (setq comint-input-filter-functions 'shell-directory-tracker)
+      (run-hooks 'tex-shell-hook)
       (while (zerop (buffer-size))
 	(sleep-for 1)))))
 
@@ -1100,105 +1101,102 @@ If NOT-ALL is non-nil, save the `.dvi' file."
 	(forward-line -1)
 	(setq tex-start-tex-marker (point-marker)))
       (make-local-variable 'compilation-parse-errors-function)
-      (setq compilation-parse-errors-function 'tex-compilation-parse-errors))))
+      (setq compilation-parse-errors-function 'tex-compilation-parse-errors)
+      (compilation-forget-errors))))
 
 (defun tex-compilation-parse-errors (limit-search find-at-least)
-  "Parse the current buffer as error messages.
-This makes a list of error descriptors, `compilation-error-list'.
-For each source-file, line-number pair in the buffer,
-the source file is read in, and the text location is saved in
-`compilation-error-list'.  The function `next-error', assigned to
-\\[next-error], takes the next error off the list and visits its location.
+  "Parse the current buffer as TeX error messages.
+See the variable `compilation-parse-errors-function' for the interface it uses.
 
-If LIMIT-SEARCH is non-nil, don't bother parsing past that location.
-If FIND-AT-LEAST is non-nil, don't bother parsing after finding that
-many new errors.
-
-This function works on TeX compilations only.  It is necessary for
-that purpose, since TeX does not put file names on the same line as
-line numbers for the errors."
+This function parses only the last TeX compilation.
+It works on TeX compilations only.  It is necessary for that purpose,
+since TeX does not put file names and line numbers on the same line as
+for the error messages."
   (require 'thingatpt)
   (setq compilation-error-list nil)
   (message "Parsing error messages...")
-  (let ((old-lc-syntax (char-syntax ?\{))
-        (old-rc-syntax (char-syntax ?\}))
-        (old-lb-syntax (char-syntax ?\[))
-        (old-rb-syntax (char-syntax ?\]))
-        (num-found 0) last-filename last-linenum last-position)
-    (unwind-protect
-        (progn
-          (modify-syntax-entry ?\{ "_")
-          (modify-syntax-entry ?\} "_")
-          (modify-syntax-entry ?\[ "_")
-          (modify-syntax-entry ?\] "_")
-          ;; Don't reparse messages already seen at last parse.
-          (goto-char (max (or compilation-parsing-end 0)
-			  tex-start-tex-marker))
-          ;; Don't parse the first two lines as error messages.
-          ;; This matters for grep.
-          (if (bobp) (forward-line 2))
-          (while (re-search-forward
-                  "^l\\.\\([0-9]+\\) \\(\\.\\.\\.\\)?\\(.*\\)$"
-                  (and (or (null find-at-least)
-                           (>= num-found find-at-least)) limit-search) t)
-            ;; Extract file name and line number from error message.
-            ;; Line number is 2 away from beginning of line: "l.23"
-            ;; The file is the one that was opened last and is still open.
-            ;; We need to find the last open parenthesis.
-            (let* ((linenum (string-to-int (match-string 1)))
-                   (error-text (regexp-quote (match-string 3)))
-                   (filename
-                    (save-excursion
-                      (backward-up-list 1)
-                      (skip-syntax-forward "(_")
-                      (while (not (file-readable-p
-                                   (thing-at-point 'filename)))
-                        (skip-syntax-backward "(_")
-                        (backward-up-list 1)
-                        (skip-syntax-forward "(_"))
-                      (thing-at-point 'filename)))
-                   (error-marker 
-                    (save-excursion
-                      (re-search-backward "^! " nil t)
-                      (point-marker)))
-                   (new-file (or (null last-filename)
-                                 (not (string-equal last-filename filename))))
-                   (error-location
-                    (save-excursion
-		      (if (equal filename tex-last-temp-file)
-			  (set-buffer tex-last-buffer-texed)
-			(set-buffer (find-file-noselect filename)))
-                      (if new-file
-			  (goto-line linenum)
-                        (goto-char last-position)
-                        (forward-line (- linenum last-linenum)))
-                                        ;first try a forward search
-                                        ;for the error text, then a
-                                        ;backward search limited by
-                                        ;the last error
-                      (let ((starting-point (point)))
-                        (or (re-search-forward error-text nil t)
-			    (re-search-backward
-			     error-text
-			     (marker-position last-position) t)
-			    (goto-char starting-point)))
-                      (point-marker))))
-              (setq last-filename filename)
-              (if (or new-file
-                      (not (= last-position error-location)))
-                  (progn
-                    (setq num-found (1+ num-found))
-                    (setq last-position error-location)
-                    (setq last-linenum linenum)
-                    (setq compilation-error-list
-                          (nconc compilation-error-list
-                                 (list (cons error-marker
-                                             error-location)))))))))
-      (modify-syntax-entry ?\{ (char-to-string old-lc-syntax))
-      (modify-syntax-entry ?\} (char-to-string old-rc-syntax))
-      (modify-syntax-entry ?\[ (char-to-string old-lb-syntax))
-      (modify-syntax-entry ?\] (char-to-string old-rb-syntax))))
+  (let ((default-directory		; Perhaps dir has changed meanwhile.
+	  (file-name-directory (buffer-file-name tex-last-buffer-texed)))
+	(old-syntax-table (syntax-table))
+	(tex-error-parse-syntax-table (copy-syntax-table (syntax-table)))
+	found-desired (num-errors-found 0)
+	last-filename last-linenum last-position
+	begin-of-error end-of-error)
+    (modify-syntax-entry ?\{ "_" tex-error-parse-syntax-table)
+    (modify-syntax-entry ?\} "_" tex-error-parse-syntax-table)
+    (modify-syntax-entry ?\[ "_" tex-error-parse-syntax-table)
+    (modify-syntax-entry ?\] "_" tex-error-parse-syntax-table)
+    ;; Single quotations may appear in errors
+    (modify-syntax-entry ?\" "_" tex-error-parse-syntax-table)
+    ;; Don't parse previous compilations.
+    (setq compilation-parsing-end
+	  (max compilation-parsing-end tex-start-tex-marker))
+    ;; Don't reparse messages already seen at last parse.
+    (goto-char compilation-parsing-end)
+    ;; Parse messages.
+    (while (and (not (or found-desired (eobp)))
+		(prog1 (re-search-forward "^! " nil 'move)
+		  (setq begin-of-error (match-beginning 0)
+			end-of-error (match-end 0)))
+		(re-search-forward
+		 "^l\\.\\([0-9]+\\) \\(\\.\\.\\.\\)?\\(.*\\)$" nil 'move))
+      (let* ((this-error (set-marker (make-marker) begin-of-error))
+	     (linenum (string-to-int (match-string 1)))
+	     (error-text (regexp-quote (match-string 3)))
+	     (filename
+	      (save-excursion
+		(unwind-protect
+		    (progn
+		      (set-syntax-table tex-error-parse-syntax-table)
+		      (backward-up-list 1)
+		      (skip-syntax-forward "(_")
+		      (while (not (file-readable-p
+				   (thing-at-point 'filename)))
+			(skip-syntax-backward "(_")
+			(backward-up-list 1)
+			(skip-syntax-forward "(_"))
+		      (thing-at-point 'filename))
+		  (set-syntax-table old-syntax-table))))
+	     (new-file
+	      (or (null last-filename)
+		  (not (string-equal last-filename filename))))
+	     (error-location
+	      (save-excursion
+		(if (equal filename (concat tex-zap-file ".tex"))
+		    (set-buffer tex-last-buffer-texed)
+		  (set-buffer (find-file-noselect filename)))
+		(if new-file
+		    (goto-line linenum)
+		  (goto-char last-position)
+		  (forward-line (- linenum last-linenum)))
+		;; first try a forward search for the error text,
+		;; then a backward search limited by the last error.
+		(let ((starting-point (point)))
+		  (or (re-search-forward error-text nil t)
+		      (re-search-backward
+		       error-text
+		       (marker-position last-position) t)
+		      (goto-char starting-point)))
+		(point-marker))))
+	(goto-char this-error)
+	(if (and compilation-error-list
+		 (or (and find-at-least
+			  (>= num-errors-found
+			      find-at-least))
+		     (and limit-search
+			  (>= end-of-error limit-search)))
+		 new-file)
+	    (setq found-desired t)
+	  (setq num-errors-found (1+ num-errors-found)
+		last-filename filename
+		last-linenum linenum
+		last-position error-location
+		compilation-error-list	; Add the new error
+		(cons (cons this-error error-location)
+		      compilation-error-list))
+	  (goto-char end-of-error)))))
   (setq compilation-parsing-end (point))
+  (setq compilation-error-list (nreverse compilation-error-list))
   (message "Parsing error messages...done"))
 
 ;;; The commands:
@@ -1283,7 +1281,10 @@ The value of `tex-command' specifies the command to use to run TeX."
     ;; Record the file name to be deleted afterward.
     (setq tex-last-temp-file tex-out-file)
     (tex-send-command tex-shell-cd-command zap-directory)
-    (tex-start-tex tex-command tex-out-file)
+    ;; Use a relative file name here because (1) the proper dir
+    ;; is already current, and (2) the abs file name is sometimes
+    ;; too long and can make tex crash.
+    (tex-start-tex tex-command (concat tex-zap-file ".tex"))
     (tex-display-shell)
     (setq tex-print-file tex-out-file)
     (setq tex-last-buffer-texed (current-buffer))))
@@ -1315,7 +1316,7 @@ This function is more useful than \\[tex-buffer] when you need the
     (tex-start-tex tex-command source-file)
     (tex-display-shell)
     (setq tex-last-buffer-texed (current-buffer))
-    (setq tex-print-file source-file)))
+    (setq tex-print-file (expand-file-name source-file))))
 
 (defun tex-generate-zap-file-name ()
   "Generate a unique name suitable for use as a file name."
