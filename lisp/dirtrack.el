@@ -59,7 +59,8 @@
 ;; 
 ;; Determining this information may take some experimentation. Setting
 ;; the variable `dirtrack-debug' may help; it causes the directory-tracking
-;; filter to log messages to the buffer `dirtrack-debug-buffer'.
+;; filter to log messages to the buffer `dirtrack-debug-buffer'. You can easily
+;; toggle this setting with the `dirtrack-debug-toggle' function.
 ;; 
 ;; 3) Add a hook to shell-mode to enable the directory tracking:
 ;;
@@ -99,6 +100,19 @@
 ;;   
 ;;   This saves me from having to use the %E prefix in other non-emacs
 ;;   shells.
+;;
+;; A final note:
+;; 
+;;   I run LOTS of shell buffers through Emacs, sometimes as different users (eg, when
+;;   logged in as myself, I'll run a root shell in the same Emacs). If you do this, and
+;;   the shell prompt contains a ~, Emacs will interpret this relative to the user which
+;;   owns the Emacs process, not the user who owns the shell buffer. This may cause
+;;   dirtrack to behave strangely (typically it reports that it is unable to cd to a directory
+;;   with a ~ in it).
+;;
+;;   The same behavior can occur if you use dirtrack with remote filesystems (using telnet,
+;;   rlogin, etc) as Emacs will be checking the local filesystem, not the remote one.
+;;   This problem is not specific to dirtrack, but also affects file completion, etc.
 
 ;;; Code:
 
@@ -214,6 +228,14 @@ forward ones."
   (interactive)
   (setq dirtrackp (not dirtrackp))
   (message "Directory tracking %s" (if dirtrackp "ON" "OFF")))
+
+(defun dirtrack-debug-toggle ()
+  "Enable or disable Dirtrack debugging."
+  (interactive)
+  (setq dirtrack-debug (not dirtrack-debug))
+  (message "Directory debugging %s" (if dirtrack-debug "ON" "OFF"))
+  (and dirtrack-debug
+       (display-buffer (get-buffer-create dirtrack-debug-buffer))))
 
 (defun dirtrack-debug-message (string)
   (let ((buf (current-buffer))
