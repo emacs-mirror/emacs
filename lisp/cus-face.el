@@ -201,9 +201,12 @@
     
     (:stipple
      (choice :tag "Stipple"
-	     :help-echo "Name of background bitmap file."
+	     :help-echo "Background bit-mask"
 	     (const :tag "*" nil)
-	     (file :tag "File" :must-match t)))
+	     (const :tag "None" off)
+	     (file :tag "File"
+		   :help-echo "Name of bitmap file."
+		   :must-match t)))
 
     (:inherit
      (repeat :tag "Inherit"
