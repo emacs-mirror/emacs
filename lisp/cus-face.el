@@ -53,7 +53,10 @@
 	  (while frames
 	    (setq frame (car frames)
 		  frames (cdr frames))
-	    (face-spec-set face value frame)))))
+	    (face-spec-set face value frame)))
+	;; When making a face after frames already exist
+	(if (memq window-system '(x w32))
+	    (make-face-x-resource-internal face))))
     (when (and doc (null (face-documentation face)))
       (set-face-documentation face doc))
     (custom-handle-all-keywords face args 'custom-face)
