@@ -1,5 +1,5 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
-   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2001,2002
+   Copyright (C) 1985,86,87,93,94,95,97,98,1999,2001,02,2003
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -44,6 +44,7 @@ Boston, MA 02111-1307, USA.  */
 #include "commands.h"
 #include "intervals.h"
 #include "buffer.h"
+#include "window.h"
 
 #include "systty.h"
 #include "blockinput.h"

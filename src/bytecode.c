@@ -1,5 +1,5 @@
 /* Execution of byte code produced by bytecomp.el.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 2000, 2001, 2002
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 2000, 2001, 2002, 2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -39,6 +39,7 @@ by Hallvard:
 #include "buffer.h"
 #include "charset.h"
 #include "syntax.h"
+#include "window.h"
 
 #ifdef CHECK_FRAME_FONT
 #include "frame.h"
