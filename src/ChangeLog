@@ -1,3 +1,7 @@
+2002-07-23  Richard M. Stallman  <rms@gnu.org>
+
+	* editfns.c (Fmessage): Treat "" like nil.
+
 2002-07-23  Kenichi Handa  <handa@etl.go.jp>
 
 	* xdisp.c (face_before_or_after_it_pos): Call
