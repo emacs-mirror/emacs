@@ -1,3 +1,10 @@
+2004-02-20  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-use-colon-colon-notation): Set default to nil for
+	case of variables defined in compound statements.
+	(gdb-setup-windows, gdb-source-info, gdb-source-info): Simplify
+	constructions using switch-to-buffer.
+
 2004-02-19  Simon Josefsson  <jas@extundo.com>
 
 	* play/morse.el: Fix typo.
