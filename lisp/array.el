@@ -822,7 +822,7 @@ but will cause many functions to give errors if they encounter one.
 
   Upon entering array mode, you will be prompted for the values of
 several variables.  Others will be calculated based on the values you
-supply.  These variables are all local the the buffer.  Other buffer
+supply.  These variables are all local to the buffer.  Other buffer
 in array mode may have different values assigned to the variables.
 The variables are:
 
