@@ -1,6 +1,6 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code.
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -9,7 +9,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.54 $")
+(defconst byte-compile-version "$Revision: 2.55 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1282,10 +1282,18 @@ The value is t if there were no errors, nil if errors."
       (setq input-buffer (get-buffer-create " *Compiler Input*"))
       (set-buffer input-buffer)
       (erase-buffer)
+      (setq buffer-file-coding-system nil)
       ;; Always compile an Emacs Lisp file as multibyte
       ;; unless the file itself forces unibyte with -*-coding: raw-text;-*-x
       (set-buffer-multibyte t)
       (insert-file-contents filename)
+      ;; Mimic the way after-insert-file-set-buffer-file-coding-system
+      ;; can make the buffer unibyte when visiting this file.
+      (when (or (eq last-coding-system-used 'no-conversion)
+		(eq (coding-system-type last-coding-system-used) 5))
+	;; For coding systems no-conversion and raw-text...,
+	;; edit the buffer as unibyte.
+	(set-buffer-multibyte nil))
       ;; Run hooks including the uncompression hook.
       ;; If they change the file name, then change it for the output also.
       (let ((buffer-file-name filename)
