@@ -1,3 +1,7 @@
+2004-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calc/calc-help.el (calc-describe-bindings): Fix last change.
+
 2004-10-21  John Paul Wallington  <jpw@gnu.org>
 
 	* calc/calc-graph.el (calc-graph-init):
@@ -25,11 +29,11 @@
 2004-10-19  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc.el (calc-emacs-type-19, calc-emacs-type-epoch)
-	(calc-emacs-type-gnu19): Removed.
-	(calc-digit-map, calc-read-key-sequence, calc-read-key): Removed
-	check for old emacs versions.
+	(calc-emacs-type-gnu19): Remove.
+	(calc-digit-map, calc-read-key-sequence, calc-read-key):
+	Remove check for old emacs versions.
 
-	* calc/calc-ext.el (calc-fancy-prefix): Removed emacs version check.
+	* calc/calc-ext.el (calc-fancy-prefix): Remove emacs version check.
 	(calc-init-extensions): Define `calc-alg-map' and `calc-alg-esc-map'
 	for current Emacs.
 
@@ -38,9 +42,9 @@
 	(calc-do-alg-entry): Remove Emacs version check.  Use `copy-keymap' to
 	copy `esc-map'.
 
-	* calc/calc-graph.el (calc-graph-plot): Removed emacs version check.
+	* calc/calc-graph.el (calc-graph-plot): Remove emacs version check.
 
-	* calc/calc-mode.el (calc-total-algebraic-mode): Removed error
+	* calc/calc-mode.el (calc-total-algebraic-mode): Remove error
 	call that would be given when the current emacs was used.
 
 2004-10-19  Ulf Jasper  <ulf.jasper@web.de>
@@ -73,8 +77,8 @@
 
 2004-10-18 Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-help.el (calc-describe-bindings):  Set 
-	`buffer-read-only' to nil while working in the keybindings buffer;
+	* calc/calc-help.el (calc-describe-bindings):
+	Set `buffer-read-only' to nil while working in the keybindings buffer;
 	remove some extra information from the keybindings buffer.
 
 2004-10-18  David Ponce  <david@dponce.com>
@@ -261,12 +265,12 @@
 2004-10-12  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-help.el (calc-help-function-list, calc-help-variable-list):
-	New variables. 	
+	New variables.
 	(calc-help-index-entries): New function.
-	(calc-describe-function):  Use `calc-help-function-list' instead of
-	obarray for completion. 
-	(calc-describe-variable):  Use `calc-help-variable-list' instead
-	of obarray for completion. 
+	(calc-describe-function): Use `calc-help-function-list' instead of
+	obarray for completion.
+	(calc-describe-variable): Use `calc-help-variable-list' instead
+	of obarray for completion.
 
 2004-10-12  Richard M. Stallman  <rms@gnu.org>
 
@@ -334,7 +338,7 @@
 
 	* calc/calc-misc.el (calc-info-goto-node): New function.
 	(calc-tutorial, calc-info-summary): Go to appropriate Calc info
-	node in one step. 
+	node in one step.
 	(calc-describe-copying, calc-describe-distribution)
 	(calc-describe-thing, calc-describe-no-warranty, calc-describe-key):
 	Go to appropriate info node in one step.
