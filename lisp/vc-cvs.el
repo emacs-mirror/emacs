@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.9 2000/11/16 13:38:03 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.10 2000/11/16 15:29:40 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -314,7 +314,8 @@ is non-nil."
 
 (defun vc-cvs-print-log (file)
   "Get change log associated with FILE."
-  (vc-do-command t 'async "cvs" file "log"))
+  (vc-do-command t (if (vc-cvs-stay-local-p file) 'async 0)
+                 "cvs" file "log"))
 
 (defun vc-cvs-show-log-entry (version)
   (when (re-search-forward
@@ -488,16 +489,19 @@ Inappropriate for CVS"
 	    (error "No revisions of %s exist" file)
 	  ;; we regard this as "changed".
 	  ;; diff it against /dev/null.
-	  (apply 'vc-do-command t
-		 'async "diff" file
-		 (append diff-switches-list '("/dev/null"))))
-      (apply 'vc-do-command t
-	     'async "cvs" file "diff"
-	     (and oldvers (concat "-r" oldvers))
-	     (and newvers (concat "-r" newvers))
-	     diff-switches-list))
-    ;; We can't know yet, so we assume there'll be a difference
-    1))
+          (apply 'vc-do-command t
+                 1 "diff" file
+                 (append diff-switches-list '("/dev/null"))))
+      (setq status
+            (apply 'vc-do-command t
+                   (if (vc-cvs-stay-local-p file) 'async 1)
+                   "cvs" file "diff"
+                   (and oldvers (concat "-r" oldvers))
+                   (and newvers (concat "-r" newvers))
+                   diff-switches-list))
+      (if (vc-cvs-stay-local-p file) 
+          1 ;; async diff, pessimistic assumption 
+        status))))
 
 (defun vc-cvs-latest-on-branch-p (file)
   "Return t iff current workfile version of FILE is the latest on its branch."
