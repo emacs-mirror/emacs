@@ -297,16 +297,13 @@ arguments compiles from `load-path'."
 (defun finder-exit ()
   "Exit Finder mode and kill the buffer"
   (interactive)
-  (condition-case nil			; might be sole window
-      (delete-window)
-    (error nil))
+  (or (one-window-p t)
+      (delete-window))
   ;; Can happen in either buffer -- kill each of the two that exists
-  (condition-case nil
-      (kill-buffer "*Finder*")
-    (error nil))
-  (condition-case nil
-      (kill-buffer "*Finder Category*")
-    (error nil)))
+  (and (get-buffer "*Finder*")
+       (kill-buffer "*Finder*"))
+  (and (get-buffer "*Finder Category*")
+       (kill-buffer "*Finder Category*")))
 
 (provide 'finder)
 
