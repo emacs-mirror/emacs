@@ -4297,7 +4297,7 @@ syms_of_fileio ()
 #endif /* DOS_NT */
 
   DEFVAR_LISP ("auto-save-file-format", &Vauto_save_file_format,
-    "*Format in which to write auto-save files.
+    "*Format in which to write auto-save files.\n\
 Should be a list of symbols naming formats that are defined in `format-alist'.\n\
 If it is t, which is the default, auto-save files are written in the\n\
 same format as a regular save would use.");
