@@ -847,7 +847,7 @@ used instead of `browse-url-new-window-flag'."
   (or (eq (process-exit-status process) 0)
       (let* ((process-environment (browse-url-process-environment)))
 	;; Netscape not running - start it
-	(message "Starting Netscape...")
+	(message "Starting %s..." browse-url-netscape-program)
 	(apply 'start-process (concat "netscape" url) nil
 	       browse-url-netscape-program
 	       (append browse-url-netscape-startup-arguments (list url))))))
@@ -918,7 +918,7 @@ used instead of `browse-url-new-window-flag'."
   (or (eq (process-exit-status process) 0)
       (let* ((process-environment (browse-url-process-environment)))
 	;; Mozilla is not running - start it
-	(message "Starting Mozilla...")
+	(message "Starting %s..." browse-url-mozilla-program)
 	(apply 'start-process (concat "mozilla " url) nil
 	       browse-url-mozilla-program
 	       (append browse-url-mozilla-startup-arguments (list url))))))
@@ -968,7 +968,7 @@ used instead of `browse-url-new-window-flag'."
   (or (eq (process-exit-status process) 0)
       (let* ((process-environment (browse-url-process-environment)))
 	;; Galeon is not running - start it
-	(message "Starting Galeon...")
+	(message "Starting %s..." browse-url-galeon-program)
 	(apply 'start-process (concat "galeon " url) nil
 	       browse-url-galeon-program
 	       (append browse-url-galeon-startup-arguments (list url))))))
@@ -1017,7 +1017,7 @@ used instead of `browse-url-new-window-flag'."
   (or (eq (process-exit-status process) 0)
       (let* ((process-environment (browse-url-process-environment)))
 	;; Epiphany is not running - start it
-	(message "Starting Epiphany...")
+	(message "Starting %s..." browse-url-epiphany-program)
 	(apply 'start-process (concat "epiphany " url) nil
 	       browse-url-epiphany-program
 	       (append browse-url-epiphany-startup-arguments (list url))))))
@@ -1098,10 +1098,10 @@ used instead of `browse-url-new-window-flag'."
 	  (message "Signalling Mosaic...done")
 	  )
       ;; Mosaic not running - start it
-      (message "Starting Mosaic...")
+      (message "Starting %s..." browse-url-mosaic-program)
       (apply 'start-process "xmosaic" nil browse-url-mosaic-program
 	     (append browse-url-mosaic-arguments (list url)))
-      (message "Starting Mosaic...done"))))
+      (message "Starting %s...done" browse-url-mosaic-program))))
 
 ;; --- Grail ---
 
