@@ -1,5 +1,16 @@
 2003-09-17  Dave Love  <fx@gnu.org>
 
+	* xterm.c (x_term_init): Fix type error.
+
+	* lisp.h: Add Funibyte_char_to_multibyte.
+
+	* coding.c (Fread_coding_system): Fix arg of XSETSTRING.
+	(Fset_coding_system_priority): Doc fix.
+
+	* alloc.c: Sync with HEAD version.
+
+	* ccl.c (ccl_driver): Fix arg of CHARACTERP.
+
 	* indent.c (check_composition): Make start and end EMACS_INT.
 
 	* character.c (lisp_string_width): Make ignore and end EMACS_INT.
