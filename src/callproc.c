@@ -246,7 +246,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	{
 	  if (CONSP (XCONS (buffer)->cdr))
 	    {
-	      Lisp_Object file_for_stderr;
+	      Lisp_Object stderr_file;
 	      stderr_file = XCONS (XCONS (buffer)->cdr)->car;
 
 	      if (NILP (stderr_file) || EQ (Qt, stderr_file))
