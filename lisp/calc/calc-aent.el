@@ -31,9 +31,6 @@
 (require 'calc)
 (require 'calc-macs)
 
-(defun calc-Need-calc-aent () nil)
-
-
 (defun calc-do-quick-calc ()
   (calc-check-defines)
   (if (eq major-mode 'calc-mode)
@@ -1165,6 +1162,8 @@ T means abort and give an error message.")
 	   (require 'calc-ext)
 	   (math-read-angle-brackets))
 	  (t (throw 'syntax "Expected a number")))))
+
+(provide 'calc-aent)
 
 ;;; arch-tag: 5599e45d-e51e-44bb-9a20-9f4ed8c96c32
 ;;; calc-aent.el ends here
