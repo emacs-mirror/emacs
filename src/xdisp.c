@@ -2180,7 +2180,7 @@ display_string (w, vpos, string, hpos, truncate, mincol, maxcol)
   register int c;
   register GLYPH *p1;
   int hscroll = XINT (w->hscroll);
-  int tab_width = XINT (current_buffer->tab_width);
+  int tab_width = XINT (XBUFFER (w->buffer)->tab_width);
   register GLYPH *start;
   register GLYPH *end;
   struct frame_glyphs *desired_glyphs = FRAME_DESIRED_GLYPHS (XFRAME (w->frame));
