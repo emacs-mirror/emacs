@@ -122,11 +122,14 @@
 
 (defvar help-xref-stack nil
   "A stack of ways by which to return to help buffers after following xrefs.
-Used by `help-follow' and `help-xref-go-back'.")
+Used by `help-follow' and `help-xref-go-back'.
+An element looks like (POSITION FUNCTION ARGS...).
+To use the element, do (apply FUNCTION ARGS) then (goto-char POSITION).")
 (put 'help-xref-stack 'permanent-local t)
 
 (defvar help-xref-stack-item nil
-  "An item for `help-follow' in this buffer to push onto `help-xref-stack'.")
+  "An item for `help-follow' in this buffer to push onto `help-xref-stack'.
+The format is (FUNCTION ARGS...).")
 (put 'help-xref-stack-item 'permanent-local t)
 
 (setq-default help-xref-stack nil help-xref-stack-item nil)
@@ -377,7 +380,7 @@ followed by the major mode, which is described on the last page.\n\f\n"))
     (princ mode-name)
     (princ " mode:\n")
     (princ (documentation major-mode))
-    (help-setup-xref (cons #'help-xref-mode (current-buffer)) (interactive-p))
+    (help-setup-xref (list #'help-xref-mode (current-buffer)) (interactive-p))
     (print-help-return-message)))
 
 ;; So keyboard macro definitions are documented correctly
@@ -658,7 +661,7 @@ C-w Display information on absence of warranty for GNU Emacs."
       (if doc
 	  (progn (terpri)
 		 (princ doc)
-		 (help-setup-xref (cons #'describe-function function) (interactive-p)))
+		 (help-setup-xref (list #'describe-function function) (interactive-p)))
 	(princ "not documented")))))
 
 ;; We return 0 if we can't find a variable to return.
@@ -732,7 +735,7 @@ Returns the documentation as a string, also."
 	  (terpri)
 	  (let ((doc (documentation-property variable 'variable-documentation)))
 	    (princ (or doc "not documented as a variable.")))
-          (help-setup-xref (cons #'describe-variable variable) (interactive-p))
+          (help-setup-xref (list #'describe-variable variable) (interactive-p))
 
 	  ;; Make a link to customize if this variable can be customized.
 	  (if (or (get variable 'custom-type)
@@ -756,17 +759,21 @@ Returns the documentation as a string, also."
 	    (buffer-string))))
     (message "You did not specify a variable")))
 
-(defun describe-bindings (&optional prefix)
+(defun describe-bindings (&optional prefix buffer)
   "Show a list of all defined keys, and their definitions.
 We put that list in a buffer, and display the buffer.
 
 The optional argument PREFIX, if non-nil, should be a key sequence;
-then we display only bindings that start with that prefix."
+then we display only bindings that start with that prefix.
+The optional argument BUFFER specifies which buffer's bindings
+to display (default, the current buffer)."
   (interactive "P")
-  (describe-bindings-internal nil prefix)
+  (or buffer (setq buffer (current-buffer)))
+  (with-current-buffer buffer
+    (describe-bindings-internal nil prefix))
   (with-current-buffer "*Help*"
-    (setq help-xref-stack nil
-	  help-xref-stack-item nil)))
+    (help-setup-xref (list #'describe-bindings prefix buffer)
+		     (interactive-p))))
 
 (defun where-is (definition &optional insert)
   "Print message listing key sequences that invoke specified command.
@@ -889,7 +896,7 @@ distinguish references to variables, functions and symbols.")
 (defun help-setup-xref (item interactive-p)
   "Invoked from commands using the \"*Help*\" buffer to install some xref info.
 
-ITEM is a (function . args) pair appropriate for recreating the help
+ITEM is a (FUNCTION . ARGS) pair appropriate for recreating the help
 buffer after following a reference.  INTERACTIVE-P is non-nil if the
 calling command was invoked interactively.  In this case the stack of
 items for help buffer \"back\" buttons is cleared."
@@ -1032,7 +1039,7 @@ help buffer."
     (goto-char (point-max))
     (insert "\n\n" fdoc))
   (goto-char (point-min))
-  (help-setup-xref (cons #'help-xref-interned symbol) nil))
+  (help-setup-xref (list #'help-xref-interned symbol) nil))
 
 (defun help-xref-mode (buffer)
   "Do a `describe-mode' for the specified BUFFER."
@@ -1055,17 +1062,17 @@ help buffer."
 (defun help-xref-go-back (buffer)
   "Go back to the previous help buffer text using info on `help-xref-stack'."
   (interactive)
-  (let (item method args)
+  (let (item position method args)
     (with-current-buffer buffer
       (when help-xref-stack
 	(setq help-xref-stack (cdr help-xref-stack)) ; due to help-follow
 	(setq item (car help-xref-stack)
-	      method (car item)
-	      args (cdr item))
+	      position (car item)
+	      method (cadr item)
+	      args (cddr item))
 	(setq help-xref-stack (cdr help-xref-stack))))
-    (if (listp args)
-	(apply method args)
-      (funcall method args))))
+    (apply method args)
+    (goto-char position)))
 
 (defun help-go-back ()
   (interactive)
@@ -1076,10 +1083,14 @@ help buffer."
 
 For the cross-reference format, see `help-make-xrefs'."
   (interactive "d")
-  (let* ((help-data (get-text-property pos 'help-xref))
+  (let* ((help-data (or (and (not (= pos (point-max)))
+			     (get-text-property pos 'help-xref))
+			(and (not (= pos (point-min)))
+			     (get-text-property (1- pos) 'help-xref))))
          (method (car help-data))
          (args (cdr help-data)))
-    (setq help-xref-stack (cons help-xref-stack-item help-xref-stack))
+    (setq help-xref-stack (cons (cons (point) help-xref-stack-item)
+				help-xref-stack))
     (setq help-xref-stack-item nil)
     (when help-data
       ;; There is a reference at point.  Follow it.
