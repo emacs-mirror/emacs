@@ -15,7 +15,7 @@
 	(help-xref-interned): Maybe insert face doc too.  Separate
 	sections with a line of hyphens.
 
-	* faces.el:  Some doc fixes.
+	* faces.el:  Some doc fixes.  Declare some functions obsolete.
 	(describe-face): Add customize button.  Return the help
 	text.  Fix prompt.
 

@@ -1,3 +1,9 @@
+2000-05-09  Dave Love  <fx@gnu.org>
+
+	* fileio.c (Fwrite_region): If APPEND arg is an integer, seek to
+	that offset before writing.  Move gcpro region past call of
+	Ffile_regular_p.
+
 2000-05-04  Dave Love  <fx@gnu.org>
 
 	* buffer.c (syms_of_buffer) [auto-fill-function]: Doc fix.
