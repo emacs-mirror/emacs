@@ -172,6 +172,9 @@ extern int minibuf_level;
 /* If non-nil, this is a map that overrides all other local maps.  */
 Lisp_Object Voverriding_local_map;
 
+/* If non-nil, Voverriding_local_map applies to the menu bar.  */
+Lisp_Object Voverriding_local_map_menu_flag;
+
 /* Current depth in recursive edits.  */
 int command_loop_level;
 
@@ -3773,14 +3776,26 @@ menu_bar_items (old)
   { 
     Lisp_Object *tmaps;
 
-    if (!NILP (Voverriding_local_map))
+    /* Should overriding-local-map apply, here?  */
+    if (!NILP (Voverriding_local_map_menu_flag))
       {
-	nmaps = 2;
-	maps = (Lisp_Object *) alloca (nmaps * sizeof (maps[0]));
-	maps[0] = Voverriding_local_map;
+	if (NILP (Voverriding_local_map))
+	  {
+	    /* Yes, and it is nil.  Use just global map.  */
+	    nmaps = 1;
+	    maps = (Lisp_Object *) alloca (nmaps * sizeof (maps[0]));
+	  }
+	else
+	  {
+	    /* Yes, and it is non-nil.  Use it and the global map.  */
+	    nmaps = 2;
+	    maps = (Lisp_Object *) alloca (nmaps * sizeof (maps[0]));
+	    maps[0] = Voverriding_local_map;
+	  }
       }
     else
       {
+	/* No, so use major and minor mode keymaps.  */
 	nmaps = current_minor_maps (0, &tmaps) + 2;
 	maps = (Lisp_Object *) alloca (nmaps * sizeof (maps[0]));
 	bcopy (tmaps, maps, (nmaps - 2) * sizeof (maps[0]));
@@ -6277,6 +6292,12 @@ The elements of the list are event types that may have menu bar bindings.");
 If this variable is non-nil, it is used as a keymap instead of the\n\
 buffer's local map, and the minor mode keymaps and text property keymaps.");
   Voverriding_local_map = Qnil;
+
+  DEFVAR_LISP ("overriding-local-map-menu-flag", &Voverriding_local_map_menu_flag,
+    "Non-nil means `overriding-local-map' applies to the menu bar.\n\
+Otherwise, the menu bar continues to reflect the buffer's local map\n\
+and the minor mode maps regardless of `overriding-local-map'.");
+  Voverriding_local_map_menu_flag = Qnil;
 
   DEFVAR_BOOL ("track-mouse", &do_mouse_tracking,
 	       "*Non-nil means generate motion events for mouse motion.");
