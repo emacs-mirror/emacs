@@ -56,7 +56,7 @@
 (defalias 'pending-delete-mode 'delete-selection-mode)
 
 ;;;###autoload
-(defun delete-selection-mode (&optional arg)
+(define-minor-mode delete-selection-mode
   "Toggle Delete Selection mode.
 With prefix ARG, turn Delete Selection mode on if and only if ARG is
 positive.
@@ -65,27 +65,11 @@ When Delete Selection mode is enabled, Transient Mark mode is also
 enabled and typed text replaces the selection if the selection is
 active.  Otherwise, typed text is just inserted at point regardless of
 any selection."
-  (interactive "P")
-  (setq delete-selection-mode (if arg
-				  (> (prefix-numeric-value arg) 0)
-				(not delete-selection-mode)))
+  nil nil nil :global t :group 'editing-basics
   (if (not delete-selection-mode)
       (remove-hook 'pre-command-hook 'delete-selection-pre-hook)
     (add-hook 'pre-command-hook 'delete-selection-pre-hook)
     (transient-mark-mode t)))
-
-;;;###autoload
-(defcustom delete-selection-mode nil
-  "Toggle Delete Selection mode.
-See command `delete-selection-mode'.
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `delete-selection-mode'."
-  :set (lambda (symbol value)
-	 (delete-selection-mode (or value 0)))
-  :initialize 'custom-initialize-default
-  :type 'boolean
-  :group 'editing-basics
-  :require 'delsel)
 
 (defun delete-active-region (&optional killp)
   (if killp
@@ -159,11 +143,5 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (define-key minibuffer-local-isearch-map "\C-g" 'abort-recursive-edit))
 
 (provide 'delsel)
-
-;; This is the standard way to put the mode into effect
-;; if delete-selection-mode has already been set to t
-;; when this file is loaded.
-(when delete-selection-mode
-  (delete-selection-mode t))
 
 ;;; delsel.el ends here
