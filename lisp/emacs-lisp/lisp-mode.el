@@ -21,8 +21,6 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;;; Code:
-
 ;;; Commentary:
 
 ;; The base major mode for editing Lisp code (used also for Emacs Lisp).
@@ -96,7 +94,7 @@
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
   (make-local-variable 'outline-regexp)
-  (setq outline-regexp ";;; \|(....")
+  (setq outline-regexp ";;; \\|(....")
   (make-local-variable 'comment-start)
   (setq comment-start ";")
   (make-local-variable 'comment-start-skip)
