@@ -318,10 +318,11 @@ In binary overwrite mode, this function does overwrite, and octal
 digits are interpreted as a character code.  This is intended to be
 useful for editing binary files."
   (interactive "*p")
-  (let ((char (if (or (not overwrite-mode)
-		      (eq overwrite-mode 'overwrite-mode-binary))
-		  (read-quoted-char)
-		(read-char))))
+  (let* ((char (let (keyboard-translate-table)
+		 (if (or (not overwrite-mode)
+			 (eq overwrite-mode 'overwrite-mode-binary))
+		     (read-quoted-char)
+		   (read-char)))))
     ;; Assume character codes 0240 - 0377 stand for characters in some
     ;; single-byte character set, and convert them to Emacs
     ;; characters.
