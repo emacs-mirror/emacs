@@ -1,4 +1,18 @@
-2003-03-12  Kenichi Handa  <handa@etlken2>
+2003-03-13  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (reset-language-environment): Set
+	default-file-name-coding-system to iso-latin-1.
+
+	* language/european.el (iso-latin-1): Definition of this coding
+	system moved to mule-conf.el.
+
+	* international/mule-conf.el (iso-latin-1): Moved from
+	european.el.
+
+	* term/x-win.el (x-select-text): Don't set a text containing
+	eight-bit-control/graphic into the cut buffer.
+
+2003-03-12  Kenichi Handa  <handa@m17n.org>
 
 	* files.el (insert-directory): Decode by what specified.
 
