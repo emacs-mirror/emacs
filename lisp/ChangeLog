@@ -1,3 +1,10 @@
+2005-02-23  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-isearch-search): New defcustom.
+	(Info-isearch-search): Call the default isearch function
+	when Info-isearch-search is nil.
+	(Info-isearch-wrap): Use variable Info-isearch-search.
+
 2005-02-22  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-edit.el: Comment change.
