@@ -214,15 +214,6 @@ THINGS TO DO
    what if we'd blow it up into several separate functions (with a
    compatibility definition)?
 
-** Emacs assumes that all terminal frames have the same locale
-   settings as Emacs itself.  This may lead to bogus results in a
-   multi-locale setup. (E.g., while logging in from a remote client
-   with a different locale.)
-   (Update after new bugreport by Friedrich Delgado Friedrichs: 
-   (at least) the structs terminal_coding and keyboard_coding in
-   coding.c must be moved to struct display, and the Lisp interface
-   [set-]keyboard-coding-system must be adapted for the change.)
-
 ** The single-keyboard mode of MULTI_KBOARD is extremely confusing
    sometimes; Emacs does not respond to stimuli from other keyboards.
    At least a beep or a message would be important, if the single-mode
@@ -797,5 +788,16 @@ DIARY OF CHANGES
    (Not needed.  Display-local variables could be emulated by
    frame-local variables.)
 
+-- Emacs assumes that all terminal frames have the same locale
+   settings as Emacs itself.  This may lead to bogus results in a
+   multi-locale setup. (E.g., while logging in from a remote client
+   with a different locale.)
+   (Update after new bugreport by Friedrich Delgado Friedrichs: 
+   (at least) the structs terminal_coding and keyboard_coding in
+   coding.c must be moved to struct display, and the Lisp interface
+   [set-]keyboard-coding-system must be adapted for the change.)
+
+   (Fixed.  Emacs now uses the locale settings as seen by the
+   emacsclient process for server tty frames.)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
