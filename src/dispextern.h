@@ -667,6 +667,16 @@ struct glyph_row
   /* 1 in a current row means this row is overlapped by another row.  */
   unsigned overlapped_p : 1;
 
+  /* 1 means this line ends in the middle of a character consisting
+     of more than one glyph.  Some glyphs have been put in this row,
+     the rest are put in rows below this one.  */
+  unsigned ends_in_middle_of_char_p : 1;
+  
+  /* 1 means this line starts in the middle of a character consisting
+     of more than one glyph.  Some glyphs have been put in the
+     previoius row, the rest are put in this row.  */
+  unsigned starts_in_middle_of_char_p : 1;
+
   /* 1 in a current row means this row overlaps others.  */
   unsigned overlapping_p : 1;
 
@@ -795,7 +805,8 @@ struct glyph_row *matrix_row P_ ((struct glyph_matrix *, int));
 
 #define MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P(ROW)	\
      ((ROW)->end.dpvec_index >= 0			\
-      || (ROW)->end.overlay_string_index >= 0)
+      || (ROW)->end.overlay_string_index >= 0		\
+      || (ROW)->ends_in_middle_of_char_p)
 
 /* Non-zero if ROW ends in the middle of an overlay string.  */
 
@@ -806,6 +817,7 @@ struct glyph_row *matrix_row P_ ((struct glyph_matrix *, int));
      
 #define MATRIX_ROW_STARTS_IN_MIDDLE_OF_CHAR_P(ROW)	\
      ((ROW)->start.dpvec_index >= 0			\
+      || (ROW)->starts_in_middle_of_char_p		\
       || ((ROW)->start.overlay_string_index >= 0	\
 	  && (ROW)->start.string_pos.charpos > 0))
 
@@ -1622,7 +1634,12 @@ struct it
 
   /* 1 means the actual glyph is not available in the current
      system.  */
-  unsigned glyph_not_available_p : 1; 
+  unsigned glyph_not_available_p : 1;
+
+  /* 1 means the next line in display_line continues a character
+     consisting of more than one glyph, and some glyphs of this
+     character have been put on the previous line.  */
+  unsigned starts_in_middle_of_char_p : 1;
 
   /* The ID of the default face to use.  One of DEFAULT_FACE_ID,
      MODE_LINE_FACE_ID, or TOOL_BAR_FACE_ID, depending on what we
