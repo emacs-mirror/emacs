@@ -1,3 +1,24 @@
+2002-11-30  Steven Tamm  <steventamm@mac.com>
+
+	* make-package: Now compresses .pax file instead of entire disk
+	image to reduce installer size on disk.  Also added code to
+	create compressed disk image in the future.
+
+	No longer copies .el files that have been compiled by default.
+	Use --full-dist option to include them.
+
+	Option --symlink added to reduce disk size by making
+	/usr/bin/emacs and the Emacs binary inside the Emacs.app to become
+	symlinks to the	emacs-[version] binary.  
+
+	Option --self-contained added to place files shared files
+	inside the Emacs.app executable (for portability between systems)
+
+	Added hidden debugging option --keep-dir to keep temporary install 
+	directory (emacs-[version]) around after running script
+	
+	* README: Removed comment about mouse-2 & -3 not working (it does)
+
 2002-10-14  Andreas Schwab  <schwab@suse.de>
 
 	* make-package: Fix syntax for find.
