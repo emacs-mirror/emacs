@@ -394,10 +394,10 @@ adjust_markers_for_delete (from, from_byte, to, to_byte)
    to TO / TO_BYTE.  We have to relocate the charpos of every marker
    that points after the insertion (but not their bytepos).
 
-   COMBINED_BEFORE_BYTES is the number of bytes before the insertion
-   that combines into one character with the first inserted bytes.
+   COMBINED_BEFORE_BYTES is the number of bytes at the start of the insertion
+   that combine into one character with the text before the insertion.
    COMBINED_AFTER_BYTES is the number of bytes after the insertion
-   that combines into one character with the last inserted bytes.
+   that combine into one character with the last inserted bytes.
 
    When a marker points at the insertion point,
    we advance it if either its insertion-type is t
@@ -439,10 +439,25 @@ adjust_markers_for_insert (from, from_byte, to, to_byte,
 		 but don't leave it pointing in the middle of a character.
 		 Point the marker after the combined character,
 		 so that undoing the insertion puts it back where it was.  */
-	      m->bytepos -= combined_before_bytes;
-	      m->charpos -= 1;
+
+	      /* Here we depend on the fact that the gap is after
+		 all of the combining bytes that we are going to skip over.  */
+	      DEC_BOTH (m->charpos, m->bytepos);
 	      INC_BOTH (m->charpos, m->bytepos);
 	    }
+	}
+      /* If a marker was pointing into the combining bytes
+	 after the insertion, don't leave it there
+	 in the middle of a character.  */
+      else if (combined_after_bytes && m->bytepos >= from_byte
+	       && m->bytepos < from_byte + combined_after_bytes)
+	{
+	  /* Put it after the combining bytes.  */
+	  m->bytepos = to_byte + combined_after_bytes;
+	  m->charpos = to + 1;
+	  /* Now move it back before the combined character,
+	     so that undoing the insertion will put it where it was.  */
+	  DEC_BOTH (m->charpos, m->bytepos);
 	}
       else if (m->bytepos > from_byte)
 	{
@@ -762,7 +777,7 @@ insert_1 (string, nbytes, inherit, prepare, before_markers)
 
 /* See if the bytes before POS/POS_BYTE combine with bytes
    at the start of STRING to form a single character.
-   If so, return the number of bytes before POS/POS_BYTE
+   If so, return the number of bytes at the start of STRING
    which combine in this way.  Otherwise, return 0.  */
 
 int
@@ -773,6 +788,7 @@ count_combining_before (string, length, pos, pos_byte)
 {
   int opos = pos, opos_byte = pos_byte;
   int c;
+  unsigned char *p = string;
 
   if (NILP (current_buffer->enable_multibyte_characters))
     return 0;
@@ -787,7 +803,13 @@ count_combining_before (string, length, pos, pos_byte)
   c = FETCH_BYTE (pos_byte);
   if (! BASE_LEADING_CODE_P (c))
     return 0;
-  return opos_byte - pos_byte;
+
+  /* We have a combination situation.
+     Count the bytes at STRING that will combine.  */
+  while (!CHAR_HEAD_P (*p) && p < string + length)
+    p++;
+
+  return p - string;
 }
 
 /* See if the bytes after POS/POS_BYTE combine with bytes
@@ -859,11 +881,8 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
   combined_after_bytes = count_combining_after (string, nbytes, PT, PT_BYTE);
 
   /* This is the net amount that Z will increase from this insertion.  */
-  /* The combined bytes before all count as one character, because
-     they start with a leading code, but the combined bytes after
-     count as separate characters, because they are all trailing codes.  */
 
-  adjusted_nchars = nchars - !!combined_before_bytes - combined_after_bytes;
+  adjusted_nchars = nchars - combined_before_bytes - combined_after_bytes;
 
   if (prepare)
     prepare_to_modify_buffer (PT - !!combined_before_bytes,
@@ -895,7 +914,9 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
 #endif
 
   GAP_SIZE -= nbytes;
-  GPT += nchars - !! combined_before_bytes - !!combined_after_bytes;
+  /* When we have combining at the end of the insertion,
+     this is the character position before the combined character.  */
+  GPT += nchars - combined_before_bytes - !!combined_after_bytes;
   ZV += adjusted_nchars;
   Z += adjusted_nchars;
   GPT_BYTE += nbytes;
@@ -907,6 +928,20 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
 			     PT + adjusted_nchars, PT_BYTE + nbytes,
 			     combined_before_bytes, combined_after_bytes,
 			     before_markers);
+
+  /* "Delete" the combined-after bytes, as far as intervals are concerned.
+     Note that as far as the intervals are concerned,
+     no insertion has yet taken place, so these bytes are right after PT.  */
+  if (combined_after_bytes)
+    offset_intervals (current_buffer, PT, - combined_after_bytes);
+
+#ifdef USE_TEXT_PROPERTIES
+  if (!inherit && BUF_INTERVALS (current_buffer) != 0)
+    Fset_text_properties (make_number (PT),
+			  make_number (PT + adjusted_nchars + combined_after_bytes),
+			  Qnil, Qnil);
+#endif
+
   adjust_point (adjusted_nchars + combined_after_bytes,
 		nbytes + combined_after_bytes);
 
@@ -915,12 +950,6 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
 
   if (GPT_BYTE < GPT)
     abort ();
-
-#ifdef USE_TEXT_PROPERTIES
-  if (!inherit && BUF_INTERVALS (current_buffer) != 0)
-    Fset_text_properties (make_number (PT - adjusted_nchars), make_number (PT),
-			  Qnil, Qnil);
-#endif
 }
 
 /* Insert the part of the text of STRING, a Lisp object assumed to be
@@ -980,6 +1009,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
   int outgoing_nbytes = nbytes;
   int combined_before_bytes, combined_after_bytes;
   int adjusted_nchars;
+  INTERVAL intervals;
 
   /* Make OUTGOING_NBYTES describe the text
      as it will be inserted in this buffer.  */
@@ -1029,7 +1059,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
 			     PT, PT_BYTE);
 
   /* This is the net amount that Z will increase from this insertion.  */
-  adjusted_nchars = nchars - !!combined_before_bytes - combined_after_bytes;
+  adjusted_nchars = nchars - combined_before_bytes - combined_after_bytes;
 
   /* Record deletion of the surrounding text that combines with
      the insertion.  This, together with recording the insertion,
@@ -1051,7 +1081,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
   offset_intervals (current_buffer, PT, adjusted_nchars);
 
   GAP_SIZE -= outgoing_nbytes;
-  GPT += nchars - !!combined_before_bytes - !!combined_after_bytes;
+  GPT += nchars - combined_before_bytes - !!combined_after_bytes;
   ZV += adjusted_nchars;
   Z += adjusted_nchars;
   GPT_BYTE += outgoing_nbytes;
@@ -1070,8 +1100,24 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
   if (GPT_BYTE < GPT)
     abort ();
 
-  graft_intervals_into_buffer (XSTRING (string)->intervals, PT, nchars,
+  /* "Delete" the combined-after bytes, as far as intervals are concerned.
+     Note that as far as the intervals are concerned,
+     no insertion has yet taken place, so these bytes are right after PT.  */
+  if (combined_after_bytes)
+    offset_intervals (current_buffer, PT, - combined_after_bytes);
+
+  /* Get the intervals for the part of the string we are inserting--
+     not including the combined-before bytes.  */
+  intervals = XSTRING (string)->intervals;
+  if (combined_before_bytes != 0
+      || nbytes < XSTRING (string)->size_byte)
+    intervals = copy_intervals (intervals, pos + combined_before_bytes,
+				nchars - combined_before_bytes);
+			       
+  /* Insert those intervals.  */
+  graft_intervals_into_buffer (intervals, PT, nchars - combined_before_bytes,
 			       current_buffer, inherit);
+
   adjust_point (adjusted_nchars + combined_after_bytes,
 		outgoing_nbytes + combined_after_bytes);
 }
@@ -1112,6 +1158,7 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
   int outgoing_nbytes = incoming_nbytes;
   int combined_before_bytes, combined_after_bytes;
   int adjusted_nchars;
+  INTERVAL intervals;
 
   /* Make OUTGOING_NBYTES describe the text
      as it will be inserted in this buffer.  */
@@ -1165,7 +1212,7 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
 			     PT, PT_BYTE);
 
   /* This is the net amount that Z will increase from this insertion.  */
-  adjusted_nchars = nchars - !!combined_before_bytes - combined_after_bytes;
+  adjusted_nchars = nchars - combined_before_bytes - combined_after_bytes;
 
   /* Record deletion of the surrounding text that combines with
      the insertion.  This, together with recording the insertion,
@@ -1189,7 +1236,7 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
 #endif
 
   GAP_SIZE -= outgoing_nbytes;
-  GPT += nchars - !!combined_before_bytes - !!combined_after_bytes;
+  GPT += nchars - combined_before_bytes - !!combined_after_bytes;
   ZV += adjusted_nchars;
   Z += adjusted_nchars;
   GPT_BYTE += outgoing_nbytes;
@@ -1200,6 +1247,26 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
   adjust_markers_for_insert (PT, PT_BYTE, PT + adjusted_nchars,
 			     PT_BYTE + outgoing_nbytes,
 			     combined_before_bytes, combined_after_bytes, 0);
+
+  /* "Delete" the combined-after bytes, as far as intervals are concerned.
+     Note that as far as the intervals are concerned,
+     no insertion has yet taken place, so these bytes are right after PT.  */
+  if (combined_after_bytes)
+    offset_intervals (current_buffer, PT, - combined_after_bytes);
+
+  /* Get the intervals for the part of the string we are inserting--
+     not including the combined-before bytes.  */
+  intervals = BUF_INTERVALS (buf);
+  if (combined_before_bytes != 0
+      || nbytes < BUF_Z_BYTE (buf) - BUF_BEG_BYTE (buf))
+    intervals = copy_intervals (intervals, from + combined_before_bytes,
+				nchars - combined_before_bytes);
+			       
+  /* Insert those intervals.  */
+  graft_intervals_into_buffer (intervals, PT, nchars - combined_before_bytes,
+			       current_buffer, inherit);
+
+
   adjust_point (adjusted_nchars + combined_after_bytes,
 		outgoing_nbytes + combined_after_bytes);
 
@@ -1208,12 +1275,6 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
 
   if (GPT_BYTE < GPT)
     abort ();
-
-  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
-  graft_intervals_into_buffer (copy_intervals (BUF_INTERVALS (buf),
-					       from, nchars),
-			       PT - adjusted_nchars, adjusted_nchars,
-			       current_buffer, inherit);
 }
 
 /* This function should be called after moving gap to FROM and before
@@ -1241,7 +1302,7 @@ adjust_after_replace (from, from_byte, to, to_byte, len, len_byte,
      int from, from_byte, to, to_byte, len, len_byte;
      int combined_before_bytes, combined_after_bytes;
 {
-  int adjusted_nchars = len - !!combined_before_bytes - combined_after_bytes;
+  int adjusted_nchars = len - combined_before_bytes - combined_after_bytes;
   record_insert (from - !!combined_before_bytes, len);
   if (from < PT)
     adjust_point (len - (to - from) + combined_after_bytes,
@@ -1282,6 +1343,7 @@ replace_range (from, to, new, prepare, inherit)
   struct gcpro gcpro1;
   int combined_before_bytes, combined_after_bytes;
   int adjusted_inschars;
+  INTERVAL intervals;
 
   GCPRO1 (new);
 
@@ -1363,7 +1425,7 @@ replace_range (from, to, new, prepare, inherit)
 
   /* This is the net amount that Z will increase from this insertion.  */
   adjusted_inschars
-    = inschars - !!combined_before_bytes - combined_after_bytes;
+    = inschars - combined_before_bytes - combined_after_bytes;
 
   /* Record deletion of the surrounding text that combines with
      the insertion.  This, together with recording the insertion,
@@ -1395,7 +1457,7 @@ replace_range (from, to, new, prepare, inherit)
 #endif
 
   GAP_SIZE -= insbytes;
-  GPT += inschars - !!combined_before_bytes - !!combined_after_bytes;
+  GPT += inschars - combined_before_bytes - !!combined_after_bytes;
   ZV += adjusted_inschars;
   Z += adjusted_inschars;
   GPT_BYTE += insbytes;
@@ -1414,11 +1476,23 @@ replace_range (from, to, new, prepare, inherit)
 			     from_byte + insbytes,
 			     combined_before_bytes, combined_after_bytes, 0);
 
-#ifdef USE_TEXT_PROPERTIES
-  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
-  graft_intervals_into_buffer (XSTRING (new)->intervals, from,
-			       inschars, current_buffer, inherit);
-#endif
+  /* "Delete" the combined-after bytes, as far as intervals are concerned.
+     Note that as far as the intervals are concerned,
+     no insertion has yet taken place, so these bytes are right after PT.  */
+  if (combined_after_bytes)
+    offset_intervals (current_buffer, PT, - combined_after_bytes);
+
+  /* Get the intervals for the part of the string we are inserting--
+     not including the combined-before bytes.  */
+  intervals = XSTRING (new)->intervals;
+  if (combined_before_bytes != 0)
+    intervals = copy_intervals (intervals, combined_before_bytes,
+				inschars - combined_before_bytes);
+			       
+  /* Insert those intervals.  */
+  graft_intervals_into_buffer (intervals, from,
+			       inschars - combined_before_bytes,
+			       current_buffer, inherit);
 
   if (insbytes == 0)
     evaporate_overlays (from);
