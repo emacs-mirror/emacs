@@ -351,9 +351,9 @@ reset_buffer_local_variables (b)
 
   for (offset = (char *)&buffer_local_flags.name - (char *)&buffer_local_flags;
        offset < sizeof (struct buffer);
-       offset += sizeof (Lisp_Object)) /* sizeof int == sizeof Lisp_Object */
-    if (*(int *)(offset + (char *) &buffer_local_flags) > 0
-	|| *(int *)(offset + (char *) &buffer_local_flags) == -2)
+       offset += sizeof (Lisp_Object)) /* sizeof EMACS_INT == sizeof Lisp_Object */
+    if (*(EMACS_INT *)(offset + (char *) &buffer_local_flags) > 0
+	|| *(EMACS_INT *)(offset + (char *) &buffer_local_flags) == -2)
       *(Lisp_Object *)(offset + (char *)b) =
 	*(Lisp_Object *)(offset + (char *)&buffer_defaults);
 }
@@ -479,9 +479,9 @@ No argument or nil as argument means use current buffer as BUFFER.")
 
     for (offset = (char *)&buffer_local_symbols.name - (char *)&buffer_local_symbols;
 	 offset < sizeof (struct buffer);
-	 offset += (sizeof (int))) /* sizeof int == sizeof Lisp_Object */
+	 offset += (sizeof (EMACS_INT))) /* sizeof EMACS_INT == sizeof Lisp_Object */
       {
-	mask = *(int *)(offset + (char *) &buffer_local_flags);
+	mask = *(EMACS_INT *)(offset + (char *) &buffer_local_flags);
 	if (mask == -1 || (buf->local_var_flags & mask))
 	  if (XTYPE (*(Lisp_Object *)(offset + (char *)&buffer_local_symbols))
 	      == Lisp_Symbol)
@@ -2372,7 +2372,7 @@ init_buffer_once ()
      The local flag bits are in the local_var_flags slot of the buffer.  */
 
   /* Nothing can work if this isn't true */
-  if (sizeof (int) != sizeof (Lisp_Object)) abort ();
+  if (sizeof (EMACS_INT) != sizeof (Lisp_Object)) abort ();
 
   /* 0 means not a lisp var, -1 means always local, else mask */
   bzero (&buffer_local_flags, sizeof buffer_local_flags);
