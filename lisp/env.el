@@ -1,10 +1,9 @@
 ;;; setenv.el --- functions to manipulate environment variables.
 
-;; Maintainer: FSF
-;; Last-Modified: 16 Mar 1992
-;; Keywords: extensions
-
 ;;; Copyright Free Software Foundation 1991
+
+;; Maintainer: FSF
+;; Keywords: extensions
 
 ;;; This file is part of GNU Emacs.
 
@@ -28,9 +27,10 @@
   "Set the value of the environment variable named VARIABLE to VALUE.
 VARIABLE and VALUE should both be strings.
 This function works by modifying process-environment."
+  (interactive "sSet environment variable: \nsSet %s to value: ")
   (if (string-match "=" variable)
-      (error "name of environment variable contains an '=' character")
-    (let ((pattern (concat "^" (regexp-quote (concat variable "="))))
+      (error "Environment variable name contains `='")
+    (let ((pattern (concat "\\`" (regexp-quote (concat variable "="))))
 	  (scan process-environment))
       (while scan
 	(cond
