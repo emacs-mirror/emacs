@@ -1,3 +1,9 @@
+2004-07-27  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (move_it_in_display_line_to): Check BUFFER_POS_REACHED_P after
+	we have ensured that the glyph fits on the current line (or returned
+	MOVE_LINE_CONTINUED otherwise).
+
 2004-07-26  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (move_it_in_display_line_to): If overflow-newline-into-fringe
