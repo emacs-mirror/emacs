@@ -277,7 +277,8 @@ The column of a character is calculated by adding together the widths\n\
 as displayed of the previous characters in the line.\n\
 This function ignores line-continuation;\n\
 there is no upper limit on the column number a character can have\n\
-and horizontal scrolling has no effect.\n\n\
+and horizontal scrolling has no effect.\n\
+\n\
 If specified column is within a character, point goes after that character.\n\
 If it's past end of line, point goes to end of line.\n\n\
 A non-nil second (optional) argument FORCE means, if the line\n\
@@ -355,7 +356,7 @@ and if COLUMN is in the middle of a tab character, change it to spaces.")
 
   /* If line ends prematurely, add space to the end.  */
   if (col < goal && !NILP (force))
-    Findent_to (make_number (col = goal));
+    Findent_to (make_number (col = goal), Qnil);
 
   last_known_column = col;
   last_known_column_point = point;
