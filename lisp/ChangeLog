@@ -1,3 +1,8 @@
+2004-02-18  Markus Rost  <rost@mathematik.uni-bielefeld.de>
+
+	* progmodes/executable.el (executable-command-find-posix-p):  Fix
+	choice of the directory.
+
 2004-02-17  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* simple.el (interprogram-cut-function)
