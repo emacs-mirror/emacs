@@ -1502,7 +1502,7 @@ If DIRECTION is `backward', search in the reverse direction."
 			    ;; Skip node header line
 			    (and (save-excursion (forward-line -1)
 						 (looking-at "\^_"))
-				 (forward-line 1))
+				 (forward-line (if backward -1 1)))
 			    ;; Skip Tag Table node
 			    (save-excursion
 			      (and (search-backward "\^_" nil t)
@@ -1540,6 +1540,7 @@ If DIRECTION is `backward', search in the reverse direction."
 		  (search-forward (concat "\n" osubfile ": "))
 		  ;; Skip that one.
 		  (forward-line (if backward 0 1))
+		  (if backward (forward-char -1))
 		  ;; Make a list of all following subfiles.
 		  ;; Each elt has the form (VIRT-POSITION . SUBFILENAME).
 		  (while (not (if backward (bobp) (eobp)))
@@ -1578,7 +1579,7 @@ If DIRECTION is `backward', search in the reverse direction."
 				  ;; Skip node header line
 				  (and (save-excursion (forward-line -1)
 						       (looking-at "\^_"))
-				       (forward-line 1))
+				       (forward-line (if backward -1 1)))
 				  ;; Skip Tag Table node
 				  (save-excursion
 				    (and (search-backward "\^_" nil t)
@@ -1615,7 +1616,8 @@ If DIRECTION is `backward', search in the reverse direction."
       ;; Use string-equal, not equal, to ignore text props.
       (or (and (string-equal onode Info-current-node)
 	       (equal ofile Info-current-file))
-          (and isearch-mode isearch-wrapped (eq opoint opoint-min))
+          (and isearch-mode isearch-wrapped
+	       (eq opoint (if isearch-forward opoint-min opoint-max)))
 	  (setq Info-history (cons (list ofile onode opoint)
 				   Info-history))))))
 
