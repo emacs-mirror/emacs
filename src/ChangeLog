@@ -1,5 +1,10 @@
 2000-12-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c (PT_PER_INCH): New macro.
+	(xlfd_point_size): Compute real point size from font's pixel size.
+	(pixel_point_size, build_scalable_font_name): Use PT_PER_INCH
+	instead of 72.
+
 	* .gdbinit: Comment out the line pointing to the Lesstif source
 	directory.
 

@@ -1,5 +1,7 @@
 2000-12-27  Gerd Moellmann  <gerd@gnu.org>
 
+	* textmodes/texinfo.el (texinfo-mode): Set fill-column to 70.
+
 	* version.el (emacs-version): Print X scroll bar information.
 
 	* scroll-bar.el (toplevel): Check for x-toolkit-scroll-bars
