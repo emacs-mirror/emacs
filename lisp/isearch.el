@@ -246,9 +246,9 @@ Default value, nil, means edit the string instead."
 	(define-key map (make-string 1 i) 'isearch-other-control-char)
 	(setq i (1+ i)))
 
-      ;; Printing chars extend the search string by default.
+      ;; Single-byte printing chars extend the search string by default.
       (setq i ?\ )
-      (while (< i (length (nth 1 map)))
+      (while (< i 256)
 	(define-key map (vector i) 'isearch-printing-char)
 	(setq i (1+ i)))
 
