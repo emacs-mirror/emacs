@@ -589,11 +589,12 @@ found."
 				   "Macro"
 				 "Function"))
 			     t)
-	  (if (get symbol 'custom-type)
-	      (apropos-print-doc 'customize-variable-other-window 2
-				 "User Option" t)
-	    (apropos-print-doc 'describe-variable 2
-			       "Variable" t))
+	  ;; We used to use customize-variable-other-window instead
+	  ;; for a customizable variable, but that is slow.
+	  ;; It is better to show an ordinary help buffer
+	  ;; and let the user click on the customization button
+	  ;; in that buffer, if he wants to.
+	  (apropos-print-doc 'describe-variable 2 "Variable" t)
 	  (apropos-print-doc 'customize-group-other-window 6 "Group" t)
 	  (apropos-print-doc 'customize-face-other-window 5 "Face" t)
 	  (apropos-print-doc 'widget-browse-other-window 4 "Widget" t)
