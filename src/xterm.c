@@ -3616,6 +3616,14 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  unsigned char copy_buffer[81];
 		  int modifiers;
 
+                  if (lw_window_is_in_menubar (event.xkey.window,
+                                               f->output_data.x->menubar_widget
+                                               ))
+                    {
+                      XtDispatchEvent (&event);
+                      break;
+                    }
+                                               
 		  event.xkey.state
 		    |= x_emacs_to_x_modifiers (FRAME_X_DISPLAY_INFO (f),
 					       extra_keyboard_modifiers);
@@ -3651,13 +3659,6 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 					  80, &keysym, &compose_status);
 #endif
 
-#ifdef USE_X_TOOLKIT
-                  if (lw_toolkit_related_event_p (&event))
-                    {
-                      XtDispatchEvent (&event);
-                      break;
-                    }
-#endif
 		  orig_keysym = keysym;
 
 		  if (numchars > 1)
