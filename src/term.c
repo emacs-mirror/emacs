@@ -201,6 +201,8 @@ ring_bell ()
     (*FRAME_DISPLAY (f)->ring_bell_hook) ();
 }
 
+/* Ring the bell on a tty. */
+
 void
 tty_ring_bell ()
 {
@@ -212,7 +214,10 @@ tty_ring_bell ()
                 : tty->TS_bell));
 }
 
-void tty_set_terminal_modes (struct display *display)
+/* Set up termcap modes for Emacs. */
+
+void
+tty_set_terminal_modes (struct display *display)
 {
   struct tty_display_info *tty = display->display_info.tty;
   
@@ -222,7 +227,10 @@ void tty_set_terminal_modes (struct display *display)
   losecursor (tty);
 }
 
-void tty_reset_terminal_modes (struct display *display)
+/* Reset termcap modes before exiting Emacs. */
+
+void
+tty_reset_terminal_modes (struct display *display)
 {
   struct tty_display_info *tty = display->display_info.tty;
   
@@ -255,6 +263,8 @@ update_end (f)
   updating_frame = NULL;
 }
 
+/* Flag the end of a display update on a termcap display. */
+
 void
 tty_update_end (struct frame *f)
 {
@@ -265,6 +275,11 @@ tty_update_end (struct frame *f)
   turn_off_insert (tty);
   background_highlight (tty);
 }
+
+/* Specify how many text lines, from the top of the window,
+   should be affected by insert-lines and delete-lines operations.
+   This, and those operations, are used only within an update
+   that is bounded by calls to update_begin and update_end.  */
 
 void
 set_terminal_window (size)
@@ -277,6 +292,8 @@ set_terminal_window (size)
   if (FRAME_DISPLAY (f)->set_terminal_window_hook)
     (*FRAME_DISPLAY (f)->set_terminal_window_hook) (size);
 }
+
+/* The implementation of set_terminal_window for termcap frames. */
 
 void
 tty_set_terminal_window (int size)
@@ -489,7 +506,7 @@ tty_raw_cursor_to (int row, int col)
 
 /* Erase operations */
 
-/* clear from cursor to end of frame */
+/* Clear from cursor to end of frame. */
 void
 clear_to_end ()
 {
@@ -500,6 +517,8 @@ clear_to_end ()
   if (FRAME_DISPLAY (f)->clear_to_end_hook)
     (*FRAME_DISPLAY (f)->clear_to_end_hook) ();
 }
+
+/* Clear from cursor to end of frame on a termcap device. */
 
 void
 tty_clear_to_end (void)
@@ -535,6 +554,8 @@ clear_frame ()
   if (FRAME_DISPLAY (f)->clear_frame_hook)
     (*FRAME_DISPLAY (f)->clear_frame_hook) ();
 }
+
+/* Clear an entire termcap frame. */
 
 void
 tty_clear_frame ()
@@ -574,6 +595,10 @@ clear_end_of_line (first_unused_hpos)
   if (FRAME_DISPLAY (f)->clear_end_of_line_hook)
     (*FRAME_DISPLAY (f)->clear_end_of_line_hook) (first_unused_hpos);
 }
+
+/* An implementation of clear_end_of_line for termcap frames.
+
+   Note that the cursor may be moved, on terminals lacking a `ce' string.  */
 
 void
 tty_clear_end_of_line (int first_unused_hpos)
@@ -725,6 +750,9 @@ encode_terminal_code (src, dst, src_len, dst_len, consumed)
 }
 
 
+/* Output LEN glyphs starting at STRING at the nominal cursor position.
+   Advance the nominal cursor over the text.  */
+
 void
 write_glyphs (string, len)
      register struct glyph *string;
@@ -737,6 +765,8 @@ write_glyphs (string, len)
   if (FRAME_DISPLAY (f)->write_glyphs_hook)
     (*FRAME_DISPLAY (f)->write_glyphs_hook) (string, len);
 }
+
+/* An implementation of write_glyphs for termcap frames. */
 
 void
 tty_write_glyphs (struct glyph *string, int len)
@@ -833,7 +863,9 @@ tty_write_glyphs (struct glyph *string, int len)
   cmcheckmagic (tty);
 }
 
-/* If start is zero, insert blanks instead of a string at start */
+/* Insert LEN glyphs from START at the nominal cursor position.
+
+   If start is zero, insert blanks instead of a string at start */
 
 void
 insert_glyphs (start, len)
@@ -850,6 +882,8 @@ insert_glyphs (start, len)
   if (FRAME_DISPLAY (f)->insert_glyphs_hook)
     (*FRAME_DISPLAY (f)->insert_glyphs_hook) (start, len);
 }
+
+/* An implementation of insert_glyphs for termcap frames. */
 
 void
 tty_insert_glyphs (struct glyph *start, int len)
@@ -934,6 +968,8 @@ tty_insert_glyphs (struct glyph *start, int len)
   cmcheckmagic (tty);
 }
 
+/* Delete N glyphs at the nominal cursor position. */
+
 void
 delete_glyphs (n)
      register int n;
@@ -945,6 +981,8 @@ delete_glyphs (n)
   if (FRAME_DISPLAY (f)->delete_glyphs_hook)
     (*FRAME_DISPLAY (f)->delete_glyphs_hook) (n);
 }
+
+/* An implementation of delete_glyphs for termcap frames. */
 
 void
 tty_delete_glyphs (int n)
@@ -993,6 +1031,8 @@ ins_del_lines (vpos, n)
   if (FRAME_DISPLAY (f)->ins_del_lines_hook)
     (*FRAME_DISPLAY (f)->ins_del_lines_hook) (vpos, n);
 }
+
+/* An implementation of ins_del_lines for termcap frames. */
 
 void
 tty_ins_del_lines (int vpos, int n)
@@ -2082,6 +2122,11 @@ set_tty_color_mode (f, val)
 
 
 
+/* Return the termcap display with the given name.  If NAME is null,
+   return the display corresponding to our controlling terminal.
+
+   Returns NULL if the named terminal device is not opened.  */
+ 
 struct display *
 get_named_tty_display (name)
      char *name;
@@ -2159,8 +2204,8 @@ DEFUN ("frame-tty-type", Fframe_tty_type, Sframe_tty_type, 0, 1, 0,
  ***********************************************************************/
 
 /* Create the bootstrap display device for the initial frame.
+   Returns a display of type output_initial. */
 
-Returns a display of type output_initial. */
 struct display *
 init_initial_display (void)
 {
@@ -2180,6 +2225,7 @@ init_initial_display (void)
 
 /* Deletes the bootstrap display device.
    Called through delete_display_hook. */
+
 void
 delete_initial_display (struct display *display)
 {
@@ -2200,6 +2246,7 @@ delete_initial_display (struct display *display)
    TERMINAL_TYPE is the termcap type of the device, e.g. "vt100".
 
    If MUST_SUCCEED is true, then all errors are fatal. */
+
 struct display *
 term_init (char *name, char *terminal_type, int must_succeed)
 {
@@ -2734,8 +2781,8 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
 /* Auxiliary error-handling function for term_init.
    Free BUFFER and delete DISPLAY, then call error or fatal
-   with str1 or str2, respectively, according to MUST_SUCCEED.
-*/
+   with str1 or str2, respectively, according to MUST_SUCCEED.  */
+
 static void
 maybe_fatal (must_succeed, buffer, display, str1, str2, arg1, arg2)
      int must_succeed;
@@ -2801,6 +2848,9 @@ tty.  The functions are run with one arg, the frame to be deleted.  */)
 }
 
 static int deleting_tty = 0;
+
+
+/* Delete the given terminal device, closing all frames on it. */
 
 void
 delete_tty (struct display *display)
@@ -2904,6 +2954,7 @@ delete_tty (struct display *display)
 
 /* Initialize the tty-dependent part of frame F.  The frame must
    already have its display initialized. */
+
 void
 create_tty_output (struct frame *f)
 {
@@ -2921,6 +2972,7 @@ create_tty_output (struct frame *f)
 }
 
 /* Delete the tty-dependent part of frame F. */
+
 void
 delete_tty_output (struct frame *f)
 {
@@ -2935,6 +2987,7 @@ delete_tty_output (struct frame *f)
 
 /* Mark the pointers in the tty_display_info objects.
    Called by the Fgarbage_collector.  */
+
 void
 mark_ttys ()
 {
@@ -2950,6 +3003,7 @@ mark_ttys ()
 
 
 /* Create a new display object and add it to the display list. */
+
 struct display *
 create_display (void)
 {
@@ -2963,6 +3017,7 @@ create_display (void)
 }
 
 /* Remove a display from the display list and free its memory. */
+
 void
 delete_display (struct display *dev)
 {

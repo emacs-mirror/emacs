@@ -21,6 +21,7 @@ Boston, MA 02111-1307, USA.  */
 /* Each termcap frame points to its own struct tty_output object in
    the output_data.tty field.  The tty_output structure contains the
    information that is specific to termcap frames. */
+
 struct tty_output
 {
   /* The Emacs structure for the tty device this frame is on. */
@@ -30,6 +31,7 @@ struct tty_output
 };
 
 /* Parameters that are shared between frames on the same tty device. */
+
 struct tty_display_info
 {
   struct tty_display_info *next; /* Chain of all tty devices. */

@@ -23,10 +23,8 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #include <stdio.h>
 
-/* For CURTTY */
 #include "lisp.h"
 #include "frame.h"
-
 #include "cm.h"
 #include "termhooks.h"
 #include "termchar.h"
@@ -47,7 +45,6 @@ extern char *tgoto P_ ((const char *, int, int));
 				   use about 2000.... */
 
 extern char *BC, *UP;
-
 
 int cost;		/* sums up costs */
 

@@ -6544,6 +6544,8 @@ DEFUN ("process-filter-multibyte-p", Fprocess_filter_multibyte_p,
 
 
 
+/* Add DESC to the set of keyboard input descriptors.  */
+
 void
 add_keyboard_wait_descriptor (desc)
      int desc;

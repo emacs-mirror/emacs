@@ -282,6 +282,9 @@ char _sobuf[BUFSIZ];
 #endif
 #endif
 
+/* A signal handler that passes the signal to the Emacs process.
+   Useful for SIGWINCH.  */
+
 SIGTYPE
 pass_signal_to_emacs (int signalnum)
 {
@@ -294,6 +297,8 @@ pass_signal_to_emacs (int signalnum)
   errno = old_errno;
 }
 
+/* Set up signal handlers before opening a frame on the current tty.  */
+   
 void
 init_signals (void)
 {

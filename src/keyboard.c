@@ -10231,20 +10231,11 @@ clear_waiting_for_input ()
   input_available_clear_time = 0;
 }
 
-/* This routine is called at interrupt level in response to C-g.
+/* The SIGINT handler.
 
-   If interrupt_input, this is the handler for SIGINT.  Otherwise, it
-   is called from kbd_buffer_store_event, in handling SIGIO or
-   SIGTINT.
-
-   If `waiting_for_input' is non zero, then unless `echoing' is
-   nonzero, immediately throw back to read_char.
-
-   Otherwise it sets the Lisp variable quit-flag not-nil.  This causes
-   eval to throw, when it gets a chance.  If quit-flag is already
-   non-nil, it stops the job right away.
-
-   XXX This comment needs to be updated.  */
+   If we have a frame on the controlling tty, the SIGINT was generated
+   by C-g, so we call handle_interrupt.  Otherwise, the handler kills
+   Emacs.  */
 
 static SIGTYPE
 interrupt_signal (signalnum)	/* If we don't have an argument, */
@@ -10280,15 +10271,22 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
       internal_last_event_frame = display->display_info.tty->top_frame;
 
       handle_interrupt ();
-
     }
 
   errno = old_errno;
 }
 
-/* C-g processing, signal independent code.
+/* This routine is called at interrupt level in response to C-g.
+   
+   It is called from the SIGINT handler or kbd_buffer_store_event.
 
-   XXX Expand this comment.  */
+   If `waiting_for_input' is non zero, then unless `echoing' is
+   nonzero, immediately throw back to read_char.
+
+   Otherwise it sets the Lisp variable quit-flag not-nil.  This causes
+   eval to throw, when it gets a chance.  If quit-flag is already
+   non-nil, it stops the job right away. */
+
 static void
 handle_interrupt ()
 {

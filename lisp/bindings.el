@@ -214,7 +214,7 @@ Major modes that edit things other than ordinary files may change this
 
 (make-variable-buffer-local 'mode-line-buffer-identification)
 
-(defvar mode-line-frame-identification '("-%T  ")
+(defvar mode-line-frame-identification '(window-system "  " "-%F  ")
   "Mode-line control to describe the current frame.")
 
 (defvar mode-line-process nil "\

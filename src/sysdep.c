@@ -1322,6 +1322,9 @@ static struct ltchars new_ltchars = {-1,-1,-1,-1,-1,-1};
 static struct tchars new_tchars = {-1,-1,-1,-1,-1,-1};
 #endif
 
+/* Initialize the terminal mode on all tty devices that are currently
+   open. */
+
 void
 init_all_sys_modes (void)
 {
@@ -1329,6 +1332,8 @@ init_all_sys_modes (void)
   for (tty = tty_list; tty; tty = tty->next)
     init_sys_modes (tty);
 }
+
+/* Initialize the terminal mode on the given tty device. */
 
 void
 init_sys_modes (tty_out)
@@ -1833,6 +1838,9 @@ set_window_size (fd, height, width)
 }
 
 
+
+/* Prepare all terminal devices for exiting Emacs. */
+
 void
 reset_all_sys_modes (void)
 {
@@ -1843,6 +1851,7 @@ reset_all_sys_modes (void)
 
 /* Prepare the terminal for closing it; move the cursor to the
    bottom of the frame, turn off interrupt-driven I/O, etc.  */
+
 void
 reset_sys_modes (tty_out)
      struct tty_display_info *tty_out;
@@ -1854,11 +1863,27 @@ reset_sys_modes (tty_out)
     }
   if (!tty_out->term_initted)
     return;
-  
+
+  /* Go to and clear the last line of the terminal. */
+
   cmgoto (tty_out, FrameRows (tty_out) - 1, 0);
-#if 0  /* XXX This doesn't work anymore, the signature has changed. */
-  tty_clear_end_of_line (tty_out, FrameCols (tty_out));
-#endif
+
+  /* Code adapted from tty_clear_end_of_line. */
+  if (tty_out->TS_clr_line)
+    {
+      emacs_tputs (tty_out, tty_out->TS_clr_line, 1, cmputc);
+    }
+  else
+    {			/* have to do it the hard way */
+      int i;
+      turn_off_insert (tty_out);
+
+      for (i = curX (tty_out); i < FrameCols (tty_out) - 1; i++)
+	{
+	  fputc (' ', TTY_OUTPUT (tty_out));
+	}
+    }
+
   cmgoto (tty_out, FrameRows (tty_out) - 1, 0);
   fflush (tty_out->output);
   

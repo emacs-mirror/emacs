@@ -190,6 +190,7 @@
       (load "emacs-lisp/float-sup")))
 (message "%s" (garbage-collect))
 
+;; Load auxiliary settings for X displays if we support them.
 (when (fboundp 'x-create-frame)
   (load "mouse")
   (load "international/fontset")
