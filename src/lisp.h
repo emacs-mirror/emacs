@@ -1270,7 +1270,7 @@ typedef unsigned char UCHAR;
 
 /* Actually, the current Emacs uses 22 bits for the character value
    itself.  */
-#define CHARACTERBITS 2
+#define CHARACTERBITS 22
 
 /* The maximum byte size consumed by push_key_description.
    All callers should assure that at least this size of memory is
