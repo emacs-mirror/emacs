@@ -196,7 +196,20 @@ NOTE-END
 #ifndef THIS_IS_YMAKEFILE
 /* We need these because pointers are larger than the default ints.  */
 #include <alloca.h>
+
+/* Hack alert!  For reasons unknown to mankind the string.h file insists
+   on defining bcopy etc. as taking char pointers as arguments.  With
+   Emacs this produces an endless amount of warning which are harmless,
+   but tends to flood the real errors.  This hack works around this problem
+   by not prototyping.  */
+#define bcopy string_h_bcopy
+#define bzero string_h_bzero
+#define bcmp  string_h_bcmp
 #include <string.h>
+#undef bcopy
+#undef bzero
+#undef bcmp
+
 extern void *malloc (), *realloc ();
 extern long *xmalloc (), *xrealloc ();
 #endif
