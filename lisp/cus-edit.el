@@ -987,6 +987,7 @@ on an active field to invoke its action.  Invoke ")
 		 "(emacs)Easy Customization")
   (widget-insert " for more information.\n\n")
   (message "Creating customization buttons...")
+  (widget-insert "Operate on everything in this buffer:\n ")
   (widget-create 'push-button
 		 :tag "Set"
 		 :help-echo "Set all modifications for this session."
@@ -1024,9 +1025,9 @@ Reset all visible items in this buffer to their saved settings."
 		   :help-echo "\
 Reset all visible items in this buffer to their standard settings."
 		   :action 'custom-reset-standard))
-  (widget-insert " ")
+  (widget-insert "   ")
   (widget-create 'push-button
-		 :tag "Done"
+		 :tag "Bury Buffer"
 		 :help-echo "Bury the buffer."
 		 :action (lambda (widget &optional event)
 			   (bury-buffer)))
