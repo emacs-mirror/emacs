@@ -770,7 +770,7 @@ you type \\[term-send-input] which sends the current line to the inferior."
 	(if (term-in-char-mode)
 	    (if (term-pager-enabled) '(": char page %s") '(": char %s"))
 	  (if (term-pager-enabled) '(": line page %s") '(": line %s"))))
-  (set-buffer-modified-p (buffer-modified-p))) ;; Force mode line update.
+  (force-mode-line-update))
 
 (defun term-check-proc (buffer)
   "True if there is a process associated w/buffer BUFFER, and
@@ -2545,7 +2545,7 @@ The top-most line is line 0."
 	      mode-line-buffer-identification
 	      " [Type ? for help] "
 	      "%-"))
-  (set-buffer-modified-p (buffer-modified-p))) ;;No-op, but updates mode line.
+  (force-mode-line-update))
 
 (defun term-pager-line (lines)
   (interactive "p")
@@ -2658,7 +2658,7 @@ all pending output has been dealt with."))
     (use-local-map term-pager-old-local-map)
     (setq term-pager-old-local-map nil)
     (setq mode-line-format term-old-mode-line-format)
-    (set-buffer-modified-p (buffer-modified-p)) ;; Updates mode line.
+    (force-mode-line-update)
     (setq term-pager-count new-count)
     (set-process-filter process term-pager-old-filter)
     (funcall term-pager-old-filter process "")
