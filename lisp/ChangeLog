@@ -1,3 +1,8 @@
+2000-10-17  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info.el (Info-title-1-face, Info-title-2-face)
+	(Info-title-3-face): Define colors for tty's.
+
 2000-10-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* term/pc-win.el (msdos-handle-reverse-video): Don't remove
