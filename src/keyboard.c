@@ -1059,7 +1059,8 @@ command_loop ()
 {
   if (command_loop_level > 0 || minibuf_level > 0)
     {
-      Lisp_Object val = internal_catch (Qexit, command_loop_2, Qnil);
+      Lisp_Object val;
+      val = internal_catch (Qexit, command_loop_2, Qnil);
       executing_macro = Qnil;
       return val;
     }
@@ -5836,11 +5837,15 @@ parse_menu_item (item, notreal, inmenubar)
      int notreal, inmenubar;
 {
   Lisp_Object def, tem, item_string, start;
-  Lisp_Object cachelist = Qnil;
-  Lisp_Object filter = Qnil;
-  Lisp_Object keyhint = Qnil;
+  Lisp_Object cachelist;
+  Lisp_Object filter;
+  Lisp_Object keyhint;
   int i;
   int newcache = 0;
+
+  cachelist = Qnil;
+  filter = Qnil;
+  keyhint = Qnil;
 
   if (!CONSP (item))
     return 0;
