@@ -331,13 +331,16 @@ reset_buffer_local_variables (b)
    rename the buffer properly.  */
 
 DEFUN ("generate-new-buffer-name", Fgenerate_new_buffer_name, Sgenerate_new_buffer_name,
-  1, 1, 0,
+  1, 2, 0,
   "Return a string that is the name of no existing buffer based on NAME.\n\
 If there is no live buffer named NAME, then return NAME.\n\
 Otherwise modify name by appending `<NUMBER>', incrementing NUMBER\n\
-until an unused name is found, and then return that name.")
- (name)
-     register Lisp_Object name;
+until an unused name is found, and then return that name.\n\
+Optional second argument ignore specifies a name that is okay to use\n\
+\(if it is in the sequence to be tried)\n\
+even if a buffer with that name exists.
+ (name, ignore)
+     register Lisp_Object name, ignore;
 {
   register Lisp_Object gentemp, tem;
   int count;
@@ -354,6 +357,9 @@ until an unused name is found, and then return that name.")
     {
       sprintf (number, "<%d>", ++count);
       gentemp = concat2 (name, build_string (number));
+      tem = Fstring_equal (name, ignore);
+      if (!NILP (tem))
+	return gentemp;
       tem = Fget_buffer (gentemp);
       if (NILP (tem))
 	return gentemp;
@@ -536,7 +542,7 @@ This does not change the name of the visited file (if any).")
   if (!NILP (tem))
     {
       if (!NILP (unique))
-	name = Fgenerate_new_buffer_name (name);
+	name = Fgenerate_new_buffer_name (name, current_buffer->name);
       else
 	error ("Buffer name \"%s\" is in use", XSTRING (name)->data);
     }
