@@ -360,6 +360,11 @@ struct x_display_info
      use this directly, call x_color_cells instead.  */
   XColor *color_cells;
   int ncolor_cells;
+
+  /* Bits and shifts to use to compose pixel values on Direct and TrueColor
+     visuals.  */
+  int red_bits, blue_bits, green_bits;
+  int red_offset, blue_offset, green_offset;
 };
 
 #ifdef HAVE_X_I18N

@@ -6755,16 +6755,15 @@ lookup_rgb_color (f, r, g, b)
   unsigned hash = CT_HASH_RGB (r, g, b);
   int i = hash % CT_SIZE;
   struct ct_color *p;
-  Visual *visual;
+  struct x_display_info *dpyinfo;
 
   /* Handle TrueColor visuals specially, which improves performance by
      two orders of magnitude.  Freeing colors on TrueColor visuals is
      a nop, and pixel colors specify RGB values directly.  See also
      the Xlib spec, chapter 3.1.  */
-  visual = FRAME_X_DISPLAY_INFO (f)->visual;
-  if (visual->class == TrueColor)
+  dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  if (dpyinfo->red_bits > 0)
     {
-      int bits = visual->bits_per_rgb;
       unsigned long pr, pg, pb;
 
       /* Apply gamma-correction like normal color allocation does.  */
@@ -6779,14 +6778,9 @@ lookup_rgb_color (f, r, g, b)
       /* Scale down RGB values to the visual's bits per RGB, and shift
 	 them to the right position in the pixel color.  Note that the
 	 original RGB values are 16-bit values, as usual in X.  */
-      pr = (r >> (16 - bits)) << 2 * bits;
-      pg = (g >> (16 - bits)) << 1 * bits;
-      pb = (b >> (16 - bits)) << 0 * bits;
-
-      /* Apply RGB masks of the visual.  */
-      pr &= visual->red_mask;
-      pg &= visual->green_mask;
-      pb &= visual->blue_mask;
+      pr = (r >> (16 - dpyinfo->red_bits))   << dpyinfo->red_offset;
+      pg = (g >> (16 - dpyinfo->green_bits)) << dpyinfo->green_offset;
+      pb = (b >> (16 - dpyinfo->blue_bits))  << dpyinfo->blue_offset;
 
       /* Assemble the pixel color.  */
       return pr | pg | pb;

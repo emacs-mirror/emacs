@@ -10120,6 +10120,34 @@ same_x_server (name1, name2)
 }
 #endif
 
+/* Count number of set bits in mask and number of bits to shift to
+   get to the first bit.  With MASK 0x7e0, *BITS is set to 6, and *OFFSET
+   to 5.  */
+static void
+get_bits_and_offset (mask, bits, offset)
+     unsigned long mask;
+     int *bits;
+     int *offset;
+{
+  int nr = 0;
+  int off = 0;
+
+  while (!(mask & 1))
+    {
+      off++;
+      mask >>= 1;
+    }
+
+  while (mask & 1)
+    {
+      nr++;
+      mask >>= 1;
+    }
+
+  *offset = off;
+  *bits = nr;
+}
+
 struct x_display_info *
 x_term_init (display_name, xrm_option, resource_name)
      Lisp_Object display_name;
@@ -10367,6 +10395,20 @@ x_term_init (display_name, xrm_option, resource_name)
   dpyinfo->x_highlight_frame = 0;
   dpyinfo->image_cache = make_image_cache ();
 
+  /* See if we can construct pixel values from RGB values.  */
+  dpyinfo->red_bits = dpyinfo->blue_bits = dpyinfo->green_bits = 0;
+  dpyinfo->red_offset = dpyinfo->blue_offset = dpyinfo->green_offset = 0;
+
+  if (dpyinfo->visual->class == TrueColor)
+    {
+      get_bits_and_offset (dpyinfo->visual->red_mask,
+                           &dpyinfo->red_bits, &dpyinfo->red_offset);
+      get_bits_and_offset (dpyinfo->visual->blue_mask,
+                           &dpyinfo->blue_bits, &dpyinfo->blue_offset);
+      get_bits_and_offset (dpyinfo->visual->green_mask,
+                           &dpyinfo->green_bits, &dpyinfo->green_offset);
+    }
+      
   /* See if a private colormap is requested.  */
   if (dpyinfo->visual == DefaultVisualOfScreen (dpyinfo->screen))
     {

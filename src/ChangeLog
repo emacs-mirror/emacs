@@ -1,3 +1,13 @@
+2003-08-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_term_init): Initialize new fields in x_display_info.
+
+	* xterm.h (struct x_display_info): Add red/green/blue_bits and
+	*_offset.
+
+	* xfns.c (lookup_rgb_color): Use new fields in x_display_info to
+	calculate pixel value.
+
 2003-08-29  Gerd Moellmann  <gerd.moellmann@t-online.de>
 
 	* xdisp.c (redisplay_internal): Fix change of 2003-04-30.  Don't
