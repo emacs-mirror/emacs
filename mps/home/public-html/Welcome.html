@@ -1,5 +1,5 @@
 <HTML>
-<!-- $HopeName: MMweb_internal!Welcome.html(trunk.5) $>
+<!-- $HopeName: MMweb_internal!Welcome.html(trunk.6) $>
 <HEAD>
 <TITLE>Memory Management Group</TITLE>
 <LINK REV="MADE" HREF="mailto:mm@harlequin.co.uk">
@@ -7,11 +7,11 @@
 <BODY>
 <H1>Adaptive Memory Management Group</H1>
 
-<P>The Adaptive Memory Management Group is a technology group in the R
-&amp; D - Technologies division.  It seeks to capitalize on
-Harlequin's expertise in the area of memory management and garbage
-collection and produce products for both external and internal
-markets.</P>
+<P>The Adaptive Memory Management Group is a subgroup of the Languages
+group in the R &amp; D - Technologies division.  It seeks to
+capitalize on Harlequin's expertise in the area of memory management
+and garbage collection and produce products for both external and
+internal markets.</P>
 
 <P>Further information can be obtained from the Memory Management
 Information database under Spring
@@ -20,41 +20,55 @@ HREF="mailto:mm@harlequin.co.uk">mailing the Memory Management
 group</A>.</P>
 
 
-<H2>External web pages</H2>
+<H2>The Memory Management Reference</H2>
 
 <P>The group maintains <A HREF="http://www.harlequin.com/mm/reference/">The
-Memory Management Reference</A> on Harlequin's external web site.</P>
-
-<P>To view the latest draft of the MM Reference web
-pages, see <A HREF="http://webhost.cam.harlequin.co.uk/%7Emm/external/">&lt;URL:http://webhost.cam.harlequin.co.uk/%7Emm/external/&gt;</A>.
+Memory Management Reference</A> on Harlequin's external web site.  To
+view the latest draft of the web pages, see
+<A HREF="http://webhost.cam.harlequin.co.uk/%7Emm/external/">&lt;URL:http://webhost.cam.harlequin.co.uk/%7Emm/external/&gt;</A>.
 This is the checked version for internal review.</P>
 
-<P>To view the development copy of the memory management external web
-pages, see <A HREF="http://webhost.cam.harlequin.co.uk/%7Egavinm/mm/">&lt;URL:http://webhost.cam.harlequin.co.uk/%7Egavinm/mm/&gt;</A>.
-This is more up-to-date, but is likely to be unstable or
-inconsistent.</P>
+
+<H2>Useful links</H2>
+
+<P>Most useful links can be found in the
+<A HREF="http://www.harlequin.com/mm/reference/">The Memory Management
+Reference</A>; this is just stuff that didn't make it there, for one
+reason or another.</P>
+
+<UL>
+<LI> <A HREF="http://gee.cs.oswego.edu/dl/html/malloc.html">Lea's
+memory allocator</A>, the premier free malloc/free replacement
+<LI> <A HREF="http://reality.sgi.com/employees/boehm_mti/gc.html">Boehm's
+garbage collector for C and C++</A>
+<LI> <A HREF="http://www.biit.com/heapmanagerinfo.html">HeapManager</A> for Macs
+<LI> <A HREF="http://www.stairways.com/programming/memorymadness.html">Memory
+Madness -- Understanding handles and how to use them</A>, article on
+Mac memory management
+<LI> <A HREF="ftp://ftp.cs.colorado.edu/pub/misc/malloc-benchmarks/">Zorn's malloc benchmarks</A>
+</UL>
+
 
 
 <H2>Papers</H2>
 
-<P>These versions are for distribution within Harlequin only.  Any
-externally published versions are on
-<A HREF="http://www.harlequin.com/">Harlequin's external web
-site</A> (there are none at the moment).</P>
+<P>The versions on webhost are <EM>for distribution within Harlequin
+only</EM>.  For externally published versions, follow links to
+external sites, where provided.</P>
 
 <H3>Pekka P. Pirinen: Barrier techniques for incremental tracing</H3>
 
-<A HREF="http://webhost.cam.harlequin.co.uk/%7Emm/barrier1.ps">Postscript,
+<A HREF="http://www.acm.org/pubs/citations/proceedings/plan/286860/p20-pirinen/">
+published version</A><BR>
+<A HREF="http://webhost.cam.harlequin.co.uk/%7Emm/barrier1.ps">draft, Postscript,
 6 pages, 182 KB</A><BR>
-<A HREF="http://webhost.cam.harlequin.co.uk/%7Emm/barrier1.pdf">PDF 2.1,
+<A HREF="http://webhost.cam.harlequin.co.uk/%7Emm/barrier1.pdf">draft, PDF 2.1,
 6 pages, 72 dpi, 136 KB</A><BR>
-Accepted for presentation at
-<A HREF="http://www.sfu.ca/%7Eburton/ismm98.html">The 1998
-International Symposium on Memory Management</A> (note that the
-version distributed through this web page has been slightly edited for
-clarity and format).
+Presented at
+<A HREF="http://www.sfu.ca/%7Eburton/ismm98.html">the 1998
+International Symposium on Memory Management</A>.
 
-<blockquote>Abstract: This paper presents a classification of barrier
+<BLOCKQUOTE>Abstract: This paper presents a classification of barrier
 techniques for interleaving tracing with mutator operation during an
 incremental garbage collection.  The two useful tricolour invariants
 are derived from more elementary considerations of graph traversal.
@@ -63,12 +77,12 @@ according to the action taken at the barrier (such as scanning an
 object or changing its colour), and it is shown that the algorithms
 described in the literature cover all the possibilities except one.
 Unfortunately, the new technique is impractical.  Ways of combining
-barrier techniques are also discussed.</blockquote>
+barrier techniques are also discussed.</BLOCKQUOTE>
 
 Comments to <A HREF="mailto:pekka@harlequin.co.uk">Pekka</A>, please.
 
 <HR>
 <ADDRESS>Contact <A HREF="mailto:mm@harlequin.co.uk">mm</A></ADDRESS><BR>
-Last modified: $Date: 1998/07/10 13:11:23 $
+Last modified: $Date: 1998/07/22 19:20:57 $
 </BODY>
 </HTML>
