@@ -1322,14 +1322,15 @@ we put it on this frame."
   (when (or (and (display-color-p)
 		 (image-type-available-p 'xpm))
 	    (image-type-available-p 'pbm))
-    (let* ((frame (fancy-splash-frame))
-	   (img (create-image (or fancy-splash-image
-				  (if (and (display-color-p)
-					   (image-type-available-p 'xpm))
-				      "splash.xpm" "splash.pbm"))))
-	   (image-height (and img (cdr (image-size img))))
-	   (window-height (1- (window-height (frame-selected-window frame)))))
-      (> window-height (+ image-height 19)))))
+    (let ((frame (fancy-splash-frame)))
+      (when frame
+	(let* ((img (create-image (or fancy-splash-image
+				      (if (and (display-color-p)
+					       (image-type-available-p 'xpm))
+					  "splash.xpm" "splash.pbm"))))
+	       (image-height (and img (cdr (image-size img))))
+	       (window-height (1- (window-height (frame-selected-window frame)))))
+	  (> window-height (+ image-height 19)))))))
 
 
 (defun normal-splash-screen ()
