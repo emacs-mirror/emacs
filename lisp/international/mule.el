@@ -432,13 +432,14 @@ FLAGS specifies more precise information of each TYPE.
 		 (put coding-system 'no-initial-designation t))
 	     (setq coding-category
 		   (if (aref vec 8)	; Use locking-shift.
-		       'coding-category-iso-else
+		       (or (and (aref vec 7) 'coding-category-iso-7-else)
+			   'coding-category-iso-8-else)
 		     (if (aref vec 7)	; 7-bit only.
 			 (if (aref vec 9) ; Use single-shift.
-			     'coding-category-iso-else
+			     'coding-category-iso-7-else
 			   'coding-category-iso-7)
 		       (if no-initial-designation
-			   'coding-category-iso-else
+			   'coding-category-iso-8-else
 			 (if (and (charsetp g1-designation)
 				  (= (charset-dimension g1-designation) 2))
 			     'coding-category-iso-8-2
