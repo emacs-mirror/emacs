@@ -2174,14 +2174,19 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 	    set_waiting_for_input (&timeout);
 	}
 
-      if (XINT (read_kbd) && detect_input_pending ())
-	{
-	  nfds = 0;
-	  FD_ZERO (&Available);
-	}
-      else
-	nfds = select (MAXDESC, &Available, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
-		       &timeout);
+      {
+	int old_timers_run = timers_run;
+	if (XINT (read_kbd) && detect_input_pending_run_timers (do_display))
+	  {
+	    nfds = 0;
+	    FD_ZERO (&Available);
+	  }
+	else if (timers_run != old_timers_run)
+	  ;
+	else
+	  nfds = select (MAXDESC, &Available, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
+			 &timeout);
+      }
 
       xerrno = errno;
 
@@ -2248,14 +2253,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       /* If there is any, return immediately
 	 to give it higher priority than subprocesses */
 
-      if (XINT (read_kbd) < 0 && detect_input_pending ())
-	{
-	  swallow_events (do_display);
-	  if (detect_input_pending ())
-	    break;
-	}
-
-      if ((XINT (read_kbd) > 0 || wait_for_cell)
+      if ((XINT (read_kbd) != 0 || wait_for_cell)
 	  && detect_input_pending_run_timers (do_display))
 	{
 	  swallow_events (do_display);
@@ -3930,11 +3928,16 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (frame_garbaged && do_display)
 	redisplay_preserve_echo_area ();
 
-      if (XINT (read_kbd) && detect_input_pending ())
-	nfds = 0;
-      else
-	nfds = select (1, &waitchannels, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
-		       &timeout);
+      {
+	int old_timers_run = timers_run;
+	if (XINT (read_kbd) && detect_input_pending_run_timers (do_display))
+	  nfds = 0;
+	else if (timers_run != old_timers_run)
+	  ;
+	else
+	  nfds = select (1, &waitchannels, (SELECT_TYPE *)0, (SELECT_TYPE *)0,
+			 &timeout);
+      }
 
       xerrno = errno;
 
@@ -3969,14 +3972,7 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 
       /* Check for keyboard input */
 
-      if (XINT (read_kbd) < 0 && detect_input_pending ())
-	{
-	  swallow_events (do_display);
-	  if (detect_input_pending ())
-	    break;
-	}
-
-      if (XINT (read_kbd) > 0
+      if (XINT (read_kbd) != 0
 	  && detect_input_pending_run_timers (do_display))
 	{
 	  swallow_events (do_display);
