@@ -324,6 +324,7 @@ Changing frame parameter `font' sets font-related attributes of the
 `foreground-color' or `background-color' sets the colors of the
 `default' face and vice versa.
 
++++
 ** New face `menu'.
 
 The face `menu' can be used to change colors and font of Emacs' menus.
