@@ -5452,6 +5452,7 @@ encode_coding_string (str, coding, nocopy)
 			      buf.size - produced);
       consumed += coding->consumed;
       consumed_char += coding->consumed_char;
+      produced += coding->produced;
       produced_char += coding->produced_char;
       if (result == CODING_FINISH_NORMAL
 	  || (result == CODING_FINISH_INSUFFICIENT_SRC
