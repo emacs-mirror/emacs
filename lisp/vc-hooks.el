@@ -786,7 +786,7 @@ For CVS, the full name of CVS/Entries is returned."
 	       ;; normal entry
 	       ((re-search-forward
 		 (concat "^/" (regexp-quote basename) 
-			 "/\\([^/]*\\)/[^ /]* \\([A-Z][a-z][a-z]\\) *\\([0-9]*\\) \\([0-9]*\\):\\([0-9]*\\):\\([0-9]*\\) \\([0-9]*\\)")
+			 "/\\([^/]*\\)/\\([^/+]*\\+\\)?[^ /]* \\([A-Z][a-z][a-z]\\) *\\([0-9]*\\) \\([0-9]*\\):\\([0-9]*\\):\\([0-9]*\\) \\([0-9]*\\)")
 		 nil t)
 		(setq case-fold-search fold)  ;; restore the old value
 		;; We found it.  Store away version number now that we 
@@ -797,16 +797,16 @@ For CVS, the full name of CVS/Entries is returned."
 		;; If the file hasn't been modified since checkout,
 		;; store the checkout-time.
 		(let ((mtime (nth 5 (file-attributes file)))
-		      (second (string-to-number (match-string 6)))
-		      (minute (string-to-number (match-string 5)))
-		      (hour (string-to-number (match-string 4)))
-		      (day (string-to-number (match-string 3)))
-		      (year (string-to-number (match-string 7))))
+		      (second (string-to-number (match-string 7)))
+		      (minute (string-to-number (match-string 6)))
+		      (hour (string-to-number (match-string 5)))
+		      (day (string-to-number (match-string 4)))
+		      (year (string-to-number (match-string 8))))
 		  (if (equal mtime
 			     (encode-time
 			      second minute hour day
 			      (/ (string-match
-				  (match-string 2)
+				  (match-string 3)
 				  "xxxJanFebMarAprMayJunJulAugSepOctNovDec")
 				 3)
 			      year 0))
