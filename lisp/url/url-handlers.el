@@ -1,7 +1,6 @@
 ;;; url-handlers.el --- file-name-handler stuff for URL loading
 
 ;; Copyright (c) 1996, 1997, 1998, 1999, 2004  Free Software Foundation, Inc.
-;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -208,7 +207,7 @@ accessible."
 	;; annotation which we could use as a hint of the locale in use
 	;; at the remote site.  Not sure how/if that should be done.  --Stef
 	(decode-coding-inserted-region
-	 start (point) buffer-file-name visit beg end replace)))
+	 start (point) url visit beg end replace)))
     (list url (length data))))
 
 (defun url-file-name-completion (url directory)

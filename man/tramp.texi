@@ -1952,9 +1952,12 @@ There is some informations on @value{tramp} on NT at the following URL;
 many thanks to Joe Stoy for providing the information:
 @uref{ftp://ftp.comlab.ox.ac.uk/tmp/Joe.Stoy/}
 
+@c The link is broken. I've contacted Tom for clarification. Michael.
+@ignore
 The above mostly contains patches to old ssh versions; Tom Roche has a
 Web page with instructions:
 @uref{http://www4.ncsu.edu/~tlroche/plinkTramp.html}
+@end ignore
 
 ??? Is the XEmacs info correct?
 

@@ -373,15 +373,6 @@ but optional second arg NODIGITS non-nil treats them like other chars."
 	  (define-key map (char-to-string loop) 'digit-argument)
 	  (setq loop (1+ loop))))))
 
-;Moved to keymap.c
-;(defun copy-keymap (keymap)
-;  "Return a copy of KEYMAP"
-;  (while (not (keymapp keymap))
-;    (setq keymap (signal 'wrong-type-argument (list 'keymapp keymap))))
-;  (if (vectorp keymap)
-;      (copy-sequence keymap)
-;      (copy-alist keymap)))
-
 (defvar key-substitution-in-progress nil
  "Used internally by substitute-key-definition.")
 
@@ -389,7 +380,10 @@ but optional second arg NODIGITS non-nil treats them like other chars."
   "Replace OLDDEF with NEWDEF for any keys in KEYMAP now defined as OLDDEF.
 In other words, OLDDEF is replaced with NEWDEF where ever it appears.
 Alternatively, if optional fourth argument OLDMAP is specified, we redefine
-in KEYMAP as NEWDEF those keys which are defined as OLDDEF in OLDMAP."
+in KEYMAP as NEWDEF those keys which are defined as OLDDEF in OLDMAP.
+
+For most uses, it is simpler and safer to use command remappping like this:
+  \(define-key KEYMAP [remap OLDDEF] NEWDEF)"
   ;; Don't document PREFIX in the doc string because we don't want to
   ;; advertise it.  It's meant for recursive calls only.  Here's its
   ;; meaning
@@ -399,126 +393,54 @@ in KEYMAP as NEWDEF those keys which are defined as OLDDEF in OLDMAP."
   ;; original key, with PREFIX added at the front.
   (or prefix (setq prefix ""))
   (let* ((scan (or oldmap keymap))
-	 (vec1 (vector nil))
-	 (prefix1 (vconcat prefix vec1))
+	 (prefix1 (vconcat prefix [nil]))
 	 (key-substitution-in-progress
 	  (cons scan key-substitution-in-progress)))
     ;; Scan OLDMAP, finding each char or event-symbol that
     ;; has any definition, and act on it with hack-key.
-    (while (consp scan)
-      (if (consp (car scan))
-	  (let ((char (car (car scan)))
-		(defn (cdr (car scan))))
-	    ;; The inside of this let duplicates exactly
-	    ;; the inside of the following let that handles array elements.
-	    (aset vec1 0 char)
-	    (aset prefix1 (length prefix) char)
-	    (let (inner-def skipped)
-	      ;; Skip past menu-prompt.
-	      (while (stringp (car-safe defn))
-		(setq skipped (cons (car defn) skipped))
-		(setq defn (cdr defn)))
-	      ;; Skip past cached key-equivalence data for menu items.
-	      (and (consp defn) (consp (car defn))
-		   (setq defn (cdr defn)))
-	      (setq inner-def defn)
-	      ;; Look past a symbol that names a keymap.
-	      (while (and (symbolp inner-def)
-			  (fboundp inner-def))
-		(setq inner-def (symbol-function inner-def)))
-	      (if (or (eq defn olddef)
-		      ;; Compare with equal if definition is a key sequence.
-		      ;; That is useful for operating on function-key-map.
-		      (and (or (stringp defn) (vectorp defn))
-			   (equal defn olddef)))
-		  (define-key keymap prefix1 (nconc (nreverse skipped) newdef))
-		(if (and (keymapp defn)
-			 ;; Avoid recursively scanning
-			 ;; where KEYMAP does not have a submap.
-			 (let ((elt (lookup-key keymap prefix1)))
-			   (or (null elt)
-			       (keymapp elt)))
-			 ;; Avoid recursively rescanning keymap being scanned.
-			 (not (memq inner-def
-				    key-substitution-in-progress)))
-		    ;; If this one isn't being scanned already,
-		    ;; scan it now.
-		    (substitute-key-definition olddef newdef keymap
-					       inner-def
-					       prefix1)))))
-	(if (vectorp (car scan))
-	    (let* ((array (car scan))
-		   (len (length array))
-		   (i 0))
-	      (while (< i len)
-		(let ((char i) (defn (aref array i)))
-		  ;; The inside of this let duplicates exactly
-		  ;; the inside of the previous let.
-		  (aset vec1 0 char)
-		  (aset prefix1 (length prefix) char)
-		  (let (inner-def skipped)
-		    ;; Skip past menu-prompt.
-		    (while (stringp (car-safe defn))
-		      (setq skipped (cons (car defn) skipped))
-		      (setq defn (cdr defn)))
-		    (and (consp defn) (consp (car defn))
-			 (setq defn (cdr defn)))
-		    (setq inner-def defn)
-		    (while (and (symbolp inner-def)
-				(fboundp inner-def))
-		      (setq inner-def (symbol-function inner-def)))
-		    (if (or (eq defn olddef)
-			    (and (or (stringp defn) (vectorp defn))
-				 (equal defn olddef)))
-			(define-key keymap prefix1
-			  (nconc (nreverse skipped) newdef))
-		      (if (and (keymapp defn)
-			       (let ((elt (lookup-key keymap prefix1)))
-				 (or (null elt)
-				     (keymapp elt)))
-			       (not (memq inner-def
-					  key-substitution-in-progress)))
-			  (substitute-key-definition olddef newdef keymap
-						     inner-def
-						     prefix1)))))
-		(setq i (1+ i))))
-	  (if (char-table-p (car scan))
-	      (map-char-table
-	       (function (lambda (char defn)
-			   (let ()
-			     ;; The inside of this let duplicates exactly
-			     ;; the inside of the previous let,
-			     ;; except that it uses set-char-table-range
-			     ;; instead of define-key.
-			     (aset vec1 0 char)
-			     (aset prefix1 (length prefix) char)
-			     (let (inner-def skipped)
-			       ;; Skip past menu-prompt.
-			       (while (stringp (car-safe defn))
-				 (setq skipped (cons (car defn) skipped))
-				 (setq defn (cdr defn)))
-			       (and (consp defn) (consp (car defn))
-				    (setq defn (cdr defn)))
-			       (setq inner-def defn)
-			       (while (and (symbolp inner-def)
-					   (fboundp inner-def))
-				 (setq inner-def (symbol-function inner-def)))
-			       (if (or (eq defn olddef)
-				       (and (or (stringp defn) (vectorp defn))
-					    (equal defn olddef)))
-				   (define-key keymap prefix1
-				     (nconc (nreverse skipped) newdef))
-				 (if (and (keymapp defn)
-					  (let ((elt (lookup-key keymap prefix1)))
-					    (or (null elt)
-						(keymapp elt)))
-					  (not (memq inner-def
-						     key-substitution-in-progress)))
-				     (substitute-key-definition olddef newdef keymap
-								inner-def
-								prefix1)))))))
-	       (car scan)))))
-      (setq scan (cdr scan)))))
+    (map-keymap
+     (lambda (char defn)
+       (aset prefix1 (length prefix) char)
+       (substitute-key-definition-key defn olddef newdef prefix1 keymap))
+     scan)))
+
+(defun substitute-key-definition-key (defn olddef newdef prefix keymap)
+  (let (inner-def skipped menu-item)
+    ;; Find the actual command name within the binding.
+    (if (eq (car-safe defn) 'menu-item)
+	(setq menu-item defn defn (nth 2 defn))
+      ;; Skip past menu-prompt.
+      (while (stringp (car-safe defn))
+	(push (pop defn) skipped))
+      ;; Skip past cached key-equivalence data for menu items.
+      (if (consp (car-safe defn))
+	  (setq defn (cdr defn))))
+    (if (or (eq defn olddef)
+	    ;; Compare with equal if definition is a key sequence.
+	    ;; That is useful for operating on function-key-map.
+	    (and (or (stringp defn) (vectorp defn))
+		 (equal defn olddef)))
+	(define-key keymap prefix
+	  (if menu-item
+	      (let ((copy (copy-sequence menu-item)))
+		(setcar (nthcdr 2 copy) newdef)
+		copy)
+	    (nconc (nreverse skipped) newdef)))
+      ;; Look past a symbol that names a keymap.
+      (setq inner-def
+	    (condition-case nil (indirect-function defn) (error defn)))
+      ;; For nested keymaps, we use `inner-def' rather than `defn' so as to
+      ;; avoid autoloading a keymap.  This is mostly done to preserve the
+      ;; original non-autoloading behavior of pre-map-keymap times.
+      (if (and (keymapp inner-def)
+	       ;; Avoid recursively scanning
+	       ;; where KEYMAP does not have a submap.
+	       (let ((elt (lookup-key keymap prefix)))
+		 (or (null elt) (natnump elt) (keymapp elt)))
+	       ;; Avoid recursively rescanning keymap being scanned.
+	       (not (memq inner-def key-substitution-in-progress)))
+	  ;; If this one isn't being scanned already, scan it now.
+	  (substitute-key-definition olddef newdef keymap inner-def prefix)))))
 
 (defun define-key-after (keymap key definition &optional after)
   "Add binding in KEYMAP for KEY => DEFINITION, right after AFTER's binding.
@@ -664,19 +586,19 @@ even when EVENT actually has modifiers."
 	    (char (logand type (lognot (logior ?\M-\^@ ?\C-\^@ ?\S-\^@
 					       ?\H-\^@ ?\s-\^@ ?\A-\^@)))))
 	(if (not (zerop (logand type ?\M-\^@)))
-	    (setq list (cons 'meta list)))
+	    (push 'meta list))
 	(if (or (not (zerop (logand type ?\C-\^@)))
 		(< char 32))
-	    (setq list (cons 'control list)))
+	    (push 'control list))
 	(if (or (not (zerop (logand type ?\S-\^@)))
 		(/= char (downcase char)))
-	    (setq list (cons 'shift list)))
+	    (push 'shift list))
 	(or (zerop (logand type ?\H-\^@))
-	    (setq list (cons 'hyper list)))
+	    (push 'hyper list))
 	(or (zerop (logand type ?\s-\^@))
-	    (setq list (cons 'super list)))
+	    (push 'super list))
 	(or (zerop (logand type ?\A-\^@))
-	    (setq list (cons 'alt list)))
+	    (push 'alt list))
 	list))))
 
 (defun event-basic-type (event)
@@ -694,8 +616,7 @@ in the current Emacs session, then this function may return nil."
 
 (defsubst mouse-movement-p (object)
   "Return non-nil if OBJECT is a mouse movement event."
-  (and (consp object)
-       (eq (car object) 'mouse-movement)))
+  (eq (car-safe object) 'mouse-movement))
 
 (defsubst event-start (event)
   "Return the starting position of EVENT.
@@ -1886,8 +1807,7 @@ Use a MESSAGE of \"\" to temporarily clear the echo area."
 See also `with-temp-file' and `with-output-to-string'."
   (declare (indent 0) (debug t))
   (let ((temp-buffer (make-symbol "temp-buffer")))
-    `(let ((,temp-buffer
-	    (get-buffer-create (generate-new-buffer-name " *temp*"))))
+    `(let ((,temp-buffer (generate-new-buffer " *temp*")))
        (unwind-protect
 	   (with-current-buffer ,temp-buffer
 	     ,@body)
@@ -2643,6 +2563,133 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
   (put symbol 'sendfunc sendfunc)
   (put symbol 'abortfunc (or abortfunc 'kill-buffer))
   (put symbol 'hookvar (or hookvar 'mail-send-hook)))
+
+;; Standardized progress reporting
+
+;; Progress reporter has the following structure:
+;;
+;;	(NEXT-UPDATE-VALUE . [NEXT-UPDATE-TIME
+;;			      MIN-VALUE
+;;			      MAX-VALUE
+;;			      MESSAGE
+;;			      MIN-CHANGE
+;;			      MIN-TIME])
+;;
+;; This weirdeness is for optimization reasons: we want
+;; `progress-reporter-update' to be as fast as possible, so
+;; `(car reporter)' is better than `(aref reporter 0)'.
+;;
+;; NEXT-UPDATE-TIME is a float.  While `float-time' loses a couple
+;; digits of precision, it doesn't really matter here.  On the other
+;; hand, it greatly simplifies the code.
+
+(defsubst progress-reporter-update (reporter value)
+  "Report progress of an operation in the echo area.
+However, if the change since last echo area update is too small
+or not enough time has passed, then do nothing (see
+`make-progress-reporter' for details).
+
+First parameter, REPORTER, should be the result of a call to
+`make-progress-reporter'.  Second, VALUE, determines the actual
+progress of operation; it must be between MIN-VALUE and MAX-VALUE
+as passed to `make-progress-reporter'.
+
+This function is very inexpensive, you may not bother how often
+you call it."
+  (when (>= value (car reporter))
+    (progress-reporter-do-update reporter value)))
+
+(defun make-progress-reporter (message min-value max-value
+				       &optional current-value
+				       min-change min-time)
+  "Return progress reporter object usage with `progress-reporter-update'.
+
+MESSAGE is shown in the echo area.  When at least 1% of operation
+is complete, the exact percentage will be appended to the
+MESSAGE.  When you call `progress-reporter-done', word \"done\"
+is printed after the MESSAGE.  You can change MESSAGE of an
+existing progress reporter with `progress-reporter-force-update'.
+
+MIN-VALUE and MAX-VALUE designate starting (0% complete) and
+final (100% complete) states of operation.  The latter should be
+larger; if this is not the case, then simply negate all values.
+Optional CURRENT-VALUE specifies the progress by the moment you
+call this function.  You should omit it or set it to nil in most
+cases since it defaults to MIN-VALUE.
+
+Optional MIN-CHANGE determines the minimal change in percents to
+report (default is 1%.)  Optional MIN-TIME specifies the minimal
+time before echo area updates (default is 0.2 seconds.)  If
+`float-time' function is not present, then time is not tracked
+at all.  If OS is not capable of measuring fractions of seconds,
+then this parameter is effectively rounded up."
+
+  (unless min-time
+    (setq min-time 0.2))
+  (let ((reporter
+	 (cons min-value ;; Force a call to `message' now
+	       (vector (if (and (fboundp 'float-time)
+				(>= min-time 0.02))
+			   (float-time) nil)
+		       min-value
+		       max-value
+		       message
+		       (if min-change (max (min min-change 50) 1) 1)
+		       min-time))))
+    (progress-reporter-update reporter (or current-value min-value))
+    reporter))
+
+(defun progress-reporter-force-update (reporter value &optional new-message)
+  "Report progress of an operation in the echo area unconditionally.
+
+First two parameters are the same as for
+`progress-reporter-update'.  Optional NEW-MESSAGE allows you to
+change the displayed message."
+  (let ((parameters (cdr reporter)))
+    (when new-message
+      (aset parameters 3 new-message))
+    (when (aref parameters 0)
+      (aset parameters 0 (float-time)))
+    (progress-reporter-do-update reporter value)))
+
+(defun progress-reporter-do-update (reporter value)
+  (let* ((parameters   (cdr reporter))
+	 (min-value    (aref parameters 1))
+	 (max-value    (aref parameters 2))
+	 (one-percent  (/ (- max-value min-value) 100.0))
+	 (percentage   (truncate (/ (- value min-value) one-percent)))
+	 (update-time  (aref parameters 0))
+	 (current-time (float-time))
+	 (enough-time-passed
+	  ;; See if enough time has passed since the last update.
+	  (or (not update-time)
+	      (when (>= current-time update-time)
+		;; Calculate time for the next update
+		(aset parameters 0 (+ update-time (aref parameters 5)))))))
+    ;;
+    ;; Calculate NEXT-UPDATE-VALUE.  If we are not going to print
+    ;; message this time because not enough time has passed, then use
+    ;; 1 instead of MIN-CHANGE.  This makes delays between echo area
+    ;; updates closer to MIN-TIME.
+    (setcar reporter
+	    (min (+ min-value (* (+ percentage
+				    (if enough-time-passed
+					(aref parameters 4) ;; MIN-CHANGE
+				      1))
+				 one-percent))
+		 max-value))
+    (when (integerp value)
+      (setcar reporter (ceiling (car reporter))))
+    ;;
+    ;; Only print message if enough time has passed
+    (when enough-time-passed
+      (if (> percentage 0)
+	  (message "%s%d%%" (aref parameters 3) percentage)
+	(message "%s" (aref parameters 3))))))
+
+(defun progress-reporter-done (reporter)
+  "Print reporter's message followed by word \"done\" in echo area."
+  (message "%sdone" (aref (cdr reporter) 3)))
 
 ;; arch-tag: f7e0e6e5-70aa-4897-ae72-7a3511ec40bc
 ;;; subr.el ends here

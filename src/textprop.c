@@ -1,5 +1,5 @@
 /* Interface code for dealing with text properties.
-   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2002, 2003
+   Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2002, 2003, 2004
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2233,7 +2233,9 @@ If a character in a buffer has PROPERTY, new text inserted adjacent to
 the character doesn't inherit PROPERTY if NONSTICKINESS is non-nil,
 inherits it if NONSTICKINESS is nil.  The front-sticky and
 rear-nonsticky properties of the character overrides NONSTICKINESS.  */);
-  Vtext_property_default_nonsticky = Qnil;
+  /* Text property `syntax-table' should be nonsticky by default.  */
+  Vtext_property_default_nonsticky
+    = Fcons (Fcons (intern ("syntax-table"), Qt), Qnil);
 
   staticpro (&interval_insert_behind_hooks);
   staticpro (&interval_insert_in_front_hooks);

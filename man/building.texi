@@ -336,11 +336,13 @@ to a particular debugger program.
 @findex gdb
 Run GDB as a subprocess of Emacs.  If the variable
 @code{gud-gdb-command-name} is ``gdb --annotate=3'' (the default
-value) then GDB starts as for @kbd{M-x gdba} below.  If you want to
-GDB to start as in Emacs 21.3 and earlier then set
-@code{gud-gdb-command-name} to ``gdb --fullname''.  In this case, the
-command creates a buffer for input and output to GDB, and switches to
-it.  If a GDB buffer already exists, it just switches to that buffer.
+value) then GDB starts as for @kbd{M-x gdba} below.  If you want GDB
+to start as in Emacs 21.3 and earlier then edit the string in the
+minibuffer or set @code{gud-gdb-command-name} to ``gdb --fullname''.
+You need to do this if you want to run multiple debugging sessions
+within one Emacs session.  In this case, the command creates a buffer
+for input and output to GDB, and switches to it.  If a GDB buffer
+already exists, it just switches to that buffer.
 
 @item M-x gdba @key{RET} @var{file} @key{RET}
 Run GDB as a subprocess of Emacs, providing a graphical interface

@@ -99,6 +99,21 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 * Changes in Emacs 21.4
 
 +++
+** New function `looking-back' checks whether a regular expression matches
+the text before point.  Specifying the LIMIT argument bounds how far
+back the match can start; this is a way to keep it from taking too long.
+
++++
+** New functions `make-progress-reporter', `progress-reporter-update',
+`progress-reporter-force-update' and `progress-reporter-done' provide
+a simple and efficient way of printing progress messages to the user.
+
++++
+** In Enriched mode, `set-left-margin' and `set-right-margin' are now
+by default bound to `C-c [' and `C-c ]' instead of the former `C-c C-l'
+and `C-c C-r'.
+
++++
 ** In processing a local variables list, Emacs strips the prefix and
 suffix are from every line before processing all the lines.
 
@@ -1162,10 +1177,21 @@ to new-kill-line, these commands now report:
   new-kill-line is on C-k
 
 +++
+** Vertical scrolling is now possible within incremental search.
+To enable this feature, customize the new user option
+`isearch-allow-scroll'.  User written commands which satisfy stringent
+constraints can be marked as "scrolling commands".  See the Emacs manual
+for details.
+
++++
 ** C-w in incremental search now grabs either a character or a word,
 making the decision in a heuristic way.  This new job is done by the
 command `isearch-yank-word-or-char'.  To restore the old behavior,
 bind C-w to `isearch-yank-word' in `isearch-mode-map'.
+
++++
+** C-y in incremental search now grabs the next line if point is already
+at the end of a line.
 
 +++
 ** C-M-w deletes and C-M-y grabs a character in isearch mode.
@@ -1391,6 +1417,10 @@ controls whether or not the function `make-auto-save-file-name' will
 attempt to construct a unique auto-save name (e.g. for remote files).
 
 +++
+** There is a new calendar package, icalendar.el, that can be used to
+convert Emacs diary entries to/from the iCalendar format.
+
++++
 ** Diary sexp entries can have custom marking in the calendar.
 Diary sexp functions which only apply to certain days (such as
 `diary-block' or `diary-cyclic') now take an optional parameter MARK,
@@ -1405,6 +1435,11 @@ appointments, paydays or anything else using a sexp.
 ** The new function `calendar-goto-day-of-year' (g D) prompts for a
 year and day number, and moves to that date. Negative day numbers
 count backward from the end of the year.
+
++++
+** The new Calendar function `calendar-goto-iso-week' (g w)
+prompts for a year and a week number, and moves to the first
+day of that ISO week.
 
 ---
 ** The functions `holiday-easter-etc' and `holiday-advent' now take
@@ -2483,9 +2518,8 @@ symbol identifying a fringe bitmap, either built-in or defined with
 `define-fringe-bitmap', and FACE is an optional face name to be used
 for displaying the bitmap.
 
-*** New function `fringe-bitmaps-at-pos' returns a cons (LEFT . RIGHT)
-identifying the current fringe bitmaps in the display line at a given
-buffer position.  A nil value means no bitmap.
+*** New function `fringe-bitmaps-at-pos' returns the current fringe
+bitmaps in the display line at a given buffer position.
 
 ** Multiple overlay arrows can now be defined and managed via the new
 variable `overlay-arrow-variable-list'.  It contains a list of
@@ -2504,10 +2538,12 @@ If either property is not set, the default `overlay-arrow-string' or
 line in current buffer, or if optional buffer position is given, line
 number of corresponding line in current buffer.
 
++++
 ** The default value of `sentence-end' is now defined using the new
 variable `sentence-end-without-space' which contains such characters
 that end a sentence without following spaces.
 
++++
 ** The function `sentence-end' should be used to obtain the value of
 the variable `sentence-end'.  If the variable `sentence-end' is nil,
 then this function returns the regexp constructed from the variables

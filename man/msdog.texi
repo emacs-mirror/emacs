@@ -840,7 +840,7 @@ effect of bringing up the Windows menu, it alters the meaning of
 subsequent commands.  Many users find this frustrating.
 
 @vindex w32-pass-alt-to-system
-You can reenable Windows's default handling of tapping the @key{ALT} key
+You can re-enable Windows' default handling of tapping the @key{ALT} key
 by setting @code{w32-pass-alt-to-system} to a non-@code{nil} value.
 
 @ignore

@@ -2705,6 +2705,9 @@ map_char_table (c_function, function, table, subtable, arg, depth, indices)
      int depth;
 {
   int i, to;
+  struct gcpro gcpro1, gcpro2,  gcpro3, gcpro4;
+
+  GCPRO4 (arg, table, subtable, function);
 
   if (depth == 0)
     {
@@ -2724,7 +2727,10 @@ map_char_table (c_function, function, table, subtable, arg, depth, indices)
 #if 0 /* If the char table has entries for higher characters,
 	 we should report them.  */
       if (NILP (current_buffer->enable_multibyte_characters))
-	return;
+	{
+	  UNGCPRO;
+	  return;
+	}
 #endif
       to = CHAR_TABLE_ORDINARY_SLOTS;
     }
@@ -2777,6 +2783,7 @@ map_char_table (c_function, function, table, subtable, arg, depth, indices)
 	    call2 (function, make_number (c), elt);
   	}
     }
+  UNGCPRO;
 }
 
 static void void_call2 P_ ((Lisp_Object a, Lisp_Object b, Lisp_Object c));

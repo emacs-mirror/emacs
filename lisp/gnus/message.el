@@ -1615,11 +1615,11 @@ is used by default."
   (if (not header)
       nil
     (let ((regexp (format "[%s]+" (or separator ",")))
-	  (beg (point-min))
 	  (first t)
-	  quoted elems paren)
+	  beg quoted elems paren)
       (with-temp-buffer
 	(mm-enable-multibyte)
+	(setq beg (point-min))
 	(insert header)
 	(goto-char (point-min))
 	(while (not (eobp))
@@ -4399,7 +4399,9 @@ Otherwise, generate and save a value for `canlock-password' first."
 	     nil))))
    ;; Check for control characters.
    (message-check 'control-chars
-     (if (re-search-forward "[\000-\007\013\015-\032\034-\037\200-\237]" nil t)
+     (if (re-search-forward
+	  (mm-string-as-multibyte "[\000-\007\013\015-\032\034-\037\200-\237]")
+	  nil t)
 	 (y-or-n-p
 	  "The article contains control characters.  Really post? ")
        t))

@@ -136,9 +136,6 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `euidaccess' function. */
 #undef HAVE_EUIDACCESS
 
-/* Define to 1 if this OS has exec shield and we can handle it. */
-#undef HAVE_EXECSHIELD
-
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
@@ -355,6 +352,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the <maillock.h> header file. */
 #undef HAVE_MAILLOCK_H
 
+/* Define to 1 if you have the <malloc/malloc.h> header file. */
+#undef HAVE_MALLOC_MALLOC_H
+
 /* Define to 1 if you have the `mblen' function. */
 #undef HAVE_MBLEN
 
@@ -431,6 +431,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if you have the `random' function. */
 #undef HAVE_RANDOM
+
+/* Define to 1 if this OS randomizes the start address of the heap. */
+#undef HAVE_RANDOM_HEAPSTART
 
 /* Define to 1 if you have the `recvfrom' function. */
 #undef HAVE_RECVFROM
@@ -754,9 +757,9 @@ Boston, MA 02111-1307, USA.  */
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at run-time.
-	STACK_DIRECTION > 0 => grows toward higher addresses
-	STACK_DIRECTION < 0 => grows toward lower addresses
-	STACK_DIRECTION = 0 => direction of growth unknown */
+        STACK_DIRECTION > 0 => grows toward higher addresses
+        STACK_DIRECTION < 0 => grows toward lower addresses
+        STACK_DIRECTION = 0 => direction of growth unknown */
 #undef STACK_DIRECTION
 
 /* Define to 1 if you have the ANSI C header files. */

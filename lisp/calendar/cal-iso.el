@@ -1,8 +1,9 @@
 ;;; cal-iso.el --- calendar functions for the ISO calendar
 
-;; Copyright (C) 1995, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2004 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
+;; Maintainer: Glenn Morris <gmorris@ast.cam.ac.uk>
 ;; Keywords: calendar
 ;; Human-Keywords: ISO calendar, calendar, diary
 
@@ -96,27 +97,39 @@ Defaults to today's date if DATE is not given."
   (message "ISO date: %s"
            (calendar-iso-date-string (calendar-cursor-to-date t))))
 
+(defun calendar-iso-read-args (&optional dayflag)
+  "Interactively read the arguments for an iso date command."
+  (let* ((today (calendar-current-date))
+         (year (calendar-read
+                "ISO calendar year (>0): "
+                '(lambda (x) (> x 0))
+                (int-to-string (extract-calendar-year today))))
+         (no-weeks (extract-calendar-month
+                    (calendar-iso-from-absolute
+                     (1-
+                      (calendar-dayname-on-or-before
+                       1 (calendar-absolute-from-gregorian
+                          (list 1 4 (1+ year))))))))
+         (week (calendar-read
+                (format "ISO calendar week (1-%d): " no-weeks)
+                '(lambda (x) (and (> x 0) (<= x no-weeks)))))
+         (day (if dayflag (calendar-read
+                           "ISO day (1-7): "
+                           '(lambda (x) (and (<= 1 x) (<= x 7))))
+                1)))
+    (list (list week day year))))
+
 (defun calendar-goto-iso-date (date &optional noecho)
   "Move cursor to ISO DATE; echo ISO date unless NOECHO is t."
-  (interactive
-   (let* ((today (calendar-current-date))
-          (year (calendar-read
-                 "ISO calendar year (>0): "
-                 '(lambda (x) (> x 0))
-                 (int-to-string (extract-calendar-year today))))
-          (no-weeks (extract-calendar-month
-                     (calendar-iso-from-absolute
-                      (1-
-                       (calendar-dayname-on-or-before
-                        1 (calendar-absolute-from-gregorian
-                           (list 1 4 (1+ year))))))))
-          (week (calendar-read
-                 (format "ISO calendar week (1-%d): " no-weeks)
-                 '(lambda (x) (and (> x 0) (<= x no-weeks)))))
-          (day (calendar-read
-                "ISO day (1-7): "
-                '(lambda (x) (and (<= 1 x) (<= x 7))))))
-     (list (list week day year))))
+  (interactive (calendar-iso-read-args t))
+  (calendar-goto-date (calendar-gregorian-from-absolute
+                       (calendar-absolute-from-iso date)))
+  (or noecho (calendar-print-iso-date)))
+
+(defun calendar-goto-iso-week (date &optional noecho)
+  "Move cursor to ISO DATE; echo ISO date unless NOECHO is t.
+Interactively, goes to the first day of the specified week."
+  (interactive (calendar-iso-read-args))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-iso date)))
   (or noecho (calendar-print-iso-date)))

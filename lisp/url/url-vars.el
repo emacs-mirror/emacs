@@ -2,8 +2,7 @@
 ;; Keywords: comm, data, processes, hypermedia
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996, 97, 98, 99, 2001 Free Software Foundation, Inc.
+;;; Copyright (c) 1996,1997,1998,1999,2001,2004 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -369,12 +368,14 @@ Currently supported methods:
 `telnet': Run telnet in a subprocess to connect;
 `rlogin': Rlogin to another machine to connect;
 `socks': Connect through a socks server;
-`ssl': Connect with SSL;
+`tls': Connect with TLS;
+`ssl': Connect with SSL (deprecated, use `tls' instead);
 `native': Connect directy."
   :type '(radio (const :tag "Telnet to gateway host" :value telnet)
 		(const :tag "Rlogin to gateway host" :value rlogin)
 		(const :tag "Use SOCKS proxy" :value socks)
-		(const :tag "Use SSL for all connections" :value ssl)
+		(const :tag "Use SSL/TLS for all connections" :value tls)
+		(const :tag "Use SSL for all connections (obsolete)" :value ssl)
 		(const :tag "Direct connection" :value native))
   :group 'url-hairy)
 

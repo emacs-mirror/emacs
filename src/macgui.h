@@ -42,6 +42,8 @@ typedef unsigned long Time;
 #undef min
 #undef init_process
 #include <Carbon/Carbon.h>
+#undef mktime
+#define mktime emacs_mktime
 #undef Z
 #define Z (current_buffer->text->z)
 #undef free

@@ -3,7 +3,7 @@
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1997, 1998 Free Software Foundation, Inc.
+;;; Copyright (c) 1997, 1998, 2004 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
 ;;;
@@ -29,6 +29,7 @@
 
 (autoload 'socks-open-network-stream "socks")
 (autoload 'open-ssl-stream "ssl")
+(autoload 'open-tls-stream "tls")
 
 (defgroup url-gateway nil
   "URL gateway variables"
@@ -212,6 +213,7 @@ Args per `open-network-stream'.
 Will not make a connexion if `url-gateway-unplugged' is non-nil."
   (unless url-gateway-unplugged
     (let ((gw-method (if (and url-gateway-local-host-regexp
+			      (not (eq 'tls url-gateway-method))
 			      (not (eq 'ssl url-gateway-method))
 			      (string-match
 			       url-gateway-local-host-regexp
@@ -242,6 +244,8 @@ Will not make a connexion if `url-gateway-unplugged' is non-nil."
 	  (let ((coding-system-for-read 'binary)
 		(coding-system-for-write 'binary))
 	    (setq conn (case gw-method
+			 (tls
+			  (open-tls-stream name buffer host service))
 			 (ssl
 			  (open-ssl-stream name buffer host service))
 			 ((native)

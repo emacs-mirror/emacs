@@ -74,7 +74,15 @@ Integer values will in effect be rounded up to the nearest multiple of
 (defvar nnheader-read-timeout
   (if (string-match "windows-nt\\|os/2\\|emx\\|cygwin"
 		    (symbol-name system-type))
-      1.0				; why?
+      ;; http://thread.gmane.org/v9655t3pjo.fsf@marauder.physik.uni-ulm.de
+      ;;
+      ;; IIRC, values lower than 1.0 didn't/don't work on Windows/DOS.
+      ;;
+      ;; There should probably be a runtime test to determine the timing
+      ;; resolution, or a primitive to report it.  I don't know off-hand
+      ;; what's possible.  Perhaps better, maybe the Windows/DOS primitive
+      ;; could round up non-zero timeouts to a minimum of 1.0?
+      1.0
     0.1)
   "How long nntp should wait between checking for the end of output.
 Shorter values mean quicker response, but are more CPU intensive.")

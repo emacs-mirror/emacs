@@ -2858,7 +2858,7 @@ or @key{DEL} to scroll backward.  Various other commands are provided
 for moving around in the file, but none for changing it; type @kbd{?}
 while viewing for a list of them.  They are mostly the same as normal
 Emacs cursor motion commands.  To exit from viewing, type @kbd{q}.
-The commands for viewing are defined by a special major mode called View
+The commands for viewing are defined by a special minor mode called View
 mode.
 
   A related command, @kbd{M-x view-buffer}, views a buffer already present

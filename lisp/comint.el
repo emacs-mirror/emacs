@@ -1,7 +1,7 @@
 ;;; comint.el --- general command interpreter in a window stuff
 
-;; Copyright (C) 1988,90,92,93,94,95,96,97,98,99,2000,01,02,03,2004
-;;	Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1990, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+;;   2000, 2001, 2002, 2003, 2004  Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -185,10 +185,10 @@ the remaining prompts will be accidentally messed up.  You may
 wish to put something like the following in your `.emacs' file:
 
 \(add-hook 'comint-mode-hook
-	  '(lambda ()
-	     (define-key comint-mode-map \"\C-w\" 'comint-kill-region)
-	     (define-key comint-mode-map [C-S-backspace]
-	       'comint-kill-whole-line)))
+	  (lambda ()
+	    (define-key comint-mode-map \"\C-w\" 'comint-kill-region)
+	    (define-key comint-mode-map [C-S-backspace]
+	      'comint-kill-whole-line)))
 
 If you sometimes use comint-mode on text-only terminals or with `emacs-nw',
 you might wish to use another binding for `comint-kill-whole-line'."
@@ -369,11 +369,8 @@ Takes one argument, the input.  If non-nil, the input may be saved on the input
 history list.  Default is to save anything that isn't all whitespace.")
 
 (defvar comint-input-filter-functions '()
-  "Functions to call before input is sent to the process.
-These functions get one argument, a string containing the text to send.
-
-You can use `add-hook' to add functions to this list
-either globally or locally.")
+  "Special hook run before input is sent to the process.
+These functions get one argument, a string containing the text to send.")
 
 (defvar comint-output-filter-functions '(comint-postoutput-scroll-to-bottom)
   "Functions to call after output is inserted into the buffer.
@@ -411,7 +408,7 @@ See `comint-send-input'."
 (defcustom comint-use-prompt-regexp-instead-of-fields nil
   "*If non-nil, use `comint-prompt-regexp' to distinguish prompts from user-input.
 If nil, then program output and user-input are given different `field'
-properties, which emacs commands can use to distinguish them (in
+properties, which Emacs commands can use to distinguish them (in
 particular, common movement commands such as begining-of-line respect
 field boundaries in a natural way)."
   :type 'boolean
@@ -432,7 +429,106 @@ executed once when the buffer is created."
   :type 'hook
   :group 'comint)
 
-(defvar comint-mode-map nil)
+(defvar comint-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; Keys:
+    (define-key map "\ep" 	  'comint-previous-input)
+    (define-key map "\en" 	  'comint-next-input)
+    (define-key map [C-up] 	  'comint-previous-input)
+    (define-key map [C-down] 	  'comint-next-input)
+    (define-key map "\er" 	  'comint-previous-matching-input)
+    (define-key map "\es" 	  'comint-next-matching-input)
+    (define-key map [?\C-c ?\M-r] 'comint-previous-matching-input-from-input)
+    (define-key map [?\C-c ?\M-s] 'comint-next-matching-input-from-input)
+    (define-key map "\e\C-l" 	  'comint-show-output)
+    (define-key map "\C-m" 	  'comint-send-input)
+    (define-key map "\C-d" 	  'comint-delchar-or-maybe-eof)
+    (define-key map "\C-c " 	  'comint-accumulate)
+    (define-key map "\C-c\C-x" 	  'comint-get-next-from-history)
+    (define-key map "\C-c\C-a" 	  'comint-bol-or-process-mark)
+    (define-key map "\C-c\C-u" 	  'comint-kill-input)
+    (define-key map "\C-c\C-w" 	  'backward-kill-word)
+    (define-key map "\C-c\C-c" 	  'comint-interrupt-subjob)
+    (define-key map "\C-c\C-z" 	  'comint-stop-subjob)
+    (define-key map "\C-c\C-\\"   'comint-quit-subjob)
+    (define-key map "\C-c\C-m" 	  'comint-insert-input)
+    (define-key map "\C-c\C-o" 	  'comint-delete-output)
+    (define-key map "\C-c\C-r" 	  'comint-show-output)
+    (define-key map "\C-c\C-e" 	  'comint-show-maximum-output)
+    (define-key map "\C-c\C-l" 	  'comint-dynamic-list-input-ring)
+    (define-key map "\C-c\C-n" 	  'comint-next-prompt)
+    (define-key map "\C-c\C-p" 	  'comint-previous-prompt)
+    (define-key map "\C-c\C-d" 	  'comint-send-eof)
+    (define-key map "\C-c\C-s" 	  'comint-write-output)
+    (define-key map "\C-c." 	  'comint-insert-previous-argument)
+    ;; Mouse Buttons:
+    (define-key map [mouse-2]     'comint-insert-input)
+    ;; Menu bars:
+    ;; completion:
+    (define-key map [menu-bar completion]
+      (cons "Complete" (make-sparse-keymap "Complete")))
+    (define-key map [menu-bar completion complete-expand]
+      '("Expand File Name" . comint-replace-by-expanded-filename))
+    (define-key map [menu-bar completion complete-listing]
+      '("File Completion Listing" . comint-dynamic-list-filename-completions))
+    (define-key map [menu-bar completion complete-file]
+      '("Complete File Name" . comint-dynamic-complete-filename))
+    (define-key map [menu-bar completion complete]
+      '("Complete Before Point" . comint-dynamic-complete))
+    ;; Input history:
+    (define-key map [menu-bar inout]
+      (cons "In/Out" (make-sparse-keymap "In/Out")))
+    (define-key map [menu-bar inout delete-output]
+      '("Delete Current Output Group" . comint-delete-output))
+    (define-key map [menu-bar inout append-output-to-file]
+      '("Append Current Output Group to File" . comint-append-output-to-file))
+    (define-key map [menu-bar inout write-output]
+      '("Write Current Output Group to File" . comint-write-output))
+    (define-key map [menu-bar inout next-prompt]
+      '("Forward Output Group" . comint-next-prompt))
+    (define-key map [menu-bar inout previous-prompt]
+      '("Backward Output Group" . comint-previous-prompt))
+    (define-key map [menu-bar inout show-maximum-output]
+      '("Show Maximum Output" . comint-show-maximum-output))
+    (define-key map [menu-bar inout show-output]
+      '("Show Current Output Group" . comint-show-output))
+    (define-key map [menu-bar inout kill-input]
+      '("Kill Current Input" . comint-kill-input))
+    (define-key map [menu-bar inout copy-input]
+      '("Copy Old Input" . comint-insert-input))
+    (define-key map [menu-bar inout forward-matching-history]
+      '("Forward Matching Input..." . comint-forward-matching-input))
+    (define-key map [menu-bar inout backward-matching-history]
+      '("Backward Matching Input..." . comint-backward-matching-input))
+    (define-key map [menu-bar inout next-matching-history]
+      '("Next Matching Input..." . comint-next-matching-input))
+    (define-key map [menu-bar inout previous-matching-history]
+      '("Previous Matching Input..." . comint-previous-matching-input))
+    (define-key map [menu-bar inout next-matching-history-from-input]
+      '("Next Matching Current Input" . comint-next-matching-input-from-input))
+    (define-key map [menu-bar inout previous-matching-history-from-input]
+      '("Previous Matching Current Input" . comint-previous-matching-input-from-input))
+    (define-key map [menu-bar inout next-history]
+      '("Next Input" . comint-next-input))
+    (define-key map [menu-bar inout previous-history]
+      '("Previous Input" . comint-previous-input))
+    (define-key map [menu-bar inout list-history]
+      '("List Input History" . comint-dynamic-list-input-ring))
+    (define-key map [menu-bar inout expand-history]
+      '("Expand History Before Point" . comint-replace-by-expanded-history))
+    ;; Signals
+    (let ((signals-map (make-sparse-keymap "Signals")))
+      (define-key map [menu-bar signals] (cons "Signals" signals-map))
+      (define-key signals-map [eof]   '("EOF"   . comint-send-eof))
+      (define-key signals-map [kill]  '("KILL"  . comint-kill-subjob))
+      (define-key signals-map [quit]  '("QUIT"  . comint-quit-subjob))
+      (define-key signals-map [cont]  '("CONT"  . comint-continue-subjob))
+      (define-key signals-map [stop]  '("STOP"  . comint-stop-subjob))
+      (define-key signals-map [break] '("BREAK" . comint-interrupt-subjob)))
+    ;; Put them in the menu bar:
+    (setq menu-bar-final-items (append '(completion inout signals)
+				       menu-bar-final-items))
+    map))
 
 ;; Fixme: Is this still relevant?
 (defvar comint-ptyp t
@@ -547,114 +643,6 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   ;; This behavior is not useful in comint buffers, and is annoying
   (set (make-local-variable 'next-line-add-newlines) nil))
-
-(if comint-mode-map
-    nil
-  ;; Keys:
-  (setq comint-mode-map (make-sparse-keymap))
-  (define-key comint-mode-map "\ep" 'comint-previous-input)
-  (define-key comint-mode-map "\en" 'comint-next-input)
-  (define-key comint-mode-map [C-up] 'comint-previous-input)
-  (define-key comint-mode-map [C-down] 'comint-next-input)
-  (define-key comint-mode-map "\er" 'comint-previous-matching-input)
-  (define-key comint-mode-map "\es" 'comint-next-matching-input)
-  (define-key comint-mode-map [?\C-c ?\M-r] 'comint-previous-matching-input-from-input)
-  (define-key comint-mode-map [?\C-c ?\M-s] 'comint-next-matching-input-from-input)
-  (define-key comint-mode-map "\e\C-l" 'comint-show-output)
-  (define-key comint-mode-map "\C-m" 'comint-send-input)
-  (define-key comint-mode-map "\C-d" 'comint-delchar-or-maybe-eof)
-  (define-key comint-mode-map "\C-c " 'comint-accumulate)
-  (define-key comint-mode-map "\C-c\C-x" 'comint-get-next-from-history)
-  (define-key comint-mode-map "\C-c\C-a" 'comint-bol-or-process-mark)
-  (define-key comint-mode-map "\C-c\C-u" 'comint-kill-input)
-  (define-key comint-mode-map "\C-c\C-w" 'backward-kill-word)
-  (define-key comint-mode-map "\C-c\C-c" 'comint-interrupt-subjob)
-  (define-key comint-mode-map "\C-c\C-z" 'comint-stop-subjob)
-  (define-key comint-mode-map "\C-c\C-\\" 'comint-quit-subjob)
-  (define-key comint-mode-map "\C-c\C-m" 'comint-insert-input)
-  (define-key comint-mode-map "\C-c\C-o" 'comint-delete-output)
-  (define-key comint-mode-map "\C-c\C-r" 'comint-show-output)
-  (define-key comint-mode-map "\C-c\C-e" 'comint-show-maximum-output)
-  (define-key comint-mode-map "\C-c\C-l" 'comint-dynamic-list-input-ring)
-  (define-key comint-mode-map "\C-c\C-n" 'comint-next-prompt)
-  (define-key comint-mode-map "\C-c\C-p" 'comint-previous-prompt)
-  (define-key comint-mode-map "\C-c\C-d" 'comint-send-eof)
-  (define-key comint-mode-map "\C-c\C-s" 'comint-write-output)
-  (define-key comint-mode-map "\C-c." 'comint-insert-previous-argument)
-  ;; Mouse Buttons:
-  (define-key comint-mode-map [mouse-2] 'comint-mouse-insert-input)
-  ;; Menu bars:
-  ;; completion:
-  (define-key comint-mode-map [menu-bar completion]
-    (cons "Complete" (make-sparse-keymap "Complete")))
-  (define-key comint-mode-map [menu-bar completion complete-expand]
-    '("Expand File Name" . comint-replace-by-expanded-filename))
-  (define-key comint-mode-map [menu-bar completion complete-listing]
-    '("File Completion Listing" . comint-dynamic-list-filename-completions))
-  (define-key comint-mode-map [menu-bar completion complete-file]
-    '("Complete File Name" . comint-dynamic-complete-filename))
-  (define-key comint-mode-map [menu-bar completion complete]
-    '("Complete Before Point" . comint-dynamic-complete))
-  ;; Input history:
-  (define-key comint-mode-map [menu-bar inout]
-    (cons "In/Out" (make-sparse-keymap "In/Out")))
-  (define-key comint-mode-map [menu-bar inout delete-output]
-    '("Delete Current Output Group" . comint-delete-output))
-  (define-key comint-mode-map [menu-bar inout append-output-to-file]
-    '("Append Current Output Group to File" . comint-append-output-to-file))
-  (define-key comint-mode-map [menu-bar inout write-output]
-    '("Write Current Output Group to File" . comint-write-output))
-  (define-key comint-mode-map [menu-bar inout next-prompt]
-    '("Forward Output Group" . comint-next-prompt))
-  (define-key comint-mode-map [menu-bar inout previous-prompt]
-    '("Backward Output Group" . comint-previous-prompt))
-  (define-key comint-mode-map [menu-bar inout show-maximum-output]
-    '("Show Maximum Output" . comint-show-maximum-output))
-  (define-key comint-mode-map [menu-bar inout show-output]
-    '("Show Current Output Group" . comint-show-output))
-  (define-key comint-mode-map [menu-bar inout kill-input]
-    '("Kill Current Input" . comint-kill-input))
-  (define-key comint-mode-map [menu-bar inout copy-input]
-    '("Copy Old Input" . comint-insert-input))
-  (define-key comint-mode-map [menu-bar inout forward-matching-history]
-    '("Forward Matching Input..." . comint-forward-matching-input))
-  (define-key comint-mode-map [menu-bar inout backward-matching-history]
-    '("Backward Matching Input..." . comint-backward-matching-input))
-  (define-key comint-mode-map [menu-bar inout next-matching-history]
-    '("Next Matching Input..." . comint-next-matching-input))
-  (define-key comint-mode-map [menu-bar inout previous-matching-history]
-    '("Previous Matching Input..." . comint-previous-matching-input))
-  (define-key comint-mode-map [menu-bar inout next-matching-history-from-input]
-    '("Next Matching Current Input" . comint-next-matching-input-from-input))
-  (define-key comint-mode-map [menu-bar inout previous-matching-history-from-input]
-    '("Previous Matching Current Input" . comint-previous-matching-input-from-input))
-  (define-key comint-mode-map [menu-bar inout next-history]
-    '("Next Input" . comint-next-input))
-  (define-key comint-mode-map [menu-bar inout previous-history]
-    '("Previous Input" . comint-previous-input))
-  (define-key comint-mode-map [menu-bar inout list-history]
-    '("List Input History" . comint-dynamic-list-input-ring))
-  (define-key comint-mode-map [menu-bar inout expand-history]
-    '("Expand History Before Point" . comint-replace-by-expanded-history))
-  ;; Signals
-  (define-key comint-mode-map [menu-bar signals]
-    (cons "Signals" (make-sparse-keymap "Signals")))
-  (define-key comint-mode-map [menu-bar signals eof]
-    '("EOF" . comint-send-eof))
-  (define-key comint-mode-map [menu-bar signals kill]
-    '("KILL" . comint-kill-subjob))
-  (define-key comint-mode-map [menu-bar signals quit]
-    '("QUIT" . comint-quit-subjob))
-  (define-key comint-mode-map [menu-bar signals cont]
-    '("CONT" . comint-continue-subjob))
-  (define-key comint-mode-map [menu-bar signals stop]
-    '("STOP" . comint-stop-subjob))
-  (define-key comint-mode-map [menu-bar signals break]
-    '("BREAK" . comint-interrupt-subjob))
-  ;; Put them in the menu bar:
-  (setq menu-bar-final-items (append '(completion inout signals)
-				     menu-bar-final-items))
-  )
 
 (defun comint-check-proc (buffer)
   "Return t if there is a living process associated w/buffer BUFFER.
@@ -798,9 +786,10 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 	(set-process-coding-system proc decoding encoding))
     proc))
 
-(defun comint-insert-input ()
+(defun comint-insert-input (&optional event)
   "In a Comint buffer, set the current input to the previous input at point."
-  (interactive)
+  (interactive (list last-input-event))
+  (if event (mouse-set-point event))
   (let ((pos (point)))
     (if (not (eq (get-char-property pos 'field) 'input))
 	;; No input at POS, fall back to the global definition.
@@ -818,13 +807,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
       ;; Insert the input at point
       (insert (buffer-substring-no-properties
 	       (previous-single-char-property-change (1+ pos) 'field)
-	       (next-single-char-property-change pos 'field))))))
-
-(defun comint-mouse-insert-input (event)
-  "In a Comint buffer, set the current input to the previous input you click on."
-  (interactive "e")
-  (mouse-set-point event)
-  (comint-insert-input)) 
+	       (next-single-char-property-change pos 'field)))))) 
 
 
 ;; Input history processing in a buffer
@@ -1734,7 +1717,7 @@ Make backspaces delete the previous character."
 		     (1- prompt-start) prompt-start 'read-only 'fence))
 		(add-text-properties
 		 prompt-start (point)
-		 '(read-only t rear-non-sticky t front-sticky (read-only))))
+		 '(read-only t rear-nonsticky t front-sticky (read-only))))
 	      (unless (and (bolp) (null comint-last-prompt-overlay))
 		;; Need to create or move the prompt overlay (in the case
 		;; where there is no prompt ((bolp) == t), we still do
@@ -2136,8 +2119,8 @@ This command also kills the pending input
 between the process mark and point.
 
 WARNING: if there is no current subjob, you can end up suspending
-the top-level process running in the buffer. If you accidentally do
-this, use \\[comint-continue-subjob] to resume the process. (This
+the top-level process running in the buffer.  If you accidentally do
+this, use \\[comint-continue-subjob] to resume the process.  (This
 is not a problem with most shells, since they ignore this signal.)"
   (interactive)
   (comint-skip-input)
@@ -2357,9 +2340,9 @@ preceding newline is removed."
 
 (defun comint-kill-whole-line (&optional arg)
   "Kill current line, ignoring read-only and field properties.
-With prefix arg, kill that many lines starting from the current line.
+With prefix ARG, kill that many lines starting from the current line.
 If arg is negative, kill backward.  Also kill the preceding newline,
-instead of the trailing one.  \(This is meant to make C-x z work well
+instead of the trailing one.  \(This is meant to make \\[repeat] work well
 with negative arguments.)
 If arg is zero, kill current line but exclude the trailing newline.
 The read-only status of newlines is updated with `comint-update-fence',
@@ -2505,7 +2488,7 @@ Provides a default, if there is one, and returns the result filename.
 
 See `comint-source-default' for more on determining defaults.
 
-PROMPT is the prompt string. PREV-DIR/FILE is the (directory . file) pair
+PROMPT is the prompt string.  PREV-DIR/FILE is the (directory . file) pair
 from the last source processing command.  SOURCE-MODES is a list of major
 modes used to determine what file buffers contain source files.  (These
 two arguments are used for determining defaults).  If MUSTMATCH-P is true,
@@ -3503,5 +3486,5 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 
 (provide 'comint)
 
-;;; arch-tag: 1793314c-09db-40be-9549-9aeae3e75164
+;; arch-tag: 1793314c-09db-40be-9549-9aeae3e75164
 ;;; comint.el ends here

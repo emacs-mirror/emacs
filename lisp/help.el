@@ -111,6 +111,9 @@
 
 (define-key help-map "q" 'help-quit)
 
+;; insert-button makes the action nil if it is not store somewhere
+(defvar help-button-cache nil)
+
 
 (defun help-quit ()
   "Just exit from the Help command's command loop."
@@ -655,32 +658,42 @@ whose documentation describes the minor mode."
 		    (lambda (a b) (string-lessp (car a) (car b)))))
 	(when minor-modes
 	  (princ "Summary of minor modes:\n")
-	  (dolist (mode minor-modes)
-	    (let ((pretty-minor-mode (nth 0 mode))
-		  (indicator (nth 2 mode)))
-	      (princ (format "  %s minor mode (%s):\n"
-			     pretty-minor-mode
-			     (if indicator
-				 (format "indicator%s" indicator)
-			       "no indicator")))))
+	  (make-local-variable 'help-button-cache)
+	  (with-current-buffer standard-output
+	    (dolist (mode minor-modes)
+	      (let ((pretty-minor-mode (nth 0 mode))
+		    (mode-function (nth 1 mode))
+		    (indicator (nth 2 mode)))
+		(add-text-properties 0 (length pretty-minor-mode)
+				     '(face bold) pretty-minor-mode)
+		(save-excursion
+		  (goto-char (point-max))
+		  (princ "\n\f\n")
+		  (push (point-marker) help-button-cache)
+		  ;; Document the minor modes fully.
+		  (insert pretty-minor-mode)
+		  (princ (format " minor mode (%s):\n"
+				 (if indicator
+				     (format "indicator%s" indicator)
+				   "no indicator")))
+		  (princ (documentation mode-function)))
+		(princ "  ")
+		(insert-button pretty-minor-mode
+			       'action (car help-button-cache)
+			       'help-echo "mouse-2, RET: show full information")
+		(princ (format " minor mode (%s):\n"
+			       (if indicator
+				   (format "indicator%s" indicator)
+				 "no indicator"))))))
 	  (princ "\n(Full information about these minor modes
 follows the description of the major mode.)\n\n"))
 	;; Document the major mode.
-	(princ mode-name)
+	(let ((mode mode-name))
+	  (with-current-buffer standard-output
+	    (insert mode)
+	    (add-text-properties (- (point) (length mode)) (point) '(face bold))))
 	(princ " mode:\n")
-	(princ (documentation major-mode))
-	;; Document the minor modes fully.
-	(dolist (mode minor-modes)
-	  (let ((pretty-minor-mode (nth 0 mode))
-		(mode-function (nth 1 mode))
-		(indicator (nth 2 mode)))
-	    (princ "\n\f\n")
-	    (princ (format "%s minor mode (%s):\n"
-			   pretty-minor-mode
-			   (if indicator
-			       (format "indicator%s" indicator)
-			     "no indicator")))
-	    (princ (documentation mode-function)))))
+	(princ (documentation major-mode)))
       (print-help-return-message))))
 
 

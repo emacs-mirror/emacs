@@ -1,3 +1,157 @@
+2004-10-14  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.h: Include Xutil.h after keysym.h to work around bug
+	(incorrectly recognising AltGr key) in some X versions.
+
+2004-10-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (get_keymap): An autoload form is not a keymap.
+
+	* textprop.c (syms_of_textprop): Make `syntax-table' nonsticky.
+
+2004-10-13  Kim F. Storm  <storm@cua.dk>
+
+	* callproc.c (Fcall_process): Simplify handling of display arg.
+	Resume `display_on_the_fly' once a coding system is determined.
+
+	* xdisp.c (redisplay_preserve_echo_area): Fix last change.
+
+2004-10-12  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (redisplay_preserve_echo_area): Flush display in case
+	caller, such as call-process, is not going to poll for input.
+	(calc_line_height_property): Handle case where it->object is nil.
+
+	* xterm.c (x_redisplay_interface): Fix flush_display_optional.
+
+2004-10-12  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (get_next_display_element):
+	If unibyte_display_via_language_environment is zero, display 8-bit
+	chars in octal in unibyte buffer.
+
+2004-10-12  Kim F. Storm  <storm@cua.dk>
+
+	* doc.c (Fsubstitute_command_keys): Ignore remappings unless there
+	are no ordinary bindings.
+
+2004-10-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (syms_of_xfns): Defsubr x-file-dialog for GTK also.
+
+2004-10-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_raise_frame): Add BLOCK_INPUT around SelectWindow.
+	(x_lower_frame): Add BLOCK_INPUT around SendBehind.
+	(make_mac_frame): Add BLOCK_INPUT around the making of a
+	terminal frame.
+	(mac_initialize): Add BLOCK_INPUT around carbon initialization.
+	* macgui.h (mktime): Use emacs_mktime.
+	* macfns.c (Fx_file_dialog): Add BLOCK_INPUT around more code.
+	Make a cancel file-open dialog be like C-g.
+	* mac.c (mktime): Use emacs_mktime.
+	(Fdo_applescript): Add BLOCK_INPUT around do_applescript.
+	(Fmac_paste_function): Add better error handling for carbon cut/paste.
+
+2004-10-10  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (timer_resume_idle): New function to resume idle
+	timer without resetting timers on the idle list.
+	(read_char): Use timer_resume_idle. Remove local var last_idle_start.
+	(timer_start_idle, timer_stop_idle): Declare static.
+	(read_key_sequence): Use timer_resume_idle instead of timer_start_idle.
+
+	* keyboard.h (timer_start_idle, timer_stop_idle): Remove prototypes.
+
+2004-10-08  Steven Tamm  <steventamm@mac.com>
+
+	* config.in (HAVE_MALLOC_MALLOC_H): Regenerate.
+	* macterm.c (mac_check_for_quit_char): Remove warning for using
+	NULL where 0 should be used.
+	* unexmacosx.c: Use malloc/malloc.h on Tiger instead of
+	objc/malloc.h
+	* mac.c: Include time.h for Tiger compatibility.
+
+2004-10-07  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (redisplay_window): Fix flicker on vertical line between
+	windows.  Update vertical line after drawing window fringes, but
+	only if actually drawing any bitmaps--or there is no fringe.
+
+	* xterm.c (x_update_window_end): Likewise.
+	* macterm.c (x_update_window_end): Likewise.
+	* w32term.c (x_update_window_end): Likewise.
+
+	* fringe.c (draw_window_fringes): Return value now indicates if
+	any fringe bitmaps were redrawn (or there are no fringes).
+
+	* dispextern.h (draw_window_fringes): Update prototype.
+
+2004-10-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (mac_get_window_bounds): Add extern.
+	(x_real_positions): Use mac_get_window_bounds.
+
+	* macmenu.c (update_submenu_strings): Apply 2004-09-07 change for
+	xmenu.c (YAILOM).
+
+	* macterm.c [!MAC_OSX]: Include Windows.h.
+	(front_emacs_window): Rename from mac_front_window.  All uses
+	changed.  Return the frontmost non-tooltip emacs window.
+	(mac_get_window_bounds): New function.
+	(x_calc_absolute_position): Use the difference of width and height
+	between the inner and outer window.
+	(x_set_offset): Specify window position by the coordinae of the
+	outer window.  Adjust the position if the title bar is completely
+	outside the screen.
+	(app_is_suspended, app_sleep_time): Remove unused variables.
+	(do_app_resume, do_app_suspend): Remove their contents because
+	window-activate/deactivate events will do the job.
+	(do_zoom_window): Remove unused variables.  Make compliant to the
+	standard way of zooming.  Set f->left_pos and f->top_pos.
+	(XTread_socket): Don't use argument `expected'.  Don't use
+	FrontWindow to determine the clicked window.  Exclude unprocessed
+	mouseUp cases in the early stage.  Add parentheses to fix operator
+	precedence.
+	(XTread_socket) [TARGET_API_MAC_CARBON]: Don't specify drag area.
+
+
+2004-10-05  Jan Dj,Ad(Brv.  <jan.h.d@swipnet.se>
+
+	* config.in: Regenerate.
+
+	* Makefile.in (RUN_TEMACS): Check HAVE_RANDOM_HEAPSTART instead of
+	HAVE_EXECSHIELD.
+
+2004-10-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_find_modifier_meanings): Ignore any Super or Hyper for
+	a row if Alt or Meta has been found for that row.  Also stop scanning
+	for Keysyms for that row.
+
+2004-10-04  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (Ffringe_bitmaps_at_pos): Change return value from cons
+	to list.  Include overlay arrow bitmap in return value.
+
+	* xterm.c (XTset_vertical_scroll_bar): Improve handling of scroll
+	bars with fractional column width.  If scroll bar separates two
+	windows, move it towards the window it belongs to.  Only update
+	the padding area below the scroll bar widget when necessary,
+	i.e. when scroll bar widget is created, moved, or resized.
+
+	* xdisp.c (define_frame_cursor1): Do not change frame cursor
+	while tracking/dragging mouse.
+	(x_draw_vertical_border): Do not draw line if frame has scroll bars.
+
+	* window.c (coordinates_in_window): Relax check for cursor
+	on vertial border between mode lines.
+	(Fset_window_fringes): Do not allow negative widths.
+	(Fset_window_scroll_bars): Likewise.
+
+	* .gdbinit (pp): Shorthand for p ARG + pr.
+	(ff): New command: flush frame updates (X only).
+
 2004-10-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* fileio.c (auto_save_1) Call Ffile_modes for remote files.
@@ -62,8 +216,8 @@
 	Change arg to Lisp_Object and fail if not an integer.
 	(get_fringe_bitmap_name, resolve_fringe_bitmap)
 	(destroy_fringe_bitmap): New functions.
-	(Fdestroy_fringe_bitmap): Change arg to bitmap symbol.  Use
-	destroy_fringe_bitmap.  Remove symbol from Vfringe_bitmaps and
+	(Fdestroy_fringe_bitmap): Change arg to bitmap symbol.
+	Use destroy_fringe_bitmap.  Remove symbol from Vfringe_bitmaps and
 	clear its fringe property.
 	(init_fringe_bitmap): Use destroy_fringe_bitmap instead of
 	Fdestroy_fringe_bitmap.
@@ -88,7 +242,7 @@
 
 2004-09-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* config.in: Rebuild
+	* config.in: Rebuild.
 
 2004-09-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -108,7 +262,7 @@
 	Handle the case where we reach the old displayed text,
 	out of sync with the old line boundary.
 
-2004-09-14  Stefan  <monnier@iro.umontreal.ca>
+2004-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Finsert_file_contents): Fix case of replacement in a
 	narrowed buffer.
@@ -130,7 +284,7 @@
 	(Fbyte_code): Remove dead code after `wrong_type_argument'.
 
 	* alloc.c (Fgarbage_collect): Mark keyboards, gtk data, and specpdl
-	before doing the mark_stack_check_gcpros since they are not on the stack.
+	before doing the mark_stack_check_gcpros since they're not on the stack.
 
 2004-09-12  Kim F. Storm  <storm@cua.dk>
 
@@ -149,8 +303,7 @@
 	blockinput.h.
 	(dosfns.o): Depend on blockinput.h, window.h, dispextern.h,
 	charset.h, and coding.h
-	(w16select.o): Depend on buffer.h, charset.h, coding.h, and
-	composite.h.
+	(w16select.o): Depend on buffer.h, charset.h, coding.h, and composite.h.
 	(term.o): Depend on window.h and keymap.h.
 	(abbrev.o): Depend on syntax.h.
 	(callint.o): Depend on keymap.h.
@@ -183,8 +336,8 @@
 	(lread.o): Depend on $(INTERVALS_SRC), termhooks.h, and coding.h.
 	(intervals.o): Depend on keymap.h.
 
-	* msdos.c (msdos_set_cursor_shape, IT_display_cursor): Add
-	debugging print-out to termscript.
+	* msdos.c (msdos_set_cursor_shape, IT_display_cursor):
+	Add debugging print-out to termscript.
 
 2004-09-09  Richard M. Stallman  <rms@gnu.org>
 
@@ -210,8 +363,8 @@
 2004-09-07  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* buffer.h (struct buffer): Add auto_save_file_format field.
-	* buffer.c (reset_buffer, init_buffer_once): Handle
-	auto_save_file_format field.
+	* buffer.c (reset_buffer, init_buffer_once):
+	Handle auto_save_file_format field.
 	(syms_of_buffer): Add DEFVAR_PER_BUFFER for
 	`buffer-auto-save-file-format'.
 	* fileio.c: Delete declaration for removed Vauto_save_file_format.
@@ -224,15 +377,15 @@
 
 	* w32term.h (AppendMenuW_Proc): Move declaration from w32menu.c.
 
-	* w32fns.c (w32_wnd_proc) [WM_MEASUREITEM, WM_DRAWITEM]: Handle
-	Unicode menu titles.
+	* w32fns.c (w32_wnd_proc) [WM_MEASUREITEM, WM_DRAWITEM]:
+	Handle Unicode menu titles.
 
 2004-09-07  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (set_cursor_from_row): Fix last change.  Only use 'cursor'
 	property from text property or overlay strings at point.
 
-2004-09-07  Stefan  <monnier@iro.umontreal.ca>
+2004-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xmenu.c (update_submenu_strings): YAILOM.
 	(set_frame_menubar): Make sure last_i is initialized.
@@ -721,7 +874,7 @@
 	* w32select.c (Fw32_set_clipboard_data): Update `nbytes' correctly
 	after getting a new string by pre-write-conversion.
 
-2004-06-30  Stefan  <monnier@iro.umontreal.ca>
+2004-06-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xterm.c (x_detect_focus_change): Remove unused var `nr_events'.
 	(x_calc_absolute_position): Remove unused var `child'.

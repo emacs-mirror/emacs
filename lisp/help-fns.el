@@ -578,9 +578,15 @@ it is displayed along with the global value."
 		    (forward-line 1)
 		  (forward-sexp 1)
 		  (delete-region (point) (progn (end-of-line) (point)))
-		  (insert " value is shown below.\n\n")
 		  (save-excursion
-		    (insert "\n\nValue:"))))
+		    (insert "\n\nValue:")
+		    (set (make-local-variable 'help-button-cache)
+			 (point-marker)))
+		  (insert " value is shown ")
+		  (insert-button "below"
+				 'action help-button-cache
+				 'help-echo "mouse-2, RET: show value")
+		  (insert ".\n\n")))
 	      ;; Add a note for variables that have been make-var-buffer-local.
 	      (when (and (local-variable-if-set-p variable)
 			 (or (not (local-variable-p variable))

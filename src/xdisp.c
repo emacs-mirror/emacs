@@ -215,6 +215,8 @@ extern int pending_menu_activation;
 extern int interrupt_input;
 extern int command_loop_level;
 
+extern Lisp_Object do_mouse_tracking;
+
 extern int minibuffer_auto_raise;
 extern Lisp_Object Vminibuffer_list;
 
@@ -4895,7 +4897,8 @@ get_next_display_element (it)
 			   && it->len == 1)
 			  || !CHAR_PRINTABLE_P (it->c))
 		       : (it->c >= 127
-			  && it->c == unibyte_char_to_multibyte (it->c))))
+			  && (!unibyte_display_via_language_environment
+			      || it->c == unibyte_char_to_multibyte (it->c)))))
 	    {
 	      /* IT->c is a control character which must be displayed
 		 either as '\003' or as `^C' where the '\\' and '^'
@@ -10404,6 +10407,9 @@ redisplay_preserve_echo_area (from_where)
     }
   else
     redisplay_internal (1);
+
+  if (rif != NULL && rif->flush_display_optional)
+    rif->flush_display_optional (NULL);
 }
 
 
@@ -12218,7 +12224,8 @@ redisplay_window (window, just_this_one_p)
     {
       update_begin (f);
       BLOCK_INPUT;
-      draw_window_fringes (w);
+      if (draw_window_fringes (w, 1))
+	x_draw_vertical_border (w);
       UNBLOCK_INPUT;
       update_end (f);
     }
@@ -18692,8 +18699,10 @@ calc_line_height_property (it, prop, font, boff, total)
 
   if (STRINGP (it->object))
     position = make_number (IT_STRING_CHARPOS (*it));
-  else
+  else if (BUFFERP (it->object))
     position = make_number (IT_CHARPOS (*it));
+  else
+    return Qnil;
 
   val = Fget_char_property (position, prop, it->object);
 
@@ -20764,6 +20773,10 @@ define_frame_cursor1 (f, cursor, pointer)
      Cursor cursor;
      Lisp_Object pointer;
 {
+  /* Do not change cursor shape while dragging mouse.  */
+  if (!NILP (do_mouse_tracking))
+    return;
+
   if (!NILP (pointer))
     {
       if (EQ (pointer, Qarrow))
@@ -21625,6 +21638,9 @@ x_draw_vertical_border (w)
      do it for frames with vertical scroll bars because either the
      right scroll bar of a window, or the left scroll bar of its
      neighbor will suffice as a border.  */
+  if (FRAME_HAS_VERTICAL_SCROLL_BARS (XFRAME (w->frame)))
+    return;
+
   if (!WINDOW_RIGHTMOST_P (w)
       && !WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (w))
     {

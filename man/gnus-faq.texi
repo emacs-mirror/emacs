@@ -1776,11 +1776,14 @@ Answer:
  
 
 @example
-(defadvice gnus-summary-reply (around reply-in-news activate)
+(eval-after-load "gnus-msg"
+  '(unless (boundp 'gnus-confirm-mail-reply-to-news)
+     (defadvice gnus-summary-reply (around reply-in-news activate)
+       "Request confirmation when replying to news."
        (interactive)
-        (when (or (not (gnus-news-group-p gnus-newsgroup-name))
-                  (y-or-n-p "Really reply? "))
-         ad-do-it))
+       (when (or (not (gnus-news-group-p gnus-newsgroup-name))
+                 (y-or-n-p "Really reply by mail to article author? "))
+         ad-do-it))))
 @end example
  
 @ifnottex

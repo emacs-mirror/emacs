@@ -598,8 +598,8 @@ This follows the rule [28] in the XML specifications."
 	      nil)
 	     (t
 	      (if xml-validating-parser 
-		  error "XML: (Validity) Invalid element type in the DTD")))
-
+		  (error "XML: (Validity) Invalid element type in the DTD"))))
+	    
 	    ;;  rule [45]: the element declaration must be unique
 	    (if (and (assoc element dtd)
 		     xml-validating-parser)
@@ -727,14 +727,9 @@ This follows the rule [28] in the XML specifications."
 				(match-string 1 this-part)))))))
 
 	(cond ((null children)
-	       (if (stringp expansion)
-		   (setq children (concat prev-part expansion))
-		 (if (stringp (car (last expansion)))
-		     (progn 
-			    (setq children
-				  (list (concat prev-part (car expansion))
-					(cdr expansion))))
-		   (setq children (append expansion prev-part)))))
+	       ;; FIXME: If we have an entity that expands into XML, this won't work.
+	       (setq children
+		     (concat prev-part expansion)))
 	      ((stringp children)
 	       (if (stringp expansion)
 		   (setq children (concat children prev-part expansion))
@@ -756,11 +751,15 @@ This follows the rule [28] in the XML specifications."
     (cond ((stringp children)
 	   (concat children (substring string point)))
 	  ((stringp (car (last children)))
-	   (concat (car children) (substring string point)))
+	   (concat (car (last children)) (substring string point)))
 	  ((null children)
 	   string)
 	  (t
-	   (nreverse children)))))
+	   (concat (mapconcat 'identity
+			      (nreverse children)
+			      "")
+		   (substring string point))))))
+
 ;;*******************************************************************
 ;;**
 ;;**  Printing a tree.

@@ -343,7 +343,11 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 		    (with-temp-buffer
 		      (let ((standard-output (current-buffer)))
 			(pp v)
-			(process-send-region proc (point-min) (point-max))))))
+			;; Suppress the error rose when the pipe to PROC is closed.
+			(condition-case err
+			    (process-send-region proc (point-min) (point-max))
+			  (file-error nil))
+			))))
 	      ;; ARG is a file name.
 	      ;; Collapse multiple slashes to single slashes.
 	      (setq arg (command-line-normalize-file-name arg))

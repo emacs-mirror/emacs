@@ -571,9 +571,8 @@ x_update_window_end (w, cursor_on_p, mouse_face_overwritten_p)
 				output_cursor.vpos,
 				output_cursor.x, output_cursor.y);
 
-      x_draw_vertical_border (w);
-
-      draw_window_fringes (w);
+      if (draw_window_fringes (w, 1))
+	x_draw_vertical_border (w);
 
       UNBLOCK_INPUT;
     }
@@ -3383,12 +3382,14 @@ x_find_modifier_meanings (dpyinfo)
      Alt keysyms are on.  */
   {
     int row, col;	/* The row and column in the modifier table.  */
+    int found_alt_or_meta;
 
     for (row = 3; row < 8; row++)
+    {
+      found_alt_or_meta = 0;
       for (col = 0; col < mods->max_keypermod; col++)
 	{
-	  KeyCode code
-	    = mods->modifiermap[(row * mods->max_keypermod) + col];
+	  KeyCode code = mods->modifiermap[(row * mods->max_keypermod) + col];
 
 	  /* Zeroes are used for filler.  Skip them.  */
 	  if (code == 0)
@@ -3406,33 +3407,44 @@ x_find_modifier_meanings (dpyinfo)
 		  {
 		  case XK_Meta_L:
 		  case XK_Meta_R:
+		    found_alt_or_meta = 1;
 		    dpyinfo->meta_mod_mask |= (1 << row);
 		    break;
 
 		  case XK_Alt_L:
 		  case XK_Alt_R:
+		    found_alt_or_meta = 1;
 		    dpyinfo->alt_mod_mask |= (1 << row);
 		    break;
 
 		  case XK_Hyper_L:
 		  case XK_Hyper_R:
-		    dpyinfo->hyper_mod_mask |= (1 << row);
+		    if (!found_alt_or_meta)
+		      dpyinfo->hyper_mod_mask |= (1 << row);
+		    code_col = syms_per_code;
+		    col = mods->max_keypermod;
 		    break;
 
 		  case XK_Super_L:
 		  case XK_Super_R:
-		    dpyinfo->super_mod_mask |= (1 << row);
+		    if (!found_alt_or_meta)
+		      dpyinfo->super_mod_mask |= (1 << row);
+		    code_col = syms_per_code;
+		    col = mods->max_keypermod;
 		    break;
 
 		  case XK_Shift_Lock:
 		    /* Ignore this if it's not on the lock modifier.  */
-		    if ((1 << row) == LockMask)
+		    if (!found_alt_or_meta && ((1 << row) == LockMask))
 		      dpyinfo->shift_lock_mask = LockMask;
+		    code_col = syms_per_code;
+		    col = mods->max_keypermod;
 		    break;
 		  }
 	      }
 	  }
 	}
+    }
   }
 
   /* If we couldn't find any meta keys, accept any alt keys as meta keys.  */
@@ -5046,9 +5058,15 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
   /* Compute the left edge of the scroll bar.  */
 #ifdef USE_TOOLKIT_SCROLL_BARS
   if (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (w))
-    sb_left = left + width - sb_width - (width - sb_width) / 2;
+    sb_left = (left +
+	       (WINDOW_RIGHTMOST_P (w)
+		? width - sb_width - (width - sb_width) / 2
+		: 0));
   else
-    sb_left = left + (width - sb_width) / 2;
+    sb_left = (left +
+	       (WINDOW_LEFTMOST_P (w)
+		? (width - sb_width) / 2
+		: width - sb_width));
 #else
   if (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (w))
     sb_left = left + width - sb_width;
@@ -5101,19 +5119,20 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
                                  width);
 #else /* not USE_GTK */
 
-      /* Since toolkit scroll bars are smaller than the space reserved
-         for them on the frame, we have to clear "under" them.  */
-      if (width > 0 && height > 0)
-        x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-                          left, top, width, height, False);
       /* Move/size the scroll bar widget.  */
       if (mask)
+	{
+	  /* Since toolkit scroll bars are smaller than the space reserved
+	     for them on the frame, we have to clear "under" them.  */
+	  if (width > 0 && height > 0)
+	    x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+                          left, top, width, height, False);
           XtConfigureWidget (SCROLL_BAR_X_WIDGET (FRAME_X_DISPLAY (f), bar),
                              sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
                              top,
                              sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
                              max (height, 1), 0);
-
+	}
 #endif /* not USE_GTK */
 #else /* not USE_TOOLKIT_SCROLL_BARS */
 
@@ -10739,7 +10758,7 @@ static struct redisplay_interface x_redisplay_interface =
   x_update_window_end,
   x_cursor_to,
   x_flush,
-#ifndef XFlush
+#ifdef XFlush
   x_flush,
 #else
   0,  /* flush_display_optional */

@@ -2,7 +2,6 @@
 ;; Keywords: comm, data, processes
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
 ;;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
 ;;;
 ;;; This file is part of GNU Emacs.
