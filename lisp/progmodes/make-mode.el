@@ -231,15 +231,15 @@ not be enclosed in { } or ( )."
   :group 'makefile)
 
 ;; Note that the first big subexpression is used by font lock.  Note
-;; that if you change this regexp you must fix the imenu index
-;; function defined at the end of the file.
+;; that if you change this regexp you might have to fix the imenu
+;; index in makefile-imenu-generic-expression.
 (defconst makefile-dependency-regex
   "^ *\\([^ \n\t#:=]+\\([ \t]+\\([^ \t\n#:=]+\\|\\$[({][^ \t\n#})]+[})]\\)\\)*\\)[ \t]*:\\([ \t]*$\\|\\([^=\n].*$\\)\\)"
   "Regex used to find dependency lines in a makefile.")
 
-;; Note that the first subexpression is used by font lock.  Note that
-;; if you change this regexp you must fix the imenu index function
-;; defined at the end of the file.
+;; Note that the first subexpression is used by font lock.  Note 
+;; that if you change this regexp you might have to fix the imenu
+;; index in makefile-imenu-generic-expression.
 (defconst makefile-macroassign-regex
   "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*[*:+]?:?="
   "Regex used to find macro assignment lines in a makefile.")
@@ -1483,7 +1483,7 @@ Uses `makefile-use-curly-braces-for-macros-p'."
 
 
 
-;;; Support for other packages, like add-log and imenu.
+;;; Support for other packages, like add-log.
 
 (defun makefile-add-log-defun ()
   "Return name of target or variable assignment that point is in.
