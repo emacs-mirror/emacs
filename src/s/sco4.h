@@ -46,9 +46,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* SCO has bcopy, et. al.  */
 #define BSTRING
 
-/* Use both <time.h> and <sys/time.h>.  */
-#define TIME_WITH_SYS_TIME
-
 /* Sockets are an option on SCO.  If we have X, we have them.  */
 #ifdef HAVE_X_WINDOWS
 #define HAVE_SOCKETS
