@@ -214,6 +214,8 @@
      (vector nil ?= "Do no conversion" nil nil))
 (put 'no-conversion 'eol-type 0)
 
+(define-coding-system-alias 'binary 'no-conversion)
+
 (put 'undecided-unix 'coding-system 'undecided)
 (put 'undecided-unix 'eol-type 0)
 (put 'undecided-unix 'eol-variant t)
