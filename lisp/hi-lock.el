@@ -420,7 +420,7 @@ interactive functions.  \(See `hi-lock-interactive-patterns'.\)
          (error "No highlighting to remove"))
        (list
         (completing-read "Regexp to unhighlight: "
-                         hi-lock-interactive-patterns t t
+                         hi-lock-interactive-patterns nil t
                          (car (car hi-lock-interactive-patterns))
                          (cons 'history-list 1))))))
   (let ((keyword (assoc regexp hi-lock-interactive-patterns)))
