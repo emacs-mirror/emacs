@@ -56,6 +56,7 @@ Looks for word boundaries before capitals."
     tab)
   "Assigned to `next-word-boundary-function-table' in Capitalized Words mode.")
 
+;;;###autoload
 (define-minor-mode capitalized-words-mode
   "Toggle Capitalized- Words mode.
 
@@ -75,11 +76,11 @@ boundaries in found by regexp matching (`\\>', `\\w' &c).
 
 This style of identifiers is common in environments like Java ones,
 where underscores aren't trendy enough.  Capitalization rules are
-sometimes part of the language, e.g. Haskell, which may encourage such
-a style.  It is appropriate to add `capitalized-words-mode' to the
-mode hook for programming langauge modes in which you encounter such
-variables, e.g. `java-mode-hook', since it's unlikely to cause trouble
-if such identifiers aren't used.
+sometimes part of the language, e.g. Haskell, which may thus encourage
+such a style.  It is appropriate to add `capitalized-words-mode' to
+the mode hook for programming langauge modes in which you encounter
+variables like this, e.g. `java-mode-hook'.  It's unlikely to cause
+trouble if such identifiers aren't used.
 
 See also `glasses-mode' and `studlify-word'.
 Obsoletes `c-forward-into-nomenclature'."
