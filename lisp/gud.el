@@ -1403,7 +1403,7 @@ Obeying it means displaying in another window the specified file and line."
 					      (1+ (count-lines 1 (point)))))
 			(cdr frame))))
 	 ((eq key ?e)
-	  (setq subst (find-c-expr)))
+	  (setq subst (gud-find-c-expr)))
 	 ((eq key ?a)
 	  (setq subst (gud-read-address)))
 	 ((eq key ?p)
@@ -1470,94 +1470,102 @@ Obeying it means displaying in another window the specified file and line."
 ;;; Debby Ayers <ayers@asc.slb.com>,
 ;;; Rich Schaefer <schaefer@asc.slb.com> Schlumberger, Austin, Tx.
 
-(defun find-c-expr ()
+(defun gud-find-c-expr ()
   "Returns the C expr that surrounds point."
   (interactive)
   (save-excursion
-    (let ((p) (expr) (test-expr))
+    (let (p expr test-expr)
       (setq p (point))
-      (setq expr (expr-cur))
-      (setq test-expr (expr-prev))
-      (while (expr-compound test-expr expr)
-	(setq expr (cons (car test-expr) (cdr expr)))
-	(goto-char (car expr))
-	(setq test-expr (expr-prev)))
+      (setq expr (gud-innermost-expr))
+      (setq test-expr (gud-prev-expr))
+      (while (and test-expr (gud-expr-compound test-expr expr))
+	(let ((prev-expr expr))
+	  (setq expr (cons (car test-expr) (cdr expr)))
+	  (goto-char (car expr))
+	  (setq test-expr (gud-prev-expr))
+	  ;; If we just pasted on the condition of an if or while,
+	  ;; throw it away again.
+	  (if (member (buffer-substring (car test-expr) (cdr test-expr))
+		      '("if" "while" "for"))
+	      (setq test-expr nil
+		    expr prev-expr))))
       (goto-char p)
-      (setq test-expr (expr-next))
-      (while (expr-compound expr test-expr)
+      (setq test-expr (gud-next-expr))
+      (while (gud-expr-compound expr test-expr)
 	(setq expr (cons (car expr) (cdr test-expr)))
-	(setq test-expr (expr-next))
+	(setq test-expr (gud-next-expr))
 	)
       (buffer-substring (car expr) (cdr expr)))))
 
-(defun expr-cur ()
-  "Returns the expr that point is in; point is set to beginning of expr.
+(defun gud-innermost-expr ()
+  "Returns the smallest expr that point is in; move point to beginning of it.
 The expr is represented as a cons cell, where the car specifies the point in
 the current buffer that marks the beginning of the expr and the cdr specifies 
 the character after the end of the expr."
-  (let ((p (point)) (begin) (end))
-    (expr-backward-sexp)
+  (let ((p (point)) begin end)
+    (gud-backward-sexp)
     (setq begin (point))
-    (expr-forward-sexp)
+    (gud-forward-sexp)
     (setq end (point))
     (if (>= p end) 
 	(progn
 	 (setq begin p)
 	 (goto-char p)
-	 (expr-forward-sexp)
-	 (setq end (point))
-	 )
+	 (gud-forward-sexp)
+	 (setq end (point)))
       )
     (goto-char begin)
     (cons begin end)))
 
-(defun expr-backward-sexp ()
+(defun gud-backward-sexp ()
   "Version of `backward-sexp' that catches errors."
   (condition-case nil
       (backward-sexp)
     (error t)))
 
-(defun expr-forward-sexp ()
+(defun gud-forward-sexp ()
   "Version of `forward-sexp' that catches errors."
   (condition-case nil
      (forward-sexp)
     (error t)))
 
-(defun expr-prev ()
+(defun gud-prev-expr ()
   "Returns the previous expr, point is set to beginning of that expr.
 The expr is represented as a cons cell, where the car specifies the point in
 the current buffer that marks the beginning of the expr and the cdr specifies 
 the character after the end of the expr"
   (let ((begin) (end))
-    (expr-backward-sexp)
+    (gud-backward-sexp)
     (setq begin (point))
-    (expr-forward-sexp)
+    (gud-forward-sexp)
     (setq end (point))
     (goto-char begin)
     (cons begin end)))
 
-(defun expr-next ()
+(defun gud-next-expr ()
   "Returns the following expr, point is set to beginning of that expr.
 The expr is represented as a cons cell, where the car specifies the point in
 the current buffer that marks the beginning of the expr and the cdr specifies 
 the character after the end of the expr."
   (let ((begin) (end))
-    (expr-forward-sexp)
-    (expr-forward-sexp)
+    (gud-forward-sexp)
+    (gud-forward-sexp)
     (setq end (point))
-    (expr-backward-sexp)
+    (gud-backward-sexp)
     (setq begin (point))
     (cons begin end)))
 
-(defun expr-compound-sep (span-start span-end)
-  "Returns '.' for '->' & '.', returns ' ' for white space,
-returns '?' for other punctuation."
-  (let ((result ? )
+(defun gud-expr-compound-sep (span-start span-end)
+  "Scan from SPAN-START to SPAN-END for punctuation characters.
+If `->' is found, return `?.'.  If `.' is found, return `?.'.
+If any other punctuation is found, return `??'.
+If no punctuation is found, return `? '."
+  (let ((result ?\ )
 	(syntax))
     (while (< span-start span-end)
       (setq syntax (char-syntax (char-after span-start)))
       (cond
-       ((= syntax ? ) t)
+       ((= syntax ?\ ) t)
        ((= syntax ?.) (setq syntax (char-after span-start))
 	(cond 
 	 ((= syntax ?.) (setq result ?.))
@@ -1569,8 +1577,8 @@ returns '?' for other punctuation."
       (setq span-start (+ span-start 1)))
     result))
 
-(defun expr-compound (first second)
-  "Non-nil if concatenating FIRST and SECOND makes a single C token.
+(defun gud-expr-compound (first second)
+  "Non-nil if concatenating FIRST and SECOND makes a single C expression.
 The two exprs are represented as a cons cells, where the car 
 specifies the point in the current buffer that marks the beginning of the 
 expr and the cdr specifies the character after the end of the expr.
@@ -1584,21 +1592,20 @@ Link exprs of the form:
   (let ((span-start (cdr first))
 	(span-end (car second))
 	(syntax))
-    (setq syntax (expr-compound-sep span-start span-end))
+    (setq syntax (gud-expr-compound-sep span-start span-end))
     (cond
      ((= (car first) (car second)) nil)
      ((= (cdr first) (cdr second)) nil)
      ((= syntax ?.) t)
-     ((= syntax ? )
+     ((= syntax ?\ )
 	 (setq span-start (char-after (- span-start 1)))
 	 (setq span-end (char-after span-end))
 	 (cond
-	  ((= span-start ?) ) t )
-	  ((= span-start ?] ) t )
-          ((= span-end ?( ) t )
-	  ((= span-end ?[ ) t )
-	  (t nil))
-	 )
+	  ((= span-start ?)) t)
+	  ((= span-start ?]) t)
+          ((= span-end ?() t)
+	  ((= span-end ?[) t)
+	  (t nil)))
      (t nil))))
 
 (provide 'gud)
