@@ -3255,7 +3255,8 @@ if one of its condition symbols appears in the list.");
 
   DEFVAR_LISP ("debug-on-error", &Vdebug_on_error,
     "*Non-nil means enter debugger if an error is signaled.\n\
-Does not apply to errors handled by `condition-case'.\n\
+Does not apply to errors handled by `condition-case' or those\n\
+matched by `debug-ignored-errors'.\n\
 If the value is a list, an error only means to enter the debugger\n\
 if one of its condition symbols appears in the list.\n\
 See also variable `debug-on-quit'.");
