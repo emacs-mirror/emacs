@@ -526,11 +526,8 @@ to an optional list of FLAGS."
 	    )
 	(if verbose 
 	    (if (not (eq vc-type 'SCCS))
-		(let ((rev (read-string "Branch or version to move to: ")))
-		  (if (eq vc-type 'RCS)
-		      (vc-do-command nil 0 "rcs" file 'MASTER 
-				     (concat "-b" rev)))
-		  (vc-checkout file nil rev))
+		(vc-checkout file nil 
+		   (read-string "Branch or version to move to: "))
 	      (error "Sorry, this is not implemented for SCCS."))
 	  (if (vc-latest-on-branch-p file)
 	      (vc-checkout-writable-buffer file)
@@ -1725,7 +1722,12 @@ From a program, any arguments are passed to the `rcs2log' script."
 			   vc-checkout-switches)
 		    (setq failed nil))
 		(and failed (file-exists-p filename) (delete-file filename))))
-       (progn
+       (let (new-version)
+	 ;; if we should go to the head of the trunk, 
+	 ;; clear the default branch first
+	 (and rev (string= rev "") 
+	      (vc-do-command nil 0 "rcs" file 'MASTER "-b"))
+	 ;; now do the checkout
 	 (apply 'vc-do-command
 		nil 0 "co" file 'MASTER
 		(if writable "-l")
@@ -1736,15 +1738,22 @@ From a program, any arguments are passed to the `rcs2log' script."
 		    (if workrev (concat "-r" workrev)
 		      nil)))
 		vc-checkout-switches)
+	 ;; determine the new workfile version
 	 (save-excursion
 	   (set-buffer "*vc*")
 	   (goto-char (point-min))
-	   (if (re-search-forward "^revision \\([0-9.]+\\).*\n" nil t)
-	       (vc-file-setprop file 'vc-workfile-version 
-				(buffer-substring (match-beginning 1)
-						  (match-end 1)))
-	     (vc-file-setprop file 'vc-workfile-version nil)))))
-	(if workfile;; CVS
+	   (setq new-version 
+		 (if (re-search-forward "^revision \\([0-9.]+\\).*\n" nil t)
+		     (buffer-substring (match-beginning 1) (match-end 1)))))
+	 (vc-file-setprop file 'vc-workfile-version new-version)
+	 ;; if necessary, adjust the default branch
+	 (and rev (not (string= rev ""))
+	      (vc-do-command nil 0 "rcs" file 'MASTER 
+		 (concat "-b" (if (vc-latest-on-branch-p file)
+				  (if (vc-trunk-p new-version) nil
+				    (vc-branch-part new-version))
+				new-version))))))
+	(if workfile  ;; CVS
 	    ;; CVS is much like RCS
 	    (let ((failed t))
 	      (unwind-protect
