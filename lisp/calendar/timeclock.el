@@ -33,11 +33,11 @@
 ;; Use `timeclock-in' when you start on a project, and `timeclock-out'
 ;; when you're done.  Once you've collected some data, you can use
 ;; `timeclock-workday-remaining' to see how much time is left to be
-;; worked today (assuming a typical average of 8 hours a day), and
-;; `timeclock-when-to-leave' which will calculate when you're free.
+;; worked today (where `timeclock-workday' specifies the length of the
+;; working day), and `timeclock-when-to-leave' to calculate when you're free.
 
 ;; You'll probably want to bind the timeclock commands to some handy
-;; keystrokes.  At the moment, C-x t is unused in Emacs 20:
+;; keystrokes.  At the moment, C-x t is unused:
 ;;
 ;;   (require 'timeclock)
 ;;
@@ -99,8 +99,8 @@ For example, if the length of a normal workday is eight hours, and you
 work four hours on Monday, then the amount of time \"remaining\" on
 Tuesday is twelve hours -- relative to an averaged work period of
 eight hours -- or eight hours, non-relative.  So relative time takes
-into account any discrepancy of time under-worked or overworked on
-previous days."
+into account any discrepancy of time under-worked or over-worked on
+previous days.  This only affects the timeclock modeline display."
   :type 'boolean
   :group 'timeclock)
 
@@ -132,7 +132,8 @@ that day has a different length from the norm."
   :group 'timeclock)
 
 (defcustom timeclock-ask-before-exiting t
-  "*If non-nil, ask if the user wants to clock out before exiting Emacs."
+  "*If non-nil, ask if the user wants to clock out before exiting Emacs.
+This variable only has an effect if set with \\[customize]."
   :set (lambda (symbol value)
 	 (if value
 	     (add-hook 'kill-emacs-query-functions 'timeclock-query-out)
@@ -154,9 +155,10 @@ The advantage to this is that it means one less timer has to be set
 running amok in Emacs' process space.  The disadvantage is that it
 requires you to have `display-time' running.  If you don't want to use
 `display-time', but still want the modeline to show how much time is
-left, set this variable to nil.  You will need to restart Emacs (or
-toggle the function `timeclock-modeline-display') for the change to
-take effect."
+left, set this variable to nil.  Changing the value of this variable
+while timeclock information is being displayed in the modeline has no
+effect.  You should call the function `timeclock-modeline-display' with
+a positive argument to force an update."
   :set (lambda (symbol value)
 	 (let ((currently-displaying
 		(and (boundp 'timeclock-modeline-display)
@@ -248,7 +250,7 @@ each day.")
 This value is not accurate enough to be useful by itself.  Rather,
 call `timeclock-workday-elapsed', to determine how much time has been
 worked so far today.  Also, if `timeclock-relative' is nil, this value
-will be the same as `timeclock-discrepancy'.")
+will be the same as `timeclock-discrepancy'.") ; ? gm
 
 (defvar timeclock-last-period nil
   "Integer representing the number of seconds in the last period.
@@ -297,7 +299,9 @@ display (non-nil means on)."
               (progn
                 ;; Update immediately so there is a visible change
                 ;; on calling this function.
-                (if display-time-mode (timeclock-update-modeline))
+                (if display-time-mode (timeclock-update-modeline)
+                  (message "Activate `display-time-mode' to see \
+timeclock information"))
                 (add-hook 'display-time-hook 'timeclock-update-modeline))
 	    (setq timeclock-update-timer
 		  (run-at-time nil 60 'timeclock-update-modeline))))
