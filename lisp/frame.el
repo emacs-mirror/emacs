@@ -323,8 +323,11 @@ These supersede the values given in `default-frame-alist'.")
 		    (setq newparms
 			  (cons (cons (car (car tail)) newval) newparms))))
 	      (setq tail (cdr tail)))
+	    (setq newparms (nreverse newparms))
 	    (modify-frame-parameters frame-initial-frame
-				     (nreverse newparms)))))
+				     newparms)
+	    (if (assq 'font newparms)
+		(frame-update-faces frame-initial-frame)))))
 
     ;; Restore the original buffer.
     (set-buffer old-buffer)
