@@ -1,3 +1,9 @@
+2002-03-28  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-cvs.el (vc-cvs-global-switches): New user option.
+	(vc-cvs-command): New function.  Update all callers of
+	`vc-do-command' in vc-cvs.el to use this instead.
+
 2002-03-27  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (bootstrap-clean-SH): Use for loop, instead of
