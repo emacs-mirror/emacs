@@ -1,5 +1,8 @@
 2000-08-25  Kenichi Handa  <handa@etl.go.jp>
 
+	* terminal.el (terminal-emulator): Fix args to `concat'.  Now
+	concat doesn't accept interger.
+
 	* international/kkc.el: Remove SKK from Keywords.  Require
 	ja-dic-utl instead of skkdic-utl.
 
