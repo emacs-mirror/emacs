@@ -177,8 +177,10 @@ Possibilities: \\<query-replace-map>
 \\[skip]	Skip the rest of this iteration, and start the next.
 \\[exit]	Stop the macro entirely right now.
 \\[recenter]	Redisplay the screen, then ask again.
-\\[edit]	Enter recursive edit; ask again when you exit from that."))))
-		  )))))))
+\\[edit]	Enter recursive edit; ask again when you exit from that."))
+		     (save-excursion
+		       (set-buffer standard-output)
+		       (help-mode)))))))))))
 
 ;;;###autoload
 (defun apply-macro-to-region-lines (top bottom &optional macro)
