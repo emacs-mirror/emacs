@@ -1208,12 +1208,21 @@ Called with one argument, the buffer to remove."
 
 (defun custom-get-fresh-buffer (name)
   "Get a fresh new buffer with name NAME.
-If the buffer already exist, clean it up to be like new."
+If the buffer already exist, clean it up to be like new.
+Beware: it's not quite like new.  Good enough for custom, but maybe
+not for everybody."
+  ;; To be more complete, we should also kill all permanent-local variables,
+  ;; but it's not needed for custom.
   (let ((buf (get-buffer name)))
+    (when (buffer-local-value 'buffer-file-name buf)
+      ;; This will check if the file is not saved.
+      (kill-buffer buf)
+      (setq buf nil))
     (if (null buf)
 	(get-buffer-create name)
       (with-current-buffer buf
 	(kill-all-local-variables)
+	(run-hooks 'kill-buffer-hook)
 	(erase-buffer)
 	(let ((ols (overlay-lists)))
 	  (dolist (ol (nconc (car ols) (cdr ols)))
