@@ -635,11 +635,12 @@ except the first, indicating that ``this is not the real beginning.''
 The right fringe shows a curving arrow for each screen line except the
 last, indicating that ``this is not the real end.''
 
-  The fringes indicate line truncation with short horizontale arrows
+  The fringes indicate line truncation with short horizontal arrows
 meaning ``there's more text on this line which is scrolled
-horizontally out of view.''  They also indicate other things such as
-empty lines, or where a program you are debugging is executing
-(@pxref{Debuggers}).
+horizontally out of view;'' clicking the mouse on one of the arrows
+scrolls the display horizontally in the direction of the arrow.   The
+fringes also indicate other things such as empty lines, or where a
+program you are debugging is executing (@pxref{Debuggers}).
 
 @findex set-fringe-style
 @findex fringe-mode
@@ -680,10 +681,10 @@ the form-feed characters.)
 @vindex default-indicate-empty-lines
 @cindex empty lines
 @cindex fringes, and empty line indication
-  Emacs can indicate empty lines at the end of the buffer with a
-special bitmap in the left fringe of the window.  To enable this
-feature, set the buffer-local variable @code{indicate-empty-lines} to
-a non-@code{nil} value.  The default value of this variable is
+  Emacs can indicate empty lines at the end of the buffer with a special
+bitmap in the left fringe of the window (@pxref{Fringes}).  To enable
+this feature, set the buffer-local variable @code{indicate-empty-lines}
+to a non-@code{nil} value.  The default value of this variable is
 controlled by the variable @code{default-indicate-empty-lines}; by
 setting that variable, you can enable or disable this feature for all
 new buffers.  (This feature currently doesn't work on character
