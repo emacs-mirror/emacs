@@ -305,7 +305,7 @@ This is used by `eshell-watch-for-password-prompt'."
 
   (when eshell-status-in-modeline
     (make-local-variable 'eshell-command-running-string)
-    (let ((fmt (eshell-copy-list mode-line-format)))
+    (let ((fmt (copy-sequence mode-line-format)))
       (make-local-variable 'mode-line-format)
       (setq mode-line-format fmt))
     (let ((modeline (memq 'mode-line-modified mode-line-format)))
@@ -382,7 +382,7 @@ This is used by `eshell-watch-for-password-prompt'."
   (set (make-local-variable 'eshell-last-output-end) (point-marker))
   (set (make-local-variable 'eshell-last-output-block-begin) (point))
 
-  (let ((modules-list (eshell-copy-list eshell-modules-list)))
+  (let ((modules-list (copy-sequence eshell-modules-list)))
     (make-local-variable 'eshell-modules-list)
     (setq eshell-modules-list modules-list))
 
