@@ -1,3 +1,15 @@
+2004-04-29  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-top-level): Add new entries
+	to `byte-compile-lexical-environment' at the start, not end.
+	(byte-compile-delay-out): Correctly default STACK-ADJUST to zero.
+
+	* emacs-lisp/byte-opt.el (byte-opt-update-stack-params): Don't
+	crash on no-op lapcode entries (car is nil).
+
+	* emacs-lisp/byte-lexbind.el (byte-compile-make-lambda-lexenv):
+	Push a lexvar onto lexenv, not a vinfo!
+
 2004-04-11  Miles Bader  <miles@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-top-level): Correctly

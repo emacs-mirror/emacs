@@ -2733,8 +2733,8 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	  ;; environment (because they're closed over by an embedded
 	  ;; lambda), put them there.
 	  (setq byte-compile-lexical-environment
-		(append byte-compile-lexical-environment
-			(byte-compile-maybe-push-heap-environment lforminfo)))
+		(nconc (byte-compile-maybe-push-heap-environment lforminfo)
+		       byte-compile-lexical-environment))
 	  (dolist (arginfo (byte-compile-lforminfo-vars lforminfo))
 	    (when (byte-compile-lvarinfo-closed-over-p arginfo)
 	      (byte-compile-bind (car arginfo)
@@ -4101,7 +4101,7 @@ actually add anything later; the effect as if nothing was added at all."
   (when stack-adjust
     (setq byte-compile-depth
 	  (+ byte-compile-depth stack-adjust)))
-  (push (cons nil stack-adjust) byte-compile-output))
+  (push (cons nil (or stack-adjust 0)) byte-compile-output))
 
 (defun byte-compile-delayed-out (position op &optional operand)
   "Add at POSITION the byte-operation OP, with optional numeric arg OPERAND.

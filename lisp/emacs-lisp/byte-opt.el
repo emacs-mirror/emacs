@@ -1531,10 +1531,10 @@ of FORM by signalling the error at compile-time."
 	   ((memq (car ,lap0) '(byte-goto byte-return))
 	    ;; These insns leave us in an unknown state
 	    (setq ,stack-adjust nil))
-	   (t
-	    ;; ,stack-adjust will be added to ,stack-depth at the end of the
-	    ;; loop, so any code that modifies the isntruction sequence must
-	    ;; adjust this too.
+	   ((car ,lap0)
+	    ;; Not a no-op, set ,stack-adjust for lap0.  ,stack-adjust will
+	    ;; be added to ,stack-depth at the end of the loop, so any code
+	    ;; that modifies the instruction sequence must adjust this too.
 	    (setq ,stack-adjust
 		  (byte-compile-stack-adjustment (car ,lap0) (cdr ,lap0)))))
      (byte-compile-log-lap "Before %s  [depth => %s, adj = %s]" ,lap0 ,stack-depth ,stack-adjust)

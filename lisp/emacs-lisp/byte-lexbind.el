@@ -411,12 +411,12 @@ The returned lexical environment contains two sets of variables:
 	    (error
     "Compiler error: lexical variable `%s' should be heap-allocated but is not"
 	     (car vinfo)))
-	  (byte-compile-heapenv-ensure-access
-	   byte-compile-current-heap-environment
-	   (byte-compile-lexvar-environment
-	    (assq (car vinfo) closed-over-lexenv)))
-	  ;; Put this variable in the new lexical environment
-	  (push vinfo lexenv)))
+	  (let ((closed-over-lexvar (assq (car vinfo) closed-over-lexenv)))
+	    (byte-compile-heapenv-ensure-access
+	     byte-compile-current-heap-environment
+	     (byte-compile-lexvar-environment closed-over-lexvar))
+	    ;; Put this variable in the new lexical environment
+	    (push closed-over-lexvar lexenv))))
       ;; Fill in the initial stack contents
       (let ((stackpos 0))
 	(when closure
@@ -566,7 +566,8 @@ LFORMINFO should be information about lexical variables being bound."
 (defun byte-compile-maybe-push-heap-environment (&optional lforminfo)
   "Push a new heap environment if necessary.
 LFORMINFO should be information about lexical variables being bound.
-Return a lexical environment containing only the heap vector.
+Return a lexical environment containing only the heap vector (or
+nil if nothing was pushed).
 Also, `byte-compile-current-heap-environment' and
 `byte-compile-current-num-closures' are updated to reflect any change (so they
 should probably be bound by the caller to ensure that the new values have the
@@ -591,7 +592,7 @@ proper scope)."
       (list (byte-compile-push-heapenv)))))
 
 (defun byte-compile-bind (var init-lexenv &optional lforminfo)
-  "Emit byte-codes to bind VAR.
+  "Emit byte-codes to bind VAR and update `byte-compile-lexical-environment'.
 INIT-LEXENV should be a lexical-environment alist describing the
 positions of the init value that have been pushed on the stack, and
 LFORMINFO should be information about lexical variables being bound.
