@@ -24,7 +24,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "commands.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "keymap.h"
 
 /* Make syntax table lookup grant data in gl_state.  */
@@ -835,29 +835,6 @@ char syntax_code_spec[16] =
 static Lisp_Object Vsyntax_code_object;
 
 
-/* Look up the value for CHARACTER in syntax table TABLE's parent
-   and its parents.  SYNTAX_ENTRY calls this, when TABLE itself has nil
-   for CHARACTER.  It's actually used only when not compiled with GCC.  */
-
-Lisp_Object
-syntax_parent_lookup (table, character)
-     Lisp_Object table;
-     int character;
-{
-  Lisp_Object value;
-
-  while (1)
-    {
-      table = XCHAR_TABLE (table)->parent;
-      if (NILP (table))
-	return Qnil;
-
-      value = XCHAR_TABLE (table)->contents[character];
-      if (!NILP (value))
-	return value;
-    }
-}
-
 DEFUN ("char-syntax", Fchar_syntax, Schar_syntax, 1, 1, 0,
        doc: /* Return the syntax code of CHARACTER, described by a character.
 For example, if CHARACTER is a word constituent,
@@ -976,6 +953,8 @@ DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3,
        doc: /* Set syntax for character CHAR according to string NEWENTRY.
 The syntax is changed only for table SYNTAX_TABLE, which defaults to
  the current buffer's syntax table.
+CHAR may be a cons (MIN . MAX), in which case, syntaxes of all characters
+in the range MIN and MAX are changed.
 The first character of NEWENTRY should be one of the following:
   Space or -  whitespace syntax.    w   word constituent.
   _           symbol constituent.   .   punctuation.
@@ -1012,14 +991,24 @@ usage: (modify-syntax-entry CHAR NEWENTRY &optional SYNTAX-TABLE) */)
      (c, newentry, syntax_table)
      Lisp_Object c, newentry, syntax_table;
 {
-  CHECK_NUMBER (c);
+  if (CONSP (c))
+    {
+      CHECK_CHARACTER (XCAR (c));
+      CHECK_CHARACTER (XCDR (c));
+    }
+  else
+    CHECK_CHARACTER (c);
 
   if (NILP (syntax_table))
     syntax_table = current_buffer->syntax_table;
   else
     check_syntax_table (syntax_table);
 
-  SET_RAW_SYNTAX_ENTRY (syntax_table, XINT (c), Fstring_to_syntax (newentry));
+  newentry = Fstring_to_syntax (newentry);
+  if (CONSP (c))
+    SET_RAW_SYNTAX_ENTRY_RANGE (syntax_table, c, newentry);
+  else
+    SET_RAW_SYNTAX_ENTRY (syntax_table, XINT (c), newentry);
   return Qnil;
 }
 
@@ -1418,22 +1407,21 @@ skip_chars (forwardp, syntaxp, string, lim)
      If syntaxp, each character counts as itself.
      Otherwise, handle backslashes and ranges specially.  */
 
-  while (i_byte < size_byte)
-    {
-      c = STRING_CHAR_AND_LENGTH (str + i_byte, size_byte - i_byte, len);
-      i_byte += len;
+  if (size_byte == XSTRING (string)->size)
+    while (i_byte < size_byte)
+      {
+	c = str[i_byte++];
 
-      if (syntaxp)
-	fastmap[syntax_spec_code[c & 0377]] = 1;
-      else
-	{
-	  if (c == '\\')
-	    {
+	if (syntaxp)
+	  fastmap[syntax_spec_code[c]] = 1;	  
+	else
+	  {
+	    if (c == '\\')
+	      {
 	      if (i_byte == size_byte)
 		break;
 
-	      c = STRING_CHAR_AND_LENGTH (str+i_byte, size_byte-i_byte, len);
-	      i_byte += len;
+	      c = str[i_byte++];
 	    }
 	  if (i_byte < size_byte
 	      && str[i_byte] == '-')
@@ -1447,50 +1435,68 @@ skip_chars (forwardp, syntaxp, string, lim)
 		break;
 
 	      /* Get the end of the range.  */
-	      c2 =STRING_CHAR_AND_LENGTH (str+i_byte, size_byte-i_byte, len);
-	      i_byte += len;
-
-	      if (SINGLE_BYTE_CHAR_P (c))
-		{
-		  if (! SINGLE_BYTE_CHAR_P (c2))
-		    {
-		      /* Handle a range starting with a character of
-			 less than 256, and ending with a character of
-			 not less than 256.  Split that into two
-			 ranges, the low one ending at 0377, and the
-			 high one starting at the smallest character
-			 in the charset of C2 and ending at C2.  */
-		      int charset = CHAR_CHARSET (c2);
-		      int c1 = MAKE_CHAR (charset, 0, 0);
-
-		      char_ranges[n_char_ranges++] = c1;
-		      char_ranges[n_char_ranges++] = c2;
-		      c2 = 0377;
-		    }
-		  while (c <= c2)
-		    {
-		      fastmap[c] = 1;
-		      c++;
-		    }
-		}
-	      else if (c <= c2)	/* Both C and C2 are multibyte char.  */
-		{
-		  char_ranges[n_char_ranges++] = c;
-		  char_ranges[n_char_ranges++] = c2;
-		}
+	      c2 = str[i_byte++];
+	      while (c <= c2)
+		fastmap[c++] = 1;
 	    }
 	  else
-	    {
-	      if (SINGLE_BYTE_CHAR_P (c))
-		fastmap[c] = 1;
-	      else
-		{
-		  char_ranges[n_char_ranges++] = c;
-		  char_ranges[n_char_ranges++] = c;
-		}
-	    }
+	    fastmap[c] = 1;
 	}
     }
+  else
+    while (i_byte < size_byte)
+      {
+	c = STRING_CHAR_AND_LENGTH (str + i_byte, size_byte-i_byte, len);
+	i_byte += len;
+
+	if (syntaxp)
+	  fastmap[syntax_spec_code[c & 0377]] = 1;
+	else
+	  {
+	    if (c == '\\')
+	      {
+		if (i_byte == size_byte)
+		  break;
+
+		c = STRING_CHAR_AND_LENGTH (str+i_byte, size_byte-i_byte, len);
+		i_byte += len;
+	      }
+	    if (i_byte < size_byte
+		&& str[i_byte] == '-')
+	      {
+		unsigned int c2;
+
+		/* Skip over the dash.  */
+		i_byte++;
+
+		if (i_byte == size_byte)
+		  break;
+
+		/* Get the end of the range.  */
+		c2 =STRING_CHAR_AND_LENGTH (str + i_byte, size_byte-i_byte, len);
+		i_byte += len;
+
+		if (ASCII_CHAR_P (c))
+		  while (c <= c2 && c < 0x80)
+		    fastmap[c++] = 1;
+		if (c <= c2)
+		  {
+		    char_ranges[n_char_ranges++] = c;
+		    char_ranges[n_char_ranges++] = c2;
+		  }
+	      }
+	    else
+	      {
+		if (ASCII_CHAR_P (c))
+		  fastmap[c] = 1;
+		else
+		  {
+		    char_ranges[n_char_ranges++] = c;
+		    char_ranges[n_char_ranges++] = c;
+		  }
+	      }
+	  }
+      }
 
   /* If ^ was the first character, complement the fastmap.  */
   if (negate)
@@ -1573,7 +1579,7 @@ skip_chars (forwardp, syntaxp, string, lim)
 	      while (pos < XINT (lim))
 		{
 		  c = FETCH_MULTIBYTE_CHAR (pos_byte);
-		  if (SINGLE_BYTE_CHAR_P (c))
+		  if (ASCII_CHAR_P (c))
 		    {
 		      if (!fastmap[c])
 			break;
@@ -1632,14 +1638,6 @@ skip_chars (forwardp, syntaxp, string, lim)
 		pos--;
 	  }
       }
-
-#if 0 /* Not needed now that a position in mid-character
-	 cannot be specified in Lisp.  */
-    if (multibyte
-	/* INC_POS or DEC_POS might have moved POS over LIM.  */
-	&& (forwardp ? (pos > XINT (lim)) : (pos < XINT (lim))))
-      pos = XINT (lim);
-#endif
 
     if (! multibyte)
       pos_byte = pos;
@@ -2945,8 +2943,7 @@ init_syntax_once ()
 
   /* All multibyte characters have syntax `word' by default.  */
   temp = XVECTOR (Vsyntax_code_object)->contents[(int) Sword];
-  for (i = CHAR_TABLE_SINGLE_BYTE_SLOTS; i < CHAR_TABLE_ORDINARY_SLOTS; i++)
-    XCHAR_TABLE (Vstandard_syntax_table)->contents[i] = temp;
+  char_table_set_range (Vstandard_syntax_table, 0x80, MAX_CHAR, temp);
 }
 
 void
