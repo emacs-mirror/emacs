@@ -444,11 +444,11 @@ windows, see @ref{Split Window}.  See also @ref{Display,, Display,
 elisp, The Emacs Lisp Reference Manual}.
 
 @vindex baud-rate
-  The variable @code{baud-rate} holds the output speed of the terminal,
-as far as Emacs knows.  Setting this variable does not change the speed
-of actual data transmission, but the value is used for calculations such
-as padding.  On terminals, it also affects decisions about whether to
-scroll part of the screen or redraw it instead.
+  The variable @code{baud-rate} holds the output speed of the
+terminal, as far as Emacs knows.  Setting this variable does not
+change the speed of actual data transmission, but the value is used
+for calculations.  On terminals, it affects padding, and decisions
+about whether to scroll part of the screen or redraw it instead.
 
   On window-systems, @code{baud-rate} is only used to determine how
 frequently to look for pending input during display updating.  A
@@ -468,7 +468,7 @@ elisp, The Emacs Lisp Reference Manual}.
 highlights the line around point.  On window systems, the command
 @kbd{M-x blink-cursor-mode} turns on or off the blinking of the
 cursor.  (On terminals, the terminal itself blinks the cursor, and
-Emacs has no say over it.)
+Emacs has no control over it.)
 
   You can customize the cursor's color, and whether it blinks, using
 the @code{cursor} Custom group (@pxref{Easy Customization}).
