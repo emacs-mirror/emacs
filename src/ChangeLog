@@ -6,6 +6,9 @@
 	respectively.
 	(decode_coding_gap): Run post-read-conversion if any.
 
+	* fileio.c (Finsert_file_contents): Even if we read into a
+	unibyte buffer, check if we must decode the result or not.
+
 2003-05-29  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (make_conversion_work_buffer): Change the work buffer
