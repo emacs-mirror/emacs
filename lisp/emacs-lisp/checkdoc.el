@@ -2217,7 +2217,7 @@ Code:, and others referenced in the style guide."
 	       ((or (re-search-forward "^;;; History" nil t)
 		    (re-search-forward "^;;; Code" nil t)
 		    (re-search-forward "^(require" nil t)
-		    (re-search-forward "^("))
+		    (re-search-forward "^(" nil t))
 		(beginning-of-line)))
 	      (if (checkdoc-y-or-n-p
 		   "You should have a \";;; Commentary:\", add one? ")
@@ -2246,7 +2246,7 @@ Code:, and others referenced in the style guide."
 	      (re-search-forward "^;;\\s-*\n\\|^\n" nil t))
 	     ((or (re-search-forward "^;;; Code" nil t)
 		  (re-search-forward "^(require" nil t)
-		  (re-search-forward "^("))
+		  (re-search-forward "^(" nil t))
 	      (beginning-of-line)))
 	    (if (checkdoc-y-or-n-p
 		 "You should have a \";;; History:\", add one? ")
