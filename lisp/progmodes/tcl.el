@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.65 $
+;; Version: $Revision: 1.66 $
 
 ;; This file is part of GNU Emacs.
 
@@ -76,7 +76,7 @@
 ;;   middle of a defun, or between defuns.  should notice if point is
 ;;   on first line of defun (or maybe even in comments before defun).
 ;; * Allow continuation lines to be indented under the first argument
-;;   of the preceeding line, like this:
+;;   of the preceding line, like this:
 ;;      [list something \
 ;;            something-else]
 ;; * There is a request that indentation work like this:
@@ -988,7 +988,7 @@ Returns nil if line starts inside a string, t if in a comment."
 ;;
 
 (defun tcl-imenu-create-index-function ()
-  "Generate alist of indices for imenu."
+  "Generate alist of indices for `imenu'."
   (let ((re (concat tcl-proc-regexp "\\([^ \t\n{]+\\)"))
 	alist prev-pos)
     (goto-char (point-min))
@@ -1189,7 +1189,7 @@ first word following a semicolon, opening brace, or opening bracket."
   "Return t if point is just after the `#' beginning a real comment.
 Does not check to see if previous char is actually `#'.
 A real comment is either at the beginning of the buffer,
-preceeded only by whitespace on the line, or has a preceeding
+preceded only by whitespace on the line, or has a preceding
 semicolon, opening brace, or opening bracket on the same line."
   (save-excursion
     (backward-char)
