@@ -137,7 +137,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 			      " 'custom-version ")
 		      (prin1 version (current-buffer))
 		      (insert ")\n")
-		      (insert "(put '" (symbol-name symbol))
+		      (insert "(custom-put-if-not '" (symbol-name symbol))
 		      (if (get symbol 'standard-value)
 			  ;; This means it's a variable
 			  (progn
