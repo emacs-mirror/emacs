@@ -1,3 +1,11 @@
+2000-10-05  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* nnfolder.el (nnfolder-ignore-active-file): Typos.
+
+	* gnus-mh.el (gnus-summary-save-in-folder): Obey mh-lib-progs.
+
+	* gnus-kill.el (gnus-kill): Typo.
+
 2000-10-05  Kenichi Handa  <handa@etl.go.jp>
 
 	* gnus-mule.el: Revived.
