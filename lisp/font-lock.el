@@ -519,12 +519,17 @@ If this is nil, the major mode's syntax table is used.
 This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-beginning-of-syntax-function nil
-  "*Non-nil means use this function to move back outside of a syntactic block.
-When called with no args it should leave point at the beginning of any
-enclosing syntactic block.
-If this is nil, the beginning of the buffer is used (in the worst case).
+  "*Non-nil means use this function to move back outside all constructs.
+When called with no args it should move point backward to a place which
+is not in a string or comment and not within any bracket-pairs (or else,
+a place such that any bracket-pairs outside it can be ignored for Emacs
+syntax analysis and fontification).
+
+If this is nil, the beginning of the buffer is used, which is
+always correct but tends to be slow.
 This is normally set via `font-lock-defaults'.
-It is preferable to set `syntax-begin-function' instead.")
+This variable is semi-obsolete; we recommend setting
+`syntax-begin-function' instead.")
 
 (defvar font-lock-mark-block-function nil
   "*Non-nil means use this function to mark a block of text.
