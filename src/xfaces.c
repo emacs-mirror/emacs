@@ -3354,7 +3354,7 @@ set_lface_from_font_name (f, lface, fontname, force_p, may_fail_p)
     LFACE_SLANT (lface)
       = have_xlfd_p ? xlfd_symbolic_slant (&font) : Qnormal;
 
-  if (fontset)
+  if (fontset > 0)
     {
       LFACE_FONT (lface) = build_string (font_info->full_name);
       LFACE_FONTSET (lface) = fontset_name (fontset);
