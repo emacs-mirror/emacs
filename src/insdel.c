@@ -1391,6 +1391,56 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
   MODIFF++;
 }
 
+/* Like adjust_after_replace, but doesn't require PREV_TEXT.
+   This is for use when undo is not enabled in the current buffer.  */
+
+void
+adjust_after_replace_noundo (from, from_byte, nchars_del, nbytes_del, len, len_byte)
+     int from, from_byte, nchars_del, nbytes_del, len, len_byte;
+{
+#ifdef BYTE_COMBINING_DEBUG
+  if (count_combining_before (GPT_ADDR, len_byte, from, from_byte)
+      || count_combining_after (GPT_ADDR, len_byte, from, from_byte))
+    abort ();
+#endif
+
+  /* Update various buffer positions for the new text.  */
+  GAP_SIZE -= len_byte;
+  ZV += len; Z+= len;
+  ZV_BYTE += len_byte; Z_BYTE += len_byte;
+  GPT += len; GPT_BYTE += len_byte;
+  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor. */
+
+  if (nchars_del > 0)
+    adjust_markers_for_replace (from, from_byte, nchars_del, nbytes_del,
+				len, len_byte);
+  else
+    adjust_markers_for_insert (from, from_byte,
+			       from + len, from_byte + len_byte, 0);
+
+  if (len > nchars_del)
+    adjust_overlays_for_insert (from, len - nchars_del);
+  else if (len < nchars_del)
+    adjust_overlays_for_delete (from, nchars_del - len);
+  if (BUF_INTERVALS (current_buffer) != 0)
+    {
+      offset_intervals (current_buffer, from, len - nchars_del);
+    }
+
+  if (from < PT)
+    adjust_point (len - nchars_del, len_byte - nbytes_del);
+
+  /* As byte combining will decrease Z, we must check this again. */
+  if (Z - GPT < END_UNCHANGED)
+    END_UNCHANGED = Z - GPT;
+
+  CHECK_MARKERS ();
+
+  if (len == 0)
+    evaporate_overlays (from);
+  MODIFF++;
+}
+
 /* Record undo information, adjust markers and position keepers for an
    insertion of a text from FROM (FROM_BYTE) to TO (TO_BYTE).  The
    text already exists in the current buffer but character length (TO
