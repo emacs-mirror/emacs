@@ -741,14 +741,14 @@
   "An alist of X color names and associated 8-bit RGB values.")
 
 (defvar tty-standard-colors
-  '(("white"	7 65535 65535 65535)
-    ("cyan"	6     0 65535 65535)
-    ("magenta"	5 65535     0 65535)
-    ("blue"	4     0     0 65535)
-    ("yellow"	3 65535 65535     0)
-    ("green"	2     0 65535     0)
+  '(("black"	0     0     0     0)
     ("red"	1 65535     0     0)
-    ("black"	0     0     0     0))
+    ("green"	2     0 65535     0)
+    ("yellow"	3 65535 65535     0)
+    ("blue"	4     0     0 65535)
+    ("magenta"	5 65535     0 65535)
+    ("cyan"	6     0 65535 65535)
+    ("white"	7 65535 65535 65535))
   "An alist of 8 standard tty colors, their indices and RGB values.")
 
 ;; This is used by term.c
@@ -784,16 +784,39 @@ color."
   tty-defined-color-alist)
 
 (defun tty-modify-color-alist (elt &optional frame)
-  "Put the association ELT int the alist of terminal colors for FRAME.
+  "Put the association ELT into the alist of terminal colors for FRAME.
 ELT should be of the form  \(NAME INDEX R G B\) (see `tty-color-alist'
 for details).
+If the association for NAME already exists in the color alist, it is
+modified to specify \(INDEX R G B\) as its cdr.  Otherwise, ELT is
+appended to the end of the color alist.
 If FRAME is unspecified or nil, it defaults to the selected frame.
 Value is the modified color alist for FRAME."
   (let* ((entry (assoc (car elt) (tty-color-alist frame))))
     (if entry
 	(setcdr entry (cdr elt))
-      (setq tty-defined-color-alist (cons elt tty-defined-color-alist)))
+      ;; Keep the colors in the order they are registered.
+      (setq entry
+	    (list (append (list (car elt)
+				(cadr elt))
+			  (copy-sequence (cddr elt)))))
+      (setq tty-defined-color-alist (nconc tty-defined-color-alist entry)))
     tty-defined-color-alist))
+
+(defun tty-register-default-colors ()
+  "Register the default set of colors for a character terminal."
+  (let* ((colors (cond ((eq window-system 'pc)
+			msdos-color-values)
+		       ((eq system-type 'windows-nt)
+			w32-tty-standard-colors)
+		       (t tty-standard-colors)))
+	 (color (car colors)))
+    (while colors
+      (tty-color-define (car color) (cadr color) (cddr color))
+      (setq colors (cdr colors) color (car colors)))
+    ;; Modifying color mappings means realized faces don't
+    ;; use the right colors, so clear them.
+    (clear-face-cache)))
 
 (defun tty-color-canonicalize (color)
   "Return COLOR in canonical form.
