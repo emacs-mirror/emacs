@@ -2592,8 +2592,7 @@ If there is, use Gnus to create an nnrss group"
 	      (href (cdr (assoc 'href feedinfo))))
 	  (push (list title href desc)
 		nnrss-group-alist)
-	  (gnus-group-unsubscribe-group
-	   (concat "nnrss:" title))
+	  (gnus-group-make-group title '(nnrss ""))
 	  (nnrss-save-server-data nil))
       (error "No feeds found for %s" url))))
 

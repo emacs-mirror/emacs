@@ -2,6 +2,15 @@
 
 	* gnus-art.el (gnus-narrow-to-page): Don't hardcode point-min.
 
+2004-12-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-group.el (gnus-group-make-rss-group): Use
+	gnus-group-make-group instead of gnus-group-unsubscribe-group.
+
+	* gnus-start.el (gnus-setup-news): Honor user's setting to
+	gnus-message-archive-method.  Suggested by Lute Kamstra
+	<Lute.Kamstra@xs4all.nl>.
+
 2004-12-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-forward-make-body-mml): Remove headers
