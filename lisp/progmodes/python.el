@@ -297,10 +297,9 @@ comments and strings, or that the bracket/paren nesting depth is nonzero."
 	       (syntax-ppss (line-beginning-position)))))))
 
 (defun python-comment-line-p ()
-  "Return non-nil if current line has only a comment or is blank."
+  "Return non-nil iff current line has only a comment."
   (save-excursion
     (end-of-line)
-    ;; FIXME: This looks wrong because it returns nil for empty lines.  --Stef
     (when (eq 'comment (syntax-ppss-context (syntax-ppss)))
       (back-to-indentation)
       (looking-at (rx (or (syntax comment-start) line-end))))))
@@ -1025,7 +1024,6 @@ et al.")
   (let ((map (make-sparse-keymap)))
     ;; This will inherit from comint-mode-map.
     (define-key map "\C-c\C-l" 'python-load-file)
-    (define-key map "\C-c\C-z" 'python-switch-to-python) ;What for?  --Stef
     (define-key map "\C-c\C-v" 'python-check)
     ;; Note that we _can_ still use these commands which send to the
     ;; Python process even at the prompt iff we have a normal prompt,
