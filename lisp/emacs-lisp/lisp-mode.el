@@ -1,6 +1,6 @@
 ;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands.
 
-;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1999 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, languages
@@ -356,36 +356,39 @@ if it already has a value.\)
 With argument, insert value in current buffer after the defun.
 Return the result of evaluation."
   (interactive "P")
-  (let ((standard-output (if eval-defun-arg-internal (current-buffer) t))
-	 beg end form)
-    ;; Read the form from the buffer, and record where it ends.
-    (save-excursion
-      (end-of-defun)
-      (beginning-of-defun)
-      (setq beg (point))
-      (setq form (read (current-buffer)))
-      (setq end (point)))
-    ;; Alter the form if necessary.
-    (cond ((and (eq (car form) 'defvar)
-		(cdr-safe (cdr-safe form)))
-	   ;; Force variable to be bound.
-	   (setq form (cons 'defconst (cdr form))))
-	  ((and (eq (car form) 'defcustom)
-		(default-boundp (nth 1 form)))
-	   ;; Force variable to be bound.
-	   (set-default (nth 1 form) (eval (nth 2 form)))))
-    ;; Now arrange for eval-region to "read" the (possibly) altered form.
-    ;; eval-region handles recording which file defines a function or variable.
-    (save-excursion
-      (eval-region beg end standard-output
-		   #'(lambda (ignore)
-		       ;; Skipping to the end of the specified region
-		       ;; will make eval-region return.
-		       (goto-char end)
-		       form))
-      ;; The result of evaluation has been put onto VALUES.
-      ;; So return it.
-      (car values))))
+  (save-excursion
+    ;; Arrange for eval-region to "read" the (possibly) altered form.
+    ;; eval-region handles recording which file defines a function or
+    ;; variable.  Re-written using `apply' to avoid capturing
+    ;; variables like `end'.
+    (apply
+     #'eval-region 
+     (let ((standard-output (if eval-defun-arg-internal (current-buffer) t))
+	   beg end form)
+       ;; Read the form from the buffer, and record where it ends.
+       (save-excursion
+	 (end-of-defun)
+	 (beginning-of-defun)
+	 (setq beg (point))
+	 (setq form (read (current-buffer)))
+	 (setq end (point)))
+       ;; Alter the form if necessary.
+       (cond ((and (eq (car form) 'defvar)
+		   (cdr-safe (cdr-safe form)))
+	      ;; Force variable to be bound.
+	      (setq form (cons 'defconst (cdr form))))
+	     ((and (eq (car form) 'defcustom)
+		   (default-boundp (nth 1 form)))
+	      ;; Force variable to be bound.
+	      (set-default (nth 1 form) (eval (nth 2 form)))))
+       (list beg end standard-output
+	     `(lambda (ignore)
+	       ;; Skipping to the end of the specified region
+	       ;; will make eval-region return.
+	       (goto-char ,end)
+	       ,form)))))
+  ;; The result of evaluation has been put onto VALUES.  So return it.
+  (car values))
 
 (defun lisp-comment-indent ()
   (if (looking-at "\\s<\\s<\\s<")
