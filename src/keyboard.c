@@ -1121,6 +1121,11 @@ cmd_error (data)
   Lisp_Object old_level, old_length;
   char macroerror[50];
 
+#ifdef HAVE_X_WINDOWS
+  if (display_hourglass_p)
+    cancel_hourglass ();
+#endif
+
   if (!NILP (executing_macro))
     {
       if (executing_macro_iterations == 1)
