@@ -1,5 +1,5 @@
 /* X Communication module for terminals which understand the X protocol.
-   Copyright (C) 1989, 93, 94, 95, 96, 1997, 1998, 1999
+   Copyright (C) 1989, 93, 94, 95, 96, 1997, 1998, 1999, 2000
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1884,8 +1884,7 @@ x_produce_glyphs (it)
 	      /* If characters with lbearing or rbearing are displayed
 		 in this line, record that fact in a flag of the
 		 glyph row.  This is used to optimize X output code.  */
-	      if (pcm->lbearing < 0
-		  || pcm->rbearing > pcm->width)
+	      if (pcm && (pcm->lbearing < 0 || pcm->rbearing > pcm->width))
 		it->glyph_row->contains_overlapping_glyphs_p = 1;
 	    }
 	}
