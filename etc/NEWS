@@ -825,7 +825,7 @@ By default, its setting is inferred on a buffer-by-buffer basis
 from the file name or buffer contents.
 
 +++
-** `xml-mode' is now an alias for `smgl-mode', which has XML support.
+** `xml-mode' is now an alias for `sgml-mode', which has XML support.
 
 +++
 ** New user option `isearch-resume-enabled'.
@@ -1095,11 +1095,17 @@ Emacs will still work on terminals that require magic cookies in order
 to use standout mode, however they will not be able to display
 mode-lines in inverse-video.
 
+---
 ** The obsolete C mode (c-mode.el) has been removed to avoid problems
 with Custom.
 
 
 * Lisp Changes in Emacs 21.4
+
++++
+** `load-history' can now have elements of the form (t . FUNNAME),
+which means FUNNAME was previously defined an autoload (before the
+current file redefined it).
 
 ** New Lisp library testcover.el works with edebug to help you determine
 whether you've tested all your Lisp code.  Function testcover-start
@@ -1545,7 +1551,7 @@ compare the property name using `equal' rather than `eq'.
 
 ** New function `tool-bar-local-item-from-menu'
 
-The `tool-bar-add-item-from-menu' most not be used (as previously
+The `tool-bar-add-item-from-menu' must not be used (as previously
 recommended) for making entries in the tool bar for local keymaps.
 Instead, use the function `tool-bar-local-item-from-menu', which lets
 you specify the map to use as an argument.

@@ -1,3 +1,32 @@
+2002-12-07  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compilation-enter-directory-regexp-alist) 
+	(compilation-leave-directory-regexp-alist): Match byte compiler output.
+
+	* emacs-lisp/cl-macs.el: Add local variable list
+	to turn off cl-function warnings.
+
+	* emacs-lisp/bytecomp.el (byte-compile-eval): Handle (t . SYMBOL)
+	elements in load-history.
+	(byte-compile-cl-warn): No cl warnings for cl-defsubst-expand
+	and cl-struct-setf-expander.
+
+	* emacs-lisp/autoload.el (autoload-print-form-outbuf):
+	New variable.
+	(autoload-print-form): Use autoload-print-form-outbuf.
+	(generate-file-autoloads): Bind autoload-print-form-outbuf.
+
+	* calendar/calendar.el (calendar-day-name): Move defn down.
+
+	* speedbar.el (speedbar-directory-buttons-follow):
+	Don't use directory-sep-char.
+
+2002-12-06  Masatake YAMATO  <jet@gyve.org>  (tiny change)
+
+	* register.el (describe-register-1): Use window-width
+	to truncate string in a register.  Check whether the string
+	in a register is an empty string or a sequence of white spaces.
+
 2002-12-07  Andreas Schwab  <schwab@suse.de>
 
 	* faces.el (face-font-selection-order)

@@ -1,3 +1,18 @@
+2002-12-07  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.c (Fcompleting_read): Doc fix.
+
+	* lread.c (syms_of_lread) <load-history>: Doc fix.
+
+	* fileio.c (Fcopy_file): Set immediate_quit around emacs_open call.
+
+	* eval.c (Fdefun, Fdefmacro): Record in load-history redefining an
+	autoload.
+
+	* data.c (Fdefalias): Record in load-history redefining an autoload.
+
+	* alloca.c: Undo ifdef change accidentally made on 12-04.
+
 2002-12-06  Francesco Potorti`  <pot@gnu.org>
 
 	* xfns.c (png_load): Avoid double gamma correction for PNG
