@@ -1,5 +1,8 @@
 2001-12-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* vt-control.el (vt-wide, vt-narrow): Use set-frame-width instead
+	of obsolete set-screen-width.
+
 	* locate.el (locate): Remove dot at the end of error argument.
 
 	* emerge.el (emerge-show-file-name): Use frame-height instead of
