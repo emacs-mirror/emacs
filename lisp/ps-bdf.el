@@ -5,7 +5,7 @@
 
 ;; Keywords: BDF, font, PostScript
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp>
-;; Time-stamp:	<98/11/26 15:09:23 kenichi>
+;; Time-stamp:	<99/02/27 11:14:07 kenichi>
 
 ;; This file is part of GNU Emacs.
 
@@ -34,9 +34,9 @@
 (eval-when-compile (require 'ps-mule))
 
 ;;;###autoload
-(defvar bdf-directory-list
-  nil
-  "*List of directories to search for `BDF' font files.")
+(defvar bdf-directory-list '("/usr/local/share/emacs/fonts/bdf")
+  "*List of directories to search for `BDF' font files.
+The default value is '("/usr/local/share/emacs/fonts/bdf").")
 
 (defun bdf-expand-file-name (bdfname)
   "Return an abosolute path name of a `BDF' font file BDFNAME.
