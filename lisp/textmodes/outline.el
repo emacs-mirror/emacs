@@ -55,6 +55,7 @@ in the file it applies to.")
 (if outline-mode-prefix-map
     nil
   (setq outline-mode-prefix-map (make-sparse-keymap))
+  (define-key outline-mode-prefix-map "@" 'outline-mark-subtree)
   (define-key outline-mode-prefix-map "\C-n" 'outline-next-visible-heading)
   (define-key outline-mode-prefix-map "\C-p" 'outline-previous-visible-heading)
   (define-key outline-mode-prefix-map "\C-i" 'show-children)
@@ -363,6 +364,21 @@ A heading line is one that starts with a `*' (or that
   (interactive "p")
   (outline-next-visible-heading (- arg)))
 
+(defun outline-mark-subtree ()
+  "Mark the current subtree in an outlined document.
+This puts point at the start of the current subtree, and mark at the end."
+  (interactive)
+  (let ((beg))
+    (if (outline-on-heading-p)
+	;; we are already looking at a heading
+	(beginning-of-line)
+      ;; else go back to previous heading
+      (outline-previous-visible-heading 1))
+    (setq beg (point))
+    (outline-end-of-subtree)
+    (push-mark (point))
+    (goto-char beg)))
+
 (defun outline-flag-region (from to flag)
   "Hides or shows lines from FROM to TO, according to FLAG.
 If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
