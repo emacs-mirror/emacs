@@ -1,3 +1,8 @@
+2003-04-16  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (describe-language-environment): At
+	first, require all necessary features.
+
 2003-04-16  Dave Love  <fx@gnu.org>
 
 	* progmodes/xscheme.el: Moved from lisp directory.
