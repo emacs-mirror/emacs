@@ -1,10 +1,8 @@
-/* $HopeName$
+/* $HopeName: MMQA_harness!testlib:myfmt.c(trunk.2) $
 myfmt.c
    a format for scannable objects
 */
 
-#include "mps.h"
-#include "testlib.h"
 #include "myfmt.h"
 #include <string.h>
 #include <stdio.h>

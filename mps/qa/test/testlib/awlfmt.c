@@ -1,10 +1,8 @@
-/* $HopeName$
+/* $HopeName: MMQA_harness!testlib:awlfmt.c(trunk.4) $
 awlfmt.c
    A format simlar to newfmt, but for the awl pool
 */
 
-#include "mps.h"
-#include "testlib.h"
 #include "awlfmt.h"
 #include <string.h>
 

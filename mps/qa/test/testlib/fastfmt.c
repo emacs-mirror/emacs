@@ -1,10 +1,8 @@
-/* $HopeName$
+/* $HopeName: MMQA_harness!testlib:fastfmt.c(trunk.3) $
 fastfmt.c
    See comments in header file for usage.
 */
 
-#include "mps.h"
-#include "testlib.h"
 #include "fastfmt.h"
 #include <string.h>
 

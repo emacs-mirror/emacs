@@ -1,4 +1,4 @@
-/* $HopeName$
+/* $HopeName: MMQA_harness!testlib:lofmt.h(trunk.2) $
 lofmt.h
    A format for the LO pool class. We have to allow for copying
    and forwarding, but scan should never be called.
@@ -7,7 +7,7 @@ lofmt.h
 #ifndef lofmt_h
 #define lofmt_h
 
-#include "mps.h"
+#include "testlib.h"
 
 extern int alloclocomments;
 extern int allowlocopies;

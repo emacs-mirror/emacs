@@ -1,11 +1,9 @@
-/* $HopeName$
+/* $HopeName: MMQA_harness!testlib:newfmt.c(trunk.3) $
 newfmt.c
    My attempt to write a format using unions &c to avoid
    nasty casting all over the place
 */
 
-#include "mps.h"
-#include "testlib.h"
 #include "newfmt.h"
 #include <string.h>
 

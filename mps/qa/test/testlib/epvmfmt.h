@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:epvmfmt.h(trunk.3) $
+/* $HopeName: MMQA_harness!testlib:epvmfmt.h(trunk.4) $
 epvmfmt.h
    Format for objects in the EPVM pool.
 */
@@ -6,7 +6,7 @@ epvmfmt.h
 #ifndef epvmfmt_h
 #define epvmfmt_h
 
-#include "mps.h"
+#include "testlib.h"
 
 extern int alloccomments;
 

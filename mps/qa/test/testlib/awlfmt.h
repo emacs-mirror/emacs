@@ -1,4 +1,4 @@
-/* $HopeName$
+/* $HopeName: MMQA_harness!testlib:awlfmt.h(trunk.2) $
 awlfmt.h
    A format for the awl pool
 */
@@ -6,7 +6,7 @@ awlfmt.h
 #ifndef awlfmt_h
 #define awlfmt_h
 
-#include "mps.h"
+#include "testlib.h"
 
 extern int formatcomments;
 extern int checkcomments;
