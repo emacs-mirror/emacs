@@ -2459,7 +2459,10 @@ order until succeed.")
 (defun x-clipboard-yank ()
   "Insert the clipboard contents, or the last stretch of killed text."
   (interactive)
-  (let ((clipboard-text (x-get-selection 'CLIPBOARD))
+  (let ((clipboard-text 
+	 (condition-case nil
+	     (x-get-selection 'CLIPBOARD)
+	   (error nil)))
 	(x-select-enable-clipboard t))
     (if (and clipboard-text (> (length clipboard-text) 0))
 	(kill-new clipboard-text))
