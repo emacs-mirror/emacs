@@ -183,7 +183,7 @@ subcommands.)");
   return doc;
 }
 
-DEFUN ("documentation-property", Fdocumentation_property, Sdocumentation_property, 2, 2, 0,
+DEFUN ("documentation-property", Fdocumentation_property, Sdocumentation_property, 2, 3, 0,
   "Return the documentation string that is SYMBOL's PROP property.\n\
 This is like `get', but it can refer to strings stored in the\n\
 `etc/DOC' file; and if the value is a string, it is passed through\n\
@@ -409,6 +409,8 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	}
       else if (strp[0] == '\\' && strp[1] == '[')
 	{
+	  Lisp_Object firstkey;
+
 	  changed = 1;
 	  strp += 2;		/* skip \[ */
 	  start = strp;
@@ -424,6 +426,13 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  idx = strp - (unsigned char *) XSTRING (str)->data;
 	  tem = Fintern (make_string (start, length), Qnil);
 	  tem = Fwhere_is_internal (tem, keymap, Qnil, Qt, Qnil);
+
+	  /* Disregard menu bar bindings; it is positively annoying to
+	     mention them when there's no menu bar, and it isn't terribly
+	     useful even when there is a menu bar.  */
+	  firstkey = Faref (tem, make_number (0));
+	  if (EQ (firstkey, Qmenu_bar))
+	    tem = Qnil;
 
 	  if (NILP (tem))	/* but not on any keys */
 	    {
