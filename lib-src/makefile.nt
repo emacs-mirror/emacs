@@ -140,7 +140,7 @@ lisp= \
 
 DOC	      = DOC 
 $(DOC):		$(BLD)\make-docfile.exe
-		- del /q $(DOC)
+		- del $(DOC)
 		$(BLD)\make-docfile -d ..\src $(obj) > $(DOC)
 		$(BLD)\make-docfile -d ..\src $(lisp) >> $(DOC)
 		$(CP) $(DOC) ..\etc\DOC-X
@@ -175,10 +175,10 @@ install:	$(INSTALL_FILES)
 #
 # Maintenance
 # 
-clean:;		- del /q *~ *.pdb
+clean:;		- del *~ *.pdb
 		- $(DEL_TREE) deleted
 		- $(DEL_TREE) obj
-		- del /q DOC*
+		- del DOC*
 
 #
 # Headers we would preprocess if we could.

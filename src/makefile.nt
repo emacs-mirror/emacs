@@ -162,7 +162,7 @@ paths.h:	..\nt\paths.h
 #
 DOC		= obj\etc\DOC-X
 $(DOC):;	cd ..\lib-src 
-		- del /q DOC-X
+		- del DOC-X
 		$(MAKE) -f makefile.nt all
 		cd ..\src
 
@@ -229,7 +229,7 @@ install:        all
 #
 # Maintenance
 # 
-clean:;         - del /q *~ *.pdb config.h paths.h
+clean:;         - del *~ *.pdb config.h paths.h
 		- $(DEL_TREE) deleted
 		- $(DEL_TREE) obj
 
