@@ -1,6 +1,6 @@
 /* impl.h.mpstd: HARLEQUIN MEMORY POOL SYSTEM TARGET DETECTION
  *
- * $HopeName: MMsrc!mpstd.h(trunk.21) $
+ * $HopeName: MMsrc!mpstd.h(trunk.22) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  * Detect the target platform using predefined preprocessor symbols
@@ -25,7 +25,7 @@
 
 #if defined(__sgi) && defined(__unix) && defined(__mips) && defined(_SYSTYPE_SVR4) && (_MIPS_FPSET == 16)
 #define MPS_PF_I5M2CC
-#define MPS_PF_STRING	"i5m2cc"
+#define MPS_PF_STRING   "i5m2cc"
 #define MPS_OS_I5
 #define MPS_ARCH_M2
 #define MPS_BUILD_CC
@@ -38,7 +38,7 @@
 
 #elif defined(__sgi) && defined(__unix) && defined(__mips) && defined(_SYSTYPE_SVR4) && defined(_ABIN32)
 #define MPS_PF_IAM4CC
-#define MPS_PF_STRING	"iam4cc"
+#define MPS_PF_STRING   "iam4cc"
 #define MPS_OS_IA
 #define MPS_ARCH_M4
 #define MPS_BUILD_CC
@@ -52,7 +52,7 @@
 
 #elif defined(_MSC_VER) && defined(_WIN32) && defined(_M_ALPHA)
 #define MPS_PF_W3ALMV
-#define MPS_PF_STRING	"w3almv"
+#define MPS_PF_STRING   "w3almv"
 #define MPS_OS_W3
 #define MPS_ARCH_AL
 #define MPS_BUILD_MV
@@ -66,7 +66,7 @@
 
 #elif defined(_MSC_VER) && defined(_WIN32) && defined(_M_PPC)
 #define MPS_PF_W3PPMV
-#define MPS_PF_STRING	"w3ppmv"
+#define MPS_PF_STRING   "w3ppmv"
 #define MPS_OS_W3
 #define MPS_ARCH_PP
 #define MPS_BUILD_MV
@@ -80,7 +80,7 @@
 
 #elif defined(_MSC_VER) && defined(_WIN32) && defined(_M_IX86)
 #define MPS_PF_W3I3MV
-#define MPS_PF_STRING	"w3i3mv"
+#define MPS_PF_STRING   "w3i3mv"
 #define MPS_OS_W3
 #define MPS_ARCH_I3
 #define MPS_BUILD_MV
@@ -94,7 +94,7 @@
 
 #elif defined(__MWERKS__) && __MC68K__ == 1
 #define MPS_PF_S760MW
-#define MPS_PF_STRING	"s760mw"
+#define MPS_PF_STRING   "s760mw"
 #define MPS_OS_S7
 #define MPS_ARCH_60
 #define MPS_BUILD_MW
@@ -108,7 +108,7 @@
 
 #elif defined(__MWERKS__) && __POWERPC__ == 1
 #define MPS_PF_S7PPMW
-#define MPS_PF_STRING	"s7ppmw"
+#define MPS_PF_STRING   "s7ppmw"
 #define MPS_OS_S7
 #define MPS_ARCH_PP
 #define MPS_BUILD_MW
@@ -124,7 +124,7 @@
 
 #elif defined(m68k) && (defined (applec) || defined(__SC__))
 #define MPS_PF_S760AC
-#define MPS_PF_STRING	"s760ac"
+#define MPS_PF_STRING   "s760ac"
 #define MPS_OS_S7
 #define MPS_ARCH_60
 #define MPS_BUILD_AC
@@ -140,7 +140,7 @@
 
 #elif defined(__PPCC__) || (defined(__MRC__) && defined(__POWERPC))
 #define MPS_PF_S7PPAC
-#define MPS_PF_STRING	"s7ppac"
+#define MPS_PF_STRING   "s7ppac"
 #define MPS_OS_S7
 #define MPS_ARCH_PP
 #define MPS_BUILD_AC
@@ -154,7 +154,7 @@
 #elif defined(__sun__) && defined(__sparc__) && defined(__GNUC__) && \
       !defined(__svr4__)
 #define MPS_PF_SUS8GC
-#define MPS_PF_STRING	"sus8gc"
+#define MPS_PF_STRING   "sus8gc"
 #define MPS_OS_SU
 #define MPS_ARCH_S8
 #define MPS_BUILD_GC
@@ -168,7 +168,7 @@
 #elif defined(sun) && defined(sparc) && defined(__LCC__) && \
       !defined(__svr4__)
 #define MPS_PF_SUS8LC
-#define MPS_PF_STRING	"sus8lc"
+#define MPS_PF_STRING   "sus8lc"
 #define MPS_OS_SU
 #define MPS_ARCH_S8
 #define MPS_BUILD_LC
@@ -182,7 +182,7 @@
 #elif defined(__sun__) && defined(__sparc__) && defined(__GNUC__) && \
       defined(__svr4__)
 #define MPS_PF_SOS8GC
-#define MPS_PF_STRING	"sos8gc"
+#define MPS_PF_STRING   "sos8gc"
 #define MPS_OS_SO
 #define MPS_ARCH_S8
 #define MPS_BUILD_GC
@@ -198,7 +198,7 @@
 #elif defined(__sun) && defined(__SUNPRO_C) && defined(__SVR4) && defined(__sparc)
 
 #define MPS_PF_SOS9SC
-#define MPS_PF_STRING	"sos9sc"
+#define MPS_PF_STRING   "sos9sc"
 #define MPS_OS_SO
 #define MPS_ARCH_S9
 #define MPS_BUILD_SC
@@ -211,7 +211,7 @@
 
 #elif defined(__osf__) && defined(__alpha__) && defined(__GNUC__)
 #define MPS_PF_O1ALGC
-#define MPS_PF_STRING	"o1algc"
+#define MPS_PF_STRING   "o1algc"
 #define MPS_OS_O1
 #define MPS_ARCH_AL
 #define MPS_BUILD_GC
@@ -225,7 +225,7 @@
 
 #elif defined(__osf__) && defined(__alpha) && defined(__DECC)
 #define MPS_PF_O1ALCC
-#define MPS_PF_STRING	"o1alcc"
+#define MPS_PF_STRING   "o1alcc"
 #define MPS_OS_O1
 #define MPS_ARCH_AL
 #define MPS_BUILD_CC
@@ -239,7 +239,7 @@
 
 #elif defined(__linux__) && defined(__i386__) && defined(__GNUC__)
 #define MPS_PF_LII3GC
-#define MPS_PF_STRING	"lii3gc"
+#define MPS_PF_STRING   "lii3gc"
 #define MPS_OS_LI
 #define MPS_ARCH_I3
 #define MPS_BUILD_GC
@@ -253,7 +253,7 @@
 
 #elif defined(__linux__) && defined(__PPC__) && defined(__GNUC__)
 #define MPS_PF_LIPPGC
-#define MPS_PF_STRING	"lippgc"
+#define MPS_PF_STRING   "lippgc"
 #define MPS_OS_LI
 #define MPS_ARCH_PP
 #define MPS_BUILD_GC
