@@ -1,3 +1,8 @@
+2004-06-23  Lars Hansen  <larsh@math.ku.dk>
+
+	* files.texi (Saving Buffers): Correct description of
+	`write-contents-functions'.
+
 2004-06-21  Juanma Barranquero  <lektu@terra.es>
 
 	* display.texi (Images): Remove redundant @vindex directives.
