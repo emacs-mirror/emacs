@@ -42,7 +42,10 @@
   (let (char)
     (save-window-excursion
      (with-output-to-temp-buffer "*Help*"
-       (if (eq (aref (this-command-keys) 0) ?\M-x)
+       (if (eq (aref (this-command-keys) 0)
+	       (if (stringp (this-command-keys))
+		   (aref "\M-x" 0)
+		 ?\M-x))
 	   (princ "You have invoked the disabled command ")
 	 (princ "You have typed ")
 	 (princ (key-description (this-command-keys)))
