@@ -94,22 +94,29 @@ If SOFT is non-nil, returns nil if the symbol doesn't already exist."
     (when buf
       ;; Copy `gud-minor-mode' to the found buffer to turn on the menu.
       (with-current-buffer buf
-	(set (make-local-variable 'gud-minor-mode) minor-mode))
+	(set (make-local-variable 'gud-minor-mode) minor-mode)
+	(set (make-local-variable 'tool-bar-map) gud-tool-bar-map))
       buf)))
 
 (easy-mmode-defmap gud-menu-map
   '(([refresh]	"Refresh" . gud-refresh)
+    ([run]	menu-item "Run" gud-run
+			:enable (memq gud-minor-mode '(gdba gdb)))
+    ([goto]	menu-item "Continue to selection" gud-goto
+			:enable (memq gud-minor-mode '(gdba gdb)))
     ([remove]	"Remove Breakpoint" . gud-remove)
     ([tbreak]	menu-item "Temporary Breakpoint" gud-tbreak
-			:enable (memq gud-minor-mode '(gdb sdb xdb)))
+			:enable (memq gud-minor-mode '(gdba gdb sdb xdb)))
     ([break]	"Set Breakpoint" . gud-break)
     ([up]	menu-item "Up Stack" gud-up
-			:enable (memq gud-minor-mode '(gdb dbx xdb jdb)))
+			:enable (memq gud-minor-mode '(gdba gdb dbx xdb jdb)))
     ([down]	menu-item "Down Stack" gud-down
-			:enable (memq gud-minor-mode '(gdb dbx xdb jdb)))
+			:enable (memq gud-minor-mode '(gdba gdb dbx xdb jdb)))
     ([print]	"Print Expression" . gud-print)
+    ([display]	menu-item "Display Expression" gud-display
+			:enable (eq gud-minor-mode 'gdba))
     ([finish]	menu-item "Finish Function" gud-finish
-			:enable (memq gud-minor-mode '(gdb xdb jdb)))
+			:enable (memq gud-minor-mode '(gdba gdb xdb jdb)))
     ([stepi]	"Step Instruction" . gud-stepi)
     ([step]	"Step Line" . gud-step)
     ([next]	"Next Line" . gud-next)
@@ -386,7 +393,7 @@ off the specialized speedbar mode."
      (format "Run %s (like this): " minor-mode)
      (or (car-safe (symbol-value hist-sym))
 	 (concat (or cmd-name (symbol-name minor-mode))
-		 " "
+		 " " default-directory
 		 (or init
 		     (let ((file nil))
 		       (dolist (f (directory-files default-directory) file)
@@ -422,6 +429,8 @@ and source-file directory for your debugger."
   (gud-def gud-up     "up %p"        "<" "Up N stack frames (numeric arg).")
   (gud-def gud-down   "down %p"      ">" "Down N stack frames (numeric arg).")
   (gud-def gud-print  "print %e"     "\C-p" "Evaluate C expression at point.")
+  (gud-def gud-goto  "until %l"     "\C-u" "Continue up to current line.")
+  (gud-def gud-run    "run"	     nil    "Run the program.")
 
   (local-set-key "\C-i" 'gud-gdb-complete-command)
   (local-set-key [menu-bar debug tbreak] '("Temporary Breakpoint" . gud-tbreak))
@@ -464,7 +473,9 @@ available with older versions of GDB."
     (setq gud-gdb-complete-break (match-beginning 2)
 	  command-word (substring command gud-gdb-complete-break))
     ;; Temporarily install our filter function.
-    (let ((gud-marker-filter 'gud-gdb-complete-filter))
+    (let ((gud-marker-filter (if (eq gud-minor-mode 'gdba)
+				 'gdba-complete-filter
+			       'gud-gdb-complete-filter)))
       ;; Issue the command to GDB.
       (gud-basic-call (concat "complete " command))
       (setq gud-gdb-complete-in-progress t
@@ -2208,6 +2219,7 @@ comint mode, which see."
   (setq mode-line-process '(":%s"))
   (define-key (current-local-map) "\C-c\C-l" 'gud-refresh)
   (set (make-local-variable 'gud-last-frame) nil)
+  (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
   (make-local-variable 'comint-prompt-regexp)
   ;; Don't put repeated commands in command history many times.
   (set (make-local-variable 'comint-input-ignoredups) t)
@@ -2231,7 +2243,6 @@ comint mode, which see."
 (defun gud-common-init (command-line massage-args marker-filter &optional find-file)
   (let* ((words (split-string command-line))
 	 (program (car words))
-	 (dir default-directory)
 	 ;; Extract the file name from WORDS
 	 ;; and put t in its place.
 	 ;; Later on we will put the modified file name arg back there.
@@ -2255,7 +2266,6 @@ comint mode, which see."
 		      file-subst)))
 	 (filepart (and file-word (concat "-" (file-name-nondirectory file)))))
     (pop-to-buffer (concat "*gud" filepart "*"))
-    (setq default-directory dir)
     ;; Set default-directory to the file's directory.
     (and file-word
 	 gud-chdir-before-run
@@ -2424,7 +2434,9 @@ Obeying it means displaying in another window the specified file and line."
 		(set-buffer gud-comint-buffer))
 	    (gud-find-file true-file)))
 	 (window (and buffer (or (get-buffer-window buffer)
-				 (display-buffer buffer))))
+				 (if (eq gud-minor-mode 'gdba)
+				     (gdb-display-source-buffer buffer)
+				   (display-buffer buffer)))))
 	 (pos))
     (if buffer
 	(progn
@@ -2494,22 +2506,23 @@ Obeying it means displaying in another window the specified file and line."
 
 (defun gud-read-address ()
   "Return a string containing the core-address found in the buffer at point."
-  (save-excursion
-    (let ((pt (point)) found begin)
-      (setq found (if (search-backward "0x" (- pt 7) t) (point)))
-      (cond
-       (found (forward-char 2)
-	      (buffer-substring found
-				(progn (re-search-forward "[^0-9a-f]")
-				       (forward-char -1)
-				       (point))))
-       (t (setq begin (progn (re-search-backward "[^0-9]")
-			     (forward-char 1)
-			     (point)))
-	  (forward-char 1)
-	  (re-search-forward "[^0-9]")
-	  (forward-char -1)
-	  (buffer-substring begin (point)))))))
+  (save-match-data
+    (save-excursion
+      (let ((pt (point)) found begin)
+	(setq found (if (search-backward "0x" (- pt 7) t) (point)))
+	(cond
+	 (found (forward-char 2)
+		(buffer-substring found
+				  (progn (re-search-forward "[^0-9a-f]")
+					 (forward-char -1)
+					 (point))))
+	 (t (setq begin (progn (re-search-backward "[^0-9]")
+			       (forward-char 1)
+			       (point)))
+	    (forward-char 1)
+	    (re-search-forward "[^0-9]")
+	    (forward-char -1)
+	    (buffer-substring begin (point))))))))
 
 (defun gud-call (fmt &optional arg)
   (let ((msg (gud-format-command fmt arg)))
@@ -2521,8 +2534,7 @@ Obeying it means displaying in another window the specified file and line."
   "Invoke the debugger COMMAND displaying source in other window."
   (interactive)
   (gud-set-buffer)
-  (let ((command (concat command "\n"))
-	(proc (get-buffer-process gud-comint-buffer)))
+  (let ((proc (get-buffer-process gud-comint-buffer)))
     (or proc (error "Current buffer has no process"))
     ;; Arrange for the current prompt to get deleted.
     (save-excursion
@@ -2532,8 +2544,10 @@ Obeying it means displaying in another window the specified file and line."
 	(goto-char (process-mark proc))
 	(forward-line 0)
 	(if (looking-at comint-prompt-regexp)
-	    (set-marker gud-delete-prompt-marker (point)))))
-    (process-send-string proc command)))
+	    (set-marker gud-delete-prompt-marker (point)))
+	(if (eq gud-minor-mode 'gdba)
+	    (apply comint-input-sender (list proc command))
+	  (process-send-string proc (concat command "\n")))))))
 
 (defun gud-refresh (&optional arg)
   "Fix up a possibly garbled display, and redraw the arrow."
@@ -2719,6 +2733,23 @@ pathname standards using file-truename."
 	(message "gud-find-class: class for file %s not found in gud-jdb-class-source-alist!" f)
 	nil))))
 
-(provide 'gud)
+(defvar gud-tool-bar-map
+  (if (display-graphic-p)
+      (let ((tool-bar-map (make-sparse-keymap)))
+        (tool-bar-add-item-from-menu 'gud-break "gud-break" gud-minor-mode-map)
+        (tool-bar-add-item-from-menu 'gud-remove "gud-remove" gud-minor-mode-map)
+        (tool-bar-add-item-from-menu 'gud-print "gud-print" gud-minor-mode-map)
+        (tool-bar-add-item-from-menu 'gud-display "gud-display" gud-minor-mode-map)
+        (tool-bar-add-item-from-menu 'gud-run "gud-run" gud-minor-mode-map)
+        (tool-bar-add-item-from-menu 'gud-goto "gud-goto" gud-minor-mode-map)
+        (tool-bar-add-item-from-menu 'gud-cont "gud-cont" gud-minor-mode-map)
+        (tool-bar-add-item-from-menu 'gud-step "gud-step" gud-minor-mode-map)
+        (tool-bar-add-item-from-menu 'gud-next "gud-next" gud-minor-mode-map)
+        (tool-bar-add-item-from-menu 'gud-finish "gud-finish" gud-minor-mode-map)
+        (tool-bar-add-item-from-menu 'gud-up "gud-up" gud-minor-mode-map)
+        (tool-bar-add-item-from-menu 'gud-down "gud-down" gud-minor-mode-map)
+        tool-bar-map)))
+
+(provide 'mygud)
 
 ;;; gud.el ends here
