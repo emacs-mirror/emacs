@@ -1,10 +1,13 @@
 /*  impl.c.protw3: PROTECTION FOR WIN32
  *
- *  $HopeName: MMsrc!protw3.c(trunk.11) $
+ *  $HopeName: MMsrc!protw3.c(trunk.12) $
  *  Copyright (C) 1995, 1997 Harlequin Group, all rights reserved
  */
 
 #include "mpm.h"
+/* protw3.h needed to share MutatorFaultContextStruct declation */
+/* with impl.c.prmcw3i3 */
+#include "protw3.h"
 
 #ifndef MPS_OS_W3
 #error "protw3.c is Win32-specific, but MPS_OS_W3 is not set"
@@ -15,7 +18,7 @@
 
 #include "mpswin.h"
 
-SRCID(protw3, "$HopeName: MMsrc!protw3.c(trunk.11) $");
+SRCID(protw3, "$HopeName: MMsrc!protw3.c(trunk.12) $");
 
 
 void ProtSetup(void)
@@ -53,11 +56,14 @@ LONG ProtSEHfilter(LPEXCEPTION_POINTERS info)
   AccessSet mode;
   Addr base, limit;
   LONG action;
+  MutatorFaultContextStruct context;
 
   er = info->ExceptionRecord;
 
   if(er->ExceptionCode != EXCEPTION_ACCESS_VIOLATION)
     return EXCEPTION_CONTINUE_SEARCH;
+  
+  context.er = er;
 
   /* assert that the exception is continuable */
   /* Note that Microsoft say that this field should be 0 or */
@@ -86,7 +92,7 @@ LONG ProtSEHfilter(LPEXCEPTION_POINTERS info)
 
   AVER(base < limit);  /* nasty case (base = -1): continue search? @@@ */
 
-  if(ArenaAccess(base, mode))
+  if(ArenaAccess(base, mode, &context))
     action = EXCEPTION_CONTINUE_EXECUTION;
   else
     action = EXCEPTION_CONTINUE_SEARCH;
