@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.33 $
+;; Version: $Revision: 1.34 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1995/06/27 20:01:29 $|$Revision: 1.33 $|~/modes/tcl.el.Z|
+;; $Date: 1995/06/27 20:06:05 $|$Revision: 1.34 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,10 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.34  1995/06/27  20:06:05  tromey
+;; More changes for itcl.
+;; Bug fixes for Emacs 19.29.
+;;
 ;; Revision 1.33  1995/06/27  20:01:29  tromey
 ;; (tcl-set-proc-regexp): Allow leading spaces.
 ;; (tcl-proc-list): Changes for itcl.
@@ -309,7 +313,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.33 $")
+(defconst tcl-version "$Revision: 1.34 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -629,6 +633,8 @@ This variable is generally set from `tcl-proc-regexp',
   '(
     ("proc" nil tcl-expr tcl-commands)
     ("method" nil tcl-expr tcl-commands)
+    ("destructor" tcl-commands)
+    ("constructor" tcl-commands)
     ("expr" tcl-expr)
     ("catch" tcl-commands)
     ("if" tcl-expr "then" tcl-commands)
