@@ -3024,12 +3024,16 @@ DEFUN ("unfocus-frame", Funfocus_frame, Sunfocus_frame, 0, 0, 0,
   "If a frame has been focused, release it.")
   ()
 {
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (selected_frame);
-  if (dpyinfo->x_focus_frame)
+  if (FRAME_X_P (selected_frame))
     {
-      BLOCK_INPUT;
-      x_unfocus_frame (dpyinfo->x_focus_frame);
-      UNBLOCK_INPUT;
+      struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (selected_frame);
+
+      if (dpyinfo->x_focus_frame)
+	{
+	  BLOCK_INPUT;
+	  x_unfocus_frame (dpyinfo->x_focus_frame);
+	  UNBLOCK_INPUT;
+	}
     }
 
   return Qnil;
