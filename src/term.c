@@ -115,6 +115,13 @@ int (*read_socket_hook) ();
    button releases.  */
 int (*mouse_tracking_enable_hook) ( /* int ENABLE */ );
 
+/* When reading from a minibuffer in a different screen, Emacs wants
+   to shift the highlight from the selected screen to the minibuffer's
+   screen; under X, this means it lies about where the focus is.
+   This hook tells the window system code to re-decide where to put
+   the highlight.  */
+extern void (*screen_rehighlight_hook) ( /* SCREEN_PTR s */ );
+
 /* Strings, numbers and flags taken from the termcap entry.  */
 
 char *TS_ins_line;		/* termcap "al" */
