@@ -319,4 +319,25 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 		    (setq count 0))))))
       (kill-buffer tembuf))))
 
+;;;###autoload
+(defun rmail-output-body (file-name)
+  "Write this message body to the file FILE-NAME.
+FILE-NAME defaults, interactively, from the Subject field of the message."
+  (interactive
+   (let ((default-file
+	   (mail-fetch-field "Subject")))
+     (list (read-file-name
+	    "Output message body to file: "
+	    (file-name-directory default-file)
+	    default-file
+	    nil default-file))))
+  (save-excursion
+    (goto-char (point-min))
+    (search-forward "\n\n")
+    (write-region (point) (point-max) file-name)
+    (if (equal major-mode 'rmail-mode)
+	(rmail-set-attribute "stored" t)))
+  (if rmail-delete-after-output
+      (rmail-delete-forward)))
+
 ;;; rmailout.el ends here
