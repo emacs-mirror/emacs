@@ -155,7 +155,18 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* This is needed for disknew.c:update_frame() */
 
-#define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_pptr - (FILE)->_pbase)
+#ifdef emacs
+#include <stdio.h>
+#ifdef _IO_STDIO_H
+/* new C libio names */
+#define PENDING_OUTPUT_COUNT(FILE) \
+  ((FILE)->_IO_write_ptr - (FILE)->_IO_write_base)
+#else /* !_IO_STDIO_H */
+/* old C++ iostream names */
+#define PENDING_OUTPUT_COUNT(FILE) \
+  ((FILE)->_pptr - (FILE)->_pbase)
+#endif /* !_IO_STDIO_H */
+#endif /* emacs */
 
 /* Linux has crt0.o in a non-standard place */
 #define START_FILES pre-crt0.o /usr/lib/crt0.o
