@@ -1,5 +1,5 @@
 /* Tags file maker to go with GNU Emacs
-   Copyright (C) 1984, 87, 88, 89, 93, 94, 95, 98, 99
+   Copyright (C) 1984, 87, 88, 89, 93, 94, 95, 98, 99, 2000
    Free Software Foundation, Inc. and Ken Arnold
 
 This file is not considered part of GNU Emacs.
@@ -255,6 +255,7 @@ static void Prolog_functions P_((FILE *));
 static void Python_functions P_((FILE *));
 static void Scheme_functions P_((FILE *));
 static void TeX_functions P_((FILE *));
+static void Texinfo_functions P_ ((FILE *));
 static void just_read_file P_((FILE *));
 
 static void print_language_names P_((void));
@@ -522,6 +523,9 @@ char *Scheme_suffixes [] =
 char *TeX_suffixes [] =
   { "TeX", "bib", "clo", "cls", "ltx", "sty", "tex", NULL };
 
+char *Texinfo_suffixes [] =
+  { "texi", "txi", "texinfo", NULL };
+
 char *Yacc_suffixes [] =
   { "y", "ym", "yy", "yxx", "y++", NULL }; /* .ym is Objective yacc file */
 
@@ -552,6 +556,7 @@ language lang_names [] =
   { "python",  Python_functions,    Python_suffixes,      NULL              },
   { "scheme",  Scheme_functions,    Scheme_suffixes,      NULL              },
   { "tex",     TeX_functions,       TeX_suffixes,         NULL              },
+  { "texinfo", Texinfo_functions,   Texinfo_suffixes,     NULL              },
   { "yacc",    Yacc_entries,        Yacc_suffixes,        NULL              },
   { "auto", NULL },             /* default guessing scheme */
   { "none", just_read_file },   /* regexp matching only */
@@ -4376,6 +4381,28 @@ TEX_Token (cp)
     if (strneq (TEX_toktab[i].name, cp, TEX_toktab[i].len))
       return i;
   return -1;
+}
+
+/* Texinfo support.  Dave Love, Mar. 2000.  */
+static void
+Texinfo_functions (inf)
+     FILE * inf;
+{
+  char *cp, *start;
+  LOOP_ON_INPUT_LINES (inf, lb, cp)
+    {
+      if ((*cp++ == '@' && *cp++ == 'n' && *cp++ == 'o' && *cp++ == 'd'
+	      && *cp++ == 'e' && iswhite (*cp++)))
+	{
+	    while (iswhite (*cp))
+	          cp++;
+	      start = cp;
+	        while (*cp != '\0' && *cp != ',')
+		      cp++;
+		  pfnote (savenstr (start, cp - start), TRUE,
+			    lb.buffer, cp - lb.buffer + 1, lineno, linecharno);
+		  }
+    }
 }
 
 /*
