@@ -1,3 +1,8 @@
+2004-10-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* search.texi (Regexps): The regexp described in the example is no
+	longer stored in the variable `sentence-end'.
+
 2004-10-06  Karl Berry  <karl@gnu.org>
 
 	* info.texi (@kbd{1}--@kbd{9}): no space around --, for
