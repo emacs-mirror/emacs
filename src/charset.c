@@ -142,15 +142,46 @@ non_ascii_char_to_string (c, workbuf, str)
 {
   int charset, c1, c2;
 
-  if (c & ~GLYPH_MASK_CHAR)	/* This includes the case C is negative.  */
+  if (c & CHAR_MODIFIER_MASK)	/* This includes the case C is negative.  */
     {
+      /* Multibyte character can't have a modifier bit.  */
+      if (! SINGLE_BYTE_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
+	invalid_character (c);
+
+      /* For Meta, Shift, and Control modifiers, we need special care.  */
       if (c & CHAR_META)
-	/* Move the meta bit to the right place for a string.  */
-	c |= 0x80;
+	{
+	  /* Move the meta bit to the right place for a string.  */
+	  c = (c & ~CHAR_META) | 0x80;
+	}
+      if (c & CHAR_SHIFT)
+	{
+	  /* Shift modifier is valid only with [A-Za-z].  */
+	  if ((c & 0377) >= 'A' && (c & 0377) <= 'Z')
+	    c &= ~CHAR_SHIFT;
+	  else if ((c & 0377) >= 'a' && (c & 0377) <= 'z')
+	    c = (c & ~CHAR_SHIFT) - ('a' - 'A');
+	}
       if (c & CHAR_CTL)
-	c &= 0x9F;
-      else if (c & CHAR_SHIFT && (c & 0x7F) >= 'a' && (c & 0x7F) <= 'z')
-	c -= 'a' - 'A';
+	{
+	  /* Simulate the code in lread.c.  */
+	  /* Allow `\C- ' and `\C-?'.  */
+	  if (c == (CHAR_CTL | ' '))
+	    c = 0;
+	  else if (c == (CHAR_CTL | '?'))
+	    c = 127;
+	  /* ASCII control chars are made from letters (both cases),
+	     as well as the non-letters within 0100...0137.  */
+	  else if ((c & 0137) >= 0101 && (c & 0137) <= 0132)
+	    c &= (037 | (~0177 & ~CHAR_CTL));
+	  else if ((c & 0177) >= 0100 && (c & 0177) <= 0137)
+	    c &= (037 | (~0177 & ~CHAR_CTL));
+	}
+
+      /* If C still has any modifier bits, it is an invalid character.  */
+      if (c & CHAR_MODIFIER_MASK)
+	invalid_character (c);
+
       *str = workbuf;
       *workbuf = c;
       return 1;
