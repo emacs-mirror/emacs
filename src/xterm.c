@@ -8037,6 +8037,33 @@ x_window_to_scroll_bar (window_id)
 }
 
 
+#if defined USE_X_TOOLKIT && defined USE_LUCID
+
+/* Return the Lucid menu bar WINDOW is part of.  Return null
+   if WINDOW is not part of a menu bar.  */
+
+static Widget
+x_window_to_menu_bar (window)
+     Window window;
+{
+  Lisp_Object tail;
+  
+  for (tail = Vframe_list;
+       XGCTYPE (tail) == Lisp_Cons;
+       tail = XCDR (tail))
+    {
+      Lisp_Object frame = XCAR (tail);
+      Widget menu_bar = XFRAME (frame)->output_data.x->menubar_widget;
+      
+      if (menu_bar && xlwmenu_window_p (menu_bar, window))
+	return menu_bar;
+    }
+
+  return NULL;
+}
+
+#endif /* USE_X_TOOLKIT && USE_LUCID */
+
 
 /************************************************************************
 			 Toolkit scroll bars
@@ -9990,6 +10017,18 @@ XTread_socket (sd, bufp, numchars, expected)
 		}
 	      else
 		{
+#if defined USE_X_TOOLKIT && defined USE_LUCID
+		  /* Submenus of the Lucid menu bar aren't widgets
+		     themselves, so there's no way to dispatch events
+		     to them.  Recognize this case separately.  */
+		  {
+		    Widget widget
+		      = x_window_to_menu_bar (event.xexpose.window);
+		    if (widget)
+		      xlwmenu_redisplay (widget);
+		  }
+#endif /* USE_X_TOOLKIT && USE_LUCID */
+		  
 #ifdef USE_TOOLKIT_SCROLL_BARS
 		  /* Dispatch event to the widget.  */
 		  goto OTHER;
