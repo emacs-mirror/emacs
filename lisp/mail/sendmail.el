@@ -75,6 +75,9 @@ or t meaning should be initialized from `~/.mailrc'.
 The alias definitions in `~/.mailrc' have this form:
     alias ALIAS MEANING")
 
+(defvar mail-alias-modtime nil
+  "The modification time of ~/.mailrc when it was last examined.")
+
 (defvar mail-yank-prefix nil
   "*Prefix insert on lines of yanked message being replied to.
 nil means use indentation.")
@@ -158,7 +161,14 @@ actually occur.")
 (defvar mail-send-hook nil
   "Normal hook run before sending mail, in Mail mode.")
 
+(defun synch-mail-aliases ()
+  (let ((modtime (nth 5 (file-attributes "~/.mailrc"))))
+    (or (equal mail-alias-modtime modtime)
+	(setq mail-alias-modtime modtime
+	      mail-aliases t))))
+
 (defun mail-setup (to subject in-reply-to cc replybuffer actions)
+  (synch-mail-aliases)
   (if (eq mail-aliases t)
       (progn
 	(setq mail-aliases nil)
@@ -402,6 +412,7 @@ the user from the mailer."
 	  (replace-match "\n")
 	  (backward-char 1)
 	  (setq delimline (point-marker))
+	  (synch-mail-aliases)
 	  (if mail-aliases
 	      (expand-mail-aliases (point-min) delimline))
 	  (goto-char (point-min))
