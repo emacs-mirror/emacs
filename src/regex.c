@@ -881,13 +881,22 @@ static const char *re_error_msg[] =
    using the relocating allocator routines, then malloc could cause a
    relocation, which might (if the strings being searched are in the
    ralloc heap) shift the data out from underneath the regexp
-   routines.  */
+   routines.
+
+   Here's another reason to avoid allocation: Emacs insists on
+   processing input from X in a signal handler; processing X input may
+   call malloc; if input arrives while a matching routine is calling
+   malloc, then we're scrod.  But Emacs can't just block input while
+   calling matching routines; then we don't notice interrupts when
+   they come in.  So, Emacs blocks input around all regexp calls
+   except the matching calls, which it leaves unprotected, in the
+   faith that they will not malloc.  */
 
 /* Normally, this is fine.  */
 #define MATCH_MAY_ALLOCATE
 
 /* But under some circumstances, it's not.  */
-#if defined (REL_ALLOC) && defined (C_ALLOCA)
+#if defined (emacs) || (defined (REL_ALLOC) && defined (C_ALLOCA))
 #undef MATCH_MAY_ALLOCATE
 #endif
 
