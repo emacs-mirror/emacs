@@ -74,6 +74,7 @@ Lisp_Object Qbackground_mode;
 Lisp_Object Qinhibit_default_face_x_resources;
 Lisp_Object Qleft_fringe;
 Lisp_Object Qright_fringe;
+Lisp_Object Qtty_color_mode;
 
 Lisp_Object Vterminal_frame;
 Lisp_Object Vdefault_frame_alist;
@@ -640,6 +641,23 @@ do_switch_frame (frame, track, for_deletion)
     last_nonminibuf_frame = XFRAME (selected_frame);
 
   Fselect_window (XFRAME (frame)->selected_window);
+
+#ifndef WINDOWSNT
+  /* Make sure to switch the tty color mode to that of the newly
+     selected frame.  */
+  sf = SELECTED_FRAME ();
+  if (FRAME_TERMCAP_P (sf))
+    {
+      Lisp_Object color_mode_spec, color_mode;
+
+      color_mode_spec = assq_no_quit (Qtty_color_mode, sf->param_alist);
+      if (CONSP (color_mode_spec))
+	color_mode = XCDR (color_mode_spec);
+      else
+	color_mode = make_number (0);
+      set_tty_color_mode (sf, color_mode);
+    }
+#endif /* !WINDOWSNT */
 
   /* We want to make sure that the next event generates a frame-switch
      event to the appropriate frame.  This seems kludgy to me, but
@@ -1926,6 +1944,14 @@ store_frame_param (f, prop, val)
  	swap_in_global_binding (prop);
     }
 
+#ifndef WINDOWSNT
+  /* The tty color mode needs to be set before the frame's parameter
+     alist is updated with the new value, because set_tty_color_mode
+     wants to look at the old mode.  */
+  if (FRAME_TERMCAP_P (f) && EQ (prop, Qtty_color_mode))
+    set_tty_color_mode (f, val);
+#endif
+
   /* Update the frame parameter alist.  */
   old_alist_elt = Fassq (prop, f->param_alist);
   if (EQ (old_alist_elt, Qnil))
@@ -2474,6 +2500,8 @@ syms_of_frame ()
   staticpro (&Qleft_fringe);
   Qright_fringe = intern ("right-fringe");
   staticpro (&Qright_fringe);
+  Qtty_color_mode = intern ("tty-color-mode");
+  staticpro (&Qtty_color_mode);
 
   DEFVAR_LISP ("default-frame-alist", &Vdefault_frame_alist,
 	       doc: /* Alist of default values for frame creation.
