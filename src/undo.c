@@ -154,7 +154,8 @@ truncate_undo_list (list, minsize, maxsize)
      If the first element is an undo boundary, skip past it.
 
      Skip, skip, skip the undo, skip, skip, skip the undo,
-     Skip, skip, skip the undo, skip to the undo bound'ry.  */
+     Skip, skip, skip the undo, skip to the undo bound'ry. 
+     (Get it?  "Skip to my Loo?")  */
   if (XTYPE (next) == Lisp_Cons
       && XCONS (next)->car == Qnil)
     {
