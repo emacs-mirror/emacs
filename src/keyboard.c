@@ -250,6 +250,9 @@ static struct input_event *kbd_fetch_ptr;
 /* Pointer to next place to store character in kbd_buffer.  This
    may be kbd_buffer + KBD_BUFFER_SIZE, meaning that the next
    character should go in kbd_buffer[0].  */
+#ifdef __STDC__
+volatile
+#endif
 static struct input_event *kbd_store_ptr;
 
 /* The above pair of variables forms a "queue empty" flag.  When we
@@ -3577,7 +3580,10 @@ Also cancel any kbd macro being defined.")
 
   discard_tty_input ();
 
-  kbd_fetch_ptr = kbd_store_ptr;
+  /* Without the cast, GCC complains that this assignment loses the
+     volatile qualifier of kbd_store_ptr.  Is there anything wrong
+     with that?  */
+  kbd_fetch_ptr = (struct input_event *) kbd_store_ptr;
   input_pending = 0;
 
   return Qnil;
