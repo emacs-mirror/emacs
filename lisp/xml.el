@@ -73,32 +73,30 @@
 ;;**
 ;;*******************************************************************
 
-(defmacro xml-node-name       (node)
+(defsubst xml-node-name (node)
   "Return the tag associated with NODE.
 The tag is a lower-case symbol."
-  (list 'car node))
+  (car node))
 
-(defmacro xml-node-attributes (node)
+(defsubst xml-node-attributes (node)
   "Return the list of attributes of NODE.
 The list can be nil."
-  (list 'nth 1 node))
+  (nth 1 node))
 
-(defmacro xml-node-children   (node)
+(defsubst xml-node-children (node)
   "Return the list of children of NODE.
 This is a list of nodes, and it can be nil."
-  (list 'cddr node))
+  (cddr node))
 
 (defun xml-get-children (node child-name)
   "Return the children of NODE whose tag is CHILD-NAME.
 CHILD-NAME should be a lower case symbol."
-  (let ((children (xml-node-children node))
-	match)
-    (while children
-      (if (car children)
-	  (if (equal (xml-node-name (car children)) child-name)
-	      (set 'match (append match (list (car children))))))
-      (set 'children (cdr children)))
-    match))
+  (let ((match ()))
+    (dolist (child (xml-node-children node))
+      (if child
+	  (if (equal (xml-node-name child) child-name)
+	      (push child match))))
+    (nreverse match)))
 
 (defun xml-get-attribute (node attribute)
   "Get from NODE the value of ATTRIBUTE.
@@ -155,10 +153,11 @@ and returned as the first element of the list"
 	      (forward-char -1)
 	      (if (null xml)
 		  (progn
-		    (set 'result (xml-parse-tag end parse-dtd))
+		    (setq result (xml-parse-tag end parse-dtd))
 		    (cond
+		     ((null result))
 		     ((listp (car result))
-		      (set 'dtd (car result))
+		      (setq dtd (car result))
 		      (add-to-list 'xml (cdr result)))
 		     (t
 		      (add-to-list 'xml result))))
@@ -197,7 +196,7 @@ Returns one of:
    ((looking-at "<!DOCTYPE")
     (let (dtd)
       (if parse-dtd
-	  (set 'dtd (xml-parse-dtd end))
+	  (setq dtd (xml-parse-dtd end))
 	(xml-skip-dtd end))
       (skip-chars-forward " \t\n")
       (if dtd
@@ -206,36 +205,31 @@ Returns one of:
    ;;  skip comments
    ((looking-at "<!--")
     (search-forward "-->" end)
-    (skip-chars-forward " \t\n")
-    (xml-parse-tag end))
+    nil)
    ;;  end tag
    ((looking-at "</")
     '())
    ;;  opening tag
    ((looking-at "<\\([^/> \t\n]+\\)")
-    (let* ((node-name (match-string 1))
-	   (children (list (intern node-name)))
-	   (case-fold-search nil) ;; XML is case-sensitive
+    (goto-char (match-end 1))
+    (let* ((case-fold-search nil) ;; XML is case-sensitive.
+	   (node-name (match-string 1))
+	   ;; Parse the attribute list.
+	   (children (list (xml-parse-attlist end) (intern node-name)))
 	   pos)
-      (goto-char (match-end 1))
-
-      ;; parses the attribute list
-      (set 'children (append children (list (xml-parse-attlist end))))
 
       ;; is this an empty element ?
       (if (looking-at "/>")
 	  (progn
 	    (forward-char 2)
-	    (skip-chars-forward " \t\n")
-	    (append children '("")))
+	    (nreverse (cons '("") children)))
 
 	;; is this a valid start tag ?
 	(if (eq (char-after) ?>)
 	    (progn
 	      (forward-char 1)
-	      (skip-chars-forward " \t\n")
-	      ;;  Now check that we have the right end-tag. Note that this one might
-	      ;;  contain spaces after the tag name
+	      ;;  Now check that we have the right end-tag. Note that this
+	      ;;  one might contain spaces after the tag name
 	      (while (not (looking-at (concat "</" node-name "[ \t\n]*>")))
 		(cond
 		 ((looking-at "</")
@@ -244,9 +238,11 @@ Returns one of:
 			  node-name
 			  ") at pos " (number-to-string (point)))))
 		 ((= (char-after) ?<)
-		  (set 'children (append children (list (xml-parse-tag end)))))
+		  (let ((tag (xml-parse-tag end)))
+		    (when tag
+		      (push tag children))))
 		 (t
-		  (set 'pos (point))
+		  (setq pos (point))
 		  (search-forward "<" end)
 		  (forward-char -1)
 		  (let ((string (buffer-substring-no-properties pos (point)))
@@ -256,18 +252,21 @@ Returns one of:
 		    ;; Not done, since as per XML specifications, the XML processor
 		    ;; should always pass the whole string to the application.
 		    ;; 	    (while (string-match "\\s +" string pos)
-		    ;; 	      (set 'string (replace-match " " t t string))
-		    ;; 	      (set 'pos (1+ (match-beginning 0))))
-		    
-		    (set 'children (append children
-					   (list (xml-substitute-special string))))))))
+		    ;; 	      (setq string (replace-match " " t t string))
+		    ;; 	      (setq pos (1+ (match-beginning 0))))
+
+		    (setq string (xml-substitute-special string))
+		    (setq children
+			  (if (stringp (car children))
+			      ;; The two strings were separated by a comment.
+			      (cons (concat (car children) string)
+				    (cdr children))
+			    (cons string children)))))))
 	      (goto-char (match-end 0))
-	      (skip-chars-forward " \t\n")
 	      (if (> (point) end)
 		  (error "XML: End tag for %s not found before end of region"
 			 node-name))
-	      children
-	      )
+	      (nreverse children))
 
 	  ;;  This was an invalid start tag
 	  (error "XML: Invalid attribute list")
@@ -280,11 +279,11 @@ Returns one of:
   "Return the attribute-list that point is looking at.
 The search for attributes end at the position END in the current buffer.
 Leaves the point on the first non-blank character after the tag."
-  (let ((attlist '())
+  (let ((attlist ())
 	name)
     (skip-chars-forward " \t\n")
     (while (looking-at "\\([a-zA-Z_:][-a-zA-Z0-9._:]*\\)[ \t\n]*=[ \t\n]*")
-      (set 'name (intern (match-string 1)))
+      (setq name (intern (match-string 1)))
       (goto-char (match-end 0))
 
       ;; Do we have a string between quotes (or double-quotes),
@@ -297,15 +296,13 @@ Leaves the point on the first non-blank character after the tag."
       (if (assoc name attlist)
 	  (error "XML: each attribute must be unique within an element"))
       
-      (set 'attlist (append attlist
-			    (list (cons name (match-string-no-properties 1)))))
+      (push (cons name (match-string-no-properties 1)) attlist)
       (goto-char (match-end 0))
       (skip-chars-forward " \t\n")
       (if (> (point) end)
 	  (error "XML: end of attribute list not found before end of region"))
       )
-    attlist
-    ))
+    (nreverse attlist)))
 
 ;;*******************************************************************
 ;;**
@@ -335,15 +332,15 @@ This follows the rule [28] in the XML specifications."
 (defun xml-parse-dtd (end)
   "Parse the DTD that point is looking at.
 The DTD must end before the position END in the current buffer."
-  (let (dtd type element end-pos)
-    (forward-char (length "<!DOCTYPE"))
-    (skip-chars-forward " \t\n")
-    (if (looking-at ">")
-	(error "XML: invalid DTD (excepting name of the document)"))
-
-    ;;  Get the name of the document
-    (looking-at "\\sw+")
-    (set 'dtd (list 'dtd (match-string-no-properties 0)))
+  (forward-char (length "<!DOCTYPE"))
+  (skip-chars-forward " \t\n")
+  (if (looking-at ">")
+      (error "XML: invalid DTD (excepting name of the document)"))
+  
+  ;;  Get the name of the document
+  (looking-at "\\sw+")
+  (let ((dtd (list (match-string-no-properties 0) 'dtd))
+	type element end-pos)
     (goto-char (match-end 0))
 
     (skip-chars-forward " \t\n")
@@ -367,16 +364,16 @@ The DTD must end before the position END in the current buffer."
 
 	(setq element (intern (match-string-no-properties 1))
 	      type    (match-string-no-properties 2))
-	(set 'end-pos (match-end 0))
+	(setq end-pos (match-end 0))
 	
 	;;  Translation of rule [46] of XML specifications
 	(cond
 	 ((string-match "^EMPTY[ \t\n]*$" type)     ;; empty declaration
-	  (set 'type 'empty))
+	  (setq type 'empty))
 	 ((string-match "^ANY[ \t\n]*$" type)       ;; any type of contents
-	  (set 'type 'any))
+	  (setq type 'any))
 	 ((string-match "^(\\(.*\\))[ \t\n]*$" type) ;; children ([47])
-	  (set 'type (xml-parse-elem-type (match-string-no-properties 1 type))))
+	  (setq type (xml-parse-elem-type (match-string-no-properties 1 type))))
 	 ((string-match "^%[^;]+;[ \t\n]*$" type)   ;; substitution
 	  nil)
 	 (t
@@ -388,9 +385,8 @@ The DTD must end before the position END in the current buffer."
 		   (symbol-name element)))
 	
 	;;  Store the element in the DTD
-	(set 'dtd (append dtd (list (list element type))))
-	(goto-char end-pos)
-	)
+	(push (list element type) dtd)
+	(goto-char end-pos))
 
 
        (t
@@ -400,8 +396,7 @@ The DTD must end before the position END in the current buffer."
 
     ;;  Skip the end of the DTD
     (search-forward ">" end)
-  dtd
-  ))
+    (nreverse dtd)))
 
 
 (defun xml-parse-elem-type (string)
@@ -413,11 +408,11 @@ The DTD must end before the position END in the current buffer."
 	  (setq elem     (match-string 1 string)
 		modifier (match-string 2 string))
 	  (if (string-match "|" elem)
-	      (set 'elem (append '(choice)
+	      (setq elem (cons 'choice
 			       (mapcar 'xml-parse-elem-type
 				       (split-string elem "|"))))
 	    (if (string-match "," elem)
-		(set 'elem (append '(seq)
+		(setq elem (cons 'seq
 				 (mapcar 'xml-parse-elem-type
 					 (split-string elem ","))))
 	      )))
@@ -425,19 +420,18 @@ The DTD must end before the position END in the current buffer."
 	  (setq elem     (match-string 1 string)
 		modifier (match-string 2 string))))
 
-      (if (and (stringp elem)
-	       (string= elem "#PCDATA"))
-	  (set 'elem 'pcdata))
+    (if (and (stringp elem) (string= elem "#PCDATA"))
+	(setq elem 'pcdata))
     
-      (cond
-       ((string= modifier "+")
-	(list '+ elem))
-       ((string= modifier "*")
-	(list '* elem))
-       ((string= modifier "?")
-	(list '? elem))
-       (t
-	elem))))
+    (cond
+     ((string= modifier "+")
+      (list '+ elem))
+     ((string= modifier "*")
+      (list '* elem))
+     ((string= modifier "?")
+      (list '? elem))
+     (t
+      elem))))
 
 
 ;;*******************************************************************
@@ -449,15 +443,15 @@ The DTD must end before the position END in the current buffer."
 (defun xml-substitute-special (string)
   "Return STRING, after subsituting special XML sequences."
   (while (string-match "&amp;" string)
-    (set 'string (replace-match "&"  t nil string)))
+    (setq string (replace-match "&"  t nil string)))
   (while (string-match "&lt;" string)
-    (set 'string (replace-match "<"  t nil string)))
+    (setq string (replace-match "<"  t nil string)))
   (while (string-match "&gt;" string)
-    (set 'string (replace-match ">"  t nil string)))
+    (setq string (replace-match ">"  t nil string)))
   (while (string-match "&apos;" string)
-    (set 'string (replace-match "'"  t nil string)))
+    (setq string (replace-match "'"  t nil string)))
   (while (string-match "&quot;" string)
-    (set 'string (replace-match "\"" t nil string)))
+    (setq string (replace-match "\"" t nil string)))
   string)
 
 ;;*******************************************************************
@@ -468,50 +462,39 @@ The DTD must end before the position END in the current buffer."
 ;;*******************************************************************
 
 (defun xml-debug-print (xml)
-  (while xml
-    (xml-debug-print-internal (car xml) "")
-    (set 'xml (cdr xml)))
-  )
+  (dolist (node xml)
+    (xml-debug-print-internal node "")))
 
-(defun xml-debug-print-internal (xml &optional indent-string)
+(defun xml-debug-print-internal (xml indent-string)
   "Outputs the XML tree in the current buffer.
 The first line indented with INDENT-STRING."
   (let ((tree xml)
 	attlist)
-    (unless indent-string
-      (set 'indent-string ""))
-    
     (insert indent-string "<" (symbol-name (xml-node-name tree)))
     
     ;;  output the attribute list
-    (set 'attlist (xml-node-attributes tree))
+    (setq attlist (xml-node-attributes tree))
     (while attlist
       (insert " ")
       (insert (symbol-name (caar attlist)) "=\"" (cdar attlist) "\"")
-      (set 'attlist (cdr attlist)))
+      (setq attlist (cdr attlist)))
     
     (insert ">")
     
-    (set 'tree (xml-node-children tree))
+    (setq tree (xml-node-children tree))
 
     ;;  output the children
-    (while tree
+    (dolist (node tree)
       (cond
-       ((listp (car tree))
+       ((listp node)
 	(insert "\n")
-	(xml-debug-print-internal (car tree) (concat indent-string "  "))
-	)
-       ((stringp (car tree))
-	(insert (car tree))
-	)
+	(xml-debug-print-internal node (concat indent-string "  ")))
+       ((stringp node) (insert node))
        (t
-	(error "Invalid XML tree")))
-      (set 'tree (cdr tree))
-     )
+	(error "Invalid XML tree"))))
 
     (insert "\n" indent-string
-	    "</" (symbol-name (xml-node-name xml)) ">")
-    ))
+	    "</" (symbol-name (xml-node-name xml)) ">")))
 
 (provide 'xml)
 
