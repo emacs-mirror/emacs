@@ -1037,6 +1037,7 @@ cmd_error_internal (data, context)
 {
   Lisp_Object stream;
   int kill_emacs_p = 0;
+  struct frame *sf = SELECTED_FRAME ();
 
   Vquit_flag = Qnil;
   Vinhibit_quit = Qt;
@@ -1045,12 +1046,12 @@ cmd_error_internal (data, context)
   /* If the window system or terminal frame hasn't been initialized
      yet, or we're not interactive, it's best to dump this message out
      to stderr and exit.  */
-  if (!selected_frame->glyphs_initialized_p
+  if (!sf->glyphs_initialized_p
       /* This is the case of the frame dumped with Emacs, when we're
 	 running under a window system.  */
       || (!NILP (Vwindow_system)
 	  && !inhibit_window_system
-	  && FRAME_TERMCAP_P (selected_frame))
+	  && FRAME_TERMCAP_P (sf))
       || noninteractive)
     {
       stream = Qexternal_debugging_output;
@@ -1237,7 +1238,7 @@ command_loop_1 ()
 
   while (1)
     {
-      if (! FRAME_LIVE_P (selected_frame))
+      if (! FRAME_LIVE_P (XFRAME (selected_frame)))
 	Fkill_emacs (Qnil);
 
       /* Make sure the current window's buffer is selected.  */
@@ -1292,7 +1293,7 @@ command_loop_1 ()
 	 code swallows a switch-frame event, we'll fix things up here.
 	 Is this a good idea?  */
       if (FRAMEP (internal_last_event_frame)
-	  && XFRAME (internal_last_event_frame) != selected_frame)
+	  && !EQ (internal_last_event_frame, selected_frame))
 	Fselect_frame (internal_last_event_frame, Qnil);
 #endif
       /* If it has changed current-menubar from previous value,
@@ -1312,7 +1313,7 @@ command_loop_1 ()
 			     Qnil, 0, 1, 1);
 
       /* A filter may have run while we were reading the input.  */
-      if (! FRAME_LIVE_P (selected_frame))
+      if (! FRAME_LIVE_P (XFRAME (selected_frame)))
 	Fkill_emacs (Qnil);
       if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
 	set_buffer_internal (XBUFFER (XWINDOW (selected_window)->buffer));
@@ -2018,7 +2019,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   if (_setjmp (local_getcjmp))
     {
       XSETINT (c, quit_char);
-      XSETFRAME (internal_last_event_frame, selected_frame);
+      internal_last_event_frame = selected_frame;
       Vlast_event_frame = internal_last_event_frame;
       /* If we report the quit char as an event,
 	 don't do so more than once.  */
@@ -2027,7 +2028,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
 #ifdef MULTI_KBOARD
       {
-	KBOARD *kb = FRAME_KBOARD (selected_frame);
+	KBOARD *kb = FRAME_KBOARD (XFRAME (selected_frame));
 	if (kb != current_kboard)
 	  {
 	    Lisp_Object *tailp = &kb->kbd_queue;
@@ -3178,7 +3179,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	    frame = focus;
 
 	  if (! EQ (frame, internal_last_event_frame)
-	      && XFRAME (frame) != selected_frame)
+	      && !EQ (frame, selected_frame))
 	    obj = make_lispy_switch_frame (frame);
 	  internal_last_event_frame = frame;
 
@@ -3241,7 +3242,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	    XSETFRAME (frame, f);
 
 	  if (! EQ (frame, internal_last_event_frame)
-	      && XFRAME (frame) != selected_frame)
+	      && !EQ (frame, selected_frame))
 	    obj = make_lispy_switch_frame (frame);
 	  internal_last_event_frame = frame;
 	}
@@ -5626,7 +5627,7 @@ read_avail_input (expected)
 	    cbuf[i] &= ~0x80;
 
 	  buf[i].code = cbuf[i];
-	  XSETFRAME (buf[i].frame_or_window, selected_frame);
+	  buf[i].frame_or_window = selected_frame;
 	}
     }
 
@@ -6902,7 +6903,7 @@ read_char_minibuf_menu_prompt (commandflag, nmaps, maps)
   int mapno;
   register Lisp_Object name;
   int nlength;
-  int width = FRAME_WIDTH (selected_frame) - 4;
+  int width = FRAME_WIDTH (SELECTED_FRAME ()) - 4;
   int idx = -1;
   int nobindings = 1;
   Lisp_Object rest, vector;
@@ -7541,7 +7542,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  {
 #ifdef MULTI_KBOARD
 	    KBOARD *interrupted_kboard = current_kboard;
-	    struct frame *interrupted_frame = selected_frame;
+	    struct frame *interrupted_frame = SELECTED_FRAME ();
 	    if (setjmp (wrong_kboard_jmpbuf))
 	      {
 		if (!NILP (delayed_switch_frame))
@@ -7609,7 +7610,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		 of the command_loop_1.  */
 	      if (fix_current_buffer)
 		{
-		  if (! FRAME_LIVE_P (selected_frame))
+		  if (! FRAME_LIVE_P (XFRAME (selected_frame)))
 		    Fkill_emacs (Qnil);
 		  if (XBUFFER (XWINDOW (selected_window)->buffer) != current_buffer)
 		    Fset_buffer (XWINDOW (selected_window)->buffer);
@@ -7712,7 +7713,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		     emacsclient).  */
 		  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
 
-		  if (! FRAME_LIVE_P (selected_frame))
+		  if (! FRAME_LIVE_P (XFRAME (selected_frame)))
 		    Fkill_emacs (Qnil);
 		  set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
 		  orig_local_map = get_local_map (PT, current_buffer);
@@ -9022,7 +9023,7 @@ On such systems, Emacs starts a subshell instead of suspending.")
      with a window system; but suspend should be disabled in that case.  */
   get_frame_size (&width, &height);
   if (width != old_width || height != old_height)
-    change_frame_size (selected_frame, height, width, 0, 0, 0);
+    change_frame_size (SELECTED_FRAME (), height, width, 0, 0, 0);
 
   /* Run suspend-resume-hook.  */
   if (!NILP (Vrun_hooks))
@@ -9115,6 +9116,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
   char c;
   /* Must preserve main program's value of errno.  */
   int old_errno = errno;
+  struct frame *sf = SELECTED_FRAME ();
 
 #if defined (USG) && !defined (POSIX_SIGNALS)
   if (!read_socket_hook && NILP (Vwindow_system))
@@ -9129,7 +9131,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
   cancel_echoing ();
 
   if (!NILP (Vquit_flag)
-      && (FRAME_TERMCAP_P (selected_frame) || FRAME_MSDOS_P (selected_frame)))
+      && (FRAME_TERMCAP_P (sf) || FRAME_MSDOS_P (sf)))
     {
       /* If SIGINT isn't blocked, don't let us be interrupted by
 	 another SIGINT, it might be harmful due to non-reentrancy
@@ -9272,7 +9274,7 @@ quit_throw_to_read_char ()
 #endif
 #endif
   if (FRAMEP (internal_last_event_frame)
-      && XFRAME (internal_last_event_frame) != selected_frame)
+      && !EQ (internal_last_event_frame, selected_frame))
     do_switch_frame (make_lispy_switch_frame (internal_last_event_frame),
 		     Qnil, 0);
 
