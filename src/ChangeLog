@@ -1,3 +1,8 @@
+2004-07-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* xdisp.c (syms_of_xdisp): Correct capitalization error in
+	`window-scroll-functions' docstring.
+
 2004-07-17  Juanma Barranquero  <lektu@terra.es>
 
 	* keyboard.c (not_single_kboard_state): Do nothing unless
