@@ -1,3 +1,8 @@
+2003-02-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* keyboard.c (cancel_hourglass_unwind): Surround with
+	#ifdef HAVE_X_WINDOWS
+
 2003-02-25  Kenichi Handa  <handa@m17n.org>
 
 	* buffer.c (Fset_buffer_multibyte): Pay attention to the buffer

@@ -1355,12 +1355,14 @@ static void adjust_point_for_property P_ ((int, int));
 
 /* Cancel hourglass from protect_unwind.
    ARG is not used.  */
+#ifdef HAVE_X_WINDOWS
 static Lisp_Object
 cancel_hourglass_unwind (arg)
      Lisp_Object arg;
 {
   cancel_hourglass ();
 }
+#endif
 
 Lisp_Object
 command_loop_1 ()
