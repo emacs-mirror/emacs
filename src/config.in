@@ -211,6 +211,8 @@ Boston, MA 02111-1307, USA.  */
 
 #undef HAVE_ALLOCA_H
 
+#undef HAVE_DEV_PTMX
+
 #undef HAVE_GETTIMEOFDAY
 /* If we don't have gettimeofday,
    the test for GETTIMEOFDAY_ONE_ARGUMENT may succeed,
