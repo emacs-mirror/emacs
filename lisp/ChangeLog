@@ -1,3 +1,10 @@
+2001-12-14  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-checkout-model, vc-state, vc-workfile-version):
+	Return nil if FILE is not registered.
+	(vc-check-master-templates, vc-default-make-version-backups-p):
+	Doc fix.
+
 2001-12-13  Richard M. Stallman  <rms@gnu.org>
 
 	* font-lock.el (font-lock-mode): 
