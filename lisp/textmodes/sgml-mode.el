@@ -30,13 +30,6 @@
 
 ;;; Code:
 
-;;;###autoload
-(or (rassq 'sgml-mode auto-mode-alist)
-    (setq auto-mode-alist `(("\\.sgml?\\'" . sgml-mode)
-			    ("\\.dtd\\'" . sgml-mode)
-			    ,@auto-mode-alist)))
-
-
 ;; As long as Emacs' syntax can't be complemented with predicates to context
 ;; sensitively confirm the syntax of characters, we have to live with this
 ;; kludgy kind of tradeoff.
