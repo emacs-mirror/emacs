@@ -1,6 +1,6 @@
 ;;; msb.el --- Customizable buffer-selection with multiple menus.
 
-;; Copyright (C) 1993, 1994, 1995, 1997, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 94, 95, 97, 98, 99 Free Software Foundation, Inc.
 
 ;; Author: Lars Lindberg <Lars.G.Lindberg@capgemini.se>
 ;; Created: 8 Oct 1993
@@ -29,17 +29,8 @@
 ;; Purpose of this package:
 ;;   1. Offer a function for letting the user choose buffer,
 ;;      not necessarily for switching to it.
-;;   2. Make a better mouse-buffer-menu.
-;;
-;; Installation:
-
-;;   1. Byte compile msb first.  It uses things in the cl package that
-;;      are slow if not compiled, but blazingly fast when compiled.  I
-;;      have also had one report that said that msb malfunctioned when
-;;      not compiled.
-;;   2. (require 'msb)
-;;      Note! You now use msb instead of mouse-buffer-menu.
-;;   3. Now try the menu bar Buffers menu.
+;;   2. Make a better mouse-buffer-menu.  This is done as a global
+;;      minor mode, msb-mode.
 ;;
 ;; Customization:
 ;;   Look at the variable `msb-menu-cond' for deciding what menus you
@@ -83,6 +74,7 @@
 ;;  Richard Stallman <rms@gnu.ai.mit.edu>
 ;;  Steve Fisk <fisk@medved.bowdoin.edu>
 
+;; This version turned into a global minor mode by Dave Love.
 ;;; Code:
 
 (require 'cl)
@@ -117,7 +109,7 @@
     ((or (memq major-mode '(rmail-mode rmail-edit-mode vm-summary-mode vm-mode mail-mode))
 	 (memq major-mode '(mh-letter-mode
 			    mh-show-mode
-			    mh-folder-mode))	
+			    mh-folder-mode))
 	 (memq major-mode '(gnus-summary-mode
 			    news-reply-mode
 			    gnus-group-mode
@@ -172,7 +164,7 @@
     ((or (memq major-mode '(rmail-mode rmail-edit-mode vm-summary-mode vm-mode mail-mode))
 	 (memq major-mode '(mh-letter-mode
 			    mh-show-mode
-			    mh-folder-mode))	
+			    mh-folder-mode))
 	 (memq major-mode '(gnus-summary-mode
 			    news-reply-mode
 			    gnus-group-mode
@@ -215,6 +207,19 @@
   :prefix "msb-"
   :group 'mouse)
 
+;;;###autoload
+(defcustom msb-mode nil
+  "Toggle msb-mode.
+Setting this variable directly does not take effect;
+use either \\[customize] or the function `msb-mode'."
+  :set (lambda (symbol value)
+	 (msb-mode (or value 0)))
+  :initialize 'custom-initialize-default
+  :version "20.4"
+  :type    'boolean
+  :group   'msb
+  :require 'msb)
+
 (defun msb-custom-set (symbol value)
   "Set the value of custom variables for msb."
   (set symbol value)
@@ -230,7 +235,7 @@ The elements in the list should be of this type:
  (CONDITION MENU-SORT-KEY MENU-TITLE ITEM-HANDLING-FN ITEM-SORT-FN).
 
 When making the split, the buffers are tested one by one against the
-CONDITION, just like a lisp cond: When hitting a true condition, the
+CONDITION, just like a Lisp cond: When hitting a true condition, the
 other criteria are *not* tested and the buffer name will appear in the
 menu with the menu-title corresponding to the true condition.
 
@@ -378,8 +383,8 @@ Set this to nil or t if you don't want any sorting (faster)."
 )
 		
 (defcustom msb-files-by-directory nil
-  "*Non-nil means that files should be sorted by directory instead of
-the groups in msb-menu-cond."
+  "*Non-nil means that files should be sorted by directory.
+This is instead of the groups in `msb-menu-cond'."
   :type 'boolean
   :set 'msb-custom-set
   :group 'msb)
@@ -466,14 +471,14 @@ The `#' appears only version control file (SCCS/RCS)."
 ;;; Some example function to be used for `msb-item-sort-function'.
 ;;;
 (defun msb-sort-by-name (item1 item2)
-  "Sorts the items depending on their buffer-name
-An item look like (NAME . BUFFER)."
+  "Sort the items ITEM1 and ITEM2 by their `buffer-name'.
+An item looks like (NAME . BUFFER)."
   (string-lessp (buffer-name (cdr item1))
 		(buffer-name (cdr item2))))
 
 
 (defun msb-sort-by-directory (item1 item2)
-  "Sorts the items depending on their directory.  Made for dired.
+  "Sort the items ITEM1 and ITEM2 by directory name.  Made for dired.
 An item look like (NAME . BUFFER)."
   (string-lessp (save-excursion (set-buffer (cdr item1))
 				(msb--dired-directory))
@@ -689,7 +694,7 @@ If the argument is left out or nil, then the current buffer is considered."
 		    tmp-s
 		   msb-item-sort-function)))
     (when (< (length menu-cond-elt) 3)
-      (error "Wrong format of msb-menu-cond."))
+      (error "Wrong format of msb-menu-cond"))
     (when (and (> (length menu-cond-elt) 3)
 	       (not (fboundp tmp-ih)))
       (signal 'invalid-function (list tmp-ih)))
@@ -832,7 +837,7 @@ If the argument is left out or nil, then the current buffer is considered."
 	      (list `( eq major-mode (quote ,(car item)))
 		    key
 		    (concat (cdr item) " (%d)")))
-	    (sort 
+	    (sort
 	     (let ((mode-list nil))
 	       (mapc (lambda (buffer)
 		       (save-excursion
@@ -1045,7 +1050,7 @@ variable `msb-menu-cond'."
        (lambda (item)
 	 (cond
 	  ((and msb-separator-diff
-		last-key 
+		last-key
 		(> (- (car item) last-key)
 		   msb-separator-diff))
 	   (setq last-key (car item))
@@ -1094,7 +1099,7 @@ variable `msb-menu-cond'."
 	(mcount 0))
     (mapcar
      (lambda (sub-menu)
-       (cond 
+       (cond
 	((eq 'separator sub-menu)
 	 (list 'separator "--"))
 	(t
@@ -1151,21 +1156,30 @@ variable `msb-menu-cond'."
 			 (cddr buffers-menu))
 		(or buffers-menu 'undefined)))))))
 
-(when (and (boundp 'menu-bar-update-hook)
-	   (not (fboundp 'frame-or-buffer-changed-p)))
-  (defvar msb--buffer-count 0)
-  (defun frame-or-buffer-changed-p ()
-    (let ((count (length (buffer-list))))
-      (when (/= count msb--buffer-count)
-        (setq msb--buffer-count count)
-        t))))
+;; Snarf current bindings of `mouse-buffer-menu' (normally
+;; C-down-mouse-1).
+(defvar msb-mode-map
+  (let ((map (make-sparse-keymap)))
+    (mapcar (lambda (key)
+	      (define-key map key #'msb))
+	    (where-is-internal 'mouse-buffer-menu (make-sparse-keymap)))
+    map))
 
-(unless (or (not (boundp 'menu-bar-update-hook))
-	    (memq 'menu-bar-update-buffers menu-bar-update-hook))
-    (add-hook 'menu-bar-update-hook 'menu-bar-update-buffers))
+;;;###autoload
+(defun msb-mode (&optional arg)
+  "Toggle Msb mode.
+With arg, turn Msb mode on if and only if arg is positive.
+This mode overrides the binding(s) of `mouse-buffer-menu' to provide a
+different buffer menu using the function `msb'."
+  (interactive "P")
+  (setq msb-mode (if arg
+		     (> (prefix-numeric-value arg) 0)
+		   (not msb-mode)))
+  (if msb-mode
+      (add-hook 'menu-bar-update-hook 'menu-bar-update-buffers)
+    (remove-hook 'menu-bar-update-hook 'menu-bar-update-buffers)))
 
-(and (fboundp 'mouse-buffer-menu)
-     (substitute-key-definition 'mouse-buffer-menu 'msb (current-global-map)))
+(add-to-list 'minor-mode-map-alist (cons 'msb-mode msb-mode-map))
 
 (provide 'msb)
 (eval-after-load 'msb (run-hooks 'msb-after-load-hooks))
