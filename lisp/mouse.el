@@ -677,6 +677,7 @@ remains active.  Otherwise, it remains until the next input event."
 	 (start-posn (event-start start-event))
 	 (start-point (posn-point start-posn))
 	 (start-window (posn-window start-posn))
+	 (start-window-start (window-start start-window))
 	 (start-frame (window-frame start-window))
 	 (start-hscroll (window-hscroll start-window))
 	 (bounds (window-edges start-window))
@@ -742,6 +743,7 @@ remains active.  Otherwise, it remains until the next input event."
 		  (mouse-scroll-subr start-window (1+ (- mouse-row bottom))
 				     mouse-drag-overlay start-point)
 		  (setq end-of-range (overlay-end mouse-drag-overlay))))))))))
+      
       ;; In case we did not get a mouse-motion event
       ;; for the final move of the mouse before a drag event
       ;; pretend that we did get one.
@@ -750,7 +752,6 @@ remains active.  Otherwise, it remains until the next input event."
 		       end-point (posn-point end))
 		 (eq (posn-window end) start-window)
 		 (integer-or-marker-p end-point))
-
 	;; Go to START-POINT first, so that when we move to END-POINT,
 	;; if it's in the middle of intangible text,
 	;; point jumps in the direction away from START-POINT.
@@ -802,7 +803,18 @@ remains active.  Otherwise, it remains until the next input event."
 	      (delete-overlay mouse-drag-overlay)
 	      ;; Run the binding of the terminating up-event.
 	      (when (and (functionp fun)
-			 (= start-hscroll (window-hscroll start-window)))
+			 (= start-hscroll (window-hscroll start-window))
+			 ;; Don't run the up-event handler if the
+			 ;; window start changed in a redisplay after
+			 ;; the mouse-set-point for the down-mouse
+			 ;; event at the beginning of this function.
+			 ;; When the window start has changed, the
+			 ;; up-mouse event will contain a different
+			 ;; position due to the new window contents,
+			 ;; and point is set again.
+			 (or end-point
+			     (= (window-start start-window)
+				start-window-start)))
 		(setq unread-command-events
 		      (cons event unread-command-events)))))
 	(delete-overlay mouse-drag-overlay)))))
