@@ -37,10 +37,10 @@ extern Lisp_Object Fmake_sparse_keymap ();
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
-#define OUTPUT(a) tputs (a, FRAME_HEIGHT (selected_frame) - curY, cmputc)
+#define OUTPUT(a) tputs (a, (int) (FRAME_HEIGHT (selected_frame) - curY), cmputc)
 #define OUTPUT1(a) tputs (a, 1, cmputc)
 #define OUTPUTL(a, lines) tputs (a, lines, cmputc)
-#define OUTPUT_IF(a) { if (a) tputs (a, FRAME_HEIGHT (selected_frame) - curY, cmputc); }
+#define OUTPUT_IF(a) { if (a) tputs (a, (int) (FRAME_HEIGHT (selected_frame) - curY), cmputc); }
 #define OUTPUT1_IF(a) { if (a) tputs (a, 1, cmputc); }
 
 /* Function to use to ring the bell.  */
