@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,97,1999 Free Software Foundation, Inc.
+@c Copyright (C) 1985,86,87,93,94,95,97,99,2000 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Programs, Building, Text, Top
 @chapter Editing Programs
@@ -37,9 +37,13 @@ provide useful chunks of text for the paragraph commands to work
 on.
 
   The selective display feature is useful for looking at the overall
-structure of a function (@pxref{Selective Display}).  This feature causes
-only the lines that are indented less than a specified amount to appear
-on the screen.
+structure of a function (@pxref{Selective Display}).  This feature
+causes only the lines that are indented less than a specified amount to
+appear on the screen.  Programming modes often support outline minor
+mode (@pxref{Outline Mode}).
+
+  The `automatic typing' features may be useful when writing programs.
+@xref{Top, Autotyping, autotype, Features for Automatic Typing}.
 
 @menu
 * Program Modes::       Major modes for editing programs.
@@ -329,6 +333,8 @@ same as @code{mark-defun}; the difference is that it backs up over the
 argument declarations, function name and returned data type so that the
 entire C function is inside the region.  @xref{Marking Objects}.
 
+@cindex open-parenthesis in leftmost column
+@cindex ( in leftmost column
   Emacs assumes that any open-parenthesis found in the leftmost column
 is the start of a defun.  Therefore, @strong{never put an
 open-parenthesis at the left margin in a Lisp file unless it is the
@@ -1384,6 +1390,10 @@ the syntax class of the preceding character.  Set
 @code{parens-require-spaces} to @code{nil} value if you wish to inhibit
 this.
 
+@findex check-parens
+You can use @kbd{M-x check-parens} to find any unbalanced parentheses in
+a buffer.
+
 @node Symbol Completion
 @section Completion for Symbol Names
 @cindex completion (symbol names)
@@ -1560,10 +1570,14 @@ items are related (parts of the same change, in different places), group
 them by leaving no blank line between them.  The second entry above
 contains two items grouped in this way.
 
+@vindex add-log-keep-changes-together
   @kbd{C-x 4 a} visits the change log file and creates a new entry
 unless the most recent entry is for today's date and your name.  It also
 creates a new item for the current file.  For many languages, it can
 even guess the name of the function or other object that was changed.
+When the option @code{add-log-keep-changes-together} is set, @kbd{C-x 4
+a} adds to any existing entry for the file rather than starting a new
+entry.
 
 @cindex Change Log mode
 @findex change-log-mode
@@ -1572,6 +1586,11 @@ mode, each bunch of grouped items counts as one paragraph, and each
 entry is considered a page.  This facilitates editing the entries.
 @kbd{C-j} and auto-fill indent each new line like the previous line;
 this is convenient for entering the contents of an entry.
+
+@findex change-log-merge
+The command @kbd{M-x change-log-merge} can be used to merge other log
+files into a buffer in Change Log Mode, preserving the date ordering
+of entries with either the current or old-style date formats.
 
   Version control systems are another way to keep track of changes in your
 program and keep a change log.  @xref{Log Buffer}.
@@ -1718,7 +1737,7 @@ In Perl code, the tags are the procedures defined by the @code{sub},
 to tag global variables.
 
 @item
-In Postscript code, the tags are the functions.
+In PostScript code, the tags are the functions.
 
 @item
 In Prolog code, a tag name appears at the left margin.
@@ -2191,6 +2210,10 @@ directory.
 (@pxref{Apropos}).  It reads a regexp, then finds all the tags in the
 selected tags table whose entries match that regexp, and displays the
 tag names found.
+@vindex tags-apropos-additional-actions
+You can display additional output with @kbd{M-x tags-apropos} by customizing
+the variable @code{tags-apropos-additional-actions}.  See its
+documentation for details.
 
   You can also perform completion in the buffer on the name space of tag
 names in the current tags tables.  @xref{Symbol Completion}.
@@ -2972,42 +2995,22 @@ the extension @samp{.f90}.
 @node Fortran Motion
 @subsection Motion Commands
 
-  Fortran mode provides special commands to move by subprograms (functions
-and subroutines) and by statements.  There is also a command to put the
-region around one subprogram, convenient for killing it or moving it.
+In addition to the normal commands for moving by and operating on
+`defuns' (Fortran subprograms---functions
+and subroutines) Fortran mode provides special commands to move by statements.
 
-@kindex C-M-a @r{(Fortran mode)}
-@kindex C-M-e @r{(Fortran mode)}
-@kindex C-M-h @r{(Fortran mode)}
 @kindex C-c C-p @r{(Fortran mode)}
 @kindex C-c C-n @r{(Fortran mode)}
-@kindex C-x n d @r{(Fortran mode)}
-@findex beginning-of-fortran-subprogram
-@findex end-of-fortran-subprogram
-@findex mark-fortran-subprogram
 @findex fortran-previous-statement
 @findex fortran-next-statement
-@findex fortran-narrow-to-subprogram
 
 @table @kbd
-@item C-M-a
-Move to beginning of subprogram
-(@code{beginning-of-fortran-subprogram}).
-@item C-M-e
-Move to end of subprogram (@code{end-of-fortran-subprogram}).
-@item C-M-h
-Put point at beginning of subprogram and mark at end
-(@code{mark-fortran-subprogram}).
 @item C-c C-n
 Move to beginning of current or next statement
 (@code{fortran-next-statement}).
 @item C-c C-p
 Move to beginning of current or previous statement
 (@code{fortran-previous-statement}).
-@item C-x n d
-Narrow to the current subprogram, i.e.@: only it is visible
-(@code{fortran-narrow-to-subprogram}).
-Undo the effect of this with @kbd{C-x n w} (@code{widen}).
 @end table
 
 @node Fortran Indent
@@ -3019,7 +3022,7 @@ indicators and continuation line flags) appear in the columns that are
 required for standard Fortran.
 
 @menu
-* Commands: ForIndent Commands.  Commands for indenting Fortran.
+* Commands: ForIndent Commands.  Commands for indenting and filling Fortran.
 * Contline: ForIndent Cont.      How continuation lines indent.
 * Numbers:  ForIndent Num.       How line numbers auto-indent.
 * Conv:     ForIndent Conv.      Conventions you must obey to avoid trouble.
@@ -3027,35 +3030,20 @@ required for standard Fortran.
 @end menu
 
 @node ForIndent Commands
-@subsubsection Fortran Indentation Commands
+@subsubsection Fortran-Specific Indentation and Filling Commands
 
 @table @kbd
-@item @key{TAB}
-Indent the current line (@code{fortran-indent-line}).
-@item C-j
-Indent the current and start a new indented line
-(@code{fortran-indent-new-line}).
 @item C-M-j
-Break the current line and set up a continuation line.
+Break the current line and set up a continuation line
+(@code{fortran-split-line}).
 @item M-^
-Join this line to the previous line.
+Join this line to the previous line (@code{fortran-join-line}).
 @item C-M-q
 Indent all the lines of the subprogram point is in
 (@code{fortran-indent-subprogram}).
+@item M-q
+Fill a comment block or statement.
 @end table
-
-@findex fortran-indent-line
-  Fortran mode redefines @key{TAB} to reindent the current line for
-Fortran (@code{fortran-indent-line}).  This command indents line numbers
-and continuation markers to their required columns, and independently
-indents the body of the statement based on its nesting in the program.
-
-@kindex C-j @r{(Fortran mode)}
-@findex fortran-indent-new-line
-  The key @kbd{C-j} runs the command @code{fortran-indent-new-line},
-which reindents the current line then makes and indents a new line.
-This command is useful to reindent the closing statement of @samp{do}
-loops and other blocks before starting a new line.
 
 @kindex C-M-q @r{(Fortran mode)}
 @findex fortran-indent-subprogram
@@ -3072,17 +3060,17 @@ accordingly.  In a comment line, both halves become separate comment
 lines.
 
 @kindex M-^ @r{(Fortran mode)}
-@findex fortran-join-line
-  @kbd{M-^} runs the command @code{fortran-join-line}, which is more or
-less the inverse of @code{fortran-split-line}.  It joins the current
-line to the previous line in a suitable way for Fortran code.
-
 @kindex C-c C-d @r{(Fortran mode)}
 @findex fortran-join-line
-  The key sequence @kbd{C-c C-d} runs @code{fortran-join-line}, which
-joins a continuation line back to the previous line, roughly as the
-inverse of @code{fortran-split-line}.  The point must be on a
+  @kbd{M-^} or @kbd{C-c C-d} runs the command @code{fortran-join-line},
+which joins a continuation line back to the previous line, roughly as
+the inverse of @code{fortran-split-line}.  The point must be on a
 continuation line when this command is invoked.
+
+@kindex M-q @r{(Fortran mode)}
+Fortran mode defines the function for filling paragraphs such that
+@kbd{M-q} fills the comment block or statement around point.  Filling a
+statement removes excess statement continuations.
 
 @node ForIndent Cont
 @subsubsection Continuation Lines
@@ -3242,8 +3230,8 @@ of code.  In Fortran, the standard comment syntax requires an entire line
 to be just a comment.  Therefore, Fortran mode replaces the standard Emacs
 comment commands and defines some new variables.
 
-  Fortran mode can also handle a nonstandard comment syntax where comments
-start with @samp{!} and can follow other text.  Because only some Fortran
+  Fortran mode can also handle the Fortran90 comment syntax where comments
+start with @samp{!} and can follow other text.  Because only some Fortran77
 compilers accept this syntax, Fortran mode will not insert such comments
 unless you have said in advance to do so.  To do this, set the variable
 @code{comment-start} to @samp{"!"} (@pxref{Variables}).
@@ -3438,17 +3426,8 @@ Fortran abbrevs and what they stand for.
 @node Fortran Misc
 @subsection Other Fortran Mode Commands
 
-@table @kbd
-@item C-x n d
-Narrow to the current Fortran subprogram.
-@end table
-
-@kindex C-x n d @r{(Fortran mode)}
-@findex fortran-narrow-to-subprogram
-  Fortran mode redefines the key @kbd{C-x n d} to run the command
-@code{fortran-narrow-to-subprogram}, which is the Fortran analogue
-of the key's usual definition.  It narrows the buffer to the subprogram
-containing point.
+The command @kbd{fortran-strip-sqeuence-nos} can be used to remove text
+past Fortran column 72, which is typically old `sequence numbers'.
 
 @node Asm Mode
 @section Asm Mode
