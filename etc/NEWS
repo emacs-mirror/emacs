@@ -32,6 +32,12 @@ Emacs with Leim.
 
 * Changes in Emacs 21.3
 
+** The game `mpuz' is enhanced.
+
+`mpuz' now allows the 2nd factor not to have two identical digits.  By
+default, all trivial operations involving whole lines are performed
+automatically.  The game uses faces for better visual feedback.
+
 ** On X and MS Windows, the blinking cursor's "off" state is now shown
 as a hollow box or a thin bar.
 
