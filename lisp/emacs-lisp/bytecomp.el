@@ -1065,6 +1065,8 @@ But a prefix argument (optional second arg) means ask user,
 for each such `.el' file, whether to compile it.  Prefix argument 0 means
 don't ask and compile the file anyway."
   (interactive "DByte recompile directory: \nP")
+  (if arg
+      (setq arg (prefix-numeric-value arg)))
   (save-some-buffers)
   (set-buffer-modified-p (buffer-modified-p)) ;Update the mode line.
   (let ((directories (list (expand-file-name directory)))
@@ -1082,7 +1084,7 @@ don't ask and compile the file anyway."
 	   (if (and (not (member (car files) '("." ".." "RCS" "CVS")))
 		    (file-directory-p source))
 	       (if (or (null arg)
-		       (eq arg 0)
+		       (eq 0 arg)
 		       (y-or-n-p (concat "Check " source "? ")))
 		   (setq directories
 			 (nconc directories (list source))))
@@ -1092,7 +1094,7 @@ don't ask and compile the file anyway."
 		      (if (file-exists-p dest)
 			  (file-newer-than-file-p source dest)
 			(and arg
-			     (or (zerop arg)
+			     (or (eq 0 arg)
 				 (y-or-n-p (concat "Compile " source "? "))))))
 		 (progn (byte-compile-file source)
 			(setq file-count (1+ file-count))
