@@ -30,12 +30,15 @@
 
 (require 'rmail)
 
-(defcustom rmail-digest-end-regexp (concat "End of.*Digest.*\n"
-					   (regexp-quote "*********") "*"
-					   "\\(\n------*\\)*")
-  "*Regexp matching the end of a digest message."
+(defcustom rmail-digest-end-regexps
+  (list (concat "End of.*Digest.*\n"
+		(regexp-quote "*********") "*"
+		"\\(\n------*\\)*")
+	(concat "End of.*\n"
+		(regexp-quote "*") "*"))
+  "*Regexps matching the end of a digest message."
   :group 'rmail
-  :type 'regexp)
+  :type '(repeat regexp))
 
 ;;;###autoload
 (defun undigestify-rmail-message ()
@@ -79,16 +82,19 @@ Leaves original message, deleted, before the undigestified messages."
 				 (mail-fetch-field "From")))
 			   (error "Message is not a digest--bad header")))))
 		(save-excursion
-		  (goto-char (point-max))
-		  (skip-chars-backward " \t\n")
-		  (let (found)
-		    ;; compensate for broken un*x digestifiers.  Sigh Sigh.
-		    (while (and (> (point) start) (not found))
-		      (forward-line -1)
-		      (if (looking-at rmail-digest-end-regexp)
-			  (setq found t)))
-		    (if (not found)
-			(error "Message is not a digest--no end line"))))
+		  (let (found
+			(regexps rmail-digest-end-regexps))
+		    (while (and regexps (not found))
+		      (goto-char (point-max))
+		      (skip-chars-backward " \t\n")
+		      ;; compensate for broken un*x digestifiers.  Sigh Sigh.
+		      (while (and (> (point) start) (not found))
+			(forward-line -1)
+			(if (looking-at (car regexps))
+			    (setq found t))
+			(setq regexps (cdr regexps)))
+		    (unless found
+		      (error "Message is not a digest--no end line"))))
 		(re-search-forward (concat "^" (make-string 55 ?-) "-*\n*"))
 		(replace-match "\^_\^L\n0, unseen,,\n*** EOOH ***\n")
 		(save-restriction
