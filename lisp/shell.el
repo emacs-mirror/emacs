@@ -66,9 +66,7 @@
 ;;; m-p	    comint-previous-input    	    Cycle backwards in input history
 ;;; m-n	    comint-next-input  	    	    Cycle forwards
 ;;; m-r     comint-previous-matching-input  Previous input matching a regexp
-;;; m-R     comint-previous-matching-input-from-input -"- matching input
 ;;; m-s     comint-next-matching-input      Next input that matches
-;;; m-S     comint-next-matching-input-from-input     -"- matching input
 ;;; m-c-l   comint-show-output		    Show last batch of process output
 ;;; return  comint-send-input
 ;;; c-d	    comint-delchar-or-maybe-eof	    Delete char unless at end of buff.
