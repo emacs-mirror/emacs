@@ -652,6 +652,12 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	       (> (cdr (assq 'menu-bar-lines (frame-parameters))) 0)))
       (menu-bar-mode t))
 
+  ;; If frame was created with a tool bar, switch tool-bar-mode on.
+  (when (and (not noninteractive)
+	     (memq window-system '(x w32))
+	     (> (frame-parameter nil 'tool-bar-lines) 0))
+    (tool-bar-mode t))
+
   ;; Can't do this init in defcustom because window-system isn't set.
   (when (and (not noninteractive)
 	     (not (eq system-type 'ms-dos))
