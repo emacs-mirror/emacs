@@ -517,7 +517,8 @@ Do the same for the keys of the same name."
 (defmacro menu-bar-make-toggle (name variable doc message help &rest body)
   `(progn
      (defun ,name ()
-       ,(concat doc ".")
+       ,(concat "Toggle whether to " (downcase (substring help 0 1))
+		(substring help 1) ".")
        (interactive)
        (if ,(if body `(progn . ,body)
 	      `(setq ,variable (not ,variable)))
@@ -576,14 +577,12 @@ Do the same for the keys of the same name."
 
 (define-key menu-bar-options-menu [debug-on-quit]
   (menu-bar-make-toggle toggle-debug-on-quit debug-on-quit
-			"Toggle whether to enter the Lisp Debugger on Quit/C-g"
-			"Debug on Quit %s"
+			"Enter Debugger on Quit/C-g" "Debug on Quit %s"
 			"Enter Lisp debugger when C-g is pressed"))
 (define-key menu-bar-options-menu [debug-on-error]
   (menu-bar-make-toggle toggle-debug-on-error debug-on-error
-			"Toggle whether to enter the Lisp Debugger on Error"
-			"Debug on Error %s"
-			"Enter Lisp debugger when error is signaled"))
+			"Enter Debugger on Error" "Debug on Error %s"
+			"Enter Lisp debugger when an error is signaled"))
 (define-key menu-bar-options-menu [debugger-separator]
   '("--"))
 (define-key menu-bar-options-menu [toggle-auto-compression]
@@ -604,7 +603,7 @@ Do the same for the keys of the same name."
   (menu-bar-make-toggle toggle-uniquify-buffer-names uniquify-buffer-name-style
 			"Use Directory Names in Buffer Names"
 			"Directory name in buffer names (uniquify) %s"
-			"Uniquify a buffer name by adding parent directory names until unique"
+			"Uniquify buffer names by adding parent directory names"
 			(require 'uniquify)
 			(setq uniquify-buffer-name-style
 			      (if (not uniquify-buffer-name-style)
@@ -615,7 +614,7 @@ Do the same for the keys of the same name."
   (menu-bar-make-toggle toggle-case-fold-search case-fold-search
 			"Case-Insensitive Search"
 			"Case-Insensitive Search %s"
-			"If checked, search ignores letter-case"))
+			"Ignore letter-case in search"))
 (define-key menu-bar-options-menu [auto-fill-mode]
   '(menu-item "Word Wrap in Text Modes (Auto Fill)"
               toggle-text-mode-auto-fill
@@ -625,7 +624,7 @@ Do the same for the keys of the same name."
   (menu-bar-make-toggle
    toggle-truncate-lines truncate-lines
    "Truncate Long Lines in this Buffer" "Long Line Truncation %s"
-   "If checked, long lines are truncated on the screen"
+   "Truncate long lines on the screen"
    (prog1 (setq truncate-lines (not truncate-lines))
      (set-buffer-modified-p (buffer-modified-p)))))
 (define-key menu-bar-options-menu [highlight-separator]
@@ -644,7 +643,7 @@ Do the same for the keys of the same name."
   (menu-bar-make-toggle toggle-global-lazy-font-lock-mode global-font-lock-mode
 			"Highlight Syntax (Global Font Lock)"
 			"Syntax Highlighting %s"
-			"Highlights text based on language syntax"
+			"Highlight text based on language syntax"
 			(global-font-lock-mode)))
 
 
