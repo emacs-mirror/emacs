@@ -6672,10 +6672,16 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
     int FontType;
     enumfont_t * lpef;
 {
-  /* Ignore struck out, underlined and vertical versions of fonts.  */
-  if (lplf->elfLogFont.lfStrikeOut || lplf->elfLogFont.lfUnderline
-      || lplf->elfLogFont.lfEscapement != 0
-      || lplf->elfLogFont.lfOrientation != 0)
+  /* Ignore struck out and underlined versions of fonts.  */
+  if (lplf->elfLogFont.lfStrikeOut || lplf->elfLogFont.lfUnderline)
+    return 1;
+
+  /* Only return fonts with names starting with @ if they were
+     explicitly specified, since Microsoft uses an initial @ to
+     denote fonts for vertical writing, without providing a more
+     convenient way of identifying them.  */
+  if (lplf->elfLogFont.lfFaceName[0] == '@'
+      && lpef->logfont.lfFaceName[0] != '@')
     return 1;
 
   /* Check that the character set matches if it was specified */
@@ -6728,7 +6734,7 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
 
     /* TODO: List all relevant charsets if charset not specified. */
     if (!w32_to_x_font (&(lplf->elfLogFont), buf, 100, charset))
-      return 0;
+      return 1;
 
     if (NILP (*(lpef->pattern))
         || w32_font_match (buf, XSTRING (*(lpef->pattern))->data))
