@@ -1,6 +1,6 @@
 /* impl.c.awlut: POOL CLASS AWL UNIT TEST
  *
- * $HopeName: MMsrc!awlut.c(trunk.9) $
+ * $HopeName: MMsrc!awlut.c(trunk.10) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -36,35 +36,42 @@
 
 static mps_word_t bogus_class;
 
+#define UNINIT 0x041412ED
 
 static mps_word_t wrapper_wrapper[] = {
-  (mps_word_t)wrapper_wrapper,	/* wrapper */
-  (mps_word_t)&bogus_class,	/* class */
+  UNINIT,                       /* wrapper */
+  UNINIT,                       /* class */
   0,                            /* Extra word */
-  4uL<<2|2,			/* F */
-  2uL<<(MPS_WORD_WIDTH - 8),	/* V */
-  1uL<<2|1,			/* VL */
-  1				/* patterns */
+  4uL<<2|2,                     /* F */
+  2uL<<(MPS_WORD_WIDTH - 8),    /* V */
+  1uL<<2|1,                     /* VL */
+  1                             /* patterns */
 };
 
 
 static mps_word_t string_wrapper[] = {
-  (mps_word_t)wrapper_wrapper,	/* wrapper */
-  (mps_word_t)&bogus_class,	/* class */
+  UNINIT,                       /* wrapper */
+  UNINIT,                       /* class */
   0,                            /* extra word */
-  0,				/* F */
-  2uL<<(MPS_WORD_WIDTH - 8)|3uL<<3|4,	/* V */
-  1				/* VL */
+  0,                            /* F */
+  2uL<<(MPS_WORD_WIDTH - 8)|3uL<<3|4,   /* V */
+  1                             /* VL */
 };
 
 static mps_word_t table_wrapper[] = {
-  (mps_word_t)wrapper_wrapper,  /* wrapper */
-  (mps_word_t)&bogus_class,	/* class */
+  UNINIT,                       /* wrapper */
+  UNINIT,                       /* class */
   0,                            /* extra word */
-  1uL<<2|1,			/* F */
-  2uL<<(MPS_WORD_WIDTH - 8)|2,	/* V */
-  1				/* VL */
+  1uL<<2|1,                     /* F */
+  2uL<<(MPS_WORD_WIDTH - 8)|2,  /* V */
+  1                             /* VL */
 };
+
+void initialise_wrapper(mps_word_t *wrapper)
+{
+  wrapper[0] = (mps_word_t)&wrapper_wrapper;
+  wrapper[1] = (mps_word_t)&bogus_class;
+}
 
 #define DYLAN_ALIGN 4 /* depends on value defined in fmtdy.c */
 
@@ -81,7 +88,7 @@ static mps_word_t *alloc_string(char *s, mps_ap_t ap)
   l = strlen(s)+1;
   /* number of words * sizeof word */
   objsize = (2 + (l+sizeof(mps_word_t)-1)/sizeof(mps_word_t)) *
-	    sizeof(mps_word_t);
+            sizeof(mps_word_t);
   objsize = (objsize + DYLAN_ALIGN-1)/DYLAN_ALIGN*DYLAN_ALIGN;
   do {
     size_t i;
@@ -136,7 +143,7 @@ static mps_word_t *table_slot(mps_word_t *table, unsigned long n)
  * .assume.dylan-obj
  */
 static void set_table_slot(mps_word_t *table,
-			   unsigned long n, mps_word_t *p)
+                           unsigned long n, mps_word_t *p)
 {
   assert(table[0] == (mps_word_t)table_wrapper);
   table[3+n] = (mps_word_t)p;
@@ -157,8 +164,8 @@ static void test(mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap)
 {
   mps_word_t *weaktable;
   mps_word_t *exacttable;
-  mps_word_t *preserve[TABLE_SLOTS];	/* preserves objects in the weak */
-				        /* table by referring to them */
+  mps_word_t *preserve[TABLE_SLOTS];    /* preserves objects in the weak */
+                                        /* table by referring to them */
   unsigned long i, j;
 
   exacttable = alloc_table(TABLE_SLOTS, exactap);
@@ -190,17 +197,17 @@ static void test(mps_ap_t leafap, mps_ap_t exactap, mps_ap_t weakap)
   for(i = 0; i < TABLE_SLOTS; ++i) {
     if(preserve[i] == 0) {
       if(table_slot(weaktable, i)) {
-	fprintf(stdout,
-		"Strongly unreachable weak table entry found, "
-	        "slot %lu.\n",
-		i);
+        fprintf(stdout,
+                "Strongly unreachable weak table entry found, "
+                "slot %lu.\n",
+                i);
       } else {
-	if(table_slot(exacttable, i) != 0) {
-	  fprintf(stdout,
-		  "Weak table entry deleted, but corresponding "
-		  "exact table entry not deleted, slot %lu.\n",
-		  i);
-	}
+        if(table_slot(exacttable, i) != 0) {
+          fprintf(stdout,
+                  "Weak table entry deleted, but corresponding "
+                  "exact table entry not deleted, slot %lu.\n",
+                  i);
+        }
       }
     }
   }
@@ -236,7 +243,7 @@ static void *setup(void *v, size_t s)
   thr = guff->thr;
 
   die(mps_root_create_reg(&stack, space, MPS_RANK_AMBIG, 0, thr,
-			  mps_stack_scan_ambig, v, 0),
+                          mps_stack_scan_ambig, v, 0),
       "Root Create\n");
   die(mps_fmt_create_A(&dylanfmt, space, dylan_fmt_A()),
       "Format Create\n");
@@ -274,6 +281,10 @@ int main(void)
   mps_space_t space;
   mps_thr_t thread;
   void *r;
+
+  initialise_wrapper(wrapper_wrapper);
+  initialise_wrapper(string_wrapper);
+  initialise_wrapper(table_wrapper);
 
   die(mps_space_create(&space), "space_create");
   die(mps_thread_reg(&thread, space), "thread_reg");
