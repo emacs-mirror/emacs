@@ -24,7 +24,7 @@ Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
+Manual,'' and with the Back-Cover Texts as in (a) below.  A copy of the
 license is included in the section entitled ``GNU Free Documentation
 License'' in the Emacs manual.
 
@@ -625,7 +625,7 @@ The following function is supplied to deal with these:
 @defun binhex-decode-region start end &optional header-only
 Decode the encoded text in the region @var{start} to @var{end}.  If
 @var{header-only} is non-@code{nil}, only decode the @samp{binhex}
-header and return the filename.
+header and return the file name.
 @end defun
 
 
