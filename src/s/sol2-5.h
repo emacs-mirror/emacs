@@ -9,7 +9,9 @@
 #define LIBXT_STATIC
 
 #ifdef __GNUC__
-#define STATIC_OPTION -static
+#define STATIC_OPTION -Xlinker -Bstatic
+#define DYNAMIC_OPTION -Xlinker -Bdynamic
 #else
 #define STATIC_OPTION -Bstatic
+#define DYNAMIC_OPTION -Bdynamic
 #endif
