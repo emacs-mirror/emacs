@@ -1,5 +1,9 @@
 2004-09-08  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* info.el (Info-insert-dir): Fix temp buffer leak bug.
+
+2004-09-08  Thien-Thi Nguyen  <ttn@gnu.org>
+
 	* play/blackbox.el (bb-trace-ray): Avoid double tracing.
 
 2004-09-08  Kenichi Handa  <handa@m17n.org>
