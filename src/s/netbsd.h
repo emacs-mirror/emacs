@@ -28,7 +28,7 @@
 
 #define LIBS_DEBUG
 /* -lutil is not needed for NetBSD >0.9.  */
-#define LIBS_SYSTEM -lutil
+/* #define LIBS_SYSTEM -lutil */
 #define LIBS_TERMCAP -ltermcap
 
 #define NEED_ERRNO
@@ -58,3 +58,5 @@
 
 #define HAVE_WAIT_HEADER
 #define WAIT_USE_INT
+
+#define NO_MATHERR
