@@ -251,6 +251,9 @@ Boston, MA 02111-1307, USA.  */
 /* alane@wozzle.linet.org says that -lipc is not a separate library,
    since libc-4.4.1.  So -lipc was deleted.  */
 #define LIBS_SYSTEM
+/* _BSD_SOURCE is redundant, at least in glibc2, since we define
+   _GNU_SOURCE.  Left in in case it's relevant to libc5 systems and
+   anyone's still using Emacs on those.  --fx 2002-12-14  */
 #define C_SWITCH_SYSTEM -D_BSD_SOURCE
 #endif
 
@@ -332,13 +335,17 @@ Boston, MA 02111-1307, USA.  */
 /* Tell that garbage collector that setjmp is known to save all
    registers relevant for conservative garbage collection in the
    jmp_buf.  */
-/* m68k and alpha aren't tested, but there are Debian packages for SCM
-   and/or Guile on them, so the technique must work.  */
-
+/* Not all the architectures are tested, but there are Debian packages
+   for SCM and/or Guile on them, so the technique must work.  See also
+   comments in alloc.c concerning setjmp and gcc.  Fixme:  it's
+   probably safe to make this conditional just on GCC, except for ia64
+   register window-flushing.  */
 /* Don't use #cpu here since in newest development versions of GCC,
    we must call cpp with -traditional, and that disables #cpu.  */
 
-#if defined __i386__ || defined __sparc__ || defined __mc68000__ || defined __alpha__
+#if defined __i386__ || defined __sparc__ || defined __mc68000__ \
+    || defined __alpha__ || defined __mips__ || defined __s390__ \
+    || defined __arm__ || defined __powerpc__
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
 #ifdef __mc68000__
