@@ -82,7 +82,7 @@ screens, and none if you don't use a window system.")
   "Highlight C code according to preprocessor conditionals.
 This command pops up a buffer which you should edit to specify
 what kind of highlighting to use, and the criteria for highlighting.
-A prefix arg supresses display of that buffer."
+A prefix arg suppresses display of that buffer."
   (interactive "P")
   (setq cpp-parse-symbols nil)
   (cpp-parse-reset)
@@ -146,10 +146,15 @@ A prefix arg supresses display of that buffer."
       (cpp-parse-edit)))
 
 (defun cpp-parse-open (branch expr begin end)
-  ;; Push information about conditional to stack.
+  "Push information about conditional-beginning onto stack."
+  ;; Discard comments within this line.
   (while (string-match "\\b[ \t]*/\\*.*\\*/[ \t]*\\b" expr)
     (setq expr (concat (substring expr 0 (match-beginning 0))
 		       (substring expr (match-end 0)))))
+  ;; If a comment starts on this line and continues past, discard it.
+  (if (string-match "\\b[ \t]*/\\*" expr)
+      (setq expr (substring expr 0 (match-beginning 0))))
+  ;; Delete any C++ comment from the line.
   (if (string-match "\\b[ \t]*\\(//.*\\)?$" expr)
       (setq expr (substring expr 0 (match-beginning 0))))
   (while (string-match "[ \t]+" expr)
@@ -204,7 +209,7 @@ A prefix arg supresses display of that buffer."
   "Edit display information for cpp conditionals."
   (interactive)
   (or cpp-parse-symbols
-      (cpp-parse-buffer t))
+      (cpp-highlight-buffer t))
   (let ((buffer (current-buffer)))
     (pop-to-buffer "*CPP Edit*")
     (cpp-edit-mode)
@@ -352,7 +357,7 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
   "Apply edited display information to original buffer."
   (interactive)
   (cpp-edit-home)
-  (cpp-parse-buffer t))
+  (cpp-highlight-buffer t))
 
 (defun cpp-edit-reset ()
   "Reset display information from original buffer."
@@ -369,16 +374,18 @@ You can also use the keyboard accelerators indicated like this: [K]ey."
     (erase-buffer)
     (insert "CPP Display Information for `")
     (cpp-make-button (buffer-name cpp-edit-buffer) 'cpp-edit-home)
-    (insert "' ")
-    (cpp-make-button "[H]ome" 'cpp-edit-home)
-    (insert " ")
-    (cpp-make-button "[A]pply" 'cpp-edit-apply)
-    (insert " ")
-    (cpp-make-button "[S]ave" 'cpp-edit-save)
-    (insert " ")
-    (cpp-make-button "[L]oad" 'cpp-edit-load)
     (insert "\n\nClick mouse-2 on item you want to change or use\n"
-	    "keyboard equivalent indicated with brackets like [T]his.\n\n")
+	    "or switch to this buffer and type the keyboard equivalents.\n"
+	    "Keyboard equivalents are indicated with brackets like [T]his.\n\n")
+    (cpp-make-button "[H]ome (display the C file)" 'cpp-edit-home)
+    (insert "  ")
+    (cpp-make-button "[A]pply new settings" 'cpp-edit-apply)
+    (insert "\n")
+    (cpp-make-button "[S]ave settings" 'cpp-edit-save)
+    (insert "  ")
+    (cpp-make-button "[L]oad settings" 'cpp-edit-load)
+    (insert "\n\n")
+
     (insert "[B]ackground: ")
     (cpp-make-button (car (rassq cpp-face-type cpp-face-type-list))
 		     'cpp-edit-background)
