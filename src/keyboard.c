@@ -11413,8 +11413,11 @@ mark_kboards ()
       {
 	if (event == kbd_buffer + KBD_BUFFER_SIZE)
 	  event = kbd_buffer;
-	mark_object (event->x);
-	mark_object (event->y);
+	if (event->kind != SELECTION_REQUEST_EVENT)
+	  {
+	    mark_object (event->x);
+	    mark_object (event->y);
+	  }
 	mark_object (event->frame_or_window);
 	mark_object (event->arg);
       }
