@@ -49,7 +49,9 @@ extern sigset_t sys_sigmask ();
 #endif /* ! defined (__GNUC__) */
 #endif
 
+#ifndef sigpause
 #define sigpause(SIG)    sys_sigpause (SIG)
+#endif
 #define sigblock(SIG)    sys_sigblock (SIG)
 #define sigunblock(SIG)  sys_sigunblock (SIG)
 #ifndef sigsetmask
