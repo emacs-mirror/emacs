@@ -1612,7 +1612,11 @@ Cambridge, MA 02139, USA.
 #if defined (__GNU_LIBRARY__) || defined (_LIBC)
 #include <stddef.h>
 #include <sys/cdefs.h>
+#if defined (__GLIBC__) && __GLIBC__ >= 2
+/* __getpagesize is already declared in <unistd.h> with return type int */
+#else
 extern size_t __getpagesize __P ((void));
+#endif
 #else
 #include "getpagesize.h"
 #define	 __getpagesize()	getpagesize()
