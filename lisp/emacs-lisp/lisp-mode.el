@@ -377,7 +377,7 @@ With argument, print output into current buffer."
 
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.
-With argument, print output into current buffer."
+Interactively, with prefix argument, print output into current buffer."
   (interactive "P")
   (if (null eval-expression-debug-on-error)
       (eval-last-sexp-1 eval-last-sexp-arg-internal)
