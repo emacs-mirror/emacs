@@ -1,3 +1,14 @@
+2001-07-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (get_next_display_element): Use CHAR_STRING_NO_SIGNAL
+	instead of CHAR_STRING which can signal an error.
+
+	* charset.c (char_to_string_1): Extracted from char_to_string.
+	Return -1 instead of signaling an error.
+	(char_to_string): Use it.
+
+	* charset.h (CHAR_STRING_NO_SIGNAL): New macro.
+
 2001-07-12  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* coding.c (Ffind_coding_systems_region_internal): If safe_codings
