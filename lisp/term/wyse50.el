@@ -1,10 +1,42 @@
-;;;; Terminal mode for Wyse 50
-;;;; Should work well for Televideo TVI 925 although it's overkill
-;;;; Author Daniel Pfieffer (pfieffer@cix.cict.fr) January 1991
-;;;; Rewritten for Emacs 19 by Jim Blandy (jimb@occs.cs.oberlin.edu)
-;;;;   January 1992
+;;; wyse50.el --- terminal support code for Wyse 50
 
-
+;; Author: Daniel Pfieffer <pfieffer@cix.cict.fr> January 1991
+;;	Jim Blandy <jimb@occs.cs.oberlin.edu>
+;; Keywords: terminals
+
+;; Copyright (C) 1989 Free Software Foundation, Inc.
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY.  No author or distributor
+;; accepts responsibility to anyone for the consequences of using it
+;; or for whether it serves any particular purpose or works at all,
+;; unless he says so in writing.  Refer to the GNU Emacs General Public
+;; License for full details.
+
+;; Everyone is granted permission to copy, modify and redistribute
+;; GNU Emacs, but only under the conditions described in the
+;; GNU Emacs General Public License.   A copy of this license is
+;; supposed to have been given to you along with GNU Emacs so you
+;; can know your rights and responsibilities.  It should be in a
+;; file named COPYING.  Among other things, the copyright notice
+;; and this notice must be preserved on all copies.
+
+;;; Commentary:
+
+;; Uses the Emacs 19 terminal initialization features --- won't work with 18.
+;; Rewritten for Emacs 19 by jimb,  January 1992
+;; Cleaned up for new terminal package cinventions by esr, March 1993
+;; Should work well for Televideo TVI 925 although it's overkill.
+;;
+;; The Wyse50 is ergonomically wonderful, but its escape-sequence design sucks
+;; rocks.  The left-arrow key emits a backspace (!) and the down-arrow a line
+;; feed (!!).  Thus, you have to unbind some commonly-used Emacs keys to
+;; enable the arrows.
+
+;;; Code:
+
 ;;; Functions especially for this terminal.
 
 (defun wyse-50-insert-line ()
@@ -61,91 +93,95 @@ With an argument N, move to the Nth line from the bottom of the window."
 (mapcar (function (lambda (key-definition)
 		    (define-key function-key-map
 		      (car key-definition) (nth 1 key-definition))))
-	'(("\eI" [S-tab])
-	  ("\eJ" [S-prior])
-	  ("\eK" [next])
-	  ("\eY" [clear])
-	  ("\eT" [clear-eol])
-	  ("\^^" [home])
-	  ("\e\^^" [home-down])
-	  ("\eQ" [insert])
-	  ("\eE" [insertline])
-	  ("\eW" [?\C-?])
-	  ("\eR" [deleteline])
-	  ("\eP" [print])
-	  ("\C-k" [up])
-	  ("\C-j" [down])
-	  ("\C-l" [right])
-	  ("\C-h" [left])
-	  ("\C-a\C-k\C-m" [funct-up])
-	  ("\C-a\C-j\C-m" [funct-down])
-	  ("\C-a\C-l\C-m" [funct-right])
-	  ("\C-a\C-h\C-m" [funct-left])
-	  ("\er" [replace])
-	  ("\^a\^m\^m" [funct-return])
-	  ("\^a\^i\^m" [funct-tab])
-	  ("\^a@\^m" [f1])
-	  ("\^a`\^m" [S-f1])
-	  ("\^aA\^m" [f2])
-	  ("\^aa\^m" [S-f2])
-	  ("\^aB\^m" [f3])
-	  ("\^ab\^m" [S-f3])
-	  ("\^aC\^m" [f4])
-	  ("\^ac\^m" [S-f4])
-	  ("\^aD\^m" [f5])
-	  ("\^ad\^m" [S-f5])
-	  ("\^aE\^m" [f6])
-	  ("\^ae\^m" [S-f6])
-	  ("\^aF\^m" [f7])
-	  ("\^af\^m" [S-f7])
-	  ("\^aG\^m" [f8])
-	  ("\^ag\^m" [S-f8])
-	  ("\^aH\^m" [f9])
-	  ("\^ah\^m" [S-f9])
-	  ("\^aI\^m" [f10])
-	  ("\^ai\^m" [S-f10])
-	  ("\^aJ\^m" [f11])
-	  ("\^aj\^m" [S-f11])
-	  ("\^aK\^m" [f12])
-	  ("\^ak\^m" [S-f12])
-	  ("\^aL\^m" [f13])
-	  ("\^al\^m" [S-f13])
-	  ("\^aM\^m" [f14])
-	  ("\^am\^m" [S-f14])
-	  ("\^aN\^m" [f15])
-	  ("\^an\^m" [S-f15])
-	  ("\^aO\^m" [f16])
-	  ("\^ao\^m" [S-f16])))
+	'(
+	  ;; These might be set up by termcap and terminfo
+	  ("\C-k"	[up])
+	  ("\C-j"	[down])
+	  ("\C-l"	[right])
+	  ("\C-h"	[left])
+	  ("\^a@\^m"	[f1])
+	  ("\^aA\^m"	[f2])
+	  ("\^aB\^m"	[f3])
+	  ("\^aC\^m"	[f4])
+	  ("\^aD\^m"	[f5])
+	  ("\^aE\^m"	[f6])
+	  ("\^aF\^m"	[f7])
+	  ("\^aG\^m"	[f8])
+	  ("\^aH\^m"	[f9])
 
-
-;;; Define some of the function keys.
-(mapcar (function (lambda (key-definition)
-		    (global-set-key (car key-definition)
-		     (nth 1 key-definition))))
-	'(([insertline]	 wyse-50-insert-line)
-	  ([clear]	 recenter)
-	  ([clear-eol]   kill-line)
-	  ([home]        execute-extended-command)
-	  ([home-down]	 shell-command)
-	  ([insert]	 wyse-50-insert-char)
-	  ([deleteline]	 wyse-50-delete-line)
-	  ([replace]	 overwrite-mode)
-	  ([print]	 wyse-50-print-buffer)
-	  ([funct-up]	 wyse-50-top-of-window)
-	  ([funct-down]  wyse-50-bottom-of-window)
-	  ([funct-left]  beginning-of-line)
-	  ([funct-right] end-of-line)
-	  ([f5]		 shell)
-	  ([f6]		 dired)
-	  ([f7]		 rnews)
-	  ([f8]		 rmail)
-	  ([f9]		 delete-othe-windows)
-	  ([f10]	 other-window)
-	  ([f11]	 split-window-vertically)
-	  ([f13]	 help-for-help)
-	  ([f14]	 wyse-50-toggle-screen-width)
-	  ([f15]	 global-set-key)
-	  ("\M-?"	 help-for-help)))
+	  ;; These might be set up by terminfo
+	  ("\eK"	[next])
+	  ("\eT"	[clearline])
+	  ("\^^"	[home])
+	  ("\e\^^"	[end])
+	  ("\eQ"	[insert])
+	  ("\eE"	[insertline])
+	  ("\eR"	[deleteline])
+	  ("\eP"	[print])
+	  ("\er"	[replace])
+	  ("\^aI\^m"	[f10])
+	  ("\^aJ\^m"	[f11])
+	  ("\^aK\^m"	[f12])
+	  ("\^aL\^m"	[f13])
+	  ("\^aM\^m"	[f14])
+	  ("\^aN\^m"	[f15])
+	  ("\^aO\^m"	[f16])
+	  ("\^a`\^m"	[f17])
+	  ("\^aa\^m"	[f18])
+	  ("\^ab\^m"	[f19])
+	  ("\^ac\^m"	[f20])
+	  ("\^ad\^m"	[f21])
+	  ("\^ae\^m"	[f22])
+	  ("\^af\^m"	[f23])
+	  ("\^ag\^m"	[f24])
+	  ("\^ah\^m"	[f25])
+	  ("\^ai\^m"	[f26])
+	  ("\^aj\^m"	[f27])
+	  ("\^ak\^m"	[f28])
+	  ("\^al\^m"	[f29])
+	  ("\^am\^m"	[f30])
+	  ("\^an\^m"	[f31])
+	  ("\^ao\^m"	[f32])
+
+	  ;; Terminfo may know about these, but X won't
+	  ("\eI"	[key-stab])		;; Not an X keysym
+	  ("\eJ"	[key-snext])		;; Not an X keysym
+	  ("\eY"	[key-clear])		;; Not an X keysym
+
+	  ;; These are totally strange :-)
+	  ("\eW"	[?\C-?])	;; Not an X keysym
+	  ("\^a\^k\^m"	[funct-up])	;; Not an X keysym
+	  ("\^a\^j\^m"	[funct-down])	;; Not an X keysym
+	  ("\^a\^l\^m"	[funct-right])	;; Not an X keysym
+	  ("\^a\^h\^m"	[funct-left])	;; Not an X keysym
+	  ("\^a\^m\^m"	[funct-return])	;; Not an X keysym
+	  ("\^a\^i\^m"	[funct-tab])	;; Not an X keysym
+))
+
+(defun enable-arrow-keys ()
+  "To be called by term-setup-hook. Overrides 6 Emacs standard keys
+whose functions are then typed as follows:
+C-a	Funct Left-arrow
+C-h	M-?
+LFD	Funct Return, some modes override down-arrow via LFD
+C-k	CLR Line
+C-l	Scrn CLR
+M-r	M-x move-to-window-line, Funct up-arrow or down-arrow are similar
+"
+  (interactive)
+  (mapcar (function (lambda (key-definition)
+		      (global-set-key (car key-definition)
+				      (nth 1 key-definition))))
+	  ;; By unsetting C-a and then binding it to a prefix, we
+	  ;; allow the rest of the function keys which start with C-a
+	  ;; to be recognized.
+	  '(("\C-a"	nil)
+	    ("\C-k"	nil)
+	    ("\C-j"	nil)
+	    ("\C-l"	nil)
+	    ("\C-h"	nil)
+	    ("\er"	nil)))
+  (fset 'enable-arrow-keys nil))
 
 
 ;;; Miscellaneous hacks
@@ -164,29 +200,4 @@ With an argument N, move to the Nth line from the bottom of the window."
 		  (send-string-to-terminal
 		   (concat "\ea23R" (1+ (frame-width)) "C\eG0")))))
 
-(defun enable-arrow-keys ()
-  "To be called by term-setup-hook. Overrides 6 Emacs standard keys
-whose functions are then typed as follows:
-C-a	Funct Left-arrow
-C-h	M-?
-LFD	Funct Return, some modes override down-arrow via LFD
-C-k	CLR Line
-C-l	Scrn CLR
-M-r	M-x move-to-window-line, Funct up-arrow or down-arrow are similar
-All special keys except Send, Shift Ins, Shift Home and shifted functions keys
-are assigned some hopefully useful meaning."
-  (interactive)
-  (mapcar (function (lambda (key-definition)
-		      (global-set-key (car key-definition)
-				      (nth 1 key-definition))))
-	  ;; By unsetting C-a and then binding it to a prefix, we
-	  ;; allow the rest of the function keys which start with C-a
-	  ;; to be recognized.
-	  '(("\C-a"	nil)
-	    ("\C-a\C-a"	beginning-of-line)
-	    ("\C-k"	nil)
-	    ("\C-j"	nil)
-	    ("\C-l"	nil)
-	    ("\C-h"	nil)
-	    ("\er"	nil)))
-  (fset 'enable-arrow-keys nil))
+;;; wyse50.el ends here
