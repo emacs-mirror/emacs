@@ -1,6 +1,6 @@
 ;;; help.el --- help commands for Emacs
 
-;; Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1993 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -30,7 +30,7 @@
 
 ;; Get the macro make-help-screen when this is compiled,
 ;; or run interpreted, but not when the compiled code is loaded.
-(eval-when-compile (require 'help-screen))
+(eval-when-compile (require 'help-macro))
 
 (defvar help-map (make-sparse-keymap)
   "Keymap for characters following the Help key.")
