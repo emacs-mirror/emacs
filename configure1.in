@@ -639,24 +639,6 @@ case "${configuration}" in
     machine=symmetry opsys=bsd4-3
   ;;
 
-  ## Intel 386 machines where we don't care about the manufacturer
-  i[34]86-*-* )
-    machine=intel386
-    case "${configuration}" in
-      *-isc1.* | *-isc2.[01]* )	opsys=386-ix ;;
-      *-isc2.2 )		opsys=isc2-2 ;;
-      *-isc* )			opsys=isc3-0 ;;
-      *-esix5* )		opsys=esix5r4 ;;
-      *-esix* )			opsys=esix ;;
-      *-xenix* )		opsys=xenix ;;
-      *-linux* )		opsys=linux ;;
-      *-sco3.2v4* )		opsys=sco4 ;;
-      *-bsd386* )		opsys=bsd386 ;;
-      *-386bsd )	        opsys=386bsd ;;
-      ## Otherwise, we'll fall through to the generic opsys code at the bottom.
-    esac
-  ;;
-
   ## Intel 860
   i860-*-sysvr4 )
     machine=i860 opsys=usg5-4
@@ -865,6 +847,24 @@ case "${configuration}" in
   ## Wicat
   m68*-wicat-sysv* )
     machine=wicat opsys=usg5-2
+  ;;
+
+  ## Intel 386 machines where we don't care about the manufacturer
+  i[34]86-*-* )
+    machine=intel386
+    case "${configuration}" in
+      *-isc1.* | *-isc2.[01]* )	opsys=386-ix ;;
+      *-isc2.2 )		opsys=isc2-2 ;;
+      *-isc* )			opsys=isc3-0 ;;
+      *-esix5* )		opsys=esix5r4 ;;
+      *-esix* )			opsys=esix ;;
+      *-xenix* )		opsys=xenix ;;
+      *-linux* )		opsys=linux ;;
+      *-sco3.2v4* )		opsys=sco4 ;;
+      *-bsd386* )		opsys=bsd386 ;;
+      *-386bsd )	        opsys=386bsd ;;
+      ## Otherwise, we'll fall through to the generic opsys code at the bottom.
+    esac
   ;;
 
   * )
