@@ -1,3 +1,57 @@
+2005-01-14  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Accessing Events): Add WHOLE arg to posn-at-x-y.
+
+	* text.texi (Links and Mouse-1): Fix string and vector item.
+
+2005-01-13  Richard M. Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Active Keymaps): Rewrite the text, and update the
+	descriptions of overriding-local-map and overriding-terminal-local-map.
+
+	* text.texi (Links and Mouse-1): Clarify text.
+
+2005-01-13  Kim F. Storm  <storm@cua.dk>
+
+	* modes.texi (Emulating Mode Line): Update format-mode-line entry.
+
+2005-01-13  Francis Litterio  <franl@world.std.com>  (tiny change)
+
+	* keymaps.texi (Active Keymaps): Fix overriding-local-map description.
+
+2005-01-12  Kim F. Storm  <storm@cua.dk>
+
+	* text.texi (Links and Mouse-1): Rename section from Enabling
+	Mouse-1 to Following Links.  Change xrefs.
+	Add examples for define-button-type and define-widget.
+
+	* display.texi (Button Properties, Button Buffer Commands):
+	Clarify mouse-1 and follow-link functionality.
+
+2005-01-12  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Enabling Mouse-1 to Follow Links): Redo prev. change.
+
+	* display.texi (Beeping): Fix Texinfo usage.
+
+	* modes.texi (Emulating Mode Line): Doc FACE arg in format-header-line.
+
+2005-01-11  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Button Properties, Button Buffer Commands):
+	Mention mouse-1 binding.  Add follow-link keyword.
+
+	* text.texi (Text Properties): Add "Enable Mouse-1" to submenu.
+	(Enabling Mouse-1 to Follow Links): New subsection.
+
+2005-01-06  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Special Properties): Minor change.
+
+	* os.texi (Timers): Clarify previous change.
+
+	* modes.texi (Emulating Mode Line): format-mode-line requires 1 arg.
+
 2005-01-01  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* display.texi (Face Attributes): Correct xref to renamed node.

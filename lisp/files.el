@@ -1856,8 +1856,14 @@ mode function to use.  FUNCTION will be called, unless it is nil.
 
 If the element has the form (REGEXP FUNCTION NON-NIL), then after
 calling FUNCTION (if it's not nil), we delete the suffix that matched
-REGEXP and search the list again for another match.")
+REGEXP and search the list again for another match.
 
+If the file name matches `inhibit-first-line-modes-regexps',
+then `auto-mode-alist' is not processed.
+
+See also `interpreter-mode-alist', which detects executable script modes
+based on the interpreters they specify to run,
+and `magic-mode-alist', which determines modes based on file contents.")
 
 (defvar interpreter-mode-alist
   ;; Note: The entries for the modes defined in cc-mode.el (awk-mode
@@ -1902,11 +1908,13 @@ REGEXP and search the list again for another match.")
      ("guile" . scheme-mode)
      ("clisp" . lisp-mode)))
   "Alist mapping interpreter names to major modes.
-This alist applies to files whose first line starts with `#!'.
+This is used for files whose first lines match `auto-mode-interpreter-regexp'.
 Each element looks like (INTERPRETER . MODE).
 The car of each element is compared with
 the name of the interpreter specified in the first line.
-If it matches, mode MODE is selected.")
+If it matches, mode MODE is selected.
+
+See also `auto-mode-alist'.")
 
 (defvar inhibit-first-line-modes-regexps '("\\.tar\\'" "\\.tgz\\'")
   "List of regexps; if one matches a file name, don't look for `-*-'.")
@@ -1935,12 +1943,14 @@ with that interpreter in `interpreter-mode-alist'.")
 	(concat "\\(?:<\\?xml\\s +[^>]*>\\)?\\s *<"
 		comment-re "*"
 		"\\(?:!DOCTYPE\\s +[^>]*>\\s *<\\s *" comment-re "*\\)?"
-		"[Hh][Tt][Mm][Ll]")) . html-mode)
+		"[Hh][Tt][Mm][Ll]"))
+     . html-mode)
     ;; These two must come after html, because they are more general:
     ("<\\?xml " . xml-mode)
     (,(let* ((incomment-re "\\(?:[^-]\\|-[^-]\\)")
 	     (comment-re (concat "\\(?:!--" incomment-re "*-->\\s *<\\)")))
-	(concat "\\s *<" comment-re "*!DOCTYPE ")) . sgml-mode)
+	(concat "\\s *<" comment-re "*!DOCTYPE "))
+     . sgml-mode)
     ("%![^V]" . ps-mode)
     ("# xmcd " . conf-unix-mode))
   "Alist of buffer beginnings vs. corresponding major mode functions.
@@ -2202,86 +2212,86 @@ is specified, returning t if it is specified."
     (save-excursion
       (goto-char (point-max))
       (search-backward "\n\^L" (max (- (point-max) 3000) (point-min)) 'move)
-      (if (let ((case-fold-search t))
-	    (and (search-forward "Local Variables:" nil t)
-		 (or (eq enable-local-variables t)
-		     mode-only
-		     (and enable-local-variables
-			  (save-window-excursion
-			    (switch-to-buffer (current-buffer))
-			    (save-excursion
-			      (beginning-of-line)
-			      (set-window-start (selected-window) (point)))
-			    (y-or-n-p (format "Set local variables as specified at end of %s? "
-					      (if buffer-file-name
-						  (file-name-nondirectory
-						   buffer-file-name)
-						(concat "buffer "
-							(buffer-name))))))))))
-	  (skip-chars-forward " \t")
-	  (let ((enable-local-eval enable-local-eval)
-		;; suffix is what comes after "local variables:" in its line.
-		(suffix
-		 (concat
-		  (regexp-quote (buffer-substring (point) (line-end-position)))
-		  "$"))
-		;; prefix is what comes before "local variables:" in its line.
-		(prefix
-		 (concat "^" (regexp-quote
-			      (buffer-substring (line-beginning-position)
-						(match-beginning 0)))))
-		beg)
+      (when (let ((case-fold-search t))
+	      (and (search-forward "Local Variables:" nil t)
+		   (or (eq enable-local-variables t)
+		       mode-only
+		       (and enable-local-variables
+			    (save-window-excursion
+			      (switch-to-buffer (current-buffer))
+			      (save-excursion
+				(beginning-of-line)
+				(set-window-start (selected-window) (point)))
+			      (y-or-n-p (format "Set local variables as specified at end of %s? "
+						(if buffer-file-name
+						    (file-name-nondirectory
+						     buffer-file-name)
+						  (concat "buffer "
+							  (buffer-name))))))))))
+	(skip-chars-forward " \t")
+	(let ((enable-local-eval enable-local-eval)
+	      ;; suffix is what comes after "local variables:" in its line.
+	      (suffix
+	       (concat
+		(regexp-quote (buffer-substring (point) (line-end-position)))
+		"$"))
+	      ;; prefix is what comes before "local variables:" in its line.
+	      (prefix
+	       (concat "^" (regexp-quote
+			    (buffer-substring (line-beginning-position)
+					      (match-beginning 0)))))
+	      beg)
 
-	    (forward-line 1)
-	    (let ((startpos (point))
-		  endpos
-		  (thisbuf (current-buffer)))
-	      (save-excursion
-		(if (not (re-search-forward
-			  (concat prefix "[ \t]*End:[ \t]*" suffix)
-			  nil t))
-		    (error "Local variables list is not properly terminated"))
-		(beginning-of-line)
-		(setq endpos (point)))
+	  (forward-line 1)
+	  (let ((startpos (point))
+		endpos
+		(thisbuf (current-buffer)))
+	    (save-excursion
+	      (if (not (re-search-forward
+			(concat prefix "[ \t]*End:[ \t]*" suffix)
+			nil t))
+		  (error "Local variables list is not properly terminated"))
+	      (beginning-of-line)
+	      (setq endpos (point)))
 
-	      (with-temp-buffer
-		(insert-buffer-substring thisbuf startpos endpos)
-		(goto-char (point-min))
-		(subst-char-in-region (point) (point-max) ?\^m ?\n)
-		(while (not (eobp))
-		  ;; Discard the prefix.
-		  (if (looking-at prefix)
-		      (delete-region (point) (match-end 0))
-		    (error "Local variables entry is missing the prefix"))
-		  (end-of-line)
-		  ;; Discard the suffix.
-		  (if (looking-back suffix)
-		      (delete-region (match-beginning 0) (point))
-		    (error "Local variables entry is missing the suffix"))
-		  (forward-line 1))
-		(goto-char (point-min))
+	    (with-temp-buffer
+	      (insert-buffer-substring thisbuf startpos endpos)
+	      (goto-char (point-min))
+	      (subst-char-in-region (point) (point-max) ?\^m ?\n)
+	      (while (not (eobp))
+		;; Discard the prefix.
+		(if (looking-at prefix)
+		    (delete-region (point) (match-end 0))
+		  (error "Local variables entry is missing the prefix"))
+		(end-of-line)
+		;; Discard the suffix.
+		(if (looking-back suffix)
+		    (delete-region (match-beginning 0) (point))
+		  (error "Local variables entry is missing the suffix"))
+		(forward-line 1))
+	      (goto-char (point-min))
 
-		(while (not (eobp))
-		  ;; Find the variable name; strip whitespace.
-		  (skip-chars-forward " \t")
-		  (setq beg (point))
-		  (skip-chars-forward "^:\n")
-		  (if (eolp) (error "Missing colon in local variables entry"))
-		  (skip-chars-backward " \t")
-		  (let* ((str (buffer-substring beg (point)))
-			 (var (read str))
-			 val)
-		    ;; Read the variable value.
-		    (skip-chars-forward "^:")
-		    (forward-char 1)
-		    (setq val (read (current-buffer)))
-		    (if mode-only
-			(if (eq var 'mode)
-			    (setq mode-specified t))
-		      ;; Set the variable.  "Variables" mode and eval are funny.
-		      (with-current-buffer thisbuf
-			(hack-one-local-variable var val))))
-		  (forward-line 1)))))))
+	      (while (not (eobp))
+		;; Find the variable name; strip whitespace.
+		(skip-chars-forward " \t")
+		(setq beg (point))
+		(skip-chars-forward "^:\n")
+		(if (eolp) (error "Missing colon in local variables entry"))
+		(skip-chars-backward " \t")
+		(let* ((str (buffer-substring beg (point)))
+		       (var (read str))
+		       val)
+		  ;; Read the variable value.
+		  (skip-chars-forward "^:")
+		  (forward-char 1)
+		  (setq val (read (current-buffer)))
+		  (if mode-only
+		      (if (eq var 'mode)
+			  (setq mode-specified t))
+		    ;; Set the variable.  "Variables" mode and eval are funny.
+		    (with-current-buffer thisbuf
+		      (hack-one-local-variable var val))))
+		(forward-line 1)))))))
     (unless mode-only
       (run-hooks 'hack-local-variables-hook))
     mode-specified))
@@ -3264,11 +3274,12 @@ Before and after saving the buffer, this function runs
 ;; but inhibited if one of write-file-functions returns non-nil.
 ;; It returns a value (MODES . BACKUPNAME), like backup-buffer.
 (defun basic-save-buffer-1 ()
-  (if save-buffer-coding-system
-      (let ((coding-system-for-write save-buffer-coding-system))
+  (prog1
+      (if save-buffer-coding-system
+	  (let ((coding-system-for-write save-buffer-coding-system))
+	    (basic-save-buffer-2))
 	(basic-save-buffer-2))
-    (basic-save-buffer-2))
-  (setq buffer-file-coding-system-explicit last-coding-system-used))
+    (setq buffer-file-coding-system-explicit last-coding-system-used)))
 
 ;; This returns a value (MODES . BACKUPNAME), like backup-buffer.
 (defun basic-save-buffer-2 ()
@@ -4549,7 +4560,7 @@ normally equivalent short `-D' option is just passed on to
 		    error-lines)
 		;; Find all the lines that are error messages,
 		;; and record the bounds of each one.
-		(goto-char (point-min))
+		(goto-char beg)
 		(while (< (point) linebeg)
 		  (or (eql (following-char) ?\s)
 		      (push (list (point) (line-end-position)) error-lines))
@@ -4575,11 +4586,9 @@ normally equivalent short `-D' option is just passed on to
 		      (end-of-line))))
 		(goto-char end)
 		(beginning-of-line)
-		(delete-region (point) (progn (forward-line 2) (point))))
-	      (forward-line 1)
+		(delete-region (point) (progn (forward-line 1) (point))))
 	      (if (looking-at "//DIRED-OPTIONS//")
-		  (delete-region (point) (progn (forward-line 1) (point)))
-		(forward-line 1))))
+		  (delete-region (point) (progn (forward-line 1) (point))))))
 
 	  ;; Now decode what read if necessary.
 	  (let ((coding (or coding-system-for-read

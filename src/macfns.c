@@ -55,6 +55,7 @@ static unsigned char gray_bits[] = {
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/param.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -1384,6 +1385,7 @@ x_set_foreground_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
+  struct mac_output *mac = f->output_data.mac;
   unsigned long fg, old_fg;
 
   fg = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
@@ -1392,10 +1394,28 @@ x_set_foreground_color (f, arg, oldval)
 
   if (FRAME_MAC_WINDOW (f) != 0)
     {
+      Display *dpy = FRAME_MAC_DISPLAY (f);
+
+      BLOCK_INPUT;
+      XSetForeground (dpy, mac->normal_gc, fg);
+      XSetBackground (dpy, mac->reverse_gc, fg);
+
+      if (mac->cursor_pixel == old_fg)
+	{
+	  unload_color (f, mac->cursor_pixel);
+	  mac->cursor_pixel = fg;
+	  XSetBackground (dpy, mac->cursor_gc, mac->cursor_pixel);
+	}
+
+      UNBLOCK_INPUT;
+
       update_face_from_frame_parameter (f, Qforeground_color, arg);
+
       if (FRAME_VISIBLE_P (f))
         redraw_frame (f);
     }
+
+  unload_color (f, old_fg);
 }
 
 void
@@ -1403,11 +1423,24 @@ x_set_background_color (f, arg, oldval)
      struct frame *f;
      Lisp_Object arg, oldval;
 {
-  FRAME_BACKGROUND_PIXEL (f)
-    = x_decode_color (f, arg, WHITE_PIX_DEFAULT (f));
+  struct mac_output *mac = f->output_data.mac;
+  unsigned long bg;
+
+  bg = x_decode_color (f, arg, WHITE_PIX_DEFAULT (f));
+  unload_color (f, FRAME_BACKGROUND_PIXEL (f));
+  FRAME_BACKGROUND_PIXEL (f) = bg;
 
   if (FRAME_MAC_WINDOW (f) != 0)
     {
+      Display *dpy = FRAME_MAC_DISPLAY (f);
+
+      BLOCK_INPUT;
+      XSetBackground (dpy, mac->normal_gc, bg);
+      XSetForeground (dpy, mac->reverse_gc, bg);
+      XSetWindowBackground (dpy, FRAME_MAC_WINDOW (f), bg);
+      XSetForeground (dpy, mac->cursor_gc, bg);
+
+      UNBLOCK_INPUT;
       update_face_from_frame_parameter (f, Qbackground_color, arg);
 
       if (FRAME_VISIBLE_P (f))
@@ -2295,6 +2328,10 @@ mac_window (f)
 #endif
   /* so that update events can find this mac_output struct */
   f->output_data.mac->mFP = f;  /* point back to emacs frame */
+
+  if (FRAME_MAC_WINDOW (f))
+    XSetWindowBackground (FRAME_MAC_DISPLAY(f), FRAME_MAC_WINDOW (f),
+			  FRAME_BACKGROUND_PIXEL (f));
 
   validate_x_resource_name ();
 
@@ -3855,6 +3892,8 @@ x_create_tip_frame (dpyinfo, parms, text)
 #endif
       {
 	FRAME_MAC_WINDOW (f) = tip_window;
+	XSetWindowBackground (FRAME_MAC_DISPLAY(f), tip_window,
+			      FRAME_BACKGROUND_PIXEL (f));
 	SetWRefCon (tip_window, (long) f->output_data.mac);
 	/* so that update events can find this mac_output struct */
 	f->output_data.mac->mFP = f;
@@ -4237,6 +4276,9 @@ Value is t if tooltip was open, nil otherwise.  */)
 			File selection dialog
  ***********************************************************************/
 
+static pascal void mac_nav_event_callback P_ ((NavEventCallbackMessage,
+					       NavCBRecPtr, void *));
+
 /**
    There is a relatively standard way to do this using applescript to run
    a (choose file) method.  However, this doesn't do "the right thing"
@@ -4261,8 +4303,9 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
   Lisp_Object file = Qnil;
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
-  char filename[1001];
+  char filename[MAXPATHLEN];
   int default_filter_index = 1; /* 1: All Files, 2: Directories only  */
+  static NavEventUPP mac_nav_event_callbackUPP = NULL;
 
   GCPRO6 (prompt, dir, default_filename, mustmatch, file, only_dir_p);
   CHECK_STRING (prompt);
@@ -4290,16 +4333,20 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
     options.optionFlags |= kNavSelectAllReadableItem;
     if (!NILP(prompt))
       {
-	message = cfstring_create_with_utf8_cstring (SDATA (prompt));
+	message =
+	  cfstring_create_with_utf8_cstring (SDATA (ENCODE_UTF_8 (prompt)));
 	options.message = message;
       }
     /* Don't set the application, let it use default.
     options.clientName = CFSTR ("Emacs");
     */
 
+    if (mac_nav_event_callbackUPP == NULL)
+      mac_nav_event_callbackUPP = NewNavEventUPP (mac_nav_event_callback);
+
     if (!NILP (only_dir_p))
-      status = NavCreateChooseFolderDialog(&options, NULL, NULL, NULL,
-					   &dialogRef);
+      status = NavCreateChooseFolderDialog(&options, mac_nav_event_callbackUPP,
+					   NULL, NULL, &dialogRef);
     else if (NILP (mustmatch)) 
       { 
 	/* This is a save dialog */
@@ -4309,21 +4356,26 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 
 	if (!NILP(default_filename))
 	  {
-	    saveName =
-	      cfstring_create_with_utf8_cstring (SDATA (default_filename));
+	    Lisp_Object utf8 = ENCODE_UTF_8 (default_filename);
+	    char *begPtr = SDATA(utf8);
+	    char *filePtr = begPtr + SBYTES(utf8);
+	    while (filePtr != begPtr && !IS_DIRECTORY_SEP(filePtr[-1]))
+	      filePtr--;
+	    saveName = cfstring_create_with_utf8_cstring (filePtr);
 	    options.saveFileName = saveName;
 	    options.optionFlags |= kNavSelectDefaultLocation;
 	  }
 	  status = NavCreatePutFileDialog(&options, 
 					  'TEXT', kNavGenericSignature,
-					  NULL, NULL, &dialogRef);
+					  mac_nav_event_callbackUPP, NULL,
+					  &dialogRef);
 	}
     else
       {
 	/* This is an open dialog*/
 	status = NavCreateChooseFileDialog(&options, fileTypes,
-					   NULL, NULL, NULL, NULL, 
-					   &dialogRef);
+					   mac_nav_event_callbackUPP, NULL,
+					   NULL, NULL, &dialogRef);
       }
     
     /* Set the default location and continue*/
@@ -4331,13 +4383,13 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
       if (!NILP(dir)) {
 	FSRef defLoc;
 	AEDesc defLocAed;
-	status = FSPathMakeRef(SDATA(dir), &defLoc, NULL);
+	status = FSPathMakeRef(SDATA(ENCODE_FILE(dir)), &defLoc, NULL);
 	if (status == noErr) 
 	  {
 	    AECreateDesc(typeFSRef, &defLoc, sizeof(FSRef), &defLocAed);
 	    NavCustomControl(dialogRef, kNavCtlSetLocation, (void*) &defLocAed);
+	    AEDisposeDesc(&defLocAed);
 	  }
-	AEDisposeDesc(&defLocAed);
       }
 
       status = NavDialogRun(dialogRef);
@@ -4363,7 +4415,7 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 	    status = NavDialogGetReply(dialogRef, &reply);
 	    AECoerceDesc(&reply.selection, typeFSRef, &aed);
 	    AEGetDescData(&aed, (void *) &fsRef, sizeof (FSRef));
-	    FSRefMakePath(&fsRef, (UInt8 *) filename, 1000);
+	    FSRefMakePath(&fsRef, (UInt8 *) filename, sizeof (filename));
 	    AEDisposeDesc(&aed);
 	    if (reply.saveFileName)
 	      {
@@ -4372,9 +4424,11 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 		if (len && filename[len-1] != '/')
 		  filename[len++] = '/';
 		CFStringGetCString(reply.saveFileName, filename+len, 
-				   1000-len, kCFStringEncodingUTF8);
+				   sizeof (filename) - len,
+				   kCFStringEncodingUTF8);
 	      }
-	    file = DECODE_FILE(build_string (filename));
+	    file = DECODE_FILE (make_unibyte_string (filename,
+						     strlen (filename)));
 	    NavDisposeReply(&reply);
 	  }
 	  break;
@@ -4400,6 +4454,15 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 }
 
 
+/* Need to register some event callback function for enabling drag and
+   drop in Navigation Service dialogs.  */
+static pascal void
+mac_nav_event_callback (selector, parms, data)
+     NavEventCallbackMessage selector;
+     NavCBRecPtr parms;
+     void *data ;
+{
+}
 #endif
 
 /***********************************************************************

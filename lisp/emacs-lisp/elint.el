@@ -29,7 +29,7 @@
 ;; mispellings and undefined variables, although it can also catch
 ;; function calls with the wrong number of arguments.
 
-;; Before using, call `elint-initialize' to set up som argument
+;; Before using, call `elint-initialize' to set up some argument
 ;; data. This takes a while. Then call elint-current-buffer or
 ;; elint-defun to lint a buffer or a defun.
 

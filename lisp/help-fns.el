@@ -216,6 +216,14 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
 			(intern (upcase name))))))
 		arglist)))
 
+;;; Could be this, if we make symbol-file do the work below.
+;;; (defun help-C-file-name (subr-or-var kind)
+;;;   "Return the name of the C file where SUBR-OR-VAR is defined.
+;;; KIND should be `var' for a variable or `subr' for a subroutine."
+;;;   (symbol-file (if (symbolp subr-or-var) subr-or-var
+;;; 		 (subr-name subr-or-var))
+;;; 	       (if (eq kind 'var) 'defvar 'defun)))
+
 (defun help-C-file-name (subr-or-var kind)
   "Return the name of the C file where SUBR-OR-VAR is defined.
 KIND should be `var' for a variable or `subr' for a subroutine."
@@ -231,8 +239,8 @@ KIND should be `var' for a variable or `subr' for a subroutine."
       (let ((file (catch 'loop
 		    (while t
 		      (let ((pnt (search-forward (concat "" name "\n"))))
-      (re-search-backward "S\\(.*\\)")
-      (let ((file (match-string 1)))
+			(re-search-backward "S\\(.*\\)")
+			(let ((file (match-string 1)))
 			  (if (member file build-files)
 			      (throw 'loop file)
 			    (goto-char pnt))))))))
@@ -463,9 +471,10 @@ face (according to `face-differs-from-default-p')."
 ;; Variables
 
 ;;;###autoload
-(defun variable-at-point ()
+(defun variable-at-point (&optional any-symbol)
   "Return the bound variable symbol found around point.
-Return 0 if there is no such symbol."
+Return 0 if there is no such symbol.
+If ANY-SYMBOL is non-nil, don't insist the symbol be bound."
   (or (condition-case ()
 	  (with-syntax-table emacs-lisp-mode-syntax-table
 	    (save-excursion
@@ -479,12 +488,12 @@ Return 0 if there is no such symbol."
 	(error nil))
       (let* ((str (find-tag-default))
 	     (sym (if str (intern-soft str))))
-	(if (and sym (boundp sym))
+	(if (and sym (or any-symbol (boundp sym)))
 	    sym
 	  (save-match-data
 	    (when (and str (string-match "\\`\\W*\\(.*?\\)\\W*\\'" str))
 	      (setq sym (intern-soft (match-string 1 str)))
-	      (and (boundp sym) sym)))))
+	      (and (or any-symbol (boundp sym)) sym)))))
       0))
 
 ;;;###autoload

@@ -6845,7 +6845,7 @@ input_available_signal (signo)
 #else
   SIGNAL_THREAD_CHECK (signo);
 #endif
-  
+
   if (input_available_clear_time)
     EMACS_SET_SECS_USECS (*input_available_clear_time, 0, 0);
 
@@ -10516,17 +10516,19 @@ The elements of this list correspond to the arguments of
   return Flist (sizeof (val) / sizeof (val[0]), val);
 }
 
-DEFUN ("posn-at-x-y", Fposn_at_x_y, Sposn_at_x_y, 2, 3, 0,
+DEFUN ("posn-at-x-y", Fposn_at_x_y, Sposn_at_x_y, 2, 4, 0,
        doc: /* Return position information for pixel coordinates X and Y.
 By default, X and Y are relative to text area of the selected window.
 Optional third arg FRAME_OR_WINDOW non-nil specifies frame or window.
+If optional fourth arg WHOLE is non-nil, X is relative to the left
+edge of the window.
 
 The return value is similar to a mouse click position:
    (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
     IMAGE (DX . DY) (WIDTH . HEIGHT))
 The `posn-' functions access elements of such lists.  */)
-  (x, y, frame_or_window)
-     Lisp_Object x, y, frame_or_window;
+  (x, y, frame_or_window, whole)
+     Lisp_Object x, y, frame_or_window, whole;
 {
   if (NILP (frame_or_window))
     frame_or_window = selected_window;
@@ -10539,7 +10541,10 @@ The `posn-' functions access elements of such lists.  */)
 
       w = XWINDOW (frame_or_window);
       XSETINT (x, (WINDOW_TO_FRAME_PIXEL_X (w, XINT (x))
-		   + window_box_left_offset (w, TEXT_AREA)));
+		   + (NILP (whole)
+		      ? window_box_left_offset (w, TEXT_AREA)
+		      : - (WINDOW_LEFT_SCROLL_BAR_COLS (w)
+			   * WINDOW_FRAME_COLUMN_WIDTH (w)))));
       XSETINT (y, WINDOW_TO_FRAME_PIXEL_Y (w, XINT (y)));
       frame_or_window = w->frame;
     }
@@ -10567,7 +10572,7 @@ The `posn-' functions access elements of such lists.  */)
 
   tem = Fpos_visible_in_window_p (pos, window, Qt);
   if (!NILP (tem))
-    tem = Fposn_at_x_y (XCAR (tem), XCAR (XCDR (tem)), window);
+    tem = Fposn_at_x_y (XCAR (tem), XCAR (XCDR (tem)), window, Qnil);
   return tem;
 }
 
@@ -11267,14 +11272,15 @@ The elements of the list are event types that may have menu bar bindings.  */);
 		 doc: /* Per-terminal keymap that overrides all other local keymaps.
 If this variable is non-nil, it is used as a keymap instead of the
 buffer's local map, and the minor mode keymaps and text property keymaps.
-It also overrides `overriding-local-map'.
+It also replaces `overriding-local-map'.
+
 This variable is intended to let commands such as `universal-argument'
 set up a different keymap for reading the next command.  */);
 
   DEFVAR_LISP ("overriding-local-map", &Voverriding_local_map,
 	       doc: /* Keymap that overrides all other local keymaps.
-If this variable is non-nil, it is used as a keymap instead of the
-buffer's local map, and the minor mode keymaps and text property keymaps.  */);
+If this variable is non-nil, it is used as a keymap--replacing the
+buffer's local map, the minor mode keymaps, and char property keymaps.  */);
   Voverriding_local_map = Qnil;
 
   DEFVAR_LISP ("overriding-local-map-menu-flag", &Voverriding_local_map_menu_flag,

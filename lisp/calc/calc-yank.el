@@ -430,6 +430,7 @@
 (defvar calc-edit-handler)
 (defvar calc-restore-trail)
 (defvar calc-allow-ret)
+(defvar calc-edit-top)
 
 (defun calc-edit-mode (&optional handler allow-ret title)
   "Calculator editing mode.  Press RET, LFD, or C-c C-c to finish.
@@ -464,10 +465,15 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
                                   (let ((calc-edit-handler nil))
                                     (calc-edit-finish t))
                                   (message "(Cancelled)")) t t)
-    (insert (or title title "Calc Edit Mode. ")
-	    "Press `C-c C-c'"
-            (if allow-ret "" " or RET")
-	    " to finish, `C-x k RET' to cancel.\n")))
+    (insert (propertize
+             (concat 
+              (or title title "Calc Edit Mode. ")
+              "Press `C-c C-c'"
+              (if allow-ret "" " or RET")
+              " to finish, `C-x k RET' to cancel.\n\n")
+             'font-lock-face 'italic 'read-only t 'rear-nonsticky t 'front-sticky t))
+    (make-local-variable 'calc-edit-top)
+    (setq calc-edit-top (point))))
 (put 'calc-edit-mode 'mode-class 'special)
 
 (defun calc-show-edit-buffer ()
@@ -484,8 +490,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 	  (if win
 	      (delete-window win))))
     (set-buffer-modified-p nil)
-    (goto-char (point-min))
-    (forward-line 1)))
+    (goto-char calc-edit-top)))
 
 (defun calc-edit-return ()
   (interactive)
@@ -519,9 +524,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 		  (set-buffer original)
 		  (not (eq major-mode 'calc-mode))))
 	(error "Original calculator buffer has been corrupted")))
-    (goto-char (point-min))
-    (when (looking-at "Calc Edit\\|Editing ")
-      (forward-line 1))
+    (goto-char calc-edit-top)
     (if (buffer-modified-p)
 	(eval calc-edit-handler))
     (if one-window
@@ -546,7 +549,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
 
 (defun calc-finish-stack-edit (num)
   (let ((buf (current-buffer))
-	(str (buffer-substring (point) (point-max)))
+	(str (buffer-substring calc-edit-top (point-max)))
 	(start (point))
 	pos)
     (if (and (integerp num) (> num 1))

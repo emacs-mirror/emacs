@@ -69,6 +69,7 @@ Boston, MA 02111-1307, USA.  */
 #include <errno.h>
 #include <setjmp.h>
 #include <sys/stat.h>
+#include <sys/param.h>
 
 #include "keyboard.h"
 #include "frame.h"
@@ -101,6 +102,10 @@ Boston, MA 02111-1307, USA.  */
 /* Non-nil means Emacs uses toolkit scroll bars.  */
 
 Lisp_Object Vx_toolkit_scroll_bars;
+
+/* If Non-nil, the text will be rendered using Core Graphics text rendering which may anti-alias the text.  */
+Lisp_Object Vmac_use_core_graphics;
+
 
 /* Non-zero means that a HELP_EVENT has been generated since Emacs
    start.  */
@@ -726,6 +731,13 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
      int nchars, mode, bytes_per_char;
 {
   SetPortWindowPort (w);
+#ifdef MAC_OSX
+  UInt32 textFlags, savedFlags;
+  if (!NILP(Vmac_use_core_graphics)) {
+    textFlags = kQDUseCGTextRendering;
+    savedFlags = SwapQDTextFlags(textFlags);
+  }
+#endif
 
   mac_set_colors (gc);
 
@@ -736,6 +748,10 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
 
   MoveTo (x, y);
   DrawText (buf, 0, nchars * bytes_per_char);
+#ifdef MAC_OSX
+  if (!NILP(Vmac_use_core_graphics))
+    SwapQDTextFlags(savedFlags);
+#endif
 }
 
 
@@ -1089,6 +1105,62 @@ XSetForeground (display, gc, color)
      unsigned long color;
 {
   gc->foreground = color;
+}
+
+
+/* Mac replacement for XSetBackground.  */
+
+void
+XSetBackground (display, gc, color)
+     Display *display;
+     GC gc;
+     unsigned long color;
+{
+  gc->background = color;
+}
+
+
+/* Mac replacement for XSetWindowBackground.  */
+
+void
+XSetWindowBackground (display, w, color)
+     Display *display;
+     WindowPtr w;
+     unsigned long color;
+{
+#if !TARGET_API_MAC_CARBON
+  AuxWinHandle aw_handle;
+  CTabHandle ctab_handle;
+  ColorSpecPtr ct_table;
+  short ct_size;
+#endif
+  RGBColor bg_color;
+
+  bg_color.red = RED16_FROM_ULONG (color);
+  bg_color.green = GREEN16_FROM_ULONG (color);
+  bg_color.blue = BLUE16_FROM_ULONG (color);
+
+#if TARGET_API_MAC_CARBON
+  SetWindowContentColor (w, &bg_color);
+#else
+  if (GetAuxWin (w, &aw_handle))
+    {
+      ctab_handle = (*aw_handle)->awCTable;
+      HandToHand ((Handle *) &ctab_handle);
+      ct_table = (*ctab_handle)->ctTable;
+      ct_size = (*ctab_handle)->ctSize;
+      while (ct_size > -1)
+	{
+	  if (ct_table->value == 0)
+	    {
+	      ct_table->rgb = bg_color;
+	      CTabChanged (ctab_handle);
+	      SetWinColor (w, (WCTabHandle) ctab_handle);
+	    }
+	  ct_size--;
+	}
+    }
+#endif
 }
 
 
@@ -4963,7 +5035,8 @@ x_new_font (f, fontname)
   FRAME_BASELINE_OFFSET (f) = fontp->baseline_offset;
   FRAME_FONTSET (f) = -1;
 
-  FRAME_COLUMN_WIDTH (f) = FONT_WIDTH (FRAME_FONT (f));
+  FRAME_COLUMN_WIDTH (f) = fontp->average_width;
+  FRAME_SPACE_WIDTH (f) = fontp->space_width;
   FRAME_LINE_HEIGHT (f) = FONT_HEIGHT (FRAME_FONT (f));
 
   compute_fringe_widths (f, 1);
@@ -6499,12 +6572,8 @@ x_font_min_bounds (font, w, h)
      MacFontStruct *font;
      int *w, *h;
 {
-  /*
-   * TODO: Windows does not appear to offer min bound, only
-   * average and maximum width, and maximum height.
-   */
   *h = FONT_HEIGHT (font);
-  *w = FONT_WIDTH (font);
+  *w = font->min_bounds.width;
 }
 
 
@@ -6732,17 +6801,28 @@ XLoadQueryFont (Display *dpy, char *fontname)
       font->per_char = (XCharStruct *)
 	xmalloc (sizeof (XCharStruct) * (0xff - 0x20 + 1));
       {
-        int c;
+        int c, min_width, max_width;
 
+	min_width = max_width = char_width;
         for (c = 0x20; c <= 0xff; c++)
           {
-            font->per_char[c - 0x20] = font->max_bounds;
-            font->per_char[c - 0x20].width =
-	      font->per_char[c - 0x20].rbearing = CharWidth (c);
-          }
+	    font->per_char[c - 0x20] = font->max_bounds;
+	    char_width = CharWidth (c);
+	    font->per_char[c - 0x20].width = char_width;
+	    font->per_char[c - 0x20].rbearing = char_width;
+	    /* Some Japanese fonts (in SJIS encoding) return 0 as the
+	       character width of 0x7f.  */
+	    if (char_width > 0)
+	      {
+		min_width = min (min_width, char_width);
+		max_width = max (max_width, char_width);
+	      }
+            }
+	font->min_bounds.width = min_width;
+	font->max_bounds.width = max_width;
       }
     }
-
+  
   TextFont (old_fontnum);  /* restore previous font number, size and face */
   TextSize (old_fontsize);
   TextFace (old_fontface);
@@ -6846,6 +6926,35 @@ x_load_font (f, fontname, size)
     fontp->font_idx = i;
     fontp->name = (char *) xmalloc (strlen (font->fontname) + 1);
     bcopy (font->fontname, fontp->name, strlen (font->fontname) + 1);
+
+    if (font->min_bounds.width == font->max_bounds.width)
+      {
+	/* Fixed width font.  */
+	fontp->average_width = fontp->space_width = font->min_bounds.width;
+      }
+    else
+      {
+	XChar2b char2b;
+	XCharStruct *pcm;
+
+	char2b.byte1 = 0x00, char2b.byte2 = 0x20;
+	pcm = mac_per_char_metric (font, &char2b, 0);
+	if (pcm)
+	  fontp->space_width = pcm->width;
+	else
+	  fontp->space_width = FONT_WIDTH (font);
+
+	if (pcm)
+	  {
+	    int width = pcm->width;
+	    for (char2b.byte2 = 33; char2b.byte2 <= 126; char2b.byte2++)
+	      if ((pcm = mac_per_char_metric (font, &char2b, 0)) != NULL)
+		width += pcm->width;
+	    fontp->average_width = width / 95;
+	  }
+	else
+	  fontp->average_width = FONT_WIDTH (font);
+      }
 
     fontp->full_name = fontp->name;
 
@@ -7861,6 +7970,14 @@ mac_handle_window_event (next_handler, event, data)
 
   switch (GetEventKind (event))
     {
+    case kEventWindowUpdate:
+      result = CallNextEventHandler (next_handler, event);
+      if (result != eventNotHandledErr)
+	return result;
+
+      do_window_update (wp);
+      break;
+
     case kEventWindowBoundsChanging:
       result = CallNextEventHandler (next_handler, event);
       if (result != eventNotHandledErr)
@@ -7918,7 +8035,8 @@ install_window_handler (window)
 {
   OSErr err = noErr;
 #if USE_CARBON_EVENTS
-  EventTypeSpec specs[] = {{kEventClassWindow, kEventWindowBoundsChanging}};
+  EventTypeSpec specs[] = {{kEventClassWindow, kEventWindowUpdate},
+			   {kEventClassWindow, kEventWindowBoundsChanging}};
   static EventHandlerUPP handle_window_event_UPP = NULL;
 
   if (handle_window_event_UPP == NULL)
@@ -8013,24 +8131,28 @@ do_ae_open_documents(AppleEvent *message, AppleEvent *reply, long refcon)
         int i;
 
         /* AE file list is one based so just use that for indexing here.  */
-        for (i = 1; (err == noErr) && (i <= num_files_to_open); i++)
+        for (i = 1; i <= num_files_to_open; i++)
 	  {
-	    FSSpec fs;
-	    Str255 path_name, unix_path_name;
 #ifdef MAC_OSX
 	    FSRef fref;
-#endif
+	    char unix_path_name[MAXPATHLEN];
+
+	    err = AEGetNthPtr (&the_desc, i, typeFSRef, &keyword,
+			       &actual_type, &fref, sizeof (FSRef),
+			       &actual_size);
+	    if (err != noErr || actual_type != typeFSRef)
+	      continue;
+
+	    if (FSRefMakePath (&fref, unix_path_name, sizeof (unix_path_name))
+		== noErr)
+#else
+	    FSSpec fs;
+	    Str255 path_name, unix_path_name;
 
 	    err = AEGetNthPtr(&the_desc, i, typeFSS, &keyword, &actual_type,
 			      (Ptr) &fs, sizeof (fs), &actual_size);
-	    if (err != noErr) break;
+	    if (err != noErr) continue;
 
-#ifdef MAC_OSX
-	    err = FSpMakeFSRef (&fs, &fref);
-	    if (err != noErr) break;
-
-	    if (FSRefMakePath (&fref, unix_path_name, 255) == noErr)
-#else
 	    if (path_from_vol_dir_name (path_name, 255, fs.vRefNum, fs.parID,
 					fs.name) &&
 		mac_to_posix_pathname (path_name, unix_path_name, 255))
@@ -8066,18 +8188,21 @@ mac_do_track_drag (DragTrackingMessage message, WindowPtr window,
   FlavorFlags theFlags;
   OSErr result;
 
+  if (GetFrontWindowOfClass (kMovableModalWindowClass, false))
+    return dragNotAcceptedErr;
+
   switch (message)
     {
     case kDragTrackingEnterHandler:
       CountDragItems (theDrag, &items);
-      can_accept = 1;
+      can_accept = 0;
       for (index = 1; index <= items; index++)
 	{
 	  GetDragItemReferenceNumber (theDrag, index, &theItem);
 	  result = GetFlavorFlags (theDrag, theItem, flavorTypeHFS, &theFlags);
-	  if (result != noErr)
+	  if (result == noErr)
 	    {
-	      can_accept = 0;
+	      can_accept = 1;
 	      break;
 	    }
 	}
@@ -8088,7 +8213,9 @@ mac_do_track_drag (DragTrackingMessage message, WindowPtr window,
 	{
 	  RgnHandle hilite_rgn = NewRgn ();
 	  Rect r;
+	  struct frame *f = mac_window_to_frame (window);
 
+	  mac_set_backcolor (FRAME_BACKGROUND_PIXEL (f));
 	  GetWindowPortBounds (window, &r);
 	  OffsetRect (&r, -r.left, -r.top);
 	  RectRgn (hilite_rgn, &r);
@@ -8104,6 +8231,9 @@ mac_do_track_drag (DragTrackingMessage message, WindowPtr window,
     case kDragTrackingLeaveWindow:
       if (can_accept)
 	{
+	  struct frame *f = mac_window_to_frame (window);
+
+	  mac_set_backcolor (FRAME_BACKGROUND_PIXEL (f));
 	  HideDragHilite (theDrag);
 	  SetThemeCursor (kThemeArrowCursor);
 	}
@@ -8127,8 +8257,10 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
   OSErr result;
   ItemReference theItem;
   HFSFlavor data;
-  FSRef fref;
   Size size = sizeof (HFSFlavor);
+
+  if (GetFrontWindowOfClass (kMovableModalWindowClass, false))
+    return dragNotAcceptedErr;
 
   drag_and_drop_file_list = Qnil;
   GetDragMouse (theDrag, &mouse, 0L);
@@ -8141,11 +8273,11 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
       if (result == noErr)
 	{
 #ifdef MAC_OSX
-	  FSRef frref;
+	  FSRef fref;
+	  char unix_path_name[MAXPATHLEN];
 #else
-	  Str255 path_name;
+	  Str255 path_name, unix_path_name;
 #endif
-	  Str255 unix_path_name;
 	  GetFlavorData (theDrag, theItem, flavorTypeHFS, &data, &size, 0L);
 #ifdef MAC_OSX
 	  /* Use Carbon routines, otherwise it converts the file name
@@ -8163,8 +8295,6 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
 					  strlen (unix_path_name)),
 		     drag_and_drop_file_list);
 	}
-      else
-	continue;
     }
   /* If there are items in the list, construct an event and post it to
      the queue like an interrupt using kbd_buffer_store_event.  */
@@ -8724,8 +8854,9 @@ XTread_socket (sd, expected, hold_quit)
 	  if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
 	      != eventNotHandledErr)
 	    break;
-#endif
+#else
 	  do_window_update ((WindowPtr) er.message);
+#endif
 	  break;
 
 	case osEvt:
@@ -9811,7 +9942,16 @@ Toolbox for processing before Emacs sees it.  */);
    doc: /* If non-nil, the Mac \"Control\" key is passed on to the Mac
 Toolbox for processing before Emacs sees it.  */);
   Vmac_pass_control_to_system = Qt;
+
+  DEFVAR_LISP ("mac-pass-control-to-system", &Vmac_pass_control_to_system,
+   doc: /* If non-nil, the Mac \"Control\" key is passed on to the Mac
+Toolbox for processing before Emacs sees it.  */);
+  Vmac_pass_control_to_system = Qt;
 #endif
+
+  DEFVAR_LISP ("mac-allow-anti-aliasing", &Vmac_use_core_graphics,
+   doc: /* If non-nil, the text will be rendered using Core Graphics text rendering which may anti-alias the text.  */);
+  Vmac_use_core_graphics = Qnil;
 
   DEFVAR_INT ("mac-keyboard-text-encoding", &mac_keyboard_text_encoding,
     doc: /* One of the Text Encoding Base constant values defined in the

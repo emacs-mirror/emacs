@@ -1,5 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.  2003-05-21
-Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005
+          Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -173,6 +174,21 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** Control characters and escape glyphs are now shown in the new
+escape-glyph face.
+
+** Non-breaking space and hyphens are now prefixed with an escape
+character, unless the new user variable `show-nonbreak-escape' is set
+to nil.
+
+---
+** The type-break package now allows `type-break-file-name' to be nil
+and if so, doesn't store any data across sessions.  This is handy if
+you don't want the .type-break file in your home directory or are
+annoyed by the need for interaction when you kill Emacs.
+
+** display-battery has been replaced by display-battery-mode.
+
 ** calculator.el now has radix grouping mode, which is available when
 `calculator-output-radix' is non-nil.  In this mode a separator
 character is used every few digits, making it easier to see byte
@@ -265,6 +281,9 @@ existing values.  For example:
 
 will start up Emacs on an initial frame of 100x20 with red background,
 irrespective of geometry or background setting on the Windows registry.
+
+** The terminal emulation code in term.el has been improved, it can
+run most curses applications now.
 
 ** New features in evaluation commands
 
@@ -467,20 +486,30 @@ saving.
 *** Buffers are saved in the desktop file in the same order as that in the
 buffer list.
 
+*** The desktop package can be customized to restore only some buffers immediately,
+remaining buffers are restored lazily (when Emacs is idle).
+
 *** New commands:
   - desktop-revert reverts to the last loaded desktop.
   - desktop-change-dir kills current desktop and loads a new.
   - desktop-save-in-desktop-dir saves desktop in the directory from which
     it was loaded.
+  - desktop-lazy-complete runs the desktop load to completion.
+  - desktop-lazy-abort aborts lazy loading of the desktop.
 
 *** New customizable variables:
   - desktop-save. Determins whether the desktop should be saved when it is
     killed.
-  - desktop-file-name-format.
+  - desktop-file-name-format. Format in which desktop file names should be saved.
   - desktop-path. List of directories in which to lookup the desktop file.
-  - desktop-locals-to-save.
-  - desktop-globals-to-clear.
-  - desktop-clear-preserve-buffers-regexp.
+  - desktop-locals-to-save. List of local variables to save.
+  - desktop-globals-to-clear. List of global variables that `desktop-clear' will clear.
+  - desktop-clear-preserve-buffers-regexp. Regexp identifying buffers that `desktop-clear'
+    should not delete.
+  - desktop-restore-eager. Number of buffers to restore immediately. Remaining buffers are
+    restored lazily (when Emacs is idle).
+  - desktop-lazy-verbose. Verbose reporting of lazily created buffers.
+  - desktop-lazy-idle-delay. Idle delay before starting to create buffers.
 
 *** New command line option --no-desktop
 
@@ -697,11 +726,6 @@ too.  If you want to use just plain `*' as a wildcard, type `*""'; the
 doublequotes make no difference in the shell, but they prevent
 special treatment in `dired-do-shell-command'.
 
-+++
-*** Dired's v command now runs external viewers to view certain
-types of files.  The variable `dired-view-command-alist' controls
-what external viewers to use and when.
-
 *** In Dired, the w command now copies the current line's file name
 into the kill ring.  With a zero prefix arg, copies absolute file names.
 
@@ -737,7 +761,7 @@ multiple files, and C-x d passes it to `dired'.
 ** Info mode:
 
 *** A numeric prefix argument of `info' selects an Info buffer
-with the number appended to the *info* buffer name.
+with the number appended to the *info* buffer name (e.g. "*info*<2>").
 
 *** Regexp isearch (C-M-s and C-M-r) can search through multiple nodes.
 Failed isearch wraps to the top/final node.
@@ -745,6 +769,10 @@ Failed isearch wraps to the top/final node.
 *** New search commands: `Info-search-case-sensitively' (bound to S),
 `Info-search-backward', and `Info-search-next' which repeats the last
 search without prompting for a new search string.
+
+*** New command `Info-history-forward' (bound to r and new toolbar icon)
+moves forward in history to the node you returned from after using
+`Info-history-back' (renamed from `Info-last').
 
 *** New command `Info-history' (bound to L) displays a menu of visited nodes.
 
@@ -1905,7 +1933,7 @@ c-require-final-newline.  That is a list of modes, and only those
 modes set require-final-newline.  By default that's C, C++ and
 Objective-C.
 
-The specified modes set require-final-newline based on 
+The specified modes set require-final-newline based on
 mode-require-final-newline, as usual.
 
 *** Format change for syntactic context elements.
@@ -2167,6 +2195,14 @@ displays a buffer menu.  This option turns the buffer menu off.
 
 ---
 ** Rmail now displays 5-digit message ids in its summary buffer.
+
++++
+** Support for `movemail' from GNU mailutils was added to Rmail.
+This version of `movemail' allows to read mail from a wide range of
+mailbox formats, including remote POP3 and IMAP4 mailboxes with or
+without TLS encryption.  If GNU mailutils is installed on the system
+and its version of `movemail' can be found in exec-path, it will be
+used instead of the native one.
 
 ---
 ** On MS Windows, the "system caret" now follows the cursor.
@@ -2501,6 +2537,13 @@ timing measurements of code (including the garbage collection component).
 ** `cfengine-mode' is a major mode for editing GNU Cfengine
 configuration files.
 
+* Incompatible Lisp Changes in Emacs 21.4
+
++++
+** Mode line display ignores text properties as well as the
+:propertize and :eval forms in the value of a variable whose
+`risky-local-variable' property is nil.
+
 * Lisp Changes in Emacs 21.4
 
 +++
@@ -2687,7 +2730,7 @@ specified number of evenly sized slices (rows x columns).
 A newline may now have line-height and line-spacing text or overlay
 properties that control the height of the corresponding display row.
 
-If the line-height property value is 0, the newline does not
+If the line-height property value is t, the newline does not
 contribute to the height of the display row; instead the height of the
 newline glyph is reduced.  Also, a line-spacing property on this
 newline is ignored.  This can be used to tile small images or image
@@ -2701,9 +2744,18 @@ If the line-height property value is a float, the minimum line height
 is calculated by multiplying the default frame line height by the
 given value.
 
-If the line-height property value is a cons (RATIO . FACE), the
+If the line-height property value is a cons (FACE . RATIO), the
 minimum line height is calculated as RATIO * height of named FACE.
 RATIO is int or float.  If FACE is t, it specifies the current face.
+
+If the line-height property value is a cons (nil . RATIO), the line
+height is calculated as RATIO * actual height of the line's contents.
+
+If the line-height value is a cons (HEIGHT . TOTAL), HEIGHT specifies
+the line height as described above, while TOTAL is any of the forms
+described above and specifies the total height of the line, causing a
+varying number of pixels to be inserted after the line to make it line
+exactly that many pixels high.
 
 If the line-spacing property value is an positive integer, the value
 is used as additional pixels to insert after the display line; this
@@ -2712,11 +2764,6 @@ the line-spacing variable.
 
 If the line-spacing property may be a float or cons, the line spacing
 is calculated as specified above for the line-height property.
-
-If the line-spacing value is a cons (total . SPACING) where SPACING is
-any of the forms described above, the value of SPACING is used as the
-total height of the line, i.e. a varying number of pixels are inserted
-after each line to make each line exactly that many pixels high.
 
 ** The buffer local line-spacing variable may now have a float value,
 which is used as a height relative to the default frame line height.
@@ -3923,11 +3970,6 @@ Reference manual for more detailed documentation.
 +++
 ** The new mode-line construct `(:propertize ELT PROPS...)' can be
 used to add text properties to mode-line elements.
-
-+++
-** Mode line display ignores text properties as well as the
-:propertize and :eval forms in the value of a variable whose
-`risky-local-variable' property is nil.
 
 +++
 ** The new `%i' and `%I' constructs for `mode-line-format' can be used

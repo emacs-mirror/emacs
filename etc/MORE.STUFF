@@ -34,7 +34,7 @@ The Emacs Wiki has an area for storing elisp files
 
 You might find bug-fixes or enhancements in these places.
 
- * Ada: <URL:http://libre.act-europe.fr/adamode>
+ * Ada-mode: <URL:http://libre.act-europe.fr/adamode>
 
  * Battery and Info Look: <URL:ftp://ftp.ul.bawue.de/pub/purple/emacs>
 
@@ -79,6 +79,8 @@ You might find bug-fixes or enhancements in these places.
  * Ispell: <URL:http://www.kdstevens.com/%7Estevens/ispell-page.html>
 
  * Iswitchb: <URL:http://www.anc.ed.ac.uk/%7Estephen/emacs/iswitchb.el>
+
+ * MH-E: <URL:http://mh-e.sourceforge.net/>
 
  * PC Selection: <URL:ftp://ftp.thp.uni-duisburg.de/pub/source/elisp/>
 
@@ -133,6 +135,12 @@ Several are for Debian GNU/Linux in particular.
    emacs-mule, say by adding `("\\.bbdb\\'" . emacs-mule)' to
    `file-coding-system-alist' for non-ASCII characters.]
 
+ * Boxquote: <URL:http://www.davep.org/emacs/>
+
+ * CEDET: Collection of Emacs Development Environment Tools, including
+   EIEIO, Semantic, Speedbar, EDE, and COGRE:
+   <URL:http://cedet.sourceforge.net/>
+
  * CJK-emacs: Converting MULE-encoded text to TeX:
    <URL:ftp://ctan.tug.org/tex-archive/language/chinese/CJK/> and
    mirrors of the `CTAN' TeX archives.
@@ -140,13 +148,12 @@ Several are for Debian GNU/Linux in particular.
  * Dismal: spreadsheet:
    <URL:http://acs.ist.psu.edu/dismal/dismal.html>
 
+ * ECB: Emacs Code Browser: <URL:http://ecb.sourceforge.net/>
+
  * EDB: database: <URL:http://www.glug.org/people/ttn/software/edb/>
 
  * Ee: categorizing information manager:
    <URL:http://www.jurta.org/emacs/ee/>
-
- * EIEIO (object system), ETalk (interface to Internet talk):
-   <URL:http://cedet.sourceforge.net/eieio.shtml>
 
  * EFS: enhanced version of ange-ftp:
    <URL:http://www-uk.hpl.hp.com/people/ange/efs>
@@ -156,11 +163,24 @@ Several are for Debian GNU/Linux in particular.
    From GNU distribution mirrors.  (Much of this functionality is now
    in Emacs.)
 
+ * EMacro: <URL:http://emacro.sourceforge.net/>
+   EMacro is a portable configuration file that configures itself.
+
  * Emacs statistical system (ESS): statistical programming within Emacs
    <URL:http://ess.r-project.org>
 
  * Emacspeak -- A Speech Output Subsystem For Emacs:
    <URL:http://emacspeak.sourceforge.net/>
+
+ * Emacs-w3m : <URL:http://emacs-w3m.namazu.org/>
+   A simple Emacs interface to w3m, which is a text-mode
+   WWW browser
+
+ * Emacs Wiki Mode: <URL:http://mwolson.org/projects/EmacsWiki.html>
+   A wiki-like publishing tool and personal information manager
+
+ * ERC: IRC client:
+   <URL:http://www.emacswiki.org/cgi-bin/wiki?EmacsIRCClient>
 
  * Gnuserv:
    <URL:ftp://ftp.splode.com/pub/users/friedman/packages/fgnuserv-1.0.tar.gz>
@@ -184,13 +204,28 @@ Several are for Debian GNU/Linux in particular.
    Provides an interactive environment for manipulating an inferior
    process running some form of Lisp.
 
- * JDE: <URL:http://jdee.sunsite.dk/>
+ * JDEE: <URL:http://jdee.sunsite.dk/>
    Provides a Java development environment for Emacs.
 
  * Mailcrypt:
-   <URL:http://www.pobox.com/%7Elbudney/linux/software/mailcrypt.html>
+   <URL:http://mailcrypt.sourceforge.net/>
    PGP and GPG support.  PGP isn't free software, but GPG, the GNU
    Privacy Guard, is a free replacement <URL:http://www.gnupg.org/>.
+
+ * Mew: <URL:http://www.mew.org/>
+   A MIME mail reader for Emacs/XEmacs.
+
+ * MMM Mode: <URL:http://mmm-mode.sourceforge.net/>
+   MMM Mode is an emacs add-on package providing a minor mode that
+   allows Multiple Major Modes to coexist in one buffer.
+
+ * nXML Mode: New mode for XML:
+   <URL:http://www.thaiopensource.com/nxml-mode/>
+   nXML mode is an addon for GNU Emacs, which makes GNU Emacs into a
+   powerful XML editor.
+
+ * Planner Mode:
+   <URL:http://sacha.free.net.ph/notebook/wiki/PlannerMode.php>
 
  * Pointers to MIME packages:
    <URL:http://bmrc.berkeley.edu/%7Etrey/emacs/mime.html>
@@ -201,6 +236,18 @@ Several are for Debian GNU/Linux in particular.
  * PSGML: <URL:http://www.lysator.liu.se/projects/about_psgml.html>
    DTD-aware serious SGML/XML editing.
 
+ * Quack: <URL:http://www.neilvandyke.org/quack/>
+   Quack enhances Emacs support for Scheme
+
+ * Remember:
+   <URL:http://sacha.free.net.ph/notebook/wiki/RememberEl.php>
+
+ * Session: <URL:http://emacs-session.sourceforge.net/>
+   Session Management for Emacs.
+
+ * SLIME: The Superior Lisp Interaction Mode for Emacs:
+   <URL:http://common-lisp.net/project/slime/>
+
  * Tamago: Chinese/Japanese/Korean input method
    <URL:ftp://m17n.org/pub/tamago/>
    Emacs Lisp package to provide input methods for CJK characters.
@@ -209,6 +256,8 @@ Several are for Debian GNU/Linux in particular.
 	Wnn6,
 	SJ3 Ver.2
 
+ * Tiny Tools: <URL:http://tiny-tools.sourceforge.net/>
+
  * VM (View Mail): <URL:http://www.wonderworks.com/vm/> Alternative
    mail reader.  There is a VM newsgroup: <URL:news:gnu.emacs.vm.info>
 
@@ -216,6 +265,14 @@ Several are for Debian GNU/Linux in particular.
    Web browser.  There's a W3 mail list/newsgroup
    <URL:news://sunsite.auc.dk/emacs.w3> and a W3 development mail
    list/newsgroup <URL:news://sunsite.auc.dk/emacs.w3.dev>.
+
+ * Wanderlust: <URL:http://www.gohome.org/wl/>
+   Yet Another Message Interface on Emacsen. Wanderlust is a mail/news
+   reader supporting IMAP4rev1 for emacsen.
+
+ * WhizzyTex: <URL:http://pauillac.inria.fr/whizzytex/>
+   WhizzyTeX provides a minor mode for Emacs or XEmacs, a (bash)
+   shell-script daemon and some LaTeX macros.
 
  * X-Symbol: <URL:http://x-symbol.sf.net/>
    Quasi-WYSIWYG editing of TeX & al.  (It will be improved to take

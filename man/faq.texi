@@ -1583,7 +1583,7 @@ directory @var{/dir/subdir} to the load path like this:
 To do this relative to your home directory:
 
 @lisp
-(setq load-path (cons "~/mysubdir/" load-path)
+(setq load-path (cons "~/mysubdir/" load-path))
 @end lisp
 
 @node Using an already running Emacs process, Compiler error messages, Changing load-path, Common requests

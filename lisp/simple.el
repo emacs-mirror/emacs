@@ -647,15 +647,16 @@ If BACKWARD-ONLY is non-nil, only delete spaces before point."
        (skip-chars-backward " \t")
        (constrain-to-field nil orig-pos)))))
 
-(defun just-one-space ()
-  "Delete all spaces and tabs around point, leaving one space."
-  (interactive "*")
+(defun just-one-space (n)
+  "Delete all spaces and tabs around point, leaving one space (or N spaces)."
+  (interactive "*p")
   (let ((orig-pos (point)))
     (skip-chars-backward " \t")
     (constrain-to-field nil orig-pos)
-    (if (= (following-char) ? )
-	(forward-char 1)
-      (insert ? ))
+    (dotimes (i n)
+      (if (= (following-char) ?\ )
+	  (forward-char 1)
+	(insert ?\ )))
     (delete-region
      (point)
      (progn
@@ -899,7 +900,7 @@ display the result of expression evaluation."
   (if (and (integerp value)
            (or (not (memq this-command '(eval-last-sexp eval-print-last-sexp)))
                (eq this-command last-command)
-               (and (boundp 'edebug-active) edebug-active)))
+               (if (boundp 'edebug-active) edebug-active)))
       (let ((char-string
              (if (or (and (boundp 'edebug-active) edebug-active)
                      (memq this-command '(eval-last-sexp eval-print-last-sexp)))
@@ -3008,10 +3009,10 @@ Does not set point.  Does nothing if mark ring is empty."
   (when mark-ring
     (setq mark-ring (nconc mark-ring (list (copy-marker (mark-marker)))))
     (set-marker (mark-marker) (+ 0 (car mark-ring)) (current-buffer))
-    (deactivate-mark)
     (move-marker (car mark-ring) nil)
     (if (null (mark t)) (ding))
-    (setq mark-ring (cdr mark-ring))))
+    (setq mark-ring (cdr mark-ring)))
+  (deactivate-mark))
 
 (defalias 'exchange-dot-and-mark 'exchange-point-and-mark)
 (defun exchange-point-and-mark (&optional arg)
@@ -3590,7 +3591,7 @@ With argument, do this that many times."
 The place mark goes is the same place \\[forward-word] would
 move to with the same argument.
 Interactively, if this command is repeated
-or (in Transient Mark mode) if the mark is active, 
+or (in Transient Mark mode) if the mark is active,
 it marks the next ARG words after the ones already marked."
   (interactive "P\np")
   (cond ((and allow-extend
@@ -4115,7 +4116,7 @@ specification for `play-sound'."
     (play-sound sound)))
 
 (define-key global-map "\e\e\e" 'keyboard-escape-quit)
-
+
 (defcustom read-mail-command 'rmail
   "*Your preference for a mail reading package.
 This is used by some keybindings which support reading mail.
@@ -4257,7 +4258,7 @@ Each action has the form (FUNCTION . ARGS)."
    (list nil nil nil current-prefix-arg))
   (compose-mail to subject other-headers continue
 		'switch-to-buffer-other-frame yank-action send-actions))
-
+
 (defvar set-variable-value-history nil
   "History of values entered with `set-variable'.")
 
@@ -4320,7 +4321,7 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
   ;; Force a thorough redisplay for the case that the variable
   ;; has an effect on the display, like `tab-width' has.
   (force-mode-line-update))
-
+
 ;; Define the major mode for lists of completions.
 
 (defvar completion-list-mode-map nil
@@ -4328,6 +4329,7 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
 (or completion-list-mode-map
     (let ((map (make-sparse-keymap)))
       (define-key map [mouse-2] 'mouse-choose-completion)
+      (define-key map [follow-link] 'mouse-face)
       (define-key map [down-mouse-2] nil)
       (define-key map "\C-m" 'choose-completion)
       (define-key map "\e\e\e" 'delete-completion-window)

@@ -65,6 +65,7 @@ extern double atof ();
 extern int w32_console_toggle_lock_key P_ ((int, Lisp_Object));
 extern void w32_menu_display_help P_ ((HWND, HMENU, UINT, UINT));
 extern void w32_free_menu_strings P_ ((HWND));
+extern XCharStruct *w32_per_char_metric P_ ((XFontStruct *, wchar_t *, int));
 
 extern int quit_char;
 
@@ -4545,7 +4546,7 @@ w32_load_system_font (f,fontname,size)
         /* Fill out details in lf according to the font that was
            actually loaded.  */
         lf.lfHeight = font->tm.tmInternalLeading - font->tm.tmHeight;
-        lf.lfWidth = font->tm.tmAveCharWidth;
+        lf.lfWidth = font->tm.tmMaxCharWidth;
         lf.lfWeight = font->tm.tmWeight;
         lf.lfItalic = font->tm.tmItalic;
         lf.lfCharSet = font->tm.tmCharSet;
@@ -4592,6 +4593,25 @@ w32_load_system_font (f,fontname,size)
     fontp->font_idx = i;
     fontp->name = (char *) xmalloc (strlen (fontname) + 1);
     bcopy (fontname, fontp->name, strlen (fontname) + 1);
+
+    if (lf.lfPitchAndFamily == FIXED_PITCH)
+      {
+	/* Fixed width font.  */
+	fontp->average_width = fontp->space_width = FONT_WIDTH (font);
+      }
+    else
+      {
+	wchar_t space = 32;
+	XCharStruct* pcm;
+	pcm = w32_per_char_metric (font, &space, ANSI_FONT);
+	if (pcm)
+	  fontp->space_width = pcm->width;
+	else
+	  fontp->space_width = FONT_WIDTH (font);
+
+	fontp->average_width = font->tm.tmAveCharWidth;
+      }
+
 
     fontp->charset = -1;
     charset = xlfd_charset_of_font (fontname);

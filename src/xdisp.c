@@ -1,6 +1,6 @@
 /* Display generation from window structure and buffer text.
-   Copyright (C) 1985,86,87,88,93,94,95,97,98,99,2000,01,02,03,04
-   Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1997, 1998, 1999,
+     2000, 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -319,6 +319,10 @@ extern Lisp_Object Qcursor;
 
 Lisp_Object Vshow_trailing_whitespace;
 
+/* Non-nil means escape non-break space and hyphens.  */
+
+Lisp_Object Vshow_nonbreak_escape;
+
 #ifdef HAVE_WINDOW_SYSTEM
 extern Lisp_Object Voverflow_newline_into_fringe;
 
@@ -346,7 +350,6 @@ Lisp_Object Qtrailing_whitespace;
 /* Name and number of the face used to highlight escape glyphs.  */
 
 Lisp_Object Qescape_glyph;
-int escape_glyph_face;
 
 /* The symbol `image' which is the car of the lists used to represent
    images in Lisp.  */
@@ -3268,6 +3271,7 @@ setup_for_ellipsis (it, len)
 
   it->dpvec_char_len = len;
   it->current.dpvec_index = 0;
+  it->dpvec_face_id = -1;
 
   /* Remember the current face id in case glyphs specify faces.
      IT's face is restored in set_iterator_to_next.  */
@@ -5007,6 +5011,7 @@ get_next_display_element (it)
 		  it->dpvec = v->contents;
 		  it->dpend = v->contents + v->size;
 		  it->current.dpvec_index = 0;
+		  it->dpvec_face_id = -1;
 		  it->saved_face_id = it->face_id;
 		  it->method = next_element_from_display_vector;
 		  it->ellipsis_p = 0;
@@ -5038,8 +5043,9 @@ get_next_display_element (it)
 		       || (it->c != '\n' && it->c != '\t'))
 		    : (it->multibyte_p
 		       ? (!CHAR_PRINTABLE_P (it->c)
-			  || it->c == 0xA0 /* NO-BREAK SPACE */
-			  || it->c == 0xAD /* SOFT HYPHEN */)
+			  || (!NILP (Vshow_nonbreak_escape)
+			      && (it->c == 0xA0 /* NO-BREAK SPACE */
+				  || it->c == 0xAD /* SOFT HYPHEN */)))
 		       : (it->c >= 127
 			  && (! unibyte_display_via_language_environment
 			      || (UNIBYTE_CHAR_HAS_MULTIBYTE_P (it->c)))))))
@@ -5051,21 +5057,8 @@ get_next_display_element (it)
 		 display.  Then, set IT->dpvec to these glyphs.  */
 	      GLYPH g;
 	      int ctl_len;
-	      int face_id = escape_glyph_face;
-
-	      /* Find the face id if `escape-glyph' unless we recently did.  */
-	      if (face_id < 0)
-		{
-		  Lisp_Object tem = Fget (Qescape_glyph, Qface);
-		  if (INTEGERP (tem))
-		    face_id = XINT (tem);
-		  else
-		    face_id = 0;
-		  /* If there's overflow, use 0 instead.  */
-		  if (FAST_GLYPH_FACE (FAST_MAKE_GLYPH (0, face_id)) != face_id)
-		    face_id = 0;
-		  escape_glyph_face = face_id;
-		}
+	      int face_id, lface_id;
+	      GLYPH escape_glyph;
 
 	      if (it->c < 128 && it->ctl_arrow_p)
 		{
@@ -5073,62 +5066,83 @@ get_next_display_element (it)
 		  if (it->dp
 		      && INTEGERP (DISP_CTRL_GLYPH (it->dp))
 		      && GLYPH_CHAR_VALID_P (XINT (DISP_CTRL_GLYPH (it->dp))))
-		    g = XINT (DISP_CTRL_GLYPH (it->dp));
+		    {
+		      g = XINT (DISP_CTRL_GLYPH (it->dp));
+		      lface_id = FAST_GLYPH_FACE (g);
+		      if (lface_id)
+			{
+			  g = FAST_GLYPH_CHAR (g);
+			  face_id = merge_faces (it->f, Qt, lface_id,
+						 it->face_id);
+			}
+		    }
 		  else
-		    g = FAST_MAKE_GLYPH ('^', face_id);
-		  XSETINT (it->ctl_chars[0], g);
+		    {
+		      /* Merge the escape-glyph face into the current face.  */
+		      face_id = merge_faces (it->f, Qescape_glyph, 0,
+					     it->face_id);
+		      g = '^';
+		    }
 
-		  g = FAST_MAKE_GLYPH (it->c ^ 0100, face_id);
+		  XSETINT (it->ctl_chars[0], g);
+		  g = it->c ^ 0100;
 		  XSETINT (it->ctl_chars[1], g);
 		  ctl_len = 2;
+		  goto display_control;
 		}
-	      else if (it->c == 0xA0 || it->c == 0xAD)
-		{
-		  /* Set IT->ctl_chars[0] to the glyph for `\\'.  */
-		  if (it->dp
-		      && INTEGERP (DISP_ESCAPE_GLYPH (it->dp))
-		      && GLYPH_CHAR_VALID_P (XINT (DISP_ESCAPE_GLYPH (it->dp))))
-		    g = XINT (DISP_ESCAPE_GLYPH (it->dp));
-		  else
-		    g = FAST_MAKE_GLYPH ('\\', face_id);
-		  XSETINT (it->ctl_chars[0], g);
 
-		  g = FAST_MAKE_GLYPH (it->c == 0xAD ? '-' : ' ', face_id);
-		  XSETINT (it->ctl_chars[1], g);
-		  ctl_len = 2;
+	      if (it->dp
+		  && INTEGERP (DISP_ESCAPE_GLYPH (it->dp))
+		  && GLYPH_CHAR_VALID_P (XFASTINT (DISP_ESCAPE_GLYPH (it->dp))))
+		{
+		  escape_glyph = XFASTINT (DISP_ESCAPE_GLYPH (it->dp));
+		  lface_id = FAST_GLYPH_FACE (escape_glyph);
+		  if (lface_id)
+		    {
+		      escape_glyph = FAST_GLYPH_CHAR (escape_glyph);
+		      face_id = merge_faces (it->f, Qt, lface_id,
+					     it->face_id);
+		    }
 		}
 	      else
 		{
-		  unsigned char str[MAX_MULTIBYTE_LENGTH];
-		  int len;
-		  int i;
-		  GLYPH escape_glyph;
+		  /* Merge the escape-glyph face into the current face.  */
+		  face_id = merge_faces (it->f, Qescape_glyph, 0,
+					 it->face_id);
+		  escape_glyph = '\\';
+		}
 
-		  /* Set IT->ctl_chars[0] to the glyph for `\\'.  */
-		  if (it->dp
-		      && INTEGERP (DISP_ESCAPE_GLYPH (it->dp))
-		      && GLYPH_CHAR_VALID_P (XFASTINT (DISP_ESCAPE_GLYPH (it->dp))))
-		    escape_glyph = XFASTINT (DISP_ESCAPE_GLYPH (it->dp));
-		  else
-		    escape_glyph = FAST_MAKE_GLYPH ('\\', face_id);
+	      if (it->c == 0xA0 || it->c == 0xAD)
+		{
+		  XSETINT (it->ctl_chars[0], escape_glyph);
+		  g = it->c == 0xAD ? '-' : ' ';
+		  XSETINT (it->ctl_chars[1], g);
+		  ctl_len = 2;
+		  goto display_control;
+		}
 
-		  if (CHAR_BYTE8_P (it->c))
-		    {
-		      str[0] = CHAR_TO_BYTE8 (it->c);
-		      len = 1;
-		    }
-		  else if (it->c < 256)
-		    {
-		      str[0] = it->c;
-		      len = 1;
-		    }
-		  else
-		    {
-		      /* It's an invalid character, which
-			 shouldn't happen actually, but due to
-			 bugs it may happen.  Let's print the char
-			 as is, there's not much meaningful we can
-			 do with it.  */
+	      {
+		unsigned char str[MAX_MULTIBYTE_LENGTH];
+		int len;
+		int i;
+
+		/* Set IT->ctl_chars[0] to the glyph for `\\'.  */
+		if (CHAR_BYTE8_P (it->c))
+		  {
+		    str[0] = CHAR_TO_BYTE8 (it->c);
+		    len = 1;
+		  }
+		else if (it->c < 256)
+		  {
+		    str[0] = it->c;
+		    len = 1;
+		  }
+		else
+		  {
+		    /* It's an invalid character, which shouldn't
+		       happen actually, but due to bugs it may
+		       happen.  Let's print the char as is, there's
+		       not much meaningful we can do with it.  */
 		      str[0] = it->c;
 		      str[1] = it->c >> 8;
 		      str[2] = it->c >> 16;
@@ -5136,29 +5150,28 @@ get_next_display_element (it)
 		      len = 4;
 		    }
 
-		  for (i = 0; i < len; i++)
-		    {
-		      XSETINT (it->ctl_chars[i * 4], escape_glyph);
-		      /* Insert three more glyphs into IT->ctl_chars for
-			 the octal display of the character.  */
-		      g = FAST_MAKE_GLYPH (((str[i] >> 6) & 7) + '0',
-					   face_id);
-		      XSETINT (it->ctl_chars[i * 4 + 1], g);
-		      g = FAST_MAKE_GLYPH (((str[i] >> 3) & 7) + '0',
-					   face_id);
-		      XSETINT (it->ctl_chars[i * 4 + 2], g);
-		      g = FAST_MAKE_GLYPH ((str[i] & 7) + '0',
-					   face_id);
-		      XSETINT (it->ctl_chars[i * 4 + 3], g);
-		    }
-		  ctl_len = len * 4;
-		}
+		for (i = 0; i < len; i++)
+		  {
+		    XSETINT (it->ctl_chars[i * 4], escape_glyph);
+		    /* Insert three more glyphs into IT->ctl_chars for
+		       the octal display of the character.  */
+		    g = ((str[i] >> 6) & 7) + '0';
+		    XSETINT (it->ctl_chars[i * 4 + 1], g);
+		    g = ((str[i] >> 3) & 7) + '0';
+		    XSETINT (it->ctl_chars[i * 4 + 2], g);
+		    g = (str[i] & 7) + '0';
+		    XSETINT (it->ctl_chars[i * 4 + 3], g);
+		  }
+		ctl_len = len * 4;
+	      }
 
+	    display_control:
 	      /* Set up IT->dpvec and return first character from it.  */
 	      it->dpvec_char_len = it->len;
 	      it->dpvec = it->ctl_chars;
 	      it->dpend = it->dpvec + ctl_len;
 	      it->current.dpvec_index = 0;
+	      it->dpvec_face_id = face_id;
 	      it->saved_face_id = it->face_id;
 	      it->method = next_element_from_display_vector;
 	      it->ellipsis_p = 0;
@@ -5288,9 +5301,6 @@ set_iterator_to_next (it, reseat_p)
 	  it->dpvec = NULL;
 	  it->current.dpvec_index = -1;
 
-	  /* Recheck faces after display vector */
-	  it->stop_charpos = 0;
-
 	  /* Skip over characters which were displayed via IT->dpvec.  */
 	  if (it->dpvec_char_len < 0)
 	    reseat_at_next_visible_line_start (it, 1);
@@ -5299,6 +5309,9 @@ set_iterator_to_next (it, reseat_p)
 	      it->len = it->dpvec_char_len;
 	      set_iterator_to_next (it, reseat_p);
 	    }
+
+	  /* Recheck faces after display vector */
+	  it->stop_charpos = IT_CHARPOS (*it);
 	}
     }
   else if (it->method == next_element_from_string)
@@ -5378,7 +5391,6 @@ next_element_from_display_vector (it)
   if (INTEGERP (*it->dpvec)
       && GLYPH_CHAR_VALID_P (XFASTINT (*it->dpvec)))
     {
-      int lface_id;
       GLYPH g;
 
       g = XFASTINT (it->dpvec[it->current.dpvec_index]);
@@ -5388,13 +5400,14 @@ next_element_from_display_vector (it)
       /* The entry may contain a face id to use.  Such a face id is
 	 the id of a Lisp face, not a realized face.  A face id of
 	 zero means no face is specified.  */
-      lface_id = FAST_GLYPH_FACE (g);
-      if (lface_id)
+      if (it->dpvec_face_id >= 0)
+	it->face_id = it->dpvec_face_id;
+      else
 	{
-	  /* The function returns -1 if lface_id is invalid.  */
-	  int face_id = ascii_face_of_lisp_face (it->f, lface_id);
-	  if (face_id >= 0)
-	    it->face_id = face_id;
+	  int lface_id = FAST_GLYPH_FACE (g);
+	  if (lface_id > 0)
+	    it->face_id = merge_faces (it->f, Qt, lface_id,
+				       it->saved_face_id);
 	}
     }
   else
@@ -11766,9 +11779,6 @@ redisplay_window (window, just_this_one_p)
   *w->desired_matrix->method = 0;
 #endif
 
-  /* Force this to be looked up again for each redisp of each window.  */
-  escape_glyph_face = -1;
-
   specbind (Qinhibit_point_motion_hooks, Qt);
 
   reconsider_clip_changes (w, buffer);
@@ -16071,22 +16081,30 @@ store_mode_line_string (string, lisp_string, copy_string, field_width, precision
 
 
 DEFUN ("format-mode-line", Fformat_mode_line, Sformat_mode_line,
-       0, 4, 0,
-       doc: /* Return the mode-line of selected window as a string.
-First optional arg FORMAT specifies a different format string (see
-`mode-line-format' for details) to use.  If FORMAT is t, return
-the buffer's header-line.  Second optional arg WINDOW specifies a
-different window to use as the context for the formatting.
-If third optional arg NO-PROPS is non-nil, string is not propertized.
-Fourth optional arg BUFFER specifies which buffer to use.  */)
-  (format, window, no_props, buffer)
-     Lisp_Object format, window, no_props, buffer;
+       1, 4, 0,
+       doc: /* Format a string out of a mode line format specification.
+First arg FORMAT specifies the mode line format (see `mode-line-format'
+for details) to use.
+
+Optional second arg FACE specifies the face property to put
+on all characters for which no face is specified.
+t means whatever face the window's mode line currently uses
+\(either `mode-line' or `mode-line-inactive', depending).
+nil means the default is no face property.
+If FACE is an integer, the value string has no text properties.
+
+Optional third and fourth args WINDOW and BUFFER specify the window
+and buffer to use as the context for the formatting (defaults
+are the selected window and the window's buffer).  */)
+  (format, face, window, buffer)
+     Lisp_Object format, face, window, buffer;
 {
   struct it it;
   int len;
   struct window *w;
   struct buffer *old_buffer = NULL;
-  enum face_id face_id = DEFAULT_FACE_ID;
+  int face_id = -1;
+  int no_props = INTEGERP (face);
 
   if (NILP (window))
     window = selected_window;
@@ -16095,8 +16113,23 @@ Fourth optional arg BUFFER specifies which buffer to use.  */)
 
   if (NILP (buffer))
     buffer = w->buffer;
-
   CHECK_BUFFER (buffer);
+
+  if (NILP (format))
+    return build_string ("");
+
+  if (no_props)
+    face = Qnil;
+
+  if (!NILP (face))
+    {
+      if (EQ (face, Qt))
+	face = (EQ (window, selected_window) ? Qmode_line : Qmode_line_inactive);
+      face_id = lookup_named_face (XFRAME (WINDOW_FRAME (w)), face, 0, 0);
+    }
+
+  if (face_id < 0)
+    face_id = DEFAULT_FACE_ID;
 
   if (XBUFFER (buffer) != current_buffer)
     {
@@ -16104,28 +16137,13 @@ Fourth optional arg BUFFER specifies which buffer to use.  */)
       set_buffer_internal_1 (XBUFFER (buffer));
     }
 
-  if (NILP (format) || EQ (format, Qt))
-    {
-      face_id = (NILP (format)
-		 ? CURRENT_MODE_LINE_FACE_ID (w)
-		 : HEADER_LINE_FACE_ID);
-      format = (NILP (format)
-		? current_buffer->mode_line_format
-		: current_buffer->header_line_format);
-    }
-
   init_iterator (&it, w, -1, -1, NULL, face_id);
 
-  if (NILP (no_props))
+  if (!no_props)
     {
-      mode_line_string_face
-	= (face_id == MODE_LINE_FACE_ID ? Qmode_line
-	   : face_id == MODE_LINE_INACTIVE_FACE_ID ? Qmode_line_inactive
-	   : face_id == HEADER_LINE_FACE_ID ? Qheader_line : Qnil);
-
+      mode_line_string_face = face;
       mode_line_string_face_prop
-	= (NILP (mode_line_string_face) ? Qnil
-	   : Fcons (Qface, Fcons (mode_line_string_face, Qnil)));
+	= (NILP (face) ? Qnil : Fcons (Qface, Fcons (face, Qnil)));
 
       /* We need a dummy last element in mode_line_string_list to
 	 indicate we are building the propertized mode-line string.
@@ -16148,7 +16166,7 @@ Fourth optional arg BUFFER specifies which buffer to use.  */)
   if (old_buffer)
     set_buffer_internal_1 (old_buffer);
 
-  if (NILP (no_props))
+  if (!no_props)
     {
       Lisp_Object str;
       mode_line_string_list = Fnreverse (mode_line_string_list);
@@ -22497,6 +22515,10 @@ wide as that tab on the display.  */);
     doc: /* *Non-nil means highlight trailing whitespace.
 The face used for trailing whitespace is `trailing-whitespace'.  */);
   Vshow_trailing_whitespace = Qnil;
+
+  DEFVAR_LISP ("show-nonbreak-escape", &Vshow_nonbreak_escape,
+    doc: /* *Non-nil means display escape character before non-break space and hyphen.  */);
+  Vshow_nonbreak_escape = Qt;
 
   DEFVAR_LISP ("void-text-area-pointer", &Vvoid_text_area_pointer,
     doc: /* *The pointer shape to show in void text areas.

@@ -446,7 +446,7 @@ struct fringe_bitmap standard_bitmaps[MAX_STANDARD_FRINGE_BITMAPS] =
 };
 
 static struct fringe_bitmap **fringe_bitmaps;
-static unsigned *fringe_faces;
+static Lisp_Object *fringe_faces;
 static int max_fringe_bitmaps;
 
 static int max_used_fringe_bitmap = MAX_STANDARD_FRINGE_BITMAPS;
@@ -547,7 +547,13 @@ draw_fringe_bitmap_1 (w, row, left_p, overlay, which)
     }
 
   if (face_id == DEFAULT_FACE_ID)
-    face_id = fringe_faces[which];
+    {
+      Lisp_Object face;
+
+      if ((face = fringe_faces[which], NILP (face))
+	  || (face_id = lookup_named_face (f, face, 'A', 1), face_id < 0))
+	face_id = FRINGE_FACE_ID;
+    }
 
   fb = fringe_bitmaps[which];
   if (fb == NULL)
@@ -574,7 +580,8 @@ draw_fringe_bitmap_1 (w, row, left_p, overlay, which)
 
   if (p.face == NULL)
     {
-      /* Why does this happen?  ++kfs */
+      /* This could happen after clearing face cache.
+	 But it shouldn't happen anymore.  ++kfs */
       return;
     }
 
@@ -1073,7 +1080,7 @@ destroy_fringe_bitmap (n)
 {
   struct fringe_bitmap **fbp;
 
-  fringe_faces[n] = FRINGE_FACE_ID;
+  fringe_faces[n] = Qnil;
 
   fbp = &fringe_bitmaps[n];
   if (*fbp && (*fbp)->dynamic)
@@ -1294,12 +1301,12 @@ If BITMAP already exists, the existing definition is replaced.  */)
 		= ((struct fringe_bitmap **)
 		   xrealloc (fringe_bitmaps, max_fringe_bitmaps * sizeof (struct fringe_bitmap *)));
 	      fringe_faces
-		= (unsigned *) xrealloc (fringe_faces, max_fringe_bitmaps * sizeof (unsigned));
+		= (unsigned *) xrealloc (fringe_faces, max_fringe_bitmaps * sizeof (Lisp_Object));
 
 	      for (; i < max_fringe_bitmaps; i++)
 		{
 		  fringe_bitmaps[i] = NULL;
-		  fringe_faces[i] = FRINGE_FACE_ID;
+		  fringe_faces[i] = Qnil;
 		}
 	    }
 	}
@@ -1357,10 +1364,8 @@ If FACE is nil, reset face to default fringe face.  */)
       if (face_id < 0)
 	error ("No such face");
     }
-  else
-    face_id = FRINGE_FACE_ID;
 
-  fringe_faces[n] = face_id;
+  fringe_faces[n] = face;
 
   return Qnil;
 }
@@ -1434,6 +1439,18 @@ You must (require 'fringe) to use fringe bitmap symbols in your programs." */);
   Vfringe_bitmaps = Qnil;
 }
 
+/* Garbage collection hook */
+
+void
+mark_fringe_data ()
+{
+  int i;
+
+  for (i = 0; i < max_fringe_bitmaps; i++)
+    if (!NILP (fringe_faces[i]))
+      mark_object (fringe_faces[i]);
+}
+
 /* Initialize this module when Emacs starts.  */
 
 void
@@ -1455,12 +1472,12 @@ init_fringe ()
   fringe_bitmaps
     = (struct fringe_bitmap **) xmalloc (max_fringe_bitmaps * sizeof (struct fringe_bitmap *));
   fringe_faces
-    = (unsigned *) xmalloc (max_fringe_bitmaps * sizeof (unsigned));
+    = (unsigned *) xmalloc (max_fringe_bitmaps * sizeof (Lisp_Object));
 
   for (i = 0; i < max_fringe_bitmaps; i++)
     {
       fringe_bitmaps[i] = NULL;
-      fringe_faces[i] = FRINGE_FACE_ID;
+      fringe_faces[i] = Qnil;
     }
 }
 

@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.21
+;; Version: 4.26
 
 ;; This file is part of GNU Emacs.
 
@@ -868,6 +868,7 @@ label prefix determines the wording of a reference."
            ((and (markerp marker) (marker-buffer marker))
             ;; Buffer is still live and we have the marker.  Should be easy.
             (switch-to-buffer-other-window (marker-buffer marker))
+            (push-mark nil)
             (goto-char (marker-position marker))
             (or (looking-at (regexp-quote literal))
                 (looking-at (reftex-make-regexp-allow-for-ctrl-m literal))

@@ -1240,36 +1240,54 @@ calc-kill calc-kill-region calc-yank))))
 
 (defun calc-reset (arg)
   (interactive "P")
-  (save-excursion
-    (or (eq major-mode 'calc-mode)
-	(calc-create-buffer))
-    (if calc-embedded-info
-	(calc-embedded nil))
-    (or arg
-	(setq calc-stack nil))
-    (setq calc-undo-list nil
-	  calc-redo-list nil)
-    (let (calc-stack calc-user-parse-tables calc-standard-date-formats
-		     calc-invocation-macro)
-      (mapcar (function (lambda (v) (set v nil))) calc-local-var-list)
-      (mapcar (function (lambda (v) (set (car v) (nth 1 v))))
-	      calc-mode-var-list))
-    (calc-set-language nil nil t)
-    (calc-mode)
-    (calc-flush-caches t)
-    (run-hooks 'calc-reset-hook))
-  (calc-wrapper
-   (let ((win (get-buffer-window (current-buffer))))
-     (calc-realign 0)
-     (if win
-	 (let ((height (- (window-height win) 2)))
-	   (set-window-point win (point))
-	   (or (= height calc-window-height)
-	       (let ((swin (selected-window)))
-		 (select-window win)
-		 (enlarge-window (- calc-window-height height))
-		 (select-window swin)))))))
-  (message "(Calculator reset)"))
+  (setq arg (if arg (prefix-numeric-value arg) nil))
+  (cond
+   ((and
+     calc-embedded-info
+     (equal (aref calc-embedded-info 0) (current-buffer))
+     (<= (point) (aref calc-embedded-info 5))
+     (>= (point) (aref calc-embedded-info 4)))
+    (let ((cbuf (aref calc-embedded-info 1))
+          (calc-embedded-quiet t))
+      (save-window-excursion
+        (calc-embedded nil)
+        (set-buffer cbuf)
+        (calc-reset arg))
+      (calc-embedded nil)))
+   ((eq major-mode 'calc-mode)
+    (save-excursion
+      (unless (and arg (> (abs arg) 0))
+        (setq calc-stack nil))
+      (setq calc-undo-list nil
+            calc-redo-list nil)
+      (let (calc-stack calc-user-parse-tables calc-standard-date-formats
+                       calc-invocation-macro)
+        (mapcar (function (lambda (v) (set v nil))) calc-local-var-list)
+        (if (and arg (<= arg 0))
+            (calc-mode-var-list-restore-default-values)
+          (calc-mode-var-list-restore-saved-values)))
+      (calc-set-language nil nil t)
+      (calc-mode)
+      (calc-flush-caches t)
+      (run-hooks 'calc-reset-hook))
+    (calc-wrapper
+     (let ((win (get-buffer-window (current-buffer))))
+       (calc-realign 0)
+       ;; Adjust the window height if the window is visible, but doesn't
+       ;; take up the whole height of the frame.
+       (if (and
+            win
+            (< (window-height win) (1- (frame-height))))
+           (let ((height (- (window-height win) 2)))
+             (set-window-point win (point))
+             (or (= height calc-window-height)
+                 (let ((swin (selected-window)))
+                   (select-window win)
+                   (enlarge-window (- calc-window-height height))
+                   (select-window swin)))))))
+    (message "(Calculator reset)"))
+   (t
+    (message "(Not inside a Calc buffer)"))))
 
 ;; What a pain; scroll-left behaves differently when called non-interactively.
 (defun calc-scroll-left (n)

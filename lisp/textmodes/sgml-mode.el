@@ -1,6 +1,6 @@
 ;;; sgml-mode.el --- SGML- and HTML-editing modes
 
-;; Copyright (C) 1992, 1995, 1996, 1998, 2001, 2002, 2003, 2004
+;; Copyright (C) 1992, 1995, 1996, 1998, 2001, 2002, 2003, 2004, 2005
 ;;           Free Software Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
@@ -392,6 +392,14 @@ Otherwise, it is set to be buffer-local when the file has
 	(concat "<" face ">"))
     (error "Face not configured for %s mode" mode-name)))
 
+(defun sgml-fill-nobreak ()
+  ;; Don't break between a tag name and its first argument.
+  (save-excursion
+    (skip-chars-backward " \t")
+    (and (not (zerop (skip-syntax-backward "w_")))
+	 (skip-chars-backward "/?!")
+	 (eq (char-before) ?<))))
+
 ;;;###autoload
 (define-derived-mode sgml-mode text-mode "SGML"
   "Major mode for editing SGML documents.
@@ -422,6 +430,7 @@ Do \\[describe-key] on the following bindings to discover what they do.
   (set (make-local-variable 'paragraph-separate)
        (concat paragraph-start "$"))
   (set (make-local-variable 'adaptive-fill-regexp) "[ \t]*")
+  (add-hook 'fill-nobreak-predicate 'sgml-fill-nobreak nil t)
   (set (make-local-variable 'indent-line-function) 'sgml-indent-line)
   (set (make-local-variable 'comment-start) "<!-- ")
   (set (make-local-variable 'comment-end) " -->")
@@ -1138,17 +1147,19 @@ immediately enclosing the current position.
 Point is assumed to be outside of any tag.  If we discover that it's
 not the case, the first tag returned is the one inside which we are."
   (let ((here (point))
+	(stack nil)
 	(ignore nil)
 	(context nil)
 	tag-info)
     ;; CONTEXT keeps track of the tag-stack
-    ;; IGNORE keeps track of the nesting level of point relative to the
-    ;;   first (outermost) tag on the context.  This is the list of
-    ;;   enclosing start-tags we'll have to ignore.
+    ;; STACK keeps track of the end tags we've seen (and thus the start-tags
+    ;;   we'll have to ignore) when skipping over matching open..close pairs.
+    ;; IGNORE is a list of tags that can be ignored because they have been
+    ;;   closed implicitly.
     (skip-chars-backward " \t\n")      ; Make sure we're not at indentation.
     (while
 	(and (not (eq until 'now))
-	     (or ignore
+	     (or stack
 		 (not (if until (eq until 'empty) context))
 		 (not (sgml-at-indentation-p))
 		 (and context
@@ -1172,24 +1183,25 @@ not the case, the first tag returned is the one inside which we are."
        ;; start-tag
        ((eq (sgml-tag-type tag-info) 'open)
 	(cond
-	 ((null ignore)
-	  (if (and context
-                   (sgml-unclosed-tag-p (sgml-tag-name tag-info))
-		   (eq t (compare-strings
-			  (sgml-tag-name tag-info) nil nil
-			  (sgml-tag-name (car context)) nil nil t)))
+	 ((null stack)
+	  (if (member-ignore-case (sgml-tag-name tag-info) ignore)
 	      ;; There was an implicit end-tag.
 	      nil
-	    (push tag-info context)))
+	    (push tag-info context)
+	    ;; We're changing context so the tags implicitly closed inside
+	    ;; the previous context aren't implicitly closed here any more.
+	    ;; [ Well, actually it depends, but we don't have the info about
+	    ;; when it doesn't and when it does.   --Stef ]
+	    (setq ignore nil)))
 	 ((eq t (compare-strings (sgml-tag-name tag-info) nil nil
-				 (car ignore) nil nil t))
-	  (setq ignore (cdr ignore)))
+				 (car stack) nil nil t))
+	  (setq stack (cdr stack)))
 	 (t
 	  ;; The open and close tags don't match.
 	  (if (not sgml-xml-mode)
 	      (unless (sgml-unclosed-tag-p (sgml-tag-name tag-info))
 		(message "Unclosed tag <%s>" (sgml-tag-name tag-info))
-		(let ((tmp ignore))
+		(let ((tmp stack))
 		  ;; We could just assume that the tag is simply not closed
 		  ;; but it's a bad assumption when tags *are* closed but
 		  ;; not properly nested.
@@ -1200,13 +1212,19 @@ not the case, the first tag returned is the one inside which we are."
 		    (setq tmp (cdr tmp)))
 		  (if (cdr tmp) (setcdr tmp (cddr tmp)))))
 	    (message "Unmatched tags <%s> and </%s>"
-		     (sgml-tag-name tag-info) (pop ignore))))))
+		     (sgml-tag-name tag-info) (pop stack)))))
+	
+	(if (and (null stack) (sgml-unclosed-tag-p (sgml-tag-name tag-info)))
+	    ;; This is a top-level open of an implicitly closed tag, so any
+	    ;; occurrence of such an open tag at the same level can be ignored
+	    ;; because it's been implicitly closed.
+	    (push (sgml-tag-name tag-info) ignore)))
 
        ;; end-tag
        ((eq (sgml-tag-type tag-info) 'close)
 	(if (sgml-empty-tag-p (sgml-tag-name tag-info))
 	    (message "Spurious </%s>: empty tag" (sgml-tag-name tag-info))
-	  (push (sgml-tag-name tag-info) ignore)))
+	  (push (sgml-tag-name tag-info) stack)))
        ))
 
     ;; return context

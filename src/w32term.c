@@ -1,5 +1,5 @@
 /* Implementation of GUI terminal on the Microsoft W32 API.
-   Copyright (C) 1989, 93, 94, 95, 96, 1997, 1998, 1999, 2000, 2001
+   Copyright (C) 1989, 93, 94, 95, 96, 1997, 1998, 1999, 2000, 2001, 2005
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -846,8 +846,7 @@ w32_reset_terminal_modes (void)
 
 /* Function prototypes of this page.  */
 
-static XCharStruct *w32_per_char_metric P_ ((XFontStruct *,
-                                             wchar_t *, int));
+XCharStruct *w32_per_char_metric P_ ((XFontStruct *, wchar_t *, int));
 static int w32_encode_char P_ ((int, wchar_t *, struct font_info *,
 				struct charset *, int *));
 
@@ -985,7 +984,7 @@ w32_native_per_char_metric (font, char2b, font_type, pcm)
 }
 
 
-static XCharStruct *
+XCharStruct *
 w32_per_char_metric (font, char2b, font_type)
      XFontStruct *font;
      wchar_t *char2b;
@@ -5446,7 +5445,8 @@ x_new_font (f, fontname)
   FRAME_BASELINE_OFFSET (f) = fontp->baseline_offset;
   FRAME_FONTSET (f) = -1;
 
-  FRAME_COLUMN_WIDTH (f) = FONT_WIDTH (FRAME_FONT (f));
+  FRAME_COLUMN_WIDTH (f) = fontp->average_width;
+  FRAME_SPACE_WIDTH (f) = fontp->space_width;
   FRAME_LINE_HEIGHT (f) = FONT_HEIGHT (FRAME_FONT (f));
 
   compute_fringe_widths (f, 1);

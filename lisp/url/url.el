@@ -1,6 +1,7 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool
 
-;; Copyright (c) 1996,1997,1998,1999,2001,2004  Free Software Foundation, Inc.
+;; Copyright (c) 1996, 1997, 1998, 1999, 2001, 2004, 2005
+;;           Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes, hypermedia
@@ -169,26 +170,25 @@ no further processing).  URL is either a string or a parsed URL."
 			      (url-debug 'retrieval "Synchronous fetching done (%S)" (current-buffer))
 			      (setq retrieval-done t
 				    asynch-buffer (current-buffer)))))
-    (if (not asynch-buffer)
-	;; We do not need to do anything, it was a mailto or something
-	;; similar that takes processing completely outside of the URL
-	;; package.
-	nil
-      (while (not retrieval-done)
-	(url-debug 'retrieval "Spinning in url-retrieve-synchronously: %S (%S)"
-		   retrieval-done asynch-buffer)
-	;; Quoth Stef:
-	;; It turns out that the problem seems to be that the (sit-for
-	;; 0.1) below doesn't actually process the data: instead it
-	;; returns immediately because there is keyboard input
-	;; waiting, so we end up spinning endlessly waiting for the
-	;; process to finish while not letting it finish.
-
-	;; However, raman claims that it blocks Emacs with Emacspeak
-	;; for unexplained reasons.  Put back for his benefit until
-	;; someone can understand it.
-	;; (sleep-for 0.1)
-	(sit-for 0.1))
+    (let ((proc (and asynch-buffer (get-buffer-process asynch-buffer))))
+      (if (null proc)
+	  ;; We do not need to do anything, it was a mailto or something
+	  ;; similar that takes processing completely outside of the URL
+	  ;; package.
+	  nil
+	(while (not retrieval-done)
+	  (url-debug 'retrieval
+		     "Spinning in url-retrieve-synchronously: %S (%S)"
+		     retrieval-done asynch-buffer)
+	  ;; We used to use `sit-for' here, but in some cases it wouldn't
+	  ;; work because apparently pending keyboard input would always
+	  ;; interrupt it before it got a chance to handle process input.
+	  ;; `sleep-for' was tried but it lead to other forms of
+	  ;; hanging.  --Stef
+	  (unless (accept-process-output proc)
+	    ;; accept-process-output returned nil, maybe because the process
+	    ;; exited (and may have been replaced with another).
+	    (setq proc (get-buffer-process asynch-buffer)))))
       asynch-buffer)))
 
 (defun url-mm-callback (&rest ignored)

@@ -64,6 +64,27 @@ strings or patterns."
   :group 'matching
   :version "21.4")
 
+(defcustom query-replace-highlight t
+  "*Non-nil means to highlight matches during query replacement."
+  :type 'boolean
+  :group 'matching)
+
+(defcustom query-replace-lazy-highlight t
+  "*Controls the lazy-highlighting during query replacements.
+When non-nil, all text in the buffer matching the current match
+is highlighted lazily using isearch lazy highlighting (see
+`lazy-highlight-initial-delay' and `lazy-highlight-interval')."
+  :type 'boolean
+  :group 'lazy-highlight
+  :group 'matching
+  :version "21.4")
+
+(defface query-replace
+  '((t (:inherit isearch)))
+  "Face for highlighting query replacement matches."
+  :group 'matching
+  :version "21.4")
+
 (defun query-replace-descr (string)
   (mapconcat 'isearch-text-char-description string ""))
 
@@ -802,9 +823,10 @@ If the value is nil, don't highlight the buffer names specially."
 	(setq count (+ count (if forwardp -1 1)))
 	(setq beg (line-beginning-position)
 	      end (line-end-position))
-	(if (and keep-props (boundp 'jit-lock-mode) jit-lock-mode
+	(if (and keep-props (if (boundp 'jit-lock-mode) jit-lock-mode)
 		 (text-property-not-all beg end 'fontified t))
-	    (jit-lock-fontify-now beg end))
+	    (if (fboundp 'jit-lock-fontify-now)
+		(jit-lock-fontify-now beg end)))
 	(push
 	 (funcall (if keep-props
 		      #'buffer-substring
@@ -1008,9 +1030,11 @@ See also `multi-occur'."
 			    endpt (line-end-position)))
 		    (setq marker (make-marker))
 		    (set-marker marker matchbeg)
-		    (if (and keep-props (boundp 'jit-lock-mode) jit-lock-mode
+		    (if (and keep-props
+			     (if (boundp 'jit-lock-mode) jit-lock-mode)
 			     (text-property-not-all begpt endpt 'fontified t))
-			(jit-lock-fontify-now begpt endpt))
+			(if (fboundp 'jit-lock-fontify-now)
+			    (jit-lock-fontify-now begpt endpt)))
 		    (setq curstring (buffer-substring begpt endpt))
 		    ;; Depropertize the string, and maybe
 		    ;; highlight the matches
@@ -1257,27 +1281,6 @@ passed in.  If LITERAL is set, no checking is done, anyway."
   (set-match-data match-data)
   (replace-match newtext fixedcase literal)
   noedit)
-
-(defcustom query-replace-highlight t
-  "*Non-nil means to highlight matches during query replacement."
-  :type 'boolean
-  :group 'matching)
-
-(defcustom query-replace-lazy-highlight t
-  "*Controls the lazy-highlighting during query replacements.
-When non-nil, all text in the buffer matching the current match
-is highlighted lazily using isearch lazy highlighting (see
-`isearch-lazy-highlight-initial-delay' and
-`isearch-lazy-highlight-interval')."
-  :type 'boolean
-  :group 'matching
-  :version "21.4")
-
-(defface query-replace
-  '((t (:inherit isearch)))
-  "Face for highlighting query replacement matches."
-  :group 'matching
-  :version "21.4")
 
 (defun perform-replace (from-string replacements
 		        query-flag regexp-flag delimited-flag

@@ -308,10 +308,10 @@ This is not required to be present for user-written mode annotations.")
   (calc-show-edit-buffer))
 
 (defvar calc-original-buffer)
-
+(defvar calc-edit-top)
 (defun calc-embedded-finish-edit (info)
   (let ((buf (current-buffer))
-	(str (buffer-substring (point) (point-max)))
+	(str (buffer-substring calc-edit-top (point-max)))
 	(start (point))
 	pos)
     (switch-to-buffer calc-original-buffer)
@@ -885,7 +885,7 @@ The command \\[yank] can retrieve it from there."
 	(list 'calcFunc-assign
 	      (nth 1 x)
 	      (calc-embedded-subst (nth 2 x)))
-      (calc-normalize (math-evaluate-expr-rec (math-multi-subst-rec x))))))
+      (calc-normalize (math-evaluate-expr-rec (math-multi-subst x nil nil))))))
 
 (defun calc-embedded-eval-get-var (var base)
   (let ((entry base)

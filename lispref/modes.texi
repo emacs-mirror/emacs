@@ -1736,24 +1736,29 @@ It is normally @code{nil}, so that ordinary buffers have no header line.
 the text that would appear in a mode line or header line
 based on certain mode-line specification.
 
-@defun format-mode-line &optional format window no-props buffer
+@defun format-mode-line format &optional face window buffer
 This function formats a line of text according to @var{format} as if
 it were generating the mode line for @var{window}, but instead of
 displaying the text in the mode line or the header line, it returns
-the text as a string.
-
-If @var{format} is @code{nil}, that means to use
-@code{mode-line-format} and return the text that would appear in the
-mode line.  If @var{format} is @code{t}, that means to use
-@code{header-line-format} so as to return the text that would appear
-in the header line (@code{""} if the window has no header line).
-The argument @var{window} defaults to the selected window.
+the text as a string.  The argument @var{window} defaults to the
+selected window.  If @var{buffer} is non-@code{nil}, all the
+information used is taken from @var{buffer}; by default, it comes from
+@var{window}'s buffer.
 
 The value string normally has text properties that correspond to the
-faces, keymaps, etc., that the mode line would have.  If
-@var{no-props} is non-@code{nil}, the value has no text properties.
-If @var{buffer} is non-@code{nil}, all the information used is taken 
-from @var{buffer}; by default,it comes from @var{window}'s buffer.
+faces, keymaps, etc., that the mode line would have.  And any character
+for which no @code{face} property is specified gets a default
+value which is usually @var{face}.  (If @var{face} is @code{t},
+that stands for either @code{mode-line} if @var{window} is selected,
+otherwise @code{mode-line-inactive}.)
+
+However, if @var{face} is an integer, the value has no text properties.
+
+For example, @code{(format-mode-line header-line-format)} returns the
+text that would appear in the selected window's header line (@code{""}
+if it has no header line).  @code{(format-mode-line header-line-format
+'header-line)} returns the same text, with each character
+carrying the face that it will have in the header line itself.
 @end defun
 
 @node Imenu

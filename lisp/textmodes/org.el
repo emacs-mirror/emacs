@@ -1,11 +1,11 @@
 ;; org.el --- Outline-based notes management and organizer 
-
+;; Carstens outline-mode for keeping track of everything.
 ;; Copyright (c) 2003, 2004 Free Software Foundation
 
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 3.03
+;; Version: 3.04
 
 ;; This file is part of GNU Emacs.
 
@@ -23,9 +23,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Carsten's outline-mode for keeping track of everything.
 ;;
 ;;; Commentary:
 ;;
@@ -59,6 +57,8 @@
 ;;    (autoload 'org-diary "org" "Diary entries from Org mode")
 ;;    (autoload 'org-agenda "org" "Multi-file agenda from Org mode" t)
 ;;    (autoload 'org-store-link "org" "Store a link to the current location" t)
+;;    (autoload 'orgtbl-mode "org" "Org tables as a minor mode" t)
+;;    (autoload 'turn-on-orgtbl "org" "Org tables as a minor mode")
 ;;    (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
 ;;    (define-key global-map "\C-cl" 'org-store-link)
 ;;    (define-key global-map "\C-ca" 'org-agenda)
@@ -79,9 +79,18 @@
 ;;
 ;; Changes:
 ;; -------
+;; Version 3.04
+;;    - Table editor optimized to need fewer realignments, and to keep
+;;      table shape when typing in fields.
+;;    - A new minor mode, orgtbl-mode, introduces the Org-mode table editor
+;;      into arbitrary major modes.
+;;    - Fixed bug with realignment in XEmacs.
+;;    - Startup options can be set with special #+STARTUP line.
+;;    - Heading following a match in org-occur can be suppressed.
+;;
 ;; Version 3.03
 ;;    - Copyright transfer to the FSF.
-;;    - Effect of C-u and C-u C-u in org-timeline interchanged.
+;;    - Effect of C-u and C-u C-u in org-timeline swapped.
 ;;    - Timeline now always contains today, and `.' jumps to it.
 ;;    - Table editor:
 ;;      - cut and paste of regtangular regions in tables
@@ -204,7 +213,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "3.03"
+(defvar org-version "3.04"
   "The version number of the file org.el.")
 (defun org-version (arg)
   (interactive "P")
@@ -402,11 +411,11 @@ lisp variable `state'."
   "Matches the SCHEDULED keyword together with a time stamp.")
 (make-variable-buffer-local 'org-scheduled-time-regexp)
 
-(defun org-set-regexps ()
+(defun org-set-regexps-and-options ()
   "Precompute regular expressions for current buffer."
   (when (eq major-mode 'org-mode)
     (let ((re (org-make-options-regexp
-               '("CATEGORY" "SEQ_TODO" "PRI_TODO" "TYP_TODO")))
+               '("CATEGORY" "SEQ_TODO" "PRI_TODO" "TYP_TODO" "STARTUP")))
           (splitre "[ \t]+")
           kwds int key value cat)
       (save-restriction
@@ -426,7 +435,17 @@ lisp variable `state'."
                     kwds (append kwds (org-split-string value splitre))))
              ((equal key "TYP_TODO")
               (setq int 'type
-                    kwds (append kwds (org-split-string value splitre)))))
+                    kwds (append kwds (org-split-string value splitre))))
+             ((equal key "STARTUP")
+              (let ((opts (org-split-string value splitre))
+                    (set '(("fold" org-startup-folded t)
+                           ("nofold" org-startup-folded nil)
+                           ("dlcheck" org-startup-with-deadline-check t)
+                           ("nodlcheck" org-startup-with-deadline-check nil)))
+                    l var val)
+                (while (setq l (assoc (pop opts) set))
+                  (setq var (nth 1 l) val (nth 2 l))
+                  (set (make-local-variable var) val)))))             
             )))
       (and cat (set (make-local-variable 'org-category) cat))
       (and kwds (set (make-local-variable 'org-todo-keywords) kwds))
@@ -464,8 +483,6 @@ lisp variable `state'."
           org-scheduled-time-regexp
           (concat "\\<" org-scheduled-string " *<\\([^>]+\\)>"))
     (org-set-font-lock-defaults)))
-
-;(add-hook 'hack-local-variables-hook 'org-set-regexps)
 
 (defgroup org-time nil
   "Options concerning time stamps and deadlines in Org-mode."
@@ -540,7 +557,7 @@ When nil, always start on the current day."
   :type 'number)
 
 (defcustom org-agenda-include-all-todo t
-  "Non-nil means, the multifile agenda will always contain alm TODO entries.
+  "Non-nil means, the multifile agenda will always contain all TODO entries.
 When nil, date-less entries will only be shown if `org-agenda' is called
 with a prefix argument.
 When non-nil, the TODO entries will be listed at the top of the agenda, before
@@ -638,6 +655,18 @@ t      Everywhere except in headlines"
 (defconst org-time-stamp-formats '("<%Y-%m-%d %a>" . "<%Y-%m-%d %a %H:%M>")
   "Formats for `format-time-string' which are used for time stamps.
 It is not recommended to change this constant.")
+
+(defcustom org-show-following-heading t
+  "Non-nil means, show heading following match in `org-occur'.
+When doing an `org-occur' it is useful to show the headline which
+follows the match, even if they do not match the regexp. This makes it
+easier to edit directly inside the sparse tree. However, if you use
+org-occur mainly as an overview, the following headlines are
+unnecessary clutter."
+  :group 'org-structure
+  :type 'boolean)
+
+
 
 (defgroup org-link nil
   "Options concerning links in Org-mode."
@@ -845,11 +874,34 @@ When nil, new notes will be filed to the end of a file or entry."
   :tag "Org Table"
   :group 'org)
 
-(defcustom org-enable-table-editor t
+(defcustom org-enable-table-editor 'optimized
   "Non-nil means, lines starting with \"|\" are handled by the table editor.
-When nil, such lines will be treated like ordinary lines."
+When nil, such lines will be treated like ordinary lines.
+
+When equal to the symbol `optimized', the table editor will be optimized to
+do the following
+- Use automatic overwrite mode in front of whitespace in table fields.
+  This make the structure of the table stay in tact as long as the edited
+  field does not exceed the column width.
+- Minimize the number of realigns.  Normally, the table is aligned each time
+  TAB or RET are pressed to move to another field.  With optimization this
+  happens only if changes to a field might have  changed the column width.
+Optimization requires replacing the functions `self-insert-command',
+`delete-char', and `backward-delete-char' in Org-mode buffers, with a
+slight (in fact: unnoticable) speed impact for normal typing.  Org-mode is
+very good at guessing when a re-align will be necessary, but you can always
+force one with `C-c C-c'.
+
+I you would like to use the optimized version in Org-mode, but the un-optimized
+version in OrgTbl-mode, see the variable `orgtbl-optimized'.
+
+This variable can be used to turn on and off the table editor during a session,
+but in order to toggle optimization, a restart is required."
   :group 'org-table
-  :type 'boolean)
+  :type '(choice
+          (const :tag "off" nil)
+          (const :tag "on" t)
+          (const :tag "on, optimized" optimized)))
 
 (defcustom org-table-default-size "5x2"
   "The default size for newly created tables, Columns x Rows."
@@ -1295,6 +1347,8 @@ Otherwise, the buffer will just be saved to a file and stay hidden."
 (eval-when-compile
   (defvar zmacs-regions)
   (defvar org-transient-mark-mode)
+  (defvar org-old-auto-fill-inhibit-regexp)
+  (defvar orgtbl-mode-menu)
   (defvar org-html-entities)
   (defvar org-goto-start-pos)
   (defvar org-cursor-color)
@@ -1351,7 +1405,7 @@ messages (Gnus), BBDB entries, and any files related to the project.
 For printing and sharing of notes, an Org-mode file (or a part of it)
 can be exported as a well-structured ASCII or HTML file.
 
-+  The following commands are available:
+The following commands are available:
 
 \\{org-mode-map}"
   (interactive "P")
@@ -1363,10 +1417,12 @@ can be exported as a well-structured ASCII or HTML file.
   (org-install-agenda-files-menu)
   (setq outline-regexp "\\*+")
   (if org-startup-truncated (setq truncate-lines t))
-  (org-set-regexps)
+  (org-set-regexps-and-options)
   (set (make-local-variable 'font-lock-unfontify-region-function)
        'org-unfontify-region)
   ;; Activate before-change-function
+  (set (make-local-variable 'org-table-may-need-update) t)
+  (make-local-hook 'before-change-functions)  ;; needed for XEmacs
   (add-hook 'before-change-functions 'org-before-change-function nil
             'local)
   ;; Inhibit auto-fill for headers, tables and fixed-width lines.
@@ -1507,7 +1563,7 @@ can be exported as a well-structured ASCII or HTML file.
 (defvar org-cycle-global-status nil)
 (defvar org-cycle-subtree-status nil)
 (defun org-cycle (&optional arg)
-  "Visibility cycling for outline(-minor)-mode.
+  "Visibility cycling for org-mode.
 
 - When this function is called with a prefix argument, rotate the entire
   buffer through 3 states (global cycling)
@@ -1540,7 +1596,9 @@ can be exported as a well-structured ASCII or HTML file.
    ((org-at-table-p 'any)
     ;; Enter the table or move to the next field in the table
     (or (org-table-recognize-table.el)
-        (org-table-next-field)))
+        (progn
+          (org-table-justify-field-maybe)
+          (org-table-next-field))))
 
    (arg ;; Global cycling
 
@@ -1765,9 +1823,9 @@ or nil."
 (defvar org-ignore-region nil
   "To temporary disable the active region.")
 
-(defun org-insert-heading ()
+(defun org-insert-heading (arg)
   "Insert a new heading with same depth at point."
-  (interactive)
+  (interactive "P")
   (let* ((head (save-excursion
 		 (condition-case nil
 		     (org-back-to-heading)
@@ -2271,14 +2329,14 @@ that the match should indeed be shown."
         (message "%d match(es) for regexp %s" cnt regexp))
     cnt))
 
-
 (defun org-show-hierarchy-above ()
   "Make sure point and the headings hierarchy above is visible."
   (if (org-on-heading-p t)
       (org-flag-heading nil)    ; only show the heading
     (org-show-hidden-entry))    ; show entire entry
   (save-excursion
-    (and (outline-next-heading)
+    (and org-show-following-heading
+         (outline-next-heading)
          (org-flag-heading nil)))  ; show the next heading
   (save-excursion                  ; show all higher headings
     (while (condition-case nil
@@ -2361,7 +2419,7 @@ Otherwise, only the date will be included.  All parts of a date not
 specified by the user will be filled in from the current date/time.
 So if you press just return without typing anything, the time stamp
 will represent the current date/time.  If there is already a timestamp
-at the cursoe, it will be modified."
+at the cursor, it will be modified."
   (interactive "P")
   (let ((fmt (if arg (cdr org-time-stamp-formats)
                (car org-time-stamp-formats)))
@@ -2798,7 +2856,11 @@ If there is already a time stamp at the cursor position, update it."
 
 ;;;###autoload
 (defun org-agenda-mode ()
-  "Mode for time-sorted view on action items in Org-mode files."
+  "Mode for time-sorted view on action items in Org-mode files.
+
+The following commands are available:
+
+\\{org-agenda-mode-map}"
   (interactive)
   (kill-all-local-variables)
   (setq major-mode 'org-agenda-mode)
@@ -3118,7 +3180,7 @@ NDAYS defaults to `org-agenda-ndays'."
 (defun org-check-agenda-file (file)
   "Make sure FILE exists.  If not, ask user what to do."
   ;; FIXME:  this does not correctly change the menus
-  ;; Could be fixed by explicitly going to the buffer, maybe.
+  ;; Could probably be fixed by explicitly going to the buffer.
   (when (not (file-exists-p file))
     (message "non-existent file %s.  [R]emove from agenda-files or [A]bort?"
              file)
@@ -4507,7 +4569,6 @@ RET at beg-of-buf -> Append to file as level 2 headline
 RET on headline   -> Store as sublevel entry to current headline
 <left>/<right>    -> before/after current headline, same headings level")
 
-;; FIXME: Document C-u C-c C-c
 ;;;###autoload
 (defun org-remember-handler ()
   "Store stuff from remember.el into an org file.
@@ -4796,6 +4857,21 @@ Such a file can be imported into a spreadsheet program like Excel."
       (save-buffer))
     (kill-buffer buf)))
 
+(defvar org-table-aligned-begin-marker (make-marker)
+  "Marker at the beginning of the table last aligned.
+Used to check if cursor still is in that table, to minimize realignment.")
+(defvar org-table-aligned-end-marker (make-marker)
+  "Marker at the end of the table last aligned.
+Used to check if cursor still is in that table, to minimize realignment.")
+(defvar org-table-last-alignment nil
+  "List of flags for flushright alignment, from the last re-algnment.
+This is being used to correctly align a single field after TAB or RET.")
+;; FIXME:  The following is currently not used.
+(defvar org-table-last-column-widths nil
+  "List of max width of ffields in each column.
+This is being used to correctly align a single field after TAB or RET.")
+
+
 (defun org-table-align (&optional arg)
   "Align the table at point by aligning all vertical bars."
   (interactive "P")
@@ -4866,6 +4942,8 @@ Such a file can be imported into a spreadsheet program like Excel."
       (push (>= frac org-table-number-fraction) typenums))
     (setq lengths (nreverse lengths)
           typenums (nreverse typenums))
+    (setq org-table-last-alignment typenums
+          org-table-last-column-widths lengths)
     ;; Compute the formats needed for output of the table
     (setq rfmt (concat indent "|") hfmt (concat indent "|"))
     (while (setq l (pop lengths))
@@ -4884,13 +4962,14 @@ Such a file can be imported into a spreadsheet program like Excel."
     ;; Replace the old one
     (delete-region beg end)
     (move-marker end nil)
+    (move-marker org-table-aligned-begin-marker (point))
     (insert new)
+    (move-marker org-table-aligned-end-marker (point))
     ;; Try to move to the old location (approximately)
     (goto-line linepos)
     (set-window-start (selected-window) winstart 'noforce)
     (org-table-goto-column colpos)
     (setq org-table-may-need-update nil)
-    ;; (message "Aligning table...done")
     (if (org-in-invisibility-spec-p '(org-table))
         (org-table-add-invisible-to-vertical-lines))
     ))
@@ -4919,6 +4998,35 @@ With argument TABLE-TYPE, go to the end of a table.el-type table."
         (goto-char (point-max))
       (goto-char (match-beginning 0)))
     (point-marker)))
+
+(defun org-table-justify-field-maybe ()
+  "Justify the current field, text to left, number to right."
+  (cond
+   (org-table-may-need-update) ; Realignment will happen anyway, don't bother
+   ((org-at-table-hline-p)
+    ;; This is pretty stupid, but I don't know how to deal with hlines
+    (setq org-table-may-need-update t))
+   ((or (not (equal (marker-buffer org-table-aligned-begin-marker)
+                    (current-buffer)))
+        (< (point) org-table-aligned-begin-marker)
+        (>= (point) org-table-aligned-end-marker))
+    ;; This is not the same table, force a full re-align
+    (setq org-table-may-need-update t))
+   (t ;; realign the current field, based on previous full realign
+    (let* ((pos (point)) s org-table-may-need-update
+           (col (org-table-current-column))
+           (num (nth (1- col) org-table-last-alignment))
+           l f)
+      (when (> col 0)
+        (skip-chars-backward "^|\n")
+        (if (looking-at " *\\([^|\n]*?\\) *|")
+            (progn
+              (setq s (match-string 1)
+                    l (max 1 (- (match-end 0) (match-beginning 0) 3)))
+              (setq f (format (if num " %%%ds |" " %%-%ds |") l))
+              (replace-match (format f s t t)))
+          (setq org-table-may-need-update t))
+        (goto-char pos))))))
 
 (defun org-table-next-field (&optional arg)
   "Go to the next field in the current table.
@@ -5013,18 +5121,21 @@ I.e. not on a hline or before the first or after the last column?"
       (error "Not in table data field")))
 
 (defun org-table-blank-field ()
-  "Blank the current table field."
+  "Blank the current table field or active region."
   (interactive)
   (org-table-check-inside-data-field)
-  (skip-chars-backward "^|")
-  (backward-char 1)
-  (if (looking-at "|[^|]+")
-      (let* ((pos (match-beginning 0))
-             (match (match-string 0))
-             (len (length match)))
-        (replace-match (concat "|" (make-string (1- len) ?\ )))
-        (goto-char (+ 2 pos))
-        (substring match 1))))
+  (if (and (interactive-p) (org-region-active-p))
+      (let (org-table-clip)
+        (org-table-cut-region))
+    (skip-chars-backward "^|")
+    (backward-char 1)
+    (if (looking-at "|[^|]+")
+        (let* ((pos (match-beginning 0))
+               (match (match-string 0))
+               (len (length match)))
+          (replace-match (concat "|" (make-string (1- len) ?\ )))
+          (goto-char (+ 2 pos))
+          (substring match 1)))))
 
 (defun org-table-get-field (&optional n replace)
   "Return the value of the field in column N of current row.
@@ -5199,6 +5310,15 @@ However, when FORCE is non-nil, create new columns if necessary."
     (org-table-goto-column colpos))
   (org-table-align))
 
+(defun org-table-move-column-right ()
+  "Move column to the right."
+  (interactive)
+  (org-table-move-column nil))
+(defun org-table-move-column-left ()
+  "Move column to the left."
+  (interactive)
+  (org-table-move-column 'left))
+
 (defun org-table-move-column (&optional left)
   "Move the current column to the right.  With arg LEFT, move to the left."
   (interactive "P")
@@ -5229,6 +5349,15 @@ However, when FORCE is non-nil, create new columns if necessary."
     (goto-line linepos)
     (org-table-goto-column colpos))
   (org-table-align))
+
+(defun org-table-move-row-down ()
+  "Move table row down."
+  (interactive)
+  (org-table-move-row nil))
+(defun org-table-move-row-up ()
+  "Move table row down."
+  (interactive)
+  (org-table-move-row 'up))
 
 (defun org-table-move-row (&optional up)
   "Move the current table line down. With arg UP, move it up."
@@ -5263,11 +5392,12 @@ With prefix ARG, insert below the current line."
         (setq line (mapcar (lambda (x) (if (member x '(?| ?+)) ?| ?\ )) line))
       (setq line (mapcar (lambda (x) (if (equal x ?|) ?| ?\ )) line)))
     (beginning-of-line (if arg 2 1))
-    (apply 'insert line)
-    (insert "\n")
+    (let (org-table-may-need-update)
+      (apply 'insert-before-markers line)
+      (insert-before-markers "\n"))
     (beginning-of-line 0)
     (re-search-forward "| ?" (point-at-eol) t)
-    (org-table-align)))
+    (and org-table-may-need-update (org-table-align))))
 
 (defun org-table-insert-hline (&optional arg)
   "Insert a horizontal-line below the current line into the table.
@@ -5788,6 +5918,271 @@ separator line)."
         (setq ndown 0)))
     (org-table-align)))
 
+;;; The orgtbl minor mode
+
+;; Define a minor mode which can be used in other modes in order to
+;; integrate the org-mode table editor.
+
+;; This is really a hack, because the org-mode table editor uses several
+;; keys which normally belong to the major mode, for example the TAB and
+;; RET keys.  Here is how it works: The minor mode defines all the keys
+;; necessary to operate the table editor, but wraps the commands into a
+;; function which tests if the cursor is currently inside a table.  If that
+;; is the case, the table editor command is executed.  However, when any of
+;; those keys is used outside a table, the function uses `key-binding' to
+;; look up if the key has an associated command in another currently active
+;; keymap (minor modes, major mode, global), and executes that command.
+;; There might be problems if any of the keys used by the table editor is
+;; otherwise used as a prefix key.
+
+;; Another challenge is that the key binding for TAB can be tab or \C-i,
+;; likewise the binding for RET can be return or \C-m.  Orgtbl-mode
+;; addresses this by checking explicitly for both bindings.
+
+;; The optimized version (see variable `orgtbl-optimized') takes over
+;; all keys which are bound to `self-insert-command' in the *global map*.
+;; Some modes bind other commands to simple characters, for example
+;; AUCTeX binds the double quote to `Tex-insert-quote'.  With orgtbl-mode
+;; active, this binding is ignored inside tables and replaced with a
+;; modified self-insert.
+
+(defcustom orgtbl-optimized (eq org-enable-table-editor 'optimized)
+  "Non-nil means, use the optimized table editor version for orgtbl-mode.
+In the optimized version, the table editor takes over all simple keys that
+normally just insert a character.  In tables, the characters are inserted
+in a way to minimize disturbing the table structure (i.e. in overwrite mode
+for empty fields).  Outside tables, the correct binding of the keys is
+restored.
+
+The default for this option is t if the optimized version is also used in
+Org-mode.  See the variable `org-enable-table-editor' for details.  Changing
+this variable requires a restart of Emacs to become effective."
+  :group 'org-table
+  :type 'boolean)
+
+(defvar orgtbl-mode nil
+  "Variable controlling orgtbl-mode, a minor mode enabling the org-mode
+table editor iin arbitrary modes.")
+(make-variable-buffer-local 'orgtbl-mode)
+
+(defvar orgtbl-mode-map (make-sparse-keymap)
+  "Keymap for orgtbl-mode.")
+
+;;;###autoload
+(defun turn-on-orgtbl ()
+  "Unconditionally turn on orgtbl-mode."
+  (orgtbl-mode 1))
+
+;;;###autoload
+(defun orgtbl-mode (&optional arg)
+  "The org-mode table editor as a minor mode for use in other modes." 
+  (interactive) 
+  (setq orgtbl-mode
+        (if arg (> (prefix-numeric-value arg) 0) (not orgtbl-mode)))
+  (if orgtbl-mode
+      (progn 
+        (set (make-local-variable (quote org-table-may-need-update)) t)
+        (make-local-hook (quote before-change-functions))
+        (add-hook 'before-change-functions 'org-before-change-function
+                  nil 'local)
+        (set (make-local-variable 'org-old-auto-fill-inhibit-regexp)
+             auto-fill-inhibit-regexp)
+        (set (make-local-variable 'auto-fill-inhibit-regexp)
+             (if auto-fill-inhibit-regexp 
+                 (concat "\\([ \t]*|\\|" auto-fill-inhibit-regexp)
+               "[ \t]*|"))
+        (easy-menu-add orgtbl-mode-menu)
+        (run-hooks (quote orgtbl-mode-hook)))
+    (setq auto-fill-inhibit-regexp org-old-auto-fill-inhibit-regexp)
+    (remove-hook 'before-change-functions 'org-before-change-function t)
+    (easy-menu-remove orgtbl-mode-menu)
+    (force-mode-line-update 'all)))
+
+;; Install it as a minor mode.
+(put 'orgtbl-mode :included t)
+(put 'orgtbl-mode :menu-tag "Org Table Mode")
+(add-minor-mode 'orgtbl-mode " OrgTbl" orgtbl-mode-map)
+
+(defun orgtbl-make-binding (fun &rest keys)
+  "Create a function for binding in the table minor mode."
+  (list 'lambda '(arg) '(interactive "p")
+        (list 'if
+              '(org-at-table-p)
+              (list 'call-interactively (list 'quote fun))
+              (list 'let '(orgtbl-mode)
+                    (list 'call-interactively
+                          (append '(or)
+                                  (mapcar (lambda (k)
+                                            (list 'key-binding k))
+                                          keys)
+                                  '('orgtbl-error)))))))
+
+(defun orgtbl-error ()
+  "Error when there is no default binding for a table key."
+  (interactive)
+  (error "This key is has no function outside tables"))
+
+;; Keybindings for the minor mode
+(let ((bindings
+       '(([(meta shift left)]  org-table-delete-column)
+         ([(meta left)]        org-table-move-column-left)
+         ([(meta right)]       org-table-move-column-right)
+         ([(meta shift right)] org-table-insert-column)
+         ([(meta shift up)]    org-table-kill-row)
+         ([(meta shift down)]  org-table-insert-row)
+         ([(meta up)]          org-table-move-row-up)
+         ([(meta down)]        org-table-move-row-down)
+         ("\C-c\C-w"           org-table-cut-region)
+         ("\C-c\M-w"           org-table-copy-region)
+         ("\C-c\C-y"           org-table-paste-rectangle)
+         ("\C-c-"              org-table-insert-hline)
+         ([(shift tab)]        org-table-previous-field)
+         ("\C-c\C-c"           org-table-align)
+         ([(return)]           org-table-next-row)
+         ([(shift return)]     org-table-copy-from-above)
+         ([(meta return)]      org-table-wrap-region)
+         ("\C-c\C-q"           org-table-wrap-region)
+         ("\C-c?"              org-table-current-column)
+         ("\C-c "              org-table-blank-field)
+         ("\C-c+"              org-table-sum)
+         ("\C-c|"              org-table-toggle-vline-visibility)
+         ("\C-c="              org-table-eval-formula)))
+      elt key fun cmd)
+  (while (setq elt (pop bindings))
+    (setq key (car elt)
+          fun (nth 1 elt)
+          cmd (orgtbl-make-binding fun key))
+    (define-key orgtbl-mode-map key cmd)))
+
+;; Special treatment needed for TAB and RET
+;(define-key orgtbl-mode-map [(return)] 
+;  (orgtbl-make-binding 'org-table-next-row [(return)] "\C-m"))
+;(define-key orgtbl-mode-map "\C-m" 
+;  (orgtbl-make-binding 'org-table-next-row "\C-m" [(return)]))
+;(define-key orgtbl-mode-map [(tab)] 
+;  (orgtbl-make-binding 'org-table-next-field [(tab)] "\C-i"))
+;(define-key orgtbl-mode-map "\C-i"
+;  (orgtbl-make-binding 'org-table-next-field "\C-i" [(tab)]))
+
+(define-key orgtbl-mode-map [(return)] 
+  (orgtbl-make-binding 'orgtbl-ret [(return)] "\C-m"))
+(define-key orgtbl-mode-map "\C-m" 
+  (orgtbl-make-binding 'orgtbl-ret "\C-m" [(return)]))
+(define-key orgtbl-mode-map [(tab)] 
+  (orgtbl-make-binding 'orgtbl-tab [(tab)] "\C-i"))
+(define-key orgtbl-mode-map "\C-i"
+  (orgtbl-make-binding 'orgtbl-tab "\C-i" [(tab)]))
+
+(when orgtbl-optimized
+  ;; If the user wants maximum table support, we need to hijack
+  ;; some standard editing functions
+  (substitute-key-definition 'self-insert-command 'orgtbl-self-insert-command
+                             orgtbl-mode-map global-map)
+  (substitute-key-definition 'delete-char 'orgtbl-delete-char
+                             orgtbl-mode-map global-map)
+  (substitute-key-definition 'delete-backward-char 'orgtbl-delete-backward-char
+                             orgtbl-mode-map global-map)
+  (define-key org-mode-map "|" 'self-insert-command))
+
+(defun orgtbl-tab ()
+  "Justification and field motion for orgtbl-mode."
+  (interactive)
+  (org-table-justify-field-maybe)
+  (org-table-next-field))
+
+(defun orgtbl-ret ()
+  "Justification and field motion for orgtbl-mode."
+  (interactive)
+  (org-table-justify-field-maybe)
+  (org-table-next-row))
+
+(defun orgtbl-self-insert-command (N)
+  "Like `self-insert-command', use overwrite-mode for whitespace in tables.
+If the cursor is in a table looking at whitespace, the whitespace is
+overwritten, and the table is not marked as requiring realignment."
+  (interactive "p")
+  (if (and (org-at-table-p)
+           (eq N 1)
+           (looking-at "[^|\n]*  +|"))
+      (let (org-table-may-need-update (pos (point)))
+        (goto-char (1- (match-end 0)))
+        (delete-backward-char 1)
+        (goto-char (match-beginning 0))
+        (self-insert-command N))
+    (setq org-table-may-need-update t)
+    (let (orgtbl-mode)
+      (call-interactively (key-binding (vector last-input-event))))))
+
+(defun orgtbl-delete-backward-char (N)
+  "Like `delete-backward-char', insert whitespace at field end in tables.
+When deleting backwards, in tables this function will insert whitespace in
+front of the next \"|\" separator, to keep the table aligned.  The table will
+still be marked for re-alignment, because a narrow field may lead to a
+reduced column width."
+  (interactive "p")
+  (if (and (org-at-table-p)
+           (eq N 1)
+           (looking-at ".*?|"))
+      (let ((pos (point)))
+        (backward-delete-char N)
+        (skip-chars-forward "^|")
+        (insert " ")
+        (goto-char (1- pos)))
+    (message "%s" last-input-event) (sit-for 1)
+    (delete-backward-char N)))
+
+(defun orgtbl-delete-char (N)
+  "Like `delete-char', but insert whitespace at field end in tables.
+When deleting characters, in tables this function will insert whitespace in
+front of the next \"|\" separator, to keep the table aligned.  The table
+will still be marked for re-alignment, because a narrow field may lead to
+a reduced column width."
+  (interactive "p")
+  (if (and (org-at-table-p)
+           (eq N 1))
+      (if (looking-at ".*?|")
+          (let ((pos (point)))
+            (replace-match (concat
+                            (substring (match-string 0) 1 -1)
+                            " |"))
+            (goto-char pos)))
+    (delete-char N)))
+
+(easy-menu-define orgtbl-mode-menu orgtbl-mode-map "OrgTbl menu"
+  '("Tbl"
+    ["Align" org-ctrl-c-ctrl-c :active (org-at-table-p) :keys "C-c C-c"]
+    ["Next field" org-cycle :active (org-at-table-p) :keys "TAB"]
+    ["Previous Field" org-shifttab :active (org-at-table-p) :keys "S-TAB"]
+    ["Next row" org-return :active (org-at-table-p) :keys "RET"]
+    "--"
+    ["Blank field" org-table-blank-field :active (org-at-table-p) :keys "C-c SPC"]
+    ["Copy field from above"
+     org-table-copy-from-above :active (org-at-table-p) :keys "S-RET"]
+    "--"
+    ("Column"
+     ["Move column left" org-metaleft :active (org-at-table-p) :keys "M-<left>"]
+     ["Move column right" org-metaright :active (org-at-table-p) :keys "M-<right>"]
+     ["Delete column" org-shiftmetaleft :active (org-at-table-p) :keys "M-S-<left>"]
+     ["Insert column" org-shiftmetaright :active (org-at-table-p) :keys "M-S-<right>"])
+    ("Row"
+     ["Move row up" org-metaup :active (org-at-table-p) :keys "M-<up>"]
+     ["Move row down" org-metadown :active (org-at-table-p) :keys "M-<down>"]
+     ["Delete row" org-shiftmetaup :active (org-at-table-p) :keys "M-S-<up>"]
+     ["Insert row" org-shiftmetadown :active (org-at-table-p) :keys "M-S-<down>"]
+     "--"
+     ["Insert hline" org-table-insert-hline :active (org-at-table-p) :keys "C-c -"])
+    ("Rectangle"
+     ["Copy rectangle" org-copy-special :active (org-at-table-p) :keys "C-c M-w"]
+     ["Cut rectangle" org-cut-special :active (org-at-table-p) :keys "C-c C-w"]
+     ["Paste rectangle" org-paste-special :active (org-at-table-p) :keys "C-c C-y"]
+     ["Fill rectangle" org-table-wrap-region :active (org-at-table-p) :keys "C-c C-q"])
+    "--"
+    ["Which column?" org-table-current-column :active (org-at-table-p) :keys "C-c ?"]
+    ["Sum column/rectangle" org-table-sum 
+     :active (or (org-at-table-p) (org-region-active-p)) :keys "C-c +"]
+    ["Eval formula" org-table-eval-formula :active (org-at-table-p) :keys "C-c ="]
+    ))
+
 ;;; Exporting
 
 (defconst org-level-max 20)
@@ -6300,6 +6695,7 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
 #+CATEGORY:  %s
 #+SEQ_TODO:  %s
 #+TYP_TODO:  %s
+#+STARTUP:   %s %s
 "
    (buffer-name) (user-full-name) user-mail-address org-export-default-language
    org-export-headline-levels
@@ -6318,7 +6714,10 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
      "TODO FEEDBACK VERIFY DONE")
    (if (equal org-todo-interpretation 'type)
        (mapconcat 'identity org-todo-keywords " ")
-     "Me Jason Marie DONE")))
+     "Me Jason Marie DONE")
+   (if org-startup-folded "fold" "nofold")
+   (if org-startup-with-deadline-check "dlcheck" "nodlcheck")
+   ))
 
 (defun org-insert-export-options-template ()
   "Insert into the buffer a template with information for exporting."
@@ -7025,6 +7424,7 @@ When LEVEL is non-nil, increase section numbers on that level."
 (define-key org-mode-map "\C-c\C-c"       'org-ctrl-c-ctrl-c)
 (define-key org-mode-map [(return)]       'org-return)
 (define-key org-mode-map [(shift return)] 'org-table-copy-from-above)
+(define-key org-mode-map [(meta return)]  'org-meta-return)
 (define-key org-mode-map [(control up)]   'org-move-line-up)
 (define-key org-mode-map [(control down)] 'org-move-line-down)
 (define-key org-mode-map "\C-c?"          'org-table-current-column)
@@ -7040,6 +7440,105 @@ When LEVEL is non-nil, increase section numbers on that level."
 (define-key org-mode-map "\C-c:"          'org-toggle-fixed-width-section)
 (define-key org-mode-map "\C-c\C-xh"      'org-export-as-html)
 (define-key org-mode-map "\C-c\C-x\C-h"   'org-export-as-html-and-open)
+
+
+;; FIXME:  Do we really need to save match data in these commands?
+;; I would like to remove it in order to minimize impact.
+;; Self-insert already does not preserve it.  How much resources does this take???
+
+(defsubst org-table-p ()
+  (if (and (eq major-mode 'org-mode) font-lock-mode)
+      (eq (get-text-property (point) 'face) 'org-table-face)
+    (save-match-data (org-at-table-p))))
+
+(defun org-self-insert-command (N)
+  "Like `self-insert-command', use overwrite-mode for whitespace in tables.
+If the cursor is in a table looking at whitespace, the whitespace is
+overwritten, and the table is not marked as requiring realignment."
+  (interactive "p")
+  (if (and (org-table-p)
+           (eq N 1)
+           (looking-at "[^|\n]*  +|"))
+      (let (org-table-may-need-update (pos (point)))
+        (goto-char (1- (match-end 0)))
+        (delete-backward-char 1)
+        (goto-char (match-beginning 0))
+        (self-insert-command N))
+    (setq org-table-may-need-update t)
+    (self-insert-command N)))
+
+;; FIXME:
+;; The following two functions might still be optimized to trigger
+;; re-alignment less frequently.  Right now they raise the flag each time
+;; (through before-change-functions).  Here is how this could be minimized:
+;; Basically, check if the non-white field width before deletion is
+;; equal to the column width.  If yes, the delete should trigger a
+;; re-align.  I have not implemented this so far because it is not so
+;; easy, requires grabbing the field etc.  So it may finally have some
+;; impact on typing performance which we don't want.
+
+;; The defsubst is only a draft, untested...
+
+;; Maybe it is not so important to get rid of realigns - maybe the most
+;; important aspect is to keep the table look noce as long as possible,
+;; which is already achieved...
+
+;(defsubst org-check-delete-triggers-realign ()
+;  (let ((pos (point)))
+;    (skip-chars-backward "^|\n")
+;    (and (looking-at " *\\(.*?\\) *|")
+;         (= (nth (1- (org-table-current-column))
+;                 org-table-last-column-widths)
+;            (- (match-end 1) (match-beginning 1)))
+;         (setq org-table-may-need-update t))))
+
+(defun org-delete-backward-char (N)
+  "Like `delete-backward-char', insert whitespace at field end in tables.
+When deleting backwards, in tables this function will insert whitespace in
+front of the next \"|\" separator, to keep the table aligned.  The table will
+still be marked for re-alignment, because a narrow field may lead to a
+reduced column width."
+  (interactive "p")
+  (if (and (org-table-p)
+           (eq N 1)
+           (looking-at ".*?|"))
+      (let ((pos (point)))
+        (backward-delete-char N)
+        (skip-chars-forward "^|")
+        (insert " ")
+        (goto-char (1- pos)))
+    (backward-delete-char N)))
+
+(defun org-delete-char (N)
+  "Like `delete-char', but insert whitespace at field end in tables.
+When deleting characters, in tables this function will insert whitespace in
+front of the next \"|\" separator, to keep the table aligned.  The table
+will still be marked for re-alignment, because a narrow field may lead to
+a reduced column width."
+  (interactive "p")
+  (if (and (org-table-p)
+           (eq N 1))
+      (if (looking-at ".*?|")
+          (let ((pos (point)))
+            (replace-match (concat
+                            (substring (match-string 0) 1 -1)
+                            " |"))
+            (goto-char pos)))
+    (delete-char N)))
+
+;; How to do this: Measure non-white length of current string
+;; If equal to column width, we should realign.
+
+(when (eq org-enable-table-editor 'optimized)
+  ;; If the user wants maximum table support, we need to hijack
+  ;; some standard editing functions
+  (substitute-key-definition 'self-insert-command 'org-self-insert-command
+                             org-mode-map global-map)
+  (substitute-key-definition 'delete-char 'org-delete-char
+                             org-mode-map global-map)
+  (substitute-key-definition 'delete-backward-char 'org-delete-backward-char
+                             org-mode-map global-map)
+  (define-key org-mode-map "|" 'self-insert-command))
 
 (defun org-shiftcursor-error ()
   "Throw an error because Shift-Cursor command was applied in wrong context."
@@ -7173,9 +7672,18 @@ the automatic table editor has been turned off."
   "Call `org-table-next-row' or `newline'."
   (interactive "P")
   (cond
-   ((org-at-table-p) (org-table-next-row))
+   ((org-at-table-p)
+    (org-table-justify-field-maybe)
+    (org-table-next-row))
    (t (newline))))
 
+(defun org-meta-return (&optional arg)
+  "Call `org-insert-heading' or `org-table-wrap-region'."
+  (interactive "P")
+  (cond
+   ((org-at-table-p)
+    (org-table-wrap-region arg))
+   (t (org-insert-heading arg))))
 
 ;;; Menu entries
 
@@ -7245,7 +7753,7 @@ the automatic table editor has been turned off."
      ["Check Deadlines this file" org-check-deadlines t]
      ["Timeline current file" org-timeline t]
      "--"
-     ["Adenda (multifile)" org-agenda-overview t])
+     ["Adenda (multifile)" org-agenda t])
     ("File List for Agenda")
     "--"
     ("Hyperlinks"
@@ -7586,6 +8094,7 @@ When ENTRY is non-nil, show the entire entry."
 
 (run-hooks 'org-load-hook)
 
+;; arch-tag: e77da1a7-acc7-4336-b19e-efa25af3f9fd
+
 ;;; org.el ends here
 
-;; arch-tag: e77da1a7-acc7-4336-b19e-efa25af3f9fd

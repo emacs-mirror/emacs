@@ -415,13 +415,15 @@ Otherwise, the value is whatever the function
 ;; buttons
 (define-button-type 'Man-xref-man-page
   'action (lambda (button) (man-follow (button-label button)))
-  'help-echo "RET, mouse-2: display this man page")
+  'follow-link t
+  'help-echo "mouse-2, RET: display this man page")
 
 (define-button-type 'Man-xref-header-file
     'action (lambda (button)
               (let ((w (button-get button 'Man-target-string)))
                 (unless (Man-view-header-file w)
                   (error "Cannot find header file: %s" w))))
+    'follow-link t
     'help-echo "mouse-2: display this header file")
 
 (define-button-type 'Man-xref-normal-file
@@ -433,6 +435,7 @@ Otherwise, the value is whatever the function
 		      (view-file f)
 		    (error "Cannot read a file: %s" f))
 		(error "Cannot find a file: %s" f))))
+  'follow-link t
   'help-echo "mouse-2: display this file")
 
 
@@ -822,6 +825,7 @@ Same for the ANSI bold and normal escape sequences."
   (goto-char (point-min))
   ;; Fontify ANSI escapes.
   (let ((faces nil)
+	(buffer-undo-list t)
 	(start (point)))
     ;; http://www.isthe.com/chongo/tech/comp/ansi_escapes.html
     ;; suggests many codes, but we only handle:
@@ -853,46 +857,47 @@ Same for the ANSI bold and normal escape sequences."
       (delete-region (match-beginning 0) (match-end 0))
       (setq start (point))))
   ;; Other highlighting.
-  (if (< (buffer-size) (position-bytes (point-max)))
-      ;; Multibyte characters exist.
-      (progn
-	(goto-char (point-min))
-	(while (search-forward "__\b\b" nil t)
-	  (backward-delete-char 4)
-	  (put-text-property (point) (1+ (point)) 'face Man-underline-face))
-	(goto-char (point-min))
-	(while (search-forward "\b\b__" nil t)
-	  (backward-delete-char 4)
-	  (put-text-property (1- (point)) (point) 'face Man-underline-face))))
-  (goto-char (point-min))
-  (while (search-forward "_\b" nil t)
-    (backward-delete-char 2)
-    (put-text-property (point) (1+ (point)) 'face Man-underline-face))
-  (goto-char (point-min))
-  (while (search-forward "\b_" nil t)
-    (backward-delete-char 2)
-    (put-text-property (1- (point)) (point) 'face Man-underline-face))
-  (goto-char (point-min))
-  (while (re-search-forward "\\(.\\)\\(\b+\\1\\)+" nil t)
-    (replace-match "\\1")
-    (put-text-property (1- (point)) (point) 'face Man-overstrike-face))
-  (goto-char (point-min))
-  (while (re-search-forward "o\b\\+\\|\\+\bo" nil t)
-    (replace-match "o")
-    (put-text-property (1- (point)) (point) 'face 'bold))
-  (goto-char (point-min))
-  (while (re-search-forward "[-|]\\(\b[-|]\\)+" nil t)
-    (replace-match "+")
-    (put-text-property (1- (point)) (point) 'face 'bold))
-  (goto-char (point-min))
-  ;; Try to recognize common forms of cross references.
-  (Man-highlight-references)
-  (Man-softhyphen-to-minus)
-  (goto-char (point-min))
-  (while (re-search-forward Man-heading-regexp nil t)
-    (put-text-property (match-beginning 0)
-		       (match-end 0)
-		       'face Man-overstrike-face))
+  (let ((buffer-undo-list t))
+    (if (< (buffer-size) (position-bytes (point-max)))
+	;; Multibyte characters exist.
+	(progn
+	  (goto-char (point-min))
+	  (while (search-forward "__\b\b" nil t)
+	    (backward-delete-char 4)
+	    (put-text-property (point) (1+ (point)) 'face Man-underline-face))
+	  (goto-char (point-min))
+	  (while (search-forward "\b\b__" nil t)
+	    (backward-delete-char 4)
+	    (put-text-property (1- (point)) (point) 'face Man-underline-face))))
+    (goto-char (point-min))
+    (while (search-forward "_\b" nil t)
+      (backward-delete-char 2)
+      (put-text-property (point) (1+ (point)) 'face Man-underline-face))
+    (goto-char (point-min))
+    (while (search-forward "\b_" nil t)
+      (backward-delete-char 2)
+      (put-text-property (1- (point)) (point) 'face Man-underline-face))
+    (goto-char (point-min))
+    (while (re-search-forward "\\(.\\)\\(\b+\\1\\)+" nil t)
+      (replace-match "\\1")
+      (put-text-property (1- (point)) (point) 'face Man-overstrike-face))
+    (goto-char (point-min))
+    (while (re-search-forward "o\b\\+\\|\\+\bo" nil t)
+      (replace-match "o")
+      (put-text-property (1- (point)) (point) 'face 'bold))
+    (goto-char (point-min))
+    (while (re-search-forward "[-|]\\(\b[-|]\\)+" nil t)
+      (replace-match "+")
+      (put-text-property (1- (point)) (point) 'face 'bold))
+    (goto-char (point-min))
+    ;; Try to recognize common forms of cross references.
+    (Man-highlight-references)
+    (Man-softhyphen-to-minus)
+    (goto-char (point-min))
+    (while (re-search-forward Man-heading-regexp nil t)
+      (put-text-property (match-beginning 0)
+			 (match-end 0)
+			 'face Man-overstrike-face)))
   (message "%s man page formatted" Man-arguments))
 
 (defun Man-highlight-references ()

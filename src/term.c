@@ -1,5 +1,5 @@
 /* Terminal control module for terminals described by TERMCAP
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 98, 2000, 2001, 2002
+   Copyright (C) 1985, 86, 87, 93, 94, 95, 98, 2000, 2001, 2002, 2005
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -894,7 +894,7 @@ encode_terminal_code (src, src_len, coding)
 	      if (! STRING_MULTIBYTE (string))
 		string = string_to_multibyte (string);
 	      nbytes = buf - encode_terminal_src;
-	      if (nbytes + SBYTES (string) < encode_terminal_src_size)
+	      if (encode_terminal_src_size < nbytes + SBYTES (string))
 		{
 		  encode_terminal_src_size = nbytes + SBYTES (string);
 		  encode_terminal_src = xrealloc (encode_terminal_src,

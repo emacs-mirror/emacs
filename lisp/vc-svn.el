@@ -1,6 +1,6 @@
 ;;; vc-svn.el --- non-resident support for Subversion version-control
 
-;; Copyright (C) 1995, 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1995, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
 ;;           Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
@@ -352,6 +352,10 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 (defun vc-svn-diff (file &optional oldvers newvers buffer)
   "Get a difference report using SVN between two versions of FILE."
   (unless buffer (setq buffer "*vc-diff*"))
+  (if (and oldvers (equal oldvers (vc-workfile-version file)))
+      ;; Use nil rather than the current revision because svn handles it
+      ;; better (i.e. locally).
+      (setq oldvers nil))
   (if (string= (vc-workfile-version file) "0")
       ;; This file is added but not yet committed; there is no master file.
       (if (or oldvers newvers)
@@ -368,7 +372,8 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	    (if vc-svn-diff-switches
 		(vc-switches 'SVN 'diff)
 	      (list "-x" (mapconcat 'identity (vc-switches nil 'diff) " "))))
-	   (async (and (vc-stay-local-p file)
+	   (async (and (not vc-disable-async-diff)
+                       (vc-stay-local-p file)
 		       (or oldvers newvers) ; Svn diffs those locally.
 		       (fboundp 'start-process))))
       (apply 'vc-svn-command buffer

@@ -3788,10 +3788,12 @@ background color.
   The functions @code{create-image}, @code{defimage} and
 @code{find-image} provide convenient ways to create image descriptors.
 
-@defun create-image file &optional type &rest props
+@defun create-image file-or-data &optional type data-p &rest props
 @tindex create-image
 This function creates and returns an image descriptor which uses the
-data in @var{file}.
+data in @var{file-or-data}.  @var{file-or-data} can be a file name or
+a string containing the image data; @var{data-p} should be @code{nil}
+for the former case, non-@code{nil} for the latter case.
 
 The optional argument @var{type} is a symbol specifying the image type.
 If @var{type} is omitted or @code{nil}, @code{create-image} tries to
@@ -3802,7 +3804,7 @@ The remaining arguments, @var{props}, specify additional image
 properties---for example,
 
 @example
-(create-image "foo.xpm" 'xpm :heuristic-mask t)
+(create-image "foo.xpm" 'xpm nil :heuristic-mask t)
 @end example
 
 The function returns @code{nil} if images of this type are not
@@ -4063,6 +4065,11 @@ usually specified using the @code{:type} keyword argument.
 A string displayed by the Emacs tool-tip help system; by default,
 @code{"mouse-2, RET: Push this button"}.
 
+@item follow-link
+@kindex follow-link @r{(button property)}
+The follow-link property, defining how a @key{Mouse-1} click behaves
+on this button, @xref{Links and Mouse-1}.
+
 @item button
 @kindex button @r{(button property)}
 All buttons have a non-@code{nil} @code{button} property, which may be useful
@@ -4241,6 +4248,10 @@ that are useful outside the buttons itself, such as
 available in the keymap stored in @code{button-buffer-map}; a mode
 which uses buttons may want to use @code{button-buffer-map} as a
 parent keymap for its keymap.
+
+If the button has a non-@code{nil} @code{follow-link} property, and
+@var{mouse-1-click-follows-link} is set, a @key{Mouse-1} click will
+also activate the @code{push-button} command.
 
 @deffn Command push-button &optional pos use-mouse-action
 @tindex push-button

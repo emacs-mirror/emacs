@@ -1519,10 +1519,13 @@ OLP if non-nil indicates that we should obey `overriding-local-map' and
 
   if (!NILP (olp))
     {
-      if (!NILP (Voverriding_local_map))
-	keymaps = Fcons (Voverriding_local_map, keymaps);
       if (!NILP (current_kboard->Voverriding_terminal_local_map))
 	keymaps = Fcons (current_kboard->Voverriding_terminal_local_map, keymaps);
+      /* The doc said that overriding-terminal-local-map should
+	 override overriding-local-map.  The code used them both,
+	 but it seems clearer to use just one.  rms, jan 2005.  */
+      else if (!NILP (Voverriding_local_map))
+	keymaps = Fcons (Voverriding_local_map, keymaps);
     }
   if (NILP (XCDR (keymaps)))
     {
@@ -1530,16 +1533,20 @@ OLP if non-nil indicates that we should obey `overriding-local-map' and
       Lisp_Object *maps;
       int nmaps, i;
 
+      /* This usually returns the buffer's local map,
+	 but that can be overridden by a `local-map' property.  */
       local = get_local_map (PT, current_buffer, Qlocal_map);
       if (!NILP (local))
 	keymaps = Fcons (local, keymaps);
 
+      /* Now put all the minor mode keymaps on the list.  */
       nmaps = current_minor_maps (0, &maps);
 
       for (i = --nmaps; i >= 0; i--)
 	if (!NILP (maps[i]))
 	  keymaps = Fcons (maps[i], keymaps);
 
+      /* This returns nil unless there is a `keymap' property.  */
       local = get_local_map (PT, current_buffer, Qkeymap);
       if (!NILP (local))
 	keymaps = Fcons (local, keymaps);

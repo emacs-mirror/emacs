@@ -1,6 +1,6 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs
 
-;; Copyright (C) 1985,86,87,88,93,94,95,96,97,98,2000, 01, 2004
+;; Copyright (C) 1985,86,87,88,93,94,95,96,97,98,2000,01,2004,2005
 ;;		Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -91,6 +91,9 @@
   :prefix "rmail-edit-"
   :group 'rmail)
 
+(defgroup rmail-obsolete nil
+  "Rmail obsolete customization variables."
+  :group 'rmail)
 
 (defcustom rmail-movemail-program nil
   "If non-nil, name of program for fetching new mail."
@@ -98,15 +101,46 @@
   :type '(choice (const nil) string))
 
 (defcustom rmail-pop-password nil
-  "*Password to use when reading mail from a POP server, if required."
+  "*Password to use when reading mail from POP server. Please, use rmail-remote-password instead."
   :type '(choice (string :tag "Password")
 		 (const :tag "Not Required" nil))
-  :group 'rmail-retrieve)
+  :group 'rmail-obsolete)
 
 (defcustom rmail-pop-password-required nil
-  "*Non-nil if a password is required when reading mail using POP."
+  "*Non-nil if a password is required when reading mail from a POP server. Please, use rmail-remote-password-required instead."
   :type 'boolean
-  :group 'rmail-retrieve)
+  :group 'rmail-obsolete)
+
+(defcustom rmail-remote-password nil
+  "*Password to use when reading mail from a remote server. This setting is ignored for mailboxes whose URL already contains a password."
+  :type '(choice (string :tag "Password")
+		 (const :tag "Not Required" nil))
+  :set-after '(rmail-pop-password)
+  :set #'(lambda (symbol value)
+	   (set-default symbol 
+			(if (and (not value)
+                                 (boundp 'rmail-pop-password)
+				 rmail-pop-password)
+			    rmail-pop-password
+			  value))
+	   (setq rmail-pop-password nil))
+  :group 'rmail-retrieve
+  :version "21.3.50.1")
+
+(defcustom rmail-remote-password-required nil
+  "*Non-nil if a password is required when reading mail from a remote server."
+  :type 'boolean
+  :set-after '(rmail-pop-password-required)
+  :set #'(lambda (symbol value)
+	   (set-default symbol 
+			(if (and (not value)
+                                 (boundp 'rmail-pop-password-required)
+				 rmail-pop-password-required)
+			    rmail-pop-password-required
+			  value))
+	   (setq rmail-pop-password-required nil))
+  :group 'rmail-retrieve
+  :version "21.3.50.1")
 
 (defcustom rmail-movemail-flags nil
   "*List of flags to pass to movemail.
@@ -116,19 +150,81 @@ or `-k' to enable Kerberos authentication."
   :group 'rmail-retrieve
   :version "20.3")
 
-(defvar rmail-pop-password-error "invalid usercode or password\\|
-unknown user name or bad password"
-  "Regular expression matching incorrect-password POP server error messages.
+(defvar rmail-remote-password-error "invalid usercode or password\\|
+unknown user name or bad password\\|Authentication failed\\|MU_ERR_AUTH_FAILURE"
+  "Regular expression matching incorrect-password POP or IMAP server error
+messages.
 If you get an incorrect-password error that this expression does not match,
 please report it with \\[report-emacs-bug].")
 
-(defvar rmail-encoded-pop-password nil)
+(defvar rmail-encoded-remote-password nil)
 
 (defcustom rmail-preserve-inbox nil
   "*Non-nil if incoming mail should be left in the user's inbox,
 rather than deleted, after it is retrieved."
   :type 'boolean
   :group 'rmail-retrieve)
+
+(defcustom rmail-movemail-search-path nil
+    "*List of directories to search for movemail (in addition to `exec-path')."
+    :group 'rmail-retrieve
+    :type '(repeat (directory)))
+
+(defun rmail-probe (prog)
+  "Determine what flavor of movemail PROG is by executing it with --version
+command line option and analyzing its output."
+  (with-temp-buffer
+    (let ((tbuf (current-buffer)))
+      (buffer-disable-undo tbuf)
+      (call-process prog nil tbuf nil "--version")
+      (if (not (buffer-modified-p tbuf))
+	  ;; Should not happen...
+	  nil
+	(goto-char (point-min))
+	(cond
+	 ((looking-at ".*movemail: invalid option")
+	  'emacs)    ;; Possibly...
+	 ((looking-at "movemail (GNU Mailutils .*)")
+	  'mailutils)
+	 (t
+	  ;; FIXME:
+	  'emacs))))))
+
+(defun rmail-autodetect ()
+  "Determine and return the flavor of `movemail' program in use. If
+rmail-movemail-program is set, use it. Otherwise, look for `movemail'
+in the path constructed by appending rmail-movemail-search-path,
+exec-path and exec-directory."
+  (if rmail-movemail-program
+      (rmail-probe rmail-movemail-program)
+    (catch 'scan
+      (dolist (dir (append rmail-movemail-search-path exec-path
+			   (list exec-directory)))
+	(when (and dir (file-accessible-directory-p dir))
+	  (let ((progname (expand-file-name "movemail" dir)))
+	    (when (and (not (file-directory-p progname))
+		       (file-executable-p progname))
+	      (let ((x (rmail-probe progname)))
+		(when x
+		  (setq rmail-movemail-program progname)
+		  (throw 'scan x))))))))))
+
+(defvar rmail-movemail-variant-in-use nil
+  "The movemail variant currently in use. Known variants are:
+
+  `emacs'     Means any implementation, compatible with the native Emacs one.
+              This is the default;
+  `mailutils' Means GNU mailutils implementation, capable of handling full
+mail URLs as the source mailbox;")
+
+;;;###autoload
+(defun rmail-movemail-variant-p (&rest variants)
+  "Return t if the current movemail variant is any of VARIANTS.
+Currently known variants are 'emacs and 'mailutils."
+  (when (not rmail-movemail-variant-in-use)
+    ;; Autodetect
+    (setq rmail-movemail-variant-in-use (rmail-autodetect)))
+  (not (null (member rmail-movemail-variant-in-use variants))))
 
 ;;;###autoload
 (defcustom rmail-dont-reply-to-names nil "\
@@ -1516,6 +1612,40 @@ It returns t if it got any new messages."
       ;; Don't leave the buffer screwed up if we get a disk-full error.
       (or found (rmail-show-message)))))
 
+(defun rmail-parse-url (file)
+  "Parse the supplied URL. Return (list MAILBOX-NAME REMOTE PASSWORD GOT-PASSWORD)
+WHERE MAILBOX-NAME is the name of the mailbox suitable as argument to the
+actual version of `movemail', REMOTE is non-nil if MAILBOX-NAME refers to
+a remote mailbox, PASSWORD is the password if it should be
+supplied as a separate argument to `movemail' or nil otherwise, GOT-PASSWORD
+is non-nil if the user has supplied the password interactively.
+"
+  (if (string-match "^\\([^:]+\\)://\\(\\([^:@]+\\)\\(:\\([^@]+\\)\\)?@\\)?.*" file)
+      (let (got-password supplied-password 
+	    (proto (match-string 1 file))
+	    (user  (match-string 3 file))
+	    (pass  (match-string 5 file))
+	    (host  (substring file (or (match-end 2)
+				       (+ 3 (match-end 1))))))
+	(if (not pass)
+	    (when rmail-remote-password-required
+	      (setq got-password (not (rmail-have-password)))
+	      (setq supplied-password (rmail-get-remote-password
+				       (string-equal proto "imap")))))
+			      
+	(if (rmail-movemail-variant-p 'emacs)
+	    (if (string-equal proto "pop")
+		(list (concat "po:" user ":" host)
+		      t
+		      (or pass supplied-password)
+		      got-password)
+	      (error "Emacs movemail does not support %s protocol" proto))
+	  (list file
+		(or (string-equal proto "pop") (string-equal proto "imap"))
+		supplied-password
+		got-password)))
+    (list file nil nil nil)))
+
 (defun rmail-insert-inbox-text (files renamep)
   ;; Detect a locked file now, so that we avoid moving mail
   ;; out of the real inbox file.  (That could scare people.)
@@ -1524,10 +1654,15 @@ It returns t if it got any new messages."
 	     (file-name-nondirectory buffer-file-name)))
   (let (file tofile delete-files movemail popmail got-password password)
     (while files
-      ;; Handle POP mailbox names specially; don't expand as filenames
+      ;; Handle remote mailbox names specially; don't expand as filenames
       ;; in case the userid contains a directory separator.
       (setq file (car files))
-      (setq popmail (string-match "^po:" file))
+      (let ((url-data (rmail-parse-url file)))
+	(setq file (nth 0 url-data))
+	(setq popmail (nth 1 url-data))
+	(setq password (nth 2 url-data))
+	(setq got-password (nth 3 url-data)))
+
       (if popmail
 	  (setq renamep t)
 	(setq file (file-truename
@@ -1535,7 +1670,12 @@ It returns t if it got any new messages."
       (setq tofile (expand-file-name
 		    ;; Generate name to move to from inbox name,
 		    ;; in case of multiple inboxes that need moving.
-		    (concat ".newmail-" (file-name-nondirectory file))
+		    (concat ".newmail-"
+			    (file-name-nondirectory 
+			     (if (memq system-type '(windows-nt cygwin))
+				 ;; cannot have "po:" in file name
+				 (substring file 3)
+			       file)))
 		    ;; Use the directory of this rmail file
 		    ;; because it's a nuisance to use the homedir
 		    ;; if that is on a full disk and this rmail
@@ -1560,18 +1700,7 @@ It returns t if it got any new messages."
 		(setq file (expand-file-name (user-login-name)
 					     file)))))
       (cond (popmail
-	     (if rmail-pop-password-required
-		 (progn (setq got-password (not (rmail-have-password)))
-			(setq password (rmail-get-pop-password))))
-	     (if (memq system-type '(windows-nt cygwin))
-		 ;; cannot have "po:" in file name
-		 (setq tofile
-		       (expand-file-name
-			(concat ".newmail-pop-"
-				(file-name-nondirectory (substring file 3)))
-			(file-name-directory
-			 (expand-file-name buffer-file-name)))))
-	     (message "Getting mail from post office ..."))
+	     (message "Getting mail from the remote server ..."))
 	    ((and (file-exists-p tofile)
 		  (/= 0 (nth 7 (file-attributes tofile))))
 	     (message "Getting mail from %s..." tofile))
@@ -1603,50 +1732,59 @@ It returns t if it got any new messages."
 		     (write-region (point) (point) file)
 		   (file-error nil))))
 	    (t
-	     (let ((errors nil))
-	       (unwind-protect
-		   (save-excursion
-		     (setq errors (generate-new-buffer " *rmail loss*"))
-		     (buffer-disable-undo errors)
-		     (let ((args
-			    (append
-			     (list (or rmail-movemail-program
-				       (expand-file-name "movemail"
-							 exec-directory))
-				   nil errors nil)
-			     (if rmail-preserve-inbox
-				 (list "-p")
-			       nil)
-			     rmail-movemail-flags
-			     (list file tofile)
-			     (if password (list password) nil))))
-		       (apply 'call-process args))
-		     (if (not (buffer-modified-p errors))
-			 ;; No output => movemail won
-			 nil
-		       (set-buffer errors)
-		       (subst-char-in-region (point-min) (point-max)
-					     ?\n ?\  )
-		       (goto-char (point-max))
-		       (skip-chars-backward " \t")
-		       (delete-region (point) (point-max))
-		       (goto-char (point-min))
-		       (if (looking-at "movemail: ")
-			   (delete-region (point-min) (match-end 0)))
-		       (beep t)
-		       (message "movemail: %s"
-				(buffer-substring (point-min)
-						  (point-max)))
-		       ;; If we just read the password, most likely it is
-		       ;; wrong.  Otherwise, see if there is a specific
-		       ;; reason to think that the problem is a wrong passwd.
-		       (if (or got-password
-			       (re-search-forward rmail-pop-password-error
-						  nil t))
-			   (rmail-set-pop-password nil))
-		       (sit-for 3)
-		       nil))
-		 (if errors (kill-buffer errors))))))
+	     (with-temp-buffer
+	       (let ((errors (current-buffer)))
+		 (buffer-disable-undo errors)
+		 (let ((args
+			(append
+			 (list (or rmail-movemail-program
+				   (expand-file-name "movemail"
+						     exec-directory))
+			       nil errors nil)
+			 (if rmail-preserve-inbox
+			     (list "-p")
+			   nil)
+			 (if (rmail-movemail-variant-p 'mailutils)
+			     (append (list "--emacs") rmail-movemail-flags)
+			   rmail-movemail-flags)
+			 (list file tofile)
+			 (if password (list password) nil))))
+		   (apply 'call-process args))
+		 (if (not (buffer-modified-p errors))
+		     ;; No output => movemail won
+		     nil
+		   (set-buffer errors)
+		   (subst-char-in-region (point-min) (point-max)
+					 ?\n ?\  )
+		   (goto-char (point-max))
+		   (skip-chars-backward " \t")
+		   (delete-region (point) (point-max))
+		   (goto-char (point-min))
+		   (if (looking-at "movemail: ")
+		       (delete-region (point-min) (match-end 0)))
+		   (beep t)
+		   ;; If we just read the password, most likely it is
+		   ;; wrong.  Otherwise, see if there is a specific
+		   ;; reason to think that the problem is a wrong passwd.
+		   (if (or got-password
+			   (re-search-forward rmail-remote-password-error
+					      nil t))
+		       (rmail-set-remote-password nil))
+
+		   ;; If using Mailutils, remove initial error code
+		   ;; abbreviation
+		   (when (rmail-movemail-variant-p 'mailutils)
+		     (goto-char (point-min))
+		     (when (looking-at "[A-Z][A-Z0-9_]*:")
+		       (delete-region (point-min) (match-end 0))))
+		   
+		   (message "movemail: %s"
+			    (buffer-substring (point-min)
+					      (point-max)))
+		       
+		   (sit-for 3)
+		   nil)))))
+	       
       ;; At this point, TOFILE contains the name to read:
       ;; Either the alternate name (if we renamed)
       ;; or the actual inbox (if not renaming).
@@ -3834,27 +3972,30 @@ TEXT and INDENT are not used."
 ; nor is it meant to be.
 
 ;;;###autoload
-(defun rmail-set-pop-password (password)
-  "Set PASSWORD to be used for retrieving mail from a POP server."
+(defun rmail-set-remote-password (password)
+  "Set PASSWORD to be used for retrieving mail from a POP or IMAP server."
   (interactive "sPassword: ")
   (if password
-      (setq rmail-encoded-pop-password
+      (setq rmail-encoded-remote-password
 	    (rmail-encode-string password (emacs-pid)))
-    (setq rmail-pop-password nil)
-    (setq rmail-encoded-pop-password nil)))
+    (setq rmail-remote-password nil)
+    (setq rmail-encoded-remote-password nil)))
 
-(defun rmail-get-pop-password ()
-  "Get the password for retrieving mail from a POP server.  If none
+(defun rmail-get-remote-password (imap)
+  "Get the password for retrieving mail from a POP or IMAP server.  If none
 has been set, then prompt the user for one."
-  (if (not rmail-encoded-pop-password)
-      (progn (if (not rmail-pop-password)
-		 (setq rmail-pop-password (read-passwd "POP password: ")))
-	     (rmail-set-pop-password rmail-pop-password)
-	     (setq rmail-pop-password nil)))
-  (rmail-encode-string rmail-encoded-pop-password (emacs-pid)))
+  (when (not rmail-encoded-remote-password)
+    (if (not rmail-remote-password)
+	(setq rmail-remote-password
+	      (read-passwd (if imap
+			       "IMAP password: "
+			     "POP password: "))))
+    (rmail-set-remote-password rmail-remote-password)
+    (setq rmail-remote-password nil))
+  (rmail-encode-string rmail-encoded-remote-password (emacs-pid)))
 
 (defun rmail-have-password ()
-  (or rmail-pop-password rmail-encoded-pop-password))
+  (or rmail-remote-password rmail-encoded-remote-password))
 
 (defun rmail-encode-string (string mask)
  "Encode STRING with integer MASK, by taking the exclusive OR of the
