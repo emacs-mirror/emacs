@@ -62,6 +62,8 @@ Boston, MA 02111-1307, USA.  */
 #define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
 #endif
 
+#include "lisp.h"
+
 extern char *getenv ();
 
 /* This does cause trouble on AIX.  I'm going to take the comment at
@@ -526,6 +528,10 @@ x_load_resources (display, xrm_string, myname, myclass)
   XrmDatabase user_database;
   XrmDatabase rdb;
   XrmDatabase db;
+  char line[256];
+  char *helv = "-*-helvetica-medium-r-*--*-120-*-*-*-*-iso8859-1";
+  char *courier = "-*-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1";
+  extern Lisp_Object Vdouble_click_time;
 
   x_rm_string = XrmStringToQuark (XrmStringType);
 #ifndef USE_X_TOOLKIT
@@ -534,6 +540,70 @@ x_load_resources (display, xrm_string, myname, myclass)
   XrmInitialize ();
 #endif
   rdb = XrmGetStringDatabase ("");
+
+  /* Add some font defaults.  If the font `helv' doesn't exist, widgets
+     will use some other default font.  */
+#ifdef USE_MOTIF
+  
+  sprintf (line, "%s*fontList: %s", myname, helv);
+  XrmPutLineResource (&rdb, line);
+  sprintf (line, "%s*menu*background: grey75", myname);
+  XrmPutLineResource (&rdb, line);
+  sprintf (line, "%s*menubar*background: grey75", myname, helv);
+  XrmPutLineResource (&rdb, line);
+  sprintf (line, "%s*verticalScrollBar.background: grey75", myname);
+  XrmPutLineResource (&rdb, line);
+  sprintf (line, "%s.dialog*.background: grey75", myname);
+  XrmPutLineResource (&rdb, line);
+  sprintf (line, "%s*fsb.Text.background: white", myname);
+  XrmPutLineResource (&rdb, line);
+  sprintf (line, "%s*fsb.FilterText.background: white", myname);
+  XrmPutLineResource (&rdb, line);
+  sprintf (line, "%s*fsb*DirList.background: white", myname);
+  XrmPutLineResource (&rdb, line);
+  sprintf (line, "%s*fsb*ItemsList.background: white", myname);
+  XrmPutLineResource (&rdb, line);
+  sprintf (line, "%s*fsb*background: grey75", myname);
+  XrmPutLineResource (&rdb, line);
+  sprintf (line, "%s*fsb.Text.fontList: %s", myname, courier);
+  XrmPutLineResource (&rdb, line);
+  sprintf (line, "%s*fsb.FilterText.fontList: %s", myname, courier);
+  XrmPutLineResource (&rdb, line);
+  sprintf (line, "%s*fsb*ItemsList.fontList: %s", myname, courier);
+  XrmPutLineResource (&rdb, line);
+  sprintf (line, "%s*fsb*DirList.fontList: %s", myname, courier);
+  XrmPutLineResource (&rdb, line);
+
+  /* Set double click time of list boxes in the file selection
+     dialog from `double-click-time'.  */
+  if (INTEGERP (Vdouble_click_time) && XINT (Vdouble_click_time) > 0)
+    {
+      sprintf (line, "%s*fsb*DirList.doubleClickInterval: %d",
+	       myname, XFASTINT (Vdouble_click_time));
+      XrmPutLineResource (&rdb, line);
+      sprintf (line, "%s*fsb*ItemsList.doubleClickInterval: %d",
+	       myname, XFASTINT (Vdouble_click_time));
+      XrmPutLineResource (&rdb, line);
+    }
+
+#else /* not USE_MOTIF */
+  
+  sprintf (line, "%s.dialog*.font: %s", myname, helv);
+  XrmPutLineResource (&rdb, line);
+  sprintf (line, "%s.dialog*.background: grey75", myname);
+  XrmPutLineResource (&rdb, line);
+  sprintf (line, "%s.pane.menubar.font: %s", myname, helv);
+  XrmPutLineResource (&rdb, line);
+  sprintf (line, "%s.pane.menubar.background: grey75", myname);
+  XrmPutLineResource (&rdb, line);
+  sprintf (line, "%s.menu*.font: %s", myname, helv);
+  XrmPutLineResource (&rdb, line);
+  sprintf (line, "%s.menu*.background: grey75", myname);
+  XrmPutLineResource (&rdb, line);
+  sprintf (line, "%s*verticalScrollBar.background: grey75", myname);
+  XrmPutLineResource (&rdb, line);
+  
+#endif /* not USE_MOTIF */
 
   user_database = get_user_db (display);
 
