@@ -1,3 +1,8 @@
+2000-01-26  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/checkdoc.el (checkdoc-interactive-loop): Don't lose
+	on a function with an empty body.  [From Eric Ludlam.]
+
 2000-01-25  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-version-diff): Make sure file name is expanded.
