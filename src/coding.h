@@ -149,7 +149,7 @@ struct iso2022_spec
   int initial_designation[4];
 
   /* A graphic register to which each charset should be designated.  */
-  char requested_designation[MAX_CHARSET + 1];
+  int requested_designation[MAX_CHARSET + 1];
 
   /* Set to 1 temporarily only when graphic register 2 or 3 is invoked
      by single-shift while encoding.  */
