@@ -756,8 +756,9 @@ Also compose particular scripts if `utf-8-compose-scripts' is non-nil."
     (save-excursion (setq length (diacritic-post-read-conversion length)))
     (save-excursion (setq length (thai-post-read-conversion length)))
     (save-excursion (setq length (lao-post-read-conversion length)))
-    (save-excursion
-      (setq length (in-is13194-devanagari-post-read-conversion length))))
+    (save-excursion (setq length (devanagari-post-read-conversion length)))
+    (save-excursion (setq length (malayalam-post-read-conversion length)))
+    (save-excursion (setq length (tamil-post-read-conversion length))))
   length)
 
 ;; ucs-tables is preloaded
