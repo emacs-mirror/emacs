@@ -34,7 +34,7 @@
 ;; map to add to the global bar or may set `tool-bar-map'
 ;; buffer-locally to override it.  (Some items are removed from the
 ;; global bar in modes which have `special' as their `mode-class'
-;; properlty.)
+;; property.)
 
 ;; Todo: Somehow make tool bars easily customizable by the naive?
 
