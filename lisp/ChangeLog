@@ -1,3 +1,7 @@
+2003-02-13  Dave Love  <fx@gnu.org>
+
+	* newcomment.el (comment-indent): Ensure space before added comment.
+
 2003-02-13  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Change the policy of background/foreground default
