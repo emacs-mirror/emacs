@@ -967,9 +967,7 @@ If nil, selections displayed but ignored.")
 	  (progn
 	    (use-global-map map)
 	    (use-local-map nil)
-	    (read-key-sequence
-	     (if (commandp (key-binding (vector (cdr key))))
-		 "" prompt2)))
+	    (read-key-sequence nil))
 	(use-global-map glob)
 	(use-local-map loc)))))
 
