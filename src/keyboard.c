@@ -1506,12 +1506,10 @@ command_loop_1 ()
 
       /* Remap command through active keymaps */
       Vthis_original_command = cmd;
-      if (is_command_symbol (cmd))
+      if (SYMBOLP (cmd))
 	{
 	  Lisp_Object cmd1;
-
-	  cmd1 = Fkey_binding (cmd, Qnil, Qt);
-	  if (!NILP (cmd1) && is_command_symbol (cmd1))
+	  if (cmd1 = Fremap_command (cmd), !NILP (cmd1))
 	    cmd = cmd1;
 	}
 
