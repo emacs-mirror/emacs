@@ -2803,6 +2803,9 @@ to the file, instead of any buffer contents, and END is ignored.")
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
   handler = Ffind_file_name_handler (filename);
+  /* If FILENAME has no handler, see if VISIT has one.  */
+  if (NILP (handler) && XTYPE (visit) == Lisp_String)
+    handler = Ffind_file_name_handler (visit);    
 
   if (!NILP (handler))
     {
