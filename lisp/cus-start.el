@@ -134,6 +134,8 @@
 	     (completion-auto-help minibuffer boolean)
 	     (enable-recursive-minibuffers minibuffer boolean)
 	     (minibuffer-auto-raise minibuffer boolean)
+	     ;; msdos.c
+	     (dos-unsupported-char-glyph display integer)
 	     ;; process.c
 	     (delete-exited-processes processes-basics boolean)
 	     ;; syntax.c
