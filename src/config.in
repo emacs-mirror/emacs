@@ -1,4 +1,3 @@
-/* configure fodder.  See the end of ../configure.
 /* GNU Emacs site configuration template file.  -*- C -*-
    Copyright (C) 1988 Free Software Foundation, Inc.
 
@@ -32,29 +31,29 @@ and this notice must be preserved on all copies.  */
 
 /* Define LISP_FLOAT_TYPE if you want emacs to support floating-point
    numbers. */
-/* #define LISP_FLOAT_TYPE */
+#undef LISP_FLOAT_TYPE
 
 /* Define GNU_MALLOC if you want to use the *new* GNU memory allocator. */
-/* #define GNU_MALLOC */
+#undef GNU_MALLOC
 
 /* Define REL_ALLOC if you want to use the relocating allocator for
    buffer space. */
-/* #define REL_ALLOC */
+#undef REL_ALLOC
   
 /* Define HAVE_X_WINDOWS if you want to use the X window system.  */
-/* #define HAVE_X_WINDOWS */
+#undef HAVE_X_WINDOWS
 
 /* Define HAVE_X11 if you want to use version 11 of X windows.
    Otherwise, Emacs expects to use version 10.  */
-/* #define HAVE_X11 */
+#undef HAVE_X11
 
 /* Define this if you're using XFree386.  */
-/* #define HAVE_XFREE386 */
+#undef HAVE_XFREE386
 
 /* Define HAVE_X_MENU if you want to use the X window menu system.
    This appears to work on some machines that support X
    and not on others.  */
-/* #define HAVE_X_MENU */
+#undef HAVE_X_MENU
 
 /* If we're using any sort of window system, define MULTI_FRAME.  */
 #ifdef HAVE_X_WINDOWS
@@ -74,34 +73,21 @@ and this notice must be preserved on all copies.  */
    the user's full name.  If neither this nor any other
    field contains the right thing, use pw_name,
    giving the user's login name, since that is better than nothing.  */
-
 #define USER_FULL_NAME pw->pw_gecos
 
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */
+#undef AMPERSAND_FULL_NAME
 
-/* #define AMPERSAND_FULL_NAME */
-
-/* Define this macro if you want to use 16-bit GLYPHs.  Currently this
-   option isn't terribly useful (the current distribution doesn't
-   support large characters in buffer text), so the configuration
-   script doesn't provide an option to select it.
-
-   A character is displayed on a given terminal by means of a sequence
-   of one or more GLYPHs.  A GLYPH is something that takes up exactly
-   one display position on the frame.
-
-   Emacs can use 8-bit or 16-bit values to represent GLYPHs.  Under X
-   windows, 16-bit GLYPHs allow you to display characters from fonts
-   too large to be indexed by 8 bits alone, but drawing with 16-bit GLYPHs 
-   is usually quite a bit slower than drawing with 8-bit GLYPHs.  */
-/* #define GLYPH_16_BIT */
-
-#ifdef GLYPH_16_BIT
-#define GLYPH unsigned short
-#else
-#define GLYPH unsigned char
-#endif
+/* Some things figured out by the configure script.  */
+#undef HAVE_SYS_TIMEB_H
+#undef HAVE_SYS_TIME_H
+#undef HAVE_ALLOCA_H
+#undef HAVE_GETTIMEOFDAY
+#undef HAVE_GETHOSTNAME
+#undef HAVE_DUP2
+#undef TM_IN_SYS_TIME
+#undef const
 
 /* If using GNU, then support inline function declarations. */
 #ifdef __GNUC__
@@ -110,40 +96,27 @@ and this notice must be preserved on all copies.  */
 #define INLINE
 #endif
 
-/* The configuration script replaces the string @opsysfile@ with the
-   name of the s/*.h file that describes the system type you are
-   using.  The file is chosen based on the configuration name you
-   give.
+/* The configuration script defines opsysfile to be the name of the
+   s/*.h file that describes the system type you are using.  The file
+   is chosen based on the configuration name you give.
 
    See the file ../etc/MACHINES for a list of systems and the
    configuration names to use for them.
 
    See s/template.h for documentation on writing s/*.h files.  */
+#undef config_opsysfile 
+#include config_opsysfile
 
-#include "@opsysfile@"
-
-/* The configuration script replaces the string @machfile@ with the
-   name of the m/*.h file that describes the machine you are using.
-   The file is chosen based on the configuration name you give.
+/* The configuration script defines machfile to be the name of the
+   m/*.h file that describes the machine you are using.  The file is
+   chosen based on the configuration name you give.
 
    See the file ../etc/MACHINES for a list of machines and the
    configuration names to use for them.
 
    See m/template.h for documentation on writing m/*.h files.  */
-
-#include "@machfile@"
-
-/* Some s- files may define SYSTEM_MALLOC, in which case make sure
-   we don't use REL_ALLOC. */
-
-#ifdef SYSTEM_MALLOC
-#ifdef GNU_MALLOC
-#undef GNU_MALLOC
-#ifdef REL_ALLOC
-#undef REL_ALLOC
-#endif
-#endif
-#endif
+#undef config_machfile
+#include config_machfile
 
 /* Load in the conversion definitions if this system
    needs them and the source file being compiled has not
@@ -169,30 +142,28 @@ and this notice must be preserved on all copies.  */
 #endif
 
 /* Define LD_SWITCH_SITE to contain any special flags your loader may need.  */
-/* #define LD_SWITCH_SITE */
+#undef LD_SWITCH_SITE
 
 /* Define C_SWITCH_SITE to contain any special flags your compiler needs.  */
-/* #define C_SWITCH_SITE */
+#undef C_SWITCH_SITE
 
 /* Define LD_SWITCH_X_SITE to contain any special flags your loader
    may need to deal with X Windows.  For instance, if you've defined
    HAVE_X_WINDOWS above and your X libraries aren't in a place that
    your loader can find on its own, you might want to add "-L/..." or
    something similar.  */
-#define LD_SWITCH_X_SITE @LD_SWITCH_X_SITE@
+#define LD_SWITCH_X_SITE
 
 /* Define C_SWITCH_X_SITE to contain any special flags your compiler
    may need to deal with X Windows.  For instance, if you've defined
    HAVE_X_WINDOWS above and your X include files aren't in a place
    that your compiler can find on its own, you might want to add
    "-I/..." or something similar.  */
-#define C_SWITCH_X_SITE @C_SWITCH_X_SITE@
+#define C_SWITCH_X_SITE
 
 /* Define the return type of signal handlers if the s-xxx file
    did not already do so.  */
-#ifndef RETSIGTYPE
 #define RETSIGTYPE void
-#endif
 
 /* SIGTYPE is the macro we actually use.  */
 #ifndef SIGTYPE
