@@ -10013,19 +10013,33 @@ wipe_kboard (kb)
 }
 
 #ifdef MULTI_KBOARD
+
+/* Free KB and memory referenced from it.  */
+
 void
 delete_kboard (kb)
-  KBOARD *kb;
+     KBOARD *kb;
 {
   KBOARD **kbp;
+  
   for (kbp = &all_kboards; *kbp != kb; kbp = &(*kbp)->next_kboard)
     if (*kbp == NULL)
       abort ();
   *kbp = kb->next_kboard;
+
+  /* Prevent a dangling reference to KB.  */
+  if (kb == current_kboard)
+    {
+      current_kboard = SELECTED_FRAME ()->kboard;
+      if (current_kboard == kb)
+	abort ();
+    }
+  
   wipe_kboard (kb);
   xfree (kb);
 }
-#endif
+
+#endif /* MULTI_KBOARD */
 
 void
 init_keyboard ()
