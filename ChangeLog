@@ -1,3 +1,7 @@
+2002-02-08  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (maybe_bootstrap): Add an infinite sleep-loop.
+
 2002-01-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* configure.in: Recognize BSD/OS 5.0.

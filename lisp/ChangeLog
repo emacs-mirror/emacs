@@ -1,3 +1,7 @@
+2002-02-08  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/text-mode.el (text-mode-hook-identify): Define as no-op.
+
 2002-02-08  Andreas Schwab  <schwab@suse.de>
 
 	* calc/calc.el (calcDigit-key): Use minibuffer-prompt-end instead
