@@ -1,5 +1,8 @@
 2001-05-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* keymap.c (Fsingle_key_description): Replace a build_string with
+	a make_multibyte_string.  From Kenichi Handa <handa@etl.go.jp>.
+
 	* fontset.c (Ffontset_info): Check that face is non-null
 	before accessing its fields.
 

@@ -1,3 +1,9 @@
+2001-05-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* international/mule.el (auto-coding-regexp-alist): New user-option.
+	(auto-coding-from-file-contents): New function.
+	(set-auto-coding): Use it to determine a coding system.
+
 2001-05-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* mouse.el (mouse-delete-other-windows): Doc fix.
