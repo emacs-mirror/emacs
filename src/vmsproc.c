@@ -615,9 +615,7 @@ if you quit, the process is killed.")
 
   set_current_buffer (old);
 
-  unbind_to (count);
-
-  return Qnil;
+  return unbind_to (count, Qnil);
 }
 
 create_process (process, new_argv)
