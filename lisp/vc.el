@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.306 2001/08/28 17:02:59 spiegel Exp $
+;; $Id: vc.el,v 1.307 2001/09/04 12:52:10 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2849,11 +2849,26 @@ menu items."
 
 ;;;###autoload
 (defun vc-annotate (prefix)
-  "Display the result of the \"Annotate\" command using colors.
-\"Annotate\" is defined by `vc-BACKEND-annotate-command'.  New lines
-are displayed in red, old in blue.  When given a prefix argument, asks
-for a version to annotate from, and a factor for stretching the time 
-scale.
+  "Display the edit history of the current file using colours.
+
+This command creates a buffer that shows, for each line of the current
+file, when it was last edited and by whom.  Additionally, colours are
+used to show the age of each line--blue means oldest, red means
+youngest, and intermediate colours indicate intermediate ages.  By
+default, the time scale stretches back one year into the past;
+everything that is older than that is shown in blue.
+
+With a prefix argument, this command asks two questions in the
+minibuffer.  First, you may enter a version number; then the buffer
+displays and annotates that version instead of the current version
+(type RET in the minibuffer to leave that default unchanged).  Then,
+you are prompted for a stretch factor for the time scale.  This makes
+the color range cover a time span longer or shorter than the default
+of one year.  For example, a factor of 0.1 means that the range from
+red to blue stands for the past 36 days only, and everything that is
+older than that is shown in blue.
+
+Customization variables:
 
 `vc-annotate-menu-elements' customizes the menu elements of the
 mode-specific menu. `vc-annotate-color-map' and
