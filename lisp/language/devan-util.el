@@ -644,3 +644,5 @@ preferred rule from the sanskrit fonts."  )
       (compose-region from to glyph-str)))
 
 (provide 'devan-util)
+
+;;; devan-util.el ends here
