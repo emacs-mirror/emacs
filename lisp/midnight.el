@@ -42,6 +42,19 @@
   "Run something every day at midnight."
   :group 'calendar)
 
+(defcustom midnight-mode t
+  "*Non-nil means run `midnight-hook' at midnight.
+Setting this variable outside customize has no effect;
+call `cancel-timer' or `timer-activate' on `midnight-timer' instead."
+  :type 'boolean
+  :group 'midnight
+  :require 'midnight
+  :version "20.3"
+  :set (lambda (symb val)
+         (set symb val) (require 'midnight)
+         (if val (timer-activate midnight-timer)
+             (cancel-timer midnight-timer))))
+
 ;;; time conversion
 
 (defun float-time (&optional tm)
@@ -209,7 +222,12 @@ to its second argument."
   (when (timerp midnight-timer) (cancel-timer midnight-timer))
   (setq midnight-timer
         (run-at-time (if (numberp tm) (+ (midnight-next) tm) tm)
-                     midnight-period 'run-hooks 'midnight-hook)))
+                     midnight-period 'midnight-timer-function)))
+
+(defun midnight-timer-function ()
+  "This is the function run by the `midnight-mode' timer once each day."
+  (when midnight-mode
+    (run-hooks 'midnight-hook)))
 
 (defcustom midnight-delay 3600
   "*The number of seconds after the midnight when the `midnight-timer' is run.
