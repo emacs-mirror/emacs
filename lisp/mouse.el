@@ -101,7 +101,29 @@ This does not delete the region; it acts like \\[kill-ring-save]."
   (mouse-set-mark click)
   (call-interactively 'kill-ring-save))
 
-
+(defun mouse-buffer-menu (event)
+  "Pop up a menu of buffers for selection with the mouse."
+  (interactive "K")
+  (let ((menu
+	 (list "Buffer Menu"
+	       (cons "Select Buffer"
+		     (let ((tail (buffer-list))
+			   head)
+		       (while tail
+			 (let ((elt (car tail)))
+			   (if (not (string-match "^ "
+						  (buffer-name elt)))
+			       (setq head (cons
+					   (cons
+					    (format
+					     "%14s   %s"
+					     (buffer-name elt)
+					     (or (buffer-file-name elt) ""))
+					    elt)
+					   head))))
+			 (setq tail (cdr tail)))
+		       (reverse head))))))
+    (switch-to-buffer (or (x-popup-menu event menu) (current-buffer)))))
 
 ;; Commands for the scroll bar.
 
@@ -462,11 +484,74 @@ This does not delete the region; it acts like \\[kill-ring-save]."
 
 ;;; Bindings for mouse commands.
 
-(global-set-key   [mouse-1]	'mouse-set-point)
+(global-set-key   [down-mouse-1]	'mouse-set-point)
+(global-set-key   [drag-mouse-1]	'mouse-set-mark)
 (global-set-key   [mouse-2]	'mouse-yank-at-click)
 (global-set-key   [mouse-3]	'mouse-kill-ring-save)
+(global-set-key   [S-mouse-3]	'mouse-kill)
 
-(global-set-key [S-mouse-1]	'mouse-set-mark)
+(global-set-key   [C-mouse-1]	'mouse-buffer-menu)
+
+;; Replaced with dragging mouse-1
+;; (global-set-key [S-mouse-1]	'mouse-set-mark)
+
+(defvar help-menu-map '(keymap "Help"))
+(global-set-key [C-mouse-2] help-menu-map)
+
+(defvar help-apropos-map '(keymap "Is there a command that..."))
+(defvar help-keys-map '(keymap "Key Commands <==> Functions"))
+(defvar help-manual-map '(keymap "Manual and tutorial"))
+(defvar help-misc-map '(keymap "Odds and ends"))
+(defvar help-modes-map '(keymap "Modes"))
+(defvar help-admin-map '(keymap "Administrivia"))
+
+(define-key help-menu-map "a"
+  (cons "Is there a command that..." help-apropos-map))
+(define-key help-menu-map "k"
+  (cons "Key Commands <==> Functions" help-keys-map))
+(define-key help-menu-map "m"
+  (cons "Manual and tutorial" help-manual-map))
+(define-key help-menu-map "x"
+  (cons "Odds and ends" help-misc-map))
+(define-key help-menu-map "M"
+  (cons "Modes" help-modes-map))
+(define-key help-menu-map "z"
+  (cons "Administrivia" help-admin-map))
+
+(define-key help-apropos-map "c" '("Command Apropos" . command-apropos))
+(define-key help-apropos-map "a" '("Apropos" . apropos))
+
+(define-key help-keys-map "b"
+  '("List all keystroke commands" . describe-bindings))
+(define-key help-keys-map "c"
+  '("Describe key briefly" . describe-key-briefly))
+(define-key help-keys-map "k"
+  '("Describe key verbose" . describe-key))
+(define-key help-keys-map "f"
+  '("Describe Lisp function" . describe-function))
+(define-key help-keys-map "w"
+  '("Where is this command" . where-is))
+
+(define-key help-manual-map "i" '("Info system" . info))
+(define-key help-manual-map "t"
+  '("Invoke Emacs tutorial" . help-with-tutorial))
+
+(define-key help-misc-map "l" '("Last 100 Keystrokes" . view-lossage))
+(define-key help-misc-map "s" '("Describe syntax table" . describe-syntax))
+
+(define-key help-modes-map "m"
+  '("Describe current major mode" . describe-mode))
+(define-key help-modes-map "b"
+  '("List all keystroke commands" . describe-bindings))
+
+(define-key help-admin-map "n"
+  '("view Emacs news" . view-emacs-news))
+(define-key help-admin-map "l"
+  '("View the GNU Emacs license" . describe-copying))
+(define-key help-admin-map "d"
+  '("Describe distribution" . describe-distribution))
+(define-key help-admin-map "w"
+  '("Describe (non)warranty" . describe-no-warranty))
 
 (provide 'mouse)
 
