@@ -1270,12 +1270,15 @@ main (argc, argv, envp)
 	      Lisp_Object buffer;
 
 	      buffer = Fcdr (XCAR (tail));
-	      /* Verify that all buffers are empty now, as they
-		 ought to be.  */
-	      if (BUF_Z (XBUFFER (buffer)) > BUF_BEG (XBUFFER (buffer)))
-		abort ();
-	      /* It is safe to do this crudely in an empty buffer.  */
-	      XBUFFER (buffer)->enable_multibyte_characters = Qnil;
+	      /* Make all multibyte buffers unibyte.  */
+	      if (BUF_Z_BYTE (XBUFFER (buffer)) > BUF_Z (XBUFFER (buffer)))
+		{
+		  struct buffer *current = current_buffer;
+
+		  set_buffer_temp (XBUFFER (buffer));
+		  Fset_buffer_multibyte (Qnil, Qnil);
+		  set_buffer_temp (current);
+		}
 	    }
 	}
     }
