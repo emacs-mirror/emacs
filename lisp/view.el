@@ -222,7 +222,7 @@ C-r or r	do reverse incremental search.
 		  successful search and when jump to line to occurs.
 		  The mark is set on jump to buffer start or end.
 ? or h		provide help message (list of commands).
-\\[Helper-help]		provides help (list of commands or description of a command).
+\\[help-command]		provides help (list of commands or description of a command).
 C-n		moves down lines vertically.
 C-p		moves upward lines vertically.
 C-l		recenters the screen.
@@ -261,7 +261,7 @@ This function runs the normal hook `view-mode-hook'.
   (run-hooks 'view-mode-hook)
   (message
      (substitute-command-keys
-      "Type \\[Helper-help] for help, \\[Helper-describe-bindings] for commands, \\[view-exit] to quit.")))
+      "Type \\[help-command] for help, \\[Helper-describe-bindings] for commands, \\[view-exit] to quit.")))
 
 (defun view-exit ()
   "Exit from view-mode.
