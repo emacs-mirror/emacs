@@ -418,11 +418,9 @@ Lisp programs.
 @item
 @cindex profiling
 @cindex timing programs
-@cindex @file{profile.el}
 @cindex @file{elp.el}
-Profile your program with the @file{profile} library or the @file{elp}
-library.  See the files @file{profile.el} and @file{elp.el} for
-instructions.
+Profile your program with the @file{elp} library.  See the file
+@file{elp.el} for instructions.
 
 @item
 Use iteration rather than recursion whenever possible.
