@@ -447,7 +447,8 @@ don't define this value.")
       ((case-fold-search t)
        (simple-address-list "")
        this-line
-       this-line-end)
+       this-line-end
+       addr-regexp)
     
     (unwind-protect
 	(save-excursion
@@ -455,7 +456,13 @@ don't define this value.")
 	  (set-buffer smtpmail-address-buffer) (erase-buffer)
 	  (insert-buffer-substring smtpmail-text-buffer header-start header-end)
 	  (goto-char (point-min))
-	  (while (re-search-forward "^\\(TO:\\|CC:\\|BCC:\\)" header-end t)
+	  ;; RESENT-* fields should stop processing of regular fields.
+	  (save-excursion
+	    (if (re-search-forward "^RESENT-TO:" header-end t)
+		(setq addr-regexp "^\\(RESENT-TO:\\|RESENT-CC:\\|RESENT-BCC:\\)")
+	      (setq addr-regexp  "^\\(TO:\\|CC:\\|BCC:\\)")))
+
+	  (while (re-search-forward addr-regexp header-end t)
 	    (replace-match "")
 	    (setq this-line (match-beginning 0))
 	    (forward-line 1)
