@@ -1,3 +1,8 @@
+2002-01-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* sysdep.c, unexapollo.c, w32.c, w32bdf.c, w32heap.c, w32inevt.c,
+	* w32proc.c: Include <config.h>.
+
 2002-01-01  Andreas Schwab  <schwab@suse.de>
 
 	* eval.c (max_specpdl_size, max_lisp_eval_depth): Define as int,
