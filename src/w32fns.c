@@ -7340,7 +7340,7 @@ static Lisp_Object w32_list_bdf_fonts (Lisp_Object pattern, int max_names)
         {
           newlist = Fcons (XCAR (tem), newlist);
           n_fonts++;
-          if (n_fonts >= max_names)
+          if (max_names >= 0 && n_fonts >= max_names)
             break;
         }
     }
@@ -7354,7 +7354,8 @@ static Lisp_Object w32_list_bdf_fonts (Lisp_Object pattern, int max_names)
    to be listed.  Frame F NULL means we have not yet created any
    frame, which means we can't get proper size info, as we don't have
    a device context to use for GetTextMetrics.
-   MAXNAMES sets a limit on how many fonts to match.  */
+   MAXNAMES sets a limit on how many fonts to match.  If MAXNAMES is
+   negative, then all matching fonts are returned.  */
 
 Lisp_Object
 w32_list_fonts (f, pattern, size, maxnames)
@@ -7467,7 +7468,7 @@ w32_list_fonts (f, pattern, size, maxnames)
             {
               newlist = Fcons (XCAR (tem), newlist);
               n_fonts++;
-              if (n_fonts >= maxnames)
+              if (maxnames >= 0 && n_fonts >= maxnames)
                 break;
               else
                 continue;
@@ -7506,7 +7507,7 @@ w32_list_fonts (f, pattern, size, maxnames)
             {
               newlist = Fcons (XCAR (tem), newlist);
               n_fonts++;
-              if (n_fonts >= maxnames)
+              if (maxnames >= 0 && n_fonts >= maxnames)
                 break;
             }
           /* keep track of the closest matching size in case
@@ -7542,7 +7543,7 @@ w32_list_fonts (f, pattern, size, maxnames)
     }
 
   /* Include any bdf fonts.  */
-  if (n_fonts < maxnames)
+  if (n_fonts < maxnames || maxnames < 0)
   {
     Lisp_Object combined[2];
     combined[0] = w32_list_bdf_fonts (pattern, maxnames - n_fonts);
