@@ -1171,16 +1171,22 @@ relock:
 
 /* Arrange to make a tags table TAGS-LISP for ../lisp,
    plus TAGS for the C files, which includes ../lisp/TAGS by reference.  */
+
 ctagsfiles1 = [xyzXYZ]*.[hc] 
 ctagsfiles2 = [a-wA-W]*.[hc]
-TAGS: $(srcdir)/$(ctagsfiles)
+
+TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2)
 	../lib-src/etags --include=TAGS-LISP --include=${lwlibdir}/TAGS \
 	  --regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
 	  $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2)
 frc:
 TAGS-LISP: frc
 	$(MAKE) -f ${lispsource}Makefile TAGS-LISP ETAGS=../lib-src/etags
-tags: TAGS TAGS-LISP
+
+$(lwlibdir)TAGS:
+	(cd $(lwlibdir); $(MAKE) -f $(lwlibdir)Makefile tags ETAGS=../lib-src/etags)
+
+tags: TAGS TAGS-LISP $(lwlibdir)TAGS
 .PHONY: tags
 
 
