@@ -98,6 +98,9 @@ all.  This may very well take some time.")
       (let ((file nil)
 	    (number (length sequence))
 	    (count 0)
+	    ;; 1997/8/12 by MORIOKA Tomohiko
+	    ;;	for XEmacs/mule.
+	    (pathname-coding-system 'binary)
 	    beg article)
 	(if (stringp (car sequence))
 	    'headers
@@ -160,6 +163,9 @@ all.  This may very well take some time.")
 (deffoo nnml-request-article (id &optional group server buffer)
   (nnml-possibly-change-directory group server)
   (let* ((nntp-server-buffer (or buffer nntp-server-buffer))
+	 ;; 1997/8/12 by MORIOKA Tomohiko
+	 ;;	for XEmacs/mule.
+	 (pathname-coding-system 'binary)
 	 path gpath group-num)
     (if (stringp id)
 	(when (and (setq group-num (nnml-find-group-number id))
@@ -188,27 +194,30 @@ all.  This may very well take some time.")
 	    (string-to-int (file-name-nondirectory path)))))))
 
 (deffoo nnml-request-group (group &optional server dont-check)
-  (cond
-   ((not (nnml-possibly-change-directory group server))
-    (nnheader-report 'nnml "Invalid group (no such directory)"))
-   ((not (file-exists-p nnml-current-directory))
-    (nnheader-report 'nnml "Directory %s does not exist"
-		     nnml-current-directory))
-   ((not (file-directory-p nnml-current-directory))
-    (nnheader-report 'nnml "%s is not a directory" nnml-current-directory))
-   (dont-check
-    (nnheader-report 'nnml "Group %s selected" group)
-    t)
-   (t
-    (nnheader-re-read-dir nnml-current-directory)
-    (nnmail-activate 'nnml)
-    (let ((active (nth 1 (assoc group nnml-group-alist))))
-      (if (not active)
-	  (nnheader-report 'nnml "No such group: %s" group)
-	(nnheader-report 'nnml "Selected group %s" group)
-	(nnheader-insert "211 %d %d %d %s\n"
-			 (max (1+ (- (cdr active) (car active))) 0)
-			 (car active) (cdr active) group))))))
+  ;; 1997/8/12 by MORIOKA Tomohiko
+  ;;	for XEmacs/mule.
+  (let ((pathname-coding-system 'binary))
+    (cond
+     ((not (nnml-possibly-change-directory group server))
+      (nnheader-report 'nnml "Invalid group (no such directory)"))
+     ((not (file-exists-p nnml-current-directory))
+      (nnheader-report 'nnml "Directory %s does not exist"
+		       nnml-current-directory))
+     ((not (file-directory-p nnml-current-directory))
+      (nnheader-report 'nnml "%s is not a directory" nnml-current-directory))
+     (dont-check
+      (nnheader-report 'nnml "Group %s selected" group)
+      t)
+     (t
+      (nnheader-re-read-dir nnml-current-directory)
+      (nnmail-activate 'nnml)
+      (let ((active (nth 1 (assoc group nnml-group-alist))))
+	(if (not active)
+	    (nnheader-report 'nnml "No such group: %s" group)
+	  (nnheader-report 'nnml "Selected group %s" group)
+	  (nnheader-insert "211 %d %d %d %s\n"
+			   (max (1+ (- (cdr active) (car active))) 0)
+			   (car active) (cdr active) group)))))))
 
 (deffoo nnml-request-scan (&optional group server)
   (setq nnml-article-file-alist nil)
@@ -236,7 +245,12 @@ all.  This may very well take some time.")
 
 (deffoo nnml-request-list (&optional server)
   (save-excursion
-    (nnmail-find-file nnml-active-file)
+    ;; 1997/8/12 by MORIOKA Tomohiko
+    ;;	for XEmacs/mule.
+    (let ((nnmail-file-coding-system nnmail-active-file-coding-system)
+	  (pathname-coding-system 'binary)) ; for XEmacs/mule
+      (nnmail-find-file nnml-active-file)
+      )
     (setq nnml-group-alist (nnmail-get-active))
     t))
 
@@ -540,7 +554,10 @@ all.  This may very well take some time.")
     (nnml-open-server server))
   (if (not group)
       t
-    (let ((pathname (nnmail-group-pathname group nnml-directory)))
+    (let ((pathname (nnmail-group-pathname group nnml-directory))
+	  ;; 1997/8/14 by MORIOKA Tomohiko
+	  ;;	for XEmacs/mule.
+	  (pathname-coding-system 'binary))
       (when (not (equal pathname nnml-current-directory))
 	(setq nnml-current-directory pathname
 	      nnml-current-group group
