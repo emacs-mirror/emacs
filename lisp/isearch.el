@@ -475,7 +475,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (isearch-update)
   (run-hooks 'isearch-mode-hook)
 
-  (setq mouse-leave-buffer-hook '(isearch-done))
+  (add-hook 'mouse-leave-buffer-hook 'isearch-done)
 
   ;; isearch-mode can be made modal (in the sense of not returning to 
   ;; the calling function until searching is completed) by entering 
@@ -525,7 +525,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   )
 
 (defun isearch-done (&optional nopush edit)
-  (setq mouse-leave-buffer-hook nil)
+  (remove-hook 'mouse-leave-buffer-hook 'isearch-done)
   ;; Called by all commands that terminate isearch-mode.
   ;; If NOPUSH is non-nil, we don't push the string on the search ring.
   (setq overriding-terminal-local-map nil)
