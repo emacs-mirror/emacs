@@ -924,12 +924,18 @@ control system name."
   ;; visit the real file instead.  If the real file is already visited in 
   ;; another buffer, make that buffer current, and kill the buffer 
   ;; that visits the link.
-  (let* ((truename (file-truename buffer-file-name))
-         (true-buffer (get-file-buffer truename)))
-    (if true-buffer 
-        (set-buffer true-buffer)
-      (kill-buffer (current-buffer))
-      (set-buffer (find-file-noselect truename)))))
+  (let* ((truename (abbreviate-file-name (file-truename buffer-file-name)))
+         (true-buffer (find-buffer-visiting truename))
+	 (this-buffer (current-buffer)))
+    (if (eq true-buffer this-buffer)
+	(progn
+	  ;; In principle, we could do something like set-visited-file-name.
+	  ;; However, it can't be exactly the same as set-visited-file-name.
+	  ;; I'm not going to work out the details right now. -- rms.
+	  (set-buffer (find-file-noselect truename))
+	  (kill-buffer this-buffer))
+      (set-buffer true-buffer)
+      (kill-buffer this-buffer))))
 
 ;;; install a call to the above as a find-file hook
 (defun vc-find-file-hook ()
