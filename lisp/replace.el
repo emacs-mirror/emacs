@@ -239,7 +239,9 @@ Applies to lines after point."
     ()
   (setq occur-mode-map (make-sparse-keymap))
   (define-key occur-mode-map [mouse-2] 'occur-mode-mouse-goto)
-  (define-key occur-mode-map "\C-c\C-c" 'occur-mode-goto-occurrence))
+  (define-key occur-mode-map "\C-c\C-c" 'occur-mode-goto-occurrence)
+  (define-key occur-mode-map "\C-m" 'occur-mode-goto-occurrence)
+  (define-key occur-mode-map [return] 'occur-mode-goto-occurrence))
 
 (defvar occur-buffer nil)
 (defvar occur-nlines nil)
@@ -247,10 +249,10 @@ Applies to lines after point."
 
 (defun occur-mode ()
   "Major mode for output from \\[occur].
-Move point to one of the occurrences in this buffer,
-then use \\[occur-mode-goto-occurrence] to go to the same occurrence
-in the buffer that the occurrences were found in.
-Or click \\<occur-mode-map>\\[occur-mode-mouse-goto] on an occurrence line.
+\\<occur-mode-map>Move point to one of the items in this buffer, then use
+\\[occur-mode-goto-occurrence] to go to the occurrence that the item refers to.
+Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
+
 \\{occur-mode-map}"
   (kill-all-local-variables)
   (use-local-map occur-mode-map)
