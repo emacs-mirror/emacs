@@ -174,6 +174,9 @@ INSTALL_DATA = @INSTALL_DATA@
 
 # ============================= Targets ==============================
 
+# This directory's absolute name.
+thisdir = `pwd`
+
 # Subdirectories to make recursively.  `lisp' is not included
 # because the compiled lisp files are part of the distribution
 # and you cannot remake them without installing Emacs first.
@@ -302,16 +305,17 @@ install-arch-indep: mkdir
 	   (cd etc; tar -cf - DOC*)|(cd ${docdir}; umask 0; tar -xvf - ); \
 	else true; fi
 	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd ${infodir} && /bin/pwd)` ]; \
-	then (cd ${srcdir}/info ; \
-	     if [ ! -f ${infodir}/dir ] && [ -f dir ]; then \
-	       ${INSTALL_DATA} dir ${infodir}/dir ; \
-	     fi ; \
-	     for f in cl* emacs* dired-x* forms* gnus* info* sc* vip* ; do \
-	       ${INSTALL_DATA} $$f ${infodir}/$$f ; \
-	     done); \
+	then
+	  (cd ${srcdir}/info ; \
+	   if [ ! -f ${infodir}/dir ] && [ -f dir ]; then \
+	     (cd this_dir; ${INSTALL_DATA} ${srcdir}/info/dir ${infodir}/dir); \
+	   fi ; \
+	   for f in cl* emacs* dired-x* forms* gnus* info* sc* vip* ; do \
+	     (cd this_dir; ${INSTALL_DATA} ${srcdir}/info/$$f ${infodir}/$$f); \
+	   done); \
 	else true; fi
 	cd ${srcdir}/etc; for page in emacs etags ctags ; do \
-	  ${INSTALL_DATA} $${page}.1 ${mandir}/$${page}${manext} ; \
+	  (cd this_dir; ${INSTALL_DATA} ${srcdir}/etc/$${page}.1 ${mandir}/$${page}${manext}); \
 	done
 
 ### Build all the directories we're going to install Emacs in.	Since
