@@ -698,6 +698,9 @@ per line.  Lines beginning with space or tab are ignored.
 
 *** New language parsing features
 
+**** The `::' qualifier triggers C++ parsing in C file.
+Previously, only the `template' and `class' keywords had this effect.
+
 **** In Perl, packages are tags.
 Subroutine tags are named from their package.  You can jump to sub tags
 as you did before, by the sub name, or additionally by looking for
