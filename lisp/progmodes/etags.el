@@ -915,7 +915,8 @@ See documentation of variable `tags-file-name'."
       ;;   \6 is not interesting;
       ;;   \7 is the explicitly-specified tag name.
       (while (re-search-forward
-	      "^\\(\\(.+[ \t]+\\)?\\([-a-zA-Z0-9_$]+\\)[^-a-zA-Z0-9_$]*\\)\177\
+	      "^\\(\\(.+[^-a-zA-Z0-9_$]+\\)?\\([-a-zA-Z0-9_$]+\\)\
+\[^-a-zA-Z0-9_$]*\\)\177\
 \\([0-9]+\\),\\([0-9]+\\)\\(,\001\\([^\n]+\\)\\)?\n"
 	      nil t)
 	(intern	(if (match-beginning 6)
