@@ -52,6 +52,10 @@ copyright notice and this notice must be preserved on all copies.  */
 #include <sys/locking.h>
 #endif
 
+#ifdef MAIL_USE_MMDF
+extern int lk_open (), lk_close ();
+#endif
+
 /* Cancel substitutions made by config.h for Emacs.  */
 #undef open
 #undef read
@@ -90,6 +94,10 @@ main (argc, argv)
   inname = argv[1];
   outname = argv[2];
 
+#ifdef MAIL_USE_MMDF
+  mmdf_init (argv[0]);
+#endif
+
   /* Check access to input and output file.  */
   if (access (inname, R_OK | W_OK) != 0)
     pfatal_with_name (inname);
@@ -124,6 +132,7 @@ main (argc, argv)
   setuid (getuid());
 #endif /* MAIL_USE_POP */
 
+#ifndef MAIL_USE_MMDF
 #ifndef MAIL_USE_FLOCK
   /* Use a lock file named /usr/spool/mail/$USER.lock:
      If it exists, the mail file is locked.  */
@@ -169,6 +178,10 @@ main (argc, argv)
 #else /* if not MAIL_USE_FLOCK */
   indesc = open (inname, O_RDONLY);
 #endif /* not MAIL_USE_FLOCK */
+#else /* MAIL_USE_MMDF */
+  indesc = lk_open (inname, O_RDONLY, 0, 0, 10);
+#endif /* MAIL_USE_MMDF */
+
   if (indesc < 0)
     pfatal_with_name (inname);
 
@@ -225,14 +238,21 @@ main (argc, argv)
   (void) ftruncate (indesc, 0L);
 #endif /* STRIDE or XENIX */
 #endif /* MAIL_USE_FLOCK */
+
+#ifdef MAIL_USE_MMDF
+  lk_close (indesc, 0, 0, 0);
+#else
   close (indesc);
+#endif
 
 #ifndef MAIL_USE_FLOCK
   /* Delete the input file; if we can't, at least get rid of its contents.  */
   if (unlink (inname) < 0)
     if (errno != ENOENT)
       creat (inname, 0666);
-  (void) unlink (lockname);
+#ifndef MAIL_USE_MMDF
+  unlink (lockname);
+#endif /* not MAIL_USE_MMDF */
 #endif /* not MAIL_USE_FLOCK */
   exit (0);
 }
