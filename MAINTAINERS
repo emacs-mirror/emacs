@@ -145,7 +145,6 @@ src/fontset.c
 src/getloadavg.c
 src/gmalloc.c
 src/hftctl.c
-src/igc.c
 src/indent.c
 src/insdel.c
 src/lastfile.c
@@ -176,7 +175,6 @@ src/termcap.c
 src/terminfo.c
 src/textprop.c
 src/tparam.c
-src/ttymenu.c
 src/undo.c
 src/unexaix.c
 src/unexalpha.c

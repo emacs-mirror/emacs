@@ -1,3 +1,41 @@
+2001-11-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* diff-mode.el (diff-end-of-hunk): Watch out for ambiguities.
+	(diff-hunk-kill): Simplify.
+	(diff-post-command-hook): Only apply to a single hunk.
+	(diff-hunk-text): Make `char-offset' non-optional.
+	(diff-find-text): Return a cons cell.
+	(diff-find-approx-text): New fun.
+	(diff-find-source-location): Use it.
+	(diff-apply-hunk, diff-test-hunk, diff-goto-source):
+	Adapt to new retval of diff-find-source-location.
+
+	* vc-cvs.el (vc-cvs-parse-entry): Rewrite, comparing the string-
+	rather than integer- representation of dates.
+
+	* textmodes/fill.el (fill-indent-according-to-mode): Default to nil.
+
+	* emacs-lisp/syntax.el: Don't profile syntax-ppss any more.
+	(syntax-after): New fun.
+
+	* help-funs.el (describe-syntax): New fun.
+
+	* font-lock.el (font-lock-cache-state, font-lock-cache-position)
+	(font-lock-ppss-stats, font-lock-ppss): Remove.
+	(font-lock-fontify-syntactically-region): Remove tuning code.
+	(font-lock-compile-keywords): Fix off-by-one bug.
+	(font-lock-set-defaults): Don't set removed vars.
+	(c-keywords): Add `inline'.
+	(c-type-names): Add `_Complex', `_Imaginary' and `_Bool'.
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
+	Set syntax-begin-function.
+	(lisp-interaction-mode-abbrev-table): Defvar to its correct value.
+	(lisp-interaction-mode): Don't set local-abbrev-table any more.
+	(lisp-mode-auto-fill): Use syntax-ppss and obey
+	comment-auto-fill-only-comments.
+	(lisp-fill-paragraph): Use syntax-ppss.
+
 2001-11-25  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* mail/rmail.el (rmail-enable-mime-composing): New. A lightweight

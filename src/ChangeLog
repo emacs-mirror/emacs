@@ -1,3 +1,11 @@
+2001-11-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textprop.c (set_text_properties_1): Clearly mark that the
+	interval should not be empty.
+
+	* intervals.c (graft_intervals_into_buffer):
+	Don't call set_text_properties_1 on an empty interval.
+
 2001-11-25  Richard M. Stallman  <rms@gnu.org>
 
 	* unexelf.c (unexec): Index by n, not nn, when checking for ".sbss".
