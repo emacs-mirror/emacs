@@ -1,3 +1,10 @@
+2000-11-22  Miles Bader  <miles@gnu.org>
+
+	* minibuf.c (Vminibuffer_prompt_properties): New variable.
+	(syms_of_minibuf): Initialize it.
+	(read_minibuf): Add properties from Vminibuffer_prompt_properties
+	to prompt, don't make read-only.
+
 2000-11-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* bytecode.c (Fbyte_code) <Bvarbind, Bunwind_protect>: Add
