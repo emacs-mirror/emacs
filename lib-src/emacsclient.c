@@ -188,6 +188,7 @@ fail (argc, argv)
     {
       int i = optind -1 ;
       execvp (alternate_editor, argv + i);
+      return;
     }
   else
     {
@@ -305,7 +306,7 @@ main (argc, argv)
   {
     int sock_status = 0;
 
-    sprintf (server.sun_path, "/tmp/esrv%d-%s", geteuid (), system_name);
+    sprintf (server.sun_path, "/tmp/esrv%d-%s", (int) geteuid (), system_name);
 
     /* See if the socket exists, and if it's owned by us. */
     sock_status = socket_status (server.sun_path);
@@ -327,7 +328,7 @@ main (argc, argv)
 	      {
 		/* We're running under su, apparently. */
 		sprintf (server.sun_path, "/tmp/esrv%d-%s",
-			 pw->pw_uid, system_name);
+			 (int) pw->pw_uid, system_name);
 		sock_status = socket_status (server.sun_path);
 	      }
 	  }
