@@ -1,3 +1,8 @@
+2001-03-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (x_update_menu_appearance): Use a different path
+	for Lucid popup menus.
+
 2001-03-22  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* xterm.c (note_mouse_highlight): Dec the int, not the Lisp_Object.
