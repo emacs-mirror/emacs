@@ -32,10 +32,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <pop.h>
+
 #ifdef sun
 #include <malloc.h>
 #endif
-#endif
+
 #ifdef HESIOD
 #include <hesiod.h>
 /*
@@ -46,10 +47,17 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  */
 extern struct servent *hes_getservbyname (/* char *, char * */);
 #endif
+
 #include <pwd.h>
 #include <netdb.h>
 #include <errno.h>
 #include <stdio.h>
+
+extern char *getenv (/* char * */);
+extern char *getlogin (/* void */);
+extern char *getpass (/* char * */);
+extern char *strerror (/* int */);
+
 #ifdef KERBEROS
 #ifndef KRB5
 #include <des.h>
@@ -60,12 +68,6 @@ extern struct servent *hes_getservbyname (/* char *, char * */);
 #include <ctype.h>
 #endif /* KRB5 */
 
-extern char *getenv (/* char * */);
-extern char *getlogin (/* void */);
-extern char *getpass (/* char * */);
-extern char *strerror (/* int */);
-
-#ifdef KERBEROS
 extern int krb_sendauth (/* long, int, KTEXT, char *, char *, char *,
 			 u_long, MSG_DAT *, CREDENTIALS *, Key_schedule,
 			 struct sockaddr_in *, struct sockaddr_in *,
