@@ -3,7 +3,7 @@
 ;; Copyright (C) 1995, 1996, 1997, 2000 Free Software Foundation, Inc.
 
 ;; Author: Torbj\"orn Einarsson <Torbjorn.Einarsson@era.ericsson.se>
-;; Maintainer: Dave Love <fx@gnu.org>
+;; Maintainer: Glenn Morris <gmorris@ast.cam.ac.uk>
 ;; Keywords: fortran, f90, languages
 
 ;; This file is part of GNU Emacs.
@@ -874,6 +874,8 @@ with no args, if that value is non-nil."
 
 (defsubst f90-line-continued ()
   (save-excursion
+	(beginning-of-line)
+	(while (and (looking-at "[ \t]*\\(!\\|$\\)") (zerop (forward-line -1))))
     (let ((bol (f90-get-beg-of-line)))
       (end-of-line)
       (while (f90-in-comment)
@@ -994,7 +996,7 @@ Name is non-nil only for type."
 	 (looking-at "\\(module\\)[ \t]+\\(\\sw+\\)\\>"))
     (list (f90-match-piece 1) (f90-match-piece 2)))
    ((and (not (looking-at "end[ \t]*\\(function\\|subroutine\\)"))
-	 (looking-at "[^!\"\&\n]*\\(function\\|subroutine\\)[ \t]+\\(\\sw+\\)"))
+	 (looking-at "[^!'\"\&\n]*\\(function\\|subroutine\\)[ \t]+\\(\\sw+\\)"))
     (list (f90-match-piece 1) (f90-match-piece 2)))))
 
 (defsubst f90-looking-at-program-block-end ()
