@@ -69,6 +69,11 @@
   :group 'tools
   :group 'diff)
 
+(defcustom diff-default-read-only t
+  "If non-nil, `diff-mode' buffers default to being read-only."
+  :type 'boolean
+  :group 'diff-mode)
+
 (defcustom diff-jump-to-old-file nil
   "*Non-nil means `diff-goto-source' jumps to the old file.
 Else, it jumps to the new file."
@@ -862,10 +867,9 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
 ;;;###autoload
 (define-derived-mode diff-mode fundamental-mode "Diff"
   "Major mode for viewing/editing context diffs.
-Supports unified and context diffs as well as (to a lesser extent) normal diffs.
-When the buffer is read-only, the ESC prefix is not necessary.
-This mode runs `diff-mode-hook'.
-\\{diff-mode-map}"
+Supports unified and context diffs as well as (to a lesser extent)
+normal diffs.
+When the buffer is read-only, the ESC prefix is not necessary."
   (set (make-local-variable 'font-lock-defaults) diff-font-lock-defaults)
   (set (make-local-variable 'outline-regexp) diff-outline-regexp)
   (set (make-local-variable 'imenu-generic-expression)
@@ -892,9 +896,9 @@ This mode runs `diff-mode-hook'.
   ;; 	 (substring buffer-file-name 0 (match-beginning 0))))
   ;; (compilation-shell-minor-mode 1)
 
-  ;; setup change hooks
-  (unless (and (bobp) (eobp))
+  (when (and (> (point-max) (point-min)) diff-default-read-only)
     (toggle-read-only t))
+  ;; setup change hooks
   (if (not diff-update-on-the-fly)
       (add-hook 'write-contents-hooks 'diff-write-contents-hooks)
     (make-local-variable 'diff-unhandled-changes)
