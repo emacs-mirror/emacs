@@ -511,8 +511,9 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 		   (eq major-mode 'rmail-mode))
 	      (progn (rmail-forget-messages)
 		     (rmail-set-message-counters))))
-      (let ((enable-local-variables nil))
-	(find-file file-name)))
+      (switch-to-buffer 
+       (let ((enable-local-variables nil))
+	 (find-file-noselect file-name))))
     (if (eq major-mode 'rmail-edit-mode)
 	(error "Exit Rmail Edit mode before getting new mail"))
     (if (and existed (> (buffer-size) 0))
@@ -942,8 +943,8 @@ Instead, these commands are available:
     (setq save-buffer-coding-system (or buffer-file-coding-system 'undecided))
     (setq buffer-file-coding-system nil))
   ;; Don't let a local variables list in a message cause confusion.
-  (make-local-variable 'enable-local-variables)
-  (setq enable-local-variables nil)
+  (make-local-variable 'local-enable-local-variables)
+  (setq local-enable-local-variables nil)
   (make-local-variable 'revert-buffer-function)
   (setq revert-buffer-function 'rmail-revert)
   (make-local-variable 'font-lock-defaults)
