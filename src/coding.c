@@ -3612,18 +3612,11 @@ ccl_coding_driver (coding, source, destination, src_bytes, dst_bytes, encodep)
 
   coding->produced = ccl_driver (ccl, source, destination,
 				 src_bytes, dst_bytes, &(coding->consumed));
-  if (encodep)
-    {
-      coding->produced_char = coding->produced;
-      coding->consumed_char
-	= multibyte_chars_in_text (source, coding->consumed);
-    }
-  else
-    {
-      coding->produced_char
-	= multibyte_chars_in_text (destination, coding->produced);
-      coding->consumed_char = coding->consumed;
-    }
+  coding->produced_char
+    = multibyte_chars_in_text (destination, coding->produced);
+  coding->consumed_char
+    = multibyte_chars_in_text (source, coding->consumed);
+
   switch (ccl->status)
     {
     case CCL_STAT_SUSPEND_BY_SRC:
@@ -4988,7 +4981,7 @@ DEFUN ("keyboard-coding-system",
 DEFUN ("find-operation-coding-system", Ffind_operation_coding_system,
        Sfind_operation_coding_system,  1, MANY, 0,
   "Choose a coding system for an operation based on the target name.\n\
-The value names a pair of coding systems: (DECODING-SYSTEM ENCODING-SYSTEM).\n\
+The value names a pair of coding systems: (DECODING-SYSTEM . ENCODING-SYSTEM).\n\
 DECODING-SYSTEM is the coding system to use for decoding\n\
 \(in case OPERATION does decoding), and ENCODING-SYSTEM is the coding system\n\
 for encoding (in case OPERATION does encoding).\n\
