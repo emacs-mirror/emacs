@@ -1429,8 +1429,11 @@ variables that major modes set should not be marked permanent.
 The function @code{kill-all-local-variables} runs this normal hook
 before it does anything else.  This gives major modes a way to arrange
 for something special to be done if the user switches to a different
-major mode.  For best results, make this variable buffer-local, so that
-it will disappear after doing its job and will not interfere with the
+major mode.  It is also useful for buffer-specific minor modes
+that should be forgotten if the user changes the major mode.
+
+For best results, make this variable buffer-local, so that it will
+disappear after doing its job and will not interfere with the
 subsequent major mode.  @xref{Hooks}.
 @end defvar
 

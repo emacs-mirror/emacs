@@ -3884,6 +3884,8 @@ term_ntproc ()
   /* shutdown the socket interface if necessary */
   term_winsock ();
 #endif
+
+  term_w32select ();
 }
 
 void

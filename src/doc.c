@@ -882,6 +882,9 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	{
 	  struct buffer *oldbuf;
 	  int start_idx;
+	  /* This is for computing the SHADOWS arg for describe_map_tree.  */
+	  Lisp_Object active_maps = Fcurrent_active_maps (Qnil);
+	  Lisp_Object earlier_maps;
 
 	  changed = 1;
 	  strp += 2;		/* skip \{ or \< */
@@ -932,7 +935,13 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  else if (start[-1] == '<')
 	    keymap = tem;
 	  else
-	    describe_map_tree (tem, 1, Qnil, Qnil, (char *)0, 1, 0, 0);
+	    {
+	      /* Get the list of active keymaps that precede this one.
+		 If this one's not active, get nil.  */
+	      earlier_maps = Fcdr (Fmemq (tem, Freverse (active_maps)));
+	      describe_map_tree (tem, 1, Fnreverse (earlier_maps),
+				 Qnil, (char *)0, 1, 0, 0, 1);
+	    }
 	  tem = Fbuffer_string ();
 	  Ferase_buffer ();
 	  set_buffer_internal (oldbuf);

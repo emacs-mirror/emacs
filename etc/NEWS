@@ -2263,6 +2263,14 @@ some of them to initialize some of the default faces.
 `list-colors-display' shows the list of System color names, in case
 you wish to use them in other faces.
 
+---
+** On MS Windows NT/W2K/XP, Emacs uses Unicode for clipboard operations.
+Those systems use Unicode internally, so this allows Emacs to share
+multilingual text with other applications. On other versions of
+MS Windows, Emacs now uses the appropriate locale coding-system, so
+the clipboard should work correctly for your local language without
+any customizations.
+
 +++
 ** Under X11, it is possible to swap Alt and Meta (and Super and Hyper).
 The new variables `x-alt-keysym', `x-hyper-keysym', `x-meta-keysym',

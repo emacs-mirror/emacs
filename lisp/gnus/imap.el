@@ -241,7 +241,11 @@ encoded mailboxes which doesn't translate into ISO-8859-1."
   :type 'boolean)
 
 (defcustom imap-log nil
-  "If non-nil, a imap session trace is placed in *imap-log* buffer."
+  "If non-nil, a imap session trace is placed in *imap-log* buffer.
+Note that username, passwords and other privacy sensitive
+information (such as e-mail) may be stored in the *imap-log*
+buffer.  It is not written to disk, however.  Do not enable this
+variable unless you are comfortable with that."
   :group 'imap
   :type 'boolean)
 

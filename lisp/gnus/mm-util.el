@@ -843,7 +843,7 @@ If INHIBIT is non-nil, inhibit `mm-inhibit-file-name-handlers'."
 		 (file-directory-p
 		  (setq dir (concat (file-name-directory
 				     (directory-file-name path))
-				    "etc/" (or package "gnus/")))))
+				    "etc/images/" (or package "gnus/")))))
 	(push dir result))
       (push path result))))
 

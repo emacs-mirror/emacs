@@ -801,13 +801,16 @@ math-mul-mat-vec math-mul-mats math-row-matrix)
 
  ("calc-math" calcFunc-alog calcFunc-arccos
 calcFunc-arccosh calcFunc-arcsin calcFunc-arcsincos calcFunc-arcsinh
-calcFunc-arctan calcFunc-arctan2 calcFunc-arctanh calcFunc-cos
-calcFunc-cosh calcFunc-deg calcFunc-exp calcFunc-exp10 calcFunc-expm1
+calcFunc-arctan calcFunc-arctan2 calcFunc-arctanh calcFunc-csc
+calcFunc-csch calcFunc-cos calcFunc-cosh calcFunc-cot calcFunc-coth
+calcFunc-deg calcFunc-exp calcFunc-exp10 calcFunc-expm1
 calcFunc-hypot calcFunc-ilog calcFunc-isqrt calcFunc-ln calcFunc-lnp1
-calcFunc-log calcFunc-log10 calcFunc-nroot calcFunc-rad calcFunc-sin
+calcFunc-log calcFunc-log10 calcFunc-nroot calcFunc-rad calcFunc-sec
+calcFunc-sech calcFunc-sin
 calcFunc-sincos calcFunc-sinh calcFunc-sqr calcFunc-sqrt calcFunc-tan
 calcFunc-tanh math-arccos-raw math-arcsin-raw math-arctan-raw
-math-arctan2-raw math-cos-raw math-exp-minus-1-raw math-exp-raw
+math-arctan2-raw math-cos-raw math-cot-raw math-csc-raw
+math-exp-minus-1-raw math-exp-raw
 math-from-radians math-from-radians-2 math-hypot math-infinite-dir
 math-isqrt-small math-ln-raw math-nearly-equal math-nearly-equal-float
 math-nearly-zerop math-nearly-zerop-float math-nth-root
@@ -1008,9 +1011,11 @@ calc-map-equation calc-map-stack calc-outer-product calc-reduce)
 
  ("calc-math" calc-arccos calc-arccosh calc-arcsin calc-arcsinh
 calc-arctan calc-arctan2 calc-arctanh calc-conj calc-cos calc-cosh
+calc-cot calc-coth calc-csc calc-csch
 calc-degrees-mode calc-exp calc-expm1 calc-hypot calc-ilog
 calc-imaginary calc-isqrt calc-ln calc-lnp1 calc-log calc-log10
-calc-pi calc-radians-mode calc-sin calc-sincos calc-sinh calc-sqrt
+calc-pi calc-radians-mode calc-sec calc-sech 
+calc-sin calc-sincos calc-sinh calc-sqrt
 calc-tan calc-tanh calc-to-degrees calc-to-radians)
 
  ("calc-mode" calc-alg-simplify-mode calc-algebraic-mode

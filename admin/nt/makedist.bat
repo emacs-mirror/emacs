@@ -1,11 +1,10 @@
 @echo off
 
-rem This batch file doesn't work with Cygwin tar because #files#
-rem has DOS line endings, which Cygwin tar misinterprets.
-rem I use the version of tar from
-rem    ftp://ftp.gnu.org/gnu/windows/emacs/utilities/i386/tar-1.11.2a.exe
-rem renamed as wtar.exe.
-set TAR=wtar
+rem Beware broken ports of tar. Recent cygwin versions work well, older
+rem cygwin versions and the current MSys port have problems with DOS
+rem line ends when reading file names from a file. Other ports have their
+rem own problems too.
+set TAR=tar
 
 rem Make a copy of current Emacs source
 if (%3) == () goto usage
@@ -27,7 +26,7 @@ if not (%4) == () goto end
 
 set eld=emacs-%1/lisp
 
-rem Keep this list in sync with the DONTCOMPILE list in lisp/Makefile.in
+rem Keep this list in sync with the DONTCOMPILE list in lisp/makefile.w32-in
 
 set elfiles=%eld%/cus-load.el %eld%/cus-start.el %eld%/emacs-lisp/cl-specs.el %eld%/eshell/esh-maint.el %eld%/eshell/esh-groups.el %eld%/finder-inf.el %eld%/forms-d2.el %eld%/forms-pass.el %eld%/generic-x.el %eld%/international/latin-1.el %eld%/international/latin-2.el %eld%/international/latin-3.el %eld%/international/latin-4.el %eld%/international/latin-5.el %eld%/international/latin-8.el %eld%/international/latin-9.el %eld%/international/mule-conf.el %eld%/loaddefs.el %eld%/loadup.el %eld%/mail/blessmail.el %eld%/patcomp.el %eld%/paths.el %eld%/play/bruce.el %eld%/subdirs.el %eld%/version.el
 
@@ -37,15 +36,19 @@ for %%f in (emacs-%1/bin/fns*) do set fns_el=%fns_el% emacs-%1/bin/%%f
 echo Create bin distribution
 copy %3\README.W32 emacs-%1\README.W32
 
-del #files#
+del #files# #elfiles#
 for %%f in (emacs-%1/BUGS emacs-%1/README emacs-%1/README.W32) do echo %%f>>#files#
-for %%f in (emacs-%1/bin/fns*) do echo emacs-%1/bin/%%f>>#files#
-for %%f in (emacs-%1/bin emacs-%1/etc emacs-%1/info emacs-%1/lisp %elfiles%) do echo %%f>>#files#
-for %%f in (%eld%/term/*.el) do echo %eld%/term/%%f>>#files#
-for %%f in (emacs-%1/lock emacs-%1/site-lisp emacs-%1/site-lisp/subdirs.el) do echo %%f>>#files#
-%TAR% --exclude temacs.exe --exclude emacs.mdp --exclude *.pdb --exclude *.opt --exclude *.el --exclude *~ -T #files# -cvf - | gzip -9 > %2-bin-i386.tar.gz
+for %%f in (emacs-%1/bin/fns*) do echo emacs-%1/bin/%%f>>#elfiles#
+for %%f in (emacs-%1/bin emacs-%1/etc emacs-%1/info emacs-%1/lisp) do echo %%f>>#files#
+for %%f in (emacs-%1/lock emacs-%1/site-lisp) do echo %%f>>#files#
+for %%f in (%elfiles% emacs-%1/site-lisp/subdirs.el) do echo %%f>>#elfiles#
+for %%f in (%eld%/term/*.el) do echo %eld%/term/%%f>>#elfiles#
+
+%TAR% --exclude temacs.exe --exclude emacs.mdp --exclude *.pdb --exclude *.opt --exclude "*.el" --exclude "*~" -T #files# -cvf %2-bin-i386.tar
+%TAR% -T #elfiles# -rvf %2-bin-i386.tar
+gzip -9 %2-bin-i386.tar
 del emacs-%1\README.W32
-del #files#
+rem del #files# #elfiles#
 if not (%4) == () goto end
 
 :fullbin

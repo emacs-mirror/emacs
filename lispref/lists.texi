@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999,
-@c 2003, 2004
+@c 2003, 2004, 2005
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/lists
@@ -18,7 +18,6 @@ the whole list.
 
 @menu
 * Cons Cells::          How lists are made out of cons cells.
-* Lists as Boxes::                 Graphical notation to explain lists.
 * List-related Predicates::        Is this object a list?  Comparing two lists.
 * List Elements::       Extracting the pieces of a list.
 * Building Lists::      Creating list structure.
@@ -86,100 +85,17 @@ cells.
   The @sc{cdr} of any nonempty list @var{l} is a list containing all the
 elements of @var{l} except the first.
 
-@node Lists as Boxes
-@comment  node-name,  next,  previous,  up
-@section Lists as Linked Pairs of Boxes
-@cindex box representation for lists
-@cindex lists represented as boxes
-@cindex cons cell as box
-
-  A cons cell can be illustrated as a pair of boxes.  The first box
-represents the @sc{car} and the second box represents the @sc{cdr}.
-Here is an illustration of the two-element list, @code{(tulip lily)},
-made from two cons cells:
-
-@example
-@group
- ---------------         ---------------
-| car   | cdr   |       | car   | cdr   |
-| tulip |   o---------->| lily  |  nil  |
-|       |       |       |       |       |
- ---------------         ---------------
-@end group
-@end example
-
-  Each pair of boxes represents a cons cell.  Each box ``refers to'',
-``points to'' or ``holds'' a Lisp object.  (These terms are
-synonymous.)  The first box, which describes the @sc{car} of the first
-cons cell, contains the symbol @code{tulip}.  The arrow from the
-@sc{cdr} box of the first cons cell to the second cons cell indicates
-that the @sc{cdr} of the first cons cell is the second cons cell.
-
-  The same list can be illustrated in a different sort of box notation
-like this:
-
-@example
-@group
-    --- ---      --- ---
-   |   |   |--> |   |   |--> nil
-    --- ---      --- ---
-     |            |
-     |            |
-      --> tulip    --> lily
-@end group
-@end example
-
-  Here is a more complex illustration, showing the three-element list,
-@code{((pine needles) oak maple)}, the first element of which is a
-two-element list:
-
-@example
-@group
-    --- ---      --- ---      --- ---
-   |   |   |--> |   |   |--> |   |   |--> nil
-    --- ---      --- ---      --- ---
-     |            |            |
-     |            |            |
-     |             --> oak      --> maple
-     |
-     |     --- ---      --- ---
-      --> |   |   |--> |   |   |--> nil
-           --- ---      --- ---
-            |            |
-            |            |
-             --> pine     --> needles
-@end group
-@end example
-
-  The same list represented in the first box notation looks like this:
-
-@example
-@group
- --------------       --------------       --------------
-| car   | cdr  |     | car   | cdr  |     | car   | cdr  |
-|   o   |   o------->| oak   |   o------->| maple |  nil |
-|   |   |      |     |       |      |     |       |      |
- -- | ---------       --------------       --------------
-    |
-    |
-    |        --------------       ----------------
-    |       | car   | cdr  |     | car     | cdr  |
-     ------>| pine  |   o------->| needles |  nil |
-            |       |      |     |         |      |
-             --------------       ----------------
-@end group
-@end example
-
   @xref{Cons Cell Type}, for the read and print syntax of cons cells and
-lists, and for more ``box and arrow'' illustrations of lists.
+lists, and for ``box and arrow'' illustrations of lists.
 
 @node List-related Predicates
 @section Predicates on Lists
 
-  The following predicates test whether a Lisp object is an atom, is a
-cons cell or is a list, or whether it is the distinguished object
-@code{nil}.  (Many of these predicates can be defined in terms of the
-others, but they are used so often that it is worth having all of them.)
+  The following predicates test whether a Lisp object is an atom,
+whether it is a cons cell or is a list, or whether it is the
+distinguished object @code{nil}.  (Many of these predicates can be
+defined in terms of the others, but they are used so often that it is
+worth having all of them.)
 
 @defun consp object
 This function returns @code{t} if @var{object} is a cons cell, @code{nil}
@@ -749,9 +665,14 @@ This returns a list of numbers starting with @var{from} and
 incrementing by @var{separation}, and ending at or just before
 @var{to}.  @var{separation} can be positive or negative and defaults
 to 1.  If @var{to} is @code{nil} or numerically equal to @var{from},
-the one element list @code{(from)} is returned.  If @var{separation}
-is 0 and @var{to} is neither @code{nil} nor numerically equal to
-@var{from}, an error is signaled.
+the value is the one-element list @code{(@var{from})}.  If @var{to} is
+less than @var{from} with a positive @var{separation}, or greater than
+@var{from} with a negative @var{separation}, the value is @code{nil}
+because those arguments specify an empty sequence.
+
+If @var{separation} is 0 and @var{to} is neither @code{nil} nor
+numerically equal to @var{from}, @code{number-sequence} signals an
+error, since those arguments specify an infinite sequence.
 
 All arguments can be integers or floating point numbers.  However,
 floating point arguments can be tricky, because floating point

@@ -16,7 +16,7 @@ Indent the current line ``appropriately'' in a mode-dependent fashion.
 Perform @key{RET} followed by @key{TAB} (@code{newline-and-indent}).
 @item M-^
 Merge the previous and the current line (@code{delete-indentation}).
-This would cancel out the effect of @kbd{C-j}.
+This would cancel the effect of a preceding @kbd{C-j}.
 @item C-M-o
 Split the current line at point; text on the line after point becomes a
 new line indented to the same column where point is located
@@ -25,9 +25,9 @@ new line indented to the same column where point is located
 Move (forward or back) to the first nonblank character on the current
 line (@code{back-to-indentation}).
 @item C-M-\
-Indent several lines to the same column (@code{indent-region}).
+Indent lines in the region to the same column (@code{indent-region}).
 @item C-x @key{TAB}
-Shift a block of lines rigidly right or left (@code{indent-rigidly}).
+Shift lines in the region rigidly right or left (@code{indent-rigidly}).
 @item M-i
 Indent from point to the next prespecified tab stop column
 (@code{tab-to-tab-stop}).
@@ -47,11 +47,11 @@ to the next display tab stop position, and the default width of a tab
 stop is eight.  @xref{Display Custom}, for more details.
 
 @item
-Advance to the next tab stop.  You can set tab stops at your choice of
-column positions, then type @kbd{M-i} to advance to the next tab stop.
-The default is to have tab stops every eight columns, which means by
-default @kbd{M-i} inserts a tab character.  To set the tab stops, use
-@kbd{M-x edit-tab-stops}.
+Insert whitespace up to the next tab stop.  You can set tab stops at
+your choice of column positions, then type @kbd{M-i} to advance to the
+next tab stop.  The default tab stop settings have a tab stop every
+eight columns, which means by default @kbd{M-i} inserts a tab
+character.  To set the tab stops, use @kbd{M-x edit-tab-stops}.
 
 @item
 Align a line with the previous line.  More precisely, the command
@@ -72,14 +72,10 @@ of the preceding lines.  No matter where in the line you are when you
 type @key{TAB}, it aligns the line as a whole.
 @end enumerate
 
-  Normally, all of the above methods insert an optimal mix of tabs and
+  Normally, most of the above methods insert an optimal mix of tabs and
 spaces to align to the desired column.  @xref{Just Spaces}, for how to
 disable use of tabs.  However, @kbd{C-q @key{TAB}} always inserts a
 tab, even when tabs are disabled for the indentation commands.
-
-@c   In Text mode, @key{TAB} runs the command @code{tab-to-tab-stop}, which
-@c indents to the next tab stop column.  You can set the tab stops with
-@c @kbd{M-x edit-tab-stops}.
 
 @menu
 * Indentation Commands::  Various commands and techniques for indentation.

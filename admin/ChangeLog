@@ -1,3 +1,8 @@
+2005-02-15  Jason Rumney  <jasonr@gnu.org>
+
+	* nt/makedist.bat: Do not rely on non-standard behaviour of
+	tar --exclude.
+
 2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* FOR-RELEASE (Indications): Remove two stage update for toolbar (Done).
@@ -31,7 +36,7 @@
 
 	* FOR-RELEASE: Remove entry about GTK and monochrome displays (done).
 
-2002-06-26  Eli Zaretskii  <eliz@is.elta.co.il>
+2004-06-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* FOR-RELEASE: Moved here from the etc directory.
 
@@ -43,6 +48,10 @@
 
 	* quick-install-emacs: Don't use "function" keyword when defining
 	shell functions.
+
+2003-09-29  Lute Kamstra  <lute@gnu.org>
+
+	* make-tarball.txt: Mention regenerating Emacs' AUTHORS file.
 
 2003-09-27  Miles Bader  <miles@gnu.ai.mit.edu>
 
@@ -193,7 +202,7 @@
 	version of tar used.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit-unix
+;; coding: iso-2022-7bit
 ;; End:
 
     Copyright (C) 2001 Free Software Foundation, Inc.

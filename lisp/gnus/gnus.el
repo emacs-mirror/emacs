@@ -326,7 +326,8 @@ be set in `.emacs' instead."
   (defvar gnus-mode-line-image-cache t)
   (if (fboundp 'find-image)
       (defun gnus-mode-line-buffer-identification (line)
-	(let ((str (car-safe line)))
+	(let ((str (car-safe line))
+	      (load-path (mm-image-load-path)))
 	  (if (and (stringp str)
 		   (string-match "^Gnus:" str))
 	      (progn (add-text-properties
@@ -875,7 +876,7 @@ be set in `.emacs' instead."
    ((and
      (fboundp 'find-image)
      (display-graphic-p)
-     (let* ((data-directory (nnheader-find-etc-directory "gnus"))
+     (let* ((data-directory (nnheader-find-etc-directory "images/gnus"))
 	    (image (find-image
 		    `((:type xpm :file "gnus.xpm"
 			     :color-symbols

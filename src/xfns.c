@@ -1860,7 +1860,8 @@ hack_wm_protocols (f, widget)
 
   BLOCK_INPUT;
   {
-    Atom type, *atoms = 0;
+    Atom type;
+    unsigned char *catoms;
     int format = 0;
     unsigned long nitems = 0;
     unsigned long bytes_after;
@@ -1869,20 +1870,27 @@ hack_wm_protocols (f, widget)
 			     FRAME_X_DISPLAY_INFO (f)->Xatom_wm_protocols,
 			     (long)0, (long)100, False, XA_ATOM,
 			     &type, &format, &nitems, &bytes_after,
-			     (unsigned char **) &atoms)
+			     &catoms)
 	 == Success)
 	&& format == 32 && type == XA_ATOM)
-      while (nitems > 0)
-	{
-	  nitems--;
- 	  if (atoms[nitems] == FRAME_X_DISPLAY_INFO (f)->Xatom_wm_delete_window)
-	    need_delete = 0;
-	  else if (atoms[nitems] == FRAME_X_DISPLAY_INFO (f)->Xatom_wm_take_focus)
-	    need_focus = 0;
-	  else if (atoms[nitems] == FRAME_X_DISPLAY_INFO (f)->Xatom_wm_save_yourself)
-	    need_save = 0;
-	}
-    if (atoms) XFree ((char *) atoms);
+      {
+	Atom *atoms = (Atom *) catoms;
+	while (nitems > 0)
+	  {
+	    nitems--;
+	    if (atoms[nitems]
+		== FRAME_X_DISPLAY_INFO (f)->Xatom_wm_delete_window)
+	      need_delete = 0;
+	    else if (atoms[nitems]
+		     == FRAME_X_DISPLAY_INFO (f)->Xatom_wm_take_focus)
+	      need_focus = 0;
+	    else if (atoms[nitems]
+		     == FRAME_X_DISPLAY_INFO (f)->Xatom_wm_save_yourself)
+	      need_save = 0;
+	  }
+      }
+    if (catoms)
+      XFree (catoms);
   }
   {
     Atom props [10];
@@ -4140,7 +4148,7 @@ no value of TYPE.  */)
   Atom prop_atom;
   int rc;
   Lisp_Object prop_value = Qnil;
-  char *tmp_data = NULL;
+  unsigned char *tmp_data = NULL;
   Atom actual_type;
   Atom target_type = XA_STRING;
   int actual_format;
@@ -4180,7 +4188,7 @@ no value of TYPE.  */)
   rc = XGetWindowProperty (FRAME_X_DISPLAY (f), target_window,
 			   prop_atom, 0, 0, False, target_type,
 			   &actual_type, &actual_format, &actual_size,
-			   &bytes_remaining, (unsigned char **) &tmp_data);
+			   &bytes_remaining, &tmp_data);
   if (rc == Success)
     {
       int size = bytes_remaining;
@@ -4193,7 +4201,7 @@ no value of TYPE.  */)
 			       ! NILP (delete_p), target_type,
 			       &actual_type, &actual_format,
 			       &actual_size, &bytes_remaining,
-			       (unsigned char **) &tmp_data);
+			       &tmp_data);
       if (rc == Success && tmp_data)
         {
           /* The man page for XGetWindowProperty says:
@@ -4217,14 +4225,14 @@ no value of TYPE.  */)
               long *ldata = (long *) tmp_data;
 
               for (i = 0; i < actual_size; ++i)
-                idata[i]= (int) ldata[i];
+                idata[i] = (int) ldata[i];
             }
 
           if (NILP (vector_ret_p))
             prop_value = make_string (tmp_data, size);
           else
             prop_value = x_property_data_to_lisp (f,
-                                                  (unsigned char *) tmp_data,
+                                                  tmp_data,
                                                   actual_type,
                                                   actual_format,
                                                   actual_size);

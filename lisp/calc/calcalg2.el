@@ -412,6 +412,30 @@
 					 (math-normalize
 					  (list 'calcFunc-cos u))))))))
 
+(put 'calcFunc-sec\' 'math-derivative-1
+     (function (lambda (u) (math-to-radians-2 
+                            (math-mul
+                             (math-normalize
+                              (list 'calcFunc-sec u))
+                             (math-normalize
+                              (list 'calcFunc-tan u)))))))
+
+(put 'calcFunc-csc\' 'math-derivative-1
+     (function (lambda (u) (math-neg 
+                            (math-to-radians-2
+                             (math-mul
+                              (math-normalize
+                               (list 'calcFunc-csc u))
+                              (math-normalize
+                               (list 'calcFunc-cot u))))))))
+
+(put 'calcFunc-cot\' 'math-derivative-1
+     (function (lambda (u) (math-neg
+                            (math-to-radians-2
+                             (math-div 1 (math-sqr
+                                          (math-normalize
+                                           (list 'calcFunc-sin u)))))))))
+
 (put 'calcFunc-arcsin\' 'math-derivative-1
      (function (lambda (u)
 		 (math-from-radians-2
@@ -440,6 +464,24 @@
      (function (lambda (u) (math-div 1 (math-sqr
 					(math-normalize
 					 (list 'calcFunc-cosh u)))))))
+
+(put 'calcFunc-sech\' 'math-derivative-1
+     (function (lambda (u) (math-neg
+                            (math-mul
+                             (math-normalize (list 'calcFunc-sech u))
+                             (math-normalize (list 'calcFunc-tanh u)))))))
+
+(put 'calcFunc-csch\' 'math-derivative-1
+     (function (lambda (u) (math-neg
+                            (math-mul
+                             (math-normalize (list 'calcFunc-csch u))
+                             (math-normalize (list 'calcFunc-coth u)))))))
+
+(put 'calcFunc-tanh\' 'math-derivative-1
+     (function (lambda (u) (math-neg
+                            (math-div 1 (math-sqr
+                                         (math-normalize
+                                          (list 'calcFunc-sinh u))))))))
 
 (put 'calcFunc-arcsinh\' 'math-derivative-1
      (function (lambda (u)
@@ -1053,7 +1095,10 @@
 	       (while (and p
 			   (memq (car (car p)) '(calcFunc-sin
 						 calcFunc-cos
-						 calcFunc-tan))
+						 calcFunc-tan
+                                                 calcFunc-sec
+                                                 calcFunc-csc
+                                                 calcFunc-cot))
 			   (equal (nth 1 (car p)) math-integ-var))
 		 (setq p (cdr p)))
 	       (null p))
@@ -1068,6 +1113,9 @@
 			   (memq (car (car p)) '(calcFunc-sinh
 						 calcFunc-cosh
 						 calcFunc-tanh
+                                                 calcFunc-sech
+                                                 calcFunc-csch
+                                                 calcFunc-coth
 						 calcFunc-exp))
 			   (equal (nth 1 (car p)) math-integ-var))
 		 (setq p (cdr p)))
@@ -1619,6 +1667,27 @@
        (math-neg (math-from-radians-2
 		  (list 'calcFunc-ln (list 'calcFunc-cos u))))))
 
+(math-defintegral calcFunc-sec
+  (and (equal u math-integ-var)
+       (math-from-radians-2
+        (list 'calcFunc-ln 
+              (math-add
+               (list 'calcFunc-sec u)
+               (list 'calcFunc-tan u))))))
+
+(math-defintegral calcFunc-csc
+  (and (equal u math-integ-var)
+       (math-from-radians-2
+        (list 'calcFunc-ln 
+              (math-sub
+               (list 'calcFunc-csc u)
+               (list 'calcFunc-cot u))))))
+
+(math-defintegral calcFunc-cot
+  (and (equal u math-integ-var)
+       (math-from-radians-2
+        (list 'calcFunc-ln (list 'calcFunc-sin u)))))
+
 (math-defintegral calcFunc-arcsin
   (and (equal u math-integ-var)
        (math-add (math-mul u (list 'calcFunc-arcsin u))
@@ -1649,6 +1718,18 @@
 (math-defintegral calcFunc-tanh
   (and (equal u math-integ-var)
        (list 'calcFunc-ln (list 'calcFunc-cosh u))))
+
+(math-defintegral calcFunc-sech
+  (and (equal u math-integ-var)
+       (list 'calcFunc-arctan (list 'calcFunc-sinh u))))
+
+(math-defintegral calcFunc-csch
+  (and (equal u math-integ-var)
+       (list 'calcFunc-ln (list 'calcFunc-tanh (math-div u 2)))))
+
+(math-defintegral calcFunc-coth
+  (and (equal u math-integ-var)
+       (list 'calcFunc-ln (list 'calcFunc-sinh u))))
 
 (math-defintegral calcFunc-arcsinh
   (and (equal u math-integ-var)
