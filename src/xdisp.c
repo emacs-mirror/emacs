@@ -20186,7 +20186,9 @@ phys_cursor_in_rect_p (w, r)
   cursor_glyph = get_phys_cursor_glyph (w);
   if (cursor_glyph)
     {
-      cr.x = w->phys_cursor.x;
+      /* r is relative to W's box, but w->phys_cursor.x is relative 
+	 to left edge of W's TEXT area.  Adjust it.  */
+      cr.x = window_box_left_offset (w, TEXT_AREA) + w->phys_cursor.x;
       cr.y = w->phys_cursor.y;
       cr.width = cursor_glyph->pixel_width;
       cr.height = w->phys_cursor_height;
