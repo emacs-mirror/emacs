@@ -67,6 +67,10 @@ int scan_c_file ();
 #include <unistd.h>
 #endif
 
+#ifdef STDC_HEADERS
+#include <stdlib.h>
+#endif
+
 /* Stdio stream for output to the DOC file.  */
 FILE *outfile;
 

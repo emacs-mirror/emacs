@@ -69,6 +69,10 @@ main ()
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+
+#ifdef STDC_HEADERS
+#include <stdlib.h>
+#endif
 
 /* Type definitions */
 
