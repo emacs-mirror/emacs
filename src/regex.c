@@ -168,7 +168,7 @@ init_syntax_once ()
 
 #define SYNTAX(c) re_syntax_table[c]
 
-/* Dummy macro for non emacs environments.  */
+/* Dummy macros for non-Emacs environments.  */
 #define BASE_LEADING_CODE_P(c) (0)
 #define WORD_BOUNDARY_P(c1, c2) (0)
 #define CHAR_HEAD_P(p) (1)
@@ -1539,7 +1539,7 @@ static reg_errcode_t compile_range ();
 #define PATFETCH(c)							\
   do {if (p == pend) return REG_EEND;					\
     c = (unsigned char) *p++;						\
-    if (translate) c = (unsigned char) translate[c];			\
+    if (translate) c = RE_TRANSLATE (translate, c);			\
   } while (0)
 #endif
 
@@ -1560,7 +1560,7 @@ static reg_errcode_t compile_range ();
    when we use a character as a subscript we must make it unsigned.  */
 #ifndef TRANSLATE
 #define TRANSLATE(d) \
-  (translate ? (unsigned char) RE_TRANSLATE (translate, (unsigned char) (d)) : (d))
+  (translate ? (unsigned) RE_TRANSLATE (translate, (unsigned) (d)) : (d))
 #endif
 
 
@@ -2107,9 +2107,10 @@ regex_compile (pattern, size, syntax, bufp)
 		   incremented `p', by the way, to be the character after
 		   the `*'.  Do we have to do something analogous here
 		   for null bytes, because of RE_DOT_NOT_NULL?	*/
-		if (TRANSLATE (*(p - 2)) == TRANSLATE ('.')
+		if (TRANSLATE ((unsigned char)*(p - 2)) == TRANSLATE ('.')
 		    && zero_times_ok
-		    && p < pend && TRANSLATE (*p) == TRANSLATE ('\n')
+		    && p < pend
+		    && TRANSLATE ((unsigned char)*p) == TRANSLATE ('\n')
 		    && !(syntax & RE_DOT_NEWLINE))
 		  { /* We have .*\n.  */
 		    STORE_JUMP (jump, b, laststart);
@@ -2333,7 +2334,18 @@ regex_compile (pattern, size, syntax, bufp)
 			p += len;
 		      }
 
-		    if (!SAME_CHARSET_P (c, c1))
+		    if (SINGLE_BYTE_CHAR_P (c)
+			&& ! SINGLE_BYTE_CHAR_P (c1))
+		      {
+			/* Handle a range such as \177-\377 in multibyte mode.
+			   Split that into two ranges,,
+			   the low one ending at 0237, and the high one
+			   starting at ...040.  */
+			int c1_base = (c1 & ~0177) | 040;
+			SET_RANGE_TABLE_WORK_AREA (range_table_work, c, c1);
+			c1 = 0237;
+		      }
+		    else if (!SAME_CHARSET_P (c, c1))
 		      FREE_STACK_RETURN (REG_ERANGE);
 		  }
 		else
@@ -2359,8 +2371,8 @@ regex_compile (pattern, size, syntax, bufp)
 			for (this_char = range_start; this_char <= range_end;
 			     this_char++)
 			  SET_LIST_BIT (TRANSLATE (this_char));
+		      }
 		  }
-	      }
 		else
 		  /* ... into range table.  */
 		  SET_RANGE_TABLE_WORK_AREA (range_table_work, c, c1);
@@ -2913,8 +2925,8 @@ regex_compile (pattern, size, syntax, bufp)
 	  /* Here, C may translated, therefore C may not equal to *P1. */
 	  while (1)
 	    {
-	  BUF_PUSH (c);
-	  (*pending_exact)++;
+	      BUF_PUSH (c);
+	      (*pending_exact)++;
 	      if (++p1 == p)
 		break;
 
@@ -3120,64 +3132,6 @@ group_in_compile_stack (compile_stack, regnum)
       return true;
 
   return false;
-}
-
-
-/* Read the ending character of a range (in a bracket expression) from the
-   uncompiled pattern *P_PTR (which ends at PEND).  We assume the
-   starting character is in `P[-2]'.  (`P[-1]' is the character `-'.)
-   Then we set the translation of all bits between the starting and
-   ending characters (inclusive) in the compiled pattern B.
-
-   Return an error code.
-
-   We use these short variable names so we can use the same macros as
-   `regex_compile' itself.  */
-
-static reg_errcode_t
-compile_range (p_ptr, pend, translate, syntax, b)
-    const char **p_ptr, *pend;
-    RE_TRANSLATE_TYPE translate;
-    reg_syntax_t syntax;
-    unsigned char *b;
-{
-  unsigned this_char;
-
-  const char *p = *p_ptr;
-  int range_start, range_end;
-
-  if (p == pend)
-    return REG_ERANGE;
-
-  /* Even though the pattern is a signed `char *', we need to fetch
-     with unsigned char *'s; if the high bit of the pattern character
-     is set, the range endpoints will be negative if we fetch using a
-     signed char *.
-
-     We also want to fetch the endpoints without translating them; the
-     appropriate translation is done in the bit-setting loop below.  */
-  /* The SVR4 compiler on the 3B2 had trouble with unsigned const char *.  */
-  range_start = ((const unsigned char *) p)[-2];
-  range_end   = ((const unsigned char *) p)[0];
-
-  /* Have to increment the pointer into the pattern string, so the
-     caller isn't still at the ending character.  */
-  (*p_ptr)++;
-
-  /* If the start is after the end, the range is empty.	 */
-  if (range_start > range_end)
-    return syntax & RE_NO_EMPTY_RANGES ? REG_ERANGE : REG_NOERROR;
-
-  /* Here we see why `this_char' has to be larger than an `unsigned
-     char' -- the range is inclusive, so if `range_end' == 0xff
-     (assuming 8-bit characters), we would otherwise go into an infinite
-     loop, since all characters <= 0xff.  */
-  for (this_char = range_start; this_char <= range_end; this_char++)
-    {
-      SET_LIST_BIT (TRANSLATE (this_char));
-    }
-
-  return REG_NOERROR;
 }
 
 /* re_compile_fastmap computes a ``fastmap'' for the compiled pattern in
@@ -3812,24 +3766,45 @@ re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
 	 the first null string.	 */
       if (fastmap && startpos < total_size && !bufp->can_be_null)
 	{
+	  register const char *d;
+	  register unsigned int buf_ch;
+
+	  d = POS_ADDR_VSTRING (startpos);
+
 	  if (range > 0)	/* Searching forwards.	*/
 	    {
-	      register const char *d;
 	      register int lim = 0;
 	      int irange = range;
 
 	      if (startpos < size1 && startpos + range >= size1)
 		lim = range - (size1 - startpos);
 
-	      d = POS_ADDR_VSTRING (startpos);
-
 	      /* Written out as an if-else to avoid testing `translate'
 		 inside the loop.  */
 	      if (translate)
-		while (range > lim
-		       && !fastmap[(unsigned char)
-				   RE_TRANSLATE (translate, (unsigned char) *d++)])
-		  range--;
+		{
+		  if (multibyte)
+		    while (range > lim)
+		      {
+			int buf_charlen;
+
+			buf_ch = STRING_CHAR_AND_LENGTH (d, range - lim,
+							 buf_charlen);
+
+			buf_ch = RE_TRANSLATE (translate, buf_ch);
+			if (buf_ch >= 0400
+			    || fastmap[buf_ch])
+			  break;
+
+			range -= buf_charlen;
+			d += buf_charlen;
+		      }
+		  else
+		    while (range > lim
+			   && !fastmap[(unsigned char)
+				       RE_TRANSLATE (translate, (unsigned char) *d++)])
+		      range--;
+		}
 	      else
 		while (range > lim && !fastmap[(unsigned char) *d++])
 		  range--;
@@ -3838,11 +3813,16 @@ re_search_2 (bufp, string1, size1, string2, size2, startpos, range, regs, stop)
 	    }
 	  else				/* Searching backwards.	 */
 	    {
-	      register char c = (size1 == 0 || startpos >= size1
-				 ? string2[startpos - size1]
-				 : string1[startpos]);
+	      int room = (size1 == 0 || startpos >= size1
+			  ? size2 + size1 - startpos
+			  : size1 - startpos);
 
-	      if (!fastmap[(unsigned char) TRANSLATE (c)])
+	      buf_ch = STRING_CHAR (d, room);
+	      if (translate)
+		buf_ch = RE_TRANSLATE (translate, buf_ch);
+
+	      if (! (buf_ch >= 0400
+		     || fastmap[buf_ch]))
 		goto advance;
 	    }
 	}
@@ -4515,14 +4495,36 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	     testing `translate' inside the loop.  */
 	  if (translate)
 	    {
-	      do
-		{
-		  PREFETCH ();
-		  if ((unsigned char) RE_TRANSLATE (translate, (unsigned char) *d++)
-		      != (unsigned char) *p++)
-		    goto fail;
-		}
-	      while (--mcnt);
+#ifdef emacs
+	      if (multibyte)
+		do
+		  {
+		    int pat_charlen, buf_charlen;
+		    int pat_ch, buf_ch;
+
+		    PREFETCH ();
+		    pat_ch = STRING_CHAR_AND_LENGTH (p, pend - p, pat_charlen);
+		    buf_ch = STRING_CHAR_AND_LENGTH (d, dend - d, buf_charlen);
+
+		    if (RE_TRANSLATE (translate, buf_ch)
+			!= pat_ch)
+		      goto fail;
+
+		    p += pat_charlen;
+		    d += buf_charlen;
+		    mcnt -= pat_charlen;
+		  }
+		while (mcnt > 0);
+	      else
+#endif /* not emacs */
+		do
+		  {
+		    PREFETCH ();
+		    if ((unsigned char) RE_TRANSLATE (translate, (unsigned char) *d++)
+			!= (unsigned char) *p++)
+		      goto fail;
+		  }
+		while (--mcnt);
 	    }
 	  else
 	    {
@@ -4539,17 +4541,36 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 
 	/* Match any character except possibly a newline or a null.  */
 	case anychar:
-	  DEBUG_PRINT1 ("EXECUTING anychar.\n");
+	  {
+	    int buf_charlen;
+	    int buf_ch;
 
-	  PREFETCH ();
+	    DEBUG_PRINT1 ("EXECUTING anychar.\n");
 
-	  if ((!(bufp->syntax & RE_DOT_NEWLINE) && TRANSLATE (*d) == '\n')
-	      || (bufp->syntax & RE_DOT_NOT_NULL && TRANSLATE (*d) == '\000'))
-	    goto fail;
+	    PREFETCH ();
 
-	  SET_REGS_MATCHED ();
-	  DEBUG_PRINT2 ("  Matched `%d'.\n", *d);
-	  d += multibyte ? MULTIBYTE_FORM_LENGTH (d, dend - d) : 1;
+#ifdef emacs
+	    if (multibyte)
+	      buf_ch = STRING_CHAR_AND_LENGTH (d, dend - d, buf_charlen);
+	    else
+#endif /* not emacs */
+	      {
+		buf_ch = *d;
+		buf_charlen = 1;
+	      }
+
+	    buf_ch = TRANSLATE (buf_ch);
+
+	    if ((!(bufp->syntax & RE_DOT_NEWLINE)
+		 && buf_ch == '\n')
+		|| ((bufp->syntax & RE_DOT_NOT_NULL)
+		    && buf_ch == '\000'))
+	      goto fail;
+
+	    SET_REGS_MATCHED ();
+	    DEBUG_PRINT2 ("  Matched `%d'.\n", *d);
+	    d += buf_charlen;
+	  }
 	  break;
 
 
@@ -5926,12 +5947,27 @@ bcmp_translate (s1, s2, len, translate)
      RE_TRANSLATE_TYPE translate;
 {
   register unsigned char *p1 = s1, *p2 = s2;
-  while (len)
+  unsigned char *p1_end = s1 + len;
+  unsigned char *p2_end = s2 + len;
+
+  while (p1 != p1_end && p2 != p2_end)
     {
-      if (RE_TRANSLATE (translate, *p1++) != RE_TRANSLATE (translate, *p2++))
+      int p1_charlen, p2_charlen;
+      int p1_ch, p2_ch;
+
+      p1_ch = STRING_CHAR_AND_LENGTH (p1, p1_end - p1, p1_charlen);
+      p2_ch = STRING_CHAR_AND_LENGTH (p2, p2_end - p2, p2_charlen);
+
+      if (RE_TRANSLATE (translate, p1_ch)
+	  != RE_TRANSLATE (translate, p2_ch))
 	return 1;
-      len--;
+
+      p1 += p1_charlen, p2 += p2_charlen;
     }
+
+  if (p1 != p1_end || p2 != p2_end)
+    return 1;
+
   return 0;
 }
 
