@@ -3052,6 +3052,13 @@ inheritance is used when determining the value of a face attribute.
 ** New functions face-attribute-relative-p and merge-face-attribute
 help with handling relative face attributes.
 
+** The priority of faces in an :inherit attribute face-list is reversed.
+If a face contains an :inherit attribute with a list of faces, earlier
+faces in the list override later faces in the list; in previous releases
+of Emacs, the order was the opposite.  This change was made so that
+:inherit face-lists operate identically to face-lists in text `face'
+properties.
+
 +++
 ** Enhancements to process support
 

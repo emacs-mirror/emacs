@@ -1,3 +1,23 @@
+2004-06-07  Miles Bader  <miles@gnu.org>
+
+	* (struct named_merge_point): New type.
+	(push_named_merge_point): New function.
+	(merge_named_face): New function.
+	(merge_face_ref, face_at_buffer_position, face_at_string_position):
+	Use `merge_named_face'.
+	(merge_face_inheritance): Function removed.
+	(merge_face_ref): Renamed from `merge_face_vector_with_property'.
+	Add new `err_msgs' and `named_merge_points' args.  Return error
+	status.  Only print error messages if ERR_MSGS is true.  Don't try to
+	do :inherit attribute validation.
+	(merge_face_heights): Handle `unspecified' in both directions.
+	(merge_face_vectors): Rename `cycle_check' arg to `named_merge_points'.
+	Call `merge_face_ref' instead of `merge_face_inheritance'.
+	(Fdisplay_supports_face_attributes_p, Fface_attributes_as_vector)
+	(compute_char_face, face_at_buffer_position)
+	(face_at_string_position): Call `merge_face_ref' instead of
+	`merge_face_vector_with_property'.
+
 2004-06-07  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (find_safe_codings): Check NILP (safe_codings) only at
