@@ -1,3 +1,7 @@
+2001-07-10  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* term/tty-colors.el: Fix the header line and copyright years.
+
 2001-07-09  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/advice.el (ad-make-advised-definition): If the
