@@ -1154,6 +1154,6 @@ different buffer menu using the function `msb'."
   (msb-mode 0))
 
 (provide 'msb)
-(eval-after-load 'msb (run-hooks 'msb-after-load-hook 'msb-after-load-hooks))
+(eval-after-load "msb" '(run-hooks msb-after-load-hook msb-after-load-hooks))
 
 ;;; msb.el ends here
