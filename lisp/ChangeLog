@@ -1,3 +1,9 @@
+2003-03-13  Dave Love  <fx@gnu.org>
+
+	* international/latin1-disp.el (ucs-tables): Don't require.
+	(latin1-display-face): New.
+	(latin1-display-char): Use it.
+
 2003-03-13  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (reset-language-environment): Set
