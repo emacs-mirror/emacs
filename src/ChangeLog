@@ -1,5 +1,7 @@
 2005-01-20  Kim F. Storm  <storm@cua.dk>
 
+	* alloc.c (STRING_MARKED_P, VECTOR_MARKED_P): Return boolean.
+
 	* xterm.c (x_draw_glyph_string_box): Fix last_x for full width rows.
 	Thanks to Chong Yidong <cyd@stupidchicken.com> for debugging this.
 
