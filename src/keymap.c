@@ -128,13 +128,7 @@ in case you use it as a menu with `x-popup-menu'.")
 
    For example:
 
-   initial_define_key (control_x_map, Ctl('X'), "exchange-point-and-mark");
-
-   I haven't extended these to allow the initializing code to bind
-   function keys and mouse events; since they are called by many files,
-   I'd have to fix lots of callers, and nobody right now would be using
-   the new functionality, so it seems like a waste of time.  But there's
-   no technical reason not to.  -JimB */
+   initial_define_key (control_x_map, Ctl('X'), "exchange-point-and-mark");  */
 
 void
 initial_define_key (keymap, key, defname)
@@ -143,6 +137,15 @@ initial_define_key (keymap, key, defname)
      char *defname;
 {
   store_in_keymap (keymap, make_number (key), intern (defname));
+}
+
+void
+initial_define_lispy_key (keymap, keyname, defname)
+     Lisp_Object keymap;
+     char *keyname;
+     char *defname;
+{
+  store_in_keymap (keymap, intern (keyname), intern (defname));
 }
 
 /* Define character fromchar in map frommap as an alias for character
@@ -205,12 +208,19 @@ get_keymap (object)
 
 /* Look up IDX in MAP.  IDX may be any sort of event.
    Note that this does only one level of lookup; IDX must be a single
-   event, not a sequence.  */
+   event, not a sequence. 
+
+   If T_OK is non-zero, bindings for Qt are treated as default
+   bindings; any key left unmentioned by other tables and bindings is
+   given the binding of Qt.  
+
+   If T_OK is zero, bindings for Qt are not treated specially.  */
 
 Lisp_Object
-access_keymap (map, idx)
+access_keymap (map, idx, t_ok)
      Lisp_Object map;
      Lisp_Object idx;
+     int t_ok;
 {
   /* If idx is a list (some sort of mouse click, perhaps?),
      the index we want to use is the car of the list, which
@@ -219,7 +229,7 @@ access_keymap (map, idx)
 
   if (XTYPE (idx) == Lisp_Int
       && (XINT (idx) < 0 || XINT (idx) >= DENSE_TABLE_SIZE))
-    error ("only ASCII characters may used as keymap indices");
+    error ("only ASCII characters may be looked up in keymaps");
 
   /* If idx is a symbol, it might have modifiers, which need to
      be put in the canonical order.  */
@@ -228,6 +238,7 @@ access_keymap (map, idx)
 
   {
     Lisp_Object tail;
+    Lisp_Object t_binding = Qnil;
 
     for (tail = map; CONSP (tail); tail = XCONS (tail)->cdr)
       {
@@ -238,6 +249,8 @@ access_keymap (map, idx)
 	  case Lisp_Cons:
 	    if (EQ (XCONS (binding)->car, idx))
 	      return XCONS (binding)->cdr;
+	    if (t_ok && EQ (XCONS (binding)->car, Qt))
+	      t_binding = XCONS (binding)->cdr;
 	    break;
 
 	  case Lisp_Vector:
@@ -249,9 +262,9 @@ access_keymap (map, idx)
 
 	QUIT;
       }
-  }
 
-  return Qnil;
+    return t_binding;
+  }
 }
 
 /* Given OBJECT which was found in a slot in a keymap,
@@ -275,7 +288,7 @@ get_keyelt (object)
       map = get_keymap_1 (Fcar_safe (object), 0);
       tem = Fkeymapp (map);
       if (!NILP (tem))
-	object = access_keymap (map, Fcdr (object));
+	object = access_keymap (map, Fcdr (object), 0);
       
       /* If the keymap contents looks like (STRING . DEFN),
 	 use DEFN.
@@ -487,7 +500,7 @@ the front of KEYMAP.")
       if (idx == length)
 	return store_in_keymap (keymap, c, def);
 
-      cmd = get_keyelt (access_keymap (keymap, c));
+      cmd = get_keyelt (access_keymap (keymap, c, 0));
 
       if (NILP (cmd))
 	{
@@ -556,7 +569,7 @@ it takes to reach a non-prefix command.")
 	  idx++;
 	}
 
-      cmd = get_keyelt (access_keymap (keymap, c));
+      cmd = get_keyelt (access_keymap (keymap, c, 0));
       if (idx == length)
 	return cmd;
 
