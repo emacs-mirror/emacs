@@ -3,8 +3,8 @@
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author:		Barry A. Warsaw <bwarsaw@cen.com>
-;; Last-Modified:	$Date: 1994/11/08 22:34:06 $
-;; Version:		$Revision: 1.58 $
+;; Last-Modified:	$Date: 1994/11/09 12:38:31 $
+;; Version:		$Revision: 1.59 $
 ;; Keywords:		help
 ;; Adapted-By:		ESR, pot
 
@@ -661,44 +661,43 @@ Same for the ANSI bold and normal escape sequences."
 
       (save-excursion
 	(set-buffer Man-buffer)
-	(save-match-data
-	  (let ((case-fold-search nil))
-	    (goto-char (point-min))
-	    (cond ((or (looking-at "No \\(manual \\)*entry for")
-		       (looking-at "[^\n]*: nothing appropriate$"))
-		   (setq err-mess (buffer-substring (point)
-						    (progn
-						      (end-of-line) (point)))
-			 delete-buff t))
-		  ((not (and (eq (process-status process) 'exit)
-			     (= (process-exit-status process) 0)))
-		   (setq err-mess
-			 (concat (buffer-name Man-buffer)
-				 ": process "
-				 (let ((eos (1- (length msg))))
-				   (if (= (aref msg eos) ?\n)
-				       (substring msg 0 eos) msg))))
-		   (goto-char (point-max))
-		   (insert (format "\nprocess %s" msg))
-		   ))
-	    (if delete-buff
-		(kill-buffer Man-buffer)
-	      (if Man-fontify-manpage-flag
-		  (Man-fontify-manpage)
-		(Man-cleanup-manpage))
-	      (run-hooks 'Man-cooked-hook)
-	      (Man-mode)
-	      (set-buffer-modified-p nil)
-	      ))
-	  ;; Restore case-fold-search before calling
-	  ;; Man-notify-when-ready because it may switch buffers.
+	(let ((case-fold-search nil))
+	  (goto-char (point-min))
+	  (cond ((or (looking-at "No \\(manual \\)*entry for")
+		     (looking-at "[^\n]*: nothing appropriate$"))
+		 (setq err-mess (buffer-substring (point)
+						  (progn
+						    (end-of-line) (point)))
+		       delete-buff t))
+		((not (and (eq (process-status process) 'exit)
+			   (= (process-exit-status process) 0)))
+		 (setq err-mess
+		       (concat (buffer-name Man-buffer)
+			       ": process "
+			       (let ((eos (1- (length msg))))
+				 (if (= (aref msg eos) ?\n)
+				     (substring msg 0 eos) msg))))
+		 (goto-char (point-max))
+		 (insert (format "\nprocess %s" msg))
+		 ))
+	  (if delete-buff
+	      (kill-buffer Man-buffer)
+	    (if Man-fontify-manpage-flag
+		(Man-fontify-manpage)
+	      (Man-cleanup-manpage))
+	    (run-hooks 'Man-cooked-hook)
+	    (Man-mode)
+	    (set-buffer-modified-p nil)
+	    ))
+	;; Restore case-fold-search before calling
+	;; Man-notify-when-ready because it may switch buffers.
 
-	  (if (not delete-buff)
-	      (Man-notify-when-ready Man-buffer))
+	(if (not delete-buff)
+	    (Man-notify-when-ready Man-buffer))
 
-	  (if err-mess
-	      (error err-mess))
-	  )))))
+	(if err-mess
+	    (error err-mess))
+	))))
 
 
 ;; ======================================================================
