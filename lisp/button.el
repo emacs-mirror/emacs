@@ -121,12 +121,12 @@ In addition, the keyword argument :supertype may be used to specify a
 button-type from which NAME inherits its default property values
 \(however, the inheritance happens only when NAME is defined; subsequent
 changes to a supertype are not reflected in its subtypes)."
-  (let* ((catsym (make-symbol (concat (symbol-name name) "-button")))
-	 (supertype
+  (let ((catsym (make-symbol (concat (symbol-name name) "-button")))
+	(super-catsym
+	 (button-category-symbol
 	  (or (plist-get properties 'supertype)
-	      (plist-get properties :supertype)))
-	 (super-catsym
-	  (if supertype (button-category-symbol supertype) 'default-button)))
+	      (plist-get properties :supertype)
+	      'button))))
     ;; Provide a link so that it's easy to find the real symbol.
     (put name 'button-category-symbol catsym)
     ;; Initialize NAME's properties using the global defaults.
@@ -142,6 +142,9 @@ changes to a supertype are not reflected in its subtypes)."
 	(when (eq prop :supertype)
 	  (setq prop 'supertype))
 	(put catsym prop (pop properties))))
+    ;; Make sure there's a `supertype' property
+    (unless (get catsym 'supertype)
+      (put catsym 'supertype 'button))
     name))
 
 (defun button-type-put (type prop val)
