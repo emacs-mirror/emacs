@@ -39,7 +39,7 @@
   :coding-type 'charset
   :mnemonic ?5
   :charset-list '(iso-8859-5)
-  :plist '(mime-charset iso-8859-5))
+  :mime-charset 'iso-8859-5)
 
 (define-coding-system-alias 'iso-8859-5 'cyrillic-iso-8bit)
 
@@ -65,10 +65,11 @@
   ;; languages other than Russian will have to forgive us.
   :mnemonic ?R
   :charset-list '(koi8)
-  :plist '(mime-charset koi8-r))
+  :mime-charset 'koi8-r)
 
 (define-coding-system-alias 'koi8-r 'cyrillic-koi8)
 (define-coding-system-alias 'koi8 'cyrillic-koi8)
+(define-coding-system-alias 'cp878 'cyrillic-koi8)
 
 (set-language-info-alist
  "Cyrillic-KOI8" `((charset koi8)
@@ -88,9 +89,11 @@
   "ALTERNATIVNYJ 8-bit encoding for Cyrillic."
   :coding-type 'charset
   :mnemonic ?A
-  :charset-list '(alternativnyj))
+  :charset-list '(alternativnyj)
+  :mime-charset 'cp866)
 
 (define-coding-system-alias 'alternativnyj 'cyrillic-alternativnyj)
+(define-coding-system-alias 'cp866 'cyrillic-alternativnyj)
 
 (set-language-info-alist
  "Cyrillic-ALT" `((charset alternativnyj)
