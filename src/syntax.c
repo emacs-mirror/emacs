@@ -804,7 +804,7 @@ between them, return t; otherwise return nil.")
 		       last passed a comment starter.  */
 		    struct lisp_parse_state state;
 		    scan_sexps_forward (&state, find_defun_start (comment_end),
-					comment_end - 1, -10000, 0, Qnil);
+					comment_end - 1, -10000, 0, Qnil, 1);
 		    if (state.incomment)
 		      from = state.comstart;
 		    else
@@ -1191,7 +1191,7 @@ scan_lists (from, count, depth, sexpflag)
 		       last passed a comment starter.  */
 		    struct lisp_parse_state state;
 		    scan_sexps_forward (&state, find_defun_start (comment_end),
-					comment_end - 1, -10000, 0, Qnil);
+					comment_end - 1, -10000, 0, Qnil, 1);
 		    if (state.incomment)
 		      from = state.comstart;
 		    else
