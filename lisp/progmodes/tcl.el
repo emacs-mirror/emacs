@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.27 $
+;; Version: $Revision: 1.28 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/10/11 02:01:27 $|$Revision: 1.27 $|~/modes/tcl.el.Z|
+;; $Date: 1995/04/08 19:52:50 $|$Revision: 1.28 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,11 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.28  1995/04/08  19:52:50  tromey
+;; (tcl-outline-level): New function
+;; (tcl-mode): Added outline-handling stuff.
+;; From Jesper Pedersen <blackie@imada.ou.dk>
+;;
 ;; Revision 1.27  1994/10/11  02:01:27  tromey
 ;; (tcl-mode): imenu-create-index-function made buffer local.
 ;;
@@ -210,6 +215,7 @@
 ;; Carl Witty <cwitty@ai.mit.edu>
 ;; T. V. Raman <raman@crl.dec.com>
 ;; Jesper Pedersen <blackie@imada.ou.dk>
+;; dfarmer@evolving.com (Doug Farmer)
 
 ;; KNOWN BUGS:
 ;; * indent-region should skip blank lines.  (It does in v19, so I'm
@@ -253,7 +259,6 @@
 ;; * Consider writing code to find help files automatically (for
 ;;   common cases).
 ;; * `#' shouldn't insert `\#' when point is in string.
-;; * '}' doesn't seem to reindent.
 
 
 
@@ -262,15 +267,15 @@
 ;; I sure wish Emacs had a package that made it easy to extract this
 ;; sort of information.
 (defconst tcl-using-emacs-19 (string-match "19\\." emacs-version)
-  "Nil unless using Emacs 19 (Lucid or FSF).")
+  "Nil unless using Emacs 19 (XEmacs or FSF).")
 
 ;; FIXME this will break on Emacs 19.100.
 (defconst tcl-using-emacs-19-23
   (string-match "19\\.\\(2[3-9]\\|[3-9][0-9]\\)" emacs-version)
   "Nil unless using Emacs 19-23 or later.")
 
-(defconst tcl-using-lemacs-19 (string-match "Lucid" emacs-version)
-  "Nil unless using Lucid Emacs).")
+(defconst tcl-using-xemacs-19 (string-match "XEmacs" emacs-version)
+  "Nil unless using XEmacs).")
 
 (require 'comint)
 
@@ -279,12 +284,12 @@
 (and (fboundp 'eval-when-compile)
      (eval-when-compile
        (if (and (string-match "19\\." emacs-version)
-		(not (string-match "Lucid" emacs-version)))
+		(not (string-match "XEmacs" emacs-version)))
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.27 $")
-(defconst tcl-maintainer "Tom Tromey <tromey@busco.lanl.gov>")
+(defconst tcl-version "$Revision: 1.28 $")
+(defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
 ;; User variables.
@@ -400,8 +405,8 @@ quoted for Tcl.")
 (defvar inferior-tcl-mode-map nil
   "Keymap used in Inferior Tcl mode.")
 
-;; Lucid Emacs menu.
-(defvar tcl-lucid-menu
+;; XEmacs menu.
+(defvar tcl-xemacs-menu
   '("Tcl"
     ["Beginning of function" tcl-beginning-of-defun t]
     ["End of function" tcl-end-of-defun t]
@@ -421,7 +426,7 @@ quoted for Tcl.")
     "----"
     ["Tcl help" tcl-help-on-word tcl-help-directory-list]
     ["Send bug report" tcl-submit-bug-report t])
-  "Lucid Emacs menu for Tcl mode.")
+  "XEmacs menu for Tcl mode.")
 
 ;; GNU Emacs does menus via keymaps.  Do it in a function in case we
 ;; later decide to add it to inferior Tcl mode as well.
@@ -429,7 +434,7 @@ quoted for Tcl.")
   (define-key map [menu-bar] (make-sparse-keymap))
   ;; This fails in Emacs 19.22 and earlier.
   (require 'lmenu)
-  (let ((menu (make-lucid-menu-keymap "Tcl" (cdr tcl-lucid-menu))))
+  (let ((menu (make-xemacs-menu-keymap "Tcl" (cdr tcl-xemacs-menu))))
     (define-key map [menu-bar tcl] (cons "Tcl" menu))
     ;; The following is intended to compute the key sequence
     ;; information for the menu.  It doesn't work.
@@ -464,11 +469,10 @@ quoted for Tcl.")
   (define-key tcl-mode-map "\C-c\C-s" 'switch-to-tcl)
 
   ;; Make menus.
-  (if tcl-using-emacs-19
-      (if tcl-using-lemacs-19
-	  ;; In Lucid, button 3 seems to be the standard for this.
-	  (define-key tcl-mode-map 'button3 'tcl-popup-menu)
-	;; In FSF 19, there is no standard, so I use shift-button2.
+  (if (and tcl-using-emacs-19 (not tcl-using-xemacs-19))
+      (progn
+	;; In FSF 19, there is no standard button for the popup menu,
+	;; so I use shift-button2.
 	(tcl-add-fsf-menu tcl-mode-map)
 	(define-key tcl-mode-map [S-down-mouse-2] 'tcl-popup-menu))))
 
@@ -652,7 +656,7 @@ is a Tcl expression, and the last argument is Tcl commands.")
 ;; We use this because Lemacs 19.9 has what we need.
 (defconst tcl-pps-has-arg-6
   (or tcl-using-emacs-19
-      (and tcl-using-lemacs-19
+      (and tcl-using-xemacs-19
 	   (condition-case nil
 	       (progn
 		 (parse-partial-sexp (point) (point) nil nil nil t)
@@ -750,14 +754,14 @@ An end of a defun is found by moving forward from the beginning of one."
   (backward-paragraph))
 
 ;; In GNU Emacs 19-23 and later, mark-defun works as advertised.  I
-;; don't know about Lucid Emacs, so for now it and Emacs 18 just lose.
+;; don't know about XEmacs, so for now it and Emacs 18 just lose.
 (fset 'tcl-mark-defun
       (if tcl-using-emacs-19-23
 	  'mark-defun
 	'tcl-internal-mark-defun))
 
 ;; In GNU Emacs 19, mark takes an additional "force" argument.  I
-;; don't know about Lucid Emacs, so I'm just assuming it is the same.
+;; don't know about XEmacs, so I'm just assuming it is the same.
 ;; Emacs 18 doesn't have this argument.
 (defun tcl-mark ()
   "Return mark, or nil if none."
@@ -896,10 +900,10 @@ Commands:
 
   (if tcl-using-emacs-19
       (progn
-	;; This can only be set to t in Emacs 19 and Lucid Emacs.
+	;; This can only be set to t in Emacs 19 and XEmacs.
 	;; Emacs 18 and Epoch lose.
 	(setq parse-sexp-ignore-comments t)
-	;; Lucid Emacs has defun-prompt-regexp, but I don't believe
+	;; XEmacs has defun-prompt-regexp, but I don't believe
 	;; that it works for end-of-defun -- only for
 	;; beginning-of-defun.
 	(make-local-variable 'defun-prompt-regexp)
@@ -910,14 +914,17 @@ Commands:
 	(setq add-log-current-defun-function 'add-log-tcl-defun))
     (setq parse-sexp-ignore-comments nil))
 
-  ;; Put Tcl menu into menubar for Lucid Emacs.  This happens
+  ;; Put Tcl menu into menubar for XEmacs.  This happens
   ;; automatically for GNU Emacs.
-  (if (and tcl-using-lemacs-19
+  (if (and tcl-using-xemacs-19
 	   current-menubar
 	   (not (assoc "Tcl" current-menubar)))
       (progn
 	(set-buffer-menubar (copy-sequence current-menubar))
 	(add-menu nil "Tcl" tcl-lucid-menu)))
+  ;; Append Tcl menu to popup menu for XEmacs.
+  (if (and tcl-using-xemacs-19 (not (boundp 'mode-popup-menu)))
+      (setq mode-popup-menu tcl-xemacs-menu))
 
   (run-hooks 'tcl-mode-hook))
 
@@ -1959,17 +1966,17 @@ The first line is assumed to look like \"#!.../program ...\"."
 
 
 ;;
-;; Lucid menu support.
+;; XEmacs menu support.
 ;; Taken from schmid@fb3-s7.math.TU-Berlin.DE (Gregor Schmid),
 ;; who wrote a different Tcl mode.
 ;; We also have support for menus in FSF.  We do this by
-;; loading the Lucid menu emulation code.
+;; loading the XEmacs menu emulation code.
 ;;
 
 (defun tcl-popup-menu (e)
   (interactive "@e")
   (and tcl-using-emacs-19
-       (not tcl-using-lemacs-19)
+       (not tcl-using-xemacs-19)
        (if tcl-using-emacs-19-23
 	   (require 'lmenu)
 	 ;; CAVEATS:
@@ -1980,7 +1987,7 @@ The first line is assumed to look like \"#!.../program ...\"."
 	 ;; using an Emacs before that just suffer.
 	 (require 'menubar "lmenu")))  ;; This is annoying
   ;; IMHO popup-menu should be autoloaded in FSF Emacs.  Oh well.
-  (popup-menu tcl-lucid-menu))
+  (popup-menu tcl-xemacs-menu))
 
 
 
@@ -2031,7 +2038,7 @@ The first line is assumed to look like \"#!.../program ...\"."
       inferior-tcl-source-command
       tcl-using-emacs-19
       tcl-using-emacs-19-23
-      tcl-using-lemacs-19
+      tcl-using-xemacs-19
       tcl-proc-list
       tcl-proc-regexp
       tcl-typeword-list
