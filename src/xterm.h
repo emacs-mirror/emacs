@@ -118,8 +118,6 @@ extern struct frame *x_non_menubar_window_to_frame ();
 extern struct frame *x_top_window_to_frame ();
 #endif
 
-extern Visual *select_visual ();
-
 enum text_cursor_kinds
 {
   NO_CURSOR = -1,
@@ -376,7 +374,7 @@ struct x_display_info *x_display_info_for_name ();
 extern struct x_display_info *x_term_init ();
 
 extern Lisp_Object x_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
-
+extern void select_visual P_ ((struct x_display_info *));
 extern struct font_info *x_get_font_info(), *x_load_font (), *x_query_font ();
 extern void x_find_ccl_program();
 
