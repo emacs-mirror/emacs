@@ -2693,7 +2693,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       if (CONSP (c) && EQ (XCAR (c), Qselect_window))
 	/* We stopped being idle for this event; undo that.  This
 	   prevents automatic window selection (under
-	   autoselect_window_p from acting as a real input event, for
+	   mouse_autoselect_window from acting as a real input event, for
 	   example banishing the mouse under mouse-avoidance-mode.  */
 	timer_idleness_start_time = last_idle_start;
 
