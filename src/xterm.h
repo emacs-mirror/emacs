@@ -325,11 +325,11 @@ extern struct x_display_info *x_display_info_for_name ();
 
 extern struct x_display_info *x_term_init ();
 
-/* Each X frame object points to its own struct x_display object
-   in the display.x field.  The x_display structure contains all
+/* Each X frame object points to its own struct x_output object
+   in the output_data.x field.  The x_output structure contains
    the information that is specific to X windows.  */
 
-struct x_display
+struct x_output
 {
   /* Position of the X window (x and y offsets in root window).  */
   int left_pos;
@@ -484,26 +484,26 @@ struct x_display
 };
 
 /* Get at the computed faces of an X window frame.  */
-#define FRAME_PARAM_FACES(f) ((f)->display.x->param_faces)
-#define FRAME_N_PARAM_FACES(f) ((f)->display.x->n_param_faces)
+#define FRAME_PARAM_FACES(f) ((f)->output_data.x->param_faces)
+#define FRAME_N_PARAM_FACES(f) ((f)->output_data.x->n_param_faces)
 #define FRAME_DEFAULT_PARAM_FACE(f) (FRAME_PARAM_FACES (f)[0])
 #define FRAME_MODE_LINE_PARAM_FACE(f) (FRAME_PARAM_FACES (f)[1])
 
-#define FRAME_COMPUTED_FACES(f) ((f)->display.x->computed_faces)
-#define FRAME_N_COMPUTED_FACES(f) ((f)->display.x->n_computed_faces)
-#define FRAME_SIZE_COMPUTED_FACES(f) ((f)->display.x->size_computed_faces)
-#define FRAME_DEFAULT_FACE(f) ((f)->display.x->computed_faces[0])
-#define FRAME_MODE_LINE_FACE(f) ((f)->display.x->computed_faces[1])
+#define FRAME_COMPUTED_FACES(f) ((f)->output_data.x->computed_faces)
+#define FRAME_N_COMPUTED_FACES(f) ((f)->output_data.x->n_computed_faces)
+#define FRAME_SIZE_COMPUTED_FACES(f) ((f)->output_data.x->size_computed_faces)
+#define FRAME_DEFAULT_FACE(f) ((f)->output_data.x->computed_faces[0])
+#define FRAME_MODE_LINE_FACE(f) ((f)->output_data.x->computed_faces[1])
 
 /* Return the window associated with the frame F.  */
-#define FRAME_X_WINDOW(f) ((f)->display.x->window_desc)
+#define FRAME_X_WINDOW(f) ((f)->output_data.x->window_desc)
 
-#define FRAME_FOREGROUND_PIXEL(f) ((f)->display.x->foreground_pixel)
-#define FRAME_BACKGROUND_PIXEL(f) ((f)->display.x->background_pixel)
-#define FRAME_FONT(f) ((f)->display.x->font)
+#define FRAME_FOREGROUND_PIXEL(f) ((f)->output_data.x->foreground_pixel)
+#define FRAME_BACKGROUND_PIXEL(f) ((f)->output_data.x->background_pixel)
+#define FRAME_FONT(f) ((f)->output_data.x->font)
 
 /* This gives the x_display_info structure for the display F is on.  */
-#define FRAME_X_DISPLAY_INFO(f) ((f)->display.x->display_info)
+#define FRAME_X_DISPLAY_INFO(f) ((f)->output_data.x->display_info)
 
 /* This is the `Display *' which frame F is on.  */
 #define FRAME_X_DISPLAY(f) (FRAME_X_DISPLAY_INFO (f)->display)
@@ -512,10 +512,10 @@ struct x_display
 #define FRAME_X_SCREEN(f) (FRAME_X_DISPLAY_INFO (f)->screen)
 
 /* These two really ought to be called FRAME_PIXEL_{WIDTH,HEIGHT}.  */
-#define PIXEL_WIDTH(f) ((f)->display.x->pixel_width)
-#define PIXEL_HEIGHT(f) ((f)->display.x->pixel_height)
+#define PIXEL_WIDTH(f) ((f)->output_data.x->pixel_width)
+#define PIXEL_HEIGHT(f) ((f)->output_data.x->pixel_height)
 
-#define FRAME_DESIRED_CURSOR(f) ((f)->display.x->desired_cursor)
+#define FRAME_DESIRED_CURSOR(f) ((f)->output_data.x->desired_cursor)
 
 
 /* X-specific scroll bar stuff.  */
@@ -599,7 +599,7 @@ struct scroll_bar {
 /* Return the outside pixel height for a vertical scroll bar HEIGHT
    rows high on frame F.  */
 #define VERTICAL_SCROLL_BAR_PIXEL_HEIGHT(f, height) \
-  ((height) * (f)->display.x->line_height)
+  ((height) * (f)->output_data.x->line_height)
 
 /* Return the inside width of a vertical scroll bar, given the outside
    width.  */
@@ -649,41 +649,41 @@ struct scroll_bar {
    Return the upper/left pixel position of the character cell on frame F
    at ROW/COL.  */
 #define CHAR_TO_PIXEL_ROW(f, row) \
-  ((f)->display.x->internal_border_width \
-   + (row) * (f)->display.x->line_height)
+  ((f)->output_data.x->internal_border_width \
+   + (row) * (f)->output_data.x->line_height)
 #define CHAR_TO_PIXEL_COL(f, col) \
-  ((f)->display.x->internal_border_width \
-   + (col) * FONT_WIDTH ((f)->display.x->font))
+  ((f)->output_data.x->internal_border_width \
+   + (col) * FONT_WIDTH ((f)->output_data.x->font))
 
 /* Return the pixel width/height of frame F if it has
    WIDTH columns/HEIGHT rows.  */
 #define CHAR_TO_PIXEL_WIDTH(f, width) \
   (CHAR_TO_PIXEL_COL (f, width) \
-   + (f)->display.x->vertical_scroll_bar_extra \
-   + (f)->display.x->internal_border_width)
+   + (f)->output_data.x->vertical_scroll_bar_extra \
+   + (f)->output_data.x->internal_border_width)
 #define CHAR_TO_PIXEL_HEIGHT(f, height) \
   (CHAR_TO_PIXEL_ROW (f, height) \
-   + (f)->display.x->internal_border_width)
+   + (f)->output_data.x->internal_border_width)
 
 
 /* Return the row/column (zero-based) of the character cell containing 
    the pixel on FRAME at ROW/COL.  */
 #define PIXEL_TO_CHAR_ROW(f, row) \
-  (((row) - (f)->display.x->internal_border_width) \
-   / (f)->display.x->line_height)
+  (((row) - (f)->output_data.x->internal_border_width) \
+   / (f)->output_data.x->line_height)
 #define PIXEL_TO_CHAR_COL(f, col) \
-  (((col) - (f)->display.x->internal_border_width) \
-   / FONT_WIDTH ((f)->display.x->font))
+  (((col) - (f)->output_data.x->internal_border_width) \
+   / FONT_WIDTH ((f)->output_data.x->font))
 
 /* How many columns/rows of text can we fit in WIDTH/HEIGHT pixels on
    frame F?  */
 #define PIXEL_TO_CHAR_WIDTH(f, width) \
   (PIXEL_TO_CHAR_COL (f, ((width) \
-			  - (f)->display.x->internal_border_width \
-			  - (f)->display.x->vertical_scroll_bar_extra)))
+			  - (f)->output_data.x->internal_border_width \
+			  - (f)->output_data.x->vertical_scroll_bar_extra)))
 #define PIXEL_TO_CHAR_HEIGHT(f, height) \
   (PIXEL_TO_CHAR_ROW (f, ((height) \
-			  - (f)->display.x->internal_border_width)))
+			  - (f)->output_data.x->internal_border_width)))
 
 /* If a struct input_event has a kind which is selection_request_event
    or selection_clear_event, then its contents are really described
