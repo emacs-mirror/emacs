@@ -245,6 +245,9 @@ when editing big diffs)."
 
 (defconst diff-yank-handler '(diff-yank-function))
 (defun diff-yank-function (text)
+  ;; FIXME: the yank-handler is now called separately on each piece of text
+  ;; with a yank-handler property, so the next-single-property-change call
+  ;; below will always return nil :-(   --stef
   (let ((mixed (next-single-property-change 0 'yank-handler text))
 	(start (point)))
     ;; First insert the text.
@@ -275,14 +278,13 @@ when editing big diffs)."
     ("^\\(---\\|\\+\\+\\+\\|\\*\\*\\*\\) \\(\\S-+\\)\\(.*[^*-]\\)?\n"
      (0 diff-header-face) (2 diff-file-header-face prepend))
     ("^[0-9,]+[acd][0-9,]+$" . diff-hunk-header-face)
-    ("^!.*\n" (0 '(face diff-changed-face yank-handler ,diff-yank-handler)))
-    ("^[+>].*\n" (0 '(face diff-added-face yank-handler ,diff-yank-handler)))
-    ("^[-<].*\n" (0 '(face diff-removed-face yank-handler ,diff-yank-handler)))
+    ("^!.*\n" (0 diff-changed-face))
+    ("^[+>].*\n" (0 diff-added-face))
+    ("^[-<].*\n" (0 diff-removed-face))
     ("^Index: \\(.+\\).*\n" (0 diff-header-face) (1 diff-index-face prepend))
     ("^Only in .*\n" . diff-nonexistent-face)
     ("^#.*" . font-lock-string-face)
-    ("^[^-=+*!<>].*\n"
-     (0 '(face diff-context-face yank-handler ,diff-yank-handler)))))
+    ("^[^-=+*!<>].*\n" (0 diff-context-face))))
 
 (defconst diff-font-lock-defaults
   '(diff-font-lock-keywords t nil nil nil (font-lock-multiline . nil)))
