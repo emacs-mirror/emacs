@@ -5,7 +5,7 @@
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, ebnf, PostScript
-;; Time-stamp: <2002-07-09 11:43:10 jbarranquero>
+;; Time-stamp: <2003-02-10 10:47:04 jbarranquero>
 ;; Version: 1.2
 
 ;; This file is part of GNU Emacs.
@@ -93,7 +93,7 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Syntatic analyzer
+;; Syntactic analyzer
 
 
 ;;; YACC = { YACC-Definitions }* "%%" { YACC-Rule }* [ "%%" [ YACC-Code ] ].

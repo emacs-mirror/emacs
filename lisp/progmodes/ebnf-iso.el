@@ -5,7 +5,7 @@
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, ebnf, PostScript
-;; Time-stamp: <2001/09/24 10:17:20 vinicius>
+;; Time-stamp: <2003-02-10 10:26:32 jbarranquero>
 ;; Version: 1.6
 
 ;; This file is part of GNU Emacs.
@@ -131,7 +131,7 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Syntatic analyzer
+;; Syntactic analyzer
 
 
 ;;; ISO EBNF = syntax rule, {syntax rule};
