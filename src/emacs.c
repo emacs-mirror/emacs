@@ -271,11 +271,15 @@ init_cmdargs (argc, argv, skip_args)
 	  tem = Fexpand_file_name (build_string ("lib-src"), dir);
 	  lib_src_exists = Ffile_exists_p (tem);
 
+#ifdef MSDOS
 	  /* MSDOS installations frequently remove lib-src, but we still
 	     must set installation-directory, or else info won't find
 	     its files (it uses the value of installation-directory).  */
 	  tem = Fexpand_file_name (build_string ("info"), dir);
 	  info_exists = Ffile_exists_p (tem);
+#else
+	  info_exists = Qnil;
+#endif
 
 	  if (!NILP (lib_src_exists) || !NILP (info_exists))
 	    {
@@ -293,8 +297,14 @@ init_cmdargs (argc, argv, skip_args)
 	  tem = Fexpand_file_name (build_string ("../lib-src"), dir);
 	  lib_src_exists = Ffile_exists_p (tem);
 
+
+#ifdef MSDOS
+	  /* See the MSDOS commentary above.  */
 	  tem = Fexpand_file_name (build_string ("../info"), dir);
 	  info_exists = Ffile_exists_p (tem);
+#else
+	  info_exists = Qnil;
+#endif
 
 	  if (!NILP (lib_src_exists) || !NILP (info_exists))
 	    {
