@@ -1,3 +1,21 @@
+2002-01-05  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-branch-part): Return nil if there's no `.'
+	(vc-default-previous-version): Renamed from vc-previous-version.
+	New args BACKEND and FILE.  Return nil for revision numbers
+	without a `.'
+	(vc-version-diff): Call vc-BACKEND-previous-version.
+	(vc-steal-lock): Steal lock before composing mail, so that no mail
+	is sent when the stealing goes wrong.  And we'll actually see the
+	error in that case now.
+	(vc-finish-steal): Removed.
+
+	* vc-rcs.el (vc-rcs-steal-lock): Do a real checkout after stealing
+	the lock, so that we see expanded headers.
+	(vc-rcs-trunk-p, vc-rcs-branch-part, vc-rcs-branch-p,
+	vc-rcs-minor-part, vc-rcs-previous-version): Removed.  These are
+	available from vc.el.  Updated all callers.
+
 2002-01-05  Richard M. Stallman  <rms@gnu.org>
 
 	* enriched.el (enriched-make-annotation): Doc fix.
