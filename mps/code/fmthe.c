@@ -159,7 +159,7 @@ static int dylan_wrapper_check(mps_word_t *w)
   /* size.  This assumes that DylanWorks is only going to use byte */
   /* vectors in the non-word case. */
 
-  /* Variable part format 6 is reserved. */ 
+  /* Variable part format 6 is reserved. */
   assert(vf != 6);
 
   /* There should be no shift in word vector formats. */
@@ -211,6 +211,79 @@ static mps_res_t dylan_scan_contig(mps_ss_t mps_ss,
           if(res == MPS_RES_OK) goto loop;
           return res;
     out:  assert(p == limit);
+  } MPS_SCAN_END(mps_ss);
+
+  return MPS_RES_OK;
+}
+
+/* dylan_weak_dependent -- returns the linked object, if any.
+ */
+
+extern mps_addr_t dylan_weak_dependent(mps_addr_t parent)
+{
+  mps_word_t *object;
+  mps_word_t *wrapper;
+  mps_word_t fword;
+  mps_word_t fl;
+  mps_word_t ff;
+
+  assert(parent != NULL);
+  object = (mps_word_t *)parent;
+  wrapper = (mps_word_t *)object[0];
+  assert(dylan_wrapper_check(wrapper));
+  fword = wrapper[3];
+  ff = fword & 3;
+  /* traceable fixed part */
+  assert(ff == 1);
+  fl = fword & ~3uL;
+  /* at least one fixed field */
+  assert(fl >= 1);
+  return (mps_addr_t) object[1];
+}
+
+
+/* Scan weakly a contiguous array of references in [base, limit). */
+/* Only required to scan vectors for Dylan Weak Tables. */
+/* Depends on the vector length field being scannable (ie a tagged */
+/* integer). */
+/* When a reference that has been fixed to NULL is detected the */
+/* corresponding reference in the associated table (pointed to be the */
+/* assoc variable) will be deleted. */
+
+static mps_res_t
+dylan_scan_contig_weak(mps_ss_t mps_ss,
+		       mps_addr_t *base, mps_addr_t *limit,
+		       mps_addr_t *objectBase, mps_addr_t *assoc)
+{
+  mps_addr_t *p;
+  mps_res_t res;
+  mps_addr_t r;
+
+  MPS_SCAN_BEGIN(mps_ss) {
+    p = base;
+    goto skip_inc;
+  loop:
+    ++p;
+  skip_inc:
+    if(p >= limit)
+      goto out;
+    r = *p;
+    if(((mps_word_t)r & 3) != 0) /* non-pointer */
+      goto loop;
+    if(!MPS_FIX1(mps_ss, r))
+      goto loop;
+    res = MPS_FIX2(mps_ss, p);
+    if(res == MPS_RES_OK) {
+      if(*p == 0 && r != 0) {
+	if(assoc != NULL) {
+	  assoc[p-objectBase] = 0;	/* delete corresponding entry */
+	}
+      }
+      goto loop;
+    }
+    return res;
+  out:
+    assert(p == limit);
   } MPS_SCAN_END(mps_ss);
 
   return MPS_RES_OK;
@@ -450,6 +523,97 @@ static mps_res_t dylan_scan(mps_ss_t mps_ss,
 }
 
 
+static mps_res_t dylan_scan1_weak(mps_ss_t mps_ss, mps_addr_t *object_io)
+{
+  mps_addr_t *assoc;
+  mps_addr_t *base;
+  mps_addr_t *p, q;
+  mps_res_t res;
+  mps_word_t *w;
+  mps_word_t fword, ff, fl;
+  mps_word_t h;
+  mps_word_t vword, vf, vl;
+  int header;
+
+  assert(object_io != NULL);
+  base = (mps_addr_t *)*object_io;
+  assert(base != NULL);
+  p = base;
+
+  header = *(int*)((char*)p - headerSIZE);
+  switch(headerType(header)) {
+  case realTYPE:
+      break;
+  case padTYPE:
+      *object_io = (mps_addr_t)((char*)p + headerPadSize(header));
+      return MPS_RES_OK;
+  default:
+      notreached();
+      break;
+  }
+
+  h = (mps_word_t)p[0];
+  /* object should not be forwarded (as there is no forwarding method) */
+  assert((h & 3) == 0);
+
+  mps_fix(mps_ss, p);
+
+  /* w points to wrapper */
+  w = (mps_word_t *)p[0];
+
+  assert(dylan_wrapper_check(w));
+
+  ++p;			/* skip header */
+
+  fword = w[WF];
+  fl = fword >> 2;
+  /* weak vectors should have at least one fixed field */
+  /* (for assoc field) */
+  assert(fl >= 1);
+
+  ff = fword & 3;
+
+  /* weak vectors should have traceable fixed format */
+  assert(ff == 1);
+
+  assoc = (mps_addr_t *)p[0];
+
+  vword = w[WV];
+  vf = vword & 7;
+  vl = (mps_word_t)p[fl] >> 2;
+
+  /* weak vectors should be non-stretchy traceable */
+  assert(vf == 2);
+
+  /* q is end of the object.  There are fl fixed fields, vl variable */
+  /* fields and another slot that contains the vector length */
+  q = p + fl + vl + 1;
+
+  res = dylan_scan_contig_weak(mps_ss, p, q, base, assoc);
+  if(res != MPS_RES_OK) {
+    return res;
+  }
+
+  *object_io = AddHeader(q);
+  return MPS_RES_OK;
+}
+
+
+static mps_res_t dylan_scan_weak(mps_ss_t mps_ss,
+				 mps_addr_t base, mps_addr_t limit)
+{
+  mps_res_t res;
+
+  while(base < limit) {
+    res = dylan_scan1_weak(mps_ss, &base);
+    if(res) return res;
+  }
+
+  assert(base <= AddHeader(limit));
+
+  return MPS_RES_OK;
+}
+
 static mps_addr_t dylan_skip(mps_addr_t object)
 {
   mps_addr_t *p;        /* cursor in object */
@@ -563,6 +727,25 @@ static void dylan_pad(mps_addr_t addr, size_t fullSize)
 }
 
 
+static mps_addr_t dylan_no_isfwd(mps_addr_t object)
+{
+  unused(object);
+  notreached();
+  return 0;
+}
+
+static void dylan_no_fwd(mps_addr_t old, mps_addr_t new)
+{
+  unused(old); unused(new);
+  notreached();
+}
+
+static void dylan_no_pad(mps_addr_t addr, size_t size)
+{
+  unused(addr); unused(size);
+  notreached();
+}
+
 /* HeaderFormat -- format descriptor for this format */
 
 static struct mps_fmt_auto_header_s HeaderFormat =
@@ -577,6 +760,20 @@ static struct mps_fmt_auto_header_s HeaderFormat =
 };
 
 
+/* HeaderWeakFormat -- format descriptor for this format */
+
+static struct mps_fmt_auto_header_s HeaderWeakFormat =
+{
+  ALIGN,
+  dylan_scan_weak,
+  dylan_skip,
+  dylan_no_fwd,
+  dylan_no_isfwd,
+  dylan_no_pad,
+  (size_t)headerSIZE
+};
+
+
 /* EnsureHeaderFormat -- create a format object for this format */
 
 mps_res_t EnsureHeaderFormat(mps_fmt_t *mps_fmt_o, mps_arena_t arena)
@@ -585,9 +782,28 @@ mps_res_t EnsureHeaderFormat(mps_fmt_t *mps_fmt_o, mps_arena_t arena)
 }
 
 
+/* EnsureHeaderWeakFormat -- create a format object for the weak format */
+
+mps_res_t EnsureHeaderWeakFormat(mps_fmt_t *mps_fmt_o, mps_arena_t arena)
+{
+  return mps_fmt_create_auto_header(mps_fmt_o, arena, &HeaderWeakFormat);
+}
+
+
 /* HeaderFormatCheck -- check an object in this format */
 
 mps_res_t HeaderFormatCheck(mps_addr_t addr)
+{
+  if (addr != 0 && ((mps_word_t)addr & (ALIGN-1)) == 0
+      && dylan_wrapper_check((mps_word_t *)((mps_word_t *)addr)[0]))
+    return MPS_RES_OK;
+  else
+    return MPS_RES_FAIL;
+}
+
+/* HeaderWeakFormatCheck -- check an object in this format */
+
+mps_res_t HeaderWeakFormatCheck(mps_addr_t addr)
 {
   if (addr != 0 && ((mps_word_t)addr & (ALIGN-1)) == 0
       && dylan_wrapper_check((mps_word_t *)((mps_word_t *)addr)[0]))

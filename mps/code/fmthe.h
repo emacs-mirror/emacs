@@ -10,10 +10,14 @@
 #include "mps.h"
 
 
-/* Format */
+/* Formats */
 extern mps_res_t EnsureHeaderFormat(mps_fmt_t *, mps_arena_t);
+extern mps_res_t EnsureHeaderWeakFormat(mps_fmt_t *, mps_arena_t);
 extern mps_res_t HeaderFormatCheck(mps_addr_t addr);
+extern mps_res_t HeaderWeakFormatCheck(mps_addr_t addr);
 
+/* dependent object function for weak pool */
+extern mps_addr_t dylan_weak_dependent(mps_addr_t);
 
 /* Constants describing wrappers. Used only for debugging / testing */
 #define WW 0    /* offset of Wrapper-Wrapper */
