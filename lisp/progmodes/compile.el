@@ -903,18 +903,18 @@ Returns the compilation buffer created."
 		  (error nil))
 	      (error "Cannot have two processes in `%s' at once"
 		     (buffer-name)))))
-      ;; Clear out the compilation buffer and make it writable.
-      ;; Change its default-directory to the directory where the compilation
-      ;; will happen, and insert a `default-directory' to indicate this.
-      (setq buffer-read-only nil)
       (buffer-disable-undo (current-buffer))
-      (erase-buffer)
-      (buffer-enable-undo (current-buffer))
-      (cd thisdir)
-      ;; output a mode setter, for saving and later reloading this buffer
-      (insert "-*- mode: " name-of-mode
-	      "; default-directory: " (prin1-to-string default-directory)
-	      " -*-\n" command "\n")
+      ;; Make compilation buffer read-only.  The filter can still write it.
+      ;; Clear out the compilation buffer.
+      (let ((inhibit-read-only t))
+	(erase-buffer)
+	;; Change its default-directory to the directory where the compilation
+	;; will happen, and insert a `cd' command to indicate this.
+	(setq default-directory thisdir)
+	;; output a mode setter, for saving and later reloading this buffer
+	(insert "-*- mode: " name-of-mode
+		"; default-directory: " (prin1-to-string default-directory)
+		" -*-\n" command "\n"))
       (set-buffer-modified-p nil))
     ;; If we're already in the compilation buffer, go to the end
     ;; of the buffer, so point will track the compilation output.
@@ -925,10 +925,9 @@ Returns the compilation buffer created."
     (with-current-buffer outbuf
       (if (not (eq mode t))
 	  (funcall mode)
+	(setq buffer-read-only nil)
 	(with-no-warnings (comint-mode))
 	(compilation-shell-minor-mode))
-      ;; In what way is it non-ergonomic ?  -stef
-      ;; (toggle-read-only 1) ;;; Non-ergonomic.
       (if highlight-regexp
 	  (set (make-local-variable 'compilation-highlight-regexp)
 	       highlight-regexp))
@@ -1108,7 +1107,7 @@ from a different message."
   :version "21.4")
 
 ;;;###autoload
-(defun compilation-mode ()
+(defun compilation-mode (&optional name-of-mode)
   "Major mode for compilation log buffers.
 \\<compilation-mode-map>To visit the source for a line-numbered error,
 move point to the error message line and type \\[compile-goto-error].
@@ -1121,7 +1120,7 @@ Runs `compilation-mode-hook' with `run-hooks' (which see).
   (kill-all-local-variables)
   (use-local-map compilation-mode-map)
   (setq major-mode 'compilation-mode
-	mode-name "Compilation")
+	mode-name (or name-of-mode "Compilation"))
   (set (make-local-variable 'page-delimiter)
        compilation-page-delimiter)
   (compilation-setup)
@@ -1187,6 +1186,7 @@ If nil, use the beginning of buffer.")
   "Prepare the buffer for the compilation parsing commands to work.
 Optional argument MINOR indicates this is called from
 `compilation-minor-mode'."
+  (setq buffer-read-only t)
   (make-local-variable 'compilation-current-error)
   (make-local-variable 'compilation-messages-start)
   (make-local-variable 'compilation-error-screen-columns)
@@ -1248,7 +1248,7 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
 
 (defun compilation-handle-exit (process-status exit-status msg)
   "Write MSG in the current buffer and hack its mode-line-process."
-  (let ((buffer-read-only nil)
+  (let ((inhibit-read-only t)
 	(status (if compilation-exit-message-function
 		    (funcall compilation-exit-message-function
 			     process-status exit-status msg)
