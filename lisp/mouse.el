@@ -1881,9 +1881,12 @@ and selects that window."
   "X fonts suitable for use in Emacs.")
 
 (defun mouse-set-font (&rest fonts)
-  "Select an emacs font from a list of known good fonts"
+  "Select an emacs font from a list of known good fonts and fontsets."
   (interactive
-   (x-popup-menu last-nonmenu-event x-fixed-font-alist))
+   (x-popup-menu
+    last-nonmenu-event
+    ;; Append list of fontsets currently defined.
+    (append x-fixed-font-alist (list (generate-fontset-menu)))))
   (if fonts
       (let (font)
 	(while fonts
