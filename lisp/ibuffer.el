@@ -757,11 +757,13 @@ directory, like `default-directory'."
 (define-key ibuffer-mode-groups-popup [kill-filter-group]
   '(menu-item "Kill filter group"
 	      ibuffer-kill-line
-	      :enable (and (featurep 'ibuf-ext) ibuffer-filter-groups)))
+	      :enable (and (featurep 'ibuf-ext)
+			   ibuffer-filter-groups)))
 (define-key ibuffer-mode-groups-popup [yank-filter-group]
   '(menu-item "Yank last killed filter group"
 	      ibuffer-yank
-	      :enable (and (featurep 'ibuf-ext) ibuffer-filter-group-kill-ring)))
+	      :enable (and (featurep 'ibuf-ext)
+			   ibuffer-filter-group-kill-ring)))
 
 (defvar ibuffer-name-map
   (let ((map (make-sparse-keymap)))
@@ -904,15 +906,15 @@ width and the longest string in LIST."
 (defun ibuffer-backward-line (&optional arg skip-group-names)
   "Move backwards ARG lines, wrapping around the list if necessary."
   (interactive "P")
-  (unless arg
-    (setq arg 1))
+  (or arg (setq arg 1))
   (beginning-of-line)
   (while (> arg 0)
     (forward-line -1)
     (when (and ibuffer-movement-cycle
 	       (or (get-text-property (point) 'ibuffer-title)
 		   (and skip-group-names
-			(get-text-property (point) 'ibuffer-filter-group-name))))
+			(get-text-property (point)
+					   'ibuffer-filter-group-name))))
       (goto-char (point-max))
       (beginning-of-line))
     (ibuffer-skip-properties (append '(ibuffer-summary)
@@ -928,8 +930,7 @@ width and the longest string in LIST."
 (defun ibuffer-forward-line (&optional arg skip-group-names)
   "Move forward ARG lines, wrapping around the list if necessary."
   (interactive "P")
-  (unless arg
-    (setq arg 1))
+  (or arg (setq arg 1))
   (beginning-of-line)
   (when (and ibuffer-movement-cycle
 	     (or (eobp)
@@ -1266,8 +1267,7 @@ If point is on a group name, this function operates on that group."
 
 (defun ibuffer-mark-interactive (arg mark movement)
   (assert (eq major-mode 'ibuffer-mode))
-  (unless arg
-    (setq arg 1))
+  (or arg (setq arg 1))
   (ibuffer-forward-line 0)
   (ibuffer-aif (get-text-property (point) 'ibuffer-filter-group-name)
       (progn
@@ -1391,7 +1391,7 @@ If point is on a group name, this function operates on that group."
 
 (defun ibuffer-compile-make-format-form (strvar widthform alignment)
   (let* ((left `(make-string tmp2 ? ))
-         (right `(make-string (- tmp1 tmp2) ? )))
+	 (right `(make-string (- tmp1 tmp2) ? )))
     `(progn
        (setq tmp1 ,widthform
 	     tmp2 (/ tmp1 2))
@@ -1602,7 +1602,7 @@ If point is on a group name, this function operates on that group."
 
 (define-ibuffer-column read-only (:name "R" :inline t)
   (if buffer-read-only
-      "%"
+      (string ibuffer-read-only-char)
     " "))
 
 (define-ibuffer-column modified (:name "M" :inline t)
@@ -1610,16 +1610,33 @@ If point is on a group name, this function operates on that group."
       (string ibuffer-modified-char)
     " "))
 
-(define-ibuffer-column name (:inline t
-			     :props
-			     ('mouse-face 'highlight 'keymap ibuffer-name-map
-			      'ibuffer-name-column t
-			      'help-echo '(if tooltip-mode
-					      "mouse-1: mark this buffer\nmouse-2: select this buffer\nmouse-3: operate on this buffer"
-					    "mouse-1: mark buffer   mouse-2: select buffer   mouse-3: operate")))
+(define-ibuffer-column name
+  (:inline t
+   :props
+   ('mouse-face 'highlight 'keymap ibuffer-name-map
+		'ibuffer-name-column t
+		'help-echo '(if tooltip-mode
+				"mouse-1: mark this buffer\nmouse-2: select this buffer\nmouse-3: operate on this buffer"
+			      "mouse-1: mark buffer   mouse-2: select buffer   mouse-3: operate"))
+   :summarizer
+   (lambda (strings)
+     (let ((bufs (length strings)))
+       (cond ((zerop bufs) "No buffers")
+	     ((= 1 bufs) "1 buffer")
+	     (t (format "%s buffers" bufs))))))
   (propertize (buffer-name) 'font-lock-face (ibuffer-buffer-name-face buffer mark)))
 
-(define-ibuffer-column size (:inline t)
+(define-ibuffer-column size
+  (:inline t
+   :summarizer
+   (lambda (column-strings)
+     (let ((total 0))
+       (dolist (string column-strings)
+	 (setq total
+	       ;; like, ewww ...
+	       (+ (float (string-to-int string))
+		  total)))
+       (format "%.0f" total))))
   (format "%s" (buffer-size)))
 
 (define-ibuffer-column mode (:inline t
@@ -1629,12 +1646,24 @@ If point is on a group name, this function operates on that group."
 			      'help-echo "mouse-2: filter by this mode"))
   (format "%s" mode-name))
 
-(define-ibuffer-column process ()
+(define-ibuffer-column process
+  (:summarizer
+   (lambda (strings)
+     (let ((total (length (delete "" strings))))
+       (cond ((zerop total) "No processes")
+	     ((= 1 total) "1 process")
+	     (t (format "%d processes" total))))))
   (ibuffer-aif (get-buffer-process buffer)
       (format "(%s %s)" it (process-status it))
-    "none"))
+    ""))
 
-(define-ibuffer-column filename ()
+(define-ibuffer-column filename
+  (:summarizer
+   (lambda (strings)
+     (let ((total (length (delete "" strings))))
+       (cond ((zerop total) "No files")
+	     ((= 1 total) "1 file")
+	     (t (format "%d files" total))))))
   (let ((directory-abbrev-alist ibuffer-directory-abbrev-alist))
     (abbreviate-file-name
      (or buffer-file-name
@@ -1642,13 +1671,34 @@ If point is on a group name, this function operates on that group."
 	      dired-directory)
 	 ""))))
 
-(define-ibuffer-column filename-and-process (:name "Filename/Process")
+(define-ibuffer-column filename-and-process
+  (:name "Filename/Process"
+   :summarizer
+   (lambda (strings)
+     (setq strings (delete "" strings))
+     (let ((procs 0)
+	   (files 0))
+       (dolist (string strings)
+	 (if (string-match "\\(\?:\\`(\[\[:ascii:\]\]\+)\\)" string)
+	     (progn (setq procs (1+ procs))
+		    (if (< (match-end 0) (length string))
+			(setq files (1+ files))))
+	   (setq files (1+ files))))
+       (concat (cond ((zerop files) "No files")
+		     ((= 1 files) "1 file")
+		     (t (format "%d files" files)))
+	       ", "
+	       (cond ((zerop procs) "no processes")
+		     ((= 1 procs) "1 process")
+		     (t (format "%d processes" procs)))))))
   (let ((proc (get-buffer-process buffer))
 	(filename (ibuffer-make-column-filename buffer mark)))
     (if proc
-	(concat (propertize (format "(%s %s) " proc (process-status proc))
+	(concat (propertize (format "(%s %s)" proc (process-status proc))
 			    'font-lock-face 'italic)
-		filename)
+		(if (> (length filename) 0)
+		    (format " %s" filename)
+		  ""))
       filename)))
 
 (defun ibuffer-format-column (str width alignment)
@@ -2182,9 +2232,7 @@ locally in this buffer."
   (interactive "P")
   (when ibuffer-use-other-window
     (setq other-window-p t))
-  (let* ((buf (get-buffer-create (or name "*Ibuffer*")))
-	 (already-in (eq (current-buffer) buf))
-	 (need-update nil))
+  (let ((buf (get-buffer-create (or name "*Ibuffer*"))))
     (if other-window-p
 	(funcall (if noselect #'(lambda (buf) (display-buffer buf t)) #'pop-to-buffer) buf)
       (funcall (if noselect #'display-buffer #'switch-to-buffer) buf))
@@ -2193,9 +2241,8 @@ locally in this buffer."
 	;; We switch to the buffer's window in order to be able
 	;; to modify the value of point
 	(select-window (get-buffer-window buf))
-	(unless (eq major-mode 'ibuffer-mode)
-	  (ibuffer-mode)
-	  (setq need-update t))
+	(or (eq major-mode 'ibuffer-mode)
+	    (ibuffer-mode))
 	(setq ibuffer-delete-window-on-quit other-window-p)
 	(when shrink
 	  (setq ibuffer-shrink-to-minimum-size shrink))
