@@ -887,8 +887,10 @@ If SEPARATORS is absent, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 
 (defun make-syntax-table (&optional oldtable)
   "Return a new syntax table.
-It inherits all letters and control characters from the standard
-syntax table; other characters are copied from the standard syntax table."
+If OLDTABLE is non-nil, copy OLDTABLE.
+Otherwise, create a syntax table which inherits
+all letters and control characters from the standard syntax table;
+other characters are copied from the standard syntax table."
   (if oldtable
       (copy-syntax-table oldtable)
     (let ((table (copy-syntax-table))
