@@ -537,7 +537,7 @@ colon-separated list of directories when resolving a relative directory name."
   "Load the Lisp file named FILE."
   ;; This is a case where .elc makes a lot of sense.
   (interactive (list (let ((completion-ignored-extensions
-			    (delete ".elc" completion-ignored-extensions)))
+			    (remove ".elc" completion-ignored-extensions)))
 		       (read-file-name "Load file: "))))
   (load (expand-file-name file) nil nil t))
 
