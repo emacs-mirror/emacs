@@ -1834,9 +1834,10 @@ Otherwise, delete all header fields whose names match `rmail-ignored-headers'."
 	(or ignored-headers (setq ignored-headers rmail-ignored-headers))
 	(save-restriction
 	  (narrow-to-region (point-min) (point))
-	  (while (progn
-		   (goto-char (point-min))
-		   (re-search-forward ignored-headers nil t))
+	  (while (and ignored-headers
+		      (progn
+			(goto-char (point-min))
+			(re-search-forward ignored-headers nil t)))
 	    (beginning-of-line)
 	    (delete-region (point)
 			   (if (re-search-forward "\n[^ \t]" nil t)
@@ -3193,7 +3194,9 @@ specifying headers which should not be copied into the new message."
 	  ;; Insert original text as initial text of new draft message.
 	  ;; Bind inhibit-read-only since the header delimiter
 	  ;; of the previous message was probably read-only.
-	  (let ((inhibit-read-only t))
+	  (let ((inhibit-read-only t)
+		rmail-displayed-headers
+		rmail-ignored-headers)
 	    (erase-buffer)
 	    (insert-buffer-substring rmail-this-buffer bounce-start bounce-end)
 	    (goto-char (point-min))
