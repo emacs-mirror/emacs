@@ -64,7 +64,7 @@
 ;; APPLICATION NOTES:
 ;;
 ;; crypt++
-;;   jka-compr can coexist with crpyt++ if you take all the decompression
+;;   jka-compr can coexist with crypt++ if you take all the decompression
 ;;   entries out of the crypt-encoding-list.  Clearly problems will arise if
 ;;   you have two programs trying to compress/decompress files.  jka-compr
 ;;   will not "work with" crypt++ in the following sense: you won't be able to
