@@ -1,8 +1,6 @@
-/* $HopeName: MMQA_harness!testlib:epvmfmt.c(trunk.5) $
+/* $HopeName: MMQA_harness!testlib:epvmfmt.c(trunk.6) $
 */
 
-#include "mps.h"
-#include "testlib.h"
 #include "epvmfmt.h"
 #include <string.h>
 

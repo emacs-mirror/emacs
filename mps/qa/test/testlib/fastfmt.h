@@ -1,4 +1,4 @@
-/* $HopeName$
+/* $HopeName: MMQA_harness!testlib:fastfmt.h(trunk.2) $
 fastfmt.h
    Format like rankfmt (see rankfmt.h) and with same object
    structure, but with no checking or comments.
@@ -8,7 +8,7 @@ fastfmt.h
 #ifndef fastfmt_h
 #define fastfmt_h
 
-#include "mps.h"
+#include "testlib.h"
 
 extern mps_addr_t exfmt_root;
 
