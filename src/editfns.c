@@ -2224,7 +2224,7 @@ Use %% to put a single % into the output.")
 	else if (FLOATP (args[n]) && *format != 's')
 	  {
 	    if (! (*format == 'e' || *format == 'f' || *format == 'g'))
-	      args[n] = Ftruncate (args[n]);
+	      args[n] = Ftruncate (args[n], Qnil);
 	    total += 30;
 	    /* We have to put an arbitrary limit on minlen
 	       since otherwise it could make alloca fail.  */
