@@ -557,14 +557,6 @@ is given and non-nil, the unwanted frames are iconified instead."
 	;; for where to put it.
 	(mapcar 'iconify-frame frames-to-delete)
       (mapcar 'delete-frame frames-to-delete))))
-
-(defun frame-configuration-p (object)
-  "Return non-nil if OBJECT seems to be a frame configuration.
-Any list whose car is `frame-configuration' is assumed to be a frame
-configuration."
-  (and (consp object)
-       (eq (car object) 'frame-configuration)))
-
 
 ;;;; Convenience functions for accessing and interactively changing
 ;;;; frame parameters.
