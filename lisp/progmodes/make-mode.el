@@ -335,7 +335,7 @@ The function must satisfy this calling convention:
   (modify-syntax-entry ?\( "()    " makefile-mode-syntax-table)
   (modify-syntax-entry ?\) ")(    " makefile-mode-syntax-table)
   (modify-syntax-entry ?\[ "(]    " makefile-mode-syntax-table)
-  (modify-syntax-entry ?\] "([    " makefile-mode-syntax-table)
+  (modify-syntax-entry ?\] ")[    " makefile-mode-syntax-table)
   (modify-syntax-entry ?\{ "(}    " makefile-mode-syntax-table)  
   (modify-syntax-entry ?\} "){    " makefile-mode-syntax-table)
   (modify-syntax-entry ?\' "\"     " makefile-mode-syntax-table)
