@@ -3780,14 +3780,14 @@ shrink_decoding_region (beg, end, coding, str)
       if (coding->heading_ascii < 0)
 	{
 	  if (eol_conversion)
-	    while (begp < endp && *begp < 0x80 && *begp != '\n') begp++;
+	    while (begp < endp && *begp < 0x80 && *begp != '\r') begp++;
 	  else
 	    while (begp < endp && *begp < 0x80) begp++;
 	}
       /* We can skip all ASCII characters at the tail except for the
 	 second byte of SJIS or BIG5 code.  */
       if (eol_conversion)
-	while (begp < endp && endp[-1] < 0x80 && endp[-1] != '\n') endp--;
+	while (begp < endp && endp[-1] < 0x80 && endp[-1] != '\r') endp--;
       else
 	while (begp < endp && endp[-1] < 0x80) endp--;
       if (begp < endp && endp < endp_orig && endp[-1] >= 0x80)
@@ -3811,7 +3811,7 @@ shrink_decoding_region (beg, end, coding, str)
 	case CODING_CATEGORY_IDX_ISO_8_2:
 	  /* We can skip all ASCII characters at the tail.  */
 	  if (eol_conversion)
-	    while (begp < endp && (c = endp[-1]) < 0x80 && c != '\n') endp--;
+	    while (begp < endp && (c = endp[-1]) < 0x80 && c != '\r') endp--;
 	  else
 	    while (begp < endp && endp[-1] < 0x80) endp--;
 	  break;
@@ -3822,7 +3822,7 @@ shrink_decoding_region (beg, end, coding, str)
              the following 2-byte at the tail.  */
 	  if (eol_conversion)
 	    while (begp < endp
-		   && (c = endp[-1]) < 0x80 && c != ISO_CODE_ESC && c != '\n')
+		   && (c = endp[-1]) < 0x80 && c != ISO_CODE_ESC && c != '\r')
 	      endp--;
 	  else
 	    while (begp < endp
