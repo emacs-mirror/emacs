@@ -34,6 +34,7 @@ ALL	        = $(BLD)\make-docfile.exe \
 		$(BLD)\hexl.exe		\
 		$(BLD)\ctags.exe	\
 		$(BLD)\etags.exe	\
+		$(BLD)\ebrowse.exe	\
 		$(BLD)\movemail.exe	\
 		$(BLD)\fakemail.exe	\
 
@@ -61,6 +62,7 @@ $(BLD)\fakemail.exe: 		$(BLD)\fakemail.obj $(BLD)\ntlib.obj
 
 make-docfile:	$(BLD) $(BLD)\make-docfile.exe
 etags:		$(BLD) $(BLD)\etags.exe
+ebrowse:	$(BLD) $(BLD)\ebrowse.exe
 hexl:		$(BLD) $(BLD)\hexl.exe
 movemail:	$(BLD) $(BLD)\movemail.exe
 fakemail:	$(BLD) $(BLD)\fakemail.exe
@@ -112,6 +114,16 @@ CTAGS_CFLAGS  = -DCTAGS $(ETAGS_CFLAGS)
 $(BLD)\ctags.obj: ctags.c
 		$(CC) $(CFLAGS) $(CTAGS_CFLAGS) -Fo$@ ctags.c
 
+EBROWSE_OBJ   = $(BLD)\ebrowse.obj \
+		$(BLD)\getopt.obj \
+		$(BLD)\getopt1.obj \
+		$(BLD)\ntlib.obj
+
+$(BLD)\ebrowse.exe:	$(EBROWSE_OBJ)
+		$(LINK) -out:$@ $(LINK_FLAGS) $(EBROWSE_OBJ) $(LIBS)
+
+$(BLD)\ebrowse.obj: ebrowse.c ..\src\config.h
+		$(CC) $(CFLAGS) -DVERSION=\"$(VERSION)\" -Fo$@ ebrowse.c
 #
 # don't know what to do with these yet...
 #
