@@ -1064,7 +1064,11 @@ map_event_to_object (event, f)
   return Qnil;
 }
 
+#ifdef __STDC__
+static Lisp_Object *volatile menu_item_selection;
+#else
 static Lisp_Object *menu_item_selection;
+#endif
 
 static void
 popup_selection_callback (widget, id, client_data)
@@ -1367,6 +1371,9 @@ check_mouse_other_menu_bar (f)
 
 #ifdef USE_X_TOOLKIT
 
+extern unsigned last_event_timestamp;
+extern Lisp_Object Vdouble_click_time;
+
 extern unsigned int x_mouse_grabbed;
 extern Lisp_Object Vmouse_depressed;
 
@@ -1611,7 +1618,7 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 
   /* No need to check a second time since this is done in the XEvent loop.
      This slows done the execution.  */
-#if 0
+#ifdef XMENU_FOO
   /* Check again whether the mouse has moved to another menu bar item.  */
   if (check_mouse_other_menu_bar (f))
     {
@@ -1631,6 +1638,7 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
   while (1)
     {
       XEvent event;
+      int queue_and_exit = 0;
 
       XtAppNextEvent (Xt_app_con, &event);
       if (event.type == ButtonRelease)
@@ -1646,11 +1654,29 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	      if (!x_mouse_grabbed)
 		Vmouse_depressed = Qnil;
 	    }
-	  break;
+	  if (! (menu_item_selection == 0
+		 && (((XButtonEvent *) (&event))->time - last_event_timestamp
+		     < XINT (Vdouble_click_time))))
+	    break;
+	}
+      else if (event.type == ButtonPress)
+	{
+	  /* Any mouse button activity that doesn't select in the menu
+	     should unpost the menu.  */
+	  if (menu_item_selection == 0)
+	    break;
+	}
+      else if (event.type == KeyPress)
+	{
+	  /* Exit the loop, but first queue this event for reuse.  */
+	  queue_and_exit = 1;
 	}
       else if (event.type == Expose)
 	process_expose_from_menu (event);
-      else if (event.type == MotionNotify)
+      /* If the mouse moves to a different menu bar item, switch to
+	 that item's menu.  But only if the button is still held down.  */
+      else if (event.type == MotionNotify
+	       && x_mouse_grabbed)
 	{
 	  int event_x = (event.xmotion.x_root
 			 - (f->display.x->widget->core.x
@@ -1679,7 +1705,8 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	}
 
       XtDispatchEvent (&event);
-      if (XtWindowToWidget(XDISPLAY event.xany.window) != menu)
+      if (queue_and_exit
+	  || XtWindowToWidget (XDISPLAY event.xany.window) != menu)
 	{
 	  queue_tmp
 	    = (struct event_queue *) malloc (sizeof (struct event_queue));
@@ -1691,6 +1718,8 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 	      queue = queue_tmp;
 	    }
 	}
+      if (queue_and_exit)
+	break;
     }
 
  pop_down:
