@@ -41,7 +41,7 @@ Default is system-dependent, and is the same as used by Rmail.")
   "*Seconds between updates of time in the mode line.")
 
 (defvar display-time-24hr-format nil
-  "Non-nill indicates time should be displayed as hh:mm, 0 <= hh <= 23.
+  "*Non-nill indicates time should be displayed as hh:mm, 0 <= hh <= 23.
 Nil means 1 <= hh <= 12, and an AM/PM suffix is used.")
 
 (defvar display-time-string nil)
