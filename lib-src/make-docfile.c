@@ -1,5 +1,5 @@
 /* Generate doc-string file for GNU Emacs from source files.
-   Copyright (C) 1985, 1986, 1992, 1993 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1992, 1993, 1994 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -153,19 +153,23 @@ read_c_string (infile, printflag)
   return c;
 }
 
-/* Write to file OUT the argument names of the function whose text is in BUF.
+/* Write to file OUT the argument names of function FUNC, whose text is in BUF.
    MINARGS and MAXARGS are the minimum and maximum number of arguments.  */
 
-write_c_args (out, buf, minargs, maxargs)
+write_c_args (out, func, buf, minargs, maxargs)
      FILE *out;
-     char *buf;
+     char *func, *buf;
      int minargs, maxargs;
 {
   register char *p;
   int in_ident = 0;
   int just_spaced = 0;
+  int need_space = 1;
 
-  fprintf (out, "arguments: ");
+  fprintf (out, "(%s", func);
+
+  if (*buf == '(')
+    ++buf;
 
   for (p = buf; *p; p++)
     {
@@ -183,6 +187,9 @@ write_c_args (out, buf, minargs, maxargs)
 	    {
 	      in_ident = 1;
 	      ident_start = 1;
+
+	      if (need_space)
+		putc (' ', out);
 
 	      if (minargs == 0 && maxargs > 0)
 		fprintf (out, "&optional ");
@@ -216,9 +223,15 @@ write_c_args (out, buf, minargs, maxargs)
 	  just_spaced = 0;
 	}
       else if (c != ' ' || ! just_spaced)
-	putc (c, out);
+	{
+	  if (c >= 'a' && c <= 'z')
+	    /* Upcase the letter.  */
+	    c += 'A' - 'a';
+	  putc (c, out);
+	}
 
       just_spaced = (c == ' ');
+      need_space = 0;
     }
 }
 
@@ -398,7 +411,7 @@ scan_c_file (filename, mode)
 	      *p = '\0';
 	      /* Output them.  */
 	      fprintf (outfile, "\n\n");
-	      write_c_args (outfile, argbuf, minargs, maxargs);
+	      write_c_args (outfile, buf, argbuf, minargs, maxargs);
 	    }
 	}
     }
