@@ -1,3 +1,9 @@
+2001-10-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* files.texi (File Name Components): Update the description of
+	file-name-sans-extension and file-name-extension, as they now
+	ignore leading dots.
+
 2001-10-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* (Version 21.1 released.)
