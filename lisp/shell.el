@@ -480,12 +480,14 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 	   (error "Couldn't popd")))))
 
 ;; Return DIR prefixed with comint-file-name-prefix as appropriate.
-(defsubst shell-prefixed-directory-name (dir)
-  (if (file-name-absolute-p dir)
-      ;; The name is absolute, so prepend the prefix.
-      (concat comint-file-name-prefix dir)
-    ;; For a relative name we assume default-directory already has the prefix.
-    (expand-file-name dir)))
+(defun shell-prefixed-directory-name (dir)
+  (if (= (length comint-file-name-prefix) 0)
+      dir
+    (if (file-name-absolute-p dir)
+	;; The name is absolute, so prepend the prefix.
+	(concat comint-file-name-prefix dir)
+      ;; For a relative name we assume default-directory already has the prefix.
+      (expand-file-name dir))))
 
 ;;; cd [dir]
 (defun shell-process-cd (arg)
