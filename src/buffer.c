@@ -4670,7 +4670,7 @@ mmap_realloc (var, nbytes)
 	{
 	  /* Shrinking by at least a page.  Let's give some
 	     memory back to the system.  */
-	  mmap_enlarge (r, - (room - nbytes) / mmap_page_size);
+	  mmap_enlarge (r, - ((room - nbytes) / mmap_page_size));
 	  result = *var;
 	  r->nbytes_specified = nbytes;
 	}
