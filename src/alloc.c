@@ -1642,6 +1642,25 @@ mark_object (objptr)
 	     instead, markers are removed from the chain when freed by gc.  */
 	  break;
 
+	case Lisp_Misc_Buffer_Local_Value:
+	case Lisp_Misc_Some_Buffer_Local_Value:
+	  {
+	    register struct Lisp_Buffer_Local_Value *ptr
+	      = XBUFFER_LOCAL_VALUE (obj);
+	    if (XMARKBIT (ptr->car)) break;
+	    XMARK (ptr->car);
+	    /* If the cdr is nil, avoid recursion for the car.  */
+	    if (EQ (ptr->cdr, Qnil))
+	      {
+		objptr = &ptr->car;
+		goto loop;
+	      }
+	    mark_object (&ptr->car);
+	    /* See comment above under Lisp_Vector for why not use ptr here.  */
+	    objptr = &XBUFFER_LOCAL_VALUE (obj)->cdr;
+	    goto loop;
+	  }
+
 	case Lisp_Misc_Intfwd:
 	case Lisp_Misc_Boolfwd:
 	case Lisp_Misc_Objfwd:
@@ -1658,8 +1677,6 @@ mark_object (objptr)
       break;
 
     case Lisp_Cons:
-    case Lisp_Buffer_Local_Value:
-    case Lisp_Some_Buffer_Local_Value:
     case Lisp_Overlay:
       {
 	register struct Lisp_Cons *ptr = XCONS (obj);
@@ -1871,10 +1888,10 @@ gc_sweep ()
 
 #ifndef standalone
   /* Put all unmarked markers on free list.
-     Dechain each one first from the buffer it points into. */
+     Dechain each one first from the buffer it points into,
+     but only if it's a real marker.  */
   {
     register struct marker_block *mblk;
-    struct Lisp_Marker *tem1;
     register int lim = marker_block_index;
     register int num_free = 0, num_used = 0;
 
@@ -1884,27 +1901,44 @@ gc_sweep ()
       {
 	register int i;
 	for (i = 0; i < lim; i++)
-	  if (mblk->markers[i].type == Lisp_Misc_Marker)
-	    {
-	      if (!XMARKBIT (mblk->markers[i].u_marker.chain))
-		{
-		  Lisp_Object tem;
-		  tem1 = &mblk->markers[i].u_marker;  /* tem1 avoids Sun compiler bug */
-		  XSETMARKER (tem, tem1);
-		  unchain_marker (tem);
-		  /* We could leave the type alone, since nobody checks it,
-		     but this might catch bugs faster.  */
-		  mblk->markers[i].type = Lisp_Misc_Free;
-		  mblk->markers[i].u_free.chain = marker_free_list;
-		  marker_free_list = &mblk->markers[i];
-		  num_free++;
-		}
-	      else
-		{
-		  num_used++;
-		  XUNMARK (mblk->markers[i].u_marker.chain);
-		}
-	    }
+	  {
+	    Lisp_Object *markword;
+	    switch (mblk->markers[i].type)
+	      {
+	      case Lisp_Misc_Marker:
+		markword = &mblk->markers[i].u_marker.chain;
+		break;
+	      case Lisp_Misc_Buffer_Local_Value:
+	      case Lisp_Misc_Some_Buffer_Local_Value:
+		markword = &mblk->markers[i].u_buffer_local_value.car;
+		break;
+	      default:
+		markword = 0;
+	      }
+	    if (markword && !XMARKBIT (*markword))
+	      {
+		Lisp_Object tem;
+		if (mblk->markers[i].type == Lisp_Misc_Marker)
+		  {
+		    /* tem1 avoids Sun compiler bug */
+		    struct Lisp_Marker *tem1 = &mblk->markers[i].u_marker;
+		    XSETMARKER (tem, tem1);
+		    unchain_marker (tem);
+		  }
+		/* We could leave the type alone, since nobody checks it,
+		   but this might catch bugs faster.  */
+		mblk->markers[i].type = Lisp_Misc_Free;
+		mblk->markers[i].u_free.chain = marker_free_list;
+		marker_free_list = &mblk->markers[i];
+		num_free++;
+	      }
+	    else
+	      {
+		num_used++;
+		if (markword)
+		  XUNMARK (*markword);
+	      }
+	  }
 	lim = MARKER_BLOCK_SIZE;
       }
 
