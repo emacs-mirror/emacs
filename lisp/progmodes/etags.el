@@ -65,6 +65,26 @@ Use the `etags' program to make a tags table file."
   :type '(repeat file))
 
 ;;;###autoload
+(defcustom tags-compression-info-list '("" ".Z" ".bz2" ".gz" ".tgz")
+  "*List of extensions tried by etags when jka-compr is used.
+An empty string means search the non-compressed file.
+These extensions will be tried only if jka-compr was activated
+(i.e. via customize of auto-compression-mode or by calling the function
+auto-compression-mode)."
+  :type  'sexp ;;; what should be put here to have a list of strings ?
+  :group 'etags)
+
+;;; !!! tags-compression-info-list should probably be replaced by access
+;;; to directory list and matching jka-compr-compression-info-list. Currently,
+;;; this implementation forces each modification of
+;;; jka-compr-compression-info-list to be reflected in this var.
+;;; An alternative could be to say that introducing a special
+;;; element in this list (e.g. t) means : try at this point
+;;; using directory listing and regexp matching using
+;;; jka-compr-compression-info-list.
+
+
+;;;###autoload
 (defcustom tags-add-tables 'ask-user
   "*Control whether to add a new tags table to the current list.
 t means do; nil means don't (always start a new list).
@@ -1102,10 +1122,11 @@ where they were found."
 					    tag-lines-already-matched))
       ;; Expand the filename, using the tags table buffer's default-directory.
       ;; We should be able to search for file-name backwards in file-of-tag:
-      ;; the beginning-of-line is ok except when positionned on a "file-name" tag.
+      ;; the beginning-of-line is ok except when positioned on a "file-name" tag.
       (setq file (expand-file-name
-                  (if (or (eq (car order) 'tag-exact-file-name-match-p)
-                          (eq (car order) 'tag-partial-file-name-match-p))
+		  (if (memq (car order) '(tag-exact-file-name-match-p
+					  tag-file-name-match-p
+					  tag-partial-file-name-match-p))
                       (save-excursion (next-line 1)
                                       (file-of-tag))
                     (file-of-tag)))
@@ -1115,7 +1136,37 @@ where they were found."
       (setq goto-func goto-tag-location-function)
 
       ;; Find the right line in the specified file.
-      (set-buffer (find-file-noselect file))
+      ;; If we are interested in compressed-files,
+      ;; we search files with extensions.
+      ;; otherwise only the real file.
+      (let* ((buffer-search-extensions (if (featurep 'jka-compr)
+                                           tags-compression-info-list
+                                         '("")))
+             the-buffer
+             (file-search-extensions buffer-search-extensions))
+	;; search a buffer visiting the file with each possible extension
+	;; Note: there is a small inefficiency in find-buffer-visiting :
+	;;   truename is computed even if not needed. Not too sure about this
+	;;   but I suspect truename computation accesses the disk.
+	;;   It is maybe a good idea to optimise this find-buffer-visiting.
+	;; An alternative would be to use only get-file-buffer
+	;; but this looks less "sure" to find the buffer for the file.
+	(while (and (not the-buffer) buffer-search-extensions)
+	  (setq the-buffer (find-buffer-visiting (concat file (car buffer-search-extensions))))
+	  (setq buffer-search-extensions (cdr buffer-search-extensions)))
+	;; if found a buffer but file modified, ensure we re-read !
+	(if (and the-buffer (not (verify-visited-file-modtime the-buffer)))
+	    (find-file-noselect (buffer-file-name the-buffer)))
+	;; if no buffer found, search for files with possible extensions on disk
+	(while (and (not the-buffer) file-search-extensions)
+	  (if (not (file-exists-p (concat file (car file-search-extensions))))
+	      (setq file-search-extensions (cdr file-search-extensions))
+	    (setq the-buffer (find-file-noselect (concat file (car file-search-extensions))))))
+	(if (not the-buffer)
+	    (if (featurep 'jka-compr)
+		(error "File %s (with or without extensions %s) not found" file tags-compression-info-list)
+	      (error "File %s not found" file))
+	  (set-buffer the-buffer)))
       (widen)
       (push-mark)
       (funcall goto-func tag-info)
@@ -1143,6 +1194,7 @@ where they were found."
 	       (find-tag-regexp-next-line-after-failure-p . t)
 	       (find-tag-search-function . search-forward)
 	       (find-tag-tag-order . (tag-exact-file-name-match-p
+                                      tag-file-name-match-p
 				      tag-exact-match-p
 				      tag-symbol-match-p
 				      tag-word-match-p
@@ -1451,10 +1503,25 @@ where they were found."
        (save-excursion (backward-char (length tag))
 		       (looking-at "\\b"))))
 
+;;; exact file name match, i.e. searched tag must match complete file
+;;; name including directories parts if there are some.
 (defun tag-exact-file-name-match-p (tag)
   (and (looking-at ",")
        (save-excursion (backward-char (+ 2 (length tag)))
 		       (looking-at "\f\n"))))
+;;; file name match as above, but searched tag must match the file
+;;; name not including the directories if there are some.
+(defun tag-file-name-match-p (tag)
+  (and (looking-at ",")
+       (save-excursion (backward-char (1+ (length tag)))
+		       (looking-at "/"))))
+;;; this / to detect we are after a directory separator is ok for unix,
+;;; is there a variable that contains the regexp for directory separator
+;;; on whatever operating system ?
+;;; Looks like ms-win will lose here :).
+
+;;; partial file name match, i.e. searched tag must match a substring
+;;; of the file name (potentially including a directory separator).
 (defun tag-partial-file-name-match-p (tag)
   (and (looking-at ".*,")
        (save-excursion (beginning-of-line)
@@ -1571,7 +1638,7 @@ Bind `case-fold-search' during the evaluation, depending on the value of
 			      tags-case-fold-search
 			    case-fold-search)))
     (eval form)))
-  
+
 
 ;;;###autoload
 (defun tags-loop-continue (&optional first-time)
