@@ -40,6 +40,10 @@ Boston, MA 02111-1307, USA.  */
 #define NULL (void *)0
 #endif
 
+/* Nonzero enables use of dialog boxes for questions
+   asked by mouse commands.  */
+int use_dialog_box;
+
 extern Lisp_Object Flookup_key ();
 
 extern int minibuffer_auto_raise;
@@ -470,7 +474,7 @@ concat (nargs, args, target_type, last_special)
              `this' is exhausted. */
 	  if (NILP (this)) break;
 	  if (CONSP (this))
-	    elt = Fcar (this), this = Fcdr (this);
+	    elt = XCONS (this)->car, this = XCONS (this)->cdr;
 	  else
 	    {
 	      if (thisindex >= thisleni) break;
@@ -657,7 +661,7 @@ The value is actually the tail of LIST whose car is ELT.")
      Lisp_Object list;
 {
   register Lisp_Object tail;
-  for (tail = list; !NILP (tail); tail = Fcdr (tail))
+  for (tail = list; !NILP (tail); tail = XCONS (tail)->cdr)
     {
       register Lisp_Object tem;
       tem = Fcar (tail);
@@ -676,7 +680,7 @@ The value is actually the tail of LIST whose car is ELT.")
      Lisp_Object list;
 {
   register Lisp_Object tail;
-  for (tail = list; !NILP (tail); tail = Fcdr (tail))
+  for (tail = list; !NILP (tail); tail = XCONS (tail)->cdr)
     {
       register Lisp_Object tem;
       tem = Fcar (tail);
@@ -695,12 +699,12 @@ Elements of LIST that are not conses are ignored.")
      Lisp_Object list;
 {
   register Lisp_Object tail;
-  for (tail = list; !NILP (tail); tail = Fcdr (tail))
+  for (tail = list; !NILP (tail); tail = XCONS (tail)->cdr)
     {
       register Lisp_Object elt, tem;
       elt = Fcar (tail);
       if (!CONSP (elt)) continue;
-      tem = Fcar (elt);
+      tem = XCONS (elt)->car;
       if (EQ (key, tem)) return elt;
       QUIT;
     }
@@ -716,12 +720,12 @@ assq_no_quit (key, list)
      Lisp_Object list;
 {
   register Lisp_Object tail;
-  for (tail = list; CONSP (tail); tail = Fcdr (tail))
+  for (tail = list; CONSP (tail); tail = XCONS (tail)->cdr)
     {
       register Lisp_Object elt, tem;
       elt = Fcar (tail);
       if (!CONSP (elt)) continue;
-      tem = Fcar (elt);
+      tem = XCONS (elt)->car;
       if (EQ (key, tem)) return elt;
     }
   return Qnil;
@@ -735,12 +739,12 @@ The value is actually the element of LIST whose car equals KEY.")
      Lisp_Object list;
 {
   register Lisp_Object tail;
-  for (tail = list; !NILP (tail); tail = Fcdr (tail))
+  for (tail = list; !NILP (tail); tail = XCONS (tail)->cdr)
     {
       register Lisp_Object elt, tem;
       elt = Fcar (tail);
       if (!CONSP (elt)) continue;
-      tem = Fequal (Fcar (elt), key);
+      tem = Fequal (XCONS (elt)->car, key);
       if (!NILP (tem)) return elt;
       QUIT;
     }
@@ -755,12 +759,12 @@ The value is actually the element of LIST whose cdr is ELT.")
      Lisp_Object list;
 {
   register Lisp_Object tail;
-  for (tail = list; !NILP (tail); tail = Fcdr (tail))
+  for (tail = list; !NILP (tail); tail = XCONS (tail)->cdr)
     {
       register Lisp_Object elt, tem;
       elt = Fcar (tail);
       if (!CONSP (elt)) continue;
-      tem = Fcdr (elt);
+      tem = XCONS (elt)->cdr;
       if (EQ (key, tem)) return elt;
       QUIT;
     }
@@ -775,12 +779,12 @@ The value is actually the element of LIST whose cdr equals KEY.")
      Lisp_Object list;
 {
   register Lisp_Object tail;
-  for (tail = list; !NILP (tail); tail = Fcdr (tail))
+  for (tail = list; !NILP (tail); tail = XCONS (tail)->cdr)
     {
       register Lisp_Object elt, tem;
       elt = Fcar (tail);
       if (!CONSP (elt)) continue;
-      tem = Fequal (Fcdr (elt), key);
+      tem = Fequal (XCONS (elt)->cdr, key);
       if (!NILP (tem)) return elt;
       QUIT;
     }
@@ -808,13 +812,13 @@ to be sure of changing the value of `foo'.")
       if (EQ (elt, tem))
 	{
 	  if (NILP (prev))
-	    list = Fcdr (tail);
+	    list = XCONS (tail)->cdr;
 	  else
-	    Fsetcdr (prev, Fcdr (tail));
+	    Fsetcdr (prev, XCONS (tail)->cdr);
 	}
       else
 	prev = tail;
-      tail = Fcdr (tail);
+      tail = XCONS (tail)->cdr;
       QUIT;
     }
   return list;
@@ -842,13 +846,13 @@ to be sure of changing the value of `foo'.")
       if (! NILP (Fequal (elt, tem)))
 	{
 	  if (NILP (prev))
-	    list = Fcdr (tail);
+	    list = XCONS (tail)->cdr;
 	  else
-	    Fsetcdr (prev, Fcdr (tail));
+	    Fsetcdr (prev, XCONS (tail)->cdr);
 	}
       else
 	prev = tail;
-      tail = Fcdr (tail);
+      tail = XCONS (tail)->cdr;
       QUIT;
     }
   return list;
@@ -996,12 +1000,12 @@ one of the properties on the list.")
      register Lisp_Object prop;
 {
   register Lisp_Object tail;
-  for (tail = plist; !NILP (tail); tail = Fcdr (Fcdr (tail)))
+  for (tail = plist; !NILP (tail); tail = Fcdr (XCONS (tail)->cdr))
     {
       register Lisp_Object tem;
       tem = Fcar (tail);
       if (EQ (prop, tem))
-	return Fcar (Fcdr (tail));
+	return Fcar (XCONS (tail)->cdr);
     }
   return Qnil;
 }
@@ -1621,7 +1625,7 @@ mapcar1 (leni, vals, fn, seq)
       for (i = 0; i < leni; i++)
 	{
 	  vals[i] = call1 (fn, Fcar (tail));
-	  tail = Fcdr (tail);
+	  tail = XCONS (tail)->cdr;
 	}
     }
 
@@ -1714,6 +1718,7 @@ Also accepts Space to mean yes, or Delete to mean no.")
 
 #ifdef HAVE_MENUS
       if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
+	  && use_dialog_box
 	  && have_menus_p ())
 	{
 	  Lisp_Object pane, menu;
@@ -1832,6 +1837,7 @@ and can edit it until it has been confirmed.")
 
 #ifdef HAVE_MENUS
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event)) 
+      && use_dialog_box
       && have_menus_p ())
     {
       Lisp_Object pane, menu, obj;
@@ -1984,6 +1990,12 @@ syms_of_fns ()
     "A list of symbols which are the features of the executing emacs.\n\
 Used by `featurep' and `require', and altered by `provide'.");
   Vfeatures = Qnil;
+
+  DEFVAR_BOOL ("use-dialog-box", &use_dialog_box,
+    "*Non-nil means mouse commands use dialog boxes to ask questions.\n\
+This applies to y-or-n and yes-or-no questions asked by commands
+invoked by mouse clicks and mouse menu items.");
+  use_dialog_box = 1;
 
   defsubr (&Sidentity);
   defsubr (&Srandom);
