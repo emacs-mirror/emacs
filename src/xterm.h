@@ -526,7 +526,7 @@ struct x_output
   Cursor text_cursor;
   Cursor nontext_cursor;
   Cursor modeline_cursor;
-  Cursor cross_cursor;
+  Cursor hand_cursor;
   Cursor hourglass_cursor;
   Cursor horizontal_drag_cursor;
 
@@ -643,6 +643,8 @@ struct x_output
      FocusOut and LeaveNotify clears EXPLICIT/IMPLICIT. */
   int focus_state;
 };
+
+#define No_Cursor (None)
 
 enum
 {
@@ -1058,7 +1060,6 @@ extern void cancel_mouse_face P_ ((struct frame *));
 extern void x_scroll_bar_clear P_ ((struct frame *));
 extern void x_start_queuing_selection_requests P_ ((Display *));
 extern void x_stop_queuing_selection_requests P_ ((Display *));
-extern void x_update_cursor P_ ((struct frame *, int));
 extern int x_text_icon P_ ((struct frame *, char *));
 extern int x_bitmap_icon P_ ((struct frame *, Lisp_Object));
 extern int x_catch_errors P_ ((Display *));
@@ -1084,7 +1085,6 @@ extern void x_wm_set_icon_pixmap P_ ((struct frame *, int));
 extern void x_wm_set_icon_position P_ ((struct frame *, int, int));
 extern void x_delete_display P_ ((struct x_display_info *));
 extern void x_initialize P_ ((void));
-extern void x_display_cursor P_ ((struct window *, int, int, int, int, int));
 extern unsigned long x_copy_color P_ ((struct frame *, unsigned long));
 #ifdef USE_X_TOOLKIT
 extern XtAppContext Xt_app_con;
