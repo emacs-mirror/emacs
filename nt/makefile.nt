@@ -22,7 +22,7 @@
 #						  9-6-94
 !include makefile.def
 
-ALL		= addpm ddeclient runemacs cmdproxy addsection
+ALL		= addpm ddeclient runemacs cmdproxy addsection preprep
 !if $(MSVCNT11)
 TRES		= $(BLD)\emacs.res
 !else
@@ -60,6 +60,12 @@ $(BLD)\addsection.obj: addsection.c
 $(BLD)\addsection.exe: $(BLD)\addsection.obj
 		  $(LINK) -debug:full -out:$@ -subsystem:console -entry:mainCRTStartup \
 		  $(SYS_LDFLAGS) $** $(BASE_LIBS) user32.lib
+
+preprep:	  $(BLD) $(BLD)\preprep.exe
+$(BLD)\preprep.obj: preprep.c
+$(BLD)\preprep.exe: $(BLD)\preprep.obj
+		  $(LINK) -debug:full -out:$@ -subsystem:console -entry:mainCRTStartup \
+		  $(SYS_LDFLAGS) $** $(BASE_LIBS)
 
 #
 # The resource file.  NT 3.10 requires the use of cvtres; even though
