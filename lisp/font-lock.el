@@ -911,7 +911,7 @@ and `font-lock-keywords-case-fold-search' using `font-lock-defaults-alist'."
 
 ;; Install ourselves:
 
-(if noninteractive
+(if purify-flag
     (add-hook 'after-init-hook 'font-lock-make-faces)
   (font-lock-make-faces))
 
