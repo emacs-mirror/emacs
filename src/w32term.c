@@ -510,7 +510,6 @@ w32_fill_rect (f, hdc, pix, lprect)
      RECT * lprect;
 {
   HBRUSH hb;
-  RECT rect;
 
   hb = CreateSolidBrush (pix);
   FillRect (hdc, lprect, hb);
@@ -1353,6 +1352,16 @@ int w32_font_is_double_byte (XFontStruct *font)
 }
 
 
+static BOOL 
+w32_use_unicode_for_codepage (codepage)
+     int codepage;
+{
+  /* If the current codepage is supported, use Unicode for output. */
+  return (w32_enable_unicode_output
+          && codepage != CP_8BIT
+          && (codepage == CP_UNICODE || IsValidCodePage (codepage)));
+}
+
 /* Encode CHAR2B using encoding information from FONT_INFO.  CHAR2B is
    the two-byte form of C.  Encoding is returned in *CHAR2B.  */
 
@@ -1694,8 +1703,8 @@ x_produce_image_glyph (it)
   prepare_image_for_display (it->f, img);
 
   it->ascent = it->phys_ascent = image_ascent (img, face);
-  it->descent = it->phys_descent = img->height + 2 * img->margin - it->ascent;
-  it->pixel_width = img->width + 2 * img->margin;
+  it->descent = it->phys_descent = img->height + 2 * img->vmargin - it->ascent;
+  it->pixel_width = img->width + 2 * img->hmargin;
 
   it->nglyphs = 1;
   
@@ -2547,17 +2556,6 @@ x_estimate_mode_line_height (f, face_id)
 
 
 
-BOOL 
-w32_use_unicode_for_codepage (codepage)
-     int codepage;
-{
-  /* If the current codepage is supported, use Unicode for output. */
-  return (w32_enable_unicode_output
-          && codepage != CP_8BIT
-          && (codepage == CP_UNICODE || IsValidCodePage (codepage)));
-}
-
-
 /***********************************************************************
 			    Glyph display
  ***********************************************************************/
@@ -3137,8 +3135,6 @@ w32_get_glyph_overhangs (hdc, glyph, f, left, right)
      struct frame *f;
      int *left, *right;
 {
-  int c;
-
   *left = *right = 0;
   
   if (glyph->type == CHAR_GLYPH)
@@ -3819,11 +3815,8 @@ x_draw_image_foreground (s)
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
-  if (s->img->margin)
-    {
-      x += s->img->margin;
-      y += s->img->margin;
-    }
+  x += s->img->hmargin;
+  y += s->img->vmargin;
 
   SaveDC (s->hdc);
 
@@ -3924,11 +3917,8 @@ x_draw_image_relief (s)
   
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
-  if (s->img->margin)
-    {
-      x += s->img->margin;
-      y += s->img->margin;
-    }
+  x += s->img->hmargin;
+  y += s->img->vmargin;
   
   if (s->hl == DRAW_IMAGE_SUNKEN
       || s->hl == DRAW_IMAGE_RAISED)
@@ -3975,11 +3965,8 @@ w32_draw_image_foreground_1 (s, pixmap)
 
   /* If there is a margin around the image, adjust x- and y-position
      by that margin.  */
-  if (s->img->margin)
-    {
-      x += s->img->margin;
-      y += s->img->margin;
-    }
+  x += s->img->hmargin;
+  y += s->img->vmargin;
 
   if (s->img->pixmap)
     {
@@ -4078,7 +4065,7 @@ x_draw_glyph_string_bg_rect (s, x, y, w, h)
 	     |   s->face->box
 	     |
 	     |     +-------------------------
-	     |     |  s->img->margin
+	     |     |  s->img->vmargin
 	     |     |
 	     |     |       +-------------------
 	     |     |       |  the image
@@ -4091,7 +4078,6 @@ x_draw_image_glyph_string (s)
 {
   int x, y;
   int box_line_width = s->face->box_line_width;
-  int margin = s->img->margin;
   int height;
   HBITMAP pixmap = 0;
 
@@ -4102,7 +4088,8 @@ x_draw_image_glyph_string (s)
      flickering.  */
   s->stippled_p = s->face->stipple != 0;
   if (height > s->img->height
-      || margin
+      || s->img->vmargin
+      || s->img->hmargin
 #if 0 /* TODO: image mask */
       || s->img->mask
 #endif
@@ -5816,7 +5803,6 @@ w32_frame_rehighlight (frame)
 {
   if (! FRAME_W32_P (frame))
     return;
-
   x_frame_rehighlight (FRAME_W32_DISPLAY_INFO (frame));
 }
 
@@ -8263,7 +8249,7 @@ w32_read_socket (sd, bufp, numchars, expected)
                     && XFASTINT (XWINDOW (f->tool_bar_window)->height))
                   {
                     Lisp_Object window;
-                    int p, x, y;
+                    int p;
 
                     /* Set x and y.  */
                     window = window_from_coordinates (f,
@@ -9247,8 +9233,6 @@ x_bitmap_icon (f, icon)
      struct frame *f;
      Lisp_Object icon;
 {
-  int mask, bitmap_id;
-  Window icon_window;
   HANDLE hicon;
 
   if (FRAME_W32_WINDOW (f) == 0)
@@ -9353,7 +9337,6 @@ x_new_fontset (f, fontsetname)
 {
   int fontset = fs_query_fontset (build_string (fontsetname), 0);
   Lisp_Object result;
-  char *fontname;
 
   if (fontset < 0)
     return Qnil;
@@ -9470,7 +9453,6 @@ void
 x_calc_absolute_position (f)
      struct frame *f;
 {
-  Window child;
   POINT pt;
   int flags = f->output_data.w32->size_hint_flags;
 
@@ -9908,7 +9890,6 @@ void
 x_iconify_frame (f)
      struct frame *f;
 {
-  int result;
   Lisp_Object type;
 
   /* Don't keep the highlight on an invisible frame.  */
