@@ -6,6 +6,14 @@
 ;; Maintainer: FSF
 ;; Keywords: games
 
+;;; Commentary:
+
+;; Adds a hook to protect the impressionable young minds of America
+;; from reading certain files in the Emacs distribution using Emacs.
+
+;; This file is named after Ed Meese, the US Attorney General
+;; under President Reagan, because of his support for censorship.
+
 ;;; Code:
 
 (defun protect-innocence-hook ()
