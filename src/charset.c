@@ -1310,9 +1310,11 @@ check_iso_charset_parameter (dimension, chars, final_char)
 
 DEFUN ("declare-equiv-charset", Fdeclare_equiv_charset, Sdeclare_equiv_charset,
        4, 4, 0,
-       doc: /*
-Declare a charset of DIMENSION, CHARS, FINAL-CHAR is the same as CHARSET.
-CHARSET should be defined by `define-charset' in advance.  */)
+       doc: /* Declare an equivalent charset for ISO-2022 decoding.
+
+On decoding by an ISO-2022 base coding system, when a charset
+specified by DIMENSION, CHARS, and FINAL-CHAR is designated, behave as
+if CHARSET is designated instead.  */)
      (dimension, chars, final_char, charset)
      Lisp_Object dimension, chars, final_char, charset;
 {
@@ -2156,3 +2158,6 @@ syms_of_charset ()
 }
 
 #endif /* emacs */
+
+/* arch-tag: 66a89b8d-4c28-47d3-9ca1-56f78440d69f
+   (do not change this comment) */

@@ -544,3 +544,6 @@ extern void map_charset_chars P_ ((void (*) (Lisp_Object, Lisp_Object),
 EXFUN (Funify_charset, 3);
 
 #endif /* EMACS_CHARSET_H */
+
+/* arch-tag: 3b96db55-4961-481d-ac3e-219f46a2b3aa
+   (do not change this comment) */
