@@ -461,7 +461,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 		{
 		  while (++pos < to && FETCH_CHAR (pos) != '\n');
 		}
-	      while (selective > 0 && position_indentation (pos + 1) >= selective);
+	      while (pos < to && position_indentation (pos + 1) >= selective);
 	      pos--;
 	      /* Allow for the " ..." that is displayed for them. */
 	      if (selective_rlen)
@@ -470,16 +470,17 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 		  if (hpos >= width)
 		    hpos = width;
 		}
+	      /* We have skipped the invis text, but not the newline after.  */
 	    }
 	  else
 	    {
 	      /* A visible line.  */
 	      vpos++;
 	      hpos = 0;
+	      hpos -= hscroll;
+	      if (hscroll > 0) hpos++; /* Count the ! on column 0 */
+	      tab_offset = 0;
 	    }
-	  hpos -= hscroll;
-	  if (hscroll > 0) hpos++; /* Count the ! on column 0 */
-	  tab_offset = 0;
 	}
       else if (c == CR && selective < 0)
 	{
@@ -518,6 +519,7 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 	      /* Truncating: skip to newline.  */
 	      while (pos < to && FETCH_CHAR (pos) != '\n') pos++;
 	      pos--;
+	      hpos = width;
 	    }
 	  else
 	    {
