@@ -281,6 +281,14 @@ task\\|accept\\|entry\\)\\>"
   "Regexp for the start of a subprogram.")
 
 
+;; Written by Christian Egli <Christian.Egli@hcsd.hac.com>
+;;
+(defvar ada-imenu-generic-expression
+      '((nil "^\\s-*\\(procedure\\|function\\)\\s-+\\([A-Za-z0-9_]+\\)" 2)
+	("Type Defs" "^\\s-*\\(sub\\)?type\\s-+\\([A-Za-z0-9_]+\\)" 2))
+
+  "Imenu generic expression for Ada mode.  See `imenu-generic-expression'.")
+
 ;;;-------------
 ;;;  functions
 ;;;-------------
@@ -427,6 +435,9 @@ If you use ada-xref.el:
 
   (make-local-variable 'fill-paragraph-function)
   (setq fill-paragraph-function 'ada-fill-comment-paragraph)
+
+  (make-local-variable 'imenu-generic-expression)
+  (setq imenu-generic-expression ada-imenu-generic-expression)
 
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(ada-font-lock-keywords nil t ((?\_ . "w"))))
