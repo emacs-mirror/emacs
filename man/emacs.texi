@@ -709,7 +709,7 @@ Conversion To and From Other Calendars
 
 The Diary
 
-* Diary Commands::	   Viewing diary entries and associated calendar dates.
+* Displaying the Diary::   Viewing diary entries and associated calendar dates.
 * Format of Diary File::   Entering events in your diary.
 * Date Formats::	   Various ways you can specify dates.
 * Adding to Diary::	   Commands to create diary entries.
