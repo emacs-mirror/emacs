@@ -151,8 +151,8 @@ $(EMACS):       $(PREPARED_HEADERS) $(DOC) $(TEMACS)
 #
 # The undumped executable
 #
-temacs:         $(TEMACS)
-$(TEMACS):      $(BLD) $(TLIB1) $(TLIB2) $(TOBJ) $(TRES)
+temacs:         $(BLD) $(TEMACS)
+$(TEMACS):      $(TLIB1) $(TLIB2) $(TOBJ) $(TRES)
 		$(LINK) -out:$(TEMACS) $(LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
 
 #
