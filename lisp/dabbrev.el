@@ -438,7 +438,14 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 		 (markerp dabbrev--last-abbrev-location)
 		 (marker-position dabbrev--last-abbrev-location)
 		 (= (point) (1+ dabbrev--last-abbrev-location)))
-	    (progn
+	    (let* ((prev-expansion
+		    (buffer-substring-no-properties
+		     (- dabbrev--last-abbrev-location (length dabbrev--last-expansion))
+		     dabbrev--last-abbrev-location))
+		   ;; If the previous expansion was upcased.
+		   ;; upcase this one too.
+		   (upcase-it
+		     (equal prev-expansion (upcase prev-expansion))))
 	      ;; The "abbrev" to expand is just the space.
 	      (setq abbrev " ")
 	      (save-excursion
@@ -459,6 +466,8 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 		(setq expansion
 		      (buffer-substring dabbrev--last-expansion-location
 					(point)))
+		(if upcase-it
+		    (setq expansion (upcase expansion)))
 
 		;; Record the end of this expansion, in case we repeat this.
 		(setq dabbrev--last-expansion-location (point)))
@@ -756,9 +765,11 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 		      (substring expansion 0 (length abbrev)))
 	     (not (string= abbrev (downcase abbrev)))
 	     (not (string= abbrev (upcase abbrev))))
-	(setq use-case-replace nil)
-      (if use-case-replace
-	  (setq expansion (downcase expansion))))
+	(setq use-case-replace nil))
+    (if (equal abbrev " ")
+	(setq use-case-replace nil))
+    (if use-case-replace
+	(setq expansion (downcase expansion)))
     (if old
 	(save-excursion
 	  (search-backward old))
