@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!138.c(trunk.2) $
+ id = $HopeName: MMQA_test_function!138.c(trunk.3) $
  summary = test running out of memory while scanning roots
  language = c
  link = testlib.o rankfmt.o
@@ -16,6 +16,11 @@ END_HEADER
 #define MEG (1024uL*1024uL)
 #define THIRTY_MEG (30uL*MEG)
 
+#define genCOUNT (3)
+
+static mps_gen_param_s testChain[genCOUNT] = {
+  { 6000, 0.90 }, { 8000, 0.65 }, { 16000, 0.50 } };
+
 
 static void test(void)
 {
@@ -23,6 +28,7 @@ static void test(void)
  mps_ap_t ap;
  mps_arena_t arena;
  mps_fmt_t format;
+ mps_chain_t chain;
  mps_pool_t pool;
  mps_root_t root1;
  mps_thr_t thread;
@@ -42,9 +48,10 @@ static void test(void)
 
  cdie(mps_fmt_create_A(&format, arena, &fmtA),
       "create format");
+ cdie(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
- cdie(mps_pool_create(&pool, arena, mps_class_amc(), format),
-      "create pool");
+ die(mmqa_pool_create_chain(&pool, arena, mps_class_amc(), format, chain),
+     "create pool");
 
  cdie(mps_ap_create(&ap, pool, MPS_RANK_EXACT),
       "create ap");
@@ -60,20 +67,11 @@ static void test(void)
  }
 
  mps_ap_destroy(ap);
- comment("Destroyed ap.");
-
  mps_pool_destroy(pool);
- comment("Destroyed pool.");
-
+ mps_chain_destroy(chain);
  mps_fmt_destroy(format);
- comment("Destroyed format.");
-
  mps_root_destroy(root1);
- comment("Destroyed roots.");
-
  mps_thread_dereg(thread);
- comment("Deregistered thread.");
-
  mps_arena_destroy(arena);
  comment("Destroyed arena.");
 }
