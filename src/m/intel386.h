@@ -243,3 +243,11 @@ NOTE-END */
 #define HAVE_ALLOCA
 #define NO_ARG_ARRAY
 #endif
+
+#ifdef linux
+/* libc-linux/sysdeps/linux/i386/ulimit.c says that due to shared library, */
+/* we cannot get the maximum address for brk */
+#define ULIMIT_BREAK_VALUE (32*1024*1024)
+
+#define SEGMENT_MASK ((SEGMENT_SIZE)-1)
+#endif
