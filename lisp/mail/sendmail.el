@@ -377,7 +377,7 @@ the user from the mailer."
 			       (% abs 60))))
       (set-buffer tembuf)
       (erase-buffer)
-      (insert "\nFrom " (user-login-name) " "
+      (insert "From " (user-login-name) " "
 	      (current-time-string) "\n")
       ;; Insert the time zone before the year.
       (forward-char -1)
