@@ -1,5 +1,9 @@
 2004-02-26  Kim F. Storm  <storm@cua.dk>
 
+	* keyboard.c (NREAD_INPUT_EVENTS): Temporarily increase to 512
+	as read_socket_hook handler on X aborts if buffer is too small
+	and W32 handler doesn't always check buffer limit.
+
 	* xdisp.c (handle_single_display_prop): Handle left-fringe and
 	right-fringe similar to a display margin image.  Specifically,
 	the characters having the fringe prop are no longer shown, and
