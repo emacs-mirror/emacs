@@ -571,18 +571,21 @@ If INITVALUE is missing, SYMBOL's value is not set.")
   (args)
      Lisp_Object args;
 {
-  register Lisp_Object sym, tem;
+  register Lisp_Object sym, tem, tail;
 
   sym = Fcar (args);
-  tem = Fcdr (args);
-  if (!NILP (tem))
+  tail = Fcdr (args);
+  if (!NILP (Fcdr (Fcdr (tail))))
+    error ("too many arguments");
+
+  if (!NILP (tail))
     {
       tem = Fdefault_boundp (sym);
       if (NILP (tem))
 	Fset_default (sym, Feval (Fcar (Fcdr (args))));
     }
-  tem = Fcar (Fcdr (Fcdr (args)));
-  if (!NILP (tem))
+  tail = Fcdr (Fcdr (args));
+  if (!NILP (Fcar (tail)))
     {
       if (!NILP (Vpurify_flag))
 	tem = Fpurecopy (tem);
@@ -612,6 +615,9 @@ it would override the user's choice.")
   register Lisp_Object sym, tem;
 
   sym = Fcar (args);
+  if (!NILP (Fcdr (Fcdr (Fcdr (args)))))
+    error ("too many arguments");
+
   Fset_default (sym, Feval (Fcar (Fcdr (args))));
   tem = Fcar (Fcdr (Fcdr (args)));
   if (!NILP (tem))
