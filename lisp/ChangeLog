@@ -1,5 +1,7 @@
 1999-10-22  Dave Love  <fx@gnu.org>
 
+	* make-mode.el: Minor doc fixes.
+
 	* latin-9.el: Avoid non-ASCII characters to prevent loadup failure.
 
 1999-10-21  Dave Love  <fx@gnu.org>
