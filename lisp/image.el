@@ -91,30 +91,28 @@ Value is the image created, or nil if images of type TYPE are not supported."
 
 
 ;;;###autoload
-(defun put-image (image pos &optional buffer area)
-  "Put image IMAGE in front of POS in BUFFER.
+(defun put-image (image pos &optional area)
+  "Put image IMAGE in front of POS in the current buffer.
 IMAGE must be an image created with `create-image' or `defimage'.
 POS may be an integer or marker.
-BUFFER nil or omitted means use the current buffer.
 AREA is where to display the image.  AREA nil or omitted means
 display it in the text area, a value of `left-margin' means
 display it in the left marginal area, a value of `right-margin'
 means display it in the right marginal area.
-IMAGE is displayed by putting an overlay into BUFFER with a
+IMAGE is displayed by putting an overlay into the current buffer with a
 `before-string' that has a `display' property whose value is the
 image."
-  (unless buffer
-    (setq buffer (current-buffer)))
-  (unless (eq (car image) 'image)
-    (error "Not an image: %s" image))
-  (unless (or (null area) (memq area '(left-margin right-margin)))
-    (error "Invalid area %s" area))
-  (let ((overlay (make-overlay pos pos buffer))
-	(string (make-string 1 ?x))
-	(prop (if (null area) image (cons area image))))
-    (put-text-property 0 1 'display prop string)
-    (overlay-put overlay 'put-image t)
-    (overlay-put overlay 'before-string string)))
+  (let ((buffer (current-buffer)))
+    (unless (eq (car image) 'image)
+      (error "Not an image: %s" image))
+    (unless (or (null area) (memq area '(left-margin right-margin)))
+      (error "Invalid area %s" area))
+    (let ((overlay (make-overlay pos pos buffer))
+	  (string (make-string 1 ?x))
+	  (prop (if (null area) image (cons area image))))
+      (put-text-property 0 1 'display prop string)
+      (overlay-put overlay 'put-image t)
+      (overlay-put overlay 'before-string string))))
 
 
 ;;;###autoload
