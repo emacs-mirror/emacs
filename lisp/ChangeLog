@@ -1,3 +1,15 @@
+2000-10-09  Miles Bader  <miles@gnu.org>
+
+	* jka-compr.el: Don't call `jka-compr-install' when loading (it
+	will be done by the definition of `auto-compression-mode' if
+	necessary.  Move code to uninstall existing file-name handler
+	before definition of `auto-compression-mode'.
+
+	* image-file.el (auto-image-file-mode): Move to the end of the
+	file, because `define-minor-mode' actually calls the mode-function
+	if the associated variable is non-nil, which requires that all
+	needed functions be already defined.
+
 2000-10-08  Dave Love  <fx@gnu.org>
 
 	* progmodes/ada-mode.el (ada-mode-menu): Add name to menu map.
