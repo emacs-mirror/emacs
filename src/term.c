@@ -1150,7 +1150,7 @@ insert_glyphs (start, len)
       else
 	{
 	  turn_on_face (f, start->face_id);
-	  glyph= start;
+	  glyph = start;
 	  ++start;
 	  /* We must open sufficient space for a character which
 	     occupies more than one column.  */
@@ -1166,7 +1166,7 @@ insert_glyphs (start, len)
 
 	  /* We use shared conversion buffer of the current size (1024
 	     bytes at least).  It is surely sufficient for just one glyph.  */
-	  produced = encode_terminal_code (&glyph, conversion_buffer, 1,
+	  produced = encode_terminal_code (glyph, conversion_buffer, 1,
 					   conversion_buffer_size, &consumed);
 	}
 
