@@ -1,6 +1,11 @@
+2004-04-21  Kim F. Storm  <storm@cua.dk>
+
+	* image.el (insert-image): Add optional SLICE arg.
+	(insert-sliced-image): New defun.
+
 2004-04-20  Richard M. Stallman  <rms@gnu.org>
 
-	* window.el (split-window-save-restore-data): 
+	* window.el (split-window-save-restore-data):
 	Don't update the data if OLD-INFO is nil.
 
 	* view.el (view-return-to-alist): Mark it permanent local.
