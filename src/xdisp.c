@@ -4039,6 +4039,7 @@ reseat_1 (it, pos, set_stop_p)
   IT_STRING_BYTEPOS (*it) = -1;
   it->string = Qnil;
   it->method = next_element_from_buffer;
+  it->multibyte_p = !NILP (current_buffer->enable_multibyte_characters);
   it->sp = 0;
   it->face_before_selective_p = 0;
 
