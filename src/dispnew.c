@@ -823,8 +823,8 @@ preserve_other_columns (w)
   register int vpos;
   register struct frame_glyphs *current_frame, *desired_frame;
   register FRAME_PTR frame = XFRAME (w->frame);
-  int start = XFASTINT (w->left);
-  int end = XFASTINT (w->left) + XFASTINT (w->width);
+  int start = WINDOW_LEFT_MARGIN (w);
+  int end = WINDOW_RIGHT_EDGE (w);
   int bot = XFASTINT (w->top) + XFASTINT (w->height);
 
   current_frame = FRAME_CURRENT_GLYPHS (frame);
@@ -886,8 +886,8 @@ preserve_my_columns (w)
   register int vpos, fin;
   register struct frame_glyphs *l1, *l2;
   register FRAME_PTR frame = XFRAME (w->frame);
-  int start = XFASTINT (w->left);
-  int end = XFASTINT (w->left) + XFASTINT (w->width);
+  int start = WINDOW_LEFT_MARGIN (w);
+  int end = WINDOW_RIGHT_EDGE (w);
   int bot = XFASTINT (w->top) + XFASTINT (w->height);
 
   for (vpos = XFASTINT (w->top); vpos < bot; vpos++)
@@ -920,7 +920,7 @@ adjust_window_charstarts (w, vpos, adjust)
      int vpos;
      int adjust;
 {
-  int left = XFASTINT (w->left);
+  int left = WINDOW_LEFT_MARGIN (w);
   int top = XFASTINT (w->top);
   int right = left + window_internal_width (w);
   int bottom = top + window_internal_height (w);
@@ -948,12 +948,12 @@ verify_charstarts (w)
   int i;
   int top = XFASTINT (w->top);
   int bottom = top + window_internal_height (w);
-  int left = XFASTINT (w->left);
+  int left = WINDOW_LEFT_MARGIN (w);
   int right = left + window_internal_width (w);
   int next_line;
   int truncate = (XINT (w->hscroll)
 		  || (truncate_partial_width_windows
-		      && (XFASTINT (w->width) < FRAME_WIDTH (f)))
+		      && !WINDOW_FULL_WIDTH_P (w))
 		  || !NILP (XBUFFER (w->buffer)->truncate_lines));
 
   for (i = top; i < bottom; i++)
@@ -1003,7 +1003,7 @@ cancel_my_columns (w)
   register int vpos;
   register struct frame_glyphs *desired_glyphs
     = FRAME_DESIRED_GLYPHS (XFRAME (w->frame));
-  register int start = XFASTINT (w->left);
+  register int start = WINDOW_LEFT_MARGIN (w);
   register int bot = XFASTINT (w->top) + XFASTINT (w->height);
 
   for (vpos = XFASTINT (w->top); vpos < bot; vpos++)
@@ -1042,10 +1042,10 @@ direct_output_for_insert (g)
     int vpos = FRAME_CURSOR_Y (frame);
 
   /* Give up if about to continue line.  */
-  if (hpos >= XFASTINT (w->left) + window_internal_width (w) - 1
+  if (hpos >= WINDOW_LEFT_MARGIN (w) + window_internal_width (w) - 1
     
   /* Avoid losing if cursor is in invisible text off left margin */
-      || (XINT (w->hscroll) && hpos == XFASTINT (w->left))
+      || (XINT (w->hscroll) && hpos == WINDOW_LEFT_MARGIN (w))
     
   /* Give up if cursor outside window (in minibuf, probably) */
       || cursor_in_echo_area
@@ -1117,12 +1117,12 @@ direct_output_forward_char (n)
   int hpos = FRAME_CURSOR_X (frame);
 
   /* Give up if in truncated text at end of line.  */
-  if (hpos >= XFASTINT (w->left) + window_internal_width (w) - 1)
+  if (hpos >= WINDOW_LEFT_MARGIN (w) + window_internal_width (w) - 1)
     return 0;
 
   /* Avoid losing if cursor is in invisible text off left margin
      or about to go off either side of window.  */
-  if ((FRAME_CURSOR_X (frame) == XFASTINT (w->left)
+  if ((FRAME_CURSOR_X (frame) == WINDOW_LEFT_MARGIN (w)
        && (XINT (w->hscroll) || n < 0))
       || (n > 0
 	  && (FRAME_CURSOR_X (frame) + 1 >= window_internal_width (w) - 1))
@@ -1342,8 +1342,9 @@ update_frame (f, force, inhibit_hairy_id)
 	  cursor_to (row, col);
 	}
       else
-	cursor_to (FRAME_CURSOR_Y (f), max (min (FRAME_CURSOR_X (f),
-						  FRAME_WIDTH (f) - 1), 0));
+	cursor_to (FRAME_CURSOR_Y (f), 
+		   max (min (FRAME_CURSOR_X (f),
+			     FRAME_WINDOW_WIDTH (f) - 1), 0));
     }
 
   update_end (f);
@@ -1467,7 +1468,7 @@ buffer_posn_from_coords (window, col, line)
      int col, line;
 {
   int hscroll = XINT (window->hscroll);
-  int window_left = XFASTINT (window->left);
+  int window_left = WINDOW_LEFT_MARGIN (window);
 
   /* The actual width of the window is window->width less one for the
      DISP_CONTINUE_GLYPH, and less one if it's not the rightmost
@@ -2083,6 +2084,7 @@ change_frame_size_1 (frame, newheight, newwidth, pretend, delay)
      register FRAME_PTR frame;
      int newheight, newwidth, pretend, delay;
 {
+  int new_frame_window_width;
   /* If we can't deal with the change now, queue it for later.  */
   if (delay)
     {
@@ -2101,13 +2103,14 @@ change_frame_size_1 (frame, newheight, newwidth, pretend, delay)
     newheight = FRAME_HEIGHT (frame);
   if (newwidth == 0)
     newwidth  = FRAME_WIDTH  (frame);
+  new_frame_window_width = FRAME_WINDOW_WIDTH_ARG (frame, newwidth);
 
   /* Round up to the smallest acceptable size.  */
   check_frame_size (frame, &newheight, &newwidth);
 
   /* If we're not changing the frame size, quit now.  */
   if (newheight == FRAME_HEIGHT (frame)
-      && newwidth == FRAME_WIDTH (frame))
+      && new_frame_window_width == FRAME_WINDOW_WIDTH (frame))
     return;
 
   BLOCK_INPUT;
@@ -2149,11 +2152,11 @@ change_frame_size_1 (frame, newheight, newwidth, pretend, delay)
 #endif
     }
 
-  if (newwidth != FRAME_WIDTH (frame))
+  if (new_frame_window_width  != FRAME_WINDOW_WIDTH (frame))
     {
-      set_window_width (FRAME_ROOT_WINDOW (frame), newwidth, 0);
+      set_window_width (FRAME_ROOT_WINDOW (frame), new_frame_window_width, 0);
       if (FRAME_HAS_MINIBUF_P (frame))
-	set_window_width (FRAME_MINIBUF_WINDOW (frame), newwidth, 0);
+	set_window_width (FRAME_MINIBUF_WINDOW (frame), new_frame_window_width, 0);
 
       if (FRAME_TERMCAP_P (frame) && !pretend)
 	FrameCols = newwidth;
@@ -2168,7 +2171,7 @@ change_frame_size_1 (frame, newheight, newwidth, pretend, delay)
     }
 
   FRAME_HEIGHT (frame) = newheight;
-  FRAME_WIDTH (frame)  = newwidth;
+  SET_FRAME_WIDTH (frame, newwidth);
 
   if (FRAME_CURSOR_X (frame) >= FRAME_WIDTH (frame))
     FRAME_CURSOR_X (frame) = FRAME_WIDTH (frame) - 1;
