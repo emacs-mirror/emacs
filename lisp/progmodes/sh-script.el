@@ -628,7 +628,14 @@ See `sh-feature'.")
 
 (defconst sh-font-lock-syntactic-keywords
   ;; Mark a `#' character as having punctuation syntax in a variable reference.
-  '(("\\$[({]?\\(#\\)" 1 (1 . nil))))
+  ;; Really we should do this properly.  From Chet Ramey and Brian Fox:
+  ;; "A `#' begins a comment when it is unquoted and at the beginning of a
+  ;; word.  In the shell, words are separated by metacharacters."
+  ;; To do this in a regexp would be slow as it would be anchored to the right.
+  ;; But I can't be bothered to write a function to do it properly and
+  ;; efficiently.  So we only do it properly for `#' in variable references and
+  ;; do it efficiently by anchoring the regexp to the left.
+  '(("\\${?[^}#\n\t ]*\\(##?\\)" 1 (1 . nil))))
 
 ;; mode-command and utility functions
 
