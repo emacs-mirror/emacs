@@ -35,6 +35,10 @@
 ;;     (add-hook 'find-file-hooks 'auto-insert)
 ;;     setq auto-insert-directory to an appropriate slash-terminated value
 ;;
+;;  You can also customize the variable `auto-insert-mode' to load the
+;;  package.  Alternatively, add the following to your .emacs file:
+;;  (auto-insert-mode 1)
+;;
 ;;  Author:  Charlie Martin
 ;;           Department of Computer Science and
 ;;           National Biomedical Simulation Resource
@@ -45,7 +49,23 @@
 
 ;;; Code:
 
-(defvar auto-insert 'not-modified
+(defgroup auto-insert nil
+  "Automatic mode-dependent insertion of text into new files."
+  :prefix "auto-insert-"
+  :group 'files)
+
+
+(defcustom auto-insert-mode nil
+  "Toggle auto-insert-mode.
+You must modify via \\[customize] for this variable to have an effect."
+  :set (lambda (symbol value)
+	 (auto-insert-mode (or value 0)))
+  :initialize 'custom-initialize-default
+  :type 'boolean
+  :group 'auto-insert
+  :require 'autoinsert)
+
+(defcustom auto-insert 'not-modified
   "*Controls automatic insertion into newly found empty files:
 	nil	do nothing
 	t	insert if possible
@@ -55,20 +75,24 @@ Insertion is possible when something appropriate is found in
 save it with  \\[write-file] RET.
 This variable is used when `auto-insert' is called as a function, e.g.
 when you do (add-hook 'find-file-hooks 'auto-insert).
-With \\[auto-insert], this is always treated as if it were `t'.")
+With \\[auto-insert], this is always treated as if it were `t'."
+  :type '(choice (const t) (const nil) (const not-modified))
+  :group 'auto-insert)
 
-
-(defvar auto-insert-query 'function
+(defcustom auto-insert-query 'function
   "*If non-`nil', ask user before auto-inserting.
-When this is `function', only ask when called non-interactively.")
+When this is `function', only ask when called non-interactively."
+  :type '(choice (const t) (const nil) (const function))
+  :group 'auto-insert)
 
-
-(defvar auto-insert-prompt "Perform %s auto-insertion? "
+(defcustom auto-insert-prompt "Perform %s auto-insertion? "
   "*Prompt to use when querying whether to auto-insert.
-If this contains a %s, that will be replaced by the matching rule.")
+If this contains a %s, that will be replaced by the matching rule."
+  :type 'string
+  :group 'auto-insert)
 
 
-(defvar auto-insert-alist
+(defcustom auto-insert-alist
   '((("\\.\\([Hh]\\|hh\\|hpp\\)\\'" . "C / C++ header")
      (upcase (concat (file-name-nondirectory
 		      (substring buffer-file-name 0 (match-beginning 0)))
@@ -168,12 +192,16 @@ Optional DESCRIPTION is a string for filling `auto-insert-prompt'.
 ACTION may be a skeleton to insert (see `skeleton-insert'), an absolute
 file-name or one relative to `auto-insert-directory' or a function to call.
 ACTION may also be a vector containing several successive single actions as
-described above, e.g. [\"header.insert\" date-and-author-update].")
+described above, e.g. [\"header.insert\" date-and-author-update]."
+  :type 'sexp
+  :group 'auto-insert)
 
 
 ;; Establish a default value for auto-insert-directory
-(defvar auto-insert-directory "~/insert/"
-  "*Directory from which auto-inserted files are taken.")
+(defcustom auto-insert-directory "~/insert/"
+  "*Directory from which auto-inserted files are taken."
+  :type 'directory
+  :group 'auto-insert)
 
 
 ;;;###autoload
@@ -252,6 +280,29 @@ or if CONDITION had no actions, after all other CONDITIONs."
 	  (nconc auto-insert-alist (list (cons key action)))
 	(setq auto-insert-alist (cons (cons key action)
 				      auto-insert-alist))))))
+
+;;;###autoload
+(defun auto-insert-mode (&optional arg)
+  "Toggle auto-insert mode.
+With prefix ARG, turn auto-insert mode on if and only if ARG is positive.
+Returns the new status of auto-insert mode (non-nil means on).
+
+When auto-insert mode is enabled, when new files are created you can
+insert a template for the file depending on the mode of the buffer."
+  (interactive "P")
+  (let ((on-p (if arg
+		  (> (prefix-numeric-value arg) 0)
+		(not auto-insert-mode))))
+    (if on-p
+	(add-hook 'find-file-hooks 'auto-insert)
+      (remove-hook 'find-file-hooks 'auto-insert))
+    (if (interactive-p)
+	(message "Auto-insert now %s." (if on-p "on" "off")))
+    (setq auto-insert-mode on-p)
+    ))
+
+(if auto-insert-mode
+    (auto-insert-mode 1))
 
 (provide 'autoinsert)
 
