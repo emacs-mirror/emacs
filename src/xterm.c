@@ -3207,7 +3207,35 @@ x_alloc_nearest_color (f, cmap, color)
       rc = XAllocColor (display, cmap, color);
     }
 
+#ifdef DEBUG_X_COLORS
+  if (rc)
+    register_color (color->pixel);
+#endif /* DEBUG_X_COLORS */
+  
   return rc;
+}
+
+
+/* Allocate color PIXEL on frame F.  PIXEL must already be allocated.
+   It's necessary to do this instead of just using PIXEL directly to
+   get color reference counts right.  */
+
+unsigned long
+x_copy_color (f, pixel)
+     struct frame *f;
+     unsigned long pixel;
+{
+  XColor color;
+
+  color.pixel = pixel;
+  BLOCK_INPUT;
+  XQueryColor (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f), &color);
+  XAllocColor (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f), &color);
+  UNBLOCK_INPUT;
+#ifdef DEBUG_X_COLORS
+  register_color (pixel);
+#endif
+  return color.pixel;
 }
 
 
