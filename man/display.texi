@@ -640,6 +640,23 @@ for automatic horizontal scrolling.  Automatic scrolling will continue
 to scroll the window, but never farther to the right than the amount
 you previously set by @code{scroll-left}.
 
+@vindex automatic-hscroll-margin
+  The value of the variable @code{automatic-hscroll-margin} controls
+how close to the window's edges point is allowed to get before the
+window will be automatically scrolled.  It is measured in columns.
+
+@vindex automatic-hscroll-step
+  The variable @code{automatic-hscroll-step} determines how many
+columns to scroll the window when point gets too close to its edge.
+When point is closer to the window's edge than the number of columns
+given by @code{automatic-hscroll-margin}, automatic horizontal
+scrolling will scroll the window by the amount of columns determined
+by this variable.  If the value of @code{automatic-hscroll-step} is a
+positive integer, the window is scrolled that many columns.  If it's a
+floating-point number, it specifies the fraction of the window's width
+to scroll.  If it's zero, point will be centered horizontally after
+the scroll.  The default is zero.
+
 @vindex automatic-hscrolling
   To disable automatic horizontal scrolling, set the variable
 @code{automatic-hscrolling} to @code{nil}.
