@@ -1,3 +1,12 @@
+2004-09-14  Kim F. Storm  <storm@cua.dk>
+
+	* xfaces.c (Qface_no_inherit): New var.
+	(syms_of_xfaces): Intern and staticpro it.
+	(Finternal_make_lisp_face, Finternal_set_lisp_face_attribute)
+	(Finternal_copy_lisp_face, update_face_from_frame_parameter):
+	Don't increment face_change_count when face has non-nil
+	face-no-inherit property.
+
 2004-09-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bytecode.c (BYTE_CODE_QUIT): Add missing AFTER_POTENTIAL_GC.
@@ -12512,7 +12521,7 @@
 
 2002-02-15  Andreas Schwab  <schwab@suse.de>
 
-	* puresize.h (BASE_PURESIZE): Increase to 9/5.
+	* puresize.h (PURESIZE_RATIO): Increase to 9/5.
 
 	* alloc.c (NSTATICS): Increase to 1280.
 
