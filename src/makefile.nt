@@ -160,7 +160,7 @@ paths.h:	..\nt\paths.h
 #
 # Make sure we have the DOC file in the right place.
 #
-DOC		= obj\etc\DOC-X
+DOC		= $(OBJDIR)\etc\DOC-X
 $(DOC):;	cd ..\lib-src 
 		- $(DEL) DOC-X
 		$(MAKE) -f makefile.nt all
@@ -231,7 +231,7 @@ install:        all
 # 
 clean:;         - $(DEL) *~ *.pdb config.h paths.h
 		- $(DEL_TREE) deleted
-		- $(DEL_TREE) obj
+		- $(DEL_TREE) $(OBJDIR)
 
 #
 # These files are the ones that compile conditionally on CANNOT_DUMP...
