@@ -528,6 +528,10 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
       struct gcpro gcpro1;
       Lisp_Object meta_map;
       GCPRO1 (map);
+      /* A strange value in which Meta is set would cause
+	 infinite recursion.  Protect against that.  */
+      if (meta_prefix_char & CHAR_META)
+	meta_prefix_char = make_number (27);
       meta_map = get_keymap (access_keymap (map, meta_prefix_char,
 					    t_ok, noinherit, autoload),
 			     0, autoload);
