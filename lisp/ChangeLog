@@ -1,3 +1,8 @@
+2001-08-21  Gerd Moellmann  <gerd@gnu.org>
+
+	* international/swedish.el: Pre-Mule file removed.  From: Jonas
+	Oberg <jonas@gnu.org>.
+
 2001-08-20  Rajesh Vaidheeswarran  <rv@gnu.org>
 
 	* whitespace.el (whitespace-abort-on-error): Add custom variable
