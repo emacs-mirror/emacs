@@ -1,6 +1,6 @@
 ;;; refill.el --- `auto-fill' by refilling paragraphs on changes
 
-;; Copyright (C) 2000, 2003  Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2003, 2005  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: Miles Bader <miles@gnu.org>
@@ -84,6 +84,8 @@
 ;;      asdfa sdfasd sdf
 
 ;;; Code:
+
+(eval-when-compile (require 'cl))
 
 (defgroup refill nil
   "Refilling paragraphs on changes."
@@ -169,40 +171,36 @@ complex processing.")
   "Post-command function to do refilling (conditionally)."
   (when refill-doit ; there was a change
     ;; There's probably scope for more special cases here...
-    (if (eq this-command 'self-insert-command)
-	;; Treat self-insertion commands specially, since they don't
-	;; always reset `refill-doit' -- for self-insertion commands that
-	;; *don't* cause a refill, we want to leave it turned on so that
-	;; any subsequent non-modification command will cause a refill.
-	(when (aref auto-fill-chars (char-before))
-	  ;; Respond to the same characters as auto-fill (other than
-	  ;; newline, covered below).
-	  (refill-fill-paragraph-at refill-doit)
-	  (setq refill-doit nil))
-      (cond
-       ((or (eq this-command 'quoted-insert)
-	    (eq this-command 'fill-paragraph)
-	    (eq this-command 'fill-region))
-	nil)
-       ((or (eq this-command 'newline)
-	    (eq this-command 'newline-and-indent)
-	    (eq this-command 'open-line))
-	;; Don't zap what was just inserted.
-	(save-excursion
-	  (beginning-of-line)		; for newline-and-indent
-	  (skip-chars-backward "\n")
-	  (save-restriction
-	    (narrow-to-region (point-min) (point))
-	    (refill-fill-paragraph-at refill-doit)))
-	(widen)
-	(save-excursion
-	  (skip-chars-forward "\n")
-	  (save-restriction
-	    (narrow-to-region (line-beginning-position) (point-max))
-	    (refill-fill-paragraph-at refill-doit))))
-       (t
-	(refill-fill-paragraph-at refill-doit)))
-      (setq refill-doit nil))))
+    (case this-command
+      (self-insert-command
+       ;; Treat self-insertion commands specially, since they don't
+       ;; always reset `refill-doit' -- for self-insertion commands that
+       ;; *don't* cause a refill, we want to leave it turned on so that
+       ;; any subsequent non-modification command will cause a refill.
+       (when (aref auto-fill-chars (char-before))
+	 ;; Respond to the same characters as auto-fill (other than
+	 ;; newline, covered below).
+	 (refill-fill-paragraph-at refill-doit)
+	 (setq refill-doit nil)))
+      ((quoted-insert fill-paragraph fill-region) nil)
+      ((newline newline-and-indent open-line indent-new-comment-line
+	reindent-then-newline-and-indent)
+       ;; Don't zap what was just inserted.
+       (save-excursion
+	 (beginning-of-line)		; for newline-and-indent
+	 (skip-chars-backward "\n")
+	 (save-restriction
+	   (narrow-to-region (point-min) (point))
+	   (refill-fill-paragraph-at refill-doit)))
+       (widen)
+       (save-excursion
+	 (skip-chars-forward "\n")
+	 (save-restriction
+	   (narrow-to-region (line-beginning-position) (point-max))
+	   (refill-fill-paragraph-at refill-doit))))
+      (t
+       (refill-fill-paragraph-at refill-doit)))
+    (setq refill-doit nil)))
 
 (defun refill-pre-command-function ()
   "Pre-command function to do refilling (conditionally)."
@@ -213,7 +211,7 @@ complex processing.")
     (refill-fill-paragraph-at refill-doit)
     (setq refill-doit nil)))
 
-(defvar refill-late-fill-paragraph-function nil)
+(defvar refill-saved-state nil)
 
 ;;;###autoload
 (define-minor-mode refill-mode
@@ -228,16 +226,18 @@ refilling if they would cause auto-filling."
   (when refill-ignorable-overlay
     (delete-overlay refill-ignorable-overlay)
     (kill-local-variable 'refill-ignorable-overlay))
-  (when (local-variable-p 'refill-late-fill-paragraph-function)
-    (setq fill-paragraph-function refill-late-fill-paragraph-function)
-    (kill-local-variable 'refill-late-fill-paragraph-function))
+  (when (local-variable-p 'refill-saved-state)
+    (dolist (x refill-saved-state)
+      (set (make-local-variable (car x)) (cdr x)))
+    (kill-local-variable 'refill-saved-state))
   (if refill-mode
       (progn
 	(add-hook 'after-change-functions 'refill-after-change-function nil t)
 	(add-hook 'post-command-hook 'refill-post-command-function nil t)
 	(add-hook 'pre-command-hook 'refill-pre-command-function nil t)
-	(set (make-local-variable 'refill-late-fill-paragraph-function)
-	     fill-paragraph-function)
+	(set (make-local-variable 'refill-saved-state)
+	     (mapcar (lambda (s) (cons s (symbol-value s)))
+		     '(fill-paragraph-function auto-fill-function)))
 	;; This provides the test for recursive paragraph filling.
 	(set (make-local-variable 'fill-paragraph-function)
 	     'refill-fill-paragraph)
@@ -257,5 +257,5 @@ refilling if they would cause auto-filling."
 
 (provide 'refill)
 
-;;; arch-tag: 2c4ce9e8-1daa-4a3b-b6f8-fd6ac5bf6138
+;; arch-tag: 2c4ce9e8-1daa-4a3b-b6f8-fd6ac5bf6138
 ;;; refill.el ends here

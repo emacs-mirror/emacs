@@ -130,9 +130,7 @@ The following key sequence may cause multilingual text insertion."
 
 (defun encoded-kbd-iso2022-single-shift (ignore)
   (let ((char (encoded-kbd-last-key)))
-    (aset encoded-kbd-iso2022-invocations 2
-	  (aref encoded-kbd-iso2022-designations
-		(if (= char ?\216) 2 3))))
+    (aset encoded-kbd-iso2022-invocations 2 (if (= char ?\216) 2 3)))
   "")
 
 (defun encoded-kbd-self-insert-iso2022-7bit (ignore)

@@ -1,3 +1,53 @@
+2005-01-24  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (move_it_by_lines): If we move forward after going too
+	far back, cancel move if end position is same as start position.
+
+2005-01-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispextern.h (struct glyph_string): New members clip_head and
+	clip_tail.
+
+	* xdisp.c (get_glyph_string_clip_rect): Restrict horizontal clip
+	region to the area between clip_head and clip_tail.
+	(draw_glyphs): Record the area that need to be actually redrawn to
+	the new variables clip_head and clip_tail when there are
+	overhangs.  Set values of these variables to the corresponding
+	members in struct glyph_string.  Refine x coordinates for
+	notice_overwritten_cursor using clip_head and clip_tail.
+
+	* macgui.h (STORE_XCHARSETSTRUCT): New macro.
+
+	* macterm.c (mac_compute_glyph_string_overhangs): Implement with
+	QDTextBounds.
+	(x_draw_glyph_string): Don't fill the background of the successor
+	of a glyph with a right overhang if the successor will draw a cursor.
+	(XLoadQueryFont): Obtain font metrics using QDTextBounds.
+	(x_redisplay_interface): Add entry for compute_glyph_string_overhangs.
+
+2005-01-24  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (window_scroll_pixel_based): Fix scrolling in the wrong
+	direction if window height was smaller than next-screen-context-lines.
+	Now always scroll at least one line in the requested direction.
+	Ensure that we actually do scroll backwards when requested to do so.
+
+	* xdisp.c (redisplay_window): Only try to make cursor line fully
+	visible once (to avoid redisplay loop).
+
+2005-01-23  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (Fpos_visible_in_window_p): Simplify return value for
+	partially visible rows.
+	(window_scroll_pixel_based): Adapt to that change.
+
+	* window.c (window_scroll_pixel_based): Force moving to next line
+	if scrolling doesn't move start point, e.g. if looking at tall image.
+
+	* xdisp.c (pos_visible_p): Return 0 if non-interactive.
+	Clear last_height before calling line_bottom_y to get real height.
+	Fix calculation of y.
+
 2005-01-22  Steven Tamm  <steventamm@mac.com>
 
 	* s/darwin.h: Removed PTY_ITERATION from here.

@@ -2563,6 +2563,13 @@ the command `undefined'.  (In earlier Emacs versions, it used
 * Lisp Changes in Emacs 21.4
 
 +++
+** The line-move, scroll-up, and scroll-down functions will now
+modify the window vscroll to scroll through display rows that are
+taller that the height of the window, for example in the presense of
+large images.  To disable this feature, Lisp code may bind the new
+variable `auto-window-vscroll' to nil.
+
++++
 ** If a buffer sets buffer-save-without-query to non-nil,
 save-some-buffers will always save that buffer without asking
 (if it's modified).

@@ -1,3 +1,49 @@
+2005-01-24  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-store.el (calc-declare-variable): Use calc-var-name to
+	display variable name.
+
+2005-01-24  Kenichi Handa  <handa@m17n.org>
+
+	* international/encoded-kb.el (encoded-kbd-iso2022-single-shift):
+	Fix setting of the element of encoded-kbd-iso2022-invocations.
+
+2005-01-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-goto-breakpoint, gdb-frames-select)
+	(gdb-threads-select): Change to also accept mouse events.
+	(gdb-mouse-goto-breakpoint, gdb-frames-mouse-select)
+	(gdb-threads-mouse-select): Delete.
+
+2005-01-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (insert-directory): Take care of empty directory,
+	listed without -a switch.
+
+2005-01-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/refill.el (refill-post-command-function):
+	Add `indent-new-comment-line' and `reindent-then-newline-and-indent'
+	to the list of functions that we should be careful not to undo.
+	(refill-late-fill-paragraph-function): Remove.
+	(refill-saved-state): New var.
+	(refill-mode): Use it to save fill-paragraph-function.
+	Save also the value of auto-fill-function.
+
+	* term/w32-win.el: Simplify code.
+
+2005-01-23  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (line-move): Adapt to new return value from
+	pos-visible-in-window-p.
+
+	* simple.el (line-move): Fix last change.  Check partial
+	visibility at point rather than at window-start.
+
+2005-01-22  Jason Rumney  <jasonr@gnu.org>
+
+	* term/w32-win.el (xw-defined-colors): Remove debug-message.
+
 2005-01-22  David Kastrup  <dak@gnu.org>
 
 	* progmodes/grep.el: Add alias `find-grep' for `grep-find'.

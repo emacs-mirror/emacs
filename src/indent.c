@@ -1,6 +1,6 @@
 /* Indentation functions.
-   Copyright (C) 1985,86,87,88,93,94,95,98,2000,01,02,03,2004
-   Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1998, 2000, 2001,
+     2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -340,7 +340,9 @@ will have a variable width)
 Ignores finite width of frame, which means that this function may return
 values greater than (frame-width).
 Whether the line is visible (if `selective-display' is t) has no effect;
-however, ^M is treated as end of line when `selective-display' is t.  */)
+however, ^M is treated as end of line when `selective-display' is t.
+Text that has an invisible property is considered as having width 0, unless
+`buffer-invisibility-spec' specifies that it is replaced by an ellipsis.  */)
      ()
 {
   Lisp_Object temp;

@@ -4550,45 +4550,54 @@ normally equivalent short `-D' option is just passed on to
 	  (when (if (stringp switches)
 		    (string-match "--dired\\>" switches)
 		  (member "--dired" switches))
+	    ;; The following overshoots by one line for an empty
+	    ;; directory listed with "--dired", but without "-a"
+	    ;; switch, where the ls output contains a
+	    ;; "//DIRED-OPTIONS//" line, but no "//DIRED//" line.
+	    ;; We take care of that case later.
 	    (forward-line -2)
             (when (looking-at "//SUBDIRED//")
               (delete-region (point) (progn (forward-line 1) (point)))
               (forward-line -1))
-	    (when (looking-at "//DIRED//")
-	      (let ((end (line-end-position))
-		    (linebeg (point))
-		    error-lines)
-		;; Find all the lines that are error messages,
-		;; and record the bounds of each one.
-		(goto-char beg)
-		(while (< (point) linebeg)
-		  (or (eql (following-char) ?\s)
-		      (push (list (point) (line-end-position)) error-lines))
-		  (forward-line 1))
-		(setq error-lines (nreverse error-lines))
-		;; Now read the numeric positions of file names.
-		(goto-char linebeg)
-		(forward-word 1)
-		(forward-char 3)
-		(while (< (point) end)
-		  (let ((start (insert-directory-adj-pos
+	    (if (looking-at "//DIRED//")
+		(let ((end (line-end-position))
+		      (linebeg (point))
+		      error-lines)
+		  ;; Find all the lines that are error messages,
+		  ;; and record the bounds of each one.
+		  (goto-char beg)
+		  (while (< (point) linebeg)
+		    (or (eql (following-char) ?\s)
+			(push (list (point) (line-end-position)) error-lines))
+		    (forward-line 1))
+		  (setq error-lines (nreverse error-lines))
+		  ;; Now read the numeric positions of file names.
+		  (goto-char linebeg)
+		  (forward-word 1)
+		  (forward-char 3)
+		  (while (< (point) end)
+		    (let ((start (insert-directory-adj-pos
+				  (+ beg (read (current-buffer)))
+				  error-lines))
+			  (end (insert-directory-adj-pos
 				(+ beg (read (current-buffer)))
-				error-lines))
-			(end (insert-directory-adj-pos
-			      (+ beg (read (current-buffer)))
-			      error-lines)))
-		    (if (memq (char-after end) '(?\n ?\ ))
-			;; End is followed by \n or by " -> ".
-			(put-text-property start end 'dired-filename t)
-		      ;; It seems that we can't trust ls's output as to
-		      ;; byte positions of filenames.
-		      (put-text-property beg (point) 'dired-filename nil)
-		      (end-of-line))))
-		(goto-char end)
-		(beginning-of-line)
-		(delete-region (point) (progn (forward-line 1) (point))))
-	      (if (looking-at "//DIRED-OPTIONS//")
-		  (delete-region (point) (progn (forward-line 1) (point))))))
+				error-lines)))
+		      (if (memq (char-after end) '(?\n ?\ ))
+			  ;; End is followed by \n or by " -> ".
+			  (put-text-property start end 'dired-filename t)
+			;; It seems that we can't trust ls's output as to
+			;; byte positions of filenames.
+			(put-text-property beg (point) 'dired-filename nil)
+			(end-of-line))))
+		  (goto-char end)
+		  (beginning-of-line)
+		  (delete-region (point) (progn (forward-line 1) (point))))
+	      ;; Take care of the case where the ls output contains a
+	      ;; "//DIRED-OPTIONS//"-line, but no "//DIRED//"-line
+	      ;; and we went one line too far back (see above).
+	      (forward-line 1))
+	    (if (looking-at "//DIRED-OPTIONS//")
+		(delete-region (point) (progn (forward-line 1) (point)))))
 
 	  ;; Now decode what read if necessary.
 	  (let ((coding (or coding-system-for-read

@@ -1997,20 +1997,33 @@ static void
 mac_compute_glyph_string_overhangs (s)
      struct glyph_string *s;
 {
-#if 0
-  /* MAC_TODO: XTextExtents16 does nothing yet... */
+  Rect r;
+  MacFontStruct *font = s->font;
 
-  if (s->cmp == NULL
-      && s->first_glyph->type == CHAR_GLYPH)
+  TextFont (font->mac_fontnum);
+  TextSize (font->mac_fontsize);
+  TextFace (font->mac_fontface);
+
+  if (s->two_byte_p)
+    QDTextBounds (s->nchars * 2, (char *)s->char2b, &r);
+  else
     {
-      XCharStruct cs;
-      int direction, font_ascent, font_descent;
-      XTextExtents16 (s->font, s->char2b, s->nchars, &direction,
-		      &font_ascent, &font_descent, &cs);
-      s->right_overhang = cs.rbearing > cs.width ? cs.rbearing - cs.width : 0;
-      s->left_overhang = cs.lbearing < 0 ? -cs.lbearing : 0;
+      int i;
+      char *buf = xmalloc (s->nchars);
+
+      if (buf == NULL)
+	SetRect (&r, 0, 0, 0, 0);
+      else
+	{
+	  for (i = 0; i < s->nchars; ++i)
+	    buf[i] = s->char2b[i].byte2;
+	  QDTextBounds (s->nchars, buf, &r);
+	  xfree (buf);
+	}
     }
-#endif
+
+  s->right_overhang = r.right > s->width ? r.right - s->width : 0;
+  s->left_overhang = r.left < 0 ? -r.left : 0;
 }
 
 
@@ -3078,10 +3091,12 @@ x_draw_glyph_string (s)
 {
   int relief_drawn_p = 0;
 
-  /* If S draws into the background of its successor, draw the
-     background of the successor first so that S can draw into it.
-     This makes S->next use XDrawString instead of XDrawImageString.  */
-  if (s->next && s->right_overhang && !s->for_overlaps_p)
+  /* If S draws into the background of its successor that does not
+     draw a cursor, draw the background of the successor first so that
+     S can draw into it.  This makes S->next use XDrawString instead
+     of XDrawImageString.  */
+  if (s->next && s->right_overhang && !s->for_overlaps_p
+      && s->next->hl != DRAW_CURSOR)
     {
       xassert (s->next->img == NULL);
       x_set_glyph_string_gc (s->next);
@@ -6780,30 +6795,40 @@ XLoadQueryFont (Display *dpy, char *fontname)
        returns 15 for 12-point Monaco! */
     char_width = CharWidth ('m');
 
-  font->max_bounds.rbearing = char_width;
-  font->max_bounds.lbearing = 0;
-  font->max_bounds.width = char_width;
-  font->max_bounds.ascent = the_fontinfo.ascent;
-  font->max_bounds.descent = the_fontinfo.descent;
+  if (is_two_byte_font)
+    {
+      font->per_char = NULL;
 
-  font->min_bounds = font->max_bounds;
+      if (fontface & italic)
+	font->max_bounds.rbearing = char_width + 1;
+      else
+	font->max_bounds.rbearing = char_width;
+      font->max_bounds.lbearing = 0;
+      font->max_bounds.width = char_width;
+      font->max_bounds.ascent = the_fontinfo.ascent;
+      font->max_bounds.descent = the_fontinfo.descent;
 
-  if (is_two_byte_font || CharWidth ('m') == CharWidth ('i'))
-    font->per_char = NULL;
+      font->min_bounds = font->max_bounds;
+    }
   else
     {
       font->per_char = (XCharStruct *)
 	xmalloc (sizeof (XCharStruct) * (0xff - 0x20 + 1));
       {
-        int c, min_width, max_width;
+	int c, min_width, max_width;
+	Rect char_bounds, min_bounds, max_bounds;
+	char ch;
 
 	min_width = max_width = char_width;
+	SetRect (&min_bounds, -32767, -32767, 32767, 32767);
+	SetRect (&max_bounds, 0, 0, 0, 0);
         for (c = 0x20; c <= 0xff; c++)
           {
-	    font->per_char[c - 0x20] = font->max_bounds;
-	    char_width = CharWidth (c);
-	    font->per_char[c - 0x20].width = char_width;
-	    font->per_char[c - 0x20].rbearing = char_width;
+	    ch = c;
+	    char_width = CharWidth (ch);
+	    QDTextBounds (1, &ch, &char_bounds);
+	    STORE_XCHARSTRUCT (font->per_char[c - 0x20],
+			       char_width, char_bounds);
 	    /* Some Japanese fonts (in SJIS encoding) return 0 as the
 	       character width of 0x7f.  */
 	    if (char_width > 0)
@@ -6811,9 +6836,25 @@ XLoadQueryFont (Display *dpy, char *fontname)
 		min_width = min (min_width, char_width);
 		max_width = max (max_width, char_width);
 	      }
-            }
-	font->min_bounds.width = min_width;
-	font->max_bounds.width = max_width;
+	    if (!EmptyRect (&char_bounds))
+	      {
+		SetRect (&min_bounds,
+			 max (min_bounds.left, char_bounds.left),
+			 max (min_bounds.top, char_bounds.top),
+			 min (min_bounds.right, char_bounds.right),
+			 min (min_bounds.bottom, char_bounds.bottom));
+		UnionRect (&max_bounds, &char_bounds, &max_bounds);
+	      }
+	  }
+	STORE_XCHARSTRUCT (font->min_bounds, min_width, min_bounds);
+	STORE_XCHARSTRUCT (font->max_bounds, max_width, max_bounds);
+	if (min_width == max_width
+	    && max_bounds.left >= 0 && max_bounds.right <= max_width)
+	  {
+	    /* Fixed width and no overhangs.  */
+	    xfree (font->per_char);
+	    font->per_char = NULL;
+	  }
       }
     }
 
@@ -9719,7 +9760,7 @@ static struct redisplay_interface x_redisplay_interface =
   0, /* destroy_fringe_bitmap */
   mac_per_char_metric,
   mac_encode_char,
-  NULL, /* mac_compute_glyph_string_overhangs */
+  mac_compute_glyph_string_overhangs,
   x_draw_glyph_string,
   mac_define_frame_cursor,
   mac_clear_frame_area,

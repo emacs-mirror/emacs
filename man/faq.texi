@@ -4000,7 +4000,7 @@ User Manual}, and
 @email{dak@@gnu.org, David Kastrup}
 
 @item Latest version
-11.52
+11.54
 
 @item Distribution
 @uref{ftp://ftp.gnu.org/pub/gnu/auctex/}
