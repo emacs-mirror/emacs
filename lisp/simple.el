@@ -1264,7 +1264,7 @@ specifies the value of ERROR-BUFFER."
 	;; Output goes in a separate buffer.
 	;; Preserve the match data in case called from a program.
 	(save-match-data
-	  (if (string-match "[ \t]*&[ \t]*$" command)
+	  (if (string-match "[ \t]*&[ \t]*\\'" command)
 	      ;; Command ending with ampersand means asynchronous.
 	      (let ((buffer (get-buffer-create
 			     (or output-buffer "*Async Shell Command*")))
@@ -1335,17 +1335,20 @@ and only used if a buffer is displayed."
 		  (if (= (buffer-size) 0)
 		      0
 		    (count-lines (point-min) (point-max)))))
-	     (cond ((or (<= lines 1)
-			(<= lines
-			    (if resize-mini-windows
-				(cond ((floatp max-mini-window-height)
-				       (* (frame-height)
-					  max-mini-window-height))
-				      ((integerp max-mini-window-height)
-				       max-mini-window-height)
-				      (t
-				       1))
-			      1)))
+	     (cond ((and (or (<= lines 1)
+			     (<= lines
+				 (if resize-mini-windows
+				     (cond ((floatp max-mini-window-height)
+					    (* (frame-height)
+					       max-mini-window-height))
+					   ((integerp max-mini-window-height)
+					    max-mini-window-height)
+					   (t
+					    1))
+				   1)))
+			 ;; Don't use the echo area if the output buffer is
+			 ;; already dispayed in the selected frame.
+			 (not (get-buffer-window buffer)))
 		    ;; Echo area
 		    (goto-char (point-max))
 		    (when (bolp)
