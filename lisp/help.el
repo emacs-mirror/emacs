@@ -646,6 +646,18 @@ It can also be nil, if the definition is not associated with any file."
 			 (if (eq (nth 4 def) 'keymap) "keymap"
 			   (if (nth 4 def) "Lisp macro" "Lisp function"))
 			 ))
+                ;; perhaps use keymapp here instead
+                ((eq (car-safe def) 'keymap)
+                 (let ((is-full nil)
+                       (elts (cdr-safe def)))
+                   (while elts
+                     (if (char-table-p (car-safe elts))
+                         (setq is-full t
+                               elts nil))
+                     (setq elts (cdr-safe elts)))
+                   (if is-full
+                       "a full keymap"
+                     "a sparse keymap")))
 		(t "")))
     (when (and parens (not (equal string "")))
       (setq need-close t)
