@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.38) $
+ * $HopeName: MMsrc!trace.c(trunk.39) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.38) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.39) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -480,7 +480,7 @@ static void TraceReclaim(Trace trace)
         /* the same as the one above, but in that case it's new and */
         /* still shouldn't be white for this trace. */
         {
-          Seg nonWhiteSeg;
+          Seg nonWhiteSeg = NULL;	/* prevents compiler warning */
 	  AVER(!(SegOfAddr(&nonWhiteSeg, arena, base) &&
 		 TraceSetIsMember(SegWhite(nonWhiteSeg), trace->ti)));
         }
