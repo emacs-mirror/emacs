@@ -1,6 +1,6 @@
 ;;; tramp.el --- Transparent Remote Access, Multiple Protocol -*- coding: iso-8859-1; -*-
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: Kai.Grossjohann@CS.Uni-Dortmund.DE
 ;; Keywords: comm, processes
@@ -72,7 +72,7 @@
 ;; In the Tramp CVS repository, the version numer is auto-frobbed from
 ;; the Makefile, so you should edit the top-level Makefile to change
 ;; the version number.
-(defconst tramp-version "2.0.28"
+(defconst tramp-version "2.0.29"
   "This version of tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@mail.freesoftware.fsf.org"
@@ -124,6 +124,12 @@
 
 (unless (boundp 'custom-print-functions)
   (defvar custom-print-functions nil))	; not autoloaded before Emacs 20.4
+
+;; Avoid bytecompiler warnings if the byte-compiler supports this.
+;; Currently, XEmacs supports this.
+(eval-when-compile
+  (when (fboundp 'byte-compiler-options)
+    (byte-compiler-options (warnings (- unused-vars)))))
 
 ;; XEmacs is distributed with few Lisp packages.  Further packages are
 ;; installed using EFS.  If we use a unified filename format, then
@@ -667,12 +673,14 @@ See `tramp-methods' for a list of possibilities for METHOD."
 ;; Default values for non-Unices seeked
 (defconst tramp-completion-function-alist-ssh
   (unless (memq system-type '(windows-nt))
-    '((tramp-parse-rhosts "/etc/hosts.equiv")
-      (tramp-parse-rhosts "/etc/shosts.equiv")
-      (tramp-parse-shosts "/etc/ssh_known_hosts")
-      (tramp-parse-rhosts "~/.rhosts")
-      (tramp-parse-rhosts "~/.shosts")
-      (tramp-parse-shosts "~/.ssh/known_hosts")))
+    '((tramp-parse-rhosts  "/etc/hosts.equiv")
+      (tramp-parse-rhosts  "/etc/shosts.equiv")
+      (tramp-parse-shosts  "/etc/ssh_known_hosts")
+      (tramp-parse-sconfig "/etc/ssh_config")
+      (tramp-parse-rhosts  "~/.rhosts")
+      (tramp-parse-rhosts  "~/.shosts")
+      (tramp-parse-shosts  "~/.ssh/known_hosts")
+      (tramp-parse-sconfig "~/.ssh/config")))
   "Default list of (FUNCTION FILE) pairs to be examined for ssh methods."
 )
 
@@ -721,11 +729,12 @@ Each NAME stands for a remote access method.  Each PAIR is of the form
 \(FUNCTION FILE).  FUNCTION is responsible to extract user names and host
 names from FILE for completion.  The following predefined FUNCTIONs exists:
 
- * `tramp-parse-rhosts' for \".rhosts\" like files,
- * `tramp-parse-shosts' for \"ssh_known_hosts\" like files,
- * `tramp-parse-hosts'  for \"/etc/hosts\" like files, and
- * `tramp-parse-passwd' for \"/etc/passwd\" like files.
- * `tramp-parse-netrc'  for \".netrc\" like files.
+ * `tramp-parse-rhosts'  for \"~/.rhosts\" like files,
+ * `tramp-parse-shosts'  for \"~/.ssh/known_hosts\" like files,
+ * `tramp-parse-sconfig' for \"~/.ssh/config\" like files,
+ * `tramp-parse-hosts'   for \"/etc/hosts\" like files, and
+ * `tramp-parse-passwd'  for \"/etc/passwd\" like files.
+ * `tramp-parse-netrc'   for \"~/.netrc\" like files.
 
 FUNCTION can also see a customer defined function.  For more details see
 the info pages."
@@ -1250,8 +1259,9 @@ the visited file modtime.")
 (make-variable-buffer-local 'tramp-buffer-file-attributes)
 
 (defvar tramp-md5-function
-  (cond ((fboundp 'md5) 'md5)
-	((and (require 'md5) (fboundp 'md5-encode)) 'md5-encode)
+  (cond ((and (require 'md5) (fboundp 'md5)) 'md5)
+	((fboundp 'md5-encode)
+	 (lambda (x) (base64-encode-string (md5-encode x))))
 	(t (error "Coulnd't find an `md5' function")))
   "Function to call for running the MD5 algorithm.")
 
@@ -1396,16 +1406,18 @@ some systems don't, and for them we have this shell function.")
 ;; output.  If you are hacking on this, note that you get *no* output
 ;; unless this spits out a complete line, including the '\n' at the
 ;; end.
+;; The device number is returned as "-1", because there will be a virtual
+;; device number set in `tramp-handle-file-attributes'
 (defconst tramp-perl-file-attributes "\
 $f = $ARGV[0];
 @s = lstat($f);
 if (($s[2] & 0170000) == 0120000) { $l = readlink($f); $l = \"\\\"$l\\\"\"; }
 elsif (($s[2] & 0170000) == 040000) { $l = \"t\"; }
 else { $l = \"nil\" };
-printf(\"(%s %u %d %d (%u %u) (%u %u) (%u %u) %u %u t (%u . %u) (%u %u))\\n\",
+printf(\"(%s %u %d %d (%u %u) (%u %u) (%u %u) %u %u t (%u . %u) -1)\\n\",
 $l, $s[3], $s[4], $s[5], $s[8] >> 16 & 0xffff, $s[8] & 0xffff,
 $s[9] >> 16 & 0xffff, $s[9] & 0xffff, $s[10] >> 16 & 0xffff, $s[10] & 0xffff,
-$s[7], $s[2], $s[1] >> 16 & 0xffff, $s[1] & 0xffff, $s[0] >> 16 & 0xffff, $s[0] & 0xffff);"
+$s[7], $s[2], $s[1] >> 16 & 0xffff, $s[1] & 0xffff);"
   "Perl script to produce output suitable for use with `file-attributes'
 on the remote file system.")
 
@@ -1726,13 +1738,15 @@ FUNCTION-LIST is a list of entries of the form (FUNCTION FILE).
 The FUNCTION is intended to parse FILE according its syntax.
 It might be a predefined FUNCTION, or a user defined FUNCTION.
 Predefined FUNCTIONs are `tramp-parse-rhosts', `tramp-parse-shosts',
-`tramp-parse-hosts', and `tramp-parse-passwd'.
+`tramp-parse-sconfig',`tramp-parse-hosts', `tramp-parse-passwd',
+and `tramp-parse-netrc'.
+
 Example:
 
     (tramp-set-completion-function
      \"ssh\"
-     '((tramp-parse-shosts \"/etc/ssh_known_hosts\")
-       (tramp-parse-shosts \"~/.ssh/known_hosts\")))"
+     '((tramp-parse-sconfig \"/etc/ssh_config\")
+       (tramp-parse-sconfig \"~/.ssh/config\")))"
 
   (let ((v (cdr (assoc method tramp-completion-function-alist))))
     (if v (setcdr v function-list)
@@ -1944,6 +1958,14 @@ target of the symlink differ."
 	       (tramp-get-file-exists-command multi-method method user host)
 	       (tramp-shell-quote-argument path)))))))
 
+;; Devices must distinguish physical file systems.  The device numbers
+;; provided by "lstat" aren't unique, because we operate on different hosts.
+;; So we use virtual device numbers, generated by Tramp.  Both Ange-FTP and
+;; EFS use device number "-1".  In order to be different, we use device number
+;; (-1 x), whereby "x" is unique for a given (multi-method method user host).
+(defvar tramp-devices nil
+  "Keeps virtual device numbers.")
+
 ;; CCC: This should check for an error condition and signal failure
 ;;      when something goes wrong.
 ;; Daniel Pittman <daniel@danann.net>
@@ -1962,9 +1984,11 @@ rather than as numbers."
 		     multi-method method user host path nonnumeric))
 	    (setq result
 		  (tramp-handle-file-attributes-with-ls
-		   multi-method method user host path nonnumeric))))))
+		   multi-method method user host path nonnumeric)))
+	  ;; set virtual device number
+	  (setcar (nthcdr 11 result)
+		  (tramp-get-device multi-method method user host)))))
     result))
-
 
 (defun tramp-handle-file-attributes-with-ls
   (multi-method method user host path &optional nonnumeric)
@@ -2047,8 +2071,8 @@ rather than as numbers."
      nil				;hm?
      ;; 10. inode number.
      res-inode
-     ;; 11. Device number.
-     -1					;hm?
+     ;; 11. Device number.  Will be replaced by a virtual device number.
+     -1
      )))
 
 (defun tramp-handle-file-attributes-with-perl
@@ -2070,6 +2094,15 @@ is initially created and is kept cached by the remote shell."
     (setcar (nthcdr 8 result)
 	    (tramp-file-mode-from-int (nth 8 result)))
     result))
+
+(defun tramp-get-device (multi-method method user host)
+  "Returns the virtual device number.
+If it doesn't exist, generate a new one."
+  (let ((string (tramp-make-tramp-file-name multi-method method user host "")))
+    (unless (assoc string tramp-devices)
+      (add-to-list 'tramp-devices
+		   (list string (length tramp-devices))))
+    (list -1 (nth 1 (assoc string tramp-devices)))))
 
 (defun tramp-handle-set-visited-file-modtime (&optional time-list)
   "Like `set-visited-file-modtime' for tramp files."
@@ -2261,8 +2294,8 @@ if the remote host can't provide the modtime."
 (defun tramp-handle-file-regular-p (filename)
   "Like `file-regular-p' for tramp files."
   (with-parsed-tramp-file-name filename nil
-    (and (tramp-handle-file-exists-p filename)
-	 (eq ?- (aref (nth 8 (tramp-handle-file-attributes filename)) 0)))))
+    (and (file-exists-p filename)
+	 (eq ?- (aref (nth 8 (file-attributes filename)) 0)))))
 
 (defun tramp-handle-file-symlink-p (filename)
   "Like `file-symlink-p' for tramp files."
@@ -2299,17 +2332,30 @@ if the remote host can't provide the modtime."
 ;;       (substring directory 0 (- (length directory) 1))
 ;;     directory))
 
-;; Philippe Troin <phil@fifi.org>
+;; ;; Philippe Troin <phil@fifi.org>
+;; (defun tramp-handle-directory-file-name (directory)
+;;   "Like `directory-file-name' for tramp files."
+;;   (with-parsed-tramp-file-name directory nil
+;;     (let ((directory-length-1 (1- (length directory))))
+;;       (save-match-data
+;; 	(if (and (eq (aref directory directory-length-1) ?/)
+;; 		 (eq (string-match tramp-file-name-regexp directory) 0)
+;; 		 (/= (match-end 0) directory-length-1))
+;; 	    (substring directory 0 directory-length-1)
+;; 	  directory)))))
+
 (defun tramp-handle-directory-file-name (directory)
   "Like `directory-file-name' for tramp files."
+  ;; If path component of filename is "/", leave it unchanged.
+  ;; Otherwise, remove any trailing slash from path component.
+  ;; Method, host, etc, are unchanged.  Does it make sense to try
+  ;; to avoid parsing the filename?
   (with-parsed-tramp-file-name directory nil
-    (let ((directory-length-1 (1- (length directory))))
-      (save-match-data
-	(if (and (eq (aref directory directory-length-1) ?/)
-		 (eq (string-match tramp-file-name-regexp directory) 0)
-		 (/= (match-end 0) directory-length-1))
-	    (substring directory 0 directory-length-1)
-	  directory)))))
+    (if (and (not (zerop (length path)))
+	     (eq (aref path (1- (length path))) ?/)
+	     (not (string= path "/")))
+	(substring directory 0 -1)
+      directory)))
 
 ;; Directory listings.
 
@@ -3345,7 +3391,9 @@ ARGS are the arguments OPERATION has been called with."
 		  'dired-shell-unhandle-file-name 'dired-uucode-file
 		  'insert-file-contents-literally 'recover-file
 		  'vm-imap-check-mail 'vm-pop-check-mail 'vm-spool-check-mail))
-    (expand-file-name (nth 0 args)))
+    (if (file-name-absolute-p (nth 0 args))
+	(nth 0 args)
+      (expand-file-name (nth 0 args))))
    ; FILE DIRECTORY resp FILE1 FILE2
    ((member operation
 	    (list 'add-name-to-file 'copy-file 'expand-file-name
@@ -3380,11 +3428,12 @@ ARGS are the arguments OPERATION has been called with."
 
 (defun tramp-find-foreign-file-name-handler (filename)
   "Return foreign file name handler if exists."
-  (let (elt res)
-    (dolist (elt tramp-foreign-file-name-handler-alist res)
-      (when (funcall (car elt) filename)
-	(setq res (cdr elt))))
-    res))
+  (when (tramp-tramp-file-p filename)
+    (let (elt res)
+      (dolist (elt tramp-foreign-file-name-handler-alist res)
+	(when (funcall (car elt) filename)
+	  (setq res (cdr elt))))
+      res)))
 
 ;; Main function.
 ;;;###autoload
@@ -3523,8 +3572,8 @@ necessary anymore."
      file)
     (member (match-string 1 file) (mapcar 'car tramp-methods)))
    ((or (equal last-input-event 'tab)
-	(and (not (event-modifiers last-input-event))
-	     (integerp last-input-event)
+	(and (integerp last-input-event)
+	     (not (event-modifiers last-input-event))
 	     (or (char-equal last-input-event ?\?)
 		 (char-equal last-input-event ?\t) ; handled by 'tab already?
 		 (char-equal last-input-event ?\ ))))
@@ -3578,6 +3627,7 @@ necessary anymore."
 	     (host (tramp-file-name-host car))
 	     (path (tramp-file-name-path car))
 	     (m (tramp-find-method multi-method method user host))
+	     (tramp-current-user user) ; see `tramp-parse-passwd'
 	     all-user-hosts)
 
 	(unless (or multi-method ;; Not handled (yet).
@@ -3785,7 +3835,7 @@ PARTIAL-USER must match USER, PARTIAL-HOST must match HOST."
 Either user or host may be nil."
 
   (let (res)
-    (when (file-exists-p filename)
+    (when (file-readable-p filename)
       (with-temp-buffer
 	(insert-file-contents filename)
 	(goto-char (point-min))
@@ -3822,7 +3872,7 @@ Either user or host may be nil."
 User is always nil."
 
   (let (res)
-    (when (file-exists-p filename)
+    (when (file-readable-p filename)
       (with-temp-buffer
 	(insert-file-contents filename)
 	(goto-char (point-min))
@@ -3846,12 +3896,41 @@ User is always nil."
       (forward-line 1))
      result))
 
+(defun tramp-parse-sconfig (filename)
+  "Return a list of (user host) tuples allowed to access.
+User is always nil."
+
+  (let (res)
+    (when (file-readable-p filename)
+      (with-temp-buffer
+	(insert-file-contents filename)
+	(goto-char (point-min))
+	(while (not (eobp))
+	  (push (tramp-parse-sconfig-group) res))))
+    res))
+
+(defun tramp-parse-sconfig-group ()
+   "Return a (user host) tuple allowed to access.
+User is always nil."
+
+   (let ((result)
+	 (regexp (concat "^[ \t]*Host[ \t]+" "\\(" tramp-host-regexp "\\)")))
+
+     (narrow-to-region (point) (tramp-point-at-eol))
+     (when (re-search-forward regexp nil t)
+       (setq result (list nil (match-string 1))))
+     (widen)
+     (or
+      (> (skip-chars-forward ",") 0)
+      (forward-line 1))
+     result))
+
 (defun tramp-parse-hosts (filename)
   "Return a list of (user host) tuples allowed to access.
 User is always nil."
 
   (let (res)
-    (when (file-exists-p filename)
+    (when (file-readable-p filename)
       (with-temp-buffer
 	(insert-file-contents filename)
 	(goto-char (point-min))
@@ -3876,14 +3955,18 @@ User is always nil."
       (forward-line 1))
      result))
 
+;; For su-alike methods it would be desirable to return "root@localhost"
+;; as default.  Unfortunately, we have no information whether any user name
+;; has been typed already.  So we (mis-)use tramp-current-user as indication,
+;; assuming it is set in `tramp-completion-handle-file-name-all-completions'.
 (defun tramp-parse-passwd (filename)
   "Return a list of (user host) tuples allowed to access.
 Host is always \"localhost\"."
 
   (let (res)
-    (if (and (symbolp 'user) (zerop (length user)))
+    (if (zerop (length tramp-current-user))
 	'(("root" nil))
-      (when (file-exists-p filename)
+      (when (file-readable-p filename)
 	(with-temp-buffer
 	  (insert-file-contents filename)
 	  (goto-char (point-min))
@@ -3910,7 +3993,7 @@ Host is always \"localhost\"."
 User may be nil."
 
   (let (res)
-    (when (file-exists-p filename)
+    (when (file-readable-p filename)
       (with-temp-buffer
 	(insert-file-contents filename)
 	(goto-char (point-min))
@@ -3938,11 +4021,12 @@ User may be nil."
 (defun tramp-completion-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for tramp files."
   (let ((fullname (concat (or dir default-directory) name)))
-    (if (tramp-completion-mode fullname)
-	(tramp-run-real-handler
-	 'expand-file-name (list name dir))
-      (tramp-completion-run-real-handler
-       'expand-file-name (list name dir)))))
+    (tramp-drop-volume-letter
+     (if (tramp-completion-mode fullname)
+	 (tramp-run-real-handler
+	  'expand-file-name (list name dir))
+       (tramp-completion-run-real-handler
+	'expand-file-name (list name dir))))))
 
 ;;; Internal Functions:
 
@@ -5518,8 +5602,13 @@ FMT and ARGS which are passed to `error'."
     (pop-to-buffer (current-buffer))
     (funcall 'signal signal (apply 'format fmt args))))
 
-;; Chunked sending kluge.
-(defvar tramp-chunksize nil
+;; Chunked sending kluge.  We set this to 500 just to be on the
+;; safe side; some ssh connections appear to drop bytes when data
+;; is sent too quickly.
+;; This happens when using `ssh' method using GNU Emacs 20.7.1
+;; (hppa1.1-hp-hpux10.20, Motif).  (The connection is made to
+;; localhost.)
+(defvar tramp-chunksize 500
   "If non-nil, chunksize for sending things to remote host.")
 
 (defun tramp-send-region (multi-method method user host start end)
@@ -5529,7 +5618,7 @@ running as USER on HOST using METHOD."
                (tramp-get-buffer multi-method method user host))))
     (unless proc
       (error "Can't send region to remote host -- not logged in"))
-    (if tramp-chunksize
+    (if (and tramp-chunksize (not (zerop tramp-chunksize)))
 	(let ((pos start))
 	  (while (< pos end)
 	    (tramp-message-for-buffer
@@ -6439,7 +6528,7 @@ report.
 ;;    how to suppress. Maybe not an essential problem.
 ;; ** Try to avoid usage of `last-input-event' in `tramp-completion-mode'.
 ;; ** Extend `tramp-get-completion-su' for NIS and shadow passwords.
-;; ** Unify `tramp-parse-{rhosts,shosts,hosts,passwd,netrc}'.
+;; ** Unify `tramp-parse-{rhosts,shosts,sconfig,hosts,passwd,netrc}'.
 ;;    Code is nearly identical.
 ;; ** Decide whiche files to take for searching user/host names depending on
 ;;    operating system (windows-nt) in `tramp-completion-function-alist'.

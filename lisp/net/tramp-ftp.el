@@ -1,6 +1,6 @@
 ;;; tramp-ftp.el --- Tramp convenience functions for Ange-FTP and EFS -*- coding: iso-8859-1; -*-
 
-;; Copyright (C) 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <Michael.Albinus@alcatel.de>
 ;; Keywords: comm, processes
@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; Convenience functions for calling Ange-FTP (and maybe EFS, later on)
-;; from Tramp. Most of them are displaced from tramp.el
+;; from Tramp.  Most of them are displaced from tramp.el.
 
 ;;; Code:
 
@@ -64,6 +64,7 @@ present for backward compatibility."
     (setq file-name-handler-alist
 	  (delete a1 (delete a2 file-name-handler-alist)))))
 (tramp-disable-ange-ftp)
+(eval-after-load "ange-ftp" '(tramp-disable-ange-ftp))
 
 ;; Define FTP method ...
 (defcustom tramp-ftp-method "ftp"
@@ -76,9 +77,9 @@ present for backward compatibility."
 
 ;; Add some defaults for `tramp-default-method-alist'
 (add-to-list 'tramp-default-method-alist
-	     '("\\`ftp\\." "" tramp-ftp-method))
+	     (list "\\`ftp\\." "" tramp-ftp-method))
 (add-to-list 'tramp-default-method-alist
-	     '("" "\\`\\(anonymous\\|ftp\\)\\'" tramp-ftp-method))
+	     (list "" "\\`\\(anonymous\\|ftp\\)\\'" tramp-ftp-method))
 
 ;; Add completion function for FTP method.
 (unless (memq system-type '(windows-nt))
@@ -92,8 +93,7 @@ First arg specifies the OPERATION, second arg is a list of arguments to
 pass to the OPERATION."
   (save-match-data
     (or (boundp 'ange-ftp-name-format)
-	(and (require 'ange-ftp)
-	     (tramp-disable-ange-ftp)))
+	(require 'ange-ftp))
     (let* ((ange-ftp-name-format
 	    (list (nth 0 tramp-file-name-structure)
 		  (nth 3 tramp-file-name-structure)
