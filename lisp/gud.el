@@ -459,7 +459,8 @@ and source-file directory for your debugger."
       ;; We haven't tested gud on this system:
       (string-match "^mips-[^-]*-riscos" system-configuration)
       ;; It's documented on OSF/1.3
-      (string-match "^mips-[^-]*-osf1" system-configuration))
+      (string-match "^mips-[^-]*-osf1" system-configuration)
+      (string-match "^alpha-[^-]*-osf" system-configuration))
   "Non-nil to assume the MIPS/OSF dbx conventions (argument `-emacs').")
 
 (defun gud-mipsdbx-massage-args (file args)
