@@ -9523,11 +9523,13 @@ update_overlay_arrows (up_to_date)
 }
 
 
-/* Return overlay arrow string at row, or nil.  */
+/* Return overlay arrow string to display at row.
+   Return t if display as bitmap in left fringe.
+   Return nil if no overlay arrow.  */
 
 static Lisp_Object
-overlay_arrow_at_row (f, row, pbitmap)
-     struct frame *f;
+overlay_arrow_at_row (it, row, pbitmap)
+     struct it *it;
      struct glyph_row *row;
      int *pbitmap;
 {
@@ -9550,9 +9552,10 @@ overlay_arrow_at_row (f, row, pbitmap)
 	  && (MATRIX_ROW_START_CHARPOS (row) == marker_position (val)))
 	{
 	  val = overlay_arrow_string_or_property (var, pbitmap);
-	  if (FRAME_WINDOW_P (f))
+	  if (FRAME_WINDOW_P (it->f)
+	      && WINDOW_LEFT_FRINGE_WIDTH (it->w) > 0)
 	    return Qt;
-	  else if (STRINGP (val))
+	  if (STRINGP (val))
 	    return val;
 	  break;
 	}
@@ -14073,8 +14076,8 @@ usage: (trace-to-stderr STRING &rest OBJECTS)  */)
 		     Building Desired Matrix Rows
  ***********************************************************************/
 
-/* Return a temporary glyph row holding the glyphs of an overlay
-   arrow.  Only used for non-window-redisplay windows.  */
+/* Return a temporary glyph row holding the glyphs of an overlay arrow.
+   Used for non-window-redisplay windows, and for windows w/o left fringe.  */
 
 static struct glyph_row *
 get_overlay_arrow_glyph_row (w, overlay_arrow_string)
@@ -14955,11 +14958,11 @@ display_line (it)
      better to let it be displayed like cursors under X.  */
   if (! overlay_arrow_seen
       && (overlay_arrow_string
-	    = overlay_arrow_at_row (it->f, row, &overlay_arrow_bitmap),
+	    = overlay_arrow_at_row (it, row, &overlay_arrow_bitmap),
 	  !NILP (overlay_arrow_string)))
     {
       /* Overlay arrow in window redisplay is a fringe bitmap.  */
-      if (!FRAME_WINDOW_P (it->f))
+      if (STRINGP (overlay_arrow_string))
 	{
 	  struct glyph_row *arrow_row
 	    = get_overlay_arrow_glyph_row (it->w, overlay_arrow_string);
@@ -14984,10 +14987,12 @@ display_line (it)
 	      row->used[TEXT_AREA] = p2 - row->glyphs[TEXT_AREA];
 	    }
 	}
-
+      else
+	{
+	  it->w->overlay_arrow_bitmap = overlay_arrow_bitmap;
+	  row->overlay_arrow_p = 1;
+	}
       overlay_arrow_seen = 1;
-      it->w->overlay_arrow_bitmap = overlay_arrow_bitmap;
-      row->overlay_arrow_p = 1;
     }
 
   /* Compute pixel dimensions of this line.  */
