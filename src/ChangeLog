@@ -1,3 +1,20 @@
+2000-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dosfns.c (unspecified_colors): Remove.
+	(msdos_stdcolor_idx): Use global variables unspecified_fg and
+	unspecified_bg.
+	(msdos_stdcolor_name): Return strings for unspecified fore- and
+	back-ground colors.
+
+	* xfaces.c (Qunspecified_fg, Qunspecified_bg): Remove.
+	(syms_of_xfaces): Remove theit staticpro's.
+	(tty_color_name): Return Lisp strings for unspecified fore- and
+	back-ground colors.
+	(Finternal_set_lisp_face_attribute): Remove the special treatment
+	for Qunspecified_{f,b}g.
+	(realize_default_face): Replace Qunspecified_{f,b}g with a Lisp
+	string.
+
 2000-01-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (reseat_at_next_visible_line_start): Position before
