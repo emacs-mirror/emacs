@@ -430,7 +430,7 @@ NCOL should be zero or positive.")
   if (XINT (w->hscroll) != hscroll)
     XBUFFER (w->buffer)->prevent_redisplay_optimizations_p = 1;
   
-  w->hscroll = w->min_hscroll = make_number (hscroll);
+  w->hscroll = make_number (hscroll);
   return ncol;
 }
 
@@ -4407,16 +4407,22 @@ Default for ARG is window width minus 2.")
   (arg)
      register Lisp_Object arg;
 {
-
+  Lisp_Object result;
+  int hscroll;
+  struct window *w = XWINDOW (selected_window);
+  
   if (NILP (arg))
-    XSETFASTINT (arg, window_internal_width (XWINDOW (selected_window)) - 2);
+    XSETFASTINT (arg, window_internal_width (w) - 2);
   else
     arg = Fprefix_numeric_value (arg);
 
-  return
-    Fset_window_hscroll (selected_window,
-			 make_number (XINT (XWINDOW (selected_window)->hscroll)
-				      + XINT (arg)));
+  hscroll = XINT (w->hscroll) + XINT (arg);
+  result = Fset_window_hscroll (selected_window, make_number (hscroll));
+
+  if (!NILP (Finteractive_p ()))
+    w->min_hscroll = w->hscroll;
+
+  return result;
 }
 
 DEFUN ("scroll-right", Fscroll_right, Sscroll_right, 0, 1, "P",
@@ -4425,15 +4431,22 @@ Default for ARG is window width minus 2.")
   (arg)
      register Lisp_Object arg;
 {
+  Lisp_Object result;
+  int hscroll;
+  struct window *w = XWINDOW (selected_window);
+  
   if (NILP (arg))
-    XSETFASTINT (arg, window_internal_width (XWINDOW (selected_window)) - 2);
+    XSETFASTINT (arg, window_internal_width (w) - 2);
   else
     arg = Fprefix_numeric_value (arg);
 
-  return
-    Fset_window_hscroll (selected_window,
-			 make_number (XINT (XWINDOW (selected_window)->hscroll)
-				      - XINT (arg)));
+  hscroll = XINT (w->hscroll) - XINT (arg);
+  result = Fset_window_hscroll (selected_window, make_number (hscroll));
+  
+  if (!NILP (Finteractive_p ()))
+    w->min_hscroll = w->hscroll;
+
+  return result;
 }
 
 /* Value is the number of lines actually displayed in window W,
