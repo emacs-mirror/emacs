@@ -1248,7 +1248,7 @@ x_defined_color (f, color, color_def, alloc)
   Display *display = FRAME_X_DISPLAY (f);
 
   BLOCK_INPUT;
-  screen_colormap = DefaultColormap (display, XDefaultScreen (display));
+  screen_colormap = FRAME_X_COLORMAP (f);
 
   status = XParseColor (display, screen_colormap, color, color_def);
   if (status && alloc) 
@@ -1325,37 +1325,44 @@ x_defined_color (f, color, color_def, alloc)
     return 0;
 }
 
-/* Given a string ARG naming a color, compute a pixel value from it
-   suitable for screen F.
-   If F is not a color screen, return DEF (default) regardless of what
-   ARG says.  */
+
+/* Return the pixel color value for color COLOR_NAME on frame F.  If F
+   is a monochrome frame, return MONO_COLOR regardless of what ARG says.
+   Signal an error if color can't be allocated.  */
 
 int
-x_decode_color (f, arg, def)
+x_decode_color (f, color_name, mono_color)
      FRAME_PTR f;
-     Lisp_Object arg;
-     int def;
+     Lisp_Object color_name;
+     int mono_color;
 {
   XColor cdef;
 
-  CHECK_STRING (arg, 0);
+  CHECK_STRING (color_name, 0);
 
-  if (strcmp (XSTRING (arg)->data, "black") == 0)
+#if 0 /* Don't do this.  It's wrong when we're not using the default
+	 colormap, it makes freeing difficult, and it's probably not
+	 an important optimization.  */
+  if (strcmp (XSTRING (color_name)->data, "black") == 0)
     return BLACK_PIX_DEFAULT (f);
-  else if (strcmp (XSTRING (arg)->data, "white") == 0)
+  else if (strcmp (XSTRING (color_name)->data, "white") == 0)
     return WHITE_PIX_DEFAULT (f);
+#endif
 
+  /* Return MONO_COLOR for monochrome frames.  */
   if (FRAME_X_DISPLAY_INFO (f)->n_planes == 1)
-    return def;
+    return mono_color;
 
   /* x_defined_color is responsible for coping with failures
      by looking for a near-miss.  */
-  if (x_defined_color (f, XSTRING (arg)->data, &cdef, 1))
+  if (x_defined_color (f, XSTRING (color_name)->data, &cdef, 1))
     return cdef.pixel;
 
   Fsignal (Qerror, Fcons (build_string ("undefined color"),
-			  Fcons (arg, Qnil)));
+			  Fcons (color_name, Qnil)));
 }
+
+
 
 /* Change the `screen-gamma' frame parameter of frame F.  OLD_VALUE is
    the previous value of that parameter, NEW_VALUE is the new value.  */
@@ -1534,13 +1541,9 @@ x_set_mouse_color (f, arg, oldval)
 
     fore_color.pixel = f->output_data.x->mouse_pixel;
     back_color.pixel = mask_color;
-    XQueryColor (FRAME_X_DISPLAY (f),
-		 DefaultColormap (FRAME_X_DISPLAY (f),
-				  DefaultScreen (FRAME_X_DISPLAY (f))),
+    XQueryColor (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f),
 		 &fore_color);
-    XQueryColor (FRAME_X_DISPLAY (f),
-		 DefaultColormap (FRAME_X_DISPLAY (f),
-				  DefaultScreen (FRAME_X_DISPLAY (f))),
+    XQueryColor (FRAME_X_DISPLAY (f), FRAME_X_COLORMAP (f),
 		 &back_color);
     XRecolorCursor (FRAME_X_DISPLAY (f), cursor,
 		    &fore_color, &back_color);
@@ -2515,8 +2518,6 @@ display_x_get_resource (dpyinfo, attribute, class, component, subclass)
   char *name_key;
   char *class_key;
 
-  check_x ();
-
   CHECK_STRING (attribute, 0);
   CHECK_STRING (class, 0);
 
@@ -3356,7 +3357,6 @@ x_window (f, window_prompting, minibuffer_only)
   XClassHint class_hints;
   XSetWindowAttributes attributes;
   unsigned long attribute_mask;
-
   Widget shell_widget;
   Widget pane_widget;
   Widget frame_widget;
@@ -3382,6 +3382,9 @@ x_window (f, window_prompting, minibuffer_only)
   XtSetArg (al[ac], XtNinput, 1); ac++;
   XtSetArg (al[ac], XtNmappedWhenManaged, 0); ac++;
   XtSetArg (al[ac], XtNborderWidth, f->output_data.x->border_width); ac++;
+  XtSetArg (al[ac], XtNvisual, FRAME_X_VISUAL (f)); ac++;
+  XtSetArg (al[ac], XtNdepth, FRAME_X_DISPLAY_INFO (f)->n_planes); ac++;
+  XtSetArg (al[ac], XtNcolormap, FRAME_X_COLORMAP (f)); ac++;
   shell_widget = XtAppCreateShell (f->namebuf, EMACS_CLASS,
 				   applicationShellWidgetClass,
 				   FRAME_X_DISPLAY (f), al, ac);
@@ -3397,6 +3400,11 @@ x_window (f, window_prompting, minibuffer_only)
 				  (lw_callback) NULL,
 				  (lw_callback) NULL);
 
+  ac = 0;
+  XtSetArg (al[ac], XtNvisual, FRAME_X_VISUAL (f)); ac++;
+  XtSetArg (al[ac], XtNdepth, FRAME_X_DISPLAY_INFO (f)->n_planes); ac++;
+  XtSetArg (al[ac], XtNcolormap, FRAME_X_COLORMAP (f)); ac++;
+  XtSetValues (pane_widget, al, ac);
   f->output_data.x->column_widget = pane_widget;
 
   /* mappedWhenManaged to false tells to the paned window to not map/unmap 
@@ -3408,9 +3416,11 @@ x_window (f, window_prompting, minibuffer_only)
   XtSetArg (al[ac], XtNallowResize, 1); ac++;
   XtSetArg (al[ac], XtNresizeToPreferred, 1); ac++;
   XtSetArg (al[ac], XtNemacsFrame, f); ac++;
-  frame_widget = XtCreateWidget (f->namebuf,
-				  emacsFrameClass,
-				  pane_widget, al, ac);
+  XtSetArg (al[ac], XtNvisual, FRAME_X_VISUAL (f)); ac++;
+  XtSetArg (al[ac], XtNdepth, FRAME_X_DISPLAY_INFO (f)->n_planes); ac++;
+  XtSetArg (al[ac], XtNcolormap, FRAME_X_COLORMAP (f)); ac++;
+  frame_widget = XtCreateWidget (f->namebuf, emacsFrameClass, pane_widget,
+				 al, ac);
  
   f->output_data.x->edit_widget = frame_widget;
  
@@ -3586,11 +3596,9 @@ x_window (f)
   attributes.backing_store = NotUseful;
   attributes.save_under = True;
   attributes.event_mask = STANDARD_EVENT_SET;
-  attribute_mask = (CWBackPixel | CWBorderPixel | CWBitGravity
-#if 0
-		    | CWBackingStore | CWSaveUnder
-#endif
-		    | CWEventMask);
+  attributes.colormap = FRAME_X_COLORMAP (f);
+  attribute_mask = (CWBackPixel | CWBorderPixel | CWBitGravity | CWEventMask
+		    | CWColormap);
 
   BLOCK_INPUT;
   FRAME_X_WINDOW (f)
@@ -3893,6 +3901,29 @@ This function is an internal primitive--use `make-frame' instead.")
 #ifdef MULTI_KBOARD
   FRAME_KBOARD (f) = kb;
 #endif
+
+  /* These colors will be set anyway later, but it's important
+     to get the color reference counts right, so initialize them!  */
+  {
+    Lisp_Object black;
+    struct gcpro gcpro1;
+    
+    black = build_string ("black");
+    GCPRO1 (black);
+    f->output_data.x->foreground_pixel
+      = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
+    f->output_data.x->background_pixel
+      = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
+    f->output_data.x->cursor_pixel
+      = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
+    f->output_data.x->cursor_foreground_pixel
+      = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
+    f->output_data.x->border_pixel
+      = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
+    f->output_data.x->mouse_pixel
+      = x_decode_color (f, black, BLACK_PIX_DEFAULT (f));
+    UNGCPRO;
+  }
 
   /* Specify the parent under which to make this X window.  */
 
@@ -7254,8 +7285,10 @@ xpm_load (f, img)
   /* Configure the XPM lib.  Use the visual of frame F.  Allocate
      close colors.  Return colors allocated.  */
   bzero (&attrs, sizeof attrs);
-  attrs.visual = FRAME_X_DISPLAY_INFO (f)->visual;
+  attrs.visual = FRAME_X_VISUAL (f);
+  attrs.colormap = FRAME_X_COLORMAP (f);
   attrs.valuemask |= XpmVisual;
+  attrs.valuemask |= XpmColormap;
   attrs.valuemask |= XpmReturnAllocPixels;
 #ifdef XpmAllocCloseColors
   attrs.alloc_close_colors = 1;
@@ -7480,7 +7513,7 @@ lookup_rgb_color (f, r, g, b)
       color.blue = b;
       
       BLOCK_INPUT;
-      cmap = DefaultColormapOfScreen (FRAME_X_SCREEN (f));
+      cmap = FRAME_X_COLORMAP (f);
       rc = x_alloc_nearest_color (f, cmap, &color);
       UNBLOCK_INPUT;
 
@@ -7527,7 +7560,7 @@ lookup_pixel_color (f, pixel)
 
       BLOCK_INPUT;
       
-      cmap = DefaultColormapOfScreen (FRAME_X_SCREEN (f));
+      cmap = FRAME_X_COLORMAP (f);
       color.pixel = pixel;
       XQueryColor (FRAME_X_DISPLAY (f), cmap, &color);
       rc = x_alloc_nearest_color (f, cmap, &color);
@@ -7645,7 +7678,7 @@ x_laplace (f, img)
      struct frame *f;
      struct image *img;
 {
-  Colormap cmap = DefaultColormapOfScreen (FRAME_X_SCREEN (f));
+  Colormap cmap = FRAME_X_COLORMAP (f);
   XImage *ximg, *oimg;
   XColor *in[3];
   long *out;
@@ -7783,7 +7816,7 @@ x_build_heuristic_mask (f, img, how)
 
 	  sprintf (color_name, "#%04x%04x%04x", rgb[0], rgb[1], rgb[2]);
 	  
-	  cmap = DefaultColormapOfScreen (FRAME_X_SCREEN (f));
+	  cmap = FRAME_X_COLORMAP (f);
 	  if (XLookupColor (dpy, cmap, color_name, &exact, &color))
 	    {
 	      bg = color.pixel;
@@ -8519,7 +8552,7 @@ png_load (f, img)
 	  png_color_16 frame_background;
 
 	  BLOCK_INPUT;
-	  cmap = DefaultColormapOfScreen (FRAME_X_SCREEN (f));
+	  cmap = FRAME_X_COLORMAP (f);
 	  color.pixel = FRAME_BACKGROUND_PIXEL (f);
 	  XQueryColor (FRAME_X_DISPLAY (f), cmap, &color);
 	  UNBLOCK_INPUT;
@@ -10400,8 +10433,8 @@ x_create_tip_frame (dpyinfo, parms)
     
     BLOCK_INPUT;
     mask = CWBackPixel | CWOverrideRedirect | CWSaveUnder | CWEventMask;
-    /* Window managers looks at the override-redirect flag to
-       determine whether or net to give windows a decoration (Xlib
+    /* Window managers look at the override-redirect flag to determine
+       whether or net to give windows a decoration (Xlib spec, chapter
        3.2.8).  */
     attrs.override_redirect = True;
     attrs.save_under = True;
