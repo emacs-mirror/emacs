@@ -1,3 +1,8 @@
+2003-01-23  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/asm-mode.el (asm-mode): Added syntax table entries for
+	/* */ comments.
+
 2003-01-22  Juanma Barranquero  <lektu@terra.es>
 
 	* calculator.el (calculator-displayers, calculator-mode-map): Fix typos.
@@ -70,7 +75,7 @@
 	* language/cyrillic.el (ccl-encode-koi8)
 	(ccl-encode-alternativnyj): Deal with unencodable characters.
 
-2002-11-18  Dhruva Krishnamurthy <seagull@fastmail.fm>  (tiny change)
+2002-11-18  Dhruva Krishnamurthy  <seagull@fastmail.fm>  (tiny change)
 
 	* progmodes/cc-styles.el (cc-align): Required by c-set-style.
 
@@ -83,7 +88,7 @@
 	* calendar/diary-lib.el (make-diary-entry): Allow for local variables
 	at end of diary file.
 
-2002-11-16  Ivan Zakharyaschev <imz@altlinux.org>  (tiny change)
+2002-11-16  Ivan Zakharyaschev  <imz@altlinux.org>  (tiny change)
 
 	* international/codepage.el (cp866-decode-table): Fix the
 	translation table.
@@ -650,7 +655,7 @@
 	Deal better with invalid utf-8.
 	(mule-utf-8): Doc fix.
 
-2002-06-17  Eli Zaretskii <eliz@is.elta.co.il>
+2002-06-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/mule.el (ctext-pre-write-conversion): If FROM is a
 	string, or if the current buffer is not already a scratch buffer,
@@ -1529,7 +1534,7 @@
 	there are some non-trivial functions here, and src/Makefile.in now
 	wants bindings.elc.
 
-2001-10-12  Eli Barzilay <eli@barzilay.org>
+2001-10-12  Eli Barzilay  <eli@barzilay.org>
 
 	* calculator.el (calculator-eng-display): Don't call concat
 	with an integer argument.
@@ -1984,7 +1989,7 @@
 	(quail-activate): Mention the hooks these functions run in their
 	doc strings.
 
-2001-09-05  Edward M. Reingold <reingold@iit.edu>
+2001-09-05  Edward M. Reingold  <reingold@iit.edu>
 
 	* cal-menu.el (calendar-mouse-view-other-diary-entries): Fix name
 	of file in header of menu.
@@ -2371,7 +2376,7 @@
 	window-scroll-functions are run with a window start that's
 	temporarily outside of the restriction.
 
-2001-08-16  Robert J. Chassell <bug-texinfo@gnu.org>
+2001-08-16  Robert J. Chassell  <bug-texinfo@gnu.org>
 
 	* textmodes/texnfo-upd.el: Update copyright notice, fix minor typos.
 	(texinfo-find-lower-level-node, texinfo-find-higher-level-node)
@@ -4577,7 +4582,7 @@
 	final computational form, which was unnecessary; corrected a
 	parsing problem when timeclock-relative was nil.
 
-2001-04-23  Kahlil Hodgson <kahlil@discus.anu.edu.au>
+2001-04-23  Kahlil Hodgson  <kahlil@discus.anu.edu.au>
 
 	* calendar/timeclock.el (timeclock-modeline-display): Check if
 	`list-entry' is null.
@@ -4802,7 +4807,7 @@
 	(ps-fonts, ps-font-number, ps-rgb-color, ps-end-page, ps-next-page)
 	(ps-skip-newline): Replace defun by defsubst.
 
-2001-04-10  Colin Walters <walters@cis.ohio-state.edu>
+2001-04-10  Colin Walters  <walters@cis.ohio-state.edu>
 
 	* eshell/eshell.el (eshell-command): Needed a "%s" format
 	specifier, in case the buffer contains percent characters.
@@ -6280,7 +6285,7 @@
 
 	* international/mule-cmds.el (set-input-method): Another doc fix.
 
-2001-02-13  David M. Koppelman <koppel@ee.lsu.edu>
+2001-02-13  David M. Koppelman  <koppel@ee.lsu.edu>
 
 	* hi-lock.el (hi-lock-find-patterns): Don't activate font-lock-mode.
 
@@ -6444,7 +6449,7 @@
 	* makefile.w32-in (EMACS): Use $(THISDIR) to make emacs.exe path
 	absolute.
 
-2001-02-06  David M. Koppelman <koppel@ee.lsu.edu>
+2001-02-06  David M. Koppelman  <koppel@ee.lsu.edu>
 
 	* hi-lock.el (hi-lock-mode): Toggling hi-lock-mode now affects all
 	buffers.  When hi-lock turned on rather than only checking current
@@ -6995,7 +7000,7 @@
 
 	* ediff-vers.el: Fix for 8+3 DOS file systems.
 
-2001-01-19  Colin Walters <walters@cis.ohio-state.edu>
+2001-01-19  Colin Walters  <walters@cis.ohio-state.edu>
 
 	* ediff-util.el (ediff-compare-custom-diffs-maybe): Put diff in
 	diff mode, if available.
@@ -8850,7 +8855,7 @@
 
 	* select.el (x-get-selection): Docstring fix.
 
-2000-11-27  Dave Pearson <davep@hagbard.demon.co.uk>
+2000-11-27  Dave Pearson  <davep@hagbard.demon.co.uk>
 
 	* play/5x5.el (5x5-play-solution): Bind hinhibit-quit to t.
 
@@ -8993,7 +8998,7 @@
 	(iswitchb-entryfn-p): If minibuffer-depth returns the same value
 	as recorded in iswitchb-minibuf-depth, return non-nil.
 
-2000-11-23  Eli Zaretskii <eliz@is.elta.co.il>
+2000-11-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* hscroll.el (turn-on-hscroll, hscroll-mode, hscroll-global-mode)
 	(hscroll-window-maybe): Docstring fix.
@@ -9255,7 +9260,7 @@
 
 	* Makefile.in (DONTCOMPILE): Omit bindings.el.
 
-2000-11-20  Eli Barzilay <eli@www.barzilay.org>
+2000-11-20  Eli Barzilay  <eli@www.barzilay.org>
 
 	* calculator.el (calculator-paste): Use `if' instead of `and'
 	and `or'.
@@ -9296,7 +9301,7 @@
 	(mode-line-toggle-modified, mode-line-widen)
 	(mode-line-abbrev-mode, mode-line-auto-fill-mode): Fix typos.
 
-2000-11-17  Vinicius Jose Latorre <vinicius@cpqd.com.br>
+2000-11-17  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el (toplevel): Test for find-coding-system being
 	fboundp before calling ps-x-find-coding-system.
@@ -15121,7 +15126,7 @@
 	* progmodes/icon.el (icon-indent-line)
 	(icon-is-continuation-line): Handle comments specially.
 
-2000-08-17  Ken Stevens <k.stevens@ieee.org>
+2000-08-17  Ken Stevens  <k.stevens@ieee.org>
 
 	* ispell.el: Set to standard author/maintainer/keyword fields.
 	Fine tuning to menu map appearance and operation, and added help.
@@ -16511,7 +16516,7 @@
 
 	* gnus/parse-time.el: Correct author's mail address.
 
-2000-07-19  Colin Walters <walters@cis.ohio-state.edu>
+2000-07-19  Colin Walters  <walters@cis.ohio-state.edu>
 
 	* comint.el (comint-highlight-input, comint-highlight-face):
 	New user options.
@@ -17370,7 +17375,7 @@
 	* info.el Doc fixes.
 	(Info-build-node-completions): Match Ref tags.
 
-2000-06-13  Eli Zaretskii <eliz@is.elta.co.il>
+2000-06-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* frame.el (display-multi-frame-p, display-multi-font-p): New
 	defaliases for display-graphic-p.
@@ -17917,7 +17922,7 @@
 	* simple.el (newline): Don't bind before-change-function,
 	after-change-function.
 
-2000-05-31  Rajesh Vaidheeswarran <rv@gnu.org>
+2000-05-31  Rajesh Vaidheeswarran  <rv@gnu.org>
 
 	* whitespace.el (whitespace-rescan-timer-time): Update interval
 	set to 600 seconds (10 minutes) instead of 60 seconds since
@@ -18960,7 +18965,7 @@
 	* gud.el (gud-gdb-find-file): Call find-file-noselect with NOWARN
 	argument.
 
-2000-04-27  Sen Nagata <sen@eccosys.com>
+2000-04-27  Sen Nagata  <sen@eccosys.com>
 
 	* emacs-lisp/crm.el (crm-completion-table): New variable.
 	(crm-collection-fn, crm-test-completion)
@@ -19933,7 +19938,7 @@
 
 	* emacs-lisp/re-builder.el: Remove RCS Id, remove history comment.
 
-2000-03-12  Detlev Zundel <detlev.zundel@stud.uni-karlsruhe.de>
+2000-03-12  Detlev Zundel  <detlev.zundel@stud.uni-karlsruhe.de>
 
 	* emacs-lisp/re-builder.el (reb-re-syntax): Fix typo in `:type'.
 	Fix comment.

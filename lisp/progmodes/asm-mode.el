@@ -128,9 +128,13 @@ Special commands:
   (local-set-key (vector asm-comment-char) 'asm-comment)
 
   (modify-syntax-entry	asm-comment-char
-			"<" asm-mode-syntax-table)
+			"< b" asm-mode-syntax-table)
   (modify-syntax-entry	?\n
-			 ">" asm-mode-syntax-table)
+			 "> b" asm-mode-syntax-table)
+
+  (modify-syntax-entry ?/  ". 14" asm-mode-syntax-table)
+  (modify-syntax-entry ?*  ". 23" asm-mode-syntax-table)
+
   (let ((cs (regexp-quote (char-to-string asm-comment-char))))
     (make-local-variable 'comment-start)
     (setq comment-start (concat (char-to-string asm-comment-char) " "))
@@ -213,13 +217,13 @@ repeatedly until you are satisfied with the kind of comment."
     (insert asm-comment-char))
 
    ;; Empty code-level comment already present?
-   ;; Then start flush-left comment, on line above if this one is nonempty. 
+   ;; Then start flush-left comment, on line above if this one is nonempty.
    ((asm-line-matches asm-code-level-empty-comment-pattern)
     (asm-pop-comment-level)
     (insert asm-comment-char asm-comment-char comment-start))
 
    ;; Empty comment ends line?
-   ;; Then make code-level comment, on line above if this one is nonempty. 
+   ;; Then make code-level comment, on line above if this one is nonempty.
    ((asm-line-matches asm-inline-empty-comment-pattern)
     (asm-pop-comment-level)
     (tab-to-tab-stop)
