@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-info.el,v 1.12 2002/06/18 23:03:55 monnier Exp $
+;; Revision: $Id: pcvs-info.el,v 1.13 2002/09/11 01:56:47 rms Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -452,8 +452,13 @@ DIR can also be a file."
 	       ((equal date "Result of merge") (setq subtype 'MERGED))
 	       ((let ((mtime (nth 5 (file-attributes (concat dir f))))
 		      (system-time-locale "C"))
-		  (equal (setq timestamp (format-time-string "%c" mtime 'utc))
-			 date))
+		  (setq timestamp (format-time-string "%c" mtime 'utc))
+		  ;; Solaris sometimes uses "Wed Sep 05", not "Wed Sep  5".
+		  ;; See "grep '[^a-z_]ctime' cvs/src/*.c" for reference.
+		  (if (= (aref timestamp 8) ?0)
+		      (setq timestamp (concat (substring timestamp 0 8)
+					      " " (substring timestamp 9))))
+		  (equal timestamp date))
 		(setq type (if all 'UP-TO-DATE)))
 	       ((equal date (concat "Result of merge+" timestamp))
 		(setq type 'CONFLICT)))
