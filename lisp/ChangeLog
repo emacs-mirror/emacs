@@ -1,3 +1,13 @@
+2004-04-28  Masatake YAMATO  <jet@gyve.org>
+
+	* subr.el (remove-overlays): Make arguments
+	optional.
+
+	* wid-edit.el (widget-specify-button): Put evaporate to the 
+	overlay for sample.
+	(widget-specify-sample): Put evaporate to the overlay for sample.
+	(widget-specify-doc): Put evaporate to the overlay for documentation.
+
 2004-04-27  Jesper Harder  <harder@ifa.au.dk>
 
 	* info.el (info-apropos): Make it an index node.  Align node names

@@ -3413,6 +3413,9 @@ using the text properties (esp. the face) of the prompt string.
 ** New function x-send-client-message sends a client message when
 running under X.
 
+** Arguments for remove-overlays are now optional, so that you can remove
+all overlays in the buffer by just calling (remove-overlay). 
+
 ** New packages:
 
 *** The new package gdb-ui.el provides an enhanced graphical interface to
