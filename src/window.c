@@ -880,15 +880,14 @@ DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
     minibuf = (minibuf_level ? Qt : Qlambda);
 
 #ifdef MULTI_FRAME
-  /* all_frames == nil doesn't specify which frames to include.
-     Decide which frames it includes.  */
+  /* all_frames == nil doesn't specify which frames to include.  */
   if (NILP (all_frames))
     all_frames = (EQ (minibuf, Qt)
-		   ? (FRAME_MINIBUF_WINDOW
-		      (XFRAME
-		       (WINDOW_FRAME
-			(XWINDOW (window)))))
-		   : Qnil);
+		  ? (FRAME_MINIBUF_WINDOW
+		     (XFRAME
+		      (WINDOW_FRAME
+		       (XWINDOW (window)))))
+		  : Qnil);
   else if (EQ (all_frames, Qvisible))
     ;
   else if (XFASTINT (all_frames) == 0)
@@ -918,7 +917,19 @@ DEFUN ("next-window", Fnext_window, Snext_window, 0, 3, 0,
 	    tem = WINDOW_FRAME (XWINDOW (window));
 #ifdef MULTI_FRAME
 	    if (! NILP (all_frames))
-	      tem = next_frame (tem, all_frames);
+	      {
+		Lisp_Object tem1;
+
+		tem1 = tem;
+		tem = next_frame (tem, all_frames);
+		/* In the case where the minibuffer is active,
+		   and we include its frame as well as the selected one,
+		   next_frame may get stuck in that frame.
+		   If that happens, go back to the selected frame
+		   so we can complete the cycle.  */
+		if (EQ (tem, tem1))
+		  XSET (tem, Lisp_Frame, selected_frame);
+	      }
 #endif
 	    tem = FRAME_ROOT_WINDOW (XFRAME (tem));
 
@@ -1050,7 +1061,19 @@ DEFUN ("previous-window", Fprevious_window, Sprevious_window, 0, 3, 0,
 		 paths through the set of acceptable windows.
 		 window_loop assumes that these `ring' requirement are
 		 met.  */
-	      tem = prev_frame (tem, all_frames);
+	      {
+		Lisp_Object tem1;
+
+		tem1 = tem;
+		tem = prev_frame (tem, all_frames);
+		/* In the case where the minibuffer is active,
+		   and we include its frame as well as the selected one,
+		   next_frame may get stuck in that frame.
+		   If that happens, go back to the selected frame
+		   so we can complete the cycle.  */
+		if (EQ (tem, tem1))
+		  XSET (tem, Lisp_Frame, selected_frame);
+	      }
 #endif
 	    /* If this frame has a minibuffer, find that window first,
 	       because it is conceptually the last window in that frame.  */
