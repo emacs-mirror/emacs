@@ -208,22 +208,17 @@ readchar (readcharfun)
 	  if (bytepos >= BUF_ZV_BYTE (inbuffer))
 	    return -1;
 
-	  if (XMARKER (readcharfun)->bufpos == BUF_GPT_BYTE (inbuffer))
-	    XMARKER (readcharfun)->bufpos += BUF_GAP_SIZE (inbuffer);
-
 	  if (! NILP (inbuffer->enable_multibyte_characters))
 	    INC_POS (bytepos);
 	  else
 	    bytepos++;
-	  XMARKER (readcharfun)->bufpos += bytepos - orig_bytepos;
+	  XMARKER (readcharfun)->bytepos = bytepos;
 	  XMARKER (readcharfun)->charpos++;
 
 	  readchar_backlog = bytepos - orig_bytepos;
 	}
 
-      /* Because we move ->bufpos across the gap before we advance it,
-	 the gap never comes between the previous character and ->bufpos.  */
-      return *(BUF_BEG_ADDR (inbuffer) + XMARKER (readcharfun)->bufpos
+      return *(BUF_BEG_ADDR (inbuffer) + XMARKER (readcharfun)->bytepos
 	       - readchar_backlog--);
     }
   if (EQ (readcharfun, Qget_file_char))
