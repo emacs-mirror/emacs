@@ -61,9 +61,9 @@ static void report(mps_arena_t arena)
 
         mps_message_discard(arena, message);
 
-        printf("live %d\n", live);
-        printf("condemned %d\n", condemned);
-        printf("not_condemned %d\n", not_condemned);
+        printf("live %lu\n", (unsigned long)live);
+        printf("condemned %lu\n", (unsigned long)condemned);
+        printf("not_condemned %lu\n", (unsigned long)not_condemned);
     }
 }
 
