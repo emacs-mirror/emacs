@@ -29,7 +29,7 @@ specify a different major mode for this buffer by setting the variable
 
   It is possible to specify files to be visited, Lisp files to be
 loaded, and functions to be called, by giving Emacs arguments in the
-shell command line.  @xref{Command Arguments}.  But we don't recommend
+shell command line.  @xref{Command Line}.  But we don't recommend
 doing this.  The feature exists mainly for compatibility with other
 editors.
 
