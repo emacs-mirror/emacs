@@ -31,3 +31,6 @@ struct group {
 struct group *getgrgid(gid_t);
 
 #endif /* _GRP_H */
+
+/* arch-tag: 82840357-7946-4a87-9c97-c0281b49aca3
+   (do not change this comment) */
