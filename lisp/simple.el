@@ -1343,7 +1343,8 @@ and only used if a buffer is displayed."
 		  (if (= (buffer-size) 0)
 		      0
 		    (count-lines (point-min) (point-max)))))
-	     (cond ((and (or (<= lines 1)
+	     (cond ((= lines 0))
+		   ((and (or (<= lines 1)
 			     (<= lines
 				 (if resize-mini-windows
 				     (cond ((floatp max-mini-window-height)
@@ -3234,6 +3235,12 @@ Note that in side-by-side windows, truncation is always enabled."
 	    (not truncate-lines)
 	  (> (prefix-numeric-value arg) 0)))
   (force-mode-line-update)
+  (unless truncate-lines
+    (let ((buffer (current-buffer)))
+      (walk-windows (lambda (window)
+		      (if (eq buffer (window-buffer window))
+			  (set-window-hscroll window 0)))
+		    nil t)))
   (message "Truncate long lines %s"
 	   (if truncate-lines "enabled" "disabled")))
 
