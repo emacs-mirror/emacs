@@ -753,7 +753,12 @@ argument causes us to read a file name and use that file as the inbox."
 					     (not (file-exists-p file))))
 	     nil)
 	    ((and (not movemail) (not popmail))
-	     (rename-file file tofile nil)
+	     ;; Try copying.  If that fails (perhaps no space),
+	     ;; rename instead.
+	     (condition-case nil
+		 (copy-file file tofile nil)
+	       (error
+		(rename-file file tofile nil)))
 	     ;; Make the real inbox file empty.
 	     ;; Leaving it deleted could cause lossage
 	     ;; because mailers often won't create the file.
