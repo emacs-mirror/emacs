@@ -1007,7 +1007,7 @@ If DIR is positive skip forward; if negative, skip backward."
 (defun mouse-show-mark ()
   (if transient-mark-mode
       (delete-overlay mouse-drag-overlay)
-    (if (not (display-graphic-p))
+    (if (not (display-mouse-p))
 	(save-excursion
 	  (goto-char (mark t))
 	  (sit-for 1))
