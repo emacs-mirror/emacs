@@ -11,9 +11,9 @@
 ;; LCD Archive Entry:
 ;; eldoc|Noah Friedman|friedman@prep.ai.mit.edu|
 ;; show function arglist or variable docstring in echo area|
-;; $Date: 1995/11/25 03:45:25 $|$Revision: 1.5 $|~/misc/eldoc.el.gz|
+;; $Date: 1996/07/14 16:46:25 $|$Revision: 1.6 $|~/misc/eldoc.el.gz|
 
-;; $Id: eldoc.el,v 1.5 1995/11/25 03:45:25 friedman Exp friedman $
+;; $Id: eldoc.el,v 1.6 1996/07/14 16:46:25 friedman Exp friedman $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -319,6 +319,8 @@ documentation string if possible."
         (doclist nil)
         (end nil))
     (save-match-data
+      ;; TODO: Move these into a separate table that is iterated over until
+      ;; a match is found.
       (cond
        ;; Try first searching for args starting with symbol name.
        ;; This is to avoid matching parenthetical remarks in e.g. sit-for.
@@ -373,7 +375,13 @@ documentation string if possible."
         (setq end (- (match-end 1) 1))
         (if (string-match " +" docstring (match-beginning 1))
             (setq doc (substring docstring (match-end 0) end))
-          (setq doc ""))))
+          (setq doc "")))
+
+       ;; This finds the argstring for `start-process'.
+       ;; I don't know if there are any others with the same pattern.
+       ((string-match "^Args are +\\([^\n]+\\)$" docstring)
+        (setq doc (substring docstring (match-beginning 1) (match-end 1))))
+       )
 
       (cond ((not (stringp doc))
              nil)
