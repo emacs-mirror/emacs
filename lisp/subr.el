@@ -1222,6 +1222,33 @@ in BODY."
      (combine-after-change-execute)))
 
 
+(defvar delay-mode-hooks nil
+  "If non-nil, `run-mode-hooks' should delay running the hooks.")
+(defvar delayed-mode-hooks nil
+  "List of delayed mode hooks waiting to be run.")
+(make-variable-buffer-local 'delayed-mode-hooks)
+
+(defun run-mode-hooks (&rest hooks)
+  "Run mode hooks `delayed-mode-hooks' and HOOKS, or delay HOOKS.
+Execution is delayed if `delay-mode-hooks' is non-nil.
+Major mode functions should use this."
+  (if delay-mode-hooks
+      ;; Delaying case.
+      (dolist (hook hooks)
+	(push hook delayed-mode-hooks))
+    ;; Normal case, just run the hook as before plus any delayed hooks.
+    (setq hooks (nconc (nreverse delayed-mode-hooks) hooks))
+    (setq delayed-mode-hooks nil)
+    (apply 'run-hooks hooks)))
+
+(defmacro delay-mode-hooks (&rest body)
+  "Execute BODY, but delay any `run-mode-hooks'.
+Only affects hooks run in the current buffer."
+  `(progn
+     (make-local-variable 'delay-mode-hooks)
+     (let ((delay-mode-hooks t))
+       ,@body)))
+
 (defmacro with-syntax-table (table &rest body)
   "Evaluate BODY with syntax table of current buffer set to a copy of TABLE.
 The syntax table of the current buffer is saved, BODY is evaluated, and the
@@ -1649,5 +1676,100 @@ specification for `play-sound'."
 	    (plist-put sound :device device))
 	(push 'sound sound)
 	(play-sound sound))))
+
+;; Clones ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun text-clone-maintain (ol1 after beg end &optional len)
+  "Propagate the changes made under the overlay OL1 to the other clones.
+This is used on the `modification-hooks' property of text clones."
+  (when (and after (not undo-in-progress) (overlay-start ol1))
+    (let ((margin (if (overlay-get ol1 'text-clone-spreadp) 1 0)))
+      (setq beg (max beg (+ (overlay-start ol1) margin)))
+      (setq end (min end (- (overlay-end ol1) margin)))
+      (when (<= beg end)
+	(save-excursion
+	  (when (overlay-get ol1 'text-clone-syntax)
+	    ;; Check content of the clone's text.
+	    (let ((cbeg (+ (overlay-start ol1) margin))
+		  (cend (- (overlay-end ol1) margin)))
+	      (goto-char cbeg)
+	      (save-match-data
+		(if (not (re-search-forward
+			  (overlay-get ol1 'text-clone-syntax) cend t))
+		    ;; Mark the overlay for deletion.
+		    (overlay-put ol1 'text-clones nil)
+		  (when (< (match-end 0) cend)
+		    ;; Shrink the clone at its end.
+		    (setq end (min end (match-end 0)))
+		    (move-overlay ol1 (overlay-start ol1)
+				  (+ (match-end 0) margin)))
+		  (when (> (match-beginning 0) cbeg)
+		    ;; Shrink the clone at its beginning.
+		    (setq beg (max (match-beginning 0) beg))
+		    (move-overlay ol1 (- (match-beginning 0) margin)
+				  (overlay-end ol1)))))))
+	  ;; Now go ahead and update the clones.
+	  (let ((head (- beg (overlay-start ol1)))
+		(tail (- (overlay-end ol1) end))
+		(str (buffer-substring beg end))
+		(nothing-left t)
+		(inhibit-modification-hooks t))
+	    (dolist (ol2 (overlay-get ol1 'text-clones))
+	      (let ((oe (overlay-end ol2)))
+		(unless (or (eq ol1 ol2) (null oe))
+		  (setq nothing-left nil)
+		  (let ((mod-beg (+ (overlay-start ol2) head)))
+		    ;;(overlay-put ol2 'modification-hooks nil)
+		    (goto-char (- (overlay-end ol2) tail))
+		    (unless (> mod-beg (point))
+		      (save-excursion (insert str))
+		      (delete-region mod-beg (point)))
+		    ;;(overlay-put ol2 'modification-hooks '(text-clone-maintain))
+		    ))))
+	    (if nothing-left (delete-overlay ol1))))))))
+
+(defun text-clone-create (start end &optional spreadp syntax)
+  "Create a text clone of START...END at point.
+Text clones are chunks of text that are automatically kept identical:
+changes done to one of the clones will be immediately propagated to the other.
+
+The buffer's content at point is assumed to be already identical to
+the one between START and END.
+If SYNTAX is provided it's a regexp that describes the possible text of
+the clones; the clone will be shrunk or killed if necessary to ensure that
+its text matches the regexp.
+If SPREADP is non-nil it indicates that text inserted before/after the
+clone should be incorporated in the clone."
+  ;; To deal with SPREADP we can either use an overlay with `nil t' along
+  ;; with insert-(behind|in-front-of)-hooks or use a slightly larger overlay
+  ;; (with a one-char margin at each end) with `t nil'.
+  ;; We opted for a larger overlay because it behaves better in the case
+  ;; where the clone is reduced to the empty string (we want the overlay to
+  ;; stay when the clone's content is the empty string and we want to use
+  ;; `evaporate' to make sure those overlays get deleted when needed).
+  ;; 
+  (let* ((pt-end (+ (point) (- end start)))
+  	 (start-margin (if (or (not spreadp) (bobp) (<= start (point-min)))
+			   0 1))
+  	 (end-margin (if (or (not spreadp)
+			     (>= pt-end (point-max))
+  			     (>= start (point-max)))
+  			 0 1))
+  	 (ol1 (make-overlay (- start start-margin) (+ end end-margin) nil t))
+  	 (ol2 (make-overlay (- (point) start-margin) (+ pt-end end-margin) nil t))
+	 (dups (list ol1 ol2)))
+    (overlay-put ol1 'modification-hooks '(text-clone-maintain))
+    (when spreadp (overlay-put ol1 'text-clone-spreadp t))
+    (when syntax (overlay-put ol1 'text-clone-syntax syntax))
+    ;;(overlay-put ol1 'face 'underline)
+    (overlay-put ol1 'evaporate t)
+    (overlay-put ol1 'text-clones dups)
+    ;; 
+    (overlay-put ol2 'modification-hooks '(text-clone-maintain))
+    (when spreadp (overlay-put ol2 'text-clone-spreadp t))
+    (when syntax (overlay-put ol2 'text-clone-syntax syntax))
+    ;;(overlay-put ol2 'face 'underline)
+    (overlay-put ol2 'evaporate t)
+    (overlay-put ol2 'text-clones dups)))
 
 ;;; subr.el ends here
