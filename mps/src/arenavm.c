@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY ARENA CLASS
  *
- * $HopeName: MMsrc!arenavm.c(trunk.67) $
+ * $HopeName: MMsrc!arenavm.c(trunk.68) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  *
@@ -26,7 +26,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.67) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.68) $");
 
 
 /* @@@@ Arbitrary calculation for the maximum number of distinct */
@@ -94,7 +94,9 @@ typedef struct VMArenaStruct {  /* VM arena structure */
 
 /* Forward declarations */
 
-static void VMArenaPurgeSparePages(VMArena vmArena);
+static void sparePagesPurge(VMArena vmArena);
+static ArenaClass EnsureVMArenaClass(void);
+static ArenaClass EnsureVMNZArenaClass(void);
 
 
 /* VMChunkCheck -- check the consistency of a VM chunk */
@@ -399,8 +401,7 @@ static void VMChunkFinish(Chunk chunk)
  * .arena.init: Once the arena has been allocated, we call ArenaInit
  * to do the generic part of init.
  */
-static Res VMArenaInit(Arena *arenaReturn, ArenaClass class,
-                       va_list args)
+static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
 {
   Size userSize;        /* size requested by user */
   Size chunkSize;       /* size actually created */
@@ -415,8 +416,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class,
 
   userSize = va_arg(args, Size);
   AVER(arenaReturn != NULL);
-  AVER((ArenaClass)mps_arena_class_vm() == class ||
-       (ArenaClass)mps_arena_class_vmnz() == class);
+  AVER(class == EnsureVMArenaClass() || class == EnsureVMNZArenaClass());
   AVER(userSize > 0);
 
   /* Create a VM to hold the arena and the lock, and map it. */
@@ -496,7 +496,7 @@ static void VMArenaFinish(Arena arena)
   AVERT(VMArena, vmArena);
   arenaVM = vmArena->vm;
 
-  VMArenaPurgeSparePages(vmArena);
+  sparePagesPurge(vmArena);
   /* destroy all chunks */
   RING_FOR(node, &arena->chunkRing, next) {
     Chunk chunk = RING_ELT(Chunk, chunkRing, node);
@@ -541,7 +541,7 @@ static void VMArenaSpareCommitExceeded(Arena arena)
   vmArena = ArenaVMArena(arena);
   AVERT(VMArena, vmArena);
 
-  VMArenaPurgeSparePages(vmArena);
+  sparePagesPurge(vmArena);
   return;
 }
 
@@ -1110,8 +1110,10 @@ static void sparePageRelease(VMChunk vmChunk, Index pi)
 }
 
 
-static Res VMArenaPagesMap(VMArena vmArena, VMChunk vmChunk,
-                           Index baseIndex, Count pages, Pool pool)
+/* pagesMarkAllocated -- Mark the pages allocated */
+
+static Res pagesMarkAllocated(VMArena vmArena, VMChunk vmChunk,
+                              Index baseIndex, Count pages, Pool pool)
 {
   Index i;
   Index limitIndex;
@@ -1193,13 +1195,12 @@ failTableMap:
 }
 
 
-/* VMAllocComm -- allocate a region from the arena
+/* vmAllocComm -- allocate a region from the arena
  *
  * Common code used by mps_arena_class_vm and
  * mps_arena_class_vmnz. 
  */
-
-static Res VMAllocComm(Addr *baseReturn, Tract *baseTractReturn,
+static Res vmAllocComm(Addr *baseReturn, Tract *baseTractReturn,
                        VMAllocPolicyMethod policy,
                        SegPref pref, Size size, Pool pool)
 {
@@ -1252,11 +1253,11 @@ static Res VMAllocComm(Addr *baseReturn, Tract *baseTractReturn,
   /* Compute number of pages to be allocated. */
   pages = ChunkSizeToPages(chunk, size);
 
-  res = VMArenaPagesMap(vmArena, vmChunk, baseIndex, pages, pool);
+  res = pagesMarkAllocated(vmArena, vmChunk, baseIndex, pages, pool);
   if (res != ResOK) {
     if (arena->spareCommitted > 0) {
-      VMArenaPurgeSparePages(vmArena);
-      res = VMArenaPagesMap(vmArena, vmChunk, baseIndex, pages, pool);
+      sparePagesPurge(vmArena);
+      res = pagesMarkAllocated(vmArena, vmChunk, baseIndex, pages, pool);
       if (res != ResOK)
 	goto failPagesMap;
       /* win! */
@@ -1289,32 +1290,31 @@ failPagesMap:
 static Res VMAlloc(Addr *baseReturn, Tract *baseTractReturn,
                    SegPref pref, Size size, Pool pool)
 {
-  /* All checks performed in common VMAllocComm */
-  return VMAllocComm(baseReturn, baseTractReturn,
+  /* All checks performed in common vmAllocComm */
+  return vmAllocComm(baseReturn, baseTractReturn,
                      VMAllocPolicy, pref, size, pool);
 }
 
 static Res VMNZAlloc(Addr *baseReturn, Tract *baseTractReturn,
                      SegPref pref, Size size, Pool pool)
 {
-  /* All checks performed in common VMAllocComm */
-  return VMAllocComm(baseReturn, baseTractReturn,
+  /* All checks performed in common vmAllocComm */
+  return vmAllocComm(baseReturn, baseTractReturn,
                      VMNZAllocPolicy, pref, size, pool);
 }
 
 
-/* VMArenaFindSpareRanges -- map a function over spare ranges
+/* spareRangesMap -- map a function over spare ranges
  *
  * The function f is called on the ranges of spare pages which are
  * within the range of pages from base to limit.  PageStruct descriptors
  * from base to limit should be mapped in the page table before calling
  * this function. 
  */
-
 typedef void (*spareRangesFn)(VMChunk, Index, Index, void *);
 
-static void VMArenaFindSpareRanges(VMChunk vmChunk, Index base, Index limit,
-                                   spareRangesFn f, void *p)
+static void spareRangesMap(VMChunk vmChunk, Index base, Index limit,
+                           spareRangesFn f, void *p)
 {
   Index spareBase, spareLimit;
   Chunk chunk = VMChunkChunk(vmChunk);
@@ -1367,16 +1367,14 @@ static void vmArenaUnmapSpareRange(VMChunk vmChunk,
 }
   
 
-/* PurgeSparePages
+/* sparePagesPurge -- all spare pages are found and purged (unmapped)
  *
- * All spare pages are found and freed (i.e., they are unmapped).  Pages
- * occupied by the page table are potentially unmapped.  This is
- * currently the only way the spare pages are reduced.
+ * This is currently the only way the spare pages are reduced.
  *
  * It uses the noSparePages bits to determine which areas of the
  * pageTable to examine.
  */
-static void VMArenaPurgeSparePages(VMArena vmArena)
+static void sparePagesPurge(VMArena vmArena)
 {
   Ring node, next;
   Arena arena = VMArenaArena(vmArena);
@@ -1420,8 +1418,8 @@ static void VMArenaPurgeSparePages(VMArena vmArena)
 	    tablePageLimitIndex(chunk, TablePageIndexBase(chunk, tablePage));
 	}
 	if (pageBase < pageLimit) {
-	  VMArenaFindSpareRanges(vmChunk, pageBase, pageLimit,
-                                 vmArenaUnmapSpareRange, NULL);
+	  spareRangesMap(vmChunk, pageBase, pageLimit,
+                         vmArenaUnmapSpareRange, NULL);
 	} else {
 	  /* Only happens for last page occupied by the page table */
 	  /* and only then when that last page has just the tail end */
@@ -1502,7 +1500,7 @@ static void VMFree(Addr base, Size size, Pool pool)
   BTResRange(vmChunk->noSparePages, pageTableBase, pageTableLimit);
 
   if (arena->spareCommitted > arena->spareCommitLimit) {
-    VMArenaPurgeSparePages(vmArena);
+    sparePagesPurge(vmArena);
   }
   /* @@@@ Chunks are never freed. */
 
@@ -1533,7 +1531,6 @@ DEFINE_ARENA_CLASS(VMArenaClass, this)
  *
  * VMNZ is just VMArena with a different allocation policy.
  */
-
 DEFINE_ARENA_CLASS(VMNZArenaClass, this)
 {
   INHERIT_CLASS(this, VMArenaClass);
