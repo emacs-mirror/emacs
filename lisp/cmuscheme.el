@@ -180,7 +180,7 @@ to continue it."
   (interactive)
   (comint-mode)
   ;; Customise in inferior-scheme-mode-hook
-  (setq comint-prompt-regexp "^[^>]*>+ *") ; OK for cscheme, oaklisp, T,...
+  (setq comint-prompt-regexp "^[^>\n]*>+ *") ; OK for cscheme, oaklisp, T,...
   (scheme-mode-variables)
   (setq major-mode 'inferior-scheme-mode)
   (setq mode-name "Inferior Scheme")
