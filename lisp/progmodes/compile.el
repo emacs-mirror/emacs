@@ -450,7 +450,7 @@ You might also use mode hooks to specify it in certain modes, like this:
 
 (defvar compilation-directory-stack nil
   "Stack of previous directories for `compilation-leave-directory-regexp'.
-The head element is the directory the compilation was started in.")
+The last element is the directory the compilation was started in.")
 
 (defvar compilation-exit-message-function nil "\
 If non-nil, called when a compilation process dies to return a status message.
@@ -678,7 +678,7 @@ Returns the compilation buffer created."
       (setq outwin (display-buffer outbuf))
       (save-excursion
 	(set-buffer outbuf)
-	(compilation-mode)
+	(compilation-mode name-of-mode)
 	;; (setq buffer-read-only t)  ;;; Non-ergonomic.
 	(set (make-local-variable 'compilation-parse-errors-function) parser)
 	(set (make-local-variable 'compilation-error-message) error-message)
@@ -705,7 +705,6 @@ Returns the compilation buffer created."
 	(setq default-directory thisdir
 	      compilation-directory-stack (list default-directory))
 	(set-window-start outwin (point-min))
-	(setq mode-name name-of-mode)
 	(or (eq outwin (selected-window))
 	    (set-window-point outwin (point-min)))
 	(compilation-set-window-height outwin)
@@ -839,7 +838,7 @@ exited abnormally with code %d\n"
 (put 'compilation-mode 'mode-class 'special)
 
 ;;;###autoload
-(defun compilation-mode ()
+(defun compilation-mode (&optional name-of-mode)
   "Major mode for compilation log buffers.
 \\<compilation-mode-map>To visit the source for a line-numbered error,
 move point to the error message line and type \\[compile-goto-error].
@@ -850,7 +849,7 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
   (kill-all-local-variables)
   (use-local-map compilation-mode-map)
   (setq major-mode 'compilation-mode
-	mode-name "Compilation")
+	mode-name (or name-of-mode "Compilation"))
   (compilation-setup)
   (set (make-local-variable 'font-lock-defaults)
        '(compilation-mode-font-lock-keywords t))
@@ -912,7 +911,7 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
   (if (setq compilation-minor-mode (if (null arg)
 				       (null compilation-minor-mode)
 				     (> (prefix-numeric-value arg) 0)))
-      (progn
+      (let ((mode-line-process))
 	(compilation-setup)
 	(run-hooks 'compilation-minor-mode-hook))))
 
@@ -1441,7 +1440,7 @@ The current buffer should be the desired compilation output buffer."
 			      (goto-line last-line)
 			      (if (and column (> column 0))
 				  ;; Columns in error msgs are 1-origin.
-				  (move-to-column (1- column))
+				  (forward-char (1- column))
 				(beginning-of-line))
 			      (setcdr next-error (point-marker))
 			      ;; Make all the other error messages referring
@@ -1465,7 +1464,7 @@ The current buffer should be the desired compilation output buffer."
 								lines))
 					 (forward-line lines))
 				       (if (and column (> column 1))
-					   (move-to-column (1- column))
+					   (forward-char (1- column))
 					 (beginning-of-line))
 				       (setq last-line this)
 				       (setcdr (car errors) (point-marker))))
@@ -1624,7 +1623,7 @@ See variable `compilation-parse-errors-function' for the interface it uses."
   (if (null compilation-error-regexp-alist)
       (error "compilation-error-regexp-alist is empty!"))
   (let* ((compilation-regexps nil) ; Variable set by compile-collect-regexps.
-	 (default-directory default-directory)
+	 (default-directory (car compilation-directory-stack))
 	 (found-desired nil)
 	 (compilation-num-errors-found 0)
 	 ;; Set up now the expanded, abbreviated directory variables
