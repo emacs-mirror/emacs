@@ -1,11 +1,11 @@
-;; vc.el --- drive a version-control system from within Emacs
+;;; vc.el --- drive a version-control system from within Emacs
 
 ;; Copyright (C) 1992,93,94,95,96,97,98,2000  Free Software Foundation, Inc.
 
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.288 2000/11/16 16:40:59 spiegel Exp $
+;; $Id: vc.el,v 1.289 2000/11/16 18:17:26 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1585,10 +1585,11 @@ files in or below it."
     ;; Gnus-5.8.5 sets up an autoload for diff-mode, even if it's
     ;; not available.  Work around that.
     (if (require 'diff-mode nil t) (diff-mode))
-    (vc-exec-after '(progn (if (eq (buffer-size) 0)
-			     (insert "No differences found.\n"))
-			   (goto-char (point-min))
-			   (shrink-window-if-larger-than-buffer)))
+    (vc-exec-after '(let ((inhibit-read-only t))
+		      (if (eq (buffer-size) 0)
+			  (insert "No differences found.\n"))
+		      (goto-char (point-min))
+		      (shrink-window-if-larger-than-buffer)))
     t))
 
 ;;;###autoload
@@ -2243,9 +2244,10 @@ changes found in the master file; use \\[universal-argument] \\[vc-next-action] 
     (message "Reverting %s...done" file)))
 
 (defun vc-version-backup-file (file &optional rev)
-  "If version backups should be used for FILE, and there exists
+  "Return name of backup file for revision REV of FILE.
+If version backups should be used for FILE, and there exists
 such a backup for REV or the current workfile version of file,
-return the name of it; otherwise return nil."
+return its name; otherwise return nil."
   (when (vc-call make-version-backups-p file)
     (let ((backup-file (vc-version-backup-file-name file rev)))
       (if (file-exists-p backup-file)
