@@ -911,10 +911,10 @@ For example, \"!\" or \"!!\"."
   (save-excursion
     (when (f90-in-comment)
       (beginning-of-line)
-      (re-search-forward "[!]+" (line-end-position))
+      (re-search-forward "!+" (line-end-position))
       (while (f90-in-string)
-        (re-search-forward "[!]+" (line-end-position))
-        (match-string 0)))))
+        (re-search-forward "!+" (line-end-position)))
+      (match-string 0))))
 
 (defsubst f90-equal-symbols (a b)
   "Compare strings A and B neglecting case and allowing for nil value."
@@ -1008,7 +1008,7 @@ NAME is non-nil only for type."
 Used for `comment-indent-function' by F90 mode.
 \"!!!\", `f90-directive-comment-re', variable `f90-comment-region' return 0.
 `f90-indented-comment-re' (if not trailing code) calls `f90-calculate-indent'.
-Any other type return `comment-column', leaving at least one space after code."
+All others return `comment-column', leaving at least one space after code."
   (cond ((looking-at "!!!") 0)
 	((and f90-directive-comment-re
 	      (looking-at f90-directive-comment-re)) 0)
@@ -1464,17 +1464,14 @@ If run in the middle of a line, the line is not broken."
 Unless in a string or comment, or if the optional argument NO-UPDATE
 is non-nil, call `f90-update-line' after inserting the continuation marker."
   (interactive)
-  (let (ctype)
-    (cond ((f90-in-string)
-	   (insert "&") (newline 1) (insert "&"))
-	  ((f90-in-comment)
-	   (setq ctype (f90-get-present-comment-type))
-	   (newline 1)
-	   (insert ctype))
-	  (t (insert "&")
-	     (if (not no-update) (f90-update-line))
-	     (newline 1)
-	     (if f90-beginning-ampersand (insert "&")))))
+  (cond ((f90-in-string)
+         (insert "&\n&"))
+        ((f90-in-comment)
+         (insert "\n" (f90-get-present-comment-type)))
+        (t (insert "&")
+           (or no-update (f90-update-line))
+           (newline 1)
+           (if f90-beginning-ampersand (insert "&"))))
   (indent-according-to-mode))
 
 (defun f90-find-breakpoint ()
