@@ -1775,8 +1775,10 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.pro\\'" . idlwave-mode)
      ("\\.prolog\\'" . prolog-mode)
      ("\\.tar\\'" . tar-mode)
-     ("\\.\\(arc\\|zip\\|lzh\\|zoo\\|ear\\|jar\\|war\\)\\'" . archive-mode)
-     ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|EAR\\|JAR\\|WAR\\)\\'" . archive-mode)
+     ;; The list of archive file extensions should be in sync with
+     ;; `auto-coding-alist' with `no-conversion' coding system.
+     ("\\.\\(arc\\|zip\\|lzh\\|zoo\\|[jew]ar\\)\\'" . archive-mode)
+     ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|[JEW]AR\\)\\'" . archive-mode)
      ("\\.sx[dmicw]\\'" . archive-mode)	; OpenOffice.org
      ;; Mailer puts message to be edited in
      ;; /tmp/Re.... or Message
