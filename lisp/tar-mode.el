@@ -1205,7 +1205,10 @@ Leaves the region wide."
 	;; Doing this here confuses things - the region gets left too wide!
 	;; I suppose this is run in a context where changing the buffer is bad.
 	;; (tar-pad-to-blocksize)
-	(write-region tar-header-offset (point-max) buffer-file-name nil t)
+	;; tar-header-offset turns out to be null for files fetched with W3,
+	;; at least.
+	(write-region (or tar-header-offset (point-min)) (point-max)
+		      buffer-file-name nil t)
 	(tar-clear-modification-flags)
 	(set-buffer-modified-p nil))
     (narrow-to-region 1 tar-header-offset))
