@@ -8473,7 +8473,11 @@ redisplay_internal (preserve_echo_area)
      the echo area should be cleared.  */
   if ((!NILP (echo_area_buffer[0]) && !display_last_displayed_message_p)
       || (!NILP (echo_area_buffer[1]) && display_last_displayed_message_p)
-      || (message_cleared_p && minibuf_level == 0))
+      || (message_cleared_p
+	  && minibuf_level == 0
+	  /* If the mini-window is currently selected, this means the
+	     echo-area doesn't show through.  */
+	  && !MINI_WINDOW_P (XWINDOW (selected_window))))
     {
       int window_height_changed_p = echo_area_display (0);
       must_finish = 1;
