@@ -95,7 +95,8 @@ When this is `function', only ask when called non-interactively."
 This mode passed to `set-file-modes' is taken absolutely when negative, or
 relative to the files existing modes.  Do nothing if this is nil.
 Typical values are 73 (+x) or -493 (rwxr-xr-x)."
-  :type 'integer
+  :type '(choice integer
+		 (const nil))
   :group 'executable)
 
 
