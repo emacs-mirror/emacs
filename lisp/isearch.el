@@ -229,13 +229,12 @@ Default value, nil, means edit the string instead."
       (or (vectorp (nth 1 map))
 	  (char-table-p (nth 1 map))
 	  (error "The initialization of isearch-mode-map must be updated"))
-      ;; Make Latin-1, Latin-2, Latin-3 and Latin-4 characters
-      ;; search for themselves.
-      (aset (nth 1 map) (make-char 'latin-iso8859-1) 'isearch-printing-char)
-      (aset (nth 1 map) (make-char 'latin-iso8859-2) 'isearch-printing-char)
-      (aset (nth 1 map) (make-char 'latin-iso8859-3) 'isearch-printing-char)
-      (aset (nth 1 map) (make-char 'latin-iso8859-4) 'isearch-printing-char)
-      (aset (nth 1 map) (make-char 'latin-iso8859-9) 'isearch-printing-char)
+      ;; Make all multibyte characters search for themselves.
+      (let ((l (generic-character-list))
+	    (table (nth 1 map)))
+	(while l
+	  (set-char-table-default table (car l) 'isearch-printing-char)
+	  (setq l (cdr l))))
       ;; Make function keys, etc, exit the search.
       (define-key map [t] 'isearch-other-control-char)
       ;; Control chars, by default, end isearch mode transparently.
