@@ -268,7 +268,7 @@ WARNING: Changing the value of this variable will gravely affect the
   :type 'integer
   :group 'strokes)
 
-(defcustom strokes-file "~/.strokes"
+(defcustom strokes-file (convert-standard-filename "~/.strokes")
   "*File containing saved strokes for stroke-mode (default is ~/.strokes)."
   :type 'file
   :group 'strokes)
@@ -1285,8 +1285,8 @@ strokes with
   (let ((on-p (if arg
 		  (> (prefix-numeric-value arg) 0)
 		(not strokes-mode))))
-    (cond ((not window-system)
-	   (error "Can't use strokes without windows"))
+    (cond ((not (display-mouse-p))
+	   (error "Can't use strokes without a mouse"))
 	  (on-p				; turn on strokes
 	   (and (file-exists-p strokes-file)
 		(null strokes-global-map)
