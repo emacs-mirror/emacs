@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
 ;; Copyright (C) 2001, 2002
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
@@ -772,6 +772,19 @@ is nil.
 			but as non-ASCII characters in this language
 			environment.")
 
+(define-widget 'charset 'symbol
+  :complete-function (lambda ()
+		       (interactive)
+		       (lisp-complete-symbol 'charsetp))
+  :completion-ignore-case t
+  :value 'ascii
+  :validate (lambda (widget)
+	      (unless (charsetp (widget-value widget))
+		(widget-put widget :error (format "Invalid charset: %S"
+						  (widget-value widget)))
+		widget))
+  :prompt-history 'charset-history)
+
 (defcustom language-info-custom-alist nil
   "Customizations of language environment parameters.
 Value is an alist with elements like those of `language-info-alist'.
@@ -791,53 +804,29 @@ Setting this variable directly does not take effect.  See
 	   (set-language-info-alist (car elt) (cdr elt)))
 	 ;; re-set the environment in case its parameters changed
 	 (set-language-environment current-language-environment))
-  :type '(alist
-	  :key-type
-	  (string :tag "Language environment"
-		  :complete-function
-		  (lambda ()
-		    (interactive)
-		    (let* ((prefix (buffer-substring-no-properties
-				    (widget-field-start widget) (point)))
-			   (completion-ignore-case t)
-			   (completion (try-completion prefix
-						       language-info-alist)))
-		      (cond ((eq completion t)
-			     (delete-region (widget-field-start widget)
-					    (widget-field-end widget))
-			     (insert-and-inherit
-			      (car (assoc-ignore-case prefix
-						      language-info-alist)))
-			     (message "Only match"))
-			    ((null completion)
-			     (error "No match"))
-			    ((not (eq t (compare-strings prefix nil nil
-							 completion nil nil
-							 t)))
-			     (delete-region (widget-field-start widget)
-					    (widget-field-end widget))
-			     (insert-and-inherit completion))
-			    (t
-			     (message "Making completion list...")
-			     (with-output-to-temp-buffer "*Completions*"
-			       (display-completion-list
-				(all-completions prefix language-info-alist
-						 nil)))
-			     (message "Making completion list...done"))))))
+  :type `(alist
+	  :key-type (string :tag "Language environment"
+			    :completion-ignore-case t
+			    :complete-function widget-string-complete
+			    :completion-alist language-info-alist)
 	  :value-type
 	  (alist :key-type symbol
 		 :options ((documentation string)
-			   (charset (repeat symbol))
+			   (charset (repeat charset))
 			   (sample-text string)
 			   (setup-function function)
 			   (exit-function function)
 			   (coding-system (repeat coding-system))
 			   (coding-priority (repeat coding-system))
-			   (nonascii-translation symbol)
-			   (input-method string)
+			   (nonascii-translation charset)
+			   (input-method
+			    (string
+			     :completion-ignore-case t
+			     :complete-function widget-string-complete
+			     :completion-alist input-method-alist
+			     :prompt-history input-method-history))
 			   (features (repeat symbol))
-			   (unibyte-display coding-system)
-			   (unibyte-syntax string)))))
+			   (unibyte-display coding-system)))))
 
 (defun get-language-info (lang-env key)
   "Return information listed under KEY for language environment LANG-ENV.
@@ -1010,7 +999,11 @@ This is the input method activated automatically by the command
 `toggle-input-method' (\\[toggle-input-method])."
   :link  '(custom-manual "(emacs)Input Methods")
   :group 'mule
-  :type '(choice (const nil) string)
+  :type '(choice (const nil) (string
+			      :completion-ignore-case t
+			      :complete-function widget-string-complete
+			      :completion-alist input-method-alist
+			      :prompt-history input-method-history))
   :set-after '(current-language-environment))
 
 (put 'input-method-function 'permanent-local t)
