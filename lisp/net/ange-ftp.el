@@ -1014,7 +1014,7 @@ or nil meaning don't change it."
 
 (defun ange-ftp-hash-entry-exists-p (key tbl)
   "Return whether there is an association for KEY in TABLE."
-  (not (eq (gethash key tbl 'unknown) 'unknown)))
+  (and tbl (not (eq (gethash key tbl 'unknown) 'unknown))))
 
 (defun ange-ftp-hash-table-keys (tbl)
   "Return a sorted list of all the active keys in TABLE, as strings."
@@ -2919,11 +2919,8 @@ NO-ERROR, if a listing for DIRECTORY cannot be obtained."
 	       ;; error message.
 	       (gethash "." ent))
 	  ;; Child lookup failed, so try the parent.
-	  (let ((table (ange-ftp-get-files dir 'no-error)))
-	    ;; If the dir doesn't exist, don't use it as a hash table.
-	    (and table
-		 (ange-ftp-hash-entry-exists-p file
-					       table)))))))
+	  (ange-ftp-hash-entry-exists-p
+	   file (ange-ftp-get-files dir 'no-error))))))
 
 (defun ange-ftp-get-file-entry (name)
   "Given NAME, return the given file entry.
@@ -3374,11 +3371,11 @@ system TYPE.")
   (setq file (ange-ftp-expand-file-name file))
   (if (ange-ftp-ftp-name file)
       (condition-case nil
-	  (let ((file-ent
-		 (gethash
-		  (ange-ftp-get-file-part file)
-		  (ange-ftp-get-files (file-name-directory file)))))
-	    (and (stringp file-ent) file-ent))
+	  (let ((ent (ange-ftp-get-files (file-name-directory file))))
+	    (and ent
+		 (stringp (setq ent
+				(gethash (ange-ftp-get-file-part file) ent)))
+		 ent))
 	;; If we can't read the parent directory, just assume
 	;; this file is not a symlink.
 	;; This makes it possible to access a directory that
