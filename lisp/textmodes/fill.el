@@ -39,9 +39,11 @@ A value of nil means that any change in indentation starts a new paragraph."
 
 (defcustom sentence-end-double-space t
   "*Non-nil means a single space does not end a sentence.
+This is relevant for filling.  See also `sentence-end-without-period'
+and `colon-double-space'.
 
-If you change this, you should also change `sentence-end'.
-See Info node `Sentences'."
+If you change this, you should also change `sentence-end'.  See Info
+node `Sentences'."
   :type 'boolean
   :group 'fill)
 
@@ -51,8 +53,9 @@ See Info node `Sentences'."
   :group 'fill)
 
 (defcustom sentence-end-without-period nil
-  "*Non-nil means a sentence will end without period.
-For example, Thai text ends with double space but without period."
+  "*Non-nil means a sentence will end without a period.
+For example, a sentence in Thai text ends with double space but
+without a period."
   :type 'boolean
   :group 'fill)
 
@@ -85,7 +88,8 @@ reinserts the fill prefix in each resulting line."
   :type 'boolean
   :group 'fill)
 
-(defcustom adaptive-fill-regexp "[ \t]*\\([-|#;>*]+ *\\|(?[0-9]+[.)] *\\)*"
+(defcustom adaptive-fill-regexp
+  (purecopy "[ \t]*\\([-|#;>*]+ *\\|(?[0-9]+[.)] *\\)*")
   "*Regexp to match text at start of line that constitutes indentation.
 If Adaptive Fill mode is enabled, a prefix matching this pattern
 on the first and second lines of a paragraph is used as the
@@ -130,7 +134,8 @@ number equals or exceeds the local fill-column - right-margin difference."
 	       (here-col 0)
 	       (eol (progn (end-of-line) (point)))
 	       margin fill-col change col)
-	  ;; Look separately at each region of line with a different right-margin.
+	  ;; Look separately at each region of line with a different
+	  ;; right-margin.
 	  (while (and (setq margin (get-text-property here 'right-margin)
 			    fill-col (- fill-column (or margin 0))
 			    change (text-property-not-all
@@ -227,9 +232,11 @@ act as a paragraph-separator."
 	(setq start (point))
 	(setq second-line-prefix
 	      (cond ((looking-at paragraph-start) nil)
-		    ((and adaptive-fill-regexp (looking-at adaptive-fill-regexp))
+		    ((and adaptive-fill-regexp
+			  (looking-at adaptive-fill-regexp))
 		     (buffer-substring-no-properties start (match-end 0)))
-		    (adaptive-fill-function (funcall adaptive-fill-function)))))
+		    (adaptive-fill-function
+		     (funcall adaptive-fill-function)))))
       (if at-second
 	  ;; If we get a fill prefix from the second line,
 	  ;; make sure it or something compatible is on the first line too.
@@ -539,9 +546,10 @@ space does not end a sentence, so don't break a line there."
 				  (or first
 				      (and (not (bobp))
 					   sentence-end-double-space
-					   (save-excursion (forward-char -1)
-							   (and (looking-at "\\. ")
-								(not (looking-at "\\.  ")))))
+					   (save-excursion
+					     (forward-char -1)
+					     (and (looking-at "\\. ")
+						  (not (looking-at "\\.  ")))))
 				      (and fill-nobreak-predicate
 					   (funcall fill-nobreak-predicate))))
 			;; Find a breakable point while ignoring the
@@ -556,7 +564,8 @@ space does not end a sentence, so don't break a line there."
 				(forward-char -1)
 			      (goto-char pos))))
 			(setq first nil)))
-		  ;; Normally, move back over the single space between the words.
+		  ;; Normally, move back over the single space between
+		  ;; the words.
 		  (if (= (preceding-char) ?\ ) (forward-char -1))
 
 		  (if enable-multibyte-characters
@@ -585,8 +594,10 @@ space does not end a sentence, so don't break a line there."
 			     (or (< nchars 0)
 				 (and fill-prefix
 				      (< nchars (length fill-prefix))
-				      (string= (buffer-substring (point) fill-point)
-					       (substring fill-prefix 0 nchars)))))))
+				      (string= (buffer-substring (point)
+								 fill-point)
+					       (substring fill-prefix
+							  0 nchars)))))))
 		    ;; Ok, skip at least one word.  But
 		    ;; don't stop at a period followed by just one space.
 		    (let ((first t))
@@ -594,9 +605,10 @@ space does not end a sentence, so don't break a line there."
 				  (or first
 				      (and (not (bobp))
 					   sentence-end-double-space
-					   (save-excursion (forward-char -1)
-							   (and (looking-at "\\. ")
-								(not (looking-at "\\.  ")))))
+					   (save-excursion
+					     (forward-char -1)
+					     (and (looking-at "\\. ")
+						  (not (looking-at "\\.  ")))))
 				      (and fill-nobreak-predicate
 					   (funcall fill-nobreak-predicate))))
 			;; Find a breakable point while ignoring the
@@ -614,8 +626,8 @@ space does not end a sentence, so don't break a line there."
 		;; Check again to see if we got to the end of the paragraph.
 		(if (save-excursion (skip-chars-forward " \t") (eobp))
 		    (or nosqueeze (delete-horizontal-space))
-		  ;; Replace whitespace here with one newline, then indent to left
-		  ;; margin.
+		  ;; Replace whitespace here with one newline, then
+		  ;; indent to left margin.
 		  (skip-chars-backward " \t")
 		  (if (and (= (following-char) ?\ )
 			   (or (aref (char-category-set (preceding-char)) ?|)
@@ -677,8 +689,8 @@ argument to it), and if it returns non-nil, we simply return its value."
 		(beg (progn (backward-paragraph) (point))))
 	    (goto-char before)
 	    (if use-hard-newlines
-		;; Can't use fill-region-as-paragraph, since this paragraph may
-		;; still contain hard newlines.  See fill-region.
+		;; Can't use fill-region-as-paragraph, since this paragraph
+		;; may still contain hard newlines.  See fill-region.
 		(fill-region beg end arg)
 	      (fill-region-as-paragraph beg end arg)))))))
 
@@ -1012,8 +1024,7 @@ extra spaces between words.  It does nothing in other justification modes."
 	  ((eq  nil  justify) nil)
 	  ((eq 'full justify)		; full justify: remove extra spaces
 	   (beginning-of-line-text)
-	   (canonically-space-region
-	    (point) (save-excursion (end-of-line) (point))))
+	   (canonically-space-region (point) (line-end-position)))
 	  ((memq justify '(center right))
 	   (save-excursion
 	     (move-to-left-margin nil t)
@@ -1126,7 +1137,8 @@ Also, if CITATION-REGEXP is non-nil,  don't fill header lines."
 		   (if (not (and fill-prefix
 				 (looking-at fill-prefix-regexp)))
 		       (setq fill-prefix
-			     (fill-individual-paragraphs-prefix citation-regexp)
+			     (fill-individual-paragraphs-prefix
+			      citation-regexp)
 			     fill-prefix-regexp (regexp-quote fill-prefix)))
 		   (forward-line 1)
 		   (if (bolp)
@@ -1142,8 +1154,10 @@ Also, if CITATION-REGEXP is non-nil,  don't fill header lines."
 			     (not (looking-at paragraph-separate))
 			     (save-excursion
 			       (not (and (looking-at fill-prefix-regexp)
-					 (progn (forward-char (length fill-prefix))
-						(looking-at paragraph-separate))))))
+					 (progn (forward-char
+						 (length fill-prefix))
+						(looking-at
+						 paragraph-separate))))))
 			  ;; If this line has more or less indent
 			  ;; than the fill prefix wants, end the paragraph.
 			  (and (looking-at fill-prefix-regexp)
@@ -1155,7 +1169,8 @@ Also, if CITATION-REGEXP is non-nil,  don't fill header lines."
  				 (>= (length fill-prefix) 
  				     (length this-line-fill-prefix)))
 			       (save-excursion
-				 (not (progn (forward-char (length fill-prefix))
+				 (not (progn (forward-char
+					      (length fill-prefix))
 					     (or (looking-at "[ \t]")
 						 (looking-at paragraph-separate)
 						 (looking-at paragraph-start)))))
@@ -1178,13 +1193,11 @@ Also, if CITATION-REGEXP is non-nil,  don't fill header lines."
 	(setq just-one-line-prefix
 	      (fill-context-prefix
 	       (point)
-	       (save-excursion (forward-line 1)
-			       (point))))
+	       (line-beginning-position 2)))
 	(setq two-lines-prefix
 	      (fill-context-prefix
 	       (point)
-	       (save-excursion (forward-line 2)
-			       (point))))
+	       (line-beginning-position 2)))
 	(when just-one-line-prefix
 	  (setq one-line-citation-part
 		(if citation-regexp
@@ -1208,7 +1221,8 @@ Also, if CITATION-REGEXP is non-nil,  don't fill header lines."
 	(if (and just-one-line-prefix
 		 two-lines-prefix
 		 (string-match (concat "\\`"
-				       (regexp-quote adjusted-two-lines-citation-part)
+				       (regexp-quote
+					adjusted-two-lines-citation-part)
 				       "[ \t]*\\'")
 			       one-line-citation-part)
 		 (>= (string-width one-line-citation-part)
