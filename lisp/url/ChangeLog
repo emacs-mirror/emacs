@@ -1,3 +1,7 @@
+2005-02-14  Michael Welsh Duggan  <md5i@cs.cmu.edu>
+
+	* url-http.el (url-http-parse-headers): Test url-automatic-caching.
+
 2005-01-22  Klaus Straubinger  <KSNetz@Arcor.DE>  (tiny change)
 
 	* url-http.el (url-http-parse-headers) <302>: Reset url-http-data

@@ -1,3 +1,63 @@
+2005-02-14  Richard M. Stallman  <rms@gnu.org>
+
+	* variables.texi (Creating Buffer-Local): change-major-mode-hook
+	is useful for discarding some minor modes.
+
+	* symbols.texi (Symbol Components): Reorder examples.
+
+	* streams.texi (Input Functions): State standard-input default.
+	(Output Variables): State standard-output default.
+
+	* objects.texi (Printed Representation): Clarify read syntax vs print.
+	(Floating Point Type): Explain meaning better.
+	(Symbol Type): Explain uniqueness better.
+	(Cons Cell Type): Explain empty list sooner.  CAR and CDR later.
+	List examples sooner.
+	(Box Diagrams): New subnode broken out.
+	Some examples moved from old Lists as Boxes node.
+	(Dotted Pair Notation): Clarify intro.
+	(Array Type): Clarify.
+	(Type Predicates): Add hash-table-p.
+
+	* numbers.texi (Integer Basics): Clarify radix explanation.
+	(Predicates on Numbers): Minor clarification.
+	(Comparison of Numbers): Minor clarification.  Clarify eql.
+	Typos in min, max.
+	(Math Functions): Clarify overflow in expt.
+
+	* minibuf.texi (Text from Minibuffer): Minor clarification.
+	Mention arrow keys.
+
+	* loading.texi (Autoload): defun's doc string overrides autoload's
+	doc string.
+	(Repeated Loading): Modernize "add to list" examples.
+	(Where Defined): Finish updating table of load-history elts.
+
+	* lists.texi (List-related Predicates): Minor wording improvement.
+	(Lists as Boxes): Node deleted.
+	(Building Lists): Explain trivial cases of number-sequence.
+
+	* hash.texi (Hash Tables): Add desc to menu items.
+	(Creating Hash): Expain "full" means "make larger",
+	(Hash Access): Any object can be a key.
+	State value of maphash.
+
+	* functions.texi (What Is a Function): Wording cleanup.
+	(Function Documentation): Minor cleanup.
+	Explain purpose of calling convention at end of doc string.
+	(Function Names): Wording cleanup.
+	(Calling Functions): Wording cleanup.
+	Explain better how funcall calls the function.
+	(Function Cells): Delete example of saving and redefining function.
+
+	* control.texi (Combining Conditions): Wording cleanup.
+	(Iteration): dolist and dotimes bind VAR locally.
+	(Cleanups): Xref to Atomic Changes.
+
+	* compile.texi (Byte Compilation): Delete 19.29 info.
+	(Compilation Functions): Macros' difficulties don't affect defsubst.
+	(Docs and Compilation): Delete 19.29 info.
+
 2005-02-10  Richard M. Stallman  <rms@gnu.org>
 
 	* objects.texi (Symbol Type): Minor correction.

@@ -222,36 +222,36 @@ man/calendar.texi    Joakim Verona <joakim@verona.se>
 man/cmdargs.texi    Chong Yidong
 man/commands.texi   "Luc Teirlinck"
 man/custom.texi     Chong Yidong
-man/dired.texi
-man/display.texi    "Luc Teirlinck"
+man/dired.texi      Chong Yidong
+man/display.texi    "Luc Teirlinck"  Chong Yidong
 man/emacs.texi      "Luc Teirlinck"
 man/entering.texi   "Luc Teirlinck"  Chong Yidong
 man/files.texi      "Luc Teirlinck"  Chong Yidong
 man/fixit.texi      "Luc Teirlinck"
 man/frames.texi     "Luc Teirlinck"  Chong Yidong
 man/glossary.texi
-man/help.texi       "Luc Teirlinck"
-man/indent.texi     "Luc Teirlinck"
+man/help.texi       "Luc Teirlinck"  Chong Yidong
+man/indent.texi     "Luc Teirlinck"  Chong Yidong
 man/killing.texi    "Luc Teirlinck"  Chong Yidong
-man/kmacro.texi     "Luc Teirlinck"
+man/kmacro.texi     "Luc Teirlinck"  Chong Yidong
 man/macos.texi
 man/maintaining.texi
-man/major.texi      "Luc Teirlinck"
+man/major.texi      "Luc Teirlinck"  Chong Yidong
 man/mark.texi       "Luc Teirlinck"
 man/mini.texi       "Luc Teirlinck"
 man/misc.texi
-man/msdog.texi
+man/msdog.texi      Chong Yidong
 man/mule.texi       "Luc Teirlinck"
 man/m-x.texi        "Luc Teirlinck"
 man/picture.texi    Joakim Verona <joakim@verona.se>
-man/programs.texi   "Stephen Eglen"
+man/programs.texi   "Stephen Eglen"  Chong Yidong
 man/regs.texi       "Luc Teirlinck"   Chong Yidong
 man/rmail.texi
 man/screen.texi     "Luc Teirlinck"
 man/search.texi     "Luc Teirlinck"
 man/sending.texi
 man/text.texi       "Luc Teirlinck"   Chong Yidong
-man/trouble.texi
+man/trouble.texi    Chong Yidong
 man/windows.texi    "Luc Teirlinck"   Chong Yidong
 man/xresources.texi
 
@@ -271,47 +271,47 @@ lispref/backups.texi     "Luc Teirlinck"
 lispref/buffers.texi     "Luc Teirlinck"   Chong Yidong
 lispref/calendar.texi    Joakim Verona <joakim@verona.se>
 lispref/commands.texi    "Luc Teirlinck"
-lispref/compile.texi     "Luc Teirlinck"
-lispref/control.texi     "Luc Teirlinck"
+lispref/compile.texi     "Luc Teirlinck"   Chong Yidong
+lispref/control.texi     "Luc Teirlinck"   Chong Yidong
 lispref/customize.texi
 lispref/debugging.texi   Joakim Verona <joakim@verona.se>
 lispref/display.texi
 lispref/edebug.texi
 lispref/elisp.texi       "Luc Teirlinck"
 lispref/errors.texi      "Luc Teirlinck"
-lispref/eval.texi        "Luc Teirlinck"
+lispref/eval.texi        "Luc Teirlinck"   Chong Yidong
 lispref/files.texi       "Luc Teirlinck"   Chong Yidong
 lispref/frames.texi      "Luc Teirlinck"   Chong Yidong
-lispref/functions.texi	 "Luc Teirlinck"
-lispref/hash.texi	 "Luc Teirlinck"
+lispref/functions.texi	 "Luc Teirlinck"   Chong Yidong
+lispref/hash.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/help.texi	 "Luc Teirlinck"
 lispref/hooks.texi
 lispref/internals.texi	 "Luc Teirlinck"
 lispref/intro.texi	 "Luc Teirlinck"
 lispref/keymaps.texi	 "Luc Teirlinck"
-lispref/lists.texi	 "Luc Teirlinck"
-lispref/loading.texi     "Luc Teirlinck"
+lispref/lists.texi	 "Luc Teirlinck"   Chong Yidong
+lispref/loading.texi     "Luc Teirlinck"   Chong Yidong
 lispref/locals.texi
 lispref/macros.texi      "Luc Teirlinck"
 lispref/maps.texi
 lispref/markers.texi     "Luc Teirlinck"
-lispref/minibuf.texi     "Luc Teirlinck"
+lispref/minibuf.texi     "Luc Teirlinck"   Chong Yidong
 lispref/modes.texi	 Chong Yidong
 lispref/nonascii.texi    "Luc Teirlinck"
-lispref/numbers.texi	 "Luc Teirlinck"
-lispref/objects.texi	 "Luc Teirlinck"
+lispref/numbers.texi	 "Luc Teirlinck"   Chong Yidong
+lispref/objects.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/os.texi		 "Luc Teirlinck"
 lispref/positions.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/processes.texi
 lispref/searching.texi	 "Luc Teirlinck"
 lispref/sequences.texi	 "Luc Teirlinck"
-lispref/streams.texi	 "Luc Teirlinck"
+lispref/streams.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/strings.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/symbols.texi	 "Luc Teirlinck"
+lispref/symbols.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/syntax.texi	 "Luc Teirlinck"
 lispref/text.texi        Chong Yidong
 lispref/tips.texi	 "Luc Teirlinck"
-lispref/variables.texi	 "Luc Teirlinck"
+lispref/variables.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/windows.texi     "Luc Teirlinck"   Chong Yidong
 
 

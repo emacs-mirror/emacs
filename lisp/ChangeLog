@@ -1,3 +1,10 @@
+2005-02-14  Richard M. Stallman  <rms@gnu.org>
+
+	* cus-edit.el (custom-buffer-create-internal): Update help message.
+	(custom-magic-alist): Update help messages.
+
+	* cus-start.el (all): Allow a var to specify a standard value.
+
 2005-02-12  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* custom.el (custom-theme-set-variables): Handle variable aliases.
