@@ -1,5 +1,10 @@
 2004-06-20  Jesper Harder  <harder@ifa.au.dk>
 
+	* msdog.texi (Text and Binary, MS-DOS Printing): Use m-dash.
+	* custom.texi (Customization): do.
+	* anti.texi (Antinews): do.
+	* abbrevs.texi (Defining Abbrevs): do.
+
 	* programs.texi (Info Lookup): Fix keybinding for
 	info-lookup-symbol.
 

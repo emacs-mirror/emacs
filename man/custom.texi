@@ -12,7 +12,7 @@ Manual} for how to make more far-reaching changes.  @xref{X Resources},
 for information on using X resources to customize Emacs.
 
   Customization that you do within Emacs normally affects only the
-particular Emacs session that you do it in--it does not persist
+particular Emacs session that you do it in---it does not persist
 between sessions unless you save the customization in a file such as
 @file{.emacs} or @file{.Xdefaults} that will affect future sessions.
 @xref{Init File}.  In the customization buffer, when you save
