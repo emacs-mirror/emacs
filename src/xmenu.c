@@ -1631,10 +1631,11 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
       dispatch_dummy_expose (f->display.x->menubar_widget, x, y);
     }
 
-#if 0 /* No need to do that. The menu has disappeared.  */
+  /* fp turned off the following statement and wrote a comment
+     that it is unnecessary--that the menu has already disappeared.
+     I observer that is not so. -- rms.  */
   /* Make sure the menu disappears.  */
   lw_destroy_all_widgets (menu_id); 
-#endif
 
   /* Unread any events that we got but did not handle.  */
   while (queue != NULL) 
