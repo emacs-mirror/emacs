@@ -244,6 +244,7 @@ make_window ()
   XSETFASTINT (p->height, 0);
   XSETFASTINT (p->width, 0);
   XSETFASTINT (p->hscroll, 0);
+  XSETFASTINT (p->min_hscroll, 0);
   p->orig_top = p->orig_height = Qnil;
   p->start = Fmake_marker ();
   p->pointm = Fmake_marker ();
@@ -417,17 +418,19 @@ DEFUN ("set-window-hscroll", Fset_window_hscroll, Sset_window_hscroll, 2, 2, 0,
   "Set number of columns WINDOW is scrolled from left margin to NCOL.\n\
 NCOL should be zero or positive.")
   (window, ncol)
-     register Lisp_Object window, ncol;
+     Lisp_Object window, ncol;
 {
-  register struct window *w;
+  struct window *w = decode_window (window);
+  int hscroll;
 
   CHECK_NUMBER (ncol, 1);
-  if (XINT (ncol) < 0) XSETFASTINT (ncol, 0);
-  w = decode_window (window);
-  if (XINT (w->hscroll) != XINT (ncol))
-    /* Prevent redisplay shortcuts */
+  hscroll = max (0, XINT (ncol));
+  
+  /* Prevent redisplay shortcuts when changing the hscroll.  */
+  if (XINT (w->hscroll) != hscroll)
     XBUFFER (w->buffer)->prevent_redisplay_optimizations_p = 1;
-  w->hscroll = ncol;
+  
+  w->hscroll = w->min_hscroll = make_number (hscroll);
   return ncol;
 }
 
@@ -2608,6 +2611,7 @@ set_window_buffer (window, buffer, run_hooks_p)
   bzero (&w->last_cursor, sizeof w->last_cursor);
   w->window_end_valid = Qnil;
   XSETFASTINT (w->hscroll, 0);
+  XSETFASTINT (w->min_hscroll, 0);
   set_marker_both (w->pointm, buffer, BUF_PT (b), BUF_PT_BYTE (b));
   set_marker_restricted (w->start,
 			 make_number (b->last_window_start),
@@ -3087,6 +3091,7 @@ temp_output_buffer_show (buf)
       Vminibuf_scroll_window = window;
       w = XWINDOW (window);
       XSETFASTINT (w->hscroll, 0);
+      XSETFASTINT (w->min_hscroll, 0);
       set_marker_restricted_both (w->start, buf, 1, 1);
       set_marker_restricted_both (w->pointm, buf, 1, 1);
 
@@ -4620,20 +4625,21 @@ struct save_window_data
 
 /* This is saved as a Lisp_Vector  */
 struct saved_window
-  {
-    /* these first two must agree with struct Lisp_Vector in lisp.h */
-    EMACS_INT size_from_Lisp_Vector_struct;
-    struct Lisp_Vector *next_from_Lisp_Vector_struct;
+{
+  /* these first two must agree with struct Lisp_Vector in lisp.h */
+  EMACS_INT size_from_Lisp_Vector_struct;
+  struct Lisp_Vector *next_from_Lisp_Vector_struct;
 
-    Lisp_Object window;
-    Lisp_Object buffer, start, pointm, mark;
-    Lisp_Object left, top, width, height, hscroll;
-    Lisp_Object parent, prev;
-    Lisp_Object start_at_line_beg;
-    Lisp_Object display_table;
-    Lisp_Object orig_top, orig_height;
-  };
-#define SAVED_WINDOW_VECTOR_SIZE 16 /* Arg to Fmake_vector */
+  Lisp_Object window;
+  Lisp_Object buffer, start, pointm, mark;
+  Lisp_Object left, top, width, height, hscroll, min_hscroll;
+  Lisp_Object parent, prev;
+  Lisp_Object start_at_line_beg;
+  Lisp_Object display_table;
+  Lisp_Object orig_top, orig_height;
+};
+
+#define SAVED_WINDOW_VECTOR_SIZE 17 /* Arg to Fmake_vector */
 
 #define SAVED_WINDOW_N(swv,n) \
   ((struct saved_window *) (XVECTOR ((swv)->contents[(n)])))
@@ -4825,6 +4831,7 @@ the return value is nil.  Otherwise the value is t.")
 	  w->width = p->width;
 	  w->height = p->height;
 	  w->hscroll = p->hscroll;
+	  w->min_hscroll = p->min_hscroll;
 	  w->display_table = p->display_table;
 	  w->orig_top = p->orig_top;
 	  w->orig_height = p->orig_height;
@@ -5092,6 +5099,7 @@ save_window_save (window, vector, i)
       p->width = w->width;
       p->height = w->height;
       p->hscroll = w->hscroll;
+      p->min_hscroll = w->min_hscroll;
       p->display_table = w->display_table;
       p->orig_top = w->orig_top;
       p->orig_height = w->orig_height;
@@ -5519,6 +5527,8 @@ compare_window_configurations (c1, c2, ignore_positions)
       if (! ignore_positions)
 	{
 	  if (! EQ (p1->hscroll, p2->hscroll))
+	    return 0;
+	  if (!EQ (p1->min_hscroll, p2->min_hscroll))
 	    return 0;
 	  if (! EQ (p1->start_at_line_beg, p2->start_at_line_beg))
 	    return 0;
