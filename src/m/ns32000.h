@@ -96,7 +96,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    in the file alloca.s should be used.  */
 
 /* #define C_ALLOCA */
-/* #define HAVE_ALLOCA */
+#ifdef __NetBSD__
+#define HAVE_ALLOCA
+#endif
 
 /* Define NO_REMAP if memory segmentation makes it not work well
    to change the boundary between the text section and data section
@@ -109,8 +111,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #define STACK_DIRECTION -1
 
+#ifndef __NetBSD__
 #define EXEC_MAGIC 0410
 
 #define PURESIZE 140000
 
 #define START_FILES pre-crt0.o /lib/crt0.o
+#endif

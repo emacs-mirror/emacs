@@ -110,6 +110,9 @@ NOTE-END  */
 #define PURESIZE 130000
 #endif
 
+#ifndef __NetBSD__
+/* This really belongs in s/sun.h.  */
+
 /* Say that the text segment of a.out includes the header;
    the header actually occupies the first few bytes of the text segment
    and is counted in hdr.a_text.  */
@@ -119,3 +122,5 @@ NOTE-END  */
 /* This is the offset of the executable's text, from the start of the file.  */
 
 #define A_TEXT_SEEK(HDR) (N_TXTOFF (hdr) + sizeof (hdr))
+
+#endif /* __NetBSD__ */
