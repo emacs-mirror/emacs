@@ -309,7 +309,7 @@ string_match_1 (regexp, string, start, posix)
   bufp = compile_pattern (regexp, &search_regs,
 			  (!NILP (current_buffer->case_fold_search)
 			   ? DOWNCASE_TABLE : 0),
-			  0);
+			  posix);
   immediate_quit = 1;
   val = re_search (bufp, (char *) XSTRING (string)->data,
 		   XSTRING (string)->size, s, XSTRING (string)->size - s,
