@@ -652,7 +652,8 @@ DEFUN ("decode-time", Fdecode_time, Sdecode_time, 0, 1, 0,
 The optional SPECIFIED-TIME should be a list of (HIGH LOW . IGNORED)\n\
 or (HIGH . LOW), as from `current-time' and `file-attributes', or `nil'\n\
 to use the current time.  The list has the following nine members:\n\
-SEC is an integer between 0 and 59.  MINUTE is an integer between 0 and 59.\n\
+SEC is an integer between 0 and 60; SEC is 60 for a leap second, which\n\
+only some operating systems support.  MINUTE is an integer between 0 and 59.\n\
 HOUR is an integer between 0 and 23.  DAY is an integer between 1 and 31.\n\
 MONTH is an integer between 1 and 12.  YEAR is an integer indicating the\n\
 four-digit year.  DOW is the day of week, an integer between 0 and 6, where\n\
