@@ -1,4 +1,4 @@
-/* impl.c.arena: ARENA ALLOCATION FEATURES
+/* arena.c: ARENA ALLOCATION FEATURES
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -256,7 +256,7 @@ void ArenaDestroy(Arena arena)
 
   GlobalsPrepareToDestroy(ArenaGlobals(arena));
 
-  /* Empty the reservoir - see impl.c.reserv.reservoir.finish */
+  /* Empty the reservoir - see <code/reserv.c#reservoir.finish> */
   ReservoirSetLimit(ArenaReservoir(arena), 0);
 
   arena->poolReady = FALSE;

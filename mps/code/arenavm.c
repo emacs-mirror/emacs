@@ -1,4 +1,4 @@
-/* impl.c.arenavm: VIRTUAL MEMORY ARENA CLASS
+/* arenavm.c: VIRTUAL MEMORY ARENA CLASS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -421,7 +421,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
   vmArena = (VMArena)VMBase(arenaVM);
 
   arena = VMArena2Arena(vmArena);
-  /* impl.c.arena.init.caller */
+  /* <code/arena.c#init.caller> */
   res = ArenaInit(arena, class);
   if (res != ResOK)
     goto failArenaInit;
@@ -497,7 +497,7 @@ static void VMArenaFinish(Arena arena)
 
   vmArena->sig = SigInvalid;
 
-  ArenaFinish(arena); /* impl.c.global.finish.caller */
+  ArenaFinish(arena); /* <code/global.c#finish.caller> */
 
   VMUnmap(arenaVM, VMBase(arenaVM), VMLimit(arenaVM));
   VMDestroy(arenaVM);

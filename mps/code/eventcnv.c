@@ -1,4 +1,4 @@
-/* impl.c.eventcnv: Simple event log converter
+/* eventcnv.c: Simple event log converter
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * $Id$
@@ -479,7 +479,7 @@ static void readLog(EventProc proc)
          } else {
            double mean = event->pddwww.d1 / (double)event->pddwww.w3;
            /* .stddev: stddev = sqrt(meanSquared - mean^2), but see */
-           /* impl.c.meter.limitation.variance. */
+           /* <code/meter.c#limitation.variance>. */
            double stddev = sqrt(fabs(event->pddwww.d2
                                      - (mean * mean)));
            printf(" %08lX %8u %8u %8u %#8.3g %#8.3g",

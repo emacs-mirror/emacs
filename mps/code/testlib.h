@@ -1,4 +1,4 @@
-/* impl.h.testlib: TEST LIBRARY INTERFACE
+/* testlib.h: TEST LIBRARY INTERFACE
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

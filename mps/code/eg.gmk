@@ -1,11 +1,11 @@
-# impl.gmk.eg: GNUMAKEFILE FRAGMENT FOR EGCS
+# eg.gmk: GNUMAKEFILE FRAGMENT FOR EGCS
 #
 # $Id$
 # Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
 #
 # This file is included by platform makefiles that use the EGCS
 # compiler.  It defines the compiler specific variables that the
-# common makefile fragment (impl.gmk.comm) requires.
+# common makefile fragment (<code/comm.gmk>) requires.
 #
 # It was made by copying gc.gmk on 1998-03-23
 

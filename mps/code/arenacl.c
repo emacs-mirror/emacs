@@ -1,4 +1,4 @@
-/* impl.c.arenacl: ARENA CLASS USING CLIENT MEMORY
+/* arenacl.c: ARENA CLASS USING CLIENT MEMORY
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -216,7 +216,7 @@ static Res ClientArenaInit(Arena *arenaReturn, ArenaClass class,
     return ResMEMORY;
 
   arena = ClientArena2Arena(clientArena);
-  /* impl.c.arena.init.caller */
+  /* <code/arena.c#init.caller> */
   res = ArenaInit(arena, class);
   if (res != ResOK)
     return res;
@@ -264,7 +264,7 @@ static void ClientArenaFinish(Arena arena)
 
   clientArena->sig = SigInvalid;
 
-  ArenaFinish(arena); /* impl.c.arena.finish.caller */
+  ArenaFinish(arena); /* <code/arena.c#finish.caller> */
 }
 
 

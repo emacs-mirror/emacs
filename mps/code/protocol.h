@@ -1,4 +1,4 @@
-/* impl.h.protocol: PROTOCOL INHERITANCE DEFINITIONS
+/* protocol.h: PROTOCOL INHERITANCE DEFINITIONS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

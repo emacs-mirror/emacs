@@ -1,4 +1,4 @@
-/* impl.c.protsu: PROTECTION FOR SUNOS
+/* protsu.c: PROTECTION FOR SUNOS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

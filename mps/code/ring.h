@@ -1,4 +1,4 @@
-/* impl.h.ring: RING INTERFACE
+/* ring.h: RING INTERFACE
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -15,7 +15,7 @@
 /* RingStruct -- double-ended queue structure
  *
  * .ring: The ring structure is used as a field in other structures
- * in order to link them together into "rings".  See impl.c.ring.
+ * in order to link them together into "rings".  See <code/ring.c>.
  */
 
 typedef struct RingStruct *Ring;

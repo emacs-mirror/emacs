@@ -1,4 +1,4 @@
-/* impl.c.ssan: ANSI STACK SCANNER
+/* ssan.c: ANSI STACK SCANNER
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

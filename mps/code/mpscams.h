@@ -1,4 +1,4 @@
-/* impl.h.mpscams: MEMORY POOL SYSTEM CLASS "AMS"
+/* mpscams.h: MEMORY POOL SYSTEM CLASS "AMS"
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

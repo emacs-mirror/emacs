@@ -1,4 +1,4 @@
-# impl.gmk.sos8cx: BUILD FOR SOLARIS/SPARC v8/CXREF PLATFORM
+# sos8cx.gmk: BUILD FOR SOLARIS/SPARC v8/CXREF PLATFORM
 #
 # $Id$
 # Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

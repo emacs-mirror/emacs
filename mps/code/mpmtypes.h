@@ -1,4 +1,4 @@
-/* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
+/* mpmtypes.h: MEMORY POOL MANAGER TYPES
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -55,7 +55,7 @@ typedef unsigned FormatVariety;
 typedef int RootVar;                    /* <design/type/#rootvar> */
 
 typedef Word *BT;                       /* <design/bt/> */
-typedef struct BootBlockStruct *BootBlock; /* impl.c.boot */
+typedef struct BootBlockStruct *BootBlock; /* <code/boot.c> */
 typedef struct BufferStruct *Buffer;    /* <design/buffer/> */
 typedef struct SegBufStruct *SegBuf;    /* <design/buffer/> */
 typedef struct BufferClassStruct *BufferClass; /* <design/buffer/> */
@@ -66,35 +66,35 @@ typedef unsigned FrameState;            /* <design/alloc-frame/> */
 typedef struct APStruct *AP;            /* <design/buffer/> */
 typedef struct FormatStruct *Format;    /* design.mps.format */
 typedef struct LDStruct *LD;            /* design.mps.ld */
-typedef struct LockStruct *Lock;        /* impl.c.lock* */
+typedef struct LockStruct *Lock;        /* <code/lock.c>* */
 typedef struct PoolStruct *Pool;        /* <design/pool/> */
-typedef struct PoolClassStruct *PoolClass; /* impl.c.poolclas */
-typedef PoolClass AbstractPoolClass;    /* impl.c.poolabs */
-typedef PoolClass AbstractAllocFreePoolClass; /* impl.c.poolabs */
-typedef PoolClass AbstractBufferPoolClass; /* impl.c.poolabs */
-typedef PoolClass AbstractSegBufPoolClass; /* impl.c.poolabs */
-typedef PoolClass AbstractScanPoolClass; /* impl.c.poolabs */
-typedef PoolClass AbstractCollectPoolClass; /* impl.c.poolabs */
+typedef struct PoolClassStruct *PoolClass; /* <code/poolclas.c> */
+typedef PoolClass AbstractPoolClass;    /* <code/poolabs.c> */
+typedef PoolClass AbstractAllocFreePoolClass; /* <code/poolabs.c> */
+typedef PoolClass AbstractBufferPoolClass; /* <code/poolabs.c> */
+typedef PoolClass AbstractSegBufPoolClass; /* <code/poolabs.c> */
+typedef PoolClass AbstractScanPoolClass; /* <code/poolabs.c> */
+typedef PoolClass AbstractCollectPoolClass; /* <code/poolabs.c> */
 typedef struct TraceStruct *Trace;      /* <design/trace/> */
 typedef struct ScanStateStruct *ScanState; /* <design/trace/> */
 typedef struct ChainStruct *Chain;      /* <design/trace/> */
 typedef struct TractStruct *Tract;      /* <design/arena/> */
-typedef struct ChunkStruct *Chunk;      /* impl.c.tract */
-typedef struct ChunkCacheEntryStruct *ChunkCacheEntry; /* impl.c.tract */
-typedef struct PageStruct *Page;        /* impl.c.tract */
-typedef struct SegStruct *Seg;          /* impl.c.seg */
-typedef struct GCSegStruct *GCSeg;      /* impl.c.seg */
-typedef struct SegClassStruct *SegClass; /* impl.c.seg */
-typedef SegClass GCSegClass;            /* impl.c.seg */
-typedef struct SegPrefStruct *SegPref;  /* design.mps.pref, impl.c.locus */
-typedef int SegPrefKind;                /* design.mps.pref, impl.c.locus */
+typedef struct ChunkStruct *Chunk;      /* <code/tract.c> */
+typedef struct ChunkCacheEntryStruct *ChunkCacheEntry; /* <code/tract.c> */
+typedef struct PageStruct *Page;        /* <code/tract.c> */
+typedef struct SegStruct *Seg;          /* <code/seg.c> */
+typedef struct GCSegStruct *GCSeg;      /* <code/seg.c> */
+typedef struct SegClassStruct *SegClass; /* <code/seg.c> */
+typedef SegClass GCSegClass;            /* <code/seg.c> */
+typedef struct SegPrefStruct *SegPref;  /* design.mps.pref, <code/locus.c> */
+typedef int SegPrefKind;                /* design.mps.pref, <code/locus.c> */
 typedef struct ArenaClassStruct *ArenaClass; /* <design/arena/> */
-typedef ArenaClass AbstractArenaClass;  /* impl.c.arena */
+typedef ArenaClass AbstractArenaClass;  /* <code/arena.c> */
 typedef struct ArenaStruct *Arena;      /* <design/arena/> */
 typedef struct GlobalsStruct *Globals;  /* <design/arena/> */
-typedef struct VMStruct *VM;            /* impl.c.vm* */
-typedef struct RootStruct *Root;        /* impl.c.root */
-typedef struct ThreadStruct *Thread;    /* impl.c.th* */
+typedef struct VMStruct *VM;            /* <code/vm.c>* */
+typedef struct RootStruct *Root;        /* <code/root.c> */
+typedef struct ThreadStruct *Thread;    /* <code/th.c>* */
 typedef struct MutatorFaultContextStruct
         *MutatorFaultContext;           /* <design/prot/> */
 typedef struct PoolDebugMixinStruct *PoolDebugMixin;
@@ -103,7 +103,7 @@ typedef struct AllocFrameStruct *AllocFrame; /* <design/alloc-frame/> */
 typedef struct ReservoirStruct *Reservoir;   /* <design/reservoir/> */
 
 
-/* Arena*Method -- see impl.h.mpmst.ArenaClassStruct */
+/* Arena*Method -- see <code/mpmst.h#ArenaClassStruct> */
 
 typedef Res (*ArenaInitMethod)(Arena *arenaReturn,
                                ArenaClass class, va_list args);
@@ -177,7 +177,7 @@ typedef Res (*BufferDescribeMethod)(Buffer buffer, mps_lib_FILE *stream);
 
 /* Pool*Method -- see <design/class-interface/> */
 
-/* Order of types corresponds to PoolClassStruct in impl.h.mpmst */
+/* Order of types corresponds to PoolClassStruct in <code/mpmst.h> */
 
 typedef Res (*PoolInitMethod)(Pool pool, va_list args);
 typedef void (*PoolFinishMethod)(Pool pool);
@@ -235,7 +235,7 @@ typedef struct MessageFinalizationStruct *MessageFinalization;
 
 /* Format*Method -- see design.mps.format-interface */
 /* .fmt-methods: These methods must match those defined in the */
-/* MPS C Interface.  (See impl.h.mps.fmt-methods.) */
+/* MPS C Interface.  (See <code/mps.h#fmt-methods>.) */
 
 typedef Res  (*FormatScanMethod)(ScanState ss, Addr base, Addr limit);
 typedef Addr (*FormatSkipMethod)(Addr object);
@@ -248,7 +248,7 @@ typedef Addr (*FormatClassMethod)(Addr object);
 
 /* Root*Method -- see <design/root/>-interface */
 /* .root-methods: These methods must match those defined in the */
-/* MPS C Interface.  (See impl.h.mps.root-methods.) */
+/* MPS C Interface.  (See <code/mps.h#root-methods>.) */
 
 typedef Res (*RootScanMethod)(ScanState ss, void *p, size_t s);
 typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p, size_t s);
@@ -328,8 +328,8 @@ enum {
 
 
 /* Rank constants -- see <design/type/#rank> */
-/* These definitions must match impl.h.mps.rank. */
-/* This is checked by impl.c.mpsi.check. */
+/* These definitions must match <code/mps.h#rank>. */
+/* This is checked by <code/mpsi.c#check>. */
 
 enum {
   RankAMBIG = 0,
@@ -341,7 +341,7 @@ enum {
 
 
 /* Root Modes -- not implemented */
-/* .rm: Synchronize with impl.h.mps.rm. */
+/* .rm: Synchronize with <code/mps.h#rm>. */
 /* This comment exists as a placeholder for when root modes are */
 /* implemented. */
 
@@ -352,7 +352,7 @@ enum {
 
 /* Root Variants -- see <design/type/#rootvar>
  *
- * .rootvar: Synchonize with impl.c.root.rootvarcheck
+ * .rootvar: Synchonize with <code/root.c#rootvarcheck>
  */
 
 enum {
@@ -366,10 +366,10 @@ enum {
 
 
 /* .result-codes: Result Codes -- see <design/type/#res> */
-/* These definitions must match impl.h.mps.result-codes. */
-/* This is checked by impl.c.mpsi.check.rc. */
+/* These definitions must match <code/mps.h#result-codes>. */
+/* This is checked by <code/mpsi.c#check.rc>. */
 /* Changing this list entails changing the list in */
-/* impl.h.mps.result-codes and the check in impl.c.mpsi.check.rc */
+/* <code/mps.h#result-codes> and the check in <code/mpsi.c#check.rc> */
 
 enum {
   ResOK = 0,
@@ -396,7 +396,7 @@ enum {
 
 
 /* MessageTypes -- see <design/message/> */
-/* .message.types: Keep in sync with impl.h.mps.message.types */
+/* .message.types: Keep in sync with <code/mps.h#message.types> */
 
 enum {
   MessageTypeFINALIZATION,

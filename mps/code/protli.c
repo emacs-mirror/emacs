@@ -1,4 +1,4 @@
-/*  impl.c.protli: PROTECTION FOR LINUX
+/* protli.c: PROTECTION FOR LINUX
  *
  *  $Id$
  *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

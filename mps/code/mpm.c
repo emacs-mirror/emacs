@@ -1,4 +1,4 @@
-/* impl.c.mpm: GENERAL MPM SUPPORT
+/* mpm.c: GENERAL MPM SUPPORT
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

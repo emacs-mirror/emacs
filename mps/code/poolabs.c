@@ -1,4 +1,4 @@
-/* impl.c.poolabs: ABSTRACT POOL CLASSES
+/* poolabs.c: ABSTRACT POOL CLASSES
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -411,7 +411,7 @@ Res PoolSingleAccess(Pool pool, Seg seg, Addr addr,
       /* (we assume it is not a reference otherwise) */
       if(WordIsAligned((Word)ref, sizeof(Word))) {
         /* See the note in TraceSegAccess about using RankEXACT here */
-        /* (impl.c.trace.scan.conservative) */
+        /* (<code/trace.c#scan.conservative>) */
 	TraceScanSingleRef(arena->flippedTraces, RankEXACT, arena,
 	                   seg, (Ref *)addr);
       }

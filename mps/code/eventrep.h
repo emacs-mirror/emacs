@@ -1,4 +1,4 @@
-/* impl.h.eventrep: Allocation replayer interface
+/* eventrep.h: Allocation replayer interface
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * $Id$

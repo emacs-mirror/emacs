@@ -1,4 +1,4 @@
-/* impl.c.cbs: COALESCING BLOCK STRUCTURE IMPLEMENTATION
+/* cbs.c: COALESCING BLOCK STRUCTURE IMPLEMENTATION
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -1310,7 +1310,7 @@ static Bool CBSFindDeleteCheck(CBSFindDelete findDelete)
   CHECKL(findDelete == CBSFindDeleteNONE || findDelete == CBSFindDeleteLOW
          || findDelete == CBSFindDeleteHIGH
          || findDelete == CBSFindDeleteENTIRE);
-  UNUSED(findDelete); /* impl.c.mpm.check.unused */
+  UNUSED(findDelete); /* <code/mpm.c#check.unused> */
 
   return TRUE;
 }

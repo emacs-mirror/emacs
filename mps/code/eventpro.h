@@ -1,4 +1,4 @@
-/* impl.h.eventpro: Interface for event processing routines
+/* eventpro.h: Interface for event processing routines
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * $Id$

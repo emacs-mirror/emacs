@@ -1,4 +1,4 @@
-/* impl.h.splay: SPLAY TREE HEADER
+/* splay.h: SPLAY TREE HEADER
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

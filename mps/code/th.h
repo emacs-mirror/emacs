@@ -1,4 +1,4 @@
-/*  impl.h.th: THREAD MANAGER
+/* th.h: THREAD MANAGER
  *
  *  $Id$
  *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

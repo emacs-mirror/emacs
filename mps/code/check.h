@@ -1,4 +1,4 @@
-/* impl.h.check: ASSERTION INTERFACE
+/* check.h: ASSERTION INTERFACE
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -26,7 +26,7 @@
 #include "mpslib.h"
 
 
-/* CheckLevel -- Control check method behaviour; see impl.c.assert */
+/* CheckLevel -- Control check method behaviour; see <code/assert.c> */
 
 extern unsigned CheckLevel;
 
@@ -255,7 +255,7 @@ extern void AssertFail1(const char *s);
  * .check.macros: The CHECK* macros use some C trickery to attempt to
  * verify that certain types and fields are equivalent.  They do not
  * do a complete job.  This trickery is justified by the security gained
- * in knowing that impl.h.mps matches the MPM.  See also
+ * in knowing that <code/mps.h> matches the MPM.  See also
  * mail.richard.1996-08-07.09-49.  [This paragraph is intended to
  * satisfy rule.impl.trick.]
  */

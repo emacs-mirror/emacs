@@ -1,4 +1,4 @@
-/* impl.h.table: A dictionary mapping a Word to a void*
+/* table.h: A dictionary mapping a Word to a void*
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/* impl.c.btss: BIT TABLE COVERAGE TEST
+/* btss.c: BIT TABLE COVERAGE TEST
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/*  impl.h.poolmv2: MANUAL VARIABLE-SIZED TEMPORAL POOL
+/* poolmv2.h: MANUAL VARIABLE-SIZED TEMPORAL POOL
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

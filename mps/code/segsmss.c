@@ -1,4 +1,4 @@
-/* impl.c.segsmss: Segment splitting and merging stress test
+/* segsmss.c: Segment splitting and merging stress test
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

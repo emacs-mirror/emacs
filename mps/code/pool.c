@@ -1,4 +1,4 @@
-/* impl.c.pool: POOL IMPLEMENTATION
+/* pool.c: POOL IMPLEMENTATION
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -24,10 +24,10 @@
  * SOURCES
  *
  * .source: See .design also.  PoolStruct and PoolClassStruct, the
- * central types for this module, are defined in impl.h.mpmst, the
- * corresponding abstract types in impl.h.mpmtypes.  Declarations and
- * prototypes are in impl.h.mpm.  Several functions have macro versions
- * defined in impl.h.mpm.  */
+ * central types for this module, are defined in <code/mpmst.h>, the
+ * corresponding abstract types in <code/mpmtypes.h>.  Declarations and
+ * prototypes are in <code/mpm.h>.  Several functions have macro versions
+ * defined in <code/mpm.h>.  */
 
 #include "mpm.h"
 
@@ -72,7 +72,7 @@ Bool PoolClassCheck(PoolClass class)
 
 Bool PoolCheck(Pool pool)
 {
-  /* Checks ordered as per struct decl in impl.h.mpmst.pool */
+  /* Checks ordered as per struct decl in <code/mpmst.h#pool> */
   CHECKS(Pool, pool);
   /* Break modularity for checking efficiency */
   CHECKL(pool->serial < ArenaGlobals(pool->arena)->poolSerial);
@@ -387,7 +387,7 @@ Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
   /* the segment (SegRankSet(seg)).  It is tricky to check that, */
   /* so we only check that either ss->rank is in the segment's */
   /* ranks, or that ss->rank is exact. */
-  /* See impl.c.trace.scan.conservative */
+  /* See <code/trace.c#scan.conservative> */
   AVER(ss->rank == RankEXACT || RankSetIsMember(SegRankSet(seg), ss->rank));
 
   /* Should only scan segments which contain grey objects. */
@@ -399,7 +399,7 @@ Res PoolScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
 /* PoolFix* -- fix a reference to an object in this pool
  *
- * See impl.h.mpm for macro version; see <design/pool/#req.fix>. */
+ * See <code/mpm.h> for macro version; see <design/pool/#req.fix>. */
 
 Res (PoolFix)(Pool pool, ScanState ss, Seg seg, Addr *refIO)
 {

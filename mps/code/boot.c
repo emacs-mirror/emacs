@@ -1,4 +1,4 @@
-/* impl.c.boot: BOOTSTRAP ALLOCATOR
+/* boot.c: BOOTSTRAP ALLOCATOR
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/* impl.h.mpsavm: MEMORY POOL SYSTEM ARENA CLASS "VM"
+/* mpsavm.h: MEMORY POOL SYSTEM ARENA CLASS "VM"
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
- # impl.s.sso1al: STACK SCANNING FOR DIGITAL UNIX / ALPHA
+ # sso1al.s: STACK SCANNING FOR DIGITAL UNIX / ALPHA
  #
  # $Id$
  # Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

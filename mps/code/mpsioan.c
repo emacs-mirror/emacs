@@ -1,4 +1,4 @@
-/* impl.c.mpsioan: RAVENBROOK MEMORY POOL SYSTEM I/O IMPLEMENTATION (ANSI)
+/* mpsioan.c: RAVENBROOK MEMORY POOL SYSTEM I/O IMPLEMENTATION (ANSI)
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -40,7 +40,7 @@ mps_res_t mps_io_create(mps_io_t *mps_io_r)
 {
   FILE *f;
 
-  if(ioFile != NULL) /* See impl.c.event.trans.log */
+  if(ioFile != NULL) /* See <code/event.c#trans.log> */
     return MPS_RES_LIMIT; /* Cannot currently open more than one log */
 
   f = fopen("mpsio.log", "wb");

@@ -1,4 +1,4 @@
-/* impl.c.proto1: PROTECTION FOR DIGITAL UNIX
+/* proto1.c: PROTECTION FOR DIGITAL UNIX
  *
  *  $Id$
  *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/* impl.c.dbgpool: POOL DEBUG MIXIN
+/* dbgpool.c: POOL DEBUG MIXIN
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -74,7 +74,7 @@ Bool PoolDebugMixinCheck(PoolDebugMixin debug)
   CHECKL(CHECKTYPE(Addr, void*)); /* tagPool relies on this */
   /* Nothing to check about missingTags */
   CHECKL(SplayTreeCheck(&debug->index));
-  UNUSED(debug); /* see impl.c.mpm.check.unused */
+  UNUSED(debug); /* see <code/mpm.c#check.unused> */
   return TRUE;
 }
 

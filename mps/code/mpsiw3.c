@@ -1,4 +1,4 @@
-/* impl.c.mpsint:
+/* mpsint.c:
  *
  *       WIN32 MEMORY POOL SYSTEM INTERFACE LAYER EXTRAS
  *

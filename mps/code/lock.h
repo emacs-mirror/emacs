@@ -1,4 +1,4 @@
-/* impl.h.lock: RECURSIVE LOCKS
+/* lock.h: RECURSIVE LOCKS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -19,7 +19,7 @@
  *  number of releases matches the number of claims.
  *
  *  To use a lock a structure of type LockStruct must be allocated.
- *  This is defined in impl.h.lockst.  Sources which allocate such a
+ *  This is defined in <code/lockst.h>.  Sources which allocate such a
  *  structure will need to include "lockst.h".  A lock of type Lock is
  *  a pointer to such an allocated structure.
  *

@@ -1,4 +1,4 @@
-/* impl.h.cbs: CBS -- Coalescing Block Structure
+/* cbs.h: CBS -- Coalescing Block Structure
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

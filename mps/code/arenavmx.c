@@ -1,4 +1,4 @@
-/* impl.c.arenavmx: STUBS FOR ARENAVM
+/* arenavmx.c: STUBS FOR ARENAVM
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,11 +1,11 @@
-/* impl.c.abq: AVAILABLE BLOCK QUEUE
+/* abq.c: AVAILABLE BLOCK QUEUE
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * .readership: Any MPS developer
  *
- * .purpose: A FIFO queue substrate for impl.c.poolmv2
+ * .purpose: A FIFO queue substrate for <code/poolmv2.c>
  *
  * .design: See <design/poolmv2/>
  */

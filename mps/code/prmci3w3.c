@@ -1,4 +1,4 @@
-/* impl.c.prmci3w3: PROTECTION MUTATOR CONTEXT INTEL 386 (Win32)
+/* prmci3w3.c: PROTECTION MUTATOR CONTEXT INTEL 386 (Win32)
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/* impl.h.prmcli:  PROTECTION MUTATOR CONTEXT (Linux)
+/* prmcli.h:  PROTECTION MUTATOR CONTEXT (Linux)
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/*  impl.h.poolmfs  draft impl
+/*  <code/poolmfs.h>  draft impl
  *
  *                    MANUAL FIXED SMALL UNIT POOL
  *

@@ -1,4 +1,4 @@
-/* impl.h.sac: SEGREGATED ALLOCATION CACHES INTERFACE
+/* sac.h: SEGREGATED ALLOCATION CACHES INTERFACE
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -15,7 +15,7 @@
 
 
 /* ExternalSAC -- the external face of segregated allocation caches */
-/* .sac: This structure must match impl.h.mps.sac. */
+/* .sac: This structure must match <code/mps.h#sac>. */
 
 typedef struct ExternalSACStruct *ExternalSAC;
 
@@ -58,7 +58,7 @@ typedef struct SACStruct {
 
 
 /* SACClasses -- structure for specifying classes in the cache */
-/* .sacc: This structure must match impl.h.mps.sacc. */
+/* .sacc: This structure must match <code/mps.h#sacc>. */
 
 typedef struct SACClassesStruct *SACClasses;
 

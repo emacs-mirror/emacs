@@ -1,4 +1,4 @@
-# impl.gmk.sos8gp: BUILD FOR SOLARIS/SPARC v8/GCC WITH PROFILING PLATFORM
+# sos8gp.gmk: BUILD FOR SOLARIS/SPARC v8/GCC WITH PROFILING PLATFORM
 #
 # $Id$
 # Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

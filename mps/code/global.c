@@ -1,4 +1,4 @@
-/* impl.c.global: ARENA-GLOBAL INTERFACES
+/* global.c: ARENA-GLOBAL INTERFACES
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -14,7 +14,7 @@
  * See <design/arena/#static>.
  *
  * .non-mod: The Globals structure has many fields which properly belong
- * to other modules (see impl.h.mpmst); GlobalsInit contains code which
+ * to other modules (see <code/mpmst.h>); GlobalsInit contains code which
  * breaks the usual module abstractions.  Such instances are documented
  * with a tag to the relevant module implementation.  Most of the
  * functions should be in some other module, they just ended up here by
@@ -262,9 +262,9 @@ Res GlobalsInit(Globals arenaGlobals)
   arena->enabledMessageTypes = NULL;
   arena->isFinalPool = FALSE;
   arena->finalPool = NULL;
-  arena->busyTraces = TraceSetEMPTY;    /* impl.c.trace */
-  arena->flippedTraces = TraceSetEMPTY; /* impl.c.trace */
-  arena->insideShield = FALSE;          /* impl.c.shield */
+  arena->busyTraces = TraceSetEMPTY;    /* <code/trace.c> */
+  arena->flippedTraces = TraceSetEMPTY; /* <code/trace.c> */
+  arena->insideShield = FALSE;          /* <code/shield.c> */
   arena->shCacheI = (Size)0;
   arena->shCacheLimit = (Size)1;
   arena->shDepth = (Size)0;
@@ -281,7 +281,7 @@ Res GlobalsInit(Globals arenaGlobals)
   STATISTIC(arena->writeBarrierHitCount = 0);
   RingInit(&arena->chainRing);
 
-  arena->epoch = (Epoch)0;              /* impl.c.ld */
+  arena->epoch = (Epoch)0;              /* <code/ld.c> */
   arena->prehistory = RefSetEMPTY;
   for(i = 0; i < LDHistoryLENGTH; ++i)
     arena->history[i] = RefSetEMPTY;
@@ -705,7 +705,7 @@ Ref ArenaRead(Arena arena, Addr addr)
 
   /* .read.conservative: @@@@ Should scan at rank phase-of-trace, */
   /* not RankEXACT which is conservative.  See also */
-  /* impl.c.trace.scan.conservative for a similar nasty. */
+  /* <code/trace.c#scan.conservative> for a similar nasty. */
   TraceScanSingleRef(arena->flippedTraces, RankEXACT, arena,
                      seg, (Ref *)addr);
   /* get the possibly fixed reference */

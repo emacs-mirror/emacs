@@ -1,4 +1,4 @@
-/* impl.c.apss: AP MANUAL ALLOC STRESS TEST
+/* apss.c: AP MANUAL ALLOC STRESS TEST
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/* impl.h.dbgpool: POOL DEBUG MIXIN
+/* dbgpool.h: POOL DEBUG MIXIN
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -19,7 +19,7 @@ typedef void (*TagInitMethod)(void* tag, va_list args);
 
 /* PoolDebugOptions -- option structure for debug pool init
  *
- * This must be kept in sync with impl.h.mps.mps_pool_debug_option_s.
+ * This must be kept in sync with <code/mps.h#mps_pool_debug_option_s>.
  */
 
 typedef struct PoolDebugOptionsStruct {

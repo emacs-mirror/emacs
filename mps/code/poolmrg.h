@@ -1,4 +1,4 @@
-/*  impl.h.amc  draft impl
+/*  <code/amc.h>  draft impl
  *
  *               MANUAL RANK GUARDIAN POOL CLASS
  *

@@ -1,6 +1,4 @@
-!  impl.s.sssus8
-!
-!                      STACK SCANNING
+! code/sssus8.s: STACK SCANNING
 !
 !  $Id$
 !
@@ -9,7 +7,7 @@
 !  This scans the stack and the preserved integer registers.
 !  See design.mps.thread-manager
 !
-!  This file is identical to impl.s.sssos8, except for the
+!  This file is identical to <code/sssos8.s>, except for the
 !  leading underscore convention on C names.  They should be
 !  changed in parallel.
 !

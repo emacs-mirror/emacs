@@ -1,4 +1,4 @@
-/* impl.h.eventdef -- Event Logging Definitions
+/* <code/eventdef.h> -- Event Logging Definitions
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -48,7 +48,7 @@
  * These specify:
  *   - Type: The name of the event type, without the leading "Event";
  *   - Code: The unique 16-bit code associated with this event type,
- *     not currently used (see impl.h.eventcom);
+ *     not currently used (see <code/eventcom.h>);
  *   - Always: Whether this event type should appear in optimised
  *     varieties, not currently used;
  *   - Kind: Category into which this event falls, without the

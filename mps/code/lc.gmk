@@ -1,11 +1,11 @@
-# impl.gmk.lc: GNUMAKEFILE FRAGMENT FOR LCC
+# lc.gmk: GNUMAKEFILE FRAGMENT FOR LCC
 #
 # $Id$
 # Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
 #
 # This file is included by platform makefiles that use the LCC
 # compiler.  It defines the compiler specific variables that the
-# common makefile fragment (impl.gmk.comm) requires.
+# common makefile fragment (<code/comm.gmk>) requires.
 #
 # .optimize.noflags: lcc does some minimal amount of optimization all
 # the time and ignores the -O flag.  Hence the empty *OPT* macros.

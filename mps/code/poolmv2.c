@@ -1,4 +1,4 @@
-/* impl.c.poolmv2: MANUAL VARIABLE-SIZED TEMPORAL POOL
+/* poolmv2.c: MANUAL VARIABLE-SIZED TEMPORAL POOL
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -478,7 +478,7 @@ found:
     {
       Bool b = SegOfAddr(&seg, arena, base);
       AVER(b);
-      UNUSED(b); /* impl.c.mpm.check.unused */
+      UNUSED(b); /* <code/mpm.c#check.unused> */
     }
     /* Only pass out segments - may not be the best long-term policy. */
     {
@@ -497,7 +497,7 @@ found:
         {
           Bool b = SegOfAddr(&seg, arena, base);
           AVER(b);
-          UNUSED(b); /* impl.c.mpm.check.unused */
+          UNUSED(b); /* <code/mpm.c#check.unused> */
         }
         segLimit = SegLimit(seg);
         if (limit > segLimit)
@@ -508,7 +508,7 @@ found:
     {
       Res r = CBSDelete(MVTCBS(mvt), base, limit);
       AVER(r == ResOK);
-      UNUSED(r); /* impl.c.mpm.check.unused */
+      UNUSED(r); /* <code/mpm.c#check.unused> */
     }
     goto done;
   }
@@ -621,7 +621,7 @@ static void MVTBufferEmpty(Pool pool, Buffer buffer,
 /* MVTFree -- free a block (previously allocated from a buffer) that
  * is no longer in use
  *
- * see design.poolmvt.impl.c.free
+ * see <design/poolmvt/#impl.c.free>
  */
 static void MVTFree(Pool pool, Addr base, Size size)
 {
@@ -655,7 +655,7 @@ static void MVTFree(Pool pool, Addr base, Size size)
     {
       Bool b = SegOfAddr(&seg, PoolArena(pool), base);
       AVER(b);
-      UNUSED(b); /* impl.c.mpm.check.unused */
+      UNUSED(b); /* <code/mpm.c#check.unused> */
     }
     AVER(base == SegBase(seg));
     AVER(limit <= SegLimit(seg));
@@ -673,7 +673,7 @@ static void MVTFree(Pool pool, Addr base, Size size)
   {
     Res res = CBSInsert(MVTCBS(mvt), base, limit);
     AVER(res == ResOK);
-    UNUSED(res); /* impl.c.mpm.check.unused */
+    UNUSED(res); /* <code/mpm.c#check.unused> */
   }
 }
 
@@ -908,7 +908,7 @@ static Bool MVTReturnBlockSegs(MVT mvt, CBSBlock block, Arena arena)
     {
       Bool b = SegOfAddr(&seg, arena, base);
       AVER(b);
-      UNUSED(b); /* impl.c.mpm.check.unused */
+      UNUSED(b); /* <code/mpm.c#check.unused> */
     }
     segBase = SegBase(seg);
     segLimit = SegLimit(seg);
@@ -916,7 +916,7 @@ static Bool MVTReturnBlockSegs(MVT mvt, CBSBlock block, Arena arena)
       Res r = CBSDelete(MVTCBS(mvt), segBase, segLimit);
 
       AVER(r == ResOK);
-      UNUSED(r); /* impl.c.mpm.check.unused */
+      UNUSED(r); /* <code/mpm.c#check.unused> */
       MVTSegFree(mvt, seg);
       success = TRUE;
     }
@@ -977,7 +977,7 @@ static void MVTNoteDelete(CBS cbs, CBSBlock block, Size oldSize, Size newSize)
  
   res = ABQDelete(MVTABQ(CBSMVT(cbs)), block);
   AVER(res == ResOK || CBSMVT(cbs)->abqOverflow);
-  UNUSED(res); /* impl.c.mpm.check.unused */
+  UNUSED(res); /* <code/mpm.c#check.unused> */
 }
 
 
@@ -1121,7 +1121,7 @@ static Bool MVTCheckFit(CBSBlock block, Size min, Arena arena)
   {
     Bool b = SegOfAddr(&seg, arena, base);
     AVER(b);
-    UNUSED(b); /* impl.c.mpm.check.unused */
+    UNUSED(b); /* <code/mpm.c#check.unused> */
   }
   segLimit = SegLimit(seg);
 
@@ -1137,7 +1137,7 @@ static Bool MVTCheckFit(CBSBlock block, Size min, Arena arena)
   {
     Bool b = SegOfAddr(&seg, arena, base);
     AVER(b);
-    UNUSED(b); /* impl.c.mpm.check.unused */
+    UNUSED(b); /* <code/mpm.c#check.unused> */
   }
   segLimit = SegLimit(seg);
 

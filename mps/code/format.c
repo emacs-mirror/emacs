@@ -1,4 +1,4 @@
-/* impl.c.format: OBJECT FORMATS
+/* format.c: OBJECT FORMATS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

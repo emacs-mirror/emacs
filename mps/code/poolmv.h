@@ -1,4 +1,4 @@
-/* .impl.h.poolmv: MANUAL VARIABLE POOL
+/* poolmv.h: MANUAL VARIABLE POOL
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

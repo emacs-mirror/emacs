@@ -1,4 +1,4 @@
-/* impl.h.mps: RAVENBROOK MEMORY POOL SYSTEM C INTERFACE
+/* mps.h: RAVENBROOK MEMORY POOL SYSTEM C INTERFACE
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -50,8 +50,8 @@ typedef unsigned mps_rank_t;    /* ranks (unsigned) */
 typedef unsigned mps_message_type_t;    /* message type (unsigned) */
 
 /* Result Codes */
-/* .result-codes: Keep in sync with impl.h.mpmtypes.result-codes */
-/* and the check in impl.c.mpsi.check.rc */
+/* .result-codes: Keep in sync with <code/mpmtypes.h#result-codes> */
+/* and the check in <code/mpsi.c#check.rc> */
 
 enum {
   MPS_RES_OK = 0,               /* success (always zero) */
@@ -65,7 +65,7 @@ enum {
   MPS_RES_PARAM                 /* illegal user parameter value */
 };
 
-/* .message.types: Keep in sync with impl.h.mpmtypes.message.types */
+/* .message.types: Keep in sync with <code/mpmtypes.h#message.types> */
 /* Not meant to be used by clients, they should use the macros below. */
 enum {
   MPS_MESSAGE_TYPE_FINALIZATION,
@@ -93,14 +93,14 @@ extern mps_rank_t mps_rank_weak(void);
 #define MPS_RANK_WEAK mps_rank_weak()
 
 /* Root Modes */
-/* .rm: Keep in sync with impl.h.mpmtypes.rm */
+/* .rm: Keep in sync with <code/mpmtypes.h#rm> */
 
 #define MPS_RM_CONST    (((mps_rm_t)1<<0))
 #define MPS_RM_PROT     (((mps_rm_t)1<<1))
 
 
 /* Allocation Point */
-/* .ap: Keep in sync with impl.h.mpmst.ap. */
+/* .ap: Keep in sync with <code/mpmst.h#ap>. */
 
 typedef struct mps_ap_s {       /* allocation point descriptor */
   mps_addr_t init;              /* limit of initialized memory */
@@ -113,7 +113,7 @@ typedef struct mps_ap_s {       /* allocation point descriptor */
 
 
 /* Segregated-fit Allocation Caches */
-/* .sac: Keep in sync with impl.h.sac. */
+/* .sac: Keep in sync with <code/sac.h>. */
 
 typedef struct mps_sac_s *mps_sac_t;
 
@@ -132,7 +132,7 @@ typedef struct mps_sac_s {
   mps_sac_freelist_block_s mps_freelists[2 * MPS_SAC_CLASS_LIMIT];
 } mps_sac_s;
 
-/* .sacc: Keep in sync with impl.h.sac. */
+/* .sacc: Keep in sync with <code/sac.h>. */
 typedef struct mps_sac_classes_s {
   size_t mps_block_size;
   size_t mps_cached_count;
@@ -141,7 +141,7 @@ typedef struct mps_sac_classes_s {
 
 
 /* Location Dependency */
-/* .ld: Keep in sync with impl.h.mpmst.ld.struct. */
+/* .ld: Keep in sync with <code/mpmst.h#ld.struct>. */
 
 typedef struct mps_ld_s {       /* location dependency descriptor */
   mps_word_t w0, w1;
@@ -149,8 +149,8 @@ typedef struct mps_ld_s {       /* location dependency descriptor */
 
 
 /* Format and Root Method Types */
-/* .fmt-methods: Keep in sync with impl.h.mpmtypes.fmt-methods */
-/* .root-methods: Keep in sync with impl.h.mpmtypes.root-methods */
+/* .fmt-methods: Keep in sync with <code/mpmtypes.h#fmt-methods> */
+/* .root-methods: Keep in sync with <code/mpmtypes.h#root-methods> */
 
 typedef mps_res_t (*mps_root_scan_t)(mps_ss_t, void *, size_t);
 typedef mps_res_t (*mps_fmt_scan_t)(mps_ss_t, mps_addr_t, mps_addr_t);
@@ -165,7 +165,7 @@ typedef mps_addr_t (*mps_fmt_class_t)(mps_addr_t);
 
 
 /* Scan State */
-/* .ss: See also impl.c.mpsi.check.ss and impl.h.mpmst.ss. */
+/* .ss: See also <code/mpsi.c#check.ss> and <code/mpmst.h#ss>. */
 
 typedef struct mps_ss_s {
   mps_res_t (*fix)(mps_ss_t, mps_addr_t *);
@@ -289,7 +289,7 @@ extern mps_res_t mps_pool_create_v(mps_pool_t *, mps_arena_t,
                                    mps_class_t, va_list);
 extern void mps_pool_destroy(mps_pool_t);
 
-/* .gen-param: This structure must match impl.h.chain.gen-param. */
+/* .gen-param: This structure must match <code/chain.h#gen-param>. */
 typedef struct mps_gen_param_s {
   size_t mps_capacity;
   double mps_mortality;
@@ -407,7 +407,7 @@ extern mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *,
 
 
 /* Reserve Macros */
-/* .reserve: Keep in sync with impl.c.buffer.reserve. */
+/* .reserve: Keep in sync with <code/buffer.c#reserve>. */
 
 #define mps_reserve(_p_o, _mps_ap, _size) \
   ((char *)(_mps_ap)->alloc + (_size) > (char *)(_mps_ap)->alloc && \
@@ -446,7 +446,7 @@ extern mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *,
 
 
 /* Commit Macros */
-/* .commit: Keep in sync with impl.c.buffer.commit. */
+/* .commit: Keep in sync with <code/buffer.c#commit>. */
 
 #define mps_commit(_mps_ap, _p, _size) \
   ((_mps_ap)->init = (_mps_ap)->alloc, \

@@ -1,4 +1,4 @@
-/* impl.c.pooln: NULL POOL CLASS
+/* pooln.c: NULL POOL CLASS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -290,7 +290,7 @@ Bool PoolNCheck(PoolN poolN)
   CHECKL(poolN != NULL);
   CHECKD(Pool, &poolN->poolStruct);
   CHECKL(poolN->poolStruct.class == EnsureNPoolClass());
-  UNUSED(poolN); /* impl.c.mpm.check.unused */
+  UNUSED(poolN); /* <code/mpm.c#check.unused> */
 
   return TRUE;
 }

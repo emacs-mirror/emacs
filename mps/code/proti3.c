@@ -1,4 +1,4 @@
-/* impl.c.proti3: PROTECTION MUTATOR CONTEXT (INTEL 386)
+/* proti3.c: PROTECTION MUTATOR CONTEXT (INTEL 386)
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

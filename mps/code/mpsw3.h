@@ -1,4 +1,4 @@
-/* impl.h.mpsw3: RAVENBROOK MEMORY POOL SYSTEM C INTERFACE, WINDOWS PART
+/* mpsw3.h: RAVENBROOK MEMORY POOL SYSTEM C INTERFACE, WINDOWS PART
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/* impl.c.eventrep: Allocation replayer routines
+/* eventrep.c: Allocation replayer routines
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  *
  * $Id$

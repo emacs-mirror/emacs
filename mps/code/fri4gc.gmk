@@ -1,4 +1,4 @@
-# impl.gmk.fri4gc: BUILD FOR FreeBSD/INTEL/GCC PLATFORM
+# fri4gc.gmk: BUILD FOR FreeBSD/INTEL/GCC PLATFORM
 #
 # $Id$
 # Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/* impl.c.lockutw3: LOCK UTILIZATION TEST
+/* lockutw3.c: LOCK UTILIZATION TEST
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

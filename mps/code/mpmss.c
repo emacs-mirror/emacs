@@ -1,4 +1,4 @@
-/* impl.c.mpmss: MPM STRESS TEST
+/* mpmss.c: MPM STRESS TEST
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

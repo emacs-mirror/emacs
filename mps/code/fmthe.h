@@ -1,4 +1,4 @@
-/* impl.h.fmthe: HEADERS FOR DYLAN-LIKE OBJECT FORMATS
+/* fmthe.h: HEADERS FOR DYLAN-LIKE OBJECT FORMATS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

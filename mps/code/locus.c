@@ -1,4 +1,4 @@
-/* impl.c.locus: LOCUS MANAGER
+/* locus.c: LOCUS MANAGER
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

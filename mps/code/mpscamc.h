@@ -1,4 +1,4 @@
-/* impl.h.mpscamc: MEMORY POOL SYSTEM CLASS "AMC"
+/* mpscamc.h: MEMORY POOL SYSTEM CLASS "AMC"
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

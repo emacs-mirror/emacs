@@ -1,4 +1,4 @@
-/*  impl.c.protfri3: PROTECTION FOR FREEBSD (INTEL 386)
+/* protfri3.c: PROTECTION FOR FREEBSD (INTEL 386)
  *
  *  $Id$
  *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/* impl.c.lockfr: RECURSIVE LOCKS FOR POSIX SYSTEMS
+/* lockfr.c: RECURSIVE LOCKS FOR POSIX SYSTEMS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/* impl.h.poolams: AUTOMATIC MARK & SWEEP POOL CLASS INTERFACE
+/* poolams.h: AUTOMATIC MARK & SWEEP POOL CLASS INTERFACE
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

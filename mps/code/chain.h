@@ -1,4 +1,4 @@
-/* impl.h.chain: GENERATION CHAINS
+/* chain.h: GENERATION CHAINS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -12,7 +12,7 @@
 
 
 /* GenParamStruct -- structure for specifying generation parameters */
-/* .gen-param: This structure must match impl.h.mps.gen-param. */
+/* .gen-param: This structure must match <code/mps.h#gen-param>. */
 
 typedef struct GenParamStruct {
   Size capacity; /* capacity in kB */

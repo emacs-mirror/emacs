@@ -1,4 +1,4 @@
-/* impl.h.eventcom -- Event Logging Common Definitions
+/* <code/eventcom.h> -- Event Logging Common Definitions
  *
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  * $Id$
@@ -52,7 +52,7 @@ typedef EventUnion *Event;
  * guide.hex.trans.
  *
  * These definitions will be unnecessary when the event codes are
- * changed to 16-bit.  See impl.h.eventdef.
+ * changed to 16-bit.  See <code/eventdef.h>.
  */
                                                     /* EVent ... */
 #define EventEventTime      ((EventType)0xEF213E99) /* TIME */

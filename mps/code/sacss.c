@@ -1,4 +1,4 @@
-/* impl.c.sacss: SAC MANUAL ALLOC STRESS TEST
+/* sacss.c: SAC MANUAL ALLOC STRESS TEST
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

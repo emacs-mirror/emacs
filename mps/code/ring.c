@@ -1,4 +1,4 @@
-/* impl.c.ring: RING IMPLEMENTATION
+/* ring.c: RING IMPLEMENTATION
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -34,7 +34,7 @@ Bool RingCheck(Ring ring)
   CHECKL(ring->next->prev == ring);
   CHECKL(ring->prev != NULL);
   CHECKL(ring->prev->next == ring);
-  UNUSED(ring); /* impl.c.mpm.check.unused */
+  UNUSED(ring); /* <code/mpm.c#check.unused> */
   return TRUE;
 }
 
@@ -43,7 +43,7 @@ Bool RingCheckSingle(Ring ring)
   CHECKL(RingCheck(ring));
   CHECKL(ring->next == ring);
   CHECKL(ring->prev == ring);
-  UNUSED(ring); /* impl.c.mpm.check.unused */
+  UNUSED(ring); /* <code/mpm.c#check.unused> */
   return TRUE;
 }
 
@@ -59,7 +59,7 @@ Bool RingIsSingle(Ring ring)
 
 void (RingInit)(Ring ring)
 {
-  RingInit(ring);                       /* impl.h.mpm.ring.init */
+  RingInit(ring);                       /* <code/mpm.h#ring.init> */
 }
 
 
@@ -68,7 +68,7 @@ void (RingInit)(Ring ring)
 
 void (RingFinish)(Ring ring)
 {
-  RingFinish(ring);                     /* impl.h.mpm.ring.finish */
+  RingFinish(ring);                     /* <code/mpm.h#ring.finish> */
 }
 
 
@@ -77,7 +77,7 @@ void (RingFinish)(Ring ring)
 
 void (RingAppend)(Ring ring, Ring new)
 {
-  RingAppend(ring, new);                /* impl.h.mpm.ring.append */
+  RingAppend(ring, new);                /* <code/mpm.h#ring.append> */
 }
 
 
@@ -86,7 +86,7 @@ void (RingAppend)(Ring ring, Ring new)
 
 void (RingInsert)(Ring ring, Ring new)
 {
-  RingInsert(ring, new);                /* impl.h.mpm.ring.insert */
+  RingInsert(ring, new);                /* <code/mpm.h#ring.insert> */
 }
 
 
@@ -95,7 +95,7 @@ void (RingInsert)(Ring ring, Ring new)
 
 void (RingRemove)(Ring old)
 {
-  RingRemove(old);                      /* impl.h.mpm.ring.remove */
+  RingRemove(old);                      /* <code/mpm.h#ring.remove> */
 }
 
 
@@ -104,21 +104,21 @@ void (RingRemove)(Ring old)
 
 Ring (RingNext)(Ring ring)
 {
-  return RingNext(ring);                /* impl.h.mpm.ring.next */
+  return RingNext(ring);                /* <code/mpm.h#ring.next> */
 }
 
 
 /* RING_ELT -- get the ring element structure
  *
  * RING_ELT has no function (as it does not have function-like
- * behaviour), and is defined in impl.h.mpm.ring.elt.
+ * behaviour), and is defined in <code/mpm.h#ring.elt>.
  */
 
 
 /* RING_FOR -- ring iterator construct
  *
  * RING_FOR has no function (as it does not have function-like
- * behaviour), and is defined in impl.h.mpm.ring.for.
+ * behaviour), and is defined in <code/mpm.h#ring.for>.
  */
 
 

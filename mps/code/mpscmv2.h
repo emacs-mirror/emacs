@@ -1,4 +1,4 @@
-/* impl.h.mpscmv2: MEMORY POOL SYSTEM CLASS "MVT"
+/* mpscmv2.h: MEMORY POOL SYSTEM CLASS "MVT"
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

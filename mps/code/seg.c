@@ -1,4 +1,4 @@
-/* impl.c.seg: SEGMENTS
+/* seg.c: SEGMENTS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -21,7 +21,7 @@
  *
  * .check.shield: The "pm", "sm", and "depth" fields are not checked by
  * SegCheck, because I haven't spent time working out the invariants.
- * We should certainly work them out, by studying impl.c.shield, and
+ * We should certainly work them out, by studying <code/shield.c>, and
  * assert things about shielding, protection, shield cache consistency,
  * etc.  richard 1997-04-03
  */
@@ -228,7 +228,7 @@ static void SegFinish(Seg seg)
 
   seg->rankSet = RankSetEMPTY;
 
-  /* See impl.c.shield.shield.flush */
+  /* See <code/shield.c#shield.flush> */
   ShieldFlush(PoolArena(SegPool(seg)));
 
   base = SegBase(seg);
@@ -246,7 +246,7 @@ static void SegFinish(Seg seg)
   seg->sig = SigInvalid;
 
   /* Check that the segment is not exposed, or in the shield */
-  /* cache (see impl.c.shield.def.depth). */
+  /* cache (see <code/shield.c#def.depth>). */
   AVER(seg->depth == 0);
   /* Check not shielded or protected (so that pages in hysteresis */
   /* fund are not protected) */
@@ -846,7 +846,7 @@ static Res segTrivMerge(Seg seg, Seg segHi,
   AVER(seg->sm == segHi->sm);
   AVER(seg->depth == segHi->depth);
   /* Neither segment may be exposed, or in the shield cache */
-  /* See <design/seg/#split-merge.shield> & impl.c.shield.def.depth */
+  /* See <design/seg/#split-merge.shield> & <code/shield.c#def.depth> */
   AVER(seg->depth == 0);
 
   /* no need to update fields which match. See .similar */
@@ -919,7 +919,7 @@ static Res segTrivSplit(Seg seg, Seg segHi,
   UNUSED(args);
 
   /* Segment may not be exposed, or in the shield cache */
-  /* See <design/seg/#split-merge.shield> & impl.c.shield.def.depth */
+  /* See <design/seg/#split-merge.shield> & <code/shield.c#def.depth> */
   AVER(seg->depth == 0);
  
   /* Full initialization for segHi. Just modify seg. */

@@ -1,4 +1,4 @@
-/* impl.c.sslii3: LINUX/INTEL STACK SCANNING
+/* sslii3.c: LINUX/INTEL STACK SCANNING
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

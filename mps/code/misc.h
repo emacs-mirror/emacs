@@ -1,4 +1,4 @@
-/* impl.h.misc: MISCELLANEOUS DEFINITIONS
+/* misc.h: MISCELLANEOUS DEFINITIONS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

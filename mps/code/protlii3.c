@@ -1,4 +1,4 @@
-/*  impl.c.protlii3: PROTECTION FOR LINUX (INTEL 386)
+/* protlii3.c: PROTECTION FOR LINUX (INTEL 386)
  *
  *  $Id$
  *  Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

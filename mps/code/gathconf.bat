@@ -1,4 +1,4 @@
-@rem impl.bat.gathconf: GATHERING A RELEASE FOR CONFIGURA
+@rem gathconf.bat: GATHERING A RELEASE FOR CONFIGURA
 @rem
 @rem $Id$
 @rem Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

@@ -1,4 +1,4 @@
-/* impl.h.config: MPS CONFIGURATION
+/* config.h: MPS CONFIGURATION
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -151,7 +151,7 @@
 #define EPVMDefaultSubsequentSegSIZE (64ul * 1024)
 
 
-/* Arena Configuration -- see impl.c.arena
+/* Arena Configuration -- see <code/arena.c>
  *
  * .client.seg-size: ARENA_CLIENT_PAGE_SIZE is the size in bytes of a
  * "page" (i.e., segment granule) in the client arena.  It's set at 8192
@@ -197,19 +197,19 @@
 #endif /* MPS_ARCH_I3 */
 
 
-/* Shield Configuration -- see impl.c.shield */
+/* Shield Configuration -- see <code/shield.c> */
 
 #define ShieldCacheSIZE ((size_t)16)
 #define ShieldDepthWIDTH (4)
 
 
-/* VM Configuration -- see impl.c.vm* */
+/* VM Configuration -- see <code/vm*.c> */
 
 #define VMANPageALIGNMENT ((Align)4096)
 #define VMJunkBYTE ((unsigned char)0xA9)
 
 
-/* Tracer Configuration -- see impl.c.trace */
+/* Tracer Configuration -- see <code/trace.c> */
 
 #define TraceLIMIT ((size_t)1)
 /* I count 4 function calls to scan, 10 to copy. */

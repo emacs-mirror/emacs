@@ -1,4 +1,4 @@
-/* impl.c.poolmvff: First Fit Manual Variable Pool
+/* poolmvff.c: First Fit Manual Variable Pool
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

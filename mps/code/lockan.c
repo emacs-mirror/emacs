@@ -1,4 +1,4 @@
-/* impl.c.lockan: ANSI RECURSIVE LOCKS
+/* lockan.c: ANSI RECURSIVE LOCKS
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.

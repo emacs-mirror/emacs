@@ -1,4 +1,4 @@
-/* impl.c.ld: LOCATION DEPENDENCY IMPLEMENTATION
+/* ld.c: LOCATION DEPENDENCY IMPLEMENTATION
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
@@ -34,7 +34,7 @@
  *
  * .mod: LDHistoryLENGTH is used as a modulus to calculate the offset
  * of an epoch in the history, so it's best if this is a power of two.
- * (impl.h.mpmconf)
+ * (<code/mpmconf.h>)
  *
  * .epoch-size: The epoch should probably be a longer integer to avoid
  * the possibility of overflow.

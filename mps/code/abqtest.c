@@ -1,4 +1,4 @@
-/* impl.c.abqtest: AVAILABLE BLOCK QUEUE TEST
+/* abqtest.c: AVAILABLE BLOCK QUEUE TEST
  *
  * $Id$
  * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
