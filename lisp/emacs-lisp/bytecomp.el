@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.98 $")
+(defconst byte-compile-version "$Revision: 2.98.2.1 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -161,6 +161,16 @@
 (or (fboundp 'defsubst)
     ;; This really ought to be loaded already!
     (load-library "byte-run"))
+
+;; We want to do (require 'byte-lexbind) when compiling, to avoid compilation
+;; errors; however that file also wants to do (require 'bytecomp) for the
+;; same reason.  Since we know it's OK to load byte-lexbind.el second, we
+;; have that file require a feature that's provided before at the beginning
+;; of this file, to avoid an infinite require loop.
+;; `eval-when-compile' is defined in byte-run.el, so it must come after the
+;; preceding load expression.
+(provide 'bytecomp-preload)
+(eval-when-compile (require 'byte-lexbind))
 
 ;; The feature of compiling in a specific target Emacs version
 ;; has been turned off because compile time options are a bad idea.
@@ -381,7 +391,8 @@ specify different fields to sort on."
   :type '(choice (const name) (const callers) (const calls)
 		 (const calls+callers) (const nil)))
 
-(defvar byte-compile-debug nil)
+;(defvar byte-compile-debug nil)
+(defvar byte-compile-debug t)
 
 ;; (defvar byte-compile-overwrite-file t
 ;;   "If nil, old .elc files are deleted before the new is saved, and .elc
@@ -408,9 +419,13 @@ This list lives partly on the stack.")
 ;;     (byte-compiler-options . (lambda (&rest forms)
 ;; 			       (apply 'byte-compiler-options-handler forms)))
     (eval-when-compile . (lambda (&rest body)
-			   (list 'quote
-				 (byte-compile-eval (byte-compile-top-level
-						     (cons 'progn body))))))
+			   (list
+			    'quote
+			    (byte-compile-eval
+			      (byte-compile-top-level
+			       (macroexpand-all
+				(cons 'progn body)
+				byte-compile-initial-macro-environment))))))
     (eval-and-compile . (lambda (&rest body)
 			  (eval (cons 'progn body))
 			  (cons 'progn body))))
@@ -709,6 +724,24 @@ otherwise pop it")
 ;; front of the constants-vector than the constant-referencing instructions.
 ;; Also, this lets us notice references to free variables.
 
+(defmacro byte-compile-push-bytecodes (&rest args)
+  "Push BYTE... onto BYTES, and increment PC by the number of bytes pushed.
+ARGS is of the form (BYTE... BYTES PC), where BYTES and PC are variable names.
+BYTES and PC are updated after evaluating all the arguments."
+  (let ((byte-exprs (butlast args 2))
+	(bytes-var (car (last args 2)))
+	(pc-var (car (last args))))
+    `(setq ,bytes-var ,(if (null (cdr byte-exprs))
+			   `(cons ,@byte-exprs ,bytes-var)
+			 `(nconc (list ,@(reverse byte-exprs)) ,bytes-var))
+	   ,pc-var (+ ,(length byte-exprs) ,pc-var))))
+
+(defmacro byte-compile-push-bytecode-const2 (opcode const2 bytes pc)
+  "Push OPCODE and the two-byte constant CONST2 onto BYTES, and add 3 to PC.
+CONST2 may be evaulated multiple times."
+  `(byte-compile-push-bytecodes ,opcode (logand ,const2 255) (lsh ,const2 -8)
+				,bytes ,pc))
+
 (defun byte-compile-lapcode (lap)
   "Turns lapcode into bytecode.  The lapcode is destroyed."
   ;; Lapcode modifications: changes the ID of a tag to be the tag's PC.
@@ -716,88 +749,68 @@ otherwise pop it")
 	op off			; Operation & offset
 	opcode			; numeric value of OP
 	(bytes '())		; Put the output bytes here
-	(patchlist nil)		; List of tags and goto's to patch
-	rest rel tmp)
-    (while lap
-      (setq op (car (car lap))
-	    off (cdr (car lap)))
+	(patchlist nil))	; List of gotos to patch
+    (dolist (lap-entry lap)
+      (setq op (car lap-entry)
+	    off (cdr lap-entry))
       (cond ((not (symbolp op))
 	     (error "Non-symbolic opcode `%s'" op))
 	    ((eq op 'TAG)
-	     (setcar off pc)
-	     (setq patchlist (cons off patchlist)))
+	     (setcar off pc))
 	    ((null op)
 	     ;; a no-op added by `byte-compile-delay-out'
 	     (unless (zerop off)
 	       (error
 		"Placeholder added by `byte-compile-delay-out' not filled in.")
 	       ))
-	    ((memq op byte-goto-ops)
-	     (setq pc (+ pc 3))
-	     (setq bytes (cons (cons pc (cdr off))
-			       (cons nil
-				     (cons (symbol-value op) bytes))))
-	     (setq patchlist (cons bytes patchlist)))
 	    (t
 	     (setq opcode (symbol-value op))
-	     (setq bytes
-		   (cond ((cond ((consp off)
-				 ;; Variable or constant reference
-				 (setq off (cdr off))
-				 (eq op 'byte-constant)))
-			  (cond ((< off byte-constant-limit)
-				 (setq pc (1+ pc))
-				 (cons (+ byte-constant off) bytes))
-				(t
-				 (setq pc (+ 3 pc))
-				 (cons (lsh off -8)
-				       (cons (logand off 255)
-					     (cons byte-constant2 bytes))))))
-			 ((and (= opcode byte-stack-set)
-			       (> off 255))
-			  ;; Use the two-byte version of byte-stack-set if the
-			  ;; offset is too large for the normal version.
-			  (setq pc (+ 3 pc))
-			  (cons (lsh off -8)
-				(cons (logand off 255)
-				      (cons byte-stack-set2 bytes))))
-			 ((and (>= opcode byte-listN)
-			       (<= opcode byte-vec-set))
-			  ;; These insns all put their operand into one extra
-			  ;; byte.
-			  (setq pc (+ 2 pc))
-			  (cons off (cons opcode bytes)))
-			 ((null off)
-			  ;; opcode that doesn't use OFF
-			  (setq pc (1+ pc))
-			  (cons opcode bytes))
-			 ;; The following three cases are for the special
-			 ;; insns that encode their operand into 0, 1, or 2
-			 ;; extra bytes depending on its magnitude.
-			 ((< off 6)
-			  (setq pc (1+ pc))
-			  (cons (+ opcode off) bytes))
-			 ((< off 256)
-			  (setq pc (+ 2 pc))
-			  (cons off (cons (+ opcode 6) bytes)))
-			 (t
-			  (setq pc (+ 3 pc))
-			  (cons (lsh off -8)
-				(cons (logand off 255)
-				      (cons (+ opcode 7) bytes))))))))
-      (setq lap (cdr lap)))
+	     (cond ((memq op byte-goto-ops)
+		    ;; goto
+		    (byte-compile-push-bytecodes opcode nil (cdr off) bytes pc)
+		    (push bytes patchlist)) 
+		   ((and (consp off)
+			 ;; Variable or constant reference
+			 (progn (setq off (cdr off))
+				(eq op 'byte-constant)))
+		    ;; constant ref
+		    (if (< off byte-constant-limit)
+			(byte-compile-push-bytecodes (+ byte-constant off)
+						     bytes pc)
+		      (byte-compile-push-bytecode-const2 byte-constant2 off
+							 bytes pc)))
+		   ((and (= opcode byte-stack-set)
+			 (> off 255))
+		    ;; Use the two-byte version of byte-stack-set if the
+		    ;; offset is too large for the normal version.
+		    (byte-compile-push-bytecode-const2 byte-stack-set2 off
+						       bytes pc))
+		   ((and (>= opcode byte-listN)
+			 (<= opcode byte-vec-set))
+		    ;; These insns all put their operand into one extra byte.
+		    (byte-compile-push-bytecodes opcode off bytes pc))
+		   ((null off)
+		    ;; opcode that doesn't use OFF
+		    (byte-compile-push-bytecodes opcode bytes pc))
+		   ;; The following three cases are for the special
+		   ;; insns that encode their operand into 0, 1, or 2
+		   ;; extra bytes depending on its magnitude.
+		   ((< off 6)
+		    (byte-compile-push-bytecodes (+ opcode off) bytes pc))
+		   ((< off 256)
+		    (byte-compile-push-bytecodes (+ opcode 6) off bytes pc))
+		   (t
+		    (byte-compile-push-bytecode-const2 (+ opcode 7) off
+						       bytes pc))))))
     ;;(if (not (= pc (length bytes)))
     ;;    (error "Compiler error: pc mismatch - %s %s" pc (length bytes)))
-    ;; Patch PC into jumps
-    (let (bytes)
-      (while patchlist
-	(setq bytes (car patchlist))
-	(cond ((atom (car bytes)))	; Tag
-	      (t			; Absolute jump
-	       (setq pc (car (cdr (car bytes))))	; Pick PC from tag
-	       (setcar (cdr bytes) (logand pc 255))
-	       (setcar bytes (lsh pc -8))))
-	(setq patchlist (cdr patchlist))))
+
+    ;; Patch tag PCs into absolute jumps
+    (dolist (bytes-tail patchlist)
+      (setq pc (caar bytes-tail))	; Pick PC from goto's tag
+      (setcar (cdr bytes-tail) (logand pc 255))
+      (setcar bytes-tail (lsh pc -8)))
+
     (concat (nreverse bytes))))
 
 
@@ -2211,7 +2224,9 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	  (setq fun (cdr fun)))
       (cond ((eq (car-safe fun) 'lambda)
 	     ;; expand macros
-	     (setq fun (macroexpand-all fun byte-compile-macro-environment))
+	     (setq fun
+		   (macroexpand-all fun
+				    byte-compile-initial-macro-environment))
 	     ;; get rid of the `function' quote added by the `lambda' macro
 	     (setq fun (cadr fun))
 	     (setq fun (if macro
@@ -2623,6 +2638,8 @@ If FORM is a lambda or a macro, byte-compile it as a function."
   (byte-compile-out 'byte-call (length (cdr form))))
 
 (defun byte-compile-check-variable (var &optional binding)
+  "Do various error checks before a use of the variable VAR.
+If BINDING is non-nil, VAR is being bound."
   (when (symbolp var)
     (byte-compile-set-symbol-position var))
   (cond ((or (not (symbolp var)) (byte-compile-const-symbol-p var))
@@ -2649,6 +2666,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
     (byte-compile-out base-op tmp)))
 
 (defun byte-compile-dynamic-variable-bind (var)
+  "Generate code to bind the lexical variable VAR to the top-of-stack value."
   (byte-compile-check-variable var t)
   (when (memq 'free-vars byte-compile-warnings)
     (push var byte-compile-bound-variables))
@@ -2657,6 +2675,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 ;; This is used when it's know that VAR _definitely_ has a lexical
 ;; binding, and no error-checking should be done.
 (defun byte-compile-lexical-variable-ref (var)
+  "Generate code to push the value of the lexical variable VAR on the stack."
   (let ((binding (assq var byte-compile-lexical-environment)))
     (when (null binding)
       (error "Lexical binding not found for `%s'" var))
@@ -2670,6 +2689,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
       (byte-compile-out 'byte-vec-ref (byte-compile-lexvar-offset binding)))))
 
 (defun byte-compile-variable-ref (var)
+  "Generate code to push the value of the dynamic variable VAR on the stack."
   (byte-compile-check-variable var)
   (let ((lex-binding (assq var byte-compile-lexical-environment)))
     (if lex-binding
@@ -2693,6 +2713,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
       (byte-compile-dynamic-variable-op 'byte-varref var))))
 
 (defun byte-compile-variable-set (var)
+  "Generate code to set the dynamic variable VAR from the top-of-stack value."
   (byte-compile-check-variable var)
   (let ((lex-binding (assq var byte-compile-lexical-environment)))
     (if lex-binding
@@ -3343,6 +3364,7 @@ if LFORMINFO is nil (meaning all bindings are dynamic)."
   init-lexenv)
 
 (defun byte-compile-let (form)
+  "Generate code for the `let' form FORM."
   (let ((clauses (cadr form))
 	(lforminfo (and lexical-binding (byte-compile-compute-lforminfo form)))
 	(init-lexenv nil)
@@ -3386,6 +3408,7 @@ if LFORMINFO is nil (meaning all bindings are dynamic)."
 	(byte-compile-out 'byte-unbind (length clauses))))))
 
 (defun byte-compile-let* (form)
+  "Generate code for the `let*' form FORM."
   (let ((clauses (cadr form))
 	(lforminfo (and lexical-binding (byte-compile-compute-lforminfo form)))
 	(init-lexenv nil)
