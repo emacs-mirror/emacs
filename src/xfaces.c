@@ -34,21 +34,23 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "blockinput.h"
 #include "window.h"
 
-/* Compensate for bug in Xos.h on some systems.  */
+/* Compensate for bug in Xos.h on some systems, on which it requires
+   time.h.  On some such systems, Xos.h tries to redefine struct
+   timeval and struct timezone if USG is #defined while it is
+   #included.  */
 #ifdef XOS_NEEDS_TIME_H
-#include <time.h>
-#define __TIMEVAL__
-#endif
 
-/* These don't seem to be used.  */
-#if 0
-/* Display Context for the icons */ 
-#include <X11/Intrinsic.h>
-#include <X11/StringDefs.h>
-#include <X11/Xmu/Drawing.h>
-#endif
+#include <time.h>
+#undef USG
+#include <X11/Xos.h>
+#define USG
+#define __TIMEVAL__
+
+#else
 
 #include <X11/Xos.h>
+
+#endif
 
 
 /* An explanation of the face data structures.  */
