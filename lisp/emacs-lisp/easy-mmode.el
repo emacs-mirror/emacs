@@ -119,8 +119,7 @@ With zero or negative arg turn mode off"
 		(run-hooks ',hook-off)))))))
 
 ;;;###autoload
-(defmacro easy-mmode-define-minor-mode
-  (mode doc &optional init-value &optional lighter &optional keymap)
+(defmacro easy-mmode-define-minor-mode (mode doc &optional init-value lighter keymap)
   "Define a new minor mode MODE.
 This function defines the associated control variable, keymap,
 toggle command, and hooks (see `easy-mmode-define-toggle').
@@ -132,11 +131,11 @@ If it is a list, it is passed to `easy-mmode-define-keymap'
 in order to build a valid keymap.
  
 \(defmacro easy-mmode-define-minor-mode
-  (MODE DOC &optional INIT-VALUE &optional LIGHTER &optional KEYMAP)...\)" 
+  (MODE DOC &optional INIT-VALUE LIGHTER KEYMAP)...\)" 
   (let* ((mode-name (symbol-name mode))
-	 (mode-doc (format "%s mode control switch." mode-name))
+	 (mode-doc (format "Non-nil if %s mode is enabled."))
 	 (keymap-name (concat mode-name "-map"))
-	 (keymap-doc (format "Keymap activated when %s mode is on." mode-name)))
+	 (keymap-doc (format "Keymap for %s mode." mode-name)))
     `(progn
        ;; define the switch
        (defvar ,mode ,init-value ,mode-doc)
