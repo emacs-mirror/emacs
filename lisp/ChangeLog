@@ -1,5 +1,10 @@
 2000-10-12  Dave Love  <fx@gnu.org>
 
+	* startup.el (normal-top-level-add-subdirs-to-load-path): Use
+	character class, not ASCII when matching file names.
+	(fancy-splash-head): Add trailing slash to URL.
+	(command-line): Don't require XPM support for toolbar.
+
 	* progmodes/cperl-mode.el (cperl-tips-faces): Doc fix.
 	(cperl-invalid-face): Revert last change.
 	(cperl-init-faces): Quote cperl-invalid-face.
@@ -101,8 +106,6 @@
 	* toolbar/tool-bar.el (tool-bar-add-item)
 	(tool-bar-add-item-from-menu): Don't favour XPM icons on mono
 	display.
-
-	* startup.el (command-line): Don't require XPM support for toolbar.
 
 	* toolbar/attach.pbm, toolbar/cancel.pbm, toolbar/close.pbm:
 	* toolbar/copy.pbm, toolbar/cut.pbm, toolbar/exit.pbm:
