@@ -1,5 +1,12 @@
 2001-09-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (fast_find_position) [0]: Add a presumably more correct
+	version for after 21.1.
+
+	* xdisp.c (row_containing_pos): Make externally visible.
+
+	* dispextern.h (row_containing_pos): Add prototype.
+
 	* process.c (send_process): Disable composition if from_byte < 0.
 	From Kenichi Handa <handa@etl.go.jp>.
 
