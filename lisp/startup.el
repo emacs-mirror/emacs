@@ -791,49 +791,56 @@ Type \\[describe-distribution] for information on getting the latest version."))
     (let ((dir command-line-default-directory)
 	  (file-count 0)
 	  first-file-buffer
-	  done
+	  tem
+	  just-files  ;; t if this follows the magic -- option.
+	  ;; This includes our standard options' long versions
+	  ;; and long versions of what's on command-switch-alist.
+	  (longopts
+	   (append '(("--funcall") ("--load") ("--insert") ("--kill")
+		     ("--directory") ("--eval") ("--find-file") ("--visit"))
+		   (mapcar '(lambda (elt)
+			      (list (concat "-" (car elt))))
+			   command-switch-alist)))
 	  (line 0))
-      (while (and command-line-args-left (not done))
+
+      ;; Add the long X options to longopts.
+      (setq tem command-line-x-option-alist)
+      (while tem
+	(if (string-match "^--" (car (car tem)))
+	    (setq longopts (cons (list (car (car tem))) longopts)))
+	(setq tem (cdr tem)))
+
+      ;; Loop, processing options.
+      (while (and command-line-args-left)
 	(let* ((argi (car command-line-args-left))
 	       (orig-argi argi)
-	       ;; This includes our standard options' long versions
-	       ;; and long versions of what's on command-switch-alist.
-	       (longopts
-	        (append '(("--funcall") ("--load") ("--insert") ("--kill")
-			  ("--directory") ("--eval"))
-			(mapcar '(lambda (elt)
-				   (list (concat "-" (car elt))))
-				command-switch-alist)))
-	       tem argval completion
+	       argval completion
 	       ;; List of directories specified in -L/--directory,
 	       ;; in reverse of the order specified.
 	       extra-load-path
 	       (initial-load-path load-path))
 	  (setq command-line-args-left (cdr command-line-args-left))
 
-	  ;; Add the long X options to longopts.
-	  (setq tem command-line-x-option-alist)
-	  (while tem
-	    (if (string-match "^--" (car (car tem)))
-		(setq longopts (cons (list (car (car tem))) longopts)))
-	    (setq tem (cdr tem)))
-
-	  ;; Convert long options to ordinary options
-	  ;; and separate out an attached option argument into argval.
-	  (if (string-match "^--[^=]*=" argi)
-	      (setq argval (substring argi (match-end 0))
-		    argi (substring argi 0 (1- (match-end 0)))))
-	  (if (equal argi "--")
-	      (setq completion nil)
-	    (setq completion (try-completion argi longopts)))
-	  (if (eq completion t)
-	      (setq argi (substring argi 1))
-	    (if (stringp completion)
-		(let ((elt (assoc completion longopts)))
-		  (or elt
-		      (error "Option `%s' is ambiguous" argi))
-		  (setq argi (substring (car elt) 1)))
-	      (setq argval nil argi orig-argi)))
+	  ;; Do preliminary decoding of the option.
+	  (if just-files
+	      ;; After --, don't look for options; treat all args as files.
+	      (setq argi "")
+	    ;; Convert long options to ordinary options
+	    ;; and separate out an attached option argument into argval.
+	    (if (string-match "^--[^=]*=" argi)
+		(setq argval (substring argi (match-end 0))
+		      argi (substring argi 0 (1- (match-end 0)))))
+	    (if (equal argi "--")
+		(setq completion nil)
+	      (setq completion (try-completion argi longopts)))
+	    (if (eq completion t)
+		(setq argi (substring argi 1))
+	      (if (stringp completion)
+		  (let ((elt (assoc completion longopts)))
+		    (or elt
+			(error "Option `%s' is ambiguous" argi))
+		    (setq argi (substring (car elt) 1)))
+		(setq argval nil argi orig-argi))))
 
 	  ;; Execute the option.
 	  (cond ((setq tem (assoc argi command-switch-alist))
@@ -898,8 +905,22 @@ Type \\[describe-distribution] for information on getting the latest version."))
 		 ;; Ignore X-windows options and their args if not using X.
 		 (setq command-line-args-left
 		       (nthcdr (nth 1 tem) command-line-args-left)))
+		((or (string-equal argi "-find-file")
+		     (string-equal argi "-visit"))
+		 ;; An explicit option to specify visiting a file.
+		 (setq file-count (1+ file-count))
+		 (let ((file
+			(expand-file-name
+			 (command-line-normalize-file-name orig-argi)
+			 dir)))
+		   (if (= file-count 1)
+		       (setq first-file-buffer (find-file file))
+		     (find-file-other-window file)))
+		 (or (zerop line)
+		     (goto-line line))
+		 (setq line 0))
 		((equal argi "--")
-		 (setq done t))
+		 (setq just-files t))
 		(t
 		 ;; We have almost exhausted our options. See if the
 		 ;; user has made any other command-line options available
@@ -914,12 +935,13 @@ Type \\[describe-distribution] for information on getting the latest version."))
 			 (if (string-match "\\`-" argi)
 			     (error "Unknown option `%s'" argi))
 			 (setq file-count (1+ file-count))
-			 (setq argi (command-line-normalize-file-name argi))
-			 (cond ((= file-count 1)
-				(setq first-file-buffer
-				      (find-file (expand-file-name argi dir))))
-			       (t
-				(find-file-other-window (expand-file-name argi dir))))
+			 (let ((file
+				(expand-file-name
+				 (command-line-normalize-file-name orig-argi)
+				 dir)))
+			   (if (= file-count 1)
+			       (setq first-file-buffer (find-file file))
+			     (find-file-other-window file)))
 			 (or (zerop line)
 			     (goto-line line))
 			 (setq line 0))))))))
