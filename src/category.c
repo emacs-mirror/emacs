@@ -467,6 +467,12 @@ describe_category (value)
       return;
     }
 
+  if (CHAR_TABLE_P (value))
+    {
+      insert_string ("deeper char-table ...\n");
+      return;
+    }
+
   if (!CATEGORY_SET_P (value))
     {
       insert_string ("invalid\n");
