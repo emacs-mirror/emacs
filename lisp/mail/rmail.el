@@ -792,7 +792,8 @@ Note:    it means the file has no messages in it.\n\^_")))
     (unless (memq coding-system
 		  '(undecided undecided-unix))
       (set-buffer-modified-p t)		; avoid locking when decoding
-      (decode-coding-region from to coding-system)
+      (let ((buffer-undo-list t))
+	(decode-coding-region from to coding-system))
       (setq coding-system last-coding-system-used))
     (set-buffer-modified-p modifiedp)
     (setq buffer-file-coding-system nil)
