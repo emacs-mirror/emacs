@@ -386,8 +386,7 @@ XML document."
 	(overall-status nil))
     (when buffer
       (unwind-protect
-	  (save-excursion
-	    (set-buffer buffer)
+	  (with-current-buffer buffer
 	    (goto-char url-http-end-of-headers)
 	    (setq overall-status url-http-response-status)
 
@@ -396,13 +395,13 @@ XML document."
 	    ;; them.
 	    (if (and
 		 url-http-content-type
-		 (or (string-match "^text/xml" url-http-content-type)
-		     (string-match "^application/xml" url-http-content-type)))
+		 (string-match "\\`\\(text\\|application\\)/xml"
+			       url-http-content-type))
 		(setq tree (xml-parse-region (point) (point-max)))))
 	;; Clean up after ourselves.
-	'(kill-buffer buffer)))
+	(kill-buffer buffer)))
 
-    ;; We should now be 
+    ;; We should now be
     (if (eq (xml-node-name (car tree)) 'DAV:multistatus)
 	(url-dav-dispatch-node (car tree))
       (url-debug 'dav "Got back singleton response for URL(%S)" url)
@@ -577,8 +576,7 @@ Returns t iff the lock was successfully released."
 	 (result nil))
     (when buffer
       (unwind-protect
-	  (save-excursion
-	    (set-buffer buffer)
+	  (with-current-buffer buffer
 	    (setq result (url-dav-http-success-p url-http-response-status)))
 	(kill-buffer buffer)))
     result))
@@ -627,7 +625,7 @@ Returns t iff the lock was successfully released."
 (autoload 'url-http-head-file-attributes "url-http")
 
 ;;;###autoload
-(defun url-dav-file-attributes (url)
+(defun url-dav-file-attributes (url &optional id-format)
   (let ((properties (cdar (url-dav-get-properties url)))
 	(attributes nil))
     (if (and properties
@@ -679,7 +677,7 @@ Returns t iff the lock was successfully released."
 	       ;; device number - meaningless
 	       nil))
       ;; Fall back to just the normal http way of doing things.
-      (setq attributes (url-http-head-file-attributes url)))
+      (setq attributes (url-http-head-file-attributes url id-format)))
     attributes))
 
 ;;;###autoload
@@ -695,8 +693,7 @@ OBJ may be a buffer or a string."
 	(url-request-data
 	 (cond
 	  ((bufferp obj)
-	   (save-excursion
-	     (set-buffer obj)
+	   (with-current-buffer obj
 	     (buffer-string)))
 	  ((stringp obj)
 	   obj)
@@ -719,8 +716,7 @@ OBJ may be a buffer or a string."
     ;; Sanity checking
     (when buffer
       (unwind-protect
-	  (save-excursion
-	    (set-buffer buffer)
+	  (with-current-buffer buffer
 	    (setq result (url-dav-http-success-p url-http-response-status)))
 	(kill-buffer buffer)))
     result))
@@ -849,8 +845,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 	 (result nil))
     (when buffer
       (unwind-protect
-	  (save-excursion
-	    (set-buffer buffer)
+	  (with-current-buffer buffer
 	    (case url-http-response-status
 	      (201			; Collection created in its entirety
 	       (setq result t))
