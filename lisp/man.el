@@ -462,10 +462,10 @@ that string instead of from the current buffer."
 	    (pargs (cdr (car flist))))
 	(setq command
 	      (concat command " | " pcom " "
-		      (mapconcat '(lambda (phrase)
-				    (if (not (stringp phrase))
-					(error "Malformed Man-filter-list"))
-				    phrase)
+		      (mapconcat (lambda (phrase)
+				   (if (not (stringp phrase))
+				       (error "Malformed Man-filter-list"))
+				   phrase)
 				 pargs " ")))
 	(setq flist (cdr flist))))
     command))
