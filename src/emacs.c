@@ -292,8 +292,16 @@ main (argc, argv, envp)
 #endif
 
   clearerr (stdin);
+#if 0 /* Without EMACS_SET_TTY_PGRP, this causes Emacs to hang
+	 when run under a non-job-control shell.
+	 EMACS_SET_TTY_PGRP seems correct, but breaks even more.  */
 #ifdef BSD
-  setpgrp (0, getpid ());
+  {
+    int pid = getpid ();
+    setpgrp (0, pid);
+    EMACS_SET_TTY_PGRP (0, &pid);
+  }
+#endif
 #endif
 
 #ifdef APOLLO
@@ -322,11 +330,6 @@ main (argc, argv, envp)
     nice (emacs_priority);
   setuid (getuid ());
 #endif /* PRIO_PROCESS */
-
-#ifdef BSD
-  /* interrupt_input has trouble if we aren't in a separate process group.  */
-  setpgrp (getpid (), getpid ());
-#endif
 
   inhibit_window_system = 0;
 
@@ -677,7 +680,11 @@ shut_down_emacs (sig, no_x)
   {
     int tpgrp;
     if (EMACS_GET_TTY_PGRP (0, &tpgrp) != -1
+#ifdef GETPGRP_NO_ARG
+	&& tpgrp == getpgrp ())
+#else
 	&& tpgrp == getpgrp (0))
+#endif
       {
 	fflush (stdout);
 	reset_sys_modes ();
