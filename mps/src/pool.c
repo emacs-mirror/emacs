@@ -1,6 +1,6 @@
 /*  ==== POOLS ====
  *
- *  $HopeName: MMsrc!pool.c(trunk.5) $
+ *  $HopeName: MMsrc!pool.c(trunk.6) $
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -154,19 +154,17 @@ void PoolMark(Pool pool, Trace trace)
 }
 
 
-Error PoolScan(Pool pool, Trace trace, RefRank rank)
+Error PoolScan(Pool pool, Trace trace)
 {
-  AVER(rank == TraceRank(trace));
-
   if(pool->class->scan != NULL)
-    return (*pool->class->scan)(pool, trace, rank);
+    return (*pool->class->scan)(pool, trace);
   return ErrSUCCESS;
 }
 
-Error PoolFix(Pool pool, Trace trace, RefRank rank, Arena arena, Addr *refIO)
+Error PoolFix(Pool pool, Trace trace, Arena arena, Addr *refIO)
 {
   if(pool->class->fix != NULL)
-    return (*pool->class->fix)(pool, trace, rank, arena, refIO);
+    return (*pool->class->fix)(pool, trace, arena, refIO);
   return ErrSUCCESS;
 }
 
