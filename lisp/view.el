@@ -106,7 +106,7 @@ are defined for moving around in the buffer.
 Space scrolls forward, Delete scrolls backward.
 For list of all View commands, type ? or h while viewing.
 
-This command runs the normal hook `view-hook'."
+This command runs the normal hook `view-mode-hook'."
   (interactive "fView file: ")
   (let ((old-buf (current-buffer))
 	(had-a-buf (get-file-buffer file-name))
@@ -126,7 +126,7 @@ are defined for moving around in the buffer.
 Space scrolls forward, Delete scrolls backward.
 For list of all View commands, type ? or h while viewing.
 
-This command runs the normal hook `view-hook'."
+This command runs the normal hook `view-mode-hook'."
   (interactive "fView file: ")
   (let ((old-arrangement (current-window-configuration))
 	(had-a-buf (get-file-buffer file-name))
@@ -145,7 +145,7 @@ are defined for moving around in the buffer.
 Space scrolls forward, Delete scrolls backward.
 For list of all View commands, type ? or h while viewing.
 
-This command runs the normal hook `view-hook'."
+This command runs the normal hook `view-mode-hook'."
   (interactive "bView buffer: ")
   (let ((old-buf (current-buffer)))
     (switch-to-buffer buffer-name t)
@@ -163,7 +163,7 @@ are defined for moving around in the buffer.
 Space scrolls forward, Delete scrolls backward.
 For list of all View commands, type ? or h while viewing.
 
-This command runs the normal hook `view-hook'."
+This command runs the normal hook `view-mode-hook'."
   (interactive "bView buffer:\nP")
   (let ((return-to (and not-return (current-window-configuration))))
     (switch-to-buffer-other-window buffer-name)
@@ -205,7 +205,7 @@ C-p		moves upward lines vertically.
 C-l		recenters the screen.
 q or C-c	exit view-mode and return to previous buffer.
 
-Entry to this mode runs the normal hook `view-hook'.
+Entry to this mode runs the normal hook `view-mode-hook'.
 
 \\{view-mode-map}"
 ;  Not interactive because dangerous things happen
@@ -257,7 +257,7 @@ Entry to this mode runs the normal hook `view-hook'.
   (setq goal-column nil)
 
   (use-local-map view-mode-map)
-  (run-hooks 'view-hook)
+  (run-hooks 'view-hook 'view-mode-hook)
   (view-helpful-message))
 
 
@@ -303,6 +303,9 @@ If you viewed a file that was not present in Emacs, its buffer is killed."
   (min (view-window-size) (or view-scroll-size (view-window-size))))
 
 (defvar view-hook nil
+  "Normal hook run when starting to view a buffer or file.")
+
+(defvar view-mode-hook nil
   "Normal hook run when starting to view a buffer or file.")
 
 ;(defun view-last-command (&optional who what)
