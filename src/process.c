@@ -406,17 +406,12 @@ allocate_pty ()
 #ifdef PTY_NAME_SPRINTF
 	PTY_NAME_SPRINTF
 #else
-#ifdef HPUX
-	sprintf (pty_name, "/dev/ptym/pty%c%x", c, i);
-#else
-#ifdef RTU
-	sprintf (pty_name, "/dev/pty%x", i);
-#else
 	sprintf (pty_name, "/dev/pty%c%x", c, i);
-#endif /* not RTU */
-#endif /* not HPUX */
 #endif /* no PTY_NAME_SPRINTF */
 
+#ifdef PTY_OPEN
+	PTY_OPEN;
+#else /* no PTY_OPEN */
 #ifdef IRIS
 	/* Unusual IRIS code */
  	*ptyv = open ("/dev/ptc", O_RDWR | O_NDELAY, 0);
@@ -424,7 +419,7 @@ allocate_pty ()
  	  return -1;
 	if (fstat (fd, &stb) < 0)
 	  return -1;
-#else
+#else /* not IRIS */
 	if (stat (pty_name, &stb) < 0)
 	  {
 	    failed_count++;
@@ -438,7 +433,8 @@ allocate_pty ()
 #else
 	fd = open (pty_name, O_RDWR | O_NDELAY, 0);
 #endif
-#endif /* IRIS */
+#endif /* not IRIS */
+#endif /* no PTY_OPEN */
 
 	if (fd >= 0)
 	  {
@@ -447,20 +443,7 @@ allocate_pty ()
 #ifdef PTY_TTY_NAME_SPRINTF
 	    PTY_TTY_NAME_SPRINTF
 #else
-	    /* TODO: In version 19, make these special cases use the macro above.  */
-#ifdef HPUX
-            sprintf (pty_name, "/dev/pty/tty%c%x", c, i);
-#else
-#ifdef RTU
-            sprintf (pty_name, "/dev/ttyp%x", i);
-#else
-#ifdef IRIS
- 	    sprintf (pty_name, "/dev/ttyq%d", minor (stb.st_rdev));
-#else
             sprintf (pty_name, "/dev/tty%c%x", c, i);
-#endif /* not IRIS */
-#endif /* not RTU */
-#endif /* not HPUX */
 #endif /* no PTY_TTY_NAME_SPRINTF */
 #ifndef UNIPLUS
 	    if (access (pty_name, 6) != 0)
