@@ -1,5 +1,10 @@
 2000-03-26  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* log-edit.el (log-edit-mode-map): Inherit from vc-log-mode-map
+	if it ever becomes used.
+	(log-edit-mode-hook): Default to vc-log-mode-hook.
+	(log-edit-mode): Fix the docstring.
+
 	* emacs-lisp/bytecomp.el (byte-compile-eval): Fix and reenable
 	the code.
 
