@@ -28,50 +28,53 @@
 ;;; Code:
 
 ;;;###autoload
+(defvar isearch-input-method nil
+  "Input method activated in interactive search.")
+
+(defvar isearch-input-method-title nil
+  "Title string of input method activated in interactive search.")
+
+;;;###autoload
 (defun isearch-toggle-specified-input-method ()
-  "Select and toggle specified input method in interactive search."
+  "Select an input method and turn it on in interactive search."
   (interactive)
-  ;; Let the command `toggle-input-method' ask users to select input
-  ;; method interactively.
-  (setq default-input-method nil)
-  (isearch-toggle-input-method))
+  (setq isearch-input-method nil)
+  (let ((default-input-method nil))
+    (isearch-toggle-input-method)))
 
 ;;;###autoload
 (defun isearch-toggle-input-method ()
   "Toggle input method in interactive search."
   (interactive)
-  (if isearch-multibyte-characters-flag
-      (setq isearch-multibyte-characters-flag nil)
-    (condition-case nil
-	(progn
-	  (if (null default-input-method)
+  (if isearch-input-method
+      (setq isearch-input-method nil)
+    (setq isearch-input-method
+	  (or default-input-method
 	      (let ((overriding-terminal-local-map nil))
-		;; No input method has ever been selected.  Select one
-		;; interactively now.  This also sets
-		;; `default-input-method-title' to the title of the
-		;; selected input method.
-		(toggle-input-method)
-		;; And, inactivate it for the moment.
-		(toggle-input-method)))
-	  (setq isearch-multibyte-characters-flag t))
-      (error (ding))))
+		(read-input-method-name "Input method: "))))
+    (if isearch-input-method
+	(setq isearch-input-method-title
+	      (nth 3 (assoc isearch-input-method input-method-alist)))
+      (ding)))
   (isearch-update))
 
 (defun isearch-input-method-after-insert-chunk-function ()
   (funcall inactivate-current-input-method-function))
 
 (defun isearch-process-search-multibyte-characters (last-char)
-  (let* ((overriding-terminal-local-map nil)
-	 ;; Let input method exit when a chunk is inserted.
-	 (input-method-after-insert-chunk-hook
-	  '(isearch-input-method-after-insert-chunk-function))
-	 (input-method-inactivate-hook '(exit-minibuffer))
-	 ;; Let input method work rather tersely.
-	 (input-method-tersely-flag t)
-	 str)
+  (let ((overriding-terminal-local-map nil)
+	;; Let input method exit when a chunk is inserted.
+	(input-method-after-insert-chunk-hook
+	 '(isearch-input-method-after-insert-chunk-function))
+	(input-method-inactivate-hook '(exit-minibuffer))
+	;; Let input method work rather tersely.
+	(input-method-tersely-flag t)
+	str)
     (setq unread-command-events (cons last-char unread-command-events))
-    (setq str (read-multilingual-string (concat (isearch-message-prefix)
-						isearch-message)))
+    (setq str (read-multilingual-string
+	       (concat (isearch-message-prefix) isearch-message)
+	       nil
+	       isearch-input-method))
     (isearch-process-search-string str str)))
 
 ;;; isearch-x.el ends here
