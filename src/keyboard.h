@@ -265,6 +265,11 @@ extern Lisp_Object item_properties;
   (XCONS (XCONS (XCONS (XCONS (posn)->cdr)->cdr)->cdr)->car)
 #define POSN_SCROLLBAR_PART(posn)	(Fnth ((posn), make_number (4)))
 
+/* A cons (STRING . STRING-CHARPOS), or nil in mouse-click events.
+   It's a cons if the click is over a string in the mode line.  */
+
+#define POSN_STRING(POSN) Fnth (make_number (4), (POSN))
+
 /* Some of the event heads.  */
 extern Lisp_Object Qswitch_frame;
 
@@ -284,7 +289,7 @@ extern Lisp_Object Qscroll_bar_movement;
   (Fget ((event_head), Qevent_kind))
 
 /* Symbols to use for non-text mouse positions.  */
-extern Lisp_Object Qmode_line, Qvertical_line;
+extern Lisp_Object Qmode_line, Qvertical_line, Qtop_line;
 
 /* Forward declaration for prototypes.  */
 struct input_event;
