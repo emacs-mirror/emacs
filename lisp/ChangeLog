@@ -1,3 +1,8 @@
+2002-12-15  Gustav H,Ae(Bllberg  <gustav@virtutech.se>  (tiny change)
+
+	* progmodes/compile.el (compile-reinitialize-errors): Don't mark the
+	buffer as modified unless it really is.
+
 2002-12-14  Andreas Schwab  <schwab@suse.de>
 
 	* wid-edit.el (widget-move): Don't loop infinitely when there is
