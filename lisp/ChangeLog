@@ -1,5 +1,8 @@
 2000-09-20  Miles Bader  <miles@lsi.nec.co.jp>
 
+	* diff-mode.el (diff-apply-hunk): Jump to the correct line offset
+	in the dry-run case.
+
 	* jka-compr.el (with-auto-compression-mode): New macro.
 
 	* cus-edit.el (custom-face-tag-face, custom-group-tag-face-1)
