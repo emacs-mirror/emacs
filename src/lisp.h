@@ -1576,7 +1576,7 @@ extern Lisp_Object current_global_map;
 extern Lisp_Object Fkey_description (), Fsingle_key_description ();
 extern Lisp_Object Fwhere_is_internal ();
 extern Lisp_Object access_keymap (), store_in_keymap ();
-extern Lisp_Object get_keyelt (), get_keymap ();
+extern Lisp_Object get_keyelt (), get_keymap (), get_keymap_1 ();
 extern void describe_map_tree ();
 
 /* defined in indent.c */
