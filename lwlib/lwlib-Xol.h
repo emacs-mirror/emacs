@@ -1,7 +1,7 @@
 #ifndef LWLIB_XOL_H
 #define LWLIB_XOL_H
 
-#include "lwlib-internal.h"
+#include "lwlib-int.h"
 
 extern widget_creation_entry xol_creation_table [];
 extern Widget xol_create_dialog (widget_instance *);
