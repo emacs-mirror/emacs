@@ -289,7 +289,7 @@ ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAG) -I. -I${srcdi
 #ifdef HAVE_MENUS
 
 /* Include xmenu.o in the list of X object files.  */
-XOBJ= xterm.o xfns.o xfaces.o xmenu.o xselect.o xrdb.o
+XOBJ= xterm.o xfns.o xfaces.o xselect.o xrdb.o
 
 /* The X Menu stuff is present in the X10 distribution, but missing
    from X11.  If we have X10, just use the installed library;
@@ -490,8 +490,8 @@ ALL_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_MACHINE LD_SWITCH_SITE $(LDFLAGS)
 
 
 /* lastfile must follow all files
-   whose initialized data areas should be dumped as pure by dump-emacs. */
-obj=    dispnew.o frame.o scroll.o xdisp.o window.o \
+   whose initialized data areas should be dumped as pure by dump-emacs.  */
+obj=    dispnew.o frame.o scroll.o xdisp.o xmenu.o window.o \
 	cm.o term.o $(XOBJ) \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
 	buffer.o filelock.o insdel.o marker.o INTERVAL_OBJ \
