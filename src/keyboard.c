@@ -5844,6 +5844,26 @@ parse_modifiers_uncached (symbol, modifier_end)
 	  break;
 
 #undef SINGLE_LETTER_MOD
+
+#define MULTI_LETTER_MOD(BIT, NAME, LEN)			\
+	  if (i + LEN + 1 <= SBYTES (name)			\
+	      && ! strncmp (SDATA (name) + i, NAME, LEN))	\
+	    {							\
+	      this_mod_end = i + LEN;				\
+	      this_mod = BIT;					\
+	    }
+
+	case 'd':
+	  MULTI_LETTER_MOD (drag_modifier, "drag", 4);
+	  MULTI_LETTER_MOD (down_modifier, "down", 4);
+	  MULTI_LETTER_MOD (double_modifier, "double", 6);
+	  break;
+
+	case 't':
+	  MULTI_LETTER_MOD (triple_modifier, "triple", 6);
+	  break;
+#undef MULTI_LETTER_MOD
+
 	}
 
       /* If we found no modifier, stop looking for them.  */
