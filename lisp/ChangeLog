@@ -1,5 +1,8 @@
 2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* play/cookie1.el (cookie, cookie-insert, shuffle-vector): Doc
+	fixes.
+
 	* play/studly.el (studlify-word, studlify-region)
 	(studlify-buffer): Fix doc-string.
 	(studlify-buffer): Add autoload cookie.
