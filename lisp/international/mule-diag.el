@@ -711,24 +711,24 @@ system)."
       (insert-buffer-substring "*Help*")
       (insert "\n")
       (if default-input-method
-	  (insert "Default input method: %s\n" default-input-method)
+	  (insert "Default input method: " default-input-method "\n")
 	(insert "No default input method is specified.\n"))
 
       (insert-section 4 "Coding systems")
       (save-excursion (list-coding-systems t))
       (insert-buffer-substring "*Help*")
-      (list-coding-categories)
+      (save-excursion (list-coding-categories))
       (insert-buffer-substring "*Help*")
       (insert "\n")
 
       (insert-section 5 "Character sets")
-      (list-character-sets t)
+      (save-excursion (list-character-sets t))
       (insert-buffer-substring "*Help*")
       (insert "\n")
 
       (when window-system
 	(insert-section 6 "Fontsets")
-	(list-fontsets t)
+	(save-excursion (list-fontsets t))
 	(insert-buffer-substring "*Help*"))
       (help-mode))))
 
