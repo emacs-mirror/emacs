@@ -836,10 +836,7 @@ Instead, these commands are available:
   ;; The one exception is when messages are copied into an Rmail mode buffer.
   ;; rmail-output-to-rmail-file enables auto save when you do that.
   (setq buffer-auto-save-file-name nil)
-  (if (boundp 'mode-line-modified)
-      (setq mode-line-modified "--- ")
-    (setq mode-line-format
-	  (cons "--- " (cdr (default-value 'mode-line-format)))))
+  (setq mode-line-modified "--")
   (use-local-map rmail-mode-map)
   (set-syntax-table text-mode-syntax-table)
   (setq local-abbrev-table text-mode-abbrev-table))
