@@ -1,3 +1,13 @@
+2004-01-09  Deepak Goel  <deego@gnufans.org>
+
+	* calendar/diary-lib.el (diary-entry-time):
+	Also accept time in the form XX[.XX][am/pm/AM/PM].
+	(fancy-diary-font-lock-keywords): Likewise.
+	(diary-font-lock-keywords): Likewise.
+	* calendar/appt.el (appt-add): Likewise.
+	(appt-make-list): Likewise.
+	(appt-convert-time): Likewise.
+
 2004-01-08  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-ann3): Revert previous change.
@@ -192,7 +202,7 @@
 	(term-sentinel): New function.
 	(term-handle-exit): New function.
 
-	* subr.el (assoc-ignore-case, assoc-ignore-representation): 
+	* subr.el (assoc-ignore-case, assoc-ignore-representation):
 	Use assoc-string, and mark them obsolete.
 	(delay-mode-hooks): Mark as permanent local.
 
@@ -876,7 +886,7 @@
 	* xml.el (xml-parse-region): Allow comments to appear after the
 	topmost element has closed.
 	(xml-ns-parse-ns-attrs, xml-ns-expand-el)
-	(xml-ns-expand-attr): New functions to do namespace handling.	
+	(xml-ns-expand-attr): New functions to do namespace handling.
 	(xml-intern-attrlist): Back-compatible handling of attribute
 	names.
 	(xml-parse-tag): Move namespace handling to seperate functions.
