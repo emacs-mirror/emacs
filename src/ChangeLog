@@ -1,3 +1,9 @@
+2001-10-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (XTread_socket) <KeyPress>: Don't use
+	STRING_CHAR_AND_LENGTH if nchars == nbytes.  From Kenichi Handa
+	<handa@etl.go.jp>.
+
 2001-10-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* m/ibms390.h: New file.  From Adam Thornton
