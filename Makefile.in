@@ -217,7 +217,8 @@ lib-src: FRC.lib-src
 
 ${SUBDIR}: ${SUBDIR_MAKEFILES} FRC
 	cd $@; $(MAKE) all $(MFLAGS) \
-		CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}'
+	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
+	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}'
 
 Makefile: Makefile.in config.status
 	./config.status
