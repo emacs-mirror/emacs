@@ -526,6 +526,10 @@ archive.
 	(make-local-variable 'local-enable-local-variables)
 	(setq local-enable-local-variables nil)
 
+	;; Prevent loss of data when saving the file.
+	(make-local-variable 'file-precious-flag)
+	(setq file-precious-flag t)
+
 	(make-local-variable 'archive-read-only)
 	;; Archives which are inside other archives and whose
 	;; names are invalid for this OS, can't be written.
