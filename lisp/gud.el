@@ -165,8 +165,8 @@ we're in the GUD buffer)."
 ;; receive a chunk of text which looks like it might contain the
 ;; beginning of a marker, we save it here between calls to the
 ;; filter.
-(make-local-variable 'gud-marker-acc)
 (defvar gud-marker-acc "")
+(make-variable-buffer-local 'gud-marker-acc)
 
 (defun gud-gdb-marker-filter (string)
   (save-match-data
