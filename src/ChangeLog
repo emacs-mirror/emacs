@@ -14,7 +14,7 @@
 	* lisp.h (Fread_from_minibuffer): Add arg in decl.
 
 	* minibuf.c (read_minibuf): New arg KEEP_ALL.  Callers changed.
-	(Fread_from_minibuffer): New ark KEEP_ALL.  Callers changed.
+	(Fread_from_minibuffer): New arg KEEP_ALL.  Callers changed.
 
 	* search.c (Vsearch_spaces_regexp):
 	Renamed from Vsearch_whitespace_regexp.  All uses changed.
