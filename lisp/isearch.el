@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1994/05/07 01:33:23 $|$Revision: 1.68 $
+;; |$Date: 1994/05/14 09:50:26 $|$Revision: 1.69 $
 
 ;; This file is part of GNU Emacs.
 
@@ -236,35 +236,36 @@ Default value, nil, means edit the string instead.")
       ;; This overrides the default binding for t.
       (define-key map [down-mouse-2] 'nil)
 
-      ;; Bind the ASCII-equivalent "function keys" explicitly
-      ;; if we bind their equivalents, 
-      ;; since otherwise the default binding would override.
+      ;; Bind the ASCII-equivalent "function keys" explicitly to nil
+      ;; so that the default binding does not apply.
+      ;; As a result, these keys translate thru function-key-map
+      ;; as normal, and they have the effect of the equivalent ASCII char.
       ;; We bind [escape] below.
-      (define-key map [tab] 'isearch-printing-char)
-      (define-key map [kp-0] 'isearch-printing-char)
-      (define-key map [kp-1] 'isearch-printing-char)
-      (define-key map [kp-2] 'isearch-printing-char)
-      (define-key map [kp-3] 'isearch-printing-char)
-      (define-key map [kp-4] 'isearch-printing-char)
-      (define-key map [kp-5] 'isearch-printing-char)
-      (define-key map [kp-6] 'isearch-printing-char)
-      (define-key map [kp-7] 'isearch-printing-char)
-      (define-key map [kp-8] 'isearch-printing-char)
-      (define-key map [kp-9] 'isearch-printing-char)
-      (define-key map [kp-add] 'isearch-printing-char)
-      (define-key map [kp-subtract] 'isearch-printing-char)
-      (define-key map [kp-multiply] 'isearch-printing-char)
-      (define-key map [kp-divide] 'isearch-printing-char)
-      (define-key map [kp-decimal] 'isearch-printing-char)
-      (define-key map [kp-separator] 'isearch-printing-char)
-      (define-key map [kp-equal] 'isearch-printing-char)
-      (define-key map [kp-tab] 'isearch-printing-char)
-      (define-key map [kp-space] 'isearch-printing-char)
-      (define-key map [kp-enter] 'isearch-exit)
-      (define-key map [delete] 'isearch-delete-char)
-      (define-key map [backspace] 'isearch-delete-char)
-      (define-key map [return] 'isearch-exit)
-      (define-key map [newline] 'isearch-printing-char)
+      (define-key map [tab] 'nil)
+      (define-key map [kp-0] 'nil)
+      (define-key map [kp-1] 'nil)
+      (define-key map [kp-2] 'nil)
+      (define-key map [kp-3] 'nil)
+      (define-key map [kp-4] 'nil)
+      (define-key map [kp-5] 'nil)
+      (define-key map [kp-6] 'nil)
+      (define-key map [kp-7] 'nil)
+      (define-key map [kp-8] 'nil)
+      (define-key map [kp-9] 'nil)
+      (define-key map [kp-add] 'nil)
+      (define-key map [kp-subtract] 'nil)
+      (define-key map [kp-multiply] 'nil)
+      (define-key map [kp-divide] 'nil)
+      (define-key map [kp-decimal] 'nil)
+      (define-key map [kp-separator] 'nil)
+      (define-key map [kp-equal] 'nil)
+      (define-key map [kp-tab] 'nil)
+      (define-key map [kp-space] 'nil)
+      (define-key map [kp-enter] 'nil)
+      (define-key map [delete] 'nil)
+      (define-key map [backspace] 'nil)
+      (define-key map [return] 'nil)
+      (define-key map [newline] 'nil)
 
       ;; Define keys for regexp chars * ? |.
       ;; Nothing special for + because it matches at least once.
