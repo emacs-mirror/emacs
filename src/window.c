@@ -372,7 +372,8 @@ NCOL should be zero or positive.")
   if (XINT (ncol) < 0) XSETFASTINT (ncol, 0);
   w = decode_window (window);
   if (XINT (w->hscroll) != XINT (ncol))
-    XBUFFER (w->buffer)->clip_changed = 1; /* Prevent redisplay shortcuts */
+    /* Prevent redisplay shortcuts */
+    XBUFFER (w->buffer)->prevent_redisplay_optimizations_p = 1;
   w->hscroll = ncol;
   return ncol;
 }
@@ -2801,7 +2802,7 @@ temp_output_buffer_show (buf)
   BEGV = BEG;
   ZV = Z;
   SET_PT (BEG);
-  XBUFFER (buf)->clip_changed = 1;
+  XBUFFER (buf)->prevent_redisplay_optimizations_p = 1;
   set_buffer_internal (old);
 
   if (!EQ (Vtemp_buffer_show_function, Qnil))
@@ -4679,7 +4680,7 @@ multiple of the canonical character height of WINDOW.")
 	adjust_glyphs (f);
       
       /* Prevent redisplay shortcuts.  */
-      XBUFFER (w->buffer)->clip_changed = 1;
+      XBUFFER (w->buffer)->prevent_redisplay_optimizations_p = 1;
     }
   
   return Qnil;
