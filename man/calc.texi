@@ -21981,7 +21981,7 @@ back on.
 The most basic default simplification is the evaluation of functions.
 For example, @cite{2 + 3} is evaluated to @cite{5}, and @cite{@t{sqrt}(9)}
 is evaluated to @cite{3}.  Evaluation does not occur if the arguments
-to a function are somehow of the wrong type (@cite{@t{tan}([2,3,4])},
+to a function are somehow of the wrong type (@cite{@t{tan}([2,3,4])}),
 range (@cite{@t{tan}(90)}), or number (@cite{@t{tan}(3,5)}), or if the
 function name is not recognized (@cite{@t{f}(5)}), or if ``symbolic''
 mode (@pxref{Symbolic Mode}) prevents evaluation (@cite{@t{sqrt}(2)}).
