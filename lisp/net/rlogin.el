@@ -6,7 +6,7 @@
 ;; Maintainer: Noah Friedman <friedman@splode.com>
 ;; Keywords: unix, comm
 
-;; $Id: rlogin.el,v 1.2 2002/03/14 08:51:43 miles Exp $
+;; $Id: rlogin.el,v 1.3 2002/03/14 11:51:47 miles Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -71,8 +71,8 @@
                 (string-match "-solaris2" system-configuration))
            t)
           (t nil)))
-  "*If non-`nil', use a pty for the local rlogin process.
-If `nil', use a pipe (if pipes are supported on the local system).
+  "*If non-nil, use a pty for the local rlogin process.
+If nil, use a pipe (if pipes are supported on the local system).
 
 Generally it is better not to waste ptys on systems which have a static
 number of them.  On the other hand, some implementations of `rlogin' assume
