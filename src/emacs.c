@@ -1154,6 +1154,7 @@ main (argc, argv, envp)
       init_alloc_once ();
       init_obarray ();
       init_eval_once ();
+      init_character_once ();
       init_charset_once ();
       init_coding_once ();
       init_syntax_once ();	/* Create standard syntax table.  */
@@ -1383,6 +1384,7 @@ main (argc, argv, envp)
 
   init_callproc ();	/* Must follow init_cmdargs but not init_sys_modes.  */
   init_lread ();
+  init_charset ();
 
   /* Intern the names of all standard functions and variables;
      define standard keys.  */
@@ -1397,6 +1399,7 @@ main (argc, argv, envp)
       syms_of_data ();
 #endif
       syms_of_alloc ();
+      syms_of_chartab ();
       syms_of_lread ();
       syms_of_print ();
       syms_of_eval ();
@@ -1415,6 +1418,7 @@ main (argc, argv, envp)
       /* Called before init_window_once for Mac OS.  */
       syms_of_ccl ();
 #endif
+      syms_of_character ();
       syms_of_charset ();
       syms_of_cmds ();
 #ifndef NO_DIR_LIBRARY
