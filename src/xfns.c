@@ -3730,7 +3730,9 @@ void
 x_sync (frame)
      Lisp_Object frame;
 {
+  BLOCK_INPUT;
   XSync (x_current_display, False);
+  UNBLOCK_INPUT;
 }
 
 syms_of_xfns ()
