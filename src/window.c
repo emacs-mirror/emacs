@@ -2012,7 +2012,7 @@ temp_output_buffer_show (buf)
   register struct window *w;
 
   Fset_buffer (buf);
-  XBUFFER (buf)->save_modified = MODIFF;
+  BUF_SAVE_MODIFF (XBUFFER (buf)) = MODIFF;
   BEGV = BEG;
   ZV = Z;
   SET_PT (BEG);
