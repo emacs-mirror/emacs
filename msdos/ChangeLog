@@ -1,3 +1,9 @@
+2004-08-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* sedleim.inp: Remove the lines which say "<TAB>@true", to avoid
+	running a Unixy shell and to reincarnate the "Nothing to be done
+	for `all'" message from Make when there's nothing to be done.
+
 2004-05-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* sedleim.inp (distclean): Remove stamp-subdirs.

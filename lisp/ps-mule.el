@@ -204,69 +204,6 @@ Any other value is treated as nil."
 		 (const bdf-font-except-latin) (const :tag "nil" nil))
   :group 'ps-print-font)
 
-
-(eval-and-compile
-  ;; For Emacs 20.2 and the earlier version.
-  (if (and (boundp 'mule-version)
-	   (not (string< (symbol-value 'mule-version) "4.0")))
-      ;; mule package is loaded
-      (progn
-	(defalias 'ps-mule-next-point '1+)
-	(defalias 'ps-mule-chars-in-string 'length)
-	(defalias 'ps-mule-string-char 'aref)
-	(defsubst ps-mule-next-index (str i) (1+ i)))
-    ;; mule package isn't loaded or mule version lesser than 4.0
-    (defun ps-mule-next-point (arg)
-      (save-excursion (goto-char arg) (forward-char 1) (point)))
-    (defun ps-mule-chars-in-string (string)
-      (/ (length string)
-	 (charset-bytes (char-charset (string-to-char string)))))
-    (defun ps-mule-string-char (string idx)
-      (string-to-char (substring string idx)))
-    (defun ps-mule-next-index (string i)
-      (+ i (charset-bytes (char-charset (string-to-char string)))))
-    )
-  (if (boundp 'mule-version)
-      ;; For Emacs 20.4 and the earlier version.
-      (if (string< (symbol-value 'mule-version) "5.0")
-	  ;; mule package is loaded and mule version is lesser than 5.0
-	  (progn
-	    (defun encode-composition-rule (rule)
-	      (if (= (car rule) 4) (setcar rule 10))
-	      (if (= (cdr rule) 4) (setcdr rule 10))
-	      (+ (* (car rule) 12) (cdr rule)))
-	    (defun ps-mule-search-composition (from to)
-	      (save-excursion
-		(goto-char from)
-		(search-forward "\200" to t)))
-	    (defun ps-mule-get-composition (pos)
-	      (let ((ch (char-after pos)))
-		(and ch (eq (char-charset ch) 'composition)
-		     (let ((components
-			    (decompose-composite-char ch 'vector t)))
-		       (list pos (ps-mule-next-point pos) components
-			     (integerp (aref components 1)) nil
-			     (char-width ch)))))))
-	(defun ps-mule-search-composition (from to)
-	  (let (cmp-info)
-	    (while (and (< from to)
-			(setq cmp-info (find-composition from to))
-			(not (nth 2 cmp-info)))
-	      (setq from (nth 1 cmp-info)))
-	    (< from to)))
-	(defun ps-mule-get-composition (pos)
-	  (find-composition pos nil nil t)))
-
-    ;; mule package isn't loaded
-    (or (fboundp 'encode-composition-rule)
-	(defun encode-composition-rule (rule)
-	  130))
-    (defun ps-mule-search-composition (&rest ignore)
-      nil)
-    (defun ps-mule-get-composition (&rest ignore)
-      nil)
-    ))
-
 (defvar ps-mule-font-info-database
   nil
   "Alist of charsets with the corresponding font information.

@@ -124,6 +124,7 @@
 				    (const :tag "always" t)))
 	     ;; fileio.c
 	     (insert-default-directory minibuffer boolean)
+	     (read-file-name-completion-ignore-case minibuffer boolean "21.4")
 	     ;; fns.c
 	     (use-dialog-box menu boolean "21.1")
 	     (use-file-dialog menu boolean "21.4")
@@ -267,7 +268,7 @@
 						     :format "%v")
 					    (other :tag "Unlimited" t)))
 	     (unibyte-display-via-language-environment mule boolean)
-	     (blink-cursor-alist cursor alist "21.5")
+	     (blink-cursor-alist cursor alist "21.4")
 	     ;; xfaces.c
 	     (scalable-fonts-allowed display boolean)
 	     ;; xfns.c

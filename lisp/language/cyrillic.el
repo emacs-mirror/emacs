@@ -98,6 +98,7 @@
  "Cyrillic-KOI8" `((charset koi8)
 		   (coding-system cyrillic-koi8)
 		   (coding-priority cyrillic-koi8 cyrillic-iso-8bit)
+		   (ctext-non-standard-encodings "koi8-r")
 		   (nonascii-translation . koi8)
 		   (input-method . "russian-typewriter")
 		   (features cyril-util)

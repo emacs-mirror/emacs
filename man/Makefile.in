@@ -279,9 +279,9 @@ speedbar.dvi: speedbar.texi
 emacs-mime.dvi: emacs-mime.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-mime.texi
 
-../info/tramp: tramp.texi
+../info/tramp: tramp.texi trampver.texi
 	cd $(srcdir); $(MAKEINFO) -D emacs tramp.texi
-tramp.dvi: tramp.texi
+tramp.dvi: tramp.texi trampver.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/tramp.texi
 
 ../info/ses: ses.texi

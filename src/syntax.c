@@ -293,7 +293,7 @@ char_quoted (charpos, bytepos)
 
   DEC_BOTH (charpos, bytepos);
 
-  while (bytepos >= beg)
+  while (charpos >= beg)
     {
       int c;
 
@@ -674,7 +674,7 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
     {
       from = comstart_pos;
       from_byte = comstart_byte;
-      /* Globals are correct now.  */
+      UPDATE_SYNTAX_TABLE_FORWARD (from - 1);
     }
   else
     {

@@ -1340,9 +1340,9 @@ block comments.
 @findex setup-paragraph-variables (c-)
 Also note that since @ccmode{} uses the value of
 @code{c-comment-prefix-regexp} to set up several other variables at mode
-initialization, there won't have any effect if you change it inside a
+initialization, there won't be any effect if you just change it inside a
 @ccmode{} buffer.  You need to call the command
-@code{c-setup-paragraph-variables} to update those other variables with
+@code{c-setup-paragraph-variables} too, to update those other variables with
 the new value.  That's also the case if you modify this variable in a
 mode hook, since @ccmode{} sets up all variables before calling them.
 @end defopt
@@ -1415,8 +1415,12 @@ namely when a block comment is broken for the first time.  This style
 variable@footnote{In versions before 5.26, this variable was called
 @code{c-comment-continuation-stars}.  As a compatibility measure,
 @ccmode{} still uses the value on that variable if it's set.} is used
-then as the comment prefix.  It defaults to @samp{* }, which makes a
-comment
+then as the comment prefix.  It defaults to @samp{*
+}@footnote{Actually, this default setting of
+@code{c-block-comment-prefix} typically gets overriden by the default
+style @code{gnu}, which sets it to blank.  You can see the line
+splitting effect described here by setting a different style,
+e.g. @code{k&r} @xref{Choosing a Style}}, which makes a comment
 
 @example
 /* Got O(n^2) here, which is a Bad Thing. */
@@ -2057,13 +2061,13 @@ These variables are also useful when indenting code:
 @vindex tab-always-indent (c-)
 @kindex TAB
 @cindex literal
-This variable controls how @kbd{TAB} (@code{c-indent-command}) operates.
-When it is @code{t}, @kbd{TAB} always indents the current line.  When it
-is @code{nil}, the line is indented only if point is at the left margin,
-or on or before the first non-whitespace character on the line,
-otherwise some whitespace is inserted.  If this variable is the symbol
-@code{other}, then some whitespace is inserted only within strings and
-comments (literals), and inside preprocessor directives, but the line is
+This variable controls how @kbd{TAB} (@code{c-indent-command})
+operates.  When it is @code{t}, @kbd{TAB} always indents the current
+line.  When it is @code{nil}, the line is indented only if point is at
+the left margin, or on or before the first non-whitespace character on
+the line, otherwise some whitespace is inserted.  If this variable is
+some other value (not @code{nil} or @code{t}), then some whitespace is
+inserted only within strings and comments (literals), but the line is
 always reindented.
 @end defopt
 
@@ -2878,26 +2882,71 @@ string.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @node    Adding Styles, File Styles, Choosing a Style, Styles
 @comment node-name, next, previous, up
-@subsection Adding Styles
+@subsection Adding and Amending Styles
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 If none of the built-in styles is appropriate, you'll probably want to
-add a new @dfn{style definition}.  Styles are kept in the
-@code{c-style-alist} variable, but you should never modify this
-variable directly.  Instead, @ccmode{} provides the function
-@code{c-add-style} that you can use to easily add new styles or change
-existing styles:
+create a new @dfn{style definition}, possibly based on an existing
+style.  To do this, put the new style's settings into a list with the
+following format - the list can then be passed as an argument to the
+function @code{c-add-style}:
+
+@cindex style definition
+@defvr {List} style definition
+([@var{base-style}] [(@var{variable} . @var{value}) @dots{}])
+
+Optional @var{base-style}, if present, must be a string which is the
+name of the @dfn{base style} from which this style inherits.  At most
+one @var{base-style} is allowed in a style definition.  If
+@var{base-style} is not specified, the style inherits from a table of
+default values@footnote{This table is stored internally in the
+variable c-fallback-style.  It is computed during the initialisation
+of @ccmode{} from the factory defaults of the style variables and any
+global values they may have been given since starting Emacs.} instead.
+All styles eventually inherit from this internal table.  Style loops
+generate errors.  The list of pre-existing styles can be seen in
+@ref{Built-in Styles}.
+
+The dotted pairs (@var{variable} . @var{value}) each consist of a
+variable and the value it is to be set to when the style is later
+activated.@footnote{In certain circumstances, this value can get
+overridden by another value.}  The variable can be either a @ccmode{}
+style variable or an arbitrary Emacs variable.  In the latter case, it
+is @emph{not} made buffer local by the @ccmode{} style system.
+@end defvr
+
+Two variables are treated specially in the dotted pair list:
+
+@table @code
+@item c-offsets-alist
+The value is in turn a dotted list on the form
+
+(@var{syntactic-symbol} . @var{offset})
+
+as described in @ref{Customizing Indentation}.  These are passed to
+@code{c-set-offset} so there is no need to set every syntactic symbol in
+your style, only those that are different from the inherited style.
+
+@item c-special-indent-hook
+The value is added to @code{c-special-indent-hook} using
+@code{add-hook}, so any functions already on it are kept.  If the value
+is a list, each element of the list is added with @code{add-hook}.
+@end table
+
+Styles are kept in the @code{c-style-alist} variable, but you
+should never modify this variable directly.  Instead, @ccmode{}
+provides the function @code{c-add-style} for this purpose.
 
 @defun c-add-style stylename description &optional set-p
 @findex add-style (c-)
-Add or update a style.  If @var{stylename} is not already in
-@code{c-style-alist} then a new style according to @var{description}
-is added, otherwise the existing style is changed.  If the optional
-@var{set-p} is non-@code{nil} then the new style is applied to the
-current buffer as well.
-
-@comment TBD: The next paragraph is bogus.  I really need to better
-@comment document adding styles, including setting up inherited styles.
+Add or update a style called @var{stylename}, a string.
+@var{description} is the new style definition in the form described
+above.  If @var{stylename} already exists in @code{c-style-alist} then
+it is replaced by @var{description}.  (Note, this replacement is
+total.  The old style is @emph{not} merged into the new one.)
+Otherwise, a new style is added.  If the optional @var{set-p} is
+non-@code{nil} then the new style is applied to the current buffer as
+well.
 
 The sample @file{.emacs} file provides a concrete example of how a new
 style can be added and automatically set.  @xref{Sample .emacs File}.
@@ -3416,9 +3465,9 @@ Analogous to @code{inclass} syntactic symbol, but used inside lambda
 Lines continuing the header of a lambda function, i.e., between the
 @code{lambda} keyword and the function body.  Only used in Pike mode.
 @item inexpr-statement
-A statement block inside an expression.  The gcc C extension of this is
-recognized.  It's also used for the special functions that takes a
-statement block as an argument in Pike.
+A statement block inside an expression.  The gcc C and C++ extension for
+this is recognized.  It's also used for the special functions that take
+a statement block as an argument in Pike.
 @item inexpr-class
 A class definition inside an expression.  This is used for anonymous
 classes in Java.  It's also used for anonymous array initializers in
@@ -4022,7 +4071,8 @@ indented just like a normal class, with the added indentation given to
 @code{inexpr-class}.
 
 There are a few occasions where a statement block may be used inside an
-expression.  One is in C code using the gcc extension for this, e.g:
+expression.  One is in C or C++ code using the gcc extension for this,
+e.g:
 
 @example
  1: int res = (@{
@@ -5225,7 +5275,7 @@ Controls whether a final newline is ensured when the file is saved.  The
 value is an association list that for each language mode specifies the
 value to give to @code{require-final-newline} at mode initialization;
 see that variable for details about the value.  If a language isn't
-present on the association list, CC Mode won't set
+present on the association list, CC Mode won't touch
 @code{require-final-newline} in buffers for that language.
 
 The default is to set @code{require-final-newline} to @code{t} in the
@@ -5484,6 +5534,25 @@ interpreter tries to call the macro as a function, it shows this
 (somewhat cryptic) error message.}. If you are using the standalone
 @ccmode{} distribution, try recompiling it according to the instructions
 in the @file{README} file.
+
+@item
+@cindex open paren in column zero
+@emph{I have an open paren character at column zero inside a comment or
+multiline string literal, and it causes the fontification and/or
+indentation to go haywire.  What gives?}
+
+It's due to the ad-hoc rule in (X)Emacs that such open parens always
+start defuns (which translates to functions, classes, namespaces or any
+other top-level block constructs in the @ccmode{} languages).
+@xref{Left Margin Paren,,, emacs, The Emacs Editor}, for details
+(@xref{Defuns,,, emacs, The Emacs Editor}, in the Emacs 20 manual).
+
+This heuristic is built into the core syntax analysis routines in
+(X)Emacs, so it's not really a @ccmode{} issue.  However, in Emacs 21.4
+it has become possible to turn it off@footnote{Using the variable
+@code{open-paren-in-column-0-is-defun-start}.} and @ccmode{} does so
+there since it got its own system to keep track of blocks.
+
 @end itemize
 
 

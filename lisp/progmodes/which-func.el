@@ -186,7 +186,7 @@ It creates the Imenu index for the buffer, if necessary."
   (which-func-update-1 (selected-window)))
 
 (defun which-func-update-1 (window)
-  "Update the Which-Function mode display for window WINDOW."
+  "Update the Which Function mode display for window WINDOW."
   (with-selected-window window
     (when which-func-mode
       (condition-case info

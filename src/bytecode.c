@@ -855,10 +855,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 	  }
 
 	case Bunwind_protect:
-	  /* The function record_unwind_protect can GC.  */
-	  BEFORE_POTENTIAL_GC ();
 	  record_unwind_protect (Fprogn, POP);
-	  AFTER_POTENTIAL_GC ();
 	  break;
 
 	case Bcondition_case:

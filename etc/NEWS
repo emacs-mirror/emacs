@@ -173,6 +173,8 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** global-whitespace-mode is a new alias for whitespace-global-mode.
+
 +++
 ** There are now two new regular expression operators, \_< and \_>,
 for matching the beginning and end of a symbol.  A symbol is a
@@ -266,6 +268,11 @@ the end of the buffer in that window.  This allows to tail a file:
 just put point at the end of the buffer and it stays there.  This
 rule applies to file buffers.  For non-file buffers, the behavior may
 be mode dependent.
+
+If you are sure that the file will only change by growing at the end,
+then you can tail the file more efficiently by using the new minor
+mode Auto Revert Tail mode.  The function `auto-revert-tail-mode'
+toggles this mode.
 
 ** Auto Revert mode is now more careful to avoid excessive reverts and
 other potential problems when deciding which non-file buffers to
@@ -733,7 +740,7 @@ You can now put the init files .emacs and .emacs_SHELL under
 
 ** MH-E changes.
 
-Upgraded to MH-E version 7.4.4. There have been major changes since
+Upgraded to MH-E version 7.82. There have been major changes since
 version 5.0.2; see MH-E-NEWS for details.
 
 +++
@@ -2041,8 +2048,11 @@ source files.  See the Flymake's Info manual for more details.
 of hierarchical data as an outline.  For example, the tree-widget is
 well suited to display a hierarchy of directories and files.
 
-** The wdired.el package allows you to use normal editing commands on dired
+** The wdired.el package allows you to use normal editing commands on Dired
 buffers to change filenames, permissions, etc...
+
+** The thumbs.el package allows you to preview image files as thumbnails
+and can be invoked from a Dired buffer.
 
 ** The new python.el package is used to edit Python and Jython programs.
 
@@ -3343,7 +3353,13 @@ and modify elements on this property list.
 The new low-level functions process-plist and set-process-plist are
 used to access and replace the entire property list of a process.
 
-???
+*** Function accept-process-output now has an optional fourth arg
+`just-this-one'.  If non-nil, only output from the specified process
+is handled, suspending output from other processes.  If value is an
+integer, also inhibit running timers.  This feature is generally not
+recommended, but may be necessary for specific applications, such as
+speech synthesis.
+
 *** Adaptive read buffering of subprocess output.
 
 On some systems, when emacs reads the output from a subprocess, the

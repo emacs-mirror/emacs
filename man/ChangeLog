@@ -1,3 +1,102 @@
+2004-08-26  Richard M. Stallman  <rms@gnu.org>
+
+	* faq.texi (Difference between Emacs and XEmacs): Rewrite.
+
+2004-08-25  Kenichi Handa  <handa@m17n.org>
+
+	* custom.texi (Non-ASCII Rebinding): Fix and simplify the
+	description for unibyte mode.
+
+2004-08-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* display.texi (Font Lock): Correct invalid (for hardcopy) @xref.
+
+	* search.texi (Regexps): Correct cryptic (in hardcopy) @ref.
+	(Configuring Scrolling): Correct invalid (for hardcopy) @xref.
+	(Regexp Replace): Standardize reference to hardcopy Elisp Manual
+	in @pxref.
+
+2004-08-22  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* kmacro.texi (Keyboard Macro Counter, Keyboard Macro Step-Edit):
+	Change section names.
+
+2004-08-22  David Kastrup  <dak@gnu.org>
+
+	* reftex.texi (AUCTeX): Update links, section name.
+
+	* faq.texi (Calc): Update availability (included in 21.4).
+	(AUCTeX): Update availability, information, versions, description.
+
+2004-08-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* kmacro.texi (Keyboard Macro Ring): Rename section.
+	Emacs treats the head of the macro ring as the `last keyboard macro'.
+	(Keyboard Macro Counter): Minor change.
+	(Save Keyboard Macro): Some clarifications.
+	(Edit Keyboard Macro): Rename section.
+
+	* buffers.texi (Buffers): Maximum buffer size is now 256M on
+	32-bit machines.
+	(Several Buffers): Clarify which buffer is selected if `2' is
+	pressed in the Buffer Menu.
+	Auto Revert mode can be used to update the Buffer Menu
+	automatically.
+
+2004-08-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* help.texi (Misc Help): Add an index entry for finding an Info
+	manual by its file name.
+
+2004-08-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.texi (Backup Deletion): Correct description of
+	`delete-old-versions'.
+	(Time Stamps): `time-stamp' needs to be added to `before-save-hook'.
+	(Auto Save Files): Recommend `auto-save-mode' to reenable
+	auto-saving, rather than the abbreviation `auto-save'.
+
+2004-08-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs.texi (Top): Mention "cutting" and "pasting" as synonyms
+	for "killing" and "yanking" in main menu.
+
+2004-08-16  Richard M. Stallman  <rms@gnu.org>
+
+	* killing.texi (Yanking, Killing): Minor cleanups.
+
+	* mark.texi (Momentary Mark): Minor cleanups.
+
+2004-08-15  Kenichi Handa  <handa@etl.go.jp>
+
+	* custom.texi (Non-ASCII Rebinding):
+	C-q always inserts the right code to pass to global-set-key.
+
+2004-08-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (../info/tramp, tramp.dvi): Depend on trampver.texi.
+
+2004-08-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* regs.texi (RegNumbers): Mention `C-x r i' binding for
+	`insert-register', instead of `C-x r g' binding, for consistency.
+
+2004-08-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fixit.texi (Spelling): Fix typo.
+
+2004-08-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* help.texi (Help): Fix Texinfo usage.
+
+2004-08-11  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-mode.texi: Various updates for CC Mode 5.30.9.
+
+2004-08-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.44.
+
 2004-08-05  Lars Hansen  <larsh@math.ku.dk>
 
 	* widget.texi (User Interface): Update how to separate the

@@ -1224,13 +1224,14 @@ rmail mode.
 The supercite mailing list covers issues related to the advanced
 mail/news citation package called Supercite for GNU Emacs.
 
-* auc-tex-request@iesd.auc.dk to subscribe
+* auc-tex-request@sunsite.dk to subscribe
 ** USENET newsgroup: NONE YET
-** Send contributions to: auc-tex@iesd.auc.dk
+** Send contributions to: auc-tex@sunsite.dk
 
-The list is intended to exchange information about AUC TeX, such as
+The list is intended to exchange information about AUCTeX, such as
 bug reports, request for help, and information on current
-developments.  AUC TeX is a much enhanced LaTeX mode for GNU Emacs.
+developments.  AUCTeX is a much enhanced TeX/LaTeX/ConTeXt/Texinfo mode
+for GNU Emacs.
 
 The list is unmoderated.
 

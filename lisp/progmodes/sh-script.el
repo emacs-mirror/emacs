@@ -353,6 +353,11 @@ the car and cdr are the same symbol.")
 (defvar sh-shell (sh-canonicalize-shell (file-name-nondirectory sh-shell-file))
   "The shell being programmed.  This is set by \\[sh-set-shell].")
 
+(defvar sh-mode-abbrev-table nil)
+
+(define-abbrev-table 'sh-mode-abbrev-table ())
+
+
 ;; I turned off this feature because it doesn't permit typing commands
 ;; in the usual way without help.
 ;;(defvar sh-abbrevs
@@ -1483,7 +1488,7 @@ Calls the value of `sh-set-shell-hook' if set."
       (setq require-final-newline tem)))
   (setq
 	comment-start-skip "#+[\t ]*"
-;;;	local-abbrev-table (sh-feature sh-abbrevs)
+	local-abbrev-table sh-mode-abbrev-table
 	mode-line-process (format "[%s]" sh-shell)
 	sh-shell-variables nil
 	sh-shell-variables-initialized nil

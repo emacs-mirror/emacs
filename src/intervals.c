@@ -2275,6 +2275,10 @@ move_if_not_intangible (position)
 	  pos = Fnext_char_property_change (pos, Qnil);
 
     }
+  else if (position < BEGV)
+    position = BEGV;
+  else if (position > ZV)
+    position = ZV;
 
   /* If the whole stretch between PT and POSITION isn't intangible,
      try moving to POSITION (which means we actually move farther

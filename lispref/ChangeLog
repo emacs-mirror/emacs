@@ -1,3 +1,33 @@
+2004-08-22  Richard M. Stallman  <rms@gnu.org>
+
+	* modes.texi (Major Mode Conventions): Discuss rebinding of
+	standard key bindings.
+
+2004-08-18  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Accepting Output): Add `just-this-one' arg to
+	`accept-process-output'.
+	(Output from Processes): New var `process-adaptive-read-buffering'.
+
+2004-08-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keymaps.texi: Various changes in addition to:
+	(Keymap Terminology): `kbd' uses same syntax as Edit Macro mode.
+	Give more varied examples for `kbd'.
+	(Creating Keymaps): Char tables have slots for all characters
+	without modifiers.
+	(Active Keymaps): `overriding-local-map' and
+	`overriding-terminal-local-map' also override text property and
+	overlay keymaps.
+	(Functions for Key Lookup): Mention OLP arg to `current-active-maps'.
+	(Scanning Keymaps): `accessible-keymaps' uses `[]' instead of `""'
+	to denote a prefix of no events.
+	`map-keymap' includes parent's bindings _recursively_.
+	Clarify and correct description of `where-is-internal'.
+	Mention BUFFER-OR-NAME arg to `describe-bindings'.
+	(Menu Example): For menus intended for use with the keyboard, the
+	menu items should be bound to characters or real function keys.
+
 2004-08-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* objects.texi (Character Type): Reposition `@anchor' to prevent

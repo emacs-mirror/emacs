@@ -30,6 +30,7 @@ INSTALLDIR=.
 
 /touch stamp-subdir/s|touch|djecho "stamp-subdir" >|
 s|\([ 	]\)echo|\1djecho|g
+/^	@true *$/d
 
 /RUN-EMACS *=/,/^$/c\
 export EMACSLOADPATH=${buildlisppath}\

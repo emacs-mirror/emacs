@@ -6180,7 +6180,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
       f = x_top_window_to_frame (dpyinfo, event.xmap.window);
       if (f)
         {
-          /* wait_reading_process_input will notice this and update
+          /* wait_reading_process_output will notice this and update
              the frame's display structures.
              If we where iconified, we should not set garbaged,
              because that stops redrawing on Expose events.  This looks
@@ -7611,11 +7611,13 @@ static Lisp_Object
 x_catch_errors_unwind (old_val)
      Lisp_Object old_val;
 {
-  Lisp_Object first;
+  Lisp_Object first = XCAR (old_val);
+  Display *dpy = XSAVE_VALUE (first)->pointer;
 
-  first = XCAR (old_val);
-
-  XSync (XSAVE_VALUE (first)->pointer, False);
+  /* The display may have been closed before this function is called.
+     Check if it is still open before calling XSync.  */
+  if (x_display_info_for_display (dpy) != 0)
+    XSync (dpy, False);
 
   x_error_message_string = XCDR (old_val);
   return Qnil;

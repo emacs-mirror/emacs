@@ -610,6 +610,15 @@ child_setup_tty (out)
   s.main.c_cflag = (s.main.c_cflag & ~CBAUD) | B9600; /* baud rate sanity */
 #endif /* HPUX */
 
+#ifdef SIGNALS_VIA_CHARACTERS
+  /* the QUIT and INTR character are used in process_send_signal
+     so set them here to something useful.  */
+  if (s.main.c_cc[VQUIT] == CDISABLE)
+    s.main.c_cc[VQUIT] = '\\'&037;	/* Control-\ */
+  if (s.main.c_cc[VINTR] == CDISABLE)
+    s.main.c_cc[VINTR] = 'C'&037;	/* Control-C */
+#endif /* not SIGNALS_VIA_CHARACTERS */
+
 #ifdef AIX
 /* AIX enhanced edit loses NULs, so disable it */
 #ifndef IBMR2AIX
@@ -620,22 +629,16 @@ child_setup_tty (out)
      don't ignore break, but don't signal either, so it looks like NUL.  */
   s.main.c_iflag &= ~IGNBRK;
   s.main.c_iflag &= ~BRKINT;
+  /* rms: Formerly it set s.main.c_cc[VINTR] to 0377 here
+     unconditionally.  Then a SIGNALS_VIA_CHARACTERS conditional
+     would force it to 0377.  That looks like duplicated code.  */
+#ifndef SIGNALS_VIA_CHARACTERS
   /* QUIT and INTR work better as signals, so disable character forms */
-  s.main.c_cc[VINTR] = 0377;
-#ifdef SIGNALS_VIA_CHARACTERS
-  /* the QUIT and INTR character are used in process_send_signal
-     so set them here to something useful.  */
-  if (s.main.c_cc[VQUIT] == 0377)
-    s.main.c_cc[VQUIT] = '\\'&037;	/* Control-\ */
-  if (s.main.c_cc[VINTR] == 0377)
-    s.main.c_cc[VINTR] = 'C'&037;	/* Control-C */
-#else /* no TIOCGPGRP or no TIOCGLTC or no TIOCGETC */
-  /* QUIT and INTR work better as signals, so disable character forms */
-  s.main.c_cc[VQUIT] = 0377;
-  s.main.c_cc[VINTR] = 0377;
+  s.main.c_cc[VQUIT] = CDISABLE;
+  s.main.c_cc[VINTR] = CDISABLE;
   s.main.c_lflag &= ~ISIG;
 #endif /* no TIOCGPGRP or no TIOCGLTC or no TIOCGETC */
-  s.main.c_cc[VEOL] = 0377;
+  s.main.c_cc[VEOL] = CDISABLE;
   s.main.c_cflag = (s.main.c_cflag & ~CBAUD) | B9600; /* baud rate sanity */
 #endif /* AIX */
 
@@ -1476,10 +1479,10 @@ nil means don't delete them until `list-processes' is run.  */);
       tty.main.c_line = 0;
       tty.main.c_iflag &= ~ASCEDIT;
 #else
-      tty.main.c_cc[VSTRT] = 255;
-      tty.main.c_cc[VSTOP] = 255;
-      tty.main.c_cc[VSUSP] = 255;
-      tty.main.c_cc[VDSUSP] = 255;
+      tty.main.c_cc[VSTRT] = CDISABLE;
+      tty.main.c_cc[VSTOP] = CDISABLE;
+      tty.main.c_cc[VSUSP] = CDISABLE;
+      tty.main.c_cc[VDSUSP] = CDISABLE;
 #endif /* IBMR2AIX */
       if (flow_control)
 	{

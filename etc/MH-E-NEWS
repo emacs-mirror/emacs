@@ -6,6 +6,389 @@ Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.
 
+* Changes in MH-E 7.82
+
+Version 7.82 continues to address the saga surrounding the use of CL
+macros in CVS Emacs and fixes the auto-detection of vanilla MH (SF
+#1014781).
+
+* Changes in MH-E 7.81
+
+Version 7.81 fixes a `wrong-type-argument' argument error that
+sometimes occurred when processing the Message-ID, adds the ";
+(mh-toggle-mh-decode-mime-flag)" command, and uses ":default" instead
+of "default" in `mh-identity-handlers' to avoid problems with
+"Default:" as a user defined field. If you have modified
+`mh-identity-handlers' in your .emacs, you'll need to rename "default"
+to ":default". This release also corrects the release numbering; the
+previous version number was intended to be 7.80.
+
+* Changes in MH-E 7.4.80
+
+Version 7.4.80 now supports GNU mailutils, S/MIME, picons,
+which-func-mode, has an improved interface for hiding header fields,
+improves upon the MH variant detection, and contains many bug fixes.
+Those of you familiar with the GNU version numbering schemes will
+recognize this as an alpha release. This does not reflect on the
+quality of this release which is as high as it has always been.
+Although we are not ready to release 8.0, we want you to have access
+to the work that has been hiding in CVS. At the same time we want to
+make it clear that there are incompatible changes with previous
+versions.
+
+We are planning to release the long-awaited manual update synchronized
+with version 8.0. We are using documentation from the manual in the
+docstrings which is hoped to make "C-h f (describe-function)" really
+useful and create a seamless experience when switching back and forth
+between the manual and the docstrings. This has been done in about
+half of the variables and functions in this version.
+
+The writing of the manual has revealed a few inconsistencies in the
+software whose fixes have resulted in incompatible changes, and there
+may well be more. So, unlike version 7 which was chock full of new
+features, version 8's strengths will include complete documentation
+and higher quality.
+
+** New Features in MH-E 7.4.80
+
+*** GNU mailutils Support
+
+MH-E now supports GNU mailutils 0.4 and higher versions.
+
+*** S/MIME Support
+
+MH-E now supports S/MIME using Gnus 5.10.6 or higher.
+
+*** Picon Support
+
+In addition to the other methods of displaying an icon for the sender
+of a message, MH-E can now display images from a picon directory. The
+directory search path is found in the `mh-picon-directory-list'
+variable. More documentation is found in the "facedb" sections in the
+xfaces man page. [NOTE: need to make mh-picon-directory-list an option
+and add xfaces facedb documentation to it.]
+
+*** X-Image-URL Updates
+
+Now support the use of `curl' and `fetch' as alternatives to `wget' to
+obtain the image. The display of images are controlled with the
+`mh-show-use-xface-flag' option while the `mh-fetch-x-image-url'
+option controls how the images are fetched.
+
+WARNING: There are security concerns with this feature. Please read
+the documentation for these options carefully before changing the
+default.
+
+*** Updates to mh-identity-list
+
+Note that the field names found in `mh-identity-list' that refer to
+the fields in `mh-identity-handlers' have changed in an incompatible
+way from 7.4.4. In general, the symbolic names now have a ":" prefix
+to avoid collisions with header fields. Before starting Emacs, edit
+your .emacs and insert ":" before "signature" if you have defined it.
+
+You can change your attribution in replies with the new "Attribution
+Verb" field, and you can set your default GPG user ID with the "GPG
+key ID" field.
+
+Signatures can now be read from the `mh-signature-file-name' variable,
+or come from a function, in addition to a named file. If you write
+your own function, variables that you can use include
+`mh-signature-separator-regexp', `mh-signature-separator',
+and `mh-signature-separator-p'.
+
+The handling of these fields has been moved into a new
+`mh-identity-handlers' option, an alist of fields (strings) and
+handlers (functions). Strings are lowercase. Use ":signature" for
+Signature and ":pgg-default-user-id" for GPG Key ID. The function
+associated with the string "default" is used if no other functions are
+appropriate. For this reason, don't name a header field "Default".
+
+If you point your signature at a vCard file with a vcf suffix, then it
+will be incorporated as a vCard body part (closes SF #802723).
+
+*** Catchup Command
+
+There is a new "F c (mh-catchup)" command that marks all unread
+messages in the current folder as read.
+
+*** Change Content-Type Renderer on the Fly in MH-Show Buffer
+
+This has been implemented by adding the key binding "K e
+(mh-display-with-external-viewer)". For inline text/html parts,
+buttons aren't displayed by default. In that case use "K t
+(mh-toggle-mime-buttons)" to display the button before viewing it with
+an external browser (closes SF #839318).
+
+*** Use which-func-mode to Display Folder in Index Mode
+
+Turning on `which-func-mode' displays the folder name of the message
+under the cursor in index folders (closes SF #855520).
+
+*** Render Signature and vCard in Italics
+
+This has been implemented.  Use `mh-show-signature-face' to customize
+the face used (closes SF #802722).
+
+*** New Print Map
+
+There is now a keymap for the printing functions whose prefix is "P".
+The command "l (mh-print-msg)" has been replaced with "P l". Other new
+functions in this keymap include:
+
+    P A         mh-ps-print-toggle-mime
+    P C         mh-ps-print-toggle-color
+    P F         mh-ps-print-toggle-faces
+    P M         mh-ps-print-toggle-mime
+    P f         mh-ps-print-msg-file
+    P l         mh-print-msg
+    P p         mh-ps-print-msg
+    P s         mh-ps-print-msg-show
+
+*** Draft Buffer Keymap Changes
+
+The keymap in the draft buffer has been modified slightly. The old
+anonymous ftp and tar composition commands have been reinstated and
+letter signing and encrypting keymaps have been added.
+
+The type of signing or encryption has been generalized so the method
+is now an option rather than a part of the function's name. The option
+is `mh-mml-method-default' and choices include PGP (MIME), PGP,
+S/MIME, or none.
+
+Key		7.4.4			7.4.80
+
+C-c RET C-e	mh-mml-secure-message-encrypt-pgpmime
+					mh-mml-secure-message-encrypt
+C-c RET C-s	mh-mml-secure-message-sign-pgpmime
+					-
+C-c RET C-g	-			mh-mhn-compose-anon-ftp
+C-c RET C-n	-			mh-mml-unsecure-message
+C-c RET C-s	-			mh-mml-secure-message-sign
+C-c RET C-t	-			mh-mhn-compose-external-compressed-tar
+C-c RET C-s	mh-mml-secure-message-sign-pgpmime
+					mh-mml-secure-message-sign
+C-c RET C-x	-			mh-mhn-compose-external-type
+C-c RET e	mh-mml-secure-message-encrypt-pgpmime
+					Prefix Command
+C-c RET e e	-			mh-mml-secure-message-encrypt
+C-c RET e s	-			mh-mml-secure-message-signencrypt
+C-c RET g	-			mh-mhn-compose-anon-ftp
+C-c RET n	-			mh-mml-unsecure-message
+C-c RET s	mh-mml-secure-message-sign-pgpmime
+					Prefix Command
+C-c RET s e	-			mh-mml-secure-message-signencrypt
+C-c RET s s	-			mh-mml-secure-message-sign
+C-c RET t	-			mh-mhn-compose-external-compressed-tar
+C-c RET x	-			mh-mhn-compose-external-type
+
+*** Speedbar: Highlight Folders With Unseen
+
+The speedbar now renders the folders with unseen messages in boldface
+which makes them easier to identify (closes SF #623369).
+
+*** Quick Key Help
+
+The "? (mh-help)" function now displays the help in its own buffer
+called *MH-E Help* (closes SF #493740 and SF #656631).
+
+*** New Startup File mh-e-autoloads.el
+
+If you are installing MH-E yourself, then you can replace any
+autoloads you may have with "(require 'mh-e-autoloads.el)". See the
+README for details.
+
+*** Glimpse Support Removed
+
+Since glimpse isn't free, we cannot mention it. Glimpse has been
+removed from the option `mh-indexer-choices' (closes SF #831276).
+
+*** mh-msg-is-in-seq Update
+
+Can now specify an alternate message number to "S s
+(mh-msg-is-in-seq)" with a prefix argument.
+
+** New Variables in MH-E 7.4.80
+
+Variables that have been added to MH-E that have not been discussed
+elsewhere are listed here.
+
+*** mail-citation-hook
+
+Hook for modifying a citation just inserted in the mail buffer.
+
+*** mh-alias-reloaded-hook
+
+Invoked by `mh-alias-reload' after reloading aliases.
+
+*** mh-auto-fields-prompt-flag
+
+Non-nil means to prompt before sending if fields in
+`mh-auto-fields-list' are inserted.
+
+*** mh-default-folder-for-message-function
+
+Function to select a default folder for refiling or `Fcc'.
+
+*** mh-forward-hook
+
+Invoked on the forwarded letter by "f (mh-forward)".
+
+*** mh-invisible-header-fields-default
+
+List of hidden header fields. The header fields listed in this option
+are hidden, although you can check off any field that you would like
+to see. Header fields that you would like to hide that aren't listed
+can be added to the `mh-invisible-header-fields' option (closes SF
+#752045).
+
+The option `mh-visible-header-fields' has been deleted.
+
+*** mh-junk-background
+
+If on, spam programs are run in background. This used to be the
+default behavior but this could overwhelm a system if many messages
+were black- or whitelisted at once. The spam programs are now run in
+the foreground, but this option can be used to put them back in the
+background.
+
+*** mh-signature-separator-flag
+
+Non-nil means a signature separator should be inserted. It is not
+recommended that you change this option since various mail user
+agents, including MH-E, use the separator to present the signature
+differently, and to suppress the signature when replying or yanking a
+letter into a draft.
+
+*** mh-variant
+
+Specifies the variant used by MH-E. The default setting of this option
+is `Auto-detect' which means that MH-E will automatically choose the
+first of nmh, MH, or GNU mailutils that it finds in the directories
+listed in `mh-path', `mh-sys-path', and `exec-path'. If, for example,
+you have both nmh and mailutils installed and `mh-variant-in-use' was
+initialized to nmh but you want to use mailutils, then you can set
+this option to `mailutils'.
+
+When this variable is changed, MH-E resets `mh-progs', `mh-lib',
+`mh-lib-progs', `mh-flists-present-flag', and `mh-variant-in-use'
+accordingly.
+
+If you've set these variables in your .emacs, it is strongly suggested
+that you comment them out. The MH detection code has been completely
+rewritten and it is very likely that you no longer to set them and
+their setting may confuse other MH-E settings.
+
+** Variables Deleted in MH-E
+
+Variables that have been removed from MH-E that have not been
+discussed elsewhere are listed here.
+
+*** mh-alias-system-aliases
+
+System definitions should not be a user option.
+
+*** mh-junk-mail-folder
+
+Since this variable can accept values other than folder names, it was
+renamed to `mh-junk-disposition' to more accurately reflect the content.
+
+** Bug Fixes in MH-E 7.4.80
+
+Many bugs were fixed in this version that aren't listed below.
+
+*** mh-extract-rejected-mail Can't Do MIME (and Other Formats)
+
+Now handles qmail and exim bounces (addresses SF #404965).
+
+*** mh-rmail Hangs in XEmacs
+
+We've determined that MH-E is incompatible with some versions of
+XEmacs (21.5.9-21.5.16). More recent versions work fine. If you think
+our list is too broad, please let us know which version of XEmacs you
+are using (closes SF #644321).
+
+*** Inconsistent Prompts
+
+Prompt formats are now consistent throughout the application (closes
+SF #730470).
+
+*** Empty Shell Comments Confuse mh-mhn-directive-present-p
+
+If you had a string that matched the regexp "^# $" in your draft, it
+would cause an error. This has been fixed (closes SF #762458).
+
+*** Quote Hashes When mhbuild Directives Used
+
+A related bug, if you had empty shell comments but inserted your own
+directives, you'd get another error from mhbuild. This has been fixed
+by quoting the hash ("^# $") like this "##" before submitting to
+mhbuild (closes SF #762464).
+
+*** Inconsistent Usage in Scan Formatting Variables
+
+The variables:
+
+    mh-note-cur
+    mh-note-deleted
+    mh-note-dist
+    mh-note-forw
+    mh-note-refiled
+    mh-note-repl
+    mh-note-seq
+
+used to contain strings. Although only the first character was read,
+the entire string would be inserted which may have caused problems.
+These variables have been converted to character constants so that
+only a single character can be inserted into the scan line (closes SF
+#770772).
+
+*** Bad Handling of Aliases That Conflict With Local User Names
+
+If a user name existed both locally and in the aliases file, the local
+user would be flashed, but the alias would be used when sending. This
+has been fixed so that the user name that is flashed is the same as
+the name that is sent (closes SF #772595).
+
+*** Args out of range
+
+In rare and non-reproducible circumstances, compilation sometimes
+threw an "Args out of range" error. Nonetheless, this has been fixed
+(closes SF #806577).
+
+*** mh-forward hard-codes '-mime' Switch on nmh
+
+Added new option `mh-compose-forward-as-mime-flag' that controls whether
+messages are forwarded as MIME attachments (closes SF #827203).
+
+*** Not Re-prompted to Sign After Pass Phrase Typo
+
+If there were errors when sending a signed message (like getting the
+pass phrase wrong), the MML markup remained in the draft buffer. The
+draft buffer is now restored if there is an error (closes SF #839303).
+
+*** Font-lock Gets Confused in MH-Letter Buffer
+
+If a user manually moved the cursor to the end of the header field
+separator line (by mouse click or keyboard navigation) and hit Enter
+to start typing their message, any line in the body with a colon would
+be fontified with a gray background. This has been fixed (closes SF
+#855479).
+
+*** mh-refile-msg Fails to Suggest Folder for Empty Message
+
+If you received a message with an empty body from someone who is
+listed in your aliases file, "o (mh-refile-msg)" failed to suggest the
+correct folder. This has been fixed (closes SF #917096).
+
+*** Error Visiting Folder With no Unseen Messages
+
+If you visited a folder without unseen messages and the option "flist:
+-noshowzero" is present in your ~/.mh_profile, you'd get an error. This
+has been fixed (closes SF #933954).
+
+
+
 * Changes in MH-E 7.4.4
 
 Version 7.4.4 addresses programmatic issues from the FSF and prepares
@@ -18,7 +401,7 @@ code moved here from desktop.el.
 
 * Changes in MH-E 7.4.3
 
-Version 7.4.3 fixes the problem where mh-identity-list was not getting
+Version 7.4.3 fixes the problem where `mh-identity-list' was not getting
 set from .emacs.
 
 * Changes in MH-E 7.4.2
