@@ -115,7 +115,9 @@ should now succeed.
 * JPEG images aren't displayed.
 
 This has been reported when Emacs is built with jpeg-6a library.
-Upgrading to jpeg-6b solves the problem.
+Upgrading to jpeg-6b solves the problem.  Configure checks for the
+correct version, but this problem could occur if a binary built
+against a shared libjpeg is run on a system with an older version.
 
 * Building `ctags' for MS-Windows with the MinGW port of GCC fails.
 
@@ -489,6 +491,9 @@ src/s/hpux10.h.
 
 * Crashes when displaying GIF images in Emacs built with version
 libungif-4.1.0 are resolved by using version libungif-4.1.0b1.
+Configure checks for the correct version, but this problem could occur
+if a binary built against a shared libungif is run on a system with an
+older version.
 
 * Font Lock displays portions of the bufefr in incorrect faces.
 
@@ -585,9 +590,8 @@ this problem by putting this in your `.emacs' file:
  (setq ange-ftp-ftp-program-args '("-i" "-n" "-g" "-v" "--prompt" "")
 
 
-* Some versions of the W3 package released before Emacs 21.1 don't run
-properly with Emacs 21.  These problems are fixed in W3 version
-4.0pre.47.
+* Versions of the W3 package released before Emacs 21.1 don't run
+under Emacs 21.  This fixed in W3 version 4.0pre.47.
 
 * On AIX, if linking fails because libXbsd isn't found, check if you
 are compiling with the system's `cc' and CFLAGS containing `-O5'.  If
