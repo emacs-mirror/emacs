@@ -398,6 +398,7 @@ Returns the compilation buffer created."
 		    (cons proc compilation-in-progress)))
 	  ;; No asynchronous processes available
 	  (message (format "Executing `%s'..." command))
+	  (sit-for 0) ;; Force redisplay
 	  (let ((status (call-process shell-file-name nil outbuf nil "-c"
 				      command))))
 	  (message (format "Executing `%s'...done" command)))))
