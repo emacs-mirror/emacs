@@ -25,6 +25,7 @@ that Emacs presents to the user.
 * Faces::		A face defines a graphics style for text characters:
                           font, colors, etc.
 * Fringes::             Controlling window fringes.
+* Scroll Bars::         Controlling vertical scroll bars.
 * Display Property::    Enabling special display features.
 * Images::              Displaying images in Emacs buffers.
 * Blinking::            How Emacs shows the matching open parenthesis.
@@ -2477,6 +2478,15 @@ Then, the font specifications for all but Chinese GB2312 characters have
 Chinese GB2312 characters has a wild card @samp{*} in the @var{family}
 field.
 
+@defun char-displayable-p char
+This function returns @code{t} if Emacs ought to be able to display
+@var{char}.  More precisely, if the selected frame's fontset has a
+font to display the character set that @var{char} belongs to.
+
+Fontsets can specify a font on a per-character basis; when the fontset
+does that, this function's value may not be accurate.
+@end defun
+
 @node Fringes
 @section Fringes
 @cindex Fringes
@@ -2524,6 +2534,54 @@ This function returns information about the fringes of a window
 @var{window}.  The value has the form @code{(@var{left-width}
 @var{right-width} @var{frames-outside-margins})}.
 @end defun
+
+@node Scroll Bars
+@section Scroll Bars
+
+Normally the frame parameter @code{vertical-scroll-bars} controls
+whether the windows in the frame have vertical scroll bars.  A
+non-@code{nil} parameter value means they do.  The frame parameter
+@code{scroll-bar-width} specifies how wide they are (@code{nil}
+meaning the default).  @xref{Window Frame Parameters}.
+
+You can also control this for individual windows.  Call the function
+@code{set-window-scroll-bars} to specify what to do for a specific window:
+
+@defun set-window-scroll-bars window width &optional vertical-type horizontal-type
+Set width and type of scroll bars of window @var{window}.  (If
+@var{window} is @code{nil}, this applies to the selected window.)
+@var{width} specifies the scroll bar width in pixels (@code{nil} means
+use whatever is specified for width for the frame).
+@var{vertical-type} specifies whether to have a vertical scroll bar
+and, if so, where.  The possible values are @code{left}, @code{right}
+and @code{nil}, just like the values of the
+@code{vertical-scroll-bars} frame parameter.
+
+The argument @var{horizontal-type} is meant to specify whether and
+where to have horizontal scroll bars, but since they are not
+implemented, it has no effect.
+@end defun
+
+@defun window-scroll-bars &optional window
+Report the width and type of scroll bars specified for @var{window}.
+If @var{window} is omitted or @code{nil}, it defaults to the currently
+selected window.  The value is a list of the form @code{(@var{width}
+@var{cols} @var{vertical-type} @var{horizontal-type})}.  The value
+@var{width} is the value that was specified for the width (which may
+be @code{nil}); @var{cols} is the number of columns that the scroll
+bar actually occupies.
+
+@var{horizontal-type} is not actually meaningful.
+@end defun
+
+If you don't specify these values for a window with
+@code{set-window-scroll-bars}, the buffer-local variables
+@code{scroll-bar-mode} and @code{scroll-bar-width} in the buffer being
+displayed control the window's vertical scroll bars.  The function
+@code{set-window-buffer} examines these variables.  If you change them
+in a buffer that is already visible in a window, you can make the
+window take note of the new values by calling @code{set-window-buffer}
+specifying the same buffer that is already displayed.
 
 @node Display Property
 @section The @code{display} Property
