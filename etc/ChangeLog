@@ -1,3 +1,8 @@
+2001-03-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* splash.xpm, splash.pbm: Replaced with new images from
+	Luis Fernandes <elf@ee.ryerson.ca>.
+
 2001-03-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* cs-refcard.ps, cs-refcard.tex: New files.
