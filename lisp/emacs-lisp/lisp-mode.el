@@ -373,7 +373,7 @@ With argument, print output into current buffer."
 		     (set-syntax-table stab))))))
       (let ((print-length eval-expression-print-length)
 	    (print-level eval-expression-print-level))
-	(print value)))))
+	(prin1 value)))))
 
 ;; Change defvar into defconst within FORM,
 ;; and likewise for other constructs as necessary.
