@@ -2473,7 +2473,7 @@ If used within a line, follow `@bullet' with braces."
 (defun texinfo-format-direntry ()
   (texinfo-push-stack 'direntry nil)
   (texinfo-discard-line)
-  (insert "START-INFO-DIR-ENTRY\n\n"))
+  (insert "START-INFO-DIR-ENTRY\n"))
 
 (put 'direntry 'texinfo-end 'texinfo-end-direntry)
 (defun texinfo-end-direntry ()
