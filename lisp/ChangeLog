@@ -1,3 +1,12 @@
+2002-02-23  Kim F. Storm  <storm@cua.dk>
+
+	* help.el (where-is): Use remap-command.
+
+	* help-fns.el (describe-function-1): Use remap-command.
+
+	* subr.el (global-set-key, local-set-key): Undo 2002-02-06
+	change (no longer accept a symbol for the KEY argument).
+
 2002-02-23  Colin Walters  <walters@debian.org>
 
 	* calc/calcalg3.el (calc-invent-variables): Convert integer to
