@@ -71,8 +71,9 @@ fire each time Emacs is idle for that many seconds."
   timer)
 
 (defun timer-next-integral-multiple-of-time (time secs)
-  "Yield the next value after TIME that is an integral number of SECS
-since the epoch.  SECS may be a fraction."
+  "Yield the next value after TIME that is an integral multiple of SECS.
+More precisely, the next value, after TIME, that is an integral multiple
+of SECS seconds since the epoch.  SECS may be a fraction."
   (let ((time-base (ash 1 16)))
     (if (fboundp 'atan)
 	;; Use floating point, taking care to not lose precision.
