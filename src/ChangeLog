@@ -1,3 +1,15 @@
+2005-01-10  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (merge_faces): Rename from merge_into_realized_face.
+
+	* xfaces.c (merge_faces): Rename from merge_into_realized_face.
+	Callers changed.
+	Add support to merge with lisp face id too (if face_name is t).
+
+	* xdisp.c (get_next_display_element, next_element_from_display_vector):
+	Don't lookup lface_id from display table glyphs here; instead use
+	merge_faces to merge the lisp face id into current face.
+
 2005-01-09  Kim F. Storm  <storm@cua.dk>
 
 	* dispextern.h (struct it): New member dpvec_face_id.
