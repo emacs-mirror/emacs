@@ -1,3 +1,13 @@
+2000-07-31  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* msdos.c (run_msdos_command): Save and restore the master
+	environment, for the case that child_setup signals an error.
+	When mirroring slashes in DOS shell commands, don't fail when
+	argv[2] has embedded blanks.
+
+	* callproc.c (child_setup) [MSDOS]: malloc pwd_var instead of
+	using alloca; free it after run_msdos_command returns.
+
 2000-07-27  Dave Love  <fx@gnu.org>
 
 	* s/irix6-5.h (IRIX_FORCE_32_BITS, LD_SWITCH_SYSTEM): Don't
