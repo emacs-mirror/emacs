@@ -2603,7 +2603,7 @@ the variable `Info-file-list-for-emacs'."
 	      (if (string-equal tag "Node")
 		  (put-text-property nbeg nend 'face 'info-header-node)
 		(put-text-property nbeg nend 'face 'info-header-xref)
-		(put-text-property nbeg nend 'mouse-face 'highlight)
+		(put-text-property tbeg nend 'mouse-face 'highlight)
 		(put-text-property tbeg nend
 				   'help-echo
 				   (concat "Go to node "
@@ -2616,8 +2616,8 @@ the variable `Info-file-list-for-emacs'."
 					       ("Up" . Info-up))))))
 		    (when fun
 		      (let ((keymap (make-sparse-keymap)))
-			(define-key keymap [header-line down-mouse-1] fun)
-			(define-key keymap [header-line down-mouse-2] fun)
+			(define-key keymap [header-line mouse-1] fun)
+			(define-key keymap [header-line mouse-2] fun)
 			(put-text-property tbeg nend 'local-map keymap)))))
 		(if (not Info-use-header-line)
 		    ;; In case they switched Info-use-header-line off
