@@ -514,45 +514,73 @@ and use this command with a prefix argument (the value does not matter)."
       (dired-log (concat "Failed to compress" from-file))
       from-file)))
 
+(defvar dired-compress-file-suffixes
+  '(("\\.gz\\'" "" "gunzip")
+    ("\\.tgz\\'" ".tar" "gunzip")
+    ("\\.Z\\'" "" "uncompress")
+    ;; For .z, try gunzip.  It might be an old gzip file,
+    ;; or it might be from compact? pack? (which?) but gunzip handles both.
+    ("\\.z\\'" "" "gunzip")
+    ;; This item controls naming for compression.
+    ("\\.tar\\'" ".tgz" nil))
+  "Control changes in file name suffixes for compression and uncompression.
+Each element specifies one transformation rule, and has the form:
+  (REGEXP NEW-SUFFIX PROGRAM)
+The rule applies when the old file name matches REGEXP.
+The new file name is computed by deleting the part that matches REGEXP
+ (as well as anything after that), then adding NEW-SUFFIX in its place.
+If PROGRAM is non-nil, the rule is an uncompression rule,
+and uncompression is done by running PROGRAM.
+Otherwise, the rule is a compression rule, and compression is done with gzip.")
+
 ;;;###autoload
 (defun dired-compress-file (file)
   ;; Compress or uncompress FILE.
   ;; Return the name of the compressed or uncompressed file.
   ;; Return nil if no change in files.
-  (let ((handler (find-file-name-handler file 'dired-compress-file)))
+  (let ((handler (find-file-name-handler file 'dired-compress-file))
+	suffix newname
+	(suffixes dired-compress-file-suffixes))
+    ;; See if any suffix rule matches this file name.
+    (while suffixes
+      (let (case-fold-search)
+	(if (string-match (car (car suffixes)) file)
+	    (setq suffix (car suffixes) suffixes nil))
+	(setq suffixes (cdr suffixes))))
+    ;; If so, compute desired new name.
+    (if suffix	
+	(setq newname (concat (substring file 0 (match-beginning 0))
+			      (nth 1 suffix))))
     (cond (handler
 	   (funcall handler 'dired-compress-file file))
 	  ((file-symlink-p file)
 	   nil)
-	  ((let (case-fold-search)
-	     (string-match "\\.Z$" file))
+	  ((and suffix (nth 2 suffix))
+	   ;; We found an uncompression rule.
 	   (if (not (dired-check-process (concat "Uncompressing " file)
-					 "uncompress" file))
-	       (substring file 0 -2)))
-	  ((let (case-fold-search)
-	     (string-match "\\.gz$" file))
-	   (if (not (dired-check-process (concat "Uncompressing " file)
-					 "gunzip" file))
-	       (substring file 0 -3)))
-	  ;; For .z, try gunzip.  It might be an old gzip file,
-	  ;; or it might be from compact? pack? (which?) but gunzip handles
-	  ;; both.
-	  ((let (case-fold-search)
-	     (string-match "\\.z$" file))
-	   (if (not (dired-check-process (concat "Uncompressing " file)
-					 "gunzip" file))
-	       (substring file 0 -2)))
+					 (nth 2 suffix) file))
+	       newname))
 	  (t
+	   ;;; We don't recognize the file as compressed, so compress it.
 	   ;;; Try gzip; if we don't have that, use compress.
 	   (condition-case nil
 	       (if (not (dired-check-process (concat "Compressing " file)
 					     "gzip" "-f" file))
-		   (cond ((file-exists-p (concat file ".gz"))
-			  (concat file ".gz"))
-			 (t (concat file ".z"))))
+		   (let ((out-name
+			  (if (file-exists-p (concat file ".gz"))
+			      (concat file ".gz")
+			    (concat file ".z"))))
+		     ;; Rename the compressed file to NEWNAME
+		     ;; if it hasn't got that name already.
+		     (if (and newname (not (equal newname out-name)))
+			 (progn
+			   (rename-file out-name newname t)
+			   newname)
+		       out-name)))
 	     (file-error
 	      (if (not (dired-check-process (concat "Compressing " file)
 					    "compress" "-f" file))
+		  ;; Don't use NEWNAME with `compress'.
 		  (concat file ".Z"))))))))
 
 (defun dired-mark-confirm (op-symbol arg)
