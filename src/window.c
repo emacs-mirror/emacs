@@ -620,7 +620,8 @@ DEFUN ("set-window-point", Fset_window_point, Sset_window_point, 2, 2, 0,
   register struct window *w = decode_window (window);
 
   CHECK_NUMBER_COERCE_MARKER (pos, 1);
-  if (w == XWINDOW (selected_window))
+  if (w == XWINDOW (selected_window)
+      && XBUFFER (w->buffer) == current_buffer)
     Fgoto_char (pos);
   else
     set_marker_restricted (w->pointm, pos, w->buffer);
