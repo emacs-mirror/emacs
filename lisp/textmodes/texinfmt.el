@@ -891,11 +891,6 @@ lower types.")
           (file-name-nondirectory (expand-file-name arg)))
     (insert "Info file: "
             texinfo-format-filename ",    -*-Text-*-\n"
-            ;; Date string removed so that regression testing is easier.
-            ;; "produced on "
-            ;; (substring (current-time-string) 8 10) " "
-            ;; (substring (current-time-string) 4 7) " "
-            ;; (substring (current-time-string) -4)  " "
             "produced by `texinfo-format-buffer'\n"
             "from file"
             (if (buffer-file-name input-buffer)
@@ -1568,10 +1563,7 @@ Used by @refill indenting command to avoid indenting within lists, etc.")
 ; The `@today{}' command requires a pair of braces, like `@dots{}'.
 (defun texinfo-format-today ()
   (texinfo-parse-arg-discard)
-  (insert (format "%s %s %s"
-          (substring (current-time-string) 8 10)
-          (substring (current-time-string) 4 7)
-          (substring (current-time-string) -4))))
+  (insert (format-time-string "%e %b %Y")))
 
 
 ;;; @ignore
