@@ -1734,7 +1734,7 @@ With arg N, put point N/10 of the way from the true end."
     (unwind-protect
 	(progn
 	  (select-window window)
-	  (beginning-of-buffer arg)
+	  (end-of-buffer arg)
 	  (recenter '(t)))
       (select-window orig-window))))
 
