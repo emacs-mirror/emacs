@@ -332,16 +332,21 @@ In makefiles, targets are tags.
 
 @item
 In Objective C code, tags include Objective C definitions for classes,
-class categories, methods, and protocols.
+class categories, methods, and protocols.  Tags for variables and
+functions in classes are named @samp{@var{class}::@var{variable}} and
+@samp{@var{class}::@var{function}}.
 
 @item
 In Pascal code, the tags are the functions and procedures defined in
 the file.
 
 @item
-In Perl code, the tags are the procedures defined by the @code{sub},
-@code{my} and @code{local} keywords.  Use @samp{--globals} if you want
-to tag global variables.
+In Perl code, the tags are the packages, subroutines and variables
+defined by the @code{package}, @code{sub}, @code{my} and @code{local}
+keywords.  Use @samp{--globals} if you want to tag global variables.
+Tags for subroutines are named @samp{@var{package}::@var{sub}}.  The
+name for subroutines defined in the default package is
+@samp{main::@var{sub}}.
 
 @item
 In PHP code, tags are functions, classes and defines.  When using the
