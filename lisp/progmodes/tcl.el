@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.34 $
+;; Version: $Revision: 1.35 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1995/06/27 20:06:05 $|$Revision: 1.34 $|~/modes/tcl.el.Z|
+;; $Date: 1995/06/27 20:12:00 $|$Revision: 1.35 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.35  1995/06/27  20:12:00  tromey
+;; (tcl-type-alist): More itcl changes.
+;;
 ;; Revision 1.34  1995/06/27  20:06:05  tromey
 ;; More changes for itcl.
 ;; Bug fixes for Emacs 19.29.
@@ -313,7 +316,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.34 $")
+(defconst tcl-version "$Revision: 1.35 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -1351,17 +1354,18 @@ Returns nil if line starts inside a string, t if in a comment."
 (defun tcl-imenu-create-index-function ()
   "Generate alist of indices for imenu."
   (let ((re (concat tcl-proc-regexp "\\([^ \t\n{]+\\)"))
-	alist)
-    (imenu-progress-message 0)
+	alist prev-pos)
     (goto-char (point-min))
-    (while (re-search-forward re nil t)
-      (imenu-progress-message nil)
-      ;; Position on start of proc name, not beginning of line.
-      (setq alist (cons
-		   (cons (buffer-substring (match-beginning 2) (match-end 2))
-			 (match-beginning 2))
-		   alist)))
-    (imenu-progress-message 100)
+    (imenu-progress-message prev-pos 0)
+    (save-match-data
+      (while (re-search-forward re nil t)
+	(imenu-progress-message prev-pos)
+	;; Position on start of proc name, not beginning of line.
+	(setq alist (cons
+		     (cons (buffer-substring (match-beginning 2) (match-end 2))
+			   (match-beginning 2))
+		     alist))))
+    (imenu-progress-message prev-pos 100)
     (nreverse alist)))
 
 ;; FIXME Definition of function is very ad-hoc.  Should use
