@@ -116,7 +116,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 ;;; variables and groups if it's already set. (We don't know when
 ;;; cus-load.el is going to be loaded and at that time some of the
 ;;; files might be loaded and some others might not).
-(defmacro custom-put-if-not (symbol propname value)
+\(defmacro custom-put-if-not (symbol propname value)
   `(unless (get ,symbol ,propname)
      (put ,symbol ,propname ,value)))
 
