@@ -1,3 +1,8 @@
+2005-01-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* type-break.el (type-break-mode): Add a test for
+	type-break-file-name being non-nil.
+
 2005-01-22  Toby Allsopp  <Toby.Allsopp@navman.com>  (tiny change)
 
 	* net/eudc.el (top level): Call (message "") via progn, so that
