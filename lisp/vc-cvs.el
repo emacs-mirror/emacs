@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.41 2002/05/12 17:29:29 eliz Exp $
+;; $Id: vc-cvs.el,v 1.42 2002/07/03 14:26:51 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -536,37 +536,6 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
    nil
    (if (and (vc-cvs-stay-local-p file) (fboundp 'start-process)) 'async 0)
    file "log"))
-
-(defun vc-cvs-show-log-entry (version)
-  (when (re-search-forward
-	 ;; also match some context, for safety
-	 (concat "----\nrevision " version
-		 "\\(\tlocked by:.*\n\\|\n\\)date: ") nil t)
-    ;; set the display window so that
-    ;; the whole log entry is displayed
-    (let (start end lines)
-      (beginning-of-line) (forward-line -1) (setq start (point))
-      (if (not (re-search-forward "^----*\nrevision" nil t))
-	  (setq end (point-max))
-	(beginning-of-line) (forward-line -1) (setq end (point)))
-      (setq lines (count-lines start end))
-      (cond
-       ;; if the global information and this log entry fit
-       ;; into the window, display from the beginning
-       ((< (count-lines (point-min) end) (window-height))
-	(goto-char (point-min))
-	(recenter 0)
-	(goto-char start))
-       ;; if the whole entry fits into the window,
-       ;; display it centered
-       ((< (1+ lines) (window-height))
-	(goto-char start)
-	(recenter (1- (- (/ (window-height) 2) (/ lines 2)))))
-       ;; otherwise (the entry is too large for the window),
-       ;; display from the start
-       (t
-	(goto-char start)
-	(recenter 0))))))
 
 (defun vc-cvs-diff (file &optional oldvers newvers)
   "Get a difference report using CVS between two versions of FILE."
