@@ -32,8 +32,6 @@
   same value of this property.
 ** Discretionary hyphens that disappear at end of line.
 
-* Implement use of mmap to allocate buffers, when mmap exists.
-
 * Change the Windows NT menu code
   so that it handles the deep_p argument and avoids
   regenerating the whole menu bar menu tree except

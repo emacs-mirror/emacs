@@ -1,3 +1,15 @@
+2000-09-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (smaller_face): Compare font heights with `<' and `>'
+	instead of `!='.
+
+	* lread.c (syms_of_lread): Change value of regexp
+	Vbytecomp_version_regexp to not match some XEmacs-compiled files.
+
+	* xmenu.c (xdialog_show): When looking up the selection in
+	menu_items, take `quote' boundaries into account; this corresponds
+	to a nil ITEM in x-popup-dialog.
+
 2000-09-07  Kenichi Handa  <handa@etl.go.jp>
 
 	* charset.h (MIN_CHARSET_OFFICIAL_DIMENSION1): Define it as 0x80,
@@ -8,7 +20,7 @@
 	encoding, not decoding.  Fix the handling of latin-jisx0201.
 	Check for the charset katakana-jisx0201 too.
 	(ONE_MORE_CHAR): Call translate_char with CHARSET arg -1.
-	(detect_coding_sjis): Check the byte sequence more regidly.
+	(detect_coding_sjis): Check the byte sequence more rigidly.
 
 2000-09-07  Gerd Moellmann  <gerd@gnu.org>
 

@@ -8,6 +8,8 @@
 
 2000-09-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* faces.el (color-values): Doc fix.
+	
 	* faces.el (frame-set-background-mode): Use frame-parameter
 	instead of frame-parameters.
 
