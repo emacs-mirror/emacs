@@ -317,11 +317,10 @@ static struct sensemode {
    of the tty on FD in *P.  Return zero if all's well, or -1 if we ran
    into an error we couldn't deal with.
 
-   EMACS_SET_TTY (int FD, struct emacs_tty *P, int waitp)
+   EMACS_SET_TTY (int FD, struct emacs_tty *P, int flushp)
    sets the parameters of the tty on FD according to the contents of
-   *P.  If waitp is non-zero, we wait for all queued output to be
-   written before making the change; otherwise, we forget any queued
-   input and make the change immediately.
+   *P.  If flushp is non-zero, we discard queued input to be
+   written before making the change.
    Return 0 if all went well, and -1 if anything failed.
 
    EMACS_TTY_TABS_OK (struct emacs_tty *P) is false iff the kernel
