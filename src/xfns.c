@@ -1699,6 +1699,8 @@ x_window (f)
      struct frame *f;
 {
   XClassHint class_hints;
+  XSetWindowAttributes attributes;
+  unsigned long attribute_mask;
 
 #ifdef USE_X_TOOLKIT
   Widget shell_widget;
@@ -1772,12 +1774,15 @@ x_window (f)
 		   Xatom_wm_protocols, XA_ATOM, 32, PropModeAppend,
 		   (unsigned char*) NULL, 0);
 
+ /* Make all the standard events reach the Emacs frame.  */
+  attributes.event_mask = STANDARD_EVENT_SET;
+  attribute_mask = CWEventMask;
+  XChangeWindowAttributes (XtDisplay (shell_widget), XtWindow (shell_widget),
+			   attribute_mask, &attributes);
+
   XtMapWidget (screen_widget);
 
 #else /* not USE_X_TOOLKIT */
-
-  XSetWindowAttributes attributes;
-  unsigned long attribute_mask;
 
 
   attributes.background_pixel = f->display.x->background_pixel;
