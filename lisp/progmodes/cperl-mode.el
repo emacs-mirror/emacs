@@ -1558,7 +1558,7 @@ or as help on variables `cperl-tips', `cperl-problems',
 	 (handle (1- (nth 1 last))))
     (setcdr precdr (list
 		    (list
-		     '(eq major-mode 'perl-mode)
+		     '(memq major-mode '(cperl-mode perl-mode))
 		     handle
 		     "Perl Files (%d)")
 		    last))))
@@ -4299,9 +4299,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
     (add-hook 'font-lock-mode-hook
 	      (function
 	       (lambda ()
-		 (if (or
-		      (eq major-mode 'perl-mode)
-		      (eq major-mode 'cperl-mode))
+		 (if (memq major-mode '(perl-mode cperl-mode))
 		     (progn
 		       (or cperl-faces-init (cperl-init-faces)))))))
     (if (fboundp 'eval-after-load)
@@ -6855,7 +6853,7 @@ We suppose that the regexp is scanned already."
 	(setq cperl-help-shown nil))
 
       (defun cperl-get-help-defer ()
-	(if (not (eq major-mode 'perl-mode)) nil
+	(when (memq major-mode '(perl-mode cperl-mode))
 	  (let ((cperl-message-on-help-error nil) (cperl-help-from-timer t))
 	    (cperl-get-help)
 	    (setq cperl-help-shown t))))
