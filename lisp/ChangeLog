@@ -1,3 +1,7 @@
+2002-04-06  Mike Williams  <mdub@bigfoot.com>
+
+	* textmodes/xml-lite.el: Remove.
+
 2002-04-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* simple.el (play-sound): New function (uses play-sound-internal).
