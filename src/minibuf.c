@@ -1050,6 +1050,7 @@ temp_echo_area_glyphs (m)
      char *m;
 {
   int osize = ZV;
+  int opoint = PT;
   Lisp_Object oinhibit;
   oinhibit = Vinhibit_quit;
 
@@ -1058,10 +1059,11 @@ temp_echo_area_glyphs (m)
 
   SET_PT (osize);
   insert_string (m);
-  SET_PT (osize);
+  SET_PT (opoint);
   Vinhibit_quit = Qt;
   Fsit_for (make_number (2), Qnil, Qnil);
   del_range (PT, ZV);
+  SET_PT (opoint);
   if (!NILP (Vquit_flag))
     {
       Vquit_flag = Qnil;
