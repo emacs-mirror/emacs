@@ -60,12 +60,14 @@ The file's owner and group are unchanged.
 
 The choice of renaming or copying is controlled by the variables
 `backup-by-copying', `backup-by-copying-when-linked' and
-`backup-by-copying-when-mismatch'.")
+`backup-by-copying-when-mismatch'.  See also `backup-inhibited'.")
 
 ;; Do this so that local variables based on the file name
 ;; are not overridden by the major mode.
 (defvar backup-inhibited nil
-  "Non-nil means don't make a backup file for this buffer.")
+  "Non-nil means don't make a backup, regardless of the other parameters.
+This variable is intended for use by making it local to a buffer.
+But it is local only if you make it local.")
 (put 'backup-inhibited 'permanent-local t)
 
 (defconst backup-by-copying nil
