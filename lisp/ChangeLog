@@ -12,6 +12,9 @@
 
 	* allout.el (outline-goto-prefix): Likewise.
 
+	* emulation/tpu-edt.el (tpu-delete-to-eol): Likewise.
+	(tpu-delete-to-bol): Likewise.
+
 	* subr.el (chars-in-region): Add obsolescence declaration for
 	`chars-in-region'.
 
