@@ -7331,6 +7331,8 @@ xpm_load (f, img)
 #ifdef ALLOC_XPM_COLORS
       img->colors = colors_in_color_table (&img->ncolors);
 #else /* not ALLOC_XPM_COLORS */
+      int i;
+
       img->ncolors = attrs.nalloc_pixels;
       img->colors = (unsigned long *) xmalloc (img->ncolors
 					       * sizeof *img->colors);
