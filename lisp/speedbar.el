@@ -1215,9 +1215,9 @@ Files are completely ignored if they match `speedbar-file-unshown-regexp'
 which is generated from `completion-ignored-extensions'.
 
 Files with a `*' character after their name are files checked out of a
-version control system.  (currently only RCS is supported.)  New
+version control system.  (Currently only RCS is supported.)  New
 version control systems can be added by examining the documentation
-for `speedbar-this-file-in-vc' and `speedbar-vc-check-dir-p'
+for `speedbar-this-file-in-vc' and `speedbar-vc-check-dir-p'.
 
 Files with a `#' or `!' character after them are source files that
 have an object file associated with them.  The `!' indicates that the
