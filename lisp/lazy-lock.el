@@ -465,6 +465,10 @@ automatically in your `~/.emacs' by:
 
  (setq font-lock-support-mode 'lazy-lock-mode)
 
+For a newer font-lock support mode with similar functionality, see
+`jit-lock-mode'.  Eventually, Lazy Lock mode will be deprecated in
+JIT Lock's favor.
+
 When Lazy Lock mode is enabled, fontification can be lazy in a number of ways:
 
 - Demand-driven buffer fontification if `lazy-lock-minimum-size' is non-nil.
