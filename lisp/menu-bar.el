@@ -316,6 +316,24 @@ Do the same for the keys of the same name."
   (define-key global-map [copy] 'clipboard-kill-ring-save)
   (define-key global-map [paste] 'clipboard-yank))
 
+
+;;; Menu support
+
+(defvar menu-bar-custom-menu (make-sparse-keymap "Customize"))
+
+(define-key menu-bar-custom-menu [customize-apropos]
+  '("Apropos..." . customize-apropos))
+(define-key menu-bar-custom-menu [customize-variable]
+  '("Variable..." . customize-variable))
+(define-key menu-bar-custom-menu [customize-face]
+  '("Face..." . customize-face))
+(define-key menu-bar-custom-menu [customize]
+  '("Group..." . customize))
+(define-key menu-bar-custom-menu [custom-menu-update]
+  '("Update menu..." . custom-menu-update))
+
+(define-key menu-bar-help-menu [customize-menu]
+  (cons "Customize" menu-bar-custom-menu))
 (define-key menu-bar-help-menu [emacs-version]
   '("Show Version" . emacs-version))
 (define-key menu-bar-help-menu [report-emacs-bug]
