@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
-;; Version: 1.9905
+;; Version: 1.9908
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -756,6 +756,9 @@ are shown; the contents of those subgroups are initially hidden."
 				(custom-unlispify-tag-name symbol))))
 
 ;;;###autoload
+(defalias 'customize-variable-other-window 'customize-option-other-window)
+
+;;;###autoload
 (defun customize-option-other-window (symbol)
   "Customize SYMBOL, which must be a user option variable.
 Show the buffer in another window, but don't select it."
@@ -923,23 +926,26 @@ Make the modifications default for future sessions."
   (if custom-reset-button-menu
       (widget-create 'push-button
 		     :tag "Reset"
-		     :help-echo "Undo all modifications."
+		     :help-echo "Show a menu with reset operations."
 		     :mouse-down-action (lambda (&rest junk) t)
 		     :action (lambda (widget &optional event)
 			       (custom-reset event)))
     (widget-create 'push-button
 		   :tag "Reset"
-		   :help-echo "Undo all modifications."
+		   :help-echo "\
+Reset all visible items in this buffer to their current settings."
 		   :action 'custom-reset-current)
     (widget-insert " ")
     (widget-create 'push-button
 		   :tag "Reset to Saved"
-		   :help-echo "Undo all modifications."
+		   :help-echo "\
+Reset all visible items in this buffer to their saved settings."
 		   :action 'custom-reset-saved)
     (widget-insert " ")
     (widget-create 'push-button
 		   :tag "Reset to Standard"
-		   :help-echo "Undo all modifications."
+		   :help-echo "\
+Reset all visible items in this buffer to their standard settings."
 		   :action 'custom-reset-standard))
   (widget-insert " ")
   (widget-create 'push-button
@@ -953,6 +959,7 @@ Make the modifications default for future sessions."
 	(if (= (length options) 1)
 	    (mapcar (lambda (entry)
 		      (widget-create (nth 1 entry)
+				     :documentation-shown t
 				     :custom-state 'unknown
 				     :tag (custom-unlispify-tag-name
 					   (nth 0 entry))
@@ -1069,7 +1076,7 @@ this %c has not been changed with customize." "\
 something in this group is not prepared for customization.")
 			       (standard " " nil "\
 this %c is unchanged from its standard setting." "\
-the visible members of this group are all at standard settings."))
+visible group members are all at standard settings."))
   "Alist of customize option states.
 Each entry is of the form (STATE MAGIC FACE ITEM-DESC [ GROUP-DESC ]), where 
 
@@ -2550,6 +2557,7 @@ The format is suitable for use with `easy-menu-define'."
 (unless custom-mode-map
   (setq custom-mode-map (make-sparse-keymap))
   (set-keymap-parent custom-mode-map widget-keymap)
+  (suppress-keymap custom-mode-map)
   (define-key custom-mode-map "q" 'bury-buffer))
 
 (easy-menu-define custom-mode-customize-menu 

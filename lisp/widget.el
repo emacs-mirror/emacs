@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, extensions, faces, hypermedia
-;; Version: 1.9905
+;; Version: 1.9908
 ;; X-URL: http://www.dina.kvl.dk/~abraham/custom/
 
 ;; This file is part of GNU Emacs.
@@ -44,7 +44,8 @@
 	     (set (car keywords) (car keywords)))
 	 (setq keywords (cdr keywords)))))))
 
-(define-widget-keywords :button-overlay :field-overlay
+(define-widget-keywords :complete-function :complete :button-overlay
+  :field-overlay  
   :documentation-shown :button-prefix  
   :button-suffix :mouse-down-action :glyph-up :glyph-down :glyph-inactive  
   :prompt-internal :prompt-history :prompt-match
@@ -62,8 +63,7 @@
   :indent :size :value-to-external :validate :error :directory
   :must-match :type-error :value-inline :inline :match-inline :greedy
   :button-face-get :button-face :value-face :keymap :entry-from
-  :entry-to :help-echo :documentation-property :hide-front-space
-  :hide-rear-space :tab-order) 
+  :entry-to :help-echo :documentation-property :tab-order) 
 
 ;; These autoloads should be deleted when the file is added to Emacs.
 (unless (fboundp 'load-gc)
