@@ -13,6 +13,28 @@ The solution is to make sure the preprocessor is run with the
 `-traditional' option.  (The `configure' script should do that
 automatically with Emacs 21 and later.)
 
+* Building the Windows port with Leim fails in the `leim' directory.
+
+The error message might be something like this:
+
+ Converting d:/emacs-21.1/leim/CXTERM-DIC/4Corner.tit to quail-package...
+ Invalid ENCODE: value in TIT dictionary
+ NMAKE : fatal error U1077: '"../src/obj-spd/i386/emacs.exe"' : return code
+       '0xffffffff'
+ Stop.
+
+This can happen if the Leim distribution is unpacked with a program
+which converts the `*.tit' files to DOS-style CR-LF text format.  The
+`*.tit' files in the leim/CXTERM-DIC directory require Unix-style line
+endings to compile properly, because Emacs reads them without any code
+or EOL conversions.
+
+The solution is to make sure the program used to unpack Leim does not
+change the files' line endings behind your back.  The GNU FTP site has
+in the `/gnu/emacs/windows' directory a program called `djtarnt.exe'
+which can be used to unpack `.tar.gz' and `.zip' archives without
+mangling them.
+
 * When using Xaw3d scroll bars without arrows, the very first mouse
 click in a scroll bar might be ignored by the scroll bar widget.  This
 is probably a bug in Xaw3d; when Xaw3d is compiled with arrows, the
