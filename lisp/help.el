@@ -667,11 +667,11 @@ Argument is a command definition, usually a symbol with a function definition."
   nil)
 
 (defun locate-library (library &optional nosuffix)
-  "Show the full path name of Emacs library LIBRARY.
+  "Show the precise file name of Emacs library LIBRARY.
 This command searches the directories in `load-path' like `M-x load-library'
 to find the file that `M-x load-library RET LIBRARY RET' would load.
 Optional second arg NOSUFFIX non-nil means don't add suffixes `.elc' or `.el'
-to the specified name LIBRARY (a la calling `load' instead of `load-library')."
+to the specified name LIBRARY."
   (interactive "sLocate library: ")
   (catch 'answer
     (mapcar
