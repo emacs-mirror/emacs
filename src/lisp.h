@@ -833,6 +833,10 @@ typedef unsigned char UCHAR;
 #define CHAR_CTL   (0x4000000)
 #define CHAR_META  (0x8000000)
 
+/* Actually, the current Emacs uses 19 bits for the character value
+   itself.  */
+#define CHARACTERBITS 19
+
 #ifdef USE_X_TOOLKIT
 #ifdef NO_UNION_TYPE
 /* Use this for turning a (void *) into a Lisp_Object, as when the
@@ -864,26 +868,38 @@ typedef unsigned char UCHAR;
 
 /* The glyph datatype, used to represent characters on the display.  */
 
-/* The low eight bits are the character code, and the bits above them
-   are the numeric face ID.  If FID is the face ID of a glyph on a
-   frame F, then F->display.x->faces[FID] contains the description of
-   that face.  This is an int instead of a short, so we can support a
-   good bunch of face ID's; given that we have no mechanism for
-   tossing unused frame face ID's yet, we'll probably run out of 255
-   pretty quickly.  */
+/* The low 19 bits (CHARACTERBITS) are the character code, and the
+   bits above them except for the topmost two bits are the numeric
+   face ID.  If FID is the face ID of a glyph on a frame F, then
+   F->display.x->faces[FID] contains the description of that face.
+   This is an int instead of a short, so we can support a good bunch
+   of face ID's (i.e. 2^(32 - 19 - 2) = 2048 ID's) ; given that we
+   have no mechanism for tossing unused frame face ID's yet, we'll
+   probably run out of 255 pretty quickly.  */
 #define GLYPH unsigned int
+
+/* Mask bit for a glyph of a character which should be written from
+   right to left.  */
+#define GLYPH_MASK_REV_DIR 0x80000000
+/* Mask bit for a padding glyph of a multi-column character.  */
+#define GLYPH_MASK_PADDING 0x40000000
+/* Mask bits for face.  */
+#define GLYPH_MASK_FACE    0x3FF80000
+/* Mask bits for character code.  */
+#define GLYPH_MASK_CHAR    0x0007FFFF /* The lowest 19 bits */
 
 #ifdef HAVE_FACES
 /* The FAST macros assume that we already know we're in an X window.  */
 
 /* Given a character code and a face ID, return the appropriate glyph.  */
-#define FAST_MAKE_GLYPH(CHAR, FACE) ((unsigned char) (CHAR) | ((FACE) << 8))
+#define FAST_MAKE_GLYPH(CHAR, FACE) ((unsigned char) (CHAR) | \
+				     ((FACE) << CHARACTERBITS))
 
 /* Return a glyph's character code.  */
-#define FAST_GLYPH_CHAR(glyph) ((glyph) & 0xff)
+#define FAST_GLYPH_CHAR(glyph) ((glyph) & GLYPH_MASK_CHAR)
 
 /* Return a glyph's face ID.  */
-#define FAST_GLYPH_FACE(glyph) (((glyph) >> 8) & ((1 << 24) - 1))
+#define FAST_GLYPH_FACE(glyph) (((glyph) & GLYPH_MASK_FACE) >> CHARACTERBITS)
 
 /* Slower versions that test the frame type first.  */
 #define MAKE_GLYPH(f, char, face) (FRAME_TERMCAP_P (f) ? (char) \
@@ -892,8 +908,11 @@ typedef unsigned char UCHAR;
 #define GLYPH_FACE(f, g) (FRAME_TERMCAP_P (f) ? (0) : FAST_GLYPH_FACE (g))
 #else /* not HAVE_FACES */
 #define MAKE_GLYPH(f, char, face) (char)
-#define GLYPH_CHAR(f, g) (g)
-#define GLYPH_FACE(f, g) (g)
+#define FAST_MAKE_GLYPH(char, face) (char)
+#define GLYPH_CHAR(f, g) ((g) & GLYPH_MASK_CHAR)
+#define FAST_GLYPH_CHAR(g) ((g) & GLYPH_MASK_CHAR)
+#define GLYPH_FACE(f, g) ((g) & GLYPH_MASK_FACE)
+#define FAST_GLYPH_FACE(g) ((g) & GLYPH_MASK_FACE)
 #endif /* not HAVE_FACES */
 
 /* The ID of the mode line highlighting face.  */
@@ -1429,6 +1448,10 @@ extern Lisp_Object Ffloat ();
 
 /* Defined in cmds.c */
 extern Lisp_Object Fend_of_line (), Fforward_char (), Fforward_line ();
+
+/* Defined in coding.c */
+extern Lisp_Object Fcoding_system_p (), Fcheck_coding_system ();
+extern Lisp_Object Fread_coding_system (), Fread_non_nil_coding_system ();
 
 /* Defined in syntax.c */
 extern Lisp_Object Fforward_word ();
