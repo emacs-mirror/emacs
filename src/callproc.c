@@ -497,16 +497,33 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     int first = 1;
     int total_read = 0;
 
-    while ((nread = read (fd[0], bufptr, bufsize)) != 0)
+    while (1)
       {
-	if (nread < 0)
+	/* Repeatedly read until we've filled as much as possible
+	   of the buffer size we have.  But don't read
+	   less than 1024--save that for the next bufferfull.  */
+
+	nread = 0;
+	while (nread < bufsize - 1024)
 	  {
-#if defined (__osf__) && defined (__alpha)
-	    continue;		/* Work around bug in DEC OSF/1 V3.0.  */
-#else
-	    break;
-#endif
+	    int this_read
+	      = read (fd[0], bufptr + nread, bufsize - nread);
+
+	    if (this_read < 0)
+	      goto give_up;
+
+	    if (this_read == 0)
+	      goto give_up_1;
+
+	    nread += this_read;
 	  }
+
+      give_up_1:
+
+	/* Now NREAD is the total amount of data in the buffer.  */
+	if (nread == 0)
+	  break;
+
 	immediate_quit = 0;
 	total_read += nread;
 	
@@ -531,6 +548,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	immediate_quit = 1;
 	QUIT;
       }
+  give_up: ;
   }
 
   /* Wait for it to terminate, unless it already has.  */
