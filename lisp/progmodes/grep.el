@@ -195,14 +195,14 @@ The following place holders should be present in the string:
 
 ;;;; TODO --- refine this!!
 
-(defcustom grep-use-compilation-buffer t
-  "When non-nil, grep specific commands update `compilation-last-buffer'.
-This means that standard compile commands like \\[next-error] and \\[compile-goto-error]
-can be used to navigate between grep matches (the default).
-Otherwise, the grep specific commands like \\[grep-next-match] must
-be used to navigate between grep matches."
-  :type 'boolean
-  :group 'grep)
+;;; (defcustom grep-use-compilation-buffer t
+;;;   "When non-nil, grep specific commands update `compilation-last-buffer'.
+;;; This means that standard compile commands like \\[next-error] and \\[compile-goto-error]
+;;; can be used to navigate between grep matches (the default).
+;;; Otherwise, the grep specific commands like \\[grep-next-match] must
+;;; be used to navigate between grep matches."
+;;;   :type 'boolean
+;;;   :group 'grep)
 
 ;; override compilation-last-buffer
 (defvar grep-last-buffer nil
