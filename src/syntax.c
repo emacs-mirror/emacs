@@ -26,7 +26,7 @@ Boston, MA 02111-1307, USA.  */
 #include "buffer.h"
 #include "syntax.h"
 
-Lisp_Object Qsyntax_table_p, Qsyntax_table;
+Lisp_Object Qsyntax_table_p, Qsyntax_table, Qscan_error;
 
 static void scan_sexps_forward ();
 static int char_quoted ();
@@ -943,6 +943,7 @@ scan_lists (from, count, depth, sexpflag)
   register enum syntaxcode code;
   int min_depth = depth;    /* Err out if depth gets less than this. */
   int comstyle = 0;	    /* style of comment encountered */
+  int last_good = from;
 
   if (depth > 0) min_depth = 0;
 
@@ -956,6 +957,8 @@ scan_lists (from, count, depth, sexpflag)
 	{
 	  c = FETCH_CHAR (from);
 	  code = SYNTAX (c);
+	  if (depth == min_depth)
+	    last_good = from;
 	  from++;
 	  if (from < stop && SYNTAX_COMSTART_FIRST (c)
 	      && SYNTAX_COMSTART_SECOND (FETCH_CHAR (from))
@@ -1053,7 +1056,10 @@ scan_lists (from, count, depth, sexpflag)
 	    close1:
 	      if (!--depth) goto done;
 	      if (depth < min_depth)
-		error ("Containing expression ends prematurely");
+		Fsignal (Qscan_error,
+			 Fcons (build_string ("Containing expression ends prematurely"),
+				Fcons (make_number (last_good),
+				       Fcons (make_number (from), Qnil))));
 	      break;
 
 	    case Sstring:
@@ -1097,6 +1103,8 @@ scan_lists (from, count, depth, sexpflag)
 	    from--;
 	  c = FETCH_CHAR (from);
 	  code = SYNTAX (c);
+	  if (depth == min_depth)
+	    last_good = from;
 	  comstyle = 0;
 	  if (code == Sendcomment)
 	    comstyle = SYNTAX_COMMENT_STYLE (c);
@@ -1155,7 +1163,10 @@ scan_lists (from, count, depth, sexpflag)
 	    open2:
 	      if (!--depth) goto done2;
 	      if (depth < min_depth)
-		error ("Containing expression ends prematurely");
+		Fsignal (Qscan_error,
+			 Fcons (build_string ("Containing expression ends prematurely"),
+				Fcons (make_number (last_good),
+				       Fcons (make_number (from), Qnil))));
 	      break;
 
 	    case Sendcomment:
@@ -1331,7 +1342,11 @@ scan_lists (from, count, depth, sexpflag)
   return val;
 
  lose:
-  error ("Unbalanced parentheses");
+  Fsignal (Qscan_error,
+	   Fcons (build_string ("Unbalanced parentheses"),
+		  Fcons (make_number (last_good),
+			 Fcons (make_number (from), Qnil))));
+
   /* NOTREACHED */
 }
 
@@ -1795,6 +1810,13 @@ syms_of_syntax ()
 {
   Qsyntax_table_p = intern ("syntax-table-p");
   staticpro (&Qsyntax_table_p);
+
+  Qscan_error = intern ("scan-error");
+  staticpro (&Qscan_error);
+  Fput (Qscan_error, Qerror_conditions,
+	Fcons (Qerror, Qnil));
+  Fput (Qscan_error, Qerror_message,
+	build_string ("Scan error"));
 
   DEFVAR_BOOL ("parse-sexp-ignore-comments", &parse_sexp_ignore_comments,
     "Non-nil means `forward-sexp', etc., should treat comments as whitespace.");
