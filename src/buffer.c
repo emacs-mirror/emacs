@@ -1022,8 +1022,8 @@ with `delete-process'.")
 
   tem = Vinhibit_quit;
   Vinhibit_quit = Qt;
-  Vbuffer_alist = Fdelq (Frassq (buf, Vbuffer_alist), Vbuffer_alist);
   replace_buffer_in_all_windows (buf);
+  Vbuffer_alist = Fdelq (Frassq (buf, Vbuffer_alist), Vbuffer_alist);
   Vinhibit_quit = tem;
 
   /* Delete any auto-save file, if we saved it in this session.  */
