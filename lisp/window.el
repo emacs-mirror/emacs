@@ -76,6 +76,14 @@ Anything else means restrict to WINDOW's frame."
 (defun minibuffer-window-active-p (window)
   "Return t if WINDOW (a minibuffer window) is now active."
   (eq window (active-minibuffer-window)))
+
+(defmacro save-selected-window (&rest body)
+  "Execute BODY, then select the window that was selected before BODY."
+  (list 'let
+	'((save-selected-window-window (selected-window)))
+	(list 'unwind-protect
+	      (cons 'progn body)
+	      (list 'select-window 'save-selected-window-window)))) 
 
 (defun count-windows (&optional minibuf)
    "Returns the number of visible windows.
