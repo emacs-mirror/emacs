@@ -430,7 +430,8 @@ If within the headers, this makes the new lines into continuation lines."
   (define-key mail-mode-map "\C-c\C-w" 'mail-signature)
   (define-key mail-mode-map "\C-c\C-v" 'mail-sent-via)
   (define-key mail-mode-map "\C-c\C-c" 'mail-send-and-exit)
-  (define-key mail-mode-map "\C-c\C-s" 'mail-send))
+  (define-key mail-mode-map "\C-c\C-s" 'mail-send)
+  (define-key mail-mode-map "\C-c\C-i" 'mail-attach-file))
 
 (define-key mail-mode-map [menu-bar mail]
   (cons "Mail" (make-sparse-keymap "Mail")))
@@ -1093,6 +1094,26 @@ and don't delete any header fields."
 	       (if mail-yank-hooks
 		   (run-hooks 'mail-yank-hooks)
 		 (mail-indent-citation))))))))
+
+(defun mail-attach-file (&optional file)
+  "Insert a file at the end of the buffer, with separator lines around it."
+  (interactive "fAttach file: ")
+  (save-excursion
+    (goto-char (point-max))
+    (or (bolp) (newline))
+    (newline)
+    (let ((start (point))
+	  middle)
+      (insert (format "===File %s===" file))
+      (insert-char ?= (max 0 (- 60 (current-column))))
+      (newline)
+      (setq middle (point))
+      (insert "============================================================\n")
+      (push-mark)
+      (goto-char middle)
+      (insert-file-contents file)
+      (or (bolp) (newline))
+      (goto-char start))))
 
 ;; Put these last, to reduce chance of lossage from quitting in middle of loading the file.
 
