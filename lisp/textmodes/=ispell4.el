@@ -202,7 +202,7 @@ l	Lookup.  Look for a word in the dictionary by fast binary
 	search, or search for a regular expression in the dictionary
 	using grep.
 SPACE	Accept the word this time, but complain if it is seen again.
-q, C-G	Leave the command loop.  You can come back later with \\[ispell-next]."
+q, \\[keyboard-quit]	Leave the command loop.  You can come back later with \\[ispell-next]."
   (interactive)
   (if (null start)
       (setq start 0))
@@ -289,7 +289,7 @@ q, C-G	Leave the command loop.  You can come back later with \\[ispell-next]."
 
 (defun ispell-word ()
   "Check the spelling of the word under the cursor.
-See `ispell' for more documentation."
+See `ispell' for more information."
   (interactive)
   (condition-case err
       (catch 'quit

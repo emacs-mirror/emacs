@@ -57,19 +57,19 @@
   (message "Region saved for Lisp"))
 
 (defun ledit-zap-defun-to-lisp ()
-  "Carry the current defun to lisp"
+  "Carry the current defun to Lisp."
   (interactive)
   (ledit-save-defun)
   (ledit-go-to-lisp))
 
 (defun ledit-zap-defun-to-liszt ()
-  "Carry the current defun to liszt"
+  "Carry the current defun to liszt."
   (interactive)
   (ledit-save-defun)
   (ledit-go-to-liszt))
 
 (defun ledit-zap-region-to-lisp (beg end)
-  "Carry the current region to lisp"
+  "Carry the current region to Lisp."
   (interactive "r")
   (ledit-save-region beg end)
   (ledit-go-to-lisp))
@@ -104,7 +104,7 @@
   (load ledit-read-file t t))
 
 (defun ledit-setup ()
-  "Set up key bindings for the Lisp / Emacs interface"
+  "Set up key bindings for the Lisp/Emacs interface."
   (if (not ledit-mode-map)
       (progn (setq ledit-mode-map (make-sparse-keymap))
 	     (lisp-mode-commands ledit-mode-map)))
@@ -116,13 +116,13 @@
 (ledit-setup)
 
 (defun ledit-mode ()
-  "Major mode for editing text and stuffing it to a Lisp job.
+  "\\<ledit-mode-map>Major mode for editing text and stuffing it to a Lisp job.
 Like Lisp mode, plus these special commands:
-  M-C-d	-- record defun at or after point
+  \\[ledit-save-defun]	-- record defun at or after point
 	   for later transmission to Lisp job.
-  M-C-r -- record region for later transmission to Lisp job.
-  C-x z -- transfer to Lisp job and transmit saved text.
-  M-C-c -- transfer to Liszt (Lisp compiler) job
+  \\[ledit-save-region] -- record region for later transmission to Lisp job.
+  \\[ledit-go-to-lisp] -- transfer to Lisp job and transmit saved text.
+  \\[ledit-go-to-liszt] -- transfer to Liszt (Lisp compiler) job
 	   and transmit saved text.
 \\{ledit-mode-map}
 To make Lisp mode automatically change to Ledit mode,

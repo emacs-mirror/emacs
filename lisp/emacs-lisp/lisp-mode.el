@@ -383,7 +383,7 @@ of the start of the containing expression."
                (or (funcall lisp-indent-function indent-point state)
                    normal-indent))
               (t
-               normal-indent)))))))
+               normal-indent))))))
 
 (defun lisp-indent-function (indent-point state)
   (let ((normal-indent (current-column)))
