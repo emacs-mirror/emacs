@@ -2241,53 +2241,54 @@ init_system_name ()
 #ifndef CANNOT_DUMP
   if (initialized)
 #endif /* not CANNOT_DUMP */
-    {
-      struct hostent *hp;
-      int count;
-      for (count = 0;; count++)
-	{
+    if (! index (hostname, '.'))
+      {
+	struct hostent *hp;
+	int count;
+	for (count = 0;; count++)
+	  {
 #ifdef TRY_AGAIN
-	  h_errno = 0;
+	    h_errno = 0;
 #endif
-	  hp = gethostbyname (hostname);
+	    hp = gethostbyname (hostname);
 #ifdef TRY_AGAIN
-	  if (! (hp == 0 && h_errno == TRY_AGAIN))
+	    if (! (hp == 0 && h_errno == TRY_AGAIN))
 #endif
-	    break;
-	  if (count >= 5)
-	    break;
-	  Fsleep_for (make_number (1), Qnil);
-	}
-      if (hp)
-	{
-	  char *fqdn = (char *) hp->h_name;
-	  char *p;
+	      break;
+	    if (count >= 5)
+	      break;
+	    Fsleep_for (make_number (1), Qnil);
+	  }
+	if (hp)
+	  {
+	    char *fqdn = (char *) hp->h_name;
+	    char *p;
 
-	  if (!index (fqdn, '.'))
-	    {
-	      /* We still don't have a fully qualified domain name.
-		 Try to find one in the list of alternate names */
-	      char **alias = hp->h_aliases;
-	      while (*alias && !index (*alias, '.'))
-		alias++;
-	      if (*alias)
-		fqdn = *alias;
-	    }
-	  hostname = fqdn;
+	    if (!index (fqdn, '.'))
+	      {
+		/* We still don't have a fully qualified domain name.
+		   Try to find one in the list of alternate names */
+		char **alias = hp->h_aliases;
+		while (*alias && !index (*alias, '.'))
+		  alias++;
+		if (*alias)
+		  fqdn = *alias;
+	      }
+	    hostname = fqdn;
 #if 0
-	  /* Convert the host name to lower case.  */
-	  /* Using ctype.h here would introduce a possible locale
-	     dependence that is probably wrong for hostnames.  */
-	  p = hostname;
-	  while (*p)
-	    {
-	      if (*p >= 'A' && *p <= 'Z')
-		*p += 'a' - 'A';
-	      p++;
-	    }
+	    /* Convert the host name to lower case.  */
+	    /* Using ctype.h here would introduce a possible locale
+	       dependence that is probably wrong for hostnames.  */
+	    p = hostname;
+	    while (*p)
+	      {
+		if (*p >= 'A' && *p <= 'Z')
+		  *p += 'a' - 'A';
+		p++;
+	      }
 #endif
-	}
-    }
+	  }
+      }
 #endif /* HAVE_SOCKETS */
   /* We used to try using getdomainname as an alternative
      to sysinfo, here, but NIIBE Yutaka <gniibe@etl.go.jp> says that
