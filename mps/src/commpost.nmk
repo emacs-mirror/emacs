@@ -1,6 +1,6 @@
 # impl.nmk.commpost: SECOND COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpost.nmk(trunk.43) $
+# $HopeName: MMsrc!commpost.nmk(trunk.44) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
@@ -14,7 +14,7 @@
 # %%TARGET: Add the target to the all dependencies, if it uses the
 # CONFIG_PROD_MPS configuration, to swall if CONFIG_PROD_EPCORE
 
-all: mpmss.exe amcss.exe amcsshe.exe amsss.exe segsmss.exe awlut.exe \
+all: mpmss.exe amcss.exe amsss.exe segsmss.exe awlut.exe \
      mpsicv.exe lockutw3.exe lockcov.exe poolncv.exe locv.exe qs.exe apss.exe \
      finalcv.exe arenacv.exe bttest.exe teletest.exe protcv.exe \
      abqtest.exe cbstest.exe btcv.exe mv2test.exe messtest.exe \
