@@ -3500,9 +3500,7 @@ char *lispy_function_keys[] =
     "oem_clear",     /* VK_OEM_CLEAR      0xFE */
   };
 
-#else
-
-#define FUNCTION_KEY_OFFSET 0xff00
+#else /* not HAVE_NTGUI */
 
 #ifdef XK_kana_A
 static char *lispy_kana_keys[] =
@@ -3538,6 +3536,8 @@ static char *lispy_kana_keys[] =
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	/* 0x4f0 .. 0x4ff */
   };
 #endif /* XK_kana_A */
+
+#define FUNCTION_KEY_OFFSET 0xff00
 
 /* You'll notice that this table is arranged to be conveniently
    indexed by X Windows keysym values.  */
@@ -3634,9 +3634,31 @@ static char *lispy_function_keys[] =
     0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0,     /* 0xfff0 */
     0, 0, 0, 0, 0, 0, 0, "delete"
-    };
+  };
 
-#endif /* HAVE_NTGUI */
+/* ISO 9995 Function and Modifier Keys; the first byte is 0xFE.  */
+#define ISO_FUNCTION_KEY_OFFSET 0xfe00
+
+static char *iso_lispy_function_keys[] =
+  {
+    0, 0, 0, 0, 0, 0, 0, 0,	/* 0xfe00 */
+    0, 0, 0, 0, 0, 0, 0, 0,	/* 0xfe08 */
+    0, 0, 0, 0, 0, 0, 0, 0,	/* 0xfe10 */
+    0, 0, 0, 0, 0, 0, 0, 0,	/* 0xfe18 */
+    "iso-lefttab",		/* 0xfe20 */
+    "iso-move-line-up", "iso-move-line-down", 
+    "iso-partial-line-up", "iso-partial-line-down", 
+    "iso-partial-space-left", "iso-partial-space-right", 
+    "iso-set-margin-left", "iso-set-margin-right", /* 0xffe27, 28 */
+    "iso-release-margin-left", "iso-release-margin-right",
+    "iso-release-both-margins",
+    "iso-fast-cursor-left", "iso-fast-cursor-right",
+    "iso-fast-cursor-up", "iso-fast-cursor-down",
+    "iso-continuous-underline", "iso-discontinuous-underline", /* 0xfe30, 31 */
+    "iso-emphasize", "iso-center-object", "iso-enter", /* ... 0xfe34 */
+  };
+
+#endif /* not HAVE_NTGUI */
 
 static char *lispy_mouse_names[] =
 {
@@ -3760,13 +3782,21 @@ make_lispy_event (event)
 				     / sizeof (lispy_kana_keys[0])));
 #endif /* XK_kana_A */
 
-      return modify_event_symbol (event->code - FUNCTION_KEY_OFFSET,
-				  event->modifiers,
-				  Qfunction_key, Qnil,
-				  lispy_function_keys, &func_key_syms,
-				  (sizeof (lispy_function_keys)
-				   / sizeof (lispy_function_keys[0])));
-      break;
+      if (event->code < FUNCTION_KEY_OFFSET
+	  && event->code >= ISO_FUNCTION_KEY_OFFSET)
+	return modify_event_symbol (event->code - ISO_FUNCTION_KEY_OFFSET,
+				    event->modifiers,
+				    Qfunction_key, Qnil,
+				    iso_lispy_function_keys, &func_key_syms,
+				    (sizeof (iso_lispy_function_keys)
+				     / sizeof (iso_lispy_function_keys[0])));
+      else
+	return modify_event_symbol (event->code - FUNCTION_KEY_OFFSET,
+				    event->modifiers,
+				    Qfunction_key, Qnil,
+				    lispy_function_keys, &func_key_syms,
+				    (sizeof (lispy_function_keys)
+				     / sizeof (lispy_function_keys[0])));
 
       /* Note that timer_event is currently never used.  */
     case timer_event:
