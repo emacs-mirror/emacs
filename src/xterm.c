@@ -15017,6 +15017,8 @@ x_term_init (display_name, xrm_option, resource_name)
     = XInternAtom (dpyinfo->display, "TEXT", False);
   dpyinfo->Xatom_COMPOUND_TEXT
     = XInternAtom (dpyinfo->display, "COMPOUND_TEXT", False);
+  dpyinfo->Xatom_UTF8_STRING
+    = XInternAtom (dpyinfo->display, "UTF8_STRING", False);
   dpyinfo->Xatom_DELETE
     = XInternAtom (dpyinfo->display, "DELETE", False);
   dpyinfo->Xatom_MULTIPLE
