@@ -1,4 +1,4 @@
-/* Copyright (C) 1985, 1986, 1987, 1988, 1990, 1992, 1999, 2000, 2001
+/* Copyright (C) 1985,86,87,88,90,92,1999,2000,01,2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1201,6 +1201,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 
       /* Cause a compilation error if anyone uses n instead of nn below.  */
       struct {int a;} n;
+      (void)n.a;		/* Prevent `unused variable' warnings.  */
 
       switch (section.sh_type)
 	{
