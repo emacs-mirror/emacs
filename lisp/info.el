@@ -785,7 +785,7 @@ Completion is allowed, and the menu item point is on is the default."
 		    (message (if flag "Type Space to see more"
 			       "Type Space to return to Info"))
 		    (if (/= ?\  (setq ch (read-char)))
-			(progn (setq unread-command-char ch) nil)
+			(progn (setq unread-command-event ch) nil)
 		      flag))
 	(scroll-up)))))
 
