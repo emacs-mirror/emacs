@@ -1918,7 +1918,8 @@ on the gateway machine to do the ftp instead."
     ;; but that doesn't work: ftp never responds.
     ;; Can anyone find a fix for that?
     (let ((process-connection-type t)
-	  (process-environment process-environment)
+	  ;; Copy this so we don't alter it permanently.
+	  (process-environment (copy-tree process-environment))
 	  (buffer (get-buffer-create name)))
       (save-excursion
 	(set-buffer buffer)
