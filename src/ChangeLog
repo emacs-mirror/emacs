@@ -1,3 +1,8 @@
+2001-01-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (forward_to_next_line_start): Handler end of buffer
+	while searching for a newline.
+
 2001-01-18  Kenichi Handa  <handa@etl.go.jp>
 
 	* xdisp.c (display_string): Fix previous change.
