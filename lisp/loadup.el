@@ -33,24 +33,24 @@
 ;;; We don't want to have any undo records in the dumped Emacs.
 (buffer-disable-undo "*scratch*")
 
+(load "byte-run")
 (load "subr")
 
 ;; We specify .el in case someone compiled version.el by mistake.
 (load "version.el")
 
-(load "byte-run")
 (load "map-ynp")
 (load "widget")
 (load "custom")
 (load "cus-start")
 (load "international/mule")
 (load "international/mule-conf.el") ;Don't get confused if someone compiled this by mistake.
+(load "format")
 (load "bindings")
 (setq load-source-file-function 'load-with-code-conversion)
 (load "simple")
 (load "help")
 (load "files")
-(load "format")
 ;; Any Emacs Lisp source file (*.el) loaded here after can contain
 ;; multilingual text.
 (load "international/mule-cmds")
@@ -67,7 +67,7 @@
   (load "international/latin-3")
   (load "international/latin-4")
   (load "international/latin-5"))
-;; Load langauge specific files.
+;; Load language-specific files.
 (load "language/chinese")
 (load "language/cyrillic")
 (load "language/indian")
