@@ -1675,6 +1675,34 @@ With argument, do this that many times."
 With argument, do this that many times."
   (interactive "p")
   (kill-word (- arg)))
+
+(defun current-word ()
+  "Return the word point is on as a string, if it's between two
+word-constituent characters. If not, but it immediately follows one,
+move back first.  Otherwise, if point precedes a word constituent,
+move forward first.  Otherwise, move backwards until a word constituent
+is found and get that word; if you reach a newline first, move forward
+instead."
+  (interactive)
+  (save-excursion
+    (let ((oldpoint (point)) (start (point)) (end (point)))
+      (skip-syntax-backward "w_") (setq start (point))
+      (goto-char oldpoint)
+      (skip-syntax-forward "w_") (setq end (point))
+      (if (and (eq start oldpoint) (eq end oldpoint))
+	  (progn
+	    (skip-syntax-backward "^w_"
+				  (save-excursion (beginning-of-line) (point)))
+	    (if (eq (preceding-char) ?\n)
+		(progn
+		  (skip-syntax-forward "^w_")
+		  (setq start (point))
+		  (skip-syntax-forward "w_")
+		  (setq end (point)))
+	      (setq end (point))
+	      (skip-syntax-backward "w_")
+	      (setq start (point)))))
+      (buffer-substring start end))))
 
 (defconst fill-prefix nil
   "*String for filling to insert at front of new line, or nil for none.
