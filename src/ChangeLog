@@ -1,5 +1,15 @@
 2002-07-16  Ken Raeburn  <raeburn@gnu.org>
 
+	* buffer.c (reset_buffer_local_variables): Delete "#if 0"
+	settings of non-existent fields.
+
+	* editfns.c (Fstring_to_char): Don't use XSTRING/XSETSTRING to
+	copy a lisp value.
+
+	* lread.c (Fintern_soft): Use string macros instead of
+	Lisp_String fields.
+	* textprop.c (validate_interval_range, interval_of): Likewise.
+
 	* fontset.c (Fset_fontset_font): Use SDATA instead of
 	XSTRING()->data.
 
