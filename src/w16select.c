@@ -526,8 +526,8 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 	Vnext_selection_coding_system = Vselection_coding_system;
       setup_coding_system
 	(Fcheck_coding_system (Vnext_selection_coding_system), &coding);
-      coding->src_multibyte = 1;
-      coding->dst_multibyte = 0;
+      coding.src_multibyte = 1;
+      coding.dst_multibyte = 0;
       Vnext_selection_coding_system = Qnil;
       coding.mode |= CODING_MODE_LAST_BLOCK;
       Vlast_coding_system_used = coding.symbol;
