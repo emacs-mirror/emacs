@@ -581,8 +581,11 @@ If nil, don't change the value of `debug-on-error'."
 ;; for the sake of completion of names like eval-region, eval-current-buffer.
 (defun eval-expression (eval-expression-arg
 			&optional eval-expression-insert-value)
-  "Evaluate EXPRESSION and print value in minibuffer.
-Value is also consed on to front of the variable `values'."
+  "Evaluate EVAL-EXPRESSION-ARG and print value in the echo area.
+Value is also consed on to front of the variable `values'.
+Optional argument EVAL-EXPRESSION-INSERT-VALUE, if non-nil, means
+insert the result into the current buffer instead of printing it in
+the echo area."
   (interactive
    (list (read-from-minibuffer "Eval: "
 			       nil read-expression-map t
