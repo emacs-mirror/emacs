@@ -42,6 +42,11 @@ To switch to a new list of tags tables, setting this variable is sufficient.
 If you set this variable, do not also set `tags-file-name'.
 Use the `etags' program to make a tags table file.")
 
+(defvar tags-add-tables nil
+  "*Non-nil means always add a new tags table to the current list.
+This eliminates the need to ask the user whether to add a new tags table
+to the current list (as opposed to starting a new list).")
+
 (defvar tags-table-list-pointer nil
   "Pointer into `tags-table-list' where the current state of searching is.
 Might instead point into a list of included tags tables.
@@ -73,10 +78,10 @@ If nil, and the symbol that is the value of `major-mode'
 has a `find-tag-default-function' property (see `put'), that is used.
 Otherwise, `find-tag-default' is used.")
 
-;;;###autoload
 (defvar default-tags-table-function nil
-  "*If non-nil, a function of no arguments to choose a default tags file
-for a particular buffer.")
+  "If non-nil, a function to choose a default tags file for a buffer.
+This function receives no arguments and should return the default
+tags table file to use for the current buffer.")
 
 (defvar tags-location-stack nil
   "List of markers which are locations visited by \\[find-tag].
@@ -478,13 +483,14 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 
 			;; Not found in any existing set.
 			(if (and tags-table-list
-				 (y-or-n-p (concat "Add " tags-file-name
-						   " to current list"
-						   " of tags tables? ")))
+				 (or tags-add-tables
+				     (y-or-n-p (concat "Add to current list"
+						       " of tags tables? "))))
 			    ;; Add it to the current list.
 			    (setq tags-table-list (cons tags-file-name
 							tags-table-list))
 			  ;; Make a fresh list, and store the old one.
+			  (message "Starting a new list of tags tables")
 			  (or (memq tags-table-list tags-table-set-list)
 			      (setq tags-table-set-list
 				    (cons tags-table-list tags-table-set-list)))
