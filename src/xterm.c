@@ -14686,10 +14686,10 @@ static int x_initialized;
    the screen number from the server number.  */
 static int
 same_x_server (name1, name2)
-     char *name1, *name2;
+     const char *name1, *name2;
 {
   int seen_colon = 0;
-  unsigned char *system_name = SDATA (Vsystem_name);
+  const unsigned char *system_name = SDATA (Vsystem_name);
   int system_name_length = strlen (system_name);
   int length_until_period = 0;
 
