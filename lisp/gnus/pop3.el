@@ -110,8 +110,8 @@ Returns the process associated with the connection."
   (let ((process-buffer
 	 (get-buffer-create (format "trace of POP session to %s" mailhost)))
 	(process)
-	(process-coding-system-alist
-	 (cons '("POP" . nil) process-coding-system-alist)))
+	(coding-system-for-read 'no-conversion)
+	(coding-system-for-write 'no-conversion))
     (save-excursion
       (set-buffer process-buffer)
       (erase-buffer))
