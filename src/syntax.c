@@ -1483,12 +1483,12 @@ skip_chars (forwardp, syntaxp, string, lim)
 		{
 		  if (! SINGLE_BYTE_CHAR_P (c2))
 		    {
-		      /* Handle a range starting by a unibyte char and
-			 ending by a multibyte char.  Split
-			 that into two ranges, the low one ending at
-			 0377, and the high one starting at the
-			 smallest character in the charset of C2 and
-			 ending at C2.  */
+		      /* Handle a range starting with a unibyte char
+			 and ending with a multibyte char.  Split that
+			 into two ranges, the low one ending at 0377,
+			 and the high one starting at the smallest
+			 character in the charset of C2 and ending at
+			 C2.  */
 		      int charset = CHAR_CHARSET (c2);
 		      int c1 = MAKE_CHAR (charset, 0, 0);
 
