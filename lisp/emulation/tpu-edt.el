@@ -61,7 +61,7 @@
 ;;    Please note that TPU-edt does NOT emulate TPU.  It emulates TPU's EDT
 ;;    emulation.  Very few TPU line-mode commands are supported.
 
-;;    TPU-edt, like it's VMS cousin, works on VT-series terminals with DEC
+;;    TPU-edt, like its VMS cousin, works on VT-series terminals with DEC
 ;;    style keyboards.  VT terminal emulators, including xterm with the
 ;;    appropriate key translations, work just fine too.
 
@@ -126,7 +126,7 @@
 ;;    a small help file showing the default keypad layout, control key
 ;;    functions, and Gold key functions.  Pressing any key inside of help
 ;;    splits the screen and prints a description of the function of the
-;;    pressed key.  Gold-PF2 invokes the native emacs help, with it's
+;;    pressed key.  Gold-PF2 invokes the native emacs help, with its
 ;;    zillions of options.
 
 ;;    Thanks to emacs, TPU-edt has some extensions that may make your life
@@ -2391,7 +2391,7 @@ If FILE is nil, try to load a default file.  The default file names are
      Ack!!  You're running TPU-edt under X-windows without loading an
      X  key definition file.   To create a  TPU-edt X  key definition
      file, run the tpu-mapper.el program.  It  came with TPU-edt.  It
-     even includes directions on how to  use it!  Perhaps it's laying
+     even includes directions on how to  use it!   Perhaps it's lying
      around here someplace.  ")
 	 (let ((file "tpu-mapper.el")
 	       (found nil)
