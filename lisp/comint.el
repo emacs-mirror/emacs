@@ -1535,9 +1535,10 @@ either globally or locally.")
 ;; prompt overlay.
 (defun comint-snapshot-last-prompt ()
   (when comint-last-prompt-overlay
-    (add-text-properties (overlay-start comint-last-prompt-overlay)
-			 (overlay-end comint-last-prompt-overlay)
-			 (overlay-properties comint-last-prompt-overlay))))
+    (let ((inhibit-read-only t))
+      (add-text-properties (overlay-start comint-last-prompt-overlay)
+                           (overlay-end comint-last-prompt-overlay)
+                           (overlay-properties comint-last-prompt-overlay)))))
 
 (defun comint-carriage-motion (string)
   "Handle carriage control characters in comint output.
@@ -1661,10 +1662,11 @@ This function should be in the list `comint-output-filter-functions'."
 	    (set-marker (process-mark process) (point))
 
 	    (unless comint-use-prompt-regexp-instead-of-fields
-	      (add-text-properties comint-last-output-start (point)
-				   '(rear-nonsticky t
-				     field output
-				     inhibit-line-move-field-capture t)))
+              (let ((inhibit-read-only t))
+                (add-text-properties comint-last-output-start (point)
+                                     '(rear-nonsticky t
+                                       field output
+                                       inhibit-line-move-field-capture t))))
 
 	    ;; Highlight the prompt, where we define `prompt' to mean
 	    ;; the most recent output that doesn't end with a newline.
