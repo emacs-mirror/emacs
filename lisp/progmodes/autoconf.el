@@ -4,7 +4,7 @@
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: languages
-;; $Revision: 1.1 $
+;; $Revision: 1.2 $
 
 ;; This file is part of GNU Emacs.
 
@@ -93,7 +93,7 @@ searching backwards at another AC_... command."
   (set (make-local-variable 'defun-prompt-regexp)
        "^[ \t]*A[CM]_\\(\\sw\\|\\s_\\)+")
   (set (make-local-variable 'comment-start) "dnl ")
-  (set (make-local-variable 'comment-start-skip) "\\(\\<dnl\\|#\\) +")
+  (set (make-local-variable 'comment-start-skip) "\\(?:\\<dnl\\|#\\) +")
   (set (make-local-variable 'font-lock-syntactic-keywords)
        autoconf-font-lock-syntactic-keywords)
   (set (make-local-variable 'font-lock-defaults)
