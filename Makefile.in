@@ -361,7 +361,7 @@ install-arch-indep: mkdir
 ### Build all the directories we're going to install Emacs in.	Since
 ### we may be creating several layers of directories (for example,
 ### /usr/local/lib/emacs/19.0/mips-dec-ultrix4.2), we use mkinstalldirs
-### instead of mkdir.  Not all systems' mkdirs have the `-p' flag.
+### instead of mkdir.  Not all systems' mkdir programs have the `-p' flag.
 mkdir: FRC
 	$(srcdir)/mkinstalldirs ${COPYDESTS} ${lockdir} ${infodir} ${mandir} \
 	  ${bindir} ${datadir} ${docdir} ${libexecdir} \
@@ -531,4 +531,4 @@ force-info:
 info: force-info
 	(cd ${srcdir}/man; $(MAKE) $(MFLAGS) info)
 dvi:
-	(cd ${srcdir}/man; $(MAKE) $(MFLAGS) dvi)
+	(cd man; $(MAKE) $(MFLAGS) dvi)
