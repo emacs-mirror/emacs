@@ -119,6 +119,11 @@ lines in the region right by its argument (left, for negative
 arguments).  The whole group of lines moves rigidly sideways, which is
 how the command gets its name.@refill
 
+@cindex remove indentation
+  If you want to remove all indentation from all of the line in the
+region, invoke @kbd{C-x @key{TAB}} with a large negative argument,
+such as -1000.
+
 @findex indent-relative
   @kbd{M-x indent-relative} indents at point based on the previous line
 (actually, the last nonempty line).  It inserts whitespace at point, moving
