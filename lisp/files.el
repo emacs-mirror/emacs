@@ -906,8 +906,11 @@ but the visited file name is available through the minibuffer history:
 type M-n to pull it into the minibuffer.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
-expand wildcards (if any) and visit multiple files.  Wildcard expansion
-can be suppressed by setting `find-file-wildcards'."
+expand wildcards (if any) and visit multiple files.  You can
+suppress wildcard expansion by setting `find-file-wildcards'.
+
+To visit a file without any kind of conversion and without
+automatically choosing a major mode, use \\[find-file-literally]."
   (interactive
    (find-file-read-args "Find file: " nil))
   (let ((value (find-file-noselect filename nil nil wildcards)))
