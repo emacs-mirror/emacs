@@ -81,6 +81,8 @@
 	   (latin-iso8859-14 . (nil . "ISO8859-14"))
 	   (latin-iso8859-15 . (nil . "ISO8859-15"))
 	   (mule-unicode-0100-24ff . (nil . "ISO10646-1"))
+	   (mule-unicode-2500-33ff . (nil . "ISO10646-1"))
+	   (mule-unicode-e000-ffff . (nil . "ISO10646-1"))
 	   (japanese-jisx0213-1 . ("*" . "JISX0213"))
 	   (japanese-jisx0213-2 . ("*" . "JISX0213"))
 	   ))
@@ -109,19 +111,35 @@
 (set-font-encoding "ISO8859-1" 'ascii 0)
 (set-font-encoding "JISX0201" 'latin-jisx0201 0)
 
-(define-ccl-program ccl-encode-mule-unicode-0100-24ff
+(define-ccl-program ccl-encode-unicode-font
   `(0
-    (if (r0 == ,(charset-id 'mule-unicode-0100-24ff))
-	((r1 *= 96)
-	 (r1 += r2)
-	 (r1 += ,(- ?\x100 (* 32 96) 32))
-	 (r1 >8= 0)
-	 (r2 = r7))
-      ((r2 = r1)
-       (r1 = 0)))))
+    (if (r0 == ,(charset-id 'ascii))
+	((r2 = r1)
+	 (r1 = 0))
+      (if (r0 == ,(charset-id 'latin-iso8859-1))
+	  ((r2 = (r1 + 128))
+	   (r1 = 0))
+	(if (r0 == ,(charset-id 'mule-unicode-0100-24ff))
+	    ((r1 *= 96)
+	     (r1 += r2)
+	     (r1 += ,(- #x100 (* 32 96) 32))
+	     (r1 >8= 0)
+	     (r2 = r7))
+	  (if (r0 == ,(charset-id 'mule-unicode-2500-33ff))
+	      ((r1 *= 96)
+	       (r1 += r2)
+	       (r1 += ,(- #x2500 (* 32 96) 32))
+	       (r1 >8= 0)
+	       (r2 = r7))
+	    (if (r0 == ,(charset-id 'mule-unicode-e000-ffff))
+		((r1 *= 96)
+		 (r1 += r2)
+		 (r1 += ,(- #xe000 (* 32 96) 32))
+		 (r1 >8= 0)
+		 (r2 = r7)))))))))
 
 (setq font-ccl-encoder-alist
-      (cons '("ISO10646-1" . ccl-encode-mule-unicode-0100-24ff)
+      (cons '("ISO10646-1" . ccl-encode-unicode-font)
 	    font-ccl-encoder-alist))
 
 ;; Setting for suppressing XLoadQueryFont on big fonts.
@@ -148,7 +166,8 @@
     ("viscii" ascii vietnamese-viscii-upper vietnamese-viscii-lower)
     ("vscii" ascii vietnamese-viscii-upper vietnamese-viscii-lower)
     ("mulelao-1" ascii lao)
-    ("iso10646-1" ascii mule-unicode-0100-24ff))
+    ("iso10646-1" ascii latin-iso8859-1 mule-unicode-0100-24ff
+     mule-unicode-2500-33ff mule-unicode-e000-ffff))
   "Alist of font names vs list of charsets the font can display.
 
 When a font name which matches some element of this alist is given as
