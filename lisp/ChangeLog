@@ -1,3 +1,14 @@
+2002-11-26  Dave Love  <fx@gnu.org>
+
+	* language/european.el (encode-mac-roman): Deal with unencodable
+	characters.
+
+	* language/cyrillic.el (ccl-encode-koi8, ccl-encode-koi8-u)
+	(ccl-encode-alternativnyj): Deal with unencodable characters.
+
+	* international/code-pages.el (cp-make-coding-system): Deal with
+	unencodable characters.
+
 2002-11-24  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/sendmail.el (mail-signature): Handle case where
