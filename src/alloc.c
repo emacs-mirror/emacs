@@ -1658,7 +1658,6 @@ mark_object (objptr)
     case Lisp_Boolfwd:
     case Lisp_Objfwd:
     case Lisp_Buffer_Objfwd:
-    case Lisp_Internal_Stream:
     /* Don't bother with Lisp_Buffer_Objfwd,
        since all markable slots in current buffer marked anyway.  */
     /* Don't need to do Lisp_Objfwd, since the places they point
