@@ -622,7 +622,7 @@ affect point."
             (forward-char -1)
             (read (current-buffer)))
         ;; Else no hope of getting information here.
-        (error "Not bookmark format.")))))
+        (error "Not bookmark format")))))
 
 
 (defun bookmark-upgrade-version-0-alist (old-list)
@@ -688,7 +688,7 @@ This expects to be called from point-min in a bookmark file."
      ((= version 0)
       (bookmark-upgrade-file-format-from-0))
      (t
-      (error "Bookmark file format version strangeness.")))))
+      (error "Bookmark file format version strangeness")))))
 
 
 (defun bookmark-insert-file-format-version-stamp ()
@@ -733,7 +733,7 @@ the list of bookmarks.\)"
   (interactive (list nil current-prefix-arg))
   (or
    (bookmark-buffer-file-name)
-   (error "Buffer not visiting a file or directory."))
+   (error "Buffer not visiting a file or directory"))
 
   (bookmark-maybe-load-default-file)
 
@@ -793,7 +793,7 @@ as the annotation for a bookmark, and store it in the bookmark list with
 the bookmark (and file, and point) specified in buffer local variables."
   (interactive)
   (if (not (eq major-mode 'bookmark-read-annotation-mode))
-      (error "Not in bookmark-read-annotation-mode."))
+      (error "Not in bookmark-read-annotation-mode"))
   (goto-char (point-min))
   (while (< (point) (point-max))
     (if (looking-at "^#")
@@ -902,7 +902,7 @@ When you have finished composing, type \\[bookmark-send-annotation].
 as the new annotation for a bookmark."
   (interactive)
   (if (not (eq major-mode 'bookmark-edit-annotation-mode))
-      (error "Not in bookmark-edit-annotation-mode."))
+      (error "Not in bookmark-edit-annotation-mode"))
   (goto-char (point-min))
   (while (< (point) (point-max))
     (if (looking-at "^#")
@@ -1375,11 +1375,11 @@ explicitly."
                   (setq bookmark-alist
                         (append blist (if (not revert) bookmark-alist)))
                   (bookmark-bmenu-surreptitiously-rebuild-list)) 
-              (error (format "Invalid bookmark list in %s." file))))
+              (error "Invalid bookmark list in %s" file)))
           (kill-buffer (current-buffer)))
 	(if (and (null no-msg) (>= baud-rate 9600))
             (message "Loading bookmarks from %s...done" file)))
-    (error (format "Cannot read bookmark file %s." file))))
+    (error "Cannot read bookmark file %s" file)))
 
 
 
