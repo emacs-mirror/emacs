@@ -1,6 +1,6 @@
 ;;; em-rebind --- rebind keys when point is at current input
 
-;; Copyright (C) 1999, 2000 Free Sofware Foundation
+;; Copyright (C) 1999, 2000 Free Software Foundation
 
 ;; This file is part of GNU Emacs.
 

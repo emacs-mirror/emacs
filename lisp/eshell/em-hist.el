@@ -1,6 +1,6 @@
 ;;; em-hist --- history list management
 
-;; Copyright (C) 1999, 2000 Free Sofware Foundation
+;; Copyright (C) 1999, 2000 Free Software Foundation
 
 ;; This file is part of GNU Emacs.
 

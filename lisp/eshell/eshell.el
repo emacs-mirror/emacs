@@ -1,6 +1,6 @@
 ;;; eshell --- the Emacs command shell
 
-;; Copyright (C) 1999, 2000 Free Sofware Foundation
+;; Copyright (C) 1999, 2000 Free Software Foundation
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: processes
