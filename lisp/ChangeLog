@@ -1,3 +1,17 @@
+2003-05-08  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/diary-lib.el (diary-pull-attrs): Make `ret-attr',
+	`attr' local.
+	(list-diary-entries): Make `temp' local.
+	(fancy-diary-display): Make `marks', `temp-face', `faceinfo'
+	local.
+	(diary-mail-entries): There is no fancy-diary-buffer if there are
+	no diary entries.
+	(mark-diary-entries): Make `temp' local.
+	(mark-sexp-diary-entries): Make `marks' local, remove `temp'.
+	(list-sexp-diary-entries): Make `temp' local.
+	(add-to-diary-list): Make `prefix' local.
+
 2003-05-08  Dave Love  <fx@gnu.org>
 
 	* international/utf-7.el: New file.
