@@ -35,8 +35,8 @@
 		      prefix buffer hook))
 
 (defun edit-kbd-macro (cmd &optional prefix buffer hook in-hook out-hook)
-  "Edit a keyboard macro which has been assigned a name by name-last-kbd-macro.
-\(See also edit-last-kbd-macro.)"
+  "Edit a keyboard macro which has been given a name by `name-last-kbd-macro'.
+\(See also `edit-last-kbd-macro'.)"
   (interactive "CCommand name: \nP")
   (and cmd
        (edmacro-edit-macro (if in-hook
@@ -51,7 +51,7 @@
 
 (defun read-kbd-macro (start end)
   "Read the region as a keyboard macro definition.
-The region is interpreted as spelled-out keystrokes, e.g., `M-x abc RET'.
+The region is interpreted as spelled-out keystrokes, e.g., \"M-x abc RET\".
 The resulting macro is installed as the \"current\" keyboard macro.
 
 Symbols:  RET, SPC, TAB, DEL, LFD, NUL; C-key; M-key.  (Must be uppercase.)
@@ -597,7 +597,7 @@ Symbols:  RET, SPC, TAB, DEL, LFD, NUL; C-key; M-key.  (Must be uppercase.)
 	   (boundp 'edmacro-replace-argument)
 	   (boundp 'edmacro-finish-hook)
 	   (eq major-mode 'edmacro-mode))
-      (error "This command is valid only in buffers created by edit-kbd-macro."))
+      (error "This command is valid only in buffers created by `edit-kbd-macro'."))
   (let ((buf (current-buffer))
 	(str (buffer-string))
 	(func edmacro-replace-function)
@@ -623,16 +623,16 @@ Symbols:  RET, SPC, TAB, DEL, LFD, NUL; C-key; M-key.  (Must be uppercase.)
 	(funcall hook arg))))
 
 (defun edmacro-mode ()
-  "Keyboard Macro Editing mode.  Press C-c C-c to save and exit.
-To abort the edit, just kill this buffer with C-x k RET.
+  "\\<edmacro-mode-map>Keyboard Macro Editing mode.  Press \\[edmacro-finish-edit] to save and exit.
+To abort the edit, just kill this buffer with \\[kill-buffer] RET.
 
 The keyboard macro is represented as a series of M-x style command names.
 Keystrokes which do not correspond to simple M-x commands are written as
-\"type\" commands.  When you press C-c C-c, edmacro converts each command
+\"type\" commands.  When you press \\[edmacro-finish-edit], edmacro converts each command
 back into a suitable keystroke sequence; \"type\" commands are converted
 directly back into keystrokes."
   (interactive)
-  (error "This mode can be enabled only by edit-kbd-macro or edit-last-kbd-macro."))
+  (error "This mode can be enabled only by `edit-kbd-macro' or `edit-last-kbd-macro'."))
 (put 'edmacro-mode 'mode-class 'special)
 
 (if (boundp 'edmacro-mode-map) ()

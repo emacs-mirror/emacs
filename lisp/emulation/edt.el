@@ -21,16 +21,16 @@
 (require 'keypad)
 
 (defvar edt-last-deleted-lines ""
-  "Last text deleted by an EDT emulation line-delete command.")
+  "Last text deleted by an EDT emulation `line-delete' command.")
 (defvar edt-last-deleted-words ""
-  "Last text deleted by an EDT emulation word-delete command.")
+  "Last text deleted by an EDT emulation `word-delete' command.")
 (defvar edt-last-deleted-chars ""
-  "Last text deleted by an EDT emulation character-delete command.")
+  "Last text deleted by an EDT emulation `character-delete' command.")
 
 (defun delete-current-line (num)
   "Delete one or specified number of lines after point.
 This includes the newline character at the end of each line.
-They are saved for the EDT undelete-lines command."
+They are saved for the EDT `undelete-lines' command."
   (interactive "p")
   (let ((beg (point)))
     (forward-line num)
@@ -43,7 +43,7 @@ They are saved for the EDT undelete-lines command."
 (defun delete-to-eol (num)
   "Delete text up to end of line.
 With argument, delete up to to Nth line-end past point.
-They are saved for the EDT undelete-lines command."
+They are saved for the EDT `undelete-lines' command."
   (interactive "p")
   (let ((beg (point)))
     (forward-char 1)
@@ -54,7 +54,7 @@ They are saved for the EDT undelete-lines command."
 
 (defun delete-current-word (num)
   "Delete one or specified number of words after point.
-They are saved for the EDT undelete-words command."
+They are saved for the EDT `undelete-words' command."
   (interactive "p")
   (let ((beg (point)))
     (forward-word num)
@@ -64,7 +64,7 @@ They are saved for the EDT undelete-words command."
 
 (defun edt-delete-previous-word (num)
   "Delete one or specified number of words before point.
-They are saved for the EDT undelete-words command."
+They are saved for the EDT `undelete-words' command."
   (interactive "p")
   (let ((beg (point)))
     (forward-word (- num))
@@ -74,7 +74,7 @@ They are saved for the EDT undelete-words command."
 
 (defun delete-current-char (num)
   "Delete one or specified number of characters after point.
-They are saved for the EDT undelete-chars command."
+They are saved for the EDT `undelete-chars' command."
   (interactive "p")
   (setq edt-last-deleted-chars
 	(buffer-substring (point) (min (point-max) (+ (point) num))))
@@ -82,24 +82,24 @@ They are saved for the EDT undelete-chars command."
 
 (defun delete-previous-char (num)
   "Delete one or specified number of characters before point.
-They are saved for the EDT undelete-chars command."
+They are saved for the EDT `undelete-chars' command."
   (interactive "p")
   (setq edt-last-deleted-chars
 	(buffer-substring (max (point-min) (- (point) num)) (point)))
   (delete-region (max (point-min) (- (point) num)) (point)))
 
 (defun undelete-lines ()
-  "Yank lines deleted by last EDT line-deletion command."
+  "Yank lines deleted by last EDT `line-delete' command."
   (interactive)
   (insert edt-last-deleted-lines))
 
 (defun undelete-words ()
-  "Yank words deleted by last EDT word-deletion command."
+  "Yank words deleted by last EDT `word-delete' command."
   (interactive)
   (insert edt-last-deleted-words))
 
 (defun undelete-chars ()
-  "Yank characters deleted by last EDT character-deletion command."
+  "Yank characters deleted by last EDT `character-delete' command."
   (interactive)
   (insert edt-last-deleted-chars))
 
@@ -185,7 +185,7 @@ Accepts a prefix argument for the number of paragraphs."
     (goto-char (/ (* (point-max) perc) 100))))
 
 (defun update-mode-line ()
-  "Make sure mode-line in the current buffer reflects all changes."
+  "Ensure mode-line reflects all changes."
   (set-buffer-modified-p (buffer-modified-p))
   (sit-for 0))
 
@@ -264,11 +264,11 @@ and mark-paragraph for other modes."
 
 ;;; Key Bindings
 (defun edt-emulation-on ()
-  "Begin emulating DEC's EDT editor.
-Certain keys are rebound; including nearly all keypad keys.
+  "Emulate DEC's EDT editor.
+Note that many keys are rebound; including nearly all keypad keys.
 Use \\[edt-emulation-off] to undo all rebindings except the keypad keys.
 Note that this function does not work if called directly from the .emacs file.
-Instead, the .emacs file should do (setq term-setup-hook 'edt-emulation-on)
+Instead, the .emacs file should do \"(setq term-setup-hook 'edt-emulation-on)\"
 Then this function will be called at the time when it will work."
   (interactive)
   (advance-direction)
@@ -315,7 +315,7 @@ The keys redefined by \\[edt-emulation-on] are given their old definitions."
 (fset 'GOLD-prefix GOLD-map)
 
 (defvar GOLD-map (make-keymap)
-   "GOLD-map maps the function keys on the VT100 keyboard preceeded
+   "`GOLD-map' maps the function keys on the VT100 keyboard preceeded
 by the PF1 key.  GOLD is the ASCII the 7-bit escape sequence <ESC>OP.")
 
 (defun define-keypad-key (keymap function-keymap-slot definition)
