@@ -1,10 +1,21 @@
 /* impl.h.event -- Event Logging Interface
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!event.h(trunk.3) $
+ * $HopeName: MMsrc!event.h(trunk.4) $
+ *
+ * READERSHIP
  *
  * .readership: MPS developers.
- * .sources: mps.design.event
+ *
+ * DESIGN
+ *
+ * .design: design.mps.telemetry.
+ *
+ * TRANSGRESSIONS
+ *
+ * .trans.macro.memcpy: We define _memcpy (similar to ISO memcpy) as
+ * a macro in this file.  This is done so that it gets optimised.
+ * This is perhaps not a terribly good reason.
  */
 
 #ifndef event_h
@@ -60,6 +71,7 @@ typedef Index EventKind;
  * Also, because we're always dealing with aligned words, we could 
  * copy more efficiently.
  */
+/* see .trans.macro.memcpy */
 
 #define _memcpy(to, from, length) \
   BEGIN \
@@ -85,9 +97,10 @@ extern EventUnion Event;
 
 #define EVENT_END(type, length) \
   if(BTGet(EventKindControl, ((Index)Event ## type ## Kind))) { \
-    if((length) > EventLimit - EventNext) \
+    AVER(EventNext <= EventLimit); \
+    if((length) > (size_t)(EventLimit - EventNext)) \
       EventFlush(); /* @@@ should pass length */ \
-    AVER((length) <= EventLimit - EventNext); \
+    AVER((length) <= (size_t)(EventLimit - EventNext)); \
     _memcpy(EventNext, &Event, (length)); \
     EventNext += (length); \
   } \
