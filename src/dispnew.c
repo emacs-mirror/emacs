@@ -3766,6 +3766,7 @@ update_window (w, force_p)
   int paused_p;
   int preempt_count = baud_rate / 2400 + 1;
   extern int input_pending;
+  extern Lisp_Object do_mouse_tracking;
 #if GLYPH_DEBUG
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   extern struct frame *updating_frame;
@@ -3783,7 +3784,7 @@ update_window (w, force_p)
 
   /* If forced to complete the update, or if no input is pending, do
      the update.  */
-  if (force_p || !input_pending)
+  if (force_p || !input_pending || !NILP (do_mouse_tracking))
     {
       struct glyph_row *row, *end;
       struct glyph_row *mode_line_row;
