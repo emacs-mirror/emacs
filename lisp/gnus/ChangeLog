@@ -1,3 +1,19 @@
+2000-10-27  Dave Love  <fx@gnu.org>
+
+	* mm-decode.el (mm-valid-and-fit-image-p): Don't test
+	display-graphic-p here.
+
+2000-10-27  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* mm-decode.el (mm-viewer-completion-map): New.
+	(mm-interactively-view-part): Use it.
+
+2000-10-27  Simon Josefsson  <sj@extundo.com>
+
+	* mail-source.el (mail-sources): IMAP predicate is a string.
+	(mail-sources): Add default values for IMAP mailbox, predicate and
+	fetchflag.
+
 2000-10-27  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* gnus-ems.el (gnus-ems-redefine): Use (featurep 'xemacs) instead
