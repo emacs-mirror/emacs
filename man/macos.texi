@@ -66,7 +66,7 @@ the value of the variable @code{mac-keyboard-text-encoding} to
 that can be entered at the keyboard can be converted to ISO Latin-1
 characters.
 
-  To enter ISO Latin-2 characters directly from the Mac keyboard.  Set
+  To enter ISO Latin-2 characters directly from the Mac keyboard, set
 the value of @code{mac-keyboard-text-encoding} to
 @code{kTextEncodingISOLatin2}.  Then let Emacs know that the keyboard
 generates Latin-2 codes by typing @kbd{C-x RET k iso-latin-2 RET}.  To
@@ -189,7 +189,7 @@ another directory but this folder will still be created.
 @cindex font names (Mac OS)
 
   Fonts are specified to Emacs on the Mac in the form of a standard X
-font name.  I.e.,
+font name, i.e.
 
 @smallexample
 -@var{maker}-@var{family}-@var{weight}-@var{slant}-@var{widthtype}-@var{style}@dots{}
