@@ -1079,8 +1079,7 @@ key (or menu-item)"))
 				 (lambda (frame)
 				   (nconc
 				    (list frame
-					  (cdr (assq 'name
-						     (frame-parameters frame)))
+					  (frame-parameter frame 'name)
 					  (cons nil nil))
 					  'menu-bar-select-frame))
 					frames)))))
