@@ -1,6 +1,8 @@
-/*  ==== VIRTUAL MEMORY MAPPING FOR SUNOS 4 ====
+/*  impl.c.vmsu  draft impl
  *
- *  $HopeName: MMsrc/!vmsu.c(trunk.1)$
+ *                     VIRTUAL MEMORY MAPPING FOR SUNOS 4
+ *
+ *  $HopeName: MMsrc/!vmsu.c(trunk.2)$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -10,9 +12,7 @@
  *  mmap(2) is used to reserve address space by creating a mapping to
  *  /dev/zero with page access none.  mmap(2) is used to map pages
  *  onto store by creating a copy-on-write mapping to /dev/zero.
- *
- *  Notes
- *   2. This module uses static data.  richard 1995-02-15 */
+ */
 
 #include "std.h"
 #include "vm.h"
@@ -28,16 +28,28 @@
 #include <sys/errno.h>
 
 
-/* Unprototyped system calls.  Note that these are not fixed up */
-/* by std.h because that only fixeds up ANSI discrepancies. */
+/* Fix up unprototyped system calls.  */
+/* Note that these are not fixed up by std.h because that only fixes */
+/* up discrepancies with ANSI. */
 
 extern int close(int fd);
 extern int munmap(caddr_t addr, int len);
 extern int getpagesize(void);
 
 
-static int zero_fd = -1;
-static Addr highest = 0, lowest = (Addr)-1;
+#ifdef DEBUG_SIGN
+static SigStruct VMSigStruct;
+#endif
+
+
+typedef struct VMStruct
+{
+#ifdef DEBUG_SIGN
+  Sig sig;
+#endif
+  int zero_fd;		/* file descriptor for /dev/zero */
+  Addr base, limit;	/* boundaries of reserved space */
+} VMStruct;
 
 
 Addr VMGrain(void)
@@ -51,107 +63,145 @@ Addr VMGrain(void)
 }
 
 
-Error VMReserve(Addr *baseReturn, Addr *limitReturn, Addr size)
+#ifdef DEBUG_ASSERT
+
+Bool VMIsValid(VM vm, ValidationType validParam)
+{
+  AVER(vm != NULL);
+#ifdef DEBUG_SIGN
+  AVER(ISVALIDNESTED(Sig, vm->sig));
+  AVER(vm->sig == &VMSigStruct);
+#endif
+  AVER(vm->zero_fd != -1);
+  AVER(vm->base != 0);
+  AVER(vm->limit != 0);
+  AVER(vm->base < vm->limit);
+  AVER(IsAligned(VMGrain(), vm->base));
+  AVER(IsAligned(VMGrain(), vm->limit));
+  return(TRUE);
+}
+
+#endif /* DEBUG_ASSERT */
+
+
+Error VMCreate(VM *vmReturn, Addr size)
 {
   caddr_t addr;
-  Addr base, limit;
-#ifdef DEBUG_ASSERT
   Addr grain = VMGrain();
-#endif
+  int zero_fd;
+  VM vm;
 
+  AVER(vmReturn != NULL);
   AVER(IsAligned(grain, size));
   AVER(size != 0);
 
+  zero_fd = open("/dev/zero", O_RDONLY);
   if(zero_fd == -1)
-  {
-    zero_fd = open("/dev/zero", O_RDONLY);
-    if(zero_fd == -1)
-      return(ErrIO);
-  }
+    return(ErrIO);
+
+  /* Map in a page to store the descriptor on. */
+  addr = mmap(0, AlignUp(grain, sizeof(VMStruct)),
+	      PROT_READ | PROT_WRITE, MAP_PRIVATE,
+	      zero_fd, 0);
+  if((int)addr == -1)
+    return(errno == ENOMEM ? ErrRESOURCE : ErrFAILURE);
+  vm = (VM)addr;
+
+  vm->zero_fd = zero_fd;
 
   addr = mmap(0, size, PROT_NONE, MAP_SHARED, zero_fd, 0);
   if((int)addr == -1)
-  {
-    if(errno == ENOMEM)
-      return(ErrRESOURCE);
-    else
-      return(ErrFAILURE);
-  }
+    return(errno == ENOMEM ? ErrRESOURCE : ErrFAILURE);
 
-  base = (Addr)addr;
-  limit = base + size;
+  vm->base = (Addr)addr;
+  vm->limit = vm->base + size;
 
-  if(base < lowest)
-    lowest = base;
+#ifdef DEBUG_SIGN
+  SigInit(&VMSigStruct, "VM");
+  vm->sig = &VMSigStruct;
+#endif
 
-  if(limit > highest)
-    highest = limit;
+  AVER(ISVALID(VM, vm));
 
-  *baseReturn = base;
-  *limitReturn = limit;
+  *vmReturn = vm;
   return(ErrSUCCESS);
 }
 
 
-void VMRelease(Addr base, Addr limit)
+void VMDestroy(VM vm)
 {
   int r;
-#ifdef DEBUG_ASSERT
   Addr grain = VMGrain();
+
+  AVER(ISVALID(VM, vm));
+
+  /* This is pretty pointless, since the vm descriptor page is about */
+  /* to vanish completely. */
+#ifdef DEBUG_SIGN
+  vm->sig = SigInvalid;
 #endif
 
-  AVER(base < limit);
-  AVER(base >= lowest);
-  AVER(limit <= highest);
-  AVER(IsAligned(grain, base));
-  AVER(IsAligned(grain, limit));
-  AVER(zero_fd != -1);
-
-  r = munmap((caddr_t)base, (int)(limit - base));
+  r = munmap((caddr_t)vm->base, (int)(vm->limit - vm->base));
+  AVER(r == 0);
+  r = munmap((caddr_t)vm, (int)AlignUp(grain, sizeof(VMStruct)));
   AVER(r == 0);
 }
 
 
-Error VMMap(Addr base, Addr limit)
+Addr VMBase(VM vm)
+{
+  AVER(ISVALID(VM, vm));
+  return(vm->base);
+}
+
+Addr VMLimit(VM vm)
+{
+  AVER(ISVALID(VM, vm));
+  return(vm->limit);
+}
+
+
+Error VMMap(VM vm, Addr base, Addr limit)
 {
 #ifdef DEBUG_ASSERT
   Addr grain = VMGrain();
 #endif
 
+  AVER(ISVALID(VM, vm));
   AVER(sizeof(int) == sizeof(Addr));
   AVER(base < limit);
-  AVER(base >= lowest);
-  AVER(limit <= highest);
+  AVER(base >= vm->base);
+  AVER(limit <= vm->limit);
   AVER(IsAligned(grain, base));
   AVER(IsAligned(grain, limit));
-  AVER(zero_fd != -1);
 
   if((int)mmap((caddr_t)base, (int)(limit - base),
 	       PROT_READ | PROT_WRITE | PROT_EXEC,
 	       MAP_PRIVATE | MAP_FIXED,
-	       zero_fd, 0) == -1)
+	       vm->zero_fd, 0) == -1)
     return(ErrRESMEM);
 
   return(ErrSUCCESS);
 }
 
 
-void VMUnmap(Addr base, Addr limit)
+void VMUnmap(VM vm, Addr base, Addr limit)
 {
   caddr_t addr;
 #ifdef DEBUG_ASSERT
   Addr grain = VMGrain();
 #endif
 
+  AVER(ISVALID(VM, vm));
   AVER(sizeof(int) == sizeof(Addr));
   AVER(base < limit);
-  AVER(base >= lowest);
-  AVER(limit <= highest);
+  AVER(base >= vm->base);
+  AVER(limit <= vm->limit);
   AVER(IsAligned(grain, base));
   AVER(IsAligned(grain, limit));
-  AVER(zero_fd != -1);
 
   addr = mmap((caddr_t)base, (int)(limit - base),
-	      PROT_NONE, MAP_SHARED, zero_fd, 0);
+	      PROT_NONE, MAP_SHARED, vm->zero_fd, 0);
   AVER((int)addr != -1);
 }
+
