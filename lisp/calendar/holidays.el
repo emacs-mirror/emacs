@@ -172,7 +172,7 @@ holidays are found, nil if not."
 (defun calendar-holiday-list ()
   "Form the list of holidays that occur on dates in the calendar window.
 The holidays are those in the list calendar-holidays."
-  (let ((p calendar-holidays)
+  (let ((p (eval calendar-holidays))
         (holiday-list))
     (while p
       (let* ((function-name
