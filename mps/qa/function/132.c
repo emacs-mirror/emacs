@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!132.c(trunk.4) $
+ id = $HopeName: MMQA_test_function!132.c(trunk.5) $
  summary = low-memory reservoir tests with commit limit, part I
  language = c
  harness = 2.1
@@ -193,6 +193,6 @@ int main(void)
  stackpointer=&m; /* hack to get stack pointer */
 
  easy_tramp(test);
- report("result", "pass");
+ report("completed", "yes");
  return 0;
 }
