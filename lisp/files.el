@@ -4017,12 +4017,15 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 
 	  ;; Read the actual directory using `insert-directory-program'.
 	  ;; RESULT gets the status code.
-	  (let* ((coding-system-for-read
+	  (let* (;; We at first read by no-conversion, then after
+		 ;; putting text property `dired-filename, decode one
+		 ;; bunch by one to preserve that property.
+		 (coding-system-for-read 'no-conversion)
+		 ;; This is to control encoding the arguments in call-process.
+		 (coding-system-for-write 
 		  (and enable-multibyte-characters
 		       (or file-name-coding-system
-			   default-file-name-coding-system)))
-		 ;; This is to control encoding the arguments in call-process.
-		 (coding-system-for-write coding-system-for-read))
+			   default-file-name-coding-system))))
 	    (setq result
 		  (if wildcard
 		      ;; Run ls in the directory part of the file pattern
@@ -4105,6 +4108,23 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 	      (goto-char end)
 	      (beginning-of-line)
 	      (delete-region (point) (progn (forward-line 2) (point)))))
+
+	  ;; Now decode what read if necessary.
+	  (let ((coding (or coding-system-for-write
+			    (detect-coding-region beg (point) t)))
+		val pos)
+	    (if (not (eq (coding-system-base coding) 'undecided))
+		(save-restriction
+		  (narrow-to-region beg (point))
+		  (goto-char (point-min))
+		  (while (not (eobp))
+		    (setq pos (point)
+			  val (get-text-property (point) 'dired-filename))
+		    (goto-char (next-single-property-change
+				(point) 'dired-filename nil (point-max)))
+		    (decode-coding-region pos (point) coding)
+		    (if val
+			(put-text-property pos (point) 'dired-filename t))))))
 
 	  (if full-directory-p
 	      ;; Try to insert the amount of free space.
