@@ -10685,6 +10685,11 @@ XTread_socket (sd, bufp, numchars, expected)
 			    require = decoding_buffer_size (&coding, nbytes);
 			    p = (unsigned char *) alloca (require);
 			    coding.mode |= CODING_MODE_LAST_BLOCK;
+			    /* We explicitely disable composition
+			       handling because key data should
+			       not contain any composition
+			       sequence.  */
+			    coding.composing = COMPOSITION_DISABLED;
 			    decode_coding (&coding, copy_bufptr, p,
 					   nbytes, require);
 			    nbytes = coding.produced;
