@@ -3446,7 +3446,6 @@ code_convert_region (b, e, coding, encodep)
       int shrunk_len_byte;
       int new_len_byte;
       int buflen;
-      int zv_before;
 
       shrunk_beg_byte = PTR_BYTE_POS (begp);
       shrunk_beg = BYTE_TO_CHAR (shrunk_beg_byte);
