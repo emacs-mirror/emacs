@@ -228,7 +228,7 @@ to match their respective commands."
   (comint-mode)
   (setq comint-prompt-regexp shell-prompt-pattern)
   (setq major-mode 'shell-mode)
-  (setq mode-name "shell")
+  (setq mode-name "Shell")
   (use-local-map shell-mode-map)
   (make-local-variable 'shell-dirstack)
   (setq shell-dirstack nil)
