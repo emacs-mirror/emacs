@@ -1950,7 +1950,7 @@ If FRAME is omitted, return information on the currently selected frame.")
   int height, width;
   struct gcpro gcpro1;
 
-  if (EQ (frame, Qnil))
+  if (NILP (frame))
     frame = selected_frame;
 
   CHECK_FRAME (frame, 0);
@@ -2016,8 +2016,7 @@ If FRAME is omitted, return information on the currently selected frame.")
 		   : FRAME_MINIBUF_ONLY_P (f) ? Qonly
 		   : FRAME_MINIBUF_WINDOW (f)));
   store_in_alist (&alist, Qunsplittable, (FRAME_NO_SPLIT_P (f) ? Qt : Qnil));
-  store_in_alist (&alist, Qbuffer_list,
-		  frame_buffer_list (selected_frame));
+  store_in_alist (&alist, Qbuffer_list, frame_buffer_list (frame));
 
   /* I think this should be done with a hook.  */
 #ifdef HAVE_WINDOW_SYSTEM
