@@ -1109,6 +1109,8 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
   val_compute_motion.hpos = hpos;
   val_compute_motion.vpos = vpos;
   val_compute_motion.prevhpos = prev_hpos;
+  /* We alalways handle all of them here; none of them remain to do.  */
+  val_compute_motion.ovstring_chars_done = 0;
 
   /* Nonzero if have just continued a line */
   val_compute_motion.contin
@@ -1328,6 +1330,7 @@ vmotion (from, vtarget, w)
 	  val_vmotion.hpos = lmargin;
 	  val_vmotion.contin = 0;
 	  val_vmotion.prevhpos = 0;
+	  val_vmotion.ovstring_chars_done = 0;
 	  return &val_vmotion;
 	}
 
