@@ -1,3 +1,12 @@
+2004-11-01  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (connect_wait_mask, num_pending_connects): Only
+	declare and use them if NON_BLOCKING_CONNECT is defined.
+	(IF_NON_BLOCKING_CONNECT): New helper macro.
+	(wait_reading_process_output): Only declare and use local vars
+	Connecting and check_connect when NON_BLOCKING_CONNECT is defined.
+	(init_process): Initialize them if NON_BLOCKING_CONNECT defined.
+
 2004-11-01  Andy Petrusenco  <Igrek@star-sw.com>  (tiny change)
 
 	* w32term.c (x_scroll_run): Delete region objects after use.
@@ -7,7 +16,7 @@
 	* xmenu.c: Add prototypes for forward function declarations.
 	(popup_get_selection): Remove parameter do_timers, remove call to
 	timer_check.
-	(create_and_show_popup_menu, create_and_show_dialog): Remove 
+	(create_and_show_popup_menu, create_and_show_dialog): Remove
 	parameter do_timers from call to popup_get_selection.
 
 	* xdisp.c (update_tool_bar): Pass a copy of f->tool_bar_items to
