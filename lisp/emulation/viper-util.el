@@ -1,5 +1,7 @@
 ;;; viper-util.el --- Utilities used by viper.el
 
+;; Copyright (C) 1995 Free Software Foundation, Inc.
+
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
