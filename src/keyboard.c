@@ -6303,7 +6303,7 @@ menu_bar_items (old)
       {
 	/* No, so use major and minor mode keymaps and keymap property.  */
 	int extra_maps = 2;
-	Lisp_Object map = get_local_map (PT, current_buffer, keymap);
+	Lisp_Object map = get_local_map (PT, current_buffer, Qkeymap);
 	if (!NILP (map))
 	  extra_maps = 3;
 	nmaps = current_minor_maps (NULL, &tmaps);
@@ -6312,7 +6312,7 @@ menu_bar_items (old)
 	bcopy (tmaps, maps, nmaps * sizeof (maps[0]));
 	if (!NILP (map))
 	  maps[nmaps++] = map;
-	maps[nmaps++] = get_local_map (PT, current_buffer, local_map);
+	maps[nmaps++] = get_local_map (PT, current_buffer, Qlocal_map);
       }
     maps[nmaps++] = current_global_map;
   }
@@ -6955,7 +6955,7 @@ tool_bar_items (reuse, nitems)
     {
       /* No, so use major and minor mode keymaps and keymap property.  */
       int extra_maps = 2;
-      Lisp_Object map = get_local_map (PT, current_buffer, keymap);
+      Lisp_Object map = get_local_map (PT, current_buffer, Qkeymap);
       if (!NILP (map))
 	extra_maps = 3;
       nmaps = current_minor_maps (NULL, &tmaps);
@@ -6964,7 +6964,7 @@ tool_bar_items (reuse, nitems)
       bcopy (tmaps, maps, nmaps * sizeof (maps[0]));
       if (!NILP (map))
 	maps[nmaps++] = map;
-      maps[nmaps++] = get_local_map (PT, current_buffer, local_map);
+      maps[nmaps++] = get_local_map (PT, current_buffer, Qlocal_map);
     }
 
   /* Add global keymap at the end.  */
@@ -7884,8 +7884,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 			   &junk);
 #endif /* GOBBLE_FIRST_EVENT */
 
-  orig_local_map = get_local_map (PT, current_buffer, local_map);
-  orig_keymap = get_local_map (PT, current_buffer, keymap);
+  orig_local_map = get_local_map (PT, current_buffer, Qlocal_map);
+  orig_keymap = get_local_map (PT, current_buffer, Qkeymap);
 
   /* We jump here when the key sequence has been thoroughly changed, and
      we need to rescan it starting from the beginning.  When we jump here,
@@ -8054,8 +8054,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 			       interrupted_kboard->kbd_queue);
 		  }
 		mock_input = 0;
-		orig_local_map = get_local_map (PT, current_buffer, local_map);
-		orig_keymap = get_local_map (PT, current_buffer, keymap);
+		orig_local_map = get_local_map (PT, current_buffer, Qlocal_map);
+		orig_keymap = get_local_map (PT, current_buffer, Qkeymap);
 		goto replay_sequence;
 	      }
 #endif
@@ -8101,8 +8101,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		    Fset_buffer (XWINDOW (selected_window)->buffer);
 		}
 
-	      orig_local_map = get_local_map (PT, current_buffer, local_map);
-	      orig_keymap = get_local_map (PT, current_buffer, keymap);
+	      orig_local_map = get_local_map (PT, current_buffer, Qlocal_map);
+	      orig_keymap = get_local_map (PT, current_buffer, Qkeymap);
 	      goto replay_sequence;
 	    }
 
@@ -8116,8 +8116,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	      keybuf[t++] = key;
 	      mock_input = t;
 	      Vquit_flag = Qnil;
-	      orig_local_map = get_local_map (PT, current_buffer, local_map);
-	      orig_keymap = get_local_map (PT, current_buffer, keymap);
+	      orig_local_map = get_local_map (PT, current_buffer, Qlocal_map);
+	      orig_keymap = get_local_map (PT, current_buffer, Qkeymap);
 	      goto replay_sequence;
 	    }
 
@@ -8202,12 +8202,10 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 		  if (! FRAME_LIVE_P (XFRAME (selected_frame)))
 		    Fkill_emacs (Qnil);
-		  set_buffer_internal (XBUFFER (XWINDOW
-		  (window)->buffer)
-);
+		  set_buffer_internal (XBUFFER (XWINDOW (window)->buffer));
 		  orig_local_map = get_local_map (PT, current_buffer,
-						  local_map);
-		  orig_keymap = get_local_map (PT, current_buffer, keymap);
+						  Qlocal_map);
+		  orig_keymap = get_local_map (PT, current_buffer, Qkeymap);
 		  goto replay_sequence;
 		}
 	      
@@ -8229,7 +8227,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 			  && XINT (pos) >= BEG && XINT (pos) <= Z)
 			{
 			  map_here = get_local_map (XINT (pos),
-						    current_buffer, local_map);
+						    current_buffer, Qlocal_map);
 			  if (!EQ (map_here, orig_local_map))
 			    {
 			      orig_local_map = map_here;
@@ -8239,7 +8237,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 			      goto replay_sequence;
 			    }
 			  map_here = get_local_map (XINT (pos),
-						     current_buffer, keymap);
+						     current_buffer, Qkeymap);
 			  if (!EQ (map_here, orig_keymap))
 			    {
 			      orig_keymap = map_here;
@@ -9249,7 +9247,7 @@ current_active_maps (maps_p)
     {
       /* No, so use major and minor mode keymaps and keymap property.  */
       int extra_maps = 2;
-      Lisp_Object map = get_local_map (PT, current_buffer, keymap);
+      Lisp_Object map = get_local_map (PT, current_buffer, Qkeymap);
       if (!NILP (map))
 	extra_maps = 3;
       nmaps = current_minor_maps (NULL, &tmaps);
@@ -9258,7 +9256,7 @@ current_active_maps (maps_p)
       bcopy (tmaps, maps, nmaps * sizeof (maps[0]));
       if (!NILP (map))
 	maps[nmaps++] = map;
-      maps[nmaps++] = get_local_map (PT, current_buffer, local_map);
+      maps[nmaps++] = get_local_map (PT, current_buffer, Qlocal_map);
     }
   maps[nmaps++] = current_global_map;
 
