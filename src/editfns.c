@@ -581,7 +581,7 @@ lisp_time_argument (specified_time, result)
       high = Fcar (specified_time);
       CHECK_NUMBER (high, 0);
       low = Fcdr (specified_time);
-      if (XTYPE (low) == Lisp_Cons)
+      if (CONSP (low))
 	low = Fcar (low);
       CHECK_NUMBER (low, 0);
       *result = (XINT (high) << 16) + (XINT (low) & 0xffff);
@@ -793,12 +793,12 @@ Any other markers at the point of insertion remain before the text.")
     {
       tem = args[argnum];
     retry:
-      if (XTYPE (tem) == Lisp_Int)
+      if (INTEGERP (tem))
 	{
 	  str[0] = XINT (tem);
 	  insert (str, 1);
 	}
-      else if (XTYPE (tem) == Lisp_String)
+      else if (STRINGP (tem))
 	{
 	  insert_from_string (tem, 0, XSTRING (tem)->size, 0);
 	}
@@ -829,12 +829,12 @@ Any other markers at the point of insertion remain before the text.")
     {
       tem = args[argnum];
     retry:
-      if (XTYPE (tem) == Lisp_Int)
+      if (INTEGERP (tem))
 	{
 	  str[0] = XINT (tem);
 	  insert_and_inherit (str, 1);
 	}
-      else if (XTYPE (tem) == Lisp_String)
+      else if (STRINGP (tem))
 	{
 	  insert_from_string (tem, 0, XSTRING (tem)->size, 1);
 	}
@@ -864,12 +864,12 @@ Any other markers at the point of insertion also end up after the text.")
     {
       tem = args[argnum];
     retry:
-      if (XTYPE (tem) == Lisp_Int)
+      if (INTEGERP (tem))
 	{
 	  str[0] = XINT (tem);
 	  insert_before_markers (str, 1);
 	}
-      else if (XTYPE (tem) == Lisp_String)
+      else if (STRINGP (tem))
 	{
 	  insert_from_string_before_markers (tem, 0, XSTRING (tem)->size, 0);
 	}
@@ -901,12 +901,12 @@ Any other markers at the point of insertion also end up after the text.")
     {
       tem = args[argnum];
     retry:
-      if (XTYPE (tem) == Lisp_Int)
+      if (INTEGERP (tem))
 	{
 	  str[0] = XINT (tem);
 	  insert_before_markers_and_inherit (str, 1);
 	}
-      else if (XTYPE (tem) == Lisp_String)
+      else if (STRINGP (tem))
 	{
 	  insert_from_string_before_markers (tem, 0, XSTRING (tem)->size, 1);
 	}
@@ -1629,12 +1629,12 @@ Use %% to put a single % into the output.")
 	    args[n] = tem;
 	    goto string;
 	  }
-	else if (XTYPE (args[n]) == Lisp_Symbol)
+	else if (SYMBOLP (args[n]))
 	  {
 	    XSET (args[n], Lisp_String, XSYMBOL (args[n])->name);
 	    goto string;
 	  }
-	else if (XTYPE (args[n]) == Lisp_String)
+	else if (STRINGP (args[n]))
 	  {
 	  string:
 	    if (*format != 's' && *format != 'S')
@@ -1642,7 +1642,7 @@ Use %% to put a single % into the output.")
 	    total += XSTRING (args[n])->size;
 	  }
 	/* Would get MPV otherwise, since Lisp_Int's `point' to low memory.  */
-	else if (XTYPE (args[n]) == Lisp_Int && *format != 's')
+	else if (INTEGERP (args[n]) && *format != 's')
 	  {
 #ifdef LISP_FLOAT_TYPE
 	    /* The following loop assumes the Lisp type indicates
@@ -1655,7 +1655,7 @@ Use %% to put a single % into the output.")
 	    total += 10;
 	  }
 #ifdef LISP_FLOAT_TYPE
-	else if (XTYPE (args[n]) == Lisp_Float && *format != 's')
+	else if (FLOATP (args[n]) && *format != 's')
 	  {
 	    if (! (*format == 'e' || *format == 'f' || *format == 'g'))
 	      args[n] = Ftruncate (args[n]);
@@ -1686,12 +1686,12 @@ Use %% to put a single % into the output.")
       {
 	if (n >= nargs)
 	  strings[i++] = (unsigned char *) "";
-	else if (XTYPE (args[n]) == Lisp_Int)
+	else if (INTEGERP (args[n]))
 	  /* We checked above that the corresponding format effector
 	     isn't %s, which would cause MPV.  */
 	  strings[i++] = (unsigned char *) XINT (args[n]);
 #ifdef LISP_FLOAT_TYPE
-	else if (XTYPE (args[n]) == Lisp_Float)
+	else if (FLOATP (args[n]))
 	  {
 	    union { double d; int half[2]; } u;
 
