@@ -1,3 +1,17 @@
+2004-04-14  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compilation-setup): Localize
+	overlay-arrow-position.
+	(compilation-sentinel): Restructure code equivalently.
+	(compilation-next-error): Find message on same line after point if
+	not found before point.
+	(compile-mouse-goto-error): Restore function so that compilation
+	buffer need not be current and use compile-goto-error.
+	(compile-goto-error): Restore function.
+	(next-error): Set overlay-arrow-position.
+	(compilation-forget-errors): Don't localize already local
+	compilation-locs and remove FIXME about refontifying.
+
 2004-04-14  Kim F. Storm  <storm@cua.dk>
 
 	* startup.el (emacs-quick-startup): New defvar (set by -Q).
