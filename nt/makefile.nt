@@ -155,14 +155,17 @@ fast_install:	batch_files
 		$(CP) ..\lib-src\DOC $(INSTALL_DIR)\etc
 		- mkdir $(INSTALL_DIR)\bin
 		- $(CP) $(BLD)\addpm.exe $(INSTALL_DIR)\bin
+		- $(CP) $(BLD)\ddeclient.exe $(INSTALL_DIR)\bin
+		- $(CP) $(BLD)\cmdproxy.exe $(INSTALL_DIR)\bin
 		- $(CP) $(BLD)\runemacs.exe $(INSTALL_DIR)\bin
+		- $(CP) ..\lib-src\fns-*.el $(INSTALL_DIR)\bin
 		- $(DEL) ..\same-dir.tst
 		- $(DEL) $(INSTALL_DIR)\same-dir.tst
 		echo SameDirTest > $(INSTALL_DIR)\same-dir.tst
 		if not exist ..\same-dir.tst $(CP) ..\bin\emacs.exe $(INSTALL_DIR)\bin
 		if not exist ..\same-dir.tst $(CP) ..\bin\etags.exe $(INSTALL_DIR)\bin
 		if not exist ..\same-dir.tst $(CP) ..\bin\ctags.exe $(INSTALL_DIR)\bin
-		if not exist ..\same-dir.tst nmake -f $(MAKE) real_install
+		if not exist ..\same-dir.tst $(MAKE) -f makefile.nt real_install
 		- $(DEL) ..\same-dir.tst
 		- $(DEL) $(INSTALL_DIR)\same-dir.tst
 
