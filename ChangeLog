@@ -1,3 +1,7 @@
+2002-05-09  Richard M. Stallman  <rms@gnu.org>
+
+	* configure.in (emacs_cv_speed_t): Add square brackets for clarity.
+
 2002-05-04  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* make-dist: Do not distribute lock/ directory.
