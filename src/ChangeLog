@@ -1,3 +1,9 @@
+2004-08-26  Steven Tamm  <steventamm@mac.com>
+
+	* fileio.c (Fread_file_name): Call x_file_dialog on carbon on
+	tool-bar/menu click
+	* macfns.c (Fx_file_dialog): Implemented using NavServices
+
 2004-08-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_catch_errors_unwind): Do not XSync if display has closed.
