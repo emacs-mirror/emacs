@@ -167,7 +167,7 @@ set_menu_bar_lines_1 (window, n)
     }
 }
 
-static void
+void
 set_menu_bar_lines (f, value, oldval)
      struct frame *f;
      Lisp_Object value, oldval;
