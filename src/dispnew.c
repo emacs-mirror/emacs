@@ -40,6 +40,7 @@ Boston, MA 02111-1307, USA.  */
 #include "disptab.h"
 #include "indent.h"
 #include "intervals.h"
+#include "blockinput.h"
 
 #include "systty.h"
 #include "syssignal.h"
@@ -2129,6 +2130,8 @@ change_frame_size_1 (frame, newheight, newwidth, pretend, delay)
       return;
     }
 
+  BLOCK_INPUT;
+
   /* This size-change overrides any pending one for this frame.  */
   FRAME_NEW_HEIGHT (frame) = 0;
   FRAME_NEW_WIDTH  (frame) = 0;
@@ -2210,6 +2213,8 @@ change_frame_size_1 (frame, newheight, newwidth, pretend, delay)
 
   remake_frame_glyphs (frame);
   calculate_costs (frame);
+
+  UNBLOCK_INPUT;
 }
 
 DEFUN ("send-string-to-terminal", Fsend_string_to_terminal,
