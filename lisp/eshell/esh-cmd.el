@@ -1231,7 +1231,7 @@ be finished later after the completion of an asynchronous subprocess."
   "Identify the COMMAND, and where it is located."
   (eshell-for name (cons command names)
     (let (program alias direct)
-      (if (eq (aref name 0) ?*)
+      (if (eq (aref name 0) eshell-explicit-command-char)
 	  (setq name (substring name 1)
 		direct t))
       (if (and (not direct)
