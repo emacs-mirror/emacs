@@ -2474,6 +2474,11 @@ configuration files.
 
 * Incompatible Lisp Changes in Emacs 21.4
 
+** An element of buffer-undo-list can now have the form (FUNNAME .
+ARGS), where FUNNAME is a symbol other than t or nil.  That stands for
+a high-level change that should be undone by evaluating (apply FUNNAME
+ARGS).
+
 +++
 ** `suppress-keymap' now works by remapping `self-insert-command' to
 the command `undefined'.  (In earlier Emacs versions, it used
