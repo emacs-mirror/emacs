@@ -1,5 +1,5 @@
 ;;; facemenu.el --- create a face menu for interactively adding fonts to text
-;; Copyright (c) 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (c) 1994, 1995, 1996 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.ai.mit.edu>
 ;; Keywords: faces
@@ -497,7 +497,10 @@ effect.  See `facemenu-remove-face-function'."
 	   (not (eq facemenu-remove-face-function t)))
       (if facemenu-remove-face-function
 	  (funcall facemenu-remove-face-function start end)
-	(remove-text-properties start end '(face default)))
+	(if (and start (< start end))
+	    (remove-text-properties start end '(face default))
+	  (setq self-insert-face 'default
+		self-insert-face-command this-command)))
     (if facemenu-add-face-function
 	(save-excursion
 	  (if end (goto-char end))
