@@ -122,7 +122,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    so that Emacs can tell instantly when you try to modify
    a file that someone else has modified in his Emacs.  */
 
-/* #define CLASH_DETECTION */
+#define CLASH_DETECTION
 
 /* Here, on a separate page, add any special hacks needed
    to make Emacs work on this system.  For example,
