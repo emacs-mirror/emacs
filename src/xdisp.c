@@ -838,7 +838,7 @@ redisplay_internal (preserve_echo_area)
 #endif
 
 #ifdef MULTI_FRAME
-  if ((FRAME_TERMCAP_P (selected_frame) || FRAME_MSDOS_P (selected_frame))
+  if (! FRAME_WINDOW_P (selected_frame)
       && previous_terminal_frame != selected_frame)
     {
       /* Since frames on an ASCII terminal share the same display area,
@@ -1073,8 +1073,7 @@ redisplay_internal (preserve_echo_area)
       FOR_EACH_FRAME (tail, frame)
 	{
 	  FRAME_PTR f = XFRAME (frame);
-	  if (! FRAME_TERMCAP_P (f) && ! FRAME_MSDOS_P (f)
-	      || f == selected_frame)
+	  if (FRAME_WINDOW_P (f) || f == selected_frame)
 	    {
 
 	      /* Mark all the scroll bars to be removed; we'll redeem the ones
@@ -1123,8 +1122,7 @@ update:
 
 	  f = XFRAME (XCONS (tail)->car);
 
-	  if (((! FRAME_TERMCAP_P (f) && ! FRAME_MSDOS_P (f))
-	       || f == selected_frame)
+	  if ((FRAME_WINDOW_P (f) || f == selected_frame)
 	      && FRAME_VISIBLE_P (f))
 	    {
 	      pause |= update_frame (f, 0, 0);
@@ -1157,8 +1155,7 @@ update:
 	mini_window = FRAME_MINIBUF_WINDOW (selected_frame);
 	mini_frame = XFRAME (WINDOW_FRAME (XWINDOW (mini_window)));
 	
-	if (mini_frame != selected_frame
-	    && ! FRAME_TERMCAP_P (mini_frame) && ! FRAME_MSDOS_P (mini_frame))
+	if (mini_frame != selected_frame && FRAME_WINDOW_P (mini_frame))
 	  pause |= update_frame (mini_frame, 0, 0);
       }
     }
@@ -3729,7 +3726,7 @@ decode_mode_spec (w, c, spec_width, maxwidth)
 #ifdef MULTI_FRAME
       if (!NILP (f->title))
 	return (char *) XSTRING (f->title)->data;
-      if (f->explicit_name || FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
+      if (f->explicit_name || ! FRAME_WINDOW_P (f))
 	return (char *) XSTRING (f->name)->data;
 #endif
       return "Emacs";
