@@ -2782,12 +2782,9 @@ sys_select (n, rfds, wfds, efds, timeout)
   SELECT_TYPE *efds;
   struct timeval *timeout;
 {
-  if (!inhibit_window_system && rfds && FD_ISSET (0, rfds))
-    return 1;
-  else if (inhibit_window_system || noninteractive ||
-	   (timeout && (EMACS_SECS(*timeout)==0) &&
-	    (EMACS_USECS(*timeout)==0)))
-    return select(n, rfds, wfds, efds, timeout);
+  if (inhibit_window_system || noninteractive
+      || rfds == NULL || !FD_ISSET (0, rfds))
+    return select(n, rfds, wfds, efds, timeout);    
   else
     {
       EMACS_TIME end_time, now;
@@ -2798,30 +2795,36 @@ sys_select (n, rfds, wfds, efds, timeout)
 
       do
 	{
+	  EMACS_TIME select_timeout
+	  SELECT_TYPE orfds = *rfds;
 	  int r;
-	  EMACS_TIME one_second;
-	  SELECT_TYPE orfds;
+	  OSErr err;
 
-	  FD_ZERO (&orfds);
-	  if (rfds)
+	  EMACS_SET_SECS (select_timeout, 0);
+	  EMACS_SET_USECS (select_timeout, 100);
+	  
+	  if (timeout && EMACS_TIME_LT (*timeout, select_timeout))
+	    select_timeout = *timeout;
+	  
+	  r = select (n, &orfds, wfds, efds, &select_timeout);
+	  err = ReceiveNextEvent (0, NULL, kEventDurationNoWait, false, NULL);
+	  if (r > 0)
+            {
+              *rfds = orfds;
+	      if (err == noErr)
+		{
+		  FD_SET (0, rfds);
+		  r++;
+		}
+              return r;
+            }
+	  else if (err == noErr)
 	    {
-	      orfds = *rfds;
+	      FD_ZERO (rfds);
+	      FD_SET (0, rfds);
+	      return 1;
 	    }
-
-	  EMACS_SET_SECS (one_second, 1);
-	  EMACS_SET_USECS (one_second, 0);
-
-	  if (timeout && EMACS_TIME_LT(*timeout, one_second))
-	    one_second = *timeout;
-
-	  if ((r = select (n, &orfds, wfds, efds, &one_second)) > 0)
-	    {
-	      *rfds = orfds;
-	      return r;
-	    }
-
-	  mac_check_for_quit_char();
-
+	  
 	  EMACS_GET_TIME (now);
 	  EMACS_SUB_TIME (now, end_time, now);
 	}

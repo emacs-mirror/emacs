@@ -1,3 +1,21 @@
+2004-07-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (sys_select): Redo sys_select to use alarm-based
+	polling instead of 1 sec timeouts (like solaris).  
+
+	* macterm.c (x_make_frame_visible): Comment in polling on 
+	frame creation.
+
+	* keyboard.c: Undef SIGIO on Carbon
+
+	* atimer.c (alarm_signal_handler): Call alarm handlers after
+	scheduling.
+
+	* eval.c (Feval): Remove quit_char test
+
+	* process.c (wait_reading_process_input): Remove clearing
+	stdin for select call on process input.
+
 2004-07-18  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* xdisp.c (syms_of_xdisp) <window-scroll-functions>: Correct
