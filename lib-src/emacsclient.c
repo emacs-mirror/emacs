@@ -1,5 +1,5 @@
 /* Client process that communicates with GNU Emacs acting as server.
-   Copyright (C) 1986, 1987, 1994, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1987, 1994, 1999, 2000 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -28,6 +28,12 @@ Boston, MA 02111-1307, USA.  */
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+
+#ifdef VMS
+# include "vms-pwd.h"
+#else
+# include <pwd.h>
+#endif /* not VMS */
 
 char *getenv (), *getwd ();
 char *getcwd ();
@@ -217,6 +223,26 @@ main (argc, argv)
 extern char *strerror ();
 extern int errno;
 
+/* Three possibilities:
+   2 - can't be `stat'ed		(sets errno)
+   1 - isn't owned by us
+   0 - success: none of the above */
+
+static int
+socket_status (socket_name)
+     char *socket_name;
+{
+  struct stat statbfr;
+
+  if (stat (socket_name, &statbfr) == -1)
+    return 2;
+
+  if (statbfr.st_uid != geteuid ())
+    return 1;
+
+  return 0;
+}
+
 int
 main (argc, argv)
      int argc;
@@ -272,25 +298,60 @@ main (argc, argv)
 #ifndef SERVER_HOME_DIR
   {
     struct stat statbfr;
+    int sock_status = 0;
 
     sprintf (server.sun_path, "/tmp/esrv%d-%s", geteuid (), system_name);
 
-    if (stat (server.sun_path, &statbfr) == -1)
+    /* See if the socket exists, and if it's owned by us. */
+    sock_status = socket_status (server.sun_path);
+    if (sock_status)
       {
-	if (errno == ENOENT)
-	  fprintf (stderr,
-		   "%s: can't find socket; have you started the server?\n",
-		   argv[0]);
-	else
-	  fprintf (stderr, "%s: can't stat %s: %s\n",
-		   argv[0], server.sun_path, strerror (errno));
-	fail (argc, argv);
+	/* Failing that, see if LOGNAME or USER exist and differ from
+	   our euid.  If so, look for a socket based on the UID
+	   associated with the name.  This is reminiscent of the logic
+	   that init_editfns uses to set the global Vuser_full_name.  */
+ 
+	char *user_name = (char *) getenv ("LOGNAME");
+	if (!user_name)
+	  user_name = (char *) getenv ("USER");
+       
+	if (user_name)
+	  {
+	    struct passwd *pw = getpwnam (user_name);
+	    if (pw && (pw->pw_uid != geteuid ()))
+	      {
+		/* We're running under su, apparently. */
+		sprintf (server.sun_path, "/tmp/esrv%d-%s",
+			 pw->pw_uid, system_name);
+		sock_status = socket_status (server.sun_path);
+	      }
+	  }
       }
-    if (statbfr.st_uid != geteuid ())
-      {
-	fprintf (stderr, "%s: Invalid socket owner\n", argv[0]);
-	fail (argc, argv);
-      }
+ 
+     switch (sock_status)
+       {
+       case 1:
+	 /* There's a socket, but it isn't owned by us.  This is OK if
+	    we are root. */
+	 if (0 != geteuid ())
+	   {
+	     fprintf (stderr, "%s: Invalid socket owner\n", argv[0]);
+	     fail (argc, argv);
+	   }
+	 break;
+	 
+       case 2:
+	 /* `stat' failed */
+	 if (errno == ENOENT)
+	   fprintf (stderr,
+		    "%s: can't find socket; have you started the server?\n",
+		    argv[0]);
+	 else
+	   fprintf (stderr, "%s: can't stat %s: %s\n",
+		    argv[0], server.sun_path, strerror (errno));
+	 fail (argc, argv);
+	 break;
+       }
   }
 #else
   if ((homedir = getenv ("HOME")) == NULL)
