@@ -489,6 +489,12 @@ This startup message appears whenever you load Viper, unless you type `y' now."
   (add-hook 'basic-mode-hook 'viper-mode)
   (defvar bat-mode-hook)
   (add-hook 'bat-mode-hook 'viper-mode)
+  
+  (defvar asm-mode-hook)
+  (add-hook 'asm-mode-hook 'viper-mode)
+
+  (defvar prolog-mode-hook)
+  (add-hook 'prolog-mode-hook 'viper-mode)
       
   (defvar text-mode-hook)
   (add-hook 'text-mode-hook 'viper-mode)
@@ -523,12 +529,6 @@ This startup message appears whenever you load Viper, unless you type `y' now."
     "Run `vip-change-state-to-vi' after quitting emerge."
     (vip-change-state-to-vi))
   
-  (vip-eval-after-load
-   "asm-mode"
-   '(defadvice asm-mode (after vip-asm-mode-ad activate)
-      "Run `vip-change-state-to-vi' on entry."
-      (vip-change-state-to-vi)))
-  
   ;; passwd.el sets up its own buffer, which turns up in Vi mode,
   ;; thus overriding the local map. We don't need Vi mode here.
   (vip-eval-after-load
@@ -536,12 +536,6 @@ This startup message appears whenever you load Viper, unless you type `y' now."
    '(defadvice read-passwd-1 (before vip-passwd-ad activate)
       "Switch to emacs state while reading password."
       (vip-change-state-to-emacs)))
-
-  (vip-eval-after-load
-   "prolog"
-   '(defadvice prolog-mode (after vip-prolog-ad activate)
-      "Switch to Vi state in Prolog mode."
-      (vip-change-state-to-vi)))
   
   ;; Emacs shell, ange-ftp, and comint-based modes
   (defvar comint-mode-hook)
@@ -617,15 +611,10 @@ This startup message appears whenever you load Viper, unless you type `y' now."
     (vip-change-state-to-emacs))
 
   ;; View mode
-  (if vip-emacs-p
-      (progn
-	(defvar view-mode-hook)
-	(add-hook 'view-mode-hook 'vip-change-state-to-emacs))
-    (defadvice view-minor-mode (after vip-view-ad activate)
-      "Switch to Emacs state in View mode."
-      (vip-change-state-to-emacs))
-    (defvar view-hook)
-    (add-hook 'view-hook 'vip-change-state-to-emacs))
+  (defvar view-mode-hook)
+  (defvar view-hook)
+  (add-hook 'view-hook 'vip-change-state-to-emacs)
+  (add-hook 'view-mode-hook 'vip-change-state-to-emacs)
   
   ;; For VM users.
   ;; Put summary and other VM buffers in Emacs state.

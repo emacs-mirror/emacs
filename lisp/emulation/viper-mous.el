@@ -66,9 +66,11 @@ or a tripple-click.")
        
 ;; time interval in millisecond within which successive clicks are
 ;; considered related
-(defconst vip-multiclick-timeout (if vip-xemacs-p
-				     mouse-track-multi-click-time
-				   double-click-time)
+(defconst vip-multiclick-timeout (if (vip-window-display-p)
+				     (if vip-xemacs-p
+					 mouse-track-multi-click-time
+				       double-click-time)
+				   500)
   "*Time interval in millisecond within which successive clicks are
 considered related.")
 
