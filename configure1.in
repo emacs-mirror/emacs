@@ -704,6 +704,11 @@ case "${canonical}" in
     machine=symmetry opsys=bsd4-3
   ;;
 
+  ## Unspecified sysv on an ncr machine defaults to svr4.
+  i[34]86-ncr-sysv* )
+    machine=intel386 opsys=usg5-4
+  ;;
+
   ## Intel 860
   i860-*-sysvr4* )
     machine=i860 opsys=usg5-4
