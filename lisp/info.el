@@ -1097,8 +1097,12 @@ If FORK is a string, it is the name to use for the new buffer."
 
 (defun Info-search (regexp)
   "Search for REGEXP, starting from point, and select node it's found in."
-  (interactive (list (read-string "Regexp search: "
- 				  nil 'Info-search-history)))
+  (interactive (list (read-string
+		      (if Info-search-history
+			  (format "Regexp search (default `%s'): "
+				  (car Info-search-history))
+			"Regexp search: ")
+		      nil 'Info-search-history)))
   (when transient-mark-mode
     (deactivate-mark))
   (when (equal regexp "")
