@@ -298,21 +298,20 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
     (cond
      ((null extra-string) base)
      ((string-equal base "") ;Happens for dired buffers on the root directory.
-      (mapconcat 'identity extra-string (string directory-sep-char)))
+      (mapconcat 'identity extra-string "/"))
      ((eq uniquify-buffer-name-style 'reverse)
-      (let ((dirsep (string directory-sep-char)))
-	(mapconcat 'identity
-		   (cons base (nreverse extra-string))
-		   (or uniquify-separator "\\"))))
+      (mapconcat 'identity
+		 (cons base (nreverse extra-string))
+		 (or uniquify-separator "\\")))
      ((eq uniquify-buffer-name-style 'forward)
       (mapconcat 'identity (nconc extra-string (list base))
-		 (string directory-sep-char)))
+		 "/"))
      ((eq uniquify-buffer-name-style 'post-forward)
       (concat base (or uniquify-separator "|")
-	      (mapconcat 'identity extra-string (string directory-sep-char))))
+	      (mapconcat 'identity extra-string "/")))
      ((eq uniquify-buffer-name-style 'post-forward-angle-brackets)
-      (concat base "<" (mapconcat 'identity extra-string
-				  (string directory-sep-char)) ">"))
+      (concat base "<" (mapconcat 'identity extra-string "/")
+	      ">"))
      (t (error "Bad value for uniquify-buffer-name-style: %s"
 	       uniquify-buffer-name-style)))))
 
