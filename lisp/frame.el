@@ -211,7 +211,8 @@ These supercede the values given in `default-frame-alist'.")
     (set-buffer old-buffer)
 
     ;; Make sure the initial frame can be GC'd if it is ever deleted.
-    (makunbound 'frame-initial-frame)))
+    ;; Make sure frame-notice-user-settings does nothing if called twice.
+    (setq frame-initial-frame nil)))
 
 
 ;;;; Creation of additional frames, and other frame miscellanea
