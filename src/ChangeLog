@@ -1,3 +1,18 @@
+2000-10-24  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ps-print.el (ps-generate): Fix odd/even pages printing bug.
+
+	* delim-col.el: Now there is a column formatting mechanism.
+	Modified to customization mechanisms convention.  Doc fix.
+	(columns): New group for delim-col.
+	(delimit-columns-before, delimit-columns-after)
+	(delimit-columns-format, delimit-columns-extra, delimit-columns-start)
+	(delimit-columns-end): New vars.
+	(delimit-columns-customize, delimit-columns-format): New funs.
+	(delimit-columns-region, delimit-columns-rectangle)
+	(delimit-columns-rectangle-line): Modified to support column
+	formatting.
+	
 2000-10-24  Andrew Innes  <andrewi@gnu.org>
 
 	* dired.c (directory_files_internal_unwind): New function.

@@ -1,5 +1,9 @@
 2000-10-24  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/authors.el (authors-aliases): Add some more aliases.
+	(authors): Set file coding system to iso-2022-7bit.  Add
+	file-local variables to output buffer.
+
 	* files.el (after-find-file): Don't print any warnings if 
 	WARN is nil.
 
