@@ -1327,7 +1327,7 @@ If FORK is a string, it is the name to use for the new buffer."
   (when (equal regexp "")
     (setq regexp (car Info-search-history)))
   (when regexp
-    (let ((found ())
+    (let (found beg-found give-up
 	  (onode Info-current-node)
 	  (ofile Info-current-file)
 	  (opoint (point))
@@ -1336,53 +1336,70 @@ If FORK is a string, it is the name to use for the new buffer."
       (save-excursion
 	(save-restriction
 	  (widen)
+	  (while (and (not give-up)
+		      (or (null found)
+			  (isearch-range-invisible beg-found found)))
+	    (if (re-search-forward regexp nil t)
+		(setq found (point) beg-found (match-beginning 0))
+	      (setq give-up t)))))
+      ;; If no subfiles, give error now.
+      (if give-up
 	  (if (null Info-current-subfile)
-	      (progn (re-search-forward regexp) (setq found (point)))
-	    (condition-case err
-		(progn (re-search-forward regexp) (setq found (point)))
-	      (search-failed nil)))))
-      (if (not found)			;can only happen in subfile case -- else would have erred
-	  (unwind-protect
-	      (let ((list ()))
-		(save-excursion
-		  (set-buffer (marker-buffer Info-tag-table-marker))
+	      (re-search-forward regexp)
+	    (setq found nil)))
+
+      (unless found
+	(unwind-protect
+	    ;; Try other subfiles.
+	    (let ((list ()))
+	      (save-excursion
+		(set-buffer (marker-buffer Info-tag-table-marker))
+		(goto-char (point-min))
+		(search-forward "\n\^_\nIndirect:")
+		(save-restriction
+		  (narrow-to-region (point)
+				    (progn (search-forward "\n\^_")
+					   (1- (point))))
 		  (goto-char (point-min))
-		  (search-forward "\n\^_\nIndirect:")
-		  (save-restriction
-		    (narrow-to-region (point)
-				      (progn (search-forward "\n\^_")
-					     (1- (point))))
-		    (goto-char (point-min))
-		    ;; Find the subfile we just searched.
-		    (search-forward (concat "\n" osubfile ": "))
-		    ;; Skip that one.
-		    (forward-line 1)
-		    ;; Make a list of all following subfiles.
-		    ;; Each elt has the form (VIRT-POSITION . SUBFILENAME).
-		    (while (not (eobp))
-		      (re-search-forward "\\(^.*\\): [0-9]+$")
-		      (goto-char (+ (match-end 1) 2))
-		      (setq list (cons (cons (+ (point-min)
-						(read (current-buffer)))
-					     (match-string-no-properties 1))
-				       list))
-		      (goto-char (1+ (match-end 0))))
-		    ;; Put in forward order
-		    (setq list (nreverse list))))
-		(while list
-		  (message "Searching subfile %s..." (cdr (car list)))
-		  (Info-read-subfile (car (car list)))
-		  (setq list (cdr list))
+		  ;; Find the subfile we just searched.
+		  (search-forward (concat "\n" osubfile ": "))
+		  ;; Skip that one.
+		  (forward-line 1)
+		  ;; Make a list of all following subfiles.
+		  ;; Each elt has the form (VIRT-POSITION . SUBFILENAME).
+		  (while (not (eobp))
+		    (re-search-forward "\\(^.*\\): [0-9]+$")
+		    (goto-char (+ (match-end 1) 2))
+		    (setq list (cons (cons (+ (point-min)
+					      (read (current-buffer)))
+					   (match-string-no-properties 1))
+				     list))
+		    (goto-char (1+ (match-end 0))))
+		  ;; Put in forward order
+		  (setq list (nreverse list))))
+	      (while list
+		(message "Searching subfile %s..." (cdr (car list)))
+		(Info-read-subfile (car (car list)))
+		(setq list (cdr list))
+		(setq give-up nil found nil)
+		(while (and (not give-up)
+			    (or (null found)
+				(isearch-range-invisible beg-found found)))
 		  (if (re-search-forward regexp nil t)
-		      (setq found (point) list ())))
+		      (setq found (point) beg-found (match-beginning 0))
+		    (setq give-up t)))
+		(if give-up
+		    (setq found nil))
 		(if found
-		    (message "")
-		  (signal 'search-failed (list regexp))))
-	    (if (not found)
-		(progn (Info-read-subfile osubfile)
-		       (goto-char opoint)
-		       (Info-select-node)
-		       (set-window-start (selected-window) ostart)))))
+		    (setq list nil)))
+	      (if found
+		  (message "")
+		(signal 'search-failed (list regexp))))
+	  (if (not found)
+	      (progn (Info-read-subfile osubfile)
+		     (goto-char opoint)
+		     (Info-select-node)
+		     (set-window-start (selected-window) ostart)))))
       (widen)
       (goto-char found)
       (Info-select-node)
