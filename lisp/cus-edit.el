@@ -1,6 +1,7 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
 ;;
-;; Copyright (C) 1996,97,1999,2000,01,02,03,2004  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;;           Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -898,8 +899,6 @@ then prompt for the MODE to customize."
 	(let (
 	      ;; Copied from `custom-buffer-create-other-window'.
 	      (pop-up-windows t)
-	      (special-display-buffer-names nil)
-	      (special-display-regexps nil)
 	      (same-window-buffer-names nil)
 	      (same-window-regexps nil))
 	  (pop-to-buffer name))
@@ -1246,8 +1245,6 @@ SYMBOL is a customization option, and WIDGET is a widget for editing
 that option."
   (unless name (setq name "*Customization*"))
   (let ((pop-up-windows t)
-	(special-display-buffer-names nil)
-	(special-display-regexps nil)
 	(same-window-buffer-names nil)
 	(same-window-regexps nil))
     (pop-to-buffer (custom-get-fresh-buffer name))
@@ -4187,5 +4184,5 @@ if that value is non-nil."
 
 (provide 'cus-edit)
 
-;;; arch-tag: 64533aa4-1b1a-48c3-8812-f9dc718e8a6f
+;; arch-tag: 64533aa4-1b1a-48c3-8812-f9dc718e8a6f
 ;;; cus-edit.el ends here
