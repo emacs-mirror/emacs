@@ -1,7 +1,7 @@
 2000-04-26  Kenichi Handa  <handa@etl.go.jp>
 
-	* mail/rmail.el (rmail-expunge): When there's no deleted messages,
-	do nothing.
+	* mail/rmail.el (rmail-expunge): When there are no deleted
+	messages, do nothing.
 
 2000-04-26  Dave Love  <fx@gnu.org>
 
