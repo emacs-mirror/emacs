@@ -733,7 +733,11 @@ Should handle most cases. However:
   ,Lm(B (REVERSE ROUNDED E) = \"e'\" or \"e`\"
   ,Le(B (KHA) when after ,La(B (S) = \"x\" or \"kh\"
   ,Lj(B (HARD SIGN) = \"~\", ,LJ(B (CAPITAL HARD SIGN) = \"~~\",
-  ,Ll(B (SOFT SIGN) = \"'\", ,LL(B (CAPITAL SOFT SIGN) = \"''\".
+  ,Ll(B (SOFT SIGN) = \"'\", ,LL(B (CAPITAL SOFT SIGN) = \"''\",
+  ,Lo(B (YA) = \"ya\", \"ja\" or \"q\".
+
+Russian alphabet: a b v=w g d e yo=jo zh z i j=j' k l m n o p r s t
+u f h=kh=x c ch sh shch=sj=\\s=\\sht ~ y ' yu=ju ya=ja=q
 
 Also included are Ukranian ,Lt(B (YE) = \"\\e\" and ,Lw(B (YI) = \"yi\", 
 Belorussian ,L~(B (SHORT U) = \"u'\",
@@ -745,7 +749,7 @@ cyrillic ,Lv(B (I DECIMAL) = \"\\i\", ,Lx(B (JE) = \"\\j\",
 
 (quail-define-rules
  ("a" ?,LP(B)("b" ?,LQ(B) ("v" ?,LR(B) ("w" ?,LR(B) ("g" ?,LS(B) ("d" ?,LT(B) 
- ("e" ?,LU(B) ("je" ?,LU(B) ("je" ?,LU(B)
+ ("e" ?,LU(B) ("je" ?,LU(B) 
  ("yo" ?,Lq(B) ("jo" ?,Lq(B)
  ("zh" ?,LV(B) ("z" ?,LW(B) ("i" ?,LX(B) 
  ("j" ?,LY(B) ("j'" ?,LY(B) ("j`" ?,LY(B) ("k" ?,LZ(B) ("l" ?,L[(B)
@@ -753,13 +757,12 @@ cyrillic ,Lv(B (I DECIMAL) = \"\\i\", ,Lx(B (JE) = \"\\j\",
  ("f" ?,Ld(B) ("x" ?,Le(B) ("h" ?,Le(B) ("kh" ?,Le(B)
  ("c" ?,Lf(B) ("ch" ?,Lg(B)
  ("sh" ?,Lh(B) 
-; ("w" ?,Li(B) ("q" ?,Li(B) 
  ("shch" ?,Li(B) ("sj" ?,Li(B) 
  ("\\sht" ?,Li(B) ("\\t" ?,Li(B) 
  ("~" ?,Lj(B) ("y" ?,Lk(B) ("'" ?,Ll(B) ("`" ?,Ll(B) 
  ("e'" ?,Lm(B) ("e`" ?,Lm(B) ("@" ?,Lm(B) 
  ("yu" ?,Ln(B) ("ju" ?,Ln(B) 
- ("ya" ?,Lo(B) ("ja" ?,Lo(B)
+ ("ya" ?,Lo(B) ("ja" ?,Lo(B) ("q" ?,Lo(B)
 
  ("A" ?,L0(B) ("B" ?,L1(B) ("V" ?,L2(B) ("W" ?,L2(B) ("G" ?,L3(B) ("D" ?,L4(B) 
  ("E" ?,L5(B) ("Je" ?,L5(B) ("JE" ?,L5(B)
@@ -770,12 +773,11 @@ cyrillic ,Lv(B (I DECIMAL) = \"\\i\", ,Lx(B (JE) = \"\\j\",
  ("F" ?,LD(B) ("X" ?,LE(B) ("H" ?,LE(B) ("Kh" ?,LE(B) ("KH" ?,LE(B)
  ("C" ?,LF(B) ("Ch" ?,LG(B) ("CH" ?,LG(B) 
  ("Sh" ?,LH(B) ("SH" ?,LH(B) 
-; ("W" ?,LI(B) ("Q" ?,LI(B) 
  ("Shch" ?,LI(B) ("SHCH" ?,LI(B) ("Sj" ?,LI(B) ("SJ" ?,LI(B) 
  ("\\Sht" ?,LI(B) ("\\SHT" ?,LI(B) ("\\T" ?,LI(B) 
  ("~~" ",LJ(B") ("Y" ?,LK(B) ("''" ",LL(B") ("E'" ?,LM(B) ("E`" ?,LM(B) 
  ("Yu" ?,LN(B) ("YU" ?,LN(B) ("Ju" ?,LN(B) ("JU" ?,LN(B) 
- ("Ya" ?,LO(B) ("YA" ?,LO(B) ("Ja" ?,LO(B) ("JA" ?,LO(B) 
+ ("Ya" ?,LO(B) ("YA" ?,LO(B) ("Ja" ?,LO(B) ("JA" ?,LO(B) ("Q" ?,LO(B)
 
  ("\\e" ?,Lt(B) ("yi" ?,Lw(B) ("u'" ?,L~(B)
  ("\\d" ?,Lr(B) ("\\ch" ?,L{(B)
