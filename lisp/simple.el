@@ -303,14 +303,14 @@ In programming language modes, this is the same as TAB.
 In some text modes, where TAB inserts a tab, this indents to the
 column specified by the function `current-left-margin'."
   (interactive "*")
-  (delete-horizontal-space t)
   (let ((pos (point)))
     ;; Be careful to insert the newline before indenting the line.
     ;; Otherwise, the indentation might be wrong.
     (newline)
     (save-excursion
       (goto-char pos)
-      (indent-according-to-mode))
+      (indent-according-to-mode)
+      (delete-horizontal-space t))
     (indent-according-to-mode)))
 
 (defun quoted-insert (arg)
