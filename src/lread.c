@@ -2753,8 +2753,8 @@ it defaults to the value of `obarray'.")
 
 DEFUN ("intern-soft", Fintern_soft, Sintern_soft, 1, 2, 0,
   "Return the canonical symbol named NAME, or nil if none exists.\n\
-NAME may be a string or a symbol.  If it is a symbol, that exact
-symbol is searched for.
+NAME may be a string or a symbol.  If it is a symbol, that exact\n\
+symbol is searched for.\n\
 A second optional argument specifies the obarray to use;\n\
 it defaults to the value of `obarray'.")
   (name, obarray)
