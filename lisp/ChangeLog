@@ -1,3 +1,49 @@
+2004-01-11  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/appt.el: Update copyright and commentary.
+	(appt-issue-message): Delete (see appt-activate).
+	(appt-visible, appt-msg-window): Make obsolete, in favour of
+	appt-display-format.
+	(appt-display-mode-line, appt-display-duration)
+	(appt-display-diary, appt-time-msg-list, appt-mode-string)
+	(appt-prev-comp-time, appt-display-count, appt-timer)
+	(appt-convert-time): Doc change.
+	(appt-disp-window-function, appt-delete-window-function): Use
+	defcustom rather than defvar.
+	(appt-display-format): New variable.
+	(appt-display-message): New function with display code from
+	appt-check.
+	(appt-check): Add optional FORCE argument.  Doc change.  Add
+	appt-make-list to diary-hook if displaying diary.  Remove
+	checking of view-diary-entries-initially.  Message
+	display section removed to new function appt-display-message.
+	(appt-display-window): Doc change.  Remove unused internal var
+	this-buffer.  Do not beep, since appt-display-message does that.
+	(appt-make-list): Doc change.  Use caar.
+	(appt-sort-list): Simplify by using builtin sort function.
+	(appt-update-list): New function for updating appts when diary is
+	saved.
+	(appt-activate): New autoloaded function to toggle package
+	functionality.
+
+	* calendar/cal-x.el: (calendar-one-frame-setup)
+	(calendar-only-one-frame-setup, calendar-two-frame-setup): Doc
+	change.
+
+	* calendar/calendar.el: Update copyright.
+	(view-diary-entries-initially, european-calendar-style): Doc
+	change.
+	(calendar-setup): Make defcustom rather than defvar.
+	(mark-visible-calendar-date): Initialize temp-face and faceinfo
+	in let binding so local to function.
+
+	* calendar/diary-lib.el: Update copyright.
+	(diary, diary-entry-time): Doc change.
+	(list-diary-entries): Doc change.  Trivial logic change.
+	(fancy-diary-display): Restore make-face command mistakenly
+	deleted 2003-05-08.
+	(show-all-diary-entries): Allow to pop-up frame if needed.
+
 2004-01-09  John Paul Wallington  <jpw@gnu.org>
 
 	* bindings.el (mode-line-change-eol): Add EVENT parameter.
