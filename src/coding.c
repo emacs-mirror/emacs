@@ -5508,9 +5508,12 @@ decode_eol (coding)
    decoding (ENCODEP is zero). */
 
 static Lisp_Object
-get_translation_table (attrs, encodep)
+get_translation_table (attrs, encodep, max_lookup)
+     Lisp_Object attrs;
+     int encodep, *max_lookup;
 {
   Lisp_Object standard, translation_table;
+  Lisp_Object val;
 
   if (encodep)
     translation_table = CODING_ATTR_ENCODE_TBL (attrs),
@@ -5519,50 +5522,75 @@ get_translation_table (attrs, encodep)
     translation_table = CODING_ATTR_DECODE_TBL (attrs),
       standard = Vstandard_translation_table_for_decode;
   if (NILP (translation_table))
-    return standard;
-  if (SYMBOLP (translation_table))
-    translation_table = Fget (translation_table, Qtranslation_table);
+    translation_table = standard;
+  else
+    {
+      if (SYMBOLP (translation_table))
+	translation_table = Fget (translation_table, Qtranslation_table);
+      else if (CONSP (translation_table))
+	{
+	  translation_table = Fcopy_sequence (translation_table);
+	  for (val = translation_table; CONSP (val); val = XCDR (val))
+	    if (SYMBOLP (XCAR (val)))
+	      XSETCAR (val, Fget (XCAR (val), Qtranslation_table));
+	}
+      if (CHAR_TABLE_P (standard))
+	{
+	  if (CONSP (translation_table))
+	    translation_table = nconc2 (translation_table,
+					Fcons (standard, Qnil));
+	  else
+	    translation_table = Fcons (translation_table,
+				       Fcons (standard, Qnil));
+	}
+    }
+  *max_lookup = 1;
+  if (CHAR_TABLE_P (translation_table)
+      && CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (translation_table)) > 1)
+    {
+      val = XCHAR_TABLE (translation_table)->extras[1];
+      if (NATNUMP (val) && *max_lookup < XFASTINT (val))
+	*max_lookup = XFASTINT (val);
+    }
   else if (CONSP (translation_table))
     {
-      Lisp_Object val;
+      Lisp_Object tail, val;
 
-      translation_table = Fcopy_sequence (translation_table);
-      for (val = translation_table; CONSP (val); val = XCDR (val))
-	if (SYMBOLP (XCAR (val)))
-	  XSETCAR (val, Fget (XCAR (val), Qtranslation_table));
-    }
-  if (! NILP (standard))
-    {
-      if (CONSP (translation_table))
-	translation_table = nconc2 (translation_table, Fcons (standard, Qnil));
-      else
-	translation_table = Fcons (translation_table, Fcons (standard, Qnil));
+      for (tail = translation_table; CONSP (tail); tail = XCDR (tail))
+	if (CHAR_TABLE_P (XCAR (tail))
+	    && CHAR_TABLE_EXTRA_SLOTS (XCHAR_TABLE (XCAR (tail))) > 1)
+	  {
+	    val = XCHAR_TABLE (XCAR (tail))->extras[1];
+	    if (NATNUMP (val) && *max_lookup < XFASTINT (val))
+	      *max_lookup = XFASTINT (val);
+	  }
     }
   return translation_table;
 }
 
-#define LOOKUP_TRANSLATION_TABLE(table, c, trans)	\
-  do {							\
-    if (CHAR_TABLE_P (table))				\
-      {							\
-	trans = CHAR_TABLE_REF (table, c);		\
-	if (CHARACTERP (trans))				\
-	  c = XFASTINT (trans), trans = Qnil;		\
-      }							\
-    else						\
-      {							\
-	Lisp_Object tail = table;			\
-							\
-	for (; CONSP (tail); tail = XCDR (tail))	\
-	  if (CHAR_TABLE_P (XCAR (tail)))		\
-	    {						\
-	      trans = CHAR_TABLE_REF (table, c);	\
-	      if (CHARACTERP (trans))			\
-		c = XFASTINT (trans), trans = Qnil;	\
-	      else if (! NILP (trans))			\
-		break;					\
-	    }						\
-      }							\
+#define LOOKUP_TRANSLATION_TABLE(table, c, trans)		\
+  do {								\
+    trans = Qnil;						\
+    if (CHAR_TABLE_P (table))					\
+      {								\
+	trans = CHAR_TABLE_REF (table, c);			\
+	if (CHARACTERP (trans))					\
+	  c = XFASTINT (trans), trans = Qnil;			\
+      }								\
+    else if (CONSP (table))					\
+      {								\
+	Lisp_Object tail;					\
+								\
+	for (tail = table; CONSP (tail); tail = XCDR (tail))	\
+	  if (CHAR_TABLE_P (XCAR (tail)))			\
+	    {							\
+	      trans = CHAR_TABLE_REF (XCAR (tail), c);		\
+	      if (CHARACTERP (trans))				\
+		c = XFASTINT (trans), trans = Qnil;		\
+	      else if (! NILP (trans))				\
+		break;						\
+	    }							\
+      }								\
   } while (0)
 
 
@@ -5645,8 +5673,7 @@ produce_chars (coding, translation_table, last_block)
 	      int from_nchars = 1, to_nchars = 1;
 	      Lisp_Object trans = Qnil;
 
-	      if (! NILP (translation_table))
-		LOOKUP_TRANSLATION_TABLE (translation_table, c, trans);
+	      LOOKUP_TRANSLATION_TABLE (translation_table, c, trans);
 	      if (! NILP (trans))
 		{
 		  trans = get_translation (trans, buf, buf_end, last_block,
@@ -5975,6 +6002,7 @@ decode_coding (coding)
   Lisp_Object undo_list;
   Lisp_Object translation_table;
   int carryover;
+  int max_lookup;
   int i;
 
   if (BUFFERP (coding->src_object)
@@ -6003,7 +6031,7 @@ decode_coding (coding)
   ALLOC_CONVERSION_WORK_AREA (coding);
 
   attrs = CODING_ID_ATTRS (coding->id);
-  translation_table = get_translation_table (attrs, 0);
+  translation_table = get_translation_table (attrs, 0, &max_lookup);
 
   carryover = 0;
   do
@@ -6201,9 +6229,10 @@ handle_charset_annotation (pos, limit, coding, buf, stop)
 
 
 static void
-consume_chars (coding, translation_table)
+consume_chars (coding, translation_table, max_lookup)
      struct coding_system *coding;
      Lisp_Object translation_table;
+     int max_lookup;
 {
   int *buf = coding->charbuf;
   int *buf_end = coding->charbuf + coding->charbuf_size;
@@ -6215,13 +6244,10 @@ consume_chars (coding, translation_table)
   Lisp_Object eol_type;
   int c;
   EMACS_INT stop, stop_composition, stop_charset;
-  int max_lookup = 0, *lookup_buf = NULL;
+  int *lookup_buf = NULL;
 
   if (! NILP (translation_table))
-    {
-      max_lookup = XINT (XCHAR_TABLE (translation_table)->extras[1]);
-      lookup_buf = alloca (sizeof (int) * max_lookup);
-    }
+    lookup_buf = alloca (sizeof (int) * max_lookup);
 
   eol_type = CODING_ID_EOL_TYPE (coding->id);
   if (VECTORP (eol_type))
@@ -6290,8 +6316,7 @@ consume_chars (coding, translation_table)
 	}
 
       trans = Qnil;
-      if (! NILP (translation_table))
-	LOOKUP_TRANSLATION_TABLE (translation_table, c, trans);
+      LOOKUP_TRANSLATION_TABLE (translation_table, c, trans);
       if (NILP (trans))
 	*buf++ = c;
       else
@@ -6352,9 +6377,10 @@ encode_coding (coding)
 {
   Lisp_Object attrs;
   Lisp_Object translation_table;
+  int max_lookup;
 
   attrs = CODING_ID_ATTRS (coding->id);
-  translation_table = get_translation_table (attrs, 1);
+  translation_table = get_translation_table (attrs, 1, &max_lookup);
 
   if (BUFFERP (coding->dst_object))
     {
@@ -6372,7 +6398,7 @@ encode_coding (coding)
 
   do {
     coding_set_source (coding);
-    consume_chars (coding, translation_table);
+    consume_chars (coding, translation_table, max_lookup);
     coding_set_destination (coding);
     (*(coding->encoder)) (coding);
   } while (coding->consumed_char < coding->src_chars);
