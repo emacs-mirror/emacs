@@ -46,3 +46,6 @@
 
 * Make keymaps a first-class Lisp object (this means a rewrite of 
 keymap.c).
+
+** Provide real menus on ttys.  The MS-DOS implementation can
+serve as an example how to do part of this.

@@ -1,3 +1,8 @@
+2000-09-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c (update_window_line): Make sure to always draw
+	mode-lines.
+
 2000-09-19  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.nt (bootstrap-emacs): Don't change directory.

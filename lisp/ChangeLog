@@ -1,5 +1,8 @@
 2000-09-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* progmodes/sh-script.el (sh-search-word): Remove call to
+	`debug'.
+
 	* files.el (find-file-suppress-same-file-warnings): New
 	user-option.
 	(find-file-noselect): Use it.
