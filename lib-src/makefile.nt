@@ -52,16 +52,13 @@ ALL	        = $(BLD)\make-docfile.exe \
 #		$(BLD)\test-distrib.exe	\
 
 
-LIBS	      =	$(SYS_LIB_DIR)\setargv.obj	\
-		$(SYS_LIB_DIR)\kernel32.lib	\
-		$(SYS_LIB_DIR)\libc.lib		\
-		$(COMPAT_LIB)
+LIBS	      = $(BASE_LIBS)
 
-$(BLD)\make-docfile.exe: 	$(LIBS) $(BLD)\make-docfile.obj
-$(BLD)\hexl.exe:		$(LIBS) $(BLD)\hexl.obj
+$(BLD)\make-docfile.exe: 	$(BLD)\make-docfile.obj
+$(BLD)\hexl.exe:		$(BLD)\hexl.obj
 $(BLD)\ctags.exe: 		$(BLD)\etags.exe
 	copy $(BLD)\etags.exe $(BLD)\ctags.exe
-$(BLD)\wakeup.exe: 		$(LIBS) $(BLD)\wakeup.obj $(BLD)\ntlib.obj
+$(BLD)\wakeup.exe: 		$(BLD)\wakeup.obj $(BLD)\ntlib.obj
 		$(LINK) -out:$@ $(LINK_FLAGS) $(BLD)\wakeup.obj $(BLD)\ntlib.obj $(LIBS)
 
 make-docfile:	$(BLD)\make-docfile.exe
@@ -74,7 +71,7 @@ ETAGSOBJ      = $(BLD)\etags.obj \
 		$(BLD)\getopt1.obj \
 		$(BLD)\ntlib.obj
 
-$(BLD)\etags.exe: 		$(LIBS) $(ETAGSOBJ)
+$(BLD)\etags.exe: 		$(ETAGSOBJ)
 		$(LINK) -out:$@ $(LINK_FLAGS) $(ETAGSOBJ) $(LIBS)
 
 #
@@ -96,7 +93,7 @@ $(BLD)\etags.exe: 		$(LIBS) $(ETAGSOBJ)
 # $(BLD)\test-distrib.exe: 	$(LIBS) $(BLD)\test-distrib.obj
 
 #
-# From ..\makefile.nt, with .obj changed to .o
+# From ..\src\makefile.nt.
 #
 obj = abbrev.c alloc.c alloca.c buffer.c bytecode.c callint.c callproc.c casefiddle.c cm.c cmds.c data.c dired.c dispnew.c doc.c  doprnt.c editfns.c eval.c fileio.c filelock.c filemode.c fns.c  indent.c insdel.c keyboard.c keymap.c lastfile.c lread.c macros.c marker.c minibuf.c xfaces.c mocklisp.c nt.c ntheap.c ntinevt.c ntproc.c ntterm.c print.c process.c regex.c scroll.c search.c syntax.c sysdep.c term.c termcap.c tparam.c undo.c unexnt.c window.c xdisp.c casetab.c floatfns.c frame.c gmalloc.c intervals.c ralloc.c textprop.c vm-limit.c region-cache.c strftime.c
 
@@ -143,10 +140,14 @@ lisp= \
 
 DOC	      = DOC 
 $(DOC):		$(BLD)\make-docfile.exe
-		- rm -f $(DOC)
+		- del /q $(DOC)
 		$(BLD)\make-docfile -d ..\src $(obj) > $(DOC)
 		$(BLD)\make-docfile -d ..\src $(lisp) >> $(DOC)
+!if "$(OS_TYPE)" == "win95"
+		$(CP) $(DOC) ..\etc\DOC
+!else
 		$(CP) $(DOC) ..\etc\DOC-X
+!endif
 		- mkdir ..\src\$(OBJDIR)
 		- mkdir ..\src\$(OBJDIR)\etc
 		$(CP) $(DOC) ..\src\$(OBJDIR)\etc\DOC-X
@@ -178,18 +179,18 @@ install:	$(INSTALL_FILES)
 #
 # Maintenance
 # 
-clean:;		- del /q *~
+clean:;		- del /q *~ *.pdb
 		- $(DEL_TREE) deleted
 		- $(DEL_TREE) obj
-		- del /q DOC
+		- del /q DOC*
 
 #
 # Headers we would preprocess if we could.
 #
-..\src\config.h:	..\nt\config.h
-			cp ..\nt\config.h ..\src\config.h
+..\src\config.h:	..\nt\$(CONFIG_H)
+			$(CP) $** $@
 ..\src\paths.h:		..\nt\paths.h
-			cp ..\nt\paths.h ..\src\paths.h
+			$(CP) $** $@
 
 ### DEPENDENCIES ###
 
@@ -275,7 +276,8 @@ $(BLD)\leditcfns.obj : \
 	$(SRC)\leditcfns.c
 
 $(BLD)\make-docfile.obj : \
-	$(SRC)\make-docfile.c
+	$(SRC)\make-docfile.c \
+	$(EMACS_ROOT)\src\config.h
 
 $(BLD)\make-path.obj : \
 	$(SRC)\make-path.c
