@@ -275,7 +275,7 @@ Subexpression 2 must end right before the \\n or \\r.")
    ;; Dired marks.
    (list dired-re-mark
 	 '(0 font-lock-constant-face)
-	 '("[ \t]+" (dired-move-to-filename) nil (0 font-lock-warning-face)))
+	 '(".+" (dired-move-to-filename) nil (0 font-lock-warning-face)))
    ;; People who are paranoid about security would consider this more
    ;; important than other things such as whether it is a directory.
    ;; But we don't want to encourage paranoia, so our default
@@ -289,11 +289,11 @@ Subexpression 2 must end right before the \\n or \\r.")
    ;;
    ;; Subdirectories.
    (list dired-re-dir
-	 '("[ \t]+" (dired-move-to-filename) nil (0 font-lock-function-name-face)))
+	 '(".+" (dired-move-to-filename) nil (0 font-lock-function-name-face)))
    ;;
    ;; Symbolic links.
    (list dired-re-sym 
-	 '("[ \t]+" (dired-move-to-filename) nil (0 font-lock-keyword-face)))
+	 '(".+" (dired-move-to-filename) nil (0 font-lock-keyword-face)))
    ;;
    ;; Files suffixed with `completion-ignored-extensions'.
    '(eval .
@@ -301,7 +301,7 @@ Subexpression 2 must end right before the \\n or \\r.")
        ;; It is quicker to first find just an extension, then go back to the
        ;; start of that file name.  So we do this complex MATCH-ANCHORED form.
        (list (concat "\\(" (mapconcat 'identity extensions "\\|") "\\|#\\)$")
-	     '("[ \t]+" (dired-move-to-filename) nil (0 font-lock-string-face))))))
+	     '(".+" (dired-move-to-filename) nil (0 font-lock-string-face))))))
   "Additional expressions to highlight in Dired mode.")
 
 ;;; Macros must be defined before they are used, for the byte compiler.
@@ -601,7 +601,8 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   ;; Also, we can run this hook which may want to modify the switches
   ;; based on default-directory, e.g. with ange-ftp to a SysV host
   ;; where ls won't understand -Al switches.
-  (let (dirname)
+  (let (dirname
+	(indent-tabs-mode nil))
     (if (consp dir-or-list)
 	(setq dirname (car dir-or-list))
       (setq dirname dir-or-list))
