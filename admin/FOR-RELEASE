@@ -234,7 +234,7 @@ man/msdog.texi
 man/mule.texi       "Luc Teirlinck"
 man/m-x.texi        "Luc Teirlinck"
 man/picture.texi
-man/programs.texi
+man/programs.texi   "Stephen Eglen"
 man/regs.texi       "Luc Teirlinck"
 man/rmail.texi
 man/screen.texi     "Luc Teirlinck"
