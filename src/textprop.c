@@ -887,9 +887,18 @@ is the string or buffer containing the text.")
   if (NILP (object))
     XSET (object, Lisp_Buffer, current_buffer);
 
-  i = validate_interval_range (object, &start, &end, hard);
+  i = validate_interval_range (object, &start, &end, soft);
   if (NULL_INTERVAL_P (i))
-    return Qnil;
+    {
+      /* If buffer has no props, and we want none, return now.  */
+      if (NILP (props))
+	return Qnil;
+
+      i = validate_interval_range (object, &start, &end, hard);
+      /* This can return if start == end.  */
+      if (NULL_INTERVAL_P (i))
+	return Qnil;
+    }
 
   s = XINT (start);
   len = XINT (end) - s;
