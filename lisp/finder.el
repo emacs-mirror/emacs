@@ -71,6 +71,7 @@
     (mail	. "modes for electronic-mail handling")
     (matching	. "various sorts of searching and matching")
     (mouse	. "mouse support")
+    (multimedia . "images and sound support")
     (news	. "support for netnews reading and posting")
     (oop        . "support for object-oriented programming")
     (outlines   . "support for hierarchical outlining")
