@@ -218,6 +218,7 @@ The face used is `comint-highlight-input'."
 (defcustom comint-highlight-prompt t
   "*If non-nil, highlight program prompts.
 The face used is `comint-highlight-prompt'."
+  :type 'boolean
   :group 'comint)
 
 (defface comint-highlight-prompt
