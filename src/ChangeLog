@@ -1,3 +1,7 @@
+2000-02-02  Ken Raeburn  <raeburn@raeburn.org>
+
+	* puresize.h (BASE_PURESIZE): Increase to 610000.
+
 2000-02-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* frame.c (Fframe_parameters): Add GCPRO because tty_color_name
