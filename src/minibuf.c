@@ -1276,6 +1276,7 @@ are ignored unless STRING itself starts with a space.")
 Lisp_Object Vminibuffer_completion_table, Qminibuffer_completion_table;
 Lisp_Object Vminibuffer_completion_predicate, Qminibuffer_completion_predicate;
 Lisp_Object Vminibuffer_completion_confirm, Qminibuffer_completion_confirm;
+Lisp_Object Vminibuffer_completing_file_name;
 
 /* This comment supplies the doc string for completing-read,
    for make-docfile to see.  We cannot put this in the real DEFUN
@@ -1324,7 +1325,7 @@ DEFUN ("completing-read", Fcompleting_read, Scompleting_read, 2, 8, 0,
   int pos = 0;
   int count = specpdl_ptr - specpdl;
   struct gcpro gcpro1;
-  int disable_multibyte = EQ (table, Qread_file_name_internal);
+  int disable_multibyte = ! NILP (Vminibuffer_completing_file_name); 
 
   GCPRO1 (def);
 
@@ -1700,7 +1701,7 @@ Return nil if there is no valid completion, else t.")
     GCPRO2 (completion, tem);
     /* If reading a file name,
        expand any $ENVVAR refs in the buffer and in TEM.  */
-    if (EQ (Vminibuffer_completion_table, Qread_file_name_internal))
+    if (! NILP (Vminibuffer_completing_file_name))
       {
 	Lisp_Object substituted;
 	substituted = Fsubstitute_in_file_name (tem);
@@ -2193,6 +2194,11 @@ t means to return a list of all possible completions of STRING.\n\
   DEFVAR_LISP ("minibuffer-completion-confirm", &Vminibuffer_completion_confirm,
     "Non-nil => demand confirmation of completion before exiting minibuffer.");
   Vminibuffer_completion_confirm = Qnil;
+
+  DEFVAR_LISP ("minibuffer-completing-file-name",
+	       &Vminibuffer_completing_file_name,
+    "Non-nil means completing file names.");
+  Vminibuffer_completing_file_name = Qnil;
 
   DEFVAR_LISP ("minibuffer-help-form", &Vminibuffer_help_form,
     "Value that `help-form' takes on inside the minibuffer.");
