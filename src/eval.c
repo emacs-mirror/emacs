@@ -1391,6 +1391,7 @@ do_autoload (fundef, funname)
   Vautoload_queue = Qt;
   Fload (Fcar (Fcdr (fundef)), Qnil, noninteractive ? Qt : Qnil, Qnil);
 
+#ifdef UNLOAD
   /* Save the old autoloads, in case we ever do an unload. */
   queue = Vautoload_queue;
   while (CONSP (queue))
@@ -1402,6 +1403,7 @@ do_autoload (fundef, funname)
 	  Fput(first, Qautoload, (Fcdr (second)));
       queue = Fcdr (queue);
     }
+#endif /* UNLOAD */
 
   /* Once loading finishes, don't undo it.  */
   Vautoload_queue = Qt;
