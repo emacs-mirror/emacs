@@ -222,8 +222,11 @@ compile: subdirs.el doit
 	els=`echo $$elpat $(DONTCOMPILE) $(DONTCOMPILE) $(COMPILE_FIRST) | \
 		tr '	 ' '\012\012' | sort | uniq -u`; \
 	for el in $(COMPILE_FIRST) $$els; do \
-	  echo Compiling $$el; \
-	  $(emacs) -f batch-byte-compile-if-not-done $$el || exit 1; \
+	  if test -f $$el; \
+	  then \
+	    echo Compiling $$el; \
+	    $(emacs) -f batch-byte-compile-if-not-done $$el || exit 1; \
+	  fi \
 	done
 
 # Compile all Lisp files, except those from DONTCOMPILE.  This
@@ -236,8 +239,11 @@ compile-always: subdirs.el doit
 	els=`echo $$elpat $(DONTCOMPILE) $(DONTCOMPILE) $(COMPILE_FIRST) | \
 		tr '	 ' '\012\012' | sort | uniq -u`; \
 	for el in $(COMPILE_FIRST) $$els; do \
-	  echo Compiling $$el; \
-	  $(emacs) -f batch-byte-compile $$el || exit 1; \
+	  if test -f $$el; \
+	  then \
+	    echo Compiling $$el; \
+	    $(emacs) -f batch-byte-compile $$el || exit 1; \
+	  fi \
 	done
 
 compile-calc: 
