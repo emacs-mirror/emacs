@@ -769,6 +769,8 @@ static int handle_single_display_prop P_ ((struct it *, Lisp_Object,
 					   Lisp_Object, struct text_pos *,
 					   int));
 static int underlying_face_id P_ ((struct it *));
+static int in_ellipses_for_invisible_text_p P_ ((struct display_pos *,
+						 struct window *));
 
 #define face_before_it_pos(IT) face_before_or_after_it_pos ((IT), 1)
 #define face_after_it_pos(IT)  face_before_or_after_it_pos ((IT), 0)
@@ -1740,18 +1742,17 @@ start_display (it, w, pos)
 }
 
 
-/* Initialize IT for stepping through current_buffer in window W,
-   starting at position POS that includes overlay string and display
-   vector/ control character translation position information.  */
+/* Return 1 if POS is a position in ellipses displayed for invisible
+   text.  W is the window we display, for text property lookup.  */
 
-static void
-init_from_display_pos (it, w, pos)
-     struct it *it;
-     struct window *w;
+static int
+in_ellipses_for_invisible_text_p (pos, w)
      struct display_pos *pos;
+     struct window *w;
 {
-  int charpos = CHARPOS (pos->pos), bytepos = BYTEPOS (pos->pos);
   Lisp_Object prop, window;
+  int ellipses_p = 0;
+  int charpos = CHARPOS (pos->pos);
   
   /* If POS specifies a position in a display vector, this might
      be for an ellipsis displayed for invisible text.  We won't
@@ -1770,10 +1771,33 @@ init_from_display_pos (it, w, pos)
 				 window);
       if (TEXT_PROP_MEANS_INVISIBLE (prop)
 	  && TEXT_PROP_MEANS_INVISIBLE_WITH_ELLIPSIS (prop))
-	{
-	  --charpos;
-	  bytepos = 0;
-	}
+	ellipses_p = 1;
+    }
+
+  return ellipses_p;
+}
+
+
+/* Initialize IT for stepping through current_buffer in window W,
+   starting at position POS that includes overlay string and display
+   vector/ control character translation position information.  */
+
+static void
+init_from_display_pos (it, w, pos)
+     struct it *it;
+     struct window *w;
+     struct display_pos *pos;
+{
+  int charpos = CHARPOS (pos->pos), bytepos = BYTEPOS (pos->pos);
+  
+  /* If POS specifies a position in a display vector, this might
+     be for an ellipsis displayed for invisible text.  We won't
+     get the iterator set up for delivering that ellipsis unless
+     we make sure that it gets aware of the invisible text.  */
+  if (in_ellipses_for_invisible_text_p (pos, w))
+    {
+      --charpos;
+      bytepos = 0;
     }
     
   /* Keep in mind: the call to reseat in init_iterator skips invisible
@@ -10460,7 +10484,8 @@ try_window_reusing_current_matrix (w)
 	      row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
 	      while (MATRIX_ROW_DISPLAYS_TEXT_P (row))
 		{
-		  if (cursor_row_p (w, row))
+		  if (PT >= MATRIX_ROW_START_CHARPOS (row)
+		      && PT < MATRIX_ROW_END_CHARPOS (row))
 		    {
 		      set_cursor_from_row (w, row, w->current_matrix, 0, 0,
 					   dy, nrows_scrolled);
@@ -10617,7 +10642,8 @@ try_window_reusing_current_matrix (w)
 	   MATRIX_ROW_BOTTOM_Y (first_row_to_display) < yb;
 	   ++first_row_to_display)
 	{
-	  if (cursor_row_p (w, first_row_to_display))
+	  if (PT >= MATRIX_ROW_START_CHARPOS (first_row_to_display)
+	      && PT < MATRIX_ROW_END_CHARPOS (first_row_to_display))
 	    pt_row = first_row_to_display;
 	}
 
