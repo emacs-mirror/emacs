@@ -181,7 +181,8 @@ case "${canonical}" in
     case "${canonical}" in
       alpha-*-openbsd*)	machine=alpha ;;
       i386-*-openbsd*)	machine=intel386 ;;
-      m68k-*-openbsd*)  machine=hp9000s300 ;;  	# This is somewhat bogus.
+      m68k-*-openbsd*)  machine=hp9000s300 ;;
+      mipsel-*-openbsd*) machine=pmax ;;
       ns32k-*-openbsd*)	machine=ns32000 ;;
       sparc-*-openbsd*)	machine=sparc ;;
       vax-*-netbsd*)	machine=vax ;;
