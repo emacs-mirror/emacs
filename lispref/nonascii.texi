@@ -448,23 +448,23 @@ corresponding character of @var{to}'s character set.
 characters that result from ordinary decoding.  If a coding system has
 property @code{character-translation-table-for-decode}, that specifies
 the translation table to use.  Otherwise, if
-@code{standard-character-translation-table-for-decode} is
-non-@code{nil}, decoding uses that table.
+@code{standard-translation-table-for-decode} is non-@code{nil}, decoding
+uses that table.
 
   In encoding, the translation table's translations are applied to the
 characters in the buffer, and the result of translation is actually
 encoded.  If a coding system has property
 @code{character-translation-table-for-encode}, that specifies the
 translation table to use.  Otherwise the variable
-@code{standard-character-translation-table-for-encode} specifies the
-translation table.
+@code{standard-translation-table-for-encode} specifies the translation
+table.
 
-@defvar standard-character-translation-table-for-decode
+@defvar standard-translation-table-for-decode
 This is the default translation table for decoding, for
 coding systems that don't specify any other translation table.
 @end defvar
 
-@defvar standard-character-translation-table-for-encode
+@defvar standard-translation-table-for-encode
 This is the default translation table for encoding, for
 coding systems that don't specify any other translation table.
 @end defvar
