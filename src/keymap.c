@@ -71,6 +71,10 @@ Lisp_Object Vminibuffer_local_must_match_map;
 /* Alist of minor mode variables and keymaps.  */
 Lisp_Object Vminor_mode_map_alist;
 
+/* Alist of major-mode-specific overrides for
+   minor mode variables and keymaps.  */
+Lisp_Object Vminor_mode_overriding_map_alist;
+
 /* Keymap mapping ASCII function key sequences onto their preferred forms.
    Initialized by the terminal-specific lisp files.  See DEFVAR for more
    documentation.  */
@@ -1055,65 +1059,71 @@ current_minor_maps (modeptr, mapptr)
      Lisp_Object **modeptr, **mapptr;
 {
   int i = 0;
+  int list_number = 0;
   Lisp_Object alist, assoc, var, val;
+  Lisp_Object lists[2];
 
-  for (alist = Vminor_mode_map_alist;
-       CONSP (alist);
-       alist = XCONS (alist)->cdr)
-    if ((assoc = XCONS (alist)->car, CONSP (assoc))
-	&& (var = XCONS (assoc)->car, SYMBOLP (var))
-	&& (val = find_symbol_value (var), ! EQ (val, Qunbound))
-	&& ! NILP (val))
-      {
-	Lisp_Object temp;
+  lists[0] = Vminor_mode_overriding_map_alist;
+  lists[1] = Vminor_mode_map_alist;
 
-	if (i >= cmm_size)
-	  {
-	    Lisp_Object *newmodes, *newmaps;
+  for (list_number = 0; list_number < 2; list_number++)
+    for (alist = lists[list_number];
+	 CONSP (alist);
+	 alist = XCONS (alist)->cdr)
+      if ((assoc = XCONS (alist)->car, CONSP (assoc))
+	  && (var = XCONS (assoc)->car, SYMBOLP (var))
+	  && (val = find_symbol_value (var), ! EQ (val, Qunbound))
+	  && ! NILP (val))
+	{
+	  Lisp_Object temp;
 
-	    if (cmm_maps)
-	      {
-		BLOCK_INPUT;
-		cmm_size *= 2;
-		newmodes
-		  = (Lisp_Object *) realloc (cmm_modes,
-					     cmm_size * sizeof (Lisp_Object));
-		newmaps
-		  = (Lisp_Object *) realloc (cmm_maps,
-					     cmm_size * sizeof (Lisp_Object));
-		UNBLOCK_INPUT;
-	      }
-	    else
-	      {
-		BLOCK_INPUT;
-		cmm_size = 30;
-		newmodes
-		  = (Lisp_Object *) malloc (cmm_size * sizeof (Lisp_Object));
-		newmaps
-		  = (Lisp_Object *) malloc (cmm_size * sizeof (Lisp_Object));
-		UNBLOCK_INPUT;
-	      }
+	  if (i >= cmm_size)
+	    {
+	      Lisp_Object *newmodes, *newmaps;
 
-	    if (newmaps && newmodes)
-	      {
-		cmm_modes = newmodes;
-		cmm_maps = newmaps;
-	      }
-	    else
-	      break;
-	  }
+	      if (cmm_maps)
+		{
+		  BLOCK_INPUT;
+		  cmm_size *= 2;
+		  newmodes
+		    = (Lisp_Object *) realloc (cmm_modes,
+					       cmm_size * sizeof (Lisp_Object));
+		  newmaps
+		    = (Lisp_Object *) realloc (cmm_maps,
+					       cmm_size * sizeof (Lisp_Object));
+		  UNBLOCK_INPUT;
+		}
+	      else
+		{
+		  BLOCK_INPUT;
+		  cmm_size = 30;
+		  newmodes
+		    = (Lisp_Object *) malloc (cmm_size * sizeof (Lisp_Object));
+		  newmaps
+		    = (Lisp_Object *) malloc (cmm_size * sizeof (Lisp_Object));
+		  UNBLOCK_INPUT;
+		}
 
-	/* Get the keymap definition--or nil if it is not defined.  */
-	temp = internal_condition_case_1 (Findirect_function,
-					  XCONS (assoc)->cdr,
-					  Qerror, current_minor_maps_error);
-	if (!NILP (temp))
-	  {
-	    cmm_modes[i] = var;
-	    cmm_maps [i] = temp;
-	    i++;
-	  }
-      }
+	      if (newmaps && newmodes)
+		{
+		  cmm_modes = newmodes;
+		  cmm_maps = newmaps;
+		}
+	      else
+		break;
+	    }
+
+	  /* Get the keymap definition--or nil if it is not defined.  */
+	  temp = internal_condition_case_1 (Findirect_function,
+					    XCONS (assoc)->cdr,
+					    Qerror, current_minor_maps_error);
+	  if (!NILP (temp))
+	    {
+	      cmm_modes[i] = var;
+	      cmm_maps [i] = temp;
+	      i++;
+	    }
+	}
 
   if (modeptr) *modeptr = cmm_modes;
   if (mapptr)  *mapptr  = cmm_maps;
@@ -3112,6 +3122,13 @@ key sequences and look up bindings iff VARIABLE's value is non-nil.\n\
 If two active keymaps bind the same key, the keymap appearing earlier\n\
 in the list takes precedence.");
   Vminor_mode_map_alist = Qnil;
+
+  DEFVAR_LISP ("minor-mode-overriding-map-alist", &Vminor_mode_overriding_map_alist,
+    "Alist of keymaps to use for minor modes, in current major mode.\n\
+This variable is a alist just like `minor-mode-map-alist', and it is\n\
+used the same way (and before `minor-mode-map-alist'); however,\n\
+it is provided for major modes to bind locally.");
+  Vminor_mode_overriding_map_alist = Qnil;
 
   DEFVAR_LISP ("function-key-map", &Vfunction_key_map,
   "Keymap mapping ASCII function key sequences onto their preferred forms.\n\
