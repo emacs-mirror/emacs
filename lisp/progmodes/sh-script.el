@@ -1,6 +1,6 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs
 
-;; Copyright (C) 1993, 94, 95, 96, 97, 1999, 2001
+;; Copyright (C) 1993, 94, 95, 96, 97, 1999, 2001, 2003
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
@@ -443,21 +443,15 @@ the car and cdr are the same symbol.")
     (define-key map "`" 'skeleton-pair-insert-maybe)
     (define-key map "\"" 'skeleton-pair-insert-maybe)
 
-    (substitute-key-definition 'complete-tag 'comint-dynamic-complete
-			       map (current-global-map))
-    (substitute-key-definition 'newline-and-indent 'sh-newline-and-indent
-			       map (current-global-map))
-    (substitute-key-definition 'delete-backward-char
-			       'backward-delete-char-untabify
-			       map (current-global-map))
+    (define-key map [remap complete-tag] 'comint-dynamic-complete)
+    (define-key map [remap newline-and-indent] 'sh-newline-and-indent)
+    (define-key map [remap delete-backward-char]
+      'backward-delete-char-untabify)
     (define-key map "\C-c:" 'sh-set-shell)
-    (substitute-key-definition 'beginning-of-defun
-			       'sh-beginning-of-compound-command
-			       map (current-global-map))
-    (substitute-key-definition 'backward-sentence 'sh-beginning-of-command
-			       map (current-global-map))
-    (substitute-key-definition 'forward-sentence 'sh-end-of-command
-			       map (current-global-map))
+    (define-key map [remap beginning-of-defun]
+      'sh-beginning-of-compound-command)
+    (define-key map [remap backward-sentence] 'sh-beginning-of-command)
+    (define-key map [remap forward-sentence] 'sh-end-of-command)
     (define-key map [menu-bar insert] (cons "Insert" menu-map))
     (define-key menu-map [sh-while]	'("While Loop" . sh-while))
     (define-key menu-map [sh-until]	'("Until Loop" . sh-until))
