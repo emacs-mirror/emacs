@@ -253,7 +253,7 @@ The directory name must be absolute, but need not be fully expanded.")
 	       "-[-r][-w].[-r][-w].[-r][-w][xst]")
 	     "\\|"))
 (defvar dired-re-perms "[-bcdlps][-r][-w].[-r][-w].[-r][-w].")
-(defvar dired-re-dot "^.* \\.\\.?$")
+(defvar dired-re-dot "^.* \\.\\.?/?$")
 
 ;; The subdirectory names in this list are expanded.
 (defvar dired-subdir-alist nil
@@ -1448,11 +1448,12 @@ see `dired-view-command-alist'.  Otherwise, display it in another buffer."
   "In Dired, return name of file mentioned on this line.
 Value returned normally includes the directory name.
 Optional arg LOCALP with value `no-dir' means don't include directory
-  name in result.  A value of `verbatim' means to return the name exactly as
-  it occurs in the buffer, and a value of t means construct name relative to
-  `default-directory', which still may contain slashes if in a subdirectory.
-Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
-  this line, otherwise an error occurs."
+name in result.  A value of `verbatim' means to return the name exactly as
+it occurs in the buffer, and a value of t means construct name relative to
+`default-directory', which still may contain slashes if in a subdirectory.
+Optional arg NO-ERROR-IF-NOT-FILEP means treat `.' and `..' as
+regular filenames and return nil if no filename on this line.
+Otherwise, an error occurs in these cases."
   (let (case-fold-search file p1 p2 already-absolute)
     (save-excursion
       (if (setq p1 (dired-move-to-filename (not no-error-if-not-filep)))
@@ -1490,7 +1491,9 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
      ((eq localp 'verbatim)
       file)
      ((and (not no-error-if-not-filep)
-	   (member (file-name-nondirectory file) '("." "..")))
+	   (save-excursion
+	     (beginning-of-line)
+	     (looking-at dired-re-dot)))
       (error "Cannot operate on `.' or `..'"))
      ((and (eq localp 'no-dir) already-absolute)
       (file-name-nondirectory file))
