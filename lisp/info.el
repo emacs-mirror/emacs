@@ -661,7 +661,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 (defun Info-set-mode-line ()
   (setq mode-line-buffer-identification
 	(concat
-	 "Info:  ("
+	 "  Info:  ("
 	 (if Info-current-file
 	     (file-name-nondirectory Info-current-file)
 	   "")
