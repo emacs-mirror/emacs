@@ -14,7 +14,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.43 2002/10/26 22:27:15 kfstorm Exp $
+;; Revision: $Id: pcvs.el,v 1.44 2002/11/13 20:19:38 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -338,7 +338,8 @@ the primay since reading the primary can deactivate it."
   "This mode is used for buffers related to a main *cvs* buffer.
 All the `cvs-mode' buffer operations are simply rebound under
 the \\[cvs-mode-map] prefix."
-  nil " CVS")
+  nil " CVS"
+  :group 'pcl-cvs)
 (put 'cvs-minor-mode 'permanent-local t)
 
 
@@ -1367,7 +1368,8 @@ If FILE is non-nil, directory entries won't be selected."
 (defcustom cvs-mode-commit-hook nil
   "Hook run after setting up the commit buffer."
   :type 'hook
-  :options '(cvs-mode-diff))
+  :options '(cvs-mode-diff)
+  :group 'pcl-cvs)
 
 (defun cvs-mode-commit (setup)
   "Check in all marked files, or the current file.
