@@ -930,7 +930,8 @@ if it isn't already recorded.")
       
       start_display (&it, w, startp);
       move_it_vertically (&it, window_box_height (w));
-      move_it_past_eol (&it);
+      if (it.current_y < it.last_visible_y)
+	move_it_past_eol (&it);
       value = make_number (IT_CHARPOS (it));
       
       if (old_buffer)
