@@ -192,7 +192,7 @@ or for window WINDOW if that is specified."
 	    (if (windowp end-w)
 		(nth 1 (window-edges end-w))
 	      (/ (cdr (posn-x-y (event-end event)))
-		 ((frame-char-height end-w)))))
+		 (frame-char-height end-w))))
       (if (>= end-w-top w-top)
 	  (event-closest-point-1 start-window)
 	(window-start start-window)))))
