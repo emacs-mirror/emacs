@@ -50,6 +50,8 @@
 ;; The default extended filename syntax is '/user@host:name', where the
 ;; 'user@' part may be omitted.  This syntax can be customised to a certain
 ;; extent by changing ange-ftp-name-format.  There are limitations.
+;; The `host' part has an optional suffix `#port' which may be used to
+;; specify a non-default port number for the connexion.
 ;;
 ;; If the user part is omitted then ange-ftp generates a default user
 ;; instead whose value depends on the variable ange-ftp-default-user.
@@ -479,7 +481,9 @@
 ;; users of ange-ftp are welcome to subscribe (see below) and to discuss
 ;; aspects of ange-ftp.  New versions of ange-ftp are posted periodically to
 ;; the mailing list.
-;;
+
+;; [The following information about lists may be obsolete.]
+
 ;; To [un]subscribe to ange-ftp-lovers, or to report mailer problems with the
 ;; list, please mail one of the following addresses:
 ;;
@@ -500,14 +504,6 @@
 ;; ange-ftp releases.  This is called ange-ftp-lovers-announce, and can be
 ;; subscribed to by e-mailing to the -request address as above.  Please make
 ;; it clear in the request which mailing list you wish to join.
-
-;; The latest version of ange-ftp can usually be obtained via anonymous ftp
-;; from:
-;;     alpha.gnu.ai.mit.edu:ange-ftp/ange-ftp.tar.Z
-;; or:
-;;     ugle.unit.no:/pub/gnu/emacs-lisp/ange-ftp.tar.Z
-;; or:
-;;   archive.cis.ohio-state.edu:pub/gnu/emacs/elisp-archive/packages/ange-ftp.tar.Z
 
 ;; The archives for ange-ftp-lovers can be found via anonymous ftp under:
 ;;
@@ -623,6 +619,7 @@
 (require 'comint)
 ;; Silence compiler:
 (eval-when-compile
+  (require 'dired)
   (defvar comint-last-output-start nil)
   (defvar comint-last-input-start nil)
   (defvar comint-last-input-end nil))
@@ -2037,30 +2034,36 @@ host specified in ``ange-ftp-gateway-host''."
 
 (defun ange-ftp-normal-login (host user pass account proc)
   "Connect to the FTP-server on HOST as USER using PASSWORD and ACCOUNT.
-PROC is the process to the FTP-client."
-  (let* ((nshost (ange-ftp-nslookup-host host))
-	 (result (ange-ftp-raw-send-cmd
-		 proc
-		 (format "open %s" nshost)
-		 (format "Opening FTP connection to %s" host))))
-    (or (car result)
-	(ange-ftp-error host user
-			(concat "OPEN request failed: "
-				(cdr result))))
-    (setq result (ange-ftp-raw-send-cmd
-		  proc
-		  (if (and (ange-ftp-use-smart-gateway-p host)
-			   ange-ftp-gateway-host)
-		      (format "user \"%s\"@%s %s %s" user nshost pass account)
-		    (format "user \"%s\" %s %s" user pass account))
-		  (format "Logging in as user %s@%s" user host)))
-    (or (car result)
-	(progn
-	  (ange-ftp-set-passwd host user nil) ;reset password.
-	  (ange-ftp-set-account host user nil) ;reset account.
+PROC is the process to the FTP-client.  HOST may have an optional
+suffix of the form #PORT to specify a non-default port"
+  (save-match-data
+    (string-match "^\\([^#]+\\)\\(#\\([0-9]+\\)\\)?\\'" host)
+    (let* ((nshost (ange-ftp-nslookup-host (match-string 1 host)))
+	   (port (match-string 3 host))
+	   (result (ange-ftp-raw-send-cmd
+		    proc
+		    (if port
+			(format "open %s %s" nshost port)
+		      (format "open %s" nshost))
+		    (format "Opening FTP connection to %s" host))))
+      (or (car result)
 	  (ange-ftp-error host user
-			  (concat "USER request failed: "
-				  (cdr result)))))))
+			  (concat "OPEN request failed: "
+				  (cdr result))))
+      (setq result (ange-ftp-raw-send-cmd
+		    proc
+		    (if (and (ange-ftp-use-smart-gateway-p host)
+			     ange-ftp-gateway-host)
+			(format "user \"%s\"@%s %s %s" user nshost pass account)
+		      (format "user \"%s\" %s %s" user pass account))
+		    (format "Logging in as user %s@%s" user host)))
+      (or (car result)
+	  (progn
+	    (ange-ftp-set-passwd host user nil) ;reset password.
+	    (ange-ftp-set-account host user nil) ;reset account.
+	    (ange-ftp-error host user
+			    (concat "USER request failed: "
+				    (cdr result))))))))
 
 ;; ange@hplb.hpl.hp.com says this should not be changed.
 (defvar ange-ftp-hash-mark-msgs
