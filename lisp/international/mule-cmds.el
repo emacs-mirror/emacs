@@ -517,8 +517,6 @@ When there's no input method to turn on, turn on what read from minibuffer."
   (let* ((default (or (car input-method-history) default-input-method)))
     (if (and current-input-method (not arg))
 	(inactivate-input-method)
-      (if (not enable-multibyte-characters)
-	  (error "Can't activate any input method while multibyte characters are disabled"))
       (activate-input-method
        (if (or arg (not default))
 	   (read-input-method-name
