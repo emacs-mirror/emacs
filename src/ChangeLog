@@ -1,3 +1,7 @@
+2003-11-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fns.c (Fstring_to_multibyte): Doc fix.
+
 2003-11-11  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (x_list_fonts): Fix excluding of auto-scaled fonts.
