@@ -1,6 +1,6 @@
 # ==== NTI3MV NMAKE FILE ====
 #
-# $HopeName: MMsrc/!nti3mv.nmk(trunk.7)$
+# $HopeName: MMsrc/!nti3mv.nmk(trunk.8)$
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -10,7 +10,7 @@ PFMDEFS = /DOS_NT /DARCH_386 /DBUILD_MVC /DWIN32 /D_WINDOWS
 STD = <asrtosan> <assert> <deque> <error> <liban> <meter> <misc> <sig>
 MPM = <poolarvm> <vmnt> <space> <pool> <poolclas> <poolmfs> \
       <poolmv> <root> <format> <buffer> <locknt> \
-      <collect> <ref> <trace> <fault> <protnt> \
+      <collect> <ref> <trace> <fault> <sched> <protnt> \
       <thnti3> <ssnti3>
 AMC = <amc> <amcgroup>
 DW  = <dw> <dwformat>
@@ -20,7 +20,7 @@ TESTLIB = <testlib>
 
 # ==== ALMOST GENERIC PRODUCT BUILD FOR NMAKE ====
 #
-# $HopeName: MMsrc/!nti3mv.nmk(trunk.7)$
+# $HopeName: MMsrc/!nti3mv.nmk(trunk.8)$
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -42,7 +42,7 @@ TESTLIB = <testlib>
 #            and surrounded in angle brackets (<>)
 #   MPM      as above for the "mpm" part
 #   AMC      as above for the "amc" part
-#   DW      as above for the "amc" part
+#   DW       as above for the "dw" part
 #   TESTLIB  as above for the "testlib" part
 #   NOISY    if defined, causes command to be emitted
 #
@@ -215,19 +215,23 @@ TESTLIBOBJ = $(TESTLIBOBJ0:>=.obj)
 # == Pseudo-targets
 
 # "all" builds all the varieties of all targets
-# %%TARGET: Add the target  to the all dependencies
+# %%TARGET: Add the target to the all dependencies (but only if you
+#   want it to be built by default)
 
 all: dwstress.exe amcdev.exe lockutnt.exe lockcov.exe stdcover.exe \
-    mpmstres.exe protcv.exe poolncv.exe std.lib mpm.lib
+	mpmstres.exe protcv.exe poolncv.exe faultcv.exe schedcv.exe \
+	std.lib mpm.lib
 
 # Convenience targets
 # %%TARGET: Add a pseudo-target for the new part
 
 dwstress.exe amcdev.exe lockutnt.exe lockcov.exe stdcover.exe \
-	mpmstres.exe protcv.exe poolncv.exe std.lib mpm.lib:
+	mpmstres.exe protcv.exe poolncv.exe faultcv.exe schedcv.exe \
+	std.lib mpm.lib:
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ target
 
-amcdev.cov:
+# coverage files are only build in the cover variety
+schedcv.cov faultcv.cov protcv.cov poolncv.cov amcdev.cov:
 	$(MAKE) /nologo /f $(PFM).nmk TARGET=$@ VARIETY=cover variety
 
 # "clean" removes the directory containing the build results for the platform
@@ -292,6 +296,13 @@ $(PFM)\$(VARIETY)\protcv.exe:  $(PFM)\$(VARIETY)\protcv.obj \
 $(PFM)\$(VARIETY)\poolncv.exe:  $(PFM)\$(VARIETY)\poolncv.obj \
 	$(MPMOBJ) $(STDOBJ) $(TESTLIBOBJ) $(PFM)\$(VARIETY)\pooln.obj
 
+$(PFM)\$(VARIETY)\faultcv.exe: $(PFM)\$(VARIETY)\faultcv.obj \
+	$(MPMOBJ) $(STDOBJ)
+
+$(PFM)\$(VARIETY)\schedcv.exe: $(PFM)\$(VARIETY)\schedcv.obj \
+	$(MPMOBJ) $(STDOBJ) $(TESTLIBOBJ)
+
+
 $(PFM)\$(VARIETY)\std.lib: $(STDOBJ)
 	$(LIBMAN) $(LIBFLAGS) /OUT:$@ $**
 
@@ -330,7 +341,7 @@ $(PFM)\$(VARIETY)\amc.lib: $(STDOBJ) $(MPMOBJ) $(AMCOBJ)
 	plist /nologo /D ..\.. $(<B) > $(@F)
 
 
-# Depenencies
+# Dependencies
 # [we can't build these at the moment]
 
 # Executables
