@@ -237,7 +237,8 @@ it is commonly used to do so.  If your keyboard has a @key{PAGEUP} or
 @item M-x goto-char
 Read a number @var{n} and move point to buffer position @var{n}.
 Position 1 is the beginning of the buffer.
-@item M-x goto-line
+@item M-g M-g
+@itemx M-x goto-line
 Read a number @var{n} and move point to line number @var{n}.  Line 1
 is the beginning of the buffer.
 @item C-x C-n
@@ -343,11 +344,15 @@ earlier changes, back to the limit of the undo information available.
 If all recorded changes have already been undone, the undo command
 displays an error message and does nothing.
 
+@findex undo-only
   Any command other than an undo command breaks the sequence of undo
 commands.  Starting from that moment, the previous undo commands become
 ordinary changes that you can undo.  Thus, to redo changes you have
 undone, type @kbd{C-f} or any other command that will harmlessly break
-the sequence of undoing, then type more undo commands.
+the sequence of undoing, then type more undo commands.  On the other
+hand, if you want to ignore previous undo commands, use @kbd{M-x
+undo-only}.  This is like @code{undo}, but will not redo changes
+you have just undone.
 
 @cindex selective undo
 @kindex C-u C-x u
@@ -591,10 +596,12 @@ Toggle automatic display of the size of the buffer.
 @cindex cursor location
 @cindex point location
   There are two commands for working with line numbers.  @kbd{M-x
-what-line} computes the current line number and displays it in the echo
-area.  To go to a given line by number, use @kbd{M-x goto-line}; it
-prompts you for the number.  These line numbers count from one at the
-beginning of the buffer.
+what-line} computes the current line number and displays it in the
+echo area.  To go to a given line by number, use @kbd{M-g M-g} or
+@kbd{M-g g} (@code{goto-line}).  This prompts you for a line number,
+then moves point to the beginning of that line.  To move to a given
+line in the most recently displayed other buffer, use @kbd{C-u M-g
+M-g}.  Line numbers in Emacs count from one at the beginning of the buffer.
 
   You can also see the current line number in the mode line; see @ref{Mode
 Line}.  If you narrow the buffer, then the line number in the mode line
