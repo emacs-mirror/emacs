@@ -1,3 +1,8 @@
+2004-08-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_create_frame_widgets): Compensate for tool bar when
+	tool bar items is 0.
+
 2004-08-26  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macmenu.c (ENCODE_MENU_STRING): Added to handle multibyte
