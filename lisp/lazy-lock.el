@@ -3,6 +3,7 @@
 ;; Copyright (C) 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
+;; Maintainer: FSF
 ;; Keywords: faces files
 ;; Version: 2.11
 
