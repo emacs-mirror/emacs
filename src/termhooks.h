@@ -363,9 +363,6 @@ extern int (*read_socket_hook) P_ ((int, struct input_event *, int, int));
 /* Called when a frame's display becomes entirely up to date.  */
 extern void (*frame_up_to_date_hook) P_ ((struct frame *));
 
-/* This is used in keyboard.c, to tell how many buttons we will need
-   to track the positions of.  */
-#define NUM_MOUSE_BUTTONS 15
 
 /* Bits in the modifiers member of the input_event structure.
    Note that reorder_modifiers assumes that the bits are in canonical
