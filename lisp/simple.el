@@ -1466,8 +1466,7 @@ specifies the value of ERROR-BUFFER."
       ;; No prefix argument: put the output in a temp buffer,
       ;; replacing its entire contents.
       (let ((buffer (get-buffer-create
-		     (or output-buffer "*Shell Command Output*")))
-	    (success nil))
+		     (or output-buffer "*Shell Command Output*"))))
 	(unwind-protect
 	    (if (eq buffer (current-buffer))
 		;; If the input is the same buffer as the output,
@@ -1499,12 +1498,15 @@ specifies the value of ERROR-BUFFER."
 					     (list buffer error-file)
 					   buffer)
 					 nil shell-command-switch command)))
-	  (setq success (and exit-status (equal 0 exit-status)))
 	  ;; Report the output.
 	  (with-current-buffer buffer
 	    (setq mode-line-process 
-		  (if (not success)
-		    (concat (format " - Exit [%d]" exit-status)))))
+		  (cond ((null exit-status)
+			 " - Error")
+			((stringp exit-status)
+			 (format " - Signal [%s]" exit-status))
+			((not (equal 0 exit-status))
+			 (format " - Exit [%d]" exit-status)))))
 	  (if (with-current-buffer buffer (> (point-max) (point-min)))
 	      ;; There's some output, display it
 	      (display-message-or-buffer buffer)
@@ -1514,11 +1516,17 @@ specifies the value of ERROR-BUFFER."
 			    (< 0 (nth 7 (file-attributes error-file))))
 		       "some error output"
 		     "no output")))
-	      (if (equal 0 exit-status)
-		  (message "(Shell command succeeded with %s)"
-			   output)
-		(message "(Shell command failed with code %d and %s)"
-			 exit-status output)))
+	      (cond ((null exit-status)
+		     (message "(Shell command failed with error)"))
+		    ((equal 0 exit-status)
+		     (message "(Shell command succeeded with %s)"
+			      output))
+		    ((stringp exit-status)
+		     (message "(Shell command killed by signal %s)"
+			      exit-status))
+		    (t
+		     (message "(Shell command failed with code %d and %s)"
+			      exit-status output))))
 	    ;; Don't kill: there might be useful info in the undo-log.
 	    ;; (kill-buffer buffer)
 	    ))))
