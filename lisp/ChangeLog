@@ -1,3 +1,23 @@
+2005-02-19  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* ediff.el (ediff-set-diff-overlays-in-one-buffer,
+	ediff-set-fine-overlays-in-one-buffer,ediff-goto-word) make sure
+	we use the syntax table of the correct buffer.
+	(ediff-same-file-contents,ediff-same-contents): enhancements thanks to
+	Felix Gatzemeier.
+	
+	* ediff-init.el (ediff-hide-face): checks for definedness of functions.
+	(ediff-file-remote-p): make synonymous with file-remote-p.
+	In all deffaces ediff-*-face-*, use min-colors.
+	
+	* ediff-mult.el (ediff-meta-mark-equal-files): make use of
+        ediff-recurse-to-subdirectories.
+	(ediff-mark-if-equal): check that the arguments are strings, use
+	ediff-same-contents (after to Felix Gatzemeier).
+	
+	* ediff.el (ediff-merge-on-startup): don't set buffer-modified-p to
+	nil.
+	
 2005-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* log-view.el (log-view-message-re): Fix up Subversion regexp.
