@@ -297,7 +297,7 @@ If DEFINITION contains multiple addresses, separate them with commas."
 	  (setq definition
 		(mapconcat (function (lambda (x)
 			     (or (mail-resolve-all-aliases-1
-				   (intern-soft x mail-abbrevs)
+				   (intern-soft (downcase x) mail-abbrevs)
 				   (cons sym so-far))
 				 x)))
 			   (nreverse result)
