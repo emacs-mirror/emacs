@@ -1,26 +1,20 @@
-/*  impl.c.teletest: TELEMETRY TEST
+/* impl.c.teletest: TELEMETRY TEST
  *
- *  $HopeName: MMsrc!teletest.c(trunk.3) $
- * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!teletest.c(trunk.4) $
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
  * .source: The command parser here was taken and adapted from bttest.c.
  */
 
-
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "mpm.h"
 #include "mps.h"
-#include "mpsaan.h" /* ANSI arena */
+#include "mpsavm.h"
 #include "testlib.h"
 
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif /* MPS_OS_SU */
+#include <stdlib.h>
 
 
-SRCID(teletest, "$HopeName: MMsrc!teletest.c(trunk.3) $");
+SRCID(teletest, "$HopeName: MMsrc!teletest.c(trunk.4) $");
 
 
 static mps_arena_t arena; 
@@ -37,9 +31,11 @@ static mps_arena_t arena;
 #error "Unrecognized word width"
 #endif
 
+
 static mps_word_t args[MAX_ARGS];
 static char *stringArg;
 static Count argCount;
+
 
 static void callControl(mps_word_t reset, mps_word_t flip)
 {
@@ -50,10 +46,12 @@ static void callControl(mps_word_t reset, mps_word_t flip)
   (void)printf(WORD_FORMAT " -> " WORD_FORMAT "\n", old, new);
 }
 
+
 static void doControl(void) 
 {
   callControl(args[0], args[1]);
 }
+
 
 static void doRead(void)
 {
@@ -69,16 +67,19 @@ static void doSet(void)
   callControl(args[0], args[0]);
 }
 
+
 static void doReset(void) 
 {
   callControl(args[0], (mps_word_t)0);
 }
 
+
 static void doFlip(void) 
 {
   callControl((mps_word_t)0, args[0]);
 }
- 
+
+
 static void doIntern(void) 
 {
   mps_word_t id;
@@ -195,19 +196,16 @@ static void obeyCommand(char *command)
 }
       
 
+#define testArenaSIZE (((size_t)64)<<20)
+
 extern int main(int argc, char *argv[])
 {
-  mps_res_t res;
-
   testlib_unused(argc); 
   testlib_unused(argv);
 
-  res = mps_arena_create(&arena,
-                         mps_arena_class_an());
-  if (res != MPS_RES_OK) {
-    printf("failed to create ANSI arena.\n");
-    return 1;
-  }
+  die(mps_arena_create((mps_arena_t*)&arena, mps_arena_class_vm(),
+                       testArenaSIZE),
+      "mps_arena_create");
   doHelp();
   while(1) {
     char input[INPUT_BUFFER_SIZE];
