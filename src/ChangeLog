@@ -1,3 +1,10 @@
+2000-09-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c (enable_glyph_matrix_rows): Remove xasserts.
+
+	* xdisp.c (try_window_reusing_current_matrix): More fixes
+	for the case window has a header-line.
+
 2000-09-22  Dave Love  <fx@gnu.org>
 
 	* xdisp.c (syms_of_xdisp): Defvar Vmenu_bar_update_hook to provide
