@@ -469,16 +469,21 @@ This function is called after the function pointed out by
       (setq imenu--index-alist (list nil)))
   ;; Add a rescan option to the index.
   (cons imenu--rescan-item imenu--index-alist))
-;;;
+
 ;;; Find all markers in alist and makes
 ;;; them point nowhere.
-;;;
+;;; The top-level call uses nil as the argument;
+;;; non-nil arguments are in recursivecalls.
+(defvar imenu--cleanup-seen)
+
 (defun imenu--cleanup (&optional alist)
-  ;; Sets the markers in imenu--index-alist 
-  ;; point nowhere.
-  ;; if alist is provided use that list.
-  (or alist
-      (setq alist imenu--index-alist))
+  ;; If alist is provided use that list. 
+  ;; If not, empty the table of lists already seen
+  ;; and use imenu--index-alist.
+  (if alist
+      (setq imenu--cleanup-seen (cons alist imenu--cleanup-seen))
+    (setq alist imenu--index-alist imenu--cleanup-seen (list alist)))
+
   (and alist
        (mapcar
 	(function
@@ -486,6 +491,8 @@ This function is called after the function pointed out by
 	   (cond
 	    ((markerp (cdr item))
 	     (set-marker (cdr item) nil))
+	    ;; Don't process one alist twice.
+	    ((memq (cdr item) imenu--cleanup-seen))
 	    ((imenu--subalist-p item)
 	     (imenu--cleanup (cdr item))))))
 	alist)
