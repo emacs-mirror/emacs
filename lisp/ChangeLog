@@ -1,5 +1,14 @@
 2001-05-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* international/ccl.el (define-ccl-program): Fix a typo.  From
+	Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
+
+	* international/mule.el (decode-char): Fix a typo.  From Pavel
+	Jan,Bm(Bk <Pavel@Janik.cz>.
+
+	* textmodes/artist.el (artist-mode): Fix a typo.  From Pavel
+	Jan,Bm(Bk <Pavel@Janik.cz>.
+
 	* frame.el (automatic-hscrolling): Fix a typo.  From Pavel
 	Jan,Bm(Bk <Pavel@Janik.cz>.
 
