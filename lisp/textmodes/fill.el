@@ -272,7 +272,7 @@ space does not end a sentence, so don't break a line there."
   (interactive)
   (save-excursion
    (save-restriction
-    (let (ncols beg indent)
+    (let (ncols beg indent end)
       (beginning-of-line)
       (forward-char (length fill-prefix))
       (skip-chars-forward " \t")
@@ -280,6 +280,9 @@ space does not end a sentence, so don't break a line there."
       (setq beg (point))
       (end-of-line)
       (narrow-to-region beg (point))
+      (setq end (point))
+      (skip-chars-backward " \t")
+      (delete-char (- end (point)))
       (goto-char beg)
       (while (re-search-forward "   *" nil t)
 	(delete-region
