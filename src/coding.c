@@ -144,26 +144,23 @@ STRUCT CODING_SYSTEM
 /*** GENERAL NOTES on `detect_coding_XXX ()' functions ***
 
   These functions check if a byte sequence specified as a source in
-  CODING conforms to the format of XXX.  Return 1 if the data contains
-  a byte sequence which can be decoded into non-ASCII characters by
-  the coding system.  Otherwize (i.e. the data contains only ASCII
-  characters or invalid sequence) return 0.
+  CODING conforms to the format of XXX, and update the members of
+  DETECT_INFO.
 
-  It also resets some bits of an integer pointed by MASK.  The macros
-  CATEGORY_MASK_XXX specifies each bit of this integer.
+  Return 1 if the byte sequence conforms to XXX, otherwise return 0.
 
   Below is the template of these functions.  */
 
 #if 0
 static int
-detect_coding_XXX (coding, mask)
+detect_coding_XXX (coding, detect_info)
      struct coding_system *coding;
-     int *mask;
+     struct coding_detection_info *detect_info;
 {
   unsigned char *src = coding->source;
   unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
-  int c;
+  int consumed_chars = 0;
   int found = 0;
   ...;
 
@@ -172,18 +169,19 @@ detect_coding_XXX (coding, mask)
       /* Get one byte from the source.  If the souce is exausted, jump
 	 to no_more_source:.  */
       ONE_MORE_BYTE (c);
-      /* Check if it conforms to XXX.  If not, break the loop.  */
+
+      if (! __C_conforms_to_XXX___ (c))
+	break;
+      if (! __C_strongly_suggests_XXX__ (c))
+	found = CATEGORY_MASK_XXX;
     }
-  /* As the data is invalid for XXX, reset a proper bits.  */
-  *mask &= ~CODING_CATEGORY_XXX;
+  /* The byte sequence is invalid for XXX.  */
+  detect_info->rejected |= CATEGORY_MASK_XXX;
   return 0;
+
  no_more_source:
-  /* The source exausted.  */
-  if (!found)
-    /* ASCII characters only. */
-    return 0;
-  /* Some data should be decoded into non-ASCII characters.  */
-  *mask &= CODING_CATEGORY_XXX;
+  /* The source exausted successfully.  */
+  detect_info->found |= found;
   return 1;
 }
 #endif
@@ -408,31 +406,38 @@ Lisp_Object Vsjis_coding_system;
 Lisp_Object Vbig5_coding_system;
 
 
-static int detect_coding_utf_8 P_ ((struct coding_system *, int *));
+static int detect_coding_utf_8 P_ ((struct coding_system *,
+				    struct coding_detection_info *info));
 static void decode_coding_utf_8 P_ ((struct coding_system *));
 static int encode_coding_utf_8 P_ ((struct coding_system *));
 
-static int detect_coding_utf_16 P_ ((struct coding_system *, int *));
+static int detect_coding_utf_16 P_ ((struct coding_system *,
+				     struct coding_detection_info *info));
 static void decode_coding_utf_16 P_ ((struct coding_system *));
 static int encode_coding_utf_16 P_ ((struct coding_system *));
 
-static int detect_coding_iso_2022 P_ ((struct coding_system *, int *));
+static int detect_coding_iso_2022 P_ ((struct coding_system *,
+				       struct coding_detection_info *info));
 static void decode_coding_iso_2022 P_ ((struct coding_system *));
 static int encode_coding_iso_2022 P_ ((struct coding_system *));
 
-static int detect_coding_emacs_mule P_ ((struct coding_system *, int *));
+static int detect_coding_emacs_mule P_ ((struct coding_system *,
+					 struct coding_detection_info *info));
 static void decode_coding_emacs_mule P_ ((struct coding_system *));
 static int encode_coding_emacs_mule P_ ((struct coding_system *));
 
-static int detect_coding_sjis P_ ((struct coding_system *, int *));
+static int detect_coding_sjis P_ ((struct coding_system *,
+				   struct coding_detection_info *info));
 static void decode_coding_sjis P_ ((struct coding_system *));
 static int encode_coding_sjis P_ ((struct coding_system *));
 
-static int detect_coding_big5 P_ ((struct coding_system *, int *));
+static int detect_coding_big5 P_ ((struct coding_system *,
+				   struct coding_detection_info *info));
 static void decode_coding_big5 P_ ((struct coding_system *));
 static int encode_coding_big5 P_ ((struct coding_system *));
 
-static int detect_coding_ccl P_ ((struct coding_system *, int *));
+static int detect_coding_ccl P_ ((struct coding_system *,
+				  struct coding_detection_info *info));
 static void decode_coding_ccl P_ ((struct coding_system *));
 static int encode_coding_ccl P_ ((struct coding_system *));
 
@@ -631,6 +636,7 @@ enum coding_category
 #define CATEGORY_MASK_BIG5		(1 << coding_category_big5)
 #define CATEGORY_MASK_CCL		(1 << coding_category_ccl)
 #define CATEGORY_MASK_EMACS_MULE	(1 << coding_category_emacs_mule)
+#define CATEGORY_MASK_RAW_TEXT		(1 << coding_category_raw_text)
 
 /* This value is returned if detect_coding_mask () find nothing other
    than ASCII characters.  */
@@ -1002,6 +1008,54 @@ alloc_destination (coding, nbytes, dst)
   return dst;
 }
 
+/** Macros for annotations.  */
+
+/* Maximum length of annotation data (sum of annotations for
+   composition and charset).  */
+#define MAX_ANNOTATION_LENGTH (5 + (MAX_COMPOSITION_COMPONENTS * 2) - 1 + 5)
+
+/* An annotation data is stored in the array coding->charbuf in this
+   format:
+     [ -LENGTH ANNOTATION_MASK FROM TO ... ]
+   LENGTH is the number of elements in the annotation.
+   ANNOTATION_MASK is one of CODING_ANNOTATE_XXX_MASK.
+   FROM and TO specify the range of text annotated.  They are relative
+   to coding->src_pos (on encoding) or coding->dst_pos (on decoding).
+
+   The format of the following elements depend on ANNOTATION_MASK.
+
+   In the case of CODING_ANNOTATE_COMPOSITION_MASK, these elements
+   follows:
+     ... METHOD [ COMPOSITION-COMPONENTS ... ]
+   METHOD is one of enum composition_method.
+   Optionnal COMPOSITION-COMPONENTS are characters and composition
+   rules.
+
+   In the case of CODING_ANNOTATE_CHARSET_MASK, one element CHARSET-ID
+   follows.  */
+
+#define ADD_ANNOTATION_DATA(buf, len, mask, from, to)	\
+  do {							\
+    *(buf)++ = -(len);					\
+    *(buf)++ = (mask);					\
+    *(buf)++ = (from);					\
+    *(buf)++ = (to);					\
+    coding->annotated = 1;				\
+  } while (0);
+
+#define ADD_COMPOSITION_DATA(buf, from, to, method)			      \
+  do {									      \
+    ADD_ANNOTATION_DATA (buf, 5, CODING_ANNOTATE_COMPOSITION_MASK, from, to); \
+    *buf++ = method;							      \
+  } while (0)
+
+
+#define ADD_CHARSET_DATA(buf, from, to, id)				  \
+  do {									  \
+    ADD_ANNOTATION_DATA (buf, 5, CODING_ANNOTATE_CHARSET_MASK, from, to); \
+    *buf++ = id;							  \
+  } while (0)
+
 
 /*** 2. Emacs' internal format (emacs-utf-8) ***/
 
@@ -1011,8 +1065,8 @@ alloc_destination (coding, nbytes, dst)
 /*** 3. UTF-8 ***/
 
 /* See the above "GENERAL NOTES on `detect_coding_XXX ()' functions".
-   Check if a text is encoded in UTF-8.  If it is, return
-   CATEGORY_MASK_UTF_8, else return 0.  */
+   Check if a text is encoded in UTF-8.  If it is, return 1, else
+   return 0.  */
 
 #define UTF_8_1_OCTET_P(c)         ((c) < 0x80)
 #define UTF_8_EXTRA_OCTET_P(c)     (((c) & 0xC0) == 0x80)
@@ -1022,9 +1076,9 @@ alloc_destination (coding, nbytes, dst)
 #define UTF_8_5_OCTET_LEADING_P(c) (((c) & 0xFC) == 0xF8)
 
 static int
-detect_coding_utf_8 (coding, mask)
+detect_coding_utf_8 (coding, detect_info)
      struct coding_system *coding;
-     int *mask;
+     struct coding_detection_info *detect_info;
 {
   unsigned char *src = coding->source, *src_base = src;
   unsigned char *src_end = coding->source + coding->src_bytes;
@@ -1033,6 +1087,7 @@ detect_coding_utf_8 (coding, mask)
   int found = 0;
   int incomplete;
 
+  detect_info->checked |= CATEGORY_MASK_UTF_8;
   /* A coding system of this category is always ASCII compatible.  */
   src += coding->head_ascii;
 
@@ -1050,7 +1105,7 @@ detect_coding_utf_8 (coding, mask)
 	break;
       if (UTF_8_2_OCTET_LEADING_P (c))
 	{
-	  found++;
+	  found = CATEGORY_MASK_UTF_8;
 	  continue;
 	}
       ONE_MORE_BYTE (c2);
@@ -1058,7 +1113,7 @@ detect_coding_utf_8 (coding, mask)
 	break;
       if (UTF_8_3_OCTET_LEADING_P (c))
 	{
-	  found++;
+	  found = CATEGORY_MASK_UTF_8;
 	  continue;
 	}
       ONE_MORE_BYTE (c3);
@@ -1066,7 +1121,7 @@ detect_coding_utf_8 (coding, mask)
 	break;
       if (UTF_8_4_OCTET_LEADING_P (c))
 	{
-	  found++;
+	  found = CATEGORY_MASK_UTF_8;
 	  continue;
 	}
       ONE_MORE_BYTE (c4);
@@ -1074,21 +1129,22 @@ detect_coding_utf_8 (coding, mask)
 	break;
       if (UTF_8_5_OCTET_LEADING_P (c))
 	{
-	  found++;
+	  found = CATEGORY_MASK_UTF_8;
 	  continue;
 	}
       break;
     }
-  *mask &= ~CATEGORY_MASK_UTF_8;
+  detect_info->rejected |= CATEGORY_MASK_UTF_8;
   return 0;
 
  no_more_source:
   if (incomplete && coding->mode & CODING_MODE_LAST_BLOCK)
     {
-      *mask &= ~CATEGORY_MASK_UTF_8;
+      detect_info->rejected |= CATEGORY_MASK_UTF_8;
       return 0;
     }
-  return found;
+  detect_info->found |= found;
+  return 1;
 }
 
 
@@ -1269,10 +1325,8 @@ encode_coding_utf_8 (coding)
 
 
 /* See the above "GENERAL NOTES on `detect_coding_XXX ()' functions".
-   Check if a text is encoded in UTF-16 Big Endian (endian == 1) or
-   Little Endian (otherwise).  If it is, return
-   CATEGORY_MASK_UTF_16_BE or CATEGORY_MASK_UTF_16_LE,
-   else return 0.  */
+   Check if a text is encoded in one of UTF-16 based coding systems.
+   If it is, return 1, else return 0.  */
 
 #define UTF_16_HIGH_SURROGATE_P(val) \
   (((val) & 0xFC00) == 0xD800)
@@ -1287,9 +1341,9 @@ encode_coding_utf_8 (coding)
 
 
 static int
-detect_coding_utf_16 (coding, mask)
+detect_coding_utf_16 (coding, detect_info)
      struct coding_system *coding;
-     int *mask;
+     struct coding_detection_info *detect_info;
 {
   unsigned char *src = coding->source, *src_base = src;
   unsigned char *src_end = coding->source + coding->src_bytes;
@@ -1297,21 +1351,29 @@ detect_coding_utf_16 (coding, mask)
   int consumed_chars = 0;
   int c1, c2;
 
-  *mask &= ~CATEGORY_MASK_UTF_16;
+  detect_info->checked |= CATEGORY_MASK_UTF_16;
 
+  if (coding->mode & CODING_MODE_LAST_BLOCK
+      && (coding->src_bytes & 1))
+    {
+      detect_info->rejected |= CATEGORY_MASK_UTF_16;
+      return 0;
+    }
   ONE_MORE_BYTE (c1);
   ONE_MORE_BYTE (c2);
 
   if ((c1 == 0xFF) && (c2 == 0xFE))
-    *mask |= CATEGORY_MASK_UTF_16_LE;
+    {
+      detect_info->found |= CATEGORY_MASK_UTF_16_LE;
+      detect_info->rejected |= CATEGORY_MASK_UTF_16_BE;
+    }
   else if ((c1 == 0xFE) && (c2 == 0xFF))
-    *mask |= CATEGORY_MASK_UTF_16_BE;
-  else
-    *mask |= CATEGORY_MASK_UTF_16_BE_NOSIG | CATEGORY_MASK_UTF_16_LE_NOSIG;
-  return 1;
-
+    {
+      detect_info->found |= CATEGORY_MASK_UTF_16_BE;
+      detect_info->rejected |= CATEGORY_MASK_UTF_16_LE;
+    }
  no_more_source:
-  return 0;
+  return 1;
 }
 
 static void
@@ -1559,10 +1621,10 @@ encode_coding_utf_16 (coding)
 char emacs_mule_bytes[256];
 
 int
-emacs_mule_char (coding, src, nbytes, nchars)
+emacs_mule_char (coding, src, nbytes, nchars, id)
      struct coding_system *coding;
      unsigned char *src;
-     int *nbytes, *nchars;
+     int *nbytes, *nchars, *id;
 {
   unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
@@ -1627,6 +1689,8 @@ emacs_mule_char (coding, src, nbytes, nchars)
     goto invalid_code;
   *nbytes = src - src_base;
   *nchars = consumed_chars;
+  if (id)
+    *id = charset->id;
   return c;
 
  no_more_source:
@@ -1638,12 +1702,13 @@ emacs_mule_char (coding, src, nbytes, nchars)
 
 
 /* See the above "GENERAL NOTES on `detect_coding_XXX ()' functions".
-   Check if a text is encoded in `emacs-mule'.  */
+   Check if a text is encoded in `emacs-mule'.  If it is, return 1,
+   else return 0.  */
 
 static int
-detect_coding_emacs_mule (coding, mask)
+detect_coding_emacs_mule (coding, detect_info)
      struct coding_system *coding;
-     int *mask;
+     struct coding_detection_info *detect_info;
 {
   unsigned char *src = coding->source, *src_base = src;
   unsigned char *src_end = coding->source + coding->src_bytes;
@@ -1653,6 +1718,7 @@ detect_coding_emacs_mule (coding, mask)
   int found = 0;
   int incomplete;
 
+  detect_info->checked |= CATEGORY_MASK_EMACS_MULE;
   /* A coding system of this category is always ASCII compatible.  */
   src += coding->head_ascii;
 
@@ -1680,7 +1746,7 @@ detect_coding_emacs_mule (coding, mask)
 
 	  if (src - src_base <= 4)
 	    break;
-	  found = 1;
+	  found = CATEGORY_MASK_EMACS_MULE;
 	  if (c == 0x80)
 	    goto repeat;
 	}
@@ -1702,19 +1768,20 @@ detect_coding_emacs_mule (coding, mask)
 	  while (c >= 0xA0);
 	  if (src - src_base != emacs_mule_bytes[*src_base])
 	    break;
-	  found = 1;
+	  found = CATEGORY_MASK_EMACS_MULE;
 	}
     }
-  *mask &= ~CATEGORY_MASK_EMACS_MULE;
+  detect_info->rejected |= CATEGORY_MASK_EMACS_MULE;
   return 0;
 
  no_more_source:
   if (incomplete && coding->mode & CODING_MODE_LAST_BLOCK)
     {
-      *mask &= ~CATEGORY_MASK_EMACS_MULE;
+      detect_info->rejected |= CATEGORY_MASK_EMACS_MULE;
       return 0;
     }
-  return found;
+  detect_info->found |= found;
+  return 1;
 }
 
 
@@ -1735,7 +1802,7 @@ detect_coding_emacs_mule (coding, mask)
 								\
       if (src == src_end)					\
 	break;							\
-      c = emacs_mule_char (coding, src, &nbytes, &nchars);	\
+      c = emacs_mule_char (coding, src, &nbytes, &nchars, NULL);\
       if (c < 0)						\
 	{							\
 	  if (c == -2)						\
@@ -1792,16 +1859,6 @@ detect_coding_emacs_mule (coding, mask)
   } while (0)
 
 
-#define ADD_COMPOSITION_DATA(buf, method, nchars)	\
-  do {							\
-    *buf++ = -5;					\
-    *buf++ = coding->produced_char + char_offset;	\
-    *buf++ = CODING_ANNOTATE_COMPOSITION_MASK;		\
-    *buf++ = method;					\
-    *buf++ = nchars;					\
-  } while (0)
-
-
 #define DECODE_EMACS_MULE_21_COMPOSITION(c)				\
   do {									\
     /* Emacs 21 style format.  The first three bytes at SRC are		\
@@ -1810,6 +1867,7 @@ detect_coding_emacs_mule (coding, mask)
        number of characters composed by this composition.  */		\
     enum composition_method method = c - 0xF2;				\
     int *charbuf_base = charbuf;					\
+    int from, to;							\
     int consumed_chars_limit;						\
     int nbytes, nchars;							\
 									\
@@ -1819,7 +1877,9 @@ detect_coding_emacs_mule (coding, mask)
       goto invalid_code;						\
     ONE_MORE_BYTE (c);							\
     nchars = c - 0xA0;							\
-    ADD_COMPOSITION_DATA (charbuf, method, nchars);			\
+    from = coding->produced + char_offset;				\
+    to = from + nchars;							\
+    ADD_COMPOSITION_DATA (charbuf, from, to, method);			\
     consumed_chars_limit = consumed_chars_base + nbytes;		\
     if (method != COMPOSITION_RELATIVE)					\
       {									\
@@ -1843,9 +1903,11 @@ detect_coding_emacs_mule (coding, mask)
   do {								\
     /* Emacs 20 style format for relative composition.  */	\
     /* Store multibyte form of characters to be composed.  */	\
+    enum composition_method method = COMPOSITION_RELATIVE;	\
     int components[MAX_COMPOSITION_COMPONENTS * 2 - 1];		\
     int *buf = components;					\
     int i, j;							\
+    int from, to;						\
 								\
     src = src_base;						\
     ONE_MORE_BYTE (c);		/* skip 0x80 */			\
@@ -1853,7 +1915,9 @@ detect_coding_emacs_mule (coding, mask)
       DECODE_EMACS_MULE_COMPOSITION_CHAR (buf);			\
     if (i < 2)							\
       goto invalid_code;					\
-    ADD_COMPOSITION_DATA (charbuf, COMPOSITION_RELATIVE, i);	\
+    from = coding->produced_char + char_offset;			\
+    to = from + i;						\
+    ADD_COMPOSITION_DATA (charbuf, from, to, method);		\
     for (j = 0; j < i; j++)					\
       *charbuf++ = components[j];				\
   } while (0)
@@ -1863,9 +1927,11 @@ detect_coding_emacs_mule (coding, mask)
   do {								\
     /* Emacs 20 style format for rule-base composition.  */	\
     /* Store multibyte form of characters to be composed.  */	\
+    enum composition_method method = COMPOSITION_WITH_RULE;	\
     int components[MAX_COMPOSITION_COMPONENTS * 2 - 1];		\
     int *buf = components;					\
     int i, j;							\
+    int from, to;						\
 								\
     DECODE_EMACS_MULE_COMPOSITION_CHAR (buf);			\
     for (i = 0; i < MAX_COMPOSITION_COMPONENTS; i++)		\
@@ -1877,7 +1943,9 @@ detect_coding_emacs_mule (coding, mask)
       goto invalid_code;					\
     if (charbuf + i + (i / 2) + 1 < charbuf_end)		\
       goto no_more_source;					\
-    ADD_COMPOSITION_DATA (buf, COMPOSITION_WITH_RULE, i);	\
+    from = coding->produced_char + char_offset;			\
+    to = from + i;						\
+    ADD_COMPOSITION_DATA (buf, from, to, method);		\
     for (j = 0; j < i; j++)					\
       *charbuf++ = components[j];				\
     for (j = 0; j < i; j += 2)					\
@@ -1893,11 +1961,13 @@ decode_coding_emacs_mule (coding)
   unsigned char *src_end = coding->source + coding->src_bytes;
   unsigned char *src_base;
   int *charbuf = coding->charbuf;
-  int *charbuf_end = charbuf + coding->charbuf_size;
+  int *charbuf_end = charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
   int consumed_chars = 0, consumed_chars_base;
-  int char_offset = 0;
   int multibytep = coding->src_multibyte;
   Lisp_Object attrs, eol_type, charset_list;
+  int char_offset = coding->produced_char;
+  int last_offset = char_offset;
+  int last_id = charset_ascii;
 
   CODING_GET_INFO (coding, attrs, eol_type, charset_list);
 
@@ -1935,8 +2005,6 @@ decode_coding_emacs_mule (coding)
 	}
       else if (c == 0x80)
 	{
-	  if (charbuf + 5 + (MAX_COMPOSITION_COMPONENTS * 2) - 1 > charbuf_end)
-	    break;
 	  ONE_MORE_BYTE (c);
 	  if (c - 0xF2 >= COMPOSITION_RELATIVE
 	      && c - 0xF2 <= COMPOSITION_WITH_RULE_ALTCHARS)
@@ -1947,19 +2015,27 @@ decode_coding_emacs_mule (coding)
 	    DECODE_EMACS_MULE_20_RULEBASE_COMPOSITION (c);
 	  else
 	    goto invalid_code;
-	  coding->annotated = 1;
 	}
       else if (c < 0xA0 && emacs_mule_bytes[c] > 1)
 	{
 	  int nbytes, nchars;
+	  int id;
+
 	  src = src_base;
 	  consumed_chars = consumed_chars_base;
-	  c = emacs_mule_char (coding, src, &nbytes, &nchars);
+	  c = emacs_mule_char (coding, src, &nbytes, &nchars, &id);
 	  if (c < 0)
 	    {
 	      if (c == -2)
 		break;
 	      goto invalid_code;
+	    }
+	  if (last_id != id)
+	    {
+	      if (last_id != charset_ascii)
+		ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
+	      last_id = id;
+	      last_offset = char_offset;
 	    }
 	  *charbuf++ = c;
 	  src += nbytes;
@@ -1973,10 +2049,13 @@ decode_coding_emacs_mule (coding)
       consumed_chars = consumed_chars_base;
       ONE_MORE_BYTE (c);
       *charbuf++ = ASCII_BYTE_P (c) ? c : BYTE8_TO_CHAR (c);
+      char_offset++;
       coding->errors++;
     }
 
  no_more_source:
+  if (last_id != charset_ascii)
+    ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
   coding->consumed_char += consumed_chars_base;
   coding->consumed = src_base - coding->source;
   coding->charbuf_used = charbuf - coding->charbuf;
@@ -2011,6 +2090,7 @@ encode_coding_emacs_mule (coding)
   int produced_chars = 0;
   Lisp_Object attrs, eol_type, charset_list;
   int c;
+  int preferred_charset_id = -1;
 
   CODING_GET_INFO (coding, attrs, eol_type, charset_list);
 
@@ -2018,6 +2098,29 @@ encode_coding_emacs_mule (coding)
     {
       ASSURE_DESTINATION (safe_room);
       c = *charbuf++;
+
+      if (c < 0)
+	{
+	  /* Handle an annotation.  */
+	  switch (*charbuf)
+	    {
+	    case CODING_ANNOTATE_COMPOSITION_MASK:
+	      /* Not yet implemented.  */
+	      break;
+	    case CODING_ANNOTATE_CHARSET_MASK:
+	      preferred_charset_id = charbuf[3];
+	      if (preferred_charset_id >= 0
+		  && NILP (Fmemq (make_number (preferred_charset_id),
+				  charset_list)))
+		preferred_charset_id = -1;
+	      break;
+	    default:
+	      abort ();
+	    }
+	  charbuf += -c - 1;
+	  continue;
+	}
+
       if (ASCII_CHAR_P (c))
 	EMIT_ONE_ASCII_BYTE (c);
       else if (CHAR_BYTE8_P (c))
@@ -2033,7 +2136,14 @@ encode_coding_emacs_mule (coding)
 	  int emacs_mule_id;
 	  unsigned char leading_codes[2];
 
-	  charset = char_charset (c, charset_list, &code);
+	  if (preferred_charset_id >= 0)
+	    {
+	      charset = CHARSET_FROM_ID (preferred_charset_id);
+	      if (! CHAR_CHARSET_P (c, charset))
+		charset = char_charset (c, charset_list, NULL);
+	    }
+	  else
+	    charset = char_charset (c, charset_list, &code);
 	  if (! charset)
 	    {
 	      c = coding->default_char;
@@ -2319,32 +2429,26 @@ setup_iso_safe_charsets (attrs)
 
 
 /* See the above "GENERAL NOTES on `detect_coding_XXX ()' functions".
-   Check if a text is encoded in ISO2022.  If it is, returns an
-   integer in which appropriate flag bits any of:
-	CATEGORY_MASK_ISO_7
-	CATEGORY_MASK_ISO_7_TIGHT
-	CATEGORY_MASK_ISO_8_1
-	CATEGORY_MASK_ISO_8_2
-	CATEGORY_MASK_ISO_7_ELSE
-	CATEGORY_MASK_ISO_8_ELSE
-   are set.  If a code which should never appear in ISO2022 is found,
-   returns 0.  */
+   Check if a text is encoded in one of ISO-2022 based codig systems.
+   If it is, return 1, else return 0.  */
 
 static int
-detect_coding_iso_2022 (coding, mask)
+detect_coding_iso_2022 (coding, detect_info)
      struct coding_system *coding;
-     int *mask;
+     struct coding_detection_info *detect_info;
 {
   unsigned char *src = coding->source, *src_base = src;
   unsigned char *src_end = coding->source + coding->src_bytes;
   int multibytep = coding->src_multibyte;
-  int mask_iso = CATEGORY_MASK_ISO;
-  int mask_found = 0, mask_8bit_found = 0;
-  int reg[4], shift_out = 0, single_shifting = 0;
+  int single_shifting = 0;
   int id;
   int c, c1;
   int consumed_chars = 0;
   int i;
+  int rejected = 0;
+  int found = 0;
+
+  detect_info->checked |= CATEGORY_MASK_ISO;
 
   for (i = coding_category_iso_7; i <= coding_category_iso_8_else; i++)
     {
@@ -2363,8 +2467,7 @@ detect_coding_iso_2022 (coding, mask)
   /* A coding system of this category is always ASCII compatible.  */
   src += coding->head_ascii;
 
-  reg[0] = charset_ascii, reg[1] = reg[2] = reg[3] = -1;
-  while (mask_iso && src < src_end)
+  while (rejected != CATEGORY_MASK_ISO)
     {
       ONE_MORE_BYTE (c);
       switch (c)
@@ -2382,7 +2485,6 @@ detect_coding_iso_2022 (coding, mask)
 		  || (id = iso_charset_table[0][c >= ','][c1]) < 0)
 		/* Invalid designation sequence.  Just ignore.  */
 		break;
-	      reg[(c - '(') % 4] = id;
 	    }
 	  else if (c == '$')
 	    {
@@ -2390,7 +2492,7 @@ detect_coding_iso_2022 (coding, mask)
 	      ONE_MORE_BYTE (c);
 	      if (c >= '@' && c <= 'B')
 		/* Designation for JISX0208.1978, GB2312, or JISX0208.  */
-		reg[0] = id = iso_charset_table[1][0][c];
+		id = iso_charset_table[1][0][c];
 	      else if (c >= '(' && c <= '/')
 		{
 		  ONE_MORE_BYTE (c1);
@@ -2398,116 +2500,86 @@ detect_coding_iso_2022 (coding, mask)
 		      || (id = iso_charset_table[1][c >= ','][c1]) < 0)
 		    /* Invalid designation sequence.  Just ignore.  */
 		    break;
-		  reg[(c - '(') % 4] = id;
 		}
 	      else
-		/* Invalid designation sequence.  Just ignore.  */
+		/* Invalid designation sequence.  Just ignore it.  */
 		break;
 	    }
 	  else if (c == 'N' || c == 'O')
 	    {
 	      /* ESC <Fe> for SS2 or SS3.  */
-	      mask_iso &= CATEGORY_MASK_ISO_7_ELSE;
+	      single_shifting = 1;
+	      rejected |= CATEGORY_MASK_ISO_7BIT | CATEGORY_MASK_ISO_8BIT;
 	      break;
 	    }
 	  else if (c >= '0' && c <= '4')
 	    {
 	      /* ESC <Fp> for start/end composition.  */
-	      mask_found |= CATEGORY_MASK_ISO;
+	      found |= CATEGORY_MASK_ISO;
 	      break;
 	    }
 	  else
 	    {
-	      /* Invalid escape sequence.  */
-	      mask_iso &= ~CATEGORY_MASK_ISO_ESCAPE;
+	      /* Invalid escape sequence.  Just ignore it.  */
 	      break;
 	    }
 
 	  /* We found a valid designation sequence for CHARSET.  */
-	  mask_iso &= ~CATEGORY_MASK_ISO_8BIT;
+	  rejected |= CATEGORY_MASK_ISO_8BIT;
 	  if (SAFE_CHARSET_P (&coding_categories[coding_category_iso_7],
 			      id))
-	    mask_found |= CATEGORY_MASK_ISO_7;
+	    found |= CATEGORY_MASK_ISO_7;
 	  else
-	    mask_iso &= ~CATEGORY_MASK_ISO_7;
+	    rejected |= CATEGORY_MASK_ISO_7;
 	  if (SAFE_CHARSET_P (&coding_categories[coding_category_iso_7_tight],
 			      id))
-	    mask_found |= CATEGORY_MASK_ISO_7_TIGHT;
+	    found |= CATEGORY_MASK_ISO_7_TIGHT;
 	  else
-	    mask_iso &= ~CATEGORY_MASK_ISO_7_TIGHT;
+	    rejected |= CATEGORY_MASK_ISO_7_TIGHT;
 	  if (SAFE_CHARSET_P (&coding_categories[coding_category_iso_7_else],
 			      id))
-	    mask_found |= CATEGORY_MASK_ISO_7_ELSE;
+	    found |= CATEGORY_MASK_ISO_7_ELSE;
 	  else
-	    mask_iso &= ~CATEGORY_MASK_ISO_7_ELSE;
+	    rejected |= CATEGORY_MASK_ISO_7_ELSE;
 	  if (SAFE_CHARSET_P (&coding_categories[coding_category_iso_8_else],
 			      id))
-	    mask_found |= CATEGORY_MASK_ISO_8_ELSE;
+	    found |= CATEGORY_MASK_ISO_8_ELSE;
 	  else
-	    mask_iso &= ~CATEGORY_MASK_ISO_8_ELSE;
+	    rejected |= CATEGORY_MASK_ISO_8_ELSE;
 	  break;
 
 	case ISO_CODE_SO:
+	case ISO_CODE_SI:
+	  /* Locking shift out/in.  */
 	  if (inhibit_iso_escape_detection)
 	    break;
 	  single_shifting = 0;
-	  if (shift_out == 0
-	      && (reg[1] >= 0
-		  || SHIFT_OUT_OK (coding_category_iso_7_else)
-		  || SHIFT_OUT_OK (coding_category_iso_8_else)))
-	    {
-	      /* Locking shift out.  */
-	      mask_iso &= ~CATEGORY_MASK_ISO_7BIT;
-	      mask_found |= CATEGORY_MASK_ISO_ELSE;
-	    }
+	  rejected |= CATEGORY_MASK_ISO_7BIT | CATEGORY_MASK_ISO_8BIT;
+	  found |= CATEGORY_MASK_ISO_ELSE;
 	  break;
 	  
-	case ISO_CODE_SI:
-	  if (inhibit_iso_escape_detection)
-	    break;
-	  single_shifting = 0;
-	  if (shift_out == 1)
-	    {
-	      /* Locking shift in.  */
-	      mask_iso &= ~CATEGORY_MASK_ISO_7BIT;
-	      mask_found |= CATEGORY_MASK_ISO_ELSE;
-	    }
-	  break;
-
 	case ISO_CODE_CSI:
+	  /* Control sequence introducer.  */
 	  single_shifting = 0;
+	  rejected |= CATEGORY_MASK_ISO_7BIT | CATEGORY_MASK_ISO_7_ELSE;
+	  found |= CATEGORY_MASK_ISO_8_ELSE;
+	  goto check_extra_latin;
+
+
 	case ISO_CODE_SS2:
 	case ISO_CODE_SS3:
-	  {
-	    int newmask = CATEGORY_MASK_ISO_8_ELSE;
-
-	    mask_8bit_found = 1;
-	    if (inhibit_iso_escape_detection)
-	      break;
-	    if (c != ISO_CODE_CSI)
-	      {
-		if (CODING_ISO_FLAGS (&coding_categories[coding_category_iso_8_1])
-		    & CODING_ISO_FLAG_SINGLE_SHIFT)
-		  newmask |= CATEGORY_MASK_ISO_8_1;
-		if (CODING_ISO_FLAGS (&coding_categories[coding_category_iso_8_2])
-		    & CODING_ISO_FLAG_SINGLE_SHIFT)
-		  newmask |= CATEGORY_MASK_ISO_8_2;
-		single_shifting = 1;
-	      }
-	    if (VECTORP (Vlatin_extra_code_table)
-		&& !NILP (XVECTOR (Vlatin_extra_code_table)->contents[c]))
-	      {
-		if (CODING_ISO_FLAGS (&coding_categories[coding_category_iso_8_1])
-		    & CODING_ISO_FLAG_LATIN_EXTRA)
-		  newmask |= CATEGORY_MASK_ISO_8_1;
-		if (CODING_ISO_FLAGS (&coding_categories[coding_category_iso_8_2])
-		    & CODING_ISO_FLAG_LATIN_EXTRA)
-		  newmask |= CATEGORY_MASK_ISO_8_2;
-	      }
-	    mask_iso &= newmask;
-	    mask_found |= newmask;
-	  }
-	  break;
+	  /* Single shift.   */
+	  if (inhibit_iso_escape_detection)
+	    break;
+	  single_shifting = 1;
+	  rejected |= CATEGORY_MASK_ISO_7BIT;
+	  if (CODING_ISO_FLAGS (&coding_categories[coding_category_iso_8_1])
+	      & CODING_ISO_FLAG_SINGLE_SHIFT)
+	    found |= CATEGORY_MASK_ISO_8_1;
+	  if (CODING_ISO_FLAGS (&coding_categories[coding_category_iso_8_2])
+	      & CODING_ISO_FLAG_SINGLE_SHIFT)
+	    found |= CATEGORY_MASK_ISO_8_2;
+	  goto check_extra_latin;
 
 	default:
 	  if (c < 0x80)
@@ -2515,39 +2587,16 @@ detect_coding_iso_2022 (coding, mask)
 	      single_shifting = 0;
 	      break;
 	    }
-	  else if (c < 0xA0)
+	  if (c >= 0xA0)
 	    {
-	      single_shifting = 0;
-	      mask_8bit_found = 1;
-	      if (VECTORP (Vlatin_extra_code_table)
-		  && !NILP (XVECTOR (Vlatin_extra_code_table)->contents[c]))
-		{
-		  int newmask = 0;
-
-		  if (CODING_ISO_FLAGS (&coding_categories[coding_category_iso_8_1])
-		      & CODING_ISO_FLAG_LATIN_EXTRA)
-		    newmask |= CATEGORY_MASK_ISO_8_1;
-		  if (CODING_ISO_FLAGS (&coding_categories[coding_category_iso_8_2])
-		      & CODING_ISO_FLAG_LATIN_EXTRA)
-		    newmask |= CATEGORY_MASK_ISO_8_2;
-		  mask_iso &= newmask;
-		  mask_found |= newmask;
-		}
-	      else
-		return 0;
-	    }
-	  else
-	    {
-	      mask_iso &= ~(CATEGORY_MASK_ISO_7BIT
-			    | CATEGORY_MASK_ISO_7_ELSE);
-	      mask_found |= CATEGORY_MASK_ISO_8_1;
-	      mask_8bit_found = 1;
+	      rejected |= CATEGORY_MASK_ISO_7BIT | CATEGORY_MASK_ISO_7_ELSE;
+	      found |= CATEGORY_MASK_ISO_8_1;
 	      /* Check the length of succeeding codes of the range
-                 0xA0..0FF.  If the byte length is odd, we exclude
-                 CATEGORY_MASK_ISO_8_2.  We can check this only
-                 when we are not single shifting.  */
-	      if (!single_shifting
-		  && mask_iso & CATEGORY_MASK_ISO_8_2)
+                 0xA0..0FF.  If the byte length is even, we include
+                 CATEGORY_MASK_ISO_8_2 in `found'.  We can check this
+                 only when we are not single shifting.  */
+	      if (! single_shifting
+		  && ! (rejected & CATEGORY_MASK_ISO_8_2))
 		{
 		  int i = 1;
 		  while (src < src_end)
@@ -2559,26 +2608,38 @@ detect_coding_iso_2022 (coding, mask)
 		    }
 
 		  if (i & 1 && src < src_end)
-		    mask_iso &= ~CATEGORY_MASK_ISO_8_2;
+		    rejected |= CATEGORY_MASK_ISO_8_2;
 		  else
-		    mask_found |= CATEGORY_MASK_ISO_8_2;
+		    found |= CATEGORY_MASK_ISO_8_2;
 		}
+	      break;
 	    }
-	  break;
+	check_extra_latin:
+	  single_shifting = 0;
+	  if (! VECTORP (Vlatin_extra_code_table)
+	      || NILP (XVECTOR (Vlatin_extra_code_table)->contents[c]))
+	    {
+	      rejected = CATEGORY_MASK_ISO;
+	      break;
+	    }
+	  if (CODING_ISO_FLAGS (&coding_categories[coding_category_iso_8_1])
+	      & CODING_ISO_FLAG_LATIN_EXTRA)
+	    found |= CATEGORY_MASK_ISO_8_1;
+	  else
+	    rejected |= CATEGORY_MASK_ISO_8_1;
+	  if (CODING_ISO_FLAGS (&coding_categories[coding_category_iso_8_2])
+	      & CODING_ISO_FLAG_LATIN_EXTRA)
+	    found |= CATEGORY_MASK_ISO_8_2;
+	  else
+	    rejected |= CATEGORY_MASK_ISO_8_2;
 	}
     }
+  detect_info->rejected |= CATEGORY_MASK_ISO;
+  return 0;
+
  no_more_source:
-  if (!mask_iso)
-    {
-      *mask &= ~CATEGORY_MASK_ISO;
-      return 0;
-    }
-  if (!mask_found)
-    return 0;
-  *mask &= ~CATEGORY_MASK_ISO;
-  *mask |= mask_iso & mask_found; 
-  if (! mask_8bit_found)
-    *mask &= ~(CATEGORY_MASK_ISO_8BIT | CATEGORY_MASK_ISO_8_ELSE);
+  detect_info->rejected |= rejected;
+  detect_info->found |= (found & ~rejected);
   return 1;
 }
 
@@ -2694,8 +2755,10 @@ detect_coding_iso_2022 (coding, mask)
 		  : (component_idx + 1) / 2);				\
     int i;								\
     int *saved_charbuf = charbuf;					\
+    int from = coding->produced_char + char_offset;			\
+    int to = from + nchars;						\
 									\
-    ADD_COMPOSITION_DATA (charbuf, method, nchars);			\
+    ADD_COMPOSITION_DATA (charbuf, from, to, method);			\
     if (method != COMPOSITION_RELATIVE)					\
       {									\
 	if (component_len == 0)						\
@@ -2752,9 +2815,9 @@ decode_coding_iso_2022 (coding)
   unsigned char *src_end = coding->source + coding->src_bytes;
   unsigned char *src_base;
   int *charbuf = coding->charbuf;
-  int *charbuf_end = charbuf + coding->charbuf_size - 4;
+  int *charbuf_end
+    = charbuf + coding->charbuf_size - 4 - MAX_ANNOTATION_LENGTH;
   int consumed_chars = 0, consumed_chars_base;
-  int char_offset = 0;
   int multibytep = coding->src_multibyte;
   /* Charsets invoked to graphic plane 0 and 1 respectively.  */
   int charset_id_0 = CODING_ISO_INVOKED_CHARSET (coding, 0);
@@ -2774,6 +2837,9 @@ decode_coding_iso_2022 (coding)
   int component_idx;
   int component_len;
   Lisp_Object attrs, eol_type, charset_list;
+  int char_offset = coding->produced_char;
+  int last_offset = char_offset;
+  int last_id = charset_ascii;
 
   CODING_GET_INFO (coding, attrs, eol_type, charset_list);
   setup_iso_safe_charsets (attrs);
@@ -3051,6 +3117,15 @@ decode_coding_iso_2022 (coding)
 	    }
 	}
 
+      if (charset->id != charset_ascii
+	  && last_id != charset->id)
+	{
+	  if (last_id != charset_ascii)
+	    ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
+	  last_id = charset->id;
+	  last_offset = char_offset;
+	}
+
       /* Now we know CHARSET and 1st position code C1 of a character.
          Produce a decoded character while getting 2nd position code
          C2 if necessary.  */
@@ -3082,6 +3157,7 @@ decode_coding_iso_2022 (coding)
 		*charbuf++ = *src_base;
 	      else
 		*charbuf++ = BYTE8_TO_CHAR (*src_base);
+	      char_offset++;
 	    }
 	}
       else if (composition_state == COMPOSING_NO)
@@ -3105,10 +3181,13 @@ decode_coding_iso_2022 (coding)
       consumed_chars = consumed_chars_base;
       ONE_MORE_BYTE (c);
       *charbuf++ = ASCII_BYTE_P (c) ? c : BYTE8_TO_CHAR (c);
+      char_offset++;
       coding->errors++;
     }
 
  no_more_source:
+  if (last_id != charset_ascii)
+    ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
   coding->consumed_char += consumed_chars_base;
   coding->consumed = src_base - coding->source;
   coding->charbuf_used = charbuf - coding->charbuf;
@@ -3530,9 +3609,12 @@ encode_coding_iso_2022 (coding)
   Lisp_Object attrs, eol_type, charset_list;
   int ascii_compatible;
   int c;
+  int preferred_charset_id = -1;
 
   CODING_GET_INFO (coding, attrs, eol_type, charset_list);
   setup_iso_safe_charsets (attrs);
+  /* Charset list may have been changed.  */
+  charset_list = CODING_ATTR_CHARSET_LIST (attrs);		\
   coding->safe_charsets
     = (char *) XSTRING (CODING_ATTR_SAFE_CHARSETS(attrs))->data;
 
@@ -3554,6 +3636,28 @@ encode_coding_iso_2022 (coding)
 	}
 
       c = *charbuf++;
+
+      if (c < 0)
+	{
+	  /* Handle an annotation.  */
+	  switch (*charbuf)
+	    {
+	    case CODING_ANNOTATE_COMPOSITION_MASK:
+	      /* Not yet implemented.  */
+	      break;
+	    case CODING_ANNOTATE_CHARSET_MASK:
+	      preferred_charset_id = charbuf[3];
+	      if (preferred_charset_id >= 0
+		  && NILP (Fmemq (make_number (preferred_charset_id),
+				  charset_list)))
+		preferred_charset_id = -1;
+	      break;
+	    default:
+	      abort ();
+	    }
+	  charbuf += -c - 1;
+	  continue;
+	}
 
       /* Now encode the character C.  */
       if (c < 0x20 || c == 0x7F)
@@ -3595,8 +3699,16 @@ encode_coding_iso_2022 (coding)
 	}
       else
 	{
-	  struct charset *charset = char_charset (c, charset_list, NULL);
+	  struct charset *charset;
 
+	  if (preferred_charset_id >= 0)
+	    {
+	      charset = CHARSET_FROM_ID (preferred_charset_id);
+	      if (! CHAR_CHARSET_P (c, charset))
+		charset = char_charset (c, charset_list, NULL);
+	    }
+	  else
+	    charset = char_charset (c, charset_list, NULL);
 	  if (!charset)
 	    {
 	      if (coding->mode & CODING_MODE_SAFE_ENCODING)
@@ -3669,9 +3781,9 @@ encode_coding_iso_2022 (coding)
    CATEGORY_MASK_SJIS, else return 0.  */
 
 static int
-detect_coding_sjis (coding, mask)
+detect_coding_sjis (coding, detect_info)
      struct coding_system *coding;
-     int *mask;
+     struct coding_detection_info *detect_info;
 {
   unsigned char *src = coding->source, *src_base = src;
   unsigned char *src_end = coding->source + coding->src_bytes;
@@ -3681,6 +3793,7 @@ detect_coding_sjis (coding, mask)
   int c;
   int incomplete;
 
+  detect_info->checked |= CATEGORY_MASK_SJIS;
   /* A coding system of this category is always ASCII compatible.  */
   src += coding->head_ascii;
 
@@ -3696,23 +3809,24 @@ detect_coding_sjis (coding, mask)
 	  ONE_MORE_BYTE (c);
 	  if (c < 0x40 || c == 0x7F || c > 0xFC)
 	    break;
-	  found = 1;
+	  found = CATEGORY_MASK_SJIS;
 	}
       else if (c >= 0xA0 && c < 0xE0)
-	found = 1;
+	found = CATEGORY_MASK_SJIS;
       else
 	break;
     }
-  *mask &= ~CATEGORY_MASK_SJIS;
+  detect_info->rejected |= CATEGORY_MASK_SJIS;
   return 0;
 
  no_more_source:
   if (incomplete && coding->mode & CODING_MODE_LAST_BLOCK)
     {
-      *mask &= ~CATEGORY_MASK_SJIS;
+      detect_info->rejected |= CATEGORY_MASK_SJIS;
       return 0;
     }
-  return found;
+  detect_info->found |= found;
+  return 1;
 }
 
 /* See the above "GENERAL NOTES on `detect_coding_XXX ()' functions".
@@ -3720,9 +3834,9 @@ detect_coding_sjis (coding, mask)
    CATEGORY_MASK_BIG5, else return 0.  */
 
 static int
-detect_coding_big5 (coding, mask)
+detect_coding_big5 (coding, detect_info)
      struct coding_system *coding;
-     int *mask;
+     struct coding_detection_info *detect_info;
 {
   unsigned char *src = coding->source, *src_base = src;
   unsigned char *src_end = coding->source + coding->src_bytes;
@@ -3732,6 +3846,7 @@ detect_coding_big5 (coding, mask)
   int c;
   int incomplete;
 
+  detect_info->checked |= CATEGORY_MASK_BIG5;
   /* A coding system of this category is always ASCII compatible.  */
   src += coding->head_ascii;
 
@@ -3747,21 +3862,22 @@ detect_coding_big5 (coding, mask)
 	  ONE_MORE_BYTE (c);
 	  if (c < 0x40 || (c >= 0x7F && c <= 0xA0))
 	    return 0;
-	  found = 1;
+	  found = CATEGORY_MASK_BIG5;
 	}
       else
 	break;
     }
-  *mask &= ~CATEGORY_MASK_BIG5;
+  detect_info->rejected |= CATEGORY_MASK_BIG5;
   return 0;
 
  no_more_source:
   if (incomplete && coding->mode & CODING_MODE_LAST_BLOCK)
     {
-      *mask &= ~CATEGORY_MASK_BIG5;
+      detect_info->rejected |= CATEGORY_MASK_BIG5;
       return 0;
     }
-  return found;
+  detect_info->found |= found;
+  return 1;
 }
 
 /* See the above "GENERAL NOTES on `decode_coding_XXX ()' functions".
@@ -3775,11 +3891,14 @@ decode_coding_sjis (coding)
   unsigned char *src_end = coding->source + coding->src_bytes;
   unsigned char *src_base;
   int *charbuf = coding->charbuf;
-  int *charbuf_end = charbuf + coding->charbuf_size;
+  int *charbuf_end = charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   struct charset *charset_roman, *charset_kanji, *charset_kana;
   Lisp_Object attrs, eol_type, charset_list, val;
+  int char_offset = coding->produced_char;
+  int last_offset = char_offset;
+  int last_id = charset_ascii;
 
   CODING_GET_INFO (coding, attrs, eol_type, charset_list);
 
@@ -3842,9 +3961,18 @@ decode_coding_sjis (coding)
 		  charset = charset_kana;
 		}
 	    }
+	  if (charset->id != charset_ascii
+	      && last_id != charset->id)
+	    {
+	      if (last_id != charset_ascii)
+		ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
+	      last_id = charset->id;
+	      last_offset = char_offset;
+	    }
 	  CODING_DECODE_CHAR (coding, src, src_base, src_end, charset, c, c);
 	}
       *charbuf++ = c;
+      char_offset++;
       continue;
 
     invalid_code:
@@ -3852,10 +3980,13 @@ decode_coding_sjis (coding)
       consumed_chars = consumed_chars_base;
       ONE_MORE_BYTE (c);
       *charbuf++ = ASCII_BYTE_P (c) ? c : BYTE8_TO_CHAR (c);
+      char_offset++;
       coding->errors++;
     }
 
  no_more_source:
+  if (last_id != charset_ascii)
+    ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
   coding->consumed_char += consumed_chars_base;
   coding->consumed = src_base - coding->source;
   coding->charbuf_used = charbuf - coding->charbuf;
@@ -3869,11 +4000,14 @@ decode_coding_big5 (coding)
   unsigned char *src_end = coding->source + coding->src_bytes;
   unsigned char *src_base;
   int *charbuf = coding->charbuf;
-  int *charbuf_end = charbuf + coding->charbuf_size;
+  int *charbuf_end = charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   struct charset *charset_roman, *charset_big5;
   Lisp_Object attrs, eol_type, charset_list, val;
+  int char_offset = coding->produced_char;
+  int last_offset = char_offset;
+  int last_id = charset_ascii;
 
   CODING_GET_INFO (coding, attrs, eol_type, charset_list);
   val = charset_list;
@@ -3923,10 +4057,19 @@ decode_coding_big5 (coding)
 	      c = c << 8 | c1;
 	      charset = charset_big5;
 	    }
+	  if (charset->id != charset_ascii
+	      && last_id != charset->id)
+	    {
+	      if (last_id != charset_ascii)
+		ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
+	      last_id = charset->id;
+	      last_offset = char_offset;
+	    }
 	  CODING_DECODE_CHAR (coding, src, src_base, src_end, charset, c, c);
 	}
 
       *charbuf++ = c;
+      char_offset++;
       continue;
 
     invalid_code:
@@ -3934,10 +4077,13 @@ decode_coding_big5 (coding)
       consumed_chars = consumed_chars_base;
       ONE_MORE_BYTE (c);
       *charbuf++ = ASCII_BYTE_P (c) ? c : BYTE8_TO_CHAR (c);
+      char_offset++;
       coding->errors++;
     }
 
  no_more_source:
+  if (last_id != charset_ascii)
+    ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
   coding->consumed_char += consumed_chars_base;
   coding->consumed = src_base - coding->source;
   coding->charbuf_used = charbuf - coding->charbuf;
@@ -4106,9 +4252,9 @@ encode_coding_big5 (coding)
    CATEGORY_MASK_CCL, else return 0.  */
 
 static int
-detect_coding_ccl (coding, mask)
+detect_coding_ccl (coding, detect_info)
      struct coding_system *coding;
-     int *mask;
+     struct coding_detection_info *detect_info;
 {
   unsigned char *src = coding->source, *src_base = src;
   unsigned char *src_end = coding->source + coding->src_bytes;
@@ -4118,6 +4264,8 @@ detect_coding_ccl (coding, mask)
   unsigned char *valids = CODING_CCL_VALIDS (coding);
   int head_ascii = coding->head_ascii;
   Lisp_Object attrs;
+
+  detect_info->checked |= CATEGORY_MASK_CCL;
 
   coding = &coding_categories[coding_category_ccl];
   attrs = CODING_ID_ATTRS (coding->id);
@@ -4130,14 +4278,15 @@ detect_coding_ccl (coding, mask)
       ONE_MORE_BYTE (c);
       if (! valids[c])
 	break;
-      if (!found && valids[c] > 1)
-	found = 1;
+      if ((valids[c] > 1))
+	found = CATEGORY_MASK_CCL;
     }
-  *mask &= ~CATEGORY_MASK_CCL;
+  detect_info->rejected |= CATEGORY_MASK_CCL;
   return 0;
 
  no_more_source:
-  return found;
+  detect_info->found |= found;
+  return 1;
 }
 
 static void
@@ -4375,10 +4524,14 @@ encode_coding_raw_text (coding)
   return 0;
 }
 
+/* See the above "GENERAL NOTES on `detect_coding_XXX ()' functions".
+   Check if a text is encoded in a charset-based coding system.  If it
+   is, return 1, else return 0.  */
+
 static int
-detect_coding_charset (coding, mask)
+detect_coding_charset (coding, detect_info)
      struct coding_system *coding;
-     int *mask;
+     struct coding_detection_info *detect_info;
 {
   unsigned char *src = coding->source, *src_base = src;
   unsigned char *src_end = coding->source + coding->src_bytes;
@@ -4386,6 +4539,8 @@ detect_coding_charset (coding, mask)
   int consumed_chars = 0;
   Lisp_Object attrs, valids;
   int found = 0;
+
+  detect_info->checked |= CATEGORY_MASK_CHARSET;
 
   coding = &coding_categories[coding_category_charset];
   attrs = CODING_ID_ATTRS (coding->id);
@@ -4402,13 +4557,14 @@ detect_coding_charset (coding, mask)
       if (NILP (AREF (valids, c)))
 	break;
       if (c >= 0x80)
-	found = 1;
+	found = CATEGORY_MASK_CHARSET;
     }
-  *mask &= ~CATEGORY_MASK_CHARSET;
+  detect_info->rejected |= CATEGORY_MASK_CHARSET;
   return 0;
 
  no_more_source:
-  return (found || NILP (CODING_ATTR_ASCII_COMPAT (attrs)));
+  detect_info->found |= found;
+  return 1;
 }
 
 static void
@@ -4419,10 +4575,13 @@ decode_coding_charset (coding)
   unsigned char *src_end = coding->source + coding->src_bytes;
   unsigned char *src_base;
   int *charbuf = coding->charbuf;
-  int *charbuf_end = charbuf + coding->charbuf_size;
+  int *charbuf_end = charbuf + coding->charbuf_size - MAX_ANNOTATION_LENGTH;
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   Lisp_Object attrs, eol_type, charset_list, valids;
+  int char_offset = coding->produced_char;
+  int last_offset = char_offset;
+  int last_id = charset_ascii;
 
   CODING_GET_INFO (coding, attrs, eol_type, charset_list);
   valids = AREF (attrs, coding_attr_charset_valids);
@@ -4503,8 +4662,17 @@ decode_coding_charset (coding)
 	    }
 	  if (c < 0)
 	    goto invalid_code;
+	  if (charset->id != charset_ascii
+	      && last_id != charset->id)
+	    {
+	      if (last_id != charset_ascii)
+		ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
+	      last_id = charset->id;
+	      last_offset = char_offset;
+	    }
 	}
       *charbuf++ = c;
+      char_offset++;
       continue;
 
     invalid_code:
@@ -4512,10 +4680,13 @@ decode_coding_charset (coding)
       consumed_chars = consumed_chars_base;
       ONE_MORE_BYTE (c);
       *charbuf++ = ASCII_BYTE_P (c) ? c : BYTE8_TO_CHAR (c);
+      char_offset++;
       coding->errors++;
     }
 
  no_more_source:
+  if (last_id != charset_ascii)
+    ADD_CHARSET_DATA (charbuf, last_offset, char_offset, last_id);
   coding->consumed_char += consumed_chars_base;
   coding->consumed = src_base - coding->source;
   coding->charbuf_used = charbuf - coding->charbuf;
@@ -4632,6 +4803,7 @@ setup_coding_system (coding_system, coding)
     {
       int i;
       int flags = XINT (AREF (attrs, coding_attr_iso_flags));
+      enum coding_category category =  XINT (CODING_ATTR_CATEGORY (attrs));
 
       /* Invoke graphic register 0 to plane 0.  */
       CODING_ISO_INVOCATION (coding, 0) = 0;
@@ -4655,6 +4827,8 @@ setup_coding_system (coding_system, coding)
 	    | CODING_REQUIRE_FLUSHING_MASK);
       if (flags & CODING_ISO_FLAG_COMPOSITION)
 	coding->common_flags |= CODING_ANNOTATE_COMPOSITION_MASK;
+      if (flags & CODING_ISO_FLAG_DESIGNATION)
+	coding->common_flags |= CODING_ANNOTATE_CHARSET_MASK;
       if (flags & CODING_ISO_FLAG_FULL_SUPPORT)
 	{
 	  setup_iso_safe_charsets (attrs);
@@ -4930,9 +5104,12 @@ coding_inherit_eol_type (coding_system, parent)
 #define EOL_SEEN_CR	2
 #define EOL_SEEN_CRLF	4
 
-/* Detect how end-of-line of a text of length CODING->src_bytes
-   pointed by CODING->source is encoded.  Return one of
-   EOL_SEEN_XXX.  */
+/* Detect how end-of-line of a text of length SRC_BYTES pointed by
+   SOURCE is encoded.  If CATEGORY is one of
+   coding_category_utf_16_XXXX, assume that CR and LF are encoded by
+   two-byte, else they are encoded by one-byte.
+
+   Return one of EOL_SEEN_XXX.  */
 
 #define MAX_EOL_CHECK_COUNT 3
 
@@ -5057,7 +5234,6 @@ detect_coding (coding)
      now.  */
   if (EQ (CODING_ATTR_TYPE (CODING_ID_ATTRS (coding->id)), Qundecided))
     {
-      int mask = CATEGORY_MASK_ANY;
       int c, i;
 
       for (src = coding->source; src < src_end; src++)
@@ -5072,46 +5248,43 @@ detect_coding (coding)
 
       if (coding->head_ascii < coding->src_bytes)
 	{
-	  int detected = 0;
+	  struct coding_detection_info detect_info;
+	  enum coding_category category;
+	  struct coding_system *this;
 
+	  detect_info.checked = detect_info.found = detect_info.rejected = 0;
 	  for (i = 0; i < coding_category_raw_text; i++)
 	    {
-	      enum coding_category category = coding_priorities[i];
-	      struct coding_system *this = coding_categories + category;
-
+	      category = coding_priorities[i];
+	      this = coding_categories + category;
 	      if (this->id < 0)
 		{
 		  /* No coding system of this category is defined.  */
-		  mask &= ~(1 << category);
+		  detect_info.rejected |= (1 << category);
 		}
-	      else if (category >= coding_category_raw_text
-		       || detected & (1 << category))
+	      else if (category >= coding_category_raw_text)
 		continue;
-	      else
+	      else if (detect_info.checked & (1 << category))
 		{
-		  detected |= detected_mask[category];
-		  if ((*(this->detector)) (coding, &mask)
-		      && (mask & (1 << category)))
-		    {
-		      mask = 1 << category;
-		      break;
-		    }
-		}
-	    }
-	  if (! mask)
-	    setup_coding_system (Qraw_text, coding);
-	  else if (mask != CATEGORY_MASK_ANY)
-	    for (i = 0; i < coding_category_raw_text; i++)
-	      {
-		enum coding_category category = coding_priorities[i];
-		struct coding_system *this = coding_categories + category;
-
-		if (mask & (1 << category))
-		  {
-		    setup_coding_system (CODING_ID_NAME (this->id), coding);
+		  if (detect_info.found & (1 << category))
 		    break;
-		  }
-	      }
+		}
+	      else if ((*(this->detector)) (coding, &detect_info)
+		       && detect_info.found & (1 << category))
+		break;
+	    }
+	  if (i < coding_category_raw_text)
+	    setup_coding_system (CODING_ID_NAME (this->id), coding);
+	  else if (detect_info.rejected == CATEGORY_MASK_ANY)
+	    setup_coding_system (Qraw_text, coding);
+	  else if (detect_info.rejected)
+	    for (i = 0; i < coding_category_raw_text; i++)
+	      if (! (detect_info.rejected & (1 << coding_priorities[i])))
+		{
+		  this = coding_categories + coding_priorities[i];
+		  setup_coding_system (CODING_ID_NAME (this->id), coding);
+		  break;
+		}
 	}
     }
 
@@ -5408,9 +5581,9 @@ produce_chars (coding)
   return produced_chars;
 }
 
-/* [ -LENGTH CHAR_POS_OFFSET MASK METHOD COMP_LEN ]
-	or
-   [ -LENGTH CHAR_POS_OFFSET MASK METHOD COMP_LEN COMPONENTS... ]
+/* Compose text in CODING->object according to the annotation data at
+   CHARBUF.  CHARBUF is an array:
+     [ -LENGTH ANNOTATION_MASK FROM TO METHOD COMP_LEN [ COMPONENTS... ] ]
  */
 
 static INLINE void
@@ -5418,18 +5591,15 @@ produce_composition (coding, charbuf)
      struct coding_system *coding;
      int *charbuf;
 {
-  Lisp_Object buffer;
   int len;
-  EMACS_INT pos;
+  EMACS_INT from, to;
   enum composition_method method;
-  int cmp_len;
   Lisp_Object components;
 
-  buffer = coding->dst_object;
   len = -charbuf[0];
-  pos = coding->dst_pos + charbuf[1];
-  method = (enum composition_method) (charbuf[3]);
-  cmp_len = charbuf[4];
+  from = coding->dst_pos + charbuf[2];
+  to = coding->dst_pos + charbuf[3];
+  method = (enum composition_method) (charbuf[4]);
 
   if (method == COMPOSITION_RELATIVE)
     components = Qnil;
@@ -5445,64 +5615,29 @@ produce_composition (coding, charbuf)
       components = (method == COMPOSITION_WITH_ALTCHARS
 		    ? Fstring (len, args) : Fvector (len, args));
     }
-  compose_text (pos, pos + cmp_len, components, Qnil, Qnil);
+  compose_text (from, to, components, Qnil, coding->dst_object);
 }
 
-static int *
-save_composition_data (buf, buf_end, prop)
-     int *buf, *buf_end;
-     Lisp_Object prop;
+
+/* Put `charset' property on text in CODING->object according to
+   the annotation data at CHARBUF.  CHARBUF is an array:
+     [ -LENGTH ANNOTATION_MASK FROM TO CHARSET-ID ]
+ */
+
+static INLINE void
+produce_charset (coding, charbuf)
+     struct coding_system *coding;
+     int *charbuf;
 {
-  enum composition_method method = COMPOSITION_METHOD (prop);
-  int cmp_len = COMPOSITION_LENGTH (prop);
+  EMACS_INT from = coding->dst_pos + charbuf[2];
+  EMACS_INT to = coding->dst_pos + charbuf[3];
+  struct charset *charset = CHARSET_FROM_ID (charbuf[4]);
 
-  if (buf + 4 + (MAX_COMPOSITION_COMPONENTS * 2 - 1) > buf_end)
-    return NULL;
-
-  buf[1] = CODING_ANNOTATE_COMPOSITION_MASK;
-  buf[2] = method;
-  buf[3] = cmp_len;
-
-  if (method == COMPOSITION_RELATIVE)
-    buf[0] = 4;
-  else
-    {
-      Lisp_Object components;
-      int len, i;
-
-      components = COMPOSITION_COMPONENTS (prop);
-      if (VECTORP (components))
-	{
-	  len = XVECTOR (components)->size;
-	  for (i = 0; i < len; i++)
-	    buf[4 + i] = XINT (AREF (components, i));
-	}
-      else if (STRINGP (components))
-	{
-	  int i_byte;
-
-	  len = XSTRING (components)->size;
-	  i = i_byte = 0;
-	  while (i < len)
-	    FETCH_STRING_CHAR_ADVANCE (buf[4 + i], components, i, i_byte);
-	}
-      else if (INTEGERP (components))
-	{
-	  len = 1;
-	  buf[4] = XINT (components);
-	}
-      else if (CONSP (components))
-	{
-	  for (len = 0; CONSP (components);
-	       len++, components = XCDR (components))
-	    buf[4 + len] = XINT (XCAR (components));
-	}
-      else
-	abort ();
-      buf[0] = 4 + len;
-    }
-  return (buf + buf[0]);
+  Fput_text_property (make_number (from), make_number (to),
+		      Qcharset, CHARSET_NAME (charset),
+		      coding->dst_object);
 }
+
 
 #define CHARBUF_SIZE 0x4000
 
@@ -5534,6 +5669,9 @@ produce_annotation (coding)
   int *charbuf = coding->charbuf;
   int *charbuf_end = charbuf + coding->charbuf_used;
 
+  if (NILP (coding->dst_object))
+    return;
+
   while (charbuf < charbuf_end)
     {
       if (*charbuf >= 0)
@@ -5541,10 +5679,13 @@ produce_annotation (coding)
       else
 	{
 	  int len = -*charbuf;
-	  switch (charbuf[2])
+	  switch (charbuf[1])
 	    {
 	    case CODING_ANNOTATE_COMPOSITION_MASK:
 	      produce_composition (coding, charbuf);
+	      break;
+	    case CODING_ANNOTATE_CHARSET_MASK:
+	      produce_charset (coding, charbuf);
 	      break;
 	    default:
 	      abort ();
@@ -5669,41 +5810,159 @@ decode_coding (coding)
   return coding->result;
 }
 
+
+/* Extract an annotation data from a composition starting at POS and
+   ending before LIMIT of CODING->src_object (buffer or string), store
+   the data in BUF, set *STOP to a starting position of the next
+   composition (if any) or to LIMIT, and return the address of the
+   next element of BUF.
+
+   If such an annotation is not found, set *STOP to a starting
+   position of a composition after POS (if any) or to LIMIT, and
+   return BUF.  */
+
+static INLINE int *
+handle_composition_annotation (pos, limit, coding, buf, stop)
+     EMACS_INT pos, limit;
+     struct coding_system *coding;
+     int *buf;
+     EMACS_INT *stop;
+{
+  EMACS_INT start, end;
+  Lisp_Object prop;
+
+  if (! find_composition (pos, limit, &start, &end, &prop, coding->src_object)
+      || end > limit)
+    *stop = limit;
+  else if (start > pos)
+    *stop = start;
+  else
+    {
+      if (start == pos)
+	{
+	  /* We found a composition.  Store the corresponding
+	     annotation data in BUF.  */
+	  int *head = buf;
+	  enum composition_method method = COMPOSITION_METHOD (prop);
+	  int nchars = COMPOSITION_LENGTH (prop);
+
+	  ADD_COMPOSITION_DATA (buf, 0, nchars, method);
+	  if (method != COMPOSITION_RELATIVE)
+	    {
+	      Lisp_Object components;
+	      int len, i, i_byte;
+
+	      components = COMPOSITION_COMPONENTS (prop);
+	      if (VECTORP (components))
+		{
+		  len = XVECTOR (components)->size;
+		  for (i = 0; i < len; i++)
+		    *buf++ = XINT (AREF (components, i));
+		}
+	      else if (STRINGP (components))
+		{
+		  len = XSTRING (components)->size;
+		  i = i_byte = 0;
+		  while (i < len)
+		    {
+		      FETCH_STRING_CHAR_ADVANCE (*buf, components, i, i_byte);
+		      buf++;
+		    }
+		}
+	      else if (INTEGERP (components))
+		{
+		  len = 1;
+		  *buf++ = XINT (components);
+		}
+	      else if (CONSP (components))
+		{
+		  for (len = 0; CONSP (components);
+		       len++, components = XCDR (components))
+		    *buf++ = XINT (XCAR (components));
+		}
+	      else
+		abort ();
+	      *head -= len;
+	    }
+	}
+
+      if (find_composition (end, limit, &start, &end, &prop,
+			    coding->src_object)
+	  && end <= limit)
+	*stop = start;
+      else
+	*stop = limit;
+    }
+  return buf;
+}
+
+
+/* Extract an annotation data from a text property `charset' at POS of
+   CODING->src_object (buffer of string), store the data in BUF, set
+   *STOP to the position where the value of `charset' property changes
+   (limiting by LIMIT), and return the address of the next element of
+   BUF.
+
+   If the property value is nil, set *STOP to the position where the
+   property value is non-nil (limiting by LIMIT), and return BUF.  */
+
+static INLINE int *
+handle_charset_annotation (pos, limit, coding, buf, stop)
+     EMACS_INT pos, limit;
+     struct coding_system *coding;
+     int *buf;
+     EMACS_INT *stop;
+{
+  Lisp_Object val, next;
+  int id;
+
+  val = Fget_text_property (make_number (pos), Qcharset, coding->src_object);
+  if (! NILP (val) && CHARSETP (val))
+    id = XINT (CHARSET_SYMBOL_ID (val));
+  else
+    id = -1;
+  ADD_CHARSET_DATA (buf, 0, 0, id);
+  next = Fnext_single_property_change (make_number (pos), Qcharset,
+				       coding->src_object,
+				       make_number (limit));
+  *stop = XINT (next);
+  return buf;
+}
+
+
 static void
 consume_chars (coding)
      struct coding_system *coding;
 {
   int *buf = coding->charbuf;
-  /* -1 is to compensate for CRLF.  */
-  int *buf_end = coding->charbuf + coding->charbuf_size - 1;
+  int *buf_end = coding->charbuf + coding->charbuf_size;
   const unsigned char *src = coding->source + coding->consumed;
-  int pos = coding->src_pos + coding->consumed_char;
-  int end_pos = coding->src_pos + coding->src_chars;
+  EMACS_INT pos = coding->src_pos + coding->consumed_char;
+  EMACS_INT end_pos = coding->src_pos + coding->src_chars;
   int multibytep = coding->src_multibyte;
   Lisp_Object eol_type;
   int c;
-  int start, end, stop;
-  Lisp_Object object, prop;
+  EMACS_INT stop, stop_composition, stop_charset;
+  int id;
 
   eol_type = CODING_ID_EOL_TYPE (coding->id);
   if (VECTORP (eol_type))
     eol_type = Qunix;
 
-  object = coding->src_object;
-
   /* Note: composition handling is not yet implemented.  */
   coding->common_flags &= ~CODING_ANNOTATE_COMPOSITION_MASK;
 
-  if (coding->common_flags & CODING_ANNOTATE_COMPOSITION_MASK
-      && find_composition (pos, end_pos, &start, &end, &prop, object)
-      && end <= end_pos
-      && (start >= pos
-	  || (find_composition (end, end_pos, &start, &end, &prop, object)
-	      && end <= end_pos)))
-    stop = start;
+  if (coding->common_flags & CODING_ANNOTATE_COMPOSITION_MASK)
+    stop = stop_composition = pos;
   else
-    stop = end_pos;
+    stop = stop_composition = end_pos;
+  if (coding->common_flags & CODING_ANNOTATE_CHARSET_MASK)
+    stop = stop_charset = pos;
+  else
+    stop_charset = end_pos;
 
+  /* Compensate for CRLF and annotation.  */
+  buf_end -= 1 + MAX_ANNOTATION_LENGTH;
   while (buf < buf_end)
     {
       if (pos == stop)
@@ -5712,15 +5971,14 @@ consume_chars (coding)
 
 	  if (pos == end_pos)
 	    break;
-	  p = save_composition_data (buf, buf_end, prop);
-	  if (p == NULL)
-	    break;
-	  buf = p;
-	  if (find_composition (end, end_pos, &start, &end, &prop, object)
-	      && end <= end_pos)
-	    stop = start;
-	  else
-	    stop = end_pos;
+	  if (pos == stop_composition)
+	    buf = handle_composition_annotation (pos, end_pos, coding,
+						 buf, &stop_composition);
+	  if (pos == stop_charset)
+	    buf = handle_charset_annotation (pos, end_pos, coding,
+					     buf, &stop_charset);
+	  stop = (stop_composition < stop_charset
+		  ? stop_composition : stop_charset);
 	}
 
       if (! multibytep)
@@ -6162,16 +6420,16 @@ encode_coding_object (coding, src_object, from, from_byte, to, to_byte,
   else if (BUFFERP (src_object))
     {
       set_buffer_internal (XBUFFER (src_object));
-      if (from != GPT)
-	move_gap_both (from, from_byte);
       if (EQ (src_object, dst_object))
 	{
-	  del_range_both (from, from_byte, to, to_byte, 1);
-	  coding->src_pos = -chars;
-	  coding->src_pos_byte = -bytes;
+	  coding->src_object = del_range_1 (from, to, 1, 1);
+	  coding->src_pos = 0;
+	  coding->src_pos_byte = 0;
 	}
       else
 	{
+	  if (from < GPT && to >= GPT)
+	    move_gap_both (from, from_byte);
 	  coding->src_pos = from;
 	  coding->src_pos_byte = from_byte;
 	}
@@ -6320,12 +6578,11 @@ detect_coding_system (src, src_bytes, highest, multibytep, coding_system)
 {
   unsigned char *src_end = src + src_bytes;
   int mask = CATEGORY_MASK_ANY;
-  int detected = 0;
-  int c, i;
   Lisp_Object attrs, eol_type;
   Lisp_Object val;
   struct coding_system coding;
   int id;
+  struct coding_detection_info detect_info;
 
   if (NILP (coding_system))
     coding_system = Qundecided;
@@ -6340,9 +6597,15 @@ detect_coding_system (src, src_bytes, highest, multibytep, coding_system)
   coding.consumed = 0;
   coding.mode |= CODING_MODE_LAST_BLOCK;
 
+  detect_info.checked = detect_info.found = detect_info.rejected = 0;
+
   /* At first, detect text-format if necessary.  */
   if (XINT (CODING_ATTR_CATEGORY (attrs)) == coding_category_undecided)
     {
+      enum coding_category category;
+      struct coding_system *this;
+      int c, i;
+
       for (; src < src_end; src++)
 	{
 	  c = *src;
@@ -6357,64 +6620,92 @@ detect_coding_system (src, src_bytes, highest, multibytep, coding_system)
       if (src < src_end)
 	for (i = 0; i < coding_category_raw_text; i++)
 	  {
-	    enum coding_category category = coding_priorities[i];
-	    struct coding_system *this = coding_categories + category;
+	    category = coding_priorities[i];
+	    this = coding_categories + category;
 
 	    if (this->id < 0)
 	      {
 		/* No coding system of this category is defined.  */
-		mask &= ~(1 << category);
+		detect_info.rejected |= (1 << category);
 	      }
-	    else if (category >= coding_category_raw_text
-		     || detected & (1 << category))
+	    else if (category >= coding_category_raw_text)
 	      continue;
+	    else if (detect_info.checked & (1 << category))
+	      {
+		if (highest
+		    && (detect_info.found & (1 << category)))
+		  break;
+	      }
 	    else
 	      {
-		detected |= detected_mask[category];
-		if ((*(coding_categories[category].detector)) (&coding, &mask)
+		if ((*(this->detector)) (&coding, &detect_info)
 		    && highest
-		    && (mask & (1 << category)))
-		  {
-		    mask = 1 << category;
-		    break;
-		  }
+		    && (detect_info.found & (1 << category)))
+		  break;
 	      }
 	  }
 
-      if (!mask)
+
+      if (detect_info.rejected == CATEGORY_MASK_ANY)
 	{
+	  detect_info.found = CATEGORY_MASK_RAW_TEXT;
 	  id = coding_categories[coding_category_raw_text].id;
 	  val = Fcons (make_number (id), Qnil);
 	}
-      else if (mask == CATEGORY_MASK_ANY)
+      else if (! detect_info.rejected && ! detect_info.found)
 	{
+	  detect_info.found = CATEGORY_MASK_ANY;
 	  id = coding_categories[coding_category_undecided].id;
 	  val = Fcons (make_number (id), Qnil);
 	}
       else if (highest)
 	{
-	  for (i = 0; i < coding_category_raw_text; i++)
-	    if (mask & (1 << coding_priorities[i]))
-	      {
-		id = coding_categories[coding_priorities[i]].id;
-		val = Fcons (make_number (id), Qnil);
-		break;
-	      }
-	}	
+	  if (detect_info.found)
+	    {
+	      detect_info.found = 1 << category;
+	      val = Fcons (make_number (this->id), Qnil);
+	    }
+	  else
+	    for (i = 0; i < coding_category_raw_text; i++)
+	      if (! (detect_info.rejected & (1 << coding_priorities[i])))
+		{
+		  detect_info.found = 1 << coding_priorities[i];
+		  id = coding_categories[coding_priorities[i]].id;
+		  val = Fcons (make_number (id), Qnil);
+		  break;
+		}
+	}
       else
 	{
+	  int mask = detect_info.rejected | detect_info.found;
+	  int found = 0;
 	  val = Qnil;
+
 	  for (i = coding_category_raw_text - 1; i >= 0; i--)
-	    if (mask & (1 << coding_priorities[i]))
-	      {
-		id = coding_categories[coding_priorities[i]].id;
-		val = Fcons (make_number (id), val);
-	      }
+	    {
+	      category = coding_priorities[i];
+	      if (! (mask & (1 << category)))
+		{
+		  found |= 1 << category;
+		  id = coding_categories[category].id;
+		  val = Fcons (make_number (id), val);
+		}
+	    }
+	  for (i = coding_category_raw_text - 1; i >= 0; i--)
+	    {
+	      category = coding_priorities[i];
+	      if (detect_info.found & (1 << category))
+		{
+		  id = coding_categories[category].id;
+		  val = Fcons (make_number (id), val);
+		}
+	    }
+	  detect_info.found |= found;
 	}
     }
   else
     {
-      mask = 1 << XINT (CODING_ATTR_CATEGORY (attrs));
+      detect_info.found = 1 << XINT (CODING_ATTR_CATEGORY (attrs));
       val = Fcons (make_number (coding.id), Qnil);
     }
 
@@ -6425,13 +6716,15 @@ detect_coding_system (src, src_bytes, highest, multibytep, coding_system)
 
     if (VECTORP (eol_type))
       {
-	if (mask & ~CATEGORY_MASK_UTF_16)
+	if (detect_info.found & ~CATEGORY_MASK_UTF_16)
 	  normal_eol = detect_eol (coding.source, src_bytes,
 				   coding_category_raw_text);
-	if (mask & (CATEGORY_MASK_UTF_16_BE | CATEGORY_MASK_UTF_16_BE_NOSIG))
+	if (detect_info.found & (CATEGORY_MASK_UTF_16_BE
+				 | CATEGORY_MASK_UTF_16_BE_NOSIG))
 	  utf_16_be_eol = detect_eol (coding.source, src_bytes,
 				      coding_category_utf_16_be);
-	if (mask & (CATEGORY_MASK_UTF_16_LE | CATEGORY_MASK_UTF_16_LE_NOSIG))
+	if (detect_info.found & (CATEGORY_MASK_UTF_16_LE
+				 | CATEGORY_MASK_UTF_16_LE_NOSIG))
 	  utf_16_le_eol = detect_eol (coding.source, src_bytes,
 				      coding_category_utf_16_le);
       }
