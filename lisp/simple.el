@@ -2425,6 +2425,7 @@ it were the arg to `interactive' (which see) to interactively read the value."
 (or completion-list-mode-map
     (let ((map (make-sparse-keymap)))
       (define-key map [mouse-2] 'mouse-choose-completion)
+      (define-key map [down-mouse-2] nil)
       (define-key map "\C-m" 'choose-completion)
       (define-key map [return] 'choose-completion)
       (setq completion-list-mode-map map)))
