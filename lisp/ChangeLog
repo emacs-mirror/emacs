@@ -1,3 +1,24 @@
+2002-03-14  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/picture.el (picture-insert)
+	(picture-clear-column, picture-draw-rectangle): 
+	Use move-to-column, not move-to-column-force.
+	
+	* dired.el (dired-readin): Clear out undo list.
+	(dired-fun-in-all-buffers): Definition moved from dired-aux.el.
+	(dired-delete-entry): New function.
+	(dired-internal-do-deletions): Use dired-fun-in-all-buffers
+	and dired-delete-entry, to update this buffer (and others).
+
+	* dired-aux.el (dired-fun-in-all-buffers): Moved to dired.el.
+	
+	* facemenu.el (facemenu-add-new-face):
+	Pass region args to facemenu-set-face, when there is a region.
+	(facemenu-set-foreground, facemenu-set-background)
+	(facemenu-add-face): Doc fixes.
+	
+	* progmodes/cperl-mode.el (cperl-outline-regexp): Move definition up.
+
 2002-03-14  Miles Bader  <miles@gnu.org>
 
 	* net/rlogin.el (rlogin-carriage-filter): Function removed.
@@ -203,7 +224,6 @@
 2002-03-05  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* xml.el (xml-parse-attlist): Accept empty strings.
-	From Max Froumentin <mf@w3.org>.
 
 2002-03-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
