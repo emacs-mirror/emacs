@@ -473,6 +473,7 @@ turn off scroll bars; otherwise, turn on scroll bars."
 ;;; Also, set the value of X cut buffer 0, for backward compatibility
 ;;; with older X application.
 (defun x-select-text (text)
+  (x-set-cut-buffer 0 text)
   (x-own-selection text 'clipboard)
   (x-own-selection text)
   (setq x-last-selected-text text))
