@@ -582,7 +582,8 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
       ch = FAST_GLYPH_CHAR (g);
       if (unibyte_display_via_language_environment
 	  && SINGLE_BYTE_CHAR_P (ch)
-	  && (ch >= 0240 || !NILP (Vnonascii_translation_table)))
+	  && (ch >= 0240
+	      || (ch >= 0200 && !NILP (Vnonascii_translation_table))))
 	ch = unibyte_char_to_multibyte (ch);
       if (gidx == 0) XSETFASTINT (first_ch, ch);
       charset = CHAR_CHARSET (ch);
@@ -623,7 +624,8 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 	  ch = FAST_GLYPH_CHAR (g);
 	  if (unibyte_display_via_language_environment
 	      && SINGLE_BYTE_CHAR_P (ch)
-	      && (ch >= 0240 || !NILP (Vnonascii_translation_table)))
+	      && (ch >= 0240
+		  || (ch >= 0200 && !NILP (Vnonascii_translation_table))))
 	    ch = unibyte_char_to_multibyte (ch);
 	  SPLIT_CHAR (ch, this_charset, c1, c2);
 	  if (this_charset != charset
