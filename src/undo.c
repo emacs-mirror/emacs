@@ -397,7 +397,7 @@ Return what remains of the list.")
 		     (not matching the actual disk file)
 		     then don't mark unmodified.  */
 		  if (mod_time != base_buffer->modtime)
-		    break;
+		    continue;
 #ifdef CLASH_DETECTION
 		  Funlock_buffer ();
 #endif /* CLASH_DETECTION */
