@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.75) $
+ * $HopeName: MMsrc!mpmst.h(trunk.76) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -737,38 +737,6 @@ typedef struct SplayNodeStruct {
   SplayNode left;     /* left child */
   SplayNode right;    /* right child */
 } SplayNodeStruct;
-
-
-/* CBS -- Coalescing Block Structure
- *
- * See design.mps.cbs.
- */
-
-#define CBSSig ((Sig)0x519CB599) /* SIGnature CBS */
-
-typedef struct CBSStruct {
-  SplayTreeStruct splayTree;
-  Pool blockPool;
-  CBSChangeSizeMethod new;
-  CBSChangeSizeMethod delete;
-  CBSChangeSizeMethod grow;
-  CBSChangeSizeMethod shrink;
-  Size minSize;
-  Align alignment;
-  Bool mayUseInline;
-  Bool fastFind;
-  Bool inCBS; /* prevent reentrance */
-  CBSEmergencyBlock emergencyBlockList;
-  CBSEmergencyGrain emergencyGrainList;
-  Sig sig; /* sig at end because embeded */
-} CBSStruct;
-
-typedef struct CBSBlockStruct {
-  SplayNodeStruct splayNode;
-  Addr base;
-  Addr limit;
-  Size maxSize; /* accurate maximum block size of sub-tree */
-} CBSBlockStruct;
 
 
 #endif /* mpmst_h */
