@@ -1,3 +1,11 @@
+2003-09-06  Dave Love  <fx@gnu.org>
+
+	* ielm.el (ielm-mode-hook): Add :options.
+
+	* emacs-lisp/eldoc.el (eldoc-print-current-symbol-info-function):
+	New.
+	(eldoc-print-current-symbol-info): Use it.
+
 2003-09-04  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gud-display1): Use gud-call to prevent extra prompt
