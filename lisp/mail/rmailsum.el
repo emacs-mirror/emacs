@@ -129,13 +129,12 @@ nil for FUNCTION means all messages."
 	    (setq was-in-summary t)
 	    (set-buffer rmail-buffer)))
       ;; Find its summary buffer, or make one.
-      (or (and rmail-summary-buffer
-	       (buffer-name rmail-summary-buffer))
-	  (setq rmail-summary-buffer
-		(generate-new-buffer (concat (buffer-name) "-summary"))))
-      (setq sumbuf rmail-summary-buffer)
+      (setq sumbuf
+	    (if (and rmail-summary-buffer
+		     (buffer-name rmail-summary-buffer))
+		rmail-summary-buffer
+	      (generate-new-buffer (concat (buffer-name) "-summary"))))
       (setq mesg rmail-current-message)
-      (setq foo mesg)
       ;; Filter the messages; make or get their summary lines.
       (let ((summary-msgs ())
 	    (new-summary-line-count 0))
@@ -153,24 +152,29 @@ nil for FUNCTION means all messages."
 				summary-msgs)))
 		(setq msgnum (1+ msgnum)))
 	      (setq summary-msgs (nreverse summary-msgs)))))
-	(let ((rbuf (current-buffer))
-	      (total rmail-total-messages))
-	  (set-buffer sumbuf)
-	  ;; Set up the summary buffer's contents.
-	  (let ((buffer-read-only nil))
-	    (erase-buffer)
-	    (while summary-msgs
-	      (princ (cdr (car summary-msgs)) sumbuf)
-	      (setq summary-msgs (cdr summary-msgs)))
-	    (goto-char (point-min)))
-	  ;; Set up the rest of its state and local variables.
-	  (setq buffer-read-only t)
-	  (rmail-summary-mode)
-	  (make-local-variable 'minor-mode-alist)
-	  (setq minor-mode-alist (list ": " description))
-	  (setq rmail-buffer rbuf
-		rmail-summary-redo redo-form
-		rmail-total-messages total))))
+	;; Temporarily, while summary buffer is unfinished,
+	;; we "don't have" a summary.
+	(setq rmail-summary-buffer nil)
+	(save-excursion
+	  (let ((rbuf (current-buffer))
+		(total rmail-total-messages))
+	    (set-buffer sumbuf)
+	    ;; Set up the summary buffer's contents.
+	    (let ((buffer-read-only nil))
+	      (erase-buffer)
+	      (while summary-msgs
+		(princ (cdr (car summary-msgs)) sumbuf)
+		(setq summary-msgs (cdr summary-msgs)))
+	      (goto-char (point-min)))
+	    ;; Set up the rest of its state and local variables.
+	    (setq buffer-read-only t)
+	    (rmail-summary-mode)
+	    (make-local-variable 'minor-mode-alist)
+	    (setq minor-mode-alist (list ": " description))
+	    (setq rmail-buffer rbuf
+		  rmail-summary-redo redo-form
+		  rmail-total-messages total))))
+      (setq rmail-summary-buffer sumbuf))
     ;; Now display the summary buffer and go to the right place in it.
     (or was-in-summary
 	(pop-to-buffer sumbuf))
