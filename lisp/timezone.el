@@ -291,7 +291,11 @@ If LOCAL is nil, it is assumed to be GMT.
 If TIMEZONE is nil, use the local time zone."
   (let* ((date   (timezone-parse-date date))
 	 (year   (string-to-int (aref date 0)))
-	 (year	 (if (< year 100) (+ year 1900) year))
+	 (year	 (cond ((< year 50)
+			(+ year 2000))
+		       ((< year 100)
+			(+ year 1900))
+		       (t year)))
 	 (month  (string-to-int (aref date 1)))
 	 (day    (string-to-int (aref date 2)))
 	 (time   (timezone-parse-time (aref date 3)))
