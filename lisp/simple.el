@@ -847,7 +847,7 @@ In either case, the output is inserted after point (leaving mark after it)."
 		      (read-from-minibuffer "Shell command on region: "
 					    nil nil nil
 					    'shell-command-history)))
-		 (list (region-beginning) (region-end)
+		 (list (point) (mark)
 		       string
 		       current-prefix-arg
 		       current-prefix-arg)))
@@ -855,7 +855,7 @@ In either case, the output is inserted after point (leaving mark after it)."
 	  (and output-buffer
 	       (not (or (bufferp output-buffer) (stringp output-buffer)))))
       ;; Replace specified region with output from command.
-      (let ((swap (and replace (< (point) (mark)))))
+      (let ((swap (and replace (< start end))))
 	;; Don't muck with mark unless REPLACE says we should.
 	(goto-char start)
 	(and replace (push-mark))
@@ -877,8 +877,8 @@ In either case, the output is inserted after point (leaving mark after it)."
 	      ;; delete everything but the specified region,
 	      ;; then replace that region with the output.
 	      (progn (setq buffer-read-only nil)
-		     (delete-region end (point-max))
-		     (delete-region (point-min) start)
+		     (delete-region (max start end) (point-max))
+		     (delete-region (point-min) (max start end))
 		     (call-process-region (point-min) (point-max)
 					  shell-file-name t t nil
 					  shell-command-switch command)
