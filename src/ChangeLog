@@ -1,5 +1,10 @@
 2000-11-28  Gerd Moellmann  <gerd@gnu.org>
 
+	* textprop.c (text_read_only): New function.
+	(verify_interval_modification): Use it instead of signaling
+	`text-read-only'.  This makes it easier to catch this error
+	with a breakpoint.: 
+
 	* xdisp.c (forward_to_next_line_start): Check for newlines, 
 	not end of line, which includes CR.
 

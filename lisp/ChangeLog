@@ -1,3 +1,7 @@
+2000-11-28  Gerd Moellmann  <gerd@gnu.org>
+
+	* simple.el (delete-horizontal-space): Handle minibuffer prompt.
+
 2000-11-28  Dave Love  <fx@gnu.org>
 
 	* progmodes/fortran.el (fortran-mode): Don't set
