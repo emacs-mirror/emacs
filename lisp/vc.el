@@ -5,7 +5,7 @@
 ;; Author:     Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Andre Spiegel <spiegel@inf.fu-berlin.de>
 
-;; $Id: vc.el,v 1.209 1998/02/27 18:44:14 spiegel Exp spiegel $
+;; $Id: vc.el,v 1.210 1998/03/08 10:03:50 spiegel Exp spiegel $
 
 ;; This file is part of GNU Emacs.
 
@@ -691,10 +691,11 @@ to an optional list of FLAGS."
     (if (not (vc-context-matches-p (point) point-context))
 	(let ((new-point (vc-find-position-by-context point-context)))
 	  (if new-point (goto-char new-point))))
-    (if mark-context
-	(if (not (vc-context-matches-p (mark) mark-context))
-	    (let ((new-mark (vc-find-position-by-context mark-context)))
-	      (if new-mark (set-mark new-mark)))))))
+    (and mark-active
+         mark-context
+         (not (vc-context-matches-p (mark) mark-context))
+         (let ((new-mark (vc-find-position-by-context mark-context)))
+           (if new-mark (set-mark new-mark))))))
 
 (defun vc-revert-buffer1 (&optional arg no-confirm)
   ;; Revert buffer, try to keep point and mark where user expects them in spite
