@@ -1407,10 +1407,9 @@ configuration."
 ;      (setq tail (cdr tail))))
 ;  alist)
 
-(defun assoc-delete-all (key alist)
+(defun assq-delete-all (key alist)
   "Delete from ALIST all elements whose car is KEY.
 Return the modified alist."
-  (setq alist (copy-sequence alist))
   (let ((tail alist))
     (while tail
       (if (eq (car (car tail)) key)
