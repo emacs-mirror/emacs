@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000, 2001
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000, 2001, 2002
 @c   Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/display
@@ -1380,6 +1380,13 @@ What kinds of colors the frame supports---either @code{color},
 
 @item background
 The kind of background---either @code{light} or @code{dark}.
+
+@item supports
+Whether or not the frame can display the face attributes (@pxref{Face
+Attributes}) given in @var{value}@dots{}.  See the documentation for
+the function @code{display-supports-face-attributes-p} (@pxref{Display
+Face Attribute Testing}) for more information on exactly how this testing
+is done.
 @end table
 
 If an element of @var{display} specifies more than one @var{value} for a
