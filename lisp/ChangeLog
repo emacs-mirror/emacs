@@ -1,3 +1,8 @@
+2004-11-12  Diane Murray  <dsm@muenster.de>  (tiny change)
+
+	* mail/rmail-spam-filter.el (rmail-spam-filter): Only check white
+	list if `message-sender' is non-nil.
+
 2004-11-12  Kevin Rodgers  <ihs_4664@yahoo.com>  (tiny change)
 
 	* desktop.el (desktop-create-buffer, desktop-save): Avoid some
