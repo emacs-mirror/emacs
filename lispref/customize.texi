@@ -344,9 +344,10 @@ which values are legitimate and (2) how to display the value in the
 customization buffer for editing.
 
   You specify the customization type in @code{defcustom} with the
-@code{:type} keyword.  The argument of @code{:type} is evaluated; since
-types that vary at run time are rarely useful, normally you use a quoted
-constant.  For example:
+@code{:type} keyword.  The argument of @code{:type} is evaluated, but
+only once when the @code{defcustom} is executed, so it isn't useful
+for the value to vary.  Normally we use a quoted constant.  For
+example:
 
 @example
 (defcustom diff-command "diff"
