@@ -4149,12 +4149,13 @@ window_scroll_pixel_based (window, n, whole, noerror)
 
   /* End if we end up at ZV or BEGV.  */
   if ((n > 0 && IT_CHARPOS (it) == ZV)
-      || (n < 0 && IT_CHARPOS (it) == CHARPOS (start)))
+      || (n < 0 && IT_CHARPOS (it) == BEGV))
     {
       if (IT_CHARPOS (it) == ZV)
 	{
-	  if (it.current_y + it.max_ascent + it.max_descent
-	      > it.last_visible_y)
+	  if (it.current_y < it.last_visible_y
+	      && (it.current_y + it.max_ascent + it.max_descent
+		  >= it.last_visible_y))
 	    {
 	      /* The last line was only partially visible, make it fully
 		 visible.  */
