@@ -1,3 +1,8 @@
+2001-07-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* coding.c (Ffind_coding_systems_region_internal): If safe_codings
+	is t, don't try to append anything to it.
+
 2001-07-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dired.c (file_name_completion): Pass dp->d_name to
@@ -13,9 +18,8 @@
 	the event after checking it with x_handle_property_notify.
 
 	* xselect.c (TRACE0, TRACE1, TRACE2): New macros, defined
-	depending on TRACE_SELECTION.  Replace fprintfs in #if 0 with 
-	TRACE macros to facilitate debugging.  Add additional trace
-	statements.
+	depending on TRACE_SELECTION.  Replace fprintfs in #if 0 with
+	TRACE macros to facilitate debugging.  Add additional trace statements.
 	(toplevel): Add prototypes for file-local functions.
 	(x_atom_to_symbol): Remove DPYINFO parameter.
 
