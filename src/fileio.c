@@ -20,12 +20,27 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#ifdef VMS
+#include "pwd.h"
+#else
 #include <pwd.h>
+#endif
+
 #include <ctype.h>
+
+#ifdef VMS
+#include "dir.h"
+#include <perror.h>
+#include <stddef.h>
+#include <string.h>
+#else
 #include <sys/dir.h>
+#endif
+
 #include <errno.h>
 
-#ifndef VMS
+#ifndef vax11c
 extern int errno;
 extern char *sys_errlist[];
 extern int sys_nerr;
@@ -46,7 +61,6 @@ extern int sys_nerr;
 #include "window.h"
 
 #ifdef VMS
-#include <perror.h>
 #include <file.h>
 #include <rmsdef.h>
 #include <fab.h>
@@ -217,7 +231,8 @@ file_name_as_directory (out, in)
 	  brack = ']';
 	  strcpy (out, "[.");
 	}
-      if (dot = index (p, '.'))
+      dot = index (p, '.');
+      if (dot)
 	{
 	  /* blindly remove any extension */
 	  size = strlen (out) + (dot - p);
@@ -348,7 +363,8 @@ directory_file_name (src, dst)
 
       /* If bracket is ']' or '>', bracket - 2 is the corresponding
 	 opening bracket.  */
-      if (!(ptr = index (src, bracket - 2)))
+      ptr = index (src, bracket - 2);
+      if (ptr == 0)
 	{ /* no opening bracket */
 	  strcpy (dst, src);
 	  return 0;
@@ -648,9 +664,24 @@ See also the function `substitute-in-file-name'.")
       newdir = XSTRING (defalt)->data;
     }
 
-  /* Now concatenate the directory and name to new space in the stack frame */
+  if (newdir != 0)
+    {
+      /* Get rid of any slash at the end of newdir.  */
+      int length = strlen (newdir);
+      if (newdir[length - 1] == '/')
+	{
+	  unsigned char *temp = (unsigned char *) alloca (length);
+	  bcopy (newdir, temp, length - 1);
+	  temp[length - 1] = 0;
+	  newdir = temp;
+	}
+      tlen = length + 1;
+    }
+  else
+    tlen = 0;
 
-  tlen = (newdir ? strlen (newdir) + 1 : 0) + strlen (nm) + 1;
+  /* Now concatenate the directory and name to new space in the stack frame */
+  tlen += strlen (nm) + 1;
   target = (unsigned char *) alloca (tlen);
   *target = 0;
 

@@ -19,7 +19,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
 #include "config.h"
+
+#ifdef VMS
+#include "pwd.h"
+#else
 #include <pwd.h>
+#endif
+
 #include "lisp.h"
 #include "buffer.h"
 #include "window.h"

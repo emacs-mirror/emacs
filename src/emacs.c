@@ -379,8 +379,10 @@ main (argc, argv, envp)
       signal (22, fatal_error_signal);
       signal (23, fatal_error_signal);
       signal (24, fatal_error_signal);
+#ifdef SIGIO
       signal (SIGAIO, fatal_error_signal);
       signal (SIGPTY, fatal_error_signal);
+#endif
       signal (SIGIOINT, fatal_error_signal);
       signal (SIGGRANT, fatal_error_signal);
       signal (SIGRETRACT, fatal_error_signal);
