@@ -1,3 +1,8 @@
+2005-01-05  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Programming Tutorial): Replace kbd command by
+	appropriate characters for a keyboard macro.
+
 2005-01-04  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Basic Tutorial, Programming Tutorial): Remove caveats
