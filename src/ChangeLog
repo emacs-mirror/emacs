@@ -1,5 +1,9 @@
 1999-11-02  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (QCuser_data): New.
+	(syms_of_xfns): Initialize QCuser_data.
+	(parse_image_spec): Ignore :user-data DATA properties.
+
 	* xdisp.c (display_line): Set charpos of first glyph in blank
 	lines not corresponding to any text to -1, even if no glyphs are
 	filled in in that line.
