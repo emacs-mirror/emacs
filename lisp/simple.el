@@ -783,7 +783,9 @@ An uppercase letter in REGEXP makes the search case-sensitive."
 		 (null minibuffer-text-before-history))
 	    (setq minibuffer-text-before-history (buffer-string)))
 	(if (< narg minimum)
-	    (error "End of history; no next item"))
+	    (if minibuffer-default
+		(error "End of history; no next item")
+	      (error "End of history; no default available")))
 	(if (> narg (length (symbol-value minibuffer-history-variable)))
 	    (error "Beginning of history; no preceding item"))
 	(erase-buffer)
