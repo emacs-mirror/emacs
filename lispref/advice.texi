@@ -14,10 +14,12 @@ than redefining the whole function.
 
 @cindex piece of advice
   Each function can have multiple @dfn{pieces of advice}, separately
-defined.  Each defined piece of advice can be enabled or disabled
-explicitly.  The enabled pieces of advice for any given function
-actually take effect when you @dfn{activate} advice for that function, or when
-that function is subsequently defined or redefined.
+defined.  Each defined piece of advice can be @dfn{enabled} or
+disabled explicitly.  All the enabled pieces of advice for any given
+function actually take effect when you @dfn{activate} advice for that
+function, or when you define or redefine the function.  Note that
+enabling a piece of advice and activating advice for a function
+are not the same thing.
 
   @strong{Usage Note:} Advice is useful for altering the behavior of
 existing calls to an existing function.  If you want the new behavior
@@ -191,7 +193,7 @@ function; this flag says to do so, for @var{function}, immediately after
 defining this piece of advice.
 
 @cindex forward advice
-This flag has no effect if @var{function} itself is not defined yet (a
+This flag has no immediate effect if @var{function} itself is not defined yet (a
 situation known as @dfn{forward advice}), because it is impossible to
 activate an undefined function's advice.  However, defining
 @var{function} will automatically activate its advice.

@@ -739,10 +739,10 @@ composed of these kinds of objects:
 @item
 Symbols that were defined by this library.
 @item
-Lists of the form @code{(require . @var{feature})} indicating
+Cons cells of the form @code{(require . @var{feature})} indicating
 features that were required.
 @item
-Lists of the form @code{(provide . @var{feature})} indicating
+Cons cells of the form @code{(provide . @var{feature})} indicating
 features that were provided.
 @end itemize
 
