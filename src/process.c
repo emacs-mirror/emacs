@@ -3182,7 +3182,7 @@ read_process_output (proc, channel)
 	{
 	  insert_1_both (chars, nchars, nbytes, 0, 1, 1);
 	  signal_after_change (opoint, 0, PT - opoint);
-	  update_compositions (opoint, PT, CHECK_BORDER);
+	  update_compositions (before, PT, CHECK_BORDER);
 	}
       set_marker_both (p->mark, p->buffer, PT, PT_BYTE);
 
