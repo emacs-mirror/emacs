@@ -254,9 +254,13 @@ Return non-nil if FILE is unchanged."
 	(with-current-buffer (find-file-noselect sigfile)
 	  (goto-char (point-min))
 	  (while (and (search-forward id nil 'move)
-		      (progn (goto-char (- (match-beginning 0) 2))
-			     ;; Ignore E_ entries used for foo.id files.
-			     (or (not (bolp)) (looking-at "E_")))))
+		      (save-excursion
+			(goto-char (- (match-beginning 0) 2))
+			;; For `names', the lines start with `?./foo/bar'.
+			;; For others there's 2 chars before the ./foo/bar.
+			(or (not (or (bolp) (looking-at "\n?")))
+			    ;; Ignore E_ entries used for foo.id files.
+			    (looking-at "E_")))))
 	  (if (eobp)
 	      ;; ID not found.
 	      (if (equal (file-name-nondirectory sigfile)

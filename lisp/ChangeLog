@@ -1,3 +1,7 @@
+2004-09-08  Stefan  <monnier@iro.umontreal.ca>
+
+	* vc-arch.el (vc-arch-state): Fix parsing for `names' method.
+
 2004-09-08  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-rect.el (cua--highlight-rectangle): Fix last
@@ -65,6 +69,9 @@
 	(term-mode): Don't disable overflow-newline-into-fringe.
 
 2004-09-07  Stefan  <monnier@iro.umontreal.ca>
+
+	* term/xterm.el (function-key-map): Add bindings for C- and S- cursor
+	motion as seen on my Mac OS X xterms.
 
 	* newcomment.el (uncomment-region-default, comment-region-default):
 	New functions extracted from uncomment-region and comment-region.
