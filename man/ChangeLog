@@ -1,3 +1,16 @@
+2003-09-30  Richard M. Stallman  <rms@gnu.org>
+
+	* dired-x.texi (Miscellaneous Commands): Delete M-g, w, T.
+
+	* widget.texi (User Interface): Fix typos.
+
+	* pcl-cvs.texi, cl.texi, woman.texi, ediff.texi: Fix @strong{Note:}.
+
+	* cmdargs.texi (General Variables): Remove MAILRC envvar.
+
+	* misc.texi (Saving Emacs Sessions): Shorten the section,
+	collapsing back into one node.
+
 2003-09-30  Lars Hansen  <larsh@math.ku.dk>
 	
 	* misc.texi: Section "Saving Emacs Sessions" rewritten.

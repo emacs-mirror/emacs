@@ -1,3 +1,7 @@
+2003-09-30  Richard M. Stallman  <rms@gnu.org>
+
+	* dired.el (dired-mode): Handle dired-directory as a list.
+
 2003-09-30  Nick Roberts  <nick@nick.uklinux.net>
 
 	* toolbar/gud-watch.xpm, toolbar/gud-watch.pbm: Add.
