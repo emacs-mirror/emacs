@@ -84,10 +84,10 @@ THISDIR		= .
 # affects makefiles using sh as the command processor, so we need to
 # detect which rules to use.
 ifdef USING_SH
+sh_output := $(shell echo [Please ignore a syntax error on the next line - it is intentional] 1>&2)
 sh_output := $(shell echo foo")
 ifeq "$(sh_output)" ""
 NEW_CYGWIN = 1
-$(warning [Please ignore the syntax error just above - it is intentional])
 endif
 endif
 
