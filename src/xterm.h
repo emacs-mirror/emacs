@@ -453,8 +453,8 @@ struct x_output
   struct x_display_info *display_info;
 
   /* This is a button event that wants to activate the menubar.
-     We save it here until the  command loop gets to think about it.  */
-  XButtonEvent *saved_button_event;
+     We save it here until the command loop gets to think about it.  */
+  XEvent *saved_menu_event;
 
   /* This is the widget id used for this frame's menubar in lwlib.  */
 #ifdef USE_X_TOOLKIT
