@@ -130,6 +130,12 @@ Understands the following styles:
  (5) 22-AUG-1993 10:59:12.82
  (6) Thu, 11 Apr 16:17:12 91 [MET]
  (7) Mon, 6  Jul 16:47:20 T 1992 [MET]"
+  ;; Get rid of any text properties.
+  (and (stringp date)
+       (or (text-properties-at 0 date)
+	   (next-property-change 0 date))
+       (setq date (copy-sequence date))
+       (set-text-properties 0 (length date) nil date))
   (let ((date (or date ""))
 	(year nil)
 	(month nil)
@@ -176,17 +182,13 @@ Understands the following styles:
 	  ;; It is now Dec 1992.  8 years before the end of the World.
 	  (if (< (length year) 4)
 	      (setq year (concat "19" (substring year -2 nil))))
-	  (setq month
-		(int-to-string
-		 (cdr
-		  (assoc
-		   (upcase
-		    ;; Don't use `match-end' in order to take 3
-		    ;; letters from the beginning.
-		    (substring date
-			       (match-beginning month)
-			       (+ (match-beginning month) 3)))
-		   timezone-months-assoc))))
+	  (let ((string (substring date
+				   (match-beginning month)
+				   (+ (match-beginning month) 3))))
+	    (setq month
+		  (int-to-string
+		   (cdr (assoc (upcase string) timezone-months-assoc)))))
+
 	  (setq day
 		(substring date (match-beginning day) (match-end day)))
 	  (setq time
