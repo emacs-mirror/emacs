@@ -2302,6 +2302,7 @@ Use @code{sleep-for} when you wish to guarantee a delay.
 @section Quitting
 @cindex @kbd{C-g}
 @cindex quitting
+@cindex interrupt Lisp functions
 
   Typing @kbd{C-g} while a Lisp function is running causes Emacs to
 @dfn{quit} whatever it is doing.  This means that control returns to the
@@ -2344,6 +2345,7 @@ about the special behavior of @kbd{C-g} in the command loop.  In the
 case of @code{read-quoted-char}, this is so that @kbd{C-q} can be used
 to quote a @kbd{C-g}.  
 
+@cindex prevent quitting
   You can prevent quitting for a portion of a Lisp function by binding
 the variable @code{inhibit-quit} to a non-@code{nil} value.  Then,
 although @kbd{C-g} still sets @code{quit-flag} to @code{t} as usual, the
