@@ -1,4 +1,4 @@
-;;; ps-print-def.el --- Common definitions for ps-print package
+;;; ps-vars.el --- Common definitions for ps-print package
 
 ;; Copyright (C) 1999 Free Software Foundation, Inc.
 
@@ -91,6 +91,6 @@ Any other value is treated as nil."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(provide 'ps-print-def)
+(provide 'ps-vars)
 
-;;; ps-print-def.el ends here
+;;; ps-vars.el ends here

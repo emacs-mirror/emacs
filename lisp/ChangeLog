@@ -1,3 +1,13 @@
+1999-11-18  Kenichi Handa  <handa@etl.go.jp>
+
+	* ps-vars.el: Renamed from ps-print-def.el.  Provide ps-vars
+	instead of ps-print-def.
+
+	* ps-print.el: Require ps-vars instead of ps-print-def.
+
+
+	* ps-mule.el: Require ps-vars instead of ps-print-def.
+
 1999-11-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* simple.el (with-syntax-table): Save buffer explicitly instead of
