@@ -811,7 +811,7 @@ getloadavg (loadavg, nelem)
 
 #ifndef SUNOS_5
       if (
-#ifndef _AIX
+#if !(defined (_AIX) && !defined (ps2))
 	  nlist (KERNEL_FILE, nl)
 #else  /* _AIX */
 	  knlist (nl, 1, sizeof (nl[0]))
