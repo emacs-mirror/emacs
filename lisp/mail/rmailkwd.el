@@ -55,6 +55,63 @@
 
 (defvar rmail-keywords)
 
+;;;; Low-level functions.
+
+;; Return a list of symbols for all the keywords (labels) recorded in
+;; this file's Labels.
+(defun rmail-keywords ()
+  "Return a list of all known keywords."
+  (or rmail-keywords (rmail-keyword-init)))
+
+(defun rmail-keyword-init ()
+  "Initialize the variable `rmail-keywords' to hold no keywords.
+The value is actually (nil), since (cdr rmail-keywords) is the
+actual list of keywords."
+  (setq rmail-keywords (cons 'rmail-keywords nil)))
+
+(defun rmail-attribute-p (s)
+  (let ((symbol (rmail-make-label s)))
+    (if (memq symbol (cdr rmail-attributes)) symbol)))
+
+(defun rmail-keyword-p (s)
+  "Non-nil if S is a known keyword for this Rmail file."
+  (let ((symbol (rmail-make-label s)))
+    (if (memq symbol (cdr (rmail-keywords))) symbol)))
+
+(defun rmail-make-label (s &optional forcep)
+  (cond ((symbolp s) s)
+	(forcep (intern (downcase s) rmail-label-obarray))
+	(t  (intern-soft (downcase s) rmail-label-obarray))))
+
+;;; (defun rmail-force-make-label (s)
+;;;   (intern (downcase s) rmail-label-obarray))
+
+(defun rmail-quote-label-name (label)
+  (regexp-quote (symbol-name (rmail-make-label label t))))
+
+;;;###autoload
+(defun rmail-keyword-register-keywords (keyword-list)
+  "Add the strings in KEYWORD-LIST to `rmail-keywords'.
+Return a list of the keywords newly added (those that were
+not already known)."
+  (delq nil (mapcar 'rmail-install-keyword keyword-list)))
+
+;;; mbox: ready
+;; Add WORD to the list in the file's Labels option.
+;; Any keyword used for the first time needs this done.
+(defun rmail-install-keyword (word)
+  "Append WORD to the global list of keywords.  Ignore duplicates.
+Return WORD if it is a new entry, nil otherwise."
+  (let ((keyword (rmail-make-label word t))
+	(keywords (rmail-keywords)))
+    (if (not (or (rmail-attribute-p keyword)
+		 (rmail-keyword-p keyword)))
+        (progn
+          (setcdr keywords (cons keyword (cdr keywords)))
+          keyword))))
+
+;;;; Adding and removing message keywords.
+
 ;;;###autoload
 (defun rmail-add-label (string)
   "Add LABEL to labels associated with current RMAIL message.
@@ -73,6 +130,8 @@ Completion is performed over known labels when reading."
 ;;; mbox: ready to define and execute test
 ;;;###autoload
 (defun rmail-read-label (prompt)
+  (if (= rmail-total-messages 0)
+      (error "No messages in this file"))
   (with-current-buffer rmail-buffer
     (let ((result
 	   (completing-read (concat prompt
@@ -93,10 +152,12 @@ Completion is performed over known labels when reading."
   "Add (STATE is non-nil) or remove (STATE is nil) label L in message N.
 If N is nil then use the current Rmail message.  The current buffer,
 possibly narrowed, displays a message."
+  (if (= rmail-total-messages 0)
+      (error "No messages in this file"))
   (with-current-buffer rmail-buffer
     (if (not n) (setq n rmail-current-message))
 
-    ;; Make message N the curent message.
+    ;; Make message N the current message.
     (save-restriction
       (widen)
       (narrow-to-region (rmail-desc-get-start n) (rmail-desc-get-end n))
@@ -121,57 +182,6 @@ possibly narrowed, displays a message."
             ;; Remove the keyword from the keyword header.
             (rmail-desc-remove-keyword keyword n)))))))
             
-
-;; Commented functions aren't used by RMAIL but might be nice for user
-;; packages that do stuff with RMAIL.  Note that rmail-message-labels-p
-;; is in rmail.el now.
-
-;(defun rmail-message-label-p (label &optional n)
-;  "Returns symbol if LABEL (attribute or keyword) on NTH or current message."
-;  (rmail-message-labels-p (or n rmail-current-message) (regexp-quote label)))
-
-;(defun rmail-parse-message-labels (&optional n)
-;  "Returns labels associated with NTH or current RMAIL message.
-;The result is a list of two lists of strings.  The first is the
-;message attributes and the second is the message keywords."
-;  (let (atts keys)
-;    (save-restriction
-;      (widen)
-;      (goto-char (rmail-msgbeg (or n rmail-current-message)))
-;      (forward-line 1)
-;      (or (looking-at "[01],") (error "Malformed label line"))
-;      (forward-char 2)
-;      (while (looking-at "[ \t]*\\([^ \t\n,]+\\),")
-;	(setq atts (cons (buffer-substring (match-beginning 1) (match-end 1))
-;			  atts))
-;	(goto-char (match-end 0)))
-;      (or (looking-at ",") (error "Malformed label line"))
-;      (forward-char 1)
-;      (while (looking-at "[ \t]*\\([^ \t\n,]+\\),")
-;	(setq keys (cons (buffer-substring (match-beginning 1) (match-end 1))
-;			 keys))
-;	(goto-char (match-end 0)))
-;      (or (looking-at "[ \t]*$") (error "Malformed label line"))
-;      (list (nreverse atts) (nreverse keys)))))
-
-(defun rmail-attribute-p (s)
-  (let ((symbol (rmail-make-label s)))
-    (if (memq symbol (cdr rmail-attributes)) symbol)))
-
-(defun rmail-keyword-p (s)
-  (let ((symbol (rmail-make-label s)))
-    (if (memq symbol (cdr (rmail-keywords))) symbol)))
-
-(defun rmail-make-label (s &optional forcep)
-  (cond ((symbolp s) s)
-	(forcep (intern (downcase s) rmail-label-obarray))
-	(t  (intern-soft (downcase s) rmail-label-obarray))))
-
-(defun rmail-force-make-label (s)
-  (intern (downcase s) rmail-label-obarray))
-
-(defun rmail-quote-label-name (label)
-  (regexp-quote (symbol-name (rmail-make-label label t))))
 
 ;; Motion on messages with keywords.
 
@@ -218,55 +228,5 @@ With prefix argument N moves forward N messages with these labels."
 	(message "No previous message with labels %s" labels))
     (if (> n 0)
 	(message "No following message with labels %s" labels))))
-
-;;;; Manipulate the file's Labels option.
-
-;; Return a list of symbols for all the keywords (labels) recorded in
-;; this file's Labels.
-(defun rmail-keywords ()
-  "Return a list of all known keywords."
-  (or rmail-keywords (rmail-keyword-init)))
-
-(defun rmail-keyword-init ()
-  "Initialize the variable `rmail-keywords' to an empty list."
-  (setq rmail-keywords (cons 'rmail-keywords nil)))
-
-;;;###autoload
-(defun rmail-keyword-register-keywords (keyword-list)
-  "Add the strings in KEYWORD-LIST to `rmail-keywords'.
-If a symbol already exists, then ignore that string.
-Return a list of the keywords added."
-  (delq nil (mapcar 'rmail-install-keyword keyword-list)))
-
-;;; mbox: deprecated
-;; Set rmail-keywords to a list of symbols for all
-;; the keywords (labels) recorded in this file's Labels option.
-(defun rmail-parse-file-keywords ()
-  (save-restriction
-    (save-excursion
-      (widen)
-      (goto-char 1)
-      (setq rmail-keywords
-	    (if (search-forward "\nLabels:" (rmail-msgbeg 1) t)
-		(progn
-		  (narrow-to-region (point) (progn (end-of-line) (point)))
-		  (goto-char (point-min))
-		  (cons 'rmail-keywords
-			(mapcar 'rmail-force-make-label
-				(mail-parse-comma-list)))))))))
-
-;;; mbox: ready
-;; Add WORD to the list in the file's Labels option.
-;; Any keyword used for the first time needs this done.
-(defun rmail-install-keyword (word)
-  "Append WORD to the global list of keywords.  Ignore duplicates.
-Return WORD if it is a new entry, nil otherwise."
-  (let ((keyword (rmail-make-label word t))
-	(keywords (rmail-keywords)))
-    (if (not (or (rmail-attribute-p keyword)
-		 (rmail-keyword-p keyword)))
-        (progn
-          (setcdr keywords (cons keyword (cdr keywords)))
-          keyword))))
 
 ;;; rmailkwd.el ends here
