@@ -1,3 +1,9 @@
+2000-09-07  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* frame.c (make_terminal_frame): Initialize frame foreground and
+	background colors to unspecified, for the initial instance of an
+	MSDOS frame.
+
 2000-09-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* ralloc.c (mmap_find): Fix overlap computation.

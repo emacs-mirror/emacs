@@ -1,3 +1,10 @@
+2000-09-07  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* menu-bar.el (read-mail-item-name): New function.
+	(menu-bar-tools-menu): Use it to compute and display the package
+	used to read email.
+	(menu-bar-tools-menu): Fix typo in GUD's help string.
+
 2000-09-07  Dave Love  <fx@gnu.org>
 
 	* menu-bar.el (menu-bar-options-menu): Fix the font-lock toggle.
