@@ -83,7 +83,7 @@ static Lisp_Object last_thing_searched;
 
 Lisp_Object Qinvalid_regexp;
 
-Lisp_Object Vsearch_whitespace_regexp;
+Lisp_Object Vsearch_spaces_regexp;
 
 static void set_search_regs ();
 static void save_search_regs ();
@@ -111,7 +111,7 @@ matcher_overflow ()
    PATTERN.  0 means all multibyte characters are recognized just as
    sequences of binary data.
 
-   The behavior also depends on Vsearch_whitespace_regexp.  */
+   The behavior also depends on Vsearch_spaces_regexp.  */
 
 static void
 compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
@@ -162,13 +162,13 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
   cp->buf.translate = (! NILP (translate) ? translate : make_number (0));
   cp->posix = posix;
   cp->buf.multibyte = multibyte;
-  cp->whitespace_regexp = Vsearch_whitespace_regexp;
+  cp->whitespace_regexp = Vsearch_spaces_regexp;
   BLOCK_INPUT;
   old = re_set_syntax (RE_SYNTAX_EMACS
 		       | (posix ? 0 : RE_NO_POSIX_BACKTRACKING));
 
-  re_set_whitespace_regexp (NILP (Vsearch_whitespace_regexp) ? NULL
-			    : SDATA (Vsearch_whitespace_regexp));
+  re_set_whitespace_regexp (NILP (Vsearch_spaces_regexp) ? NULL
+			    : SDATA (Vsearch_spaces_regexp));
 
   val = (char *) re_compile_pattern ((char *)raw_pattern,
 				     raw_pattern_size, &cp->buf);
@@ -236,7 +236,7 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
 	  && EQ (cp->buf.translate, (! NILP (translate) ? translate : make_number (0)))
 	  && cp->posix == posix
 	  && cp->buf.multibyte == multibyte
-	  && !NILP (Fequal (cp->whitespace_regexp, Vsearch_whitespace_regexp)))
+	  && !NILP (Fequal (cp->whitespace_regexp, Vsearch_spaces_regexp)))
 	break;
 
       /* If we're at the end of the cache, compile into the nil cell
@@ -1064,7 +1064,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
       return pos;
     }
 
-  if (RE && !(trivial_regexp_p (string) && NILP (Vsearch_whitespace_regexp)))
+  if (RE && !(trivial_regexp_p (string) && NILP (Vsearch_spaces_regexp)))
     {
       unsigned char *p1, *p2;
       int s1, s2;
@@ -3012,13 +3012,13 @@ syms_of_search ()
   saved_last_thing_searched = Qnil;
   staticpro (&saved_last_thing_searched);
 
-  DEFVAR_LISP ("search-whitespace-regexp", &Vsearch_whitespace_regexp,
+  DEFVAR_LISP ("search-spaces-regexp", &Vsearch_spaces_regexp,
       /* doc: Regexp to substitute for bunches of spaces in regexp search.
 Some commands use this for user-specified regexps.
 Spaces that occur inside character classes or repetition operators
 or other such regexp constructs are not replaced with this.
 A value of nil (which is the normal value) means treat spaces literally.  */);
-  Vsearch_whitespace_regexp = Qnil;
+  Vsearch_spaces_regexp = Qnil;
 
   defsubr (&Slooking_at);
   defsubr (&Sposix_looking_at);
