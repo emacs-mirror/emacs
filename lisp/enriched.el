@@ -347,17 +347,16 @@ One annotation each for foreground color, background color, italic, etc."
 	(and new (enriched-face-ans new))))
 	    
 (defun enriched-face-ans (face)
-  "Return annotations specifying FACE."
+  "Return annotations specifying FACE.
+FACE may be a list of faces instead of a single face;
+it can also be anything allowed as an element of a list
+which can be the value of the `face' text property."
   (cond ((and (consp face) (eq (car face) 'foreground-color))
 	 (list (list "x-color" (cdr face))))
 	((and (consp face) (eq (car face) 'background-color))
 	 (list (list "x-bg-color" (cdr face))))
-	((and (consp face) (symbolp (car face)) (not (keywordp (car face))))
-	 ;; List of faces `(face1 face2 ...)'.
-	 (let ((ans nil))
-	   (dolist (elt face)
-	     (setq ans (append ans (enriched-face-ans elt))))
-	   ans))
+	((listp face)
+	 (apply 'append (mapcar 'enriched-face-ans face)))
 	((string-match "^fg:" (symbol-name face))
 	 (list (list "x-color" (substring (symbol-name face) 3))))
 	((string-match "^bg:" (symbol-name face))
