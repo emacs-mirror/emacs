@@ -38,7 +38,10 @@ A value of nil means that any change in indentation starts a new paragraph."
   :group 'fill)
 
 (defcustom sentence-end-double-space t
-  "*Non-nil means a single space does not end a sentence."
+  "*Non-nil means a single space does not end a sentence.
+
+If you change this, you should also change `sentence-end'.
+See Info node `Sentences'."
   :type 'boolean
   :group 'fill)
 
