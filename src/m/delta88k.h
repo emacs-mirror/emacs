@@ -112,8 +112,14 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* BEM:  Distributed asm alloca doesn't work.  Don't know about libPW.a.
    C ALLOCA is safe and fast enough for now. */
 
-#define C_ALLOCA
-#define	STACK_DIRECTION	-1  /* grows towards lower addresses. */
+#ifdef __GNUC__
+#define HAVE_ALLOCA   /* ... and be sure that no other ones are tried out. */
+#undef C_ALLOCA
+#else /* not __GNUC__ */
+#undef HAVE_ALLOCA
+#define C_ALLOCA      /* Use the alloca() supplied in alloca.c. */
+#define STACK_DIRECTION -1  /* The stack grows towards lower addresses. */
+#endif /* __GNUC__ */
 
 /* Motorola SysV has PTYs.  Not all usg3-5 systems do, so this is defined
    here. */
@@ -146,6 +152,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* rms: not needed; LIB_X11_LIB deals with this.  */
 /* #define LIBX11_SYSTEM -lX11 */
 #else
+#undef LIB_X11_LIB /* We don't have the shared libs as assumed in usg5-3.h. */
 #undef LIBX11_SYSTEM
 #define LIBX11_SYSTEM -lnsl -lbsd
 #endif /* USG5_4 */
@@ -173,18 +180,20 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif /* USG5_4 */
 #endif
 
-#define NEED_TERMIOS
+#define HAVE_TERMIOS
+#undef HAVE_TERMIO
+#define NO_TERMIO
+#undef sigsetmask
 
 #define NO_SIOCTL_H
 
 #ifdef USG5_4
 #ifdef HAVE_X_WINDOWS
-#if 0 /* autoconf should take care of this. */
-#define HAVE_RANDOM
-#endif
 #else
 #undef BSTRING
 #endif /* HAVE_X_WINDOWS */
 #endif /* USG5_4 */
 
 #define NO_PTY_H
+
+#define USE_GETOBAUD
