@@ -1,10 +1,34 @@
+2001-12-15  Dave Love  <fx@gnu.org>
+
+	* quail/latin-pre.el ("french-prefix", "german-prefix") 
+	("spanish-prefix"): Fix language assignment.
+
+	* quail/latin-post.el ("french-postfix", "german-postfix") 
+	("spanish-postfix", "turkish-latin-3-postfix", "turkish-postfix") 
+	("french-keyboard", "french-azerty", "german") 
+	("spanish-keyboard"): Fix language assignment.
+
+	* quail/indian.el: Don't require cl.
+	(quail-indian-flatten-list): Renamed from flatten-list.
+
+	* quail/cyrillic.el ("cyrillic-beylorussian") 
+	("cyrillic-ukrainian", "cyrillic-translit-bulgarian") 
+	("belarusian", "bulgarian-pho"): Fix language assignment.
+
+	* quail/latin-alt.el ("french-alt-postfix", "german-alt-postfix")
+	("spanish-alt-postfix", "turkish-latin-3-alt-postfix")
+	("turkish-alt-postfix"): Fix language assignment.
+	("dutch"): Assign to Dutch.  Use chars, not strings.
+	("lithuanian-numeric", "lithuanian-keyboard", "latvian-keyboard"):
+	New.
+
 2001-12-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* COPYING: New file.
 
 2001-12-03  Jaeyoun Chung  <jay@kldp.org>
 
-	* quail/hangul3.el: added a few convenient composing sequence for
+	* quail/hangul3.el: Added a few convenient composing sequences for
 	Korean keyboard type 3 users.
 
 2001-11-29  Dave Love  <fx@gnu.org>
