@@ -1,3 +1,12 @@
+2004-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* outline.el (outline-insert-heading): Tighten up match.
+	(outline-demote, outline-move-subtree-down): Don't assume anything
+	about outline-regexp.
+
+	* textmodes/texinfo.el (texinfo-mode): Remove ^ from outline-regexp.
+	(texinfo-show-structure): Explicitly add ^, and simplify.
+
 2004-01-20  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/appt.el (appt-check): Restore usage of
@@ -15,22 +24,15 @@
 	* vc.el (vc-default-previous-version): Doc enhancement.
 	(vc-default-next-version): New function.
 	(vc-print-log): New arg FOCUS-REV.
-	(vc-annotate-mode):  Derives from view-mode now.
-	(vc-annotate):	New args REVISION, DISPLAY-MODE.
-	(vc-annotate-prev-version): New function.
-	(vc-annotate-prev-version): New function.
-	(vc-annotate-next-version): New function.
-	(vc-annotate-workfile-version): New function.
-	(vc-annotate-extract-revision-at-line): New function.
-	(vc-annotate-revision-at-line): New function.
-	(vc-annotate-revision-previous-to-line): New function.
-	(vc-annotate-show-log-revision-at-line): New function.
-	(vc-annotate-show-diff-revision-at-line): New function.
-	(vc-current-line): New function.
-	(vc-annotate-warp-version): New function.
-        
-	* vc-cvs.el (vc-cvs-annotate-extract-revision-at-line): New
-	function.
+	(vc-annotate-mode): Derive from view-mode.
+	(vc-annotate): New args REVISION, DISPLAY-MODE.
+	(vc-annotate-workfile-version, vc-annotate-extract-revision-at-line)
+	(vc-annotate-revision-at-line, vc-annotate-revision-previous-to-line)
+	(vc-annotate-show-log-revision-at-line, vc-annotate-warp-version)
+	(vc-annotate-show-diff-revision-at-line, vc-current-line)
+	(vc-annotate-prev-version, vc-annotate-next-version): New functions.
+
+	* vc-cvs.el (vc-cvs-annotate-extract-revision-at-line): New function.
 
 2004-01-19  Karl Berry  <karl@gnu.org>
 
@@ -43,19 +45,18 @@
 
 2004-01-19  Karl Berry  <karl@gnu.org>
 
-	* textmodes/texinfo.el (texinfo-mode): define outline-regexp to start
+	* textmodes/texinfo.el (texinfo-mode): Define outline-regexp to start
 	with ^, since that's what texinfo-show-structure
 	documentation says (plus it works much better in texinfo.txi).
 
 2004-01-18  Jesper Harder  <harder@ifa.au.dk>
 
-	* mail/smtpmail.el (smtpmail-send-data): Don't append spurious
-        newline.
+	* mail/smtpmail.el (smtpmail-send-data): Don't append spurious newline.
 
 2004-01-18   David Ponce  <david@dponce.com>  (tiny change)
 
 	* progmodes/which-func.el (which-function-mode): Don't cancel
-        which-func-update-timer if not set.
+	which-func-update-timer if not set.
 
 2004-01-17  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -77,7 +78,7 @@
 	Save and restore the deletion status of old messages when reading
 	new mail with spam filter, so that expunging spam does not expunge
 	msgs deleted by the user.
-	(rmail-only-expunge): added an optional argument dont-show to
+	(rmail-only-expunge): Add an optional argument dont-show to
 	prevent showing message after expunge.
 
 2004-01-15  Luc Teirlinck  <teirllm@auburn.edu>
