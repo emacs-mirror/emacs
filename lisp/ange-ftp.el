@@ -1,5 +1,5 @@
 ;; -*-Emacs-Lisp-*-
-;;; This needs to be changed to use comint as the mode for the FTP buffer.
+;;; ??? Waiting for papers from several people.
 ;; Description:  transparent FTP support for GNU Emacs
 
 ;;; Copyright (C) 1989, 1990, 1991, 1992  Free Software Foundation, Inc.
@@ -60,12 +60,13 @@
 
 ;;; Passwords for user "anonymous":
 ;;;
-;;; Passwords for the user "anonymous" (or "ftp") are handled specially.  The
-;;; variable `ange-ftp-generate-anonymous-password' controls what happens: if
-;;; the value of this variable is a string, then this is used as the password;
-;;; if non-nil, then a password is created from the name of the user and the
-;;; hostname of the machine on which GNU Emacs is running; if nil (the
-;;; default) then the user is prompted for a password as normal.
+;;; Passwords for the user "anonymous" (or "ftp") are handled
+;;; specially.  The variable `ange-ftp-generate-anonymous-password'
+;;; controls what happens: if the value of this variable is a string,
+;;; then this is used as the password; if non-nil (the default), then
+;;; a password is created from the name of the user and the hostname
+;;; of the machine on which GNU Emacs is running; if nil then the user
+;;; is prompted for a password as normal.
 
 ;;; "Dumb" UNIX hosts:
 ;;;
@@ -693,7 +694,7 @@ If non-nil but not a string, the user is prompted for the name.")
 (defvar ange-ftp-default-account nil
   "*Account password to use when the user is the same as ange-ftp-default-user.")
 
-(defvar ange-ftp-generate-anonymous-password nil
+(defvar ange-ftp-generate-anonymous-password t
   "*If t, use a password of user@host when logging in as the anonymous user.
 If a string then use that as the password.
 If nil then prompt the user for a password.")

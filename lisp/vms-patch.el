@@ -1,6 +1,6 @@
 ;;; vms-patch.el --- override parts of files.el for VMS.
 
-;; Copyright (C) 1986 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1992 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: vms
@@ -71,11 +71,24 @@ FILENAME should lack slashes.
 This is a separate function so your .emacs file or site-init.el can redefine it."
   (string-match "^_\\$.*\\$" filename))
 
+;;;
+;;; This goes along with kepteditor.com which defines these logicals
+;;; If EMACS_COMMAND_ARGS is defined, it supersedes EMACS_FILE_NAME,
+;;;   which is probably set up incorrectly anyway.
+;;; The function command-line-again is a kludge, but it does the job.
+;;;
 (defun vms-suspend-resume-hook ()
   "When resuming suspended Emacs, check for file to be found.
 If the logical name `EMACS_FILE_NAME' is defined, `find-file' that file."
-  (let ((file (vms-system-info "LOGICAL" "EMACS_FILE_NAME")))
-    (if file (find-file file))))
+  (let ((file (vms-system-info "LOGICAL" "EMACS_FILE_NAME"))
+	(args (vms-system-info "LOGICAL" "EMACS_COMMAND_ARGS"))
+	(line (vms-system-info "LOGICAL" "EMACS_FILE_LINE")))
+    (if (not args)
+	(if file
+	    (progn (find-file file)
+		   (if line (goto-line (string-to-int line)))))
+      (cd (file-name-directory file))
+      (vms-command-line-again))))
 
 (setq suspend-resume-hook 'vms-suspend-resume-hook)
 
@@ -86,6 +99,52 @@ If the logical name `EMACS_FILE_NAME' is defined, `find-file' that file."
   nil)
 
 (setq suspend-hook 'vms-suspend-hook)
+
+;;;
+;;; A kludge that allows reprocessing of the command line.  This is mostly
+;;;   to allow a spawned VMS mail process to do something reasonable when
+;;;   used in conjunction with the modifications to sysdep.c that allow
+;;;   Emacs to attach to a "foster" parent.
+;;;
+(defun vms-command-line-again ()
+  "Reprocess command line arguments.  VMS specific.
+Command line arguments are initialized from the logical EMACS_COMMAND_ARGS
+which is defined by kepteditor.com.  On VMS this allows attaching to a
+spawned Emacs and doing things like \"emacs -l myfile.el -f doit\""
+  (let* ((args (downcase (vms-system-info "LOGICAL" "EMACS_COMMAND_ARGS")))
+	 (command-line-args (list "emacs"))
+	 (beg 0)
+	 (end 0)
+	 (len (length args))
+	 this-char)
+    (if args
+	(progn
+;;; replace non-printable stuff with spaces
+	  (while (< beg (length args))
+	    (if (or (> 33 (setq this-char (aref args beg)))
+		    (< 127 this-char))
+		(aset args beg 32))
+	    (setq beg (1+ beg)))
+	  (setq beg (1- (length args)))
+	  (while (= 32 (aref args beg)) (setq beg (1- beg)))
+	  (setq args (substring args 0 (1+ beg)))
+	  (setq beg 0)
+;;; now start parsing args
+	  (while (< beg (length args))
+	    (while (and (< beg (length args))
+			(or (> 33 (setq this-char (aref args beg)))
+			    (< 127 this-char))
+			(setq beg (1+ beg))))
+	    (setq end (1+ beg))
+	    (while (and (< end (length args))
+			(< 32 (setq this-char (aref args end)))
+			(> 127 this-char))
+	      (setq end (1+ end)))
+	    (setq command-line-args (append 
+				     command-line-args
+				     (list (substring args beg end))))
+	    (setq beg (1+ end)))
+	  (command-line)))))
 
 (defun vms-read-directory (dirname switches buffer)
   (save-excursion
@@ -112,5 +171,19 @@ If the logical name `EMACS_FILE_NAME' is defined, `find-file' that file."
 		  " sys$login:delete-me.txt/name=""GNUprintbuffer"" "
 		  (mapconcat 'identity switches " "))
 	  nil nil nil)))
+
+;;;
+;;; Fuctions for using Emacs as a VMS Mail editor
+;;;
+(autoload 'vms-pmail-setup "vms-pmail"
+  "Set up file assuming use by VMS Mail utility.
+The buffer is put into text-mode, auto-save is turned off and the
+following bindings are established.
+
+\\[vms-pmail-save-and-exit]	vms-pmail-save-and-exit
+\\[vms-pmail-abort]	vms-pmail-abort
+
+All other Emacs commands are still available."
+  t)
 
 ;;; vms-patch.el ends here
