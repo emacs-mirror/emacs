@@ -2076,10 +2076,16 @@ display_text_line (w, start, vpos, hpos, taboffset)
       && vpos == XFASTINT (w->top))
     {
       if (minibuf_prompt)
-	hpos = display_string (w, vpos, minibuf_prompt, -1, hpos,
+	{
+	  minibuf_prompt_width
+	    = (display_string (w, vpos, minibuf_prompt, -1, hpos,
 			       (!truncate ? continuer : truncator),
-			       1, -1, -1);
-      minibuf_prompt_width = hpos;
+			       1, -1, -1)
+	       - hpos);
+	  hpos += minibuf_prompt_width;
+	}
+      else
+	minibuf_prompt_width = 0;
     }
 
   desired_glyphs->bufp[vpos] = pos;
