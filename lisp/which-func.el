@@ -76,7 +76,7 @@
 
 (defcustom which-func-modes
   '(emacs-lisp-mode c-mode c++-mode perl-mode cperl-mode makefile-mode
-		    sh-mode fortran-mode)
+		    sh-mode fortran-mode f90-mode)
   "List of major modes for which Which Function mode should be used.
 For other modes it is disabled.  If this is equal to t,
 then Which Function mode is enabled in any major mode that supports it."
@@ -216,14 +216,27 @@ If no function name is found, return nil."
 	(setq which-function-imenu-failed t)))
     ;; If we have an index alist, use it.
     (when (and (boundp 'imenu--index-alist) imenu--index-alist)
-      (let ((pair (car-safe imenu--index-alist))
-	    (rest (cdr-safe imenu--index-alist)))
-	(while (and (or rest pair)
-		    (or (not (number-or-marker-p (cdr pair)))
-			(> (point) (cdr pair))))
-	  (setq name (car pair))
-	  (setq pair (car-safe rest))
-	  (setq rest (cdr-safe rest)))))
+      (let ((alist imenu--index-alist)
+            (minoffset (point-max))
+            offset elem pair mark)
+        (while alist
+          (setq elem  (car-safe alist)
+                alist (cdr-safe alist))
+          ;; Elements of alist are either ("name" . marker), or 
+          ;; ("submenu" ("name" . marker) ... ).
+          (unless (listp (cdr elem))
+              (setq elem (list elem)))
+          (while elem
+            (setq pair (car elem)
+                  elem (cdr elem))
+            (and (consp pair)
+                 (number-or-marker-p (setq mark (cdr pair)))
+                 (if (>= (setq offset (- (point) mark)) 0)
+                     (if (< offset minoffset) ; find the closest item
+                         (setq minoffset offset
+                               name (car pair)))
+                   ;; Entries in order, so can skip all those after point.
+                   (setq elem nil)))))))
     ;; Try using add-log support.
     (when (and (null name) (boundp 'add-log-current-defun-function)
 	       add-log-current-defun-function)
