@@ -4012,13 +4012,7 @@ int
 inhibit_garbage_collection ()
 {
   int count = specpdl_ptr - specpdl;
-  Lisp_Object number;
-  int nbits = min (VALBITS, BITS_PER_INT);
-
-  XSETINT (number, ((EMACS_INT) 1 << (nbits - 1)) - 1);
-
-  specbind (Qgc_cons_threshold, number);
-
+  specbind (Qgc_cons_threshold, make_number (MOST_POSITIVE_FIXNUM));
   return count;
 }
 
@@ -5355,22 +5349,14 @@ Frames, windows, buffers, and subprocesses count as vectors\n\
 {
   Lisp_Object consed[8];
 
-  XSETINT (consed[0],
-	   cons_cells_consed & ~(((EMACS_INT) 1) << (VALBITS - 1)));
-  XSETINT (consed[1],
-	   floats_consed & ~(((EMACS_INT) 1) << (VALBITS - 1)));
-  XSETINT (consed[2],
-	   vector_cells_consed & ~(((EMACS_INT) 1) << (VALBITS - 1)));
-  XSETINT (consed[3],
-	   symbols_consed & ~(((EMACS_INT) 1) << (VALBITS - 1)));
-  XSETINT (consed[4],
-	   string_chars_consed & ~(((EMACS_INT) 1) << (VALBITS - 1)));
-  XSETINT (consed[5],
-	   misc_objects_consed & ~(((EMACS_INT) 1) << (VALBITS - 1)));
-  XSETINT (consed[6],
-	   intervals_consed & ~(((EMACS_INT) 1) << (VALBITS - 1)));
-  XSETINT (consed[7],
-	   strings_consed & ~(((EMACS_INT) 1) << (VALBITS - 1)));
+  consed[0] = make_number (min (MOST_POSITIVE_FIXNUM, cons_cells_consed));
+  consed[1] = make_number (min (MOST_POSITIVE_FIXNUM, floats_consed));
+  consed[2] = make_number (min (MOST_POSITIVE_FIXNUM, vector_cells_consed));
+  consed[3] = make_number (min (MOST_POSITIVE_FIXNUM, symbols_consed));
+  consed[4] = make_number (min (MOST_POSITIVE_FIXNUM, string_chars_consed));
+  consed[5] = make_number (min (MOST_POSITIVE_FIXNUM, misc_objects_consed));
+  consed[6] = make_number (min (MOST_POSITIVE_FIXNUM, intervals_consed));
+  consed[7] = make_number (min (MOST_POSITIVE_FIXNUM, strings_consed));
 
   return Flist (8, consed);
 }
