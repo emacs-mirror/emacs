@@ -11201,9 +11201,9 @@ and the return value is the length of the conversion." t nil)
 ;;; Generated autoloads from kmacro.el
  (global-set-key "\C-x(" 'kmacro-start-macro)
  (global-set-key "\C-x)" 'kmacro-end-macro)
- (global-set-key "\C-xe" 'kmacro-call-macro)
- (global-set-key [f7] 'kmacro-start-macro-or-insert-counter)
- (global-set-key [f8] 'kmacro-end-or-call-macro)
+ (global-set-key "\C-xe" 'kmacro-end-or-call-macro)
+ (global-set-key [f3] 'kmacro-start-macro-or-insert-counter)
+ (global-set-key [f4] 'kmacro-end-or-call-macro)
  (global-set-key "\C-x\C-k" 'kmacro-keymap)
  (autoload 'kmacro-keymap "kmacro" "Keymap for keyboard macro commands." t 'keymap)
 
