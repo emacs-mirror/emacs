@@ -1092,7 +1092,7 @@ static int
 let_shadows_buffer_binding_p (symbol)
      Lisp_Object symbol;
 {
-  struct specbinding *p;
+  volatile struct specbinding *p;
 
   for (p = specpdl_ptr - 1; p >= specpdl; p--)
     if (p->func == NULL
