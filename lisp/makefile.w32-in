@@ -273,7 +273,8 @@ bootstrap-clean-CMD:
 
 bootstrap-clean-SH:
 #	if test -f $(EMACS); then $(MAKE) $(MFLAGS) autoloads; fi
-	-rm -f $(lisp)/*.elc $(lisp)/*/*.elc
+#	-rm -f $(lisp)/*.elc $(lisp)/*/*.elc
+	-for dir in . $(WINS); do rm -f $$dir/*.elc; done
 
 # Generate/update files for the bootstrap process.
 
