@@ -34,9 +34,9 @@ extern sigset_t empty_mask, full_mask, temp_mask;
     sigaddset (&_mask, SIG);			\
     _mask;					\
   })
-#else
+#else /* ! defined (__GNUC__) */
 #define sigmask(SIG) (sys_sigmask (SIG))
-#endif
+#endif /* ! defined (__GNUC__) */
 
 #define sigpause(SIG)    sys_sigpause(SIG)
 #define sigblock(SIG)    sys_sigblock(SIG)
@@ -53,12 +53,24 @@ sigset_t sys_sigsetmask (sigset_t new_mask);
 
 #define sys_sigdel(MASK,SIG) sigdelset(&MASK,SIG)
 
-#else /* not POSIX_SIGNALS */
+#else /* ! defined (POSIX_SIGNALS) */
+#ifdef USG5_4
+
+#define sigunblock(sig) (sigprocmask(SIG_SETMASK, SIGFULLMASK & ~(sig), NULL))
+
+#else
+#ifdef USG
+
+#define sigunblock(sig) 
+
+#else
 
 #define sigunblock(SIG) \
 { SIGMASKTYPE omask = sigblock (SIGEMPTYMASK); sigsetmask (omask & ~SIG); }
 
-#endif /* not POSIX_SIGNALS */
+#endif /* ! defined (USG) */
+#endif /* ! defined (USG5_4) */
+#endif /* ! defined (POSIX_SIGNALS) */
 
 #ifndef SIGMASKTYPE
 #define SIGMASKTYPE int
@@ -89,7 +101,7 @@ sigset_t sys_sigsetmask (sigset_t new_mask);
 #define sigblockx(sig) sigblock (sigmask (sig))
 #define sigunblockx(sig) sigblock (SIGEMPTYMASK)
 #define sigpausex(sig) sigpause (0)
-#endif /* not BSD4_1 */
+#endif /* BSD4_1 */
 
 #ifdef BSD4_1
 #define SIGIO SIGTINT
@@ -97,7 +109,7 @@ sigset_t sys_sigsetmask (sigset_t new_mask);
 #define sigblockx(sig) sighold (sig)
 #define sigunblockx(sig) sigrelse (sig)
 #define sigpausex(sig) sigpause (sig)
-#endif /* BSD4_1 */
+#endif /* ! defined (BSD4_1) */
 
 /* On bsd, [man says] kill does not accept a negative number to kill a pgrp.
    Must do that using the killpg call.  */
@@ -113,6 +125,6 @@ sigset_t sys_sigsetmask (sigset_t new_mask);
 #ifdef SIGCLD
 #ifndef SIGCHLD
 #define SIGCHLD SIGCLD
-#endif /* not SIGCHLD */
-#endif /* SIGCLD */
-#endif /* not VMS */
+#endif /* SIGCHLD */
+#endif /* ! defined (SIGCLD) */
+#endif /* VMS */
