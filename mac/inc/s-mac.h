@@ -255,6 +255,10 @@ void read_input_waiting ();
 #include <unistd.h>
 #endif
 
+#ifndef X_OK
+#define X_OK 01
+#endif
+
 #undef unlink
 #define unlink sys_unlink
 #undef read
@@ -318,6 +322,16 @@ extern double atof (const char *);
 #define volatile
 
 #define SYMS_SYSTEM syms_of_mac()
+
+#ifdef USE_LSB_TAG
+#ifdef __MRC__
+#define DECL_ALIGN(type, var) type var
+#endif
+#endif
+
+/* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method for marking the
+   stack.  */
+#define GC_MARK_STACK   GC_MAKE_GCPROS_NOOPS
 
 /* arch-tag: 6a941c4b-a419-4d25-80ac-9335053e58b2
    (do not change this comment) */
