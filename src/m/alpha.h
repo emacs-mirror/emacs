@@ -30,6 +30,7 @@ NOTE-END
 */
 
 #define BITS_PER_LONG 64
+#define BITS_PER_EMACS_INT 64
 
 /* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
    is the most significant byte.  */
