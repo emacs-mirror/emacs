@@ -385,9 +385,9 @@ You can use the @code{:options} keyword in a hook variable's
 the hook; see @ref{Variable Definitions}.
 
 @item alist
-The value must be a list of cons-cells, the car of each cell
-representing a key, and the cdr of the same cell representing and
-associated value.  The use can add and a delete key/value pairs, and
+The value must be a list of cons-cells, the @sc{car} of each cell
+representing a key, and the @sc{cdr} of the same cell representing an
+associated value.  The user can add and delete key/value pairs, and
 edit both the key and the value of each pair.
 
 You can specify the key and value types like this:
@@ -444,7 +444,7 @@ symbol for the key.
 :options '("foo" ((function-item some-function) integer) "baz")
 @end example
 
-Many alist uses lists with two elements, instead of cons cells.  For
+Many alists use lists with two elements, instead of cons cells.  For
 example,
 
 @example

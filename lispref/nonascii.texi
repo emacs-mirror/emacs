@@ -64,8 +64,8 @@ appear in proper multibyte text (since that consists of a sequence of
 
   In a buffer, the buffer-local value of the variable
 @code{enable-multibyte-characters} specifies the representation used.
-The representation for a string is determined when the string is
-constructed and recorded in the string.
+The representation for a string is determined and recorded in the string
+when the string is constructed.
 
 @defvar enable-multibyte-characters
 @tindex enable-multibyte-characters
@@ -984,7 +984,7 @@ clean, but raw bytes are used only in limited ways, so as a practical
 matter it is not worth the trouble to treat this case differently.
 
   When a multibyte buffer contains illegitimate byte sequences,
-sometimes insertion or deleteion can cause them to coalesce into a
+sometimes insertion or deletion can cause them to coalesce into a
 legitimate multibyte character.  For example, suppose the buffer
 contains the sequence 129 68 192, 68 being the character @samp{D}.  If
 you delete the @samp{D}, the bytes 129 and 192 become adjacent, and thus

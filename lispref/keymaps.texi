@@ -1639,7 +1639,7 @@ to toggle the @code{debug-on-error} flag is defined:
 (menu-item "Debug on Error" toggle-debug-on-error
            :button (:toggle
                     . (and (boundp 'debug-on-error)
-                           debug-on-error))
+                           debug-on-error)))
 @end example
 
 @noindent

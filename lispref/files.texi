@@ -113,8 +113,8 @@ It uses an existing buffer if there is one, and otherwise creates a new
 buffer and reads the file into it.  You may make the buffer current or
 display it in a window if you wish, but this function does not do so.
 
-If @var{wildcards} is non-@code{nil}, which is always true in an
-interactive call, then @code{find-file-noselect} expands wildcard
+If @var{wildcards} is non-@code{nil},
+then @code{find-file-noselect} expands wildcard
 characters in @var{filename} and visits all the matching files.
 
 When @code{find-file-noselect} uses an existing buffer, it first
@@ -1925,9 +1925,9 @@ This function returns a list of all versions of the file named
 @tindex file-expand-wildcards
 @defun file-expand-wildcards pattern &optional full
 This function expands the wildcard pattern @var{pattern}, returning
-alist of file names that match it.
+a list of file names that match it.
 
-If @var{pattern} is written as an absolute relative file name,
+If @var{pattern} is written as an absolute file name,
 the values are absolute also.
 
 If @var{pattern} is written as a relative file name, it is interpreted
