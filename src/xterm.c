@@ -4924,6 +4924,9 @@ x_make_frame_visible (f)
 
   BLOCK_INPUT;
 
+  if (x_icon_type (f))
+    x_bitmap_icon (f);
+
   if (! FRAME_VISIBLE_P (f))
     {
 #ifndef USE_X_TOOLKIT
@@ -5092,8 +5095,12 @@ x_iconify_frame (f)
   if (f->async_iconified)
     return;
 
-#ifdef USE_X_TOOLKIT
   BLOCK_INPUT;
+
+  if (x_icon_type (f))
+    x_bitmap_icon (f);
+
+#ifdef USE_X_TOOLKIT
 
   if (! FRAME_VISIBLE_P (f))
     {
@@ -5119,8 +5126,6 @@ x_iconify_frame (f)
   XFlushQueue ();
   UNBLOCK_INPUT;
 #else /* not USE_X_TOOLKIT */
-
-  BLOCK_INPUT;
 
   /* Make sure the X server knows where the window should be positioned,
      in case the user deiconifies with the window manager.  */
@@ -5439,6 +5444,10 @@ x_term_init (display_name, xrm_option, resource_name)
   x_focus_frame = x_highlight_frame = 0;
 
 #ifdef USE_X_TOOLKIT
+#ifdef HAVE_X11R5
+  XtSetLanguageProc (NULL, NULL, NULL);
+#endif
+
   argv = (char **) XtMalloc (7 * sizeof (char *));
   argv[0] = "";
   argv[1] = "-display";
@@ -5460,6 +5469,9 @@ x_term_init (display_name, xrm_option, resource_name)
   x_current_display = XtDisplay (Xt_app_shell);
 
 #else /* not USE_X_TOOLKIT */
+#ifdef HAVE_X11R5
+  XSetLocaleModifiers ("");
+#endif
   x_current_display = XOpenDisplay (display_name);
 #endif /* not USE_X_TOOLKIT */
   if (x_current_display == 0)
