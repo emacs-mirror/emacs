@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 26 August 1996
+@set lastupdate 7 December 1996
 @c %**end of header
 
 @setchapternewpage off
@@ -129,10 +129,6 @@ Various other libraries.
 
 @item
 An emulation of SCCS that works using RCS.
-
-@item
-A free version of @code{units}---or some other kind of program to do the
-same job in a more modern way.
 
 @item
 Less urgent: @code{diction}, @code{explain}, and @code{style}, or
