@@ -2588,7 +2588,9 @@ After saving the buffer, this function runs `after-save-hook'."
 			      (if (and (eq system-type 'ms-dos)
 				       (not (msdos-long-file-names)))
 				  "%s#%d.tm#" ; MSDOS limits files to 8+3
-				"%s#tmp#%d")
+				(if (memq system-type '(vax-vms axp-vms))
+				    "%s$tmp$%d"
+				  "%s#tmp#%d"))
 			      dir i))
 	      (setq nogood (file-exists-p tempname))
 	      (setq i (1+ i)))
