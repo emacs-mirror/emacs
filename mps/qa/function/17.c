@@ -34,6 +34,7 @@ static void test(void) {
  }
 
  mps_pool_destroy(pool);
+ mps_fmt_destroy(format);
  mps_thread_dereg(thread);
  mps_space_destroy(space);
 }
