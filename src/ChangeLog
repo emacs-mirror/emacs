@@ -1,3 +1,17 @@
+2005-02-17  Andreas Schwab  <schwab@suse.de>
+
+	* xfns.c (hack_wm_protocols): Use correct type for last parameter
+	of XGetWindowProperty to avoid aliasing issues.
+	(Fx_window_property): Likewise.
+
+	* xselect.c (Fx_disown_selection_internal): Use union of struct
+	input_event and struct selection_input_event to avoid aliasing
+	issues.
+
+	* xterm.c (handle_one_xevent): Use union of struct input_event and
+	struct selection_input_event to avoid aliasing issues.
+	(SET_SAVED_MENU_EVENT): Adapt reference to inev.
+
 2005-02-17  Kim F. Storm  <storm@cua.dk>
 
 	* dispextern.h (enum it_method): New enum.
