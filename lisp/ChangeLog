@@ -1,3 +1,39 @@
+2003-02-12  Ami Fischman  <ami@fischman.org>
+
+	Face markup of calendar and diary displays: Any entry line that
+	ends with [foo:value] where foo is a face attribute (except :box
+	:stipple) or with [face:blah] tags, will have these values applied
+	to the calendar and fancy diary displays. These attributes "stack"
+	on calendar displays.  File-wide attributes can be defined as
+	follows: the first line matching "^# [tag:value]" defines the
+	value for that particular tag.  All of the tags' regexps can be
+	customized.
+
+	* calendar/calendar.el (diary-face-attrs): New custom.
+	(diary-file-name-prefix-function): New custom.
+	(diary-glob-file-regexp-prefix): New custom.
+	(diary-file-name-prefix): New custom.
+	(generate-calendar-window): Check that font-lock-mode is bound
+	before checking value.
+	(mark-visible-calendar-date): Add the ability to pass face
+	attribute/value pairs in the mark argument.  Handle the mark.
+
+	* diary-lib.el (diary-attrtype-convert): Convert an attribute
+	value string to the desired type.
+	(diary-pull-attrs): New function that pulls the attributes off a
+	diary entry, merges with file-global attributes, and returns
+	the (possibly modified) entry and a list of attribute/values using
+	diary-attrtype-convert.
+	(list-diary-entries, fancy-diary-display, show-all-diary-entries)
+	(mark-diary-entries, mark-sexp-diary-entries)
+	(list-sexp-diary-entries): Add handling of file-global attributes;
+	add handling of entry attributes using diary-pull-attrs.
+	(mark-calendar-days-named, mark-calendar-days-named)
+	(mark-calendar-date-pattern, mark-calendar-month)
+	(add-to-diary-list): Add optional paramater `color' for passing
+	face attribute info through the callchain.  Pass this parameter
+	around.
+
 2003-02-11  John Paul Wallington  <jpw@gnu.org>
 
 	* ibuffer.el (toplevel): Don't require `font-lock';
