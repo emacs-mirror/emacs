@@ -327,11 +327,15 @@ C-c C-v  mail-sent-via (add a Sent-via field for each To or CC)."
   (setq font-lock-defaults '(mail-font-lock-keywords t))
   (make-local-variable 'paragraph-separate)
   (make-local-variable 'paragraph-start)
+  ;; `-- ' precedes the signature.  `-----' appears at the start of the
+  ;; lines that delimit forwarded messages.
+  ;; Lines containing just >= 3 dashes, perhaps after whitespace,
+  ;; are also sometimes used and should be separators.
   (setq paragraph-start (concat (regexp-quote mail-header-separator)
-				"$\\|[ \t]*[-_][-_][-_]+$\\|-- \\|"
+				"$\\|[ \t]*[-_][-_][-_]+$\\|-- $\\|-----\\|"
 				paragraph-start))
   (setq paragraph-separate (concat (regexp-quote mail-header-separator)
-				   "$\\|[ \t]*[-_][-_][-_]+$\\|-- \\|"
+				   "$\\|[ \t]*[-_][-_][-_]+$\\|-- $\\|-----\\|"
 				   paragraph-separate))
   (run-hooks 'text-mode-hook 'mail-mode-hook))
 
