@@ -61,6 +61,13 @@ counter to the specified source line (the one where point is).
 to hide its text.  This should be mostly transparent but slightly
 changes the behavior of motion commands line C-e and C-p.
 
+** In Dired's ! command (dired-do-shell-command), `*' and `?' now
+control substitution of the file names only when they are surrounded
+by whitespace.  This means you can now use them as shell wildcards
+too.  If you want to use just plain `*' as a wildcard, type `*""';
+it has the same effect in the shell, but avoids special treatment
+in Dired !.
+
 ** Unquoted `$' in file names do not signal an error any more when
 the corresponding environment variable does not exist.
 Instead, the `$ENVVAR' text is left as is, so that `$$' quoting
