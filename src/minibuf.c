@@ -1608,7 +1608,7 @@ do_completion ()
      However, for appearance, the string is rewritten if the case
      changes.  */
   tem = Fcompare_strings (completion, Qnil, Qnil, string, Qnil, Qnil, Qt);
-  completedp = (tem != Qt);
+  completedp = !EQ (tem, Qt);
 
   tem = Fstring_equal (completion, string);
   if (NILP (tem))
