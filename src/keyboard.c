@@ -6611,181 +6611,20 @@ read_avail_input (expected)
 {
   struct input_event buf[KBD_BUFFER_SIZE];
   register int i;
+  struct display *d;
   int nread = 0;
   
   for (i = 0; i < KBD_BUFFER_SIZE; i++)
     EVENT_INIT (buf[i]);
 
-  {
-    struct display *d;
-
-    for (d = display_list; d; d = d->next_display)
-      {
-        if (d->read_socket_hook)
-          /* No need for FIONREAD or fcntl; just say don't wait.  */
-          nread = (*d->read_socket_hook) (buf, KBD_BUFFER_SIZE, expected);
-        
-        if (nread > 0)
-          break;
-      }
-  }
-
-  if (nread <= 0 && tty_list)
+  for (d = display_list; d; d = d->next_display)
     {
-      /* Using KBD_BUFFER_SIZE - 1 here avoids reading more than
-	 the kbd_buffer can really hold.  That may prevent loss
-	 of characters on some systems when input is stuffed at us.  */
-      unsigned char cbuf[KBD_BUFFER_SIZE - 1];
-      int n_to_read;
-      struct tty_display_info *tty;
-      Lisp_Object frame;
-      
-#ifdef WINDOWSNT
-      return 0;
-#else /* not WINDOWSNT */
-#ifdef MSDOS
-      n_to_read = dos_keysns ();
-      if (n_to_read == 0)
-	return 0;
+      if (d->read_socket_hook)
+        /* No need for FIONREAD or fcntl; just say don't wait.  */
+        nread = (*d->read_socket_hook) (d, buf, KBD_BUFFER_SIZE, expected);
 
-      cbuf[0] = dos_keyread ();
-      nread = 1;
-
-#else /* not MSDOS */
-
-      nread = 0;
-
-      /* Try to read from each available tty, until one succeeds. */
-      for (tty = tty_list; tty; tty = tty->next) {
-
-        if (! tty->term_initted)
-          continue;
-        
-        /* Determine how many characters we should *try* to read.  */
-#ifdef FIONREAD
-        /* Find out how much input is available.  */
-        if (ioctl (fileno (TTY_INPUT (tty)), FIONREAD, &n_to_read) < 0)
-          {
-            /* Formerly simply reported no input, but that sometimes led to
-               a failure of Emacs to terminate.
-               SIGHUP seems appropriate if we can't reach the terminal.  */
-            /* ??? Is it really right to send the signal just to this process
-               rather than to the whole process group?
-               Perhaps on systems with FIONREAD Emacs is alone in its group.  */
-            /* It appears to be the case, see narrow_foreground_group. */
-            if (! noninteractive)
-              {
-                if (! tty_list->next)
-                  kill (getpid (), SIGHUP); /* This was the last terminal. */
-                else
-                  n_to_read = 0; /* XXX tty should be closed here. */
-              }
-            else
-              {
-                n_to_read = 0;
-              }
-          }
-        if (n_to_read == 0)
-          continue;
-        if (n_to_read > sizeof cbuf)
-          n_to_read = sizeof cbuf;
-#else /* no FIONREAD */
-#if defined (USG) || defined (DGUX) || defined(CYGWIN)
-        /* Read some input if available, but don't wait.  */
-        n_to_read = sizeof cbuf;
-        fcntl (fileno (TTY_INPUT (tty)), F_SETFL, O_NDELAY);
-#else
-        you lose;
-#endif
-#endif
-
-        /* Now read; for one reason or another, this will not block.
-           NREAD is set to the number of chars read.  */
-        do
-          {
-            nread = emacs_read (fileno (TTY_INPUT (tty)), cbuf, n_to_read);
-            /* POSIX infers that processes which are not in the session leader's
-               process group won't get SIGHUP's at logout time.  BSDI adheres to
-               this part standard and returns -1 from read (0) with errno==EIO
-               when the control tty is taken away.
-               Jeffrey Honig <jch@bsdi.com> says this is generally safe.  */
-            if (nread == -1 && errno == EIO)
-              {
-                if (! tty_list->next)
-                  kill (0, SIGHUP); /* This was the last terminal. */
-                else
-                  delete_tty (tty); /* XXX I wonder if this is safe here. */
-              }
-#if defined (AIX) && (! defined (aix386) && defined (_BSD))
-            /* The kernel sometimes fails to deliver SIGHUP for ptys.
-               This looks incorrect, but it isn't, because _BSD causes
-               O_NDELAY to be defined in fcntl.h as O_NONBLOCK,
-               and that causes a value other than 0 when there is no input.  */
-            if (nread == 0)
-              {
-                if (! tty_list->next)
-                  kill (0, SIGHUP); /* This was the last terminal. */
-                else
-                  delete_tty (tty); /* XXX I wonder if this is safe here. */
-              }
-#endif
-          }
-        while (
-               /* We used to retry the read if it was interrupted.
-                  But this does the wrong thing when O_NDELAY causes
-                  an EAGAIN error.  Does anybody know of a situation
-                  where a retry is actually needed?  */
-#if 0
-               nread < 0 && (errno == EAGAIN
-#ifdef EFAULT
-                             || errno == EFAULT
-#endif
-#ifdef EBADSLT
-                             || errno == EBADSLT
-#endif
-                             )
-#else
-               0
-#endif
-               );
-        
-#ifndef FIONREAD
-#if defined (USG) || defined (DGUX) || defined (CYGWIN)
-        fcntl (fileno (TTY_INPUT (tty)), F_SETFL, 0);
-#endif /* USG or DGUX or CYGWIN */
-#endif /* no FIONREAD */
-
-        if (nread > 0)
-          break;
-      } /* for each tty */
-      
-      if (nread <= 0)
-        return 0;
-      
-#endif /* not MSDOS */
-#endif /* not WINDOWSNT */
-
-      if (!tty)
-        abort ();
-      
-      /* Select frame corresponding to the active tty.  Note that the
-         value of selected_frame is not reliable here, redisplay tends
-         to temporarily change it.  But tty should always be non-NULL. */
-      frame = tty->top_frame;
-
-      for (i = 0; i < nread; i++)
-	{
-	  buf[i].kind = ASCII_KEYSTROKE_EVENT;
-	  buf[i].modifiers = 0;
-	  if (tty->meta_key == 1 && (cbuf[i] & 0x80))
-	    buf[i].modifiers = meta_modifier;
-	  if (tty->meta_key != 2)
-	    cbuf[i] &= ~0x80;
-
-          buf[i].code = cbuf[i];
-	  buf[i].frame_or_window = frame;
-	  buf[i].arg = Qnil;
-	}
+      if (nread > 0)
+        break;
     }
 
   /* Scan the chars for C-g and store them in kbd_buffer.  */
@@ -6801,6 +6640,169 @@ read_avail_input (expected)
 
   return nread;
 }
+
+/* This is the tty way of reading available input.
+
+   Note that each terminal device has its own `struct display' object,
+   and so this function is called once for each individual termcap
+   display.  The first parameter indicates which device to read from.  */
+int
+tty_read_avail_input (struct display *display,
+                      struct input_event *buf,
+                      int numchars, int expected)
+{
+  /* Using KBD_BUFFER_SIZE - 1 here avoids reading more than
+     the kbd_buffer can really hold.  That may prevent loss
+     of characters on some systems when input is stuffed at us.  */
+  unsigned char cbuf[KBD_BUFFER_SIZE - 1];
+  int n_to_read, i;
+  struct tty_display_info *tty = display->display_info.tty;
+  Lisp_Object frame;
+  int nread = 0;
+  
+  if (display->type != output_termcap)
+    abort ();
+  
+  /* XXX I think the following code should be moved to separate
+     functions in system-dependent files. */
+#ifdef WINDOWSNT
+  return 0;
+#else /* not WINDOWSNT */
+#ifdef MSDOS
+  n_to_read = dos_keysns ();
+  if (n_to_read == 0)
+    return 0;
+  
+  cbuf[0] = dos_keyread ();
+  nread = 1;
+  
+#else /* not MSDOS */
+
+  if (! tty->term_initted)
+    return 0;
+        
+  /* Determine how many characters we should *try* to read.  */
+#ifdef FIONREAD
+  /* Find out how much input is available.  */
+  if (ioctl (fileno (TTY_INPUT (tty)), FIONREAD, &n_to_read) < 0)
+    {
+      if (! noninteractive)
+        {
+          delete_tty (tty); /* XXX I wonder if this is safe here. */
+          
+          /* Formerly simply reported no input, but that sometimes led to
+             a failure of Emacs to terminate.
+             SIGHUP seems appropriate if we can't reach the terminal.  */
+          /* ??? Is it really right to send the signal just to this process
+             rather than to the whole process group?
+             Perhaps on systems with FIONREAD Emacs is alone in its group.  */
+          /* It appears to be the case, see narrow_foreground_group. */
+          if (! tty_list->next)
+            kill (getpid (), SIGHUP); /* This was the last terminal. */
+        }
+      else
+        {
+          n_to_read = 0;
+        }
+    }
+  if (n_to_read == 0)
+    return 0;
+  if (n_to_read > sizeof cbuf)
+    n_to_read = sizeof cbuf;
+#else /* no FIONREAD */
+#if defined (USG) || defined (DGUX) || defined(CYGWIN)
+  /* Read some input if available, but don't wait.  */
+  n_to_read = sizeof cbuf;
+  fcntl (fileno (TTY_INPUT (tty)), F_SETFL, O_NDELAY);
+#else
+  you lose;
+#endif
+#endif
+  
+  /* Now read; for one reason or another, this will not block.
+     NREAD is set to the number of chars read.  */
+  do
+    {
+      nread = emacs_read (fileno (TTY_INPUT (tty)), cbuf, n_to_read);
+      /* POSIX infers that processes which are not in the session leader's
+         process group won't get SIGHUP's at logout time.  BSDI adheres to
+         this part standard and returns -1 from read (0) with errno==EIO
+         when the control tty is taken away.
+         Jeffrey Honig <jch@bsdi.com> says this is generally safe.  */
+      if (nread == -1 && errno == EIO)
+        {
+          if (! tty_list->next)
+            kill (0, SIGHUP); /* This was the last terminal. */
+          else
+            delete_tty (tty); /* XXX I wonder if this is safe here. */
+        }
+#if defined (AIX) && (! defined (aix386) && defined (_BSD))
+      /* The kernel sometimes fails to deliver SIGHUP for ptys.
+         This looks incorrect, but it isn't, because _BSD causes
+         O_NDELAY to be defined in fcntl.h as O_NONBLOCK,
+         and that causes a value other than 0 when there is no input.  */
+      if (nread == 0)
+        {
+          if (! tty_list->next)
+            kill (0, SIGHUP); /* This was the last terminal. */
+          else
+            delete_tty (tty); /* XXX I wonder if this is safe here. */
+        }
+#endif
+    }
+  while (
+         /* We used to retry the read if it was interrupted.
+            But this does the wrong thing when O_NDELAY causes
+            an EAGAIN error.  Does anybody know of a situation
+            where a retry is actually needed?  */
+#if 0
+         nread < 0 && (errno == EAGAIN
+#ifdef EFAULT
+                       || errno == EFAULT
+#endif
+#ifdef EBADSLT
+                       || errno == EBADSLT
+#endif
+                       )
+#else
+         0
+#endif
+         );
+  
+#ifndef FIONREAD
+#if defined (USG) || defined (DGUX) || defined (CYGWIN)
+  fcntl (fileno (TTY_INPUT (tty)), F_SETFL, 0);
+#endif /* USG or DGUX or CYGWIN */
+#endif /* no FIONREAD */
+  
+  if (nread <= 0)
+    return nread;
+  
+#endif /* not MSDOS */
+#endif /* not WINDOWSNT */
+  
+  /* Select the frame corresponding to the active tty.  Note that the
+     value of selected_frame is not reliable here, redisplay tends to
+     temporarily change it. */
+  frame = tty->top_frame;
+  
+  for (i = 0; i < nread; i++)
+    {
+      buf[i].kind = ASCII_KEYSTROKE_EVENT;
+      buf[i].modifiers = 0;
+      if (tty->meta_key == 1 && (cbuf[i] & 0x80))
+        buf[i].modifiers = meta_modifier;
+      if (tty->meta_key != 2)
+        cbuf[i] &= ~0x80;
+      
+      buf[i].code = cbuf[i];
+      buf[i].frame_or_window = frame;
+      buf[i].arg = Qnil;
+    }
+
+  return nread;
+}
+
 #endif /* not VMS */
 
 #ifdef SIGIO   /* for entire page */

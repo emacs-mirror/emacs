@@ -2273,7 +2273,7 @@ term_init (char *name, char *terminal_type, int must_succeed)
   display->redeem_scroll_bar_hook = 0; /* Not needed. */
   display->judge_scroll_bars_hook = 0; /* Not needed. */
 
-  display->read_socket_hook = 0; /* Not needed. */
+  display->read_socket_hook = &tty_read_avail_input; /* keyboard.c */
   display->frame_up_to_date_hook = 0; /* Not needed. */
   
   display->delete_frame_hook = &delete_tty_output;
@@ -2706,11 +2706,6 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   display->fast_clear_end_of_line = tty->TS_clr_line != 0;
 
   init_baud_rate (fileno (TTY_INPUT (tty)));
-
-  /* XXX This condition sounds bogus. */
-  if (display->read_socket_hook) /* Baudrate is somewhat
-                                             meaningless in this case */
-    baud_rate = 9600;
 
 #ifdef AIXHFT
   /* The HFT system on AIX doesn't optimize for scrolling, so it's

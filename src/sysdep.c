@@ -2694,6 +2694,8 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 void
 read_input_waiting ()
 {
+  /* XXX This needs to be updated for multi-tty support.  Does
+     anybody need to emulate select these days?  */
   int nread, i;
   extern int quit_char;
 

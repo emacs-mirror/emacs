@@ -473,7 +473,7 @@ struct display
 
 
   /* Called to read input events.  */
-  int (*read_socket_hook) P_ ((struct input_event *, int, int));
+  int (*read_socket_hook) P_ ((struct display *, struct input_event *, int, int));
 
   /* Called when a frame's display becomes entirely up to date.  */
   void (*frame_up_to_date_hook) P_ ((struct frame *));
