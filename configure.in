@@ -149,7 +149,7 @@ fi
 
 AC_CANONICAL_HOST
 canonical=$host
-configuration=$host_alias
+configuration=${host_alias-$host}
 
 changequote(, )dnl
 
