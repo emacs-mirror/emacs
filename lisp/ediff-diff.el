@@ -1,6 +1,6 @@
 ;;; ediff-diff.el --- diff-related utilities
 
-;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
@@ -28,7 +28,8 @@
 
 (defvar ediff-shell
   (cond ((eq system-type 'emx) "cmd") ; OS/2
-	((eq system-type 'ms-dos) shell-file-name) ; no standard name on MS-DOS
+	((memq system-type '(ms-dos windows-nt windows-95))
+	 shell-file-name) ; no standard name on MS-DOS
 	((memq system-type '(vax-vms axp-vms)) "*dcl*") ; VMS
 	(t  "sh")) ; UNIX
   "*The shell used to run diff and patch.  If user's .profile or
@@ -63,25 +64,13 @@ Must produce output compatible with Unix's diff3 program.")
 (defvar ediff-diff3-options ""  
   "*Options to pass to `ediff-diff3-program'.")
 (defvar ediff-diff3-ok-lines-regexp
-  "^\\([1-3]:\\|====\\|  \\|.*Warning *:\\|.*No newline\\|.*missing newline\\)"
+  "^\\([1-3]:\\|====\\|  \\|.*Warning *:\\|.*No newline\\|.*missing newline\\|^\C-m$\\)"
   "*Regexp that matches normal output lines from `ediff-diff3-program'.
 Lines that do not match are assumed to be error messages.")
 
 ;; keeps the status of the current diff in 3-way jobs.
 ;; the status can be =diff(A), =diff(B), or =diff(A+B)
 (ediff-defvar-local ediff-diff-status "" "")
-
-;; Support for patch 
-
-(defvar ediff-patch-program "patch"
-  "*Name of the program that applies patches.")
-(defvar ediff-patch-options ""
-  "*Options to pass to ediff-patch-program.")
-
-;; The buffer of the patch file.
-(defvar ediff-patch-buf nil)
-;; The buffer where patch would display its diagnostics.
-(defvar ediff-patch-diagnostics nil)
 
   
 ;;; Fine differences 
@@ -99,13 +88,13 @@ Use `setq-default' if setting it in .emacs")
 This variable can be set either in .emacs or toggled interactively.
 Use `setq-default' if setting it in .emacs")
 
-(ediff-defvar-local ediff-auto-refine-limit 700
-  "Auto-refine only those regions that are smaller than this number of bytes.")
+(ediff-defvar-local ediff-auto-refine-limit 1400
+  "*Auto-refine only the regions of this size \(in bytes\) or less.")
   
 ;;; General
 
 (defvar ediff-diff-ok-lines-regexp  
-  "^\\([0-9,]+[acd][0-9,]+$\\|[<>] \\|---\\|.*Warning *:\\|.*No newline\\|.*missing newline\\)"
+  "^\\([0-9,]+[acd][0-9,]+$\\|[<>] \\|---\\|.*Warning *:\\|.*No +newline\\|.*missing +newline\\|^\C-m$\\)"
   "Regexp that matches normal output lines from `ediff-diff-program'.
 This is mostly lifted from Emerge, except that Ediff also considers
 warnings and `Missing newline'-type messages to be normal output.
@@ -138,19 +127,47 @@ one optional arguments, diff-number to refine.")
 ;;;  ;; When xemacs implements minibufferless frames, this won't be necessary
 ;;;  (if ediff-xemacs-p (setq synchronize-minibuffers t))
 						  
+  ;; create, if it doesn't exist
   (or (ediff-buffer-live-p ediff-diff-buffer)
       (setq ediff-diff-buffer
 	    (get-buffer-create (ediff-unique-buffer-name "*ediff-diff" "*"))))
-  
-  (message "Computing differences ...")
-  (ediff-exec-process ediff-diff-program ediff-diff-buffer 'synchronize
-		      ediff-diff-options file-A file-B)
-  
+  (ediff-make-diff2-buffer ediff-diff-buffer file-A file-B)
   (ediff-prepare-error-list ediff-diff-ok-lines-regexp ediff-diff-buffer)
-  ;;(message "Computing differences ... done")
   (ediff-convert-diffs-to-overlays
    (ediff-extract-diffs
     ediff-diff-buffer ediff-word-mode ediff-narrow-bounds)))
+
+;; fill in DIFF-BUFFER with the output from the diff program run on FILE1 and
+;; FILE2
+;; Return the length of that buffer.
+(defun ediff-make-diff2-buffer (diff-buffer file1 file2)
+  (cond ((< (ediff-file-size file1) 0)
+	 (message "Can't diff remote files: %s"
+		  (ediff-abbreviate-file-name file1))
+	 (sit-for 2)
+	 ;; 1 is an error exit code
+	 1)
+	((< (ediff-file-size file2) 0)
+	 (message "Can't diff remote file: %s"
+		  (ediff-abbreviate-file-name file2))
+	 (sit-for 2)
+	 (message "")
+	 ;; 1 is an error exit code
+	 1)
+	(t (message "Computing differences between %s and %s ..."
+		    (file-name-nondirectory file1)
+		    (file-name-nondirectory file2))
+	   ;; this erases the diff buffer automatically
+	   (ediff-exec-process ediff-diff-program
+			       diff-buffer
+			       'synchronize
+			       ediff-diff-options file1 file2)
+	   ;;(message "Computing differences ... done")
+	   (message "")
+	   (ediff-eval-in-buffer diff-buffer
+	     (buffer-size)))))
+  
+
      
 ;; If file-A/B/C is nil, do 2-way comparison with the non-nil buffers
 ;; This function works for diff3 and diff2 jobs
@@ -500,7 +517,7 @@ one optional arguments, diff-number to refine.")
   (or n  (setq n ediff-current-difference))
   
   (if (< ediff-number-of-differences 1)
-      (error "Sorry, it is not my job to munch identical variants..."))
+      (error ediff-NO-DIFFERENCES))
       
   (if ediff-word-mode
       (setq flag 'skip
@@ -524,7 +541,8 @@ one optional arguments, diff-number to refine.")
 	(cond ((and (eq flag 'noforce) (ediff-get-fine-diff-vector n 'A))
 	       ;; don't compute fine diffs if diff vector exists
 	       (if (ediff-no-fine-diffs-p n)
-		   (ediff-message-if-verbose
+		   ;;(ediff-message-if-verbose
+		   (message
 		    "Only white-space differences in region %d" (1+ n))))
 	      ;; If one of the regions is empty (or 2 in 3way comparison)
 	      ;; then don't refine.
@@ -548,16 +566,19 @@ one optional arguments, diff-number to refine.")
 			(empty-B 'B)
 			(empty-C 'C)))
 		 )
-	       ;; if all regions happen to be whitespace, indicate this
+	       ;; if all regions happen to be whitespace
 	       (if (and whitespace-A whitespace-B whitespace-C)
+		   ;; mark as space only
 		   (ediff-mark-diff-as-space-only n t)
+		 ;; if some regions are white and others don't, then mark as
+		 ;; non-white-space-only
 		 (ediff-mark-diff-as-space-only n nil)))
 	      ;; don't compute fine diffs for this region
 	      ((eq flag 'skip)
 	       (or (ediff-get-fine-diff-vector n 'A)
 		   (memq ediff-auto-refine '(off nix))
 		   (ediff-message-if-verbose
-		    "Region %d exceeds auto-refine limit. `%s' force-refines"
+		    "Region %d exceeds auto-refine limit. Type `%s' to refine"
 		    (1+ n)
 		    (substitute-command-keys
 		     "\\[ediff-make-or-kill-fine-diffs]")
@@ -605,20 +626,20 @@ one optional arguments, diff-number to refine.")
 		     ((and ediff-3way-job whitespace-B)
 		      (ediff-setup-fine-diff-regions file-A nil file-C n))
 		     ((and ediff-3way-job
-			   (or whitespace-C
-			       (and ediff-merge-job
-				    (ediff-looks-like-combined-merge n))))
+			   ;; In merge-jobs, whitespace-C is t, since
+			   ;; ediff-empty-diff-region-p returns t in this case
+			   whitespace-C)
 		      (ediff-setup-fine-diff-regions file-A file-B nil n))
 		     (t
 		      (ediff-setup-fine-diff-regions file-A file-B file-C n)))
 		      
 	       (setq cumulative-fine-diff-length
 		     (+ (length (ediff-get-fine-diff-vector n 'A))
-				   (length (ediff-get-fine-diff-vector n 'B))
-				   (if file-C
-				       (length
-					(ediff-get-fine-diff-vector n 'C))
-				     0)))
+			(length (ediff-get-fine-diff-vector n 'B))
+			;; in merge jobs, the merge buffer is never refined
+			(if (and file-C (not ediff-merge-job))
+			    (length (ediff-get-fine-diff-vector n 'C))
+			  0)))
 		      
 	       (cond ((or
 		       ;; all regions are white space
@@ -632,7 +653,7 @@ one optional arguments, diff-number to refine.")
 		      (ediff-message-if-verbose
 		       "Only white-space differences in region %d" (1+ n)))
 		     ((eq cumulative-fine-diff-length 0)
-		      (ediff-mark-diff-as-space-only n nil)
+		      (ediff-mark-diff-as-space-only n t)
 		      (ediff-message-if-verbose
 		       "Only white-space differences in region %d %s"
 		       (1+ n)
@@ -847,7 +868,7 @@ one optional arguments, diff-number to refine.")
 	;; leave point after matched line
        (beginning-of-line 2)
        (let ((agreement (buffer-substring (match-beginning 1) (match-end 1))))
-	 ;; if the A and B files are the same and not 3way-comparison,
+	 ;; if the files A and B are the same and not 3way-comparison,
 	 ;; ignore the difference
 	 (if (or three-way-comp (not (string-equal agreement "3")))
 	     (let* ((a-begin (car (ediff-get-diff3-group "1")))
@@ -1163,6 +1184,11 @@ argument to `skip-chars-forward'."
 	  (funcall fwd-word-fun))
       (point))))
 
+
+;;; Local Variables:
+;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
+;;; eval: (put 'ediff-eval-in-buffer 'lisp-indent-hook 1)
+;;; End:
 
 (provide 'ediff-diff)
 

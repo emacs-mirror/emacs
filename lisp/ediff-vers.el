@@ -1,6 +1,6 @@
 ;;; ediff-vers.el --- version control interface to Ediff
 
-;;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+;;; Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
@@ -23,6 +23,20 @@
 
 
 ;;; Code:
+
+;; Compiler pacifier
+(defvar rcs-default-co-switches)
+(defvar sc-mode)
+(defvar cvs-shell)
+(defvar cvs-program)
+(defvar cvs-cookie-handle)
+
+(eval-when-compile
+  (load "pcl-cvs" 'noerror)
+  (load "rcs" 'noerror)
+  (load "generic-sc" 'noerror)
+  (load "vc" 'noerror))
+;; end pacifier
       
 ;; VC.el support
 (defun vc-ediff-internal (rev1 rev2 &optional startup-hooks)

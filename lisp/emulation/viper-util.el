@@ -184,6 +184,10 @@ that Viper doesn't know about.")
 	 (fset 'vip-color-defined-p (symbol-function 'x-color-defined-p))
 	 )))
 
+(fset 'vip-characterp
+      (symbol-function
+       (if vip-xemacs-p 'characterp 'integerp)))
+
 (defsubst vip-color-display-p ()
   (if vip-emacs-p
       (x-display-color-p)
@@ -395,6 +399,143 @@ that Viper doesn't know about.")
       (setq temp (cdr temp)))
     
     (nconc lis1 lis2)))
+
+
+;;; Support for :e and file globbing
+
+(defun vip-ex-nontrivial-find-file-unix (filespec)
+  "Glob the file spec and visit all files matching the spec.
+This function is designed to work under Unix. It may also work under VMS.
+
+Users who prefer other types of shells should write their own version of this
+function and set the variable `ex-nontrivial-find-file-function'
+appropriately." 
+  (let ((gshell
+	 (cond (ex-unix-type-shell shell-file-name)
+	       ((memq system-type '(vax-vms axp-vms)) "*dcl*") ; VAX VMS
+	       (t "sh"))) ; probably Unix anyway
+	(gshell-options
+	 ;; using cond in anticipation of further additions
+	 (cond (ex-unix-type-shell-options)
+	       ))
+	(command (cond (vip-ms-style-os-p (format "\"ls -1 %s\"" filespec))
+		       (t (format "ls -1 %s" filespec))))
+	file-list)
+    (save-excursion 
+      (set-buffer (setq tmp-buf (get-buffer-create vip-ex-tmp-buf-name)))
+      (erase-buffer)
+      (setq status
+	    (if gshell-options
+		(call-process gshell nil t nil
+			      gshell-options
+			      "-c"
+			      command)
+	      (call-process gshell nil t nil
+			    "-c"
+			    command)))
+      (goto-char (point-min))
+      ;; Issue an error, if no match.
+      (if (> status 0)
+	  (save-excursion
+	    (skip-chars-forward " \t\n\j")
+	    (if (looking-at "ls:")
+		(vip-forward-Word 1))
+	    (error "%s: %s"
+		   (if (stringp  gshell)
+		       gshell
+		     "shell")
+		   (buffer-substring (point) (vip-line-pos 'end)))
+	    ))
+      (goto-char (point-min))
+      (setq file-list (vip-get-filenames-from-buffer 'one-per-line)))
+
+    (mapcar 'find-file file-list)
+    ))
+
+(defun vip-ex-nontrivial-find-file-ms (filespec)
+  "Glob the file spec and visit all files matching the spec.
+This function is designed to work under MS type systems, such as NT, W95, and
+DOS. It may also work under OS/2.
+
+The users of Unix-type shells should be able to use
+`vip-ex-nontrivial-find-file-unix', making it into the value of the variable 
+`ex-nontrivial-find-file-function'. If this doesn't work, the user may have
+to write a custom function, similar to `vip-ex-nontrivial-find-file-unix'."
+  (save-excursion 
+    (set-buffer (setq tmp-buf (get-buffer-create vip-ex-tmp-buf-name)))
+    (erase-buffer)
+    (insert filespec)
+    (goto-char (point-min))
+    (mapcar 'find-file
+	    (vip-glob-ms-windows-files (vip-get-filenames-from-buffer)))
+    ))
+
+
+;; Interpret the stuff in the buffer as a list of file names
+;; return a list of file names listed in the buffer beginning at point
+;; If optional arg is supplied, assume each filename is listed on a separate
+;; line
+(defun vip-get-filenames-from-buffer (one-per-line)
+  (let ((skip-chars (if one-per-line "\t\n" " \t\n"))
+	 result fname delim)
+    (skip-chars-forward skip-chars)
+    (while (not (eobp))
+      (if (cond ((looking-at "\"")
+		 (setq delim ?\")
+		 (re-search-forward "[^\"]+" nil t)) ; noerror
+		((looking-at "'")
+		 (setq delim ?')
+		 (re-search-forward "[^']+" nil t)) ; noerror
+		(t 
+		 (re-search-forward
+		  (concat "[^" skip-chars "]+") nil t))) ;noerror
+	  (setq fname
+		(buffer-substring (match-beginning 0) (match-end 0))))
+      (if delim
+	  (forward-char 1))
+      (skip-chars-forward " \t\n")
+      (setq result (cons fname result)))
+    result))
+
+;; convert MS-DOS wildcards to regexp
+(defun vip-wildcard-to-regexp (wcard)
+  (save-excursion
+    (set-buffer (setq tmp-buf (get-buffer-create vip-ex-tmp-buf-name)))
+    (erase-buffer)
+    (insert wcard)
+    (goto-char (point-min))
+    (while (not (eobp))
+      (skip-chars-forward "^*?.\\\\")
+      (cond ((eq (char-after (point)) ?*) (insert ".")(forward-char 1))
+	    ((eq (char-after (point)) ?.) (insert "\\")(forward-char 1))
+	    ((eq (char-after (point)) ?\\) (insert "\\")(forward-char 1))
+	    ((eq (char-after (point)) ??) (delete-char 1)(insert ".")))
+      )
+    (buffer-string)
+    ))
+
+
+;; glob windows files
+;; LIST is expected to be in reverse order
+(defun vip-glob-ms-windows-files (list)
+  (let ((tmp list)
+	(case-fold-search t)
+	tmp2)
+    (while tmp
+      (setq tmp2 (cons (directory-files 
+			;; the directory part
+			(or (file-name-directory (car tmp))
+			    "")
+			t  ; return full names
+			;; the regexp part: globs the file names
+			(concat "^"
+				(vip-wildcard-to-regexp
+				 (file-name-nondirectory (car tmp)))
+				"$"))
+		       tmp2))
+      (setq tmp (cdr tmp)))
+    (reverse (apply 'append tmp2))))
+
       
 
 
@@ -825,18 +966,18 @@ that Viper doesn't know about.")
 	    ;; Emacs doesn't handle capital letters correctly, since
 	    ;; \S-a isn't considered the same as A (it behaves as
 	    ;; plain `a' instead). So we take care of this here
-	    (cond ((and (numberp event) (<= ?A event) (<= event ?Z))
+	    (cond ((and (vip-characterp event) (<= ?A event) (<= event ?Z))
 		   (setq mod nil
 			 event event))
 		  ;; Emacs has the oddity whereby characters 128+char
 		  ;; represent M-char *if* this appears inside a string.
 		  ;; So, we convert them manually to (meta char).
-		  ((and (numberp event) (< ?\C-? event) (<= event 255))
+		  ((and (vip-characterp event) (< ?\C-? event) (<= event 255))
 		   (setq mod '(meta)
 			 event (- event ?\C-? 1)))
 		  (t (event-basic-type event)))
 	    )))
-    (if (numberp basis)
+    (if (vip-characterp basis)
 	(setq basis
 	      (if (= basis ?\C-?)
 		  (list 'control '\?) ; taking care of an emacs bug
@@ -884,16 +1025,23 @@ that Viper doesn't know about.")
 ;; characters, will return a string. Otherwise, will return a string
 ;; representing a vector of converted events. If the input was a Viper macro,
 ;; will return a string that represents this macro as a vector.
-(defun vip-array-to-string (event-seq &optional representation)
-  (let (temp)
+(defun vip-array-to-string (event-seq)
+  (let (temp temp2)
     (cond ((stringp event-seq) event-seq)
 	  ((vip-event-vector-p event-seq)
 	    (setq temp (mapcar 'vip-event-key event-seq))
-	    (if (vip-char-symbol-sequence-p temp)
-		(mapconcat 'symbol-name temp "")
-	      (prin1-to-string (vconcat temp))))
+	    (cond ((vip-char-symbol-sequence-p temp)
+		   (mapconcat 'symbol-name temp ""))
+		  ((and (vip-char-array-p
+			 (setq temp2 (mapcar 'vip-key-to-character temp))))
+		   (mapconcat 'char-to-string temp2 ""))
+		  (t (prin1-to-string (vconcat temp)))))
 	  ((vip-char-symbol-sequence-p event-seq)
 	   (mapconcat 'symbol-name event-seq ""))
+	  ((and (vectorp event-seq) 
+		(vip-char-array-p
+		 (setq temp (mapcar 'vip-key-to-character event-seq))))
+	   (mapconcat 'char-to-string temp ""))
 	  (t (prin1-to-string event-seq)))))
 
 (defun vip-key-press-events-to-chars (events)
@@ -919,6 +1067,21 @@ that Viper doesn't know about.")
 	 (vip-read-event))))
     char))
 
+;; key is supposed to be in viper's representation, e.g., (control l), a
+;; character, etc.
+(defun vip-key-to-character (key)
+  (cond ((eq key 'space) ?\ )
+	((eq key 'delete) ?\C-?)
+	((eq key 'backspace) ?\C-h)
+	((and (symbolp key)
+	      (= 1 (length (symbol-name key))))
+	 (string-to-char (symbol-name key)))
+	((and (listp key)
+	      (eq (car key) 'control)
+	      (symbol-name (nth 1 key))
+	      (= 1 (length (symbol-name (nth 1 key)))))
+	 (read (format "?\\C-%s" (symbol-name (nth 1 key)))))
+	(t key)))
     
       
 (defun vip-setup-master-buffer (&rest other-files-or-buffers)

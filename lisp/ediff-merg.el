@@ -1,6 +1,6 @@
 ;;; ediff-merg.el --- merging utilities
 
-;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
@@ -24,6 +24,7 @@
 ;;; Code:
 
 (require 'ediff-init)
+
 
 (defvar ediff-default-variant 'combined
   "*The variant to be used as a default for buffer C in merging.
@@ -114,9 +115,10 @@ skiped over. Nil means show all regions.")
 (defun ediff-do-merge (diff-num &optional remerging)
   (if (< diff-num 0) (setq diff-num 0))
   (let ((n diff-num)
-	(default-state-of-merge (format "%S" ediff-default-variant))
+	;;(default-state-of-merge (format "%S" ediff-default-variant))
 	do-not-copy state-of-merge)
     (while (< n ediff-number-of-differences)
+      (setq do-not-copy nil) ; reset after each cycle
       (if (= (mod n 10) 0)
 	  (message "%s buffers A & B into C ... region %d of %d"
 		   (if remerging "Re-merging" "Merging")
@@ -130,9 +132,9 @@ skiped over. Nil means show all regions.")
 		(reg-B (ediff-get-region-contents n 'B ediff-control-buffer))
 		(reg-C (ediff-get-region-contents n 'C ediff-control-buffer)))
 		
-		    ;;; was edited since first set by default
+	    ;; if region was edited since it was first set by default
 	    (if (or (and (string= state-of-merge "default-A")
-		      (not (string= reg-A reg-C)))
+			 (not (string= reg-A reg-C)))
 		    ;; was edited since first set by default
 		    (and (string= state-of-merge "default-B")
 			 (not (string= reg-B reg-C)))

@@ -1,6 +1,6 @@
 ;;; ediff-mult.el --- support for multi-file/multi-buffer processing in Ediff
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
@@ -23,9 +23,8 @@
 
 ;;; Commentary:
 
-;; Users are strongly encouraged to add functionality to this file.
-;; In particular, epatch needs to be enhanced to work with multi-file
-;; patches. The present file contains all the infrastructure needed for that.
+;; Users are encouraged to add functionality to this file.
+;; The present file contains all the infrastructure needed for that.
 ;;
 ;; Generally, to to implement a new multisession capability within Ediff,
 ;; you need to tell it 
@@ -37,22 +36,36 @@
 ;;	   In all likelihood, ediff-redraw-directory-group-buffer can be used
 ;;	   directly or after a small modification.
 ;;	2. What action to take when the user clicks button 2 or types v,e, or
-;;	   RET.  See ediff-dir-action.
+;;	   RET.  See ediff-filegroup-action.
 ;;	3. Provide a list of pairs or triples of file names (or buffers,
 ;;	   depending on the particular Ediff operation you want to invoke)
 ;;	   in the following format:
-;;	  	((obj1 obj2 [optional obj3]) (...) ...)
+;;	  	(descriptor (obj1 obj2 obj3) (...) ...)
 ;;	   Actually, the format of this list is pretty much up to the
-;;	   developer. The only thing is that it must be a list of lists.
+;;	   developer. The only thing is that it must be a list of lists,
+;;	   and the first list must describe the meta session, and subsequent
+;;	   elements must describe individual sessions.
+;;	   This descriptor must be a list of two, three, or four elements (nil
+;;	   or string). The function ediff-redraw-registry-buffer displays the
+;;	   second through last of these in the registry buffer. 
 ;;	   Also, keep in mind that the function ediff-prepare-meta-buffer
-;;	   (which see) prepends nil in front of each list (i.e., the above list
-;;	   will become ((nil obj1 obj2 ...) (nil ...) ...).
+;;	   (which see) prepends the session group buffer to the descriptor and
+;;	   nil in front of each subsequent list (i.e., the above list 
+;;	   will become
+;;              ((meta-buf descriptor) (nil obj1 obj2 obj3) (nil ...) ...)
 ;;	   Ediff expects that your function (in 2 above) will arrange to
 ;;	   replace this prepended nil (via setcar) with the actual ediff
 ;;	   control buffer associated with an appropriate Ediff session.
 ;;	   This is arranged through internal startup hooks that can be passed
 ;;	   to any of Ediff major entries (such as ediff-files, epatch, etc.).
-;;	   See how this is done in ediff-dir-action.
+;;	   See how this is done in ediff-filegroup-action.
+;;
+;;	   Session descriptions are of the form (obj1 obj2 obj3), which
+;;	   describe objects relevant to the session. Usually they are names of
+;;	   files, but sometimes they may be other things. For instance, obj3 is
+;;	   nil for jobs that involve only two files. For patch jobs, obj2 and
+;;	   obj3 are markers that specify the patch corresponding to the file
+;;	   (whose name is obj1).
 ;;	4. Write a function that makes a call to ediff-prepare-meta-buffer
 ;;	   passing all this info. 
 ;;	   You may be able to use ediff-directories-internal as a template.
@@ -64,13 +77,7 @@
 ;;	   ediff-merge-directories-with-ancestor all use
 ;;	   ediff-directories-internal. 
 ;;
-;; In case of multifile patching, the easiest thing is to first apply the patch
-;; and then find out which files were patched (using the algorithm utilized by
-;; Unix patch and by parsing the patch file). The procedure ediff-patch-file
-;; works for single-file patches only. However, it can deal with remote and
-;; compressed files. Check out ediff-patch-file for details.
-;;
-;; Another useful addition here could be session groups selected by patterns
+;; A useful addition here could be session groups selected by patterns
 ;; (which are different in each directory). For instance, one may want to
 ;; compare files of the form abc{something}.c to files old{something}.d
 ;; which may be in the same or different directories. Or, one may want to
@@ -79,7 +86,7 @@
 ;; Implementing this requires writing an collating function, which should pair
 ;; up appropriate files. It will also require a generalization of the functions
 ;; that do the layout of the meta- and differences buffers and of
-;; ediff-dir-action.
+;; ediff-filegroup-action.
 
 ;;; Code:
 
@@ -95,11 +102,11 @@
 
 Useful commands:
      button2, `v', RET over a session line:   start that Ediff session
-     `M' in any session invoked from here:    bring back this buffer
+     `M':\tin any session invoked from here, brings back this group panel
      `R':\tdisplay the registry of active Ediff sessions
-     `h':\tmark session for hiding; with prefix arg--unmark
+     `h':\tmark session for hiding (toggle)
      `x':\thide marked sessions; with prefix arg--unhide hidden sessions
-     `m':\tmark session for non-hiding operation; with prefix arg--unmark
+     `m':\tmark session for a non-hiding operation (toggle)
      SPC:\tnext session
      DEL:\tprevious session
      `E':\tbrowse Ediff on-line manual
@@ -113,12 +120,12 @@ Useful commands:
 directories.")
 
 ;; Variable specifying the action to take when the use invokes ediff in the
-;; meta buffer. This is usually ediff-registry-action or ediff-dir-action
+;; meta buffer. This is usually ediff-registry-action or ediff-filegroup-action
 (ediff-defvar-local ediff-meta-action-function nil "")
 ;; Tells ediff-update-meta-buffer how to redraw it
 (ediff-defvar-local ediff-meta-redraw-function nil "")
-;; Tells ediff-dir-action and similar procedures how to invoke Ediff for the
-;; sessions in a given session group
+;; Tells ediff-filegroup-action and similar procedures how to invoke Ediff for
+;; the sessions in a given session group
 (ediff-defvar-local ediff-session-action-function nil "")
 
 (ediff-defvar-local ediff-metajob-name nil "")
@@ -130,7 +137,7 @@ directories.")
 (defvar ediff-filtering-regexp-history nil "")
 
 ;; This has the form ((ctl-buf file1 file2) (stl-buf file1 file2) ...)
-;; If ctl-buf is nil, the file-pare wasn't processed yet. If it is
+;; If ctl-buf is nil, the file-pair wasn't processed yet. If it is
 ;; killed-buffer object, the file pair has been processed. If it is a live
 ;; buffer, this means ediff is still working on the pair
 (ediff-defvar-local ediff-meta-list nil "")
@@ -153,30 +160,48 @@ ediff-directories, is run.")
 (defvar ediff-show-session-group-hook nil
   "*Hooks run just after a session group buffer is shown.")
 
-;;; API
+;; buffer holding the multi-file patch. local to the meta buffer
+(ediff-defvar-local ediff-meta-patchbufer nil "")
 
+;;; API for ediff-meta-list
+
+;; group buffer/regexp
 (defun ediff-get-group-buffer (meta-list)
   (nth 0 (car meta-list)))
 (defun ediff-get-group-regexp (meta-list)
   (nth 1 (car meta-list)))
+;; group objects
 (defun ediff-get-group-objA (meta-list)
   (nth 2 (car meta-list)))
 (defun ediff-get-group-objB (meta-list)
   (nth 3 (car meta-list)))
 (defun ediff-get-group-objC (meta-list)
   (nth 4 (car meta-list)))
+;; session buffer
 (defun ediff-get-session-buffer (elt)
   (nth 0 elt))
 (defun ediff-get-session-status (elt)
   (nth 1 elt))
+(defun ediff-set-session-status (session-info new-status)
+  (setcar (cdr session-info) new-status))
+;; session objects
 (defun ediff-get-session-objA (elt)
   (nth 2 elt))
 (defun ediff-get-session-objB (elt)
   (nth 3 elt))
 (defun ediff-get-session-objC (elt)
   (nth 4 elt))
-(defun ediff-set-session-status (session-info new-status)
-  (setcar (cdr session-info) new-status))
+(defun ediff-get-session-objA-name (elt)
+  (car (nth 2 elt)))
+(defun ediff-get-session-objB-name (elt)
+  (car (nth 3 elt)))
+(defun ediff-get-session-objC-name (elt)
+  (car (nth 4 elt)))
+;; equality indicators
+(defsubst ediff-get-file-eqstatus (elt)
+  (nth 1 elt))
+(defsubst ediff-set-file-eqstatus (elt value)
+  (setcar (cdr elt) value))
 
 ;; set up the keymap in the meta buffer
 (defun ediff-setup-meta-map()
@@ -191,6 +216,8 @@ ediff-directories, is run.")
   (define-key ediff-meta-buffer-map  "\C-?"  'ediff-previous-meta-item)
   (define-key ediff-meta-buffer-map  [delete]  'ediff-previous-meta-item)
   (define-key ediff-meta-buffer-map  [backspace]  'ediff-previous-meta-item)
+  (or (ediff-one-filegroup-metajob)
+      (define-key ediff-meta-buffer-map "=" 'ediff-meta-mark-equal-files))
   (if ediff-no-emacs-help-in-control-buffer
       (define-key ediff-meta-buffer-map  "\C-h"  'ediff-previous-meta-item))
   (if ediff-emacs-p
@@ -253,7 +280,8 @@ Moves in circular fashion. With numeric prefix arg, skip this many items."
     
     (if pos (goto-char pos))
     (if (eq ediff-metajob-name 'ediff-registry)
-	(if (search-forward "*Ediff" nil t)
+	(if (and (ediff-get-meta-info (current-buffer) pos 'noerror)
+		 (search-forward "*Ediff" nil t))
 	    (skip-chars-backward "a-zA-Z*"))
       (if (> (skip-chars-forward "-+?H* \t0-9") 0)
 	  (backward-char 1)))))
@@ -278,10 +306,12 @@ Moves in circular fashion. With numeric prefix arg, skip this many items."
     
     (if pos (goto-char pos))
     (if (eq ediff-metajob-name 'ediff-registry)
-	(if (search-forward "*Ediff" nil t)
+	(if (and (ediff-get-meta-info (current-buffer) pos 'noerror)
+		 (search-forward "*Ediff" nil t))
 	    (skip-chars-backward "a-zA-Z*"))
       (if (> (skip-chars-forward "-+?H* \t0-9") 0)
-	  (backward-char 1)))))
+	  (backward-char 1)))
+    ))
 
 
 
@@ -470,15 +500,26 @@ Moves in circular fashion. With numeric prefix arg, skip this many items."
 	    (define-key
 	      ediff-meta-buffer-map "M" 'ediff-show-meta-buff-from-registry))
 	;; initialize the meta list -- don't do this for registry we prepend
-	;; '(nil nil) nil to all elts of meta-list, except the first.  The
+	;; '(nil nil) to all elts of meta-list, except the first.  The
 	;; first nil will later be replaced by the session buffer. The second
 	;; is reserved for session status.
 	;; (car ediff-meta-list) gets cons'ed with the session group buffer.
+	;; Also, session objA/B/C are turned into lists (obj eq-indicator)
+	;; For now, the eq-indicator is used only for 2 and 3-file jobs.
 	(setq ediff-meta-list
 	      (cons (cons meta-buffer (car meta-list))
 		    (mapcar (function
 			     (lambda (elt)
-			       (cons nil (cons nil elt))))
+			       (cons nil
+				     (cons nil
+					   ;; convert each obj to (obj nil),
+					   ;; where nil may later be replaced
+					   ;; by =, if this file equals some
+					   ;; other file in the same session
+					       (mapcar (function
+							(lambda (obj)
+							  (list obj nil)))
+						       elt)))))
 			    (cdr meta-list)))))
 	
       (or (eq meta-buffer ediff-registry-buffer)
@@ -496,22 +537,25 @@ Moves in circular fashion. With numeric prefix arg, skip this many items."
       ;; arrange for showing directory contents differences
       ;; must be after run startup-hooks, since ediff-dir-difference-list is
       ;; set inside these hooks
-      (if (eq action-func 'ediff-dir-action)
+      (if (eq action-func 'ediff-filegroup-action)
 	  (progn
 	    ;; put meta buffer in (car ediff-dir-difference-list)
 	    (setq ediff-dir-difference-list
 		  (cons (cons meta-buffer (car ediff-dir-difference-list))
 			(cdr ediff-dir-difference-list)))
 
-	    (or (ediff-dir1-metajob jobname)
+	    (or (ediff-one-filegroup-metajob jobname)
 		(ediff-draw-dir-diffs ediff-dir-difference-list))
 	    (define-key ediff-meta-buffer-map "h" 'ediff-mark-for-hiding)
 	    (define-key
 	      ediff-meta-buffer-map "x" 'ediff-hide-marked-sessions)
 	    (define-key ediff-meta-buffer-map "m" 'ediff-mark-for-operation)
-	    (if (ediff-collect-diffs-metajob jobname)
-		(define-key
-		  ediff-meta-buffer-map "P" 'ediff-collect-custom-diffs))
+	    (cond ((ediff-collect-diffs-metajob jobname)
+		   (define-key
+		     ediff-meta-buffer-map "P" 'ediff-collect-custom-diffs))
+		  ((ediff-patch-metajob jobname)
+		   (define-key
+		     ediff-meta-buffer-map "P" 'ediff-meta-show-patch)))
 	    (define-key ediff-meta-buffer-map "u" 'ediff-up-meta-hierarchy)
 	    (define-key ediff-meta-buffer-map "D" 'ediff-show-dir-diffs)))
 
@@ -539,18 +583,24 @@ Moves in circular fashion. With numeric prefix arg, skip this many items."
 
       (setq regexp (ediff-get-group-regexp meta-list))
       
-      (if (ediff-collect-diffs-metajob)
-	  (insert
-	   "     `P':\tcollect custom diffs of all marked sessions\n"))
+      (cond ((ediff-collect-diffs-metajob)
+	     (insert
+	      "     `P':\tcollect custom diffs of all marked sessions\n"))
+	    ((ediff-patch-metajob)
+	     (insert
+	      "     `P':\tshow patch appropriately for the context (session or group)\n")))
       (insert
-       "     `u':\tshow parent session group
-     `D':\tdisplay differences among the contents of directories\n\n")
+       "     `u':\tshow parent session group\n")
+      (or (ediff-one-filegroup-metajob)
+	  (insert
+	   "     `D':\tshow differences among directories\n"
+	   "     `=':\tmark identical files in each session\n\n"))
 
       (if (and (stringp regexp) (> (length regexp) 0))
 	  (insert (format "Filter-through regular expression: %s\n" regexp)))
 			  
       (insert "\n
-        Size  Name
+        Size   Last modified           Name
     -----------------------------------------------------------------------
 
 ")
@@ -569,12 +619,7 @@ Moves in circular fashion. With numeric prefix arg, skip this many items."
 	   "     ******   ******   This session group has no members\n"))
       
       ;; now organize file names like this:
-      ;; preferred format:
       ;;     use-mark sizeA dateA  sizeB dateB  filename
-      ;; I don't have time to mess up with calculating last modtimes
-      ;; (XEmacs has no decode-time function), so
-      ;; the actual format is:
-      ;;     use-mark Size    filename
       ;; make sure directories are displayed with a trailing slash.
       ;; If one is a directory and another isn't, indicate this with a `?'
       (while meta-list
@@ -609,9 +654,9 @@ Moves in circular fashion. With numeric prefix arg, skip this many items."
 ;; At present, problematic sessions occur only in -with-ancestor comparisons
 ;; when the ancestor is a directory rather than a file.
 (defun ediff-problematic-session-p (session)
-  (let ((f1 (ediff-get-session-objA session))
-	(f2 (ediff-get-session-objB session))
-	(f3 (ediff-get-session-objC session)))
+  (let ((f1 (ediff-get-session-objA-name session))
+	(f2 (ediff-get-session-objB-name session))
+	(f3 (ediff-get-session-objC-name session)))
     (cond ((and (stringp f1) (not (file-directory-p f1))
 		(stringp f2) (not (file-directory-p f2))
 		(stringp f3) (file-directory-p f3)
@@ -620,19 +665,53 @@ Moves in circular fashion. With numeric prefix arg, skip this many items."
 	   'ancestor-is-dir)
 	  (t nil))))
 
-(defun ediff-meta-insert-file-info (file)
-  (if (stringp file)
-      (insert
-       (format
-	"  %10d  %s\n"
-	(nth 7 (file-attributes file))
-	;; dir names in meta lists have no trailing `/' so insert it
-	(cond ((file-directory-p file)
-	       (file-name-as-directory (ediff-abbreviate-file-name file)))
-	      (t (ediff-abbreviate-file-name file)))))
-    ))
-      
+(defun ediff-meta-insert-file-info (fileinfo)
+  (let ((file-size -1)
+	(fname (car fileinfo))
+	(feq (ediff-get-file-eqstatus fileinfo))
+	(file-modtime "*file doesn't exist*"))
 
+    (if (and (stringp fname) (file-exists-p fname))
+	(setq file-size (ediff-file-size fname)
+	      file-modtime (ediff-file-modtime fname)))
+    (if (stringp fname)
+	(insert
+	 (format
+	  "%s  %s   %-20s   %s\n"
+	  (if feq "=" " ") ; equality indicator
+	  (format "%10s" (if (< file-size 0)
+			     "remote"
+			   file-size))
+	  (if (< file-size 0)
+	      "file"
+	    (ediff-format-date (decode-time file-modtime)))
+	  ;; dir names in meta lists have no trailing `/' so insert it
+	  (cond ((file-directory-p fname)
+		 (file-name-as-directory (ediff-abbreviate-file-name fname)))
+		(t (ediff-abbreviate-file-name fname)))))
+      )))
+
+(defconst ediff-months '((1 . "Jan") (2 . "Feb") (3 . "Mar") (4 . "Apr")
+			(5 . "May") (6 . "Jun") (7 . "Jul") (8 . "Aug")
+			(9 . "Sep") (10 . "Oct") (11 . "Nov") (12 . "Dec"))
+  "Months' associative array.")
+
+;; TIME is like the output of decode-time
+(defun ediff-format-date (time)
+  (format "%s %2d %4d %s:%s:%s"
+	  (cdr (assoc (nth 4 time) ediff-months)) ; month
+	  (nth 3 time) ; day
+	  (nth 5 time) ; year
+	  (ediff-fill-leading-zero (nth 2 time)) ; hour
+	  (ediff-fill-leading-zero (nth 1 time)) ; min
+	  (ediff-fill-leading-zero (nth 0 time)) ; sec
+	  ))
+
+;; returns 2char string
+(defsubst ediff-fill-leading-zero (num)
+  (if (< num 10)
+      (format "0%d" num)
+    (number-to-string num)))
 
 (defun ediff-draw-dir-diffs (diff-list)
   (if (null diff-list) (error "Lost difference info on these directories"))
@@ -740,7 +819,7 @@ Useful commands:
 (defun ediff-show-dir-diffs ()
   "Display differences among the directories involved in session group."
   (interactive)
-  (if (ediff-dir1-metajob)
+  (if (ediff-one-filegroup-metajob)
       (error "This command is inapplicable in the present context"))
   (or (ediff-buffer-live-p ediff-dir-diffs-buffer)
       (ediff-draw-dir-diffs ediff-dir-difference-list))
@@ -810,9 +889,15 @@ Useful commands:
 				  (ediff-abbreviate-file-name
 				   (ediff-get-group-objA meta-list))
 				  (ediff-abbreviate-file-name
-				   (or (ediff-get-group-objB meta-list) ""))
+				   (if (stringp
+					(ediff-get-group-objB meta-list))
+				       (ediff-get-group-objB meta-list)
+				       ""))
 				  (ediff-abbreviate-file-name
-				   (or (ediff-get-group-objC meta-list) ""))))
+				   (if (stringp
+					(ediff-get-group-objC meta-list))
+				       (ediff-get-group-objC meta-list)
+				       ""))))
 		  (ediff-set-meta-overlay pt (point) elt))
 	      (progn
 		(ediff-eval-in-buffer elt
@@ -867,11 +952,15 @@ Useful commands:
 	 (info (ediff-get-meta-info meta-buf pos))
 	 (session-buf (ediff-get-session-buffer info)))
 
+    (if (eq (ediff-get-session-status info) ?H)
+	(setq unmark t))
     (if unmark
 	(ediff-set-session-status info nil)
       (if (ediff-buffer-live-p session-buf)
 	  (error "Can't hide active session, %s" (buffer-name session-buf)))
       (ediff-set-session-status info ?H))
+    (or unmark
+	(ediff-next-meta-item 1))
     (ediff-update-meta-buffer meta-buf)
     ))
 
@@ -883,9 +972,13 @@ Useful commands:
 	 ;; ediff-get-meta-info gives error if meta-buf or pos are invalid
 	 (info (ediff-get-meta-info meta-buf pos)))
 
+    (if (eq (ediff-get-session-status info) ?*)
+	(setq unmark t))
     (if unmark
 	(ediff-set-session-status info nil)
       (ediff-set-session-status info ?*))
+    (or unmark
+	(ediff-next-meta-item 1))
     (ediff-update-meta-buffer meta-buf)
     ))
 
@@ -897,20 +990,27 @@ Useful commands:
 	(from (if unhide ?I ?H))
 	(to (if unhide ?H ?I))
 	(numMarked 0)
-	elt)
+	active-sessions-exist session-buf elt)
     (while meta-list
       (setq elt (car meta-list)
-	    meta-list (cdr meta-list))
+	    meta-list (cdr meta-list)
+	    session-buf (ediff-get-session-buffer elt))
+
       (if (eq (ediff-get-session-status elt) from)
 	  (progn
 	    (setq numMarked (1+ numMarked))
-	    (ediff-set-session-status elt to))))
+	    (if (and (eq to ?I) (buffer-live-p session-buf))
+		;; shouldn't hide active sessions
+		(setq active-sessions-exist t)
+	      (ediff-set-session-status elt to)))))
     (if (> numMarked 0)
 	(ediff-update-meta-buffer grp-buf)
       (beep)
       (if unhide
 	  (message "Nothing to reveal...")
 	(message "Nothing to hide...")))
+    (if active-sessions-exist
+	(message "Note: didn't hide active sessions!"))
     ))
 
 ;; Apply OPERATION to marked sessions. Operation expects one argument of type
@@ -968,8 +1068,8 @@ Useful commands:
 	     (shell-command
 	      (format "%s %s %s %s"
 		      ediff-custom-diff-program ediff-custom-diff-options
-		      (ediff-get-session-objA session)
-		      (ediff-get-session-objB session))
+		      (ediff-get-session-objA-name session)
+		      (ediff-get-session-objB-name session))
 	      t))
 	   (save-excursion
 	     (set-buffer meta-diff-buff)
@@ -999,9 +1099,31 @@ all marked sessions must be active."
     (beep)
     (message "No marked sessions found")))
 
+(defun ediff-meta-show-patch ()
+  "Show the multi-file patch associated with this group session."
+  (interactive)
+  (let* ((pos (ediff-event-point last-command-event))
+	 (meta-buf (ediff-event-buffer last-command-event))
+	 (info (ediff-get-meta-info meta-buf pos 'noerror))
+	 (patchbuffer ediff-meta-patchbufer))
+    (if (ediff-buffer-live-p patchbuffer)
+	(ediff-eval-in-buffer patchbuffer
+	  (save-restriction
+	    (if (not info)
+		(widen)
+	      (narrow-to-region
+	       (ediff-get-session-objB-name info)
+	       (ediff-get-session-objC-name info)))
+	    (set-buffer (get-buffer-create ediff-tmp-buffer))
+	    (erase-buffer)
+	    (insert-buffer patchbuffer)
+	    (display-buffer ediff-tmp-buffer 'not-this-window)
+	    ))
+      (error "The patch buffer wasn't found"))))
+
 	      
 ;; This function executes in meta buffer. It knows where event happened.
-(defun ediff-dir-action ()
+(defun ediff-filegroup-action ()
   "Execute appropriate action for the selected session."
   (interactive)
   (let* ((pos (ediff-event-point last-command-event))
@@ -1011,13 +1133,13 @@ all marked sessions must be active."
 	 session-buf file1 file2 file3 regexp)
 
     (setq session-buf (ediff-get-session-buffer info)
-	  file1 (ediff-get-session-objA info)
-	  file2 (ediff-get-session-objB info)
-	  file3 (ediff-get-session-objC info))
+	  file1 (ediff-get-session-objA-name info)
+	  file2 (ediff-get-session-objB-name info)
+	  file3 (ediff-get-session-objC-name info))
 
     ;; make sure we don't start on hidden sessions
     ;; ?H means marked for hiding. ?I means invalid (hidden).
-    (if (memq (ediff-get-session-status info) '(?H ?I))
+    (if (memq (ediff-get-session-status info) '(?I))
 	(progn
 	  (beep)
 	  (if (y-or-n-p "This session is marked as hidden, unmark? ")
@@ -1052,7 +1174,9 @@ all marked sessions must be active."
 			   (setcar (quote (, info)) ediff-meta-buffer)))))))
 
 	    ;; Do ediff-revision on a subdirectory
-	    ((and (ediff-dir1-metajob) (file-directory-p file1))
+	    ((and (ediff-one-filegroup-metajob)
+		  (ediff-revision-metajob)
+		  (file-directory-p file1))
 	     (if (ediff-buffer-live-p session-buf)
 		 (ediff-show-meta-buffer session-buf)
 	       (setq regexp (read-string "Filter through regular expression: " 
@@ -1070,7 +1194,7 @@ all marked sessions must be active."
 
 	    ;; From here on---only individual session handlers
 
-	    ;; handle an individual session with live control buffer
+	    ;; handle an individual session with a live control buffer
 	    ((ediff-buffer-live-p session-buf)
 	     (ediff-eval-in-buffer session-buf
 	       (setq ediff-mouse-pixel-position (mouse-pixel-position))
@@ -1082,17 +1206,17 @@ all marked sessions must be active."
 		  "This session's ancestor is a directory, merge without the ancestor? ")
 		 (ediff-merge-files
 		  file1 file2
-		  ;; arrange startup hooks 
+		  ;; provide startup hooks 
 		  (` (list (lambda () 
 			     (setq ediff-meta-buffer (, (current-buffer)))
 			     ;; see below for the explanation of what this does
 			     (setcar
 			      (quote (, info)) ediff-control-buffer)))))
 	       (error "Aborted")))
-	    ((ediff-dir1-metajob) 	; needs 1 file arg
+	    ((ediff-one-filegroup-metajob) 	; needs 1 file arg
 	     (funcall ediff-session-action-function
 		      file1
-		      ;; arrange startup hooks 
+		      ;; provide startup hooks 
 		      (` (list (lambda () 
 				 (setq ediff-meta-buffer (, (current-buffer)))
 				 ;; see below for explanation of what this does
@@ -1101,7 +1225,7 @@ all marked sessions must be active."
 	    ((not (ediff-metajob3))      ; need 2 file args
 	     (funcall ediff-session-action-function
 		      file1 file2
-		      ;; arrange startup hooks 
+		      ;; provide startup hooks 
 		      (` (list (lambda () 
 				 (setq ediff-meta-buffer (, (current-buffer)))
 				 ;; this makes ediff-startup pass the value of
@@ -1321,14 +1445,13 @@ If this is a session registry buffer then just bury it."
       (ediff-cleanup-meta-buffer buf)
       (cond ((and (ediff-safe-to-quit buf)
 		  (y-or-n-p "Quit this session group? "))
+	     (message "")
 	     (ediff-dispose-of-meta-buffer buf))
 	    ((ediff-safe-to-quit buf)
 	     (bury-buffer))
 	    (t
-	     (bury-buffer)
-	     (beep)
-	     (message
-	      "Session group suspended, not deleted (has active sessions)")))
+	     (error
+	      "This session group has active sessions---cannot exit")))
       (ediff-cleanup-meta-buffer parent-buf)
       (ediff-kill-buffer-carefully dir-diffs-buffer)
       (ediff-kill-buffer-carefully meta-diff-buffer)
@@ -1378,40 +1501,117 @@ If this is a session registry buffer then just bury it."
 
 ;; return location of the next meta overlay after point
 (defun ediff-next-meta-overlay-start (point)
-  (let (overl)
-    (if ediff-xemacs-p
-	(progn
-	  (setq overl (extent-at point (current-buffer) 'ediff-meta-info))
-	  (if overl
-	      (setq overl (next-extent overl))
-	    (setq overl (next-extent (current-buffer))))
-	  (if overl
-	      (extent-start-position overl)
-	    (point-max)))
-      (if (= point (point-max)) (setq point (point-min)))
-      (setq overl (car (overlays-at point)))
-      (if (and overl (overlay-get overl 'ediff-meta-info))
-	  (overlay-end overl)
-	(next-overlay-change point)))))
+  (if (eobp)
+      (goto-char (point-min))
+    (let (overl)
+      (if ediff-xemacs-p
+	  (progn
+	    (setq overl (extent-at point (current-buffer) 'ediff-meta-info))
+	    (if overl
+		(setq overl (next-extent overl))
+	      (setq overl (next-extent (current-buffer))))
+	    (if overl
+		(extent-start-position overl)
+	      (point-max)))
+	(setq overl (car (overlays-at point)))
+	(if (and overl (overlay-get overl 'ediff-meta-info))
+	    ;; note: end of current overlay is the beginning of the next one
+	    (overlay-end overl)
+	  (next-overlay-change point))))
+    ))
 
 (defun ediff-previous-meta-overlay-start (point)
-  (let (overl)
-    (if ediff-xemacs-p
-	(progn
-	  (setq overl (extent-at point (current-buffer) 'ediff-meta-info))
-	  (if overl
-	      (setq overl (previous-extent overl))
-	    (setq overl (previous-extent (current-buffer))))
-	  (if overl
-	      (extent-start-position overl)
-	    (point-max)))
-      ;;(if (bobp) (setq point (point-max)))
-      (setq overl (car (overlays-at point)))
-      (setq point (if (and overl (overlay-get overl 'ediff-meta-info))
-		      (previous-overlay-change (overlay-start overl))
-		    (previous-overlay-change point)))
-      (if (= point (point-min)) (point-max) point)
-      )))
+  (if (bobp)
+      (goto-char (point-max))
+    (let (overl)
+      (if ediff-xemacs-p
+	  (progn
+	    (setq overl (extent-at point (current-buffer) 'ediff-meta-info))
+	    (if overl
+		(setq overl (previous-extent overl))
+	      (setq overl (previous-extent (current-buffer))))
+	    (if overl
+		(extent-start-position overl)
+	      (point-min)))
+	(setq overl (car (overlays-at point)))
+	(if (and overl (overlay-get overl 'ediff-meta-info))
+	    (setq point (overlay-start overl)))
+	;; to get to the beginning of prev overlay
+	(if (not (bobp))
+	    ;; trickery to overcome an emacs bug--doesn't always find previous
+	    ;; overlay change correctly
+	    (setq point (1- point)))
+	(setq point (previous-overlay-change point))
+	;; If we are not over an overlay after subtracting 1, it means we are
+	;; in the description area preceding session records. In this case,
+	;; goto the top of the registry buffer.
+	(or (car (overlays-at point))
+	    (setq point (point-min)))
+	point
+	))))
+
+;; this is the action invoked when the user selects a patch from the meta
+;; buffer.
+(defun ediff-patch-file-form-meta (file &optional startup-hooks)
+  (let* ((pos (ediff-event-point last-command-event))
+	 (meta-buf (ediff-event-buffer last-command-event))
+	 ;; ediff-get-meta-info gives error if meta-buf or pos are invalid
+	 (info (ediff-get-meta-info meta-buf pos))
+	 (meta-patchbuf ediff-meta-patchbufer)
+	 session-buf beg-marker end-marker)
+
+    (if (or (file-directory-p file) (string-match "/dev/null" file))
+	(error "`%s' is not an ordinary file" (file-name-as-directory file)))
+    (setq session-buf (ediff-get-session-buffer info)
+	  beg-marker (ediff-get-session-objB-name info)
+	  end-marker (ediff-get-session-objC-name info))
+
+    (or (ediff-buffer-live-p session-buf) ; either an active patch session
+	(null session-buf)  		  ; or it is a virgin session
+	(error
+	 "Patch has been already applied to this file--cannot be repeated!"))
+
+    (ediff-eval-in-buffer meta-patchbuf
+      (save-restriction
+	(widen)
+	(narrow-to-region beg-marker end-marker)
+	(ediff-patch-file-internal meta-patchbuf file startup-hooks)))))
+
+
+(defun ediff-meta-mark-equal-files ()
+  "Run though the session list and mark identical files.
+This is used only for sessions that involve 2 or 3 files at the same time."
+  (interactive)
+  (let ((list (cdr ediff-meta-list))
+	fileinfo1 fileinfo2 fileinfo3 elt)
+    (while (setq elt (car list))
+      (setq fileinfo1 (ediff-get-session-objA elt)
+	    fileinfo2 (ediff-get-session-objB elt)
+	    fileinfo3 (ediff-get-session-objC elt))
+      (ediff-set-file-eqstatus fileinfo1 nil)
+      (ediff-set-file-eqstatus fileinfo2 nil)
+      (ediff-set-file-eqstatus fileinfo3 nil)
+
+      (ediff-mark-if-equal fileinfo1 fileinfo2)
+      (if (ediff-metajob3)
+	  (progn
+	    (ediff-mark-if-equal fileinfo1 fileinfo3)
+	    (ediff-mark-if-equal fileinfo2 fileinfo3)))
+      (setq list (cdr list))))
+  (ediff-update-meta-buffer (current-buffer)))
+
+;; mark files 1 and 2 as equal, if they are.
+(defun ediff-mark-if-equal (fileinfo1 fileinfo2)
+  (get-buffer-create ediff-tmp-buffer)
+  (or (file-directory-p (car fileinfo1))
+      (file-directory-p (car fileinfo2))
+      (if (= (ediff-make-diff2-buffer
+	      ediff-tmp-buffer (car fileinfo1) (car fileinfo2))
+	     0)
+	  (progn
+	    (ediff-set-file-eqstatus fileinfo1 t)
+	    (ediff-set-file-eqstatus fileinfo2 t)))))
+
 
 
 ;;; Local Variables:

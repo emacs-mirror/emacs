@@ -1,6 +1,6 @@
 ;;; ediff-hook.el --- setup for Ediff's menus and autoloads
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
@@ -25,10 +25,6 @@
 
 ;;;   These must be placed in menu-bar.el in Emacs
 ;;
-;;      (define-key menu-bar-tools-menu [ediff-doc]
-;;	 '("Ediff Manual..." . ediff-documentation))
-;;      (define-key menu-bar-tools-menu [eregistry]
-;;	'("List Ediff Sessions..." . ediff-show-registry))
 ;;      (define-key menu-bar-tools-menu [epatch]
 ;;	'("Apply Patch" . menu-bar-epatch-menu))
 ;;      (define-key menu-bar-tools-menu [ediff-merge]
@@ -36,6 +32,11 @@
 ;;      (define-key menu-bar-tools-menu [ediff]
 ;;	'("Compare" . menu-bar-ediff-menu))
 
+;; Compiler pacifier
+(defvar ediff-menu)
+(defvar ediff-merge-menu)
+(defvar epatch-menu)
+;; end pacifier
 
 (defun ediff-xemacs-init-menus ()
   (if (featurep 'menubar)
@@ -46,12 +47,6 @@
 	 '("Tools") ediff-merge-menu "OO-Browser...")
 	(add-submenu
 	 '("Tools") epatch-menu "OO-Browser...")
-	(add-menu-button
-	 '("Tools")
-	 ["List Ediff Sessions..." ediff-show-registry t] "OO-Browser...")
-	(add-menu-button
-	 '("Tools")
-	 ["Ediff Manual..." ediff-documentation t] "OO-Browser...")
 	(add-menu-button
 	 '("Tools")
 	 ["-------" nil nil] "OO-Browser...")
@@ -78,6 +73,9 @@
 	   "---"
 	   ["Regions Word-by-word..." ediff-regions-wordwise t]
 	   ["Regions Line-by-line..." ediff-regions-linewise t]
+	   "---"
+	   ["List Ediff Sessions..." ediff-show-registry t]
+	   ["Ediff Manual..." ediff-documentation t]
 	   ))
        (defvar ediff-merge-menu
 	 '("Merge"
@@ -97,11 +95,17 @@
 	   ["Directory Revisions..." ediff-merge-directory-revisions t]
 	   ["Directory Revisions with Ancestor..."
 	    ediff-merge-directory-revisions-with-ancestor t]
+	   "---"
+	   ["List Ediff Sessions..." ediff-show-registry t]
+	   ["Ediff Manual..." ediff-documentation t]
 	   ))
        (defvar epatch-menu
 	 '("Apply Patch"
 	   ["To a file..."  ediff-patch-file t]
 	   ["To a buffer..." ediff-patch-buffer t]
+	   "---"
+	   ["List Ediff Sessions..." ediff-show-registry t]
+	   ["Ediff Manual..." ediff-documentation t]
 	   ))
 
        ;; put these menus before Object-Oriented-Browser in Tools menu
@@ -122,6 +126,11 @@
        (fset 'menu-bar-ediff-menu (symbol-value 'menu-bar-ediff-menu))
 
        ;; define ediff-menu
+       (define-key menu-bar-ediff-menu [ediff-doc]
+	 '("Ediff Manual..." . ediff-documentation))
+       (define-key menu-bar-ediff-menu [eregistry]
+	'("List Ediff Sessions..." . ediff-show-registry))
+       (define-key menu-bar-ediff-menu [separator-ediff-manual] '("--"))
        (define-key menu-bar-ediff-menu [window]
 	 '("This Window and Next Window" . compare-windows))
        (define-key menu-bar-ediff-menu [ediff-windows-linewise]
@@ -154,6 +163,12 @@
 	 '("Two Files..." . ediff-files))
 
        ;; define merge menu
+       (define-key menu-bar-ediff-merge-menu [ediff-doc2]
+	 '("Ediff Manual..." . ediff-documentation))
+       (define-key menu-bar-ediff-merge-menu [eregistry2]
+	'("List Ediff Sessions..." . ediff-show-registry))
+       (define-key
+	 menu-bar-ediff-merge-menu [separator-ediff-merge-manual] '("--"))
        (define-key
 	 menu-bar-ediff-merge-menu [ediff-merge-dir-revisions-with-ancestor]
 	 '("Directory Revisions with Ancestor..."
@@ -187,6 +202,11 @@
 	 '("Files..." . ediff-merge-files))
 
        ;; define epatch menu
+       (define-key menu-bar-epatch-menu [ediff-doc3]
+	 '("Ediff Manual..." . ediff-documentation))
+       (define-key menu-bar-epatch-menu [eregistry3]
+	'("List Ediff Sessions..." . ediff-show-registry))
+       (define-key menu-bar-epatch-menu [separator-epatch] '("--"))
        (define-key menu-bar-epatch-menu [ediff-patch-buffer]
 	 '("To a Buffer..." . ediff-patch-buffer))
        (define-key menu-bar-epatch-menu [ediff-patch-file]
@@ -202,84 +222,93 @@
   (autoload 'ediff "ediff" "Compare two files" t)
   (autoload 'ediff-files "ediff" "Compare two files" t)
   (autoload 'ediff-buffers "ediff" "Compare two bufers" t)
+  (autoload 'ebuffers "ediff" "Compare two bufers" t)
   (autoload 'ediff3  "ediff"  "Compare three files" t)
   (autoload 'ediff-files3 "ediff" "Compare three files" t)
   (autoload 'ediff-buffers3 "ediff" "Compare three bufers" t)
+  (autoload 'ebuffers3 "ediff" "Compare three bufers" t)
 
   (autoload 'ediff-revision "ediff" "Compare versions of a file" t)
 
   ;; compare regions and windows
   (autoload 'ediff-windows-wordwise 
-    "ediff" "Compare two windows word-by-word" t)
+    "ediff" "Compare two windows word-by-word." t)
   (autoload 'ediff-regions-wordwise 
-    "ediff" "Compare two regions word-by-word" t)
+    "ediff" "Compare two regions word-by-word." t)
   (autoload 'ediff-windows-linewise 
-    "ediff" "Compare two windows line-by-line" t)
+    "ediff" "Compare two windows line-by-line." t)
   (autoload 'ediff-regions-linewise 
-    "ediff" "Compare two regions line-by-line" t)
+    "ediff" "Compare two regions line-by-line." t)
 
   ;; patch
-  (autoload 'ediff-patch-file "ediff" "Patch a file" t)
-  (autoload 'epatch "ediff" "Patch a file" t)
-  (autoload 'ediff-patch-buffer "ediff" "Patch a buffer")
-  (autoload 'epatch-buffer "ediff" "Patch a buffer" t)
+  (autoload 'ediff-patch-file "ediff" "Patch a file." t)
+  (autoload 'epatch "ediff" "Patch a file." t)
+  (autoload 'ediff-patch-buffer "ediff" "Patch a buffer.")
+  (autoload 'epatch-buffer "ediff" "Patch a buffer." t)
 
   ;; merge
-  (autoload 'ediff-merge "ediff" "Merge two files" t)
-  (autoload 'ediff-merge-files "ediff" "Merge two files" t)
+  (autoload 'ediff-merge "ediff" "Merge two files." t)
+  (autoload 'ediff-merge-files "ediff" "Merge two files." t)
   (autoload 'ediff-merge-files-with-ancestor
-    "ediff" "Merge two files using a third file as an ancestor" t)
-  (autoload 'ediff-merge-buffers "ediff" "Merge two buffers" t)
+    "ediff" "Merge two files using a third file as an ancestor." t)
+  (autoload 'ediff-merge-buffers "ediff" "Merge two buffers." t)
   (autoload 'ediff-merge-buffers-with-ancestor
-    "ediff" "Merge two buffers using a third buffer as an ancestor" t)
+    "ediff" "Merge two buffers using a third buffer as an ancestor." t)
 
-  (autoload 'ediff-merge-revisions "ediff" "Merge two versions of a file" t)
+  (autoload 'ediff-merge-revisions "ediff" "Merge two versions of a file." t)
   (autoload 'ediff-merge-revisions-with-ancestor
-    "ediff" "Merge two versions of a file" t)
+    "ediff" "Merge two versions of a file." t)
 
   ;; compare directories
-  (autoload 'edirs "ediff" "Compare files in two directories" t)
-  (autoload 'ediff-directories "ediff" "Compare files in two directories" t)
-  (autoload 'edirs3 "ediff" "Compare files in three directories" t)
-  (autoload 'ediff-directories3 "ediff" "Compare files in three directories" t)
+  (autoload 'edirs "ediff" "Compare files in two directories." t)
+  (autoload 'ediff-directories "ediff" "Compare files in two directories." t)
+  (autoload 'edirs3 "ediff" "Compare files in three directories." t)
+  (autoload
+    'ediff-directories3 "ediff" "Compare files in three directories." t)
 
   (autoload 'edir-revisions 
-    "ediff" "Compare two versions of a file" t)
+    "ediff" "Compare two versions of a file." t)
   (autoload 'ediff-directory-revisions 
-    "ediff" "Compare two versions of a file" t)
+    "ediff" "Compare two versions of a file." t)
 
   ;; merge directories
-  (autoload 'edirs-merge "ediff" "Merge files in two directories" t)
+  (autoload 'edirs-merge "ediff" "Merge files in two directories." t)
   (autoload 'ediff-merge-directories
-    "ediff" "Merge files in two directories" t)
+    "ediff" "Merge files in two directories." t)
   (autoload 'edirs-merge-with-ancestor
     "ediff"
-    "Merge files in two directories using files in a third dir as ancestors" t)
+    "Merge files in two directories using files in a third dir as ancestors."
+    t)
   (autoload 'ediff-merge-directories-with-ancestor
     "ediff"
-    "Merge files in two directories using files in a third dir as ancestors" t)
+    "Merge files in two directories using files in a third dir as ancestors."
+    t)
 
   (autoload 'edir-merge-revisions 
-    "ediff" "Merge versions of files in a directory" t)
+    "ediff" "Merge versions of files in a directory." t)
   (autoload 'ediff-merge-directory-revisions 
-    "ediff" "Merge versions of files in a directory" t)
+    "ediff" "Merge versions of files in a directory." t)
   (autoload 'ediff-merge-directory-revisions-with-ancestor
     "ediff"
-    "Merge versions of files in a directory using other versions as ancestors"
+    "Merge versions of files in a directory using other versions as ancestors."
     t)
   (autoload 'edir-merge-revisions-with-ancestor
     "ediff"
-    "Merge versions of files in a directory using other versions as ancestors"
+    "Merge versions of files in a directory using other versions as ancestors."
     t)
 
   ;; misc
   (autoload 'ediff-show-registry
     "ediff-meta"
-    "Display the registry of active Ediff sessions"
+    "Display the registry of active Ediff sessions."
+    t)
+  (autoload 'ediff-documentation
+    "ediff"
+    "Display Ediff's manual."
     t)
   (autoload 'ediff-version
     "ediff"
-    "Show Ediff's version and last modification date"
+    "Show Ediff's version and last modification date."
     t)
   ) ; if purify-flag
 

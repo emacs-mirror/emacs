@@ -1,13 +1,14 @@
 ;;; ediff.el --- a comprehensive visual interface to diff & patch
 
-;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, version control.
 
-(defconst ediff-version "2.54" "The current version of Ediff")
-(defconst ediff-date "February 14, 1996" "Date of last update")  
+(defconst ediff-version "2.61" "The current version of Ediff")
+(defconst ediff-date "June 10, 1996" "Date of last update")  
+
 
 ;; This file is part of GNU Emacs.
 
@@ -29,7 +30,7 @@
 ;;; Commentary:
 
 ;; Never read that diff output again!
-;; Apply patch selectively, like a pro!
+;; Apply patch interactively!
 ;; Merge with ease!
 
 ;; This package provides a convenient way of simultaneous browsing through
@@ -58,7 +59,7 @@
 ;; files with their older versions. Ediff can also work with remote and
 ;; compressed files. Details are given below.
 
-;; Finally, Ediff supports directory-level comparison and merging operations.
+;; Finally, Ediff supports directory-level comparison, merging and patching.
 ;; See the on-line manual for details.
 
 ;; This package builds upon the ideas borrowed from emerge.el and several
@@ -106,7 +107,14 @@
 ;;; Code:
 
 (require 'ediff-init)
+;; ediff-mult is always required, because of the registry stuff
 (require 'ediff-mult)
+
+(eval-when-compile
+  (load "dired")
+  (load-file "./ediff-ptch.el")
+  (load-file "./ediff-vers.el")
+  (load "pcl-cvs" 'noerror))
 
 (defvar ediff-use-last-dir nil
   "*If t, Ediff uses previous directory as default when reading file name.")
@@ -119,148 +127,14 @@
   "Last directory used by an Ediff command for file-C.")
 (defvar ediff-last-dir-ancestor nil
   "Last directory used by an Ediff command for the ancestor file.")
-(defvar ediff-last-dir-patch nil
-  "Last directory used by an Ediff command for file to patch.")
 
-;;; Patching
+;; Some defvars to reduce the number of compiler warnings
+(defvar cvs-cookie-handle)
+(defvar ediff-last-dir-patch)
+(defvar ediff-patch-default-directory)
+;; end of compiler pacifier
 
-(defvar ediff-backup-extension 
-  (if (memq system-type '(vax-vms axp-vms emx ms-dos windows-nt windows-95))
-      "_orig" ".orig")
-  "Default backup extension for the patch program.")
 
-;;;###autoload
-(defun ediff-patch-file (source-filename &optional startup-hooks job-name)
-  "Run Ediff by patching SOURCE-FILENAME."
-  ;; This now returns the control buffer
-  (interactive 
-   (list (ediff-read-file-name
-	  "File to patch"
-	  (if ediff-use-last-dir
-	      ediff-last-dir-patch
-	    default-directory)
-	  (ediff-get-default-file-name))))
-  
-  (setq source-filename (expand-file-name source-filename))
-  (ediff-get-patch-buffer
-   (if (eq job-name 'ediff-patch-buffer)
-       (ediff-eval-in-buffer (get-file-buffer source-filename)
-	 default-directory)
-     (file-name-directory source-filename)))
-  
-  (let* ((backup-extension 
-	  ;; if the user specified a -b option, extract the backup
-	  ;; extension from there; else use ediff-backup-extension
-	  (substring ediff-patch-options
-		     (if (string-match "-b[ \t]+" ediff-patch-options)
-			 (match-end 0) 0)
-		     (if (string-match "-b[ \t]+[^ \t]+" ediff-patch-options)
-			 (match-end 0) 0)))
-	 (shell-file-name ediff-shell)
-	 ;; ediff-find-file may use a temp file to do the patch
-	 ;; so, we save source-filename and true-source-filename as a var
-	 ;; that initially is source-filename but may be changed to a temp
-	 ;; file for the purpose of patching.
-	 (true-source-filename source-filename)
-	 (target-filename source-filename)
-	 target-buf buf-to-patch file-name-magic-p ctl-buf backup-style)
-	  
-    ;; if the user didn't specify a backup extension, use
-    ;; ediff-backup-extension 
-    (if (string= backup-extension "")
-	(setq backup-extension ediff-backup-extension))
-    (if (string-match "-V" ediff-patch-options)
-	(error
-	 "Ediff doesn't take the -V option in `ediff-patch-options'--sorry"))
-					
-    ;; Make a temp file, if source-filename has a magic file handler (or if
-    ;; it is handled via auto-mode-alist and similar magic).
-    ;; Check if there is a buffer visiting source-filename and if they are in
-    ;; sync; arrange for the deletion of temp file.
-    (ediff-find-file 'true-source-filename 'buf-to-patch
-		     'ediff-last-dir-patch 'startup-hooks)
-
-    ;; Check if source file name has triggered black magic, such as file name
-    ;; handlers or auto mode alist, and make a note of it.
-    ;; true-source-filename should be either the original name or a
-    ;; temporary file where we put the after-product of the file handler.
-    (setq file-name-magic-p (not (equal (file-truename true-source-filename)
-					(file-truename source-filename))))
-    
-    ;; Checkout orig file, if necessary, so that the patched file could be
-    ;; checked back in.
-    (if (ediff-file-checked-in-p (buffer-file-name buf-to-patch))
-	(ediff-toggle-read-only buf-to-patch))
-    
-    (ediff-eval-in-buffer ediff-patch-diagnostics
-      (message "Applying patch ... ")
-      ;; fix environment for gnu patch, so it won't make numbered extensions
-      (setq backup-style (getenv "VERSION_CONTROL"))
-      (setenv "VERSION_CONTROL" nil)
-      ;; always pass patch the -f option, so it won't ask any questions
-      (shell-command-on-region 
-       (point-min) (point-max)
-       (format "%s -f %s -b %s %s"
-	       ediff-patch-program ediff-patch-options
-	       backup-extension
-	       (expand-file-name true-source-filename))
-       t)
-      ;; restore environment for gnu patch
-      (setenv "VERSION_CONTROL" backup-style))
-    ;;(message "Applying patch ... done")(sit-for 0)
-    (switch-to-buffer ediff-patch-diagnostics)
-    (sit-for 0) ; synchronize - let the user see diagnostics
-    
-    (or (file-exists-p (concat true-source-filename backup-extension))
-	(error "Patch failed or didn't modify the original file"))
-  
-    ;; If black magic is involved, apply patch to a temp copy of the
-    ;; file. Otherwise, apply patch to the orig copy.  If patch is applied
-    ;; to temp copy, we name the result old-name_patched for local files
-    ;; and temp-copy_patched for remote files. The orig file name isn't
-    ;; changed, and the temp copy of the original is later deleted.
-    ;; Without magic, the original file is renamed (usually into
-    ;; old-name_orig) and the result of patching will have the same name as
-    ;; the original.
-    (if (not file-name-magic-p)
-	(ediff-eval-in-buffer buf-to-patch
-	  (set-visited-file-name (concat source-filename backup-extension))
-	  (set-buffer-modified-p nil))
-      
-      ;; Black magic in effect.
-      ;; If orig file was remote, put the patched file in the temp directory.
-      ;; If orig file is local, put the patched file in the directory of
-      ;; the orig file.
-      (setq target-filename
-	    (concat
-	     (if (ediff-file-remote-p (file-truename source-filename))
-		 true-source-filename
-	       source-filename)
-	     "_patched"))
-      
-      (rename-file true-source-filename target-filename t)
-      
-      ;; arrange that the temp copy of orig will be deleted
-      (rename-file (concat true-source-filename backup-extension)
-		   true-source-filename t))
-    
-    ;; make orig buffer read-only
-    (setq startup-hooks
-	  (cons 'ediff-set-read-only-in-buf-A startup-hooks))
-    
-    ;; set up a buf for the patched file
-    (setq target-buf (find-file-noselect target-filename))
-    
-    (setq ctl-buf
-	  (ediff-buffers-internal
-	   buf-to-patch target-buf nil
-	   startup-hooks (or job-name 'ediff-patch-file)))
-  
-    (bury-buffer ediff-patch-diagnostics)
-    (message "Patch diagnostics are available in buffer %s"
-	     (buffer-name ediff-patch-diagnostics))
-    ctl-buf))
-  
 ;; Used as a startup hook to set `_orig' patch file read-only.
 (defun ediff-set-read-only-in-buf-A ()
   (ediff-eval-in-buffer ediff-buffer-A
@@ -277,11 +151,6 @@
 	((buffer-file-name (current-buffer))
 	 (file-name-nondirectory (buffer-file-name (current-buffer))))
 	))
-
-;;;###autoload
-(defalias 'epatch 'ediff-patch-file)
-;;;###autoload
-(defalias 'epatch-buffer 'ediff-patch-buffer)
 
 ;;; Compare files/buffers
 
@@ -465,9 +334,12 @@
 			  (save-window-excursion (other-window 1))
 			  (ediff-other-buffer bf))
 			t))))
-  
   (or job-name (setq job-name 'ediff-buffers))
   (ediff-buffers-internal buffer-A buffer-B nil startup-hooks job-name))
+
+;;;###autoload
+(defalias 'ebuffers 'ediff-buffers)
+
       
 ;;;###autoload
 (defun ediff-buffers3 (buffer-A buffer-B buffer-C
@@ -492,9 +364,11 @@
 				    (ediff-other-buffer (list bf bff)))
 				  t)
 	   )))
-  
   (or job-name (setq job-name 'ediff-buffers3))
   (ediff-buffers-internal buffer-A buffer-B buffer-C startup-hooks job-name))
+
+;;;###autoload
+(defalias 'ebuffers3 'ediff-buffers3)
       
 
 			
@@ -559,18 +433,18 @@
 (defun ediff-directories (dir1 dir2 regexp)
   "Run Ediff on a pair of directories, DIR1 and DIR2, comparing files that have
 the same name in both. The third argument, REGEXP, is a regular expression that
-further filters the file names."
+can be used to filter out certain file names."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
 	 f)
-     (list (setq f (ediff-read-file-name "Directory A to compare" dir-A nil))
-	   (ediff-read-file-name "Directory B to compare" 
+     (list (setq f (ediff-read-file-name "Directory A to compare:" dir-A nil))
+	   (ediff-read-file-name "Directory B to compare:" 
 				 (if ediff-use-last-dir
 				     ediff-last-dir-B 
 				   (ediff-strip-last-dir f))
 				 nil)
 	   (read-string "Filter through regular expression: "
-			nil ediff-filtering-regexp-history)
+			nil 'ediff-filtering-regexp-history)
 	   )))
   (ediff-directories-internal
    dir1 dir2 nil regexp 'ediff-files 'ediff-directories
@@ -588,9 +462,9 @@ names. Only the files that are under revision control are taken into account."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name)))
      (list (ediff-read-file-name
-	    "Directory to compare with revision" dir-A nil)
+	    "Directory to compare with revision:" dir-A nil)
 	   (read-string "Filter through regular expression: "
-			nil ediff-filtering-regexp-history)
+			nil 'ediff-filtering-regexp-history)
 	   )))
   (ediff-directory-revisions-internal
    dir1 regexp 'ediff-revision 'ediff-directory-revisions
@@ -604,23 +478,23 @@ names. Only the files that are under revision control are taken into account."
 (defun ediff-directories3 (dir1 dir2 dir3 regexp)
   "Run Ediff on three directories, DIR1, DIR2, and DIR3, comparing files that
 have the same name in all three. The last argument, REGEXP, is a regular
-expression that further filters the file names."
+expression that can be used to filter out certain file names."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
 	 f)
-     (list (setq f (ediff-read-file-name "Directory A to compare" dir-A nil))
-	   (setq f (ediff-read-file-name "Directory B to compare" 
+     (list (setq f (ediff-read-file-name "Directory A to compare:" dir-A nil))
+	   (setq f (ediff-read-file-name "Directory B to compare:" 
 					 (if ediff-use-last-dir
 					     ediff-last-dir-B 
 					   (ediff-strip-last-dir f))
 					 nil))
-	   (ediff-read-file-name "Directory C to compare" 
+	   (ediff-read-file-name "Directory C to compare:" 
 				 (if ediff-use-last-dir
 				     ediff-last-dir-C 
 				   (ediff-strip-last-dir f))
 				 nil)
 	   (read-string "Filter through regular expression: "
-			nil ediff-filtering-regexp-history)
+			nil 'ediff-filtering-regexp-history)
 	   )))
   (ediff-directories-internal
    dir1 dir2 dir3 regexp 'ediff-files3 'ediff-directories3
@@ -633,18 +507,18 @@ expression that further filters the file names."
 (defun ediff-merge-directories (dir1 dir2 regexp)
   "Run Ediff on a pair of directories, DIR1 and DIR2, merging files that have
 the same name in both. The third argument, REGEXP, is a regular expression that
-further filters the file names."
+can be used to filter out certain file names."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
 	 f)
-     (list (setq f (ediff-read-file-name "Directory A to merge" dir-A nil))
-	   (ediff-read-file-name "Directory B to merge" 
+     (list (setq f (ediff-read-file-name "Directory A to merge:" dir-A nil))
+	   (ediff-read-file-name "Directory B to merge:" 
 				 (if ediff-use-last-dir
 				     ediff-last-dir-B 
 				   (ediff-strip-last-dir f))
 				 nil)
 	   (read-string "Filter through regular expression: "
-			nil ediff-filtering-regexp-history)
+			nil 'ediff-filtering-regexp-history)
 	   )))
   (ediff-directories-internal
    dir1 dir2 nil regexp 'ediff-merge-files 'ediff-merge-directories
@@ -654,29 +528,31 @@ further filters the file names."
 (defalias 'edirs-merge 'ediff-merge-directories)
 
 ;;;###autoload
-(defun ediff-merge-directories-with-ancestor (dir1 dir2 dir3 regexp)
-  "Run Ediff on a pair of directories, DIR1 and DIR2, merging files that have
-the same name in both. The third argument, REGEXP, is a regular expression that
-further filters the file names."
+(defun ediff-merge-directories-with-ancestor (dir1 dir2 ancestor-dir regexp)
+  "Merge files in directories DIR1 and DIR2 using files in ANCESTOR-DIR as ancestors.
+Ediff merges files that have identical names in DIR1, DIR2. If a pair of files
+in DIR1 and DIR2 doesn't have an ancestor in ANCESTOR-DIR, Ediff will merge
+without ancestor. The fourth argument, REGEXP, is a regular expression that
+can be used to filter out certain file names."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name))
 	 f)
-     (list (setq f (ediff-read-file-name "Directory A to merge" dir-A nil))
-	   (setq f (ediff-read-file-name "Directory B to merge" 
+     (list (setq f (ediff-read-file-name "Directory A to merge:" dir-A nil))
+	   (setq f (ediff-read-file-name "Directory B to merge:" 
 				 (if ediff-use-last-dir
 				     ediff-last-dir-B 
 				   (ediff-strip-last-dir f))
 				 nil))
-	   (ediff-read-file-name "Ancestor directory: "
+	   (ediff-read-file-name "Ancestor directory:"
 				 (if ediff-use-last-dir
 				     ediff-last-dir-C 
 				   (ediff-strip-last-dir f))
 				 nil)
 	   (read-string "Filter through regular expression: "
-			nil ediff-filtering-regexp-history)
+			nil 'ediff-filtering-regexp-history)
 	   )))
   (ediff-directories-internal
-   dir1 dir2 dir3 regexp
+   dir1 dir2 ancestor-dir regexp
    'ediff-merge-files-with-ancestor 'ediff-merge-directories-with-ancestor
    ))
 
@@ -688,9 +564,9 @@ names. Only the files that are under revision control are taken into account."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name)))
      (list (ediff-read-file-name
-	    "Directory to merge with revisions" dir-A nil)
+	    "Directory to merge with revisions:" dir-A nil)
 	   (read-string "Filter through regular expression: "
-			nil ediff-filtering-regexp-history)
+			nil 'ediff-filtering-regexp-history)
 	   )))
   (ediff-directory-revisions-internal
    dir1 regexp 'ediff-merge-revisions 'ediff-merge-directory-revisions
@@ -707,9 +583,9 @@ names. Only the files that are under revision control are taken into account."
   (interactive
    (let ((dir-A (ediff-get-default-directory-name)))
      (list (ediff-read-file-name
-	    "Directory to merge with revisions and ancestors" dir-A nil)
+	    "Directory to merge with revisions and ancestors:" dir-A nil)
 	   (read-string "Filter through regular expression: "
-			nil ediff-filtering-regexp-history)
+			nil 'ediff-filtering-regexp-history)
 	   )))
   (ediff-directory-revisions-internal
    dir1 regexp 'ediff-merge-revisions-with-ancestor
@@ -726,8 +602,8 @@ names. Only the files that are under revision control are taken into account."
 
 ;; Run ediff-action (ediff-files, ediff-merge, ediff-merge-with-ancestors)
 ;; on a pair of directories (three directories, in case of ancestor).
-;; The third argument, REGEXP, is a regular expression that further filters the
-;; file names.
+;; The third argument, REGEXP, is a regular expression that can be used to
+;; filter out certain file names.
 ;; JOBNAME is the symbol indicating the meta-job to be performed.
 (defun ediff-directories-internal (dir1 dir2 dir3 regexp 
 					action jobname 
@@ -763,7 +639,7 @@ names. Only the files that are under revision control are taken into account."
 		     (setq ediff-dir-difference-list (quote (, diffs)))))
 		startup-hooks))
     (setq meta-buf (ediff-prepare-meta-buffer 
-		    'ediff-dir-action
+		    'ediff-filegroup-action
 		    file-list
 		    "*Ediff Session Group Panel"
 		    'ediff-redraw-directory-group-buffer
@@ -787,7 +663,7 @@ names. Only the files that are under revision control are taken into account."
 		     ))
 		startup-hooks))
     (setq meta-buf (ediff-prepare-meta-buffer 
-		    'ediff-dir-action
+		    'ediff-filegroup-action
 		    file-list
 		    "*Ediff Session Group Panel"
 		    'ediff-redraw-directory-group-buffer
@@ -1225,68 +1101,48 @@ file and then run `run-ediff-from-cvs-buffer'."
      
      
 ;;; Apply patch
-    
+
 ;;;###autoload
-(defun ediff-patch-buffer (buffer-name &optional startup-hooks)		  
+(defun ediff-patch-file ()
+  "Run Ediff by patching SOURCE-FILENAME."
+  ;; This now returns the control buffer
+  (interactive)
+  (let (source-dir source-file patch-buf)
+    (require 'ediff-ptch)
+    (setq patch-buf (ediff-get-patch-buffer))
+    (setq source-dir (cond (ediff-use-last-dir ediff-last-dir-patch)
+			   ((and (not ediff-patch-default-directory)
+				 (buffer-file-name patch-buf))
+			    (file-name-directory
+			     (expand-file-name
+			      (buffer-file-name patch-buf))))
+			   (t default-directory)))
+    (setq source-file
+	  ;; the default is the directory, not the visited file name
+	  (ediff-read-file-name "Which file to patch? " source-dir source-dir))
+    (ediff-dispatch-file-patching-job patch-buf source-file)))
+
+;;;###autoload
+(defun ediff-patch-buffer ()
   "Run Ediff by patching BUFFER-NAME."
-  (interactive "bBuffer to patch: ")
+  (interactive)
+  (let (patch-buf)
+    (require 'ediff-ptch)
+    (setq patch-buf (ediff-get-patch-buffer))
+    (ediff-patch-buffer-internal
+     patch-buf
+     (read-buffer "Which buffer to patch? "
+		  (cond ((eq patch-buf (current-buffer))
+			 (window-buffer (other-window 1)))
+			(t (current-buffer)))
+		  'must-match))))
   
-  (let* ((buf-to-patch (get-buffer buffer-name))
-	 (file-name-ok (if buf-to-patch (buffer-file-name  buf-to-patch)))
-	 (buf-mod-status (buffer-modified-p buf-to-patch))
-	 default-dir file-name ctl-buf)
-    (if file-name-ok
-	(setq file-name file-name-ok)
-      (ediff-eval-in-buffer buffer-name
-	(setq default-dir default-directory)
-	(setq file-name (ediff-make-temp-file buffer-name))
-	(set-visited-file-name file-name)
-	(setq buffer-auto-save-file-name nil) ; don't create auto-save file
-	(rename-buffer buffer-name) ; don't confuse the user with new buf name
-	(set-buffer-modified-p nil)
-	(set-visited-file-modtime) ; sync buffer and temp file
-	(setq default-directory default-dir)
-	))
-    
-    (setq ctl-buf
-	  (ediff-patch-file file-name startup-hooks 'ediff-patch-buffer))
-    
-    (if file-name-ok
-	()
-      (ediff-eval-in-buffer ctl-buf
-	(delete-file (buffer-file-name ediff-buffer-A))
-	(delete-file (buffer-file-name ediff-buffer-B))
-	(ediff-eval-in-buffer ediff-buffer-A
-	  (if default-dir (setq default-directory default-dir))
-	  (set-visited-file-name nil)
-	  (rename-buffer buffer-name)
-	  (set-buffer-modified-p buf-mod-status))
-	(ediff-eval-in-buffer ediff-buffer-B
-	  (setq buffer-auto-save-file-name nil) ; don't create auto-save file
-	  (if default-dir (setq default-directory default-dir))
-	  (set-visited-file-name nil)
-	  (rename-buffer (ediff-unique-buffer-name 
-			  (concat buffer-name "_patched") ""))
-	  (set-buffer-modified-p t))))
-    ))
+;;;###autoload
+(defalias 'epatch 'ediff-patch-file)
+;;;###autoload
+(defalias 'epatch-buffer 'ediff-patch-buffer)
 
 
-(defun ediff-get-patch-buffer (dir)
-  "Obtain patch buffer.  If patch is already in a buffer---use it.
-Else, read patch file into a new buffer."
-  (if (y-or-n-p "Is the patch file already in a buffer? ")
-      (setq ediff-patch-buf
-	    (get-buffer (read-buffer "Patch buffer name: " nil t))) ;must match
-    (setq ediff-patch-buf
-	  (find-file-noselect (read-file-name "Patch file name: " dir))))
-  
-  (setq ediff-patch-diagnostics
-	(get-buffer-create "*ediff patch diagnostics*"))
-  (ediff-eval-in-buffer ediff-patch-diagnostics
-    (insert-buffer ediff-patch-buf)))
-
-
-      
 
 
 ;;; Versions Control functions      
@@ -1343,7 +1199,7 @@ When called interactively, displays the version."
 
 ;;;###autoload
 (defun ediff-documentation ()
-  "Jump to Ediff's Info file."
+  "Display Ediff's manual."
   (interactive)
   (let ((ctl-window ediff-control-window)
 	(ctl-buf ediff-control-buffer))
@@ -1355,7 +1211,7 @@ When called interactively, displays the version."
 	  (info (if ediff-xemacs-p "ediff.info" "ediff"))
 	  (message "Type `i' to search for a specific topic"))
       (error (beep 1)
-	     (with-output-to-temp-buffer " *ediff-info*"
+	     (with-output-to-temp-buffer ediff-msg-buffer
 	       (princ (format "
 The Info file for Ediff does not seem to be installed.
 

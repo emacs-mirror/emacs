@@ -1,6 +1,6 @@
 ;;; ediff-init.el --- Macros, variables, and defsubsts used by Ediff
 
-;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
@@ -23,15 +23,33 @@
 
 ;;; Code:
 
+;; Start compiler pacifier
+(defvar ediff-metajob-name)
+(defvar ediff-meta-buffer)
+(defvar pm-color-alist)
+(defvar ediff-grab-mouse)
+(defvar ediff-mouse-pixel-position)
+(defvar ediff-mouse-pixel-threshold)
+(defvar ediff-whitespace)
+(defvar ediff-multiframe)
+;; end pacifier
+
 ;; Is it XEmacs?
 (defconst ediff-xemacs-p (string-match "XEmacs" emacs-version))
 ;; Is it Emacs?
 (defconst ediff-emacs-p (not ediff-xemacs-p))
+
+(defvar ediff-force-faces nil
+  "If t, Ediff will think that it is running on a display that supports faces.
+This is provided as a temporary relief for users of face-capable displays
+that Ediff doesn't know about.")
+
 ;; Are we running as a window application or on a TTY?
 (defsubst ediff-device-type ()
   (if ediff-emacs-p
       window-system
     (device-type (selected-device))))
+
 ;; in XEmacs: device-type is tty on tty and stream in batch.
 (defun ediff-window-display-p ()
   (and (ediff-device-type) (not (memq (ediff-device-type) '(tty pc stream)))))
@@ -45,6 +63,35 @@
 	(ediff-emacs-p (memq (ediff-device-type) '(pc)))
 	(ediff-xemacs-p (memq (ediff-device-type) '(tty pc)))))
   
+  
+;; Defines SYMBOL as an advertised local variable.  
+;; Performs a defvar, then executes `make-variable-buffer-local' on
+;; the variable.  Also sets the `permanent-local' property,
+;; so that `kill-all-local-variables' (called by major-mode setting
+;; commands) won't destroy Ediff control variables.
+;; 
+;; Plagiarised from `emerge-defvar-local' for XEmacs.
+(defmacro ediff-defvar-local (var value doc) 
+  (` (progn
+       (defvar (, var) (, value) (, doc))
+       (make-variable-buffer-local '(, var))
+       (put '(, var) 'permanent-local t))))
+    
+
+
+;; Variables that control each Ediff session---local to the control buffer.
+
+;; Mode variables
+;; The buffer in which the A variant is stored.
+(ediff-defvar-local ediff-buffer-A nil "")
+;; The buffer in which the B variant is stored.
+(ediff-defvar-local ediff-buffer-B nil "")
+;; The buffer in which the C variant is stored.
+(ediff-defvar-local ediff-buffer-C nil "")
+;; Ancestor buffer
+(ediff-defvar-local ediff-ancestor-buffer nil "")
+;; The control buffer of ediff.
+(ediff-defvar-local ediff-control-buffer nil "")
 
 ;;; Macros
 (defmacro ediff-odd-p (arg)
@@ -130,20 +177,6 @@
   (` (ediff-get-fine-diff-vector-from-diff-record
       (ediff-get-difference (, n) (, buf-type)))))
   
-  
-;; Defines SYMBOL as an advertised local variable.  
-;; Performs a defvar, then executes `make-variable-buffer-local' on
-;; the variable.  Also sets the `permanent-local' property,
-;; so that `kill-all-local-variables' (called by major-mode setting
-;; commands) won't destroy Ediff control variables.
-;; 
-;; Plagiarised from `emerge-defvar-local' for XEmacs.
-(defmacro ediff-defvar-local (var value doc) 
-  (` (progn
-       (defvar (, var) (, value) (, doc))
-       (make-variable-buffer-local '(, var))
-       (put '(, var) 'permanent-local t))))
-    
 ;; Macro to switch to BUFFER, evaluate FORMS, returns to original buffer.
 ;; Differs from `save-excursion' in that it doesn't save the point and mark.
 ;; This is essentially `emerge-eval-in-buffer' with the test for live buffers."
@@ -229,9 +262,14 @@
 	'(ediff-directory-revisions 
 	  ediff-merge-directory-revisions
 	  ediff-merge-directory-revisions-with-ancestor)))
-;; metajob involving only one directory
-(defsubst ediff-dir1-metajob (&optional metajob)
+(defsubst ediff-patch-metajob (&optional metajob)
+  (memq (or metajob ediff-metajob-name)
+	'(ediff-multifile-patch)))
+;; metajob involving only one group of files, such as multipatch or directory
+;; revision
+(defsubst ediff-one-filegroup-metajob (&optional metajob)
   (or (ediff-revision-metajob metajob)
+      (ediff-patch-metajob metajob)
       ;; add more here
       ))
 (defsubst ediff-collect-diffs-metajob (&optional metajob)
@@ -431,7 +469,10 @@ the value of this variable and the variables `ediff-help-message-*' in
 (defconst ediff-KILLED-VITAL-BUFFER
   "You have killed a vital Ediff buffer---you must leave Ediff now!")
 (defconst ediff-NO-DIFFERENCES
-  "Sorry, it is not my job to munch identical variants...")
+  "Sorry, comparison of identical variants is not what I am made for...")
+(defconst ediff-BAD-DIFF-NUMBER
+  ;; %S stands for this-command, %d - diff number, %d - max diff
+  "%S: Bad diff region number, %d. Valid numbers are 1 to %d")
  
 ;; Selective browsing
 
@@ -511,12 +552,6 @@ highlighted using ASCII flags.
 This variable can be set either in .emacs or toggled interactively.
 Use `setq-default' if setting it in .emacs")
 
-(defvar ediff-force-faces nil
-  "If t, Ediff will think that it is running on a display that supports faces.
-This is provided as a temporary relief for users of face-capable displays
-that Ediff doesn't know about.")
-
-
 ;; this indicates that diff regions are word-size, so fine diffs are
 ;; permanently nixed; used in ediff-windows-wordwise and ediff-regions-wordwise
 (ediff-defvar-local ediff-word-mode nil "")
@@ -559,22 +594,6 @@ ediff-toggle-hilit. Use `setq-default' to set it.")
 ;; in effect for this buffer: `face', `ascii', nil -- temporarily
 ;; unhighlighted, `off' -- turned off \(on a dumb terminal only\).
 (ediff-defvar-local ediff-highlighting-style nil "")
-
-
-;; Variables that control each Ediff session.  They are local to the
-;; control buffer. 
-
-;; Mode variables
-;; The buffer in which the A variant is stored.
-(ediff-defvar-local ediff-buffer-A nil "")
-;; The buffer in which the B variant is stored.
-(ediff-defvar-local ediff-buffer-B nil "")
-;; The buffer in which the C variant is stored.
-(ediff-defvar-local ediff-buffer-C nil "")
-;; Ancestor buffer
-(ediff-defvar-local ediff-ancestor-buffer nil "")
-;; The control buffer of ediff.
-(ediff-defvar-local ediff-control-buffer nil "")
 
   
 ;; The suffix of the control buffer name.
@@ -797,18 +816,18 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire.")
   (let ((is-current (ediff-overlay-get extent 'ediff))
 	(face (ediff-overlay-get extent 'face))
 	(diff-num (ediff-overlay-get extent 'ediff-diff-num))
-	face-help help-msg)
+	face-help)
 
     ;; This happens only for refinement overlays
     (setq face-help (and face (get face 'ediff-help-echo)))
 
-    (setq help-msg
-	  (cond ((and is-current diff-num) ; current diff region
-		 (format "Difference region %S -- current" (1+ diff-num)))
-		(face-help) ; refinement of current diff region
-		(diff-num ; non-current
-		 (format "Difference region %S -- non-current" (1+ diff-num)))
-		(t ""))))) ; none
+    (cond ((and is-current diff-num) ; current diff region
+	   (format "Difference region %S -- current" (1+ diff-num)))
+	  (face-help) ; refinement of current diff region
+	  (diff-num ; non-current
+	   (format "Difference region %S -- non-current" (1+ diff-num)))
+	  (t ""))   ; none
+    ))
 
 (defun ediff-set-face (ground face color)
   "Set face foreground/background."
@@ -1353,7 +1372,7 @@ More precisely, a regexp to match any one such character.")
 (defun ediff-overlay-buffer (overl)
   (if ediff-emacs-p
       (overlay-buffer overl)
-    (and (extent-live-p overl) (extent-buffer overl))))
+    (and (extent-live-p overl) (extent-object overl))))
 
 ;; like overlay-get in Emacs. In XEmacs, returns nil if the extent is
 ;; dead. Otherwise, like extent-property
@@ -1481,6 +1500,19 @@ More precisely, a regexp to match any one such character.")
 (defsubst ediff-message-if-verbose (string &rest args)
   (if ediff-verbose-p
       (apply 'message string args)))
+
+(defun ediff-file-attributes (filename attr-number)
+  (let ((handler (find-file-name-handler filename 'find-file-noselect)))
+    (if (and handler (string-match "ange-ftp" (format "%S" handler)))
+	-1
+      (nth attr-number (file-attributes filename)))))
+(defsubst ediff-file-size (filename)
+  (ediff-file-attributes filename 7))
+(defsubst ediff-file-modtime (filename)
+  (ediff-file-attributes filename 5))
+
+
+
 
      
 (provide 'ediff-init)

@@ -192,8 +192,8 @@ On single or double click, returns the word as determined by
   (let ((click-word "")
 	(click-pos (vip-mouse-click-posn click))
 	(click-buf (vip-mouse-click-window-buffer click)))
-    (or (numberp count) (setq count 1))
-    (or (numberp click-count) (setq click-count 1))
+    (or (natnump count) (setq count 1))
+    (or (natnump click-count) (setq click-count 1))
      
     (save-excursion
       (save-window-excursion
@@ -220,9 +220,9 @@ See `vip-surrounding-word' for the definition of a word in this case."
       (select-frame vip-frame-of-focus))
       
   ;; turn arg into a number
-  (cond ((numberp arg) nil)
+  (cond ((integerp arg) nil)
 	;; prefix arg is a list when one hits C-u then command
-	((and (listp arg) (numberp (car arg)))
+	((and (listp arg) (integerp (car arg)))
 	 (setq arg (car arg)))
 	(t (setq arg 1)))
       

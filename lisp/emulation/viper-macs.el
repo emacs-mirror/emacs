@@ -844,7 +844,7 @@ there."
 	macro)))
   
 (defun vip-char-array-p (array)
-  (eval (cons 'and (mapcar 'numberp array))))
+  (eval (cons 'and (mapcar 'vip-characterp array))))
   
 (defun vip-macro-to-events (macro-body)
   (vconcat (mapcar 'vip-key-to-emacs-key macro-body)))

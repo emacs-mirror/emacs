@@ -1,6 +1,6 @@
 ;;; ediff-util.el --- the core commands and utilities of ediff
 
-;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 
@@ -26,6 +26,11 @@
 (require 'ediff-init)
 (require 'ediff-mult)
 
+;; Pacify compiler and avoid the need in checking for boundp
+(defvar ediff-patch-diagnostics nil)
+(defvar ediff-patchbufer nil)
+;; end pacifier
+
 
 ;;; Functions
 
@@ -35,9 +40,11 @@ This mode is entered through one of the following commands:
 	`ediff'
 	`ediff-files'
 	`ediff-buffers'
+	`ebuffers'
 	`ediff3'
 	`ediff-files3'
 	`ediff-buffers3'
+	`ebuffers3'
 	`ediff-merge'
 	`ediff-merge-files'
 	`ediff-merge-files-with-ancestor'
@@ -176,6 +183,8 @@ to invocation.")
   (define-key ediff-mode-map "wa"  'ediff-save-buffer)
   (define-key ediff-mode-map "wb"  'ediff-save-buffer)
   (define-key ediff-mode-map "wd"  'ediff-save-buffer)
+  (if (fboundp 'ediff-show-patch-diagnostics)
+      (define-key ediff-mode-map "P"  'ediff-show-patch-diagnostics))
   (if ediff-3way-job
       (progn
 	(define-key ediff-mode-map "wc" 'ediff-save-buffer)
@@ -242,7 +251,7 @@ to invocation.")
 
       (make-local-hook 'pre-command-hook)
       (if (ediff-window-display-p)
-	  (add-hook 'pre-command-hook 'ediff-spy-after-mouse))
+	  (add-hook 'pre-command-hook 'ediff-spy-after-mouse nil t))
       (setq ediff-mouse-pixel-position (mouse-pixel-position))
       
       ;; adjust for merge jobs
@@ -273,7 +282,7 @@ to invocation.")
 	      (insert-buffer buf)
 	      (funcall (ediff-eval-in-buffer buf major-mode))
 	      ;; after Stig@hackvan.com
-	      (add-hook 'local-write-file-hooks 'ediff-set-merge-mode)
+	      (add-hook 'local-write-file-hooks 'ediff-set-merge-mode nil t)
 	      )))
       (setq buffer-read-only nil    
 	    ediff-buffer-A buffer-A
@@ -740,8 +749,7 @@ Reestablish the default three-window display."
     (if (and (ediff-buffer-live-p ediff-buffer-A)
 	     (ediff-buffer-live-p ediff-buffer-B)
 	     (or (not ediff-3way-job)
-		 (ediff-buffer-live-p ediff-buffer-C))
-	     )
+		 (ediff-buffer-live-p ediff-buffer-C)))
 	(progn
 	  (or no-rehighlight
 	      (ediff-select-difference ediff-current-difference))
@@ -1170,7 +1178,8 @@ This is especially useful when comparing buffers side-by-side."
 	
 (defun ediff-toggle-multiframe ()
   "Switch from the multiframe display to single-frame display and back.
-This is primarily for debugging, but one can use it for fun, too."
+For a permanent change, set the variable `ediff-window-setup-function',
+which see."
   (interactive)
   (ediff-barf-if-not-control-buffer)
   (or (ediff-window-display-p)
@@ -1381,7 +1390,7 @@ the width of the A/B/C windows."
 
 
 ;;BEG, END show the region to be positioned.
-;;JOB-NAME holds ediff-job-name. Ediff-windows job positions regions
+;;JOB-NAME holds ediff-job-name. The ediff-windows job positions regions
 ;;differently. 
 (defun ediff-position-region (beg end pos job-name)
   (if (> end (point-max))
@@ -1449,33 +1458,43 @@ the width of the A/B/C windows."
       )))
 
 
+;; region size coefficient is a coefficient by which to adjust scrolling
+;; up/down of the window displaying buffer of type BUFTYPE.
+;; The purpose of this coefficient is to make the windows scroll in sync, so
+;; that it won't happen that one diff region is scrolled off while the other is
+;; still seen.
+;;
+;; If the difference region is invalid, the coefficient is 1
 (defun ediff-get-region-size-coefficient (buf-type op &optional n ctl-buf)
   (ediff-eval-in-buffer (or ctl-buf ediff-control-buffer)
-    (let* ((func (cond ((eq op 'scroll-down) 'ediff-get-lines-to-region-start)
-		       ((eq op 'scroll-up) 'ediff-get-lines-to-region-end)
-		       (t '(lambda (a b c) 0))))
-	   (max-lines (max (funcall func 'A n ctl-buf)
-			   (funcall func 'B n ctl-buf)
-			   (if (ediff-buffer-live-p ediff-buffer-C)
-			       (funcall func 'C n ctl-buf)
-			     0))))
-      ;; this covers the horizontal coefficient as well:
-      ;; if max-lines = 0 then coef = 1
-      (if (> max-lines 0)
-	  (/ (+ (funcall func buf-type n ctl-buf) 0.0)
-	     (+ max-lines 0.0))
-	1)
-      )))
+    (if (ediff-valid-difference-p n)
+	(let* ((func (cond ((eq op 'scroll-down)
+			    'ediff-get-lines-to-region-start)
+			   ((eq op 'scroll-up)
+			    'ediff-get-lines-to-region-end)
+			   (t '(lambda (a b c) 0))))
+	       (max-lines (max (funcall func 'A n ctl-buf)
+			       (funcall func 'B n ctl-buf)
+			       (if (ediff-buffer-live-p ediff-buffer-C)
+				   (funcall func 'C n ctl-buf)
+				 0))))
+	  ;; this covers the horizontal coefficient as well:
+	  ;; if max-lines = 0 then coef = 1
+	  (if (> max-lines 0)
+	      (/ (+ (funcall func buf-type n ctl-buf) 0.0)
+		 (+ max-lines 0.0))
+	    1))
+      1)))
 
 
 (defun ediff-next-difference (&optional arg)
   "Advance to the next difference. 
-With a prefix argument, go back that many differences."
-  (interactive "P")
+With a prefix argument, go forward that many differences."
+  (interactive "p")
   (ediff-barf-if-not-control-buffer)
   (if (< ediff-current-difference ediff-number-of-differences)
       (let ((n (min ediff-number-of-differences
-		    (+ ediff-current-difference (if arg arg 1))))
+		    (+ ediff-current-difference arg)))
 	    regexp-skip)
 	    
 	(or (>= n ediff-number-of-differences)
@@ -1508,10 +1527,10 @@ With a prefix argument, go back that many differences."
 (defun ediff-previous-difference (&optional arg)
   "Go to the previous difference. 
 With a prefix argument, go back that many differences."
-  (interactive "P")
+  (interactive "p")
   (ediff-barf-if-not-control-buffer)
   (if (> ediff-current-difference -1)
-      (let ((n (max -1 (- ediff-current-difference (if arg arg 1))))
+      (let ((n (max -1 (- ediff-current-difference arg)))
 	    regexp-skip)
 	    
 	(or (< n 0)
@@ -1541,29 +1560,89 @@ With a prefix argument, go back that many differences."
     (ediff-visible-region)
     (error "At beginning of the difference list")))
 
+;; The diff number is as perceived by the user (i.e., 1+ the internal
+;; representation)
 (defun ediff-jump-to-difference (difference-number)
-  "Go to the difference specified as a prefix argument."
+  "Go to the difference specified as a prefix argument.
+If the prefix is negative, count differences from the end."
   (interactive "p")
   (ediff-barf-if-not-control-buffer)
-  (setq difference-number (1- difference-number))
+  (setq difference-number
+	(cond ((< difference-number 0)
+	       (+ ediff-number-of-differences difference-number))
+	      ((> difference-number 0) (1- difference-number))
+	      (t -1)))
+  ;; -1 is allowed by ediff-unselect-and-select-difference --- it is the
+  ;; position before the first one.
   (if (and (>= difference-number -1)
-	   (< difference-number (1+ ediff-number-of-differences)))
+	   (<= difference-number ediff-number-of-differences))
       (ediff-unselect-and-select-difference difference-number)
-    (error "Bad difference number, %d. Valid numbers are 1 to %d"
-	   (1+ difference-number) ediff-number-of-differences)))
+    (error ediff-BAD-DIFF-NUMBER
+	   this-command (1+ difference-number) ediff-number-of-differences)))
       
-(defun ediff-jump-to-difference-at-point ()
+(defun ediff-jump-to-difference-at-point (arg)
   "Go to difference closest to the point in buffer A, B, or C.
-The type of buffer depends on last command character \(a, b, or c\) that
-invoked this command."
-  (interactive)
+The buffer depends on last command character \(a, b, or c\) that invoked this
+command. For instance, if the command was `ga' then the point value in buffer A
+is used.
+With a prefix argument, synchronize all files around the current point position
+in the specified buffer."
+  (interactive "P")
   (ediff-barf-if-not-control-buffer)
-  (let ((buf-type (ediff-char-to-buftype last-command-char)))
-    (ediff-jump-to-difference (ediff-diff-at-point buf-type))))
+  (let* ((buf-type (ediff-char-to-buftype last-command-char))
+	 (buffer (ediff-get-buffer buf-type))
+	 (pt (ediff-eval-in-buffer buffer (point)))
+	 (diff-no (ediff-diff-at-point buf-type nil (if arg 'after)))
+	 (past-last-diff (< ediff-number-of-differences diff-no))
+	 (beg (if past-last-diff
+		  (ediff-eval-in-buffer buffer (point-max))
+		(ediff-get-diff-posn buf-type 'beg (1- diff-no))))
+	 ctl-wind wind-A wind-B wind-C
+	 shift)
+    (if past-last-diff
+	(ediff-jump-to-difference -1)
+      (ediff-jump-to-difference diff-no))
+    (setq ctl-wind (selected-window)
+	  wind-A ediff-window-A
+	  wind-B ediff-window-B
+	  wind-C ediff-window-C)
+    (if arg
+	(progn
+	  (ediff-eval-in-buffer buffer
+	    (setq shift (- beg pt)))
+	  (select-window wind-A)
+	  (if past-last-diff (goto-char (point-max)))
+	  (condition-case nil
+	      (backward-char shift) ; noerror, if beginning of buffer
+	    (error))
+	  (recenter)
+	  (select-window wind-B)
+	  (if past-last-diff (goto-char (point-max)))
+	  (condition-case nil
+	      (backward-char shift) ; noerror, if beginning of buffer
+	    (error))
+	  (recenter)
+	  (if (window-live-p wind-C)
+	      (progn
+		(select-window wind-C)
+		(if past-last-diff (goto-char (point-max)))
+		(condition-case nil
+		    (backward-char shift) ; noerror, if beginning of buffer
+		  (error))
+		(recenter)
+		))
+	  (select-window ctl-wind)
+	  ))
+    ))
 	
       
 ;; find region most related to the current point position (or POS, if given)
-(defun ediff-diff-at-point (buf-type &optional pos)
+;; returns diff number as seen by the user (i.e., 1+ the internal
+;; representation) 
+;; The optional argument WHICH-DIFF can be `after' or `before'. If `after',
+;; find the diff after the point. If `before', find the diff before the
+;; point. If the point is inside a diff, return that diff.
+(defun ediff-diff-at-point (buf-type &optional pos which-diff)
   (let ((buffer (ediff-get-buffer buf-type))
 	(ctl-buffer ediff-control-buffer)
 	(max-dif-num (1- ediff-number-of-differences))
@@ -1584,10 +1663,18 @@ invoked this command."
 	      end (ediff-get-diff-posn buf-type 'end diff-no ctl-buffer))
 	)
       
-     (if (< (abs (- pos prev-end))
-	    (abs (- pos beg)))
-	 diff-no
-       (1+ diff-no)) ; jump-to-diff works with diff nums higher by 1
+      ;; boost diff-no by 1, if past the last diff region
+      (if (and (memq which-diff '(after before))
+	       (> pos beg) (= diff-no max-dif-num))
+	  (setq diff-no (1+ diff-no)))
+
+      (cond ((eq which-diff 'after) (1+ diff-no))
+	    ((eq which-diff 'before) diff-no)
+	    ((< (abs (count-lines pos (max 1 prev-end)))
+		(abs (count-lines pos (max 1 beg))))
+	     diff-no) 	    ; choose prev difference
+	    (t
+	     (1+ diff-no))) ; choose next difference
      )))
 
 
@@ -1607,8 +1694,9 @@ determine the source and the target buffers instead of the command keys."
   (interactive "P")
   (ediff-barf-if-not-control-buffer)
   (or keys (setq keys (this-command-keys)))
-  (if (numberp arg)
-      (ediff-jump-to-difference arg))
+  (if (eq arg '-) (setq arg -1)) ; translate neg arg to -1
+  (if (numberp arg) (ediff-jump-to-difference arg))
+
   (let* ((key1 (aref keys 0))
 	 (key2 (aref keys 1))
 	 (char1 (if (and ediff-xemacs-p (eventp key1)) (event-key key1) key1))
@@ -1866,7 +1954,7 @@ a regular expression typed in by the user."
 	msg-connective alt-msg-connective alt-connective)
     (cond
      ((or (and (eq ediff-skip-diff-region-function
-		   'ediff-focus-on-regexp-matches-function)
+		   ediff-focus-on-regexp-matches-function)
 	       (eq last-command-char ?f))
 	  (and (eq ediff-skip-diff-region-function
 		   ediff-hide-regexp-matches-function)
@@ -2063,13 +2151,13 @@ If it is t, they will be preserved unconditionally. A prefix argument,
 temporarily reverses the meaning of this variable."
   (interactive "P")
   (ediff-barf-if-not-control-buffer)
-  (if (prog1
-	  (y-or-n-p
-	   (format "Quit this Ediff session%s? "
-		   (if (ediff-buffer-live-p ediff-meta-buffer)
-		       " & show containing session group" "")))
-	(message ""))
-      (ediff-really-quit reverse-default-keep-variants)))
+  (if (y-or-n-p (format "Quit this Ediff session%s? "
+			(if (ediff-buffer-live-p ediff-meta-buffer)
+			    " & show containing session group" "")))
+      (progn
+	(message "")
+	(ediff-really-quit reverse-default-keep-variants))
+    (message "")))
 
 
 ;; Perform the quit operations.
@@ -2258,7 +2346,7 @@ buffer in another session as well."
 	 (buf-A-wind (ediff-get-visible-buffer-window buf-A))
 	 (buf-B-wind (ediff-get-visible-buffer-window buf-B))
 	 (buf-C-wind (ediff-get-visible-buffer-window buf-C))
-	 (buf-patch ediff-patch-buf)
+	 (buf-patch  ediff-patchbufer)
 	 (buf-patch-diag ediff-patch-diagnostics)
 	 (buf-err  ediff-error-buffer)
 	 (buf-diff ediff-diff-buffer)
@@ -2316,7 +2404,8 @@ Hit \\[ediff-recenter] to reset the windows afterward."
   (ediff-barf-if-not-control-buffer)
   (save-excursion
     (ediff-skip-unsuitable-frames))
-  (with-output-to-temp-buffer " *ediff-info*"
+  (with-output-to-temp-buffer ediff-msg-buffer
+    (raise-frame (selected-frame))
     (princ (ediff-version))
     (princ "\n\n")
     (ediff-eval-in-buffer ediff-buffer-A
@@ -2525,13 +2614,14 @@ Hit \\[ediff-recenter] to reset the windows afterward."
   (let (f)
     (setq f (expand-file-name
 	     (read-file-name
-	      (format "%s%s: "
+	      (format "%s%s "
 		      prompt
-		      (if default-file
-			  (concat " (default " default-file ")")
-			""))
+		      (cond (default-file
+			      (concat " (default " default-file "):"))
+			    ;;((string-match "[?:!,;][ \t]*$" prompt) "")
+			    (t (concat " (default " default-dir "):"))))
 	      default-dir
-	      default-file
+	      (or default-file default-dir)
 	      t  ; must match, no-confirm
 	      (if default-file (file-name-directory default-file))
 	      )
@@ -2601,9 +2691,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 ;; file on disk, and attempt to remedy the situation if not.
 ;; Signal an error if we can't make them the same, or the user doesn't want
 ;; to do what is necessary to make them the same.
-;; If file has file handlers (indicated by the optional arg), then we
-;; offer to revert instead of saving. This is one difference with Emerge. 
-;; Another is that we always offer to revert obsolete files, whether they
+;; Also, Ediff always offers to revert obsolete buffers, whether they
 ;; are modified or not.
 (defun ediff-verify-file-buffer (&optional file-magic)
   ;; First check if the file has been modified since the buffer visited it.
@@ -2611,21 +2699,19 @@ Hit \\[ediff-recenter] to reset the windows afterward."
       (if (buffer-modified-p)
 	  ;; If buffer is not obsolete and is modified, offer to save
 	  (if (yes-or-no-p 
-	       (format "Buffer out of sync with visited file. %s file %s? "
-		       (if file-magic "Revert" "Save")
+	       (format "Buffer out of sync with visited file. Save file %s? "
 		       buffer-file-name))
-	      (if (not file-magic)
+	      (condition-case nil
 		  (save-buffer)
-		;; for some reason, file-name-handlers append instead of
-		;; replacing, so we have to erase first.
-		(erase-buffer)
-		(revert-buffer t t))
-	    (error "Buffer out of sync for file %s" buffer-file-name))
+		(error
+		 (beep)
+		 (message "Couldn't save %s" buffer-file-name)))
+	    (error "Buffer is out of sync for file %s" buffer-file-name))
 	;; If buffer is not obsolete and is not modified, do nothing
 	nil)
     ;; If buffer is obsolete, offer to revert
     (if (yes-or-no-p
-	 (format "Buffer out of sync with visited file. Revert file %s? "
+	 (format "Buffer is out of sync with visited file. REVERT file %s? "
 		 buffer-file-name))
 	(progn
 	  (if file-magic
@@ -2776,16 +2862,17 @@ Without an argument, it saves customized diff argument, if available
     ))
 
   
+;; Returns positions of difference sectors in the BUF-TYPE buffer.
+;; BUF-TYPE should be a symbol -- `A', `B', or `C'. 
+;; POS is either `beg' or `end'--it specifies whether you want the position at
+;; the beginning of a difference or at the end.
+;; 
+;; The optional argument N says which difference (default:
+;; `ediff-current-difference'). N is the internal difference number (1- what
+;; the user sees).  The optional argument CONTROL-BUF says
+;; which control buffer is in effect in case it is not the current
+;; buffer.
 (defun ediff-get-diff-posn (buf-type pos &optional n control-buf)
-  "Returns positions of difference sectors in the BUF-TYPE buffer.
-BUF-TYPE should be a symbol--either `A' or `B'. 
-POS is either `beg' or `end'--it specifies whether you want the position at the
-beginning of a difference or at the end.
-
-The optional argument N says which difference \(default:
-`ediff-current-difference'\).  The optional argument CONTROL-BUF says
-which control buffer is in effect in case it is not the current
-buffer."
   (let (diff-overlay)
     (or control-buf
 	(setq control-buf (current-buffer)))
@@ -2794,8 +2881,8 @@ buffer."
       (or n  (setq n ediff-current-difference))
       (if (or (< n 0) (>= n ediff-number-of-differences))
 	  (if (> ediff-number-of-differences 0)
-	      (error "Bad difference number, %d. Valid numbers are 1 to %d"
-		     (1+ n) ediff-number-of-differences)
+	      (error ediff-BAD-DIFF-NUMBER
+		     this-command (1+ n) ediff-number-of-differences)
 	    (error ediff-NO-DIFFERENCES)))
       (setq diff-overlay (ediff-get-diff-overlay n buf-type)))
     (if (not (ediff-buffer-live-p (ediff-overlay-buffer diff-overlay)))
@@ -2957,16 +3044,18 @@ Checks if overlay's buffer exists."
 	  (setq overl 
 		(if ediff-xemacs-p
 		    (make-extent beg end buff)
-		  ;; don't advance front, but advance rear
+		  ;; advance front and rear of the overlay
 		  (make-overlay beg end buff nil 'rear-advance)))
 	  
-	  (if ediff-emacs-p
-	      (ediff-overlay-put overl 'evaporate nil)  ; don't detach
-	    (ediff-overlay-put overl 'detachable nil)  ; don't detach
-	    ;; don't advance front, but advance rear
-	    (ediff-overlay-put overl 'start-open nil) 
-	    (ediff-overlay-put overl 'end-open nil))
-
+	  ;; never detach
+	  (ediff-overlay-put
+	   overl (if ediff-emacs-p 'evaporate 'detachable) nil)
+	  ;; make vip-minibuffer-overlay open-ended
+	  ;; In emacs, it is made open ended at creation time
+	  (if ediff-xemacs-p
+	      (progn
+		(ediff-overlay-put overl 'start-open nil) 
+		(ediff-overlay-put overl 'end-open nil)))
 	  (ediff-overlay-put overl 'ediff-diff-num 0)
 	  overl))))
 	  
@@ -3265,8 +3354,8 @@ Mail anyway? (y or n) ")
 	       (remove-hook post-hook 'ediff-calc-command-time)
 	       (setq ediff-command-begin-time '(0 0 0))
 	       (message "Ediff profiling disabled"))
-      (add-hook pre-hook 'ediff-save-time t)
-      (add-hook post-hook 'ediff-calc-command-time)
+      (add-hook pre-hook 'ediff-save-time t t)
+      (add-hook post-hook 'ediff-calc-command-time nil t)
       (message "Ediff profiling enabled"))))
     
 (defun ediff-print-diff-vector (diff-vector-var)
