@@ -221,84 +221,94 @@ load_charset_map (charset, entries, n_entries, control_flag)
   for (i = 0; i < n_entries; i++)
     {
       unsigned from, to;
-      int c;
+      int from_index, to_index;
+      int from_c, to_c;
       int idx = i % 0x10000;
 
       if (i > 0 && idx == 0)
 	entries = entries->next;
       from = entries->entry[idx].from;
       to = entries->entry[idx].to;
-      c = entries->entry[idx].c;
+      from_c = entries->entry[idx].c;
+      from_index = CODE_POINT_TO_INDEX (charset, from);
+      if (from == to)
+	{
+	  to_index = from_index;
+	  to_c = from_c;
+	}
+      else
+	{
+	  to_index = CODE_POINT_TO_INDEX (charset, to);
+	  to_c = from_c + (to_index - from_index);
+	}
+      if (from_index < 0 || to_index < 0)
+	continue;
 
       if (control_flag < 2)
 	{
+	  int c;
+
+	  if (to_c > max_char)
+	    max_char = to_c;
+	  else if (from_c < min_char)
+	    min_char = from_c;
+	  if (ascii_compatible_p)
+	    {
+	      if (! ASCII_BYTE_P (from_c))
+		{
+		  if (from_c < nonascii_min_char)
+		    nonascii_min_char = from_c;
+		}
+	      else if (! ASCII_BYTE_P (to_c))
+		{
+		  nonascii_min_char = 0x80;
+		}
+	    }
+
+	  for (c = from_c; c <= to_c; c++)
+	    CHARSET_FAST_MAP_SET (c, fast_map);
+
 	  if (control_flag == 1)
 	    {
 	      unsigned code = from;
-	      int from_index, to_index;
 
-	      from_index = CODE_POINT_TO_INDEX (charset, from);
-	      if (from == to)
-		to_index = from_index;
-	      else
-		to_index = CODE_POINT_TO_INDEX (charset, to);
-	      if (from_index < 0 || to_index < 0)
-		continue;
 	      if (CHARSET_COMPACT_CODES_P (charset))
 		while (1)
 		  {
-		    ASET (vec, from_index, make_number (c));
-		    CHAR_TABLE_SET (table, c, make_number (code));
+		    ASET (vec, from_index, make_number (from_c));
+		    CHAR_TABLE_SET (table, from_c, make_number (code));
 		    if (from_index == to_index)
 		      break;
-		    from_index++, c++;
+		    from_index++, from_c++;
 		    code = INDEX_TO_CODE_POINT (charset, from_index);
 		  }
 	      else
-		for (; from_index <= to_index; from_index++, c++)
+		for (; from_index <= to_index; from_index++, from_c++)
 		  {
-		    ASET (vec, from_index, make_number (c));
-		    CHAR_TABLE_SET (table, c, make_number (from_index));
+		    ASET (vec, from_index, make_number (from_c));
+		    CHAR_TABLE_SET (table, from_c, make_number (from_index));
 		  }
 	    }
-
-	  if (c > max_char)
-	    max_char = c;
-	  else if (c < min_char)
-	    min_char = c;
-	  if (ascii_compatible_p && ! ASCII_BYTE_P (c)
-	      && c < nonascii_min_char)
-	    nonascii_min_char = c;
-
-	  CHARSET_FAST_MAP_SET (c, fast_map);
 	}
       else
 	{
 	  unsigned code = from;
-	  int from_index, to_index;
 
-	  from_index = CODE_POINT_TO_INDEX (charset, from);
-	  if (from == to)
-	    to_index = from_index;
-	  else
-	    to_index = CODE_POINT_TO_INDEX (charset, to);
-	  if (from_index < 0 || to_index < 0)
-	    continue;
 	  while (1)
 	    {
 	      int c1 = DECODE_CHAR (charset, code);
 	      
 	      if (c1 >= 0)
 		{
-		  CHAR_TABLE_SET (table, c, make_number (c1));
-		  CHAR_TABLE_SET (Vchar_unify_table, c1, c);
+		  CHAR_TABLE_SET (table, from_c, make_number (c1));
+		  CHAR_TABLE_SET (Vchar_unify_table, c1, from_c);
 		  if (CHAR_TABLE_P (Vchar_unified_charset_table))
 		    CHAR_TABLE_SET (Vchar_unified_charset_table, c1,
 				    CHARSET_NAME (charset));
 		}
 	      if (from_index == to_index)
 		break;
-	      from_index++, c++;
+	      from_index++, from_c++;
 	      code = INDEX_TO_CODE_POINT (charset, from_index);
 	    }
 	}
