@@ -41,6 +41,27 @@
   "Highlight (un)matching of parens and expressions."
   :group 'matching)
 
+(define-key global-map [?\C-x right] 'next-buffer)
+(define-key global-map [?\C-x left] 'prev-buffer)
+(defun next-buffer ()
+  "Switch to the next buffer in cyclic order."
+  (interactive)
+  (let ((buffer (current-buffer)))
+    (switch-to-buffer (other-buffer buffer))
+    (bury-buffer buffer)))
+
+(defun prev-buffer ()
+  "Switch to the previous buffer in cyclic order."
+  (interactive)
+  (let ((list (nreverse (buffer-list)))
+	found)
+    (while (and (not found) list)
+      (let ((buffer (car list)))
+	(if (and (not (get-buffer-window buffer))
+		 (not (string-match "\\` " (buffer-name buffer))))
+	    (setq found buffer)))
+      (setq list (cdr list)))
+    (switch-to-buffer found)))
 
 (defun fundamental-mode ()
   "Major mode not specialized for anything in particular.
@@ -3974,7 +3995,7 @@ PREFIX is the string that represents this modifier in an event type symbol."
    (kp-decimal ?.)
    (kp-divide ?/)
    (kp-equal ?=)))
-
+
 ;;;;
 ;;;; forking a twin copy of a buffer.
 ;;;;
@@ -4124,8 +4145,7 @@ the front of the list of recently selected ones."
     (clone-indirect-buffer nil t norecord)))
 
 (define-key ctl-x-4-map "c" 'clone-indirect-buffer-other-window)
-
-
+
 ;;; Handling of Backspace and Delete keys.
 
 (defcustom normal-erase-is-backspace nil
