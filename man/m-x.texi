@@ -46,8 +46,9 @@ Note that @code{forward-char} is the same command that you invoke with
 the key @kbd{C-f}.  You can run any Emacs command by name using
 @kbd{M-x}, whether or not any keys are bound to it.
 
-  If you type @kbd{C-g} while the command name is being read, you cancel
-the @kbd{M-x} command and get out of the minibuffer, ending up at top level.
+  If you type @kbd{C-g} while the command name is being read, you
+cancel the @kbd{M-x} command and get out of the minibuffer, ending up
+at command level.
 
   To pass a numeric argument to the command you are invoking with
 @kbd{M-x}, specify the numeric argument before the @kbd{M-x}.  @kbd{M-x}
@@ -56,11 +57,10 @@ appears in the prompt while the command name is being read.
 
 @vindex suggest-key-bindings
   If the command you type has a key binding of its own, Emacs mentions
-this in the echo area, two seconds after the command finishes (if you
-don't type anything else first).  For example, if you type @kbd{M-x
+this in the echo area.  For example, if you type @kbd{M-x
 forward-word}, the message says that you can run the same command more
-easily by typing @kbd{M-f}.  You can turn off these messages by setting
-@code{suggest-key-bindings} to @code{nil}.
+easily by typing @kbd{M-f}.  You can turn off these messages by
+setting @code{suggest-key-bindings} to @code{nil}.
 
   Normally, when describing in this manual a command that is run by
 name, we omit the @key{RET} that is needed to terminate the name.  Thus
