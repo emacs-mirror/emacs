@@ -7866,7 +7866,7 @@ x_connection_closed (dpy, error_message)
 
   x_uncatch_errors (dpy, count);
 
-  if (x_display_list == 0)
+  if (display_list == 0)
     {
       fprintf (stderr, "%s\n", error_msg);
       shut_down_emacs (0, 0, Qnil);
@@ -10748,7 +10748,7 @@ x_delete_display (dpyinfo)
     /* Delete the generic struct display for this X display. */
     struct display *d;
     for (d = display_list; d; d = d->next_display)
-      if (d->type == output_x_window && d->display_info.x != dpyinfo)
+      if (d->type == output_x_window && d->display_info.x == dpyinfo)
         {
           delete_display (d);
           break;

@@ -7,7 +7,6 @@ different tty devices and simultaneous X and tty frames from a single
 Emacs session.
 
 Some use cases:
-
 Emacs is notoriously slow at startup, so most people use another
 editor or emacsclient for quick editing jobs from the console.
 Unfortunately, emacsclient was very awkward to use, because it did not
@@ -20,7 +19,6 @@ instance, which they typically leave running for weeks.  It would be
 nice if they could connect to this instance from a remote ssh session
 and check their messages without opening a remote X frame or resorting
 to gnus-slave.
-
 
 WHO IS DOING IT
 ---------------
@@ -56,11 +54,11 @@ to the emacs-devel@gnu.org mailing list.
 STATUS
 ------
 
-Multi-tty support is stable, I think most of the problems were fixed.
-(It still needs testing on other architectures, though.)  Simultaneous
-X and tty frame support works fine, although there are some small
-issues.  Emacsclient has been extended to support opening a new
-terminal frame.
+The branch is now very stable and almost full-featured. I hope the
+major problems were fixed.  (It still needs testing on other
+architectures, though.)  Both multiple tty device support and
+simultaneous X and tty frame support works fine.  Emacsclient has been
+extended to support opening a new terminal frame.
 
 
 Please let me know if you find any bugs in this branch.
@@ -93,6 +91,20 @@ all terminals should be restored to their previous states.
 This is work in progress, and probably full of bugs.  You should
 always run emacs from gdb, so that you'll have a live instance to
 debug if something goes wrong.  Please send me your bug reports.
+
+I think the best way to use the new Emacs is to have it running inside
+a disconnected GNU screen session, and always use emacsclient for
+normal work.  This way not a single keystroke of your work will be
+lost if the display device that you are using crashes, or the network
+connection times out, or whatever.  As long as the server that runs
+your Emacs remains up, all your buffers remain exactly as they were
+before the crash, and you can continue working as if nothing had
+happened.  (I had an extremely unstable X server for some time while I
+was developing these patches, and running Emacs this way has saved me
+a number of M-x recover-session invocations.)
+
+(I am thinking about introducing a --daemon option to get rid of the
+above screen dependency.)
 
 Problems:
 
@@ -181,6 +193,13 @@ THINGS TO DO
    ttys pass it on to emacsclient somehow.  (It is (I hope) trivial to
    extend emacsclient to handle suspend/resume.  A `kill -STOP' almost
    works right now.)
+
+** Clean up the frame-local variable system.  I think it's ugly and
+   error-prone.  But maybe I just haven't yet fully understood it.
+
+** Add an elaborate mechanism for display-local variables.  (There are
+   already a few of these; search for `terminal-local' in the Elisp
+   manual.)
 
 ** Move baud_rate to struct display.
 
@@ -607,6 +626,11 @@ DIARY OF CHANGES
 
 -- Fix interactive use of temacs.  There are face-related SEGVs, most
    likely because of changes in realize_default_face, realize_face.
+
+   (Fixed.)
+
+-- Don't exit Emacs when the last X connection fails during a
+   multi-display session.
 
    (Fixed.)
 
