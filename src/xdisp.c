@@ -4897,7 +4897,8 @@ get_next_display_element (it)
 			   && it->len == 1)
 			  || !CHAR_PRINTABLE_P (it->c))
 		       : (it->c >= 127
-			  && it->c == unibyte_char_to_multibyte (it->c))))
+			  && (!unibyte_display_via_language_environment
+			      || it->c == unibyte_char_to_multibyte (it->c)))))
 	    {
 	      /* IT->c is a control character which must be displayed
 		 either as '\003' or as `^C' where the '\\' and '^'
