@@ -1689,10 +1689,13 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 			    "-c" (concat insert-directory-program
 					 " -d " switches " "
 					 (file-name-nondirectory file))))
-;;;	  ;; Chase links till we reach a non-link.
-;;;	  (let (symlink)
-;;;	    (while (setq symlink (file-symlink-p file))
-;;;	      (setq file symlink)))
+	  ;; Chase links till we reach a non-link.
+	  ;; This used to be commented out, but Barry Margolin says:
+	  ;; SunOS 4.1.3 (and SV and POSIX?) lists the link
+	  ;; if we give a link to a directory - yuck!
+	  (let (symlink)
+	    (while (setq symlink (file-symlink-p file))
+	      (setq file symlink)))
 	  (call-process insert-directory-program nil t nil switches file))))))
 
 (defun save-buffers-kill-emacs (&optional arg)
