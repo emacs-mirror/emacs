@@ -677,9 +677,9 @@ The following commands are accepted by the client:
 
 		 ;; -position LINE:COLUMN:  Set point to the given position in the next file.
 		 ((and (equal "-position" arg) (string-match "\\+\\([0-9]+\\):\\([0-9]+\\) " request))
-		  (setq request (substring request (match-end 0))
-			lineno (string-to-int (match-string 1 request))
-			columnno (string-to-int (match-string 2 request))))
+		  (setq lineno (string-to-int (match-string 1 request))
+			columnno (string-to-int (match-string 2 request))
+			request (substring request (match-end 0))))
 
 		 ;; -file FILENAME:  Load the given file.
 		 ((and (equal "-file" arg) (string-match "\\([^ ]+\\) " request))
