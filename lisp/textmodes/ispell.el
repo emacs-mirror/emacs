@@ -222,6 +222,12 @@
      (not (boundp 'epoch::version))
      (defalias 'ispell-check-version 'check-ispell-version))
 
+(if (fboundp 'mode-line-window-height-fudge)
+    (defalias 'ispell-mode-line-window-height-fudge
+      'mode-line-window-height-fudge)
+  (defun ispell-mode-line-window-height-fudge ()
+    "Return 1 if running on a `graphics capable' display, otherwise 0."
+    (if ispell-graphic-p 1 0)))
 
 ;;; **********************************************************************
 ;;; The following variables should be set according to personal preference
@@ -284,12 +290,9 @@ This minimizes redisplay thrashing."
   :type 'boolean
   :group 'ispell)
 
-(defcustom ispell-choices-win-default-height (if ispell-graphic-p 3 2)
+(defcustom ispell-choices-win-default-height 2
   "*The default size of the `*Choices*' window, including mode line.
-Must be greater than 1.
-A Graphic capable modeline is thicker than a line of text, so it partially
-covers the last line of text in the choices buffer.  Include an extra line
-for graphic capable displays to see all of the choices clearly."
+Must be greater than 1."
   :type 'integer
   :group 'ispell)
 
@@ -1476,6 +1479,14 @@ If so, ask if it needs to be saved."
   (setq ispell-pdict-modified-p nil))
 
 
+(defun ispell-choices-win-default-height ()
+  "Return the default height of the `*Choices*' window for this display.
+This is the value of of the variable `ispell-choices-win-default-height',
+plus a possible fudge factor to work around problems with mode-lines that
+obscure the last buffer line on graphics capable displays."
+  (+ ispell-choices-win-default-height (ispell-mode-line-window-height-fudge)))
+
+
 (defun ispell-command-loop (miss guess word start end)
   "Display possible corrections from list MISS.
 GUESS lists possibly valid affix construction of WORD.
@@ -1491,11 +1502,11 @@ indicates whether the dictionary has been modified when option `a' or `i' is
 used.
 Global `ispell-quit' set to start location to continue spell session."
   (let ((count ?0)
-	(line ispell-choices-win-default-height)
+	(line (ispell-choices-win-default-height))
 	(max-lines (- (window-height) 4)) ; ensure 4 context lines.
 	(choices miss)
 	(window-min-height (min window-min-height
-				ispell-choices-win-default-height))
+				(ispell-choices-win-default-height)))
 	(command-characters '( ?  ?i ?a ?A ?r ?R ?? ?x ?X ?q ?l ?u ?m ))
 	(dedicated (window-dedicated-p (selected-window)))
 	(skipped 0)
@@ -1666,7 +1677,7 @@ Global `ispell-quit' set to start location to continue spell session."
 						      new-word)
 				    miss (lookup-words new-word)
 				    choices miss
-				    line ispell-choices-win-default-height)
+				    line (ispell-choices-win-default-height))
 			      (while (and choices ; adjust choices window.
 					  (< (if (> (+ 7 (current-column)
 						       (length (car choices))
@@ -1768,9 +1779,9 @@ Global `ispell-quit' set to start location to continue spell session."
 	    ;; without scrolling the spelled window when possible
 	    (let ((window-line (- line (window-height choices-window)))
 		  (visible (progn (vertical-motion -1) (point))))
-	      (if (< line ispell-choices-win-default-height)
+	      (if (< line (ispell-choices-win-default-height))
 		  (setq window-line (+ window-line
-				       (- ispell-choices-win-default-height
+				       (- (ispell-choices-win-default-height)
 					  line))))
 	      (move-to-window-line 0)
 	      (vertical-motion window-line)
@@ -1780,7 +1791,7 @@ Global `ispell-quit' set to start location to continue spell session."
 	      (select-window (previous-window)) ; *Choices* window
 	      (enlarge-window window-line)))
 	;; Overlay *Choices* window when it isn't showing
-	(ispell-overlay-window (max line ispell-choices-win-default-height)))
+	(ispell-overlay-window (max line (ispell-choices-win-default-height))))
       (switch-to-buffer ispell-choices-buffer)
       (goto-char (point-min)))))
 
@@ -1853,7 +1864,8 @@ SPC:   Accept word this time.
       (save-window-excursion
 	(if ispell-help-in-bufferp
 	    (progn
-	      (ispell-overlay-window (if ispell-graphic-p 5 4))
+	      (ispell-overlay-window
+	       (+ 4 (ispell-mode-line-window-height-fudge)))
 	      (switch-to-buffer (get-buffer-create "*Ispell Help*"))
 	      (insert (concat help-1 "\n" help-2 "\n" help-3))
 	      (sit-for 5)
