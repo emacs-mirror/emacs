@@ -878,16 +878,19 @@ a diff with \\[diff-reverse-direction]."
   ;;   (set (make-local-variable 'page-delimiter) "--- [^\t]+\t")
   ;; compile support
 
-  ;;;; compile support is not good enough yet.  Also it can be annoying
-  ;; and should thus only be enabled conditionally.
-  ;; (set (make-local-variable 'compilation-file-regexp-alist)
-  ;;      diff-file-regexp-alist)
-  ;; (set (make-local-variable 'compilation-error-regexp-alist)
-  ;;      diff-error-regexp-alist)
-  ;; (when (string-match "\\.rej\\'" (or buffer-file-name ""))
-  ;;   (set (make-local-variable 'compilation-current-file)
-  ;; 	 (substring buffer-file-name 0 (match-beginning 0))))
-  ;; (compilation-shell-minor-mode 1)
+  ;;;; compile support is not good enough yet.  It should be merged
+  ;;;; with diff.el's support.
+  (set (make-local-variable 'compilation-file-regexp-alist)
+       diff-file-regexp-alist)
+  (set (make-local-variable 'compilation-error-regexp-alist)
+       diff-error-regexp-alist)
+  (when (string-match "\\.rej\\'" (or buffer-file-name ""))
+    (set (make-local-variable 'compilation-current-file)
+  	 (substring buffer-file-name 0 (match-beginning 0))))
+  ;; Be careful not to change compilation-last-buffer when we're just
+  ;; doing a C-x v = (for example).
+  (let ((compilation-last-buffer compilation-last-buffer))
+    (compilation-shell-minor-mode 1))
 
   (when (and (> (point-max) (point-min)) diff-default-read-only)
     (toggle-read-only t))
