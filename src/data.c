@@ -263,7 +263,8 @@ DEFUN ("consp", Fconsp, Sconsp, 1, 1, 0, "Return t if OBJECT is a cons cell.")
   return Qnil;
 }
 
-DEFUN ("atom", Fatom, Satom, 1, 1, 0, "Return t if OBJECT is not a cons cell.  This includes nil.")
+DEFUN ("atom", Fatom, Satom, 1, 1, 0,
+       "Return t if OBJECT is not a cons cell.  This includes nil.")
   (object)
      Lisp_Object object;
 {
@@ -272,7 +273,8 @@ DEFUN ("atom", Fatom, Satom, 1, 1, 0, "Return t if OBJECT is not a cons cell.  T
   return Qt;
 }
 
-DEFUN ("listp", Flistp, Slistp, 1, 1, 0, "Return t if OBJECT is a list.  This includes nil.")
+DEFUN ("listp", Flistp, Slistp, 1, 1, 0,
+       "Return t if OBJECT is a list.  This includes nil.")
   (object)
      Lisp_Object object;
 {
@@ -281,7 +283,8 @@ DEFUN ("listp", Flistp, Slistp, 1, 1, 0, "Return t if OBJECT is a list.  This in
   return Qnil;
 }
 
-DEFUN ("nlistp", Fnlistp, Snlistp, 1, 1, 0, "Return t if OBJECT is not a list.  Lists include nil.")
+DEFUN ("nlistp", Fnlistp, Snlistp, 1, 1, 0,
+       "Return t if OBJECT is not a list.  Lists include nil.")
   (object)
      Lisp_Object object;
 {
@@ -290,7 +293,8 @@ DEFUN ("nlistp", Fnlistp, Snlistp, 1, 1, 0, "Return t if OBJECT is not a list.  
   return Qt;
 }
 
-DEFUN ("symbolp", Fsymbolp, Ssymbolp, 1, 1, 0, "Return t if OBJECT is a symbol.")
+DEFUN ("symbolp", Fsymbolp, Ssymbolp, 1, 1, 0,
+       "Return t if OBJECT is a symbol.")
   (object)
      Lisp_Object object;
 {
@@ -299,7 +303,8 @@ DEFUN ("symbolp", Fsymbolp, Ssymbolp, 1, 1, 0, "Return t if OBJECT is a symbol."
   return Qnil;
 }
 
-DEFUN ("vectorp", Fvectorp, Svectorp, 1, 1, 0, "Return t if OBJECT is a vector.")
+DEFUN ("vectorp", Fvectorp, Svectorp, 1, 1, 0,
+       "Return t if OBJECT is a vector.")
   (object)
      Lisp_Object object;
 {
@@ -308,7 +313,8 @@ DEFUN ("vectorp", Fvectorp, Svectorp, 1, 1, 0, "Return t if OBJECT is a vector."
   return Qnil;
 }
 
-DEFUN ("stringp", Fstringp, Sstringp, 1, 1, 0, "Return t if OBJECT is a string.")
+DEFUN ("stringp", Fstringp, Sstringp, 1, 1, 0,
+       "Return t if OBJECT is a string.")
   (object)
      Lisp_Object object;
 {
@@ -317,7 +323,18 @@ DEFUN ("stringp", Fstringp, Sstringp, 1, 1, 0, "Return t if OBJECT is a string."
   return Qnil;
 }
 
-DEFUN ("char-table-p", Fchar_table_p, Schar_table_p, 1, 1, 0, "Return t if OBJECT is a char-table.")
+DEFUN ("multibyte-string-p", Fmultibyte_string_p, Smultibyte_string_p,
+       1, 1, 0, "Return t if OBJECT is a multibyte string.")
+  (object)
+     Lisp_Object object;
+{
+  if (STRINGP (object) && STRING_MULTIBYTE (object))
+    return Qt;
+  return Qnil;
+}
+
+DEFUN ("char-table-p", Fchar_table_p, Schar_table_p, 1, 1, 0,
+       "Return t if OBJECT is a char-table.")
   (object)
      Lisp_Object object;
 {
@@ -910,7 +927,7 @@ DEFUN ("set", Fset, Sset, 2, 2, 0,
   return set_internal (symbol, newval, 0);
 }
 
-/* Stpre the value NEWVAL into SYMBOL.
+/* Store the value NEWVAL into SYMBOL.
    If BINDFLAG is zero, then if this symbol is supposed to become
    local in every buffer where it is set, then we make it local.
    If BINDFLAG is nonzero, we don't do that.  */
@@ -1529,10 +1546,17 @@ or a byte-code object.  IDX starts at 0.")
   if (STRINGP (array))
     {
       Lisp_Object val;
+      int c, idxval_byte;
+
       if (idxval < 0 || idxval >= XSTRING (array)->size)
 	args_out_of_range (array, idx);
-      XSETFASTINT (val, (unsigned char) XSTRING (array)->data[idxval]);
-      return val;
+      if (! STRING_MULTIBYTE (array))
+	return make_number ((unsigned char) XSTRING (array)->data[idxval]);
+      idxval_byte = string_char_to_byte (array, idxval);
+
+      c = STRING_CHAR (&XSTRING (array)->data[idxval_byte],
+		       XSTRING (array)->size_byte - idxval_byte);
+      return make_number (c);
     }
   else if (BOOL_VECTOR_P (array))
     {
@@ -1716,6 +1740,25 @@ IDX starts at 0.")
 	    }
 	  XCHAR_TABLE (array)->contents[code[i]] = newelt;
 	}
+    }
+  else if (STRING_MULTIBYTE (array))
+    {
+      Lisp_Object val;
+      int c, idxval_byte, actual_len;
+
+      if (idxval < 0 || idxval >= XSTRING (array)->size)
+	args_out_of_range (array, idx);
+
+      idxval_byte = string_char_to_byte (array, idxval);
+
+      c = STRING_CHAR_AND_LENGTH (&XSTRING (array)->data[idxval_byte],
+				  XSTRING (array)->size_byte - idxval_byte,
+				  actual_len);
+      if (actual_len != 1)
+	error ("Attempt to store a multibyte character into a string");
+
+      CHECK_NUMBER (newelt, 2);
+      XSTRING (array)->data[idxval_byte] = XINT (newelt);
     }
   else
     {
