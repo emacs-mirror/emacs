@@ -1100,7 +1100,7 @@ definition and conveniently use this command."
   (let ((my-client makefile-browser-client))
     (setq makefile-browser-client nil)	; we quitted, so NO client!
     (set-buffer-modified-p nil)
-    (kill-buffer (current-buffer))
+    (quit-window t)
     (pop-to-buffer my-client)))
 
 ;;;
