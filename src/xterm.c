@@ -5811,16 +5811,7 @@ x_delete_display (dpyinfo)
 #endif
 #ifdef MULTI_KBOARD
   if (--dpyinfo->kboard->reference_count == 0)
-    {
-      KBOARD **kbp;
-      for (kbp = &all_kboards; *kbp != dpyinfo->kboard;
-	   kbp = &(*kbp)->next_kboard)
-	if (*kbp == NULL)
-	  abort ();
-      *kbp = dpyinfo->kboard->next_kboard;
-      wipe_kboard (dpyinfo->kboard);
-      xfree (dpyinfo->kboard);
-    }
+    delete_kboard (dpyinfo->kboard);
 #endif
   xfree (dpyinfo->font_table);
   xfree (dpyinfo->x_id_name);
