@@ -1,5 +1,8 @@
 2003-06-04  Richard M. Stallman  <rms@gnu.org>
 
+	* progmodes/compile.el (compilation-next-error): When moving fwd,
+	compare position of point with the errors.
+
 	* dired.el (dired-get-filename): Err for . and .. in usual case.
 	(dired-get-file-for-visit): Specify no-error to dired-get-filename,
 	and check for real errors here.
