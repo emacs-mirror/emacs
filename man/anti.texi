@@ -21,8 +21,18 @@ which contain oversized characters, and using italics fonts can totally
 screw up your display.  Find one font that works and stick to it!
 
 @item
-Likewise, Emacs cannot display images, play sounds, and do anything
+Likewise, Emacs cannot display images, play sounds, or do anything
 except displaying text.  Multimedia is for Netrape!
+
+@item
+Faces on X were made to follow the XLFD font names, to avoid the need of
+reinventing what X has already invented.  This means that face merging
+doesn't work.  However, experience shows that supporting mergers is bad
+economics.  Face inheritance was also removed.
+
+@item
+New face attributes, such as 3D appearence, strike-through, overline
+etc., were eliminated, to minimize consing.
 
 @item
 Toolkit scrollbars are not supported.  Emacs bare-bones X scrollbars are
@@ -31,8 +41,8 @@ buttons in menus.  @code{LessTif} is not supported either.
 
 @item
 There are no toolbars and no tooltips; in particular, the @acronym{GUD}
-mode cannot display variable values in tooltips.  Emacs is an editor,
-not some fancy GUI program!
+mode cannot display in a tooltip a value of a variable when you click on
+that variable's name.  Emacs is an editor, not some fancy GUI program!
 
 @item
 Colors are not available on character terminals.  If you @emph{must}
@@ -205,11 +215,20 @@ recentf.el is not available, so you will have to memorize your
 frequently edited files by heart, or use desktop.el.
 
 @item
+Field properties were eliminated, so various packages based on comint.el
+which run subsidiary programs in Emacs buffers cannot easily distinguish
+between text which came from the subprocess and text typed by the user.
+The ingenious techniques this requires from Lisp programs will
+undoubtfully assist to further advance and development of the Emacs Lisp
+language.
+
+@item
 Many additional packages that were unnecessarily complicating your lives
 are no longer with us.  You cannot browse C@t{++} classes with Ebrowse,
 edit Delphi sources, access @acronym{SQL} data bases, edit PostScript
-files and context diffs, access LDAP and other directory servers, edit
-TODO files conveniently.  Emacs doesn't need all that crud.
+files and context diffs, access @acronym{LDAP} and other directory
+servers, edit @file{TODO} files conveniently, or mix shell commands and
+Lisp functions with Eshell.  Emacs doesn't need all that crud.
 
 @item
 To keep up with decreasing computer memory capacity and disk space, many
