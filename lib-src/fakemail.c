@@ -170,7 +170,7 @@ static char *
 xmalloc (size)
      int size;
 {
-  char *result = malloc (((unsigned) size));
+  char *result = (char *) malloc (((unsigned) size));
   if (result == ((char *) NULL))
     fatal ("virtual memory exhausted", 0);
   return result;
@@ -181,7 +181,7 @@ xrealloc (ptr, size)
      char *ptr;
      int size;
 {
-  char *result = realloc (ptr, ((unsigned) size));
+  char *result = (char *) realloc (ptr, ((unsigned) size));
   if (result == ((char *) NULL))
     fatal ("virtual memory exhausted");
   return result;
@@ -232,6 +232,12 @@ readline (linebuffer, stream)
   return p - buffer;
 }
 
+/* Extract a colon-terminated keyword from the string FIELD.
+   Return that keyword as a string stored in a static buffer.
+   Store the address of the rest of the string into *REST.
+
+   If there is no keyword, return NULL and don't alter *REST.  */
+
 char *
 get_keyword (field, rest)
      register char *field;
@@ -243,17 +249,21 @@ get_keyword (field, rest)
 
   ptr = &keyword[0];
   c = *field++;
-  if ((isspace (c)) || (c == ':'))
+  if (isspace (c) || c == ':')
     return ((char *) NULL);
-  *ptr++ = ((islower (c)) ? (toupper (c)) : c);
-  while (((c = *field++) != ':') && (!(isspace (c))))
-    *ptr++ = ((islower (c)) ? (toupper (c)) : c);
+  *ptr++ = (islower (c) ? toupper (c) : c);
+  while (((c = *field++) != ':') && ! isspace (c))
+    *ptr++ = (islower (c) ? toupper (c) : c);
   *ptr++ = '\0';
-  while (isspace (c)) c = *field++;
-  if (c != ':') return ((char *) NULL);
+  while (isspace (c))
+    c = *field++;
+  if (c != ':')
+    return ((char *) NULL);
   *rest = field;
   return &keyword[0];
 }
+
+/* Nonzero if the string FIELD starts with a colon-terminated keyword.  */
 
 boolean
 has_keyword (field)
@@ -263,6 +273,16 @@ has_keyword (field)
   return (get_keyword (field, &ignored) != ((char *) NULL));
 }
 
+/* Store the string FIELD, followed by any lines in THE_LIST,
+   into the buffer WHERE.
+   Concatenate lines, putting just a space between them.
+   Delete everything contained in parentheses.
+   When a recipient name contains <...>, we discard
+   everything except what is inside the <...>.
+
+   We don't pay attention to overflowing WHERE;
+   the caller has to make it big enough.  */
+
 char *
 add_field (the_list, field, where)
      line_list the_list;
@@ -271,17 +291,48 @@ add_field (the_list, field, where)
   register char c;
   while (true)
     {
+      char *this_recipient_where;
+      int in_quotes = 0;
+
       *where++ = ' ';
+      this_recipient_where = where;
+
       while ((c = *field++) != '\0')
 	{
-	  if (c == '(')
+	  if (c == '\\')
+	    *where++ = c;
+	  else if (c == '"')
+	    {
+	      in_quotes = ! in_quotes;
+	      *where++ = c;
+	    }
+	  else if (in_quotes)
+	    *where++ = c;
+	  else if (c == '(')
 	    {
 	      while (*field && *field != ')') ++field;
-	      if (! (*field++)) break; /* no closer */
-	      if (! (*field))   break; /* closerNULL */
-	      c = *field;
+	      if (! (*field++)) break; /* no close */
+	      continue;
 	    }
-	  *where++ = ((c == ','||c=='>'||c=='<') ? ' ' : c);
+	  else if (c == ',')
+	    {
+	      *where++ = ' ';
+	      /* When we get to the end of one recipient,
+		 don't discard it if the next one has <...>.  */
+	      this_recipient_where = where;
+	    }
+	  else if (c == '<')
+	    /* Discard everything we got before the `<'.  */
+	    where = this_recipient_where;
+	  else if (c == '>')
+	    /* Discard the rest of this name that follows the `>'.  */
+	    {
+	      while (*field && *field != ',') ++field;
+	      if (! (*field++)) break; /* no comma */
+	      continue;
+	    }
+	  else
+	    *where++ = c;
 	}
       if (the_list == NIL) break;
       field = the_list->string;
@@ -462,6 +513,10 @@ put_line (string)
 
 #define mail_error error
 
+/* Handle an FCC field.  FIELD is the text of the first line (after
+   the header name), and THE_LIST holds the continuation lines if any.
+   Call open_a_file for each file.  */
+
 void
 setup_files (the_list, field)
      register line_list the_list;
@@ -471,18 +526,18 @@ setup_files (the_list, field)
   register char c;
   while (true)
     {
-      while (((c = *field) != '\0') &&
-	     ((c == ' ') ||
-	      (c == '\t') ||
-	      (c == ',')))
+      while (((c = *field) != '\0')
+	     && (c == ' '
+		 || c == '\t'
+		 || c == ','))
 	field += 1;
       if (c != '\0')
 	{
 	  start = field;
-	  while (((c = *field) != '\0') &&
-		 (c != ' ') &&
-		 (c != '\t') &&
-		 (c != ','))
+	  while (((c = *field) != '\0')
+		 && c != ' '
+		 && c != '\t'
+		 && c != ',')
 	    field += 1;
 	  *field = '\0';
 	  if (!open_a_file (start))
@@ -490,12 +545,16 @@ setup_files (the_list, field)
 	  *field = c;
 	  if (c != '\0') continue;
 	}
-      if (the_list == ((line_list) NULL)) return;
+      if (the_list == ((line_list) NULL))
+	return;
       field = the_list->string;
       the_list = the_list->continuation;
     }
 }
 
+/* Compute the total size of all recipient names stored in THE_HEADER.
+   The result says how big to make the buffer to pass to parse_header.  */
+
 int
 args_size (the_header)
      header the_header;
@@ -507,9 +566,9 @@ args_size (the_header)
     {
       char *field;
       register char *keyword = get_keyword (the_header->text->string, &field);
-      if ((strcmp (keyword, "TO") == 0) ||
-	  (strcmp (keyword, "CC") == 0) ||
-	  (strcmp (keyword, "BCC") == 0))
+      if ((strcmp (keyword, "TO") == 0)
+	  || (strcmp (keyword, "CC") == 0)
+	  || (strcmp (keyword, "BCC") == 0))
 	{
 	  size += 1 + strlen (field);
 	  for (rem = the_header->text->continuation;
@@ -521,6 +580,12 @@ args_size (the_header)
     } while (the_header != old);
   return size;
 }
+
+/* Scan the header described by the lists THE_HEADER,
+   and put all recipient names into the buffer WHERE.
+   Precede each recipient name with a space.
+
+   Also, if the header has any FCC fields, call setup_files for each one.  */
 
 parse_header (the_header, where)
      header the_header;
@@ -549,6 +614,12 @@ parse_header (the_header, where)
   return;
 }
     
+/* Read lines from the input until we get a blank line.
+   Create a list of `header' objects, one for each header field,
+   each of which points to a list of `line_list' objects,
+   one for each line in that field.
+   Continuation lines are grouped in the headers they continue.  */
+   
 header
 read_header ()
 {
