@@ -1,5 +1,9 @@
 2001-07-23  Gerd Moellmann  <gerd@gnu.org>
 
+	* indent.c (current_column): Fix column computation in the 
+	presence of display table entries.
+	(current_column_1, Fmove_to_column, compute_motion): Likewise.
+
 	* dispnew.c (adjust_glyph_matrix): In the optimization for
 	windows whose height has changed, use the new window height
 	to compute which rows to invalidate.
