@@ -1682,8 +1682,8 @@ DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
   b->overlays_after  = Fdelq (overlay, b->overlays_after);
 
   redisplay_region (b,
-		    OVERLAY_POSITION (OVERLAY_START (overlay)),
-		    OVERLAY_POSITION (OVERLAY_END   (overlay)));
+		    marker_position (OVERLAY_START (overlay)),
+		    marker_position (OVERLAY_END   (overlay)));
 
   Fset_marker (OVERLAY_START (overlay), Qnil, Qnil);
   Fset_marker (OVERLAY_END   (overlay), Qnil, Qnil);
@@ -1866,8 +1866,8 @@ DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
   CHECK_OVERLAY (overlay, 0);
 
   redisplay_region (XMARKER (OVERLAY_START (overlay))->buffer,
-		    OVERLAY_POSITION (OVERLAY_START (overlay)),
-		    OVERLAY_POSITION (OVERLAY_END   (overlay)));
+		    marker_position (OVERLAY_START (overlay)),
+		    marker_position (OVERLAY_END   (overlay)));
   
   plist = Fcdr_safe (XCONS (overlay)->cdr);
 
