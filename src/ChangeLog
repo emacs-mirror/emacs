@@ -1,3 +1,7 @@
+2003-07-07  Nozomu Ando  <nand@mac.com>  (tiny change)
+
+	* buffer.c (Fkill_buffer): Clear charpos cache if necessary.
+
 2003-06-10  Andreas Schwab  <schwab@suse.de>
 
 	* window.c (window_scroll_pixel_based): Move outside a

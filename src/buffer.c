@@ -1302,6 +1302,7 @@ with SIGHUP.")
 #endif /* CLASH_DETECTION */
 
   kill_buffer_processes (buf);
+  clear_charpos_cache (b);
 
   tem = Vinhibit_quit;
   Vinhibit_quit = Qt;
