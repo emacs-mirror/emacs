@@ -2363,7 +2363,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       && (unsigned) XINT (c) < 127)
     {
       Lisp_Object keys; 
-      int key_count = this_command_key_count - 1;
+      int key_count = this_command_key_count;
       int saved = current_kboard->immediate_echo;
       struct gcpro gcpro1;
 
