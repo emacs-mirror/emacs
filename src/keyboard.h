@@ -66,6 +66,13 @@ struct kboard
   {
     KBOARD *next_kboard;
 
+    /* If non-nil, a keymap that overrides all others but applies only to
+       this KBOARD.  Lisp code that uses this instead of calling read-char
+       can effectively wait for input in the any-kboard state, and hence
+       avoid blocking out the other KBOARDs.  See universal-argument in
+       lisp/simple.el for an example.  */
+    Lisp_Object Voverriding_terminal_local_map;
+
     /* Last command executed by the editor command loop, not counting
        commands that set the prefix argument.  */
     Lisp_Object Vlast_command;
