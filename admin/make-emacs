@@ -49,6 +49,7 @@ $rc = GetOptions ("help" => \$help,
 		  "malloc-check" => \$malloc_check,
 		  "no-mcheck" => \$no_mcheck,
 		  "alias" => \$aliasing,
+                  "boot" => \$boot,
 		  "wall" => \$wall,
 		  "gcc3" => \$gcc3,
 		  "trace-selection" => \$trace_selection,
@@ -64,6 +65,7 @@ Build Emacs.
 
  --help			show this help
  --all			make clean versionclean first
+ --boot			make boostrap, log to boot.log
  --enable-checking	ENABLE_CHECKING=1 (implies Lisp union type)
  --no-warn		disable warnings
  --check-marked		GC_CHECK_MARKED_OBJECTS=1
@@ -167,6 +169,13 @@ $opts = "$opts $warn" if $warn;
 
 $cc = "/usr/bin/gcc";
 $cc = "/gd/local/bin/gcc" if $gcc3;
+
+if ($boot)
+  {
+    chdir "..";
+    system "mv boot.log boot.log.old" if -f "boot.log";
+    exit system "script boot.log $make CC=\"$cc\" CFLAGS=\"$opts\" bootstrap";
+  }
 
 exit system "$make CC=\"$cc\" CFLAGS=\"$opts\" @ARGV";
 
