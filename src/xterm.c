@@ -10669,6 +10669,7 @@ XTread_socket (sd, bufp, numchars, expected)
 	      {
 		f = x_any_window_to_frame (dpyinfo, event.xcrossing.window);
 
+#if 0
 		if (event.xcrossing.focus)
 		  {
 		    /* Avoid nasty pop/raise loops.  */
@@ -10682,7 +10683,8 @@ XTread_socket (sd, bufp, numchars, expected)
 		  }
 		else if (f == dpyinfo->x_focus_frame)
 		  x_new_focus_frame (dpyinfo, 0);
-	      
+#endif
+
 		/* EnterNotify counts as mouse movement,
 		   so update things that depend on mouse position.  */
 		if (f && !f->output_data.x->hourglass_p)
@@ -10746,15 +10748,18 @@ XTread_socket (sd, bufp, numchars, expected)
 		      bufp += n, count += n, numchars -= n;
 		    }
 
+#if 0
 		  if (event.xcrossing.focus)
 		    x_mouse_leave (dpyinfo);
 		  else
 		    {
 		      if (f == dpyinfo->x_focus_event_frame)
 			dpyinfo->x_focus_event_frame = 0;
-		      if (f == dpyinfo->x_focus_frame)
+		      if (dpyinfo->x_focus_event_frame != 0
+			  && f == dpyinfo->x_focus_frame)
 			x_new_focus_frame (dpyinfo, 0);
 		    }
+#endif
 		}
 	      goto OTHER;
 
@@ -11516,7 +11521,7 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
       if (f != FRAME_X_DISPLAY_INFO (f)->x_highlight_frame
 	  || w != XWINDOW (f->selected_window))
 	{
-	  if (MINI_WINDOW_P (w)
+	  if ((MINI_WINDOW_P (w) && minibuf_level == 0)
 	      || !cursor_non_selected
 	      || NILP (XBUFFER (w->buffer)->cursor_type))
 	    new_cursor_type = NO_CURSOR;
