@@ -59,6 +59,7 @@ from START (inclusive) to END (exclusive)."
     (concat (substring string 0 start)
 	    (substring string end nil))))
 
+;;;###autoload
 (defun mail-quote-printable (string &optional wrapper)
   "Convert a string to the \"quoted printable\" Q encoding.
 If the optional argument WRAPPER is non-nil,
@@ -82,6 +83,7 @@ we add the wrapper characters =?ISO-8859-1?Q?....?=."
       (+ (- char ?A) 10)
     (- char ?0)))
 
+;;;###autoload
 (defun mail-unquote-printable (string &optional wrapper)
   "Undo the \"quoted printable\" encoding.
 If the optional argument WRAPPER is non-nil,
@@ -90,17 +92,46 @@ we expect to find and remove the wrapper characters =?ISO-8859-1?Q?....?=."
     (and wrapper
 	 (string-match "\\`=\\?ISO-8859-1\\?Q\\?\\([^?]*\\)\\?" string)
 	 (setq string (match-string 1 string)))
-    (let ((i 0) (result ""))
-      (while (string-match "=\\(..\\)" string i)
-	(setq result
-	      (concat result (substring string i (match-beginning 0))
-		      (make-string 1
+    (let ((i 0) strings)
+      (while (string-match "=\\(..\\|\n\\)" string i)
+	(setq strings (cons (substring string i (match-beginning 0)) strings))
+	(unless (= (aref string (match-beginning 1)) ?\n)
+	  (setq strings
+		(cons (make-string 1
 				   (+ (* 16 (mail-unquote-printable-hexdigit
 					     (aref string (match-beginning 1))))
 				      (mail-unquote-printable-hexdigit
-				       (aref string (1+ (match-beginning 1))))))))
+				       (aref string (1+ (match-beginning 1))))))
+		      strings)))
 	(setq i (match-end 0)))
-      (concat result (substring string i)))))
+      (apply 'concat (nreverse (cons (substring string i) strings))))))
+
+;;;###autoload
+(defun mail-unquote-printable-region (beg end &optional wrapper)
+  "Undo the \"quoted printable\" encoding in buffer from BEG to END.
+If the optional argument WRAPPER is non-nil,
+we expect to find and remove the wrapper characters =?ISO-8859-1?Q?....?=."
+  (interactive "r\nP")
+  (save-match-data
+    (save-excursion
+      (save-restriction
+	(narrow-to-region beg end)
+	(goto-char (point-min))
+	(when (and wrapper
+		   (looking-at "\\`=\\?ISO-8859-1\\?Q\\?\\([^?]*\\)\\?"))
+	  (delete-region (match-end 1) end)
+	  (delete-region (point) (match-beginning 1)))
+	(while (re-search-forward "=\\(..\\|\n\\)" nil t)
+	  (goto-char (match-end 0))
+	  (replace-match
+	   (if (= (char-after (match-beginning 1)) ?\n)
+	       ""
+	     (make-string 1
+			  (+ (* 16 (mail-unquote-printable-hexdigit
+				    (char-after (match-beginning 1))))
+			     (mail-unquote-printable-hexdigit
+			      (char-after (1+ (match-beginning 1)))))))
+	   t t))))))
 
 (defun mail-strip-quoted-names (address)
   "Delete comments and quoted strings in an address list ADDRESS.
