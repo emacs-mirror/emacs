@@ -80,8 +80,8 @@ extern struct direct *readdir ();
 
 #include "regex.h"
 
-/* A search buffer, with a fastmap allocated and ready to go.  */
-extern struct re_pattern_buffer searchbuf;
+/* Returns a search buffer, with a fastmap allocated and ready to go.  */
+extern struct re_pattern_buffer *compile_pattern ();
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
@@ -116,6 +116,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
   int length;
   Lisp_Object list, name, dirfilename;
   Lisp_Object handler;
+  struct re_pattern_buffer *bufp;
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -154,14 +155,14 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 	 catching and signalling our own errors, we just call
 	 compile_pattern to do the work for us.  */
 #ifdef VMS
-      compile_pattern (match, &searchbuf, 0,
-		       buffer_defaults.downcase_table->contents);
+      bufp = compile_pattern (match, 0,
+			      buffer_defaults.downcase_table->contents);
 #else
-      compile_pattern (match, &searchbuf, 0, 0);
+      bufp = compile_pattern (match, 0, 0);
 #endif
     }
 
-  /* Now searchbuf is the compiled form of MATCH; don't call anything
+  /* Now *bufp is the compiled form of MATCH; don't call anything
      which might compile a new regexp until we're done with the loop!  */
 
   /* Do this opendir after anything which might signal an error; if
@@ -186,7 +187,7 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
       if (DIRENTRY_NONEMPTY (dp))
 	{
 	  if (NILP (match)
-	      || (0 <= re_search (&searchbuf, dp->d_name, len, 0, len, 0)))
+	      || (0 <= re_search (bufp, dp->d_name, len, 0, len, 0)))
 	    {
 	      if (!NILP (full))
 		{
