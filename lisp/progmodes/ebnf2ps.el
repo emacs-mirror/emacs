@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/11/19 21:51:40 vinicius>
+;; Time-stamp: <2004/11/19 22:24:27 vinicius>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 4.2
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
@@ -393,7 +393,7 @@ Please send all bug fixes and enhancements to
 ;;    6.  A = B | .                ==>   A = [B].
 ;;    7.  A =   | B .              ==>   A = [B].
 ;;
-;; factoration:
+;; factorization:
 ;;    8.  A = B C | B D.           ==>   A = B (C | D).
 ;;    9.  A = C B | D B.           ==>   A = (C | D) B.
 ;;    10. A = B C E | B D E.       ==>   A = B (C | D) E.
@@ -1979,7 +1979,7 @@ The following optimizations are done:
    6.  A = B | .                ==>   A = [B].
    7.  A =   | B .              ==>   A = [B].
 
-   factoration:
+   factorization:
    8.  A = B C | B D.           ==>   A = B (C | D).
    9.  A = C B | D B.           ==>   A = (C | D) B.
    10. A = B C E | B D E.       ==>   A = B (C | D) E.
