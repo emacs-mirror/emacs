@@ -166,10 +166,10 @@ extern int evalcost ();
 extern struct tty_output *current_tty;
 extern void cmcheckmagic P_ ((struct tty_output *));
 extern int cmputc P_ ((int));
-extern void cmcostinit P_ ((struct tty_output *tty));
+extern void cmcostinit P_ ((struct tty_output *));
 extern void cmgoto P_ ((struct tty_output *, int, int));
-extern void Wcm_clear P_ ((struct tty_output *tty));
-extern int Wcm_init P_ ((struct tty_output *tty));
+extern void Wcm_clear P_ ((struct tty_output *));
+extern int Wcm_init P_ ((struct tty_output *));
 
 /* arch-tag: acc1535a-7136-49d6-b22d-9bc85702251b
    (do not change this comment) */

@@ -28,7 +28,8 @@ Basic multi-tty support is there; there are some rough edges, but it
 already seems to be usable.  Emacsclient has been extended to support
 opening a new terminal frame.
 
-To try it out, compile Emacs with the following commands
+To try it out, compile the multi-tty branch with the following
+commands:
 
    	mkdir +build
 	cd +build
@@ -38,17 +39,24 @@ To try it out, compile Emacs with the following commands
 then start up the emacs server (src/emacs, M-x server-start), and then
 (from a shell prompt on another terminal) start emacsclient with
 
-	lib-src/emacsclient -h
+	lib-src/emacsclient -h  /optional/file/names...
 
-You'll hopefully have two fully working frames on separate terminals.
-If you exit emacs, both terminals should be restored to their previous
-states.  You can close the newly opened frame and return to the shell
-without exiting Emacs by pressing C-x 5 0, i.e., delete-frame.
+You'll hopefully have two fully working, independent frames on
+separate terminals.  (This seems to be very useful, emacsclient starts
+up even faster than vi!) :-) You can close the newly opened frame and
+return to the shell without exiting Emacs by pressing C-x 5 0, i.e.,
+delete-frame.  (Note that this does not seem to work yet on the
+original terminal.)  Creating new frames on the same tty with C-x 5 2
+works exactly as before.  Suspending Emacs is disabled at the moment.
+If you exit emacs, all terminals should be restored to their previous
+states.
 
 X, Mac, Windows and DOS support is broken, probably doesn't even
-compile -- this will be solved later.
+compile -- this will be solved later.  Please see the attached README
+for other issues, implementation notes and sub-TODO items.
 
-Tested under GNU/Linux only.
+Only tested on my GNU/Linux box.
+
 
 NEWS
 ----

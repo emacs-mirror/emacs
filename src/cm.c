@@ -134,8 +134,7 @@ addcol (tty, n) {
  * after we reach the last column; this takes us to a known state.
  */
 void
-cmcheckmagic (tty)
-     struct tty_output *tty;
+cmcheckmagic (struct tty_output *tty)
 {
   if (curX (tty) == FrameCols (tty))
     {

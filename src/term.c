@@ -917,18 +917,19 @@ insert_glyphs (start, len)
 {
   char *buf;
   struct glyph *glyph = NULL;
-  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
+  struct frame *f;
   struct tty_output *tty;
   
   if (len <= 0)
     return;
 
-  if (insert_glyphs_hook  && ! FRAME_TERMCAP_P (f))
+  if (insert_glyphs_hook)
     {
       (*insert_glyphs_hook) (start, len);
       return;
     }
 
+  f = (updating_frame ? updating_frame : XFRAME (selected_frame));  
   tty = FRAME_TTY (f);
 
   if (tty->TS_ins_multi_chars)
@@ -2156,11 +2157,9 @@ term_init (name, terminal_type)
       tty_list = tty;
     }
 
-  if (tty->Wcm)
-    Wcm_clear (tty);
-  else
-    tty->Wcm = (struct cm *) xmalloc (sizeof (struct cm));
-  
+  if (! tty->Wcm)
+      tty->Wcm = (struct cm *) xmalloc (sizeof (struct cm));
+
   if (name)
     {
       int fd;
@@ -2676,24 +2675,6 @@ delete_tty (struct tty_output *tty)
 {
   Lisp_Object tail, frame;
 
-  FOR_EACH_FRAME (tail, frame)
-    {
-      struct frame *f = XFRAME (frame);
-      if (FRAME_LIVE_P (f) && FRAME_TTY (f) == tty)
-        {
-          Fdelete_frame (frame, Qt);
-          f->output_data.tty = 0;
-        }
-    }
-  
-  /* Close the terminal and free memory. */
-  delete_tty_1 (tty);
-}
-
-static void
-delete_tty_1 (struct tty_output *tty)
-{
-
   if (tty == tty_list)
     tty_list = tty->next;
   else
@@ -2709,13 +2690,25 @@ delete_tty_1 (struct tty_output *tty)
       p->next = p->next->next;
     }
 
+  FOR_EACH_FRAME (tail, frame)
+    {
+      struct frame *f = XFRAME (frame);
+      if (FRAME_LIVE_P (f) && FRAME_TTY (f) == tty)
+        {
+          Fdelete_frame (frame, Qt);
+          f->output_data.tty = 0;
+        }
+    }
+  
   /* This hangs. */
-  /*  reset_sys_modes (tty); */
+  /*
+  reset_sys_modes (tty);
 
-    if (tty->name)
+  if (tty->name)
     xfree (tty->name);
   if (tty->type)
     xfree (tty->type);
+  */
   if (tty->input)
     fclose (tty->input);
   if (tty->output)
@@ -2723,9 +2716,19 @@ delete_tty_1 (struct tty_output *tty)
   if (tty->termscript)
     fclose (tty->termscript);
 
+  tty->input = 0;
+  tty->output = 0;
+  tty->termscript = 0;
+  
   /*
   if (tty->old_tty)
-    xfree (tty->old_tty);
+    {
+      memset (tty->old_tty, 'Z', sizeof (struct emacs_tty));
+      tty->old_tty = 0;
+    }
+  
+    
+    /*    xfree (tty->old_tty);
 
     if (tty->Wcm)
     {
