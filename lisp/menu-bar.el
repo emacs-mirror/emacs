@@ -1017,7 +1017,7 @@ key (or menu-item)"))
 				       "List All Buffers"))
 		       ;; Now make the actual list of items,
 		       ;; ending with the list-buffers item.
-		       (nconc (mapcar '(lambda (pair)
+		       (nconc (mapcar (lambda (pair)
 					 ;; This is somewhat risque, to use
 					 ;; the buffer name itself as the event
 					 ;; type to define, but it works.
@@ -1040,7 +1040,7 @@ key (or menu-item)"))
 		   (frames-menu
 		    (cons 'keymap
 			  (cons "Select Frame"
-				(mapcar '(lambda (frame)
+				(mapcar (lambda (frame)
 					   (nconc (list frame
 							(cdr (assq 'name
 								   (frame-parameters frame)))
