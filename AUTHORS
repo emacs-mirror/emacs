@@ -63,14 +63,8 @@ Andreas Jaeger (changed) gnus-xmas.el
 Andreas Luik (changed) xfns.c
 Andreas Luik (changed) xterm.c
 Andreas Schwab (changed) [more than 20 files]
-Andrew Choi (changed) callproc.c
-Andrew Choi (changed) dispextern.h
-Andrew Choi (changed) frame.c
-Andrew Choi (changed) frame.h
-Andrew Choi (changed) keyboard.c
-Andrew Choi (changed) make-docfiles.c
-Andrew Choi (changed) sysdep.c
-Andrew Choi (changed) xfaces.c
+Andrew Choi (changed) [more than 20 files]
+Andrew Choi (wrote) mac-win.el
 Andrew Csillag (wrote) m4-mode.el
 Andrew Hall (changed) paren.el
 Andrew Innes (changed) [more than 20 files]
@@ -113,7 +107,7 @@ Bill Richter (changed) quail.el
 Bill Rosenblatt (wrote) float.el
 Bill Rozas (changed) xscheme.el
 Bill Rozas (wrote) scheme.el
-Björn Torkelsson (changed) rfc2047.el
+Bj,Av(Brn Torkelsson (changed) rfc2047.el
 Boaz Ben-Zvi (wrote) profile.el
 Bob Glickstein (changed) sendmail.el
 Bob Glickstein (wrote) sregex.el
@@ -273,6 +267,7 @@ Dave Love (wrote) hl-line.el
 Dave Love (wrote) latin-8.el
 Dave Love (wrote) latin-9.el
 Dave Love (wrote) latin1-disp.el
+Dave Love (wrote) refill.el
 Dave Love (wrote) smiley-ems.el
 Dave Love (wrote) tool-bar.el
 Dave Pearson (changed) [more than 20 files]
@@ -292,7 +287,7 @@ David J. Mackenzie (changed) [more than 20 files]
 David Kegedal (changed) sendmail.el
 David K}Gedal (changed) sendmail.el
 David K}Gedal (wrote) tempo.el
-David Kågedal (changed) xmenu.c
+David K,Ae(Bgedal (changed) xmenu.c
 David Lawrence (changed) [more than 20 files]
 David M Smith (changed) ielm.el
 David M. Koppelman (wrote) hi-lock.el
@@ -506,17 +501,17 @@ Francisco Solsona (changed) message.el
 Francois Felix Ingrand (changed) gnus-salt.el
 Francois Felix Ingrand (changed) gnus-start.el
 Frank Bennett (changed) nnmail.el
-François Pinard (changed) allout.el
-François Pinard (changed) bytecomp.el
-François Pinard (changed) gnus
-François Pinard (changed) gnus-sum.el
-François Pinard (changed) gnus-util.el
-François Pinard (changed) gnus-uu.el
-François Pinard (changed) gnus-win.el
-François Pinard (changed) nndoc.el
-François Pinard (changed) nnmail.el
-François Pinard (changed) rmailsum.el
-François Pinard (changed) timezone.el
+Fran,Ag(Bois Pinard (changed) allout.el
+Fran,Ag(Bois Pinard (changed) bytecomp.el
+Fran,Ag(Bois Pinard (changed) gnus
+Fran,Ag(Bois Pinard (changed) gnus-sum.el
+Fran,Ag(Bois Pinard (changed) gnus-util.el
+Fran,Ag(Bois Pinard (changed) gnus-uu.el
+Fran,Ag(Bois Pinard (changed) gnus-win.el
+Fran,Ag(Bois Pinard (changed) nndoc.el
+Fran,Ag(Bois Pinard (changed) nnmail.el
+Fran,Ag(Bois Pinard (changed) rmailsum.el
+Fran,Ag(Bois Pinard (changed) timezone.el
 Fred Fish (changed) linux.h
 Fred Oberhauser (changed) nnmail.el
 Frederic Lepied (changed) gnus.el
@@ -843,13 +838,16 @@ K. Shane Hartman (wrote) emacsbug.el
 K. Shane Hartman (wrote) helper.el
 K. Shane Hartman (wrote) picture.el
 K. Shane Hartman (wrote) view.el
+Kai Grossjohann (changed) frames.texi
+Kai Grossjohann (changed) hooks.texi
 Kai Grossjohann (changed) nnheader.el
-Kai Großjohann (changed) gnus-cus.el
-Kai Großjohann (changed) gnus-sum.el
-Kai Großjohann (changed) gnus-util.el
-Kai Großjohann (changed) message.el
-Kai Großjohann (changed) nnimap.el
-Kai Großjohann (changed) nnmail.el
+Kai Grossjohann (changed) variables.texi
+Kai Gro,A_(Bjohann (changed) gnus-cus.el
+Kai Gro,A_(Bjohann (changed) gnus-sum.el
+Kai Gro,A_(Bjohann (changed) gnus-util.el
+Kai Gro,A_(Bjohann (changed) message.el
+Kai Gro,A_(Bjohann (changed) nnimap.el
+Kai Gro,A_(Bjohann (changed) nnmail.el
 Karl Berry (changed) compile.el
 Karl Berry (changed) dired.c
 Karl Berry (changed) filelock.c
@@ -911,23 +909,6 @@ Keisuke Nishida (changed) print.c
 Keith Gabryelski (wrote) hexl.el
 Ken  Manheimer (changed) allout.el
 Ken Laprade (changed) simple.el
-Ken Manheimer (changed) Added
-Ken Manheimer (changed) `icomplete-get-keys'
-Ken Manheimer (changed) as
-Ken Manheimer (changed) behavior
-Ken Manheimer (changed) completions
-Ken Manheimer (changed) customization
-Ken Manheimer (changed) delay
-Ken Manheimer (changed) don't
-Ken Manheimer (changed) for
-Ken Manheimer (changed) icomplete
-Ken Manheimer (changed) input
-Ken Manheimer (changed) intrude
-Ken Manheimer (changed) quickly
-Ken Manheimer (changed) short
-Ken Manheimer (changed) so
-Ken Manheimer (changed) variables
-Ken Manheimer (changed) with
 Ken Manheimer (wrote) allout.el
 Ken Manheimer (wrote) icomplete.el
 Ken Raeburn (changed) [more than 20 files]
@@ -939,8 +920,6 @@ Kenichi Handa (wrote) ps-print.el
 Kenichi Handa (wrote) py-punct.el
 Kenichi Handa (wrote) pypunct-b5.el
 Kenichi Handa (wrote) quail.el
-Kenneth Manheimer (changed) allout.el
-Kenneth Manheimer (changed) icomplete.el
 Kenneth Stailey (changed) alpha.h
 Kenneth Stailey (changed) configure.in
 Kenneth Stailey (changed) ns32000.h
@@ -1901,3 +1880,7 @@ Yutaka Niibe (changed) xdisp.c
 Zhu Shenghuo (changed) gnus-art.el
 Zhu Shenghuo (changed) gnus-cus.el
 Zhu Shenghuo (changed) mm-decode.el
+
+Local Variables:
+coding: iso-2022-7bit
+End:
