@@ -1337,6 +1337,7 @@ on a buffer attached to the file named in the current Dired buffer line."
 Normally it creates a Dired buffer that lists only the locked files
 in all these directories.  With a prefix argument, it lists all files."
   (interactive "DDired under VC (directory): \nP")
+  (require 'dired)
   (setq dirname (expand-file-name dirname))
   ;; force a trailing slash
   (if (not (eq (elt dirname (1- (length dirname))) ?/))
@@ -1577,9 +1578,10 @@ the file on the branch you are editing."
   (while vc-parent-buffer
       (pop-to-buffer vc-parent-buffer))
   (let ((file buffer-file-name)
+	;; This operation should always ask for confirmation.
+	(vc-suppress-confirm nil)
 	(obuf (current-buffer)) (changed (vc-diff nil t)))
-    (if (and changed (or vc-suppress-confirm
-			 (not (yes-or-no-p "Discard changes? "))))
+    (if (and changed (not (yes-or-no-p "Discard changes? ")))
 	(progn
 	  (if (and (window-dedicated-p (selected-window))
 		   (one-window-p t 'selected-frame))
