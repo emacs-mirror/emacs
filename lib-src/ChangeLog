@@ -1,3 +1,7 @@
+2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* COPYING: Removed.
+
 2001-11-28  Paul Eggert  <eggert@twinsun.com>
 
 	* rcs2log (Copyright): Add '(C)' as per coding guidelines.

@@ -1,3 +1,7 @@
+2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* COPYING: Removed.
+
 2001-11-29  Dave Love  <fx@gnu.org>
 
 	* coding.c (syms_of_coding) <Qchar_coding_system>: Give it an
