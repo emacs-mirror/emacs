@@ -639,6 +639,8 @@ size, you can use \\[font-lock-fontify-buffer]."
 	   (font-lock-unfontify-region (point-min) (point-max))
 	   (font-lock-thing-lock-cleanup))
 	  (t
+	   (remove-hook 'before-revert-hook 'font-lock-revert-setup)
+	   (remove-hook 'after-revert-hook 'font-lock-revert-cleanup)
 	   (font-lock-thing-lock-cleanup)))
     (force-mode-line-update)))
 
@@ -648,6 +650,9 @@ size, you can use \\[font-lock-fontify-buffer]."
   (font-lock-mode 1))
 
 ;; Turn off other related packages if they're on.  I prefer a hook.
+;; These explicit calls are easier to understand
+;; because people know what they will do.
+;; A hook is a mystery because it might do anything whatever. -- rms.
 (defun font-lock-thing-lock-cleanup ()
   (cond ((and (boundp 'fast-lock-mode) fast-lock-mode)
 	 (fast-lock-mode -1))
@@ -661,17 +666,14 @@ size, you can use \\[font-lock-fontify-buffer]."
 	((and (boundp 'lazy-lock-mode) lazy-lock-mode)
 	 (lazy-lock-after-fontify-buffer))))
 
-;; If the buffer is about to be reverted, it won't be fontified.
+;; If the buffer is about to be reverted, it won't be fontified afterward.
 (defun font-lock-revert-setup ()
   (setq font-lock-fontified nil))
 
-;; If the buffer has just been reverted, we might not even be in font-lock
-;; mode anymore, and if we are, the buffer may or may not have already been
-;; refontified.  Refontify here if it looks like we need to.
+;; If the buffer has just been reverted, normally that turns off
+;; Font Lock mode.  So turn the mode back on if necessary.
 (defun font-lock-revert-cleanup ()
-  (and font-lock-mode
-       (not font-lock-fontified)
-       (font-lock-mode 1)))
+  (font-lock-mode 1))
 
 ;;;###autoload
 (defun font-lock-fontify-buffer ()
