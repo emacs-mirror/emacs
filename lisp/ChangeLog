@@ -1,3 +1,11 @@
+2005-02-07  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-prog.el (calc-write-parse-table-part)
+	(calc-fix-token-name): Fix a check for language type.
+
+	* calc/calccomp.el (math-compose-expr): Fix a check for language
+	type.
+
 2005-02-07  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-hooks.el (vc-make-version-backup): Ignore file-errors such
