@@ -2,7 +2,7 @@
  *
  *                  ALLOCATION BUFFER IMPLEMENTATION
  *
- *  $HopeName: MMsrc!buffer.c(trunk.4) $
+ *  $HopeName: MMsrc!buffer.c(trunk.5) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -43,7 +43,7 @@
 #include "shield.h"
 #include "trace.h"
 
-SRCID("$HopeName");
+SRCID("$HopeName$");
 
 
 static SigStruct BufferSigStruct;
@@ -271,6 +271,8 @@ Error BufferFill(Addr *pReturn, Buffer buffer, Addr size)
   e = (*buffer->fill)(pReturn, buffer, size);
   
   AVER(ISVALID(Buffer, buffer));
+
+  SpacePoll(BufferSpace(buffer));
 
   return e;
 }
