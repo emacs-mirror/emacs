@@ -11649,6 +11649,7 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
   struct frame *f = XFRAME (w->frame);
   int new_cursor_type;
   int new_cursor_width;
+  int cursor_off_state = 0;
   struct glyph_matrix *current_glyphs;
   struct glyph_row *glyph_row;
   struct glyph *glyph;
@@ -11688,51 +11689,60 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
      marked off, draw no cursor.  In all other cases, we want a hollow
      box cursor.  */
   new_cursor_width = -1;
+  new_cursor_type = -2;
+
+  /* Echo area */
   if (cursor_in_echo_area
       && FRAME_HAS_MINIBUF_P (f)
       && EQ (FRAME_MINIBUF_WINDOW (f), echo_area_window))
     {
       if (w == XWINDOW (echo_area_window))
 	new_cursor_type = FRAME_DESIRED_CURSOR (f);
-      else if (!NILP (Fbuffer_local_value (Qcursor_in_non_selected_windows,
-					   w->buffer)))
+      else if (NILP (Fbuffer_local_value (Qcursor_in_non_selected_windows,
+					  w->buffer)))
+	new_cursor_type = NO_CURSOR;
+      else
+	cursor_off_state = 1;
+    }
+
+  /* Nonselected window or nonselected frame.  */
+  else if (f != FRAME_X_DISPLAY_INFO (f)->x_highlight_frame
+	   || w != XWINDOW (f->selected_window))
+    {
+      if ((MINI_WINDOW_P (w) && minibuf_level == 0)
+	  || NILP (Fbuffer_local_value (Qcursor_in_non_selected_windows,
+					w->buffer))
+	  || NILP (XBUFFER (w->buffer)->cursor_type))
+	new_cursor_type = NO_CURSOR;
+      else
+	cursor_off_state = 1;
+    }
+
+  /* If new_cursor_type isn't decided yet, decide it now.  */
+  if (new_cursor_type == -2)
+    {
+      struct buffer *b = XBUFFER (w->buffer);
+
+      if (EQ (b->cursor_type, Qt))
+	new_cursor_type = FRAME_DESIRED_CURSOR (f);
+      else
+	new_cursor_type = x_specified_cursor_type (b->cursor_type, 
+						   &new_cursor_width);
+    }
+
+  /* Dim out or hollow out the cursor,
+     if it has blinked off or for nonselected windows.  */
+  if (w->cursor_off_p || cursor_off_state)
+    {
+      if (new_cursor_type == FILLED_BOX_CURSOR)
 	new_cursor_type = HOLLOW_BOX_CURSOR;
+      else if (new_cursor_type == BAR_CURSOR && new_cursor_width > 1)
+	new_cursor_width = 1;
       else
 	new_cursor_type = NO_CURSOR;
     }
-  else
-    {
-      if (f != FRAME_X_DISPLAY_INFO (f)->x_highlight_frame
-	  || w != XWINDOW (f->selected_window))
-	{
-	  if ((MINI_WINDOW_P (w) && minibuf_level == 0)
-	      || NILP (Fbuffer_local_value (Qcursor_in_non_selected_windows,
-					    w->buffer))
-	      || NILP (XBUFFER (w->buffer)->cursor_type))
-	    new_cursor_type = NO_CURSOR;
-	  else
-	    new_cursor_type = HOLLOW_BOX_CURSOR;
-	}
-      else
-	{
-	  struct buffer *b = XBUFFER (w->buffer);
 
-	  if (EQ (b->cursor_type, Qt))
-	    new_cursor_type = FRAME_DESIRED_CURSOR (f);
-	  else
-	    new_cursor_type = x_specified_cursor_type (b->cursor_type, 
-						       &new_cursor_width);
-	  if (w->cursor_off_p)
-	    {
-	      if (new_cursor_type == FILLED_BOX_CURSOR)
-		new_cursor_type = HOLLOW_BOX_CURSOR;
-	      else if (new_cursor_type == BAR_CURSOR && new_cursor_width > 1)
-		new_cursor_width = 1;
-	      else
-		new_cursor_type = NO_CURSOR;
-	    }
-	}
-    }
+  /* Now new_cursor_type is correct.  */
 
   /* If cursor is currently being shown and we don't want it to be or
      it is in the wrong place, or the cursor type is not what we want,
