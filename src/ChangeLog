@@ -1,3 +1,20 @@
+2000-10-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (x_to_xcolors, x_set_mouse_color, lookup_pixel_color)
+	(x_to_xcolors, png_load): Use x_query_color.
+
+	* xterm.c (x_color_cells, x_query_colors, x_query_color): New
+	functions.
+	(x_alloc_nearest_color): Use it to reduce calls to XQueryColors
+	which can be slow.
+	(x_copy_color, x_alloc_lighter_color): Likewise.
+
+	* xterm.h (struct x_display_info): Add color_cells and ncolor_cells.
+	(x_query_color, x_query_colors): Add prototype.
+
+	* alloc.c (allocate_string) [GC_CHECK_STRING_BYTES]: Call
+	check_string_bytes only if not noninteractive, increase count to 50.
+
 2000-10-18  Miles Bader  <miles@lsi.nec.co.jp>
 
 	* insdel.c (adjust_markers_for_delete): Handle before-insertion
