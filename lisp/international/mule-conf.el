@@ -527,9 +527,24 @@ encode each character in this charset.  NOCTETS can be 0 (meaning the number
 of octets per character is variable), 1, 2, 3, or 4.")
 
 (defun ctext-pre-write-conversion (from to)
-  "Encode characters between FROM and TO as Compound Text w/Extended Segments."
-  (buffer-disable-undo)	; minimize consing due to insertions and deletions
-  (narrow-to-region from to)
+  "Encode characters between FROM and TO as Compound Text w/Extended Segments.
+
+If FROM is a string, or if the current buffer is not the one set up for us
+by run_pre_post_conversion_on_str, generate a new temp buffer, insert the
+text, and convert it in the temporary buffer.  Otherwise, convert in-place."
+  (cond ((and (string= (buffer-name) " *code-converting-work*")
+	      (not (stringp from)))
+	 ; Minimize consing due to subsequent insertions and deletions.
+	 (buffer-disable-undo)
+	 (narrow-to-region from to))
+	(t
+	 (let ((buf (current-buffer)))
+	   (set-buffer (generate-new-buffer " *temp"))
+	   (buffer-disable-undo)
+	   (if (stringp from)
+	       (insert from)
+	     (insert-buffer-substring buf from to))
+	   (setq from (point-min) to (point-max)))))
   (encode-coding-region from to 'ctext-no-compositions)
   ;; Replace ISO-2022 charset designations with extended segments, for
   ;; those charsets that are not part of the official X registry.
