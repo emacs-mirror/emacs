@@ -713,6 +713,7 @@ static struct x_frame_parm_table x_frame_parms[] =
 /* Attach the `x-frame-parameter' properties to
    the Lisp symbol names of parameters relevant to X.  */
 
+void
 init_x_parm_symbols ()
 {
   int i;
@@ -1620,10 +1621,6 @@ x_set_icon_name (f, arg, oldval)
   UNBLOCK_INPUT;
 }
 
-extern Lisp_Object x_new_font ();
-extern Lisp_Object x_new_fontset ();
-extern Lisp_Object Fquery_fontset ();
-
 void
 x_set_font (f, arg, oldval)
      struct frame *f;
@@ -2948,6 +2945,7 @@ x_window (f, window_prompting, minibuffer_only)
 
 /* Create and set up the X window for frame F.  */
 
+void
 x_window (f)
      struct frame *f;
 
@@ -5220,6 +5218,7 @@ x_sync (f)
   UNBLOCK_INPUT;
 }
 
+void
 syms_of_xfns ()
 {
   /* This is zero if not using X windows.  */
