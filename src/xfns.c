@@ -314,7 +314,7 @@ x_any_window_to_frame (dpyinfo, wdesc)
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
-      if (f->display.nothing == 1 || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
+      if (f->output_data.nothing == 1 || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
       x = f->output_data.x;
       /* This frame matches if the window is any of its widgets.  */
@@ -346,7 +346,7 @@ x_non_menubar_window_to_frame (dpyinfo, wdesc)
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
-      if (f->display.nothing == 1 || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
+      if (f->output_data.nothing == 1 || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
       x = f->output_data.x;
       /* This frame matches if the window is any of its widgets.  */
@@ -375,7 +375,7 @@ x_menubar_window_to_frame (dpyinfo, wdesc)
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
-      if (f->display.nothing == 1 || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
+      if (f->output_data.nothing == 1 || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
       x = f->output_data.x;
       /* Match if the window is this frame's menubar.  */
@@ -403,7 +403,7 @@ x_top_window_to_frame (dpyinfo, wdesc)
       if (!GC_FRAMEP (frame))
         continue;
       f = XFRAME (frame);
-      if (f->display.nothing == 1 || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
+      if (f->output_data.nothing == 1 || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
       x = f->output_data.x;
       /* This frame matches if the window is its topmost widget.  */

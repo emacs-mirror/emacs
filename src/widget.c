@@ -630,7 +630,7 @@ static void
 update_various_frame_slots (ew)
      EmacsFrame ew;
 {
-  struct x_display* x = ew->emacs_frame.frame->output_data.x;
+  struct x_output *x = ew->emacs_frame.frame->output_data.x;
   x->pixel_height = ew->core.height;
   x->pixel_width = ew->core.width;
   x->internal_border_width = ew->emacs_frame.internal_border_width;
@@ -641,7 +641,7 @@ static void
 update_from_various_frame_slots (ew)
      EmacsFrame ew;
 {
-  struct x_display* x = ew->emacs_frame.frame->output_data.x;
+  struct x_output *x = ew->emacs_frame.frame->output_data.x;
   ew->core.height = x->pixel_height;
   ew->core.width = x->pixel_width;
   ew->core.background_pixel = x->background_pixel;
