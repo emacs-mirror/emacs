@@ -1,3 +1,7 @@
+2000-12-06  Dave Love  <fx@gnu.org>
+
+	* strftime.c: Change some #if foo to #ifdef foo.
+
 2000-12-06  Andrew Innes  <andrewi@gnu.org>
 
 	* w32term.h (CP_INVALID): Rename to CP_UNKNOWN.
