@@ -1,15 +1,14 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.87) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!trace.c(trunk.88) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .design: design.mps.trace.
  */
 
 #include "mpm.h"
 
-
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.87) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.88) $");
 
 
 /* Types
@@ -350,20 +349,21 @@ static void TraceSetSignalEmergency(TraceSet ts, Arena arena)
 }
 
 
-/* Collection control parameters @@@@ */
+/* Collection control parameters */
+
 /* Defined here, because they are used by more than one module (pool). */
 /* They have the wrong name because they originally came from AMC, and */
-/* binary compatibility is required. */
+/* binary compatibility was required for ASG. @@@@ */
 
-unsigned long AMCGen0Frequency = 4;
-unsigned long AMCGen1Frequency = 32;
-unsigned long AMCGen2Frequency = 200;
-unsigned long AMCGen2plusFrequencyMultiplier = 1000;
-unsigned long AMCGen0RampmodeFrequency = 4;
-unsigned long AMCGen1RampmodeFrequency = 20;
-unsigned long AMCRampGenFrequency = 300;
-unsigned long AMCGen2RampmodeFrequency = 1000;
-unsigned long AMCGen2plusRampmodeFrequencyMultiplier = 1000;
+unsigned long AMCGen0Frequency = 4000uL;
+unsigned long AMCGen1Frequency = 32000uL;
+unsigned long AMCGen2Frequency = 200000uL;
+unsigned long AMCGen2plusFrequencyMultiplier = 1000uL;
+unsigned long AMCGen0RampmodeFrequency = 4000uL;
+unsigned long AMCGen1RampmodeFrequency = 20000uL;
+unsigned long AMCRampGenFrequency = 300000uL;
+unsigned long AMCGen2RampmodeFrequency = 1000000uL;
+unsigned long AMCGen2plusRampmodeFrequencyMultiplier = 1000000uL;
 Serial AMCRampGenFollows = 1;
 Serial AMCGenFinal = 0; /* default: no final generation */
 
@@ -374,7 +374,9 @@ double TraceMortalityEstimate = 0.5;
 /* TraceSetWhiteUnion
  *
  * Returns a RefSet describing the union of the white sets
- * of all the specified traces. */
+ * of all the specified traces.
+ */
+
 static RefSet TraceSetWhiteUnion(TraceSet ts, Arena arena)
 {
   TraceId ti;
