@@ -1767,7 +1767,10 @@ This is what happens in interactive use with M-x.")
     {
       if (errno == EXDEV)
 	{
-	  Fcopy_file (filename, newname, ok_if_already_exists, Qt);
+	  Fcopy_file (filename, newname,
+		      /* We have already prompted if it was an integer,
+			 so don't have copy-file prompt again.  */
+		      NILP (ok_if_already_exists) ? Qnil : Qt, Qt);
 	  Fdelete_file (filename);
 	}
       else
