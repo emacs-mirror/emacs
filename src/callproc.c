@@ -787,6 +787,12 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 		size = decoding_buffer_size (&process_coding, nread);
 		decoding_buf = (char *) xmalloc (size);
 		
+		if (CODING_REQUIRE_DETECTION (&process_coding))
+		  {
+		    detect_coding (&process_coding, bufptr, nread);
+		    if (process_coding.composing != COMPOSITION_DISABLED)
+		      coding_allocate_composition_data (&process_coding, PT);
+		  }
 		if (process_coding.cmp_data)
 		  process_coding.cmp_data->char_offset = PT;
 		
