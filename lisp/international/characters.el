@@ -337,7 +337,7 @@
 
 (modify-category-entry (make-char 'indian-is13194) ?i)
 (modify-category-entry (make-char 'indian-2-column) ?I)
-(modify-category-entry (make-char 'indian-1-column) ?I)
+(modify-category-entry (make-char 'indian-glyph) ?I)
 
 (let ((deflist	
 	'(;; chars	syntax	category
@@ -797,7 +797,7 @@
 	   (lao			. lao)
 	   (arabic-2-column	. iso-2022-7bit)
 	   (indian-is13194	. devanagari)
-	   (indian-1-column	. devanagari)
+	   (indian-glyph	. devanagari)
 	   (tibetan-1-column	. tibetan)
 	   (ethiopic		. iso-2022-7bit)
 	   (chinese-cns11643-3	. iso-2022-cn)
