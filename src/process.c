@@ -67,6 +67,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif /* HAVE_PTYS and no O_NDELAY */
 #endif /* BSD or STRIDE */
 
+#ifdef BROKEN_O_NONBLOCK
+#undef O_NONBLOCK
+#endif /* BROKEN_O_NONBLOCK */
+
 #ifdef NEED_BSDTTY
 #include <bsdtty.h>
 #endif
@@ -586,7 +590,7 @@ nil, indicating the current buffer's process.")
 {
   register struct Lisp_Process *p;
   register Lisp_Object status;
-  proc = Fget_process (proc);
+  proc = get_process (proc);
   if (NILP (proc))
     return proc;
   p = XPROCESS (proc);
@@ -1264,10 +1268,19 @@ create_process (process, new_argv, current_dir)
 	   This makes the pty the controlling terminal of the subprocess.  */
 	if (pty_flag)
 	  {
+#ifdef SET_CHILD_PTY_PGRP
+	    int pgrp = getpid ();
+#endif
+
 	    /* I wonder if close (open (pty_name, ...)) would work?  */
 	    if (xforkin >= 0)
 	      close (xforkin);
 	    xforkout = xforkin = open (pty_name, O_RDWR, 0);
+
+#ifdef SET_CHILD_PTY_PGRP
+	    ioctl (xforkin, TIOCSPGRP, &pgrp);
+	    ioctl (xforkout, TIOCSPGRP, &pgrp);
+#endif
 
 	    if (xforkin < 0)
 	      abort ();
@@ -1318,20 +1331,9 @@ create_process (process, new_argv, current_dir)
   stop_polling ();
   signal (SIGALRM, create_process_1);
   alarm (1);
-#ifdef SYSV4_PTYS
-  /* OK to close only if it's not a pty.  Otherwise we need to leave
-     it open for ioctl to get pgrp when signals are sent, or to send
-     the interrupt characters through if that's how we're signalling
-     subprocesses.  Alternately if you are concerned about running out
-     of file descriptors, you could just save the tty name and open
-     just to do the ioctl.  */
-  if (NILP (XFASTINT (XPROCESS (process)->pty_flag)))
-#endif
-    {
-      XPROCESS (process)->subtty = Qnil;
-      if (forkin >= 0)
-	close (forkin);
-    }
+  XPROCESS (process)->subtty = Qnil;
+  if (forkin >= 0)
+    close (forkin);
   alarm (0);
   start_polling ();
   if (forkin != forkout && forkout >= 0)
@@ -1524,10 +1526,6 @@ deactivate_process (proc)
       close (inchannel);
       if (outchannel >= 0 && outchannel != inchannel)
  	close (outchannel);
-#ifdef SYSV4_PTYS
-      if (!NILP (p->subtty))
-        close (XINT (p->subtty));
-#endif
 #endif
 
       XSET (p->infd, Lisp_Int, -1);
@@ -1709,6 +1707,10 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       EMACS_SET_SECS_USECS (timeout, time_limit, microsecs);
       EMACS_ADD_TIME (end_time, end_time, timeout);
     }
+
+  /* It would not be safe to call this below,
+     where we call redisplay_preserve_echo_area.  */
+  prepare_menu_bars ();
 
   while (1)
     {
@@ -3136,6 +3138,9 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
   else
     /* It's infinite.  */
     timeout_p = 0;
+
+  /* This must come before stop_polling.  */
+  prepare_menu_bars ();
 
   /* Turn off periodic alarms (in case they are in use)
      because the select emulator uses alarms.  */
