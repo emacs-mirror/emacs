@@ -8586,7 +8586,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		  /* Record that a fake prefix key has been generated
 		     for KEY.  Don't modify the event; this would
 		     prevent proper action when the event is pushed
-		     back tino unread-command-events.  */
+		     back into unread-command-events.  */
 		  fake_prefixed_keys = Fcons (key, fake_prefixed_keys);
 
 		  /* If on a mode line string with a local keymap,
