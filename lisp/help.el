@@ -66,7 +66,7 @@
 (define-key help-map "n" 'view-emacs-news)
 
 (define-key help-map "p" 'finder-by-keyword)
-(autoload 'finder-by-keyword "finder.el")
+(autoload 'finder-by-keyword "finder")
 
 (define-key help-map "s" 'describe-syntax)
 
