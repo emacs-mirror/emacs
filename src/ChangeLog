@@ -1,3 +1,13 @@
+2000-07-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* syntax.c (back_comment): Use one switch rather than a few `if's.
+	Obey open_paren_in_column_0_is_defun_start.
+	When reverting to the `slow' method, try to nicely handle the case
+	of nested comments by checking that the comment-starter we found
+	does indeed match the comment-ender.
+	(scan_sexps_forward, scan_sexps_forward):
+	Ignore excessive opening parenthesis rather than throwing an error.
+
 2000-07-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* doc.c (Fsubstitute_command_keys): Handle case that a GC
