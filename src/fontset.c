@@ -1463,21 +1463,11 @@ alternate fontnames (if any) are tried instead.");
 				Qnil);
 
   DEFVAR_LISP ("highlight-wrong-size-font", &Vhighlight_wrong_size_font,
-     "*Non-nil means highlight characters shown in wrong size fonts somehow.\n\
-The way to highlight them depends on window system on which Emacs runs.\n\
-On X11, a rectangle is shown around each such character.");
+     "*This variable is obsolete.");
   Vhighlight_wrong_size_font = Qnil;
 
   DEFVAR_LISP ("clip-large-size-font", &Vclip_large_size_font,
-     "*Non-nil means characters shown in overlarge fonts are clipped.\n\
-The height of clipping area is the same as that of an ASCII character.\n\
-The width of the area is the same as that of an ASCII character,\n\
-or twice as wide, depending on the character set's column-width.\n\
-\n\
-If the only font you have for a specific character set is too large,\n\
-and clipping these characters makes them hard to read,\n\
-you can set this variable to nil to display the characters without clipping.\n\
-The drawback is that you will get some garbage left on your screen.");
+     "*This variable is obsolete.");
   Vclip_large_size_font = Qt;
 
   DEFVAR_LISP ("vertical-centering-font-regexp",
