@@ -686,6 +686,10 @@ in this use of the minibuffer.")
 (defun minibuffer-history-initialize ()
   (setq minibuffer-text-before-history nil))
 
+(defun minibuffer-avoid-prompt (new old)
+  "A point-motion hook for the minibuffer, that moves point out of the prompt."
+  (constrain-to-field nil (point-max)))
+
 (defcustom minibuffer-history-case-insensitive-variables nil
   "*Minibuffer history variables for which matching should ignore case.
 If a history variable is a member of this list, then the
