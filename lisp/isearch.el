@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/05/14 18:02:55 $|$Revision: 1.32 $
+;; |$Date: 1993/05/15 20:05:36 $|$Revision: 1.33 $
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -92,8 +92,11 @@
 ;;;====================================================================
 ;;; Change History
 
-;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch.el,v 1.32 1993/05/14 18:02:55 rms Exp rms $
+;;; $Header: /home/fsf/rms/e19/lisp/RCS/isearch.el,v 1.33 1993/05/15 20:05:36 rms Exp rms $
 ;;; $Log: isearch.el,v $
+; Revision 1.33  1993/05/15  20:05:36  rms
+; (isearch-done): Don't activate mark.
+;
 ; Revision 1.32  1993/05/14  18:02:55  rms
 ; (isearch-mode-map): Handle any length vector in keymap.
 ; (isearch-char-to-string): Handle non-character events properly.
@@ -608,6 +611,10 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 ;;      (add-hook 'pre-command-hook 'isearch-pre-command-hook))
   (setq	isearch-mode " Isearch")  ;; forward? regexp?
   (set-buffer-modified-p (buffer-modified-p)) ; update modeline
+
+  ;; It is ugly to show region highlighting while the search
+  ;; is going on.  And we don't want the mark active at the end either.
+  (setq deactivate-mark t)      
 
   (isearch-push-state)
 
