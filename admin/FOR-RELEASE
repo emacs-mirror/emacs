@@ -1,8 +1,8 @@
 Tasks needed before the next release.
 
-* THINGS THAT HAVE TO BE DONE SHORTLY BEFORE RELEASE
+* TO BE DONE SHORTLY BEFORE RELEASE
 
-`undo-ask-before-discard', currently set to t for debugging purposes
+** `undo-ask-before-discard', currently set to t for debugging purposes
 has to be set to nil: when t, it can leak memory and cause other problems.
 
 * NEW FEATURES
@@ -150,7 +150,7 @@ man/basic.texi      "Luc Teirlinck"  Chong Yidong
 man/buffers.texi    "Luc Teirlinck"  Chong Yidong
 man/building.texi   "Ted Zlatanov" <tzz@lifelogs.com>
 man/calendar.texi   joakim@verona.se  Chong Yidong
-man/cmdargs.texi    Chong Yidong
+man/cmdargs.texi    Chong Yidong     "Luc Teirlinck"
 man/commands.texi   "Luc Teirlinck"  Chong Yidong
 man/custom.texi     Chong Yidong
 man/dired.texi      Chong Yidong     joakim@verona.se
