@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.49) $
+ * $HopeName: MMsrc!pool.c(trunk.50) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * READERSHIP
@@ -37,7 +37,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.49) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.50) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -301,15 +301,17 @@ Res PoolTraceBegin(Pool pool, Trace trace)
   return (*pool->class->traceBegin)(pool, trace);
 }
 
-Res PoolAccess(Pool pool, Seg seg, Addr addr, AccessSet mode)
+Res PoolAccess(Pool pool, Seg seg, Addr addr,
+               AccessSet mode, MutatorFaultContext context)
 {
   AVERT(Pool, pool);
   AVERT(Seg, seg);
   AVER(SegBase(seg) <= addr);
   AVER(addr < SegLimit(seg));
   /* Can't check mode as there is no check method */
+  /* Can't check MutatorFaultContext as there is no check method */
 
-  return (*pool->class->access)(pool, seg, addr, mode);
+  return (*pool->class->access)(pool, seg, addr, mode, context);
 }
 
 Res PoolWhiten(Pool pool, Trace trace, Seg seg)
@@ -734,14 +736,17 @@ Res PoolTrivTraceBegin(Pool pool, Trace trace)
  * That is, no protected pages, or only pages which are inaccessible
  * by the mutator are protected.
  */
-Res PoolNoAccess(Pool pool, Seg seg, Addr addr, AccessSet mode)
+Res PoolNoAccess(Pool pool, Seg seg, Addr addr,
+                 AccessSet mode, MutatorFaultContext context)
 {
   AVERT(Pool, pool);
   AVERT(Seg, seg);
   AVER(SegBase(seg) <= addr);
   AVER(addr < SegLimit(seg));
   /* can't check AccessSet as there is no Check method */
+  /* can't check context as there is no Check method */
   UNUSED(mode);
+  UNUSED(context);
 
   NOTREACHED;
   return ResUNIMPL;
@@ -753,7 +758,8 @@ Res PoolNoAccess(Pool pool, Seg seg, Addr addr, AccessSet mode)
  * to handle page faults by scanning the entire segment and lowering
  * the barrier.
  */
-Res PoolSegAccess(Pool pool, Seg seg, Addr addr, AccessSet mode)
+Res PoolSegAccess(Pool pool, Seg seg, Addr addr,
+                  AccessSet mode, MutatorFaultContext context)
 {
   AVERT(Pool, pool);
   AVERT(Seg, seg);
@@ -763,7 +769,7 @@ Res PoolSegAccess(Pool pool, Seg seg, Addr addr, AccessSet mode)
   /* can't check AccessSet as there is no Check method */
 
   UNUSED(addr);
-  UNUSED(pool);
+  UNUSED(context);
   TraceSegAccess(PoolArena(pool), seg, mode);
   return ResOK;
 }
