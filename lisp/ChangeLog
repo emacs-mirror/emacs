@@ -1,3 +1,15 @@
+2002-12-06  Robert J. Chassell <bob@rattlesnake.com>
+
+	* textmodes/texinfmt.el (texinfo-format-scan)
+        Handle new functions for copyright notice and copying permissions.
+        (texinfo-copying, texinfo-insertcopying): New functions.
+
+2002-12-03  TAKAHASHI Kaoru  <kaoru@kaisei.org>
+
+	* textmodes/texinfmt.el (texinfo-format-ifxml)
+	(texinfo-format-xml): New function.
+	(ifxml, ifnotxml): New aliases.
+	
 2002-12-06  Dave Love  <fx@gnu.org>
 
 	* international/utf-8-subst.el: Revert last change.
@@ -2679,7 +2691,7 @@
 	(tramp-completion-handle-file-name-all-completions):
 	Apply `tramp-completion-run-real-handler'.
 	(tramp-parse-rhosts)
-	(tramp-parse-shosts): Use `with-temp-buffer'. `result,B.(B renamed to
+	(tramp-parse-shosts): Use `with-temp-buffer'. `result$,1!=(B renamed to
 	`res' (otherwise side effects in XEmacs).
 
 2002-08-24  Michael Albinus  <Michael.Albinus@alcatel.de>
