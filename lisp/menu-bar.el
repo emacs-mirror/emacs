@@ -358,6 +358,59 @@ Do the same for the keys of the same name."
 (define-key menu-bar-custom-menu [customize]
   '("Top-level Customization Group" . customize))
 
+;; Options menu
+(defvar menu-bar-options-menu (make-sparse-keymap "Options"))
+
+(defmacro menu-bar-make-toggle (name variable doc message &rest body)
+  `(progn
+     (defun ,name ()
+       ,(concat doc ".")
+       (interactive)
+       (if ,(if body `(progn . ,body)
+	      `(setq ,variable (not ,variable)))
+	   (message ,message "enabled")
+	 (message ,message "disabled")))
+     '(,doc . ,name)))
+
+(define-key menu-bar-options-menu [debug-on-quit]
+  (menu-bar-make-toggle toggle-debug-on-quit debug-on-quit
+			"Toggle Debug on Quit" "Debug on Quit %s"))
+(define-key menu-bar-options-menu [debug-on-error]
+  (menu-bar-make-toggle toggle-debug-on-error debug-on-error
+			"Toggle Debug on Error" "Debug on Error %s"))
+(define-key menu-bar-options-menu [options-separator]
+  '("--"))
+(define-key menu-bar-options-menu [save-place]
+  (menu-bar-make-toggle toggle-save-place-globally save-place
+			"Toggle Saving Place in Files between Sessions"
+			"Saving place in files %s"
+			(setq-default save-place (not (default-value save-place)))))
+(define-key menu-bar-options-menu [uniquify]
+  (menu-bar-make-toggle toggle-uniquify-buffer-names uniquify-buffer-name-style
+			"Toggle Directory Names in Buffer Names"
+			"Directory name in buffer names (uniquify) %s"
+			(require 'uniquify)
+			(setq uniquify-buffer-name-style
+			      (if (not uniquify-buffer-name-style)
+				  'forward))))
+(define-key menu-bar-options-menu [transient-mark-mode]
+  (menu-bar-make-toggle toggle-transient-mark-mode transient-mark-mode
+			"Toggle Transient Mark Mode (highlights region)"
+			"Transient Mark mode %s"))
+(define-key menu-bar-options-menu [toggle-auto-compression]
+  '("Toggle Automatic File De/compression" . auto-compression-mode))
+(define-key menu-bar-options-menu [auto-fill-mode]
+  '("Toggle Auto Fill (word wrap) in Text modes"
+    . toggle-text-mode-auto-fill))
+(define-key menu-bar-options-menu [font-lock-mode]
+  (menu-bar-make-toggle toggle-font-lock-mode font-lock-mode
+			"Toggle Font Lock (syntax highlighting)"
+			"Font Lock mode %s"
+			(global-font-lock-mode)
+			(if font-lock-mode
+			    (lazy-lock-mode t))
+			font-lock-mode))
+
 (define-key menu-bar-help-menu [emacs-version]
   '("Show Version" . emacs-version))
 (define-key menu-bar-help-menu [report-emacs-bug]
@@ -383,6 +436,8 @@ Do the same for the keys of the same name."
 (define-key menu-bar-help-menu [info] '("Browse Manuals" . info))
 (define-key menu-bar-help-menu [emacs-faq] '("Emacs FAQ" . view-emacs-FAQ))
 (define-key menu-bar-help-menu [emacs-news] '("Emacs News" . view-emacs-news))
+(define-key menu-bar-help-menu [options-menu]
+  (cons "Options" menu-bar-options-menu))
 (define-key menu-bar-help-menu [customize-menu]
   (cons "Customize" menu-bar-custom-menu))
 
