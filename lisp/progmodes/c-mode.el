@@ -1161,27 +1161,29 @@ If within a string or comment, move by sentences instead of statements."
 		    (setq at-else (looking-at "else\\W"))
 		    (setq at-brace (= (following-char) ?{))
 		    (setq at-while (looking-at "while\\b"))
-		    (c-backward-to-noncomment opoint)
-		    (if (not (memq (preceding-char) '(nil ?\, ?\; ?} ?: ?{)))
-			;; Preceding line did not end in comma or semi;
-			;; indent this line  c-continued-statement-offset
-			;; more than previous.
-			(progn
-			  (c-backward-to-start-of-continued-exp (car contain-stack))
-			  (setq this-indent
-				(+ c-continued-statement-offset (current-column)
-				   (if at-brace c-continued-brace-offset 0))))
-		      ;; Preceding line ended in comma or semi;
-		      ;; use the standard indent for this level.
-		      (cond (at-else (progn (c-backward-to-start-of-if opoint)
-					    (setq this-indent
-						  (current-indentation))))
-			    ((and at-while (c-backward-to-start-of-do opoint))
-			     (setq this-indent (current-indentation)))
-			    ((eq (preceding-char) ?\,)
-			     (goto-char this-point)
-			     (setq this-indent (calculate-c-indent)))
-			    (t (setq this-indent (car indent-stack)))))))
+		    (if (= (following-char) ?})
+			(setq this-indent (car indent-stack))
+		      (c-backward-to-noncomment opoint)
+		      (if (not (memq (preceding-char) '(nil ?\, ?\; ?} ?: ?{)))
+			  ;; Preceding line did not end in comma or semi;
+			  ;; indent this line  c-continued-statement-offset
+			  ;; more than previous.
+			  (progn
+			    (c-backward-to-start-of-continued-exp (car contain-stack))
+			    (setq this-indent
+				  (+ c-continued-statement-offset (current-column)
+				     (if at-brace c-continued-brace-offset 0))))
+			;; Preceding line ended in comma or semi;
+			;; use the standard indent for this level.
+			(cond (at-else (progn (c-backward-to-start-of-if opoint)
+					      (setq this-indent
+						    (current-indentation))))
+			      ((and at-while (c-backward-to-start-of-do opoint))
+			       (setq this-indent (current-indentation)))
+			      ((eq (preceding-char) ?\,)
+			       (goto-char this-point)
+			       (setq this-indent (calculate-c-indent)))
+			      (t (setq this-indent (car indent-stack))))))))
 	      ;; Just started a new nesting level.
 	      ;; Compute the standard indent for this level.
 	      (let ((val (calculate-c-indent
