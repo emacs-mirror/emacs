@@ -117,7 +117,7 @@ This file documents GNU Emacs Lisp.
 
 @c The edition number appears in several places in this file
 @c and also in the file intro.texi.
-This version is newer than edition 2.3 of the GNU Emacs Lisp Reference
+This is edition 2.3 of the GNU Emacs Lisp Reference
 Manual.  It corresponds to Emacs Version 19.25.
 @c Please REMEMBER to update edition number in *four* places in this file
 @c                 and also in *one* place in ==> intro.texi <==

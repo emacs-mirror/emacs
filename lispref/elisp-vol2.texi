@@ -230,7 +230,7 @@ Cover art by Etienne Suvasa.
 @node Top, Copying, (dir), (dir)
 
 @ifinfo
-This Info file contains the edition 2.3 of the GNU Emacs Lisp Reference
+This Info file contains edition 2.3 of the GNU Emacs Lisp Reference
 Manual, corresponding to GNU Emacs version 19.25.
 @end ifinfo
 
