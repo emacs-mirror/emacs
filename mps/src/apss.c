@@ -1,7 +1,7 @@
 /* impl.c.apss: AP MANUAL ALLOC STRESS TEST
  *
- * $HopeName: MMsrc!apss.c(trunk.3) $
- * Copyright (C) 1999 Harlequin Group plc.  All rights reserved.
+ * $HopeName$
+ * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  */
 
 
@@ -9,27 +9,14 @@
 #include "mpscmvff.h"
 #include "mpslib.h"
 #include "mpsavm.h"
-#include "mps.h"
 
 #include "testlib.h"
 
-#include <stdio.h>
-#include "mpstd.h"
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
 #include <stdlib.h>
 #include <stdarg.h>
-#ifdef MPS_OS_IA
-struct itimerspec; /* stop complaints from time.h */
-#endif
-#include <time.h>
 
 
-#define TRUE  1
-#define FALSE 0
-
-#define testArenaSIZE   ((((size_t)64)<<20) - 4)
+#define testArenaSIZE   ((((size_t)3)<<24) - 4)
 #define testSetSIZE 200
 #define testLOOPS 10
 
@@ -51,7 +38,7 @@ static mps_res_t make(mps_addr_t *p, mps_ap_t ap, size_t size)
 static mps_res_t stress(mps_class_t class, mps_arena_t arena,
                         size_t (*size)(int i), ...)
 {
-  mps_res_t res;
+  mps_res_t res = MPS_RES_OK;
   mps_pool_t pool;
   mps_ap_t ap;
   va_list arg;
@@ -73,14 +60,10 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
 
     res = make((mps_addr_t *)&ps[i], ap, ss[i]);
     if (res != MPS_RES_OK)
-      return res;
+      goto allocFail;
     if (ss[i] >= sizeof(ps[i]))
       *ps[i] = 1; /* Write something, so it gets swap. */
-
-    if (i && i%4==0) putchar('\n');
-    printf("%8lX %6lX ", (unsigned long)ps[i], (unsigned long)ss[i]);
   }
-  putchar('\n');
 
   mps_pool_check_fenceposts(pool);
 
@@ -107,18 +90,16 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
     for (i=testSetSIZE/2; i<testSetSIZE; ++i) {
       ss[i] = (*size)(i);
       res = make((mps_addr_t *)&ps[i], ap, ss[i]);
-      if (res != MPS_RES_OK) return res;
-      
-      if (i && i%4==0) putchar('\n');
-      printf("%8lX %6lX ", (unsigned long)ps[i], (unsigned long)ss[i]);
+      if (res != MPS_RES_OK)
+        goto allocFail;
     }
-    putchar('\n');
   }
-    
+
+allocFail:
   mps_ap_destroy(ap);
   mps_pool_destroy(pool);
 
-  return MPS_RES_OK;
+  return res;
 }
 
 
@@ -136,21 +117,25 @@ static size_t randomSize8(int i)
 
 static mps_pool_debug_option_s debugOptions = { (void *)"postpost", 8 };
 
-static int testInArena(mps_arena_t arena)
+static void testInArena(mps_arena_t arena)
 {
+  mps_res_t res;
+
   printf("MVFF\n\n");
-  die(stress(mps_class_mvff(), arena, randomSize8,
-             (size_t)65536, (size_t)32, (size_t)4, TRUE, TRUE, TRUE),
-      "stress MVFF");
+  res = stress(mps_class_mvff(), arena, randomSize8,
+               (size_t)65536, (size_t)32, (size_t)4, TRUE, TRUE, TRUE);
+  if (res == MPS_RES_COMMIT_LIMIT) return;
+  die(res, "stress MVFF");
   printf("MV debug\n\n");
-  die(stress(mps_class_mv_debug(), arena, randomSize8,
-             &debugOptions, (size_t)65536, (size_t)32, (size_t)65536),
-      "stress MV debug");
+  res = stress(mps_class_mv_debug(), arena, randomSize8,
+               &debugOptions, (size_t)65536, (size_t)32, (size_t)65536);
+  if (res == MPS_RES_COMMIT_LIMIT) return;
+  die(res, "stress MV debug");
   printf("MV\n\n");
-  die(stress(mps_class_mv(), arena, randomSize8,
-             (size_t)65536, (size_t)32, (size_t)65536),
-      "stress MV");
-  return 0;
+  res = stress(mps_class_mv(), arena, randomSize8,
+               (size_t)65536, (size_t)32, (size_t)65536);
+  if (res == MPS_RES_COMMIT_LIMIT) return;
+  die(res, "stress MV");
 }
 
 
@@ -160,19 +145,18 @@ int main(int argc, char **argv)
 
   randomize(argc, argv);
 
-  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
+  die(mps_arena_create(&arena, mps_arena_class_vm(), 2*testArenaSIZE),
       "mps_arena_create");
-
+  mps_arena_commit_limit_set(arena, testArenaSIZE);
   testInArena(arena);
-
   mps_arena_destroy(arena);
 
-  die(mps_arena_create(&arena, mps_arena_class_vmnz(), testArenaSIZE),
+  die(mps_arena_create(&arena, mps_arena_class_vmnz(), 2*testArenaSIZE),
       "mps_arena_create");
-
   testInArena(arena);
-
   mps_arena_destroy(arena);
 
+  fflush(stdout); /* synchronize */
+  fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
   return 0;
 }
