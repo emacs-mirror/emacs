@@ -42,28 +42,35 @@ This means that the body of the form must be put into a closure.")
   (remq '&rest (remq '&optional arglist)))
 
 
-;; Variable extent analysis
+;;; Variable extent analysis.
 
-;; A `lforminfo' holds information about lexical bindings in a form, and
-;; some other info:
-;; LFORMINFO : ((LVARINFO...) . NUM-CLOSURES)
-;;   NUM-CLOSURES is the number of closures found
+;; A `lforminfo' holds information about lexical bindings in a form, and some
+;; other info for analysis.  It is a cons-cell, where the car is a list of
+;; `lvarinfo' stuctures, which form an alist indexed by variable name, and the
+;; cdr is the number of closures found in the form:
 ;;
-;; A `lvarinfo' holds information about a single lexical variable:
-;; LVARINFO : ((VAR NUMREFS NUMSETS CLOSED-OVER) ...)
-;;   NUMREFS is the number of uses
-;;   NUMSETS is the number of sets
-;;   CLOSED-OVER is set to non-nil if the variable is referenced
-;;     anywhere but in its original function-level
+;;   LFORMINFO : ((LVARINFO ...) . NUM-CLOSURES)"
+;;
+;; A `lvarinfo' holds information about a single lexical variable.  It is a
+;; list whose car is the variable name (so an lvarinfo is suitable as an alist
+;; entry), and the rest of the of which holds information about the variable:
+;;
+;;   LVARINFO : (VAR NUM-REFS NUM-SETS CLOSED-OVER)
+;;
+;; NUM-REFS is the number of times the variable's value is used
+;; NUM-SETS is the number of times the variable's value is set
+;; CLOSED-OVER is non-nil if the variable is referenced
+;;     anywhere but in its original function-level"
 
-;; lvarinfo:
+;;; lvarinfo:
+
 ;; constructor
 (defsubst byte-compile-make-lvarinfo (var &optional already-set)
-  `(,var 0 ,(if already-set 1 0) 0 nil))
+  (list var 0 (if already-set 1 0) 0 nil))
 ;; accessors
 (defsubst byte-compile-lvarinfo-var (vinfo) (car vinfo))
-(defsubst byte-compile-lvarinfo-numrefs (vinfo) (cadr vinfo))
-(defsubst byte-compile-lvarinfo-numsets (vinfo) (nth 3 vinfo))
+(defsubst byte-compile-lvarinfo-num-refs (vinfo) (cadr vinfo))
+(defsubst byte-compile-lvarinfo-num-sets (vinfo) (nth 3 vinfo))
 (defsubst byte-compile-lvarinfo-closed-over-p (vinfo) (nth 4 vinfo))
 ;; setters
 (defsubst byte-compile-lvarinfo-note-ref (vinfo)
@@ -73,7 +80,8 @@ This means that the body of the form must be put into a closure.")
 (defsubst byte-compile-lvarinfo-note-closure (vinfo)
   (setcar (nthcdr 4 vinfo) t))
 
-;; lforminfo:
+;;; lforminfo:
+
 ;; constructor
 (defsubst byte-compile-make-lforminfo ()
   (cons nil 0))
@@ -107,12 +115,7 @@ SPECIAL is a list of variables that are special, and so shouldn't be
 bound lexically (in addition to variable that are considered special
 because they are declared with `defvar', et al).
 
-The result is an alist of variables, with each element being of the form
-  (VAR NUMREFS NUMSETS CLOSED-OVER)
-where:
-  NUMREFS is the number of times VAR is used
-  NUMSETS is the number of times it is set
-  CLOSED-OVER is non-nil if VAR is referenced by an embedded closure."
+The result is an `lforminfo' data structure."
   (and
    (consp form)
    (let ((lforminfo (byte-compile-make-lforminfo)))
@@ -329,7 +332,7 @@ inside a lambda expression that may close over some variable in LFORMINFO."
 					      ignore closure-flag)))))
 
 
-;; Lexical environments
+;;; Lexical environments
 
 ;; A lexical environment is an alist, where each element is of the form
 ;; (VAR . (OFFSET . ENV)) where VAR is either a symbol, for normal
@@ -366,7 +369,7 @@ CLOSED-OVER-LEXENV is the lexical environment in which FORM occurs.
 The returned lexical environment contains two sets of variables:
   * Variables that were in CLOSED-OVER-LEXENV and used by FORM
     (all of these will be `heap' variables)
-  * Arguments to FORM (all of these will be `stack' variables."
+  * Arguments to FORM (all of these will be `stack' variables)."
   ;; See if this is a closure or not
   (let ((closure nil)
 	(lforminfo (byte-compile-make-lforminfo))
@@ -382,7 +385,7 @@ The returned lexical environment contains two sets of variables:
     (byte-compile-lforminfo-analyze lforminfo form args)
     (let ((lexenv nil))
       (dolist (vinfo (byte-compile-lforminfo-vars lforminfo))
-	(when (> (byte-compile-lvarinfo-numrefs vinfo) 0)
+	(when (> (byte-compile-lvarinfo-num-refs vinfo) 0)
 	  ;; FORM uses VINFO's variable, so it must be a closure.
 	  (setq closure t)
 	  ;; Make sure that the environment in which the variable is
@@ -428,13 +431,15 @@ see whether there are any heap-allocated lexical variables in LEXENV)."
     closure))
 
 
-;; Heap environment vectors
+;;; Heap environment vectors
 
 ;; A `heap environment vector' is heap-allocated vector used to store
 ;; variable that can't be put onto the stack.
 ;;
 ;; They are represented in the compiler by a list of the form
+;;
 ;;    (SIZE SIZE-CONST-ID INIT-POSITION . ENVS)
+;;
 ;; SIZE is the current size of the vector (which may be
 ;; incremented if another variable or environment-reference is added to
 ;; the end).  SIZE-CONST-ID is an `unknown constant id' (as returned by
@@ -491,7 +496,7 @@ If not, then add a new slot to HEAPENV pointing to OTHER-HEAPENV."
       (byte-compile-heapenv-add-accessible-env heapenv other-heapenv offset))))
 
 
-;; Variable binding/unbinding
+;;; Variable binding/unbinding
 
 (defun byte-compile-non-stack-bindings-p (clauses lforminfo)
   "Return non-nil if any lexical bindings in CLAUSES are not stack-allocated.
