@@ -2040,22 +2040,14 @@ x_produce_glyphs (it)
       /* Maybe translate single-byte characters to multibyte, or the
          other way.  */
       it->char_to_display = it->c;
-      if (!ASCII_BYTE_P (it->c))
+      if (!ASCII_CHAR_P (it->c))
         {
-          if (unibyte_display_via_language_environment
-              && SINGLE_BYTE_CHAR_P (it->c)
-              && (it->c >= 0240
-                  || !NILP (Vnonascii_translation_table)))
-            {
-              it->char_to_display = unibyte_char_to_multibyte (it->c);
-              it->multibyte_p = 1;
-	      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
-	      face = FACE_FROM_ID (it->f, it->face_id);
-	    }
-	  else if (!SINGLE_BYTE_CHAR_P (it->c)
-		   && !it->multibyte_p)
+	  if (SINGLE_BYTE_CHAR_P (it->c)
+	      && unibyte_display_via_language_environment)
+	    it->char_to_display = unibyte_char_to_multibyte (it->c);
+	  if (! SINGLE_BYTE_CHAR_P (it->c))
 	    {
-              it->multibyte_p = 1;
+	      it->multibyte_p = 1;
 	      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
 	      face = FACE_FROM_ID (it->f, it->face_id);
 	    }
