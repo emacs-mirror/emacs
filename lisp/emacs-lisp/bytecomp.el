@@ -1100,6 +1100,8 @@ A nonzero prefix argument also means ask about each subdirectory."
 		 (progn (if (and noninteractive (not byte-compile-verbose))
 			    (message "Compiling %s..." source))
 			(byte-compile-file source)
+			(or noninteractive
+			    (message "Checking %s..." directory))
 			(setq file-count (1+ file-count))
 			(if (not (eq last-dir directory))
 			    (setq last-dir directory
