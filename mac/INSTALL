@@ -14,10 +14,7 @@ Copyright (c) 2001 Free Software Foundation, Inc.
    changed them.
 
 You can use either Metrowerks CodeWarrior Pro 5 or 6 or MPW-GM
-(Aug. 2000) to build Emacs.  MPW-GM can be downloaded free of charge
-from Apple at
-
-  http://developer.apple.com/tools/mpw-tools/
+(Aug. 2000) to build Emacs.
 
 You will need MPW-GM to build the make-docfile utility and to generate
 the doc string file DOC.
