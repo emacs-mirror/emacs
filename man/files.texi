@@ -2629,8 +2629,8 @@ that means to use your own user name.  But if you set the variable
 @cindex anonymous FTP
 @vindex ange-ftp-generate-anonymous-password
   To visit files accessible by anonymous FTP, you use special user
-names ``anonymous'' or ``ftp''.  Passwords for these user names are
-handled specially.  The variable
+names @samp{anonymous} or @samp{ftp}.  Passwords for these user names
+are handled specially.  The variable
 @code{ange-ftp-generate-anonymous-password} controls what happens: if
 the value of this variable is a string, then that string is used as
 the password; if non-@code{nil} (the default), then the value of

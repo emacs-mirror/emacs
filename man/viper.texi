@@ -414,7 +414,7 @@ For a full list of Ex commands supported by Viper, type
 commands, type @kbd{:help}.  This will invoke Viper Info
 (if it is installed).  Then typing @kbd{i} will prompt you for a topic to
 search in the index.  Note: to search for Ex commands in the index, you
-should start them with a ``@kbd{:}'', e.g., @kbd{:WW}.
+should start them with a @kbd{:}, e.g., @kbd{:WW}.
 
 In Viper, Ex commands can be made to work on the current Emacs region.
 This is done by typing a digit argument before @kbd{:}.
@@ -2581,8 +2581,8 @@ occurrence of the pattern to search for.
 
 Note: while loading initially, Viper binds this mouse action only if it is
 not already bound to something else.  If you want to use the mouse-search
-feature and the Meta-Shift-button-1 mouse action is already bound to
-something else you can rebind the mouse-search feature by setting
+feature, and the @kbd{Meta-Shift-Mouse-1} mouse action is already bound to
+something else, you can rebind the mouse-search feature by setting
 @code{viper-mouse-search-key} to something else in your @code{~/.viper}
 file:
 @lisp
@@ -2659,8 +2659,8 @@ purpose of mouse search and mouse insert.  By default, this is set to
 @code{double-click-time} in Emacs and to
 @code{mouse-track-multi-click-time} milliseconds in XEmacs.
 @end table        
-@kindex @kbd{S-mouse-1}
-@kindex @kbd{S-mouse-2}
+@kindex @kbd{S-Mouse-1}
+@kindex @kbd{S-Mouse-2}
 @kindex @kbd{meta shift button1up}
 @kindex @kbd{meta shift button2up}
 @vindex @code{viper-multiclick-timeout}
@@ -2938,16 +2938,18 @@ found will be executed.  Usually this is the macro with a shorter name.  So,
 in our case, @kbd{[[[[text} will cause the macro @kbd{[[} to be executed
 twice and then the remaining keys, @kbd{t e x t}, will be processed.
 
-When defining macros using @kbd{:map} or @kbd{:map!}, the user enters the
-actually keys to be used to invoke the macro.  For instance, you should hit
-the actual key @kbd{f6} if it is to be part of a macro name; you do
-@emph{not} write `f 6'.  When entering keys, Viper displays them as strings or
-vectors (e.g., "abc" or [f6 f7 a]).  The same holds for unmapping.  Hitting
-@key{TAB} while typing a macro name in the @kbd{:unmap} or @kbd{:unmap!} command
-will cause name completion.  Completions are displayed as strings or vectors.
-However, as before, you don't actually type ``"'', ``['', or ``]'' that
-appear in the completions.  These are meta-symbols that indicate whether
-the corresponding macro name is a vector or a string.
+When defining macros using @kbd{:map} or @kbd{:map!}, the user enters
+the actually keys to be used to invoke the macro.  For instance, you
+should hit the actual key @kbd{f6} if it is to be part of a macro
+name; you do @emph{not} write @kbd{f 6}.  When entering keys, Viper
+displays them as strings or vectors (e.g., @code{"abc"} or @code{[f6
+f7 a]}).  The same holds for unmapping.  Hitting @key{TAB} while
+typing a macro name in the @kbd{:unmap} or @kbd{:unmap!} command will
+cause name completion.  Completions are displayed as strings or
+vectors.  However, as before, you don't actually type @samp{"},
+@samp{[}, or @samp{]} that appear in the completions.  These are
+meta-symbols that indicate whether the corresponding macro name is a
+vector or a string.
 
 One last difference from Vi: Vi-style keyboard macros cannot be defined in
 terms of other Vi-style keyboard macros (but named Emacs macros are OK).
@@ -4384,7 +4386,7 @@ The following two mouse actions are normally bound to to special search and
 insert commands in of Viper:
 
 @table @kbd
-@item S-mouse-1
+@item S-Mouse-1
 Holding Shift and clicking mouse button 1 will
 initiate search for
 a region under the mouse pointer.
@@ -4393,7 +4395,7 @@ binding only if this mouse action is not
 already bound to something else.
 @xref{Viper Specials}, for more information.@refill
 
-@item S-mouse-2
+@item S-Mouse-2
 Holding Shift and clicking button 2 of the mouse will
 insert a region surrounding the mouse pointer.
 This command can also take a prefix argument.
@@ -4401,8 +4403,8 @@ Note: Viper sets this binding only if this mouse action is not
 already bound to something else.
 @xref{Viper Specials}, for more details.@refill
 @end table
-@kindex @kbd{S-mouse-1}
-@kindex @kbd{S-mouse-2}
+@kindex @kbd{S-Mouse-1}
+@kindex @kbd{S-Mouse-2}
 @kindex @kbd{meta button1up}
 @kindex @kbd{meta button2up}
 
