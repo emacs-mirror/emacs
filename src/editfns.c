@@ -1197,17 +1197,19 @@ This ignores the environment variables LOGNAME and USER, so it differs from\n\
 }
 
 DEFUN ("user-uid", Fuser_uid, Suser_uid, 0, 0, 0,
-  "Return the effective uid of Emacs, as an integer.")
+  "Return the effective uid of Emacs.\n\
+Value is an integer or float, depending on the value.")
   ()
 {
-  return make_number (geteuid ());
+  return make_fixnum_or_float (geteuid ());
 }
 
 DEFUN ("user-real-uid", Fuser_real_uid, Suser_real_uid, 0, 0, 0,
-  "Return the real uid of Emacs, as an integer.")
+  "Return the real uid of Emacs.\n\
+Value is an integer or float, depending on the value.")
   ()
 {
-  return make_number (getuid ());
+  return make_fixnum_or_float (getuid ());
 }
 
 DEFUN ("user-full-name", Fuser_full_name, Suser_full_name, 0, 1, 0,
@@ -1215,8 +1217,8 @@ DEFUN ("user-full-name", Fuser_full_name, Suser_full_name, 0, 1, 0,
 If the full name corresponding to Emacs's userid is not known,\n\
 return \"unknown\".\n\
 \n\
-If optional argument UID is an integer, return the full name of the user\n\
-with that uid, or nil if there is no such user.\n\
+If optional argument UID is an integer or float, return the full name\n\
+of the user with that uid, or nil if there is no such user.\n\
 If UID is a string, return the full name of the user with that login\n\
 name, or nil if there is no such user.")
   (uid)
@@ -1229,7 +1231,7 @@ name, or nil if there is no such user.")
   if (NILP (uid))
     return Vuser_full_name;
   else if (NUMBERP (uid))
-    pw = (struct passwd *) getpwuid (XINT (uid));
+    pw = (struct passwd *) getpwuid ((uid_t) XFLOATINT (uid));
   else if (STRINGP (uid))
     pw = (struct passwd *) getpwnam (XSTRING (uid)->data);
   else
