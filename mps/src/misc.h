@@ -1,6 +1,6 @@
 /* impl.h.misc: MISCELLANEOUS DEFINITIONS
  *
- * $HopeName: MMsrc!misc.h(trunk.6) $
+ * $HopeName: MMsrc!misc.h(trunk.7) $
  * Copyright (C) 1994,1995,1996 Harlequin Group, all rights reserved
  *
  * Small general things which are useful for C but aren't part of the
@@ -66,11 +66,13 @@ typedef const struct SrcIdStruct {
 /* UNUSED -- declare parameter unused
  *
  * This macro supresses warnings about unused parameters.  It should be
- * applied to the parameter at the beginning of the body of the procedure.
+ * applied to the parameter at the beginning of the body of the 
+ * procedure.
  *
  * The cast to void appears to work for GCC, MSVC, and CodeWarrior.
- * It's a shame there's no way to ensure that the parameter won't be used.
- * We could scramble it, but that's undesirable in release versions.
+ * It's a shame there's no way to ensure that the parameter won't be
+ * used.  We could scramble it, but that's undesirable in release 
+ * versions.
  */
 
 #define UNUSED(param)   ((void)param)
@@ -86,6 +88,28 @@ typedef const struct SrcIdStruct {
 
 #define PARENT(type, field, p) \
   ((type *)((char *)(p) - offsetof(type, field)))
+
+
+/* Bit Sets -- sets of integers in [0,N-1].
+ *
+ * Can be used on any unsigned integral type, ty.  These defintions
+ * are _syntactic_, hence macroid, hence upper case
+ * (guide.c.naming.macro.special).
+ */
+
+#define BS_EMPTY(ty)            ((ty)0)
+#define BS_COMP(s)              (~(s))
+#define BS_UNIV(ty)             BS_COMP(BS_EMPTY(ty))
+#define BS_SINGLE(ty, i)        ((ty)1 << (i))
+#define BS_IS_MEMBER(s, i)      (((s) >> (i)) & 1)
+#define BS_UNION(s1, s2)        ((s1) | (s2))
+#define BS_ADD(ty, s, i)        BS_UNION(s, BS_SINGLE(ty, i))
+#define BS_INTER(s1, s2)        ((s1) & (s2))
+#define BS_DIFF(s1, s2)         BS_INTER(s1, BS_COMP(s2))
+#define BS_DEL(ty, s, i)        BS_DIFF(s, BS_SINGLE(ty, i))
+#define BS_SUPER(s1, s2)        (BS_INTER(s1, s2) == s2)
+#define BS_SUB(s1, s2)          BS_SUPER(s2, s1)
+#define BS_IS_SINGLE(i)         (((i) & (i)-1) == 0)
 
 
 #endif /* misc_h */
