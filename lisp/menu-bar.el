@@ -182,7 +182,6 @@
   '("Query Replace..." . query-replace))
 (define-key menu-bar-search-menu [find-tag]
   '("Find Tag..." . find-tag))
-(put 'find-tag 'menu-enable 'tags-table-list)
 (define-key menu-bar-search-menu [bookmark]
   '("Bookmarks" . menu-bar-bookmark-map))
 
