@@ -1778,7 +1778,10 @@ on the gateway machine to do the ftp instead."
     ;; It would be nice to make process-connection-type nil,
     ;; but that doesn't work: ftp never responds.
     ;; Can anyone find a fix for that?
-    (let ((process-connection-type t))
+    (let ((process-connection-type t)
+	  (process-environment process-environment))
+      ;; This tells GNU ftp not to output any fancy escape sequences.
+      (setenv "TERM" "dumb")
       (if use-gateway
 	  (if ange-ftp-gateway-program-interactive
 	      (setq proc (ange-ftp-gwp-start host user name args))
@@ -3703,7 +3706,8 @@ system TYPE.")
 	(while (and tryfiles (not copy))
 	  (condition-case error
 	      (setq copy (ange-ftp-file-local-copy (car tryfiles)))
-	    (ftp-error nil)))
+	    (ftp-error nil))
+	  (setq tryfiles (cdr tryfiles)))
 	(if copy
 	    (unwind-protect
 		(funcall 'load copy noerror nomessage nosuffix)
