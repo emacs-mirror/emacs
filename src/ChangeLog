@@ -1,3 +1,7 @@
+2002-06-06  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (chartab.o): Depend on charset.h
+
 2002-06-03  Kenichi Handa  <handa@etl.go.jp>
 
 	* character.c (syms_of_character): Set the default value of
