@@ -3777,6 +3777,13 @@ With prefix argument N, move N items (negative N means move backward)."
       (forward-char 1))
     (delete-char len)))
 
+(defvar choose-completion-string-functions nil
+  "List of functions which may override the standard `choose-completion-string'.
+Each function in the list is called in turn with arguments CHOICE BUFFER BASE-SIZE
+like choose-completion-string.  If a function in the list returns non-nil, that
+function is supposed to have inserted the completion in the minibuffer.
+If all functions in the list return nil, use the default completion selection.")
+
 ;; Switch to BUFFER and insert the completion choice CHOICE.
 ;; BASE-SIZE, if non-nil, says how many characters of BUFFER's text
 ;; to keep.  If it is nil, use choose-completion-delete-max-match instead.
@@ -3785,6 +3792,11 @@ With prefix argument N, move N items (negative N means move backward)."
 ;; unless it is reading a file name and CHOICE is a directory,
 ;; or completion-no-auto-exit is non-nil.
 (defun choose-completion-string (choice &optional buffer base-size)
+  (unless (run-hook-with-args-until-success 
+	   'choose-completion-string-functions choice buffer base-size)
+    (choose-completion-string1 choice buffer base-size)))
+
+(defun choose-completion-string1 (choice &optional buffer base-size)
   (let ((buffer (or buffer completion-reference-buffer))
 	(mini-p (string-match "\\` \\*Minibuf-[0-9]+\\*\\'" (buffer-name buffer))))
     ;; If BUFFER is a minibuffer, barf unless it's the currently
