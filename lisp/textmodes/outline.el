@@ -636,5 +636,6 @@ Stop at the first and last subheadings of a superior heading."
         (point))))
 
 (provide 'outline)
+(provide 'noutline)
 
 ;;; outline.el ends here
