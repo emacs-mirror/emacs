@@ -1,3 +1,8 @@
+2000-08-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* Makefile.in (config.status): Prepend `$(srcdir)/' to
+	`configure'.
+
 2000-08-03  Gerd Moellmann  <gerd@gnu.org>
 
 	* configure.in: Add support for ia64*-*-linux*.

@@ -1,5 +1,10 @@
 2000-08-07  Gerd Moellmann  <gerd@gnu.org>
 
+	* fns.c (sweep_weak_table): Fix survival conditions for
+	key-or-value and key-and-value weakness.
+
+	* .gdbinit (xhashtable): New command.
+
 	* fns.c (sweep_weak_hash_tables): Fix the code taking unmarked
 	tables out of the list of all weak hash tables.
 
