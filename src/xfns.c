@@ -11649,18 +11649,14 @@ selection dialog's entry field, if MUSTMATCH is non-nil.  */)
       XmListSetPos (list, item_pos);
     }
 
-  /* Process events until the user presses Cancel or OK.  Block
-     and unblock input here so that we get a chance of processing
-     expose events.  */
-  UNBLOCK_INPUT;
+  /* Process events until the user presses Cancel or OK.  */
   result = 0;
   while (result == 0)
     {
-      BLOCK_INPUT;
-      XtAppProcessEvent (Xt_app_con, XtIMAll);
-      UNBLOCK_INPUT;
+      XEvent event;
+      XtAppNextEvent (Xt_app_con, &event);
+      x_dispatch_event (&event, FRAME_X_DISPLAY (f) );
     }
-  BLOCK_INPUT;
 
   /* Get the result.  */
   if (result == XmCR_OK)

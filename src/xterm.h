@@ -619,7 +619,7 @@ enum
 enum
 {
   /* Values for focus_state, used as bit mask.
-     EXPLICIT means if we received a FocusIn for the frame and know it has
+     EXPLICIT means we received a FocusIn for the frame and know it has
      the focus.  IMPLICIT means we recevied an EnterNotify and the frame
      may have the focus if no window manager is running.
      FocusOut and LeaveNotify clears EXPLICIT/IMPLICIT. */
@@ -673,6 +673,16 @@ enum
 /* These two really ought to be called FRAME_PIXEL_{WIDTH,HEIGHT}.  */
 #define PIXEL_WIDTH(f) ((f)->output_data.x->pixel_width)
 #define PIXEL_HEIGHT(f) ((f)->output_data.x->pixel_height)
+
+/* The difference in pixels between the top left corner of the
+   Emacs window (including possible window manager decorations)
+   and FRAME_X_WINDOW (f).  */
+#define FRAME_OUTER_TO_INNER_DIFF_X(f) \
+     ((f)->output_data.x->x_pixels_outer_diff)
+#define FRAME_OUTER_TO_INNER_DIFF_Y(f)          \
+     ((f)->output_data.x->y_pixels_outer_diff   \
+      + (f)->output_data.x->menubar_height)
+
 
 #define FRAME_XIC(f) ((f)->output_data.x->xic)
 #define FRAME_X_XIM(f) (FRAME_X_DISPLAY_INFO (f)->xim)
@@ -1029,6 +1039,7 @@ extern void x_clear_area P_ ((Display *, Window, int, int, int, int, int));
 extern void x_fullscreen_adjust P_ ((struct frame *f, int *, int *,
                                      int *, int *));
 
+extern void x_dispatch_event P_ ((XEvent *, Display *));
 
 /* Defined in xselect.c */
 

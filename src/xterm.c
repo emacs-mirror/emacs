@@ -9934,51 +9934,6 @@ x_scroll_bar_clear (f)
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
 }
 
-/* This processes Expose events from the menu-bar specific X event
-   loop in xmenu.c.  This allows to redisplay the frame if necessary
-   when handling menu-bar or pop-up items.  */
-
-int
-process_expose_from_menu (event)
-     XEvent event;
-{
-  FRAME_PTR f;
-  struct x_display_info *dpyinfo;
-  int frame_exposed_p = 0;
-
-  BLOCK_INPUT;
-
-  dpyinfo = x_display_info_for_display (event.xexpose.display);
-  f = x_window_to_frame (dpyinfo, event.xexpose.window);
-  if (f)
-    {
-      if (f->async_visible == 0)
-	{
-	  f->async_visible = 1;
-	  f->async_iconified = 0;
-	  f->output_data.x->has_been_visible = 1;
-	  SET_FRAME_GARBAGED (f);
-	}
-      else
-	{
-	  expose_frame (x_window_to_frame (dpyinfo, event.xexpose.window),
-			event.xexpose.x, event.xexpose.y,
-			event.xexpose.width, event.xexpose.height);
-	  frame_exposed_p = 1;
-	}
-    }
-  else
-    {
-      struct scroll_bar *bar
-	= x_window_to_scroll_bar (event.xexpose.window);
-
-      if (bar)
-	x_scroll_bar_expose (bar, &event);
-    }
-
-  UNBLOCK_INPUT;
-  return frame_exposed_p;
-}
 
 /* Define a queue to save up SelectionRequest events for later handling.  */
 
@@ -10107,6 +10062,1286 @@ static struct x_display_info *next_noop_dpyinfo;
 #define SET_SAVED_BUTTON_EVENT SET_SAVED_MENU_EVENT (sizeof (XButtonEvent))
 #define SET_SAVED_KEY_EVENT    SET_SAVED_MENU_EVENT (sizeof (XKeyEvent))
 
+
+enum
+{
+  X_EVENT_NORMAL,
+  X_EVENT_GOTO_OUT,
+  X_EVENT_DROP
+};
+
+/* Handles the XEvent EVENT on display DPYINFO.
+   
+   *FINISH is X_EVENT_GOTO_OUT if caller should stop reading events.
+   *FINISH is zero if caller should continue reading events.
+   *FINISH is X_EVENT_DROP if event should not be passed to the toolkit.
+
+   Events representing keys are stored in buffer *BUFP_R,
+   which can hold up to *NUMCHARSP characters.
+   We return the number of characters stored into the buffer. */
+
+static int
+handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
+     struct x_display_info *dpyinfo;
+     XEvent *eventp;
+     /* register */ struct input_event **bufp_r;
+     /* register */ int *numcharsp;
+     int *finish;
+{
+  int count = 0;
+  int nbytes = 0;
+  struct frame *f;
+  struct coding_system coding;
+  struct input_event *bufp = *bufp_r;
+  int numchars = *numcharsp;
+  XEvent event = *eventp;
+
+  *finish = X_EVENT_NORMAL;
+
+  switch (event.type)
+    {
+    case ClientMessage:
+      {
+        if (event.xclient.message_type
+            == dpyinfo->Xatom_wm_protocols
+            && event.xclient.format == 32)
+          {
+            if (event.xclient.data.l[0]
+                == dpyinfo->Xatom_wm_take_focus)
+              {
+                /* Use x_any_window_to_frame because this
+                   could be the shell widget window
+                   if the frame has no title bar.  */
+                f = x_any_window_to_frame (dpyinfo, event.xclient.window);
+#ifdef HAVE_X_I18N
+                /* Not quite sure this is needed -pd */
+                if (f && FRAME_XIC (f))
+                  XSetICFocus (FRAME_XIC (f));
+#endif
+#if 0 /* Emacs sets WM hints whose `input' field is `true'.  This
+	 instructs the WM to set the input focus automatically for
+	 Emacs with a call to XSetInputFocus.  Setting WM_TAKE_FOCUS
+	 tells the WM to send us a ClientMessage WM_TAKE_FOCUS after
+	 it has set the focus.  So, XSetInputFocus below is not
+	 needed.
+
+	 The call to XSetInputFocus below has also caused trouble.  In
+	 cases where the XSetInputFocus done by the WM and the one
+	 below are temporally close (on a fast machine), the call
+	 below can generate additional FocusIn events which confuse
+	 Emacs.  */
+
+                /* Since we set WM_TAKE_FOCUS, we must call
+                   XSetInputFocus explicitly.  But not if f is null,
+                   since that might be an event for a deleted frame.  */
+                if (f)
+                  {
+                    Display *d = event.xclient.display;
+                    /* Catch and ignore errors, in case window has been
+                       iconified by a window manager such as GWM.  */
+                    int count = x_catch_errors (d);
+                    XSetInputFocus (d, event.xclient.window,
+                                    /* The ICCCM says this is
+                                       the only valid choice.  */
+                                    RevertToParent,
+                                    event.xclient.data.l[1]);
+                    /* This is needed to detect the error
+                       if there is an error.  */
+                    XSync (d, False);
+                    x_uncatch_errors (d, count);
+                  }
+                /* Not certain about handling scroll bars here */
+#endif /* 0 */
+              }
+            else if (event.xclient.data.l[0]
+                     == dpyinfo->Xatom_wm_save_yourself)
+              {
+                /* Save state modify the WM_COMMAND property to
+                   something which can reinstate us.  This notifies
+                   the session manager, who's looking for such a
+                   PropertyNotify.  Can restart processing when
+                   a keyboard or mouse event arrives.  */
+                /* If we have a session manager, don't set this.
+                   KDE will then start two Emacsen, one for the
+                   session manager and one for this. */
+                if (numchars > 0
+#ifdef HAVE_X_SM
+                    && ! x_session_have_connection ()
+#endif
+                    )
+                  {
+                    f = x_top_window_to_frame (dpyinfo,
+                                               event.xclient.window);
+                    /* This is just so we only give real data once
+                       for a single Emacs process.  */
+                    if (f == SELECTED_FRAME ())
+                      XSetCommand (FRAME_X_DISPLAY (f),
+                                   event.xclient.window,
+                                   initial_argv, initial_argc);
+                    else if (f)
+                      XSetCommand (FRAME_X_DISPLAY (f),
+                                   event.xclient.window,
+                                   0, 0);
+                  }
+              }
+            else if (event.xclient.data.l[0]
+                     == dpyinfo->Xatom_wm_delete_window)
+              {
+                struct frame *f
+                  = x_any_window_to_frame (dpyinfo,
+                                           event.xclient.window);
+
+                if (f)
+                  {
+                    if (numchars == 0)
+                      abort ();
+
+                    bufp->kind = DELETE_WINDOW_EVENT;
+                    XSETFRAME (bufp->frame_or_window, f);
+                    bufp->arg = Qnil;
+                    bufp++;
+
+                    count += 1;
+                    numchars -= 1;
+                  }
+                else
+                  goto OTHER; /* May be a dialog that is to be removed  */
+              }
+          }
+        else if (event.xclient.message_type
+                 == dpyinfo->Xatom_wm_configure_denied)
+          {
+          }
+        else if (event.xclient.message_type
+                 == dpyinfo->Xatom_wm_window_moved)
+          {
+            int new_x, new_y;
+            struct frame *f
+              = x_window_to_frame (dpyinfo, event.xclient.window);
+
+            new_x = event.xclient.data.s[0];
+            new_y = event.xclient.data.s[1];
+
+            if (f)
+              {
+                f->output_data.x->left_pos = new_x;
+                f->output_data.x->top_pos = new_y;
+              }
+          }
+#ifdef HACK_EDITRES
+        else if (event.xclient.message_type
+                 == dpyinfo->Xatom_editres)
+          {
+            struct frame *f
+              = x_any_window_to_frame (dpyinfo, event.xclient.window);
+            _XEditResCheckMessages (f->output_data.x->widget, NULL,
+                                    &event, NULL);
+          }
+#endif /* HACK_EDITRES */
+        else if ((event.xclient.message_type
+                  == dpyinfo->Xatom_DONE)
+                 || (event.xclient.message_type
+                     == dpyinfo->Xatom_PAGE))
+          {
+            /* Ghostview job completed.  Kill it.  We could
+               reply with "Next" if we received "Page", but we
+               currently never do because we are interested in
+               images, only, which should have 1 page.  */
+            Pixmap pixmap = (Pixmap) event.xclient.data.l[1];
+            struct frame *f
+              = x_window_to_frame (dpyinfo, event.xclient.window);
+            x_kill_gs_process (pixmap, f);
+            expose_frame (f, 0, 0, 0, 0);
+          }
+#ifdef USE_TOOLKIT_SCROLL_BARS
+        /* Scroll bar callbacks send a ClientMessage from which
+           we construct an input_event.  */
+        else if (event.xclient.message_type
+                 == dpyinfo->Xatom_Scrollbar)
+          {
+            x_scroll_bar_to_input_event (&event, bufp);
+            ++bufp, ++count, --numchars;
+            goto out;
+          }
+#endif /* USE_TOOLKIT_SCROLL_BARS */
+        else
+          goto OTHER;
+      }
+      break;
+
+    case SelectionNotify:
+#ifdef USE_X_TOOLKIT
+      if (! x_window_to_frame (dpyinfo, event.xselection.requestor))
+        goto OTHER;
+#endif /* not USE_X_TOOLKIT */
+      x_handle_selection_notify (&event.xselection);
+      break;
+
+    case SelectionClear:	/* Someone has grabbed ownership.  */
+#ifdef USE_X_TOOLKIT
+      if (! x_window_to_frame (dpyinfo, event.xselectionclear.window))
+        goto OTHER;
+#endif /* USE_X_TOOLKIT */
+      {
+        XSelectionClearEvent *eventp = (XSelectionClearEvent *) &event;
+
+        if (numchars == 0)
+          abort ();
+
+        bufp->kind = SELECTION_CLEAR_EVENT;
+        SELECTION_EVENT_DISPLAY (bufp) = eventp->display;
+        SELECTION_EVENT_SELECTION (bufp) = eventp->selection;
+        SELECTION_EVENT_TIME (bufp) = eventp->time;
+        bufp->frame_or_window = Qnil;
+        bufp->arg = Qnil;
+        bufp++;
+
+        count += 1;
+        numchars -= 1;
+      }
+      break;
+
+    case SelectionRequest:	/* Someone wants our selection.  */
+#ifdef USE_X_TOOLKIT
+      if (!x_window_to_frame (dpyinfo, event.xselectionrequest.owner))
+        goto OTHER;
+#endif /* USE_X_TOOLKIT */
+      if (x_queue_selection_requests)
+        x_queue_event (x_window_to_frame (dpyinfo, event.xselectionrequest.owner),
+                       &event);
+      else
+        {
+          XSelectionRequestEvent *eventp
+            = (XSelectionRequestEvent *) &event;
+
+          if (numchars == 0)
+            abort ();
+
+          bufp->kind = SELECTION_REQUEST_EVENT;
+          SELECTION_EVENT_DISPLAY (bufp) = eventp->display;
+          SELECTION_EVENT_REQUESTOR (bufp) = eventp->requestor;
+          SELECTION_EVENT_SELECTION (bufp) = eventp->selection;
+          SELECTION_EVENT_TARGET (bufp) = eventp->target;
+          SELECTION_EVENT_PROPERTY (bufp) = eventp->property;
+          SELECTION_EVENT_TIME (bufp) = eventp->time;
+          bufp->frame_or_window = Qnil;
+          bufp->arg = Qnil;
+          bufp++;
+
+          count += 1;
+          numchars -= 1;
+        }
+      break;
+
+    case PropertyNotify:
+#if 0 /* This is plain wrong.  In the case that we are waiting for a
+	 PropertyNotify used as an ACK in incremental selection
+	 transfer, the property will be on the receiver's window.  */
+#if defined USE_X_TOOLKIT
+      if (!x_any_window_to_frame (dpyinfo, event.xproperty.window))
+        goto OTHER;
+#endif
+#endif
+      x_handle_property_notify (&event.xproperty);
+      goto OTHER;
+
+    case ReparentNotify:
+      f = x_top_window_to_frame (dpyinfo, event.xreparent.window);
+      if (f)
+        {
+          int x, y;
+          f->output_data.x->parent_desc = event.xreparent.parent;
+          x_real_positions (f, &x, &y);
+          f->output_data.x->left_pos = x;
+          f->output_data.x->top_pos = y;
+          goto OTHER;
+        }
+      break;
+
+    case Expose:
+      f = x_window_to_frame (dpyinfo, event.xexpose.window);
+      if (f)
+        {
+          x_check_fullscreen (f);
+
+          if (f->async_visible == 0)
+            {
+              f->async_visible = 1;
+              f->async_iconified = 0;
+              f->output_data.x->has_been_visible = 1;
+              SET_FRAME_GARBAGED (f);
+            }
+          else
+            expose_frame (x_window_to_frame (dpyinfo,
+                                             event.xexpose.window),
+                          event.xexpose.x, event.xexpose.y,
+                          event.xexpose.width, event.xexpose.height);
+        }
+      else
+        {
+#ifndef USE_TOOLKIT_SCROLL_BARS
+          struct scroll_bar *bar;
+#endif
+#if defined USE_LUCID
+          /* Submenus of the Lucid menu bar aren't widgets
+             themselves, so there's no way to dispatch events
+             to them.  Recognize this case separately.  */
+          {
+            Widget widget
+              = x_window_to_menu_bar (event.xexpose.window);
+            if (widget)
+              xlwmenu_redisplay (widget);
+          }
+#endif /* USE_LUCID */
+
+#ifdef USE_TOOLKIT_SCROLL_BARS
+          /* Dispatch event to the widget.  */
+          goto OTHER;
+#else /* not USE_TOOLKIT_SCROLL_BARS */
+          bar = x_window_to_scroll_bar (event.xexpose.window);
+
+          if (bar)
+            x_scroll_bar_expose (bar, &event);
+#ifdef USE_X_TOOLKIT
+          else
+            goto OTHER;
+#endif /* USE_X_TOOLKIT */
+#endif /* not USE_TOOLKIT_SCROLL_BARS */
+        }
+      break;
+
+    case GraphicsExpose:	/* This occurs when an XCopyArea's
+                                   source area was obscured or not
+                                   available.  */
+      f = x_window_to_frame (dpyinfo, event.xgraphicsexpose.drawable);
+      if (f)
+        {
+          expose_frame (f,
+                        event.xgraphicsexpose.x, event.xgraphicsexpose.y,
+                        event.xgraphicsexpose.width,
+                        event.xgraphicsexpose.height);
+        }
+#ifdef USE_X_TOOLKIT
+      else
+        goto OTHER;
+#endif /* USE_X_TOOLKIT */
+      break;
+
+    case NoExpose:		/* This occurs when an XCopyArea's
+                                   source area was completely
+                                   available.  */
+      break;
+
+    case UnmapNotify:
+      /* Redo the mouse-highlight after the tooltip has gone.  */
+      if (event.xmap.window == tip_window)
+        {
+          tip_window = 0;
+          redo_mouse_highlight ();
+        }
+
+      f = x_top_window_to_frame (dpyinfo, event.xunmap.window);
+      if (f)		/* F may no longer exist if
+                           the frame was deleted.  */
+        {
+          /* While a frame is unmapped, display generation is
+             disabled; you don't want to spend time updating a
+             display that won't ever be seen.  */
+          f->async_visible = 0;
+          /* We can't distinguish, from the event, whether the window
+             has become iconified or invisible.  So assume, if it
+             was previously visible, than now it is iconified.
+             But x_make_frame_invisible clears both
+             the visible flag and the iconified flag;
+             and that way, we know the window is not iconified now.  */
+          if (FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f))
+            {
+              f->async_iconified = 1;
+
+              bufp->kind = ICONIFY_EVENT;
+              XSETFRAME (bufp->frame_or_window, f);
+              bufp->arg = Qnil;
+              bufp++;
+              count++;
+              numchars--;
+            }
+        }
+      goto OTHER;
+
+    case MapNotify:
+      if (event.xmap.window == tip_window)
+        /* The tooltip has been drawn already.  Avoid
+           the SET_FRAME_GARBAGED below.  */
+        goto OTHER;
+
+      /* We use x_top_window_to_frame because map events can
+         come for sub-windows and they don't mean that the
+         frame is visible.  */
+      f = x_top_window_to_frame (dpyinfo, event.xmap.window);
+      if (f)
+        {
+          /* wait_reading_process_input will notice this and update
+             the frame's display structures.
+             If we where iconified, we should not set garbaged,
+             because that stops redrawing on Expose events.  This looks
+             bad if we are called from a recursive event loop
+             (x_dispatch_event), for example when a dialog is up.  */
+          if (! f->async_iconified)
+            SET_FRAME_GARBAGED (f);
+
+          f->async_visible = 1;
+          f->async_iconified = 0;
+          f->output_data.x->has_been_visible = 1;
+
+          if (f->iconified)
+            {
+              bufp->kind = DEICONIFY_EVENT;
+              XSETFRAME (bufp->frame_or_window, f);
+              bufp->arg = Qnil;
+              bufp++;
+              count++;
+              numchars--;
+            }
+          else if (! NILP (Vframe_list)
+                   && ! NILP (XCDR (Vframe_list)))
+            /* Force a redisplay sooner or later
+               to update the frame titles
+               in case this is the second frame.  */
+            record_asynch_buffer_change ();
+        }
+      goto OTHER;
+
+    case KeyPress:
+
+      /* Dispatch KeyPress events when in menu.  */
+      if (popup_activated_flag)
+        goto OTHER;
+      f = x_any_window_to_frame (dpyinfo, event.xkey.window);
+
+      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight))
+        {
+          dpyinfo->mouse_face_hidden = 1;
+          clear_mouse_face (dpyinfo);
+        }
+
+#if defined USE_MOTIF && defined USE_TOOLKIT_SCROLL_BARS
+      if (f == 0)
+        {
+          /* Scroll bars consume key events, but we want
+             the keys to go to the scroll bar's frame.  */
+          Widget widget = XtWindowToWidget (dpyinfo->display,
+                                            event.xkey.window);
+          if (widget && XmIsScrollBar (widget))
+            {
+              widget = XtParent (widget);
+              f = x_any_window_to_frame (dpyinfo, XtWindow (widget));
+            }
+        }
+#endif /* USE_MOTIF and USE_TOOLKIT_SCROLL_BARS */
+
+      if (f != 0)
+        {
+          KeySym keysym, orig_keysym;
+          /* al%imercury@uunet.uu.net says that making this 81
+             instead of 80 fixed a bug whereby meta chars made
+             his Emacs hang.
+
+             It seems that some version of XmbLookupString has
+             a bug of not returning XBufferOverflow in
+             status_return even if the input is too long to
+             fit in 81 bytes.  So, we must prepare sufficient
+             bytes for copy_buffer.  513 bytes (256 chars for
+             two-byte character set) seems to be a fairly good
+             approximation.  -- 2000.8.10 handa@etl.go.jp  */
+          unsigned char copy_buffer[513];
+          unsigned char *copy_bufptr = copy_buffer;
+          int copy_bufsiz = sizeof (copy_buffer);
+          int modifiers;
+          Lisp_Object coding_system = Qlatin_1;
+
+          event.xkey.state
+            |= x_emacs_to_x_modifiers (FRAME_X_DISPLAY_INFO (f),
+                                       extra_keyboard_modifiers);
+          modifiers = event.xkey.state;
+
+          /* This will have to go some day...  */
+
+          /* make_lispy_event turns chars into control chars.
+             Don't do it here because XLookupString is too eager.  */
+          event.xkey.state &= ~ControlMask;
+          event.xkey.state &= ~(dpyinfo->meta_mod_mask
+                                | dpyinfo->super_mod_mask
+                                | dpyinfo->hyper_mod_mask
+                                | dpyinfo->alt_mod_mask);
+
+          /* In case Meta is ComposeCharacter,
+             clear its status.  According to Markus Ehrnsperger
+             Markus.Ehrnsperger@lehrstuhl-bross.physik.uni-muenchen.de
+             this enables ComposeCharacter to work whether or
+             not it is combined with Meta.  */
+          if (modifiers & dpyinfo->meta_mod_mask)
+            bzero (&compose_status, sizeof (compose_status));
+
+#ifdef HAVE_X_I18N
+          if (FRAME_XIC (f))
+            {
+              Status status_return;
+
+              coding_system = Vlocale_coding_system;
+              nbytes = XmbLookupString (FRAME_XIC (f),
+                                        &event.xkey, copy_bufptr,
+                                        copy_bufsiz, &keysym,
+                                        &status_return);
+              if (status_return == XBufferOverflow)
+                {
+                  copy_bufsiz = nbytes + 1;
+                  copy_bufptr = (char *) alloca (copy_bufsiz);
+                  nbytes = XmbLookupString (FRAME_XIC (f),
+                                            &event.xkey, copy_bufptr,
+                                            copy_bufsiz, &keysym,
+                                            &status_return);
+                }
+              /* Xutf8LookupString is a new but already deprecated interface.  -stef  */
+#if 0 && defined X_HAVE_UTF8_STRING
+              else if (status_return == XLookupKeySym)
+                {  /* Try again but with utf-8.  */
+                  coding_system = Qutf_8;
+                  nbytes = Xutf8LookupString (FRAME_XIC (f),
+                                              &event.xkey, copy_bufptr,
+                                              copy_bufsiz, &keysym,
+                                              &status_return);
+                  if (status_return == XBufferOverflow)
+                    {
+                      copy_bufsiz = nbytes + 1;
+                      copy_bufptr = (char *) alloca (copy_bufsiz);
+                      nbytes = Xutf8LookupString (FRAME_XIC (f),
+                                                  &event.xkey,
+                                                  copy_bufptr,
+                                                  copy_bufsiz, &keysym,
+                                                  &status_return);
+                    }
+                }
+#endif
+
+              if (status_return == XLookupNone)
+                break;
+              else if (status_return == XLookupChars)
+                {
+                  keysym = NoSymbol;
+                  modifiers = 0;
+                }
+              else if (status_return != XLookupKeySym
+                       && status_return != XLookupBoth)
+                abort ();
+            }
+          else
+            nbytes = XLookupString (&event.xkey, copy_bufptr,
+                                    copy_bufsiz, &keysym,
+                                    &compose_status);
+#else
+          nbytes = XLookupString (&event.xkey, copy_bufptr,
+                                  copy_bufsiz, &keysym,
+                                  &compose_status);
+#endif
+
+          orig_keysym = keysym;
+
+          if (numchars > 1)
+            {
+              Lisp_Object c;
+
+              /* First deal with keysyms which have defined
+                 translations to characters.  */
+              if (keysym >= 32 && keysym < 128)
+                /* Avoid explicitly decoding each ASCII character.  */
+                {
+                  bufp->kind = ASCII_KEYSTROKE_EVENT;
+                  bufp->code = keysym;
+                  XSETFRAME (bufp->frame_or_window, f);
+                  bufp->arg = Qnil;
+                  bufp->modifiers
+                    = x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f),
+                                              modifiers);
+                  bufp->timestamp = event.xkey.time;
+                  bufp++;
+                  count++;
+                  numchars--;
+                }
+              /* Now non-ASCII.  */
+              else if (HASH_TABLE_P (Vx_keysym_table)
+                       && (NATNUMP (c = Fgethash (make_number (keysym),
+                                                  Vx_keysym_table,
+                                                  Qnil))))
+                {
+                  bufp->kind = (SINGLE_BYTE_CHAR_P (XFASTINT (c))
+                                ? ASCII_KEYSTROKE_EVENT
+                                : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
+                  bufp->code = XFASTINT (c);
+                  XSETFRAME (bufp->frame_or_window, f);
+                  bufp->arg = Qnil;
+                  bufp->modifiers
+                    = x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f),
+                                              modifiers);
+                  bufp->timestamp = event.xkey.time;
+                  bufp++;
+                  count++;
+                  numchars--;
+                }
+              /* Random non-modifier sorts of keysyms.  */
+              else if (((keysym >= XK_BackSpace && keysym <= XK_Escape)
+                        || keysym == XK_Delete
+#ifdef XK_ISO_Left_Tab
+                        || (keysym >= XK_ISO_Left_Tab
+                            && keysym <= XK_ISO_Enter)
+#endif
+                        || IsCursorKey (keysym) /* 0xff50 <= x < 0xff60 */
+                        || IsMiscFunctionKey (keysym) /* 0xff60 <= x < VARIES */
+#ifdef HPUX
+                        /* This recognizes the "extended function
+                           keys".  It seems there's no cleaner way.
+                           Test IsModifierKey to avoid handling
+                           mode_switch incorrectly.  */
+                        || ((unsigned) (keysym) >= XK_Select
+                            && (unsigned)(keysym) < XK_KP_Space)
+#endif
+#ifdef XK_dead_circumflex
+                        || orig_keysym == XK_dead_circumflex
+#endif
+#ifdef XK_dead_grave
+                        || orig_keysym == XK_dead_grave
+#endif
+#ifdef XK_dead_tilde
+                        || orig_keysym == XK_dead_tilde
+#endif
+#ifdef XK_dead_diaeresis
+                        || orig_keysym == XK_dead_diaeresis
+#endif
+#ifdef XK_dead_macron
+                        || orig_keysym == XK_dead_macron
+#endif
+#ifdef XK_dead_degree
+                        || orig_keysym == XK_dead_degree
+#endif
+#ifdef XK_dead_acute
+                        || orig_keysym == XK_dead_acute
+#endif
+#ifdef XK_dead_cedilla
+                        || orig_keysym == XK_dead_cedilla
+#endif
+#ifdef XK_dead_breve
+                        || orig_keysym == XK_dead_breve
+#endif
+#ifdef XK_dead_ogonek
+                        || orig_keysym == XK_dead_ogonek
+#endif
+#ifdef XK_dead_caron
+                        || orig_keysym == XK_dead_caron
+#endif
+#ifdef XK_dead_doubleacute
+                        || orig_keysym == XK_dead_doubleacute
+#endif
+#ifdef XK_dead_abovedot
+                        || orig_keysym == XK_dead_abovedot
+#endif
+                        || IsKeypadKey (keysym) /* 0xff80 <= x < 0xffbe */
+                        || IsFunctionKey (keysym) /* 0xffbe <= x < 0xffe1 */
+                        /* Any "vendor-specific" key is ok.  */
+                        || (orig_keysym & (1 << 28))
+                        || (keysym != NoSymbol && nbytes == 0))
+                       && ! (IsModifierKey (orig_keysym)
+#ifndef HAVE_X11R5
+#ifdef XK_Mode_switch
+                             || ((unsigned)(orig_keysym) == XK_Mode_switch)
+#endif
+#ifdef XK_Num_Lock
+                             || ((unsigned)(orig_keysym) == XK_Num_Lock)
+#endif
+#endif /* not HAVE_X11R5 */
+                             /* The symbols from XK_ISO_Lock
+                                to XK_ISO_Last_Group_Lock
+                                don't have real modifiers but
+                                should be treated similarly to
+                                Mode_switch by Emacs. */
+#if defined XK_ISO_Lock && defined XK_ISO_Last_Group_Lock
+                             || ((unsigned)(orig_keysym)
+                                 >=  XK_ISO_Lock
+                                 && (unsigned)(orig_keysym)
+                                 <= XK_ISO_Last_Group_Lock)
+#endif
+                             ))
+                {
+                  if (temp_index == sizeof temp_buffer / sizeof (short))
+                    temp_index = 0;
+                  temp_buffer[temp_index++] = keysym;
+                  /* make_lispy_event will convert this to a symbolic
+                     key.  */
+                  bufp->kind = NON_ASCII_KEYSTROKE_EVENT;
+                  bufp->code = keysym;
+                  XSETFRAME (bufp->frame_or_window, f);
+                  bufp->arg = Qnil;
+                  bufp->modifiers
+                    = x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f),
+                                              modifiers);
+                  bufp->timestamp = event.xkey.time;
+                  bufp++;
+                  count++;
+                  numchars--;
+                }
+              else if (numchars > nbytes)
+                {	/* Raw bytes, not keysym.  */
+                  register int i;
+                  register int c;
+                  int nchars, len;
+
+                  /* The input should be decoded with `coding_system'
+                     which depends on which X*LookupString function
+                     we used just above and the locale.  */
+                  setup_coding_system (coding_system, &coding);
+                  coding.src_multibyte = 0;
+                  coding.dst_multibyte = 1;
+                  /* The input is converted to events, thus we can't
+                     handle composition.  Anyway, there's no XIM that
+                     gives us composition information.  */
+                  coding.composing = COMPOSITION_DISABLED;
+
+                  for (i = 0; i < nbytes; i++)
+                    {
+                      if (temp_index == (sizeof temp_buffer
+                                         / sizeof (short)))
+                        temp_index = 0;
+                      temp_buffer[temp_index++] = copy_bufptr[i];
+                    }
+
+                  {
+                    /* Decode the input data.  */
+                    int require;
+                    unsigned char *p;
+
+                    require = decoding_buffer_size (&coding, nbytes);
+                    p = (unsigned char *) alloca (require);
+                    coding.mode |= CODING_MODE_LAST_BLOCK;
+                    /* We explicitely disable composition
+                       handling because key data should
+                       not contain any composition
+                       sequence.  */
+                    coding.composing = COMPOSITION_DISABLED;
+                    decode_coding (&coding, copy_bufptr, p,
+                                   nbytes, require);
+                    nbytes = coding.produced;
+                    nchars = coding.produced_char;
+                    copy_bufptr = p;
+                  }
+
+                  /* Convert the input data to a sequence of
+                     character events.  */
+                  for (i = 0; i < nbytes; i += len)
+                    {
+                      if (nchars == nbytes)
+                        c = copy_bufptr[i], len = 1;
+                      else
+                        c = STRING_CHAR_AND_LENGTH (copy_bufptr + i,
+                                                    nbytes - i, len);
+
+                      bufp->kind = (SINGLE_BYTE_CHAR_P (c)
+                                    ? ASCII_KEYSTROKE_EVENT
+                                    : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
+                      bufp->code = c;
+                      XSETFRAME (bufp->frame_or_window, f);
+                      bufp->arg = Qnil;
+                      bufp->modifiers
+                        = x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f),
+                                                  modifiers);
+                      bufp->timestamp = event.xkey.time;
+                      bufp++;
+                    }
+
+                  count += nchars;
+                  numchars -= nchars;
+
+                  if (keysym == NoSymbol)
+                    break;
+                }
+              else
+                abort ();
+            }
+          else
+            abort ();
+        }
+#ifdef HAVE_X_I18N
+      /* Don't dispatch this event since XtDispatchEvent calls
+         XFilterEvent, and two calls in a row may freeze the
+         client.  */
+      break;
+#else
+      goto OTHER;
+#endif
+
+    case KeyRelease:
+#ifdef HAVE_X_I18N
+      /* Don't dispatch this event since XtDispatchEvent calls
+         XFilterEvent, and two calls in a row may freeze the
+         client.  */
+      break;
+#else
+      goto OTHER;
+#endif
+
+    case EnterNotify:
+      {
+        int n;
+
+        n = x_detect_focus_change (dpyinfo, &event, bufp, numchars);
+        if (n > 0)
+          {
+            bufp += n, count += n, numchars -= n;
+          }
+
+        f = x_any_window_to_frame (dpyinfo, event.xcrossing.window);
+
+#if 0
+        if (event.xcrossing.focus)
+          {
+            /* Avoid nasty pop/raise loops.  */
+            if (f && (!(f->auto_raise)
+                      || !(f->auto_lower)
+                      || (event.xcrossing.time - enter_timestamp) > 500))
+              {
+                x_new_focus_frame (dpyinfo, f);
+                enter_timestamp = event.xcrossing.time;
+              }
+          }
+        else if (f == dpyinfo->x_focus_frame)
+          x_new_focus_frame (dpyinfo, 0);
+#endif
+
+        /* EnterNotify counts as mouse movement,
+           so update things that depend on mouse position.  */
+        if (f && !f->output_data.x->hourglass_p)
+          note_mouse_movement (f, &event.xmotion);
+        goto OTHER;
+      }
+
+    case FocusIn:
+      {
+        int n;
+
+        n = x_detect_focus_change (dpyinfo, &event, bufp, numchars);
+        if (n > 0)
+          {
+            bufp += n, count += n, numchars -= n;
+          }
+      }
+
+      goto OTHER;
+
+    case LeaveNotify:
+      {
+        int n;
+
+        n = x_detect_focus_change (dpyinfo, &event, bufp, numchars);
+        if (n > 0)
+          {
+            bufp += n, count += n, numchars -= n;
+          }
+      }
+
+      f = x_top_window_to_frame (dpyinfo, event.xcrossing.window);
+      if (f)
+        {
+          if (f == dpyinfo->mouse_face_mouse_frame)
+            {
+              /* If we move outside the frame, then we're
+                 certainly no longer on any text in the frame.  */
+              clear_mouse_face (dpyinfo);
+              dpyinfo->mouse_face_mouse_frame = 0;
+            }
+
+          /* Generate a nil HELP_EVENT to cancel a help-echo.
+             Do it only if there's something to cancel.
+             Otherwise, the startup message is cleared when
+             the mouse leaves the frame.  */
+          if (any_help_event_p)
+            {
+              Lisp_Object frame;
+              int n;
+
+              XSETFRAME (frame, f);
+              help_echo = Qnil;
+              n = gen_help_event (bufp, numchars,
+                                  Qnil, frame, Qnil, Qnil, 0);
+              bufp += n, count += n, numchars -= n;
+            }
+
+        }
+      goto OTHER;
+
+    case FocusOut:
+      {
+        int n;
+
+        n = x_detect_focus_change (dpyinfo, &event, bufp, numchars);
+        if (n > 0)
+          {
+            bufp += n, count += n, numchars -= n;
+          }
+      }
+
+      goto OTHER;
+
+    case MotionNotify:
+      {
+        previous_help_echo = help_echo;
+        help_echo = help_echo_object = help_echo_window = Qnil;
+        help_echo_pos = -1;
+
+        if (dpyinfo->grabbed && last_mouse_frame
+            && FRAME_LIVE_P (last_mouse_frame))
+          f = last_mouse_frame;
+        else
+          f = x_window_to_frame (dpyinfo, event.xmotion.window);
+
+        if (dpyinfo->mouse_face_hidden)
+          {
+            dpyinfo->mouse_face_hidden = 0;
+            clear_mouse_face (dpyinfo);
+          }
+
+        if (f)
+          {
+
+            /* Generate SELECT_WINDOW_EVENTs when needed.  */
+            if (mouse_autoselect_window)
+              {
+                Lisp_Object window;
+                int area;
+
+                window = window_from_coordinates (f,
+                                                  event.xmotion.x, event.xmotion.y,
+                                                  &area, 0);
+
+                /* Window will be selected only when it is not selected now and
+                   last mouse movement event was not in it.  Minibuffer window
+                   will be selected iff it is active.  */
+                if (WINDOWP(window)
+                    && !EQ (window, last_window)
+                    && !EQ (window, selected_window)
+                    && numchars > 0)
+                  {
+                    bufp->kind = SELECT_WINDOW_EVENT;
+                    bufp->frame_or_window = window;
+                    bufp->arg = Qnil;
+                    ++bufp, ++count, --numchars;
+                  }
+
+                last_window=window;
+              }
+            note_mouse_movement (f, &event.xmotion);
+          }
+        else
+          {
+#ifndef USE_TOOLKIT_SCROLL_BARS
+            struct scroll_bar *bar
+              = x_window_to_scroll_bar (event.xmotion.window);
+
+            if (bar)
+              x_scroll_bar_note_movement (bar, &event);
+#endif /* USE_TOOLKIT_SCROLL_BARS */
+
+            /* If we move outside the frame, then we're
+               certainly no longer on any text in the frame.  */
+            clear_mouse_face (dpyinfo);
+          }
+
+        /* If the contents of the global variable help_echo
+           has changed, generate a HELP_EVENT.  */
+        if (!NILP (help_echo)
+            || !NILP (previous_help_echo))
+          {
+            Lisp_Object frame;
+            int n;
+
+            if (f)
+              XSETFRAME (frame, f);
+            else
+              frame = Qnil;
+
+            any_help_event_p = 1;
+            n = gen_help_event (bufp, numchars, help_echo, frame,
+                                help_echo_window, help_echo_object,
+                                help_echo_pos);
+            bufp += n, count += n, numchars -= n;
+          }
+
+        goto OTHER;
+      }
+
+    case ConfigureNotify:
+      f = x_top_window_to_frame (dpyinfo, event.xconfigure.window);
+      if (f)
+        {
+#ifndef USE_X_TOOLKIT
+          /* If there is a pending resize for fullscreen, don't
+             do this one, the right one will come later.
+             The toolkit version doesn't seem to need this, but we
+             need to reset it below.  */
+          int dont_resize =
+            ((f->output_data.x->want_fullscreen & FULLSCREEN_WAIT)
+             && FRAME_NEW_WIDTH (f) != 0);
+          int rows = PIXEL_TO_CHAR_HEIGHT (f, event.xconfigure.height);
+          int columns = PIXEL_TO_CHAR_WIDTH (f, event.xconfigure.width);
+          if (dont_resize)
+            goto OTHER;
+
+          /* In the toolkit version, change_frame_size
+             is called by the code that handles resizing
+             of the EmacsFrame widget.  */
+
+          /* Even if the number of character rows and columns has
+             not changed, the font size may have changed, so we need
+             to check the pixel dimensions as well.  */
+          if (columns != f->width
+              || rows != f->height
+              || event.xconfigure.width != f->output_data.x->pixel_width
+              || event.xconfigure.height != f->output_data.x->pixel_height)
+            {
+              change_frame_size (f, rows, columns, 0, 1, 0);
+              SET_FRAME_GARBAGED (f);
+              cancel_mouse_face (f);
+            }
+#endif
+
+          f->output_data.x->pixel_width = event.xconfigure.width;
+          f->output_data.x->pixel_height = event.xconfigure.height;
+
+          /* What we have now is the position of Emacs's own window.
+             Convert that to the position of the window manager window.  */
+          x_real_positions (f, &f->output_data.x->left_pos,
+                            &f->output_data.x->top_pos);
+
+          x_check_fullscreen_move(f);
+          if (f->output_data.x->want_fullscreen & FULLSCREEN_WAIT)
+            f->output_data.x->want_fullscreen &=
+              ~(FULLSCREEN_WAIT|FULLSCREEN_BOTH);
+#ifdef HAVE_X_I18N
+          if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMStatusArea))
+            xic_set_statusarea (f);
+#endif
+
+          if (f->output_data.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
+            {
+              /* Since the WM decorations come below top_pos now,
+                 we must put them below top_pos in the future.  */
+              f->output_data.x->win_gravity = NorthWestGravity;
+              x_wm_set_size_hint (f, (long) 0, 0);
+            }
+        }
+      goto OTHER;
+
+    case ButtonPress:
+    case ButtonRelease:
+      {
+        /* If we decide we want to generate an event to be seen
+           by the rest of Emacs, we put it here.  */
+        struct input_event emacs_event;
+        int tool_bar_p = 0;
+
+        emacs_event.kind = NO_EVENT;
+        bzero (&compose_status, sizeof (compose_status));
+
+        if (dpyinfo->grabbed
+            && last_mouse_frame
+            && FRAME_LIVE_P (last_mouse_frame))
+          f = last_mouse_frame;
+        else
+          f = x_window_to_frame (dpyinfo, event.xbutton.window);
+
+        if (f)
+          {
+            /* Is this in the tool-bar?  */
+            if (WINDOWP (f->tool_bar_window)
+                && XFASTINT (XWINDOW (f->tool_bar_window)->height))
+              {
+                Lisp_Object window;
+                int p, x, y;
+
+                x = event.xbutton.x;
+                y = event.xbutton.y;
+
+                /* Set x and y.  */
+                window = window_from_coordinates (f, x, y, &p, 1);
+                if (EQ (window, f->tool_bar_window))
+                  {
+                    x_handle_tool_bar_click (f, &event.xbutton);
+                    tool_bar_p = 1;
+                  }
+              }
+
+            if (!tool_bar_p)
+              if (!dpyinfo->x_focus_frame
+                  || f == dpyinfo->x_focus_frame)
+                construct_mouse_click (&emacs_event, &event, f);
+          }
+        else
+          {
+#ifndef USE_TOOLKIT_SCROLL_BARS
+            struct scroll_bar *bar
+              = x_window_to_scroll_bar (event.xbutton.window);
+
+            if (bar)
+              x_scroll_bar_handle_click (bar, &event, &emacs_event);
+#endif /* not USE_TOOLKIT_SCROLL_BARS */
+          }
+
+        if (event.type == ButtonPress)
+          {
+            dpyinfo->grabbed |= (1 << event.xbutton.button);
+            last_mouse_frame = f;
+            /* Ignore any mouse motion that happened
+               before this event; any subsequent mouse-movement
+               Emacs events should reflect only motion after
+               the ButtonPress.  */
+            if (f != 0)
+              f->mouse_moved = 0;
+
+            if (!tool_bar_p)
+              last_tool_bar_item = -1;
+          }
+        else
+          {
+            dpyinfo->grabbed &= ~(1 << event.xbutton.button);
+          }
+
+        if (numchars >= 1 && emacs_event.kind != NO_EVENT)
+          {
+            bcopy (&emacs_event, bufp, sizeof (struct input_event));
+            bufp++;
+            count++;
+            numchars--;
+          }
+
+#ifdef USE_X_TOOLKIT
+        f = x_menubar_window_to_frame (dpyinfo, event.xbutton.window);
+        /* For a down-event in the menu bar,
+           don't pass it to Xt right now.
+           Instead, save it away
+           and we will pass it to Xt from kbd_buffer_get_event.
+           That way, we can run some Lisp code first.  */
+        if (f && event.type == ButtonPress
+            /* Verify the event is really within the menu bar
+               and not just sent to it due to grabbing.  */
+            && event.xbutton.x >= 0
+            && event.xbutton.x < f->output_data.x->pixel_width
+            && event.xbutton.y >= 0
+            && event.xbutton.y < f->output_data.x->menubar_height
+            && event.xbutton.same_screen)
+          {
+            SET_SAVED_BUTTON_EVENT;
+            XSETFRAME (last_mouse_press_frame, f);
+          }
+        else if (event.type == ButtonPress)
+          {
+            last_mouse_press_frame = Qnil;
+            goto OTHER;
+          }
+
+#ifdef USE_MOTIF /* This should do not harm for Lucid,
+		    but I am trying to be cautious.  */
+        else if (event.type == ButtonRelease)
+          {
+            if (!NILP (last_mouse_press_frame))
+              {
+                f = XFRAME (last_mouse_press_frame);
+                if (f->output_data.x)
+                  SET_SAVED_BUTTON_EVENT;
+              }
+            else
+              goto OTHER;
+          }
+#endif /* USE_MOTIF */
+        else
+          goto OTHER;
+#endif /* USE_X_TOOLKIT */
+      }
+      break;
+
+    case CirculateNotify:
+      goto OTHER;
+
+    case CirculateRequest:
+      goto OTHER;
+
+    case VisibilityNotify:
+      goto OTHER;
+
+    case MappingNotify:
+      /* Someone has changed the keyboard mapping - update the
+         local cache.  */
+      switch (event.xmapping.request)
+        {
+        case MappingModifier:
+          x_find_modifier_meanings (dpyinfo);
+          /* This is meant to fall through.  */
+        case MappingKeyboard:
+          XRefreshKeyboardMapping (&event.xmapping);
+        }
+      goto OTHER;
+
+    default:
+    OTHER:
+#ifdef USE_X_TOOLKIT
+    BLOCK_INPUT;
+    XtDispatchEvent (&event);
+    UNBLOCK_INPUT;
+#endif /* USE_X_TOOLKIT */
+    break;
+    }
+
+  goto ret;
+
+ out:
+  *finish = X_EVENT_GOTO_OUT;
+
+ ret:
+  *bufp_r = bufp;
+  *numcharsp = numchars;
+  *eventp = event;
+  
+  return count;
+}
+
+
+/* Handles the XEvent EVENT on display DISPLAY.
+   This is used for event loops outside the normal event handling,
+   i.e. looping while a popup menu or a dialog is posted.  */
+void
+x_dispatch_event (event, display)
+     XEvent *event;
+     Display *display;
+{
+  struct x_display_info *dpyinfo;
+  struct input_event bufp[10];
+  struct input_event *bufpp = bufp;
+  int numchars = 10;
+  int finish;
+      
+  for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
+    if (dpyinfo->display == display)
+      break;
+          
+  if (dpyinfo)
+    {
+      int i, events;
+      events = handle_one_xevent (dpyinfo,
+                                  event,
+                                  &bufpp,
+                                  &numchars,
+                                  &finish);
+      for (i = 0; i < events; ++i)
+        kbd_buffer_store_event (&bufp[i]);
+    }
+}
+
+
 /* Read events coming from the X server.
    This routine is called by the SIGIO handler.
    We return as soon as there are no more events to be read.
@@ -10128,10 +11363,8 @@ XTread_socket (sd, bufp, numchars, expected)
   int count = 0;
   int nbytes = 0;
   XEvent event;
-  struct frame *f;
   int event_found = 0;
   struct x_display_info *dpyinfo;
-  struct coding_system coding;
 
   if (interrupt_input_blocked)
     {
@@ -10196,6 +11429,8 @@ XTread_socket (sd, bufp, numchars, expected)
 
       while (XPending (dpyinfo->display))
 	{
+          int finish;
+          
 	  XNextEvent (dpyinfo->display, &event);
 
 #ifdef HAVE_X_I18N
@@ -10213,1198 +11448,15 @@ XTread_socket (sd, bufp, numchars, expected)
 #endif
 	  event_found = 1;
 
-	  switch (event.type)
-	    {
-	    case ClientMessage:
-	      {
-		if (event.xclient.message_type
-		    == dpyinfo->Xatom_wm_protocols
-		    && event.xclient.format == 32)
-		  {
-		    if (event.xclient.data.l[0]
-			== dpyinfo->Xatom_wm_take_focus)
-		      {
-			/* Use x_any_window_to_frame because this
-			   could be the shell widget window
-			   if the frame has no title bar.  */
-			f = x_any_window_to_frame (dpyinfo, event.xclient.window);
-#ifdef HAVE_X_I18N
-			/* Not quite sure this is needed -pd */
-			if (f && FRAME_XIC (f))
-			  XSetICFocus (FRAME_XIC (f));
-#endif
-#if 0 /* Emacs sets WM hints whose `input' field is `true'.  This
-	 instructs the WM to set the input focus automatically for
-	 Emacs with a call to XSetInputFocus.  Setting WM_TAKE_FOCUS
-	 tells the WM to send us a ClientMessage WM_TAKE_FOCUS after
-	 it has set the focus.  So, XSetInputFocus below is not
-	 needed.
-
-	 The call to XSetInputFocus below has also caused trouble.  In
-	 cases where the XSetInputFocus done by the WM and the one
-	 below are temporally close (on a fast machine), the call
-	 below can generate additional FocusIn events which confuse
-	 Emacs.  */
-
-			/* Since we set WM_TAKE_FOCUS, we must call
-			   XSetInputFocus explicitly.  But not if f is null,
-			   since that might be an event for a deleted frame.  */
-			if (f)
-			  {
-			    Display *d = event.xclient.display;
-			    /* Catch and ignore errors, in case window has been
-			       iconified by a window manager such as GWM.  */
-			    int count = x_catch_errors (d);
-			    XSetInputFocus (d, event.xclient.window,
-					    /* The ICCCM says this is
-					       the only valid choice.  */
-					    RevertToParent,
-					    event.xclient.data.l[1]);
-			    /* This is needed to detect the error
-			       if there is an error.  */
-			    XSync (d, False);
-			    x_uncatch_errors (d, count);
-			  }
-			/* Not certain about handling scroll bars here */
-#endif /* 0 */
-		      }
-		    else if (event.xclient.data.l[0]
-			     == dpyinfo->Xatom_wm_save_yourself)
-		      {
-			/* Save state modify the WM_COMMAND property to
-			   something which can reinstate us.  This notifies
-			   the session manager, who's looking for such a
-			   PropertyNotify.  Can restart processing when
-			   a keyboard or mouse event arrives.  */
-                        /* If we have a session manager, don't set this.
-                           KDE will then start two Emacsen, one for the
-                           session manager and one for this. */
-			if (numchars > 0
-#ifdef HAVE_X_SM
-                            && ! x_session_have_connection ()
-#endif
-                            )
-			  {
-			    f = x_top_window_to_frame (dpyinfo,
-						       event.xclient.window);
-			    /* This is just so we only give real data once
-			       for a single Emacs process.  */
-			    if (f == SELECTED_FRAME ())
-			      XSetCommand (FRAME_X_DISPLAY (f),
-					   event.xclient.window,
-					   initial_argv, initial_argc);
-			    else if (f)
-			      XSetCommand (FRAME_X_DISPLAY (f),
-					   event.xclient.window,
-					   0, 0);
-			  }
-		      }
-		    else if (event.xclient.data.l[0]
-			     == dpyinfo->Xatom_wm_delete_window)
-		      {
-			struct frame *f
-			  = x_any_window_to_frame (dpyinfo,
-						   event.xclient.window);
-
-			if (f)
-			  {
-			    if (numchars == 0)
-			      abort ();
-
-			    bufp->kind = DELETE_WINDOW_EVENT;
-			    XSETFRAME (bufp->frame_or_window, f);
-			    bufp->arg = Qnil;
-			    bufp++;
-
-			    count += 1;
-			    numchars -= 1;
-			  }
-		      }
-		  }
-		else if (event.xclient.message_type
-			 == dpyinfo->Xatom_wm_configure_denied)
-		  {
-		  }
-		else if (event.xclient.message_type
-			 == dpyinfo->Xatom_wm_window_moved)
-		  {
-		    int new_x, new_y;
-		    struct frame *f
-		      = x_window_to_frame (dpyinfo, event.xclient.window);
-
-		    new_x = event.xclient.data.s[0];
-		    new_y = event.xclient.data.s[1];
-
-		    if (f)
-		      {
-			f->output_data.x->left_pos = new_x;
-			f->output_data.x->top_pos = new_y;
-		      }
-		  }
-#ifdef HACK_EDITRES
-		else if (event.xclient.message_type
-			 == dpyinfo->Xatom_editres)
-		  {
-		    struct frame *f
-		      = x_any_window_to_frame (dpyinfo, event.xclient.window);
-		    _XEditResCheckMessages (f->output_data.x->widget, NULL,
-					    &event, NULL);
-		  }
-#endif /* HACK_EDITRES */
-		else if ((event.xclient.message_type
-			  == dpyinfo->Xatom_DONE)
-			 || (event.xclient.message_type
-			     == dpyinfo->Xatom_PAGE))
-		  {
-		    /* Ghostview job completed.  Kill it.  We could
-		       reply with "Next" if we received "Page", but we
-		       currently never do because we are interested in
-		       images, only, which should have 1 page.  */
-		    Pixmap pixmap = (Pixmap) event.xclient.data.l[1];
-		    struct frame *f
-		      = x_window_to_frame (dpyinfo, event.xclient.window);
-		    x_kill_gs_process (pixmap, f);
-		    expose_frame (f, 0, 0, 0, 0);
-		  }
-#ifdef USE_TOOLKIT_SCROLL_BARS
-		/* Scroll bar callbacks send a ClientMessage from which
-		   we construct an input_event.  */
-		else if (event.xclient.message_type
-			 == dpyinfo->Xatom_Scrollbar)
-		  {
-		    x_scroll_bar_to_input_event (&event, bufp);
-		    ++bufp, ++count, --numchars;
-		    goto out;
-		  }
-#endif /* USE_TOOLKIT_SCROLL_BARS */
-		else
-		  goto OTHER;
-	      }
-	      break;
-
-	    case SelectionNotify:
-#ifdef USE_X_TOOLKIT
-	      if (! x_window_to_frame (dpyinfo, event.xselection.requestor))
-		goto OTHER;
-#endif /* not USE_X_TOOLKIT */
-	      x_handle_selection_notify (&event.xselection);
-	      break;
-
-	    case SelectionClear:	/* Someone has grabbed ownership.  */
-#ifdef USE_X_TOOLKIT
-	      if (! x_window_to_frame (dpyinfo, event.xselectionclear.window))
-		goto OTHER;
-#endif /* USE_X_TOOLKIT */
-	      {
-		XSelectionClearEvent *eventp = (XSelectionClearEvent *) &event;
-
-		if (numchars == 0)
-		  abort ();
-
-		bufp->kind = SELECTION_CLEAR_EVENT;
-		SELECTION_EVENT_DISPLAY (bufp) = eventp->display;
-		SELECTION_EVENT_SELECTION (bufp) = eventp->selection;
-		SELECTION_EVENT_TIME (bufp) = eventp->time;
-		bufp->frame_or_window = Qnil;
-		bufp->arg = Qnil;
-		bufp++;
-
-		count += 1;
-		numchars -= 1;
-	      }
-	      break;
-
-	    case SelectionRequest:	/* Someone wants our selection.  */
-#ifdef USE_X_TOOLKIT
-	      if (!x_window_to_frame (dpyinfo, event.xselectionrequest.owner))
-		goto OTHER;
-#endif /* USE_X_TOOLKIT */
-	      if (x_queue_selection_requests)
-		x_queue_event (x_window_to_frame (dpyinfo, event.xselectionrequest.owner),
-			       &event);
-	      else
-		{
-		  XSelectionRequestEvent *eventp
-		    = (XSelectionRequestEvent *) &event;
-
-		  if (numchars == 0)
-		    abort ();
-
-		  bufp->kind = SELECTION_REQUEST_EVENT;
-		  SELECTION_EVENT_DISPLAY (bufp) = eventp->display;
-		  SELECTION_EVENT_REQUESTOR (bufp) = eventp->requestor;
-		  SELECTION_EVENT_SELECTION (bufp) = eventp->selection;
-		  SELECTION_EVENT_TARGET (bufp) = eventp->target;
-		  SELECTION_EVENT_PROPERTY (bufp) = eventp->property;
-		  SELECTION_EVENT_TIME (bufp) = eventp->time;
-		  bufp->frame_or_window = Qnil;
-		  bufp->arg = Qnil;
-		  bufp++;
-
-		  count += 1;
-		  numchars -= 1;
-		}
-	      break;
-
-	    case PropertyNotify:
-#if 0 /* This is plain wrong.  In the case that we are waiting for a
-	 PropertyNotify used as an ACK in incremental selection
-	 transfer, the property will be on the receiver's window.  */
-#if defined USE_X_TOOLKIT
-	      if (!x_any_window_to_frame (dpyinfo, event.xproperty.window))
-		goto OTHER;
-#endif
-#endif
-	      x_handle_property_notify (&event.xproperty);
-	      goto OTHER;
-
-	    case ReparentNotify:
-	      f = x_top_window_to_frame (dpyinfo, event.xreparent.window);
-	      if (f)
-		{
-		  int x, y;
-		  f->output_data.x->parent_desc = event.xreparent.parent;
-		  x_real_positions (f, &x, &y);
-		  f->output_data.x->left_pos = x;
-		  f->output_data.x->top_pos = y;
-                  goto OTHER;
-		}
-	      break;
-
-	    case Expose:
-	      f = x_window_to_frame (dpyinfo, event.xexpose.window);
-	      if (f)
-		{
-                  x_check_fullscreen (f);
-
-		  if (f->async_visible == 0)
-		    {
-		      f->async_visible = 1;
-		      f->async_iconified = 0;
-		      f->output_data.x->has_been_visible = 1;
-		      SET_FRAME_GARBAGED (f);
-		    }
-		  else
-		    expose_frame (x_window_to_frame (dpyinfo,
-						     event.xexpose.window),
-				  event.xexpose.x, event.xexpose.y,
-				  event.xexpose.width, event.xexpose.height);
-		}
-	      else
-		{
-#ifndef USE_TOOLKIT_SCROLL_BARS
-		  struct scroll_bar *bar;
-#endif
-#if defined USE_LUCID
-		  /* Submenus of the Lucid menu bar aren't widgets
-		     themselves, so there's no way to dispatch events
-		     to them.  Recognize this case separately.  */
-		  {
-		    Widget widget
-		      = x_window_to_menu_bar (event.xexpose.window);
-		    if (widget)
-		      xlwmenu_redisplay (widget);
-		  }
-#endif /* USE_LUCID */
-
-#ifdef USE_TOOLKIT_SCROLL_BARS
-		  /* Dispatch event to the widget.  */
-		  goto OTHER;
-#else /* not USE_TOOLKIT_SCROLL_BARS */
-		  bar = x_window_to_scroll_bar (event.xexpose.window);
-
-		  if (bar)
-		    x_scroll_bar_expose (bar, &event);
-#ifdef USE_X_TOOLKIT
-		  else
-		    goto OTHER;
-#endif /* USE_X_TOOLKIT */
-#endif /* not USE_TOOLKIT_SCROLL_BARS */
-		}
-	      break;
-
-	    case GraphicsExpose:	/* This occurs when an XCopyArea's
-					   source area was obscured or not
-					   available.  */
-	      f = x_window_to_frame (dpyinfo, event.xgraphicsexpose.drawable);
-	      if (f)
-		{
-		  expose_frame (f,
-				event.xgraphicsexpose.x, event.xgraphicsexpose.y,
-				event.xgraphicsexpose.width,
-				event.xgraphicsexpose.height);
-		}
-#ifdef USE_X_TOOLKIT
-	      else
-		goto OTHER;
-#endif /* USE_X_TOOLKIT */
-	      break;
-
-	    case NoExpose:		/* This occurs when an XCopyArea's
-					   source area was completely
-					   available.  */
-	      break;
-
-	    case UnmapNotify:
-	      /* Redo the mouse-highlight after the tooltip has gone.  */
-	      if (event.xmap.window == tip_window)
-		{
-		  tip_window = 0;
-		  redo_mouse_highlight ();
-		}
-
-	      f = x_top_window_to_frame (dpyinfo, event.xunmap.window);
-	      if (f)		/* F may no longer exist if
-				   the frame was deleted.  */
-		{
-		  /* While a frame is unmapped, display generation is
-		     disabled; you don't want to spend time updating a
-		     display that won't ever be seen.  */
-		  f->async_visible = 0;
-		  /* We can't distinguish, from the event, whether the window
-		     has become iconified or invisible.  So assume, if it
-		     was previously visible, than now it is iconified.
-		     But x_make_frame_invisible clears both
-		     the visible flag and the iconified flag;
-		     and that way, we know the window is not iconified now.  */
-		  if (FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f))
-		    {
-		      f->async_iconified = 1;
-
-		      bufp->kind = ICONIFY_EVENT;
-		      XSETFRAME (bufp->frame_or_window, f);
-		      bufp->arg = Qnil;
-		      bufp++;
-		      count++;
-		      numchars--;
-		    }
-		}
-	      goto OTHER;
-
-	    case MapNotify:
-	      if (event.xmap.window == tip_window)
-		/* The tooltip has been drawn already.  Avoid
-		   the SET_FRAME_GARBAGED below.  */
-		goto OTHER;
-
-	      /* We use x_top_window_to_frame because map events can
-		 come for sub-windows and they don't mean that the
-		 frame is visible.  */
-	      f = x_top_window_to_frame (dpyinfo, event.xmap.window);
-	      if (f)
-		{
-		  f->async_visible = 1;
-		  f->async_iconified = 0;
-		  f->output_data.x->has_been_visible = 1;
-
-		  /* wait_reading_process_input will notice this and update
-		     the frame's display structures.  */
-		  SET_FRAME_GARBAGED (f);
-
-		  if (f->iconified)
-		    {
-		      bufp->kind = DEICONIFY_EVENT;
-		      XSETFRAME (bufp->frame_or_window, f);
-		      bufp->arg = Qnil;
-		      bufp++;
-		      count++;
-		      numchars--;
-		    }
-		  else if (! NILP (Vframe_list)
-			   && ! NILP (XCDR (Vframe_list)))
-		    /* Force a redisplay sooner or later
-		       to update the frame titles
-		       in case this is the second frame.  */
-		    record_asynch_buffer_change ();
-		}
-	      goto OTHER;
-
-	    case KeyPress:
-
-	      /* Dispatch KeyPress events when in menu.  */
-	      if (popup_activated_flag)
-               goto OTHER;
-
-	      f = x_any_window_to_frame (dpyinfo, event.xkey.window);
-
-	      if (!dpyinfo->mouse_face_hidden && INTEGERP (Vmouse_highlight))
-		{
-		  dpyinfo->mouse_face_hidden = 1;
-		  clear_mouse_face (dpyinfo);
-		}
-
-#if defined USE_MOTIF && defined USE_TOOLKIT_SCROLL_BARS
-	      if (f == 0)
-		{
-		  /* Scroll bars consume key events, but we want
-		     the keys to go to the scroll bar's frame.  */
-		  Widget widget = XtWindowToWidget (dpyinfo->display,
-						    event.xkey.window);
-		  if (widget && XmIsScrollBar (widget))
-		    {
-		      widget = XtParent (widget);
-		      f = x_any_window_to_frame (dpyinfo, XtWindow (widget));
-		    }
-		}
-#endif /* USE_MOTIF and USE_TOOLKIT_SCROLL_BARS */
-
-	      if (f != 0)
-		{
-		  KeySym keysym, orig_keysym;
-		  /* al%imercury@uunet.uu.net says that making this 81
-		     instead of 80 fixed a bug whereby meta chars made
-		     his Emacs hang.
-
-		     It seems that some version of XmbLookupString has
-		     a bug of not returning XBufferOverflow in
-		     status_return even if the input is too long to
-		     fit in 81 bytes.  So, we must prepare sufficient
-		     bytes for copy_buffer.  513 bytes (256 chars for
-		     two-byte character set) seems to be a fairly good
-		     approximation.  -- 2000.8.10 handa@etl.go.jp  */
-		  unsigned char copy_buffer[513];
-		  unsigned char *copy_bufptr = copy_buffer;
-		  int copy_bufsiz = sizeof (copy_buffer);
-		  int modifiers;
-		  Lisp_Object coding_system = Qlatin_1;
-
-		  event.xkey.state
-		    |= x_emacs_to_x_modifiers (FRAME_X_DISPLAY_INFO (f),
-					       extra_keyboard_modifiers);
-		  modifiers = event.xkey.state;
-
-		  /* This will have to go some day...  */
-
-		  /* make_lispy_event turns chars into control chars.
-		     Don't do it here because XLookupString is too eager.  */
-		  event.xkey.state &= ~ControlMask;
-		  event.xkey.state &= ~(dpyinfo->meta_mod_mask
-					| dpyinfo->super_mod_mask
-					| dpyinfo->hyper_mod_mask
-					| dpyinfo->alt_mod_mask);
-
-		  /* In case Meta is ComposeCharacter,
-		     clear its status.  According to Markus Ehrnsperger
-		     Markus.Ehrnsperger@lehrstuhl-bross.physik.uni-muenchen.de
-		     this enables ComposeCharacter to work whether or
-		     not it is combined with Meta.  */
-		  if (modifiers & dpyinfo->meta_mod_mask)
-		    bzero (&compose_status, sizeof (compose_status));
-
-#ifdef HAVE_X_I18N
-		  if (FRAME_XIC (f))
-		    {
-		      Status status_return;
-
-		      coding_system = Vlocale_coding_system;
-		      nbytes = XmbLookupString (FRAME_XIC (f),
-						&event.xkey, copy_bufptr,
-						copy_bufsiz, &keysym,
-						&status_return);
-		      if (status_return == XBufferOverflow)
-			{
-			  copy_bufsiz = nbytes + 1;
-			  copy_bufptr = (char *) alloca (copy_bufsiz);
-			  nbytes = XmbLookupString (FRAME_XIC (f),
-						    &event.xkey, copy_bufptr,
-						    copy_bufsiz, &keysym,
-						    &status_return);
-			}
-/* Xutf8LookupString is a new but already deprecated interface.  -stef  */
-#if 0 && defined X_HAVE_UTF8_STRING
-		      else if (status_return == XLookupKeySym)
-			{  /* Try again but with utf-8.  */
-			  coding_system = Qutf_8;
-			  nbytes = Xutf8LookupString (FRAME_XIC (f),
-						      &event.xkey, copy_bufptr,
-						      copy_bufsiz, &keysym,
-						      &status_return);
-			  if (status_return == XBufferOverflow)
-			    {
-			      copy_bufsiz = nbytes + 1;
-			      copy_bufptr = (char *) alloca (copy_bufsiz);
-			      nbytes = Xutf8LookupString (FRAME_XIC (f),
-							  &event.xkey,
-							  copy_bufptr,
-							  copy_bufsiz, &keysym,
-							  &status_return);
-			    }
-			}
-#endif
-
-		      if (status_return == XLookupNone)
-			break;
-		      else if (status_return == XLookupChars)
-			{
-			  keysym = NoSymbol;
-			  modifiers = 0;
-			}
-		      else if (status_return != XLookupKeySym
-			       && status_return != XLookupBoth)
-			abort ();
-		    }
-		  else
-		    nbytes = XLookupString (&event.xkey, copy_bufptr,
-					    copy_bufsiz, &keysym,
-					    &compose_status);
-#else
-		  nbytes = XLookupString (&event.xkey, copy_bufptr,
-					  copy_bufsiz, &keysym,
-					  &compose_status);
-#endif
-
-		  orig_keysym = keysym;
-
-		  if (numchars > 1)
-		    {
-		      Lisp_Object c;
-
-		      /* First deal with keysyms which have defined
-			 translations to characters.  */
-		      if (keysym >= 32 && keysym < 128)
-			/* Avoid explicitly decoding each ASCII character.  */
-			{
-			  bufp->kind = ASCII_KEYSTROKE_EVENT;
-			  bufp->code = keysym;
-			  XSETFRAME (bufp->frame_or_window, f);
-			  bufp->arg = Qnil;
-			  bufp->modifiers
-			    = x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f),
-						      modifiers);
-			  bufp->timestamp = event.xkey.time;
-			  bufp++;
-			  count++;
-			  numchars--;
-			}
-		      /* Now non-ASCII.  */
-		      else if (HASH_TABLE_P (Vx_keysym_table)
-			       && (NATNUMP (c = Fgethash (make_number (keysym),
-							  Vx_keysym_table,
-							  Qnil))))
-			{
-			  bufp->kind = (SINGLE_BYTE_CHAR_P (XFASTINT (c))
-					? ASCII_KEYSTROKE_EVENT
-					: MULTIBYTE_CHAR_KEYSTROKE_EVENT);
-			  bufp->code = XFASTINT (c);
-			  XSETFRAME (bufp->frame_or_window, f);
-			  bufp->arg = Qnil;
-			  bufp->modifiers
-			    = x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f),
-						      modifiers);
-			  bufp->timestamp = event.xkey.time;
-			  bufp++;
-			  count++;
-			  numchars--;
-			}
-		      /* Random non-modifier sorts of keysyms.  */
-		      else if (((keysym >= XK_BackSpace && keysym <= XK_Escape)
-				|| keysym == XK_Delete
-#ifdef XK_ISO_Left_Tab
-				|| (keysym >= XK_ISO_Left_Tab
-				    && keysym <= XK_ISO_Enter)
-#endif
-				|| IsCursorKey (keysym) /* 0xff50 <= x < 0xff60 */
-				|| IsMiscFunctionKey (keysym) /* 0xff60 <= x < VARIES */
-#ifdef HPUX
-				/* This recognizes the "extended function
-				   keys".  It seems there's no cleaner way.
-				   Test IsModifierKey to avoid handling
-				   mode_switch incorrectly.  */
-				|| ((unsigned) (keysym) >= XK_Select
-				    && (unsigned)(keysym) < XK_KP_Space)
-#endif
-#ifdef XK_dead_circumflex
-				|| orig_keysym == XK_dead_circumflex
-#endif
-#ifdef XK_dead_grave
-				|| orig_keysym == XK_dead_grave
-#endif
-#ifdef XK_dead_tilde
-				|| orig_keysym == XK_dead_tilde
-#endif
-#ifdef XK_dead_diaeresis
-				|| orig_keysym == XK_dead_diaeresis
-#endif
-#ifdef XK_dead_macron
-				|| orig_keysym == XK_dead_macron
-#endif
-#ifdef XK_dead_degree
-				|| orig_keysym == XK_dead_degree
-#endif
-#ifdef XK_dead_acute
-				|| orig_keysym == XK_dead_acute
-#endif
-#ifdef XK_dead_cedilla
-				|| orig_keysym == XK_dead_cedilla
-#endif
-#ifdef XK_dead_breve
-				|| orig_keysym == XK_dead_breve
-#endif
-#ifdef XK_dead_ogonek
-				|| orig_keysym == XK_dead_ogonek
-#endif
-#ifdef XK_dead_caron
-				|| orig_keysym == XK_dead_caron
-#endif
-#ifdef XK_dead_doubleacute
-				|| orig_keysym == XK_dead_doubleacute
-#endif
-#ifdef XK_dead_abovedot
-				|| orig_keysym == XK_dead_abovedot
-#endif
-				|| IsKeypadKey (keysym) /* 0xff80 <= x < 0xffbe */
-				|| IsFunctionKey (keysym) /* 0xffbe <= x < 0xffe1 */
-				/* Any "vendor-specific" key is ok.  */
-				|| (orig_keysym & (1 << 28))
-				|| (keysym != NoSymbol && nbytes == 0))
-			       && ! (IsModifierKey (orig_keysym)
-#ifndef HAVE_X11R5
-#ifdef XK_Mode_switch
-				     || ((unsigned)(orig_keysym) == XK_Mode_switch)
-#endif
-#ifdef XK_Num_Lock
-				     || ((unsigned)(orig_keysym) == XK_Num_Lock)
-#endif
-#endif /* not HAVE_X11R5 */
-				     /* The symbols from XK_ISO_Lock
-					to XK_ISO_Last_Group_Lock
-					don't have real modifiers but
-					should be treated similarly to
-					Mode_switch by Emacs. */
-#if defined XK_ISO_Lock && defined XK_ISO_Last_Group_Lock
-				     || ((unsigned)(orig_keysym)
-					 >=  XK_ISO_Lock
-					 && (unsigned)(orig_keysym)
-					 <= XK_ISO_Last_Group_Lock)
-#endif
-				     ))
-			{
-			  if (temp_index == sizeof temp_buffer / sizeof (short))
-			    temp_index = 0;
-			  temp_buffer[temp_index++] = keysym;
-			  /* make_lispy_event will convert this to a symbolic
-			     key.  */
-			  bufp->kind = NON_ASCII_KEYSTROKE_EVENT;
-			  bufp->code = keysym;
-			  XSETFRAME (bufp->frame_or_window, f);
-			  bufp->arg = Qnil;
-			  bufp->modifiers
-			    = x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f),
-						      modifiers);
-			  bufp->timestamp = event.xkey.time;
-			  bufp++;
-			  count++;
-			  numchars--;
-			}
-		      else if (numchars > nbytes)
-			{	/* Raw bytes, not keysym.  */
-			  register int i;
-			  register int c;
-			  int nchars, len;
-
-			  /* The input should be decoded with `coding_system'
-			     which depends on which X*LookupString function
-			     we used just above and the locale.  */
-			  setup_coding_system (coding_system, &coding);
-			  coding.src_multibyte = 0;
-			  coding.dst_multibyte = 1;
-			  /* The input is converted to events, thus we can't
-			     handle composition.  Anyway, there's no XIM that
-			     gives us composition information.  */
-			  coding.composing = COMPOSITION_DISABLED;
-
-			  for (i = 0; i < nbytes; i++)
-			    {
-			      if (temp_index == (sizeof temp_buffer
-						 / sizeof (short)))
-				temp_index = 0;
-			      temp_buffer[temp_index++] = copy_bufptr[i];
-			    }
-
-			  {
-			    /* Decode the input data.  */
-			    int require;
-			    unsigned char *p;
-
-			    require = decoding_buffer_size (&coding, nbytes);
-			    p = (unsigned char *) alloca (require);
-			    coding.mode |= CODING_MODE_LAST_BLOCK;
-			    /* We explicitely disable composition
-			       handling because key data should
-			       not contain any composition
-			       sequence.  */
-			    coding.composing = COMPOSITION_DISABLED;
-			    decode_coding (&coding, copy_bufptr, p,
-					   nbytes, require);
-			    nbytes = coding.produced;
-			    nchars = coding.produced_char;
-			    copy_bufptr = p;
-			  }
-
-			  /* Convert the input data to a sequence of
-			     character events.  */
-			  for (i = 0; i < nbytes; i += len)
-			    {
-			      if (nchars == nbytes)
-				c = copy_bufptr[i], len = 1;
-			      else
-				c = STRING_CHAR_AND_LENGTH (copy_bufptr + i,
-							    nbytes - i, len);
-
-			      bufp->kind = (SINGLE_BYTE_CHAR_P (c)
-					    ? ASCII_KEYSTROKE_EVENT
-					    : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
-			      bufp->code = c;
-			      XSETFRAME (bufp->frame_or_window, f);
-			      bufp->arg = Qnil;
-			      bufp->modifiers
-				= x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f),
-							  modifiers);
-			      bufp->timestamp = event.xkey.time;
-			      bufp++;
-			    }
-
-			  count += nchars;
-			  numchars -= nchars;
-
-			  if (keysym == NoSymbol)
-			    break;
-			}
-		      else
-			abort ();
-		    }
-		  else
-		    abort ();
-		}
-#ifdef HAVE_X_I18N
-	      /* Don't dispatch this event since XtDispatchEvent calls
-		 XFilterEvent, and two calls in a row may freeze the
-		 client.  */
-	      break;
-#else
-	      goto OTHER;
-#endif
-
-	    case KeyRelease:
-#ifdef HAVE_X_I18N
-	      /* Don't dispatch this event since XtDispatchEvent calls
-		 XFilterEvent, and two calls in a row may freeze the
-		 client.  */
-	      break;
-#else
-	      goto OTHER;
-#endif
-
-	    case EnterNotify:
-	      {
-                int n;
-
-                n = x_detect_focus_change (dpyinfo, &event, bufp, numchars);
-                if (n > 0)
-                {
-                  bufp += n, count += n, numchars -= n;
-                }
-
-		f = x_any_window_to_frame (dpyinfo, event.xcrossing.window);
-
-#if 0
-		if (event.xcrossing.focus)
-		  {
-		    /* Avoid nasty pop/raise loops.  */
-		    if (f && (!(f->auto_raise)
-			      || !(f->auto_lower)
-			      || (event.xcrossing.time - enter_timestamp) > 500))
-		      {
-			x_new_focus_frame (dpyinfo, f);
-			enter_timestamp = event.xcrossing.time;
-		      }
-		  }
-		else if (f == dpyinfo->x_focus_frame)
-		  x_new_focus_frame (dpyinfo, 0);
-#endif
-
-		/* EnterNotify counts as mouse movement,
-		   so update things that depend on mouse position.  */
-		if (f && !f->output_data.x->hourglass_p)
-		  note_mouse_movement (f, &event.xmotion);
-		goto OTHER;
-	      }
-
-	    case FocusIn:
-              {
-                int n;
-
-                n = x_detect_focus_change (dpyinfo, &event, bufp, numchars);
-                if (n > 0)
-                  {
-                    bufp += n, count += n, numchars -= n;
-                  }
-              }
-
-	      goto OTHER;
-
-	    case LeaveNotify:
-              {
-                int n;
-
-                n = x_detect_focus_change (dpyinfo, &event, bufp, numchars);
-                if (n > 0)
-                {
-                  bufp += n, count += n, numchars -= n;
-                }
-              }
-
-	      f = x_top_window_to_frame (dpyinfo, event.xcrossing.window);
-	      if (f)
-		{
-		  if (f == dpyinfo->mouse_face_mouse_frame)
-		    {
-		      /* If we move outside the frame, then we're
-			 certainly no longer on any text in the frame.  */
-		      clear_mouse_face (dpyinfo);
-		      dpyinfo->mouse_face_mouse_frame = 0;
-		    }
-
-		  /* Generate a nil HELP_EVENT to cancel a help-echo.
-		     Do it only if there's something to cancel.
-		     Otherwise, the startup message is cleared when
-		     the mouse leaves the frame.  */
-		  if (any_help_event_p)
-		    {
-		      Lisp_Object frame;
-		      int n;
-
-		      XSETFRAME (frame, f);
-		      help_echo = Qnil;
-		      n = gen_help_event (bufp, numchars,
-					  Qnil, frame, Qnil, Qnil, 0);
-		      bufp += n, count += n, numchars -= n;
-		    }
-
-		}
-	      goto OTHER;
-
-	    case FocusOut:
-              {
-                int n;
-
-                n = x_detect_focus_change (dpyinfo, &event, bufp, numchars);
-                if (n > 0)
-                {
-                  bufp += n, count += n, numchars -= n;
-                }
-              }
-
-	      goto OTHER;
-
-	    case MotionNotify:
-	      {
-		previous_help_echo = help_echo;
-		help_echo = help_echo_object = help_echo_window = Qnil;
-		help_echo_pos = -1;
-
-		if (dpyinfo->grabbed && last_mouse_frame
-		    && FRAME_LIVE_P (last_mouse_frame))
-		  f = last_mouse_frame;
-		else
-		  f = x_window_to_frame (dpyinfo, event.xmotion.window);
-
-		if (dpyinfo->mouse_face_hidden)
-		  {
-		    dpyinfo->mouse_face_hidden = 0;
-		    clear_mouse_face (dpyinfo);
-		  }
-
-		if (f)
-		  {
-
-		    /* Generate SELECT_WINDOW_EVENTs when needed.  */
-		    if (mouse_autoselect_window)
-		      {
-			Lisp_Object window;
-			int area;
-
-			window = window_from_coordinates (f,
-							  event.xmotion.x, event.xmotion.y,
-							  &area, 0);
-
-			/* Window will be selected only when it is not selected now and
-			   last mouse movement event was not in it.  Minibuffer window
-			   will be selected iff it is active.  */
-			if (WINDOWP(window)
-			    && !EQ (window, last_window)
-			    && !EQ (window, selected_window)
-			    && numchars > 0)
-			  {
-			    bufp->kind = SELECT_WINDOW_EVENT;
-			    bufp->frame_or_window = window;
-			    bufp->arg = Qnil;
-			    ++bufp, ++count, --numchars;
-			  }
-
-			last_window=window;
-		      }
-		    note_mouse_movement (f, &event.xmotion);
-		  }
-		else
-		  {
-#ifndef USE_TOOLKIT_SCROLL_BARS
-		    struct scroll_bar *bar
-		      = x_window_to_scroll_bar (event.xmotion.window);
-
-		    if (bar)
-		      x_scroll_bar_note_movement (bar, &event);
-#endif /* USE_TOOLKIT_SCROLL_BARS */
-
-		    /* If we move outside the frame, then we're
-		       certainly no longer on any text in the frame.  */
-		    clear_mouse_face (dpyinfo);
-		  }
-
-		/* If the contents of the global variable help_echo
-		   has changed, generate a HELP_EVENT.  */
-		if (!NILP (help_echo)
-		    || !NILP (previous_help_echo))
-		  {
-		    Lisp_Object frame;
-		    int n;
-
-		    if (f)
-		      XSETFRAME (frame, f);
-		    else
-		      frame = Qnil;
-
-		    any_help_event_p = 1;
-		    n = gen_help_event (bufp, numchars, help_echo, frame,
-					help_echo_window, help_echo_object,
-					help_echo_pos);
-		    bufp += n, count += n, numchars -= n;
-		  }
-
-		goto OTHER;
-	      }
-
-	    case ConfigureNotify:
-	      f = x_top_window_to_frame (dpyinfo, event.xconfigure.window);
-	      if (f)
-		{
-#ifndef USE_X_TOOLKIT
-                  /* If there is a pending resize for fullscreen, don't
-                     do this one, the right one will come later.
-		     The toolkit version doesn't seem to need this, but we
-		     need to reset it below.  */
-                  int dont_resize =
-                    ((f->output_data.x->want_fullscreen & FULLSCREEN_WAIT)
-                     && FRAME_NEW_WIDTH (f) != 0);
-		  int rows = PIXEL_TO_CHAR_HEIGHT (f, event.xconfigure.height);
-		  int columns = PIXEL_TO_CHAR_WIDTH (f, event.xconfigure.width);
-                  if (dont_resize)
-                    goto OTHER;
-
-		  /* In the toolkit version, change_frame_size
-		     is called by the code that handles resizing
-		     of the EmacsFrame widget.  */
-
-		  /* Even if the number of character rows and columns has
-		     not changed, the font size may have changed, so we need
-		     to check the pixel dimensions as well.  */
-		  if (columns != f->width
-		      || rows != f->height
-		      || event.xconfigure.width != f->output_data.x->pixel_width
-		      || event.xconfigure.height != f->output_data.x->pixel_height)
-		    {
-		      change_frame_size (f, rows, columns, 0, 1, 0);
-		      SET_FRAME_GARBAGED (f);
-		      cancel_mouse_face (f);
-		    }
-#endif
-
-		  f->output_data.x->pixel_width = event.xconfigure.width;
-		  f->output_data.x->pixel_height = event.xconfigure.height;
-
-		  /* What we have now is the position of Emacs's own window.
-		     Convert that to the position of the window manager window.  */
-		  x_real_positions (f, &f->output_data.x->left_pos,
-				    &f->output_data.x->top_pos);
-
-                  x_check_fullscreen_move(f);
-                  if (f->output_data.x->want_fullscreen & FULLSCREEN_WAIT)
-                    f->output_data.x->want_fullscreen &=
-                      ~(FULLSCREEN_WAIT|FULLSCREEN_BOTH);
-#ifdef HAVE_X_I18N
-		  if (FRAME_XIC (f) && (FRAME_XIC_STYLE (f) & XIMStatusArea))
-		    xic_set_statusarea (f);
-#endif
-
-		  if (f->output_data.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
-		    {
-		      /* Since the WM decorations come below top_pos now,
-			 we must put them below top_pos in the future.  */
-		      f->output_data.x->win_gravity = NorthWestGravity;
-		      x_wm_set_size_hint (f, (long) 0, 0);
-		    }
-		}
-	      goto OTHER;
-
-	    case ButtonPress:
-	    case ButtonRelease:
-	      {
-		/* If we decide we want to generate an event to be seen
-		   by the rest of Emacs, we put it here.  */
-		struct input_event emacs_event;
-		int tool_bar_p = 0;
-
-		emacs_event.kind = NO_EVENT;
-		bzero (&compose_status, sizeof (compose_status));
-
-		if (dpyinfo->grabbed
-		    && last_mouse_frame
-		    && FRAME_LIVE_P (last_mouse_frame))
-		  f = last_mouse_frame;
-		else
-		  f = x_window_to_frame (dpyinfo, event.xbutton.window);
-
-		if (f)
-		  {
-		    /* Is this in the tool-bar?  */
-		    if (WINDOWP (f->tool_bar_window)
-			&& XFASTINT (XWINDOW (f->tool_bar_window)->height))
-		      {
-			Lisp_Object window;
-			int p, x, y;
-
-			x = event.xbutton.x;
-			y = event.xbutton.y;
-
-			/* Set x and y.  */
-			window = window_from_coordinates (f, x, y, &p, 1);
-			if (EQ (window, f->tool_bar_window))
-			  {
-			    x_handle_tool_bar_click (f, &event.xbutton);
-			    tool_bar_p = 1;
-			  }
-		      }
-
-		    if (!tool_bar_p)
-		      if (!dpyinfo->x_focus_frame
-			  || f == dpyinfo->x_focus_frame)
-			construct_mouse_click (&emacs_event, &event, f);
-		  }
-		else
-		  {
-#ifndef USE_TOOLKIT_SCROLL_BARS
-		    struct scroll_bar *bar
-		      = x_window_to_scroll_bar (event.xbutton.window);
-
-		    if (bar)
-		      x_scroll_bar_handle_click (bar, &event, &emacs_event);
-#endif /* not USE_TOOLKIT_SCROLL_BARS */
-		  }
-
-		if (event.type == ButtonPress)
-		  {
-		    dpyinfo->grabbed |= (1 << event.xbutton.button);
-		    last_mouse_frame = f;
-		    /* Ignore any mouse motion that happened
-		       before this event; any subsequent mouse-movement
-		       Emacs events should reflect only motion after
-		       the ButtonPress.  */
-		    if (f != 0)
-		      f->mouse_moved = 0;
-
-		    if (!tool_bar_p)
-		      last_tool_bar_item = -1;
-		  }
-		else
-		  {
-		    dpyinfo->grabbed &= ~(1 << event.xbutton.button);
-		  }
-
-		if (numchars >= 1 && emacs_event.kind != NO_EVENT)
-		  {
-		    bcopy (&emacs_event, bufp, sizeof (struct input_event));
-		    bufp++;
-		    count++;
-		    numchars--;
-		  }
-
-#ifdef USE_X_TOOLKIT
-		f = x_menubar_window_to_frame (dpyinfo, event.xbutton.window);
-		/* For a down-event in the menu bar,
-		   don't pass it to Xt right now.
-		   Instead, save it away
-		   and we will pass it to Xt from kbd_buffer_get_event.
-		   That way, we can run some Lisp code first.  */
-		if (f && event.type == ButtonPress
-		    /* Verify the event is really within the menu bar
-		       and not just sent to it due to grabbing.  */
-		    && event.xbutton.x >= 0
-		    && event.xbutton.x < f->output_data.x->pixel_width
-		    && event.xbutton.y >= 0
-		    && event.xbutton.y < f->output_data.x->menubar_height
-		    && event.xbutton.same_screen)
-		  {
-		    SET_SAVED_BUTTON_EVENT;
-		    XSETFRAME (last_mouse_press_frame, f);
-		  }
-		else if (event.type == ButtonPress)
-		  {
-		    last_mouse_press_frame = Qnil;
-		    goto OTHER;
-		  }
-
-#ifdef USE_MOTIF /* This should do not harm for Lucid,
-		    but I am trying to be cautious.  */
-		else if (event.type == ButtonRelease)
-		  {
-		    if (!NILP (last_mouse_press_frame))
-		      {
-			f = XFRAME (last_mouse_press_frame);
-			if (f->output_data.x)
-			  SET_SAVED_BUTTON_EVENT;
-		      }
-		    else
-		      goto OTHER;
-		  }
-#endif /* USE_MOTIF */
-		else
-		  goto OTHER;
-#endif /* USE_X_TOOLKIT */
-	      }
-	      break;
-
-	    case CirculateNotify:
-	      goto OTHER;
-
-	    case CirculateRequest:
-	      goto OTHER;
-
-	    case VisibilityNotify:
-	      goto OTHER;
-
-	    case MappingNotify:
-	      /* Someone has changed the keyboard mapping - update the
-		 local cache.  */
-	      switch (event.xmapping.request)
-		{
-		case MappingModifier:
-		  x_find_modifier_meanings (dpyinfo);
-		  /* This is meant to fall through.  */
-		case MappingKeyboard:
-		  XRefreshKeyboardMapping (&event.xmapping);
-		}
-	      goto OTHER;
-
-	    default:
-	    OTHER:
-#ifdef USE_X_TOOLKIT
-	      BLOCK_INPUT;
-	      XtDispatchEvent (&event);
-	      UNBLOCK_INPUT;
-#endif /* USE_X_TOOLKIT */
-	      break;
-	    }
-	}
+          count += handle_one_xevent (dpyinfo,
+                                      &event,
+                                      &bufp,
+                                      &numchars,
+                                      &finish);
+
+          if (finish == X_EVENT_GOTO_OUT)
+            goto out;
+        }
     }
 
  out:;

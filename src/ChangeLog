@@ -1,3 +1,22 @@
+2003-01-08  Jan D.  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_file_dialog): Call XtAppNextEvent and x_dispatch_event
+	instead of XtAppProcessEvent.
+
+	* xterm.c (handle_one_xevent): New function
+	(x_dispatch_event): New function
+	(XTread_socket): Call handle_one_xevent.
+
+	* xterm.h (FRAME_OUTER_TO_INNER_DIFF_X/Y): Added
+
+	* xmenu.c (Fx_popup_menu): If popping up at mouse position,
+	call XQueryPointer to get coordinates.
+	(popup_get_selection): Do not set popup_activated_flag to zero,
+	let popup_deactivate_callback do that.  Needed for Motif.
+	Call x_dispatch_event instead of XtDispatchEvent.
+	(xmenu_show): Calculate root coordinate from frame top/left position.
+	
+
 2003-01-08  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (server_accept_connection): Fixed recording of new
