@@ -164,37 +164,47 @@ same as ENDRECFUN."
     sort-lists))
 
 (defun sort-reorder-buffer (sort-lists old)
-  (let ((inhibit-quit t)
-	(last (point-min))
-	(min (point-min)) (max (point-max)))
-    ;; Make sure insertions done for reordering
-    ;; do not go after any markers at the end of the sorted region,
-    ;; by inserting a space to separate them.
-    (goto-char (point-max))
-    (insert-before-markers " ")
-    (narrow-to-region min (1- (point-max)))
-    (while sort-lists
+  (let ((last (point-min))
+	(min (point-min)) (max (point-max))
+	(old-buffer (current-buffer))
+	temp-buffer)
+    (with-temp-buffer
+      ;; Record the temporary buffer.
+      (setq temp-buffer (current-buffer))
+
+      ;; Copy the sorted text into the temporary buffer.
+      (while sort-lists
+	(goto-char (point-max))
+	(insert-buffer-substring old-buffer
+				 last
+				 (nth 1 (car old)))
+	(goto-char (point-max))
+	(insert-buffer-substring old-buffer
+				 (nth 1 (car sort-lists))
+				 (cdr (cdr (car sort-lists))))
+	(setq last (cdr (cdr (car old)))
+	      sort-lists (cdr sort-lists)
+	      old (cdr old)))
       (goto-char (point-max))
-      (insert-buffer-substring (current-buffer)
+      (insert-buffer-substring old-buffer
 			       last
-			       (nth 1 (car old)))
-      (goto-char (point-max))
-      (insert-buffer-substring (current-buffer)
-			       (nth 1 (car sort-lists))
-			       (cdr (cdr (car sort-lists))))
-      (setq last (cdr (cdr (car old)))
-	    sort-lists (cdr sort-lists)
-	    old (cdr old)))
-    (goto-char (point-max))
-    (insert-buffer-substring (current-buffer)
-			     last
-			     max)
-    ;; Delete the original copy of the text.
-    (delete-region min max)
-    ;; Get rid of the separator " ".
-    (goto-char (point-max))
-    (narrow-to-region min (1+ (point)))
-    (delete-region (point) (1+ (point)))))
+			       max)
+
+      ;; Copy the reordered text from the temporary buffer
+      ;; to the buffer we sorted (OLD-BUFFER).
+      (set-buffer old-buffer)
+      (let ((inhibit-quit t))
+	;; Make sure insertions done for reordering
+	;; do not go after any markers at the end of the sorted region,
+	;; by inserting a space to separate them.
+	(goto-char max)
+	(insert-before-markers " ")
+	;; Delete the original copy of the text.
+	(delete-region min max)
+	;; Now replace the separator " " with the sorted text.
+	(goto-char (point-max))
+	(insert-buffer-substring temp-buffer 1 (1+ (- max min)))
+	(delete-region min (1+ min))))))
 
 ;;;###autoload
 (defun sort-lines (reverse beg end) 
