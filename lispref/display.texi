@@ -2875,8 +2875,13 @@ property of text that is displayed (@pxref{Display Property}).  Like the
 @code{display} property, this feature is available starting in Emacs 21.
 
   Emacs can display a number of different image formats; some of them
-are supported only if particular support libraries are installed on your
-machine.  The supported image formats include XBM, XPM (needing the
+are supported only if particular support libraries are installed on
+your machine.  In some environments, Emacs allows loading image
+libraries on demand; if so, the variable @code{image-library-alist}
+can be used to modify the set of known names for these dynamic
+libraries (though it is not posible to add new image formats).
+
+  The supported image formats include XBM, XPM (needing the
 libraries @code{libXpm} version 3.4k and @code{libz}), GIF (needing
 @code{libungif} 4.1.0), Postscript, PBM, JPEG (needing the
 @code{libjpeg} library version v6a), TIFF (needing @code{libtiff} v3.4),
@@ -2887,9 +2892,47 @@ type symbols are @code{xbm}, @code{xpm}, @code{gif}, @code{postscript},
 @code{pbm}, @code{jpeg}, @code{tiff}, and @code{png}.
 
 @defvar image-types
+@vindex image-types
 This variable contains a list of those image type symbols that are
-supported in the current configuration.
+potentially supported in the current configuration.
+@emph{Potentially} here means that Emacs knows about the image types,
+not necessarily that they can be loaded (they could depend on
+unavailable dynamic libraries, for example).
+
+To know which image types are really available, use
+@code{image-type-available-p}.
 @end defvar
+
+@defvar image-library-alist
+@vindex image-library-alist
+This in an alist of image types vs external libraries needed to
+display them.
+
+Each element is a list @code{(@var{IMAGE-TYPE} @var{LIBRARY}...)},
+where the car is a supported image format from @code{image-types}, and
+the rest are strings giving alternate filenames for the corresponding
+external libraries to load.
+
+They are tried in the order they appear on the list; if none of them
+can be loaded, the running session of Emacs won't support the image
+type.  No entries are needed for @code{pbm} and @code{xbm} images;
+they're always supported.
+
+This variable is ignored if the image libraries are statically linked
+into Emacs.
+@end defvar
+
+@defun  image-type-available-p type
+@findex image-type-available-p
+
+This function returns non-nil if image type TYPE is available, i.e.,
+if images of this type can be loaded and displayed in Emacs.  TYPE
+should be one of the types contained in @code{image-types}.
+
+For image types whose support libraries are statically linked, this
+function always returns @code{t}; for other image types, it returns
+@code{t} if the dynamic library could be loaded, @code{nil} otherwise.
+@end defun
 
 @menu
 * Image Descriptors::   How to specify an image for use in @code{:display}.
