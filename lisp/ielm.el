@@ -361,7 +361,7 @@ simply inserts a newline."
 				  (set-buffer ielm-temp-buffer))
 			      (when ielm-temp-buffer
 				(kill-buffer ielm-temp-buffer)))
-			  (error (setq ielm-result (ielm-format-error err))
+			  (error (setq ielm-result (error-message-string err))
 				 (setq ielm-error-type "Eval error"))
 			  (quit (setq ielm-result "Quit during evaluation")
 				(setq ielm-error-type "Eval error")))))
