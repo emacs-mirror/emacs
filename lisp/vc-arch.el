@@ -309,7 +309,8 @@ Return non-nil if FILE is unchanged."
 (defcustom vc-arch-mode-line-rewrite
   '(("\\`.*--\\(.*--.*\\)--\\(v?\\).*-\\([0-9]+\\)\\'" . "\\2\\3[\\1]"))
   "Rewrite rules to shorten Arch's revision names on the mode-line."
-  :type '(repeat (cons regexp string)))
+  :type '(repeat (cons regexp string))
+  :group 'vc)
 
 (defun vc-arch-mode-line-string (file)
   "Return string for placement in modeline by `vc-mode-line' for FILE."
