@@ -1,3 +1,8 @@
+2002-06-25  Miles Bader  <miles@gnu.org>
+
+	* callint.c (Fcall_interactively): When checking to see if doprnt hit
+	the end of callint_message, allow for a terminating '\0'.
+
 2002-06-24  Juanma Barranquero  <lektu@terra.es>
 
 	* w32select.c: Include composite.h
