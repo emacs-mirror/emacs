@@ -1,5 +1,5 @@
 /* Interfaces to system-dependent kernel and library entries.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86, 87, 88, 93, 94 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -73,6 +73,40 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 extern int errno;
 
+#ifdef VMS
+#include <rms.h>
+#include <ttdef.h>
+#include <tt2def.h>
+#include <iodef.h>
+#include <ssdef.h>
+#include <descrip.h>
+#include <fibdef.h>
+#include <atrdef.h>
+#include <ctype.h>
+#include <string.h>
+#ifdef __GNUC__
+#include <sys/file.h>
+#else
+#include <file.h>
+#endif
+#undef F_SETFL
+#ifndef RAB$C_BID
+#include <rab.h>
+#endif
+#define	MAXIOSIZE ( 32 * PAGESIZE )	/* Don't I/O more than 32 blocks at a time */
+#endif /* VMS */
+
+#ifndef BSD4_1
+#ifdef BSD /* this is done this way to avoid defined (BSD) || defined (USG)
+	      because the vms compiler doesn't grok `defined' */
+#include <fcntl.h>
+#endif
+#ifdef USG
+#ifndef USG5
+#include <fcntl.h>
+#endif
+#endif
+#endif /* not 4.1 bsd */
 
 #ifdef BROKEN_FASYNC
 /* On some systems (DGUX comes to mind real fast) FASYNC causes
