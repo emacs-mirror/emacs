@@ -145,7 +145,7 @@ when you hit the end of the current node."
   :type 'boolean
   :group 'info)
 
-(defcustom Info-mode-hook '(font-lock-mode)
+(defcustom Info-mode-hook '(turn-on-font-lock)
   "Hooks run when `info-mode' is called."
   :type 'hook
   :group 'info)
