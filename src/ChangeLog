@@ -1,3 +1,8 @@
+2002-10-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sysdep.c [MSDOS] (request_sigio, unrequest_sigio):
+	Don't define them, they are defined in msdos.c.
+
 2002-10-15  Dave Love  <fx@gnu.org>
 
 	* unexelf.c (unexec): Deal with .got on Irix 6.5.
