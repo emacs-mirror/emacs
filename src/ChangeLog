@@ -1,3 +1,8 @@
+2003-12-25  Lars Hansen <larsh@math.ku.dk>
+
+	* dired.c (Fdirectory_files, Fdirectory_files_and_attributes):
+	Arguments GCPRO'ed in call to file name handler.
+
 2003-12-25  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* termcap.c (tgetst1): Scan for "%pN"; if all
