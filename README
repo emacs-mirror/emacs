@@ -59,7 +59,7 @@ There are several subdirectories:
     or with Emacs, like movemail and etags.
 `etc' holds miscellaneous architecture-independent data files
     Emacs uses, like the tutorial text and the Zippy the Pinhead quote
-    database.  The contents of the `lisp', `info' and `man'
+    database.  The contents of the `lisp', `info', `man', and `lispref'
     subdirectories are architecture-independent too.
 
 `info' holds the Info documentation tree for Emacs.
@@ -67,10 +67,7 @@ There are several subdirectories:
       manual sources, you will need the `makeinfo' program to produce
       an updated manual.  `makeinfo' is part of the GNU Texinfo
       package; you need version 4.0 or later of Texinfo.
-
-   Note that the Emacs Lisp Reference Manual sources are distributed
-separately.  (They are twice as large as the Emacs Manual in the man
-subdirectory.)
+`lispref' holds the source code for the Emacs Lisp reference manual.
 
 `msdos' holds configuration files for compiling Emacs under MSDOG.
 `vms' holds instructions and useful files for running Emacs under VMS.
