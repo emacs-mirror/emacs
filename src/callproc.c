@@ -647,10 +647,10 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   end = args[1];
 #ifdef DOS_NT
   specbind (Qbuffer_file_type, Vbinary_process_input);
-  Fwrite_region (start, end, filename_string, Qnil, Qlambda);
+  Fwrite_region (start, end, filename_string, Qnil, Qlambda, Qnil);
   unbind_to (count, Qnil);
 #else  /* not DOS_NT */
-  Fwrite_region (start, end, filename_string, Qnil, Qlambda);
+  Fwrite_region (start, end, filename_string, Qnil, Qlambda, Qnil);
 #endif /* not DOS_NT */
 
   record_unwind_protect (delete_temp_file, filename_string);
