@@ -589,8 +589,8 @@ print_string (string, printcharfun)
 	    /* Here, we must convert each multi-byte form to the
 	       corresponding character code before handing it to PRINTCHAR.  */
 	    int len;
-	    int ch = STRING_CHAR_AND_LENGTH (XSTRING (string)->data + i,
-					     size_byte - i, len);
+	    int ch = STRING_CHAR_AND_CHAR_LENGTH (XSTRING (string)->data + i,
+						  size_byte - i, len);
 
 	    PRINTCHAR (ch);
 	    i += len;
@@ -1188,6 +1188,7 @@ print (obj, printcharfun, escapeflag)
 	  register int i, i_byte;
 	  register unsigned char c;
 	  struct gcpro gcpro1;
+	  unsigned char *str;
 	  int size_byte;
 	  /* 1 means we must ensure that the next character we output
 	     cannot be taken as part of a hex character escape.  */
@@ -1204,6 +1205,7 @@ print (obj, printcharfun, escapeflag)
 #endif
 
 	  PRINTCHAR ('\"');
+	  str = XSTRING (obj)->data;
 	  size_byte = STRING_BYTES (XSTRING (obj));
 
 	  for (i = 0, i_byte = 0; i_byte < size_byte;)
@@ -1214,9 +1216,13 @@ print (obj, printcharfun, escapeflag)
 	      int c;
 
 	      if (STRING_MULTIBYTE (obj))
-		FETCH_STRING_CHAR_ADVANCE (c, obj, i, i_byte);
+		{
+		  c = STRING_CHAR_AND_CHAR_LENGTH (str + i_byte,
+						   size_byte - i_byte, len);
+		  i_byte += len;
+		}
 	      else
-		c = XSTRING (obj)->data[i_byte++];
+		c = str[i_byte++];
 
 	      QUIT;
 
