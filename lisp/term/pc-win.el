@@ -260,7 +260,10 @@
 
 ;; From src/xfns.c
 (defun x-display-color-p (&optional display) 't)
-(defun x-list-fonts (pattern &optional face frame) (list "default"))
+(defun x-list-fonts (pattern &optional face frame maximum width)
+  (if (and (numberp width) (= width 1))
+      (list "default")
+    (list "no-such-font")))
 (defun x-color-defined-p (color) (numberp (msdos-color-translate color)))
 (defun x-display-pixel-width (&optional frame) (frame-width frame))
 (defun x-display-pixel-height (&optional frame) (frame-height frame))
@@ -350,6 +353,9 @@ This is in addition to the primary selection.")
 ;; it, no matter which variety they've asked for.
 (defun x-frob-font-slant (font which)
   font)
+
+;; From src/fontset.c:
+(fset 'query-fontset 'ignore)
 
 ;; From lisp/term/x-win.el: make iconify-or-deiconify-frame a no-op.
 (fset 'iconify-or-deiconify-frame 'ignore)
