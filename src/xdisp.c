@@ -480,7 +480,13 @@ int message_buf_print;
    specifying a fraction of the available height, or an integer
    specifying a number of lines.  */
 
-static Lisp_Object Vmax_mini_window_height;
+Lisp_Object Vmax_mini_window_height;
+
+/* Non-zero means messages should be displayed with truncated
+   lines instead of being continued.  */
+
+int message_truncate_lines;
+Lisp_Object Qmessage_truncate_lines;
 
 /* Non-zero means we want a hollow cursor in windows that are not
    selected.  Zero means there's no cursor in such windows.  */
@@ -5298,6 +5304,7 @@ ensure_echo_area_buffers ()
 	char name[30];
 	sprintf (name, " *Echo Area %d*", i);
 	echo_buffer[i] = Fget_buffer_create (build_string (name));
+	XBUFFER (echo_buffer[i])->truncate_lines = Qnil;
       }
 }
 
@@ -5379,7 +5386,7 @@ with_echo_area_buffer (w, which, fn, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10)
       w->buffer = buffer;
       set_marker_both (w->pointm, buffer, BEG, BEG_BYTE);
     }
-  current_buffer->truncate_lines = Qnil;
+
   current_buffer->undo_list = Qt;
   current_buffer->read_only = Qnil;
 
@@ -5665,13 +5672,18 @@ resize_mini_window (w, exact_p)
       max_height = min (total_height, max_height);
       
       /* Find out the height of the text in the window.  */
-      last_height = 0;
-      move_it_to (&it, ZV, -1, -1, -1, MOVE_TO_POS);
-      if (it.max_ascent == 0 && it.max_descent == 0)
-	height = it.current_y + last_height;
+      if (it.truncate_lines_p)
+	height = 1;
       else
-	height = it.current_y + it.max_ascent + it.max_descent;
-      height = (height + unit - 1) / unit;
+	{
+	  last_height = 0;
+	  move_it_to (&it, ZV, -1, -1, -1, MOVE_TO_POS);
+	  if (it.max_ascent == 0 && it.max_descent == 0)
+	    height = it.current_y + last_height;
+	  else
+	    height = it.current_y + it.max_ascent + it.max_descent;
+	  height = (height + unit - 1) / unit;
+	}
       
       /* Compute a suitable window start.  */
       if (height > max_height)
@@ -5875,6 +5887,8 @@ set_message_1 (s, string, nbytes, multibyte_p)
       != !NILP (current_buffer->enable_multibyte_characters))
     Fset_buffer_multibyte (message_enable_multibyte ? Qt : Qnil);
 
+  current_buffer->truncate_lines = message_truncate_lines ? Qt : Qnil;
+  
   /* Insert new message at BEG.  */
   TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
 
@@ -12971,6 +12985,8 @@ syms_of_xdisp ()
   staticpro (&Qtrailing_whitespace);
   Qimage = intern ("image");
   staticpro (&Qimage);
+  Qmessage_truncate_lines = intern ("message-truncate-lines");
+  staticpro (&Qmessage_truncate_lines);
 
   last_arrow_position = Qnil;
   last_arrow_string = Qnil;
@@ -13161,9 +13177,14 @@ Nil means don't display a cursor there.");
   automatic_hscrolling_p = 1;
   
   DEFVAR_LISP ("image-types", &Vimage_types,
-     "List of supported image types.\n\
+    "List of supported image types.\n\
 Each element of the list is a symbol for a supported image type.");
   Vimage_types = Qnil;
+  
+  DEFVAR_BOOL ("message-truncate-lines", &message_truncate_lines,
+    "If non-nil, messages are truncated instead of resizing the echo area.\n\
+Bind this around calls to `message' to let it take effect.");
+  message_truncate_lines = 0;
 }
 
 
