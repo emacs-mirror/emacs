@@ -1,9 +1,14 @@
+2003-05-31  Kenichi Handa  <handa@m17n.org>
+
+	* buffer.c (Fset_buffer_multibyte): Correctly recover a narrowed
+	region when a buffer is changed to unibyte.
+
 2003-05-30  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (ccl_coding_driver): Set ccl->eight_bit_control
 	properly before calling ccl_driver.
 
-	* ccl.h (struct ccl_program) <eight_bit_control: Comment fixed.
+	* ccl.h (struct ccl_program) <eight_bit_control>: Comment fixed.
 
 	* ccl.c (CCL_WRITE_CHAR): Increment extra_bytes only when it is
 	nonzero.
