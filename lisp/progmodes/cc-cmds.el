@@ -105,22 +105,13 @@ See `c-toggle-auto-state' and `c-toggle-hungry-state' for details."
 
 ;; Electric keys
 
-;; Note: In XEmacs 20.3 the Delete and BackSpace keysyms have been
-;; separated and "\177" is no longer an alias for both keys.  Also,
-;; the variable delete-key-deletes-forward controls in which direction
-;; the Delete keysym deletes characters.  The functions
-;; c-electric-delete and c-electric-backspace attempt to deal with
-;; this new functionality.  For Emacs 19 and XEmacs 19 backwards
-;; compatibility, the old behavior has moved to c-electric-backspace
-;; and c-backspace-function.
-
 (defun c-electric-backspace (arg)
   "Deletes preceding character or whitespace.
 If `c-hungry-delete-key' is non-nil, as evidenced by the \"/h\" or
 \"/ah\" string on the mode line, then all preceding whitespace is
-consumed.  If however an ARG is supplied, or `c-hungry-delete-key' is
-nil, or point is inside a literal then the function in the variable
-`c-backspace-function' is called.
+consumed.  If however a prefix argument is supplied, or
+`c-hungry-delete-key' is nil, or point is inside a literal then the
+function in the variable `c-backspace-function' is called.
 
 See also \\[c-electric-delete]."
   (interactive "*P")
@@ -135,36 +126,46 @@ See also \\[c-electric-delete]."
 	(funcall c-backspace-function 1)
 	))))
 
+(defun c-electric-delete-forward (arg)
+  "Deletes following character or whitespace.
+If `c-hungry-delete-key' is non-nil, as evidenced by the \"/h\" or
+\"/ah\" string on the mode line, then all following whitespace is
+consumed.  If however a prefix argument is supplied, or
+`c-hungry-delete-key' is nil, or point is inside a literal then the
+function in the variable `c-delete-function' is called."
+  (interactive "*P")
+  (if (or (not c-hungry-delete-key)
+	  arg
+	  (c-in-literal))
+      (funcall c-delete-function (prefix-numeric-value arg))
+    (let ((here (point)))
+      (skip-chars-forward " \t\n")
+      (if (/= (point) here)
+	  (delete-region (point) here)
+	(funcall c-delete-function 1)))))
+
 (defun c-electric-delete (arg)
   "Deletes preceding or following character or whitespace.
+This function either deletes forward as `c-electric-delete-forward' or
+backward as `c-electric-backspace', depending on the configuration:
 
-The behavior of this function depends on the variable
-`delete-key-deletes-forward'.  If this variable is nil (or does not
-exist, as in older Emacsen), then this function behaves identical to
-\\[c-electric-backspace].
+If the function `delete-forward-p' is defined (XEmacs 21) and returns
+non-nil, it deletes forward.  Else, if the variable
+`delete-key-deletes-forward' is defined (XEmacs 20) and is set to
+non-nil, it deletes forward.  Otherwise it deletes backward.
 
-If `delete-key-deletes-forward' is non-nil and is supported in your
-Emacs, then deletion occurs in the forward direction.  So if
-`c-hungry-delete-key' is non-nil, as evidenced by the \"/h\" or
-\"/ah\" string on the mode line, then all following whitespace is
-consumed.  If however an ARG is supplied, or `c-hungry-delete-key' is
-nil, or point is inside a literal then the function in the variable
-`c-delete-function' is called."
+Note: This is the way in XEmacs 20 and later to choose the correct
+action for the [delete] key, whichever key that means.  In other
+flavors this function isn't used, instead it's left to the user to
+bind [delete] to either \\[c-electric-delete-forward] or \\[c-electric-backspace] as appropriate
+\(the keymap `function-key-map' is useful for that).  Emacs 21 handles
+that automatically, though."
   (interactive "*P")
   (if (or (and (fboundp 'delete-forward-p) ;XEmacs 21
 	       (delete-forward-p))
 	  (and (boundp 'delete-key-deletes-forward) ;XEmacs 20
 	       delete-key-deletes-forward))
-      (if (or (not c-hungry-delete-key)
-	      arg
-	      (c-in-literal))
-	  (funcall c-delete-function (prefix-numeric-value arg))
-	(let ((here (point)))
-	  (skip-chars-forward " \t\n")
-	  (if (/= (point) here)
-	      (delete-region (point) here)
-	    (funcall c-delete-function 1))))
-    ;; act just like c-electric-backspace
+      (c-electric-delete-forward arg)
     (c-electric-backspace arg)))
 
 (defun c-electric-pound (arg)
@@ -2285,7 +2286,7 @@ Warning: Regexp from `c-comment-prefix-regexp' doesn't match the comment prefix 
 	    (save-excursion
 	      (goto-char (car lit-limits))
 	      (if (looking-at (if (eq lit-type 'c++)
-				  c-comment-prefix-regexp
+				  c-current-comment-prefix
 				comment-start-skip))
 		  (goto-char (match-end 0))
 		(forward-char 2)
