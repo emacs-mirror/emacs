@@ -1,7 +1,7 @@
 ;; hilit19.el (Release 2.19) -- customizable highlighting for Emacs19.
 ;; Copyright (c) 1993, 1994 Free Software Foundation, Inc.
 ;;
-;; Author:   Jonathan Stigelman <Stig@netcom.com>
+;; Author:   Jonathan Stigelman <stig@hackvan.com>
 ;; Keywords: faces
 ;; 
 ;; This program is free software; you can redistribute it and/or modify
@@ -42,7 +42,7 @@
 ;; hilit19.el,v 2.19 1993/09/08 18:44:10 stig Release
 ;;
 ;; LCD Archive Entry:
-;; hilit19|Jonathan Stigelman|Stig@netcom.com|
+;; hilit19|Jonathan Stigelman|stig@hackvan.com|
 ;; Comprehensive (and comparatively fast) regex-based highlighting for Emacs 19|
 ;; 1993/09/08 18:44:10|Release 2.19|~/packages/hilit19.el.Z|
 ;;
@@ -401,12 +401,12 @@ your init file.")
 (eval-when-compile (require 'reporter))	; no compilation gripes
 
 (defun hilit-submit-feedback ()
-  "Submit feedback on hilit19 to the author: Stig@netcom.com"
+  "Submit feedback on hilit19 to the author: stig@hackvan.com"
   (interactive)
   (require 'reporter)
   (and (y-or-n-p "Do you really want to submit a report on hilit19? ")
        (reporter-submit-bug-report
-	"Jonathan Stigelman <Stig@netcom.com>"
+	"Jonathan Stigelman <stig@hackvan.com>"
 	"hilit19.el (Release 2.19)"
 	(and (y-or-n-p "Do you need to include a dump hilit variables? ")
 	     (append
@@ -1540,10 +1540,3 @@ number of backslashes."
 (provide 'hilit19)
 
 ;;; hilit19 ends here.
-
-
-;; __________________________________________________________________________
-;; Stig@netcom.com                            netcom.com:/pub/stig/00-PGP-KEY
-;; It's hard to be cutting-edge at your own pace...   32 DF B9 19 AE 28 D1 7A
-;; Bullet-proof code cannot stand up to teflon bugs.  A3 9D 0B 1A 33 13 4D 7F
-
