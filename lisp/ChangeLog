@@ -1,5 +1,10 @@
 2001-07-09  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/advice.el (ad-make-advised-definition): If the
+	original definition has an interactive form, but is Elp
+	instrumented, use the interactive form of the function called by
+	elp-wrapper.
+
 	* winner.el (winner-equal): Make it a defun.  Don't compare Winner
 	configurations with compare-window-configuration; they aren't
 	window configurations.
