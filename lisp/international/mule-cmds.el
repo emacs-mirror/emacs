@@ -1,4 +1,4 @@
-;;; mule-cmds.el --- commands for mulitilingual environment
+;;; mule-cmds.el --- commands for mulitilingual environment -*-coding: iso-2022-7bit -*-
 ;; Copyright (C) 1995, 2003 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 ;; Copyright (C) 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
@@ -887,7 +887,7 @@ one of the following safe coding systems, or edit the buffer:\n")
 		(insert "\n")
 		(fill-region-as-paragraph pos (point)))
 	      (insert "Or specify any other coding system
-on your risk of losing the problematic characters.\n")))
+at the risk of losing the problematic characters.\n")))
 
 	  ;; Read a coding system.
 	  (setq default-coding-system (or (car safe) (car codings)))
@@ -1800,7 +1800,7 @@ specifies the character set for the major languages of Western Europe."
 	(aset standard-display-table 160 [32])
 	;; With luck, non-Latin-1 fonts are more recent and so don't
 	;; have this bug.
-	(aset standard-display-table 2208 [32]) ; Latin-1 NBSP
+	(aset standard-display-table (make-char 'latin-iso8859-1 160) [32])
 	;; Most Windows programs send out apostrophes as \222.  Most X fonts
 	;; don't contain a character at that position.  Map it to the ASCII
 	;; apostrophe.  [This is actually RIGHT SINGLE QUOTATION MARK,
@@ -1808,7 +1808,21 @@ specifies the character set for the major languages of Western Europe."
 	;; fonts probably have the appropriate glyph at this position,
 	;; so they could use standard-display-8bit.  It's better to use a
 	;; proper windows-1252 coding system.  --fx]
-	(aset standard-display-table 146 [39]))))
+	(aset standard-display-table 146 [39])
+	;; XFree86 4 has changed most of the fonts from their designed
+	;; versions such that `' no longer appears as balanced quotes.
+	;; Assume it has iso10646 fonts installed, so we can display
+	;; balanced quotes.
+	(when (and (eq window-system 'x)
+		   (string= "The XFree86 Project, Inc" (x-server-vendor))
+		   (> (aref (number-to-string (nth 2 (x-server-version))) 0)
+		      ?3))
+	  (aset standard-display-table ?' [?$,1ry(B])
+	  (aset standard-display-table ?` [?$,1rx(B])
+	  ;; The fonts don't have the relevant bug.
+	  (aset standard-display-table 160 nil)
+	  (aset standard-display-table (make-char 'latin-iso8859-1 160)
+		nil)))))
 
 (defun set-language-environment-coding-systems (language-name
 						&optional eol-type)
