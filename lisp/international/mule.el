@@ -288,6 +288,63 @@ See also the documentation of make-char."
 	 (and (or (= (nth 1 l) 0) (eq (nth 2 l) 0))
 	      (not (eq (car l) 'composition))))))
 
+(defun decode-char (ccs code-point &optional restriction)
+  "Return a character specified by coded character set CCS and CODE-POINT in it.
+Return nil if such a character is not supported.
+Currently, supported coded character set is `ucs' (ISO/IEC
+10646: Universal Multi-Octet Coded Character Set) only.
+
+Optional argument RESTRICTION specifies a way to map the pair of CCS
+and CODE-POINT to a chracter.   Currently not supported and just ignored."
+  (cond ((eq ccs 'ucs)
+	 (cond ((< code-point 128)
+		code-point)
+	       ((< code-point 256)
+		(make-char 'latin-iso8859-1 code-point))
+	       ((< code-point #x2500)
+		(setq code-point (- code-point #x0100))
+		(make-char 'mule-unicode-0100-24ff 
+			   (+ (/ code-point 96) 32) (+ (% code-point 96) 32)))
+	       ((< code-point #x33ff)
+		(setq code-point (- code-point #x2500))
+		(make-char 'mule-unicode-2500-33ff
+			   (+ (/ code-point 96) 32) (+ (% code-point 96) 32)))
+	       ((and (>= code-point #xe000) (< code-point #x10000))
+		(setq code-point (- code-point #xe000))
+		(make-char 'mule-unicode-e000-ffff
+			   (+ (/ code-point 96) 32) (+ (% code-point 96) 32)))
+	       ))))
+
+(defun encode-char (char ccs &optional restriction)
+  "Return a code-point in coded character set CCS that corresponds to CHAR.
+Return nil if CHAR is not included in CCS.
+Currently, supported coded character set is `ucs' (ISO/IEC
+10646: Universal Multi-Octet Coded Character Set) only.
+Return a Unicode character code for CHAR.
+Charset of CHAR should be one of these:
+  ascii, latin-iso8859-1, mule-unicode-0100-24ff, mule-unicode-2500-33ff,
+  mule-unicode-e000-ffff
+Otherwise, return nil.
+
+Optional argument RESTRICTION specifies a way to map CHAR to a
+code-point in CCS.  Currently not supported and just ignored."
+  (let* ((split (split-char char))
+	 (charset (car split)))
+    (cond ((eq ccs 'ucs)
+	   (cond ((eq charset 'ascii)
+		  char)
+		 ((eq charset 'latin-iso8859-1)
+		  (+ (nth 1 split) 128))
+		 ((eq charset 'mule-unicode-0100-24ff)
+		  (+ #x0100 (+ (* (- (nth 1 split) 32) 96)
+			       (- (nth 2 split) 32))))
+		 ((eq charset 'mule-unicode-2500-33ff)
+		  (+ #x2500 (+ (* (- (nth 1 split) 32) 96)
+			       (- (nth 2 split) 32))))
+		 ((eq charset 'mule-unicode-e000-ffff)
+		  (+ #xe000 (+ (* (- (nth 1 split) 32) 96)
+			       (- (nth 2 split) 32)))))))))
+
 
 ;; Coding system staffs
 
@@ -781,8 +838,11 @@ a value of `safe-charsets' in PLIST."
 	  (setq prop (car (car l)) val (cdr (car l)) l (cdr l))
 	  (if (eq prop 'safe-chars)
 	      (progn
-		(setq val safe-chars)
-		(register-char-codings coding-system safe-chars)))
+		(if (and (symbolp val)
+			 (get val 'translation-table))
+		    (setq safe-chars (get val 'translation-table)))
+		(register-char-codings coding-system safe-chars)
+		(setq val safe-chars)))
 	  (plist-put plist prop val)))
       ;; The property `coding-category' may have been set differently
       ;; through PROPERTIES.
