@@ -423,9 +423,10 @@ to get different commands to edit and resubmit."
     (if elt
 	(progn
 	  (setq newcmd
-		(read-from-minibuffer
-		 "Redo: " (prin1-to-string elt) read-expression-map t
-		 (cons 'command-history arg)))
+		(let ((print-level nil))
+		  (read-from-minibuffer
+		   "Redo: " (prin1-to-string elt) read-expression-map t
+		   (cons 'command-history arg))))
 
 	  ;; If command was added to command-history as a string,
 	  ;; get rid of that.  We want only evallable expressions there.
@@ -512,14 +513,16 @@ If N is negative, find the next or Nth next match."
 		   "No earlier matching history item")))
       (if (string-match regexp
 			(if minibuffer-history-sexp-flag
-			    (prin1-to-string (nth (1- pos) history))
+			    (let ((print-level nil))
+			      (prin1-to-string (nth (1- pos) history)))
 			  (nth (1- pos) history)))
 	  (setq n (+ n (if (< n 0) 1 -1)))))
     (setq minibuffer-history-position pos)
     (erase-buffer)
     (let ((elt (nth (1- pos) history)))
       (insert (if minibuffer-history-sexp-flag
-		  (prin1-to-string elt)
+		  (let ((print-level nil))
+		    (prin1-to-string elt))
 		elt)))
       (goto-char (point-min)))
   (if (or (eq (car (car command-history)) 'previous-matching-history-element)
@@ -562,7 +565,8 @@ If N is negative, find the previous or Nth previous match."
 		      (symbol-value minibuffer-history-variable))))
 	(insert
 	 (if minibuffer-history-sexp-flag
-	     (prin1-to-string elt)
+	     (let ((print-level nil))
+	       (prin1-to-string elt))
 	   elt)))
       (goto-char (point-min)))))
 
