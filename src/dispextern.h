@@ -74,7 +74,6 @@ typedef XImagePtr XImagePtr_or_DC;
 #define NativeRectangle int
 #endif
 
-
 /* Structure forward declarations.  Some are here because function
    prototypes below reference structure types before their definition
    in this file.  Some are here because not every file including
@@ -2533,6 +2532,9 @@ extern int help_echo_pos;
 extern struct frame *last_mouse_frame;
 extern int last_tool_bar_item;
 extern int mouse_autoselect_window;
+
+extern int calc_pixel_width_or_height P_ ((double *, struct it *, Lisp_Object,
+					   /* XFontStruct */ void *, int, int *));
 
 #ifdef HAVE_WINDOW_SYSTEM
 
