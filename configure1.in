@@ -1055,9 +1055,10 @@ esac
 ### above.
 if [ x"${opsys}" = x ]; then
   case "${canonical}" in
-    *-bsd4.[01] )	opsys=bsd4-1 ;;
-    *-bsd4.2 )		opsys=bsd4-2 ;;
-    *-bsd4.3 )		opsys=bsd4-3 ;;
+    *-gnu* )				opsys=gnu ;;
+    *-bsd4.[01] )			opsys=bsd4-1 ;;
+    *-bsd4.2 )				opsys=bsd4-2 ;;
+    *-bsd4.3 )				opsys=bsd4-3 ;;
     *-sysv0 | *-sysvr0 )		opsys=usg5-0 ;;
     *-sysv2 | *-sysvr2 )		opsys=usg5-2 ;;
     *-sysv2.2 | *-sysvr2.2 )		opsys=usg5-2-2 ;;
