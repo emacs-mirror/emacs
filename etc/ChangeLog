@@ -1,3 +1,7 @@
+2002-04-24  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* termcap.src: New version from ftp://invisible-island.net.
+
 2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Version 21.2 released.
