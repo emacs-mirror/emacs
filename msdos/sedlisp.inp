@@ -2,7 +2,7 @@
 # Configuration script for lisp/Makefile under DJGPP v2.x
 # ----------------------------------------------------------------------
 #
-# Copyright (C) 2000
+# Copyright (C) 2000, 2002
 #   Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
@@ -20,3 +20,5 @@
 /^lisp=/s|@srcdir@|.|
 /^VPATH=/s|@srcdir@|.|
 /^srcdir=/s|@srcdir@|.|
+/^bootstrap-clean:/a\
+	command.com /c dtou .../*.el
