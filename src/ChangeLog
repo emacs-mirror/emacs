@@ -1,3 +1,8 @@
+2002-07-25  Kenichi Handa  <handa@etl.go.jp>
+
+	* lread.c (Fload): Don't load with Qload_force_doc_strings t if
+	version is 0.
+
 2002-07-24  Kenichi Handa  <handa@etl.go.jp>
 
 	* lread.c: Include "coding.h".
