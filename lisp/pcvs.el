@@ -13,7 +13,7 @@
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
-;; Revision: $Id: pcvs.el,v 1.23 2000/12/18 03:17:40 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.24 2001/01/26 20:46:42 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1349,6 +1349,11 @@ The POSTPROC specified there (typically `log-edit') is then called,
     (goto-char (ewoc-location last))
     (ewoc-data last)))
 
+(defun cvs-mark-fis-dead (fis)
+  ;; Helper function, introduced because of the need for macro-expansion.
+  (dolist (fi fis)
+    (setf (cvs-fileinfo->type fi) 'DEAD)))
+
 (defun-cvs-mode (cvs-mode-add . SIMPLE) (flags)
   "Add marked files to the cvs repository.
 With prefix argument, prompt for cvs flags."
@@ -1372,7 +1377,7 @@ With prefix argument, prompt for cvs flags."
 	      `((cvs-run-process (list "-n" "update")
 				 ',dirs
 				 '(cvs-parse-process t))
-		(dolist (fi ',dirs) (setf (cvs-fileinfo->type fi) 'DEAD))))))
+		(cvs-mark-fis-dead ',dirs)))))
       (cvs-mode-run "add" flags fis :postproc postproc))))
 
 (defun-cvs-mode (cvs-mode-diff . DOUBLE) (flags)
@@ -1918,7 +1923,7 @@ With prefix argument, prompt for cvs flags."
   (let* ((fi (cvs-mode-marked nil nil :one t))
 	 (default-directory (cvs-expand-dir-name (cvs-fileinfo->dir fi)))
 	 (buffer-file-name (expand-file-name (cvs-fileinfo->file fi)))
-	 change-log-default-name)
+	 (change-log-default-name change-log-default-name))
     (add-change-log-entry-other-window)))
 
 ;; interactive commands to set optional flags
