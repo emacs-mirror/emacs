@@ -1671,13 +1671,26 @@ mark_object (objptr)
 	     are protected with staticpro.  */
 	  break;
 
+	case Lisp_Misc_Overlay:
+	  {
+	    struct Lisp_Overlay *ptr = XOVERLAY (obj);
+	    if (!XMARKBIT (ptr->plist))
+	      {
+		XMARK (ptr->plist);
+		mark_object (&ptr->start);
+		mark_object (&ptr->end);
+		objptr = &ptr->plist;
+		goto loop;
+	      }
+	  }
+	  break;
+
 	default:
 	  abort ();
 	}
       break;
 
     case Lisp_Cons:
-    case Lisp_Overlay:
       {
 	register struct Lisp_Cons *ptr = XCONS (obj);
 	if (XMARKBIT (ptr->car)) break;
@@ -1912,8 +1925,12 @@ gc_sweep ()
 	      case Lisp_Misc_Some_Buffer_Local_Value:
 		markword = &mblk->markers[i].u_buffer_local_value.car;
 		break;
+	      case Lisp_Misc_Overlay:
+		markword = &mblk->markers[i].u_overlay.plist;
+		break;
 	      default:
 		markword = 0;
+		break;
 	      }
 	    if (markword && !XMARKBIT (*markword))
 	      {
