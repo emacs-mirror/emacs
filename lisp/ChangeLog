@@ -1,3 +1,12 @@
+2002-05-15  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/ja-dic-utl.el (skkdic-jisx0208-hiragana-block):
+	Fix the initial value to specify character range of
+	japanese-jisx0208, not unicode.
+
+	* international/characters.el: Set syntax/category for
+	japanese-jisx0208.
+
 2002-05-14  Dave Love  <fx@gnu.org>
 
 	* mail/sendmail.el (sendmail-send-it): Use :mime-charset, not
