@@ -1,3 +1,14 @@
+2002-04-11  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* gnus-sum.el (gnus-update-summary-mark-positions)
+	(gnus-summary-toggle-header):
+	* gnus-uu.el (gnus-uu-binhex-article, gnus-uu-reginize-string)
+	(gnus-uu-expand-numbers, gnus-uu-post-make-mime)
+	(gnus-uu-post-encoded):
+	* nnfolder.el (nnfolder-possibly-change-group):
+	* nnimap.el (nnimap-retrieve-headers):
+	* nnmbox.el (nnmbox-create-mbox): Don't assume point-min == 1.
+
 2002-04-08  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* nnml.el (nnml-save-nov, nnml-generate-nov-file):
