@@ -1,5 +1,8 @@
 2000-08-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* programs.texi (Documentation): Add an xref to WoMan's own
+	manual, woman.texi.
+
 	* woman.texi: New file.
 
 	* Makefile.in (INFO_TARGETS): Add ../info/woman.
