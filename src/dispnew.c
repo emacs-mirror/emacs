@@ -28,6 +28,10 @@ Boston, MA 02111-1307, USA.  */
 #include <unistd.h>
 #endif
 
+#ifdef BOEHM_GC
+#include <gc.h>
+#endif
+
 #include "lisp.h"
 #include "termchar.h"
 #include "termopts.h"
@@ -511,8 +515,7 @@ new_glyph_matrix (pool)
   struct glyph_matrix *result;
 
   /* Allocate and clear.  */
-  result = (struct glyph_matrix *) xmalloc (sizeof *result);
-  bzero (result, sizeof *result);
+  result = (struct glyph_matrix *) XGC_CALLOC (1, sizeof *result);
 
   /* Increment number of allocated matrices.  This count is used
      to detect memory leaks.  */
@@ -551,11 +554,11 @@ free_glyph_matrix (matrix)
       /* Free glyph memory if MATRIX owns it.  */
       if (matrix->pool == NULL)
 	for (i = 0; i < matrix->rows_allocated; ++i)
-	  xfree (matrix->rows[i].glyphs[LEFT_MARGIN_AREA]);
+	  XGC_FREE (matrix->rows[i].glyphs[LEFT_MARGIN_AREA]);
 
       /* Free row structures and the matrix itself.  */
-      xfree (matrix->rows);
-      xfree (matrix);
+      XGC_FREE (matrix->rows);
+      XGC_FREE (matrix);
     }
 }
 
@@ -661,7 +664,7 @@ adjust_glyph_matrix (w, matrix, x, y, dim)
     {
       int size = dim.height * sizeof (struct glyph_row);
       new_rows = dim.height - matrix->rows_allocated;
-      matrix->rows = (struct glyph_row *) xrealloc (matrix->rows, size);
+      matrix->rows = (struct glyph_row *) XGC_REALLOC (matrix->rows, size);
       bzero (matrix->rows + matrix->rows_allocated,
 	     new_rows * sizeof *matrix->rows);
       matrix->rows_allocated = dim.height;
@@ -735,9 +738,9 @@ adjust_glyph_matrix (w, matrix, x, y, dim)
 	  while (row < end)
 	    {
 	      row->glyphs[LEFT_MARGIN_AREA]
-		= (struct glyph *) xrealloc (row->glyphs[LEFT_MARGIN_AREA],
-					     (dim.width
-					      * sizeof (struct glyph)));
+		= (struct glyph *) XGC_REALLOC (row->glyphs[LEFT_MARGIN_AREA],
+					       (dim.width
+						* sizeof (struct glyph)));
 
 	      /* The mode line never has marginal areas.  */
 	      if (row == matrix->rows + dim.height - 1
@@ -1549,8 +1552,7 @@ new_glyph_pool ()
   struct glyph_pool *result;
 
   /* Allocate a new glyph_pool and clear it.  */
-  result = (struct glyph_pool *) xmalloc (sizeof *result);
-  bzero (result, sizeof *result);
+  result = (struct glyph_pool *) XGC_CALLOC (1, sizeof *result);
 
   /* For memory leak and double deletion checking.  */
   ++glyph_pool_count;
@@ -1576,8 +1578,8 @@ free_glyph_pool (pool)
       --glyph_pool_count;
       xassert (glyph_pool_count >= 0);
 
-      xfree (pool->glyphs);
-      xfree (pool);
+      XGC_FREE (pool->glyphs);
+      XGC_FREE (pool);
     }
 }
 
@@ -1610,10 +1612,10 @@ realloc_glyph_pool (pool, matrix_dim)
       int size = needed * sizeof (struct glyph);
 
       if (pool->glyphs)
-	pool->glyphs = (struct glyph *) xrealloc (pool->glyphs, size);
+	pool->glyphs = (struct glyph *) XGC_REALLOC (pool->glyphs, size);
       else
 	{
-	  pool->glyphs = (struct glyph *) xmalloc (size);
+	  pool->glyphs = (struct glyph *) XGC_MALLOC (size);
 	  bzero (pool->glyphs, size);
 	}
 
@@ -2198,11 +2200,11 @@ save_current_matrix (f)
   int i;
   struct glyph_matrix *saved;
 
-  saved = (struct glyph_matrix *) xmalloc (sizeof *saved);
+  saved = (struct glyph_matrix *) XGC_MALLOC (sizeof *saved);
   bzero (saved, sizeof *saved);
   saved->nrows = f->current_matrix->nrows;
-  saved->rows = (struct glyph_row *) xmalloc (saved->nrows
-					      * sizeof *saved->rows);
+  saved->rows = (struct glyph_row *) XGC_MALLOC (saved->nrows
+						* sizeof *saved->rows);
   bzero (saved->rows, saved->nrows * sizeof *saved->rows);
 
   for (i = 0; i < saved->nrows; ++i)
@@ -2210,7 +2212,7 @@ save_current_matrix (f)
       struct glyph_row *from = f->current_matrix->rows + i;
       struct glyph_row *to = saved->rows + i;
       size_t nbytes = from->used[TEXT_AREA] * sizeof (struct glyph);
-      to->glyphs[TEXT_AREA] = (struct glyph *) xmalloc (nbytes);
+      to->glyphs[TEXT_AREA] = (struct glyph *) XGC_MALLOC (nbytes);
       bcopy (from->glyphs[TEXT_AREA], to->glyphs[TEXT_AREA], nbytes);
       to->used[TEXT_AREA] = from->used[TEXT_AREA];
     }
@@ -2236,11 +2238,11 @@ restore_current_matrix (f, saved)
       size_t nbytes = from->used[TEXT_AREA] * sizeof (struct glyph);
       bcopy (from->glyphs[TEXT_AREA], to->glyphs[TEXT_AREA], nbytes);
       to->used[TEXT_AREA] = from->used[TEXT_AREA];
-      xfree (from->glyphs[TEXT_AREA]);
+      XGC_FREE (from->glyphs[TEXT_AREA]);
     }
 
-  xfree (saved->rows);
-  xfree (saved);
+  XGC_FREE (saved->rows);
+  XGC_FREE (saved);
 }
 
 
