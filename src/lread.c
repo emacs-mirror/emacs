@@ -246,6 +246,7 @@ extern Lisp_Object read_char ();
    get isn't an ASCII character with modifiers.  If it's zero but
    ASCII_REQUIRED is non-zero, we just re-read until we get an ASCII
    character.  */
+
 Lisp_Object
 read_filtered_event (no_switch_frame, ascii_required, error_nonascii)
      int no_switch_frame, ascii_required, error_nonascii;
@@ -337,7 +338,7 @@ DEFUN ("read-event", Fread_event, Sread_event, 0, 0, 0,
 
 DEFUN ("read-char-exclusive", Fread_char_exclusive, Sread_char_exclusive, 0, 0, 0,
   "Read a character from the command input (keyboard or macro).\n\
-It is returned as a number.  Non character events are ignored.")
+It is returned as a number.  Non-character events are ignored.")
   ()
 {
   return read_filtered_event (1, 1, 0);
