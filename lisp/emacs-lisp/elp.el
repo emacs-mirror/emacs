@@ -2,12 +2,12 @@
 
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 
-;; Author: 1994 Barry A. Warsaw <bwarsaw@cnri.reston.va.us>
-;; Maintainer:    tools-help@anthem.nlm.nih.gov
+;; Author:        1994-1997 Barry A. Warsaw
+;; Maintainer:    tools-help@python.org
 ;; Created:       26-Feb-1994
-;; Version:       2.23
-;; Last Modified: 1994/12/28 22:39:31
-;; Keywords:      Emacs Lisp Profile Timing
+;; Version:       2.39
+;; Last Modified: 1997/02/28 18:15:35
+;; Keywords:      debugging lisp tools
 
 ;; This file is part of GNU Emacs.
 
@@ -32,10 +32,12 @@
 ;; to the list of symbols, then do a M-x elp-instrument-list.  This
 ;; hacks those functions so that profiling information is recorded
 ;; whenever they are called.  To print out the current results, use
-;; M-x elp-results.  With elp-reset-after-results set to non-nil,
-;; profiling information will be reset whenever the results are
-;; displayed.  You can also reset all profiling info at any time with
-;; M-x elp-reset-all.
+;; M-x elp-results.  If you want output to go to standard-output
+;; instead of a separate buffer, setq elp-use-standard-output to
+;; non-nil.  With elp-reset-after-results set to non-nil, profiling
+;; information will be reset whenever the results are displayed.  You
+;; can also reset all profiling info at any time with M-x
+;; elp-reset-all.
 ;;
 ;; You can also instrument all functions in a package, provided that
 ;; the package follows the GNU coding standard of a common textural
@@ -113,26 +115,26 @@
 ;; give you a good feel for the relative amount of work spent in the
 ;; various lisp routines you are profiling.  Note further that times
 ;; are calculated using wall-clock time, so other system load will
-;; affect accuracy too.  You cannot profile anything longer than ~18
-;; hours since I throw away the most significant 16 bits of seconds
-;; returned by current-time: 2^16 == 65536 seconds == ~1092 minutes ==
-;; ~18 hours.  I doubt you will ever want to profile stuff on the
-;; order of 18 hours anyway.
+;; affect accuracy too.
 
 ;;; Background:
 
 ;; This program is based on the only two existing Emacs Lisp profilers
 ;; that I'm aware of, Boaz Ben-Zvi's profile.el, and Root Boy Jim's
-;; profiler.el. Both were written for Emacs 18 and both were pretty
+;; profiler.el.  Both were written for Emacs 18 and both were pretty
 ;; good first shots at profiling, but I found that they didn't provide
 ;; the functionality or interface that I wanted.  So I wrote this.
-;; I've tested elp in GNU Emacs 19 and in GNU XEmacs.  There's no
-;; point in even trying to make this work with Emacs 18.
+;; I've tested elp in Emacs 19 and in XEmacs.  There's no point in
+;; even trying to make this work with Emacs 18.
 
 ;; Unlike previous profilers, elp uses Emacs 19's built-in function
 ;; current-time to return interval times.  This obviates the need for
 ;; both an external C program and Emacs processes to communicate with
 ;; such a program, and thus simplifies the package as a whole.
+
+;; TBD:
+;; Make this act like a real profiler, so that it records time spent
+;; in all branches of execution.
 
 ;;; Code:
 
@@ -141,13 +143,14 @@
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
 (defvar elp-function-list nil
-  "*List of function to profile.")
+  "*List of function to profile.
+Used by the command `elp-instrument-list'.")
 
 (defvar elp-reset-after-results t
   "*Non-nil means reset all profiling info after results are displayed.
 Results are displayed with the `elp-results' command.")
 
-(defvar elp-sort-by-function nil
+(defvar elp-sort-by-function 'elp-sort-by-total-time
   "*Non-nil specifies elp results sorting function.
 These functions are currently available:
 
@@ -162,21 +165,29 @@ the call count, element 1 is the total time spent in the function,
 element 2 is the average time spent in the function, and element 3 is
 the symbol's name string.")
 
-(defvar elp-report-limit nil
+(defvar elp-report-limit 1
   "*Prevents some functions from being displayed in the results buffer.
 If a number, no function that has been called fewer than that number
 of times will be displayed in the output buffer.  If nil, all
 functions will be displayed.")
 
+(defvar elp-use-standard-output nil
+  "*Non-nil says to output to `standard-output' instead of a buffer.")
+
+(defvar elp-recycle-buffers-p t
+  "*Nil says to not recycle the `elp-results-buffer'.
+In other words, a new unique buffer is create every time you run
+\\[elp-results].")
+
 
 ;; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-;; end user configuration variables
+;; end of user configuration variables
 
 
-(defconst elp-version "2.23"
+(defconst elp-version "2.39"
   "ELP version number.")
 
-(defconst elp-help-address "tools-help@anthem.nlm.nih.gov"
+(defconst elp-help-address "tools-help@python.org"
   "Address accepting submissions of bug reports and questions.")
 
 (defvar elp-results-buffer "*ELP Profiling Results*"
@@ -196,18 +207,50 @@ This variable is set by the master function.")
   "Master function symbol.")
 
 
+;; Emacs/XEmacs compatibility.
+(if (fboundp 'functionp)
+    (defalias 'elp-functionp 'functionp)
+  ;; Lift XEmacs 19.13's functionp from subr.el
+  (defun elp-functionp (obj)
+    "Returns t if OBJ is a function, nil otherwise."
+    (cond
+     ((symbolp obj) (fboundp obj))
+     ((subrp obj))
+     ((compiled-function-p obj))
+     ((consp obj)
+      (if (eq (car obj) 'lambda) (listp (car (cdr obj)))))
+     (t nil))))
+
+
 ;;;###autoload
 (defun elp-instrument-function (funsym)
   "Instrument FUNSYM for profiling.
 FUNSYM must be a symbol of a defined function."
   (interactive "aFunction to instrument: ")
-  ;; TBD what should we do if the function is already instrumented???
+  ;; restore the function.  this is necessary to avoid infinite
+  ;; recursion of already instrumented functions (i.e. elp-wrapper
+  ;; calling elp-wrapper ad infinitum).  it is better to simply
+  ;; restore the function than to throw an error.  this will work
+  ;; properly in the face of eval-defun because if the function was
+  ;; redefined, only the timer info will be nil'd out since
+  ;; elp-restore-function is smart enough not to trash the new
+  ;; definition.
+  (elp-restore-function funsym)
   (let* ((funguts (symbol-function funsym))
 	 (infovec (vector 0 0 funguts))
 	 (newguts '(lambda (&rest args))))
     ;; we cannot profile macros
     (and (eq (car-safe funguts) 'macro)
-	 (error "ELP cannot profile macro %s" funsym))
+	 (error "ELP cannot profile macro: %s" funsym))
+    ;; TBD: at some point it might be better to load the autoloaded
+    ;; function instead of throwing an error.  if we do this, then we
+    ;; probably want elp-instrument-package to be updated with the
+    ;; newly loaded list of functions.  i'm not sure it's smart to do
+    ;; the autoload here, since that could have side effects, and
+    ;; elp-instrument-function is similar (in my mind) to defun-ish
+    ;; type functionality (i.e. it shouldn't execute the function).
+    (and (eq (car-safe funguts) 'autoload)
+	 (error "ELP cannot profile autoloaded function: %s" funsym))
     ;; put rest of newguts together
     (if (commandp funsym)
 	(setq newguts (append newguts '((interactive)))))
@@ -273,10 +316,13 @@ Argument FUNSYM is the symbol of a defined function."
     ;; because its possible the function got un-instrumented due to
     ;; circumstances beyond our control.  Also, check to make sure
     ;; that the current function symbol points to elp-wrapper.  If
-    ;; not, then the user probably did an eval-defun while the
-    ;; function was instrumented and we don't want to destroy the new
-    ;; definition.
+    ;; not, then the user probably did an eval-defun, or loaded a
+    ;; byte-compiled version, while the function was instrumented and
+    ;; we don't want to destroy the new definition.  can it ever be
+    ;; the case that a lisp function can be compiled instrumented?
     (and info
+	 (elp-functionp funsym)
+	 (not (compiled-function-p (symbol-function funsym)))
 	 (assq 'elp-wrapper (symbol-function funsym))
 	 (fset funsym (aref info 2)))))
 
@@ -296,13 +342,13 @@ For example, to instrument all ELP functions, do the following:
     \\[elp-instrument-package] RET elp- RET"
   (interactive "sPrefix of package to instrument: ")
   (elp-instrument-list
-   (mapcar 'intern (all-completions prefix obarray
-				    (function
-				     (lambda (sym)
-				       (and (fboundp sym)
-					    (not (memq (car-safe
-							(symbol-function sym))
-						       '(macro keymap autoload))))))))))
+   (mapcar 'intern
+	   (all-completions prefix obarray
+			    (function
+			     (lambda (sym)
+			       (and (fboundp sym)
+				    (not (memq (car-safe (symbol-function sym))
+					       '(autoload macro))))))))))
 
 (defun elp-restore-list (&optional list)
   "Restore the original definitions for all functions in `elp-function-list'.
@@ -359,12 +405,10 @@ Use optional LIST if provided instead."
 	elp-record-p t))
 
 
-(defsubst elp-get-time ()
-  ;; get current time in seconds and microseconds. I throw away the
-  ;; most significant 16 bits of seconds since I doubt we'll ever want
-  ;; to profile lisp on the order of 18 hours. See notes at top of file.
-  (let ((now (current-time)))
-    (+ (float (nth 1 now)) (/ (float (nth 2 now)) 1000000.0))))
+(defsubst elp-elapsed-time (start end)
+  (+ (* (- (car end) (car start)) 65536.0)
+     (- (car (cdr end)) (car (cdr start)))
+     (/ (- (car (cdr (cdr end))) (car (cdr (cdr start)))) 1000000.0)))
 
 (defun elp-wrapper (funsym interactive-p args)
   "This function has been instrumented for profiling by the ELP.
@@ -388,18 +432,21 @@ original definition, use \\[elp-restore-function] or \\[elp-restore-all]."
 		  (call-interactively func)
 		(apply func args)))
       ;; we are recording times
-      (let ((enter-time (elp-get-time)))
+      (let (enter-time exit-time)
 	;; increment the call-counter
 	(aset info 0 (1+ (aref info 0)))
 	;; now call the old symbol function, checking to see if it
 	;; should be called interactively.  make sure we return the
 	;; correct value
-	(setq result
-	      (if interactive-p
-		  (call-interactively func)
-		(apply func args)))
+	(if interactive-p
+	    (setq enter-time (current-time)
+		  result (call-interactively func)
+		  exit-time (current-time))
+	  (setq enter-time (current-time)
+		result (apply func args)
+		exit-time (current-time)))
 	;; calculate total time in function
-	(aset info 1 (+ (aref info 1) (- (elp-get-time) enter-time)))
+	(aset info 1 (+ (aref info 1) (elp-elapsed-time enter-time exit-time)))
 	))
     ;; turn off recording if this is the master function
     (if (and elp-master
@@ -480,7 +527,9 @@ information for all instrumented functions are reset after results are
 displayed."
   (interactive)
   (let ((curbuf (current-buffer))
-	(resultsbuf (get-buffer-create elp-results-buffer)))
+	(resultsbuf (if elp-recycle-buffers-p
+			(get-buffer-create elp-results-buffer)
+		      (generate-new-buffer elp-results-buffer))))
     (set-buffer resultsbuf)
     (erase-buffer)
     (beginning-of-buffer)
@@ -536,6 +585,9 @@ displayed."
     ;; now pop up results buffer
     (set-buffer curbuf)
     (pop-to-buffer resultsbuf)
+    ;; copy results to standard-output?
+    (if (or elp-use-standard-output noninteractive)
+	(princ (buffer-substring (point-min) (point-max))))
     ;; reset profiling info if desired
     (and elp-reset-after-results
 	 (elp-reset-all))))
