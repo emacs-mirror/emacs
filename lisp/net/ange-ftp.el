@@ -1771,7 +1771,7 @@ good, skip, fatal, or unknown."
 				ange-ftp-gateway-program
 				ange-ftp-gateway-host)))
 	 (ftp (mapconcat 'identity args " ")))
-    (process-kill-without-query proc)
+    (set-process-query-on-exit-flag proc nil)
     (set-process-sentinel proc 'ange-ftp-gwp-sentinel)
     (set-process-filter proc 'ange-ftp-gwp-filter)
     (save-excursion
@@ -1880,7 +1880,7 @@ been queued with no result.  CONT will still be called, however."
 		    (start-process " *nslookup*" " *nslookup*"
 				   ange-ftp-nslookup-program host)))
 	    (res host))
-	(process-kill-without-query proc)
+	(set-process-query-on-exit-flag proc nil)
 	(save-excursion
 	  (set-buffer (process-buffer proc))
 	  (while (memq (process-status proc) '(run open))
@@ -1938,7 +1938,7 @@ on the gateway machine to do the ftp instead."
       (set-buffer (process-buffer proc))
       (goto-char (point-max))
       (set-marker (process-mark proc) (point)))
-    (process-kill-without-query proc)
+    (set-process-query-on-exit-flag proc nil)
     (set-process-sentinel proc 'ange-ftp-process-sentinel)
     (set-process-filter proc 'ange-ftp-process-filter)
     ;; On Windows, the standard ftp client buffers its output (because
