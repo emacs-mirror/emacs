@@ -131,25 +131,28 @@ Lisp_Object Vchar_unified_charset_table;
 	 * (charset)->code_space[7])					\
       + (((((code) >> 8) & 0xFF) - (charset)->code_space[4])		\
 	 * (charset)->code_space[3])					\
-      + (((code) & 0xFF) - (charset)->code_space[0]))			\
+      + (((code) & 0xFF) - (charset)->code_space[0])			\
+      - ((charset)->char_index_offset))					\
    : -1)
 
 
 /* Convert the character index IDX to code-point CODE for CHARSET.
    It is assumed that IDX is in a valid range.  */
 
-#define INDEX_TO_CODE_POINT(charset, idx)				   \
-  ((charset)->code_linear_p						   \
-   ? (idx) + (charset)->min_code					   \
-   : (((charset)->code_space[0] + (idx) % (charset)->code_space[2])	   \
-      | (((charset)->code_space[4]					   \
-	  + ((idx) / (charset)->code_space[3] % (charset)->code_space[6])) \
-	 << 8)								   \
-      | (((charset)->code_space[8]					   \
-	  + ((idx) / (charset)->code_space[7] % (charset)->code_space[10])) \
-	 << 16)								   \
-      | (((charset)->code_space[12] + ((idx) / (charset)->code_space[11])) \
-	 << 24)))
+#define INDEX_TO_CODE_POINT(charset, idx)				     \
+  ((charset)->code_linear_p						     \
+   ? (idx) + (charset)->min_code					     \
+   : (idx += (charset)->char_index_offset,				     \
+      (((charset)->code_space[0] + (idx) % (charset)->code_space[2])	     \
+       | (((charset)->code_space[4]					     \
+	   + ((idx) / (charset)->code_space[3] % (charset)->code_space[6]))  \
+	  << 8)								     \
+       | (((charset)->code_space[8]					     \
+	   + ((idx) / (charset)->code_space[7] % (charset)->code_space[10])) \
+	  << 16)							     \
+       | (((charset)->code_space[12] + ((idx) / (charset)->code_space[11]))  \
+	  << 24))))
+
 
 
 
@@ -736,6 +739,50 @@ usage: (define-charset-internal ...)  */)
 		      | (charset.code_space[5] << 8)
 		      | (charset.code_space[9] << 16)
 		      | (charset.code_space[13] << 24));
+  charset.char_index_offset = 0;
+
+  val = args[charset_arg_min_code];
+  if (! NILP (val))
+    {
+      unsigned code;
+
+      if (INTEGERP (val))
+	code = XINT (val);
+      else
+	{
+	  CHECK_CONS (val);
+	  CHECK_NUMBER (XCAR (val));
+	  CHECK_NUMBER (XCDR (val));
+	  code = (XINT (XCAR (val)) << 16) | (XINT (XCDR (val)));
+	}
+      if (code < charset.min_code
+	  || code > charset.max_code)
+	args_out_of_range_3 (make_number (charset.min_code),
+			     make_number (charset.max_code), val);
+      charset.char_index_offset = CODE_POINT_TO_INDEX (&charset, code);
+      charset.min_code = code;
+    }
+
+  val = args[charset_arg_max_code];
+  if (! NILP (val))
+    {
+      unsigned code;
+
+      if (INTEGERP (val))
+	code = XINT (val);
+      else
+	{
+	  CHECK_CONS (val);
+	  CHECK_NUMBER (XCAR (val));
+	  CHECK_NUMBER (XCDR (val));
+	  code = (XINT (XCAR (val)) << 16) | (XINT (XCDR (val)));
+	}
+      if (code < charset.min_code
+	  || code > charset.max_code)
+	args_out_of_range_3 (make_number (charset.min_code),
+			     make_number (charset.max_code), val);
+      charset.max_code = code;
+    }
 
   charset.compact_codes_p = charset.max_code < 0x1000000;
 
@@ -1405,7 +1452,7 @@ encode_char (charset, c)
       if (! CHARSET_COMPACT_CODES_P (charset))
 	code = INDEX_TO_CODE_POINT (charset, code);
     }
-  else
+  else				/* method == CHARSET_METHOD_OFFSET */
     {
       code = c - CHARSET_CODE_OFFSET (charset);
       code = INDEX_TO_CODE_POINT (charset, code);
@@ -1868,50 +1915,69 @@ The default value is sub-directory "charsets" of `data-directory'.  */);
     Lisp_Object val;
 
     plist[0] = intern (":name");
-    plist[1] = args[charset_arg_name] = Qascii;
     plist[2] = intern (":dimension");
-    plist[3] = args[charset_arg_dimension] = make_number (1);
+    plist[4] = intern (":code-space");
+    plist[6] = intern (":iso-final-char");
+    plist[8] = intern (":emacs-mule-id");
+    plist[10] = intern (":ascii-compatible-p");
+    plist[12] = intern (":code-offset");
+
+    args[charset_arg_name] = Qascii;
+    args[charset_arg_dimension] = make_number (1);
     val = Fmake_vector (make_number (8), make_number (0));
     ASET (val, 1, make_number (127));
-    plist[4] = intern (":code-space");
-    plist[5] = args[charset_arg_code_space] = val;
-    plist[6] = intern (":iso-final-char");
-    plist[7] = args[charset_arg_iso_final] = make_number ('B');
+    args[charset_arg_code_space] = val;
+    args[charset_arg_min_code] = Qnil;
+    args[charset_arg_max_code] = Qnil;
+    args[charset_arg_iso_final] = make_number ('B');
     args[charset_arg_iso_revision] = Qnil;
-    plist[8] = intern (":emacs-mule-id");
-    plist[9] = args[charset_arg_emacs_mule_id] = make_number (0);
-    plist[10] = intern (":ascii-compatible-p");
-    plist[11] = args[charset_arg_ascii_compatible_p] = Qt;
+    args[charset_arg_emacs_mule_id] = make_number (0);
+    args[charset_arg_ascii_compatible_p] = Qt;
     args[charset_arg_supplementary_p] = Qnil;
     args[charset_arg_invalid_code] = Qnil;
-    plist[12] = intern (":code-offset");
-    plist[13] = args[charset_arg_code_offset] = make_number (0);
+    args[charset_arg_code_offset] = make_number (0);
     args[charset_arg_map] = Qnil;
     args[charset_arg_parents] = Qnil;
     args[charset_arg_unify_map] = Qnil;
     /* The actual plist is set by mule-conf.el.  */
+    plist[1] = args[charset_arg_name];
+    plist[3] = args[charset_arg_dimension];
+    plist[5] = args[charset_arg_code_space];
+    plist[7] = args[charset_arg_iso_final];
+    plist[9] = args[charset_arg_emacs_mule_id];
+    plist[11] = args[charset_arg_ascii_compatible_p];
+    plist[13] = args[charset_arg_code_offset];
     args[charset_arg_plist] = Flist (14, plist);
     Fdefine_charset_internal (charset_arg_max, args);
     charset_ascii = CHARSET_SYMBOL_ID (Qascii);
 
-    plist[1] = args[charset_arg_name] = Qunicode;
-    plist[3] = args[charset_arg_dimension] = make_number (3);
+    args[charset_arg_name] = Qunicode;
+    args[charset_arg_dimension] = make_number (3);
     val = Fmake_vector (make_number (8), make_number (0));
     ASET (val, 1, make_number (255));
     ASET (val, 3, make_number (255));
     ASET (val, 5, make_number (16));
-    plist[5] = args[charset_arg_code_space] = val;
-    plist[7] = args[charset_arg_iso_final] = Qnil;
+    args[charset_arg_code_space] = val;
+    args[charset_arg_min_code] = Qnil;
+    args[charset_arg_max_code] = Qnil;
+    args[charset_arg_iso_final] = Qnil;
     args[charset_arg_iso_revision] = Qnil;
-    plist[9] = args[charset_arg_emacs_mule_id] = Qnil;
-    plist[11] = args[charset_arg_ascii_compatible_p] = Qt;
+    args[charset_arg_emacs_mule_id] = Qnil;
+    args[charset_arg_ascii_compatible_p] = Qt;
     args[charset_arg_supplementary_p] = Qnil;
     args[charset_arg_invalid_code] = Qnil;
-    plist[13] = args[charset_arg_code_offset] = make_number (0);
+    args[charset_arg_code_offset] = make_number (0);
     args[charset_arg_map] = Qnil;
     args[charset_arg_parents] = Qnil;
     args[charset_arg_unify_map] = Qnil;
     /* The actual plist is set by mule-conf.el.  */
+    plist[1] = args[charset_arg_name];
+    plist[3] = args[charset_arg_dimension];
+    plist[5] = args[charset_arg_code_space];
+    plist[7] = args[charset_arg_iso_final];
+    plist[9] = args[charset_arg_emacs_mule_id];
+    plist[11] = args[charset_arg_ascii_compatible_p];
+    plist[13] = args[charset_arg_code_offset];
     args[charset_arg_plist] = Flist (14, plist);
     Fdefine_charset_internal (charset_arg_max, args);
     charset_unicode = CHARSET_SYMBOL_ID (Qunicode);
