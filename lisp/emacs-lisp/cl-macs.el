@@ -257,17 +257,13 @@ ARGLIST allows full Common Lisp conventions."
       (while (and (eq (car args) '&key) (cl-pop args))
 	(while (and args (not (memq (car args) lambda-list-keywords)))
 	  (let ((arg (cl-pop args)))
-	    (if (not (consp arg))
-		;; Simple key arg, we can use plist-get.
-		(let ((karg (intern (format ":%s" arg))))
-		  (cl-do-arglist arg `(plist-get ,restarg ,karg))
-		  (cl-push karg keys))
+	    (or (consp arg) (setq arg (list arg)))
 	    (let* ((karg (if (consp (car arg)) (caar arg)
 			   (intern (format ":%s" (car arg)))))
 		   (varg (if (consp (car arg)) (cadar arg) (car arg)))
 		   (def (if (cdr arg) (cadr arg)
 			  (or (car bind-defs) (cadr (assq varg bind-defs)))))
-		   (look (list 'plist-member restarg (list 'quote karg))))
+		   (look (list 'memq (list 'quote karg) restarg)))
 	      (and def bind-enquote (setq def (list 'quote def)))
 	      (if (cddr arg)
 		  (let* ((temp (or (nth 2 arg) (gensym)))
@@ -289,7 +285,7 @@ ARGLIST allows full Common Lisp conventions."
 					  'quote
 					  (list nil (cl-const-expr-val def)))
 				       (list 'list nil def))))))))
-	      (cl-push karg keys))))))
+	      (cl-push karg keys)))))
       (setq keys (nreverse keys))
       (or (and (eq (car args) '&allow-other-keys) (cl-pop args))
 	  (null keys) (= safety 0)
@@ -302,7 +298,10 @@ ARGLIST allows full Common Lisp conventions."
 			  (list (list 'memq (list 'car var)
 				      (list 'quote (append keys allow)))
 				(list 'setq var (list 'cdr (list 'cdr var))))
-			  (list (list 'plist-get restarg (car allow))
+			  (list (list 'car
+				      (list 'cdr
+					    (list 'memq (cons 'quote allow)
+						  restarg)))
 				(list 'setq var nil))
 			  (list t
 				(list
