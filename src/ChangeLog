@@ -1,3 +1,8 @@
+2002-07-18  Dave Love  <fx@gnu.org>
+
+	* lread.c (Fload) <!load_dangerous_libraries>: Don't leak fd.
+	<version == 20>: Refuse to load.
+
 2002-07-17  Dave Love  <fx@gnu.org>
 
 	* fns.c: Move coding.h.
