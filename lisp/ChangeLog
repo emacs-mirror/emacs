@@ -1,3 +1,7 @@
+2000-12-09  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/ada-stmt.el: Update `maintainer'.
+
 2000-12-09  Stephen Gildea  <gildea@alum.mit.edu>
 
 	* time-stamp.el (time-stamp-old-format-warn): Reorder custom
