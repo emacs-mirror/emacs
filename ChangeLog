@@ -1,3 +1,8 @@
+2000-01-03  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (install-arch-indep): Install autotype*.  Run
+	install-info on autotype and emacs-faq.info.
+
 1999-12-04  Dave Love  <fx@gnu.org>
 
 	* Makefile.in: (install-arch-indep): Depend on `info'.
