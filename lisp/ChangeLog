@@ -1,3 +1,27 @@
+2001-12-15  Richard M. Stallman  <rms@gnu.org>
+
+	* isearch.el (isearch-edit-string):
+	Treat isearch-yank-word-or-char specially, like isearch-yank-word.
+
+	* emacs-lisp/debug.el (debugger-previous-backtrace): New variable.
+	(debugger-make-xrefs): Optimize by (1) using skip-syntax-forward
+	rather than regexp search and (2) copying text properties
+	already set up on text unchanged from the previous backtrace.
+
+	* case-table.el (set-case-syntax-pair):
+	Detect invalid calls and signal an error.
+
+2001-12-15  Richard M. Stallman  <rms@gnu.org>
+
+	* language/ind-util.el (range): Function deleted.
+	(indian-regexp-of-hashtbl-keys): Renamed from `regexp-of-hashtbl-keys'.
+	All calls changed.
+	
+	* language/devan-util.el (devanagari-range): Renamed from `range'.
+	All calls changed.
+	(devanagari-regexp-of-hashtbl-keys):
+	Renamed from `regexp-of-hashtbl-keys'.  All calls changed.
+
 2001-12-15  Dave Love  <fx@gnu.org>
 
 	* language/ind-util.el: Don't require cl.
