@@ -124,8 +124,17 @@
 # include "charset.h"
 # include "category.h"
 
+# ifdef malloc
+#  undef malloc
+# endif
 # define malloc xmalloc
+# ifdef realloc
+#  undef realloc
+# endif
 # define realloc xrealloc
+# ifdef free
+#  undef free
+# endif
 # define free xfree
 
 /* Converts the pointer to the char to BEG-based offset from the start.	 */
