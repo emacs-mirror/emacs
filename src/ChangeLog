@@ -1,3 +1,8 @@
+2001-10-24  Richard M. Stallman  <rms@gnu.org>
+
+	* xfaces.c (Fface_attributes_as_vector): New function.
+	(syms_of_xfaces): defsubr it.
+
 2001-10-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* dispnew.c (sync_window_with_frame_matrix_rows): Remove unused

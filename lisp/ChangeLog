@@ -1,5 +1,18 @@
 2001-10-24  Richard M. Stallman  <rms@gnu.org>
 
+	* facemenu.el (facemenu-unlisted-faces): Improve doc strings
+	of t and nil values.
+	(facemenu-set-face): Handle START and END interactively.
+	(facemenu-set-foreground): Don't use a face; specify color directly.
+	(facemenu-set-background): Likewise.
+	(facemenu-set-face-from-menu): Doc fix.
+	(facemenu-active-faces): Use face-attribute-vector
+	to handle bare attributes not in faces.
+	(facemenu-get-face): Don't handle face names fg:... and bg:...
+	specially.
+	(facemenu-add-new-face): New argument MENU.
+	New way to handle adding colors to the color menus.
+
 	* env.el (substitute-env-vars): Quote the arg to rx.
 
 2001-10-24  Sam Steingold  <sds@gnu.org>
