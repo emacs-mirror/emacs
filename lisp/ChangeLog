@@ -1,3 +1,14 @@
+2002-07-11  Dave Love  <fx@gnu.org>
+
+	* international/mule-cmds.el (set-language-environment): Use
+	functionp, not fboundp.
+	(locale-language-names): Don't special-case utf-8.  Use
+	Cyrillic-iso in place of Latin-5 for Cyrillic locales.
+	(locale-charset-language-names, locale-preferred-coding-systems):
+	Add utf-8.
+	(sort-coding-systems): Use coding-priority property, not
+	coding-system.
+
 2002-07-10  Juanma Barranquero  <lektu@terra.es>
 
 	* speedbar.el (speedbar-toggle-images): Fix docstring.
@@ -49,6 +60,12 @@
 	* faces.el (face-id): Fix typo.
 
 	* hexl.el (hexl-mode): Likewise.
+
+2002-07-11  Dave Love  <fx@gnu.org>
+
+	* language/misc-lang.el ("UTF-8"): New language environment.
+
+	* international/utf-16.el, international/ucs-tables.el: New file.
 
 2002-07-06  Richard M. Stallman  <rms@gnu.org>
 

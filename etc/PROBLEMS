@@ -1,6 +1,52 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* Mule-UCS loads very slowly.
+
+Changes to Emacs internals interact badly with Mule-UCS's `un-define'
+library, which is the usual interface to Mule-UCS.  Apply the
+following patch to Mule-UCS 0.84 and rebuild it.  That will help,
+though loading will still be slower than in Emacs 20.  (Some
+distributions, such as Debian, may already have applied such a patch.)
+
+--- lisp/un-define.el	6 Mar 2001 22:41:38 -0000	1.30
++++ lisp/un-define.el	19 Apr 2002 18:34:26 -0000
+@@ -610,13 +624,21 @@ by calling post-read-conversion and pre-
+ 
+  (mapcar
+   (lambda (x)
+-    (mapcar
+-     (lambda (y)
+-       (mucs-define-coding-system
+-	(nth 0 y) (nth 1 y) (nth 2 y)
+-	(nth 3 y) (nth 4 y) (nth 5 y) (nth 6 y))
+-       (coding-system-put (car y) 'alias-coding-systems (list (car x))))
+-     (cdr x)))
++    (if (fboundp 'register-char-codings)
++	;; Mule 5, where we don't need the eol-type specified and
++	;; register-char-codings may be very slow for these coding
++	;; system definitions.
++	(let ((y (cadr x)))
++	  (mucs-define-coding-system
++	   (car x) (nth 1 y) (nth 2 y)
++	   (nth 3 y) (nth 4 y) (nth 5 y)))
++      (mapcar
++       (lambda (y)
++	 (mucs-define-coding-system
++	  (nth 0 y) (nth 1 y) (nth 2 y)
++	  (nth 3 y) (nth 4 y) (nth 5 y) (nth 6 y))
++	 (coding-system-put (car y) 'alias-coding-systems (list (car x)))))
++      (cdr x)))
+   `((utf-8
+      (utf-8-unix
+       ?u "UTF-8 coding system"
+
+Note that Emacs 21 has native support for (non-CJK) Unicode, so you
+may not need Mule-UCS to edit Western utf-8 text, for instance.  There
+are various enhancements at <URL:ftp://dlpx1.dl.ac.uk/fx/emacs/Mule>
+which improve Emacs 21's handling of non-ASCII text including dealing
+with CJK Unicode.
+
 * Building Emacs with GCC 2.9x fails in the `src' directory.
 
 This may happen if you use a development version of GNU `cpp' from one
@@ -384,14 +430,13 @@ ought to recognize the Windows language-change event and set up the
 appropriate keyboard encoding automatically, but it doesn't do that
 yet.)
 
-Multilingual text put into the Windows clipboard by other Windows
-applications cannot be safely pasted into Emacs (as of v21.2).  This
-is because Windows uses Unicode to represent multilingual text, but
-Emacs does not yet support Unicode well enough to decode it.  This
-means that Emacs can only interchange non-ASCII text with other
-Windows programs if the characters are in the system codepage.
-Reportedly, a partial solution is to install the Mule-UCS package and
-set selection-coding-system to utf-16-le-dos.
+Windows uses UTF-16 encoding to deal with multilingual text (text not
+encodable in the `system codepage') in the clipboard.  To deal with
+this, load the library `utf-16' and use `set-selection-coding-system'
+to set the clipboard coding system to `utf-16-le-dos'.  This won't
+cope with Far Eastern (`CJK') text; if necessary, install the Mule-UCS
+package, whose `utf-16-le-dos' coding system does encode a lot of CJK
+characters.
 
 The %h format specifier for format-time-string does not work on Windows.
 The %b format specifier does not produce abbreviated month names with
@@ -882,29 +927,6 @@ into a mule-unicode-0100-24ff buffer, Emacs won't be able to save that
 buffer neither as ISO 8859-7 nor as UTF-8.
 
 To work around this, install some add-on package such as Mule-UCS.
-
-* Problems when using Emacs with UTF-8 locales
-
-Some systems, including recent versions of GNU/Linux, have terminals
-or X11 subsystems that can be configured to provide Unicode/UTF-8
-input and display.  Normally, such a system sets environment variables
-such as LANG, LC_CTYPE, or LC_ALL to a string which ends with a
-`.UTF-8'.  For example, a system like this in a French locale might
-use `fr_FR.UTF-8' as the value of LANG.
-
-Since Unicode support in Emacs, as of v21.2, is not yet complete (see
-the previous entry in this file), UTF-8 support is not enabled by
-default, even in UTF-8 locales.  Thus, some Emacs features, such as
-non-ASCII keyboard input, might appear to be broken in these locales.
-To solve these problems, you need to turn on some options in your
-`.emacs' file.  Specifically, the following customizations should make
-Emacs work correctly with UTF-8 input and text:
-
-    (setq locale-coding-system 'utf-8)
-    (set-terminal-coding-system 'utf-8)
-    (set-keyboard-coding-system 'utf-8)
-    (set-selection-coding-system 'utf-8)
-    (prefer-coding-system 'utf-8)
 
 * The `oc-unicode' package doesn't work with Emacs 21.
 
