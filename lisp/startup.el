@@ -360,7 +360,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	  (setq normal-top-level-add-subdirs-inode-list
 		(cons attrs normal-top-level-add-subdirs-inode-list))
 	  (while contents
-	    (unless (member (car contents) '("." ".." "RCS" "CVS"))
+	    ;; The lower-case variants of RCS and CVS are for DOS/Windows.
+	    (unless (member (car contents) '("." ".." "RCS" "CVS" "rcs" "cvs"))
 	      (when (and (string-match "\\`[[:alnum:]]" (car contents))
 			 ;; Avoid doing a `stat' when it isn't necessary
 			 ;; because that can cause trouble when an NFS server
