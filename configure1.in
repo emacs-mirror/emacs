@@ -36,12 +36,7 @@ dnl explaining how to rebuild it.
 
 ### Since Emacs has configuration requirements that autoconf can't
 ### meet, this file is an unholy marriage of custom-baked
-### configuration code and autoconf macros.  New versions of autoconf
-### could very well break this arrangement.
-###
-### We omit the invocation of autoconf's initialization function,
-### because it produces Bourne shell code to parse arguments, but we
-### need to parse our own arguments.
+### configuration code and autoconf macros.
 ###
 ### We use the m4 quoting characters [ ] (as established by the
 ### autoconf system) to include large sections of raw sewage - Oops, I
