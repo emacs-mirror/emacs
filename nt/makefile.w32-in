@@ -98,9 +98,22 @@ recompile-nmake:
 recompile-gmake:
 	$(MAKE) $(MFLAGS) -C ../lisp recompile
 
-bootstrap:	$(BLD) $(ALL) bootstrap-$(MAKETYPE)
+#### Bootstrapping.
+
+### This is meant for Emacs maintainers only.  It first cleans the
+### lisp subdirectory, removing all compiled Lisp files.  Then a
+### special emacs executable is built from Lisp sources, which is then
+### used to compile Lisp files.  The last step is a "normal" make.
+
+bootstrap:	bootstrap-$(MAKETYPE) all
 
 bootstrap-nmake:
+	cd ..\lisp
+	$(MAKE) $(MFLAGS) bootstrap-clean
+	cd ..\src
+	$(MAKE) $(MFLAGS) clean
+	cd ..\lib-src
+	$(MAKE) $(MFLAGS) clean DOC
 	cd ..\src
 	$(MAKE) $(MFLAGS) bootstrap
 	$(MAKE) $(MFLAGS) bootstrap-clean
@@ -109,6 +122,9 @@ bootstrap-nmake:
 	cd ..\nt
 
 bootstrap-gmake:
+	$(MAKE) $(MFLAGS) -C ../lisp bootstrap-clean
+	$(MAKE) $(MFLAGS) -C ../src clean
+	$(MAKE) $(MFLAGS) -C ../lib-src clean DOC
 	$(MAKE) $(MFLAGS) -C ../src bootstrap
 	$(MAKE) $(MFLAGS) -C ../src bootstrap-clean
 	$(MAKE) $(MFLAGS) -C ../lisp bootstrap
