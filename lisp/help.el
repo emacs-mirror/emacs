@@ -476,7 +476,9 @@ With numeric argument, display information on correspondingly older changes."
   (view-file (expand-file-name "PROBLEMS" data-directory)))
 
 (defun view-lossage ()
-  "Display last 100 input keystrokes."
+  "Display last 100 input keystrokes.
+
+To record all your input on a file, use `open-dribble-file'."
   (interactive)
   (with-output-to-temp-buffer "*Help*"
     (princ (mapconcat (function (lambda (key)
