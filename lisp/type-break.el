@@ -8,7 +8,7 @@
 ;; Status: Works in GNU Emacs 19.25 or later, some versions of XEmacs
 ;; Created: 1994-07-13
 
-;; $Id: type-break.el,v 1.18 1998/09/11 01:38:30 friedman Exp $
+;; $Id: type-break.el,v 1.19 1998/09/11 01:39:41 friedman Exp kwzh $
 
 ;; This file is part of GNU Emacs.
 
@@ -76,9 +76,10 @@
 
 ;;;###autoload
 (defcustom type-break-mode nil
-  "*Non-nil means typing break mode is enabled.
+  "Toggle typing break mode.
 See the docstring for the `type-break-mode' command for more information.
-You must modify via \\[customize] for this variable to have an effect."
+This variable should be set only with \\[customize], which is equivalent
+to using the function `type-break-mode'.
   :set (lambda (symbol value)
 	 (type-break-mode (if value 1 -1)))
   :initialize 'custom-initialize-default
