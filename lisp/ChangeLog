@@ -27,6 +27,21 @@
 	(gdb-frame-assembler-buffer): Rework like
 	gdb-frame-breakpoints-buffer.
 
+2004-11-25  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/flymake.el: Reindent.
+	(flymake-split-string):	Turn into defalias.
+	(flymake-fix-file-name): Renamed from flymake-fix-path-name.
+	(flymake-ensure-ends-with-slash): Rename arg to FILENAME.
+	(flymake-get-common-file-prefix): Renamed from ...path...  Doc fix.
+	(flymake-build-relative-filename): Renamed from ...path.
+	Fix error message.
+
+2004-11-25  Cheng Gao  <chenggao@gmail.com>
+
+	* progmodes/flymake.el: Much whitespace and capitalization change.
+	Move `provide' to end.  Require `compile' only when compiling.
+
 2004-11-24  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-alg.el: Added comment.
@@ -74,6 +89,7 @@
 	(math-simplify-units-quotient): Replace variable try-cancel-units by
 	declared variable.
 
+>>>>>>> 1.6669
 2004-11-24  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/ispell.el (ispell-check-version):
