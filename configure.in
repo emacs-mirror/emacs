@@ -3,7 +3,7 @@ dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.
 dnl
-dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001
+dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002
 dnl  Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
@@ -1354,7 +1354,7 @@ AC_SUBST(LIBSOUND)
 dnl checks for header files
 AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
   linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h \
-  termcap.h stdio_ext.h fcntl.h term.h strings.h coff.h)
+  termcap.h stdio_ext.h fcntl.h term.h strings.h coff.h pty.h)
 AC_HEADER_STDC
 AC_HEADER_TIME
 AC_DECL_SYS_SIGLIST
@@ -1915,7 +1915,9 @@ HAVE_GIF=no
 if test "${HAVE_X11}" = "yes"; then
   if test "${with_gif}" != "no"; then
     AC_CHECK_HEADER(gif_lib.h,
-      AC_CHECK_LIB(ungif, DGifOpen, HAVE_GIF=yes))
+# EGifPutExtensionLast only exists from version libungif-4.1.0b1.
+# Earlier versions can crash Emacs.
+      AC_CHECK_LIB(ungif, EGifPutExtensionLast, HAVE_GIF=yes))
   fi
 
   if test "${HAVE_GIF}" = "yes"; then
@@ -2161,9 +2163,19 @@ else
 fi
 
 AC_FUNC_FORK
+dnl Adapted from Haible's version.
+AC_CACHE_CHECK([for nl_langinfo and CODESET], emacs_cv_langinfo_codeset,
+  [AC_TRY_LINK([#include <langinfo.h>],
+    [char* cs = nl_langinfo(CODESET);],
+    emacs_cv_langinfo_codeset=yes,
+    emacs_cv_langinfo_codeset=no)
+  ])
+if test $emacs_cv_langinfo_codeset = yes; then
+  AC_DEFINE(HAVE_LANGINFO_CODESET, 1,
+    [Define if you have <langinfo.h> and nl_langinfo(CODESET).])
+fi
 
-# Fixme: This should be replaced when we have autoconf 2.14.
-AC_SIZE_T
+AC_CHECK_TYPES(size_t)
 
 # Set up the CFLAGS for real compilation, so we can substitute it.
 CFLAGS="$REAL_CFLAGS"
