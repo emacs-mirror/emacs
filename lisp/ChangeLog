@@ -1,3 +1,8 @@
+2004-02-27  Kevin Ryde  <user42@zip.com.au>
+
+	* info-look.el: In scheme-mode symbol regexp, disallow backquote and
+        comma, so that it DTRT in macros.
+
 2004-02-27  Markus Rost  <rost@mathematik.uni-bielefeld.de>
 
 	* progmodes/sh-script.el (sh-shell-arg)
