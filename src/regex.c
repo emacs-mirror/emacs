@@ -4075,15 +4075,16 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
 		      }
 		}
 	      else if (multibyte && ! target_multibyte)
-		{
-		  buf_ch = *d;
-		  MAKE_CHAR_MULTIBYTE (buf_ch);
-		  if (fastmap[CHAR_LEADING_CODE (buf_ch)])
-		    break;
+		while (range > lim)
+		  {
+		    buf_ch = *d;
+		    MAKE_CHAR_MULTIBYTE (buf_ch);
+		    if (fastmap[CHAR_LEADING_CODE (buf_ch)])
+		      break;
 
-		  d++;
-		  range--;
-		}
+		    d++;
+		    range--;
+		  }
 	      else
 		while (range > lim && !fastmap[*d])
 		  {
