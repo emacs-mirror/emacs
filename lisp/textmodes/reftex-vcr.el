@@ -1,8 +1,9 @@
 ;;; reftex-vcr.el - Viewing cross references and citations with RefTeX
-;;; Version: 4.6
+;;; Version: 4.9
 ;;;
 ;;; See main file reftex.el for licensing information
 
+(eval-when-compile (require 'cl))
 (provide 'reftex-vcr)
 (require 'reftex)
 ;;;

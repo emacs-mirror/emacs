@@ -1,8 +1,9 @@
 ;;; reftex-vars.el - Configuration variables for RefTeX
-;;; Version: 4.6
+;;; Version: 4.9
 ;;;
 ;;; See main file reftex.el for licensing information
 
+(eval-when-compile (require 'cl))
 (provide 'reftex-vars)
 
 ;; Define the two constants which are needed during compilation
@@ -151,18 +152,18 @@ The following conventions are valid for all alist entries:
 
 (defconst reftex-index-macros-builtin 
   '((default "Default \\index and \\glossary macros"
-      (("\\index{*}" "idx" ?i "" nil)
-       ("\\glossary{*}" "glo" ?g "" nil)))
+      (("\\index{*}" "idx" ?i "" nil t)
+       ("\\glossary{*}" "glo" ?g "" nil t)))
     (multind "The multind.sty package"
-       (("\\index{}{*}" 1 ?i "" nil)))
+       (("\\index{}{*}" 1 ?i "" nil t)))
     (index "The index.sty package"
-	   (("\\index[]{*}" 1 ?i "" nil)
-	    ("\\index*[]{*}" 1 ?I "" nil)))
+	   (("\\index[]{*}" 1 ?i "" nil t)
+	    ("\\index*[]{*}" 1 ?I "" nil nil)))
     (Index-Shortcut "index.sty with \\shortindexingon"
-       (("\\index[]{*}" 1 ?i "" nil)
-	("\\index*[]{*}" 1 ?I "" nil)
-	("^[]{*}" 1 ?^ "" texmathp)   
-	("_[]{*}" 1 ?_ "" texmathp))))
+       (("\\index[]{*}" 1 ?i "" nil t)
+	("\\index*[]{*}" 1 ?I "" nil nil)
+	("^[]{*}" 1 ?^ "" texmathp t)   
+	("_[]{*}" 1 ?_ "" texmathp nil))))
   "Builtin stuff for reftex-index-macros.
 Lower-case symbols correspond to a style file of the same name in the LaTeX
 distribution.  Mixed-case symbols are convenience aliases.")
@@ -185,6 +186,14 @@ distribution.  Mixed-case symbols are convenience aliases.")
 (defgroup reftex-table-of-contents-browser nil
   "A multifile table of contents browser."
   :group 'reftex)
+
+(defcustom reftex-toc-max-level 100
+  "*The maximum level of toc entries which will be included in the TOC.
+Section headings with a bigger level will be ignored.  In RefTeX, chapters
+are level 1, sections are level 2 etc.
+This variable can be changed from within the *toc* buffer with the `t' key."
+  :group 'reftex-table-of-contents-browser
+  :type 'integer)
 
 (defcustom reftex-toc-keep-other-windows t
   "*Non-nil means, split the selected window to display the *toc* buffer.
@@ -284,7 +293,7 @@ The value of the variable must be a list of items.  Each item is a list
 itself and has the following structure:
 
  (ENV-OR-MACRO TYPE-KEY LABEL-PREFIX REFERENCE-FORMAT CONTEXT-METHOD
-           (MAGIC-WORD ... ))
+           (MAGIC-WORD ... ) TOC-LEVEL)
 
 Each list entry describes either an environment carrying a counter for use
 with \\label and \\ref, or a LaTeX macro defining a label as (or inside)
@@ -385,6 +394,14 @@ MAGIC-WORDS
     strings are interpreted as regular expressions.  RefTeX will add
     a \"\\\\W\" to the beginning and other stuff to the end of the regexp.
 
+TOC-LEVEL
+    The integer level at which this environment should be added to the
+    table of contents.  See also `reftex-section-levels'.  A positive
+    value will number the entries mixed with the sectioning commands of
+    the same level.  A negative value will make unnumbered entries.
+    Useful only for theorem-like environments, will be ignored for macros.
+    When omitted or nil, no TOC entries will be made.
+
 If the type indicator characters of two or more entries are the same, RefTeX
 will use
  - the first non-nil format and prefix
@@ -425,7 +442,10 @@ list.  However, builtin defaults should normally be set with the variable
 		      (const  :tag "Eqnarray-like" eqnarray-like)
 		      (const  :tag "Alignat-like" alignat-like)
 		      (symbol :tag "Function" my-func))
-	   (repeat :tag "Magic words" :extra-offset 2 (string)))
+	   (repeat :tag "Magic words" :extra-offset 2 (string))
+	   (option (choice :tag "Make TOC entry     "
+			   (const :tag "No entry" nil)
+			   (integer :tag "Level" :value -3))))
      (choice
       :tag "Package"
       :value AMSTeX
@@ -982,7 +1002,7 @@ These correspond to the makeindex keywords LEVEL ENCAP ACTUAL QUOTE ESCAPE."
 (defcustom reftex-index-macros nil
   "Macros which define index entries.  The structure is
 
-(MACRO INDEX-TAG KEY PREFIX EXCLUDE)
+(MACRO INDEX-TAG KEY PREFIX EXCLUDE REPEAT)
 
 MACRO is the macro.  Arguments should be denoted by empty braces like
 \\index[]{*}.  Use square brackets to denote optional arguments.  The star
@@ -1004,6 +1024,11 @@ EXCLUDE can be a function.  If this function exists and returns a non-nil
 value, the index entry at point is ignored.  This was implemented to support
 the (deprecated) `^' and `_' shortcuts in the LaTeX2e `index' package.
 
+REPEAT, if non-nil, means the index macro does not typeset the entry in
+the text, so that the text has to be repeated outside the index macro.
+Needed for `reftex-index-selection-or-word' and for indexing from the
+phrase buffer.
+
 The final entry may also be a symbol if this entry has a association
 in the variable `reftex-index-macros-builtin' to specify the main
 indexing package you are using.  Legal values are currently
@@ -1021,13 +1046,14 @@ package here."
 	  (repeat 
 	   :inline t
 	   (list :value ("" "idx" ?a "" nil)
-		 (string :tag "Macro with args")
-		 (choice :tag "Index Tag      "
+		 (string  :tag "Macro with args")
+		 (choice  :tag "Index Tag      "
 			 (string)
 			 (integer :tag "Macro arg Nr" :value 1))
 		 (character :tag "Access Key     ")
-		 (string :tag "Key Prefix     ")
-		 (symbol :tag "Exclusion hook ")))
+		 (string  :tag "Key Prefix     ")
+		 (symbol  :tag "Exclusion hook ")
+                 (boolean :tag "Repeat Outside ")))
 	  (option
 	   :tag "Package:"
 	   (choice :tag "Package"
@@ -1039,25 +1065,21 @@ package here."
 			      (nth 0 x)))
 		      reftex-index-macros-builtin)))))
 
-(defcustom reftex-index-default-macro '(?i "idx" t)
+(defcustom reftex-index-default-macro '(?i "idx")
   "The default index macro for \\[reftex-index-selection-or-word].
-This is a list with (MACRO-KEY DEFAULT-TAG REPEAT-WORD).
+This is a list with (MACRO-KEY DEFAULT-TAG).
 
 MACRO-KEY:   Character identifying an index macro - see `reftex-index-macros'.
 DEFAULT-TAG: This is the tag to be used if the macro requires a TAG argument.  
              When this is nil and a TAG is needed, RefTeX will ask for it.
              When this is the empty string and the TAG argument of the index
-             macro is optional, the TAG argument will be omitted.
-REPEAT-WORD: Non-nil means, the index macro does not typeset the entry in
-             the text, so that the text has to be repeated outside the index
-             macro." 
+             macro is optional, the TAG argument will be omitted."
   :group 'reftex-index-support
   :type '(list
 	  (character :tag "Character identifying default macro")
 	  (choice    :tag "Default index tag                  "
 		  (const nil)
-		  (string))
-	  (boolean   :tag "Word needs to be repeated          ")))
+		  (string))))
 
 (defcustom reftex-index-default-tag "idx"
   "Default index tag.
@@ -1084,6 +1106,80 @@ through the `format' function.  This can be used to add the math delimiters
 Requires the `texmathp.el' library which is part of AUCTeX."
   :group 'reftex-index-support
   :type 'string)
+
+(defcustom reftex-index-phrases-logical-and-regexp " *&& *"
+  "Regexp matching the `and' operator for index arguments in phrases file.
+When several index arguments in a phrase line are separated by this
+operator, each part will generate an index macro.  So each match of
+the search phrase will produce *several* different index entries.
+
+Note: make sure this does no match things which are not separators.
+This logical `and' has higher priority than the logical `or' specified in
+`reftex-index-phrases-logical-or-regexp'."
+  :group 'reftex-index-support
+  :type 'regexp)
+
+(defcustom reftex-index-phrases-logical-or-regexp " *|| *"
+  "Regexp matching the `or' operator for index arguments in phrases file.
+When several index arguments in a phrase line are separated by this
+operator, the user will be asked to select one of them at each match
+of the search phrase.  The first index arg will be the default - a
+number key 1-9 must be pressed to switch to another.
+
+Note: make sure this does no match things which are not separators.
+The logical `and' specified in `reftex-index-phrases-logical-or-regexp'
+has higher priority than this logical `or'."
+  :group 'reftex-index-support
+  :type 'regexp)
+
+(defcustom reftex-index-phrases-search-whole-words t
+  "*Non-nil means phrases search will look for whole words, not subwords.
+This works by requiring word boundaries at the beginning and end of
+the search string.  When the search phrase already has a non-word-char
+at one of these points, no word boundary is required there."
+  :group 'reftex-index-support
+  :type 'boolean)
+
+(defcustom reftex-index-phrases-case-fold-search t
+  "*Non-nil means, searching for index phrases will ignore case."
+  :group 'reftex-index-support
+  :type 'boolean)
+
+(defcustom reftex-index-phrases-skip-indexed-matches nil
+  "*Non-nil means, skip matches which appear to be indexed already.
+When doing global indexing from the phrases buffer, searches for some
+phrases may match at places where that phrase was already indexed.  In
+particular when indexing an already processed document again, this
+will even be the norm.  When this variable is non-nil, RefTeX checks if
+the match is an index macro argument, or if an index macro is directly
+before or after the phrase.  If that is the case, that match will
+be ignored."
+  :group 'reftex-index-support
+  :type 'boolean)
+
+(defcustom reftex-index-phrases-wrap-long-lines nil
+  "*Non-nil means, when indexing from the phrases buffer, wrap lines.
+Inserting indexing commands in a line makes the line longer - often
+so long that it does not fit onto the screen.  When this variable is
+non-nil, newlines will be added as necessary before and/or after the
+indexing command to keep lines short.  However, the matched text
+phrase and its index command will always end up on a single line.")
+
+(defcustom reftex-index-phrases-sort-prefers-entry nil
+  "*Non-nil means when sorting phrase lines, the explicit index entry is used.
+Phrase lines in the phrases buffer contain a search phrase, and
+sorting is normally based on these.  Some phrase lines also have
+an explicit index argument specified.  When this variable is non-nil,
+the index argument will be used for sorting."
+  :group 'reftex-index-support
+  :type 'boolean)
+
+(defcustom reftex-index-phrases-sort-in-blocks t
+  "*Non-nil means, empty and comment lines separate phrase buffer into blocks.
+Sorting will then preserve blocks, so that lines are re-arranged only
+within blocks."
+  :group 'reftex-index-support
+  :type 'boolean)
 
 (defcustom reftex-index-section-letters "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   "The letters which denote sections in the index.

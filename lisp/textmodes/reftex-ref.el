@@ -1,8 +1,9 @@
 ;;; reftex-ref.el - Code to create labels and references with RefTeX
-;;; Version: 4.6
+;;; Version: 4.9
 ;;;
 ;;; See main file reftex.el for licensing information
 
+(eval-when-compile (require 'cl))
 (provide 'reftex-ref)
 (require 'reftex)
 ;;;
@@ -561,9 +562,12 @@ When called with 2 C-u prefix args, disable magic word recognition."
 		(setq here-I-am here-I-am1)
                 (setq typekey (reftex-query-label-type)))
                ((eq key ?t)
-                ;; toggle table of contents display
+                ;; toggle table of contents display, or change depth
 		(reftex-erase-buffer)
-                (setq toc (not toc)))
+		(if current-prefix-arg
+		    (setq reftex-toc-max-level (prefix-numeric-value
+						current-prefix-arg))
+		  (setq toc (not toc))))
                ((eq key ?F)
                 ;; toggle display of included file borders
 		(reftex-erase-buffer)

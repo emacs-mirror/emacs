@@ -1,8 +1,9 @@
 ;;; reftex-cite.el - Creating citations with RefTeX
-;;; Version: 4.6
+;;; Version: 4.9
 ;;;
 ;;; See main file reftex.el for licensing information
 
+(eval-when-compile (require 'cl))
 (provide 'reftex-cite)
 (require 'reftex)
 ;;;
@@ -501,7 +502,7 @@
 ;; Make a citation
 
 ;;;###autoload
-(defun reftex-citation (&optional no-insert)
+(defun reftex-citation (&optional no-insert format-key)
   "Make a citation using BibTeX database files.
 After prompting for a regular expression, scans the buffers with
 bibtex entries (taken from the \\bibliography command) and offers the
@@ -509,6 +510,8 @@ matching entries for selection.  The selected entry is formated according
 to `reftex-cite-format' and inserted into the buffer.
 
 If NO-INSERT is non-nil, nothing is inserted, only the selected key returned.
+
+FORAT-KEY can be used to pre-select a citation format.
 
 When called with one or two `C-u' prefixes, first rescans the document.
 When called with a numeric prefix, make that many citations.  When
@@ -533,13 +536,13 @@ While entering the regexp, completion on knows citation keys is possible.
 
   ;; Call reftex-do-citation, but protected
   (unwind-protect
-      (reftex-do-citation current-prefix-arg no-insert)
+      (reftex-do-citation current-prefix-arg no-insert format-key)
     (reftex-kill-temporary-buffers)))
 
-(defun reftex-do-citation (&optional arg no-insert)
+(defun reftex-do-citation (&optional arg no-insert format-key)
   ;; This really does the work of reftex-citation.
 
-  (let* ((format (reftex-figure-out-cite-format arg no-insert))
+  (let* ((format (reftex-figure-out-cite-format arg no-insert format-key))
 	 (docstruct-symbol reftex-docstruct-symbol)
 	 (selected-entries (reftex-offer-bib-menu))
 	 (insert-entries selected-entries)
@@ -610,7 +613,7 @@ While entering the regexp, completion on knows citation keys is possible.
     ;; Return the citation key
     (car (car selected-entries))))
 
-(defun reftex-figure-out-cite-format (arg no-insert)
+(defun reftex-figure-out-cite-format (arg &optional no-insert format-key)
   ;; Check if there is already a cite command at point and change cite format
   ;; in order to only add another reference in the same cite command.
   (let ((macro (car (reftex-what-macro 1)))
@@ -640,18 +643,29 @@ While entering the regexp, completion on knows citation keys is possible.
 	      cite-format-value))
       (when (listp format)
 	(setq key
-	      (reftex-select-with-char 
-	       "" (concat "SELECT A CITATION FORMAT\n\n"
-			  (mapconcat
-			   (lambda (x)
-			     (format "[%c] %s  %s" (car x)
-				     (if (> (car x) 31) " " "")
-				     (cdr x)))
-			   format "\n"))))
+	      (or format-key
+		  (reftex-select-with-char 
+		   "" (concat "SELECT A CITATION FORMAT\n\n"
+			      (mapconcat
+			       (lambda (x)
+				 (format "[%c] %s  %s" (car x)
+					 (if (> (car x) 31) " " "")
+					 (cdr x)))
+			       format "\n")))))
 	(if (assq key format)
 	    (setq format (cdr (assq key format)))
 	  (error "No citation format associated with key `%c'" key)))))
     format))
+
+(defun reftex-citep ()
+  "Call `reftex-citation' with a format selector `?p'."
+  (interactive)
+  (reftex-citation nil ?p))
+
+(defun reftex-citet ()
+  "Call `reftex-citation' with a format selector `?t'."
+  (interactive)
+  (reftex-citation nil ?t))
 
 (defvar reftex-select-bib-map)
 (defun reftex-offer-bib-menu ()

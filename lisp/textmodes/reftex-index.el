@@ -1,8 +1,9 @@
 ;;; reftex-index.el - Index support with RefTeX
-;;; Version: 4.6
+;;; Version: 4.9
 ;;;
 ;;; See main file reftex.el for licensing information
 
+(eval-when-compile (require 'cl))
 (provide 'reftex-index)
 (require 'reftex)
 ;;;
@@ -10,7 +11,7 @@
 (defvar mark-active)
 (defvar zmacs-regions)
 (defvar transient-mark-mode)
-(defun reftex-index-selection-or-word (&optional arg)
+(defun reftex-index-selection-or-word (&optional arg phrase)
   "Put selection or the word near point into the default index macro.
 This uses the information in `reftex-index-default-macro' to make an index
 entry.  The phrase indexed is the current selection or the word near point.
@@ -37,33 +38,34 @@ which is part of AUCTeX, the string is first processed with the
 	 (sel (buffer-substring beg end))
 	 (mathp (condition-case nil (texmathp) (error nil)))
 	 (current-prefix-arg nil) ; we want to call reftex-index without prefix.
-	 key def-char def-tag full-entry repeat-word)
+	 key def-char def-tag full-entry)
 
-    (if (equal sel "")
-	;; Nothing selecte, no word, so use full reftex-index command
-	(reftex-index)
-      ;; OK, we have something to index here.
-      ;; Add the dollars when necessary
-      (setq key (if mathp
-		    (format reftex-index-math-format sel)
-		  sel))
-      ;; Get info from `reftex-index-default-macro'
-      (setq def-char (if use-default (car reftex-index-default-macro)))
-      (setq def-tag  (if use-default (nth 1 reftex-index-default-macro)))
-      ;; Does the user want to edit the entry?
-      (setq full-entry (if arg
-			   (reftex-index-complete-key
-			    def-tag nil (cons key 0))
-			 key))
-      ;; Do we neet to repeat the word outside the macro?
-      (setq repeat-word (if use-default
-			    (nth 2 reftex-index-default-macro)
-			  (y-or-n-p "Repeat phrase outside macro? ")))
-      ;; Delete what is in the buffer and make the index entry
-      (delete-region beg end)
-      (reftex-index def-char full-entry def-tag (if repeat-word sel nil)))))
+    (if phrase
+	(progn
+	  (reftex-index-visit-phrases-buffer)
+	  (reftex-index-new-phrase sel))
 
-(defun reftex-index (&optional char key tag postfix no-insert)
+      (if (equal sel "")
+	  ;; Nothing selected, no word, so use full reftex-index command
+	  (reftex-index)
+	;; OK, we have something to index here.
+	;; Add the dollars when necessary
+	(setq key (if mathp
+		      (format reftex-index-math-format sel)
+		    sel))
+	;; Get info from `reftex-index-default-macro'
+	(setq def-char  (if use-default (car reftex-index-default-macro)))
+	(setq def-tag   (if use-default (nth 1 reftex-index-default-macro)))
+	;; Does the user want to edit the entry?
+	(setq full-entry (if arg
+			     (reftex-index-complete-key
+			      def-tag nil (cons key 0))
+			   key))
+	;; Delete what is in the buffer and make the index entry
+	(delete-region beg end)
+	(reftex-index def-char full-entry def-tag sel)))))
+  
+(defun reftex-index (&optional char key tag sel no-insert)
   "Query for an index macro and insert it along with its argments.
 The index macros available are those defined in `reftex-index-macro' or
 by a call to `reftex-add-index-macros', typically from an AUCTeX style file.
@@ -88,6 +90,7 @@ will prompt for other arguments."
 	 (nargs (nth 4 entry))
 	 (nindex (nth 5 entry))
 	 (opt-args (nth 6 entry))
+	 (repeat (nth 7 entry))
 	 opt tag1 value)
 
     ;; Get the supported arguments
@@ -111,7 +114,7 @@ will prompt for other arguments."
 						": ")))))
       (unless (and opt (string= value ""))
 	(insert (if opt "[" "{") value (if opt "]" "}"))))
-    (and (stringp postfix) (insert postfix))
+    (and repeat (stringp sel) (insert sel))
     (and key reftex-plug-into-AUCTeX (fboundp 'LaTeX-add-index-entries)
 	 (LaTeX-add-index-entries key))
     (reftex-index-update-taglist tag1)
@@ -236,98 +239,6 @@ will prompt for other arguments."
     (and newtag (cdr cell) (not (member newtag (cdr cell)))
 	 (push newtag (cdr cell)))))
 
-(defvar reftex-last-index-file)
-(defun reftex-index-globally (&optional data call-file)
-  "Index a word with a global search and replace.
-This works very much like `reftex-query-replace-document', but the
-defaults for the search and replace strings are derived from
-local context.
-When there is an index entry, we try to index similar words.  The word
-to search for is either a word in direct contact with the index macro
-(like `\\index{WORD}WORD' or `WORD\\index{WORD}') or the index key.
-The replacement text is the index macro with all its arguments and the
-attached word.
-When there is no index entry at point, we search for the word near point
-and propose to index it like this: `\\index{word}word'.
-You get a chance to edit the search and replacement strings.
-DATA can be a docstruct entry describing an index entry, and then the 
-defaults will be derived from it.
-CALL-FILE may be the file from where to call the global search command."
-  (interactive)
-  (let* ((call-file (cond (call-file call-file)
-			  (reftex-mode (buffer-file-name))
-			  ((eq major-mode 'reftex-index-mode)
-			   reftex-last-index-file)
-			  (t (error "Need a call file here"))))
-	 (pos (point))
-	 (data (cond 
-		(data data)
-		((and reftex-mode
-		      (save-excursion
-			(forward-char 20)
-			(re-search-backward reftex-everything-regexp nil t)
-			(< (count-lines (min pos (point)) (max pos (point)))
-			   2)))
-		 (reftex-index-info (buffer-file-name)))
-		(t nil)))
-	 (ksep (car reftex-index-special-chars))
-	 (words-include-escapes t)
-	 (case-replace nil)
-	 (case-fold-search t)
-	 word rpl start analyze-list pre key attr actual post)
-
-    ;; Find the word and construct the replacement string
-    (if (and data (eq (car data) 'index))
-        ;; OK, we have an index entry
-	(progn
-	  (setq analyze-list (reftex-index-analyze-entry data)
-		pre (car analyze-list)
-		key (nth 1 analyze-list)
-		attr (nth 2 analyze-list)
-		actual (nth 3 analyze-list)
-		post (nth 4 analyze-list)) 
-	  (when (string-match (concat "\\<\\(\\sw+\\)" reftex-index-re) pre)
-	    (setq word (match-string 1 pre)
-		  pre (concat "<<<1>>>" (substring pre (match-end 1)))
-		  rpl (concat pre key attr actual post)))	    
-	  (when (string-match "}\\(\\sw+\\)\\>[^}]*\\'" post)
-	    (setq word (match-string 1 post)
-		  post (concat (substring post 0 (match-beginning 1))
-			       "<<<1>>>")
-		  rpl (concat pre key attr actual post)))
-	  (when (and (not word) key)
-	    (if (string-match (concat ".*" (regexp-quote ksep)) key)
-		(setq word (substring key (match-end 0)))
-	      (setq word key))
-	    (setq rpl (concat pre key attr actual post))))
-      ;; No index entry, just use local word.
-      (setq word (save-excursion
-		   (buffer-substring-no-properties
-		    (progn (skip-syntax-backward "w") (point))
-		    (progn (skip-syntax-forward  "w") (point))))
-	    rpl (concat "\\index{" word "}<<<1>>>")))
-    ;; Quote what is necessary
-    (setq word (regexp-quote (downcase word)))
-    (setq start 0)
-    (while (setq start (string-match "\\\\" rpl start))
-      (setq rpl (replace-match "\\\\" t t rpl)
-	    start (+ 2 start)))
-    ;; We used <<<1>>> instead of \1 to avoid the quoting.  Fix this now.
-    (if (string-match "<<<1>>>" rpl)
-	(setq rpl (replace-match "\\1" t t rpl)))
-
-    ;; Give the user a chance to edit the strings
-    (setq word (read-string "Search: " 
-			    (if word (format "\\<\\(%s\\)\\>" word)))
-	  rpl (read-string "Replace with: " rpl))
-
-    ;; Execute the command
-    (save-excursion
-      (switch-to-buffer (get-file-buffer call-file))
-      (condition-case nil
-	  (reftex-query-replace-document word rpl)
-	(error nil)))))
-
 (defvar reftex-index-map (make-sparse-keymap)
   "Keymap used for *Index* buffers.")
 
@@ -392,7 +303,6 @@ e / C-k    Edit/Kill the entry.
            With prefix: kill that part.
 ( )        Toggle entry's beginning/end of page range property.
 _ ^        Add/Remove parent key (to make this item a subitem).
-&          Index the same word everywhere in the document.
 } / {      Restrict Index to a single document section / Widen.
 < / >      When restricted, move restriction to previous/next section.")
 
@@ -918,22 +828,6 @@ When index is restricted, select the previous section as restriction criterion."
 	 (post (substring context eoa)))
     (list pre key attr actual post)))
 
-(defun reftex-index-globalize (&optional arg)
-  "Globalize the current index entry.
-This starts a global search and replace to index the same word
-at other places in the document. After this function completes, you 
-need to rescan the document with `r' or `C-u r' in order to get the
-entries into the index buffer.
-Defaults for the search and replace strings are derived from
-the current entry.  See the command `reftex-index-globally'."
-  (interactive)
-  (let* ((data (get-text-property (point) :data))
-	 (buf (current-buffer)))
-    (unless data
-      (error "No index entry at point"))
-    (reftex-index-globally data)
-    (switch-to-buffer buf)))
-
 (defun reftex-index-edit ()
   "Edit the index entry at point."
   (interactive)
@@ -964,7 +858,7 @@ the current entry.  See the command `reftex-index-globally'."
   "Toggle the page-range-end attribute `|)'."
   (interactive)
   (let* ((data (get-text-property (point) :data))
-	 (eor (concat (nth 1 reftex-index-special-chars) "("))
+	 (eor (concat (nth 1 reftex-index-special-chars) ")"))
 	 new analyze attr)
     (unless data (error "Don't know which index entry to edit"))
     (setq analyze (reftex-index-analyze-entry data)
@@ -1138,7 +1032,6 @@ the current entry.  See the command `reftex-index-globally'."
 	("|"    . reftex-index-edit-attribute)
 	("@"    . reftex-index-edit-visual)
 	("*"    . reftex-index-edit-key)
-	("&"    . reftex-index-globalize)
 	("\C-c=". reftex-index-goto-toc)
 	("c"    . reftex-index-toggle-context))
       do (define-key reftex-index-map (car x) (cdr x)))
@@ -1164,8 +1057,11 @@ the current entry.  See the command `reftex-index-globally'."
 	  (recenter 0)
 	  (reftex-index-next))
       (goto-char pos)
-      (error "This <%s> index does not contain entries starting with `%c'" 
-	     reftex-index-tag char))))
+      (if (eq char ?!)
+	  (error "This <%s> index does not contain entries sorted before the letters"
+		 reftex-index-tag)
+	(error "This <%s> index does not contain entries starting with `%c'" 
+	       reftex-index-tag char)))))
 
 (easy-menu-define 
  reftex-index-menu reftex-index-map
@@ -1204,7 +1100,6 @@ the current entry.  See the command `reftex-index-globally'."
     ["Make Start-of-Range" reftex-index-toggle-range-beginning t]
     ["Make End-of-Range" reftex-index-toggle-range-end t]
     "--"
-    ["Globalize"  reftex-index-globalize t]
     ["Kill Entry" reftex-index-kill nil]
     "--"
     ["Undo" reftex-index-undo nil])
@@ -1216,5 +1111,942 @@ the current entry.  See the command `reftex-index-globally'."
      :selected reftex-index-follow-mode])
    "--"
    ["Help" reftex-index-show-help t]))
+
+
+;;----------------------------------------------------------------------
+;; The Index Phrases File
+
+;; Some constants and variables
+(defconst reftex-index-phrases-comment-regexp "^[ \t]*%.*"
+  "Regular expression to match comment lines in phrases buffer")
+(defconst reftex-index-phrases-macrodef-regexp
+  "^\\(>>>INDEX_MACRO_DEFINITION:\\)[ \t]+\\(\\S-\\)\\( *\t[ \t]*\\)\\([^\t]*[^ \t]\\)\\( *\t[ \t]*\\)\\(\\S-+\\)"
+  "Regular expression to match macro definition lines the phrases buffer.")
+;(defconst reftex-index-phrases-macrodef-regexp
+;  "^\\(>>>INDEX_MACRO_DEFINITION:\\)[ \t]+\\(\\S-\\)\\([ \t]*\\)\\([^\t]*[^ \t]\\)\\([ \t]*\\)\\(nil\\|t\\)[ \t]*$"
+;  "Regular expression to match macro definition lines the phrases buffer.
+;This version would allow just spaces as separators.")
+(defconst reftex-index-phrases-phrase-regexp1
+  "^\\(\\S-?\\)\\(\t\\)\\([^\t\n]*\\S-\\)\\([ \t]*\\)$"
+  "Regular expression matching phrases which have no separate index key.")
+(defconst reftex-index-phrases-phrase-regexp2
+  "^\\(\\S-?\\)\\(\t\\)\\([^\t]*\\S-\\)\\(\t[ \t]*\\)\\([^\n\t]*\\S-\\)[ \t]*$"
+  "Regular expression matching phrases which have a separate index key.")
+(defconst reftex-index-phrases-phrase-regexp12
+  "^\\(\\S-?\\)\\(\t\\)\\([^\n\t]*\\S-\\)\\(\\(\t[ \t]*\\)\\([^\n\t]*\\S-\\)\\)?[ \t]*$"
+  "Regular expression matching all types of phrase lines.")
+(defvar reftex-index-phrases-macro-data nil
+  "Alist containing the information taken from the macro definition lines.
+This gets refreshed in every phrases command.")
+(defvar reftex-index-phrases-files nil
+  "List of document files relevant for the phrases file.")
+
+(defvar reftex-index-phrases-font-lock-keywords nil
+  "Font lock keywords for reftex-index-phrases-mode.")
+(defvar reftex-index-phrases-font-lock-defaults nil
+  "Font lock defaults for reftex-index-phrases-mode.")
+(defvar reftex-index-phrases-map (make-sparse-keymap)
+  "Keymap used for *toc* buffer.")
+
+
+(defun reftex-index-phrase-selection-or-word (arg)
+  "Add current selection or word at point to the phrases buffer.
+When you are in transient-mark-mode and the region is active, the
+selection will be used - otherwise the word at point.
+You get a chance to edit the entry in the phrases buffer - finish with
+`C-c C-c'."
+  (interactive "P")
+  (set-marker reftex-index-return-marker (point))
+  (reftex-index-selection-or-word arg 'phrase)
+  (if (eq major-mode 'reftex-index-phrases-mode)
+      (message 
+       (substitute-command-keys
+	"Return to LaTeX with \\[reftex-index-phrases-save-and-return]"))))
+
+(defun reftex-index-visit-phrases-buffer ()
+  "Switch to the phrases buffer, initialize if empty."
+  (interactive)
+  (reftex-access-scan-info)
+  (let* ((master (reftex-TeX-master-file))
+	 (name (concat (file-name-sans-extension master) ".rip")))
+    (find-file name)
+    (unless (eq major-mode 'reftex-index-phrases-mode)
+      (reftex-index-phrases-mode))
+    (if (= (buffer-size) 0)
+	(reftex-index-initialize-phrases-buffer master))))
+
+(defun reftex-index-initialize-phrases-buffer (&optional master)
+  "Initialize the phrases buffer by creating the header.
+If the buffer is non-empty, delete the old header first."
+  (interactive)
+  (let* ((case-fold-search t)
+	 (default-key (car reftex-index-default-macro))
+	 (default-macro (nth 1 (assoc default-key
+				      reftex-key-to-index-macro-alist)))
+	 (macro-alist
+	  (sort (copy-sequence reftex-index-macro-alist)
+		(lambda (a b) (equal (car a) default-macro))))
+	 macro entry key repeat)
+    
+    (if master (set (make-local-variable 'TeX-master)
+		    (file-name-nondirectory master)))
+
+    (when (> (buffer-size) 0)
+      (goto-char 1)
+      (set-mark (point))
+      (while (re-search-forward reftex-index-phrases-macrodef-regexp nil t)
+	(end-of-line))
+      (beginning-of-line 2)
+      (if (looking-at reftex-index-phrases-comment-regexp)
+	  (beginning-of-line 2))
+      (while (looking-at "^[ \t]*$")
+	  (beginning-of-line 2))	  
+      (cond ((fboundp 'zmacs-activate-region) (zmacs-activate-region))
+	    ((boundp 'make-active) (setq mark-active t)))
+      (if (yes-or-no-p "Delete and rebuilt header ")
+	  (delete-region (point-min) (point))))
+
+    ;; Insert the mode line
+    (insert
+     (format "%% -*- mode: reftex-index-phrases; TeX-master: \"%s\" -*-\n"
+	     (file-name-nondirectory (reftex-index-phrase-tex-master))))
+    ;; Insert the macro definitions
+    (insert "%                              Key      Macro Format            Repeat\n")
+    (insert "%---------------------------------------------------------------------\n")
+    (while (setq entry (pop macro-alist))
+      (setq macro (car entry)
+	    repeat (nth 7 entry)
+	    key (car (delq nil (mapcar (lambda (x) (if (equal (nth 1 x) macro)
+						       (car x)
+						     nil))
+				       reftex-key-to-index-macro-alist))))
+      (insert (format ">>>INDEX_MACRO_DEFINITION:\t%s\t%-20s\t%s\n"
+		      (char-to-string key) (concat macro "{%s}")
+		      (if repeat "t" "nil"))))
+    (insert "%---------------------------------------------------------------------\n\n\n")))
+
+(defvar TeX-master)
+(defun reftex-index-phrase-tex-master (&optional dir)
+  "Return the name of the master file associated with a phrase buffer."
+  (if (and (boundp 'TeX-master)
+	   (local-variable-p 'TeX-master (current-buffer))
+	   (stringp TeX-master))
+      ;; We have a local variable which tells us which file to use
+      (expand-file-name TeX-master dir)
+    ;; have to guess
+    (concat (file-name-sans-extension (buffer-file-name)) ".tex")))
+
+(defun reftex-index-phrases-save-and-return ()
+  "Return to where the `reftex-index-phrase-selection-or-word' was called."
+  (interactive)
+  (save-buffer)
+  (switch-to-buffer (marker-buffer reftex-index-return-marker))
+  (goto-char (or (marker-position reftex-index-return-marker) (point))))
+
+
+(defvar reftex-index-phrases-menu)
+(defvar reftex-index-phrases-restrict-file nil)
+;;;###autoload
+(defun reftex-index-phrases-mode ()
+  "Major mode for managing the Index phrases of a LaTeX document.
+This buffer was created with RefTeX.
+
+To insert new phrases, use
+ - `C-c \\' in the LaTeX document to copy selection or word
+ - `\\[reftex-index-new-phrase]' in the phrases buffer.
+
+To index phrases use one of:
+
+\\[reftex-index-this-phrase]     index current phrase
+\\[reftex-index-next-phrase]     index next phrase (or N with prefix arg)
+\\[reftex-index-all-phrases]     index all phrases
+\\[reftex-index-remaining-phrases]     index current and following phrases
+\\[reftex-index-region-phrases]     index the phrases in the region
+
+You can sort the phrases in this buffer with \\[reftex-index-sort-phrases].
+To display information about the phrase at point, use \\[reftex-index-phrases-info].
+
+For more information see the RefTeX User Manual.
+
+Here are all local bindings.
+
+\\{reftex-index-phrases-map}"
+  (interactive)
+  (kill-all-local-variables)
+  (setq major-mode 'reftex-index-phrases-mode
+	mode-name "Phrases")
+  (use-local-map reftex-index-phrases-map)
+  (set (make-local-variable 'font-lock-defaults) 
+       reftex-index-phrases-font-lock-defaults)
+  (easy-menu-add reftex-index-phrases-menu reftex-index-phrases-map)
+  (set (make-local-variable 'reftex-index-phrases-marker) (make-marker))
+  (run-hooks 'reftex-index-phrases-mode-hook))
+(add-hook 'reftex-index-phrases-mode-hook 'turn-on-font-lock)
+
+;; Font Locking stuff
+(let ((ss (if (featurep 'xemacs) 'secondary-selection ''secondary-selection)))
+  (setq reftex-index-phrases-font-lock-keywords
+	(list 
+	 (cons reftex-index-phrases-comment-regexp 'font-lock-comment-face)
+	 (list reftex-index-phrases-macrodef-regexp
+	       '(1 font-lock-type-face)
+	       '(2 font-lock-keyword-face)
+	       (list 3 ss)
+	       '(4 font-lock-function-name-face)
+	       (list 5 ss)
+	       '(6 font-lock-string-face))
+	 (list reftex-index-phrases-phrase-regexp1
+	       '(1 font-lock-keyword-face)
+	       (list 2 ss)
+	       '(3 font-lock-string-face)
+	       (list 4 ss))
+	 (list reftex-index-phrases-phrase-regexp2
+	       '(1 font-lock-keyword-face)
+	       (list 2 ss)
+	       '(3 font-lock-string-face)
+	       (list 4 ss)
+	       '(5 font-lock-function-name-face))
+	 (cons "^\t$" ss)))
+  (setq reftex-index-phrases-font-lock-defaults
+	'((reftex-index-phrases-font-lock-keywords)
+	  nil t nil beginning-of-line))
+  (put 'reftex-index-phrases-mode 'font-lock-defaults 
+       reftex-index-phrases-font-lock-defaults) ; XEmacs
+  )
+
+(defvar reftex-index-phrases-marker)
+(defun reftex-index-next-phrase (&optional arg)
+  "Index the next ARG phrases in the phrases buffer."
+  (interactive "p")
+  (reftex-index-phrases-parse-header t)
+  (while (> arg 0)
+    (decf arg)
+    (end-of-line)
+    (if (re-search-forward reftex-index-phrases-phrase-regexp12 nil t)
+	(progn
+	  (goto-char (match-beginning 0))
+	  (reftex-index-this-phrase))
+      (error "No more phrase lines after point"))))
+
+(defun reftex-index-this-phrase ()
+  "Index the phrase in the current line.
+Does a global search and replace in the entire document.  At each
+match, the user will be asked to confirm the replacement."
+  (interactive)
+  (if (interactive-p) (reftex-index-phrases-parse-header t))
+  (save-excursion
+    (beginning-of-line)
+    (cond ((looking-at reftex-index-phrases-comment-regexp)
+	   (if (interactive-p) (error "Comment line")))
+	  ((looking-at "^[ \t]*$")
+	   (if (interactive-p) (error "Empty line")))
+	  ((looking-at reftex-index-phrases-macrodef-regexp)
+	   (if (interactive-p) (error "Macro definition line")))
+	  ((looking-at reftex-index-phrases-phrase-regexp12)
+	   ;; This is a phrase
+	   (let* ((char (if (not (equal (match-string 1) ""))
+			    (string-to-char (match-string 1))))
+		  (phrase (match-string 3))
+		  (index-key (match-string 6))
+		  (macro-data (cdr (if (null char)
+				       (car reftex-index-phrases-macro-data)
+				     (assoc char reftex-index-phrases-macro-data))))
+		  (macro-fmt (car macro-data))
+		  (repeat (nth 1 macro-data))
+		  (files
+		   (cond ((and (stringp reftex-index-phrases-restrict-file)
+			       (file-regular-p reftex-index-phrases-restrict-file))
+			  (list reftex-index-phrases-restrict-file))
+			 ((stringp reftex-index-phrases-restrict-file)
+			  (error "Illegal restriction file %s"
+				 reftex-index-phrases-restrict-file))
+			 (t reftex-index-phrases-files)))
+		  (as-words reftex-index-phrases-search-whole-words))
+	     (unless macro-data
+	       (error "No macro associated with key %c" char))
+	     (unwind-protect
+		 (let ((overlay-arrow-string "=>")
+		       (overlay-arrow-position
+			reftex-index-phrases-marker)
+		       (replace-count 0))
+		   ;; Show the overlay arrow
+		   (move-marker reftex-index-phrases-marker
+				(match-beginning 0) (current-buffer))
+		   ;; Start the query-replace
+		   (reftex-query-index-phrase-globally 
+		    files phrase macro-fmt 
+		    index-key repeat as-words)
+		   (message "%s replaced" 
+			    (reftex-number replace-count "occurrence"))))))
+	  (t (error "Cannot parse this line")))))
+
+(defun reftex-index-all-phrases ()
+  "Index all phrases in the phrases buffer.
+Calls `reftex-index-this-phrase' on each line in the buffer."
+  (interactive)
+  (reftex-index-region-phrases (point-min) (point-max)))
+
+(defun reftex-index-remaining-phrases ()
+  "Index all phrases in the phrases buffer.
+Calls `reftex-index-this-phrase' on each line ay and below point in
+the buffer."
+  (interactive)
+  (beginning-of-line)
+  (reftex-index-region-phrases (point) (point-max)))
+
+(defun reftex-index-region-phrases (beg end)
+  "Index all phrases in the phrases buffer.
+Calls `reftex-index-this-phrase' on each line in the region."
+  (interactive "r")
+  (reftex-index-phrases-parse-header t)
+  (goto-char beg)
+  (while (not (or (eobp)
+		  (>= (point) end)))
+    (save-excursion (reftex-index-this-phrase))
+    (beginning-of-line 2)))
+
+(defun reftex-index-phrases-parse-header (&optional get-files)
+  "Parse the header of a phrases file to extract the macro definitions.
+The definitions get stored in `reftex-index-phrases-macro-data'.
+Also switches to the LaTeX document to find out which files belong to
+the document and stores the list in `reftex-index-phrases-files'."
+  (let* ((master (reftex-index-phrase-tex-master))
+	 buf)
+    (if get-files
+	;; Get the file list
+	(save-excursion
+	  (setq buf (reftex-get-file-buffer-force master))
+	  (unless buf (error "Master file %s not found" master))
+	  (set-buffer buf)
+	  (reftex-access-scan-info)
+	  (setq reftex-index-phrases-files 
+		(reftex-all-document-files))))
+    ;; Parse the files header for macro definitions
+    (setq reftex-index-phrases-macro-data nil)
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward reftex-index-phrases-macrodef-regexp nil t)
+	(push (list
+	       (string-to-char (match-string 2))
+	       (match-string 4)
+	       (equal (match-string 6) "t"))
+	      reftex-index-phrases-macro-data))
+      ;; Reverse the list, so that the first macro is first
+      (if (null reftex-index-phrases-macro-data)
+	  (error "No valid MACRO DEFINITION line in .rip file (make sure to use TAB separators)"))
+      (setq reftex-index-phrases-macro-data 
+	    (nreverse reftex-index-phrases-macro-data))
+      (goto-char (point-min)))))
+
+(defun reftex-index-phrases-apply-to-region (beg end)
+  "Index all index phrases in the current region.
+This works exactly like global indexing from the index phrases buffer,
+but operation is restricted to the current region.  This is useful if
+you need to add/change text in an already indexed document and want to
+index the new part without having to go over the unchanged parts again."
+  (interactive "r")
+  (let ((win-conf (current-window-configuration))
+	(reftex-index-phrases-restrict-file (buffer-file-name)))	
+  (save-excursion
+    (save-restriction
+      (narrow-to-region beg end)
+      (unwind-protect
+	  (progn
+	    ;; Hide the region highlighting
+	    (cond ((fboundp 'zmacs-deactivate-region) (zmacs-deactivate-region))
+		  ((fboundp 'deactivate-mark) (deactivate-mark)))
+	    (delete-other-windows)
+	    (reftex-index-visit-phrases-buffer)
+	    (reftex-index-all-phrases))
+	(set-window-configuration win-conf))))))
+
+(defun reftex-index-new-phrase (&optional text)
+  "Open a new line in the phrases buffer, insert TEXT."
+  (interactive)
+  (if (and text (stringp text))
+      (progn
+	;; Check if the phrase is already in the buffer
+	(setq text (reftex-index-simplify-phrase text))
+	(goto-char (point-min))
+	(if (re-search-forward
+	     (concat "^\\(\\S-*\\)\t\\(" (regexp-quote text) 
+		     "\\) *[\t\n]") nil t)
+	    (progn
+	      (goto-char (match-end 2))
+	      (error "Phrase is already in phrases buffer")))))
+  ;; Add the new phrase line after the last in the buffer
+  (goto-char (point-max))
+  (if (re-search-backward reftex-index-phrases-phrase-regexp12 nil t)
+      (end-of-line))
+  (if (not (bolp))
+      (insert "\n"))
+  (insert "\t")
+  (if (and text (stringp text))
+      (insert text)))
+
+(defun reftex-index-find-next-conflict-phrase (&optional arg)
+  "Find the next a phrase which is has conflicts in the phrase buffer.
+The command helps to find possible conflicts in the phrase indexing process.
+It searches downward from point for a phrase which is repeated elsewhere
+in the buffer, or which is a subphrase of another phrase.  If such a
+phrase is found, the phrase info is displayed.
+To check the whole buffer, start at the beginning and continue by calling
+this function repeatedly."
+  (interactive "P")
+  (if (catch 'exit
+	(while (re-search-forward reftex-index-phrases-phrase-regexp12 nil t)
+	  (goto-char (match-beginning 3))
+	  (let* ((phrase (match-string 3))
+		 (case-fold-search reftex-index-phrases-case-fold-search)
+		 (re (reftex-index-phrases-find-dup-re phrase t)))
+	    (if (save-excursion 
+		  (goto-char (point-min))
+		  (and (re-search-forward re nil t)
+		       (re-search-forward re nil t)))
+		(throw 'exit t)))))
+      (progn
+	(reftex-index-phrases-info)
+	(message "Phrase with match conflict discovered"))
+    (goto-char (point-max))
+    (error "No further problematic phrases found")))
+
+(defun reftex-index-phrases-info ()
+  "Display information about the phrase at point."
+  (interactive)
+  (save-excursion
+    (beginning-of-line)
+    (unless (looking-at reftex-index-phrases-phrase-regexp12)
+      (error "Not a phrase line"))
+    (save-match-data (reftex-index-phrases-parse-header t))
+    (let* ((char (if (not (equal (match-string 1) ""))
+		     (string-to-char (match-string 1))))
+	   (phrase (match-string 3))
+	   (index-key (match-string 6))
+	   (index-keys (split-string
+			(or index-key phrase)
+			reftex-index-phrases-logical-or-regexp))
+	   (macro-data (cdr (if (null char)
+				(car reftex-index-phrases-macro-data)
+			      (assoc char reftex-index-phrases-macro-data))))
+	   (macro-fmt (car macro-data))
+	   (repeat (nth 1 macro-data))
+	   (as-words reftex-index-phrases-search-whole-words)
+	   (example (reftex-index-make-replace-string
+		     macro-fmt (downcase phrase) (car index-keys) repeat))
+	   (re (reftex-index-make-phrase-regexp phrase as-words t))
+	   (re1 (reftex-index-phrases-find-dup-re phrase))
+	   (re2 (reftex-index-phrases-find-dup-re phrase 'sub))
+	   superphrases
+	   (nmatches 0)
+	   (ntimes1 0)
+	   (ntimes2 0)
+	   (case-fold-search reftex-index-phrases-case-fold-search)
+	   file files buf)
+      (setq files reftex-index-phrases-files)
+      (save-excursion
+	(save-restriction
+	  (widen)
+	  (goto-char (point-min))
+	  (while (re-search-forward re1 nil t)
+	    (incf ntimes1))
+	  (goto-char (point-min))
+	  (while (re-search-forward re2 nil t)
+	    (push (cons (count-lines 1 (point)) (match-string 1)) superphrases)
+	    (incf ntimes2))))
+      (save-excursion
+	(while (setq file (pop files))
+	  (setq buf (reftex-get-file-buffer-force file))
+	  (when buf
+	    (set-buffer buf)
+	    (save-excursion
+	      (save-restriction
+		(widen)
+		(goto-char (point-min))
+		(let ((case-fold-search reftex-index-phrases-case-fold-search))
+		  (while (re-search-forward re nil t)
+		    (or (reftex-in-comment)
+			(incf nmatches)))))))))
+      (with-output-to-temp-buffer "*Help*"
+	(princ (format "       Phrase:  %s\n" phrase))
+	(princ (format "    Macro key:  %s\n" char))
+	(princ (format " Macro format:  %s\n" macro-fmt))
+	(princ (format "       Repeat:  %s\n" repeat))
+	(cond
+	 (index-key
+	  (let ((iks index-keys) (cnt 0) ik)
+	    (while (setq ik (pop iks))
+	      (princ (format "Index entry %d:  %s\n" (incf cnt) ik)))))
+	 (repeat
+	  (princ (format "  Index entry:  %s\n" phrase)))
+	 (t
+	  (princ (format "    Index key:  <<Given by the match>>\n"))))
+	(princ (format "      Example:  %s\n" example))
+	(terpri)
+	(princ (format "Total matches:  %s in %s\n"
+		       (reftex-number nmatches "match" "es")
+		       (reftex-number (length reftex-index-phrases-files)
+				      "LaTeX file")))
+	(princ (format "   Uniqueness:  Phrase occurs %s in phrase buffer\n"
+		       (reftex-number ntimes1 "time")))
+	(if (> ntimes2 1)
+	    (progn
+	      (princ (format " Superphrases:  Phrase matches the following %s in the phrase buffer:\n"
+			     (reftex-number ntimes2 "line")))
+	      (mapcar (lambda(x) 
+			(princ (format "                Line %4d:  %s\n" (car x) (cdr x))))
+		      (nreverse superphrases))))))))
+
+(defun reftex-index-phrases-set-macro-key ()
+  "Change the macro key for the current line.
+Prompts for a macro key and insert is at the beginning of the line.
+If you reply with SPACE, the macro keyn will be removed, so that the
+default macro will be used.  If you reply with `RET', just prints
+information about the currently selected macro."
+  (interactive)
+  (reftex-index-phrases-parse-header)
+  (save-excursion
+    (beginning-of-line)
+    (unless (or (looking-at reftex-index-phrases-phrase-regexp12)
+		(looking-at "\t"))
+      (error "This is not a phrase line"))
+    (let* ((nc (reftex-index-select-phrases-macro 0))
+	   (macro-data (assoc nc reftex-index-phrases-macro-data))
+	   macro-fmt repeat)
+      (cond (macro-data)
+	    ((equal nc ?\ )
+	     (setq nc ""
+		   macro-data (car reftex-index-phrases-macro-data)))
+	    ((equal nc ?\C-m)
+	     (setq nc (char-after (point)))
+	     (if (equal nc ?\t)
+		 (setq nc ""
+		       macro-data (car reftex-index-phrases-macro-data))
+	       (setq macro-data (assoc nc reftex-index-phrases-macro-data))))
+	    (t (error "No macro associated with %c" nc)))
+
+      (setq macro-fmt (nth 1 macro-data)
+	    repeat (nth 2 macro-data))
+      (if macro-data
+	  (progn
+	    (if (looking-at "[^\t]") (delete-char 1))
+	    (insert nc)
+	    (message "Line will use %s %s repeat" macro-fmt
+		     (if repeat "with" "without")))
+	(error "Abort")))))
+
+(defun reftex-index-sort-phrases (&optional chars-first)
+  "Sort the phrases lines in the buffer alphabetically.
+Normally, this looks only at the phrases.  With a prefix arg CHARS-FIRST,
+it first compares the macro identifying chars and then the phrases."
+  (interactive "P")
+  ;; Remember the current line, so that we can return
+  (let ((line (buffer-substring (progn (beginning-of-line) (point))
+				(progn (end-of-line) (point))))
+	beg end)
+    (goto-char (point-min))
+    ;; Find first and last phrase line in buffer
+    (setq beg 
+	  (and (re-search-forward reftex-index-phrases-phrase-regexp12 nil t)
+	       (match-beginning 0)))
+    (goto-char (point-max))
+    (setq end (re-search-backward reftex-index-phrases-phrase-regexp12 nil t))
+    (if end (setq end (progn (goto-char end) (end-of-line) (point))))
+    ;; Take the lines, sort them and re-insert.
+    (if (and beg end)
+	(progn
+	  (message "Sorting lines...")
+	  (let* ((lines (split-string (buffer-substring beg end) "\n"))
+		 (lines1 (sort lines 'reftex-compare-phrase-lines)))
+	    (message "Sorting lines...done")
+	    (let ((inhibit-quit t))  ;; make sure we do not loose lines
+	      (delete-region beg end)
+	      (insert (mapconcat 'identity lines1 "\n"))))
+	  (goto-char (point-max))
+	  (re-search-backward (concat "^" (regexp-quote line) "$") nil t))
+      (error "Cannot find phrases lines to sort"))))
+
+(defvar chars-first)
+(defun reftex-compare-phrase-lines (a b)
+  "The comparison function used for sorting."
+  (let (ca cb pa pb c-p p-p)
+    (if (string-match reftex-index-phrases-phrase-regexp12 a)
+	(progn
+	  ;; Extract macro char and phrase-or-key for a
+	  (setq ca (match-string 1 a) 
+		pa (downcase 
+		    (or (and reftex-index-phrases-sort-prefers-entry
+			     (match-string 6 a))
+			(match-string 3 a))))
+	  (if (string-match reftex-index-phrases-phrase-regexp12 b)
+	      (progn
+		;; Extract macro char and phrase-or-key for b
+		(setq cb (match-string 1 b) 
+		      pb (downcase
+			  (or (and reftex-index-phrases-sort-prefers-entry
+				   (match-string 6 b))
+			      (match-string 3 b))))
+		(setq c-p (string< ca cb)
+		      p-p (string< pa pb))
+		;; Do the right comparison, based on the value of `chars-first'
+		;; `chars-first' is bound locally in the calling function		
+		(if chars-first
+		    (if (string= ca cb) p-p c-p)
+		  (if (string= pa pb) c-p p-p)))))
+      ;; If line a does not match, the answer we return determines
+      ;; if non-matching lines are collected at the beginning.
+      ;; When we return t here, non-matching lines form
+      ;; block separators for searches.
+      (not reftex-index-phrases-sort-in-blocks))))
+
+(defvar reftex-index-phrases-menu)
+(defun reftex-index-make-phrase-regexp (phrase &optional 
+					       as-words allow-newline)
+  "Return a regexp matching PHRASE, even if distributed over lines.
+With optional arg AS-WORDS, require word boundary at beginning and end.
+With optional arg ALLOW-NEWLINE, allow single newline between words."
+  (let* ((words (split-string phrase))
+	 (space-re (if allow-newline
+		       "\\([ \t]*\\(\n[ \t]*\\)?\\|[ \t]\\)"
+		     "\\([ \t]+\\)")))
+    (concat (if (and as-words (string-match "\\`\\w" (car words)))
+		"\\<" "")
+	    (mapconcat (lambda (w) (regexp-quote (downcase w)))
+		       words space-re)
+	    (if (and as-words 
+		     (string-match "\\w\\'" (nth (1- (length words)) words)))
+		"\\>" ""))))
+
+(defun reftex-index-simplify-phrase (phrase)
+  "Make phrase single spaces and single line."
+  (mapconcat 'identity (split-string phrase) " "))
+
+(defun reftex-index-phrases-find-dup-re (phrase &optional sub)
+  "Return a regexp which matches variations of PHRASE (with additional space).
+When SUB ins non-nil, the regexp will also match when PHRASE is a subphrase
+of another phrase.  The regexp works lonly in the phrase buffer."
+  (concat (if sub "^\\S-?\t\\([^\t\n]*" "^\\S-?\t")
+	  (mapconcat 'regexp-quote (split-string phrase) " +")
+	  (if sub "[^\t\n]*\\)\\([\t\n]\\|$\\)" " *\\([\t\n]\\|$\\)")))
+
+(defun reftex-index-make-replace-string (macro-fmt match index-key
+						   &optional repeat mathp)
+  "Return the string which can be used as replacement.
+Treats the logical `and' for index phrases."
+  (let ((index-keys (split-string (or index-key match)
+				  reftex-index-phrases-logical-and-regexp)))
+    (concat
+     (mapconcat (lambda (x) 
+		  (format macro-fmt 
+			  (format (if mathp reftex-index-math-format "%s") x)))
+		index-keys "")
+   (if repeat (reftex-index-simplify-phrase match) ""))))
+
+(defun reftex-query-index-phrase-globally (files &rest args)
+  "Call `reftex-query-index-phrase' for all files in FILES."
+  (let ((win-conf (current-window-configuration))
+	(file))
+    (unless files (error "No files"))
+    (unwind-protect
+	(progn
+	  (switch-to-buffer-other-window (reftex-get-file-buffer-force 
+					  (car files)))
+	  (catch 'no-more-files
+	    (while (setq file (pop files))
+	      (switch-to-buffer (reftex-get-file-buffer-force file))
+	      (save-excursion
+		(save-restriction
+		  (unless (stringp reftex-index-phrases-restrict-file)
+		    (widen))
+		  (goto-char (point-min))
+		  (apply 'reftex-query-index-phrase args))))))
+      (reftex-unhighlight 0)
+      (set-window-configuration win-conf))))
+
+(defconst reftex-index-phrases-help
+  "     Keys for query-index search
+     ===========================
+y       Replace this match
+n       Skip this match
+!       Replace this and all further matches in this file
+q / Q   Skip match, start next file / start next phrase
+o       Use a different indexing macro for this match
+1 - 9   Select one of the multiple phrases
+e       Edit the replacement text
+C-r     Recursive edit.
+s / S   Save this buffer  /  Save all document buffers
+C-g     Abort"
+  "The help string for indexing phrases.")
+
+(defvar replace-count)
+(defun reftex-query-index-phrase (phrase macro-fmt &optional
+					 index-key repeat as-words)
+  "Search through buffer for PHRASE, and offer to replace it with an indexed
+version.  The index version is derived by applying `format' with MACRO-FMT
+to INDEX-KEY or PHRASE.  When REPEAT is non-nil, the PHRASE is inserted
+again after the macro.
+AS-WORDS means, the search for PHRASE should require word boundaries at
+both ends."
+  (let* ((re (reftex-index-make-phrase-regexp phrase as-words 'allow-newline))
+	 (case-fold-search reftex-index-phrases-case-fold-search)
+	 (index-keys (split-string 
+		      (or index-key phrase)
+		      reftex-index-phrases-logical-or-regexp))
+	 (nkeys (length index-keys))
+	 (ckey (nth 0 index-keys))
+	 (all-yes nil) 
+	 match rpl char beg end mathp)
+    (unwind-protect
+	(while (re-search-forward re nil t)
+	  (catch 'next-match
+	    (setq match (match-string 0))
+	    (setq mathp
+		  (save-match-data
+		    (condition-case nil (texmathp) (error nil))))
+	    (setq beg (car (match-data))
+		  end (nth 1 (match-data)))
+	    (if (and reftex-index-phrases-skip-indexed-matches
+		     (save-match-data
+		       (reftex-index-phrase-match-is-indexed beg
+							     end)))
+		(throw 'next-match nil))
+	    (reftex-highlight 0 (match-beginning 0) (match-end 0))
+	    (setq rpl 
+		  (save-match-data
+		    (reftex-index-make-replace-string
+		     macro-fmt (match-string 0) ckey repeat mathp)))
+	    (while 
+		(not
+		 (catch 'loop
+		   (message "REPLACE: %s?   (yn!qoe%s?)"
+			    rpl
+			    (if (> nkeys 1) 
+				(concat "1-" (int-to-string nkeys))
+			      ""))
+		   (setq char (if all-yes ?y (read-char-exclusive)))
+		   (cond ((member char '(?y ?Y ?\ ))
+			  ;; Yes!
+			  (replace-match rpl t t)
+			  (incf replace-count)
+			  ;; See if we should insert newlines to shorten lines
+			  (and reftex-index-phrases-wrap-long-lines
+			       (reftex-index-phrases-fixup-line beg end))
+			  (throw 'loop t))
+			 ((member char '(?n ?N ?\C-h ?\C-?));; FIXME: DEL
+			  ;; No
+			  (throw 'loop t))
+			 ((equal char ?!)
+			  ;; Yes for all in this buffer
+			  (setq all-yes t))
+			 ((equal char ?q)
+			  ;; Stop this one in this file
+			  (goto-char (point-max))
+			  (throw 'loop t))
+			 ((equal char ?Q)
+			  ;; Stop this one
+			  (throw 'no-more-files t))
+			 ((equal char ?s)
+			  (save-buffer))
+			 ((equal char ?S)
+			  (reftex-save-all-document-buffers))
+			 ((equal char ?\C-g)
+			  (keyboard-quit))
+			 ((member char '(?o ?O))
+			  ;; Select a differnt macro
+			  (let* ((nc (reftex-index-select-phrases-macro 2))
+				 (macro-data 
+				  (cdr (assoc nc reftex-index-phrases-macro-data)))
+				 (macro-fmt (car macro-data))
+				 (repeat (nth 1 macro-data)))
+			    (if macro-data
+				(setq rpl (save-match-data
+					    (reftex-index-make-replace-string
+					     macro-fmt match
+					     ckey repeat mathp)))
+			      (ding))))
+			 ((equal char ?\?)
+			  ;; Help
+			  (with-output-to-temp-buffer "*Help*"
+			    (princ reftex-index-phrases-help)))
+			 ((equal char ?\C-r)
+			  ;; Recursive edit
+			  (save-match-data
+			    (save-excursion
+			      (message 
+			       (substitute-command-keys
+				"Recursive edit.  Resume with \\[exit-recursive-edit]"))
+			      (recursive-edit))))
+			 ((equal char ?e)
+			  (setq rpl (read-string "Edit: " rpl)))
+			 ((equal char ?0)
+			  (setq ckey (or index-key phrase)
+				rpl (save-match-data
+				      (reftex-index-make-replace-string
+				       macro-fmt match ckey repeat mathp))))
+			 ((and (> char ?0)
+			       (<= char (+ ?0 nkeys)))
+			  (setq ckey (nth (1- (- char ?0)) index-keys)
+				rpl (save-match-data
+				      (reftex-index-make-replace-string
+				       macro-fmt match ckey repeat mathp))))
+			 (t (ding)))
+		   nil)))))
+      (message "")
+      (setq all-yes nil)
+      (reftex-unhighlight 0))))
+
+(defun reftex-index-phrase-match-is-indexed (beg end)
+  (save-excursion
+    (goto-char end)
+    (let* ((this-macro (car (reftex-what-macro 1)))
+	   (before-char (char-before beg))
+	   (after-char (char-after end))
+	   (before-macro
+	    (and (> beg 2)
+		 (goto-char (1- beg))
+		 (memq (char-after (point)) '(?\] ?\}))
+		 (car (reftex-what-macro 1))))
+	   (after-macro
+	    (and (goto-char end)
+		 (looking-at "\\(\\\\[a-zA-Z]+\\*?\\)[[{]")
+		 (match-string 1))))
+      (or (and this-macro
+	       (member before-char '(?\{ ?\[))
+	       (member after-char '(?\} ?\]))
+	       (member this-macro reftex-macros-with-index))
+	  (and before-macro
+	       (member before-macro reftex-macros-with-index))
+	  (and after-macro
+	       (member after-macro reftex-macros-with-index))))))
+
+    
+(defun reftex-index-phrases-fixup-line (beg end)
+  "Insert newlines before BEG and/or after END to shorten line."
+  (let (bol eol space1 space2)
+    (save-excursion
+      ;; Find line boundaries and possible line breaks near BEG and END
+      (beginning-of-line)
+      (setq bol (point))
+      (end-of-line)
+      (setq eol (point))
+      (goto-char beg)
+      (skip-chars-backward "^ \n")
+      (if (and (equal (preceding-char) ?\ )
+	       (string-match "\\S-" (buffer-substring bol (point))))
+	  (setq space1 (1- (point))))
+      (goto-char end)
+      (skip-chars-forward "^ \n")
+      (if (and (equal (following-char) ?\ )
+	       (string-match "\\S-" (buffer-substring (point) eol)))
+	  (setq space2 (point)))
+      ;; Now check what we have and insert the newlines
+      (if (<= (- eol bol) fill-column)
+	  ;; Line is already short
+	  nil
+	(cond
+	 ((and (not space1) (not space2))) ; No spaces available
+	 ((not space2)			; Do space1
+	  (reftex-index-phrases-replace-space space1))
+	 ((not space1)			; Do space2
+	  (reftex-index-phrases-replace-space space2))
+	 (t ; We have both spaces
+	  (let ((l1 (- space1 bol))
+		(l2 (- space2 space1))
+		(l3 (- eol space2)))
+	    (if (> l2 fill-column)
+		;; The central part alone is more than one line
+		(progn
+		  (reftex-index-phrases-replace-space space1)
+		  (reftex-index-phrases-replace-space space2))
+	      (if (> (+ l1 l2) fill-column)
+		  ;; Need to split beginning
+		  (reftex-index-phrases-replace-space space1))
+	      (if (> (+ l2 l3) fill-column)
+		  ;; Need to split end
+		  (reftex-index-phrases-replace-space space2))))))))))
+
+(defun reftex-index-phrases-replace-space (pos)
+  "If there is a space at POS, replace it with a newline char.
+Does not do a save-excursion."
+  (when (equal (char-after pos) ?\ )
+    (goto-char pos)
+    (delete-char 1)
+    (insert "\n")))
+
+(defun reftex-index-select-phrases-macro (&optional delay)
+  "Offer a list of possible index macros and have the user select one."
+  (let* ((prompt (concat "Select macro: ["
+			 (mapconcat (lambda (x) (char-to-string (car x)))
+				    reftex-index-phrases-macro-data "")
+			 "] "))
+	 (help (concat "Select an indexing macro\n========================\n"
+		       (mapconcat (lambda (x)
+				    (format " [%c]     %s"
+					    (car x) (nth 1 x)))
+				  reftex-index-phrases-macro-data "\n"))))
+    (reftex-select-with-char prompt help delay)))
+
+;; Keybindings and Menu for phrases buffer
+
+(loop for x in
+      '(("\C-c\C-c" . reftex-index-phrases-save-and-return)
+	("\C-c\C-x" . reftex-index-this-phrase)
+	("\C-c\C-f" . reftex-index-next-phrase)
+	("\C-c\C-r" . reftex-index-region-phrases)
+	("\C-c\C-a" . reftex-index-all-phrases)
+	("\C-c\C-d" . reftex-index-remaining-phrases)
+	("\C-c\C-s" . reftex-index-sort-phrases)
+	("\C-c\C-n" . reftex-index-new-phrase)
+	("\C-c\C-m" . reftex-index-phrases-set-macro-key)
+	("\C-c\C-i" . reftex-index-phrases-info)
+	("\C-c\C-t" . reftex-index-find-next-conflict-phrase)
+	("\C-i"     . self-insert-command))
+      do (define-key reftex-index-phrases-map (car x) (cdr x)))
+
+(easy-menu-define 
+ reftex-index-phrases-menu reftex-index-phrases-map
+ "Menu for Phrases buffer"
+ '("Phrases"
+   ["New Phrase" reftex-index-new-phrase t]
+   ["Set Phrase Macro" reftex-index-phrases-set-macro-key t]
+   ["Recreate File Header" reftex-index-initialize-phrases-buffer t]
+   "--"
+   ("Sort Phrases"
+    ["Sort" reftex-index-sort-phrases t]
+    "--"
+    "Sort Options"
+    ["by Search Phrase" (setq reftex-index-phrases-sort-prefers-entry nil)
+     :style radio :selected (not reftex-index-phrases-sort-prefers-entry)]
+    ["by Index Entry" (setq reftex-index-phrases-sort-prefers-entry t)
+     :style radio :selected reftex-index-phrases-sort-prefers-entry]
+    ["in Blocks" (setq reftex-index-phrases-sort-in-blocks
+			  (not reftex-index-phrases-sort-in-blocks))
+     :style toggle :selected reftex-index-phrases-sort-in-blocks])
+   ["Describe Phrase" reftex-index-phrases-info t]
+   ["Next Phrase Conflict" reftex-index-find-next-conflict-phrase t]
+   "--"
+   ("Find and Index in Document"
+    ["Current Phrase" reftex-index-this-phrase t]
+    ["Next Phrase" reftex-index-next-phrase t]
+    ["Current and Following" reftex-index-remaining-phrases t]
+    ["Region Phrases" reftex-index-region-phrases t]
+    ["All Phrases" reftex-index-all-phrases t]
+    "--"
+    "Options"
+    ["Match Whole Words" (setq reftex-index-phrases-search-whole-words
+			  (not reftex-index-phrases-search-whole-words))
+     :style toggle :selected reftex-index-phrases-search-whole-words]
+    ["Case Sensitive Search" (setq reftex-index-phrases-case-fold-search
+				  (not  reftex-index-phrases-case-fold-search))
+     :style toggle :selected (not
+			      reftex-index-phrases-case-fold-search)]
+    ["Wrap Long Lines" (setq reftex-index-phrases-wrap-long-lines
+			     (not reftex-index-phrases-wrap-long-lines))
+    :style toggle :selected reftex-index-phrases-wrap-long-lines]
+    ["Skip Indexed Matches" (setq reftex-index-phrases-skip-indexed-matches
+				  (not reftex-index-phrases-skip-indexed-matches))
+     :style toggle :selected reftex-index-phrases-skip-indexed-matches])
+   "--"
+   ["Save and Return" reftex-index-phrases-save-and-return t]))
+
 
 ;;; reftex-index.el ends here

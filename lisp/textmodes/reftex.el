@@ -2,7 +2,7 @@
 ;; Copyright (c) 1997, 1998, 1999 Free Software Foundation, Inc.
 
 ;; Author:     Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version:    4.6
+;; Version:    4.9
 ;; Keywords:   tex
 
 ;; This file is not part of GNU Emacs.
@@ -32,6 +32,7 @@
 ;; - Labels are created semi-automatically.
 ;; - Definition context of labels is provided when creating a reference.
 ;; - Citations are simplified with efficient database lookup.
+;; - Text phrases can be collected in a file, for later global indexing.
 ;; - The index preview buffer helps to check and edit index entries.
 ;;
 ;;
@@ -67,6 +68,43 @@
 ;;
 ;;---------------------------------------------------------------------------
 ;;
+;; Introduction
+;; ************
+;; 
+;; RefTeX is a specialized package for support of labels, references,
+;; citations, and the index in LaTeX.  RefTeX wraps itself round 4 LaTeX
+;; macros: `\label', `\ref', `\cite', and `\index'.  Using these macros
+;; usually requires looking up different parts of the document and
+;; searching through BibTeX database files.  RefTeX automates these
+;; time-consuming tasks almost entirely.  It also provides functions to
+;; display the structure of a document and to move around in this
+;; structure quickly.
+;; 
+;;    *Note Imprint::, for information about who to contact for help, bug
+;; reports or suggestions.
+;; 
+;; Environment
+;; ===========
+;; 
+;; RefTeX needs to access all files which are part of a multifile
+;; document, and the BibTeX database files requested by the
+;; `\bibliography' command.  To find these files, RefTeX will require a
+;; search path, i.e. a list of directories to check.  Normally this list
+;; is stored in the environment variables `TEXINPUTS' and `BIBINPUTS'
+;; which are also used by RefTeX.  However, on some systems these
+;; variables do not contain the full search path.  If RefTeX does not work
+;; for you because it cannot find some files, read *Note Finding Files::.
+;; 
+;; Entering RefTeX Mode
+;; ====================
+;; 
+;; To turn RefTeX Mode on and off in a particular buffer, use `M-x
+;; reftex-mode'.  To turn on RefTeX Mode for all LaTeX files, add the
+;; following lines to your `.emacs' file:
+;; 
+;;      (add-hook 'LaTeX-mode-hook 'turn-on-reftex)   ; with AUCTeX LaTeX mode
+;;      (add-hook 'latex-mode-hook 'turn-on-reftex)   ; with Emacs latex mode
+;; 
 ;; RefTeX in a Nutshell
 ;; ====================
 ;; 
@@ -107,7 +145,7 @@
 ;;      Typing `C-c [' (`reftex-citation') will let you specify a regular
 ;;      expression to search in current BibTeX database files (as
 ;;      specified in the `\bibliography' command) and pull out a list of
-;;      matches for you to choose from.  The list is *formatted* and
+;;      matches for you to choose from.  The list is _formatted_ and
 ;;      sorted.  The selected article is referenced as `\cite{KEY}' (see
 ;;      the variable `reftex-cite-format' if you want to insert different
 ;;      macros).
@@ -121,21 +159,22 @@
 ;;      are supported.
 ;; 
 ;;         * Creating Index Entries
-;;           Type `C-c /' (`reftex-index-selection-or-word') to index the
-;;           current selection or the word at the cursor with the default
-;;           macro (see the variable `reftex-index-default-macro').
-;;           Type `C-c <' (`reftex-index') to insert a general index macro.
-;;           RefTeX will offer a list of available macros and provide
-;;           completion for the index tag (used to identify one of
-;;           multiple indices) and for the entry itself (useful with
-;;           subentries).
+;;           To index the current selection or the word at point, type
+;;           `C-c /' (`reftex-index-selection-or-word').  The default macro
+;;           `reftex-index-default-macro' will be used.  For a more
+;;           complex entry type `C-c <' (`reftex-index'), select any of
+;;           the index macros and enter the arguments with completion.
 ;; 
-;;         * Displaying the Index
+;;         * The Index Phrases File (Delayed Indexing)
+;;           Type `C-c \' (`reftex-index-phrase-selection-or-word') to add
+;;           the current word or selection to a special _index phrase
+;;           file_.  RefTeX can later search the document for occurrences
+;;           of these phrases and let you interactively index the matches.
+;; 
+;;         * Displaying and Editing the Index
 ;;           To display the compiled index in a special buffer, type `C-c
 ;;           >' (`reftex-display-index').  From that buffer you can check
-;;           and edit all entries.  The index can be restricted to those
-;;           entries defined in a single document section or in a user
-;;           defined region.
+;;           and edit all entries.
 ;; 
 ;;   5. Viewing Cross-References
 ;;      When point is on the KEY argument of a cross-referencing macro
@@ -193,9 +232,10 @@
 ;;      Go ahead and use RefTeX.  Use its menus until you have picked up
 ;;      the key bindings.  For an overview of what you can do in each of
 ;;      the different special buffers, press `?'.  Read the manual if you
-;;      get stuck.  The first part of the manual explains in a tutorial
-;;      way how to use and customize RefTeX.  The second part is a command
-;;      and variable reference.
+;;      get stuck, of if you are curious what else might be available.
+;;      The first part of the manual explains in a tutorial way how to use
+;;      and customize RefTeX.  The second part is a command and variable
+;;      reference.
 ;; 
 ;;---------------------------------------------------------------------------
 ;;
@@ -219,9 +259,10 @@
 ;;
 ;;    Fran Burstall, Alastair Burt, Soren Dayton, Stephen Eglen,
 ;;    Karl Eichwalder, Peter Galbraith, Dieter Kraft, Kai Grossjohann,
-;;    Adrian Lanz, Rory Molinari, Stefan Monnier, Laurent Mugnier,
-;;    Sudeep Kumar Palat, Daniel Polani, Robin Socha, Richard Stanton,
-;;    Allan Strand, Jan Vroonhof, Christoph Wedler, Alan Williams.
+;;    Frank Harrell, Adrian Lanz, Rory Molinari, Stefan Monnier,
+;;    Laurent Mugnier, Sudeep Kumar Palat, Daniel Polani, Robin Socha,
+;;    Richard Stanton, Allan Strand, Jan Vroonhof, Christoph Wedler,
+;;    Alan Williams.
 ;;
 ;; Finally thanks to Uwe Bolick who first got me (some years ago) into
 ;; supporting LaTeX labels and references with an editor (which was
@@ -259,7 +300,7 @@
 ;;; Define the formal stuff for a minor mode named RefTeX.
 ;;;
 
-(defconst reftex-version "RefTeX version 4.6"
+(defconst reftex-version "RefTeX version 4.9"
   "Version string for RefTeX.")
 
 (defvar reftex-mode nil
@@ -828,7 +869,7 @@ This enforces rescanning the buffer on next use."
         entry env-or-mac typekeychar typekey prefix context word
         fmt reffmt labelfmt wordlist qh-list macros-with-labels
         nargs nlabel opt-args cell sum i
-	macro verify nindex tag key)
+	macro verify repeat nindex tag key toc-level toc-levels)
 
     (setq reftex-words-to-typekey-alist nil
           reftex-typekey-list nil
@@ -856,7 +897,8 @@ This enforces rescanning the buffer on next use."
               prefix (nth 1 entry)
               fmt (nth 2 entry)
               context (nth 3 entry)
-              wordlist (nth 4 entry))
+              wordlist (nth 4 entry)
+	      toc-level (nth 5 entry))
         (if (stringp wordlist)
             ;; This is before version 2.04 - convert to new format
             (setq wordlist (nthcdr 4 entry)))
@@ -901,7 +943,11 @@ This enforces rescanning the buffer on next use."
                 ((string= env-or-mac ""))
                 ((string= env-or-mac "section"))
                 (t
-                 (add-to-list 'reftex-label-env-list env-or-mac)))))
+                 (add-to-list 'reftex-label-env-list env-or-mac)
+		 (if toc-level
+		     (let ((string (format "begin{%s}" env-or-mac)))
+		       (or (assoc string toc-levels)
+			   (push (cons string toc-level) toc-levels))))))))
 	;; Translate some special context cases
 	(when (assq context reftex-default-context-regexps)
 	  (setq context 
@@ -996,15 +1042,24 @@ This enforces rescanning the buffer on next use."
 	    key (nth 2 entry)
 	    prefix (or (nth 3 entry) "")
 	    verify (nth 4 entry)
-	    all-index (cdr all-index)) 
+	    ;; For repeat, we need to be compatible with older code
+	    ;; This information used to be given only for the default macro,
+	    ;; but later we required to have it for *every* index macro
+	    repeat (cond ((> (length entry) 5) (nth 5 entry))
+			 ((and (eq key (car reftex-index-default-macro))
+			       (> (length reftex-index-default-macro) 2))
+			  ;; User has old setting - respect it
+			  (nth 2 reftex-index-default-macro))
+			 (t t))
+	    all-index (cdr all-index))
       (let ((result (reftex-parse-args macro)))
 	(setq macro (or (first result) macro)
 	      nargs (second result)
 	      nindex (third result)
 	      opt-args (fourth result))
 	(unless (member macro reftex-macros-with-index)
-	  ;;           0     1    2      3     4     5       6
-	  (push (list macro tag prefix verify nargs nindex opt-args)
+	  ;;           0     1    2      3     4     5       6        7
+	  (push (list macro tag prefix verify nargs nindex opt-args repeat)
 		reftex-index-macro-alist)
 	  (or (assoc key reftex-key-to-index-macro-alist)
 	      (push (list key macro) reftex-key-to-index-macro-alist))
@@ -1030,7 +1085,8 @@ This enforces rescanning the buffer on next use."
 
     ;; Make the full list of section levels
     (setq reftex-section-levels-all
-	  (append (get reftex-docstruct-symbol 'reftex-section-levels)
+	  (append toc-levels
+		  (get reftex-docstruct-symbol 'reftex-section-levels)
 		  reftex-section-levels))
 
     ;; Calculate the regular expressions
@@ -1040,7 +1096,7 @@ This enforces rescanning the buffer on next use."
 	   (section-re
 	    (concat wbol "\\\\\\("
 		    (mapconcat 'car reftex-section-levels-all "\\|")
-		    "\\)\\*?\\(\\[[^]]*\\]\\)?{"))
+		    "\\)\\*?\\(\\[[^]]*\\]\\)?{?"))
 	   (appendix-re (concat wbol "\\(\\\\appendix\\)"))
 	   (macro-re
 	    (if macros-with-labels
@@ -1581,10 +1637,14 @@ When DIE is non-nil, throw an error if file not found."
  "Query for an index macro and insert it along with its argments." t)
 (autoload 'reftex-index-selection-or-word "reftex-index"
  "Put selection or the word near point into the default index macro." t)
-(autoload 'reftex-index-globally "reftex-index"
- "Copy index entry at point to other occurrences of this word." t)
+(autoload 'reftex-index-phrase-selection-or-word "reftex-index"
+ "Put selection or the word near point into Index Phrases File." t)
 (autoload 'reftex-display-index "reftex-index"
  "Display a buffer with an index compiled from the current document." t)
+(autoload 'reftex-index-visit-phrases-buffer "reftex-index"
+ "Visit the Index Phrases File." t)
+(autoload 'reftex-index-phrases-mode "reftex-index"
+ "Major mode for managing the Index phrases of a LaTeX document." t)
 (autoload 'reftex-index-complete-tag "reftex-index")
 (autoload 'reftex-index-complete-key "reftex-index")
 (autoload 'reftex-index-show-entry "reftex-index")
@@ -1638,6 +1698,7 @@ When DIE is non-nil, throw an error if file not found."
 (autoload 'reftex-toggle-plug-into-AUCTeX "reftex-auc"
  "Toggle Interface between AUCTeX and RefTeX on and off." t)
 (autoload 'reftex-add-label-environments "reftex-auc")
+(autoload 'reftex-add-to-label-alist "reftex-auc")
 (autoload 'reftex-add-section-levels "reftex-auc")
 (autoload 'reftex-notice-new-section "reftex-auc")
 
@@ -1701,6 +1762,11 @@ When DIE is non-nil, throw an error if file not found."
     (buffer-substring-no-properties
      (progn (skip-chars-backward class) (point))
      (progn (skip-chars-forward  class) (point)))))
+
+(defun reftex-number (n unit &optional ending)
+  (if (and (integerp n) (stringp unit))
+      (format "%d %s%s" n unit (if (= n 1) "" (or ending "s")))
+    ""))
 
 (defun reftex-all-assq (key list)
   ;; Return a list of all associations of KEY in LIST.  Comparison with eq.
@@ -2227,14 +2293,16 @@ IGNORE-WORDS List of words which should be removed from the string."
 
 ;; The default bindings in the mode map.
 (loop for x in
-      '(("\C-c=" . reftex-toc)
-	("\C-c(" . reftex-label)
-	("\C-c)" . reftex-reference)
-	("\C-c[" . reftex-citation)
-	("\C-c<" . reftex-index)
-	("\C-c>" . reftex-display-index)
-	("\C-c/" . reftex-index-selection-or-word)
-	("\C-c&" . reftex-view-crossref))
+      '(("\C-c="  . reftex-toc)
+	("\C-c("  . reftex-label)
+	("\C-c)"  . reftex-reference)
+	("\C-c["  . reftex-citation)
+	("\C-c<"  . reftex-index)
+	("\C-c>"  . reftex-display-index)
+	("\C-c/"  . reftex-index-selection-or-word)
+	("\C-c\\" . reftex-index-phrase-selection-or-word)
+	("\C-c|"  . reftex-index-visit-phrases-buffer)
+	("\C-c&"  . reftex-view-crossref))
       do (define-key reftex-mode-map (car x) (cdr x)))
 
 ;; Bind `reftex-mouse-view-crossref' only when the key is still free
@@ -2279,11 +2347,17 @@ IGNORE-WORDS List of words which should be removed from the string."
    ["\\label"                 reftex-label t]
    ["\\ref"                   reftex-reference t]
    ["\\cite"                  reftex-citation t]
-   ["\\index"                 reftex-index t]
-   ["\\index{THIS}"           reftex-index-selection-or-word t]
-   ["View Crossref"           reftex-view-crossref t]
+   ("\\index"
+    ["\\index"                    reftex-index t]
+    ["\\index{THIS}"              reftex-index-selection-or-word t]
+    "--"
+    ["Add THIS to Index Phrases"  reftex-index-phrase-selection-or-word t]
+    ["Visit Phrase Buffer"        reftex-index-visit-phrases-buffer t]
+    ["Apply Phrases to Region"    reftex-index-phrases-apply-to-region t]
+    "--"
+    ["Display the Index"          reftex-display-index t])
    "--"
-   ["Index Buffer"            reftex-display-index t]
+   ["View Crossref"           reftex-view-crossref t]
    "--"
    ("Parse Document"
     ["One File"               reftex-parse-one reftex-enable-partial-scans]
@@ -2301,8 +2375,6 @@ IGNORE-WORDS List of words which should be removed from the string."
     ["Find Duplicate Labels"  reftex-find-duplicate-labels t]
     ["Change Label and Refs"  reftex-change-label t]
     ["Renumber Simple Labels" reftex-renumber-simple-labels t]
-    "--"
-    ["Index Globally"         reftex-index-globally t]
     "--"
     ["Create TAGS File"       reftex-create-tags-file t]
     "--"
@@ -2408,11 +2480,12 @@ IGNORE-WORDS List of words which should be removed from the string."
   (require 'finder)
   (finder-commentary "reftex.el"))
 
-(defun reftex-info ()
-  "Read documentation for RefTeX in the info system."
+(defun reftex-info (&optional node)
+  "Read documentation for RefTeX in the info system.
+With optional NODE, go directly to that node."
   (interactive)
   (require 'info)
-  (Info-goto-node "(reftex)"))
+  (Info-goto-node (format "(reftex)%s" (or node ""))))
 
 ;;; Install the kill-buffer and kill-emacs hooks ------------------------------
 
@@ -2431,3 +2504,4 @@ IGNORE-WORDS List of words which should be removed from the string."
 ;;;============================================================================
 
 ;;; reftex.el ends here
+

@@ -1,8 +1,9 @@
 ;;; reftex-toc.el - RefTeX's table of contents mode
-;;; Version: 4.6
+;;; Version: 4.9
 ;;;
 ;;; See main file reftex.el for licensing information
 
+(eval-when-compile (require 'cl))
 (provide 'reftex-toc)
 (require 'reftex)
 ;;;
@@ -27,12 +28,16 @@ Here are all local bindings.
   (use-local-map reftex-toc-map)
   (set (make-local-variable 'revert-buffer-function) 'reftex-toc-revert)
   (set (make-local-variable 'reftex-toc-include-labels-indicator) "")
-  (set (make-local-variable 'reftex-toc-include-index-indicator) "")
+  (set (make-local-variable 'reftex-toc-max-level-indicator)
+       (if (= reftex-toc-max-level 100)
+	   "ALL"
+	 (int-to-string reftex-toc-max-level)))
   (setq mode-line-format
 	(list "----  " 'mode-line-buffer-identification
 	      "  " 'global-mode-string "   (" mode-name ")"
 	      "  L<" 'reftex-toc-include-labels-indicator ">"
 	      "  I<" 'reftex-toc-include-index-indicator ">"
+	      "  T<" 'reftex-toc-max-level-indicator ">"
 	      " -%-"))
   (setq truncate-lines t)
   (make-local-hook 'post-command-hook)
@@ -49,6 +54,7 @@ Here are all local bindings.
 (defvar reftex-last-window-height nil)
 (defvar reftex-toc-include-labels-indicator nil)
 (defvar reftex-toc-include-index-indicator nil)
+(defvar reftex-toc-max-level-indicator nil)
 
 (defvar reftex-toc-return-marker (make-marker)
   "Marker which makes it possible to return from toc to old position.")
@@ -63,6 +69,7 @@ RET        Goto the location and hide the *toc* window (also on mouse-2).
 C-c >      Display Index. With prefix arg, restrict index to current section.
 q / k      Hide/Kill *toc* buffer, return to position of reftex-toc command.
 l i c F    Toggle display of  [l]abels,  [i]ndex,  [c]ontext,  [F]ile borders.
+t          Change maximum toc depth (e.g. `3 t' hides levels greater than 3).
 f / g      Toggle follow mode on and off  / Refresh *toc* buffer.
 r / C-u r  Reparse the LaTeX document     / Reparse entire LaTeX document.
 .          In other window, show position from where `reftex-toc' was called.
@@ -281,6 +288,17 @@ Label context is only displayed when the labels are there as well."
   (interactive)
   (setq reftex-toc-include-context (not reftex-toc-include-context))
   (reftex-toc-revert))
+(defun reftex-toc-max-level (arg)
+  "Set the maximum level of toc lines in this buffer to value of prefix ARG.
+When no prefix is given, set the max level to a large number, so that all
+levels are shown.  For eaxample, to set the level to 3, type `3 m'."
+  (interactive "P")
+  (setq reftex-toc-max-level (if arg
+				 (prefix-numeric-value arg)
+			       100))
+  (setq reftex-toc-max-level-indicator
+	(if arg (int-to-string reftex-toc-max-level) "ALL"))
+  (reftex-toc-revert))
 (defun reftex-toc-view-line ()
   "View document location in other window."
   (interactive)
@@ -473,7 +491,7 @@ With prefix arg 1, restrict index to the section at point."
 				     (car 
 				      (rassq level 
 					     reftex-section-levels-all)))
-				    "[[{]"))))
+				    "[[{]?"))))
 	   ((or (not no-revisit)
 		(reftex-get-buffer-visiting file))
 	    ;; Marker is lost.  Use the backup method.
@@ -535,6 +553,7 @@ With prefix arg 1, restrict index to the section at point."
 	("F"    . reftex-toc-toggle-file-boundary)
 	("i"    . reftex-toc-toggle-index)
 	("l"    . reftex-toc-toggle-labels)
+	("t"    . reftex-toc-max-level)
 	("c"    . reftex-toc-toggle-context)
 	("%"    . reftex-toc-toggle-commented)
 	("x"    . reftex-toc-external)

@@ -1,8 +1,9 @@
 ;;; reftex-global.el - Operations on entire documents with RefTeX
-;;; Version: 4.6
+;;; Version: 4.9
 ;;;
 ;;; See main file reftex.el for licensing information
 
+(eval-when-compile (require 'cl))
 (provide 'reftex-global)
 (require 'reftex)
 ;;;
@@ -191,7 +192,7 @@ one with the `xr' package."
 	(if (assoc label translate-alist)
 	    (error "Duplicate label %s" label))
 	(setq new-label (concat (match-string 1 (car entry))
-				(incf (cdr nr-cell))))
+				(int-to-string (incf (cdr nr-cell)))))
 	(push (cons label new-label) translate-alist)
 	(or (string= label new-label) (setq changed-sequence t))))
 

@@ -1,8 +1,9 @@
 ;;; reftex-sel.el - The selection modes for RefTeX
-;;; Version: 4.6
+;;; Version: 4.9
 ;;;
 ;;; See main file reftex.el for licensing information
 
+(eval-when-compile (require 'cl))
 (provide 'reftex-sel)
 (require 'reftex)
 ;;;
@@ -180,7 +181,8 @@ During a selection process, these are the local bindings.
 
        ((eq (car cell) 'toc)
         ;; a table of contents entry
-        (when toc
+        (when (and toc
+		   (<= (nth 5 cell) reftex-toc-max-level))
 	  (if (eq offset 'attention) (setq offset cell))
           (setq reftex-active-toc cell)
           (insert (concat toc-indent (nth 2 cell) "\n"))

@@ -1,8 +1,9 @@
 ;;; reftex-auc.el - RefTeX's interface to AUC TeX
-;;; Version: 4.6
+;;; Version: 4.9
 ;;;
 ;;; See main file reftex.el for licensing information
 
+(eval-when-compile (require 'cl))
 (provide 'reftex-auc)
 (require 'reftex)
 ;;;

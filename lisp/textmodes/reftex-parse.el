@@ -1,8 +1,9 @@
 ;;; reftex-parse.el - Parser Functions for RefTeX
-;;; Version: 4.6
+;;; Version: 4.9
 ;;;
 ;;; See main file reftex.el for licensing information
 
+(eval-when-compile (require 'cl))
 (provide 'reftex-parse)
 (require 'reftex)
 
@@ -216,16 +217,18 @@ of master file."
 
 		 ;; Insert in List
 		 (setq toc-entry (reftex-section-info file))
-		 (setq level (nth 5 toc-entry))
-		 (setq highest-level (min highest-level level))
-		 (if (= level highest-level)
-		     (message
-		      "Scanning %s %s ..."
-		      (car (rassoc level reftex-section-levels-all))
-		      (nth 6 toc-entry)))
+		 (when toc-entry
+		   ;; It can happen that section info returns nil
+		   (setq level (nth 5 toc-entry))
+		   (setq highest-level (min highest-level level))
+		   (if (= level highest-level)
+		       (message
+			"Scanning %s %s ..."
+			(car (rassoc level reftex-section-levels-all))
+			(nth 6 toc-entry)))
 
-		 (push toc-entry docstruct)
-		 (setq reftex-active-toc toc-entry))
+		   (push toc-entry docstruct)
+		   (setq reftex-active-toc toc-entry)))
 
 		((match-end 7)
 		 ;; It's an include or input
@@ -355,6 +358,9 @@ of master file."
   ;; Carefull: This function expects the match-data to be still in place!
   (let* ((marker (set-marker (make-marker) (1- (match-beginning 3))))
          (macro (reftex-match-string 3))
+	 (prefix (save-match-data
+		   (if (string-match "begin{\\([^}]+\\)}" macro)
+		       (match-string 1 macro))))
 	 (level-exp (cdr (assoc macro reftex-section-levels-all)))
          (level (if (symbolp level-exp)
 		    (save-match-data (funcall level-exp))
@@ -363,7 +369,9 @@ of master file."
 	 (unnumbered (or star (< level 0)))
 	 (level (abs level))
          (section-number (reftex-section-number level unnumbered))
-         (text1 (save-match-data (save-excursion (reftex-context-substring))))
+         (text1 (save-match-data 
+		  (save-excursion
+		    (reftex-context-substring prefix))))
          (literal (buffer-substring-no-properties
                    (1- (match-beginning 3))
                    (min (point-max) (+ (match-end 0) (length text1) 1))))
@@ -376,6 +384,7 @@ of master file."
            (make-string (* reftex-level-indent level) ?\ )
            (if (nth 1 reftex-label-menu-flags) ; section number flag
                (concat section-number " "))
+	   (if prefix (concat (capitalize prefix) ": ") "")
            text))
     (list 'toc "toc" text file marker level section-number
           literal (marker-position marker))))
@@ -908,10 +917,20 @@ of master file."
 	(forward-list 1))
     (error nil)))  
 
-(defun reftex-context-substring ()
+(defun reftex-context-substring (&optional to-end)
   ;; Return up to 150 chars from point
   ;; When point is just after a { or [, limit string to matching parenthesis
   (cond
+   (to-end
+    ;; Environment - find next \end
+    (buffer-substring-no-properties
+     (point)
+     (min (+ (point) 150)
+	  (save-match-data
+	    ;; FIXME: THis is not perfect
+	    (if (re-search-forward "\\\\end{" nil t)
+		(match-beginning 0)
+	      (point-max))))))
    ((or (= (preceding-char) ?\{)
         (= (preceding-char) ?\[))
     ;; Inside a list - get only the list.
