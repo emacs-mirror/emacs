@@ -28,28 +28,45 @@
 
 ;;; Code:
 
-(defvar display-time-mail-file nil
+(defgroup display-time nil
+  "Display time and load in mode line of Emacs."
+  :group 'modeline
+  :group 'mail)
+
+
+(defcustom display-time-mail-file nil
   "*File name of mail inbox file, for indicating existence of new mail.
 Non-nil and not a string means don't check for mail.  nil means use
-default, which is system-dependent, and is the same as used by Rmail.")
+default, which is system-dependent, and is the same as used by Rmail."
+  :type '(choice (const :tag "Default" nil)
+		 (file :format "%v"))
+  :group 'display-time)
 
 ;;;###autoload
-(defvar display-time-day-and-date nil "\
-*Non-nil means \\[display-time] should display day and date as well as time.")
+(defcustom display-time-day-and-date nil "\
+*Non-nil means \\[display-time] should display day and date as well as time."
+  :type 'boolean
+  :group 'display-time)
 
 (defvar display-time-timer nil)
 
-(defvar display-time-interval 60
-  "*Seconds between updates of time in the mode line.")
+(defcustom display-time-interval 60
+  "*Seconds between updates of time in the mode line."
+  :type 'integer
+  :group 'display-time)
 
-(defvar display-time-24hr-format nil
+(defcustom display-time-24hr-format nil
   "*Non-nil indicates time should be displayed as hh:mm, 0 <= hh <= 23.
-Nil means 1 <= hh <= 12, and an AM/PM suffix is used.")
+Nil means 1 <= hh <= 12, and an AM/PM suffix is used."
+  :type 'boolean
+  :group 'display-time)
 
 (defvar display-time-string nil)
 
-(defvar display-time-hook nil
-  "* List of functions to be called when the time is updated on the mode line.")
+(defcustom display-time-hook nil
+  "* List of functions to be called when the time is updated on the mode line."
+  :type 'hook
+  :group 'display-time)
 
 (defvar display-time-server-down-time nil
    "Time when mail file's file system was recorded to be down.
@@ -100,13 +117,16 @@ This runs the normal hook `display-time-hook' after each update."
 		   'display-time-event-handler))))
 
 
-(defvar display-time-format nil
+(defcustom display-time-format nil
   "*A string specifying the format for displaying the time in the mode line.
 See the function `format-time-string' for an explanation of
 how to write this string.  If this is nil, the defaults
-depend on `display-time-day-and-date' and `display-time-24hr-format'.")
+depend on `display-time-day-and-date' and `display-time-24hr-format'."
+  :type '(choice (const :tag "Default" nil)
+		 string)
+  :group 'display-time)
 
-(defvar display-time-string-forms
+(defcustom display-time-string-forms
   '((if (and (not display-time-format) display-time-day-and-date)
 	(format-time-string "%a %b %e " now)
       "")
@@ -131,7 +151,9 @@ For example, the form
     (if time-zone \" (\") time-zone (if time-zone \")\")
     (if mail \" Mail\" \"\"))
 
-would give mode line times like `94/12/30 21:07:48 (UTC)'.")
+would give mode line times like `94/12/30 21:07:48 (UTC)'."
+  :type 'sexp
+  :group 'display-time)
 
 (defun display-time-event-handler ()
   (display-time-update)
