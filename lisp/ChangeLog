@@ -1,3 +1,7 @@
+2000-07-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/easymenu.el (easy-menu-convert-item-1): Intern the label.
+
 2000-07-13  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/easymenu.el: Doc fixes.
@@ -15,8 +19,8 @@
 
 2000-07-13  Dave Love  <fx@gnu.org>
 
-	* progmodes/fortran.el (fortran-imenu-generic-expression): Change
-	definition layout.
+	* progmodes/fortran.el (fortran-imenu-generic-expression):
+	Change definition layout.
 	(fortran-mode-menu): Reinstate customize entries.
 
 	* cus-edit.el (custom-group-menu-create, customize-menu-create):
@@ -35,30 +39,27 @@
 
 2000-07-11  Dave Love  <fx@gnu.org>
 
-	* progmodes/fortran.el: Don't require easymenu.  Use repeat counts
-	in various regexps.
+	* progmodes/fortran.el: Don't require easymenu.
+	Use repeat counts in various regexps.
 	(fortran-mode-syntax-table): Defvar directly.
 	(fortran-font-lock-keywords-1, fortran-font-lock-keywords-2)
-	(fortran-font-lock-keywords-3,
-	fortran-font-lock-syntactic-keywords): Use defvar, not defconst.
-	(fortran-mode-map): Change locals in `let'.  Use
-	`fortran-auto-fill'.
+	(fortran-font-lock-keywords-3, fortran-font-lock-syntactic-keywords):
+	Use defvar, not defconst.
+	(fortran-mode-map): Change locals in `let'.  Use `fortran-auto-fill'.
 	(fortran-mode): Set fortran-comment-line-start-skip,
 	fortran-comment-line-start-skip, dabbrev-case-fold-search.
 	(fortran-comment-indent): Use defsubst.
-	(fortran-indent-comment, fortran-indent-to-column,
-	fortran-break-line): Use fortran-comment-indent, not
-	fortran-comment-indent-function.
+	(fortran-indent-comment, fortran-indent-to-column, fortran-break-line):
+	Use fortran-comment-indent, not fortran-comment-indent-function.
 	(fortran-comment-region, fortran-electric-line-number): Simplify.
 	(fortran-auto-fill): New function.
 	(fortran-do-auto-fill): Deleted.
-	(fortran-find-comment-start-skip): Check for non-null
-	comment-start-skip.
-	(fortran-auto-fill-mode, fortran-fill-statement): Use
-	fortran-auto-fill.
+	(fortran-find-comment-start-skip):
+	Check for non-null comment-start-skip.
+	(fortran-auto-fill-mode, fortran-fill-statement):
+	Use fortran-auto-fill.
 	(fortran-fill): Use fortran-auto-fill.  Check for null
-	comment-start-skip.  Simplify final clause and use end-of-line
-	finally.
+	comment-start-skip.  Simplify final clause and use end-of-line finally.
 
 	* widget.el (widget-plist-member): New alias.
 
@@ -80,7 +81,7 @@
 2000-07-10  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-diag.el (describe-font): Adjusted for the
-	chnage of fontset-info.
+	change of fontset-info.
 	(print-fontset): Likewise.
 
 2000-07-09  Stefan Monnier  <monnier@cs.yale.edu>
@@ -205,7 +206,7 @@
 	list used by the standalone info reader).
 
 	* info.el (info-initialize): Use prune-directory-list to remove
-	non-existant directories from Info-directory-list.
+	non-existent directories from Info-directory-list.
 
 	* paths.el (Info-default-directory-list): Try a list of possible
 	info-directories instead of a single one.  Add the possible
@@ -258,8 +259,7 @@
 	* window.el (some-window): New function.
 	(walk-windows): Remove reference to walk-windows-start.
 
-	* hilit19.el (hilit-lookup-face-create): Don't set face colors
-	to nil.
+	* hilit19.el (hilit-lookup-face-create): Don't set face colors to nil.
 
 2000-07-03  Richard Stallman  <rms@caffeine.ai.mit.edu>
 
@@ -287,8 +287,8 @@
 
 2000-06-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* menu-bar.el (menu-bar-edit-menu) <mark-whole-buffer>: Change
-        name to "Select All".
+	* menu-bar.el (menu-bar-edit-menu) <mark-whole-buffer>:
+	Change name to "Select All".
 
 	* dos-fns.el (convert-standard-filename): Fix last change.
 
@@ -353,8 +353,7 @@
 
 2000-06-25  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* international/codepage.el (cp-coding-system-for-codepage-1): Doc
-        fix.
+	* international/codepage.el (cp-coding-system-for-codepage-1): Doc fix.
 	(cp864-decode-table): Doc fix.
 	(cp720-decode-table): New variable, supports the Arabic OEM
 	codepage used by Windows.
