@@ -81,6 +81,14 @@ lockdir='${statedir}/emacs/lock'
 archlibdir='${libdir}/emacs/${version}/${configuration}'
 CC=
 
+# On Sun systems, people sometimes set up the variable CPP
+# with a value that is a directory, not an executable at all.
+# Detect that case, and ignore that value.
+if [ "x$CPP" != x ] && [ -d "$CPP" ];
+then
+  CPP=
+fi
+
 # We cannot use this variable in the case statement below, because many
 # /bin/sh's have broken semantics for "case".  Unfortunately, you must
 # actually edit the clause itself.
@@ -96,10 +104,12 @@ Set compilation and installation parameters for GNU Emacs, and report.
 CONFIGURATION specifies the machine and operating system to build for.
 --with-x		Support the X Window System.
 --with-x=no		Don't support X.
---x-includes=DIR 	Search for X header files in DIR.
---x-libraries=DIR	Search for X libraries in DIR.
+--with-x-toolkit	Use an X toolkit.
+--with-x-toolkit=no	Don't use an X toolkit.
 --with-gcc		Use GCC to compile Emacs.
 --with-gcc=no		Don't use GCC to compile Emacs.
+--x-includes=DIR 	Search for X header files in DIR.
+--x-libraries=DIR	Search for X libraries in DIR.
 --run-in-place		Use libraries and data files directly out of the 
 			source tree.
 --single-tree=DIR	Has the effect of creating a directory tree at DIR
@@ -179,6 +189,27 @@ while [ $# != 0 ]; do
 	    * )
 	      (echo "${progname}: the \`--${optname}' option is supposed to have a boolean value.
 Set it to either \`yes' or \`no'."
+	       echo "${short_usage}") >&2
+	      exit 1
+	    ;;
+	  esac
+          eval "${opt}=\"${val}\""
+        ;;
+
+        ## Has the user specified which toolkit they want to support?
+        "with_x_toolkit" )
+	  ## Make sure the value given was either "yes" or "no".
+	  case "${val}" in
+	    y | ye | yes )	val=athena ;;
+	    n | no )		val=no  ;;
+	    l | lu | luc | luci | lucid )	val=lucid ;;
+	    a | at | ath | athe | athena )	val=athena ;;
+	    m | mo | mot | moti | motif )	val=motif ;;
+	    o | op | ope | open | open- | open-l | open-lo \
+		| open-loo | open-look )	val=open-look ;;
+	    * )
+	      (echo "${progname}: the \`--${optname}' option is supposed to have a value
+which is \`yes', \`no', \`lucid', \`athena', \`motif' or \`open-look'."
 	       echo "${short_usage}") >&2
 	      exit 1
 	    ;;
@@ -407,7 +438,7 @@ vpath %.in $(srcdir)'
 fi
 
 ### Make the necessary directories, if they don't exist.
-for dir in ./src ./lib-src ./cpp ./oldXMenu ./etc ; do
+for dir in ./src ./lib-src ./cpp ./oldXMenu ./lwlib ./etc ; do
   if [ ! -d ${dir} ]; then
     mkdir ${dir}
   fi
@@ -1117,21 +1148,6 @@ case "${window_system}" in
   ;;
 esac
 
-case "${window_system}" in
-  "" | "x11" )
-    ### If the user hasn't specified where we should find X, try
-    ### letting autoconf figure that out.
-    if [ -z "${x_includes}" ] && [ -z "${x_libraries}" ]; then
-      ]
-      AC_FIND_X
-      [
-    fi
-    if [ -n "${x_includes}" ] || [ -n "${x_libraries}" ]; then
-      window_system=x11
-    fi
-  ;;
-esac
-
 [ -z "${window_system}" ] && window_system=none
 
 [ -n "${x_libraries}" ] && LD_SWITCH_X_SITE="-L${x_libraries}"
@@ -1148,10 +1164,33 @@ case "${window_system}" in
     HAVE_X_WINDOWS=yes
     HAVE_X11=yes
     echo "  Using X11."
+    case "${with_x_toolkit}" in
+      athena )
+	USE_X_TOOLKIT=ATHENA
+	echo "  Using Xt toolkit."
+	;;	
+      lucid )
+	USE_X_TOOLKIT=LUCID
+	echo "  Using Lucid toolkit."
+	;;	
+      motif )
+	USE_X_TOOLKIT=MOTIF
+	echo "  Using Motif toolkit."
+	;;	
+      open-look )
+	USE_X_TOOLKIT=OPEN_LOOK
+	echo "  Using Open-Look toolkit."
+	;;	
+      * )
+	USE_X_TOOLKIT=no
+	echo "  Using Xlib directly."
+      ;;
+    esac
   ;;
   x10 )
     HAVE_X_WINDOWS=yes
     HAVE_X11=no
+    USE_X_TOOLKIT=no
     echo "  Using X10."
   ;;
   none )
@@ -1160,6 +1199,7 @@ case "${window_system}" in
     echo "  Using no window system."
   ;;
 esac
+X_TOOLKIT_TYPE=$USE_X_TOOLKIT
 
 ### If we're using X11, we should use the X menu package.
 HAVE_X_MENU=no
@@ -1346,6 +1386,7 @@ AC_SUBST(LD_SWITCH_X_SITE)
 AC_SUBST(LD_SWITCH_X_SITE_AUX)
 AC_SUBST(C_SWITCH_X_SITE)
 AC_SUBST(CFLAGS)
+AC_SUBST(X_TOOLKIT_TYPE)
 
 AC_DEFINE_UNQUOTED(config_machfile,  "\"${machfile}\"")
 AC_DEFINE_UNQUOTED(config_opsysfile, "\"${opsysfile}\"")
@@ -1357,6 +1398,9 @@ AC_DEFINE_UNQUOTED(UNEXEC_SRC,       ${UNEXEC_SRC})
 [
 if [ "${HAVE_X_WINDOWS}" = "yes" ] ; then
   ] AC_DEFINE(HAVE_X_WINDOWS) [
+fi
+if [ "${USE_X_TOOLKIT}" = "yes" ] ; then
+  ] AC_DEFINE(USE_X_TOOLKIT) [
 fi
 if [ "${HAVE_X11}" = "yes" ] ; then
   ] AC_DEFINE(HAVE_X11) [
@@ -1448,7 +1492,7 @@ test -n "${prefix}" &&
 test -n "${exec_prefix}" &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`
 ]
-AC_OUTPUT(Makefile lib-src/Makefile oldXMenu/Makefile src/Makefile.in, [
+AC_OUTPUT(Makefile lib-src/Makefile oldXMenu/Makefile lwlib/Makefile src/Makefile.in, [
 # Build src/Makefile from ${srcdir}/src/Makefile.in.  This must be done
 # after src/config.h is built, since we rely on that file.
 
