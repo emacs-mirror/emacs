@@ -1,3 +1,8 @@
+2003-07-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* log-view.el (log-view-message-re): Remove Subversion support,
+	mistakenly added without updating the rest of the code.
+
 2003-06-21  Kenichi Handa  <handa@m17n.org>
 
 	* international/utf-16.el: Many name changes: utf-16-{be,le} ->
@@ -20,8 +25,7 @@
 	(ccl-decode-mule-utf-16-be): Use utf-16-be-decode-loop
 	(ccl-decode-mule-utf-16-le-with-signature)
 	(ccl-decode-mule-utf-16-be-with-signature): New CCL programs.
-	(utf-16-le-encode-loop, utf-16-be-encode-loop): New temporary
-	variables.
+	(utf-16-le-encode-loop, utf-16-be-encode-loop): New temporary vars.
 	(ccl-encode-mule-utf-16-le): Use utf-16-le-encode-loop.
 	(ccl-encode-mule-utf-16-be): Use utf-16-be-encode-loop
 	(ccl-encode-mule-utf-16-le-with-signature)
@@ -53,8 +57,7 @@
 
 2003-04-23  Kenichi Handa  <handa@m17n.org>
 
-	* language/devanagari.el ("Devanagari"): Documentation string
-	modified.
+	* language/devanagari.el ("Devanagari"): Documentation string modified.
 
 2003-04-12  Stefan Monnier  <monnier@cs.yale.edu>
 
