@@ -1,3 +1,8 @@
+2002-08-22  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/authors.el (authors-aliases, authors-fixed-entries):
+	Corrected spelling mistakes (for Joseph Arceneaux).
+
 2002-08-21  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/f90.el: eval-when-compile a few defvars.
