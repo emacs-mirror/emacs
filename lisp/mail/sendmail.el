@@ -68,11 +68,12 @@ controlled by a separate variable, `mail-specify-envelope-from'."
 (defcustom mail-specify-envelope-from nil
   "*If non-nil, specify the envelope-from address when sending mail.
 The value used to specify it is whatever is found in
-`mail-envelope-from', with `user-mail-address' as fallback.
+the variable `mail-envelope-from', with `user-mail-address' as fallback.
 
 On most systems, specifying the envelope-from address is a
-privileged operation.  This variable is only used if
-`send-mail-function' is set to `sendmail-send-it'."
+privileged operation.  This variable affects sendmail and
+smtpmail -- if you use feedmail to send mail, see instead the
+variable `feedmail-deduce-envelope-from'."
   :version "21.1"
   :type 'boolean
   :group 'sendmail)
