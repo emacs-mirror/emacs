@@ -207,7 +207,9 @@ may have changed\) back to `save-place-alist'."
       (delete-region (point-min) (point-max))
       (when save-place-forget-unreadable-files
 	(save-place-forget-unreadable-files))
-      (print save-place-alist (current-buffer))
+      (let ((print-length nil)
+            (print-level nil))
+        (print save-place-alist (current-buffer)))
       (let ((version-control
              (cond
               ((null save-place-version-control) nil)
