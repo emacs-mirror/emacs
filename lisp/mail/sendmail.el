@@ -658,7 +658,7 @@ The seventh argument ACTIONS is a list of actions to take
 (define-key ctl-x-4-map "m" 'mail-other-window)
 
 ;;;###autoload
-(define-key ctl-x-3-map "m" 'mail-other-screen)
+(define-key ctl-x-5-map "m" 'mail-other-screen)
 
 
 ;;; Do not add anything but external entries on this page.

@@ -264,11 +264,11 @@ under the X Window System."
 			    (list (cons 'horizontal-scroll-bar toggle))))
 
 ;;;; Key bindings
-(define-prefix-command 'ctl-x-3-map)
-(define-key ctl-x-map "3" 'ctl-x-3-map)
+(define-prefix-command 'ctl-x-5-map)
+(define-key ctl-x-map "5" 'ctl-x-5-map)
 
-(define-key ctl-x-3-map "2" 'new-screen)
-(define-key ctl-x-3-map "0" 'delete-screen)
+(define-key ctl-x-5-map "2" 'new-screen)
+(define-key ctl-x-5-map "0" 'delete-screen)
 
 (provide 'screen)
 

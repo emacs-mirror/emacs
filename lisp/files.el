@@ -1380,8 +1380,9 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 (define-key ctl-x-4-map "\C-f" 'find-file-other-window)
 (define-key ctl-x-4-map "b" 'switch-to-buffer-other-window)
 
-(define-key ctl-x-3-map "b" 'switch-to-buffer-other-screen)
-(define-key ctl-x-3-map "f" 'find-file-other-screen)
-(define-key ctl-x-3-map "r" 'find-file-read-only-other-screen)
+(define-key ctl-x-5-map "b" 'switch-to-buffer-other-screen)
+(define-key ctl-x-5-map "f" 'find-file-other-screen)
+(define-key ctl-x-5-map "\C-f" 'find-file-other-screen)
+(define-key ctl-x-5-map "r" 'find-file-read-only-other-screen)
 
 ;;; files.el ends here

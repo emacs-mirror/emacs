@@ -58,7 +58,7 @@
 ;;; background, dbx, gdb, kermit, prolog, telnet) to use comint-mode
 ;;; instead of shell-mode, see the notes at the end of this file.
 
-(defconst comint-version "2.02")
+(defconst comint-version "2.03")
 
 
 ;;; Brief Command Documentation:
@@ -69,7 +69,7 @@
 ;;; m-p	    comint-previous-input    	    Cycle backwards in input history
 ;;; m-n	    comint-next-input  	    	    Cycle forwards
 ;;; m-s     comint-previous-similar-input   Previous similar input
-;;; c-c c-r comint-previous-input-matching  Search backwards in input history
+;;; c-m-r   comint-previous-input-matching  Search backwards in input history
 ;;; return  comint-send-input
 ;;; c-a     comint-bol                      Beginning of line; skip prompt.
 ;;; c-d	    comint-delchar-or-maybe-eof     Delete char unless at end of buff.
@@ -107,6 +107,7 @@
 ;;;============================================================================
 ;;; Comint mode buffer local variables:
 ;;;     comint-prompt-regexp    - string       comint-bol uses to match prompt.
+;;;     comint-last-input-start - marker       Handy if inferior always echos
 ;;;     comint-last-input-end   - marker       For comint-kill-output command
 ;;;     input-ring-size         - integer      For the input history
 ;;;     input-ring              - ring             mechanism
@@ -213,6 +214,8 @@ Entry to this mode runs the hooks on comint-mode-hook"
     (setq mode-name "Comint")
     (setq mode-line-process '(": %s"))
     (use-local-map comint-mode-map)
+    (make-local-variable 'comint-last-input-start)
+    (setq comint-last-input-start (make-marker))
     (make-local-variable 'comint-last-input-end)
     (setq comint-last-input-end (make-marker))
     (make-local-variable 'comint-last-input-match)
@@ -229,6 +232,7 @@ Entry to this mode runs the hooks on comint-mode-hook"
     (make-local-variable 'comint-eol-on-send)
     (make-local-variable 'comint-ptyp)
     (setq comint-ptyp old-ptyp)
+    (make-local-variable 'comint-exec-hook)
     (run-hooks 'comint-mode-hook)
     ;Do this after the hook so the user can mung INPUT-RING-SIZE w/his hook.
     ;The test is so we don't lose history if we run comint-mode twice in
@@ -316,7 +320,7 @@ buffer. The hook comint-exec-hook is run after each exec."
       (setq comint-ptyp process-connection-type) ; T if pty, NIL if pipe.
       ;; Jump to the end, and set the process mark.
       (goto-char (point-max))
-      (set-marker (process-mark proc) (point)))
+      (set-marker (process-mark proc) (point))
       ;; Feed it the startfile.
       (cond (startfile
 	     ;;This is guaranteed to wait long enough
@@ -331,7 +335,7 @@ buffer. The hook comint-exec-hook is run after each exec."
 	     (delete-region (point) (point-max))
 	     (comint-send-string proc startfile)))
     (run-hooks 'comint-exec-hook)
-    buffer))
+    buffer)))
 
 ;;; This auxiliary function cranks up the process for comint-exec in
 ;;; the appropriate environment.
@@ -676,16 +680,17 @@ Similarly for Soar, Scheme, etc.."
 	       (input (if (>= (point) pmark-val)
 			  (progn (if comint-eol-on-send (end-of-line))
 				 (buffer-substring pmark (point)))
-			  (let ((copy (funcall comint-get-old-input)))
-			    (goto-char pmark)
-			    (insert copy)
-			    copy))))
+			(let ((copy (funcall comint-get-old-input)))
+			  (goto-char pmark)
+			  (insert copy)
+			  copy))))
 	  (insert ?\n)
 	  (if (funcall comint-input-filter input) (ring-insert input-ring input))
 	  (funcall comint-input-sentinel input)
 	  (funcall comint-input-sender proc input)
-	  (set-marker (process-mark proc) (point))
-	  (set-marker comint-last-input-end (point))))))
+	  (set-marker comint-last-input-start pmark)
+	  (set-marker comint-last-input-end (point))
+	  (set-marker (process-mark proc) (point))))))
 
 (defun comint-get-old-input-default ()
   "Default for comint-get-old-input: take the current line, and discard
@@ -741,21 +746,26 @@ in your hook, comint-mode-hook."
 ;;; saved -- typically passwords to ftp, telnet, or somesuch.
 ;;; Just enter m-x send-invisible and type in your line.
 
-(defun comint-read-noecho (prompt)
+(defun comint-read-noecho (prompt &optional stars)
   "Prompt the user with argument PROMPT. Read a single line of text
 without echoing, and return it. Note that the keystrokes comprising
 the text can still be recovered (temporarily) with \\[view-lossage]. This
-may be a security bug for some applications."
+may be a security bug for some applications. Optional argument STARS
+causes input to be echoed with '*' characters on the prompt line."
   (let ((echo-keystrokes 0)
+	(cursor-in-echo-area t)
 	(answ "")
 	tem)
-    (if (and (stringp prompt) (not (string= (message prompt) "")))
-	(message prompt))
+    (if (not (stringp prompt)) (setq prompt ""))
+    (message prompt)
     (while (not(or  (= (setq tem (read-char)) ?\^m)
 		    (= tem ?\n)))
-      (setq answ (concat answ (char-to-string tem))))
+      (setq answ (concat answ (char-to-string tem)))
+      (if stars (setq prompt (concat prompt "*")))
+      (message prompt))
     (message "")
     answ))
+
 
 (defun send-invisible (str)
   "Read a string without echoing, and send it to the process running
@@ -769,7 +779,7 @@ Security bug: your string can still be temporarily recovered with
     (if (not proc) (error "Current buffer has no process")
 	(comint-send-string proc
 			    (if (stringp str) str
-				(comint-read-noecho "Enter non-echoed text")))
+				(comint-read-noecho "Non-echoed text: " t)))
 	(comint-send-string proc "\n"))))
 
 
@@ -1184,8 +1194,8 @@ it just adds completion characters to the end of the filename."
 ;;; Most of the work is renaming variables and functions. These are the common
 ;;; ones:
 ;;; Local variables:
+;;;	last-input-start	comint-last-input-start
 ;;; 	last-input-end		comint-last-input-end
-;;;	last-input-start	<unnecessary>
 ;;;	shell-prompt-pattern	comint-prompt-regexp
 ;;;     shell-set-directory-error-hook <no equivalent>
 ;;; Miscellaneous:
@@ -1203,11 +1213,17 @@ it just adds completion characters to the end of the filename."
 ;;;	show-output-from-shell	comint-show-output
 ;;;	copy-last-shell-input	Use comint-previous-input/comint-next-input
 ;;;
-;;; LAST-INPUT-START is no longer necessary because inputs are stored on the
-;;; input history ring. SHELL-SET-DIRECTORY is gone, its functionality taken
-;;; over by SHELL-DIRECTORY-TRACKER, the shell mode's comint-input-sentinel.
-;;; Comint mode does not provide functionality equivalent to 
+;;; SHELL-SET-DIRECTORY is gone, its functionality taken over by
+;;; SHELL-DIRECTORY-TRACKER, the shell mode's comint-input-sentinel.
+;;; Comint mode does not provide functionality equivalent to
 ;;; shell-set-directory-error-hook; it is gone.
+;;;
+;;; comint-last-input-start is provided for modes which want to munge
+;;; the buffer after input is sent, perhaps because the inferior
+;;; insists on echoing the input.  The LAST-INPUT-START variable in
+;;; the old shell package was used to implement a history mechanism,
+;;; but you should think twice before using comint-last-input-start
+;;; for this; the input history ring often does the job better.
 ;;; 
 ;;; If you are implementing some process-in-a-buffer mode, called foo-mode, do
 ;;; *not* create the comint-mode local variables in your foo-mode function.
@@ -1354,12 +1370,24 @@ This is a good place to put keybindings.")
 ;;; - Added a hook, comint-exec-hook that is run each time a process
 ;;;   is cranked up. Useful for things like process-kill-without-query.
 ;;;
+;;; These two were pointed out by tale:
 ;;; - Improved the doc string in comint-send-input a little bit.
 ;;; - Tweaked make-comint to check process status with comint-check-proc
 ;;;   instead of equivalent inline code. 
-;;; These two were pointed out by tale.
+;;;
 ;;; - Prompt-search history commands have been commented out. I never
 ;;;   liked them; I don't think anyone used them.
+;;; - Made comint-exec-hook a local var, as it should have been.
+;;;   (This way, for instance, you can have cmushell procs kill-w/o-query,
+;;;    but let Scheme procs be default.)
+;;;
+;;; 7/91 Shivers
+;;; - Souped up comint-read-noecho with an optional argument, STARS.
+;;;   Suggested by mjlx@EAGLE.CNSF.CORNELL.EDU.
+;;; - Moved comint-previous-input-matching from C-c r to C-M-r.
+;;;   C-c <letter> bindings are reserved for the user.
+;;;   These bindings were done by Jim Blandy.
+;;; These changes comprise version 2.03.
 
 (provide 'comint)
 
