@@ -687,8 +687,7 @@ typedef struct frame *FRAME_PTR;
        list_var = XCDR (list_var))
 
 
-extern Lisp_Object Qframep, Qframe_live_p, Qicon;
-extern Lisp_Object Qleft_fringe, Qright_fringe;
+extern Lisp_Object Qframep, Qframe_live_p;
 
 extern struct frame *last_nonminibuf_frame;
 
@@ -837,5 +836,111 @@ extern Lisp_Object selected_frame;
      ((Y) % CANON_Y_UNIT (F) 				\
       ? make_float ((double) (Y) / CANON_Y_UNIT (F))	\
       : make_number ((Y) / CANON_Y_UNIT (F)))
+
+
+/***********************************************************************
+				Frame Parameters
+ ***********************************************************************/
+
+extern Lisp_Object Qauto_raise, Qauto_lower;
+extern Lisp_Object Qborder_color, Qborder_width;
+extern Lisp_Object Qbuffer_predicate, Qbuffer_list;
+extern Lisp_Object Qcursor_color, Qcursor_type;
+extern Lisp_Object Qfont;
+extern Lisp_Object Qbackground_color, Qforeground_color;
+extern Lisp_Object Qicon, Qicon_name, Qicon_type, Qicon_left, Qicon_top;
+extern Lisp_Object Qinternal_border_width;
+extern Lisp_Object Qmenu_bar_lines, Qtool_bar_lines;
+extern Lisp_Object Qmouse_color;
+extern Lisp_Object Qname, Qtitle;
+extern Lisp_Object Qparent_id;
+extern Lisp_Object Qunsplittable, Qvisibility;
+extern Lisp_Object Qscroll_bar_width, Qvertical_scroll_bars;
+extern Lisp_Object Qscroll_bar_foreground, Qscroll_bar_background;
+extern Lisp_Object Qscreen_gamma;
+extern Lisp_Object Qline_spacing;
+extern Lisp_Object Qwait_for_wm;
+extern Lisp_Object Qfullscreen;
+
+extern Lisp_Object Qleft_fringe, Qright_fringe;
+extern Lisp_Object Qheight, Qwidth;
+extern Lisp_Object Qminibuffer, Qmodeline;
+extern Lisp_Object Qonly;
+extern Lisp_Object Qx, Qw32, Qmac, Qpc;
+extern Lisp_Object Qvisible;
+extern Lisp_Object Qdisplay_type;
+extern Lisp_Object Qbackground_mode;
+
+extern Lisp_Object Qx_resource_name;
+
+extern Lisp_Object Qleft, Qright, Qtop, Qbox;
+extern Lisp_Object Qdisplay;
+
+#ifdef HAVE_WINDOW_SYSTEM
+
+/* The class of this X application.  */
+#define EMACS_CLASS "Emacs"
+
+enum
+{
+  /* Values used as a bit mask, BOTH == WIDTH | HEIGHT.  */
+  FULLSCREEN_NONE       = 0,
+  FULLSCREEN_WIDTH      = 1,
+  FULLSCREEN_HEIGHT     = 2,
+  FULLSCREEN_BOTH       = 3,
+  FULLSCREEN_WAIT       = 4,
+  FULLSCREEN_MOVE_WAIT  = 8,
+};
+
+
+/* These are in xterm.c, w32term.c, etc.  */
+
+extern void x_set_scroll_bar_default_width P_ ((struct frame *));
+extern void x_set_offset P_ ((struct frame *, int, int, int));
+extern void x_wm_set_icon_position P_ ((struct frame *, int, int));
+
+extern Lisp_Object x_new_font P_ ((struct frame *, char *));
+extern Lisp_Object x_new_fontset P_ ((struct frame *, char *));
+
+
+/* These are in frame.c  */
+
+extern Lisp_Object Vx_resource_name;
+extern Lisp_Object Vx_resource_class;
+
+
+extern Lisp_Object Qface_set_after_frame_default;
+
+extern void x_fullscreen_adjust P_ ((struct frame *f, int *, int *,
+				     int *, int *));
+
+extern void x_set_frame_parameters P_ ((struct frame *, Lisp_Object));
+extern void x_report_frame_params P_ ((struct frame *, Lisp_Object *));
+
+extern void x_set_fullscreen P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_line_spacing P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_screen_gamma P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_font P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_fringe_width P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_border_width P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_internal_border_width P_ ((struct frame *, Lisp_Object,
+					     Lisp_Object));
+extern void x_set_visibility P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_autoraise P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_autolower P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_unsplittable P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_vertical_scroll_bars P_ ((struct frame *, Lisp_Object,
+					    Lisp_Object));
+extern void x_set_scroll_bar_width P_ ((struct frame *, Lisp_Object,
+					Lisp_Object));
+
+extern Lisp_Object x_icon_type P_ ((struct frame *));
+
+extern int x_figure_window_size P_ ((struct frame *, Lisp_Object, int));
+
+
+extern void validate_x_resource_name P_ ((void));
+
+#endif /* HAVE_WINDOW_SYSTEM */
 
 #endif /* not EMACS_FRAME_H */
