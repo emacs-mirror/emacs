@@ -79,6 +79,8 @@ by `lisp-body-indent'."
   :group 'lisp-indent)
 
 
+(defvar lisp-indent-error-function)
+
 ;;;###autoload
 (defun common-lisp-indent-function (indent-point state)
   (let ((normal-indent (current-column)))
@@ -188,13 +190,15 @@ by `lisp-body-indent'."
                                            ;; other body form
                                            normal-indent))))
                   ((symbolp method)
-                   (setq calculated (funcall method
-                                             path state indent-point
-                                             sexp-column normal-indent)))
+		   (let ((lisp-indent-error-function function))
+		     (setq calculated (funcall method
+					       path state indent-point
+					       sexp-column normal-indent))))
                   (t
-                   (setq calculated (lisp-indent-259
-                                      method path state indent-point
-                                      sexp-column normal-indent)))))
+		   (let ((lisp-indent-error-function function))
+		     (setq calculated (lisp-indent-259
+				       method path state indent-point
+				       sexp-column normal-indent))))))
           (goto-char containing-sexp)
           (setq last-point containing-sexp)
           (if (not calculated)
@@ -208,7 +212,7 @@ by `lisp-body-indent'."
 (defun lisp-indent-report-bad-format (m)
   (error "%s has a badly-formed %s property: %s"
          ;; Love those free variable references!!
-         function 'common-lisp-indent-function m))
+         lisp-indent-error-function 'common-lisp-indent-function m))
 
 ;; Blame the crufty control structure on dynamic scoping
 ;;  -- not on me!
