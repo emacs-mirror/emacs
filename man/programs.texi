@@ -836,7 +836,7 @@ is useful to specify a fraction of a second.
 
   @code{blink-matching-paren-distance} specifies how many characters
 back to search to find the matching opening delimiter.  If the match
-is not found in that far, scanning stops, and nothing is displayed.
+is not found in that distance, scanning stops, and nothing is displayed.
 This is to prevent the scan for the matching delimiter from wasting
 lots of time when there is no match.  The default is 25600.
 
