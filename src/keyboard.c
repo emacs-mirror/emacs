@@ -39,6 +39,7 @@ Boston, MA 02111-1307, USA.  */
 #include "syntax.h"
 #include "intervals.h"
 #include "blockinput.h"
+#include "puresize.h"
 #include <setjmp.h>
 #include <errno.h>
 
@@ -456,7 +457,12 @@ Lisp_Object Qmouse_wheel;
 Lisp_Object Qevent_kind;
 Lisp_Object Qevent_symbol_elements;
 
+/* menu item parts */
+Lisp_Object Qmenu_alias;
 Lisp_Object Qmenu_enable;
+Lisp_Object QCenable, QCvisible, QChelp, QCfilter, QCbutton, QCtoggle, QCradio;
+extern Lisp_Object Vdefine_key_rebound_commands;
+extern Lisp_Object Qmenu_item;
 
 /* An event header symbol HEAD may have a property named
    Qevent_symbol_element_mask, which is of the form (BASE MODIFIERS);
@@ -476,8 +482,6 @@ Lisp_Object Qmode_line;
 Lisp_Object Qvertical_line;
 Lisp_Object Qvertical_scroll_bar;
 Lisp_Object Qmenu_bar;
-
-extern Lisp_Object Qmenu_enable;
 
 Lisp_Object recursive_edit_unwind (), command_loop ();
 Lisp_Object Fthis_command_keys ();
@@ -3505,7 +3509,7 @@ char *lispy_function_keys[] =
 
     /*
      * VK_L* & VK_R* - left and right Alt, Ctrl and Shift virtual keys.
-     * Used only as parameters to GetAsyncKeyState() and GetKeyState().
+     * Used only as parameters to GetAsyncKeyState and GetKeyState.
      * No other API or message will distinguish left and right keys this way.
      */
     /* 0xA0 .. 0xEF */
@@ -4114,12 +4118,12 @@ make_lispy_event (event)
 	  portion_whole = Fcons (event->x, event->y);
 	  part = *scroll_bar_parts[(int) event->part];
 
-	  position =
-	    Fcons (window,
-		   Fcons (Qvertical_scroll_bar,
-			  Fcons (portion_whole,
-				 Fcons (make_number (event->timestamp),
-					Fcons (part, Qnil)))));
+	  position
+	    = Fcons (window,
+		     Fcons (Qvertical_scroll_bar,
+			    Fcons (portion_whole,
+				   Fcons (make_number (event->timestamp),
+					  Fcons (part, Qnil)))));
 	}
 
 	/* Always treat W32 scroll bar events as clicks. */
@@ -5084,7 +5088,7 @@ read_avail_input (expected)
 #endif
 	  /* POSIX infers that processes which are not in the session leader's
 	     process group won't get SIGHUP's at logout time.  BSDI adheres to
-	     this part standard and returns -1 from read(0) with errno==EIO
+	     this part standard and returns -1 from read (0) with errno==EIO
 	     when the control tty is taken away.
 	     Jeffrey Honig <jch@bsdi.com> says this is generally safe.  */
 	  if (nread == -1 && errno == EIO)
@@ -5398,25 +5402,14 @@ static void
 menu_bar_one_keymap (keymap)
      Lisp_Object keymap;
 {
-  Lisp_Object tail, item, key, binding, item_string, table;
+  Lisp_Object tail, item, table;
 
   /* Loop over all keymap entries that have menu strings.  */
   for (tail = keymap; CONSP (tail); tail = XCONS (tail)->cdr)
     {
       item = XCONS (tail)->car;
       if (CONSP (item))
-	{
-	  key = XCONS (item)->car;
-	  binding = XCONS (item)->cdr;
-	  if (CONSP (binding))
-	    {
-	      item_string = XCONS (binding)->car;
-	      if (STRINGP (item_string))
-		menu_bar_item (key, item_string, Fcdr (binding));
-	    }
-	  else if (EQ (binding, Qundefined))
-	    menu_bar_item (key, Qnil, binding);
-	}
+	menu_bar_item (XCONS (item)->car, XCONS (item)->cdr);
       else if (VECTORP (item))
 	{
 	  /* Loop over the char values represented in the vector.  */
@@ -5426,45 +5419,25 @@ menu_bar_one_keymap (keymap)
 	    {
 	      Lisp_Object character;
 	      XSETFASTINT (character, c);
-	      binding = XVECTOR (item)->contents[c];
-	      if (CONSP (binding))
-		{
-		  item_string = XCONS (binding)->car;
-		  if (STRINGP (item_string))
-		    menu_bar_item (key, item_string, Fcdr (binding));
-		}
-	      else if (EQ (binding, Qundefined))
-		menu_bar_item (key, Qnil, binding);
+	      menu_bar_item (character, XVECTOR (item)->contents[c]);
 	    }
 	}
     }
 }
 
-/* This is used as the handler when calling internal_condition_case_1.  */
-
-static Lisp_Object
-menu_bar_item_1 (arg)
-     Lisp_Object arg;
-{
-  return Qnil;
-}
-
 /* Add one item to menu_bar_items_vector, for KEY, ITEM_STRING and DEF.
    If there's already an item for KEY, add this DEF to it.  */
 
+Lisp_Object item_properties;
+
 static void
-menu_bar_item (key, item_string, def)
-     Lisp_Object key, item_string, def;
+menu_bar_item (key, item)
+     Lisp_Object key, item;
 {
-  Lisp_Object tem;
-  Lisp_Object enabled;
+  struct gcpro gcpro1;
   int i;
 
-  /* Skip menu-bar equiv keys data.  */
-  if (CONSP (def) && CONSP (XCONS (def)->car))
-    def = XCONS (def)->cdr;
-
-  if (EQ (def, Qundefined))
+  if (EQ (item, Qundefined))
     {
       /* If a map has an explicit `undefined' as definition,
 	 discard any previously made menu bar item.  */
@@ -5485,24 +5458,13 @@ menu_bar_item (key, item_string, def)
       return;
     }
 
-  /* See if this entry is enabled.  */
-  enabled = Qt;
-
-  if (SYMBOLP (def))
-    {
-      /* No property, or nil, means enable.
-	 Otherwise, enable if value is not nil.  */
-      tem = Fget (def, Qmenu_enable);
-      if (!NILP (tem))
-	/* (condition-case nil (eval tem)
-	     (error nil))  */
-	enabled = internal_condition_case_1 (Feval, tem, Qerror,
-					     menu_bar_item_1);
-    }
-
-  /* Ignore this item if it's not enabled.  */
-  if (NILP (enabled))
+  GCPRO1 (key);			/* Is this necessary? */
+  i = parse_menu_item (item, 0, 1);
+  UNGCPRO;
+  if (!i)
     return;
+
+  item = XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF];
 
   /* Find any existing item for this KEY.  */
   for (i = 0; i < menu_bar_items_index; i += 4)
@@ -5522,20 +5484,340 @@ menu_bar_item (key, item_string, def)
 		 XVECTOR (tem)->contents, i * sizeof (Lisp_Object));
 	  menu_bar_items_vector = tem;
 	}
+
       /* Add this item.  */
       XVECTOR (menu_bar_items_vector)->contents[i++] = key;
-      XVECTOR (menu_bar_items_vector)->contents[i++] = item_string;
-      XVECTOR (menu_bar_items_vector)->contents[i++] = Fcons (def, Qnil);
+      XVECTOR (menu_bar_items_vector)->contents[i++]
+	= XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME];
+      XVECTOR (menu_bar_items_vector)->contents[i++] = Fcons (item, Qnil);
       XVECTOR (menu_bar_items_vector)->contents[i++] = make_number (0);
       menu_bar_items_index = i;
     }
-  /* We did find an item for this KEY.  Add DEF to its list of maps.  */
+  /* We did find an item for this KEY.  Add ITEM to its list of maps.  */
   else
     {
       Lisp_Object old;
       old = XVECTOR (menu_bar_items_vector)->contents[i + 2];
-      XVECTOR (menu_bar_items_vector)->contents[i + 2] = Fcons (def, old);
+      XVECTOR (menu_bar_items_vector)->contents[i + 2] = Fcons (item, old);
     }
+}
+
+ /* This is used as the handler when calling menu_item_eval_property.  */
+static Lisp_Object
+menu_item_eval_property_1 (arg)
+     Lisp_Object arg;
+{
+  /* If we got a quit from within the menu computation,
+     quit all the way out of it.  This takes care of C-] in the debugger.  */
+  if (CONSP (arg) && EQ (XCONS (arg)->car, Qquit))
+    Fsignal (Qquit, Qnil);
+
+  return Qnil;
+}
+
+/* Evaluate an expression and return the result (or nil if something 
+   went wrong).  Used to evaluate dynamic parts of menu items.  */
+static Lisp_Object
+menu_item_eval_property (sexpr)
+     Lisp_Object sexpr;
+{
+  Lisp_Object val;
+  val = internal_condition_case_1 (Feval, sexpr, Qerror,
+				   menu_item_eval_property_1);
+  return val;
+}
+
+/* This function parses a menu item and leaves the result in the
+   vector item_properties.
+   ITEM is a key binding, a possible menu item.
+   If NOTREAL is nonzero, only check for equivalent key bindings, don't
+   evaluate dynamic expressions in the menu item.
+   INMENUBAR is true when this is considered for an entry in a menu bar
+   top level.
+   parse_menu_item returns true if the item is a menu item and false
+   otherwise.  */
+
+int
+parse_menu_item (item, notreal, inmenubar)
+     Lisp_Object item;
+     int notreal, inmenubar;
+{
+  Lisp_Object def, tem;
+
+  Lisp_Object type = Qnil;
+  Lisp_Object cachelist = Qnil;
+  Lisp_Object filter = Qnil;
+  Lisp_Object item_string, start;
+  int i;
+  struct gcpro gcpro1, gcpro2, gcpro3;
+
+#define RET0					\
+  if (1)					\
+    {						\
+      UNGCPRO;					\
+      return 0;					\
+    }						\
+  else
+
+  if (!CONSP (item))
+    return 0;
+
+  GCPRO3 (item, notreal, inmenubar);
+
+  /* Create item_properties vector if necessary.  */
+  if (NILP (item_properties))
+    item_properties
+      = Fmake_vector (make_number (ITEM_PROPERTY_ENABLE + 1), Qnil);
+
+  /* Initialize optional entries.  */
+  for (i = ITEM_PROPERTY_DEF; i < ITEM_PROPERTY_ENABLE; i++)
+    XVECTOR (item_properties)->contents[i] = Qnil;
+  XVECTOR (item_properties)->contents[ITEM_PROPERTY_ENABLE] = Qt;
+	 
+  /* Save the item here to protect it from GC.  */
+  XVECTOR (item_properties)->contents[ITEM_PROPERTY_ITEM] = item;
+
+  item_string = XCONS (item)->car;
+
+  start = item;
+  item = XCONS (item)->cdr;
+  if (STRINGP (item_string))
+    {
+      /* Old format menu item.  */
+      XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME] = item_string;
+
+      /* Maybe help string.  */
+      if (CONSP (item) && STRINGP (XCONS (item)->car))
+	{
+	  XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP]
+	    = XCONS (item)->car;
+	  start = item;
+	  item = XCONS (item)->cdr;
+	}
+	  
+      /* Maybee key binding cache.  */
+      if (CONSP (item) && CONSP (XCONS (item)->car)
+	  && (NILP (XCONS (XCONS (item)->car)->car)
+	      || VECTORP (XCONS (XCONS (item)->car)->car)))
+	{
+	  cachelist = XCONS (item)->car;
+	  item = XCONS (item)->cdr;
+	}
+      
+      /* This is the real definition--the function to run.  */
+      XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF] = item;
+
+      /* Get enable property, if any.  */
+      if (SYMBOLP (item))
+	{
+	  tem = Fget (item, Qmenu_enable);
+	  if (!NILP (tem))
+	    XVECTOR (item_properties)->contents[ITEM_PROPERTY_ENABLE] = tem;
+	}
+    }
+  else if (EQ (item_string, Qmenu_item) && CONSP (item))
+    {
+      /* New format menu item.  */
+      XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME]
+	= XCONS (item)->car;
+      start = XCONS (item)->cdr;
+      if (CONSP (start))
+	{
+	  /* We have a real binding.  */
+	  XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF]
+	    = XCONS (start)->car;
+
+	  item = XCONS (start)->cdr;
+	  /* Is there a cache list with key equivalences. */
+	  if (CONSP (item) && CONSP (XCONS (item)->car))
+	    {
+	      cachelist = XCONS (item)->car;
+	      item = XCONS (item)->cdr;
+	    }
+
+	  /* Parse properties.  */
+	  while (CONSP (item) && CONSP (XCONS (item)->cdr))
+	    {
+	      tem = XCONS (item)->car;
+	      item = XCONS (item)->cdr;
+
+	      if (EQ (tem, QCenable))
+		XVECTOR (item_properties)->contents[ITEM_PROPERTY_ENABLE]
+		  = XCONS (item)->car;
+	      else if (EQ (tem, QCvisible) && !notreal)
+		{
+		  /* If got a visible property and that evaluates to nil
+		     then ignore this item.  */
+		  tem = menu_item_eval_property (XCONS (item)->car);
+		  if (NILP (tem))
+		    RET0;
+	 	}
+	      else if (EQ (tem, QChelp))
+		XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP]
+		  = XCONS (item)->car;
+	      else if (EQ (tem, QCfilter))
+		filter = XCONS (item)->car;
+	      else if (EQ (tem, QCbutton) && CONSP (XCONS (item)->car))
+		{
+		  tem = XCONS (item)->car;
+		  type = XCONS (tem)->car;
+		  if (EQ (type, QCtoggle) || EQ (type, QCradio))
+		    {
+		      XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED]
+			= XCONS (tem)->cdr;
+		      XVECTOR (item_properties)->contents[ITEM_PROPERTY_TYPE]
+			= type;
+		    }
+		}
+	      item = XCONS (item)->cdr;
+	    }
+	}
+      else if (inmenubar || !NILP (start))
+	RET0;
+    }
+  else
+    RET0;
+
+  /* If item string is not a string, evaluate it to get string.
+     If we don't get a string, skip this item.  */
+  item_string = XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME];
+  if (!(STRINGP (item_string) || notreal))
+    {
+      item_string = menu_item_eval_property (item_string);
+      if (!STRINGP (item_string))
+	RET0;
+      XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME] = item_string;
+    }
+     
+  /* If got a filter apply it on definition.  */
+  def = XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF];
+  if (!NILP (filter))
+    {
+      def = menu_item_eval_property (Fcons (filter, Fcons (def, Qnil)));
+      XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF] = def;
+    }
+
+  /* If we got no definition, this item is just unselectable text which
+     is ok when in a submenu and if there is an item string.  */
+  item_string = XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME];
+  if (NILP (def))
+    {
+      UNGCPRO;
+      return (!inmenubar && STRINGP (item_string) ? 1 : 0);
+    }
+ 
+  /* Enable or disable selection of item.  */
+  tem = XVECTOR (item_properties)->contents[ITEM_PROPERTY_ENABLE];
+  if (!EQ (tem, Qt))
+    {
+      if (notreal)
+	tem = Qt;
+      else
+	tem = menu_item_eval_property (tem);
+      if (inmenubar && NILP (tem))
+	RET0;		/* Ignore disabled items in menu bar.  */
+      XVECTOR (item_properties)->contents[ITEM_PROPERTY_ENABLE] = tem;
+    }
+
+  /* See if this is a separate pane or a submenu.  */
+  tem = get_keymap_1 (def, 0, 1);
+  if (!NILP (tem))
+    {
+      XVECTOR (item_properties)->contents[ITEM_PROPERTY_MAP] = tem;
+      XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF] = tem;
+      UNGCPRO;
+      return 1;
+    }
+  else if (inmenubar)
+    RET0;		/* Entries in menu bar must be submenus.  */
+
+  /* This is a command.  See if there is an equivalent key binding. */
+  if (NILP (cachelist))
+    {
+      /* We have to create a cachelist. */
+      CHECK_IMPURE (start);
+      XCONS (start)->cdr = Fcons (Fcons (Qnil, Qnil), XCONS (start)->cdr);
+      cachelist = XCONS (XCONS (start)->cdr)->car;
+      /* We have not checked this before so check it now.  */
+      tem = def;
+    }
+  else if (VECTORP (XCONS (cachelist)->car)) /* Saved key */
+    {
+      tem = Fkey_binding (XCONS (cachelist)->car, Qnil);
+      if (EQ (tem, def) 
+	  /* If the command is an alias for another
+	     (such as easymenu.el and lmenu.el set it up),
+	     check if the original command matches the cached command.  */
+	  || (SYMBOLP (def) && EQ (tem, XSYMBOL (def)->function)))
+	tem = Qnil;		/* Don't need to recompute key binding.  */
+      else
+	tem = def;
+    }
+  /* If something had no key binding before, don't recheck it
+     because that is too slow--except if we have a list of rebound
+     commands in Vdefine_key_rebound_commands, do recheck any command
+     that appears in that list. */
+  else if (!NILP (XCONS (cachelist)->car))
+    tem = def;			/* Should signal an error here.  */
+  else if (
+	   /* Should we check everything when precomputing key bindings?  */
+	   /* notreal || */
+	   CONSP (Vdefine_key_rebound_commands)
+	   && !NILP (Fmemq (def, Vdefine_key_rebound_commands)))
+    tem = def;
+  else
+    tem = Qnil;
+  
+  if (!NILP (tem))
+    {
+      /* Recompute equivalent key binding.
+         If the command is an alias for another
+	 (such as easymenu.el and lmenu.el set it up),
+	 see if the original command name has equivalent keys.
+	 Otherwise look up the specified command itself.
+	 We don't try both, because that makes easymenu menus slow.  */
+      if (SYMBOLP (def) && SYMBOLP (XSYMBOL (def)->function)
+	  && ! NILP (Fget (def, Qmenu_alias)))
+	tem = XSYMBOL (def)->function;
+      tem = Fwhere_is_internal (tem, Qnil, Qt, Qnil);
+      XCONS (cachelist)->car = tem;
+      XCONS (cachelist)->cdr
+	= (NILP (tem) ? Qnil
+	   :
+	   concat2 (build_string ("  ("),
+		    concat2 (Fkey_description (tem), build_string (")"))));
+    }
+
+  /* If we only want to precompute equivalent key bindings, stop here. */
+  if (notreal)
+    {
+      UNGCPRO;
+      return 1;
+    }
+
+  /* If we have an equivalent key binding, use that.  */
+  XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ]
+    = XCONS (cachelist)->cdr;
+
+  /* Include this when menu help is implemented. 
+     tem = XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP];
+     if (!(NILP (tem) || STRINGP (tem)))
+     {
+     tem = menu_item_eval_property (tem);
+     if (!STRINGP (tem))
+     tem = Qnil;
+     XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP] = tem;
+     }
+  */
+
+  /* Handle radio buttons or toggle boxes.  */ 
+  tem = XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED];
+  if (!NILP (tem))
+    XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED]
+      = menu_item_eval_property (tem);
+
+  UNGCPRO;
+  return 1;
 }
 
 /* Read a character using menus based on maps in the array MAPS.
@@ -8124,6 +8406,9 @@ struct event_head head_table[] = {
 
 syms_of_keyboard ()
 {
+  staticpro (&item_properties);
+  item_properties = Qnil;
+
   Qtimer_event_handler = intern ("timer-event-handler");
   staticpro (&Qtimer_event_handler);
 
@@ -8171,6 +8456,20 @@ syms_of_keyboard ()
 
   Qmenu_enable = intern ("menu-enable");
   staticpro (&Qmenu_enable);
+  Qmenu_alias = intern ("menu-alias");
+  staticpro (&Qmenu_alias);
+  QCenable = intern (":enable");
+  staticpro (&QCenable);
+  QCvisible = intern (":visible");
+  staticpro (&QCvisible);
+  QCfilter = intern (":filter");
+  staticpro (&QCfilter);
+  QCbutton = intern (":button");
+  staticpro (&QCbutton);
+  QCtoggle = intern (":toggle");
+  staticpro (&QCtoggle);
+  QCradio = intern (":radio");
+  staticpro (&QCradio);
 
   Qmode_line = intern ("mode-line");
   staticpro (&Qmode_line);
