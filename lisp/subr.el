@@ -1080,7 +1080,7 @@ Overlays might be moved and or split."
 	  (if (> (overlay-end o) end)
 	      (move-overlay o end (overlay-end o))
 	    (delete-overlay o)))))))
-
+
 ;;;; Miscellanea.
 
 ;; A number of major modes set this locally.
@@ -1361,6 +1361,12 @@ Value is what BODY returns."
 	(list 'unwind-protect
 	      (cons 'progn body)
 	      '(set-match-data save-match-data-internal))))
+
+(defun copy-without-properties (string)
+  "Return a copy of STRING with no text properties."
+  (setq string (concat string))
+  (set-text-properties 0 (length string) nil string)
+  string)
 
 (defun match-string (num &optional string)
   "Return string of text matched by last search.
