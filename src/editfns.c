@@ -167,7 +167,9 @@ DEFUN ("char-to-string", Fchar_to_string, Schar_to_string, 1, 1, 0,
 
   CHECK_NUMBER (character, 0);
 
-  len = CHAR_STRING (XFASTINT (character), str);
+  len = (SINGLE_BYTE_CHAR_P (XFASTINT (character))
+	 ? (*str = (unsigned char)(XFASTINT (character)), 1)
+	 : char_to_string (XFASTINT (character), str));
   return make_string_from_bytes (str, 1, len);
 }
 
