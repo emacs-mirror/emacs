@@ -1,4 +1,4 @@
-;;; ruler-mode.el --- Display a ruler in the header line
+;;; ruler-mode.el --- display a ruler in the header line
 
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
 
@@ -6,7 +6,7 @@
 ;; Maintainer: David Ponce <david@dponce.com>
 ;; Created: 24 Mar 2001
 ;; Version: 1.4
-;; Keywords: environment
+;; Keywords: environment convenience
 
 ;; This file is part of GNU Emacs.
 
@@ -105,7 +105,7 @@
 
 (defgroup ruler-mode nil
   "Display a ruler in the header line."
-  :version "21.2"
+  :version "21.3"
   :group 'environment)
 
 (defcustom ruler-mode-show-tab-stops nil
