@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.1 2000/09/04 19:35:57 gerd Exp gerd $
+;; $Id: vc.el,v 1.261 2000/09/04 19:46:19 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -147,9 +147,9 @@
 
 (require 'vc-hooks)
 (require 'ring)
+(require 'dired)	; for dired-mode-map
 (eval-when-compile
-  (require 'compile)
-  (require 'dired))	; for dired-map-over-marks macro
+  (require 'compile))
 
 (if (not (assoc 'vc-parent-buffer minor-mode-alist))
     (setq minor-mode-alist
