@@ -12,7 +12,7 @@
 
 # Author: Paul Eggert <eggert@twinsun.com>
 
-# $Id: rcs2log,v 1.16 1993/10/19 02:50:31 eggert Exp rms $
+# $Id: rcs2log,v 1.17 1994/08/09 20:43:48 rms Exp eggert $
 
 # Copyright 1992, 1993 Free Software Foundation, Inc.
 
@@ -140,32 +140,50 @@ then
 fi
 datearg="-d>$date"
 
+repository=
+rlog=rlog
+case $CVSROOT in
+?*)
+	if test -d "$CVSROOT" && test -f CVS/Repository
+	then
+		r=`cat <CVS/Repository` || exit
+		if test -d "$CVSROOT/$r"
+		then
+			repository=$CVSROOT/$r
+			rlog='cvs log'
+		fi
+	fi
+esac
+
 # With no arguments, examine all files under the RCS directory.
 case $# in
 0)
-	files=
-	for file in RCS/.* RCS/* .*,v *,v
-	do
-		case $file in
-		RCS/. | RCS/..) continue;;
-		RCS/.\* | RCS/\* | .\*,v | \*,v) test -f "$file" || continue
+	case $repository in
+	'')
+		files=
+		for file in RCS/.* RCS/* .*,v *,v
+		do
+			case $file in
+			RCS/. | RCS/..) continue;;
+			RCS/.\* | RCS/\* | .\*,v | \*,v) test -f "$file" || continue
+			esac
+			files=$files$nl$file
+		done
+		case $files in
+		'') exit 0
 		esac
-		files=$files$nl$file
-	done
-	case $files in
-	'') exit 0
+		oldIFS=$IFS
+		IFS=$nl
+		set $files
+		IFS=$oldIFS
 	esac
-	oldIFS=$IFS
-	IFS=$nl
-	set $files
-	IFS=$oldIFS
 esac
 
 rlogout=$TMPDIR/rcs2log$$r
 trap exit 1 2 13 15
 trap "rm -f $loginsout $rlogout; exit 1" 0
 
-rlog "$datearg" $rlog_options "$@" >$rlogout || exit
+$rlog "$datearg" $rlog_options ${1+"$@"} >$rlogout || exit
 
 
 # Get the full name of each author the logs mention, and set initialize_fullname
@@ -179,7 +197,7 @@ $logins
 EOF
 esac
 authors=`
-	sed -n 's|^date: *[0-9]*/[0-9][0-9]/[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]; *author: *\([^; ]*\).*|\1|p' <$rlogout |
+	sed -n 's|^date: *[0-9]*[-/][0-9][0-9][-/][0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9][-+0-9]*; *author: *\([^; ]*\).*|\1|p' <$rlogout |
 	case $loginsout in
 	'') sort -u;;
 	?*) sort -u | comm -23 - $loginsout
@@ -290,10 +308,21 @@ awk <$rlogout '
 	/^Working file:/ { filename = $3 }
 	/^date: /, /^(-----------*|===========*)$/ {
 		if ($0 ~ /^branches: /) { next }
-		if ($0 ~ /^date: [0-9][ \/0-9:]*;/) {
-			time = substr($3, 1, length($3)-1)
+		if ($0 ~ /^date: [0-9][- +\/0-9:]*;/) {
+			date = $2
+			if (date ~ /-/) {
+				# An ISO format date.  Replace all "-"s with "/"s.
+				newdate = ""
+				while ((i = index(date, "-")) != 0) {
+					newdate = newdate substr(date, 1, i-1) "/"
+					date = substr(date, i+1)
+				}
+				date = newdate date
+			}
+			# Ignore any time zone; ChangeLog has no room for it.
+			time = substr($3, 1, 8)
 			author = substr($5, 1, length($5)-1)
-			printf "%s %s %s %s %c", filename, $2, time, author, 13
+			printf "%s %s %s %s %c", filename, date, time, author, 13
 			next
 		}
 		if ($0 ~ /^(-----------*|===========*)$/) { print ""; next }
