@@ -24,6 +24,28 @@
 
 ;;; Commentary:
 
+;;  Use the functions defined here to customize TPU-edt to your tastes by
+;;  setting scroll margins and/or turning on free cursor mode.  Here's an
+;;  example for your .emacs file.
+
+;;     (tpu-set-cursor-free)                   ; Set cursor free.
+;;     (tpu-set-scroll-margins "10%" "15%")    ; Set scroll margins.
+
+;;  Scroll margins and cursor binding can be changed from within emacs using
+;;  the following commands:
+
+;;     tpu-set-scroll-margins  or   set scroll margins
+;;     tpu-set-cursor-bound    or   set cursor bound
+;;     tpu-set-cursor-free     or   set cursor free
+
+;;  Additionally, Gold-F toggles between bound and free cursor modes.
+
+;;  Note that switching out of free cursor mode or exiting TPU-edt while in
+;;  free cursor mode strips trailing whitespace from every line in the file.
+
+
+;;; Details:
+
 ;;  The functions contained in this file implement scroll margins and free
 ;;  cursor mode.  The following keys and commands are affected.
 
@@ -67,8 +89,8 @@
 ;;  performance of TPU-edt on slower computers.  In order to support the
 ;;  widest range of computers, scroll margin support is optional.
 
-;;  I don't know for a fact that the overhead associated with scroll
-;;  margin support is significant.  If you find that it is, please send me
+;;  It's actually not known whether the overhead associated with scroll
+;;  margin support is significant.  If you find that it is, please send
 ;;  a note describing the extent of the performance degradation.  Be sure
 ;;  to include a description of the platform where you're running TPU-edt.
 ;;  Send your note to the address provided by Gold-V.
@@ -76,28 +98,6 @@
 ;;  Even with these differences and limitations, these functions implement
 ;;  important aspects of the real TPU/edt.  Those who miss free cursor mode
 ;;  and/or scroll margins will appreciate these implementations.
-
-;;; Usage:
-
-;;  To use this file, simply load it after loading TPU-edt.  After that,
-;;  customize TPU-edt to your tastes by setting scroll margins and/or
-;;  turning on free cursor mode.  Here's an example for your .emacs file.
-
-;;     (load "tpu-edt")                      ; Load the base TPU-edt
-;;     (load "tpu-extras")                   ;   and the extras.
-;;     (tpu-set-scroll-margins "10%" "15%")  ; Set scroll margins.
-
-;;  Once the extras are loaded, scroll margins and cursor binding can be
-;;  changed with the following commands:
-
-;;     tpu-set-scroll-margins  or   set scroll margins
-;;     tpu-set-cursor-bound    or   set cursor bound
-;;     tpu-set-cursor-free     or   set cursor free
-
-;;  Additionally, Gold-F toggles between bound and free cursor modes.
-
-;;  Note that switching out of free cursor mode or exiting TPU-edt while in
-;;  free cursor mode strips trailing whitespace from every line in the file.
 
 ;;; Code:
 
@@ -259,6 +259,7 @@ Prefix argument serves as a repeat count."
 Prefix argument serves as repeat count."
   (interactive "p")
   (let ((beg (tpu-current-line)))
+    (or (bolp) (>= 0 num) (setq num (- num 1)))
     (next-line-internal (- num))
     (tpu-top-check beg num)
     (beginning-of-line)))
