@@ -13,6 +13,9 @@
 
 2000-12-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* simple.el (kill-new): Don't try to setcar kill-ring if it is
+	nil.
+
 	* cus-edit.el (custom-save-variables, custom-save-faces): 
 	Comment fix.
 

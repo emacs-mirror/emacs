@@ -690,9 +690,10 @@ the level where you click up to the top of the window.  @kbd{Mouse-3}
 down to the level where you click.  By clicking repeatedly in the same
 place, you can scroll by the same distance over and over.
 
-  Aside from scrolling, you can also click @kbd{C-Mouse-2} in the scroll
-bar to split a window vertically.  The split occurs on the line where
-you click.
+  If you are using Emacs own implementation of scroll bars, as opposed
+to scroll bars from an X toolkit, you can also click @kbd{C-Mouse-2} in
+the scroll bar to split a window vertically.  The split occurs on the
+line where you click.
 
 @findex scroll-bar-mode
 @vindex scroll-bar-mode
