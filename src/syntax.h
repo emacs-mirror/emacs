@@ -223,44 +223,45 @@ extern char syntax_code_spec[16];
    : STRINGP (gl_state.object)						\
    ? string_byte_to_char (gl_state.object, (bytepos))			\
    : BUFFERP (gl_state.object)						\
-   ? buf_bytepos_to_charpos (XBUFFER (gl_state.object), (bytepos))	\
+   ? buf_bytepos_to_charpos (XBUFFER (gl_state.object),			\
+			     (bytepos) + BUF_BEGV_BYTE (XBUFFER (gl_state.object)) - 1) - BUF_BEGV (XBUFFER (gl_state.object)) + 1	\
    : NILP (gl_state.object)						\
-   ? BYTE_TO_CHAR ((bytepos))						\
+   ? BYTE_TO_CHAR ((bytepos) + BEGV_BYTE - 1) - BEGV + 1		\
    : (bytepos))
 
-/* Make syntax table state (gl_state) good for POS, assuming it is
-   currently good for a position before POS.  */
+/* Make syntax table state (gl_state) good for CHARPOS, assuming it is
+   currently good for a position before CHARPOS.  */
 
-#define UPDATE_SYNTAX_TABLE_FORWARD(pos)			\
+#define UPDATE_SYNTAX_TABLE_FORWARD(charpos)			\
   (parse_sexp_lookup_properties					\
-   && (pos) >= gl_state.e_property				\
-   ? (update_syntax_table ((pos) + gl_state.offset, 1, 0,	\
+   && (charpos) >= gl_state.e_property				\
+   ? (update_syntax_table ((charpos) + gl_state.offset, 1, 0,	\
 			   gl_state.object),			\
       1)							\
    : 0)
 
-/* Make syntax table state (gl_state) good for POS, assuming it is
-   currently good for a position after POS.  */
+/* Make syntax table state (gl_state) good for CHARPOS, assuming it is
+   currently good for a position after CHARPOS.  */
 
-#define UPDATE_SYNTAX_TABLE_BACKWARD(pos)			\
+#define UPDATE_SYNTAX_TABLE_BACKWARD(charpos)			\
   (parse_sexp_lookup_properties					\
-   && (pos) <= gl_state.b_property				\
-   ? (update_syntax_table ((pos) + gl_state.offset, -1, 0,	\
+   && (charpos) <= gl_state.b_property				\
+   ? (update_syntax_table ((charpos) + gl_state.offset, -1, 0,	\
 			   gl_state.object),			\
       1)							\
    : 0)
 
-/* Make syntax table good for POS.  */
+/* Make syntax table good for CHARPOS.  */
 
-#define UPDATE_SYNTAX_TABLE(pos)				\
+#define UPDATE_SYNTAX_TABLE(charpos)				\
   (parse_sexp_lookup_properties					\
-   && (pos) <= gl_state.b_property				\
-   ? (update_syntax_table ((pos) + gl_state.offset, -1, 0,	\
+   && (charpos) <= gl_state.b_property				\
+   ? (update_syntax_table ((charpos) + gl_state.offset, -1, 0,	\
 			   gl_state.object),			\
       1)							\
    : (parse_sexp_lookup_properties				\
-      && (pos) >= gl_state.e_property				\
-      ? (update_syntax_table ((pos) + gl_state.offset, 1, 0,	\
+      && (charpos) >= gl_state.e_property			\
+      ? (update_syntax_table ((charpos) + gl_state.offset, 1, 0,\
 			      gl_state.object),			\
 	 1)							\
       : 0))
@@ -327,7 +328,7 @@ if (1)									\
     gl_state.use_global = 0;						\
     gl_state.current_syntax_table = current_buffer->syntax_table;	\
     if (parse_sexp_lookup_properties)					\
-      update_syntax_table ((BYTE_TO_CHAR ((FROM) + gl_state.offset)	\
+      update_syntax_table (((FROM) + gl_state.offset			\
 			    + (COUNT > 0 ? 0 :  -1)),			\
 			   COUNT, 1, gl_state.object);			\
   }									\
