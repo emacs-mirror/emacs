@@ -112,6 +112,8 @@ With a prefix argument, format the macro in a more concise way."
 	     (setq cmd 'last-kbd-macro))
 	    ((eq cmd 'execute-extended-command)
 	     (setq cmd (read-command "Name of keyboard macro to edit: "))
+	     (if (string-equal cmd "")
+		 (error "No command name given"))
 	     (setq mac (symbol-function cmd)))
 	    ((eq cmd 'view-lossage)
 	     (setq mac (recent-keys))
