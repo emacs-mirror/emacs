@@ -1043,6 +1043,10 @@ typedef unsigned char UCHAR;
 #define CHAR_CTL   (0x4000000)
 #define CHAR_META  (0x8000000)
 
+#define CHAR_MODIFIER_MASK \
+  (CHAR_ALT | CHAR_SUPER | CHAR_HYPER  | CHAR_SHIFT | CHAR_CTL | CHAR_META)
+
+
 /* Actually, the current Emacs uses 19 bits for the character value
    itself.  */
 #define CHARACTERBITS 19
