@@ -3,8 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainers: D. Goel <deego@gnufans.org>
-;;              Colin Walters <walters@debian.org>
+;; Maintainer: Jay Belanger <belanger@truman.edu>
 
 ;; This file is part of GNU Emacs.
 
@@ -157,6 +156,16 @@
 		(error "No such user key is defined"))
 	    kmap))))
 
+
+;; math-integral-cache-state is originally declared in calcalg2.el,
+;; it is used in calc-user-define-variable.
+(defvar math-integral-cache-state)
+
+;; calc-user-formula-alist is local to calc-user-define-formula,
+;; calc-user-define-compostion and calc-finish-formula-edit,
+;; but is used by calc-fix-user-formula.
+(defvar calc-user-formula-alist)
+
 (defun calc-user-define-formula ()
   (interactive)
   (calc-wrapper
@@ -164,7 +173,7 @@
 	  (arglist nil)
 	  (is-lambda (and (eq (car-safe form) 'calcFunc-lambda)
 			  (>= (length form) 2)))
-	  odef key keyname cmd cmd-base func alist is-symb)
+	  odef key keyname cmd cmd-base func calc-user-formula-alist is-symb)
      (if is-lambda
 	 (setq arglist (mapcar (function (lambda (x) (nth 1 x)))
 			       (nreverse (cdr (reverse (cdr form)))))
@@ -238,26 +247,28 @@
 					(and cmd (symbol-name cmd))
 					(format "%05d" (% (random) 10000)))))))
      (if is-lambda
-	 (setq alist arglist)
+	 (setq calc-user-formula-alist arglist)
        (while
 	   (progn
-	     (setq alist (read-from-minibuffer "Function argument list: "
-					       (if arglist
-						   (prin1-to-string arglist)
-						 "()")
-					       minibuffer-local-map
-					       t))
-	     (and (not (calc-subsetp alist arglist))
+	     (setq calc-user-formula-alist 
+                   (read-from-minibuffer "Function argument list: "
+                                         (if arglist
+                                             (prin1-to-string arglist)
+                                           "()")
+                                         minibuffer-local-map
+                                         t))
+	     (and (not (calc-subsetp calc-user-formula-alist arglist))
 		  (not (y-or-n-p
 			"Okay for arguments that don't appear in formula to be ignored? "))))))
-     (setq is-symb (and alist
+     (setq is-symb (and calc-user-formula-alist
 			func
 			(y-or-n-p
 			 "Leave it symbolic for non-constant arguments? ")))
-     (setq alist (mapcar (function (lambda (x)
-				     (or (cdr (assq x '((nil . arg-nil)
-							(t . arg-t))))
-					 x))) alist))
+     (setq calc-user-formula-alist 
+           (mapcar (function (lambda (x)
+                               (or (cdr (assq x '((nil . arg-nil)
+                                                  (t . arg-t))))
+                                   x))) calc-user-formula-alist))
      (if cmd
 	 (progn
 	   (calc-need-macros)
@@ -267,7 +278,7 @@
 		       '(interactive)
 		       (list 'calc-wrapper
 			     (list 'calc-enter-result
-				   (length alist)
+				   (length calc-user-formula-alist)
 				   (let ((name (symbol-name (or func cmd))))
 				     (and (string-match
 					   "\\([^-][^-]?[^-]?[^-]?\\)[^-]*\\'"
@@ -276,16 +287,16 @@
 				   (list 'cons
 					 (list 'quote func)
 					 (list 'calc-top-list-n
-					       (length alist)))))))
+					       (length calc-user-formula-alist)))))))
 	   (put cmd 'calc-user-defn t)))
      (let ((body (list 'math-normalize (calc-fix-user-formula form))))
        (fset func
 	     (append
-	      (list 'lambda alist)
+	      (list 'lambda calc-user-formula-alist)
 	      (and is-symb
 		   (mapcar (function (lambda (v)
 				       (list 'math-check-const v t)))
-			   alist))
+			   calc-user-formula-alist))
 	      (list body))))
      (put func 'calc-user-defn form)
      (setq math-integral-cache-state nil)
@@ -324,7 +335,7 @@
 		    (memq (setq temp (or (cdr (assq (nth 1 f) '((nil . arg-nil)
 								(t . arg-t))))
 					 (nth 1 f)))
-			  alist))
+			  calc-user-formula-alist))
 	       temp)
 	      ((or (math-constp f) (eq (car f) 'var))
 	       (list 'quote f))
@@ -356,7 +367,7 @@
 	  (comps (get func 'math-compose-forms))
 	  entry entry2
 	  (arglist nil)
-	  (alist nil))
+	  (calc-user-formula-alist nil))
      (if (math-zerop comp)
 	 (if (setq entry (assq calc-language comps))
 	     (put func 'math-compose-forms (delq entry comps)))
@@ -364,22 +375,25 @@
        (setq arglist (sort arglist 'string-lessp))
        (while
 	   (progn
-	     (setq alist (read-from-minibuffer "Composition argument list: "
-					       (if arglist
-						   (prin1-to-string arglist)
-						 "()")
-					       minibuffer-local-map
-					       t))
-	     (and (not (calc-subsetp alist arglist))
+	     (setq calc-user-formula-alist 
+                   (read-from-minibuffer "Composition argument list: "
+                                         (if arglist
+                                             (prin1-to-string arglist)
+                                           "()")
+                                         minibuffer-local-map
+                                         t))
+	     (and (not (calc-subsetp calc-user-formula-alist arglist))
 		  (y-or-n-p
 		   "Okay for arguments that don't appear in formula to be invisible? "))))
        (or (setq entry (assq calc-language comps))
 	   (put func 'math-compose-forms
 		(cons (setq entry (list calc-language)) comps)))
-       (or (setq entry2 (assq (length alist) (cdr entry)))
+       (or (setq entry2 (assq (length calc-user-formula-alist) (cdr entry)))
 	   (setcdr entry
-		   (cons (setq entry2 (list (length alist))) (cdr entry))))
-       (setcdr entry2 (list 'lambda alist (calc-fix-user-formula comp))))
+		   (cons (setq entry2 
+                               (list (length calc-user-formula-alist))) (cdr entry))))
+       (setcdr entry2 
+               (list 'lambda calc-user-formula-alist (calc-fix-user-formula comp))))
      (calc-pop-stack 1)
      (calc-do-refresh))))
 
@@ -445,6 +459,8 @@
 			     lang)))
   (calc-show-edit-buffer))
 
+(defvar calc-original-buffer)
+
 (defun calc-finish-user-syntax-edit (lang)
   (let ((tab (calc-read-parse-table calc-original-buffer lang))
 	(entry (assq lang calc-user-parse-tables)))
@@ -457,6 +473,13 @@
 	  (setq calc-user-parse-tables
 		(delq entry calc-user-parse-tables)))))
   (switch-to-buffer calc-original-buffer))
+
+;; The variable calc-lang is local to calc-write-parse-table, but is
+;; used by calc-write-parse-table-part which is called by 
+;; calc-write-parse-table.  The variable is also local to 
+;; calc-read-parse-table, but is used by calc-fix-token-name which
+;; is called (indirectly) by calc-read-parse-table.
+(defvar calc-lang)
 
 (defun calc-write-parse-table (tab calc-lang)
   (let ((p tab))
@@ -876,7 +899,7 @@
 	    (goto-char (+ start (nth 1 val)))
 	    (error (nth 2 val))))
       (setcar (cdr body)
-	      (let ((alist (nth 1 (symbol-function func))))
+	      (let ((calc-user-formula-alist (nth 1 (symbol-function func))))
 		(calc-fix-user-formula val)))
       (put func 'calc-user-defn val))))
 
@@ -1277,20 +1300,33 @@
 
 
 (defvar calc-kbd-push-level 0)
+
+;; The variables var-q0 through var-q9 are the "quick" variables.
+(defvar var-q0 nil)
+(defvar var-q1 nil)
+(defvar var-q2 nil)
+(defvar var-q3 nil)
+(defvar var-q4 nil)
+(defvar var-q5 nil)
+(defvar var-q6 nil)
+(defvar var-q7 nil)
+(defvar var-q8 nil)
+(defvar var-q9 nil)
+
 (defun calc-kbd-push (arg)
   (interactive "P")
   (calc-wrapper
    (let* ((defs (and arg (> (prefix-numeric-value arg) 0)))
-	  (var-q0 (and (boundp 'var-q0) var-q0))
-	  (var-q1 (and (boundp 'var-q1) var-q1))
-	  (var-q2 (and (boundp 'var-q2) var-q2))
-	  (var-q3 (and (boundp 'var-q3) var-q3))
-	  (var-q4 (and (boundp 'var-q4) var-q4))
-	  (var-q5 (and (boundp 'var-q5) var-q5))
-	  (var-q6 (and (boundp 'var-q6) var-q6))
-	  (var-q7 (and (boundp 'var-q7) var-q7))
-	  (var-q8 (and (boundp 'var-q8) var-q8))
-	  (var-q9 (and (boundp 'var-q9) var-q9))
+	  (var-q0 var-q0)
+	  (var-q1 var-q1)
+	  (var-q2 var-q2)
+	  (var-q3 var-q3)
+	  (var-q4 var-q4)
+	  (var-q5 var-q5)
+	  (var-q6 var-q6)
+	  (var-q7 var-q7)
+	  (var-q8 var-q8)
+	  (var-q9 var-q9)
 	  (calc-internal-prec (if defs 12 calc-internal-prec))
 	  (calc-word-size (if defs 32 calc-word-size))
 	  (calc-angle-mode (if defs 'deg calc-angle-mode))
@@ -1613,7 +1649,7 @@
 	((eq (car a) 'var)
 	 (if (memq (nth 2 a) '(var-inf var-uinf var-nan)) 12 100))
 	((eq (car a) 'vec) (if (math-matrixp a) 102 101))
-	(t (math-calcFunc-to-var func))))
+	(t (math-calcFunc-to-var (car a)))))
 
 (defun calcFunc-integer (a)
   (if (Math-integerp a)
@@ -1868,7 +1904,12 @@
 	(list (cons 'catch (cons '(quote math-return) body)))
       body)))
 
-(defun math-define-body (body exp-env)
+;; The variable math-exp-env is local to math-define-body, but is
+;; used by math-define-exp, which is called (indirectly) by
+;; by math-define-body.
+(defvar math-exp-env)
+
+(defun math-define-body (body math-exp-env)
   (math-define-list body))
 
 (defun math-define-list (body &optional quote)
@@ -1897,7 +1938,7 @@
 		  (if (and (consp (nth 1 exp))
 			   (eq (car (nth 1 exp)) 'lambda))
 		      (cons 'quote
-			    (math-define-lambda (nth 1 exp) exp-env))
+			    (math-define-lambda (nth 1 exp) math-exp-env))
 		    exp))
 		 ((memq func '(let let* for foreach))
 		  (let ((head (nth 1 exp))
@@ -1914,7 +1955,7 @@
 				 (math-define-body body
 						   (nconc
 						    (math-define-let-env head)
-						    exp-env)))))))
+						    math-exp-env)))))))
 		 ((and (memq func '(setq setf))
 		       (math-complicated-lhs (cdr exp)))
 		  (if (> (length exp) 3)
@@ -1925,7 +1966,7 @@
 			(cons (nth 1 exp)
 			      (math-define-body (cdr (cdr exp))
 						(cons (nth 1 exp)
-						      exp-env)))))
+						      math-exp-env)))))
 		 ((eq func 'cond)
 		  (cons func
 			(math-define-cond (cdr exp))))
@@ -2023,13 +2064,13 @@
 				     (cons func args))
 				    (t
 				     (cons cfunc args)))))))))
-		 (t (cons func args)))))
+		 (t (cons func (math-define-list (cdr exp))))))) ;;args
 	((symbolp exp)
 	 (let ((prim (assq exp math-prim-vars))
 	       (name (symbol-name exp)))
 	   (cond (prim
 		  (cdr prim))
-		 ((memq exp exp-env)
+		 ((memq exp math-exp-env)
 		  exp)
 		 ((string-match "-" name)
 		  exp)
