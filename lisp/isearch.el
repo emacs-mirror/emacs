@@ -4,7 +4,7 @@
 ;; LCD Archive Entry:
 ;; isearch-mode|Daniel LaLiberte|liberte@cs.uiuc.edu
 ;; |A minor mode replacement for isearch.el.
-;; |$Date: 1993/02/17 20:34:20 $|$Revision: 1.18 $|~/modes/isearch-mode.el
+;; |$Date: 1993/02/17 21:30:25 $|$Revision: 1.19 $|~/modes/isearch-mode.el
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -88,8 +88,11 @@
 ;;;====================================================================
 ;;; Change History
 
-;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch-mode.el,v 1.18 1993/02/17 20:34:20 rms Exp rms $
+;;; $Header: /gd/gnu/emacs/19.0/lisp/RCS/isearch-mode.el,v 1.19 1993/02/17 21:30:25 rms Exp rms $
 ;;; $Log: isearch-mode.el,v $
+; Revision 1.19  1993/02/17  21:30:25  rms
+; Fix minor bugs in previous change.
+;
 ; Revision 1.18  1993/02/17  20:34:20  rms
 ; (isearch-backward-regexp):
 ; New arg no-recursive-edit, always non-nil for interactive call.
@@ -1024,35 +1027,21 @@ If no previous match was done, just beep."
   (isearch-process-search-char (isearch-last-command-char)))
 
 
-(defun isearch-other-control-char ()
-  "Any other control char => unread it and exit the search normally.
-But only if `search-exit-option' is non-nil, the default.
-If it is the symbol `edit', the search string is edited in the minibuffer
-and the control char is unread so that it applies to editing the string."
-  (interactive)
-  (cond ((eq search-exit-option 'edit)
-	 (isearch-unread (isearch-last-command-char))
-	 (isearch-edit-string))
-	(search-exit-option;; any other non-nil value
-	 (isearch-unread (isearch-last-command-char))
-	 (isearch-done))
-	(t;; search-exit-option is nil
-	 (isearch-process-search-char (isearch-last-command-char)))))
-
+(fset 'isearch-other-control-char 'isearch-other-meta-char)
 
 (defun isearch-other-meta-char ()
-  "Any other meta char => exit the search normally and reread the character.
+  "Exit the search normally and reread this key sequence.
 But only if `search-exit-option' is non-nil, the default.
 If it is the symbol `edit', the search string is edited in the minibuffer
 and the meta character is unread so that it applies to editing the string."
   (interactive)
   (cond ((eq search-exit-option 'edit)
 	 (let ((key (this-command-keys)))
-	   (isearch-unread (+ 128 (aref key (1- (length key))))))
+	   (apply 'isearch-unread (append key nil)))
 	 (isearch-edit-string))
 	(search-exit-option
 	 (let ((key (this-command-keys)))
-	   (isearch-unread (+ 128 (aref key (1- (length key))))))
+	   (apply 'isearch-unread (append key nil)))
 	 (isearch-done))
 	(t;; otherwise nil
 	 (isearch-process-search-string (this-command-keys)
@@ -1441,15 +1430,17 @@ have special meaning in a regexp."
 (defun isearch-text-char-description (c)
   (isearch-char-to-string c))
 
-(defun isearch-unread (char-or-event)
-  ;; General function to unread a character or event.
-  (cond
-   (isearch-event-data-type
-    (setq unread-command-event char-or-event))
-   (isearch-gnu-emacs-events
-    (setq unread-command-events (list char-or-event)))
-   (t
-    (setq unread-command-char char-or-event))))
+(defun isearch-unread (&rest char-or-events)
+  (setq foo char-or-events)
+  ;; General function to unread characters or events.
+  (if isearch-gnu-emacs-events
+      (setq unread-command-events (listify-key-sequence char-or-events))
+    (let ((char (if (cdr char-or-events)
+		    (+ 128 (car (last char-or-events)))
+		  (car char-or-events))))
+      (if isearch-event-data-type
+	  (setq unread-command-event char)
+	(setq unread-command-char char)))))
 
 (defun isearch-last-command-char ()
   ;; General function to return the last command character.
