@@ -2300,7 +2300,7 @@ xdialog_show (f, keymaps, title, error)
 	    i++;
 	    continue;
 	  }
-	if (nb_buttons >= 10)
+	if (nb_buttons >= 9)
 	  {
 	    free_menubar_widget_value_tree (first_wv);
 	    *error = "Too many dialog items";
