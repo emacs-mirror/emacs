@@ -1,3 +1,8 @@
+2000-09-26  Dave Love  <fx@gnu.org>
+
+	* mouse.el (popup-menu): If POSITION is nil, set it using
+	mouse-position.
+
 2000-09-25  Sam Steingold  <sds@gnu.org>
 
 	* net/browse-url.el (browse-url-file-url): Check for null maps.
