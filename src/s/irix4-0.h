@@ -9,6 +9,9 @@
 
 #undef NEED_SIOCTL
 
+/* Make process_send_signal work by "typing" a signal character on the pty.  */
+#define SIGNALS_VIA_CHARACTERS
+
 /* use K&R C */
 #ifndef __GNUC__
 #define C_SWITCH_MACHINE -cckr
