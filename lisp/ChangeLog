@@ -1,7 +1,16 @@
 2002-05-31  Dave Love  <fx@gnu.org>
 
+	* international/mule-diag.el (describe-character-set): Account for
+	more than two dimensions of possibly different size.
+
+	* international/mule-cmds.el (unify-8859-on-encoding-mode)
+	(unify-8859-on-decoding-mode): Moved from mule.el.
+
 	* international/mule.el (unify-8859-on-encoding-mode)
 	(unify-8859-on-decoding-mode): Remove :init-value.
+	(charset-chars): Add optional dimension arg.
+	(unify-8859-on-encoding-mode, unify-8859-on-decoding-mode): Moved
+	to mule-cmds.el.
 
 2002-05-31  Kenichi Handa  <handa@etl.go.jp>
 
