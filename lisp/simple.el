@@ -559,22 +559,26 @@ If N is negative, find the previous or Nth previous match."
 (defun next-history-element (n)
   "Insert the next element of the minibuffer history into the minibuffer."
   (interactive "p")
-  (let ((narg (min (max 1 (- minibuffer-history-position n))
-		   (length (symbol-value minibuffer-history-variable)))))
-    (if (= minibuffer-history-position narg)
-	(error (if (= minibuffer-history-position 1)
-		   "End of history; no next item"
-		 "Beginning of history; no preceding item"))
-      (erase-buffer)
-      (setq minibuffer-history-position narg)
-      (let ((elt (nth (1- minibuffer-history-position)
-		      (symbol-value minibuffer-history-variable))))
-	(insert
-	 (if minibuffer-history-sexp-flag
-	     (let ((print-level nil))
-	       (prin1-to-string elt))
-	   elt)))
-      (goto-char (point-min)))))
+  (or (zerop n)
+      (let ((narg (min (max 1 (- minibuffer-history-position n))
+		       (length (symbol-value minibuffer-history-variable)))))
+	    (if (or (zerop narg)
+		    (= minibuffer-history-position narg))
+		(error (if (if (zerop narg)
+			       (> n 0)
+			     (= minibuffer-history-position 1))
+		       "End of history; no next item"
+		     "Beginning of history; no preceding item"))
+	  (erase-buffer)
+	  (setq minibuffer-history-position narg)
+	  (let ((elt (nth (1- minibuffer-history-position)
+			  (symbol-value minibuffer-history-variable))))
+	    (insert
+	     (if minibuffer-history-sexp-flag
+		 (let ((print-level nil))
+		   (prin1-to-string elt))
+	       elt)))
+	  (goto-char (point-min))))))
 
 (defun previous-history-element (n)
   "Inserts the previous element of the minibuffer history into the minibuffer."
