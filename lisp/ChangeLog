@@ -1,3 +1,9 @@
+2004-12-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Require x-dnd.
+	(mac-drag-n-drop): Sync with W32 version.  Use x-dnd.el
+	functions.
+
 2004-12-29  David Kastrup  <dak@gnu.org>
 
 	* international/mule.el (decode-coding-inserted-region): Don't

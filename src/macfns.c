@@ -158,7 +158,7 @@ Lisp_Object Qshift;
 
 extern Lisp_Object Vwindow_system_version;
 
-#if 0 /* Use xstricmp instead. */
+#if 0 /* Use xstricmp instead.  */
 /* compare two strings ignoring case */
 
 static int
@@ -2261,7 +2261,7 @@ XParseGeometry (string, x, y, width, height)
 
 /* Create and set up the Mac window for frame F.  */
 
-extern install_window_handler (WindowPtr);
+extern OSErr install_window_handler (WindowPtr);
 
 static void
 mac_window (f)
@@ -2282,7 +2282,11 @@ mac_window (f)
   if (FRAME_MAC_WINDOW (f))
     {
       SetWRefCon (FRAME_MAC_WINDOW (f), (long) f->output_data.mac);
-      install_window_handler (FRAME_MAC_WINDOW (f));
+      if (install_window_handler (FRAME_MAC_WINDOW (f)) != noErr)
+	{
+	  DisposeWindow (FRAME_MAC_WINDOW (f));
+	  FRAME_MAC_WINDOW (f) = NULL;
+	}
     }
 #else
   FRAME_MAC_WINDOW (f)

@@ -1,3 +1,25 @@
+2004-12-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (install_window_handler): Modify extern to return OSErr
+	value.
+	(mac_window): Handle return value of install_window_handler.
+
+	* macterm.c (reflect_byte): Remove function.
+	(mac_create_bitmap_from_bitmap_data): Don't call reflect_byte.
+	Lookup table instead.
+	(mac_do_font_lists): Simplify calculation of the longest
+	nonspecial string.
+	(init_mac_drag_n_drop): Remove function	and declaration.
+	(mac_initialize) [TARGET_API_MAC_CARBON]: Don't call
+	init_mac_drag_n_drop.
+	(mac_do_track_drag): New function and declaration.
+	(install_window_handler): Return OSErr value.
+	(install_window_handler) [TARGET_API_MAC_CARBON]: Register
+	handlers for tracking/receiving drag-and-drop items.
+	(do_ae_open_documents): Generate unibyte strings for filenames.
+	(mac_do_receive_drag) [TARGET_API_MAC_CARBON] : Likewise.  Reject
+	only non-filename items.  Set event modifiers.  Set return value.
+
 2004-12-28  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* coding.c (decode_coding): Fix previous change.
