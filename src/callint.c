@@ -1,5 +1,5 @@
 /* Call a Lisp function interactively.
-   Copyright (C) 1985, 86, 93, 94, 95, 1997, 2000
+   Copyright (C) 1985, 86, 93, 94, 95, 1997, 2000, 2002
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -346,7 +346,7 @@ supply if the command inquires which events were used to invoke it.  */)
 	    = Fcons (Fcons (function, values), Vcommand_history);
 
 	  /* Don't keep command history around forever.  */
-	  if (NUMBERP (Vhistory_length) && XINT (Vhistory_length) > 0)
+	  if (INTEGERP (Vhistory_length) && XINT (Vhistory_length) > 0)
 	    {
 	      teml = Fnthcdr (Vhistory_length, Vcommand_history);
 	      if (CONSP (teml))
@@ -764,7 +764,7 @@ supply if the command inquires which events were used to invoke it.  */)
       Vcommand_history = Fcons (Flist (count + 1, visargs),
 				Vcommand_history);
       /* Don't keep command history around forever.  */
-      if (NUMBERP (Vhistory_length) && XINT (Vhistory_length) > 0)
+      if (INTEGERP (Vhistory_length) && XINT (Vhistory_length) > 0)
 	{
 	  teml = Fnthcdr (Vhistory_length, Vcommand_history);
 	  if (CONSP (teml))
