@@ -34,3 +34,8 @@
 #ifndef __GNUC__
 #define C_DEBUG_SWITCH -g -O
 #endif
+
+/* inoue@ainet.or.jp says Solaris has a bug related to X11R6-style
+   XIM support.  */
+
+#define INHIBIT_X11R6_XIM
