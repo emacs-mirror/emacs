@@ -438,7 +438,7 @@ If `units', `math-simplify-units' is applied.")
   "If non-nil, recompute evalto's automatically when necessary.")
 
 (defcalcmodevar calc-display-raw nil
-  "If non-nil, display shows unformatted Lisp exprs.(defcalcmodevar For debugging)")
+  "If non-nil, display shows unformatted Lisp exprs. (For debugging)")
 
 (defcalcmodevar calc-internal-prec 12
   "Number of digits of internal precision for calc-mode calculations.")
