@@ -37,6 +37,7 @@ a file name as a string.")
 
 ;;; There are functions elsewhere in Emacs that use this function; check
 ;;; them out before you change the calling method.
+;;;###autoload
 (defun rmail-output-to-rmail-file (file-name &optional count)
   "Append the current message to an Rmail file named FILE-NAME.
 If the file does not exist, ask if it should be created.
@@ -170,6 +171,7 @@ starting with the current one.  Deleted messages are skipped and don't count."
 	(if (> count 0)
 	    (rmail-next-undeleted-message 1))))))
 
+;;;###autoload
 (defvar rmail-fields-not-to-output nil
   "*Regexp describing fields to exclude when outputting a message to a file.")
 
@@ -192,6 +194,7 @@ starting with the current one.  Deleted messages are skipped and don't count."
 
 ;;; There are functions elsewhere in Emacs that use this function; check
 ;;; them out before you change the calling method.
+;;;###autoload
 (defun rmail-output (file-name &optional count noattribute from-gnus)
   "Append this message to system-inbox-format mail file named FILE-NAME.
 A prefix argument N says to output N consecutive messages
