@@ -103,13 +103,27 @@ Global Auto-Revert Mode applies to all buffers."
 Never set this variable directly, use the command `auto-revert-mode' instead.")
 (put 'auto-revert-mode 'permanent-local t)
 
+(defvar auto-revert-timer nil
+  "Timer used by Auto-Revert Mode.")
+
 (defcustom auto-revert-interval 5
   "Time, in seconds, between Auto-Revert Mode file checks.
-Setting this variable has no effect on buffers that are already in
-auto-revert-mode; it only affects buffers that are put into
-auto-revert-mode afterwards."
+The value may be an integer or floating point number.
+
+If a timer is already active, there are two ways to make sure
+that the new value will take effect immediately.  You can set
+this variable through Custom or you can call the command
+`auto-revert-set-timer' after setting the variable.  Otherwise,
+the new value will take effect the first time Auto Revert Mode
+calls `auto-revert-set-timer' for internal reasons or in your
+next editing session."
   :group 'auto-revert
-  :type 'integer)
+  :type 'number
+  :set (lambda (variable value)
+	 (set-default variable value)
+	 (and (boundp 'auto-revert-timer)
+	      auto-revert-timer
+	      (auto-revert-set-timer))))
 
 (defcustom auto-revert-stop-on-user-input t
   "When non-nil Auto-Revert Mode stops checking files on user input."
@@ -191,9 +205,6 @@ buffers to this list.
 The timer function `auto-revert-buffers' is responsible for purging
 the list of old buffers.")
 
-(defvar auto-revert-timer nil
-  "Timer used by Auto-Revert Mode.")
-
 (defvar auto-revert-remaining-buffers '()
   "Buffers not checked when user input stopped execution.")
 
@@ -242,6 +253,7 @@ Use `auto-revert-mode' to revert a particular buffer."
 
 (defun auto-revert-set-timer ()
   "Restart or cancel the timer."
+  (interactive)
   (if (timerp auto-revert-timer)
       (cancel-timer auto-revert-timer))
   (setq auto-revert-timer
