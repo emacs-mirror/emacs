@@ -524,11 +524,11 @@ dumpglyphs (f, left, top, gp, n, hl)
 	/* First look at the face of the text itself.  */
 	if (cf != 0)
 	  {
-	    /* The face codes on the glyphs must be valid indices into the
-	       frame's face table.  */
+	    /* It's possible for the display table to specify
+	       a face code that is out of range.  Use 0 in that case.  */
 	    if (cf < 0 || cf >= FRAME_N_COMPUTED_FACES (f)
 		|| FRAME_COMPUTED_FACES (f) [cf] == 0)
-	      abort ();
+	      cf = 0;
 
 	    if (cf == 1)
 	      face = FRAME_MODE_LINE_FACE (f);
