@@ -21,6 +21,9 @@ Boston, MA 02111-1307, USA.  */
 
 
 #include <config.h>
+#ifdef BOEHM_GC
+#include <gc.h>
+#endif
 #include "lisp.h"
 #include "blockinput.h"
 #include "commands.h"
@@ -202,7 +205,7 @@ void
 init_eval_once ()
 {
   specpdl_size = 50;
-  specpdl = (struct specbinding *) xmalloc (specpdl_size * sizeof (struct specbinding));
+  specpdl = (struct specbinding *) XGC_MALLOC (specpdl_size * sizeof (struct specbinding));
   specpdl_ptr = specpdl;
   max_specpdl_size = 600;
   max_lisp_eval_depth = 300;
@@ -1101,7 +1104,7 @@ internal_catch (tag, func, arg)
 /* Unwind the specbind, catch, and handler stacks back to CATCH, and
    jump to that CATCH, returning VALUE as the value of that catch.
 
-   This is the guts Fthrow and Fsignal; they differ only in the way
+   This is the guts of Fthrow and Fsignal; they differ only in the way
    they choose the catch tag to throw to.  A catch tag for a
    condition-case form has a TAG of Qnil.
 
@@ -1971,12 +1974,14 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
     return form;
 
   QUIT;
+#ifndef BOEHM_GC
   if (consing_since_gc > gc_cons_threshold)
     {
       GCPRO1 (form);
       Fgarbage_collect ();
       UNGCPRO;
     }
+#endif
 
   if (++lisp_eval_depth > max_lisp_eval_depth)
     {
@@ -2660,8 +2665,10 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   register int i;
 
   QUIT;
+#ifndef BOEHM_GC
   if (consing_since_gc > gc_cons_threshold)
     Fgarbage_collect ();
+#endif
 
   if (++lisp_eval_depth > max_lisp_eval_depth)
     {
@@ -2961,7 +2968,7 @@ grow_specpdl ()
   specpdl_size *= 2;
   if (specpdl_size > max_specpdl_size)
     specpdl_size = max_specpdl_size;
-  specpdl = (struct specbinding *) xrealloc (specpdl, specpdl_size * sizeof (struct specbinding));
+  specpdl = (struct specbinding *) XGC_REALLOC (specpdl, specpdl_size * sizeof (struct specbinding));
   specpdl_ptr = specpdl + count;
 }
 
