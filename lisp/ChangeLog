@@ -1,3 +1,16 @@
+2004-02-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el: New file for drag and drop.
+
+	* term/x-win.el: require x-dnd, set after-make-frame-functions
+	to x-dnd-init-frame, let x-dnd-handle-drag-n-drop-event handle
+	drag-n-drop event.
+
+	* dired.el (dired-dnd-test-function, dired-dnd-popup-notice)
+	(dired-dnd-do-ask-action, dired-dnd-handle-local-file)
+	(dired-dnd-handle-file): New functions for drag and drop support.
+	(dired-mode): Initialize drag and drop if x-dnd present.
+
 2004-02-02  Benjamin Rutt  <brutt@bloomington.in.us>
 
 	* diff-mode.el (diff-mode-shared-map): Bind q to `quit-window'.

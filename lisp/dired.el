@@ -1292,7 +1292,16 @@ Keybindings:
        (or switches dired-listing-switches))
   (set (make-local-variable 'font-lock-defaults) '(dired-font-lock-keywords t))
   (dired-sort-other dired-actual-switches t)
-  (run-hooks 'dired-mode-hook))
+  (run-hooks 'dired-mode-hook)
+  (when (featurep 'x-dnd)
+    (make-variable-buffer-local 'x-dnd-test-function)
+    (make-variable-buffer-local 'x-dnd-protocol-alist)
+    (setq x-dnd-test-function 'dired-dnd-test-function)
+    (setq x-dnd-protocol-alist
+	  (append '(("^file:///" . dired-dnd-handle-local-file)
+		    ("^file://"  . dired-dnd-handle-file)
+		    ("^file:"    . dired-dnd-handle-local-file))
+		  x-dnd-protocol-alist))))
 
 ;; Idiosyncratic dired commands that don't deal with marks.
 
@@ -3130,6 +3139,93 @@ true then the type of the file linked to by FILE is printed instead."
 (autoload 'dired-run-shell-command "dired-aux")
 
 (autoload 'dired-query "dired-aux")
+
+
+;;;;  Drag and drop support
+
+(defun dired-dnd-test-function (window action types)
+  "The test function for drag and drop into dired buffers.
+WINDOW is where the mouse is when this function is called.  It may be a frame
+if the mouse is over the menu bar, scroll bar or tool bar.
+ACTION is the suggested action from the source, and TYPES are the
+types the drop data can have.  This function only accepts drops with
+types in `x-dnd-known-types'.  It returns the action suggested by the source."
+  (let ((type (x-dnd-choose-type types)))
+    (if type
+	(cons action type)
+      nil)))
+
+(defun dired-dnd-popup-notice ()
+  (x-popup-dialog 
+   t
+   '("Recursive copies not enabled.\nSee variable dired-recursive-copies." 
+     ("Ok" . nil))))
+
+
+(defun dired-dnd-do-ask-action (uri)
+  ;; No need to get actions and descriptions from the source,
+  ;; we only have three actions anyway.
+  (let ((action (x-popup-menu 
+		 t
+		 (list "What action?"
+		       (cons ""
+			     '(("Copy here" . copy)
+			       ("Move here" . move)
+			       ("Link here" . link)
+			       "--"
+			       ("Cancel" . nil)))))))
+    (if action
+	(dired-dnd-handle-local-file uri action)
+      nil)))
+
+(defun dired-dnd-handle-local-file (uri action)
+  "Copy, move or link a file to the dired directory.
+URI is the file to handle, ACTION is one of copy, move, link or ask.
+Ask means pop up a menu for the user to select one of copy, move or link."
+  (require 'dired-aux)
+  (let* ((from (x-dnd-get-local-file-name uri t))
+	 (to (if from (concat (dired-current-directory)
+			   (file-name-nondirectory from))
+	       nil)))
+    (if from
+	(cond ((or (eq action 'copy)
+		   (eq action 'private))	; Treat private as copy.
+
+	       ;; If copying a directory and dired-recursive-copies is nil,
+	       ;; dired-copy-file silently fails.  Pop up a notice.
+	       (if (and (file-directory-p from)
+			(not dired-recursive-copies))
+		   (dired-dnd-popup-notice)
+		 (progn
+		   (dired-copy-file from to 1)
+		   (dired-relist-entry to)
+		   action)))
+
+	       ((eq action 'move)
+		(dired-rename-file from to 1)
+		(dired-relist-entry to)
+		action)
+
+	       ((eq action 'link)
+		(make-symbolic-link from to 1)
+		(dired-relist-entry to)
+		action)
+
+	       ((eq action 'ask)
+		(dired-dnd-do-ask-action uri))
+
+	       (t nil)))))
+
+(defun dired-dnd-handle-file (uri action)
+  "Copy, move or link a file to the dired directory if it is a local file.
+URI is the file to handle.  If the hostname in the URI isn't local, do nothing.
+ACTION is one of copy, move, link or ask.
+Ask means pop up a menu for the user to select one of copy, move or link."
+  (let ((local-file (x-dnd-get-local-file-uri uri)))
+    (if local-file (dired-dnd-handle-local-file local-file action)
+      nil)))
+
+
 
 (if (eq system-type 'vax-vms)
     (load "dired-vms"))

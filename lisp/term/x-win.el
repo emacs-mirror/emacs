@@ -76,6 +76,7 @@
 (require 'select)
 (require 'menu-bar)
 (require 'fontset)
+(require 'x-dnd)
 
 (defvar x-invocation-args)
 
@@ -2452,6 +2453,7 @@ order until succeed.")
 ;; Turn on support for mouse wheels.
 (mouse-wheel-mode 1)
 
+
 ;; Enable CLIPBOARD copy/paste through menu bar commands.
 (menu-bar-enable-clipboard)
 
@@ -2468,6 +2470,10 @@ order until succeed.")
 (define-key menu-bar-edit-menu [paste]
   (cons "Paste" (cons "Paste text from clipboard or kill ring"
 		      'x-clipboard-yank)))
+
+;; Initiate drag and drop
+(add-hook 'after-make-frame-functions 'x-dnd-init-frame)
+(global-set-key [drag-n-drop] 'x-dnd-handle-drag-n-drop-event)
 
 ;;; arch-tag: f1501302-db8b-4d95-88e3-116697d89f78
 ;;; x-win.el ends here
