@@ -630,7 +630,7 @@ echo "Making links to \`vms'"
  cd ../${tempdir}/vms
  rm -f *~)
 
-### It would be nice if they could all be symlinks to etc's copy, but
+### It would be nice if they could all be symlinks to top-level copy, but
 ### you're not supposed to have any symlinks in distribution tar files.
 echo "Making sure copying notices are all copies of \`COPYING'"
 for subdir in . etc info leim lib-src lisp lwlib mac msdos nt src; do
