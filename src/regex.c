@@ -29,7 +29,7 @@
 /* We need this for `regex.h', and perhaps for the Emacs include files.  */
 #include <sys/types.h>
 
-#ifdef HAVE_CONFIG_H
+#if defined (HAVE_CONFIG_H) || defined (emacs)
 #include "config.h"
 #endif
 
