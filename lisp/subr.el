@@ -1468,7 +1468,7 @@ If function is a command (see `commandp'), value is a list of the form
 	   (when (stringp (car function))
 	     (setq function (cdr function)))
 	   (let ((form (car function)))
-	     (when (eq (car-safe form 'interactive))
+	     (when (eq (car-safe form) 'interactive)
 	       (copy-sequence form)))))))
 
 (defun assq-delete-all (key alist)
