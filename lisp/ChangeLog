@@ -1,4 +1,10 @@
-2003-04-23  Kenichi Handa  <handa@etlken2>
+2003-05-01  Eduardo Mu,Aq(Boz  <emufer@terra.es>  (tiny change)
+
+	* ls-lisp.el (ls-lisp-format-file-size): New function to implement
+	"-h" switch.
+	(ls-lisp-format): Use it.
+
+2003-04-23  Kenichi Handa  <handa@m17n.org>
 
 	* language/devanagari.el ("Devanagari"): Documentation string
 	modified.

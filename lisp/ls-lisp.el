@@ -65,6 +65,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 ;;;###autoload
 (defgroup ls-lisp nil
   "Emulate the ls program completely in Emacs Lisp."
@@ -497,7 +499,7 @@ SWITCHES, TIME-INDEX and NOW give the full switch list and time data."
 			(if group
 			    (format " %-8s" group)
 			  (format " %-8d" gid))))))
-	    (format (if (floatp file-size) " %8.0f" " %8d") file-size)
+	    (ls-lisp-format-file-size file-size (memq ?h switches))
 	    " "
 	    (ls-lisp-format-time file-attr time-index now)
 	    " "
@@ -536,6 +538,15 @@ All ls time options, namely c, t and u, are handled."
 	   "%b %e  %Y")
 	 time)
       (error "Unk  0  0000"))))
+
+(defun ls-lisp-format-file-size (file-size human-readable)
+  (if (or (not human-readable)
+          (< file-size 1024))
+      (format (if (floatp file-size) " %8.0f" " %8d") file-size)
+    (do ((file-size (/ file-size 1024.0) (/ file-size 1024.0))
+         ;; kilo, mega, giga, tera, peta, exa
+         (post-fixes (list "k" "M" "G" "T" "P" "E") (cdr post-fixes)))
+        ((< file-size 1024) (format " %7.0f%s"  file-size (car post-fixes))))))
 
 (provide 'ls-lisp)
 
