@@ -2620,12 +2620,6 @@ read_process_output_error_handler (error)
   Fsleep_for (make_number (2), Qnil);
 }
 
-#ifdef WINDOWSNT
-#define READ_CHILD_OUTPUT read_child_output
-#else
-#define READ_CHILD_OUTPUT read
-#endif
-
 /* Read pending output from the process channel,
    starting with our buffered-ahead character if we have one.
    Yield number of decoded characters read.
@@ -2695,14 +2689,14 @@ read_process_output (proc, channel)
     bcopy (coding->carryover, buf, coding->carryover_size);
 
   if (proc_buffered_char[channel] < 0)
-    nchars = READ_CHILD_OUTPUT (channel, buf + coding->carryover_size,
-				(sizeof buf) - coding->carryover_size);
+    nchars = read (channel, buf + coding->carryover_size,
+		   (sizeof buf) - coding->carryover_size);
   else
     {
       buf[coding->carryover_size] = proc_buffered_char[channel];
       proc_buffered_char[channel] = -1;
-      nchars = READ_CHILD_OUTPUT (channel, buf + coding->carryover_size + 1,
-				    (sizeof buf) - coding->carryover_size - 1);
+      nchars = read (channel, buf + coding->carryover_size + 1,
+		     (sizeof buf) - coding->carryover_size - 1);
       if (nchars < 0)
 	nchars = 1;
       else
