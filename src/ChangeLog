@@ -1,3 +1,25 @@
+2002-04-15  Andreas Schwab  <schwab@suse.de>
+
+	* config.in: Regenerated using autoheader.
+
+	* m/7300.h, m/acorn.h, m/alliant-2800.h, m/alliant.h, m/alpha.h,
+	m/altos.h, m/amdahl.h, m/apollo.h, m/arm.h, m/att3b.h, m/aviion.h,
+	m/celerity.h, m/clipper.h, m/cnvrgnt.h, m/convex.h, m/cydra5.h,
+	m/delta.h, m/delta88k.h, m/dpx2.h, m/elxsi.h, m/gec63.h,
+	m/gould.h, m/hp800.h, m/hp9000s300.h, m/i860.h, m/ia64.h,
+	m/ibmps2-aix.h, m/ibmrs6000.h, m/ibmrt-aix.h, m/ibmrt.h,
+	m/ibms390.h, m/intel386.h, m/iris4d.h, m/irist.h, m/isi-ov.h,
+	m/m68k.h, m/macppc.h, m/masscomp.h, m/mg1.h, m/mips-siemens.h,
+	m/mips.h, m/news-r6.h, m/news.h, m/next.h, m/nh3000.h, m/nh4000.h
+	m/ns32000.h, m/orion.h, m/pfa50.h, m/plexus.h, m/pmax.h,
+	m/powerpcle.h, m/pyrmips.h, m/sequent-ptx.h, m/sequent.h,
+	m/sparc.h, m/sr2k.h, m/symmetry.h, m/tad68k.h, m/tahoe.h,
+	m/targon31.h, m/tek4300.h, m/tekxd88.h, m/template.h, m/tower32.h,
+	m/tower32v3.h, m/ustation.h, m/vax.h, m/wicat.h, m/windowsnt.h,
+	m/xps100.h, s/aix3-2.h, s/aix4-2.h, s/irix4-0.h, s/irix5-0.h,
+	s/sco5.h, s/unixware.h: Don't set HAVE_ALLOCA, C_ALLOCA and
+	STACK_DIRECTION, now set by autoconf.
+
 2002-04-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* dispnew.c (marginal_area_string): Sort arguments.
