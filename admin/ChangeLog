@@ -1,3 +1,8 @@
+2003-10-01  Miles Bader  <miles@gnu.org>
+
+	* quick-install-emacs: Don't use "function" keyword when defining
+	shell functions.
+
 2003-09-27  Miles Bader  <miles@gnu.ai.mit.edu>
 
 	* quick-install-emacs: Remove fns-* pruning, since that file no

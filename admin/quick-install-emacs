@@ -133,7 +133,8 @@ elif test ! -r "$BUILD/config.status"; then
 fi
 
 CONFIG_STATUS="$BUILD/config.status"
-function get_config_var () {
+get_config_var ()
+{
   if ! sed -n "s/^s\(.\)@$1@\1\(.*\)\1.*$/\2/p" $CONFIG_STATUS | sed q | grep ''
   then
     echo 1>&2 "$me: $1: Configuration variable not found in $CONFIG_STATUS"
@@ -153,7 +154,8 @@ DST_BIN="$prefix/bin"
 DST_LIBEXEC="$prefix/libexec/emacs/$VERSION/$ARCH"
 DST_INFO="$prefix/info"
 
-function maybe_mkdir () {
+maybe_mkdir ()
+{
   if ! test -d "$1"; then
     $MKDIR "$1" 2>&1 | sed "s/^mkdir:/$me:/" 1>&2
   fi
@@ -181,7 +183,8 @@ fi
 
 test x"$PRUNE" = xonly && exit 0
 
-function maybe_emit_copy () {
+maybe_emit_copy ()
+{
   if test "$FORCE" = yes || ! cmp -s $1 $2; then
     echo $LINK_CMD $1 $2
   fi
