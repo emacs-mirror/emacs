@@ -399,14 +399,19 @@ internal_with_output_to_temp_buffer (bufname, function, args)
 {
   int count = specpdl_ptr - specpdl;
   Lisp_Object buf, val;
+  struct gcpro gcpro1;
 
+  GCPRO1 (args);
   record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
   temp_output_buffer_setup (bufname);
   buf = Vstandard_output;
+  UNGCPRO;
 
   val = (*function) (args);
 
+  GCPRO1 (val);
   temp_output_buffer_show (buf);
+  UNGCPRO;
 
   return unbind_to (count, val);
 }
