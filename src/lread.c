@@ -723,9 +723,10 @@ readevalloop (readcharfun, stream, sourcename, evalfun, printflag)
 
       if (!NILP (Vpurify_flag) && c == '(')
 	{
+	  int count1 = specpdl_ptr - specpdl;
 	  record_unwind_protect (unreadpure, Qnil);
 	  val = read_list (-1, readcharfun);
-	  unbind_to (count + 1, Qnil);
+	  unbind_to (count1, Qnil);
 	}
       else
 	{
