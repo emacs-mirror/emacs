@@ -174,6 +174,8 @@ we're in the GUD buffer)."
 
 ;; ======================================================================
 ;; speedbar support functions and variables.
+(eval-when-compile (require 'speedbar))
+
 (defvar gud-last-speedbar-buffer nil
   "The last GUD buffer used.")
 
@@ -181,10 +183,28 @@ we're in the GUD buffer)."
   "Description of the currently displayed GUD stack.
 t means that there is no stack, and we are in display-file mode.")
 
+(defvar gud-speedbar-key-map nil
+  "Keymap used when in the buffers display mode.")
+
+(defun gud-install-speedbar-variables ()
+  "Install those variables used by speedbar to enhance gud/gdb."
+  (if gud-speedbar-key-map
+      nil
+    (setq gud-speedbar-key-map (speedbar-make-specialized-keymap))
+
+    (define-key gud-speedbar-key-map "j" 'speedbar-edit-line)
+    (define-key gud-speedbar-key-map "e" 'speedbar-edit-line)
+    (define-key gud-speedbar-key-map "\C-m" 'speedbar-edit-line)))
+
 (defvar gud-speedbar-menu-items
   ;; Note to self.  Add expand, and turn off items when not available.
   '(["Jump to stack frame" speedbar-edit-line t])
   "Additional menu items to add the the speedbar frame.")
+
+;; Make sure our special speedbar mode is loaded
+(if (featurep 'speedbar)
+    (gud-install-speedbar-variables)
+  (add-hook 'speedbar-load-hook 'gud-install-speedbar-variables))
 
 (defun gud-speedbar-buttons (buffer)
   "Create a speedbar display based on the current state of GUD.
@@ -487,15 +507,16 @@ available with older versions of GDB."
   (let ((newlst nil)
 	(gud-gdb-fetched-stack-frame-list nil))
     (gud-gdb-run-command-fetch-lines "backtrace" buffer)
-    (if (string-match "No stack" (car gud-gdb-fetched-stack-frame-list))
+    (if (and (car gud-gdb-fetched-stack-frame-list)
+	     (string-match "No stack" (car gud-gdb-fetched-stack-frame-list)))
 	;; Go into some other mode???
 	nil
       (while gud-gdb-fetched-stack-frame-list
 	(let ((e (car gud-gdb-fetched-stack-frame-list))
 	      (name nil) (num nil))
 	  (if (not (or
-		    (string-match "^#\\([0-9]+\\) +[0-9a-fx]+ in \\([0-9a-zA-Z_]+\\) (" e)
-		    (string-match "^#\\([0-9]+\\) +\\([0-9a-zA-Z_]+\\) (" e)))
+		    (string-match "^#\\([0-9]+\\) +[0-9a-fx]+ in \\([:0-9a-zA-Z_]+\\) (" e)
+		    (string-match "^#\\([0-9]+\\) +\\([:0-9a-zA-Z_]+\\) (" e)))
 	      (if (not (string-match
 			"at \\([-0-9a-zA-Z_.]+\\):\\([0-9]+\\)$" e))
 		  nil
