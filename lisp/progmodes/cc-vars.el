@@ -493,13 +493,13 @@ Note that CC Mode uses this variable to set many other variables that
 handle the paragraph filling.  That's done at mode initialization or
 when you switch to a style which sets this variable.  Thus, if you
 change it in some other way, e.g. interactively in a CC Mode buffer,
-you will need to do \\[c-mode] (or whatever mode you're currently
-using) to reinitialize.
+you will need to do \\[c-setup-paragraph-variables] afterwards so that
+the other variables are updated with the new value.
 
-Note also that when CC Mode starts up, the other variables are
-modified before the mode hooks are run.  If you change this variable
-in a mode hook, you can call `c-setup-paragraph-variables' afterwards
-to redo it."
+Note also that when CC Mode starts up, all variables are initialized
+before the mode hooks are run.  It's therefore necessary to make a
+call to `c-setup-paragraph-variables' explicitly if you change this
+variable in a mode hook."
   :type '(radio
 	  (regexp :tag "Regexp for all modes")
 	  (list
