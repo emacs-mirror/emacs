@@ -268,6 +268,7 @@ redefine this function to suit your own tastes."
 
 (defun mouse-avoidance-banish-hook ()
   (if (and (not executing-kbd-macro)	; don't check inside macro
+	   (cadr (mouse-position))      ; don't move unless in an Emacs frame
 	   ;; Don't do anything if last event was a mouse event.
 	   (not (and (consp last-input-event)
 		     (symbolp (car last-input-event))
