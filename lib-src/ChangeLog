@@ -1,3 +1,7 @@
+2000-12-13  Dave Love  <fx@gnu.org>
+
+	* ebrowse.c (ensure_scope_buffer_room): Fix xrealloc call.
+
 2000-12-06  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (LOCAL_FLAGS): Remove -DVERSION flag, since we

@@ -9222,7 +9222,7 @@ Output the @sc{mime} object to a process (@code{gnus-mime-pipe-part}).
 @item i (Article)
 Insert the contents of the @sc{mime} object into the buffer
 (@code{gnus-mime-inline-part}) as text/plain.  If given a prefix, insert
-the raw contens without decoding.  If given a numerical prefix, you can
+the raw contents without decoding.  If given a numerical prefix, you can
 do semi-manual charset stuff (see
 @code{gnus-summary-show-article-charset-alist} in @pxref{Paging the
 Article}).
