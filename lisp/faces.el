@@ -1505,47 +1505,6 @@ If omitted or nil, that stands for the selected frame's display."
      (t
       (> (tty-color-gray-shades display) 2)))))
 
-(defun display-supports-face-attributes-p (attributes &optional display)
-  "Return non-nil if all the face attributes in ATTRIBUTES are supported.
-The optional argument DISPLAY can be a display name, a frame, or
-nil (meaning the selected frame's display)
-
-The definition of `supported' is somewhat heuristic, but basically means
-that a face containing all the attributes in ATTRIBUTES, when merged
-with the default face for display, can be represented in a way that's
-
- (1) different in appearance than the default face, and
- (2) `close in spirit' to what the attributes specify, if not exact.
-
-Point (2) implies that a `:weight black' attribute will be satisfied by
-any display that can display bold, and a `:foreground \"yellow\"' as long
-as it can display a yellowish color, but `:slant italic' will _not_ be
-satisfied by the tty display code's automatic substitution of a `dim'
-face for italic."
-  (let ((frame
-	 (if (framep display)
-	     display
-	   (car (frames-on-display-list display)))))
-    (if (not (memq (framep frame) '(x w32 mac)))
-	;; On ttys, `tty-supports-face-attributes-p' does all the work we need.
-	(tty-supports-face-attributes-p attributes frame)
-      ;; For now, we assume that non-tty displays can support everything,
-      ;; and so we just check to see if any of the specified attributes is
-      ;; different from the default -- though this probably isn't always
-      ;; accurate for font-related attributes.  Later, we should add the
-      ;; ability to query about specific fonts, colors, etc.
-      (while (and attributes
-		  (let* ((attr (car attributes))
-			 (val (cadr attributes))
-			 (default-val (face-attribute 'default attr frame)))
-		    (if (and (stringp val) (stringp default-val))
-			;; compare string attributes case-insensitively
-			(eq (compare-strings val nil nil default-val nil nil t)
-			    t)
-		      (equal val default-val))))
-	(setq attributes (cddr attributes)))
-      (not (null attributes)))))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Background mode.

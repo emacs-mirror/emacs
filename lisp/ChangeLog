@@ -230,6 +230,21 @@
 	* subr.el (functionp): Function removed (now a subr).
 	* help-fns.el (describe-function-1): Handle interpreted closures.
 
+2004-06-03  Karl Fogel  <kfogel@red-bean.com>
+
+	* vc-svn.el (vc-svn-checkin): Use 'nconc' instead of 'list*',
+	because the latter is a CL-ism.  This fixes the bug reported by
+	Shawn Boyette <mdxi@collapsar.net> in 
+        http://lists.gnu.org/archive/html/emacs-devel/2004-05/msg00442.html.
+
+2004-06-04  Miles Bader  <miles@gnu.org>
+
+	* faces.el (display-supports-face-attributes-p): Function moved to
+	C code.  Previously only the tty-related portion of this function
+	was done in C; however the previous attempt to do a halfway-proper
+	job for non-tty displays in lisp didn't work properly because of
+	funny conditions during emacs startup.
+
 2004-06-04  Miles Bader  <miles@gnu.org>
 
 	* faces.el (face-differs-from-default-p): Use a different

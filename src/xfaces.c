@@ -4867,6 +4867,39 @@ If FRAME is omitted or nil, use the selected frame.  */)
 }
 
 
+/* Compare face-attribute values v1 and v2 for equality.  Value is non-zero if
+   all attributes are `equal'.  Tries to be fast because this function
+   is called quite often.  */
+
+static INLINE int
+face_attr_equal_p (v1, v2)
+{
+  /* Type can differ, e.g. when one attribute is unspecified, i.e. nil,
+     and the other is specified.  */
+  if (XTYPE (v1) != XTYPE (v2))
+    return 0;
+
+  if (EQ (v1, v2))
+    return 1;
+
+  switch (XTYPE (v1))
+    {
+    case Lisp_String:
+      if (SBYTES (v1) != SBYTES (v2))
+	return 0;
+
+      return bcmp (SDATA (v1), SDATA (v2), SBYTES (v1)) == 0;
+
+    case Lisp_Int:
+    case Lisp_Symbol:
+      return 0;
+
+    default:
+      return !NILP (Fequal (v1, v2));
+    }
+}
+
+
 /* Compare face vectors V1 and V2 for equality.  Value is non-zero if
    all attributes are `equal'.  Tries to be fast because this function
    is called quite often.  */
@@ -4878,38 +4911,7 @@ lface_equal_p (v1, v2)
   int i, equal_p = 1;
 
   for (i = 1; i < LFACE_VECTOR_SIZE && equal_p; ++i)
-    {
-      Lisp_Object a = v1[i];
-      Lisp_Object b = v2[i];
-
-      /* Type can differ, e.g. when one attribute is unspecified, i.e. nil,
-	 and the other is specified.  */
-      equal_p = XTYPE (a) == XTYPE (b);
-      if (!equal_p)
-	break;
-
-      if (!EQ (a, b))
-	{
-	  switch (XTYPE (a))
-	    {
-	    case Lisp_String:
-	      equal_p = ((SBYTES (a)
-			  == SBYTES (b))
-			 && bcmp (SDATA (a), SDATA (b),
-				  SBYTES (a)) == 0);
-	      break;
-
-	    case Lisp_Int:
-	    case Lisp_Symbol:
-	      equal_p = 0;
-	      break;
-
-	    default:
-	      equal_p = !NILP (Fequal (a, b));
-	      break;
-	    }
-	}
-    }
+    equal_p = face_attr_equal_p (v1[i], v2[i]);
 
   return equal_p;
 }
@@ -5206,192 +5208,6 @@ If FRAME is unspecified or nil, the current frame is used.  */)
 
   return make_number (color_distance (&cdef1, &cdef2));
 }
-
-
-/***********************************************************************
-		    Face capability testing for ttys
- ***********************************************************************/
-
-
-/* If the distance (as returned by color_distance) between two colors is
-   less than this, then they are considered the same, for determining
-   whether a color is supported or not.  The range of values is 0-65535.  */
-
-#define TTY_SAME_COLOR_THRESHOLD  10000
-
-
-DEFUN ("tty-supports-face-attributes-p",
-       Ftty_supports_face_attributes_p, Stty_supports_face_attributes_p,
-       1, 2, 0,
-       doc: /* Return non-nil if all the face attributes in ATTRIBUTES are supported.
-The optional argument FRAME is the frame on which to test; if it is nil
-or unspecified, then the current frame is used.  If FRAME is not a tty
-frame, then nil is returned.
-
-The definition of `supported' is somewhat heuristic, but basically means
-that a face containing all the attributes in ATTRIBUTES, when merged
-with the default face for display, can be represented in a way that's
-
- \(1) different in appearance than the default face, and
- \(2) `close in spirit' to what the attributes specify, if not exact.
-
-Point (2) implies that a `:weight black' attribute will be satisfied
-by any terminal that can display bold, and a `:foreground "yellow"' as
-long as the terminal can display a yellowish color, but `:slant italic'
-will _not_ be satisfied by the tty display code's automatic
-substitution of a `dim' face for italic.  */)
-     (attributes, frame)
-     Lisp_Object attributes, frame;
-{
-  int weight, i;
-  struct frame *f;
-  Lisp_Object val, fg, bg;
-  XColor fg_tty_color, fg_std_color;
-  XColor bg_tty_color, bg_std_color;
-  Lisp_Object attrs[LFACE_VECTOR_SIZE];
-  unsigned test_caps = 0;
-
-  if (NILP (frame))
-    frame = selected_frame;
-  CHECK_LIVE_FRAME (frame);
-  f = XFRAME (frame);
-
-  for (i = 0; i < LFACE_VECTOR_SIZE; i++)
-    attrs[i] = Qunspecified;
-  merge_face_vector_with_property (f, attrs, attributes);
-
-  /* This function only works on ttys.  */
-  if (!FRAME_TERMCAP_P (f) && !FRAME_MSDOS_P (f))
-    return Qnil;
-
-  /* First check some easy-to-check stuff; ttys support none of the
-     following attributes, so we can just return nil if any are requested.  */
-
-  /* stipple */
-  val = attrs[LFACE_STIPPLE_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val))
-    return Qnil;
-
-  /* font height */
-  val = attrs[LFACE_HEIGHT_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val))
-    return Qnil;
-
-  /* font width */
-  val = attrs[LFACE_SWIDTH_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val)
-      && face_numeric_swidth (val) != XLFD_SWIDTH_MEDIUM)
-    return Qnil;
-
-  /* overline */
-  val = attrs[LFACE_OVERLINE_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val))
-    return Qnil;
-
-  /* strike-through */
-  val = attrs[LFACE_STRIKE_THROUGH_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val))
-    return Qnil;
-
-  /* boxes */
-  val = attrs[LFACE_BOX_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val))
-    return Qnil;
-
-  /* slant (italics/oblique); We consider any non-default value
-     unsupportable on ttys, even though the face code actually `fakes'
-     them using a dim attribute if possible.  This is because the faked
-     result is too different from what the face specifies.  */
-  val = attrs[LFACE_SLANT_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val)
-      && face_numeric_slant (val) != XLFD_SLANT_ROMAN)
-    return Qnil;
-
-
-  /* Test for terminal `capabilities' (non-color character attributes).  */
-
-  /* font weight (bold/dim) */
-  weight = face_numeric_weight (attrs[LFACE_WEIGHT_INDEX]);
-  if (weight >= 0)
-    {
-      if (weight > XLFD_WEIGHT_MEDIUM)
-	test_caps = TTY_CAP_BOLD;
-      else if (weight < XLFD_WEIGHT_MEDIUM)
-	test_caps = TTY_CAP_DIM;
-    }
-
-  /* underlining */
-  val = attrs[LFACE_UNDERLINE_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val))
-    {
-      if (STRINGP (val))
-	return Qnil;		/* ttys don't support colored underlines */
-      else
-	test_caps |= TTY_CAP_UNDERLINE;
-    }
-
-  /* inverse video */
-  val = attrs[LFACE_INVERSE_INDEX];
-  if (!UNSPECIFIEDP (val) && !NILP (val))
-    test_caps |= TTY_CAP_INVERSE;
-
-
-  /* Color testing.  */
-
-  /* Default the color indices in FG_TTY_COLOR and BG_TTY_COLOR, since
-     we use them when calling `tty_capable_p' below, even if the face
-     specifies no colors.  */
-  fg_tty_color.pixel = FACE_TTY_DEFAULT_FG_COLOR;
-  bg_tty_color.pixel = FACE_TTY_DEFAULT_BG_COLOR;
-
-  /* Check if foreground color is close enough.  */
-  fg = attrs[LFACE_FOREGROUND_INDEX];
-  if (STRINGP (fg))
-    {
-      if (! tty_lookup_color (f, fg, &fg_tty_color, &fg_std_color))
-	return Qnil;
-      else if (color_distance (&fg_tty_color, &fg_std_color)
-	       > TTY_SAME_COLOR_THRESHOLD)
-	return Qnil;
-    }
-
-  /* Check if background color is close enough.  */
-  bg = attrs[LFACE_BACKGROUND_INDEX];
-  if (STRINGP (bg))
-    {
-      if (! tty_lookup_color (f, bg, &bg_tty_color, &bg_std_color))
-	return Qnil;
-      else if (color_distance (&bg_tty_color, &bg_std_color)
-	       > TTY_SAME_COLOR_THRESHOLD)
-	return Qnil;
-    }
-
-  /* If both foreground and background are requested, see if the
-     distance between them is OK.  We just check to see if the distance
-     between the tty's foreground and background is close enough to the
-     distance between the standard foreground and background.  */
-  if (STRINGP (fg) && STRINGP (bg))
-    {
-      int delta_delta
-	= (color_distance (&fg_std_color, &bg_std_color)
-	   - color_distance (&fg_tty_color, &bg_tty_color));
-      if (delta_delta > TTY_SAME_COLOR_THRESHOLD
-	  || delta_delta < -TTY_SAME_COLOR_THRESHOLD)
-	return Qnil;
-    }
-
-
-  /* See if the capabilities we selected above are supported, with the
-     given colors.  */
-  if (test_caps != 0 &&
-      ! tty_capable_p (f, test_caps, fg_tty_color.pixel, bg_tty_color.pixel))
-    return Qnil;
-
-
-  /* Hmmm, everything checks out, this terminal must support this face.  */
-  return Qt;
-}
-
 
 
 /***********************************************************************
@@ -5911,6 +5727,326 @@ DEFUN ("face-attributes-as-vector", Fface_attributes_as_vector,
   return lface;
 }
 
+
+
+/***********************************************************************
+			Face capability testing
+ ***********************************************************************/
+
+
+/* If the distance (as returned by color_distance) between two colors is
+   less than this, then they are considered the same, for determining
+   whether a color is supported or not.  The range of values is 0-65535.  */
+
+#define TTY_SAME_COLOR_THRESHOLD  10000
+
+
+/* Return non-zero if all the face attributes in ATTRS are supported
+   on the window-system frame F.
+
+   The definition of `supported' is somewhat heuristic, but basically means
+   that a face containing all the attributes in ATTRS, when merged with the
+   default face for display, can be represented in a way that's
+
+    \(1) different in appearance than the default face, and
+    \(2) `close in spirit' to what the attributes specify, if not exact.
+
+   This function modifies ATTRS by merging from the default face.  */
+
+static int
+x_supports_face_attributes_p (f, attrs)
+     struct frame *f;
+     Lisp_Object *attrs;
+{
+  Lisp_Object *def_attrs;
+  struct face *def_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+
+  if (def_face == NULL)
+    {
+      if (! realize_basic_faces (f))
+	signal_error ("Cannot realize default face", 0);
+      def_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+    }
+
+  def_attrs = def_face->lface;
+
+  /* Check that other specified attributes are different that the default
+     face.  */
+  if ((!UNSPECIFIEDP (attrs[LFACE_UNDERLINE_INDEX])
+       && face_attr_equal_p (attrs[LFACE_UNDERLINE_INDEX],
+			     def_attrs[LFACE_UNDERLINE_INDEX]))
+      || (!UNSPECIFIEDP (attrs[LFACE_INVERSE_INDEX])
+	  && face_attr_equal_p (attrs[LFACE_INVERSE_INDEX],
+				def_attrs[LFACE_INVERSE_INDEX]))
+      || (!UNSPECIFIEDP (attrs[LFACE_FOREGROUND_INDEX])
+	  && face_attr_equal_p (attrs[LFACE_FOREGROUND_INDEX],
+				def_attrs[LFACE_FOREGROUND_INDEX]))
+      || (!UNSPECIFIEDP (attrs[LFACE_BACKGROUND_INDEX])
+	  && face_attr_equal_p (attrs[LFACE_BACKGROUND_INDEX],
+				def_attrs[LFACE_BACKGROUND_INDEX]))
+      || (!UNSPECIFIEDP (attrs[LFACE_STIPPLE_INDEX])
+	  && face_attr_equal_p (attrs[LFACE_STIPPLE_INDEX],
+				def_attrs[LFACE_STIPPLE_INDEX]))
+      || (!UNSPECIFIEDP (attrs[LFACE_OVERLINE_INDEX])
+	  && face_attr_equal_p (attrs[LFACE_OVERLINE_INDEX],
+				def_attrs[LFACE_OVERLINE_INDEX]))
+      || (!UNSPECIFIEDP (attrs[LFACE_STRIKE_THROUGH_INDEX])
+	  && face_attr_equal_p (attrs[LFACE_STRIKE_THROUGH_INDEX],
+				def_attrs[LFACE_STRIKE_THROUGH_INDEX]))
+      || (!UNSPECIFIEDP (attrs[LFACE_BOX_INDEX])
+	  && face_attr_equal_p (attrs[LFACE_BOX_INDEX],
+				def_attrs[LFACE_BOX_INDEX])))
+    return 0;
+
+  /* Check font-related attributes, as those are the most commonly
+     "unsupported" on a window-system (because of missing fonts).  */
+  if (!UNSPECIFIEDP (attrs[LFACE_FAMILY_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_HEIGHT_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_WEIGHT_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_SLANT_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_SWIDTH_INDEX])
+      || !UNSPECIFIEDP (attrs[LFACE_AVGWIDTH_INDEX]))
+    {
+      struct face *face;
+      Lisp_Object merged_attrs[LFACE_VECTOR_SIZE];
+
+      bcopy (def_attrs, merged_attrs, sizeof merged_attrs);
+
+      merge_face_vectors (f, attrs, merged_attrs, Qnil);
+
+      face = FACE_FROM_ID (f, lookup_face (f, merged_attrs, 0, 0));
+
+      if (! face)
+	signal_error ("cannot make face", 0);
+
+      /* If the font is the same, then not supported.  */
+      if (face->font == def_face->font)
+	return 0;
+    }
+
+  /* Everything checks out, this face is supported.  */
+  return 1;
+}
+
+
+/* Return non-zero if all the face attributes in ATTRS are supported
+   on the tty frame F.
+
+   The definition of `supported' is somewhat heuristic, but basically means
+   that a face containing all the attributes in ATTRS, when merged
+   with the default face for display, can be represented in a way that's
+
+    \(1) different in appearance than the default face, and
+    \(2) `close in spirit' to what the attributes specify, if not exact.
+
+   Point (2) implies that a `:weight black' attribute will be satisfied
+   by any terminal that can display bold, and a `:foreground "yellow"' as
+   long as the terminal can display a yellowish color, but `:slant italic'
+   will _not_ be satisfied by the tty display code's automatic
+   substitution of a `dim' face for italic.  */
+
+static int
+tty_supports_face_attributes_p (f, attrs)
+     struct frame *f;
+     Lisp_Object *attrs;
+{
+  int weight, i;
+  Lisp_Object val, fg, bg;
+  XColor fg_tty_color, fg_std_color;
+  XColor bg_tty_color, bg_std_color;
+  unsigned test_caps = 0;
+
+  /* First check some easy-to-check stuff; ttys support none of the
+     following attributes, so we can just return nil if any are requested.  */
+
+  /* stipple */
+  val = attrs[LFACE_STIPPLE_INDEX];
+  if (!UNSPECIFIEDP (val) && !NILP (val))
+    return 0;
+
+  /* font height */
+  val = attrs[LFACE_HEIGHT_INDEX];
+  if (!UNSPECIFIEDP (val) && !NILP (val))
+    return 0;
+
+  /* font width */
+  val = attrs[LFACE_SWIDTH_INDEX];
+  if (!UNSPECIFIEDP (val) && !NILP (val)
+      && face_numeric_swidth (val) != XLFD_SWIDTH_MEDIUM)
+    return 0;
+
+  /* overline */
+  val = attrs[LFACE_OVERLINE_INDEX];
+  if (!UNSPECIFIEDP (val) && !NILP (val))
+    return 0;
+
+  /* strike-through */
+  val = attrs[LFACE_STRIKE_THROUGH_INDEX];
+  if (!UNSPECIFIEDP (val) && !NILP (val))
+    return 0;
+
+  /* boxes */
+  val = attrs[LFACE_BOX_INDEX];
+  if (!UNSPECIFIEDP (val) && !NILP (val))
+    return 0;
+
+  /* slant (italics/oblique); We consider any non-default value
+     unsupportable on ttys, even though the face code actually `fakes'
+     them using a dim attribute if possible.  This is because the faked
+     result is too different from what the face specifies.  */
+  val = attrs[LFACE_SLANT_INDEX];
+  if (!UNSPECIFIEDP (val) && !NILP (val)
+      && face_numeric_slant (val) != XLFD_SLANT_ROMAN)
+    return 0;
+
+
+  /* Test for terminal `capabilities' (non-color character attributes).  */
+
+  /* font weight (bold/dim) */
+  weight = face_numeric_weight (attrs[LFACE_WEIGHT_INDEX]);
+  if (weight >= 0)
+    {
+      if (weight > XLFD_WEIGHT_MEDIUM)
+	test_caps = TTY_CAP_BOLD;
+      else if (weight < XLFD_WEIGHT_MEDIUM)
+	test_caps = TTY_CAP_DIM;
+    }
+
+  /* underlining */
+  val = attrs[LFACE_UNDERLINE_INDEX];
+  if (!UNSPECIFIEDP (val) && !NILP (val))
+    {
+      if (STRINGP (val))
+	return 0;		/* ttys don't support colored underlines */
+      else
+	test_caps |= TTY_CAP_UNDERLINE;
+    }
+
+  /* inverse video */
+  val = attrs[LFACE_INVERSE_INDEX];
+  if (!UNSPECIFIEDP (val) && !NILP (val))
+    test_caps |= TTY_CAP_INVERSE;
+
+
+  /* Color testing.  */
+
+  /* Default the color indices in FG_TTY_COLOR and BG_TTY_COLOR, since
+     we use them when calling `tty_capable_p' below, even if the face
+     specifies no colors.  */
+  fg_tty_color.pixel = FACE_TTY_DEFAULT_FG_COLOR;
+  bg_tty_color.pixel = FACE_TTY_DEFAULT_BG_COLOR;
+
+  /* Check if foreground color is close enough.  */
+  fg = attrs[LFACE_FOREGROUND_INDEX];
+  if (STRINGP (fg))
+    {
+      if (! tty_lookup_color (f, fg, &fg_tty_color, &fg_std_color))
+	return 0;
+      else if (color_distance (&fg_tty_color, &fg_std_color)
+	       > TTY_SAME_COLOR_THRESHOLD)
+	return 0;
+    }
+
+  /* Check if background color is close enough.  */
+  bg = attrs[LFACE_BACKGROUND_INDEX];
+  if (STRINGP (bg))
+    {
+      if (! tty_lookup_color (f, bg, &bg_tty_color, &bg_std_color))
+	return 0;
+      else if (color_distance (&bg_tty_color, &bg_std_color)
+	       > TTY_SAME_COLOR_THRESHOLD)
+	return 0;
+    }
+
+  /* If both foreground and background are requested, see if the
+     distance between them is OK.  We just check to see if the distance
+     between the tty's foreground and background is close enough to the
+     distance between the standard foreground and background.  */
+  if (STRINGP (fg) && STRINGP (bg))
+    {
+      int delta_delta
+	= (color_distance (&fg_std_color, &bg_std_color)
+	   - color_distance (&fg_tty_color, &bg_tty_color));
+      if (delta_delta > TTY_SAME_COLOR_THRESHOLD
+	  || delta_delta < -TTY_SAME_COLOR_THRESHOLD)
+	return 0;
+    }
+
+
+  /* See if the capabilities we selected above are supported, with the
+     given colors.  */
+  if (test_caps != 0 &&
+      ! tty_capable_p (f, test_caps, fg_tty_color.pixel, bg_tty_color.pixel))
+    return 0;
+
+
+  /* Hmmm, everything checks out, this terminal must support this face.  */
+  return 1;
+}
+
+
+DEFUN ("display-supports-face-attributes-p",
+       Fdisplay_supports_face_attributes_p, Sdisplay_supports_face_attributes_p,
+       1, 2, 0,
+       doc: /* Return non-nil if all the face attributes in ATTRIBUTES are supported.
+The optional argument DISPLAY can be a display name, a frame, or
+nil (meaning the selected frame's display)
+
+The definition of `supported' is somewhat heuristic, but basically means
+that a face containing all the attributes in ATTRIBUTES, when merged
+with the default face for display, can be represented in a way that's
+
+ \(1) different in appearance than the default face, and
+ \(2) `close in spirit' to what the attributes specify, if not exact.
+
+Point (2) implies that a `:weight black' attribute will be satisfied by
+any display that can display bold, and a `:foreground \"yellow\"' as long
+as it can display a yellowish color, but `:slant italic' will _not_ be
+satisfied by the tty display code's automatic substitution of a `dim'
+face for italic. */)
+  (attributes, display)
+     Lisp_Object attributes, display;
+{
+  int supports, i;
+  Lisp_Object frame;
+  struct frame *f;
+  Lisp_Object attrs[LFACE_VECTOR_SIZE];
+
+  if (NILP (display))
+    frame = selected_frame;
+  else if (FRAMEP (display))
+    frame = display;
+  else
+    {
+      /* Find any frame on DISPLAY.  */
+      Lisp_Object fl_tail;
+
+      frame = Qnil;
+      for (fl_tail = Vframe_list; CONSP (fl_tail); fl_tail = XCDR (fl_tail))
+	{
+	  frame = XCAR (fl_tail);
+	  if (!NILP (Fequal (Fcdr (Fassq (Qdisplay,
+					  XFRAME (frame)->param_alist)),
+			     display)))
+	    break;
+	}
+    }
+
+  CHECK_LIVE_FRAME (frame);
+  f = XFRAME (frame);
+
+  for (i = 0; i < LFACE_VECTOR_SIZE; i++)
+    attrs[i] = Qunspecified;
+  merge_face_vector_with_property (f, attrs, attributes);
+
+  /* Dispatch to the appropriate handler.  */
+  if (FRAME_TERMCAP_P (f) || FRAME_MSDOS_P (f))
+    supports = tty_supports_face_attributes_p (f, attrs);
+  else
+    supports = x_supports_face_attributes_p (f, attrs);
+
+  return supports ? Qt : Qnil;
+}
 
 
 /***********************************************************************
@@ -7713,7 +7849,7 @@ syms_of_xfaces ()
   defsubr (&Sinternal_merge_in_global_face);
   defsubr (&Sface_font);
   defsubr (&Sframe_face_alist);
-  defsubr (&Stty_supports_face_attributes_p);
+  defsubr (&Sdisplay_supports_face_attributes_p);
   defsubr (&Scolor_distance);
   defsubr (&Sinternal_set_font_selection_order);
   defsubr (&Sinternal_set_alternative_font_family_alist);
