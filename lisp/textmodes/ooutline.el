@@ -77,9 +77,9 @@ in the file it applies to.")
   (define-key outline-mode-map [menu-bar hide]
     (cons "Hide" (make-sparse-keymap "Hide")))
 
-  (define-key outline-mode-map [menu-bar hide hide-other]
+  (define-key outline-mode-map [menu-bar hide outline-hide-other]
     '("Hide Other" . outline-hide-other))
-  (define-key outline-mode-map [menu-bar hide hide-sublevels]
+  (define-key outline-mode-map [menu-bar hide outline-hide-sublevels]
     '("Hide Sublevels" . outline-hide-sublevels))
   (define-key outline-mode-map [menu-bar hide hide-subtree]
     '("Hide Subtree" . hide-subtree))
@@ -144,8 +144,8 @@ Commands:\\<outline-mode-map>
 \\[outline-backward-same-level]   outline-backward-same-level
 \\[outline-up-heading]   outline-up-heading		    move from subheading to heading
 
-M-x hide-body	make all text invisible (not headings).
-M-x show-all	make everything in buffer visible.
+\\[hide-body]	make all text invisible (not headings).
+\\[show-all]	make everything in buffer visible.
 
 The remaining commands are used when point is on a heading line.
 They apply to some of the body or subheadings of that heading.
@@ -154,11 +154,11 @@ They apply to some of the body or subheadings of that heading.
 \\[show-children]   show-children	make direct subheadings visible.
 		 No effect on body, or subheadings 2 or more levels down.
 		 With arg N, affects subheadings N levels down.
-M-x hide-entry	   make immediately following body invisible.
-M-x show-entry	   make it visible.
-M-x hide-leaves	   make body under heading and under its subheadings invisible.
+\\[hide-entry]	   make immediately following body invisible.
+\\[show-entry]	   make it visible.
+\\[hide-leaves]	   make body under heading and under its subheadings invisible.
 		     The subheadings remain visible.
-M-x show-branches  make all subheadings at all levels visible.
+\\[show-branches]  make all subheadings at all levels visible.
 
 The variable `outline-regexp' can be changed to control what is a heading.
 A line is a heading if `outline-regexp' matches something at the
@@ -230,10 +230,10 @@ It can assume point is at the beginning of a header line.")
 (defun outline-level ()
   "Return the depth to which a statement is nested in the outline.
 Point must be at the beginning of a header line.  This is actually
-the column number of the end of what `outline-regexp matches'."
+the number of characters that `outline-regexp' matches."
   (save-excursion
     (looking-at outline-regexp)
-    (save-excursion (goto-char (match-end 0)) (current-column))))
+    (- (match-end 0) (match-beginning 0))))
 
 (defun outline-next-preface ()
   "Skip forward to just before the next heading line."
@@ -256,13 +256,14 @@ the column number of the end of what `outline-regexp matches'."
 Only visible heading lines are considered."
   (beginning-of-line)
   (or (outline-on-heading-p)
-      (re-search-backward (concat "^\\(" outline-regexp "\\)") nil 'move)))
+      (re-search-backward (concat "^\\(" outline-regexp "\\)") nil t)
+      (error "before first heading")))
 
 (defun outline-on-heading-p ()
   "Return T if point is on a (visible) heading line."
   (save-excursion
     (beginning-of-line)
-    (and (bobp)
+    (and (bolp)
 	 (looking-at outline-regexp))))
 
 (defun outline-end-of-heading ()
@@ -278,7 +279,8 @@ A heading line is one that starts with a `*' (or that
   (if (< arg 0)
       (beginning-of-line)
     (end-of-line))
-  (re-search-forward (concat "^\\(" outline-regexp "\\)") nil nil arg)
+  (or (re-search-forward (concat "^\\(" outline-regexp "\\)") nil t arg)
+      (error ""))
   (beginning-of-line))
 
 (defun outline-previous-visible-heading (arg)
@@ -357,7 +359,7 @@ while if FLAG is `\\^M' (control-M) the text is hidden."
   (interactive)
   (outline-flag-subtree ?\n))
 
-(defun hide-sublevels (levels)
+(defun outline-hide-sublevels (levels)
   "Hide everything except the top LEVELS levels of headers."
   (interactive "p")
   (if (< levels 1)
@@ -365,6 +367,8 @@ while if FLAG is `\\^M' (control-M) the text is hidden."
   (setq levels (1- levels))
   (save-excursion
     (goto-char (point-min))
+    (or (outline-on-heading-p)
+	(outline-next-heading))
     (hide-subtree)
     (show-children levels)
     (condition-case err
@@ -373,7 +377,7 @@ while if FLAG is `\\^M' (control-M) the text is hidden."
 	(show-children levels))
       (error nil))))
 
-(defun hide-other ()
+(defun outline-hide-other ()
   "Hide everything except for the current body and the parent headings."
   (interactive)
   (outline-hide-sublevels 1)
@@ -412,7 +416,7 @@ while if FLAG is `\\^M' (control-M) the text is hidden."
 	nil
       ;; go to end of line before heading
       (forward-char -1)
-      ;; skip preceding balnk line, if there is one
+      ;; skip preceding blank line, if there is one
       (if (memq (preceding-char) '(?\n ?\^M))
 	  (forward-char -1)))))
 
@@ -464,13 +468,13 @@ With argument, move up ARG levels."
   (outline-back-to-heading)
   (if (eq (funcall outline-level) 1)
       (error ""))
-    (while (and (> (funcall outline-level) 1)
-		(> arg 0)
-		(not (bobp)))
-      (let ((present-level (funcall outline-level)))
-	(while (not (< (funcall outline-level) present-level))
-	  (outline-previous-visible-heading 1))
-	(setq arg (- arg 1)))))
+  (while (and (> (funcall outline-level) 1)
+	      (> arg 0)
+	      (not (bobp)))
+    (let ((present-level (funcall outline-level)))
+      (while (not (< (funcall outline-level) present-level))
+	(outline-previous-visible-heading 1))
+      (setq arg (- arg 1)))))
 
 (defun outline-forward-same-level (arg)
   "Move forward to the ARG'th subheading from here of the same level as the
