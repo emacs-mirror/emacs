@@ -89,6 +89,18 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
+** New minor mode `vis-mode' toggles invisibility in the current buffer.
+When enabled, it makes all invisible text visible.  When disabled, it
+restores the previous value of `buffer-invisibility-spec'. 
+
+** New command `kill-whole-line' kills an entire line at once.
+By default, it is bound to C-S-<backspace>.
+
++++
+** Info now hides node names in menus and cross references by default.
+If you prefer the old behavior, you can set the new user option
+`Info-hide-note-references' to nil.
+
 ** Support for the SQLite interpreter has been added to sql.el by calling
 'sql-sqlite'.
 
