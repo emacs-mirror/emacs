@@ -490,7 +490,7 @@ char *Fortran_suffixes [] =
   { "F", "f", "f90", "for", NULL };
 
 char *Lisp_suffixes [] =
-  { "cl", "clisp", "el", "l", "lisp", "lsp", "ml", NULL };
+  { "cl", "clisp", "el", "l", "lisp", "lsp", "ml", "LSP", NULL };
 
 char *Pascal_suffixes [] =
   { "p", "pas", NULL };
