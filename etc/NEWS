@@ -36,7 +36,7 @@ be put below text lines on the affected frame or frames.
 - By setting X resource `lineSpacing', class `LineSpacing'.  This is
 equivalent ot specifying the frame parameter.
 
-- By specifying `--line-spaceing=N' or `-lsp N' on the command line.
+- By specifying `--line-spacing=N' or `-lsp N' on the command line.
 
 - By setting buffer-local variable `line-spacing'.  The meaning is
 the same, but applies to the a particular buffer only.

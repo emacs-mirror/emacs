@@ -1,3 +1,8 @@
+2000-05-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (handle_single_display_prop): Don't try to set PT if
+	we're interating over a string.
+
 2000-05-09  Dave Love  <fx@gnu.org>
 
 	* fileio.c (Fwrite_region): If APPEND arg is an integer, seek to

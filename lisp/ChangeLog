@@ -1,3 +1,8 @@
+2000-05-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* subr.el (substitute-key-definition): Add comment describing
+	the meaning of PREFIX.
+
 2000-05-10  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/regexp-opt.el (regexp-opt-depth): Fix regexp.
