@@ -1,3 +1,10 @@
+2003-03-24  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el: Rework last change so C-x C-SPC C-SPC does not
+	repeat pop-global-mark by default.
+	(pop-global-mark-quick-repeat): New user option.
+	(set-mark-command): Use it.
+
 2003-03-24  John Paul Wallington  <jpw@gnu.org>
 
 	* emerge.el (emerge-show-file-name): Read event irrespective of
