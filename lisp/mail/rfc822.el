@@ -99,7 +99,7 @@
 			t))))
       (let ((tem (match-data)))
 	(rfc822-nuke-whitespace leave-space)
-	(store-match-data tem)
+	(set-match-data tem)
 	t)))
 
 (defun rfc822-snarf-word ()
