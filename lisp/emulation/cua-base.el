@@ -593,7 +593,7 @@ Repeating prefix key when region is active works as a single prefix key."
     (if prefix-arg
       (reset-this-command-lengths)
       (setq overriding-terminal-local-map nil))
-    (cua--fix-keymaps nil)))
+    (cua--select-keymaps)))
 
 
 ;;; Aux. functions
@@ -940,7 +940,7 @@ Extra commands should be added to `cua-user-movement-commands'")
 	(if cua-enable-cursor-indications
 	    (cua--update-indications))
 
-	(cua--fix-keymaps nil)
+	(cua--select-keymaps)
 	)
 
     (error nil)))
@@ -954,7 +954,9 @@ Extra commands should be added to `cua-user-movement-commands'")
   (unless (listp key) (setq key (list key)))
   (define-key map (vector (cons (if cua-use-hyper-key 'hyper 'meta) key)) fct))
 
-(defvar cua-global-keymap (make-sparse-keymap))
+(defvar cua-global-keymap (make-sparse-keymap)
+  "Global keymap for cua-mode; users may add to this keymap.")
+
 (defvar cua--cua-keys-keymap (make-sparse-keymap))
 (defvar cua--prefix-override-keymap (make-sparse-keymap))
 (defvar cua--prefix-repeat-keymap (make-sparse-keymap))
@@ -968,44 +970,17 @@ Extra commands should be added to `cua-user-movement-commands'")
 (defvar cua--ena-region-keymap nil)
 (defvar cua--ena-global-mark-keymap nil)
 
-(defvar cua--mmap-prefix-override-keymap (cons 'cua--ena-prefix-override-keymap cua--prefix-override-keymap))
-(defvar cua--mmap-prefix-repeat-keymap (cons 'cua--ena-prefix-repeat-keymap cua--prefix-repeat-keymap))
-(defvar cua--mmap-cua-keys-keymap (cons 'cua--ena-cua-keys-keymap cua--cua-keys-keymap))
-(defvar cua--mmap-global-mark-keymap (cons 'cua--ena-global-mark-keymap cua--global-mark-keymap))
-(defvar cua--mmap-rectangle-keymap (cons 'cua--rectangle cua--rectangle-keymap))
-(defvar cua--mmap-region-keymap (cons 'cua--ena-region-keymap cua--region-keymap))
-(defvar cua--mmap-global-keymap (cons 'cua-mode cua-global-keymap))
+(defvar cua--keymap-alist
+  `((cua--ena-prefix-override-keymap . ,cua--prefix-override-keymap)
+    (cua--ena-prefix-repeat-keymap . ,cua--prefix-repeat-keymap)
+    (cua--ena-cua-keys-keymap . ,cua--cua-keys-keymap)
+    (cua--ena-global-mark-keymap . ,cua--global-mark-keymap)
+    (cua--rectangle . ,cua--rectangle-keymap)
+    (cua--ena-region-keymap . ,cua--region-keymap)
+    (cua-mode . ,cua-global-keymap)))
 
-(defvar cua--mmap-list
-  (list cua--mmap-prefix-override-keymap
-	cua--mmap-prefix-repeat-keymap
-	cua--mmap-cua-keys-keymap
-	cua--mmap-global-mark-keymap
-	cua--mmap-rectangle-keymap
-	cua--mmap-region-keymap
-	cua--mmap-global-keymap))
-
-(defun cua--fix-keymaps (disable)
-  ;; Ensure that cua's keymaps are in minor-mode-map-alist and
-  ;; in the correct order.
-  (let (fix
-	(mmap minor-mode-map-alist)
-	(ml cua--mmap-list))
-    (while (and (not fix) mmap ml)
-      (if (not (eq (car mmap) (car ml)))
-	  (setq fix t)
-	(setq mmap (cdr mmap)
-	      ml (cdr ml))))
-    (if ml
-	(setq fix t))
-    (when (or fix disable)
-      (setq ml cua--mmap-list)
-      (while ml
-	(setq minor-mode-map-alist (delq (car ml) minor-mode-map-alist))
-	(setq ml (cdr ml))))
-    (when (and fix (not disable))
-      (setq minor-mode-map-alist
-	    (append (copy-sequence cua--mmap-list) minor-mode-map-alist))))
+(defun cua--select-keymaps ()
+  ;; Setup conditions for selecting the proper keymaps in cua--keymap-alist.
   (setq cua--ena-region-keymap
 	(and mark-active (not deactivate-mark)))
   (setq cua--ena-prefix-override-keymap
@@ -1127,7 +1102,12 @@ paste (in addition to the normal emacs bindings)."
 	)
     (remove-hook 'pre-command-hook 'cua--pre-command-handler)
     (remove-hook 'post-command-hook 'cua--post-command-handler))
-  (cua--fix-keymaps (not cua-mode))
+
+  (if (not cua-mode)
+      (setq emulation-mode-map-alists (delq 'cua--keymap-alist emulation-mode-map-alists))
+    (add-to-list 'emulation-mode-map-alists 'cua--keymap-alist)
+    (cua--select-keymaps))
+
   (if (fboundp 'cua--rectangle-on-off)
       (cua--rectangle-on-off cua-mode))
   (setq transient-mark-mode (and cua-mode
