@@ -2990,21 +2990,33 @@ If the value of the variable is t, undo information is not recorded.");
 Automatically local in all buffers.");
 
   DEFVAR_PER_BUFFER ("cache-long-line-scans", &current_buffer->cache_long_line_scans, Qnil, 
-    "Non-nil means that Emacs should use caches to handle long lines faster.\n\
+    "Non-nil means that Emacs should use caches to handle long lines more quickly.\n\
+This variable is buffer-local, in all buffers.\n\
 \n\
-Emacs moves from one line to the next by scanning the buffer for\n\
-newlines, and it implements columnar operations like move-to-column by\n\
-scanning the buffer, adding character widths as it goes.  If the\n\
+Normally, the line-motion functions work by scanning the buffer for\n\
+newlines.  Columnar operations (like move-to-column and\n\
+compute-motion) also work by scanning the buffer, summing character\n\
+widths as they go.  This works well for ordinary text, but if the\n\
 buffer's lines are very long (say, more than 500 characters), these\n\
-scans can slow Emacs down a great deal.\n\
+motion functions will take longer to execute.  Emacs may also take\n\
+longer to update the display.\n\
 \n\
-If this variable is non-nil, Emacs caches the results of its scans,\n\
-and avoids rescanning regions of the buffer until they are modified.\n\
+If cache-long-line-scans is non-nil, these motion functions cache the\n\
+results of their scans, and consult the cache to avoid rescanning\n\
+regions of the buffer until the text is modified.  The caches are most\n\
+beneficial when they prevent the most searching---that is, when the\n\
+buffer contains long lines and large regions of characters with the\n\
+same, fixed screen width.\n\
 \n\
-If this variable is non-nil, short scans will become slightly slower,\n\
-and the caches will use memory roughly proportional to the number of\n\
-newlines and characters whose visual representation can occupy more than\n\
-one column.");
+When cache-long-line-scans is non-nil, processing short lines will\n\
+become slightly slower (because of the overhead of consulting the\n\
+cache), and the caches will use memory roughly proportional to the\n\
+number of newlines and characters whose screen width varies.\n\
+\n\
+The caches require no explicit maintenance; their accuracy is\n\
+maintained internally by the Emacs primitives.  Enabling or disabling\n\
+the cache should not affect the behavior of any of the motion\n\
+functions; it should only affect their performance.");
 
   DEFVAR_LISP ("transient-mark-mode", &Vtransient_mark_mode,
     "*Non-nil means deactivate the mark when the buffer contents change.");
