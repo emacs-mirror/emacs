@@ -35,7 +35,8 @@
 
 (defun read-envvar-name (prompt &optional mustmatch)
   "Read environment variable name, prompting with PROMPT.
-Optional second arg MUSTMATCH, if non-nil, means require existing envvar name."
+Optional second arg MUSTMATCH, if non-nil, means require existing envvar name.
+If it is also not t, RET does not exit if it does non-null completion."
   (completing-read prompt
 		   (mapcar (function
 			    (lambda (enventry)
@@ -60,7 +61,7 @@ appears at the front of the history list when you type in the new value.
 This function works by modifying `process-environment'."
   (interactive
    (if current-prefix-arg
-       (list (read-envvar-name "Clear environment variable: " t) nil t)
+       (list (read-envvar-name "Clear environment variable: " 'exact) nil t)
      (let* ((var (read-envvar-name "Set environment variable: " nil))
 	    (oldval (getenv var))
 	    newval
