@@ -10039,18 +10039,30 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
      the cursor type given by the frame parameter.  If explicitly
      marked off, draw no cursor.  In all other cases, we want a hollow
      box cursor.  */
-  if (w != XWINDOW (selected_window)
-      || f != FRAME_X_DISPLAY_INFO (f)->x_highlight_frame)
+  if (cursor_in_echo_area
+      && FRAME_HAS_MINIBUF_P (f)
+      && EQ (FRAME_MINIBUF_WINDOW (f), echo_area_window))
     {
-      if (MINI_WINDOW_P (w))
-	new_cursor_type = NO_CURSOR;
+      if (w == XWINDOW (echo_area_window))
+	new_cursor_type = FRAME_DESIRED_CURSOR (f);
       else
 	new_cursor_type = HOLLOW_BOX_CURSOR;
     }
-  else if (w->cursor_off_p)
-    new_cursor_type = NO_CURSOR;
   else
-    new_cursor_type = FRAME_DESIRED_CURSOR (f);
+    {
+      if (w != XWINDOW (selected_window)
+	  || f != FRAME_X_DISPLAY_INFO (f)->x_highlight_frame)
+	{
+	  if (MINI_WINDOW_P (w))
+	    new_cursor_type = NO_CURSOR;
+	  else
+	    new_cursor_type = HOLLOW_BOX_CURSOR;
+	}
+      else if (w->cursor_off_p)
+	new_cursor_type = NO_CURSOR;
+      else
+	new_cursor_type = FRAME_DESIRED_CURSOR (f);
+    }
 
   /* If cursor is currently being shown and we don't want it to be or
      it is in the wrong place, or the cursor type is not what we want,
