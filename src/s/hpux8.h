@@ -23,23 +23,27 @@
 #define ORDINARY_LINK
 
 #ifdef HPUX_USE_SHLIBS
-#define LD_SWITCH_SYSTEM
+#define LD_SWITCH_SYSTEM_TEMACS
 #else
-#define LD_SWITCH_SYSTEM -Xlinker -a -Xlinker archive
+#define LD_SWITCH_SYSTEM_TEMACS -Xlinker -a -Xlinker archive
 #endif
 
 #else /* not __GNUC__ */
+/* Note, -a only works for hpux ld, not cc.  And "cc LD_SWITCH_SYSTEM"
+   is used in configure's $ac_link to do various autoconf checks.
+   Since we only need -a when unexec'ing, only pass in -a to
+   "ld temacs" (ghazi@caip.rutgers.edu  7/10/97).  */
 #if (defined(hp9000s700) || defined(__hp9000s700))
 #ifdef HPUX_USE_SHLIBS
-#define LD_SWITCH_SYSTEM -L/lib/pa1.1
+#define LD_SWITCH_SYSTEM_TEMACS -L/lib/pa1.1
 #else
-#define LD_SWITCH_SYSTEM -a archive -L/lib/pa1.1
+#define LD_SWITCH_SYSTEM_TEMACS -a archive -L/lib/pa1.1
 #endif
 #else /* not (defined(hp9000s700) || defined(__hp9000s700)) */
 #ifdef HPUX_USE_SHLIBS
-#define LD_SWITCH_SYSTEM
+#define LD_SWITCH_SYSTEM_TEMACS
 #else
-#define LD_SWITCH_SYSTEM -a archive
+#define LD_SWITCH_SYSTEM_TEMACS -a archive
 #endif
 #endif /* not (defined(hp9000s700) || defined(__hp9000s700)) */
 #endif /* not __GNUC__ */
