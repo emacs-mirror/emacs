@@ -1218,14 +1218,18 @@ This face is used for ordinary text.
 
 @item mode-line
 @kindex mode-line @r{(face name)}
-This face is used for mode lines, and for menu bars when toolkit menus
-are not used---but only if @code{mode-line-inverse-video} is
-non-@code{nil}.
+This face is used for the mode line of the selected window, and for
+menu bars when toolkit menus are not used---but only if
+@code{mode-line-inverse-video} is non-@code{nil}.
 
 @item modeline
 @kindex modeline @r{(face name)}
 This is an alias for the @code{mode-line} face, for compatibility with
 old Emacs versions.
+
+@item mode-line-inactive
+@kindex mode-line-inactive @r{(face name)}
+This face is used for mode lines of non-selected windows.
 
 @item header-line
 @kindex header-line @r{(face name)}
