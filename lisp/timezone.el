@@ -130,7 +130,7 @@ Understands the following styles:
  (4) 6 May 1992 1641-JST (Wednesday)
  (5) 22-AUG-1993 10:59:12.82
  (6) Thu, 11 Apr 16:17:12 91 [MET]
- (7) Mon, 6  Jul 16:47:20 T 1992 [MET]"
+ (7) Mon, 6  Jul 16:47:20 T 1992 [MET]
  (8) 1996-06-24 21:13:12 [GMT]"
  ;; Get rid of any text properties.
   (and (stringp date)
