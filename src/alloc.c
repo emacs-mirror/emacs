@@ -2031,7 +2031,8 @@ clear_marks ()
 }
 #endif
 
-/* Mark Lisp objects in glyph matrix MATRIX.  */
+/* Mark Lisp objects in glyph matrix MATRIX.  Currently the
+   only interesting objects referenced from glyphs are strings.  */
 
 static void
 mark_glyph_matrix (matrix)
@@ -2052,11 +2053,7 @@ mark_glyph_matrix (matrix)
 	      
 	      while (glyph < end_glyph)
 		{
-		  if (/* OBJECT Is zero for face extending glyphs, padding
-			 spaces and such.  */
-		      glyph->object
-		      /* Marking the buffer itself should not be necessary.  */
-		      && !BUFFERP (glyph->object))
+		  if (GC_STRINGP (glyph->object))
 		    mark_object (&glyph->object);
 		  ++glyph;
 		}
