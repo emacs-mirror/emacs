@@ -2,8 +2,7 @@
 @c %**start of header
 @setfilename tasks.info
 @settitle GNU Task List
-@c UPDATE THIS DATE WHENEVER YOU MAKE CHANGES!
-@set lastupdate 3 January 1997
+@include tasks.version
 @c %**end of header
 
 @setchapternewpage off
