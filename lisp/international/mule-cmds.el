@@ -38,6 +38,7 @@
 (define-key ctl-x-map "\C-m" mule-keymap)
 
 (define-key mule-keymap "f" 'set-buffer-file-coding-system)
+(define-key mule-keymap "r" 'revert-buffer-with-coding-system)
 (define-key mule-keymap "t" 'set-terminal-coding-system)
 (define-key mule-keymap "k" 'set-keyboard-coding-system)
 (define-key mule-keymap "p" 'set-buffer-process-coding-system)
@@ -113,28 +114,37 @@
 	      :help "Display multilingual environment settings")
   t)
 
-(define-key-after set-coding-system-map [set-buffer-file-coding-system]
-  '(menu-item "For Saving this Buffer" set-buffer-file-coding-system
-	      :help "How to encode this buffer on disk")
-  t)
 (define-key-after set-coding-system-map [universal-coding-system-argument]
   '(menu-item "For Next Command" universal-coding-system-argument
 	      :help "Coding system to be used by next command")
+  t)
+(define-key-after set-coding-system-map [separator-1]
+  '("--")
+  t)
+(define-key-after set-coding-system-map [set-buffer-file-coding-system]
+  '(menu-item "For Saving This Buffer" set-buffer-file-coding-system
+	      :help "How to encode this buffer when saved")
+  t)
+(define-key-after set-coding-system-map [revert-buffer-with-coding-system]
+  '(menu-item "For Reverting This File Now" revert-buffer-with-coding-system
+	      :enable buffer-file-name
+	      :help "Revisit this file immediately using specified coding system")
+  t)
+(define-key-after set-coding-system-map [separator-2]
+  '("--")
+  t)
+
+(define-key-after set-coding-system-map [set-keyboard-coding-system]
+  '(menu-item "For Keyboard" set-keyboard-coding-system
+	      :help "How to decode keyboard input")
   t)
 (define-key-after set-coding-system-map [set-terminal-coding-system]
   '(menu-item "For Terminal" set-terminal-coding-system
 	      :enable (null (memq window-system '(x w32 mac)))
 	      :help "How to encode terminal output")
   t)
-(define-key-after set-coding-system-map [set-keyboard-coding-system]
-  '(menu-item "For Keyboard" set-keyboard-coding-system
-	      :help "How to decode keyboard input")
-  t)
-(define-key-after set-coding-system-map [set-buffer-process-coding-system]
-  '(menu-item "For I/O with Subprocess" set-buffer-process-coding-system
-	      :visible (fboundp 'start-process)
-	      :enable (get-buffer-process (current-buffer))
-	      :help "How to en/decode I/O from/to subprocess connected to this buffer")
+(define-key-after set-coding-system-map [separator-3]
+  '("--")
   t)
 (define-key-after set-coding-system-map [set-selection-coding-system]
   '(menu-item "For X Selections/Clipboard" set-selection-coding-system
@@ -146,6 +156,14 @@
 	      :visible (display-selections-p)
 	      :help "How to en/decode next selection/clipboard operation")
   t)
+(define-key-after set-coding-system-map [set-buffer-process-coding-system]
+  '(menu-item "For I/O with Subprocess" set-buffer-process-coding-system
+	      :visible (fboundp 'start-process)
+	      :enable (get-buffer-process (current-buffer))
+	      :help "How to en/decode I/O from/to subprocess connected to this buffer")
+  t)
+
+
 (define-key setup-language-environment-map
   [Default] '(menu-item "Default" setup-specified-language-environment))
 
