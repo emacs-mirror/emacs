@@ -634,8 +634,15 @@ Return nil if there is nothing appropriate in the buffer near point."
  :regexp "\\(struct \\|union \\|enum \\)?[_a-zA-Z][_a-zA-Z0-9]*"
  :doc-spec '(("(libc)Function Index" nil
 	      "^[ \t]+-+ \\(Function\\|Macro\\): .*\\<" "\\>")
+             ;; prefix/suffix has to match things like
+             ;;   " -- Macro: int F_DUPFD"
+             ;;   " -- Variable: char * tzname [2]"
+             ;;   "`DBL_MAX'"    (texinfo @table)
+             ;; suffix "\\>" is not used because that sends DBL_MAX to
+             ;; DBL_MAX_EXP ("_" is a non-word char)
 	     ("(libc)Variable Index" nil
-	      "^[ \t]+-+ \\(Variable\\|Macro\\): .*\\<" "\\>")
+              "^\\([ \t]+-+ \\(Variable\\|Macro\\): .*\\<\\|`\\)"
+              "\\( \\|'?$\\)")
 	     ("(libc)Type Index" nil
 	      "^[ \t]+-+ Data Type: \\<" "\\>")
 	     ("(termcap)Var Index" nil
