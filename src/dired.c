@@ -251,8 +251,7 @@ directory_files_internal (directory, full, match, nosort, attrs)
 			 directory_nbytes);
 		  
 		  if (needsep)
-		    XSTRING (fullname)->data[directory_nbytes + 1]
-		      = DIRECTORY_SEP;
+		    XSTRING (fullname)->data[directory_nbytes] = DIRECTORY_SEP;
 		  
 		  bcopy (XSTRING (name)->data,
 			 XSTRING (fullname)->data + directory_nbytes + needsep,
