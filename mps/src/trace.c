@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.81) $
+ * $HopeName: MMsrc!trace.c(trunk.82) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .design: design.mps.trace.
@@ -9,7 +9,7 @@
 #include "mpm.h"
 
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.81) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.82) $");
 
 
 /* Types
@@ -42,7 +42,7 @@ static Bool TraceMessageCheck(TraceMessage traceMessage)
   CHECKD(Message, TraceMessageMessage(traceMessage));
   CHECKL(MessageGetType(TraceMessageMessage(traceMessage)) == 
          MessageTypeCollectionStats);
-  /* Can't check sizes */
+  CHECKL(traceMessage->liveSize <= traceMessage->condemnedSize);
 
   return TRUE;
 }
