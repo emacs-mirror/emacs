@@ -10204,7 +10204,7 @@ x_term_init (display_name, xrm_option, resource_name)
     /* GTK 2.0 can only handle one display, GTK 2.2 can handle more
        than one, but this remains to be implemented.  */
     if (x_initialized > 1)
-      error("Sorry, the GTK port can only handle one display.");
+      error ("Sorry, the GTK port can only handle one display.");
     ++x_initialized;
 
     for (argc = 0; argc < NUM_ARGV; ++argc)
