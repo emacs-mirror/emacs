@@ -470,6 +470,7 @@ is visible (and the real data of the buffer is hidden)."
 (put 'tar-mode 'mode-class 'special)
 (put 'tar-subfile-mode 'mode-class 'special)
 
+;;;##autoload
 (defun tar-mode ()
   "Major mode for viewing a tar file as a dired-like listing of its contents.
 You can move around using the usual cursor motion commands. 
@@ -1078,49 +1079,9 @@ Leaves the region wide."
 
 ;;; Patch it in.
 
-(defvar tar-regexp "\\.tar$"
-  "The regular expression used to identify tar file names.")
-
-(setq auto-mode-alist
-      (cons (cons tar-regexp 'tar-mode) auto-mode-alist))
-
-(or (boundp 'write-file-hooks) (setq write-file-hooks nil))
-(or (listp write-file-hooks)
-    (setq write-file-hooks (list write-file-hooks)))
 (or (memq 'maybe-write-tar-file write-file-hooks)
     (setq write-file-hooks
 	  (cons 'maybe-write-tar-file write-file-hooks)))
-
-
-;;; This is a hack.  For files ending in .tar, we want -*- lines to be
-;;; completely ignored - if there is one, it applies to the first file
-;;; in the archive, and not the archive itself!  
-
-(defun tar-normal-mode (&optional find-file)
-  "Choose the major mode for this buffer automatically.
-Also sets up any specified local variables of the file.
-Uses the visited file name, the -*- line, and the local variables spec.
-
-This function is called automatically from `find-file'.  In that case,
-if `inhibit-local-variables' is non-`nil' we require confirmation before
-processing a local variables spec.  If you run `normal-mode' explicitly,
-confirmation is never required.
-
-Note that this version of this function has been hacked to interact
-correctly with tar files - when visiting a file which matches
-'tar-regexp', the -*- line and local-variables are not examined,
-as they would apply to a file within the archive rather than the archive
-itself."
-  (interactive)
-  (if (and buffer-file-name
-	   (string-match tar-regexp buffer-file-name))
-      (tar-mode)
-      (tar-real-normal-mode find-file)))
-
-
-(if (not (fboundp 'tar-real-normal-mode))
-    (defalias 'tar-real-normal-mode (symbol-function 'normal-mode)))
-(defalias 'normal-mode 'tar-normal-mode)
 
 (provide 'tar-mode)
 
