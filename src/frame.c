@@ -531,6 +531,14 @@ to that frame.")
   return do_switch_frame (frame, no_enter, 0);
 }
 
+DEFUN ("ignore-event", Fignore_event, Signore_event, 0, 0, "",
+  "Do nothing, but preserve any prefix argument already specified.\n\
+This is a suitable binding for iconify-frame and make-frame-visible.")
+     ()
+{
+  current_kboard->Vprefix_arg = Vcurrent_prefix_arg;
+  return Qnil;
+}
 
 DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
   "Return the frame that is now selected.")
@@ -1922,6 +1930,7 @@ The `menu-bar-lines' element of the list controls whether new frames\n\
   defsubr (&Sframe_live_p);
   defsubr (&Smake_terminal_frame);
   defsubr (&Shandle_switch_frame);
+  defsubr (&Signore_event);
   defsubr (&Sselect_frame);
   defsubr (&Sselected_frame);
   defsubr (&Swindow_frame);
@@ -1966,8 +1975,8 @@ keys_of_frame ()
 {
   initial_define_lispy_key (global_map, "switch-frame", "handle-switch-frame");
   initial_define_lispy_key (global_map, "delete-frame", "handle-delete-frame");
-  initial_define_lispy_key (global_map, "iconify-frame", "ignore");
-  initial_define_lispy_key (global_map, "make-frame-visible", "ignore");
+  initial_define_lispy_key (global_map, "iconify-frame", "ignore-event");
+  initial_define_lispy_key (global_map, "make-frame-visible", "ignore-event");
 }
 
 #else /* not MULTI_FRAME */
