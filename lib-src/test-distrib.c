@@ -25,6 +25,10 @@
 
 #include <stdio.h>
 
+#ifdef HAVE_FCNTL
+#include <fcntl.h>
+#endif
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
