@@ -69,6 +69,8 @@ struct x_output
   PIX_TYPE foreground_pixel;
 };
 
+#define FRAME_INTERNAL_BORDER_WIDTH(f) 0
+
 #endif /* ! HAVE_X_WINDOWS */
 
 
