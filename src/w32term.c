@@ -3888,58 +3888,40 @@ x_draw_image_foreground (s)
 
   if (s->img->pixmap)
     {
-#if 0 /* TODO: image mask */
+      HDC compat_hdc = CreateCompatibleDC (s->hdc);
+      HBRUSH fg_brush = CreateSolidBrush (s->gc->foreground);
+      HBRUSH orig_brush = SelectObject (s->hdc, fg_brush);
+      HGDIOBJ orig_obj = SelectObject (compat_hdc, s->img->pixmap);
+      SetBkColor (compat_hdc, RGB (255, 255, 255));
+      SetTextColor (s->hdc, RGB (0, 0, 0));
+      x_set_glyph_string_clipping (s);
+
       if (s->img->mask)
 	{
-	  /* We can't set both a clip mask and use XSetClipRectangles
-	     because the latter also sets a clip mask.  We also can't
-	     trust on the shape extension to be available
-	     (XShapeCombineRegion).  So, compute the rectangle to draw
-	     manually.  */
-	  unsigned long mask = (GCClipMask | GCClipXOrigin | GCClipYOrigin
-				| GCFunction);
-	  XGCValues xgcv;
-	  XRectangle clip_rect, image_rect, r;
+	  HDC mask_dc = CreateCompatibleDC (s->hdc);
+	  HGDIOBJ mask_orig_obj = SelectObject (mask_dc, s->img->mask);
 
-	  xgcv.clip_mask = s->img->mask;
-	  xgcv.clip_x_origin = x;
-	  xgcv.clip_y_origin = y;
-	  xgcv.function = GXcopy;
-	  XChangeGC (s->display, s->gc, mask, &xgcv);
+	  SetTextColor (s->hdc, RGB (255, 255, 255));
+	  SetBkColor (s->hdc, RGB (0, 0, 0));
 
-	  w32_get_glyph_string_clip_rect (s, &clip_rect);
-	  image_rect.x = x;
-	  image_rect.y = y;
-	  image_rect.width = s->img->width;
-	  image_rect.height = s->img->height;
-	  if (IntersectRect (&r, &clip_rect, &image_rect))
-	    XCopyArea (s->display, s->img->pixmap, s->window, s->gc,
-		       r.x - x, r.y - y, r.width, r.height, r.x, r.y);
+	  BitBlt (s->hdc, x, y, s->img->width, s->img->height,
+		  compat_hdc, 0, 0, 0x990066);
+	  BitBlt (s->hdc, x, y, s->img->width, s->img->height,
+		  mask_dc, 0, 0, SRCAND);
+	  BitBlt (s->hdc, x, y, s->img->width, s->img->height,
+		  compat_hdc, 0, 0, 0x990066);
+
+	  SelectObject (mask_dc, mask_orig_obj);
+	  DeleteDC (mask_dc);
 	}
       else
-#endif
 	{
-          HDC compat_hdc = CreateCompatibleDC (s->hdc);
-          HBRUSH fg_brush = CreateSolidBrush (s->gc->foreground);
-          HBRUSH orig_brush = SelectObject (s->hdc, fg_brush);
-          HGDIOBJ orig_obj = SelectObject (compat_hdc, s->img->pixmap);
-          x_set_glyph_string_clipping (s);
+	  SetTextColor (s->hdc, s->gc->foreground);
+	  SetBkColor (s->hdc, s->gc->background);
 
-          SetTextColor (s->hdc, s->gc->foreground);
-          SetBkColor (s->hdc, s->gc->background);
-#if 0 /* From w32bdf.c (which is from Meadow).  */
           BitBlt (s->hdc, x, y, s->img->width, s->img->height,
-                  compat_hdc, 0, 0, SRCCOPY);
-          BitBlt (s->hdc, x, y, s->img->width, s->img->height,
-                  compat_hdc, 0, 0, 0xB8074A);
-#else
-          BitBlt (s->hdc, x, y, s->img->width, s->img->height,
-                  compat_hdc, 0, 0, 0xE20746);
-#endif
-          SelectObject (s->hdc, orig_brush);
-          DeleteObject (fg_brush);
-	  SelectObject (compat_hdc, orig_obj);
-          DeleteDC (compat_hdc);
+                  compat_hdc, 0, 0, NOTSRCCOPY);
+	  /* Meadow uses 0xE20746, previously SRCCOPY and 0xB8074A.  */
 
 	  /* When the image has a mask, we can expect that at
 	     least part of a mouse highlight or a block cursor will
@@ -3954,8 +3936,13 @@ x_draw_image_foreground (s)
 	      w32_draw_rectangle (s->hdc, s->gc, x - r, y - r ,
 				  s->img->width + r*2 - 1, s->img->height + r*2 - 1);
 	    }
-          w32_set_clip_rectangle (s->hdc, NULL);
 	}
+
+      w32_set_clip_rectangle (s->hdc, NULL);
+      SelectObject (s->hdc, orig_brush);
+      DeleteObject (fg_brush);
+      SelectObject (compat_hdc, orig_obj);
+      DeleteDC (compat_hdc);
     }
   else
     w32_draw_rectangle (s->hdc, s->gc, x, y, s->img->width -1,
@@ -4040,51 +4027,35 @@ w32_draw_image_foreground_1 (s, pixmap)
 
   if (s->img->pixmap)
     {
-#if 0 /* TODO: image mask */
+      HDC compat_hdc = CreateCompatibleDC (hdc);
+      HBRUSH fg_brush = CreateSolidBrush (s->gc->foreground);
+      HBRUSH orig_brush = SelectObject (hdc, fg_brush);
+      HGDIOBJ orig_obj = SelectObject (compat_hdc, s->img->pixmap);
+
       if (s->img->mask)
 	{
-	  /* We can't set both a clip mask and use XSetClipRectangles
-	     because the latter also sets a clip mask.  We also can't
-	     trust on the shape extension to be available
-	     (XShapeCombineRegion).  So, compute the rectangle to draw
-	     manually.  */
-	  unsigned long mask = (GCClipMask | GCClipXOrigin | GCClipYOrigin
-				| GCFunction);
-	  XGCValues xgcv;
+	  HDC mask_dc = CreateCompatibleDC (hdc);
+	  HGDIOBJ mask_orig_obj = SelectObject (mask_dc, s->img->mask);
 
-	  xgcv.clip_mask = s->img->mask;
-	  xgcv.clip_x_origin = x;
-	  xgcv.clip_y_origin = y;
-	  xgcv.function = GXcopy;
-	  XChangeGC (s->display, s->gc, mask, &xgcv);
+	  SetTextColor (hdc, RGB (0, 0, 0));
+	  SetBkColor (hdc, RGB (255, 255, 255));
+	  BitBlt (hdc, x, y, s->img->width, s->img->height,
+		  compat_hdc, 0, 0, SRCINVERT);
+	  BitBlt (hdc, x, y, s->img->width, s->img->height,
+		  mask_dc, 0, 0, SRCAND);
+	  BitBlt (hdc, x, y, s->img->width, s->img->height,
+		  compat_hdc, 0, 0, SRCINVERT);
 
-	  XCopyArea (s->display, s->img->pixmap, pixmap, s->gc,
-		     0, 0, s->img->width, s->img->height, x, y);
-	  XSetClipMask (s->display, s->gc, None);
+	  SelectObject (mask_dc, mask_orig_obj);
+	  DeleteDC (mask_dc);
 	}
       else
-#endif
 	{
-          HDC compat_hdc = CreateCompatibleDC (hdc);
-          HBRUSH fg_brush = CreateSolidBrush (s->gc->foreground);
-          HBRUSH orig_brush = SelectObject (hdc, fg_brush);
-          HGDIOBJ orig_obj = SelectObject (compat_hdc, s->img->pixmap);
+	  SetTextColor (hdc, s->gc->foreground);
+	  SetBkColor (hdc, s->gc->background);
 
-          SetTextColor (hdc, s->gc->foreground);
-          SetBkColor (hdc, s->gc->background);
-#if 0 /* From w32bdf.c (which is from Meadow).  */
           BitBlt (hdc, x, y, s->img->width, s->img->height,
-                  compat_hdc, 0, 0, SRCCOPY);
-          BitBlt (hdc, x, y, s->img->width, s->img->height,
-                  compat_hdc, 0, 0, 0xB8074A);
-#else
-          BitBlt (hdc, x, y, s->img->width, s->img->height,
-                  compat_hdc, 0, 0, 0xE20746);
-#endif
-          SelectObject (hdc, orig_brush);
-          DeleteObject (fg_brush);
-	  SelectObject (compat_hdc, orig_obj);
-          DeleteDC (compat_hdc);
+                  compat_hdc, 0, 0, NOTSRCCOPY);
 
 	  /* When the image has a mask, we can expect that at
 	     least part of a mouse highlight or a block cursor will
@@ -4096,10 +4067,15 @@ w32_draw_image_foreground_1 (s, pixmap)
 	    {
 	      int r = s->img->relief;
 	      if (r < 0) r = -r;
-	      w32_draw_rectangle (s->hdc, s->gc, x - r, y - r ,
+	      w32_draw_rectangle (hdc, s->gc, x - r, y - r ,
 				  s->img->width + r*2 - 1, s->img->height + r*2 - 1);
 	    }
 	}
+
+      SelectObject (hdc, orig_brush);
+      DeleteObject (fg_brush);
+      SelectObject (compat_hdc, orig_obj);
+      DeleteDC (compat_hdc);
     }
   else
     w32_draw_rectangle (hdc, s->gc, x, y, s->img->width - 1,
@@ -4165,9 +4141,7 @@ x_draw_image_glyph_string (s)
   if (height > s->img->height
       || s->img->hmargin
       || s->img->vmargin
-#if 0 /* TODO: image mask */
       || s->img->mask
-#endif
       || s->img->pixmap == 0
       || s->width != s->background_width)
     {
@@ -4177,7 +4151,7 @@ x_draw_image_glyph_string (s)
 	x = s->x;
 
       y = s->y + box_line_vwidth;
-#if 0 /* TODO: image mask */
+#if 0 /* TODO: figure out if we need to do this on Windows.  */
       if (s->img->mask)
 	{
 	  /* Create a pixmap as large as the glyph string.  Fill it
@@ -4235,15 +4209,9 @@ x_draw_image_glyph_string (s)
 
         SetTextColor (s->hdc, s->gc->foreground);
         SetBkColor (s->hdc, s->gc->background);
-#if 0 /* From w32bdf.c (which is from Meadow).  */
         BitBlt (s->hdc, s->x, s->y, s->background_width, s->height,
                 compat_hdc, 0, 0, SRCCOPY);
-        BitBlt (s->hdc, s->x, s->y, s->background_width, s->height,
-                compat_hdc, 0, 0, 0xB8074A);
-#else
-        BitBlt (s->hdc, s->x, s->y, s->background_width, s->height,
-                compat_hdc, 0, 0, 0xE20746);
-#endif
+
         SelectObject (s->hdc, orig_brush);
         DeleteObject (fg_brush);
         SelectObject (compat_hdc, orig_obj);
@@ -6586,7 +6554,6 @@ note_mode_line_highlight (w, x, mode_line_p)
 	    }
 	}
     }
-
 #if 0 /* TODO: mouse cursor */
   XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), cursor);
 #endif
