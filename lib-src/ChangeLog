@@ -1,6 +1,17 @@
 2002-06-06  Francesco Potorti`  <pot@gnu.org>
 
-	* etags.c (TeX_commands): Skip comments.
+	* etags.c New option --parse-stdin=FILE.
+	(enum arg_type): New label at_stdin.
+	(STDIN): New constant.
+	(parsing_stdin): New flag.
+	(longopts): New option --parse-stdin=NAME.
+	(print_help): Document it.
+	(main): Handle it.
+	(process_file): Split into process_file and process_file_name.
+	(process_file_name): New function.
+
+	* etags.c Improvements and bug squashing in TeX handling.
+	(TeX_commands): Skip comments.
 	(TEX_defenv): Now contains more contructs.
 	(TEX_cmt): Make it a static char and move it before TeX_commands.
 	(TeX_commands): Shorten the tag to the brace after the name.
