@@ -192,8 +192,7 @@ open-parenthesis, and point ends up at the beginning of the line.
 If variable `beginning-of-defun-function' is non-nil, its value
 is called as a function to find the defun's beginning."
   (interactive "p")
-  (or inhibit-mark-movement
-      (not (eq this-command 'beginning-of-defun))
+  (or (not (eq this-command 'beginning-of-defun))
       (eq last-command 'beginning-of-defun)
       (and transient-mark-mode mark-active)
       (push-mark))
@@ -245,8 +244,7 @@ matches the open-parenthesis that starts a defun; see function
 If variable `end-of-defun-function' is non-nil, its value
 is called as a function to find the defun's end."
   (interactive "p")
-  (or inhibit-mark-movement
-      (not (eq this-command 'end-of-defun))
+  (or (not (eq this-command 'end-of-defun))
       (eq last-command 'end-of-defun)
       (and transient-mark-mode mark-active)
       (push-mark))
