@@ -1,12 +1,12 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!72.c(trunk.4) $
  summary = request.dylan.170439 (detect bad pointers)
  language = c
  link = testlib.o exfmt.o
 OUTPUT_SPEC
  assert = true
- assertfile = .\trace.c
+ assertfile P= trace.c
  assertline = 963
 END_HEADER
 */
