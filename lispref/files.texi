@@ -1504,13 +1504,18 @@ return value, but backup version numbers are kept.
 @defun file-name-sans-extension filename
 This function returns @var{filename} minus its ``extension,'' if any.
 The extension, in a file name, is the part that starts with the last
-@samp{.} in the last name component.  For example,
+@samp{.} in the last name component, except if that @samp{.} is the
+first character of the file name's last component.  For example,
 
 @example
 (file-name-sans-extension "foo.lose.c")
      @result{} "foo.lose"
 (file-name-sans-extension "big.hack/foo")
      @result{} "big.hack/foo"
+(file-name-sans-extension "/my/home/.emacs")
+     @result{} "/my/home.emacs"
+(file-name-sans-extension "/my/home/.emacs.el")
+     @result{} "/my/home/.emacs"
 @end example
 @end defun
 
@@ -1533,9 +1538,13 @@ value of @code{?/}.
 @defun file-name-extension filename &optional period
 This function returns @var{filename}'s final ``extension,'' if any,
 after applying @code{file-name-sans-versions} to remove any
-version/backup part.  If @var{period} is non-nil, then the returned
-value includes the period that delimits the extension, and if
-@var{filename} has no extension, the value is @code{""}.
+version/backup part.  It returns @code{nil} for extensionless file
+names such as @file{foo}.  If @var{period} is non-nil, then the
+returned value includes the period that delimits the extension, and if
+@var{filename} has no extension, the value is @code{""}.  If the last
+component of a file name begins with a @samp{.}, that @samp{.} doesn't
+count as the beginning of an extension, so, for example,
+@file{.emacs}'s ``extension'' is @code{nil}, not @samp{.emacs}.
 @end defun
 
 @node Directory Names
