@@ -1,3 +1,8 @@
+2000-08-01  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* textmodes/ispell.el (ispell-highlight-spelling-error): Use
+	display-color-p, if fboundp, instead of window-system.
+
 2000-07-31  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* calendar/appt.el (appt-disp-window): Use display-multi-frame-p
