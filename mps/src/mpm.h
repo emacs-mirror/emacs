@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.128) $
+ * $HopeName: MMsrc!mpm.h(trunk.129) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  */
 
@@ -441,6 +441,9 @@ extern AbstractCollectPoolClass EnsureAbstractCollectPoolClass(void);
 #define DEFINE_POOL_CLASS(className, var) \
   DEFINE_ALIAS_CLASS(className, PoolClass, var)
 
+#define POOL_SUPERCLASS(className) \
+  (PoolClass)SUPERCLASS(className)
+
 
 /* Message Interface -- see design.mps.message */
 
@@ -611,6 +614,9 @@ extern void ActionPoll(Arena arena);
 
 #define DEFINE_ARENA_CLASS(className, var) \
   DEFINE_ALIAS_CLASS(className, ArenaClass, var)
+
+#define ARENA_SUPERCLASS(className) \
+  (ArenaClass)SUPERCLASS(className)
 
 extern AbstractArenaClass EnsureAbstractArenaClass(void);
 extern Bool ArenaClassCheck(ArenaClass class);
@@ -830,6 +836,9 @@ extern void SegClassMixInNoSplitMerge(SegClass class);
 #define DEFINE_SEG_CLASS(className, var) \
   DEFINE_ALIAS_CLASS(className, SegClass, var)
 
+#define SEG_SUPERCLASS(className) \
+  (SegClass)SUPERCLASS(className)
+
 extern Size SegSize(Seg seg);
 extern Addr (SegBase)(Seg seg);
 extern Addr (SegLimit)(Seg seg);
@@ -934,6 +943,8 @@ extern void BufferFrameSetState(Buffer buffer, FrameState state);
 #define DEFINE_BUFFER_CLASS(className, var) \
   DEFINE_ALIAS_CLASS(className, BufferClass, var)
 
+#define BUFFER_SUPERCLASS(className) \
+  (BufferClass)SUPERCLASS(className)
 
 extern Bool BufferClassCheck(BufferClass class);
 extern BufferClass EnsureBufferClass(void);
