@@ -1,3 +1,7 @@
+2003-08-14  John Paul Wallington  <jpw@gnu.org>
+
+	* modes.texi (Emulating Mode Line): Subsection, not section.
+
 2003-08-13  Richard M. Stallman  <rms@gnu.org>
 
 	* elisp.texi (Top): Update subnode lists in menu.

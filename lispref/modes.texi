@@ -4,7 +4,7 @@
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/modes
-@node Modes, Documentation,  Keymaps, Top
+@node Modes, Documentation, Keymaps, Top
 @chapter Major and Minor Modes
 @cindex mode
 
@@ -1161,7 +1161,7 @@ actually appears.
 * %-Constructs::          Putting information into a mode line.
 * Properties in Mode::    Using text properties in the mode line.
 * Header Lines::          Like a mode line, but at the top.
-* Emulating Mode Line::   Formating text as the mode line would.
+* Emulating Mode Line::   Formatting text as the mode line would.
 @end menu
 
 @node Mode Line Data
@@ -1612,7 +1612,7 @@ It is normally @code{nil}, so that ordinary buffers have no header line.
 @end defvar
 
 @node Emulating Mode Line
-@subsection Emulating Mode Line Formating
+@subsection Emulating Mode Line Formatting
 
   You can use the function @code{format-mode-line} to compute
 the text that would appear in a mode line or header line
