@@ -722,8 +722,14 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 NAME may be an abbreviation of the reference name."
   (interactive
    (let ((completion-ignore-case t)
-	 completions default (start-point (point)) str i)
+	 completions default alt-default (start-point (point)) str i bol eol)
      (save-excursion
+       ;; Store end and beginning of line.
+       (end-of-line)
+       (setq eol (point))
+       (beginning-of-line)
+       (setq bol (point))
+
        (goto-char (point-min))
        (while (re-search-forward "\\*note[ \n\t]*\\([^:]*\\):" nil t)
 	 (setq str (buffer-substring
@@ -734,6 +740,11 @@ NAME may be an abbreviation of the reference name."
 	      (<= (match-beginning 0) start-point)
 	      (<= start-point (point))
 	      (setq default t))
+	 ;; See if this one should be the alternate default.
+	 (and (null alt-default)
+	      (and (<= bol (match-beginning 0))
+		   (<= (point) eol))
+	      (setq alt-default t))
 	 (setq i 0)
 	 (while (setq i (string-match "[ \n\t]+" str i))
 	   (setq str (concat (substring str 0 i) " "
@@ -741,9 +752,16 @@ NAME may be an abbreviation of the reference name."
 	   (setq i (1+ i)))
 	 ;; Record as a completion and perhaps as default.
 	 (if (eq default t) (setq default str))
+	 (if (eq alt-default t) (setq alt-default str))
 	 (setq completions
 	       (cons (cons str nil)
 		     completions))))
+     ;; If no good default was found, try an alternate.
+     (or default
+	 (setq default alt-default))
+     ;; If only one cross-reference found, then make it default.
+     (if (eq (length completions) 1)
+         (setq default (car (car completions))))
      (if completions
 	 (let ((input (completing-read (if default
 					   (concat "Follow reference named: ("
