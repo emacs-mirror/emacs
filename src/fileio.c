@@ -835,6 +835,32 @@ See also the function `substitute-in-file-name'.")
   }
 #endif /* DOS_NT */
 
+  /* Handle // and /~ in middle of file name
+     by discarding everything through the first / of that sequence.  */
+  p = nm;
+  while (*p)
+    {
+      /* Since we know the path is absolute, we can assume that each
+	 element starts with a "/".  */
+
+      /* "//" anywhere isn't necessarily hairy; we just start afresh
+	 with the second slash.  */
+      if (IS_DIRECTORY_SEP (p[0]) && IS_DIRECTORY_SEP (p[1])
+#if defined (APOLLO) || defined (WINDOWSNT)
+	  /* // at start of filename is meaningful on Apollo 
+	     and WindowsNT systems */
+	  && nm != p
+#endif /* APOLLO || WINDOWSNT */
+	  )
+	nm = p + 1;
+
+      /* "~" is hairy as the start of any path element.  */
+      if (IS_DIRECTORY_SEP (p[0]) && p[1] == '~')
+	nm = p + 1;
+
+      p++;
+    }
+
   /* If nm is absolute, flush ...// and detect /./ and /../.
      If no /./ or /../ we can return right away. */
   if (
@@ -857,21 +883,6 @@ See also the function `substitute-in-file-name'.")
 	{
 	  /* Since we know the path is absolute, we can assume that each
 	     element starts with a "/".  */
-
-	  /* "//" anywhere isn't necessarily hairy; we just start afresh
-	     with the second slash.  */
-	  if (IS_DIRECTORY_SEP (p[0]) && IS_DIRECTORY_SEP (p[1])
-#if defined (APOLLO) || defined (WINDOWSNT)
-	      /* // at start of filename is meaningful on Apollo 
-		 and WindowsNT systems */
-	      && nm != p
-#endif /* APOLLO || WINDOWSNT */
-	      )
-	    nm = p + 1;
-
-	  /* "~" is hairy as the start of any path element.  */
-	  if (IS_DIRECTORY_SEP (p[0]) && p[1] == '~')
-	    nm = p + 1, lose = 1;
 
 	  /* "." and ".." are hairy.  */
 	  if (IS_DIRECTORY_SEP (p[0])
@@ -2284,6 +2295,18 @@ static int
 check_executable (filename)
      char *filename;
 {
+#ifdef DOS_NT
+  int len = strlen (filename);
+  char *suffix;
+  struct stat st;
+  if (stat (filename, &st) < 0)
+    return 0;
+  return (S_ISREG (st.st_mode)
+	  && len >= 5
+	  && (stricmp ((suffix = filename + len-4), ".com") == 0
+	      || stricmp (suffix, ".exe") == 0
+	      || stricmp (suffix, ".bat") == 0));
+#else /* not DOS_NT */
 #ifdef HAVE_EACCESS
   return (eaccess (filename, 1) >= 0);
 #else
@@ -2292,6 +2315,7 @@ check_executable (filename)
      But Unix doesn't give us a right way to do it.  */
   return (access (filename, 1) >= 0);
 #endif
+#endif /* not DOS_NT */
 }
 
 /* Return nonzero if file FILENAME exists and can be written.  */
@@ -2300,6 +2324,12 @@ static int
 check_writable (filename)
      char *filename;
 {
+#ifdef MSDOS
+  struct stat st;
+  if (stat (filename, &st) < 0)
+    return 0;
+  return (st.st_mode & S_IWRITE || (st.st_mode & S_IFMT) == S_IFDIR);
+#else /* not MSDOS */
 #ifdef HAVE_EACCESS
   return (eaccess (filename, 2) >= 0);
 #else
@@ -2310,6 +2340,7 @@ check_writable (filename)
      but would lose for directories.  */
   return (access (filename, 2) >= 0);
 #endif
+#endif /* not MSDOS */
 }
 
 DEFUN ("file-exists-p", Ffile_exists_p, Sfile_exists_p, 1, 1, 0,
@@ -2565,16 +2596,8 @@ DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
   if (stat (XSTRING (abspath)->data, &st) < 0)
     return Qnil;
 #ifdef DOS_NT
-  {
-    int len;
-    char *suffix;
-    if (S_ISREG (st.st_mode)
-	&& (len = XSTRING (abspath)->size) >= 5
-	&& (stricmp ((suffix = XSTRING (abspath)->data + len-4), ".com") == 0
-	    || stricmp (suffix, ".exe") == 0
-	    || stricmp (suffix, ".bat") == 0))
-      st.st_mode |= S_IEXEC;
-  }
+  if (check_executable (XSTRING (abspath)->data))
+    st.st_mode |= S_IEXEC;
 #endif /* DOS_NT */
 
   return make_number (st.st_mode & 07777);
@@ -3733,6 +3756,7 @@ static Lisp_Object
 do_auto_save_unwind (desc)  /* used as unwind-protect function */
      Lisp_Object desc;
 {
+  auto_saving = 0;
   close (XINT (desc));
   return Qnil;
 }
@@ -3770,7 +3794,6 @@ Non-nil second argument means save only current buffer.")
   /* No GCPRO needed, because (when it matters) all Lisp_Object variables
      point to non-strings reached from Vbuffer_alist.  */
 
-  auto_saving = 1;
   if (minibuf_level)
     no_message = Qt;
 
@@ -3792,9 +3815,12 @@ Non-nil second argument means save only current buffer.")
   else
     listdesc = -1;
   
-  /* Arrange to close that file whether or not we get an error.  */
+  /* Arrange to close that file whether or not we get an error.
+     Also reset auto_saving to 0.  */
   if (listdesc >= 0)
     record_unwind_protect (do_auto_save_unwind, make_number (listdesc));
+
+  auto_saving = 1;
 
   /* First, save all files which don't have handlers.  If Emacs is
      crashing, the handlers may tweak what is causing Emacs to crash
@@ -3903,7 +3929,6 @@ Non-nil second argument means save only current buffer.")
 
   Vquit_flag = oquit;
 
-  auto_saving = 0;
   unbind_to (count, Qnil);
   return Qnil;
 }
