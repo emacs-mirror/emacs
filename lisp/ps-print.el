@@ -2931,8 +2931,10 @@ page-height == bm + print-height + tm - ho - hh
   ;; (, ) and \.
   (while (progn (skip-chars-forward " -'*-[]-~") (not (eobp)))
     (let ((special (following-char)))
-      (delete-char 1)
-      (insert (aref ps-string-escape-codes special))))
+      (if (> (char-bytes special) 1)
+	  (forward-char)
+	(delete-char 1)
+	(insert (aref ps-string-escape-codes special)))))
   (goto-char (point-max))
   (insert ")"))				;insert end-string delimiter
 
