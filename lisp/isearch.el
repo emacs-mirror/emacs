@@ -891,10 +891,12 @@ If no previous match was done, just beep."
 
 (defun isearch-yank (chunk)
   ;; Helper for isearch-yank-word and isearch-yank-line
-  ;; CHUNK should be word, line or kill.
+  ;; CHUNK should be word, line, kill, or x-sel.
   (let ((string (cond
                  ((eq chunk 'kill)
                   (current-kill 0))
+                 ((eq chunk 'x-sel)
+                  (x-get-selection))
                  (t
 		  (save-excursion
 		    (and (not isearch-forward) isearch-other-end
