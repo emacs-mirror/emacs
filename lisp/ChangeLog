@@ -7,6 +7,14 @@
 
 2004-06-04  Miles Bader  <miles@gnu.org>
 
+	* faces.el (display-supports-face-attributes-p): Function moved to
+	C code.  Previously only the tty-related portion of this function
+	was done in C; however the previous attempt to do a halfway-proper
+	job for non-tty displays in lisp didn't work properly because of
+	funny conditions during emacs startup.
+
+2004-06-04  Miles Bader  <miles@gnu.org>
+
 	* faces.el (face-differs-from-default-p): Use a different
 	implementation, so we can really check whether FACE displays
 	differently or not.
