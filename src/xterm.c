@@ -11223,12 +11223,6 @@ x_draw_bar_cursor (w, row, width)
 {
   struct frame *f = XFRAME (w->frame);
   struct glyph *cursor_glyph;
-  GC gc;
-  int x;
-  unsigned long mask;
-  XGCValues xgcv;
-  Display *dpy;
-  Window window;
       
   /* If cursor is out of bounds, don't draw garbage.  This can happen
      in mini-buffer windows when switching between echo area glyphs
@@ -11248,13 +11242,23 @@ x_draw_bar_cursor (w, row, width)
     }
   else
     {
-      xgcv.background = f->output_data.x->cursor_pixel;
-      xgcv.foreground = f->output_data.x->cursor_pixel;
+      Display *dpy = FRAME_X_DISPLAY (f);
+      Window window = FRAME_X_WINDOW (f);
+      GC gc = FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc;
+      unsigned long mask = GCForeground | GCBackground | GCGraphicsExposures;
+      struct face *face = FACE_FROM_ID (f, cursor_glyph->face_id);
+      XGCValues xgcv;
+
+      /* If the glyph's background equals the color we normally draw
+	 the bar cursor in, the bar cursor in its normal color is
+	 invisible.  Use the glyph's foreground color instead in this
+	 case, on the assumption that the glyph's colors are chosen so
+	 that the glyph is legible.  */
+      if (face->background == f->output_data.x->cursor_pixel)
+	xgcv.background = xgcv.foreground = face->foreground;
+      else
+	xgcv.background = xgcv.foreground = f->output_data.x->cursor_pixel;
       xgcv.graphics_exposures = 0;
-      mask = GCForeground | GCBackground | GCGraphicsExposures;
-      dpy = FRAME_X_DISPLAY (f);
-      window = FRAME_X_WINDOW (f);
-      gc = FRAME_X_DISPLAY_INFO (f)->scratch_cursor_gc;
   
       if (gc)
 	XChangeGC (dpy, gc, mask, &xgcv);
@@ -11266,14 +11270,13 @@ x_draw_bar_cursor (w, row, width)
   
       if (width < 0)
 	width = f->output_data.x->cursor_width;
+      width = min (cursor_glyph->pixel_width, width);
   
-      x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
       x_clip_to_row (w, row, gc, 0);
       XFillRectangle (dpy, window, gc,
-		      x,
+		      WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x),
 		      WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
-		      min (cursor_glyph->pixel_width, width),
-		      row->height);
+		      width, row->height);
       XSetClipMask (dpy, gc, None);
     }
 }
