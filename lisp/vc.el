@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 4.0
 
-;;	$Id: vc.el,v 1.10 1992/10/05 05:49:27 roland Exp rms $	
+;;	$Id: vc.el,v 1.11 1992/10/05 21:09:26 rms Exp rms $	
 
 ;; This file is part of GNU Emacs.
 
@@ -1102,8 +1102,8 @@ Return nil if there is no such person."
     (vc-do-command 0 "get" file "-g" (if rev (concat "-r" rev)))
     )
   (progn
-    (vc-do-command 0 "rcs" file "-M" (concat "-u" rev))
-    (vc-do-command 0 "rcs" file (concat "-l" rev))
+    (vc-do-command 0 "rcs" "-M" (concat "-u" rev) file)
+    (vc-do-command 0 "rcs" (concat "-l" rev) file)
     )
   (vc-file-setprop file 'vc-locking-user (user-login-name))
   (message "Stealing lock on %s...done" file)
