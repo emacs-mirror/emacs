@@ -96,11 +96,12 @@ Otherwise, a reverse search (@kbd{C-r}) is often the best way.
 @c programs.texi, in the "List Commands" node.
 @c @kindex C-M-t
 @c @findex transpose-sexps
-  @kbd{M-t} (@code{transpose-words}) transposes the word before point
-with the word after point.  It moves point forward over a word, dragging
-the word preceding or containing point forward as well.  The punctuation
-characters between the words do not move.  For example, @w{@samp{FOO, BAR}}
-transposes into @w{@samp{BAR, FOO}} rather than @samp{@w{BAR FOO,}}.
+  @kbd{M-t} transposes the word before point with the word after point
+(@code{transpose-words}).  It moves point forward over a word,
+dragging the word preceding or containing point forward as well.  The
+punctuation characters between the words do not move.  For example,
+@w{@samp{FOO, BAR}} transposes into @w{@samp{BAR, FOO}} rather than
+@samp{@w{BAR FOO,}}.
 
   @kbd{C-M-t} (@code{transpose-sexps}) is a similar command for transposing
 two expressions (@pxref{Lists}), and @kbd{C-x C-t} (@code{transpose-lines})
