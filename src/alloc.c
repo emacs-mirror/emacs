@@ -282,7 +282,7 @@ enum mem_type
 Lisp_Object Vdead;
 
 struct mem_node;
-static void *lisp_malloc P_ ((int, enum mem_type));
+static void *lisp_malloc P_ ((size_t, enum mem_type));
 static void mark_stack P_ ((void));
 static void init_stack P_ ((Lisp_Object *));
 static int live_vector_p P_ ((struct mem_node *, void *));
@@ -410,7 +410,7 @@ buffer_memory_full ()
 
 POINTER_TYPE *
 xmalloc (size)
-     int size;
+     size_t size;
 {
   register POINTER_TYPE *val;
 
@@ -429,7 +429,7 @@ xmalloc (size)
 POINTER_TYPE *
 xrealloc (block, size)
      POINTER_TYPE *block;
-     int size;
+     size_t size;
 {
   register POINTER_TYPE *val;
 
@@ -465,7 +465,7 @@ char *
 xstrdup (s)
      char *s;
 {
-  int len = strlen (s) + 1;
+  size_t len = strlen (s) + 1;
   char *p = (char *) xmalloc (len);
   bcopy (s, p, len);
   return p;
@@ -476,9 +476,9 @@ xstrdup (s)
    number of bytes to allocate, TYPE describes the intended use of the
    allcated memory block (for strings, for conses, ...).  */
 
-static void *
+static POINTER_TYPE *
 lisp_malloc (nbytes, type)
-     int nbytes;
+     size_t nbytes;
      enum mem_type type;
 {
   register void *val;
@@ -514,7 +514,7 @@ allocate_buffer ()
 
 void
 lisp_free (block)
-     long *block;
+     POINTER_TYPE *block;
 {
   BLOCK_INPUT;
   free (block);
@@ -543,6 +543,8 @@ extern void * (*__realloc_hook) ();
 static void * (*old_realloc_hook) ();
 extern void (*__free_hook) ();
 static void (*old_free_hook) ();
+static void *emacs_blocked_malloc P_ ((size_t));
+static void *emacs_blocked_realloc P_ ((void *, size_t));
 
 /* This function is used as the hook for free to call.  */
 
@@ -563,7 +565,7 @@ emacs_blocked_free (ptr)
 	 is substantially larger than the block size malloc uses.  */
       && (bytes_used_when_full
 	  > BYTES_USED + max (malloc_hysteresis, 4) * SPARE_MEMORY))
-    spare_memory = (char *) malloc (SPARE_MEMORY);
+    spare_memory = (char *) malloc ((size_t) SPARE_MEMORY);
 
   __free_hook = emacs_blocked_free;
   UNBLOCK_INPUT;
@@ -580,7 +582,7 @@ void
 refill_memory_reserve ()
 {
   if (spare_memory == 0)
-    spare_memory = (char *) malloc (SPARE_MEMORY);
+    spare_memory = (char *) malloc ((size_t) SPARE_MEMORY);
 }
 
 
@@ -588,7 +590,7 @@ refill_memory_reserve ()
 
 static void *
 emacs_blocked_malloc (size)
-     unsigned size;
+     size_t size;
 {
   void *value;
 
@@ -612,7 +614,7 @@ emacs_blocked_malloc (size)
 static void *
 emacs_blocked_realloc (ptr, size)
      void *ptr;
-     unsigned size;
+     size_t size;
 {
   void *value;
 
@@ -1039,7 +1041,7 @@ allocate_string_data (s, nchars, nbytes)
 
   if (nbytes > LARGE_STRING_BYTES)
     {
-      int size = sizeof *b - sizeof (struct sdata) + needed;
+      size_t size = sizeof *b - sizeof (struct sdata) + needed;
 
 #ifdef DOUG_LEA_MALLOC
       /* Prevent mmap'ing the chunk (which is potentially very large). */
@@ -1827,7 +1829,7 @@ allocate_vectorlike (len)
      EMACS_INT len;
 {
   struct Lisp_Vector *p;
-  int nbytes;
+  size_t nbytes;
 
 #ifdef DOUG_LEA_MALLOC
   /* Prevent mmap'ing the chunk (which is potentially very large).. */
@@ -3262,7 +3264,7 @@ make_pure_float (num)
      this, and I suspect that floats are rare enough that it's no
      tragedy for those that do.  */
   {
-    int alignment;
+    size_t alignment;
     char *p = PUREBEG + pureptr;
 
 #ifdef __GNUC__
