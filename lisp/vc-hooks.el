@@ -1,6 +1,6 @@
 ;;; vc-hooks.el --- resident support for version-control
 
-;; Copyright (C) 1992, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Modified by:
@@ -724,9 +724,11 @@ control system name."
 	(rev (vc-workfile-version file)))
     (cond ((string= "0" rev)
 	   " @@")
-	   ((not locker)
-	    (concat "-" rev))
-	  ((string= locker (user-login-name)) 
+	  ((not locker)
+	   (concat "-" rev))
+	  ((if (stringp locker)
+	       (string= locker (user-login-name))
+	     (= locker (user-uid)))
 	   (concat ":" rev))
 	  (t 
 	   (concat ":" locker ":" rev)))))
