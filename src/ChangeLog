@@ -1,3 +1,12 @@
+2000-02-15  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* syntax.c (back_comment): Make sure we only consider comment-starters
+	of the relevant style and return -1 in case of a failure to find the
+	beginning of the comment.
+	(Fforward_comment): If back_comment fails, go back to the position just
+	after the comment-end.
+	(scan_lists): Add comment describing a very minor bug.
+
 2000-02-14  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* minibuf.c (Ftry_completion, Fall_completions): Add a reference to

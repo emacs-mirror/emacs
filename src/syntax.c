@@ -508,6 +508,9 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
 	    code = Scomment;
 	  UPDATE_SYNTAX_TABLE_BACKWARD (from);
 	}
+      else if (code == Scomment && comstyle != SYNTAX_COMMENT_STYLE (c))
+	/* Ignore comment starters of a different style.  */
+	continue;
 
       /* Ignore escaped characters, except comment-enders.  */
       if (code != Sendcomment && char_quoted (from, from_byte))
@@ -539,8 +542,7 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
 	}
 
       if (code == Scomment)
-	/* FIXME: we should also check that the comstyle is correct
-	   if the Scomment is a single-char. */
+	/* We've already checked that it is the relevant comstyle.  */
 	{
 	  if (comnested && --nesting <= 0 && parity == 0 && !string_lossage)
 	    /* nested comments have to be balanced, so we don't need to
@@ -634,7 +636,7 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
   *charpos_ptr = from;
   *bytepos_ptr = from_byte;
 
-  return from;
+  return (from == comment_end) ? -1 : from;
 }
 
 DEFUN ("syntax-table-p", Fsyntax_table_p, Ssyntax_table_p, 1, 1, 0,
@@ -1795,6 +1797,8 @@ between them, return t; otherwise return nil.")
 	      INC_BOTH (from, from_byte);
 	      UPDATE_SYNTAX_TABLE_FORWARD (from);
 	    }
+	  /* FIXME: here we ignore 2-char endcomments while we don't
+	     when going backwards.  */
 	}
       while (code == Swhitespace || code == Sendcomment);
 
@@ -1904,10 +1908,17 @@ between them, return t; otherwise return nil.")
 	    {
 	      found = back_comment (from, from_byte, stop, comnested, comstyle,
 				    &out_charpos, &out_bytepos);
-	      if (found != -1)
-		from = out_charpos, from_byte = out_bytepos;
+	      if (found == -1)
+		{
+		  /* Failure: we have to skip the one or two chars of the
+		     not-quite-endcomment.  */
+		  if (SYNTAX(c) != code)
+		    /* It was a two-char Sendcomment.  */
+		    INC_BOTH (from, from_byte);
+		  goto leave;
+		}
 	      /* We have skipped one comment.  */
-	      break;
+	      from = out_charpos, from_byte = out_bytepos;
 	    }
 	  else if (code != Swhitespace && code != Scomment)
 	    {
@@ -2227,6 +2238,12 @@ scan_lists (from, count, depth, sexpflag)
 		break;
 	      found = back_comment (from, from_byte, stop, comnested, comstyle,
 				    &out_charpos, &out_bytepos);
+	      /* FIXME:  if found == -1, then it really wasn't a comment-end.
+		 For single-char Sendcomment, we can't do much about it apart
+		 from skipping the char.
+		 For 2-char endcomments, we could try again, taking both
+		 chars as separate entities, but it's a lot of trouble
+		 for very little gain, so we don't bother either.  -sm */
 	      if (found != -1)
 		from = out_charpos, from_byte = out_bytepos;
 	      break;
