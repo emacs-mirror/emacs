@@ -250,9 +250,8 @@ main (argc, argv)
       exit (1);
     }
   server.sun_family = AF_UNIX;
-#ifndef SERVER_HOME_DIR
-  system_name_length = 32;
 
+  system_name_length = 32;
   while (1)
     {
       system_name = (char *) xmalloc (system_name_length + 1);
@@ -267,6 +266,7 @@ main (argc, argv)
       system_name_length *= 2;
     }
 
+#ifndef SERVER_HOME_DIR
   sprintf (server.sun_path, "/tmp/esrv%d-%s", geteuid (), system_name);
 
   if (unlink (server.sun_path) == -1 && errno != ENOENT)
@@ -280,7 +280,6 @@ main (argc, argv)
 
   strcpy (server.sun_path, homedir);
   strcat (server.sun_path, "/.emacs-server-");
-  gethostname (system_name, sizeof (system_name));
   strcat (server.sun_path, system_name);
   /* Delete anyone else's old server.  */
   unlink (server.sun_path);
