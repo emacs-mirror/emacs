@@ -543,14 +543,8 @@ emacs: temacs ${etc}DOC ${lisp}
 	ln temacs emacs
 #else
 #ifdef HAVE_SHM
-	-if [ -w ${srcdir}/../lisp ]; then \
-	  w=`pwd`; cd ${srcdir}; $${w}/temacs -nl -batch -l ../lisp/inc-vers; \
-	else true; fi
 	./temacs -nl -batch -l loadup dump
 #else /* ! defined (HAVE_SHM) */
-	-if [ -w ${srcdir}/../lisp ]; then \
-	  w=`pwd`; cd ${srcdir}; $${w}/temacs -batch -l ../lisp/inc-vers; \
-	else true; fi
 	./temacs -batch -l loadup dump
 #endif /* ! defined (HAVE_SHM) */
 #endif /* ! defined (CANNOT_DUMP) */
