@@ -1,5 +1,5 @@
 /* Record indices of function doc strings stored in a file.
-   Copyright (C) 1985, 86,93,94,95,97,98,99, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1985, 86,93,94,95,97,98,99, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -50,7 +50,7 @@ Lisp_Object Vdoc_file_name;
 
 Lisp_Object Qfunction_documentation;
 
-extern Lisp_Object Voverriding_local_map;
+extern Lisp_Object Voverriding_local_map, Qclosure;
 
 /* For VMS versions with limited file name syntax,
    convert the name to something VMS will allow. */
@@ -430,6 +430,8 @@ string is passed through `substitute-command-keys'.  */)
 	  else
 	    return Qnil;
 	}
+      else if (EQ (funcar, Qclosure))
+ 	return Fdocumentation (Fcdr (XCDR (fun)), raw);
       else if (EQ (funcar, Qmacro))
 	return Fdocumentation (Fcdr (fun), raw);
       else
@@ -548,6 +550,8 @@ store_function_docstring (fun, offset)
 	}
       else if (EQ (tem, Qmacro))
 	store_function_docstring (XCDR (fun), offset);
+      else if (EQ (tem, Qclosure))
+	store_function_docstring (Fcdr (XCDR (fun)), offset);
     }
 
   /* Bytecode objects sometimes have slots for it.  */
