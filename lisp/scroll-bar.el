@@ -62,7 +62,10 @@ that scroll bar position."
   "Non-nil means `set-scroll-bar-mode' should really do something.
 This is nil while loading `scroll-bar.el', and t afterward.")
 
-(defun set-scroll-bar-mode (ignore value)
+(defun set-scroll-bar-mode-1 (ignore value)
+  (set-scroll-bar-mode value))
+
+(defun set-scroll-bar-mode (value)
   "Set `scroll-bar-mode' to VALUE and put the new value into effect."
   (setq scroll-bar-mode value)
 
@@ -95,7 +98,7 @@ it takes effect immediately for all frames."
 		 (const left)
 		 (const right))
   :group 'frames
-  :set 'set-scroll-bar-mode)
+  :set 'set-scroll-bar-mode-1)
 
 ;; We just set scroll-bar-mode, but that was the default.
 ;; If it is set again, that is for real.
@@ -111,8 +114,7 @@ turn off scroll bars; otherwise, turn on scroll bars."
   (if flag (setq flag (prefix-numeric-value flag)))
 
   ;; Tweedle the variable according to the argument.
-  (set-scroll-bar-mode nil
-		       (if (null flag) (not scroll-bar-mode)
+  (set-scroll-bar-mode (if (null flag) (not scroll-bar-mode)
 			 (and (or (not (numberp flag)) (>= flag 0))
 			      'left))))
 
