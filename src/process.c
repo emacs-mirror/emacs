@@ -1273,6 +1273,7 @@ BUFFER is the buffer or (buffer-name) to associate with the process.
  with any buffer.
 Third arg is program file name.  It is searched for in PATH.
 Remaining arguments are strings to give program as arguments.
+
 usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
      (nargs, args)
      int nargs;
@@ -2348,7 +2349,6 @@ DEFUN ("set-network-process-options",
        Fset_network_process_options, Sset_network_process_options,
        1, MANY, 0, 
        doc: /* Set one or more options for network process PROCESS.
-Arguments are PROCESS &rest OPTIONS.
 Each option is either a string "OPT=VALUE" or a cons (OPT . VALUE).
 A boolean value is false if it either zero or nil, true otherwise.
 
@@ -2362,7 +2362,9 @@ keepalive=BOOL -- Send keep-alive messages on network stream.
 linger=BOOL or TIMEOUT -- Send queued messages before closing.
 oobinline=BOOL -- Place out-of-band data in receive data stream. 
 priority=INT -- Set protocol defined priority for sent packets.
-reuseaddr=BOOL -- Allow reusing a recently used address.  */)
+reuseaddr=BOOL -- Allow reusing a recently used address.
+
+usage: (set-network-process-options PROCESS &rest OPTIONS)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -2461,7 +2463,7 @@ defined constants, data sizes, and data structure alignment.
 :coding CODING -- CODING is coding system for this process.
 
 :options OPTIONS -- Set the specified options for the network process.
-See `set-process-options' for details.
+See `set-network-process-options' for details.
 
 :nowait BOOL -- If BOOL is non-nil for a stream type client process,
 return without waiting for the connection to complete; instead, the
