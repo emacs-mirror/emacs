@@ -1,3 +1,82 @@
+2003-05-22  Ken Stevens <kstevens@ichips.intel.com>
+
+	* ispell.el: Sync to version 3.6.
+	Summary: MIME support added for e-mail processing that
+	skips encoded regions.  Allow user to skip saving Fcc messages with
+	large attachments.  Fixed region skipping bug with multi-line
+	comments - e.g.  tex $ regions spanning multiple lines.
+	Added support for postscript and uuencoded regions.
+	Redundant dictionary file names purged.
+	Dictionary definition field name changed from "Character Set"
+	to "Coding System".  Fixed bug in reloading dictionaries.
+	Modified headers to reflect new version.  XEmacs menu now adds
+	customize item.
+	(ispell-check-version): No longer an aliased function.
+	Returns library path if not called interactively.
+	Variable `temporary-file-directory' protected if not loaded.
+	(check-ispell-version): Now the alias for `ispell-check-version'.
+	(ispell-message-fcc-skip): New variable that determines if and when
+	to query about saving Fcc copy of message if an attachment is large.
+	(ispell-skip-html): Declared buffer-local.
+	(ispell-local-dictionary-alist): Docstring expanded.
+	Tag name changed from "Character Set" to "Coding System".
+	(ispell-dictionary-alist-1): Removed redundant command-line option to
+	load brasileiro, british, and castellano dictionary files.
+	(ispell-dictionary-alist-2): Removed redundant command-line option to
+	load czech dictionary file.
+	(ispell-dictionary-alist-3): Moved francais-tex here.
+	(ispell-dictionary-alist-4): Removed german and german8 dictionaries.
+	The deutsch ones are the correct definitions.  `nederlands'
+	and `nederlands8' dictionaries moved here.
+	(ispell-dictionary-alist-5): `polish' and `portugues' dictionaries
+	moved here.  Removed redundant command-line option to `norsk'
+	and `portugues'.
+	(ispell-dictionary-alist-6): Removed redundant command-line option to
+	load `russian' and `slovak' dictionary files.
+	(ispell-dictionary-alist): Tag name changed from "Character Set" to
+	"Coding System".
+	(ispell-version): Updated to 3.6.
+	(ispell-library-directory): Calls non-deprecated function.
+	(ispell-valid-dictionary-list): New function returning all valid
+	dictionaries on machine.
+	(ispell-checking-message): Documentation string improved.
+	(ispell-skip-region-alist): Added uuencoded and postscript region
+	skipping.  Improved http/e-mail/file regexp to not match `/.\w'.
+	(ispell-html-skip-alists): New variable for html region support.
+	(ispell-send-string): Removed redundant xemacs check.
+	(ispell-word): Fix spelling error in documentation string, added
+	extent information to support highlighting in ispell-minor-mode.
+	(ispell-command-loop): Disable horizontal scrollbar in XEmacs
+	choices buffer.
+	(ispell-show-choices): Directly select `choices-window'.
+	(ispell-help): Use default buffer size for electric help.
+	(ispell-adjusted-window-height): Correct for xemacs detection.
+	(ispell-start-process): Don't double specify dictionary file name.
+	(ispell-init-process): Set `ispell-library-path' each call.
+	(ispell-change-dictionary): Now only completes valid dictionaries.
+	(ispell-region): Add support for MIME region skipping and Fcc
+	message query for large attachments.
+	(ispell-begin-skip-region-regexp): Add documentation string.
+	Added message support and cleaned up code for generic and html regions.
+	(ispell-begin-skip-region): Function is now requires alist argument.
+	(ispell-begin-tex-skip-regexp): Added comments and support
+	improved html and message regions.
+	(ispell-skip-region-list): New function for MIME and region skipping.
+	(ispell-tex-arg-end): Add documentation string.
+	(ispell-ignore-fcc): New function to query saving Fcc message.
+	(ispell-skip-region): Calculate alist for key match dynamically,
+	html skipping pushed to alists.
+	(ispell-get-line): Add support for multi-line comment regions.
+	(ispell): Check that variables to continue spelling are bound.
+	(ispell-message-text-end): Postscript and uuencoded regions now
+	supported as MIME regions, rather than as end-of-message region.
+	(ispell-mime-multipartp): New function supporting MIME.
+	(ispell-mime-skip-part): New function supporting MIME.
+	(ispell-message): Add MIME support.
+	(ispell-buffer-local-parsing): Variable `ispell-skip-html' now local.
+	(ispell-buffer-local-dict): Fixed bug for detecting and reloading
+	new dictionary.
+
 2003-05-22  Stephen J. Turnbull  <stephen@xemacs.org>
 
 	* subr.el (split-string): Implement specification that splitting on
@@ -6,15 +85,19 @@
 
 2003-05-22  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* international/mule-cmds.el (select-safe-coding-system): Try
-	default-buffer-file-coding-system too for automatic selection.
+	* international/mule-cmds.el (select-safe-coding-system):
+	Try default-buffer-file-coding-system too for automatic selection.
+
+2003-05-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* simple.el (ctl-x-map): Remove the C-x U binding added recently.
 
 2003-05-21  Dave Love  <fx@gnu.org>
 
 	* descr-text.el (unicodedata-file): New.
 	(unicode-data): New (adapted from unicode branch).
-	(describe-char): Use it.  Print char's unicode differently.  Avoid
-	elements with null cadr when formatting list.  Clarify error
+	(describe-char): Use it.  Print char's unicode differently.
+	Avoid elements with null cadr when formatting list.  Clarify error
 	message when used in Help buffer.
 	(button): Require when compiling.
 	(describe-char-after): Alias for obsolete command.
@@ -78,7 +161,7 @@
 	(xml-skip-dtd): Remove arg.  Callers changed.  Change matching code.
 	(xml-parse-dtd): Grok external DTDs.  Allow non-ASCII.
 	Don't use match-string-no-properties.
-	(xml-ucs-to-string): Deleted.
+	(xml-ucs-to-string): Delete.
 	(xml-substitute-entity): New.
 	(xml-substitute-special): Use it.
 	(xml-debug-print-internal): Simplify insertions.
