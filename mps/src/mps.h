@@ -1,7 +1,7 @@
 /* impl.h.mps: HARLEQUIN MEMORY POOL SYSTEM C INTERFACE
  *
- * $HopeName: MMsrc!mps.h(trunk.31) $
- * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName: MMsrc!mps.h(trunk.32) $
+ * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
  * .sources: design.mps.interface.c.
@@ -14,9 +14,6 @@
 #include <stddef.h>
 #include <stdarg.h>
 #include <limits.h>
-#ifdef MPS_OS_W3
-#include "mpswin.h"            /* needed for SEH filter type */
-#endif /* MPS_OS_W3 */
 
 
 /* Abstract Types */
@@ -155,14 +152,6 @@ typedef struct mps_fmt_A_s {
  * #pragma warning(disable: 4127)
  */
 
-extern mps_res_t mps_ap_fill(mps_addr_t *, mps_ap_t, size_t);
-extern mps_bool_t mps_ap_trip(mps_ap_t, mps_addr_t, size_t);
-
-#ifdef MPS_OS_W3
-extern LONG mps_SEH_filter(LPEXCEPTION_POINTERS, void **, size_t *);
-extern void mps_SEH_handler(void *, size_t);
-#endif /* MPS_OS_W3 */
-
 
 /* Assertion Handling */
 
@@ -233,6 +222,9 @@ extern void mps_ap_destroy(mps_ap_t);
 extern mps_res_t (mps_reserve)(mps_addr_t *, mps_ap_t, size_t);
 extern mps_bool_t (mps_commit)(mps_ap_t, mps_addr_t, size_t);
 
+extern mps_res_t mps_ap_fill(mps_addr_t *, mps_ap_t, size_t);
+extern mps_bool_t mps_ap_trip(mps_ap_t, mps_addr_t, size_t);
+
 /* Reserve Macros */
 /* .reserve: Keep in sync with impl.c.buffer.reserve. */
 
@@ -292,39 +284,22 @@ extern mps_res_t mps_stack_scan_ambig(mps_ss_t, mps_thr_t,
 
 /* Protection Trampoline and Thread Registration */
 
-extern void (mps_tramp)(void **,
-                        void *(*)(void *, size_t),
-                        void *, size_t);
+typedef void *(*mps_tramp_t)(void *, size_t);
 
-#ifdef MPS_OS_W3
+extern void (mps_tramp)(void **, mps_tramp_t, void *, size_t);
 
-#define mps_tramp(r_o, f, p, s) \
-  MPS_BEGIN \
-    void **_r_o = (r_o); \
-    void *(*_f)(void *, size_t) = (f); \
-    void *_p = (p); \
-    size_t _s = (s); \
-    void *_hp; size_t _hs; \
-    __try { \
-      *(_r_o) = (*(_f))(_p, _s); \
-    } __except(mps_SEH_filter(GetExceptionInformation(), \
-               &_hp, &_hs)) { \
-      mps_SEH_handler(_hp, _hs); \
-    } \
-  MPS_END
-
-#else /* MPS_OS_W3 */
+#ifndef mps_tramp /* If a platform-specific version hasn't been defined */
 
 #define mps_tramp(r_o, f, p, s) \
   MPS_BEGIN \
     void **_r_o = (r_o); \
-    void *(*_f)(void *, size_t) = (f); \
+    mps_tramp_t _f = (f); \
     void *_p = (p); \
     size_t _s = (s); \
-    *(_r_o) = (*(_f))(_p, _s); \
+    *_r_o = (*_f)(_p, _s); \
   MPS_END
 
-#endif /* MPS_OS_W3 */
+#endif
 
 extern mps_res_t mps_thread_reg(mps_thr_t *, mps_arena_t);
 extern void mps_thread_dereg(mps_thr_t);
