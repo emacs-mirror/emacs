@@ -1,5 +1,8 @@
 2001-08-16  Gerd Moellmann  <gerd@gnu.org>
 
+	* xrdb.c (SYSV): Don't define on Solaris 2.
+	From Rainer Orth  <ro@TechFak.Uni-Bielefeld.DE>.
+
 	* xdisp.c (move_it_by_lines) <DVPOS < 0>: Start at the beginning
 	of the screen line, not text line, containing IT's current
 	position.
