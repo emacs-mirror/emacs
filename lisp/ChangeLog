@@ -1,3 +1,12 @@
+2003-10-01  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/calendar.el (increment-calendar-month)
+	(calendar-leap-year-p, calendar-absolute-from-gregorian)
+	(generate-calendar, calendar-read-date, calendar-interval)
+	(calendar-day-of-week): Handle years BC.
+	(generate-calendar-month, calendar-gregorian-from-absolute): Doc
+	fix.
+
 2003-10-01  Dave Love  <fx@gnu.org>
 
 	* language/cyrillic.el (cp1251): Alias for windows-1251.
