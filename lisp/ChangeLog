@@ -1,3 +1,9 @@
+2005-03-31  Kenichi Handa  <handa@etlken2>
+
+	* textmodes/fill.el (fill-text-properties-at): New function.
+	(fill-newline): Use fill-text-properties-at instead of
+	text-properties-at.
+
 2005-03-31  Karl Berry  <karl@freefriends.org>
 
 	* textmodes/tex-mode.el (tex-compile): shell-quote-argument,
