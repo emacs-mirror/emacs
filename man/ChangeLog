@@ -1,3 +1,11 @@
+2004-12-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* url.texi: Update @setfilename.
+	(Getting Started): No need to worry about Gnus versions.
+	(Dealing with HTTP documents): Use @inforef.
+
+	* org.texi: Fix @direntry file name.
+
 2004-12-07  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* frames.texi (Scroll Bars): The option `scroll-bar-mode' has to
