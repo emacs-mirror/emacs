@@ -104,7 +104,7 @@ wrong_type_argument (predicate, value)
 
       /* If VALUE is not even a valid Lisp object, abort here
 	 where we can get a backtrace showing where it came from.  */
-      if ((unsigned int) XGCTYPE (value) > Lisp_Window + 2)
+      if ((unsigned int) XGCTYPE (value) >= Lisp_Type_Limit)
 	abort ();
 
       value = Fsignal (Qwrong_type_argument, Fcons (predicate, Fcons (value, Qnil)));
