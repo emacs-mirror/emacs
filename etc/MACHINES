@@ -747,6 +747,20 @@ Iris 4D (mips-sgi-irix[456].*)
   could also try reinstalling the same version of GCC, and telling us
   whether that fixes the problem.
 
+  Building Emacs 21.1 and 21.2 on versions of Irix before 6.5.10,
+  especially when Emacs is built with GCC, was reported to have subtle
+  problems such as being unable to print to stdout under the -batch
+  command-line option.  Building with the native compiler or upgrading
+  the OS to a newer version solves these problems.  There's evidence
+  that these problems are actually related to the runtime libraries
+  (before IRIX 6.5.10, the IRIX runtimes were based on the MIPSpro 7.2
+  compilers), so installing patches for the runtime from
+  http://www.sgi.com/support/patch_intro.html could solve the problem
+  even without upgrading the OS.  The dump process is the crucial
+  step that needs the upgraded runtime, so a workaround is to dump
+  Emacs on a machine with a newer OS, then copy the binary to the
+  older OS.
+
   The 19.26 pretest was reported to work on IRIX 4.0.5 and 5.2.
   19.23 was reported to work on IRIX 5.2, but you may need to install
   the "compiler_dev.hdr.internal" subsystem in order to compile unexelfsgi.c.
