@@ -51,6 +51,7 @@ Invoke a compiler with the same command as in the last invocation of
 Run @code{grep} asynchronously under Emacs, with matching lines
 listed in the buffer named @samp{*grep*}.
 @item M-x grep-find
+@item M-x find-grep
 Run @code{grep} via @code{find}, with user-specified arguments, and
 collect output in the buffer named @samp{*grep*}.
 @item M-x kill-compilation
@@ -166,11 +167,12 @@ the tag (@pxref{Tags}) around point, and puts that into the default
 @code{grep} command.
 
 @findex grep-find
-  The command @kbd{M-x grep-find} is similar to @kbd{M-x grep}, but it
-supplies a different initial default for the command---one that runs
-both @code{find} and @code{grep}, so as to search every file in a
-directory tree.  See also the @code{find-grep-dired} command,
-in @ref{Dired and Find}.
+@findex find-grep
+  The command @kbd{M-x grep-find} (also available as @kbd{M-x
+find-grep}) is similar to @kbd{M-x grep}, but it supplies a different
+initial default for the command---one that runs both @code{find} and
+@code{grep}, so as to search every file in a directory tree.  See also
+the @code{find-grep-dired} command, in @ref{Dired and Find}.
 
 @node Compilation Mode
 @section Compilation Mode

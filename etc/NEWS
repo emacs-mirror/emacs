@@ -358,6 +358,10 @@ can be saved and automatically revisited with the new Grep mode.
 
 *** Grep commands now have their own submenu and customization group.
 
++++
+*** `grep-find' is now also available under the name `find-grep' where
+people knowing `find-grep-dired' would probably expect it.
+
 *** The new variables `grep-window-height', `grep-auto-highlight', and
 `grep-scroll-output' can be used to override the corresponding
 compilation mode settings for grep commands.

@@ -1,3 +1,7 @@
+2005-01-22  David Kastrup  <dak@gnu.org>
+
+	* progmodes/grep.el: Add alias `find-grep' for `grep-find'.
+
 2005-01-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* type-break.el (type-break-mode): Add a test for

@@ -1,3 +1,8 @@
+2005-01-22  David Kastrup  <dak@gnu.org>
+
+	* building.texi (Grep Searching): Mention alias `find-grep' for
+	`grep-find'.
+
 2005-01-20  Richard M. Stallman  <rms@gnu.org>
 
 	* calendar.texi (Time Intervals): Delete special stuff for MS-DOS.

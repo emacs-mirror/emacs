@@ -542,6 +542,9 @@ easily repeat a find command."
     (let ((null-device nil))		; see grep
       (grep command-args))))
 
+;;;###autoload
+(defalias 'find-grep 'grep-find)
+
 (defun grep-expand-command-macros (command &optional regexp files dir excl case-fold)
   "Patch grep COMMAND replacing <D>, etc."
   (setq command
