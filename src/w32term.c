@@ -191,6 +191,7 @@ extern unsigned int msh_mousewheel;
 extern void free_frame_menubar ();
 
 extern int w32_codepage_for_font (char *fontname);
+extern Cursor w32_load_cursor (LPCTSTR name);
 
 extern glyph_metric *w32_BDF_TextMetric(bdffont *fontp,
 					unsigned char *text, int dim);
@@ -369,6 +370,7 @@ static void show_mouse_face P_ ((struct w32_display_info *,
 				 enum draw_glyphs_face));
 static int cursor_in_mouse_face_p P_ ((struct window *));
 static int clear_mouse_face P_ ((struct w32_display_info *));
+void w32_define_cursor P_ ((Window, Cursor));
 
 void x_lower_frame P_ ((struct frame *));
 void x_scroll_bar_clear P_ ((struct frame *));
@@ -1432,6 +1434,7 @@ w32_encode_char (c, char2b, font_info, two_byte_p)
 	{
 	  ccl->reg[0] = charset;
 	  ccl->reg[1] = BYTE2 (*char2b);
+	  ccl->reg[2] = -1;
 	}
       else
 	{
@@ -3730,7 +3733,7 @@ static void
 w32_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
                       raised_p, left_p, right_p, clip_rect)
      struct frame *f;
-     int left_x, top_y, right_x, bottom_y, left_p, right_p, raised_p;
+     int left_x, top_y, right_x, bottom_y, width, left_p, right_p, raised_p;
      RECT *clip_rect;
 {
   int i;
@@ -6571,9 +6574,7 @@ note_mode_line_highlight (w, x, mode_line_p)
 	    }
 	}
     }
-#if 0 /* TODO: mouse cursor */
-  XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), cursor);
-#endif
+  w32_define_cursor (FRAME_W32_WINDOW (f), cursor);
 }
 
 
@@ -6591,6 +6592,7 @@ note_mouse_highlight (f, x, y)
   int portion;
   Lisp_Object window;
   struct window *w;
+  Cursor cursor = 0;
   struct buffer *b;
 
   /* When a menu is active, don't highlight because this looks odd. */
@@ -6646,12 +6648,12 @@ note_mouse_highlight (f, x, y)
       note_mode_line_highlight (w, x, portion == 1);
       return;
     }
-#if 0 /* TODO: mouse cursor */
+
   if (portion == 2)
-    cursor = f->output_data.x->horizontal_drag_cursor;
+    cursor = f->output_data.w32->horizontal_drag_cursor;
   else
-    cursor = f->output_data.x->text_cursor;
-#endif
+    cursor = f->output_data.w32->text_cursor;
+
   /* Are we in a window whose display is up to date?
      And verify the buffer's text has not changed.  */
   b = XBUFFER (w->buffer);
@@ -6679,7 +6681,7 @@ note_mouse_highlight (f, x, y)
 	  || !MATRIX_ROW (w->current_matrix, vpos)->displays_text_p)
 	{
 	  clear_mouse_face (dpyinfo);
-	  /* TODO: mouse cursor */
+	  cursor = f->output_data.w32->nontext_cursor;
 	  goto set_cursor;
 	}
 
@@ -6734,8 +6736,8 @@ note_mouse_highlight (f, x, y)
 			 || hpos < dpyinfo->mouse_face_end_col
 			 || dpyinfo->mouse_face_past_end));
 
-      /* TODO: if (same_region)
-	 mouse cursor */
+      if (same_region)
+	cursor = 0;
 
       /* Check mouse-face highlighting.  */
       if (! same_region
@@ -6765,8 +6767,8 @@ note_mouse_highlight (f, x, y)
 	  dpyinfo->mouse_face_overlay = overlay;
 
 	  /* Clear the display of the old active region, if any.  */
-	  clear_mouse_face (dpyinfo);
-	  /* TODO: mouse cursor changes.  */
+	  if (clear_mouse_face (dpyinfo))
+	    cursor = 0;
 
 	  /* If no overlay applies, get a text property.  */
 	  if (NILP (overlay))
@@ -6804,7 +6806,7 @@ note_mouse_highlight (f, x, y)
 
 	      /* Display it as active.  */
 	      show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
-	      /* TODO: mouse cursor changes.  */
+	      cursor = 0;
 	    }
 	  /* Handle the text property case.  */
 	  else if (! NILP (mouse_face) && BUFFERP (object))
@@ -6847,7 +6849,7 @@ note_mouse_highlight (f, x, y)
 
 	      /* Display it as active.  */
 	      show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
-	      /* TODO: mouse cursor changes.  */
+	      cursor = 0;
 	    }
 	  else if (!NILP (mouse_face) && STRINGP (object))
 	    {
@@ -6879,7 +6881,7 @@ note_mouse_highlight (f, x, y)
 		= face_at_string_position (w, object, pos, 0, 0, 0, &ignore,
 					   glyph->face_id, 1);
 	      show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
-	      /* TODO: mouse cursor changes.  */
+	      cursor = 0;
 	    }
 	  else if (STRINGP (object) && NILP (mouse_face))
 	    {
@@ -6927,7 +6929,7 @@ note_mouse_highlight (f, x, y)
 
 		  /* Display it as active.  */
 		  show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
-		  /* TODO: mouse cursor changes.  */
+		  cursor = 0;
 		}
 	    }
 	}
@@ -7007,8 +7009,8 @@ note_mouse_highlight (f, x, y)
     }
 
  set_cursor:
-  /* TODO: mouse cursor changes. */
-  ;
+  if (cursor)
+    w32_define_cursor (FRAME_W32_WINDOW (f), cursor);
 }
 
 static void
@@ -7021,6 +7023,13 @@ redo_mouse_highlight ()
 			  HIWORD (last_mouse_motion_event.lParam));
 }
 
+void
+w32_define_cursor (window, cursor)
+     Window window;
+     Cursor cursor;
+{
+  PostMessage (window, WM_EMACS_SETCURSOR, (WPARAM) cursor, 0);
+}
 
 
 /***********************************************************************
@@ -7561,18 +7570,17 @@ show_mouse_face (dpyinfo, draw)
 			  w->phys_cursor.x, w->phys_cursor.y);
     }
 
-#if 0 /* TODO: mouse cursor */
   /* Change the mouse cursor.  */
   if (draw == DRAW_NORMAL_TEXT)
-    XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		   f->output_data.x->text_cursor);
+    w32_define_cursor (FRAME_W32_WINDOW (f),
+		       f->output_data.w32->text_cursor);
   else if (draw == DRAW_MOUSE_FACE)
-    XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		   f->output_data.x->cross_cursor);
+    w32_define_cursor (FRAME_W32_WINDOW (f),
+		       f->output_data.w32->hand_cursor);
   else
-    XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		   f->output_data.x->nontext_cursor);
-#endif
+    w32_define_cursor (FRAME_W32_WINDOW (f),
+		       f->output_data.w32->nontext_cursor);
+
 }
 
 /* Clear out the mouse-highlighted active region.
@@ -11065,6 +11073,8 @@ w32_initialize_display_info (display_name)
   dpyinfo->mouse_face_window = Qnil;
   dpyinfo->mouse_face_overlay = Qnil;
   dpyinfo->mouse_face_hidden = 0;
+
+  dpyinfo->vertical_scroll_bar_cursor = w32_load_cursor (IDC_ARROW);
   /* TODO: dpyinfo->gray */
 
 }
