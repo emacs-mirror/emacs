@@ -809,8 +809,7 @@ definitions to shadow the loaded ones for use in file byte-compilation.")
 	    {
 	      /* Autoloading function: will it be a macro when loaded?  */
 	      tem = Fnth (make_number (4), def);
-	      if (EQ (XCONS (tem)->car, Qt)
-		  || EQ (XCONS (tem)->car, Qmacro))
+	      if (EQ (tem, Qt) || EQ (tem, Qmacro))
 		/* Yes, load it and try again.  */
 		{
 		  do_autoload (def, sym);
