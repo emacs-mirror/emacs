@@ -1,5 +1,7 @@
 2004-06-22  Kim F. Storm  <storm@cua.dk>
 
+	* fns.c (Fmapcar, Fmapconcat): GCPRO the args array.
+
 	* lisp.h (struct Lisp_Save_Value): New member dogc.
 	(SAFE_ALLOCA_LISP): Change second arg to number of elements.
 	Set dogc member in Lisp_Save_Value object so it will be GC'ed.
