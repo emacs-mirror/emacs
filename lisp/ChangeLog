@@ -1,5 +1,7 @@
 2000-08-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* menu-bar.el (menu-bar-games-menu): Add Zone.
+
 	* hi-lock.el (toplevel): Require font-lock.
 
 2000-08-03  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
