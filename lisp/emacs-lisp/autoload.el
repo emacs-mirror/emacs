@@ -158,7 +158,7 @@ are used."
 		    (if (eolp)
 			;; Read the next form and make an autoload.
 			(let* ((form (prog1 (read (current-buffer))
-				       (forward-line 1)))
+				       (or (bolp) (forward-line 1))))
 			       (autoload (make-autoload form load-name))
 			       (doc-string-elt (get (car-safe form)
 						    'doc-string-elt)))
