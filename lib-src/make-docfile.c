@@ -722,6 +722,9 @@ scan_c_file (filename, mode)
 	      fprintf (outfile, "\n\n");
 	      write_c_args (outfile, buf, argbuf, minargs, maxargs);
 	    }
+	  else if (defunflag && maxargs == -1 && !saw_usage)
+	    /* The DOC should provide the usage form.  */
+	    fprintf (stderr, "Missing `usage' for function `%s'.\n", buf);
 	}
     }
  eof:
