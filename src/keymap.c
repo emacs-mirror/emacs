@@ -901,7 +901,6 @@ the front of KEYMAP.")
 {
   register int idx;
   register Lisp_Object c;
-  register Lisp_Object tem;
   register Lisp_Object cmd;
   int metized = 0;
   int meta_bit;
@@ -996,7 +995,6 @@ recognize the default bindings, just as `read-key-sequence' does.")
      Lisp_Object accept_default;
 {
   register int idx;
-  register Lisp_Object tem;
   register Lisp_Object cmd;
   register Lisp_Object c;
   int metized = 0;
@@ -1616,7 +1614,7 @@ then the value includes only maps for prefixes that start with PREFIX.")
 	    }
 	  else if (CONSP (elt))
 	    {
-	      register Lisp_Object cmd, tem, filter;
+	      register Lisp_Object cmd, tem;
 
 	      cmd = get_keyelt (XCDR (elt), 0);
 	      /* Ignore definitions that aren't keymaps themselves.  */
@@ -2943,7 +2941,7 @@ describe_vector (vector, elt_prefix, elt_describer,
   Lisp_Object suppress;
   Lisp_Object kludge;
   int first = 1;
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+  struct gcpro gcpro1, gcpro2, gcpro3;
   /* Range of elements to be handled.  */
   int from, to;
   /* A flag to tell if a leaf in this level of char-table is not a
@@ -3265,8 +3263,6 @@ Return list of symbols found.")
 void
 syms_of_keymap ()
 {
-  Lisp_Object tem;
-
   Qkeymap = intern ("keymap");
   staticpro (&Qkeymap);
 
@@ -3403,8 +3399,6 @@ and applies even for keys that have ordinary bindings.");
 void
 keys_of_keymap ()
 {
-  Lisp_Object tem;
-
   initial_define_key (global_map, 033, "ESC-prefix");
   initial_define_key (global_map, Ctl('X'), "Control-X-prefix");
 }
