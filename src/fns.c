@@ -29,6 +29,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "commands.h"
 
 #include "buffer.h"
+#include "keyboard.h"
 
 Lisp_Object Qstring_lessp;
 
@@ -620,7 +621,7 @@ to be sure of changing the value of `foo'.")
   while (!NILP (tail))
     {
       tem = Fcar (tail);
-      if (Fequal (elt, tem))
+      if (! NILP (Fequal (elt, tem)))
 	{
 	  if (NILP (prev))
 	    list = Fcdr (tail);
