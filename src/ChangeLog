@@ -1,5 +1,12 @@
 2000-01-01  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (x_create_x_image_and_pixmap): Remove parameter FILE.
+	All calls adjusted.
+	(x_build_heuristic_mask): Likewise.
+	(xbm_load_image_from_file): Change error output.
+	(xbm_load, xpm_load, pbm_load, png_load, jpeg_load, tiff_load)
+	(gif_load, gs_load, x_kill_gs_process): Ditto.
+
 	* xfns.c (gif_load): Avoid sign extension and thus out of bounds
 	color indices when accessing raster pixels.
 	(gif_image_p, png_image_p, jpeg_image_p, tiff_image_p): Allow only
