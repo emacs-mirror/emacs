@@ -1,3 +1,8 @@
+2001-05-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* diff-mode.el (diff-nonexistant-face): New face.
+	(diff-font-lock-keywords): Use it.
+
 2001-04-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* font-lock.el (font-lock-mode): Doc fix.
@@ -7,8 +12,8 @@
 
 2001-04-30  Gerd Moellmann  <gerd@gnu.org>
 
-	* progmodes/sh-script.el (sh-font-lock-heredoc): Allow
-	optional backslash at the start of the here-document delimiter.
+	* progmodes/sh-script.el (sh-font-lock-heredoc): Allow optional
+	backslash at the start of the here-document delimiter.
 	(sh-font-lock-syntactic-keywords): Likewise.
 
 	* mail/rmail.el (rmail-message-regexp-p): Yet another fix.
@@ -22,8 +27,8 @@
 2001-04-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dired-aux.el (dired-do-create-files, dired-do-copy)
-	(dired-do-symlink, dired-do-hardlink, dired-do-rename): Mention
-	dired-dwim-target in the doc string.
+	(dired-do-symlink, dired-do-hardlink, dired-do-rename):
+	Mention dired-dwim-target in the doc string.
 
 2001-04-28  Miles Bader  <miles@gnu.org>
 
@@ -33,8 +38,7 @@
 
 2001-04-27  Gerd Moellmann  <gerd@gnu.org>
 
-	* mail/rmail.el (rmail-message-regexp-p): Don't match before
-	headers.
+	* mail/rmail.el (rmail-message-regexp-p): Don't match before headers.
 
 2001-04-26  Richard M. Stallman  <rms@gnu.org>
 
@@ -60,9 +64,8 @@
 	(ps-print-quote): New fun.
 	(ps-setup, ps-output-frame-properties, ps-float-format)
 	(ps-format-color): Code fix.
-	(ps-plot-region): Eliminate redundant foreground color text
-	setting.
-	
+	(ps-plot-region): Eliminate redundant foreground color text setting.
+
 2001-04-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* dabbrev.el (dabbrev--select-buffers): Add a doc string.
@@ -76,8 +79,8 @@
 	* info.el (Info-additional-directory-list): Doc fix.
 
 	* find-lisp.el (find-lisp-find-dired-filter)
-	(find-lisp-find-dired-subdirectories, find-lisp-find-dired): Add
-	autoload cookies.  From Richard Y. Kim <ryk@dspwiz.com>.
+	(find-lisp-find-dired-subdirectories, find-lisp-find-dired):
+	Add autoload cookies.  From Richard Y. Kim <ryk@dspwiz.com>.
 
 2001-04-25  Stefan Monnier  <monnier@cs.yale.edu>
 

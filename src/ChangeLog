@@ -1,10 +1,15 @@
+2001-05-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* syntax.c (update_syntax_table): Check that oldi has the same
+	properties as old_prop before deciding not to invalidate.
+
 2001-04-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* undo.c (Fprimitive_undo): In a writable buffer, enable undoing
 	read-only text that is so because of text properties.
 
 	* xterm.c (x_window_to_menu_bar) [USE_LUCID]: New function.
-	(XTread_socket) <Expose> [USE_LUCID]: Handle events for 
+	(XTread_socket) <Expose> [USE_LUCID]: Handle events for
 	windows that are components of a Lucid menu bar.
 
 2001-04-27  Gerd Moellmann  <gerd@gnu.org>
@@ -22,9 +27,8 @@
 	* term.c (toggle_highlight): New function.
 	(turn_on_face): Change handling of reverse video.
 
-	* process.c (wait_reading_process_input): Call
-	record_asynch_buffer_change only if a timer really changed
-	buffers.
+	* process.c (wait_reading_process_input):
+	Call record_asynch_buffer_change only if a timer really changed buffers.
 
 	* buffer.c (mouse_face_overlay_overlaps): Fix the computation
 	of the number of overlays to check.
@@ -41,33 +45,31 @@
 
 2001-04-21  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* process.c (wait_reading_process_input) [!subprocesses]: Don't
-	reference waiting_for_user_input_p, it's not defined in the branch
-	without async subprocesses support.
+	* process.c (wait_reading_process_input) [!subprocesses]:
+	Don't reference waiting_for_user_input_p, it's not defined in the
+	branch without async subprocesses support.
 
 2001-04-19  Gerd Moellmann  <gerd@gnu.org>
 
 	* keyboard.c (delete_kboard): Prevent a dangling reference
 	from current_kboard to KB, which is freed.
 
-	* process.c (wait_reading_process_input): Call
-	record_asynch_buffer_change after running timers, to make
+	* process.c (wait_reading_process_input):
+	Call record_asynch_buffer_change after running timers, to make
 	read_key_sequence aware of buffer changes from under it.
 
 2001-04-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (Qscalable_fonts_allowed): New variable.
 	(realizing_basic_faces_p): Removed.
-	(x_face_list_fonts): Special handling for realizing_basic_faces_p
-	removed.
+	(x_face_list_fonts): Special handling for realizing_basic_faces_p removed.
 	(realize_basic_faces): Specbind Qscalable_fonts_allowed to t.
-	(syms_of_xfaces): Initialize Qscalable_fonts_allowed.  Change
-	default for scalable-fonts-allowed to t.
+	(syms_of_xfaces): Initialize Qscalable_fonts_allowed.  Change default
+	for scalable-fonts-allowed to t.
 
 	* fileio.c (Finsert_file_contents): If the file size returned from
 	stat is zero, set END to READ_BUF_SIZE.  This makes sure we can
-	read from files on a procfs whose contents are generated
-	dynamically.
+	read from files on a procfs whose contents are generated dynamically.
 
 2001-04-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
