@@ -6280,7 +6280,7 @@ Check the DISPLAY environment variable or use \"-d\"\n",
     change_keyboard_wait_descriptor (ConnectionNumber (x_current_display));
   change_input_fd (ConnectionNumber (x_current_display));
 
-#endif /* ! defined (HAVE_X11) */
+#endif /* HAVE_X11 */
   
 #ifndef F_SETOWN_BUG
 #ifdef F_SETOWN
