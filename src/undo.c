@@ -54,16 +54,17 @@ record_insert (beg, length)
       if (XTYPE (elt) == Lisp_Cons
 	  && XTYPE (XCONS (elt)->car) == Lisp_Int
 	  && XTYPE (XCONS (elt)->cdr) == Lisp_Int
-	  && XINT (XCONS (elt)->cdr) == beg)
+	  && XINT (XCONS (elt)->cdr) == XINT (beg))
 	{
-	  XSETINT (XCONS (elt)->cdr, beg + length);
+	  XSETINT (XCONS (elt)->cdr, XINT (beg) + XINT (length));
 	  return;
 	}
     }
 
-  XFASTINT (lbeg) = beg;
-  XFASTINT (lend) = beg + length;
-  current_buffer->undo_list = Fcons (Fcons (lbeg, lend), current_buffer->undo_list);
+  lbeg = beg;
+  XSET (lend, Lisp_Int, XINT (beg) + XINT (length));
+  current_buffer->undo_list = Fcons (Fcons (lbeg, lend),
+                                     current_buffer->undo_list);
 }
 
 /* Record that a deletion is about to take place,
@@ -163,7 +164,7 @@ truncate_undo_list (list, minsize, maxsize)
      Skip, skip, skip the undo, skip to the undo bound'ry. 
      (Get it?  "Skip to my Loo?")  */
   if (XTYPE (next) == Lisp_Cons
-      && XCONS (next)->car == Qnil)
+      && NILP (XCONS (next)->car))
     {
       /* Add in the space occupied by this element and its chain link.  */
       size_so_far += sizeof (struct Lisp_Cons);
@@ -173,7 +174,7 @@ truncate_undo_list (list, minsize, maxsize)
       next = XCONS (next)->cdr;
     }
   while (XTYPE (next) == Lisp_Cons
-	 && XCONS (next)->car != Qnil)
+	 && ! NILP (XCONS (next)->car))
     {
       Lisp_Object elt;
       elt = XCONS (next)->car;
