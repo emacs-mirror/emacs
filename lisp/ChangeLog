@@ -1,3 +1,7 @@
+2001-01-10  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el: Add documentation for backend interface.
+
 2001-01-10  Kenichi Handa  <handa@etl.go.jp>
 
 	* font-lock.el (c-font-lock-extra-types): Add "Lisp_Object".
