@@ -1831,6 +1831,8 @@ syms_of_fns ()
   Qcursor_in_echo_area = intern ("cursor-in-echo-area");
   staticpro (&Qcursor_in_echo_area);
 
+  Fset (Qyes_or_no_p_history, Qnil);
+
   DEFVAR_LISP ("features", &Vfeatures,
     "A list of symbols which are the features of the executing emacs.\n\
 Used by `featurep' and `require', and altered by `provide'.");
