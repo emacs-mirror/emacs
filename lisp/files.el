@@ -3644,6 +3644,14 @@ If any of these functions returns nil, killing Emacs is cancelled.
 but `kill-emacs', the low level primitive, does not.
 See also `kill-emacs-hook'.")
 
+(defcustom confirm-kill-emacs nil
+  "Ask for confirmation when leaving Emacs."
+  :type '(choice (const :tag "Ask with yes-or-no-p" yes-or-no-p)
+		 (const :tag "Ask with y-or-n-p" y-or-n-p)
+		 (const :tag "Don't confirm" nil))
+  :group 'emacs
+  :version "21.1")
+
 (defun save-buffers-kill-emacs (&optional arg)
   "Offer to save each buffer, then kill this Emacs process.
 With prefix arg, silently save all file-visiting buffers, then kill."
@@ -3670,6 +3678,8 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 		 (yes-or-no-p "Active processes exist; kill them and exit anyway? "))))
        ;; Query the user for other things, perhaps.
        (run-hook-with-args-until-failure 'kill-emacs-query-functions)
+       (or (null confirm-kill-emacs)
+	   (funcall confirm-kill-emacs "Really exit Emacs? "))
        (kill-emacs)))
 
 ;; We use /: as a prefix to "quote" a file name
