@@ -1,3 +1,7 @@
+2001-08-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* replace.el (occur): Bind inhibit-read-only to t.
+
 2001-08-16  Miles Bader  <miles@gnu.org>
 
 	* simple.el (line-move): Pass an ESCAPE-FROM-EDGE argument of t
