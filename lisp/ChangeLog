@@ -1,3 +1,69 @@
+2004-10-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-ann3): (Re-)initialise gdb-input-queue.
+
+2004-10-06  John Paul Wallington  <jpw@gnu.org>
+
+	* xml.el (xml-parse-dtd): Fix `error' call.
+
+2004-10-05  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-substitute-special): Return a single string instead
+	of a list of strings if an entity substitution is made.
+
+2004-10-05  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el: New file.
+
+2004-10-05  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-done): Set mark after running hook.
+	Suggested by Drew Adams <drew.adams@oracle.com>.
+
+	* info.el (Info-history, Info-toc): Fix Info headers.
+	(Info-toc): Narrow buffer before Info-fontify-node.
+	(Info-build-toc): Don't check for special Info file names.
+	Set main-file to nil if Info-find-file returns a symbol.
+
+2004-10-05  Emilio C. Lopes  <eclig@gmx.net>:
+
+	* calendar/calendar.el (calendar-goto-iso-week): Add autoload.
+	(calendar-mode-map): Add binding for `calendar-goto-iso-week'.
+	* calendar/cal-menu.el (calendar-mode-map): Ditto.
+
+2004-10-05  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/cal-iso.el (calendar-iso-read-args): New function,
+	for old interactive spec from calendar-goto-iso-date.
+	(calendar-goto-iso-date): Use it.
+	(calendar-goto-iso-week): New function.  Suggested by Emilio
+	C. Lopes <eclig@gmx.net>.
+
+2004-10-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* textmodes/enriched.el (enriched-mode-map): Give
+	`set-left-margin' and `set-right-margin' bindings that follow the
+	minor mode conventions.
+
+2004-10-03  Stefan  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-dvi-view-command): Use `yap' on w32.
+	(tex-font-lock-keywords-1): Add url and nolinkurl for args with `_'.
+	(latex-block-args-alist): Add minipage and picture.
+	(latex-block-body-alist): Use reftex-label if enabled.
+	(latex-insert-block): Don't insert a \n if not necessary.
+	(tex-compile-commands): Make sure dvips doesn't send to printer.
+	(tex-compile-default): Handle the case where no executable is found.
+	(latex-noindent-environments): New var.
+	(latex-find-indent): Use it.  Take an empty line as an arg-breaker.
+	If tex-indent-allhanging is non-nil, make sure we only align for macros
+	at beginning of line.
+
+2004-10-03  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* newcomment.el (comment-beginning): Doc fix and don't choke on
+	unset `comment-end-skip' when at beginning of comment.
+
 2004-10-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.el (term-adjust-current-row-cache): Don't allow the current
@@ -5,9 +71,8 @@
 	(term-emulate-terminal): Fix insert mode. Handle tab insertion at
 	the end of the line. Fix scroll down. Add comments.
 	(term-handle-ansi-escape): Don't exceed terminal width when moving
-	right.  
-	(term-scroll-region): Move the cursor after setting the scroll
-	region. 
+	right.
+	(term-scroll-region): Move the cursor after setting the scroll region.
 
 2004-10-01  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -33,8 +98,8 @@
 
 2004-09-29  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* textmodes/paragraphs.el (forward-paragraph): Avoid
-	args-out-of-range error when point winds up at the beginning of
+	* textmodes/paragraphs.el (forward-paragraph):
+	Avoid args-out-of-range error when point winds up at the beginning of
 	the buffer and hard newlines are enabled.
 
 	* newcomment.el (comment-multi-line): Doc fix.

@@ -28,8 +28,6 @@ isearch faces.
 
 ** Finish updating the Emacs Lisp manual.
 
-*** New display properties (KFS to provide input).
-
 ** Update the Emacs manual.
 
 *** Update man/info.texi.
@@ -88,7 +86,7 @@ man/rmail.texi
 man/screen.texi     "Luc Teirlinck"
 man/search.texi     "Luc Teirlinck"
 man/sending.texi
-man/text.texi
+man/text.texi       "Luc Teirlinck"
 man/trouble.texi
 man/windows.texi    "Luc Teirlinck"
 man/xresources.texi

@@ -1,3 +1,8 @@
+2004-10-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-handlers.el (url-insert-file-contents): Use the URL to decide the
+	encoding, not the buffer-file-name (which might not even exist).
+
 2004-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-handlers.el (url-insert-file-contents): Decode contents.

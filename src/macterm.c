@@ -50,6 +50,7 @@ Boston, MA 02111-1307, USA.  */
 #include <TextUtils.h>
 #include <LowMem.h>
 #include <Controls.h>
+#include <Windows.h>
 #if defined (__MRC__) || (__MSL__ >= 0x6000)
 #include <ControlDefinitions.h>
 #endif
@@ -3887,18 +3888,21 @@ remember_mouse_glyph (f1, gx, gy)
 
 
 static WindowPtr
-mac_front_window ()
+front_emacs_window ()
 {
 #if TARGET_API_MAC_CARBON
-  return GetFrontWindowOfClass (kDocumentWindowClass, true);
-#else
-  WindowPtr front_window = FrontWindow ();
+  WindowPtr wp = GetFrontWindowOfClass (kDocumentWindowClass, true);
 
-  if (tip_window && front_window == tip_window)
-    return GetNextWindow (front_window);
-  else
-    return front_window;
+  while (wp && !is_emacs_window (wp))
+    wp = GetNextWindowOfClass (wp, kDocumentWindowClass, true);
+#else
+  WindowPtr wp = FrontWindow ();
+
+  while (wp && (wp == tip_window || !is_emacs_window (wp)))
+    wp = GetNextWindow (wp);
 #endif
+
+  return wp;
 }
 
 #define mac_window_to_frame(wp) (((mac_output *) GetWRefCon (wp))->mFP)
@@ -3934,7 +3938,7 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 {
   Point mouse_pos;
   int ignore1, ignore2;
-  WindowPtr wp = mac_front_window ();
+  WindowPtr wp = front_emacs_window ();
   struct frame *f;
   Lisp_Object frame, tail;
 
@@ -4551,7 +4555,7 @@ x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
      unsigned long *time;
 {
   struct scroll_bar *bar = XSCROLL_BAR (last_mouse_scroll_bar);
-  WindowPtr wp = mac_front_window ();
+  WindowPtr wp = front_emacs_window ();
   Point mouse_pos;
   struct frame *f = mac_window_to_frame (wp);
   int win_y, top_range;
@@ -5036,6 +5040,26 @@ xim_close_dpy (dpyinfo)
  */
 
 
+void
+mac_get_window_bounds (f, inner, outer)
+     struct frame *f;
+     Rect *inner, *outer;
+{
+#if TARGET_API_MAC_CARBON
+  GetWindowBounds (FRAME_MAC_WINDOW (f), kWindowContentRgn, inner);
+  GetWindowBounds (FRAME_MAC_WINDOW (f), kWindowStructureRgn, outer);
+#else /* not TARGET_API_MAC_CARBON */
+  RgnHandle region = NewRgn ();
+    
+  GetWindowRegion (FRAME_MAC_WINDOW (f), kWindowContentRgn, region);
+  *inner = (*region)->rgnBBox;
+  GetWindowRegion (FRAME_MAC_WINDOW (f), kWindowStructureRgn, region);
+  *outer = (*region)->rgnBBox;
+  DisposeRgn (region);
+#endif /* not TARGET_API_MAC_CARBON */
+}
+
+
 /* Calculate the absolute position in frame F
    from its current recorded position values and gravity.  */
 
@@ -5043,47 +5067,36 @@ void
 x_calc_absolute_position (f)
      struct frame *f;
 {
-  Point pt;
+  int width_diff = 0, height_diff = 0;
   int flags = f->size_hint_flags;
+  Rect inner, outer;
 
-  pt.h = pt.v = 0;
+  /* We have nothing to do if the current position
+     is already for the top-left corner.  */
+  if (! ((flags & XNegative) || (flags & YNegative)))
+    return;
 
-  /* Find the position of the outside upper-left corner of
+  /* Find the offsets of the outside upper-left corner of
      the inner window, with respect to the outer window.  */
-  if (f->output_data.mac->parent_desc != FRAME_MAC_DISPLAY_INFO (f)->root_window)
-    {
-      GrafPtr savePort;
-      GetPort (&savePort);
+  mac_get_window_bounds (f, &inner, &outer);
 
-      SetPortWindowPort (FRAME_MAC_WINDOW (f));
-
-#if TARGET_API_MAC_CARBON
-      {
-        Rect r;
-
-        GetWindowPortBounds (FRAME_MAC_WINDOW (f), &r);
-        SetPt(&pt, r.left,  r.top);
-      }
-#else /* not TARGET_API_MAC_CARBON */
-      SetPt(&pt, FRAME_MAC_WINDOW (f)->portRect.left,  FRAME_MAC_WINDOW (f)->portRect.top);
-#endif /* not TARGET_API_MAC_CARBON */
-      LocalToGlobal (&pt);
-      SetPort (savePort);
-    }
+  width_diff = (outer.right - outer.left) - (inner.right - inner.left);
+  height_diff = (outer.bottom - outer.top) - (inner.bottom - inner.top);
 
   /* Treat negative positions as relative to the leftmost bottommost
      position that fits on the screen.  */
   if (flags & XNegative)
     f->left_pos = (FRAME_MAC_DISPLAY_INFO (f)->width
-		   - 2 * f->border_width - pt.h
+                   - width_diff
 		   - FRAME_PIXEL_WIDTH (f)
 		   + f->left_pos);
-  /* NTEMACS_TODO: Subtract menubar height?  */
+
   if (flags & YNegative)
     f->top_pos = (FRAME_MAC_DISPLAY_INFO (f)->height
-		  - 2 * f->border_width - pt.v
+		  - height_diff
 		  - FRAME_PIXEL_HEIGHT (f)
 		  + f->top_pos);
+
   /* The left_pos and top_pos
      are now relative to the top and left screen edges,
      so the flags should correspond.  */
@@ -5102,8 +5115,6 @@ x_set_offset (f, xoff, yoff, change_gravity)
      register int xoff, yoff;
      int change_gravity;
 {
-  int modified_top, modified_left;
-
   if (change_gravity > 0)
     {
       f->top_pos = yoff;
@@ -5120,11 +5131,55 @@ x_set_offset (f, xoff, yoff, change_gravity)
   BLOCK_INPUT;
   x_wm_set_size_hint (f, (long) 0, 0);
 
-  modified_left = f->left_pos;
-  modified_top = f->top_pos;
+#if TARGET_API_MAC_CARBON
+  MoveWindowStructure (FRAME_MAC_WINDOW (f), f->left_pos, f->top_pos);
+  /* If the title bar is completely outside the screen, adjust the
+     position. */
+  ConstrainWindowToScreen (FRAME_MAC_WINDOW (f), kWindowTitleBarRgn,
+			   kWindowConstrainMoveRegardlessOfFit
+			   | kWindowConstrainAllowPartial, NULL, NULL);
+  x_real_positions (f, &f->left_pos, &f->top_pos);
+#else
+  {
+    Rect inner, outer, screen_rect, dummy;
+    RgnHandle region = NewRgn ();
+    
+    mac_get_window_bounds (f, &inner, &outer);
+    f->x_pixels_diff = inner.left - outer.left;
+    f->y_pixels_diff = inner.top - outer.top;
+    MoveWindow (FRAME_MAC_WINDOW (f), f->left_pos + f->x_pixels_diff,
+		f->top_pos + f->y_pixels_diff, false);
 
-  MoveWindow (FRAME_MAC_WINDOW (f), modified_left + 6,
-	      modified_top + 42, false);
+    /* If the title bar is completely outside the screen, adjust the
+       position.  The variable `outer' holds the title bar rectangle.
+       The variable `inner' holds slightly smaller one than `outer',
+       so that the calculation of overlapping may not become too
+       strict.  */
+    GetWindowRegion (FRAME_MAC_WINDOW (f), kWindowTitleBarRgn, region);
+    outer = (*region)->rgnBBox;
+    DisposeRgn (region);
+    inner = outer;
+    InsetRect (&inner, 8, 8);
+    screen_rect = qd.screenBits.bounds;
+    screen_rect.top += GetMBarHeight ();
+
+    if (!SectRect (&inner, &screen_rect, &dummy))
+      {
+	if (inner.right <= screen_rect.left)
+	  f->left_pos = screen_rect.left;
+	else if (inner.left >= screen_rect.right)
+	  f->left_pos = screen_rect.right - (outer.right - outer.left);
+
+	if (inner.bottom <= screen_rect.top)
+	  f->top_pos = screen_rect.top;
+	else if (inner.top >= screen_rect.bottom)
+	  f->top_pos = screen_rect.bottom - (outer.bottom - outer.top);
+
+	MoveWindow (FRAME_MAC_WINDOW (f), f->left_pos + f->x_pixels_diff,
+		    f->top_pos + f->y_pixels_diff, false);
+      }
+  }
+#endif
 
   UNBLOCK_INPUT;
 }
@@ -6900,6 +6955,7 @@ x_find_ccl_program (fontp)
 /* true when cannot handle any Mac OS events */
 static int handling_window_update = 0;
 
+#if 0
 /* the flag appl_is_suspended is used both for determining the sleep
    time to be passed to WaitNextEvent and whether the cursor should be
    drawn when updating the display.  The cursor is turned off when
@@ -6909,6 +6965,7 @@ static int handling_window_update = 0;
    suspended.  */
 static Boolean app_is_suspended = false;
 static long app_sleep_time = WNE_SLEEP_AT_RESUME;
+#endif
 
 #define EXTRA_STACK_ALLOC (256 * 1024)
 
@@ -7235,11 +7292,13 @@ is_emacs_window (WindowPtr win)
 static void
 do_app_resume ()
 {
+  /* Window-activate events will do the job. */
+#if 0
   WindowPtr wp;
   struct frame *f;
 
-  wp = mac_front_window ();
-  if (is_emacs_window (wp))
+  wp = front_emacs_window ();
+  if (wp)
     {
       f = mac_window_to_frame (wp);
 
@@ -7252,16 +7311,19 @@ do_app_resume ()
 
   app_is_suspended = false;
   app_sleep_time = WNE_SLEEP_AT_RESUME;
+#endif
 }
 
 static void
 do_app_suspend ()
 {
+  /* Window-deactivate events will do the job. */
+#if 0
   WindowPtr wp;
   struct frame *f;
 
-  wp = mac_front_window ();
-  if (is_emacs_window (wp))
+  wp = front_emacs_window ();
+  if (wp)
     {
       f = mac_window_to_frame (wp);
 
@@ -7274,6 +7336,7 @@ do_app_suspend ()
 
   app_is_suspended = true;
   app_sleep_time = WNE_SLEEP_AT_SUSPEND;
+#endif
 }
 
 
@@ -7282,10 +7345,10 @@ do_mouse_moved (mouse_pos, f)
      Point mouse_pos;
      FRAME_PTR *f;
 {
-  WindowPtr wp = mac_front_window ();
+  WindowPtr wp = front_emacs_window ();
   struct x_display_info *dpyinfo;
 
-  if (is_emacs_window (wp))
+  if (wp)
     {
       *f = mac_window_to_frame (wp);
       dpyinfo = FRAME_MAC_DISPLAY_INFO (*f);
@@ -7347,7 +7410,7 @@ do_menu_choice (SInt32 menu_choice)
 
     default:
       {
-        struct frame *f = mac_window_to_frame (mac_front_window ());
+        struct frame *f = mac_window_to_frame (front_emacs_window ());
         MenuHandle menu = GetMenuHandle (menu_id);
         if (menu)
           {
@@ -7400,41 +7463,43 @@ do_zoom_window (WindowPtr w, int zoom_in_or_out)
   GrafPtr save_port;
   Rect zoom_rect, port_rect;
   Point top_left;
-  int w_title_height, columns, rows, width, height, dummy, x, y;
+  int w_title_height, columns, rows;
   struct frame *f = mac_window_to_frame (w);
 
+#if TARGET_API_MAC_CARBON
+  {
+    Point standard_size;
+
+    standard_size.h = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, DEFAULT_NUM_COLS);
+    standard_size.v = FRAME_MAC_DISPLAY_INFO (f)->height;
+
+    if (IsWindowInStandardState (w, &standard_size, &zoom_rect))
+      zoom_in_or_out = inZoomIn;
+    else
+      {
+	/* Adjust the standard size according to character boundaries.  */
+
+	columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, zoom_rect.right - zoom_rect.left);
+	rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, zoom_rect.bottom - zoom_rect.top);
+	standard_size.h = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, columns);
+	standard_size.v = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
+	GetWindowBounds (w, kWindowContentRgn, &port_rect);
+	if (IsWindowInStandardState (w, &standard_size, &zoom_rect)
+	    && port_rect.left == zoom_rect.left
+	    && port_rect.top == zoom_rect.top)
+	  zoom_in_or_out = inZoomIn;
+	else
+	  zoom_in_or_out = inZoomOut;
+      }
+
+    ZoomWindowIdeal (w, zoom_in_or_out, &standard_size);
+  }
+#else /* not TARGET_API_MAC_CARBON */
   GetPort (&save_port);
 
   SetPortWindowPort (w);
 
   /* Clear window to avoid flicker.  */
-#if TARGET_API_MAC_CARBON
-  {
-    Rect r;
-    BitMap bm;
-
-    GetWindowPortBounds (w, &r);
-    EraseRect (&r);
-
-    if (zoom_in_or_out == inZoomOut)
-      {
-        /* calculate height of window's title bar (hard card it for now).  */
-        w_title_height = 20 + GetMBarHeight ();
-
-        /* get maximum height of window into zoom_rect.bottom -
-	   zoom_rect.top */
-        GetQDGlobalsScreenBits (&bm);
-        zoom_rect = bm.bounds;
-        zoom_rect.top += w_title_height;
-        InsetRect (&zoom_rect, 8, 4);  /* not too tight */
-
-        zoom_rect.right = zoom_rect.left
-	  + FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, DEFAULT_NUM_COLS);
-
-        SetWindowStandardState (w, &zoom_rect);
-      }
-  }
-#else /* not TARGET_API_MAC_CARBON */
   EraseRect (&(w->portRect));
   if (zoom_in_or_out == inZoomOut)
     {
@@ -7453,12 +7518,19 @@ do_zoom_window (WindowPtr w, int zoom_in_or_out)
       zoom_rect.right = zoom_rect.left
 	+ FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, DEFAULT_NUM_COLS);
 
+      /* Adjust the standard size according to character boundaries.  */
+      rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, zoom_rect.bottom - zoom_rect.top);
+      zoom_rect.bottom =
+	zoom_rect.top + FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows);
+
       (**((WStateDataHandle) ((WindowPeek) w)->dataHandle)).stdState
 	= zoom_rect;
     }
-#endif /* not TARGET_API_MAC_CARBON */
 
-  ZoomWindow (w, zoom_in_or_out, w == mac_front_window ());
+  ZoomWindow (w, zoom_in_or_out, w == front_emacs_window ());
+
+  SetPort (save_port);
+#endif /* not TARGET_API_MAC_CARBON */
 
   /* retrieve window size and update application values */
 #if TARGET_API_MAC_CARBON
@@ -7469,8 +7541,7 @@ do_zoom_window (WindowPtr w, int zoom_in_or_out)
   rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (f, port_rect.bottom - port_rect.top);
   columns = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, port_rect.right - port_rect.left);
   x_set_window_size (f, 0, columns, rows);
-
-  SetPort (save_port);
+  x_real_positions (f, &f->left_pos, &f->top_pos);
 }
 
 /* Initialize Drag And Drop to allow files to be dropped onto emacs frames */
@@ -8020,18 +8091,14 @@ XTread_socket (sd, expected, hold_quit)
   if (NILP (Fboundp (Qmac_ready_for_drag_n_drop)))
     event_mask -= highLevelEventMask;
 
-  while (WaitNextEvent (event_mask, &er,
-			(expected ? app_sleep_time : 0L), NULL))
-#else
-  while (!ReceiveNextEvent (0, NULL,
-			    (expected ? TicksToEventTime (app_sleep_time) : 0),
+  while (WaitNextEvent (event_mask, &er, 0L, NULL))
+#else /* USE_CARBON_EVENTS */
+  while (!ReceiveNextEvent (0, NULL, kEventDurationNoWait,
 			    kEventRemoveFromQueue, &eventRef))
-#endif /* !USE_CARBON_EVENTS */
+#endif /* USE_CARBON_EVENTS */
     {
       int do_help = 0;
       struct frame *f;
-
-      expected = 0;
 
       /* It is necessary to set this (additional) argument slot of an
 	 event to nil because keyboard.c protects incompletely
@@ -8055,13 +8122,7 @@ XTread_socket (sd, expected, hold_quit)
 				  NULL, &window_ptr);
 		f = mac_window_to_frame (window_ptr);
 		if (f && !f->async_iconified)
-		  {
-		    int x, y;
-		    
-		    x_real_positions (f, &x, &y);
-		    f->left_pos = x;
-		    f->top_pos = y;
-		  }
+		  x_real_positions (f, &f->left_pos, &f->top_pos);
 		SendEventToEventTarget (eventRef, toolbox_dispatcher);
 	      }
 	    break;
@@ -8070,7 +8131,7 @@ XTread_socket (sd, expected, hold_quit)
 	      {
 		SInt32 delta;
 		Point point;
-		WindowPtr window_ptr = mac_front_window ();
+		WindowPtr window_ptr = front_emacs_window ();
 
 		if (!IsValidWindowPtr (window_ptr))
 		  {
@@ -8132,33 +8193,28 @@ XTread_socket (sd, expected, hold_quit)
 	      }
 	    else
 	      {
-		window_ptr = FrontWindow ();
+		part_code = FindWindow (er.where, &window_ptr);
 		if (tip_window && window_ptr == tip_window)
 		  {
 		    HideWindow (tip_window);
-		    window_ptr = FrontWindow ();
+		    part_code = FindWindow (er.where, &window_ptr);
 		  }
-
-		if (!is_emacs_window (window_ptr))
-		  break;
-
-		part_code = FindWindow (er.where, &window_ptr);
 	      }
+
+	    if (er.what != mouseDown && part_code != inContent)
+	      break;
 
 	    switch (part_code)
 	      {
 	      case inMenuBar:
-		if (er.what == mouseDown)
-		  {
-		    f = mac_window_to_frame (mac_front_window ());
-		    saved_menu_event_location = er.where;
-		    inev.kind = MENU_BAR_ACTIVATE_EVENT;
-		    XSETFRAME (inev.frame_or_window, f);
-		  }
+		f = mac_window_to_frame (front_emacs_window ());
+		saved_menu_event_location = er.where;
+		inev.kind = MENU_BAR_ACTIVATE_EVENT;
+		XSETFRAME (inev.frame_or_window, f);
 		break;
 
 	      case inContent:
-		if (window_ptr != mac_front_window ())
+		if (window_ptr != front_emacs_window ())
 		  SelectWindow (window_ptr);
 		else
 		  {
@@ -8255,7 +8311,7 @@ XTread_socket (sd, expected, hold_quit)
 		      }
 		    else
 		      {
-			if (dpyinfo->grabbed & (1 << inev.code) == 0)
+			if ((dpyinfo->grabbed & (1 << inev.code)) == 0)
 			  /* If a button is released though it was not
 			     previously pressed, that would be because
 			     of multi-button emulation.  */
@@ -8278,27 +8334,16 @@ XTread_socket (sd, expected, hold_quit)
 
 	      case inDrag:
 #if TARGET_API_MAC_CARBON
-		if (er.what == mouseDown)
-		  {
-		    BitMap bm;
-
-		    GetQDGlobalsScreenBits (&bm);
-		    DragWindow (window_ptr, er.where, &bm.bounds);
-		  }
+		DragWindow (window_ptr, er.where, NULL);
 #else /* not TARGET_API_MAC_CARBON */
 		DragWindow (window_ptr, er.where, &qd.screenBits.bounds);
 #endif /* not TARGET_API_MAC_CARBON */
 		/* Update the frame parameters.  */
 		{
 		  struct frame *f = mac_window_to_frame (window_ptr);
+
 		  if (f && !f->async_iconified)
-		    {
-		      int x, y;
-		      
-		      x_real_positions (f, &x, &y);
-		      f->left_pos = x;
-		      f->top_pos = y;
-		    }
+		    x_real_positions (f, &f->left_pos, &f->top_pos);
 		}
 		break;
 
@@ -8313,11 +8358,8 @@ XTread_socket (sd, expected, hold_quit)
 
 		/* window resize handling added --ben */
 	      case inGrow:
-		if (er.what == mouseDown)
-		  {
-		    do_grow_window(window_ptr, &er);
-		    break;
-		  }
+		do_grow_window (window_ptr, &er);
+		break;
 
 		/* window zoom handling added --ben */
 	      case inZoomIn:
@@ -8460,7 +8502,7 @@ XTread_socket (sd, expected, hold_quit)
 #endif
 
 #if TARGET_API_MAC_CARBON
-	    if (!IsValidWindowPtr (mac_front_window ()))
+	    if (!IsValidWindowPtr (front_emacs_window ()))
 	      {
 		SysBeep (1);
 		break;
@@ -8564,7 +8606,7 @@ XTread_socket (sd, expected, hold_quit)
 	  inev.modifiers = mac_to_emacs_modifiers (er.modifiers);
 #endif
 	  XSETFRAME (inev.frame_or_window,
-		     mac_window_to_frame (mac_front_window ()));
+		     mac_window_to_frame (front_emacs_window ()));
 	  inev.timestamp = er.when * (1000 / 60);  /* ticks to milliseconds */
 	  break;
 
@@ -8581,16 +8623,16 @@ XTread_socket (sd, expected, hold_quit)
 	      WindowPtr wp;
 	      Lisp_Object frame;
 
-	      wp = mac_front_window ();
+	      wp = front_emacs_window ();
 
 	      if (!wp)
 		{
 		  struct frame *f = XFRAME (XCAR (Vframe_list));
 		  CollapseWindow (FRAME_MAC_WINDOW (f), false);
-		  wp = mac_front_window ();
+		  wp = front_emacs_window ();
 		}
 
-	      if (wp && is_emacs_window (wp))
+	      if (wp)
 		f = mac_window_to_frame (wp);
 
 	      inev.kind = DRAG_N_DROP_EVENT;
@@ -9047,7 +9089,7 @@ mac_check_for_quit_char ()
       e.arg = Qnil;
       e.modifiers = NULL;
       e.timestamp = EventTimeToTicks (GetEventTime (event)) * (1000/60);
-      XSETFRAME (e.frame_or_window, mac_window_to_frame (mac_front_window ()));
+      XSETFRAME (e.frame_or_window, mac_window_to_frame (front_emacs_window ()));
       /* Remove event from queue to prevent looping. */
       RemoveEventFromQueue (GetMainEventQueue (), event);
       ReleaseEvent (event);

@@ -258,8 +258,8 @@ Commands:
 (define-key enriched-mode-map "\M-j" 'facemenu-justification-menu)
 (define-key enriched-mode-map "\M-S" 'set-justification-center)
 (define-key enriched-mode-map "\C-x\t" 'increase-left-margin)
-(define-key enriched-mode-map "\C-c\C-l" 'set-left-margin)
-(define-key enriched-mode-map "\C-c\C-r" 'set-right-margin)
+(define-key enriched-mode-map "\C-c[" 'set-left-margin)
+(define-key enriched-mode-map "\C-c]" 'set-right-margin)
 
 ;;;
 ;;; Some functions dealing with text-properties, especially indentation

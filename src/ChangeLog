@@ -1,3 +1,72 @@
+2004-10-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (mac_get_window_bounds): Add extern.
+	(x_real_positions): Use mac_get_window_bounds.
+
+	* macmenu.c (update_submenu_strings): Apply 2004-09-07 change for
+	xmenu.c (YAILOM).
+	
+	* macterm.c [!MAC_OSX]: Include Windows.h.
+	(front_emacs_window): Rename from mac_front_window.  All uses
+	changed.  Return the frontmost non-tooltip emacs window.
+	(mac_get_window_bounds): New function.
+	(x_calc_absolute_position): Use the difference of width and height
+	between the inner and outer window.
+	(x_set_offset): Specify window position by the coordinae of the
+	outer window.  Adjust the position if the title bar is completely
+	outside the screen.
+	(app_is_suspended, app_sleep_time): Remove unused variables.
+	(do_app_resume, do_app_suspend): Remove their contents because
+	window-activate/deactivate events will do the job.
+	(do_zoom_window): Remove unused variables.  Make compliant to the
+	standard way of zooming.  Set f->left_pos and f->top_pos.
+	(XTread_socket): Don't use argument `expected'.  Don't use
+	FrontWindow to determine the clicked window.  Exclude unprocessed
+	mouseUp cases in the early stage.  Add parentheses to fix operator
+	precedence.
+	(XTread_socket) [TARGET_API_MAC_CARBON]: Don't specify drag area.
+
+
+2004-10-05  Jan Dj,Ad(Brv.  <jan.h.d@swipnet.se>
+
+	* config.in: Regenerate.
+
+	* Makefile.in (RUN_TEMACS): Check HAVE_RANDOM_HEAPSTART instead of
+	HAVE_EXECSHIELD.
+
+2004-10-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_find_modifier_meanings): Ignore any Super or Hyper for
+	a row if Alt or Meta has been found for that row.  Also stop scanning
+	for Keysyms for that row.
+
+2004-10-04  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (Ffringe_bitmaps_at_pos): Change return value from cons
+	to list.  Include overlay arrow bitmap in return value.
+
+	* xterm.c (XTset_vertical_scroll_bar): Improve handling of scroll
+	bars with fractional column width.  If scroll bar separates two
+	windows, move it towards the window it belongs to.  Only update
+	the padding area below the scroll bar widget when necessary,
+	i.e. when scroll bar widget is created, moved, or resized.
+
+	* xdisp.c (define_frame_cursor1): Do not change frame cursor
+	while tracking/dragging mouse.
+	(x_draw_vertical_border): Do not draw line if frame has scroll bars.
+
+	* window.c (coordinates_in_window): Relax check for cursor
+	on vertial border between mode lines.
+	(Fset_window_fringes): Do not allow negative widths.
+	(Fset_window_scroll_bars): Likewise.
+
+	* .gdbinit (pp): Shorthand for p ARG + pr.
+	(ff): New command: flush frame updates (X only).
+
+2004-10-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* fileio.c (auto_save_1) Call Ffile_modes for remote files.
+
 2004-09-30  Kenichi Handa  <handa@m17n.org>
 
 	* process.c (send_process): Free composition data.

@@ -609,9 +609,6 @@ coordinates_in_window (w, x, y)
   int grabbable_width = ux;
   int lmargin_width, rmargin_width, text_left, text_right;
 
-  if (*x < x0 || *x >= x1)
-    return ON_NOTHING;
-
   /* In what's below, we subtract 1 when computing right_x because we
      want the rightmost pixel, which is given by left_pixel+width-1.  */
   if (w->pseudo_window_p)
@@ -661,6 +658,9 @@ coordinates_in_window (w, x, y)
 	    return ON_VERTICAL_BORDER;
 	}
 
+      if (*x < x0 || *x >= x1)
+	return ON_NOTHING;
+
       /* Convert X and Y to window relative coordinates.
 	 Mode line starts at left edge of window.  */
       *x -= x0;
@@ -674,6 +674,9 @@ coordinates_in_window (w, x, y)
       part = ON_HEADER_LINE;
       goto header_vertical_border_check;
     }
+
+  if (*x < x0 || *x >= x1)
+    return ON_NOTHING;
 
   /* Outside any interesting column?  */
   if (*x < left_x || *x > right_x)
@@ -6036,9 +6039,9 @@ display marginal areas and the text area.  */)
   struct window *w = decode_window (window);
 
   if (!NILP (left))
-    CHECK_NUMBER (left);
+    CHECK_NATNUM (left);
   if (!NILP (right))
-    CHECK_NUMBER (right);
+    CHECK_NATNUM (right);
 
   if (!EQ (w->left_fringe_width, left)
       || !EQ (w->right_fringe_width, right)
@@ -6098,7 +6101,7 @@ If TYPE is t, use the frame's scroll-bar type.  */)
   struct window *w = decode_window (window);
 
   if (!NILP (width))
-    CHECK_NUMBER (width);
+    CHECK_NATNUM (width);
 
   if (XINT (width) == 0)
     vertical_type = Qnil;

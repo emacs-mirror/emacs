@@ -1,3 +1,53 @@
+2004-10-06  Karl Berry  <karl@gnu.org>
+
+	* info.texi (@kbd{1}--@kbd{9}): no space around --, for
+	consistency with other uses of dashes.
+
+2004-10-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Starting GUD): Note that multiple debugging
+	sessions requires `gdb --fullname'.
+
+2004-10-05  Karl Berry  <karl@gnu.org>
+
+	* info.texi: consistently use --- throughout, periods at end of
+	menu descriptions, and a couple typos.
+	From: Benno Schulenberg <benno@nietvergeten.nl>,
+	in bug-texinfo mail.
+
+2004-10-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* text.texi: Various small changes in addition to the following.
+	(Text): Replace xref for autotype with inforef.
+	(Sentences): Explain nil value for `sentence-end'.
+	(Paragraphs): Update default values for `paragraph-start' and
+	`paragraph-separate'.
+	(Text Mode): Correct description of Text mode's effect on the
+	syntax table.
+	(Outline Visibility): `hide-other' does not hide top level headings.
+	`selective-display-ellipses' no longer has an effect on Outline mode.
+	(TeX Misc): Add missing @cindex.
+	Replace xref for RefTeX with inforef.
+	(Requesting Formatted Text): the variable
+	`enriched-fill-after-visiting' no longer exists.
+	(Editing Format Info): Update names of menu items and commands.
+	(Format Faces): Mention special effect of specifying the default face.
+	Describe inheritance of text properties.
+	Correct description of `fixed' face.
+	(Format Indentation): Correct description of effect of setting
+	margins.  Mention `set-left-margin' and `set-right-margin'.
+	(Format Justification): Update names of menu items.
+	`set-justification-full' is now bound to `M-j b'.
+	Mention that `default-justification' is a per buffer variable.
+	(Format Properties): Update name of menu item.
+	(Forcing Enriched Mode): `format-decode-buffer' automatically
+	turns on Enriched mode if the buffer is in text/enriched format.
+
+
+2004-10-05  Emilio C. Lopes  <eclig@gmx.net>
+
+	* calendar.texi (From Other Calendar): Add calendar-goto-iso-week.
+
 2004-09-28  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Display Custom) <indicate-buffer-boundaries>:
@@ -893,7 +943,7 @@
 
 	* misc.texi: Section "Saving Emacs Sessions" rewritten.
 
-2003-09-29  Jan D.  <jhd@gaffa.gaia.swipnet.se>
+2003-09-29  Jan Dj,Ad(Brv.  <jan.h.d@swipnet.se>
 
 	* xresources.texi (GTK names in Emacs): Correct typo.
 

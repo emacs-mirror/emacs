@@ -2655,9 +2655,10 @@ symbols have their own name space.
 @defun fringe-bitmaps-at-pos &optional pos window
 This function returns the fringe bitmaps of the display line
 containing position @var{pos} in window @var{window}.  The return
-value has the form @code{(@var{left} . @var{right})}, where @var{left}
+value has the form @code{(@var{left} @var{right} @var{ov})}, where @var{left}
 is the symbol for the fringe bitmap in the left fringe (or @code{nil}
-if no bitmap), and @var{right} is similar for the right fringe.
+if no bitmap), @var{right} is similar for the right fringe, and @var{ov}
+is non-@code{nil} if there is an overlay arrow in the left fringe.
 
 The value is @code{nil} if @var{pos} is not visible in @var{window}.
 If @var{window} is @code{nil}, that stands for the selected window.

@@ -1,9 +1,10 @@
 ;;; cal-menu.el --- calendar functions for menu bar and popup menu support
 
-;; Copyright (C) 1994, 1995, 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 2001, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;;	Lara Rios <lrios@coewl.cen.uiuc.edu>
+;; Maintainer: Glenn Morris <gmorris@ast.cam.ac.uk>
 ;; Keywords: calendar
 ;; Human-Keywords: calendar, popup menus, menu bar
 
@@ -121,6 +122,8 @@
   '("Astronomical Date" . calendar-goto-astro-day-number))
 (define-key calendar-mode-map [menu-bar goto iso]
   '("ISO Date" . calendar-goto-iso-date))
+(define-key calendar-mode-map [menu-bar goto iso-week]
+  '("ISO Week" . calendar-goto-iso-week))
 (define-key calendar-mode-map [menu-bar goto day-of-year]
   '("Day of Year" . calendar-goto-day-of-year))
 (define-key calendar-mode-map [menu-bar goto gregorian]

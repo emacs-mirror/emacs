@@ -5720,6 +5720,9 @@ auto_save_1 ()
       && stat (SDATA (current_buffer->filename), &st) >= 0)
     /* But make sure we can overwrite it later!  */
     auto_save_mode_bits = st.st_mode | 0600;
+  else if (! NILP (current_buffer->filename))
+    /* Remote files don't cooperate with stat.  */
+    auto_save_mode_bits = XINT (Ffile_modes (current_buffer->filename)) | 0600;
   else
     auto_save_mode_bits = 0666;
 

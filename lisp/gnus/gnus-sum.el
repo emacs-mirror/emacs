@@ -3231,20 +3231,24 @@ buffer that was in action when the last article was fetched."
 	   [0 "" "" "05 Apr 2001 23:33:09 +0400" "" "" 0 0 "" nil]
 	   0 nil t 128 t nil "" nil 1)
 	  (goto-char (point-min))
-	  (setq pos (list (cons 'unread (and (search-forward "\200" nil t)
-					     (- (point) (point-min) 1)))))
+	  (setq pos (list (cons 'unread
+				(and (search-forward
+				      (mm-string-as-multibyte "\200") nil t)
+				     (- (point) (point-min) 1)))))
 	  (goto-char (point-min))
-	  (push (cons 'replied (and (search-forward "\201" nil t)
+	  (push (cons 'replied (and (search-forward
+				     (mm-string-as-multibyte "\201") nil t)
 				    (- (point) (point-min) 1)))
 		pos)
 	  (goto-char (point-min))
-	  (push (cons 'score (and (search-forward "\202" nil t)
+	  (push (cons 'score (and (search-forward
+				   (mm-string-as-multibyte "\202") nil t)
 				  (- (point) (point-min) 1)))
 		pos)
 	  (goto-char (point-min))
-	  (push (cons 'download
-		      (and (search-forward "\203" nil t)
-			   (- (point) (point-min) 1)))
+	  (push (cons 'download (and (search-forward
+				      (mm-string-as-multibyte "\203") nil t)
+				     (- (point) (point-min) 1)))
 		pos)))
       (setq gnus-summary-mark-positions pos))))
 
@@ -6009,8 +6013,7 @@ the subject line on."
       ;; Remove list identifiers from subject.
       (when gnus-list-identifiers
 	(let ((gnus-newsgroup-headers (list header)))
-	  (gnus-summary-remove-list-identifiers)
-	  (setq header (car gnus-newsgroup-headers))))
+	  (gnus-summary-remove-list-identifiers)))
       (when old-header
 	(mail-header-set-number header (mail-header-number old-header)))
       (setq gnus-newsgroup-sparse

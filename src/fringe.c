@@ -1348,9 +1348,10 @@ DEFUN ("fringe-bitmaps-at-pos", Ffringe_bitmaps_at_pos, Sfringe_bitmaps_at_pos,
        0, 2, 0,
        doc: /* Return fringe bitmaps of row containing position POS in window WINDOW.
 If WINDOW is nil, use selected window.  If POS is nil, use value of point
-in that window.  Return value is a cons (LEFT . RIGHT) where LEFT and RIGHT
-are the fringe bitmap numbers for the bitmaps in the left and right fringe,
-resp.  If left or right fringe is empty, the corresponding element is nil.
+in that window.  Return value is a list (LEFT RIGHT OV), where LEFT
+is the symbol for the bitmap in the left fringe (or nil if no bitmap),
+RIGHT is similar for the right fringe, and OV is non-nil if there is an
+overlay arrow in the left fringe.
 Return nil if POS is not visible in WINDOW.  */)
   (pos, window)
      Lisp_Object pos, window;
@@ -1377,8 +1378,9 @@ Return nil if POS is not visible in WINDOW.  */)
   row = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
   row = row_containing_pos (w, textpos, row, NULL, 0);
   if (row)
-    return Fcons (get_fringe_bitmap_name (row->left_fringe_bitmap),
-		  get_fringe_bitmap_name (row->right_fringe_bitmap));
+    return list3 (get_fringe_bitmap_name (row->left_fringe_bitmap),
+		  get_fringe_bitmap_name (row->right_fringe_bitmap),
+		  (row->overlay_arrow_p ? Qt : Qnil));
   else
     return Qnil;
 }
