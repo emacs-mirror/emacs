@@ -161,6 +161,10 @@ NOTE-END */
 
 #define LOAD_AVE_CVT(x) ((int) ((x) * 100.0))
 
+#ifdef __GNUC__
+#define HAVE_ALLOCA
+#endif
+
 /* This library is needed with -g, on the 200/300 only.  */
 
 #if !defined(__GNUC__) || defined(__HPUX_ASM__)
