@@ -45,7 +45,7 @@
 (defcustom copyright-regexp
   "\\([\251Å©]\\|@copyright{}\\|[Cc]opyright\\s *:?\\s *(C)\
 \\|[Cc]opyright\\s *:?\\s *[\251Å©]\\)\
-\\s *\\([1-9][-0-9, ']*[0-9]+\\) "
+\\s *\\([1-9][-0-9, ']*[0-9]+\\)"
   "*What your copyright notice looks like.
 The second \\( \\) construct must match the years."
   :group 'copyright
@@ -88,7 +88,6 @@ copyright, if any, are updated as well."
 	      (if (string= (buffer-substring (- (match-end 2) 2) (match-end 2))
 			   (substring copyright-current-year -2))
 		  ()
-		(backward-char 1)
 		(if (or (not copyright-query)
 			(and (eq copyright-query 'function)
 			     (eq this-command 'copyright-update))
