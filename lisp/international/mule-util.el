@@ -56,6 +56,8 @@ TYPE should be `list' or `vector'."
 	   (error "Invalid type: %s" type)))
 ;;;    val)
 )
+
+;;;###autoload
 (make-obsolete 'string-to-sequence
 	       "use `string-to-list' or `string-to-vector'."
 	       "21.4")
@@ -208,6 +210,8 @@ defaults to \"...\"."
 ;;; For backward compatibility ...
 ;;;###autoload
 (defalias 'truncate-string 'truncate-string-to-width)
+
+;;;###autoload
 (make-obsolete 'truncate-string 'truncate-string-to-width "20.1")
 
 ;;; Nested alist handler.  Nested alist is alist whose elements are
