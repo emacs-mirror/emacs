@@ -469,8 +469,9 @@ header-line."
 
     ;; Don't try to redisplay with the cursor at the end
     ;; on its own line--that would force a scroll and spoil things.
-    (when (and (eobp) (bolp) (not (bobp)))
-      (forward-char -1))
+    (if (with-current-buffer (window-buffer window)
+	  (and (eobp) (bolp) (not (bobp))))
+	(set-window-point window (1- (window-point window))))
 
     (unless (zerop delta)
       (if (eq window (selected-window))
