@@ -1,3 +1,10 @@
+2001-05-20  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* replace.el (keep-lines-read-args): Use `copy-marker'.
+	(how-many): Save excursion properly.
+	(occur-mode): Use define-derived-mode.
+	(perform-replace): Use with-current-buffer.
+
 2001-05-20  Richard M. Stallman  <rms@gnu.org>
 
 	* play/landmark.el (lm): Use "p" not "P" for interactive spec.
@@ -16,8 +23,8 @@
 
 2001-05-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* international/ccl.el (define-ccl-program): Fix a typo.  From
-	Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
+	* international/ccl.el (define-ccl-program): Fix a typo.
+	From Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
 
 	* international/mule.el (decode-char): Fix a typo.  From Pavel
 	Jan,Bm(Bk <Pavel@Janik.cz>.
@@ -30,7 +37,7 @@
 
 2001-05-18  Sam Steingold  <sds@gnu.org>
 
-	* pcvs-defs.el (cvs-mode-map): bind "z" to `kill-this-buffer'
+	* pcvs-defs.el (cvs-mode-map): Bind "z" to `kill-this-buffer'
 	and [RET] to `cvs-mode-find-file'.
 
 2001-05-18  John Wiegley  <johnw@gnu.org>
@@ -67,8 +74,8 @@
 
 2001-05-18  Andrew Innes  <andrewi@gnu.org>
 
-	* makefile.w32-in (compile-files-CMD, bootstrap-clean-CMD): Use
-	. instead of absolute path for lisp dir, to avoid bug in W2K
+	* makefile.w32-in (compile-files-CMD, bootstrap-clean-CMD):
+	Use . instead of absolute path for lisp dir, to avoid bug in W2K
 	cmd.exe's handling of FOR loops.
 	(autoloads): Set find-file-suppress-same-file-warnings to t to
 	avoid slew of spurious messages.
@@ -85,8 +92,8 @@
 
 2001-05-18  Miles Bader  <miles@gnu.org>
 
-	* simple.el (delete-horizontal-space, just-one-space): Use
-	`constrain-to-field' instead of `field-end'/`field-beginning',
+	* simple.el (delete-horizontal-space, just-one-space):
+	Use `constrain-to-field' instead of `field-end'/`field-beginning',
 	because it's more efficient for large files.
 
 2001-05-17  Gerd Moellmann  <gerd@gnu.org>
