@@ -340,6 +340,13 @@ case "${canonical}" in
     machine=aviion opsys=dgux
   ;;
 
+  ## Data General AViiON Intel (x86) Machines
+  ## Exists from 5.4.3 (current i586-dg-dguxR4.11)
+  ## Ehud Karni, 1998-may-30, ehud@unix.simonwiesel.co.il
+  i[345]86-dg-dguxR4.1* )
+    machine=aviion-intel opsys=dgux4
+  ;;
+
   ## DECstations
   mips-dec-ultrix[0-3].* | mips-dec-ultrix4.0* | mips-dec-bsd4.2* )
     machine=pmax opsys=bsd4-2
