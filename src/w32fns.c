@@ -6489,7 +6489,7 @@ w32_font_match (fontname, pattern)
     char * fontname;
     char * pattern;
 {
-  char *regex = alloca (strlen (pattern) * 2);
+  char *regex = alloca (strlen (pattern) * 2 + 3);
   char *font_name_copy = alloca (strlen (fontname) + 1);
   char *ptr;
 
