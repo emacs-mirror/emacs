@@ -234,6 +234,7 @@ of scheme-program-name).  Runs the hooks from inferior-scheme-mode-hook
 	(set-buffer (apply 'make-comint "scheme" (car cmdlist)
 			   nil (cdr cmdlist)))
 	(inferior-scheme-mode)))
+  (setq scheme-program-name cmd)
   (setq scheme-buffer "*scheme*")
   (switch-to-buffer "*scheme*"))
 
