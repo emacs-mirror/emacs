@@ -223,7 +223,7 @@ the call to the function.  If REPEAT is nil or 0, call it just once.
 This function returns a timer object which you can use in `cancel-timer'."
   (interactive "sRun at time: \nNRepeat interval: \naFunction: ")
 
-  ;; Special case: nil means "now" and is useful when repeting.
+  ;; Special case: nil means "now" and is useful when repeating.
   (if (null time)
       (setq time (current-time)))
 
