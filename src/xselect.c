@@ -239,11 +239,12 @@ static void
 x_own_selection (selection_name, selection_value)
      Lisp_Object selection_name, selection_value;
 {
-  Window selecting_window = FRAME_X_WINDOW (selected_frame);
-  Display *display = FRAME_X_DISPLAY (selected_frame);
+  struct frame *sf = SELECTED_FRAME ();
+  Window selecting_window = FRAME_X_WINDOW (sf);
+  Display *display = FRAME_X_DISPLAY (sf);
   Time time = last_event_timestamp;
   Atom selection_atom;
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (selected_frame);
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (sf);
   int count;
 
   CHECK_SYMBOL (selection_name, 0);
@@ -266,7 +267,7 @@ x_own_selection (selection_name, selection_value)
     selection_data = Fcons (selection_name,
 			    Fcons (selection_value,
 				   Fcons (selection_time,
-					  Fcons (Fselected_frame (), Qnil))));
+					  Fcons (selected_frame, Qnil))));
     prev_value = assq_no_quit (selection_name, Vselection_alist);
 
     Vselection_alist = Fcons (selection_data, Vselection_alist);
@@ -1128,9 +1129,10 @@ static Lisp_Object
 x_get_foreign_selection (selection_symbol, target_type)
      Lisp_Object selection_symbol, target_type;
 {
-  Window requestor_window = FRAME_X_WINDOW (selected_frame);
-  Display *display = FRAME_X_DISPLAY (selected_frame);
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (selected_frame);
+  struct frame *sf = SELECTED_FRAME ();
+  Window requestor_window = FRAME_X_WINDOW (sf);
+  Display *display = FRAME_X_DISPLAY (sf);
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (sf);
   Time requestor_time = last_event_timestamp;
   Atom target_property = dpyinfo->Xatom_EMACS_TMP;
   Atom selection_atom = symbol_to_x_atom (dpyinfo, display, selection_symbol);
@@ -1964,10 +1966,11 @@ Disowning it means there is no such selection.")
   struct selection_input_event event;
   Display *display;
   struct x_display_info *dpyinfo;
+  struct frame *sf = SELECTED_FRAME ();
 
   check_x ();
-  display = FRAME_X_DISPLAY (selected_frame);
-  dpyinfo = FRAME_X_DISPLAY_INFO (selected_frame);
+  display = FRAME_X_DISPLAY (sf);
+  dpyinfo = FRAME_X_DISPLAY_INFO (sf);
   CHECK_SYMBOL (selection, 0);
   if (NILP (time))
     timestamp = last_event_timestamp;
@@ -2052,19 +2055,19 @@ and t is the same as `SECONDARY'.)")
   Window owner;
   Atom atom;
   Display *dpy;
+  struct frame *sf = SELECTED_FRAME ();
 
   /* It should be safe to call this before we have an X frame.  */
-  if (! FRAME_X_P (selected_frame))
+  if (! FRAME_X_P (sf))
     return Qnil;
 
-  dpy = FRAME_X_DISPLAY (selected_frame);
+  dpy = FRAME_X_DISPLAY (sf);
   CHECK_SYMBOL (selection, 0);
   if (!NILP (Fx_selection_owner_p (selection)))
     return Qt;
   if (EQ (selection, Qnil)) selection = QPRIMARY;
   if (EQ (selection, Qt)) selection = QSECONDARY;
-  atom = symbol_to_x_atom (FRAME_X_DISPLAY_INFO (selected_frame),
-			   dpy, selection);
+  atom = symbol_to_x_atom (FRAME_X_DISPLAY_INFO (sf), dpy, selection);
   if (atom == 0)
     return Qnil;
   BLOCK_INPUT;
@@ -2126,10 +2129,11 @@ DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
   Lisp_Object ret;
   Display *display;
   struct x_display_info *dpyinfo;
+  struct frame *sf = SELECTED_FRAME ();
 
   check_x ();
-  display = FRAME_X_DISPLAY (selected_frame);
-  dpyinfo = FRAME_X_DISPLAY_INFO (selected_frame);
+  display = FRAME_X_DISPLAY (sf);
+  dpyinfo = FRAME_X_DISPLAY_INFO (sf);
   window = RootWindow (display, 0); /* Cut buffers are on screen 0 */
   CHECK_CUT_BUFFER (buffer, 0);
   buffer_atom = symbol_to_x_atom (dpyinfo, display, buffer);
@@ -2166,9 +2170,10 @@ DEFUN ("x-store-cut-buffer-internal", Fx_store_cut_buffer_internal,
   int bytes_remaining;
   int max_bytes;
   Display *display;
+  struct frame *sf = SELECTED_FRAME ();
 
   check_x ();
-  display = FRAME_X_DISPLAY (selected_frame);
+  display = FRAME_X_DISPLAY (sf);
   window = RootWindow (display, 0); /* Cut buffers are on screen 0 */
 
   max_bytes = SELECTION_QUANTUM (display);
@@ -2177,16 +2182,16 @@ DEFUN ("x-store-cut-buffer-internal", Fx_store_cut_buffer_internal,
 
   CHECK_CUT_BUFFER (buffer, 0);
   CHECK_STRING (string, 0);
-  buffer_atom = symbol_to_x_atom (FRAME_X_DISPLAY_INFO (selected_frame),
+  buffer_atom = symbol_to_x_atom (FRAME_X_DISPLAY_INFO (sf),
 				  display, buffer);
   data = (unsigned char *) XSTRING (string)->data;
   bytes = STRING_BYTES (XSTRING (string));
   bytes_remaining = bytes;
 
-  if (! FRAME_X_DISPLAY_INFO (selected_frame)->cut_buffers_initialized)
+  if (! FRAME_X_DISPLAY_INFO (sf)->cut_buffers_initialized)
     {
       initialize_cut_buffers (display, window);
-      FRAME_X_DISPLAY_INFO (selected_frame)->cut_buffers_initialized = 1;
+      FRAME_X_DISPLAY_INFO (sf)->cut_buffers_initialized = 1;
     }
 
   BLOCK_INPUT;
@@ -2223,17 +2228,18 @@ Positive means shift the values forward, negative means backward.")
   Window window;
   Atom props[8];
   Display *display;
+  struct frame *sf = SELECTED_FRAME ();
 
   check_x ();
-  display = FRAME_X_DISPLAY (selected_frame);
+  display = FRAME_X_DISPLAY (sf);
   window = RootWindow (display, 0); /* Cut buffers are on screen 0 */
   CHECK_NUMBER (n, 0);
   if (XINT (n) == 0)
     return n;
-  if (! FRAME_X_DISPLAY_INFO (selected_frame)->cut_buffers_initialized)
+  if (! FRAME_X_DISPLAY_INFO (sf)->cut_buffers_initialized)
     {
       initialize_cut_buffers (display, window);
-      FRAME_X_DISPLAY_INFO (selected_frame)->cut_buffers_initialized = 1;
+      FRAME_X_DISPLAY_INFO (sf)->cut_buffers_initialized = 1;
     }
 
   props[0] = XA_CUT_BUFFER0;
