@@ -2412,6 +2412,13 @@ ordinary @kbd{M-x query-replace-regexp}.  It searches much like @kbd{M-x
 tags-search}, but repeatedly, processing matches according to your
 input.  @xref{Replace}, for more information on query replace.
 
+@vindex tags-case-fold-search
+@cindex case-sensitivity, and tags search
+  You can control the case-sensitivity of tags search commands by
+customizing the value of the variable @code{tags-case-fold-search}.  The
+default is to use the same setting as the value of
+@code{case-fold-search} (@pxref{Search Case}).
+
   It is possible to get through all the files in the tags table with a
 single invocation of @kbd{M-x tags-query-replace}.  But often it is
 useful to exit temporarily, which you can do with any input event that
@@ -2468,6 +2475,13 @@ tag names found.
 You can display additional output with @kbd{M-x tags-apropos} by customizing
 the variable @code{tags-apropos-additional-actions}.  See its
 documentation for details.
+@vindex tags-apropos-verbose
+Setting the variable @code{tags-apropos-verbose} to a non-nil value
+causes @kbd{M-x tags-apropos} to display the names of the tags files
+together with the tag names.
+@vindex tags-tag-face
+The face @code{tags-tag-face} can be used to customize the appearance of
+tags in the output of @kbd{M-x tags-apropos}.
 
   You can also perform completion in the buffer on the name space of tag
 names in the current tags tables.  @xref{Symbol Completion}.
