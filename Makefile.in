@@ -333,6 +333,7 @@ install-arch-indep: mkdir
 		 rm -rf $${subdir}/CVS ; \
 		 rm -f  $${subdir}/\#* ; \
 		 rm -f  $${subdir}/*~ ; \
+		 rm -f  $${subdir}/*.orig ; \
 	       done) ; \
 	 done
 	-rm -f ${lispdir}/subdirs.el
