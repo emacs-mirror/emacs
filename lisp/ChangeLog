@@ -1,3 +1,11 @@
+2002-05-14  Richard M. Stallman  <rms@gnu.org>
+
+	* dabbrev.el (dabbrev-case-distinction): New option.
+	(dabbrev--try-find): Handle dabbrev-case-distinction.
+	(dabbrev--search): Clean up the code.
+	(dabbrev-upcase-means-case-search): Doc fix.
+	(dabbrev-case-replace): Fix custom tags and docs.
+
 2002-05-14  Jochen K,A|(Bpper  <jochen@jochen-kuepper.de>
 
 	* calc/calc-units.el (math-standard-units): Update from CODATA.
