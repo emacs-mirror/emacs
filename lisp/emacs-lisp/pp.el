@@ -41,8 +41,8 @@ that `read' can handle, whenever this is possible."
 	  (while (not (eobp))
 	    ;; (message "%06d" (- (point-max) (point)))
 	    (cond
-	     ((looking-at "\\s\(")
-	      (while (looking-at "\\s(")
+	     ((looking-at "\\s(\\|#\\s(")
+	      (while (looking-at "\\s(\\|#\\s(")
 		(forward-char 1)))
 	     ((and (looking-at "\\(quote[ \t]+\\)\\([^.)]\\)")
 		   (> (match-beginning 1) 1)
