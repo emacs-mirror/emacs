@@ -6,7 +6,7 @@
 ;;      Rolf Ebert <ebert@inf.enst.fr>
 ;;      Emmanuel Briot <briot@gnat.com>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.6 $
+;; Ada Core Technologies's version:   $Revision: 1.7 $
 ;; Keywords: languages ada xref
 
 ;; This file is part of GNU Emacs.
@@ -179,7 +179,7 @@ Emacs session.")
 (defvar ada-xref-project-files '()
   "Associative list of project files.
 It has the following format:
-((project_name . value) (project_name . value) ...)
+\((project_name . value) (project_name . value) ...)
 As always, the values of the project file are defined through properties.")
 
 (defvar ada-prj-prj-file nil
@@ -1927,16 +1927,17 @@ This function typically is to be hooked into `ff-file-created-hooks'."
 
 
 (defun ada-xref-initialize ()
-  "Function called by ada-mode-hook to initialize the ada-xref.el package.
-For instance, it creates the gnat-specific menus, set some hooks for
+  "Function called by `ada-mode-hook' to initialize the ada-xref.el package.
+For instance, it creates the gnat-specific menus, sets some hooks for
 find-file...."
   (make-local-hook 'ff-file-created-hooks)
+  ;; This should really be an `add-hook'.  -stef
   (setq ff-file-created-hooks 'ada-make-body-gnatstub)
 
   ;; Read the project file and update the search path
   ;; before looking for the other file
   (make-local-hook 'ff-pre-find-hooks)
-  (add-hook 'ff-pre-find-hooks 'ada-require-project-file)
+  (add-hook 'ff-pre-find-hooks 'ada-require-project-file nil t)
 
   ;; Completion for file names in the mini buffer should ignore .ali files
   (add-to-list 'completion-ignored-extensions ".ali")
