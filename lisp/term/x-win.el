@@ -290,11 +290,11 @@ that it should abort the window system shutdown."
 	(kill-buffer buf)
 	cancel-shutdown))))
 
-(defun emacs-session-restore ()
+(defun emacs-session-restore (previous-session-id)
   "Restore the Emacs session if started by a session manager.
 The file saved by `emacs-session-save' is evaluated and deleted if it
 exists."
-  (let ((filename (emacs-session-filename x-session-previous-id)))
+  (let ((filename (emacs-session-filename previous-session-id)))
     (when (file-exists-p filename)
       (load-file filename)
       (delete-file filename)
