@@ -204,11 +204,11 @@ AUTO also specifies, in this case, the coding system for terminal output."
     (or auto
 	(setq-default enable-multibyte-characters nil))
     (standard-display-8bit 160 255)
-    (unless (eq window-system 'x)
+    (unless (or noninteractive (eq window-system 'x))
       ;; Send those codes literally to a non-X terminal.
       ;; If AUTO is nil, we are using single-byte characters,
       ;; so it doesn't matter which one we use.
-      (set-terminal-coding-system (or auto 'latin-1)))
+      (set-terminal-coding-system (if auto (intern auto) 'latin-1)))
     ;; Make non-line-break space display as a plain space.
     ;; Most X fonts do the wrong thing for code 160.
     (aset standard-display-table 160 [32])
