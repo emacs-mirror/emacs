@@ -1585,6 +1585,7 @@ Also accepts Space to mean yes, or Delete to mean no.")
 	}
 #endif /* HAVE_MENUS */
       cursor_in_echo_area = 1;
+      choose_minibuf_frame ();
       message_nolog ("%s(y or n) ", XSTRING (xprompt)->data);
 
       obj = read_filtered_event (1, 0, 0);
