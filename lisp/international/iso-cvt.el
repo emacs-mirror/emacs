@@ -662,7 +662,8 @@ If German TeX is used, German TeX sequences are generated."
 	  (iso-iso2gtex)
 	(iso-iso2tex)))
   (if (or (equal major-mode 'tex-mode)
-	  (equal major-mode 'TeX-mode)) ; AucTeX wants this
+	  (equal major-mode 'TeX-mode) ; AucTeX wants this
+	  (equal major-mode 'plain-tex-mode)) ; AucTeX wants this
       (iso-iso2tex)))
 
 (defun iso-fix-tex2iso ()
@@ -674,7 +675,8 @@ This function recognices German TeX buffers."
 	  (iso-gtex2iso)
 	(iso-tex2iso)))
   (if (or (equal major-mode 'tex-mode)
-	  (equal major-mode 'TeX-mode))  ;; AucTeX wants this
+	  (equal major-mode 'TeX-mode)  ; AucTeX wants this
+	  (equal major-mode 'plain-tex-mode)) ; AucTeX wants this
       (iso-tex2iso)))
 
 (defun iso-cvt-ffh ()
