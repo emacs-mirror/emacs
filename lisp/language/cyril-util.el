@@ -36,8 +36,8 @@
 ;; Written by Valery Alexeev <valery@math.uga.edu>.
 
 (defvar cyrillic-language-alist
-      (list '("Bulgarian") '("Macedonian") '("Serbocroatian")
-	    '("Russian")  '("Ukrainian"))
+      (list '("Belorussian") '("Bulgarian") '("Macedonian") 
+	    '("Russian") '("Serbocroatian") '("Ukrainian"))
       "*List of known cyrillic languages")
 
 ;;;###autoload
