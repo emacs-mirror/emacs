@@ -3317,6 +3317,21 @@ x_set_window_size (f, change_gravity, cols, rows)
 /* Mouse warping.  */
 
 void
+x_set_mouse_pixel_position (f, pix_x, pix_y)
+     struct frame *f;
+     int pix_x, pix_y;
+{
+  BLOCK_INPUT;
+
+  pix_x += f->output_data.win32->left_pos;
+  pix_y += f->output_data.win32->top_pos;
+
+  SetCursorPos (pix_x, pix_y);
+
+  UNBLOCK_INPUT;
+}
+
+void
 x_set_mouse_position (f, x, y)
      struct frame *f;
      int x, y;
@@ -3332,25 +3347,7 @@ x_set_mouse_position (f, x, y)
   if (pix_y < 0) pix_y = 0;
   if (pix_y > PIXEL_HEIGHT (f)) pix_y = PIXEL_HEIGHT (f);
 
-  BLOCK_INPUT;
-
-  SetCursorPos (pix_x, pix_y);
-
-  UNBLOCK_INPUT;
-}
-
-/* Move the mouse to position pixel PIX_X, PIX_Y relative to frame F.  */
-
-void
-x_set_mouse_pixel_position (f, pix_x, pix_y)
-     struct frame *f;
-     int pix_x, pix_y;
-{
-  BLOCK_INPUT;
-
-  SetCursorPos (pix_x, pix_y);
-
-  UNBLOCK_INPUT;
+  x_set_mouse_pixel_position (f, pix_x, pix_y);
 }
 
 /* focus shifting, raising and lowering.  */
