@@ -17,6 +17,7 @@
 
 #include <stdio.h>
 #include <time.h>
+#include <sys/types.h>
 
 #include "../src/config.h"
 
@@ -33,7 +34,7 @@ extern char *strtok ();
 #define FALSE (0)
 
 int header = FALSE, printing;
-long ltoday;
+time_t ltoday;
 char from[256], labels[256], data[256], *p, *today;
 
 main (argc, argv)
