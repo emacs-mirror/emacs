@@ -1,8 +1,26 @@
+2002-09-02  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-ignore-item-temp-list): New variable.
+	(ido-read-internal): Don't set ido-default-item if the default is
+	member of ido-ignore-item-temp-list.
+	Don't return first match for C-j if no text is entered.
+	(ido-buffer-internal): Check for empty string return.
+	(ido-make-buffer-list1): Use member instead of memq.
+	(ido-window-buffer-p): Likewise.
+	(ido-get-bufname): Ignore buffers on ido-ignore-item-temp-list.
+	(ido-ignore-item-p): Ignore items on ido-ignore-item-temp-list.
+
+	* replace.el (multi-occur): Made "ido-aware":
+	Changed prompt to use C-j instead of RET to end.
+	Set ido-ignore-item-temp-list to the selected buffers so far, so
+	they are automatically excluded from the list of choices.
+	Use add-to-list instead of push.
+
 2002-09-01  Richard M. Stallman  <rms@gnu.org>
 
 	* term/x-win.el (function-key-map): Define S-iso-lefttab.
 
-2002-09-02  Kim F. Storm  <storm@cua.dk>
+2002-09-01  Kim F. Storm  <storm@cua.dk>
 
 	* edmacro.el (edit-kbd-macro): Recognize new default binding for
 	C-x e in addition to old binding.
