@@ -324,6 +324,7 @@ This is relative to `smtpmail-queue-dir'.")
 
 	  (save-excursion
 	    (set-buffer process-buffer)
+	    (set-buffer-process-coding-system 'raw-text-unix 'raw-text-unix)
 	    (make-local-variable 'smtpmail-read-point)
 	    (setq smtpmail-read-point (point-min))
 
