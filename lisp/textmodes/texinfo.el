@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-;;; Don't you dare insert any `require' calls in this file--rms.
+;;; Don't you dare insert any `require' calls at top level in this file--rms.
 
 (defvar texinfo-mode-syntax-table nil)
 
@@ -403,10 +403,10 @@ tex-trailer is appended to the temporary file after the region."
           ;; make sure trailer isn't hidden by a comment
           (insert-string "\n")
           (if local-tex-trailer (insert-string local-tex-trailer))
-          (set-buffer-directory temp-buffer zap-directory)
+          (tex-set-buffer-directory temp-buffer zap-directory)
           (write-region (point-min) (point-max) tex-out-file t nil))))
     
-    (set-buffer-directory "*tex-shell*" zap-directory)
+    (tex-set-buffer-directory "*tex-shell*" zap-directory)
     (send-string "tex-shell" (concat tex-shell-cd-command " "
                                      zap-directory "\n"))
     (send-string "tex-shell" (concat texinfo-tex-command " "
