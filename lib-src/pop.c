@@ -75,8 +75,13 @@ extern struct servent *hes_getservbyname (/* char *, char * */);
 
 #ifdef KERBEROS
 #ifndef KRB5
+#ifdef SOLARIS2
 #include <des.h>
 #include <krb.h>
+#else /* SOLARIS2 */
+#include <kerberos/des.h>
+#include <kerberos/krb.h>
+#endif /* SOLARIS2 */
 #else /* KRB5 */
 #include <krb5/krb5.h>
 #include <krb5/ext-proto.h>
