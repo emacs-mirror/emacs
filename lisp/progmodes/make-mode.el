@@ -188,14 +188,14 @@ not be enclosed in { } or ( ).")
 ;; that if you change this regexp you must fix the imenu index
 ;; function defined at the end of the file.
 (defconst makefile-dependency-regex
-  "^\\([^ \n\t#:]+\\([ \t]+[^ \t\n#:]+\\)*\\)[ \t]*:\\([ \t]*$\\|\\([^=\n].*$\\)\\)" 
+  "^ *\\([^\n\t#:]+\\([ \t]+[^ \t\n#:]+\\)*\\)[ \t]*:\\([ \t]*$\\|\\([^=\n].*$\\)\\)"
   "Regex used to find dependency lines in a makefile.")
 
 ;; Note that the first subexpression is used by font lock.  Note that
 ;; if you change this regexp you must fix the imenu index function
 ;; defined at the end of the file.
 (defconst makefile-macroassign-regex
-  "^\\([^ \n\t][^:#= \t\n]*\\)[ \t]*[*:+]?:?="
+  "^ *\\([^\n\t][^:#= \t\n]*\\)[ \t]*[*:+]?:?="
   "Regex used to find macro assignment lines in a makefile.")
 
 (defconst makefile-ignored-files-in-pickup-regex
@@ -213,11 +213,11 @@ not be enclosed in { } or ( ).")
    ;; arbitrarily.
    (list makefile-macroassign-regex 1 'font-lock-variable-name-face)
    ;;
+   ;; Do dependencies.  These get the function name face.
+   (list makefile-dependency-regex 1 'font-lock-function-name-face)
+   ;;
    ;; Variable references even in targets/strings/comments:
    '("\\$[({]\\([-a-zA-Z0-9_.]+\\)[}):]" 1 font-lock-reference-face prepend)
-   ;;
-   ;; Do dependencies.  These get the function name face.
-   (list makefile-dependency-regex 1 'font-lock-function-name-face 'prepend)
 
    ;; Highlight lines that contain just whitespace.
    ;; They can cause trouble, especially if they start with a tab.
