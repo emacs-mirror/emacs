@@ -1,3 +1,7 @@
+2003-06-12  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Fwrite_region): Save and restore restriction.
+
 2003-06-12  Dave Love  <fx@gnu.org>
 
 	* alloca.c (alloca): Declare arg as size_t.
