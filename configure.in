@@ -1,7 +1,26 @@
-dnl This is an autoconf script.
+dnl  Autoconf script for GNU Emacs
 dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.
+dnl
+dnl  Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+dnl  
+dnl  This file is part of GNU Emacs.
+dnl  
+dnl  GNU Emacs is free software; you can redistribute it and/or modify
+dnl  it under the terms of the GNU General Public License as published by
+dnl  the Free Software Foundation; either version 2, or (at your option)
+dnl  any later version.
+dnl  
+dnl  GNU Emacs is distributed in the hope that it will be useful,
+dnl  but WITHOUT ANY WARRANTY; without even the implied warranty of
+dnl  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+dnl  GNU General Public License for more details.
+dnl
+dnl  You should have received a copy of the GNU General Public License
+dnl  along with GNU Emacs; see the file COPYING.  If not, write to
+dnl  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
 AC_PREREQ(2.4.1)dnl
 AC_INIT(src/lisp.h)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
@@ -711,6 +730,17 @@ case "${canonical}" in
 		;;
       *			  ) opsys=bsd4-2   ;;
     esac
+    ## Watch out for a compiler that we know will not work.
+    case "${canonical}" in
+     *-solaris* | *-sunos5* )
+		if [ "x$CC" = x/usr/ucb/cc ]; then
+		  ## /usr/ucb/cc doesn't work;
+		  ## we should find some other compiler that does work.
+		  unset CC
+		fi
+		;;
+      *) ;;
+    esac
   ;;
   sparc-*-nextstep* )
     machine=sparc opsys=nextstep
@@ -1301,7 +1331,7 @@ dnl tranle@intellicorp.com says libXmu.a can need XtMalloc in libXt.a to link.
   OLDLIBS="$LIBS"
   LIBS="-lXt $LIBS"
   AC_CHECK_LIB(Xmu, XmuConvertStandardSelection)
-  LIBS=$"OLDLIBS"
+  LIBS="$OLDLIBS"
 fi
 
 # If netdb.h doesn't declare h_errno, we must declare it by hand.
