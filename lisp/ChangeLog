@@ -1,5 +1,10 @@
 2002-06-15  Colin Walters  <walters@debian.org>
 
+	* pcvs-info.el (global-font-lock-mode, font-lock-auto-fontify):
+	Delete defvars.
+	(cvs-highlight): Delete.
+	(cvs-add-face): Use `font-lock-face'.  Always add properties.
+
 	* ibuffer.el (ibuffer-movement-cycle): New variable.
 	(ibuffer-backward-line, ibuffer-forward-line): Use it.
 
