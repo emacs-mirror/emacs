@@ -177,31 +177,38 @@ X frame."
 
 ;;;###autoload
 (defun standard-display-european (arg &optional auto)
-  "Toggle display of European characters encoded with ISO 8859.
+  "Semi-obsolete way to toggle display of ISO 8859 European characters.
 
-This function is semi-obsolete; you can use `set-language-environment'
-coupled with either the `--unibyte' option, the EMACS_UNIBYTE
-environment variable or customizing `enable-multibyte-characters' if
-you prefer to use unibyte characters.
+This function is semi-obsolete; if you want to do your editing with
+unibyte characters, it is better to `set-language-environment' coupled
+with either the `--unibyte' option or the EMACS_UNIBYTE environment
+variable, or else customize `enable-multibyte-characters'.
 
-When enabled, characters in the range of 160 to 255 display not
-as octal escapes, but as accented characters.  Codes 146 and 160
-display as apostrophe and space, even though they are not the ASCII
-codes for apostrophe and space.
+With prefix argument, this command enables European character display
+if arg is positive, disables it otherwise.  Otherwise, it toggles
+European character display.
 
-With prefix argument, enable European character display iff arg is positive.
+When this mode is enabled, characters in the range of 160 to 255
+display not as octal escapes, but as accented characters.  Codes 146
+and 160 display as apostrophe and space, even though they are not the
+ASCII codes for apostrophe and space.
 
-Normally, this function turns off `enable-multibyte-characters' for
-existing and subsequently created Emacs buffers.  This is because
-users who call this function probably want to edit European characters
-in single-byte mode."
+Enabling European character display with this command noninteractively
+from Lisp code also selects Latin-1 as the language environment, and
+selects unibyte mode for all Emacs buffers \(both existing buffers and
+those created subsequently).  This provides increased compatibility
+for users who call this function in `.emacs'."
 
   ;; If the optional argument AUTO is non-nil, this function
   ;; does not alter `enable-multibyte-characters'.
   ;; AUTO also specifies, in this case, the coding system for terminal output.
   ;; The AUTO argument is meant for use by startup.el only.
   ;; which is why it is not in the doc string.
-  (interactive "P")
+
+  ;; AUTO is `lambda' for an interactive call so that it will not
+  ;; set enable-multibyte-characters but also will not call
+  ;; set-terminal-coding-system.
+  (interactive (list current-prefix-arg 'lambda))
   (if (or (<= (prefix-numeric-value arg) 0)
 	  (and (null arg)
 	       (char-table-p standard-display-table)
@@ -209,9 +216,11 @@ in single-byte mode."
 	       (equal (aref standard-display-table 161) [161])))
       (progn
 	(standard-display-default 160 255)
-	(unless (memq window-system '(x w32))
-	  (set-terminal-coding-system nil)))
-    ;; If the user does this explicitly,
+	(unless (or (memq window-system '(x w32))
+		    (eq auto 'lambda))
+	  (and (terminal-coding-system)
+	       (set-terminal-coding-system nil))))
+    ;; If the user does this explicitly from Lisp (as in .emacs),
     ;; turn off multibyte chars for more compatibility.
     (unless auto
       (setq-default enable-multibyte-characters nil)
@@ -226,7 +235,8 @@ in single-byte mode."
     (unless auto
       (if (equal current-language-environment "English")
 	  (set-language-environment "latin-1")))
-    (unless (or noninteractive (memq window-system '(x w32)))
+    (unless (or noninteractive (memq window-system '(x w32))
+		(eq auto 'lambda))
       ;; Send those codes literally to a non-X terminal.
       ;; If AUTO is nil, we are using single-byte characters,
       ;; so it doesn't matter which one we use.
