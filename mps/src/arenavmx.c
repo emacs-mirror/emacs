@@ -1,7 +1,7 @@
 /* impl.c.arenavmx: STUB FOR ARENAVM
  *
- * $HopeName$
- * Copyright (C) 1998 The Harlequin Group Limited.  All rights reserved.
+ * $HopeName: MMsrc!arenavmx.c(trunk.1) $
+ * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * This is a stub-file, providing stub-functions to take the place of 
  * functions exported from impl.c.arenavm.  Calling a stub-function 
@@ -13,8 +13,8 @@
  * mail.richardk.1998-04-17.14-52.1.req.unimpl.cli-interface.run-assert
  * See also impl.c.arenavm.
  * 
- * .design.filename: The suffix "x" means 'contains stubs'.  This is a 
- * bit lame...
+ * .design.filename: The suffix "x" on this filename is to designate it 
+ * as containing stubs.  This is a bit lame...
  *
  *
  * IMPROVEMENTS
@@ -29,10 +29,12 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavmx, "$HopeName$");
+SRCID(arenavmx, "$HopeName: MMsrc!arenavmx.c(trunk.1) $");
 
 /* mps_arena_class_vm -- return the arena class VM
  * Run-time asserting stub-function.
+ * The purpose is to allow links against this symbol to succeed.
+ * Don't actually call it -- it will cause a run-time assert.
  */
 
 mps_arena_class_t mps_arena_class_vm(void)
