@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.286 2000/11/16 13:39:10 spiegel Exp $
+;; $Id: vc.el,v 1.287 2000/11/16 15:26:37 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -641,11 +641,13 @@ that is inserted into the command line before the filename."
 	(if (eq okstatus 'async)
 	    (let ((proc (apply 'start-process command (current-buffer) command
 			       squeezed)))
-	      (message "Running %s in the background..." command)
+              (unless (active-minibuffer-window)
+                (message "Running %s in the background..." command))
 	      ;;(set-process-sentinel proc (lambda (p msg) (delete-process p)))
 	      (set-process-filter proc 'vc-process-filter)
 	      (vc-exec-after
-	       `(message "Running %s in the background... done" ',command)))
+	       `(unless (active-minibuffer-window)
+                  (message "Running %s in the background... done" ',command))))
 	  (setq status (apply 'call-process command nil t nil squeezed))
 	  (when (or (not (integerp status)) (and okstatus (< okstatus status)))
 	    (pop-to-buffer (current-buffer))
