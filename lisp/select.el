@@ -51,10 +51,11 @@ can alter the effective value of the selection.
 
 The data may also be a vector of valid non-vector selection values.
 
-Interactively, the text of the region is used as the selection value."
+Interactively, the text of the region is used as the selection value
+if the prefix arg is set."
   (interactive (if (not current-prefix-arg)
 		   (list 'PRIMARY (read-string "Set text for pasting: "))
-		 (list 'PRIMARY (substring (region-beginning) (region-end)))))
+		 (list 'PRIMARY (buffer-substring (region-beginning) (region-end)))))
   ;; This is for temporary compatibility with pre-release Emacs 19.
   (if (stringp type)
       (setq type (intern type)))
