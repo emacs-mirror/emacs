@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.52) $
+ * $HopeName: MMsrc!trace.c(trunk.53) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .sources: design.mps.tracer.
@@ -8,7 +8,7 @@
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.52) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.53) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -916,14 +916,18 @@ Res TraceFix(ScanState ss, Ref *refIO)
   Seg seg;
   Pool pool;
 
-  AVERT(ScanState, ss);
-  AVER(refIO != NULL);
+  /* See design.mps.trace.fix.noaver */
+  AVERT_CRITICAL(ScanState, ss);
+  AVER_CRITICAL(refIO != NULL);
 
   ref = *refIO;
 
   ++ss->fixRefCount;
+
   EVENT_PPAU(TraceFix, ss, refIO, ref, ss->rank);
-  if(SegOfAddr(&seg, ss->arena, ref)) {
+
+  /* SegOfAddr is inlined, see design.mps.trace.fix.segofaddr */
+  if(SEG_OF_ADDR(&seg, ss->arena, ref)) {
     ++ss->segRefCount;
     EVENT_P(TraceFixSeg, seg);
     if(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY) {
