@@ -143,7 +143,7 @@ the initial Emacs frame.
 @itemx --no-windows
 Don't communicate directly with the window system, disregarding the
 @env{DISPLAY} environment variable even if it is set.  This forces Emacs
-to run as if the display were a character terminal.
+to run as if the display were a text-only terminal.
 
 @need 3000
 @cindex batch mode
@@ -704,7 +704,7 @@ emacs -ms coral -cr 'slate blue' &
 @samp{-r} option or with the X resource @samp{reverseVideo}.
 
   The @samp{-fg}, @samp{-bg}, and @samp{-rv} options function on
-character terminals as well as on window systems.
+text-only terminals as well as on window systems.
 
 @node Window Size X
 @appendixsec Options for Window Geometry
