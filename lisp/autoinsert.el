@@ -103,11 +103,12 @@ If this contains a %s, that will be replaced by the matching rule."
     (("\\.\\([Cc]\\|cc\\|cpp\\)\\'" . "C / C++ program")
      nil
      "#include \""
-     ;; nop without latest cc-mode
-     (and (fboundp 'c-companion-file)
-	  ;(file-readable-p (c-companion-file 'name))
-	  (file-name-nondirectory (c-companion-file 'name))) & ?\"
-     | -10)
+     (let ((stem (file-name-sans-extension buffer-file-name)))
+       (cond ((file-exists-p (concat stem ".h"))
+	      (file-name-nondirectory (concat stem ".h")))
+	     ((file-exists-p (concat stem ".hh"))
+	      (file-name-nondirectory (concat stem ".hh")))))
+     & ?\" | -10)
 
     ("[Mm]akefile\\'" . "makefile.inc")
 
