@@ -65,37 +65,10 @@
 (provide 'delphi)
 
 (defconst delphi-version
-  (let ((revision "$Revision: 3.6 $"))
+  (let ((revision "$Revision: 3.7 $"))
     (string-match ": \\([^ ]+\\)" revision)
     (match-string 1 revision))
   "Version of this delphi mode.")
-;;; $Log: delphi.el,v $
-;;; Revision 3.6  2001/07/16 12:22:59  pj
-;;;
-;;; Some fixes to follow coding conventions.
-;;;
-;;; Revision 3.5  2001/01/26 20:54:03  fx
-;;; (delphi-comment-face, delphi-string-face)
-;;; (delphi-keyword-face, delphi-other-face): Fix :type.
-;;;
-;;; Revision 3.4  2000/02/09 07:04:15  blaak
-;;; Make resourcestring a declaration region, like const and var.
-;;;
-;;; Revision 3.3  2000/02/01 14:32:21  fx
-;;; (delphi): Add :version to defgroup.
-;;;
-;;; Revision 3.2  1999/08/18 05:08:39  blaak
-;;; checked in with -k by blaak at 1999/08/18 05:08:39
-;;;
-;;; Revision 3.2  1999/08/04 05:09:19  blaak
-;;; Consider assembly sections as blocks, to indent them better.
-;;;
-;;; Revision 3.1  1999/08/04 04:45:47  blaak
-;;; Make auto-indent on newline optional
-;;;
-;;; Revision 3.0  1999/08/03 04:59:02  blaak
-;;; Re-release as an official Emacs language mode
-;;;
 
 (eval-and-compile
   ;; Allow execution on pre Emacs 20 versions.
