@@ -87,8 +87,8 @@ int charset_jisx0208;
 /* Value of charset attribute `charset-iso-plane'.  */
 Lisp_Object Qgl, Qgr;
 
-/* The primary charset.  It is a charset of unibyte characters.  */
-int charset_primary;
+/* Charset of unibyte characters.  */
+int charset_unibyte;
 
 /* List of charsets ordered by the priority.  */
 Lisp_Object Vcharset_ordered_list;
@@ -1149,26 +1149,26 @@ DEFUN ("define-charset-alias", Fdefine_charset_alias,
 }
 
 
-DEFUN ("primary-charset", Fprimary_charset, Sprimary_charset, 0, 0, 0,
-       doc: /* Return the primary charset (set by `set-primary-charset').  */)
+DEFUN ("unibyte-charset", Funibyte_charset, Sunibyte_charset, 0, 0, 0,
+       doc: /* Return the unibyte charset (set by `set-unibyte-charset').  */)
      ()
 {
-  return CHARSET_NAME (CHARSET_FROM_ID (charset_primary));
+  return CHARSET_NAME (CHARSET_FROM_ID (charset_unibyte));
 }
 
 
-DEFUN ("set-primary-charset", Fset_primary_charset, Sset_primary_charset,
+DEFUN ("set-unibyte-charset", Fset_unibyte_charset, Sset_unibyte_charset,
        1, 1, 0,
-       doc: /* Set the primary charset to CHARSET.
+       doc: /* Set the unibyte charset to CHARSET.
 This determines how unibyte/multibyte conversion is done.  See also
-function `primary-charset'.  */)
+function `unibyte-charset'.  */)
      (charset)
      Lisp_Object charset;
 {
   int id;
 
   CHECK_CHARSET_GET_ID (charset, id);
-  charset_primary = id;
+  charset_unibyte = id;
   return Qnil;
 }
 
@@ -2084,8 +2084,8 @@ syms_of_charset ()
   defsubr (&Smap_charset_chars);
   defsubr (&Sdefine_charset_internal);
   defsubr (&Sdefine_charset_alias);
-  defsubr (&Sprimary_charset);
-  defsubr (&Sset_primary_charset);
+  defsubr (&Sunibyte_charset);
+  defsubr (&Sset_unibyte_charset);
   defsubr (&Scharset_plist);
   defsubr (&Sset_charset_plist);
   defsubr (&Sunify_charset);
