@@ -392,7 +392,7 @@ extern int last_nonminibuf_frame;
 #define FRAME_NO_SPLIT_P(f) 0
 #define FRAME_WANTS_MODELINE_P(f) 1
 #define FRAME_ICONIFIED_P(f) 0
-#define FRAME_MINIBUF_WINDOW(f) (the_only_frame.root_window)
+#define FRAME_MINIBUF_WINDOW(f) (minibuf_window)
 #define FRAME_ROOT_WINDOW(f) (the_only_frame.root_window)
 #define FRAME_SELECTED_WINDOW(f) (selected_window)
 #define SET_GLYPHS_FRAME(glyphs,frame) do ; while (0)
