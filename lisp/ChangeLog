@@ -1,3 +1,8 @@
+2000-10-12  Sam Steingold  <sds@gnu.org>
+
+	* tooltip.el (tooltip-use-echo-area): New user variable.
+	(tooltip-show): Use it to choose between `x-show-tip' and `message'.
+
 2000-10-12  Dave Love  <fx@gnu.org>
 
 	* recentf.el: Maintainer's checkdoc fixes.

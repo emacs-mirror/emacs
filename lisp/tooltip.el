@@ -115,6 +115,12 @@ only tooltips in the buffer containing the overlay arrow."
   :group 'tooltip)
 
 
+(defcustom tooltip-use-echo-area nil
+  "Use the echo area instead of the actual tooltip windows."
+  :type 'boolean
+  :tag "use echo area"
+  :group 'tooltip)
+
 
 ;;; Variables that are not customizable.
 
@@ -271,8 +277,9 @@ ACTIVATEP non-nil means activate mouse motion events."
 
 (defun tooltip-show (text)
   "Show a tooltip window at the current mouse position displaying TEXT."
-  (x-show-tip text (selected-frame) tooltip-frame-parameters))
-
+  (if tooltip-use-echo-area
+      (message "%s" text)
+      (x-show-tip text (selected-frame) tooltip-frame-parameters)))
 
 (defun tooltip-hide (&optional ignored-arg)
   "Hide a tooltip, if one is displayed.
