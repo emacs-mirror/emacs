@@ -1704,9 +1704,9 @@ kbd_input_ast ()
     {
       struct input_event e;
       e.kind = ascii_keystroke;
-      XSET (e.code, Lisp_Int, c);
+      XSETINT (e.code, c);
 #ifdef MULTI_FRAME
-      XSET(e.frame_or_window, Lisp_Frame, selected_frame);
+      XSETFRAME (e.frame_or_window, selected_frame);
 #else
       e.frame_or_window = Qnil;
 #endif
@@ -2335,7 +2335,7 @@ read_input_waiting ()
 		buf[i] &= ~0x80;
 	    }
 
-	  XSET (e.code, Lisp_Int, buf[i]);
+	  XSETINT (e.code, buf[i]);
 	  kbd_buffer_store_event (&e);
 	  /* Don't look at input that follows a C-g too closely.
 	     This reduces lossage due to autorepeat on C-g.  */
