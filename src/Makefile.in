@@ -402,7 +402,7 @@ LIBXT=
 
 #if HAVE_TIFF
 #ifndef LIBTIFF
-#define LIBTIFF -ltiff34
+#define LIBTIFF -ltiff
 #endif /* not defined LIBTIFF */
 #else /* not HAVE_TIFF */
 #define LIBTIFF
