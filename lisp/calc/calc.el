@@ -654,6 +654,20 @@ If nil, selections displayed but ignored.")
 				calc-word-size
 				calc-internal-prec))
 
+(defvar calc-mode-hook nil
+  "Hook run when entering calc-mode.")
+
+(defvar calc-trail-mode-hook nil
+  "Hook run when entering calc-trail-mode.")
+
+(defvar calc-start-hook nil
+  "Hook run when calc is started.")
+
+(defvar calc-end-hook nil
+  "Hook run when calc is quit.")
+
+(defvar calc-load-hook nil
+  "Hook run when calc.el is loaded.")
 
 ;; Verify that Calc is running on the right kind of system.
 (defvar calc-emacs-type-lucid (not (not (string-match "Lucid" emacs-version))))
@@ -1056,9 +1070,6 @@ Notations:  3.14e6     3.14 * 10^6
       (progn
 	(setq calc-loaded-settings-file t)
 	(load calc-settings-file t)))   ; t = missing-ok
-  (if (and (eq window-system 'x) (boundp 'mouse-map))
-      (substitute-key-definition 'x-paste-text 'calc-x-paste-text
-				 mouse-map))
   (let ((p command-line-args))
     (while p
       (and (equal (car p) "-f")
@@ -1069,14 +1080,6 @@ Notations:  3.14e6     3.14 * 10^6
   (run-hooks 'calc-mode-hook)
   (calc-refresh t)
   (calc-set-mode-line)
-  ;; The calc-defs variable is a relic.  Use calc-define properties instead.
-  (when (and (boundp 'calc-defs)
-	     calc-defs)
-    (message "Evaluating calc-defs...")
-    (calc-need-macros)
-    (eval (cons 'progn calc-defs))
-    (setq calc-defs nil)
-    (calc-set-mode-line))
   (calc-check-defines))
 
 (defvar calc-check-defines 'calc-check-defines)  ; suitable for run-hooks
@@ -1163,20 +1166,18 @@ commands given here will actually operate on the *Calculator* stack."
 	    (switch-to-buffer (current-buffer) t)
 	  (if (get-buffer-window (current-buffer))
 	      (select-window (get-buffer-window (current-buffer)))
-	    (if (and (boundp 'calc-window-hook) calc-window-hook)
-		(run-hooks 'calc-window-hook)
-	      (let ((w (get-largest-window)))
-		(if (and pop-up-windows
-			 (> (window-height w)
-			    (+ window-min-height calc-window-height 2)))
-		    (progn
-		      (setq w (split-window w
-					    (- (window-height w)
-					       calc-window-height 2)
-					    nil))
-		      (set-window-buffer w (current-buffer))
-		      (select-window w))
-		  (pop-to-buffer (current-buffer)))))))
+            (let ((w (get-largest-window)))
+              (if (and pop-up-windows
+                       (> (window-height w)
+                          (+ window-min-height calc-window-height 2)))
+                  (progn
+                    (setq w (split-window w
+                                          (- (window-height w)
+                                             calc-window-height 2)
+                                          nil))
+                    (set-window-buffer w (current-buffer))
+                    (select-window w))
+                (pop-to-buffer (current-buffer))))))
 	(save-excursion
 	  (set-buffer (calc-trail-buffer))
 	  (and calc-display-trail
@@ -1722,27 +1723,6 @@ See calc-keypad for details."
 	 (calc-refresh align)))
   (setq calc-refresh-count (1+ calc-refresh-count)))
 
-
-(defun calc-x-paste-text (arg)
-  "Move point to mouse position and insert window system cut buffer contents.
-If mouse is pressed in Calc window, push cut buffer contents onto the stack."
-  (x-mouse-select arg)
-  (if (memq major-mode '(calc-mode calc-trail-mode))
-      (progn
-	(calc-wrapper
-	 (calc-extensions)
-	 (let* ((buf (x-get-cut-buffer))
-		(val (math-read-exprs (calc-clean-newlines buf))))
-	   (if (eq (car-safe val) 'error)
-	       (progn
-		 (setq val (math-read-exprs buf))
-		 (if (eq (car-safe val) 'error)
-		     (error "%s in yanked data" (nth 2 val)))))
-	   (calc-enter-result 0 "Xynk" val))))
-    (x-paste-text arg)))
-
-
-
 ;;;; The Calc Trail buffer.
 
 (defun calc-check-trail-aligned ()
@@ -1808,10 +1788,8 @@ If mouse is pressed in Calc window, push cut buffer contents onto the stack."
 	      (not (if flag (memq flag '(nil 0)) win)))
 	(if (null win)
 	    (progn
-	      (if (and (boundp 'calc-trail-window-hook) calc-trail-window-hook)
-		  (run-hooks 'calc-trail-window-hook)
-		(let ((w (split-window nil (/ (* (window-width) 2) 3) t)))
-		  (set-window-buffer w calc-trail-buffer)))
+              (let ((w (split-window nil (/ (* (window-width) 2) 3) t)))
+                (set-window-buffer w calc-trail-buffer))
 	      (calc-wrapper
 	       (setq overlay-arrow-string calc-trail-overlay
 		     overlay-arrow-position calc-trail-pointer)
