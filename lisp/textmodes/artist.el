@@ -1899,7 +1899,7 @@ Also updates the variables `artist-draw-min-y' and `artist-draw-max-y'."
 (defun artist-replace-char (new-char)
   "Replace the character at point with NEW-CHAR."
   ;; Check that the variable exists first. The doc says it was added in 19.23.
-  (if (and (and (boundp 'emacs-major-version) (>= emacs-major-version 20))
+  (if (and (and (boundp 'emacs-major-version) (= emacs-major-version 20))
 	   (and (boundp 'emacs-minor-version) (<= emacs-minor-version 3)))
       ;; This is a bug workaround for Emacs 20, versions up to 20.3:
       ;; The self-insert-command doesn't care about the overwrite-mode,
@@ -1920,17 +1920,14 @@ Also updates the variables `artist-draw-min-y' and `artist-draw-max-y'."
 (defun artist-replace-chars (new-char count)
   "Replace characters at point with NEW-CHAR.  COUNT chars are replaced."
   ;; Check that the variable exists first. The doc says it was added in 19.23.
-  (if (and (and (boundp 'emacs-major-version) (>= emacs-major-version 20))
+  (if (and (and (boundp 'emacs-major-version) (= emacs-major-version 20))
 	   (and (boundp 'emacs-minor-version) (<= emacs-minor-version 3)))
       ;; This is a bug workaround for Emacs 20, versions up to 20.3:
       ;; The self-insert-command doesn't care about the overwrite-mode,
       ;; so the insertion is done in the same way as in picture mode.
       ;; This seems to be a little bit slower.
       (let* ((replaced-c (aref artist-replacement-table new-char))
-	     (replaced-s (let ((tmp-s "") (i count))
-			   (while (> i 0)
-			     (setq i (1- i))
-			     (setq tmp-s (concat tmp-s replaced-c))))))
+	     (replaced-s (make-string count replaced-c)))
 	(artist-move-to-xy (+ (artist-current-column) count)
 			   (artist-current-line))
 	(delete-char (- count))
