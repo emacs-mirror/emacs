@@ -127,12 +127,12 @@ use either M-x customize or the function `scroll-all-mode'."
 (defun scroll-all-mode (arg)
   "Toggle Scroll-All minor mode."
   (interactive "P")
-  (setq scroll-all-mode (not scroll-all-mode))
-  (cond
-   ((eq scroll-all-mode 't)
-    (add-hook 'post-command-hook 'scroll-all-check-to-scroll))
-   ((eq scroll-all-mode 'nil)
-    (remove-hook 'post-command-hook 'scroll-all-check-to-scroll))))
+  (setq scroll-all-mode
+ 	(if (null arg) (not scroll-all-mode)
+ 	  (> (prefix-numeric-value arg) 0)))
+  (if scroll-all-mode
+      (add-hook 'post-command-hook 'scroll-all-check-to-scroll)
+    (remove-hook 'post-command-hook 'scroll-all-check-to-scroll)))
 
 (provide 'scroll-all)
 
