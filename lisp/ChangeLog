@@ -1,3 +1,11 @@
+2001-01-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* tooltip.el (tooltip-frame-parameters): Remove colors.
+	(tooltip): New face
+	(tooltip-set-param): New function.
+	(tooltip-show): Set up color frame parameters from face `tooltip'.
+	Display the tooltip text in face `tooltip'.
+
 2001-01-03  Dave Love  <fx@gnu.org>
 
 	* dired-x.el: Doc fixes.  Maintainer change.
