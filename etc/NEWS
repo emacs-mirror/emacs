@@ -99,6 +99,9 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** Emacs now responds to mouse-clicks on the mode-line, header-line and
+display margin, when run in an xterm.
+
 ** M-SPC (just-one-space) when given a numeric argument N
 converts whitespace around point to N spaces.
 
