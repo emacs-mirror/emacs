@@ -699,6 +699,10 @@ extern void w32_unload_font ();
 #ifndef MSH_MOUSEWHEEL
 #define MSH_MOUSEWHEEL		       "MSWHEEL_ROLLMSG"
 #endif /* MSH_MOUSEWHEEL */
+#ifndef WM_XBUTTONDOWN
+#define WM_XBUTTONDOWN                 (WM_MOUSEWHEEL + 1)
+#define WM_XBUTTONUP                   (WM_MOUSEWHEEL + 2)
+#endif /* WM_XBUTTONDOWN */
 
 #define WM_EMACS_START                 (WM_USER + 1)
 #define WM_EMACS_KILL                  (WM_EMACS_START + 0)
