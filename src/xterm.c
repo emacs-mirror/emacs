@@ -5728,12 +5728,13 @@ x_wm_set_size_hint (f, prompting, change_gravity)
   Window window = FRAME_X_WINDOW (f);
 #endif /* not USE_X_TOOLKIT */
 
-  size_hints.flags = PResizeInc | PMinSize /* | PMaxSize */;
+  size_hints.flags = PResizeInc | PMinSize | PMaxSize;
 
   flexlines = f->height;
 
   size_hints.x = f->display.x->left_pos;
   size_hints.y = f->display.x->top_pos;
+
 #ifdef USE_X_TOOLKIT
   XtSetArg (al[ac], XtNwidth, &widget_width); ac++;
   XtSetArg (al[ac], XtNheight, &widget_height); ac++;
@@ -5744,8 +5745,11 @@ x_wm_set_size_hint (f, prompting, change_gravity)
   size_hints.height = PIXEL_HEIGHT (f);
   size_hints.width = PIXEL_WIDTH (f);
 #endif /* not USE_X_TOOLKIT */
+
   size_hints.width_inc = FONT_WIDTH (f->display.x->font);
   size_hints.height_inc = f->display.x->line_height;
+  size_hints.max_width = x_screen_width - CHAR_TO_PIXEL_WIDTH (f, 0);
+  size_hints.max_height = x_screen_height - CHAR_TO_PIXEL_HEIGHT (f, 0);
 
   {
     int base_width, base_height;
