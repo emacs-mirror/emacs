@@ -1695,6 +1695,16 @@ If this is zero, point is always centered after it moves off frame.")
 ;;  (interactive "P")
 ;;  (backward-char arg)
 ;;  (hscroll-point-visible))
+
+(defun scroll-other-window-down (lines)
+  "Scroll the \"other window\" down."
+  (interactive "P")
+  (scroll-other-window
+   ;; Just invert the argument's meaning.
+   ;; We can do that without knowing which window it will be.
+   (if (eq lines '-) nil
+     (if (null lines) '-
+       (- (prefix-numeric-value lines))))))
 
 (defun transpose-chars (arg)
   "Interchange characters around point, moving forward one character.
@@ -2329,10 +2339,7 @@ in the mode line."
 			     ?\$)
 		(setq mismatch
 		      (/= (char-after (1- oldpos))
-			  (logand (lsh (aref (syntax-table)
-					     (char-after blinkpos))
-				       -8)
-				  255))))
+			  (matching-paren (char-after blinkpos)))))
 	   (if mismatch (setq blinkpos nil))
 	   (if blinkpos
 	       (progn
