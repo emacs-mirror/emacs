@@ -187,7 +187,7 @@ extern char unibyte_has_multibyte_table[256];
 
 #define BYTE8_STRING(b, p)			\
   ((p)[0] = (0xC0 | (((b) >> 6) & 0x01)),	\
-   (p)[1] = (0x80 | ((c) & 0x3F)),		\
+   (p)[1] = (0x80 | ((b) & 0x3F)),		\
    2)
 
 
