@@ -2043,7 +2043,10 @@ Returns a list of FIS that should be `cvs remove'd."
 	  (shrink-window-if-larger-than-buffer))))
     (if (not (or silent
 		 (unwind-protect
-		     (yes-or-no-p (format "Delete %d files? " (length files)))
+		     (if (eq 1 (length files))
+			 (yes-or-no-p (format "Delete file: \"%s\" ? " 
+					      (cvs-fileinfo->file (car files))))
+		       (yes-or-no-p (format "Delete %d files? " (length files))))
 		   (cvs-bury-buffer tmpbuf cvs-buffer))))
 	(progn (message "Aborting") nil)
       (dolist (fi files)

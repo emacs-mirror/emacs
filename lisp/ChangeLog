@@ -1,3 +1,8 @@
+2003-08-23  Masatake YAMATO  <jet@gyve.org>
+
+	* pcvs.el (cvs-do-removal): Show the deleted file name
+	on the prompt.
+
 2003-08-20  Dave Love  <fx@gnu.org>
 
 	* international/mule.el (make-coding-system) 
