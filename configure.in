@@ -1545,7 +1545,7 @@ if test x"${REL_ALLOC}" = x; then
 fi
 
 dnl For now, need to use an explicit `#define USE_MMAP_FOR_BUFFERS 1'
-in dnl the system configuration file (s/*.h) to turn the use of mmap
+dnl the system configuration file (s/*.h) to turn the use of mmap
 dnl in the relocating allocator on.
 
 AC_FUNC_MMAP
