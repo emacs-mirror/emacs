@@ -1,3 +1,8 @@
+2000-08-29  Miles Bader  <miles@gnu.org>
+
+	* comint.el (comint-send-input): Create overlays using the proper
+	front/read-advance arguments.
+	
 2000-08-29  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Even/odd pages printing.  Doc fix.
