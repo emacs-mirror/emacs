@@ -32,10 +32,18 @@ Boston, MA 02111-1307, USA.  */
 #include <X11/ObjectP.h>
 #include <X11/StringDefs.h>
 #include <X11/cursorfont.h>
-#include <X11/bitmaps/gray>
 #include "xlwmenuP.h"
 
 #ifdef emacs
+
+/* Defined in xfns.c.  When config.h defines `static' as empty, we get
+   redefinition errors when gray_bitmap is included more than once, so
+   we're referring to the one include in xfns.c here.  */
+
+extern int gray_bitmap_width;
+extern int gray_bitmap_height;
+extern unsigned char *gray_bitmap_bits;
+
 /* Defined in xterm.c.  */
 extern int x_alloc_nearest_color_for_widget __P ((Widget, Colormap, XColor*));
 extern int x_catch_errors __P ((Display*));
@@ -48,7 +56,14 @@ extern unsigned long x_copy_dpy_color __P ((Display *, Colormap,
 /* Defined in xfaces.c.  */
 extern void x_free_dpy_colors __P ((Display *, Screen *, Colormap,
 				    unsigned long *pixels, int npixels));
-#endif
+#else /* not emacs */
+
+#include <X11/bitmaps/gray>
+#define gray_bitmap_width	gray_width
+#define gray_bitmap_height	gray_height
+#define gray_bitmap_bits	gray_bits
+
+#endif /* not emacs */
 
 static int pointer_grabbed;
 static XEvent menu_post_event;
@@ -1617,8 +1632,8 @@ XlwMenuInitialize (request, mw, args, num_args)
   mw->menu.cursor = mw->menu.cursor_shape;
   
   mw->menu.gray_pixmap
-    = XCreatePixmapFromBitmapData (display, window, gray_bits,
-				   gray_width, gray_height,
+    = XCreatePixmapFromBitmapData (display, window, gray_bitmap_bits,
+				   gray_bitmap_width, gray_bitmap_height,
 				   (unsigned long)1, (unsigned long)0, 1);
   
   /* I don't understand why this ends up 0 sometimes,
