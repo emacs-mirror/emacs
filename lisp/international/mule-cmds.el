@@ -1847,7 +1847,7 @@ of buffer-file-coding-system set by this function."
     ("jp" . "Japanese") ; e.g. MS Windows
     ("chs" . "Chinese-GB") ; MS Windows Chinese Simplified
     ("cht" . "Chinese-BIG5") ; MS Windows Chinese Traditional
-    )
+    ))
   "List of pairs of locale regexps and language names.
 The first element whose locale regexp matches the start of a downcased locale
 specifies the language name corresponding to that locale.
