@@ -635,10 +635,6 @@ struct glyph_row
      screen.  */
   unsigned enabled_p : 1;
 
-  /* Display this line in inverse video?  Used for the mode line and
-     menu bar lines.  */
-  unsigned inverse_p : 1;
-
   /* 1 means row displays a text line that is truncated on the left or
      right side.  */
   unsigned truncated_on_left_p : 1;
@@ -2356,7 +2352,6 @@ extern void set_scroll_region P_ ((int, int));
 extern void turn_off_insert P_ ((void));
 extern void turn_off_highlight P_ ((void));
 extern void background_highlight P_ ((void));
-extern void reassert_line_highlight P_ ((int, int));
 extern void clear_frame P_ ((void));
 extern void clear_end_of_line P_ ((int));
 extern void clear_end_of_line_raw P_ ((int));
@@ -2368,7 +2363,6 @@ extern void calculate_costs P_ ((struct frame *));
 extern void term_init P_ ((char *));
 extern void fatal P_ ((/* char *, ... */));
 void cursor_to P_ ((int, int));
-void change_line_highlight P_ ((int, int, int, int));
 
 /* Defined in scroll.c */
 
