@@ -1,3 +1,43 @@
+2004-11-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Eliminate use of interactive-p and eval-and-compile.
+	Use of (featurep 'xemacs) instead of (eq ps-print-emacs-type 'xemacs).
+	Use make-temp-file to generate PostScript files in any situation.
+	(pr-ps-temp-file): Now specify a prefix to generate temporary files.
+	(pr-interactive-p): Eliminated var.
+	(pr-save-interactive): Eliminated macro.
+	(pr-interface, pr-ps-directory-preview)
+	(pr-ps-directory-using-ghostscript, pr-ps-directory-print)
+	(pr-ps-directory-ps-print, pr-ps-buffer-preview)
+	(pr-ps-buffer-using-ghostscript, pr-ps-buffer-print)
+	(pr-ps-buffer-ps-print, pr-ps-region-preview)
+	(pr-ps-region-using-ghostscript, pr-ps-region-print)
+	(pr-ps-region-ps-print, pr-ps-mode-preview)
+	(pr-ps-mode-using-ghostscript, pr-ps-mode-print, pr-ps-mode-ps-print)
+	(pr-printify-directory, pr-txt-directory, pr-despool-preview)
+	(pr-despool-using-ghostscript, pr-despool-print, pr-despool-ps-print)
+	(pr-ps-file-up-preview, pr-ps-file-using-ghostscript)
+	(pr-ps-file-up-ps-print, pr-toggle-file-duplex, pr-toggle-file-tumble)
+	(pr-toggle-file-landscape, pr-toggle-ghostscript, pr-toggle-faces)
+	(pr-toggle-spool, pr-toggle-duplex, pr-toggle-tumble)
+	(pr-toggle-landscape, pr-toggle-upside-down, pr-toggle-line)
+	(pr-toggle-zebra, pr-toggle-header, pr-toggle-header-frame)
+	(pr-toggle-lock, pr-toggle-region, pr-toggle-mode, pr-ps-name)
+	(pr-txt-name, pr-ps-utility, pr-ps-fast-fire, pr-txt-fast-fire)
+	(pr-update-menus, pr-interface-ps-prin, pr-interface-preview):
+	Eliminate pr-save-interactive usage.
+	(pr-menu-lock, pr-ps-utility-args, pr-set-outfilename): Eliminate
+	pr-interactive-p usage.
+	(pr-toggle-file-duplex-menu, pr-toggle-file-tumble-menu)
+	(pr-toggle-file-landscape-menu, pr-toggle-ghostscript-menu)
+	(pr-toggle-faces-menu, pr-toggle-spool-menu, pr-toggle-duplex-menu)
+	(pr-toggle-tumble-menu, pr-toggle-landscape-menu)
+	(pr-toggle-upside-down-menu, pr-toggle-line-menu, pr-toggle-zebra-menu)
+	(pr-toggle-header-menu, pr-toggle-header-frame-menu)
+	(pr-toggle-lock-menu, pr-toggle-region-menu, pr-toggle-mode-menu): New
+	funs.
+	(pr-ps-file): Use make-temp-file to generate a temporary file.
+
 2004-11-17  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-alg.el (calc-poly-div): Make calc-poly-div-remainder
