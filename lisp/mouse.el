@@ -58,7 +58,7 @@ PREFIX is the prefix argument (if any) to pass to the command."
 		       (filter (when (symbolp map)
 				 (plist-get (get map 'menu-pro) :filter))))
 		  (if filter (funcall filter (symbol-function map)) map)))))
-	 event)
+	 event cmd)
     (unless position
       (let ((mp (mouse-pixel-position)))
 	(setq position (list (list (cadr mp) (cddr mp)) (car mp)))))
@@ -71,33 +71,31 @@ PREFIX is the prefix argument (if any) to pass to the command."
       ;; Strangely x-popup-menu returns a list.
       ;; mouse-major-mode-menu was using a weird:
       ;; (key-binding (apply 'vector (append '(menu-bar) menu-prefix events)))
-      (let ((cmd
-	     (if (and (not (keymapp map)) (listp map))
-		 ;; We were given a list of keymaps.  Search them all
-		 ;; in sequence until a first binding is found.
-		 (let ((mouse-click (apply 'vector event))
-		       binding)
-		   (while (and map (null binding))
-		     (setq binding (lookup-key (car map) mouse-click))
-		     (if (numberp binding) ; `too long'
-		       (setq binding nil))
-		     (setq map (cdr map)))
-		   binding)
-	       ;; We were given a single keymap.
-	       (lookup-key map (apply 'vector event)))))
-	(setq map nil)
-	;; Clear out echoing, which perhaps shows a prefix arg.
-	(message "")
-	(when cmd
-	  (if (keymapp cmd)
-	      ;; Try again but with the submap.
-	      (setq map cmd)
-	    (setq prefix-arg prefix)
-	    ;; `setup-specified-language-environment', for instance,
-	    ;; expects this to be set from a menu keymap.
-	    (setq last-command-event (car (last event)))
-	    ;; mouse-major-mode-menu was using `command-execute' instead.
-	    (call-interactively cmd)))))))
+      (setq cmd
+	    (if (and (not (keymapp map)) (listp map))
+		;; We were given a list of keymaps.  Search them all
+		;; in sequence until a first binding is found.
+		(let ((mouse-click (apply 'vector event))
+		      binding)
+		  (while (and map (null binding))
+		    (setq binding (lookup-key (car map) mouse-click))
+		    (if (numberp binding) ; `too long'
+			(setq binding nil))
+		    (setq map (cdr map)))
+		  binding)
+	      ;; We were given a single keymap.
+	      (lookup-key map (apply 'vector event))))
+      ;; Clear out echoing, which perhaps shows a prefix arg.
+      (message "")
+      ;; Maybe try again but with the submap.
+      (setq map (if (keymapp cmd) cmd)))
+    (when (functionp cmd)
+      (setq prefix-arg prefix)
+      ;; `setup-specified-language-environment', for instance,
+      ;; expects this to be set from a menu keymap.
+      (setq last-command-event (car (last event)))
+      ;; mouse-major-mode-menu was using `command-execute' instead.
+      (call-interactively cmd)))))))
 
 (defvar mouse-major-mode-menu-prefix)	; dynamically bound
 
