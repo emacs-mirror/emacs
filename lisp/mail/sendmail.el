@@ -1058,7 +1058,7 @@ See also the function `select-sendmail-coding-system'.")
   (interactive)
   (save-excursion
     ;; put a marker at the end of the header
-    (let ((end (make-marker (mail-header-end)))
+    (let ((end (copy-marker (mail-header-end)))
 	  (case-fold-search t)
 	  to-line)
       (goto-char (point-min))
