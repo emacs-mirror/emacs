@@ -918,7 +918,7 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 	       (setq alist (cdr alist)))
 	     (if alist
 		 (setq alist (car alist))
-	       (error "Impossible regexp match!"))
+	       (error "compilation-parse-errors: Impossible regexp match!"))
 	     
 	     ;; Extract the file name and line number from the error message.
 	     (let ((filename
@@ -952,7 +952,16 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 		  ;; in this buffer that might change.
 		  (not (equal (car (cdr (nth 0 compilation-error-list)))
 			      (car (cdr (nth 1 compilation-error-list)))))
-		  (setq found-desired t)))
+		  (progn
+		    ;; Discard the error just parsed, so that the next
+		    ;; parsing run can get it and the following errors in
+		    ;; the same file all at once.  If we didn't do this, we
+		    ;; would have the same problem we are trying to avoid
+		    ;; with the test above, just delayed until the next run!
+		    (setq compilation-error-list (cdr compilation-error-list))
+		    (goto-char (match-beginning 0))
+		    (setq found-desired t)))
+	     )
 	    (t
 	     (error "compilation-parse-errors: impossible regexp match!")))
 
