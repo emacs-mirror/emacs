@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,97,2000,2001
+@c Copyright (C) 1985,86,87,93,94,95,97,2000,2001,2002
 @c  Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Customization, Quitting, Amusements, Top
@@ -592,23 +592,24 @@ the faces in the group appear in the customization buffer.  Here is an
 example of how a face looks:
 
 @smallexample
-Custom Changed Face: (sample) [Hide]
+Custom Changed Face:(sample) [Hide]
    [State]: this face is unchanged from its standard setting.
-Parent groups: [Custom Magic Faces]
-Attributes: [ ] Font family: [Value Menu] *
-            [ ] Width: [Value Menu] *
-            [ ] Height: [Value Menu] *
-            [ ] Weight: [Value Menu] *
-            [ ] Slant: [Value Menu] *
-            [ ] Underline: [Value Menu] *
-            [ ] Overline: [Value Menu] *
-            [ ] Strike-through: [Value Menu] *
-            [ ] Box around text: [Value Menu] *
-            [ ] Inverse-video: [Value Menu] *
-            [X] Foreground: [Value Menu] Color: white       (sample)
-            [X] Background: [Value Menu] Color: blue        (sample)
-            [ ] Stipple: [Value Menu] *
-            [ ] Inherit:
+Face used when the customize item has been changed.
+Parent groups: => Custom Magic Faces
+Attributes: [ ] Font Family: *
+            [ ] Width: *
+            [ ] Height: *
+            [ ] Weight: *
+            [ ] Slant: *
+            [ ] Underline: *
+            [ ] Overline: *
+            [ ] Strike-through: *
+            [ ] Box around text: *
+            [ ] Inverse-video: *
+            [X] Foreground: white       (sample)
+            [X] Background: blue        (sample)
+            [ ] Stipple: *
+            [ ] Inherit: *
 @end smallexample
 
   Each face attribute has its own line.  The @samp{[@var{x}]} field
