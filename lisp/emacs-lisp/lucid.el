@@ -142,6 +142,12 @@ bottom of the buffer stack."
   (make-overlay beg end buffer))
 
 (defun set-extent-property (extent prop value)
+  ;; Make sure that separate adjacent extents
+  ;; with the same mouse-face value
+  ;; do not run together as one extent.
+  (and (eq prop 'mouse-face)
+       (symbolp value)
+       (setq value (list value)))
   (if (eq prop 'duplicable)
       (cond ((and value (not (overlay-get extent prop)))
 	     ;; If becoming duplicable, copy all overlayprops to text props.
