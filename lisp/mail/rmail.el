@@ -2427,7 +2427,7 @@ Interactively, empty argument means use same regexp used last time."
 		  (goto-char (rmail-msgend msg))
 		  (re-search-backward
 		   regexp (rmail-msgbeg msg) t)))
-	    (setq win (point))
+            (setq win (point-marker))
 	    (rmail-show-message msg)
 	    (message "%sRmail search for %s...done"
 		     (if reversep "Reverse " "")
