@@ -253,6 +253,7 @@ Lisp_Object Qcoding_system, Qeol_type;
 Lisp_Object Qbuffer_file_coding_system;
 Lisp_Object Qpost_read_conversion, Qpre_write_conversion;
 Lisp_Object Qno_conversion, Qundecided;
+Lisp_Object Qcoding_system_history;
 
 extern Lisp_Object Qinsert_file_contents, Qwrite_region;
 Lisp_Object Qcall_process, Qcall_process_region, Qprocess_argument;
@@ -3118,7 +3119,7 @@ DEFUN ("read-coding-system", Fread_coding_system, Sread_coding_system, 1, 1, 0,
 {
   Lisp_Object val;
   val = Fcompleting_read (prompt, Vobarray, Qcoding_system_p,
-			  Qt, Qnil, Qnil, Qnil, Qnil);
+			  Qt, Qnil, Qcoding_system_history, Qnil, Qnil);
   return (XSTRING (val)->size == 0 ? Qnil : Fintern (val, Qnil));
 }
 
@@ -3863,6 +3864,10 @@ syms_of_coding ()
   Qtarget_idx = intern ("target-idx");
   staticpro (&Qtarget_idx);
 
+  Qcoding_system_history = intern ("coding-system-history");
+  staticpro (&Qcoding_system_history);
+  Fset (Qcoding_system_history, Qnil);
+
   /* Target FILENAME is the first argument.  */
   Fput (Qinsert_file_contents, Qtarget_idx, make_number (0));
   /* Target FILENAME is the third argument.  */
@@ -4104,7 +4109,7 @@ the cdr part is used for encoding a text to be sent to a process.");
     "Table of extra Latin codes in the range 128..159 (inclusive).\n\
 This is a vector of length 256.\n\
 If Nth element is non-nil, the existence of code N in a file\n\
-(or output of subprocess) doesn't prevent it to be detected as\n\
+\(or output of subprocess) doesn't prevent it to be detected as\n\
 a coding system of ISO 2022 variant which has a flag\n\
 `accept-latin-extra-code' t (e.g. iso-latin-1) on reading a file\n\
 or reading output of a subprocess.\n\
