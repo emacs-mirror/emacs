@@ -346,7 +346,8 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 			;; Suppress the error rose when the pipe to PROC is closed.
 			(condition-case err
 			    (process-send-region proc (point-min) (point-max))
-			  (file-error nil))
+			  (file-error nil)
+			  (error nil))
 			))))
 	      ;; ARG is a file name.
 	      ;; Collapse multiple slashes to single slashes.

@@ -1,3 +1,7 @@
+2004-12-31  Masatake YAMATO  <jet@gyve.org>
+
+	* server.el (server-process-filter): Suppress `error', too.
+
 2004-12-30  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-store.el (calc-copy-variable):  Fix mistyped variable
