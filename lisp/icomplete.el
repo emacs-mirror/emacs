@@ -113,15 +113,15 @@ completions - see `icomplete-delay-completions-threshold'."
 
 This hook is run during minibuffer setup iff icomplete will be active.
 It is intended for use in customizing icomplete for interoperation
-with other packages.  For instance:
+with other features and packages.  For instance:
 
   \(add-hook 'icomplete-minibuffer-setup-hook
 	    \(function
 	     \(lambda ()
-	       \(make-local-variable 'resize-minibuffer-window-max-height)
-	       \(setq resize-minibuffer-window-max-height 3))))
+	       \(make-local-variable 'max-mini-window-height)
+	       \(setq max-mini-window-height 3))))
 
-will constrain rsz-mini to a maximum minibuffer height of 3 lines when
+will constrain Emacs to a maximum minibuffer height of 3 lines when
 icompletion is occurring."
   :type 'hook
   :group 'icomplete)
