@@ -68,6 +68,9 @@ extern char *tzname[];
 #if DO_MULTIBYTE
 # if HAVE_MBRLEN
 #  include <wchar.h>
+#  if !defined (mbsinit) && !defined (HAVE_MBSINIT)
+#   define mbsinit(ps) 1
+#  endif /* !defined (mbsinit) && !defined (HAVE_MBSINIT) */
 # else
    /* Simulate mbrlen with mblen as best we can.  */
 #  define mbstate_t int
