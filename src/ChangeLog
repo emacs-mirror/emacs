@@ -1,10 +1,17 @@
+2002-10-25  Juanma Barranquero  <lektu@terra.es>
+
+	* macgui.h:
+	* w32gui.h: Remove definition of XColor.
+
+	* dispextern.h [!HAVE_X_WINDOWS]: Define XColor.
+
 2002-10-24  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (get_window_cursor_type): New arg ACTIVE_CURSOR.
 	Callers changed (supply dummy arg).
 
 	* lisp.h (get_window_cursor_type): Update prototype.
-	
+
 	* w32term.c (x_display_and_set_cursor): Get active_cursor from
 	get_window_cursor_type to track system caret.
 
