@@ -3653,7 +3653,8 @@ or (if there were none) at the end of the buffer."
     (save-excursion
       (let ((default-major-mode nil))
 	(set-buffer (find-file-noselect (custom-file))))
-      (save-buffer))))
+      (let ((file-precious-flag t))
+	(save-buffer)))))
 
 ;;; The Customize Menu.
 
