@@ -1,5 +1,5 @@
 /* Interface definitions for display code.
-   Copyright (C) 1985, 1993, 1994, 1997, 1998, 1999, 2000, 2001
+   Copyright (C) 1985, 1993, 1994, 1997, 1998, 1999, 2000, 2001, 2002
      Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2203,6 +2203,10 @@ extern EMACS_INT tool_bar_button_relief;
 /***********************************************************************
 			 Terminal Capabilities
  ***********************************************************************/
+
+/* Each of these is a bit representing a terminal `capability' (bold, inverse,
+   etc).  They are used to when calling `tty_capable_p' to ask what a terminal
+   supports.  */
 
 #define TTY_CAP_INVERSE		0x01
 #define TTY_CAP_UNDERLINE	0x02
