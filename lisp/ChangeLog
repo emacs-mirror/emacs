@@ -1,5 +1,7 @@
 1999-11-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* mwheel.el: Fix copyright notice, don't require 'cl at run time.
+
 	* isearch.el: Add lazy-highlighting feature.
 
 1999-11-10  Peter Kleiweg  <kleiweg@let.rug.nl>
