@@ -1,4 +1,4 @@
-;;; mule-cmds.el --- commands for mulitilingual environment -*-coding: iso-2022-jp -*-
+;;; mule-cmds.el --- commands for mulitilingual environment -*-coding: iso-2022-7bit -*-
 
 ;; Copyright (C) 2000, 2001, 2002, 2003, 2004  Free Software Foundation, Inc.
 ;; Copyright (C) 1995, 2003 Electrotechnical Laboratory, JAPAN.
