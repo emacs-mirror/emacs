@@ -303,6 +303,7 @@ The Speedbar can also use it (@pxref{Speedbar}).
 
 @node Which Function
 @subsection Which Function Mode
+@cindex current function name in mode line
 
   Which Function mode is a minor mode that displays the current
 function name in the mode line, updating it as you move around in a
