@@ -400,8 +400,8 @@ complete to @file{/usr/bin/foo}.
 partial-completion-mode}, or customize the variable
 @code{partial-completion-mode}.  This binds the partial completion
 commands to @key{TAB}, @key{SPC}, @key{RET}, and @kbd{?}.  The usual
-completion commands are available on @kbd{M-@key{TAB}},
-@kbd{M-@key{SPC}}, @kbd{M-@key{RET}} and @kbd{M-?}.
+completion commands are available on @kbd{M-@key{TAB}} (or
+@mbd{C-M-i}), @kbd{M-@key{SPC}}, @kbd{M-@key{RET}} and @kbd{M-?}.
 
 @vindex PC-include-file-path
 @vindex PC-disable-includes
