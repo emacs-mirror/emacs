@@ -2320,6 +2320,9 @@ signal_before_change (start_int, end_int, preserve_ptr)
   Lisp_Object preserve_marker;
   struct gcpro gcpro1, gcpro2, gcpro3;
 
+  if (inhibit_modification_hooks)
+    return;
+
   start = make_number (start_int);
   end = make_number (end_int);
   preserve_marker = Qnil;
@@ -2406,6 +2409,9 @@ void
 signal_after_change (charpos, lendel, lenins)
      int charpos, lendel, lenins;
 {
+  if (inhibit_modification_hooks)
+    return;
+
   /* If we are deferring calls to the after-change functions
      and there are no before-change functions,
      just record the args that we were going to use.  */
