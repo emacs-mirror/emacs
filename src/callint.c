@@ -476,13 +476,13 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
 	  break;
 
 	case 'k':		/* Key sequence. */
-	  args[i] = Fread_key_sequence (build_string (prompt), Qnil, Qnil);
+	  args[i] = Fread_key_sequence (build_string (prompt), Qnil, Qnil, Qnil);
 	  teml = args[i];
 	  visargs[i] = Fkey_description (teml);
 	  break;
 
 	case 'K':		/* Key sequence to be defined. */
-	  args[i] = Fread_key_sequence (build_string (prompt), Qnil, Qt);
+	  args[i] = Fread_key_sequence (build_string (prompt), Qnil, Qt, Qnil);
 	  teml = args[i];
 	  visargs[i] = Fkey_description (teml);
 	  break;
