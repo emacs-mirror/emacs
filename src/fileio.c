@@ -2796,11 +2796,10 @@ and (2) it puts less data in the undo list.")
     Lisp_Object code;
     code = Qnil;
     GCPRO1 (filename);
-    code = call1 (Qfind_buffer_file_type, filename);
+    current_buffer->buffer_file_type
+      = call1 (Qfind_buffer_file_type, filename);
     UNGCPRO;
-    if (XTYPE (code) == Lisp_Int) 
-      XFASTINT (current_buffer->buffer_file_type) = XFASTINT (code);
-    if (XFASTINT (current_buffer->buffer_file_type) == 0)
+    if (NILP (current_buffer->buffer_file_type))
       {
 	int reduced_size
 	  = inserted - crlf_to_lf (inserted, &FETCH_CHAR (point - 1) + 1);
