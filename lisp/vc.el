@@ -340,21 +340,17 @@ the master name of FILE; this is appended to an optional list of FLAGS."
 	    (error "Aborted"))
 	(save-buffer))))
 
-(defun vc-workfile-unchanged-p (file)
+(defun vc-workfile-unchanged-p (file &optional want-differences-if-changed)
   ;; Has the given workfile changed since last checkout?
   (let ((checkout-time (vc-file-getprop file 'vc-checkout-time))
 	(lastmod (nth 5 (file-attributes file))))
-    (if checkout-time
-     (equal lastmod checkout-time)
-     (if (zerop (vc-backend-diff file nil))
-	 (progn
-	   (vc-file-setprop file 'vc-checkout-time lastmod)
-	   t)
-       (progn
-	   (vc-file-setprop file 'vc-checkout-time '(0 . 0))
-	   nil
-	 ))
-     )))
+    (or (equal checkout-time lastmod)
+	(and (or (not checkout-time) want-differences-if-changed)
+	     (let ((unchanged (zerop (vc-backend-diff file nil nil
+				      (not want-differences-if-changed)))))
+	       ;; 0 stands for an unknown time; it can't match any mod time.
+	       (vc-file-setprop file 'vc-checkout-time (if unchanged lastmod 0))
+	       unchanged)))))
 
 (defun vc-next-action-on-file (file verbose &optional comment)
   ;;; If comment is specified, it will be used as an admin or checkin comment.
@@ -372,8 +368,7 @@ the master name of FILE; this is appended to an optional list of FLAGS."
      ;; if there is no lock on the file, assert one and get it
      ((not (setq owner (vc-locking-user file)))
       (if (and vc-checkout-carefully
-	       (not (vc-workfile-unchanged-p file))
-	       (not (zerop (vc-backend-diff file nil))))
+	       (not (vc-workfile-unchanged-p file t)))
 	  (if (save-window-excursion
 		(pop-to-buffer "*vc*")
 		(goto-char (point-min))
@@ -777,7 +772,7 @@ and two version designators specifying which versions to compare."
       (setq unchanged (vc-workfile-unchanged-p buffer-file-name))
       (if unchanged
 	  (message "No changes to %s since latest version." file)
-	(vc-backend-diff file nil)
+	(vc-backend-diff file)
 	;; Ideally, we'd like at this point to parse the diff so that
 	;; the buffer effectively goes into compilation mode and we
 	;; can visit the old and new change locations via next-error.
@@ -1622,22 +1617,27 @@ Return nil if there is no such person."
    )
   )
 
-(defun vc-backend-diff (file oldvers &optional newvers)
-  ;; Get a difference report between two versions
+(defun vc-backend-diff (file &optional oldvers newvers cmp)
+  ;; Get a difference report between two versions of FILE.
+  ;; Get only a brief comparison report if CMP, a difference report otherwise.
   (if (eq (vc-backend-deduce file) 'SCCS)
       (setq oldvers (vc-lookup-triple file oldvers))
       (setq newvers (vc-lookup-triple file newvers)))
-  (apply 'vc-do-command 1
-	 (or (vc-backend-dispatch file "vcdiff" "rcsdiff")
-	     (vc-registration-error file))
-	 file
-	 "-q"
-	 (and oldvers (concat "-r" oldvers))
-	 (and newvers (concat "-r" newvers))
-	 (if (listp diff-switches)
-	     diff-switches
-	   (list diff-switches))
-  ))
+  (let* ((command (or (vc-backend-dispatch file "vcdiff" "rcsdiff")
+		      (vc-registration-error file)))
+	 (options (append (list (and cmp "--brief")
+				"-q"
+				(and oldvers (concat "-r" oldvers))
+				(and newvers (concat "-r" newvers)))
+			  (and (not cmp)
+			       (if (listp diff-switches)
+				   diff-switches
+				 (list diff-switches)))))
+	 (status (apply 'vc-do-command 2 command file options)))
+    ;; Some RCS versions don't understand "--brief"; work around this.
+    (if (eq status 2)
+	(apply 'vc-do-command 1 command file (if cmp options (cdr options)))
+      status)))
 
 (defun vc-check-headers ()
   "Check if the current file has any headers in it."
