@@ -1,3 +1,11 @@
+2002-09-22  Richard M. Stallman  <rms@gnu.org>
+
+	* international/mule-cmds.el (select-safe-coding-system): Cope if
+	default-coding-system gives nil which was then used in `min'.
+
+	* mail/sendmail.el (sendmail-send-it): If user's buffer
+	is unibyte, make tembuf unibyte.
+
 2002-09-22  Kai Gro,b_(Bjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
 
 	* net/tramp.el: Version 2.0.22 released.
