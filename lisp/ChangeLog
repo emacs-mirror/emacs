@@ -1,6 +1,11 @@
+2005-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-core.el (font-lock-default-function): Handle the rare case where
+	only font-lock-keywords is set.
+
 2005-02-03  Kenichi Handa  <handa@m17n.org>
 
-	* international/characters.el: Cancel previous change. for
+	* international/characters.el: Cancel previous change for
 	I-WITH-DOT-ABOVE and DOTLESS-i.
 
 	* international/latin-5.el: Cancel previous change.
