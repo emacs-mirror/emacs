@@ -42,6 +42,10 @@
 (defvar gamegrid-font "-*-courier-medium-r-*-*-*-140-100-75-*-*-iso8859-*"
   "Name of the font used in X mode.")
 
+(defvar gamegrid-face nil
+  "Indicates the face to use as a default.")
+(make-variable-buffer-local 'gamegrid-face)
+
 (defvar gamegrid-display-options nil)
 
 (defvar gamegrid-buffer-width 0)
@@ -119,6 +123,16 @@ static char *noname[] = {
 };
 "
   "XPM format image used for each square")
+
+(defvar gamegrid-xbm "\
+/* gamegrid XBM */
+#define gamegrid_width 16
+#define gamegrid_height 16
+static unsigned char gamegrid_bits[] = {
+   0xff, 0xff, 0xff, 0x7f, 0xff, 0x3f, 0xaf, 0x0a, 0x57, 0x15, 0xaf, 0x0a,
+   0x57, 0x15, 0xaf, 0x0a, 0x57, 0x15, 0xaf, 0x0a, 0x57, 0x15, 0xaf, 0x0a,
+   0x57, 0x15, 0x07, 0x00, 0x03, 0x00, 0x01, 0x00 };"
+  "XBM format image used for each square.")
 
 ;; ;;;;;;;;;;;;;;;; miscellaneous functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -220,13 +234,16 @@ static char *noname[] = {
        gamegrid-mono-tty-face))))
 
 (defun gamegrid-colorize-glyph (color)
-  (make-glyph
-   (vector
-    'xpm
-    :data gamegrid-xpm
-    :color-symbols (list (cons "col1" (gamegrid-color color 0.6))
-			 (cons "col2" (gamegrid-color color 0.8))
-			 (cons "col3" (gamegrid-color color 1.0))))))
+  (find-image `((:type xpm :data ,gamegrid-xpm
+		       :ascent center
+		       :color-symbols 
+		       (("col1" . ,(gamegrid-color color 0.6))
+			("col2" . ,(gamegrid-color color 0.8))
+			("col3" . ,(gamegrid-color color 1.0))))
+		(:type xbm :data ,gamegrid-xbm
+		       :ascent center
+		       :foreground ,(gamegrid-color color 1.0)
+		       :background ,(gamegrid-color color 0.5)))))
 
 (defun gamegrid-match-spec (spec)
   (let ((locale (car spec))
@@ -250,36 +267,35 @@ static char *noname[] = {
 	   (vector data))
 	  ((eq data 'colorize)
 	   (gamegrid-colorize-glyph color))
+	  ((listp data)
+	   (find-image data)) ;untested!
 	  ((vectorp data)
-	   (make-glyph data)))))
+	   (gamegrid-make-image-from-vector data)))))
 
-(defun gamegrid-color-display-p ()
-  (if (fboundp 'device-class)
-      (eq (device-class (selected-device)) 'color)
-    (eq (cdr-safe (assq 'display-type (frame-parameters))) 'color)))
+(defun gamegrid-make-image-from-vector (vect)
+  "Convert an XEmacs style \"glyph\" to an image-spec."
+  (let ((l (list 'image :type)))
+    (dotimes (n (length vect))
+      (setf l (nconc l (list (aref vect n)))))
+    (nconc l (list :ascent 'center))))
 
 (defun gamegrid-display-type ()
-  (let ((window-system-p 
-	 (or (and (fboundp 'console-on-window-system-p)
-		  (console-on-window-system-p))
-	     window-system)))
-    (cond ((and gamegrid-use-glyphs
-		window-system-p
-		(featurep 'xpm))
-	   'glyph)
-	  ((and gamegrid-use-color
-		window-system-p
-		(gamegrid-color-display-p))
-	   'color-x)
-	  (window-system-p
-	   'mono-x)
-	  ((and gamegrid-use-color
-		(gamegrid-color-display-p))
-	   'color-tty)
-	  ((fboundp 'set-face-property)
-	   'mono-tty)
-	  (t
-	   'emacs-tty))))
+  (cond ((and gamegrid-use-glyphs
+	      (display-images-p))
+	 'glyph)
+	((and gamegrid-use-color
+	      (display-graphic-p)
+	      (display-color-p))
+	 'color-x)
+	((display-graphic-p)
+	 'mono-x)
+	((and gamegrid-use-color
+	      (display-color-p))
+	 'color-tty)
+	((display-multi-font-p) ;???
+	 'mono-tty)
+	(t
+	   'emacs-tty)))
 
 (defun gamegrid-set-display-table ()
   (if (fboundp 'specifierp)
@@ -290,26 +306,21 @@ static char *noname[] = {
 			     'remove-locale)
     (setq buffer-display-table gamegrid-display-table)))
 
-(defun gamegrid-hide-cursor ()
-  (make-local-variable 'cursor-type)
-  (setq cursor-type nil))
-
 (defun gamegrid-setup-default-font ()
-  (cond ((eq gamegrid-display-mode 'glyph)
-	 (let* ((font-spec (face-property 'default 'font))
-		(name (font-name font-spec))
-		(max-height nil))
-	   (loop for c from 0 to 255 do
-	     (let ((glyph (aref gamegrid-display-table c)))
-	       (cond ((glyphp glyph)
-		      (let ((height (glyph-height glyph)))
-			(if (or (null max-height)
-				(< max-height height))
-			    (setq max-height height)))))))
-	   (if max-height
-	       (while (and (> (font-height font-spec) max-height)
-			   (setq name (x-find-smaller-font name)))
-		 (add-spec-to-specifier font-spec name (current-buffer))))))))
+  (setq gamegrid-face
+	(copy-face 'default
+		   (intern (concat "gamegrid-face-" (buffer-name)))))
+  (when (eq gamegrid-display-mode 'glyph)
+    (let ((max-height nil))
+      (loop for c from 0 to 255 do
+	    (let ((glyph (aref gamegrid-display-table c)))
+	      (when (and (listp glyph) (eq (car  glyph) 'image))
+		(let ((height (cdr (image-size glyph))))
+		  (if (or (null max-height)
+			  (< max-height height))
+		      (setq max-height height))))))
+      (when (and max-height (< max-height 1))
+	(set-face-attribute gamegrid-face nil :height max-height)))))
 
 (defun gamegrid-initialize-display ()
   (setq gamegrid-display-mode (gamegrid-display-type))
@@ -323,11 +334,13 @@ static char *noname[] = {
       (aset gamegrid-display-table c glyph)))
   (gamegrid-setup-default-font)
   (gamegrid-set-display-table)
-  (gamegrid-hide-cursor))
+  (setq cursor-type nil))
 
 
 (defun gamegrid-set-face (c)
-  (unless (eq gamegrid-display-mode 'glyph)
+  (if (eq gamegrid-display-mode 'glyph)
+      (add-text-properties (1- (point)) (point)
+			   (list 'display (list (aref gamegrid-display-table c))))
     (put-text-property (1- (point))
 		       (point)
 		       'face
@@ -362,6 +375,12 @@ static char *noname[] = {
     (setq gamegrid-buffer-start (point))
     (dotimes (i height)
       (insert line))
+    ;; Adjust the height of the default face to the height of the
+    ;; images. Unlike XEmacs, Emacs doesn't allow to make the default
+    ;; face buffer-local; so we do this with an overlay.
+    (when (eq gamegrid-display-mode 'glyph)
+      (overlay-put (make-overlay (point-min) (point-max))
+		   'face gamegrid-face))
     (goto-char (point-min))))
 
 (defun gamegrid-init (options)
