@@ -2729,6 +2729,50 @@ With prefix arg, silently save all file-visiting buffers, then kill."
        (run-hook-with-args-until-failure 'kill-emacs-query-functions)
        (kill-emacs)))
 
+;; We use /: as a prefix to "quote" a file name 
+;; so that magic file name handlers will not apply to it.
+
+(setq file-name-handler-alist
+      (cons '("\\`/:" . file-name-non-special)
+	    file-name-handler-alist))
+
+;; We depend on being the last handler on the list,
+;; so that anything else which does need handling
+;; has been handled already.
+;; So it is safe for us to inhibit *all* magic file name handlers.
+
+(defun file-name-non-special (operation &rest arguments)
+  (let ((file-name-handler-alist nil)
+	;; Get a list of the indices of the args which are file names.
+	(file-arg-indices
+	 (cdr (or (assq operation
+			;; The first four are special because they
+			;; return a file name.  We want to include the /:
+			;; in the return value.
+			;; So just avoid stripping it in the first place.
+			'((expand-file-name . nil)
+			  (file-name-directory . nil)
+			  (file-name-as-directory . nil)
+			  (directory-file-name . nil)
+			  (rename-file 0 1)
+			  (copy-file 0 1)
+			  (make-symbolic-link 0 1)
+			  (add-name-to-file 0 1)))
+		  ;; For all other operations, treat the first argument only
+		  ;; as the file name.
+		  '(nil 0))))
+	;; Copy ARGUMENTS so we can replace elements in it.
+	(arguments (copy-sequence arguments)))
+    ;; Strip off the /: from the file names that have this handler.
+    (save-match-data
+      (while file-arg-indices
+	(and (nth (car file-arg-indices) arguments)
+	     (string-match "\\`/:" (nth (car file-arg-indices) arguments))
+	     (setcar (nthcdr (car file-arg-indices) arguments)
+		     (substring (nth (car file-arg-indices) arguments) 2)))
+	(setq file-arg-indices (cdr file-arg-indices))))
+    (apply operation arguments)))
+
 (define-key ctl-x-map "\C-f" 'find-file)
 (define-key ctl-x-map "\C-q" 'toggle-read-only)
 (define-key ctl-x-map "\C-r" 'find-file-read-only)
