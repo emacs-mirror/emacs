@@ -1,9 +1,8 @@
-/*  impl.c.poolmv2ss: POOLMV2 STRESS TEST
+/* impl.c.mv2test: POOLMV2 STRESS TEST
  *
- * $HopeName: MMsrc!mv2test.c(trunk.3) $
- * Copyright (C) 1998. Harlequin Group plc. All rights reserved.
+ * $HopeName: MMsrc!mv2test.c(trunk.4) $
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  */
-
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,12 +13,7 @@ struct itimerspec; /* stop complaints from time.h */
 #endif
 #include <time.h>
 
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
-
 #include "mpscmv2.h"
-
 #include "mps.h"
 
 typedef MPS_T_WORD mps_count_t;  /* machine word (target dep.) */
@@ -54,6 +48,7 @@ typedef MPS_T_WORD mps_count_t;  /* machine word (target dep.) */
 #define NDIV (1+(IM-1)/NTAB)
 #define EPS 1.2e-7F
 #define RNMX (1.0F-EPS)
+
 static float ran1(long *idum)
 {
   int j;
@@ -324,7 +319,6 @@ int main(void)
 {
   stress_with_arena_class(mps_arena_class_vm());
   stress_with_arena_class(mps_arena_class_vmnz());
-  /* mps_arena_class_an?  mps_arena_class_cl? */
 
   return 0;
 }
