@@ -944,14 +944,21 @@ The return value is the current column.")
      and scan through it again.  */
   if (!NILP (force) && col > goal && c == '\t' && prev_col < goal)
     {
-      int old_point, old_point_byte;
+      int goal_pt, goal_pt_byte;
 
-      del_range (PT - 1, PT);
-      Findent_to (make_number (goal), Qnil);
-      old_point = PT;
-      old_point_byte = PT_BYTE;
+      /* Insert spaces in front of the tab to reach GOAL.  Do this
+	 first so that a marker at the end of the tab gets
+	 adjusted.  */
+      SET_PT_BOTH (PT - 1, PT_BYTE - 1);
+      Finsert_char (make_number (' '), make_number (goal - prev_col), Qt);
+
+      /* Now delete the tab, and indent to COL.  */
+      del_range (PT, PT + 1);
+      goal_pt = PT;
+      goal_pt_byte = PT_BYTE;
       Findent_to (make_number (col), Qnil);
-      SET_PT_BOTH (old_point, old_point_byte);
+      SET_PT_BOTH (goal_pt, goal_pt_byte);
+      
       /* Set the last_known... vars consistently.  */
       col = goal;
     }
