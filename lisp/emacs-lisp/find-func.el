@@ -250,14 +250,6 @@ defined is searched in PATH instead of `load-path'"
   "Find the function that KEY invokes.  KEY is a string.
 Point is saved if FUNCTION is in the current buffer."
   (interactive "kFind function on key: ")
-  ;; If this key seq ends with a down event, discard the
-  ;; following click or drag event.  Otherwise that would
-  ;; erase an eventual message.
-  (let ((type (aref key (1- (length key)))))
-    (if (listp type) (setq type (car type)))
-    (and (symbolp type)
-	 (memq 'down (event-modifiers type))
-	 (read-event)))
   (save-excursion
     (let ((modifiers (event-modifiers (aref key 0)))
           window position)
