@@ -157,13 +157,14 @@ rm -f /tmp/el /tmp/elc
 (cd lisp; ls -1 [a-z]*.el) > /tmp/el
 (cd lisp; ls -1 [a-z]*.elc) | sed 's/\.elc$/.el/' > /tmp/elc
 losers="`comm -23 /tmp/el /tmp/elc`"
+bogosities=
 for file in $losers; do
   if ! grep -q "dontcompilefiles:.* $file\($\| \)" lisp/Makefile; then
     bogosities="$file $bogosities"
   fi
 done
 if [ "${bogosities}" != "" ]; then
-  echo "The following .elc files have no corresponding .el files:"
+  echo "The following .el files have no corresponding .elc files:"
   echo "${bogosities}"
 fi
 rm -f /tmp/el /tmp/elc
