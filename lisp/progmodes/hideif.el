@@ -207,7 +207,8 @@ how the hiding is done:
 	     (default-value 'hide-ifdef-hiding))
 	(set (make-local-variable 'hif-outside-read-only) buffer-read-only)
 	(set (make-local-variable 'line-move-ignore-invisible) t)
-	(add-hook 'change-major-mode-hook (lambda () (hide-ifdef-mode -1)))
+	(add-hook 'change-major-mode-hook
+		  (lambda () (hide-ifdef-mode -1)) nil t)
 
 	(add-to-invisibility-spec '(hide-ifdef . t))
 
@@ -216,6 +217,7 @@ how the hiding is done:
 	  (show-ifdefs)))
     ;; else end hide-ifdef-mode
     (kill-local-variable 'line-move-ignore-invisible)
+    (remove-from-invisibility-spec '(hide-ifdef . t))
     (if hide-ifdef-hiding
 	(show-ifdefs))))
   
