@@ -2163,7 +2163,7 @@ Setting this variable automatically makes it local to the current buffer.")
 
 (defun do-auto-fill ()
   (let (fc justify bol give-up)
-    (if (or (not (setq justify (justification)))
+    (if (or (not (setq justify (current-justification)))
 	    (and (setq fc (current-fill-column)) ; make sure this gets set
 		 (eq justify 'left)
 		 (<= (current-column) (setq fc (current-fill-column))))
