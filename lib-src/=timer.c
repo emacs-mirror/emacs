@@ -23,6 +23,12 @@
 #define SIGIO	SIGUSR1
 #endif
 
+#ifdef LINUX
+/* Perhaps this is correct unconditionally.  */
+#undef signal
+#endif
+
+
 extern int errno;
 extern char *sys_errlist[], *malloc ();
 extern time_t time ();
