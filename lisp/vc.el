@@ -44,7 +44,7 @@
 ;;
 ;; This code depends on call-process passing back the subprocess exit
 ;; status.  Thus, you need Emacs 18.58 or later to run it.  For the
-;; vc-directory command to work properly, you need 19
+;; vc-directory command to work properly as documented, you need 19.
 ;;
 ;; The vc code maintains some internal state in order to reduce expensive
 ;; version-control operations to a minimum.  Some names are only computed
@@ -847,6 +847,8 @@ on a buffer attached to the file named in the current Dired buffer line."
 	(replace-match (concat "\\1" rep "\\2") t)))
   )
 
+;;; Note in Emacs 18 the following defun gets overridden
+;;; with the symbol 'vc-directory-18.  See below.
 ;;;###autoload
 (defun vc-directory (verbose)
   "Show version-control status of all files under the current directory."
@@ -890,6 +892,35 @@ on a buffer attached to the file named in the current Dired buffer line."
       (message "No files are currently %s under %s"
 	       (if verbose "registered" "locked") default-directory))
     ))
+
+;; Emacs 18 version
+(defun vc-directory-18 (verbose)
+  "Show version-control status of all files under the current directory."
+  (interactive "P")
+  (let (nonempty)
+    (save-excursion
+      (set-buffer (get-buffer-create "*vc-status*"))
+      (erase-buffer)
+      (vc-file-tree-walk
+       (function (lambda (f)
+		   (if (vc-registered f)
+		       (let ((user (vc-locking-user f)))
+			 (if (or user verbose)
+			     (insert (format
+				      "%s	%s\n"
+				      (concat user) f))))))))
+      (setq nonempty (not (zerop (buffer-size)))))
+    (if nonempty
+	(progn
+	  (pop-to-buffer "*vc-status*" t)
+	  (vc-shrink-to-fit)
+	  (goto-char (point-min)))
+      (message "No files are currently %s under %s"
+	       (if verbose "registered" "locked") default-directory))
+    ))
+
+(or (boundp 'minor-mode-map-alist)
+    (fset 'vc-directory 'vc-directory-18))
 
 ;; Named-configuration support for SCCS
 
