@@ -1,3 +1,8 @@
+2004-07-02  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-rcs.el (vc-rcs-checkout-model): Look at the version headers
+	only if vc-consult-headers is non-nil.
+
 2004-07-02  Juri Linkov  <juri@jurta.org>
 
 	* pcvs.el (cvs-mode-diff-repository): New command.
