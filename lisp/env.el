@@ -89,8 +89,8 @@ dollar sign."
 
 (defun setenv (variable &optional value unset substitute-env-vars)
   "Set the value of the environment variable named VARIABLE to VALUE.
-VARIABLE should be a string.  VALUE is optional; if not provided or is
-`nil', the environment variable VARIABLE will be removed.  UNSET
+VARIABLE should be a string.  VALUE is optional; if not provided or
+nil, the environment variable VARIABLE will be removed.  UNSET
 if non-nil means to remove VARIABLE from the environment.
 SUBSTITUTE-ENV-VARS, if non-nil, means to substitute environment
 variables in VALUE with `substitute-env-vars', where see.
@@ -126,7 +126,7 @@ a side-effect."
 		    (memq (coding-system-base locale-coding-system) codings))
 	  (error "Can't encode `%s=%s' with `locale-coding-system'"
 		 variable (or value "")))))
-  (if unset 
+  (if unset
       (setq value nil)
     (if substitute-env-vars
 	(setq value (substitute-env-vars value))))
