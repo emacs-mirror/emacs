@@ -1,5 +1,7 @@
 2001-04-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* language/slovak.el ("Slovak"): Add tutorial entry.
+
 	* net/browse-url.el (browse-url-new-window-flag): Renamed from
 	browse-url-new-window-p.
 
