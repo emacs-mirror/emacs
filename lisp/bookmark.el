@@ -135,9 +135,7 @@ bookmark-default-file, which is `~/.emacs.bmk' by default.")
   (if bookmark-file
       ;; In case user set `bookmark-file' in her .emacs:
       bookmark-file
-    (if (eq system-type 'ms-dos)
-        "~/emacs.bmk" ; Cannot have initial dot [Yuck!]
-      "~/.emacs.bmk"))
+    (convert-standard-filename "~/.emacs.bmk"))
   "*File in which to save bookmarks by default.")
 
 
