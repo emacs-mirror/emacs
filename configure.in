@@ -227,8 +227,9 @@ case "${canonical}" in
   *-*-netbsd* )
     opsys=netbsd
     if test -f /usr/lib/crti.o; then]
-dnl Leave quotation here temporarily
-      AC_DEFINE(HAVE_CRTIN)
+dnl The close and open brackets here are because this section is quoted --
+dnl see the `changequote' comment above.
+      AC_DEFINE(HAVE_CRTIN, [], [Define to 1 if you have /usr/lib/crti.o.])
 [   fi
 
     case "${canonical}" in
@@ -2063,6 +2064,8 @@ if test "${with_xim}" != "no"; then
   if test "$GCC" = yes; then
     CFLAGS="$CFLAGS --pedantic-errors"
   fi
+fi
+if test "${HAVE_X11}" = "yes"; then
   AC_TRY_COMPILE([
 #include <X11/Xlib.h>
 #include <X11/Xresource.h>],
@@ -2085,9 +2088,9 @@ extern Bool XRegisterIMInstantiateCallback(Display*, XrmDatabase, char*,
          [Define to the type of the 6th arg of XRegisterIMInstantiateCallback,
 either XPointer or XPointer*.])dnl
   if test "$emacs_cv_arg6_star" = yes; then
-     AC_DEFINE(XRegisterIMInstantiateCallback_arg6, [XPointer*])
+    AC_DEFINE(XRegisterIMInstantiateCallback_arg6, [XPointer*])
   else
-     AC_DEFINE(XRegisterIMInstantiateCallback_arg6, [XPointer])
+    AC_DEFINE(XRegisterIMInstantiateCallback_arg6, [XPointer])
   fi
   CFLAGS=$late_CFLAGS
 fi
@@ -2147,8 +2150,12 @@ fi
 HAVE_PNG=no
 if test "${HAVE_X11}" = "yes"; then
   if test "${with_png}" != "no"; then
-    AC_CHECK_HEADER(png.h,
-      AC_CHECK_LIB(png, png_get_channels, HAVE_PNG=yes, , -lz -lm))
+    # Debian unstable as of July 2003 has multiple libpngs, and puts png.h
+    # in /usr/include/libpng.
+    AC_CHECK_HEADERS(png.h libpng/png.h)
+    if test "$ac_cv_header_png_h" = yes || test "$ac_cv_header_libpng_png_h" = yes ; then
+      AC_CHECK_LIB(png, png_get_channels, HAVE_PNG=yes, , -lz -lm)
+    fi
   fi
 
   if test "${HAVE_PNG}" = "yes"; then
