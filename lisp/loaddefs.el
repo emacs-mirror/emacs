@@ -1920,7 +1920,7 @@ name of buffer configuration." t nil)
 ;;;;;;  37162))
 ;;; Generated autoloads from button.el
 
-(defvar button-map (let ((map (make-sparse-keymap))) (define-key map "" (quote push-button)) (define-key map [mouse-2] (quote push-button)) map) "\
+(defvar button-map (let ((map (make-sparse-keymap))) (define-key map "" (quote push-button)) (define-key map [mouse-2] (quote push-button)) map) "\
 Keymap used by buttons.")
 
 (defvar button-buffer-map (let ((map (make-sparse-keymap))) (define-key map [9] (quote forward-button)) (define-key map [backtab] (quote backward-button)) map) "\
@@ -8404,18 +8404,18 @@ to be updated." t nil)
 ;;;***
 
 ;;;### (autoloads (describe-variable variable-at-point describe-function-1
-;;;;;;  describe-function locate-library help-with-tutorial) "help-funs"
-;;;;;;  "help-funs.el" (15315 52171))
-;;; Generated autoloads from help-funs.el
+;;;;;;  describe-function locate-library help-with-tutorial) "help-fns"
+;;;;;;  "help-fns.el" (15315 52171))
+;;; Generated autoloads from help-fns.el
 
-(autoload (quote help-with-tutorial) "help-funs" "\
+(autoload (quote help-with-tutorial) "help-fns" "\
 Select the Emacs learn-by-doing tutorial.
 If there is a tutorial version written in the language
 of the selected language environment, that version is used.
 If there's no tutorial in that language, `TUTORIAL' is selected.
 With arg, you are asked to choose which language." t nil)
 
-(autoload (quote locate-library) "help-funs" "\
+(autoload (quote locate-library) "help-fns" "\
 Show the precise file name of Emacs library LIBRARY.
 This command searches the directories in `load-path' like `M-x load-library'
 to find the file that `M-x load-library RET LIBRARY RET' would load.
@@ -8429,16 +8429,16 @@ When called from a program, the file name is normaly returned as a
 string.  When run interactively, the argument INTERACTIVE-CALL is t,
 and the file name is displayed in the echo area." t nil)
 
-(autoload (quote describe-function) "help-funs" "\
+(autoload (quote describe-function) "help-fns" "\
 Display the full documentation of FUNCTION (a symbol)." t nil)
 
-(autoload (quote describe-function-1) "help-funs" nil nil nil)
+(autoload (quote describe-function-1) "help-fns" nil nil nil)
 
-(autoload (quote variable-at-point) "help-funs" "\
+(autoload (quote variable-at-point) "help-fns" "\
 Return the bound variable symbol found around point.
 Return 0 if there is no such symbol." nil nil)
 
-(autoload (quote describe-variable) "help-funs" "\
+(autoload (quote describe-variable) "help-fns" "\
 Display the full documentation of VARIABLE (a symbol).
 Returns the documentation as a string, also.
 If VARIABLE has a buffer-local value in BUFFER (default to the current buffer),
