@@ -884,10 +884,7 @@ Entering array mode calls the function `array-mode-hook'."
   (array-init-local-variables)
   (setq major-mode 'array-mode)
   (setq mode-name "Array")
-  ;; Update mode-line.
-  (progn (save-excursion (set-buffer (other-buffer)))
-	 (set-buffer-modified-p (buffer-modified-p))
-	 (sit-for 0))
+  (force-mode-line-update)
   (make-variable-buffer-local 'truncate-lines)
   (setq truncate-lines t)
   (setq overwrite-mode t)
