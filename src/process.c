@@ -5117,7 +5117,9 @@ process_send_signal (process, signo, current_group, nomsg)
 #endif /* ! defined (TCGETA) */
 #endif /* ! defined (TIOCGLTC) && defined (TIOCGETC) */
 #endif /* ! defined HAVE_TERMIOS */
-#endif /* ! defined (SIGNALS_VIA_CHARACTERS) */
+	abort ();
+      /* The code above always returns from the function.  */
+#endif /* defined (SIGNALS_VIA_CHARACTERS) */
 
 #ifdef TIOCGPGRP 
       /* Get the pgrp using the tty itself, if we have that.
