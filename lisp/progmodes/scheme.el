@@ -53,11 +53,10 @@
 
 (require 'lisp-mode)
 
-(defvar scheme-mode-syntax-table nil)
-(if (not scheme-mode-syntax-table)
-    (let ((i 0))
-      (setq scheme-mode-syntax-table (make-syntax-table))
-      (set-syntax-table scheme-mode-syntax-table)
+(defvar scheme-mode-syntax-table
+  (let ((st (make-syntax-table))
+	(i 0))
+    (with-syntax-table st
 
       ;; Default is atom-constituent.
       (while (< i 256)
@@ -105,7 +104,8 @@
       (modify-syntax-entry ?, "_ p")
       (modify-syntax-entry ?@ "_ p")
       (modify-syntax-entry ?# "_ p14")
-      (modify-syntax-entry ?\\ "\\   ")))
+      (modify-syntax-entry ?\\ "\\   "))
+    st))
 
 (defvar scheme-mode-abbrev-table nil)
 (define-abbrev-table 'scheme-mode-abbrev-table ())
