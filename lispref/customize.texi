@@ -495,13 +495,16 @@ key, using variations of this trick:
 (defcustom person-data '(("brian"  50 t) 
                          ("dorith" 55 nil)
                          ("ken"    52 t))
-  "Alist of people, each element has the form (NAME AGE MALE)."
+  "Alist of basic info about people.
+Each element has the form (NAME AGE MALE-FLAG)."
   :type '(alist :value-type (group age boolean)))
 
 (defcustom pets '(("brian") 
                   ("dorith" "dog" "guppy")
                   ("ken" "cat"))
-  "Alist where the KEY is a person, and the VALUE is a list of pets."
+  "Alist of people's pets.
+In an element (KEY . VALUE), KEY is the person's name,
+and the VALUE is a list of that person's pets."
   :type '(alist :value-type (repeat string)))
 @end smallexample
 
