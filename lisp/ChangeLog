@@ -1,3 +1,8 @@
+2001-11-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* tooltip.el (tooltip-delay): Decrease to 0.7.
+	(tooltip-hide-delay): Enlarge to 10.
+
 2001-11-03  Richard M. Stallman  <rms@gnu.org>
 
 	* startup.el (fancy-splash-tail): Explain how to recover

@@ -1,3 +1,9 @@
+2001-11-03  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* s/sco5.h (sigprocmask_set): Declare as extern SIGMASKTYPE.
+
+	* syssignal.h (sigunblock): Don't define if already defined.
+
 2001-11-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* eval.c (debugger_may_continue, Vdebug_ignored_errors)
