@@ -1446,6 +1446,7 @@ extern Lisp_Object Vdebug_on_error;
    if (!NILP (Vrun_hooks))
      call1 (Vrun_hooks, Qmy_funny_hook);  */
 extern Lisp_Object Vrun_hooks;
+extern Lisp_Object Frun_hooks_with_args ();
 extern Lisp_Object Fand (), For (), Fif (), Fprogn (), Fprog1 (), Fprog2 ();
 extern Lisp_Object Fsetq (), Fquote ();
 extern Lisp_Object Fuser_variable_p (), Finteractive_p ();
