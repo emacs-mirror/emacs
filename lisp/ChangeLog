@@ -1,5 +1,8 @@
 2000-12-13  Kenichi Handa  <handa@etl.go.jp>
 
+	* international/characters.el: Fix cases and syntaxes for
+	mule-unicode-0100-24ff.
+
 	* dired.el (dired-move-to-filename-regexp): Fixed for the case
 	that a Japanese character is not appended after day and year.
 
