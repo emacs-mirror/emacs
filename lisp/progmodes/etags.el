@@ -959,6 +959,11 @@ See documentation of variable `tags-file-name'."
     (forward-line 1)
     (cons tag-text startpos)))
 
+;; TAG-INFO is a cons (TEXT . POSITION) where TEXT is the initial part of a
+;; line containing the tag and POSITION is the character position of TEXT
+;; within the file (starting from 1).  If the tag isn't exactly at the
+;; given position then look around that position using a search window
+;; which expands until it hits the start of file.
 (defun etags-goto-tag-location (tag-info)
   (let ((startpos (cdr tag-info))
 	;; This constant is 1/2 the initial search window.
@@ -972,6 +977,9 @@ See documentation of variable `tags-file-name'."
 		     (regexp-quote (car tag-info)))))
     (or startpos
 	(setq startpos (point-min)))
+    ;; First see if the tag is right at the specified location.
+    (goto-char startpos)
+    (setq found (looking-at pat))
     (while (and (not found)
 		(progn
 		  (goto-char (- startpos offset))
