@@ -1,6 +1,6 @@
 ;;; messcompat.el --- making message mode compatible with mail mode
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2002
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2002, 2003
 ;;	Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -40,7 +40,7 @@
 (defvar message-from-style mail-from-style
   "*Specifies how \"From\" headers look.
 
-If `nil', they contain just the return address like:
+If nil, they contain just the return address like:
 	king@grassland.com
 If `parens', they look like:
 	king@grassland.com (Elvis Parsley)

@@ -113,7 +113,7 @@ seen in the same session."
     (gnus-dup-open))
   (setq gnus-dup-list-dirty t)		; mark list for saving
   (let ((data gnus-newsgroup-data)
- 	datum msgid)
+	datum msgid)
     ;; Enter the Message-IDs of all read articles into the list
     ;; and hash table.
     (while (setq datum (pop data))
@@ -121,11 +121,11 @@ seen in the same session."
 		 (> (gnus-data-number datum) 0)
 		 (not (memq (gnus-data-number datum) gnus-newsgroup-unreads))
 		 (not (= (gnus-data-mark datum) gnus-canceled-mark))
- 		 (setq msgid (mail-header-id (gnus-data-header datum)))
- 		 (not (nnheader-fake-message-id-p msgid))
- 		 (not (intern-soft msgid gnus-dup-hashtb)))
+		 (setq msgid (mail-header-id (gnus-data-header datum)))
+		 (not (nnheader-fake-message-id-p msgid))
+		 (not (intern-soft msgid gnus-dup-hashtb)))
 	(push msgid gnus-dup-list)
- 	(intern msgid gnus-dup-hashtb))))
+	(intern msgid gnus-dup-hashtb))))
   ;; Chop off excess Message-IDs from the list.
   (let ((end (nthcdr gnus-duplicate-list-length gnus-dup-list)))
     (when end

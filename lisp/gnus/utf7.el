@@ -1,7 +1,8 @@
-;;; utf7.el --- UTF-7 encoding/decoding for Emacs
-;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+;;; utf7.el --- UTF-7 encoding/decoding for Emacs   -*-coding: iso-8859-1;-*-
+;; Copyright (C) 1999, 2000, 2003 Free Software Foundation, Inc.
 
 ;; Author: Jon K Hellan <hellan@acm.org>
+;; Maintainer: bugs@gnus.org
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -22,36 +23,68 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
-;;; UTF-7 - A Mail-Safe Transformation Format of Unicode - RFC 2152
-;;; This is a transformation format of Unicode that contains only 7-bit
-;;; ASCII octets and is intended to be readable by humans in the limiting
-;;; case that the document consists of characters from the US-ASCII
-;;; repertoire.
-;;; In short, runs of characters outside US-ASCII are encoded as base64
-;;; inside delimiters.
-;;; A variation of UTF-7 is specified in IMAP 4rev1 (RFC 2060) as the way
-;;; to represent characters outside US-ASCII in mailbox names in IMAP.
-;;; This library supports both variants, but the IMAP variation was the
-;;; reason I wrote it.
-;;; The routines convert UTF-7 -> UTF-16 (16 bit encoding of Unicode)
-;;; -> current character set, and vice versa.
-;;; However, until Emacs supports Unicode, the only Emacs character set
-;;; supported here is ISO-8859.1, which can trivially be converted to/from
-;;; Unicode.
-;;; When decoding results in a character outside the Emacs character set,
-;;; an error is thrown.  It is up to the application to recover.
+
+;; UTF-7 - A Mail-Safe Transformation Format of Unicode - RFC 2152
+;; This is a transformation format of Unicode that contains only 7-bit
+;; ASCII octets and is intended to be readable by humans in the limiting
+;; case that the document consists of characters from the US-ASCII
+;; repertoire.
+;; In short, runs of characters outside US-ASCII are encoded as base64
+;; inside delimiters.
+;; A variation of UTF-7 is specified in IMAP 4rev1 (RFC 2060) as the way
+;; to represent characters outside US-ASCII in mailbox names in IMAP.
+;; This library supports both variants, but the IMAP variation was the
+;; reason I wrote it.
+;; The routines convert UTF-7 -> UTF-16 (16 bit encoding of Unicode)
+;; -> current character set, and vice versa.
+;; However, until Emacs supports Unicode, the only Emacs character set
+;; supported here is ISO-8859.1, which can trivially be converted to/from
+;; Unicode.
+;; When decoding results in a character outside the Emacs character set,
+;; an error is thrown.  It is up to the application to recover.
+
+;; UTF-7 should be done by providing a coding system.  Mule-UCS does
+;; already, but I don't know if it does the IMAP version and it's not
+;; clear whether that should really be a coding system.  The UTF-16
+;; part of the conversion can be done with coding systems available
+;; with Mule-UCS or some versions of Emacs.  Unfortunately these were
+;; done wrongly (regarding handling of byte-order marks and how the
+;; variants were named), so we don't have a consistent name for the
+;; necessary coding system.  The code below doesn't seem to DTRT
+;; generally.  E.g.:
+;;
+;; (utf7-encode "a+£")
+;;   => "a+ACsAow-"
+;;
+;; $ echo "a+£"|iconv -f iso-8859-1 -t utf-7
+;; a+-+AKM
+;;
+;;  -- fx 
+
 
 ;;; Code:
 
 (require 'base64)
 (eval-when-compile (require 'cl))
+(require 'mm-util)
 
-(defvar utf7-direct-encoding-chars " -%'-*,-[]-}"
+(defconst utf7-direct-encoding-chars " -%'-*,-[]-}"
   "Character ranges which do not need escaping in UTF-7.")
 
-(defvar utf7-imap-direct-encoding-chars
+(defconst utf7-imap-direct-encoding-chars
   (concat utf7-direct-encoding-chars "+\\~")
   "Character ranges which do not need escaping in the IMAP variant of UTF-7.")
+
+(defconst utf7-utf-16-coding-system
+  (cond ((mm-coding-system-p 'utf-16-be-no-signature) ; Mule-UCS
+	 'utf-16-be-no-signature)
+	((and (mm-coding-system-p 'utf-16-be) ; Emacs 21.4 (?), Emacs 22
+	      ;; Avoid versions with BOM.
+	      (= 2 (length (encode-coding-string "a" 'utf-16-be))))
+	 'utf-16-be)
+	((mm-coding-system-p 'utf-16-be-nosig) ; ?
+	 'utf-16-be-nosig))
+  "Coding system which encodes big endian UTF-16 without a BOM signature.")
 
 (defsubst utf7-imap-get-pad-length (len modulus)
   "Return required length of padding for IMAP modified base64 fragment."
@@ -64,10 +97,11 @@ Use IMAP modification if FOR-IMAP is non-nil."
 	(end (point-max)))
     (narrow-to-region start end)
     (goto-char start)
-    (let ((esc-char (if for-imap ?& ?+))
-	  (direct-encoding-chars
-	   (if for-imap utf7-imap-direct-encoding-chars
-	     utf7-direct-encoding-chars)))
+    (let* ((esc-char (if for-imap ?& ?+))
+	   (direct-encoding-chars
+	    (if for-imap utf7-imap-direct-encoding-chars
+	      utf7-direct-encoding-chars))
+	   (not-direct-encoding-chars (concat "^" direct-encoding-chars)))
       (while (not (eobp))
 	(skip-chars-forward direct-encoding-chars)
 	(unless (eobp)
@@ -75,7 +109,7 @@ Use IMAP modification if FOR-IMAP is non-nil."
 	  (let ((p (point))
 		(fc (following-char))
 		(run-length
-		 (skip-chars-forward (concat "^" direct-encoding-chars))))
+		 (skip-chars-forward not-direct-encoding-chars)))
 	    (if (and (= fc esc-char)
 		     (= run-length 1))	; Lone esc-char?
 		(delete-backward-char 1) ; Now there's one too many
@@ -88,7 +122,8 @@ Use IMAP modification if FOR-IMAP is non-nil."
   (save-restriction
     (narrow-to-region start end)
     (funcall (utf7-get-u16char-converter 'to-utf-16))
-    (base64-encode-region start (point-max))
+    (mm-with-unibyte-current-buffer
+      (base64-encode-region start (point-max)))
     (goto-char start)
     (let ((pm (point-max)))
       (when for-imap
@@ -135,15 +170,24 @@ Use IMAP modification if FOR-IMAP is non-nil."
 
 (defun utf7-get-u16char-converter (which-way)
   "Return a function to convert between UTF-16 and current character set."
-  ;; Add test to check if we are really Latin-1.
-  ;; Support other character sets once Emacs groks Unicode.
-  (if (eq which-way 'to-utf-16)
-      'utf7-latin1-u16-char-converter
-    'utf7-u16-latin1-char-converter))
+  (if utf7-utf-16-coding-system
+      (if (eq which-way 'to-utf-16)
+	  (lambda ()
+	    (encode-coding-region (point-min) (point-max)
+				  utf7-utf-16-coding-system))
+	(lambda ()
+	  (decode-coding-region (point-min) (point-max)
+				utf7-utf-16-coding-system)))
+    ;; Add test to check if we are really Latin-1.
+    (if (eq which-way 'to-utf-16)
+	'utf7-latin1-u16-char-converter
+      'utf7-u16-latin1-char-converter)))
 
 (defun utf7-latin1-u16-char-converter ()
   "Convert latin 1 (ISO-8859.1) characters to 16 bit Unicode.
 Characters are converted to raw byte pairs in narrowed buffer."
+  (mm-encode-coding-region (point-min) (point-max) 'iso-8859-1)
+  (mm-disable-multibyte)
   (goto-char (point-min))
   (while (not (eobp))
     (insert 0)
@@ -157,11 +201,13 @@ Characters are in raw byte pairs in narrowed buffer."
     (if (= 0 (following-char))
 	(delete-char 1)
 	(error "Unable to convert from Unicode"))
-    (forward-char)))
+    (forward-char))
+  (mm-decode-coding-region (point-min) (point-max) 'iso-8859-1)
+  (mm-enable-multibyte))
 
 (defun utf7-encode (string &optional for-imap)
   "Encode UTF-7 STRING.  Use IMAP modification if FOR-IMAP is non-nil."
-  (let ((default-enable-multibyte-characters nil))
+  (let ((default-enable-multibyte-characters t))
     (with-temp-buffer
       (insert string)
       (utf7-encode-internal for-imap)
@@ -173,6 +219,7 @@ Characters are in raw byte pairs in narrowed buffer."
     (with-temp-buffer
       (insert string)
       (utf7-decode-internal for-imap)
+      (mm-enable-multibyte)
       (buffer-string))))
 
 (provide 'utf7)
