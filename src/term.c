@@ -577,6 +577,11 @@ cursor_to (row, col)
       return;
     }
 
+  /* Detect the case where we are called from reset_sys_modes
+     and the costs have never been calculated.  Do nothing.  */
+  if (chars_wasted == 0)
+    return;
+
   col += chars_wasted[row] & 077;
   if (curY == row && curX == col)
     return;
@@ -670,6 +675,7 @@ clear_end_of_line (first_unused_hpos)
 {
   static GLYPH buf = SPACEGLYPH;
   if (FRAME_TERMCAP_P (selected_frame)
+      && chars_wasted != 0
       && TN_standout_width == 0 && curX == 0 && chars_wasted[curY] != 0)
     write_glyphs (&buf, 1);
   clear_end_of_line_raw (first_unused_hpos);
@@ -694,6 +700,11 @@ clear_end_of_line_raw (first_unused_hpos)
       (*clear_end_of_line_hook) (first_unused_hpos);
       return;
     }
+
+  /* Detect the case where we are called from reset_sys_modes
+     and the costs have never been calculated.  Do nothing.  */
+  if (chars_wasted == 0)
+    return;
 
   first_unused_hpos += chars_wasted[curY] & 077;
   if (curX >= first_unused_hpos)
