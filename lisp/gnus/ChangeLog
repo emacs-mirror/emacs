@@ -1,3 +1,7 @@
+2003-01-27  Juanma Barranquero  <lektu@terra.es>
+
+	* imap.el (imap-mailbox-status): Fix typo.
+
 2002-10-29  Dave Love  <fx@gnu.org>
 
 	* rfc2047.el (ietf-drums): Don't require.

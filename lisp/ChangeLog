@@ -1,3 +1,7 @@
+2003-01-27  Juanma Barranquero  <lektu@terra.es>
+
+	* progmodes/cc-vars.el (c-offsets-alist): Fix typo.
+
 2003-01-26  Juanma Barranquero  <lektu@terra.es>
 
 	* strokes.el (strokes-xpm-encode-length-as-string): Fix typo.
