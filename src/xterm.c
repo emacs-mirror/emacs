@@ -115,6 +115,13 @@ extern void _XEditResCheckMessages ();
 #endif
 
 #ifdef SOLARIS2
+/* memmove will be defined as a macro in Xfuncs.h unless
+   <string.h> is included beforehand.  The declaration for memmove in
+   <string.h> will cause a syntax error when Xfuncs.h later includes it.  */
+#include <string.h>
+#endif
+
+#ifdef SOLARIS2
 #define X_CONNECTION_LOCK_FLAG XlibDisplayWriting
 #endif
 
