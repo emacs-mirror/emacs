@@ -1,5 +1,8 @@
 2000-11-25  Jason Rumney  <jasonr@gnu.org>
 
+	* keyboard.c (make_lispy_event) [mouse_wheel, drag_n_drop]: Args
+	to window_from_coordinates should be pixel coordinates.
+
 	* w32fns.c (x_to_w32_font): Do not filter out italic fonts, as new
 	redisplay handles them properly.
 

@@ -1,3 +1,7 @@
+2000-11-25  Jason Rumney  <jasonr@gnu.org>
+
+	* config.nt (GC_MARK_STACK, GC_SETJMP_WORKS): Define.
+
 2000-10-17  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (recompile): New target to recompile lisp
