@@ -1,3 +1,11 @@
+1999-12-07  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (x_set_menu_resources_from_menu_face): Make sure
+	basic faces are realized before trying to use face `menu'.
+
+	* window.c (delete_window): Block input for the time window
+	matrices are being changed.
+
 1999-12-07  Dave Love  <fx@gnu.org>
 
 	* lread.c (Fintern_soft): Fix newlines in doc string.
@@ -26,12 +34,12 @@
 1999-12-06  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* editfns.c (Fdelete_and_extract_region): New function.
-	(syms_of_editfns): register it.
-	* insdel.c (del_range): update del_range_1 call.
+	(syms_of_editfns): Register it.
+	* insdel.c (del_range): Update del_range_1 call.
 	(del_range_1, del_range_2): Add a ret_string argument to
 	request that the deleted text be returned.
 	(del_range_byte, del_range_both): Update del_range_2 call.
-	* lisp.h (del_range_1, del_range_2): change prototype
+	* lisp.h (del_range_1, del_range_2): Change prototype
 	* casefiddle.c (casify_region): Update del_range_1 call.
 	* coding.c (code_convert_region): Update del_range_2 call.
 	* fileio.c (Finsert_file_contents): Update del_range_2 call.
