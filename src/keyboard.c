@@ -885,6 +885,18 @@ cmd_error (data)
      Lisp_Object data;
 {
   Lisp_Object old_level, old_length;
+  char macroerror[50];
+
+  if (!NILP (executing_macro))
+    {
+      if (executing_macro_iterations == 1)
+	sprintf (macroerror, "After 1 kbd macro iteration: ");
+      else
+	sprintf (macroerror, "After %d kbd macro iterations: ",
+		 executing_macro_iterations);
+    }
+  else
+    *macroerror = 0;
 
   Vstandard_output = Qt;
   Vstandard_input = Qt;
@@ -897,7 +909,7 @@ cmd_error (data)
   old_length = Vprint_length;
   XSETFASTINT (Vprint_level, 10);
   XSETFASTINT (Vprint_length, 10);
-  cmd_error_internal (data, NULL);
+  cmd_error_internal (data, macroerror);
   Vprint_level = old_level;
   Vprint_length = old_length;
 
