@@ -3,7 +3,7 @@
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Mar 16 1997
 ;; Keywords: network communications
-;; Time-stamp: <1998-06-13 06:19:01 pbreton>
+;; Time-stamp: <1999-10-15 23:14:59 pbreton>
 
 ;; This file is part of GNU Emacs.
 
@@ -176,6 +176,12 @@ These options can be used to limit how many ICMP packets are emitted."
   :type  'regexp
   )
 
+(defcustom dig-program  "dig"
+  "Program to query DNS information."
+  :group 'net-utils
+  :type  'string
+  )
+
 (defcustom ftp-program "ftp"
   "Progam to run to do FTP transfers."
   :group 'net-utils
@@ -226,29 +232,9 @@ These options can be used to limit how many ICMP packets are emitted."
 	  )))
 	 "Expressions to font-lock for nslookup.")
 
-(defvar nslookup-abbrev-table (make-abbrev-table)
-  "Abbrev table for nslookup.")
-
-(define-abbrev nslookup-abbrev-table "e"   "exit")
-(define-abbrev nslookup-abbrev-table "f"   "finger")
-(define-abbrev nslookup-abbrev-table "h"   "help")
-(define-abbrev nslookup-abbrev-table "lse" "lserver")
-(define-abbrev nslookup-abbrev-table "r"   "root")
-(define-abbrev nslookup-abbrev-table "s"   "set")
-(define-abbrev nslookup-abbrev-table "se"  "server")
-(define-abbrev nslookup-abbrev-table "v"   "viewer")
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; FTP goodies
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defvar ftp-abbrev-table (make-abbrev-table)
-  "Abbrev table for ftp.")
-
-(define-abbrev ftp-abbrev-table "q"    "quit")
-(define-abbrev ftp-abbrev-table "g"    "get")
-(define-abbrev ftp-abbrev-table "p"    "prompt")
-(define-abbrev ftp-abbrev-table "anon" "anonymous")
 
 (defconst ftp-font-lock-keywords
   (and window-system
@@ -256,7 +242,6 @@ These options can be used to limit how many ICMP packets are emitted."
 	 (require 'font-lock)
 	 (list
 	  (list ftp-prompt-regexp 0 font-lock-reference-face)))))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utility functions
@@ -444,22 +429,64 @@ If your system's ping continues until interrupted, you can try setting
   (comint-run nslookup-program)
   (set-process-filter (get-buffer-process "*nslookup*")
    'net-utils-remove-ctrl-m-filter)
+  (nslookup-mode)
+  )
+
+;; Using a derived mode gives us keymaps, hooks, etc.
+(define-derived-mode 
+  nslookup-mode comint-mode "Nslookup"
+  "Major mode for interacting with the nslookup program."
   (set 
    (make-local-variable 'font-lock-defaults)
    '((nslookup-font-lock-keywords)))
-  (set 
-   (make-local-variable 'local-abbrev-table)
-   nslookup-abbrev-table)
+  (setq local-abbrev-table nslookup-mode-abbrev-table)
   (abbrev-mode t)
   (make-local-variable 'comint-prompt-regexp)
   (setq comint-prompt-regexp nslookup-prompt-regexp)
+  (make-local-variable 'comint-input-autoexpand)
+  (setq comint-input-autoexpand t)
   )
+
+(define-key nslookup-mode-map "\t" 'comint-dynamic-complete)
+
+(define-abbrev nslookup-mode-abbrev-table "e"   "exit")
+(define-abbrev nslookup-mode-abbrev-table "f"   "finger")
+(define-abbrev nslookup-mode-abbrev-table "h"   "help")
+(define-abbrev nslookup-mode-abbrev-table "lse" "lserver")
+(define-abbrev nslookup-mode-abbrev-table "q"   "exit")
+(define-abbrev nslookup-mode-abbrev-table "r"   "root")
+(define-abbrev nslookup-mode-abbrev-table "s"   "set")
+(define-abbrev nslookup-mode-abbrev-table "se"  "server")
+(define-abbrev nslookup-mode-abbrev-table "v"   "viewer")
+
+;;;###autoload
+(defun dig (host)
+  "Run dig program."
+  (interactive
+   (list
+    (progn
+      (require 'ffap)
+      (read-from-minibuffer 
+       "Lookup host: " 
+       (or (ffap-string-at-point 'machine) "")))))
+  (net-utils-run-program
+   "Dig"
+   (concat "** "
+	   (mapconcat 'identity
+		      (list "Dig" host dig-program)
+		      " ** "))
+   dig-program
+   (list host)
+   )) 
 
 ;; This is a lot less than ange-ftp, but much simpler.
 ;;;###autoload
 (defun ftp (host)
   "Run ftp program."
-  (interactive "sFtp to Host: ")
+  (interactive 
+   (list
+    (read-from-minibuffer 
+     "Ftp to Host: " (net-utils-machine-at-point))))
   (require 'comint)
   (let ((buf (get-buffer-create (concat "*ftp [" host "]*"))))
     (set-buffer buf)
@@ -468,22 +495,39 @@ If your system's ping continues until interrupted, you can try setting
 		 (if ftp-program-options
 		     (append (list host) ftp-program-options)
 		   (list host)))
-    (set 
-     (make-local-variable 'font-lock-defaults)
-     '((ftp-font-lock-keywords)))
-
-    (make-local-variable 'comint-prompt-regexp)
-    (setq comint-prompt-regexp ftp-prompt-regexp)
-
-    ;; Already buffer local!
-    (setq comint-output-filter-functions
-	  (list 'comint-watch-for-password-prompt))
-    (set 
-     (make-local-variable 'local-abbrev-table)
-     ftp-abbrev-table)
-    (abbrev-mode t)
+    (ftp-mode)
     (switch-to-buffer-other-window buf)
     ))
+
+(define-derived-mode 
+  ftp-mode comint-mode "FTP"
+  "Major mode for interacting with the ftp program."
+
+  (set 
+   (make-local-variable 'font-lock-defaults)
+   '((ftp-font-lock-keywords)))
+  
+  (make-local-variable 'comint-prompt-regexp)
+  (setq comint-prompt-regexp ftp-prompt-regexp)
+  
+  (make-local-variable 'comint-input-autoexpand)
+  (setq comint-input-autoexpand t)
+  
+  ;; Already buffer local!
+  (setq comint-output-filter-functions
+	(list 'comint-watch-for-password-prompt))
+  
+  (setq local-abbrev-table ftp-mode-abbrev-table)
+  (abbrev-mode t)
+  )
+
+(define-abbrev ftp-mode-abbrev-table "q"    "quit")
+(define-abbrev ftp-mode-abbrev-table "g"    "get")
+(define-abbrev ftp-mode-abbrev-table "p"    "prompt")
+(define-abbrev ftp-mode-abbrev-table "anon" "anonymous")
+
+;; Occasionally useful
+(define-key ftp-mode-map "\t" 'comint-dynamic-complete)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Network Connections
@@ -560,7 +604,7 @@ This list in not complete.")
   (interactive
     (let* ((answer (read-from-minibuffer "Finger User: "
 					 (net-utils-url-at-point)))
-	   (index  (string-match "@" answer)))
+	   (index  (string-match (regexp-quote "@") answer)))
       (if index
 	  (list 
 	   (substring answer 0 index)
@@ -568,13 +612,19 @@ This list in not complete.")
 	(list
 	 answer
 	 (read-from-minibuffer "At Host: " (net-utils-machine-at-point))))))
-  (run-network-program 
-   (concat "Finger [" user "@" host "]")
-   host 
-   (cdr (assoc 'finger network-connection-service-alist))
-   user))
+  (let* (
+	 (user-and-host (concat user "@" host))
+	 (process-name 
+	  (concat "Finger [" user-and-host "]"))
+	 )
+    (run-network-program 
+     process-name 
+     host 
+     (cdr (assoc 'finger network-connection-service-alist))
+     user-and-host
+     )))
 
-(defcustom whois-server-name "whois.arin.net"
+(defcustom whois-server-name "rs.internic.net"
   "Default host name for the whois service."
   :group 'net-utils
   :type  'string
