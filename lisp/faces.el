@@ -1575,7 +1575,7 @@ created."
     (((type tty) (class mono))
      (:inverse-video t))
     (((class color) (background dark))
-     (:background "blue"))
+     (:background "blue3"))
     (((class color) (background light))
      (:background "light goldenrod yellow"))
     (t (:background "gray")))
