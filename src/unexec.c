@@ -176,6 +176,9 @@ int need_coff_header = 1;
 #include <coff-encap/a.out.encap.h> /* The location might be a poor assumption */
 #else
 #ifdef MSDOS
+#if __DJGPP__ > 1
+#include <fcntl.h>  /* for O_RDONLY, O_RDWR */
+#endif
 #include <coff.h>
 #define filehdr external_filehdr
 #define scnhdr external_scnhdr
@@ -876,6 +879,14 @@ copy_text_and_data (new, a_out)
 
 #else /* COFF, but not USG_SHARED_LIBRARIES */
 
+#ifdef MSDOS
+#if __DJGPP__ >= 2
+  /* Dump the original table of exception handlers, not the one
+     where our exception hooks are registered.  */
+  __djgpp_exception_toggle ();
+#endif
+#endif
+
   lseek (new, (long) text_scnptr, 0);
   ptr = (char *) f_ohdr.text_start;
 #ifdef HEADER_INCL_IN_TEXT
@@ -889,6 +900,13 @@ copy_text_and_data (new, a_out)
   ptr = (char *) f_ohdr.data_start;
   end = ptr + f_ohdr.dsize;
   write_segment (new, ptr, end);
+
+#ifdef MSDOS
+#if __DJGPP__ >= 2
+  /* Restore our exception hooks.  */
+  __djgpp_exception_toggle ();
+#endif
+#endif
 
 #endif /* USG_SHARED_LIBRARIES */
 
