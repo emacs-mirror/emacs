@@ -4996,7 +4996,7 @@ into a file.\n\
 If OBJECT is a string, the most preferred coding system (see the\n\
 command `prefer-coding-system') is used.\n\
 \n\
-If NOERROR is non-nil, silently assume the `raw_text' coding if the\n\
+If NOERROR is non-nil, silently assume the `raw-text' coding if the\n\
 guesswork fails.  Normally, an error is signaled in such case.")
   (object, start, end, coding_system, noerror)
      Lisp_Object object, start, end, coding_system, noerror;
