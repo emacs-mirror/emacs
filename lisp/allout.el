@@ -5,7 +5,7 @@
 ;; Author: Ken Manheimer <klm@python.org>
 ;; Maintainer: Ken Manheimer <klm@python.org>
 ;; Created: Dec 1991 - first release to usenet
-;; Version: $Id: allout.el,v 1.30 2001/11/26 16:23:06 pj Exp $||
+;; Version: $Id: allout.el,v 1.31 2001/12/09 13:13:13 pj Exp $||
 ;; Keywords: outlines mode wp languages
 
 ;; This file is part of GNU Emacs.
@@ -41,18 +41,18 @@
 ;;  - incremental search with dynamic exposure and reconcealment of hidden text
 ;;  - automatic topic-number maintenance
 ;;  - "Hot-spot" operation, for single-keystroke maneuvering and
-;;    exposure control.  (See the outline-mode docstring.)
+;;    exposure control.  (See the `outline-mode' docstring.)
 ;; 
 ;; and many other features.
 ;; 
 ;; The outline menubar additions provide quick reference to many of
 ;; the features, and see the docstring of the variable `outline-init'
 ;; for instructions on priming your emacs session for automatic
-;; activation of outline-mode.
+;; activation of `outline-mode'.
 ;; 
 ;; See the docstring of the variables `outline-layout' and
 ;; `outline-auto-activation' for details on automatic activation of
-;; allout outline-mode as a minor mode.  (It has changed since allout
+;; allout `outline-mode' as a minor mode.  (It has changed since allout
 ;; 3.x, for those of you that depend on the old method.)
 ;;
 ;; Note - the lines beginning with `;;;_' are outline topic headers.
@@ -110,8 +110,8 @@ this variable."
 Buffer-specific.
 
 A list value specifies a default layout for the current buffer, to be
-applied upon activation of allout outline-mode.  Any non-nil value will
-automatically trigger allout outline-mode, provided `outline-init'
+applied upon activation of allout `outline-mode'.  Any non-nil value will
+automatically trigger allout `outline-mode', provided `outline-init'
 has been called to enable it.
 
 See the docstring for `outline-init' for details on setting up for
@@ -509,7 +509,7 @@ behavior."
 ;;;_  : Version
 ;;;_   = outline-version
 (defvar outline-version
-  (let ((rcs-rev "$Revision: 1.30 $"))
+  (let ((rcs-rev "$Revision: 1.31 $"))
     (condition-case err
 	(save-match-data
 	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
