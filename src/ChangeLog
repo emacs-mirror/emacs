@@ -1,3 +1,7 @@
+2001-10-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* fileio.c (Fcopy_file): If NEWNAME is a directory copy FILE there.
+
 2001-10-05  Miles Bader  <miles@gnu.org>
 
 	* minibuf.c (Fminibuffer_prompt_end, Fminibuffer_contents) 

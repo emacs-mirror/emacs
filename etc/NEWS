@@ -50,7 +50,7 @@ variables, including buffer-local and frame-local variables.
 collection.  The hook is run with GC inhibited, so use it with care.
 
 ** If the second argument to `copy-file' is the name of a directory,
-copy the file to that directory.
+the file is copied to that directory instead of signaling an error.
 
 
 * Installation Changes in Emacs 21.1

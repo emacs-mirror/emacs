@@ -1,3 +1,9 @@
+2001-10-05  Gerd Moellmann  <gerd@gnu.org>
+
+	* progmodes/compile.el (compilation-buffer-name): New function.
+	(compile-internal): Use it to determine the name of the
+	compilation buffer.
+
 2001-10-05  Miles Bader  <miles@gnu.org>
 
 	* progmodes/compile.el (grep-use-null-device): New variable.
@@ -20,6 +26,7 @@
 	(minibuffer-contents-no-properties, delete-minibuffer-contents):
 	Functions removed (now subrs).
 	(minibuffer-prompt-width): Use `minibuffer-prompt-end'.
+	
 	* minibuf-eldef.el (minibuf-eldef-setup-minibuffer)
 	(minibuf-eldef-update-minibuffer): Use `minibuffer-' functions
 	instead of calling `field-' functions directly.
