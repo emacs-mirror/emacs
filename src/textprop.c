@@ -892,6 +892,10 @@ is the string or buffer containing the text.")
   register INTERVAL i, unchanged;
   register INTERVAL prev_changed = NULL_INTERVAL;
   register int s, len;
+  Lisp_Object ostart, oend;
+
+  ostart = start;
+  oend = end;
 
   props = validate_plist (props);
 
@@ -904,6 +908,11 @@ is the string or buffer containing the text.")
       /* If buffer has no props, and we want none, return now.  */
       if (NILP (props))
 	return Qnil;
+
+      /* Restore the original START and END values
+	 because validate_interval_range increments them for strings.  */
+      start = ostart;
+      end = oend;
 
       i = validate_interval_range (object, &start, &end, hard);
       /* This can return if start == end.  */
@@ -1326,8 +1335,8 @@ void
 syms_of_textprop ()
 {
   DEFVAR_LISP ("inhibit-point-motion-hooks", &Vinhibit_point_motion_hooks,
-	       "If non-nil, don't call the text property values of\n\
-`point-left' and `point-entered'.");
+   "If non-nil, don't run `point-left' and `point-entered' text properties.\n\
+This also inhibits the use of the `intangible' text property.");
   Vinhibit_point_motion_hooks = Qnil;
 	       
   /* Common attributes one might give text */
