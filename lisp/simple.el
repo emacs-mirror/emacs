@@ -141,7 +141,9 @@ With arg N, insert N newlines."
   (interactive "*p")
   (let* ((do-fill-prefix (and fill-prefix (bolp)))
 	 (do-left-margin (and (bolp) (> (current-left-margin) 0)))
-	 (loc (point)))
+	 (loc (point))
+	 ;; Don't expand an abbrev before point.
+	 (abbrev-mode nil))
     (newline arg)
     (goto-char loc)
     (while (> arg 0)
@@ -2391,12 +2393,11 @@ using `forward-line' instead.  It is usually easier to use
 and more reliable (no dependence on goal column, etc.)."
   (interactive "p")
   (if (and next-line-add-newlines (= arg 1))
-      (let ((opoint (point)))
-	(end-of-line)
-	(if (eobp)
-	    (newline 1)
-	  (goto-char opoint)
-	  (line-move arg)))
+      (if (save-excursion (end-of-line) (eobp))
+	  ;; When adding a newline, don't expand an abbrev.
+	  (let ((abbrev-mode nil))
+	    (newline 1))
+	(line-move arg))
     (if (interactive-p)
 	(condition-case nil
 	    (line-move arg)
