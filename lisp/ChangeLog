@@ -18,6 +18,11 @@
 	* emacs-lisp/autoload.el (batch-update-autoloads):
 	Call `update-directory-autoloads'.
 
+2003-05-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+        * dired.el (dired-find-file): Bind find-file-run-dired around
+        the call to find-file. 
+
 2003-05-04  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* uniquify.el: Move provide to end of file.
