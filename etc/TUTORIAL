@@ -575,7 +575,7 @@ is always part of some buffer.
 
 >> Type C-x 1 to get rid of the buffer list.
 
-When you have several buffers, only of of them is "current" at any
+When you have several buffers, only one of them is "current" at any
 time.  That buffer is the one you edit.  If you want to edit another
 buffer, you need to "switch" to it.  If you want to switch to a buffer
 that corresponds to a file, you can do it by visiting the file again
