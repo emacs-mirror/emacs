@@ -5,7 +5,7 @@
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
 ;; Version: 3.1
-;; Keywords: tpu edt tpu-edt
+;; Keywords: edt emulations
 
 ;; This file is part of GNU Emacs.
 
@@ -30,7 +30,7 @@
 ;;;  Revision and Version Information
 ;;;
 (defconst tpu-version "3.1" "TPU-edt version number.")
-(defconst tpu-revision "$Revision: 6.10 $" "Revision number of TPU-edt.")
+(defconst tpu-revision "$Revision: 6.11 $" "Revision number of TPU-edt.")
 
 
 ;;;
@@ -647,6 +647,10 @@ its ASCII decimal value."
 
 (defvar tpu-help-enter (format "%s" "\eOM"))    ; tpu-help enter key symbol
 (defvar tpu-help-return (format "%s" "\r"))     ; tpu-help enter key symbol
+(defvar tpu-help-N "N")                         ; tpu-help "N" symbol
+(defvar tpu-help-n "n")                         ; tpu-help "n" symbol
+(defvar tpu-help-P "P")                         ; tpu-help "P" symbol
+(defvar tpu-help-p "p")                         ; tpu-help "p" symbol
 
 (defun tpu-help nil
   "Display TPU-edt help."
@@ -669,8 +673,8 @@ its ASCII decimal value."
     (tpu-line-to-top-of-window)
 
     ;; Prompt for keys to describe, based on screen state (split/not split)
-    (let ((key nil) (split nil))
-      (while (not (equal tpu-help-return (format "%s" key)))
+    (let ((key nil) (fkey nil) (split nil))
+      (while (not (equal tpu-help-return fkey))
 	(if split
 	    (setq key
 		  (read-key-sequence
@@ -687,10 +691,11 @@ its ASCII decimal value."
 	;;    RETURN  -  Exit from TPU-help
 	;;    default -  describe the key
 	;;
-	(cond ((equal tpu-help-enter (format "%s" key))
+	(setq fkey (format "%s" key))
+	(cond ((equal tpu-help-enter fkey)
 	       (setq split nil)
 	       (delete-other-windows))
-	      ((or (equal "N" key) (equal "n" key))
+	      ((or (equal tpu-help-N fkey) (equal tpu-help-n fkey))
 	       (cond (split
 	              (condition-case nil
 	        	  (scroll-other-window 8)
@@ -699,7 +704,7 @@ its ASCII decimal value."
 	              (forward-page)
 	              (forward-line 1)
 	              (tpu-line-to-top-of-window))))
-	      ((or (equal "P" key) (equal "p" key))
+	      ((or (equal tpu-help-P fkey) (equal tpu-help-p fkey))
 	       (cond (split
 	              (condition-case nil
 	        	  (scroll-other-window -8)
@@ -708,7 +713,7 @@ its ASCII decimal value."
 	              (backward-page 2)
 	              (forward-line 1)
 	              (tpu-line-to-top-of-window))))
-	      ((not (equal tpu-help-return (format "%s" key)))
+	      ((not (equal tpu-help-return fkey))
 	       (setq split t)
 	       (describe-key key)
 	       ;; If the key is undefined, leave the
