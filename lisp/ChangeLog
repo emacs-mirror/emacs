@@ -1,3 +1,8 @@
+2001-11-30  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-cvs.el (vc-cvs-parse-status): Store file state in property,
+	don't just return it.
+
 2001-11-29  Dave Love  <fx@gnu.org>
 
 	* progmodes/fortran.el: Fontify rewind, backspace.  Doc fixes.
