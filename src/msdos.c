@@ -69,6 +69,7 @@ Boston, MA 02111-1307, USA.  */
 #if __DJGPP__ > 1
 
 #include <signal.h>
+#include "syssignal.h"
 
 #ifndef SYSTEM_MALLOC
 
@@ -3144,13 +3145,122 @@ int kill (x, y) int x, y; { return -1; }
 nice (p) int p; {}
 void volatile pause () {}
 sigsetmask (x) int x; { return 0; }
+sigblock (mask) int mask; { return 0; } 
 #endif
 
 request_sigio () {}
 setpgrp () {return 0; }
 setpriority (x,y,z) int x,y,z; { return 0; }
-sigblock (mask) int mask; { return 0; } 
 unrequest_sigio () {}
+
+#if __DJGPP__ > 1
+
+#ifdef POSIX_SIGNALS
+
+/* Augment DJGPP library POSIX signal functions.  This is needed
+   as of DJGPP v2.01, but might be in the library in later releases. */
+
+#include <libc/bss.h>
+
+/* A counter to know when to re-initialize the static sets.  */
+static int sigprocmask_count = -1;
+
+/* Which signals are currently blocked (initially none).  */
+static sigset_t current_mask;
+
+/* Which signals are pending (initially none).  */
+static sigset_t pending_signals;
+
+/* Previous handlers to restore when the blocked signals are unblocked.  */
+typedef void (*sighandler_t)(int);
+static sighandler_t prev_handlers[320];
+
+/* A signal handler which just records that a signal occured
+   (it will be raised later, if and when the signal is unblocked).  */
+static void
+sig_suspender (signo)
+     int signo;
+{
+  sigaddset (&pending_signals, signo);
+}
+
+int
+sigprocmask (how, new_set, old_set)
+     int how;
+     const sigset_t *new_set;
+     sigset_t *old_set;
+{
+  int signo;
+  sigset_t new_mask;
+
+  /* If called for the first time, initialize.  */
+  if (sigprocmask_count != __bss_count)
+    {
+      sigprocmask_count = __bss_count;
+      sigemptyset (&pending_signals);
+      sigemptyset (&current_mask);
+      for (signo = 0; signo < 320; signo++)
+	prev_handlers[signo] = SIG_ERR;
+    }
+
+  if (old_set)
+    *old_set = current_mask;
+
+  if (new_set == 0)
+    return 0;
+
+  if (how != SIG_BLOCK && how != SIG_UNBLOCK && how != SIG_SETMASK)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+
+  sigemptyset (&new_mask);
+
+  /* DJGPP supports upto 320 signals.  */
+  for (signo = 0; signo < 320; signo++)
+    {
+      if (sigismember (&current_mask, signo))
+	sigaddset (&new_mask, signo);
+      else if (sigismember (new_set, signo) && how != SIG_UNBLOCK)
+	{
+	  sigaddset (&new_mask, signo);
+
+	  /* SIGKILL is silently ignored, as on other platforms.  */
+	  if (signo != SIGKILL && prev_handlers[signo] == SIG_ERR)
+	    prev_handlers[signo] = signal (signo, sig_suspender);
+	}
+      if ((   how == SIG_UNBLOCK
+	      && sigismember (&new_mask, signo)
+	      && sigismember (new_set, signo))
+	  || (how == SIG_SETMASK
+	      && sigismember (&new_mask, signo)
+	      && !sigismember (new_set, signo)))
+	{
+	  sigdelset (&new_mask, signo);
+	  if (prev_handlers[signo] != SIG_ERR)
+	    {
+	      signal (signo, prev_handlers[signo]);
+	      prev_handlers[signo] = SIG_ERR;
+	    }
+	  if (sigismember (&pending_signals, signo))
+	    {
+	      sigdelset (&pending_signals, signo);
+	      raise (signo);
+	    }
+	}
+    }
+  current_mask = new_mask;
+  return 0;
+}
+
+#else /* not POSIX_SIGNALS */
+
+sigsetmask (x) int x; { return 0; }
+sigblock (mask) int mask; { return 0; } 
+
+#endif /* not POSIX_SIGNALS */
+#endif /* __DJGPP__ > 1 */
 
 #ifndef HAVE_SELECT
 #include "sysselect.h"
