@@ -1,6 +1,6 @@
 ;;; easy-mmode.el --- easy definition for major and minor modes
 
-;; Copyright (C) 1997, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000, 2001, 2003 Free Software Foundation, Inc.
 
 ;; Author: Georges Brun-Cottan <Georges.Brun-Cottan@inria.fr>
 ;; Maintainer: Stefan Monnier <monnier@gnu.org>
@@ -98,12 +98,19 @@ BODY contains code that will be executed each time the mode is (dis)activated.
 		By default, the mode is buffer-local.
 :init-value VAL	Same as the INIT-VALUE argument.
 :lighter SPEC	Same as the LIGHTER argument.
+:keymap MAP	Same as the KEYMAP argument.
 :require SYM	Same as in `defcustom'.
 
 For example, you could write
   (define-minor-mode foo-mode \"If enabled, foo on you!\"
     :lighter \" Foo\" :require 'foo :global t :group 'hassle :version \"27.5\"
     ...BODY CODE...)"
+  (declare (debug (&define name stringp
+			   [&optional [&not keywordp] sexp
+			    &optional [&not keywordp] sexp
+			    &optional [&not keywordp] sexp]
+			   [&rest [keywordp sexp]]
+			   def-body)))
 
   ;; Allow skipping the first three args.
   (cond
@@ -121,12 +128,10 @@ For example, you could write
 	 (extra-args nil)
 	 (extra-keywords nil)
 	 (require t)
-	 (keymap-sym (if (and keymap (symbolp keymap)) keymap
-		       (intern (concat mode-name "-map"))))
 	 (hook (intern (concat mode-name "-hook")))
 	 (hook-on (intern (concat mode-name "-on-hook")))
 	 (hook-off (intern (concat mode-name "-off-hook")))
-	 keyw)
+	 keyw keymap-sym)
 
     ;; Check keys.
     (while (keywordp (setq keyw (car body)))
@@ -138,7 +143,11 @@ For example, you could write
 	(:extra-args (setq extra-args (pop body)))
 	(:group (setq group (nconc group (list :group (pop body)))))
 	(:require (setq require (pop body)))
+	(:keymap (setq keymap (pop body)))
 	(t (push keyw extra-keywords) (push (pop body) extra-keywords))))
+
+    (setq keymap-sym (if (and keymap (symbolp keymap)) keymap
+		       (intern (concat mode-name "-map"))))
 
     (unless group
       ;; We might as well provide a best-guess default group.
@@ -204,11 +213,12 @@ With zero or negative ARG turn mode off.
 	     (progn
 	       ,(if globalp `(customize-mark-as-set ',mode))
 	       (unless (current-message)
-	       (message ,(format "%s %%sabled" pretty-name)
+		 (message ,(format "%s %%sabled" pretty-name)
 			  (if ,mode "en" "dis")))))
 	 (force-mode-line-update)
 	 ;; Return the new setting.
 	 ,mode)
+
        ;; Autoloading an easy-mmode-define-minor-mode autoloads
        ;; everything up-to-here.
        :autoload-end
