@@ -371,6 +371,16 @@ get_keyelt (object)
 	  if (XTYPE (object) == Lisp_Cons
 	      && XTYPE (XCONS (object)->car) == Lisp_String)
 	    object = XCONS (object)->cdr;
+	  /* Also remove the vector that caches key equivalences, if any.  */
+	  if (XTYPE (object) == Lisp_Cons
+	      && XTYPE (XCONS (object)->car) == Lisp_Vector)
+	    {
+	      object = XCONS (object)->cdr;
+	      /* Also remove the key's description.  */
+	      if (XTYPE (object) == Lisp_Cons
+		  && XTYPE (XCONS (object)->car) == Lisp_String)
+		object = XCONS (object)->cdr;
+	    }
 	}
 
       else
@@ -1441,10 +1451,12 @@ ascii_sequence_p (seq)
 {
   Lisp_Object i;
   int len = XINT (Flength (seq));
-  
+
   for (XFASTINT (i) = 0; XFASTINT (i) < len; XFASTINT (i)++)
     {
-      Lisp_Object elt = Faref (seq, i);
+      Lisp_Object elt;
+
+      elt = Faref (seq, i);
 
       if (XTYPE (elt) != Lisp_Int
 	  || (XUINT (elt) & ~CHAR_META) >= 0x80)
