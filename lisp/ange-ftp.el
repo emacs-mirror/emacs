@@ -3534,6 +3534,8 @@ system TYPE.")
 			t-parsed t-host t-user t-name t-abbr
 			nil nil cont nowait))))))
 
+(defvar ange-ftp-waiting-flag nil)
+
 ;; next part of copying routine.
 (defun ange-ftp-cf1 (result line
 			    filename newname binary msg
@@ -3935,8 +3937,6 @@ directory, so that Emacs will know its current contents."
 	  (ange-ftp-copy-file-internal fn1 tmp1 t nil
 				       (format "Getting %s" fn1))
 	  tmp1))))
-
-(defvar ange-ftp-waiting-flag nil)
 
 (defun ange-ftp-load (file &optional noerror nomessage nosuffix)
   (if (ange-ftp-ftp-name file)
