@@ -914,11 +914,19 @@ Optional second arg RAWFILE non-nil means the file is read literally."
 	      (condition-case ()
 		  (insert-file-contents-literally filename t)
 		(file-error
+		 (when (not (file-readable-p filename))
+		   (kill-buffer buf)
+		   (signal 'file-error (list "File is not readable"
+					     filename)))
 		 ;; Unconditionally set error
 		 (setq error t)))
 	    (condition-case ()
 		(insert-file-contents filename t)
 	      (file-error
+	       (when (not (file-readable-p filename))
+		 (kill-buffer buf)
+		 (signal 'file-error (list "File is not readable"
+					   filename)))
 	       ;; Run find-file-not-found-hooks until one returns non-nil.
 	       (or (run-hook-with-args-until-success 'find-file-not-found-hooks)
 		   ;; If they fail too, set error.
