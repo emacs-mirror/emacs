@@ -365,7 +365,9 @@
 ;;;
 ;;;  Save the key mapping program
 ;;;
-(let ((file (if tpu-lucid-emacs19-p "~/.tpu-lucid-keys" "~/.tpu-keys")))
+(let ((file
+       (convert-standard-filename
+	(if tpu-lucid-emacs19-p "~/.tpu-lucid-keys" "~/.tpu-keys"))))
   (set-visited-file-name
    (read-file-name (format "Save key mapping to file (default %s): " file) "" file)))
 (save-buffer)
