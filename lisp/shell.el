@@ -506,6 +506,8 @@ Otherwise, one argument `-i' is passed to the shell.
 	   (name (file-name-nondirectory prog))
 	   (startfile (concat "~/.emacs_" name))
 	   (xargs-name (intern-soft (concat "explicit-" name "-args"))))
+      (if (not (file-exists-p startfile))
+	  (setq startfile (concat "~/.emacs.d/.emacs_" name)))
       (apply 'make-comint-in-buffer "shell" buffer prog
 	     (if (file-exists-p startfile) startfile)
 	     (if (and xargs-name (boundp xargs-name))
