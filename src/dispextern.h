@@ -130,21 +130,27 @@ struct text_pos
 
 /* Increment text position POS.  */
 
-#define INC_TEXT_POS(POS)			\
+#define INC_TEXT_POS(POS, MULTIBYTE_P)		\
      do						\
        {					\
 	 ++(POS).charpos;			\
-	 INC_POS ((POS).bytepos);		\
+         if (MULTIBYTE_P)			\
+	   INC_POS ((POS).bytepos);		\
+	 else					\
+	   ++(POS).bytepos;			\
        }					\
      while (0)
 
 /* Decrement text position POS.  */
 
-#define DEC_TEXT_POS(POS)			\
+#define DEC_TEXT_POS(POS, MULTIBYTE_P)		\
      do						\
        {					\
 	 --(POS).charpos;			\
-	 DEC_POS ((POS).bytepos);		\
+         if (MULTIBYTE_P)			\
+	   DEC_POS ((POS).bytepos);		\
+	 else					\
+	   --(POS).bytepos;			\
        }					\
      while (0)
 
