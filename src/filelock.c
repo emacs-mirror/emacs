@@ -42,7 +42,9 @@ extern int errno;
 extern char *egetenv ();
 extern char *strcpy ();
 
-#ifndef __386bsd__
+#if defined (__bsdi__) || defined (DECLARE_GETPWUID_WITH_UID_T)
+extern struct passwd *getpwuid (uid_t);
+#else
 extern struct passwd *getpwuid ();
 #endif
 
@@ -437,8 +439,9 @@ init_filelock ()
   /* Make sure it ends with a slash.  */
   if (lock_path[strlen (lock_path) - 1] != '/')
     {
-      lock_path = strcpy ((char *) xmalloc (strlen (lock_path) + 2),
-			  lock_path);
+      char *new_path = (char *) xmalloc (strlen (lock_path) + 2);
+      strcpy (new_path, lock_path);
+      lock_path = new_path;
       strcat (lock_path, "/");
     }
 
