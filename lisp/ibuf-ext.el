@@ -600,13 +600,17 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 
 ;;;###autoload
 (defun ibuffer-kill-filter-group (name)
-  "Delete the filtering group named NAME."
+  "Kill the filtering group named NAME.
+The group will be added to `ibuffer-filter-group-kill-ring'."
   (interactive (list nil))
   (when (interactive-p)
     (setq name (completing-read "Kill filter group: "
 				ibuffer-filter-groups nil t)))
+  (when (equal name "Default")
+    (error "Can't kill default filtering group"))
   (ibuffer-aif (assoc name ibuffer-filter-groups)
       (progn
+	(push (copy-tree it) ibuffer-filter-group-kill-ring)
 	(setq ibuffer-filter-groups (ibuffer-delete-alist
 				     name ibuffer-filter-groups))
 	(setq ibuffer-hidden-filter-groups
@@ -616,42 +620,52 @@ To evaluate a form without viewing the buffer, see `ibuffer-do-eval'."
 
 ;;;###autoload
 (defun ibuffer-kill-line (&optional arg)
+  "Kill the filtering group at point.
+See also `ibuffer-kill-filter-group'."
   (interactive "P")
   (ibuffer-aif (save-excursion
 		 (ibuffer-forward-line 0)
 		 (get-text-property (point) 'ibuffer-filter-group-name))
       (progn
-	(when (equal it "Default")
-	  (error "Can't kill default filtering group"))
-	(push (copy-tree (assoc it ibuffer-filter-groups))
-	      ibuffer-filter-group-kill-ring)
 	(ibuffer-kill-filter-group it))
       (funcall (if (interactive-p) #'call-interactively #'funcall)
 	       #'kill-line arg)))
 
+(defun ibuffer-insert-filter-group-before (newgroup group)
+  (let ((pos (or (position group (mapcar #'car ibuffer-filter-groups)
+			   :test #'equal)
+		 (length ibuffer-filter-groups))))
+    (cond ((<= pos 0)
+	   (push newgroup ibuffer-filter-groups))
+	  ((= pos (length ibuffer-filter-groups))
+	   (setq ibuffer-filter-groups (nconc ibuffer-filter-groups (list newgroup))))
+	  (t
+	   (let ((cell (nthcdr pos ibuffer-filter-groups)))
+	     (setf (cdr cell) (cons (car cell) (cdr cell)))
+	     (setf (car cell) newgroup))))))
+
 ;;;###autoload
-(defun ibuffer-yank (&optional arg)
-  (interactive "P")
+(defun ibuffer-yank ()
+  "Yank the last killed filter group before group at point."
+  (interactive)
+  (ibuffer-yank-filter-group
+   (or (get-text-property (point) 'ibuffer-filter-group-name)
+       (get-text-property (point) 'ibuffer-filter-group)
+       (error "No filter group at point"))))
+
+;;;###autoload
+(defun ibuffer-yank-filter-group (name)
+  "Yank the last killed filter group before group named NAME."
+  (interactive (list nil))
   (unless ibuffer-filter-group-kill-ring
     (error "ibuffer-filter-group-kill-ring is empty"))
+  (when (and (not name) (interactive-p))
+    (setq name (completing-read "Yank filter group before group: "
+				ibuffer-filter-groups nil t)))
   (save-excursion
     (ibuffer-forward-line 0)
-    (let* ((last-killed (pop ibuffer-filter-group-kill-ring))
-	   (all-groups ibuffer-filter-groups)
-	   (cur (or (get-text-property (point) 'ibuffer-filter-group-name)
-		    (get-text-property (point) 'ibuffer-filter-group)
-		    (last all-groups)))
-	   (pos (or (position cur (mapcar #'car all-groups) :test #'equal)
-		    (length all-groups))))
-      (cond ((= pos 0)
-	     (push last-killed ibuffer-filter-groups))
-	    ((= pos (length all-groups))
-	     (setq ibuffer-filter-groups
-		   (nconc ibuffer-filter-groups (list last-killed))))
-	    (t
-	     (let ((cell (nthcdr pos ibuffer-filter-groups)))
-	       (setf (cdr cell) (cons (car cell) (cdr cell)))
-	       (setf (car cell) last-killed))))))
+    (ibuffer-insert-filter-group-before (pop ibuffer-filter-group-kill-ring)
+					name))
   (ibuffer-update nil t))
 
 ;;;###autoload
