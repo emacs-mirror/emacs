@@ -223,7 +223,10 @@ so we can use character sets rather than grouping parenthesis."
 	      ;; particular letter and those that do not, and recurse on them.
 	      (let* ((char (char-to-string (string-to-char (car strings))))
 		     (half1 (all-completions char strings))
-		     (half2 (nthcdr (length half1) strings)))
+		     (half2 strings))
+		;; Remove from HALF2 whatever is in HALF1.
+		(dolist (elt half1)
+		  (setq half2 (delq elt half2)))
 		(concat open-group
 			(regexp-opt-group half1)
 			"\\|" (regexp-opt-group half2)
