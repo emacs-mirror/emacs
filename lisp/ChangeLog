@@ -1,3 +1,22 @@
+2000-07-18  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* eshell/eshell.el (eshell): Replace links to eshell.info with
+	links to eshell, to avoid problems on systems where the manual is
+	installed as `eshell'.
+	* eshell/esh-cmd.el (eshell-cmd): Ditto.
+	* eshell/em-smart.el (eshell-smart): Ditto.
+	* eshell/em-banner.el (eshell-banner): Ditto.
+	* eshell/em-alias.el (eshell-alias, eshell-bad-command-tolerance):
+	Ditto.
+
+	* eshell/em-unix.el (eshell-shuffle-files): Don't disable
+	same-file check in the MS-DOS version (it does support inodes).
+
+	* eshell/em-alias.el (eshell-maybe-replace-by-alias): Doc fix.
+
+	* eshell/eshell.el (eshell-directory-name): Run default directory
+	name through convert-standard-filename.
+
 2000-07-18  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-cmds.el (select-safe-coding-system): Fix typo
@@ -14,7 +33,7 @@
 	New variable.
 	(kkc-update-conversion): Run functions in it at the tail.
 
-2000-07-16  John Wiegley  <johnw@gnu.org.
+2000-07-16  John Wiegley  <johnw@gnu.org>
 
 	* lisp/align.el (align-newline-and-indent): Adding new function
 	for auto-aligning blocks of code on RET.

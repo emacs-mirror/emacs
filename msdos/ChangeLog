@@ -1,3 +1,7 @@
+2000-07-18  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sed1v2.inp: Put getloadavg.o into LIBOBJS, not GETLOADAVG_LIBS.
+
 2000-07-09  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* sed1v2.inp: Set LIBSOUND to an empty string.
