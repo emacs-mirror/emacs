@@ -187,13 +187,13 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
     report_file_error ("Opening directory", Fcons (directory, Qnil));
 
   list = Qnil;
-  dirnamelen = STRING_BYTES (XSTRING (encoded_directory));
+  dirnamelen = STRING_BYTES (XSTRING (directory));
   re_match_object = Qt;
 
   /* Decide whether we need to add a directory separator.  */
 #ifndef VMS
   if (dirnamelen == 0
-      || !IS_ANY_SEP (XSTRING (encoded_directory)->data[dirnamelen - 1]))
+      || !IS_ANY_SEP (XSTRING (directory)->data[dirnamelen - 1]))
     needsep = 1;
 #endif /* not VMS */
 
@@ -203,38 +203,41 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
   while (1)
     {
       DIRENTRY *dp = readdir (d);
-      int len;
 
       if (!dp) break;
-      len = NAMLEN (dp);
       if (DIRENTRY_NONEMPTY (dp))
 	{
+	  int len;
+
+	  len = NAMLEN (dp);
+	  name = DECODE_FILE (make_string (dp->d_name, len));
+	  len = STRING_BYTES (XSTRING (name));
+
 	  if (NILP (match)
-	      || (0 <= re_search (bufp, dp->d_name, len, 0, len, 0)))
+	      || (0 <= re_search (bufp, XSTRING (name)->data, len, 0, len, 0)))
 	    {
 	      if (!NILP (full))
 		{
 		  int afterdirindex = dirnamelen;
 		  int total = len + dirnamelen;
 		  int nchars;
+		  Lisp_Object fullname;
 
-		  name = make_uninit_multibyte_string (total + needsep,
-						       total + needsep);
-		  bcopy (XSTRING (encoded_directory)->data, XSTRING (name)->data,
+		  fullname = make_uninit_multibyte_string (total + needsep,
+							   total + needsep);
+		  bcopy (XSTRING (directory)->data, XSTRING (fullname)->data,
 			 dirnamelen);
 		  if (needsep)
-		    XSTRING (name)->data[afterdirindex++] = DIRECTORY_SEP;
-		  bcopy (dp->d_name,
-			 XSTRING (name)->data + afterdirindex, len);
-		  nchars = chars_in_text (XSTRING (name)->data,
+		    XSTRING (fullname)->data[afterdirindex++] = DIRECTORY_SEP;
+		  bcopy (XSTRING (name)->data,
+			 XSTRING (fullname)->data + afterdirindex, len);
+		  nchars = chars_in_text (XSTRING (fullname)->data,
 					  afterdirindex + len);
-		  XSTRING (name)->size = nchars;
-		  if (nchars == STRING_BYTES (XSTRING (name)))
-		    SET_STRING_BYTES (XSTRING (name), -1);
+		  XSTRING (fullname)->size = nchars;
+		  if (nchars == STRING_BYTES (XSTRING (fullname)))
+		    SET_STRING_BYTES (XSTRING (fullname), -1);
+		  name = fullname;
 		}
-	      else
-		name = make_string (dp->d_name, len);
-	      name = DECODE_FILE (name);
 	      list = Fcons (name, list);
 	    }
 	}
