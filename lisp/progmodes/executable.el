@@ -52,19 +52,15 @@
 
 ;;; Code:
 
-(defvar executable-insert 'not-modified
-  "*What to do when newly found file has no or wrong magic number:
-	nil	do nothing
-	t	insert or update magic number
-	other	insert or update magic number, but mark as unmodified.
-When the insertion is marked as unmodified, you can save it with  \\[write-file] RET.
-This variable is used when `executable-set-magic' is called as a function,
-e.g. when Emacs sets some Un*x interpreter script mode.
-With \\[executable-set-magic], this is always treated as if it were `t'.")
-
+(defvar executable-insert t
+  "*Non-nil means offer to add a magic number to a file.
+This takes effect when you switch to certain major modes,
+including Shell-script mode (`sh-mode').
+When you type \\[executable-set-magic], it always offers to add or
+update the magic number.")
 
 (defvar executable-query 'function
-  "*If non-`nil', ask user before inserting or changing magic number.
+  "*If non-nil, ask user before changing an existing magic number.
 When this is `function', only ask when called non-interactively.")
 
 
