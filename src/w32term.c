@@ -6001,29 +6001,29 @@ static void
 x_frame_rehighlight (dpyinfo)
      struct w32_display_info *dpyinfo;
 {
-  struct frame *old_highlight = dpyinfo->w32_highlight_frame;
+  struct frame *old_highlight = dpyinfo->x_highlight_frame;
 
   if (dpyinfo->w32_focus_frame)
     {
-      dpyinfo->w32_highlight_frame
+      dpyinfo->x_highlight_frame
 	= ((GC_FRAMEP (FRAME_FOCUS_FRAME (dpyinfo->w32_focus_frame)))
 	   ? XFRAME (FRAME_FOCUS_FRAME (dpyinfo->w32_focus_frame))
 	   : dpyinfo->w32_focus_frame);
-      if (! FRAME_LIVE_P (dpyinfo->w32_highlight_frame))
+      if (! FRAME_LIVE_P (dpyinfo->x_highlight_frame))
 	{
 	  FRAME_FOCUS_FRAME (dpyinfo->w32_focus_frame) = Qnil;
-	  dpyinfo->w32_highlight_frame = dpyinfo->w32_focus_frame;
+	  dpyinfo->x_highlight_frame = dpyinfo->w32_focus_frame;
 	}
     }
   else
-    dpyinfo->w32_highlight_frame = 0;
+    dpyinfo->x_highlight_frame = 0;
 
-  if (dpyinfo->w32_highlight_frame != old_highlight)
+  if (dpyinfo->x_highlight_frame != old_highlight)
     {
       if (old_highlight)
 	frame_unhighlight (old_highlight);
-      if (dpyinfo->w32_highlight_frame)
-	frame_highlight (dpyinfo->w32_highlight_frame);
+      if (dpyinfo->x_highlight_frame)
+	frame_highlight (dpyinfo->x_highlight_frame);
     }
 }
 
@@ -10757,8 +10757,8 @@ x_make_frame_invisible (f)
      struct frame *f;
 {
   /* Don't keep the highlight on an invisible frame.  */
-  if (FRAME_W32_DISPLAY_INFO (f)->w32_highlight_frame == f)
-    FRAME_W32_DISPLAY_INFO (f)->w32_highlight_frame = 0;
+  if (FRAME_W32_DISPLAY_INFO (f)->x_highlight_frame == f)
+    FRAME_W32_DISPLAY_INFO (f)->x_highlight_frame = 0;
   
   BLOCK_INPUT;
   
@@ -10786,8 +10786,8 @@ x_iconify_frame (f)
   Lisp_Object type;
 
   /* Don't keep the highlight on an invisible frame.  */
-  if (FRAME_W32_DISPLAY_INFO (f)->w32_highlight_frame == f)
-    FRAME_W32_DISPLAY_INFO (f)->w32_highlight_frame = 0;
+  if (FRAME_W32_DISPLAY_INFO (f)->x_highlight_frame == f)
+    FRAME_W32_DISPLAY_INFO (f)->x_highlight_frame = 0;
 
   if (f->async_iconified)
     return;
@@ -10841,8 +10841,8 @@ x_free_frame_resources (f)
     dpyinfo->w32_focus_frame = 0;
   if (f == dpyinfo->w32_focus_event_frame)
     dpyinfo->w32_focus_event_frame = 0;
-  if (f == dpyinfo->w32_highlight_frame)
-    dpyinfo->w32_highlight_frame = 0;
+  if (f == dpyinfo->x_highlight_frame)
+    dpyinfo->x_highlight_frame = 0;
 
   if (f == dpyinfo->mouse_face_mouse_frame)
     {
