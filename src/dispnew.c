@@ -4120,7 +4120,7 @@ update_window (w, force_p)
     paused_p = 1;
 
 #if GLYPH_DEBUG
-  check_current_matrix_flags (w);
+  /* check_current_matrix_flags (w); */
   add_window_display_history (w, w->current_matrix->method, paused_p);
 #endif
   
