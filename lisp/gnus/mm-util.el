@@ -368,12 +368,7 @@ used as the line break code type of the coding system."
 			     (boundp 'default-enable-multibyte-characters)
 			     default-enable-multibyte-characters
 			     (fboundp 'set-buffer-multibyte))
-    "Emacs mule.")
-  
-  (defvar mm-mule4-p (and mm-emacs-mule
-			  (fboundp 'charsetp)
-			  (not (charsetp 'eight-bit-control)))
-    "Mule version 4.")
+    "True in Emacs with Mule.")
 
   (if mm-emacs-mule
       (defun mm-enable-multibyte ()
@@ -388,21 +383,7 @@ non-nil.  This is a no-op in XEmacs."
 	"Unset the multibyte flag of in the current buffer.
 This is a no-op in XEmacs."
 	(set-buffer-multibyte nil))
-    (defalias 'mm-disable-multibyte 'ignore))
-
-  (if mm-mule4-p
-      (defun mm-enable-multibyte-mule4  ()
-	"Enable multibyte in the current buffer.
-Only used in Emacs Mule 4."
-	(set-buffer-multibyte t))
-    (defalias 'mm-enable-multibyte-mule4 'ignore))
-  
-  (if mm-mule4-p
-      (defun mm-disable-multibyte-mule4 ()
-	"Disable multibyte in the current buffer.
-Only used in Emacs Mule 4."
-	(set-buffer-multibyte nil))
-    (defalias 'mm-disable-multibyte-mule4 'ignore)))
+    (defalias 'mm-disable-multibyte 'ignore)))
 
 (defun mm-preferred-coding-system (charset)
   ;; A typo in some Emacs versions.
@@ -419,7 +400,7 @@ If the charset is `composition', return the actual one."
 	(setq charset 'ascii)
       ;; charset-after is fake in some Emacsen.
       (setq charset (and (fboundp 'char-charset) (char-charset char)))
-      (if (eq charset 'composition)
+      (if (eq charset 'composition)	; Mule 4
 	  (let ((p (or pos (point))))
 	    (cadr (find-charset-region p (1+ p))))
 	(if (and charset (not (memq charset '(ascii eight-bit-control
@@ -574,25 +555,6 @@ Equivalent to `progn' in XEmacs"
 	 ,@forms))))
 (put 'mm-with-unibyte-current-buffer 'lisp-indent-function 0)
 (put 'mm-with-unibyte-current-buffer 'edebug-form-spec '(body))
-
-(defmacro mm-with-unibyte-current-buffer-mule4 (&rest forms)
-  "Evaluate FORMS there like `progn' in current buffer.
-Mule4 only."
-  (let ((multibyte (make-symbol "multibyte"))
-	(buffer (make-symbol "buffer")))
-    `(if mm-mule4-p
- 	 (let ((,multibyte enable-multibyte-characters)
-	       (,buffer (current-buffer)))
-	   (unwind-protect
-	       (let (default-enable-multibyte-characters)
-		 (set-buffer-multibyte nil)
-		 ,@forms)
-	     (set-buffer ,buffer)
-	     (set-buffer-multibyte ,multibyte)))
-       (let (default-enable-multibyte-characters)
-	 ,@forms))))
-(put 'mm-with-unibyte-current-buffer-mule4 'lisp-indent-function 0)
-(put 'mm-with-unibyte-current-buffer-mule4 'edebug-form-spec '(body))
 
 (defmacro mm-with-unibyte (&rest forms)
   "Eval the FORMS with the default value of `enable-multibyte-characters' nil, ."
