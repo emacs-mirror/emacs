@@ -1333,6 +1333,10 @@ With prefix arg, indent to that column."
   (define-key cua--rectangle-keymap [remap self-insert-command]	 'cua-insert-char-rectangle)
   (define-key cua--rectangle-keymap [remap self-insert-iso]	 'cua-insert-char-rectangle)
   
+  ;; Catch self-inserting characters which are "stolen" by other modes
+  (define-key cua--rectangle-keymap [t]
+    '(menu-item "sic" cua-insert-char-rectangle :filter cua--self-insert-char-p))
+
   (define-key cua--rectangle-keymap "\r"     'cua-rotate-rectangle)
   (define-key cua--rectangle-keymap "\t"     'cua-indent-rectangle)
 
