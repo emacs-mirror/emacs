@@ -765,6 +765,8 @@ static void AWLBlacken(Pool pool, TraceSet traceSet, Seg seg)
   BTSetRange(awlseg->scanned, 0, awlseg->grains);
 }
 
+/* awlScanObject -- scan a single object */
+/* base and limit are both offset by the header size */
 
 static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
                          Format format, Addr base, Addr limit)
@@ -781,8 +783,6 @@ static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
   AVER(base != 0);
   AVER(base < limit);
 
-  base = AddrAdd(base, format->headerSize);
-  limit = AddrAdd(base, format->headerSize);
   dependentObject = awl->findDependent(base);
   dependent = SegOfAddr(&dependentSeg, arena, dependentObject);
   if (dependent) {
@@ -791,11 +791,12 @@ static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
       /* design.mps.poolawl.fun.scan.pass.object.dependent.summary */
       SegSetSummary(dependentSeg, RefSetUNIV);
   }
+
   res = (*format->scan)(ss, base, limit);
-  if(res == ResOK)
+  if (res == ResOK)
     ss->scannedSize += AddrOffset(base, limit);
 
-  if(dependent) {
+  if (dependent) {
     ShieldCover(arena, dependentSeg);
   }
 
@@ -803,12 +804,15 @@ static Res awlScanObject(Arena arena, AWL awl, ScanState ss,
 }
 
 
+/* awlScanSinglePass -- a single scan pass over a segment */
+
 static Res awlScanSinglePass(Bool *anyScannedReturn,
                              ScanState ss, Pool pool,
                              Seg seg, Bool scanAllObjects)
 {
   Addr base, limit;
   Addr p;
+  Addr hp;
   Arena arena;
   AWL awl;
   AWLSeg awlseg;
@@ -825,6 +829,7 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
   AVERT(Arena, arena);
 
   format = pool->format;
+  AVERT(Format, format);
 
   awlseg = SegAWLSeg(seg);
   AVERT(AWLSeg, awlseg);
@@ -851,21 +856,21 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
       p = AddrAdd(p, pool->alignment);
       continue;
     }
-    p = AddrAdd(p, format->headerSize);
+    hp = AddrAdd(p, format->headerSize);
     /* design.mps.poolawl.fun.scan.object-end */
-    objectLimit = (*pool->format->skip)(p);
-    objectLimit = AddrSub(objectLimit, format->headerSize);
+    objectLimit = (*pool->format->skip)(hp);
     /* design.mps.poolawl.fun.scan.scan */
     if(scanAllObjects ||
          (BTGet(awlseg->mark, i) && !BTGet(awlseg->scanned, i))) {
       Res res = awlScanObject(arena, awl, ss, pool->format,
-                              p, objectLimit);
+                              hp, objectLimit);
       if(res != ResOK) {
         return res;
       }
       *anyScannedReturn = TRUE;
       BTSet(awlseg->scanned, i);
     }
+    objectLimit = AddrSub(objectLimit, format->headerSize);
     AVER(p < objectLimit);
     p = AddrAlignUp(objectLimit, pool->alignment);
   }
@@ -927,7 +932,8 @@ static Res AWLScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
 static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 {
-  Ref ref;
+  Ref clientRef;
+  Addr base;
   Index i;
   AWL awl;
   AWLSeg awlseg;
@@ -943,15 +949,23 @@ static Res AWLFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
   awlseg  = SegAWLSeg(seg);
   AVERT(AWLSeg, awlseg);
 
-  ref = *refIO;
-  i = awlIndexOfAddr(SegBase(seg), awl, ref);
-
   ss->wasMarked = TRUE;
+
+  clientRef = *refIO;
+  base = AddrSub((Addr)clientRef, pool->format->headerSize);
+  /* can get an ambiguous reference to close to the base of the
+   * segment, so when we subtract the header we are not in the
+   * segment any longer.  This isn't a real reference,
+   * so we can just skip it.  */
+  if (base < SegBase(seg)) {
+    return ResOK;
+  }
+  i = awlIndexOfAddr(SegBase(seg), awl, base);
 
   switch(ss->rank) {
   case RankAMBIG:
     /* not a real pointer if not aligned or not allocated */
-    if(!AddrIsAligned((Addr)ref, pool->alignment) ||
+    if(!AddrIsAligned(base, pool->alignment) ||
        !BTGet(awlseg->alloc, i)) {
       return ResOK;
     }
@@ -1027,8 +1041,8 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
     }
     q = format->skip(AddrAdd(p, format->headerSize));
     q = AddrSub(q, format->headerSize);
-
     q = AddrAlignUp(q, pool->alignment);
+
     j = awlIndexOfAddr(base, awl, q);
     AVER(j <= awlseg->grains);
     if(BTGet(awlseg->mark, i)) {
