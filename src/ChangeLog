@@ -1,8 +1,14 @@
+2005-03-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* s/vms.h (FILE_SYSTEM_CASE): New macro.
+	* fileio.c (Fexpand_file_name) [VMS]: Don't upcase the name
+	"manually"; this is now handled generally via FILE_SYSTEM_CASE.
+
 2005-03-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* emacs.c (main): Change `#ifdef HAVE_CARBON' to `#if
 	defined (MAC_OSX) && defined (HAVE_CARBON)'.
-	
+
 	* image.c [!MAC_OSX && TARGET_API_MAC_CARBON]: Include
 	QuickTime.h.
 
@@ -52,7 +58,7 @@
 	* macterm.h (install_window_handler, remove_window_handler)
 	(posix_pathname_to_fsspec, fsspec_to_posix_pathname)
 	(mac_clear_font_name_table): New externs.
-	
+
 2005-03-03  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* fileio.c (FILE_SYSTEM_CASE): Define macro if not already defined.
