@@ -272,15 +272,15 @@ Keymap for what is displayed by `mode-line-mode-name'.")
 (defvar mode-line-mode-menu-keymap nil "\
 Keymap for mode operations menu in the mode line.")
 
-(defun last-buffer () "
+(defun last-buffer () "\
 Return the last non-hidden buffer in the buffer list."
   (let ((list (reverse (buffer-list))))
     (while (eq (aref (buffer-name (car list)) 0) ? )
       (setq list (cdr list)))
     (car list)))
 
-(defun unbury-buffer () "
-Switch to the `last-buffer'."
+(defun unbury-buffer () "\
+Switch to the last buffer in the buffer list."
   (interactive)
   (switch-to-buffer (last-buffer)))
 
