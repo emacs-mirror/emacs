@@ -1,6 +1,6 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.108) $
+ * $HopeName: MMsrc!mpm.h(trunk.109) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  */
 
@@ -383,8 +383,8 @@ extern Res PoolNoFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 extern void PoolNoReclaim(Pool pool, Trace trace, Seg seg);
 extern double PoolNoBenefit(Pool pool, Action action);
 extern Res PoolNoAct(Pool pool, Action action);
-extern void PoolNoRampBegin(Pool pool, Buffer buf);
-extern void PoolTrivRampBegin(Pool pool, Buffer buf);
+extern void PoolNoRampBegin(Pool pool, Buffer buf, Bool collectAll);
+extern void PoolTrivRampBegin(Pool pool, Buffer buf, Bool collectAll);
 extern void PoolNoRampEnd(Pool pool, Buffer buf);
 extern void PoolTrivRampEnd(Pool pool, Buffer buf);
 extern void PoolNoWalk(Pool pool, Seg seg,
@@ -760,9 +760,12 @@ extern Addr (BufferAlloc)(Buffer buffer);
 extern Addr (BufferLimit)(Buffer buffer);
 #define BufferLimit(buffer)     ((buffer)->poolLimit)
 extern Bool BufferIsTrapped(Buffer buffer);
-extern void BufferRampBegin(Buffer buffer);
+extern void BufferRampBegin(Buffer buffer, AllocPattern pattern);
 extern Res BufferRampEnd(Buffer buffer);
 extern void BufferRampReset(Buffer buffer);
+
+extern AllocPattern AllocPatternRamp(void);
+extern AllocPattern AllocPatternRampCollectAll(void);
 
 
 /* Format Interface -- see impl.c.format */
