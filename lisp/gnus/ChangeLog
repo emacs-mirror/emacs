@@ -1,3 +1,10 @@
+2002-01-27  Richard M. Stallman  <rms@gnu.org>
+
+	* time-date.el: Add autoload cookies.  Many doc fixes.
+	(time-add): New function.
+	(time-subtract): Renamed from subtract-time.
+	(subtract-time): New alias for time-subtract.
+	
 2002-01-08  ShengHuo ZHU  <zsh@cs.rochester.edu>
 	
 	* gnus-start.el (gnus-read-init-file): Cleaned up.
