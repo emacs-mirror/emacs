@@ -203,7 +203,7 @@ a newline.  The command to insert a newline and then indent is
 @kbd{C-j}.  Please keep this distinction uniform for all major modes.
 
 @item
-Major modes should not alter options that are primary a matter of user
+Major modes should not alter options that are primarily a matter of user
 preference, such as whether Auto-Fill mode is enabled.  Leave this to
 each user to decide.  However, a major mode should customize other
 variables so that Auto-Fill mode will work usefully @emph{if} the user

@@ -1,7 +1,7 @@
 ;;; rmail-spam-filter.el  --- spam filter for rmail, the emacs mail reader.
 
-;; Copyright (C) 2002 Free Software Foundation, Inc.
-
+;; Copyright (C) 2002 
+;;		Free Software Foundation, Inc.
 ;; Keywords: email, spam, filter, rmail
 ;; Author: Eli Tziperman <eli AT deas.harvard.edu>
 
@@ -28,7 +28,7 @@
 ;;; Automatically recognize and delete junk email before it is
 ;;; displayed in rmail/rmail-summary.  Spam emails are defined by
 ;;; specifying one or more of the sender, subject and contents.
-;;; URL: http://deas.harvard.edu/climate/eli/Downloads/rmail-spam-filter/
+;;; URL: http://www.weizmann.ac.il/~eli/Downloads/rmail-spam-filter/
 
 ;;; Usage:
 ;;; ------
@@ -83,7 +83,9 @@
 ;;; sender's bbdb entry as well _if_ it was created at the same day.
 
 (require 'rmail)
-(require 'rmailsum)
+(if (> emacs-major-version 20)
+    (require 'rmailsum)
+  (if (not (fboundp 'rmail-make-summary-line)) (load-library "rmailsum")))
 
 ;; For find-if and other cool common lisp functions we may want to use.
 (eval-when-compile
@@ -93,7 +95,6 @@
   "Spam filter for RMAIL, the mail reader for Emacs."
   :group 'rmail)
 
-;;;###autoload
 (defcustom rmail-use-spam-filter nil
   "*Non-nil to activate the rmail spam filter.
 Specify `rsf-definitions-alist' to define what you consider spam
@@ -214,7 +215,7 @@ for interaction with `rsf-bbdb-auto-delete-spam-entries'")
 
 ;; the advantage over the automatic filter definitions is the AND conjunction
 ;; of in-one-definition-elements
-(defun rsf-check-field (field-symbol message-data definition result)
+(defun check-field (field-symbol message-data definition result)
   "Check if field-symbol is in `rsf-definitions-alist'.
 Capture maybe-spam and this-is-a-spam-email in a cons in result,
 where maybe-spam is in first and this-is-a-spam-email is in rest. 
@@ -313,7 +314,7 @@ it from rmail file.  Called for each new message retrieved by
                   this-is-a-spam-email nil))
 
         ;; maybe-spam is in first, this-is-a-spam-email in rest, this
-        ;; simplifies the call to rsf-check-field
+        ;; simplifies the call to check-field
         (setq maybe-spam (cons maybe-spam this-is-a-spam-email))
 
 	;; scan all elements of the list rsf-definitions-alist
@@ -344,18 +345,18 @@ it from rmail file.  Called for each new message retrieved by
 	    ;; scanned, AND if "from" field does not appear in spam
 	    ;; definitions for this element, this may still be spam
 	    ;; due to another element...
-            (rsf-check-field 'from message-sender definition maybe-spam)
+            (check-field 'from message-sender definition maybe-spam)
  	    ;; next, if spam was not ruled out already, check recipients:
-            (rsf-check-field 'to message-recipients definition maybe-spam)
+            (check-field 'to message-recipients definition maybe-spam)
  	    ;; next, if spam was not ruled out already, check subject:
-            (rsf-check-field 'subject message-subject definition maybe-spam)
+            (check-field 'subject message-subject definition maybe-spam)
  	    ;; next, if spam was not ruled out already, check content-type:
-            (rsf-check-field 'content-type message-content-type 
+            (check-field 'content-type message-content-type 
                          definition maybe-spam)
 	    ;; next, if spam was not ruled out already, check
 	    ;; contents: if contents field is not specified, this may
 	    ;; still be spam due to another element...
-            (rsf-check-field 'contents 
+            (check-field 'contents 
                          (buffer-substring
                           (rmail-msgbeg msg) (rmail-msgend msg))
                          definition maybe-spam)

@@ -6560,6 +6560,14 @@ record_asynch_buffer_change ()
 
 #ifndef VMS
 
+/* We make the read_avail_input buffer static to avoid zeroing out the
+   whole struct input_event buf on every call.  */
+static struct input_event read_avail_input_buf[KBD_BUFFER_SIZE];
+
+/* I don't know whether it is necessary, but make read_avail_input 
+   re-entrant.  */
+static int in_read_avail_input = 0;
+
 /* Read any terminal input already buffered up by the system
    into the kbd_buffer, but do not wait.
 
@@ -6576,14 +6584,21 @@ static int
 read_avail_input (expected)
      int expected;
 {
-  struct input_event buf[KBD_BUFFER_SIZE];
+  struct input_event *buf = read_avail_input_buf;
+  struct input_event tmp_buf[KBD_BUFFER_SIZE];
   register int i;
-  struct display *d;
   int nread = 0;
+  struct display *d;
   
-  for (i = 0; i < KBD_BUFFER_SIZE; i++)
-    EVENT_INIT (buf[i]);
+  /* Trivial hack to make read_avail_input re-entrant.  */
+  if (in_read_avail_input++)
+    {
+      buf = tmp_buf;
+      for (i = 0; i < KBD_BUFFER_SIZE; i++)
+	EVENT_INIT (buf[i]);
+    }
 
+  /* Loop through the available displays, and call their input hooks. */
   d = display_list;
   while (d)
     {
@@ -6593,7 +6608,7 @@ read_avail_input (expected)
         /* No need for FIONREAD or fcntl; just say don't wait.  */
         nread = (*d->read_socket_hook) (d, buf, KBD_BUFFER_SIZE, expected);
 
-      if (nread == -2)
+      if (nread == -2)          /* -2 means non-transient error */
         {
           /* The display device terminated; it should be closed. */
 
@@ -6627,6 +6642,11 @@ read_avail_input (expected)
 	break;
     }
 
+  /* Clear used events */
+  if (--in_read_avail_input == 0)
+    for (i = 0; i < nread; i++)
+      EVENT_INIT (buf[i]);
+
   return nread;
 }
 
@@ -6647,13 +6667,12 @@ tty_read_avail_input (struct display *display,
   unsigned char cbuf[KBD_BUFFER_SIZE - 1];
   int n_to_read, i;
   struct tty_display_info *tty = display->display_info.tty;
-  Lisp_Object frame;
   int nread = 0;
   
   if (display->type != output_termcap)
     abort ();
   
-  /* XXX I think the following code should be moved to separate
+  /* XXX I think the following code should be moved to separate hook
      functions in system-dependent files. */
 #ifdef WINDOWSNT
   return 0;
@@ -6668,7 +6687,7 @@ tty_read_avail_input (struct display *display,
   
 #else /* not MSDOS */
 
-  if (! tty->term_initted)
+  if (! tty->term_initted)      /* In case we get called during bootstrap. */
     return 0;
         
   /* Determine how many characters we should *try* to read.  */
@@ -6704,20 +6723,16 @@ tty_read_avail_input (struct display *display,
          process group won't get SIGHUP's at logout time.  BSDI adheres to
          this part standard and returns -1 from read (0) with errno==EIO
          when the control tty is taken away.
-         Jeffrey Honig <jch@bsdi.com> says this is generally safe.  */
+         Jeffrey Honig <jch@bsdi.com> says this is generally safe. */
       if (nread == -1 && errno == EIO)
-        {
-          return -2;          /* Close this display. */
-        }
+        return -2;          /* Close this display. */
 #if defined (AIX) && (! defined (aix386) && defined (_BSD))
       /* The kernel sometimes fails to deliver SIGHUP for ptys.
          This looks incorrect, but it isn't, because _BSD causes
          O_NDELAY to be defined in fcntl.h as O_NONBLOCK,
          and that causes a value other than 0 when there is no input.  */
       if (nread == 0)
-        {
-          return -2;          /* Close this display. */
-        }
+        return -2;          /* Close this display. */
 #endif
     }
   while (
@@ -6751,11 +6766,6 @@ tty_read_avail_input (struct display *display,
 #endif /* not MSDOS */
 #endif /* not WINDOWSNT */
   
-  /* Select the frame corresponding to the active tty.  Note that the
-     value of selected_frame is not reliable here, redisplay tends to
-     temporarily change it. */
-  frame = tty->top_frame;
-  
   for (i = 0; i < nread; i++)
     {
       buf[i].kind = ASCII_KEYSTROKE_EVENT;
@@ -6766,7 +6776,10 @@ tty_read_avail_input (struct display *display,
         cbuf[i] &= ~0x80;
       
       buf[i].code = cbuf[i];
-      buf[i].frame_or_window = frame;
+      /* Set the frame corresponding to the active tty.  Note that the
+         value of selected_frame is not reliable here, redisplay tends
+         to temporarily change it. */
+      buf[i].frame_or_window = tty->top_frame;
       buf[i].arg = Qnil;
     }
 
@@ -10658,6 +10671,13 @@ init_keyboard ()
   do_mouse_tracking = Qnil;
 #endif
   input_pending = 0;
+#ifndef VMS
+  {
+    int i;
+    for (i = 0; i < KBD_BUFFER_SIZE; i++)
+      EVENT_INIT (read_avail_input_buf[i]);
+  }
+#endif
 
   /* This means that command_loop_1 won't try to select anything the first
      time through.  */

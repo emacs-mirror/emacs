@@ -310,9 +310,9 @@ ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAGS) -I. -I${srcd
 /* Include xmenu.o in the list of X object files.  */
 
 #ifdef USE_GTK
-XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o gtkutil.o
+XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o gtkutil.o fringe.o
 #else
-XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o
+XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o
 #endif
 
 /* The X Menu stuff is present in the X10 distribution, but missing
@@ -334,7 +334,7 @@ LIBXMENU= -lXMenu
 
 /* Otherwise, omit xmenu.o from the list of X object files, and
    don't worry about the menu library at all.  */
-XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o
+XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o
 LIBXMENU=
 #endif /* not HAVE_MENUS */
 
@@ -562,7 +562,7 @@ MSDOS_OBJ = dosfns.o msdos.o w16select.o
 #ifdef HAVE_CARBON
 mac = $(dot)$(dot)/mac/
 XMENU_OBJ =
-MAC_OBJ = mac.o macterm.o macfns.o macmenu.o fontset.o
+MAC_OBJ = mac.o macterm.o macfns.o macmenu.o fontset.o fringe.o
 emacsapp = $(PWD)/$(mac)Emacs.app/
 emacsappsrc = ${srcdir}/../mac/Emacs.app/
 #else
@@ -571,7 +571,7 @@ XMENU_OBJ = xmenu.o
 
 /* lastfile must follow all files
    whose initialized data areas should be dumped as pure by dump-emacs.  */
-obj=    dispnew.o frame.o scroll.o xdisp.o fringe.o $(XMENU_OBJ) window.o \
+obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
 	charset.o coding.o category.o ccl.o \
 	cm.o term.o xfaces.o $(XOBJ) \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \

@@ -259,8 +259,8 @@ divisible by 4:
                    (calendar-gregorian-from-absolute
                     (1+ (calendar-dayname-on-or-before
                           1 (+ 6 (calendar-absolute-from-gregorian
-                                  (list 11 1 year))))))
-              "US Presidential Election"))
+                                  (list 11 1 year)))))))
+              "US Presidential Election")
 @end smallexample
 
 @noindent
@@ -967,7 +967,7 @@ how far in advance it begins doing so, by setting these variables:
 @table @code
 @item appt-message-warning-time
 The time in minutes before an appointment that the reminder begins.  The
-default is 10 minutes.
+default is 12 minutes.
 @item appt-audible
 If this is non-@code{nil}, Emacs rings the
 terminal bell for appointment reminders.  The default is @code{t}.
@@ -988,7 +988,7 @@ This variable holds a function to use to get rid of the appointment
 message window, when its time is up.
 @item appt-display-duration
 The number of seconds to display an appointment message.  The default
-is 5 seconds.
+is 10 seconds.
 @end table
 
 @ignore

@@ -18,7 +18,7 @@ displayed in windows.
 * Selecting Windows::       The selected window is the one that you edit in.
 * Cyclic Window Ordering::  Moving around the existing windows.
 * Buffers and Windows::     Each window displays the contents of a buffer.
-* Displaying Buffers::      Higher-lever functions for displaying a buffer
+* Displaying Buffers::      Higher-level functions for displaying a buffer
                               and choosing a window for it.
 * Choosing Window::	    How to choose a window for displaying a buffer.
 * Window Point::            Each window has its own location of point.
@@ -720,21 +720,6 @@ The two optional arguments work like the optional arguments of
 like the single optional argument of @code{get-buffer-window}.  Perhaps
 we should change @code{get-buffer-window} in the future to make it
 compatible with the other functions.
-
-The argument @var{all-frames} controls which windows to consider.
-
-@itemize @bullet
-@item
-If it is @code{nil}, consider windows on the selected frame.
-@item
-If it is @code{t}, consider windows on all frames.
-@item
-If it is @code{visible}, consider windows on all visible frames.
-@item
-If it is 0, consider windows on all visible or iconified frames.
-@item
-If it is a frame, consider windows on that frame.
-@end itemize
 @end defun
 
 @defvar buffer-display-time

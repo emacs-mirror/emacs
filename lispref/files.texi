@@ -1341,7 +1341,7 @@ links.
 @end deffn
 
 @defun define-logical-name varname string
-This function defines the logical name @var{name} to have the value
+This function defines the logical name @var{varname} to have the value
 @var{string}.  It is available only on VMS.
 @end defun
 

@@ -2324,7 +2324,7 @@ follows.
 @tindex tool-bar-add-item
 This function adds an item to the tool bar by modifying
 @code{tool-bar-map}.  The image to use is defined by @var{icon}, which
-is the base name of an XPM, XBM or PBM image file to located by
+is the base name of an XPM, XBM or PBM image file to be located by
 @code{find-image}.  Given a value @samp{"exit"}, say, @file{exit.xpm},
 @file{exit.pbm} and @file{exit.xbm} would be searched for in that order
 on a color display.  On a monochrome display, the search order is
@@ -2375,22 +2375,22 @@ show all defined tool bar items---but not larger than a quarter of the
 frame's height.
 @end defvar
 
-@tindex auto-raise-tool-bar-items
-@defvar auto-raise-tool-bar-items
+@tindex auto-raise-tool-bar-buttons
+@defvar auto-raise-tool-bar-buttons
 If this variable is non-@code{nil}, tool bar items display
 in raised form when the mouse moves over them.
 @end defvar
 
-@tindex tool-bar-item-margin
-@defvar tool-bar-item-margin
+@tindex tool-bar-button-margin
+@defvar tool-bar-button-margin
 This variable specifies an extra margin to add around tool bar items.
-The value is an integer, a number of pixels.  The default is 1.
+The value is an integer, a number of pixels.  The default is 4.
 @end defvar
 
-@tindex tool-bar-item-relief
-@defvar tool-bar-item-relief
+@tindex tool-bar-button-relief
+@defvar tool-bar-button-relief
 This variable specifies the shadow width for tool bar items.
-The value is an integer, a number of pixels.  The default is 3.
+The value is an integer, a number of pixels.  The default is 1.
 @end defvar
 
   You can define a special meaning for clicking on a tool bar item with

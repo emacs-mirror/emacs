@@ -698,7 +698,7 @@ The numeric prefix ARG can specify a number of chars to remove from the
 comment markers."
   (interactive "*r\nP")
   (comment-normalize-vars)
-  (if (> beg end) (let (mid) (setq mid beg beg end end mid)))
+  (when (> beg end) (setq beg (prog1 end (setq end beg))))
   (save-excursion
     (if uncomment-region-function
 	(funcall uncomment-region-function beg end arg)
@@ -716,7 +716,35 @@ comment markers."
 		;; Find the end of the comment.
 		(ept (progn
 		       (goto-char spt)
-		       (unless (comment-forward)
+		       (unless
+			   (or
+			    (comment-forward)
+			    ;; Allow eob as comment-end instead of \n.
+			    (and
+			     (eobp)
+			     (let ((s1 (aref (syntax-table) (char-after spt)))
+				   (s2 (aref (syntax-table)
+					     (or (char-after (1+ spt)) 0)))
+				   (sn (aref (syntax-table) ?\n))
+				   (flag->b (car (string-to-syntax "> b")))
+				   (flag-1b (car (string-to-syntax "  1b")))
+				   (flag-2b (car (string-to-syntax "  2b"))))
+			       (cond
+				;; One-character comment-start terminated by
+				;; \n.
+				((and
+				  (equal sn (string-to-syntax ">"))
+				  (equal s1 (string-to-syntax "<")))
+				 (insert-char ?\n 1)
+				 t)
+				;; Two-character type b comment-start
+				;; terminated by \n.
+				((and
+				  (= (logand (car sn) flag->b) flag->b)
+				  (= (logand (car s1) flag-1b) flag-1b)
+				  (= (logand (car s2) flag-2b) flag-2b))
+				 (insert-char ?\n 1)
+				 t)))))
 			 (error "Can't find the comment end"))
 		       (point)))
 		(box nil)

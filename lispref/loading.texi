@@ -173,7 +173,7 @@ directory).
 
   The value of @code{load-path} is initialized from the environment
 variable @code{EMACSLOADPATH}, if that exists; otherwise its default
-value is specified in @file{emacs/src/paths.h} when Emacs is built.
+value is specified in @file{emacs/src/epaths.h} when Emacs is built.
 Then the list is expanded by adding subdirectories of the directories
 in the list.
 
@@ -790,18 +790,7 @@ The value of @code{load-history} may have one element whose @sc{car} is
 by adding the symbols defined to the element for the file being visited,
 rather than replacing that element.  @xref{Eval}.
 
-  Preloaded libraries don't contribute initially to @code{load-history}.
-Instead, preloading writes information about preloaded libraries into a
-file, which can be loaded later on to add information to
-@code{load-history} describing the preloaded files.  This file is
-installed in @code{exec-directory} and has a name of the form
-@file{fns-@var{emacsversion}.el}.
-
-@findex symbol-file
-  See the source for the function @code{symbol-file}, for an example of
-code that loads this file to find functions in preloaded libraries.
-
-@defvar loadhist-special-hooks
+@defvar unload-feature-special-hooks
 This variable holds a list of hooks to be scanned before unloading a
 library, to remove functions defined in the library.
 @end defvar

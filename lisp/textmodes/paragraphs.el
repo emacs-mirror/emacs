@@ -430,9 +430,9 @@ sentences.  Also, every paragraph boundary terminates sentences as well."
     (constrain-to-field nil opoint t)))
 
 (defun repunctuate-sentences ()
-  (interactive)
   "Put two spaces at the end of sentences from point to the end of buffer.
 It works using `query-replace-regexp'."
+  (interactive)
   (query-replace-regexp "\\([]\"')]?\\)\\([.?!]\\)\\([]\"')]?\\) +"
 			"\\1\\2\\3  "))
 

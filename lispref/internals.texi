@@ -13,7 +13,7 @@ the preloaded Lisp libraries in it, how storage is allocated, and some
 internal aspects of GNU Emacs that may be of interest to C programmers.
 
 @menu
-* Building Emacs::      How to the dumped Emacs is made.
+* Building Emacs::      How the dumped Emacs is made.
 * Pure Storage::        A kludge to make preloaded Lisp functions sharable.
 * Garbage Collection::  Reclaiming space for Lisp objects no longer used.
 * Memory Usage::        Info about total size of Lisp objects made so far.
@@ -1297,7 +1297,7 @@ onto the screen.
 
 @item redisplay_end_trigger
 If redisplay in this window goes beyond this buffer position, it runs
-run the @code{redisplay-end-trigger-hook}.
+the @code{redisplay-end-trigger-hook}.
 
 @ignore
 @item orig_height
@@ -1396,7 +1396,7 @@ A function called whenever the process receives a signal, or @code{nil}.
 The associated buffer of the process.
 
 @item pid
-An integer, the Unix process @acronym{ID}.
+An integer, the operating system's process @acronym{ID}.
 
 @item childp
 A flag, non-@code{nil} if this is really a child process.

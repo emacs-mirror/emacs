@@ -448,7 +448,7 @@ interesting to note that @code{list} is used more times in the source
 code for Emacs than @code{cons}.
 
 @defun cons object1 object2
-This function is the fundamental function used to build new list
+This function is the fundamental function for building new list
 structure.  It creates a new cons cell, making @var{object1} the
 @sc{car}, and @var{object2} the @sc{cdr}.  It then returns the new cons
 cell.  The arguments @var{object1} and @var{object2} may be any Lisp
@@ -1436,16 +1436,9 @@ comparison.
 
 @defun delete-dups list
 This function destructively removes all @code{equal} duplicates from
-@var{list} and returns the result.  Of several @code{equal}
-occurrences of an element in @var{list}, @code{delete-dups} keeps the
-last one.
-
-The value of @var{list} after a call to this function is undefined.
-Usually, we store the return value back in @var{list}:
-
-@example
-(setq list (delete-dups list))
-@end example
+@var{list}, stores the result in @var{list} and returns it.  Of
+several @code{equal} occurrences of an element in @var{list},
+@code{delete-dups} keeps the first one.
 @end defun
 
   See also the function @code{add-to-list}, in @ref{Setting Variables},
