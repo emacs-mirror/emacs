@@ -1452,6 +1452,50 @@ lw_separator_p (label, type, motif_p)
 	    break;
 	  }
     }
+  else if (strlen (label) > 3
+	   && bcmp (label, "--", 2) == 0)
+    {
+      /* Alternative, more Emacs-style names.  */
+      static struct separator_table
+      {
+	char *name;
+	enum menu_separator type;
+      }
+      separator_names[] =
+      {
+	"space",			SEPARATOR_NO_LINE,
+	"no-line",			SEPARATOR_NO_LINE,
+	"single-line",			SEPARATOR_SINGLE_LINE,
+	"double-line",			SEPARATOR_DOUBLE_LINE,
+	"single-dashed-line",		SEPARATOR_SINGLE_DASHED_LINE,
+	"double-dashed-line",		SEPARATOR_DOUBLE_DASHED_LINE,
+	"shadow-etched-in",		SEPARATOR_SHADOW_ETCHED_IN,
+	"shadow-etched-out",		SEPARATOR_SHADOW_ETCHED_OUT,
+	"shadow-etched-in-dash",	SEPARATOR_SHADOW_ETCHED_IN_DASH,
+	"shadow-etched-out-dash",	SEPARATOR_SHADOW_ETCHED_OUT_DASH,
+	"shadow-double-etched-in",	SEPARATOR_SHADOW_DOUBLE_ETCHED_IN,
+	"shadow-double-etched-out",     SEPARATOR_SHADOW_DOUBLE_ETCHED_OUT,
+	"shadow-double-etched-in-dash", SEPARATOR_SHADOW_DOUBLE_ETCHED_IN_DASH,
+	"shadow-double-etched-out-dash",SEPARATOR_SHADOW_DOUBLE_ETCHED_OUT_DASH,
+	0
+      };
+
+      int i;
+
+      label += 2;
+      for (i = 0; separator_names[i].name; ++i)
+	if (strcmp (label, separator_names[i].name) == 0)
+	  {
+	    separator_p = 1;
+	    *type = separator_names[i].type;
+
+	    /* If separator type is not supported under Motif,
+	       use a similar one.  */
+	    if (motif_p && *type >= SEPARATOR_SHADOW_DOUBLE_ETCHED_IN)
+	      *type -= 4;
+	    break;
+	  }
+    }
   else
     {
       /* Old-style separator, maybe.  It's a separator if it contains
