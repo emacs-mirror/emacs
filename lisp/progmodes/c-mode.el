@@ -32,8 +32,9 @@
 ;;; Code:
 (defgroup old-c nil
   "Old C code editing commands for Emacs."
-  :prefix "c-"
-  :group 'languages)
+  ;; This group should have no parent.
+  ;; We don't want it to be loaded except on explicit request.
+  :prefix "c-")
 
 
 (defvar c-mode-abbrev-table nil
