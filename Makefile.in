@@ -99,6 +99,9 @@ manext=.1
 # system, it is inappropriate to imply that it is part of Emacs.
 infodir=@infodir@
 
+# Where to look for bitmap files.
+bitmapdir=@bitmapdir@
+
 # Where to find the source code.  The source code for Emacs's C kernel is
 # expected to be in ${srcdir}/src, and the source code for Emacs's
 # utility programs is expected to be in ${srcdir}/lib-src.  This is
@@ -208,6 +211,7 @@ src/paths.h: Makefile ${srcdir}/src/paths.h.in
 	  -e 's;\(#.*PATH_EXEC\).*$$;\1 "${archlibdir}";'		\
 	  -e 's;\(#.*PATH_INFO\).*$$;\1 "${infodir}";'			\
 	  -e 's;\(#.*PATH_DATA\).*$$;\1 "${etcdir}";'			\
+	  -e 's;\(#.*PATH_BITMAPS\).*$$;\1 "${bitmapdir}";'		\
 	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";'			\
 	  -e 's;\(#.*PATH_LOCK\).*$$;\1 "${lockdir}/";') &&		\
 	${srcdir}/move-if-change paths.h.tmp$$$$ src/paths.h
@@ -232,6 +236,7 @@ paths-force: FRC src/paths.h
 	  -e 's;\(#.*PATH_EXEC\).*$$;\1 "${archlibdir}";'		\
 	  -e 's;\(#.*PATH_INFO\).*$$;\1 "${infodir}";'			\
 	  -e 's;\(#.*PATH_DATA\).*$$;\1 "${etcdir}";'			\
+	  -e 's;\(#.*PATH_BITMAPS\).*$$;\1 "${bitmapdir}";'		\
 	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";'			\
 	  -e 's;\(#.*PATH_LOCK\).*$$;\1 "${lockdir}/";') &&		\
 	${srcdir}/move-if-change paths.h.tmp$$$$ src/paths.h
@@ -329,6 +334,8 @@ install-arch-indep: mkdir
 		 rm -f  $${subdir}/*~ ; \
 	       done) ; \
 	 done
+	-rm -f ${lispdir}/subdirs.el
+	./update-subdirs ${lispdir}
 	if [ `(cd ./etc; /bin/pwd)` != `(cd ${docdir}; /bin/pwd)` ]; \
 	then \
 	   echo "Copying etc/DOC-* ..." ; \
@@ -514,6 +521,7 @@ check:
 	@echo "We don't have any tests for GNU Emacs yet."
 
 dist:
+	./update-subdirs ${srcdir}/lisp
 	cd ${srcdir}; make-dist
 
 .PHONY: info dvi dist check
