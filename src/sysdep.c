@@ -1124,8 +1124,12 @@ narrow_foreground_group (int fd)
   int me = getpid ();
 
   setpgrp (0, inherited_pgroup);
+#if 0
+  /* XXX inherited_pgroup should not be zero here, but GTK seems to
+     mess this up. */
   if (! inherited_pgroup)
     abort ();                   /* Should not happen. */
+#endif
   if (inherited_pgroup != me)
       EMACS_SET_TTY_PGRP (fd, &me); /* XXX This only works on the controlling tty. */
   setpgrp (0, me);
