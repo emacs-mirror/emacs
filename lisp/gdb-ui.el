@@ -51,7 +51,7 @@
 (require 'gud)
 
 (defcustom gdb-window-height 20
-  "*Number of lines in a frame for a displayed expression in GDB-UI."
+  "Number of lines in a frame for a displayed expression in GDB-UI."
   :type 'integer
   :group 'gud)
 
@@ -1384,16 +1384,17 @@ static char *magick[] = {
 				    (remove-images start end)
 				    (if (eq ?y flag)
 					(put-image breakpoint-enabled-icon
-						   (point)
+						   (+ start 1)
 						   "breakpoint icon enabled"
 						   'left-margin)
-				      (put-image breakpoint-disabled-icon (point)
+				      (put-image breakpoint-disabled-icon
+						 (+ start 1)
 						 "breakpoint icon disabled"
 						 'left-margin)))
 				(gdb-remove-strings start end)
 				(if (eq ?y flag)
-				    (gdb-put-string "B" (point))
-				  (gdb-put-string "b" (point))))))))))))
+				    (gdb-put-string "B" (+ start 1))
+				  (gdb-put-string "b" (+ start 1))))))))))))
 	  (end-of-line))))))
 
 (defun gdb-breakpoints-buffer-name ()
@@ -1985,11 +1986,19 @@ the source buffer."
     answer))
 
 (defun gdb-display-source-buffer (buffer)
-  (set-window-buffer gdb-source-window buffer)
+  (if (eq gdb-selected-view 'source)
+      (set-window-buffer gdb-source-window buffer)
+    (set-window-buffer gdb-source-window
+		       (gdb-get-buffer 'gdb-assembler-buffer)))
   gdb-source-window)
 
 
 ;;; Shared keymap initialization:
+
+(define-key gud-menu-map [gdb-many-windows]
+  (menu-bar-make-toggle gdb-many-windows gdb-many-windows
+			"Display other windows" "Many Windows %s"
+			"Display locals, stack and breakpoint information"))
 
  (let ((menu (make-sparse-keymap "GDB-Frames")))
   (define-key gud-menu-map [frames]
@@ -2091,10 +2100,19 @@ the source buffer."
   (switch-to-buffer (gdb-breakpoints-buffer-name))
   (other-window 1))
 
-(define-minor-mode gdb-many-windows
-  "Toggle the number of windows in the basic arrangement."
-  :group 'gud
-  :init-value nil
+(defcustom gdb-many-windows nil
+  "Nil means that gdb starts with just two windows : the GUD and
+the source buffer."
+  :type 'boolean
+  :group 'gud)
+
+(defun gdb-many-windows (arg)
+"Toggle the number of windows in the basic arrangement."
+  (interactive "P")
+  (setq gdb-many-windows
+	(if (null arg)
+	    (not gdb-many-windows)
+	  (> (prefix-numeric-value arg) 0)))
   (gdb-restore-windows))
 
 (defun gdb-restore-windows ()
@@ -2309,16 +2327,18 @@ BUFFER nil or omitted means use the current buffer."
 			    (progn
 			      (remove-images start end)
 			      (if (eq ?y flag)
-				  (put-image breakpoint-enabled-icon (point)
+				  (put-image breakpoint-enabled-icon
+					     (+ start 1)
 					     "breakpoint icon enabled"
 					     'left-margin)
-				(put-image breakpoint-disabled-icon (point)
+				(put-image breakpoint-disabled-icon
+					   (+ start 1)
 					   "breakpoint icon disabled"
 					   'left-margin)))
 			  (gdb-remove-strings start end)
 			  (if (eq ?y flag)
-			      (gdb-put-string "B" (point))
-			    (gdb-put-string "b" (point)))))))))))))
+			      (gdb-put-string "B" (+ start 1))
+			    (gdb-put-string "b" (+ start 1)))))))))))))
 
 (defvar gdb-assembler-mode-map
   (let ((map (make-sparse-keymap)))
@@ -2332,6 +2352,7 @@ BUFFER nil or omitted means use the current buffer."
   (setq major-mode 'gdb-assembler-mode)
   (setq mode-name "Assembler")
   (setq left-margin-width 2)
+  (setq fringes-outside-margins t)
   (setq buffer-read-only t)
   (use-local-map gdb-assembler-mode-map)
   (gdb-invalidate-assembler)
