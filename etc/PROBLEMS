@@ -2,6 +2,20 @@ This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
 
+* Problems with file dialogs in Emacs built with Open Motif.
+
+When Emacs 21 is built with Open Motif 2.1, it can happen that the
+graphical file dialog boxes do not work properly.  The "OK", "Filter"
+and "Cancel" buttons do not respond to mouse clicks.  Dragging the
+file dialog window usually causes the buttons to work again.
+
+The solution is to use LessTi instead.  LessTif is a free replacement
+for Motif.  See the file INSTALL for information on how to do this.
+
+Another workaround is not to use the mouse to trigger file prompts,
+but to use the keyboard.  This way, you will be prompted for a file in
+the minibuffer instead of a graphical file dialog.
+
 * Emacs reports a BadAtom error (from X) running on Solaris 7 or 8.
 
 This happens when Emacs was built on some other version of Solaris.
