@@ -15510,7 +15510,9 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 		  {
 		    int bytepos = last - lisp_string;
 		    int charpos = string_byte_to_char (elt, bytepos);
-		    int endpos = (precision <= 0 ? SCHARS (elt)
+		    int endpos = (precision <= 0
+				  ? string_byte_to_char (elt,
+							 this - lisp_string)
 				  : charpos + nchars);
 
 		    n += store_mode_line_string (NULL,
