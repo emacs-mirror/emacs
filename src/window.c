@@ -495,6 +495,11 @@ coordinates_in_window (w, x, y)
   int left_x, right_x, top_y, bottom_y;
   int flags_area_width = FRAME_LEFT_FLAGS_AREA_WIDTH (f);
 
+  /* Let's make this a global enum later, instead of using numbers
+     everywhere.  */
+  enum {ON_NOTHING, ON_TEXT, ON_MODE_LINE, ON_VERTICAL_BORDER,
+	ON_HEADER_LINE, ON_LEFT_FRINGE, ON_RIGHT_FRINGE};
+
   /* In what's below, we subtract 1 when computing right_x because we
      want the rightmost pixel, which is given by left_pixel+width-1.  */
   if (w->pseudo_window_p)
@@ -514,6 +519,7 @@ coordinates_in_window (w, x, y)
       bottom_y = WINDOW_DISPLAY_BOTTOM_EDGE_PIXEL_Y (w);
     }
 
+  /* Completely outside anything interesting?  */
   if (*y < top_y
       || *y >= bottom_y
       || *x < (left_x
@@ -521,19 +527,37 @@ coordinates_in_window (w, x, y)
 	       - (FRAME_LEFT_SCROLL_BAR_WIDTH (f)
 		  * CANON_X_UNIT (f)))
       || *x > right_x + flags_area_width)
-    /* Completely outside anything interesting.  */
-    return 0;
-  else if (WINDOW_WANTS_MODELINE_P (w)
-	   && *y >= bottom_y - CURRENT_MODE_LINE_HEIGHT (w))
-    /* On the mode line.  */
-    return 2;
-  else if (WINDOW_WANTS_HEADER_LINE_P (w)
-	   && *y < top_y + CURRENT_HEADER_LINE_HEIGHT (w))
-    /* On the top line.  */
-    return 4;
+    return ON_NOTHING;
+  
+  /* On the mode line or header line?  If it's near the start of
+     the mode or header line of window that's has a horizontal
+     sibling, say it's on the vertical line.  That's to be able
+     to resize windows horizontally in case we're using toolkit
+     scroll bars.  */
+  
+  if (WINDOW_WANTS_MODELINE_P (w)
+      && *y >= bottom_y - CURRENT_MODE_LINE_HEIGHT (w))
+    {
+      if (XFASTINT (w->left) > 0
+	  && (abs (*x - XFASTINT (w->left) * CANON_X_UNIT (f))
+	      < CANON_X_UNIT (f) / 2))
+	return ON_VERTICAL_BORDER;
+      return ON_MODE_LINE;
+    }
+  
+  if (WINDOW_WANTS_HEADER_LINE_P (w)
+      && *y < top_y + CURRENT_HEADER_LINE_HEIGHT (w))
+    {
+      if (XFASTINT (w->left) > 0
+	  && (abs (*x - XFASTINT (w->left) * CANON_X_UNIT (f))
+	      < CANON_X_UNIT (f) / 2))
+	return ON_VERTICAL_BORDER;
+      return ON_HEADER_LINE;
+    }
+  
   /* Need to say "*x > right_x" rather than >=, since on character
      terminals, the vertical line's x coordinate is right_x.  */
-  else if (*x < left_x || *x > right_x)
+  if (*x < left_x || *x > right_x)
     {
       /* Other lines than the mode line don't include flags areas and
 	 scroll bars on the left.  */
@@ -541,22 +565,21 @@ coordinates_in_window (w, x, y)
       /* Convert X and Y to window-relative pixel coordinates.  */
       *x -= left_x;
       *y -= top_y;
-      return *x < left_x ? 5 : 6;
+      return *x < left_x ? ON_LEFT_FRINGE : ON_RIGHT_FRINGE;
     }
+  
   /* Here, too, "*x > right_x" is because of character terminals.  */
-  else if (!w->pseudo_window_p
-	   && !WINDOW_RIGHTMOST_P (w)
-	   && *x > right_x - CANON_X_UNIT (f))
+  if (!w->pseudo_window_p
+      && !WINDOW_RIGHTMOST_P (w)
+      && *x > right_x - CANON_X_UNIT (f))
     /* On the border on the right side of the window?  Assume that
        this area begins at RIGHT_X minus a canonical char width.  */
-    return 3;
-  else
-    {
-      /* Convert X and Y to window-relative pixel coordinates.  */
-      *x -= left_x;
-      *y -= top_y;
-      return 1;
-    }
+    return ON_VERTICAL_BORDER;
+  
+  /* Convert X and Y to window-relative pixel coordinates.  */
+  *x -= left_x;
+  *y -= top_y;
+  return ON_TEXT;
 }
 
 DEFUN ("coordinates-in-window-p", Fcoordinates_in_window_p,
