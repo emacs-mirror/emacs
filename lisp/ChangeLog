@@ -1,3 +1,11 @@
+2004-12-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/checkdoc.el (checkdoc-continue, checkdoc-comments)
+	(checkdoc-message-text, checkdoc-defun): Fix format messages for `error'.
+
+	* textmodes/tex-mode.el (latex-backward-sexp-1): Handle the special
+	case of \end{verbatim}.
+
 2004-12-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.el (term-termcap-format): Synchronyze with terminfo.

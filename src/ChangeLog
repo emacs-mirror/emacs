@@ -1,3 +1,13 @@
+2004-12-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (Fforward_word): Avoid non-idempotent side-effects
+	in macro arguments.
+
+	* minibuf.c (Ftry_completion, Fall_completions): Don't use
+	XFASTINT blindly.
+
+	* emacs.c (main, Fdump_emacs): Don't touch malloc hooks if SYNC_INPUT.
+
 2004-12-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* w32term.c (x_calc_absolute_position): Remove calculation of
@@ -28,8 +38,8 @@
 	* emacs.c (Fdump_emacs): Add ! defined (SYSTEM_MALLOC) around
 	reset_malloc_hooks.
 
-	* keyboard.c (handle_async_input, input_available_signal): Add
-	! defined (SYSTEM_MALLOC) around thread code.
+	* keyboard.c (handle_async_input, input_available_signal):
+	Add ! defined (SYSTEM_MALLOC) around thread code.
 
 	* alloc.c: Add comment about the reason for (UN)BLOCK_INPUT_ALLOC.
 
@@ -67,12 +77,11 @@
 	* emacs.c (Fdump_emacs): Call reset_malloc_hooks.
 
 	* keyboard.c: Conditionally include pthread.h
-	(handle_async_inpu, input_available_signalt): If not in the main
+	(handle_async_input, input_available_signalt): If not in the main
 	thread, block signal, send signal to main thread and return.
 
 	* gtkutil.c (xg_get_file_with_chooser): Handle local files only.
-	Set current folder in file chooser if default_filename is a
-	directory.
+	Set current folder in file chooser if default_filename is a directory.
 
 2004-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
