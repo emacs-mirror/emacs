@@ -2721,7 +2721,7 @@ x_window (f)
 		     attribute_mask, &attributes);
 
 #ifdef HAVE_X_I18N
-  if use_xim
+  if (use_xim)
     {
       create_frame_xic (f);
       if (FRAME_XIC (f))
@@ -10532,7 +10532,7 @@ usual X keysyms.  */)
 			    Initialization
  ***********************************************************************/
 
-/* Keep this list in the same order as frame_parms in frame.c. 
+/* Keep this list in the same order as frame_parms in frame.c.
    Use 0 for unsupported frame parameters.  */
 
 frame_parm_handler x_frame_parm_handlers[] =
