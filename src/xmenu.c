@@ -2488,7 +2488,7 @@ static void
 menu_help_callback (help_string)
      char *help_string;
 {
-  show_help_echo (help_string ? build_string (help_string) : Qnil);
+  show_help_echo (help_string ? build_string (help_string) : Qnil, 1);
 }
 
 
