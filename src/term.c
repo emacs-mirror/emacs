@@ -79,7 +79,6 @@ static void tty_show_cursor P_ ((struct tty_display_info *));
 static void tty_hide_cursor P_ ((struct tty_display_info *));
 
 void delete_initial_display P_ ((struct display *));
-void delete_tty P_ ((struct display *));
 void create_tty_output P_ ((struct frame *));
 void delete_tty_output P_ ((struct frame *));
 
@@ -2868,18 +2867,30 @@ delete_tty (struct display *display)
   struct tty_display_info *tty;
   Lisp_Object tail, frame;
   char *tty_name;
+  int last_display;
   
   if (deleting_tty)
     /* We get a recursive call when we delete the last frame on this
        display. */
     return;
 
-  deleting_tty = 1;
-
   if (display->type != output_termcap)
     abort ();
 
   tty = display->display_info.tty;
+  
+  last_display = 1;
+  FOR_EACH_FRAME (tail, frame)
+    {
+      struct frame *f = XFRAME (frame);
+      if (FRAME_LIVE_P (f) && (!FRAME_TERMCAP_P (f) || FRAME_TTY (f) != tty))
+        {
+          last_display = 0;
+          break;
+        }
+    }
+  if (last_display)
+      error ("Attempt to delete the sole display with live frames");
   
   if (tty == tty_list)
     tty_list = tty->next;
@@ -2896,6 +2907,8 @@ delete_tty (struct display *display)
       p->next = tty->next;
       tty->next = 0;
     }
+
+  deleting_tty = 1;
 
   FOR_EACH_FRAME (tail, frame)
     {
