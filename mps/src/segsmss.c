@@ -1,6 +1,6 @@
 /* impl.c.segsmss: Segment splitting and merging stress test
  *
- * $HopeName: MMsrc!segsmss.c(trunk.2) $
+ * $HopeName: MMsrc!segsmss.c(trunk.3) $
  * Copyright (C) 2000.  Harlequin Limited.  All rights reserved.
  *
  * .design: Adapted from amsss.c (because AMS already supports 
@@ -332,11 +332,13 @@ static Res AMSTSegSizePolicy(Size *sizeReturn,
 static Res AMSTInit(Pool pool, va_list args)
 {
   AMST amst; AMS ams;
+  Format format;
   Res res;
 
   AVERT(Pool, pool);
 
-  res = AMSInit(pool, args);
+  format = va_arg(args, Format);
+  res = AMSInitInternal(PoolPoolAMS(pool), format);
   if(res != ResOK)
     return res;
   amst = PoolPoolAMST(pool);
