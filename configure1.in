@@ -20,11 +20,11 @@
 
 # Shell script to edit files and make symlinks in preparation for
 # compiling Emacs.
-# 
+#
 # Usage: configure machine
 #
 # If configure succeeds, it leaves its status in config.status.
-# If configure fails after disturbing the status quo, 
+# If configure fails after disturbing the status quo,
 # 	config.status is removed.
 #
 
@@ -95,16 +95,7 @@ lockdir=""
 window_system=""
 have_x_menu=""
 
-# This must be the only option on the line, and it can't be abbreviated.
-# This keeps it from interfering with the other, documented options.
-if [ "$*" = "+distribute" ]; then
-  libroot=/usr/local/lib/emacs
-  machine=hp300bsd
-  opsystem=bsd4-3
-  shift
-fi
-
-echo "Examining options..."
+echo "Examining options."
 for arg in $*; do
   case "${arg}" in
     -*)
@@ -190,7 +181,7 @@ if [ "${machine}" = "" ]; then
   exit 1
 fi
 
-echo "Checking machine..."
+echo "Checking the machine."
 machfile="m/${machine}.h"
 if [ ! -r src/${machfile} ]; then
   echo "${progname}: Emacs has no configuration info for the machine called
@@ -199,11 +190,11 @@ that Emacs has been ported to." 1>&2
   exit 1
 fi
 
-echo "Checking operating system..."
+echo "Checking the operating system."
 if [ "${opsystem}" = "" ]; then
 
   echo "  No operating system explicitly specified."
-  echo "  Guessing, based on machine..."
+  echo "  Guessing, based on machine."
   # Get the default operating system to go with the specified machine.
   opsystem=`grep 'USUAL-OPSYS="' src/${machfile} \
 	    | sed 's/^.*USUAL-OPSYS="\([^"]*\)".*$/\1/'`
@@ -251,21 +242,21 @@ systems that Emacs has been ported to." 1>&2
 fi
 
 if [ "${libroot}" = "" ]; then
-  echo "Guessing library directory..."
+  echo "Guessing library directory."
   libroot=`/bin/pwd`
 fi
 
-echo "Checking window system..."
+echo "Checking window system."
 window_system="`echo ${window_system} | tr A-Z a-z`"
 case "${window_system}" in
   "none" | "x11" | "x10" ) ;;
   "x" ) window_system=x11 ;;
   "" )
-    echo "  No window system specifed.  Looking for X Windows."    
+    echo "  No window system specifed.  Looking for X Windows."
     window_system=none
     if [ -r /usr/lib/libX11.a -a -d /usr/include/X11 ]; then
       window_system=x11
-    fi        
+    fi
   ;;
   * )
     echo "The \`-window_system' option must be set to \`none' or \`X11'." 1>&2
@@ -291,7 +282,7 @@ esac
 # What is the return type of a signal handler?  We grep
 # /usr/include/signal.h for the declaration of the signal function.
 # Yuck.
-echo "Looking for return type of signal handler functions..."
+echo "Looking for return type of signal handler functions."
 if [ -r /usr/include/signal.h ]; then
   sigpattern='[ 	]*([ 	]*\*[ 	]*signal[ 	]*('
   sigtype=void
@@ -301,37 +292,27 @@ if [ -r /usr/include/signal.h ]; then
 fi
 
 
-# Do the opsystem or machine files prohibit the use of the GNU malloc?
-echo "Checking to see if the GNU malloc routines are permissible..."
-if (cd ./src;grep SYSTEM_MALLOC ${opsysfile} ${machfile} > /dev/null); then
-  gnu_malloc=no
-  gnu_malloc_reason="
-  (The GNU allocators don't work with this machine and/or operating system.)"
-fi
-
-rel_alloc=${gnu_malloc}
-
 if [ "${have_x_menu}" = "" ]; then
   have_x_menu=no
 fi
 
 if [ "${lisppath}" = "" ]; then
-  lisppath=${libroot}/local-lisp:${libroot}/lisp
+  lisppath='$(locallisppath):$(lispdir)'
 fi
 
 if [ "${datadir}" = "" ]; then
-  datadir=${libroot}/etc
+  datadir='$(emacsdir)/etc'
 fi
 
 if [ "${libdir}" = "" ]; then
-  libdir=${libroot}/arch-lib
+  libdir='$(emacsdir)/arch-lib'
 fi
 
 if [ "${lockdir}" = "" ]; then
-  lockdir=${libroot}/lock
+  lockdir='$(statedir)/lock'
 fi
 
-echo "Checking for GCC..."
+echo "Checking for GCC."
 case "${cc}" in
   "" )
     temppath=`echo $PATH | sed 's/^:/.:/
@@ -352,8 +333,10 @@ case "${O},${g},${cc}" in
   ,,*   ) O=yes; g=no  ;;
 esac
 
-echo "Guessing which libraries the lib-src programs will want,"
-echo "  based on the machine- and system-dependent files..."
+echo "Examining the machine- and system-dependent files to find out"
+echo " - which libraries the lib-src programs will want, and"
+echo " - whether the GNU malloc routines are usable."
+tempcname="configure.tmp.$$.c"
 echo '#include "src/'${machfile}'"
 #include "src/'${opsysfile}'"
 #ifndef LIBS_MACHINE
@@ -363,15 +346,31 @@ echo '#include "src/'${machfile}'"
 #define LIBS_SYSTEM
 #endif
 libsrc_libs=LIBS_MACHINE LIBS_SYSTEM
-' > config-tmp-$$.c
-eval `${cc} -E config-tmp-$$.c | grep 'libsrc_libs='`
-rm config-tmp-$$.c
+#ifdef SYSTEM_MALLOC
+system_malloc=yes
+#else
+system_malloc=no
+#endif
+' > ${tempcname}
+eval `${cc} -E ${tempcname} | grep -v '^#' | grep -v '^[ 	]*$'`
+rm ${tempcname}
+
+# Do the opsystem or machine files prohibit the use of the GNU malloc?
+if [ "${system_malloc}" = "yes" ]; then
+  gnu_malloc=no
+  gnu_malloc_reason="
+  (The GNU allocators don't work with this machine and/or operating system.)"
+fi
+
+if [ ! "${rel_alloc}" ]; then
+  rel_alloc=${gnu_malloc}
+fi
 
 rm -f config.status
 set -e
 
 # Make the proper settings in the config file.
-echo "Making src/config.h from src/config.h-dist"
+echo "Making src/config.h from src/config.h.in"
 if [ "${highpri}" != "" ]; then
   highpri="(-${highpri})"
 fi
@@ -399,48 +398,69 @@ for flag in `echo ${config_h_opts} | tr ':' ' '`; do
   esac
   sed_flags="${sed_flags} ${f}"
 done
-eval '/bin/sed '${sed_flags}' < src/config.h-dist > src/config.h'
+rm -f src/config.h
+eval '/bin/sed '${sed_flags}' < src/config.h.in > src/config.h'
+# Remind people not to edit this.
+chmod -w src/config.h
 
 # Modify the parameters in the top makefile.
-echo "Editing ./Makefile..."
-tempMakefile="tempMakefile"$$
-/bin/sed < Makefile > ${tempMakefile}			\
--e 's;^\(LIBROOT=\).*$;\1'"${libroot};"			\
--e 's;^\(BINDIR=\).*$;\1'"${bindir};"			\
--e 's;^\(LISPPATH=\).*$;\1'"${lisppath};"		\
--e 's;^\(DATADIR=\).*$;\1'"${datadir};"			\
--e 's;^\(LOCKDIR=\).*$;\1'"${lockdir};"			\
--e 's;^\(LIBDIR=\).*$;\1'"${libdir};"
-mv ${tempMakefile} Makefile
+echo "Producing ./Makefile from ./Makefile.in."
+rm -f ./Makefile
+(echo "# This file is generated by \`${progname}' from \`./Makefile.in'.
+# If you are thinking about editing it, you should seriously consider
+# editing \`./Makefile.in' itself, or running \`${progname}' instead."
+ /bin/sed < Makefile.in					\
+ -e '/^# DIST: /d'					\
+ -e 's;^\(emacsdir=\).*$;\1'"${libroot};"		\
+ -e 's;^\(bindir=\).*$;\1'"${bindir};"			\
+ -e 's;^\(lisppath=\).*$;\1'"${lisppath};"		\
+ -e 's;^\(datadir=\).*$;\1'"${datadir};"		\
+ -e 's;^\(lockdir=\).*$;\1'"${lockdir};"		\
+ -e 's;^\(libdir=\).*$;\1'"${libdir};") > ./Makefile
+# Remind people not to edit this.
+chmod -w ./Makefile
 
 # Modify the parameters in the `build-install' script.
-echo "Editing ./build-install..."
-tempbi="tempbi"$$
-/bin/sed < build-install > ${tempbi}		\
--e 's;^\(LIBROOT=\).*$;\1'"${libroot};"		\
--e 's;^\(BINDIR=\).*$;\1'"${bindir};"	\
--e 's;^\(LISPPATH=\).*$;\1'"${lisppath};"	\
--e 's;^\(DATADIR=\).*$;\1'"${datadir};"		\
--e 's;^\(LOCKDIR=\).*$;\1'"${lockdir};"		\
--e 's;^\(LIBDIR=\).*$;\1'"${libdir};"
-mv ${tempbi} build-install
-chmod a+x build-install
+echo "Producing ./build-install from ./build-install.in."
+rm -f ./build-install
+(echo "# This file is generated by \`${progname}' from \`./build-install.in'.
+# If you are thinking about editing it, you should seriously consider
+# editing \`./build-install.in' itself, or running \`${progname}' instead."
+ /bin/sed < build-install.in				\
+ -e 's;^\(LIBROOT=\).*$;\1'"${libroot};"		\
+ -e 's;^\(BINDIR=\).*$;\1'"${bindir};"			\
+ -e 's;^\(LISPPATH=\).*$;\1'"${lisppath};"		\
+ -e 's;^\(DATADIR=\).*$;\1'"${datadir};"		\
+ -e 's;^\(LOCKDIR=\).*$;\1'"${lockdir};"		\
+ -e 's;^\(LIBDIR=\).*$;\1'"${libdir};") > ./build-install
+# Remind people not to edit this.
+chmod -w build-install
+chmod +x build-install
 
 # Modify the parameters in the src makefile.
-echo "Editing src/Makefile..."
-tempMakefile="tempMakefile"$$
-/bin/sed < src/Makefile > ${tempMakefile}		\
--e 's;^\(CC[ ]*=\).*$;\1'"${cc};"
-mv ${tempMakefile} src/Makefile
+echo "Producing src/Makefile from src/Makefile.in."
+rm -f src/Makefile
+(echo "# This file is generated by \`${progname}' from \`Makefile.in'.
+# If you are thinking about editing it, you should seriously consider
+# editing \`Makefile.in' itself, or running \`${progname}' instead."
+ /bin/sed < src/Makefile.in				\
+ -e 's;^\(CC[ ]*=\).*$;\1'"${cc};") > src/Makefile
+# Remind people not to edit this.
+chmod -w src/Makefile
 
 # Modify the parameters in the lib-src makefile.
-echo "Editing lib-src/Makefile..."
-tempMakefile="tempMakefile"$$
-/bin/sed < lib-src/Makefile > ${tempMakefile}		\
--e 's;^\(CFLAGS=\).*$;\1'"${c_switch_site};"		\
--e 's;^\(LOADLIBES=\).*$;\1'"${libsrc_libs};"		\
--e 's;^\(CC=\).*$;\1'"${cc};"
-mv ${tempMakefile} lib-src/Makefile
+echo "Producing lib-src/Makefile from lib-src/Makefile.in."
+rm -f lib-src/Makefile
+(echo "# This file is generated by \`${progname}' from \`Makefile.in'.
+# If you are thinking about editing it, you should seriously consider
+# editing \`Makefile.in' itself, or running \`${progname}' instead."
+ /bin/sed < lib-src/Makefile.in				\
+ -e 's;^\(CFLAGS=\).*$;\1'"${c_switch_site};"		\
+ -e 's;^\(LOADLIBES=\).*$;\1'"${libsrc_libs};"		\
+ -e 's;^\(CC=\).*$;\1'"${cc};") > lib-src/Makefile
+# Remind people not to edit this.
+chmod -w lib-src/Makefile
+
 
 # Create a verbal description of what we have done.
 message="# Configured for machine \`${machine}' running \`${opsystem}'.
@@ -476,7 +496,7 @@ echo "# This file is generated by \`${progname}.'
 " >> config.status
 echo "${message}" >> config.status
 echo "'${progname}' \\
-	-machine='${machine}' \\ 
+	-machine='${machine}' \\
 	-opsystem='${opsystem}' \\
         -g=${g} \\
 	-O=${O} \\
@@ -488,10 +508,12 @@ echo "'${progname}' \\
 	-lockdir='${lockdir}' \\
 	-window_system='${window_system}' \\
 	-have_x_menu='${have_x_menu}' \\
-	-gnu_malloc='${gnu_malloc}'
-	-rel_malloc='${rel_alloc}' \\
+	-gnu_malloc='${gnu_malloc}' \\
+	-rel_alloc='${rel_alloc}' \\
 	-highpri='${highpri}' \\
 	-lisp_float_type='${lisp_float_type}'" >> config.status
+# Remind people not to edit this.
+chmod -w config.status
 chmod +x config.status
 
 # Print the description.

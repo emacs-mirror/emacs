@@ -1,5 +1,5 @@
 /* Call a Lisp function interactively.
-   Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -177,12 +177,14 @@ Otherwise, this is done only if an arg is read using the minibuffer.")
   /* Save this now, since use ofminibuffer will clobber it. */
   prefix_arg = Vcurrent_prefix_arg;
 
-retry:
+ retry:
 
   for (fun = function;
        XTYPE (fun) == Lisp_Symbol && !EQ (fun, Qunbound);
        fun = XSYMBOL (fun)->function)
-    ;
+    {
+      QUIT;
+    }
 
   specs = Qnil;
   string = 0;
@@ -231,8 +233,14 @@ retry:
   else
     goto lose;
 
+  /* If either specs or string is set to a string, use it.  */
   if (XTYPE (specs) == Lisp_String)
-    string = XSTRING (specs)->data;
+    {
+      /* Make a copy of string so that if a GC relocates specs,
+	 `string' will still be valid.  */
+      string = (char *) alloca (XSTRING (specs)->size + 1);
+      bcopy (XSTRING (specs)->data, string, XSTRING (specs)->size + 1);
+    }
   else if (string == 0)
     {
       i = num_input_chars;
@@ -297,7 +305,7 @@ retry:
   gcpro4.nvars = (count + 1);
 
   tem = string;
-   for (i = 1; *tem; i++)
+  for (i = 1; *tem; i++)
     {
       strncpy (prompt1, tem + 1, sizeof prompt1 - 1);
       prompt1[sizeof prompt1 - 1] = 0;
@@ -309,7 +317,7 @@ retry:
 	argstrings[j]
 	  = EQ (visargs[j], Qnil)
 	    ? (unsigned char *) ""
-	    : XSTRING (visargs[j])->data;
+	      : XSTRING (visargs[j])->data;
 
       doprnt (prompt, sizeof prompt, prompt1, 0, j - 1, argstrings + 1);
 

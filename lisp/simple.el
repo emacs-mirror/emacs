@@ -136,7 +136,7 @@ In some text modes, where TAB inserts a tab, this indents to the
 specified left-margin column."
   (interactive "*")
   (delete-region (point) (progn (skip-chars-backward " \t") (point)))
-  (insert ?\n)
+  (newline)
   (indent-according-to-mode))
 
 (defun reindent-then-newline-and-indent ()
@@ -150,7 +150,7 @@ specified left-margin column."
   (save-excursion
     (delete-region (point) (progn (skip-chars-backward " \t") (point)))
     (indent-according-to-mode))
-  (insert ?\n)
+  (newline)
   (indent-according-to-mode))
 
 ;; Internal subroutine of delete-char
@@ -748,7 +748,8 @@ the text which should be made available.")
 
 (defun copy-region-as-kill (beg end)
   "Save the region as if killed, but don't kill it.
-If `x-select-kill' is non-nil, also save the text for X cut and paste."
+If `interprogram-cut-function' is non-nil, also save the text for a window
+system cut and paste."
   (interactive "r")
   (if (eq last-command 'kill-region)
       (kill-append (buffer-substring beg end) (< end beg))

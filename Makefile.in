@@ -1,83 +1,131 @@
-# This is the distribution Makefile for Emacs.  configure can make
-# most of the changes to this file you might want, so try that first.
+# DIST: This is the distribution Makefile for Emacs.  configure can
+# DIST: make most of the changes to this file you might want, so try
+# DIST: that first.
 
-# make all	to compile and build Emacs
-# make install	to install it
-# make install.sysv  to install on system V.
-# make install.xenix  to install on Xenix
+# make all	to compile and build Emacs.
+# make install	to install it.
+# make install.sysv to install on system V.  Note that on system V you
+#		must change mandir to /usr/local/man/man1.
+# make install.xenix  to install on Xenix.
 # make install.aix    to install on AIX.
-# make tags	to update tags tables
+# make tags	to update tags tables.
 #
-# make distclean	to delete everything that wasn't in the distribution
+# make distclean	to delete everything that wasn't in the distribution.
 #	This is a very dangerous thing to do!
 # make clean
-#       This is a little less dangerous.
+#	This is a little less dangerous.
 
 SHELL = /bin/sh
 
-# ==================== Where to install things ====================
-# Note that on system V you must change MANDIR to /usr/local/man/man1.
+# ==================== Where To Install Things ====================
 
-# Where to install all of Emacs's data files - the lisp code,
-# documentation tree, and the architecture-dependent and -independent
-# libraries.  If this is not the directory we're building under
-# already, the `install' targets will move or copy it there.  The
-# default definitions for the variables below are expressed in terms
-# of this one, so you may not need to change them.
-LIBROOT=/home/gd/gnu/emacs
+# The default location for installation.  Everything is placed in
+# subdirectories of this directory.  This directory must exist when
+# you start installation.  The default values for many of the
+# variables below are expressed in terms of this one, so you may not
+# need to change them.
+prefix=/usr/local
 
-# This is where the `install' make target should place the binaries
-# people will want to run directly (like etags and Emacs itself).
-INSTALLBIN=/usr/local/bin
+# Where to install Emacs and other binaries that people will want to
+# run directly (like etags).
+bindir=$(prefix)/bin
 
-# Emacs will search this path to find its elisp files.  This should be
-# a colon-separated list of directories.  Strictly speaking, all the
-# elisp files should go under DATADIR (below), since both elisp source
-# and compiled elisp are completely portable, but it's traditional to
-# give the lisp files their own subdirectory.
-LISPPATH=/home/gd/gnu/emacs/local-lisp:/home/gd/gnu/emacs/lisp
+# A directory under which we will install many of Emacs's files.  The
+# default values for many of the variables below are expressed in
+# terms of this one, so you may not need to change them.
+emacsdir=$(prefix)/emacs-19.0
 
-# Emacs will look here for its architecture-independent files (like
-# the tutorial and the zippy database).
-DATADIR=/home/gd/gnu/emacs/etc
+# Where to install and expect the architecture-independent data files
+# (like the tutorial and the Zippy database).
+datadir=$(emacsdir)/etc
 
-# Emacs will look here for its architecture-dependent files, like
-# executables for its utilities.
-LIBDIR=/home/gd/gnu/emacs/arch-lib
+# Where to install the elisp files distributed with Emacs.  Strictly
+# speaking, all the elisp files should go under datadir (above), since
+# both elisp source and compiled elisp are completely portable, but
+# it's traditional to give the lisp files their own subdirectory.
+lispdir=$(emacsdir)/lisp
 
-# The locking directory, where the Emacs locking code keeps track of
-# which files are currently being edited.
-LOCKDIR=/home/gd/gnu/emacs/lock
+# Directories Emacs should search for elisp files specific to this
+# site (i.e. customizations), before consulting $(lispdir).  This
+# should be a colon-separated list of directories.
+locallisppath=$(emacsdir)/local-lisp
 
-# This is where the `install' make target should place the man pages
-# for the binaries it installs.
-MANDIR= /usr/man/man1
+# Where Emacs will search to find its elisp files.  Before changing
+# this, check to see if your purpose wouldn't better be served by
+# changing locallisppath.  This should be a colon-separated list of
+# directories.
+lisppath=$(locallisppath):$(lispdir)
+
+# Where Emacs will search for its elisp files before dumping.  This is
+# only used during the process of compiling Emacs, to help Emacs find
+# its lisp files before they've been installed in their final
+# location.  It's usually identical to lisppath, except that the entry
+# for the directory containing the installed lisp files has been
+# replaced with ../lisp.  This should be a colon-separated list of
+# directories.
+dumplisppath=$(locallisppath):../lisp
+
+# Where to install and expect the files that Emacs modifies as it
+# runs.	 These files are all architecture-independent.	Right now,
+# the only such data is the locking directory.
+statedir=$(emacsdir)
+
+# Where to create and expect the locking directory, where the Emacs
+# locking code keeps track of which files are currently being edited.
+lockdir=$(statedir)/lock
+
+# Where to install and expect executable files to be run by Emacs
+# rather than directly by users, and other architecture-dependent
+# data.
+libdir=$(emacsdir)/arch-lib
+
+# Where to install Emacs's man pages.
+mandir=/usr/man/man1
+
+# Where to install and expect the info files describing Emacs.	In the
+# past, this defaulted to a subdirectory of $(prefix)/lib/emacs, but
+# since there are now many packages documented with the texinfo
+# system, it is inappropriate to imply that it is part of Emacs.
+infodir=$(prefix)/info
 
 
+# ==================== Utility Programs for the Build ====================
+
+# Allow the user to specify the install program.
+INSTALL = install
+INSTALLFLAGS = -c
+INSTALL_PROGRAM = ${INSTALL}
+INSTALL_DATA = ${INSTALL}
+
+
+# ============================= Targets ==============================
 
 # Flags passed down to subdirectory makefiles.
-MFLAGS=
+MFLAGS =
 
 # Subdirectories to make recursively.  `lisp' is not included
 # because the compiled lisp files are part of the distribution
 # and you cannot remake them without installing Emacs first.
-SUBDIR= lib-src src
+SUBDIR = lib-src src
 
-# Subdirectories to install
-COPYDIR= arch-lib etc info lisp
-
-# Subdirectories to clean
-CLEANDIR= ${COPYDIR} lisp/term
+# Subdirectories to install, and where they'll go.
+COPYDIR = arch-lib etc info lisp
+COPYDESTS = $(libdir) $(datadir) $(infodir) $(lispdir)
 
 all:	src/paths.h ${SUBDIR}
 
-src/paths.h: Makefile src/paths.h-dist
-	/bin/sed < src/paths.h-dist > src/paths.h			\
-	-e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "$(LISPPATH)";'		\
-	-e 's;\(#.*PATH_EXEC\).*$$;\1 "$(LIBDIR)";'			\
-	-e 's;\(#.*PATH_DATA\).*$$;\1 "$(DATADIR)";'			\
-	-e 's;\(#.*PATH_LOCK\).*$$;\1 "$(LOCKDIR)/";'			\
-	-e 's;\(#.*PATH_SUPERLOCK\).*$$;\1 "$(LOCKDIR)/!!!SuperLock!!!";'
+removenullpaths=sed -e 's/^://' -e 's/:$$//' -e 's/::/:/'
+
+src/paths.h: Makefile src/paths.h.in
+	lisppath=`echo $(lisppath) | $(removenullpaths)` ;		\
+	dumplisppath=`echo $(dumplisppath) | $(removenullpaths)` ;	\
+	/bin/sed < src/paths.h.in > src/paths.h			\
+	-e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'$${lisppath}'";'		\
+	-e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "'$${dumplisppath}'";'	\
+	-e 's;\(#.*PATH_EXEC\).*$$;\1 "$(libdir)";'			\
+	-e 's;\(#.*PATH_DATA\).*$$;\1 "$(datadir)";'			\
+	-e 's;\(#.*PATH_LOCK\).*$$;\1 "$(lockdir)/";'			\
+	-e 's;\(#.*PATH_SUPERLOCK\).*$$;\1 "$(lockdir)/!!!SuperLock!!!";'
 
 src:	lib-src
 
@@ -87,93 +135,142 @@ ${SUBDIR}: FRC
 	cd $@; make ${MFLAGS} all
 
 install: all mkdir lockdir
-	-if [ `/bin/pwd` != `(cd ${LIBROOT}; /bin/pwd)` ] ; then \
-		tar cf - ${COPYDIR} | (cd ${LIBROOT}; umask 0; tar xf - ) ;\
-		for i in ${CLEANDIR}; do \
-			(rm -rf ${LIBROOT}/$$i/RCS; \
-			 rm -f ${LIBROOT}/$$i/\#*; \
-			 rm -f ${LIBROOT}/$$i/*~); \
-		done \
-	else true; \
-	fi
-	install -c -s arch-lib/emacsclient ${INSTALLBIN}/emacsclient
-	install -c -s arch-lib/etags ${INSTALLBIN}/etags
-	install -c -s arch-lib/ctags ${INSTALLBIN}/ctags
-	install -c -s -m 1755 src/xemacs ${INSTALLBIN}/xemacs
-	install -c -m 444 etc/emacs.1 ${MANDIR}/emacs.1
-	-rm -f ${INSTALLBIN}/emacs
-	mv ${INSTALLBIN}/xemacs ${INSTALLBIN}/emacs
+	-set ${COPYDESTS} ; \
+	 for dir in ${COPYDIR} ; do \
+	   dest=$$1 ; shift ; \
+	   if [ `/bin/pwd`/$${dir} != `(cd $${dest}; /bin/pwd)` ] ; then \
+	     (cd $${dir}; tar cf - . ) | (cd $${dest}; umask 0; tar xf - ) ; \
+	     for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
+	       rm -rf $${subdir}/RCS ; \
+	       rm -f  $${subdir}/\#* ; \
+	       rm -f  $${subdir}/*~ ; \
+	     done ; \
+	   fi ; \
+	 done
+	${INSTALL_PROGRAM} ${INSTALLFLAGS} -c arch-lib/emacsclient ${bindir}/emacsclient
+	${INSTALL_PROGRAM} ${INSTALLFLAGS} -c arch-lib/etags ${bindir}/etags
+	${INSTALL_PROGRAM} ${INSTALLFLAGS} -c arch-lib/ctags ${bindir}/ctags
+	${INSTALL_PROGRAM} ${INSTALLFLAGS} -c -m 1755 src/xemacs ${bindir}/xemacs
+	${INSTALL_DATA} ${INSTALLFLAGS} -c -m 444 etc/emacs.1 ${mandir}/emacs.1
+	-rm -f ${bindir}/emacs
+	mv ${bindir}/xemacs ${bindir}/emacs
 
 install.sysv: all mkdir lockdir
-	-if [ `/bin/pwd` != `(cd ${LIBROOT}; /bin/pwd)` ] ; then \
-		find ${COPYDIR} -print | cpio -pdum ${LIBROOT} ;\
-		for i in ${CLEANDIR}; do \
-			(rm -rf ${LIBROOT}/$$i/RCS; \
-			 rm -f ${LIBROOT}/$$i/\#*; \
-			 rm -f ${LIBROOT}/$$i/*~); \
-		done \
-	else true; \
-	fi
-	-cpset arch-lib/emacsclient ${INSTALLBIN}/emacsclient 755 bin bin
-	-cpset arch-lib/etags ${INSTALLBIN}/etags 755 bin bin
-	-cpset arch-lib/ctags ${INSTALLBIN}/ctags 755 bin bin
-	-cpset etc/emacs.1 ${MANDIR}/emacs.1 444 bin bin
-	-/bin/rm -f ${INSTALLBIN}/emacs
-	-cpset src/xemacs ${INSTALLBIN}/emacs 1755 bin bin
+	-set ${COPYDESTS} ; \
+	 for dir in ${COPYDIR} ; do \
+	   dest=$$1 ; shift ; \
+	   if [ `/bin/pwd`/$${dir} != `(cd $${dest}; /bin/pwd)` ] ; then \
+	     (cd $${dir}; find . -print | cpio -pdum ${dest} ) ; \
+	     for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
+	       rm -rf $${subdir}/RCS ; \
+	       rm -f  $${subdir}/\#* ; \
+	       rm -f  $${subdir}/*~ ; \
+	     done ; \
+	   fi ; \
+	 done
+	-cpset arch-lib/emacsclient ${bindir}/emacsclient 755 bin bin
+	-cpset arch-lib/etags ${bindir}/etags 755 bin bin
+	-cpset arch-lib/ctags ${bindir}/ctags 755 bin bin
+	-cpset etc/emacs.1 ${mandir}/emacs.1 444 bin bin
+	-/bin/rm -f ${bindir}/emacs
+	-cpset src/xemacs ${bindir}/emacs 1755 bin bin
   
 install.xenix: all mkdir lockdir
-	if [ `pwd` != `(cd ${LIBROOT}; pwd)` ] ; then \
-		tar cf - ${COPYDIR} | (cd ${LIBROOT}; umask 0; tar xpf - ) ;\
-		for i in ${CLEANDIR}; do \
-			(rm -rf ${LIBROOT}/$$i/RCS; \
-			 rm -f ${LIBROOT}/$$i/\#*; \
-			 rm -f ${LIBROOT}/$$i/*~); \
-		done \
-	else true; \
-	fi
-	cp arch-lib/etags arch-lib/ctags arch-lib/emacsclient ${INSTALLBIN}
-	chmod 755 ${INSTALLBIN}/etags ${INSTALLBIN}/ctags ${INSTALLBIN}/emacsclient
-	cp etc/emacs.1 ${MANDIR}/emacs.1
-	chmod 444 ${MANDIR}/emacs.1
-	-mv -f ${INSTALLBIN}/emacs ${INSTALLBIN}/emacs.old
-	cp src/xemacs ${INSTALLBIN}/emacs
-	chmod 1755 ${INSTALLBIN}/emacs
-	-rm -f ${INSTALLBIN}/emacs.old
+	-set ${COPYDESTS} ; \
+	 for dir in ${COPYDIR} ; do \
+	   dest=$$1 ; shift ; \
+	   if [ `/bin/pwd`/$${dir} != `(cd $${dest}; /bin/pwd)` ] ; then \
+	     (cd $${dir}; tar cf - . ) | (cd $${dest}; umask 0; tar xpf - ) ; \
+	     for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
+	       rm -rf $${subdir}/RCS ; \
+	       rm -f  $${subdir}/\#* ; \
+	       rm -f  $${subdir}/*~ ; \
+	     done ; \
+	   fi ; \
+	 done
+	cp arch-lib/etags arch-lib/ctags arch-lib/emacsclient ${bindir}
+	chmod 755 ${bindir}/etags ${bindir}/ctags ${bindir}/emacsclient
+	cp etc/emacs.1 ${mandir}/emacs.1
+	chmod 444 ${mandir}/emacs.1
+	-mv -f ${bindir}/emacs ${bindir}/emacs.old
+	cp src/xemacs ${bindir}/emacs
+	chmod 1755 ${bindir}/emacs
+	-rm -f ${bindir}/emacs.old
 
 install.aix: all mkdir lockdir
-	-if [ `/bin/pwd` != `(cd ${LIBROOT}; /bin/pwd)` ] ; then \
-		tar cf - ${COPYDIR} | (cd ${LIBROOT}; umask 0; tar xBf - ) ;\
-		for i in ${CLEANDIR}; do \
-			(rm -rf ${LIBROOT}/$$i/RCS; \
-			 rm -f ${LIBROOT}/$$i/\#*; \
-			 rm -f ${LIBROOT}/$$i/*~); \
-		done \
-	else true; \
-	fi
-	install -f ${INSTALLBIN} etc/emacsclient
-	install -f ${INSTALLBIN} etc/etags
-	install -f ${INSTALLBIN} etc/ctags
-	install -M 1755 -f ${INSTALLBIN} src/xemacs
-	install -M 444 -f ${MANDIR} etc/emacs.1
-	-rm -f ${INSTALLBIN}/emacs
-	mv ${INSTALLBIN}/xemacs ${INSTALLBIN}/emacs
+	-set ${COPYDESTS} ; \
+	 for dir in ${COPYDIR} ; do \
+	   dest=$$1 ; shift ; \
+	   if [ `/bin/pwd`/$${dir} != `(cd $${dest}; /bin/pwd)` ] ; then \
+	     (cd $${dir}; tar cf - . ) | (cd $${dest}; umask 0; tar xBf - ) ; \
+	     for subdir in `find $${dest} -type d ! -name RCS -print` ; do \
+	       rm -rf $${subdir}/RCS ; \
+	       rm -f  $${subdir}/\#* ; \
+	       rm -f  $${subdir}/*~ ; \
+	     done ; \
+	   fi ; \
+	 done
+	${INSTALL_PROGRAM} ${INSTALLFLAGS} -f ${bindir} etc/emacsclient
+	${INSTALL_PROGRAM} ${INSTALLFLAGS} -f ${bindir} etc/etags
+	${INSTALL_PROGRAM} ${INSTALLFLAGS} -f ${bindir} etc/ctags
+	${INSTALL_PROGRAM} ${INSTALLFLAGS} -M 1755 -f ${bindir} src/xemacs
+	${INSTALL_DATA} ${INSTALLFLAGS} -M 444 -f ${mandir} etc/emacs.1
+	-rm -f ${bindir}/emacs
+	mv ${bindir}/xemacs ${bindir}/emacs
 
+# Build all the directories
 mkdir: FRC
-	-mkdir ${LIBROOT}
-	-chmod 777 ${LIBROOT}
-
-distclean:
-	for i in ${SUBDIR}; do (cd $$i; make ${MFLAGS} distclean); done
-
-clean:
-	cd src; make clean
-	cd lib-src; make clean
+	# If any of the directories are below ${emacsdir}, create it.
+	-for dir in ${COPYDESTS}; do \
+	   case "$${dir}" in \
+	     ${emacsdir}/* ) \
+	       if [ ! -d ${emacsdir} ]; then \
+		 -mkdir ${emacsdir} ; \
+		 -chmod 777 ${emacsdir} ; \
+	       fi ; \
+	       break\
+	     ;; \
+	   esac ; \
+	 done
+	-mkdir ${COPYDESTS}
+	-chmod 777 ${COPYDESTS}
 
 lockdir:
+	# If the lockdir needs ${emacsdir}, create it.
+	-case "${lockdir}" in \
+	   ${statedir}/* ) \
+	     if [ ! -d ${emacsdir} ]; then \
+	       -mkdir ${emacsdir} ; \
+	       -chmod 777 ${emacsdir} ; \
+	     fi \
+	   ;; \
+	 esac
 	-mkdir ${LOCKDIR}
 	-chmod 777 ${LOCKDIR}
 
 FRC:
 
-tags:	lib-src
+clean mostlyclean:
+	cd src; make clean
+	if [ `/bin/pwd` != `(cd ${DESTDIR}${LIBDIR}; /bin/pwd)` ] ; then \
+		cd etc; make clean; \
+	else true; \
+	fi
+	cd oldXMenu; make clean
+
+distclean:
+	for i in ${SUBDIR}; do (cd $$i; make ${MFLAGS} distclean); done
+	-(cd lock; rm *)
+	-rm config.status config-tmp-*
+	-rm #*# *~
+
+realclean:
+	for i in ${SUBDIR}; do (cd $$i; make ${MFLAGS} realclean); done
+	(cd lock; rm *)
+	rm config.status
+
+TAGS tags:	lib-src
 	cd src; ../arch-lib/etags *.[ch] ../lisp/*.el ../lisp/term/*.el
+
+check:
+	@echo "We don't have any tests for GNU Emacs yet."

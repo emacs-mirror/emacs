@@ -477,10 +477,10 @@ compute_motion (from, fromvpos, fromhpos, to, tovpos, tohpos, width, hscroll, ta
 	      /* A visible line.  */
 	      vpos++;
 	      hpos = 0;
-	      hpos -= hscroll;
-	      if (hscroll > 0) hpos++; /* Count the ! on column 0 */
-	      tab_offset = 0;
-	    }
+	  hpos -= hscroll;
+	  if (hscroll > 0) hpos++; /* Count the ! on column 0 */
+	  tab_offset = 0;
+	}
 	}
       else if (c == CR && selective < 0)
 	{

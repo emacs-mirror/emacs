@@ -1,5 +1,5 @@
 ;; Print Emacs buffer on line printer.
-;; Copyright (C) 1985, 1988 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1988, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -24,7 +24,7 @@
 
 (defvar lpr-command (if (eq system-type 'usg-unix-v)
 			"lp" "lpr")
-  "Shell command for printing a file")
+  "*Shell command for printing a file")
 
 (defvar print-region-function nil
   "Function to call to print the region on a printer.

@@ -1,5 +1,5 @@
 ;; "RMAIL" mail reader for Emacs.
-;; Copyright (C) 1985, 1986, 1987, 1988, 1991 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1988, 1991, 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -98,6 +98,11 @@ Called with region narrowed to unformatted header.")
 (defvar rmail-last-multi-labels nil)
 (defvar rmail-last-file nil)
 (defvar rmail-last-rmail-file nil)
+
+(defvar rmail-unix-mail-delimiter
+  "From \\([^ \n]*\\(\\|\".*\"[^ \n]*\\)\\)  ?\\([^ \n]*\\) \\([^ ]*\\) *\\([0-9]*\\) \\([0-9:]*\\)\\( ?[A-Z]?[A-Z][A-Z]T\\( DST\\)?\\| ?[-+]?[0-9][0-9][0-9][0-9]\\|\\) [0-9][0-9]\\([0-9]*\\) *\\(remote from [^\n]*\\)?\n"
+   "Regexp matching the delimiter of messages in UNIX mail format (UNIX From lines), minus the
+initial ^.  ")
 
 ;;;; *** Rmail Mode ***
 
@@ -634,9 +639,8 @@ argument causes us to read a file name and use that file as the inbox."
 	       (rmail-nuke-pinhead-header)
 	       (if (re-search-forward
 		    (concat "^[\^_]?\\("
-			    "From [^ \n]*\\(\\|\".*\"[^ \n]*\\)  ?[^ \n]* [^ \n]* *"
-			    "[0-9]* [0-9:]*\\( ?[A-Z]?[A-Z][A-Z]T\\| ?[-+]?[0-9][0-9][0-9][0-9]\\|\\) " ; EDT, -0500
-			    "[0-9]+ *\\(remote from [^\n]*\\)?$\\|"
+			    rmail-unix-mail-delimiter
+			    "\\|"
 			    mmdf-delim1 "\\|"
 			    "^BABYL OPTIONS:\\|"
 			    "\^L\n[01],\\)") nil t)
@@ -681,8 +685,7 @@ argument causes us to read a file name and use that file as the inbox."
 	  (setq has-date (and (search-forward "\nDate:" nil t) (point)))
 	  (goto-char start))
 	(let ((case-fold-search nil))
-	  (if (re-search-forward
-	       "^From \\([^ ]*\\(\\|\".*\"[^ ]*\\)\\)  ?\\([^ ]*\\) \\([^ ]*\\) *\\([0-9]*\\) \\([0-9:]*\\)\\( ?[A-Z]?[A-Z][A-Z]T\\| ?[-+]?[0-9][0-9][0-9][0-9]\\|\\) [0-9][0-9]\\([0-9]*\\) *\\(remote from [^\n]*\\)?\n" nil t)
+	  (if (re-search-forward (concat "^" rmail-unix-mail-delimiter) nil t)
 	      (replace-match
 		(concat
 		  "Mail-from: \\&"
@@ -692,8 +695,8 @@ argument causes us to read a file name and use that file as the inbox."
 		      ""
 		    ;; If no time zone specified, assume est.
 		    (if (= (match-beginning 7) (match-end 7))
-			"Date: \\3, \\5 \\4 \\8 \\6 EST\n"
-			"Date: \\3, \\5 \\4 \\8 \\6\\7\n"))
+			"Date: \\3, \\5 \\4 \\9 \\6 EST\n"
+			"Date: \\3, \\5 \\4 \\9 \\6\\7\n"))
 		  ;; Keep and reformat the sender if we don't
 		  ;; have a From: field.
 		  (if has-from

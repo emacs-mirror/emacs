@@ -2,60 +2,149 @@
 #
 #Shell script for building and installing Emacs.
 
+# ==================== Where To Install Things ====================
+
+# The default location for installation.  Everything is placed in
+# subdirectories of this directory.  This directory must exist when
+# you start installation.  The default values for many of the
+# variables below are expressed in terms of this one, so you may not
+# need to change them.
+prefix=/usr/local
+
+# Where to install Emacs and other binaries that people will want to
+# run directly (like etags).
+bindir=${prefix}/bin
+
+# A directory under which we will install many of Emacs's files.  The
+# default values for many of the variables below are expressed in
+# terms of this one, so you may not need to change them.
+emacsdir=${prefix}/lib/emacs-19.0
+
+# Where to install and expect the architecture-independent data files
+# (like the tutorial and the zippy database).
+datadir=${emacsdir}/etc
+
+# Where to install the elisp files distributed with Emacs.
+lispdir=${emacsdir}/lisp
+
+# Where Emacs will search to find its elisp files.  This should be a
+# colon-separated list of directories.	Strictly speaking, all the
+# elisp files should go under datadir (above), since both elisp source
+# and compiled elisp are completely portable, but it's traditional to
+# give the lisp files their own subdirectory.
+lisppath=${emacsdir}/local-lisp:${lispdir}
+
+# Where to install and expect the files that Emacs modifies as it
+# runs.	 These files are all architecture-independent.	Right now,
+# the only such data is the locking directory.
+statedir=${emacsdir}
+
+# Where to create and expect the locking directory, where the Emacs
+# locking code keeps track of which files are currently being edited.
+lockdir=${statedir}/lock
+
+# Where to install and expect executable files to be run by Emacs
+# rather than directly by users, and other architecture-dependent
+# data.
+libdir=${emacsdir}/arch-lib
+
+# Where to install Emacs's man pages.
+mandir=/usr/man/man1
+
+# Where to install and expect the info files describing Emacs.	In the
+# past, this defaulted to a subdirectory of ${prefix}/lib/emacs, but
+# since there are now many packages documented with the texinfo
+# system, it is inappropriate to imply that it is part of Emacs.
+infodir=${prefix}/info
+
+scum
+
+
 # Where to install all of Emacs's data files - the lisp code,
 # documentation tree, and the architecture-dependent and -independent
 # libaries.  The default definitions for the variables below are
 # expressed in terms of this one, so you may not need to change them.
 # set LIBROOT=/usr/local/lib/emacs-19.0
-LIBROOT=/home/gd/gnu/emacs
+emacsdir=/u/src/emacs/19.0
 
 # Emacs will search this path to find its elisp files.  This should be
 # a colon-separated list of directories.  Strictly speaking, all the
 # elisp files should go under DATADIR (below), since both elisp source
 # and compiled elisp are completely portable, but it's traditional to
 # give the lisp files their own subdirectory.
-LISPPATH=/home/gd/gnu/emacs/local-lisp:/home/gd/gnu/emacs/lisp
+LISPPATH=/u/src/emacs/19.0/local-lisp:/u/src/emacs/19.0/lisp
 
 # Emacs will look here for its architecture-independent files (like
 # the tutorial and the zippy database).
-DATADIR=/home/gd/gnu/emacs/etc
+DATADIR=/u/src/emacs/19.0/etc
 
 # Emacs will look here for its architecture-dependent files, like
 # executables for its utilities.
-LIBDIR=/home/gd/gnu/emacs/arch-lib
+LIBDIR=/u/src/emacs/19.0/arch-lib
 
 # The locking directory, where the Emacs locking code keeps track of
 # which files are currently being edited.
 # set LOCKDIR=${LIBROOT}/lock
-LOCKDIR=/home/gd/gnu/emacs/lock
+LOCKDIR=/u/src/emacs/19.0/lock
 
 # This is where build-install should place the binaries people will
 # want to run directly (like etags and Emacs itself).
 BINDIR=/usr/local/bin
 
-/bin/sed < src/paths.h-dist > src/paths.h			\
--e 's;\(#.*PATH_LOADSEARCH\).*$;\1 "'${LISPPATH}'";'		\
--e 's;\(#.*PATH_EXEC\).*$;\1 "'${LIBDIR}'";'			\
--e 's;\(#.*PATH_DATA\).*$;\1 "'${DATADIR}'";'			\
--e 's;\(#.*LOCK\).*$;\1 "'${LOCKDIR}'/";'
+/bin/sed < src/paths.h.in > src/paths.h			\
+-e 's;\(#.*PATH_LOADSEARCH\).*$;\1 "${lisppath}";'		\
+-e 's;\(#.*PATH_EXEC\).*$;\1 "${libdir}";'			\
+-e 's;\(#.*PATH_DATA\).*$;\1 "${datadir}";'			\
+-e 's;\(#.*PATH_LOCK\).*$;\1 "${lockdir}/";'			\
+-e 's;\(#.*PATH_SUPERLOCK\).*$;\1 "${lockdir}/!!!SuperLock!!!";'
 
 (cd lib-src; make) || exit 1
 (cd src; make) || exit 1
 
-if [ `pwd` != `(cd ${LIBROOT}; pwd)` ]; then
-  mv `pwd` ${LIBROOT}
-  if [ $? != '0' ]; then
-    mkdir ${LIBROOT}
-    echo mv `pwd` to ${LIBROOT} failed--using tar to copy.
-    tar cf - . | (cd ${LIBROOT}; umask 0; tar xf -)
-    if [ $? != '0' ]; then
-      echo tar-copying `pwd` to ${LIBROOT} failed.
-      exit 1
+# Subdirectories to install, and where they'll go.
+copydir=arch-lib etc info lisp
+copydests=${libdir} ${datadir} ${infodir} ${lispdir}
+
+# If any of the directories are below ${emacsdir} or ${statedir}, create them.
+for dir in ${copydests}; do
+  case "${dir}" in
+    ${emacsdir}/* )
+      if [ ! -d ${emacsdir} ]; then
+	-mkdir ${emacsdir}
+	-chmod 777 ${emacsdir}
+      fi
+    ;;
+    ${statedir}/* )
+      if [ ! -d ${statedir} ]; then
+	-mkdir ${statedir}
+	-chmod 777 ${statedir}
+      fi
+    ;;
+  esac
+done
+
+set ${copydests}
+for dir in ${copydir} ; do
+  dest=$1 ; shift
+  mv ${dir} ${dest}
+  if [ $? != 0 ]; then
+    echo mv ${dir} to ${dest} failed -- using tar to copy.
+    if [ `/bin/pwd`/${dir} != `(cd ${dest}; /bin/pwd)` ] ; then
+      (cd ${dir}; tar cf - . ) | (cd ${dest}; umask 0; tar xf - )
+      if [ $? != 0 ]; then
+	echo "tar-copying ${dir} to ${dest} failed too.  I give up."
+	exit 1
+      fi
+      for subdir in `find ${dest} -type d ! -name RCS -print` ; do
+	rm -rf ${subdir}/RCS
+	rm -f  ${subdir}/\#*
+	rm -f  ${subdir}/*~
+      done
     fi
   fi
-fi
+done
 
-cp ${LIBROOT}/etc/[ce]tags ${BINDIR}
-mv ${LIBROOT}/src/xemacs ${BINDIR}/emacs
-rm ${LIBROOT}/src/temacs
-chmod 777 ${BINDIR}/[ce]tags ${BINDIR}/emacs
+cp ${libdir}/[ce]tags ${bindir}
+mv src/xemacs ${BINDIR}/emacs
+rm src/temacs
+chmod 777 ${bindir}/[ce]tags ${bindir}/emacs

@@ -5,7 +5,7 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -1431,48 +1431,66 @@ defvar_per_buffer (namestring, address, doc)
 
 init_lread ()
 {
-  char *normal = PATH_LOADSEARCH;
-  Lisp_Object normal_path;
+  char *normal;
 
   /* Compute the default load-path.  */
-#ifndef CANNOT_DUMP
-  /* If running a dumped Emacs in which load-path was set before dumping
-     to a nonstandard value, use that value.  */
-  if (initialized
-      && !(XTYPE (Vload_path) == Lisp_Cons
-	   && XTYPE (XCONS (Vload_path)->car) == Lisp_String
-	   && !strcmp (XSTRING (XCONS (Vload_path)->car)->data, "../lisp")))
-    normal_path = Vload_path;
+#ifdef CANNOT_DUMP
+  normal = PATH_LOADSEARCH;
+  Vload_path = decode_env_path ("", normal);
+#else
+  if (NILP (Vpurify_flag))
+    normal = PATH_LOADSEARCH;
   else
-#endif
-    {
-      normal_path = decode_env_path ("", normal);
+    normal = PATH_DUMPLOADSEARCH;
 
-      Vload_path = normal_path;
-    }
+  /* In a dumped Emacs, we normally have to reset the value of
+     Vload_path from PATH_LOADSEARCH, since the value that was dumped
+     uses ../lisp, instead of the path of the installed elisp
+     libraries.  However, if it appears that Vload_path was changed
+     from the default before dumping, don't override that value.  */
+  {
+    Lisp_Object normal_path;
+
+    normal_path = decode_env_path ("", normal);
+
+    if (
+  if (initialized
+      || EQ (Vload_path, initial_path))
+    Vload_path = decode_env_path ("", normal);
+#endif
 
   /* Warn if dirs in the *standard* path don't exist.  */
-  for (; !NILP (normal_path); normal_path = XCONS (normal_path)->cdr)
-    {
-      Lisp_Object dirfile;
-      dirfile = Fcar (normal_path);
-      if (!NILP (dirfile))
-	{
-	  dirfile = Fdirectory_file_name (dirfile);
-	  if (access (XSTRING (dirfile)->data, 0) < 0)
-	    printf ("Warning: lisp library (%s) does not exist.\n",
-		    XSTRING (Fcar (normal_path))->data);
-	}
-    }
+  {
+    Lisp_Object path_tail;
 
-  if (egetenv ("EMACSLOADPATH"))
+    for (path_tail = Vload_path;
+	 !NILP (path_tail);
+	 path_tail = XCONS (path_tail)->cdr)
+      {
+	Lisp_Object dirfile;
+	dirfile = Fcar (path_tail);
+	if (XTYPE (dirfile) == Lisp_String)
+	  {
+	    dirfile = Fdirectory_file_name (dirfile);
+	    if (access (XSTRING (dirfile)->data, 0) < 0)
+	      printf ("Warning: lisp library (%s) does not exist.\n",
+		      XSTRING (Fcar (path_tail))->data);
+	  }
+      }
+  }
+
+  /* If the EMACSLOADPATH environment variable is set, use its value.
+     This doesn't apply if we're dumping.  */
+  if (NILP (Vpurify_flag)
+      && egetenv ("EMACSLOADPATH"))
     Vload_path = decode_env_path ("EMACSLOADPATH", normal);
-#ifndef CANNOT_DUMP
-  if (!NILP (Vpurify_flag))
-    Vload_path = Fcons (build_string ("../lisp"), Vload_path);
-#endif
 
   Vvalues = Qnil;
+
+  if (initialized)
+    initial_path = Qnil;
+  else
+    initial_path = Vload_path;
 
   load_in_progress = 0;
 }

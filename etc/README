@@ -5,12 +5,3 @@ for Emacs functions and variables.
 
 `termcap.dat' is for VMS.  It is a copy of the `/etc/termcap' file
 used on Unix.
-
-[/amiga/editors/README				Fri Nov 23 15:37:39 EST 1990]
-
-ue-patches/	Patches to Uedit by Rick Stiles.
-		[contributed by acs@pccuts.pcc.amdahl.com (Tony Sumrall)]
-
-stevie-*.lzh	The VI-like editor STEVIE.  Source is portable to many
-		machines (Makefiles and Amiga executable included
-		[contributed by Fred Walter <grwalter@watmath.waterloo.edu>]

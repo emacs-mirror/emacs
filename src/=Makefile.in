@@ -11,7 +11,7 @@ SHELL = /bin/sh
 all: xmakefile doall
 
 doall:
-	$(MAKE) $(MAKEOVERRIDES) -f xmakefile ${MFLAGS} all
+	$(MAKE) CC=${CC} $(MAKEOVERRIDES) -f xmakefile ${MFLAGS} all
 
 #This is used in making a distribution.
 #Do not use it on development directories!
