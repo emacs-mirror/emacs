@@ -1,3 +1,8 @@
+2004-11-27  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* wid-edit.el (widget-narrow-to-field): New function.
+	(widget-complete): Use it.
+
 2004-11-27  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-aent.el (calc-eval-error): Declare and initialize the

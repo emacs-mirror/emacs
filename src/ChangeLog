@@ -1,3 +1,8 @@
+2004-11-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* lisp.h (DECL_ALIGN): Define non-trivially only if NO_DECL_ALIGN
+	is not defined.
+
 2004-11-27  Kim F. Storm  <storm@cua.dk>
 
 	* search.c (syms_of_search) <search-spaces-regexp>: Move 'doc:'
