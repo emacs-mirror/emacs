@@ -463,7 +463,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 			      ;; above.
 			      (setq guesspos (Info-read-subfile guesspos))))
 		      (error "No such node: %s" nodename)))))
-	    (goto-char (max (point-min) (- guesspos 1000)))
+	    (goto-char (max (point-min) (- (byte-to-position guesspos) 1000)))
 	    ;; Now search from our advised position (or from beg of buffer)
 	    ;; to find the actual node.
 	    (catch 'foo
@@ -637,6 +637,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 
 ;; Note that on entry to this function the current-buffer must be the
 ;; *info* buffer; not the info tags buffer.
+;; nodepos should be a byte-position such as is found in
+;; the Info file tags table.
 (defun Info-read-subfile (nodepos)
   ;; NODEPOS is either a position (in the Info file as a whole,
   ;; not relative to a subfile) or the name of a subfile.
