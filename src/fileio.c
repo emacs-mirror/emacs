@@ -2623,7 +2623,8 @@ If file has multiple names, it continues to exist with the other names.  */)
   struct gcpro gcpro1;
 
   GCPRO1 (filename);
-  if (!NILP (Ffile_directory_p (filename)))
+  if (!NILP (Ffile_directory_p (filename))
+      && NILP (Ffile_symlink_p (filename)))
     Fsignal (Qfile_error,
  	     Fcons (build_string ("Removing old name: is a directory"),
  		    Fcons (filename, Qnil)));
