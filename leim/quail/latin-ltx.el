@@ -679,6 +679,7 @@ system, including many technical ones.  Examples:
  ("\\lesssim" ?$,1y2(B)
  ("\\lfloor" ?$,1zj(B)
  ("\\lhd" ?$,2"!(B)
+ ("\\rhd" ?$,2!w(B)
  ("\\ll" ?$,1y*(B)
  ("\\llcorner" ?$,1z~(B)
  ("\\lnapprox" ?$,1zF(B)
