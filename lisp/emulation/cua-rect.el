@@ -575,7 +575,7 @@ If command is repeated at same position, delete the rectangle."
               (forward-char 1))
           (set-marker m (point))
           (move-to-column l pad)
-          (if fct
+          (if (and fct (>= (current-column) l) (<= (current-column) r))
               (let ((v t) (p (point)))
                 (when sel
                   (if (car (cdr sel))
@@ -614,7 +614,8 @@ If command is repeated at same position, delete the rectangle."
 (defun cua--delete-rectangle ()
   (cua--rectangle-operation nil nil t 2
     '(lambda (s e l r)
-       (delete-region s (if (> e s) e (1+ e))))))
+       (if (and (> e s) (<= e (point-max)))
+	   (delete-region s e)))))
 
 (defun cua--extract-rectangle ()
   (let (rect)
