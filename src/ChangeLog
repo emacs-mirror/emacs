@@ -1,3 +1,12 @@
+2000-12-21  Andrew Innes  <andrewi@gnu.org>
+
+	* w32term.c (x_update_begin): Regenerate the palette here, rather
+	than for each window.
+
+	* w32xfns.c (select_palette): Avoid calling SelectPalette if
+	palette is NULL, since this corrupts memory!  Also get
+	display_info reference from frame.
+
 2000-12-21  Jason Rumney  <jasonr@gnu.org>
 
 	* w32bdf.c (w32_init_bdf_font): Fix test for valid bmp heap.
