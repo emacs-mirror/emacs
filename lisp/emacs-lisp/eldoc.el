@@ -7,7 +7,7 @@
 ;; Keywords: extensions
 ;; Created: 1995-10-06
 
-;; $Id: eldoc.el,v 1.22 2003/01/03 11:46:20 jpw Exp $
+;; $Id: eldoc.el,v 1.23 2003/01/03 11:53:46 jpw Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -48,13 +48,6 @@
 ;;; Code:
 
 (require 'help-fns)		       ;For fundoc-usage handling functions.
-
-;; Use idle timers if available in the version of emacs running.
-;; Please don't change this to use `require'; this package works
-;; as-is in XEmacs 19.14 and later and I am striving to maintain
-;; compatibility between emacs variants.
-(or (featurep 'timer)
-    (load "timer" t))
 
 (defgroup eldoc nil
   "Show function arglist or variable docstring in echo area."
@@ -99,10 +92,7 @@ former case.
 
 If value is nil, messages are always truncated to fit in a single line of
 display in the echo area.  Function or variable symbol name may be
-truncated to make more of the arglist or documentation string visible.
-
-Non-nil values for this variable have no effect unless
-`eldoc-echo-area-multiline-supported-p' is non-nil."
+truncated to make more of the arglist or documentation string visible."
   :type '(radio (const :tag "Always" t)
                 (const :tag "Never" nil)
                 (const :tag "Yes, but truncate symbol names if it will\
@@ -110,12 +100,6 @@ Non-nil values for this variable have no effect unless
   :group 'eldoc)
 
 ;;; No user options below here.
-
-;; Non-nil if this version of emacs supports dynamically resizable echo areas.
-(defvar eldoc-echo-area-multiline-supported-p
-  (and (string-lessp "21" emacs-version)
-       (save-match-data
-         (numberp (string-match "^GNU Emacs" (emacs-version))))))
 
 ;; Commands after which it is appropriate to print in the echo area.
 ;; Eldoc does not try to print function arglists, etc. after just any command,
@@ -142,10 +126,7 @@ Non-nil values for this variable have no effect unless
 (defvar eldoc-last-data (make-vector 3 nil))
 (defvar eldoc-last-message nil)
 
-;; Idle timers are supported in Emacs 19.31 and later.
-(defvar eldoc-use-idle-timer-p (fboundp 'run-with-idle-timer))
-
-;; eldoc's timer object, if using idle timers
+;; eldoc's timer object.
 (defvar eldoc-timer nil)
 
 ;; idle time delay currently in use by timer.
@@ -170,22 +151,12 @@ instead.
 With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
   nil eldoc-minor-mode-string nil
   (setq eldoc-last-message nil)
-  (cond (eldoc-use-idle-timer-p
-         (add-hook 'post-command-hook 'eldoc-schedule-timer)
-         (add-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area))
-        (t
-         ;; Use post-command-idle-hook if defined, otherwise use
-         ;; post-command-hook.  The former is only proper to use in Emacs
-         ;; 19.30; that is the first version in which it appeared, but it
-         ;; was obsolesced by idle timers in Emacs 19.31.
-         (add-hook (if (boundp 'post-command-idle-hook)
-                       'post-command-idle-hook
-                     'post-command-hook)
-                   'eldoc-print-current-symbol-info t t)
-         ;; quick and dirty hack for seeing if this is XEmacs
-         (and (fboundp 'display-message)
-              (add-hook 'pre-command-hook
-                        'eldoc-pre-command-refresh-echo-area t t)))))
+  (if eldoc-mode
+      (progn
+	(add-hook 'post-command-hook 'eldoc-schedule-timer nil t)
+	(add-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area t))
+   (remove-hook 'post-command-hook 'eldoc-schedule-timer)
+   (remove-hook 'pre-command-hook 'eldoc-pre-command-refresh-echo-area)))
 
 ;;;###autoload
 (defun turn-on-eldoc-mode ()
@@ -209,33 +180,21 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
 
 (defun eldoc-message (&rest args)
   (let ((omessage eldoc-last-message))
-    (cond ((eq (car args) eldoc-last-message))
-          ((or (null args)
-               (null (car args)))
-           (setq eldoc-last-message nil))
-          ;; If only one arg, no formatting to do so put it in
-          ;; eldoc-last-message so eq test above might succeed on
-          ;; subsequent calls.
-          ((null (cdr args))
-           (setq eldoc-last-message (car args)))
-          (t
-           (setq eldoc-last-message (apply 'format args))))
+    (setq eldoc-last-message 
+	  (cond ((eq (car args) eldoc-last-message) eldoc-last-message)
+		((null (car args)) nil)
+		;; If only one arg, no formatting to do, so put it in
+		;; eldoc-last-message so eq test above might succeed on
+		;; subsequent calls.
+		((null (cdr args)) (car args))
+		(t (apply 'format args))))
     ;; In emacs 19.29 and later, and XEmacs 19.13 and later, all messages
     ;; are recorded in a log.  Do not put eldoc messages in that log since
     ;; they are Legion.
-    (cond ((fboundp 'display-message)
-           ;; XEmacs 19.13 way of preventing log messages.
-           (cond (eldoc-last-message
-                  (display-message 'no-log eldoc-last-message))
-                 (omessage
-                  (clear-message 'no-log))))
-          (t
-           ;; Emacs way of preventing log messages.
-           (let ((message-log-max nil))
-             (cond (eldoc-last-message
-                    (message "%s" eldoc-last-message))
-                   (omessage
-                    (message nil)))))))
+    ;; Emacs way of preventing log messages.
+    (let ((message-log-max nil))
+      (cond (eldoc-last-message (message "%s" eldoc-last-message))
+	    (omessage (message nil)))))
   eldoc-last-message)
 
 ;; This function goes on pre-command-hook for XEmacs or when using idle
@@ -253,24 +212,14 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
 ;; Decide whether now is a good time to display a message.
 (defun eldoc-display-message-p ()
   (and (eldoc-display-message-no-interference-p)
-       (cond (eldoc-use-idle-timer-p
-              ;; If this-command is non-nil while running via an idle
-              ;; timer, we're still in the middle of executing a command,
-              ;; e.g. a query-replace where it would be annoying to
-              ;; overwrite the echo area.
-              (and (not this-command)
-                   (symbolp last-command)
-                   (intern-soft (symbol-name last-command)
-                                eldoc-message-commands)))
-             (t
-              ;; If we don't have idle timers, this function is
-              ;; running on post-command-hook directly; that means the
-              ;; user's last command is still on `this-command', and we
-              ;; must wait briefly for input to see whether to do display.
-              (and (symbolp this-command)
-                   (intern-soft (symbol-name this-command)
-                                eldoc-message-commands)
-                   (sit-for eldoc-idle-delay))))))
+       ;; If this-command is non-nil while running via an idle
+       ;; timer, we're still in the middle of executing a command,
+       ;; e.g. a query-replace where it would be annoying to
+       ;; overwrite the echo area.
+       (and (not this-command)
+	    (symbolp last-command)
+	    (intern-soft (symbol-name last-command)
+			 eldoc-message-commands))))
 
 ;; Check various conditions about the current environment that might make
 ;; it undesirable to print eldoc messages right this instant.
@@ -307,9 +256,7 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
 (defun eldoc-get-fnsym-args-string (sym)
   (let ((args nil)
         (doc nil))
-    (cond ((not (and sym
-                     (symbolp sym)
-                     (fboundp sym))))
+    (cond ((not (and sym (symbolp sym) (fboundp sym))))
           ((and (eq sym (aref eldoc-last-data 0))
                 (eq 'function (aref eldoc-last-data 2)))
            (setq doc (aref eldoc-last-data 1)))
@@ -362,8 +309,7 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
 (defun eldoc-docstring-format-sym-doc (sym doc)
   (save-match-data
     (let* ((name (symbol-name sym))
-           (ea-multi (and eldoc-echo-area-multiline-supported-p
-                          eldoc-echo-area-use-multiline-p))
+           (ea-multi eldoc-echo-area-use-multiline-p)
            ;; Subtract 1 from window width since emacs will not write
            ;; any chars to the last column, or in later versions, will
            ;; cause a wraparound and resize of the echo area.
@@ -473,9 +419,9 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
 
 (defun eldoc-add-command-completions (&rest names)
   (while names
-      (apply 'eldoc-add-command
-             (all-completions (car names) obarray 'fboundp))
-      (setq names (cdr names))))
+    (apply 'eldoc-add-command
+	   (all-completions (car names) obarray 'fboundp))
+    (setq names (cdr names))))
 
 (defun eldoc-remove-command (&rest cmds)
   (let (name)
@@ -486,11 +432,7 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
       (and (symbolp name)
            (setq name (symbol-name name)))
 
-      (if (fboundp 'unintern)
-          (unintern name eldoc-message-commands)
-        (let ((s (intern-soft name eldoc-message-commands)))
-          (and s
-               (makunbound s)))))))
+      (unintern name eldoc-message-commands))))
 
 (defun eldoc-remove-command-completions (&rest names)
   (while names
