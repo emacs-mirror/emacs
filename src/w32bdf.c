@@ -22,7 +22,11 @@ Boston, MA 02111-1307, USA.  */
    MULE for W32). */
 
 #include <windows.h>
-#include "config.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "lisp.h"
 #include "charset.h"
 #include "keyboard.h"

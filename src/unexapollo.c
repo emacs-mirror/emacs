@@ -20,7 +20,10 @@ Boston, MA 02111-1307, USA.  */
 
 /* Written by Leonard N. Zubkoff.  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include <fcntl.h>
 
 

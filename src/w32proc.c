@@ -30,7 +30,11 @@ Boston, MA 02111-1307, USA.
 #include <signal.h>
 
 /* must include CRT headers *before* config.h */
-#include "config.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #undef signal
 #undef wait
 #undef spawnve

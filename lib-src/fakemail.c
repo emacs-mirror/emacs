@@ -22,7 +22,7 @@ Boston, MA 02111-1307, USA.  */
 #define _XOPEN_SOURCE 500	/* for cuserid */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+#include <config.h>
 #endif
 
 #if defined (BSD_SYSTEM) && !defined (BSD4_1) && !defined (USE_FAKEMAIL)
