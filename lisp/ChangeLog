@@ -1,3 +1,8 @@
+2002-09-14  Richard M. Stallman  <rms@gnu.org>
+
+	* warnings.el (display-warning): In batch mode,
+	exclude the final newline from the arg to `message'.
+
 2002-09-13  Markus Rost  <rost@math.ohio-state.edu>
 
 	* files.el (diff-buffer-with-file): Check whether associated file
