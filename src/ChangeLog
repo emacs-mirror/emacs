@@ -1,3 +1,14 @@
+1999-10-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* window.c (enum save_restore_action): New.
+	(save_restore_orig_size): Change parameter list.  Add
+	functionality to check for valid orig_top and orig_height members
+	in a window tree.
+	(grow_mini_window): Call save_restore_orig_size with new parameter
+	list.
+	(shrink_mini_window): Restore old window sizes only if old
+	size information is valid in all windows in a window tree.
+	
 1999-10-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* xmenu.c (set_frame_menubar): Don't call
