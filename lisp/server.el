@@ -534,7 +534,8 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
       (if server-clients
 	  (server-switch-buffer (nth 1 (car server-clients)) killed-one)
 	(unless (or killed-one (window-dedicated-p (selected-window)))
-	  (switch-to-buffer (other-buffer))))
+	  (switch-to-buffer (other-buffer))
+	  (message "No server buffers remain to edit")))
     (if (not (buffer-name next-buffer))
 	;; If NEXT-BUFFER is a dead buffer, remove the server records for it
 	;; and try the next surviving server buffer.
