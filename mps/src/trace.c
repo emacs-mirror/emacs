@@ -1,7 +1,7 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.84) $
- * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!trace.c(trunk.85) $
+ * Copyright (C) 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * .design: design.mps.trace.
  */
@@ -9,7 +9,7 @@
 #include "mpm.h"
 
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.84) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.85) $");
 
 
 /* Types
@@ -21,6 +21,7 @@ enum {TraceAccountingPhaseRootScan,
       TraceAccountingPhaseSegScan,
       TraceAccountingPhaseSingleScan};
 typedef int TraceAccountingPhase;
+
 
 #define TraceMessageSig ((Sig)0x51926359)
 
@@ -120,6 +121,7 @@ static void TraceMessageInit(Arena arena, TraceMessage traceMessage)
   AVERT(TraceMessage, traceMessage);
 }
 
+
 /* ScanStateCheck -- check consistency of a ScanState object */
 
 Bool ScanStateCheck(ScanState ss)
@@ -174,21 +176,22 @@ void ScanStateInit(ScanState ss, TraceSet ts, Arena arena,
   ss->arena = arena;
   ss->wasMarked = TRUE;
   ss->white = white;
-  ss->fixRefCount = (Count)0;
-  ss->segRefCount = (Count)0;
-  ss->whiteSegRefCount = (Count)0;
-  ss->nailCount = (Count)0;
-  ss->snapCount = (Count)0;
-  ss->forwardedCount = (Count)0;
-  ss->forwardedSize = (Size)0;
-  ss->preservedInPlaceCount = (Count)0;
-  ss->preservedInPlaceSize = (Size)0;
-  ss->copiedSize = (Size)0;
-  ss->scannedSize = (Size)0;
+  STATISTIC(ss->fixRefCount = (Count)0);
+  STATISTIC(ss->segRefCount = (Count)0);
+  STATISTIC(ss->whiteSegRefCount = (Count)0);
+  STATISTIC(ss->nailCount = (Count)0);
+  STATISTIC(ss->snapCount = (Count)0);
+  STATISTIC(ss->forwardedCount = (Count)0);
+  ss->forwardedSize = (Size)0; /* see .message.data */
+  STATISTIC(ss->preservedInPlaceCount = (Count)0);
+  ss->preservedInPlaceSize = (Size)0; /* see .message.data */
+  STATISTIC(ss->copiedSize = (Size)0);
+  ss->scannedSize = (Size)0; /* see .workclock */
   ss->sig = ScanStateSig;
 
   AVERT(ScanState, ss);
 }
+
 
 /* ScanStateFinish -- Finish a ScanState object */
 
@@ -268,7 +271,7 @@ Bool TraceCheck(Trace trace)
 
 /* TraceUpdateCounts
  *
- * Dumps the counts accummulated in a ScanState into the Trace. */
+ * Dumps the counts accumulated in a ScanState into the Trace. */
 
 static void TraceUpdateCounts(Trace trace, ScanState ss,
                               TraceAccountingPhase phase)
@@ -278,57 +281,50 @@ static void TraceUpdateCounts(Trace trace, ScanState ss,
 
   switch(phase) {
   case TraceAccountingPhaseRootScan:
-    trace->rootScanSize += ss->scannedSize;
-    trace->rootCopiedSize += ss->copiedSize;
-    ++trace->rootScanCount;
+    STATISTIC(trace->rootScanSize += ss->scannedSize);
+    STATISTIC(trace->rootCopiedSize += ss->copiedSize);
+    STATISTIC(++trace->rootScanCount);
     break;
 
   case TraceAccountingPhaseSegScan:
-    trace->segScanSize += ss->scannedSize;
-    trace->segCopiedSize += ss->copiedSize;
-    ++trace->segScanCount;
+    trace->segScanSize += ss->scannedSize; /* see .workclock */
+    STATISTIC(trace->segCopiedSize += ss->copiedSize);
+    STATISTIC(++trace->segScanCount);
     break;
 
   case TraceAccountingPhaseSingleScan:
-    trace->singleScanSize += ss->scannedSize;
-    trace->singleCopiedSize += ss->copiedSize;
+    STATISTIC(trace->singleScanSize += ss->scannedSize);
+    STATISTIC(trace->singleCopiedSize += ss->copiedSize);
     break;
 
   default:
     NOTREACHED;
   }
-  trace->fixRefCount += ss->fixRefCount;
-  trace->segRefCount += ss->segRefCount;
-  trace->whiteSegRefCount += ss->whiteSegRefCount;
-  trace->nailCount += ss->nailCount;
-  trace->snapCount += ss->snapCount;
-  trace->forwardedCount += ss->forwardedCount;
-  trace->forwardedSize += ss->forwardedSize;
-  trace->preservedInPlaceCount += ss->preservedInPlaceCount;
+  STATISTIC(trace->fixRefCount += ss->fixRefCount);
+  STATISTIC(trace->segRefCount += ss->segRefCount);
+  STATISTIC(trace->whiteSegRefCount += ss->whiteSegRefCount);
+  STATISTIC(trace->nailCount += ss->nailCount);
+  STATISTIC(trace->snapCount += ss->snapCount);
+  STATISTIC(trace->forwardedCount += ss->forwardedCount);
+  trace->forwardedSize += ss->forwardedSize;  /* see .message.data */
+  STATISTIC(trace->preservedInPlaceCount += ss->preservedInPlaceCount);
   trace->preservedInPlaceSize += ss->preservedInPlaceSize;
 
   return;
 }
 
 
-/* TraceSetUpdateCounts
- *
- * As TraceUpdateCounts, but for a set of traces. */
+/* TraceSetUpdateCounts -- update counts for a set of traces */
 
 static void TraceSetUpdateCounts(TraceSet ts, Arena arena,
                                  ScanState ss,
                                  TraceAccountingPhase phase)
 {
-  TraceId ti;
+  TraceId ti; Trace trace;
 
-  for(ti = 0; ti < TRACE_MAX; ++ti) {
-    if(TraceSetIsMember(ts, ti)) {
-      Trace trace = ArenaTrace(arena, ti);
-
-      TraceUpdateCounts(trace, ss, phase);
-    }
-  }
-
+  TRACE_SET_ITER(ti, trace, ts, arena)
+    TraceUpdateCounts(trace, ss, phase);
+  TRACE_SET_ITER_END(ti, trace, ts, arena);
   return;
 }
 
@@ -536,7 +532,7 @@ static Res TraceScanRootRes(TraceSet ts, Rank rank, Arena arena, Root root)
   Res res;
   ScanStateStruct ss;
 
-  /* static function used internaly, no checking */
+  /* static function used internally, no checking */
 
   white = TraceSetWhiteUnion(ts, arena);
 
@@ -545,9 +541,7 @@ static Res TraceScanRootRes(TraceSet ts, Rank rank, Arena arena, Root root)
   res = RootScan(&ss, root);
 
   TraceSetUpdateCounts(ts, arena, &ss, TraceAccountingPhaseRootScan);
-
   ScanStateFinish(&ss);
-
   return res;
 }
 
@@ -741,6 +735,8 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
       RootGrey(root, trace);
     node = next;
   }
+  STATISTIC_STAT(EVENT_PW(ArenaWriteFaults, arena,
+                          arena->writeBarrierHitCount));
 
   /* Calculate the rate of scanning. */
   {
@@ -758,6 +754,11 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
     trace->rate = (trace->foundation + sSurvivors) / (long)nPolls + 1;
   }
 
+  STATISTIC_STAT(EVENT_PWWWWDD
+                  (TraceStatCondemn, trace,
+                   trace->condemned, trace->notCondemned,
+                   trace->foundation, trace->rate,
+                   mortality, finishingTime));
   trace->state = TraceUNFLIPPED;
 
   /* All traces must flip at beginning at the moment. */
@@ -815,27 +816,30 @@ found:
   trace->notCondemned = (Size)0; 
   trace->foundation = (Size)0;  /* nothing grey yet */
   trace->rate = (Size)0;        /* no scanning to be done yet */
-  trace->rootScanCount = (Count)0;
-  trace->rootScanSize = (Size)0;
-  trace->rootCopiedSize = (Size)0;
-  trace->segScanCount = (Count)0;
-  trace->segScanSize = (Size)0;
-  trace->segCopiedSize = (Size)0;
-  trace->singleScanCount = (Count)0;
-  trace->singleScanSize = (Size)0;
-  trace->singleCopiedSize = (Size)0;
-  trace->fixRefCount = (Count)0;
-  trace->segRefCount = (Count)0;
-  trace->whiteSegRefCount = (Count)0;
-  trace->nailCount = (Count)0;
-  trace->snapCount = (Count)0;
-  trace->forwardedCount = (Count)0;
-  trace->forwardedSize = (Size)0;
-  trace->preservedInPlaceCount = (Count)0;
-  trace->preservedInPlaceSize = (Size)0;
-  trace->faultCount = (Count)0;
-  trace->reclaimCount = (Count)0;
-  trace->reclaimSize = (Size)0;
+  STATISTIC(trace->greySegCount = (Count)0);
+  STATISTIC(trace->greySegMax = (Count)0);
+  STATISTIC(trace->rootScanCount = (Count)0);
+  STATISTIC(trace->rootScanSize = (Size)0);
+  STATISTIC(trace->rootCopiedSize = (Size)0);
+  STATISTIC(trace->segScanCount = (Count)0);
+  trace->segScanSize = (Size)0; /* see .workclock */
+  STATISTIC(trace->segCopiedSize = (Size)0);
+  STATISTIC(trace->singleScanCount = (Count)0);
+  STATISTIC(trace->singleScanSize = (Size)0);
+  STATISTIC(trace->singleCopiedSize = (Size)0);
+  STATISTIC(trace->fixRefCount = (Count)0);
+  STATISTIC(trace->segRefCount = (Count)0);
+  STATISTIC(trace->whiteSegRefCount = (Count)0);
+  STATISTIC(trace->nailCount = (Count)0);
+  STATISTIC(trace->snapCount = (Count)0);
+  STATISTIC(trace->readBarrierHitCount = (Count)0);
+  STATISTIC(trace->pointlessScanCount = (Count)0);
+  STATISTIC(trace->forwardedCount = (Count)0);
+  trace->forwardedSize = (Size)0; /* see .message.data */
+  STATISTIC(trace->preservedInPlaceCount = (Count)0);
+  trace->preservedInPlaceSize = (Size)0;  /* see .message.data */
+  STATISTIC(trace->reclaimCount = (Count)0);
+  STATISTIC(trace->reclaimSize = (Size)0);
   trace->sig = TraceSig;
   AVERT(Trace, trace);
 
@@ -865,8 +869,29 @@ found:
 void TraceDestroy(Trace trace)
 {
   AVERT(Trace, trace);
-
   AVER(trace->state == TraceFINISHED);
+
+  STATISTIC_STAT(EVENT_PWWWWWWWWWWWW
+                  (TraceStatScan, trace,
+                   trace->rootScanCount, trace->rootScanSize,
+                   trace->rootCopiedSize,
+                   trace->segScanCount, trace->segScanSize,
+                   trace->segCopiedSize,
+                   trace->singleScanCount, trace->singleScanSize,
+                   trace->singleCopiedSize,
+                   trace->readBarrierHitCount, trace->greySegMax,
+                   trace->pointlessScanCount));
+  STATISTIC_STAT(EVENT_PWWWWWWWWW
+                  (TraceStatFix, trace,
+                   trace->fixRefCount, trace->segRefCount,
+                   trace->whiteSegRefCount,
+                   trace->nailCount, trace->snapCount,
+                   trace->forwardedCount, trace->forwardedSize,
+                   trace->preservedInPlaceCount,
+                   trace->preservedInPlaceSize));
+  STATISTIC_STAT(EVENT_PWW
+                  (TraceStatReclaim, trace,
+                   trace->reclaimCount, trace->reclaimSize));
 
   trace->sig = SigInvalid;
   trace->arena->busyTraces =
@@ -875,6 +900,14 @@ void TraceDestroy(Trace trace)
     TraceSetDel(trace->arena->flippedTraces, trace->ti);
   EVENT_P(TraceDestroy, trace);
 }
+
+
+/* TracePostMessage -- post trace end message
+ *
+ * .message.data: The trace end message contains the live size
+ * (forwardedSize + preservedInPlaceSize), the condemned size
+ * (condemned), and the not-condemned size (notCondemned).
+ */
 
 static void TracePostMessage(Trace trace)
 {
@@ -900,6 +933,7 @@ static void TracePostMessage(Trace trace)
   return;
 }
 
+
 static void TraceReclaim(Trace trace)
 {
   Arena arena;
@@ -919,7 +953,7 @@ static void TraceReclaim(Trace trace)
 
       if(TraceSetIsMember(SegWhite(seg), trace->ti)) {
         AVER_CRITICAL((SegPool(seg)->class->attr & AttrGC) != 0);
-        ++trace->reclaimCount;
+        STATISTIC(++trace->reclaimCount);
         PoolReclaim(SegPool(seg), trace, seg);
 
         /* If the segment still exists, it should no longer be white. */
@@ -985,7 +1019,6 @@ static Bool traceFindGrey(Seg *segReturn, Rank *rankReturn,
   }
 
   /* There are no grey segments for this trace. */
-
   return FALSE;
 }
 
@@ -1062,10 +1095,25 @@ static Res TraceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
 
     /* Expose the segment to make sure we can scan it. */
     ShieldExpose(arena, seg);
-
     res = PoolScan(&wasTotal, &ss, SegPool(seg), seg);
     /* Cover, regardless of result */
     ShieldCover(arena, seg);
+
+    TraceSetUpdateCounts(ts, arena, &ss, TraceAccountingPhaseSegScan);
+    /* Count segments scanned pointlessly */
+    STATISTIC_STAT
+      ({
+         TraceId ti; Trace trace;
+         Count whiteSegRefCount = 0;
+
+         TRACE_SET_ITER(ti, trace, ts, arena)
+           whiteSegRefCount += trace->whiteSegRefCount;
+         TRACE_SET_ITER_END(ti, trace, ts, arena);
+         if(whiteSegRefCount == 0)
+           TRACE_SET_ITER(ti, trace, ts, arena)
+             ++trace->pointlessScanCount;
+           TRACE_SET_ITER_END(ti, trace, ts, arena);
+      });
 
     /* following is true whether or not scan was total */
     /* See design.mps.scan.summary.subset. */
@@ -1082,7 +1130,6 @@ static Res TraceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
       SegSetSummary(seg, ScanStateSummary(&ss));
     }
 
-    TraceSetUpdateCounts(ts, arena, &ss, TraceAccountingPhaseSegScan);
     ScanStateFinish(&ss);
   }
 
@@ -1094,6 +1141,7 @@ static Res TraceScanSegRes(TraceSet ts, Rank rank, Arena arena, Seg seg)
 
   return res;
 }
+
 
 /* TraceScanSeg
  *
@@ -1127,13 +1175,12 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
 
   AVERT(Arena, arena);
   AVERT(Seg, seg);
-  UNUSED(mode);
 
   /* If it's a read access, then the segment must be grey for a trace */
   /* which is flipped. */
   AVER((mode & SegSM(seg) & AccessREAD) == 0
        || TraceSetInter(SegGrey(seg), arena->flippedTraces)
-       != TraceSetEMPTY);
+          != TraceSetEMPTY);
 
   /* If it's a write acess, then the segment must have a summary that */
   /* is smaller than the mutator's summary (which is assumed to be */
@@ -1157,14 +1204,15 @@ void TraceSegAccess(Arena arena, Seg seg, AccessSet mode)
     /* can go ahead and access it. */
     AVER(TraceSetInter(SegGrey(seg), traces) == TraceSetEMPTY);
 
-    for(ti = 0; ti < TRACE_MAX; ++ti)
-      if(TraceSetIsMember(traces, ti))
-        ++ArenaTrace(arena, ti)->faultCount;
+    STATISTIC_STAT(for(ti = 0; ti < TRACE_MAX; ++ti)
+                     if(TraceSetIsMember(traces, ti))
+                       ++ArenaTrace(arena, ti)->readBarrierHitCount);
+  } else { /* write barrier */
+    STATISTIC(++arena->writeBarrierHitCount);
   }
 
   /* The write barrier handling must come after the read barrier, */
   /* because the latter may set the summary and raise the write barrier. */
-
   if((mode & SegSM(seg) & AccessWRITE) != 0)      /* write barrier? */
     SegSetSummary(seg, RefSetUNIV);
 
@@ -1203,7 +1251,7 @@ static Size TraceWorkClock(Trace trace)
 {
   AVERT(Trace, trace);
 
-  /* Segment scanning work is the only work that is regulated. */
+  /* .workclock: Segment scanning work is the regulator. */
   return trace->segScanSize;
 }
 
@@ -1316,18 +1364,17 @@ Res TraceFix(ScanState ss, Ref *refIO)
 
   ref = *refIO;
 
-  ++ss->fixRefCount;
-
+  STATISTIC(++ss->fixRefCount);
   EVENT_PPAU(TraceFix, ss, refIO, ref, ss->rank);
 
   /* SegOfAddr is inlined, see design.mps.trace.fix.segofaddr */
   if(SEG_OF_ADDR(&seg, ss->arena, ref)) {
-    ++ss->segRefCount;
+    STATISTIC(++ss->segRefCount);
     EVENT_P(TraceFixSeg, seg);
     if(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY) {
       Res res;
 
-      ++ss->whiteSegRefCount;
+      STATISTIC(++ss->whiteSegRefCount);
       EVENT_0(TraceFixWhite);
       pool = SegPool(seg);
       /* Could move the rank switch here from the class-specific */
@@ -1341,7 +1388,6 @@ Res TraceFix(ScanState ss, Ref *refIO)
     AVER(ss->rank < RankEXACT
          || !ArenaIsReservedAddr(ss->arena, ref));
   }
-
 
   /* See design.mps.trace.fix.fixed.all */
   ss->fixedSummary = RefSetAdd(ss->arena, ss->fixedSummary, *refIO);
@@ -1361,16 +1407,15 @@ Res TraceFixEmergency(ScanState ss, Ref *refIO)
 
   ref = *refIO;
 
-  ++ss->fixRefCount;
-
+  STATISTIC(++ss->fixRefCount);
   EVENT_PPAU(TraceFix, ss, refIO, ref, ss->rank);
 
   /* SegOfAddr is inlined, see design.mps.trace.fix.segofaddr */
   if(SEG_OF_ADDR(&seg, ss->arena, ref)) {
-    ++ss->segRefCount;
+    STATISTIC(++ss->segRefCount);
     EVENT_P(TraceFixSeg, seg);
     if(TraceSetInter(SegWhite(seg), ss->traces) != TraceSetEMPTY) {
-      ++ss->whiteSegRefCount;
+      STATISTIC(++ss->whiteSegRefCount);
       EVENT_0(TraceFixWhite);
       pool = SegPool(seg);
       PoolFixEmergency(pool, ss, seg, refIO);
@@ -1393,7 +1438,8 @@ Res TraceFixEmergency(ScanState ss, Ref *refIO)
  * (internal variant on TraceScanSingleRef)
  * Scans a single reference (in the location specified by refIO).
  * This version is allowed to fail and return an appropriate result
- * code. */
+ * code.
+ */
 
 static Res TraceScanSingleRefRes(TraceSet ts, Rank rank, Arena arena, 
                                  Seg seg, Ref *refIO)
