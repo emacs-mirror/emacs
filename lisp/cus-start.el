@@ -193,7 +193,7 @@
 	     ;; xfns.c
 	     (x-bitmap-file-path installation
 				 (repeat (directory :format "%v")))))
-      this symbol group type
+      this symbol group type native-p
       ;; This function turns a value
       ;; into an expression which produces that value.
       (quoter (lambda (sexp)
@@ -213,10 +213,20 @@
 	  all (cdr all)
 	  symbol (nth 0 this)
 	  group (nth 1 this)
-	  type (nth 2 this))
+	  type (nth 2 this)
+	  ;; Don't complain about missing variables which are
+	  ;; irrelevant to this platform.
+	  native-p (save-match-data
+		     (cond
+		      ((string-match "\\`dos-" (symbol-name symbol))
+		       (eq system-type 'ms-dos))
+		      ((string-match "\\`w32-" (symbol-name symbol))
+		       (eq system-type 'windows-nt))
+		      (t t))))
     (if (not (boundp symbol))
 	;; If variables are removed from C code, give an error here!
-	(message "Note, built-in variable `%S' not bound" symbol)
+	(and native-p
+	     (message "Note, built-in variable `%S' not bound" symbol))
       ;; Save the standard value, unless we already did.
       (or (get symbol 'standard-value)
 	  (put symbol 'standard-value 
