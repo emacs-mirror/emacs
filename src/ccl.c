@@ -952,6 +952,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 
 /* Setup fields of the structure pointed by CCL appropriately for the
    execution of compiled CCL code in VEC (vector of integer).  */
+void
 setup_ccl_program (ccl, vec)
      struct ccl_program *ccl;
      Lisp_Object vec;
