@@ -148,14 +148,14 @@ extern Lisp_Object Fredirect_frame_focus ();
 extern Lisp_Object x_get_focus_frame ();
 
 DEFUN ("framep", Fframep, Sframep, 1, 1, 0,
-  "Return non-nil if OBJECT is a frame.\n\
-Value is t for a termcap frame (a character-only terminal),\n\
-`x' for an Emacs frame that is really an X window,\n\
-`w32' for an Emacs frame that is a window on MS-Windows display,\n\
-`mac' for an Emacs frame on a Macintosh display,\n\
-`pc' for a direct-write MS-DOS frame.\n\
-See also `frame-live-p'.")
-  (object)
+       doc: /* Return non-nil if OBJECT is a frame.
+Value is t for a termcap frame (a character-only terminal),
+`x' for an Emacs frame that is really an X window,
+`w32' for an Emacs frame that is a window on MS-Windows display,
+`mac' for an Emacs frame on a Macintosh display,
+`pc' for a direct-write MS-DOS frame.
+See also `frame-live-p'.  */)
+     (object)
      Lisp_Object object;
 {
   if (!FRAMEP (object))
@@ -178,12 +178,12 @@ See also `frame-live-p'.")
 }
 
 DEFUN ("frame-live-p", Fframe_live_p, Sframe_live_p, 1, 1, 0,
-  "Return non-nil if OBJECT is a frame which has not been deleted.\n\
-Value is nil if OBJECT is not a live frame.  If object is a live\n\
-frame, the return value indicates what sort of output device it is\n\
-displayed on.  Value is t for a termcap frame (a character-only\n\
-terminal), `x' for an Emacs frame being displayed in an X window.")
-  (object)
+       doc: /* Return non-nil if OBJECT is a frame which has not been deleted.
+Value is nil if OBJECT is not a live frame.  If object is a live
+frame, the return value indicates what sort of output device it is
+displayed on.  Value is t for a termcap frame (a character-only
+terminal), `x' for an Emacs frame being displayed in an X window.  */)
+     (object)
      Lisp_Object object;
 {
   return ((FRAMEP (object)
@@ -498,13 +498,14 @@ make_terminal_frame ()
 }
 
 DEFUN ("make-terminal-frame", Fmake_terminal_frame, Smake_terminal_frame,
-       1, 1, 0, "Create an additional terminal frame.\n\
-You can create multiple frames on a text-only terminal in this way.\n\
-Only the selected terminal frame is actually displayed.\n\
-This function takes one argument, an alist specifying frame parameters.\n\
-In practice, generally you don't need to specify any parameters.\n\
-Note that changing the size of one terminal frame automatically affects all.")
-  (parms)
+       1, 1, 0,
+       doc: /* Create an additional terminal frame.
+You can create multiple frames on a text-only terminal in this way.
+Only the selected terminal frame is actually displayed.
+This function takes one argument, an alist specifying frame parameters.
+In practice, generally you don't need to specify any parameters.
+Note that changing the size of one terminal frame automatically affects all.  */)
+     (parms)
      Lisp_Object parms;
 {
   struct frame *f;
@@ -651,11 +652,11 @@ do_switch_frame (frame, track, for_deletion)
 }
 
 DEFUN ("select-frame", Fselect_frame, Sselect_frame, 1, 2, "e",
-  "Select the frame FRAME.\n\
-Subsequent editing commands apply to its selected window.\n\
-The selection of FRAME lasts until the next time the user does\n\
-something to select a different frame, or until the next time this\n\
-function is called.")
+       doc: /* Select the frame FRAME.
+Subsequent editing commands apply to its selected window.
+The selection of FRAME lasts until the next time the user does
+something to select a different frame, or until the next time this
+function is called.  */)
   (frame, no_enter)
     Lisp_Object frame, no_enter;
 {
@@ -664,15 +665,15 @@ function is called.")
 
 
 DEFUN ("handle-switch-frame", Fhandle_switch_frame, Shandle_switch_frame, 1, 2, "e",
-  "Handle a switch-frame event EVENT.\n\
-Switch-frame events are usually bound to this function.\n\
-A switch-frame event tells Emacs that the window manager has requested\n\
-that the user's events be directed to the frame mentioned in the event.\n\
-This function selects the selected window of the frame of EVENT.\n\
-\n\
-If EVENT is frame object, handle it as if it were a switch-frame event\n\
-to that frame.")
-  (event, no_enter)
+       doc: /* Handle a switch-frame event EVENT.
+Switch-frame events are usually bound to this function.
+A switch-frame event tells Emacs that the window manager has requested
+that the user's events be directed to the frame mentioned in the event.
+This function selects the selected window of the frame of EVENT.
+
+If EVENT is frame object, handle it as if it were a switch-frame event
+to that frame.  */)
+     (event, no_enter)
      Lisp_Object event, no_enter;
 {
   /* Preserve prefix arg that the command loop just cleared.  */
@@ -682,8 +683,8 @@ to that frame.")
 }
 
 DEFUN ("ignore-event", Fignore_event, Signore_event, 0, 0, "",
-  "Do nothing, but preserve any prefix argument already specified.\n\
-This is a suitable binding for iconify-frame and make-frame-visible.")
+       doc: /* Do nothing, but preserve any prefix argument already specified.
+This is a suitable binding for iconify-frame and make-frame-visible.  */)
      ()
 {
   current_kboard->Vprefix_arg = Vcurrent_prefix_arg;
@@ -691,15 +692,15 @@ This is a suitable binding for iconify-frame and make-frame-visible.")
 }
 
 DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
-  "Return the frame that is now selected.")
-  ()
+       doc: /* Return the frame that is now selected.  */)
+     ()
 {
   return selected_frame;
 }
 
 DEFUN ("window-frame", Fwindow_frame, Swindow_frame, 1, 1, 0,
-  "Return the frame object that window WINDOW is on.")
-  (window)
+       doc: /* Return the frame object that window WINDOW is on.  */)
+     (window)
      Lisp_Object window;
 {
   CHECK_LIVE_WINDOW (window, 0);
@@ -707,9 +708,9 @@ DEFUN ("window-frame", Fwindow_frame, Swindow_frame, 1, 1, 0,
 }
 
 DEFUN ("frame-first-window", Fframe_first_window, Sframe_first_window, 0, 1, 0,
-  "Returns the topmost, leftmost window of FRAME.\n\
-If omitted, FRAME defaults to the currently selected frame.")
-  (frame)
+       doc: /* Returns the topmost, leftmost window of FRAME.
+If omitted, FRAME defaults to the currently selected frame.  */)
+     (frame)
      Lisp_Object frame;
 {
   Lisp_Object w;
@@ -735,16 +736,16 @@ If omitted, FRAME defaults to the currently selected frame.")
 
 DEFUN ("active-minibuffer-window", Factive_minibuffer_window,
        Sactive_minibuffer_window, 0, 0, 0,
-       "Return the currently active minibuffer window, or nil if none.")
-  ()
+       doc: /* Return the currently active minibuffer window, or nil if none.  */)
+     ()
 {
   return minibuf_level ? minibuf_window : Qnil;
 }
 
 DEFUN ("frame-root-window", Fframe_root_window, Sframe_root_window, 0, 1, 0,
-       "Returns the root-window of FRAME.\n\
-If omitted, FRAME defaults to the currently selected frame.")
-  (frame)
+       doc: /* Returns the root-window of FRAME.
+If omitted, FRAME defaults to the currently selected frame.  */)
+     (frame)
      Lisp_Object frame;
 {
   Lisp_Object window;
@@ -762,9 +763,9 @@ If omitted, FRAME defaults to the currently selected frame.")
 
 DEFUN ("frame-selected-window", Fframe_selected_window,
        Sframe_selected_window, 0, 1, 0,
-  "Return the selected window of frame object FRAME.\n\
-If omitted, FRAME defaults to the currently selected frame.")
-  (frame)
+       doc: /* Return the selected window of frame object FRAME.
+If omitted, FRAME defaults to the currently selected frame.  */)
+     (frame)
      Lisp_Object frame;
 {
   Lisp_Object window;
@@ -782,10 +783,10 @@ If omitted, FRAME defaults to the currently selected frame.")
 
 DEFUN ("set-frame-selected-window", Fset_frame_selected_window,
        Sset_frame_selected_window, 2, 2, 0,
-  "Set the selected window of frame object FRAME to WINDOW.\n\
-If FRAME is nil, the selected frame is used.\n\
-If FRAME is the selected frame, this makes WINDOW the selected window.")
-  (frame, window)
+       doc: /* Set the selected window of frame object FRAME to WINDOW.
+If FRAME is nil, the selected frame is used.
+If FRAME is the selected frame, this makes WINDOW the selected window.  */)
+     (frame, window)
      Lisp_Object frame, window;
 {
   if (NILP (frame))
@@ -805,8 +806,8 @@ If FRAME is the selected frame, this makes WINDOW the selected window.")
 
 DEFUN ("frame-list", Fframe_list, Sframe_list,
        0, 0, 0,
-       "Return a list of all frames.")
-  ()
+       doc: /* Return a list of all frames.  */)
+     ()
 {
   Lisp_Object frames;
   frames = Fcopy_sequence (Vframe_list);
@@ -975,17 +976,17 @@ prev_frame (frame, minibuf)
 
 
 DEFUN ("next-frame", Fnext_frame, Snext_frame, 0, 2, 0,
-  "Return the next frame in the frame list after FRAME.\n\
-It considers only frames on the same terminal as FRAME.\n\
-By default, skip minibuffer-only frames.\n\
-If omitted, FRAME defaults to the selected frame.\n\
-If optional argument MINIFRAME is nil, exclude minibuffer-only frames.\n\
-If MINIFRAME is a window, include only its own frame\n\
-and any frame now using that window as the minibuffer.\n\
-If MINIFRAME is `visible', include all visible frames.\n\
-If MINIFRAME is 0, include all visible and iconified frames.\n\
-Otherwise, include all frames.")
-  (frame, miniframe)
+       doc: /* Return the next frame in the frame list after FRAME.
+It considers only frames on the same terminal as FRAME.
+By default, skip minibuffer-only frames.
+If omitted, FRAME defaults to the selected frame.
+If optional argument MINIFRAME is nil, exclude minibuffer-only frames.
+If MINIFRAME is a window, include only its own frame
+and any frame now using that window as the minibuffer.
+If MINIFRAME is `visible', include all visible frames.
+If MINIFRAME is 0, include all visible and iconified frames.
+Otherwise, include all frames.  */)
+     (frame, miniframe)
      Lisp_Object frame, miniframe;
 {
   if (NILP (frame))
@@ -996,17 +997,17 @@ Otherwise, include all frames.")
 }
 
 DEFUN ("previous-frame", Fprevious_frame, Sprevious_frame, 0, 2, 0,
-  "Return the previous frame in the frame list before FRAME.\n\
-It considers only frames on the same terminal as FRAME.\n\
-By default, skip minibuffer-only frames.\n\
-If omitted, FRAME defaults to the selected frame.\n\
-If optional argument MINIFRAME is nil, exclude minibuffer-only frames.\n\
-If MINIFRAME is a window, include only its own frame\n\
-and any frame now using that window as the minibuffer.\n\
-If MINIFRAME is `visible', include all visible frames.\n\
-If MINIFRAME is 0, include all visible and iconified frames.\n\
-Otherwise, include all frames.")
-  (frame, miniframe)
+       doc: /* Return the previous frame in the frame list before FRAME.
+It considers only frames on the same terminal as FRAME.
+By default, skip minibuffer-only frames.
+If omitted, FRAME defaults to the selected frame.
+If optional argument MINIFRAME is nil, exclude minibuffer-only frames.
+If MINIFRAME is a window, include only its own frame
+and any frame now using that window as the minibuffer.
+If MINIFRAME is `visible', include all visible frames.
+If MINIFRAME is 0, include all visible and iconified frames.
+Otherwise, include all frames.  */)
+     (frame, miniframe)
      Lisp_Object frame, miniframe;
 {
   if (NILP (frame))
@@ -1061,15 +1062,15 @@ other_visible_frames (f)
 }
 
 DEFUN ("delete-frame", Fdelete_frame, Sdelete_frame, 0, 2, "",
-  "Delete FRAME, permanently eliminating it from use.\n\
-If omitted, FRAME defaults to the selected frame.\n\
-A frame may not be deleted if its minibuffer is used by other frames.\n\
-Normally, you may not delete a frame if all other frames are invisible,\n\
-but if the second optional argument FORCE is non-nil, you may do so.\n\
-\n\
-This function runs `delete-frame-hook' before actually deleting the\n\
-frame.  The hook is called with one argument FRAME.")
-  (frame, force)
+       doc: /* Delete FRAME, permanently eliminating it from use.
+If omitted, FRAME defaults to the selected frame.
+A frame may not be deleted if its minibuffer is used by other frames.
+Normally, you may not delete a frame if all other frames are invisible,
+but if the second optional argument FORCE is non-nil, you may do so.
+
+This function runs `delete-frame-hook' before actually deleting the
+frame.  The hook is called with one argument FRAME.  */)
+     (frame, force)
      Lisp_Object frame, force;
 {
   struct frame *f;
@@ -1313,16 +1314,16 @@ frame.  The hook is called with one argument FRAME.")
 /* Return mouse position in character cell units.  */
 
 DEFUN ("mouse-position", Fmouse_position, Smouse_position, 0, 0, 0,
-  "Return a list (FRAME X . Y) giving the current mouse frame and position.\n\
-The position is given in character cells, where (0, 0) is the\n\
-upper-left corner.\n\
-If Emacs is running on a mouseless terminal or hasn't been programmed\n\
-to read the mouse position, it returns the selected frame for FRAME\n\
-and nil for X and Y.\n\
-If `mouse-position-function' is non-nil, `mouse-position' calls it,\n\
-passing the normal return value to that function as an argument,\n\
-and returns whatever that function returns.")
-  ()
+       doc: /* Return a list (FRAME X . Y) giving the current mouse frame and position.
+The position is given in character cells, where (0, 0) is the
+upper-left corner.
+If Emacs is running on a mouseless terminal or hasn't been programmed
+to read the mouse position, it returns the selected frame for FRAME
+and nil for X and Y.
+If `mouse-position-function' is non-nil, `mouse-position' calls it,
+passing the normal return value to that function as an argument,
+and returns whatever that function returns.  */)
+     ()
 {
   FRAME_PTR f;
   Lisp_Object lispy_dummy;
@@ -1361,13 +1362,13 @@ and returns whatever that function returns.")
 
 DEFUN ("mouse-pixel-position", Fmouse_pixel_position,
        Smouse_pixel_position, 0, 0, 0,
-  "Return a list (FRAME X . Y) giving the current mouse frame and position.\n\
-The position is given in pixel units, where (0, 0) is the\n\
-upper-left corner.\n\
-If Emacs is running on a mouseless terminal or hasn't been programmed\n\
-to read the mouse position, it returns the selected frame for FRAME\n\
-and nil for X and Y.")
-  ()
+       doc: /* Return a list (FRAME X . Y) giving the current mouse frame and position.
+The position is given in pixel units, where (0, 0) is the
+upper-left corner.
+If Emacs is running on a mouseless terminal or hasn't been programmed
+to read the mouse position, it returns the selected frame for FRAME
+and nil for X and Y.  */)
+     ()
 {
   FRAME_PTR f;
   Lisp_Object lispy_dummy;
@@ -1391,15 +1392,15 @@ and nil for X and Y.")
 }
 
 DEFUN ("set-mouse-position", Fset_mouse_position, Sset_mouse_position, 3, 3, 0,
-  "Move the mouse pointer to the center of character cell (X,Y) in FRAME.\n\
-Coordinates are relative to the frame, not a window,\n\
-so the coordinates of the top left character in the frame\n\
-may be nonzero due to left-hand scroll bars or the menu bar.\n\
-\n\
-This function is a no-op for an X frame that is not visible.\n\
-If you have just created a frame, you must wait for it to become visible\n\
-before calling this function on it, like this.\n\
-  (while (not (frame-visible-p frame)) (sleep-for .5))")
+       doc: /* Move the mouse pointer to the center of character cell (X,Y) in FRAME.
+Coordinates are relative to the frame, not a window,
+so the coordinates of the top left character in the frame
+may be nonzero due to left-hand scroll bars or the menu bar.
+
+This function is a no-op for an X frame that is not visible.
+If you have just created a frame, you must wait for it to become visible
+before calling this function on it, like this.
+  (while (not (frame-visible-p frame)) (sleep-for .5))  */)
   (frame, x, y)
      Lisp_Object frame, x, y;
 {
@@ -1427,11 +1428,11 @@ before calling this function on it, like this.\n\
 
 DEFUN ("set-mouse-pixel-position", Fset_mouse_pixel_position,
        Sset_mouse_pixel_position, 3, 3, 0,
-  "Move the mouse pointer to pixel position (X,Y) in FRAME.\n\
-Note, this is a no-op for an X frame that is not visible.\n\
-If you have just created a frame, you must wait for it to become visible\n\
-before calling this function on it, like this.\n\
-  (while (not (frame-visible-p frame)) (sleep-for .5))")
+       doc: /* Move the mouse pointer to pixel position (X,Y) in FRAME.
+Note, this is a no-op for an X frame that is not visible.
+If you have just created a frame, you must wait for it to become visible
+before calling this function on it, like this.
+  (while (not (frame-visible-p frame)) (sleep-for .5))  */)
   (frame, x, y)
      Lisp_Object frame, x, y;
 {
@@ -1461,9 +1462,9 @@ static void make_frame_visible_1 P_ ((Lisp_Object));
 
 DEFUN ("make-frame-visible", Fmake_frame_visible, Smake_frame_visible,
        0, 1, "",
-  "Make the frame FRAME visible (assuming it is an X window).\n\
-If omitted, FRAME defaults to the currently selected frame.")
-  (frame)
+       doc: /* Make the frame FRAME visible (assuming it is an X window).
+If omitted, FRAME defaults to the currently selected frame.  */)
+     (frame)
      Lisp_Object frame;
 {
   if (NILP (frame))
@@ -1513,10 +1514,10 @@ make_frame_visible_1 (window)
 
 DEFUN ("make-frame-invisible", Fmake_frame_invisible, Smake_frame_invisible,
        0, 2, "",
-  "Make the frame FRAME invisible (assuming it is an X window).\n\
-If omitted, FRAME defaults to the currently selected frame.\n\
-Normally you may not make FRAME invisible if all other frames are invisible,\n\
-but if the second optional argument FORCE is non-nil, you may do so.")
+       doc: /* Make the frame FRAME invisible (assuming it is an X window).
+If omitted, FRAME defaults to the currently selected frame.
+Normally you may not make FRAME invisible if all other frames are invisible,
+but if the second optional argument FORCE is non-nil, you may do so.  */)
   (frame, force)
      Lisp_Object frame, force;
 {
@@ -1557,8 +1558,8 @@ but if the second optional argument FORCE is non-nil, you may do so.")
 
 DEFUN ("iconify-frame", Ficonify_frame, Siconify_frame,
        0, 1, "",
-  "Make the frame FRAME into an icon.\n\
-If omitted, FRAME defaults to the currently selected frame.")
+       doc: /* Make the frame FRAME into an icon.
+If omitted, FRAME defaults to the currently selected frame.  */)
   (frame)
      Lisp_Object frame;
 {
@@ -1596,11 +1597,11 @@ If omitted, FRAME defaults to the currently selected frame.")
 
 DEFUN ("frame-visible-p", Fframe_visible_p, Sframe_visible_p,
        1, 1, 0,
-       "Return t if FRAME is now \"visible\" (actually in use for display).\n\
-A frame that is not \"visible\" is not updated and, if it works through\n\
-a window system, it may not show at all.\n\
-Return the symbol `icon' if frame is visible only as an icon.")
-  (frame)
+       doc: /* Return t if FRAME is now \"visible\" (actually in use for display).
+A frame that is not \"visible\" is not updated and, if it works through
+a window system, it may not show at all.
+Return the symbol `icon' if frame is visible only as an icon.  */)
+     (frame)
      Lisp_Object frame;
 {
   CHECK_LIVE_FRAME (frame, 0);
@@ -1616,7 +1617,7 @@ Return the symbol `icon' if frame is visible only as an icon.")
 
 DEFUN ("visible-frame-list", Fvisible_frame_list, Svisible_frame_list,
        0, 0, 0,
-       "Return a list of all frames now \"visible\" (being updated).")
+       doc: /* Return a list of all frames now \"visible\" (being updated).  */)
   ()
 {
   Lisp_Object tail, frame;
@@ -1638,12 +1639,12 @@ DEFUN ("visible-frame-list", Fvisible_frame_list, Svisible_frame_list,
 
 
 DEFUN ("raise-frame", Fraise_frame, Sraise_frame, 0, 1, "",
-  "Bring FRAME to the front, so it occludes any frames it overlaps.\n\
-If FRAME is invisible, make it visible.\n\
-If you don't specify a frame, the selected frame is used.\n\
-If Emacs is displaying on an ordinary terminal or some other device which\n\
-doesn't support multiple overlapping frames, this function does nothing.")
-  (frame)
+       doc: /* Bring FRAME to the front, so it occludes any frames it overlaps.
+If FRAME is invisible, make it visible.
+If you don't specify a frame, the selected frame is used.
+If Emacs is displaying on an ordinary terminal or some other device which
+doesn't support multiple overlapping frames, this function does nothing.  */)
+     (frame)
      Lisp_Object frame;
 {
   if (NILP (frame))
@@ -1662,11 +1663,11 @@ doesn't support multiple overlapping frames, this function does nothing.")
 
 /* Should we have a corresponding function called Flower_Power?  */
 DEFUN ("lower-frame", Flower_frame, Slower_frame, 0, 1, "",
-  "Send FRAME to the back, so it is occluded by any frames that overlap it.\n\
-If you don't specify a frame, the selected frame is used.\n\
-If Emacs is displaying on an ordinary terminal or some other device which\n\
-doesn't support multiple overlapping frames, this function does nothing.")
-  (frame)
+       doc: /* Send FRAME to the back, so it is occluded by any frames that overlap it.
+If you don't specify a frame, the selected frame is used.
+If Emacs is displaying on an ordinary terminal or some other device which
+doesn't support multiple overlapping frames, this function does nothing.  */)
+     (frame)
      Lisp_Object frame;
 {
   if (NILP (frame))
@@ -1683,31 +1684,31 @@ doesn't support multiple overlapping frames, this function does nothing.")
 
 DEFUN ("redirect-frame-focus", Fredirect_frame_focus, Sredirect_frame_focus,
        1, 2, 0,
-  "Arrange for keystrokes typed at FRAME to be sent to FOCUS-FRAME.\n\
-In other words, switch-frame events caused by events in FRAME will\n\
-request a switch to FOCUS-FRAME, and `last-event-frame' will be\n\
-FOCUS-FRAME after reading an event typed at FRAME.\n\
-\n\
-If FOCUS-FRAME is omitted or nil, any existing redirection is\n\
-cancelled, and the frame again receives its own keystrokes.\n\
-\n\
-Focus redirection is useful for temporarily redirecting keystrokes to\n\
-a surrogate minibuffer frame when a frame doesn't have its own\n\
-minibuffer window.\n\
-\n\
-A frame's focus redirection can be changed by select-frame.  If frame\n\
-FOO is selected, and then a different frame BAR is selected, any\n\
-frames redirecting their focus to FOO are shifted to redirect their\n\
-focus to BAR.  This allows focus redirection to work properly when the\n\
-user switches from one frame to another using `select-window'.\n\
-\n\
-This means that a frame whose focus is redirected to itself is treated\n\
-differently from a frame whose focus is redirected to nil; the former\n\
-is affected by select-frame, while the latter is not.\n\
-\n\
-The redirection lasts until `redirect-frame-focus' is called to change it.")
-  (frame, focus_frame)
-    Lisp_Object frame, focus_frame;
+       doc: /* Arrange for keystrokes typed at FRAME to be sent to FOCUS-FRAME.
+In other words, switch-frame events caused by events in FRAME will
+request a switch to FOCUS-FRAME, and `last-event-frame' will be
+FOCUS-FRAME after reading an event typed at FRAME.
+
+If FOCUS-FRAME is omitted or nil, any existing redirection is
+cancelled, and the frame again receives its own keystrokes.
+
+Focus redirection is useful for temporarily redirecting keystrokes to
+a surrogate minibuffer frame when a frame doesn't have its own
+minibuffer window.
+
+A frame's focus redirection can be changed by select-frame.  If frame
+FOO is selected, and then a different frame BAR is selected, any
+frames redirecting their focus to FOO are shifted to redirect their
+focus to BAR.  This allows focus redirection to work properly when the
+user switches from one frame to another using `select-window'.
+
+This means that a frame whose focus is redirected to itself is treated
+differently from a frame whose focus is redirected to nil; the former
+is affected by select-frame, while the latter is not.
+
+The redirection lasts until `redirect-frame-focus' is called to change it.  */)
+     (frame, focus_frame)
+     Lisp_Object frame, focus_frame;
 {
   /* Note that we don't check for a live frame here.  It's reasonable
      to redirect the focus of a frame you're about to delete, if you
@@ -1727,11 +1728,11 @@ The redirection lasts until `redirect-frame-focus' is called to change it.")
 
 
 DEFUN ("frame-focus", Fframe_focus, Sframe_focus, 1, 1, 0,
-  "Return the frame to which FRAME's keystrokes are currently being sent.\n\
-This returns nil if FRAME's focus is not redirected.\n\
-See `redirect-frame-focus'.")
-  (frame)
-    Lisp_Object frame;
+       doc: /* Return the frame to which FRAME's keystrokes are currently being sent.
+This returns nil if FRAME's focus is not redirected.
+See `redirect-frame-focus'.  */)
+     (frame)
+     Lisp_Object frame;
 {
   CHECK_LIVE_FRAME (frame, 0);
 
@@ -1960,11 +1961,11 @@ store_frame_param (f, prop, val)
 }
 
 DEFUN ("frame-parameters", Fframe_parameters, Sframe_parameters, 0, 1, 0,
-  "Return the parameters-alist of frame FRAME.\n\
-It is a list of elements of the form (PARM . VALUE), where PARM is a symbol.\n\
-The meaningful PARMs depend on the kind of frame.\n\
-If FRAME is omitted, return information on the currently selected frame.")
-  (frame)
+       doc: /* Return the parameters-alist of frame FRAME.
+It is a list of elements of the form (PARM . VALUE), where PARM is a symbol.
+The meaningful PARMs depend on the kind of frame.
+If FRAME is omitted, return information on the currently selected frame.  */)
+     (frame)
      Lisp_Object frame;
 {
   Lisp_Object alist;
@@ -2059,10 +2060,10 @@ If FRAME is omitted, return information on the currently selected frame.")
 
 
 DEFUN ("frame-parameter", Fframe_parameter, Sframe_parameter, 2, 2, 0,
-   "Return FRAME's value for parameter PARAMETER.\n\
-If FRAME is nil, describe the currently selected frame.")
-  (frame, parameter)
-       Lisp_Object frame, parameter;
+       doc: /* Return FRAME's value for parameter PARAMETER.
+If FRAME is nil, describe the currently selected frame.  */)
+     (frame, parameter)
+     Lisp_Object frame, parameter;
 {
   struct frame *f;
   Lisp_Object value;
@@ -2134,18 +2135,18 @@ If FRAME is nil, describe the currently selected frame.")
 
 DEFUN ("modify-frame-parameters", Fmodify_frame_parameters, 
        Smodify_frame_parameters, 2, 2, 0,
-  "Modify the parameters of frame FRAME according to ALIST.\n\
-If FRAME is nil, it defaults to the selected frame.\n\
-ALIST is an alist of parameters to change and their new values.\n\
-Each element of ALIST has the form (PARM . VALUE), where PARM is a symbol.\n\
-The meaningful PARMs depend on the kind of frame.\n\
-Undefined PARMs are ignored, but stored in the frame's parameter list\n\
-so that `frame-parameters' will return them.\n\
-\n\
-The value of frame parameter FOO can also be accessed\n\
-as a frame-local binding for the variable FOO, if you have\n\
-enabled such bindings for that variable with `make-variable-frame-local'.")
-  (frame, alist)
+       doc: /* Modify the parameters of frame FRAME according to ALIST.
+If FRAME is nil, it defaults to the selected frame.
+ALIST is an alist of parameters to change and their new values.
+Each element of ALIST has the form (PARM . VALUE), where PARM is a symbol.
+The meaningful PARMs depend on the kind of frame.
+Undefined PARMs are ignored, but stored in the frame's parameter list
+so that `frame-parameters' will return them.
+
+The value of frame parameter FOO can also be accessed
+as a frame-local binding for the variable FOO, if you have
+enabled such bindings for that variable with `make-variable-frame-local'.  */)
+     (frame, alist)
      Lisp_Object frame, alist;
 {
   FRAME_PTR f;
@@ -2211,10 +2212,10 @@ enabled such bindings for that variable with `make-variable-frame-local'.")
 }
 
 DEFUN ("frame-char-height", Fframe_char_height, Sframe_char_height,
-  0, 1, 0,
-  "Height in pixels of a line in the font in frame FRAME.\n\
-If FRAME is omitted, the selected frame is used.\n\
-For a terminal frame, the value is always 1.")
+       0, 1, 0,
+       doc: /* Height in pixels of a line in the font in frame FRAME.
+If FRAME is omitted, the selected frame is used.
+For a terminal frame, the value is always 1.  */)
   (frame)
      Lisp_Object frame;
 {
@@ -2235,13 +2236,13 @@ For a terminal frame, the value is always 1.")
 
 
 DEFUN ("frame-char-width", Fframe_char_width, Sframe_char_width,
-  0, 1, 0,
-  "Width in pixels of characters in the font in frame FRAME.\n\
-If FRAME is omitted, the selected frame is used.\n\
-The width is the same for all characters, because\n\
-currently Emacs supports only fixed-width fonts.\n\
-For a terminal screen, the value is always 1.")
-  (frame)
+       0, 1, 0,
+       doc: /* Width in pixels of characters in the font in frame FRAME.
+If FRAME is omitted, the selected frame is used.
+The width is the same for all characters, because
+currently Emacs supports only fixed-width fonts.
+For a terminal screen, the value is always 1.  */)
+     (frame)
      Lisp_Object frame;
 {
   struct frame *f;
@@ -2261,12 +2262,12 @@ For a terminal screen, the value is always 1.")
 
 DEFUN ("frame-pixel-height", Fframe_pixel_height, 
        Sframe_pixel_height, 0, 1, 0,
-  "Return a FRAME's height in pixels.\n\
-This counts only the height available for text lines,\n\
-not menu bars on window-system Emacs frames.\n\
-For a terminal frame, the result really gives the height in characters.\n\
-If FRAME is omitted, the selected frame is used.")
-  (frame)
+       doc: /* Return a FRAME's height in pixels.
+This counts only the height available for text lines,
+not menu bars on window-system Emacs frames.
+For a terminal frame, the result really gives the height in characters.
+If FRAME is omitted, the selected frame is used.  */)
+     (frame)
      Lisp_Object frame;
 {
   struct frame *f;
@@ -2286,10 +2287,10 @@ If FRAME is omitted, the selected frame is used.")
 
 DEFUN ("frame-pixel-width", Fframe_pixel_width, 
        Sframe_pixel_width, 0, 1, 0,
-  "Return FRAME's width in pixels.\n\
-For a terminal frame, the result really gives the width in characters.\n\
-If FRAME is omitted, the selected frame is used.")
-  (frame)
+       doc: /* Return FRAME's width in pixels.
+For a terminal frame, the result really gives the width in characters.
+If FRAME is omitted, the selected frame is used.  */)
+     (frame)
      Lisp_Object frame;
 {
   struct frame *f;
@@ -2308,10 +2309,10 @@ If FRAME is omitted, the selected frame is used.")
 }
 
 DEFUN ("set-frame-height", Fset_frame_height, Sset_frame_height, 2, 3, 0,
-  "Specify that the frame FRAME has LINES lines.\n\
-Optional third arg non-nil means that redisplay should use LINES lines\n\
-but that the idea of the actual height of the frame should not be changed.")
-  (frame, lines, pretend)
+       doc: /* Specify that the frame FRAME has LINES lines.
+Optional third arg non-nil means that redisplay should use LINES lines
+but that the idea of the actual height of the frame should not be changed.  */)
+     (frame, lines, pretend)
      Lisp_Object frame, lines, pretend;
 {
   register struct frame *f;
@@ -2337,10 +2338,10 @@ but that the idea of the actual height of the frame should not be changed.")
 }
 
 DEFUN ("set-frame-width", Fset_frame_width, Sset_frame_width, 2, 3, 0,
-  "Specify that the frame FRAME has COLS columns.\n\
-Optional third arg non-nil means that redisplay should use COLS columns\n\
-but that the idea of the actual width of the frame should not be changed.")
-  (frame, cols, pretend)
+       doc: /* Specify that the frame FRAME has COLS columns.
+Optional third arg non-nil means that redisplay should use COLS columns
+but that the idea of the actual width of the frame should not be changed.  */)
+     (frame, cols, pretend)
      Lisp_Object frame, cols, pretend;
 {
   register struct frame *f;
@@ -2365,8 +2366,8 @@ but that the idea of the actual width of the frame should not be changed.")
 }
 
 DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
-  "Sets size of FRAME to COLS by ROWS, measured in characters.")
-  (frame, cols, rows)
+       doc: /* Sets size of FRAME to COLS by ROWS, measured in characters.  */)
+     (frame, cols, rows)
      Lisp_Object frame, cols, rows;
 {
   register struct frame *f;
@@ -2394,11 +2395,11 @@ DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
 
 DEFUN ("set-frame-position", Fset_frame_position, 
        Sset_frame_position, 3, 3, 0,
-  "Sets position of FRAME in pixels to XOFFSET by YOFFSET.\n\
-This is actually the position of the upper left corner of the frame.\n\
-Negative values for XOFFSET or YOFFSET are interpreted relative to\n\
-the rightmost or bottommost possible position (that stays within the screen).")
-  (frame, xoffset, yoffset)
+       doc: /* Sets position of FRAME in pixels to XOFFSET by YOFFSET.
+This is actually the position of the upper left corner of the frame.
+Negative values for XOFFSET or YOFFSET are interpreted relative to
+the rightmost or bottommost possible position (that stays within the screen).  */)
+     (frame, xoffset, yoffset)
      Lisp_Object frame, xoffset, yoffset;
 {
   register struct frame *f;
@@ -2467,16 +2468,16 @@ syms_of_frame ()
   staticpro (&Qbackground_mode);
 
   DEFVAR_LISP ("default-frame-alist", &Vdefault_frame_alist,
-    "Alist of default values for frame creation.\n\
-These may be set in your init file, like this:\n\
-  (setq default-frame-alist '((width . 80) (height . 55) (menu-bar-lines . 1))\n\
-These override values given in window system configuration data,\n\
- including X Windows' defaults database.\n\
-For values specific to the first Emacs frame, see `initial-frame-alist'.\n\
-For values specific to the separate minibuffer frame, see\n\
- `minibuffer-frame-alist'.\n\
-The `menu-bar-lines' element of the list controls whether new frames\n\
- have menu bars; `menu-bar-mode' works by altering this element.");
+	       doc: /* Alist of default values for frame creation.
+These may be set in your init file, like this:
+  (setq default-frame-alist '((width . 80) (height . 55) (menu-bar-lines . 1))
+These override values given in window system configuration data,
+ including X Windows' defaults database.
+For values specific to the first Emacs frame, see `initial-frame-alist'.
+For values specific to the separate minibuffer frame, see
+ `minibuffer-frame-alist'.
+The `menu-bar-lines' element of the list controls whether new frames
+ have menu bars; `menu-bar-mode' works by altering this element.  */);
   Vdefault_frame_alist = Qnil;
 
   Qinhibit_default_face_x_resources
@@ -2484,34 +2485,34 @@ The `menu-bar-lines' element of the list controls whether new frames\n\
   staticpro (&Qinhibit_default_face_x_resources);
 
   DEFVAR_LISP ("terminal-frame", &Vterminal_frame,
-    "The initial frame-object, which represents Emacs's stdout.");
+	       doc: /* The initial frame-object, which represents Emacs's stdout.  */);
 
   DEFVAR_LISP ("emacs-iconified", &Vemacs_iconified,
-    "Non-nil if all of emacs is iconified and frame updates are not needed.");
+	       doc: /* Non-nil if all of emacs is iconified and frame updates are not needed.  */);
   Vemacs_iconified = Qnil;
 
   DEFVAR_LISP ("mouse-position-function", &Vmouse_position_function,
-    "If non-nil, function to transform normal value of `mouse-position'.\n\
-`mouse-position' calls this function, passing its usual return value as\n\
-argument, and returns whatever this function returns.\n\
-This abnormal hook exists for the benefit of packages like `xt-mouse.el'\n\
-which need to do mouse handling at the Lisp level.");
+	       doc: /* If non-nil, function to transform normal value of `mouse-position'.
+`mouse-position' calls this function, passing its usual return value as
+argument, and returns whatever this function returns.
+This abnormal hook exists for the benefit of packages like `xt-mouse.el'
+which need to do mouse handling at the Lisp level.  */);
   Vmouse_position_function = Qnil;
 
   DEFVAR_KBOARD ("default-minibuffer-frame", Vdefault_minibuffer_frame,
-    "Minibufferless frames use this frame's minibuffer.\n\
-\n\
-Emacs cannot create minibufferless frames unless this is set to an\n\
-appropriate surrogate.\n\
-\n\
-Emacs consults this variable only when creating minibufferless\n\
-frames; once the frame is created, it sticks with its assigned\n\
-minibuffer, no matter what this variable is set to.  This means that\n\
-this variable doesn't necessarily say anything meaningful about the\n\
-current set of frames, or where the minibuffer is currently being\n\
-displayed.\n\
-\n\
-This variable is local to the current terminal and cannot be buffer-local.");
+		 doc: /* Minibufferless frames use this frame's minibuffer.
+
+Emacs cannot create minibufferless frames unless this is set to an
+appropriate surrogate.
+
+Emacs consults this variable only when creating minibufferless
+frames; once the frame is created, it sticks with its assigned
+minibuffer, no matter what this variable is set to.  This means that
+this variable doesn't necessarily say anything meaningful about the
+current set of frames, or where the minibuffer is currently being
+displayed.
+
+This variable is local to the current terminal and cannot be buffer-local.  */);
 
   staticpro (&Vframe_list);
 
