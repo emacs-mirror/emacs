@@ -1182,7 +1182,7 @@ ftp://ftp.gnu.org/gnu/windows/emacs/doc/index.html
 When a program you are trying to run is not found on the PATH,
 Windows might respond by crashing or locking up your system.  In
 particular, this has been reported when trying to compile a Java
-program in JDE when javac.exe is installed, but not on the system
+program in JDEE when javac.exe is installed, but not on the system
 PATH.
 
 * Mail sent through Microsoft Exchange in some encodings appears to be
