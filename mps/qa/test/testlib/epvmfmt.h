@@ -1,4 +1,4 @@
-/* $HopeName$
+/* $HopeName: MMQA_harness!testlib:epvmfmt.h(trunk.3) $
 epvmfmt.h
    Format for objects in the EPVM pool.
 */
@@ -29,6 +29,8 @@ struct psobj {
 extern struct mps_fmt_A_s fmtepvm;
 
 psobj *allocepvm(mps_ap_t ap, int words);
+
+mps_res_t allocrepvm(psobj **, mps_ap_t ap, int words);
 
 void splatepvm(psobj *obj);
 
