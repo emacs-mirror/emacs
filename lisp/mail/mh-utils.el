@@ -537,11 +537,6 @@ Non-nil third argument means not to show the message."
   ;; From profile file, set mh-user-path, mh-draft-folder,
   ;; mh-unseen-seq, mh-previous-seq, mh-inbox.
   (mh-find-progs)
-  (and mh-auto-folder-collect
-       (let ((mh-no-install t))		;only get folders if MH installed
-	 (condition-case err
-	     (mh-make-folder-list-background)
-	   (file-error))))		;so don't complain if not installed
   (save-excursion
     ;; Be sure profile is fully expanded before switching buffers
     (let ((profile (expand-file-name (or (getenv "MH") "~/.mh_profile"))))
@@ -579,7 +574,12 @@ Non-nil third argument means not to show the message."
       (if mh-previous-seq
 	  (setq mh-previous-seq (intern mh-previous-seq)))
       (setq mail-user-agent 'mh-e-user-agent)
-      (run-hooks 'mh-find-path-hook))))
+      (run-hooks 'mh-find-path-hook)))
+  (and mh-auto-folder-collect
+       (let ((mh-no-install t))		;only get folders if MH installed
+	 (condition-case err
+	     (mh-make-folder-list-background)
+	   (file-error)))))		;so don't complain if not installed
 
 (defun mh-file-command-p (file)
   "Return t if file FILE is the name of a executable regular file."
@@ -764,7 +764,8 @@ Set the `mh-progs' and `mh-lib' variables to the file names."
   ;; Call mh-set-folder-list to wait for the result.
   (cond
    ((not mh-make-folder-list-process)
-    (mh-find-path)
+    (unless mh-inbox
+      (mh-find-path))
     (let ((process-connection-type nil))
       (setq mh-make-folder-list-process
 	    (start-process "folders" nil (expand-file-name "folders" mh-progs)
