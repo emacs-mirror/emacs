@@ -57,7 +57,7 @@ Boston, MA 02111-1307, USA.  */
    type, and, for simple boxes, in what color.
 
    14. Font or fontset pattern, or nil.  This is a special attribute.
-   When this attribyte is specified, the face uses a font opened by
+   When this attribute is specified, the face uses a font opened by
    that pattern as is.  In addition, all the other font-related
    attributes (1st thru 5th) are generated from the opened font name.
    On the other hand, if one of the other font-related attributes are
@@ -123,7 +123,7 @@ Boston, MA 02111-1307, USA.  */
    is realized, it inherits (thus shares) a fontset of an ASCII face
    that has the same attributes other than font-related ones.
 
-   Thus, all realzied face have a realized fontset.
+   Thus, all realized face have a realized fontset.
 
 
    Unibyte text.
@@ -173,7 +173,7 @@ Boston, MA 02111-1307, USA.  */
    fonts.
 
 
-   Character compositition.
+   Character composition.
 
    Usually, the realization process is already finished when Emacs
    actually reflects the desired glyph matrix on the screen.  However,
