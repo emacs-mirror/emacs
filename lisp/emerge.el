@@ -1432,6 +1432,12 @@ These characteristics are restored by `emerge-restore-buffer-characteristics'."
 			   (emerge-restore-variables emerge-saved-variables
 						     B-values))))
 
+;; Move to line DESIRED-LINE assuming we are at line CURRENT-LINE.
+;; Return DESIRED-LINE.
+(defun emerge-goto-line (desired-line current-line)
+  (forward-line (- desired-line current-line))
+  current-line)
+
 (defun emerge-convert-diffs-to-markers (A-buffer
 					B-buffer
 					merge-buffer
@@ -1449,7 +1455,13 @@ These characteristics are restored by `emerge-restore-buffer-characteristics'."
 			  B-buffer
 			  (save-restriction
 			    (widen)
-			    (count-lines 1 B-point-min)))))
+			    (count-lines 1 B-point-min))))
+	 ;; Record current line number in each buffer
+	 ;; so we don't have to count from the beginning.
+	 (a-line A-hidden-lines)
+	 (b-line B-hidden-lines))
+    (emerge-eval-in-buffer A-buffer (goto-char (point-min)))
+    (emerge-eval-in-buffer B-buffer (goto-char (point-min)))
     (while lineno-list
       (let* ((list-element (car lineno-list))
 	     a-begin-marker
@@ -1466,15 +1478,15 @@ These characteristics are restored by `emerge-restore-buffer-characteristics'."
 	;; place markers at the appropriate places in the buffers
 	(emerge-eval-in-buffer
 	 A-buffer
-	 (goto-line (+ a-begin A-hidden-lines))
+	 (setq a-line (emerge-goto-line (+ a-begin A-hidden-lines) a-line))
 	 (setq a-begin-marker (point-marker))
-	 (goto-line (+ a-end A-hidden-lines))
+	 (setq a-line (emerge-goto-line (+ a-end A-hidden-lines) a-line))
 	 (setq a-end-marker (point-marker)))
 	(emerge-eval-in-buffer
 	 B-buffer
-	 (goto-line (+ b-begin B-hidden-lines))
+	 (setq b-line (emerge-goto-line (+ b-begin B-hidden-lines) b-line))
 	 (setq b-begin-marker (point-marker))
-	 (goto-line (+ b-end B-hidden-lines))
+	 (setq b-line (emerge-goto-line (+ b-end B-hidden-lines) b-line))
 	 (setq b-end-marker (point-marker)))
 	(setq merge-begin-marker (set-marker
 				  (make-marker)
