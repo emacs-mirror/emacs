@@ -1,3 +1,10 @@
+2005-02-22  Simon Josefsson  <jas@extundo.com>
+
+	* net/browse-url.el (browse-url-netscape-new-window-is-tab): New
+	variable.
+	(browse-url-netscape): Use it.  Suggested by "Johann 'Myrkraverk'
+	Oskarsson" <myrkraverk@users.sourceforget.net>.
+
 2005-02-22  Kim F. Storm  <storm@cua.dk>
 
 	* mouse.el (mouse-on-link-p): If arg POS is a mouse event,
