@@ -1322,6 +1322,7 @@ With argument, insert value in current buffer after the form."
 	(float-output-format nil)
 	(case-fold-search nil)
 	(print-length nil)
+	(print-level nil)
 	;; Simulate entry to byte-compile-top-level
 	(byte-compile-constants nil)
 	(byte-compile-variables nil)
