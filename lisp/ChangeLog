@@ -1,3 +1,8 @@
+2003-07-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/fill.el (fill-comment-paragraph): Construct a regexp
+	to match the specific mark rather than reusing comment-start-skip.
+
 2003-07-22  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/hideshow.el (hs-special-modes-alist):
@@ -29,8 +34,8 @@
 
 2003-07-21  Kenichi Handa  <handa@m17n.org>
 
-	* international/quail.el (quail-translate-key): Update
-	quail-current-str correctly.
+	* international/quail.el (quail-translate-key):
+	Update quail-current-str correctly.
 
 2003-07-21  Andreas Schwab  <schwab@suse.de>
 
@@ -40,7 +45,7 @@
 2003-07-20  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 	Version 2.0.36 of Tramp released.
 
-	* net/tramp.el (tramp-default-password-end-of-line): Renamed from
+	* net/tramp.el (tramp-default-password-end-of-line): Rename from
 	tramp-password-end-of-line.
 	(tramp-password-end-of-line): New method parameter.
 	(tramp-get-password-end-of-line): Function to access method
@@ -56,13 +61,11 @@
 	insert-file-contents.  This fixes finding remote CVS-controlled
 	files.  (It would barf on inserting the CVS/Entries file
 	literally, because the file-local-copy handler wasn't called.)
-	(tramp-handle-shell-command): Support optional third arg
-	ERROR-BUFFER.
+	(tramp-handle-shell-command): Support optional third arg ERROR-BUFFER.
 	(tramp-sh-extra-args): Adapt defcustom type to XEmacs.
 	(tramp-initial-commands): New variable.
 	(tramp-process-initial-commands): New function, using the variable.
-	(tramp-open-connection-setup-interactive-shell): Call the new
-	function.
+	(tramp-open-connection-setup-interactive-shell): Call the new function.
 	(tramp-buffer-name, tramp-debug-buffer-name): Always put the
 	method into the buffer name, never use nil.  Reported by Hanak
 	David <dhanak@inf.bme.hu>.
@@ -73,8 +76,7 @@
 
 2003-07-19  Markus Rost  <rost@math.ohio-state.edu>
 
-	* textmodes/artist.el (artist-erase-char): Fix default value using
-	?\s.
+	* textmodes/artist.el (artist-erase-char): Fix default value using ?\s.
 
 2003-07-19  John Paul Wallington  <jpw@gnu.org>
 
