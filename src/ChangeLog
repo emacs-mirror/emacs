@@ -1,3 +1,144 @@
+2003-03-21  Kim F. Storm  <storm@cua.dk>
+
+	The following changes consolidate code related to writing and
+	inserting glyphs, exposing frame, the tool bar, the mouse face,
+	the output cursor, and help echo from xterm.c, w32term.c and
+	macterm.c into xdisp.c.  It also generalizes the use of the
+	window_part enum instead of using numeric values throughout.
+	
+	* xdisp.c: Consolidate gui-independent code here.
+	Include keymap.h.
+	(Qhelp_echo): Import.
+	(mouse_autoselect_window, x_stretch_cursor_p): Declare here.
+	(help_echo_string, help_echo_window, help_echo_object)
+	(previous_help_echo_string, help_echo_pos): Declare here.
+	(output_cursor, last_mouse_frame, last_tool_bar_item): Declare here.
+	(estimate_mode_line_height): Define here.  Handle windowing
+	systems directly (without using estimate_mode_line_height_hook).
+	(x_y_to_hpos_vpos, get_tool_bar_item, note_tool_bar_highlight):
+	(update_window_cursor, update_cursor_in_window_tree)
+	(fast_find_position, fast_find_string_pos)
+	(note_mode_line_highlight, note_mode_line_or_margin_highlight)
+	(expose_area, expose_line, expose_overlaps, expose_window)
+	(expose_window_tree, phys_cursor_in_rect_p): New generic versions;
+	declared static as they are only used locally in xdisp.c.
+	(draw_glyphs): Rename from x_draw_glyphs and make static.
+	(tool_bar_item_info, notice_overwritten_cursor): Make static.
+	(frame_to_window_pixel_xy, get_glyph_string_clip_rect)
+	(set_output_cursor, x_cursor_to, handle_tool_bar_click)
+	(x_write_glyphs, x_insert_glyphs, x_clear_end_of_line): 
+	(x_fix_overlapping_area, draw_phys_cursor_glyph, erase_phys_cursor)
+	(display_and_set_cursor, x_update_cursor, x_clear_cursor)
+	(show_mouse_face, clear_mouse_face, cursor_in_mouse_face_p)
+	(note_mouse_highlight, x_clear_window_mouse_face)
+	(cancel_mouse_face, x_draw_vertical_border, expose_frame)
+	(x_intersect_rectangles): New generic functions for use by xdisp.c
+	and GUI front-ends.
+	(syms_of_xdisp): Initialize and staticpro help_echo* variables.
+	Defvar_bool "x-streach-cursor" and "mouse-autoselect-window" here.
+
+	* dispextern.h (Display_Info): Generic typedef for *_display_info.
+	(NativeRectangle): Generic typedef for rectangle type.
+	(enum window_part): Move here from window.c.
+	(struct redisplay_interface): New members flush_display_optional,
+	define_frame_cursor, clear_frame_area, draw_window_cursor,
+	draw_vertical_window_border, shift_glyphs_for_insert.
+	Rename member clear_mouse_face to clear_window_mouse_face.
+	(estimate_mode_line_height_hook): Remove hook.
+	(auto_raise_tool_bar_buttons_p): Don't declare extern.
+	(tool_bar_item_info): Remove prototype.
+	(help_echo_string, help_echo_window, help_echo_object)
+	(previous_help_echo_string, help_echo_pos)
+	(last_mouse_frame, last_tool_bar_item, mouse_autoselect_window):
+	(x_stretch_cursor_p, output_cursor): Declare extern.
+	(x_draw_glyphs, notice_overwritten_cursor): Remove prototypes.
+	(x_write_glyphs), x_insert_glyphs, x_clear_end_of_line)
+	(x_fix_overlapping_area, draw_phys_cursor_glyph, erase_phys_cursor)
+	(display_and_set_cursor, set_output_cursor, x_cursor_to)
+	(x_update_cursor, x_clear_cursor, x_draw_vertical_border)
+	(frame_to_window_pixel_xy, get_glyph_string_clip_rect)
+	(note_mouse_highlight, x_clear_window_mouse_face, cancel_mouse_face)
+	(handle_tool_bar_click, clear_mouse_face, show_mouse_face)
+	(cursor_in_mouse_face_p, expose_frame, x_intersect_rectangles):
+	Add prototypes.
+	(mode_line_string, marginal_area_string): Fix prototypes.
+
+	* window.c (enum window_part): Move to dispextern.h.
+	(coordinates_in_window): Use enum window_part member names
+	instead of numbers to describe return value.
+	(struct check_window_data): Change part member to window_part.
+	(check_window_containing): Return window_part unaltered.
+	(window_from_coordinates): Change part arg from int to enum
+	window_part.  Allow part arg to be null.  All users changed.
+
+	* window.h (window_from_coordinates): Fix prototype.
+
+	* term.c (estimate_mode_line_height): Move to xdisp.c.
+
+	* keyboard.c (make_lispy_event): Use enum window_part.
+
+	* dispnew.c (mode_line_string, marginal_area_string): Use enum
+	window_part instead of int in arg list.  Users changed.
+
+	* xterm.h (No_Cursor): Declare as None for X.
+	(struct mac_output): Replace member cross_cursor by hand_cursor.
+	
+	* xterm.c: Remove consolidated defines and code.
+	(BETWEEN): Remove unused macro.
+	(x_draw_vertical_window_border, x_shift_glyphs_for_insert)
+	(x_define_frame_cursor, x_clear_frame_area)
+	(x_draw_window_cursor): New X-specific functions for RIF.
+	(x_redisplay_interface): Add new members.
+
+	* xfns.c: Setup and use hand_cursor instead of cross_cursor.
+
+	* w32term.h (struct w32_output): Remove cross_cursor member.
+
+	* w32term.c: Remove consolidated defines and code.
+	(BETWEEN): Remove unused macro.
+	(w32_draw_vertical_window_border, w32_shift_glyphs_for_insert)
+	(w32_define_frame_cursor, w32_clear_frame_area)
+	(w32_draw_window_cursor): New W32-specific functions for RIF.
+	(w32_redisplay_interface): Add new members.
+
+	* w32gui.h (No_Cursor):  Define as 0 for W32.
+	(XRectangle): Add X compatible rectangle type.
+	(NativeRectangle): Declare as RECT for W32.
+	(CONVERT_TO_XRECT, CONVERT_FROM_XRECT, STORE_NATIVE_RECT): New macros.
+
+	* w32fns.c: Remove setup of cross_cursor (already has hand_cursor).
+
+	* w32console.c: Remove consolidated defines and code.
+	
+	* msdos.h (Display_Info): Add generic typedef.
+
+	* msdos.c: Remove consolidated defines and code.
+	(IT_note_mouse_highlight, dos_rawgetc): Use enum window_part.
+
+	* macterm.h (struct mac_output): Replace member cross_cursor by
+	hand_cursor.
+	(activate_scroll_bars, deactivate_scroll_bars): Add prototypes.
+
+	* macterm.c: Remove consolidated defines and code.
+	(BETWEEN): Remove unused macro.
+	(mac_draw_vertical_window_border, mac_shift_glyphs_for_insert)
+	(mac_define_frame_cursor, mac_clear_frame_area)
+	(mac_draw_window_cursor): New Mac-specific functions for RIF.
+	(x_redisplay_interface): Add new members.
+
+	* macgui.h (No_Cursor): Define as 0 for Mac.
+	(XRectangle): Add X compatible rectangle type.
+	(NativeRectangle): Declare as Rect for Mac.
+	(CONVERT_TO_XRECT, CONVERT_FROM_XRECT, STORE_NATIVE_RECT): New macros.
+
+	* macfns.c (x_set_mouse_color): Setup hand_cursor instead of cross_cursor.
+	(x_set_cursor_color): Use x_display_and_set_cursor instead of x_display_cursor.
+
+	* Makefile.in (xdisp.o):  Add dependency on blockinput.h and files
+	included from it.  Add dependency on keymap.h.
+
+	* makefile.w32-in (xdisp.o): Add dependency on keymap.h.
+
 2003-03-21  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Fexpand_file_name): Fix previous change.

@@ -1,3 +1,8 @@
+2003-03-21  Kim F. Storm  <storm@cua.dk>
+
+	* makefile.MPW (xdisp.c.x):  Add dependency on blockinput.h and
+	files included from it.  Add dependency on keymap.h.
+
 2003-01-14  Steven Tamm  <steventamm@mac.com>
 
 	* make-package: Fixed problem where the building without
