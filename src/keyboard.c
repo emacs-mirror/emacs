@@ -7337,7 +7337,7 @@ follow_key (key, nmaps, current, defs, next)
      followed by the corresponding non-meta character.
      Put the results into DEFS, since we are going to alter that anyway.
      Do not alter CURRENT or NEXT.  */
-  if (INTEGERP (key) && (XINT (key) & CHAR_META))
+  if (INTEGERP (key) && (XUINT (key) & CHAR_META))
     {
       for (i = 0; i < nmaps; i++)
 	if (! NILP (current[i]))
