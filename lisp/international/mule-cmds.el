@@ -1954,12 +1954,14 @@ See also `locale-charset-language-names', `locale-language-names',
 	  (when default-enable-multibyte-characters
 	    (set-display-table-and-terminal-coding-system language-name))
 
-	  ;; Set the `keyboard-coding-system' if appropriate.
-	  (let ((kcs (or coding-system
-			 (car (get-language-info language-name
-						 'coding-system)))))
-	    (if (memq kcs standard-keyboard-coding-systems)
-		(set-keyboard-coding-system kcs)))
+;;; encoded-kbd-mode doesn't work properly at present, and i don't
+;;; think this is the right thing to do anyhow.  -- fx
+;;; 	  ;; Set the `keyboard-coding-system' if appropriate.
+;;; 	  (let ((kcs (or coding-system
+;;; 			 (car (get-language-info language-name
+;;; 						 'coding-system)))))
+;;; 	    (if (memq kcs standard-keyboard-coding-systems)
+;;; 		(set-keyboard-coding-system kcs)))
 
 	  (setq locale-coding-system
 		(car (get-language-info language-name 'coding-priority))))
