@@ -22,8 +22,8 @@
         nil
         (outline mode wp languages))
     ("ansi-color.el"
-        "translate ANSI into text-properties"
-        (comm processes))
+        "translate ANSI escape sequences into faces"
+        (comm processes terminals services))
     ("apropos.el"
         "apropos commands for users and programmers."
         (help))
@@ -102,9 +102,6 @@
     ("cus-face.el"
         "customization support for faces."
         (help  faces))
-    ("cus-load.el"
-        "automatically extracted custom dependencies"
-        nil)
     ("cus-start.el"
         "define customization properties of builtins."
         (internal))
@@ -139,7 +136,7 @@
         "less commonly used parts of dired"
         nil)
     ("dired-x.el"
-        "Sebastian Kremer's Extra DIRED hacked up for GNU Emacs19"
+        "Extra Dired functionality"
         (dired extensions))
     ("dired.el"
         "directory-browsing commands"
@@ -321,9 +318,6 @@
     ("hilit-chg.el"
         "minor mode displaying buffer changes with special face"
         (faces))
-    ("hilit19.el"
-        "customizable highlighting for Emacs19"
-        (faces))
     ("hippie-exp.el"
         "expand text trying various ways to find its expansion."
         (abbrev convenience))
@@ -401,7 +395,7 @@
         (unix))
     ("ls-lisp.el"
         "emulate insert-directory completely in Emacs Lisp"
-        (unix))
+        (unix  dired))
     ("macros.el"
         "non-primitive commands for keyboard macros."
         (abbrev))
@@ -469,7 +463,7 @@
         "completions for GNU project tools"
         nil)
     ("pcmpl-linux.el"
-        "functions for dealing with cvs completions"
+        "functions for dealing with GNU/Linux completions"
         nil)
     ("pcmpl-rpm.el"
         "functions for dealing with rpm completions"
@@ -490,7 +484,7 @@
         "The CVS output parser"
         (pcl-cvs))
     ("pcvs-util.el"
-        "Utitlity functions for pcl-cvs"
+        "Utility functions for PCL-CVS"
         (pcl-cvs))
     ("pcvs.el"
         "A Front-end to CVS."
@@ -1590,12 +1584,6 @@
     ("rmailsum.el"
         "make summary buffers for the mail reader"
         (mail))
-    ("rnews.el"
-        "USENET news reader for gnu emacs"
-        (news))
-    ("rnewspost.el"
-        "USENET news poster/mailer for GNU Emacs"
-        (mail  news))
     ("sc.el"
         "old name for supercite"
         nil)
@@ -2106,12 +2094,21 @@
     ("c-mode.el"
         "C code editing commands for Emacs"
         (c))
+    ("hilit19.el"
+        "customizable highlighting for Emacs19"
+        (faces))
     ("hscroll.el"
         "automatically scroll truncated lines horizontally"
         (display))
     ("ooutline.el"
         "outline mode commands for Emacs"
         (outlines))
+    ("rnews.el"
+        "USENET news reader for gnu emacs"
+        (news))
+    ("rnewspost.el"
+        "USENET news poster/mailer for GNU Emacs"
+        (mail  news))
     ("tool-bar.el"
         "Setting up the tool bar"
         (mouse frames))
