@@ -1,3 +1,8 @@
+2002-03-08  Juanma Barranquero  <jbarranquero@peoplecall.com>
+
+	* w32fns.c (Fx_display_color_cells): Force 24+ bit color depths to
+	24-bit.
+
 2002-03-08  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (move_it_vertically_backward): At the end of the
