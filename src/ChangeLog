@@ -1,5 +1,8 @@
 2000-05-31  Jason Rumney  <jasonr@gnu.org>
 
+	* search.c (Fre_search_forward, Fre_search_backward)
+	(Fposix_search_backward, Fposix_search_forward): Fix newlines in docs.
+
 	* w32select.c (Fw32_set_clipboard_data): Change QNil to Qnil.
 
 2000-05-30  Jason Rumney  <jasonr@gnu.org>
