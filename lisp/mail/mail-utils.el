@@ -150,7 +150,8 @@ Usenet paths ending in an element that matches are removed also."
     (while (setq pos (string-match match userids))
       (if (> pos 0) (setq pos (match-beginning 2)))
       (setq epos
-	    (if (string-match "[ \t\n,]+" userids (match-end 0))
+	    ;; Delete thru the next comma, plus whitespace after.
+	    (if (string-match ",[ \t\n]+" userids (match-end 0))
 		(match-end 0)
 	      (length userids)))
       (setq userids
