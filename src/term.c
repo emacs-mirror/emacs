@@ -1115,6 +1115,7 @@ write_glyphs (string, len)
 
       /* Turn appearance modes off.  */
       turn_off_face (f, face_id);
+      turn_off_highlight ();
     }
   
   /* We may have to output some codes to terminate the writing.  */
@@ -1159,7 +1160,6 @@ insert_glyphs (start, len)
 
   sf = XFRAME (selected_frame);
   f = updating_frame ? updating_frame : sf;
-  highlight_if_desired ();
 
   if (TS_ins_multi_chars)
     {
@@ -1189,6 +1189,7 @@ insert_glyphs (start, len)
 	}
       else
 	{
+	  highlight_if_desired ();
 	  turn_on_face (f, start->face_id);
 	  glyph = start;
 	  ++start;
@@ -1221,7 +1222,10 @@ insert_glyphs (start, len)
 
       OUTPUT1_IF (TS_pad_inserted_char);
       if (start)
-	turn_off_face (f, glyph->face_id);
+	{
+	  turn_off_face (f, glyph->face_id);
+	  turn_off_highlight ();
+	}
     }
   
   cmcheckmagic ();
@@ -2082,13 +2086,14 @@ turn_off_face (f, face_id)
 	  || face->tty_alt_charset_p
 	  || face->tty_blinking_p
 	  || face->tty_underline_p)
-	OUTPUT1_IF (TS_exit_attribute_mode);
+	{
+	  OUTPUT1_IF (TS_exit_attribute_mode);
+	  if (strcmp (TS_exit_attribute_mode, TS_end_standout_mode) == 0)
+	    standout_mode = 0;
+	}
 
       if (face->tty_alt_charset_p)
 	OUTPUT_IF (TS_exit_alt_charset_mode);
-
-      if (standout_mode)
-	standout_mode = 0;
     }
   else
     {
