@@ -150,6 +150,7 @@ make_frame (mini_p)
   f->garbaged = 0;
   f->has_minibuffer = mini_p;
   f->focus_frame = frame;
+  f->explicit_name = 0;
 
   f->param_alist = Qnil;
 
@@ -271,8 +272,7 @@ make_minibuffer_frame ()
 
   XSET (frame, Lisp_Frame, f);
 
-  /* ??? Perhaps leave it to the user program to set auto_raise.  */
-  f->auto_raise = 1;
+  f->auto_raise = 0;
   f->auto_lower = 0;
   f->no_split = 1;
   f->wants_modeline = 0;
@@ -285,7 +285,7 @@ make_minibuffer_frame ()
   mini_window = f->minibuffer_window = f->root_window;
   XWINDOW (mini_window)->mini_p = Qt;
   XWINDOW (mini_window)->next = Qnil;
-  XWINDOW (mini_window)->prev = mini_window;
+  XWINDOW (mini_window)->prev = Qnil;
   XWINDOW (mini_window)->frame = frame;
 
   /* Put the proper buffer in that window.  */
