@@ -1,3 +1,48 @@
+2000-06-06  Kenichi Handa  <handa@etl.go.jp>
+
+	* language/vietnamese.el: Remove eval-when-compile.
+	(viet-viscii-nonascii-translation-table): Define it as a
+	translation table made from viet-viscii-decode-table.
+	(viet-viscii-encode-table): Define it as a translation table made
+	from the reverse map of above.
+	(viet-vscii-nonascii-translation-table): Define it as a
+	translation table made from viet-vscii-decode-table.
+	(viet-vscii-encode-table): Define it as a translation table made
+	from the reverse map of above.
+	(ccl-decode-viscii): Use translate-character.
+	(ccl-encode-viscii, ccl-encode-viscii-font)
+	(ccl-decode-vscii, ccl-encode-vscii, ccl-encode-vscii-font):
+	Likewize.
+	
+	* language/cyrillic.el: Remove eval-when-compile.
+	(cyrillic-koi8-r-nonascii-translation-table): Define it as a
+	translation table made from cyrillic-koi8-r-decode-table.
+	(cyrillic-koi8-r-encode-table): Define it as a translation table
+	made from the reverse map of above.
+	(ccl-decode-koi8): Use translate-character.
+	(ccl-encode-koi8, ccl-encode-koi8-font): Likewize
+	(cyrillic-alternativnyj-nonascii-translation-table): Define it as
+	a translation table made from cyrillic-alternativnyj-decode-table.
+	(cyrillic-alternativnyj-encode-table): Define it as a translation
+	table made from the reverse map of above.
+	(ccl-decode-alternativnyj): Use translate-character.
+	(ccl-encode-alternativnyj, ccl-encode-alternativnyj-font):
+	Likewize
+
+	* international/mule-diag.el (non-iso-charset-alist): Specify
+	translation table symbol instead of translation table itself.
+	(list-block-of-chars): CHARSET may be a translation table symbol.
+
+	* international/mule.el (make-coding-system): If CODING-SYSTEM
+	already exists, override it.
+
+	* international/fontset.el: Use family `proportional' for Tibetan
+	fonts.
+
+	* international/ccl.el (ccl-compile-translate-character): Don't
+	check if Rrr has property translation-table.
+	(ccl-compile-map-multiple): Modified to avoid compiler warning.
+
 2000-06-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* info.el: Bind case-fold-search to t when searching in case
