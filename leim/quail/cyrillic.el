@@ -789,6 +789,58 @@ cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\",
  ("/I" ?,L&(B) ("/J" ?,L((B) ("/L" ?,L)(B) ("/N" ?,L*(B) ("/Z" ?,L/(B)
 )
 
+(quail-define-package
+ "cyrillic-translit-bulgarian" "Cyrillic" ",L6(Btb" nil
+ "Intuitively transliterated keyboard layout optimized for Bulgarian.
+The only difference with cyrillic-translit is that \"sht\" translates as
+,Li(B (SHCHA = Bulgarian SHT) insteat of ,Lhb(B (SH+T)."  nil t t t t)
+
+(quail-define-rules
+ ("a" ?,LP(B)("b" ?,LQ(B) ("v" ?,LR(B) ("w" ?,LR(B) ("g" ?,LS(B) ("d" ?,LT(B) 
+ ("e" ?,LU(B) ("je" ?,LU(B) 
+ ("yo" ?,Lq(B) ("jo" ?,Lq(B)
+ ("zh" ?,LV(B) ("z" ?,LW(B) ("i" ?,LX(B) 
+ ("j" ?,LY(B) ("j'" ?,LY(B) ("j`" ?,LY(B) ("k" ?,LZ(B) ("l" ?,L[(B)
+ ("m" ?,L\(B) ("n" ?,L](B) ("o" ?,L^(B) ("p" ?,L_(B) ("r" ?,L`(B) ("s" ?,La(B) ("t" ?,Lb(B) ("u" ?,Lc(B)
+ ("f" ?,Ld(B) ("x" ?,Le(B) ("h" ?,Le(B) ("kh" ?,Le(B)
+ ("c" ?,Lf(B) ("ch" ?,Lg(B)
+ ("sh" ?,Lh(B) 
+ ("shch" ?,Li(B) ("sj" ?,Li(B) 
+ ("/sht" ?,Li(B) ("/t" ?,Li(B) ("sht" ?,Li(B)
+ ("~" ?,Lj(B) ("y" ?,Lk(B) ("'" ?,Ll(B) ("`" ?,Ll(B) 
+ ("e'" ?,Lm(B) ("e`" ?,Lm(B) ("@" ?,Lm(B) 
+ ("yu" ?,Ln(B) ("ju" ?,Ln(B) 
+ ("ya" ?,Lo(B) ("ja" ?,Lo(B) ("q" ?,Lo(B)
+
+ ("A" ?,L0(B) ("B" ?,L1(B) ("V" ?,L2(B) ("W" ?,L2(B) ("G" ?,L3(B) ("D" ?,L4(B) 
+ ("E" ?,L5(B) ("Je" ?,L5(B) ("JE" ?,L5(B)
+ ("Yo" ?,L!(B) ("YO" ?,L!(B) ("Jo" ?,L!(B) ("JO" ?,L!(B) 
+ ("Zh" ?,L6(B) ("ZH" ?,L6(B) ("Z" ?,L7(B) ("I" ?,L8(B) 
+ ("J" ?,L9(B) ("J'" ?,L9(B) ("J`" ?,L9(B) ("K" ?,L:(B) ("L" ?,L;(B)
+ ("M" ?,L<(B) ("N" ?,L=(B) ("O" ?,L>(B) ("P" ?,L?(B) ("R" ?,L@(B) ("S" ?,LA(B) ("T" ?,LB(B) ("U" ?,LC(B)
+ ("F" ?,LD(B) ("X" ?,LE(B) ("H" ?,LE(B) ("Kh" ?,LE(B) ("KH" ?,LE(B)
+ ("C" ?,LF(B) ("Ch" ?,LG(B) ("CH" ?,LG(B) 
+ ("Sh" ?,LH(B) ("SH" ?,LH(B) 
+ ("Shch" ?,LI(B) ("SHCH" ?,LI(B) ("Sj" ?,LI(B) ("SJ" ?,LI(B) 
+ ("/Sht" ?,LI(B) ("/SHT" ?,LI(B) ("/T" ?,LI(B) ("Sht" ?,LI(B) ("SHT" ?,LI(B) 
+ ("~~" ",LJ(B") ("Y" ?,LK(B) ("''" ",LL(B") ("E'" ?,LM(B) ("E`" ?,LM(B) 
+ ("Yu" ?,LN(B) ("YU" ?,LN(B) ("Ju" ?,LN(B) ("JU" ?,LN(B) 
+ ("Ya" ?,LO(B) ("YA" ?,LO(B) ("Ja" ?,LO(B) ("JA" ?,LO(B) ("Q" ?,LO(B)
+
+ ("/e" ?,Lt(B) ("yi" ?,Lw(B) ("u'" ?,L~(B)
+ ("/d" ?,Lr(B) ("/ch" ?,L{(B)
+ ("/g" ?,Ls(B) ("/s" ?,Lu(B) ("/k" ?,L|(B)
+ ("/i" ?,Lv(B) ("/j" ?,Lx(B) ("/l" ?,Ly(B) ("/n" ?,Lz(B) ("/z" ?,L(B)
+ ("/E" ?,L$(B) ("YE" ?,L$(B) ("Yi" ?,L'(B) ("YI" ?,L'(B) ("U'" ?,L.(B) 
+ ("/D" ?,L"(B) ("/Ch" ?,L+(B) ("/CH" ?,L+(B)
+ ("/G" ?,L#(B) ("/S" ?,L%(B) ("/K" ?,L,(B) 
+ ("/I" ?,L&(B) ("/J" ?,L((B) ("/L" ?,L)(B) ("/N" ?,L*(B) ("/Z" ?,L/(B)
+)
+
+
+
+
+
 ;; Local Variables:
 ;; buffer-file-coding-system: iso-2022-7bit
 ;; End:
