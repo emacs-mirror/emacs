@@ -286,7 +286,7 @@ to compose.
 
 The return value is number of composed characters."
   (if (< (1+ from) to)
-      (prog1 (- to from)
+      (progn
 	(if string
 	    (compose-string string from to)
 	  (compose-region from to))
