@@ -1124,6 +1124,8 @@ Redefine the corresponding command."
   (calc-execute-kbd-macro last-kbd-macro arg))
 
 (defun calc-execute-kbd-macro (mac arg &rest prefix)
+  (if calc-keep-args-flag
+      (calc-keep-args))
   (if (and (vectorp mac) (> (length mac) 0) (stringp (aref mac 0)))
       (setq mac (or (aref mac 1)
 		    (aset mac 1 (progn (and (fboundp 'edit-kbd-macro)
