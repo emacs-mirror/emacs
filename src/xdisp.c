@@ -479,19 +479,6 @@ int message_buf_print;
 
 static Lisp_Object Vmax_mini_window_height;
 
-/* Window configuration saved in resize_mini_window.  */
-
-Lisp_Object Vresize_mini_config;
-
-/* Frmae of the mini-window being resized by resize_mini_window.  */
-
-struct frame *resize_mini_frame;
-
-/* Initial height of the mini-window having been resized
-   by resize_mini_window.  */
-
-int resize_mini_initial_height;
-
 /* A scratch glyph row with contents used for generating truncation
    glyphs.  Also used in direct_output_for_insert.  */
 
@@ -599,7 +586,6 @@ enum move_it_result
 
 static Lisp_Object unwind_with_echo_area_buffer P_ ((Lisp_Object));
 static Lisp_Object with_echo_area_buffer_unwind_data P_ ((struct window *));
-static int resize_mini_window P_ ((struct window *));
 static void clear_garbaged_frames P_ ((void));
 static int current_message_1 P_ ((Lisp_Object *));
 static int truncate_message_1 P_ ((int));
@@ -2720,9 +2706,9 @@ load_overlay_strings (it)
   /* Process overlay before the overlay center.  */
   for (ov = current_buffer->overlays_before;
        CONSP (ov);
-       ov = XCONS (ov)->cdr)
+       ov = XCDR (ov))
     {
-      overlay = XCONS (ov)->car;
+      overlay = XCAR (ov);
       xassert (OVERLAYP (overlay));
       start = OVERLAY_POSITION (OVERLAY_START (overlay));
       end = OVERLAY_POSITION (OVERLAY_END (overlay));
@@ -2756,9 +2742,9 @@ load_overlay_strings (it)
   /* Process overlays after the overlay center.  */
   for (ov = current_buffer->overlays_after;
 	CONSP (ov);
-	ov = XCONS (ov)->cdr)
+	ov = XCDR (ov))
     {
-      overlay = XCONS (ov)->car;
+      overlay = XCAR (ov);
       xassert (OVERLAYP (overlay));
       start = OVERLAY_POSITION (OVERLAY_START (overlay));
       end = OVERLAY_POSITION (OVERLAY_END (overlay));
@@ -5432,7 +5418,7 @@ display_echo_area_1 (w)
 /* Resize mini-window W to fit the size of its contents.  Value is
    non-zero if the window height has been changed.  */
 
-static int
+int
 resize_mini_window (w)
      struct window *w;
 {
@@ -5485,50 +5471,18 @@ resize_mini_window (w)
 	SET_TEXT_POS (start, BEGV, BEGV_BYTE);
       SET_MARKER_FROM_TEXT_POS (w->start, start);
 
-      if (NILP (Vresize_mini_config))
+      /* Let it grow only, until we display an empty message, in which
+	 case the window shrinks again.  */
+      if (height > XFASTINT (w->height)
+	  || BEGV == ZV)
 	{
-	  if (height != XFASTINT (w->height))
-	    {
-	      Lisp_Object old_selected_window;
-	      Lisp_Object config;
-	      struct gcpro gcpro1;
+	  Lisp_Object old_selected_window;
 	      
-	      resize_mini_initial_height = XFASTINT (w->height);
-	      config = Fcurrent_window_configuration (Qnil);
-	      GCPRO1 (config);
-	      
-	      old_selected_window = selected_window;
-	      XSETWINDOW (selected_window, w);
-	      change_window_height (height - XFASTINT (w->height), 0);
-	      selected_window = old_selected_window;
-	      
-	      window_height_changed_p = 1;
-
-	      /* Set this after changing window sizes, or else
-		 Vresize_mini_config would be reset in
-		 adjust_frame_glyphs.  */
-	      resize_mini_frame = XFRAME (w->frame);
-	      Vresize_mini_config = config;
-	      UNGCPRO;
-	    }
-	}
-      else if (height != XFASTINT (w->height))
-	{
-	  if (height == resize_mini_initial_height)
-	    {
-	      Fset_window_configuration (Vresize_mini_config);
-	      Vresize_mini_config = Qnil;
-	      resize_mini_frame = NULL;
-	    }
-	  else
-	    {
-	      Lisp_Object old_selected_window;
-	      old_selected_window = selected_window;
-	      XSETWINDOW (selected_window, w);
-	      change_window_height (height - XFASTINT (w->height), 0);
-	      selected_window = old_selected_window;
-	    }
-	      
+	  freeze_window_starts (f, height > XFASTINT (w->height));
+	  old_selected_window = selected_window;
+	  XSETWINDOW (selected_window, w);
+	  change_window_height (height - XFASTINT (w->height), 0);
+	  selected_window = old_selected_window;
 	  window_height_changed_p = 1;
 	}
     }
@@ -5985,9 +5939,9 @@ x_consider_frame_title (frame)
       int len;
       struct it it;
 
-      for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
+      for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
 	{
-	  struct frame *tf = XFRAME (XCONS (tail)->car);
+	  struct frame *tf = XFRAME (XCAR (tail));
 
 	  if (tf != f 
 	      && FRAME_KBOARD (tf) == FRAME_KBOARD (f)
@@ -7404,14 +7358,14 @@ update:
 
       pause = 0;
 
-      for (tail = Vframe_list; CONSP (tail); tail = XCONS (tail)->cdr)
+      for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
 	{
 	  struct frame *f;
 
-	  if (!FRAMEP (XCONS (tail)->car))
+	  if (!FRAMEP (XCAR (tail)))
 	    continue;
 
-	  f = XFRAME (XCONS (tail)->car);
+	  f = XFRAME (XCAR (tail));
 
 	  if ((FRAME_WINDOW_P (f) || f == selected_frame)
 	      && FRAME_VISIBLE_P (f) && !FRAME_OBSCURED_P (f))
@@ -8400,7 +8354,8 @@ redisplay_window (window, just_this_one_p)
 
   /* Handle case where place to start displaying has been specified,
      unless the specified location is outside the accessible range.  */
-  if (!NILP (w->force_start))
+  if (!NILP (w->force_start)
+      || w->frozen_window_start_p)
     {
       w->force_start = Qnil;
       w->vscroll = 0;
@@ -8449,7 +8404,7 @@ redisplay_window (window, just_this_one_p)
 	  goto restore_buffers;
 	}
 
-      if (w->cursor.vpos < 0)
+      if (w->cursor.vpos < 0 && !w->frozen_window_start_p)
 	{
 	  /* If point does not appear, or on a line that is not fully
 	     visible, move point so it does appear.  The desired
@@ -11538,7 +11493,7 @@ display_mode_element (it, depth, field_width, precision, elt)
 	   to at least that many characters.
 	   If first element is a symbol, process the cadr or caddr recursively
 	   according to whether the symbol's value is non-nil or nil.  */
-	car = XCONS (elt)->car;
+	car = XCAR (elt);
 	if (EQ (car, QCeval) && CONSP (XCDR (elt)))
 	  {
 	    /* An element of the form (:eval FORM) means evaluate FORM
@@ -11555,7 +11510,7 @@ display_mode_element (it, depth, field_width, precision, elt)
 	else if (SYMBOLP (car))
 	  {
 	    tem = Fboundp (car);
-	    elt = XCONS (elt)->cdr;
+	    elt = XCDR (elt);
 	    if (!CONSP (elt))
 	      goto invalid;
 	    /* elt is now the cdr, and we know it is a cons cell.
@@ -11564,23 +11519,26 @@ display_mode_element (it, depth, field_width, precision, elt)
 	      {
 		tem = Fsymbol_value (car);
 		if (!NILP (tem))
-		  { elt = XCONS (elt)->car; goto tail_recurse; }
+		  {
+		    elt = XCAR (elt);
+		    goto tail_recurse;
+		  }
 	      }
 	    /* Symbol's value is nil (or symbol is unbound)
 	       Get the cddr of the original list
 	       and if possible find the caddr and use that.  */
-	    elt = XCONS (elt)->cdr;
+	    elt = XCDR (elt);
 	    if (NILP (elt))
 	      break;
 	    else if (!CONSP (elt))
 	      goto invalid;
-	    elt = XCONS (elt)->car;
+	    elt = XCAR (elt);
 	    goto tail_recurse;
 	  }
 	else if (INTEGERP (car))
 	  {
 	    register int lim = XINT (car);
-	    elt = XCONS (elt)->cdr;
+	    elt = XCDR (elt);
 	    if (lim < 0)
 	      {
 		/* Negative int means reduce maximum width.  */
@@ -11612,8 +11570,8 @@ display_mode_element (it, depth, field_width, precision, elt)
 		   && (precision <= 0 || n < precision))
 	      {
 		n += display_mode_element (it, depth, field_width - n,
-					   precision - n, XCONS (elt)->car);
-		elt = XCONS (elt)->cdr;
+					   precision - n, XCAR (elt));
+		elt = XCDR (elt);
 	      }
 	  }
       }
@@ -12431,28 +12389,28 @@ invisible_p (propval, list)
      Lisp_Object list;
 {
   register Lisp_Object tail, proptail;
-  for (tail = list; CONSP (tail); tail = XCONS (tail)->cdr)
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
     {
       register Lisp_Object tem;
-      tem = XCONS (tail)->car;
+      tem = XCAR (tail);
       if (EQ (propval, tem))
 	return 1;
-      if (CONSP (tem) && EQ (propval, XCONS (tem)->car))
+      if (CONSP (tem) && EQ (propval, XCAR (tem)))
 	return 1;
     }
   if (CONSP (propval))
     for (proptail = propval; CONSP (proptail);
-	 proptail = XCONS (proptail)->cdr)
+	 proptail = XCDR (proptail))
       {
 	Lisp_Object propelt;
-	propelt = XCONS (proptail)->car;
-	for (tail = list; CONSP (tail); tail = XCONS (tail)->cdr)
+	propelt = XCAR (proptail);
+	for (tail = list; CONSP (tail); tail = XCDR (tail))
 	  {
 	    register Lisp_Object tem;
-	    tem = XCONS (tail)->car;
+	    tem = XCAR (tail);
 	    if (EQ (propelt, tem))
 	      return 1;
-	    if (CONSP (tem) && EQ (propelt, XCONS (tem)->car))
+	    if (CONSP (tem) && EQ (propelt, XCAR (tem)))
 	      return 1;
 	  }
       }
@@ -12472,27 +12430,29 @@ invisible_ellipsis_p (propval, list)
      Lisp_Object list;
 {
   register Lisp_Object tail, proptail;
-  for (tail = list; CONSP (tail); tail = XCONS (tail)->cdr)
+  
+  for (tail = list; CONSP (tail); tail = XCDR (tail))
     {
       register Lisp_Object tem;
-      tem = XCONS (tail)->car;
-      if (CONSP (tem) && EQ (propval, XCONS (tem)->car))
-	return ! NILP (XCONS (tem)->cdr);
+      tem = XCAR (tail);
+      if (CONSP (tem) && EQ (propval, XCAR (tem)))
+	return ! NILP (XCDR (tem));
     }
+  
   if (CONSP (propval))
-    for (proptail = propval; CONSP (proptail);
-	 proptail = XCONS (proptail)->cdr)
+    for (proptail = propval; CONSP (proptail); proptail = XCDR (proptail))
       {
 	Lisp_Object propelt;
-	propelt = XCONS (proptail)->car;
-	for (tail = list; CONSP (tail); tail = XCONS (tail)->cdr)
+	propelt = XCAR (proptail);
+	for (tail = list; CONSP (tail); tail = XCDR (tail))
 	  {
 	    register Lisp_Object tem;
-	    tem = XCONS (tail)->car;
-	    if (CONSP (tem) && EQ (propelt, XCONS (tem)->car))
-	      return ! NILP (XCONS (tem)->cdr);
+	    tem = XCAR (tail);
+	    if (CONSP (tem) && EQ (propelt, XCAR (tem)))
+	      return ! NILP (XCDR (tem));
 	  }
       }
+  
   return 0;
 }
 
@@ -12505,9 +12465,6 @@ invisible_ellipsis_p (propval, list)
 void
 syms_of_xdisp ()
 {
-  Vresize_mini_config = Qnil;
-  staticpro (&Vresize_mini_config);
-
   Vwith_echo_area_save_vector = Qnil;
   staticpro (&Vwith_echo_area_save_vector);
 
