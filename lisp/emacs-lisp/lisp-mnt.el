@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Created: 14 Jul 1992
-;; Version: $Id: lisp-mnt.el,v 1.4 1993/07/26 18:40:03 rms Exp friedman $
+;; Version: $Id: lisp-mnt.el,v 1.5 1993/12/22 12:06:54 friedman Exp rms $
 ;; Keywords: docs
 ;; X-Bogus-Bureaucratic-Cruft: Gruad will get you if you don't watch out!
 
@@ -425,7 +425,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
     (goto-char (point-max))
     (insert "\nIn "
 	    package
-	    (and version (concat " version " version))
+	    (if version (concat " version " version) "")
 	    "\n\n")
     (message
      (substitute-command-keys "Type \\[mail-send] to send bug report."))))
