@@ -55,13 +55,19 @@
 	      (and (current-local-map)
 		   (lookup-key (current-local-map) [menu-bar])))))
     (mouse-major-mode-menu-compute-equiv-keys newmap)
-    (command-execute
-     ;; Make NEWMAP override the usual definition
-     ;; of the mouse button that got us here.
-     ;; Then read the user's menu choice.
-     (let ((minor-mode-map-alist
-	    (cons (cons t newmap) minor-mode-map-alist)))
-       (lookup-key newmap (read-key-sequence ""))))))
+    ;; Make NEWMAP override the usual definition
+    ;; of the mouse button that got us here.
+    ;; Then read the user's menu choice.
+    (let* ((minor-mode-map-alist
+	    (cons (cons t newmap) minor-mode-map-alist))
+	   ;; read-key-sequence quits if the user aborts the menu.
+	   ;; If that happens, do nothing silently.
+	   (keyseq (condition-case nil
+		       (read-key-sequence "")
+		     (quit nil)))
+	   (command (if keyseq (lookup-key newmap keyseq))))
+      (if command
+	  (command-execute command)))))
 
 ;; Compute and cache the equivalent keys in MENU and all its submenus.
 (defun mouse-major-mode-menu-compute-equiv-keys (menu)
