@@ -1,3 +1,26 @@
+2003-07-08  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Do not do hidden
+	buffer changes; there's third party code that calls this function
+	directly.
+
+2003-07-08  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-fonts.el (javadoc-font-lock-keywords,
+	autodoc-font-lock-keywords): Don't byte compile on font lock
+	initialization when running from byte compiled files.
+
+2003-07-08  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el: Fix AWK mode indentation when previous
+	statement ends with auto-increment "++".
+
+2003-07-08  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-langs.el, progmodes/cc-styles.el (c-style-alist,
+	c-lang-variable-inits, c-lang-variable-inits-tail): The values of
+	these are changed, so declare them as variables and not constants.
+
 2003-07-08  Markus Rost  <rost@math.ohio-state.edu>
 
 	* subr.el (dolist, dotimes):  Doc fix.
