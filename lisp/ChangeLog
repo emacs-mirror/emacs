@@ -1,3 +1,11 @@
+2005-03-31  Kim F. Storm  <storm@cua.dk>
+
+	* mouse.el (mouse-1-click-follows-link): Increase to 450 ms.
+	(mouse-fixup-help-message): New defun called by show_help_echo.
+
+	* tooltip.el (tooltip-show-help-function): Don't rewrite mouse-2
+	prefix in tooltip message.
+
 2005-03-31  Kenichi Handa  <handa@etlken2>
 
 	* language/thai-word.el (thai-find-word-ends): Pay attention to
