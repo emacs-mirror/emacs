@@ -3684,7 +3684,7 @@ A string is printed verbatim in the mode line except for %-constructs:\n\
   %P -- print percent of buffer above bottom of window, perhaps plus Top,\n\
         or print Bottom or All.\n\
   %n -- print Narrow if appropriate.\n\
-  %t -- print T if files is text, B if binary.\n\
+  %t -- print T if file is text, B if binary.\n\
   %[ -- print one [ for each recursive editing level.  %] similar.\n\
   %% -- print %.   %- -- print infinitely many dashes.\n\
 Decimal digits after the % specify field width to which to pad.");
