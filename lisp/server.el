@@ -284,7 +284,9 @@ Prefix arg means just kill any existing server communications subprocess."
 				  files))
 		      (setq lineno 1)
 		      (setq columnno 0))))))
+	      (run-hooks 'pre-command-hook)
 	      (server-visit-files files client nowait)
+	      (run-hooks 'post-command-hook)
 	      ;; CLIENT is now a list (CLIENTNUM BUFFERS...)
 	      (if (null (cdr client))
 		  ;; This client is empty; get rid of it immediately.
