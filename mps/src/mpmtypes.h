@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.28) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.29) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: MM developers.
@@ -242,6 +242,14 @@ enum {
   TraceFLIPPED,
   TraceRECLAIM,
   TraceFINISHED
+};
+
+
+/* CheckLevel's --- Used to control check method behaviour */
+enum {
+  CheckNONE = 0,
+  CheckSHALLOW = 1,
+  CheckDEEP = 2
 };
 
 

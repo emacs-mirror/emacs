@@ -1,7 +1,7 @@
 /* impl.h.config: MPS CONFIGURATION
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!config.h(trunk.11) $
+ * $HopeName: MMsrc!config.h(trunk.12) $
  */
 
 #ifndef config_h
@@ -15,34 +15,28 @@
 /* Variety Configuration
  *
  * Convert CONFIG_VAR_* defined on compiler command line into
- * internal configuration parameters.  See design.mps.config.var.
+ * internal configuration parameters.  See design.mps.config.var
+ * and design.mps.variety.macro.  Note that MPS_HOT is subclassed
+ * into MPS_HOT_RED and MPS_HOT_WHITE; this distinction should
+ * be rarely used.
  */
 
-#if defined(CONFIG_VAR_DF)      /* debug, full checking */
-#define MPS_VAR_DF
-#define ASSERT_MPSI             /* impl.c.mpsi */
-#define ASSERT_MPM              /* impl.h.mpm */
-#define CHECK_DEEP              /* impl.h.assert */
-#define CHECK_ASSERT            /* impl.h.assert */
-#elif defined(CONFIG_VAR_DL)    /* debug, full checking, telemetry */
-#define MPS_VAR_DL
-#define EVENT                   /* impl.h.event */
-#define ASSERT_MPSI             /* impl.c.mpsi */
-#define ASSERT_MPM              /* impl.h.mpm */
-#define CHECK_DEEP              /* impl.h.assert */
-#define CHECK_ASSERT            /* impl.h.assert */
-#elif defined(CONFIG_VAR_DP)    /* debug, partial checking */
-#define MPS_VAR_DP
-#define ASSERT_MPSI
-#define ASSERT_MPM
-#define CHECK_SHALLOW
-#define CHECK_ASSERT            /* impl.h.assert */
-#elif defined(CONFIG_VAR_DS)    /* debug, sig checking only */
-#define MPS_VAR_DS
-#define ASSERT_MPSI
-#define ASSERT_MPM
-#elif defined(CONFIG_VAR_RO)
-#define MPS_VAR_RO
+#if defined(CONFIG_VAR_HI)      /* Hot, Internal; variety.hi */
+#define MPS_HOT
+#define MPS_HOT_RED
+#elif defined(CONFIG_VAR_CI)    /* Cool, Internal; variety.ci */
+#define MPS_COOL
+#elif defined(CONFIG_VAR_TI)    /* Telemetry, Internal; variety.ti */
+#define EVENT
+#define MPS_COOL
+#elif defined(CONFIG_VAR_HE)    /* Hot, External; variety.he */
+#define MPS_HOT
+#define MPS_HOT_RED
+#elif defined(CONFIG_VAR_CE)    /* Cool, External; variety.ce */
+#define MPS_COOL
+#elif defined(CONFIG_VAR_WI)    /* White hot, Internal; variety.wi */
+#define MPS_HOT
+#define MPS_HOT_WHITE
 #else
 #error "No target variety configured."
 #endif
