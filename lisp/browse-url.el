@@ -101,22 +101,6 @@
 ;; Do any other browsers have remote control?
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Installation
-
-;; Put the following in your ~/.emacs file:
-;;
-;; (autoload 'browse-url-at-point "browse-url"
-;;   "Ask a WWW browser to load the URL at or before point." t)
-;; (autoload 'browse-url-at-mouse "browse-url"
-;;   "Ask a WWW browser to load a URL clicked with the mouse." t)
-;; (autoload 'browse-url-of-buffer "browse-url"
-;;   "Ask a WWW browser to display BUFFER." t)
-;; (autoload 'browse-url-of-file "browse-url"
-;;   "Ask a WWW browser to display FILE." t)
-;; (autoload 'browse-url-of-dired-file "browse-url"
-;;   "In Dired, ask a WWW browser to display the file named on this line." t)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Usage
 
 ;; To display the URL at or before point:
@@ -430,6 +414,7 @@ negation if a prefix argument was given."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Browse current buffer
 
+;;;###autoload
 (defun browse-url-of-file (&optional file)
   "Ask a WWW browser to display FILE.
 Display the current buffer's file if FILE is nil or if called
@@ -477,6 +462,7 @@ Convert EFS file names of the form /USER@HOST:PATH to ftp://HOST/PATH."
 			  "/" (substring file (match-end 0)))))
   file)
 
+;;;###autoload
 (defun browse-url-of-buffer (&optional buffer)
   "Ask a WWW browser to display BUFFER.
 Display the current buffer if BUFFER is nil."
@@ -524,6 +510,7 @@ Display the current buffer if BUFFER is nil."
 (add-hook 'kill-buffer-hook 'browse-url-delete-temp-file)
 (add-hook 'kill-emacs-hook 'browse-url-delete-temp-file-list)
 
+;;;###autoload
 (defun browse-url-of-dired-file ()
   "In Dired, ask a WWW browser to display the file named on this line."
   (interactive)
@@ -541,6 +528,7 @@ Prompts for a URL, defaulting to the URL at or before point.  Variable
   (interactive (browse-url-interactive-arg "URL: "))
   (apply browse-url-browser-function args))
 
+;;;###autoload
 (defun browse-url-at-point ()
   "Ask a WWW browser to load the URL at or before point.
 Doesn't let you edit the URL like browse-url.  Variable
@@ -560,6 +548,7 @@ Doesn't let you edit the URL like browse-url.  Variable
       (defun event-point (event)
 	(posn-point (event-start event)))))
 
+;;;###autoload
 (defun browse-url-at-mouse (event)
   "Ask a WWW browser to load a URL clicked with the mouse.
 The URL is the one around or before the position of the mouse click
