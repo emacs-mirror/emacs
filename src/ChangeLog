@@ -1,3 +1,11 @@
+2003-02-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_tool_bar_expose_callback): New function.
+	(xg_create_tool_bar): Force style of tool bar to be horizontal with
+	icons.	Set name of tool bar to emacs-toolbar.
+	(update_frame_tool_bar): Connect expose event to
+	xg_tool_bar_expose_callback.
+
 2003-02-17  Richard M. Stallman  <rms@gnu.org>
 
 	* keyboard.c (this_command_key_count_reset): New variable.

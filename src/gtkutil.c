@@ -2666,6 +2666,26 @@ xg_tool_bar_help_callback (w, event, client_data)
 }
 
 
+/* This callback is called when a tool bar item shall be redrawn.
+   It modifies the expose event so that the GtkImage widget redraws the
+   whole image.  This to overcome a bug that makes GtkImage draw the image
+   in the wrong place when it tries to redraw just a part of the image.
+   W is the GtkImage to be redrawn.
+   EVENT is the expose event for W.
+   CLIENT_DATA is unused.
+
+   Returns FALSE to tell GTK to keep processing this event.  */
+static gboolean
+xg_tool_bar_expose_callback (w, event, client_data)
+     GtkWidget *w;
+     GdkEventExpose *event;
+     gpointer client_data;
+{
+  event->area.x = event->area.y = 0;
+  event->area.width = event->area.height = 1000;
+  return FALSE;
+}
+
 static void
 xg_create_tool_bar (f)
      FRAME_PTR f;
@@ -2684,6 +2704,19 @@ xg_create_tool_bar (f)
 
   gtk_box_reorder_child (GTK_BOX (x->vbox_widget), x->handlebox_widget,
                          vbox_pos);
+
+  gtk_widget_set_name (x->toolbar_widget, "emacs-toolbar");
+
+  /* We only have icons, so override any user setting.  We could
+     use the caption property of the toolbar item (see update_frame_tool_bar
+     below), but some of those strings are long, making the toolbar so
+     long it does not fit on the screen.  The GtkToolbar widget makes every
+     item equal size, so the longest caption determine the size of every
+     tool bar item.  I think the creators of the GtkToolbar widget
+     counted on 4 or 5 character long strings.  */
+  gtk_toolbar_set_style (GTK_TOOLBAR (x->toolbar_widget), GTK_TOOLBAR_ICONS);
+  gtk_toolbar_set_orientation (GTK_TOOLBAR (x->toolbar_widget),
+                               GTK_ORIENTATION_HORIZONTAL);
 
   g_signal_connect (G_OBJECT (x->handlebox_widget), "child-detached",
                     G_CALLBACK (xg_tool_bar_detach_callback), f);
@@ -2736,7 +2769,7 @@ update_frame_tool_bar (f)
       struct image *img;
       Lisp_Object image;
       GtkWidget *wicon = iter ? GTK_WIDGET (iter->data) : 0;
-
+      
       if (iter) iter = g_list_next (iter);
 
       /* If image is a vector, choose the image according to the
@@ -2793,6 +2826,13 @@ update_frame_tool_bar (f)
              this function is called again.  */
           g_object_set_data (G_OBJECT (w), XG_TOOL_BAR_IMAGE_DATA,
                              (gpointer)img);
+
+          /* Catch expose events to overcome an annoying redraw bug, see
+             comment for xg_tool_bar_expose_callback.  */
+          g_signal_connect (G_OBJECT (w),
+                            "expose-event",
+                            G_CALLBACK (xg_tool_bar_expose_callback),
+                            0);
 
           /* We must set sensitive on the button that is the parent
              of the GtkImage parent.  Go upwards until we find the button.  */
