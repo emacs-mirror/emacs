@@ -25,6 +25,9 @@
 ;;; Commentary:
 
 ;; All key translation maps are copied from iso-acc.el.
+;; Latin-1-prefix: extra special characters added, adapted from the vim 
+;;                 digraphs (from J.H.M.Dassen <jdassen@wi.leidenuniv.nl>)
+;;                 by R.F. Smith <rsmith@xs4all.nl>
 
 ;;; Code:
 
@@ -39,12 +42,15 @@
     acute    |   '    | 'a -> ,Aa(B, '' -> ,A4(B
     grave    |   `    | `a -> ,A`(B
   circumflex |   ^    | ^a -> ,Ab(B
-  diaeresis  |   \"    | \"a -> ,Ad(B   \"\" -> ,A((B
+  diaeresis  |   \"    | \"a -> ,Ad(B  \"\" -> ,A((B
     tilde    |   ~    | ~a -> ,Ac(B
    cedilla   |   ~    | ~c -> ,Ag(B
-    misc     | \" ~ /  | \"s -> ,A_(B   ~d -> ,Ap(B   ~t -> ,A~(B   /a -> ,Ae(B   /e -> ,Af(B   /o -> ,Ax(B
-   symbol    |   ~    | ~> -> ,A;(B   ~< -> ,A+(B   ~! -> ,A!(B   ~? -> ,A?(B   ~~ -> ,A8(B
-   symbol    |  _ /   | _o -> ,A:(B   _a -> ,A*(B   // -> ,A0(B
+    misc     | \" ~ /  | \"s -> ,A_(B  ~d -> ,Ap(B  ~t -> ,A~(B  /a -> ,Ae(B  /e -> ,Af(B  /o -> ,Ax(B
+   symbol    |   ~    | ~> -> ,A;(B  ~< -> ,A+(B  ~! -> ,A!(B  ~? -> ,A?(B  ~~ -> ,A8(B
+             |   ~    | ~p -> ,A'(B  ~x -> ,A$(B  ~. -> ,A7(B  ~$ -> ,A#(B  ~u -> ,A5(B  
+   symbol    |  _ /   | _o -> ,A:(B  _a -> ,A*(B  // -> ,A0(B  /\\ -> ,AW(B  _y -> ,A%(B
+             |  _ /   | _: -> ,Aw(B  /c -> ,A"(B  /2 -> ,A=(B  /4 -> ,A<(B  /3 -> ,A>(B
+   symbol    |   ^    | ^r -> ,A.(B  ^c -> ,A)(B  ^2 -> ,A2(B  ^3 -> ,A3(B
 " nil t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
@@ -128,6 +134,24 @@
  ("/ " ?/)
  ("_o" ?,A:(B)
  ("_a" ?,A*(B)
+;; Symbols added by Roland Smith <rsmith@xs4all.nl>
+ ("_+" ?,A1(B)
+ ("_y" ?,A%(B)
+ ("_:" ?,Aw(B)
+ ("/c" ?,A"(B)
+ ("/\\" ?,AW(B)
+ ("/2" ?,A=(B)
+ ("/4" ?,A<(B)
+ ("/3" ?,A>(B)
+ ("~p" ?,A'(B)
+ ("~x" ?,A$(B)
+ ("~." ?,A7(B)
+ ("~$" ?,A#(B)
+ ("~u" ?,A5(B)
+ ("^r" ?,A.(B)
+ ("^c" ?,A)(B)
+ ("^2" ?,A2(B)
+ ("^3" ?,A3(B)
 )
 
 (quail-define-package
