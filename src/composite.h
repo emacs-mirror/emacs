@@ -90,17 +90,20 @@ extern Lisp_Object composition_temp;
 
 /* Return 1 iff the composition is valid.  It is valid if length of
    the composition equals to (END - START).  */
-#define COMPOSITION_VALID_P(start, end, prop)				      \
-  (CONSP (prop)								      \
-   && (COMPOSITION_REGISTERD_P (prop)					      \
-       ? (COMPOSITION_ID (prop) >= 0					      \
-	  && COMPOSITION_ID (prop) <= n_compositions			      \
-	  && CONSP (XCDR (prop)))					      \
-       : (composition_temp = XCAR (prop),				      \
-	  (CONSP (composition_temp)					      \
-	   && (composition_temp = XCDR (composition_temp),		      \
-	       (NILP (composition_temp) || STRINGP (composition_temp)	      \
-		|| VECTORP (composition_temp) || CONSP (composition_temp))))))\
+#define COMPOSITION_VALID_P(start, end, prop)			\
+  (CONSP (prop)							\
+   && (COMPOSITION_REGISTERD_P (prop)				\
+       ? (COMPOSITION_ID (prop) >= 0				\
+	  && COMPOSITION_ID (prop) <= n_compositions		\
+	  && CONSP (XCDR (prop)))				\
+       : (composition_temp = XCAR (prop),			\
+	  (CONSP (composition_temp)				\
+	   && (composition_temp = XCDR (composition_temp),	\
+	       (NILP (composition_temp)				\
+		|| STRINGP (composition_temp)			\
+		|| VECTORP (composition_temp)			\
+		|| INTEGERP (composition_temp)			\
+		|| CONSP (composition_temp))))))		\
    && (end - start) == COMPOSITION_LENGTH (prop))
 
 /* Return the Nth glyph of composition specified by CMP.  CMP is a
