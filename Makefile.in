@@ -696,7 +696,7 @@ maybe_bootstrap:
 	  $(MAKE) $(MFLAGS) bootstrap; \
 	fi
 
-bootstrap: clean bootstrap-lisp-1 bootstrap-src bootstrap-lisp bootstrap-clean all info
+bootstrap: boostrap-clean-before bootstrap-lisp-1 bootstrap-src bootstrap-lisp bootstrap-clean all info
 
 bootstrap-lisp-1:
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-clean)
@@ -707,5 +707,16 @@ bootstrap-lisp:
 bootstrap-src:
 	(cd src; $(MAKE) $(MFLAGS) bootstrap)
 
-bootstrap-clean:
-	(cd src; $(MAKE) $(MFLAGS) clean)
+### Used for `bootstrap' to avoid deleting existing dumped Emacs executables.
+bootstrap-clean-before: FRC
+	(cd src;      $(MAKE) $(MFLAGS) mostlyclean)
+	(cd oldXMenu; $(MAKE) $(MFLAGS) clean)
+	(cd lwlib;    $(MAKE) $(MFLAGS) clean)
+	(cd lib-src;  $(MAKE) $(MFLAGS) clean)
+	-(cd man &&   $(MAKE) $(MFLAGS) clean)
+	-(cd lispref &&   $(MAKE) $(MFLAGS) clean)
+	-(cd lispintro &&   $(MAKE) $(MFLAGS) clean)
+	(cd leim;     $(MAKE) $(MFLAGS) clean)
+
+bootstrap-clean-after:
+	(cd src; $(MAKE) $(MFLAGS) mostlyclean)
