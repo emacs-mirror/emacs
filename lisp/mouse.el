@@ -1158,50 +1158,71 @@ This switches buffers in the window that you clicked on,
 and selects that window."
   (interactive "e")
   (mouse-minibuffer-check event)
-  (let ((menu
-	 (list "Buffer Menu"
-	       (cons "Select Buffer"
-		     (let ((tail (buffer-list))
-			   (maxbuf 0)
-			   head)
-		       (while tail
-			 (or (eq ?\ (aref (buffer-name (car tail)) 0))
-			     (setq maxbuf
-				   (max maxbuf
-					(length (buffer-name (car tail))))))
-			 (setq tail (cdr tail)))
-		       (setq tail (buffer-list))
-		       (while tail
-			 (let ((elt (car tail)))
-			   (if (not (string-match "^ "
-						  (buffer-name elt)))
-			       (setq head
-				(cons
-				 (cons
-				  (format
-				   (format "%%%ds  %%s%%s  %%s" maxbuf)
-				   (buffer-name elt)
-				   (if (buffer-modified-p elt) "*" " ")
-				   (save-excursion
-				     (set-buffer elt)
-				     (if buffer-read-only "%" " "))
-				   (or (buffer-file-name elt) 
-				       (save-excursion
-					 (set-buffer elt)
-					 (if list-buffers-directory
-					     (expand-file-name
-					      list-buffers-directory)))
-				       ""))
-				  elt)
-				 head))))
-			 (setq tail (cdr tail)))
-		       (reverse head))))))
+  (let* ((buffers
+	  ;; Make an alist of (MENU-ITEM . BUFFER).
+	  (let ((tail (buffer-list))
+		(maxlen 0)
+		head)
+	    (while tail
+	      (or (eq ?\ (aref (buffer-name (car tail)) 0))
+		  (setq maxlen
+			(max maxlen
+			     (length (buffer-name (car tail))))))
+	      (setq tail (cdr tail)))
+	    (setq tail (buffer-list))
+	    (while tail
+	      (let ((elt (car tail)))
+		(if (not (string-match "^ "
+				       (buffer-name elt)))
+		    (setq head
+			  (cons
+			   (cons
+			    (format
+			     (format "%%%ds  %%s%%s  %%s" maxlen)
+			     (buffer-name elt)
+			     (if (buffer-modified-p elt) "*" " ")
+			     (save-excursion
+			       (set-buffer elt)
+			       (if buffer-read-only "%" " "))
+			     (or (buffer-file-name elt) 
+				 (save-excursion
+				   (set-buffer elt)
+				   (if list-buffers-directory
+				       (expand-file-name
+					list-buffers-directory)))
+				 ""))
+			    elt)
+			   head))))
+	      (setq tail (cdr tail)))
+	    head))
+	 (menu
+	  ;; If we have lots of buffers, divide them into groups of 20
+	  ;; and make a pane (or submenu) for each one.
+	  (if (> (length buffers) 30)
+	      (let ((buffers (reverse buffers)) sublists next
+		    (i 1))
+		(while buffers
+		  ;; Pull off the next 20 buffers
+		  ;; and make them the next element of sublist.
+		  (setq next (nthcdr 20 buffers))
+		  (if next
+		      (setcdr (nthcdr 19 buffers) nil))
+		  (setq sublists (cons (cons (format "Buffers %d" i) buffers)
+				       sublists))
+		  (setq i (1+ i))
+		  (setq buffers next))
+		(cons "Buffer Menu" (nreverse sublists)))
+	    ;; Few buffers--put them all in one pane.
+	    (list "Buffer Menu" (cons "Select Buffer" buffers)))))
+    (setq foo menu)
     (let ((buf (x-popup-menu event menu))
 	  (window (posn-window (event-start event))))
       (if buf
 	  (progn
 	    (or (framep window) (select-window window))
 	    (switch-to-buffer buf))))))
+
+(defun mouse-buffer-menu-split (alist)
 
 ;;; These need to be rewritten for the new scroll bar implementation.
 
