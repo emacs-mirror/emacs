@@ -1,3 +1,8 @@
+2002-06-20  Dave Love  <fx@gnu.org>
+
+	* quail/latin-pre.el ("latin-3-prefix"): Remove bogus Latin-3
+	characters and ~o -> ,Cu(B, ~O -> ,CU(B.
+
 2002-05-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (install): Use "tar -chf", to follow symlinks.
