@@ -105,6 +105,8 @@ If `fringe-arrow', indicate the locus by the fringe arrow."
   :group 'next-error
   :version "22.1")
 
+(defvar next-error-highlight-timer nil)
+
 (defvar next-error-last-buffer nil
   "The most recent next-error buffer.
 A buffer becomes most recent when its compilation, grep, or
