@@ -41,6 +41,7 @@ IRIE Tetsuya <irie at t dot email dot ne dot jp>
 Yoshiaki Kasahara <kasahara at nc dot kyushu-u dot ac dot jp>
 Jurej Kubelka <Juraj dot Kubelka at email dot cz>
 David Lichteblau <david at lichteblau dot com>
+Xavier Mallard <zedek at gnu-rox dot org>
 Istvan Marko <mi-mtty at kismala dot com>
 Ted Morse <morse at ciholas dot com>
 Dan Nicolaescu <dann at ics dot uci dot edu>
@@ -135,19 +136,20 @@ The branch uses GNU Arch (http://www.gnuarch.org) for version control.
 
 Retrieving the latest version of the branch:
 
-	tla register-archive http://lorentey.hu/arch/2004/
+	tla register-archive -f http://lorentey.hu/arch/2004/
 	tla get lorentey@elte.hu--2004/emacs--multi-tty <directory>
 
 This incantation uses my private archive mirror that is hosted on a
 relatively low-bandwidth site; if you are outside Hungary, you will
-probably want to you use the Arch supermirror instead:
+probably want to you use the Arch supermirror instead: (Note that the
+-f option will overwrite the archive location if you have previously
+registered the Hungarian one.)
 
-	tla register-archive http://mirrors.gnuarch.org/lorentey@elte.hu--2004/
+	tla register-archive -f http://mirrors.gnuarch.org/lorentey@elte.hu--2004/
 	tla get lorentey@elte.hu--2004/emacs--multi-tty <directory>
 
-(I use a recent tla development snapshot, but any of the released
-versions of arch will do fine, I think.)  My GPG key id is 0FB27A3F;
-it is available from hkp://wwwkeys.eu.pgp.net/, or from my homepage at
+My GPG key id is 0FB27A3F; it is available from
+hkp://wwwkeys.eu.pgp.net/, or from my homepage at
 http://lorentey.hu/rolam/gpg.html)
 
 Don't worry if the above checkout takes a few minutes to complete;
