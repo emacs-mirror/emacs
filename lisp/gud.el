@@ -3,7 +3,7 @@
 ;; Author: Eric S. Raymond <eric@snark.thyrsus.com>
 ;; Keywords: unix, tools
 
-;;	@(#)gud.el	1.18
+;;	%W%
 
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
@@ -11,7 +11,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -26,7 +26,7 @@
 ;;; Commentary:
 
 ;; The ancestral gdb.el was by W. Schelter <wfs@rascal.ics.utexas.edu>
-;; It was later ewritten by rms.  Some ideas were due to Masanobu. 
+;; It was later rewritten by rms.  Some ideas were due to Masanobu. 
 ;; Grand Unification (sdb/dbx support) by Eric S. Raymond <esr@thyrsus.com>
 ;; The overloading code was then rewritten by Barry Warsaw <bwarsaw@cen.com>,
 ;; who also hacked the mode to use comint.el.
@@ -51,15 +51,10 @@
 (defun gud-overload-functions (gud-overload-alist)
   "Overload functions defined in GUD-OVERLOAD-ALIST.
 This association list has elements of the form
-
      (ORIGINAL-FUNCTION-NAME  OVERLOAD-FUNCTION)"
-  (let ((binding nil)
-	(overloads gud-overload-alist))
-    (while overloads
-      (setq binding (car overloads)
-	    overloads (cdr overloads))
-      (fset (car binding) (symbol-function (car (cdr binding))))
-      )))
+  (mapcar
+   (function (lambda (p) (fset (car p) (symbol-function (cdr p)))))
+   gud-overload-alist))
 
 (defun gud-debugger-startup (f d)
   (error "GUD not properly entered."))
@@ -94,9 +89,9 @@ This association list has elements of the form
 ;;
 ;;<name>
 ;; comint-prompt-regexp
-;; gud-<name>-startup-command
+;; gud-<name>-debugger-startup
 ;; gud-<name>-marker-filter
-;; gud-<name>-file-visit
+;; gud-<name>-visit-file
 ;; gud-<name>-set-break
 ;;
 ;; The job of the startup-command method is to fire up a copy of the debugger,
@@ -152,15 +147,16 @@ This association list has elements of the form
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
   (interactive "fRun gdb on file: ")
-  (gud-overload-functions '((gud-debugger-startup gud-gdb-debugger-startup)
-			    (gud-marker-filter    gud-gdb-marker-filter)
-			    (gud-visit-file       gud-gdb-visit-file)
-			    (gud-set-break        gud-gdb-set-break)))
+  (gud-overload-functions '((gud-debugger-startup . gud-gdb-debugger-startup)
+			    (gud-marker-filter    . gud-gdb-marker-filter)
+			    (gud-visit-file       . gud-gdb-visit-file)
+			    (gud-set-break        . gud-gdb-set-break)))
 
   (gud-def gud-step   "step"   "\C-cs"    "Step one source line with display")
   (gud-def gud-stepi  "stepi"  "\C-ci"    "Step one instruction with display")
   (gud-def gud-next   "next"   "\C-cn"    "Step one line (skip functions)")
   (gud-def gud-cont   "cont"   "\C-c\C-c" "Continue with display")
+  (gud-def gud-cont   "cont"   "\C-cc"    "Continue with display")
 
   (gud-def gud-finish "finish" "\C-c\C-f" "Finish executing current function")
   (gud-def gud-up     "up"     "\C-c<"    "Up N stack frames (numeric arg)")
@@ -190,7 +186,7 @@ and source-file directory for your debugger."
   string)
 
 (defun gud-sdb-visit-file (f)
-  (find-tag-noselect f t))
+  (find-tag-noselect f))
 
 (defun gud-sdb-set-break (proc f n)
   (gud-queue-send (format "e %s" f) (format "%d b" n)))
@@ -203,15 +199,16 @@ and source-file directory for your debugger."
   (if (not (and (boundp 'tags-file-name) (file-exists-p tags-file-name)))
       (error "The sdb support requires a valid tags table to work."))
   (interactive "fRun sdb on file: ")
-  (gud-overload-functions '((gud-debugger-startup gud-sdb-debugger-startup)
-			    (gud-marker-filter    gud-sdb-marker-filter)
-			    (gud-visit-file       gud-sdb-visit-file)
-			    (gud-set-break        gud-sdb-set-break)))
+  (gud-overload-functions '((gud-debugger-startup . gud-sdb-debugger-startup)
+			    (gud-marker-filter    . gud-sdb-marker-filter)
+			    (gud-visit-file       . gud-sdb-visit-file)
+			    (gud-set-break        . gud-sdb-set-break)))
 
-  (gud-def gud-step  "s"   "\C-cs" "Step one source line with display")
-  (gud-def gud-stepi "i"   "\C-ci" "Step one instruction with display")
-  (gud-def gud-next  "S"   "\C-cn" "Step one source line (skip functions)")
-  (gud-def gud-cont  "c"   "\C-cc" "Continue with display")
+  (gud-def gud-step  "s"   "\C-cs"	"Step one source line with display")
+  (gud-def gud-stepi "i"   "\C-ci"	"Step one instruction with display")
+  (gud-def gud-next  "S"   "\C-cn"	"Step one source line (skip functions)")
+  (gud-def gud-cont  "c"   "\C-c\C-c"	"Continue with display")
+  (gud-def gud-cont  "c"   "\C-cc"	"Continue with display")
 
   (gud-common-init path)
 
@@ -247,10 +244,19 @@ and source-file directory for your debugger."
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
   (interactive "fRun dbx on file: ")
-  (gud-overload-functions '((gud-debugger-startup gud-dbx-debugger-startup)
-			    (gud-marker-filter    gud-dbx-marker-filter)
-			    (gud-visit-file       gud-dbx-visit-file)
-			    (gud-set-break        gud-dbx-set-break)))
+  (gud-overload-functions '((gud-debugger-startup . gud-dbx-debugger-startup)
+			    (gud-marker-filter    . gud-dbx-marker-filter)
+			    (gud-visit-file       . gud-dbx-visit-file)
+			    (gud-set-break        . gud-dbx-set-break)))
+
+  (gud-def gud-step   "step"   "\C-cs"    "Step one source line with display")
+  (gud-def gud-stepi  "stepi"  "\C-ci"    "Step one instruction with display")
+  (gud-def gud-next   "next"   "\C-cn"    "Step one line (skip functions)")
+  (gud-def gud-cont   "cont"   "\C-c\C-c" "Continue with display")
+  (gud-def gud-cont   "cont"   "\C-c"     "Continue with display")
+
+  (gud-def gud-up     "up"     "\C-c<"    "Up N stack frames (numeric arg)")
+  (gud-def gud-down   "down"   "\C-c>"    "Down N stack frames (numeric arg)")
 
   (gud-common-init path)
   (setq comint-prompt-regexp  "^[^)]*dbx) *")
@@ -265,44 +271,68 @@ and source-file directory for your debugger."
 (defvar gud-mode-map nil
   "Keymap for gud-mode.")
 
+(defvar gud-commands nil
+  "List of strings or functions used by send-gud-command.
+It is for customization by you.")
+
 (defvar gud-command-queue nil)
 
 (if gud-mode-map
    nil
   (setq gud-mode-map (copy-keymap comint-mode-map))
-  (define-key gud-mode-map "\C-l" 'gud-refresh))
+  (define-key gud-mode-map "\C-cl" 'gud-refresh))
 
+;; Global mappings --- we'll invoke these from a source buffer.
 (define-key ctl-x-map " " 'gud-break)
 (define-key ctl-x-map "&" 'send-gud-command)
 
 
 (defun gud-mode ()
   "Major mode for interacting with an inferior debugger process.
-The following commands are available:
+
+   You start it up with one of the commands M-x gdb, M-x sdb, or
+M-x dbx.  Each entry point finishes by executing a hook; gdb-mode-hook,
+sdb-mode-hook or dbx-mode-hook respectively.
+
+After startup, the following commands are available:
 
 \\{gud-mode-map}
 
-\\[gud-display-frame] displays in the other window
-the last line referred to in the gud buffer.
+\\[gud-refresh] displays in the other window the last line referred to
+in the gud buffer.
 
-\\[gud-step],\\[gud-next], and \\[gud-nexti] in the gud window,
+\\[gud-step], \\[gud-next], and \\[gud-stepi] in the gud window,
 do a step-one-line, step-one-line (not entering function calls), and 
 step-one-instruction and then update the other window
 with the current file and position.  \\[gud-cont] continues
 execution.
 
-If you are in a source file, you may set a breakpoint at the current
-line in the current source file by doing \\[gud-break].
+The above commands are common to all supported debuggers.  If you are
+using gdb or dbx, the following additional commands will be available:
 
-Commands:
-Many commands are inherited from comint mode. 
-Additionally we have:
+\\[gud-up] pops up through an enclosing stack frame.  \\[gud-down] drops
+back down through one.
 
-\\[gud-display-frame] display frames file in other window
-\\[gud-step] advance one line in program
-\\[gud-next] advance one line in program (skip over calls).
-\\[send-gud-command] used for special printing of an arg at the current point.
-C-x SPACE sets break point at current line."
+If you are using gdb, \\[gdb-finish] runs execution to the return from
+the current function and stops.
+
+These functions repeat themselves the appropriate number of times if you give a
+prefix argument.
+
+If you are in a source file, you may do the following:
+
+Set a breakpoint at the current line by doing \\[gud-break].  This causes
+an appropriate set-break to be send to the debugger; of course, if the file
+you're visiting doesn't correspond to any code in the executable this will
+have no effect or raise an error.
+
+Execute a user-defined command at point with \\[send-gud-command]; the
+prefix argument is taken as an index into the list of strings gud-commands.
+A %s in a gud-commands string is substituted with a number or address picked
+up from point.
+
+Other commands for interacting with the debugger process are inherited from
+comint mode, which see."
   (interactive)
   (comint-mode)
 ; (kill-all-local-variables)
@@ -513,20 +543,13 @@ Obeying it means displaying in another window the specified file and line."
 	      (buffer-substring begin (dot)))))))
 
 
-(defvar gud-commands nil
-  "List of strings or functions used by send-gud-command.
-It is for customization by you.")
-
 (defun send-gud-command (arg)
-
-  "This command reads the number where the cursor is positioned.  It
- then inserts this ADDR at the end of the debugger buffer.  A numeric arg
- selects the ARG'th member COMMAND of the list gud-print-command.  If
- COMMAND is a string, (format COMMAND ADDR) is inserted, otherwise
- (funcall COMMAND ADDR) is inserted.  eg. \"p (rtx)%s->fld[0].rtint\"
- is a possible string to be a member of gud-commands.  "
-
-
+  "This command reads the number where the cursor is positioned.  A numeric arg
+selects the ARG'th member COMMAND of the list gud-commands.  If COMMAND is a
+string, (format COMMAND ADDR) is inserted at the end of the debugger buffer,
+otherwise (funcall COMMAND ADDR) is inserted.
+   For example, \"p (rtx)%s->fld[0].rtint\" is a possible string to be a
+member of gud-commands."
   (interactive "P")
   (let (comm addr)
     (if arg (setq comm (nth arg gud-commands)))
