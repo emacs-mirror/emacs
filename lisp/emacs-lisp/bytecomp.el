@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.76 $")
+(defconst byte-compile-version "$Revision: 2.77 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -811,12 +811,15 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 			 args)))))))
 
 (defconst byte-compile-last-warned-form nil)
+(defconst byte-compile-last-logged-file nil)
 
 ;; Log a message STRING in *Compile-Log*.
 ;; Also log the current function and file if not already done.
 (defun byte-compile-log-1 (string &optional fill)
   (cond (noninteractive
-	 (if (or byte-compile-current-file
+	 (if (or (and byte-compile-current-file
+		      (not (equal byte-compile-current-file
+				  byte-compile-last-logged-file)))
 		 (and byte-compile-last-warned-form
 		      (not (eq byte-compile-current-form
 			       byte-compile-last-warned-form))))
@@ -833,7 +836,9 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 	 (save-excursion
 	   (set-buffer (get-buffer-create "*Compile-Log*"))
 	   (goto-char (point-max))
-	   (cond ((or byte-compile-current-file
+	   (cond ((or (and byte-compile-current-file
+			   (not (equal byte-compile-current-file
+				       byte-compile-last-logged-file)))
 		      (and byte-compile-last-warned-form
 			   (not (eq byte-compile-current-form
 				    byte-compile-last-warned-form))))
@@ -855,13 +860,15 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 		     (fill-column 78))
 		 (fill-paragraph nil)))
 	   )))
-  (setq byte-compile-current-file nil
+  (setq byte-compile-last-logged-file byte-compile-current-file
 	byte-compile-last-warned-form byte-compile-current-form))
 
 ;; Log the start of a file in *Compile-Log*, and mark it as done.
 ;; But do nothing in batch mode.
 (defun byte-compile-log-file ()
-  (and byte-compile-current-file (not noninteractive)
+  (and byte-compile-current-file
+       (not (equal byte-compile-current-file byte-compile-last-logged-file))
+       (not noninteractive)
        (save-excursion
 	 (set-buffer (get-buffer-create "*Compile-Log*"))
 	 (goto-char (point-max))
@@ -870,7 +877,7 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 		     (concat "file " byte-compile-current-file)
 		   (concat "buffer " (buffer-name byte-compile-current-file)))
 		 " at " (current-time-string) "\n")
-	 (setq byte-compile-current-file nil))))
+	 (setq byte-compile-last-logged-file byte-compile-current-file))))
 
 (defun byte-compile-warn (format &rest args)
   (setq format (apply 'format format args))
