@@ -675,6 +675,60 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.")
     }
   return Fprevious_property_change (position, Qnil, temp);
 }
+
+
+/* Value is the position in OBJECT after POS where the value of
+   property PROP changes.  OBJECT must be a string or buffer.  If
+   OBJECT is nil, use the current buffer.  LIMIT if not nil limits the
+   search.  */
+
+Lisp_Object
+next_single_char_property_change (pos, prop, object, limit)
+     Lisp_Object prop, pos, object, limit;
+{
+  if (STRINGP (object))
+    {
+      pos = Fnext_single_property_change (pos, prop, object, limit);
+      if (NILP (pos))
+	{
+	  if (NILP (limit))
+	    pos = make_number (XSTRING (object)->size);
+	  else
+	    pos = limit;
+	}
+    }
+  else
+    {
+      Lisp_Object initial_value, value;
+      struct buffer *old_current_buffer = NULL;
+      int count = specpdl_ptr - specpdl;
+
+      if (!NILP (object))
+	CHECK_BUFFER (object, 0);
+      
+      if (BUFFERP (object) && current_buffer != XBUFFER (object))
+	{
+	  record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+	  Fset_buffer (object);
+	}
+
+      initial_value = Fget_char_property (pos, prop, object);
+      
+      while (XFASTINT (pos) < XFASTINT (limit))
+	{
+	  pos = Fnext_char_property_change (pos, limit);
+	  value = Fget_char_property (pos, prop, object);
+	  if (!EQ (value, initial_value))
+	    break;
+	}
+
+      unbind_to (count, Qnil);
+    }
+
+  return pos;
+}
+
+
 
 DEFUN ("next-property-change", Fnext_property_change,
        Snext_property_change, 1, 3, 0,
