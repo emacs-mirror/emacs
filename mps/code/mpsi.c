@@ -341,6 +341,16 @@ void mps_space_park(mps_space_t mps_space)
 }
 
 
+mps_res_t mps_arena_start_collect(mps_space_t mps_space)
+{
+  Res res;
+  Arena arena = (Arena)mps_space;
+  ArenaEnter(arena);
+  res = ArenaStartCollect(ArenaGlobals(arena));
+  ArenaLeave(arena);
+  return res;
+}
+
 mps_res_t mps_arena_collect(mps_space_t mps_space)
 {
   Res res;
