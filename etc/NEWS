@@ -13,14 +13,14 @@ For older news, see the file ONEWS
 
 ** Variable aliases have been implemented
 
-- macro: defvaralias ALIAS-VAR BASE-VAR
+- Macro: defvaralias ALIAS-VAR BASE-VAR
 
 This defines the symbol ALIAS-VAR as a variable alias for symbol
 BASE-VAR.  This means that retrieving the value of ALIAS-VAR returns
 the value of BASE-VAR, and changing the value of ALIAS-VAR changes the
 value of BASE-VAR.
 
-- function: indirect-variable VARIABLE
+- Function: indirect-variable VARIABLE
 
 This function returns the variable at the end of the chain of aliases
 of VARIABLE.  If VARIABLE is not a symbol, or if VARIABLE is not

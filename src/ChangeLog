@@ -1,5 +1,15 @@
 2001-10-04  Gerd Moellmann  <gerd@gnu.org>
 
+	This adds a post-gc-hook that's run with GC inhibited.  Requested
+	by Francois Pinard.  XEmacs has it.
+
+	* alloc.c (Vpost_gc_hook, Qpost_gc_hook): New variables.
+	(syms_of_alloc): DEFVAR_LISP post-gc-hook, initialize 
+	Qpost_gc_hook.
+	(Fgarbage_collect): Run post-gc-hook.
+
+2001-10-04  Gerd Moellmann  <gerd@gnu.org>
+
 	This adds `defvaralias' and `indirect-variable'.  Changes not
 	directly related to this feature are there to gain the same
 	performance again as before variable aliases.  
