@@ -765,7 +765,7 @@ pixel_to_glyph_coords (struct frame * f, int pix_x, int pix_y, int *x, int *y,
 }
 
 void
-glyph_to_pixel_coords (struct frame * f, int x, int y, int *pix_x, int *pix_y)
+glyph_to_pixel_coords (struct window * f, int x, int y, int *pix_x, int *pix_y)
 {
   *pix_x = x;
   *pix_y = y;
