@@ -2739,8 +2739,7 @@ a string, it is evaluated to obtain a help string.
 You can alter the way help text is displayed by setting the variable
 @code{show-help-function} (@pxref{Help display}).
 
-This feature is used in the mode line and for other active text.  It is
-available starting in Emacs 21.
+This feature is used in the mode line and for other active text.
 
 @item keymap
 @cindex keymap of character
