@@ -37,7 +37,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef HAVE_X_WINDOWS
 extern void abort ();
 
+#ifndef VMS
 #include <X11/bitmaps/gray>
+#else
+#include "[.bitmaps]gray.xbm"
+#endif
 
 #define min(a,b) ((a) < (b) ? (a) : (b))
 #define max(a,b) ((a) > (b) ? (a) : (b))
