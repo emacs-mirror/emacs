@@ -1,3 +1,8 @@
+2003-02-14  ARISAWA Akihiro  <ari@mbf.sphere.ne.jp>  (tiny change)
+
+	* time.el (display-time-string-forms): Add face property to mail
+	string.
+
 2003-02-14  Juanma Barranquero  <lektu@terra.es>
 
 	* international/mule-cmds.el (view-hello-file): Use `view-file'
