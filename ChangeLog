@@ -1,3 +1,8 @@
+2000-11-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in: Use m/macppc.h instead of the non-existent 
+	m/powerpc.h.
+
 2000-11-21  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (install-arch-indep): Also install info/eshell*
