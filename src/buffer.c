@@ -1422,34 +1422,34 @@ sort_overlays (overlay_vec, noverlays, w)
 
   for (i = 0, j = 0; i < noverlays; i++)
     {
+      Lisp_Object tem;
       Lisp_Object overlay = overlay_vec[i];
 
       if (OVERLAY_VALID (overlay)
 	  && OVERLAY_POSITION (OVERLAY_START (overlay)) > 0
 	  && OVERLAY_POSITION (OVERLAY_END (overlay)) > 0)
 	{
-	  Lisp_Object window;
-	  window = Foverlay_get (overlay, Qwindow);
-
-	  /* Also ignore overlays limited to one window
-	     if it's not the window we are using.  */
-	  if (XTYPE (window) != Lisp_Window
-	      || XWINDOW (window) == w)
+	  /* If we're interested in a specific window, then ignore
+	     overlays that are limited to some other window.  */
+	  if (w)
 	    {
-	      Lisp_Object tem;
+	      Lisp_Object window;
 
-	      /* This overlay is good and counts:
-		 put it in sortvec.  */
-	      sortvec[j].overlay = overlay;
-	      sortvec[j].beg = OVERLAY_POSITION (OVERLAY_START (overlay));
-	      sortvec[j].end = OVERLAY_POSITION (OVERLAY_END (overlay));
-	      tem = Foverlay_get (overlay, Qpriority);
-	      if (INTEGERP (tem))
-		sortvec[j].priority = XINT (tem);
-	      else
-		sortvec[j].priority = 0;
-	      j++;
+	      window = Foverlay_get (overlay, Qwindow);
+	      if (XTYPE (window) == Lisp_Window && XWINDOW (window) != w)
+		continue;
 	    }
+
+	  /* This overlay is good and counts: put it into sortvec.  */
+	  sortvec[j].overlay = overlay;
+	  sortvec[j].beg = OVERLAY_POSITION (OVERLAY_START (overlay));
+	  sortvec[j].end = OVERLAY_POSITION (OVERLAY_END (overlay));
+	  tem = Foverlay_get (overlay, Qpriority);
+	  if (INTEGERP (tem))
+	    sortvec[j].priority = XINT (tem);
+	  else
+	    sortvec[j].priority = 0;
+	  j++;
 	}
     }
   noverlays = j;
