@@ -1,3 +1,7 @@
+2002-03-21  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (x_clear_image_1): Disable color table code.
+
 2002-03-21  Kim F. Storm  <storm@cua.dk>
 
 	* lisp.h (DEFUN) [USE_NONANSI_DEFUN]: The 2001-10-17 patch
