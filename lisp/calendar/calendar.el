@@ -1,6 +1,6 @@
 ;;; calendar.el --- calendar functions
 
-;; Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1997, 
+;; Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1997,
 ;;	2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -93,7 +93,7 @@
 
 ;;; Code:
 
-(eval-when-compile 
+(eval-when-compile
   (defvar displayed-month)
   (defvar displayed-year)
   (defvar calendar-month-name-array)
@@ -2040,7 +2040,7 @@ the inserted text.  Value is always t."
    (propertize (substitute-command-keys
 		"\\<calendar-mode-map>\\[scroll-calendar-left]")
 	       'help-echo "mouse-2: scroll left"
-	       'keymap (make-mode-line-mouse-map 'mouse-2 
+	       'keymap (make-mode-line-mouse-map 'mouse-2
 						 #'scroll-calendar-left))
    "Calendar"
    (concat
@@ -2048,14 +2048,14 @@ the inserted text.  Value is always t."
      (substitute-command-keys
       "\\<calendar-mode-map>\\[calendar-goto-info-node] info")
      'help-echo "mouse-2: read Info on Calendar"
-     'keymap (make-mode-line-mouse-map 'mouse-2 #'calendar-goto-info-node))
+     'keymap (make-mode-line-mouse-map 'mouse-2 'calendar-goto-info-node))
     "/"
     (propertize
      (substitute-command-keys
      "\\<calendar-mode-map>\\[calendar-other-month] other")
      'help-echo "mouse-2: choose another month"
-     'keymap (make-mode-line-mouse-map 
-	      'mouse-2 
+     'keymap (make-mode-line-mouse-map
+	      'mouse-2
 	      (lambda ()
 		(interactive)
 		(call-interactively
@@ -2070,7 +2070,7 @@ the inserted text.  Value is always t."
    (propertize (substitute-command-keys
 		"\\<calendar-mode-map>\\[scroll-calendar-right]")
 	       'help-echo "mouse-2: scroll right"
-	       'keymap (make-mode-line-mouse-map 
+	       'keymap (make-mode-line-mouse-map
 			'mouse-2 #'scroll-calendar-right)))
   "The mode line of the calendar buffer.")
 
