@@ -1181,13 +1181,20 @@ See also the variable `nonascii-translation-table'."
 (defun define-translation-table (symbol &rest args)
   "Define SYMBOL as a name of translation table made by ARGS.
 
-See the documentation of the function `make-translation-table' for the
-meaning of ARGS.
+If the first element of ARGS is a char-table of which purpose is
+translation-table, just define SYMBOL as the name of it.
+
+In the other case, ARGS are the same as arguments to the function
+`make-translation-table' (which see).
 
 This function sets properties `translation-table' and
 `translation-table-id' of SYMBOL to the created table itself and
 identification number of the table respectively."
-  (let ((table (apply 'make-translation-table args))
+  (let ((table (if (and (char-table-p (car args))
+			(eq (char-table-subtype (car args))
+			    'translation-table))
+		   (car args)
+		 (apply 'make-translation-table args)))
 	(len (length translation-table-vector))
 	(id 0)
 	(done nil))
@@ -1201,8 +1208,8 @@ identification number of the table respectively."
 		(eq (car slot) symbol))
 	    (progn
 	      (aset translation-table-vector id (cons symbol table))
-	      (setq done t))))
-      (setq id (1+ id)))
+	      (setq done t))
+	  (setq id (1+ id)))))
     (put symbol 'translation-table-id id)
     id))
 
