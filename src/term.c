@@ -1533,7 +1533,10 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.\n",
   MultiLeft = tgetstr ("LE", address);
   MultiRight = tgetstr ("RI", address);
 
-  AutoWrap = tgetflag ("am");
+  MagicWrap = tgetflag ("xn");
+  /* Since we make MagicWrap terminals look like AutoWrap, we need to have
+     the former flag imply the latter.  */
+  AutoWrap = MagicWrap || tgetflag ("am");
   memory_below_frame = tgetflag ("db");
   TF_hazeltine = tgetflag ("hz");
   must_write_spaces = tgetflag ("in");
@@ -1541,7 +1544,6 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.\n",
   TF_insmode_motion = tgetflag ("mi");
   TF_standout_motion = tgetflag ("ms");
   TF_underscore = tgetflag ("ul");
-  MagicWrap = tgetflag ("xn");
   TF_xs = tgetflag ("xs");
   TF_teleray = tgetflag ("xt");
 
