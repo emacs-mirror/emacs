@@ -1740,23 +1740,35 @@
   (math-normalize (list '^ a b)))
 
 (defun math-pow-of-zero (a b)
-  (if (Math-zerop b)
-      (if calc-infinite-mode
-	  '(var nan var-nan)
-	(math-reject-arg (list '^ a b) "*Indeterminate form"))
-    (if (math-floatp b) (setq a (math-float a)))
-    (if (math-posp b)
-	a
-      (if (math-negp b)
-	  (math-div 1 a)
-	(if (math-infinitep b)
-	    '(var nan var-nan)
-	  (if (and (eq (car b) 'intv) (math-intv-constp b)
-		   calc-infinite-mode)
-	      '(intv 3 (neg (var inf var-inf)) (var inf var-inf))
-	    (if (math-objectp b)
-		(list '^ a b)
-	      a)))))))
+  "Raise A to the power of B, where A is a form of zero."
+  (if (math-floatp b) (setq a (math-float a)))
+  (cond
+   ;; 0^0 = 1
+   ((eq b 0)
+    1)
+   ;; 0^0.0, etc., are undetermined
+   ((Math-zerop b)
+    (if calc-infinite-mode
+        '(var nan var-nan)
+      (math-reject-arg (list '^ a b) "*Indeterminate form")))
+   ;; 0^positive = 0
+   ((math-posp b)
+    a)
+   ;; 0^negative is undefined (let math-div handle it)
+   ((math-negp b)
+    (math-div 1 a))
+   ;; 0^infinity is undefined
+   ((math-infinitep b)
+    '(var nan var-nan))
+   ;; Some intervals
+   ((and (eq (car b) 'intv)
+         calc-infinite-mode
+         (math-negp (nth 2 b))
+         (math-posp (nth 3 b)))
+    '(intv 3 (neg (var inf var-inf)) (var inf var-inf)))
+   ;; If none of the above, leave it alone.
+   (t
+    (list '^ a b))))
 
 (defun math-pow-zero (a b)
   (if (eq (car-safe a) 'mod)
