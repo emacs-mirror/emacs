@@ -1,11 +1,11 @@
 ;;; hippie-exp.el --- expand text trying various ways to find its expansion.
 
 ;; Author: Anders Holst <aho@sans.kth.se>
-;; Last change: 2 September 1993
-;; Version: 1.3
+;; Last change: 6 August 1995
+;; Version: 1.4
 ;; Keywords: abbrev
 
-;; Copyright (C) 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1992 Free Software Foundation, Inc.
 ;;
 ;; This file is part of GNU Emacs.
 
@@ -79,6 +79,16 @@
 ;;      like `dabbrev-expand' but searches all Emacs buffers (except the
 ;;      current) for matching words.  (No, I don't find this one
 ;;      particularly slow.) 
+;;    `try-expand-dabbrev-visible': Searches the currently visible parts of
+;;      all windows.  Can be put before `try-expand-dabbrev-all-buffers' to
+;;      first try the expansions you can see.
+;;    `try-expand-dabbrev-from-kill': Searches the kill ring for a suitable
+;;      completion of the word.  Good to have, just in case the word was not
+;;      found elsewhere.
+;;    `try-expand-whole-kill' : Tries to complete text with a whole entry
+;;      from the kill ring.  May be good if you don't know how far up in
+;;      the kill-ring the required entry is, and don't want to mess with
+;;      "Choose Next Paste".
 ;;    `try-complete-lisp-symbol' : like `lisp-complete-symbol', but goes
 ;;      through all possibilities instead of completing what is unique.
 ;;      Might be tedious (usually a lot of possible completions) and
@@ -123,7 +133,7 @@
 ;;  There is also a variable: `he-tried-table' which is meant to contain
 ;;  all tried expansions so far.  The try-function can check this 
 ;;  variable to see whether an expansion has already been tried
-;;  (hint: `he-string-member'), and add its own tried expansions to it.
+;;  (hint: `he-string-member').
 ;;
 ;;  Known bugs
 ;;
@@ -131,8 +141,8 @@
 ;;  spite of the use of `he-tried-table' to prevent that.  This is 
 ;;  because different try-functions may try to complete different
 ;;  lengths of text, and thus put different amounts of the
-;;  text in `he-try-table'.  Anyway this seems to occur seldom enough not
-;;  to be too disturbing.  Also it should NOT be possible for the
+;;  text in `he-tried-table'.  Anyway this seems to occur seldom enough
+;;  not to be too disturbing.  Also it should NOT be possible for the
 ;;  opposite situation to occur, that `hippie-expand' misses some
 ;;  suggestion because it thinks it has already tried it.
 ;;
@@ -141,7 +151,7 @@
 ;;  I want to thank Mikael Djurfeldt in discussions with whom the idea
 ;;  of this function took form.
 ;;  I am also grateful to all those who have given me suggestions on
-;;  how to improve it.
+;;  how to improve it, and all those who helped to find and remove bugs.
 ;;
 
 ;;; Code:
@@ -160,19 +170,26 @@
 
 (defvar he-search-loc (make-marker))
 
+(defvar he-search-loc2 ())
+
 (defvar he-search-bw ())
 
 (defvar he-search-bufs ())
 
 (defvar he-searched-n-bufs ())
 
+(defvar he-search-window ())
+
 ;;;###autoload
-(defvar hippie-expand-try-functions-list '(try-complete-file-name
+(defvar hippie-expand-try-functions-list '(try-complete-file-name-partially
+					   try-complete-file-name
 					   try-expand-all-abbrevs
-                                           try-expand-list
+					   try-expand-list
 					   try-expand-line
 					   try-expand-dabbrev
 					   try-expand-dabbrev-all-buffers
+					   try-expand-dabbrev-from-kill
+					   try-complete-lisp-symbol-partially
 					   try-complete-lisp-symbol)
   "The list of expansion functions tried in order by `hippie-expand'.
 To change the behavior of `hippie-expand', remove, change the order of,
@@ -229,16 +246,17 @@ undoes the expansion."
 		  (message "No further expansions found"))
 	      (ding))
 	    (if (and hippie-expand-verbose
-                     (not (window-minibuffer-p (selected-window))))
+		     (not (window-minibuffer-p (selected-window))))
 		(message (concat "Using "
 				 (prin1-to-string (nth he-num 
 				   hippie-expand-try-functions-list)))))))
-      (if (>= he-num 0)
+      (if (and (>= he-num 0)
+	       (eq (marker-buffer he-string-beg) (current-buffer)))
 	  (progn
 	    (setq he-num -1)
 	    (he-reset-string)
 	    (if (and hippie-expand-verbose
-                     (not (window-minibuffer-p (selected-window))))
+		     (not (window-minibuffer-p (selected-window))))
 		(message "Undoing expansions"))))))
 
 ;; Initializes the region to expand (to between BEG and END).
@@ -250,13 +268,10 @@ undoes the expansion."
 ;; Resets the expanded region to its original contents.
 (defun he-reset-string ()
   (let ((newpos (point-marker)))
-    (delete-region he-string-beg he-string-end)
     (goto-char he-string-beg)
     (insert he-search-string)
-    (set-marker he-string-end (point))
-    (if (= newpos he-string-beg)
-	(goto-char he-string-end)
-	(goto-char newpos))))
+    (delete-region (point) he-string-end)
+    (goto-char newpos)))
 
 ;; Substitutes an expansion STR into the correct region (the region
 ;; initialized with `he-init-string'). 
@@ -266,53 +281,66 @@ undoes the expansion."
 (defun he-substitute-string (str &optional trans-case)
   (let ((trans-case (and trans-case
 			 case-replace
-			 case-fold-search
-			 (he-transfer-case-ok str he-search-string)))
-	(newpos (point-marker)))
-    (he-reset-string)
+			 case-fold-search))
+	(newpos (point-marker))
+	(subst ()))
     (goto-char he-string-beg)
-    (search-forward he-search-string)
-    (replace-match (if trans-case (downcase str) str)
-		   (not trans-case)
-		   'literal)
-    (set-marker he-string-end (point))
-    (if (= newpos he-string-beg)
-	(goto-char he-string-end)
-	(goto-char newpos))))
+    (setq subst (if trans-case (he-transfer-case he-search-string str) str))
+    (setq he-tried-table (cons subst he-tried-table))
+    (insert subst)
+    (delete-region (point) he-string-end)
+    (goto-char newpos)))
+
+(defun he-capitalize-first (str)
+  (save-match-data
+    (if (string-match "\\Sw*\\(\\sw\\).*" str)
+	(let ((res (downcase str))
+	      (no (match-beginning 1)))
+	  (aset res no (upcase (aref str no)))
+	  res)
+      str)))
 
 (defun he-ordinary-case-p (str)
   (or (string= str (downcase str))
       (string= str (upcase str))
-      (string= str (capitalize str))))
+      (string= str (capitalize str))
+      (string= str (he-capitalize-first str))))
 
-(defun he-transfer-case-ok (to-str from-str)
-  (and (not (string= from-str (substring to-str 0 (min (length from-str)
-                                                       (length to-str)))))
-         ;; otherwise transfer is not needed (and this also solves
-	 ;; some obscure situations)
-       (he-ordinary-case-p to-str)
-         ;; otherwise case may be significant 
-       (he-ordinary-case-p from-str)
-         ;; otherwise replace-match wont know what to do
-  ))
+(defun he-transfer-case (from-str to-str)
+  (cond ((string= from-str (substring to-str 0 (min (length from-str)
+						    (length to-str))))
+	 to-str)
+	((not (he-ordinary-case-p to-str))
+	 to-string)
+	((string= from-str (downcase from-str))
+	 (downcase to-str))
+	((string= from-str (upcase from-str))
+	 (upcase to-str))
+	((string= from-str (he-capitalize-first from-str))
+	 (he-capitalize-first to-str))
+	((string= from-str (capitalize from-str))
+	 (capitalize to-str))
+	(t
+	 to-str)))
+
 
 ;; Check if STR is a member of LST.
-;; Ignore case if `case-replace' and `case-fold-search' are both t.
-(defun he-string-member (str lst)
-  (while (and lst
-	      (not
-	       (if (and case-fold-search case-replace)
-		   (string= (downcase (car lst)) (downcase str))
-		   (string= (car lst) str))))
-    (setq lst (cdr lst)))
-  lst)
+;; Transform to the final case if optional TRANS-CASE is non-NIL.
+(defun he-string-member (str lst &optional trans-case)
+  (if str
+      (member (if (and trans-case
+		       case-replace
+		       case-fold-search)
+		  (he-transfer-case he-search-string str)
+		str)
+	      lst)))
 
 ;; Check if STR matches any regexp in LST.
 ;; Ignore possible non-strings in LST.
 (defun he-regexp-member (str lst)
   (while (and lst
 	      (or (not (stringp (car lst)))
-                  (not (string-match (car lst) str))))
+		  (not (string-match (car lst) str))))
     (setq lst (cdr lst)))
   lst)
 
@@ -334,7 +362,7 @@ Make it use the expansion functions in TRY-LIST.  An optional second
 argument VERBOSE non-nil makes the function verbose."
   (` (function (lambda (arg)
        (, (concat 
-           "Try to expand text before point, using the following functions: \n"
+	   "Try to expand text before point, using the following functions: \n"
 	   (mapconcat 'prin1-to-string (eval try-list) ", ")))
        (interactive "P")
        (let ((hippie-expand-try-functions-list (, try-list))
@@ -344,6 +372,7 @@ argument VERBOSE non-nil makes the function verbose."
 
 ;;;  Here follows the try-functions and their requisites:
 
+
 (defun try-complete-file-name (old)
   "Try to complete text as a file name.
 The argument OLD has to be nil the first call of this function, and t
@@ -352,13 +381,13 @@ string).  It returns t if a new completion is found, nil otherwise."
   (if (not old)
       (progn 
 	(he-init-string (he-file-name-beg) (point))
-	(let ((name-part (file-name-nondirectory he-search-string))
-	      (dir-part (expand-file-name (or (file-name-directory
+	(let ((name-part (he-file-name-nondirectory he-search-string))
+	      (dir-part (expand-file-name (or (he-file-name-directory
 					       he-search-string) ""))))
 	  (if (not (he-string-member name-part he-tried-table))
 	      (setq he-tried-table (cons name-part he-tried-table)))
 	  (if (and (not (equal he-search-string ""))
-		   (file-directory-p dir-part))
+		   (he-file-directory-p dir-part))
 	      (setq he-expand-list (sort (file-name-all-completions 
 					  name-part
 					  dir-part)
@@ -370,12 +399,13 @@ string).  It returns t if a new completion is found, nil otherwise."
     (setq he-expand-list (cdr he-expand-list)))
   (if (null he-expand-list)
       (progn
-        (if old (he-reset-string))
+	(if old (he-reset-string))
 	())
-      (let ((filename (concat (file-name-directory he-search-string)
-			      (car he-expand-list))))
+      (let ((filename (he-concat-directory-file-name
+		       (he-file-name-directory he-search-string)
+		       (car he-expand-list))))
 	(he-substitute-string filename)
-	(setq he-tried-table (cons (car he-expand-list) he-tried-table))
+	(setq he-tried-table (cons (car he-expand-list) (cdr he-tried-table)))
 	(setq he-expand-list (cdr he-expand-list))
 	t)))
 
@@ -388,33 +418,88 @@ otherwise."
     (if (not old)
 	(progn 
 	  (he-init-string (he-file-name-beg) (point))
-	  (let ((name-part (file-name-nondirectory he-search-string))
-		(dir-part (expand-file-name (or (file-name-directory
+	  (let ((name-part (he-file-name-nondirectory he-search-string))
+		(dir-part (expand-file-name (or (he-file-name-directory
 						 he-search-string) ""))))
 	    (if (and (not (equal he-search-string ""))
-		     (file-directory-p dir-part))
+		     (he-file-directory-p dir-part))
 		(setq expansion (file-name-completion name-part
 						      dir-part)))
 	    (if (or (eq expansion t)
-		    (string= expansion name-part))
+		    (string= expansion name-part)
+		    (he-string-member expansion he-tried-table))
 		(setq expansion ())))))
 
     (if (not expansion)
 	(progn
-          (if old (he-reset-string))
+	  (if old (he-reset-string))
 	  ())
-	(let ((filename (concat (file-name-directory he-search-string)
-				expansion)))
+	(let ((filename (he-concat-directory-file-name
+			 (he-file-name-directory he-search-string)
+			 expansion)))
 	  (he-substitute-string filename)
-	  (setq he-tried-table (cons expansion he-tried-table))
+	  (setq he-tried-table (cons expansion (cdr he-tried-table)))
 	  t))))
 
-(defun he-file-name-beg ()
-  (let ((skips "-a-zA-Z0-9_./~^#$"))
-    (save-excursion
-      (skip-chars-backward skips)
-      (point))))
+(defvar he-file-name-chars
+  (cond ((memq system-type '(vax-vms axp-vms))
+	 "-a-zA-Z0-9_/.,~^#$+=:\\[\\]")
+	((memq system-type '(ms-dos ms-windows))
+	 "-a-zA-Z0-9_/.,~^#$+=:\\\\")
+	(t			    ;; More strange file formats ?
+	 "-a-zA-Z0-9_/.,~^#$+="))
+  "Characters that are considered part of the file name to expand.")
 
+(defun he-file-name-beg ()
+  (save-excursion
+    (skip-chars-backward he-file-name-chars)
+    (point)))
+
+;; Thanks go to Richard Levitte <levitte@e.kth.se> who helped to make these
+;; work under VMS, and to David Hughes <ukchugd@ukpmr.cs.philips.nl> who 
+;; helped to make it work on PC.
+(defun he-file-name-nondirectory (file)
+  "Fix to make `file-name-nondirectory' work for hippie-expand under VMS."
+  (if (memq system-type '(axp-vms vax-vms))
+      (let ((n (file-name-nondirectory file)))
+	(if (string-match "^\\(\\[.*\\)\\.\\([^\\.]*\\)$" n)
+	    (concat "[." (substring n (match-beginning 2) (match-end 2)))
+	  n))
+    (file-name-nondirectory file)))
+
+(defun he-file-name-directory (file)
+  "Fix to make `file-name-directory' work for hippie-expand under VMS."
+  (if (memq system-type '(axp-vms vax-vms))
+      (let ((n (file-name-nondirectory file))
+	    (d (file-name-directory file)))
+	(if (string-match "^\\(\\[.*\\)\\.\\([^\\.]*\\)$" n)
+	    (concat d (substring n (match-beginning 1) (match-end 1)) "]")
+	  d))
+    (file-name-directory file)))
+
+(defun he-file-directory-p (file)
+  "Fix to make `file-directory-p' work for hippie-expand under VMS."
+  (if (memq system-type '(vax-vms axp-vms))
+      (or (file-directory-p file)
+	  (file-directory-p (concat file "[000000]")))
+    (file-directory-p dir-part)))
+  
+(defun he-concat-directory-file-name (dir-part name-part)
+  "Try to slam together two parts of a file specification, system dependently."
+  (cond ((memq system-type '(axp-vms vax-vms))
+	 (if (and (string= (substring dir-part -1) "]")
+		  (string= (substring name-part 0 2) "[."))
+	     (concat (substring dir-part 0 -1) (substring name-part 1))
+	   (concat dir-part name-part)))
+	((memq system-type '(ms-dos ms-windows))
+	 (if (and (string-match "\\\\" dir-part)
+		  (not (string-match "/" dir-part))
+		  (= (aref name-part (1- (length name-part))) ?/))
+	     (aset name-part (1- (length name-part)) ?\\))
+	 (concat dir-part name-part))
+	(t 
+	 (concat dir-part name-part))))
+			
 (defun try-complete-lisp-symbol (old)
   "Try to complete word as an Emacs Lisp symbol.
 The argument OLD has to be nil the first call of this function, and t
@@ -438,11 +523,10 @@ string).  It returns t if a new completion is found, nil otherwise."
     (setq he-expand-list (cdr he-expand-list)))
   (if (null he-expand-list)
       (progn
-        (if old (he-reset-string))
+	(if old (he-reset-string))
 	())
       (progn
 	(he-substitute-string (car he-expand-list))
-	(setq he-tried-table (cons (car he-expand-list) he-tried-table))
 	(setq he-expand-list (cdr he-expand-list))
 	t)))
 
@@ -463,16 +547,16 @@ otherwise."
 					  (fboundp sym)
 					  (symbol-plist sym)))))))
 	  (if (or (eq expansion t)
-		  (string= expansion he-search-string))
+		  (string= expansion he-search-string)
+		  (he-string-member expansion he-tried-table))
 	      (setq expansion ()))))
 
   (if (not expansion)
       (progn
-        (if old (he-reset-string))
+	(if old (he-reset-string))
 	())
       (progn
 	(he-substitute-string expansion)
-	(setq he-tried-table (cons expansion he-tried-table))
 	t))))
 
 (defun he-lisp-symbol-beg ()
@@ -518,11 +602,10 @@ string).  It returns t if a new completion is found, nil otherwise."
 
     (if (not expansion)
 	(progn
-          (if old (he-reset-string))
+	  (if old (he-reset-string))
 	  ())
 	(progn
 	  (he-substitute-string expansion t)
-	  (setq he-tried-table (cons expansion he-tried-table))
 	  t))))
 
 (defun try-expand-line-all-buffers (old)
@@ -533,43 +616,45 @@ string).  It returns t if a new completion is found, nil otherwise."
   (let ((expansion ())
 	(strip-prompt (and (get-buffer-process (current-buffer))
 			   comint-prompt-regexp))
-	(buf (current-buffer)))
+	(buf (current-buffer))
+	(orig-case-fold-search case-fold-search))
     (if (not old)
 	(progn
 	  (he-init-string (he-line-beg strip-prompt) (point))
 	  (setq he-search-bufs (buffer-list))
-          (setq he-searched-n-bufs 0)
+	  (setq he-searched-n-bufs 0)
 	  (set-marker he-search-loc 1 (car he-search-bufs))))
 
     (if (not (equal he-search-string ""))
 	(while (and he-search-bufs 
-                    (not expansion)
-                    (or (not hippie-expand-max-buffers)
-                        (< he-searched-n-bufs hippie-expand-max-buffers)))
+		    (not expansion)
+		    (or (not hippie-expand-max-buffers)
+			(< he-searched-n-bufs hippie-expand-max-buffers)))
 	  (set-buffer (car he-search-bufs))
 	  (if (and (not (eq (current-buffer) buf))
 		   (not (memq major-mode hippie-expand-ignore-buffers))
-                   (not (he-regexp-member (buffer-name)
-                                          hippie-expand-ignore-buffers)))
+		   (not (he-regexp-member (buffer-name)
+					  hippie-expand-ignore-buffers)))
 	      (save-excursion
 		(goto-char he-search-loc)
-                (setq strip-prompt (and (get-buffer-process (current-buffer))
-                                        comint-prompt-regexp))
-		(setq expansion (he-line-search he-search-string
-						strip-prompt nil))
+		(setq strip-prompt (and (get-buffer-process (current-buffer))
+					comint-prompt-regexp))
+		(setq expansion (let ((case-fold-search orig-case-fold-search))
+				  (he-line-search he-search-string
+						  strip-prompt nil)))
 		(set-marker he-search-loc (point))
-                (if expansion
-                    (setq he-tried-table (cons expansion he-tried-table))
-                  (setq he-search-bufs (cdr he-search-bufs))
-                  (setq he-searched-n-bufs (1+ he-searched-n-bufs))
-                  (set-marker he-search-loc 1 (car he-search-bufs))))
-            (setq he-search-bufs (cdr he-search-bufs))
-            (set-marker he-search-loc 1 (car he-search-bufs)))))
+		(if (not expansion)
+		    (progn
+		      (setq he-search-bufs (cdr he-search-bufs))
+		      (setq he-searched-n-bufs (1+ he-searched-n-bufs))
+		      (set-marker he-search-loc 1 (car he-search-bufs)))))
+	    (setq he-search-bufs (cdr he-search-bufs))
+	    (set-marker he-search-loc 1 (car he-search-bufs)))))
 
     (set-buffer buf)
     (if (not expansion)
 	(progn
-          (if old (he-reset-string))
+	  (if old (he-reset-string))
 	  ())
 	(progn
 	  (he-substitute-string expansion t)
@@ -586,18 +671,16 @@ string).  It returns t if a new completion is found, nil otherwise."
 		     (he-line-search-regexp str strip-prompt)
 		     nil t)))
       (setq result (buffer-substring (match-beginning 2) (match-end 2)))
-      (if (he-string-member result he-tried-table)
-	  (setq result nil)))	            ; if already in table, ignore
+      (if (he-string-member result he-tried-table t)
+	  (setq result nil)))		    ; if already in table, ignore
     result))
 
 (defun he-line-beg (strip-prompt)
   (save-excursion
-    (end-of-line)
     (if (re-search-backward (he-line-search-regexp "" strip-prompt) 
 			    (save-excursion (beginning-of-line)
 					    (point)) t)
 	(match-beginning 2)
-      (beginning-of-line)
       (point))))
 
 (defun he-line-search-regexp (pat strip-prompt)
@@ -646,7 +729,6 @@ string).  It returns t if a new completion is found, nil otherwise."
 	  ())
 	(progn
 	  (he-substitute-string expansion t)
-	  (setq he-tried-table (cons expansion he-tried-table))
 	  t))))
 
 (defun try-expand-list-all-buffers (old)
@@ -655,40 +737,42 @@ The argument OLD has to be nil the first call of this function, and t
 for subsequent calls (for further possible completions of the same
 string).  It returns t if a new completion is found, nil otherwise."
   (let ((expansion ())
-	(buf (current-buffer)))
+	(buf (current-buffer))
+	(orig-case-fold-search case-fold-search))
     (if (not old)
 	(progn
 	  (he-init-string (he-list-beg) (point))
 	  (setq he-search-bufs (buffer-list))
-          (setq he-searched-n-bufs 0)
+	  (setq he-searched-n-bufs 0)
 	  (set-marker he-search-loc 1 (car he-search-bufs))))
 
     (if (not (equal he-search-string ""))
 	(while (and he-search-bufs 
-                    (not expansion)
-                    (or (not hippie-expand-max-buffers)
-                        (< he-searched-n-bufs hippie-expand-max-buffers)))
+		    (not expansion)
+		    (or (not hippie-expand-max-buffers)
+			(< he-searched-n-bufs hippie-expand-max-buffers)))
 	  (set-buffer (car he-search-bufs))
 	  (if (and (not (eq (current-buffer) buf))
 		   (not (memq major-mode hippie-expand-ignore-buffers))
-                   (not (he-regexp-member (buffer-name)
-                                          hippie-expand-ignore-buffers)))
+		   (not (he-regexp-member (buffer-name)
+					  hippie-expand-ignore-buffers)))
 	      (save-excursion
 		(goto-char he-search-loc)
-		(setq expansion (he-list-search he-search-string nil))
+		(setq expansion (let ((case-fold-search orig-case-fold-search))
+				  (he-list-search he-search-string nil)))
 		(set-marker he-search-loc (point))
-                (if expansion
-                    (setq he-tried-table (cons expansion he-tried-table))
-                  (setq he-search-bufs (cdr he-search-bufs))
-                  (setq he-searched-n-bufs (1+ he-searched-n-bufs))
-                  (set-marker he-search-loc 1 (car he-search-bufs))))
-            (setq he-search-bufs (cdr he-search-bufs))
-            (set-marker he-search-loc 1 (car he-search-bufs)))))
+		(if (not expansion)
+		    (progn
+		      (setq he-search-bufs (cdr he-search-bufs))
+		      (setq he-searched-n-bufs (1+ he-searched-n-bufs))
+		      (set-marker he-search-loc 1 (car he-search-bufs)))))
+	    (setq he-search-bufs (cdr he-search-bufs))
+	    (set-marker he-search-loc 1 (car he-search-bufs)))))
 
     (set-buffer buf)
     (if (not expansion)
 	(progn
-          (if old (he-reset-string))
+	  (if old (he-reset-string))
 	  ())
 	(progn
 	  (he-substitute-string expansion t)
@@ -696,7 +780,7 @@ string).  It returns t if a new completion is found, nil otherwise."
 
 (defun he-list-search (str reverse) 
   (let ((result ())
-        beg pos err)
+	beg pos err)
     (while (and (not result)
 		(if reverse
 		    (search-backward str nil t)
@@ -706,23 +790,23 @@ string).  It returns t if a new completion is found, nil otherwise."
       (goto-char beg)
       (setq err ())
       (condition-case ()
-          (forward-list 1)
-        (error (setq err t)))
+	  (forward-list 1)
+	(error (setq err t)))
       (if (and reverse 
-               (> (point) he-string-beg))
-          (setq err t))
+	       (> (point) he-string-beg))
+	  (setq err t))
       (if (not err)
-          (progn
-            (setq result (buffer-substring beg (point)))
-            (if (he-string-member result he-tried-table)
-                (setq result nil))))	       ; if already in table, ignore
+	  (progn
+	    (setq result (buffer-substring beg (point)))
+	    (if (he-string-member result he-tried-table t)
+		(setq result nil))))	       ; if already in table, ignore
       (goto-char pos))
     result))
 
 (defun he-list-beg ()
   (save-excursion
     (condition-case ()
-        (backward-up-list 1)
+	(backward-up-list 1)
       (error ()))
     (point)))
 
@@ -737,22 +821,22 @@ string).  It returns t if a new expansion is found, nil otherwise."
 	(setq he-expand-list 
 	      (and (not (equal he-search-string ""))
 		   (mapcar (function (lambda (sym)
-			     (abbrev-expansion (downcase he-search-string)
-					       (eval sym))))
+			     (if (and (boundp sym) (vectorp (eval sym)))
+				 (abbrev-expansion (downcase he-search-string)
+						   (eval sym)))))
 			   (append '(local-abbrev-table 
 				     global-abbrev-table)
 				   abbrev-table-name-list))))))
   (while (and he-expand-list
 	      (or (not (car he-expand-list))
-		  (he-string-member (car he-expand-list) he-tried-table)))
+		  (he-string-member (car he-expand-list) he-tried-table t)))
     (setq he-expand-list (cdr he-expand-list)))
   (if (null he-expand-list)
       (progn
-        (if old (he-reset-string))
+	(if old (he-reset-string))
 	())
       (progn
 	(he-substitute-string (car he-expand-list) t)
-	(setq he-tried-table (cons (car he-expand-list) he-tried-table))
 	(setq he-expand-list (cdr he-expand-list))
 	t)))
 
@@ -774,7 +858,7 @@ string).  It returns t if a new expansion is found, nil otherwise."
 	  (if he-search-bw
 	      (progn 
 		(goto-char he-search-loc)
-		(setq expansion (he-dab-search he-search-string t))
+		(setq expansion (he-dabbrev-search he-search-string t))
 		(set-marker he-search-loc (point))
 		(if (not expansion)
 		    (progn
@@ -784,16 +868,15 @@ string).  It returns t if a new expansion is found, nil otherwise."
 	  (if (not expansion) ; Then look forward.
 	      (progn 
 		(goto-char he-search-loc)
-		(setq expansion (he-dab-search he-search-string nil))
+		(setq expansion (he-dabbrev-search he-search-string nil))
 		(set-marker he-search-loc (point))))))
 	
     (if (not expansion)
 	(progn
-          (if old (he-reset-string))
+	  (if old (he-reset-string))
 	  ())
 	(progn
 	  (he-substitute-string expansion t)
-	  (setq he-tried-table (cons expansion he-tried-table))
 	  t))))
 
 (defun try-expand-dabbrev-all-buffers (old)
@@ -802,68 +885,240 @@ The argument OLD has to be nil the first call of this function, and t
 for subsequent calls (for further possible expansions of the same
 string).  It returns t if a new expansion is found, nil otherwise."
   (let ((expansion ())
-	(buf (current-buffer)))
+	(buf (current-buffer))
+	(orig-case-fold-search case-fold-search))
     (if (not old)
 	(progn
 	  (he-init-string (he-dabbrev-beg) (point))
 	  (setq he-search-bufs (buffer-list))
-          (setq he-searched-n-bufs 0)
+	  (setq he-searched-n-bufs 0)
 	  (set-marker he-search-loc 1 (car he-search-bufs))))
 
     (if (not (equal he-search-string ""))
 	(while (and he-search-bufs 
-                    (not expansion)
-                    (or (not hippie-expand-max-buffers)
-                        (< he-searched-n-bufs hippie-expand-max-buffers)))
+		    (not expansion)
+		    (or (not hippie-expand-max-buffers)
+			(< he-searched-n-bufs hippie-expand-max-buffers)))
 	  (set-buffer (car he-search-bufs))
 	  (if (and (not (eq (current-buffer) buf))
 		   (not (memq major-mode hippie-expand-ignore-buffers))
-                   (not (he-regexp-member (buffer-name)
-                                          hippie-expand-ignore-buffers)))
+		   (not (he-regexp-member (buffer-name)
+					  hippie-expand-ignore-buffers)))
 	      (save-excursion
 		(goto-char he-search-loc)
-		(setq expansion (he-dab-search he-search-string nil))
+		(setq expansion (let ((case-fold-search orig-case-fold-search))
+				  (he-dabbrev-search he-search-string nil)))
 		(set-marker he-search-loc (point))
-                (if expansion
-                    (setq he-tried-table (cons expansion he-tried-table))
-                  (setq he-search-bufs (cdr he-search-bufs))
-                  (setq he-searched-n-bufs (1+ he-searched-n-bufs))
-                  (set-marker he-search-loc 1 (car he-search-bufs))))
-            (setq he-search-bufs (cdr he-search-bufs))
-            (set-marker he-search-loc 1 (car he-search-bufs)))))
+		(if (not expansion)
+		    (progn
+		      (setq he-search-bufs (cdr he-search-bufs))
+		      (setq he-searched-n-bufs (1+ he-searched-n-bufs))
+		      (set-marker he-search-loc 1 (car he-search-bufs)))))
+	    (setq he-search-bufs (cdr he-search-bufs))
+	    (set-marker he-search-loc 1 (car he-search-bufs)))))
 
     (set-buffer buf)
     (if (not expansion)
 	(progn
-          (if old (he-reset-string))
+	  (if old (he-reset-string))
 	  ())
 	(progn
 	  (he-substitute-string expansion t)
 	  t))))
 
-(defun he-dab-search-regexp (pat)
-  (concat "\\<" (regexp-quote pat) 
-	  "\\(\\sw\\|\\s_\\)+"))
+;; Thanks go to Jeff Dairiki <dairiki@faraday.apl.washington.edu> who
+;; suggested this one.
+(defun try-expand-dabbrev-visible (old)
+  "Try to expand word \"dynamically\", searching visible window parts.
+The argument OLD has to be nil the first call of this function, and t
+for subsequent calls (for further possible expansions of the same
+string).  It returns t if a new expansion is found, nil otherwise."
+  (let ((expansion ())
+	(buf (current-buffer))
+	(flag (if (frame-visible-p (window-frame (selected-window)))
+		  'visible t)))
+    (if (not old)
+	(progn
+	   (he-init-string (he-dabbrev-beg) (point))
+	   (setq he-search-window (selected-window))
+	   (set-marker he-search-loc
+		       (window-start he-search-window)
+		       (window-buffer he-search-window))))
 
-(defun he-dab-search (pattern reverse)
-  (let ((result ()))
+    (while (and (not (equal he-search-string ""))
+		(marker-position he-search-loc)
+		(not expansion))
+      (save-excursion
+	(set-buffer (marker-buffer he-search-loc))
+	(goto-char he-search-loc)
+	(setq expansion (he-dabbrev-search he-search-string ()
+					   (window-end he-search-window)))
+	(if (and expansion
+		 (eq (marker-buffer he-string-beg) (current-buffer))
+		 (eq (marker-position he-string-beg) (match-beginning 0)))
+	    (setq expansion (he-dabbrev-search he-search-string ()
+					       (window-end he-search-window))))
+	(set-marker he-search-loc (point) (current-buffer)))
+      (if (not expansion)
+	  (progn 
+	    (setq he-search-window (next-window he-search-window nil flag))
+	    (if (eq he-search-window (selected-window))
+		(set-marker he-search-loc nil)
+	      (set-marker he-search-loc (window-start he-search-window)
+			  (window-buffer he-search-window))))))
+    
+    (set-buffer buf)
+    (if (not expansion)
+	(progn
+	  (if old (he-reset-string))
+	  ())
+	(progn
+	  (he-substitute-string expansion t)
+	  t))))
+
+(defun he-dabbrev-search (pattern &optional reverse limit)
+  (let ((result ())
+	(regpat (if (eq (char-syntax (aref pattern 0)) ?_)
+		    (concat (regexp-quote pattern) "\\(\\sw\\|\\s_\\)+")
+		  (concat "\\<" (regexp-quote pattern) "\\(\\sw\\|\\s_\\)+"))))
     (while (and (not result) 
 		(if reverse
-		     (re-search-backward (he-dab-search-regexp pattern)
-					 nil t)
-		     (re-search-forward (he-dab-search-regexp pattern)
-					nil t)))
+		     (re-search-backward regpat limit t)
+		     (re-search-forward regpat limit t)))
       (setq result (buffer-substring (match-beginning 0) (match-end 0)))
-      (if (he-string-member result he-tried-table)
-	  (setq result nil)))	            ; if already in table, ignore
+      (if (or (and (> (match-beginning 0) (point-min))
+		   (memq (char-syntax (char-after (1- (match-beginning 0))))
+			 '(?_ ?w)))
+	      (he-string-member result he-tried-table t))
+	  (setq result nil)))     ; ignore if bad prefix or already in table
     result))
 
+(defvar he-dabbrev-skip-space ()
+  "Non-NIL means tolerate trailing spaces in the abbreviation to expand.")
+
 (defun he-dabbrev-beg ()
-  (min (point)
-       (save-excursion
-         (skip-syntax-backward "w_")
-         (skip-syntax-forward "_")
-         (point))))
+  (let ((op (point)))
+    (save-excursion
+      (if he-dabbrev-skip-space
+	  (skip-syntax-backward ". "))
+      (if (= (skip-syntax-backward "w_") 0)
+	  op
+	(point)))))
+
+(defun try-expand-dabbrev-from-kill (old)
+  "Try to expand word \"dynamically\", searching the kill ring.
+The argument OLD has to be nil the first call of this function, and t
+for subsequent calls (for further possible completions of the same
+string).  It returns t if a new completion is found, nil otherwise."
+  (let ((expansion ()))
+    (if (not old)
+	(progn 
+	  (he-init-string (he-dabbrev-beg) (point))
+	  (setq he-expand-list
+		(if (not (equal he-search-string ""))
+		    kill-ring))
+	  (setq he-search-loc2 0)))
+    (if (not (equal he-search-string ""))
+	(setq expansion (he-dabbrev-kill-search he-search-string)))
+    (if (not expansion)
+	(progn
+	  (if old (he-reset-string))
+	  ())
+	(progn
+	  (he-substitute-string expansion t)
+	  t))))
+
+(defun he-dabbrev-kill-search (pattern)
+  (let ((result ())
+	(regpat (if (eq (char-syntax (aref pattern 0)) ?_)
+		    (concat (regexp-quote pattern) "\\(\\sw\\|\\s_\\)+")
+		  (concat "\\<" (regexp-quote pattern) "\\(\\sw\\|\\s_\\)+")))
+	(killstr (car he-expand-list)))
+    (while (and (not result) 
+		he-expand-list)
+      (while (and (not result)
+		  (string-match regpat killstr he-search-loc2))
+	(setq result (substring killstr (match-beginning 0) (match-end 0)))
+	(setq he-search-loc2 (1+ (match-beginning 0)))
+	(if (or (and (> (match-beginning 0) 0)
+		     (memq (char-syntax (aref killstr (1- (match-beginning 0))))
+			   '(?_ ?w)))
+		(he-string-member result he-tried-table t))
+	    (setq result nil)))     ; ignore if bad prefix or already in table
+      (if (and (not result) 
+		he-expand-list)
+	  (progn
+	    (setq he-expand-list (cdr he-expand-list)) 
+	    (setq killstr (car he-expand-list))
+	    (setq he-search-loc2 0))))
+    result))
+
+(defun try-expand-whole-kill (old)
+  "Try to complete text with something from the kill ring.
+The argument OLD has to be nil the first call of this function, and t
+for subsequent calls (for further possible completions of the same
+string).  It returns t if a new completion is found, nil otherwise."
+  (let ((expansion ()))
+    (if (not old)
+	(progn 
+	  (he-init-string (he-kill-beg) (point))
+	  (if (not (he-string-member he-search-string he-tried-table))
+	      (setq he-tried-table (cons he-search-string he-tried-table)))
+	  (setq he-expand-list 
+		(if (not (equal he-search-string ""))
+		    kill-ring))
+	  (setq he-search-loc2 ())))
+    (if (not (equal he-search-string ""))
+	(setq expansion (he-whole-kill-search he-search-string)))
+    (if (not expansion)
+	(progn
+	  (if old (he-reset-string))
+	  ())
+	(progn
+	  (he-substitute-string expansion)
+	  t))))
+
+(defun he-whole-kill-search (str)
+  (let ((case-fold-search ())
+	(result ())
+	(str (regexp-quote str))
+	(killstr (car he-expand-list))
+	(pos -1))
+    (while (and (not result)
+		he-expand-list)
+      (if (not he-search-loc2)
+	  (while (setq pos (string-match str killstr (1+ pos)))
+	    (setq he-search-loc2 (cons pos he-search-loc2))))
+      (while (and (not result)
+		  he-search-loc2)
+	(setq pos (car he-search-loc2))
+	(setq he-search-loc2 (cdr he-search-loc2))
+	(save-excursion
+	  (goto-char he-string-beg)
+	  (if (and (>= (- (point) pos) (point-min))   ; avoid some string GC
+		   (eq (char-after (- (point) pos)) (aref killstr 0))
+		   (search-backward (substring killstr 0 pos)
+				    (- (point) pos) t))
+	      (setq result (substring killstr pos))))
+	(if (and result
+		 (he-string-member result he-tried-table))
+	    (setq result nil)))     ; ignore if already in table
+      (if (and (not result)
+		he-expand-list)
+	  (progn
+	    (setq he-expand-list (cdr he-expand-list)) 
+	    (setq killstr (car he-expand-list))
+	    (setq pos -1))))
+    result))
+
+(defun he-kill-beg ()
+  (let ((op (point)))
+    (save-excursion
+      (skip-syntax-backward "^w_")
+      (if (= (skip-syntax-backward "w_") 0)
+	  op
+	(point)))))
+
 
 (provide 'hippie-exp)
 
