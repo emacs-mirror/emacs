@@ -1346,12 +1346,8 @@ skip_chars (forwardp, syntaxp, string, lim)
   register int ch;
   unsigned char fastmap[0400];
   /* If SYNTAXP is 0, STRING may contain multi-byte form of characters
-     of which codes don't fit in FASTMAP.  In that case, we set the
-     first byte of multibyte form (i.e. base leading-code) in FASTMAP
-     and set the actual ranges of characters in CHAR_RANGES.  In the
-     form "X-Y" of STRING, both X and Y must belong to the same
-     character set because a range striding across character sets is
-     meaningless.  */
+     of which codes don't fit in FASTMAP.  In that case, set the
+     ranges of characters in CHAR_RANGES.  */
   int *char_ranges;
   int n_char_ranges = 0;
   int negate = 0;
@@ -1414,8 +1410,6 @@ skip_chars (forwardp, syntaxp, string, lim)
 
   while (i_byte < size_byte)
     {
-      int c_leading_code = str[i_byte];
-
       c = STRING_CHAR_AND_LENGTH (str + i_byte, size_byte - i_byte, len);
       i_byte += len;
 
@@ -1428,14 +1422,13 @@ skip_chars (forwardp, syntaxp, string, lim)
 	      if (i_byte == size_byte)
 		break;
 
-	      c_leading_code = str[i_byte];
 	      c = STRING_CHAR_AND_LENGTH (str+i_byte, size_byte-i_byte, len);
 	      i_byte += len;
 	    }
 	  if (i_byte < size_byte
 	      && str[i_byte] == '-')
 	    {
-	      unsigned int c2, c2_leading_code;
+	      unsigned int c2;
 
 	      /* Skip over the dash.  */
 	      i_byte++;
@@ -1444,7 +1437,6 @@ skip_chars (forwardp, syntaxp, string, lim)
 		break;
 
 	      /* Get the end of the range.  */
-	      c2_leading_code = str[i_byte];
 	      c2 =STRING_CHAR_AND_LENGTH (str+i_byte, size_byte-i_byte, len);
 	      i_byte += len;
 
@@ -1460,7 +1452,6 @@ skip_chars (forwardp, syntaxp, string, lim)
 		      int charset = CHAR_CHARSET (c2);
 		      int c1 = MAKE_CHAR (charset, 0, 0);
 
-		      fastmap[c2_leading_code] = 1;
 		      char_ranges[n_char_ranges++] = c1;
 		      char_ranges[n_char_ranges++] = c2;
 		      c2 = 0237;
@@ -1471,17 +1462,10 @@ skip_chars (forwardp, syntaxp, string, lim)
 		      c++;
 		    }
 		}
-	      else if (! SINGLE_BYTE_CHAR_P (c2))
+	      else if (c <= c2)	/* Both C and C2 are multibyte char.  */
 		{
-		  if (c_leading_code != c2_leading_code)
-		    error ("Invalid character range: %s",
-			   XSTRING (string)->data);
-		  if (c <= c2)
-		    {
-		      fastmap[c_leading_code] = 1;
-		      char_ranges[n_char_ranges++] = c;
-		      char_ranges[n_char_ranges++] = c2;
-		    }
+		  char_ranges[n_char_ranges++] = c;
+		  char_ranges[n_char_ranges++] = c2;
 		}
 	    }
 	  else
@@ -1490,7 +1474,6 @@ skip_chars (forwardp, syntaxp, string, lim)
 		fastmap[c] = 1;
 	      else
 		{
-		  fastmap[c_leading_code] = 1;
 		  char_ranges[n_char_ranges++] = c;
 		  char_ranges[n_char_ranges++] = c;
 		}
@@ -1498,19 +1481,10 @@ skip_chars (forwardp, syntaxp, string, lim)
 	}
     }
 
-  /* If ^ was the first character, complement the fastmap.  In
-     addition, as all multibyte characters have possibility of
-     matching, set all entries for base leading codes, which is
-     harmless even if SYNTAXP is 1.  */
-
+  /* If ^ was the first character, complement the fastmap.  */
   if (negate)
     for (i = 0; i < sizeof fastmap; i++)
-      {
-	if (!multibyte || !BASE_LEADING_CODE_P (i))
-	  fastmap[i] ^= 1;
-	else
-	  fastmap[i] = 1;
-      }
+      fastmap[i] ^= 1;
 
   {
     int start_point = PT;
@@ -1585,16 +1559,22 @@ skip_chars (forwardp, syntaxp, string, lim)
 	if (forwardp)
 	  {
 	    if (multibyte)
-	      while (pos < XINT (lim) && fastmap[(c = FETCH_BYTE (pos_byte))])
+	      while (pos < XINT (lim))
 		{
-		  /* If we are looking at a multibyte character, we
-		     must look up the character in the table
-		     CHAR_RANGES.  If there's no data in the table,
-		     that character is not what we want to skip.  */
-		  if (BASE_LEADING_CODE_P (c)
-		      && (c = FETCH_MULTIBYTE_CHAR (pos_byte),
-			  ! SINGLE_BYTE_CHAR_P (c)))
+		  c = FETCH_MULTIBYTE_CHAR (pos_byte);
+		  if (SINGLE_BYTE_CHAR_P (c))
 		    {
+		      if (!fastmap[c])
+			break;
+		    }
+		  else
+		    {
+		      /* If we are looking at a multibyte character,
+			 we must look up the character in the table
+			 CHAR_RANGES.  If there's no data in the
+			 table, that character is not what we want to
+			 skip.  */
+
 		      /* The following code do the right thing even if
 			 n_char_ranges is zero (i.e. no data in
 			 CHAR_RANGES).  */
@@ -1618,14 +1598,15 @@ skip_chars (forwardp, syntaxp, string, lim)
 		  int prev_pos_byte = pos_byte;
 
 		  DEC_POS (prev_pos_byte);
-		  if (!fastmap[(c = FETCH_BYTE (prev_pos_byte))])
-		    break;
-
-		  /* See the comment in the previous similar code.  */
-		  if (BASE_LEADING_CODE_P (c)
-		      && (c = FETCH_MULTIBYTE_CHAR (prev_pos_byte),
-			  ! SINGLE_BYTE_CHAR_P (c)))
+		  c = FETCH_MULTIBYTE_CHAR (prev_pos_byte);
+		  if (SINGLE_BYTE_CHAR_P (c))
 		    {
+		      if (!fastmap[c])
+			break;
+		    }
+		  else
+		    {
+		      /* See the comment in the previous similar code.  */
 		      for (i = 0; i < n_char_ranges; i += 2)
 			if (c >= char_ranges[i] && c <= char_ranges[i + 1])
 			  break;
