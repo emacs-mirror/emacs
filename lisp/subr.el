@@ -1796,20 +1796,11 @@ The value returned is the value of the last form in BODY.
 This does not alter the buffer list ordering.
 See also `with-temp-buffer'."
   (declare (indent 1) (debug t))
-  ;; Most of this code is a copy of save-selected-window.
-  `(let ((save-selected-window-window (selected-window))
-	 (save-selected-window-alist
-	  (mapcar (lambda (frame) (list frame (frame-selected-window frame)))
-		  (frame-list))))
+  `(let ((save-selected-window-window (selected-window)))
      (unwind-protect
 	 (progn (select-window ,window 'norecord)
 		,@body)
-       (dolist (elt save-selected-window-alist)
-	 (and (frame-live-p (car elt))
-	      (window-live-p (cadr elt))
-	      (set-frame-selected-window (car elt) (cadr elt))))
        (if (window-live-p save-selected-window-window)
-	   ;; This is where the code differs from save-selected-window.
 	   (select-window save-selected-window-window 'norecord)))))
 
 (defmacro with-temp-file (file &rest body)
