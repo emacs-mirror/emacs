@@ -1,7 +1,7 @@
 /* impl.h.config: MPS CONFIGURATION
  *
  * Copyright (C) 1997 Harlequin Group, all rights reserved.
- * $HopeName: MMsrc!config.h(trunk.3) $
+ * $HopeName: MMsrc!config.h(trunk.4) $
  */
 
 #ifndef config_h
@@ -45,6 +45,10 @@
  *
  * Convert CONFIG_PROD_* defined on compiler command line into
  * internal configuration parameters.  See design.mps.config.prod.
+ *
+ * .prod.arena-size: ARENA_SIZE is currently set larger for the
+ * MM/Dylan product as an interim solution.
+ * See request.dylan.170170.sol.patch and change.dylan.buffalo.170170.
  */
 
 #if defined(CONFIG_PROD_EPCORE)
