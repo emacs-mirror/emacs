@@ -12,7 +12,7 @@
 #define LIBX11_SYSTEM -lXext
 
 #define LIB_X11_LIB -L/usr/lib/X11R5 -L/usr/lib/X11R4 -lX11
-#define C_SWITCH_SYSTEM -I/usr/lib/X11R5 -I/usr/include/X11R4
+#define C_SWITCH_SYSTEM -I/usr/include/X11R5 -I/usr/include/X11R4
 
 /* Don't use shared libraries.  unexec doesn't handle them.
    Note GCC automatically passes -a archive to ld, and it has its own
@@ -36,3 +36,11 @@
 /* If you use X11R4 you must define this.  If you use
    X11R5 you must comment this out */
 /* #define HAVE_RANDOM */
+#define random foo_random
+#define srandom foo_srandom
+
+#if 0  /* This seems to be spurious.  */
+/* "X11R5" on hpux8 doesn't have this function, which is supposed to exist
+   in X11R5.  Maybe things will work if we just don't call it.  */
+#define NO_XRM_SET_DATABASE
+#endif
