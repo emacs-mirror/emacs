@@ -841,6 +841,9 @@ comint mode, which see."
 ;; into the buffer.  The hard work is done by the method that is
 ;; the value of gud-marker-filter.
 
+;; Rather than duplicating all the work of comint-output-filter, perhaps
+;; gud-filter should be implemented by adding appropriate hooks to
+;; comint-output-filter.  Would somebody like to volunteer to do that?
 (defun gud-filter (proc string)
   ;; Here's where the actual buffer insertion is done
   (let ((inhibit-quit t))
@@ -854,7 +857,13 @@ comint mode, which see."
 	      (progn
 		(delete-region (point) gud-delete-prompt-marker)
 		(set-marker gud-delete-prompt-marker nil)))
-	  (insert-before-markers (gud-marker-filter string))
+	  (setq string (gud-marker-filter string))
+	  (insert-before-markers string)
+	  (and comint-last-input-end
+	       (marker-buffer comint-last-input-end)
+	       (= (point) comint-last-input-end)
+	       (set-marker comint-last-input-end
+			   (- comint-last-input-end (length string))))
 	  (setq moving (= (point) (process-mark proc)))
 	  (setq output-after-point (< (point) (process-mark proc)))
 	  ;; Check for a filename-and-line number.
