@@ -123,12 +123,15 @@
 #define BSD_SYSTEM 199506
 #endif
 
+#if 0  /* Shouldn't be necessary and produces warnings with the 
+          experimental Autoconf test.  */
 #define WAITTYPE int
 /* get this since it won't be included if WAITTYPE is defined */
 #ifdef emacs
 #include <sys/wait.h>
 #endif
 #define WRETCODE(w) (_W_INT(w) >> 8)
+#endif
 
 /* Needed to avoid hanging when child process writes an error message
    and exits -- enami tsugutomo <enami@ba2.so-net.or.jp>.  */
