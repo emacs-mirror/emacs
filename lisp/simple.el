@@ -1908,7 +1908,7 @@ The argument is used for internal purposes; do not supply one."
   "*Text properties to discard when yanking."
   :type '(choice (const :tag "All" t) (repeat symbol))
   :group 'editing
-  :version 21.4)
+  :version "21.4")
 
 (defun yank-pop (arg)
   "Replace just-yanked stretch of killed text with a different stretch.
