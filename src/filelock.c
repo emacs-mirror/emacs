@@ -98,8 +98,7 @@ fill_in_lock_short_file_name (lockfile, fn)
 
   for (p = XSTRING (fn)->data; new = *p++; )
     {
-      new += crc.byte[7];
-      crc.byte[7] = crc.byte[6];
+      new += crc.byte[6];
       crc.byte[6] = crc.byte[5] + new;
       crc.byte[5] = crc.byte[4];
       crc.byte[4] = crc.byte[3];
@@ -177,7 +176,7 @@ lock_file_owner_name (lfname)
 /* If HAVE_LONG_FILE_NAMES is not defined, the lock file name is the hex
    representation of a 14-bytes CRC generated from the file name
    and put in the Emacs lock directory (not very nice, but it works).
-   (ie., /ka/king/junk.tex -> /!/ec92d3ed24a8f0). */
+   (ie., /ka/king/junk.tex -> /!/12a82c62f1c6da). */
 
 void
 lock_file (fn)
