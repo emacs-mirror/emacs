@@ -175,11 +175,15 @@ function."
   (tool-bar-add-item-from-menu 'dired "open")
   (tool-bar-add-item-from-menu 'kill-this-buffer "close")
   (tool-bar-add-item-from-menu 'save-buffer "save" nil
-			       :visible '(not (eq 'special (get major-mode
-								'mode-class))))
+			       :visible '(or buffer-file-name
+					     (not (eq 'special
+						      (get major-mode
+							   'mode-class)))))
   (tool-bar-add-item-from-menu 'write-file "saveas" nil
-			       :visible '(not (eq 'special (get major-mode
-								'mode-class))))
+			       :visible '(or buffer-file-name
+					     (not (eq 'special
+						      (get major-mode
+							   'mode-class)))))
   (tool-bar-add-item-from-menu 'undo "undo" nil
 			       :visible '(not (eq 'special (get major-mode
 								'mode-class))))
