@@ -532,7 +532,7 @@ be @file{eval.c~}.
   You can change this behaviour by defining the variable
 @code{make-backup-file-name-function} to a suitable function.
 Alternatively you can customize the variable
-@var{backup-directory-alist} to specify that files matching certain
+@code{backup-directory-alist} to specify that files matching certain
 patterns should be backed up in specific directories.
 
   A typical use is to add an element @code{("." . @var{dir})} to make
@@ -861,6 +861,21 @@ regular expressions, @code{find-file} and @code{revert-buffer} will
 revert it automatically if it has changed---provided the buffer itself
 is not modified.  (If you have edited the text, it would be wrong to
 discard your changes.)
+
+@cindex Global Auto-Revert mode
+@cindex mode, Global Auto-Revert
+@cindex Auto-Revert mode
+@cindex mode, Auto-Revert
+@findex global-auto-revert-mode
+@findex auto-revert-mode
+@vindex auto-revert-interval
+You may find it useful to have Emacs revert files automatically when
+they change.  Two minor modes are available to do this.  In Global
+Auto-Revert mode, Emacs periodically checks all file buffers and
+reverts any when the corresponding file has changed.  The local
+variant, Auto-Revert mode, applies only to buffers in which it was
+activated.  Checking the files is done at intervals determined by the
+variable @code{auto-revert-interval}.
 
 @node Auto Save
 @section Auto-Saving: Protection Against Disasters
