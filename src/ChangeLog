@@ -1,5 +1,8 @@
 2002-03-18  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* bytecode.c (Fbyte_code): Discard unused computed value to
+	prevent gcc warning.
+
 	* lisp.h (Fplist_member): Add prototype.
 
 2002-03-18  Kim F. Storm  <storm@cua.dk>
