@@ -39,6 +39,14 @@ In Auto Fill mode, if no numeric arg, break the preceding line if it's long."
   ;; the end of the previous line.
   (let ((flag (and (not (bobp)) 
 		   (bolp)
+		   ;; Make sure the newline before point isn't intangible.
+		   (not (get-char-property (1- (point)) 'intangible))
+		   ;; Make sure the newline before point isn't read-only.
+		   (not (get-char-property (1- (point)) 'read-only))
+		   ;; Make sure the newline before point isn't invisible.
+		   (not (get-char-property (1- (point)) 'invisible))
+		   ;; Make sure the newline before point has the same
+		   ;; properties as the char before it (if any).
 		   (< (or (previous-property-change (point)) -2) 
 		      (- (point) 2))))
 	(was-page-start (and (bolp)
