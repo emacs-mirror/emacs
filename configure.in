@@ -1283,7 +1283,6 @@ fail;
     AC_DEFINE(HAVE_X11R5)],
    [AC_MSG_RESULT(not 5, do not use toolkit)
     USE_X_TOOLKIT=none])
-  fi
 fi
 
 X_TOOLKIT_TYPE=$USE_X_TOOLKIT
