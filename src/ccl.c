@@ -717,7 +717,7 @@ else
 	if (bytes == 1)							\
 	  {								\
 	    *dst++ = (ch);						\
-	    if ((ch) >= 0x80 && (ch) < 0xA0)				\
+	    if (extra_bytes && (ch) >= 0x80 && (ch) < 0xA0)		\
 	      /* We may have to convert this eight-bit char to		\
 		 multibyte form later.  */				\
 	      extra_bytes++;						\
@@ -730,6 +730,7 @@ else
     else								\
       CCL_SUSPEND (CCL_STAT_SUSPEND_BY_DST);				\
   } while (0)
+
 
 /* Encode one character CH to multibyte form and write to the current
    output buffer.  The output bytes always forms a valid multibyte
@@ -874,7 +875,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
      each of them will be converted to multibyte form of 2-byte
      sequence.  For that conversion, we remember how many more bytes
      we must keep in DESTINATION in this variable.  */
-  int extra_bytes = 0;
+  int extra_bytes = ccl->eight_bit_control;
 
   if (ic >= ccl->eof_ic)
     ic = CCL_HEADER_MAIN;
@@ -1849,7 +1850,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
   ccl->ic = ic;
   ccl->stack_idx = stack_idx;
   ccl->prog = ccl_prog;
-  ccl->eight_bit_control = (extra_bytes > 0);
+  ccl->eight_bit_control = (extra_bytes > 1);
   if (consumed)
     *consumed = src - source;
   return (dst ? dst - destination : 0);
@@ -2004,6 +2005,7 @@ setup_ccl_program (ccl, ccl_prog)
   ccl->stack_idx = 0;
   ccl->eol_type = CODING_EOL_LF;
   ccl->suppress_error = 0;
+  ccl->eight_bit_control = 0;
   return 0;
 }
 
