@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 2000 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Building, Abbrevs, Programs, Top
 @chapter Compiling and Testing Programs
@@ -255,6 +255,7 @@ mode, the Python debugger PDB, and to JDB, the Java Debugger.
 * Debugger Operation::	Connection between the debugger and source buffers.
 * Commands of GUD::	Key bindings for common commands.
 * GUD Customization::	Defining your own commands for GUD.
+* GUD Tooltips::        Showing variable values by pointing with the mouse.
 @end menu
 
 @node Starting GUD
@@ -530,6 +531,16 @@ empty string.
 If you don't use @samp{%p} in the command string, the command you define
 ignores any numeric argument.
 @end table
+
+@node GUD Tooltips
+@subsection GUD Tooltips
+
+@cindex tooltips with GUD
+The Tooltip facility (@pxref{Tooltips}) provides support for GUD@.  If
+GUD support is activated by customizing the @code{tooltip} group,
+variable values can be displayed in tooltips by pointing at them with
+the mouse in the GUD buffer or in source buffers with major modes in the
+customizable list @code{tooltip-gud-modes}.
 
 @node Executing Lisp
 @section Executing Lisp Expressions
