@@ -2759,6 +2759,7 @@ encode_eol (coding, source, destination, src_bytes, dst_bytes)
 	}
       src_base = src;
     label_end_of_loop:
+      ;
     }
   else
     {
@@ -6181,6 +6182,7 @@ See also the function `find-operation-coding-system'.");
     "Coding system to use with system messages.");
   Vlocale_coding_system = Qnil;
 
+  /* The eol mnemonics are reset in startup.el system-dependently.  */
   DEFVAR_LISP ("eol-mnemonic-unix", &eol_mnemonic_unix,
     "*String displayed in mode line for UNIX-like (LF) end-of-line format.");
   eol_mnemonic_unix = build_string (":");
@@ -6269,3 +6271,4 @@ emacs_strerror (error_number)
 }
 
 #endif /* emacs */
+(encode_eol): 
