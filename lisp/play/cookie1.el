@@ -60,6 +60,9 @@
 (defconst cookie-delimiter "\n%%\n\\|\0"
   "Delimiter used to separate cookie file entries.")
 
+(defvar cookie-cache (make-vector 511 0)
+  "Cache of cookie files that have already been snarfed.")
+
 (defun cookie (phrase-file startmsg endmsg)
   "Return a random phrase from PHRASE-FILE.  When the phrase file
 is read in, display STARTMSG at beginning of load, ENDMSG at end."
@@ -89,23 +92,31 @@ is read in, display STARTMSG at beginning of load, ENDMSG at end."
   "Reads in the PHRASE-FILE, returns it as a vector of strings.  Emit
 STARTMSG and ENDMSG before and after.  Caches the result; second and
 subsequent calls on the same file won't go to disk."
-  (if (boundp (intern phrase-file))
-      (eval (intern phrase-file))
-    (message startmsg)
-    (save-excursion
-      (let ((buf (generate-new-buffer "*cookie*"))
-	    (result nil))
-	(set-buffer buf)
-	(insert-file-contents (expand-file-name phrase-file))
-	(re-search-forward cookie-delimiter)
-	(while (progn (skip-chars-forward " \t\n\r\f") (not (eobp)))
-	  (let ((beg (point)))
-	    (re-search-forward cookie-delimiter)
-	    (setq result (cons (buffer-substring beg (1- (point)))
-			       result))))
-	(kill-buffer buf)
-	(message endmsg)
-	(set (intern phrase-file) (apply 'vector result))))))
+  (let ((sym (intern-soft phrase-file cookie-cache)))
+    (and sym (not (equal (symbol-function sym)
+			 (nth 5 (file-attributes phrase-file))))
+	 (yes-or-no-p (concat phrase-file
+			      " has changed.  Read new contents? "))
+	 (setq sym nil))
+    (if sym
+	(symbol-value sym)
+      (setq sym (intern phrase-file cookie-cache))
+      (message startmsg)
+      (save-excursion
+	(let ((buf (generate-new-buffer "*cookie*"))
+	      (result nil))
+	  (set-buffer buf)
+	  (fset sym (nth 5 (file-attributes phrase-file)))
+	  (insert-file-contents (expand-file-name phrase-file))
+	  (re-search-forward cookie-delimiter)
+	  (while (progn (skip-chars-forward " \t\n\r\f") (not (eobp)))
+	    (let ((beg (point)))
+	      (re-search-forward cookie-delimiter)
+	      (setq result (cons (buffer-substring beg (1- (point)))
+				 result))))
+	  (kill-buffer buf)
+	  (message endmsg)
+	  (set sym (apply 'vector result)))))))
 
 (defun pick-random (n)
   "Returns a random number from 0 to N-1 inclusive."
