@@ -1,3 +1,10 @@
+2003-11-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* lists.texi (Building Lists): `append' no longer accepts integer
+	arguments.  Update the description of `number-sequence' to reflect
+	recent changes.
+	(Sets And Lists): Describe `member-ignore-case' after `member'.
+
 2003-11-27  Kim F. Storm  <storm@cua.dk>
 
 	* commands.texi (Click Events): Click object may be an images.
