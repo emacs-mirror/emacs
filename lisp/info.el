@@ -161,10 +161,23 @@ Marker points nowhere if file has no tag table.")
   "Non-nil if Emacs was started solely as an Info browser.")
 
 (defvar Info-suffix-list
+  ;; The MS-DOS list should work both when long file names are
+  ;; supported (Windows 9X), and when only 8+3 file names are available.
   (if (eq system-type 'ms-dos)
       '( (".gz"      . "gunzip")
 	 (".z"       . "gunzip")
+	 (".inz"     . "gunzip")
+	 (".igz"     . "gunzip")
+	 (".info.Z"  . "gunzip")
+	 (".info.gz" . "gunzip")
+	 ("-info.Z"  . "gunzip")
+	 ("-info.gz" . "gunzip")
+	 ("/index.gz". "gunzip")
+	 ("/index.z" . "gunzip")
 	 (".inf"     . nil)
+	 (".info"    . nil)
+	 ("-info"    . nil)
+	 ("/index"   . nil)
 	 (""         . nil))
     '( (".info.Z".    "uncompress")
        (".info.Y".    "unyabba")
@@ -247,13 +260,15 @@ Do the right thing if the file has been compressed or zipped."
 	     (jka-compr-installed-p)
 	     (jka-compr-get-compression-info fullname))
 	(setq decoder nil))
-    (insert-file-contents fullname visit)
     (if decoder
-	(let ((buffer-read-only nil)
-	      (coding-system-for-write 'no-conversion)
-	      (default-directory (or (file-name-directory fullname)
-				     default-directory)))
-	  (call-process-region (point-min) (point-max) decoder t t)))))
+	(progn
+	  (insert-file-contents-literally fullname visit)
+	  (let ((buffer-read-only nil)
+		(coding-system-for-write 'no-conversion)
+		(default-directory (or (file-name-directory fullname)
+				       default-directory)))
+	    (call-process-region (point-min) (point-max) decoder t t)))
+      (insert-file-contents fullname visit))))
 
 ;;;###autoload (add-hook 'same-window-buffer-names "*info*")
 
