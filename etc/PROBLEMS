@@ -1,6 +1,14 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* Improving performance with slow X connections
+
+If you don't need X Input Methods (XIM) for entering text in some
+language you use, you can improve performance on WANs by configuring
+Emacs with option `--without-xim'.  Configuring Emacs without XIM does
+not affect the use of Emacs' own input methods, which are part of the
+Leim package.
+
 * Getting a Meta key on the FreeBSD console
 
 By default, neither Alt nor any other key acts as a Meta key on
