@@ -1217,9 +1217,11 @@ typedef struct
 									\
       (fail_stack).stack == NULL					\
       ? 0								\
-      : (MIN (re_max_failures * TYPICAL_FAILURE_SIZE,			\
-	      ((fail_stack).size * sizeof (fail_stack_elt_t)		\
-	       * FAIL_STACK_GROWTH_FACTOR)),				\
+      : ((fail_stack).size						\
+	 = (MIN (re_max_failures * TYPICAL_FAILURE_SIZE,		\
+		 ((fail_stack).size * sizeof (fail_stack_elt_t)		\
+		  * FAIL_STACK_GROWTH_FACTOR))				\
+	    / sizeof (fail_stack_elt_t)),				\
 	 1)))
 
 
