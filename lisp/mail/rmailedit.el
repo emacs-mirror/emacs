@@ -134,6 +134,7 @@ to return to regular RMAIL:
     (save-excursion
       (rmail-show-message)
       (rmail-toggle-header (if rmail-old-pruned 1 0))))
+  (run-hooks 'rmail-mode-hook)
   (setq buffer-read-only t))
 
 (defun rmail-abort-edit ()
