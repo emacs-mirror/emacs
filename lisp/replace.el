@@ -824,10 +824,11 @@ See also `multi-occur'."
 			  (unless (= nlines 0)
 			    (insert "-------\n"))
 			  (add-text-properties
-			   beg (1- end)
-			   `(occur-target ,marker
-					  mouse-face highlight help-echo
-					  "mouse-2: go to this occurrence")))))
+			   beg end
+			   `(occur-target ,marker help-echo "mouse-2: go to this occurrence"))
+			  ;; We don't put `mouse-face' on the newline,
+			  ;; because that loses.
+			  (add-text-properties beg (1- end) '(mouse-face highlight)))))
 		    (goto-char endpt))
 		  (if endpt
 		      (progn
