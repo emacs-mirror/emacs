@@ -1,3 +1,13 @@
+2005-02-09  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-file-extensions-order): New defcustom.
+	(ido-file-extension-lessp, ido-file-extension-aux)
+	(ido-file-extension-order): New advanced file ordering.
+	(ido-file-lessp): New simple file ordering.
+	(ido-sort-list): Remove.
+	(ido-make-file-list): Use ido-file-lessp or ido-file-extension-lessp.
+	(ido-make-dir-list, ido-completion-help): Use ido-file-lessp.
+
 2005-02-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/grep.el (grep-regexp-alist): Match an optional ^[[K
