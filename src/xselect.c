@@ -551,7 +551,6 @@ x_reply_selection_request (event, format, data, size, type)
       /* Send an INCR selection.  */
       struct prop_location *wait_object;
       int had_errors;
-      int count = specpdl_ptr - specpdl;
       Lisp_Object frame;
 
       frame = some_frame_on_display (dpyinfo);
@@ -633,8 +632,6 @@ x_reply_selection_request (event, format, data, size, type)
 
       XChangeProperty (display, window, reply.property, type, format,
 		       PropModeReplace, data, 0);
-
-      unbind_to (count, Qnil);
     }
 
   XFlush (display);
