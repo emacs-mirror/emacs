@@ -48,13 +48,21 @@ typedef struct {
 #include "msdos.h"
 #endif
 
+#ifdef HAVE_X_WINDOWS
+typedef struct x_display_info Display_Info;
+#define NativeRectangle XRectangle
+#endif
+
 #ifdef HAVE_NTGUI
 #include "w32gui.h"
+typedef struct w32_display_info Display_Info;
 #endif
 
 #ifdef MAC_OS
 #include "macgui.h"
+typedef struct mac_display_info Display_Info;
 #endif
+
 
 /* Structure forward declarations.  Some are here because function
    prototypes below reference structure types before their definition
@@ -67,6 +75,22 @@ struct glyph_matrix;
 struct glyph_pool;
 struct frame;
 struct window;
+
+
+/* Values returned from coordinates_in_window.  */
+
+enum window_part
+{
+  ON_NOTHING,
+  ON_TEXT,
+  ON_MODE_LINE,
+  ON_VERTICAL_BORDER,
+  ON_HEADER_LINE,
+  ON_LEFT_FRINGE,
+  ON_RIGHT_FRINGE,
+  ON_LEFT_MARGIN,
+  ON_RIGHT_MARGIN
+};
 
 
 
@@ -921,7 +945,7 @@ extern struct glyph_row scratch_glyph_row;
  ************************************************************************/
 
 /* Enumeration for overriding/changing the face to use for drawing
-   glyphs in x_draw_glyphs.  */
+   glyphs in draw_glyphs.  */
 
 enum draw_glyphs_face
 {
@@ -1308,6 +1332,41 @@ struct glyph_string
       && BUFFERP ((W)->buffer)						\
       && !NILP (XBUFFER ((W)->buffer)->header_line_format)		\
       && XFASTINT ((W)->height) > 1 + !NILP (XBUFFER ((W)->buffer)->mode_line_format))
+
+
+/* Return proper value to be used as baseline offset of font that has
+   ASCENT and DESCENT to draw characters by the font at the vertical
+   center of the line of frame F.
+
+   Here, our task is to find the value of BOFF in the following figure;
+
+	-------------------------+-----------+-
+	 -+-+---------+-+        |           |
+	  | |         | |        |           |
+	  | |         | |        F_ASCENT    F_HEIGHT
+	  | |         | ASCENT   |           |
+     HEIGHT |         | |        |           |
+	  | |         |-|-+------+-----------|------- baseline
+	  | |         | | BOFF   |           |
+	  | |---------|-+-+      |           |
+	  | |         | DESCENT  |           |
+	 -+-+---------+-+        F_DESCENT   |
+	-------------------------+-----------+-
+
+	-BOFF + DESCENT + (F_HEIGHT - HEIGHT) / 2 = F_DESCENT
+	BOFF = DESCENT +  (F_HEIGHT - HEIGHT) / 2 - F_DESCENT
+	DESCENT = FONT->descent
+	HEIGHT = FONT_HEIGHT (FONT)
+	F_DESCENT = (F->output_data.x->font->descent
+		     - F->output_data.x->baseline_offset)
+	F_HEIGHT = FRAME_LINE_HEIGHT (F)
+*/
+
+#define VCENTER_BASELINE_OFFSET(FONT, F)			\
+  (FONT_DESCENT (FONT)						\
+   + (FRAME_LINE_HEIGHT ((F)) - FONT_HEIGHT ((FONT))		\
+      + (FRAME_LINE_HEIGHT ((F)) > FONT_HEIGHT ((FONT)))) / 2	\
+   - (FONT_DESCENT (FRAME_FONT (F)) - FRAME_BASELINE_OFFSET (F)))
 
 
 /***********************************************************************
@@ -2149,8 +2208,13 @@ struct redisplay_interface
   /* Flush the display of frame F.  For X, this is XFlush.  */
   void (*flush_display) P_ ((struct frame *f));
 
+  /* Flush the display of frame F if non-NULL.  This is called
+     during redisplay, and should be NULL on systems which flushes
+     automatically before reading input.  */
+  void (*flush_display_optional) P_ ((struct frame *f));
+
   /* Clear the mouse hightlight in window W, if there is any.  */
-  void (*clear_mouse_face) P_ ((struct window *w));
+  void (*clear_window_mouse_face) P_ ((struct window *w));
 
   /* Set *LEFT and *RIGHT to the left and right overhang of GLYPH on
      frame F.  */
@@ -2187,52 +2251,38 @@ struct redisplay_interface
 /* Draw a glyph string S.  */
   void (*draw_glyph_string) P_ ((struct glyph_string *s));
 
+/* Define cursor CURSOR on frame F.  */
+  void (*define_frame_cursor) P_ ((struct frame *f, Cursor cursor));
+
+/* Clear the area at (X,Y,WIDTH,HEIGHT) of frame F.  */
+  void (*clear_frame_area) P_ ((struct frame *f, int x, int y,
+				int width, int height));
+
+/* Draw specified cursor NEW_CURSOR_TYPE of width NEW_CURSOR_WIDTH
+   at row GLYPH_ROW on window W.  */
+  void (*draw_window_cursor) P_ ((struct window *w,
+				  struct glyph_row *glyph_row,
+				  int on, int x, int y,
+				  int new_cursor_type,
+				  int new_cursor_width));
+
+/* Draw vertical border for window W from (X,Y0) to (X,Y1).  */
+  void (*draw_vertical_window_border) P_ ((struct window *w,
+					   int x, int y0, int y1));
+
+/* Shift display of frame F to make room for inserted glyphs. 
+   The area at pixel (X,Y) of width WIDTH and height HEIGHT is
+   shifted right by SHIFT_BY pixels.  */
+  void (*shift_glyphs_for_insert) P_ ((struct frame *f,
+				       int x, int y, int width,
+				       int height, int shift_by));
+
 #endif /* HAVE_WINDOW_SYSTEM */
 };
 
 /* The current interface for window-based redisplay.  */
 
 extern struct redisplay_interface *rif;
-
-/* Hook to call in estimate_mode_line_height.  */
-
-extern int (* estimate_mode_line_height_hook) P_ ((struct frame *,
-                                                   enum face_id));
-
-
-/* Return proper value to be used as baseline offset of font that has
-   ASCENT and DESCENT to draw characters by the font at the vertical
-   center of the line of frame F.
-
-   Here, out task is to find the value of BOFF in the following figure;
-
-	-------------------------+-----------+-
-	 -+-+---------+-+        |           |
-	  | |         | |        |           |
-	  | |         | |        F_ASCENT    F_HEIGHT
-	  | |         | ASCENT   |           |
-     HEIGHT |         | |        |           |
-	  | |         |-|-+------+-----------|------- baseline
-	  | |         | | BOFF   |           |
-	  | |---------|-+-+      |           |
-	  | |         | DESCENT  |           |
-	 -+-+---------+-+        F_DESCENT   |
-	-------------------------+-----------+-
-
-	-BOFF + DESCENT + (F_HEIGHT - HEIGHT) / 2 = F_DESCENT
-	BOFF = DESCENT +  (F_HEIGHT - HEIGHT) / 2 - F_DESCENT
-	DESCENT = FONT->descent
-	HEIGHT = FONT_HEIGHT (FONT)
-	F_DESCENT = (F->output_data.x->font->descent
-		     - F->output_data.x->baseline_offset)
-	F_HEIGHT = FRAME_LINE_HEIGHT (F)
-*/
-
-#define VCENTER_BASELINE_OFFSET(FONT, F)			\
-  (FONT_DESCENT (FONT)						\
-   + (FRAME_LINE_HEIGHT ((F)) - FONT_HEIGHT ((FONT))		\
-      + (FRAME_LINE_HEIGHT ((F)) > FONT_HEIGHT ((FONT)))) / 2	\
-   - (FONT_DESCENT (FRAME_FONT (F)) - FRAME_BASELINE_OFFSET (F)))
 
 
 /***********************************************************************
@@ -2446,10 +2496,6 @@ enum tool_bar_item_image
   TOOL_BAR_IMAGE_DISABLED_DESELECTED
 };
 
-/* Non-zero means raise tool-bar buttons when the mouse moves over them.  */
-
-extern int auto_raise_tool_bar_buttons_p;
-
 /* Margin around tool-bar buttons in pixels.  */
 
 extern Lisp_Object Vtool_bar_button_margin;
@@ -2507,6 +2553,7 @@ int window_box_width P_ ((struct window *, int));
 int window_box_left P_ ((struct window *, int));
 int window_box_right P_ ((struct window *, int));
 void window_box_edges P_ ((struct window *, int, int *, int *, int *, int *));
+int estimate_mode_line_height P_ ((struct frame *, enum face_id));
 void mark_window_display_accurate P_ ((Lisp_Object, int));
 void redisplay_preserve_echo_area P_ ((int));
 void set_cursor_from_row P_ ((struct window *, struct glyph_row *,
@@ -2528,7 +2575,6 @@ void move_it_past_eol P_ ((struct it *));
 int in_display_vector_p P_ ((struct it *));
 int frame_mode_line_height P_ ((struct frame *));
 void highlight_trailing_whitespace P_ ((struct frame *, struct glyph_row *));
-int tool_bar_item_info P_ ((struct frame *, struct glyph *, int *));
 void draw_row_fringe_bitmaps P_ ((struct window *, struct glyph_row *));
 void compute_fringe_widths P_ ((struct frame *, int));
 extern Lisp_Object Qtool_bar;
@@ -2539,6 +2585,14 @@ extern Lisp_Object Vimage_types;
 extern void add_to_log P_ ((char *, Lisp_Object, Lisp_Object));
 extern int help_echo_showing_p;
 extern int current_mode_line_height, current_header_line_height;
+extern Lisp_Object help_echo_string, help_echo_window;
+extern Lisp_Object help_echo_object, previous_help_echo_string; 
+extern int help_echo_pos;
+extern struct frame *last_mouse_frame;
+extern int last_tool_bar_item;
+extern int mouse_autoselect_window;
+
+#ifdef HAVE_WINDOW_SYSTEM
 
 #if GLYPH_DEBUG
 extern void dump_glyph_string P_ ((struct glyph_string *));
@@ -2547,13 +2601,49 @@ extern void dump_glyph_string P_ ((struct glyph_string *));
 extern void x_get_glyph_overhangs P_ ((struct glyph *, struct frame *,
 				       int *, int *));
 extern void x_produce_glyphs P_ ((struct it *));
-extern int x_draw_glyphs P_ ((struct window *, int , struct glyph_row *,
-			      enum glyph_row_area, int, int,
-			      enum draw_glyphs_face, int));
 
-extern void notice_overwritten_cursor P_ ((struct window *,
-					   enum glyph_row_area,
-					   int, int, int, int));
+extern void x_write_glyphs P_ ((struct glyph *, int));
+extern void x_insert_glyphs P_ ((struct glyph *, int len));
+extern void x_clear_end_of_line P_ ((int));
+
+extern int x_stretch_cursor_p;
+extern struct cursor_pos output_cursor;
+
+extern void x_fix_overlapping_area P_ ((struct window *, struct glyph_row *,
+					enum glyph_row_area));
+extern void draw_phys_cursor_glyph P_ ((struct window *,
+					  struct glyph_row *,
+					  enum draw_glyphs_face));
+extern void erase_phys_cursor P_ ((struct window *));
+extern void display_and_set_cursor P_ ((struct window *,
+					  int, int, int, int, int));
+
+extern void set_output_cursor P_ ((struct cursor_pos *));
+extern void x_cursor_to P_ ((int, int, int, int));
+
+extern void x_update_cursor P_ ((struct frame *, int));
+extern void x_clear_cursor P_ ((struct window *));
+extern void x_draw_vertical_border P_ ((struct window *w));
+
+extern void frame_to_window_pixel_xy P_ ((struct window *, int *, int *));
+extern void get_glyph_string_clip_rect P_ ((struct glyph_string *,
+					    NativeRectangle *nr));
+extern void note_mouse_highlight P_ ((struct frame *, int, int));
+extern void x_clear_window_mouse_face P_ ((struct window *));
+extern void cancel_mouse_face P_ ((struct frame *));
+
+extern void handle_tool_bar_click P_ ((struct frame *,
+				       int, int, int, unsigned int));
+
+/* msdos.c defines its own versions of these functions. */
+extern int clear_mouse_face P_ ((Display_Info *));
+extern void show_mouse_face P_ ((Display_Info *, enum draw_glyphs_face));
+extern int cursor_in_mouse_face_p P_ ((struct window *w));
+
+extern void expose_frame P_ ((struct frame *, int, int, int, int));
+extern int x_intersect_rectangles P_ ((XRectangle *, XRectangle *,
+				       XRectangle *));
+#endif
 
 /* Defined in sysdep.c */
 
@@ -2667,9 +2757,10 @@ int popup_activated P_ ((void));
 extern int inverse_video;
 extern int required_matrix_width P_ ((struct window *));
 extern int required_matrix_height P_ ((struct window *));
-extern int estimate_mode_line_height P_ ((struct frame *, enum face_id));
-extern Lisp_Object mode_line_string P_ ((struct window *, int, int, int, int *));
-extern Lisp_Object marginal_area_string P_ ((struct window *, int, int, int, int *));
+extern Lisp_Object mode_line_string P_ ((struct window *, int, int,
+					 enum window_part, int *));
+extern Lisp_Object marginal_area_string P_ ((struct window *, int, int,
+					     enum window_part, int *));
 extern void redraw_frame P_ ((struct frame *));
 extern void redraw_garbaged_frames P_ ((void));
 extern void cancel_line P_ ((int, struct frame *));
