@@ -7318,7 +7318,7 @@ x_tool_bar_item (f, x, y, glyph, hpos, vpos, prop_idx)
 
 
 /* Handle mouse button event on the tool-bar of frame F, at
-   frame-relative coordinates X/Y.  EVENT_TYPE is either ButtionPress
+   frame-relative coordinates X/Y.  EVENT_TYPE is either ButtonPress
    or ButtonRelase.  */
 
 static void
@@ -10408,7 +10408,7 @@ XTread_socket (sd, bufp, numchars, expected)
 		     status_return even if the input is too long to
 		     fit in 81 bytes.  So, we must prepare sufficient
 		     bytes for copy_buffer.  513 bytes (256 chars for
-		     two-byte character set) seems to be a faily good
+		     two-byte character set) seems to be a fairly good
 		     approximation.  -- 2000.8.10 handa@etl.go.jp  */
 		  unsigned char copy_buffer[513];
 		  unsigned char *copy_bufptr = copy_buffer;
