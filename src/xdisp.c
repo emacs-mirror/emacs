@@ -1,5 +1,5 @@
 /* Display generation from window structure and buffer text.
-   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 97, 98, 99, 2000, 2001, 2002
+   Copyright (C) 1985,86,87,88,93,94,95,97,98,99, 2000, 2001, 2002, 2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -5577,6 +5577,16 @@ move_it_by_lines (it, dvpos, need_y_p)
     }
 }
 
+/* Return 1 if IT points into the middle of a display vector.  */
+
+int
+in_display_vector_p (it)
+     struct it *it;
+{
+  return (it->method == next_element_from_display_vector
+	  && it->current.dpvec_index > 0
+	  && it->dpvec + it->current.dpvec_index != it->dpend);
+}
 
 
 /***********************************************************************
