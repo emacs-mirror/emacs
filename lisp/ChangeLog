@@ -1,5 +1,12 @@
 2004-04-14  Kim F. Storm  <storm@cua.dk>
 
+	* startup.el (emacs-quick-startup): New defvar (set by -Q).
+	(command-line): New option -Q.  Like -q --no-site-file, but
+	in addition it also disables menu-bar, tool-bar, scroll-bars,
+	tool-tips, and the blinking cursor.
+	(command-line-1): Skip startup screen if -Q.
+	(fancy-splash-head): Use :align-to center prop to center splash image.
+
 	* emulation/cua-base.el (cua-read-only-cursor-color)
 	(cua-overwrite-cursor-color, cua-global-mark-cursor-color): Doc fix.
 
