@@ -1,3 +1,7 @@
+2004-10-28  Richard M. Stallman  <rms@gnu.org>
+
+	* frames.texi (Display Feature Testing): Explain about "vendor".
+
 2004-10-27  Richard M. Stallman  <rms@gnu.org>
 
 	* commands.texi (Interactive Codes): `N' uses numeric prefix,

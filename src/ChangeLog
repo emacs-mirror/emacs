@@ -1,3 +1,9 @@
+2004-10-28  Richard M. Stallman  <rms@gnu.org>
+
+	* w32fns.c (Fx_server_vendor, Fx_server_version): Doc fixes.
+
+	* xfns.c (Fx_server_vendor, Fx_server_version): Doc fixes.
+
 2004-10-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* syntax.c (scan_sexps_forward): Give precedence to a 2-char
