@@ -154,13 +154,13 @@ before `hide-ifdef-mode' modifies it.")
   (if hide-ifdef-mode-map
       ()				; dont redefine it.
     (setq hide-ifdef-mode-map (make-sparse-keymap))
-    (define-key hide-ifdef-mode-map "d" 'hide-ifdef-define)
-    (define-key hide-ifdef-mode-map "u" 'hide-ifdef-undef)
-    (define-key hide-ifdef-mode-map "D" 'hide-ifdef-set-define-alist)
-    (define-key hide-ifdef-mode-map "U" 'hide-ifdef-use-define-alist)
+    (define-key hide-ifdef-mode-map "\ed" 'hide-ifdef-define)
+    (define-key hide-ifdef-mode-map "\eu" 'hide-ifdef-undef)
+    (define-key hide-ifdef-mode-map "\eD" 'hide-ifdef-set-define-alist)
+    (define-key hide-ifdef-mode-map "\eU" 'hide-ifdef-use-define-alist)
   
-    (define-key hide-ifdef-mode-map "h" 'hide-ifdefs)
-    (define-key hide-ifdef-mode-map "s" 'show-ifdefs)
+    (define-key hide-ifdef-mode-map "\eh" 'hide-ifdefs)
+    (define-key hide-ifdef-mode-map "\es" 'show-ifdefs)
     (define-key hide-ifdef-mode-map "\C-h" 'hide-ifdef-block)
     (define-key hide-ifdef-mode-map "\C-s" 'show-ifdef-block)
   
@@ -171,9 +171,11 @@ before `hide-ifdef-mode' modifies it.")
     (define-key hide-ifdef-mode-map "\C-n" 'next-ifdef)
     (define-key hide-ifdef-mode-map "\C-p" 'previous-ifdef)
     (define-key hide-ifdef-mode-map "\C-q" 'hide-ifdef-toggle-read-only)
-    (define-key hide-ifdef-mode-map
-      (where-is-internal 'toggle-read-only nil nil t)
-      'hide-ifdef-toggle-outside-read-only)
+    (let ((where (where-is-internal 'toggle-read-only nil nil t)))
+      (if where
+	  (define-key hide-ifdef-mode-map
+	    where
+	    'hide-ifdef-toggle-outside-read-only)))
     )
   (fset 'hide-ifdef-mode-map hide-ifdef-mode-map)  ; the function is the map
   )
