@@ -1,5 +1,13 @@
 2000-08-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* editfns.c (find_field): Formatting changes.
+	(toplevel): Some old-style function forward declarations 
+	changed to prototypes, some new protypes added, some functions
+	made static.
+
+	* lisp.h (set_time_zone_rule): Add prototype.
+	(use_dialog_box): External declaration.
+
 	* keyboard.c (gen_help_event): Add parameter SIZE.
 	(kbd_buffer_events_waiting): Slightly rewritten.
 	(clear_event): New function.
