@@ -2353,10 +2353,7 @@ If the base used is not 10, floating point is not recognized.")
 	  v = v * b + digit;
 	}
 
-      if (v > (EMACS_UINT) (VALMASK >> 1))
-	val = make_float (sign * v);
-      else
-	val = make_number (sign * (int) v);
+      val = make_fixnum_or_float (sign * v);
     }
 
   return val;
