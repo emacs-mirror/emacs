@@ -1,3 +1,7 @@
+2001-02-07  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* loadup.el: Revert last change.
+
 2001-02-07  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (transform-make-coding-system-args): Make
