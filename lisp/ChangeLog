@@ -1,3 +1,8 @@
+2000-11-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-version-diff): Bind inhibit-read-only when inserting text.
+	(vc-version-backup-file): Docstring fix.
+
 2000-11-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* files.el (basic-save-buffer): Don't add a newline if
@@ -109,8 +114,7 @@
 
 	* calculator.el: New maintainer version.
 
-	* diff-mode.el (diff-imenu-generic-expression): Modify unidiff
-	pattern.
+	* diff-mode.el (diff-imenu-generic-expression): Modify unidiff pattern.
 
 	* cmuscheme.el: Doc fixes.
 	(cmuscheme) <defgroup>: Use `scheme' as parent.
