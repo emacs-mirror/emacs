@@ -176,7 +176,7 @@ fs_load_font (f, font_table, charset, fontname, fontset)
 	{
 	  fontp = fs_load_font (f, font_table, CHARSET_ASCII, 0, fontset);
 	  if (!fontp)
-	    /* Any fontset should contain avairable ASCII.  */
+	    /* Any fontset should contain available ASCII.  */
 	    return 0;
 	}
       /* Now we have surely decided the size of this fontset.  */
