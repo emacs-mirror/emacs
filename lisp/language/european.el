@@ -45,8 +45,6 @@
   (set-default-coding-systems coding-system)
   (setq coding-category-iso-8-1 coding-system
 	coding-category-iso-8-2 coding-system)
-  (setq sendmail-coding-system coding-system
-	rmail-file-coding-system coding-system)
 
   (if charset
       (let ((nonascii-offset (- (make-char charset) 128)))
