@@ -2411,7 +2411,6 @@ If VISIT is non-nil, BEG and END must be nil.")
   if (!NILP (handler))
     {
       val = call5 (handler, Qinsert_file_contents, filename, visit, beg, end);
-      st.st_mtime = 0;
       goto handled;
     }
 
@@ -2656,12 +2655,8 @@ to the file, instead of any buffer contents, and END is ignored.")
       val = call6 (handler, Qwrite_region, start, end,
 		   filename, append, visit);
 
-      /* Do this before reporting IO error
-	 to avoid a "file has changed on disk" warning on
-	 next attempt to save.  */
       if (visiting)
 	{
-	  current_buffer->modtime = 0;
 	  current_buffer->save_modified = MODIFF;
 	  XFASTINT (current_buffer->save_length) = Z - BEG;
 	  current_buffer->filename = visit_file;
