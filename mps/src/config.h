@@ -1,6 +1,6 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(trunk.45) $
+ * $HopeName: MMsrc!config.h(trunk.46) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * PURPOSE
@@ -152,8 +152,9 @@
 #define ARENA_CONTROL_EXTENDBY  ((Size)4096)
 #define ARENA_CONTROL_AVGSIZE   ((Size)32)
 #define ARENA_CONTROL_MAXSIZE   ((Size)65536)
+
 #define ArenaPollALLOCTIME (65536.0)
-#define ARENA_LD_LENGTH         ((Size)4)
+
 #define ARENA_ZONESHIFT         ((Shift)20)
 
 #define ARENA_CLIENT_PAGE_SIZE          ((Size)8192)
@@ -172,6 +173,8 @@
   (Serial)0,           /* gen */ \
 }
 
+#define LDHistoryLENGTH ((Size)4)
+
 
 /* Stack configuration */
 
@@ -187,9 +190,8 @@
 
 /* Shield Configuration -- see impl.c.shield */
 
-#define SHIELD_CACHE_SIZE       ((Size)16)
-#define SHIELD_DEPTH_WIDTH      ((Size)4)
-#define SHIELD_DEPTH            ((Count)1<<SHIELD_DEPTH_WIDTH)
+#define ShieldCacheSIZE ((size_t)16)
+#define ShieldDepthWIDTH (4)
 
 
 /* VM Configuration -- see impl.c.vm* */
@@ -208,10 +210,10 @@
 
 /* Events
  *
- *  EVENT_BUFFER_SIZE is the number of words in the global event buffer.
+ * EventBufferSIZE is the number of words in the global event buffer.
  */
 
-#define EVENT_BUFFER_SIZE ((size_t)4096)
+#define EventBufferSIZE ((size_t)4096)
 #define EventStringLengthMAX ((size_t)255) /* Not including NUL */
 
 
