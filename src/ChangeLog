@@ -1,3 +1,19 @@
+2004-10-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* emacs.c (my_heap_start, heap_bss_diff, MAX_HEAP_BSS_DIFF):
+	New variables and constant.
+	(main): Calculate heap_bss_diff.  If we are dumping and the
+	heap_bss_diff is greater than MAX_HEAP_BSS_DIFF, set PER_LINUX32
+	and exec ourself again.
+	(Fdump_emacs): If heap_bss_diff is greater than MAX_HEAP_BSS_DIFF
+	print a warning.
+
+	* lastfile.c: Make my_endbss and my_endbss_static available on all
+	platforms.
+
+	* Makefile.in (RUN_TEMACS): Remove @SETARCH@.
+	* config.in (HAVE_PERSONALITY_LINUX32): Regenerate.
+
 2004-10-19  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* data.c (Flocal_variable_if_set_p): Doc fix.

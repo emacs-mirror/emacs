@@ -67,6 +67,10 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/resource.h>
 #endif
 
+#ifdef HAVE_PERSONALITY_LINUX32
+#include <sys/personality.h>
+#endif
+
 #ifndef O_RDWR
 #define O_RDWR 2
 #endif
@@ -191,6 +195,17 @@ int display_arg;
 /* An address near the bottom of the stack.
    Tells GC how to save a copy of the stack.  */
 char *stack_bottom;
+
+/* The address where the heap starts (from the first sbrk (0) call).  */
+static void *my_heap_start;
+
+/* The gap between BSS end and heap start as far as we can tell.  */
+static unsigned long heap_bss_diff;
+
+/* If the gap between BSS end and heap start is larger than this we try to
+   work around it, and if that fails, output a warning in dump-emacs.  */
+#define MAX_HEAP_BSS_DIFF (1024*1024)
+
 
 #ifdef HAVE_WINDOW_SYSTEM
 extern Lisp_Object Vwindow_system;
@@ -733,7 +748,11 @@ malloc_initialize_hook ()
       free (malloc_state_ptr);
     }
   else
-    malloc_using_checking = getenv ("MALLOC_CHECK_") != NULL;
+    {
+      if (my_heap_start == 0)
+        my_heap_start = sbrk (0);
+      malloc_using_checking = getenv ("MALLOC_CHECK_") != NULL;
+    }
 }
 
 void (*__malloc_initialize_hook) () = malloc_initialize_hook;
@@ -809,6 +828,17 @@ main (argc, argv
   stack_base = &dummy;
 #endif
 
+  if (!initialized)
+    {
+      extern char my_endbss[];
+      extern char *my_endbss_static;
+
+      if (my_heap_start == 0)
+        my_heap_start = sbrk (0);
+
+      heap_bss_diff = (char *)my_heap_start - max (my_endbss, my_endbss_static);
+    }
+
 #ifdef LINUX_SBRK_BUG
   __sbrk (1);
 #endif
@@ -851,6 +881,28 @@ main (argc, argv
 	  exit (0);
 	}
     }
+
+#ifdef HAVE_PERSONALITY_LINUX32
+  /* See if there is a gap between the end of BSS and the heap.
+     In that case, set personality and exec ourself again.  */
+  if (!initialized
+      && (strcmp (argv[argc-1], "dump") == 0
+          || strcmp (argv[argc-1], "bootstrap") == 0)
+      && heap_bss_diff > MAX_HEAP_BSS_DIFF)
+    {
+      if (! getenv ("EMACS_HEAP_EXEC"))
+        {
+          /* Set this so we only do this once.  */
+          putenv("EMACS_HEAP_EXEC=true");
+          personality (PER_LINUX32);
+          execvp (argv[0], argv);
+
+          /* If the exec fails, try to dump anyway.  */
+          perror ("execvp");
+        }
+    }
+#endif /* HAVE_PERSONALITY_LINUX32 */
+
 
 /* Map in shared memory, if we are using that.  */
 #ifdef HAVE_SHM
@@ -2129,6 +2181,17 @@ You must run Emacs in batch mode in order to dump it.  */)
 
   if (! noninteractive)
     error ("Dumping Emacs works only in batch mode");
+
+  if (heap_bss_diff > MAX_HEAP_BSS_DIFF)
+    {
+      fprintf (stderr, "**************************************************\n");
+      fprintf (stderr, "Warning: Your system has a gap between BSS and the\n");
+      fprintf (stderr, "heap.  This usually means that exec-shield or\n");
+      fprintf (stderr, "something similar is in effect.  The dump may fail\n");
+      fprintf (stderr, "because of this.  See the section about exec-shield\n");
+      fprintf (stderr, "in etc/PROBLEMS for more information.\n");
+      fprintf (stderr, "**************************************************\n");
+    }
 
   /* Bind `command-line-processed' to nil before dumping,
      so that the dumped Emacs will process its command line
