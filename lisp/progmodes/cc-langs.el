@@ -7,7 +7,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: cc-mode-help@python.org
 ;; Created:    22-Apr-1997 (split from cc-mode.el)
-;; Version:    5.13
+;; Version:    5.14
 ;; Keywords:   c languages oop
 
 ;; This file is part of GNU Emacs.
@@ -197,17 +197,8 @@
 For use with the variable `java-mode-hook'."
   (c-set-style "java"))
 
-(defvar c-styles-are-initialized nil)
-
 (defun c-common-init ()
   ;; Common initializations for all modes.
-  (if c-styles-are-initialized
-      nil
-    (require 'cc-styles)
-    (c-initialize-builtin-style)
-    (if c-style-variables-are-local-p
-	(c-make-styles-buffer-local))
-    (setq c-styles-are-initialized t))
   ;; these variables should always be buffer local; they do not affect
   ;; indentation style.
   (make-local-variable 'paragraph-start)
@@ -430,7 +421,7 @@ it finds in `c-file-offsets'."
 ;; Support for C
 
 (defvar c-mode-abbrev-table nil
-  "Abbrev table in use in c-mode buffers.")
+  "Abbreviation table used in c-mode buffers.")
 (define-abbrev-table 'c-mode-abbrev-table ())
 
 (defvar c-mode-map ()
@@ -468,7 +459,7 @@ global and affect all future `c-mode' buffers."
 ;; Support for C++
 
 (defvar c++-mode-abbrev-table nil
-  "Abbrev table in use in c++-mode buffers.")
+  "Abbreviation table used in c++-mode buffers.")
 (define-abbrev-table 'c++-mode-abbrev-table ())
 
 (defvar c++-mode-map ()
@@ -506,7 +497,7 @@ global and affect all future `c-mode' buffers."
 ;; Support for Objective-C
 
 (defvar objc-mode-abbrev-table nil
-  "Abbrev table in use in objc-mode buffers.")
+  "Abbreviation table used in objc-mode buffers.")
 (define-abbrev-table 'objc-mode-abbrev-table ())
 
 (defvar objc-mode-map ()
@@ -536,7 +527,7 @@ global and affect all future `c-mode' buffers."
 ;; Support for Java
 
 (defvar java-mode-abbrev-table nil
-  "Abbrev table in use in java-mode buffers.")
+  "Abbreviation table used in java-mode buffers.")
 (define-abbrev-table 'java-mode-abbrev-table ())
 
 (defvar java-mode-map ()
@@ -561,6 +552,35 @@ global and affect all future `c-mode' buffers."
 
 (easy-menu-define c-java-menu java-mode-map "Java Mode Commands"
 		  (c-mode-menu "Java"))
+
+
+;; Support for CORBA's IDL language
+
+(defvar idl-mode-abbrev-table nil
+  "Abbreviation table used in idl-mode buffers.")
+(define-abbrev-table 'idl-mode-abbrev-table ())
+
+(defvar idl-mode-map ()
+  "Keymap used in idl-mode buffers.")
+(if idl-mode-map
+    nil
+  (setq idl-mode-map (c-make-inherited-keymap))
+  ;; additional bindings
+  (define-key idl-mode-map "/" 'c-electric-slash))
+
+(defvar idl-mode-syntax-table nil
+  "Syntax table used in idl-mode buffers.")
+(if idl-mode-syntax-table
+    nil
+  (setq idl-mode-syntax-table (make-syntax-table))
+  (c-populate-syntax-table idl-mode-syntax-table)
+  ;; add extra comment syntax
+  (c-setup-dual-comments idl-mode-syntax-table)
+  )
+
+(easy-menu-define c-idl-menu idl-mode-map "IDL Mode Commands"
+		  (c-mode-menu "IDL"))
+
 
 
 (provide 'cc-langs)
