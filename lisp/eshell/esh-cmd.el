@@ -499,7 +499,7 @@ implemented via rewriting, rather than as a function."
 			       (if (listp elem)
 				   elem
 				 (list 'list elem))))
-			    (cdddr terms))))
+			    (cdr (cddr terms)))))
 		    (list 'eshell-command-body
 			  (list 'quote (list nil)))
 		    (list 'eshell-test-body
