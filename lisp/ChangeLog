@@ -1,3 +1,11 @@
+2000-11-06  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* mwheel.el (mouse-wheel-scroll-amount): Renamed from
+	`mwheel-scroll-amount'.
+	(mouse-wheel-follow-mouse): Renamed from `mwheel-follow-mouse'.
+	(mouse-wheel-mode): Use (featurep 'xemacs) instead of
+	string-matching against the version string.
+
 2000-11-06  Kenichi Handa  <handa@etl.go.jp>
 
 	* language/thai.el ("Thai"): Set a lisp form that produces
