@@ -1,5 +1,7 @@
 2001-05-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* eval.c (call_debugger): Don't bind inhibit-eval-during-redisplay.
+
 	* xfaces.c (xlfd_point_size): Don't divide pixel size from
 	transformation matrix by 10.
 

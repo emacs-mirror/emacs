@@ -4,6 +4,10 @@
 	`smtpmail-maybe-append-domain'.
 	(smtpmail-via-smtp): Use the new name.
 
+	* net/browse-url.el (browse-url-browser-function): Add kde.
+	(browse-url-kde-program, browse-url-kde-args): New variables.
+	(browse-url-kde): New function.
+
 2001-05-18  Miles Bader  <miles@gnu.org>
 
 	* simple.el (delete-horizontal-space, just-one-space): Use
