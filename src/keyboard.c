@@ -636,21 +636,32 @@ Lisp_Object Vglobal_disable_point_adjustment;
 /* Function for init_keyboard to call with no args (if nonzero).  */
 void (*keyboard_init_hook) ();
 
-static int read_avail_input ();
-static void get_input_pending ();
-static int readable_events ();
+static int read_avail_input P_ ((int));
+static void get_input_pending P_ ((int *, int));
+static int readable_events P_ ((int));
+static Lisp_Object read_char_x_menu_prompt P_ ((int, Lisp_Object *,
+						Lisp_Object, int *));
 static Lisp_Object read_char_x_menu_prompt ();
-static Lisp_Object read_char_minibuf_menu_prompt ();
-static Lisp_Object make_lispy_event ();
+static Lisp_Object read_char_minibuf_menu_prompt P_ ((int, int,
+						      Lisp_Object *));
+static Lisp_Object make_lispy_event P_ ((struct input_event *));
 #ifdef HAVE_MOUSE
-static Lisp_Object make_lispy_movement ();
+static Lisp_Object make_lispy_movement P_ ((struct frame *, Lisp_Object,
+					    enum scroll_bar_part,
+					    Lisp_Object, Lisp_Object,
+					    unsigned long));
 #endif
-static Lisp_Object modify_event_symbol ();
-static Lisp_Object make_lispy_switch_frame ();
+static Lisp_Object modify_event_symbol P_ ((int, unsigned, Lisp_Object,
+					    Lisp_Object, char **,
+					    Lisp_Object *, unsigned));
+static Lisp_Object make_lispy_switch_frame P_ ((Lisp_Object));
+static int parse_solitary_modifier P_ ((Lisp_Object));
 static int parse_solitary_modifier ();
+static void save_getcjmp P_ ((jmp_buf));
 static void save_getcjmp ();
-static void restore_getcjmp ();
+static void restore_getcjmp P_ ((jmp_buf));
 static Lisp_Object apply_modifiers P_ ((int, Lisp_Object));
+static void clear_event P_ ((struct input_event *));
 
 /* Nonzero means don't try to suspend even if the operating system seems
    to support it.  */
@@ -3173,7 +3184,9 @@ kbd_buffer_store_event (event)
 }
 
 
-/* Generate HELP_EVENT input_events in BUFP.
+/* Generate HELP_EVENT input_events in BUFP which has roon for
+   SIZE events.  If there's not enough room in BUFP, ignore this
+   event.
 
    HELP is the help form.
 
@@ -3185,24 +3198,31 @@ kbd_buffer_store_event (event)
    Value is the number of input_events generated.  */
 
 int
-gen_help_event (bufp, help, frame, window, object, pos)
+gen_help_event (bufp, size, help, frame, window, object, pos)
      struct input_event *bufp;
+     int size;
      Lisp_Object help, frame, object, window;
      int pos;
 {
-  bufp->kind = HELP_EVENT;
-  bufp->frame_or_window = frame;
-  bufp->arg = object;
-  bufp->x = make_number (pos);
-  bufp->code = 0;
+  int nevents_stored = 0;
+  
+  if (size >= 2)
+    {
+      bufp->kind = HELP_EVENT;
+      bufp->frame_or_window = frame;
+      bufp->arg = object;
+      bufp->x = make_number (pos);
+      bufp->code = 0;
 
-  ++bufp;
-  bufp->kind = HELP_EVENT;
-  bufp->frame_or_window = WINDOWP (window) ? window : frame;
-  bufp->arg = help;
-  bufp->code = 1;
+      ++bufp;
+      bufp->kind = HELP_EVENT;
+      bufp->frame_or_window = WINDOWP (window) ? window : frame;
+      bufp->arg = help;
+      bufp->code = 1;
+      nevents_stored = 2;
+    }
 
-  return 2;
+  return nevents_stored;
 }
 
 
@@ -3252,31 +3272,48 @@ discard_mouse_events ()
     }
 }
 
-/* Return non-zero if there are any events waiting in the event buffer
-   whose .kind is not no_event.  If DISCARD is non-zero, discard all
-   no_event placeholders up to the first real event.  If there are no
-   real events waiting and DISCARD is non-zero, this function makes
-   the event buffer empty as side effect.  */
+
+/* Return non-zero if there are any real events waiting in the event
+   buffer, not counting `no_event's.
+
+   If DISCARD is non-zero, discard no_event events at the front of
+   the input queue, possibly leaving the input queue empty if there
+   are no real input events.  */
+
 int
 kbd_buffer_events_waiting (discard)
      int discard;
 {
   struct input_event *sp;
-  for (sp = kbd_fetch_ptr; sp != kbd_store_ptr; sp++)
+  
+  for (sp = kbd_fetch_ptr;
+       sp != kbd_store_ptr && sp->kind == no_event;
+       ++sp)
     {
       if (sp == kbd_buffer + KBD_BUFFER_SIZE)
 	sp = kbd_buffer;
-
-      if (sp->kind != no_event)
-	return 1;
-      if (discard)
-	kbd_fetch_ptr = sp;
     }
+
   if (discard)
     kbd_fetch_ptr = sp;
-  return 0;
+
+  return sp != kbd_store_ptr && sp->kind != no_event;
 }
+
 
+/* Clear input event EVENT.  */
+
+static INLINE void
+clear_event (event)
+     struct input_event *event;
+{
+  int idx = 2 * (event - kbd_buffer);
+  ASET (kbd_buffer_gcpro, idx, Qnil);
+  ASET (kbd_buffer_gcpro, idx + 1, Qnil);
+  event->kind = no_event;
+}
+
+
 /* Read one event from the event buffer, waiting if necessary.
    The value is a Lisp object representing the event.
    The value is nil for an event that should be ignored,
@@ -3481,6 +3518,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	  frame = event->frame_or_window;
 	  object = event->arg;
 	  position = event->x;
+	  clear_event (event);
 
 	  kbd_fetch_ptr = event + 1;
 	  event = ((kbd_fetch_ptr < kbd_buffer + KBD_BUFFER_SIZE)
@@ -3493,6 +3531,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	    window = Qnil;
 	  obj = Fcons (Qhelp_echo,
 		       list5 (frame, help, window, object, position));
+	  clear_event (event);
 	  kbd_fetch_ptr = event + 1;
 	}
       else if (event->kind == FOCUS_IN_EVENT)
@@ -3558,11 +3597,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 #endif
 
 	      /* Wipe out this event, to catch bugs.  */
-	      event->kind = no_event;
-	      idx = 2 * (event - kbd_buffer);
-	      ASET (kbd_buffer_gcpro, idx, Qnil);
-	      ASET (kbd_buffer_gcpro, idx + 1, Qnil);
-
+	      clear_event (event);
 	      kbd_fetch_ptr = event + 1;
 	    }
 	}
@@ -9897,10 +9932,6 @@ init_keyboard ()
   wipe_kboard (current_kboard);
   init_kboard (current_kboard);
 
-  if (initialized)
-    Ffillarray (kbd_buffer_gcpro, Qnil);
-
-  kbd_buffer_gcpro = Fmake_vector (make_number (2 * KBD_BUFFER_SIZE), Qnil);
   if (!noninteractive && !read_socket_hook && NILP (Vwindow_system))
     {
       signal (SIGINT, interrupt_signal);
