@@ -112,13 +112,13 @@
 
   Binaries for the image libraries (among many others) can be found at
   GnuWin32 (http://gnuwin32.sourceforge.net).  These are built with
-  MinGW and work better with GCC/MinGW builds of Emacs, like the
-  official binary tarballs for Windows.  Compatibility with MSVC is
-  still weak and should not be trusted in production environments; if
-  you really need an MSVC-compiled Emacs with image support, you should
-  try to build the required libraries with the same compiler (though it
-  can be extremely non-trivial, and we'll be interested on hearing of
-  any such effort).
+  MinGW, and so are very compatible with GCC/MinGW builds of Emacs (like
+  the official binary tarballs for Windows).  Compatibility with MSVC,
+  on the other hand, is still weak and should not be trusted in
+  production environments; if you really need an MSVC-compiled Emacs
+  with image support, you should try to build the required libraries
+  with the same compiler (though it can be extremely non-trivial, and
+  we'll be interested on hearing of any such effort).
 
 * Building
 
