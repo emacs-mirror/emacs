@@ -166,7 +166,7 @@ while [ $# != 0 ]; do
           ## If FOO is a boolean argument, --FOO is equivalent to
           ## --FOO=yes.  Otherwise, the value comes from the next
           ## argument - see below.
-	  opt=`echo ${arg} | sed 's:^-*\(.*\)$:\1:'`
+	  opt=`echo ${arg} | sed 's:^-*::'`
           val="yes"
           valomitted=yes
         ;;
