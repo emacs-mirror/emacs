@@ -1,3 +1,8 @@
+2002-12-19  David Kastrup  <David.Kastrup@t-online.de>
+
+	* window.c (Fset_window_configuration): Set old_point to correct
+	value when new_current_buffer == current_buffer.
+
 2002-12-17  Ben Key <bkey1@tampabay.rr.com>
 	* Revisited my earlier fix for the following entry in
 	etc/PROBLEMS: 
