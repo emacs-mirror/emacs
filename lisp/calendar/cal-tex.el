@@ -1256,10 +1256,11 @@ Holidays are included if `cal-tex-holidays' is t."
     (cal-tex-cmd "\\pagestyle{empty}")
     (calendar-for-loop i from 1 to n do
        (calendar-for-loop j from 1 to 5 do 
-       (insert (if (oddp j) "\\righthead" "\\lefthead"))
-       (cal-tex-arg (calendar-date-string date))
-       (insert "%\n")
-          (insert (if (oddp j) "\\rightday"  "\\leftday"))
+	  (let ((odd (/= 0 (% j 2))))
+	    (insert (if odd "\\righthead" "\\lefthead"))
+	    (cal-tex-arg (calendar-date-string date))
+	    (insert "%\n")
+	    (insert (if odd "\\rightday"  "\\leftday")))
           (cal-tex-arg (cal-tex-latexify-list diary-list date))
           (cal-tex-arg (cal-tex-latexify-list holidays date))
           (cal-tex-arg (eval cal-tex-daily-string))
