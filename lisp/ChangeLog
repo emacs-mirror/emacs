@@ -1,3 +1,7 @@
+2000-10-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* vc.el (vc-version-other-window): Bind `file'.
+
 2000-10-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (update-authors): New target for maintenance

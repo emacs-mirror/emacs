@@ -1,3 +1,13 @@
+2000-10-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keymap.c (where_is_cache, where_is_cache_keymaps): New vars.
+	(Fset_keymap_parent, store_in_keymap): Flush the where-is cache.
+	(where_is_internal): Renamed from Fwhere_is_internal.
+	Don't DEFUN any more. Arg `xkeymap' replaced by `keymaps'.
+	(Fwhere_is_internal): New function wrapping where_is_internal.
+	(where_is_internal_1): Handle the case where we're filling the cache.
+	(syms_of_keymap): Init and gcpro the where_is_cache(|_keymaps).
+
 2000-10-25  Miles Bader  <miles@gnu.org>
 
 	* xdisp.c (pos_visible_p): Don't add `it.current_y' twice.
