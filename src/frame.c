@@ -1046,8 +1046,6 @@ Otherwise, include all frames.")
   (frame, miniframe)
      Lisp_Object frame, miniframe;
 {
-  Lisp_Object tail;
-
   if (NILP (frame))
     frame = selected_frame;
   
@@ -1069,8 +1067,6 @@ Otherwise, include all frames.")
   (frame, miniframe)
      Lisp_Object frame, miniframe;
 {
-  Lisp_Object tail;
-
   if (NILP (frame))
     frame = selected_frame;
   CHECK_LIVE_FRAME (frame, 0);
@@ -1417,7 +1413,6 @@ and nil for X and Y.")
   Lisp_Object lispy_dummy;
   enum scroll_bar_part party_dummy;
   Lisp_Object x, y;
-  int col, row;
   unsigned long long_dummy;
 
   f = SELECTED_FRAME ();
@@ -1883,7 +1878,6 @@ frame_name_fnn_p (str, len)
   if (len > 1 && str[0] == 'F')
     {
       char *end_ptr;
-      long num = strtol (str + 1, &end_ptr, 10);
 
       if (end_ptr == str + len)
 	return 1;
@@ -1969,7 +1963,7 @@ store_frame_param (f, prop, val)
       if (! MINI_WINDOW_P (XWINDOW (val)))
 	error ("Surrogate minibuffer windows must be minibuffer windows.");
 
-      if (FRAME_HAS_MINIBUF_P (f) || FRAME_MINIBUF_ONLY_P (f)
+      if ((FRAME_HAS_MINIBUF_P (f) || FRAME_MINIBUF_ONLY_P (f))
 	  && !EQ (val, f->minibuffer_window))
 	error ("Can't change the surrogate minibuffer of a frame with its own minibuffer");
 
@@ -2058,7 +2052,7 @@ so that `frame-parameters' will return them.")
      Lisp_Object frame, alist;
 {
   FRAME_PTR f;
-  register Lisp_Object tail, elt, prop, val;
+  register Lisp_Object tail, prop, val;
 
   if (EQ (frame, Qnil))
     frame = selected_frame;
@@ -2095,7 +2089,7 @@ so that `frame-parameters' will return them.")
       i = 0;
       for (tail = alist; CONSP (tail); tail = Fcdr (tail))
 	{
-	  Lisp_Object elt, prop, val;
+	  Lisp_Object elt;
 
 	  elt = Fcar (tail);
 	  parms[i] = Fcar (elt);
@@ -2275,7 +2269,6 @@ DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
      Lisp_Object frame, cols, rows;
 {
   register struct frame *f;
-  int mask;
 
   CHECK_LIVE_FRAME (frame, 0);
   CHECK_NUMBER (cols, 2);
@@ -2308,7 +2301,6 @@ the rightmost or bottommost possible position (that stays within the screen).")
      Lisp_Object frame, xoffset, yoffset;
 {
   register struct frame *f;
-  int mask;
 
   CHECK_LIVE_FRAME (frame, 0);
   CHECK_NUMBER (xoffset, 1);
