@@ -432,6 +432,14 @@ buffer containing the message to forward.  The current buffer
 is the outgoing mail buffer.")
 
 ;;;###autoload
+(defvar rmail-insert-mime-resent-message-function nil
+  "Function to insert a message in MIME format so it can be resent.
+This function is called if `rmail-enable-mime' is non-nil.
+It is called with one argument FORWARD-BUFFER, which is a
+buffer containing the message to forward.  The current buffer
+is the outgoing mail buffer.")
+
+;;;###autoload
 (defvar rmail-search-mime-message-function nil
   "Function to check if a regexp matches a MIME message.
 This function is called if `rmail-enable-mime' is non-nil.
@@ -1110,6 +1118,7 @@ Instead, these commands are available:
 
 ;; Handle M-x revert-buffer done in an rmail-mode buffer.
 (defun rmail-revert (arg noconfirm)
+  (set-buffer rmail-buffer)
   (let* ((revert-buffer-function (default-value 'revert-buffer-function))
 	 (rmail-enable-multibyte enable-multibyte-characters)
 	 ;; See similar code in `rmail'.
@@ -1119,7 +1128,8 @@ Instead, these commands are available:
 	;; If the user said "yes", and we changed something,
 	;; reparse the messages.
 	(progn
-	  (rmail-mode-2)
+	  (set-buffer rmail-buffer)
+  	  (rmail-mode-2)
 	  ;; Convert all or part to Babyl file if possible.
 	  (rmail-convert-file)
 	  ;; We have read the file as raw-text, so the buffer is set to
@@ -3215,7 +3225,8 @@ typically for purposes of moderating a list."
   (interactive "sResend to: ")
   (require 'sendmail)
   (require 'mailalias)
-  (unless (eq rmail-buffer (current-buffer))
+  (unless (or (eq rmail-view-buffer (current-buffer))
+	      (eq rmail-buffer (current-buffer)))
     (error "Not an Rmail buffer"))
   (if (not from) (setq from user-mail-address))
   (let ((tembuf (generate-new-buffer " sendmail temp"))
@@ -3224,7 +3235,9 @@ typically for purposes of moderating a list."
     (unwind-protect
 	(with-current-buffer tembuf
 	  ;;>> Copy message into temp buffer
-	  (insert-buffer-substring mailbuf)
+	  (if rmail-enable-mime
+	      (funcall rmail-insert-mime-resent-message-function mailbuf)
+	    (insert-buffer-substring mailbuf))
 	  (goto-char (point-min))
 	  ;; Delete any Sender field, since that's not specifiable.
 	  ; Only delete Sender fields in the actual header.
