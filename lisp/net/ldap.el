@@ -562,6 +562,10 @@ an alist of attribute/value pairs."
       (insert "\n")
       (goto-char (point-min))
 
+      (while (re-search-forward "[\t\n\f]+ " nil t)
+	(replace-match "" nil nil))
+      (goto-char (point-min))
+
       (if (looking-at "usage")
 	  (error "Incorrect ldapsearch invocation")
 	(message "Parsing results... ")
