@@ -58,6 +58,11 @@
 
 2001-10-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* lisp.h (FIXNUM_OVERFLOW_P): Cast I to EMACS_INT in comparisons
+	in case I is of some unsigned type, in which case
+	MOST_NEGATIVE_FIXNUM will be converted to unsigned, and the
+	comparison becomes bogus.
+
 	* editfns.c (Fuser_uid, Fuser_real_uid): Use make_fixnum_or_float.
 	(Fuser_full_name): Fix bug treating a float as a fixnum.
 
