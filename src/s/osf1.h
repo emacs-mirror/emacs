@@ -27,3 +27,8 @@
    preprocessor symbol "COFF". */
 
 #define COFF
+
+/* Here is how to find X Windows.  LD_SWITCH_X_SITE_AUX gives an -R option
+   says where to find X windows at run time.  We convert it to a -rpath option
+   which is what OSF1 uses.  */
+#define LD_SWITCH_SYSTEM `echo LD_SWITCH_X_SITE_AUX | sed -e 's/-R/-Wl,-rpath,/'`
