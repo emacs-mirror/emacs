@@ -198,7 +198,7 @@ void
 traverse_intervals (tree, position, depth, function, arg)
      INTERVAL tree;
      int position, depth;
-     void (* function) ();
+     void (* function) P_ ((INTERVAL, Lisp_Object));
      Lisp_Object arg;
 {
   if (NULL_INTERVAL_P (tree))
