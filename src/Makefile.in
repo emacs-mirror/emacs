@@ -1218,3 +1218,31 @@ TAGS-LISP: frc
 	    lispsource=${lispsource}
 tags: TAGS TAGS-LISP
 .PHONY: tags
+
+
+/* Bootstrapping.  */
+
+bootstrap: bootstrap-emacs
+
+/* Build a temacs with a sufficiently large PURESIZE to load the
+   Lisp files from loadup.el in source form.  */
+
+bootstrap-temacs: 
+	$(MAKE) $(MFLAGS) temacs ALL_CFLAGS="$(ALL_CFLAGS) -DPURESIZE=5000000"
+
+/* Dump an Emacs executable named bootstrap-emacs containing the 
+   files from loadup.el in source form.  */
+
+bootstrap-emacs: bootstrap-temacs
+#ifdef CANNOT_DUMP
+	ln temacs bootstrap-emacs
+#else
+#ifdef HAVE_SHM
+	./temacs -nl -batch -l loadup bootstrap
+#else /* ! defined (HAVE_SHM) */
+	./temacs --batch --load loadup bootstrap
+#endif /* ! defined (HAVE_SHM) */
+#endif /* ! defined (CANNOT_DUMP) */
+	mv emacs bootstrap-emacs
+	rm -f temacs
+
