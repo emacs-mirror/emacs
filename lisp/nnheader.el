@@ -188,14 +188,23 @@
     (set (car (car state)) (nth 1 (car state)))
     (setq state (cdr state))))
 
-;; Read the head of an article.
+(defvar nnheader-max-head-length 4096
+  "The maximum length of a HEAD.")
+
 (defun nnheader-insert-head (file)
-  (let ((beg 0)
-	(chop 1024))
-    (while (and (eq chop (nth 1 (nnheader-insert-file-contents-literally
-				 file nil beg (setq beg (+ chop beg)))))
-		(prog1 (not (search-backward "\n\n" nil t)) 
-		  (goto-char (point-max)))))))
+  "Insert the head of the article."
+  (if (eq nnheader-max-head-length t)
+      ;; Just read the entire file.
+      (insert-file-contents-literally file)
+    ;; Read 1K blocks until we find a separator.
+    (let ((beg 0)
+	  (chop 1024))
+      (while (and (eq chop (nth 1 (insert-file-contents-literally
+				   file nil beg (setq beg (+ beg chop)))))
+		  (prog1 (not (search-forward "\n\n" nil t)) 
+		    (goto-char (point-max)))
+		  (or (null nnheader-max-head-length)
+		      (< beg nnheader-max-head-length)))))))
 
 (defun nnheader-article-p ()
   (goto-char (point-min))
