@@ -625,7 +625,7 @@ Return t if file exists.")
      since it would try to load a directory as a Lisp file */
   if (XSTRING (file)->size > 0)
     {
-      int size = XSTRING (file)->size;
+      int size = STRING_BYTES (XSTRING (file));
 
       GCPRO1 (file);
 
@@ -681,7 +681,7 @@ Return t if file exists.")
 
   /* Load .elc files directly, but not when they are
      remote and have no handler!  */
-  if (!bcmp (&(XSTRING (found)->data[XSTRING (found)->size - 4]),
+  if (!bcmp (&(XSTRING (found)->data[STRING_BYTES (XSTRING (found)) - 4]),
 	     ".elc", 4)
       && fd != 0)
     {
@@ -694,7 +694,7 @@ Return t if file exists.")
       fmode = "rb";
 #endif /* DOS_NT */
       stat ((char *)XSTRING (found)->data, &s1);
-      XSTRING (found)->data[XSTRING (found)->size - 1] = 0;
+      XSTRING (found)->data[STRING_BYTES (XSTRING (found)) - 1] = 0;
       result = stat ((char *)XSTRING (found)->data, &s2);
       if (result >= 0 && (unsigned) s1.st_mtime < (unsigned) s2.st_mtime)
 	{
@@ -706,7 +706,7 @@ Return t if file exists.")
 	    message_with_string ("Source file `%s' newer than byte-compiled file",
 				 found, 1);
 	}
-      XSTRING (found)->data[XSTRING (found)->size - 1] = 'c';
+      XSTRING (found)->data[STRING_BYTES (XSTRING (found)) - 1] = 'c';
     }
   else
     {
@@ -897,7 +897,7 @@ openp (path, str, suffix, storeptr, exec_only)
 
       /* Calculate maximum size of any filename made from
 	 this path element/specified file name and any possible suffix.  */
-      want_size = strlen (suffix) + XSTRING (filename)->size + 1;
+      want_size = strlen (suffix) + STRING_BYTES (XSTRING (filename)) + 1;
       if (fn_size < want_size)
 	fn = (char *) alloca (fn_size = 100 + want_size);
 
@@ -917,13 +917,14 @@ openp (path, str, suffix, storeptr, exec_only)
 	      && XSTRING (filename)->data[1] == ':')
 	    {
 	      strncpy (fn, XSTRING (filename)->data + 2,
-		       XSTRING (filename)->size - 2);
-	      fn[XSTRING (filename)->size - 2] = 0;
+		       STRING_BYTES (XSTRING (filename)) - 2);
+	      fn[STRING_BYTES (XSTRING (filename)) - 2] = 0;
 	    }
 	  else
 	    {
-	      strncpy (fn, XSTRING (filename)->data, XSTRING (filename)->size);
-	      fn[XSTRING (filename)->size] = 0;
+	      strncpy (fn, XSTRING (filename)->data,
+		       STRING_BYTES (XSTRING (filename)));
+	      fn[STRING_BYTES (XSTRING (filename))] = 0;
 	    }
 
 	  if (lsuffix != 0)  /* Bug happens on CCI if lsuffix is 0.  */
