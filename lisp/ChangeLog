@@ -1,3 +1,9 @@
+1999-11-25  Dave Love  <fx@gnu.org>
+
+	* hippie-exp.el: Require comint when compiling.
+	(hippie-expand): Add :links.
+	(hippie-expand-try-functions-list): Customize.
+
 1999-11-24  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* viper*el: replaced old-style backquotes.
