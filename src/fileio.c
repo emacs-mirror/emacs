@@ -250,7 +250,7 @@ static int e_write P_ ((int, Lisp_Object, int, int, struct coding_system *));
 
 void
 report_file_error (string, data)
-     char *string;
+     const char *string;
      Lisp_Object data;
 {
   Lisp_Object errstring;
@@ -393,8 +393,8 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.  */)
      (filename)
      Lisp_Object filename;
 {
-  register unsigned char *beg;
-  register unsigned char *p;
+  register const unsigned char *beg;
+  register const unsigned char *p;
   Lisp_Object handler;
 
   CHECK_STRING (filename);
@@ -469,7 +469,7 @@ or the entire name if it contains no slash.  */)
      (filename)
      Lisp_Object filename;
 {
-  register unsigned char *beg, *p, *end;
+  register const unsigned char *beg, *p, *end;
   Lisp_Object handler;
 
   CHECK_STRING (filename);
@@ -2540,7 +2540,7 @@ DEFUN ("make-directory-internal", Fmake_directory_internal,
      (directory)
      Lisp_Object directory;
 {
-  unsigned char *dir;
+  const unsigned char *dir;
   Lisp_Object handler;
   Lisp_Object encoded_dir;
 
@@ -2570,7 +2570,7 @@ DEFUN ("delete-directory", Fdelete_directory, Sdelete_directory, 1, 1, "FDelete 
      (directory)
      Lisp_Object directory;
 {
-  unsigned char *dir;
+  const unsigned char *dir;
   Lisp_Object handler;
   Lisp_Object encoded_dir;
 
@@ -2903,7 +2903,7 @@ On Unix, this is a name starting with a `/' or a `~'.  */)
      (filename)
      Lisp_Object filename;
 {
-  unsigned char *ptr;
+  const unsigned char *ptr;
 
   CHECK_STRING (filename);
   ptr = SDATA (filename);
@@ -4750,7 +4750,7 @@ This does code conversion according to the value of
   register int desc;
   int failure;
   int save_errno = 0;
-  unsigned char *fn;
+  const unsigned char *fn;
   struct stat st;
   int tem;
   int count = SPECPDL_INDEX ();
@@ -5813,7 +5813,8 @@ static Lisp_Object
 double_dollars (val)
      Lisp_Object val;
 {
-  register unsigned char *old, *new;
+  register const unsigned char *old;
+  register unsigned char *new;
   register int n;
   int osize, count;
 
