@@ -1360,7 +1360,7 @@ Creates a buffer if necessary."
   (interactive)
   (set-buffer-modified-p nil)
   (find-alternate-file (dired-get-file-for-visit)))
-(put 'dired-find-alternate-file 'disabled t)
+;;;###autoload (put 'dired-find-alternate-file 'disabled t)
 
 (defun dired-mouse-find-file-other-window (event)
   "In Dired, visit the file or directory name you click on."
