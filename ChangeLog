@@ -1,3 +1,8 @@
+2001-11-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* configure.in, Makefile.in: Add support for --program-prefix,
+	--program-suffix and --program-transform-name options.
+
 2001-11-13  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* Makefile.in (install-arch-indep): Use `${manext}' instead of
