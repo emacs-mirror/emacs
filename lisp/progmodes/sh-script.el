@@ -101,7 +101,15 @@ Use this where the name of the executable doesn't correspond to the type of
 shell it really is.")
 
 
-(defvar sh-shell-file (or (getenv "SHELL") "/bin/sh")
+(defvar sh-shell-file
+  (or
+   ;; On MSDOS, collapse $SHELL to lower-case and remove the
+   ;; executable extension, so comparisons with the list of
+   ;; known shells work.
+   (and (eq system-type 'ms-dos)
+	(file-name-sans-extension (downcase (getenv "SHELL"))))
+   (getenv "SHELL")
+   "/bin/sh")
   "*The executable file name for the shell being programmed.")
 
 
@@ -408,8 +416,8 @@ flow of control or syntax.  See `sh-feature'.")
 	  "bye" "logout")
 
     ;; The next entry is only used for defining the others
-    (bourne eval sh-append shell
-	    "done" "esac" "fi" "for" "function" "in" "return")
+    (bourne eval sh-append sh
+	    "function")
 
     (csh eval sh-append shell
 	 "breaksw" "default" "end" "endif" "endsw" "foreach" "goto"
@@ -423,6 +431,9 @@ flow of control or syntax.  See `sh-feature'.")
 
     (rc "break" "case" "exec" "exit" "fn" "for" "if" "in" "return" "switch"
 	"while")
+
+    (sh eval sh-append shell
+	"done" "esac" "fi" "for" "in" "return")
 
     ;; The next entry is only used for defining the others
     (shell "break" "case" "continue" "exec" "exit")
@@ -644,12 +655,9 @@ with your script for an edit-interpret-debug cycle."
 	   (goto-char (point-min))
 	   (if (looking-at "#![ \t]?\\([^ \t\n]*/bin/env[ \t]\\)?\\([^ \t\n]+\\)")
 	       (buffer-substring (match-beginning 2)
-				 (match-end 2)))))
-	elt)
+				 (match-end 2))))))
     (if interpreter
-	(sh-set-shell interpreter nil
-		      (and (zerop (buffer-size))
-			   (not buffer-read-only)))))
+	(sh-set-shell interpreter nil nil)))
   (run-hooks 'sh-mode-hook))
 ;;;###autoload
 (defalias 'shell-script-mode 'sh-mode)
