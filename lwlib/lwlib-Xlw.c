@@ -88,6 +88,9 @@ xlw_create_menubar (instance)
 		      instance->parent,
 		      XtNmenu, instance->info->val,
 		      0);
+
+  XtFree (tem);
+
   XtAddCallback (widget, XtNopen, pre_hook, (XtPointer)instance);
   XtAddCallback (widget, XtNselect, pick_hook, (XtPointer)instance);
   return widget;
@@ -101,12 +104,22 @@ xlw_create_popup_menu (instance)
     XtCreatePopupShell (instance->info->name, overrideShellWidgetClass,
 			instance->parent, NULL, 0);
   
-  Widget widget = 
+  Widget widget;
+
+  widget_value *tem = (widget_value *) XtMalloc (sizeof (widget_value));
+
+  /* _XtCreate is freeing the object we passed,
+     so make a copy that we free later.  */
+  bcopy (instance->info->val, tem, sizeof (widget_value));
+
+  widget = 
     XtVaCreateManagedWidget ("popup", xlwMenuWidgetClass,
 			     popup_shell,
 			     XtNmenu, instance->info->val,
 			     XtNhorizontal, False,
 			     0);
+
+  XtFree (tem);
 
   XtAddCallback (widget, XtNselect, pick_hook, (XtPointer)instance);
 
