@@ -2,7 +2,7 @@
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1993 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Header: /home/gd/gnu/emacs/19.0/lisp/RCS/gnus.el,v 1.26 1993/07/28 08:35:38 rms Exp eggert $
+;; Version: $Header: /home/fsf/rms/e19/lisp/RCS/gnus.el,v 1.27 1993/08/10 04:14:17 eggert Exp rms $
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -3825,7 +3825,7 @@ is initialized from the SAVEDIR environment variable."
 		     (file-name-directory default-name)
 		     default-name)))
 	  (gnus-make-directory (file-name-directory filename))
-	  (rmail-output filename)
+	  (rmail-output filename 1 t t)
 	  ;; Remember the directory name to save articles.
 	  (setq gnus-newsgroup-last-mail filename)
 	  )))
