@@ -1,3 +1,10 @@
+2004-09-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* textmodes/enriched.el
+	(enriched-default-text-properties-local-flag): New variable.
+	(enriched-mode): Make sure that enabling and disabling the mode is
+	a no-op.  Doc fix.
+
 2004-09-23  H,Ae(Bkon Malmedal  <hmalmedal@yahoo.no>
 
 	* calendar/holidays.el (holiday-advent): Report on a specified day
