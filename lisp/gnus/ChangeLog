@@ -1,8 +1,15 @@
+2000-11-17  Dave Love  <fx@gnu.org>
+
+	* uudecode.el (uudecode-insert-char): Fix bogus feature test.
+	(uudecode-decode-region-external): Doc fix.  Use with-temp-buffer
+	and make-temp-file.
+	(uudecode-decode-region): Doc fix.
+
 2000-11-14  Dave Love  <fx@gnu.org>
 
 	* cu-exit.pbm, exit-summ.pbm, followup.pbm, fuwo.pbm:
 	* mail-reply.pbm, next-ur.pbm, post.pbm, prev-ur.pbm:
-	* reply-wo.pbm, reply.pbm rot13.pbm, save-aif.pbm, save-art.pbm:
+	* reply-wo.pbm, reply.pbm, rot13.pbm, save-aif.pbm, save-art.pbm:
 	New files, derived from the XPMs.
 
 2000-11-12  Dave Love  <fx@gnu.org>
