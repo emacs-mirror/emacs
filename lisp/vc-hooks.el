@@ -356,6 +356,7 @@ See also variable `vc-consult-headers'.")
                                                           'needs-checkout)
 	     ((string-match "Unresolved Conflict" status) 'unresolved-conflict)
 	     ((string-match "Locally Added"       status) 'locally-added)
+	     ((string-match "New file!"           status) 'locally-added)
 	     (t 'unknown)
 	     ))))))))
     (if (get-buffer "*vc-info*")
@@ -817,6 +818,13 @@ For CVS, the full name of CVS/Entries is returned."
 		(setq case-fold-search fold) ;; restore the old value
 		(vc-file-setprop file 'vc-checkout-time 0)
 		(vc-file-setprop file 'vc-workfile-version "0")
+		(throw 'found (cons (concat dirname "CVS/Entries") 'CVS)))
+	       ((re-search-forward
+		 (concat "^/" (regexp-quote basename)
+			 "/\\([^/]*\\)/Initial") nil t)
+		(setq case-fold-search fold)  ;; restore the old value
+		(vc-file-setprop file 'vc-workfile-version "0")
+		(vc-file-setprop file 'vc-checkout-time 0)
 		(throw 'found (cons (concat dirname "CVS/Entries") 'CVS)))
 	       (t (setq case-fold-search fold)  ;; restore the old value
 		  nil)))
