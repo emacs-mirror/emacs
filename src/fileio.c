@@ -651,7 +651,7 @@ directory_file_name (src, dst)
   strcpy (dst, src);
   if (slen > 1 
       && IS_DIRECTORY_SEP (dst[slen - 1])
-      && !IS_DEVICE_SEP (dst[slen - 2]))
+      && !IS_ANY_SEP (dst[slen - 2]))
     dst[slen - 1] = 0;
   return 1;
 }
@@ -813,12 +813,12 @@ See also the function `substitute-in-file-name'.")
 	nm++;
       else
 	{
-	  drive = tolower (colon[-1]) - 'a';
+	  drive = colon[-1];
 	  nm = colon + 1;
 	  if (!IS_DIRECTORY_SEP (*nm))
 	    {
 	      defdir = alloca (MAXPATHLEN + 1);
-	      relpath = getdefdir (drive + 1, defdir);
+	      relpath = getdefdir (tolower (drive) - 'a' + 1), defdir);
 	    }
 	}       
   }
@@ -977,6 +977,10 @@ See also the function `substitute-in-file-name'.")
 	  if (!(newdir = (unsigned char *) egetenv ("HOME")))
 	    newdir = (unsigned char *) "";
 #ifdef DOS_NT
+ 	  /* Problem when expanding "~\" if HOME is not on current drive.
+ 	     Ulrich Leodolter, Wed Jan 11 10:20:35 1995 */
+ 	  if (newdir[1] == ':')
+ 	    drive = newdir[0];
 	  dostounix_filename (newdir);
 #endif
 	  nm++;
@@ -1039,7 +1043,7 @@ See also the function `substitute-in-file-name'.")
       /* Adding `length > 1 &&' makes ~ expand into / when homedir
 	 is the root dir.  People disagree about whether that is right.
 	 Anyway, we can't take the risk of this change now.  */
-#ifdef MSDOS
+#ifdef DOS_NT
       if (newdir[1] != ':' && length > 1)
 #endif
       if (IS_DIRECTORY_SEP (newdir[length - 1]))
@@ -1135,10 +1139,11 @@ See also the function `substitute-in-file-name'.")
 	{
 	  *o++ = *p++;
 	}
+      else if (
 #ifdef WINDOWSNT
-      else if (!strncmp (p, "\\\\", 2) || !strncmp (p, "//", 2))
+	       (!strncmp (p, "\\\\", 2) || !strncmp (p, "//", 2))
 #else  /* not WINDOWSNT */
-      else if (!strncmp (p, "//", 2)
+	       !strncmp (p, "//", 2)
 #endif /* not WINDOWSNT */
 #ifdef APOLLO
 	       /* // at start of filename is meaningful in Apollo system */
@@ -1164,10 +1169,11 @@ See also the function `substitute-in-file-name'.")
 	    *o++ = *p;
 	  p += 2;
 	}
+      else if (
 #ifdef WINDOWSNT
-      else if (!strncmp (p, "\\..", 3) || !strncmp (p, "/..", 3))
+	       (!strncmp (p, "\\..", 3) || !strncmp (p, "/..", 3))
 #else  /* not WINDOWSNT */
-      else if (!strncmp (p, "/..", 3)
+	       !strncmp (p, "/..", 3)
 #endif /* not WINDOWSNT */
 	       /* `/../' is the "superroot" on certain file systems.  */
 	       && o != target
@@ -1207,7 +1213,7 @@ See also the function `substitute-in-file-name'.")
       )
     {
       target -= 2;
-      target[0] = (drive < 0 ? getdisk () : drive) + 'a';
+      target[0] = (drive < 0 ? getdisk () + 'A' : drive);
       target[1] = ':';
     }
 #endif /* DOS_NT */
