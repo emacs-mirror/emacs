@@ -312,7 +312,8 @@ The library where VARIABLE is defined is searched for in FILE or
 `find-function-source-path', if non nil, otherwise in `load-path'."
   (if (not variable)
       (error "You didn't specify a variable"))
-  (let ((library (or file (symbol-file variable))))
+  ;; Fixme: I think `symbol-file' should be fixed instead.  -- fx 
+  (let ((library (or file (symbol-file (cons 'defvar variable)))))
     (find-function-search-for-symbol variable 'variable library)))
 
 ;;;###autoload
