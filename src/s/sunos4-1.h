@@ -39,13 +39,3 @@
 /* Tell GNU malloc to compensate for a bug in localtime.  */
 #define SUNOS_LOCALTIME_BUG
 #endif
-
-/* This is for compilation with acc.  It works with -Xt but not with -Xs.
-   Note you will need to specify a -L option so that -lansi gets found.
-   The precise -L option you need depends on the compiler version
-   so we cannot specify it here.  */
-#ifndef __GNUC__
-#ifdef __STDC__
-#define LIB_STANDARD -u _fix_libc_ -lansi -lc
-#endif
-#endif
