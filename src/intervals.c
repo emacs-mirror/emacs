@@ -672,7 +672,8 @@ previous_interval (interval)
 }
 
 /* Find the interval containing POS given some non-NULL INTERVAL
-   in the same tree. */
+   in the same tree.  Note that we need to update interval->position
+   if we go down the tree.  */
 INTERVAL
 update_interval (i, pos)
      register INTERVAL i;
@@ -686,22 +687,31 @@ update_interval (i, pos)
       if (pos < i->position) 
 	{
 	  /* Move left. */
-	  if (pos >= i->position - TOTAL_LENGTH (i->left))
-	    i = i->left;		/* Move to the left child */
+	  if (pos >= i->position - TOTAL_LENGTH (i->left)) 
+	    {
+	      i->left->position = i->position - TOTAL_LENGTH (i->left)
+		+ LEFT_TOTAL_LENGTH (i->left);
+	      i = i->left;		/* Move to the left child */
+	    }
 	  else if (NULL_PARENT (i)) 
 	    error ("Point before start of properties");
-	  else  i = i->parent;
+	  else  
+	      i = i->parent;
 	  continue;
 	}
       else if (pos >= INTERVAL_LAST_POS (i))
 	{
 	  /* Move right. */
-	  if (pos < INTERVAL_LAST_POS (i) + TOTAL_LENGTH (i->right))
-	    i = i->right;		/* Move to the right child */
+	  if (pos < INTERVAL_LAST_POS (i) + TOTAL_LENGTH (i->right)) 
+	    {
+	      i->right->position = INTERVAL_LAST_POS (i) +
+		LEFT_TOTAL_LENGTH (i->right);
+	      i = i->right;		/* Move to the right child */
+	    }
 	  else if (NULL_PARENT (i)) 
 	    error ("Point after end of properties");
 	  else 
-	    i = i->parent;
+	      i = i->parent;
 	  continue;
 	}
       else 
