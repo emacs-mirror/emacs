@@ -109,7 +109,27 @@ If you prefer the old behavior, you can set the new user option
 *** bibtex-maintain-sorted-entries can take values `plain',
 `crossref', and `entry-class' which control the sorting scheme used
 for BibTeX entries. `bibtex-sort-entry-class' controls the sorting
-scheme `entry-class'.
+scheme `entry-class'. TAB completion for reference keys and
+automatic detection of duplicates does not require anymore that
+bibtex-maintain-sorted-entries is non-nil.
+
+*** If the new variable bibtex-parse-keys-fast is non-nil,
+use fast but simplified algorithm for parsing BibTeX keys.
+
+*** If the new variable bibtex-autoadd-commas is non-nil,
+automatically add missing commas at end of BibTeX fields.
+
+*** The new variable bibtex-autofill-types contains a list of entry
+types for which fields are filled automatically (if possible).
+
+*** The new command bibtex-complete completes word fragment before
+point according to context (bound to M-tab).
+
+*** The new commands bibtex-find-entry and bibtex-find-crossref
+locate entries and crossref'd entries.
+
+*** In BibTeX mode the command fill-paragraph (bound to M-q) fills
+individual fields of a BibTeX entry.
 
 ** When display margins are present in a window, the fringes are now
 displayed between the margins and the buffer's text area, rather than
