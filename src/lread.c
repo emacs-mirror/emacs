@@ -1921,9 +1921,6 @@ defvar_display (namestring, offset)
   XMISC (val)->type = Lisp_Misc_Display_Objfwd;
   XDISPLAY_OBJFWD (val)->offset = offset;
   XSYMBOL (sym)->value = val;
-#ifndef MULTI_PERDISPLAY
-  staticpro ((Lisp_Object *)((char *)&the_only_perdisplay + offset));
-#endif
 }
 
 init_lread ()
