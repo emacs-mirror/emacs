@@ -240,25 +240,11 @@ Optional 3rd argument NIL-FOR-TOO-LONG non-nil means return nil
   "Return the value of CODING-SYSTEM's translation-table-for-encode property."
   (coding-system-get coding-system 'translation-table-for-encode))
 
-(defun coding-system-lessp (x y)
-  (cond ((eq x 'no-conversion) t)
-	((eq y 'no-conversion) nil)
-	((eq x 'emacs-mule) t)
-	((eq y 'emacs-mule) nil)
-	((eq x 'undecided) t)
-	((eq y 'undecided) nil)
-	(t (let ((c1 (coding-system-mnemonic x))
-		 (c2 (coding-system-mnemonic y)))
-	     (or (< (downcase c1) (downcase c2))
-		 (and (not (> (downcase c1) (downcase c2)))
-		      (< c1 c2)))))))
-
 ;;;###autoload
 (defun coding-system-list (&optional base-only)
   "Return a list of all existing coding systems.
 If optional arg BASE-ONLY is non-nil, only base coding systems are listed."
-  (let* ((codings (sort (copy-sequence coding-system-list)
-			'coding-system-lessp))
+  (let* ((codings (copy-sequence coding-system-list))
 	 (tail (cons nil codings)))
     ;; Remove subsidiary coding systems (eol variants) and alias
     ;; coding systems (if necessary).
