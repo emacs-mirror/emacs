@@ -62,8 +62,6 @@
 
 ;;; Code:
 
-(require 'newcomment)
-
 (eval-when-compile (require 'cl))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -745,8 +743,8 @@ for modes which use `imenu--generic-function'.  If it is not set, but
 ;;;###autoload
 (make-variable-buffer-local 'imenu-case-fold-search)
 
-;; Originally "Built on some ideas that Erik Naggum <erik@naggum.no>
-;; once posted to comp.emacs" but since substantially re-written.
+;; This function can be called with quitting disabled,
+;; so it needs to be careful never to loop!
 (defun imenu--generic-function (patterns)
   "Return an index of the current buffer as an alist.
 
@@ -800,6 +798,9 @@ depending on PATTERNS."
     (unwind-protect			; for syntax table
 	(save-match-data
 	  (set-syntax-table table)
+	  (if (or comment-start comment-start-skip)
+	      (comment-normalize-vars))
+
 	  ;; map over the elements of imenu-generic-expression
 	  ;; (typically functions, variables ...)
 	  (dolist (pat patterns)
@@ -812,12 +813,16 @@ depending on PATTERNS."
 		  cs)
 	      ;; Go backwards for convenience of adding items in order.
 	      (goto-char (point-max))
-	      (while (re-search-backward regexp nil t)
+	      (while (and (re-search-backward regexp nil t)
+			  ;; Exit the loop if we get an empty match,
+			  ;; because it means a bad regexp was specified.
+			  (not (= (match-beginning 0) (match-end 0))))
 		(setq start (point))
 		(goto-char (match-end index))
 		(setq beg (match-beginning index))
-		(setq cs (and comment-start-skip
-			      (save-match-data (comment-beginning))))
+		(setq cs (and (or comment-start comment-start-skip)
+			      (save-match-data
+				(comment-beginning))))
 		(if cs
 		    (goto-char (min cs beg)) ; skip this one, it's in a comment
 		  (goto-char beg)
