@@ -1,5 +1,8 @@
 2001-01-17  Dave Love  <fx@gnu.org>
 
+	* ediff-init.el (ediff-before-setup-hook)
+	(ediff-merge-filename-prefix): Add :version.
+
 	* international/latin1-disp.el: Require disp-table.
 	(latin1-display): Fix :set.
 
