@@ -1,5 +1,5 @@
 ;; Calculator for GNU Emacs, part II [calc-math.el]
-;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 ;; Written by Dave Gillespie, daveg@synaptics.com.
 
 ;; This file is part of GNU Emacs.
@@ -34,57 +34,49 @@
   (calc-slow-wrapper
    (if (calc-is-inverse)
        (calc-unary-op "^2" 'calcFunc-sqr arg)
-     (calc-unary-op "sqrt" 'calcFunc-sqrt arg)))
-)
+     (calc-unary-op "sqrt" 'calcFunc-sqrt arg))))
 
 (defun calc-isqrt (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-inverse)
        (calc-unary-op "^2" 'calcFunc-sqr arg)
-     (calc-unary-op "isqt" 'calcFunc-isqrt arg)))
-)
+     (calc-unary-op "isqt" 'calcFunc-isqrt arg))))
 
 
 (defun calc-hypot (arg)
   (interactive "P")
   (calc-slow-wrapper
-   (calc-binary-op "hypt" 'calcFunc-hypot arg))
-)
+   (calc-binary-op "hypt" 'calcFunc-hypot arg)))
 
 (defun calc-ln (arg)
   (interactive "P")
   (calc-invert-func)
-  (calc-exp arg)
-)
+  (calc-exp arg))
 
 (defun calc-log10 (arg)
   (interactive "P")
   (calc-hyperbolic-func)
-  (calc-ln arg)
-)
+  (calc-ln arg))
 
 (defun calc-log (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-inverse)
        (calc-binary-op "alog" 'calcFunc-alog arg)
-     (calc-binary-op "log" 'calcFunc-log arg)))
-)
+     (calc-binary-op "log" 'calcFunc-log arg))))
 
 (defun calc-ilog (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-inverse)
        (calc-binary-op "alog" 'calcFunc-alog arg)
-     (calc-binary-op "ilog" 'calcFunc-ilog arg)))
-)
+     (calc-binary-op "ilog" 'calcFunc-ilog arg))))
 
 (defun calc-lnp1 (arg)
   (interactive "P")
   (calc-invert-func)
-  (calc-expm1 arg)
-)
+  (calc-expm1 arg))
 
 (defun calc-exp (arg)
   (interactive "P")
@@ -95,16 +87,14 @@
 	 (calc-unary-op "10^" 'calcFunc-exp10 arg))
      (if (calc-is-inverse)
 	 (calc-unary-op "ln" 'calcFunc-ln arg)
-       (calc-unary-op "exp" 'calcFunc-exp arg))))
-)
+       (calc-unary-op "exp" 'calcFunc-exp arg)))))
 
 (defun calc-expm1 (arg)
   (interactive "P")
   (calc-slow-wrapper
    (if (calc-is-inverse)
        (calc-unary-op "ln+1" 'calcFunc-lnp1 arg)
-     (calc-unary-op "ex-1" 'calcFunc-expm1 arg)))
-)
+     (calc-unary-op "ex-1" 'calcFunc-expm1 arg))))
 
 (defun calc-pi ()
   (interactive)
@@ -123,8 +113,7 @@
 	   (calc-pop-push-record 0 "e" (math-e)))
        (if calc-symbolic-mode
 	   (calc-pop-push-record 0 "pi" '(var pi var-pi))
-	 (calc-pop-push-record 0 "pi" (math-pi))))))
-)
+	 (calc-pop-push-record 0 "pi" (math-pi)))))))
 
 (defun calc-sin (arg)
   (interactive "P")
@@ -135,27 +124,23 @@
 	 (calc-unary-op "sinh" 'calcFunc-sinh arg))
      (if (calc-is-inverse)
 	 (calc-unary-op "asin" 'calcFunc-arcsin arg)
-       (calc-unary-op "sin" 'calcFunc-sin arg))))
-)
+       (calc-unary-op "sin" 'calcFunc-sin arg)))))
 
 (defun calc-arcsin (arg)
   (interactive "P")
   (calc-invert-func)
-  (calc-sin arg)
-)
+  (calc-sin arg))
 
 (defun calc-sinh (arg)
   (interactive "P")
   (calc-hyperbolic-func)
-  (calc-sin arg)
-)
+  (calc-sin arg))
 
 (defun calc-arcsinh (arg)
   (interactive "P")
   (calc-invert-func)
   (calc-hyperbolic-func)
-  (calc-sin arg)
-)
+  (calc-sin arg))
 
 (defun calc-cos (arg)
   (interactive "P")
@@ -166,35 +151,30 @@
 	 (calc-unary-op "cosh" 'calcFunc-cosh arg))
      (if (calc-is-inverse)
 	 (calc-unary-op "acos" 'calcFunc-arccos arg)
-       (calc-unary-op "cos" 'calcFunc-cos arg))))
-)
+       (calc-unary-op "cos" 'calcFunc-cos arg)))))
 
 (defun calc-arccos (arg)
   (interactive "P")
   (calc-invert-func)
-  (calc-cos arg)
-)
+  (calc-cos arg))
 
 (defun calc-cosh (arg)
   (interactive "P")
   (calc-hyperbolic-func)
-  (calc-cos arg)
-)
+  (calc-cos arg))
 
 (defun calc-arccosh (arg)
   (interactive "P")
   (calc-invert-func)
   (calc-hyperbolic-func)
-  (calc-cos arg)
-)
+  (calc-cos arg))
 
 (defun calc-sincos ()
   (interactive)
   (calc-slow-wrapper
    (if (calc-is-inverse)
        (calc-enter-result 1 "asnc" (list 'calcFunc-arcsincos (calc-top-n 1)))
-     (calc-enter-result 1 "sncs" (list 'calcFunc-sincos (calc-top-n 1)))))
-)
+     (calc-enter-result 1 "sncs" (list 'calcFunc-sincos (calc-top-n 1))))))
 
 (defun calc-tan (arg)
   (interactive "P")
@@ -205,59 +185,50 @@
 	 (calc-unary-op "tanh" 'calcFunc-tanh arg))
      (if (calc-is-inverse)
 	 (calc-unary-op "atan" 'calcFunc-arctan arg)
-       (calc-unary-op "tan" 'calcFunc-tan arg))))
-)
+       (calc-unary-op "tan" 'calcFunc-tan arg)))))
 
 (defun calc-arctan (arg)
   (interactive "P")
   (calc-invert-func)
-  (calc-tan arg)
-)
+  (calc-tan arg))
 
 (defun calc-tanh (arg)
   (interactive "P")
   (calc-hyperbolic-func)
-  (calc-tan arg)
-)
+  (calc-tan arg))
 
 (defun calc-arctanh (arg)
   (interactive "P")
   (calc-invert-func)
   (calc-hyperbolic-func)
-  (calc-tan arg)
-)
+  (calc-tan arg))
 
 (defun calc-arctan2 ()
   (interactive)
   (calc-slow-wrapper
-   (calc-enter-result 2 "atn2" (cons 'calcFunc-arctan2 (calc-top-list-n 2))))
-)
+   (calc-enter-result 2 "atn2" (cons 'calcFunc-arctan2 (calc-top-list-n 2)))))
 
 (defun calc-conj (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-unary-op "conj" 'calcFunc-conj arg))
-)
+   (calc-unary-op "conj" 'calcFunc-conj arg)))
 
 (defun calc-imaginary ()
   (interactive)
   (calc-slow-wrapper
-   (calc-pop-push-record 1 "i*" (math-imaginary (calc-top-n 1))))
-)
+   (calc-pop-push-record 1 "i*" (math-imaginary (calc-top-n 1)))))
 
 
 
 (defun calc-to-degrees (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-unary-op ">deg" 'calcFunc-deg arg))
-)
+   (calc-unary-op ">deg" 'calcFunc-deg arg)))
 
 (defun calc-to-radians (arg)
   (interactive "P")
   (calc-wrapper
-   (calc-unary-op ">rad" 'calcFunc-rad arg))
-)
+   (calc-unary-op ">rad" 'calcFunc-rad arg)))
 
 
 (defun calc-degrees-mode (arg)
@@ -268,15 +239,13 @@
 	  (message "Angles measured in degrees.")))
 	((= arg 2) (calc-radians-mode))
 	((= arg 3) (calc-hms-mode))
-	(t (error "Prefix argument out of range")))
-)
+	(t (error "Prefix argument out of range"))))
 
 (defun calc-radians-mode ()
   (interactive)
   (calc-wrapper
    (calc-change-mode 'calc-angle-mode 'rad)
-   (message "Angles measured in radians."))
-)
+   (message "Angles measured in radians.")))
 
 
 ;;; Compute the integer square-root floor(sqrt(A)).  A > 0.  [I I] [Public]
@@ -289,14 +258,12 @@
 	((integerp a)
 	 (math-isqrt-small a))
 	(t
-	 (math-normalize (cons 'bigpos (cdr (math-isqrt-bignum (cdr a)))))))
-)
+	 (math-normalize (cons 'bigpos (cdr (math-isqrt-bignum (cdr a))))))))
 
 (defun calcFunc-isqrt (a)
   (if (math-realp a)
       (math-isqrt (math-floor a))
-    (math-floor (math-sqrt a)))
-)
+    (math-floor (math-sqrt a))))
 
 
 ;;; This returns (flag . result) where the flag is T if A is a perfect square.
@@ -316,8 +283,7 @@
 	 a
 	 (math-scale-bignum-3
 	  (list (1+ (math-isqrt-small top)))
-	  (/ len 2))))))
-)
+	  (/ len 2)))))))
 
 (defun math-isqrt-bignum-iter (a guess)   ; [l L l]
   (math-working "isqrt" (cons 'bigpos guess))
@@ -330,22 +296,19 @@
       (cons (and (= comp 0)
 		 (math-zerop-bignum (cdr q))
 		 (= (% (car s) 2) 0))
-	    guess)))
-)
+	    guess))))
 
 (defun math-zerop-bignum (a)
   (and (eq (car a) 0)
        (progn
 	 (while (eq (car (setq a (cdr a))) 0))
-	 (null a)))
-)
+	 (null a))))
 
 (defun math-scale-bignum-3 (a n)   ; [L L S]
   (while (> n 0)
     (setq a (cons 0 a)
 	  n (1- n)))
-  a
-)
+  a)
 
 (defun math-isqrt-small (a)   ; A > 0.  [S S]
   (let ((g (cond ((>= a 10000) 1000)
@@ -354,8 +317,7 @@
 	g2)
     (while (< (setq g2 (/ (+ g (/ a g)) 2)) g)
       (setq g g2))
-    g)
-)
+    g))
 
 
 
@@ -449,20 +411,17 @@
 	  (math-mul (math-sqrt (math-infinite-dir a inf)) inf)))
    (progn
      (calc-record-why 'numberp a)
-     (list 'calcFunc-sqrt a)))
-)
-(fset 'calcFunc-sqrt (symbol-function 'math-sqrt))
+     (list 'calcFunc-sqrt a))))
+(defalias calcFunc-sqrt 'math-sqrt)
 
 (defun math-infinite-dir (a &optional inf)
   (or inf (setq inf (math-infinitep a)))
-  (math-normalize (math-expr-subst a inf 1))
-)
+  (math-normalize (math-expr-subst a inf 1)))
 
 (defun math-sqrt-float (a &optional guess)   ; [F F F]
   (if calc-symbolic-mode
       (signal 'inexact-result nil)
-    (math-with-extra-prec 1 (math-sqrt-raw a guess)))
-)
+    (math-with-extra-prec 1 (math-sqrt-raw a guess))))
 
 (defun math-sqrt-raw (a &optional guess)   ; [F F F]
   (if (not (Math-posp a))
@@ -473,8 +432,7 @@
 	  (setq guess (math-make-float (math-isqrt-small
 					(math-scale-int (nth 1 a) (- ldiff)))
 				       (/ (+ (nth 2 a) ldiff) 2)))))
-    (math-sqrt-float-iter a guess))
-)
+    (math-sqrt-float-iter a guess)))
 
 (defun math-sqrt-float-iter (a guess)   ; [F F F]
   (math-working "sqrt" guess)
@@ -482,8 +440,7 @@
 			    '(float 5 -1))))
      (if (math-nearly-equal-float g2 guess)
 	 g2
-       (math-sqrt-float-iter a g2)))
-)
+       (math-sqrt-float-iter a g2))))
 
 ;;; True if A and B differ only in the last digit of precision.  [P F F]
 (defun math-nearly-equal-float (a b)
@@ -508,8 +465,7 @@
 	   (and (not (consp ediff))
 		(< ediff 10)
 		(> ediff -10)
-		(= (math-numdigs (nth 1 a)) calc-internal-prec)))))
-)
+		(= (math-numdigs (nth 1 a)) calc-internal-prec))))))
 
 (defun math-nearly-equal (a b)   ;  [P N N] [Public]
   (setq a (math-float a))
@@ -529,15 +485,13 @@
       (if (eq (car b) 'cplx)
 	  (and (math-nearly-equal-float a (nth 1 b))
 	       (math-nearly-zerop-float a (nth 2 b)))
-	(math-nearly-equal-float a b)))
-)
+	(math-nearly-equal-float a b))))
 
 ;;; True if A is nearly zero compared to B.  [P F F]
 (defun math-nearly-zerop-float (a b)
   (or (eq (nth 1 a) 0)
       (<= (+ (math-numdigs (nth 1 a)) (nth 2 a))
-	  (1+ (- (+ (math-numdigs (nth 1 b)) (nth 2 b)) calc-internal-prec))))
-)
+	  (1+ (- (+ (math-numdigs (nth 1 b)) (nth 2 b)) calc-internal-prec)))))
 
 (defun math-nearly-zerop (a b)   ; [P N R] [Public]
   (setq a (math-float a))
@@ -547,8 +501,7 @@
 	   (math-nearly-zerop-float (nth 2 a) b))
     (if (eq (car a) 'polar)
 	(math-nearly-zerop-float (nth 1 a) b)
-      (math-nearly-zerop-float a b)))
-)
+      (math-nearly-zerop-float a b))))
 
 ;;; This implementation could be improved, accuracy-wise.
 (defun math-hypot (a b)
@@ -578,13 +531,11 @@
 	   (math-to-hms (math-hypot (math-from-hms a 'deg) b))))
 	((eq (car-safe b) 'hms)
 	 (math-to-hms (math-hypot a (math-from-hms b 'deg))))
-	(t nil))
-)
-(fset 'calcFunc-hypot (symbol-function 'math-hypot))
+	(t nil)))
+(defalias calcFunc-hypot 'math-hypot)
 
 (defun calcFunc-sqr (x)
-  (math-pow x 2)
-)
+  (math-pow x 2))
 
 
 
@@ -615,8 +566,7 @@
 	((eq (car-safe a) 'polar)
 	 (let ((root (math-nth-root (nth 1 a) n)))
 	   (and root (list 'polar root (math-div (nth 2 a) n)))))
-	(t nil))
-)
+	(t nil)))
 
 (defun math-nth-root-float (a n &optional guess)
   (math-inexact-result)
@@ -628,8 +578,7 @@
 				       1 (/ (+ (math-numdigs (nth 1 a))
 					       (nth 2 a)
 					       (/ n 2))
-					    n))))))
-)
+					    n)))))))
 
 (defun math-nth-root-float-iter (a guess)   ; uses "n", "nf", "nfm1"
   (math-working "root" guess)
@@ -639,15 +588,13 @@
 			    nf)))
     (if (math-nearly-equal-float g2 guess)
 	g2
-      (math-nth-root-float-iter a g2)))
-)
+      (math-nth-root-float-iter a g2))))
 
 (defun math-nth-root-integer (a n &optional guess)   ; [I I S]
   (math-nth-root-int-iter a (or guess
 				(math-scale-int 1 (/ (+ (math-numdigs a)
 							(1- n))
-						     n))))
-)
+						     n)))))
 
 (defun math-nth-root-int-iter (a guess)   ; uses "n"
   (math-working "root" guess)
@@ -659,14 +606,12 @@
       (cons (and (equal (car g2) guess)
 		 (eq (cdr q) 0)
 		 (eq (cdr g2) 0))
-	    guess)))
-)
+	    guess))))
 
 (defun calcFunc-nroot (x n)
   (calcFunc-pow x (if (integerp n)
 		      (math-make-frac 1 n)
-		    (math-div 1 n)))
-)
+		    (math-div 1 n))))
 
 
 
@@ -686,8 +631,7 @@
 	 (math-from-hms a 'rad))
 	((memq calc-angle-mode '(deg hms))
 	 (math-mul a (math-pi-over-180)))
-	(t a))
-)
+	(t a)))
 
 (defun math-from-radians (a)   ; [N N]
   (cond ((eq calc-angle-mode 'deg)
@@ -696,8 +640,7 @@
 	   (list 'calcFunc-deg a)))
 	((eq calc-angle-mode 'hms)
 	 (math-to-hms a 'rad))
-	(t a))
-)
+	(t a)))
 
 (defun math-to-radians-2 (a)   ; [N N]
   (cond ((eq (car-safe a) 'hms)
@@ -706,16 +649,14 @@
 	 (if calc-symbolic-mode
 	     (math-div (math-mul a '(var pi var-pi)) 180)
 	   (math-mul a (math-pi-over-180))))
-	(t a))
-)
+	(t a)))
 
 (defun math-from-radians-2 (a)   ; [N N]
   (cond ((memq calc-angle-mode '(deg hms))
 	 (if calc-symbolic-mode
 	     (math-div (math-mul 180 a) '(var pi var-pi))
 	   (math-div a (math-pi-over-180))))
-	(t a))
-)
+	(t a)))
 
 
 
@@ -744,8 +685,7 @@
 	((equal x '(var nan var-nan))
 	 x)
 	(t (calc-record-why 'scalarp x)
-	   (list 'calcFunc-sin x)))
-)
+	   (list 'calcFunc-sin x))))
 
 (defun calcFunc-cos (x)   ; [N N] [Public]
   (cond ((and (integerp x)
@@ -788,16 +728,14 @@
 	((equal x '(var nan var-nan))
 	 x)
 	(t (calc-record-why 'scalarp x)
-	   (list 'calcFunc-cos x)))
-)
+	   (list 'calcFunc-cos x))))
 
 (defun calcFunc-sincos (x)   ; [V N] [Public]
   (if (Math-scalarp x)
       (math-with-extra-prec 2
 	(let ((sc (math-sin-cos-raw (math-to-radians (math-float x)))))
 	  (list 'vec (cdr sc) (car sc))))    ; the vector [cos, sin]
-    (list 'vec (calcFunc-sin x) (calcFunc-cos x)))
-)
+    (list 'vec (calcFunc-sin x) (calcFunc-cos x))))
 
 (defun calcFunc-tan (x)   ; [N N] [Public]
   (cond ((and (integerp x)
@@ -840,8 +778,7 @@
 	((equal x '(var nan var-nan))
 	 x)
 	(t (calc-record-why 'scalarp x)
-	   (list 'calcFunc-tan x)))
-)
+	   (list 'calcFunc-tan x))))
 
 (defun math-sin-raw (x)   ; [N N]
   (cond ((eq (car x) 'cplx)
@@ -861,21 +798,18 @@
 	 (math-neg-float (math-sin-raw (math-neg-float x))))
 	((math-lessp-float '(float 7 0) x)  ; avoid inf loops due to roundoff
 	 (math-sin-raw (math-mod x (math-two-pi))))
-	(t (math-sin-raw-2 x x)))
-)
+	(t (math-sin-raw-2 x x))))
 
 (defun math-cos-raw (x)   ; [N N]
   (if (eq (car-safe x) 'polar)
       (math-polar (math-cos-raw (math-complex x)))
-    (math-sin-raw (math-sub (math-pi-over-2) x)))
-)
+    (math-sin-raw (math-sub (math-pi-over-2) x))))
 
 ;;; This could use a smarter method:  Reduce x as in math-sin-raw, then
 ;;;   compute either sin(x) or cos(x), whichever is smaller, and compute
 ;;;   the other using the identity sin(x)^2 + cos(x)^2 = 1.
 (defun math-sin-cos-raw (x)   ; [F.F F]  (result is (sin x . cos x))
-  (cons (math-sin-raw x) (math-cos-raw x))
-)
+  (cons (math-sin-raw x) (math-cos-raw x)))
 
 (defun math-tan-raw (x)   ; [N N]
   (cond ((eq (car x) 'cplx)
@@ -898,8 +832,7 @@
 	 (let ((sc (math-sin-cos-raw x)))
 	   (if (eq (nth 1 (cdr sc)) 0)
 	       (math-div (car sc) 0)
-	     (math-div-float (car sc) (cdr sc))))))
-)
+	     (math-div-float (car sc) (cdr sc)))))))
 
 (defun math-sin-raw-2 (x orgx)   ; This avoids poss of inf recursion.  [F F]
   (let ((xmpo2 (math-sub-float (math-pi-over-2) x)))
@@ -912,8 +845,7 @@
 	   (math-neg (math-cos-raw-2 (math-add (math-pi-over-2) x) orgx)))
 	  ((math-nearly-zerop-float x orgx) '(float 0 0))
 	  (calc-symbolic-mode (signal 'inexact-result nil))
-	  (t (math-sin-series x 6 4 x (math-neg-float (math-sqr-float x))))))
-)
+	  (t (math-sin-series x 6 4 x (math-neg-float (math-sqr-float x)))))))
 
 (defun math-cos-raw-2 (x orgx)   ; [F F]
   (cond ((math-nearly-zerop-float x orgx) '(float 1 0))
@@ -922,8 +854,7 @@
 	     (math-sin-series
 	      (math-add-float '(float 1 0)
 			      (math-mul-float xnegsqr '(float 5 -1)))
-	      24 5 xnegsqr xnegsqr))))
-)
+	      24 5 xnegsqr xnegsqr)))))
 
 (defun math-sin-series (sum nfac n x xnegsqr)
   (math-working "sin" sum)
@@ -933,8 +864,7 @@
     (if (math-nearly-equal-float sum nextsum)
 	sum
       (math-sin-series nextsum (math-mul nfac (* n (1+ n)))
-		       (+ n 2) nextx xnegsqr)))
-)
+		       (+ n 2) nextx xnegsqr))))
 
 
 ;;; Inverse sine, cosine, tangent.
@@ -960,8 +890,7 @@
 	((equal x '(var nan var-nan))
 	 x)
 	(t (calc-record-why 'numberp x)
-	   (list 'calcFunc-arcsin x)))
-)
+	   (list 'calcFunc-arcsin x))))
 
 (defun calcFunc-arccos (x)   ; [N N] [Public]
   (cond ((eq x 1) 0)
@@ -984,8 +913,7 @@
 	((equal x '(var nan var-nan))
 	 x)
 	(t (calc-record-why 'numberp x)
-	   (list 'calcFunc-arccos x)))
-)
+	   (list 'calcFunc-arccos x))))
 
 (defun calcFunc-arctan (x)   ; [N N] [Public]
   (cond ((eq x 0) 0)
@@ -1010,8 +938,7 @@
 	((equal x '(var nan var-nan))
 	 x)
 	(t (calc-record-why 'numberp x)
-	   (list 'calcFunc-arctan x)))
-)
+	   (list 'calcFunc-arctan x))))
 
 (defun math-arcsin-raw (x)   ; [N N]
   (let ((a (math-sqrt-raw (math-sub '(float 1 0) (math-sqr x)))))
@@ -1020,12 +947,10 @@
 	(math-with-extra-prec 2   ; use extra precision for difficult case
 	  (math-mul '(cplx 0 -1)
 		    (math-ln-raw (math-add (math-mul '(cplx 0 1) x) a))))
-      (math-arctan2-raw x a)))
-)
+      (math-arctan2-raw x a))))
 
 (defun math-arccos-raw (x)   ; [N N]
-  (math-sub (math-pi-over-2) (math-arcsin-raw x))
-)
+  (math-sub (math-pi-over-2) (math-arcsin-raw x)))
 
 (defun math-arctan-raw (x)   ; [N N]
   (cond ((memq (car x) '(cplx polar))
@@ -1049,8 +974,7 @@
 					     (math-sub-float '(float 1 0) x)
 					     (math-add-float '(float 1 0)
 							     x))))))
-	(t (math-arctan-series x 3 x (math-neg-float (math-sqr-float x)))))
-)
+	(t (math-arctan-series x 3 x (math-neg-float (math-sqr-float x))))))
 
 (defun math-arctan-series (sum n x xnegsqr)
   (math-working "arctan" sum)
@@ -1058,8 +982,7 @@
 	 (nextsum (math-add-float sum (math-div-float nextx (math-float n)))))
     (if (math-nearly-equal-float sum nextsum)
 	sum
-      (math-arctan-series nextsum (+ n 2) nextx xnegsqr)))
-)
+      (math-arctan-series nextsum (+ n 2) nextx xnegsqr))))
 
 (defun calcFunc-arctan2 (y x)   ; [F R R] [Public]
   (if (Math-anglep y)
@@ -1088,8 +1011,7 @@
 	      (calcFunc-arctan2 y x)
 	    '(var nan var-nan)))
       (calc-record-why 'anglep y)
-      (list 'calcFunc-arctan2 y x)))
-)
+      (list 'calcFunc-arctan2 y x))))
 
 (defun math-arctan2-raw (y x)   ; [F R R]
   (cond ((math-zerop y)
@@ -1106,15 +1028,13 @@
 			 (math-pi)))
 	(t
 	 (math-sub-float (math-arctan-raw (math-div-float y x))
-			 (math-pi))))
-)
+			 (math-pi)))))
 
 (defun calcFunc-arcsincos (x)   ; [V N] [Public]
   (if (and (Math-vectorp x)
 	   (= (length x) 3))
       (calcFunc-arctan2 (nth 2 x) (nth 1 x))
-    (math-reject-arg x "*Two-element vector expected"))
-)
+    (math-reject-arg x "*Two-element vector expected")))
 
 
 
@@ -1139,8 +1059,7 @@
 	((equal x '(var nan var-nan))
 	 x)
 	(t (calc-record-why 'numberp x)
-	   (list 'calcFunc-exp x)))
-)
+	   (list 'calcFunc-exp x))))
 
 (defun calcFunc-expm1 (x)   ; [N N] [Public]
   (cond ((eq x 0) 0)
@@ -1171,14 +1090,12 @@
 	((equal x '(var nan var-nan))
 	 x)
 	(t (calc-record-why 'numberp x)
-	   (list 'calcFunc-expm1 x)))
-)
+	   (list 'calcFunc-expm1 x))))
 
 (defun calcFunc-exp10 (x)   ; [N N] [Public]
   (if (eq x 0)
       1
-    (math-pow '(float 1 1) x))
-)
+    (math-pow '(float 1 1) x)))
 
 (defun math-exp-raw (x)   ; [N N]
   (cond ((math-zerop x) '(float 1 0))
@@ -1207,12 +1124,10 @@
 	   (math-mul-float (math-ipow (math-sqrt-e) hint)
 			   (math-add-float '(float 1 0)
 					   (math-exp-minus-1-raw hfrac)))))
-	(t (math-add-float '(float 1 0) (math-exp-minus-1-raw x))))
-)
+	(t (math-add-float '(float 1 0) (math-exp-minus-1-raw x)))))
 
 (defun math-exp-minus-1-raw (x)   ; [F F]
-  (math-exp-series x 2 3 x x)
-)
+  (math-exp-series x 2 3 x x))
 
 (defun math-exp-series (sum nfac n xpow x)
   (math-working "exp" sum)
@@ -1221,8 +1136,7 @@
 						      (math-float nfac)))))
     (if (math-nearly-equal-float sum nextsum)
 	sum
-      (math-exp-series nextsum (math-mul nfac n) (1+ n) nextx x)))
-)
+      (math-exp-series nextsum (math-mul nfac n) (1+ n) nextx x))))
 
 
 
@@ -1256,8 +1170,7 @@
 	     x
 	   '(var inf var-inf)))
 	(t (calc-record-why 'numberp x)
-	   (list 'calcFunc-ln x)))
-)
+	   (list 'calcFunc-ln x))))
 
 (defun calcFunc-log10 (x)   ; [N N] [Public]
   (cond ((math-equal-int x 1)
@@ -1308,8 +1221,7 @@
 	     x
 	   '(var inf var-inf)))
 	(t (calc-record-why 'numberp x)
-	   (list 'calcFunc-log10 x)))
-)
+	   (list 'calcFunc-log10 x))))
 
 (defun calcFunc-log (x &optional b)   ; [N N N] [Public]
   (cond ((or (null b) (equal b '(var e var-e)))
@@ -1374,14 +1286,12 @@
 	(t (if (Math-numberp b)
 	       (calc-record-why 'numberp x)
 	     (calc-record-why 'numberp b))
-	   (list 'calcFunc-log x b)))
-)
+	   (list 'calcFunc-log x b))))
 
 (defun calcFunc-alog (x &optional b)
   (cond ((or (null b) (equal b '(var e var-e)))
 	 (math-normalize (list 'calcFunc-exp x)))
-	(t (math-pow b x)))
-)
+	(t (math-pow b x))))
 
 (defun calcFunc-ilog (x b)
   (if (and (math-natnump x) (not (eq x 0))
@@ -1391,8 +1301,7 @@
 	(if (Math-natnum-lessp x b)
 	    0
 	  (cdr (math-integer-log x b))))
-    (math-floor (calcFunc-log x b)))
-)
+    (math-floor (calcFunc-log x b))))
 
 (defun math-integer-log (x b)
   (let ((pows (list b))
@@ -1412,8 +1321,7 @@
       (or (Math-lessp x next)
 	  (setq pow next
 		sum (+ sum n))))
-    (cons (equal pow x) sum))
-)
+    (cons (equal pow x) sum)))
 
 
 (defun math-log-base-raw (b)   ; [N N]
@@ -1421,8 +1329,7 @@
 		(eq (nth 1 math-log-base-cache) calc-internal-prec)))
       (setq math-log-base-cache (list b calc-internal-prec
 				      (math-ln-raw (math-float b)))))
-  (nth 2 math-log-base-cache)
-)
+  (nth 2 math-log-base-cache))
 (setq math-log-base-cache nil)
 
 (defun calcFunc-lnp1 (x)   ; [N N] [Public]
@@ -1454,8 +1361,7 @@
 	     x
 	   '(var inf var-inf)))
 	(t (calc-record-why 'numberp x)
-	   (list 'calcFunc-lnp1 x)))
-)
+	   (list 'calcFunc-lnp1 x))))
 
 (defun math-ln-raw (x)    ; [N N] --- must be float format!
   (cond ((eq (car-safe x) 'cplx)
@@ -1486,8 +1392,7 @@
 		(math-pi))))
 	(t (list 'cplx   ; negative and real
 		 (math-ln-raw (math-neg-float x))
-		 (math-pi))))
-)
+		 (math-pi)))))
 
 (defun math-ln-raw-2 (x)    ; [F F]
   (cond ((math-lessp-float '(float 14 -1) x)
@@ -1495,13 +1400,11 @@
 			 (math-ln-2)))
 	(t    ; now .7 < x <= 1.4
 	 (math-ln-raw-3 (math-div-float (math-sub-float x '(float 1 0))
-					(math-add-float x '(float 1 0))))))
-)
+					(math-add-float x '(float 1 0)))))))
 
 (defun math-ln-raw-3 (x)   ; [F F]
   (math-mul-float (math-ln-raw-series x 3 x (math-sqr-float x))
-		  '(float 2 0))
-)
+		  '(float 2 0)))
 
 ;;; Compute ln((1+x)/(1-x))
 (defun math-ln-raw-series (sum n x xsqr)
@@ -1510,12 +1413,10 @@
 	 (nextsum (math-add-float sum (math-div-float nextx (math-float n)))))
     (if (math-nearly-equal-float sum nextsum)
 	sum
-      (math-ln-raw-series nextsum (+ n 2) nextx xsqr)))
-)
+      (math-ln-raw-series nextsum (+ n 2) nextx xsqr))))
 
 (defun math-ln-plus-1-raw (x)
-  (math-lnp1-series x 2 x (math-neg x))
-)
+  (math-lnp1-series x 2 x (math-neg x)))
 
 (defun math-lnp1-series (sum n xpow x)
   (math-working "lnp1" sum)
@@ -1523,8 +1424,7 @@
 	 (nextsum (math-add-float sum (math-div-float nextx (math-float n)))))
     (if (math-nearly-equal-float sum nextsum)
 	sum
-      (math-lnp1-series nextsum (1+ n) nextx x)))
-)
+      (math-lnp1-series nextsum (1+ n) nextx x))))
 
 (math-defcache math-ln-10 (float (bigpos 018 684 045 994 092 585 302 2) -21)
   (math-ln-raw-2 '(float 1 1)))
@@ -1559,8 +1459,7 @@
 	     (equal x '(var nan var-nan)))
 	 x)
 	(t (calc-record-why 'numberp x)
-	   (list 'calcFunc-sinh x)))
-)
+	   (list 'calcFunc-sinh x))))
 (put 'calcFunc-sinh 'math-expandable t)
 
 (defun calcFunc-cosh (x)   ; [N N] [Public]
@@ -1588,8 +1487,7 @@
 	     (equal x '(var nan var-nan)))
 	 (math-abs x))
 	(t (calc-record-why 'numberp x)
-	   (list 'calcFunc-cosh x)))
-)
+	   (list 'calcFunc-cosh x))))
 (put 'calcFunc-cosh 'math-expandable t)
 
 (defun calcFunc-tanh (x)   ; [N N] [Public]
@@ -1622,8 +1520,7 @@
 	((equal x '(var nan var-nan))
 	 x)
 	(t (calc-record-why 'numberp x)
-	   (list 'calcFunc-tanh x)))
-)
+	   (list 'calcFunc-tanh x))))
 (put 'calcFunc-tanh 'math-expandable t)
 
 (defun calcFunc-arcsinh (x)   ; [N N] [Public]
@@ -1651,8 +1548,7 @@
 	     (equal x '(var nan var-nan)))
 	 x)
 	(t (calc-record-why 'numberp x)
-	   (list 'calcFunc-arcsinh x)))
-)
+	   (list 'calcFunc-arcsinh x))))
 (put 'calcFunc-arcsinh 'math-expandable t)
 
 (defun calcFunc-arccosh (x)   ; [N N] [Public]
@@ -1697,8 +1593,7 @@
 	     (equal x '(var nan var-nan)))
 	 x)
 	(t (calc-record-why 'numberp x)
-	   (list 'calcFunc-arccosh x)))
-)
+	   (list 'calcFunc-arccosh x))))
 (put 'calcFunc-arccosh 'math-expandable t)
 
 (defun calcFunc-arctanh (x)   ; [N N] [Public]
@@ -1737,8 +1632,7 @@
 	((equal x '(var nan var-nan))
 	 x)
 	(t (calc-record-why 'numberp x)
-	   (list 'calcFunc-arctanh x)))
-)
+	   (list 'calcFunc-arctanh x))))
 (put 'calcFunc-arctanh 'math-expandable t)
 
 
@@ -1756,8 +1650,7 @@
 	(math-expand-formulas
 	 (math-div (math-mul a '(var pi var-pi)) 180))
 	((math-infinitep a) a)
-	(t (list 'calcFunc-rad a)))
-)
+	(t (list 'calcFunc-rad a))))
 (put 'calcFunc-rad 'math-expandable t)
 
 ;;; Convert A from HMS or radians to degrees.
@@ -1774,10 +1667,9 @@
 	(math-expand-formulas
 	 (math-div (math-mul 180 a) '(var pi var-pi)))
 	((math-infinitep a) a)
-	(t (list 'calcFunc-deg a)))
-)
+	(t (list 'calcFunc-deg a))))
 (put 'calcFunc-deg 'math-expandable t)
 
-
+;;; calc-math.el ends here
 
 
