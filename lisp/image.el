@@ -263,7 +263,7 @@ The image is automatically split into ROW x COLS slices."
 	  (setq x (+ x dx))))
       (setq x 0.0
 	    y (+ y dy))
-      (insert (propertize "\n" 'line-height 0)))))
+      (insert (propertize "\n" 'line-height t)))))
 
 
 
