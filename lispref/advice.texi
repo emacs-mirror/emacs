@@ -268,6 +268,12 @@ the original function definition.  This provides a way to override the
 original definition completely.  (It also overrides lower-positioned
 pieces of around-advice).
 
+If the around-advice uses @code{ad-do-it} more than once, the original
+definition is run at each place.  In this way, around-advice can execute
+the original definition (and lower-positioned pieces of around-advice)
+several times.  Another way to do that is by using @code{ad-do-it}
+inside of a loop.
+
 @node Computed Advice
 @section Computed Advice
 
