@@ -951,6 +951,7 @@ case "${canonical}" in
       *-bsd386* )		opsys=bsd386 ;;
       *-386bsd* )	        opsys=386bsd ;;
       *-netbsd* )	        opsys=netbsd ;;
+      *-nextstep* )             opsys=mach2 ;;
       ## Otherwise, we'll fall through to the generic opsys code at the bottom.
     esac
   ;;
