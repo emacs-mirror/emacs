@@ -1,3 +1,7 @@
+2001-02-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* bs.el (bs-attributes-list): Doc fix.
+
 2001-02-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* help.el (describe-project): Display the file THE-GNU-PROJECT.
