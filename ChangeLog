@@ -1,7 +1,7 @@
 2000-05-25  Gerd Moellmann  <gerd@gnu.org>
 
-	* Makefile.in: Ignore exit status of `unset CDPATH' everywhwere.
-	On FreeBSD, the exiit status is 1 if CDPATH is not set.
+	* Makefile.in: Ignore exit status of `unset CDPATH' everywhere.
+	On FreeBSD, the exit status is 1 if CDPATH is not set.
 
 2000-05-20  NIIBE Yutaka  <gniibe@mri.co.jp>
 
