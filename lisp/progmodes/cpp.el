@@ -168,6 +168,8 @@ This command pops up a buffer which you should edit to specify
 what kind of highlighting to use, and the criteria for highlighting.
 A prefix arg suppresses display of that buffer."
   (interactive "P")
+  (unless (memq 'cpp buffer-invisibility-spec) 
+    (add-to-invisibility-spec 'cpp))
   (setq cpp-parse-symbols nil)
   (cpp-parse-reset)
   (if (null cpp-edit-list)
@@ -332,7 +334,7 @@ A prefix arg suppresses display of that buffer."
 
 (defun cpp-make-overlay-hidden (overlay)
   ;; Make overlay hidden and intangible.
-  (overlay-put overlay 'invisible t)
+  (overlay-put overlay 'invisible 'cpp)
   (overlay-put overlay 'intangible t)
   ;; Unfortunately `intangible' is not implemented for overlays yet,
   ;; so we make is read-only instead.
