@@ -38,3 +38,7 @@
 #undef LIB_X11_LIB
 #undef C_SWITCH_X_SYSTEM
 #undef LD_SWITCH_X_DEFAULT
+/* However, HPUX 9 has Motif includes in a strange place.
+   So search that place.  */
+#define C_SWITCH_X_SYSTEM -I/usr/include/Motif1.2
+#define LD_SWITCH_X_DEFAULT -L/usr/lib/Motif1.2
