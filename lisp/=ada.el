@@ -106,33 +106,30 @@
 Most control constructs and declarations of Ada can be inserted in the buffer
 by typing Control-C followed by a character mnemonic for the construct.
 
-C-c C-a  array         	C-c b    exception block
-C-c C-e  exception      C-c d    declare block
-C-c C-k  package spec   C-c k    package body
-C-c C-p  procedure spec C-c p    proc/func body
-C-c C-f  func spec      C-c f    for loop
-                        C-c i    if
-                        C-c I    elsif
-                        C-c e    else
-C-c C-v  private        C-c l    loop
-C-c C-r  record         C-c c    case
-C-c C-s  subtype        C-c s    separate
-C-c C-t  type           C-c t    tab spacing for indents
-C-c C-w  when           C-c w    while
-                        C-c x    exit
-C-c (    paired parens  C-c -    inline comment
-                        C-c h    header sec
-C-c C    compile        C-c B    bind
-C-c E    find error list
-C-c L    name library   C-c O    options for bind
+\\<ada-mode-map>\\[ada-array] array         	\\[ada-exception-block]    exception block
+\\[ada-exception]  exception      \\[ada-declare-block]    declare block
+\\[ada-package-spec]  package spec   \\[ada-package-body]    package body
+\\[ada-procedure-spec]  procedure spec \\[ada-subprogram-body]    proc/func body
+\\[ada-function-spec]  func spec      \\[ada-for-loop]    for loop
+                        \\[ada-if]    if
+                        \\[ada-elsif]    elsif
+                        \\[ada-else]    else
+\\[ada-private]  private        \\[ada-loop]    loop
+\\[ada-record]  record         \\[ada-case]    case
+\\[ada-subtype]  subtype        \\[ada-separate]    separate
+\\[ada-type]  type           \\[ada-tabsize]    tab spacing for indents
+\\[ada-when]  when           \\[ada-while]    while
+                        \\[ada-exit]    exit
+\\[ada-paired-parens]    paired parens  \\[ada-inline-comment]    inline comment
+                        \\[ada-header]    header spec
+\\[ada-compile]    compile        \\[ada-bind]    bind
+\\[ada-find-listing]    find error list
+\\[ada-library-name]    name library   \\[ada-options-for-bind]    options for bind
 
-C-c < and C-c > move backward and forward respectively to the next line
+\\[ada-backward-to-same-indent] and \\[ada-forward-to-same-indent] move backward and forward respectively to the next line
 having the same (or lesser) level of indentation.
 
-Variable ada-indent controls the number of spaces for indent/undent.
-
-\\{ada-mode-map}
-"
+Variable `ada-indent' controls the number of spaces for indent/undent."
   (interactive)
   (kill-all-local-variables)
   (use-local-map ada-mode-map)
@@ -169,8 +166,8 @@ Variable ada-indent controls the number of spaces for indent/undent.
 
 (defun ada-tabsize (s)
   "Changes spacing used for indentation.
-Reads spacing from minibuffer."
-  (interactive "nNew indentation spacing: ")
+The prefix argument is used as the new spacing."
+  (interactive "p")
   (setq ada-indent s))
 
 (defun ada-newline ()
