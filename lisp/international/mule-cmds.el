@@ -1889,8 +1889,8 @@ specifies the character set for the major languages of Western Europe."
 		      ?3))
 	  ;; We suppress these setting for the moment because the
 	  ;; above assumption is wrong.
-	  ;; (aset standard-display-table ?' [?’])
-	  ;; (aset standard-display-table ?` [?‘])
+	  ;; (aset standard-display-table ?' [?$,1ry(B])
+	  ;; (aset standard-display-table ?` [?$,1rx(B])
 	  ;; The fonts don't have the relevant bug.
 	  (aset standard-display-table 160 nil)
 	  (aset standard-display-table (make-char 'latin-iso8859-1 160)
