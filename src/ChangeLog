@@ -8,7 +8,7 @@
 	compositions to encode.
 	(encode_coding_string): Likewise.  Free composition data.
 
-2004-09-30  Florian Weimer <fw@deneb.enyo.de>	
+2004-09-30  Florian Weimer <fw@deneb.enyo.de>	(tiny change)
 
 	* coding.c (code_convert_region): Free composition data.
 
