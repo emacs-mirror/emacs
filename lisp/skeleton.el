@@ -1,6 +1,6 @@
 ;;; skeleton.el --- Lisp language extension for writing statement skeletons
 
-;; Copyright (C) 1993, 1994, 1995, 1996 by Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1996, 2003 by Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Maintainer: FSF
@@ -119,15 +119,17 @@ are integer buffer positions in the reverse order of the insertion order.")
 ;;;###autoload
 (defmacro define-skeleton (command documentation &rest skeleton)
   "Define a user-configurable COMMAND that enters a statement skeleton.
-DOCUMENTATION is that of the command, while the variable of the same name,
-which contains the skeleton, has a documentation to that effect.
-INTERACTOR and ELEMENT ... are as defined under `skeleton-insert'."
+DOCUMENTATION is that of the command.
+SKELETON is as defined under `skeleton-insert'."
   (if skeleton-debug
       (set command skeleton))
   `(progn
+     ;; Tell self-insert-command that this function, if called by an
+     ;; abbrev, should cause the self-insert to be skipped.
+     (put ',command 'no-self-insert t)
      (defun ,command (&optional str arg)
        ,(concat documentation
-		(if (string-match "\n\\>" documentation)
+		(if (string-match "\n\\'" documentation)
 		    "" "\n")
 		"\n"
   "This is a skeleton command (see `skeleton-insert').
@@ -144,42 +146,29 @@ This is a way of overriding the use of a highlighted region.")
 
 ;;;###autoload
 (defun skeleton-proxy-new (skeleton &optional str arg)
-  "Insert skeleton defined by variable of same name (see `skeleton-insert').
+  "Insert SKELETON.
 Prefix ARG allows wrapping around words or regions (see `skeleton-insert').
 If no ARG was given, but the region is visible, ARG defaults to -1 depending
 on `skeleton-autowrap'.  An ARG of  M-0  will prevent this just for once.
 This command can also be an abbrev expansion (3rd and 4th columns in
 \\[edit-abbrevs]  buffer: \"\"  command-name).
 
-When called as a function, optional first argument STR may also be a string
-which will be the value of `str' whereas the skeleton's interactor is then
-ignored."
-  (interactive "*P\nP")
-  (setq skeleton (funcall skeleton-filter skeleton))
-  (if (not skeleton)
-      (if (memq this-command '(self-insert-command
-			       skeleton-pair-insert-maybe
-			       expand-abbrev))
-	  (setq buffer-undo-list (primitive-undo 1 buffer-undo-list)))
-    (skeleton-insert skeleton
-		     (if (setq skeleton-abbrev-cleanup
-			       (or (eq this-command 'self-insert-command)
-				   (eq this-command
-				       'skeleton-pair-insert-maybe)))
-			 ()
-		       ;; Pretend  C-x a e  passed its prefix arg to us
-		       (if (or arg current-prefix-arg)
-			   (prefix-numeric-value (or arg
-						     current-prefix-arg))
-			 (and skeleton-autowrap
-			      (or (eq last-command 'mouse-drag-region)
-				  (and transient-mark-mode mark-active))
-			      -1)))
-		     (if (stringp str)
-			 str))
-    (and skeleton-abbrev-cleanup
-	 (setq skeleton-abbrev-cleanup (point))
-	 (add-hook 'post-command-hook 'skeleton-abbrev-cleanup nil t))))
+Optional first argument STR may also be a string which will be the value
+of `str' whereas the skeleton's interactor is then ignored."
+  (skeleton-insert (funcall skeleton-filter skeleton)
+		   ;; Pretend  C-x a e  passed its prefix arg to us
+		   (if (or arg current-prefix-arg)
+		       (prefix-numeric-value (or arg
+						 current-prefix-arg))
+		     (and skeleton-autowrap
+			  (or (eq last-command 'mouse-drag-region)
+			      (and transient-mark-mode mark-active))
+			  -1))
+		   (if (stringp str)
+		       str))
+  ;; Return non-nil to tell expand-abbrev that expansion has happened.
+  ;; Otherwise the no-self-insert is ignored.
+  t)
 
 ;; This command isn't meant to be called, only its aliases with meaningful
 ;; names are.
@@ -390,7 +379,7 @@ automatically, and you are prompted to fill in the variable parts.")))
 		 opoint (point)
 		 skeleton (cdr skeleton))
       (condition-case quit
-	  (skeleton-internal-1 (car skeleton))
+	  (skeleton-internal-1 (car skeleton) nil recursive)
 	(quit
 	 (if (eq (cdr quit) 'recursive)
 	     (setq recursive 'quit
@@ -410,7 +399,7 @@ automatically, and you are prompted to fill in the variable parts.")))
       (signal 'quit 'recursive)
     recursive))
 
-(defun skeleton-internal-1 (element &optional literal)
+(defun skeleton-internal-1 (element &optional literal recursive)
   (cond
    ((char-or-string-p element)
     (if (and (integerp element)		; -num
@@ -418,8 +407,7 @@ automatically, and you are prompted to fill in the variable parts.")))
 	(if skeleton-untabify
 	    (backward-delete-char-untabify (- element))
 	  (delete-backward-char (- element)))
-      (insert (if (and skeleton-transformation
-		       (not literal))
+      (insert (if (not literal)
 		  (funcall skeleton-transformation element)
 		element))))
    ((or (eq element '\n)			; actually (eq '\n 'n)
@@ -457,20 +445,20 @@ automatically, and you are prompted to fill in the variable parts.")))
 	  (goto-char (pop skeleton-regions))
 	  (and (<= (current-column) (current-indentation))
 	       (eq (nth 1 skeleton) '\n)
-		    (end-of-line 0)))
-	   (or skeleton-point
-	       (setq skeleton-point (point)))))
-	((eq element '-)
-	 (setq skeleton-point (point)))
-	((eq element '&)
-	 (when skeleton-modified (pop skeleton)))
-	((eq element '|)
-	 (unless skeleton-modified (pop skeleton)))
-	((eq element '@)
-	 (push (point) skeleton-positions))
-	((eq 'quote (car-safe element))
-	 (eval (nth 1 element)))
-	((or (stringp (car-safe element))
+	       (end-of-line 0)))
+      (or skeleton-point
+	  (setq skeleton-point (point)))))
+   ((eq element '-)
+    (setq skeleton-point (point)))
+   ((eq element '&)
+    (when skeleton-modified (pop skeleton)))
+   ((eq element '|)
+    (unless skeleton-modified (pop skeleton)))
+   ((eq element '@)
+    (push (point) skeleton-positions))
+   ((eq 'quote (car-safe element))
+    (eval (nth 1 element)))
+   ((or (stringp (car-safe element))
 	(consp (car-safe element)))
     (if (symbolp (car-safe (car element)))
 	(while (skeleton-internal-list element nil t))
@@ -479,7 +467,7 @@ automatically, and you are prompted to fill in the variable parts.")))
 	(skeleton-internal-list element (car literal))
 	(setq literal (cdr literal)))))
    ((null element))
-   (t (skeleton-internal-1 (eval element) t))))
+   (t (skeleton-internal-1 (eval element) t recursive))))
 
 ;; Maybe belongs into simple.el or elsewhere
 ;; ;;;###autoload
