@@ -1,3 +1,8 @@
+2002-02-15  Andreas Schwab  <schwab@suse.de>
+
+	* textmodes/tex-mode.el (tex-font-lock-keywords-2): Require
+	non-letter after specials.
+
 2002-02-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* menu-bar.el (menu-bar-tools-menu): Add an item for Calculator.
@@ -126,7 +131,7 @@
 	* cus-start.el: Don't warn about "x-*" symbols when building a
 	non-GUI version.
 
-2002-02-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-02-11  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* strokes.el (strokes-do-stroke, strokes-do-complex-stroke):
 	Doc fix.
@@ -152,7 +157,7 @@
 	(dump-charsets, dump-codings): Deleted (obsolete).
 	From Dave Love <fx@gnu.org>.
 
-2002-02-10  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-02-10  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* menu-bar.el (menu-bar-showhide-menu): Rename functions for
 	toggling.
@@ -176,7 +181,7 @@
 	
 	* ediff.el: typo in comment.
 	
-2002-02-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-02-09  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* menu-bar.el (menu-bar-options-save): Take care of
 	line-number-mode and column-number-mode variables.
