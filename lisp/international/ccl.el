@@ -774,7 +774,8 @@
 	       (ccl-check-register right rrr)
 	       (ccl-embed-code 'write-expr-register 0
 			       (logior (ash op 3)
-				       (get right 'ccl-register-number))))))
+				       (get right 'ccl-register-number))
+			       left))))
 
 	  (t
 	   (error "CCL: Invalid argument: %s" cmd))))

@@ -54,7 +54,9 @@ static struct prop_location *expect_property_change P_ ((Display *, Window,
 static void unexpect_property_change P_ ((struct prop_location *));
 static Lisp_Object wait_for_property_change_unwind P_ ((Lisp_Object));
 static void wait_for_property_change P_ ((struct prop_location *));
-static Lisp_Object x_get_foreign_selection P_ ((Lisp_Object, Lisp_Object));
+static Lisp_Object x_get_foreign_selection P_ ((Lisp_Object,
+                                                Lisp_Object,
+                                                Lisp_Object));
 static void x_get_window_property P_ ((Display *, Window, Atom,
 				       unsigned char **, int *,
 				       Atom *, int *, unsigned long *, int));
@@ -1219,8 +1221,8 @@ static Window reading_selection_window;
    Converts this to Lisp data and returns it.  */
 
 static Lisp_Object
-x_get_foreign_selection (selection_symbol, target_type)
-     Lisp_Object selection_symbol, target_type;
+x_get_foreign_selection (selection_symbol, target_type, time_stamp)
+     Lisp_Object selection_symbol, target_type, time_stamp;
 {
   struct frame *sf = SELECTED_FRAME ();
   Window requestor_window = FRAME_X_WINDOW (sf);
@@ -1238,6 +1240,18 @@ x_get_foreign_selection (selection_symbol, target_type)
     type_atom = symbol_to_x_atom (dpyinfo, display, XCAR (target_type));
   else
     type_atom = symbol_to_x_atom (dpyinfo, display, target_type);
+
+  if (! NILP (time_stamp))
+    {
+      if (CONSP (time_stamp))
+        requestor_time = (Time) cons_to_long (time_stamp);
+      else if (INTEGERP (time_stamp))
+        requestor_time = (Time) XUINT (time_stamp);
+      else if (FLOATP (time_stamp))
+        requestor_time = (Time) XFLOAT (time_stamp);
+      else
+        error ("TIME_STAMP must be cons or number");
+    }
 
   BLOCK_INPUT;
 
@@ -1930,13 +1944,15 @@ anything that the functions on `selection-converter-alist' know about.  */)
    will block until all of the data has arrived.  */
 
 DEFUN ("x-get-selection-internal", Fx_get_selection_internal,
-       Sx_get_selection_internal, 2, 2, 0,
+       Sx_get_selection_internal, 2, 3, 0,
        doc: /* Return text selected from some X window.
 SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 \(Those are literal upper-case symbol names, since that's what X expects.)
-TYPE is the type of data desired, typically `STRING'.  */)
-     (selection_symbol, target_type)
-     Lisp_Object selection_symbol, target_type;
+TYPE is the type of data desired, typically `STRING'.
+TIME_STAMP is the time to use in the XConvertSelection call for foreign
+selections.  If omitted, defaults to the time for the last event.  */)
+  (selection_symbol, target_type, time_stamp)
+     Lisp_Object selection_symbol, target_type, time_stamp;
 {
   Lisp_Object val = Qnil;
   struct gcpro gcpro1, gcpro2;
@@ -1960,7 +1976,7 @@ TYPE is the type of data desired, typically `STRING'.  */)
 
   if (NILP (val))
     {
-      val = x_get_foreign_selection (selection_symbol, target_type);
+      val = x_get_foreign_selection (selection_symbol, target_type, time_stamp);
       goto DONE;
     }
 
@@ -2487,11 +2503,11 @@ x_handle_dnd_message (f, event, dpyinfo, bufp)
 
   XSETFRAME (frame, f);
 
-  vec = Fmake_vector (4, Qnil);
+  vec = Fmake_vector (make_number (4), Qnil);
   AREF (vec, 0) = SYMBOL_NAME (x_atom_to_symbol (FRAME_X_DISPLAY (f),
                                                  event->message_type));
   AREF (vec, 1) = frame;
-  AREF (vec, 2) = XFASTINT (event->format);
+  AREF (vec, 2) = make_number (event->format);
   AREF (vec, 3) = x_property_data_to_lisp (f,
                                            event->data.b,
                                            event->message_type,

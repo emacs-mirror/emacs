@@ -1,3 +1,14 @@
+2004-02-14  Paul Eggert  <eggert@twinsun.com>
+
+	* rcs2log: Work correctly if CVSROOT specifies :fork: or
+	:local: methods, or omits the colon between the hostname
+	and the path.  Allow :/ in repository path, since CVS does.
+	Fix typo: "pository" should be set from $CVSROOT, not $repository.
+	This fixes a bug reported by Wolfgang Scherer in
+	<http://mail.gnu.org/archive/html/bug-gnu-emacs/2004-02/msg00085.html>,
+	along with some related bugs I discovered by inspecting how
+	CVS itself parses $CVSROOT.
+
 2004-02-04  J,bi(Br,bt(Bme Marant <jmarant@nerim.net> (tiny)
 
 	* emacsclient.c (decode_options): Fix handling of alternate editor.
@@ -11,6 +22,12 @@
 
 	* emacsclient.c (main): Restore errno from saved_errno,
 	so the error message comes from socket_status.
+
+2004-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacsclient.c (main): Stop if socket name too long.
+	Only try su-fallback if the socket name was not explicit.
+	Check socket name length in su-fallback case as well.
 
 2004-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -58,7 +75,7 @@
 
 2003-08-25  Takaaki Ota  <Takaaki.Ota@am.sony.com>  (tiny change)
 
-	* etags.c (consider_token): check C++ `operator' only when the
+	* etags.c (consider_token): Check C++ `operator' only when the
 	token len is long enough.
 
 2003-08-20  Dave Love  <fx@gnu.org>
@@ -5497,7 +5514,8 @@ Tue Jul  1 01:09:07 1997  Geoff Voelker  <voelker@cs.washington.edu>
 ;; coding: iso-2022-7bit
 ;; End:
 
-    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003
+    Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995,
+	1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004
 	Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.

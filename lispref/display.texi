@@ -445,7 +445,7 @@ Normally you should not change the value of this variable.
 @end defvar
 
 @defvar warning-prefix-function
-If non-@code{nil}, te value is a function to generate prefix text for
+If non-@code{nil}, the value is a function to generate prefix text for
 warnings.  Programs can bind the variable to a suitable function.
 @code{display-warning} calls this function with the warnings buffer
 current, and the function can insert text in it.  That text becomes
@@ -454,7 +454,7 @@ the beginning of the warning message.
 The function is called with two arguments, the severity level and its
 entry in @code{warning-levels}.  It should return a list to use as the
 entry (this value need not be an actual member of
-@code{warning-levels}).  By constructing this value, the function to
+@code{warning-levels}).  By constructing this value, the function can
 change the severity of the warning, or specify different handling for
 a given severity level.
 
@@ -466,7 +466,7 @@ to call.
 Programs can bind this variable to @code{t} to say that the next
 warning should begin a series.  When several warnings form a series,
 that means to leave point on the first warning of the series, rather
-than keep move it for each warning so that it appears on the last one.
+than keep moving it for each warning so that it appears on the last one.
 The series ends when the local binding is unbound and
 @code{warning-series} becomes @code{nil} again.
 
@@ -600,7 +600,7 @@ is @code{t} remains invisible.
 @end defun
 
 @defun remove-from-invisibility-spec element
-This removeds the element @var{element} from
+This removes the element @var{element} from
 @code{buffer-invisibility-spec}.  This does nothing if @var{element}
 is not in the list.
 @end defun
@@ -966,6 +966,12 @@ object that belongs to a particular buffer, and has a specified
 beginning and end.  It also has properties that you can examine and set;
 these affect the display of the text within the overlay.
 
+An overlays uses markers to record its beginning and end; thus,
+editing the text of the buffer adjusts the beginning and end of each
+overlay so that it stays with the text.  When you create the overlay,
+you can specify whether text inserted at the beginning should be
+inside the overlay or outside, and likewise for the end of the overlay.
+
 @menu
 * Overlay Properties::  How to read and set properties.
 			What properties do to the screen display.
@@ -1195,7 +1201,11 @@ current buffer.
 
 The arguments @var{front-advance} and @var{rear-advance} specify the
 insertion type for the start of the overlay and for the end of the
-overlay, respectively.  @xref{Marker Insertion Types}.
+overlay, respectively.  @xref{Marker Insertion Types}.  If
+@var{front-advance} is non-@code{nil}, text inserted at the beginning
+of the overlay is excluded from the overlay.  If @var{read-advance} is
+non-@code{nil}, text inserted at the beginning of the overlay is
+included in the overlay.
 @end defun
 
 @defun overlay-start overlay
@@ -1923,7 +1933,7 @@ and examine the face attributes which existed in those versions.
 
 @tindex face-attribute-relative-p
 @defun face-attribute-relative-p attribute value
-This function returns non-@code{nil} if @var{value}, when used as a
+This function returns non-@code{nil} if @var{value}, when used as
 the value of the face attribute @var{attribute}, is relative (that is,
 if it modifies an underlying or inherited value of @var{attribute}).
 @end defun
@@ -2496,7 +2506,7 @@ This function modifies the existing fontset @var{name} to
 use the font name @var{fontname} for the character @var{character}.
 
 If @var{name} is @code{nil}, this function modifies the default
-fontset of which short name is @samp{fontset-default}.
+fontset, whose short name is @samp{fontset-default}.
 
 @var{character} may be a cons; @code{(@var{from} . @var{to})}, where
 @var{from} and @var{to} are non-generic characters.  In that case, use
@@ -2536,7 +2546,7 @@ does that, this function's value may not be accurate.
 
   The @dfn{fringes} of a window are thin vertical strips down the
 sides that are used for displaying bitmaps that indicate truncation,
-continuation, and horizontal scrolling, the overlay arrow.  The
+continuation, horizontal scrolling, and the overlay arrow.  The
 fringes normally appear between the display margins and the window
 text, but you can put them outside the display margins for a specific
 buffer by setting @code{fringes-outside-margins} buffer-locally to a
@@ -2559,11 +2569,12 @@ fringe in pixels.
 
   The values of these variables take effect when you display the
 buffer in a window.  If you change them while the buffer is visible,
-you can call @code{set-window-buffer} to display it in a window again.
+you can call @code{set-window-buffer} to display it once again in the
+same window, to make the changes take effect.
 
 @defun set-window-fringes window left &optional right outside-margins
-This function sets the fringe widthes of window @var{window}.
-If window is @code{nil}, that stands for the selected window.
+This function sets the fringe widths of window @var{window}.
+If @var{window} is @code{nil}, the selected window is used.
 
 The argument @var{left} specifies the width in pixels of the left
 fringe, and likewise @var{right} for the right fringe.  A value of
@@ -2572,9 +2583,10 @@ fringe, and likewise @var{right} for the right fringe.  A value of
 should appear outside of the display margins.
 @end defun
 
-@defun window-fringes window
+@defun window-fringes &optional window
 This function returns information about the fringes of a window
-@var{window}.  The value has the form @code{(@var{left-width}
+@var{window}.  If @var{window} is omitted or @code{nil}, the selected
+window is used.  The value has the form @code{(@var{left-width}
 @var{right-width} @var{frames-outside-margins})}.
 @end defun
 
@@ -2591,8 +2603,8 @@ You can also control this for individual windows.  Call the function
 @code{set-window-scroll-bars} to specify what to do for a specific window:
 
 @defun set-window-scroll-bars window width &optional vertical-type horizontal-type
-Set width and type of scroll bars of window @var{window}.  (If
-@var{window} is @code{nil}, this applies to the selected window.)
+Set width and type of scroll bars of window @var{window}.  
+If @var{window} is @code{nil}, the selected window is used.
 @var{width} specifies the scroll bar width in pixels (@code{nil} means
 use whatever is specified for width for the frame).
 @var{vertical-type} specifies whether to have a vertical scroll bar
@@ -2607,8 +2619,8 @@ implemented, it has no effect.
 
 @defun window-scroll-bars &optional window
 Report the width and type of scroll bars specified for @var{window}.
-If @var{window} is omitted or @code{nil}, it defaults to the currently
-selected window.  The value is a list of the form @code{(@var{width}
+If @var{window} is omitted or @code{nil}, the selected window is used.
+The value is a list of the form @code{(@var{width}
 @var{cols} @var{vertical-type} @var{horizontal-type})}.  The value
 @var{width} is the value that was specified for the width (which may
 be @code{nil}); @var{cols} is the number of columns that the scroll

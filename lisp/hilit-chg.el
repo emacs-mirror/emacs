@@ -61,7 +61,8 @@
 ;;
 ;; You can also use the command highlight-compare-with-file to show changes
 ;; in this file compared with another file (typically the previous version
-;; of the file).
+;; of the file).  The command highlight-compare-buffers can be used to
+;; compare two buffers.
 ;;
 ;;
 ;; There are currently three hooks run by `highlight-changes-mode':
@@ -147,6 +148,7 @@
 ;; highlight-changes-remove-highlight
 ;; highlight-changes-rotate-faces
 ;; highlight-compare-with-file
+;; highlight-compare-buffers
 
 ;;
 ;; You can automatically rotate faces when the buffer is saved;
@@ -174,7 +176,7 @@
 
 ;;; History:
 
-;; R Sharman (rsharman@magma.ca) Feb 1998:
+;; R Sharman (rsharman@pobox.com) Feb 1998:
 ;; - initial release as change-mode.
 ;; Jari Aalto <jari.aalto@ntc.nokia.com> Mar 1998
 ;; - fixes for byte compile errors
@@ -187,7 +189,9 @@
 ;; - Changed to use overlays
 ;; August 98
 ;; - renamed to Highlight Changes mode.
-
+;; Dec 2003
+;; - Use require for ediff stuff
+;; - Added highlight-compare-buffers
 
 ;;; Code:
 
@@ -401,17 +405,8 @@ Otherwise, this list will be constructed when needed from
 (make-variable-buffer-local 'hilit-chg-string)
 
 
-
-(eval-and-compile
-  ;;  For highlight-compare-with-file
-  (defvar ediff-number-of-differences)
-  (autoload 'ediff-setup		"ediff")
-  (autoload 'ediff-with-current-buffer	"ediff")
-  (autoload 'ediff-really-quit		"ediff")
-  (autoload 'ediff-make-fine-diffs	"ediff")
-  (autoload 'ediff-get-fine-diff-vector "ediff")
-  (autoload 'ediff-get-difference	"ediff"))
-
+(require 'ediff-init)
+(require 'ediff-util)
 
 
 ;;; Functions...
@@ -803,15 +798,107 @@ buffer to be saved):
   nil)
 
 ;; ========================================================================
-;; Comparing with an existing file.
-;; This uses ediff to find the differences.
+;; Comparing buffers/files
+;; These use ediff to find the differences.
+
+(defun highlight-markup-buffers
+  (buf-a file-a buf-b file-b &optional markup-a-only)
+  "Get differences between two buffers and set highlight changes.
+Both buffers are done unless optional parameter MARKUP-A-ONLY
+is non-nil."
+  (save-window-excursion
+    (let* (change-info
+	   change-a change-b
+	   a-start a-end len-a
+	   b-start b-end len-b
+	   (bufa-modified (buffer-modified-p buf-a))
+	   (bufb-modified (buffer-modified-p buf-b))
+	   (buf-a-read-only (with-current-buffer buf-a buffer-read-only))
+	   (buf-b-read-only (with-current-buffer buf-b buffer-read-only))
+	   temp-a temp-b)
+      (if (and file-a bufa-modified)
+	  (if (y-or-n-p (format "Save buffer %s?  " buf-a))
+	      (with-current-buffer buf-a
+		(save-buffer)
+		(setq bufa-modified (buffer-modified-p buf-a)))
+	    (setq file-a nil)))
+      (or file-a
+	  (setq temp-a (setq file-a (ediff-make-temp-file buf-a nil))))
+
+      (if (and file-b bufb-modified)
+	  (if (y-or-n-p (format "Save buffer %s?  " buf-b))
+	      (with-current-buffer buf-b
+		(save-buffer)
+		(setq bufb-modified (buffer-modified-p buf-b)))
+	    (setq file-b nil)))
+      (or file-b
+	  (setq temp-b (setq file-b (ediff-make-temp-file buf-b nil))))
+      (set-buffer buf-a)
+      (highlight-changes-mode 'active)
+      (or markup-a-only (with-current-buffer buf-b
+			  (highlight-changes-mode 'active)))
+      (setq change-info (hilit-chg-get-diff-info buf-a file-a buf-b file-b))
+
+
+      (setq change-a (car change-info))
+      (setq change-b (car (cdr change-info)))
+      
+      (hilit-chg-make-list)
+      (while change-a
+	(setq a-start (nth 0 (car change-a)))
+	(setq a-end (nth 1 (car change-a)))
+	(setq b-start (nth 0 (car change-b)))
+	(setq b-end (nth 1 (car change-b)))
+	(setq len-a (- a-end a-start))
+	(setq len-b (- b-end b-start))
+	(set-buffer buf-a)
+	(hilit-chg-set-face-on-change a-start a-end len-b buf-a-read-only)
+	(or markup-a-only
+	    (with-current-buffer buf-b
+	      (hilit-chg-set-face-on-change b-start b-end len-a
+					    buf-b-read-only)
+	      ))
+	(setq change-a (cdr change-a))
+	(setq change-b (cdr change-b)))
+      (or bufa-modified
+	  (with-current-buffer buf-a (set-buffer-modified-p nil)))
+      (or bufb-modified
+	  (with-current-buffer buf-b (set-buffer-modified-p nil)))
+      (if temp-a
+	  (delete-file temp-a))
+      (if temp-b
+	  (delete-file temp-b)))
+    ))
+
+;;;###autoload
+(defun highlight-compare-buffers (buf-a buf-b)
+"Compare two buffers and highlight the differences.
+
+The default is the current buffer and the one in the next window.
+
+If either buffer is modified and is visiting a file, you are prompted
+to save the file.
+
+Unless the buffer is unmodified and visiting a file,  the buffer is
+written to a temporary file for comparison.
+
+If a buffer is read-only, differences will be highlighted but no property
+changes are made, so \\[highlight-changes-next-change] and
+\\[highlight-changes-previous-change] will not work."
+  (interactive
+   (list 
+    (get-buffer (read-buffer "buffer-a " (current-buffer) t))
+    (get-buffer
+     (read-buffer "buffer-b "
+		  (window-buffer (next-window (selected-window))) t)))) 
+  (let ((file-a (buffer-file-name buf-a))
+	(file-b (buffer-file-name buf-b)))
+    (highlight-markup-buffers buf-a file-a buf-b file-b)
+    ))
 
 ;;;###autoload
 (defun highlight-compare-with-file (file-b)
   "Compare this buffer with a file, and highlight differences.
-
-The current buffer must be an unmodified buffer visiting a file,
-and must not be read-only.
 
 If the buffer has a backup filename, it is used as the default when
 this function is called interactively.
@@ -829,64 +916,24 @@ changes are made, so \\[highlight-changes-next-change] and
 	       ""			;; directory
 	       nil			;; default
 	       'yes			;; must exist
-	       (let ((f (make-backup-file-name
-			 (or (buffer-file-name (current-buffer))
-			     (error "no file for this buffer")))))
-		 (if (file-exists-p f) f "")))))
-
+	       (let ((f (buffer-file-name (current-buffer))))
+		 (if f 
+		     (progn
+		       (setq f (make-backup-file-name f))
+		       (or (file-exists-p f) 
+			   (setq f nil)))
+		   )
+		 f))))
   (let* ((buf-a (current-buffer))
-	 (buf-a-read-only buffer-read-only)
-	 (orig-pos (point))
 	 (file-a (buffer-file-name))
 	 (existing-buf (get-file-buffer file-b))
 	 (buf-b (or existing-buf
 		    (find-file-noselect file-b)))
-	 (buf-b-read-only (with-current-buffer buf-b buffer-read-only))
-	 xy  xx yy p q
-	 a-start a-end len-a
-	 b-start b-end len-b)
-
-    ;; We use the fact that the buffer is not marked modified at the
-    ;; end where we clear its modified status
-    (if (buffer-modified-p buf-a)
-	(if (y-or-n-p (format "OK to save %s?  " file-a))
-		       (save-buffer buf-a)
-	  (error "Buffer must be saved before comparing with a file")))
-    (if (and existing-buf (buffer-modified-p buf-b))
-	(if (y-or-n-p (format "OK to save %s?  " file-b))
-		       (save-buffer buf-b)
-	  (error "Cannot compare with a file in an unsaved buffer")))
-    (highlight-changes-mode 'active)
-    (if existing-buf (with-current-buffer buf-b
-		       (highlight-changes-mode 'active)))
-    (save-window-excursion
-      (setq xy (hilit-chg-get-diff-info buf-a file-a buf-b file-b)))
-    (setq xx (car xy))
-    (setq p xx)
-    (setq yy (car (cdr xy)))
-    (setq q yy)
-    (hilit-chg-make-list)
-    (while p
-      (setq a-start (nth 0 (car p)))
-      (setq a-end (nth 1 (car p)))
-      (setq b-start (nth 0 (car q)))
-      (setq b-end (nth 1 (car q)))
-      (setq len-a (- a-end a-start))
-      (setq len-b (- b-end b-start))
-      (set-buffer buf-a)
-      (hilit-chg-set-face-on-change a-start a-end len-b buf-a-read-only)
-      (set-buffer-modified-p nil)
-      (goto-char orig-pos)
-      (if existing-buf
-	  (with-current-buffer buf-b
-	    (hilit-chg-set-face-on-change b-start b-end len-a
-					  buf-b-read-only )
-	    ))
-      (setq p (cdr p))
-      (setq q (cdr q)))
-    (if existing-buf
-	(set-buffer-modified-p nil)
-      (kill-buffer buf-b))))
+	 (buf-b-read-only (with-current-buffer buf-b buffer-read-only)))
+    (highlight-markup-buffers buf-a file-a buf-b file-b (not existing-buf))
+    (unless existing-buf
+      (kill-buffer buf-b))
+    ))
 
 
 (defun hilit-chg-get-diff-info (buf-a file-a buf-b file-b)

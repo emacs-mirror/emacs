@@ -1,3 +1,17 @@
+2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+
+	* make-dist: Don't link index.*perm and permute-index into
+	tempdir.
+
+2004-02-14  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* AUTHORS (JonathanYavner): Rename testcover-*.el to tcover-*.el
+	to match previous changes by Eli Zaretskii.
+
+2004-02-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* Makefile.in: Set CDPATH to an empty string.
+
 2004-01-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* configure.in <darwin>: Use fink packages if available.

@@ -97,16 +97,28 @@ cursor will be displayed in the fringe when positioned on that newline.
 The new user option 'overflow-newline-into-fringe' may be set to nil to
 revert to the old behaviour of continuing such lines.
 
-** The buffer boundaries (i.e. first and last line in the buffer) may now
-be marked with bitmaps in the fringes.  In addition, up and down
-arrow bitmaps may be shown at the top and bottom of the right fringe
-if the window can be scrolled in either direction.
+** The buffer boundaries (i.e. first and last line in the buffer) may
+now be marked with angle bitmaps in the fringes.  In addition, up and
+down arrow bitmaps may be shown at the top and bottom of the left or
+right fringe if the window can be scrolled in either direction.
 
 This behavior is activated by setting the buffer-local variable
-`indicate-buffer-boundaries' to a non-nil value.  If value is t, both
-boundaries and scrolling arrows are shown; any other non-nil value
-shows only the buffer boundaries.  The default value of this variable
-is found in `default-indicate-buffer-boundaries'.
+`indicate-buffer-boundaries' to a non-nil value.  The default value of
+this variable is found in `default-indicate-buffer-boundaries'.
+
+If value is `left' or `right', both angle and arrow bitmaps are
+displayed in the left or right fringe, resp.  Any other non-nil value
+causes the bitmap on the top line to be displayed in the left fringe,
+and the bitmap on the bottom line in the right fringe.
+
+If value is a cons (ANGLES . ARROWS), the car specifies the position
+of the angle bitmaps, and the cdr specifies the position of the arrow
+bitmaps.  
+
+For example, (t .  right) places the top angle bitmap in left fringe,
+the bottom angle bitmap in right fringe, and both arrow bitmaps in
+right fringe.  To show just the angle bitmaps in the left fringe, but
+no arrow bitmaps, use (left . nil).  
 
 ** New command `display-local-help' displays any local help at point
 in the echo area.  It is bound to `C-h .'.  It normally displays the
@@ -1802,6 +1814,35 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+** New function 'define-fringe-bitmap' can now be used to change the
+built-in fringe bitmaps, as well as create new fringe bitmaps.
+The return value is a number identifying the new fringe bitmap.
+
+To change a built-in bitmap, do (require 'fringe) and identify the
+bitmap to change with the value of the corresponding symbol, like
+`left-truncation-fringe-bitmap' or `continued-line-fringe-bitmap'.
+
+** New function 'destroy-fringe-bitmap' may be used to destroy a
+previously created bitmap, or restore a built-in bitmap.
+
+** New function 'set-fringe-bitmap-face' can now be used to set a
+specific face to be used for a specific fringe bitmap.  Normally,
+this should be a face derived from the `fringe' face, specifying
+the foreground color as the desired color of the bitmap.
+
+** There are new display properties, left-fringe and right-fringe,
+that can be used to show a specific bitmap in the left or right fringe
+bitmap of the display line.
+
+Format is 'display '(left-fringe BITMAP [FACE]), where BITMAP is a
+number identifying a fringe bitmap, either built-in or as returned by
+`define-fringe-bitmap', and FACE is an optional face name to be used
+for displaying the bitmap.
+
+** New function `fringe-bitmaps-at-pos' returns a cons (LEFT . RIGHT)
+identifying the current fringe bitmaps in the display line at a given
+buffer position.  A nil value means no bitmap.
+
 +++
 ** New function `line-number-at-pos' returns line number of current
 line in current buffer, or if optional buffer position is given, line
@@ -1819,7 +1860,7 @@ implemented (such as "*") are no longer accepted.
 +++
 ** New function `delete-dups' destructively removes `equal' duplicates
 from a list.  Of several `equal' occurrences of an element in the list,
-the last one is kept.
+the first one is kept.
 
 +++
 ** `declare' is now a macro.  This change was made mostly for

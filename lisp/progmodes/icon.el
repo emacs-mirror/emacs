@@ -243,7 +243,6 @@ with no args, if that value is non-nil."
       (self-insert-command (prefix-numeric-value arg)))))
 
 (defun icon-indent-command (&optional whole-exp)
-  (interactive "P")
   "Indent current line as Icon code, or in some cases insert a tab character.
 If `icon-tab-always-indent' is non-nil (the default), always indent current
 line.  Otherwise, indent the current line only if point is at the left margin
@@ -253,6 +252,7 @@ A numeric argument, regardless of its value, means indent rigidly all the
 lines of the expression starting after point so that this line becomes
 properly indented.  The relative indentation among the lines of the
 expression are preserved."
+  (interactive "P")
   (if whole-exp
       ;; If arg, always indent this line as Icon
       ;; and shift remaining lines of expression the same amount.

@@ -181,7 +181,7 @@ DEFUN ("end-of-line", Fend_of_line, Send_of_line, 0, 1, "p",
        doc: /* Move point to end of current line.
 With argument N not nil or 1, move forward N - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
-To ignore intangibility, bind `inhibit-text-motion-hooks' to t.
+To ignore intangibility, bind `inhibit-point-motion-hooks' to t.
 
 This command does not move point across a field boundary unless doing so
 would move beyond there to a different line; if N is nil or 1, and

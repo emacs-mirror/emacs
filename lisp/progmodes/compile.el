@@ -386,6 +386,9 @@ If any FILE-FORMAT is given, each is a format string to produce a file name to
 try; %s in the string is replaced by the text matching the FILE-IDX'th
 subexpression.")
 
+(defvar compilation-directory nil
+  "Directory to restore to when doing `recompile'.")
+
 (defvar compilation-enter-directory-regexp-alist
   '(
     ;; Matches lines printed by the `-w' option of GNU Make.
@@ -578,6 +581,7 @@ to a function that generates a unique name."
   (unless (equal command (eval compile-command))
     (setq compile-command command))
   (save-some-buffers (not compilation-ask-about-save) nil)
+  (setq compilation-directory default-directory)
   (compile-internal command "No more errors"))
 
 ;; run compile with the default command line
@@ -587,8 +591,10 @@ If this is run in a compilation-mode buffer, re-use the arguments from the
 original use.  Otherwise, it recompiles using `compile-command'."
   (interactive)
   (save-some-buffers (not compilation-ask-about-save) nil)
-  (apply 'compile-internal (or compilation-arguments
-			      `(,(eval compile-command) "No more errors"))))
+  (let ((default-directory (or compilation-directory default-directory)))
+    (apply 'compile-internal (or compilation-arguments
+				 `(,(eval compile-command)
+				   "No more errors")))))
 
 (defcustom compilation-scroll-output nil
   "*Non-nil to scroll the *compilation* buffer window as output appears.

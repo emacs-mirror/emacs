@@ -1,3 +1,7 @@
+2004-02-16  Klaus Zeitler  <kzeitler@lucent.com>
+
+	* PROBLEMS: Document crashes on X when build with GCC and GNU ld.
+
 2004-02-08  Andreas Schwab  <schwab@suse.de>
 
 	* NEWS: Fix typo.

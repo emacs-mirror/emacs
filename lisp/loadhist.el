@@ -116,11 +116,27 @@ These are symbols with hook-type values whose names don't end in
 `-hook' or `-hooks', from which `unload-feature' tries to remove
 pertinent symbols.")
 
+(defvar unload-hook-features-list nil
+  "List of features of the package being unloaded.
+
+This is meant to be used by FEATURE-unload-hook hooks, see the
+documentation of `unload-feature' for details.")
+
 ;;;###autoload
 (defun unload-feature (feature &optional force)
   "Unload the library that provided FEATURE, restoring all its autoloads.
 If the feature is required by any other loaded code, and prefix arg FORCE
-is nil, raise an error."
+is nil, raise an error.
+
+This function tries to undo modifications made by the package to
+hooks.  Packages may define a hook FEATURE-unload-hook that is called
+instead of the normal heuristics for doing this.  Such a hook should
+undo all the relevant global state changes that may have been made by
+loading the package or executing functions in it.  It has access to
+the package's feature list (before anything is unbound) in the
+variable `unload-hook-features-list' and could remove features from it
+in the event that the package has done something normally-ill-advised,
+such as redefining an Emacs function."
   (interactive (list (read-feature "Feature: ") current-prefix-arg))
   (if (not (featurep feature))
       (error "%s is not a currently loaded feature" (symbol-name feature)))
@@ -130,8 +146,8 @@ is nil, raise an error."
 	(if dependents
 	    (error "Loaded libraries %s depend on %s"
 		   (prin1-to-string dependents) file))))
-  (let* ((flist (feature-symbols feature))
-         (file (car flist))
+  (let* ((unload-hook-features-list (feature-symbols feature))
+         (file (car unload-hook-features-list))
          (unload-hook (intern-soft (concat (symbol-name feature)
                                            "-unload-hook"))))
     ;; Try to avoid losing badly when hooks installed in critical
@@ -155,10 +171,10 @@ is nil, raise an error."
                       (string-match "-hooks?\\'" (symbol-name x)))
                  (and (boundp x)       ; Known abnormal hooks etc.
                       (memq x unload-feature-special-hooks)))
-	     (dolist (y (cdr flist))
+	     (dolist (y (cdr unload-hook-features-list))
 	       (remove-hook x y))))))
     (if (fboundp 'elp-restore-function)	; remove ELP stuff first
-	(dolist (elt (cdr flist))
+	(dolist (elt (cdr unload-hook-features-list))
 	  (if (symbolp elt)
 	      (elp-restore-function elt))))
     (mapc
@@ -183,7 +199,7 @@ is nil, raise an error."
 		(fmakunbound x)
 		(let ((aload (get x 'autoload)))
 		  (if aload (fset x (cons 'autoload aload))))))))
-     (cdr flist))
+     (cdr unload-hook-features-list))
     ;; Delete the load-history element for this file.
     (let ((elt (assoc file load-history)))
       (setq load-history (delq elt load-history)))))

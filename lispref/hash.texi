@@ -109,19 +109,19 @@ values from being collected as garbage (if they are not referenced
 anywhere else); if a particular value does get collected, the
 corresponding association is removed from the hash table.
 
-If @var{weak} is @code{key-or-value} or @code{t}, the hash table does
-not protect either keys or values from garbage collection; if either
-one is collected as garbage, the association is removed.
+If @var{weak} is @code{key-and-value} or @code{t}, both the key and
+the value must be live in order to preserve the association.  Thus,
+the hash table does not protect either keys or values from garbage
+collection; if either one is collected as garbage, that removes the
+association.
 
-If @var{weak} is @code{key-and-value}, associations are removed from
-the hash table when both their key and value would be collected as
-garbage, again not considering references to the key and value from
-weak hash tables.
+If @var{weak} is @code{key-or-value}, either the key or
+the value can preserve the association.  Thus, associations are
+removed from the hash table when both their key and value would be
+collected as garbage (if not for references from weak hash tables).
 
 The default for @var{weak} is @code{nil}, so that all keys and values
-referenced in the hash table are preserved from garbage collection.  If
-@var{weak} is @code{t}, neither keys nor values are protected (that is,
-both are weak).
+referenced in the hash table are preserved from garbage collection.
 
 @item :size @var{size}
 This specifies a hint for how many associations you plan to store in the

@@ -496,7 +496,7 @@ This is relative to `smtpmail-queue-dir'.")
                              (netrc-get hostentry "login")
                              (netrc-get hostentry "password"))))
 		 (smtpmail-find-credentials
-		  smtpmail-auth-credentiaals host port)))
+		  smtpmail-auth-credentials host port)))
 	 (passwd (when cred
 		   (or (smtpmail-cred-passwd cred)
 		       (read-passwd

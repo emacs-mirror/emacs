@@ -139,9 +139,9 @@ plus whatever is specified by `rmail-default-dont-reply-to-names'."
   :group 'rmail-reply)
 
 ;;;###autoload
-(defvar rmail-default-dont-reply-to-names "info-" "\
-A regular expression specifying part of the value of the default value of
-the variable `rmail-dont-reply-to-names', for when the user does not set
+(defvar rmail-default-dont-reply-to-names "\\`info-" "\
+A regular expression specifying part of the default value of the
+variable `rmail-dont-reply-to-names', for when the user does not set
 `rmail-dont-reply-to-names' explicitly.  (The other part of the default
 value is the user's email address and name.)
 It is useful to set this variable in the site customization file.")
@@ -1448,7 +1448,8 @@ It returns t if it got any new messages."
 			 (if (or file-name rmail-inbox-list)
 			     (message "(No new mail has arrived)")))
 		;; check new messages to see if any of them is spam:
-		(if rmail-use-spam-filter
+		(if (and (featurep 'rmail-spam-filter)
+			 rmail-use-spam-filter)
 		    (let*
 			((old-messages (- rmail-total-messages new-messages))
                          (rsf-scanned-message-number (1+ old-messages))
@@ -1486,7 +1487,9 @@ It returns t if it got any new messages."
 		(message "%d new message%s read%s"
 			 new-messages (if (= 1 new-messages) "" "s")
 			 ;; print out a message on number of spam messages found:
-			 (if (and rmail-use-spam-filter (> rsf-number-of-spam 0))
+			 (if (and (featurep 'rmail-spam-filter)
+				  rmail-use-spam-filter
+				  (> rsf-number-of-spam 0))
 			     (if (= 1 new-messages)
 				 ", and found to be a spam message"
 			       (if (> rsf-number-of-spam 1)
@@ -1494,7 +1497,9 @@ It returns t if it got any new messages."
 					   rsf-number-of-spam)
 				 ", one of which found to be a spam message"))
 			   ""))
-		(if (and rmail-use-spam-filter (> rsf-number-of-spam 0))
+		(if (and (featurep 'rmail-spam-filter)
+			 rmail-use-spam-filter
+			 (> rsf-number-of-spam 0))
 		    (progn (if rmail-spam-filter-beep (beep t))
 			   (sleep-for rmail-spam-sleep-after-message)))
 

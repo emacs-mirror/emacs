@@ -182,6 +182,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
 	    (macroexpand-all-forms form 1))))
       form)))
 
+;;;###autoload
 (defun macroexpand-all (form &optional environment)
   "Return result of expanding macros at all levels in FORM.
 If no macros are expanded, FORM is returned unchanged.

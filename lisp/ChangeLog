@@ -187,6 +187,237 @@
 	* subr.el (functionp): Function removed (now a subr).
 	* help-fns.el (describe-function-1): Handle interpreted closures.
 
+2004-02-17  Eli Zaretskii  <eliz@elta.co.il>
+
+	* mail/rmail.el (rmail-get-new-mail): Don't reference
+	rmail-use-spam-filter if rmail-spam-filter is not loaded.
+
+2004-02-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-buffer-p): Only revert dired buffers
+	if one of global-auto-revert-non-file-buffers or autorevert-mode
+	is non-nil.
+
+2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+
+	* subr.el (delete-dups): A better implementation from Karl Heuer
+	<kwzh@gnu.org>.
+
+2004-02-16  Matt Hodges  <matt@stchem.bham.ac.uk>  (tiny change)
+
+	* net/telnet.el (telnet-interrupt-subjob): Move doc string to the
+	correct place.
+	* progmodes/icon.el (icon-indent-command): Ditto.
+	* textmodes/paragraphs.el (repunctuate-sentences): Ditto.
+
+2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+
+	* progmodes/grep.el (grep-compute-defaults): Undo change from
+	2004-01-29: don't use executable-command-find-posix-p.
+
+2004-02-16  Richard Sharman  <rsharman@pobox.com>
+
+	* hilit-chg.el: Use require instead of eval-and-compile.
+	(highlight-compare-buffers): New function.
+
+2004-02-16  John Basrai  <jbasrai@comcast.net>  (tiny change)
+
+	* man.el (Man-fontify-manpage): Render section headings in
+	`Man-overstrike-face' even when overstrike was not used by man
+	formatter for section headings.
+
+2004-02-16  Eli Tziperman  <eli@deas.harvard.edu>
+
+	* rmail-spam-filter.el: (vm-use-spam-filter)
+	(rsf-min-region-length-added-to-spam-list): New	variables.
+	(rsf-bbdb-auto-delete-spam-bbdb-entries): Renamed from
+	rmail-bbdb-auto-delete-spam-entries.  Added cc: to recipients for
+	spam testing.  Don't delete spam message if automatic deletion
+	after output via variable rmail-delete-after-output is turned on.
+	(rsf-bbdb-dont-create-entries-for-deleted-messages): Renamed from
+	rsf-bbdb-dont-create-entries-for-spam.
+	(check-field): New function, extracted from code in
+	rmail-spam-filter to ease addition of header fields like
+	content-type.
+	(message-content-type): New variable to check the content-type:
+	field added, also in defcustom of rsf-definitions-alist.
+	(rmail-spam-filter): Replace repeated test code for header fields
+	by calls to check-field; change the call to
+	rmail-output-to-rmail-file such that rmail-current-message stays
+	the same to avoid wrong deletion of unseen
+	flags.
+	(rsf-add-contents-type): New function to convert old format
+	of rmail-spam-definitions-alist into new one.
+	Changed prefixes of all variables and functions from
+	rmail-spam-filter- or spam-filter- or rmail-spam- to rsf-.
+
+2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+
+	* loadhist.el (unload-hook-features-list): New defvar.
+
+2004-02-16  Dave Love  <fx@gnu.org>
+
+	* loadhist.el (unload-feature): Doc fix.  Rename flist to
+	unload-hook-features-list.
+
+2004-02-16  Jay Belanger  <belanger@truman.edu>  (tiny change).
+
+	* calc/calc-embed.el (calc-do-embedded-activate): Add autoload
+	cookie.  Don't check if we are looking-at open-formula.
+
+2004-02-16  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+
+	* subr.el (match-string-no-properties): Use substring-no-properties.
+
+2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+
+	* emacs-lisp/rx.el (rx-check, rx-check-any, rx-check-not)
+	(rx-repeat, rx-check-backref, rx-syntax, rx-to-string): Use
+	lower-case "rx" in all error message.
+
+2004-02-16  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/rx.el (rx-or): Put group around result.
+	(rx-constituents): Add backref.
+	(rx-syntax): Add string-delimiter, comment-delimiter.
+	(rx-categories): Add combining-diacritic.
+	(rx-check-not, rx-greedy, rx): Doc fix.
+	(rx-backref, rx-check-backref): New.
+
+2004-02-16  Jesper Harder  <harder@ifa.au.dk>
+
+	* newcomment.el (uncomment-region): Allow eob as comment end.
+
+2004-02-16  Jari Aalto  <jari.aalto@poboxes.com>  (tiny change)
+
+	* filecache.el: All message and error commands now use prefix
+	"Filecache:" to make it easy to read *Messages* buffer.
+
+2004-02-16  Jari Aalto  <jari.aalto@poboxes.com>
+
+	Autorevert: Add support to detect changed dired buffers and for
+	VC controlled files.
+	* autorevert.el (auto-revert-active-p, auto-revert-list-diff)
+	(auto-revert-dired-file-list, auto-revert-dired-changed-p)
+	(auto-revert-handler, auto-revert-active-p): New functions.
+	(auto-revert-buffers): Moved revert logic to `auto-revert-handler'
+	and `auto-revert-active-p'.
+	(eval-when-compile): Defvar dired-directory and vc-mode.
+	(auto-revert-vc-cvs-file-version, auto-revert-vc-buffer-p)
+	(auto-revert-handler-vc): New functions.
+
+2004-02-16  Alfred M. Szmidt  <ams@kemisten.nu>  (tiny change)
+
+	* progmodes/compile.el (compilation-directory): New defvar.
+	(compile): Save current directory in compilation-directory.
+	(recompile): Bind default-directory to compilation-directory if
+	that is non-nil.
+
+2004-02-16  Dave Love  <fx@gnu.org>
+
+	* newcomment.el (comment-insert-comment-function)
+	(comment-region-function, uncomment-region-function): New.
+	(comment-indent): Use comment-insert-comment-function.
+	(uncomment-region): Use uncomment-region-function.
+	(comment-region): Use comment-region-function.
+
+	* emacs-lisp/rx.el (rx-not): Bind case-fold-search to nil.
+
+2004-02-16  Richard Stallman  <rms@gnu.org>
+
+	* Makefile.in (TAGS, TAGS-LISP): Filter out of `els' only
+	loaddefs* and ldefs-boot*.
+
+2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+
+	* mail/mail-utils.el (rmail-dont-reply-to): Anchor user login name
+	and email address at the beginning and end of the address.
+
+	* mail/rmail.el (rmail-default-dont-reply-to-names): Make "info-"
+	anchored at the beginning of the email address.
+
+2004-02-16  TAKAI Kousuke  <tak@kmc.gr.jp>  (tiny change)
+
+	* international/ccl.el (ccl-compile-write): Pass `left' to
+	ccl-embed-code to generate correct code of write-expr-register.
+
+2004-02-15  Dan Nicolaescu  <dann@ics.uci.edu>  (tiny change)
+
+	* progmodes/grep.el (grep-compute-defaults): Fix typos.
+
+2004-02-15  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el: Mention support for Motif in commentary.
+	(x-dnd-handle-drag-n-drop-event): Ditto.
+
+2004-02-14  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* ses.el: Use "ses--" prefixes for buffer-local variables.
+	Use (point-min) instead of 1, even when we know the buffer
+	is unnarrowed.
+	(ses-build-load-map): Delete.  Distribute its content to defconst's for
+	the three maps.
+	(ses-menu, ses-header-line-menu): New menus.
+	(ses-mode-map): Use them.
+	(ses-read-number) New fun.  Duplicates code from interactive "N" spec.
+
+2004-02-14  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* Makefile.in: Fixed the CC Mode recompile kludge so it works
+	when building in a different directory.
+
+2004-02-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* simple.el (kill-new): Put yank-handler property on the entire string.
+
+2004-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-defs.el (cvs-menu): Add `tag'.
+
+2004-02-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* simple.el (kill-append): Doc fix.
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
+	Adapt outline-regexp to the new conventions for commenting out code.
+
+2004-02-11  John Paul Wallington  <jpw@gnu.org>
+
+	* mail/smtpmail.el (smtpmail-try-auth-methods): Fix typo.
+
+2004-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff.el (diff-switches): New fun.
+	(diff, diff-backup): Use it.
+	(diff): Clean up the args construction.  Use backquote.
+	Use listp instead of consp to avoid putting a nil arg.
+
+2004-02-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el (x-dnd-types-alist): Add COMPOUND_TEXT,  FILE_NAME
+	handeled by x-dnd-handle-file-name.
+	(x-dnd-known-types): Add COMPOUND_TEXT.
+	(x-dnd-init-frame): Call x-dnd-init-motif-for-frame.
+	(x-dnd-get-state-cons-for-frame): Must do copy-sequence on
+	x-dnd-empty-state.
+	(x-dnd-forget-drop): Ditto.
+	(x-dnd-save-state): Add optional parameter extra-data (for Motif).
+	(x-dnd-handle-one-url): Return private when inserting text.
+	(x-dnd-insert-ctext): New function.
+	(x-dnd-handle-file-name): New function for FILE_NAME.
+	(x-dnd-handle-drag-n-drop-event): Add Motif, remove call to error.
+	(x-dnd-init-motif-for-frame, x-dnd-get-motif-value)
+	(x-dnd-motif-value-to-list, x-dnd-handle-motif): New functions.
+
+2004-02-10  Kenichi Handa  <handa@m17n.org>
+
+	* term/x-win.el (x-select-utf8-or-ctext): Use compare-strings
+	instead of while loop.
+
+2004-02-10  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/macroexp.el: New file, implements `macroexpand-all'.
+
 2004-02-09  Kenichi Handa  <handa@m17n.org>
 
 	* tar-mode.el (tar-extract): Fix for the case that a file doesn't
@@ -313,6 +544,12 @@
 
 	* simple.el (line-number-at-pos): Rename from line-at-pos.
 	Uses changed (what-line and vc-annotate-warp-version).
+
+2004-02-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-file-regexp-alist, diff-error-regexp-alist)
+	(diff-mode): Remove aborted attempt at support for compile.el.
+	(diff-mode, diff-minor-mode): Avoid obsolete write-contents-hooks.
 
 2004-02-06  Andreas Schwab  <schwab@suse.de>
 

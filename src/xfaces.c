@@ -192,6 +192,7 @@ Boston, MA 02111-1307, USA.  */
    used to fill in unspecified attributes of the default face.  */
 
 #include <config.h>
+#include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -261,7 +262,6 @@ Boston, MA 02111-1307, USA.  */
 
 #endif /* HAVE_X_WINDOWS */
 
-#include <stdio.h>
 #include <ctype.h>
 
 #define abs(X)		((X) < 0 ? -(X) : (X))

@@ -73,7 +73,7 @@ enum fringe_bitmap_align
 
 struct fringe_bitmap
 {
-  unsigned char *bits;
+  unsigned short *bits;
   unsigned height : 8;
   unsigned width : 8;
   unsigned period : 8;
@@ -99,7 +99,7 @@ struct fringe_bitmap
   ...xx...
   ...xx...
 */
-static unsigned char unknown_bits[] = {
+static unsigned short unknown_bits[] = {
   0x3c, 0x7e, 0x7e, 0x0c, 0x18, 0x18, 0x00, 0x18, 0x18};
 
 /* An arrow like this: `<-'.  */
@@ -113,7 +113,7 @@ static unsigned char unknown_bits[] = {
   ..xx....
   ...xx...
 */
-static unsigned char left_arrow_bits[] = {
+static unsigned short left_arrow_bits[] = {
    0x18, 0x30, 0x60, 0xfc, 0xfc, 0x60, 0x30, 0x18};
 
 
@@ -128,7 +128,7 @@ static unsigned char left_arrow_bits[] = {
   ....xx..
   ...xx...
 */
-static unsigned char right_arrow_bits[] = {
+static unsigned short right_arrow_bits[] = {
    0x18, 0x0c, 0x06, 0x3f, 0x3f, 0x06, 0x0c, 0x18};
 
 
@@ -143,7 +143,7 @@ static unsigned char right_arrow_bits[] = {
   ...xx...
   ...xx...
 */
-static unsigned char up_arrow_bits[] = {
+static unsigned short up_arrow_bits[] = {
    0x18, 0x3c, 0x7e, 0xff, 0x18, 0x18, 0x18, 0x18};
 
 
@@ -158,7 +158,7 @@ static unsigned char up_arrow_bits[] = {
   ..xxxx..
   ...xx...
 */
-static unsigned char down_arrow_bits[] = {
+static unsigned short down_arrow_bits[] = {
    0x18, 0x18, 0x18, 0x18, 0xff, 0x7e, 0x3c, 0x18};
 
 /* Marker for continued lines.  */
@@ -172,7 +172,7 @@ static unsigned char down_arrow_bits[] = {
   ..xxxx..
   ..xxxxx.
 */
-static unsigned char continued_bits[] = {
+static unsigned short continued_bits[] = {
    0x3c, 0x3e, 0x03, 0x27, 0x3f, 0x3e, 0x3c, 0x3e};
 
 /* Marker for continuation lines.  */
@@ -186,7 +186,7 @@ static unsigned char continued_bits[] = {
   ..xxxx..
   .xxxxx..
 */
-static unsigned char continuation_bits[] = {
+static unsigned short continuation_bits[] = {
    0x3c, 0x7c, 0xc0, 0xe4, 0xfc, 0x7c, 0x3c, 0x7c};
 
 /* Overlay arrow bitmap.  A triangular arrow.  */
@@ -200,7 +200,7 @@ static unsigned char continuation_bits[] = {
   xxxx....
   xx......
 */
-static unsigned char ov_bits[] = {
+static unsigned short ov_bits[] = {
    0xc0, 0xf0, 0xf8, 0xfc, 0xfc, 0xf8, 0xf0, 0xc0};
 
 #if 0
@@ -215,7 +215,7 @@ static unsigned char ov_bits[] = {
   ....xxxx
   ......xx
 */
-static unsigned char rev_ov_bits[] = {
+static unsigned short rev_ov_bits[] = {
    0x03, 0x0f, 0x1f, 0x3f, 0x3f, 0x1f, 0x0f, 0x03};
 #endif
 
@@ -230,7 +230,7 @@ static unsigned char rev_ov_bits[] = {
   xx......
   ........
 */
-static unsigned char top_left_angle_bits[] = {
+static unsigned short top_left_angle_bits[] = {
    0xfc, 0xfc, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0x00};
 
 /* First line bitmap.  An right-up angle.  */
@@ -244,7 +244,7 @@ static unsigned char top_left_angle_bits[] = {
   ......xx
   ........
 */
-static unsigned char top_right_angle_bits[] = {
+static unsigned short top_right_angle_bits[] = {
    0x3f, 0x3f, 0x03, 0x03, 0x03, 0x03, 0x03, 0x00};
 
 /* Last line bitmap.  An left-down angle.  */
@@ -258,7 +258,7 @@ static unsigned char top_right_angle_bits[] = {
   xxxxxx..
   xxxxxx..
 */
-static unsigned char bottom_left_angle_bits[] = {
+static unsigned short bottom_left_angle_bits[] = {
    0x00, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xfc, 0xfc};
 
 /* Last line bitmap.  An right-down angle.  */
@@ -272,7 +272,7 @@ static unsigned char bottom_left_angle_bits[] = {
   ..xxxxxx
   ..xxxxxx
 */
-static unsigned char bottom_right_angle_bits[] = {
+static unsigned short bottom_right_angle_bits[] = {
    0x00, 0x03, 0x03, 0x03, 0x03, 0x03, 0x3f, 0x3f};
 
 /* First/last line bitmap.  An left bracket.  */
@@ -288,7 +288,7 @@ static unsigned char bottom_right_angle_bits[] = {
   xxxxxx..
   xxxxxx..
 */
-static unsigned char left_bracket_bits[] = {
+static unsigned short left_bracket_bits[] = {
    0xfc, 0xfc, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xfc, 0xfc};
 
 /* First/last line bitmap.  An right bracket.  */
@@ -304,7 +304,7 @@ static unsigned char left_bracket_bits[] = {
   ..xxxxxx
   ..xxxxxx
 */
-static unsigned char right_bracket_bits[] = {
+static unsigned short right_bracket_bits[] = {
   0x3f, 0x3f, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x3f, 0x3f};
 
 /* Filled box cursor bitmap.  A filled box; max 13 pixels high.  */
@@ -323,7 +323,7 @@ static unsigned char right_bracket_bits[] = {
   xxxxxxx.
   xxxxxxx.
 */
-static unsigned char filled_box_cursor_bits[] = {
+static unsigned short filled_box_cursor_bits[] = {
    0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe};
 
 /* Hollow box cursor bitmap.  A hollow box; max 13 pixels high.  */
@@ -342,7 +342,7 @@ static unsigned char filled_box_cursor_bits[] = {
   x.....x.
   xxxxxxx.
 */
-static unsigned char hollow_box_cursor_bits[] = {
+static unsigned short hollow_box_cursor_bits[] = {
    0xfe, 0x82, 0x82, 0x82, 0x82, 0x82, 0x82, 0x82, 0x82, 0x82, 0x82, 0x82, 0xfe};
 
 /* Bar cursor bitmap.  A vertical bar; max 13 pixels high.  */
@@ -361,7 +361,7 @@ static unsigned char hollow_box_cursor_bits[] = {
   xx......
   xx......
 */
-static unsigned char bar_cursor_bits[] = {
+static unsigned short bar_cursor_bits[] = {
    0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0, 0xc0};
 
 /* HBar cursor bitmap.  A horisontal bar; 2 pixels high.  */
@@ -369,7 +369,7 @@ static unsigned char bar_cursor_bits[] = {
   xxxxxxx.
   xxxxxxx.
 */
-static unsigned char hbar_cursor_bits[] = {
+static unsigned short hbar_cursor_bits[] = {
   0xfe, 0xfe};
 
 
@@ -383,7 +383,7 @@ static unsigned char hbar_cursor_bits[] = {
   ..xxxx..
   ........
 */
-static unsigned char zv_bits[] = {
+static unsigned short zv_bits[] = {
   0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
   0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
   0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00, 0x00, 0x3c, 0x00,
@@ -402,12 +402,14 @@ static unsigned char zv_bits[] = {
   .x....x.
   .xxxxxx.
 */
-static unsigned char hollow_square_bits[] = {
+static unsigned short hollow_square_bits[] = {
    0x7e, 0x42, 0x42, 0x42, 0x42, 0x7e};
 
 
+#define BYTES_PER_BITMAP_ROW  (sizeof (unsigned short))
+#define STANDARD_BITMAP_HEIGHT(bits) (sizeof (bits)/BYTES_PER_BITMAP_ROW)
+#define FRBITS(bits)  bits, STANDARD_BITMAP_HEIGHT (bits)
 
-#define FRBITS(bits)  bits, sizeof bits
 struct fringe_bitmap standard_bitmaps[MAX_STANDARD_FRINGE_BITMAPS] =
 {
   { NULL, 0, 0, 0, 0, 0 }, /* NO_FRINGE_BITMAP */
@@ -604,7 +606,7 @@ draw_fringe_bitmap (w, row, left_p)
       switch (w->phys_cursor_type)
 	{
 	case HOLLOW_BOX_CURSOR:
-	  if (row->visible_height >= sizeof(hollow_box_cursor_bits))
+	  if (row->visible_height >= STANDARD_BITMAP_HEIGHT (hollow_box_cursor_bits))
 	    cursor = HOLLOW_BOX_CURSOR_BITMAP;
 	  else
 	    cursor = HOLLOW_SQUARE_BITMAP;
@@ -1011,8 +1013,13 @@ If WHICH overrides a standard fringe bitmap, the original bitmap is restored.  *
 
 
 /* Initialize bitmap bit.
-   On X and MAC, we bit-swap the built-in bitmaps.
-   On W32, there's no need to do this.
+
+   On X, we bit-swap the built-in bitmaps and reduce bitmap
+   from short to char array if width is <= 8 bits.
+
+   On MAC with big-endian CPU, we need to byte-swap each short.
+
+   On W32 and MAC (little endian), there's no need to do this.
 */
 
 void
@@ -1023,22 +1030,50 @@ init_fringe_bitmap (which, fb, once_p)
 {
   if (once_p || fb->dynamic)
     {
-#if defined (HAVE_X_WINDOWS) || defined (MAC_OS)
-      unsigned char *bits = fb->bits;
+#if defined (HAVE_X_WINDOWS)
+      static unsigned char swap_nibble[16]
+	= { 0x0, 0x8, 0x4, 0xc,    /* 0000 1000 0100 1100 */
+	    0x2, 0xa, 0x6, 0xe,    /* 0010 1010 0110 1110 */
+	    0x1, 0x9, 0x5, 0xd,    /* 0001 1001 0101 1101 */
+	    0x3, 0xb, 0x7, 0xf };  /* 0011 1011 0111 1111 */
+      unsigned short *bits = fb->bits;
+      int j;
+
+      if (fb->width <= 8)
+	{
+	  unsigned char *cbits = (unsigned char *)fb->bits;
+	  for (j = 0; j < fb->height; j++)
+	    {
+	      unsigned short b = *bits++;
+	      unsigned char c;
+	      c = (unsigned char)((swap_nibble[b & 0xf] << 4)
+				  | (swap_nibble[(b>>4) & 0xf]));
+	      *cbits++ = (c >> (8 - fb->width));
+	    }
+	}
+      else
+	{
+	  for (j = 0; j < fb->height; j++)
+	    {
+	      unsigned short b = *bits;
+	      b = (unsigned short)((swap_nibble[b & 0xf] << 12)
+				   | (swap_nibble[(b>>4) & 0xf] << 8)
+				   | (swap_nibble[(b>>8) & 0xf] << 4)
+				   | (swap_nibble[(b>>12) & 0xf]));
+	      *bits++ = (b >> (16 - fb->width));
+	    }
+	}
+#endif /* HAVE_X_WINDOWS */
+
+#if defined (MAC_OS) && defined (WORDS_BIG_ENDIAN)
+      unsigned short *bits = fb->bits;
       int j;
       for (j = 0; j < fb->height; j++)
 	{
-	  static unsigned char swap_nibble[16]
-	    = { 0x0, 0x8, 0x4, 0xc,    /* 0000 1000 0100 1100 */
-		0x2, 0xa, 0x6, 0xe,    /* 0010 1010 0110 1110 */
-		0x1, 0x9, 0x5, 0xd,    /* 0001 1001 0101 1101 */
-		0x3, 0xb, 0x7, 0xf };	 /* 0011 1011 0111 1111 */
-
-	  unsigned char b = *bits;
-	  *bits++ = (unsigned short)((swap_nibble[b & 0xf]<<4)
-				     | (swap_nibble[(b>>4) & 0xf]));
+	  unsigned short b = *bits;
+	  *bits++ = ((b >> 8) & 0xff) | ((b & 0xff) << 8);
 	}
-#endif
+#endif /* MAC_OS && WORDS_BIG_ENDIAN */
     }
 
   if (!once_p)
@@ -1058,12 +1093,14 @@ init_fringe_bitmap (which, fb, once_p)
 DEFUN ("define-fringe-bitmap", Fdefine_fringe_bitmap, Sdefine_fringe_bitmap,
        1, 5, 0,
        doc: /* Define a fringe bitmap from BITS of height HEIGHT and width WIDTH.
-BITS is either a string or a vector.  If HEIGHT is nil, use number of bytes
-in BITS.  If WIDTH is zero, default to 8.  Optional forth arg ALIGN may be
-one of `top', `center', or `bottom', indicating the positioning of the
-bitmap relative to the rows where it is used; the default is to center the
-bitmap.  Fourth arg may also be a list (ALIGN PERIODIC) where 
-PERIODIC non-nil specifies that the bitmap should be repeated.
+BITS is either a string or a vector of integers.
+HEIGHT is height of bitmap.  If HEIGHT is nil, use length of BITS.
+WIDTH must be an integer between 1 and 16, or nil which defaults to 8.
+Optional forth arg ALIGN may be one of `top', `center', or `bottom',
+indicating the positioning of the bitmap relative to the rows where it
+is used; the default is to center the bitmap.  Fourth arg may also be a
+list (ALIGN PERIODIC) where PERIODIC non-nil specifies that the bitmap
+should be repeated.
 Optional fifth argument WHICH is bitmap number to redefine.
 Return new bitmap number, or nil of no more free bitmap slots.  */)
   (bits, height, width, align, which)
@@ -1071,7 +1108,7 @@ Return new bitmap number, or nil of no more free bitmap slots.  */)
 {
   Lisp_Object len;
   int n, h, i, j;
-  unsigned char *b;
+  unsigned short *b;
   struct fringe_bitmap fb, *xfb;
   int fill1 = 0, fill2 = 0;
 
@@ -1129,7 +1166,7 @@ Return new bitmap number, or nil of no more free bitmap slots.  */)
   if (NILP (which))
     {
       if (max_used_fringe_bitmap < MAX_FRINGE_BITMAPS)
-	n = make_number (max_used_fringe_bitmap++);
+	n = max_used_fringe_bitmap++;
       else
 	{
 	  for (n = MAX_STANDARD_FRINGE_BITMAPS;
@@ -1152,8 +1189,9 @@ Return new bitmap number, or nil of no more free bitmap slots.  */)
 
   fb.dynamic = 1;
 
-  xfb = (struct fringe_bitmap *)xmalloc (sizeof fb + fb.height);
-  fb.bits = b = (unsigned char *)(xfb+1);
+  xfb = (struct fringe_bitmap *)xmalloc (sizeof fb
+					 + fb.height * BYTES_PER_BITMAP_ROW);
+  fb.bits = b = (unsigned short *)(xfb+1);
   bzero (b, fb.height);
 
   j = 0;
@@ -1212,6 +1250,7 @@ in that window.  Return value is a cons (LEFT . RIGHT) where LEFT and RIGHT
 are the fringe bitmap numbers for the bitmaps in the left and right fringe,
 resp.  Return nil if POS is not visible in WINDOW.  */)
   (pos, window)
+     Lisp_Object pos, window;
 {
   struct window *w;
   struct buffer *old_buffer = NULL;
@@ -1312,7 +1351,7 @@ w32_reset_fringes ()
     rif->destroy_fringe_bitmap (bt);
 }
 
-#endif
+#endif /* HAVE_NTGUI */
 
 #endif /* HAVE_WINDOW_SYSTEM */
 

@@ -698,7 +698,7 @@ w32_draw_fringe_bitmap (w, row, p)
   else
     w32_clip_to_row (w, row, hdc);
 
-  if (p->bx >= 0 !p->overlay_p)
+  if (p->bx >= 0 && !p->overlay_p)
     {
       w32_fill_area (f, hdc, face->background,
 		     p->bx, p->by, p->nx, p->ny);
@@ -711,43 +711,33 @@ w32_draw_fringe_bitmap (w, row, p)
       HANDLE horig_obj;
 
       compat_hdc = CreateCompatibleDC (hdc);
+
       SaveDC (hdc);
 
       horig_obj = SelectObject (compat_hdc, pixmap);
       SetTextColor (hdc, face->background);
-      SetBkColor (hdc, face->foreground);
-
-#if 0  /* TODO: fringe overlay_p and cursor_p */
-      SetBkColor (hdc, (p->cursor_p
-			? (p->overlay_p ? face->background
+      SetBkColor (hdc, p->cursor_p
+		        ? (p->overlay_p ? face->background
 			   : f->output_data.w32->cursor_pixel)
-			: face->foreground));
+			   : face->foreground);
 
+      /* Paint overlays transparently.  */
       if (p->overlay_p)
 	{
-	  clipmask = XCreatePixmapFromBitmapData (display, 
-						  FRAME_X_DISPLAY_INFO (f)->root_window,
-						  bits, p->wd, p->h, 
-						  1, 0, 1);
-	  gcv.clip_mask = clipmask;
-	  gcv.clip_x_origin = p->x;
-	  gcv.clip_y_origin = p->y; 
-	  XChangeGC (display, gc, GCClipMask | GCClipXOrigin | GCClipYOrigin, &gcv);
+	BitBlt (hdc, p->x, p->y, p->wd, p->h,
+		compat_hdc, 0, p->dh,
+		DSTINVERT);
+	BitBlt (hdc, p->x, p->y, p->wd, p->h,
+		compat_hdc, 0, p->dh,
+		MERGEPAINT);
+	BitBlt (hdc, p->x, p->y, p->wd, p->h,
+		compat_hdc, 0, p->dh,
+		DSTINVERT);
 	}
-#endif
-
-      BitBlt (hdc, p->x, p->y, p->wd, p->h,
-	      compat_hdc, 0, p->dh,
-	      SRCCOPY);
-
-#if 0  /* TODO: fringe overlay_p and cursor_p */
-      if (p->overlay_p)
-	{
-	  gcv.clip_mask = (Pixmap) 0;
-	  XChangeGC (display, gc, GCClipMask, &gcv);
-	  XFreePixmap (display, clipmask);
-	}
-#endif
+      else
+	BitBlt (hdc, p->x, p->y, p->wd, p->h,
+		compat_hdc, 0, p->dh,
+		SRCCOPY);
 
       SelectObject (compat_hdc, horig_obj);
       DeleteDC (compat_hdc);
@@ -762,17 +752,10 @@ w32_draw_fringe_bitmap (w, row, p)
 static void
 w32_define_fringe_bitmap (which, bits, h, wd)
      int which;
-     unsigned char *bits;
+     unsigned short *bits;
      int h, wd;
 {
-  unsigned short *w32bits
-    = (unsigned short *)alloca (h * sizeof (unsigned short));
-  unsigned short *wb = w32bits;
-  int j;
-
-  for (j = 0; j < h; j++)
-    *wb++ = (unsigned short)*bits++;
-  fringe_bmp[which] = CreateBitmap (wd, h, 1, 1, w32bits);
+  fringe_bmp[which] = CreateBitmap (wd, h, 1, 1, bits);
 }
 
 static void

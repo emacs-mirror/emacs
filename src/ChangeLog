@@ -57,6 +57,126 @@
 	(Fdocumentation, store_function_docstring): Handle interpreted
 	closures.
 
+2004-02-17  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (fast_find_position): Fix return value of new version;
+	it was inverted compared to the 21.1 version.
+	(get_window_cursor_type): Don't look at glyph if NULL.
+	(display_and_set_cursor): Set glyph to NULL if cursor in fringe.
+
+	* keyboard.c: Rework previous change; it didn't consider that the
+	buf array was allocated on the stack.
+	(prev_read): Remove variable.
+	(read_avail_input_buf): New static event buffer array.
+	(in_read_avail_input): New static variable to handle re-entrancy.
+	(read_avail_input): Change buf to pinter to read_avail_input_buf.
+	Use in_read_avail_input to handle re-entrance; when re-entered,
+	fully initialize and use tmp_buf array instead of read_avail_input_buf.
+	Do not initialize read_avail_input_buf in full here; instead assume it
+	is always cleared on entry.  To ensure that, we clear (just) the
+	entries that were used before we return.
+	(init_keyboard): Initialize read_avail_input_buf here.
+
+2004-02-16  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+
+	* cmds.c (Fend_of_line): Doc fix.
+
+2004-02-16  Dmitry Antipov  <dmitry.antipov@mail.ru>  (tiny change)
+
+	* keyboard.c (prev_read): New static variable.
+	(read_avail_input): Use it to zero out only those slots in buf[]
+	that were used last time we were called.
+
+2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+
+	* Makefile.in (obj): Move fringe.o from here...
+	(XOBJ, MAC_OBJ): ...to here.
+
+2004-02-16  Stephen Eglen  <stephen@gnu.org>
+
+	* fringe.c (init_fringe_bitmap): Define j in MAC_OS code.
+
+2004-02-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* data.c (Fbyteorder): 
+	* fringe.c (Fdefine_fringe_bitmap): 
+	* xdisp.c (handle_single_display_prop): 
+	* xselect.c (x_handle_dnd_message): Lisp_Object/int mixup.
+
+2004-02-16  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_draw_fringe_bitmap): Handle overlay fringe bitmaps.
+
+2004-02-15  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (Vmac_emulate_three_button_mouse): New variable for
+	controlling emulation of a three button mouse with option and
+	command keys.
+	(Qreverse, mac_get_enumlated_btn): Handle the emulation
+	(mac_event_to_emacs_modifiers, XTread_socket): Ditto
+
+2004-02-15  Kim F. Storm  <storm@cua.dk>
+
+	* buffer.c (syms_of_buffer): Doc fix for indicate-buffer-boundaries.
+
+	* fringe.c (init_fringe_bitmap) [MAC_OS, WORDS_BIG_ENDIAN]:
+	Perform byte-swapping.
+
+2004-02-14  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (struct draw_fringe_bitmap_params): Change member
+	bits from char to short to facilitate wider bitmaps.
+	(struct redisplay_interface): Fix prototype of define_fringe_bitmap
+	member.
+
+	* fringe.c (struct fringe_bitmap): Change member bits from char to
+	short to facilitate 16 bits wide bitmaps.  Modify all standard
+	bitmaps accordingly.
+	(BYTES_PER_BITMAP_ROW, STANDARD_BITMAP_HEIGHT): New macros.
+	(FRBITS): Use STANDARD_BITMAP_HEIGHT instead of just sizeof.
+	(draw_fringe_bitmap): Ditto.
+	(init_fringe_bitmap) [MAC_OS]: Don't bitswap.
+	(init_fringe_bitmap) [HAVE_X_WINDOWS]: Enhance bitswapping to
+	handle up to 16 bits wide bitmaps.
+	(Fdefine_fringe_bitmap): Doc fix.  Handle wider bitmaps.
+	(Ffringe_bitmaps_at_pos): Add missing arg declarations.
+
+	* macterm.c (mac_draw_bitmap): Handle 16 bits wide bitmaps directly.
+	(x_draw_fringe_bitmap): Use enhanced mac_draw_bitmap, so we no longer
+	need to call mac_create_bitmap_from_bitmap_data and mac_free_bitmap.
+
+	* w32term.c (w32_define_fringe_bitmap): Bitmaps are now 16 bits wide,
+	so it is no longer necessary to expand them here.
+
+	* xterm.c (x_draw_fringe_bitmap): Handle wider bitmaps (max 16 bits).
+
+2004-02-12  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (Fwindow_fringes): Doc fix.
+
+2004-02-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xselect.c (x_get_foreign_selection): Add new optional parameter
+	time_stamp.
+	(Fx_get_selection_internal): Ditto, pass time_stamp to
+	x_get_foreign_selection.
+
+	* data.c (Fbyteorder): New function.
+
+2004-02-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* atimer.c: Move include stdio.h to same place as in other files.
+
+	* region-cache.c: Ditto.
+
+	* sysdep.c: Ditto.
+
+	* xfaces.c: Ditto.
+
+2004-02-09  Sam Steingold  <sds@gnu.org>
+
+	* w32term.c (w32_draw_fringe_bitmap): Fixed a typo in the last patch.
+
 2004-02-09  Kim F. Storm  <storm@cua.dk>
 
 	* fringe.c: New file.  Move original fringe related declarations
@@ -87,7 +207,7 @@
 	DEFVAR_LISP Voverflow_newline_into_fringe.
 	(init_fringe_once, init_fringe): New functions.
 	(w32_init_fringe, w32_reset_fringes) [WINDOWS_NT]: New functions.
-	
+
 	* Makefile.in (obj): Add fringe.o.
 	(fringe.o): New dependencies.
 

@@ -6556,6 +6556,14 @@ record_asynch_buffer_change ()
 
 #ifndef VMS
 
+/* We make the read_avail_input buffer static to avoid zeroing out the
+   whole struct input_event buf on every call.  */
+static struct input_event read_avail_input_buf[KBD_BUFFER_SIZE];
+
+/* I don't know whether it is necessary, but make read_avail_input 
+   re-entrant.  */
+static int in_read_avail_input = 0;
+
 /* Read any terminal input already buffered up by the system
    into the kbd_buffer, but do not wait.
 
@@ -6572,12 +6580,18 @@ static int
 read_avail_input (expected)
      int expected;
 {
-  struct input_event buf[KBD_BUFFER_SIZE];
+  struct input_event *buf = read_avail_input_buf;
+  struct input_event tmp_buf[KBD_BUFFER_SIZE];
   register int i;
   int nread;
 
-  for (i = 0; i < KBD_BUFFER_SIZE; i++)
-    EVENT_INIT (buf[i]);
+  /* Trivial hack to make read_avail_input re-entrant.  */
+  if (in_read_avail_input++)
+    {
+      buf = tmp_buf;
+      for (i = 0; i < KBD_BUFFER_SIZE; i++)
+	EVENT_INIT (buf[i]);
+    }
 
   if (read_socket_hook)
     /* No need for FIONREAD or fcntl; just say don't wait.  */
@@ -6592,12 +6606,16 @@ read_avail_input (expected)
 
       /* Determine how many characters we should *try* to read.  */
 #ifdef WINDOWSNT
+      --in_read_avail_input;
       return 0;
 #else /* not WINDOWSNT */
 #ifdef MSDOS
       n_to_read = dos_keysns ();
       if (n_to_read == 0)
-	return 0;
+	{
+	  --in_read_avail_input;
+	  return 0;
+	}
 #else /* not MSDOS */
 #ifdef FIONREAD
       /* Find out how much input is available.  */
@@ -6615,7 +6633,10 @@ read_avail_input (expected)
 	    n_to_read = 0;
 	}
       if (n_to_read == 0)
-	return 0;
+	{
+	  --in_read_avail_input;
+	  return 0;
+	}
       if (n_to_read > sizeof cbuf)
 	n_to_read = sizeof cbuf;
 #else /* no FIONREAD */
@@ -6705,6 +6726,11 @@ read_avail_input (expected)
 	  && buf[i].code == quit_char)
 	break;
     }
+
+  /* Clear used events */
+  if (--in_read_avail_input == 0)
+    for (i = 0; i < nread; i++)
+      EVENT_INIT (buf[i]);
 
   return nread;
 }
@@ -10536,6 +10562,14 @@ init_keyboard ()
   do_mouse_tracking = Qnil;
 #endif
   input_pending = 0;
+#ifndef VMS
+  {
+    int i;
+    for (i = 0; i < KBD_BUFFER_SIZE; i++)
+      EVENT_INIT (read_avail_input_buf[i]);
+  }
+#endif
+
 
   /* This means that command_loop_1 won't try to select anything the first
      time through.  */

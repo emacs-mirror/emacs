@@ -24,6 +24,7 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #include <signal.h>
+#include <stdio.h>
 #include <setjmp.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -80,7 +81,6 @@ static int delete_exited_processes;
 #undef fwrite
 #endif
 
-#include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>

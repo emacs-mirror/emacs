@@ -1834,7 +1834,7 @@ the front of the kill ring, rather than being added to the list.
 Optional third arguments YANK-HANDLER controls how the STRING is later
 inserted into a buffer; see `insert-for-yank' for details.
 When a yank handler is specified, STRING must be non-empty (the yank
-handler is stored as a `yank-handler'text property on STRING).
+handler is stored as a `yank-handler' text property on STRING).
 
 When the yank handler has a non-nil PARAM element, the original STRING
 argument is not used by `insert-for-yank'.  However, since Lisp code
@@ -1842,7 +1842,8 @@ may access and use elements from the kill-ring directly, the STRING
 argument should still be a \"useful\" string for such uses."
   (if (> (length string) 0)
       (if yank-handler
-	  (put-text-property 0 1 'yank-handler yank-handler string))
+	  (put-text-property 0 (length string)
+			     'yank-handler yank-handler string))
     (if yank-handler
 	(signal 'args-out-of-range
 		(list string "yank-handler specified for empty string"))))
@@ -1863,8 +1864,8 @@ If BEFORE-P is non-nil, prepend STRING to the kill.
 Optional third argument YANK-HANDLER specifies the yank-handler text
 property to be set on the combined kill ring string.  If the specified
 yank-handler arg differs from the yank-handler property of the latest
-kill string, STRING is added as a new kill ring element instead of
-being appending to the last kill.
+kill string, this function adds the combined string to the kill
+ring as a new element, instead of replacing the last kill with it.
 If `interprogram-cut-function' is set, pass the resulting kill to it."
   (let* ((cur (car kill-ring)))
     (kill-new (if before-p (concat string cur) (concat cur string))

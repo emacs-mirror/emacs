@@ -801,6 +801,11 @@ Same for the ANSI bold and normal escape sequences."
   ;; Try to recognize common forms of cross references.
   (Man-highlight-references)
   (Man-softhyphen-to-minus)
+  (goto-char (point-min))
+  (while (re-search-forward Man-heading-regexp nil t)
+    (put-text-property (match-beginning 0)
+		       (match-end 0)
+		       'face Man-overstrike-face))
   (message "%s man page formatted" Man-arguments))
 
 (defun Man-highlight-references ()

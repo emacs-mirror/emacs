@@ -1,3 +1,85 @@
+2004-02-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* lists.texi (Sets And Lists): Update description of delete-dups.
+
+2004-02-16  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+
+	* keymaps.texi (Tool Bar): tool-bar-item => tool-bar-button.
+
+2004-02-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Parameter Access): frame-parameters arg is optional.
+	modify-frame-parameters handles nil for FRAME.
+	(Window Frame Parameters): menu-bar-lines and tool-bar-lines
+	are all-or-nothing for certain toolkits.
+	Mention parameter wait-for-wm.
+	(Frames and Windows): In frame-first-window and frame-selected-window
+	the arg is optional.
+	(Input Focus): In redirect-frame-focus the second arg is optional.
+	(Window System Selections): Mention selection type CLIPBOARD.
+	Mention data-type UTF8_STRING.
+	Mention numbering of cut buffers.
+	(Resources): Describe x-resource-name.
+
+2004-02-16  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Buffers and Windows): Delete false table
+	about all-frames.
+
+	* syntax.texi (Parsing Expressions): Delete old caveat
+	about parse-sexp-ignore-comments.
+
+	* streams.texi (Output Variables): Add print-quoted.
+
+	* lists.texi (Building Lists): Minor cleanup.
+
+	* hash.texi (Creating Hash): Correct and clarify doc of WEAK values.
+
+	* display.texi (Overlays): Explain overlays use markers.
+	(Managing Overlays): Explain front-advance and rear-advance
+	in more detail.
+
+	* loading.texi (Unloading): Document unload-feature-special-hooks.
+	Get rid of fns-NNN.el file.
+
+2004-02-16  Matthew Mundell  <matt@mundell.ukfsn.org>  (tiny change)
+
+	* help.texi (Describing Characters): Fix text-char-description
+	example output.
+
+	* edebug.texi (Using Edebug): Fix example.
+
+	* debugging.texi (Internals of Debugger): Fix return value.
+
+	* files.texi (Changing Files): Fix argname.
+
+	* calendar.texi: Fix parens, and default values.
+
+	* display.texi, frames.texi, internals.texi, modes.texi: Minor fixes.
+	* nonascii.texi, objects.texi, os.texi: Minor fixes.
+	* searching.texi, text.texi, tips.texi, windows.text: Minor fixes.
+
+	* positions.texi (Text Lines): Don't add -1 in current-line.
+
+2004-02-16  Richard M. Stallman  <rms@gnu.org>
+
+	* compile.texi (Compiler Errors): if-boundp feature applies to cond.
+
+2004-02-16  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+
+	* processes.texi (Low-Level Network): Fix a typo.
+
+2004-02-12  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Fringes): Use consistent wording.
+	Note that window-fringe's window arg is optional.
+	(Scroll Bars): Use consistent wording.
+
+2004-02-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* tips.texi (Comment Tips): Document the new conventions for
+	commenting out code.
+
 2004-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* positions.texi (Text Lines): Added missing end defun.
@@ -27,7 +109,7 @@
 	completion-regexp-list.
 	(Minibuffer Completion): Correct and clarify description of
 	completing-read.
-	(Completion Commands): Mention partial-completion-mode.  Various
+	(Completion Commands): Mention Partial Completion mode.  Various
 	other minor changes.
 	(High-Level Completion): Various corrections and clarifications.
 	(Reading File Names): Ditto.

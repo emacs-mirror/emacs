@@ -3513,12 +3513,12 @@ handle_single_display_prop (it, prop, object, position,
 
       if (EQ (XCAR (prop), Qleft_fringe))
 	{
-	  it->left_user_fringe_bitmap = value;
+	  it->left_user_fringe_bitmap = XINT (value);
 	  it->left_user_fringe_face_id = face_id;
 	}
       else
 	{
-	  it->right_user_fringe_bitmap = value;
+	  it->right_user_fringe_bitmap = XINT (value);
 	  it->right_user_fringe_face_id = face_id;
 	}
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -19029,7 +19029,7 @@ get_window_cursor_type (w, glyph, width, active_cursor)
     cursor_type = get_specified_cursor_type (b->cursor_type, width);
 
   /* Use normal cursor if not blinked off.  */
-  if (!w->cursor_off_p)
+  if (!w->cursor_off_p && glyph != NULL)
     {
       if (glyph->type == IMAGE_GLYPH) {
 	if (cursor_type == FILLED_BOX_CURSOR)
@@ -19368,7 +19368,8 @@ display_and_set_cursor (w, on, hpos, vpos, x, y)
 
   current_glyphs = w->current_matrix;
   glyph_row = MATRIX_ROW (current_glyphs, vpos);
-  glyph = glyph_row->glyphs[TEXT_AREA] + hpos;
+  glyph = (glyph_row->cursor_in_fringe_p ? NULL
+	   : glyph_row->glyphs[TEXT_AREA] + hpos);
 
   /* If cursor row is not enabled, we don't really know where to
      display the cursor.  */
@@ -19656,7 +19657,7 @@ fast_find_position (w, charpos, hpos, vpos, x, y, stop)
       if (charpos < MATRIX_ROW_START_CHARPOS (first))
 	{
 	  *x = *y = *hpos = *vpos = 0;
-	  return 0;
+	  return 1;
 	}
       else
 	{
@@ -19696,7 +19697,7 @@ fast_find_position (w, charpos, hpos, vpos, x, y, stop)
     }
 
   *hpos = glyph - row->glyphs[TEXT_AREA];
-  return past_end;
+  return !past_end;
 }
 
 #else /* not 1 */

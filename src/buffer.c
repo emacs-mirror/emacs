@@ -5639,10 +5639,20 @@ window-systems.  */);
   DEFVAR_PER_BUFFER ("indicate-buffer-boundaries",
 		     &current_buffer->indicate_buffer_boundaries, Qnil,
 		     doc: /* *Visually indicate buffer boundaries and scrolling.
-If non-nil, the first and last line of the buffer are marked in the left and
-right fringe of a window on window-systems.
-In addition, if value is t, the top and bottom line of the window are marked
-with up and down arrow bitmaps in the right fringe if window can be scrolled.  */);
+If non-nil, the first and last line of the buffer are marked in the fringe
+of a window on window-systems with angle bitmaps, or if the window can be
+scrolled, the top and bottom line of the window are marked with up and down
+arrow bitmaps.
+If value is `left' or `right', both angle and arrow bitmaps are displayed in
+the left or right fringe, resp.  Any other non-nil value causes the
+bitmap on the top line to be displayed in the left fringe, and the
+bitmap on the bottom line in the right fringe.
+If value is a cons (ANGLES . ARROWS), the car specifies the position
+of the angle bitmaps, and the cdr specifies the position of the arrow
+bitmaps.  For example, (t . right) places the top angle bitmap in left
+fringe, the bottom angle bitmap in right fringe, and both arrow
+bitmaps in right fringe.  To show just the angle bitmaps in the left
+fringe, but no arrow bitmaps, use (left . nil).  */);
 
   DEFVAR_PER_BUFFER ("scroll-up-aggressively",
 		     &current_buffer->scroll_up_aggressively, Qnil,

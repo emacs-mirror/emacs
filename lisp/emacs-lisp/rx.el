@@ -120,6 +120,7 @@
     (optional		. zero-or-one)
     (minimal-match	. (rx-greedy 1 1))
     (maximal-match	. (rx-greedy 1 1))
+    (backref		. (rx-backref 1 1 rx-check-backref))
     (line-start		. "^")
     (line-end		. "$")
     (string-start	. "\\`")
@@ -175,7 +176,9 @@ all arguments must satisfy PREDICATE.")
     (escape		. ?\\)
     (character-quote	. ?/)
     (comment-start	. ?<)
-    (comment-end	. ?>))
+    (comment-end	. ?>)
+    (string-delimiter	. ?|)
+    (comment-delimiter	. ?!))
   "Alist mapping Rx syntax symbols to syntax characters.
 Each entry has the form (SYMBOL . CHAR), where SYMBOL is a valid
 symbol in `(syntax SYMBOL)', and CHAR is the syntax character
@@ -204,6 +207,7 @@ regular expressions.")
     (japanese-katakana-two-byte . ?K)
     (korean-hangul-two-byte	. ?N)
     (cyrillic-two-byte		. ?Y)
+    (combining-diacritic	. ?^)
     (ascii			. ?a)
     (arabic			. ?b)
     (chinese			. ?c)
@@ -255,16 +259,16 @@ See also `rx-constituents'."
 	 (type-pred (nth 3 rx)))
     (when (and (not (null min-args))
 	       (< nargs min-args))
-      (error "Rx form `%s' requires at least %d args"
+      (error "rx form `%s' requires at least %d args"
 	     (car form) min-args))
     (when (and (not (null max-args))
 	       (> nargs max-args))
-      (error "Rx form `%s' accepts at most %d args"
+      (error "rx form `%s' accepts at most %d args"
 	     (car form) max-args))
     (when (not (null type-pred))
       (dolist (sub-form (cdr form))
 	(unless (funcall type-pred sub-form)
-	  (error "Rx form `%s' requires args satisfying `%s'"
+	  (error "rx form `%s' requires args satisfying `%s'"
 		 (car form) type-pred))))))
 
 
@@ -310,10 +314,10 @@ If STRING starts with a '^', move it to the end."
    "Check arg ARG for Rx `any'."
    (cond ((integerp arg) t)
 	 ((and (stringp arg) (zerop (length arg)))
-	  (error "String arg for Rx `any' must not be empty"))
+	  (error "String arg for rx `any' must not be empty"))
 	 ((stringp arg) t)
 	 (t
-	  (error "Rx `any' requires string or character arg"))))
+	  (error "rx `any' requires string or character arg"))))
 
 
 (defun rx-any (form)
@@ -330,22 +334,23 @@ matches anything."
 	   (concat "[" (rx-quote-for-set (cadr form)) "]")))))
 
 
-(defun rx-check-not (form)
-  "Check arguments of FORM.  FORM is `(not ...)'."
+(defun rx-check-not (arg)
+  "Check arg ARG for Rx `not'."
   (unless (or (memq form
 		    '(digit control hex-digit blank graphic printing
 			    alphanumeric letter ascii nonascii lower
 			    punctuation space upper word))
 	      (and (consp form)
 		   (memq (car form) '(not any in syntax category:))))
-    (error "Rx `not' syntax error: %s" form))
+    (error "rx `not' syntax error: %s" form))
     t)
 
 
 (defun rx-not (form)
   "Parse and produce code from FORM.  FORM is `(not ...)'."
   (rx-check form)
-  (let ((result (rx-to-string (cadr form) 'no-group)))
+  (let ((result (rx-to-string (cadr form) 'no-group))
+	case-fold-search)
     (cond ((string-match "\\`\\[^" result)
 	   (if (= (length result) 4)
 	       (substring result 2 3)
@@ -375,14 +380,14 @@ FORM is either `(repeat N FORM1)' or `(repeat N M FORM1)'."
   (cond ((= (length form) 3)
 	 (unless (and (integerp (nth 1 form))
 		      (> (nth 1 form) 0))
-	   (error "Rx `repeat' requires positive integer first arg"))
+	   (error "rx `repeat' requires positive integer first arg"))
 	 (format "%s\\{%d\\}" (rx-to-string (nth 2 form)) (nth 1 form)))
 	((or (not (integerp (nth 2 form)))
 	     (< (nth 2 form) 0)
 	     (not (integerp (nth 1 form)))
 	     (< (nth 1 form) 0)
 	     (< (nth 2 form) (nth 1 form)))
-	 (error "Rx `repeat' range error"))
+	 (error "rx `repeat' range error"))
 	(t
 	 (format "%s\\{%d,%d\\}" (rx-to-string (nth 3 form))
 		 (nth 1 form) (nth 2 form)))))
@@ -394,6 +399,16 @@ FORM is either `(repeat N FORM1)' or `(repeat N M FORM1)'."
 	  (mapconcat (function (lambda (x) (rx-to-string x 'no-group)))
 		     (cdr form) nil)
 	  "\\)"))
+
+(defun rx-backref (form)
+  "Parse and produce code from FORM, which is `(backref N)'."
+  (rx-check form)
+  (format "\\%d" (nth 1 form)))
+
+(defun rx-check-backref (arg)
+  "Check arg ARG for Rx `backref'."
+  (or (and (integerp arg) (>= arg 1) (<= arg 9))
+      (error "rx `backref' requires numeric 1<=arg<=9: %s" arg)))
 
 (defun rx-kleene (form)
   "Parse and produce code from FORM.
@@ -483,10 +498,10 @@ of all atomic regexps."
 
 
 (defun rx-greedy (form)
-  "Parse and produce code from FORM.  If FORM is '(minimal-match
-FORM1)', non-greedy versions of `*', `+', and `?' operators will be
-used in FORM1.  If FORM is '(maximal-match FORM1)', greedy operators
-will be used."
+  "Parse and produce code from FORM.
+If FORM is '(minimal-match FORM1)', non-greedy versions of `*',
+`+', and `?' operators will be used in FORM1.  If FORM is
+'(maximal-match FORM1)', greedy operators will be used."
   (rx-check form)
   (let ((rx-greedy-flag (eq (car form) 'maximal-match)))
     (rx-to-string (cadr form))))
@@ -512,19 +527,19 @@ NO-GROUP non-nil means don't put shy groups around the result."
 	   (cond ((stringp info)
 		  info)
 		 ((null info)
-		  (error "Unknown Rx form `%s'" form))
+		  (error "Unknown rx form `%s'" form))
 		 (t
 		  (funcall (nth 0 info) form)))))
 	((consp form)
 	 (let ((info (rx-info (car form))))
 	   (unless (consp info)
-	     (error "Unknown Rx form `%s'" (car form)))
+	     (error "Unknown rx form `%s'" (car form)))
 	   (let ((result (funcall (nth 0 info) form)))
 	     (if (or no-group (string-match "\\`\\\\[(]" result))
 		 result
 	       (concat "\\(?:" result "\\)")))))
 	(t
-	 (error "Rx syntax error at `%s'" form))))
+	 (error "rx syntax error at `%s'" form))))
 
 
 ;;;###autoload
@@ -665,6 +680,8 @@ CHAR
      `character-quote'		(\\s/)
      `comment-start'		(\\s<)
      `comment-end'		(\\s>)
+     `string-delimiter'		(\\s|)
+     `comment-delimiter'	(\\s!)
 
 `(not (syntax SYNTAX))'
      matches a character that has not syntax SYNTAX.
@@ -693,6 +710,7 @@ CHAR
      `japanese-katakana-two-byte'	(\\cK)
      `korean-hangul-two-byte'		(\\cN)
      `cyrillic-two-byte'		(\\cY)
+     `combining-diacritic'              (\\c^)
      `ascii'				(\\ca)
      `arabic'				(\\cb)
      `chinese'				(\\cc)
@@ -732,7 +750,7 @@ CHAR
 
 `(minimal-match SEXP)'
      produce a non-greedy regexp for SEXP.  Normally, regexps matching
-     zero or more occurrances of something are \"greedy\" in that they
+     zero or more occurrences of something are \"greedy\" in that they
      match as much as they can, as long as the overall regexp can
      still match.  A non-greedy regexp matches as little as possible.
 

@@ -70,7 +70,14 @@
 ;; Dependencies:
 
 (require 'timer)
-(eval-when-compile (require 'cl))
+(autoload 'dired-get-filename "dired")
+(autoload 'vc-workfile-version "vc-hooks")
+(autoload 'vc-mode-line        "vc-hooks")
+
+(eval-when-compile
+  (defvar dired-directory)
+  (defvar vc-mode)
+  (require 'cl))
 
 
 ;; Custom Group:
@@ -244,6 +251,146 @@ Use `auto-revert-mode' to revert a particular buffer."
 			    'auto-revert-buffers)
 	  nil)))
 
+(defun auto-revert-active-p ()
+  "Check if auto-revert is active (in current buffer or globally)."
+  (or auto-revert-mode
+      (and
+       global-auto-revert-mode
+       (not global-auto-revert-ignore-buffer)
+       (not (memq major-mode
+		  global-auto-revert-ignore-modes)))))
+
+(defun auto-revert-list-diff (a b)
+  "Check if strings in list A differ from list B."
+  (when (and a b)
+    (setq a (sort a 'string-lessp))
+    (setq b (sort b 'string-lessp))
+    (let (elt1 elt2)
+      (catch 'break
+	(while (and (setq elt1 (and a (pop a)))
+		    (setq elt2 (and b (pop b))))
+	  (if (not (string= elt1 elt2))
+	      (throw 'break t)))))))
+
+(defun auto-revert-dired-file-list ()
+  "Return list of dired files."
+  (let (file list)
+    (save-excursion
+      (goto-char (point-min))
+      (while (not (eobp))
+	(if (setq file (dired-get-filename t t))
+	    (push file list))
+	(forward-line 1)))
+    list))
+
+(defun auto-revert-dired-changed-p ()
+  "Check if dired buffer has changed."
+  (when (and (stringp dired-directory)
+	     ;;	  Exclude remote buffers, would be too slow for user
+	     ;;	  modem, timeouts, network lag ... all is possible
+	     (not (string-match "@" dired-directory))
+	     (file-directory-p dired-directory))
+    (let ((files (directory-files dired-directory))
+	  (dired (auto-revert-dired-file-list)))
+      (or (not (eq (length files) (length dired)))
+	  (auto-revert-list-diff files dired)))))
+
+(defun auto-revert-buffer-p ()
+  "Check if current buffer should be reverted."
+  ;;  - Always include dired buffers to list.  It would be too expensive
+  ;;  to test the "revert" status here each time timer launches.
+  ;;  - Same for VC buffers.
+  (or (and (eq major-mode 'dired-mode)
+	   (or (and global-auto-revert-mode
+		    global-auto-revert-non-file-buffers)
+	       auto-revert-mode))
+      (and (not (buffer-modified-p))
+	   (auto-revert-vc-buffer-p))
+      (and (not (buffer-modified-p))
+	   (if (buffer-file-name)
+	       (and (file-readable-p (buffer-file-name))
+		    (not (verify-visited-file-modtime (current-buffer))))
+	     (and revert-buffer-function
+		  (or (and global-auto-revert-mode
+			   global-auto-revert-non-file-buffers)
+		      auto-revert-mode))))))
+
+(defun auto-revert-vc-cvs-file-version (file)
+  "Get version of FILE by reading control file on disk."
+  (let* ((control "CVS/Entries")
+	 (name	  (file-name-nondirectory file))
+	 (path	  (format "%s/%s"
+			  (file-name-directory file)
+			  control)))
+    (when (file-exists-p path)
+      (with-temp-buffer
+	(insert-file-contents-literally path)
+	(goto-char (point-min))
+	(when (re-search-forward
+	       ;; /file.txt/1.3/Mon Sep 15 18:43:20 2003//
+	       (format "%s/\\([.0-9]+\\)" (regexp-quote name))
+	       nil t)
+	  (match-string 1))))))
+
+(defun auto-revert-vc-buffer-p ()
+  "Check if buffer is version controlled."
+  (and (boundp 'vc-mode)
+       (string-match "[0-9]" (or vc-mode ""))))
+
+(defun auto-revert-handler-vc ()
+  "Check if version controlled buffer needs revert."
+  ;; [Emacs 1]
+  ;; 1. File is saved	  (*)
+  ;; 2. checkin is done 1.1 -> 1.2
+  ;; 3. VC reverts, so that updated version number is shown in mode line
+  ;;
+  ;; Suppose the same file has been opened in another Emacs and
+  ;; autorevert.el is on.
+  ;;
+  ;; [Emacs 2]
+  ;; 1. Step (1) is detected and buffer is reverted.
+  ;; 2. But check in does not always change the file in dis, but possibly only
+  ;;	control files like CVS/Entries
+  ;; 3. The buffer is not reverted to update VC version line.
+  ;;	Incorrect version number 1.1 is shown in this Emacs
+  ;;
+  (when (featurep 'vc)
+    (let* ((file	   (buffer-file-name))
+	   (backend	   (vc-backend (buffer-file-name)))
+	   (version-buffer (vc-workfile-version file)))
+      (when (stringp version-buffer)
+	(cond
+	 ((eq backend 'CVS)
+	  (let ((version-file
+		 (auto-revert-vc-cvs-file-version (buffer-file-name))))
+	    (and (stringp version-file)
+		 (not (string-match version-file version-buffer)))))
+	 ((eq backend 'RCS)
+	  ;; TODO:
+	  ))))))
+
+(defun auto-revert-handler ()
+  "Revert current buffer."
+  (let (revert)
+    (cond
+     ((eq major-mode 'dired-mode)
+      ;;  Dired includes revert-buffer-function
+      (when (and revert-buffer-function
+		 (auto-revert-dired-changed-p))
+	(setq revert t)))
+     ((auto-revert-vc-buffer-p)
+      (when (auto-revert-handler-vc)
+	(setq revert 'vc)))
+     ((or (buffer-file-name)
+	  revert-buffer-function)
+      (setq revert t)))
+    (when revert
+      (revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)
+      (if (eq revert 'vc)
+	  (vc-mode-line buffer-file-name))
+      (if auto-revert-verbose
+	  (message "Reverting buffer `%s'." (buffer-name))))))
+
 (defun auto-revert-buffers ()
   "Revert buffers as specified by Auto-Revert and Global Auto-Revert Mode.
 
@@ -294,24 +441,9 @@ the timer when no buffers need to be checked."
 		       (memq buf auto-revert-buffer-list))
 		  (setq auto-revert-buffer-list
 			(delq buf auto-revert-buffer-list)))
-	      (when (and
-		     (or auto-revert-mode
-			 (and
-			  global-auto-revert-mode
-			  (not global-auto-revert-ignore-buffer)
-			  (not (memq major-mode
-				     global-auto-revert-ignore-modes))))
-		     (not (buffer-modified-p))
-		     (if (buffer-file-name)
-			 (and (file-readable-p (buffer-file-name))
-			      (not (verify-visited-file-modtime buf)))
-		       (and revert-buffer-function
-			    (or (and global-auto-revert-mode
-				     global-auto-revert-non-file-buffers)
-				auto-revert-mode))))
-		(if auto-revert-verbose
-		    (message "Reverting buffer `%s'." buf))
-		(revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)
+	      (when (and (auto-revert-active-p)
+			 (auto-revert-buffer-p))
+		(auto-revert-handler)
 		;; `preserve-modes' avoids changing the (minor) modes.  But we
 		;; do want to reset the mode for VC, so we do it explicitly.
 		(vc-find-file-hook)))

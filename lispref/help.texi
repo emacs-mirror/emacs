@@ -432,7 +432,8 @@ This function returns a string describing @var{character} in the
 standard Emacs notation for characters that appear in text---like
 @code{single-key-description}, except that control characters are
 represented with a leading caret (which is how control characters in
-Emacs buffers are usually displayed).
+Emacs buffers are usually displayed) and character codes 128
+and above are not treated as Meta characters.
 
 @smallexample
 @group
@@ -441,11 +442,11 @@ Emacs buffers are usually displayed).
 @end group
 @group
 (text-char-description ?\M-m)
-     @result{} "M-m"
+     @result{} "\xed"
 @end group
 @group
 (text-char-description ?\C-\M-m)
-     @result{} "M-^M"
+     @result{} "\x8d"
 @end group
 @end smallexample
 @end defun

@@ -189,11 +189,11 @@ update-authors:
 	$(emacs) -f batch-update-authors $(srcdir)/AUTHORS $(srcdir)
 
 TAGS: $(lisptagsfiles1) $(lisptagsfiles2)
-	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs.*\.el,,"`; \
+	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs[^ ]*,," -e "s,$(lisp)/ldefs-boot[^ ]*,,"`; \
 	${ETAGS} $$els
 
 TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
-	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs.*\.el,,"`; \
+	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs[^ ]*,," -e "s,$(lisp)/ldefs-boot[^ ]*,,"`; \
 	${ETAGS} -o TAGS-LISP $$els
 
 .SUFFIXES: .elc .el
@@ -274,14 +274,17 @@ compile-after-backup: backup-compiled-files compile-always
 # Note that this doesn't create .elc files.  It only recompiles if an
 # .elc is present.
 
-recompile: doit progmodes/cc-mode.elc
+recompile: doit $(lisp)/progmodes/cc-mode.elc
 	$(EMACS) $(EMACSOPT) -f batch-byte-recompile-directory $(lisp)
 
 # CC Mode uses a compile time macro system which causes a compile time
 # dependency in cc-mode.elc on the macros in cc-langs.el and the
 # version string in cc-defs.el.
-progmodes/cc-mode.elc: progmodes/cc-mode.el progmodes/cc-langs.el progmodes/cc-defs.el
-	$(EMACS) $(EMACSOPT) -f batch-byte-compile progmodes/cc-mode.el
+$(lisp)/progmodes/cc-mode.elc: \
+	$(lisp)/progmodes/cc-mode.el \
+	$(lisp)/progmodes/cc-langs.el \
+	$(lisp)/progmodes/cc-defs.el
+	$(EMACS) $(EMACSOPT) -f batch-byte-compile $(lisp)/progmodes/cc-mode.el
 
 # Prepare a bootstrap in the lisp subdirectory.
 #

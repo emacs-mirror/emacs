@@ -801,8 +801,8 @@ buffers are scrolled.
 
 @cindex drag and drop
   Emacs supports drag and drop so that dropping of files and text is handeled.
-Currently supported drag and drop protocols are XDND and the old KDE 1.x
-protocol.  There is no drag support yet. 
+Currently supported drag and drop protocols are XDND, Motif and the old
+KDE 1.x protocol.  There is no drag support yet. 
 When text is dropped on Emacs, Emacs inserts the text where it is dropped.
 When a file is dragged from a file manager to Emacs, Emacs opens that file.
 As a special case, if a file is dropped on a dired buffer the file is

@@ -251,7 +251,7 @@ replacements differs from that of the originals.
 
 @item
 Avoid using macros that define functions and variables with names that
-are constructed.  It is best for maintenance wen the name of the
+are constructed.  It is best for maintenance when the name of the
 function or variable being defined is given explicitly in the source
 code, as the second element of the list---as it is when you use
 @code{defun}, @code{defalias}, @code{defvar} and @code{defopt}.
@@ -802,18 +802,29 @@ Comments that start with three semicolons, @samp{;;;}, should start at
 the left margin.  These are used, occasionally, for comments within
 functions that should start at the margin.  We also use them sometimes
 for comments that are between functions---whether to use two or three
-semicolons there is a matter of style.
+semicolons depends on whether the comment should be considered a
+``heading'' by Outline minor mode.  By default, comments starting with
+at least three semicolons (followed by a single space and a
+non-whitespace character) are considered headings, comments starting
+with two or less are not.
 
 Another use for triple-semicolon comments is for commenting out lines
 within a function.  We use three semicolons for this precisely so that
-they remain at the left margin.
+they remain at the left margin.  By default, Outline minor mode does
+not consider a comment to be a heading (even if it starts with at
+least three semicolons) if the semicolons are followed by at least two
+spaces.  Thus, if you add an introductory comment to the commented out
+code, make sure to indent it by at least two spaces after the three
+semicolons.
 
 @smallexample
 (defun foo (a)
-;;; This is no longer necessary.
+;;;  This is no longer necessary.
 ;;;  (force-mode-line-update)
   (message "Finished with %s" a))
 @end smallexample
+
+When commenting out entire functions, use two semicolons.
 
 @item ;;;;
 Comments that start with four semicolons, @samp{;;;;}, should be aligned

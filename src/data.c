@@ -2879,6 +2879,20 @@ DEFUN ("lognot", Flognot, Slognot, 1, 1, 0,
   XSETINT (number, ~XINT (number));
   return number;
 }
+
+DEFUN ("byteorder", Fbyteorder, Sbyteorder, 0, 0, 0,
+       doc: /* Return the byteorder for the machine.
+Returns 66 (ASCII uppercase B) for big endian machines or 108 (ASCII
+lowercase l) for small endian machines.  */)
+     ()
+{
+  unsigned i = 0x04030201;
+  int order = *(char *)&i == 4 ? 66 : 108;
+
+  return make_number (order);
+}
+
+
 
 void
 syms_of_data ()
@@ -3281,6 +3295,7 @@ syms_of_data ()
   defsubr (&Sadd1);
   defsubr (&Ssub1);
   defsubr (&Slognot);
+  defsubr (&Sbyteorder);
   defsubr (&Ssubr_arity);
 
   XSYMBOL (Qwholenump)->function = XSYMBOL (Qnatnump)->function;

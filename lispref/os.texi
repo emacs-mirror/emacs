@@ -1306,7 +1306,7 @@ execution is very precise if Emacs is idle.
 function, because quitting out of many timer functions can leave
 things in an inconsistent state.  This is normally unproblematical
 because most timer functions don't do a lot of work.  Indeed, for a
-timer to calls a function that takes substantial time to run is likely
+timer to call a function that takes substantial time to run is likely
 to be annoying.
 
 @defun run-at-time time repeat function &rest args

@@ -735,10 +735,15 @@ x_draw_fringe_bitmap (w, row, p)
 
   if (p->which)
     {
-      unsigned char *bits = p->bits + p->dh;
+      unsigned char *bits;
       Pixmap pixmap, clipmask = (Pixmap) 0;
       int depth = DefaultDepthOfScreen (FRAME_X_SCREEN (f));
       XGCValues gcv;
+
+      if (p->wd > 8)
+	bits = (unsigned char *)(p->bits + p->dh);
+      else
+	bits = (unsigned char *)p->bits + p->dh;
 
       /* Draw the bitmap.  I believe these small pixmaps can be cached
 	 by the server.  */

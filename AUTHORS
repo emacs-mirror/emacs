@@ -882,7 +882,7 @@ Jonathan Stigelman: wrote hilit19.el
 
 Jonathan Vail: changed vc.el
 
-Jonathan Yavner: wrote ses.el testcover-ses.el testcover-unsafep.el
+Jonathan Yavner: wrote ses.el tcover-ses.el tcover-unsafep.el
   testcover.el unsafep.el
 and changed Makefile.in files.el ses-example.ses ses.texi
 

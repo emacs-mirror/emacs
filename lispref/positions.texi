@@ -403,8 +403,7 @@ Here is an example of using @code{count-lines}:
 (defun current-line ()
   "Return the vertical position of point@dots{}"
   (+ (count-lines (window-start) (point))
-     (if (= (current-column) 0) 1 0)
-     -1))
+     (if (= (current-column) 0) 1 0)))
 @end group
 @end example
 @end defun
