@@ -161,16 +161,19 @@ If third arg ALL is non-nil, concatenate all such fields with commas between."
     (goto-char (point-min))
     (let ((case-fold-search t)
 	  (name (concat "^" (regexp-quote field-name) "[ \t]*:[ \t]*")))
-      (goto-char (point-min))
       (if all
 	  (let ((value ""))
 	    (while (re-search-forward name nil t)
 	      (let ((opoint (point)))
 		(while (progn (forward-line 1)
 			      (looking-at "[ \t]")))
+		;; Back up over newline, then trailing spaces or tabs
+		(forward-char -1)
+		(while (member (preceding-char) '(?  ?\t))
+		  (forward-char -1))
 		(setq value (concat value
 				    (if (string= value "") "" ", ")
-				    (buffer-substring opoint (1- (point)))))))
+				    (buffer-substring opoint (point))))))
 	    (and (not (string= value "")) value))
 	(if (re-search-forward name nil t)
 	    (progn
@@ -178,7 +181,11 @@ If third arg ALL is non-nil, concatenate all such fields with commas between."
 	      (let ((opoint (point)))
 		(while (progn (forward-line 1)
 			      (looking-at "[ \t]")))
-		(buffer-substring opoint (1- (point))))))))))
+		;; Back up over newline, then trailing spaces or tabs
+		(forward-char -1)
+		(while (member (preceding-char) '(?  ?\t))
+		  (forward-char -1))
+		(buffer-substring opoint (point)))))))))
 
 ;; Parse a list of tokens separated by commas.
 ;; It runs from point to the end of the visible part of the buffer.
