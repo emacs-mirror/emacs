@@ -1,7 +1,7 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.39) $
- * Copyright (C) 1997,1998.  Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!buffer.c(trunk.40) $
+ * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
  *
@@ -25,7 +25,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.39) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.40) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -195,6 +195,7 @@ static Res BufferInitV(Buffer buffer, Pool pool, Bool isMutator, va_list args)
   buffer->apStruct.alloc = (Addr)0;
   buffer->apStruct.limit = (Addr)0;
   buffer->poolLimit = (Addr)0;
+  buffer->rampCount = 0;
   buffer->p = NULL;
   buffer->i = 0;
 
@@ -766,4 +767,63 @@ Addr (BufferLimit)(Buffer buffer)
 {
   AVERT(Buffer, buffer);
   return BufferLimit(buffer);
+}
+
+
+/* BufferRampBegin -- note an entry into a ramp pattern
+ *
+ * .ramp.hack: We count the number of times the ap has begun ramp mode
+ * (and not ended), so we can do reset by ending all the current ramps.
+ */
+
+void BufferRampBegin(Buffer buffer)
+{
+  Pool pool;
+
+  AVERT(Buffer, buffer);
+
+  AVER(buffer->rampCount < UINT_MAX);
+  ++buffer->rampCount;
+
+  pool = BufferPool(buffer);
+  AVERT(Pool, pool);
+  (*pool->class->rampBegin)(pool, buffer);
+}
+
+
+/* BufferRampEnd -- note an exit from a ramp pattern */
+
+Res BufferRampEnd(Buffer buffer)
+{
+  Pool pool;
+
+  AVERT(Buffer, buffer);
+
+  if(buffer->rampCount == 0)
+    return ResFAIL;
+  --buffer->rampCount;
+
+  pool = BufferPool(buffer);
+  AVERT(Pool, pool);
+  (*pool->class->rampEnd)(pool, buffer);
+  return ResOK;
+}
+
+
+/* BufferRampReset -- exit from ramp mode */
+
+void BufferRampReset(Buffer buffer)
+{
+  Pool pool;
+
+  AVERT(Buffer, buffer);
+
+  if(buffer->rampCount == 0)
+    return;
+
+  pool = BufferPool(buffer);
+  AVERT(Pool, pool);
+  do
+    (*pool->class->rampEnd)(pool, buffer);
+  while(--buffer->rampCount > 0);
 }

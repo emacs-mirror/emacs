@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.73) $
+ * $HopeName: MMsrc!trace.c(trunk.74) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * .design: design.mps.trace.
@@ -10,7 +10,7 @@
 #include <limits.h>
 
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.73) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.74) $");
 
 
 /* Types
@@ -208,8 +208,14 @@ static void TraceUpdateCounts(Trace trace, ScanState ss,
 
 unsigned long AMCGen0Frequency = 4;
 unsigned long AMCGen1Frequency = 32;
-unsigned long AMCGen2Frequency = 300;
+unsigned long AMCGen2Frequency = 200;
 unsigned long AMCGen2plusFrequencyMultiplier = 1000;
+unsigned long AMCGen0RampmodeFrequency = 4;
+unsigned long AMCGen1RampmodeFrequency = 20;
+unsigned long AMCRampGenFrequency = 300;
+unsigned long AMCGen2RampmodeFrequency = 1000;
+unsigned long AMCGen2plusRampmodeFrequencyMultiplier = 1000;
+Serial AMCRampGenFollows = 1;
 Serial AMCGenFinal = 0; /* default: no final generation */
 
 double TraceGen0IncrementalityMultiple = 0.5;

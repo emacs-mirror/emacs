@@ -1,6 +1,6 @@
 /* impl.h.mpmst: MEMORY POOL MANAGER DATA STRUCTURES
  *
- * $HopeName: MMsrc!mpmst.h(trunk.59) $
+ * $HopeName: MMsrc!mpmst.h(trunk.60) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -93,6 +93,8 @@ typedef struct PoolClassStruct {
   PoolReclaimMethod reclaim;    /* reclaim dead objects after tracing */
   PoolBenefitMethod benefit;    /* calculate benefit of action */
   PoolActMethod act;            /* do an action */
+  PoolRampBeginMethod rampBegin;/* begin a ramp pattern */
+  PoolRampEndMethod rampEnd;    /* end a ramp pattern */
   PoolWalkMethod walk;          /* walk over a segment */
   PoolDescribeMethod describe;  /* describe the contents of the pool */
   Sig endSig;                   /* .class.end-sig */
@@ -307,6 +309,7 @@ typedef struct BufferStruct {
   APStruct apStruct;            /* the allocation point */
   Addr poolLimit;               /* the pool's idea of the limit */
   Align alignment;              /* allocation alignment */
+  unsigned rampCount;           /* see impl.c.buffer.ramp.hack */
   void *p;                      /* closure variable for pool */
   int i;                        /* closure variable for pool */
 } BufferStruct;

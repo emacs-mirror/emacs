@@ -1,7 +1,7 @@
 /*  impl.c.vmw3: VIRTUAL MEMORY MAPPING FOR WIN32
  *
- *  $HopeName: MMsrc!vmw3.c(trunk.25) $
- *  Copyright (C) 1997, 1998 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!vmw3.c(trunk.26) $
+ * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
  *
  *  Design: design.mps.vm
  *
@@ -55,7 +55,7 @@
 
 #include "mpswin.h"
 
-SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.25) $");
+SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.26) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -131,19 +131,31 @@ static Res VMSetCollectionStrategy(VM vm)
       /* Source: drj's test data, 1998-03-30 */
       AMCGen0Frequency = 16;
       AMCGen1Frequency = 160;
-      AMCGen2Frequency = 1000;
+      AMCGen2Frequency = 700;
+      AMCGen0RampmodeFrequency = 16;
+      AMCGen1RampmodeFrequency = 160;
+      AMCRampGenFrequency = 1000;
+      AMCGen2RampmodeFrequency = 4000;
     } else if (vmRAMSize >= 60*1024*1024) {
       /* Parameters optimized for 64 MB machines */
       /* Source: RIT's test data, 1998-03-26 */
       AMCGen0Frequency = 6;
-      AMCGen1Frequency = 48;
-      AMCGen2Frequency = 480;
+      AMCGen1Frequency = 60;
+      AMCGen2Frequency = 360;
+      AMCGen0RampmodeFrequency = 6;
+      AMCGen1RampmodeFrequency = 48;
+      AMCRampGenFrequency = 480;
+      AMCGen2RampmodeFrequency = 1600;
     } else {
       /* Parameters optimized for 32 MB machines */
       /* Source: Tony's test data, 1998-03-26 */
       AMCGen0Frequency = 4;
-      AMCGen1Frequency = 20;
-      AMCGen2Frequency = 300;
+      AMCGen1Frequency = 32;
+      AMCGen2Frequency = 200;
+      AMCGen0RampmodeFrequency = 4;
+      AMCGen1RampmodeFrequency = 20;
+      AMCRampGenFrequency = 300;
+      AMCGen2RampmodeFrequency = 1000;
     }
   }
   return res;
