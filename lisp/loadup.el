@@ -35,6 +35,8 @@
 	;; in case CANNOT_DUMP
 	(equal (nth 0 command-line-args) "../src/bootstrap-emacs"))
     (let ((path (car load-path)))
+      ;; We'll probably overflow the pure space.
+      (setq purify-flag nil)
       (setq load-path (list path
 			    (expand-file-name "emacs-lisp" path)
 			    (expand-file-name "language" path)
