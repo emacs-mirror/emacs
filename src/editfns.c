@@ -2158,6 +2158,29 @@ from adjoining text, if those properties are sticky.  */)
   return Qnil;
 }
 
+DEFUN ("insert-byte", Finsert_byte, Sinsert_byte, 2, 3, 0,
+       doc: /* Insert COUNT (second arg) copies of BYTE (first arg).
+Both arguments are required.
+BYTE is a number of the range 0..255.
+
+If BYTE is 128..255 and the current buffer is multibyte, the
+corresponding eight-bit character is inserted.
+
+Point, and before-insertion markers, are relocated as in the function `insert'.
+The optional third arg INHERIT, if non-nil, says to inherit text properties
+from adjoining text, if those properties are sticky.  */)
+     (byte, count, inherit)
+       Lisp_Object byte, count, inherit;
+{
+  CHECK_NUMBER (byte);
+  if (XINT (byte) < 0 || XINT (byte) > 255)
+    args_out_of_range_3 (byte, make_number (0), make_number (255));
+  if (XINT (byte) >= 128
+      && ! NILP (current_buffer->enable_multibyte_characters))
+    XSETFASTINT (byte, BYTE8_TO_CHAR (XINT (byte)));
+  Finsert_char (byte, count, inherit);
+}
+
 
 /* Making strings from buffer contents.  */
 
@@ -4103,6 +4126,7 @@ functions if all the text being accessed has this property.  */);
   defsubr (&Sinsert_and_inherit);
   defsubr (&Sinsert_and_inherit_before_markers);
   defsubr (&Sinsert_char);
+  defsubr (&Sinsert_byte);
 
   defsubr (&Suser_login_name);
   defsubr (&Suser_real_login_name);
