@@ -208,7 +208,7 @@ it in that buffer.
 `query-replace' and related functions simply ignore
 a match if part of it has a read-only property.
 
-** In `replace-match', the replacement text no longerinherits
+** In `replace-match', the replacement text no longer inherits
 properties from surrounding text.
 
 ** New function `buffer-local-value'.
