@@ -33,7 +33,7 @@
 ;; Please add these lines in your .emacs(_emacs) or use customize.
 ;;
 ;;(setq send-mail-function 'smtpmail-send-it) ; if you use `mail'
-;;(setq message-send-mail-function 'smtpmail-send-it) ; if you use `message'
+;;(setq message-send-mail-function 'smtpmail-send-it) ; if you are using Gnus.
 ;;(setq smtpmail-default-smtp-server "YOUR SMTP HOST")
 ;;(setq smtpmail-local-domain "YOUR DOMAIN NAME")
 ;;(setq smtpmail-sendto-domain "YOUR DOMAIN NAME")
