@@ -43,8 +43,8 @@
 
 
 (defcustom copyright-regexp
-  "\\([Å©\251]\\|@copyright{}\\|[Cc]opyright\\s *:?\\s *(C)\
-\\|[Cc]opyright\\s *:?\\s *[Å©\251]\\)\
+  "\\([\251Å©]\\|@copyright{}\\|[Cc]opyright\\s *:?\\s *(C)\
+\\|[Cc]opyright\\s *:?\\s *[\251Å©]\\)\
 \\s *\\([1-9][-0-9, ']*[0-9]+\\) "
   "*What your copyright notice looks like.
 The second \\( \\) construct must match the years."
