@@ -316,7 +316,7 @@ The value is never nil.")
 
 DEFUN ("make-indirect-buffer",
        Fmake_indirect_buffer, Smake_indirect_buffer, 2, 2,
-       "BMake indirect buffer (to buffer): \nbName of indirect buffer: ",
+       "bMake indirect buffer (to buffer): \nBName of indirect buffer: ",
   "Create and return an indirect buffer for buffer BASE, named NAME.\n\
 BASE should be an existing buffer (or buffer name).\n\
 NAME should be a string which is not the name of an existing buffer.")
