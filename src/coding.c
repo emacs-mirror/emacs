@@ -1990,7 +1990,7 @@ encode_coding_iso2022 (coding, source, destination, src_bytes, dst_bytes)
    (character set)	(range)
    ASCII		0x00 .. 0x7F
    KATAKANA-JISX0201	0xA0 .. 0xDF
-   JISX0208 (1st byte)	0x80 .. 0x9F and 0xE0 .. 0xFF
+   JISX0208 (1st byte)	0x80 .. 0x9F and 0xE0 .. 0xEF
 	    (2nd byte)	0x40 .. 0xFF
    -------------------------------
 
@@ -2236,69 +2236,47 @@ decode_coding_sjis_big5 (coding, source, destination,
 	}
       else if (c1 < 0x80)
 	DECODE_SJIS_BIG5_CHARACTER (charset_ascii, c1, /* dummy */ c2);
-      else if (c1 < 0xA0)
+      else
 	{
-	  /* SJIS -> JISX0208 */
 	  if (sjis_p)
 	    {
-	      ONE_MORE_BYTE (c2);
-	      if (c2 >= 0x40)
+	      if (c1 < 0xA0 || (c1 >= 0xE0 && c1 < 0xF0))
 		{
-		  DECODE_SJIS (c1, c2, c3, c4);
-		  DECODE_SJIS_BIG5_CHARACTER (charset_jisx0208, c3, c4);
+		  /* SJIS -> JISX0208 */
+		  ONE_MORE_BYTE (c2);
+		  if (c2 >= 0x40)
+		    {
+		      DECODE_SJIS (c1, c2, c3, c4);
+		      DECODE_SJIS_BIG5_CHARACTER (charset_jisx0208, c3, c4);
+		    }
+		  else
+		    goto label_invalid_code_2;
 		}
+	      else if (c1 < 0xE0)
+		/* SJIS -> JISX0201-Kana */
+		DECODE_SJIS_BIG5_CHARACTER (charset_katakana_jisx0201, c1,
+					    /* dummy */ c2);
 	      else
-		goto label_invalid_code_2;
+		goto label_invalid_code_1;
 	    }
 	  else
-	    goto label_invalid_code_1;
-	}
-      else if (c1 < 0xE0)
-	{
-	  /* SJIS -> JISX0201-Kana, BIG5 -> Big5 */
-	  if (sjis_p)
-	    DECODE_SJIS_BIG5_CHARACTER (charset_katakana_jisx0201, c1,
-					/* dummy */ c2);
-	  else
 	    {
-	      int charset;
+	      /* BIG5 -> Big5 */
+	      if (c1 >= 0xA1 && c1 <= 0xFE)
+		{
+		  ONE_MORE_BYTE (c2);
+		  if ((c2 >= 0x40 && c2 <= 0x7E) || (c2 >= 0xA1 && c2 <= 0xFE))
+		    {
+		      int charset;
 
-	      ONE_MORE_BYTE (c2);
-	      if ((c2 >= 0x40 && c2 <= 0x7E) || (c2 >= 0xA1 && c2 <= 0xFE))
-		{
-		  DECODE_BIG5 (c1, c2, charset, c3, c4);
-		  DECODE_SJIS_BIG5_CHARACTER (charset, c3, c4);
+		      DECODE_BIG5 (c1, c2, charset, c3, c4);
+		      DECODE_SJIS_BIG5_CHARACTER (charset, c3, c4);
+		    }
+		  else
+		    goto label_invalid_code_2;
 		}
 	      else
-		goto label_invalid_code_2;
-	    }
-	}
-      else			/* C1 >= 0xE0 */
-	{
-	  /* SJIS -> JISX0208, BIG5 -> Big5 */
-	  if (sjis_p)
-	    {
-	      ONE_MORE_BYTE (c2);
-	      if (c2 >= 0x40)
-		{
-		  DECODE_SJIS (c1, c2, c3, c4);
-		  DECODE_SJIS_BIG5_CHARACTER (charset_jisx0208, c3, c4);
-		}
-	      else
-		goto label_invalid_code_2;
-	    }
-	  else
-	    {
-	      int charset;
-
-	      ONE_MORE_BYTE (c2);
-	      if ((c2 >= 0x40 && c2 <= 0x7E) || (c2 >= 0xA1 && c2 <= 0xFE))
-		{
-		  DECODE_BIG5 (c1, c2, charset, c3, c4);
-		  DECODE_SJIS_BIG5_CHARACTER (charset, c3, c4);
-		}
-	      else
-		goto label_invalid_code_2;
+		goto label_invalid_code_1;
 	    }
 	}
       continue;
@@ -3085,6 +3063,32 @@ setup_coding_system (coding_system, coding)
   coding->eol_type = CODING_EOL_LF;
   coding->pre_write_conversion = coding->post_read_conversion = Qnil;
   return -1;
+}
+
+/* Setup raw-text or one of its subsidiaries in the structure
+   coding_system CODING according to the already setup value eol_type
+   in CODING.  CODING should be setup for some coding system in
+   advance.  */
+
+void
+setup_raw_text_coding_system (coding)
+     struct coding_system *coding;
+{
+  if (coding->type != coding_type_raw_text)
+    {
+      coding->symbol = Qraw_text;
+      coding->type = coding_type_raw_text;
+      if (coding->eol_type != CODING_EOL_UNDECIDED)
+	{
+	  Lisp_Object subsidiaries = Fget (Qraw_text, Qeol_type);
+
+	  if (VECTORP (subsidiaries)
+	      && XVECTOR (subsidiaries)->size == 3)
+	    coding->symbol
+	      = XVECTOR (subsidiaries)->contents[coding->eol_type];
+	}
+    }
+  return;
 }
 
 /* Emacs has a mechanism to automatically detect a coding system if it
