@@ -1,3 +1,9 @@
+2002-04-09  Mike Williams  <mdub@bigfoot.com>
+
+	* textmodes/sgml-mode.el (sgml-lexical-context): Use
+	sgml-parse-tag-backward to find start point.
+	(sgml-looking-back-at): Doc fix.
+
 2002-04-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* isearch.el (isearch-message-prefix): Use minibuffer-prompt face
