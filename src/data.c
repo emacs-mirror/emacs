@@ -1133,7 +1133,10 @@ VARIABLE previously had.  If VARIABLE was void, it remains void.\)\n\
 See also `make-variable-buffer-local'.\n\n\
 If the variable is already arranged to become local when set,\n\
 this function causes a local value to exist for this buffer,\n\
-just as if the variable were set.")
+just as setting the variable would do.\n\
+\n\
+Do not use `make-local-variable' to make a hook variable buffer-local.\n\
+Use `make-local-hook' instead.")
   (sym)
      register Lisp_Object sym;
 {
@@ -1241,6 +1244,23 @@ From now on the default value will apply in this buffer.")
 
   return sym;
 }
+
+DEFUN ("local-variable-p", Flocal_variable_p, Slocal_variable_p,
+  1, 1, 0,
+  "Non-nil if VARIABLE has a local binding in the current buffer.")
+  (sym)
+     register Lisp_Object sym;
+{
+  Lisp_Object valcontents;
+
+  CHECK_SYMBOL (sym, 0);
+
+  valcontents = XSYMBOL (sym)->value;
+  return ((BUFFER_LOCAL_VALUEP (valcontents)
+	   || SOME_BUFFER_LOCAL_VALUEP (valcontents)
+	   || BUFFER_OBJFWDP (valcontents))
+	  ? Qt : Qnil);
+}
 
 /* Find the function at the end of a chain of symbol function indirections.  */
 
@@ -1253,7 +1273,7 @@ From now on the default value will apply in this buffer.")
    error if the chain ends up unbound.  */
 Lisp_Object
 indirect_function (object)
-  register Lisp_Object object;
+     register Lisp_Object object;
 {
   Lisp_Object tortoise, hare;
 
@@ -2292,6 +2312,7 @@ syms_of_data ()
   defsubr (&Smake_variable_buffer_local);
   defsubr (&Smake_local_variable);
   defsubr (&Skill_local_variable);
+  defsubr (&Slocal_variable_p);
   defsubr (&Saref);
   defsubr (&Saset);
   defsubr (&Snumber_to_string);
