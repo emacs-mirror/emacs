@@ -1,5 +1,7 @@
 2005-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/find-func.el (find-variable-regexp): Avoid defface.
+
 	* progmodes/perl-mode.el (perl-nochange, perl-calculate-indent):
 	Don't confuse module-prefixed identifiers for labels.
 	Reported by Juan-Leon Lahoz Garcia <juanleon1@gmail.com>.

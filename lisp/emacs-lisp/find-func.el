@@ -1,6 +1,6 @@
 ;;; find-func.el --- find the definition of the Emacs Lisp function near point
 
-;; Copyright (C) 1997, 1999, 2001, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Jens Petersen <petersen@kurims.kyoto-u.ac.jp>
 ;; Maintainer: petersen@kurims.kyoto-u.ac.jp
@@ -76,10 +76,10 @@ Please send improvements and fixes to the maintainer."
   :version "21.1")
 
 (defcustom find-variable-regexp
-  (concat"^\\s-*(def[^umag]\\(\\w\\|\\s_\\)+\\*?" find-function-space-re "%s\\(\\s-\\|$\\)")
+  (concat"^\\s-*(def[^fumag]\\(\\w\\|\\s_\\)+\\*?" find-function-space-re "%s\\(\\s-\\|$\\)")
   "The regexp used by `find-variable' to search for a variable definition.
 It should match right up to the variable name.  The default value
-avoids `defun', `defmacro', `defalias', `defadvice', `defgroup'.
+avoids `defun', `defmacro', `defalias', `defadvice', `defgroup', `defface'.
 
 Please send improvements and fixes to the maintainer."
   :type 'regexp
@@ -437,5 +437,5 @@ Point is saved if FUNCTION is in the current buffer."
 
 (provide 'find-func)
 
-;;; arch-tag: 43ecd81c-74dc-4d9a-8f63-a61e55670d64
+;; arch-tag: 43ecd81c-74dc-4d9a-8f63-a61e55670d64
 ;;; find-func.el ends here
