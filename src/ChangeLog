@@ -1,3 +1,10 @@
+2002-04-19  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* xterm.c (note_mode_line_or_margin_highlight): Remove unused
+	variables `row', `i' and `area'.
+	(XTread_socket) <KeyPress>: Pass KeyPress events when in menu to
+	toolkit library.
+
 2002-04-19  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* xfaces.c (clear_font_table): Don't free the default font of

@@ -1,3 +1,13 @@
+2002-04-19  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	These changes allow moving in menu via keyboard.
+	
+	* xlwmenu.c (xlwMenuTranslations, xlwMenuActionsList): Add
+	translations for cursor keys and RET.
+	(find_next_selectable, find_prev_selectable): New functions used
+	for finding menu-items.
+	(Down, Up, Left, Right): New functions.
+
 2002-04-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (TAGS): Don't use -t, it's the default behavior for
@@ -907,7 +917,7 @@
 1994-03-22  Frederic Pierresteguy  (fp@mole.gnu.ai.mit.edu)
 
 	* xlwmenu.c (XlwMenuResize): Don't allow the popup menu to resize
-	itself. Therefore reset the size to its initial value.
+	itself.  Therefore reset the size to its initial value.
 
 1994-03-19  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
