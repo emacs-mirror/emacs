@@ -1,5 +1,11 @@
 2004-12-27  Richard M. Stallman  <rms@gnu.org>
 
+	* buffer.c (Fbuffer_disable_undo): Deleted (moved to simple.el).
+	(syms_of_buffer): Don't defsubr it.
+
+	* process.c (list_processes_1): Set undo_list instead
+	of calling Fbuffer_disable_undo.
+
 	* xdisp.c (single_display_spec_string_p): Renamed from
 	single_display_prop_string_p.
 	(single_display_spec_intangible_p): Renamed from

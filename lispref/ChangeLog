@@ -1,3 +1,8 @@
+2004-12-27  Richard M. Stallman  <rms@gnu.org>
+
+	* loading.texi (Where Defined): New node.
+	(Unloading): load-history moved to Where Defined.
+
 2004-12-21  Richard M. Stallman  <rms@gnu.org>
 
 	* commands.texi (Event Input Misc): Add while-no-input.
