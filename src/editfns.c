@@ -275,10 +275,12 @@ store it in a Lisp variable.  Example:\n\
 Lisp_Object
 save_excursion_save ()
 {
-  register int visible = XBUFFER (XWINDOW (selected_window)->buffer) == current_buffer;
+  register int visible = (XBUFFER (XWINDOW (selected_window)->buffer)
+			  == current_buffer);
 
   return Fcons (Fpoint_marker (),
-		Fcons (Fcopy_marker (current_buffer->mark), visible ? Qt : Qnil));
+		Fcons (Fcopy_marker (current_buffer->mark),
+		       visible ? Qt : Qnil));
 }
 
 Lisp_Object
@@ -302,7 +304,8 @@ save_excursion_restore (info)
   Fset_marker (current_buffer->mark, tem, Fcurrent_buffer ());
   unchain_marker (tem);
   tem = Fcdr (Fcdr (info));
-  if (!NILP (tem) && current_buffer != XBUFFER (XWINDOW (selected_window)->buffer))
+  if (!NILP (tem)
+      && current_buffer != XBUFFER (XWINDOW (selected_window)->buffer))
     Fswitch_to_buffer (Fcurrent_buffer (), Qnil);
   return Qnil;
 }
