@@ -1145,6 +1145,7 @@ or may be a list of two strings to be printed as if concatenated.")
 	    {
 	      if (XTYPE (Vstandard_output) != Lisp_Buffer)
 		{
+		  Lisp_Object tem;
 		  tem = Flength (Fcar (elt));
 		  column += XINT (tem);
 		  tem = Flength (Fcar (Fcdr (elt)));
