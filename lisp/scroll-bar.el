@@ -330,7 +330,7 @@ EVENT should be a scroll bar click."
 ;;;; Bindings.
 
 ;;; For now, we'll set things up to work like xterm.
-(cond (x-toolkit-scroll-bars-p
+(cond (x-toolkit-scroll-bars
        (global-set-key [vertical-scroll-bar mouse-1]
 		       'scroll-bar-toolkit-scroll))
       (t
