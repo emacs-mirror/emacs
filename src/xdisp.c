@@ -34,6 +34,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "disptab.h"
 #include "termhooks.h"
 #include "intervals.h"
+#include "keyboard.h"
 
 #ifdef USE_X_TOOLKIT
 extern void set_frame_menubar ();
