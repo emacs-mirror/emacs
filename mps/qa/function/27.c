@@ -1,23 +1,23 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!27.c(trunk.3) $
  summary = mutually referring objects should die
  language = c
  link = testlib.o newfmt.o
 END_HEADER
 */
 
-
 #include "testlib.h"
 #include "mpscamc.h"
 #include "newfmt.h"
 
+
 void *stackpointer;
 
 mps_ap_t ap;
-mycell *p;
 size_t s;
 int nrefs;
+
 
 static void test(void)
 {
@@ -82,6 +82,7 @@ static void test(void)
  mps_space_destroy(space);
  comment("Destroyed space.");
 }
+
 
 int main(void)
 {
