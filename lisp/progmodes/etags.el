@@ -683,7 +683,8 @@ Assumes the tags table is the current buffer."
 	 (spec (completing-read (if default
 				    (format "%s(default %s) " string default)
 				  string)
-				'tags-complete-tag)))
+				'tags-complete-tag
+				nil nil nil nil default)))
     (if (equal spec "")
 	(or default (error "There is no default tag"))
       spec)))
