@@ -1,3 +1,8 @@
+1999-12-17  Dave Love  <fx@gnu.org>
+
+	* data.c (Fkeywordp): New function.
+	(syms_of_data): Install it.
+
 1999-12-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* xfaces.c (tty_defined_color): Fix last change.
