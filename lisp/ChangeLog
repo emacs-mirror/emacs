@@ -4,6 +4,16 @@
 	delivery status notification from MTA.
 	(sendmail-send-it): Use it.
 
+	* mail/smtpmail.el (smtpmail-queue-counter): New variable.
+	(smtpmail-send-it): Use it to construct new queue filenames
+	(needed if you send more than one message per second, which is
+	possible if you use Gnus Agent).
+
+	* mail/smtpmail.el (smtpmail-auth-credentials): Support netrc
+	files as well.
+	(smtpmail-try-auth-methods): Support netrc data.
+	(netrc-parse): Autoload netrc.
+
 2002-04-25  Colin Walters  <walters@verbum.org>
 
 	* replace.el (multi-occur-by-filename-regexp): Doc fix.
