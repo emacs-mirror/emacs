@@ -1,3 +1,20 @@
+2002-06-05  Miles Bader  <miles@gnu.org>
+
+	* faces.el (display-supports-face-attributes-p): New function.
+	* term/tty-colors.el (color-name-rgb-alist): Use 16-bit RGB values
+	instead of 8-bit, for consistency with the rest of emacs.
+	(tty-color-canonicalize): Only copy COLOR if we need to change it.
+	(tty-color-approximate): Scale values from `color-name-rgb-alist'
+	appropriately.  Return the whole color description, rather than
+	just the RGB values.
+	(tty-color-standard-values): New function.  Code mostly taken from
+	`tty-color-translate'.
+	(tty-color-translate, tty-color-values): Use `tty-color-desc' to
+	do all the work.
+	(tty-color-desc): Do color lookup here instead of calling
+	`tty-color-translate' and `tty-color-by-index'; this is now the
+	main place to do it.
+
 2002-06-09  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-style.el (c-set-style, c-set-style-1): Added

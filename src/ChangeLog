@@ -1,3 +1,13 @@
+2002-06-09  Miles Bader  <miles@gnu.org>
+
+	* xfaces.c (Ftty_supports_face_attributes_p): New function.
+	(parse_rgb_list, tty_lookup_color): New functions.
+	(tty_defined_color): Use `tty_lookup_color' to do all the work.
+	(color_distance, Fcolor_distance): New functions.
+	(TTY_SAME_COLOR_THRESHOLD): New macro.
+	(Qtty_color_standard_values): New variable.
+	(syms_of_xfaces): Initialize new vars & functions.
+
 2002-06-08  Colin Walters  <walters@verbum.org>
 
 	* textprop.c (Vchar_property_alias_alist): New variable.
