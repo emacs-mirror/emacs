@@ -781,7 +781,7 @@ selected frame."
   (make-face-bold-italic 'bold-italic t)
 
   (set-face-background 'highlight '("darkseagreen2" "green" t) t)
-  (set-face-background 'region '("gray" t) t)
+  (set-face-background 'region '("gray" underline) t)
   (set-face-background 'secondary-selection '("paleturquoise" "green" t) t)
   (set-face-background 'modeline '(t) t)
   (set-face-underline-p 'underline t t)
@@ -924,16 +924,22 @@ selected frame."
 		;; and set `done' if we succeed.
 		(condition-case nil
 		    (progn
-		      (if (eq (car colors) t)
-			  (invert-face face frame)
-			(funcall function face (car colors) frame))
+		      (cond ((eq (car colors) t)
+			     (invert-face face frame))
+			    ((eq (car colors) 'underline)
+			     (set-face-underline-p face t frame))
+			    (t
+			     (funcall function face (car colors) frame)))
 		      (setq done t))
 		  (error nil))
 	      ;; If this is the last color, let the error get out if it fails.
 	      ;; If it succeeds, we will exit anyway after this iteration.
-	      (if (eq (car colors) t)
-		  (invert-face face frame)
-		(funcall function face (car colors) frame))))
+	      (cond ((eq (car colors) t)
+		     (invert-face face frame))
+		    ((eq (car colors) 'underline)
+		     (set-face-underline-p face t frame))
+		    (t
+		     (funcall function face (car colors) frame)))))
 	  (setq colors (cdr colors)))))))
 
 ;; If we are already using x-window frames, initialize faces for them.
