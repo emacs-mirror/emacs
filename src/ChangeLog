@@ -1,5 +1,9 @@
 2000-08-24  Kenichi Handa  <handa@etl.go.jp>
 
+	* minibuf.c (do_completion): Always use compare-string, not
+	string-equal because the latter doesn't pay attention to
+	multibyteness of strings.
+
 	* process.c (create_process): Don't setup raw-text coding here.
 	(Fopen_network_stream): Don't set coding->src_multibyte and
 	coding->dst_multibyte here.
