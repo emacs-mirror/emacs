@@ -1,12 +1,12 @@
 ;; @(#) ada-mode.el --- major-mode for editing Ada source.
 
-;; Copyright (C) 1994, 1995, 1997-1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 97, 98, 99, 2000 Free Software Foundation, Inc.
 
 ;; Author: Rolf Ebert      <ebert@inf.enst.fr>
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.117 $
+;; Ada Core Technologies's version:   $Revision: 1.33 $
 ;; Keywords: languages ada
 
 ;; This file is not part of GNU Emacs
@@ -392,7 +392,7 @@ The extensions should include a `.' if needed.")
   "List of possible suffixes for Ada spec files.
 The extensions should include a `.' if needed.")
 
-(defvar ada-mode-menu (make-sparse-keymap)
+(defvar ada-mode-menu (make-sparse-keymap "Ada")
   "Menu for ada-mode.")
 
 (defvar ada-mode-map (make-sparse-keymap)
