@@ -1,3 +1,8 @@
+1999-10-07  Dave Love  <fx@gnu.org>
+
+	* bindings.el (bound-and-true-p): New macro.
+	(make-mode-line-mouse-sensitive): Don't require easymenu.
+
 1999-10-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* custom.el (defface): Extend documentation for new values of
