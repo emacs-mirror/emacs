@@ -1,3 +1,8 @@
+2002-05-15  Dave Love  <fx@gnu.org>
+
+	* international/mule-cmds.el (set-locale-environment): Comment out
+	set-keyboard-coding-system stuff.
+
 2002-05-14  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule.el (define-coding-system): Docstring
