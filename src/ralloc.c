@@ -1317,18 +1317,7 @@ static struct mmap_region *mmap_find P_ ((POINTER_TYPE *, POINTER_TYPE *));
 POINTER_TYPE *r_alloc P_ ((POINTER_TYPE **, size_t));
 POINTER_TYPE *r_re_alloc P_ ((POINTER_TYPE **, size_t));
 void r_alloc_free P_ ((POINTER_TYPE **ptr));
-
-
-void
-r_alloc_init_fd ()
-{
-#if !MAP_ANON
-  /* No anonymous mmap -- we need the file descriptor.  */
-  mmap_fd = open ("/dev/zero", O_RDONLY);
-  if (mmap_fd < 0)
-    fatal ("cannot open /dev/zero");
-#endif
-}
+void r_alloc_init_fd ();
 
 /* Return a region overlapping address range START...END, or null if
    none.  END is not including, i.e. the last byte in the range
@@ -1666,6 +1655,21 @@ r_alloc_free (var)
 #ifndef SYSTEM_MALLOC
 extern POINTER (*__morecore) ();
 #endif
+
+/* Set up the file descriptor for non-anonymous mmapping.  */
+
+void
+r_alloc_init_fd ()
+{
+#ifdef REL_ALLOC_MMAP
+#if !MAP_ANON
+  /* No anonymous mmap -- we need the file descriptor.  */
+  mmap_fd = open ("/dev/zero", O_RDONLY);
+  if (mmap_fd < 0)
+    fatal ("cannot open /dev/zero");
+#endif
+#endif
+}
 
 /* Initialize various things for memory allocation.  */
 
