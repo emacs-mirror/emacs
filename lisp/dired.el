@@ -188,6 +188,7 @@ directory name and the cdr is the actual files to list.")
 (defvar dired-re-perms "-[-r][-w].[-r][-w].[-r][-w].")
 (defvar dired-re-dot "^.* \\.\\.?$")
 
+;; The subdirectory names in this list are expanded.
 (defvar dired-subdir-alist nil
   "Association list of subdirectories and their buffer positions.
 Each subdirectory has an element: (DIRNAME . STARTMARKER).
@@ -1250,37 +1251,41 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
   ;; Enlarged by dired-advertise
   ;; Queried by function dired-buffers-for-dir. When this detects a
   ;; killed buffer, it is removed from this list.
-  "Alist of directories and their associated dired buffers.")
+  "Alist of expanded directories and their associated dired buffers.")
 
 (defun dired-buffers-for-dir (dir)
 ;; Return a list of buffers that dired DIR (top level or in-situ subdir).
 ;; The list is in reverse order of buffer creation, most recent last.
 ;; As a side effect, killed dired buffers for DIR are removed from
 ;; dired-buffers.
+  ;; For testing. -MDE 8/21/94
+  (if (not (string-equal dir (expand-file-name dir)))
+      (debug))
   (setq dir (file-name-as-directory dir))
-  (let ((alist dired-buffers) result elt)
+  (let ((alist dired-buffers) result elt buf)
     (while alist
-      (setq elt (car alist))
-      (if (dired-in-this-tree dir (car elt))
-	  (let ((buf (cdr elt)))
-	    (if (buffer-name buf)
-		(if (assoc dir (save-excursion
-				 (set-buffer buf)
-				 dired-subdir-alist))
-		    (setq result (cons buf result)))
-	      ;; else buffer is killed - clean up:
-	      (setq dired-buffers (delq elt dired-buffers)))))
+      (setq elt (car alist)
+	    buf (cdr elt))
+      (if (buffer-name buf)
+	  (if (dired-in-this-tree dir (car elt))
+	      (if (assoc dir (save-excursion
+			       (set-buffer buf)
+			       dired-subdir-alist))
+		  (setq result (cons buf result))))
+	;; else buffer is killed - clean up:
+	(setq dired-buffers (delq elt dired-buffers)))
       (setq alist (cdr alist)))
     result))
 
 (defun dired-advertise ()
   ;;"Advertise in variable `dired-buffers' that we dired `default-directory'."
   ;; With wildcards we actually advertise too much.
-  (if (memq (current-buffer) (dired-buffers-for-dir default-directory))
-      t					; we have already advertised ourselves
-    (setq dired-buffers
-	  (cons (cons default-directory (current-buffer))
-		dired-buffers))))
+  (let ((expanded-default (expand-file-name default-directory)))
+    (if (memq (current-buffer) (dired-buffers-for-dir expanded-default))
+	t				; we have already advertised ourselves
+      (setq dired-buffers
+	    (cons (cons expanded-default (current-buffer))
+		  dired-buffers)))))
 
 (defun dired-unadvertise (dir)
   ;; Remove DIR from the buffer alist in variable dired-buffers.
@@ -1288,7 +1293,7 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
   ;; It does not affect buffers in which DIR is a subdir.
   ;; Removing is also done as a side-effect in dired-buffer-for-dir.
   (setq dired-buffers
-      (delq (assoc dir dired-buffers) dired-buffers)))
+	(delq (assoc (expand-file-name dir) dired-buffers) dired-buffers)))
 
 ;; Tree Dired
 
@@ -1296,8 +1301,11 @@ Optional arg NO-ERROR-IF-NOT-FILEP means return nil if no filename on
 
 (defun dired-in-this-tree (file dir)
   ;;"Is FILE part of the directory tree starting at DIR?"
+  ;; For testing. -MDE 8/21/94
+  (if (not (string-equal dir (expand-file-name dir)))
+      (debug))
   (let (case-fold-search)
-    (string-match (concat "^" (regexp-quote (expand-file-name dir))) file)))
+    (string-match (concat "^" (regexp-quote dir)) file)))
 
 (defun dired-normalize-subdir (dir)
   ;; Prepend default-directory to DIR if relative path name.
