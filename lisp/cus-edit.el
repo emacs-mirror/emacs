@@ -1,6 +1,6 @@
 ;;; cus-edit.el --- Tools for customizing Emacs and Lisp packages.
 ;;
-;; Copyright (C) 1996, 1997, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2000, 2001 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: help, faces
@@ -1029,8 +1029,19 @@ Show the buffer in another window, but don't select it."
 (defun customize-face (&optional symbol)
   "Customize SYMBOL, which should be a face name or nil.
 If SYMBOL is nil, customize all faces."
-  (interactive (list (completing-read "Customize face: (default all) "
-				      obarray 'custom-facep t)))
+  (interactive (list (let* ((face (get-char-property (point) 'face))
+			    (def (cond ((facep face)
+					face)
+				       ((facep (car-safe face))
+					(car-safe face)))))
+		       (completing-read (format "Customize face: (default %s) "
+						(or def "all"))
+					obarray
+					(lambda (f)
+					  (and (custom-facep f)
+					       ;; made with defface?
+					       (get f 'face-defface-spec)))
+					t nil nil def))))
   (if (or (null symbol) (and (stringp symbol) (zerop (length symbol))))
       (custom-buffer-create (custom-sort-items
 			     (mapcar (lambda (symbol)
@@ -3004,7 +3015,7 @@ restoring it to the state of a face that has never been customized."
   ;; chaos.
   :set (lambda (symbol value)
 	 (dolist (elt value)
-	   (if (fboundp elt)
+	   (if (functionp elt)
 	       (add-hook symbol elt))))
   :convert-widget 'custom-hook-convert-widget
   :tag "Hook")
@@ -3014,7 +3025,11 @@ restoring it to the state of a face that has never been customized."
   (let* ((options (widget-get widget :options))
 	 (other `(editable-list :inline t
 				:entry-format "%i %d%v"
-				(function :format " %v")))
+				(choice :format " %v"
+					function
+					;; Allow functions not defined
+					;; at this point.
+					(symbol :tag "Function"))))
 	 (args (if options
 		   (list `(checklist :inline t
 				     ,@(mapcar (lambda (entry)
