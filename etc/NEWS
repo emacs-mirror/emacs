@@ -1,5 +1,5 @@
-GNU Emacs NEWS -- history of user-visible changes.  23 Jan 1999
-Copyright (C) 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
+GNU Emacs NEWS -- history of user-visible changes.  5 Jan 2000
+Copyright (C) 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Emacs bug reports to bug-gnu-emacs@gnu.org.
@@ -12,6 +12,9 @@ For older news, see the file ONEWS.
 the --without-pop configure option, should that be necessary.
 
 * Changes in Emacs 21.1
+
+** New command M-x check-parens can be used to find unbalanced paren
+groups and strings in buffers in Lisp mode (or other modes).
 
 ** You can now easily create new *Info* buffers using either M-x clone-buffer
 or C-u m <entry> RET.  M-x clone-buffer can also be used on *Help* and
@@ -866,6 +869,11 @@ Note that +++ before an item means the Lisp manual has been updated.
 --- means that I have decided it does not need to be in the Lisp manual.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
+
+** Variables `beginning-of-defun' and `end-of-defun', can be used to
+define handlers for the functions of the same names.  Major modes can
+define these locally instead of rebinding M-C-a etc. if the normal
+definitions of the functions are not appropriate for the mode.
 
 ** easy-mmode-define-minor-mode now takes an additional BODY argument
 and is renamed `define-minor-mode'.
@@ -7363,7 +7371,7 @@ lm-synopsis extracts first line "synopsis'"information.
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 1996, 1997, 1998, 1999 Free Software Foundation, Inc.
+Copyright (C) 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
