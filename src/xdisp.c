@@ -5395,7 +5395,9 @@ of the top or bottom of the window.");
   mode_line_inverse_video = 1;
 
   DEFVAR_INT ("line-number-display-limit", &line_number_display_limit,
-    "*Maximum buffer size for which line number should be displayed.");
+    "*Maximum buffer size (in characters) for line number display\n\
+If the buffer is bigger than this, the line number does not appear\n\
+in the mode line..");
   line_number_display_limit = 1000000;
 
   DEFVAR_BOOL ("highlight-nonselected-windows", &highlight_nonselected_windows,
