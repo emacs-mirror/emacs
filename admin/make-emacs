@@ -53,6 +53,7 @@ $rc = GetOptions ("help" => \$help,
 		  "wall" => \$wall,
 		  "gcc3" => \$gcc3,
 		  "trace-selection" => \$trace_selection,
+		  "trace-move" => \$trace_move,
 		  "stabs" => \$use_stabs,
 		  "optim" => \$optim);
 
@@ -77,6 +78,7 @@ Build Emacs.
  --wall			compile with -Wall
  --gcc3			use GCC 3.0 (30% slower compilation, slower code)
  --trace-selection	print traces in xselect.c
+ --trace-move		print traces for move_it* functions
  --stabs		use -gstabs instead -g
 
 Default is to compile with warnings, with -DGC_MCHECK=1, and
@@ -145,6 +147,7 @@ $defs = "$defs -DGC_MALLOC_CHECK=1 -DGC_PROTECT_MALLOC_STATE=1" if $malloc_check
 $defs = "$defs -DGC_MCHECK=1" unless $no_mcheck;
 
 $defs = "$defs -DTRACE_SELECTION" if $trace_selection;
+$defs = "$defs -DDEBUG_TRACE_MOVE" if $trace_move;
 
 # arch=pentium leads to slightly faster code than without.
 $opts = "$opts -march=pentiumpro";
