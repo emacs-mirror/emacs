@@ -860,7 +860,7 @@ unlock:
 relock:
 	chmod -w $(SOURCES)
 	chmod +w paths.h
-tagsfiles = [a-z]*.h [a-z]*.c ../lisp/[a-z]*.el ../lisp/term/[a-z]*.el
+tagsfiles = [a-zA-Z]*.h [a-zA-Z]*.c ../lisp/[a-zA-Z]*.el ../lisp/term/[a-zA-Z]*.el
 TAGS: $(tagsfiles)
 	etags $(tagsfiles)
 tags: TAGS
