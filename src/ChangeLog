@@ -1,3 +1,7 @@
+2001-03-05  Dave Love  <fx@gnu.org>
+
+	* xterm.c (XTmouse_position): Fix tyypo.
+
 2001-03-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* minibuf.c (read_minibuf): Clean up the binding stack if

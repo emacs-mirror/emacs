@@ -1,6 +1,7 @@
 2001-03-05  Dave Love  <fx@gnu.org>
 
 	* mm-util.el (mm-mime-mule-charset-alist): Fix utf-8 case.
+	Move it after definition of mm-coding-system-p.
 
 2001-03-01  Dave Love  <fx@gnu.org>
 
