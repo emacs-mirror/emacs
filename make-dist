@@ -367,9 +367,14 @@ done
 #### than two.  (Yes, strictly greater than 2 is correct; since we
 #### created these files by linking them in from the original tree,
 #### they'll have exactly two links normally.)
+####
+#### Commented out since it's not stricly necessary; it should suffice
+#### to just break the link on alloca.c.
 #echo "Breaking intra-tree links."
 #find ${tempdir} ! -type d -links +2 \
 #  -exec cp -p {} $$ \; -exec rm -f {} \; -exec mv $$ {} \;
+rm -f $tempdir/lib-src/alloca.c
+cp $tempdir/src/alloca.c $tempdir/lib-src/alloca.c
 
 if [ "${newer}" ]; then
   echo "Removing files older than $newer."
