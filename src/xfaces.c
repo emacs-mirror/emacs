@@ -2550,8 +2550,6 @@ the face font sort order.")
       Lisp_Object v = Fmake_vector (make_number (8), Qnil);
       char *tem;
 
-#define ASET(VECTOR, IDX, VAL) (XVECTOR (VECTOR)->contents[IDX] = (VAL))
-      
       ASET (v, 0, build_string (fonts[i].fields[XLFD_FAMILY]));
       ASET (v, 1, xlfd_symbolic_swidth (fonts + i));
       ASET (v, 2, make_number (xlfd_point_size (f, fonts + i)));
@@ -2566,8 +2564,6 @@ the face font sort order.")
       xfree (tem);
       
       result = Fcons (v, result);
-      
-#undef ASET
     }
 
   remove_duplicates (result);
