@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.6) $
+ * $HopeName: MMsrc!poolawl.c(trunk.7) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.6) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.7) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -337,6 +337,7 @@ static Res AWLCondemn(Pool pool, Trace trace, Seg seg, Action action)
   bits = SegSize(PoolSpace(pool), seg) >> awl->alignShift;
   
   BTResRange(group->mark, 0, bits);
+  BTResRange(group->scanned, 0, bits);
   SegSetWhite(seg, TraceSetAdd(SegWhite(seg), trace->ti));
   
   return ResOK;
@@ -359,6 +360,7 @@ static void AWLGrey(Pool pool, Trace trace, Seg seg)
     ShieldRaise(trace->space, seg, AccessREAD);
     bits = SegSize(PoolSpace(pool), seg) >> awl->alignShift;
     BTSetRange(group->mark, 0, bits);
+    BTResRange(group->scanned, 0, bits);
   }
 }
 
@@ -458,6 +460,7 @@ notFinished:
 	b = SegOfAddr(&dependentSeg, space, dependentObj);
 	AVER(b == TRUE);
 	ShieldExpose(space, dependentSeg);
+	TraceSetSummary(space, dependentSeg, RefSetUNIV);
       }
       res = awl->format->scan(ss, p, objectEnd);
       if(dependent) {
