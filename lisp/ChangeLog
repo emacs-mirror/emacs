@@ -1,3 +1,7 @@
+2002-03-05  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* language/european.el (mac-roman): Fix the safe-chars property.
+
 2002-03-05  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-revert-buffer): If the buffer is not saved, prompt
