@@ -1422,6 +1422,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       goto reread_first;
     }
 
+  if (commandflag >= 0 && !input_pending && !detect_input_pending ())
+    prepare_menu_bars ();
+
   /* Save outer setjmp data, in case called recursively.  */
   save_getcjmp (save_jump);
 
@@ -1534,6 +1537,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 		  && consing_since_gc > gc_cons_threshold / 2)
 		{
 		  Fgarbage_collect ();
+		  /* prepare_menu_bars isn't safe here, but it should
+		     also be unnecessary.  */
 		  redisplay ();
 		}
 	    }
@@ -1658,6 +1663,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       c = read_char (0, 0, 0, Qnil, 0);
       /* Remove the help from the frame */
       unbind_to (count, Qnil);
+      prepare_menu_bars ();
       redisplay ();
       if (EQ (c, make_number (040)))
 	{
@@ -1712,6 +1718,7 @@ tracking_off (old_value)
 	 redisplay.  */
       if (!readable_events ())
 	{
+	  prepare_menu_bars ();
 	  redisplay_preserve_echo_area ();
 	  get_input_pending (&input_pending);
 	}
@@ -1766,7 +1773,7 @@ kbd_buffer_store_event (event)
 
   if (event->kind == ascii_keystroke)
     {
-      register int c = XFASTINT (event->code) & 0377;
+      register int c = event->code & 0377;
 
       if (event->modifiers & ctrl_modifier)
 	c = make_ctrl_char (c);
@@ -2106,8 +2113,49 @@ swallow_events ()
 }
 
 /* Caches for modify_event_symbol.  */
+static Lisp_Object accent_key_syms;
 static Lisp_Object func_key_syms;
 static Lisp_Object mouse_syms;
+
+/* This is a list of keysym codes for special "accent" characters.
+   It parallels lispy_accent_keys.  */
+
+static int lispy_accent_codes[] =
+{
+  XK_dead_circumflex,
+  XK_dead_grave,
+  XK_dead_tilde,
+  XK_dead_diaeresis,
+  XK_dead_macron,
+  XK_dead_degree,
+  XK_dead_acute,
+  XK_dead_cedilla,
+  XK_dead_breve,
+  XK_dead_ogonek,
+  XK_dead_caron,
+  XK_dead_doubleacute,
+  XK_dead_abovedot,
+};
+
+/* This is a list of Lisp names for special "accent" characters.
+   It parallels lispy_accent_codes.  */
+
+static char *lispy_accent_keys[] =
+{
+  "dead-circumflex",
+  "dead-grave",
+  "dead-tilde",
+  "dead-diaeresis",
+  "dead-macron",
+  "dead-degree",
+  "dead-acute",
+  "dead-cedilla",
+  "dead-breve",
+  "dead-ogonek",
+  "dead-caron",
+  "dead-doubleacute",
+  "dead-abovedot",
+};
 
 /* You'll notice that this table is arranged to be conveniently
    indexed by X Windows keysym values.  */
@@ -2271,7 +2319,7 @@ make_lispy_event (event)
       /* A simple keystroke.  */
     case ascii_keystroke:
       {
-	int c = XFASTINT (event->code) & 0377;
+	int c = event->code & 0377;
 	/* Turn ASCII characters into control characters
 	   when proper.  */
 	if (event->modifiers & ctrl_modifier)
@@ -2291,7 +2339,18 @@ make_lispy_event (event)
 	 tacked onto it.  */
     case non_ascii_keystroke:
       button_down_time = 0;
-      return modify_event_symbol (XFASTINT (event->code), event->modifiers,
+
+      for (i = 0; i < sizeof (lispy_accent_codes) / sizeof (int); i++)
+	if (event->code == lispy_accent_codes[i])
+	  return modify_event_symbol (i,
+				      event->modifiers,
+				      Qfunction_key,
+				      lispy_accent_keys, &accent_key_syms,
+				      (sizeof (lispy_accent_keys)
+				       / sizeof (lispy_accent_keys[0])));
+
+      return modify_event_symbol (event->code - 0xff00,
+				  event->modifiers,
 				  Qfunction_key,
 				  lispy_function_keys, &func_key_syms,
 				  (sizeof (lispy_function_keys)
@@ -2303,7 +2362,7 @@ make_lispy_event (event)
     case mouse_click:
     case scroll_bar_click:
       {
-	int button = XFASTINT (event->code);
+	int button = event->code;
 	int is_double;
 	Lisp_Object position;
 	Lisp_Object *start_pos_ptr;
@@ -2551,6 +2610,11 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
 	    XSET (posn, Lisp_Int,
 		  buffer_posn_from_coords (XWINDOW (window),
 					   XINT (x), XINT (y)));
+	}
+      else if (frame != 0)
+	{
+	  XSET (window, Lisp_Frame, frame);
+	  posn = Qnil;
 	}
       else
 	{
@@ -3400,9 +3464,6 @@ menu_bar_item (key, item_string, def, result)
   return result;
 }
 
-static int echo_flag;
-static int echo_now;
-
 /* Read a character using menus based on maps in the array MAPS.
    NMAPS is the length of MAPS.  Return nil if there are no menus in the maps.
    Return t if we displayed a menu but the user rejected it.
@@ -3621,6 +3682,8 @@ read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
    When KEY is not defined in any of the keymaps, if it is an upper
    case letter and there are bindings for the corresponding lower-case
    letter, return the bindings for the lower-case letter.
+   We store 1 in *CASE_CONVERTED in this case.
+   Otherwise, we don't change *CASE_CONVERTED.
 
    If KEY has no bindings in any of the CURRENT maps, NEXT is left
    unmodified.
@@ -3628,10 +3691,11 @@ read_char_menu_prompt (nmaps, maps, prev_event, used_mouse_menu)
    NEXT may == CURRENT.  */
 
 static int
-follow_key (key, nmaps, current, defs, next)
+follow_key (key, nmaps, current, defs, next, case_converted)
      Lisp_Object key;
      Lisp_Object *current, *defs, *next;
      int nmaps;
+     int *case_converted;
 {
   int i, first_binding;
 
@@ -3698,6 +3762,8 @@ follow_key (key, nmaps, current, defs, next)
 	  else
 	    defs[i] = Qnil;
 	}
+      if (first_binding  != nmaps)
+	*case_converted = 1;
     }
 
   /* Given the set of bindings we've found, produce the next set of maps.  */
@@ -3817,6 +3883,14 @@ read_key_sequence (keybuf, bufsize, prompt)
 
   struct buffer *starting_buffer;
 
+  /* Nonzero if we found the binding for one of the chars
+     in this key sequence by downcasing it.  */
+  int case_converted = 0;
+
+  /* Nonzero if we seem to have got the beginning of a binding
+     in function_key_map.  */
+  int function_key_possible = 0;
+
   int junk;
 
   last_nonmenu_event = Qnil;
@@ -3866,6 +3940,8 @@ read_key_sequence (keybuf, bufsize, prompt)
  replay_sequence:
 
   starting_buffer = current_buffer;
+  case_converted = 0;
+  function_key_possible = 0;
 
   /* Build our list of keymaps.
      If we recognize a function key and replace its escape sequence in
@@ -3916,7 +3992,13 @@ read_key_sequence (keybuf, bufsize, prompt)
 	 || (first_binding >= nmaps
 	     && keytran_start < t
 	     /* mock input is never part of a function key's sequence.  */
-	     && mock_input <= keytran_start))
+	     && mock_input <= keytran_start)
+	 /* Don't return in the middle of a possible function key sequence,
+	    if the only bindings we found were via case conversion.
+	    Thus, if ESC O a has a function-key-map translation
+	    and ESC o has a binding, don't return after ESC O,
+	    so that we can translate ESC O plus the next character.  */
+	 || (function_key_possible && case_converted))
     {
       Lisp_Object key;
       int used_mouse_menu = 0;
@@ -4131,7 +4213,8 @@ read_key_sequence (keybuf, bufsize, prompt)
 				   nmaps   - first_binding,
 				   submaps + first_binding,
 				   defs    + first_binding,
-				   submaps + first_binding)
+				   submaps + first_binding,
+				   &case_converted)
 		       + first_binding);
 
       /* If KEY wasn't bound, we'll try some fallbacks.  */
@@ -4230,7 +4313,8 @@ read_key_sequence (keybuf, bufsize, prompt)
 				       nmaps   - local_first_binding,
 				       submaps + local_first_binding,
 				       defs    + local_first_binding,
-				       submaps + local_first_binding)
+				       submaps + local_first_binding,
+				       &case_converted)
 			   + local_first_binding);
 
 		      /* If that click is bound, go for it.  */
@@ -4257,12 +4341,14 @@ read_key_sequence (keybuf, bufsize, prompt)
 	 off the end of it.  We only want to scan real keyboard input
 	 for function key sequences, so if mock_input says that we're
 	 re-reading old events, don't examine it.  */
-      if (first_binding >= nmaps
+      if ((first_binding >= nmaps || case_converted)
 	  && t >= mock_input)
 	{
 	  Lisp_Object fkey_next;
 
-	  /* Scan from fkey_end until we find a bound suffix.  */
+	  /* Continue scan from fkey_end until we find a bound suffix.
+	     If we fail, increment fkey_start
+	     and start fkey_end from there.  */
 	  while (fkey_end < t)
 	    {
 	      Lisp_Object key;
@@ -4306,6 +4392,8 @@ read_key_sequence (keybuf, bufsize, prompt)
 		    error ("Function in function-key-map returns invalid key sequence");
 		}
 
+	      function_key_possible = ! NILP (fkey_next);
+
 	      /* If keybuf[fkey_start..fkey_end] is bound in the
 		 function key map and it's a suffix of the current
 		 sequence (i.e. fkey_end == t), replace it with
@@ -4347,6 +4435,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 		{
 		  fkey_end = ++fkey_start;
 		  fkey_map = Vfunction_key_map;
+		  function_key_possible = 0;
 		}
 	    }
 	}
@@ -4874,7 +4963,7 @@ stuff_buffered_input (stuffstring)
       if (kbd_fetch_ptr == kbd_buffer + KBD_BUFFER_SIZE)
 	kbd_fetch_ptr = kbd_buffer;
       if (kbd_fetch_ptr->kind == ascii_keystroke)
-	stuff_char (XINT (kbd_fetch_ptr->code));
+	stuff_char (kbd_fetch_ptr->code);
       kbd_fetch_ptr->kind = no_event;
       (XVECTOR (kbd_buffer_frame_or_window)->contents[kbd_fetch_ptr
 						     - kbd_buffer]
@@ -4898,13 +4987,6 @@ set_waiting_for_input (time_to_clear)
      make it run again now, to avoid timing error. */
   if (!NILP (Vquit_flag))
     quit_throw_to_read_char ();
-
-  /* If alarm has gone off already, echo now.  */
-  if (echo_flag)
-    {
-      echo ();
-      echo_flag = 0;
-    }
 }
 
 clear_waiting_for_input ()
@@ -5033,7 +5115,8 @@ quit_throw_to_read_char ()
     abort ();
 #endif
 #ifdef MULTI_FRAME
-  if (XFRAME (internal_last_event_frame) != selected_frame)
+  if (XTYPE (internal_last_event_frame) == Lisp_Frame
+      && XFRAME (internal_last_event_frame) != selected_frame)
     Fhandle_switch_frame (make_lispy_switch_frame (internal_last_event_frame));
 #endif
 
@@ -5512,6 +5595,9 @@ Buffer modification stores t in this variable.");
     "List of menu bar items to move to the end of the menu bar.\n\
 The elements of the list are event types that may have menu bar bindings.");
   Vmenu_bar_final_items = Qnil;
+
+  DEFVAR_BOOL ("track-mouse", &do_mouse_tracking,
+	       "*Non-nil means generate motion events for mouse motion.");
 }
 
 keys_of_keyboard ()
