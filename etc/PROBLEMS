@@ -668,6 +668,20 @@ from Emacs 19.34 distribution:
   Specifying a different independent variable name will affect the
   resulting formula: @kbd{a F 1 k RET} produces @kbd{3 + 2 k}.
 
+* Unicode characters are not unified with other Mule charsets.
+
+As of v21.1, Emacs charsets are still not unified.  This means that
+characters which belong to charsets such as Latin-2, Greek, Hebrew,
+etc. and the same characters in the `mule-unicode-*' charsets are
+different characters, as far as Emacs is concerned.  For example, text
+which includes Unicode characters from the Latin-2 locale cannot be
+encoded by Emacs with ISO 8859-2 coding system; and if you yank Greek
+text from a buffer whose buffer-file-coding-system is greek-iso-8bit
+into a mule-unicode-0100-24ff buffer, Emacs won't be able to save that
+buffer neither as ISO 8859-7 nor as UTF-8.
+
+To work around this, install some add-on package such as Mule-UCS.
+
 * The `oc-unicode' package doesn't work with Emacs 21.
 
 This package tries to define more private charsets than there are free
