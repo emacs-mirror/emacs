@@ -1,6 +1,11 @@
 ;;; feedmail.el --- assist other email packages to massage outgoing messages
 ;;; This file is in the public domain.
 
+;; Author: Bill Carpenter <bill@bubblegum.net>, <bill@carpenter.ORG>
+;; Version: 8
+;; Keywords: email, queue, mail, sendmail, message, spray, smtp, draft
+;; X-URL: <URL:http://www.carpenter.org/feedmail/feedmail.html>
+
 ;;; Commentary:
 
 ;; A replacement for parts of Emacs' sendmail.el (specifically,
@@ -19,10 +24,6 @@
 ;; this specific piece of code.  No warranty or promise of support is
 ;; offered.  This code is hereby released into the public domain.
 
-;; Author: Bill Carpenter <bill@bubblegum.net>, <bill@carpenter.ORG>
-;; Version: 8
-;; Keywords: email, queue, mail, sendmail, message, spray, smtp, draft
-;; Where: <URL:http://www.carpenter.org/feedmail/feedmail.html>
 ;; Thanks: My thanks to the many people who have sent me suggestions
 ;;    and fixes over time, as well as those who have tested many beta
 ;;    iterations.  Some are cited in comments in code fragments below,
@@ -302,6 +303,7 @@
 
 (defgroup feedmail nil
   "Assist other email packages to massage outgoing messages."
+  :link (url-link "http://www.carpenter.org/feedmail/feedmail.html")
   :group 'mail)
 
 (defgroup feedmail-misc nil
