@@ -427,7 +427,7 @@ If optional forth argument RESET is non NIL,\n\
   /* The third (bottom) level table.  */
   if (!SUB_CHAR_TABLE_P (val))
     {
-      val = make_sub_char_table (Qnil, Qnil);
+      val = make_sub_char_table (Qnil);
       XCHAR_TABLE (table)->contents[c1] = val;
       /* We must set default category set of CHARSET and C1 in
          `defalt' slot.  */
