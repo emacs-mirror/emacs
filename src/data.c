@@ -1113,6 +1113,8 @@ DEFUN ("make-local-variable", Fmake_local_variable, Smake_local_variable,
   1, 1, "vMake Local Variable: ",
   "Make VARIABLE have a separate value in the current buffer.\n\
 Other buffers will continue to share a common default value.\n\
+\(The buffer-local value of VARIABLE starts out as the same value\n
+VARIABLE previously had.  If VARIABLE was void, it remains void.\)\n
 See also `make-variable-buffer-local'.\n\n\
 If the variable is already arranged to become local when set,\n\
 this function causes a local value to exist for this buffer,\n\
@@ -1141,8 +1143,6 @@ just as if the variable were set.")
   /* Make sure sym is set up to hold per-buffer values */
   if (XTYPE (valcontents) != Lisp_Some_Buffer_Local_Value)
     {
-      if (EQ (valcontents, Qunbound))
-	XSYMBOL (sym)->value = Qnil;
       tem = Fcons (Qnil, do_symval_forwarding (valcontents));
       XCONS (tem)->car = tem;
       XSYMBOL (sym)->value = Fcons (XSYMBOL (sym)->value, Fcons (Qnil, tem));
