@@ -37,6 +37,10 @@
 ;;    Jens Schmidt <Jens.Schmidt@oracle.com>
 ;;        for his feedback and suggestions
 
+;; PLEASE NOTE!
+;;   xml-lite is on it's way out, as functionality is merged into
+;;   sgml-mode. 
+
 ;;; Code:
 
 (eval-when-compile (require 'cl))
