@@ -1,5 +1,11 @@
 2002-01-12  Richard M. Stallman  <rms@gnu.org>
 
+	* help-mode.el (help-xref-go-back): Restore POSITION in proper buffer
+	and proper window.
+
+	* help.el (describe-mode): Call help-setup-xref in the help buffer.
+	Switch buffers only after calling `help-buffer'.
+
 	* dired-aux.el (dired-shell-stuff-it): Substitute for * or ?
 	only when they are surrounded by whitespace.
 	Use dired-mark-separator when adding one file name to a command.

@@ -65,7 +65,7 @@ changes the behavior of motion commands line C-e and C-p.
 control substitution of the file names only when they are surrounded
 by whitespace.  This means you can now use them as shell wildcards
 too.  If you want to use just plain `*' as a wildcard, type `*""'; the
-doublequotes make no differentce in the shell, but they prevent
+doublequotes make no difference in the shell, but they prevent
 special treatment in `dired-do-shell-command'.
 
 ** Unquoted `$' in file names do not signal an error any more when
