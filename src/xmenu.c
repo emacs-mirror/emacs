@@ -1416,6 +1416,7 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
   Position root_x, root_y;
 
   int first_pane;
+  int next_release_must_exit = 0;
 
   *error = NULL;
 
@@ -1655,16 +1656,27 @@ xmenu_show (f, x, y, menubarp, keymaps, title, error)
 		Vmouse_depressed = Qnil;
 	    }
 	  if (! (menu_item_selection == 0
+		 && !next_release_must_exit
 		 && (((XButtonEvent *) (&event))->time - last_event_timestamp
 		     < XINT (Vdouble_click_time))))
 	    break;
+	  /* Don't call XtDispatchEvent again for the same event!  */
+	  continue;
 	}
       else if (event.type == ButtonPress)
 	{
+	  next_release_must_exit = 1;
+#if 0
+	  XtDispatchEvent (&event);
 	  /* Any mouse button activity that doesn't select in the menu
 	     should unpost the menu.  */
 	  if (menu_item_selection == 0)
 	    break;
+#endif
+	  /* Don't call XtDispatchEvent for the down event.
+	     Doing so seems to give strange results
+	     when you click on the menu bar while a menu is posted.  */
+	  continue;
 	}
       else if (event.type == KeyPress)
 	{
