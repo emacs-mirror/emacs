@@ -160,10 +160,13 @@ losers="`comm -23 /tmp/el /tmp/elc`"
 bogosities=
 for file in $losers; do
   if ! grep -q "dontcompilefiles:.* $file\($\| \)" lisp/Makefile; then
-    bogosities="$file $bogosities"
+    if [ "$file" != site-init.el ] && [ "$file" != site-load.el ] \
+       && [ "$file" != site-start.el ] && [ "$file" != default.el ]; then
+      bogosities="$file $bogosities"
+    fi
   fi
 done
-if [ "${bogosities}" != "" ]; then
+if [ x"${bogosities}" != x"" ]; then
   echo "The following .el files have no corresponding .elc files:"
   echo "${bogosities}"
 fi
@@ -240,12 +243,16 @@ echo "Updating version number in README"
 
 
 echo "Creating subdirectories"
-for subdir in lisp site-lisp \
+for subdir in lisp site-lisp leim real-leim real-leim/CXTERM-DIC \
+	      real-leim/SKK real-leim/skk real-leim/quail \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet \
 	      etc etc/e lock cpp info man msdos vms; do
   mkdir ${tempdir}/${subdir}
 done
+
+echo "Initializing \`leim' subdirectory"
+cp leim-Makefile.in ${tempdir}/leim/Makefile.in
 
 echo "Making links to \`lisp' and its subdirectories"
 ### Don't distribute TAGS, =*.el files, site-init.el, site-load.el, or default.el.
@@ -287,6 +294,23 @@ echo "Making links to \`lisp' and its subdirectories"
    fi
    rm -f $file/=* $file/TAGS
  done )
+
+echo "Making links to \`leim' and its subdirectories for the LEIM distribution"
+### Don't distribute TAGS, or =*.el files.
+(cd leim
+ ln Makefile.in makefile.nt ../${tempdir}/real-leim
+ ln ChangeLog.? README ../${tempdir}/real-leim
+
+ ln CXTERM-DIC/*.tit ../${tempdir}/real-leim/CXTERM-DIC
+ ln SKK/README SKK/SKK-JISYO.L ../${tempdir}/real-leim/SKK
+ ln skk/*.el skk/*.elc ../${tempdir}/real-leim/skk
+ ln quail/*.el quail/*.elc ../${tempdir}/real-leim/quail
+
+ cd ../${tempdir}/real-leim
+ rm -f TAGS =* */=*)
+
+### Move the real-leim directory outside of Emacs proper.
+(cd ${tempparent}; mv ${emacsname}/real-leim ${emacsname}-leim)
 
 echo "Making links to \`src'"
 ### Don't distribute =*.[ch] files, or the configured versions of
@@ -515,17 +539,20 @@ if [ "${make_tar}" = yes ]; then
     compress* ) gzip_extension=.Z ;;
     * )         gzip_extension=.gz ;;
   esac
-  echo "Creating tar file"
+  echo "Creating tar files"
   (cd ${tempparent} ; tar cvf - ${emacsname} ) \
     | ${default_gzip} \
     > ${emacsname}.tar${gzip_extension}
+  (cd ${tempparent} ; tar cvf - ${emacsname}-leim ) \
+    | ${default_gzip} \
+    > ${emacsname}-leim.tar${gzip_extension}
 fi
 
 if [ "${clean_up}" = yes ]; then
   echo "Cleaning up the staging directory"
   rm -rf ${tempparent}
 else
-  (cd ${tempparent}; mv ${emacsname} ..)
+  (cd ${tempparent}; mv ${emacsname} ${emacsname}-leim ..)
   rm -rf ${tempparent}
 fi
 
