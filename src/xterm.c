@@ -8639,7 +8639,8 @@ xaw_scroll_callback (widget, client_data, call_data)
      XtPointer client_data, call_data;
 {
   struct scroll_bar *bar = (struct scroll_bar *) client_data;
-  int position = *(int *) call_data;
+  /* The position really is stored cast to a pointer.  */
+  int position = (long) call_data;
   Dimension height;
   int part;
 
@@ -10550,130 +10551,151 @@ XTread_socket (sd, bufp, numchars, expected)
 
 		  if (numchars > 1)
 		    {
-		      if (((keysym >= XK_BackSpace && keysym <= XK_Escape)
-			   || keysym == XK_Delete
+		      Lisp_Object c;
+
+		      /* First deal with keysyms which have defined
+			 translations to characters.  */
+		      if (keysym >= 32 && keysym < 128)
+			/* Avoid explicitly decoding each ASCII character.  */
+			{
+			  bufp->kind = ascii_keystroke;
+			  bufp->code = keysym;			      
+			  XSETFRAME (bufp->frame_or_window, f);
+			  bufp->arg = Qnil;
+			  bufp->modifiers
+			    = x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f),
+						      modifiers);
+			  bufp->timestamp = event.xkey.time;
+			  bufp++;
+			  count++;
+			  numchars--;
+			}
+		      /* Now non-ASCII.  */
+		      else if (! EQ ((c = Fgethash (make_number (keysym),
+						    Vx_keysym_table, Qnil)),
+				     Qnil))
+			{
+			  bufp->kind = (ASCII_CHAR_P (c)
+					? ascii_keystroke
+					: multibyte_char_keystroke);
+			  bufp->code = c;
+			  XSETFRAME (bufp->frame_or_window, f);
+			  bufp->arg = Qnil;
+			  bufp->modifiers
+			    = x_x_to_emacs_modifiers (FRAME_X_DISPLAY_INFO (f),
+						      modifiers);
+			  bufp->timestamp = event.xkey.time;
+			  bufp++;
+			  count++;
+			  numchars--;
+			}
+		      else if (((keysym >= XK_BackSpace && keysym <= XK_Escape)
+				|| keysym == XK_Delete
 #ifdef XK_ISO_Left_Tab
-			   || (keysym >= XK_ISO_Left_Tab && keysym <= XK_ISO_Enter)
+				|| (keysym >= XK_ISO_Left_Tab && keysym <= XK_ISO_Enter)
 #endif
-			   || (keysym >= XK_Kanji && keysym <= XK_Eisu_toggle)
-			   || IsCursorKey (keysym) /* 0xff50 <= x < 0xff60 */
-			   || IsMiscFunctionKey (keysym) /* 0xff60 <= x < VARIES */
+				|| (keysym >= XK_Kanji && keysym <= XK_Eisu_toggle)
+				|| IsCursorKey (keysym) /* 0xff50 <= x < 0xff60 */
+				|| IsMiscFunctionKey (keysym) /* 0xff60 <= x < VARIES */
 #ifdef HPUX
-			   /* This recognizes the "extended function keys".
-			      It seems there's no cleaner way.
-			      Test IsModifierKey to avoid handling mode_switch
-			      incorrectly.  */
-			   || ((unsigned) (keysym) >= XK_Select
-			       && (unsigned)(keysym) < XK_KP_Space)
+				/* This recognizes the "extended function
+				   keys".  It seems there's no cleaner way.
+				   Test IsModifierKey to avoid handling
+				   mode_switch incorrectly.  */
+				|| ((unsigned) (keysym) >= XK_Select
+				    && (unsigned)(keysym) < XK_KP_Space)
 #endif
 #ifdef XK_dead_circumflex
-			   || orig_keysym == XK_dead_circumflex
+				|| orig_keysym == XK_dead_circumflex
 #endif
 #ifdef XK_dead_grave
-			   || orig_keysym == XK_dead_grave
+				|| orig_keysym == XK_dead_grave
 #endif
 #ifdef XK_dead_tilde
-			   || orig_keysym == XK_dead_tilde
+				|| orig_keysym == XK_dead_tilde
 #endif
 #ifdef XK_dead_diaeresis
-			   || orig_keysym == XK_dead_diaeresis
+				|| orig_keysym == XK_dead_diaeresis
 #endif
 #ifdef XK_dead_macron
-			   || orig_keysym == XK_dead_macron
+				|| orig_keysym == XK_dead_macron
 #endif
 #ifdef XK_dead_degree
-			   || orig_keysym == XK_dead_degree
+				|| orig_keysym == XK_dead_degree
 #endif
 #ifdef XK_dead_acute
-			   || orig_keysym == XK_dead_acute
+				|| orig_keysym == XK_dead_acute
 #endif
 #ifdef XK_dead_cedilla
-			   || orig_keysym == XK_dead_cedilla
+				|| orig_keysym == XK_dead_cedilla
 #endif
 #ifdef XK_dead_breve
-			   || orig_keysym == XK_dead_breve
+				|| orig_keysym == XK_dead_breve
 #endif
 #ifdef XK_dead_ogonek
-			   || orig_keysym == XK_dead_ogonek
+				|| orig_keysym == XK_dead_ogonek
 #endif
 #ifdef XK_dead_caron
-			   || orig_keysym == XK_dead_caron
+				|| orig_keysym == XK_dead_caron
 #endif
 #ifdef XK_dead_doubleacute
-			   || orig_keysym == XK_dead_doubleacute
+				|| orig_keysym == XK_dead_doubleacute
 #endif
 #ifdef XK_dead_abovedot
-			   || orig_keysym == XK_dead_abovedot
+				|| orig_keysym == XK_dead_abovedot
 #endif
 #ifdef XK_dead_abovering
-			   || orig_keysym == XK_dead_abovering
+				|| orig_keysym == XK_dead_abovering
 #endif
 #ifdef XK_dead_iota
-			   || orig_keysym == XK_dead_iota
+				|| orig_keysym == XK_dead_iota
 #endif
 #ifdef XK_dead_belowdot
-			   || orig_keysym == XK_dead_belowdot
+				|| orig_keysym == XK_dead_belowdot
 #endif
 #ifdef XK_dead_voiced_sound
-			   || orig_keysym == XK_dead_voiced_sound
+				|| orig_keysym == XK_dead_voiced_sound
 #endif
 #ifdef XK_dead_semivoiced_sound
-			   || orig_keysym == XK_dead_semivoiced_sound
+				|| orig_keysym == XK_dead_semivoiced_sound
 #endif
 #ifdef XK_dead_hook
-			   || orig_keysym == XK_dead_hook
+				|| orig_keysym == XK_dead_hook
 #endif
 #ifdef XK_dead_horn
-			   || orig_keysym == XK_dead_horn
+				|| orig_keysym == XK_dead_horn
 #endif
-			   || IsKeypadKey (keysym) /* 0xff80 <= x < 0xffbe */
-			   || IsFunctionKey (keysym) /* 0xffbe <= x < 0xffe1 */
-			   /* Any "vendor-specific" key is ok.  */
-			   || (orig_keysym & (1 << 28))
-			   || (keysym != NoSymbol && nbytes == 0))
-			  && ! (IsModifierKey (orig_keysym)
+				|| IsKeypadKey (keysym) /* 0xff80 <= x < 0xffbe */
+				|| IsFunctionKey (keysym) /* 0xffbe <= x < 0xffe1 */
+				/* Any "vendor-specific" key is ok.  */
+				|| (orig_keysym & (1 << 28))
+				|| (keysym != NoSymbol && nbytes == 0))
+			       && ! (IsModifierKey (orig_keysym)
 #ifndef HAVE_X11R5
 #ifdef XK_Mode_switch
-				|| ((unsigned)(orig_keysym) == XK_Mode_switch)
+				     || ((unsigned)(orig_keysym) == XK_Mode_switch)
 #endif
 #ifdef XK_Num_Lock
-				|| ((unsigned)(orig_keysym) == XK_Num_Lock)
+				     || ((unsigned)(orig_keysym) == XK_Num_Lock)
 #endif
 #endif /* not HAVE_X11R5 */
-				))
+				     /* The symbols from XK_ISO_Lock to
+					XK_ISO_Last_Group_Lock doesn't have
+					real modifiers but should be treated
+					similarly to Mode_switch by Emacs. */
+#if defined XK_ISO_Lock && defined XK_ISO_Last_Group_Lock
+				     || ((unsigned)(orig_keysym) >=  XK_ISO_Lock
+					 && (unsigned)(orig_keysym) <= XK_ISO_Last_Group_Lock)
+#endif
+				     ))
 			{
-			  Lisp_Object c;
-
 			  if (temp_index == sizeof temp_buffer / sizeof (short))
 			    temp_index = 0;
 			  temp_buffer[temp_index++] = keysym;
-			  /* First deal with keysyms which have
-			     defined translations to characters.  */
-			  if (keysym >= 32 && keysym < 128)
-			    /* Fixme: Is this always right?  It avoids
-			       explicitly decoding each ASCII character.  */
-			    {
-			      bufp->kind = ascii_keystroke;
-			      bufp->code = c;			      
-			    }
-			  else if (! EQ ((c = Fgethash (make_number (keysym),
-							Vx_keysym_table,
-							Qnil)),
-					 Qnil))
-			    {
-			      bufp->kind = (ASCII_CHAR_P (c)
-					    ? ascii_keystroke
-					    : multibyte_char_keystroke);
-			      bufp->code = c;
-			    }
-			  else
-			    /* Not a character keysym.
-			       make_lispy_event will convert it to a
-			       symbolic key.  */
-			    {
-			      bufp->kind = non_ascii_keystroke;
-			      bufp->code = keysym;
-			    }
+			  /* make_lispy_event will convert this to a symbolic
+			     key.  */
+			  bufp->kind = non_ascii_keystroke;
+			  bufp->code = keysym;
 			  XSETFRAME (bufp->frame_or_window, f);
 			  bufp->arg = Qnil;
 			  bufp->modifiers
@@ -10698,7 +10720,7 @@ XTread_socket (sd, bufp, numchars, expected)
 			      temp_buffer[temp_index++] = copy_bufptr[i];
 			    }
 
-			  { 
+			  {
 			    /* Decode the input data.  */
 			    coding.destination
 			      = (unsigned char *) malloc (nbytes);
