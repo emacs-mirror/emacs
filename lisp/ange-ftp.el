@@ -849,7 +849,7 @@ SIZE, if supplied, should be a prime number."
   (intern-soft (ange-ftp-make-hash-key key) tbl))
 
 (defun ange-ftp-hash-table-keys (tbl)
-  "Return a sorted list of all the active keys in the hashtable, as strings."
+  "Return a sorted list of all the active keys in TABLE, as strings."
   (sort (all-completions "" tbl)
 	(function string-lessp)))
 
@@ -857,7 +857,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 4.20 $")
+(defconst ange-ftp-version "$Revision: 1.6 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -1131,7 +1131,7 @@ Optional DEFAULT is password to start with."
 ;;;; ------------------------------------------------------------
 
 (defun ange-ftp-chase-symlinks (file)
-  "Return the filename that FILENAME references, following all symbolic links."
+  "Return the filename that FILE references, following all symbolic links."
   (let (temp)
     (while (setq temp (ange-ftp-real-file-symlink-p file))
       (setq file
@@ -1194,7 +1194,8 @@ found."
     (goto-char end)))
 
 (defun ange-ftp-parse-netrc ()
-  "If ~/.netrc file exists and has the correct permissions then extract the
+  "Read in ~/.netrc, if one exists.
+If ~/.netrc file exists and has the correct permissions then extract the
 \`machine\', \`login\', \`password\' and \`account\' information from within."
 
   ;; We set this before actually doing it to avoid the possibility
@@ -1344,7 +1345,8 @@ file."
 	(auto-save-mode ange-ftp-auto-save))))
 
 (defun ange-ftp-kill-ftp-process (buffer)
-  "If the BUFFER's visited filename or default-directory is an ftp filename
+  "Kill the FTP process associated with BUFFER."
+If the BUFFER's visited filename or default-directory is an ftp filename
 then kill the related ftp process."
   (interactive "bKill FTP process associated with buffer: ")
   (if (null buffer)
@@ -2399,7 +2401,7 @@ shouldn't be anchored with a trailing $ so that it will match subdirectories
 as well.")
 
 (defun ange-ftp-add-dl-dir (dir)
-  "Interactively adds a given directory to ange-ftp-dl-dir-regexp."
+  "Interactively adds a DIR to ange-ftp-dl-dir-regexp."
   (interactive
    (list (read-string "Directory: "
 		      (let ((name (or (buffer-file-name)
@@ -2567,9 +2569,10 @@ that a wasted listing is not done:
 					(ange-ftp-get-files dir))))))
 
 (defun ange-ftp-get-file-entry (name)
-  "Given NAME, return the given file entry which will be either t for a
-directory, nil for a normal file, or a string for a symlink. If the file
-isn't in the hashtable, this also returns nil."
+  "Given NAME, return the given file entry.
+The entry will be either t for a directory, nil for a normal file,
+or a string for a symlink. If the file isn't in the hashtable,
+this also returns nil."
   (let* ((name (directory-file-name name))
 	 (dir (file-name-directory name))
 	 (ent (ange-ftp-get-hash-entry dir ange-ftp-files-hashtable))
@@ -3381,7 +3384,7 @@ system TYPE.")
       (delete-file filename))))
 
 (defun ange-ftp-rename-local-to-remote (filename newname)
-  "Rename local FILE to remote file NEWNAME."
+  "Rename local FILENAME to remote file NEWNAME."
   (let* ((fabbr (ange-ftp-abbreviate-filename filename))
 	 (nabbr (ange-ftp-abbreviate-filename newname filename))
 	 (msg (format "Renaming %s to %s" fabbr nabbr)))
@@ -3390,7 +3393,7 @@ system TYPE.")
       (delete-file filename))))
 
 (defun ange-ftp-rename-remote-to-local (filename newname)
-  "Rename remote file FILE to local file NEWNAME."
+  "Rename remote file FILENAME to local file NEWNAME."
   (let* ((fabbr (ange-ftp-abbreviate-filename filename))
 	 (nabbr (ange-ftp-abbreviate-filename newname filename))
 	 (msg (format "Renaming %s to %s" fabbr nabbr)))

@@ -393,7 +393,7 @@ Indent for the first line of code."
   (ada-tab))
 
 (defun ada-loop ()
-  "Insert a skeleton loop statement.  exit statement added by hand."
+  "Insert a skeleton loop statement.  The exit statement is added by hand."
   (interactive)
   (insert "loop ")
   (let* ((ada-loop-name (read-string "[loop name]: "))
