@@ -1,3 +1,9 @@
+2001-11-28  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* category.c (describe_category, describe_category_1)
+	(Fdescribe_categories): Remove.
+	(syms_of_category): Don't defsubr Sdescribe_categories.
+
 2001-11-28  Richard M. Stallman  <rms@gnu.org>
 
 	* fileio.c (Ffind_file_name_handler): Avoid initializer for `result'.
@@ -35,8 +41,17 @@
 	* xdisp.c (message_dolog): Remove unused variables `gcpro2',
 	`gcpro3' and `gcpro4'.
 
-	* coding.c (decode_coding_string): Remove unused variable
-	`gcpro1'.
+	* coding.c (decode_coding_string): Remove unused variable `gcpro1'.
+
+2001-11-28  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* ccl.c: Use AREF and ASIZE.
+
+2001-11-27  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* lisp.h (run_hook_list_with_args): Remove.
+	(LIST_END_P): Fix call to wrong_type_argument.
+	(make_fixnum_or_float): Use EMACS_INT rather than int.
 
 2001-11-26  Stefan Monnier  <monnier@cs.yale.edu>
 

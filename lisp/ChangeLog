@@ -1,3 +1,43 @@
+2001-11-28  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/outline.el (outline-up-heading): Add `invisible-ok' arg.
+	(outline-up-heading-all): Remove.
+	(hide-sublevels): Move to end-of-heading before calling flag-region.
+	(outline-copy-overlay, outline-discard-overlays): Remove.
+	(outline-flag-region): Use `remove-overlays'.
+	Don't move to end-of-heading.
+	(outline-next-visible-heading, outline-back-to-heading)
+	(outline-on-heading-p): Use outline-invisible-p.
+	(outline-font-lock-level): Use outline-up-heading's new arg.
+	(outline-minor-mode): Simplify.
+	(outline-map-tree, outline-reveal-toggle-invisible): New funs.
+	(outline): Put a `reveal-toggle-invisible' property.
+	(outline-level-heading): New var.
+	(outline-insert-heading, outline-promote, outline-demote)
+	(outline-toggle-children): New commands.
+
+	* progmodes/hideif.el (hif-end-of-line): New function.
+	(hide-ifdef-mode): Set line-move-ignore-invisible.
+	(hide-ifdef-region-internal): New function.
+	(hide-ifdef-region): Use it.
+	(hif-defined): Return an integer.
+	(hif-infix-to-prefix): Remove.
+	(hif-tokenize): Parse from the buffer rather than from a string.
+	Correctly tokenize integers.  Use forward-comment.
+	(hif-expr): Use hif-or.
+	(hif-term): Use hif-and.
+	(hif-factor): Use hif-not.  Handle numbers properly.
+	Don't require parenthesis around `defined's argument.
+	(hif-and, hif-or, hif-not): New funs.
+	(hif-canonicalize): Pass a region to hif-tokenize.  Use hif-not.
+	(hif-hide-line): Don't hide the \n before the line.
+	(hif-possibly-hide): Correctly handle numeric evaluation results.
+
+	* progmodes/make-mode.el: Use line-(end|beginning)-position.
+	(makefile-mode): Set indent-line-function.
+	(makefile-browser-insert-continuation): Use with-current-buffer.
+	(makefile-beginning-of-line-point, makefile-end-of-line-point): Remove.
+
 2001-11-28  Karl Fogel  <kfogel@red-bean.com>
 
 	* isearch.el (isearch-yank-internal): New helper function.
