@@ -860,20 +860,20 @@ OLD and NEW are the values."
 	    (setq num-ann (cdr num-ann)))))
     (if num-ann
 	;; Numerical annotation - use difference
+	(progn
+	  ;; If property is numeric, nil means 0
+	  (cond ((and (numberp old) (null new))
+		 (setq new 0))
+		((and (numberp new) (null old))
+		 (setq old 0)))
 
-	;; If property is numeric, nil means 0
-	(cond ((and (numberp old) (null new))
-	       (setq new 0))
-	      ((and (numberp new) (null old))
-	       (setq old 0)))
-
-       (let* ((entry (car num-ann))
-              (increment (car entry))
-              (n (ceiling (/ (float (- new old)) (float increment))))
-              (anno (car (cdr entry))))
-         (if (> n 0)
-             (cons nil (make-list n anno))
-           (cons (make-list (- n) anno) nil)))
+	  (let* ((entry (car num-ann))
+		 (increment (car entry))
+		 (n (ceiling (/ (float (- new old)) (float increment))))
+		 (anno (car (cdr entry))))
+	    (if (> n 0)
+		(cons nil (make-list n anno))
+	      (cons (make-list (- n) anno) nil))))
 
       ;; Standard annotation
       (let ((close (and old (cdr (assoc old prop-alist))))
