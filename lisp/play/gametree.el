@@ -141,17 +141,17 @@ the file is visited (subject to the usual restriction via
 (defcustom gametree-score-opener "{score="
   "*The string which opens a score tag, and precedes the actual score."
   :type 'string
-  :group gametree)
+  :group 'gametree)
 
 (defcustom gametree-score-manual-flag "!"
   "*String marking the line as manually (as opposed to automatically) scored."
   :type 'string
-  :group gametree)
+  :group 'gametree)
 
 (defcustom gametree-score-closer "}"
   "*The string which closes a score tag, and follows the actual score."
   :type 'string
-  :group gametree)
+  :group 'gametree)
 
 (defcustom gametree-score-regexp
   (concat "[^\n\^M]*\\("
@@ -170,12 +170,12 @@ prevents the program from recursively applying the scoring algorithm
 on the subtree headed by the marked line, and makes it use the manual
 score instead."
   :type 'regexp
-  :group gametree)
+  :group 'gametree)
 
 (defcustom gametree-default-score 0
   "*Score to assume for branches lacking score tags."
   :type 'integer
-  :group gametree)
+  :group 'gametree)
 
 ;;;; Helper functions
 
