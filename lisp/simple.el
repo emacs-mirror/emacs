@@ -2488,6 +2488,13 @@ With argument, kill comments on that many lines starting with this one."
       (if arg (forward-line 1))
       (setq count (1- count)))))
 
+(defvar comment-padding 1
+  "Number of spaces `comment-region' puts between comment chars and text.
+
+Extra spacing between the comment characters and the comment text
+makes the comment easier to read.  Default is 1.  Nil means 0 and is
+more efficient.")
+
 (defun comment-region (beg end &optional arg)
   "Comment or uncomment each line in the region.
 With just C-u prefix arg, uncomment each line in region.
@@ -2514,6 +2521,8 @@ not end the comment.  Blank lines do not get comments."
 	    (setq cs (concat cs comment-start)
 		  ce (concat ce comment-end))
 	    (setq numarg (1- numarg))))
+	(when comment-padding
+	  (setq cs (concat cs (make-string comment-padding ? ))))
 	;; Loop over all lines from BEG to END.
         (narrow-to-region beg end)
         (goto-char beg)
