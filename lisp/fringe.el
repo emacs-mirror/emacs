@@ -37,27 +37,29 @@
 
 ;; Standard fringe bitmaps
 
-(defconst no-fringe-bitmap 0)
-(defconst undef-fringe-bitmap 1)
-(defconst left-truncation-fringe-bitmap 2)
-(defconst right-truncation-fringe-bitmap 3)
-(defconst up-arrow-fringe-bitmap 4)
-(defconst down-arrow-fringe-bitmap 5)
-(defconst continued-line-fringe-bitmap 6)
-(defconst continuation-line-fringe-bitmap 7)
-(defconst overlay-arrow-fringe-bitmap 8)
-(defconst top-left-angle-fringe-bitmap 9)
-(defconst top-right-angle-fringe-bitmap 10)
-(defconst bottom-left-angle-fringe-bitmap 11)
-(defconst bottom-right-angle-fringe-bitmap 12)
-(defconst left-bracket-fringe-bitmap 13)
-(defconst right-bracket-fringe-bitmap 14)
-(defconst filled-box-cursor-fringe-bitmap 15)
-(defconst hollow-box-cursor-fringe-bitmap 16)
-(defconst hollow-square-fringe-bitmap 17)
-(defconst bar-cursor-fringe-bitmap 18)
-(defconst hbar-cursor-fringe-bitmap 19)
-(defconst empty-line-fringe-bitmap 20)
+(defmacro fringe-bitmap-p (symbol)
+  "Return non-nil if SYMBOL is a fringe bitmap."
+  `(get ,symbol 'fringe))
+
+(defvar fringe-bitmaps)
+
+(unless (get 'left-truncation 'fringe)
+  (let ((bitmaps '(left-truncation right-truncation
+		   up-arrow down-arrow
+		   continued-line continuation-line
+		   overlay-arrow
+		   top-left-angle top-right-angle
+		   bottom-left-angle bottom-right-angle
+		   left-bracket right-bracket
+		   filled-box-cursor hollow-box-cursor hollow-square
+		   bar-cursor hbar-cursor
+		   empty-line))
+	(bn 2))
+    (while bitmaps
+      (push (car bitmaps) fringe-bitmaps)
+      (put (car bitmaps) 'fringe bn)
+      (setq bitmaps (cdr bitmaps)
+	    bn (1+ bn)))))
 
 
 ;; Control presence of fringes
@@ -228,7 +230,7 @@ SIDE must be the symbol `left' or `right'."
 			(window-fringes))
 	       0)
            (float (frame-char-width))))
-  
+
 (provide 'fringe)
 
 ;;; arch-tag: 6611ef60-0869-47ed-8b93-587ee7d3ff5d

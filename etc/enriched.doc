@@ -196,11 +196,11 @@ FTP or email may be obtained by sending an email message to
 enriched-verbose.
 
 </fixed></indent>-<indent> You can add annotations for your own text properties by making
-additions to <fixed>enriched-annotation-alist</fixed>.  Note that the
-standard requires you to name your annotation starting<italic> "x-"
-</italic>(as in <italic>"x-read-only"</italic>).  Please send me any such additions that
-you think might be of general interest so that I can include
-them in the distribution.</indent>
+additions to <fixed>enriched-translations</fixed>.  Note that the standard
+requires you to name your annotation starting<italic> "x-" </italic>(as in
+<italic>"x-read-only"</italic>).  Please send me any such additions that you
+think might be of general interest so that I can include them
+in the distribution.</indent>
 
 </indent>
 

@@ -1,3 +1,8 @@
+2004-09-25  Kenichi Handa  <handa@m17n.org>
+
+	* quail/uni-input.el (ucs-input-method): Add error clause to
+	condition-case.
+
 2004-09-21  Kenichi Handa  <handa@m17n.org>
 
 	* quail/uni-input.el: Move the call of register-input-method to

@@ -2716,7 +2716,7 @@ center the bitmap.  The allowed values are @code{top}, @code{center},
 or @code{bottom}.
 
 The @var{align} argument may also be a list @code{(@var{align}
-@var{periodic})} where @var{align} is intepreted as described above.
+@var{periodic})} where @var{align} is interpreted as described above.
 If @var{periodic} is non-@code{nil}, it specifies that the rows in
 @code{bits} should be repeated enough times to reach the specified
 height.
@@ -2988,7 +2988,7 @@ edge, center, or right edge of the text area.
 used with @code{:align-to} to specify that the position is relative to
 the left edge of the given area.  Once the base offset for a relative
 position has been set (by the first occurrence of one of these
-symbols), further occurences of these symbols are interpreted as the
+symbols), further occurrences of these symbols are interpreted as the
 width of the specified area.  For example, to align to the center of
 the left-margin, use
 
@@ -3181,7 +3181,7 @@ are supported only if particular support libraries are installed on
 your machine.  In some environments, Emacs allows loading image
 libraries on demand; if so, the variable @code{image-library-alist}
 can be used to modify the set of known names for these dynamic
-libraries (though it is not posible to add new image formats).
+libraries (though it is not possible to add new image formats).
 
   The supported image formats include XBM, XPM (needing the
 libraries @code{libXpm} version 3.4k and @code{libz}), GIF (needing
@@ -3409,7 +3409,7 @@ specifying @code{:mask nil}.
 
 @item :pointer @var{shape}
 This specifies the pointer shape when the mouse pointer is over this
-image.  @xref{Pointer Shapes}, for available pointer shapes.
+image.  @xref{Pointer Shape}, for available pointer shapes.
 
 @item :map @var{map}
 This associates an image map of @dfn{hot spots} with this image.
@@ -3437,7 +3437,7 @@ When the mouse pointer is above a hot-spot area of an image, the
 property it defines a tool-tip for the hot-spot, and if it contains
 a @code{pointer} property, it defines the shape of the mouse cursor when
 it is over the hot-spot.
-@xref{Pointer Shapes}, for available pointer shapes.
+@xref{Pointer Shape}, for available pointer shapes.
 
 When you click the mouse when the mouse pointer is over a hot-spot, an
 event is composed by combining the @var{id} of the hot-spot with the

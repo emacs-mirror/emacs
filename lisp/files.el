@@ -4376,7 +4376,8 @@ normally equivalent short `-D' option is just passed on to
 		  (while (< (point) end)
 		    (let ((start (+ beg (read (current-buffer))))
 			  (end (+ beg (read (current-buffer)))))
-		      (if (= (char-after end) ?\n)
+		      (if (memq (char-after end) '(?\n ?\ ))
+			  ;; End is followed by \n or by " -> ".
 			  (put-text-property start end 'dired-filename t)
 			;; It seems that we can't trust ls's output as to
 			;; byte positions of filenames.

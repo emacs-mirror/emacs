@@ -133,15 +133,9 @@ In XEmacs, also return non-nil if CS is a coding system object."
 
 (defvar mm-charset-synonym-alist
   `(
-    ;; Perfectly fine?  A valid MIME name, anyhow.
-    ,@(unless (mm-coding-system-p 'big5)
-       '((big5 . cn-big5)))
     ;; Not in XEmacs, but it's not a proper MIME charset anyhow.
     ,@(unless (mm-coding-system-p 'x-ctext)
        '((x-ctext . ctext)))
-    ;; Apparently not defined in Emacs 20, but is a valid MIME name.
-    ,@(unless (mm-coding-system-p 'gb2312)
-       '((gb2312 . cn-gb-2312)))
     ;; ISO-8859-15 is very similar to ISO-8859-1.  But it's _different_!
     ,@(unless (mm-coding-system-p 'iso-8859-15)
        '((iso-8859-15 . iso-8859-1)))
@@ -727,11 +721,12 @@ If INHIBIT is non-nil, inhibit `mm-inhibit-file-name-handlers'."
 (defun mm-image-load-path (&optional package)
   (let (dir result)
     (dolist (path load-path (nreverse result))
-      (if (file-directory-p
-	   (setq dir (concat (file-name-directory
-			      (directory-file-name path))
-			     "etc/" (or package "gnus/"))))
-	  (push dir result))
+      (when (and path
+		 (file-directory-p
+		  (setq dir (concat (file-name-directory
+				     (directory-file-name path))
+				    "etc/" (or package "gnus/")))))
+	(push dir result))
       (push path result))))
 
 ;; Fixme: This doesn't look useful where it's used.

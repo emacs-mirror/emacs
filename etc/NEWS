@@ -2330,6 +2330,7 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
++++
 ** Major mode functions now run the new normal hook
 `after-change-major-mode-hook', at their very end, after the mode hooks.
 

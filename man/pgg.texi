@@ -135,8 +135,9 @@ would be asked about the recipients.
 If encryption is successful, it replaces the current region contents (in
 the accessible portion) with the resulting data.
 
-If optional argument @var{sign} is non-nil, the function is request to
-do a combined sign and encrypt.  This currently only work with GnuPG.
+If optional argument @var{sign} is non-@code{nil}, the function is
+request to do a combined sign and encrypt.  This currently only work
+with GnuPG.
 @end deffn
 
 @deffn Command pgg-decrypt-region start end
@@ -301,9 +302,9 @@ keyrings.
 
 @deffn Method pgg-scheme-encrypt-region scheme start end recipients &optional sign
 Encrypt the current region between @var{start} and @var{end} for
-@var{recipients}.  If @var{sign} is non-nil, do a combined sign and
-encrypt.  If encryption is successful, it returns @code{t}, otherwise
-@code{nil}.
+@var{recipients}.  If @var{sign} is non-@code{nil}, do a combined sign
+and encrypt.  If encryption is successful, it returns @code{t},
+otherwise @code{nil}.
 @end deffn
 
 @deffn Method pgg-scheme-decrypt-region scheme start end

@@ -282,7 +282,7 @@ is restarted, and sometimes reloaded."
   :link '(custom-manual "(gnus)Exiting Gnus")
   :group 'gnus)
 
-(defconst gnus-version-number "5.10.6"
+(defconst gnus-version-number "5.11"
   "Version number for this version of Gnus.")
 
 (defconst gnus-version (format "Gnus v%s" gnus-version-number)
@@ -1104,9 +1104,8 @@ Check the NNTPSERVER environment variable and the
       (and (file-readable-p gnus-nntpserver-file)
 	   (with-temp-buffer
 	     (insert-file-contents gnus-nntpserver-file)
-	     (let ((name (buffer-string)))
-	       (unless (string-match "\\`[ \t\n]*$" name)
-		 name))))))
+	     (when (re-search-forward "[^ \t\n\r]+" nil t)
+	       (match-string 0))))))
 
 (defcustom gnus-select-method
   (condition-case nil
@@ -3308,38 +3307,6 @@ that that variable is buffer-local to the summary buffers."
         (when result
           (push (cons server result) gnus-server-method-cache))
 	result)))
-
-(defsubst gnus-method-to-server (method)
-  (catch 'server-name
-    (setq method (or method gnus-select-method))
-
-    ;; Perhaps it is already in the cache.
-    (mapc (lambda (name-method)
-            (if (equal (cdr name-method) method)
-                (throw 'server-name (car name-method))))
-          gnus-server-method-cache)
-
-    (mapc
-     (lambda (server-alist)
-       (mapc (lambda (name-method)
-               (when (gnus-methods-equal-p (cdr name-method) method)
-                 (unless (member name-method gnus-server-method-cache)
-                   (push name-method gnus-server-method-cache))
-                 (throw 'server-name (car name-method))))
-             server-alist))
-     (let ((alists (list gnus-server-alist
-                         gnus-predefined-server-alist)))
-       (if gnus-select-method
-           (push (list (cons "native" gnus-select-method)) alists))
-       alists))
-
-    (let* ((name (if (member (cadr method) '(nil ""))
-                     (format "%s" (car method))
-                   (format "%s:%s" (car method) (cadr method))))
-           (name-method (cons name method)))
-      (unless (member name-method gnus-server-method-cache)
-        (push name-method gnus-server-method-cache))
-      name)))
 
 (defsubst gnus-server-get-method (group method)
   ;; Input either a server name, and extended server name, or a

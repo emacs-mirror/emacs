@@ -1,7 +1,7 @@
 ;;; nnheader.el --- header access macros for Gnus and its backends
 
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1993, 1994, 1995, 1996,
-;;        1997, 1998, 2000, 2001, 2002, 2003
+;;        1997, 1998, 2000, 2001, 2002, 2003, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -58,7 +58,7 @@ they will keep on jabbering all the time."
   :group 'gnus-server
   :type 'boolean)
 
-(defvar nnheader-max-head-length 4096
+(defvar nnheader-max-head-length 8192
   "*Max length of the head of articles.
 
 Value is an integer, nil, or t.  nil means read in chunks of a file

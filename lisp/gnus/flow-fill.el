@@ -1,4 +1,4 @@
-;;; flow-fill.el --- interprete RFC2646 "flowed" text
+;;; flow-fill.el --- interpret RFC2646 "flowed" text
 
 ;; Copyright (C) 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 

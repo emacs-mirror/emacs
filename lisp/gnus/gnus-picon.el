@@ -40,8 +40,9 @@
 ;;
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (require 'gnus)
-(require 'custom)
 (require 'gnus-art)
 
 ;;; User variables:

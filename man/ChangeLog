@@ -1,3 +1,63 @@
+2004-09-28  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Display Custom) <indicate-buffer-boundaries>:
+	Align with new functionality.
+
+2004-09-26  Jesper Harder  <harder@ifa.au.dk>
+
+	* sieve.texi (Manage Sieve API): nil -> @code{nil}.
+	* pgg.texi (User Commands, Backend methods): do.
+	* gnus.texi: Markup fixes.
+	(Setting Process Marks): Fix `M P a' entry.
+	* emacs-mime: Fixes.
+
+2004-09-23  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-faq.texi ([5.12]): Fix code example for FQDN in Message-Ids
+	again.
+	Use 5.10 instead of 5.10.0.
+
+2004-09-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Summary Mail Commands): S D e.
+
+2004-09-20  Raymond Scholz  <ray-2004@zonix.de>  (tiny change)
+
+	* gnus.texi (Misc Article): Refer to `Summary Buffer Mode Line' in
+	the gnus-article-mode-line-format section.
+
+2004-09-20  Helmut Waitzmann  <Helmut.Waitzmann@web.de>  (tiny change)
+
+	* gnus.texi (Various Summary Stuff): Fix the documentation for
+	gnus-newsgroup-variables.
+
+2004-09-20  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (MIME Commands): Added
+	gnus-mime-display-multipart-as-mixed,
+	gnus-mime-display-multipart-alternative-as-mixed,
+	gnus-mime-display-multipart-related-as-mixed.
+	(Mail Source Customization): Clarify `mail-source-directory'.
+	(Splitting Mail): Mention gnus-group-find-new-groups.
+	(SpamOracle): Fixed typo.
+
+	* gnus-faq.texi: Untabify.
+	([6.3]): nnir.el is in contrib directory.
+
+	* message.texi (News Headers): Clarify how a unique ID is created.
+
+	* gnus.texi (Batching Agents): Fixed typo in example.  Reported
+	by Hiroshi Fujishima <pooh@nature.tsukuba.ac.jp>.
+
+2004-09-20  Andre Srinivasan  <andre@e2open.com>
+
+	* gnus.texi (Group Parameters): Added more on hooks.  (Small
+	change.)
+
+2004-09-20  Florian Weimer  <fw@deneb.enyo.de>
+
+	* gnus.texi (Charsets): Point to relevant section in emacs-mime.
+
 2004-09-22  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* display.texi (Display Custom): Remove stray `@end defvar'.

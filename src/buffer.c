@@ -5698,16 +5698,20 @@ If non-nil, the first and last line of the buffer are marked in the fringe
 of a window on window-systems with angle bitmaps, or if the window can be
 scrolled, the top and bottom line of the window are marked with up and down
 arrow bitmaps.
-If value is `left' or `right', both angle and arrow bitmaps are displayed in
-the left or right fringe, resp.  Any other non-nil value causes the
-bitmap on the top line to be displayed in the left fringe, and the
-bitmap on the bottom line in the right fringe.
-If value is a cons (ANGLES . ARROWS), the car specifies the position
-of the angle bitmaps, and the cdr specifies the position of the arrow
-bitmaps.  For example, (t . right) places the top angle bitmap in left
-fringe, the bottom angle bitmap in right fringe, and both arrow
+
+If value is a symbol `left' or `right', both angle and arrow bitmaps
+are displayed in the left or right fringe, resp.
+
+If value is an alist, each element (INDICATOR . POSITION) specifies
+the position of one of the indicators.  INDICATOR is one of `top',
+`bottom', `up', `down', or t, which specifies the default position,
+and POSITION is one of `left', `right', or nil, meaning do not show
+this indicator.
+
+For example, ((top . left) (t . right)) places the top angle bitmap in
+left fringe, the bottom angle bitmap in right fringe, and both arrow
 bitmaps in right fringe.  To show just the angle bitmaps in the left
-fringe, but no arrow bitmaps, use (left . nil).  */);
+fringe, but no arrow bitmaps, use ((top .  left) (bottom . left)).  */);
 
   DEFVAR_PER_BUFFER ("scroll-up-aggressively",
 		     &current_buffer->scroll_up_aggressively, Qnil,
