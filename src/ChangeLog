@@ -1,3 +1,8 @@
+2001-03-09  Gerd Moellmann  <gerd@gnu.org>
+
+	* fileio.c (Fwrite_region) [DOS_NT]: Remove O_TRUNC from open
+	flags argument to emacs_open; it seems to conflict with O_EXCL.
+
 2001-03-09  Kenichi Handa  <handa@etl.go.jp>
 
 	* composite.h (struct composition): Change types of members;
