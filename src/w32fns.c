@@ -41,6 +41,7 @@ Boston, MA 02111-1307, USA.  */
 extern void abort ();
 extern void free_frame_menubar ();
 extern struct scroll_bar *x_window_to_scroll_bar ();
+extern int quit_char;
 
 /* The colormap for converting color names to RGB values */
 Lisp_Object Vwin32_color_map;
@@ -51,6 +52,17 @@ Lisp_Object Vwin32_pass_alt_to_system;
 /* Non nil if left window, right window, and application key events
    are passed on to Windows.  */
 Lisp_Object Vwin32_pass_optional_keys_to_system;
+
+/* Switch to control whether we inhibit requests for italicised fonts (which
+   are synthesized, look ugly, and are trashed by cursor movement under NT). */
+Lisp_Object Vwin32_enable_italics;
+
+/* Enable palette management. */
+Lisp_Object Vwin32_enable_palette;
+
+/* Control how close left/right button down events must be to
+   be converted to a middle button down event. */
+Lisp_Object Vwin32_mouse_button_tolerance;
 
 /* The name we're using in resource queries.  */
 Lisp_Object Vx_resource_name;
@@ -139,6 +151,15 @@ Lisp_Object Quser_position;
 Lisp_Object Quser_size;
 Lisp_Object Qdisplay;
 
+/* State variables for emulating a three button mouse. */
+#define LMOUSE 1
+#define MMOUSE 2
+#define RMOUSE 4
+
+static int button_state = 0;
+static Win32Msg saved_mouse_msg;
+static unsigned timer_id;	/* non-zero when timer is active */
+
 /* The below are defined in frame.c.  */
 extern Lisp_Object Qheight, Qminibuffer, Qname, Qonly, Qwidth;
 extern Lisp_Object Qunsplittable, Qmenu_bar_lines;
@@ -147,6 +168,10 @@ extern Lisp_Object Vwindow_system_version;
 
 extern Lisp_Object last_mouse_scroll_bar;
 extern int last_mouse_scroll_bar_pos;
+
+/* From win32term.c. */
+extern Lisp_Object Vwin32_num_mouse_buttons;
+
 Time last_mouse_movement_time;
 
 
@@ -823,25 +848,90 @@ x_report_frame_params (f, alistptr)
 }
 
 
-#if 0
-DEFUN ("win32-rgb", Fwin32_rgb, Swin32_rgb, 3, 3, 0,
-       "Convert RGB numbers to a windows color reference.")
-    (red, green, blue)
-    Lisp_Object red, green, blue;
+DEFUN ("win32-define-rgb-color", Fwin32_define_rgb_color, Swin32_define_rgb_color, 4, 4, 0,
+  "Convert RGB numbers to a windows color reference and associate with NAME (a string).\n\
+This adds or updates a named color to win32-color-map, making it available for use.\n\
+The original entry's RGB ref is returned, or nil if the entry is new.")
+    (red, green, blue, name)
+    Lisp_Object red, green, blue, name;
 {
-    Lisp_Object rgb;
+  Lisp_Object rgb;
+  Lisp_Object oldrgb = Qnil;
+  Lisp_Object entry;
 
-    CHECK_NUMBER (red, 0);
-    CHECK_NUMBER (green, 0);
-    CHECK_NUMBER (blue, 0);
+  CHECK_NUMBER (red, 0);
+  CHECK_NUMBER (green, 0);
+  CHECK_NUMBER (blue, 0);
+  CHECK_STRING (name, 0);
 
-    XSET (rgb, Lisp_Int, RGB(XUINT(red), XUINT(green), XUINT(blue)));
+  XSET (rgb, Lisp_Int, RGB(XUINT (red), XUINT (green), XUINT (blue)));
 
-    return (rgb);
+  BLOCK_INPUT;
+
+  /* replace existing entry in win32-color-map or add new entry. */
+  entry = Fassoc (name, Vwin32_color_map);
+  if (NILP (entry))
+    {
+      entry = Fcons (name, rgb);
+      Vwin32_color_map = Fcons (entry, Vwin32_color_map);
+    }
+  else
+    {
+      oldrgb = Fcdr (entry);
+      Fsetcdr (entry, rgb);
+    }
+
+  UNBLOCK_INPUT;
+
+  return (oldrgb);
 }
 
+DEFUN ("win32-load-color-file", Fwin32_load_color_file, Swin32_load_color_file, 1, 1, 0,
+  "Create an alist of color entries from an external file (ie. rgb.txt).\n\
+Assign this value to win32-color-map to replace the existing color map.\n\
+\
+The file should define one named RGB color per line like so:\
+  R G B   name\n\
+where R,G,B are numbers between 0 and 255 and name is an arbitrary string.")
+    (filename)
+    Lisp_Object filename;
+{
+  FILE *fp;
+  Lisp_Object cmap = Qnil;
+  Lisp_Object abspath;
 
-#else
+  CHECK_STRING (filename, 0);
+  abspath = Fexpand_file_name (filename, Qnil);
+
+  fp = fopen (XSTRING (filename)->data, "rt");
+  if (fp)
+    {
+      char buf[512];
+      int red, green, blue;
+      int num;
+
+      BLOCK_INPUT;
+
+      while (fgets (buf, sizeof (buf), fp) != NULL) {
+	if (sscanf (buf, "%u %u %u %n", &red, &green, &blue, &num) == 3)
+	  {
+	    char *name = buf + num;
+	    num = strlen (name) - 1;
+	    if (name[num] == '\n')
+	      name[num] = 0;
+	    cmap = Fcons (Fcons (build_string (name),
+				 make_number (RGB (red, green, blue))),
+			  cmap);
+	  }
+      }
+      fclose (fp);
+
+      UNBLOCK_INPUT;
+    }
+
+  return cmap;
+}
+
 /* The default colors for the win32 color map */
 typedef struct colormap_t 
 {
@@ -1115,7 +1205,6 @@ DEFUN ("win32-default-color-map", Fwin32_default_color_map, Swin32_default_color
   
   return (cmap);
 }
-#endif
 
 Lisp_Object 
 win32_to_x_color (rgb)
@@ -1168,6 +1257,122 @@ x_to_win32_color (colorname)
   return ret;
 }
 
+
+void
+win32_regenerate_palette (FRAME_PTR f)
+{
+  struct win32_palette_entry * list;
+  LOGPALETTE *          log_palette;
+  HPALETTE              new_palette;
+  int                   i;
+
+  /* don't bother trying to create palette if not supported */
+  if (! FRAME_WIN32_DISPLAY_INFO (f)->has_palette)
+    return;
+
+  log_palette = (LOGPALETTE *)
+    alloca (sizeof (LOGPALETTE) +
+	     FRAME_WIN32_DISPLAY_INFO (f)->num_colors * sizeof (PALETTEENTRY));
+  log_palette->palVersion = 0x300;
+  log_palette->palNumEntries = FRAME_WIN32_DISPLAY_INFO (f)->num_colors;
+
+  list = FRAME_WIN32_DISPLAY_INFO (f)->color_list;
+  for (i = 0;
+       i < FRAME_WIN32_DISPLAY_INFO (f)->num_colors;
+       i++, list = list->next)
+    log_palette->palPalEntry[i] = list->entry;
+
+  new_palette = CreatePalette (log_palette);
+
+  enter_crit ();
+
+  if (FRAME_WIN32_DISPLAY_INFO (f)->palette)
+    DeleteObject (FRAME_WIN32_DISPLAY_INFO (f)->palette);
+  FRAME_WIN32_DISPLAY_INFO (f)->palette = new_palette;
+
+  /* Realize display palette and garbage all frames. */
+  release_frame_dc (f, get_frame_dc (f));
+
+  leave_crit ();
+}
+
+#define WIN32_COLOR(pe)  RGB (pe.peRed, pe.peGreen, pe.peBlue)
+#define SET_WIN32_COLOR(pe, color) \
+  do \
+    { \
+      pe.peRed = GetRValue (color); \
+      pe.peGreen = GetGValue (color); \
+      pe.peBlue = GetBValue (color); \
+      pe.peFlags = 0; \
+    } while (0)
+
+#if 0
+/* Keep these around in case we ever want to track color usage. */
+void
+win32_map_color (FRAME_PTR f, COLORREF color)
+{
+  struct win32_palette_entry * list = FRAME_WIN32_DISPLAY_INFO (f)->color_list;
+
+  if (NILP (Vwin32_enable_palette))
+    return;
+
+  /* check if color is already mapped */
+  while (list)
+    {
+      if (WIN32_COLOR (list->entry) == color)
+        {
+	  ++list->refcount;
+	  return;
+	}
+      list = list->next;
+    }
+
+  /* not already mapped, so add to list and recreate Windows palette */
+  list = (struct win32_palette_entry *)
+    xmalloc (sizeof (struct win32_palette_entry));
+  SET_WIN32_COLOR (list->entry, color);
+  list->refcount = 1;
+  list->next = FRAME_WIN32_DISPLAY_INFO (f)->color_list;
+  FRAME_WIN32_DISPLAY_INFO (f)->color_list = list;
+  FRAME_WIN32_DISPLAY_INFO (f)->num_colors++;
+
+  /* set flag that palette must be regenerated */
+  FRAME_WIN32_DISPLAY_INFO (f)->regen_palette = TRUE;
+}
+
+void
+win32_unmap_color (FRAME_PTR f, COLORREF color)
+{
+  struct win32_palette_entry * list = FRAME_WIN32_DISPLAY_INFO (f)->color_list;
+  struct win32_palette_entry **prev = &FRAME_WIN32_DISPLAY_INFO (f)->color_list;
+
+  if (NILP (Vwin32_enable_palette))
+    return;
+
+  /* check if color is already mapped */
+  while (list)
+    {
+      if (WIN32_COLOR (list->entry) == color)
+        {
+	  if (--list->refcount == 0)
+	    {
+	      *prev = list->next;
+	      xfree (list);
+	      FRAME_WIN32_DISPLAY_INFO (f)->num_colors--;
+	      break;
+	    }
+	  else
+	    return;
+	}
+      prev = &list->next;
+      list = list->next;
+    }
+
+  /* set flag that palette must be regenerated */
+  FRAME_WIN32_DISPLAY_INFO (f)->regen_palette = TRUE;
+}
+#endif
+
 /* Decide if color named COLOR is valid for the display associated with
    the selected frame; if so, return the rgb values in COLOR_DEF.
    If ALLOC is nonzero, allocate a new colormap cell.  */
@@ -1185,11 +1390,42 @@ defined_color (f, color, color_def, alloc)
 
   if (!NILP (tem)) 
     {
-      /* map color to nearest in (default) palette, to avoid
-	 dithering on limited color displays. */
+      if (!NILP (Vwin32_enable_palette))
+	{
+	  struct win32_palette_entry * entry =
+	    FRAME_WIN32_DISPLAY_INFO (f)->color_list;
+	  struct win32_palette_entry ** prev =
+	    &FRAME_WIN32_DISPLAY_INFO (f)->color_list;
+      
+	  /* check if color is already mapped */
+	  while (entry)
+	    {
+	      if (WIN32_COLOR (entry->entry) == XUINT (tem))
+		break;
+	      prev = &entry->next;
+	      entry = entry->next;
+	    }
+
+	  if (entry == NULL && alloc)
+	    {
+	      /* not already mapped, so add to list */
+	      entry = (struct win32_palette_entry *)
+		xmalloc (sizeof (struct win32_palette_entry));
+	      SET_WIN32_COLOR (entry->entry, XUINT (tem));
+	      entry->next = NULL;
+	      *prev = entry;
+	      FRAME_WIN32_DISPLAY_INFO (f)->num_colors++;
+
+	      /* set flag that palette must be regenerated */
+	      FRAME_WIN32_DISPLAY_INFO (f)->regen_palette = TRUE;
+	    }
+	}
+      /* Ensure COLORREF value is snapped to nearest color in (default)
+	 palette by simulating the PALETTERGB macro.  This works whether
+	 or not the display device has a palette. */
       *color_def = XUINT (tem) | 0x2000000;
       return 1;
-    } 
+    }
   else 
     {
       return 0;
@@ -1243,6 +1479,7 @@ x_set_foreground_color (f, arg, oldval)
 {
   f->output_data.win32->foreground_pixel
     = x_decode_color (f, arg, BLACK_PIX_DEFAULT (f));
+
   if (FRAME_WIN32_WINDOW (f) != 0)
     {
       recompute_basic_faces (f);
@@ -2332,7 +2569,7 @@ win32_init_class (hinst)
 {
   WNDCLASS wc;
 
-  wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+  wc.style = CS_HREDRAW | CS_VREDRAW;
   wc.lpfnWndProc = (WNDPROC) win32_wnd_proc;
   wc.cbClsExtra = 0;
   wc.cbWndExtra = WND_EXTRA_BYTES;
@@ -2391,69 +2628,10 @@ win32_createwindow (f)
       SetWindowLong (hwnd, WND_X_UNITS_INDEX, FONT_WIDTH (f->output_data.win32->font));
       SetWindowLong (hwnd, WND_Y_UNITS_INDEX, f->output_data.win32->line_height);
       SetWindowLong (hwnd, WND_BACKGROUND_INDEX, f->output_data.win32->background_pixel);
-    }
-}
 
-DWORD 
-win_msg_worker (dw)
-     DWORD dw;
-{
-  MSG msg;
-  
-  /* Ensure our message queue is created */
-  
-  PeekMessage (&msg, NULL, 0, 0, PM_NOREMOVE);
-  
-  PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0);
-  
-  while (GetMessage (&msg, NULL, 0, 0))
-    {
-      if (msg.hwnd == NULL)
-	{
-	  switch (msg.message)
-	    {
-	    case WM_EMACS_CREATEWINDOW:
-	      win32_createwindow ((struct frame *) msg.wParam);
-	      PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0);
-	      break;
-	    case WM_EMACS_CREATESCROLLBAR:
-	      {
-		HWND hwnd = win32_createscrollbar ((struct frame *) msg.wParam,
-						   (struct scroll_bar *) msg.lParam);
-		PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, (WPARAM)hwnd, 0);
-	      }
-	      break;
-	    case WM_EMACS_KILL:
-	      return (0);
-	    }
-	}
-      else
-	{
-	  DispatchMessage (&msg);
-	}
+      /* Do this to discard the default setting specified by our parent. */
+      ShowWindow (hwnd, SW_HIDE);
     }
-  
-  return (0);
-}
-
-HDC 
-map_mode (hdc)
-     HDC hdc;
-{
-  if (hdc) 
-    {
-#if 0
-      /* Make mapping mode be in 1/20 of point */
-      
-      SetMapMode (hdc, MM_ANISOTROPIC);
-      SetWindowExtEx (hdc, 1440, 1440, NULL);
-      SetViewportExtEx (hdc,
-			GetDeviceCaps (hdc, LOGPIXELSX),
-			GetDeviceCaps (hdc, LOGPIXELSY),
-			NULL);
-#endif
-    }
-  return (hdc);
 }
 
 /* Convert between the modifier bits Win32 uses and the modifier bits
@@ -2643,6 +2821,60 @@ map_keypad_keys (unsigned int wparam, unsigned int lparam)
   return wparam;
 }
 
+/* Main message dispatch loop. */
+
+DWORD 
+win_msg_worker (dw)
+     DWORD dw;
+{
+  MSG msg;
+  
+  /* Ensure our message queue is created */
+  
+  PeekMessage (&msg, NULL, 0, 0, PM_NOREMOVE);
+  
+  PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0);
+  
+  while (GetMessage (&msg, NULL, 0, 0))
+    {
+      if (msg.hwnd == NULL)
+	{
+	  switch (msg.message)
+	    {
+	    case WM_TIMER:
+	      if (saved_mouse_msg.msg.hwnd)
+		{
+		  Win32Msg wmsg = saved_mouse_msg;
+		  my_post_msg (&wmsg, wmsg.msg.hwnd, wmsg.msg.message,
+			       wmsg.msg.wParam, wmsg.msg.lParam);
+		  saved_mouse_msg.msg.hwnd = 0;
+		}
+	      timer_id = 0;
+	      break;
+	    case WM_EMACS_CREATEWINDOW:
+	      win32_createwindow ((struct frame *) msg.wParam);
+	      PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, 0, 0);
+	      break;
+	    case WM_EMACS_CREATESCROLLBAR:
+	      {
+		HWND hwnd = win32_createscrollbar ((struct frame *) msg.wParam,
+						   (struct scroll_bar *) msg.lParam);
+		PostThreadMessage (dwMainThreadId, WM_EMACS_DONE, (WPARAM)hwnd, 0);
+	      }
+	      break;
+	    case WM_EMACS_KILL:
+	      return (0);
+	    }
+	}
+      else
+	{
+	  DispatchMessage (&msg);
+	}
+    }
+  
+  return (0);
+}
+
 /* Main window procedure */
 
 extern char *lispy_function_keys[];
@@ -2662,50 +2894,33 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
   switch (msg) 
     {
     case WM_ERASEBKGND:
-      {
-	HBRUSH hb;
-	HANDLE oldobj;
-	RECT rect;
-	
-	GetClientRect (hwnd, &rect);
-	
-	hb = CreateSolidBrush (GetWindowLong (hwnd, WND_BACKGROUND_INDEX));
-	
-	oldobj = SelectObject ((HDC)wParam, hb);
-	
-	FillRect((HDC)wParam, &rect, hb);
-	
-	SelectObject((HDC)wParam, oldobj);
-	
-	DeleteObject (hb);
-	
-	return (0);
-      }
+      enter_crit ();
+      GetUpdateRect (hwnd, &wmsg.rect, FALSE);
+      leave_crit ();
+      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+      return 1;
+    case WM_PALETTECHANGED:
+      /* ignore our own changes */
+      if ((HWND)wParam != hwnd)
+        {
+	  /* simply notify main thread it may need to update frames */
+	  my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+	}
+      return 0;
     case WM_PAINT:
       {
 	PAINTSTRUCT paintStruct;
-		    
+
+	enter_crit ();
 	BeginPaint (hwnd, &paintStruct);
 	wmsg.rect = paintStruct.rcPaint;
 	EndPaint (hwnd, &paintStruct);
-      
+	leave_crit ();
+
 	my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       
 	return (0);
       }
-      
-    case WM_CREATE:
-      {
-	HDC hdc = my_get_dc (hwnd);
-
-	/* Make mapping mode be in 1/20 of point */
-
-	map_mode (hdc);
-
-	ReleaseDC (hwnd, hdc);
-      }
-      
-      return (0);
 
     case WM_KEYUP:
     case WM_SYSKEYUP:
@@ -2749,15 +2964,140 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
     case WM_CHAR:
       wmsg.dwModifiers = construct_modifiers (wParam, lParam);
 
+      enter_crit ();
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+
+      /* Detect quit_char and set quit-flag directly.  Note that we dow
+         this *after* posting the message to ensure the main thread will
+         be woken up if blocked in sys_select(). */
+      {
+	int c = wParam;
+	if (isalpha (c) && (wmsg.dwModifiers == LEFT_CTRL_PRESSED 
+			    || wmsg.dwModifiers == RIGHT_CTRL_PRESSED))
+	  c = make_ctrl_char (c) & 0377;
+	if (c == quit_char)
+	  Vquit_flag = Qt;
+      }
+      leave_crit ();
       break;
 
+      /* Simulate middle mouse button events when left and right buttons
+	 are used together, but only if user has two button mouse. */
     case WM_LBUTTONDOWN:
+    case WM_RBUTTONDOWN:
+      if (XINT (Vwin32_num_mouse_buttons) == 3)
+	goto handle_plain_button;
+
+      {
+	int this = (msg == WM_LBUTTONDOWN) ? LMOUSE : RMOUSE;
+	int other = (msg == WM_LBUTTONDOWN) ? RMOUSE : LMOUSE;
+
+	if (button_state & this) abort ();
+
+	if (button_state == 0)
+	  SetCapture (hwnd);
+
+	button_state |= this;
+
+	if (button_state & other)
+	  {
+	    if (timer_id)
+	      {
+		KillTimer (NULL, timer_id);
+		timer_id = 0;
+
+		/* Generate middle mouse event instead. */
+		msg = WM_MBUTTONDOWN;
+		button_state |= MMOUSE;
+	      }
+	    else if (button_state & MMOUSE)
+	      {
+		/* Ignore button event if we've already generated a
+		   middle mouse down event.  This happens if the
+		   user releases and press one of the two buttons
+		   after we've faked a middle mouse event. */
+		return 0;
+	      }
+	    else
+	      {
+		/* Flush out saved message. */
+		wmsg = saved_mouse_msg;
+		my_post_msg (&wmsg, wmsg.msg.hwnd, wmsg.msg.message,
+			     wmsg.msg.wParam, wmsg.msg.lParam);
+	      }
+	    wmsg.dwModifiers = win32_get_modifiers ();
+	    my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+
+	    /* Clear message buffer. */
+	    saved_mouse_msg.msg.hwnd = 0;
+	  }
+	else
+	  {
+	    /* Hold onto message for now. */
+	    timer_id =
+	      SetTimer (NULL, 0, XINT (Vwin32_mouse_button_tolerance), NULL);
+	    saved_mouse_msg.msg.hwnd = hwnd;
+	    saved_mouse_msg.msg.message = msg;
+	    saved_mouse_msg.msg.wParam = wParam;
+	    saved_mouse_msg.msg.lParam = lParam;
+	    saved_mouse_msg.msg.time = GetMessageTime ();
+	    saved_mouse_msg.dwModifiers = win32_get_modifiers ();
+	  }
+      }
+      return 0;
+
     case WM_LBUTTONUP:
+    case WM_RBUTTONUP:
+      if (XINT (Vwin32_num_mouse_buttons) == 3)
+	goto handle_plain_button;
+
+      {
+	int this = (msg == WM_LBUTTONUP) ? LMOUSE : RMOUSE;
+	int other = (msg == WM_LBUTTONUP) ? RMOUSE : LMOUSE;
+
+	if ((button_state & this) == 0) abort ();
+
+	button_state &= ~this;
+
+	if (button_state & MMOUSE)
+	  {
+	    /* Only generate event when second button is released. */
+	    if ((button_state & other) == 0)
+	      {
+		msg = WM_MBUTTONUP;
+		button_state &= ~MMOUSE;
+
+		if (button_state) abort ();
+	      }
+	    else
+	      return 0;
+	  }
+	else
+	  {
+	    /* Flush out saved message if necessary. */
+	    if (saved_mouse_msg.msg.hwnd)
+	      {
+		wmsg = saved_mouse_msg;
+		my_post_msg (&wmsg, wmsg.msg.hwnd, wmsg.msg.message,
+			     wmsg.msg.wParam, wmsg.msg.lParam);
+	      }
+	  }
+	wmsg.dwModifiers = win32_get_modifiers ();
+	my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+
+	/* Always clear message buffer and cancel timer. */
+	saved_mouse_msg.msg.hwnd = 0;
+	KillTimer (NULL, timer_id);
+	timer_id = 0;
+
+	if (button_state == 0)
+	  ReleaseCapture ();
+      }
+      return 0;
+
     case WM_MBUTTONDOWN:
     case WM_MBUTTONUP:
-    case WM_RBUTTONDOWN:
-    case WM_RBUTTONUP:
+    handle_plain_button:
       {
 	BOOL up;
 
@@ -2769,9 +3109,28 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
       }
       
       wmsg.dwModifiers = win32_get_modifiers ();
-      
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
-      goto dflt;
+      return 0;
+
+#if 0
+    case WM_MOUSEMOVE:
+      /* Flush out saved message if necessary. */
+      if (saved_mouse_msg.msg.hwnd)
+	{
+	  wmsg = saved_mouse_msg;
+	  my_post_msg (&wmsg, wmsg.msg.hwnd, wmsg.msg.message,
+		       wmsg.msg.wParam, wmsg.msg.lParam);
+	}
+      wmsg.dwModifiers = win32_get_modifiers ();
+      my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+
+      /* Always clear message buffer and cancel timer. */
+      saved_mouse_msg.msg.hwnd = 0;
+      KillTimer (NULL, timer_id);
+      timer_id = 0;
+
+      return 0;
+#endif
 
     case WM_SETFOCUS:
       reset_modifiers ();
@@ -2782,10 +3141,12 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
     case WM_VSCROLL:
     case WM_SYSCOMMAND:
     case WM_COMMAND:
+      wmsg.dwModifiers = win32_get_modifiers ();
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       goto dflt;
 
     case WM_CLOSE:
+      wmsg.dwModifiers = win32_get_modifiers ();
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       return 0;
 
@@ -2805,6 +3166,7 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
 	    DWORD dwYUnits;
 	    RECT wr;
 	    
+	    wp.length = sizeof(wp);
 	    GetWindowRect (hwnd, &wr);
 	    
 	    enter_crit ();
@@ -2854,6 +3216,14 @@ win32_wnd_proc (hwnd, msg, wParam, lParam)
       if (ret == 0) return (0);
       
       goto dflt;
+    case WM_EMACS_SHOWWINDOW:
+      return ShowWindow (hwnd, wParam);
+    case WM_EMACS_SETWINDOWPOS:
+      {
+	Win32WindowPos * pos = (Win32WindowPos *) wParam;
+	return SetWindowPos (hwnd, pos->hwndAfter,
+			     pos->x, pos->y, pos->cx, pos->cy, pos->flags);
+      }
     case WM_EMACS_DESTROYWINDOW:
       DestroyWindow ((HWND) wParam);
       break;
@@ -3027,6 +3397,8 @@ This function is an internal primitive--use `make-frame' instead.")
 
   /* Note that Windows does support scroll bars.  */
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
+  /* By default, make scrollbars the system standard width. */
+  f->scroll_bar_pixel_width = GetSystemMetrics (SM_CXVSCROLL);
 
   XSETFRAME (frame, f);
   GCPRO1 (frame);
@@ -3250,90 +3622,64 @@ x_get_focus_frame (frame)
 }
 
 DEFUN ("focus-frame", Ffocus_frame, Sfocus_frame, 1, 1, 0,
-  "Set the focus on FRAME.")
+  "This function is obsolete, and does nothing.")
   (frame)
      Lisp_Object frame;
 {
-  CHECK_LIVE_FRAME (frame, 0);
-
-  if (FRAME_WIN32_P (XFRAME (frame)))
-    {
-      BLOCK_INPUT;
-      x_focus_on_frame (XFRAME (frame));
-      UNBLOCK_INPUT;
-      return frame;
-    }
-
   return Qnil;
 }
 
 DEFUN ("unfocus-frame", Funfocus_frame, Sunfocus_frame, 0, 0, 0,
-       "If a frame has been focused, release it.")
-     ()
+  "This function is obsolete, and does nothing.")
+  ()
 {
-  if (FRAME_WIN32_P (selected_frame))
-    {
-      struct win32_display_info *dpyinfo = FRAME_WIN32_DISPLAY_INFO (selected_frame);
-
-      if (dpyinfo->win32_focus_frame)
-	{
-	  BLOCK_INPUT;
-	  x_unfocus_frame (dpyinfo->win32_focus_frame);
-	  UNBLOCK_INPUT;
-	}
-    }
-  
   return Qnil;
 }
 
-XFontStruct 
-*win32_load_font (dpyinfo,name)
+XFontStruct *
+win32_load_font (dpyinfo,name)
 struct win32_display_info *dpyinfo;
 char * name;
 {
   XFontStruct * font = NULL;
   BOOL ok;
-  
+
   {
     LOGFONT lf;
-	
-    if (!name || !x_to_win32_font(name, &lf)) 
-      return (NULL);
-	
-    font = (XFontStruct *) xmalloc (sizeof (XFontStruct));
-	
-    if (!font) return (NULL);
-	
-    BLOCK_INPUT;
-	
-    font->hfont = CreateFontIndirect(&lf);
-  }
-  
-    if (font->hfont == NULL) 
-      {
-	ok = FALSE;
-      } 
-    else 
-      {
-	HDC hdc;
-	HANDLE oldobj;
 
-	hdc = my_get_dc (dpyinfo->root_window);
-	
-	oldobj = SelectObject (hdc, font->hfont);
-	
-	ok = GetTextMetrics (hdc, &font->tm);
-	
-	SelectObject (hdc, oldobj);
-	
-	ReleaseDC (dpyinfo->root_window, hdc);
-      }
-  
+    if (!name || !x_to_win32_font (name, &lf))
+      return (NULL);
+
+    font = (XFontStruct *) xmalloc (sizeof (XFontStruct));
+
+    if (!font) return (NULL);
+
+    BLOCK_INPUT;
+
+    font->hfont = CreateFontIndirect (&lf);
+  }
+
+  if (font->hfont == NULL) 
+    {
+      ok = FALSE;
+    } 
+  else 
+    {
+      HDC hdc;
+      HANDLE oldobj;
+
+      hdc = GetDC (dpyinfo->root_window);
+      oldobj = SelectObject (hdc, font->hfont);
+      ok = GetTextMetrics (hdc, &font->tm);
+      SelectObject (hdc, oldobj);
+      ReleaseDC (dpyinfo->root_window, hdc);
+    }
+
   UNBLOCK_INPUT;
-  
+
   if (ok) return (font);
-  
-  win32_unload_font(dpyinfo, font);
+
+  win32_unload_font (dpyinfo, font);
   return (NULL);
 }
 
@@ -3428,31 +3774,70 @@ x_to_win32_weight (lpw)
      char * lpw;
 {
   if (!lpw) return (FW_DONTCARE);
-  
-  if (stricmp (lpw, "bold") == 0)
-    return (FW_BOLD);
-  else if (stricmp (lpw, "demibold") == 0)
-    return (FW_SEMIBOLD);
-  else if (stricmp (lpw, "medium") == 0)
-    return (FW_MEDIUM);
-  else if (stricmp (lpw, "normal") == 0)
-    return (FW_NORMAL);
+
+  if (stricmp (lpw,"heavy") == 0)             return FW_HEAVY;
+  else if (stricmp (lpw,"extrabold") == 0)    return FW_EXTRABOLD;
+  else if (stricmp (lpw,"bold") == 0)         return FW_BOLD;
+  else if (stricmp (lpw,"demibold") == 0)     return FW_SEMIBOLD;
+  else if (stricmp (lpw,"medium") == 0)       return FW_MEDIUM;
+  else if (stricmp (lpw,"normal") == 0)       return FW_NORMAL;
+  else if (stricmp (lpw,"light") == 0)        return FW_LIGHT;
+  else if (stricmp (lpw,"extralight") == 0)   return FW_EXTRALIGHT;
+  else if (stricmp (lpw,"thin") == 0)         return FW_THIN;
   else
-    return (FW_DONTCARE);
+    return FW_DONTCARE;
 }
+
 
 char * 
 win32_to_x_weight (fnweight)
      int fnweight;
 {
-  if (fnweight >= FW_BOLD) 
-    return ("bold");
-  else if (fnweight >= FW_SEMIBOLD) 
-    return ("demibold");
-  else if (fnweight >= FW_MEDIUM) 
-    return ("medium");
-  else  
-    return ("normal");
+  if (fnweight >= FW_HEAVY)      return "heavy";
+  if (fnweight >= FW_EXTRABOLD)  return "extrabold";
+  if (fnweight >= FW_BOLD)       return "bold";
+  if (fnweight >= FW_SEMIBOLD)   return "semibold";
+  if (fnweight >= FW_MEDIUM)     return "medium";
+  if (fnweight >= FW_NORMAL)     return "normal";
+  if (fnweight >= FW_LIGHT)      return "light";
+  if (fnweight >= FW_EXTRALIGHT) return "extralight";
+  if (fnweight >= FW_THIN)       return "thin";
+  else
+    return "*";
+}
+
+LONG
+x_to_win32_charset (lpcs)
+    char * lpcs;
+{
+  if (!lpcs) return (0);
+
+  if (stricmp (lpcs,"ansi") == 0)               return ANSI_CHARSET;
+  else if (stricmp (lpcs,"iso8859-1") == 0)     return ANSI_CHARSET;
+  else if (stricmp (lpcs,"iso8859") == 0)       return ANSI_CHARSET;
+  else if (stricmp (lpcs,"oem") == 0)	        return OEM_CHARSET;
+#ifdef UNICODE_CHARSET
+  else if (stricmp (lpcs,"unicode") == 0)       return UNICODE_CHARSET;
+  else if (stricmp (lpcs,"iso10646") == 0)      return UNICODE_CHARSET;
+#endif
+  else
+    return 0;
+}
+
+char *
+win32_to_x_charset (fncharset)
+    int fncharset;
+{
+  switch (fncharset)
+    {
+    case ANSI_CHARSET:     return "ansi";
+    case OEM_CHARSET:      return "oem";
+    case SYMBOL_CHARSET:   return "symbol";
+#ifdef UNICODE_CHARSET
+    case UNICODE_CHARSET:  return "unicode";
+#endif
+    }
+  return "*";
 }
 
 BOOL 
@@ -3463,29 +3848,25 @@ win32_to_x_font (lplogfont, lpxstr, len)
 {
   if (!lpxstr) return (FALSE);
 
-  if (lplogfont) 
+  if (lplogfont)
     {
-      int height = (lplogfont->lfHeight * 1440) 
-	/ one_win32_display_info.height_in;
-      int width = (lplogfont->lfWidth * 1440) 
-	/ one_win32_display_info.width_in;
-
-      height = abs (height);
       _snprintf (lpxstr, len - 1,
-		 "-*-%s-%s-%c-%s-%s-*-%d-*-*-%c-%d-*-*-",
+		 "-*-%s-%s-%c-*-*-%d-%d-*-*-%c-%d-*-%s-",
 		 lplogfont->lfFaceName,
 		 win32_to_x_weight (lplogfont->lfWeight),
-		 lplogfont->lfItalic ? 'i' : 'r',
-		 "*", "*", 
-		 height,
+		 lplogfont->lfItalic?'i':'r',
+		 abs (lplogfont->lfHeight),
+		 (abs (lplogfont->lfHeight) * 720) / one_win32_display_info.height_in,
 		 ((lplogfont->lfPitchAndFamily & 0x3) == VARIABLE_PITCH) ? 'p' : 'c',
-		 width);
-    } 
-  else 
-    {
-      strncpy (lpxstr, "-*-*-*-*-*-*-*-*-*-*-*-*-*-*-", len - 1);
+		 lplogfont->lfWidth * 10,
+		 win32_to_x_charset (lplogfont->lfCharSet)
+		 );
     }
-
+  else
+    {
+      strncpy (lpxstr,"-*-*-*-*-*-*-*-*-*-*-*-*-*-*-", len - 1);
+    }
+  
   lpxstr[len - 1] = 0;		/* just to be sure */
   return (TRUE);
 }
@@ -3498,59 +3879,132 @@ x_to_win32_font (lpxstr, lplogfont)
   if (!lplogfont) return (FALSE);
   
   memset (lplogfont, 0, sizeof (*lplogfont));
-  
-  lplogfont->lfCharSet = OEM_CHARSET;
+
+#if 0
   lplogfont->lfOutPrecision = OUT_DEFAULT_PRECIS;
   lplogfont->lfClipPrecision = CLIP_DEFAULT_PRECIS;
   lplogfont->lfQuality = DEFAULT_QUALITY;
-  
-  if (lpxstr && *lpxstr == '-') lpxstr++;
-  
-  {
-    int fields;
-    char name[50], weight[20], slant, pitch, height[10], width[10];
-    
-    fields = (lpxstr
-	      ? sscanf (lpxstr, 
-			"%*[^-]-%[^-]-%[^-]-%c-%*[^-]-%*[^-]-%*[^-]-%[^-]-%*[^-]-%*[^-]-%c-%[^-]",
-			name, weight, &slant, height, &pitch, width)
-	      : 0);
-    
-    if (fields == EOF) return (FALSE);
-    
-    if (fields > 0 && name[0] != '*') 
-      {
-	strncpy (lplogfont->lfFaceName, name, LF_FACESIZE);
-      } 
-    else 
-      {
-	lplogfont->lfFaceName[0] = 0;
-      }
-    
-    fields--;
-    
-    lplogfont->lfWeight = x_to_win32_weight((fields > 0 ? weight : ""));
-    
-    fields--;
-    
-    lplogfont->lfItalic = (fields > 0 && slant == 'i');
-    
-    fields--;
-    
-    if (fields > 0 && height[0] != '*')
-      lplogfont->lfHeight = (atoi (height) * one_win32_display_info.height_in) / 1440;
-    
-    fields--;
-    
-    lplogfont->lfPitchAndFamily = (fields > 0 && pitch == 'p') ? VARIABLE_PITCH : FIXED_PITCH;
-    
-    fields--;
-    
-    if (fields > 0 && width[0] != '*')
-      lplogfont->lfWidth = (atoi (width) * one_win32_display_info.width_in) / 1440;
+#else
+  /* go for maximum quality */
+  lplogfont->lfOutPrecision = OUT_STROKE_PRECIS;
+  lplogfont->lfClipPrecision = CLIP_STROKE_PRECIS;
+  lplogfont->lfQuality = PROOF_QUALITY;
+#endif
 
-    lplogfont->lfCharSet = ANSI_CHARSET;
-  }
+  if (!lpxstr)
+    return FALSE;
+
+  /* Provide a simple escape mechanism for specifying Windows font names
+   * directly -- if font spec does not beginning with '-', assume this
+   * format:
+   *   "<font name>[:height in pixels[:width in pixels[:weight]]]"
+   */
+  
+  if (*lpxstr == '-')
+    {
+      int fields;
+      char name[50], weight[20], slant, pitch, pixels[10], height[10], width[10], remainder[20];
+      char * encoding;
+
+      fields = sscanf (lpxstr,
+		       "-%*[^-]-%49[^-]-%19[^-]-%c-%*[^-]-%*[^-]-%9[^-]-%9[^-]-%*[^-]-%*[^-]-%c-%9[^-]-%19s",
+		       name, weight, &slant, pixels, height, &pitch, width, remainder);
+
+      if (fields == EOF) return (FALSE);
+
+      if (fields > 0 && name[0] != '*')
+        {
+	  strncpy (lplogfont->lfFaceName,name, LF_FACESIZE);
+	  lplogfont->lfFaceName[LF_FACESIZE-1] = 0;
+	}
+      else
+        {
+	  lplogfont->lfFaceName[0] = 0;
+	}
+
+      fields--;
+
+      lplogfont->lfWeight = x_to_win32_weight ((fields > 0 ? weight : ""));
+
+      fields--;
+
+      if (!NILP (Vwin32_enable_italics))
+	lplogfont->lfItalic = (fields > 0 && slant == 'i');
+
+      fields--;
+
+      if (fields > 0 && pixels[0] != '*')
+	lplogfont->lfHeight = atoi (pixels);
+
+      fields--;
+
+      if (fields > 0 && lplogfont->lfHeight == 0 && height[0] != '*')
+	lplogfont->lfHeight = (atoi (height)
+			       * one_win32_display_info.height_in) / 720;
+
+      fields--;
+
+      lplogfont->lfPitchAndFamily =
+	(fields > 0 && pitch == 'p') ? VARIABLE_PITCH : FIXED_PITCH;
+
+      fields--;
+
+      if (fields > 0 && width[0] != '*')
+	lplogfont->lfWidth = atoi (width) / 10;
+
+      fields--;
+
+      /* Not all font specs include the registry field, so we allow for an
+	 optional registry field before the encoding when parsing
+	 remainder.  Also we strip the trailing '-' if present. */
+      {
+	int len = strlen (remainder);
+	if (len > 0 && remainder[len-1] == '-')
+	  remainder[len-1] = 0;
+      }
+      encoding = remainder;
+      if (strncmp (encoding, "*-", 2) == 0)
+	encoding += 2;
+      lplogfont->lfCharSet = x_to_win32_charset (fields > 0 ? encoding : "");
+    }
+  else
+    {
+      int fields;
+      char name[100], height[10], width[10], weight[20];
+
+      fields = sscanf (lpxstr,
+		       "%99[^:]:%9[^:]:%9[^:]:%19s",
+		       name, height, width, weight);
+
+      if (fields == EOF) return (FALSE);
+
+      if (fields > 0)
+        {
+	  strncpy (lplogfont->lfFaceName,name, LF_FACESIZE);
+	  lplogfont->lfFaceName[LF_FACESIZE-1] = 0;
+	}
+      else
+        {
+	  lplogfont->lfFaceName[0] = 0;
+	}
+
+      fields--;
+
+      if (fields > 0)
+	lplogfont->lfHeight = atoi (height);
+
+      fields--;
+
+      if (fields > 0)
+	lplogfont->lfWidth = atoi (width);
+
+      fields--;
+
+      lplogfont->lfWeight = x_to_win32_weight ((fields > 0 ? weight : ""));
+    }
+
+  /* This makes TrueType fonts work better. */
+  lplogfont->lfHeight = - abs (lplogfont->lfHeight);
   
   return (TRUE);
 }
@@ -3744,7 +4198,7 @@ even if they match PATTERN and FACE.")
   ef.numFonts = 0;
 
   {
-    ef.hdc = my_get_dc (FRAME_WIN32_WINDOW (f));
+    ef.hdc = GetDC (FRAME_WIN32_WINDOW (f));
 
     EnumFontFamilies (ef.hdc, NULL, (FONTENUMPROC) enum_font_cb1, (LPARAM)&ef);
     
@@ -3930,9 +4384,11 @@ If omitted or nil, that stands for the selected frame's display.")
   HDC hdc;
   int cap;
 
-  hdc = my_get_dc (dpyinfo->root_window);
-  
-  cap = GetDeviceCaps (hdc,NUMCOLORS);
+  hdc = GetDC (dpyinfo->root_window);
+  if (dpyinfo->has_palette)
+    cap = GetDeviceCaps (hdc,SIZEPALETTE);
+  else
+    cap = GetDeviceCaps (hdc,NUMCOLORS);
   
   ReleaseDC (dpyinfo->root_window, hdc);
   
@@ -4011,7 +4467,7 @@ If omitted or nil, that stands for the selected frame's display.")
   HDC hdc;
   int cap;
 
-  hdc = my_get_dc (dpyinfo->root_window);
+  hdc = GetDC (dpyinfo->root_window);
   
   cap = GetDeviceCaps (hdc, VERTSIZE);
   
@@ -4033,7 +4489,7 @@ If omitted or nil, that stands for the selected frame's display.")
   HDC hdc;
   int cap;
 
-  hdc = my_get_dc (dpyinfo->root_window);
+  hdc = GetDC (dpyinfo->root_window);
   
   cap = GetDeviceCaps (hdc, HORZSIZE);
   
@@ -4190,7 +4646,27 @@ terminate Emacs if we can't open the connection.")
   if (! NILP (xrm_string))
     CHECK_STRING (xrm_string, 1);
 
-  Vwin32_color_map = Fwin32_default_color_map ();
+  /* Allow color mapping to be defined externally; first look in user's
+     HOME directory, then in Emacs etc dir for a file called rgb.txt. */
+  {
+    Lisp_Object color_file;
+    struct gcpro gcpro1;
+
+    color_file = build_string("~/rgb.txt");
+
+    GCPRO1 (color_file);
+
+    if (NILP (Ffile_readable_p (color_file)))
+      color_file =
+	Fexpand_file_name (build_string ("rgb.txt"),
+			   Fsymbol_value (intern ("data-directory")));
+
+    Vwin32_color_map = Fwin32_load_color_file (color_file);
+
+    UNGCPRO;
+  }
+  if (NILP (Vwin32_color_map))
+    Vwin32_color_map = Fwin32_default_color_map ();
 
   if (! NILP (xrm_string))
     xrm_option = (unsigned char *) XSTRING (xrm_string)->data;
@@ -4198,6 +4674,15 @@ terminate Emacs if we can't open the connection.")
     xrm_option = (unsigned char *) 0;
 
   /* Use this general default value to start with.  */
+  /* First remove .exe suffix from invocation-name - it looks ugly. */
+  {
+    char basename[ MAX_PATH ], *str;
+
+    strcpy (basename, XSTRING (Vinvocation_name)->data);
+    str = strrchr (basename, '.');
+    if (str) *str = 0;
+    Vinvocation_name = build_string (basename);
+  }
   Vx_resource_name = Vinvocation_name;
 
   validate_x_resource_name ();
@@ -4402,6 +4887,23 @@ open the System menu.  When nil, Emacs silently swallows alt key events.");
 and application keys) are passed on to Windows.");
   Vwin32_pass_optional_keys_to_system = Qnil;
 
+  DEFVAR_LISP ("win32-enable-italics", &Vwin32_enable_italics,
+	       "Non-nil enables selection of artificially italicized fonts.");
+  Vwin32_enable_italics = Qnil;
+
+  DEFVAR_LISP ("win32-enable-palette", &Vwin32_enable_palette,
+	       "Non-nil enables Windows palette management to map colors exactly.");
+  Vwin32_enable_palette = Qt;
+
+  DEFVAR_INT ("win32-mouse-button-tolerance",
+	      &Vwin32_mouse_button_tolerance,
+	      "Analogue of double click interval for faking middle mouse events.\n\
+The value is the minimum time in milliseconds that must elapse between\n\
+left/right button down events before they are considered distinct events.\n\
+If both mouse buttons are depressed within this interval, a middle mouse\n\
+button down event is generated instead.");
+  XSETINT (Vwin32_mouse_button_tolerance, GetDoubleClickTime () / 2);
+
   init_x_parm_symbols ();
 
   DEFVAR_LISP ("x-bitmap-file-path", &Vx_bitmap_file_path,
@@ -4477,6 +4979,9 @@ unless you set it to something else.");
   /* Win32 specific functions */
 
   defsubr (&Swin32_select_font);
+  defsubr (&Swin32_define_rgb_color);
+  defsubr (&Swin32_default_color_map);
+  defsubr (&Swin32_load_color_file);
 }
 
 #undef abort
@@ -4484,9 +4989,23 @@ unless you set it to something else.");
 void 
 win32_abort()
 {
-    MessageBox (NULL,
-		"A fatal error has occurred - aborting!",
-		"Emacs Abort Dialog",
-		MB_OK|MB_ICONEXCLAMATION);
-    abort();
+  int button;
+  button = MessageBox (NULL,
+		       "A fatal error has occurred!\n\n"
+		       "Select Abort to exit, Retry to debug, Ignore to continue",
+		       "Emacs Abort Dialog",
+		       MB_ICONEXCLAMATION | MB_TASKMODAL
+		       | MB_SETFOREGROUND | MB_ABORTRETRYIGNORE);
+  switch (button)
+    {
+    case IDRETRY:
+      DebugBreak ();
+      break;
+    case IDIGNORE:
+      break;
+    case IDABORT:
+    default:
+      abort ();
+      break;
+    }
 }
