@@ -3,6 +3,12 @@
 	* pcvs.el (cvs-checkout): Use read-directory-name.
 	(cvs-query-directory): Likewise.
 
+2002-10-26  John Paul Wallington  <jpw@shootybangbang.com>
+
+	* textmodes/picture.el (picture-mouse-set-point): New command.
+	(picture-mode-map): Bind it.
+	(picture-motion-reverse): Doc fix.
+
 2002-10-25  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/outline.el (outline-next-heading): Make sure the match-data

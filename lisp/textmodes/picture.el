@@ -1,6 +1,6 @@
 ;;; picture.el --- "Picture mode" -- editing using quarter-plane screen model
 
-;; Copyright (C) 1985, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 2002 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -222,9 +222,21 @@ Do \\[command-apropos]  picture-movement  to see commands which control motion."
   "Move point in direction opposite of current picture motion in Picture mode.
 With ARG do it that many times.  Useful for delineating rectangles in
 conjunction with diagonal picture motion.
-Do \\[command-apropos] `picture-movement' to see commands which control motion."
+Do \\[command-apropos]  picture-movement  to see commands which control motion."
   (interactive "p")
   (picture-motion (- arg)))
+
+(defun picture-mouse-set-point (event)
+  "Move point to the position clicked on, making whitespace if necessary."
+  (interactive "e")
+  (let* ((pos (posn-col-row (event-start event)))
+	 (x (car pos))
+	 (y (cdr pos))
+	 (current-row (count-lines (window-start) (line-beginning-position))))
+    (unless (equal x (current-column))
+      (picture-forward-column (- x (current-column))))
+    (unless (equal y current-row)
+      (picture-move-down (- y current-row)))))
 
 
 ;; Picture insertion and deletion.
@@ -602,6 +614,7 @@ Leaves the region surrounding the rectangle."
       (picture-substitute 'previous-line 'picture-move-up)
       (picture-substitute 'beginning-of-line 'picture-beginning-of-line)
       (picture-substitute 'end-of-line 'picture-end-of-line)
+      (picture-substitute 'mouse-set-point 'picture-mouse-set-point)
 
       (define-key picture-mode-map "\C-c\C-d" 'delete-char)
       (define-key picture-mode-map "\e\t" 'picture-toggle-tab-state)
