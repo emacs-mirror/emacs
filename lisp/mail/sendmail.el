@@ -817,9 +817,7 @@ external program defined by `sendmail-program'."
 	(tembuf (generate-new-buffer " sendmail temp"))
 	(multibyte enable-multibyte-characters)
 	(case-fold-search nil)
-	(coding (and (local-variable-p 'buffer-file-coding-system)
-		     buffer-file-coding-system))
-	selected-coding
+	(selected-coding (select-message-coding-system))
 ;;;	resend-to-addresses
 	delimline
 	fcc-was-found
@@ -839,7 +837,6 @@ external program defined by `sendmail-program'."
 	  (unless multibyte
 	    (set-buffer-multibyte nil))
 	  (insert-buffer-substring mailbuf)
-	  (set-buffer-file-coding-system coding)
 	  (goto-char (point-max))
 	  ;; require one newline at the end.
 	  (or (= (preceding-char) ?\n)
@@ -963,7 +960,7 @@ external program defined by `sendmail-program'."
 		   (not (re-search-forward "^MIME-version:" delimline t))
 		   (progn (skip-chars-forward "\0-\177")
 			  (/= (point) (point-max)))
-		   (setq selected-coding (select-message-coding-system))
+		   selected-coding
 		   (setq charset
 			 (coding-system-get selected-coding 'mime-charset))
 		   (goto-char delimline)
@@ -992,9 +989,7 @@ external program defined by `sendmail-program'."
 \\|^resent-cc:\\|^resent-bcc:"
 				   delimline t))
 	      (let* ((default-directory "/")
-		     (coding-system-for-write
-		      (or selected-coding
-			  (select-message-coding-system)))
+		     (coding-system-for-write selected-coding)
 		     (args 
 		      (append (list (point-min) (point-max)
 				    program
