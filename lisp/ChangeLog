@@ -1,3 +1,7 @@
+2000-10-08  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* simple.el (kill-line): Doc fix.
+
 2000-10-08  Miles Bader  <miles@gnu.org>
 
 	* faces.el (secondary-selection): Make foreground visible on tty.
