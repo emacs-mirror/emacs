@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.96 $")
+(defconst byte-compile-version "$Revision: 2.97 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -3716,6 +3716,17 @@ already up-to-date."
 (defun batch-byte-compile-file (file)
   (condition-case err
       (byte-compile-file file)
+    (file-error
+     (message (if (cdr err)
+		  ">>Error occurred processing %s: %s (%s)"
+		  ">>Error occurred processing %s: %s")
+	      file
+	      (get (car err) 'error-message)
+	      (prin1-to-string (cdr err)))
+     (let ((destfile (byte-compile-dest-file file)))
+       (if (file-exists-p destfile)
+	   (delete-file destfile)))
+     nil)
     (error
      (message (if (cdr err)
 		  ">>Error occurred processing %s: %s (%s)"
