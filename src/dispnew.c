@@ -2001,6 +2001,7 @@ init_display ()
 #else
       display_arg = getenv ("DISPLAY");
 #endif
+    }
 
   if (!inhibit_window_system && display_arg)
     {
