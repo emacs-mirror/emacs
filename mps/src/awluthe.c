@@ -20,6 +20,8 @@
 #endif
 #include <assert.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
 
 
 static char *prog; /* program name */
@@ -31,7 +33,7 @@ static void error(const char *format, ...)
   va_list args;
 
   fflush(stdout); /* sync */
-  fprintf(stderr, "%s: @%lu ", prog, (ulong)eventTime);
+  fprintf(stderr, "%s: @%lu ", prog, (unsigned long) eventTime);
   va_start(args, format);
   vfprintf(stderr, format, args);
   fprintf(stderr, "\n");
