@@ -1,3 +1,10 @@
+2000-02-25  Miyashita Hisashi  <himi@bird.scphys.kyoto-u.ac.jp>
+
+	* ccl.c (ccl_driver) [CCL_MapMultiple]: When the mapped value is
+	`lambda', set reg[RRR] to the map index.
+	(ccl_driver) [CCL_MapSingle]: When the mapped value is found, set
+	reg[RRR] to 0.  Otherwise, set it to -1.
+
 2000-02-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs.c (main): Remove code snipped commented out with `//'.
