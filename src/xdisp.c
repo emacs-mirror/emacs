@@ -1579,7 +1579,7 @@ get_glyph_string_clip_rect (s, nr)
       /* If drawing a tool-bar window, draw it over the internal border
 	 at the top of the window.  */
       if (s->w == XWINDOW (s->f->tool_bar_window))
-	r.y -= s->f->output_data.x->internal_border_width;
+	r.y -= FRAME_INTERNAL_BORDER_WIDTH (s->f);
     }
 
   r.y = WINDOW_TO_FRAME_PIXEL_Y (s->w, r.y);
@@ -18920,8 +18920,9 @@ display_and_set_cursor (w, on, hpos, vpos, x, y)
       w->phys_cursor.vpos = vpos;
     }
 
-  rif->draw_window_cursor (w, glyph_row, on, x, y,
-			   new_cursor_type, new_cursor_width);
+  rif->draw_window_cursor (w, glyph_row, x, y,
+			   new_cursor_type, new_cursor_width,
+			   on, active_cursor);
 }
 
 
