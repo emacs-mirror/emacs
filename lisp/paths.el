@@ -1,6 +1,6 @@
 ;;; paths.el --- define pathnames for use by various Emacs commands.
 
-;; Copyright (C) 1986, 1988, 1994, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1988, 1994, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -36,29 +36,48 @@
 ;; conventions described in bindings.el, so that they get put in the
 ;; DOC file rather than in memory.
 
+(defun prune-directory-list (dirs &optional keep reject)
+  "Returns a copy of DIRS with all non-existant directories removed.
+The optional argument KEEP is a list of directories to retain even if
+they don't exist, and REJECT is a list of directories to remove from
+DIRS, even if they exist; REJECT takes precedence over KEEP.
+
+Note that membership in REJECT and KEEP is checked using simple string
+comparision."
+  (apply #'nconc
+	 (mapcar (lambda (dir)
+		   (and (not (member dir reject))
+			(or (member dir keep) (file-directory-p dir))
+			(list dir)))
+		    dirs)))
+
 (defvar Info-default-directory-list
-  (let* ((start (list "/usr/local/lib/info/"
-		      ;; This comes second so that, if it is the same
-		      ;; as configure-info-directory (which is usually true)
-		      ;; and Emacs has been installed (also usually true)
-		      ;; then the list will end with two copies of this;
-		      ;; which means that the last dir file Info-insert-dir
-		      ;; finds will be the one in this directory.
-		      "/usr/local/info/"))
-	 ;; Typically on a GNU system, installed info files are found
-	 ;; in /usr/info, but the default prefix is /usr/local.
-	 ;; (Standalone info has a long list of alternative
-	 ;; directories to search; perhaps we should try to be more
-	 ;; consistent.)
-	 (usrdir "/usr/info")
-	 (sysdir (and (file-directory-p usrdir)
-		      (not (string= configure-info-directory usrdir))
-		      (list usrdir)))
-	 (configdir (file-name-as-directory configure-info-directory)))
-    ;; configdir comes last so that we can identify it as such, but we
-    ;; also we override sysdir, hence the two occurrences.
-    (setq start (nconc start (list configdir) sysdir (list configdir)))
-    start)
+  (let* ((config
+	  (list (file-name-as-directory configure-info-directory)))
+	 (unpruned-prefixes
+	  ;; Directory trees that may not exist at installation time, and
+	  ;; so shouldn't be pruned based on existance.
+	  '("/usr/local/"))
+	 (prefixes
+	  ;; Directory trees in which to look for info subdirectories
+	  (prune-directory-list '("/usr/local/" "/usr/" "/opt/" "/")
+				unpruned-prefixes))
+	 (suffixes
+	  ;; Subdirectories in each directory tree that may contain info
+	  ;; directories.
+	  '("" "share/" "gnu/" "gnu/lib/" "gnu/lib/emacs/"
+	    "emacs/" "lib/" "lib/emacs/")))
+    (nconc
+     (apply #'nconc
+	    (mapcar (lambda (pfx)
+		      (let ((dirs
+			     (mapcar (lambda (sfx) (concat pfx sfx "info/"))
+				     suffixes)))
+			(if (member pfx unpruned-prefixes)
+			    dirs
+			  (prune-directory-list dirs config))))
+		    prefixes))
+     config))
   "Default list of directories to search for Info documentation files.
 They are searched in the order they are given in the list.
 Therefore, the directory of Info files that come with Emacs
