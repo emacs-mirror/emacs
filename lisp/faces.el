@@ -1353,6 +1353,8 @@ created."
 (defface toolbar
   '((((type x) (class color))
      (:box (:line-width 1 :style released-button) :background "grey75"))
+    (((type x) (class mono))
+     (:box (:line-width 1 :style released-button) :background "grey"))
     (t
      ()))
   "Basic toolbar face."
