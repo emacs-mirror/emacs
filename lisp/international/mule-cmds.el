@@ -1962,7 +1962,7 @@ of `buffer-file-coding-system' set by this function."
     ; ha Hausa
     ("he" . "Hebrew")
     ("hi" . "Devanagari") ; Hindi  glibc uses utf-8
-    ("hr" . "Latin-2") ; Croatian
+    ("hr" . "Croatian") ; Croatian
     ("hu" . "Latin-2") ; Hungarian
     ; hy Armenian
     ; ia Interlingua
@@ -2035,7 +2035,7 @@ of `buffer-file-coding-system' set by this function."
     ; ss Siswati
     ; st Sesotho
     ; su Sundanese
-    ("sv" . "Latin-1") ; Swedish
+    ("sv" . "Swedish") ; Swedish
     ("sw" . "Latin-1") ; Swahili
     ; ta Tamil  glibc uses utf-8
     ; te Telugu  glibc uses utf-8
