@@ -541,6 +541,9 @@ Note that +++ before an item means the Lisp manual has been updated.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
 
+** The optional argument BUFFER of function file-local-copy has been
+removed since it wasn't used by anything.
+
 ** The file name argument of function `file-locked-p' is now required
 instead of being optional.
 
