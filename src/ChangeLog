@@ -1,5 +1,7 @@
 2002-06-05  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* fns.c (Fstring_make_unibyte): Doc fix.
+
 	* xselect.c (lisp_data_to_selection_data): If the requested type
 	 is STRING, call string_make_unibyte to encode the selected text
 	 as a string.
