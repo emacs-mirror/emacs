@@ -50,6 +50,7 @@
 
 (set-language-info-alist
  "Ethiopic" '((setup-function . setup-ethiopic-environment)
+	      (exit-function . exit-ethiopic-environment)
 	      (charset ethiopic)
 	      (coding-system iso-2022-7bit)
 	      (coding-priority iso-2022-7bit)
