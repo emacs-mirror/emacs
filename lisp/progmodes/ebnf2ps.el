@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/02/28 18:19:37 vinicius>
+;; Time-stamp: <2004/02/28 19:06:58 vinicius>
 ;; Keywords: wp, ebnf, PostScript
 ;; Version: 4.0
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
@@ -517,6 +517,12 @@ Please send all bug fixes and enhancements to
 ;;
 ;; `ebnf-setup' returns the current setup.
 ;;
+;; `ebnf-syntax-directory' does a syntactic analysis of your EBNF files in the
+;; given directory.
+;;
+;; `ebnf-syntax-file' does a syntactic analysis of your EBNF in the given
+;; file.
+;;
 ;; `ebnf-syntax-buffer' does a syntactic analysis of your EBNF in the current
 ;; buffer.
 ;;
@@ -525,8 +531,9 @@ Please send all bug fixes and enhancements to
 ;;
 ;; `ebnf-customize' activates a customization buffer for ebnf2ps options.
 ;;
-;; `ebnf-syntax-buffer', `ebnf-syntax-region' and `ebnf-customize' can be bound
-;; to keys in the same way as `ebnf-' commands.
+;; `ebnf-syntax-directory', `ebnf-syntax-file', `ebnf-syntax-buffer',
+;; `ebnf-syntax-region' and `ebnf-customize' can be bound to keys in the same
+;; way as `ebnf-' commands.
 ;;
 ;;
 ;; Hooks
@@ -2061,6 +2068,34 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
 
 ;;;###autoload
 (defalias 'ebnf-despool 'ps-despool)
+
+
+;;;###autoload
+(defun ebnf-syntax-directory (&optional directory)
+  "Does a syntactic analysis of the files in DIRECTORY.
+
+If DIRECTORY is nil, it's used `default-directory'.
+
+The files in DIRECTORY that matches `ebnf-file-suffix-regexp' (which see) are
+processed.
+
+See also `ebnf-syntax-buffer'."
+  (interactive
+   (list (read-file-name "Directory containing EBNF files (syntax): "
+			 nil default-directory)))
+  (ebnf-directory 'ebnf-syntax-buffer directory))
+
+
+;;;###autoload
+(defun ebnf-syntax-file (file &optional do-not-kill-buffer-when-done)
+  "Does a syntactic analysis of the FILE.
+
+If optional arg DO-NOT-KILL-BUFFER-WHEN-DONE is non-nil, the buffer isn't
+killed after SYNTAX generation.
+
+See also `ebnf-syntax-buffer'."
+  (interactive "fEBNF file to check syntax: ")
+  (ebnf-file 'ebnf-syntax-buffer file do-not-kill-buffer-when-done))
 
 
 ;;;###autoload

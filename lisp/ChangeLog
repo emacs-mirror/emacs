@@ -12,6 +12,7 @@
 	(ebnf-repeat): Code fix.
 
 	* ebnf2ps.el: Doc fix.
+	(ebnf-syntax-directory, ebnf-syntax-file): New funs.
 
 2004-02-28  Juri Linkov  <juri@jurta.org>
 
