@@ -42,6 +42,15 @@ Boston, MA 02111-1307, USA.  */
 #include "intervals.h"
 #include "fontset.h"
 #include "window.h"
+#ifdef HAVE_X_WINDOWS
+#include "xterm.h"
+#endif
+#ifdef WINDOWSNT
+#include "w32term.h"
+#endif
+#ifdef MAC_OS
+#include "macterm.h"
+#endif
 
 #undef xassert
 #ifdef FONTSET_DEBUG
@@ -1698,9 +1707,16 @@ If the named font is not yet loaded, return nil.  */)
 }
 
 
-/* Return the font name for the character at POSITION in the current
+/* Return a cons (FONT-NAME . GLYPH-CODE).
+   FONT-NAME is the font name for the character at POSITION in the current
    buffer.  This is computed from all the text properties and overlays
-   that apply to POSITION.  It returns nil in the following cases:
+   that apply to POSITION.
+   GLYPH-CODE is the glyph code in the font to use for the character.
+
+   If the 2nd optional arg CH is non-nil, it is a character to check
+   the font instead of the character at POSITION.
+
+   It returns nil in the following cases:
 
    (1) The window system doesn't have a font for the character (thus
    it is displayed by an empty box).
@@ -1714,10 +1730,10 @@ If the named font is not yet loaded, return nil.  */)
    POSITION is currently not visible.  */
 
 
-DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 1, 0,
+DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
        doc: /* For internal use only.  */)
-     (position)
-     Lisp_Object position;
+     (position, ch)
+     Lisp_Object position, ch;
 {
   int pos, pos_byte, dummy;
   int face_id;
@@ -1734,7 +1750,13 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 1, 0,
   if (pos < BEGV || pos >= ZV)
     args_out_of_range_3 (position, make_number (BEGV), make_number (ZV));
   pos_byte = CHAR_TO_BYTE (pos);
-  c = FETCH_CHAR (pos_byte);
+  if (NILP (ch))
+    c = FETCH_CHAR (pos_byte);
+  else
+    {
+      CHECK_CHARACTER (ch);
+      c = XINT (ch);
+    }
   window = Fget_buffer_window (Fcurrent_buffer (), Qnil);
   if (NILP (window))
     return Qnil;
@@ -1749,9 +1771,26 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 1, 0,
     charset_id = -1;
   rfont_def = fontset_font (FONTSET_FROM_ID (face->fontset),
 			    c, face, charset_id);
-  return (VECTORP (rfont_def) && STRINGP (AREF (rfont_def, 3))
-	  ? AREF (rfont_def, 3)
-	  : Qnil);
+  if (VECTORP (rfont_def) && STRINGP (AREF (rfont_def, 3)))
+    {
+      Lisp_Object font_def;
+      struct font_info *fontp;
+      struct charset *charset;
+      XChar2b char2b;
+      int code;
+
+      font_def = AREF (rfont_def, 2);
+      charset = CHARSET_FROM_ID (XINT (AREF (font_def, 1)));
+      code = ENCODE_CHAR (charset, c);
+      if (code == CHARSET_INVALID_CODE (charset))
+	return (Fcons (AREF (rfont_def, 3), Qnil));
+      STORE_XCHAR2B (&char2b, ((code >> 8) & 0xFF), (code & 0xFF));
+      fontp = (*get_font_info_func) (f, XINT (AREF (rfont_def, 1)));
+      rif->encode_char (c, &char2b, fontp, charset, NULL);
+      code = (XCHAR2B_BYTE1 (&char2b) << 8) | XCHAR2B_BYTE2 (&char2b);
+      return (Fcons (AREF (rfont_def, 3), make_number (code)));
+    }
+  return Qnil;
 }
 
 
@@ -2096,3 +2135,6 @@ at the vertical center of lines.  */);
   defsubr (&Sfontset_list_all);
 #endif
 }
+
+/* arch-tag: ea861585-2f5f-4e5b-9849-d04a9c3a3537
+   (do not change this comment) */

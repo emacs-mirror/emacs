@@ -324,7 +324,7 @@ detailed meanings of these arguments."
       (insert "Number of contained characters: ")
       (dotimes (i (charset-dimension charset))
 	(unless (= i 0)
-	  (insert ?×))
+	  (insert ?x))
 	(insert (format "%d" (charset-chars charset (1+ i)))))
       (insert ?\n)
       (let ((char (charset-iso-final-char charset)))
@@ -398,7 +398,7 @@ detailed meanings of these arguments."
 			 (format "%s:%s, and also used by the following:"
 				 (car charset)
 				 (charset-description (car charset)))
-		       "no initial designation, and used by the followings:"))
+		       "no initial designation, and used by the following:"))
 		    (t
 		     "invalid designation information"))))
       (when (listp charset)
@@ -646,7 +646,7 @@ Priority order for recognizing coding systems when reading files:\n")
 		 (setq codings (cons x codings))))
 	   (get (car categories) 'coding-systems))
 	  (if codings
-	      (let ((max-col (frame-width))
+	      (let ((max-col (window-width))
 		    pos)
 		(princ (format "\
   The following are decoded correctly but recognized as %s:\n   "
@@ -784,7 +784,7 @@ but still contains full information about each coding system."
 ##  EOL = 0 (LF), 1 (CRLF), 2 (CR), or 3 (Automatic detection)
 ##  FLAGS =
 ##    if TYPE = 2 then
-##      comma (`,') separated data of the followings:
+##      comma (`,') separated data of the following:
 ##        G0, G1, G2, G3, SHORT-FORM, ASCII-EOL, ASCII-CNTL, SEVEN,
 ##        LOCKING-SHIFT, SINGLE-SHIFT, USE-ROMAN, USE-OLDJIS, NO-ISO6429
 ##    else if TYPE = 4 then
@@ -1269,7 +1269,5 @@ character)")
 
 (provide 'mule-diag)
 
-;; Local Variables:
-;; coding: utf-8
-;; End:
+;;; arch-tag: cd3b607c-2893-45a0-a4fa-a6535754dbee
 ;;; mule-diag.el ends here
