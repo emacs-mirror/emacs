@@ -858,8 +858,8 @@ Attention: This function might take very long for big regions !"
 	    ;; print status message
 	    ;;
 	    (setq reldiff (- (point) from))
-	    (message (format "adjusting case ... %5d characters left"
-			     (- (point) from)))
+	    (message "adjusting case ... %5d characters left"
+		     (- (point) from))
 	    (forward-char 1)
 	    (or
 	     ;; do nothing if it is a string or comment
@@ -1399,7 +1399,7 @@ Moves to 'begin' if in a declarative part."
     (condition-case err
         (while (< (point) endmark)
           (if (> block-done 9)
-              (progn (message (format msg lines-remaining))
+              (progn (message msg lines-remaining)
                      (setq block-done 0)))
 	  (if (looking-at "^$") nil
 	    (ada-indent-current))
