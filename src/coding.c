@@ -5865,7 +5865,9 @@ DEFUN ("find-coding-systems-region-internal",
       safe_codings = Fappend (2, args);
     }
   else
-    safe_codings = Fcons (Qraw_text, Fcons (Qemacs_mule, safe_codings));
+    safe_codings = Fcons (Qraw_text,
+			  Fcons (Qemacs_mule,
+				 Fcons (Qno_conversion, safe_codings)));
   return safe_codings;
 }
 
