@@ -842,7 +842,8 @@ turned on in a buffer if its major mode is one of `font-lock-global-modes'."
   "Toggle Global Font Lock mode.
 When Global Font Lock mode is enabled, Font Lock mode is automagically
 turned on in a buffer if its major mode is one of `font-lock-global-modes'.
-You must modify via \\[customize] for this variable to have an effect."
+This variable should be set only with \\[customize], which is equivalent
+to using the function `global-font-lock-mode'.
   :set (lambda (symbol value)
 	 (global-font-lock-mode (or value 0)))
   :type 'boolean
