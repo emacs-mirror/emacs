@@ -1,5 +1,7 @@
 2004-01-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* process.c (sigchld_handler): Add comment about not calling malloc.
+
 	* process.h: Add extern to synch_process_termsig.
 
 2004-01-27  Steven Tamm <steventamm@mac.com>

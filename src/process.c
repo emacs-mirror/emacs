@@ -6094,7 +6094,10 @@ kill_buffer_processes (buffer)
    queued and the signal-catching function will be continually
    reentered until the queue is empty".  Invoking signal() causes the
    kernel to reexamine the SIGCLD queue.  Fred Fish, UniSoft Systems
-   Inc. */
+   Inc.
+
+   ** Malloc WARNING: This should never call malloc either directly or
+   indirectly; if it does, that is a bug  */
 
 SIGTYPE
 sigchld_handler (signo)
