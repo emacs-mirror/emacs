@@ -262,9 +262,9 @@ Applies to lines after point."
 (defalias 'count-matches 'how-many)
 (defun how-many (regexp)
   "Print number of matches for REGEXP following point."
-  (interactive (list(read-from-minibuffer
-		     "How many matches for (regexp): "
-		     nil nil nil 'regexp-history nil t)))
+  (interactive (list (read-from-minibuffer
+		      "How many matches for (regexp): "
+		      nil nil nil 'regexp-history nil t)))
   (let ((count 0) opoint)
     (save-excursion
      (while (and (not (eobp))
