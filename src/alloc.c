@@ -170,11 +170,6 @@ static char *spare_memory;
 
 static int malloc_hysteresis;
 
-/* Nonzero when malloc is called for allocating Lisp object space.
-   Currently set but not used.  */
-
-int allocating_for_lisp;
-
 /* Non-nil means defun should do purecopy on the function definition.  */
 
 Lisp_Object Vpurify_flag;
@@ -464,6 +459,19 @@ xfree (block)
 }
 
 
+/* Like strdup, but uses xmalloc.  */
+
+char *
+xstrdup (s)
+     char *s;
+{
+  int len = strlen (s) + 1;
+  char *p = (char *) xmalloc (len);
+  bcopy (s, p, len);
+  return p;
+}
+
+
 /* Like malloc but used for allocating Lisp data.  NBYTES is the
    number of bytes to allocate, TYPE describes the intended use of the
    allcated memory block (for strings, for conses, ...).  */
@@ -476,19 +484,16 @@ lisp_malloc (nbytes, type)
   register void *val;
 
   BLOCK_INPUT;
-  allocating_for_lisp++;
   val = (void *) malloc (nbytes);
-  allocating_for_lisp--;
-  UNBLOCK_INPUT;
 
-  if (!val && nbytes)
-    memory_full ();
-  
 #if GC_MARK_STACK
-  if (type != MEM_TYPE_NON_LISP)
+  if (val && type != MEM_TYPE_NON_LISP)
     mem_insert (val, (char *) val + nbytes, type);
 #endif
   
+  UNBLOCK_INPUT;
+  if (!val && nbytes)
+    memory_full ();
   return val;
 }
 
@@ -512,12 +517,10 @@ lisp_free (block)
      long *block;
 {
   BLOCK_INPUT;
-  allocating_for_lisp++;
   free (block);
 #if GC_MARK_STACK
   mem_delete (mem_find (block));
 #endif
-  allocating_for_lisp--;
   UNBLOCK_INPUT;
 }
 
