@@ -8963,6 +8963,8 @@ redisplay_internal (preserve_echo_area)
 		judge_scroll_bars_hook (f);
 
 	      /* If fonts changed, display again.  */
+	      /* ??? rms: I suspect it is a mistake to jump all the way
+		 back to retry here.  It should just retry this frame.  */
 	      if (fonts_changed_p)
 		goto retry;
 
@@ -10098,7 +10100,11 @@ try_cursor_movement (window, startp, scroll_step)
 
 
 /* Redisplay leaf window WINDOW.  JUST_THIS_ONE_P non-zero means only
-   selected_window is redisplayed.  */
+   selected_window is redisplayed.
+
+   We can return without actually redisplaying the window if
+   fonts_changed_p is nonzero.  In that case, redisplay_internal will
+   retry.  */
 
 static void
 redisplay_window (window, just_this_one_p)
@@ -10305,6 +10311,9 @@ redisplay_window (window, just_this_one_p)
   if (!NILP (w->force_start)
       || w->frozen_window_start_p)
     {
+      /* We set this later on if we have to adjust point.  */
+      int new_vpos = -1;
+
       w->force_start = Qnil;
       w->vscroll = 0;
       w->window_end_valid = Qnil;
@@ -10341,7 +10350,7 @@ redisplay_window (window, just_this_one_p)
 	{
 	  w->force_start = Qt;
 	  clear_glyph_matrix (w->desired_matrix);
-	  goto finish_scroll_bars;
+	  goto need_larger_matrices;
 	}
 
       if (w->cursor.vpos < 0 && !w->frozen_window_start_p)
@@ -10349,12 +10358,24 @@ redisplay_window (window, just_this_one_p)
 	  /* If point does not appear, try to move point so it does
 	     appear. The desired matrix has been built above, so we
 	     can use it here.  */
-	  int window_height;
+	  new_vpos = window_box_height (w) / 2;
+	}
+
+      if (!make_cursor_line_fully_visible (w))
+	{
+	  /* Point does appear, but on a line partly visible at end of window.
+	     Move it back to a fully-visible line.  */
+	  new_vpos = window_box_height (w);
+	}
+
+      /* If we need to move point for either of the above reasons,
+	 now actually do it.  */
+      if (new_vpos >= 0)
+	{
 	  struct glyph_row *row;
 
-	  window_height = window_box_height (w) / 2;
 	  row = MATRIX_FIRST_TEXT_ROW (w->desired_matrix);
-	  while (MATRIX_ROW_BOTTOM_Y (row) < window_height)
+	  while (MATRIX_ROW_BOTTOM_Y (row) < new_vpos)
 	    ++row;
 
 	  TEMP_SET_PT_BOTH (MATRIX_ROW_START_CHARPOS (row),
@@ -10378,45 +10399,6 @@ redisplay_window (window, just_this_one_p)
 	    }
 	}
 
-      if (!make_cursor_line_fully_visible (w))
-	{
-	  /* CVS rev. 1.761 had changed this to ``goto try_to_scroll''.
-
-	     The intention of the fix -- AFAIU -- was to ensure that 
-	     the cursor didn't end up on a partially visible last (or
-	     first?) line when scrolling.
-
-
-	     But that change causes havoc when scrolling backwards and
-	     a partially visible first (or last?) line is present when
-	     we reach the top of the buffer.  In effect, the text
-	     already in the window is repeated (each line is appended
-	     to the same or another lines in the window)...
-
-	     I changed it back to ``goto need_larger_matrices'' which
-	     in effect mean that we don't go through `try_scrolling'
-	     when the cursor is already at the first line of the buffer,
-	     and there is really only a few pixels [rather than lines]
-	     to scroll backwards.  I guess move_it_by_lines etc. really
-	     isn't the right device for doing that, ref. the code in
-	     make_cursor_line_fully_visible which was also disabled by
-	     CVS rev. 1.761.
-
-	     But how do we know that we are already on the top line of
-	     the window showing the first line in the buffer, so that
-	     scrolling really wont help here?
-
-	     I cannot find a simple fix for this (I tried various
-	     approaches), but I prefer to an occasional partial line
-	     rather than the visual messup, so I reverted this part of
-	     the fix.
-
-	     Someone will need to look into this when time allows.
-
-	     -- 2002-08-22, Kim F. Storm  */
-
-	  goto need_larger_matrices;
-	}
 #if GLYPH_DEBUG
       debug_method_add (w, "forced window start");
 #endif
@@ -10435,8 +10417,10 @@ redisplay_window (window, just_this_one_p)
 	case CURSOR_MOVEMENT_SUCCESS:
 	  goto done;
 
+#if 0  /* try_cursor_movement never returns this value.  */
 	case CURSOR_MOVEMENT_NEED_LARGER_MATRICES:
 	  goto need_larger_matrices;
+#endif
 
 	case CURSOR_MOVEMENT_MUST_SCROLL:
 	  goto try_to_scroll;
@@ -10765,6 +10749,10 @@ redisplay_window (window, just_this_one_p)
 #endif
     }
 
+  /* We go to this label, with fonts_changed_p nonzero,
+     if it is necessary to try again using larger glyph matrices.
+     We have to redeem the scroll bar even in this case,
+     because the loop in redisplay_internal expects that.  */
  need_larger_matrices:
   ;
  finish_scroll_bars:
