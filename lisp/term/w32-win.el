@@ -83,33 +83,14 @@
 ;; The following definition is used for debugging scroll bar events.
 ;(defun w32-handle-scroll-bar-event (event) (interactive "e") (princ event))
 
-;; mwheel.el should probably be adapted to accept mouse-wheel events
-;; then this could go.
-(defun mouse-wheel-scroll-line (event)
-  "Scroll the window in which EVENT occurred by `mouse-wheel-scroll-amount'."
-  (interactive "e")
-  (condition-case nil
-      (if (< (car (cdr (cdr event))) 0)
-	  (scroll-up (car mouse-wheel-scroll-amount))
-	(scroll-down (car mouse-wheel-scroll-amount)))
-    (error nil)))
-
-;; for scroll-in-place.el, this way the -scroll-line and -scroll-screen
-;; commands won't interact
-(setq scroll-command-groups (list '(mouse-wheel-scroll-line)))
-
-(defun mouse-wheel-scroll-screen (event)
-  "Scroll the window in which EVENT occurred by `mouse-wheel-scroll-amount'."
-  (interactive "e")
-  (condition-case nil
-      (if (< (car (cdr (cdr event))) 0)
-          (scroll-up)
-        (scroll-down))
-    (error nil)))
-
-;; Bind the mouse-wheel event:
-(global-set-key [mouse-wheel] 'mouse-wheel-scroll-line)
-(global-set-key [C-mouse-wheel] 'mouse-wheel-scroll-screen)
+;; Handle mouse-wheel events with mwheel.
+;; Normally only mouse-wheel-mode and mwheel-install are autoloaded,
+;; but binding mouse-wheel must be done directly, since those functions
+;; do not recognize mouse-wheel as a valid button.
+(autoload 'mwheel-scroll "mwheel")
+(global-set-key [mouse-wheel] 'mwheel-scroll)
+(global-set-key [C-mouse-wheel] 'mwheel-scroll)
+(global-set-key [S-mouse-wheel] 'mwheel-scroll)
 
 (defun w32-drag-n-drop-debug (event)
   "Print the drag-n-drop EVENT in a readable form."
