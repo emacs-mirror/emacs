@@ -3556,8 +3556,8 @@ The functions are run using the `run-hooks' function.");
     "List of undo entries in current buffer.\n\
 Recent changes come first; older changes follow newer.\n\
 \n\
-An entry (START . END) represents an insertion which begins at\n\
-position START and ends at position END.\n\
+An entry (BEG . END) represents an insertion which begins at\n\
+position BEG and ends at position END.\n\
 \n\
 An entry (TEXT . POSITION) represents the deletion of the string TEXT\n\
 from (abs POSITION).  If POSITION is positive, point was at the front\n\
