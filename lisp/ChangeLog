@@ -1,3 +1,7 @@
+2001-08-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* whitespace.el (whitespace-global-mode): Add autoload cookie.
+
 2001-08-20  Alex Schroeder  <alex@gnu.org>
 
 	* sql.el (sql-db2): Doc change.
