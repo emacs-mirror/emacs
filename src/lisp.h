@@ -727,7 +727,7 @@ struct Lisp_Vector
 /* Almost equivalent to Faref (CT, IDX) with optimization for ASCII
    characters.  Do not check validity of CT.  */
 #define CHAR_TABLE_REF(CT, IDX)						 \
-  (((IDX) >= 0 && ASCII_CHAR_P (IDX)					 \
+  ((ASCII_CHAR_P (IDX)							 \
     && SUB_CHAR_TABLE_P (XCHAR_TABLE (CT)->ascii)			 \
     && !NILP (XSUB_CHAR_TABLE (XCHAR_TABLE (CT)->ascii)->contents[IDX])) \
    ? XSUB_CHAR_TABLE (XCHAR_TABLE (CT)->ascii)->contents[IDX]		 \
@@ -3061,7 +3061,7 @@ extern void fatal () NO_RETURN;
 #ifdef HAVE_X_WINDOWS
 /* Defined in fontset.c */
 extern void syms_of_fontset P_ ((void));
-EXFUN (Fset_fontset_font, 4);
+EXFUN (Fset_fontset_font, 5);
 #endif
 
 /* Defined in xfaces.c */
