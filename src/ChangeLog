@@ -1,5 +1,8 @@
 2001-05-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* regex.c (malloc, realloc, free) [emacs]: Undefine before
+	redefining, to avoid compiler warnings.
+
 	* w32proc.c: Include syssignal.h, to avoid compiler warnings.
 
 	* w32bdf.c (search_file_line, set_bdf_font_info, seek_char)
