@@ -250,7 +250,7 @@ If these settings affect the frame geometry and appearance, you'll see
 the frame appear with the wrong ones and then change to the specified
 ones.  If that bothers you, you can specify the same geometry and
 appearance with X resources; those do take effect before the frame is
-created.  @xref{Resources X,, X Resources, emacs, The GNU Emacs Manual}.
+created.  @xref{X Resources,, X Resources, emacs, The GNU Emacs Manual}.
 
 X resource settings typically apply to all frames.  If you want to
 specify some X resources solely for the sake of the initial frame, and
@@ -1659,7 +1659,7 @@ resources for application names other than ``Emacs'' by binding this
 variable to some other string, around a call to @code{x-get-resource}.
 @end defvar
 
-  @xref{Resources X,, X Resources, emacs, The GNU Emacs Manual}.
+  @xref{X Resources,, X Resources, emacs, The GNU Emacs Manual}.
 
 @node Display Feature Testing
 @section Display Feature Testing
