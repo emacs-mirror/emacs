@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs commit log
 ;; Version: $Name:  $
-;; Revision: $Id: log-edit.el,v 1.11 2000/11/06 07:01:36 monnier Exp $
+;; Revision: $Id: log-edit.el,v 1.12 2000/12/06 19:36:44 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -58,7 +58,7 @@
     ("\C-c\C-a" . log-edit-insert-changelog)
     ("\C-c\C-f" . log-edit-show-files)
     ("\C-c?" . log-edit-mode-help))
-  "Keymap for the `log-edit-mode' (used when editing cvs log messages)."
+  "Keymap for the `log-edit-mode' (to edit version control log messages)."
   :group 'log-edit
   :inherit (if (boundp 'vc-log-entry-mode) vc-log-entry-mode
 	     (if (boundp 'vc-log-mode-map) vc-log-mode-map)))
@@ -160,31 +160,40 @@ when this variable is set to nil.")
 (defvar log-edit-initial-files nil)
 (defvar log-edit-callback nil)
 (defvar log-edit-listfun nil)
+(defvar log-edit-parent-buffer nil)
 
-;;;; 
-;;;; Actual code
-;;;; 
+;;;
+;;; Actual code
+;;;
 
 ;;;###autoload
-(defun log-edit (callback &optional setup listfun &rest ignore)
+(defun log-edit (callback &optional setup listfun buffer &rest ignore)
   "Setup a buffer to enter a log message.
 \\<log-edit-mode-map>The buffer will be put in `log-edit-mode'.
 If SETUP is non-nil, the buffer is then erased and `log-edit-hook' is run.
 Mark and point will be set around the entire contents of the
 buffer so that it is easy to kill the contents of the buffer with \\[kill-region].
 Once you're done editing the message, pressing \\[log-edit-done] will call
-`log-edit-done' which will end up calling CALLBACK to do the actual commit."
-  (when (and log-edit-setup-invert (not (eq setup 'force)))
-    (setq setup (not setup)))
-  (when setup (erase-buffer))
-  (log-edit-mode)
-  (set (make-local-variable 'log-edit-callback) callback)
-  (set (make-local-variable 'log-edit-listfun) listfun)
-  (when setup (run-hooks 'log-edit-hook))
-  (goto-char (point-min)) (push-mark (point-max))
-  (set (make-local-variable 'log-edit-initial-files) (log-edit-files))
-  (message (substitute-command-keys
-	    "Press \\[log-edit-done] when you are done editing.")))
+`log-edit-done' which will end up calling CALLBACK to do the actual commit.
+LISTFUN if non-nil is a function of no arguments returning the list of files
+  that are concerned by the current operation (using relative names).
+If BUFFER is non-nil `log-edit' will jump to that buffer, use it to edit the
+  log message and go back to the current buffer when done.  Otherwise, it
+  uses the current buffer."
+  (let ((parent (current-buffer)))
+    (if buffer (pop-to-buffer buffer))
+    (when (and log-edit-setup-invert (not (eq setup 'force)))
+      (setq setup (not setup)))
+    (when setup (erase-buffer))
+    (log-edit-mode)
+    (set (make-local-variable 'log-edit-callback) callback)
+    (set (make-local-variable 'log-edit-listfun) listfun)
+    (if buffer (set (make-local-variable 'log-edit-parent-buffer) parent))
+    (when setup (run-hooks 'log-edit-hook))
+    (goto-char (point-min)) (push-mark (point-max))
+    (set (make-local-variable 'log-edit-initial-files) (log-edit-files))
+    (message (substitute-command-keys
+	      "Press \\[log-edit-done] when you are done editing."))))
 
 (define-derived-mode log-edit-mode text-mode "Log-Edit"
   "Major mode for editing version-control log messages.
@@ -213,8 +222,8 @@ If you want to abort the commit, simply delete the buffer."
   (when (equal (char-after) ?\n) (forward-char 1))
   (delete-region (point) (point-max))
   ;; Check for final newline
-  (if (and (> (point-max) 1)
-	   (/= (char-after (1- (point-max))) ?\n)
+  (if (and (> (point-max) (point-min))
+	   (/= (char-before (point-max)) ?\n)
 	   (or (eq log-edit-require-final-newline t)
 	       (and log-edit-require-final-newline
 		    (y-or-n-p
@@ -224,10 +233,8 @@ If you want to abort the commit, simply delete the buffer."
 	(goto-char (point-max))
 	(insert ?\n)))
   (let ((comment (buffer-string)))
-    (when (and (boundp 'vc-comment-ring)
-	       (ring-p vc-comment-ring)
-	       (not (ring-empty-p vc-comment-ring))
-	       (not (equal comment (ring-ref vc-comment-ring 0))))
+    (when (or (ring-empty-p vc-comment-ring)
+	      (not (equal comment (ring-ref vc-comment-ring 0))))
       (ring-insert vc-comment-ring comment)))
   (let ((win (get-buffer-window log-edit-files-buf)))
     (if (and log-edit-confirm
@@ -240,9 +247,8 @@ If you want to abort the commit, simply delete the buffer."
 	       (message "Oh, well!  Later maybe?"))
       (run-hooks 'log-edit-done-hook)
       (log-edit-hide-buf)
-      (unless log-edit-keep-buffer
-	(cvs-bury-buffer (current-buffer)
-			 (when (boundp 'cvs-buffer) cvs-buffer)))
+      (unless (or log-edit-keep-buffer (not log-edit-parent-buffer))
+	(cvs-bury-buffer (current-buffer) log-edit-parent-buffer))
       (call-interactively log-edit-callback))))
 
 (defun log-edit-files ()
@@ -299,7 +305,7 @@ To select default log text, we:
   (interactive)
   (let* ((files (log-edit-files))
 	 (editbuf (current-buffer))
-	 (buf (get-buffer-create "*log-edit-files*")))
+	 (buf (get-buffer-create log-edit-files-buf)))
     (with-current-buffer buf
       (log-edit-hide-buf buf 'all)
       (setq buffer-read-only nil)
