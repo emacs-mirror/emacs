@@ -1,3 +1,7 @@
+2001-01-08  Gerd Moellmann  <gerd@gnu.org>
+
+	* TUTORIAL.es: New file.
+
 2001-01-08  Kevin Gallagher  <kevingal@onramp.net>
 
 	* edt-user.doc: Updated to reflect EDT Emulation version 4.0

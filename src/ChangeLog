@@ -1,5 +1,8 @@
 2001-01-08  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (window_scroll_pixel_based): Adjust glyph matrices
+	when increasing window's vscroll.
+
 	* macros.c (Qkbd_macro_termination_hook): New variable.
 	(syms_of_macros): Initialize and staticpro it.
 	(pop_kbd_macro): Run kbd-macro-termination-hook.
