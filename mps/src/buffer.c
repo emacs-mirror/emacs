@@ -1,6 +1,6 @@
 /* impl.c.buffer: ALLOCATION BUFFER IMPLEMENTATION
  *
- * $HopeName: MMsrc!buffer.c(trunk.36) $
+ * $HopeName: MMsrc!buffer.c(trunk.37) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * This is (part of) the implementation of allocation buffers.
@@ -25,7 +25,7 @@
 
 #include "mpm.h"
 
-SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.36) $");
+SRCID(buffer, "$HopeName: MMsrc!buffer.c(trunk.37) $");
 
 
 /* BufferCheck -- check consistency of a buffer */
@@ -268,7 +268,7 @@ void BufferDetach(Buffer buffer, Pool pool)
     (*pool->class->bufferEmpty)(pool, buffer);
 
     spare = AddrOffset(buffer->apStruct.alloc, 
-		       buffer->apStruct.limit);
+		       buffer->poolLimit);
     buffer->emptySize += spare;
     if(buffer->isMutator) {
       buffer->pool->emptyMutatorSize += spare;
