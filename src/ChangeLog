@@ -1,3 +1,7 @@
+2000-09-06  Gerd Moellmann  <gerd@gnu.org>
+
+	* config.in (HAVE_MMAP): Add #undef.
+
 2000-09-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* frame.c (Qdisplay_type): New variable.
