@@ -32,7 +32,7 @@ function, which should take an alist of parameters as its argument.")
 ;;; The initial value given here for used to ask for a minibuffer.
 ;;; But that's not necessary, because the default is to have one.
 ;;; By not specifying it here, we let an X resource specify it.
-(defvar initial-frame-alist nil
+(defcustom initial-frame-alist nil
   "Alist of frame parameters for creating the initial X window frame.
 You can set this in your `.emacs' file; for example,
  (setq initial-frame-alist '((top . 1) (left . 1) (width . 80) (height . 55)))
@@ -51,7 +51,11 @@ as it appears, you need to use this three-step process:
 * Set `default-frame-alist' to override these options so that they
   don't affect subsequent frames.
 * Set `initial-frame-alist' in a way that matches the X resources,
-  to override what you put in `default-frame-alist'.")
+  to override what you put in `default-frame-alist'."
+  :type '(repeat (cons :format "%v"
+		       (symbol :tag "Parameter")
+		       (sexp :tag "Value")))
+  :group 'frames)
 
 (defvar minibuffer-frame-alist '((width . 80) (height . 2))
   "Alist of frame parameters for initially creating a minibuffer frame.
