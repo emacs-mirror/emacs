@@ -227,7 +227,7 @@ SUBDIR_MAKEFILES = lib-src/Makefile man/Makefile lispref/Makefile lispintro/Make
 COPYDIR = ${srcdir}/etc ${srcdir}/lisp
 COPYDESTS = ${etcdir} ${lispdir}
 
-all: maybe_bootstrap ${SUBDIR} leim
+all: ${SUBDIR} leim
 
 removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
 
@@ -262,7 +262,7 @@ lib-src: FRC src/config.stamp
 
 .RECURSIVE: ${SUBDIR} leim
 
-${SUBDIR}: ${SUBDIR_MAKEFILES} FRC
+${SUBDIR}: maybe_bootstrap ${SUBDIR_MAKEFILES} FRC
 	cd $@; $(MAKE) all $(MFLAGS) \
 	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
 	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}'
@@ -695,8 +695,7 @@ maybe_bootstrap:
 	@if [ ! -f $(srcdir)/lisp/abbrev.elc ]; then \
 	  echo "Essential Lisp files seem to be missing.  You should either"; \
 	  echo "do \`make bootstrap' or create \`lisp/abbrev.elc' somehow.";    \
-	  echo "This Make job will now hang till you kill it."; \
-	  while true; do sleep 10; done; \
+	  exit 1;\
 	fi
 
 bootstrap: bootstrap-clean-before bootstrap-lisp-1 bootstrap-src bootstrap-lisp bootstrap-clean-after all info
