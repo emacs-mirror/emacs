@@ -40,7 +40,12 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 
 #define MAX_ATTEMPTS 5
-#define SCORE_FILE_PREFIX "/var/games/emacs/"
+
+#ifdef HAVE_SHARED_GAME_DIR
+#define SCORE_FILE_PREFIX HAVE_SHARED_GAME_DIR
+#else
+#define SCORE_FILE_PREFIX "$HOME"
+#endif
 
 int
 usage(int err)
@@ -78,10 +83,9 @@ write_scores(const char *filename, const struct score_entry *scores,
 	     int count);
 
 char *
-get_user_id()
+get_user_id(struct passwd *buf)
 {
   char *name;
-  struct passwd *buf = getpwuid(getuid());
   if (!buf)
     {
       int count = 1;
@@ -95,16 +99,25 @@ get_user_id()
   return buf->pw_name;
 }
 
+char *
+get_home_dir(struct passwd *buf)
+{
+  if (!buf)
+    return NULL;
+  return buf->pw_dir;
+}
+
 int
 main(int argc, char **argv)
 {
   int c;
   void *lockstate;
-  char *scorefile;
+  char *scorefile, *prefix;
   struct stat buf;
   struct score_entry *scores;
   int newscore, scorecount, reverse = 0, max = -1;
   char *newdata;
+  struct passwd *passwdbuf;
 
   srand(time(0));
 
@@ -126,14 +139,29 @@ main(int argc, char **argv)
 
   if (optind+3 != argc)
     usage(1);
-  scorefile = malloc(strlen(SCORE_FILE_PREFIX) + strlen(argv[optind]) + 1);
+
+  passwdbuf = getpwuid(getuid());
+
+  if (!strcmp(SCORE_FILE_PREFIX, "$HOME"))
+    {
+      prefix = get_home_dir(passwdbuf);
+      if (!prefix)
+	{
+	  fprintf(stderr, "Unable to determine home directory\n");
+	  exit(1);
+	}
+    }
+  else
+    prefix = SCORE_FILE_PREFIX;
+  
+  scorefile = malloc(strlen(prefix) + strlen(argv[optind]) + 1);
   if (!scorefile)
     {
       fprintf(stderr, "Couldn't create score file name: %s\n",
 	      strerror(errno));
       goto fail;
     }
-  strcpy(scorefile, SCORE_FILE_PREFIX);
+  strcpy(scorefile, prefix);
   strcat(scorefile, argv[optind]);
   newscore = atoi(argv[optind+1]);
   newdata = argv[optind+2];
@@ -156,7 +184,7 @@ main(int argc, char **argv)
 	      scorefile, strerror(errno));
       goto fail_unlock;
     }
-  push_score(&scores, &scorecount, newscore, get_user_id(), newdata);
+  push_score(&scores, &scorecount, newscore, get_user_id(passwdbuf), newdata);
   sort_scores(scores, scorecount, reverse);
   if (write_scores(scorefile, scores, scorecount) < 0)
     {
@@ -229,6 +257,7 @@ read_score(FILE *f, struct score_entry *score)
     int len;
     if (getline(&score->data, &len, f) < 0)
       return -1;
+    score->data[strlen(score->data)-1] = '\0';
   }
 #else
   {
@@ -249,10 +278,9 @@ read_score(FILE *f, struct score_entry *score)
 	cur++;
       }
     score->data = buf;
+    score->data[cur] = '\0';
   }
 #endif
-  /* Trim the newline */
-  score->data[strlen(score->data)-1] = '\0';
   return 0;
 }
 
