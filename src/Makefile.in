@@ -738,6 +738,7 @@ xterm.o : xterm.c xterm.h termhooks.h termopts.h termchar.h window.h \
   gnu.h sink.h sinkmask.h $(config_h)
 xselect.o : xselect.c dispextern.h frame.h xterm.h blockinput.h $(config_h) 
 xrdb.o : xrdb.c $(config_h)
+hftctl.o : hftctl.c $(config_h)
 
 /* The files of Lisp proper */
 
