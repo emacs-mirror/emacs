@@ -1,9 +1,5 @@
 	    Emacs for Windows NT and Windows 95/98/2000/XP
 
-			     Version 21.1
-
-			  November 18, 2001
-		
 This README file describes how to dump a bare precompiled version of GNU
 Emacs for Windows NT and Windows 95/98/2000/XP.  This distribution
 supplements the standard dumped precompiled distribution of Emacs, which
