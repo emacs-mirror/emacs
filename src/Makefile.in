@@ -648,6 +648,7 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj) $(LIBO
 lisp= \
 	${lispsource}abbrev.elc \
 	${lispsource}buff-menu.elc \
+	${lispsource}button.elc \
 	${lispsource}byte-run.elc \
 	${lispsource}cus-start.el \
 	${lispsource}custom.elc \
@@ -666,7 +667,7 @@ lisp= \
 	${lispsource}isearch.elc \
 	${lispsource}loadup.el \
 	${lispsource}loaddefs.el \
-	${lispsource}bindings.el \
+	${lispsource}bindings.elc \
 	${lispsource}map-ynp.elc \
 	${lispsource}menu-bar.elc \
 	${lispsource}international/mule.elc \
@@ -728,6 +729,7 @@ lisp= \
 shortlisp= \
 	../lisp/abbrev.elc \
 	../lisp/buff-menu.elc \
+	../lisp/button.elc \
 	../lisp/byte-run.elc \
 	../lisp/cus-start.el \
 	../lisp/custom.elc \
@@ -745,7 +747,7 @@ shortlisp= \
 	../lisp/isearch.elc \
 	../lisp/loadup.el \
 	../lisp/loaddefs.el \
-	../lisp/bindings.el \
+	../lisp/bindings.elc \
 	../lisp/map-ynp.elc \
 	../lisp/env.elc \
 	../lisp/international/mule.elc \
