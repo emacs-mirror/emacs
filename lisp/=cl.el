@@ -691,25 +691,34 @@ list accessors: first, second, ..., tenth, rest."
          (arg       (cadr form))
          (valid     *cl-valid-named-list-accessors*)
          (offsets   *cl-valid-nth-offsets*))
-    (if (or (null (cdr form)) (cddr form))
-        (error "%s needs exactly one argument, seen `%s'"
-               fun (prin1-to-string form)))
-    (if (not (memq fun valid))
-        (error "`%s' not in {first, ..., tenth, rest}" fun))
-    (cond ((eq fun 'first)
-           (byte-compile-form arg)
-           (setq byte-compile-depth (1- byte-compile-depth))
-           (byte-compile-out byte-car 0))
-          ((eq fun 'rest)
-           (byte-compile-form arg)
-           (setq byte-compile-depth (1- byte-compile-depth))
-           (byte-compile-out byte-cdr 0))
-          (t                            ;one of the others
-           (byte-compile-constant (cdr (assoc fun offsets)))
-           (byte-compile-form arg)
-           (setq byte-compile-depth (1- byte-compile-depth))
-           (byte-compile-out byte-nth 0)
-           ))))
+    (cond
+
+     ;; Check that it's a form we're prepared to handle.
+     ((not (memq fun valid))
+      (error
+       "cl.el internal bug: `%s' not in {first, ..., tenth, rest}"
+       fun))
+
+     ;; Check the number of arguments.
+     ((not (= (length form) 2))
+      (byte-compile-subr-wrong-args form 1))
+
+     ;; If the result will simply be tossed, don't generate any code for
+     ;; it, and indicate that we have already discarded the value.
+     (for-effect
+      (setq for-effect nil))
+
+     ;; Generate code for the call.
+     ((eq fun 'first)
+      (byte-compile-form arg)
+      (byte-compile-out 'byte-car 0))
+     ((eq fun 'rest)
+      (byte-compile-form arg)
+      (byte-compile-out 'byte-cdr 0))
+     (t				;one of the others
+      (byte-compile-constant (cdr (assq fun offsets)))
+      (byte-compile-form arg)
+      (byte-compile-out 'byte-nth 0)))))
 
 ;;; Synonyms for list functions
 (defun first (x)
@@ -851,18 +860,31 @@ To use this functionality for a given function,just give its name a
                                       'byte-car 'byte-cdr)))
                       (cdr (nreverse (cdr (append (symbol-name fun) nil)))))))
     ;; SEQ is a list of byte-car and byte-cdr in the correct order.
-    (if (null seq)
-        (error "internal: `%s' cannot be compiled by byte-compile-ca*d*r"
-               (prin1-to-string form)))
-    (if (or (null (cdr form)) (cddr form))
-        (error "%s needs exactly one argument, seen `%s'"
-               fun (prin1-to-string form)))
-    (byte-compile-form arg)
-    (setq byte-compile-depth (1- byte-compile-depth))
-    ;; the rest of this code doesn't change the stack depth!
-    (while seq
-      (byte-compile-out (car seq) 0)
-      (setq seq (cdr seq)))))
+    (cond
+
+     ;; Is this a function we can handle?
+     ((null seq)
+      (error
+       "cl.el internal bug: `%s' cannot be compiled by byte-compile-ca*d*r"
+       (prin1-to-string form)))
+
+     ;; Are we passing this function the correct number of arguments?
+     ((or (null (cdr form)) (cddr form))
+      (byte-compile-subr-wrong-args form 1))
+
+     ;; Are we evaluating this expression for effect only?
+     (for-effect
+
+      ;; We needn't generate any actual code, as long as we tell the rest 
+      ;; of the compiler that we didn't push anything on the stack.
+      (setq for-effect nil))
+
+     ;; Generate code for the function.
+     (t
+      (byte-compile-form arg)
+      (while seq
+	(byte-compile-out (car seq) 0)
+	(setq seq (cdr seq)))))))
 
 (defun caar (X)
   "Return the car of the car of X."

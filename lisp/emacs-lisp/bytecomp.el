@@ -242,7 +242,8 @@ If it is 'byte, then only byte-level optimizations will be logged.")
 of `message.'")
 
 (defconst byte-compile-warning-types '(redefine callargs free-vars unresolved))
-(defvar byte-compile-warnings (not noninteractive)
+(defvar byte-compile-warnings (if noninteractive nil
+				(delq 'free-vars byte-compile-warning-types))
   "*List of warnings that the byte-compiler should issue (t for all).
 Valid elements of this list are:
 `free-vars' (references to variables not in the
@@ -734,6 +735,14 @@ otherwise pop it")
 ;;;	(message "Warning: %s" format))
     ))
 
+;;; This function should be used to report errors that have halted
+;;; compilation of the current file.
+(defun byte-compile-report-error (error-info)
+  (setq format (format (if (cdr error-info) "%s (%s)" "%s")
+		       (get (car error-info) 'error-message)
+		       (prin1-to-string (cdr error-info))))
+  (byte-compile-log-1 (concat "!! " format)))
+
 ;;; Used by make-obsolete.
 (defun byte-compile-obsolete (form)
   (let ((new (get (car form) 'byte-obsolete-info)))
@@ -1004,7 +1013,11 @@ otherwise pop it")
 	     (save-excursion
 	       (set-buffer (get-buffer-create "*Compile-Log*"))
 	       (point-max)))))
-     (list 'unwind-protect (cons 'progn body)
+     (list 'unwind-protect
+	   (list 'condition-case 'error-info
+		 (cons 'progn body)
+	       '(error
+		 (byte-compile-report-error error-info)))
        '(save-excursion
 	  ;; If there were compilation warnings, display them.
 	  (set-buffer "*Compile-Log*")
@@ -1090,28 +1103,31 @@ With prefix arg (noninteractively: 2nd arg), load the file after compiling."
         (set-auto-mode)
         (setq filename buffer-file-name))
       (kill-buffer (prog1 (current-buffer)
-		     (set-buffer (byte-compile-from-buffer (current-buffer)))))
+		     (set-buffer
+		      (byte-compile-from-buffer (current-buffer)))))
       (goto-char (point-max))
-      (insert "\n") ; aaah, unix.
+      (insert "\n")			; aaah, unix.
       (let ((vms-stmlf-recfm t))
 	(setq target-file (byte-compile-dest-file filename))
-;; 	(or byte-compile-overwrite-file
-;; 	    (condition-case ()
-;; 		(delete-file target-file)
-;; 	      (error nil)))
+;;	(or byte-compile-overwrite-file
+;;	    (condition-case ()
+;;		(delete-file target-file)
+;;	      (error nil)))
 	(if (file-writable-p target-file)
- 	    (let ((kanji-flag nil)) ; for nemacs, from Nakagawa Takayuki
+	    (let ((kanji-flag nil))	; for nemacs, from Nakagawa Takayuki
 	      (write-region 1 (point-max) target-file))
-	  ;; This is just to give a better error message than write-region
-	  (signal 'file-error (list "Opening output file"
-				    (if (file-exists-p target-file)
-					"cannot overwrite file"
-				      "directory not writable or nonexistent")
-				    target-file)))
-;; 	(or byte-compile-overwrite-file
-;; 	    (condition-case ()
-;; 		(set-file-modes target-file (file-modes filename))
-;; 	      (error nil)))
+	  ;; This is just to give a better error message than
+	  ;; write-region
+	  (signal 'file-error
+		  (list "Opening output file"
+			(if (file-exists-p target-file)
+			    "cannot overwrite file"
+			  "directory not writable or nonexistent")
+			target-file)))
+;;	(or byte-compile-overwrite-file
+;;	    (condition-case ()
+;;		(set-file-modes target-file (file-modes filename))
+;;	      (error nil)))
 	)
       (kill-buffer (current-buffer)))
     (if (and byte-compile-generate-call-tree
@@ -1180,17 +1196,17 @@ With argument, insert value in current buffer after the form."
 	  (byte-compile-depth 0)
 	  (byte-compile-maxdepth 0)
 	  (byte-compile-output nil)
-	  ;; #### This is bound in b-c-close-variables.
-	  ;;(byte-compile-warnings (if (eq byte-compile-warnings t)
-	  ;;			      byte-compile-warning-types
-	  ;;			    byte-compile-warnings))
+;;	  #### This is bound in b-c-close-variables.
+;;	  (byte-compile-warnings (if (eq byte-compile-warnings t)
+;;				     byte-compile-warning-types
+;;				   byte-compile-warnings))
 	  )
       (byte-compile-close-variables
        (save-excursion
 	 (setq outbuffer
 	       (set-buffer (get-buffer-create " *Compiler Output*")))
 	 (erase-buffer)
-;;	 (emacs-lisp-mode)
+	 ;;	 (emacs-lisp-mode)
 	 (setq case-fold-search nil))
        (displaying-byte-compile-warnings
 	(save-excursion
@@ -1206,8 +1222,9 @@ With argument, insert value in current buffer after the form."
 	  (byte-compile-flush-pending)
 	  (and (not eval) (byte-compile-insert-header))
 	  (byte-compile-warn-about-unresolved-functions)
-	  ;; always do this?  When calling multiple files, it would be useful
-	  ;; to delay this warning until all have been compiled.
+	  ;; always do this?  When calling multiple files, it
+	  ;; would be useful to delay this warning until all have
+	  ;; been compiled.
 	  (setq byte-compile-unresolved-functions nil)))
        (save-excursion
 	 (set-buffer outbuffer)

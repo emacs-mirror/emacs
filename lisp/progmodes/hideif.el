@@ -582,7 +582,7 @@ NOT including one on this line."
 	 (hif-endif-to-ifdef))
 	((hif-looking-at-ifX)
 	 'done)
-	(t ; never gets here)))
+	(t)))			; never gets here
 
 
 (defun forward-ifdef (&optional arg)

@@ -76,7 +76,7 @@ See definition of `print-region-1' for calling conventions.")
       (if page-headers
 	  (if (eq system-type 'usg-unix-v)
 	      (progn
-		(print-region-new-buffer)
+		(print-region-new-buffer start end)
 		(call-process-region start end "pr" t t nil))
 	    ;; On BSD, use an option to get page headers.
 	    (setq switches (cons "-p" switches))))
@@ -92,7 +92,7 @@ See definition of `print-region-1' for calling conventions.")
 ;; into a new buffer, makes that buffer current,
 ;; and sets start and end to the buffer bounds.
 ;; start and end are used free.
-(defun print-region-new-buffer ()
+(defun print-region-new-buffer (start end)
   (or (string= (buffer-name) " *spool temp*")
       (let ((oldbuf (current-buffer)))
 	(set-buffer (get-buffer-create " *spool temp*"))
