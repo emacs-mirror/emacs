@@ -239,9 +239,11 @@ These hooks have the following distinct roles:
         (message "Preparing diary...")
         (save-excursion
           (let ((diary-buffer (find-buffer-visiting d-file)))
-            (set-buffer (if diary-buffer
-                            diary-buffer
-                         (find-file-noselect d-file t))))
+	    (if (not diary-buffer)
+		(set-buffer (find-file-noselect d-file t))
+	      (set-buffer diary-buffer)
+	      (or (verify-visited-file-modtime diary-buffer)
+		  (revert-buffer t t))))
           (setq selective-display t)
           (setq selective-display-ellipses nil)
           (setq old-diary-syntax-table (syntax-table))
