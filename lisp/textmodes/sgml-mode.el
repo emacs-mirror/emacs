@@ -1,8 +1,9 @@
 ;;; sgml-mode.el --- SGML- and HTML-editing modes
 
-;; Copyright (C) 1992,95,96,98,2001  Free Software Foundation, Inc.
+;; Copyright (C) 1992,95,96,98,2001,2002  Free Software Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
+;; Maintainer: FSF
 ;; Adapted-By: ESR, Daniel Pfeiffer <occitan@esperanto.org>,
 ;;             F.Potorti@cnuce.cnr.it
 ;; Keywords: wp, hypermedia, comm, languages
@@ -225,16 +226,18 @@ separated by a space."
   :group 'sgml)
 
 (defconst sgml-start-tag-regex
-  "<[A-Za-z]\\([-.A-Za-z0-9= \n\t]\\|\"[^\"]*\"\\|'[^']*'\\)*"
+  "<[[:alpha:]]\\([-_.:[:alnum:]= \n\t]\\|\"[^\"]*\"\\|'[^']*'\\)*"
   "Regular expression that matches a non-empty start tag.
 Any terminating `>' or `/' is not matched.")
 
 
 ;; internal
 (defconst sgml-font-lock-keywords-1
-  '(("<\\([!?][a-z][-.a-z0-9]*\\)" 1 font-lock-keyword-face)
-    ("<\\(/?[a-z][-.a-z0-9]*\\)" 1 font-lock-function-name-face)
-    ("[&%][a-z][-.a-z0-9]*;?" . font-lock-variable-name-face)))
+  '(("<\\([!?][[:alpha:]][-_.:[:alnum:]]*\\)" 1 font-lock-keyword-face)
+    ("<\\(/?[[:alpha:]][-_.:[:alnum:]]*\\)" 1 font-lock-function-name-face)
+    ;; FIXME: this doesn't cover the variable using a default value.
+    ("\\([[:alpha:]][-_.:[:alnum:]]*\\)=[\"']" 1 font-lock-variable-name-face)
+    ("[&%][[:alpha:]][-_.:[:alnum:]]*;?" . font-lock-variable-name-face)))
 
 (defconst sgml-font-lock-keywords-2
   (append
@@ -364,9 +367,9 @@ Otherwise, it is set to be buffer-local when the file has
   ;; This is desirable because SGML discards a newline that appears
   ;; immediately after a start tag or immediately before an end tag.
   (set (make-local-variable 'paragraph-separate) "[ \t]*$\\|\
-\[ \t]*</?\\([A-Za-z]\\([-.A-Za-z0-9= \t\n]\\|\"[^\"]*\"\\|'[^']*'\\)*\\)?>$")
+\[ \t]*</?\\([[:alpha:]]\\([-_.:[:alnum:]= \t\n]\\|\"[^\"]*\"\\|'[^']*'\\)*\\)?>$")
   (set (make-local-variable 'paragraph-start) "[ \t]*$\\|\
-\[ \t]*</?\\([A-Za-z]\\([-.A-Za-z0-9= \t\n]\\|\"[^\"]*\"\\|'[^']*'\\)*\\)?>")
+\[ \t]*</?\\([[:alpha:]]\\([-_.:[:alnum:]= \t\n]\\|\"[^\"]*\"\\|'[^']*'\\)*\\)?>")
   (set (make-local-variable 'adaptive-fill-regexp) "[ \t]*")
   (set (make-local-variable 'comment-start) "<!-- ")
   (set (make-local-variable 'comment-end) " -->")
@@ -429,7 +432,7 @@ Do \\[describe-key] on the following bindings to discover what they do.
   ;; Set `imenu-generic-expression' here, rather than in `sgml-mode-common',
   ;; because this definition probably is not useful in HTML mode.
   (set (make-local-variable 'imenu-generic-expression)
-       "<!\\(element\\|entity\\)[ \t\n]+%?[ \t\n]*\\([A-Za-z][-A-Za-z.0-9]*\\)"))
+       "<!\\(element\\|entity\\)[ \t\n]+%?[ \t\n]*\\([[:alpha:]][-_.:[:alnum:]]*\\)"))
 
 
 (defun sgml-comment-indent ()
@@ -478,6 +481,9 @@ start tag, and the second `/' is the corresponding null end tag."
                                          (1+ blinkpos)))))))))
 
 
+;; Why doesn't this use the iso-cvt table or, preferably, generate the
+;; inverse of the extensive table in the SGML Quail input method?  -- fx
+;; I guess that's moot since it only works with Latin-1 anyhow.
 (defun sgml-name-char (&optional char)
   "Insert a symbolic character name according to `sgml-char-names'.
 Non-ASCII chars may be inserted either with the meta key, as in M-SPC for
@@ -499,11 +505,11 @@ encoded keyboard operation."
 	    ?\;))
    ((aref sgml-char-names-table char)
     (insert ?& (aref sgml-char-names-table char) ?\;))
-   ((memq (char-charset char) '(mule-unicode-0100-24ff
-				mule-unicode-2500-33ff
-				mule-unicode-e000-ffff))
-    (insert (format "&#%d;" (encode-char char 'ucs))))
-   (t
+   ((let ((c (encode-char char 'ucs)))
+      (when c
+	(insert (format "&#%d;" c))
+	t)))
+   (t					; should be an error?  -- fx
     (insert char))))
 
 (defun sgml-name-self ()
@@ -523,7 +529,8 @@ encoded keyboard operation."
     (self-insert-command 1)))
 
 (defun sgml-name-8bit-mode ()
-  "Toggle whether to insert named entities instead of non-ASCII characters."
+  "Toggle whether to insert named entities instead of non-ASCII characters.
+This only works for Latin-1 input."
   (interactive)
   (setq sgml-name-8bit-mode (not sgml-name-8bit-mode))
   (message "sgml name entity mode is now %s"
@@ -777,7 +784,7 @@ With prefix argument ARG, repeat this ARG times."
 		   (if arg
 		       (>= (prefix-numeric-value arg) 0)
 		     (not sgml-tags-invisible)))
-	      (while (re-search-forward "<\\([!/?A-Za-z][-A-Za-z0-9]*\\)"
+	      (while (re-search-forward "<\\([!/?]?[[:alpha:]][-_.:[:alnum:]]*\\)"
 					nil t)
 		(setq string
 		      (cdr (assq (intern-soft (downcase (match-string 1)))
@@ -850,7 +857,7 @@ If this can't be done, return t."
 		  (forward-list)
 		  (point))
 	      0)))
-      (if (looking-at "<[!?/]?[[A-Za-z][A-Za-z0-9]*")
+      (if (looking-at "<[!/?]?[[:alpha:]][-_.:[:alnum:]]*")
 	  (buffer-substring-no-properties
 	   (1+ (point))
 	   (match-end 0))
@@ -1298,7 +1305,7 @@ To work around that, do:
 	outline-regexp "^.*<[Hh][1-6]\\>"
 	outline-heading-end-regexp "</[Hh][1-6]>"
 	outline-level (lambda ()
-			(char-after (1- (match-end 0)))))
+			(char-before (match-end 0))))
   (setq imenu-create-index-function 'html-imenu-index)
   (when sgml-xml (setq mode-name "XHTML"))
   (set (make-local-variable 'sgml-empty-tags)
