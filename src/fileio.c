@@ -2663,7 +2663,7 @@ and (2) it puts less data in the undo list.")
 #else /* MSDOS */
   if (!NILP (replace))
     {
-      char buffer[1 << 14];
+      unsigned char buffer[1 << 14];
       int same_at_start = BEGV;
       int same_at_end = ZV;
       int overlap;
@@ -4056,7 +4056,7 @@ lists are merged destructively.");
   Vwrite_region_annotate_functions = Qnil;
 
   DEFVAR_LISP ("inhibit-file-name-handlers", &Vinhibit_file_name_handlers,
-    "A list of file names for which handlers should not be used.\n\
+    "A list of file name handlers that temporarily should not be used.\n\
 This applies only to the operation `inhibit-file-name-operation'.");
   Vinhibit_file_name_handlers = Qnil;
 
