@@ -1,3 +1,8 @@
+2003-01-21  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-diag.el (list-block-of-chars): Use
+	decode-char instead of make-char.
+
 2003-01-10  Kenichi Handa  <handa@m17n.org>
 
 	* international/fontset.el: Enable the default fontset to use
