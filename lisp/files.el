@@ -1457,7 +1457,7 @@ in order to initialize other data structure based on them.")
 	   (set var val))))
 
 
-(defun set-visited-file-name (filename &optional no-query)
+(defun set-visited-file-name (filename &optional no-query along-with-file)
   "Change name of file visited in current buffer to FILENAME.
 The next time the buffer is saved it will go in the newly specified file.
 nil or empty string as argument means make buffer not be visiting any file.
@@ -1465,7 +1465,10 @@ Remember to delete the initial contents of the minibuffer
 if you wish to pass an empty string as the argument.
 
 The optional second argument NO-QUERY, if non-nil, inhibits asking for
-confirmation in the case where another buffer is already visiting FILENAME."
+confirmation in the case where another buffer is already visiting FILENAME.
+
+The optional third argument ALONG-WITH-FILE, if non-nil, means that
+the old visited file has been renamed to the new name FILENAME."
   (interactive "FSet visited file name: ")
   (if (buffer-base-buffer)
       (error "An indirect buffer cannot visit a file"))
@@ -1501,7 +1504,8 @@ confirmation in the case where another buffer is already visiting FILENAME."
 	  (or (string= new-name (buffer-name))
 	      (rename-buffer new-name t))))
     (setq buffer-backed-up nil)
-    (clear-visited-file-modtime)
+    (or along-with-file
+	(clear-visited-file-modtime))
     ;; Abbreviate the file names of the buffer.
     (if truename
 	(progn
@@ -1546,8 +1550,9 @@ confirmation in the case where another buffer is already visiting FILENAME."
     (and oauto buffer-auto-save-file-name
 	 (file-exists-p oauto)
 	 (rename-file oauto buffer-auto-save-file-name t)))
-  (if buffer-file-name
-      (set-buffer-modified-p t)))
+  (and buffer-file-name
+       (not along-with-file)
+       (set-buffer-modified-p t)))
 
 (defun write-file (filename &optional confirm)
   "Write current buffer into file FILENAME.
