@@ -811,7 +811,8 @@ The buffer is not selected, just returned to the caller."
 (defvar after-find-file-from-revert-buffer nil)
 
 (defun after-find-file (&optional error warn noauto
-				  after-find-file-from-revert-buffer)
+				  after-find-file-from-revert-buffer
+				  nomodes)
   "Called after finding a file and by the default revert function.
 Sets buffer mode, parses local variables.
 Optional args ERROR, WARN, and NOAUTO: ERROR non-nil means there was an
@@ -820,7 +821,9 @@ exists an auto-save file more recent than the visited file.
 NOAUTO means don't mess with auto-save mode.
 Fourth arg AFTER-FIND-FILE-FROM-REVERT-BUFFER non-nil
  means this call was from `revert-buffer'.
-Finishes by calling the functions in `find-file-hooks'."
+Fifth arg NOMODES non-nil means don't alter the file's modes.
+Finishes by calling the functions in `find-file-hooks'
+unless NOMODES is non-nil."
   (setq buffer-read-only (not (file-writable-p buffer-file-name)))
   (if noninteractive
       nil
@@ -854,8 +857,10 @@ Finishes by calling the functions in `find-file-hooks'."
 	    (or not-serious (sit-for 1 nil t)))))
     (if (and auto-save-default (not noauto))
 	(auto-save-mode t)))
-  (normal-mode t)
-  (run-hooks 'find-file-hooks))
+  (if nomodes
+      nil
+    (normal-mode t)
+    (run-hooks 'find-file-hooks)))
 
 (defun normal-mode (&optional find-file)
   "Choose the major mode for this buffer automatically.
@@ -2067,7 +2072,7 @@ hook functions.
 If `revert-buffer-function' is used to override the normal revert
 mechanism, this hook is not used.")
 
-(defun revert-buffer (&optional ignore-auto noconfirm)
+(defun revert-buffer (&optional ignore-auto noconfirm preserve-modes)
   "Replace the buffer text with the text of the visited file on disk.
 This undoes all changes since the file was visited or saved.
 With a prefix argument, offer to revert from latest auto-save file, if
@@ -2147,7 +2152,7 @@ beginning and `after-revert-hook' at the end."
 	       ;; have changed the truename.
 	       (setq buffer-file-truename
 		     (abbreviate-file-name (file-truename buffer-file-name)))
-	       (after-find-file nil nil t t)
+	       (after-find-file nil nil t t preserve-modes)
 	       ;; Run after-revert-hook as it was before we reverted.
 	       (setq-default revert-buffer-internal-hook global-hook)
 	       (if local-hook-p
