@@ -281,8 +281,8 @@
       (setq candidates (cdr candidates)))
     (nreverse l)))
 
-(defconst skkdic-okuri-nasi-entries (list nil))
-(defconst skkdic-okuri-nasi-entries-count 0)
+(defvar skkdic-okuri-nasi-entries (list nil))
+(defvar skkdic-okuri-nasi-entries-count 0)
 
 (defun skkdic-collect-okuri-nasi ()
   (message "Collecting OKURI-NASI entries ...")
