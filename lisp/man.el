@@ -3,6 +3,7 @@
 ;; Copyright (C) 1993, 1994, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author:		Barry A. Warsaw <bwarsaw@cen.com>
+;; Maintainer: FSF
 ;; Keywords:		help
 ;; Adapted-By:		ESR, pot
 
@@ -33,7 +34,7 @@
 ;; ALSO references, and other features.  See below or do `?' in a
 ;; manual page buffer for details.
 
-;; ========== Credits and History ========== 
+;; ========== Credits and History ==========
 ;; In mid 1991, several people posted some interesting improvements to
 ;; man.el from the standard emacs 18.57 distribution.  I liked many of
 ;; these, but wanted everything in one single package, so I decided
@@ -128,7 +129,7 @@ the manpage buffer."
 (defvar Man-sections-alist)
 (defvar Man-refpages-alist)
 (defvar Man-uses-untabify-flag t
-  "When non-nil use `untabify' instead of Man-untabify-command.")
+  "Non-nil means use `untabify' instead of `Man-untabify-command'.")
 (defvar Man-page-mode-string)
 (defvar Man-sed-script nil
   "Script for sed to nuke backspaces and ANSI codes from manpages.")
@@ -137,7 +138,7 @@ the manpage buffer."
 ;; user variables
 
 (defcustom Man-fontify-manpage-flag t
-  "*Make up the manpage with fonts."
+  "*Non-nil means make up the manpage with fonts."
   :type 'boolean
   :group 'man)
 
@@ -179,7 +180,7 @@ Any other value of `Man-notify-method' is equivalent to `meek'."
   :group 'man)
 
 (defcustom Man-downcase-section-letters-flag t
-  "*Letters in sections are converted to lower case.
+  "*Non-nil means letters in sections are converted to lower case.
 Some Un*x man commands can't handle uppercase letters in sections, for
 example \"man 2V chmod\", but they are often displayed in the manpage
 with the upper case letter.  When this variable is t, the section
@@ -189,7 +190,7 @@ being sent to the man background process."
   :group 'man)
 
 (defcustom Man-circular-pages-flag t
-  "*If t, the manpage list is treated as circular for traversal."
+  "*Non-nil means the manpage list is treated as circular for traversal."
   :type 'boolean
   :group 'man)
 
@@ -216,7 +217,7 @@ the associated section number."
   "Command used for untabifying.")
 
 (defvar Man-untabify-command-args (list "-t" "-e")
-  "List of arguments to be passed to Man-untabify-command (which see).")
+  "List of arguments to be passed to `Man-untabify-command' (which see).")
 
 (defvar Man-sed-command "sed"
   "Command used for processing sed scripts.")
@@ -245,7 +246,7 @@ the associated section number."
   "Hook run when Man mode is enabled.")
 
 (defvar Man-cooked-hook nil
-  "Hook run after removing backspaces but before Man-mode processing.")
+  "Hook run after removing backspaces but before `Man-mode' processing.")
 
 (defvar Man-name-regexp "[-a-zA-Z0-9_][-a-zA-Z0-9_.]*"
   "Regular expression describing the name of a manpage (without section).")
@@ -363,13 +364,13 @@ This regular expression should start with a `^' character.")
 ;; utilities
 
 (defun Man-init-defvars ()
-  "Used for initialising variables based on the value of window-system.
-This is necessary if one wants to dump man.el with emacs."
+  "Used for initialising variables based on the value of `window-system'.
+This is necessary if one wants to dump man.el with Emacs."
 
   ;; The following is necessary until fonts are implemented on
   ;; terminals.
   (setq Man-fontify-manpage-flag (and Man-fontify-manpage-flag
-				      window-system))
+				      (display-color-p)))
 
   ;; Avoid possible error in call-process by using a directory that must exist.
   (let ((default-directory "/"))
@@ -575,7 +576,7 @@ If a buffer already exists for this man page, it will display immediately."
     (man man-args)))
 
 (defun Man-getpage-in-background (topic)
-  "Uses TOPIC to build and fire off the manpage and cleaning command."
+  "Use TOPIC to build and fire off the manpage and cleaning command."
   (let* ((man-args topic)
 	 (bufname (concat "*Man " man-args "*"))
 	 (buffer  (get-buffer bufname)))
@@ -732,7 +733,7 @@ Same for the ANSI bold and normal escape sequences."
 
 (defun Man-bgproc-sentinel (process msg)
   "Manpage background process sentinel.
-When manpage command is run asynchronously, PROCESS is the process 
+When manpage command is run asynchronously, PROCESS is the process
 object for the manpage command; when manpage command is run
 synchronously, PROCESS is the name of the buffer where the manpage
 command is run.  Second argument MSG is the exit message of the
@@ -796,7 +797,7 @@ manpage command."
 (defun Man-mode ()
   "A mode for browsing Un*x manual pages.
 
-The following man commands are available in the buffer. Try
+The following man commands are available in the buffer.  Try
 \"\\[describe-key] <key> RET\" for more information:
 
 \\[man]       Prompt to retrieve a new manpage.
@@ -811,24 +812,24 @@ The following man commands are available in the buffer. Try
 \\[Man-kill]       Deletes the manpage window, kill its buffer.
 \\[describe-mode]       Prints this help text.
 
-The following variables may be of some use. Try
+The following variables may be of some use.  Try
 \"\\[describe-variable] <variable-name> RET\" for more information:
 
-Man-notify-method               What happens when manpage formatting is done.
-Man-downcase-section-letters-flag  Force section letters to lower case.
-Man-circular-pages-flag         Treat multiple manpage list as circular.
-Man-auto-section-alist          List of major modes and their section numbers.
-Man-section-translations-alist  List of section numbers and their Un*x equiv.
-Man-filter-list                 Background manpage filter command.
-Man-mode-line-format            Mode line format for Man mode buffers.
-Man-mode-map                    Keymap bindings for Man mode buffers.
-Man-mode-hook                   Normal hook run on entry to Man mode.
-Man-section-regexp              Regexp describing manpage section letters.
-Man-heading-regexp              Regexp describing section headers.
-Man-see-also-regexp             Regexp for SEE ALSO section (or your equiv).
-Man-first-heading-regexp        Regexp for first heading on a manpage.
-Man-reference-regexp            Regexp matching a references in SEE ALSO.
-Man-switches			Background `man' command switches.
+`Man-notify-method'		What happens when manpage formatting is done.
+`Man-downcase-section-letters-flag' Force section letters to lower case.
+`Man-circular-pages-flag'	Treat multiple manpage list as circular.
+`Man-auto-section-alist'	List of major modes and their section numbers.
+`Man-section-translations-alist' List of section numbers and their Un*x equiv.
+`Man-filter-list'		Background manpage filter command.
+`Man-mode-line-format'		Mode line format for Man mode buffers.
+`Man-mode-map'			Keymap bindings for Man mode buffers.
+`Man-mode-hook'			Normal hook run on entry to Man mode.
+`Man-section-regexp'		Regexp describing manpage section letters.
+`Man-heading-regexp'		Regexp describing section headers.
+`Man-see-also-regexp'		Regexp for SEE ALSO section (or your equiv).
+`Man-first-heading-regexp'	Regexp for first heading on a manpage.
+`Man-reference-regexp'		Regexp matching a references in SEE ALSO.
+`Man-switches'			Background `man' command switches.
 
 The following key bindings are currently in effect in the buffer:
 \\{Man-mode-map}"
@@ -1042,7 +1043,7 @@ Actually the section moved to is described by `Man-see-also-regexp'."
 
 (defun Man-follow-manual-reference (reference)
   "Get one of the manpages referred to in the \"SEE ALSO\" section.
-Specify which reference to use; default is based on word at point."
+Specify which REFERENCE to use; default is based on word at point."
   (interactive
    (if (not Man-refpages-alist)
        (error "There are no references in the current man page")
@@ -1137,6 +1138,9 @@ Specify which reference to use; default is based on word at point."
 
 ;; Init the man package variables, if not already done.
 (Man-init-defvars)
+
+(add-to-list 'debug-ignored-errors "^No manpage [0-9]* found$")
+(add-to-list 'debug-ignored-errors "^Can't find the .* manpage$")
 
 (provide 'man)
 
