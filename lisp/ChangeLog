@@ -49,6 +49,20 @@
 	current-input-method of the guidance buffer to the name of the
 	curren input method.
 
+2000-05-23  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/compile.el (compile-internal): Style typo.
+
+	* mail/mh-e.el (mh-do-not-confirm, mh-folder-mode):
+	quote vars and functions in the docstring.
+
+	* newcomment.el (comment-make-extra-lines): Don't use `assert'.
+
+	* completion.el (dynamic-completion-mode, dynamic-completion-mode):
+	Don't quote lambdas.
+
+	* ffap.el (ffap-highlight): Use facep rather than internal-find-face.
+
 2000-05-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* startup.el (command-line): Determine source file of compiled
@@ -138,6 +152,8 @@
 	(quail-keyboard-layout-alist): Add definition for "pc102-de".
 
 2000-05-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* help.el (help-manyarg-func-alist): Typo.
 
 	* emacs-lisp/sregex.el: Rewritten to take advantage of shy-groups and
 	intervals which makes it heaps simpler.
