@@ -1,5 +1,5 @@
 /* Lisp parsing and input streams.
-   Copyright (C) 1985, 86, 87, 88, 89, 93, 94, 95, 97, 98, 99, 2000, 2001
+   Copyright (C) 1985, 86, 87, 88, 89, 93, 94, 95, 97, 98, 99, 2000, 01, 02
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -190,7 +190,6 @@ int load_dangerous_libraries;
 
 static Lisp_Object Vbytecomp_version_regexp;
 
-static void to_multibyte P_ ((char **, char **, int *));
 static void readevalloop P_ ((Lisp_Object, FILE*, Lisp_Object, 
 			      Lisp_Object (*) (), int,
 			      Lisp_Object, Lisp_Object));
@@ -221,7 +220,6 @@ readchar (readcharfun)
       register struct buffer *inbuffer = XBUFFER (readcharfun);
 
       int pt_byte = BUF_PT_BYTE (inbuffer);
-      int orig_pt_byte = pt_byte;
 
       if (readchar_backlog > 0)
 	/* We get the address of the byte just passed,
@@ -257,7 +255,6 @@ readchar (readcharfun)
       register struct buffer *inbuffer = XMARKER (readcharfun)->buffer;
 
       int bytepos = marker_byte_position (readcharfun);
-      int orig_bytepos = bytepos;
 
       if (readchar_backlog > 0)
 	/* We get the address of the byte just passed,
@@ -568,7 +565,7 @@ safe_to_load_p (fd)
 {
   char buf[512];
   int nbytes, i;
-  int safe_p = 1;
+  int safe_p = 1, version = 0;
 
   /* Read the first few bytes from the file, and look for a line
      specifying the byte compiler version used.  */
@@ -578,15 +575,18 @@ safe_to_load_p (fd)
       buf[nbytes] = '\0';
 
       /* Skip to the next newline, skipping over the initial `ELC'
-	 with NUL bytes following it.  */
+	 with NUL bytes following it, but note the version.  */
       for (i = 0; i < nbytes && buf[i] != '\n'; ++i)
-	;
+	if (i == 4)
+          version = buf[i];
 
       if (i < nbytes
 	  && fast_c_string_match_ignore_case (Vbytecomp_version_regexp,
 					      buf + i) < 0)
 	safe_p = 0;
     }
+  if (safe_p)
+    safe_p = version;
 
   lseek (fd, 0, SEEK_SET);
   return safe_p;
@@ -752,9 +752,9 @@ Return t if file exists.  */)
       if (fd != -2)
 	{
 	  struct stat s1, s2;
-	  int result;
+	  int result, version;
 
-	  if (!safe_to_load_p (fd))
+	  if (!(version = safe_to_load_p (fd)))
 	    {
 	      safe_p = 0;
 	      if (!load_dangerous_libraries)
@@ -765,6 +765,24 @@ Return t if file exists.  */)
 	    }
 
 	  compiled = 1;
+
+	  if (version == 20)	/* 21 isn't used */
+	    /* We're loading something compiled with Mule 3, 4 or 5,
+	       and thus potentially emacs-mule-encoded; load it with
+	       code conversion.  (Perhaps the test should actually be
+	       <22?)  We could check further on whether the comment
+	       mentions multibyte and only code-convert if it does.  I
+	       doubt it's worth the effort. -- fx  */
+	    {
+	      Lisp_Object val;
+
+	      if (fd >= 0)
+		emacs_close (fd);
+	      val = call4 (intern ("load-with-code-conversion"), found, file,
+			   NILP (noerror) ? Qnil : Qt,
+			   NILP (nomessage) ? Qnil : Qt);
+	      return unbind_to (count, val);
+	    }
 
 #ifdef DOS_NT
 	  fmode = "rb";
