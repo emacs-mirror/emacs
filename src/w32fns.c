@@ -4808,7 +4808,7 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
   {
     char buf[100];
 
-    if (!NILP (*(lpef->pattern)) && FontType == TRUETYPE_FONTTYPE)
+    if (!NILP (*(lpef->pattern)) && FontType != RASTER_FONTTYPE)
       {
 	lplf->elfLogFont.lfHeight = lpef->logfont.lfHeight;
 	lplf->elfLogFont.lfWidth = lpef->logfont.lfWidth;
