@@ -974,10 +974,12 @@ in `input-method-after-insert-chunk-hook' (which see)."
 	(set-buffer quail-guidance-buf)
 	(erase-buffer)))
   (setq overriding-terminal-local-map
-	(if (and (overlayp quail-conv-overlay)
-		 (overlay-start quail-conv-overlay))
-	    (quail-conversion-keymap)))
-  (run-hooks 'input-method-after-insert-chunk-hook))
+	(quail-conversion-keymap))
+  ;; Run this hook only when the current input method doesn't require
+  ;; conversion.  When it requires, the conversoin function should run
+  ;; this hook at a proper timing.
+  (unless (quail-conversion-keymap)
+    (run-hooks 'input-method-after-insert-chunk-hook)))
 
 (defun quail-select-current ()
   "Select the current text shown in Quail translation region."
@@ -1281,7 +1283,8 @@ Remaining args are for FUNC."
   "Do no conversion of the current conversion region of Quail."
   (interactive)
   (quail-delete-overlays)
-  (setq overriding-terminal-local-map nil))
+  (setq overriding-terminal-local-map nil)
+  (run-hooks 'input-method-after-insert-chunk-hook))
 
 ;; Guidance, Completion, and Help buffer handlers.
 
