@@ -866,6 +866,11 @@ emacs_memftime (s, maxsize, format, format_len, tp)
 {
   size_t total = 0;
 
+  /* Loop through all the null-terminated strings in the format
+     argument.  Normally there's just one null-terminated string, but
+     there can be arbitrarily many, concatenated together, if the
+     format contains '\0' bytes.  emacs_strftime stops at the first
+     '\0' byte so we must invoke it separately for each such string.  */
   for (;;)
     {
       size_t len;
