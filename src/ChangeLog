@@ -1,3 +1,7 @@
+2004-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fkeymap_prompt): Accept symbol keymaps.
+
 2004-11-09  Kim F. Storm  <storm@cua.dk>
 
 	* xselect.c: Include <sys/types.h> and <unistd.h> (for getpid).
@@ -164,8 +168,8 @@
 	(x_stop_queuing_selection_requests): Add new queue for selection
 	input events to replace previous XEvent queue in xterm.c.
 	(queue_selection_requests_unwind): Adapt to new queue.
-	(x_reply_selection_request): Adapt to new queue.  Unexpect
-	wait_object in case of x errors (memory leak).
+	(x_reply_selection_request): Adapt to new queue.
+	Unexpect wait_object in case of x errors (memory leak).
 	(x_handle_selection_request, x_handle_selection_clear): Make static.
 	(x_handle_selection_event): New function.  May queue selection events.
 	(wait_for_property_change_unwind): Use save_value instead of cons.
@@ -218,7 +222,7 @@
 	* gtkutil.h: Declare use_old_gtk_file_dialog.
 
 	* gtkutil.c: Make use_old_gtk_file_dialog non-static.
-	(xg_initialize): Moved DEFVAR_BOOL for use_old_gtk_file_dialog ...
+	(xg_initialize): Move DEFVAR_BOOL for use_old_gtk_file_dialog ...
 	* xfns.c (syms_of_xfns): ... to here.
 
 	* gtkutil.c (xg_get_file_with_chooser): Expand DEFAULT_FILENAME if
@@ -293,20 +297,20 @@
 
 	* lisp.h: Fx_file_dialog takes 5 parameters.
 
-	* xfns.c (Fx_file_dialog): Both Motif and GTK version:  Add
-	parameter only_dir_p.
+	* xfns.c (Fx_file_dialog): Both Motif and GTK version:
+	Add parameter only_dir_p.
 	In Motif version, don't put DEFAULT_FILENAME in filter part of the
 	dialog, just text field part.  Do not add DEFAULT_FILENAME
 	to list of files if it isn't there.
 	In GTK version, pass only_dir_p parameter to xg_get_file_name.
 
-	* macfns.c (Fx_file_dialog): Add parameter only_dir_p.  Check
-	only_dir_p instead of comparing prompt to "Dired".  When using
+	* macfns.c (Fx_file_dialog): Add parameter only_dir_p.
+	Check only_dir_p instead of comparing prompt to "Dired".  When using
 	a save dialog, add option kNavDontConfirmReplacement, change title
 	to "Enter name", change text for save button to "Ok".
 
-	* w32fns.c (Fx_file_dialog): Add parameter only_dir_p.  Check
-	only_dir_p instead of comparing prompt to "Dired".
+	* w32fns.c (Fx_file_dialog): Add parameter only_dir_p.
+	Check only_dir_p instead of comparing prompt to "Dired".
 
 	* gtkutil.c (xg_get_file_with_chooser)
 	(xg_get_file_with_selection): New functions, only defined ifdef
@@ -323,8 +327,8 @@
 
 2004-11-01  Kim F. Storm  <storm@cua.dk>
 
-	* process.c (connect_wait_mask, num_pending_connects): Only
-	declare and use them if NON_BLOCKING_CONNECT is defined.
+	* process.c (connect_wait_mask, num_pending_connects):
+	Only declare and use them if NON_BLOCKING_CONNECT is defined.
 	(init_process): Initialize them if NON_BLOCKING_CONNECT defined.
 	(IF_NON_BLOCKING_CONNECT): New helper macro.
 	(wait_reading_process_output): Only declare and use local vars
@@ -339,8 +343,8 @@
 	* xmenu.c: Add prototypes for forward function declarations.
 	(popup_get_selection): Remove parameter do_timers, remove call to
 	timer_check.
-	(create_and_show_popup_menu, create_and_show_dialog): Remove
-	parameter do_timers from call to popup_get_selection.
+	(create_and_show_popup_menu, create_and_show_dialog):
+	Remove parameter do_timers from call to popup_get_selection.
 
 	* xdisp.c (update_tool_bar): Pass a copy of f->tool_bar_items to
 	tool_bar_items and assign the result to f->tool_bar_items if
@@ -359,7 +363,7 @@
 	* macterm.c: allow user to assign key modifiers to the Mac Option
 	key via a 'mac-option-modifier' variable.
 
-2004-10-28  Stefan  <monnier@iro.umontreal.ca>
+2004-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xselect.c (Vx_lost_selection_functions, Vx_sent_selection_functions):
 	Rename from Vx_lost_selection_hooks and Vx_sent_selection_hooks.
