@@ -33,7 +33,7 @@ some of the edit/review concepts inherent in the design of Plan 9's
 Most likely you will have to turn this option on and play around with
 it to get a real sense of how it works."
   :tag "Smart display of output"
-  :link '(info-link "(eshell)Smart display of output")
+  ;; :link '(info-link "(eshell)Smart display of output")
   :group 'eshell-module)
 
 ;;; Commentary:
