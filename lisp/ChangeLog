@@ -1,5 +1,7 @@
 2001-05-20  Richard M. Stallman  <rms@gnu.org>
 
+	* mail/rmail.el (rmail-retry-failure): Do save-window-excursion.
+
 	* info.el (Info-read-subfile): Widen before finding the
 	desired node in the subfile.
 
