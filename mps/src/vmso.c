@@ -1,7 +1,7 @@
 /* impl.c.vmso: VIRTUAL MEMORY MAPPING FOR SOLARIS 2.x
  *
- * $HopeName: MMsrc!vmso.c(trunk.11) $
- * Copyright (C) 1995. Harlequin Group plc. All rights reserved.
+ * $HopeName: MMsrc!vmso.c(trunk.12) $
+ * Copyright (C) 1995.  Harlequin Group plc.  All rights reserved.
  *
  * DESIGN
  *
@@ -19,7 +19,7 @@
  * .assume.not-last: The implementation of VMCreate assumes that
  *   mmap() will not choose a region which contains the last page
  *   in the address space, so that the limit of the mapped area
- *   is representable.  (VMCheck checfks limit != 0 which is a kind
+ *   is representable.  (VMCheck checks limit != 0 which is a kind
  *   of roundabout way of checking this)
  *
  * .assume.mmap.err: ENOMEM is the only error we really expect to
@@ -52,12 +52,10 @@
 /* unistd for _SC_PAGESIZE */
 #include <unistd.h>
 
-SRCID(vmso, "$HopeName: MMsrc!vmso.c(trunk.11) $");
+SRCID(vmso, "$HopeName: MMsrc!vmso.c(trunk.12) $");
 
 
 /* Fix up unprototyped system calls.  */
-/* Note that these are not fixed up by std.h because that only fixes */
-/* up discrepancies with ANSI. */
 
 extern int close(int fd);
 extern int munmap(caddr_t addr, size_t len);
