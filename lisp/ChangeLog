@@ -1,21 +1,19 @@
 2002-11-03  Andre Spiegel  <spiegel@gnu.org>
 
-	* vc.el (vc-dired-mode): Adapt dired-move-to-filename-regexp to 
-	its current version in dired.el.
+	* vc.el (vc-dired-mode): Adapt dired-move-to-filename-regexp to its
+	current version in dired.el.
 
-2002-10-28  Juanma Barranquero  <lektu@terra.es>  (tiny change)
+2002-10-28  Matthew Swift  <swift@alum.mit.edu>  (tiny change)
 
 	* progmodes/compile.el (grep-find-use-xargs): Fix docstring.
-	Patch from Matt Swift <swift@alum.mit.edu>.
 
 2002-10-28  Francesco Potorti`  <pot@gnu.org>
 
 	* comint.el (comint-password-prompt-regexp): Synch with main trunk.
 
-2002-10-24  Juanma Barranquero  <lektu@terra.es>  (tiny change)
+2002-10-24  Matthew Swift  <swift@alum.mit.edu>  (tiny change)
 
 	* textmodes/outline.el (outline-minor-mode): Add customization group.
-	Patch from Matthew Swift <swift@alum.mit.edu>.
 
 2002-10-23  Richard M. Stallman  <rms@gnu.org>
 
