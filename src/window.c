@@ -3916,6 +3916,7 @@ redraws with point in the center of the current window.")
     {
       extern int frame_garbaged;
 
+      Fredraw_frame (w->frame);
       SET_FRAME_GARBAGED (XFRAME (WINDOW_FRAME (w)));
       XSETFASTINT (arg, ht / 2);
     }
