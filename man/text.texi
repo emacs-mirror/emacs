@@ -1813,10 +1813,10 @@ text file: with keyboard commands, and with the mouse.
 
   The easiest way to add properties to your document is with the Text
 Properties menu.  You can get to this menu in two ways: from the Edit
-menu in the menu bar (use @kbd{F10 e t} if you have no mouse), or with
-@kbd{C-Mouse-2} (hold the @key{CTRL} key and press the middle mouse
-button).  There are also keyboard commands described in the following
-section.
+menu in the menu bar (use @kbd{@key{F10} e t} if you have no mouse),
+or with @kbd{C-Mouse-2} (hold the @key{CTRL} key and press the middle
+mouse button).  There are also keyboard commands described in the
+following section.
 
   Most of the items in the Text Properties menu lead to other submenus.
 These are described in the sections that follow.  Some items run
