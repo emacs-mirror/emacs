@@ -448,7 +448,7 @@ See also documentation for variable `picture-tab-chars'."
 
 ;; Picture Rectangles
 
-(defconst picture-killed-rectangle nil
+(defvar picture-killed-rectangle nil
   "Rectangle killed or copied by \\[picture-clear-rectangle] in Picture mode.
 The contents can be retrieved by \\[picture-yank-rectangle]")
 
