@@ -42,8 +42,8 @@ struct ccl_program {
 				   condition flag of relational
 				   operations.  */
   int private_state;            /* CCL instruction may use this
-				   for private use, mainly for preservation
-				   internal states for suspending.
+				   for private use, mainly for saving
+				   internal states on suspending.
 				   This variable is set to 0 when ccl is 
 				   set up.  */
   int last_block;		/* Set to 1 while processing the last
@@ -57,6 +57,7 @@ struct ccl_program {
 				   encoding by a coding system, set to
 				   the eol_type of the coding
 				   system.  */
+  int multibyte;		/* 1 if the source text is multibyte.  */
 };
 
 /* This data type is used for the spec field of the structure
