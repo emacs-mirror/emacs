@@ -1,3 +1,8 @@
+2002-08-19  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* make-docfile.c (scan_keyword_or_put_char, write_c_args): Use `fn'
+	for the function name in the usage info.
+
 2002-07-31  Colin Walters  <walters@gnu.org>
 
 	* update-game-score.c (P_): New macro.  Use it for all prototypes.
@@ -20,8 +25,7 @@
 
 2002-07-05  Jonathan Kamens <jik@kamens.brookline.ma.us>
 
-	* b2m.pl: Obey the rmail file and use the unpruned header
-	properly.
+	* b2m.pl: Obey the rmail file and use the unpruned header properly.
 
 2002-06-26  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
@@ -98,7 +102,7 @@
 
 	* etags.c (scan_separators): Support all character escape
 	sequences supported by Gcc.
-	(find_entries): rewind unconditionally.
+	(find_entries): Rewind unconditionally.
 	(find_entries): Do not call language functions directly, now calls
 	itself.
 	(find_entries): Do general initialisations here.
@@ -164,7 +168,7 @@
 	* update-game-score.c (SCORE_FILE_PREFIX): Delete.
 	(main): New argument -d, for specifying directory.
 	(usage): Document.
-	(get_user_id): Compute
+	(get_user_id): Compute.
 	(get_home_dir): Deleted.
 	(get_prefix): New function, taken from main.
 	(main): Check whether or not we are running setuid.  Move prefix
@@ -225,19 +229,19 @@
 	(language): Added the metasource member.  Initializers changed.
 	(invalidate_nodes): New function.
 	(readline): Discard lines after having found a #line
-  	directive pointing to an already tagged file.  This handles the
+	directive pointing to an already tagged file.  This handles the
 	case when xxx.y is tagged before xxx.c, and the entries of
 	xxx.c pointing to xxx.y should be discarded.
 	(fdesc): New structure for keeping track of input files.
 	(fdesc): Remove `file' member (a string) and use instead a pointer
 	to a file description structure.
-	(curfile, curfiledir, curtagfname, curlang, nocharno,
-	forced_lang): Global variables removed in favor of fdhead and
+	(curfile, curfiledir, curtagfname, curlang, nocharno)
+	(forced_lang): Global variables removed in favor of fdhead and
 	curfdp, pointers to file description strucures.
 	(longopts, main, print_help): Use the CTAGS conditional to include
 	or exclude options that work on etags or ctags only.
-	(process_file, find_entries, pfnote, add_node, put_entries,
-	readline): Use fdhead and curfdp.
+	(process_file, find_entries, pfnote, add_node, put_entries)
+	(readline): Use fdhead and curfdp.
 	(process_file, find_entries): Do not take an arg string, all
 	callers changed.
 
@@ -628,14 +632,13 @@
 	(check_namespace): New function.
 	(find_namespace): Add parameter CONTEXT.
 	(check_namespace_alias): New function.
-	(register_namespace_alias): Change type of parameter
-	OLD_NAME. Search for already defined alias in
-	NAMESPACE_ALIAS_TABLE.
+	(register_namespace_alias): Change type of parameter OLD_NAME.
+	Search for already defined alias in NAMESPACE_ALIAS_TABLE.
 	(check_namespace): New function.
 	(enter_namespace): Call find_namespace with CONTEXT parameter.
 	(match_qualified_namespace_alias): New function.
-	(parse_qualified_ident_or_type): Fixed typo in comment. While
-	parsing qualified ident or type update namespace context and
+	(parse_qualified_ident_or_type): Fixed typo in comment.
+	While parsing qualified ident or type update namespace context and
 	restore it on exit.
 	(parse_qualified_param_ident_or_type): Fixed typo in comment.
 	(globals): Changed handling of namespace aliases.
@@ -650,8 +653,8 @@
 
 	* rcs2log (Help, mainline code): Add new option -L FILE.
 	(Copyright): Update year.
-	(LANG, LANGUAGE, LC_ALL, LC_COLLATE, LC_CTYPE, LC_MESSAGES,
-	LC_NUMERIC, LC_TIME): New shell vars, to make sure we live in the
+	(LANG, LANGUAGE, LC_ALL, LC_COLLATE, LC_CTYPE, LC_MESSAGES)
+	(LC_NUMERIC, LC_TIME): New shell vars, to make sure we live in the
 	C locale.
 	(mainline code): Handle nonstandard -u option differently, by
 	transforming it to standard form.  Check for "Working file: ", not
@@ -663,11 +666,10 @@
 	Append ';;' to the last arm of every case statement, for
 	portability to ancient broken BSD shells.
 
-	(logins): Fix bug; was not being computed at all, lowering
-	performance.
+	(logins): Fix bug; was not being computed at all, lowering performance.
 	(pository): New var.  This fixes some bugs where repositories are
 	remote, or have trailing slashes.
-        (authors): $llogout is never an empty shell var, so don't worry
+	(authors): $llogout is never an empty shell var, so don't worry
 	about that possibility.
 	(printlogline, mainline code): Fix bug with SOH's being put into
 	the output.
@@ -728,8 +730,7 @@
 
 2001-05-08  Gerd Moellmann  <gerd@gnu.org>
 
-	* ebrowse.c (enter_namespace): Fix reallocation of
-	namespace_stack.
+	* ebrowse.c (enter_namespace): Fix reallocation of namespace_stack.
 
 2001-05-03  Gerd Moellmann  <gerd@gnu.org>
 
@@ -856,7 +857,7 @@
 	(xrnew): Change the synopsis.
 	(typedefs_or_cplusplus): Renamed from typedefs_and_cplusplus.
 	(grow_linebuffer): Don't call xrnew when not needed.
-	(token): buffer renamed to line.
+	(token): Buffer renamed to line.
 	(C_entries): Three calls to inibuffer moved here from main.
 	(C_entries): Removed all references to var methodlen, delete it.
 	(linebuffer_setlen): Was grow_buffer, now also sets len.
@@ -886,8 +887,7 @@
 	* etags.c (get_language_from_langname): Renamed from
 	get_language_from_name.
 	(get_language_from_filename): Renamed from
-	get_language_from_suffix.  Now first looks for the complete file
-	name.
+	get_language_from_suffix.  Now first looks for the complete file name.
 	(language): New member char **filenames.
 	(Makefile_filenames): List of possible filenames for makefiles.
 	(lang_names): Added a NULL member for every entry, added an entry
@@ -916,8 +916,8 @@
 
 2001-01-02  Gerd Moellmann  <gerd@gnu.org>
 
-	* ebrowse.c (yyerror): Changed to take two arguments.  Prototype
-	added.  Callers changed.
+	* ebrowse.c (yyerror): Changed to take two arguments.
+	Prototype added.  Callers changed.
 
 2001-01-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -1032,14 +1032,12 @@
 
 2000-07-14  Gerd Moellmann  <gerd@gnu.org>
 
-	* ebrowse.c (xrealloc, xmalloc): Renamed from yrealloc and
-	ymalloc.
+	* ebrowse.c (xrealloc, xmalloc): Renamed from yrealloc and ymalloc.
 
 	* etags.c (xmalloc, xrealloc): Make externally visible, for use
 	by alloca.o.
 
-	* Makefile.in (alloca.o): Add -Demacs so that alloca will use
-	xmalloc.
+	* Makefile.in (alloca.o): Add -Demacs so that alloca will use xmalloc.
 
 2000-07-10  Gerd Moellmann  <gerd@gnu.org>
 
@@ -1087,11 +1085,10 @@
 
 2000-05-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* ebrowse.c (PATH_LIST_SEPARATOR) [__MSDOS__ || WINDOWSNT]: Define
-	to semi-colon.
+	* ebrowse.c (PATH_LIST_SEPARATOR) [__MSDOS__ || WINDOWSNT]:
+	Define to semi-colon.
 	(FILENAME_EQ): New macro, for comparing file names.
-	(add_member_decl, add_global_decl, add_member_defn): Use
-	FILENAME_EQ.
+	(add_member_decl, add_global_decl, add_member_defn): Use FILENAME_EQ.
 	(process_file): Don't assume that fread always reads as many bytes
 	as it was told to (DOS-style CR-LF text files fail this logic).
 	(open_file): Allocate enough space for path->path plus the file
@@ -1166,7 +1163,7 @@
 2000-01-28  Eric Hanchrow <offby1@blarg.net>
 
 	* emacsclient.c (socket_status): New function.
-	(main): if $LOGNAME or $USER exist and differ from our euid, look
+	(main): If $LOGNAME or $USER exist and differ from our euid, look
 	for a socket based on the UID associated with the name.
 
 2000-01-12  Han-Wen Nienhuys  <hanwen@cs.uu.nl>
@@ -1183,7 +1180,7 @@
 
 	* etags.c (_GNU_SOURCE): Define only if undefined.
 	(get_scheme): Declaration deleted.
-	(main): error was called with an integer as second arg, instead of
+	(main): Error was called with an integer as second arg, instead of
 	a char pointer.
 	(canonicalize_filename): Bug removed.
 
@@ -1216,7 +1213,7 @@
 	(C_stab_entry): Added if, for, while, switch, return as
 	st_C_ignore.  This makes it simpler to work when cblev!=0.
 
-	* etags.c (C_entries): tag member function declarations when
+	* etags.c (C_entries): Tag member function declarations when
 	--declarations is used.
 
 	* etags.c (C_entries, consider_token): C++ `operator' now is
@@ -1293,36 +1290,35 @@
 	* etags.c (init): Cosmetic change: NULL --> '\0'.
 	(erlang_attribute): Bug corrected (uninitialized variable).
 	(filename_is_absolute): New function replaces absolutefn macro and
- 	corrects a bug.  All callers changed.
+	corrects a bug.  All callers changed.
 	(canonicalize_filename): New function.
 	(process_file, etags_getcwd, absolute_dirname): Use it.
 	(relative_filename, absolute_filename): Removed var shadowing.
 	(C_entries, Pascal_functions): Add fake initializations to keep
- 	compilers quiet.
+	compilers quiet.
 	(TeX_functions, Prolog_functions, Erlang_functions): Cleanup.
 
 	* etags.c (xrnew): New macro.  All callers of xrealloc changed.
 	(language): New typedef (was struct lang_entry).
 	(curlang): New global variable.
-	(node): typedef renamed from NODE.
+	(node): Typedef renamed from NODE.
 	(linebuffer): New typedef (was struct linebuffer).
 	(pattern): New typedef (was struct pattern).  Some members added.
 	Now used as element of a linked list.
 	(patterns, num_patterns): Global variables deleted.
 	(p_head): New global variable.
 	(forced_lang):  New global variable (replaces lang_func).
-	(get_language_from_name, get_language_from_interpreter,
-	get_language_from_suffix): Semantics changed.  All callers changed.
+	(get_language_from_name, get_language_from_interpreter)
+	(get_language_from_suffix): Semantics changed.  All callers changed.
 	(last_node): New global variable.
-	(free_tree, add_node, put_entries, total_size_of_entries): Change
-	name of local vars to avoid clashes with typedef node.
+	(free_tree, add_node, put_entries, total_size_of_entries):
+	Change name of local vars to avoid clashes with typedef node.
 	(number_len): Rewritten for elegance.
 	(token): New typedef replaces TOKEN.
 	(analyse_regex, add_regex): Rewritten for new functionality.
 	(free_patterns): New function called from main and add_regex.
 	(initbuffer, readline_internal, readline, grow_linebuffer):
-	Change name of local vars to avoid clashes with typedef
-	linebuffer.
+	Change name of local vars to avoid clashes with typedef linebuffer.
 	(readline): Rewritten for new functionality.
 
 	* etags.c: (Scheme_suffixes): New suffix ".ss".
@@ -1331,22 +1327,22 @@
 
 	* etags.c (print_help): Some messages clarified.
 	(LOOP_ON_INPUT_LINES): New macro.
-	(just_read_file, Fortran_functions, Asm_labels, Perl_functions,
-	Python_functions, Cobol_paragraphs, Pascal_functions,
-	Lisp_functions, Postscript_functions, Scheme_functions,
-	TeX_functions, Prolog_functions, Erlang_functions): Use it.
-	(Cobol_paragraphs, Postscript_functions, TeX_functions,
-	Prolog_functions, Erlang_functions): Use a local variable instead
+	(just_read_file, Fortran_functions, Asm_labels, Perl_functions)
+	(Python_functions, Cobol_paragraphs, Pascal_functions)
+	(Lisp_functions, Postscript_functions, Scheme_functions)
+	(TeX_functions, Prolog_functions, Erlang_functions): Use it.
+	(Cobol_paragraphs, Postscript_functions, TeX_functions)
+	(Prolog_functions, Erlang_functions): Use a local variable instead
 	of the global variable dbp.
 	(Pascal_functions, L_isquote, Scheme_functions): Use GNU coding
 	standard indentation.
 
-	* etags.c (Python_suffixes, lang_names, Python_functions): Python
-	support.
+	* etags.c (Python_suffixes, lang_names, Python_functions):
+	Python support.
 	(skip_spaces, skip_non_spaces): Utility functions.
-	(find_entries, takeprec, getit, Fortran_functions, Perl_functions,
-	Python_functions, L_getit, Lisp_functions, Scheme_functions,
-	prolog_pred, erlanf_func, erlang_attribute): Use them.
+	(find_entries, takeprec, getit, Fortran_functions, Perl_functions)
+	(Python_functions, L_getit, Lisp_functions, Scheme_functions)
+	(prolog_pred, erlanf_func, erlang_attribute): Use them.
 	(eat_white): Deleted.
 
 	* etags.c (CHAR, init): Keep into account non US-ASCII

@@ -1006,6 +1006,9 @@ with Custom.
 
 * Lisp Changes in Emacs 21.4
 
+** A function's docstring can now hold the function's usage info on
+its last line.  It should match the regexp "\n\n(fn.*)\\'".
+
 ** New CCL functions `lookup-character' and `lookup-integer' access
 hash tables defined by the Lisp function `define-translation-hash-table'.
 
