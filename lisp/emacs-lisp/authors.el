@@ -81,7 +81,17 @@ file individually.")
     ("Sam Shteingold" . "Sam Steingold")
     ("W{\L}Odek Bzyl" . "Wlodzimierz Bzyl")
     ("Kenneth Manheimer" . "Ken Manheimer")
-    ("Kenichi HANDA" . "Kenichi Handa"))
+    ("Kenichi HANDA" . "Kenichi Handa")
+    ("Jay Adams" . "Jay R. Adams")
+    ("Joe Arceneaux" . "Josef Arceneaux")
+    ("K. Berry" . "Karl Berry")
+    ("Michael Ernst" . "Michael D. Ernst")
+    ("Dave Gillespie" . "David Gillespie")
+    ("Shane Hartman" . "K. Shane Hartman")
+    ("Francesco Potorti`" . "Francesco Potorti")
+    ("Roland Roberts" . "Roland B. Roberts")
+    ("David Smith" . "David M. Smith")
+    )
   "Alist of author aliases.
 
 Each entry is of the form (REGEXP . ALIAS).  If an author's name
@@ -98,6 +108,121 @@ Changes to files matching one of the regexps in this list are not
 listed.")
 
 
+(defconst authors-fixed-entries
+  '(("Joe Arceneax" :wrote "xrdb.c")
+    ("Blitz Product Development Corporation" :wrote "ispell.el")
+    ("Frank Bresz" :wrote "diff.el")
+    ("David M. Brown" :wrote "array.el")
+    ("Gary Byers" :changed "xenix.h")
+    ("Shawn M. Carey" :wrote "freebsd.h")
+    ("Eric Decker"  :changed "hp9000s800.h" "hpux.h" "sysdep.c")
+    ("Lawrence R. Dodd" :wrote "dired-x.el")
+    ("Viktor Dukhovni" :wrote "unexsunos4.c")
+    ("Paul Eggert" :wrote "rcs2log" "vcdiff")
+    ("Fred Fish" :changed "unexec.c")
+    ("Tim Fleehart" :wrote "makefile.nt")
+    ("Keith Gabryelski" :wrote "hexl.c")
+    ("Kevin Gallagher" :wrote "flow-ctrl.el")
+    ("Howard Gayle" :wrote "disp-table.el" "iso-syntax.el" "casetab.c")
+    ("Stephen Gildea" :wrote "refcard.tex" "mh-funcs.el" "mh-pick.el")
+    ("David Gillespie" :wrote "cl.texinfo")
+    ("Hewlett-Packard" :changed "emacsclient.c" "emacsserver.c"
+     "server.el" "keyboard.c")
+    ("Thomas Horsley" :wrote "cxux.h" "cxux7.h")
+    ("Indiana University Foundation" :changed "buffer.c" "buffer.h"
+     "indent.c" "search.c" "xdisp.c" "region-cache.c" "region-cache.h")
+    ("International Business Machines" :changed "emacs.c" "fileio.c"
+     "ibmrt.h" "process.c" "sysdep.c" "unexec.c" "ibmrt-aix.h")
+    ("Ishikawa Chiaki" :changed "aviion.h" "dgux.h")
+    ("Michael K. Johnson" :changed "configure.in" "emacs.c" "intel386.h"
+     "mem-limits.h" "process.c" "template.h" "sysdep.c" "syssignal.h" "systty.h" "unexec.c"
+      "ymakefile" "linux.h")
+    ("Kyle E. Jones" :wrote "mldrag.el")
+    ("Kenry Kautz" :wrote "bib-mode.el")
+    ("Joseph M. Kelsey" :changed "fileio.c" "vms-pwd.h" "vmsfns.c" "dir.h"
+     "uaf.h")
+    ("Sam Kendall" :changed "etags.c" "etags.el")
+    ("Richard King" :wrote "backquote.el" "userlock.el" "filelock.c")
+    ("Larry Kolodney" :wrote "cvtmail.c")
+    ("Sebastian Kremer" :changed "add-log.el")
+    ("Mark Lambert" :changed "process.c" "process.h")
+    ("Aaron Larson" :changed "bibtex.el")
+    ("James R. Larus" :wrote "mh-e.el")
+    ("Lars Lindberg" :changed "dabbrev.el" :wrote "imenu.el")
+    ("Lucid, Inc." :changed "bytecode.c" "byte-opt.el" "byte-run.el"
+     "bytecomp.el" "delsel.el" "disass.el" "faces.el" "font-lock.el"
+     "lmenu.el" "lselect.el" "mailabbrev.el" "select.el" "xfaces.c"
+     "xselect.c")
+    ("MCC" :changed "etags.c" "emacsclient.c" "emacsserver.c" "movemail.c"
+     "rmail.el" "rmailedit.el" "rmailkwd.el"
+     "rmailmsc.el" "rmailout.el" "rmailsum.el" "scribe.el"
+     "server.el" "lisp.h" "sysdep.c" "unexec.c" :wrote "xmenu.c")
+    ("Niall Mansfield" :changed "etags.c")
+    ("Brian Marick" :wrote "hideif.el")
+    ("Marko Kohtala" :changed "info.el")
+    ("Sidney Markowitz" :changed "doctor.el")
+    ("Richard Mlynarik" :wrote "env.c" "ehelp.el")
+    ("Mosur Mohan" :changed "etags.c")
+    ("Jeff Morgenthaler" :changed "flow-ctrl.el" "vt200.el" "vt201.el"
+     "vt220.el" "vt240.el")
+    ("Motorola" :changed "buff-menu.el")
+    ("Hiroshi Nakano" :changed "ralloc.c")
+    ("Sundar Narasimhan" :changed "rnewspost.el")
+    ("NeXT, Inc." :wrote "unexnext.c")
+    ("Mark Neale" :changed "fortran.el")
+    ("Martin Neitzel" :changed "sc.el")
+    ("Andrew Oram" :changed "miscellaneous changes to files in man/"
+     "man/calendar.texi")
+    ("Frederic Pierresteguy" :wrote "widget.c")
+    ("Michael D. Prange" :changed "tex-mode.el")
+    ("Paul Reilly" :wrote "gux5-4r2.h" "dgux5-4r3.h")
+    ("Roland B Roberts" :changed "files.el" "sort.el" "vmsproc.el"
+     "buffer.h" "callproc.c" "dired.c" "process.c" "sysdep.c" "systty.h"
+     "vmspaths.h" "build.com" "compile.com" "kepteditor.com" "precomp.com"
+     :wrote "logout.com" "mailemacs.com")
+    ("Guillermo J. Rozas" :wrote "fakemail.c")
+    ("Wolfgang Rupprecht" :changed "lisp-mode.el" "loadup.el"
+     "sort.el" "alloc.c" "callint.c"
+     "config.h.in" "crt0.c" "data.c" "fns.c"
+     "lisp.h" "lread.c" "sun3.h"
+     "print.c" "ymakefile" :wrote "float-sup.el" "floatfns.c")
+    ("Schlumberger Technology Corporation" :changed "gud.el")
+    ("Gregor Schmid" :wrote "tcl-mode.el")
+    ("Rainer Schoepf" :wrote "alpha.h" "unexalpha.c")
+    ("William Sommerfeld" :wrote "emacsclient.c" "emacsserver.c" "scribe.el")
+    ("Leigh Stoller" :changed "emacsclient.c" "emacsserver.c" "server.el")
+    ("Steve Strassman" :wrote "spook.el")
+    ("Shinichirou Sugou" :changed "etags.c")
+    ("Sun Microsystems, Inc" :changed "emacsclient.c" "emacsserver.c"
+     "server.el" :wrote "emacs.icon" "emacstool.1" "emacstool.c" "sun-curs.el"
+     "sun-fns.el" "sun-mouse.el" "sun.el" "sunfns.c")
+    ("Kayvan Sylvan" :changed "sc.el")
+    ("Spencer Thomas" :changed "emacsclient.c" "emacsserver.c" "server.el"
+     "dabbrev.el" "unexec.c" "tcp.c" "gnus.texi")
+    ("Jonathan Vail" :changed "vc.el")
+    ("James Van Artsdalen" :changed "usg5-4.h" "unexec.c")
+    ("Geoff Voelker" :wrote "src/makefile.nt" "lisp/makefile.nt" "winnt.el"
+     "nt.c" "nt.h" "ntheap.c" "ntheap.h" "ntinevt.c"
+     "ntproc.c" "ntterm.c" "windowsnt.h")
+    ("Morten Welinder" :wrote "dosfns.c" "[many MSDOS files]" "msdos.h")
+    ("Pace Willisson" :wrote "ispell.el")
+    ("Garrett Wollman" :changed "sendmail.el")
+    ("Dale Worley" :changed "mail-extr.el")
+    ("Jamie Zawinski" :changed "bytecode.c" :wrote "disass.el" "tar-mode.el"))
+  "Actions taken from the original, manually (un)maintained AUTHORS file.")
+
+
+(defun authors-add-fixed-entries (table)
+  "Add actions from `authors-fixed-entries' to TABLE."
+  (dolist (entry authors-fixed-entries)
+    (let ((author (car entry))
+	  action)
+      (dolist (item (cdr entry))
+	(if (symbolp item)
+	    (setq action item)
+	  (authors-add author item action table))))))
+
+	   
 (defun authors-obsolete-file-p (file)
   "Return non-nil if FILE is obsolete.
 FILE is considered obsolete if it matches on of the regular expressions
@@ -274,10 +399,12 @@ buffer *Authors* containing authorship information."
 	(table (make-hash-table :test 'equal))
 	(buffer-name "*Authors*"))
     (setq root (expand-file-name root))
+    (authors-add-fixed-entries table)
     (unless (file-exists-p (expand-file-name "src/emacs.c" root))
       (error "Not the root directory of Emacs: %s" root))
     (dolist (log logs)
-      (when (string-match "ChangeLog\\(.[0-9]+\\)?$" log)
+      (when (and (string-match "ChangeLog\\(.[0-9]+\\)?$" log)
+		 (not (string-match "/lispref/" log)))
 	(message "Scanning %s..." log)
 	(authors-scan-change-log log table)))
     (let ((els (authors-process-lines "find" root "-name" "*.el")))
@@ -290,7 +417,23 @@ buffer *Authors* containing authorship information."
     (maphash #'authors-print table)
     (sort-lines nil (point-min) (point-max))
     (insert "\nLocal" " Variables:\ncoding: iso-2022-7bit\nEnd:\n")
-    (pop-to-buffer buffer-name)))
-  
+    (unless noninteractive
+      (pop-to-buffer buffer-name))))
+
+
+;;;###autoload
+(defun batch-update-authors ()
+  "Produce an AUTHORS file.
+Call this function in batch mode with two command line arguments FILE
+and ROOT.  FILE is the file to write, ROOT is the root directory of
+the Emacs source tree, from which to build the file."
+  (unless noninteractive
+    (error "`batch-update-authors' is to be used only with -batch"))
+  (when (/= (length command-line-args-left) 2)
+    (error "Call `batch-update-authors' with the name of the file to write"))
+  (let* ((file (pop command-line-args-left))
+	 (root (pop command-line-args-left)))
+    (authors root)
+    (write-file file)))
 
 ;; authors.el ends here
