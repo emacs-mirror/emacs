@@ -330,7 +330,7 @@ preferred character set encodings, e.g.@: Latin-9 or Big5, and these
 can be weighted.  In Emacs 21 this list is generated automatically
 from the list of defined coding systems which have associated MIME
 types.  These are sorted by coding priority.  @xref{Recognize Coding,
-, Recognizing Coding Systems, emacs, GNU Emacs Manual}.
+, Recognizing Coding Systems, emacs, The GNU Emacs Manual}.
 @end defopt
 
 @defopt url-mime-language-string
@@ -384,9 +384,9 @@ Currently this is just the raw header contents.
 
 HTTP URLs are retrieved into a buffer containing the HTTP headers
 followed by the body.  Since the headers are quasi-MIME, they may be
-processed using the MIME library.  @inforef{Top, The MIME library,
-emacs-mime}.  The URL package provides a function to do this in
-general:
+processed using the MIME library.  @xref{Top,, Emacs MIME,
+emacs-mime, The Emacs MIME Manual}.  The URL package provides a
+function to do this in general:
 
 @defun url-decode-text-part handle &optional coding
 This function decodes charset-encoded text in the current buffer.  In
@@ -457,7 +457,7 @@ message to @samp{foo@@bar.com}.
 @vindex mail-user-agent
 The function called whenever url needs to send mail.  This should
 normally be left to default from @var{mail-user-agent}.  @xref{Mail
-Methods, , Mail-Composition Methods, emacs, GNU Emacs Manual}.
+Methods, , Mail-Composition Methods, emacs, The GNU Emacs Manual}.
 @end defopt
 
 An @samp{X-Url-From} header field containing the URL of the document
