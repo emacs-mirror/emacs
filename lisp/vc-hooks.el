@@ -829,7 +829,7 @@ Returns t if checkout was successful, nil otherwise."
   (put 'vc-insert-headers 'menu-enable 'vc-mode)
   (put 'vc-next-action 'menu-enable '(and vc-mode (not buffer-read-only)))
   (put 'vc-toggle-read-only 'menu-enable '(and vc-mode buffer-read-only))
-  (put 'vc-register 'menu-enable '(not vc-mode))
+  (put 'vc-register 'menu-enable '(and buffer-file-name (not vc-mode)))
   )
 
 (provide 'vc-hooks)
