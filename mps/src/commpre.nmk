@@ -1,7 +1,7 @@
 # impl.nmk.commpre: FIRST COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpre.nmk(trunk.18) $
-# Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+# $HopeName: MMsrc!commpre.nmk(trunk.19) $
+# Copyright (C) 2001 Harlequin Limited.  All rights reserved.
 #
 # DESCRIPTION
 #
@@ -138,8 +138,8 @@ CFLAGSCOMMONPRE = /nologo /W4 /WX $(PFMDEFS) $(CFLAGSTARGETPRE)
 CFLAGSCOMMONPOST = $(CFLAGSTARGETPOST)
 
 # Flags for use in the variety combinations
-CFLAGSHOT = /O2 /DNDEBUG
-CFLAGSCOOL = 
+CFLAGSHOT = /Ox /DNDEBUG
+CFLAGSCOOL = /Od /GZ
 CFLAGSINTERNAL = /Zi
 CFLAGSEXTERNAL =
 
