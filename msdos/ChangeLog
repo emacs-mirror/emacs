@@ -1,3 +1,7 @@
+2000-07-23  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sed3v2.inp: Define ALLOCA to an empty string.
+
 2000-07-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* sed1v2.inp: Put getloadavg.o into LIBOBJS, not GETLOADAVG_LIBS.
