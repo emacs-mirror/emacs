@@ -187,21 +187,17 @@ The defun marked is the one that contains point or follows point."
   "Put parentheses around next ARG sexps.  Leave point after open-paren.
 No argument is equivalent to zero: just insert () and leave point between."
   (interactive "P")
-  (if arg (skip-chars-forward " \t"))
+  (if arg (setq arg (prefix-numeric-value arg))
+    (setq arg 0))
+  (or (eq arg 0) (skip-chars-forward " \t"))
   (and (memq (char-syntax (preceding-char)) '(?w ?_ ?\) ))
        (insert " "))
-;    (or (memq (char-syntax (preceding-char)) '(?\  ?> ?\( ))
-;	(insert " ")))
   (insert ?\()
   (save-excursion
-    (if arg
-	(forward-sexp (prefix-numeric-value arg)))
+    (or (eq arg 0) (forward-sexp arg))
     (insert ?\))
-;    (or (memq (char-syntax (following-char)) '(?\  ?> ?\( ))
-;	(insert " "))
-  (and (memq (char-syntax (following-char)) '(?w ?_ ?\( ))
-       (insert " "))
-  ))
+    (and (memq (char-syntax (following-char)) '(?w ?_ ?\( ))
+	 (insert " "))))
 
 (defun move-past-close-and-reindent ()
   "Move past next `)', delete indentation before it, then indent after it."
