@@ -41,64 +41,66 @@ from START (inclusive) to END (exclusive)."
   "Delete comments and quoted strings in an address list ADDRESS.
 Also delete leading/trailing whitespace and replace FOO <BAR> with just BAR.
 Return a modified address list."
-  (if mail-use-rfc822
-      (progn (require 'rfc822)
-	     (mapconcat 'identity (rfc822-addresses address) ", "))
-    (let (pos)
-     (string-match "\\`[ \t\n]*" address)
-     ;; strip surrounding whitespace
-     (setq address (substring address
-			      (match-end 0)
-			      (string-match "[ \t\n]*\\'" address
-					    (match-end 0))))
+  (if (null address)
+      nil
+    (if mail-use-rfc822
+	(progn (require 'rfc822)
+	       (mapconcat 'identity (rfc822-addresses address) ", "))
+      (let (pos)
+       (string-match "\\`[ \t\n]*" address)
+       ;; strip surrounding whitespace
+       (setq address (substring address
+				(match-end 0)
+				(string-match "[ \t\n]*\\'" address
+					      (match-end 0))))
 
-     ;; Detect nested comments.
-     (if (string-match "[ \t]*(\\([^)\"\\]\\|\\\\.\\|\\\\\n\\)*(" address)
-	 ;; Strip nested comments.
-	 (save-excursion
-	   (set-buffer (get-buffer-create " *temp*"))
-	   (erase-buffer)
-	   (insert address)
-	   (set-syntax-table lisp-mode-syntax-table)
-	   (goto-char 1)
-	   (while (search-forward "(" nil t)
-	     (forward-char -1)
-	     (skip-chars-backward " \t")
-	     (delete-region (point)
-			    (save-excursion (forward-sexp 1) (point))))
-	   (setq address (buffer-string))
-	   (erase-buffer))
-       ;; Strip non-nested comments an easier way.
-       (while (setq pos (string-match 
-			  ;; This doesn't hack rfc822 nested comments
-			  ;;  `(xyzzy (foo) whinge)' properly.  Big deal.
-			  "[ \t]*(\\([^)\"\\]\\|\\\\.\\|\\\\\n\\)*)"
-			  address))
-	 (setq address
-	       (mail-string-delete address
-				   pos (match-end 0)))))
+       ;; Detect nested comments.
+       (if (string-match "[ \t]*(\\([^)\"\\]\\|\\\\.\\|\\\\\n\\)*(" address)
+	   ;; Strip nested comments.
+	   (save-excursion
+	     (set-buffer (get-buffer-create " *temp*"))
+	     (erase-buffer)
+	     (insert address)
+	     (set-syntax-table lisp-mode-syntax-table)
+	     (goto-char 1)
+	     (while (search-forward "(" nil t)
+	       (forward-char -1)
+	       (skip-chars-backward " \t")
+	       (delete-region (point)
+			      (save-excursion (forward-sexp 1) (point))))
+	     (setq address (buffer-string))
+	     (erase-buffer))
+	 ;; Strip non-nested comments an easier way.
+	 (while (setq pos (string-match 
+			    ;; This doesn't hack rfc822 nested comments
+			    ;;  `(xyzzy (foo) whinge)' properly.  Big deal.
+			    "[ \t]*(\\([^)\"\\]\\|\\\\.\\|\\\\\n\\)*)"
+			    address))
+	   (setq address
+		 (mail-string-delete address
+				     pos (match-end 0)))))
 
-     ;; strip `quoted' names (This is supposed to hack `"Foo Bar" <bar@host>')
-     (setq pos 0)
-     (while (setq pos (string-match
-			"[ \t]*\"\\([^\"\\]\\|\\\\.\\|\\\\\n\\)*\"[ \t\n]*"
-			address pos))
-       ;; If the next thing is "@", we have "foo bar"@host.  Leave it.
-       (if (and (> (length address) (match-end 0))
-		(= (aref address (match-end 0)) ?@))
-	   (setq pos (match-end 0))
-	 (setq address
-	       (mail-string-delete address
-				   pos (match-end 0)))))
-     ;; Retain only part of address in <> delims, if there is such a thing.
-     (while (setq pos (string-match "\\(,\\|\\`\\)[^,]*<\\([^>,]*>\\)"
-				    address))
-       (let ((junk-beg (match-end 1))
-	     (junk-end (match-beginning 2))
-	     (close (match-end 0)))
-	 (setq address (mail-string-delete address (1- close) close))
-	 (setq address (mail-string-delete address junk-beg junk-end))))
-     address)))
+       ;; strip `quoted' names (This is supposed to hack `"Foo Bar" <bar@host>')
+       (setq pos 0)
+       (while (setq pos (string-match
+			  "[ \t]*\"\\([^\"\\]\\|\\\\.\\|\\\\\n\\)*\"[ \t\n]*"
+			  address pos))
+	 ;; If the next thing is "@", we have "foo bar"@host.  Leave it.
+	 (if (and (> (length address) (match-end 0))
+		  (= (aref address (match-end 0)) ?@))
+	     (setq pos (match-end 0))
+	   (setq address
+		 (mail-string-delete address
+				     pos (match-end 0)))))
+       ;; Retain only part of address in <> delims, if there is such a thing.
+       (while (setq pos (string-match "\\(,\\|\\`\\)[^,]*<\\([^>,]*>\\)"
+				      address))
+	 (let ((junk-beg (match-end 1))
+	       (junk-end (match-beginning 2))
+	       (close (match-end 0)))
+	   (setq address (mail-string-delete address (1- close) close))
+	   (setq address (mail-string-delete address junk-beg junk-end))))
+       address))))
   
 (or (and (boundp 'rmail-default-dont-reply-to-names)
 	 (not (null rmail-default-dont-reply-to-names)))

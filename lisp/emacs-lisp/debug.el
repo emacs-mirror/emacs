@@ -286,7 +286,16 @@ Redefining FUNCTION also does that."
 (defun cancel-debug-on-entry (&optional function)
   "Undo effect of \\[debug-on-entry] on FUNCTION.
 If argument is nil or an empty string, cancel for all functions."
-  (interactive "aCancel debug on entry (to function): ")
+  (interactive
+   (list (let ((name
+		(completing-read "Cancel debug on entry (to function): "
+				 ;; Make an "alist" of the functions
+				 ;; that now have debug on entry.
+				 (mapcar 'list
+					 (mapcar 'symbol-name
+						 debug-function-list))
+				 nil t nil)))
+	   (if name (intern name)))))
   (debugger-reenable)
   (if (and function (not (string= function "")))
       (progn

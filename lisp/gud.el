@@ -1,5 +1,5 @@
 ;; Grand Unified Debugger mode --- run gdb, sdb, dbx under Emacs control
-;;	@(#)gud.el	1.8
+;;	@(#)gud.el	1.10
 
 ;; This file is part of GNU Emacs.
 
@@ -85,6 +85,24 @@ This association list has elements of the form
 ;; gud-<name>-file-visit
 ;; gud-<name>-set-break
 ;;
+;; The job of the startup-command method is to fire up a copy of the debugger,
+;; given an object file and source directory.
+;;
+;; The job of the marker-filter method is to detect file/line markers in
+;; strings and set the global gud-last-frame to indicate what display
+;; action (if any) should be triggered by the marker.  Note that only
+;; whetever the method *returns* is displayed in the buffer; thus, you
+;; can filter the debugger's output, interpreting some and passing on
+;; the rest.
+;;
+;; The job of the visit-file method is to visit and return the buffer indicated
+;; by the car of gud-tag-frame.  This may be a file name, a tag name, or
+;; something else.
+;;
+;; The job of the gud-set-break method is to send the commands necessary
+;; to set a breakpoint at a given line in a given source file.
+;;
+;; Debugger-specific information begins here:
 
 ;; ======================================================================
 ;; gdb functions
@@ -114,6 +132,7 @@ This association list has elements of the form
 (defun gud-gdb-set-break (proc f n) 
   (gud-call "break %s:%d" f n))
 
+;;;###autoload
 (defun gdb (path)
   "Run gdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
@@ -162,6 +181,7 @@ and source-file directory for your debugger."
 (defun gud-sdb-set-break (proc f n)
   (gud-queue-send (format "e %s" f) (format "%d b" n)))
 
+;;;###autoload
 (defun sdb (path)
   "Run sdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
@@ -207,6 +227,7 @@ and source-file directory for your debugger."
 (defun gud-dbx-set-break (proc f n)
   (gud-call "stop at \"%s\":%d" f n))
 
+;;;###autoload
 (defun dbx (path)
   "Run dbx on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
@@ -225,21 +246,9 @@ and source-file directory for your debugger."
   (run-hooks 'dbx-mode-hook)
   )
 
-;; The job of the debugger-startup method is to fire up a copy of the debugger,
-;; given an object file and source directory.
-;;
-;; The job of the marker-filter method is to detect file/line markers in
-;; strings and set the global gud-last-frame to indicate what display
-;; action (if any) should be triggered by the marker
-;;
-;; The job of the visit-file method is to visit and return the buffer indicated
-;; by the car of gud-tag-frame.  This may be a file name, a tag name, or
-;; something else.
-;;
-;; The job of the gud-set-break method is to send the commands necessary
-;; to set a breakpoint at a given line in a given source file.
 ;;
 ;; End of debugger-specific information
+;;
 
 (defvar gud-mode-map nil
   "Keymap for gud-mode.")
@@ -519,3 +528,6 @@ It is for customization by you.")
     (switch-to-buffer current-gud-buffer)
     (goto-char (dot-max))
     (insert-string comm)))
+
+;; gud.e ends here
+

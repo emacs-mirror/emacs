@@ -790,11 +790,11 @@ To get more information on the command, use C-h k instead of C-h c.
 
 >> Type C-h k Control-p.
 
-This displays the documentation of the function, as well as its name,
-in an Emacs window.  When you are finished reading the output, type
-C-x 1 to get rid of the help text.  You do not have to do this right
-away.  You can do some editing based on the help text before you type
-C-x 1.
+This displays the documentation of the function, as well as its
+name, in an Emacs window.  When you are finished reading the
+output, type C-x 1 to get rid of the help text.  You do not have
+to do this right away.  You can do some editing while referring
+to the help text and then type C-x 1.
 
 Here are some other useful C-h options:
 
@@ -811,10 +811,16 @@ Here are some other useful C-h options:
 		For some commands, Command Apropos will also list a one
 		or two character sequence which has the same effect.
 
->> Type C-h a file<Return>.  You will see a list of all M-x commands
-with "file" in their names.  You will also see commands
-like C-x C-f and C-x C-w, listed beside the command names
-find-file and write-file.
+>> Type C-h a file<Return>.
+
+This displays in another window a list of all M-x commands with
+"file" in their names.  You will also see commands like C-x C-f
+and C-x C-w, listed beside the command names find-file and
+write-file.
+
+>> Type C-M-v to scroll the help window.  Do this a few times.
+
+>> Type C-x 1 to delete the help window.
 
 
 CONCLUSION
