@@ -903,7 +903,9 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
   if (id == 0)
     {
       BLOCK_INPUT;
-      if (FRAME_DEFAULT_FACE (f)->gc != 0)
+      if (FRAME_DEFAULT_FACE (f)->gc != 0
+	  && FRAME_DEFAULT_FACE (f)->gc != f->display.x->normal_gc
+	  && FRAME_DEFAULT_FACE (f)->gc != f->display.x->reverse_gc)
 	XFreeGC (x_current_display, FRAME_DEFAULT_FACE (f)->gc);
       build_face (f, FRAME_DEFAULT_FACE (f));
       UNBLOCK_INPUT;
@@ -912,7 +914,9 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
   if (id == 1)
     {
       BLOCK_INPUT;
-      if (FRAME_MODE_LINE_FACE (f)->gc != 0)
+      if (FRAME_MODE_LINE_FACE (f)->gc != 0
+	  && FRAME_MODE_LINE_FACE (f)->gc != f->display.x->normal_gc
+	  && FRAME_MODE_LINE_FACE (f)->gc != f->display.x->reverse_gc)
 	XFreeGC (x_current_display, FRAME_MODE_LINE_FACE (f)->gc);
       build_face (f, FRAME_MODE_LINE_FACE (f));
       UNBLOCK_INPUT;
