@@ -1,12 +1,13 @@
 ;;; ada-mode.el --- An Emacs major-mode for editing Ada source.
-;;; Copyright (C) 1994, 1995, 1997 Free Software Foundation, Inc.
 
-;;; Authors: Rolf Ebert      <ebert@inf.enst.fr>
-;;;          Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
-;;; Keywords: languages oop ada
-;;; Rolf Ebert's version: 2.25
+;; Copyright (C) 1994, 1995, 1997 Free Software Foundation, Inc.
 
-;;; This file is part of GNU Emacs.
+;; Authors: Rolf Ebert      <ebert@inf.enst.fr>
+;;          Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
+;; Keywords: languages oop ada
+;; Rolf Ebert's version: 2.25
+
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

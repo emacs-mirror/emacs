@@ -2,7 +2,7 @@
 
 ;; Author: Michael Schmidt <michael@pbinfo.UUCP> 
 ;;	Tom Perrine <Perrin@LOGICON.ARPA>
-;; Maintainer: Tom Perrine <Perrin@LOGICON.ARPA>
+;; Maintainer: FSF
 ;; Keywords: languages
 
 ;; The authors distributed this without a copyright notice
