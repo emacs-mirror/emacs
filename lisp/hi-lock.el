@@ -79,7 +79,7 @@
 
 ;;; Code:
 
-(eval-when-compile
+(eval-and-compile
   (require 'font-lock))
 
 ;;;###autoload
