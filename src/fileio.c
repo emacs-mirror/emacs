@@ -2725,7 +2725,7 @@ and (2) it puts less data in the undo list.")
   Lisp_Object handler, val, insval;
   Lisp_Object p;
   int total;
-  int not_regular;
+  int not_regular = 0;
 
   val = Qnil;
   p = Qnil;
@@ -2765,7 +2765,6 @@ and (2) it puts less data in the undo list.")
       goto notfound;
     }
 
-  not_regular = 0;
 #ifdef S_IFREG
   /* This code will need to be changed in order to work on named
      pipes, and it's probably just not worth it.  So we should at
