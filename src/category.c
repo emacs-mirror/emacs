@@ -67,8 +67,9 @@ CATEGORIES is a string of category mnemonics.")
   len = XSTRING (categories)->size;
   while (--len >= 0)
     {
-      Lisp_Object category = make_number (XSTRING (categories)->data[len]);
+      Lisp_Object category;
 
+      XSETFASTINT (category, XSTRING (categories)->data[len]);
       CHECK_CATEGORY (category, 0);
       SET_CATEGORY_SET (val, category, Qt);
     }
