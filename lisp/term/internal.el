@@ -1,9 +1,8 @@
-;; internal.el -- setup support for PC keyboards and screens, internal terminal
+;;; internal.el ---support for PC keyboards and screens, internal terminal
 
 ;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
-;; Version: 1.02
 
 ;; This file is part of GNU Emacs.
 
@@ -89,3 +88,6 @@
     (mapcar (lambda (b) (set-buffer b) (set-case-table table))
 	    (buffer-list)))
   (set-standard-case-table table))
+
+;;; internal.el ends here
+

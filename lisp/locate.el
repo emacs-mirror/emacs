@@ -1,4 +1,4 @@
-;; Locate.el: interface to the locate command
+;;; locate.el --- interface to the locate command
 
 ;; Copyright (C) 1996 Free Software Foundation, Inc.
 

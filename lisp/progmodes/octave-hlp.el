@@ -1,6 +1,6 @@
-;; octave-hlp.el --- getting help on Octave symbols using info
+;;; octave-hlp.el --- getting help on Octave symbols using info
 
-;;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997 Free Software Foundation, Inc.
 
 ;; Author: Kurt Hornik <Kurt.Hornik@ci.tuwien.ac.at>
 ;; Author: John Eaton <jwe@bevo.che.wisc.edu>

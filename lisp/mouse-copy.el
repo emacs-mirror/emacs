@@ -1,4 +1,4 @@
-;;; mouse-copy.el -- one-click text copy and move
+;;; mouse-copy.el --- one-click text copy and move
 
 ;; Copyright (C) 1996 Free Software Foundation, Inc.
 

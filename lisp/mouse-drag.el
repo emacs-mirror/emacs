@@ -1,4 +1,5 @@
-;;; mouse-drag.el -- use mouse-2 to do a new style of scrolling
+;;; mouse-drag.el --- use mouse-2 to do a new style of scrolling
+
 ;; Copyright (C) 1996 Free Software Foundation, Inc.
 
 ;; Author: John Heidemann <johnh@ISI.EDU>

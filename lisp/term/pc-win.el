@@ -1,4 +1,4 @@
-;; pc-win.el -- setup support for `PC windows' (whatever that is).
+;;; pc-win.el --- setup support for `PC windows' (whatever that is).
 
 ;; Copyright (C) 1994, 1996 Free Software Foundation, Inc.
 
@@ -366,3 +366,5 @@ This is in addition to the primary selection.")
 
 (setq command-line-args (msdos-handle-args command-line-args))
 ;; ---------------------------------------------------------------------------
+
+;;; pc-win.el ends here

@@ -1,4 +1,4 @@
-;; Simple SMTP protocol (RFC 821) for sending mail
+;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail
 
 ;; Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
@@ -539,4 +539,4 @@ many continuation lines."
 
 (provide 'smtpmail)
 
-;; smtpmail.el ends here
+;;; smtpmail.el ends here
