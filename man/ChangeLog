@@ -1,3 +1,7 @@
+2004-08-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.44.
+
 2004-08-05  Lars Hansen  <larsh@math.ku.dk>
 
 	* widget.texi (User Interface): Update how to separate the

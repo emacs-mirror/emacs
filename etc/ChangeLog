@@ -1,3 +1,8 @@
+2004-08-10  Steven Tamm  <steventamm@mac.com>
+
+	* PROBLEMS: Remove description of Mac OS version upgrade
+	problems as it is no longer applicable.
+
 2004-07-27  Werner Lemberg  <wl@gnu.org>
 
 	* NEWS: Document all new tutorials.

@@ -563,9 +563,9 @@ menu bar.  @xref{Menu Bar}.  (The X toolkit and GTK allow at most one
 menu bar line; they treat larger values as 1.)
 
 @item tool-bar-lines
-The number of lines to use for the toolbar.  A value of @code{nil} means
-don't display a tool bar.  (GTK allows at most one tool bar line; it
-treats larger values as 1.)
+The number of lines to use for the tool bar.  A value of @code{nil}
+means don't display a tool bar.  (GTK allows at most one tool bar line;
+it treats larger values as 1.)
 
 @item screen-gamma
 @cindex gamma correction
