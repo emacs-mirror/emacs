@@ -417,18 +417,20 @@ which more-or-less shadow %s's corresponding tables."
       ;; Make sure the docstring mentions the mode's hook
       (setq docstring
 	    (concat docstring
-		    (unless (eq parent 'fundamental-mode)
+		    (if (eq parent 'fundamental-mode)
+			"\n\nThis mode "
 		      (concat
-		       "\nAdditionally to any hooks its parent mode "
+		       "\n\nIn addition to any hooks its parent mode "
 		       (if (string-match (regexp-quote (format "`%s'" parent))
 					 docstring) nil
 			 (format "`%s' " parent))
-		       "might have run),"))
-		    (format "\nThis mode runs `%s' just before exiting." hook))))
+		       "might have run,\nthis mode "))
+		    (format "runs the hook `%s'" hook)
+		    ", as the final step\nduring initialization.")))
 
     (unless (string-match "\\\\[{[]" docstring)
       ;; And don't forget to put the mode's keymap
-      (setq docstring (concat docstring "\n\\{" (symbol-name map) "}")))
+      (setq docstring (concat docstring "\n\n\\{" (symbol-name map) "}")))
 
     `(progn
        (defvar ,map (make-sparse-keymap))
