@@ -83,7 +83,7 @@ Boston, MA 02111-1307, USA.  */
 #undef access
 #undef unlink
 #define fork() 0
-#define sys_wait(var) (*(var) = 0)
+#define wait(var) (*(var) = 0)
 /* Unfortunately, Samba doesn't seem to properly lock Unix files even
    though the locking call succeeds (and indeed blocks local access from
    other NT programs).  If you have direct file access using an NFS
