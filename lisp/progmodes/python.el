@@ -1,6 +1,6 @@
 ;;; python.el --- silly walks for Python
 
-;; Copyright (C) 2003, 04  Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Maintainer: FSF
@@ -1127,7 +1127,7 @@ CMD is the Python command to run.  NOSHOW non-nil means don't show the
 buffer automatically.
 If there is a process already running in `*Python*', switch to
 that buffer.  Interactively, a prefix arg allows you to edit the initial
-command line (default is `python-command'); `-i' etc. args will be added
+command line (default is `python-command'); `-i' etc.  args will be added
 to this as appropriate.  Runs the hook `inferior-python-mode-hook'
 \(after the `comint-mode-hook' is run).
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
@@ -1143,12 +1143,12 @@ to this as appropriate.  Runs the hook `inferior-python-mode-hook'
     (let* ((cmdlist (append (python-args-to-list cmd) '("-i")))
 	   (path (getenv "PYTHONPATH"))
 	   (process-environment		; to import emacs.py
-	    (push (concat "PYTHONPATH=" data-directory
+	    (cons (concat "PYTHONPATH=" data-directory
 			  (if path (concat ":" path)))
 		  process-environment)))
       (set-buffer (apply 'make-comint "Python" (car cmdlist) nil
 			 (cdr cmdlist)))
-      (setq python-buffer "*Python*"))
+      (setq python-buffer (buffer-name)))
     (inferior-python-mode)
     ;; Load function defintions we need.
     ;; Before the preoutput function was used, this was done via -c in
@@ -1204,13 +1204,12 @@ to this as appropriate.  Runs the hook `inferior-python-mode-hook'
 	(set-marker orig-start (line-beginning-position 0)))
       (write-region "if True:\n" nil f nil 'nomsg))
     (write-region start end f t 'nomsg)
-    (let ((proc (python-proc)))		;Make sure we're running a process.
-      (with-current-buffer python-buffer
-	(python-send-command command)
-	;; Tell compile.el to redirect error locations in file `f' to
-	;; positions past marker `orig-start'.  It has to be done *after*
-	;; python-send-command's call to compilation-forget-errors.
-	(compilation-fake-loc orig-start f)))))
+    (with-current-buffer (process-buffer (python-proc))	;Runs python if needed.
+      (python-send-command command)
+      ;; Tell compile.el to redirect error locations in file `f' to
+      ;; positions past marker `orig-start'.  It has to be done *after*
+      ;; python-send-command's call to compilation-forget-errors.
+      (compilation-fake-loc orig-start f))))
 
 (defun python-send-string (string)
   "Evaluate STRING in inferior Python process."
@@ -1235,13 +1234,7 @@ to this as appropriate.  Runs the hook `inferior-python-mode-hook'
   "Switch to the Python process buffer.
 With prefix arg, position cursor at end of buffer."
   (interactive "P")
-  ;; Start python unless we have a buffer.
-  (unless (and python-buffer
-	       (get-buffer python-buffer))
-    (run-python nil t))
-  (pop-to-buffer python-buffer)
-  ;; Make extra sure python is running in this buffer.
-  (python-proc)
+  (pop-to-buffer (process-buffer (python-proc))) ;Runs python if needed.
   (when eob-p
     (push-mark)
     (goto-char (point-max))))
@@ -1277,17 +1270,16 @@ module-qualified names."
   (comint-check-source file-name)     ; Check to see if buffer needs saving.
   (setq python-prev-dir/file (cons (file-name-directory file-name)
 				   (file-name-nondirectory file-name)))
-  (let ((proc (python-proc)))		;Make sure we have a process.
-    (with-current-buffer python-buffer
-      ;; Fixme: I'm not convinced by this logic from python-mode.el.
-      (python-send-command
-       (if (string-match "\\.py\\'" file-name)
-	   (let ((module (file-name-sans-extension
-			  (file-name-nondirectory file-name))))
-	     (format "emacs.eimport(%S,%S)"
-		     module (file-name-directory file-name)))
-	 (format "execfile(%S)" file-name)))
-      (message "%s loaded" file-name))))
+  (with-current-buffer (process-buffer (python-proc)) ;Runs python if needed.
+    ;; Fixme: I'm not convinced by this logic from python-mode.el.
+    (python-send-command
+     (if (string-match "\\.py\\'" file-name)
+	 (let ((module (file-name-sans-extension
+			(file-name-nondirectory file-name))))
+	   (format "emacs.eimport(%S,%S)"
+		   module (file-name-directory file-name)))
+       (format "execfile(%S)" file-name)))
+    (message "%s loaded" file-name)))
 
 ;; Fixme: If we need to start the process, wait until we've got the OK
 ;; from the startup.
