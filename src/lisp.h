@@ -747,7 +747,7 @@ typedef unsigned char UCHAR;
 #ifdef MULTI_FRAME
 #define FRAMEP(x) (XTYPE ((x)) == Lisp_Frame)
 #else
-#ifdef MSDOS
+#ifdef HAVE_MOUSE
 /* We could use this in the !MSDOS case also, but we prefer a compile-time
    error message in case FRAMEP is used.  */
 #define FRAMEP(x) (EQ (x, Fselected_frame ()))
