@@ -1,19 +1,16 @@
 /* impl.c.walk: OBJECT WALKER
  *
- * $HopeName: MMsrc!walk.c(trunk.2) $
+ * $HopeName: MMsrc!walk.c(trunk.3) $
  * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  */
-
 
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(walk, "$HopeName: MMsrc!walk.c(trunk.2) $");
-
+SRCID(walk, "$HopeName: MMsrc!walk.c(trunk.3) $");
 
 
 /* Heap Walking
- *
  */
 
 
@@ -58,9 +55,8 @@ static void ArenaFormattedObjectsStep(Addr object, Format format, Pool pool,
  * so called because it walks all formatted objects in an arena 
  */
 
-static void ArenaFormattedObjectsWalk(Arena arena,
-                                      FormattedObjectsStepMethod f,
-                                          void *p, Size s)
+static void ArenaFormattedObjectsWalk(Arena arena, FormattedObjectsStepMethod f,
+                                      void *p, Size s)
 {
   Seg seg;
   FormattedObjectsStepClosure c;
@@ -77,13 +73,13 @@ static void ArenaFormattedObjectsWalk(Arena arena,
   c = p;
   AVERT(FormattedObjectsStepClosure, c);
 
-  if(SegFirst(&seg, arena)) {
+  if (SegFirst(&seg, arena)) {
     Addr base;
     do {
       Pool pool;
       base = SegBase(seg);
       pool = SegPool(seg);
-      if(pool->class->attr & AttrFMT) {
+      if (pool->class->attr & AttrFMT) {
         ShieldExpose(arena, seg);
         PoolWalk(pool, seg, f, p, s);
         ShieldCover(arena, seg);
@@ -100,8 +96,7 @@ static void ArenaFormattedObjectsWalk(Arena arena,
 
 void mps_arena_formatted_objects_walk(mps_arena_t mps_arena,
                                       mps_formatted_objects_stepper_t f,
-                                      void *p,
-                                      size_t s)
+                                      void *p, size_t s)
 {
   Arena arena = (Arena)mps_arena;
   FormattedObjectsStepClosureStruct c;
@@ -201,11 +196,9 @@ static RootsStepClosure ScanStateRootsStepClosure(ScanState ss)
  */
 
 static void RootsStepClosureInit(RootsStepClosure rsc, 
-                                 Arena arena,
-                                 Trace trace,
+                                 Arena arena, Trace trace,
                                  TraceFixMethod rootFix,
-                                 mps_roots_stepper_t f,
-                                 void *p, Size s)
+                                 mps_roots_stepper_t f, void *p, Size s)
 {
   ScanState ss;
 
@@ -321,20 +314,17 @@ static Res RootsWalkFix(ScanState ss, Ref *refIO)
   ref = *refIO;
 
   /* Check that the reference is to a valid segment */
-  if(SegOfAddr(&seg, arena, ref)) {
+  if (SegOfAddr(&seg, arena, ref)) {
     /* Test if the segment belongs to a GCable pool */
     /* If it isn't then it's not in the heap, and the reference */
     /* shouldn't be passed to the client */
     if ((SegPool(seg)->class->attr & AttrGC) != 0) {
       /* Call the client closure - .assume.rootaddr */
-      rsc->f((mps_addr_t*)refIO, 
-             (mps_root_t)root, 
-             rsc->p, rsc->s);
+      rsc->f((mps_addr_t*)refIO, (mps_root_t)root, rsc->p, rsc->s);
     }
   } else {
     /* See design.mps.trace.exact.legal */
-    AVER(ss->rank < RankEXACT
-         || !ArenaIsReservedAddr(arena, ref));
+    AVER(ss->rank < RankEXACT || !ArenaIsReservedAddr(arena, ref));
   }
 
   /* See design.mps.trace.fix.fixed.all */
@@ -346,11 +336,9 @@ static Res RootsWalkFix(ScanState ss, Ref *refIO)
 }
 
 
-/* ArenaRootsWalk -- starts the trace and scans the roots 
- */
+/* ArenaRootsWalk -- starts the trace and scans the roots */
 
-static Res ArenaRootsWalk(Arena arena, 
-                          mps_roots_stepper_t f,
+static Res ArenaRootsWalk(Arena arena, mps_roots_stepper_t f,
                           void *p, size_t s)
 {
   RootsStepClosureStruct rscStruct;
@@ -373,35 +361,34 @@ static Res ArenaRootsWalk(Arena arena,
 
   res = TraceCreate(&trace, arena);
   /* Have to fail if no trace available. Unlikely due to .assume.parked */
-  if(res != ResOK)
+  if (res != ResOK)
     return res;
 
   res = RootsWalkTraceStart(trace);
-  if(res != ResOK)
+  if (res != ResOK)
     return res;
  
   RootsStepClosureInit(rsc, arena, trace, RootsWalkFix, f, p, s);
   ss = RootsStepClosureScanState(rsc);
 
-  for(rank = RankAMBIG; rank < RankMAX; ++rank) {
+  for(rank = RankAMBIG; rank < RankLIMIT; ++rank) {
     Ring ring = ArenaRootRing(arena);
     Ring node, next;
-    ss->rank = rank;
 
+    ss->rank = rank;
     AVERT(ScanState, ss);
 
     RING_FOR(node, ring, next) {
       Root root = RING_ELT(Root, arenaRing, node);
 
-      if(RootRank(root) == ss->rank) {
+      if (RootRank(root) == ss->rank) {
         /* set the root for the benefit of the fix method */
         rsc->root = root;
         /* Scan it */
         ScanStateSetSummary(ss, RefSetEMPTY);
         res = RootScan(ss, root);
-        if(res != ResOK) {
+        if (res != ResOK)
           return res;
-        }
       }
     }
   }
@@ -415,8 +402,7 @@ static Res ArenaRootsWalk(Arena arena,
 
 /* mps_arena_roots_walk -- Client interface for walking */
 
-void mps_arena_roots_walk(mps_arena_t mps_arena,
-                          mps_roots_stepper_t f,
+void mps_arena_roots_walk(mps_arena_t mps_arena, mps_roots_stepper_t f,
                           void *p, size_t s)
 {
   Arena arena = (Arena)mps_arena;
