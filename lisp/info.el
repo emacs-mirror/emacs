@@ -1,6 +1,6 @@
 ;;; info.el --- info package for Emacs.
 
-;; Copyright (C) 1985, 1986, 1992, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985-1986, 1992-1997 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help
@@ -695,7 +695,7 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 (defun Info-read-node-name (prompt &optional default)
   (let* ((completion-ignore-case t)
 	 (completion-table (Info-build-node-completions))
-	 (nodename (completing-read prompt 'Info-read-node-name-1)))
+	 (nodename (completing-read prompt 'Info-read-node-name-1 nil t)))
     (if (equal nodename "")
 	(or default
 	    (Info-read-node-name prompt))
