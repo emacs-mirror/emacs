@@ -1,3 +1,10 @@
+2003-02-12  Simon Marshall  <simon@gnu.org>
+
+	* progmodes/make-mode.el (makefile-font-lock-keywords): Fontify
+	single character variable references, but protect shell variables
+	references.
+	(makefile-mode): Make `$' be punctuation in font-lock-defaults.
+
 2003-02-12  Ami Fischman  <ami@fischman.org>
 
 	Face markup of calendar and diary displays: Any entry line that
@@ -18,8 +25,8 @@
 	(mark-visible-calendar-date): Add the ability to pass face
 	attribute/value pairs in the mark argument.  Handle the mark.
 
-	* diary-lib.el (diary-attrtype-convert): Convert an attribute
-	value string to the desired type.
+	* calendar/diary-lib.el (diary-attrtype-convert): Convert an
+	attribute value string to the desired type.
 	(diary-pull-attrs): New function that pulls the attributes off a
 	diary entry, merges with file-global attributes, and returns
 	the (possibly modified) entry and a list of attribute/values using
