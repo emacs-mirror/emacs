@@ -129,24 +129,25 @@ function."
     (setq map global-map))
   (let* ((menu-bar-map (lookup-key map [menu-bar]))
 	 (keys (where-is-internal command menu-bar-map))
-	 (fg (face-foreground 'tool-bar))
-	 (bg (face-background 'tool-bar))
-	 (image (find-image
-		 (if (display-color-p)
-		     `((:type xpm :file ,(concat icon ".xpm"))
-		       (:type pbm :file ,(concat icon ".pbm")
-		        :background ,bg
-		        :foreground ,fg)
-		       (:type xbm :file ,(concat icon ".xbm")
-		        :background ,bg
-		        :foreground ,fg))
-		   `((:type pbm :file ,(concat icon ".pbm")
-		      :background ,bg
-		      :foreground ,fg)
-		     (:type xbm :file ,(concat icon ".xbm")
-		      :background ,bg
-		      :foreground ,fg)
-		     (:type xpm :file ,(concat icon ".xpm"))))))
+	 (fg (if (eq (face-foreground 'tool-bar) 'unspecified)
+		 nil
+	       (list :foreground (face-foreground 'tool-bar))))
+	 (bg (if (eq (face-background 'tool-bar) 'unspecified)
+		 nil
+	       (list :background (face-background 'tool-bar))))
+	 (colors (nconc fg bg))
+	 (spec (if (display-color-p)
+		   (list (list :type 'xpm :file (concat icon ".xpm"))
+			 (append (list :type 'pbm :file (concat icon ".pbm"))
+				       colors)
+			 (append (list :type 'xbm :file (concat icon ".xbm"))
+				       colors))
+		 (list (append (list :type 'pbm :file (concat icon ".pbm"))
+				     colors)
+		       (append (list :type 'xbm :file (concat icon ".xbm"))
+				     colors)
+		       (list :type 'xpm :file (concat icon ".xpm")))))
+	 (image (find-image spec))
 	 submap key)
     (when image
       ;; We'll pick up the last valid entry in the list of keys if
