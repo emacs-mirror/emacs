@@ -131,6 +131,7 @@ static int read_pure;
 
 /* For use within read-from-string (this reader is non-reentrant!!)  */
 static int read_from_string_index;
+static int read_from_string_index_byte;
 static int read_from_string_limit;
 
 /* Number of bytes left to read in the buffer character
@@ -169,64 +170,59 @@ readchar (readcharfun)
      Lisp_Object readcharfun;
 {
   Lisp_Object tem;
-  register struct buffer *inbuffer;
   register int c, mpos;
 
   if (BUFFERP (readcharfun))
     {
-      inbuffer = XBUFFER (readcharfun);
+      register struct buffer *inbuffer = XBUFFER (readcharfun);
 
-      if (readchar_backlog == 0)
+      int pt_byte = BUF_PT_BYTE (inbuffer);
+      int orig_pt_byte = pt_byte;
+
+      if (pt_byte >= BUF_ZV_BYTE (inbuffer))
+	return -1;
+
+      if (! NILP (inbuffer->enable_multibyte_characters))
 	{
-	  int pt_byte = BUF_PT_BYTE (inbuffer);
-	  int orig_pt_byte = pt_byte;
-
-	  if (pt_byte >= BUF_ZV_BYTE (inbuffer))
-	    return -1;
-
-	  if (! NILP (inbuffer->enable_multibyte_characters))
-	    BUF_INC_POS (inbuffer, pt_byte);
-	  else
-	    pt_byte++;
-	  SET_BUF_PT_BOTH (inbuffer, BUF_PT (inbuffer) + 1, pt_byte);
-	  readchar_backlog = pt_byte - orig_pt_byte;
+	  unsigned char *p = BUF_BYTE_ADDRESS (inbuffer, pt_byte);
+	  BUF_INC_POS (inbuffer, pt_byte);
+	  c = STRING_CHAR (p, pt_byte - orig_pt_byte);
 	}
+      else
+	{
+	  c = BUF_FETCH_BYTE (inbuffer, pt_byte);
+	  pt_byte++;
+	}
+      SET_BUF_PT_BOTH (inbuffer, BUF_PT (inbuffer) + 1, pt_byte);
 
-      /* We get the address of the byte just passed,
-	 which is the last byte of the character.
-	 The other bytes in this character are consecutive with it,
-	 because the gap can't be in the middle of a character.  */
-      return *(BUF_BYTE_ADDRESS (inbuffer, BUF_PT_BYTE (inbuffer) - 1)
-	       - --readchar_backlog);
+      return c;
     }
   if (MARKERP (readcharfun))
     {
-      inbuffer = XMARKER (readcharfun)->buffer;
+      register struct buffer *inbuffer = XMARKER (readcharfun)->buffer;
 
-      if (readchar_backlog == 0)
+      int bytepos = marker_byte_position (readcharfun);
+      int orig_bytepos = bytepos;
+
+      if (bytepos >= BUF_ZV_BYTE (inbuffer))
+	return -1;
+
+      if (! NILP (inbuffer->enable_multibyte_characters))
 	{
-	  int bytepos = marker_byte_position (readcharfun);
-	  int orig_bytepos = bytepos;
-
-	  if (bytepos >= BUF_ZV_BYTE (inbuffer))
-	    return -1;
-
-	  if (! NILP (inbuffer->enable_multibyte_characters))
-	    INC_POS (bytepos);
-	  else
-	    bytepos++;
-	  XMARKER (readcharfun)->bytepos = bytepos;
-	  XMARKER (readcharfun)->charpos++;
-
-	  readchar_backlog = bytepos - orig_bytepos;
+	  unsigned char *p = BUF_BYTE_ADDRESS (inbuffer, bytepos);
+	  BUF_INC_POS (inbuffer, bytepos);
+	  c = STRING_CHAR (p, bytepos - orig_bytepos);
+	}
+      else
+	{
+	  c = BUF_FETCH_BYTE (inbuffer, bytepos);
+	  bytepos++;
 	}
 
-      /* We get the address of the byte just passed,
-	 which is the last byte of the character.
-	 The other bytes in this character are consecutive with it,
-	 because the gap can't be in the middle of a character.  */
-      return *(BUF_BYTE_ADDRESS (inbuffer, XMARKER (readcharfun)->bytepos - 1)
-	       - --readchar_backlog);
+      XMARKER (readcharfun)->bytepos = bytepos;
+      XMARKER (readcharfun)->charpos++;
+
+      return c;
     }
   if (EQ (readcharfun, Qget_file_char))
     {
@@ -244,13 +240,14 @@ readchar (readcharfun)
 
   if (STRINGP (readcharfun))
     {
-      register int c;
-      /* This used to be return of a conditional expression,
-	 but that truncated -1 to a char on VMS.  */
-      if (read_from_string_index < read_from_string_limit)
-	c = XSTRING (readcharfun)->data[read_from_string_index++];
-      else
+      if (read_from_string_index >= read_from_string_limit)
 	c = -1;
+      else if (STRING_MULTIBYTE (readcharfun))
+	FETCH_STRING_CHAR_ADVANCE (c, readcharfun,
+				   read_from_string_index,
+				   read_from_string_index_byte);
+      else
+	c = XSTRING (readcharfun)->data[read_from_string_index++];
 
       return c;
     }
@@ -276,42 +273,36 @@ unreadchar (readcharfun, c)
     ;
   else if (BUFFERP (readcharfun))
     {
-      if (!SINGLE_BYTE_CHAR_P (c))
-	readchar_backlog++;
+      struct buffer *b = XBUFFER (readcharfun);
+      int bytepos = BUF_PT_BYTE (b);
+
+      BUF_PT (b)--;
+      if (! NILP (b->enable_multibyte_characters))
+	BUF_DEC_POS (b, bytepos);
       else
-	{
-	  struct buffer *b = XBUFFER (readcharfun);
-	  int bytepos = BUF_PT_BYTE (b);
+	bytepos--;
 
-	  BUF_PT (b)--;
-	  if (! NILP (b->enable_multibyte_characters))
-	    BUF_DEC_POS (b, bytepos);
-	  else
-	    bytepos--;
-
-	  BUF_PT_BYTE (b) = bytepos;
-	}
+      BUF_PT_BYTE (b) = bytepos;
     }
   else if (MARKERP (readcharfun))
     {
-      if (!SINGLE_BYTE_CHAR_P (c))
-	readchar_backlog++;
+      struct buffer *b = XMARKER (readcharfun)->buffer;
+      int bytepos = XMARKER (readcharfun)->bytepos;
+
+      XMARKER (readcharfun)->charpos--;
+      if (! NILP (b->enable_multibyte_characters))
+	BUF_DEC_POS (b, bytepos);
       else
-	{
-	  struct buffer *b = XMARKER (readcharfun)->buffer;
-	  int bytepos = XMARKER (readcharfun)->bytepos;
+	bytepos--;
 
-	  XMARKER (readcharfun)->charpos--;
-	  if (! NILP (b->enable_multibyte_characters))
-	    BUF_DEC_POS (b, bytepos);
-	  else
-	    bytepos--;
-
-	  XMARKER (readcharfun)->bytepos = bytepos;
-	}
+      XMARKER (readcharfun)->bytepos = bytepos;
     }
   else if (STRINGP (readcharfun))
-    read_from_string_index--;
+    {
+      read_from_string_index--;
+      read_from_string_index_byte
+	= string_char_to_byte (readcharfun, read_from_string_index);
+    }
   else if (EQ (readcharfun, Qget_file_char))
     ungetc (c, instream);
   else
@@ -321,7 +312,7 @@ unreadchar (readcharfun, c)
 static Lisp_Object read0 (), read1 (), read_list (), read_vector ();
 static int read_multibyte ();
 
-/* get a character from the tty */
+/* Get a character from the tty.  */
 
 extern Lisp_Object read_char ();
 
@@ -1180,12 +1171,11 @@ START and END optionally delimit a substring of STRING from which to read;\n\
   CHECK_STRING (string,0);
 
   if (NILP (end))
-    endval = STRING_BYTES (XSTRING (string));
+    endval = XSTRING (string)->size;
   else
     {
       CHECK_NUMBER (end, 2);
-      endval = string_char_to_byte (string, XINT (end));
-      if (endval < 0 || endval > STRING_BYTES (XSTRING (string)))
+      if (endval < 0 || endval > XSTRING (string)->size)
 	args_out_of_range (string, end);
     }
 
@@ -1194,21 +1184,19 @@ START and END optionally delimit a substring of STRING from which to read;\n\
   else
     {
       CHECK_NUMBER (start, 1);
-      startval = string_char_to_byte (string, XINT (start));
       if (startval < 0 || startval > endval)
 	args_out_of_range (string, start);
     }
 
   read_from_string_index = startval;
+  read_from_string_index_byte = string_char_to_byte (string, startval);
   read_from_string_limit = endval;
 
   new_backquote_flag = 0;
   read_objects = Qnil;
 
   tem = read0 (string);
-  endval = string_byte_to_char (string,
-				read_from_string_index);
-  return Fcons (tem, make_number (endval));
+  return Fcons (tem, make_number (read_from_string_index));
 }
 
 /* Use this for recursive reads, in contexts where internal tokens
@@ -1744,49 +1732,45 @@ read1 (readcharfun, pch, first_in_list)
 	while ((c = READCHAR) >= 0
 	       && c != '\"')
 	  {
-	    if (p == end)
+	    if (end - p < MAX_LENGTH_OF_MULTI_BYTE_FORM)
 	      {
 		char *new = (char *) xrealloc (read_buffer, read_buffer_size *= 2);
 		p += new - read_buffer;
 		read_buffer += new - read_buffer;
 		end = read_buffer + read_buffer_size;
 	      }
+
 	    if (c == '\\')
 	      {
 		c = read_escape (readcharfun, 1);
-		if (! SINGLE_BYTE_CHAR_P ((c & ~CHAR_META)))
+
+		/* C is -1 if \ newline has just been seen */
+		if (c == -1)
 		  {
-		    unsigned char workbuf[4];
-		    unsigned char *str = workbuf;
-		    int length;
-
-		    length = non_ascii_char_to_string (c, workbuf, &str);
-		    if (length > 1)
-		      force_multibyte = 1;
-
-		    if (p + length > end)
-		      {
-			char *new = (char *) xrealloc (read_buffer, read_buffer_size *= 2);
-			p += new - read_buffer;
-			read_buffer += new - read_buffer;
-			end = read_buffer + read_buffer_size;
-		      }
- 
-		    bcopy (str, p, length);
-		    p += length;
+		    if (p == read_buffer)
+		      cancel = 1;
 		    continue;
 		  }
+
 		/* If an escape specifies a non-ASCII single-byte character,
 		   this must be a unibyte string.  */
-		else if (! ASCII_BYTE_P (c))
+		if (SINGLE_BYTE_CHAR_P ((c & ~CHAR_META))
+		    && ! ASCII_BYTE_P (c))
 		  force_singlebyte = 1;
 	      }
 
-	    /* c is -1 if \ newline has just been seen */
-	    if (c == -1)
+	    if (! SINGLE_BYTE_CHAR_P ((c & ~CHAR_META)))
 	      {
-		if (p == read_buffer)
-		  cancel = 1;
+		unsigned char workbuf[4];
+		unsigned char *str = workbuf;
+		int length;
+
+		length = non_ascii_char_to_string (c, workbuf, &str);
+		if (length > 1)
+		  force_multibyte = 1;
+
+		bcopy (str, p, length);
+		p += length;
 	      }
 	    else
 	      {
@@ -1814,7 +1798,7 @@ read1 (readcharfun, pch, first_in_list)
 	  return make_number (0);
 
 	if (force_singlebyte && force_multibyte)
-	  error ("Multibyte and single-byte escapes in one string constant");
+	  error ("Multibyte and unibyte characters in one string constant");
 
 	if (force_singlebyte)
 	  nchars = p - read_buffer;
@@ -1831,7 +1815,14 @@ read1 (readcharfun, pch, first_in_list)
 		return Fstring_make_unibyte (string);
 	      }
 	  }
+	else if (EQ (readcharfun, Qget_file_char))
+	  /* Nowadays, reading directly from a file
+	     is used only for compiled Emacs Lisp files,
+	     and those always use the Emacs internal encoding.  */
+	  nchars = multibyte_chars_in_text (read_buffer, p - read_buffer);
 	else
+	  /* In all other cases, if we read these bytes as
+	     separate characters, treat them as separate characters now.  */
 	  nchars = p - read_buffer;
 
 	if (read_pure)
@@ -1884,7 +1875,7 @@ read1 (readcharfun, pch, first_in_list)
 		      || c == '[' || c == ']' || c == '#'
 		      ))
 	    {
-	      if (p == end)
+	      if (end - p < MAX_LENGTH_OF_MULTI_BYTE_FORM)
 		{
 		  register char *new = (char *) xrealloc (read_buffer, read_buffer_size *= 2);
 		  p += new - read_buffer;
@@ -1897,7 +1888,19 @@ read1 (readcharfun, pch, first_in_list)
 		  quoted = 1;
 		}
 
-	      *p++ = c;
+	      if (! SINGLE_BYTE_CHAR_P (c))
+		{
+		  unsigned char workbuf[4];
+		  unsigned char *str = workbuf;
+		  int length;
+
+		  length = non_ascii_char_to_string (c, workbuf, &str);
+
+		  bcopy (str, p, length);
+		  p += length;
+		}
+	      else
+		*p++ = c;
 
 	      c = READCHAR;
 	    }
@@ -2553,7 +2556,7 @@ init_obarray ()
   Qvariable_documentation = intern ("variable-documentation");
   staticpro (&Qvariable_documentation);
 
-  read_buffer_size = 100;
+  read_buffer_size = 100 + MAX_LENGTH_OF_MULTI_BYTE_FORM;
   read_buffer = (char *) malloc (read_buffer_size);
 }
 
