@@ -28,6 +28,7 @@
 (define-key rmail-mode-map "\C-c\C-s\C-s" 'rmail-sort-by-subject)
 (define-key rmail-mode-map "\C-c\C-s\C-a" 'rmail-sort-by-author)
 (define-key rmail-mode-map "\C-c\C-s\C-r" 'rmail-sort-by-recipient)
+(define-key rmail-mode-map "\C-c\C-s\C-c" 'rmail-sort-by-correspondent)
 
 (defun rmail-sort-by-date (reverse)
   "Sort messages of current Rmail file by date.
@@ -75,6 +76,26 @@ If prefix argument REVERSE is non-nil, sort them in reverse order."
 			       (rmail-fetch-field msg "Apparently-To") "")
 			   )))))
 
+(defun rmail-sort-by-correspondent (reverse)
+  "Sort messages of current Rmail file by other correspondent.
+If prefix argument REVERSE is non-nil, sort them in reverse order."
+  (interactive "P")
+  (rmail-sort-messages reverse
+		       (function
+			(lambda (msg)
+			  (rmail-select-correspondent
+			   msg
+			   '("From" "Sender" "To" "Apparently-To"))))))
+
+(defun rmail-select-correspondent (msg fields)
+  (let ((ans ""))
+   (while (and fields (string= ans ""))
+     (setq ans
+	   (rmail-dont-reply-to
+	    (mail-strip-quoted-names
+	     (or (rmail-fetch-field msg (car fields)) ""))))
+     (setq fields (cdr fields)))
+   ans))
 
 
 (defun rmail-sort-messages (reverse keyfunc)
@@ -137,8 +158,9 @@ Arguments are MSG and FIELD."
     (if (string-match
 	 "\\([0-9]+\\) +\\([^ ,]+\\) +\\([0-9]+\\) +\\([0-9:]+\\)" date)
 	(concat
-	 ;; Year (discarding century)
-	 (substring (substring date (match-beginning 3) (match-end 3)) -2)
+	 ;; Year
+	 (rmail-date-full-year
+	  (substring date (match-beginning 3) (match-end 3)))
 	 ;; Month
 	 (cdr
 	  (assoc
@@ -153,3 +175,8 @@ Arguments are MSG and FIELD."
       date
       )
     ))
+
+(defun rmail-date-full-year (year-string)
+  (if (<= (length year-string) 2)
+      (concat "19" year-string)
+    year-string))
