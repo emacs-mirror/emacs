@@ -11,9 +11,9 @@
 ;; LCD Archive Entry:
 ;; eldoc|Noah Friedman|friedman@prep.ai.mit.edu|
 ;; show function arglist or variable docstring in echo area|
-;; $Date: 1995/11/18 22:32:07 $|$Revision: 1.3 $|~/misc/eldoc.el.gz|
+;; $Date: 1995/11/21 15:21:34 $|$Revision: 1.4 $|~/misc/eldoc.el.gz|
 
-;; $Id: eldoc.el,v 1.3 1995/11/18 22:32:07 friedman Exp friedman $
+;; $Id: eldoc.el,v 1.4 1995/11/21 15:21:34 friedman Exp friedman $
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -124,6 +124,16 @@ It is probably best to manipulate this data structure with the commands
                   (append (default-value 'minor-mode-alist)
                           '((eldoc-mode eldoc-minor-mode-string)))))
 
+;; In emacs 19.29 and later, and XEmacs 19.13 and later, all messages are
+;; recorded in a log.  Do not put eldoc messages in that log since
+;; they are Legion.
+(defmacro eldoc-message (&rest args)
+  (if (fboundp 'display-message)
+      ;; XEmacs 19.13 way of preventing log messages.
+      (list 'display-message '(quote no-log) (apply 'list 'format args))
+    (list 'let (list (list 'message-log-max 'nil))
+          (apply 'list 'message args))))
+
 
 ;;;###autoload
 (defun eldoc-mode (&optional prefix)
@@ -229,12 +239,12 @@ option) is not printed."
              (cond ((> strip 0)
                     (let* ((len (length name)))
                       (cond ((>= strip len)
-                             (message "%s" doc))
+                             (eldoc-message "%s" doc))
                             (t
                              (setq name (substring name 0 (- len strip)))
-                             (message "%s: %s" name doc)))))
+                             (eldoc-message "%s: %s" name doc)))))
                    (t
-                    (message "%s: %s" s doc))))
+                    (eldoc-message "%s: %s" s doc))))
            t))))
 
 
@@ -264,10 +274,7 @@ documentation string if possible."
            (setcdr eldoc-last-data args)))
     (and args
          printit
-         ;; In emacs 19.29 and later, all messages are recorded in a log.
-         ;; Do not put eldoc messages in the log since they are Legion.
-         (let ((message-log-max nil))
-           (message "%s: %s" sym args)))))
+         (eldoc-message "%s: %s" sym args))))
 
 (defun eldoc-fnsym-in-current-sexp ()
   (let* ((p (point))
