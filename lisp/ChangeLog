@@ -15372,8 +15372,8 @@
 
 	* progmodes/ebrowse-ffh.el: New file.
 
-	* progmodes/ebrowse.el (ebrowse-find-file-hook-fn): Moved
-	to ebrowse-ffh.el.
+	* progmodes/ebrowse.el (ebrowse-find-file-hook-fn):
+	Moved to ebrowse-ffh.el.
 	(ebrowse-load): Add autoload.
 
 	* finder.el (finder-commentary): Add autoload cookie.
@@ -15387,8 +15387,7 @@
 	(easy-menu-do-add-item): Ditto.
 	(easy-menu-define): Extend doc string.
 
-	* jit-lock.el (with-buffer-unmodified): Use
-	restore-buffer-modified-p.
+	* jit-lock.el (with-buffer-unmodified): Use restore-buffer-modified-p.
 	(with-buffer-prepared-for-font-lock): Use with-buffer-unmodified.
 	(jit-lock-function, jit-lock-stealth-fontify): Don't use
 	with-buffer-unmodified.
@@ -15426,8 +15425,8 @@
 	modified state.
 	(jit-lock-function-1): Extracted from jit-lock-function; not
 	preserving buffer's modified state.
-	(jit-lock-function, jit-lock-stealth-fontify): Call
-	jit-lock-function-1.
+	(jit-lock-function, jit-lock-stealth-fontify):
+	Call jit-lock-function-1.
 
 	* mail/rfc2368.el: Remove supernumerary copyright line.
 
@@ -15503,11 +15502,10 @@
 
 	* add-log.el: Don't require cl, fortran.
 	(add-log-current-defun-function): Doc fix.
-	(change-log-version-number-regexp-list): Remove SCCS part.  Doc
-	fix.
+	(change-log-version-number-regexp-list): Remove SCCS part.  Doc fix.
 	(change-log-version-rcs): Function deleted.
-	(change-log-version-number-search): Doc fix.  Use
-	vc-workfile-version.  Avoid CL dolist.
+	(change-log-version-number-search): Doc fix.
+	Use vc-workfile-version. Avoid CL dolist.
 	(add-change-log-entry): Just call add-log-current-defun to get
 	defun.  Simplify somewhat.
 	(change-log-get-method-definition-1): Likewise.
@@ -15535,8 +15533,8 @@
 
 2000-03-31  Dave Love  <fx@gnu.org>
 
-	* emacs-lisp/byte-opt.el (byte-compile-inline-expand): Look
-	for function definition in symbol's function value slot first
+	* emacs-lisp/byte-opt.el (byte-compile-inline-expand):
+	Look for function definition in symbol's function value slot first
 	instead of first consulting byte-compile-function-environment.
 
 2000-03-31  Kenichi Handa  <handa@etl.go.jp>
@@ -15594,13 +15592,12 @@
 	(appt-select-lowest-window, appt-convert-time): Simplify.
 
 	* emacs-lisp/bytecomp.el: Doc fixes.
-	(byte-compile-file-form-autoload): Update
-	byte-compile-function-environment.
+	(byte-compile-file-form-autoload):
+	Update byte-compile-function-environment.
 
 2000-03-29  Andreas Schwab  <schwab@suse.de>
 
-	* emacs-lisp/autoload.el: Also print defsubst doc string
-	specially.
+	* emacs-lisp/autoload.el: Also print defsubst doc string specially.
 
 	* dired.el (dired-insert-directory): If dired-free-space-program
 	failed just delete its output.
@@ -15655,8 +15652,7 @@
 	* Makefile (COMPILE_FIRST): New macro.
 	(compile-files): Compile files from COMPILE_FIRST first.
 
-	* emacs-lisp/bytecomp.el (byte-compile-eval): Disable new
-	code.
+	* emacs-lisp/bytecomp.el (byte-compile-eval): Disable new code.
 
 	* emacs-lisp/lisp.el (beginning-of-defun-raw): Add regexp
 	matching open parenthesis in column 0 to defun-prompt-regexp
@@ -15669,8 +15665,8 @@
 	(msb--choose-menu, msb--mode-menu-cond)
 	(msb--create-buffer-menu-2): Use dolist instead of mapc.
 	(msb--init-file-alist): Use mapcar instead of mapcan.
-	(msb--aggregate-alist): Use mapcar instead of mapcan.  Fix
-	`(' in column 0 in doc string.
+	(msb--aggregate-alist): Use mapcar instead of mapcan.
+	Fix `(' in column 0 in doc string.
 	(msb--add-separators): Use mapcar instead of mapcan.
 
 	* cus-dep.el: Require CL at compile-time only.
@@ -15701,8 +15697,7 @@
 
 	* Makefile (bootstrap-clean): If $(emacs) exists, build
 	loaddefs.el first.  A loaddefs.el that's not up-to-date might
-	cause a bootstrap failure because things don't autoload as
-	expected.
+	cause a bootstrap failure because things don't autoload as expected.
 
 2000-03-23  Dave Love  <fx@gnu.org>
 
@@ -15720,9 +15715,8 @@
 	* net/quickurl.el Changed the type of parameter passed to the
 	function defined by `quickurl-format-function'. Before only the
 	text of the URL was passed. Now the whole URL structure is passed
-	and the function is responsible for extracting the parts it
-	requires.  Changed the default of `quickurl-format-function'
-	accordingly.
+	and the function is responsible for extracting the parts it requires.
+	Changed the default of `quickurl-format-function' accordingly.
 	(quickurl-insert): Changed the `funcall' of
 	`quickurl-format-function' to match the above change.
 	(quickurl-list-insert): Changed the `url' case so that it makes
@@ -15735,9 +15729,9 @@
 
 2000-03-22  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* progmodes/make-mode.el (makefile-warn-suspicious-lines): clean
-	up the code and the regexp and make sure the cursor is temporarily
-	moved to the suspicious line while querying the user.
+	* progmodes/make-mode.el (makefile-warn-suspicious-lines):
+	Clean up the code and the regexp and make sure the cursor is
+	temporarily moved to the suspicious line while querying the user.
 
 2000-03-22  Jason Rumney  <jasonr@gnu.org>
 
@@ -15828,7 +15822,7 @@
 
 2000-03-21  Stefan Monnier  <monnier@cs.yale.edu>
 
-	* diff-mode.el (diff-mode-*-map): use `easy-mmode-defmap'.
+	* diff-mode.el (diff-mode-*-map): Use `easy-mmode-defmap'.
 	(diff-end-of-hunk): Return the end position for use in
 	`easy-mmode-define-navigation'.
 	(diff-recenter): Remove.
@@ -15843,8 +15837,7 @@
 	Prefer the macro-only version provided by easy-mmode.el.
 
 	* emacs-lisp/easy-mmode.el (define-derived-mode): New name for
-	`easy-mmode-define-derived-mode'.
-	Use `combine-run-hooks'.
+	`easy-mmode-define-derived-mode'.  Use `combine-run-hooks'.
 	(easy-mmode-define-navigation): New macro.
 
 	* subr.el (combine-run-hooks): New function.
@@ -15856,12 +15849,10 @@
 	* international/mule-diag.el (describe-font): Don't refer to
 	global-fontset-alist, instead call font-list.
 	(describe-fontset, list-fontsets, mule-diag): Likewise.
-	(print-fontset): Adjusted for the change of fontset
-	implementation.
+	(print-fontset): Adjusted for the change of fontset implementation.
 
-	* international/fontset.el (x-charset-registries): Variable
-	removed, instead the corresponding data is stored in the default
-	fontset.
+	* international/fontset.el (x-charset-registries): Variable removed,
+	instead the corresponding data is stored in the default fontset.
 	(register-alternate-fontnames): Function removed.
 	(resolved-ascii-font): Variable removed.
 	(x-compose-font-name): Ignore the second argument REDOCE.
@@ -15873,8 +15864,7 @@
 	(x-style-funcs-alist): Likewise.
 	(fontset-default-styles): Likewise.
 	(x-modify-font-name): Function removed.
-	(create-fontset-from-fontset-spec): Ignore the argument
-	STYLE-VARIANT.
+	(create-fontset-from-fontset-spec): Ignore the argument STYLE-VARIANT.
 	(create-fontset-from-ascii-font): Docsting adjusted for the above
 	change.
 	(instantiate-fontset, resolve-fontset-name): Functions removed.
@@ -15902,7 +15892,7 @@
 
 2000-03-18  Gerd Moellmann  <gerd@gnu.org>
 
-	* font-lock.el (font-lock-apply-syntactic-highlight): if VALUE
+	* font-lock.el (font-lock-apply-syntactic-highlight): If VALUE
 	is a string, convert it to a syntax cell using string-to-syntax.
 
 	* simple.el (syntax-code-table, syntax-flag-table): New variables.
@@ -15927,8 +15917,7 @@
 
 2000-03-17  Dave Love  <fx@gnu.org>
 
-	* pcvs-util.el (cvs-strings->string): Rename
-	replace-regexps-in-string.
+	* pcvs-util.el (cvs-strings->string): Rename replace-regexps-in-string.
 
 2000-03-17  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -15984,8 +15973,7 @@
 2000-03-12  Dave Love  <fx@gnu.org>
 
 	* cus-edit.el: Doc fixes.
-	(customize-set-variable, customize-save-variable): Rename args for
-	doc.
+	(customize-set-variable, customize-save-variable): Rename args for doc.
 	(custom-variable-tag-face, custom-face-tag-face)
 	(custom-group-tag-face-1, custom-group-tag-face): Modify from
 	style which user identify as hyperlink.
@@ -15994,8 +15982,8 @@
 
 2000-03-12  Gerd Moellmann  <gerd@gnu.org>
 
-	* recentf.el (recentf-keep-non-readable-files-p): Remove
-	double/nested definition.
+	* recentf.el (recentf-keep-non-readable-files-p):
+	Remove double/nested definition.
 
 2000-03-12  Dave Love  <fx@gnu.org>
 
@@ -16322,8 +16310,7 @@
 	(list-iso-charset-chars)
 	(list-non-iso-charset-chars)
 	(list-charset-chars): New functions.
-	(mule-diag): Call list-character-sets-2, not
-	list-character-sets-2.
+	(mule-diag): Call list-character-sets-2, not list-character-sets-2.
 	(dump-charsets): Likewise.
 
 2000-02-29  Gerd Moellmann  <gerd@gnu.org>
@@ -16342,30 +16329,28 @@
 2000-02-28  Eli Barzilay  <eli@cs.cornell.edu>
 
 	* calculator.el (calculator-use-menu): New option.
-	(calculator-initial-bindings): Changed some bindings to work as
-	macros.
+	(calculator-initial-bindings): Changed some bindings to work as macros.
 	(calculator-forced-input): Removed.
 	(calculator-restart-other-mode): New variable.
 	(calculator-mode-map): Set up menu.
 
 2000-02-28  Jari Aalto  <jari.aalto@poboxes.com>
 
-	* font-lock.el (java-keywords): Added missing java 1.2.2 Javadoc
-	tags.
+	* font-lock.el (java-keywords): Added missing java 1.2.2 Javadoc tags.
 
 2000-02-28  Michael Kifer  <kifer@cs.sunysb.edu>
 
-	* viper-cmd.el (viper-envelop-ESC-key): added the option to
+	* viper-cmd.el (viper-envelop-ESC-key): Add the option to
 	translate all ESC key sequences.
-	(viper-goto-mark-subr): restore markers for files for which
+	(viper-goto-mark-subr): Restore markers for files for which
 	they were saved.
-	* viper-init.el (viper-translate-all-ESC-keysequences): new variable.
-	* viper-util.el (viper-set-replace-overlay-glyphs,
-	viper-set-replace-overlay): always check if the replacement
+	* viper-init.el (viper-translate-all-ESC-keysequences): New variable.
+	* viper-util.el (viper-set-replace-overlay-glyphs)
+	(viper-set-replace-overlay): Always check if the replacement
 	overlay is live.
-	* viper.el (viper-vi-state-mode-list): added major modes.
-	* ediff-wind.el: minor comment changes.
-	* ediff.el: copyright notice date fix.
+	* viper.el (viper-vi-state-mode-list): Add major modes.
+	* ediff-wind.el: Minor comment changes.
+	* ediff.el: Copyright notice date fix.
 
 2000-02-27  Jason Rumney  <jasonr@gnu.org>
 
@@ -16387,8 +16372,7 @@
 
 2000-02-25  Gerd Moellmann  <gerd@gnu.org>
 
-	* emacs-lisp/helper.el (Helper-describe-mode): Make buffer
-	writable.
+	* emacs-lisp/helper.el (Helper-describe-mode): Make buffer writable.
 
 	* frame.el (busy-cursor-delay-seconds): New option.
 
@@ -16403,12 +16387,10 @@
 
 2000-02-24  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* dired.el (dired-mode-map): Don't remove "Edit" from the menu
-	bar.  Menu items converted to (menu-item format, help strings
-	added.
+	* dired.el (dired-mode-map): Don't remove "Edit" from the menu bar.
+	Menu items converted to (menu-item format, help strings added.
 	[downcase, upcase]: Don't enable on MS-DOS.
-	[symlink, symlinks]: Don't show if make-symbolic-link is not
-	bound.
+	[symlink, symlinks]: Don't show if make-symbolic-link is not bound.
 	[chown, chgrp]: Don't show on MS-DOS and MS-Windows.
 
 2000-02-23  Dave Love  <fx@gnu.org>
@@ -16422,8 +16404,7 @@
 
 	* gud.el (gud-jdb-build-class-source-alist): Prepend space to
 	scratch buffer name.
-	(gud-format-command): Use int-to-string in ?l case.  Simplify
-	slightly.
+	(gud-format-command): Use int-to-string in ?l case.  Simplify slightly.
 
 	* term/w32-win.el (internal-face-interactive): Update prompt for
 	new read-face-name.
@@ -16441,8 +16422,8 @@
 
 	* emacs-lisp/byte-opt.el: Change old backquote syntax.
 	(byte-compile-trueconstp): Include keywords.
-	(byte-optimize-quote, byte-optimize-lapcode): Use
-	byte-compile-const-symbol-p.
+	(byte-optimize-quote, byte-optimize-lapcode):
+	Use byte-compile-const-symbol-p.
 	(byte-optimize-char-before): New optimization.
 
 	* emacs-lisp/bytecomp.el: Change old backquote syntax.
@@ -16464,16 +16445,13 @@
 	(encoded-kbd-mode): Handle CCL based coding system.  Setup keymap
 	by calling encoded-kbd-setup-keymap.
 
-	* emacs-lisp/lisp-mode.el: Don't change syntax of multibyte
-	characters.
-	(lisp-mode-variables): Set multibyte-syntax-as-symbol to t
-	locally.
+	* emacs-lisp/lisp-mode.el: Don't change syntax of multibyte characters.
+	(lisp-mode-variables): Set multibyte-syntax-as-symbol to t locally.
 
 2000-02-22  Dave Love  <fx@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-syntax-table)
-	(lisp-mode-map, lisp-interaction-mode-map): Define all inside
-	defvar.
+	(lisp-mode-map, lisp-interaction-mode-map): Define all inside defvar.
 	(lisp-mode-syntax-table): Set up for #|...|# comments.
 	(lisp-imenu-generic-expression): Purecopy strings.  Use syntax
 	classes.  Match `defface'.
@@ -16482,8 +16460,7 @@
 	(lisp-indent-region): Doc fix.
 
 	* subr.el (when, unless, split-string): Doc fix.
-	(read-passwd): Move call of clear-this-command-keys to the right
-	place.
+	(read-passwd): Move call of clear-this-command-keys to the right place.
 	(replace-regexps-in-string): New function.
 
 2000-02-22  Gerd Moellmann  <gerd@gnu.org>
@@ -16503,8 +16480,8 @@
 
 2000-02-21  Gerd Moellmann  <gerd@gnu.org>
 
-	* format.el (format-annotate-single-property-change): Handle
-	properties.with dotted-list values.
+	* format.el (format-annotate-single-property-change):
+	Handle properties.with dotted-list values.
 	(format-proper-list-p): New function.
 
 	* enriched.el (enriched-face-ans): Handle '(foreground-color
@@ -16584,9 +16561,8 @@
 	* international/mule-cmds.el (mule-menu-keymap)
 	(describe-language-environment-map, set-coding-system-map)
 	(setup-language-environment-map): Convert to new (menu-item...
-	form, add help strings.  Change names of menu items for better
-	clarity.  "Mule" menu-bar item removed (it's now in the "Options"
-	submenu).
+	form, add help strings.  Change names of menu items for better clarity.
+	"Mule" menu-bar item removed (it's now in the "Options" submenu).
 
 2000-02-17  Gerd Moellmann  <gerd@gnu.org>
 
@@ -16605,8 +16581,7 @@
 
 2000-02-16  Per Abrahamsen  <abraham@dina.kvl.dk>
 
-	* wid-edit.el (widget-match-inline): An atom never matches a
-	list.
+	* wid-edit.el (widget-match-inline): An atom never matches a list.
 
 2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
@@ -16620,8 +16595,7 @@
 2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* textmodes/bibtex.el: Some temporary comments removed.
-	(bibtex-field-name, bibtex-entry-type): Made the relationship
-	explicit.
+	(bibtex-field-name, bibtex-entry-type): Made the relationship explicit.
 	(bibtex-field-const): Allow capital letters.
 	(bibtex-start-of-string): Deleted because unused.
 
@@ -16639,16 +16613,16 @@
 	(bibtex-search-reference): Renamed to bibtex-search-entry.
 	(bibtex-enclosing-reference-maybe-empty-head): Renamed to
 	bibtex-enclosing-entry-maybe-empty-head.
-	(bibtex-entry-field-alist, bibtex-entry-head,
-	bibtex-font-lock-keywords, bibtex-skip-to-valid-entry,
-	bibtex-map-entries, bibtex-search-entry,
-	bibtex-enclosing-entry-maybe-empty-head, bibtex-format-entry,
-	bibtex-generate-autokey, bibtex-parse-keys, bibtex-pop, bibtex-mode,
-	bibtex-submit-bug-report, bibtex-entry, bibtex-print-help-message,
-	bibtex-make-field, bibtex-end-of-entry, bibtex-sort-buffer,
-	bibtex-find-entry-location, bibtex-validate, bibtex-find-text,
-	bibtex-kill-entry, bibtex-clean-entry, bibtex-reformat,
-	bibtex-complete-key, bibtex-String) : Use the new nomenclature.
+	(bibtex-entry-field-alist, bibtex-entry-head)
+	(bibtex-font-lock-keywords, bibtex-skip-to-valid-entry)
+	(bibtex-map-entries, bibtex-search-entry)
+	(bibtex-enclosing-entry-maybe-empty-head, bibtex-format-entry)
+	(bibtex-generate-autokey, bibtex-parse-keys, bibtex-pop, bibtex-mode)
+	(bibtex-submit-bug-report, bibtex-entry, bibtex-print-help-message)
+	(bibtex-make-field, bibtex-end-of-entry, bibtex-sort-buffer)
+	(bibtex-find-entry-location, bibtex-validate, bibtex-find-text)
+	(bibtex-kill-entry, bibtex-clean-entry, bibtex-reformat)
+	(bibtex-complete-key, bibtex-String) : Use the new nomenclature.
 
 2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
@@ -16662,198 +16636,65 @@
 	* textmodes/bibtex.el: Completely reimplemented parsing of bibtex
 	entries in order to avoid stack overflow in the regexp matcher if
 	field contents become large.
-	(bibtex-cfield, bibtex-name-in-cfield, bibtex-text-in-cfield,
-	bibtex-field-string-part-not-braced,
-	bibtex-field-string-part-no-inner-braces,
-	bibtex-field-string-part-1-inner-brace,
-	bibtex-field-string-part-2-inner-braces,
-	bibtex-field-string-part-3-inner-braces, bibtex-field-string-braced,
-	bibtex-field-string-quoted, bibtex-field-string,
-	bibtex-field-string-or-const, bibtex-field-text, bibtex-field,
-	bibtex-name-in-field, bibtex-text-in-field, bibtex-reference-infix,
-	bibtex-string, bibtex-key-in-string, bibtex-text-in-string): Deleted
-	as parsing is now performed by the following functions.
-	(bibtex-parse-nested-braces, bibtex-parse-field-string-braced,
-	bibtex-parse-quoted-string, bibtex-parse-field-string-quoted,
-	bibtex-parse-field-string, bibtex-search-forward-field-string,
-	bibtex-parse-association, bibtex-field-name-for-parsing,
-	bibtex-parse-field-name, bibtex-parse-field-text, bibtex-parse-field,
-	bibtex-search-forward-field, bibtex-search-backward-field,
-	bibtex-start-of-field, bibtex-end-of-field,
-	bibtex-start-of-name-in-field, bibtex-end-of-name-in-field,
-	bibtex-start-of-text-in-field, bibtex-end-of-text-in-field,
-	bibtex-parse-string-prefix, bibtex-parse-string-postfix,
-	bibtex-parse-string, bibtex-search-forward-string,
-	bibtex-search-backward-string, bibtex-start-of-string,
-	bibtex-end-of-string, bibtex-start-of-reference-key-in-string,
-	bibtex-end-of-reference-key-in-string, bibtex-start-of-text-in-string,
-	bibtex-end-of-text-in-string): New functions for the parsing of bibtex
+	(bibtex-cfield, bibtex-name-in-cfield, bibtex-text-in-cfield)
+	(bibtex-field-string-part-not-braced)
+	(bibtex-field-string-part-no-inner-braces)
+	(bibtex-field-string-part-1-inner-brace)
+	(bibtex-field-string-part-2-inner-braces)
+	(bibtex-field-string-part-3-inner-braces, bibtex-field-string-braced)
+	(bibtex-field-string-quoted, bibtex-field-string)
+	(bibtex-field-string-or-const, bibtex-field-text, bibtex-field)
+	(bibtex-name-in-field, bibtex-text-in-field, bibtex-reference-infix)
+	(bibtex-string, bibtex-key-in-string, bibtex-text-in-string):
+	Deleted as parsing is now performed by the following functions.
+	(bibtex-parse-nested-braces, bibtex-parse-field-string-braced)
+	(bibtex-parse-quoted-string, bibtex-parse-field-string-quoted)
+	(bibtex-parse-field-string, bibtex-search-forward-field-string)
+	(bibtex-parse-association, bibtex-field-name-for-parsing)
+	(bibtex-parse-field-name, bibtex-parse-field-text, bibtex-parse-field)
+	(bibtex-search-forward-field, bibtex-search-backward-field)
+	(bibtex-start-of-field, bibtex-end-of-field)
+	(bibtex-start-of-name-in-field, bibtex-end-of-name-in-field)
+	(bibtex-start-of-text-in-field, bibtex-end-of-text-in-field)
+	(bibtex-parse-string-prefix, bibtex-parse-string-postfix)
+	(bibtex-parse-string, bibtex-search-forward-string)
+	(bibtex-search-backward-string, bibtex-start-of-string)
+	(bibtex-end-of-string, bibtex-start-of-reference-key-in-string)
+	(bibtex-end-of-reference-key-in-string, bibtex-start-of-text-in-string)
+	(bibtex-end-of-text-in-string): New functions for the parsing of bibtex
 	entries.  Instead of reporting the results of the parsing by
 	match-beginning or match-end, these functions return data structures
 	that hold the corresponding positions.
 	(bibtex-enclosing-field): Changed to also report field boundaries by
-	return values rather than by match-beginning or match-end.  The
-	following functions have been adapted to use the new parsing
-	functions.
-	(bibtex-skip-to-valid-entry, bibtex-search-reference,
-	bibtex-enclosing-field, bibtex-format-entry,
-	bibtex-autokey-get-namefield, bibtex-autokey-get-titlestring,
-	bibtex-parse-keys, bibtex-complete, bibtex-pop, bibtex-mode,
-	bibtex-print-help-message, bibtex-end-of-entry,
-	bibtex-ispell-abstract, bibtex-validate, bibtex-next-field,
-	bibtex-find-text, bibtex-remove-OPT-or-ALT, bibtex-remove-delimiters,
-	bibtex-kill-field, bibtex-empty-field, bibtex-fill-entry): Use the new
-	method for parsing.
-	(bibtex-assoc-of-regexp, bibtex-skip-to-valid-entry,
-	bibtex-map-entries, bibtex-flash-head,
-	bibtex-enclosing-reference-maybe-empty-head, bibtex-format-entry,
-	bibtex-autokey-change, bibtex-autokey-get-namefield,
-	bibtex-autokey-get-names, bibtex-autokey-get-titlestring,
-	bibtex-autokey-get-titles, bibtex-parse-keys, bibtex-pop, bibtex-mode,
-	bibtex-end-of-entry, bibtex-ispell-abstract, bibtex-sort-buffer,
-	bibtex-validate, bibtex-remove-OPT-or-ALT, bibtex-remove-delimiters,
-	bibtex-kill-field, bibtex-kill-entry): Use let* instead of let in
-	order to make the new binding of case-fold-search immediately
-	visible.
+	return values rather than by match-beginning or match-end.
+	The following functions have been adapted to use the new
+	parsing functions.
+	(bibtex-skip-to-valid-entry, bibtex-search-reference)
+	(bibtex-enclosing-field, bibtex-format-entry)
+	(bibtex-autokey-get-namefield, bibtex-autokey-get-titlestring)
+	(bibtex-parse-keys, bibtex-complete, bibtex-pop, bibtex-mode)
+	(bibtex-print-help-message, bibtex-end-of-entry)
+	(bibtex-ispell-abstract, bibtex-validate, bibtex-next-field)
+	(bibtex-find-text, bibtex-remove-OPT-or-ALT, bibtex-remove-delimiters)
+	(bibtex-kill-field, bibtex-empty-field, bibtex-fill-entry):
+	Use the new method for parsing.
+	(bibtex-assoc-of-regexp, bibtex-skip-to-valid-entry)
+	(bibtex-map-entries, bibtex-flash-head)
+	(bibtex-enclosing-reference-maybe-empty-head, bibtex-format-entry)
+	(bibtex-autokey-change, bibtex-autokey-get-namefield)
+	(bibtex-autokey-get-names, bibtex-autokey-get-titlestring)
+	(bibtex-autokey-get-titles, bibtex-parse-keys, bibtex-pop, bibtex-mode)
+	(bibtex-end-of-entry, bibtex-ispell-abstract, bibtex-sort-buffer)
+	(bibtex-validate, bibtex-remove-OPT-or-ALT, bibtex-remove-delimiters)
+	(bibtex-kill-field, bibtex-kill-entry): Use let* instead of let in
+	order to make the new binding of case-fold-search immediately visible.
 
 2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
 
 	* textmodes/bibtex.el: Copyright notice is up to date.
 	Added constant 'bibtex-maintainer-salutation.
 
-	* textmodes/bibtex.el (bibtex-mode): use with-temp-buffer rather
-	than make-temp-name, use match-string-no-properties and eliminate
-	a quadratic behavior when building bibtex-strings.
-
-	* bibtex.el (bibtex-reference-key): Accept string entries whose
-	reference key contains upper case letters.
-
-2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
-
-	* bibtex.el (bibtex-reference-head): Allow entries to start with
-	a new line.
-
-2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
-
-	* bibtex.el: Hiding of entry bodies is not longer provided by
-	bibtex.el directly.  Instead the hideshow package can be used.
-	Added a special bibtex entry to hs-special-modes-alist.
-	(bibtex-hs-forward-sexp): Added for hideshow.el.
-
-2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
-
-	* textmodes/bibtex.el (bibtex-mode): Replaced manual splitting of path
-	at ':' characters by call to split-string.
-
-2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
-
-	* textmodes/bibtex.el: Added RCS version identification.
-
-2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
-
-	* textmodes/bibtex.el: Some temporary comments removed.
-	(bibtex-field-name, bibtex-entry-type): Made the relationship
-	explicit.
-	(bibtex-field-const): Allow capital letters.
-	(bibtex-start-of-string): Deleted because unused.
-
-	* textmodes/bibtex.el: Unified some nomenclature.  We no longer
-	use the term 'reference' to describe a bibtex entry as a whole.
-	Further, reference keys are no longer called 'labels'.
-	(bibtex-keys): Renamed to bibtex-reference-keys.
-	(bibtex-reformat-previous-labels): Renamed to
-	bibtex-reformat-previous-reference-keys.
-	(bibtex-reference-type): Renamed to bibtex-entry-type.
-	(bibtex-reference-head): Renamed to bibtex-entry-head.
-	(bibtex-reference-maybe-empty-head): Renamed to
-	bibtex-entry-maybe-empty-head.
-	(bibtex-key-in-reference): Renamed to bibtex-key-in-entry.
-	(bibtex-search-reference): Renamed to bibtex-search-entry.
-	(bibtex-enclosing-reference-maybe-empty-head): Renamed to
-	bibtex-enclosing-entry-maybe-empty-head.
-	(bibtex-entry-field-alist, bibtex-entry-head,
-	bibtex-font-lock-keywords, bibtex-skip-to-valid-entry,
-	bibtex-map-entries, bibtex-search-entry,
-	bibtex-enclosing-entry-maybe-empty-head, bibtex-format-entry,
-	bibtex-generate-autokey, bibtex-parse-keys, bibtex-pop, bibtex-mode,
-	bibtex-submit-bug-report, bibtex-entry, bibtex-print-help-message,
-	bibtex-make-field, bibtex-end-of-entry, bibtex-sort-buffer,
-	bibtex-find-entry-location, bibtex-validate, bibtex-find-text,
-	bibtex-kill-entry, bibtex-clean-entry, bibtex-reformat,
-	bibtex-complete-key, bibtex-String) : Use the new nomenclature.
-
-2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
-
-	* textmodes/bibtex.el (bibtex-strings, bibtex-keys): Removed redundant
-	comment.
-	(bibtex-format-field-delimiters): New function, functionality
-	extracted from bibtex-format-entry.
-	(bibtex-autokey-get-yearfield-digits): New function, functionality
-	extracted from bibtex-autokey-get-yearfield.
-
-	* textmodes/bibtex.el: Completely reimplemented parsing of bibtex
-	entries in order to avoid stack overflow in the regexp matcher if
-	field contents become large.
-	(bibtex-cfield, bibtex-name-in-cfield, bibtex-text-in-cfield,
-	bibtex-field-string-part-not-braced,
-	bibtex-field-string-part-no-inner-braces,
-	bibtex-field-string-part-1-inner-brace,
-	bibtex-field-string-part-2-inner-braces,
-	bibtex-field-string-part-3-inner-braces, bibtex-field-string-braced,
-	bibtex-field-string-quoted, bibtex-field-string,
-	bibtex-field-string-or-const, bibtex-field-text, bibtex-field,
-	bibtex-name-in-field, bibtex-text-in-field, bibtex-reference-infix,
-	bibtex-string, bibtex-key-in-string, bibtex-text-in-string): Deleted
-	as parsing is now performed by the following functions.
-	(bibtex-parse-nested-braces, bibtex-parse-field-string-braced,
-	bibtex-parse-quoted-string, bibtex-parse-field-string-quoted,
-	bibtex-parse-field-string, bibtex-search-forward-field-string,
-	bibtex-parse-association, bibtex-field-name-for-parsing,
-	bibtex-parse-field-name, bibtex-parse-field-text, bibtex-parse-field,
-	bibtex-search-forward-field, bibtex-search-backward-field,
-	bibtex-start-of-field, bibtex-end-of-field,
-	bibtex-start-of-name-in-field, bibtex-end-of-name-in-field,
-	bibtex-start-of-text-in-field, bibtex-end-of-text-in-field,
-	bibtex-parse-string-prefix, bibtex-parse-string-postfix,
-	bibtex-parse-string, bibtex-search-forward-string,
-	bibtex-search-backward-string, bibtex-start-of-string,
-	bibtex-end-of-string, bibtex-start-of-reference-key-in-string,
-	bibtex-end-of-reference-key-in-string, bibtex-start-of-text-in-string,
-	bibtex-end-of-text-in-string): New functions for the parsing of bibtex
-	entries.  Instead of reporting the results of the parsing by
-	match-beginning or match-end, these functions return data structures
-	that hold the corresponding positions.
-	(bibtex-enclosing-field): Changed to also report field boundaries by
-	return values rather than by match-beginning or match-end.  The
-	following functions have been adapted to use the new parsing
-	functions.
-	(bibtex-skip-to-valid-entry, bibtex-search-reference,
-	bibtex-enclosing-field, bibtex-format-entry,
-	bibtex-autokey-get-namefield, bibtex-autokey-get-titlestring,
-	bibtex-parse-keys, bibtex-complete, bibtex-pop, bibtex-mode,
-	bibtex-print-help-message, bibtex-end-of-entry,
-	bibtex-ispell-abstract, bibtex-validate, bibtex-next-field,
-	bibtex-find-text, bibtex-remove-OPT-or-ALT, bibtex-remove-delimiters,
-	bibtex-kill-field, bibtex-empty-field, bibtex-fill-entry): Use the new
-	method for parsing.
-	(bibtex-assoc-of-regexp, bibtex-skip-to-valid-entry,
-	bibtex-map-entries, bibtex-flash-head,
-	bibtex-enclosing-reference-maybe-empty-head, bibtex-format-entry,
-	bibtex-autokey-change, bibtex-autokey-get-namefield,
-	bibtex-autokey-get-names, bibtex-autokey-get-titlestring,
-	bibtex-autokey-get-titles, bibtex-parse-keys, bibtex-pop, bibtex-mode,
-	bibtex-end-of-entry, bibtex-ispell-abstract, bibtex-sort-buffer,
-	bibtex-validate, bibtex-remove-OPT-or-ALT, bibtex-remove-delimiters,
-	bibtex-kill-field, bibtex-kill-entry): Use let* instead of let in
-	order to make the new binding of case-fold-search immediately
-	visible.
-
-2000-02-15  Dirk Herrmann  <D.Herrmann@tu-bs.de>
-
-	* textmodes/bibtex.el: Copyright notice is up to date.
-	Added constant 'bibtex-maintainer-salutation.
-
-	* textmodes/bibtex.el (bibtex-mode): use with-temp-buffer rather
+	* textmodes/bibtex.el (bibtex-mode): Use with-temp-buffer rather
 	than make-temp-name, use match-string-no-properties and eliminate
 	a quadratic behavior when building bibtex-strings.
 
@@ -16892,8 +16733,7 @@
 	* shadowfile.el (shadow-when): Removed.
 
 	* tempo.el (tempo-dolist, tempo-mapc): Removed.
-	(tempo-process-and-insert-string): Use dolist instead of
-	tempo-dolist.
+	(tempo-process-and-insert-string): Use dolist instead of tempo-dolist.
 
 	* textmodes/sgml-mode.el (sgml-mode-common): Remove `$' from
 	regexp for paragraph-start.
@@ -16930,17 +16770,15 @@
 	(mode-line-mode-menu): Move definition.
 	(mode-line-mouse-sensitive-p): Deleted.
 	(mode-line-mode-name): Don't use mode-line-mouse-sensitive-p.
-	(make-mode-line-mouse-sensitive): Deleted.  Body moved to top
-	level.
+	(make-mode-line-mouse-sensitive): Deleted.  Body moved to top level.
 
 	* startup.el (command-line-1): Don't call
 	make-mode-line-mouse-sensitive.
 
 2000-02-07  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
 
-	* mail/rmail.el (rmail-retry-failure): Use
-	rmail-beginning-of-message before rmail-toggle-header, because the
-	former toggles headers.
+	* mail/rmail.el (rmail-retry-failure): Use rmail-beginning-of-message
+	before rmail-toggle-header, because the former toggles headers.
 
 2000-02-06  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -16965,8 +16803,8 @@
 	(font-lock-fontify-keywords-region): Use line-end-position.
 	Don't make `font-lock-multiline' local (it's now done in
 	font-lock-set-defaults).
-	(font-lock-set-defaults): Make `font-lock-multiline' local.  Also
-	move the `font-lock-fontified' creation to inside the `unless'.
+	(font-lock-set-defaults): Make `font-lock-multiline' local.
+	Move the `font-lock-fontified' creation to inside the `unless'.
 
 2000-02-06  Andrew Innes  <andrewi@gnu.org>
 
@@ -16981,37 +16819,34 @@
 
 	* completion.el: Replace completion-dolist with dolist.
 
-	* tar-mode.el: Replace tar-dolist, tar-dotimes with dolist,
-	dotimes.
+	* tar-mode.el: Replace tar-dolist, tar-dotimes with dolist, dotimes.
 
 2000-02-04  Carsten Dominik  <dominik@strw.leidenuniv.nl>
 
-	* textmodes/reftex.el (reftex-compile-variables): regexp-quote the
+	* textmodes/reftex.el (reftex-compile-variables): Regexp-quote the
 	environment names before they go into the section regexp.
 
-	* textmodes/reftex-global.el (reftex-change-label): add `A-Z' to
+	* textmodes/reftex-global.el (reftex-change-label): Add `A-Z' to
 	char class in regexp.
 
-	* textmodes/reftex-parse.el (reftex-with-special-syntax): Bind
-	`case-fold-search' to nil.
+	* textmodes/reftex-parse.el (reftex-with-special-syntax):
+	Bind `case-fold-search' to nil.
 
-	* progmodes/idlwave.el (idlwave-template): Respect
-	`idlwave-abbrev-change-case'.
-	(idlwave-rw-case, idlwave-elif, idlwave-case, idlwave-for,
-	idlwave-if, idlwave-procedure, idlwave-function, idlwave-repeat,
-	idlwave-while): respect `idlwave-reserved-word-upcase'.
+	* progmodes/idlwave.el (idlwave-template):
+	Respect `idlwave-abbrev-change-case'.
+	(idlwave-rw-case, idlwave-elif, idlwave-case, idlwave-for)
+	(idlwave-if, idlwave-procedure, idlwave-function, idlwave-repeat)
+	(idlwave-while): Respect `idlwave-reserved-word-upcase'.
 	(idlwave-rw-case): New function.
 	(idlwave-statement-match): Fixed problem with assignment regexp.
-	(idlwave-font-lock-keywords): Improved regexp for keyword
-	parameters.
+	(idlwave-font-lock-keywords): Improved regexp for keyword parameters.
 	(idlwave-surround): New argument LENGTH to support padding of
 	operators longer than 1 char.
 
 	* progmodes/idlw-shell.el (idlwave-shell-print): Fixed bug with
 	idlwave-shell-expression-overlay.  Implemented printing of
 	expressions on higher levels of the calling stack.
-	(idlwave-shell-display-level-in-calling-stack): Restore stack
-	level.
+	(idlwave-shell-display-level-in-calling-stack): Restore stack level.
 	(idlwave-retrieve-expression-from-level): New function.
 	(idlwave-shell-last-calling-stack): Variable removed.
 	(idlwave-shell-reset): Argument action reversed (`visible' to
@@ -17021,12 +16856,11 @@
 	negative level numbers.
 	(idlwave-shell-mode): Set `modeline-format'.
 	(idlwave-shell-display-line): Set `idlwave-shell-mode-line-info'.
-	(idlwave-shell-make-new-bp-overlay): Fixed glyph display for Emacs
-	21.
+	(idlwave-shell-make-new-bp-overlay): Fixed glyph display for Emacs 21.
 	(idlwave-shell-print-expression-function): New option.
 
-	* progmodes/idlw-toolbar.el (idlwave-toolbar-add-everywhere,
-	idlwave-toolbar-remove-everywhere): Keybindings prefix is now
+	* progmodes/idlw-toolbar.el (idlwave-toolbar-add-everywhere)
+	(idlwave-toolbar-remove-everywhere): Keybindings prefix is now
 	`tool-bar' instead of `toolbar'.
 
 2000-02-02  Dave Love  <fx@gnu.org>
@@ -17035,8 +16869,8 @@
 	emacs-lisp-mode-hook.  Don't check for defalias being defined.
 
 	* emacs-lisp/cl-extra.el (cl-builtin-gethash, cl-builtin-remhash)
-	(cl-builtin-maphash, cl-builtin-clrhash): Remove definitions.  Use
-	the new builtins directly.
+	(cl-builtin-maphash, cl-builtin-clrhash): Remove definitions.
+	Use the new builtins directly.
 
 	* whitespace.el (whitespace): Add :version to defgroup.
 
@@ -17067,8 +16901,7 @@
 
 2000-02-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* frame.el (frames-on-display-list, framep-on-display): New
-	functions.
+	* frame.el (frames-on-display-list, framep-on-display): New functions.
 	(display-mouse-p, display-popup-menus-p, display-graphic-p)
 	(display-selections-p, display-screens, display-pixel-width)
 	(display-pixel-height, display-mm-width, display-mm-height)
@@ -17088,8 +16921,7 @@
 2000-01-31  Inge Frick  <inge@nada.kth.se>
 
 	* view.el: Some changes in documentation.  Removed some trailing
-	whitespace. Changed some parameter names to agree with
-	documentation.
+	whitespace. Changed some parameter names to agree with documentation.
 	(view-mode-exit): Keep entry in `view-return-to-alist' only when a
 	window is not deleted.  Modifies change 1998-04-26.
 
@@ -17101,13 +16933,12 @@
 	progmodes/ebnf-iso.el, progmodes/ebnf-otz.el,
 	progmodes/ebnf-yac.el: Update copyright and license info.
 
-	* jit-lock.el (jit-lock-function): Widen before calculating end
-	position.
+	* jit-lock.el (jit-lock-function): Widen before calculating
+	end position.
 	(jit-lock-stealth-chunk-start): Rewritten.
 
 	* info.el (Info-title-face-alist): Removed.
-	(Info-title-1-face, Info-title-2-face, Info-title-3-face): New
-	faces.
+	(Info-title-1-face, Info-title-2-face, Info-title-3-face): New faces.
 	(Info-fontify-node): Use these faces.
 
 2000-01-30  Gerd Moellmann  <gerd@gnu.org>
@@ -17119,8 +16950,7 @@
 	* mail/mh-utils.el (mh-find-progs): Add directory `etc' to
 	the list of directories scanned heuristically.
 
-	* Makefile (DONTCOMPILE): Remove term-nasty.el; doesn't seem to
-	exist.
+	* Makefile (DONTCOMPILE): Remove term-nasty.el; doesn't seem to exist.
 
 2000-01-30  Jason Rumney  <jasonr@gnu.org>
 
@@ -17144,8 +16974,8 @@
 	* timezone.el (timezone-fix-time): Window against 69 for two-digit
 	years.  Deal with three-digit years.
 
-	* help.el (help-xref-symbol-regexp, help-xref-info-regexp): Use
-	defconst, purecopy.
+	* help.el (help-xref-symbol-regexp, help-xref-info-regexp):
+	Use defconst, purecopy.
 	(help-back-label): Purecopy it.
 
 2000-01-18  Gerd Moellmann  <gerd@gnu.org>
@@ -17184,8 +17014,7 @@
 	* ange-ftp.el (ange-ftp-copy-file-internal): Quote new name
 	for the case it contains spaces.
 
-	* simple.el (what-cursor-position): Change formatting of
-	messages.
+	* simple.el (what-cursor-position): Change formatting of messages.
 
 	* frame.el (delete-other-frames): New function.
 	(toplevel): Bind it to C-x 5 1.
@@ -17222,16 +17051,15 @@
 
 2000-01-25  Kenichi Handa  <handa@etl.go.jp>
 
-	* language/thai-util.el (thai-composition-function): Delete
-	superfluous `a'.
+	* language/thai-util.el (thai-composition-function):
+	Delete superfluous `a'.
 
 2000-01-24  Dave Love  <fx@gnu.org>
 
 	* fortran.el (fortran-mode): Use beginning-of-defun-function,
 	end-of-defun-function.
 
-	* font-lock.el (turn-on-font-lock): Don't depend on window-system
-	&c.
+	* font-lock.el (turn-on-font-lock): Don't depend on window-system &c.
 
 2000-01-22  Jason Rumney  <jasonr@gnu.org>
 
@@ -17328,8 +17156,8 @@
 	net/eudc-vars.el, net/eudc.el, net/eudcb-bbdb.el,
 	net/eudcb-ldap.el, net/eudcb-ph.el, net/ldap.el: New files.
 
-	* add-log.el (add-change-log-entry): Fix error trying an `(insert
-	nil)'.
+	* add-log.el (add-change-log-entry): Fix error trying an
+	`(insert nil)'.
 
 	* subdirs.el: Add `net' directory.
 
@@ -17380,15 +17208,14 @@
 	* add-log.el (add-change-log-entry): Insert version number
 	if having found a current function
 
-	* add-log.el (add-log-current-defun): Call
-	`add-log-current-defun-function'.  Try matches at level 0 and
+	* add-log.el (add-log-current-defun):
+	Call `add-log-current-defun-function'.  Try matches at level 0 and
 	level 1.  Strip whitespace from defun found.
 
 2000-01-10  John Wiegley  <johnw@gnu.org>
 
 	* allout.el (isearch-done/outline-provisions): Added `edit'
-	argument to correspond with the current definition of
-	`isearch-done'.
+	argument to correspond with the current definition of `isearch-done'.
 
 2000-01-10  Dave Love  <fx@gnu.org>
 
@@ -17414,15 +17241,15 @@
 	run-together words.
 	(ispell-local-dictionary-alist): Add koi8-r to customize definition.
 	(ispell-dictionary-alist): Add koi8-r to customize definition.
-	(check-ispell-version): Added documentation string.  Returns
-	library path when called non-interactively.
+	(check-ispell-version): Added documentation string.  Return library
+	path when called non-interactively.
 	(ispell-menu-map-needed): Uses new variables.
 	(ispell-library-path): New variable.
 	(ispell-decode-string): XEmacs fix for bogus variable bindings.
 	(ispell-word): Improved documentation string.  Test for valid
 	character mappings.  Correctly check typed in word changes that can
-	result in single words split into multiple words.  Returns
-	replacement word.
+	result in single words split into multiple words.
+	Return replacement word.
 	(ispell-command-loop): Fixes XEmacs display bugs.  Show word to
 	replace in recursive query replace mode.  Help message for
 	recursive edit mode.
@@ -17473,9 +17300,8 @@
 
 	* progmodes/cperl-mode.el: Replace ^F with ^L.
 
-	* sendmail.el (toplevel): Provide `sendmail' when compiling
-	before `require'ing rmail and mailalias to prevent infinite
-	recursion.
+	* sendmail.el (toplevel): Provide `sendmail' when compiling before
+	`require'ing rmail and mailalias to prevent infinite recursion.
 
 2000-01-08  Dave Love  <fx@gnu.org>
 
@@ -17512,8 +17338,8 @@
 
 2000-01-05  Dave Love  <fx@gnu.org>
 
-	* textmodes/outline.el (outline-mode-menu-bar-map): Add
-	outline-headers-as-kill.
+	* textmodes/outline.el (outline-mode-menu-bar-map):
+	Add outline-headers-as-kill.
 	(outline-mode): Define imenu-generic-expression.
 	(outline-headers-as-kill): New command.
 
@@ -17570,13 +17396,13 @@
 
 2000-01-05  Carsten Dominik  <cd@gnu.org>
 
-	* progmodes/idlw-shell.el (idlwave-shell-toggle-toolbar): require
-	idlw-toolbar.
+	* progmodes/idlw-shell.el (idlwave-shell-toggle-toolbar):
+	Require idlw-toolbar.
 
-	* progmodes/idlwave.el (idlwave-load-system-rinfo): load must read
+	* progmodes/idlwave.el (idlwave-load-system-rinfo): Load must read
 	file idlw-rinfo.el.
-	(idlwave-customize): load must read file idlw-shell.el.
-	(idlwave-create-customize-menu): load must read file idlw-shell.el.
+	(idlwave-customize): Load must read file idlw-shell.el.
+	(idlwave-create-customize-menu): Load must read file idlw-shell.el.
 
 2000-01-05  Carsten Dominik  <dominik@astro.uva.nl>
 
@@ -17584,7 +17410,7 @@
 	* progmodes/idlw-rinfo.el: Also provide idlwave-rinfo
 	* progmodes/idlw-toolbar.el: Also provide idlwave-toolbar
 
-	* textmodes/reftex-dcr.el: renamed from reftex-vcr.el, provide
+	* textmodes/reftex-dcr.el: Rename from reftex-vcr.el, provide
 	both reftex-dcr and reftex-vcr.
 
 	* textmodes/reftex.el: Renamed reftex-vcr.el to reftex-dcr.el
@@ -17617,8 +17443,7 @@
 
 2000-01-04  Gerd Moellmann  <gerd@gnu.org>
 
-	* autorevert.el (auto-revert-mode): Return value of
-	auto-revert-mode.
+	* autorevert.el (auto-revert-mode): Return value of auto-revert-mode.
 
 2000-01-04  Dave Love  <fx@gnu.org>
 
@@ -17630,15 +17455,14 @@
 	* elide-head.el (elide-head) [defgroup]: Add :version.
 
 	* emacs-lisp/cl-extra.el (cl-emacs-type): Remove defvar.
-	(cl-not-hash-table, cl-clrhash, cl-maphash, cl-hash-table-count): Use
-	`cl-hash-table-p', not `hash-table-p'.
+	(cl-not-hash-table, cl-clrhash, cl-maphash, cl-hash-table-count):
+	Use `cl-hash-table-p', not `hash-table-p'.
 	(cl-map-keymap, cl-map-keymap-recursively): Remove compatibility code.
 
 2000-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* faces.el (face-read-integer, read-face-attribute)
-	(color-defined-p, color-values): unspecified-{f,b}g are now
-	strings.
+	(color-defined-p, color-values): Unspecified-{f,b}g are now strings.
 
 2000-01-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
@@ -17674,13 +17498,13 @@
 	tty-color-alist.
 	(tty-color-alist, tty-modify-color-alist): New functions.
 	(tty-color-define,  tty-color-clear, tty-color-approximate)
-	(tty-color-translate, tty-color-by-index, tty-color-desc): Accept
-	an optional parameter FRAME.
+	(tty-color-translate, tty-color-by-index, tty-color-desc): Accept an
+	optional parameter FRAME.
 
 2000-01-01  Gerd Moellmann  <gerd@gnu.org>
 
-	* image.el (create-image, defimage): Don't assume image data is a
-	string.
+	* image.el (create-image, defimage): Don't assume image data is
+	a string.
 
 	* image.el (defimage): Handle specifications containing :data
 	instead of :file.
