@@ -1,7 +1,7 @@
 /* impl.c.dumper: Simple Event Dumper
  *
- * $HopeName: MMsrc!dumper.c(trunk.3) $
- * Copyright (C) 1997 Harlequin Group, all rights reserved.
+ * $HopeName: MMsrc!dumper.c(trunk.4) $
+ * Copyright (C) 1997 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
  *
@@ -15,7 +15,10 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <assert.h>
+#include "mpstd.h"
+#ifdef MPS_OS_SU
 #include "ossu.h"
+#endif
 
 typedef unsigned long Word;
 typedef struct AddrStruct *Addr;
