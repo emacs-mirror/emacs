@@ -1,3 +1,12 @@
+2002-02-26  Colin Walters  <walters@debian.org>
+
+	* ibuf-ext.el (sorter mode-name): New.
+	(ibuffer-do-occur): Don't quote ibuffer-marked-char.
+
+	* calc/calc-ext.el (calc-scroll-left): Call scroll-left
+	interactively, so they do something.
+	(calc-scroll-right): Ditto.
+
 2002-02-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/mule.el (ctext-pre-write-conversion): Handle the
