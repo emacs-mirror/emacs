@@ -7,7 +7,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.371 2004/03/25 15:39:03 sds Exp $
+;; $Id: vc.el,v 1.372 2004/03/26 06:07:55 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1989,9 +1989,7 @@ See Info node `Merging'."
   (vc-resynch-buffer file t (not (buffer-modified-p)))
   (if (zerop status) (message "Merge successful")
     (smerge-mode 1)
-    (if (y-or-n-p "Conflicts detected.  Resolve them now? ")
-	(vc-resolve-conflicts name-A name-B)
-      (message "File contains conflict markers"))))
+    (message "File contains conflicts.")))
 
 ;;;###autoload
 (defalias 'vc-resolve-conflicts 'smerge-ediff)
