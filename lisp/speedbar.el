@@ -5,7 +5,7 @@
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.8.1
 ;; Keywords: file, tags, tools
-;; X-RCS: $Id: speedbar.el,v 1.18 1998/12/19 14:01:53 zappo Exp $
+;; X-RCS: $Id: speedbar.el,v 1.19 1999/01/23 13:23:26 zappo Exp rms $
 
 ;; This file is part of GNU Emacs.
 
@@ -3143,7 +3143,7 @@ Optional argument P is where to start the search from."
     (if p (goto-char p))
     (beginning-of-line)
     (if (looking-at (concat
-		     "\\([0-9]+\\): *[[<][-+?][]>] \\([^ \n]+\\)\\("
+		     "\\([0-9]+\\): *[[<{][-+?][]>}] \\([^ \n]+\\)\\("
 		     speedbar-indicator-regex "\\)?"))
 	(match-string 2)
       nil)))
@@ -3155,7 +3155,7 @@ Optional argument P is where to start the search from."
     (if p (goto-char p))
     (beginning-of-line)
     (if (looking-at (concat
-		     "\\([0-9]+\\): *[[<][-+?][]>] \\([^ \n]+\\)\\("
+		     "\\([0-9]+\\): *[[<{][-+?][]>}] \\([^ \n]+\\)\\("
 		     speedbar-indicator-regex "\\)?"))
 	(progn
 	  (goto-char (match-beginning 2))
