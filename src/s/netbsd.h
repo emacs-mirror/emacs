@@ -13,19 +13,31 @@
 #undef LDAV_SYMBOL
 #define HAVE_GETLOADAVG
 
+#define HAVE_UNION_WAIT
+
 #define SIGNALS_VIA_CHARACTERS
 
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 
+/* netbsd uses OXTABS instead of the expected TAB3.  */
+#define TAB3 OXTABS
+
 #define A_TEXT_OFFSET(x) (sizeof (struct exec))
 #define A_TEXT_SEEK(hdr) (N_TXTOFF(hdr) + A_TEXT_OFFSET(hdr))
+
+#define HAVE_TERMIOS
+#define NO_TERMIO
 
 #define LIBS_DEBUG
 /* -lutil is not needed for NetBSD >0.9.  */
 #define LIBS_SYSTEM -lutil
 #define LIBS_TERMCAP -ltermcap
 
+#define NEED_ERRNO
 #define SYSV_SYSTEM_DIR
+
+/* Netbsd has POSIX-style pgrp behavior.  */
+#undef BSD_PGRPS
 
 /* These definitions should work for either dynamic or static linking,
    whichever is the default for `cc -nostdlib'.  */
