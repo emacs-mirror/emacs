@@ -380,9 +380,7 @@
 	(ctext-post-read-conversion, ctext-pre-write-conversion):
 	New functions.
 
-2002-02-21  Andre Spiegel  <spiegel@gnu.org>
-
-	Patch by Jonathan Kamens <jik@kamens.brookline.ma.us>.
+2002-02-21  Jonathan Kamens  <jik@kamens.brookline.ma.us>
 
 	* vc.el (vc-default-init-version): Update documentation to
 	indicate that the backend can override the default init version.
@@ -397,9 +395,7 @@
 	but isn't any longer.
 	(vc-find-file-hook): Likewise.
 
-2002-02-21  Andre Spiegel  <spiegel@gnu.org>
-
-	Patch by Martin.Lorentzson@telia.com.
+2002-02-21  Martin Lorentzson  <Martin.Lorentzson@telia.com>
 
 	* vc-cvs.el (vc-cvs-sticky-date-format-string): New variable.
 	(vc-cvs-sticky-tag-display): New variable.
