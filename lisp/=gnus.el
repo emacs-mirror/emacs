@@ -7047,7 +7047,7 @@ If optional 2nd argument NEXT is non-nil, inserted before it."
   (insert ";; GNUS internal format of .newsrc.\n")
   (insert ";; Touch .newsrc instead if you think to remove this file.\n")
   (let ((variable nil)
-	(variables (cons 'gnus-newsgroups-alist gnus-variable-list))
+	(variables gnus-variable-list)
 	;; Temporary rebind to make changes
 	;; gnus-check-killed-newsgroups in invisible.
 	(gnus-killed-assoc gnus-killed-assoc)
