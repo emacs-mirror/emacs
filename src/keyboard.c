@@ -1356,7 +1356,7 @@ command_loop_1 ()
 	  nonundocount = 0;
 	  if (NILP (current_kboard->Vprefix_arg))
 	    Fundo_boundary ();
-	  Fcommand_execute (this_command, Qnil, Qnil);
+	  Fcommand_execute (this_command, Qnil, Qnil, Qnil);
 
 	}
     directly_done: ;
@@ -2058,7 +2058,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       int was_locked = single_kboard;
 
       last_input_char = c;
-      Fcommand_execute (tem, Qnil, Fvector (1, &last_input_char));
+      Fcommand_execute (tem, Qnil, Fvector (1, &last_input_char), Qt);
 
       /* Resume allowing input from any kboard, if that was true before.  */
       if (!was_locked)
@@ -2864,7 +2864,7 @@ swallow_events (do_display)
 	  kbd_fetch_ptr = event + 1;
 	  if (kbd_fetch_ptr == kbd_store_ptr)
 	    input_pending = 0;
-	  Fcommand_execute (tem, Qnil, Fvector (1, &lisp_event));
+	  Fcommand_execute (tem, Qnil, Fvector (1, &lisp_event), Qt);
 	  if (do_display)
 	    redisplay_preserve_echo_area ();
 
@@ -3010,7 +3010,7 @@ timer_check (do_it_now)
 		      tem = get_keyelt (access_keymap (tem, Qtimer_event, 0, 0),
 					1);
 		      event = Fcons (Qtimer_event, Fcons (timer, Qnil));
-		      Fcommand_execute (tem, Qnil, Fvector (1, &event));
+		      Fcommand_execute (tem, Qnil, Fvector (1, &event), Qt);
 
 		      /* Resume allowing input from any kboard, if that was true before.  */
 		      if (!was_locked)
@@ -6633,16 +6633,18 @@ DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 4, 0,
   return make_event_array (i, keybuf);
 }
 
-DEFUN ("command-execute", Fcommand_execute, Scommand_execute, 1, 3, 0,
+DEFUN ("command-execute", Fcommand_execute, Scommand_execute, 1, 4, 0,
  "Execute CMD as an editor command.\n\
 CMD must be a symbol that satisfies the `commandp' predicate.\n\
 Optional second arg RECORD-FLAG non-nil\n\
 means unconditionally put this command in `command-history'.\n\
 Otherwise, that is done only if an arg is read using the minibuffer.\n\
 The argument KEYS specifies the value to use instead of (this-command-keys)\n\
-when reading the arguments; if it is nil, (this_command_key_count) is used.")
-     (cmd, record_flag, keys)
-     Lisp_Object cmd, record_flag, keys;
+when reading the arguments; if it is nil, (this_command_key_count) is used.\n\
+The argument SPECIAL, if non-nil, means that this command is executing\n\
+a special event, so ignore the prefix argument and don't clear it.")
+     (cmd, record_flag, keys, special)
+     Lisp_Object cmd, record_flag, keys, special;
 {
   register Lisp_Object final;
   register Lisp_Object tem;
@@ -6650,10 +6652,16 @@ when reading the arguments; if it is nil, (this_command_key_count) is used.")
   struct backtrace backtrace;
   extern int debug_on_next_call;
 
-  prefixarg = current_kboard->Vprefix_arg;
-  current_kboard->Vprefix_arg = Qnil;
-  Vcurrent_prefix_arg = prefixarg;
   debug_on_next_call = 0;
+
+  if (NILP (special))
+    {
+      prefixarg = current_kboard->Vprefix_arg;
+      Vcurrent_prefix_arg = prefixarg;
+      current_kboard->Vprefix_arg = Qnil;
+    }
+  else
+    prefixarg = Qnil;
 
   if (SYMBOLP (cmd))
     {
@@ -6812,7 +6820,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 	}
     }
 
-  return Fcommand_execute (function, Qt, Qnil);
+  return Fcommand_execute (function, Qt, Qnil, Qnil);
 }
 
 /* Find the set of keymaps now active.
