@@ -1,3 +1,10 @@
+2001-04-13  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* emulation/pc-select.el (pc-selection-mode): Don't turn on
+	normal-erase-is-backspace on a tty.  Instead, bind some keys such
+	as [delete] directly, like pc-select.el did before
+	normal-erase-is-backspace was invented.
+
 2001-04-11  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* ls-lisp.el (ls-lisp-format): Leave a blank before "root".
