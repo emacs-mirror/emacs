@@ -1,3 +1,8 @@
+2001-09-21  Stephen Gildea  <gildea@stop.mail-abuse.org>
+
+	* time-stamp.el (time-stamp-string-preprocess): Fix bug that
+	caused %#a and %#b to be mis-formatted.
+
 2001-09-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info.el (Info-file-list-for-emacs): Add elements for ada-mode,
