@@ -2212,7 +2212,7 @@ If file name is not specified, use `save-completions-file-name'."
 	(initialize-completions));; make sure everything's loaded
     (message "Saving completions to file %s" filename)
 
-    (let* ((trim-versions-without-asking t)
+    (let* ((delete-old-versions t)
 	   (kept-old-versions 0)
 	   (kept-new-versions completions-file-versions-kept)
 	   last-use-time
