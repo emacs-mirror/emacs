@@ -14,6 +14,7 @@ gnus
 gnus-[1-9]*
 info
 message
+message-[1-9]*
 mh-e
 mh-e-[1-9]*
 reftex
