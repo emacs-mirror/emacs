@@ -253,11 +253,11 @@ default.  Also, installing them may be rather slow."
 	  (define-translation-hash-table 'utf-subst-table-for-decode
 	    ucs-unicode-to-mule-cjk)
 	  (define-translation-hash-table 'utf-subst-table-for-encode
-	    ucs-mule-cjk-to-unicode))
-	(define-translation-hash-table 'utf-subst-table-for-decode
-	  (make-hash-table :test 'eq))
-	(define-translation-hash-table 'utf-subst-table-for-encode
-	  (make-hash-table :test 'eq)))))
+	    ucs-mule-cjk-to-unicode)))
+    (define-translation-hash-table 'utf-subst-table-for-decode
+      (make-hash-table :test 'eq))
+    (define-translation-hash-table 'utf-subst-table-for-encode
+      (make-hash-table :test 'eq))))
 
 (define-ccl-program ccl-decode-mule-utf-8
   ;;
