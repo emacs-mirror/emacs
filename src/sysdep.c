@@ -2989,12 +2989,15 @@ char *sys_siglist[NSIG + 1] =
 
 #include <dirent.h>
 
-#ifndef HAVE_CLOSEDIR
+#if defined(INTERRUPTIBLE_CLOSE) || !defined(HAVE_CLOSEDIR)
+
 int
 closedir (dirp)
      register DIR *dirp;              /* stream from opendir */
 {
-  sys_close (dirp->dd_fd);
+  int rtnval;
+
+  rtnval = sys_close (dirp->dd_fd);
 
   /* Some systems (like Solaris) allocate the buffer and the DIR all
      in one block.  Why in the world are we freeing this ourselves
@@ -3003,8 +3006,10 @@ closedir (dirp)
   xfree ((char *) dirp->dd_buf); /* directory block defined in <dirent.h> */
 #endif
   xfree ((char *) dirp);
+
+  return rtnval;
 }
-#endif /* not HAVE_CLOSEDIR */
+#endif /* INTERRUPTIBLE_CLOSE or not HAVE_CLOSEDIR */
 #endif /* SYSV_SYSTEM_DIR */
 
 #ifdef NONSYSTEM_DIR_LIBRARY
