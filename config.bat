@@ -141,25 +141,25 @@ rem   On my system dir.h gets in the way.  It's a VMS file so who cares.
 if exist dir.h ren dir.h vmsdir.h
 
 rem   Create "makefile" from "makefile.in".
-rm -f makefile junk.c
-sed -e "1,/cpp stuff/s@^# .*$@@" <makefile.in >junk.c
+rm -f Makefile junk.c
+sed -e "1,/cpp stuff/s@^# .*$@@" <Makefile.in >junk.c
 If "%DJGPP_VER%" == "1" Goto mfV1
-gcc -E junk.c | sed -f ../msdos/sed1v2.inp >makefile
+gcc -E junk.c | sed -f ../msdos/sed1v2.inp >Makefile
 goto mfDone
 :mfV1
-gcc -E junk.c | sed -f ../msdos/sed1.inp >makefile
+gcc -E junk.c | sed -f ../msdos/sed1.inp >Makefile
 :mfDone
 rm -f junk.c
 
 if "%X11%" == "" goto src5
-mv makefile makefile.tmp
-sed -f ../msdos/sed1x.inp <makefile.tmp >makefile
+mv Makefile makefile.tmp
+sed -f ../msdos/sed1x.inp <makefile.tmp >Makefile
 rm -f makefile.tmp
 :src5
 
 if "%nodebug%" == "" goto src6
-sed -e "/^CFLAGS *=/s/ *-g//" <makefile >makefile.tmp
-sed -e "/^LDFLAGS *=/s/=/=-s/" <makefile.tmp >makefile
+sed -e "/^CFLAGS *=/s/ *-g//" <Makefile >makefile.tmp
+sed -e "/^LDFLAGS *=/s/=/=-s/" <makefile.tmp >Makefile
 rm -f makefile.tmp
 :src6
 cd ..
@@ -167,18 +167,18 @@ rem   ----------------------------------------------------------------------
 Echo Configuring the library source directory...
 cd lib-src
 rem   Create "makefile" from "makefile.in".
-sed -e "1,/cpp stuff/s@^# .*$@@" <makefile.in >junk.c
+sed -e "1,/cpp stuff/s@^# .*$@@" <Makefile.in >junk.c
 gcc -E -I. -I../src junk.c | sed -e "s/^ /	/" -e "/^#/d" -e "/^[ 	]*$/d" >makefile.new
 If "%DJGPP_VER%" == "2" goto libsrc-v2
-sed -f ../msdos/sed3.inp <makefile.new >makefile
+sed -f ../msdos/sed3.inp <makefile.new >Makefile
 Goto libsrc2
 :libsrc-v2
-sed -f ../msdos/sed3v2.inp <makefile.new >makefile
+sed -f ../msdos/sed3v2.inp <makefile.new >Makefile
 :libsrc2
 rm -f makefile.new junk.c
 if "%nodebug%" == "" goto libsrc3
-sed -e "/^CFLAGS *=/s/ *-g//" <makefile >makefile.tmp
-sed -e "/^ALL_CFLAGS *=/s/=/= -s/" <makefile.tmp >makefile
+sed -e "/^CFLAGS *=/s/ *-g//" <Makefile >makefile.tmp
+sed -e "/^ALL_CFLAGS *=/s/=/= -s/" <makefile.tmp >Makefile
 rm -f makefile.tmp
 :libsrc3
 cd ..
@@ -186,13 +186,18 @@ rem   ----------------------------------------------------------------------
 if "%X11%" == "" goto oldx1
 Echo Configuring the oldxmenu directory...
 cd oldxmenu
-sed -f ../msdos/sed5x.inp <makefile.in >makefile
+sed -f ../msdos/sed5x.inp <Makefile.in >Makefile
 if "%nodebug%" == "" goto oldx2
-sed -e "/^CFLAGS *=/s/ *-g//" <makefile >makefile.tmp
-mv -f makefile.tmp makefile
+sed -e "/^CFLAGS *=/s/ *-g//" <Makefile >makefile.tmp
+mv -f makefile.tmp Makefile
 :oldx2
 cd ..
 :oldx1
+rem   ----------------------------------------------------------------------
+Echo Configuring the manual directory...
+cd man
+sed -f ../msdos/sed6.inp < Makefile.in > Makefile
+cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the main directory...
 If "%DJGPP_VER%" == "1" goto mainv1
@@ -209,9 +214,9 @@ Echo Then run CONFIG.BAT again with the same arguments you did now.
 goto End
 :gdbinitOk
 Echo Looking for the GDB init file...found
-copy msdos\mainmake.v2 makefile >nul
+copy msdos\mainmake.v2 Makefile >nul
 :mainv1
-If "%DJGPP_VER%" == "1" copy msdos\mainmake makefile >nul
+If "%DJGPP_VER%" == "1" copy msdos\mainmake Makefile >nul
 rem   ----------------------------------------------------------------------
 :end
 set X11=
