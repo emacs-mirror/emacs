@@ -4,7 +4,7 @@
 
 2001-08-16  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ps-mule.el: (find-composition): Check if (char-after POS)
+	* ps-mule.el (find-composition): Check if (char-after POS)
 	returns a valid character.
 
 2001-08-16  Eli Zaretskii  <eliz@is.elta.co.il>
