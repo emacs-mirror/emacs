@@ -837,6 +837,13 @@ even though that buffer is not automatically displayed.
 If there is no output, or if output is inserted in the current buffer,
 then `*Shell Command Output*' is deleted.
 
+To specify a coding system for converting non-ASCII characters
+in the shell command output, use \\[universal-coding-system-argument]
+before this command.
+
+Noninteractive callers can specify coding systems by binding
+`coding-system-for-read' and `coding-system-for-write'.
+
 The optional second argument OUTPUT-BUFFER, if non-nil,
 says to put the output in some other buffer.
 If OUTPUT-BUFFER is a buffer or buffer name, put the output there.
@@ -915,9 +922,18 @@ In either case, the output is inserted after point (leaving mark after it)."
 Normally display output (if any) in temp buffer `*Shell Command Output*';
 Prefix arg means replace the region with it.
 
+To specify a coding system for converting non-ASCII characters
+in the input and output to the shell command, use \\[universal-coding-system-argument]
+before this command.  By default, the input (from the current buffer)
+is encoded in the same coding system that will be used to save the file,
+`buffer-file-coding-system'.  If the output is going to replace the region,
+then it is decoded from that same coding system.
+
 The noninteractive arguments are START, END, COMMAND, OUTPUT-BUFFER, REPLACE.
 If REPLACE is non-nil, that means insert the output
 in place of text from START to END, putting point and mark around it.
+Noninteractive callers can specify coding systems by binding
+`coding-system-for-read' and `coding-system-for-write'.
 
 If the output is one line, it is displayed in the echo area,
 but it is nonetheless available in buffer `*Shell Command Output*'
@@ -2668,11 +2684,20 @@ Setting this variable automatically makes it local to the current buffer."
 				  (forward-line 0) (point))))
 		   ;; Let fill-point be set to the place where we end up.
 		   (point)))))
+
 	  ;; If that place is not the beginning of the line,
 	  ;; break the line there.
 	  (if (save-excursion
 		(goto-char fill-point)
-		(not (bolp)))
+		(and (not (bolp))
+		     ;; Don't split right after a comment starter
+		     ;; since we would just make another comment starter.
+		     (not (and comment-start-skip
+			       (let ((limit (point)))
+				 (beginning-of-line)
+				 (and (re-search-forward comment-start-skip
+							 limit t)
+				      (eq (point) limit)))))))
 	      (let ((prev-column (current-column)))
 		;; If point is at the fill-point, do not `save-excursion'.
 		;; Otherwise, if a comment prefix or fill-prefix is inserted,
