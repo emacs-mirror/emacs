@@ -23,28 +23,37 @@
 ;;; Commentary:
 
 ;; This file provides tables mapping between Unicode numbers and
-;; emacs-mule characters from the iso8859 charsets.  These are used to
-;; construct other mappings between the Mule iso8859 charsets and the
-;; emacs-unicode charsets and also a table that unifies iso8859
-;; characters using a single charset as far as possible.  These tables
-;; can be used by latin1-disp.el to display some Unicode characters
-;; without a Unicode font and by utf-8.el to unify Latin-N as far as
-;; possible into Latin-1 on encoding.
+;; emacs-mule characters from the iso8859 charsets, and some auxiliary
+;; functions.
+
+;; These tables are used to construct other mappings between the Mule
+;; iso8859 charsets and the emacs-unicode charsets and a table that
+;; unifies iso8859 characters using a single charset as far as
+;; possible.  These tables are used by latin1-disp.el to display some
+;; Unicode characters without a Unicode font and by utf-8.el to unify
+;; Latin-N as far as possible on encoding.
+
+;; More drastically, they can be used to unify 8859 into Latin-1 plus
+;; mule-unicode-0100-24ff on decoding, with the corresponding
+;; adjustments on encoding; see `ucs-unify-8859'.  Be wary of using
+;; unification when, for instance, editing Lisp files such as this one
+;; which are supposed to contain distinct 8859 charsets.  ALso, it can
+;; make reading and writing of emacs-mule and iso-2022-based encodings
+;; not idempotent.
+
+;; Command `ucs-insert' is convenient for inserting a given Unicode.
+;; Probably something like that should be available as an input
+;; method.
 
 ;;; Code:
+
+;;; Define tables, to be populated later.
 
 (defvar ucs-mule-8859-to-ucs-table (make-translation-table)
   "Translation table from Emacs ISO-8859 characters to Unicode.
 This maps Emacs characters from the non-Latin-1
 ...-iso8859-... charsets to their Unicode code points.  This is a
 many-to-one mapping.")
-
-(defvar ucs-ucs-to-mule-8859-table (make-translation-table)
-  "Translation table from Unicode to Emacs ISO-8859 characters.
-This maps Unicode code points to corresponding Emacs characters from
-the ...-iso8859-... charsets.  This is made a one-to-one mapping where
-the same character occurs in more than one set by preferring the Emacs
-iso-8859-N character with lowest N .")
 
 (defvar ucs-mule-8859-to-mule-unicode (make-translation-table)
   "Translation table from Emacs ISO-8859 characters to Mule Unicode.
@@ -54,35 +63,62 @@ mule-unicode-... charsets.  This is a many-to-one mapping.  The
 characters translated to are suitable for encoding using the
 `mule-utf-8' coding system.")
 
-(defvar ucs-mule-unicode-to-mule-8859 (make-translation-table)
-  "Translation table from Mule Unicode to Emacs ISO-8859 characters.
-This maps non-Latin-1 Emacs characters from the
-mule-unicode-... charsets used by the `mule-utf-8' coding system to
-characters from the ...-iso8859-... charsets.  This is made a
-one-to-one mapping where the same character occurs in more than one
-set by preferring the Emacs iso-8859-N character with lowest N.")
+;; (defvar ucs-ucs-to-mule-8859-table (make-translation-table)
+;;   "Translation table from Unicode to Emacs ISO-8859 characters.
+;; This maps Unicode code points to corresponding Emacs characters from
+;; the ...-iso8859-... charsets.  This is made a one-to-one mapping where
+;; the same character occurs in more than one set by preferring the Emacs
+;; iso-8859-N character with lowest N.")
 
-(defvar ucs-latin-1-unification-table (make-translation-table)
-  "Translation table from other ISO-8859 characters to Latin-1.
-This maps Emacs characters from the non-Latin-1
-...-iso8859-... charsets to their equivalent Latin-1 characters, when
-they have an equivalent.  E.g. capital A with diaresis is code point
-0xC4 in both Latin-1 and Latin-2, so this table maps Emacs character
-0x944 to 0x8c4.  This is a many-to-one mapping.")
+;; (defvar ucs-mule-unicode-to-mule-8859 (make-translation-table)
+;;   "Translation table from Mule Unicode to Emacs ISO-8859 characters.
+;; This maps non-Latin-1 Emacs characters from the
+;; mule-unicode-... charsets used by the `mule-utf-8' coding system to
+;; characters from the ...-iso8859-... charsets.  This is made a
+;; one-to-one mapping where the same character occurs in more than one
+;; set by preferring the Emacs iso-8859-N character with lowest N.")
 
-(defcustom ucs-preferred-8859-set 'latin-iso8859-1
-  "Preferred charset to use for the `ucs-latin-1-unification-table'
-target.  Only a Latin-N set makes sense.  You might want to change
-this from the default latin-iso8859-1 to match your preferred coding
-system in a non-Latin-1 environment."
-  :type '(choice (const latin-iso8859-15)
-		 (const latin-iso8859-14)
-		 (const latin-iso8859-9)
-		 (const latin-iso8859-5)
-		 (const latin-iso8859-4)
-		 (const latin-iso8859-3)
-		 (const latin-iso8859-2)
-		 (const latin-iso8859-1)))
+(defvar ucs-8859-1-encode-table nil
+  "Used as `translation-table-for-encode' for iso-8859-2.
+Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
+
+(defvar ucs-8859-2-encode-table nil
+  "Used as `translation-table-for-encode' for iso-8859-2.
+Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
+
+(defvar ucs-8859-3-encode-table nil
+  "Used as `translation-table-for-encode' for iso-8859-3.
+Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
+
+(defvar ucs-8859-4-encode-table nil
+  "Used as `translation-table-for-encode' for iso-8859-4.
+Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
+
+(defvar ucs-8859-5-encode-table nil
+  "Used as `translation-table-for-encode' for iso-8859-5.
+Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
+
+(defvar ucs-8859-7-encode-table nil
+  "Used as `translation-table-for-encode' for iso-8859-7.
+Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
+
+(defvar ucs-8859-8-encode-table nil
+  "Used as `translation-table-for-encode' for iso-8859-8.
+Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
+
+(defvar ucs-8859-9-encode-table nil
+  "Used as `translation-table-for-encode' for iso-8859-9.
+Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
+
+(defvar ucs-8859-14-encode-table nil
+  "Used as `translation-table-for-encode' for iso-8859-14.
+Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
+
+(defvar ucs-8859-15-encode-table nil
+  "Used as `translation-table-for-encode' for iso-8859-15.
+Translates from the iso8859 charsets and `mule-unicode-0100-24ff'.")
+
+;;; Set up the tables.
 
 ;; There doesn't seem to be a need to make these let bindings into
 ;; defvars, so we'll let the data get GC'ed.
@@ -480,7 +516,7 @@ system in a non-Latin-1 environment."
       (ucs-8859-6-alist
        '((?,G (B . ?\x00A0)	;; NO-BREAK SPACE
 	 (?,G$(B . ?\x00A4)	;; CURRENCY SIGN
-	 (?,G,(B . ?\x060C) ;; ARABIC COMMA
+	 (?,G,(B . ?\x060C)	;; ARABIC COMMA
 	 (?,G-(B . ?\x00AD)	;; SOFT HYPHEN
 	 (?,G;(B . ?\x061B) ;; ARABIC SEMICOLON
 	 (?,G?(B . ?\x061F) ;; ARABIC QUESTION MARK
@@ -992,87 +1028,164 @@ system in a non-Latin-1 environment."
 		 l)
 	   (setq i (1+ i)))
 	 (nreverse l)))
+      
+      ;;(case-table (standard-case-table))
+      ;;(syntax-table (standard-syntax-table))
       )
 
-  (dolist (cs (list ucs-8859-15-alist ucs-8859-14-alist
-		    ucs-8859-9-alist ucs-8859-8-alist ucs-8859-7-alist
-		    ucs-8859-6-alist ucs-8859-5-alist ucs-8859-4-alist
-		    ucs-8859-3-alist ucs-8859-2-alist
-		    (or (cdr-safe 
-			 (assq ucs-preferred-8859-set
-			       '((latin-iso8859-15 . ucs-8859-15-alist)
-				 (latin-iso8859-14 . ucs-8859-14-alist)
-				 (latin-iso8859-9 . ucs-8859-9-alist)
-				 (latin-iso8859-5 . ucs-8859-5-alist)
-				 (latin-iso8859-4 . ucs-8859-4-alist)
-				 (latin-iso8859-3 . ucs-8859-3-alist)
-				 (latin-iso8859-2 . ucs-8859-2-alist))))
-			ucs-8859-1-alist)))
-    (dolist (pair cs)
-      (aset ucs-mule-8859-to-ucs-table (car pair) (cdr pair))
-      (aset ucs-ucs-to-mule-8859-table (cdr pair) (car pair))
-      (aset ucs-mule-8859-to-mule-unicode
-	    (car pair) (decode-char 'ucs (cdr pair)))
-      (aset ucs-mule-unicode-to-mule-8859
-	    (decode-char 'ucs (cdr pair)) (car pair))))
+  ;; Convert the lists to the basic char tables.
+  (dolist (n (list 15 14 9 8 7 5 4 3 2 1))
+    (let ((alist (symbol-value (intern (format "ucs-8859-%d-alist" n)))))
+      (dolist (pair alist)
+	(let ((mule (car pair))
+	      (uc (cdr pair))
+	      (mu (decode-char 'ucs (cdr pair))))
+	  (aset ucs-mule-8859-to-ucs-table mule uc)
+	  ;; 	  (aset ucs-ucs-to-mule-8859-table uc mule)
+	  ;; 	  (aset ucs-mule-unicode-to-mule-8859 mu mule)
+	  (aset ucs-mule-8859-to-mule-unicode mule mu)))
+;; I think this is actually done OK in characters.el.
+;; Probably things like accents shouldn't have word syntax, but the
+;; Latin-N syntax tables currently aren't consistent for such
+;; characters anyhow.
+;;      ;; Make the mule-unicode characters inherit syntax and case info
+;;      ;; if they don't already have it.
+;;      (dolist (pair alist)
+;; 	(let ((mule (car pair))
+;; 	      (uc (cdr pair))
+;; 	      (mu (decode-char 'ucs (cdr pair))))
+;; 	  (let ((syntax (aref syntax-table mule)))
+;; 	    (if (eq mule (downcase mule))
+;; 		(if (eq mule (upcase mule)) ; non-letter or uncased letter
+;; 		    (progn
+;; 		      (if (= 4 (car syntax)) ; left delim
+;; 			  (progn
+;; 			    (aset syntax-table
+;; 				  mu
+;; 				  (cons 4 (aref ucs-mule-8859-to-mule-unicode
+;; 						(cdr syntax))))
+;; 			    (aset syntax-table
+;; 				  (aref ucs-mule-8859-to-mule-unicode
+;; 					(cdr syntax))
+;; 				  (cons 5 mu)))
+;; 			(aset syntax-table mu syntax))
+;; 		      (aset case-table mu mu)))
+;; 	      ;; Upper case letter
+;; 	      (let ((lower (aref ucs-mule-8859-to-mule-unicode
+;; 				 (aref case-table mule))))
+;; 		(aset case-table mu lower)
+;; 		(aset case-table lower lower)
+;; 		(modify-syntax-entry lower "w   " syntax-table)
+;; 		(modify-syntax-entry mu "w   " syntax-table))))))
+      ))
+  ;; Derive tables that can be used as per-coding-system
+  ;; `translation-table-for-encode's.
+  (dolist (n (list 15 14 9 8 7 5 4 3 2 1))
+    (let* ((alist (symbol-value (intern (format "ucs-8859-%d-alist" n))))
+	   (encode-translator
+	    (set (intern (format "ucs-8859-%d-encode-table" n))
+		 (make-translation-table)))
+	   elt)
+      ;; Start with the mule-unicode component.
+      (dolist (pair alist)
+	(let ((mule (car pair))
+	      (mu (decode-char 'ucs (cdr pair))))
+	  (aset encode-translator mu mule)))
+      ;; Find characters from other 8859 sets which map to the same
+      ;; unicode as some character in this set.
+      (map-char-table
+       (lambda (k v)
+	 (if (and (setq elt (rassq v alist))
+		  (not (assq k alist)))
+	     (aset encode-translator k (car elt))))
+       ucs-mule-8859-to-ucs-table))))
 
-  (map-char-table
-   (lambda (c cu)
-     (when (and cu (< cu 256))
-       (aset ucs-latin-1-unification-table
-	     c (make-char 'latin-iso8859-1 (- cu 128)))))
-   ucs-mule-8859-to-ucs-table)
-  )
-
-;; Register them for use in CCL.
+;; Register for use in CCL.
 (define-translation-table 'ucs-mule-8859-to-mule-unicode
   ucs-mule-8859-to-mule-unicode)
-(define-translation-table 'ucs-latin-1-unification-table
-  ucs-latin-1-unification-table)
 
-(defun ucs-translate-region (beg end table)
-  (save-restriction
-    (narrow-to-region beg end)
-    (goto-char (point-min))
-    (while (not (eobp))
-      (let* ((c (char-after))
-	     (c2 (aref table c)))
-	     (if c2
-		 (progn 
-		   (delete-char 1)
-		   (insert c2))	   
-	       (forward-char))))))
+;; Fixme: Make this reversible, which means frobbing
+;; `char-coding-system-table' directly to remove what we added.
+(defun ucs-unify-8859 ()
+  "Set up translation tables for unifying characters from ISO 8859.
+The non-8859 Cyrillic character sets are also covered.
 
-(defun ucs-unify-to-latin-1 (&optional arg)
-  "Re-set up the Latin-1 coding system to encode unified characters.
-When this is done, text encoded using the `iso-latin-1' coding system
-is first translated using the translation table
-`ucs-latin-1-unification-table'.  This converts ISO-8859-N (N>1)
-characters to their Latin-1 equivalents when such equivalents exist.
-Thus a buffer which contains a Latin-2 \"small y with acute\" (code
-point 253) will be safely encoded to that code point since it occurs
-there in Latin-1.  On the other hand, \"small t with cedilla\" does
-not occur in Latin-1 and so can't be safely encoded when this
-unification is done.
+On decoding, non-ASCII characters are mapped into the `iso-latin-1'
+and `mule-unicode-0100-24ff' charsets.  On encoding, these are mapped
+back appropriate for the coding system."
+  ;; Unify 8859 on decoding.  (Non-CCL coding systems only.)
+  (set-char-table-parent standard-translation-table-for-decode
+			 ucs-mule-8859-to-mule-unicode)
+  ;; Adjust the 8859 coding systems to fragment the unified characters
+  ;; on encoding.
+  (dolist (n '(1 2 3 4 5 7 8 9 14 15))
+    (let* ((coding-system
+	    (coding-system-base (intern (format "iso-8859-%d" n))))
+	   (table (symbol-value
+		   (intern (format "ucs-8859-%d-encode-table" n))))
+	   (safe (coding-system-get coding-system 'safe-chars)))
+      ;; Actually, the coding system's safe-chars are not normally
+      ;; used after they've been registered, but we might as well
+      ;; record them.  Setting the parent here is a convenience.
+      (set-char-table-parent safe table)
+      ;; Update the table of what encodes to what.
+      (register-char-codings coding-system table)
+      (coding-system-put coding-system 'translation-table-for-encode table)))
 
-With optional ARG, turn off such unification."
-  (if arg
-      (make-coding-system
-       'iso-latin-1 2 ?1
-       "ISO 2022 based 8-bit encoding for Latin-1 (MIME:ISO-8859-1)"
-       '(ascii latin-iso8859-1 nil nil
-	       nil nil nil nil nil nil nil nil nil nil nil nil t)
-       `((safe-charsets ascii latin-iso8859-1)
-	 (mime-charset . iso-8859-1)
-	 (safe-chars . ucs-latin-1-unification-table)
-	 (translation-table-for-encode . ,ucs-latin-1-unification-table)))
-    (make-coding-system
-     'iso-latin-1 2 ?1
-     "ISO 2022 based 8-bit encoding for Latin-1 (MIME:ISO-8859-1)"
-     '(ascii latin-iso8859-1 nil nil
-	     nil nil nil nil nil nil nil nil nil nil nil nil t)
-     '((safe-charsets ascii latin-iso8859-1)
-       (mime-charset . iso-8859-1)))))
+  ;; Update the Cyrillic special cases.
+  ;; `translation-table-for-encode' doesn't work for CCL coding
+  ;; systems, and `standard-translation-table-for-decode' isn't
+  ;; applied.
+  (let ((table (get 'cyrillic-koi8-r-encode-table 'translation-table)))
+    (map-char-table
+     (lambda (k v)
+       (aset table
+	     (or (aref ucs-8859-5-encode-table k)
+		 k)
+	     v))
+     table)
+    (register-char-codings 'cyrillic-koi8 table))
+  (let ((table (get 'cyrillic-koi8-r-nonascii-translation-table
+		    'translation-table)))
+    (map-char-table
+     (lambda (k v)
+       (if v (aset table k (or (aref ucs-mule-8859-to-mule-unicode v)
+			       v))))
+     table))
+  ;; Redefine this, since the orginal only translated 8859-5.
+  (define-ccl-program ccl-encode-koi8
+    `(1
+      ((loop
+	(read-multibyte-character r0 r1)
+	(translate-character cyrillic-koi8-r-encode-table r0 r1)
+	(write-repeat r1))))
+    "CCL program to encode KOI8.")
+  (let ((table (get 'cyrillic-alternativnyj-encode-table 'translation-table)))
+    (map-char-table
+     (lambda (k v)
+       (aset table
+	     (or (aref ucs-8859-5-encode-table k)
+		 k)
+	     v))
+     table)
+    (register-char-codings 'cyrillic-alternativnyj table))
+  (let ((table (get 'cyrillic-alternativnyj-nonascii-translation-table
+		    'translation-table)))
+    (map-char-table
+     (lambda (k v)
+       (if v (aset table
+		   k
+		   (or (aref ucs-mule-8859-to-mule-unicode v)
+		       v))))
+     table)))
+
+(defun ucs-insert (arg)
+  "Insert the Emacs character representation of the given Unicode.
+Interactively, prompts for a hex string giving the code."
+  (interactive "sUnicode (hex): ")
+  (insert (decode-char 'ucs (if (integerp arg)
+				arg
+			      (string-to-number arg 16)))))
 
 (provide 'ucs-tables)
 
