@@ -1,6 +1,6 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands.
 
-;; Copyright (C) 1985-1992 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1989, 1992 Free Software Foundation, Inc.
 ;; Contributions over the years by William F. Schelter, Dick King,
 ;; Stephen Gildea, Michael Prange, and Edward M. Reingold.
 
@@ -653,7 +653,7 @@ in COMMAND.  COMMAND can be any expression that evaluates to a command string."
           (delete-file (concat dir (car list)))
           (setq list (cdr list))))))
 
-(setq kill-emacs-hook 'tex-delete-last-temp-files)
+(add-hook 'kill-emacs-hook 'tex-delete-last-temp-files)
 
 ;;; The commands:
 
@@ -741,7 +741,8 @@ This function is more useful than \\[tex-buffer] when you need the
              (file-name-nondirectory (buffer-file-name))
            (error "Buffer does not seem to be associated with any file")))
 	(file-dir (file-name-directory (buffer-file-name))))
-    (save-some-buffers)
+    (if (tex-offer-save)
+        (save-some-buffers))
     (if (tex-shell-running)
         (tex-kill-job)
       (tex-start-shell))
@@ -866,3 +867,4 @@ Runs the shell command defined by tex-show-queue-command."
 (provide 'tex-mode)
 
 ;;; tex-mode.el ends here
+
