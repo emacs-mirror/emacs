@@ -1,3 +1,8 @@
+2003-06-15  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (x_fix_overlapping_area): Always use area relative X
+	to fix redisplay problem with tall characters (such as ,AC(B).  
+
 2003-06-13  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
 
 	* fileio.c (Fcopy_file): Doc fix: copies file modes, too.
