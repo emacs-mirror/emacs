@@ -613,17 +613,17 @@ style."
 	      (checkdoc-overlay-put cdo 'face 'highlight)
 	      ;; Make sure the whole doc string is visible if possible.
 	      (sit-for 0)
-	      (if (not (pos-visible-in-window-p
-			(save-excursion (forward-sexp 1) (point))
-			(selected-window)))
-		  (if (looking-at "\"")
-		      (let ((l (count-lines (point)
-					    (save-excursion
-					      (forward-sexp 1) (point)))))
-			(if (> l (window-height))
-			    (recenter 1)
-			  (recenter (/ (- (window-height) l) 2))))
-		    (recenter)))
+	      (if (and (looking-at "\"")
+		       (not (pos-visible-in-window-p
+			     (save-excursion (forward-sexp 1) (point))
+			     (selected-window))))
+		  (let ((l (count-lines (point)
+					(save-excursion
+					  (forward-sexp 1) (point)))))
+		    (if (> l (window-height))
+			(recenter 1)
+		      (recenter (/ (- (window-height) l) 2))))
+		(recenter))
 	      (message "%s (C-h,%se,n,p,q)" (checkdoc-error-text
 					      (car (car err-list)))
 		       (if (checkdoc-error-unfixable (car (car err-list)))
