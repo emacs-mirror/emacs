@@ -188,7 +188,7 @@ Prefix arg means just kill any existing server communications subprocess."
       (server-visit-files files client)
       ;; CLIENT is now a list (CLIENTNUM BUFFERS...)
       (setq server-clients (cons client server-clients))
-      (switch-to-buffer (nth 1 client))
+      (server-switch-buffer (nth 1 client))
       (run-hooks 'server-switch-hook)
       (message (substitute-command-keys
 		"When done with a buffer, type \\[server-edit].")))))
