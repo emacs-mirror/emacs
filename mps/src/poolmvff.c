@@ -1,6 +1,6 @@
 /* impl.c.poolmvff: First Fit Manual Variable Pool
  * 
- * $HopeName: MMsrc!poolmvff.c(trunk.11) $
+ * $HopeName: MMsrc!poolmvff.c(trunk.12) $
  * Copyright (C) 1998 Harlequin Group plc.  All rights reserved.
  *
  * .purpose: This is a pool class for manually managed objects of
@@ -13,11 +13,12 @@
  * .design: design.mps.poolmvff
  */
 
-#include "mpm.h"
 #include "mpscmvff.h"
 #include "dbgpool.h"
+#include "cbs.h"
+#include "mpm.h"
 
-SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.11) $");
+SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.12) $");
 
 
 /* Would go in poolmvff.h if the class had any MPS-internal clients. */
@@ -392,7 +393,7 @@ static Res MVFFInit(Pool pool, va_list arg)
   mvff->total = 0;
   mvff->free = 0;
 
-  CBSInit(arena, CBSOfMVFF(mvff), NULL, NULL, NULL, NULL, 
+  CBSInit(arena, CBSOfMVFF(mvff), (void *)mvff, NULL, NULL, NULL, NULL, 
           mvff->extendBy, align, TRUE, TRUE);
 
   mvff->sig = MVFFSig;
@@ -451,17 +452,29 @@ static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
   Res res;
   MVFF mvff;
 
-  AVERT(Pool, pool);
+  if (!CHECKT(Pool, pool)) return ResFAIL;
   mvff = PoolPoolMVFF(pool);
-  AVERT(MVFF, mvff);
-  AVER(stream != NULL);
+  if (!CHECKT(MVFF, mvff)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
 
   res = WriteF(stream,
+               "MVFF $P {\n", (WriteFP)mvff,
+               "  pool $P ($U)\n",
+               (WriteFP)pool, (WriteFU)pool->serial,
                "  extendBy  $W\n",  (WriteFW)mvff->extendBy,
                "  avgSize   $W\n",  (WriteFW)mvff->avgSize,
                "  total     $U\n",  (WriteFU)mvff->total,
                "  free      $U\n",  (WriteFU)mvff->free,
                NULL);
+  if (res != ResOK)
+    return res;
+
+  res = CBSDescribe(CBSOfMVFF(mvff), stream);
+  if (res != ResOK)
+    return res;
+
+  res = WriteF(stream, "}\n", NULL);
+
   return res;               
 }
 
