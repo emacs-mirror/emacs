@@ -8148,21 +8148,24 @@ make_cursor_line_fully_visible (w)
   matrix = w->desired_matrix;
   row = MATRIX_ROW (matrix, w->cursor.vpos);
 
-  /* If row->y == top y of window display area, the window isn't tall
-     enough to display a single line.  There is nothing we can do
-     about it.  */
-  header_line_height = WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w);
-  if (row->y == header_line_height)
-    return;
-
-  if (MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P (w, row))
+  if (MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P (w, row)
+      /* The row may be partially visible at the top because we
+	 already have chosen a vscroll to align the bottom of the
+	 row with the bottom of the window.  This happens for rows
+	 taller than the window.  */
+      && row->y + row->height < window_box_height (w))
     {
       int dy = row->height - row->visible_height;
       w->vscroll = 0;
       w->cursor.y += dy;
       shift_glyph_matrix (w, matrix, 0, matrix->nrows, dy);
     }
-  else if (MATRIX_ROW_PARTIALLY_VISIBLE_AT_BOTTOM_P (w, row))
+  else if (MATRIX_ROW_PARTIALLY_VISIBLE_AT_BOTTOM_P (w, row)
+	   /* The row may be partially visible at the bottom because
+	      we chose a vscroll to align the row's top with the
+	      window's top.  This happens for rows taller than the
+	      window.  */
+	   && row->y > WINDOW_DISPLAY_HEADER_LINE_HEIGHT (w))
     {
       int dy = - (row->height - row->visible_height);
       w->vscroll = dy;
