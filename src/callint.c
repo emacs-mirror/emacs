@@ -221,6 +221,7 @@ supply if the command inquires which events were used to invoke it.  */)
   int arg_from_tty = 0;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int key_count;
+  int record_then_fail = 0;
 
   if (NILP (keys))
     keys = this_command_keys, key_count = this_command_key_count;
@@ -289,7 +290,7 @@ supply if the command inquires which events were used to invoke it.  */)
   else
     goto lose;
 
-  /* If either specs or string is set to a string, use it.  */
+  /* If either SPECS or STRING is set to a string, use it.  */
   if (STRINGP (specs))
     {
       /* Make a copy of string so that if a GC relocates specs,
@@ -373,7 +374,7 @@ supply if the command inquires which events were used to invoke it.  */)
   for (next_event = 0; next_event < key_count; next_event++)
     if (EVENT_HAS_PARAMETERS (XVECTOR (keys)->contents[next_event]))
       break;
-  
+
   /* Handle special starting chars `*' and `@'.  Also `-'.  */
   /* Note that `+' is reserved for user extensions.  */
   while (1)
@@ -384,7 +385,22 @@ supply if the command inquires which events were used to invoke it.  */)
 	{
 	  string++;
 	  if (!NILP (current_buffer->read_only))
-	    Fbarf_if_buffer_read_only ();
+	    {
+	      if (!NILP (record_flag))
+		{
+		  unsigned char *p = string;
+		  while (*p)
+		    {
+		      if (! (*p == 'r' || *p == 'p' || *p == 'P'
+			     || *p == '\n'))
+			Fbarf_if_buffer_read_only ();
+		      p++;
+		    }
+		  record_then_fail = 1;
+		}
+	      else
+		Fbarf_if_buffer_read_only ();
+	    }
 	}
       /* Ignore this for semi-compatibility with Lucid.  */
       else if (*string == '-')
@@ -788,6 +804,9 @@ supply if the command inquires which events were used to invoke it.  */)
   for (i = 1; i <= count; i++)
     if (varies[i] >= 1 && varies[i] <= 4)
       XSETINT (args[i], marker_position (args[i]));
+
+  if (record_then_fail)
+    Fbarf_if_buffer_read_only ();
 
   single_kboard_state ();
 
