@@ -236,15 +236,16 @@ x_own_selection (selection_name, selection_value)
   Time time = last_event_timestamp;
   Atom selection_atom;
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (selected_frame);
+  int count;
 
   CHECK_SYMBOL (selection_name, 0);
   selection_atom = symbol_to_x_atom (dpyinfo, display, selection_name);
 
   BLOCK_INPUT;
-  x_catch_errors (display);
+  count = x_catch_errors (display);
   XSetSelectionOwner (display, selection_atom, selecting_window, time);
   x_check_errors (display, "Can't set selection: %s");
-  x_uncatch_errors (display);
+  x_uncatch_errors (display, count);
   UNBLOCK_INPUT;
 
   /* Now update the local cache */
@@ -511,6 +512,7 @@ x_reply_selection_request (event, format, data, size, type)
   int format_bytes = format/8;
   int max_bytes = SELECTION_QUANTUM (display);
   struct x_display_info *dpyinfo = x_display_info_for_display (display);
+  int count;
 
   if (max_bytes > MAX_SELECTION_QUANTUM)
     max_bytes = MAX_SELECTION_QUANTUM;
@@ -527,7 +529,7 @@ x_reply_selection_request (event, format, data, size, type)
 
   /* #### XChangeProperty can generate BadAlloc, and we must handle it! */
   BLOCK_INPUT;
-  x_catch_errors (display);
+  x_catch_errors (display, count);
 
   /* Store the data on the requested property.
      If the selection is large, only store the first N bytes of it.
@@ -636,7 +638,7 @@ x_reply_selection_request (event, format, data, size, type)
     }
 
   XFlush (display);
-  x_uncatch_errors (display);
+  x_uncatch_errors (display, count);
   UNBLOCK_INPUT;
 }
 
@@ -1109,7 +1111,7 @@ x_get_foreign_selection (selection_symbol, target_type)
   Atom selection_atom = symbol_to_x_atom (dpyinfo, display, selection_symbol);
   Atom type_atom;
   int secs, usecs;
-  int count = specpdl_ptr - specpdl;
+  int count;
   Lisp_Object frame;
 
   if (CONSP (target_type))
@@ -1118,7 +1120,7 @@ x_get_foreign_selection (selection_symbol, target_type)
     type_atom = symbol_to_x_atom (dpyinfo, display, target_type);
 
   BLOCK_INPUT;
-  x_catch_errors (display);
+  count = x_catch_errors (display);
   XConvertSelection (display, selection_atom, type_atom, target_property,
 		     requestor_window, requestor_time);
   XFlush (display);
@@ -1149,8 +1151,7 @@ x_get_foreign_selection (selection_symbol, target_type)
 
   BLOCK_INPUT;
   x_check_errors (display, "Cannot get selection: %s");
-  x_uncatch_errors (display);
-  unbind_to (count, Qnil);
+  x_uncatch_errors (display, count);
   UNBLOCK_INPUT;
 
   if (NILP (XCONS (reading_selection_reply)->car))
@@ -1375,20 +1376,19 @@ x_get_window_property_as_lisp_data (display, window, property, target_type,
       there_is_a_selection_owner
 	= XGetSelectionOwner (display, selection_atom);
       UNBLOCK_INPUT;
-      while (1) /* Note debugger can no longer return, so this is obsolete */
-	Fsignal (Qerror,
-		 there_is_a_selection_owner ?
-		 Fcons (build_string ("selection owner couldn't convert"),
+      Fsignal (Qerror,
+	       there_is_a_selection_owner
+	       ? Fcons (build_string ("selection owner couldn't convert"),
 			actual_type
 			? Fcons (target_type,
 				 Fcons (x_atom_to_symbol (dpyinfo, display,
 							  actual_type),
 					Qnil))
 			: Fcons (target_type, Qnil))
-		 : Fcons (build_string ("no selection"),
-			  Fcons (x_atom_to_symbol (dpyinfo, display,
-						   selection_atom),
-				 Qnil)));
+	       : Fcons (build_string ("no selection"),
+			Fcons (x_atom_to_symbol (dpyinfo, display,
+						 selection_atom),
+			       Qnil)));
     }
   
   if (actual_type == dpyinfo->Xatom_INCR)
