@@ -25,19 +25,6 @@
 ;;; indenting code and support for code browsing (see ada-xref).
 
 
-;;; COMMENTARY
-;;; ==========
-;;; Put the ada-mode.el file in your load-path (for .el files) and
-;;; optionally byte compile it.  It becomes a lot faster, if byte
-;;; compiled.  Don't care about the warnings; they are harmless.
-;;;
-;;; To make emacs start up Ada Mode when loading a ada source, add
-;;; these lines to your .emacs:
-;;;
-;;; (autoload 'ada-mode "ada-mode" nil t)
-;;; (setq auto-mode-alist (cons '("\\.ad[abs]$" . ada-mode)
-;;;                             auto-mode-alist))
-
 ;;; USAGE
 ;;; =====
 ;;; If you have modified your startup file as described above, emacs
@@ -122,11 +109,11 @@
 ;;; LCD Archive Entry:
 ;;; ada-mode|Rolf Ebert|<ebert@inf.enst.fr>
 ;;; |Major-mode for Ada
-;;; |$Date: 1994/11/28 12:12:08 $|$Revision: 2.10 $|
+;;; |$Date: 1995/02/09 00:01:34 $|$Revision: 1.1 $|
 
 
-(defconst ada-mode-version (substring "$Revision: 2.10 $" 11 -2)
-  "$Id: ada-mode.el,v 2.10 1994/11/28 12:12:08 re Exp $
+(defconst ada-mode-version (substring "$Revision: 1.1 $" 11 -2)
+  "$Id: ada-mode.el,v 1.1 1995/02/09 00:01:34 rms Exp rms $
 
 Report bugs to: Rolf Ebert <ebert@inf.enst.fr>")
 
@@ -370,6 +357,7 @@ exception\\|declare\\|generic\\|private\\)\\>\\)"
   )
 
 
+;;;###autoload
 (defun ada-mode ()
   "Ada Mode is the major mode for editing Ada code.
 
@@ -449,6 +437,9 @@ If you use ada-xref.el:
 
   (make-local-variable 'case-fold-search)
   (setq case-fold-search t)
+
+  (make-local-variable 'fill-paragraph-function)
+  (setq fill-paragraph-function 'ada-fill-comment-paragraph)
 
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(ada-font-lock-keywords nil t ((?\_ . "w"))))
@@ -640,7 +631,8 @@ If ada-indent-comment-as code is non-nil, the paragraph is idented."
       (delete-char 1))
 
      (message "filling comment paragraph ... done")
-    (goto-char opos)))
+    (goto-char opos))
+  t)
 
 
 ;;;--------------------------------;;;
@@ -3395,7 +3387,6 @@ Searches through former 'with' statements for possible completions."
       (setq ada-mode-map (make-sparse-keymap))
 
       ;; Indentation and Formatting
-      (define-key ada-mode-map "\C-M"     'newline)
       (define-key ada-mode-map "\C-j"     'ada-indent-newline-indent)
       (define-key ada-mode-map "\t"       'ada-tab)
       (define-key ada-mode-map "\C-c\C-l" 'ada-indent-region)
@@ -3403,13 +3394,14 @@ Searches through former 'with' statements for possible completions."
       (define-key ada-mode-map [S-tab]    'ada-untab)
       (define-key ada-mode-map "\C-c\C-f" 'ada-format-paramlist)
       (define-key ada-mode-map "\C-c\C-p" 'ada-call-pretty-printer)
-      (define-key ada-mode-map "\M-q"     'ada-fill-comment-paragraph)
-      (define-key ada-mode-map "\M-Q"     'ada-fill-comment-paragraph-justify)
+;;; We don't want to make meta-characters case-specific.
+;;;   (define-key ada-mode-map "\M-Q"     'ada-fill-comment-paragraph-justify)
       (define-key ada-mode-map "\M-\C-q"  'ada-fill-comment-paragraph-postfix)
 
       ;; Movement
-      (define-key ada-mode-map "\M-e"     'ada-next-procedure)
-      (define-key ada-mode-map "\M-a"     'ada-previous-procedure)
+;;; It isn't good to redefine these.  What should be done instead?  -- rms.
+;;;   (define-key ada-mode-map "\M-e"     'ada-next-procedure)
+;;;   (define-key ada-mode-map "\M-a"     'ada-previous-procedure)
       (define-key ada-mode-map "\M-\C-e"  'ada-next-package)
       (define-key ada-mode-map "\M-\C-a"  'ada-previous-package)
       (define-key ada-mode-map "\C-c\C-a" 'ada-move-to-start)
@@ -3715,7 +3707,7 @@ This does a lot more highlighting.")
     ;; look for next non WS
     (backward-char)
     (re-search-forward "[       ]*.")
-    (if (char-equal (char-after (match-end 0)) ?;)
+    (if (char-equal (char-after (match-end 0)) ?\;)
         (delete-char 1) ;; delete the ';'
       ;; else
       ;; find ');' or 'return <id> ;'
@@ -3783,6 +3775,4 @@ to the current specs."
 
 (provide 'ada-mode)
 
-;;; package ada-mode ends here
-
-
+;;; ada-mode.el ends here
