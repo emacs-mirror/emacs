@@ -10890,7 +10890,8 @@ XTread_socket (sd, bufp, numchars, expected)
 			/* Window will be selected only when it is not selected now and
 			   last mouse movement event was not in it.  Minibuffer window
 			   will be selected iff it is active.  */
-			if (!EQ (window, last_window)
+			if (WINDOWP(window)
+			    && !EQ (window, last_window)
 			    && !EQ (window, selected_window)
 			    && numchars > 0)
 			  {
