@@ -195,6 +195,10 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#ifdef BOEHM_GC
+#include <gc.h>
+#endif
+
 #include "lisp.h"
 #include "charset.h"
 #include "keyboard.h"
@@ -5007,8 +5011,7 @@ static struct face *
 make_realized_face (attr)
      Lisp_Object *attr;
 {
-  struct face *face = (struct face *) xmalloc (sizeof *face);
-  bzero (face, sizeof *face);
+  struct face *face = (struct face *) XGC_CALLOC (1, sizeof *face);
   face->ascii_face = face;
   bcopy (attr, face->lface, sizeof face->lface);
   return face;
@@ -5042,7 +5045,7 @@ free_realized_face (f, face)
 	}
 #endif /* HAVE_WINDOW_SYSTEM */
 
-      xfree (face);
+      XGC_FREE (face);
     }
 }
 
@@ -5356,13 +5359,12 @@ make_face_cache (f)
   struct face_cache *c;
   int size;
 
-  c = (struct face_cache *) xmalloc (sizeof *c);
-  bzero (c, sizeof *c);
+  c = (struct face_cache *) XGC_CALLOC (1, sizeof *c);
   size = FACE_CACHE_BUCKETS_SIZE * sizeof *c->buckets;
-  c->buckets = (struct face **) xmalloc (size);
+  c->buckets = (struct face **) XGC_MALLOC_ATOMIC (size);
   bzero (c->buckets, size);
   c->size = 50;
-  c->faces_by_id = (struct face **) xmalloc (c->size * sizeof *c->faces_by_id);
+  c->faces_by_id = (struct face **) XGC_MALLOC (c->size * sizeof *c->faces_by_id);
   c->f = f;
   c->menu_face_changed_p = menu_face_changed_default;
   return c;
@@ -5510,9 +5512,9 @@ free_face_cache (c)
   if (c)
     {
       free_realized_faces (c);
-      xfree (c->buckets);
-      xfree (c->faces_by_id);
-      xfree (c);
+      XGC_FREE (c->buckets);
+      XGC_FREE (c->faces_by_id);
+      XGC_FREE (c);
     }
 }
 
@@ -5571,7 +5573,7 @@ cache_face (c, face, hash)
     {
       int new_size = 2 * c->size;
       int sz = new_size * sizeof *c->faces_by_id;
-      c->faces_by_id = (struct face **) xrealloc (c->faces_by_id, sz);
+      c->faces_by_id = (struct face **) XGC_REALLOC (c->faces_by_id, sz);
       c->size = new_size;
     }
 
