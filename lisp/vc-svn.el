@@ -1,6 +1,6 @@
 ;;; vc-svn.el --- non-resident support for Subversion version-control
 
-;; Copyright (C) 1995,98,99,2000,2001,2002  Free Software Foundation, Inc.
+;; Copyright (C) 1995,98,99,2000,2001,02,2003  Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
@@ -98,6 +98,9 @@ This is only meaningful if you don't use the implicit checkout model
 ;;;###autoload 			  ".svn/entries" (file-name-directory f)))
 ;;;###autoload       (load "vc-svn")
 ;;;###autoload       (vc-svn-registered f)))
+
+;;;###autoload
+(add-to-list 'completion-ignored-extensions ".svn/")
 
 (defun vc-svn-registered (file)
   "Check if FILE is SVN registered."
@@ -245,6 +248,9 @@ This is only possible if SVN is responsible for FILE's directory.")
 	       "-A"
 	     (concat "-r" rev))
 	   switches)))
+
+(defun vc-svn-delete-file (file)
+  (vc-svn-command nil 0 file "remove"))
 
 (defun vc-svn-rename-file (old new)
   (vc-svn-command nil 0 new "move" (file-relative-name old)))
