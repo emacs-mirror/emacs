@@ -2693,7 +2693,7 @@ FRAME-PART is one of the following symbols:\n\
 
 #ifdef MULTI_FRAME
   DEFVAR_BOOL ("pop-up-frames", &pop_up_frames,
-    "*Non-nil means `display-buffer' should make a separate X-window.");
+    "*Non-nil means `display-buffer' should make a separate frame.");
   pop_up_frames = 0;
 
   DEFVAR_LISP ("pop-up-frame-function", &Vpop_up_frame_function,
