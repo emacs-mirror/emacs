@@ -1697,12 +1697,12 @@ STRING are replaced by `-' and substrings are converted to lower case."
 
 (defmacro vhdl-ext-syntax-table (&rest body)
   "Execute BODY with syntax table that includes `_' in word class."
-  (` (let (result)
-       (modify-syntax-entry ?_ "w" vhdl-mode-syntax-table)
-       (setq result (progn (,@ body)))
-       (when (not vhdl-underscore-is-part-of-word)
-	 (modify-syntax-entry ?_ "_" vhdl-mode-syntax-table))
-       result)))
+  `(let (result)
+     (modify-syntax-entry ?_ "w" vhdl-mode-syntax-table)
+     (setq result (progn ,@body))
+     (when (not vhdl-underscore-is-part-of-word)
+       (modify-syntax-entry ?_ "_" vhdl-mode-syntax-table))
+     result))
 
 (defvar vhdl-syntactic-context nil
   "Buffer local variable containing syntactic analysis list.")
@@ -3253,48 +3253,48 @@ This function does not modify point or mark."
 	   (null (cdr (cdr position))))
       (error "Bad buffer position requested: %s" position))
   (setq position (nth 1 position))
-  (` (let ((here (point)))
-       (,@ (cond
-	    ((eq position 'bol)  '((beginning-of-line)))
-	    ((eq position 'eol)  '((end-of-line)))
-	    ((eq position 'bod)  '((save-match-data
-				     (vhdl-beginning-of-defun))))
-	    ((eq position 'boi)  '((back-to-indentation)))
-	    ((eq position 'eoi)  '((end-of-line)(skip-chars-backward " \t")))
-	    ((eq position 'bonl) '((forward-line 1)))
-	    ((eq position 'bopl) '((forward-line -1)))
-	    ((eq position 'iopl)
-	     '((forward-line -1)
-	       (back-to-indentation)))
-	    ((eq position 'ionl)
-	     '((forward-line 1)
-	       (back-to-indentation)))
-	    (t (error "Unknown buffer position requested: %s" position))
-	    ))
-       (prog1
-	   (point)
-	 (goto-char here))
-       ;; workaround for an Emacs18 bug -- blech! Well, at least it
-       ;; doesn't hurt for v19
-       (,@ nil)
-       )))
+  `(let ((here (point)))
+     ,@(cond
+	((eq position 'bol)  '((beginning-of-line)))
+	((eq position 'eol)  '((end-of-line)))
+	((eq position 'bod)  '((save-match-data
+				 (vhdl-beginning-of-defun))))
+	((eq position 'boi)  '((back-to-indentation)))
+	((eq position 'eoi)  '((end-of-line)(skip-chars-backward " \t")))
+	((eq position 'bonl) '((forward-line 1)))
+	((eq position 'bopl) '((forward-line -1)))
+	((eq position 'iopl)
+	 '((forward-line -1)
+	   (back-to-indentation)))
+	((eq position 'ionl)
+	 '((forward-line 1)
+	   (back-to-indentation)))
+	(t (error "Unknown buffer position requested: %s" position))
+	)
+     (prog1
+	 (point)
+       (goto-char here))
+     ;; workaround for an Emacs18 bug -- blech! Well, at least it
+     ;; doesn't hurt for v19
+     ,@nil
+     ))
 
 (defmacro vhdl-safe (&rest body)
   "Safely execute BODY, return nil if an error occurred."
-  (` (condition-case nil
-	 (progn (,@ body))
-       (error nil))))
+  `(condition-case nil
+       (progn ,@body)
+     (error nil)))
 
 (defmacro vhdl-add-syntax (symbol &optional relpos)
   "A simple macro to append the syntax in SYMBOL to the syntax list.
 Try to increase performance by using this macro."
-  (` (setq vhdl-syntactic-context
-	   (cons (cons (, symbol) (, relpos)) vhdl-syntactic-context))))
+  `(setq vhdl-syntactic-context
+	 (cons (cons ,symbol ,relpos) vhdl-syntactic-context)))
 
 (defmacro vhdl-has-syntax (symbol)
   "A simple macro to return check the syntax list.
 Try to increase performance by using this macro."
-  (` (assoc (, symbol) vhdl-syntactic-context)))
+  `(assoc ,symbol vhdl-syntactic-context))
 
 ;; Syntactic element offset manipulation:
 
@@ -8212,18 +8212,18 @@ but not if inside a comment or quote)."
       ;; bindings and which themselves call `vhdl-model-insert' with the model
       ;; name as argument
       (setq model-name (nth 0 (car model-alist)))
-      (eval (` (defun (, (vhdl-function-name "vhdl-model" model-name)) ()
-		 (, (concat "Insert model for \"" model-name "\"."))
-		 (interactive)
-		 (vhdl-model-insert (, model-name)))))
+      (eval `(defun ,(vhdl-function-name "vhdl-model" model-name) ()
+	       ,(concat "Insert model for \"" model-name "\".")
+	       (interactive)
+	       (vhdl-model-insert ,model-name)))
       ;; define hooks for user models that are invoked from keyword abbrevs
       (setq model-keyword (nth 3 (car model-alist)))
       (unless (equal model-keyword "")
-	(eval (` (defun
-		   (, (vhdl-function-name
-		       "vhdl-model" model-name "hook")) ()
-		   (vhdl-hooked-abbrev
-		    '(, (vhdl-function-name "vhdl-model" model-name)))))))
+	(eval `(defun
+		 ,(vhdl-function-name
+		   "vhdl-model" model-name "hook") ()
+		 (vhdl-hooked-abbrev
+		  ',(vhdl-function-name "vhdl-model" model-name)))))
       (setq model-alist (cdr model-alist)))))
 
 (vhdl-model-defun)
@@ -8356,7 +8356,7 @@ END is the point beyond which matching/searching should not go."
 				   (match-string 1))))
 	      (vhdl-forward-syntactic-ws)
 	      (setq end-of-list (vhdl-parse-string ")" t))
-	      (vhdl-parse-string "\\s-*;\\s-*")
+	      (vhdl-parse-string ";\\s-*")
 	      ;; parse inline comment
 	      (unless comment
 		(setq comment (and (vhdl-parse-string "--\\s-*\\([^\n]*\\)" t)
@@ -8404,7 +8404,7 @@ END is the point beyond which matching/searching should not go."
 	      (setq type (substring type 0 (match-end 1)))
 	      (vhdl-forward-syntactic-ws)
 	      (setq end-of-list (vhdl-parse-string ")" t))
-	      (vhdl-parse-string "\\s-*;\\s-*")
+	      (vhdl-parse-string ";\\s-*")
 	      ;; parse inline comment
 	      (unless comment
 		(setq comment (and (vhdl-parse-string "--\\s-*\\([^\n]*\\)" t)
@@ -8563,7 +8563,7 @@ END is the point beyond which matching/searching should not go."
 	    (setq generics-list (cdr generics-list))
 	    (insert (if generics-list ", " ")")))
 	(unless vhdl-argument-list-indent
-	  (insert "\n") (indent-to (+ margin vhdl-basic-offset)))
+	  (insert "\n") (indent-to (+ margin (* 2 vhdl-basic-offset))))
 	(setq list-margin (current-column))
 	(while generics-list
 	  (setq generic (car generics-list))
@@ -8598,7 +8598,7 @@ END is the point beyond which matching/searching should not go."
 	    (setq ports-list (cdr ports-list))
 	    (insert (if ports-list ", " ");")))
 	(unless vhdl-argument-list-indent
-	  (insert "\n") (indent-to (+ margin vhdl-basic-offset)))
+	  (insert "\n") (indent-to (+ margin (* 2 vhdl-basic-offset))))
 	(setq list-margin (current-column))
 	(while ports-list
 	  (setq port (car ports-list))
@@ -9400,9 +9400,9 @@ This does background highlighting of translate-off regions.")
   (while syntax-alist
     (setq name (vhdl-function-name
 		"vhdl-font-lock" (nth 0 (car syntax-alist)) "face"))
-    (eval (` (defvar (, name) '(, name)
-	       (, (concat "Face name to use for "
-			  (nth 0 (car syntax-alist)) ".")))))
+    (eval `(defvar ,name ',name
+	     ,(concat "Face name to use for "
+		      (nth 0 (car syntax-alist)) ".")))
     (setq syntax-alist (cdr syntax-alist))))
 
 (defgroup vhdl-highlight-faces nil
@@ -9482,17 +9482,17 @@ This does background highlighting of translate-off regions.")
 ;; font lock mode faces used to highlight words with special syntax.
 (let ((syntax-alist vhdl-special-syntax-alist))
   (while syntax-alist
-    (eval (` (defface (, (vhdl-function-name
-			  "vhdl-font-lock" (car (car syntax-alist)) "face"))
-	       '((((class color) (background light))
-		  (:foreground (, (nth 2 (car syntax-alist)))))
-		 (((class color) (background dark))
-		  (:foreground (, (nth 3 (car syntax-alist)))))
-		 (t ()))
-	       (, (concat "Font lock mode face used to highlight "
-			  (nth 0 (car syntax-alist)) "."))
-	       :group 'vhdl-highlight-faces
-	       :group 'font-lock-highlighting-faces)))
+    (eval `(defface ,(vhdl-function-name
+		      "vhdl-font-lock" (car (car syntax-alist)) "face")
+	     '((((class color) (background light))
+		(:foreground ,(nth 2 (car syntax-alist))))
+	       (((class color) (background dark))
+		(:foreground ,(nth 3 (car syntax-alist))))
+	       (t ()))
+	     ,(concat "Font lock mode face used to highlight "
+		      (nth 0 (car syntax-alist)) ".")
+	     :group 'vhdl-highlight-faces
+	     :group 'font-lock-highlighting-faces))
     (setq syntax-alist (cdr syntax-alist))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -9698,7 +9698,6 @@ specified."
 		(set-buffer (find-buffer-visiting file-name))
 	      (set-buffer (find-file-noselect file-name nil t))
 	      (setq opened t))
-	    (let ((case-fold-search t))
 	    (modify-syntax-entry ?_ "w" (syntax-table))
 	    ;; scan for entities
 	    (goto-char (point-min))
@@ -9785,7 +9784,7 @@ specified."
 	    (setq file-list (cdr file-list))
 	    ;; add design units to variable `vhdl-file-alist'
 	    (aput 'vhdl-file-alist file-name
-		  (list ent-list arch-list conf-list pack-list inst-list)))
+		  (list ent-list arch-list conf-list pack-list inst-list))
 	    ;; close file
 	    (if opened
 		(kill-buffer (current-buffer))
