@@ -1,3 +1,4 @@
+/* configure fodder.  See the end of ../configure.
 /* GNU Emacs site configuration template file.  -*- C -*-
    Copyright (C) 1988 Free Software Foundation, Inc.
 
@@ -26,12 +27,29 @@ and this notice must be preserved on all copies.  */
 #define EMACS_CONFIG_H
 
 
+/* These are all defined in the top-level Makefile by configure.
+   They're here only for reference.  */
+
+/* Define LISP_FLOAT_TYPE if you want emacs to support floating-point
+   numbers. */
+/* #define LISP_FLOAT_TYPE */
+
+/* Define GNU_MALLOC if you want to use the *new* GNU memory allocator. */
+/* #define GNU_MALLOC */
+
+/* Define REL_ALLOC if you want to use the relocating allocator for
+   buffer space. */
+/* #define REL_ALLOC */
+  
 /* Define HAVE_X_WINDOWS if you want to use the X window system.  */
 /* #define HAVE_X_WINDOWS */
 
 /* Define HAVE_X11 if you want to use version 11 of X windows.
    Otherwise, Emacs expects to use version 10.  */
 /* #define HAVE_X11 */
+
+/* Define this if you're using XFree386.  */
+/* #define HAVE_XFREE386 */
 
 /* Define HAVE_X_MENU if you want to use the X window menu system.
    This appears to work on some machines that support X
@@ -64,17 +82,6 @@ and this notice must be preserved on all copies.  */
 
 /* #define AMPERSAND_FULL_NAME */
 
-/* Define LISP_FLOAT_TYPE if you want emacs to support floating-point
-   numbers. */
-/* #define LISP_FLOAT_TYPE */
-
-/* Define GNU_MALLOC if you want to use the *new* GNU memory allocator. */
-/* #define GNU_MALLOC */
-
-/* Define REL_ALLOC if you want to use the relocating allocator for
-   buffer space. */
-/* #define REL_ALLOC */
-  
 /* Define this macro if you want to use 16-bit GLYPHs.  Currently this
    option isn't terribly useful (the current distribution doesn't
    support large characters in buffer text), so the configuration
@@ -103,21 +110,28 @@ and this notice must be preserved on all copies.  */
 #define INLINE
 #endif
 
-/* The configuration script replaces the string @opsystem@ with the
+/* The configuration script replaces the string @opsysfile@ with the
    name of the s/*.h file that describes the system type you are
-   using; an option of the form "-opsystem=OPSYS" says to use
-   "s/OPSYS.h".  See the file ../etc/MACHINES for a list of systems
-   and the -opsystem flags to use for them.
-   See s/template.h for documentation on writing s/*.h files.  */
-#include "@opsystem@"
+   using.  The file is chosen based on the configuration name you
+   give.
 
-/* The configuration script replaces the string @machine@ with the
-   name of the m/*.h file that describes the machine you are
-   using; an option of the form "-machine=MACH" says to use
-   "m/MACH.h".  See the file ../etc/MACHINES for a list of machines
-   and the -machine flags to use for them.
+   See the file ../etc/MACHINES for a list of systems and the
+   configuration names to use for them.
+
+   See s/template.h for documentation on writing s/*.h files.  */
+
+#include "@opsysfile@"
+
+/* The configuration script replaces the string @machfile@ with the
+   name of the m/*.h file that describes the machine you are using.
+   The file is chosen based on the configuration name you give.
+
+   See the file ../etc/MACHINES for a list of machines and the
+   configuration names to use for them.
+
    See m/template.h for documentation on writing m/*.h files.  */
-#include "@machine@"
+
+#include "@machfile@"
 
 /* Some s- files may define SYSTEM_MALLOC, in which case make sure
    we don't use REL_ALLOC. */
@@ -165,31 +179,24 @@ and this notice must be preserved on all copies.  */
    HAVE_X_WINDOWS above and your X libraries aren't in a place that
    your loader can find on its own, you might want to add "-L/..." or
    something similar.  */
-/* #define LD_SWITCH_X_SITE */
+#define LD_SWITCH_X_SITE @LD_SWITCH_X_SITE@
 
 /* Define C_SWITCH_X_SITE to contain any special flags your compiler
    may need to deal with X Windows.  For instance, if you've defined
    HAVE_X_WINDOWS above and your X include files aren't in a place
    that your compiler can find on its own, you might want to add
    "-I/..." or something similar.  */
-/* #define C_SWITCH_X_SITE */
+#define C_SWITCH_X_SITE @C_SWITCH_X_SITE@
 
 /* Define the return type of signal handlers if the s-xxx file
    did not already do so.  */
-#ifndef SIGTYPE
-#define SIGTYPE void
+#ifndef RETSIGTYPE
+#define RETSIGTYPE void
 #endif
 
-/* If it doesn't seem that the compiler we're using supports the
-   `const' qualifier, then the `configure' script will remove this
-   line.  Some of the files that Emacs shares with other applications
-   (regex.h, getdate.y, etcetera) assume that const is defined.  The
-   rule seems to be that if a system has a config.h file, that file
-   should take care of #defining const away if necessary.  */
-#define HAVE_CONST
-
-#ifndef HAVE_CONST
-#define const
+/* SIGTYPE is the macro we actually use.  */
+#ifndef SIGTYPE
+#define SIGTYPE RETSIGTYPE
 #endif
 
 /* Non-ANSI C compilers don't have volatile.  */
@@ -197,10 +204,9 @@ and this notice must be preserved on all copies.  */
 #define volatile
 #endif
 
-/* Define this if you're using XFree386.  joe@zircon.uucp says that in
-   order to use XFree386, you have to link against -lXbsd, which
-   insists on defining the random function.  */
-/* #define HAVE_XFREE386 */
+/* joe@zircon.uucp says that in order to use XFree386, you have to
+   link against -lXbsd, which insists on defining the random
+   function.  */
 #ifdef HAVE_XFREE386
 #define LIBX11_SYSTEM -lXbsd
 #define HAVE_RANDOM
