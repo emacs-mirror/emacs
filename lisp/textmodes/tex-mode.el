@@ -1,12 +1,10 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands.
 
-;; Copyright (C) 1985, 1986, 1989 Free Software Foundation, Inc.
-;; Rewritten following contributions by William F. Schelter
-;; and Dick King (king@kestrel).
-;; Supported since 1986 by Stephen Gildea <gildea@erl.mit.edu>
-;; and Michael Prange <prange@erl.mit.edu>.
-;; Various improvements and corrections in Fall, 1989 by
-;; Edward M. Reingold <reingold@cs.uiuc.edu>.
+;; Copyright (C) 1985-1992 Free Software Foundation, Inc.
+;; Contributions over the years by William F. Schelter, Dick King,
+;; Stephen Gildea, Michael Prange, and Edward M. Reingold.
+
+;; Latest revision (1992) by Edward M. Reingold <reingold@cs.uiuc.edu>.
 
 ;; This file is part of GNU Emacs.
 
@@ -24,44 +22,100 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; Still to do:
-;;  Make TAB indent correctly for TeX code.  Then we can make Linefeed
-;;  do something more useful.
-;;
-;;  Have spell understand TeX instead of assuming the entire world
-;;  uses nroff.
-;;
-;;  The code for finding matching $ needs to be fixed.
+(require 'comint)
 
-(require 'oshell)
-(defvar tex-directory "./"
-  "*Directory in which to run TeX subjob.  Temporary files are created here.")
+(defvar tex-shell-file-name nil
+  "*If non-nil, is file name to use for the subshell in which TeX is run.")
+
+(defvar tex-directory "."
+  "*Directory in which temporary files are left.
+You can make this /tmp if your TEXINPUTS has no relative directories in it
+and you don't try to apply \\[tex-region] or \\[tex-buffer] when there are
+\\input commands with relative directories.")
+
+(defvar tex-offer-save t
+  "*If non-nil, ask about saving modified buffers before \\[tex-file] is run.")
 
 (defvar tex-run-command "tex"
   "*Command used to run TeX subjob.
-The name of the file will be appended to this string, separated by a space.")
+If this string contains an asterisk (*), it will be replaced by the
+filename; if not, the name of the file, preceded by blank, will be added to
+this string.")
 
 (defvar latex-run-command "latex"
   "*Command used to run LaTeX subjob.
-The name of the file will be appended to this string, separated by a space.")
+If this string contains an asterisk (*), it will be replaced by the
+filename; if not, the name of the file, preceded by blank, will be added to
+this string.")
+
+(defvar standard-latex-block-names
+      '("abstract"         "array"            "center"       "description"
+        "displaymath"      "document"         "enumerate"    "eqnarray"
+        "eqnarray*"        "equation"         "figure"       "figure*"
+        "flushleft"        "flushright"       "itemize"      "letter"
+        "list"             "minipage"         "picture"      "quotation"
+        "quote"            "slide"            "sloppypar"     "tabbing"
+        "table"            "table*"           "tabular"       "tabular*"
+        "thebibliography"  "theindex*"        "titlepage"     "trivlist"
+        "verbatim"         "verbatim*"        "verse")
+  "Standard LaTeX block names.")
+
+(defvar latex-block-names nil
+  "*User defined LaTeX block names.
+Combined with `standard-latex-block-names' for minibuffer completion.")
 
 (defvar slitex-run-command "slitex"
   "*Command used to run SliTeX subjob.
-The name of the file will be appended to this string, separated by a space.")
+If this string contains an asterisk (*), it will be replaced by the
+filename; if not, the name of the file, preceded by blank, will be added to
+this string.")
 
 (defvar tex-bibtex-command "bibtex"
-  "*Command string used by `tex-bibtex-file' to gather bibliographic data.
-The name of the file will be appended to this string, separated by a space.")
+  "*Command used by `tex-bibtex-file' to gather bibliographic data.
+If this string contains an asterisk (*), it will be replaced by the
+filename; if not, the name of the file, preceded by blank, will be added to
+this string.")
 
 (defvar tex-dvi-print-command "lpr -d"
-  "*Command string used by \\[tex-print] to print a .dvi file.")
+  "*Command used by \\[tex-print] to print a .dvi file.
+If this string contains an asterisk (*), it will be replaced by the
+filename; if not, the name of the file, preceded by blank, will be added to
+this string.")
+
+(defvar tex-alt-dvi-print-command "lpr -d"
+  "*Command used by \\[tex-print] with a prefix arg to print a .dvi file.
+If this string contains an asterisk (*), it will be replaced by the
+filename; if not, the name of the file, preceded by blank, will be added to
+this string.
+
+If two printers are not enough of a choice, you can define the value
+of tex-alt-dvi-print-command to be an expression that asks what you want;
+for example,
+
+    (setq tex-alt-dvi-print-command
+         '(format \"lpr -P%s\" (read-string \"Use printer: \")))
+
+would tell \\[tex-print] with a prefix argument to ask you which printer to
+use.")
 
 (defvar tex-dvi-view-command nil
-  "*Command string used by \\[tex-view] to display a .dvi file.")
+  "*Command used by \\[tex-view] to display a .dvi file.
+If this string contains an asterisk (*), it will be replaced by the
+filename; if not, the name of the file, preceded by blank, will be added to
+this string.
+
+This can be set conditionally so that the previewer used is suitable for the
+window system being used.  For example,
+
+    (setq tex-dvi-view-command
+          (if (eq window-system 'x) \"xdvi\" \"dvi2tty * | cat -s\"))
+
+would tell \\[tex-view] use xdvi under X windows and to use dvi2tty
+otherwise.")
 
 (defvar tex-show-queue-command "lpq"
-  "*Command string used by \\[tex-show-print-queue] to show the print queue.
-Should show the queue that \\[tex-print] puts jobs on.")
+  "*Command used by \\[tex-show-print-queue] to show the print queue.
+Should show the queue(s) that \\[tex-print] puts jobs on.")
 
 (defvar tex-default-mode 'plain-tex-mode
   "*Mode to enter for a new file that might be either TeX or LaTeX.
@@ -75,9 +129,14 @@ Normally set to either 'plain-tex-mode or 'latex-mode.")
 (defvar tex-close-quote "''"
   "*String inserted by typing \\[tex-insert-quote] to close a quotation.")
 
+(defvar tex-last-temp-file nil
+  "Latest temporary file generated by \\[tex-region] and \\[tex-buffer].
+Deleted when the \\[tex-region] or \\[tex-buffer] is next run, or when the
+tex-shell goes away.")
+
 (defvar tex-command nil
   "Command to run TeX.
-The name of the file will be appended to this string, separated by a space.")
+The name of the file, preceded by a blank, will be added to this string.")
 
 (defvar tex-trailer nil
   "String appended after the end of a region sent to TeX by \\[tex-region].")
@@ -133,7 +192,7 @@ Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
   (define-key tex-mode-map "\C-c\C-e" 'tex-close-latex-block))
 
 (defvar tex-shell-map nil
-  "Keymap for the tex-shell.  A shell-mode-map with a few additions.")
+  "Keymap for the tex-shell.  A comint-mode-map with a few additions.")
 
 ;(fset 'TeX-mode 'tex-mode) 		;in loaddefs.
 
@@ -198,6 +257,9 @@ tex-directory
 	run by \\[tex-region] or \\[tex-buffer].
 tex-dvi-print-command
 	Command string used by \\[tex-print] to print a .dvi file.
+tex-alt-dvi-print-command
+	Alternative command string used by \\[tex-print] (when given a prefix
+	argument) to print a .dvi file.
 tex-dvi-view-command
 	Command string used by \\[tex-view] to preview a .dvi file.
 tex-show-queue-command
@@ -248,6 +310,9 @@ tex-directory
 	run by \\[tex-region] or \\[tex-buffer].
 tex-dvi-print-command
 	Command string used by \\[tex-print] to print a .dvi file.
+tex-alt-dvi-print-command
+	Alternative command string used by \\[tex-print] (when given a prefix
+	argument) to print a .dvi file.
 tex-dvi-view-command
 	Command string used by \\[tex-view] to preview a .dvi file.
 tex-show-queue-command
@@ -295,13 +360,16 @@ tex-directory
 	run by \\[tex-region] or \\[tex-buffer].
 tex-dvi-print-command
 	Command string used by \\[tex-print] to print a .dvi file.
+tex-alt-dvi-print-command
+	Alternative command string used by \\[tex-print] (when given a prefix
+	argument) to print a .dvi file.
 tex-dvi-view-command
 	Command string used by \\[tex-view] to preview a .dvi file.
 tex-show-queue-command
 	Command string used by \\[tex-show-print-queue] to show the print
 	queue that \\[tex-print] put your job on.
 
-Entering SliTex mode calls the value of text-mode-hook, then the value of
+Entering SliTeX mode calls the value of text-mode-hook, then the value of
 tex-mode-hook, then the value of latex-mode-hook, and then the value of
 slitex-mode-hook.  When the special subshell is initiated, the value of
 tex-shell-hook is called."
@@ -400,7 +468,7 @@ tex-shell-hook is called."
 Inserts the value of tex-open-quote (normally ``) or tex-close-quote
 (normally '') depending on the context.  With prefix argument, always
 inserts \" characters."
-  (interactive "P")
+  (interactive "*P")
   (if arg
       (self-insert-command (prefix-numeric-value arg))
     (insert
@@ -459,7 +527,7 @@ area if a mismatch is found."
   "Insert two newlines, breaking a paragraph for TeX.
 Check for mismatched braces/$'s in paragraph being terminated.
 A prefix arg inhibits the checking."
-  (interactive "P")
+  (interactive "*P")
   (or inhibit-validation
       (save-excursion
 	(tex-validate-region
@@ -472,7 +540,7 @@ A prefix arg inhibits the checking."
 
 (defun tex-insert-braces ()
   "Make a pair of braces and be poised to type inside of them."
-  (interactive)
+  (interactive "*")
   (insert ?\{)
   (save-excursion
     (insert ?})))
@@ -481,7 +549,14 @@ A prefix arg inhibits the checking."
 (defun tex-latex-block (name)
   "Creates a matching pair of lines \\begin{NAME} and \\end{NAME} at point.
 Puts point on a blank line between them."
-  (interactive "*sLaTeX block name: ")
+  (interactive
+   (prog2
+      (barf-if-buffer-read-only)
+      (list
+       (completing-read "LaTeX block name: "
+			(mapcar 'list
+                                (append standard-latex-block-names
+                                        latex-block-names))))))
   (let ((col (current-column)))
     (insert (format "\\begin{%s}\n" name))
     (indent-to col)
@@ -503,7 +578,7 @@ Puts point on a blank line between them."
   (let ((new-line-needed (bolp))
 	text indentation)
     (save-excursion
-      (condition-case ERR
+      (condition-case nil
           (tex-last-unended-begin)
         (error (error "Couldn't find unended \\begin")))
       (setq indentation (current-column))
@@ -522,15 +597,30 @@ Puts point on a blank line between them."
 
 (defun tex-start-shell ()
   (save-excursion
-    (set-buffer (make-shell "tex-shell" nil nil "-v"))
-    (setq tex-shell-map (copy-keymap shell-mode-map))
-    (tex-define-common-keys tex-shell-map)
-    (use-local-map tex-shell-map)
-    (run-hooks 'tex-shell-hook)
-    (if (zerop (buffer-size))
-	(sleep-for 1))))
+    (set-buffer
+     (make-comint
+      "tex-shell"
+      (or tex-shell-file-name (getenv "ESHELL") (getenv "SHELL") "/bin/sh")
+      nil "-v"))
+    (let ((proc (get-process "tex-shell")))
+      (set-process-sentinel proc 'tex-shell-sentinel)
+      (process-kill-without-query proc)
+      (setq tex-shell-map (copy-keymap comint-mode-map))
+      (tex-define-common-keys tex-shell-map)
+      (use-local-map tex-shell-map)
+      (run-hooks 'tex-shell-hook)
+      (while (zerop (buffer-size))
+          (sleep-for 1)))))
 
-(defun set-buffer-directory (buffer directory)
+(defun tex-shell-sentinel (proc msg)
+  (cond ((null (buffer-name (process-buffer proc)))
+	 ;; buffer killed
+	 (set-process-buffer proc nil)
+         (tex-delete-last-temp-files))
+	((memq (process-status proc) '(signal exit))
+         (tex-delete-last-temp-files))))
+
+(defun tex-set-buffer-directory (buffer directory)
   "Set BUFFER's default directory to be DIRECTORY."
   (setq directory (file-name-as-directory (expand-file-name directory)))
   (if (not (file-directory-p directory))
@@ -539,11 +629,33 @@ Puts point on a blank line between them."
       (set-buffer buffer)
       (setq default-directory directory))))
 
-;;; The commands:
+(defun tex-send-command (command &optional file background)
+  "Send COMMAND to tex-shell, substituting optional FILE for *; in background
+if optional BACKGROUND is t.   If COMMAND has no *, FILE will be appended,
+preceded by a blank, to COMMAND.  If FILE is nil, no substitution will be made
+in COMMAND.  COMMAND can be any expression that evaluates to a command string."
+  (save-excursion
+    (let* ((cmd (eval command))
+           (star (string-match "\\*" cmd)))
+      (comint-proc-query (get-process "tex-shell")
+                         (concat (substring cmd 0 star)
+                                 (if file (concat " " file) "")
+                                 (if star (substring cmd (1+ star) nil) "")
+                                 (if background "&\n" "\n"))))))
 
-;;; It's a kludge that we have to create a special buffer just 
-;;; to write out the tex-trailer.  It would nice if there were a
-;;; function like write-region that would write literal strings.
+(defun tex-delete-last-temp-files ()
+  "Delete any junk files from last temp file."
+  (if tex-last-temp-file
+      (let* ((dir (file-name-directory tex-last-temp-file))
+             (list (file-name-all-completions
+                    (file-name-nondirectory tex-last-temp-file) dir)))
+        (while list
+          (delete-file (concat dir (car list)))
+          (setq list (cdr list))))))
+
+(setq kill-emacs-hook 'tex-delete-last-temp-files)
+
+;;; The commands:
 
 (defun tex-region (beg end)
   "Run TeX on the current region, via a temporary file.
@@ -564,21 +676,16 @@ The value of `tex-command' specifies the command to use to run TeX."
     (tex-start-shell))
   (or tex-zap-file
       (setq tex-zap-file (tex-generate-zap-file-name)))
-  (let ((tex-out-file (concat tex-zap-file ".tex"))
-	(temp-buffer (get-buffer-create " TeX-Output-Buffer"))
-	(file-dir (if (buffer-file-name)
-                      (file-name-directory (buffer-file-name))
-                    default-directory))
-	(zap-directory
-	 (file-name-as-directory (expand-file-name tex-directory))))
-    ;; Delete any junk files or memory files from this temp file,
-    ;; since the contents were probably different last time anyway.
-    ;; This may also delete the old temp file if any.
-    (let ((list (file-name-all-completions (tex-append tex-out-file ".")
-					   zap-directory)))
-      (while list
-	(delete-file (expand-file-name (car list) zap-directory))
-	(setq list (cdr list))))
+  (let* ((temp-buffer (get-buffer-create " TeX-Output-Buffer"))
+         ; Temp file will be written and TeX will be run in zap-directory.
+         ; If the TEXINPUTS file has relative directories or if the region has
+         ; \input of files, this must be the same directory as the file for
+         ; TeX to access the correct inputs.  That's why it's safest if
+         ; tex-directory is ".".
+         (zap-directory
+          (file-name-as-directory (expand-file-name tex-directory)))
+         (tex-out-file (concat zap-directory tex-zap-file)))
+    (tex-delete-last-temp-files)
     ;; Write the new temp file.
     (save-excursion
       (save-restriction
@@ -598,70 +705,29 @@ The value of `tex-command' specifies the command to use to run TeX."
 		    (progn (forward-line 1)
 			   (setq hend (point)))	;mark end of header
 		  (setq hbeg (point-min))))) ;no header
-	  (write-region (min hbeg beg) hend tex-out-file nil nil)
-	  (write-region (max beg hend) end tex-out-file t nil))
+	  (write-region (min hbeg beg) hend
+                        (concat tex-out-file ".tex") nil nil)
+	  (write-region (max beg hend) end (concat tex-out-file ".tex") t nil))
 	(let ((local-tex-trailer tex-trailer))
 	  (set-buffer temp-buffer)
 	  (erase-buffer)
 	  ;; make sure trailer isn't hidden by a comment
 	  (insert-string "\n")
 	  (if local-tex-trailer (insert-string local-tex-trailer))
-	  (set-buffer-directory temp-buffer zap-directory)
-	  (write-region (point-min) (point-max) tex-out-file t nil))))
-    ;; Record in the shell buffer the file name to delete afterward.
-    (save-excursion
-      (set-buffer (get-buffer "*tex-shell*"))
-      (make-local-variable 'tex-last-temp-file)
-      (setq tex-last-temp-file tex-out-file))
-    (set-process-filter "tex-shell" 'tex-filter)
-    (set-buffer-directory "*tex-shell*" zap-directory)
-    ;; Run TeX in source file's dir, in case TEXINPUTS uses current dir.
-    (send-string "tex-shell" (concat tex-shell-cd-command " " file-dir "\n"))
-    (send-string "tex-shell" (concat tex-command " \""
-				     zap-directory
-				     tex-out-file "\"\n")))
-  (setq tex-last-buffer-texed (current-buffer))
-  (setq tex-print-file
-	(concat (file-name-as-directory (expand-file-name tex-directory))
-		tex-zap-file))
-  (tex-recenter-output-buffer 0))
-
-;; This filter is used in the TeX shell buffer
-;; while TeX is running for a tex-region command.
-(defun tex-filter (process string)
-  (let ((old (current-buffer)))
-    (set-buffer (process-buffer proc))
-    (unwind-protect
-	(progn (if (= (process-mark proc) (point-max))
-		   (insert string)
-		 (save-excursion
-		   (goto-char (process-mark proc))
-		   (insert string)))
-	       (set-marker (process-mark proc) (point))
-	       ;; Delete the temporary file
-	       ;; when TeX finishes.
-	       ;; And stop using this filter.
-	       (save-excursion
-		 (forward-line -1)
-		 (if (looking-at "^Output written on ")
-		     (progn
-		       (set-process-filter process nil)
-		       ;; Delete the temp file just processed
-		       ;; and any related junk files made by TeX.
-		       (let ((list (file-name-all-completions
-				    (tex-append tex-last-temp-file ".")
-				    zap-directory)))
-			 (while list
-			   (delete-file (expand-file-name
-					 (car list) zap-directory))
-			   (setq list (cdr list))))))))
-      (or (eq old (current-buffer))
-	  (set-buffer old)))))
+	  (tex-set-buffer-directory temp-buffer zap-directory)
+	  (write-region (point-min) (point-max)
+                        (concat tex-out-file ".tex") t nil))))
+    ;; Record the file name to be deleted afterward.
+    (setq tex-last-temp-file tex-out-file)
+    (tex-send-command tex-shell-cd-command zap-directory)
+    (tex-send-command tex-command tex-out-file)
+    (setq tex-print-file tex-out-file)
+    (setq tex-last-buffer-texed (current-buffer))))
 
 (defun tex-buffer ()
   "Run TeX on current buffer.  See \\[tex-region] for more information.
-Does not save the buffer, so it's useful for trying
-experimental versions.  See \\[tex-file] for an alternative."
+Does not save the buffer, so it's useful for trying experimental versions.
+See \\[tex-file] for an alternative."
   (interactive)
   (tex-region (point-min) (point-max)))
 
@@ -679,13 +745,10 @@ This function is more useful than \\[tex-buffer] when you need the
     (if (tex-shell-running)
         (tex-kill-job)
       (tex-start-shell))
-    (set-buffer-directory "*tex-shell*" file-dir)
-    (send-string "tex-shell" (concat tex-shell-cd-command " " file-dir "\n"))
-    (send-string "tex-shell"
-		 (concat tex-command " \"" tex-out-file "\"\n")))
+    (tex-send-command tex-shell-cd-command file-dir)
+    (tex-send-command tex-command tex-out-file))
   (setq tex-last-buffer-texed (current-buffer))
-  (setq tex-print-file (buffer-file-name))
-  (tex-recenter-output-buffer 0))
+  (setq tex-print-file (buffer-file-name)))
 
 (defun tex-generate-zap-file-name ()
   "Generate a unique name suitable for use as a file name."
@@ -719,8 +782,7 @@ This function is more useful than \\[tex-buffer] when you need the
 (defun tex-kill-job ()
   "Kill the currently running TeX job."
   (interactive)
-  (if (get-process "tex-shell")
-      (quit-process "tex-shell" t)))
+  (quit-process (get-process "tex-shell") t))
 
 (defun tex-recenter-output-buffer (linenum)
   "Redisplay buffer of TeX job output so that most recent output can be seen.
@@ -737,24 +799,25 @@ line LINE of the window, or centered if LINE is nil."
       (recenter (if linenum
 		    (prefix-numeric-value linenum)
 		  (/ (window-height) 2)))
-      (pop-to-buffer old-buffer)
-      )))
+      (pop-to-buffer old-buffer))))
 
-(defun tex-print ()
+(defun tex-print (&optional alt)
   "Print the .dvi file made by \\[tex-region], \\[tex-buffer] or \\[tex-file].
-Runs the shell command defined by tex-dvi-print-command."
-  (interactive)
+Runs the shell command defined by tex-dvi-print-command.  If prefix argument
+is provided, use the alternative command, tex-alt-dvi-print-command."
+  (interactive "P")
   (let ((print-file-name-dvi (tex-append tex-print-file ".dvi"))
 	test-name)
     (if (and (not (equal (current-buffer) tex-last-buffer-texed))
 	     (file-newer-than-file-p
 	      (setq test-name (tex-append (buffer-file-name) ".dvi"))
-	      (tex-append tex-print-file ".dvi")))
+	      print-file-name-dvi))
 	(setq print-file-name-dvi test-name))
-    (if (file-exists-p print-file-name-dvi)
-	(shell-command
-	 (concat tex-dvi-print-command " \"" print-file-name-dvi "&\"\n"))
-      (error "No appropriate `.dvi' file could be found"))))
+    (if (not (file-exists-p print-file-name-dvi))
+        (error "No appropriate `.dvi' file could be found")
+      (tex-send-command
+        (if alt tex-alt-dvi-print-command tex-dvi-print-command)
+        print-file-name-dvi t))))
 
 (defun tex-view ()
   "Preview the last `.dvi' file made by running TeX under Emacs.
@@ -784,8 +847,7 @@ Runs the shell command defined by tex-show-queue-command."
   (if (tex-shell-running)
       (tex-kill-job)
     (tex-start-shell))
-  (send-string "tex-shell" (concat tex-show-queue-command "\n"))
-  (tex-recenter-output-buffer nil))
+  (tex-send-command tex-show-queue-command))
 
 (defun tex-bibtex-file ()
   "Run BibTeX on the current buffer's file."
@@ -796,11 +858,10 @@ Runs the shell command defined by tex-show-queue-command."
   (let ((tex-out-file
          (tex-append (file-name-nondirectory (buffer-file-name)) ""))
 	(file-dir (file-name-directory (buffer-file-name))))
-    (set-buffer-directory "*tex-shell*" file-dir)
-    (send-string "tex-shell" (concat tex-shell-cd-command " " file-dir "\n"))
-    (send-string "tex-shell"
-		 (concat tex-bibtex-command " \"" tex-out-file "\"\n")))
-  (tex-recenter-output-buffer 0))
+    (tex-send-command tex-shell-cd-command file-dir)
+    (tex-send-command bibtex-command tex-out-file)))
+
+(run-hooks 'tex-mode-load-hook)
 
 (provide 'tex-mode)
 

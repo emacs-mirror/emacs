@@ -902,7 +902,9 @@ DEFUN ("barf-if-buffer-read-only", Fbarf_if_buffer_read_only,
 DEFUN ("bury-buffer", Fbury_buffer, Sbury_buffer, 0, 1, "",
   "Put BUFFER at the end of the list of all buffers.\n\
 There it is the least likely candidate for `other-buffer' to return;\n\
-thus, the least likely buffer for \\[switch-to-buffer] to select by default.")
+thus, the least likely buffer for \\[switch-to-buffer] to select by default.\n\
+If the argument is nil, bury the current buffer\n\
+and switch to some other buffer in the selected window.")
   (buf)
      register Lisp_Object buf;
 {

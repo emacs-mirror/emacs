@@ -1365,7 +1365,7 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 	   (let ((processes (process-list))
 		 active)
 	     (while processes
-	       (and (memq (process-status (car processes)) '(run stop))
+	       (and (memq (process-status (car processes)) '(run stop open))
 		    (let ((val (process-kill-without-query (car processes))))
 		      (process-kill-without-query (car processes) val)
 		      val)
