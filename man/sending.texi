@@ -678,13 +678,13 @@ whichever agent you have specified.  So do various other Emacs commands
 and facilities that send mail.
 
 @vindex mail-user-agent
-  To specify your mail-composition method, set the variable
+  To specify your mail-composition method, customize the variable
 @code{mail-user-agent}.  Currently legitimate values include
-@code{sendmail-user-agent}, @code{mh-e-user-agent}, and
-@code{message-user-agent}.
+@code{sendmail-user-agent}, @code{mh-e-user-agent},
+@code{message-user-agent} and @code{gnus-user-agent}.
 
   If you select a different mail-composition method, the information in
 this chapter about the @samp{*mail*} buffer and Mail mode does not
-apply; other methods may use completely different commands with a
-different format in a differently named buffer.
+necessarily apply; other methods may use completely different commands
+with a different format in a differently named buffer.
 
