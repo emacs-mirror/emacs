@@ -1524,8 +1524,14 @@ starting with the current one.  Deleted messages are skipped and don't count."
    (progn (require 'rmailout)
 	  (list (rmail-output-read-file-name)
 		(prefix-numeric-value current-prefix-arg))))
-  (let ((i 0))
-    (while (< i n)
+  (let ((i 0) prev-msg)
+    (while
+	(and (< i n)
+	     (progn (rmail-summary-goto-msg)
+		    (not (eq prev-msg
+			     (setq prev-msg
+				   (with-current-buffer rmail-buffer
+				     rmail-current-message))))))
       (setq i (1+ i))
       (with-current-buffer rmail-buffer
 	(let ((rmail-delete-after-output nil))
