@@ -24,7 +24,7 @@ Boston, MA 02111-1307, USA.  */
 #include "syntax.h"
 #include "category.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "region-cache.h"
 #include "commands.h"
 #include "blockinput.h"
@@ -1228,7 +1228,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 		{
 		  /* Keep track of which character set row
 		     contains the characters that need translation.  */
-		  int charset_base_code = c & ~CHAR_FIELD3_MASK;
+		  int charset_base_code = c & ~0x3F;
 		  if (charset_base == -1)
 		    charset_base = charset_base_code;
 		  else if (charset_base != charset_base_code)
@@ -1615,7 +1615,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	      while (! CHAR_HEAD_P (*charstart))
 		charstart--;
 	      untranslated = STRING_CHAR (charstart, ptr - charstart + 1);
-	      if (charset_base == (untranslated & ~CHAR_FIELD3_MASK))
+	      if (charset_base == (untranslated & ~0x3F))
 		{
 		  TRANSLATE (ch, trt, untranslated);
 		  if (! CHAR_HEAD_P (*ptr))
@@ -2435,10 +2435,7 @@ since only regular expressions have distinguished subexpressions.  */)
       Lisp_Object rev_tbl;
       int really_changed = 0;
 
-      rev_tbl= (!buf_multibyte && CHAR_TABLE_P (Vnonascii_translation_table)
-		? Fchar_table_extra_slot (Vnonascii_translation_table,
-					  make_number (0))
-		: Qnil);
+      rev_tbl= Qnil;
 
       substed_alloc_size = length * 2 + 100;
       substed = (unsigned char *) xmalloc (substed_alloc_size + 1);
