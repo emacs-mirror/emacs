@@ -1,6 +1,6 @@
 ;; @(#) xml.el --- XML parser
 
-;; Copyright (C) 2000 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>
@@ -272,6 +272,8 @@ Returns one of:
 	  ;;  This was an invalid start tag
 	  (error "XML: Invalid attribute list")
 	  ))))
+   (t ;; This is not a tag.
+    (error "XML: Invalid character."))
    ))
 
 (defun xml-parse-attlist (end)
