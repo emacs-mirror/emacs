@@ -26,6 +26,10 @@ Boston, MA 02111-1307, USA.
 #include <stdio.h>
 #include <fcntl.h>
 #include <time.h>
+#ifdef __GNUC__
+#define _ANONYMOUS_UNION
+#define _ANONYMOUS_STRUCT
+#endif
 #include <windows.h>
 
 /* Include relevant definitions from IMAGEHLP.H, which can be found
