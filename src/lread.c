@@ -1512,6 +1512,10 @@ read1 (readcharfun, pch, first_in_list)
 	      val = Fmake_bool_vector (length, Qnil);
 	      bcopy (XSTRING (tmp)->data, XBOOL_VECTOR (val)->data,
 		     size_in_chars);
+	      /* Clear the extraneous bits in the last byte.  */
+	      if (XINT (length) != size_in_chars * BITS_PER_CHAR)
+		XBOOL_VECTOR (val)->data[size_in_chars - 1]
+		  &= (1 << (XINT (length) % BITS_PER_CHAR)) - 1;
 	      return val;
 	    }
 	  Fsignal (Qinvalid_read_syntax, Fcons (make_string ("#&...", 5),
