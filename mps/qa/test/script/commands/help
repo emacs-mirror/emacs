@@ -1,13 +1,11 @@
 #!/usr/local/perl
-# $HopeName$
+# $HopeName: MMQA_harness!script:commands:help(trunk.3) $
 #
 # provide help on QA functions
 #
 
-&options();
-
-if (@qa_args) {
- foreach (@qa_args) {
+if (@ARGV) {
+ foreach (@ARGV) {
   &printhelp($_);
  }
 } else {

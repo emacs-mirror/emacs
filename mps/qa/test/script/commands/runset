@@ -1,20 +1,19 @@
 #!/usr/local/bin/perl -w
-# $HopeName$
+# $HopeName: MMQA_harness!script:commands:runset(trunk.2) $
 #
 # run a set of tests specified in a test-set file
 #
 
-&options(
+&requiredoptions(
  "MPS_INCLUDE_DIR",
  "MPS_LINK_OBJ",
- "INTERFACE_VERSION",
+ "MPS_INTERFACE_VERSION",
+ "MPS_PRODUCT",
  "PLATFORM",
  "LOG_DIR"
 );
 
-require "require";
-
-$testset = $qa_args[0];
+$testset = $ARGV[0];
 
 &run_testset($testset, "$LOG_DIR/summ.log", "$LOG_DIR/res.log", "$LOG_DIR/full.log");
 

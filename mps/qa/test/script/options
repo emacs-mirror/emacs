@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:options(trunk.20) $
+# $HopeName: MMQA_harness!script:options(trunk.21) $
 #
 
 # global options for qa commands
@@ -8,31 +8,49 @@
 # we're on
 #
 
+1;
+
 # first to see where we are:
 
-if (($ENV{"OS"} || "") eq "Windows_NT") {
- # it's NT, so find out what the processor is
- #  from a system variable
- $platform_class = "nt_".$ENV{"PROCESSOR_ARCHITECTURE"};
- if ($platform_class eq "nt_") {
-  $platform_class = "nt_dunno";
+sub platform_detect {
+ if (($ENV{"OS"} || "") eq "Windows_NT") {
+  # it's NT, so find out what the processor is
+  #  from a system variable
+  $platform_class = "nt_".$ENV{"PROCESSOR_ARCHITECTURE"};
+  if ($platform_class eq "nt_") {
+   $platform_class = "nt_dunno";
+  }
+  $platform_phylum = "pc";
+ } elsif (($ENV{"OSTYPE"} || "") eq "Linux") {
+ # it's Linux. We'll assume they're all the same!
+  $platform_class = "linux";
+  $platform_phylum = "unix";
+ } else {
+  # it's unix by default
+  $platform_class = `class`;
+  chop($platform_class);
+  $platform_phylum = "unix";
  }
- $platform_phylum = "pc";
-} elsif (($ENV{"OSTYPE"} || "") eq "Linux") {
-# it's Linux. We'll assume they're all the same!
- $platform_class = "linux";
- $platform_phylum = "unix";
-} else {
- # it's unix by default
- $platform_class = `class`;
- chop($platform_class);
- $platform_phylum = "unix";
+ $qa_defaults{"PLATFORM"} = $platform_class."__".$platform_phylum;
 }
 
+sub auto_settings {
+ unless (&getoption("MPS_PRODUCT")) {
+  if (&getoption("MPS_LINK_OBJ")) {
+   &mpslibvers(&getoption("MPS_LINK_OBJ"));
+   unless ($mpslibvers{"product"} eq "unknown") {
+    &setoption("MPS_PRODUCT", $mpslibvers{"product"});
+   }
+  }
+ }
+}
+
+
 %qa_options = (
- "v", "INTERFACE_VERSION",
+ "v", "MPS_INTERFACE_VERSION",
  "i", "MPS_INCLUDE_DIR",
  "l", "MPS_LINK_OBJ",
+ "prod", "MPS_PRODUCT",
  "p", "PLATFORM",
  "data", "DATA_DIR",
  "a", "PARAMETERS",
@@ -47,13 +65,19 @@ if (($ENV{"OS"} || "") eq "Windows_NT") {
  "mail", "MAIL_RESULTS"
 );
 
+#
+# the default for PLATFORM will be set by &platform_detect,
+# which is called from &harness_init. So the "..." below will
+# never have any effect.
+#
+
 %qa_defaults = (
- "PLATFORM", $platform_class."__".$platform_phylum,
+ "PLATFORM", "[error -- you shouldn't see this]",
  "DEBUG_INFO", "off",
  "DATA_DIR", "$test_dir/../data",
  "LOG_DIR", "$test_dir/log",
  "PARAMETERS", "",
- "INTERFACE_VERSION", "BQ",
+ "MPS_INTERFACE_VERSION", "HU",
  "MAIL_RESULTS", "on",
  "MAIL_TO", "mm-qa-test-log",
  "MAIL_SUBJECT", "MMQA-log"

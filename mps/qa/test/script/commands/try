@@ -1,12 +1,8 @@
 #!/usr/local/bin/perl
-# $HopeName: MMQA_harness!script:commands:try(trunk.8) $
+# $HopeName: MMQA_harness!script:commands:try(trunk.9) $
 #
 # run tests interactively (allows for user input, immediate results,
 # &c, but doesn't give results in standard format)
-
-&options();
-
-require "require";
 
 print "The try command has been removed. Please use the run command instead.\n";
 

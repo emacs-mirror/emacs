@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.15) $
+/* $HopeName: MMQA_harness!testlib:testlib.c(trunk.16) $
 some useful functions for testing the MPS */
 
 #include <stdio.h>
@@ -239,7 +239,7 @@ static void *call_f(void *p, size_t s) {
  return NULL;
 }
 
-#if defined(MMQA_VERS_SW)
+#if defined(MMQA_PROD_epcore)
 
 void easy_tramp2(void (*f)(void)) {
  call_f(&f, (size_t) 0);
