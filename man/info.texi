@@ -6,7 +6,7 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.20 2002/03/18 06:45:49 eliz Exp $
+@comment $Id: info.texi,v 1.21 2002/04/23 18:36:05 rms Exp $
 
 @dircategory Texinfo documentation system
 @direntry
@@ -837,7 +837,7 @@ Here are some more Info commands that make it easier to move around.
   If you know a node's name, you can go there by typing @kbd{g}, the
 name, and @key{RET}.  Thus, @kbd{gTop@key{RET}} would go to the node
 called @samp{Top} in this file.  (This is equivalent to @kbd{t}, see
-@ref{Help-Int}.)  @kbd{gAdvanced{RET}} would come back here.
+@ref{Help-Int}.)  @kbd{gAdvanced@key{RET}} would come back here.
 @kbd{g} in Emacs runs the command @code{Info-goto-node}.
 
   Unlike @kbd{m}, @kbd{g} does not allow the use of abbreviations.
