@@ -1,5 +1,8 @@
 2002-07-06  Richard M. Stallman  <rms@gnu.org>
 
+	* mail/rmail.el (rmail-decode-babyl-format): Disable undo
+	around the decode-coding-region call.
+
 	* edmacro.el (edmacro-fix-menu-commands):
 	Discard `help-echo' events.  Handle (menu-bar) events.
 	Simplify by converting key sequence to a list and then back to vector.

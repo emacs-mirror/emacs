@@ -1,3 +1,8 @@
+2002-07-06  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* xselect.c (syms_of_xselect): The default value of
+	selection-coding-system is now compound-text-with-extensions.
+
 2002-07-06  Richard M. Stallman  <rms@gnu.org>
 
 	* xterm.c (x_term_init): Turn off polling around XtOpenDisplay.
