@@ -66,12 +66,9 @@ static POINTER data_space_start;
 /* Number of bytes of writable memory we can expect to be able to get */
 static unsigned int lim_data;
 
-#ifndef emacs
-#define start_of_data (void *) &_end
-#endif
-
 #ifdef USG
 
+void
 get_lim_data ()
 {
   extern long ulimit ();
@@ -88,6 +85,7 @@ get_lim_data ()
 #else /* not USG */
 #ifndef BSD4_2
 
+void
 get_lim_data ()
 {
   lim_data = vlimit (LIM_DATA, -1);
@@ -95,6 +93,7 @@ get_lim_data ()
 
 #else /* BSD4_2 */
 
+void
 get_lim_data ()
 {
   struct rlimit XXrlimit;
