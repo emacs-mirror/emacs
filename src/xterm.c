@@ -5668,22 +5668,16 @@ x_make_frame_visible (f)
      so that incoming events are handled.  */
   {
     Lisp_Object frame;
-    int one_in_four = 1;
     XSET (frame, Lisp_Frame, f);
     while (! f->async_visible)
       {
 	x_sync (frame);
-	/* On HPUX on the HP800, the sleep is needed sometimes.  */
-	if ((one_in_four & 3) == 0)
-	  {
-	    QUIT;
-#ifdef EMACS_HAS_USECS
-	    Fsleep_for (make_number (1), make_number (0));
-#else
-	    Fsleep_for (make_number (0), make_number (250));
+	/* Machines that do polling rather than SIGIO have been observed
+	   to go into a busy-wait here.  Send the alarm signal to let
+	   the handler know that there's something to be read.  */
+#ifndef SIGIO
+	kill (getpid(), SIGALRM);
 #endif
-	  }
-	one_in_four++;
       }
     FRAME_SAMPLE_VISIBILITY (f);
   }
