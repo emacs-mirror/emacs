@@ -1071,7 +1071,7 @@ Legitimate radix values are 8, 10 and 16."
   "Read a key from the keyboard.
 Contrary to `read-event' this will not return a raw event but will
 obey `function-key-map' and `key-translation-map' instead."
-  (let ((overriding-terminal-local-map read-key-aux-map))
+  (let ((overriding-terminal-local-map read-key-auxiliary-map))
     (aref (read-key-sequence prompt nil t) 0)))
 
 (defun read-quoted-char (&optional prompt)
