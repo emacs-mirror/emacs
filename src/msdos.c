@@ -1180,22 +1180,6 @@ IT_write_glyphs (struct glyph *str, int str_len)
 			  Mouse Highlight (and friends..)
  ************************************************************************/
 
-/* If non-nil, dos_rawgetc generates an event to display that string.
-   (The display is done in keyboard.c:read_char, by calling
-   show_help_echo.)  */
-static Lisp_Object help_echo;
-static Lisp_Object previous_help_echo; /* a helper temporary variable */
-
-/* These record the window, the object and the position where the help
-   echo string was generated.  */
-static Lisp_Object help_echo_window;
-static Lisp_Object help_echo_object;
-static int help_echo_pos;
-
-/* Non-zero means automatically select any window when the mouse
-   cursor moves into it.  */
-int mouse_autoselect_window;
-
 /* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
 static Lisp_Object last_mouse_window;
 
@@ -1465,7 +1449,7 @@ IT_note_mode_line_highlight (struct window *w, int x, int mode_line_p)
 				     Qhelp_echo, glyph->object);
 	  if (!NILP (help))
 	    {
-	      help_echo = help;
+	      help_echo_string = help;
 	      XSETWINDOW (help_echo_window, w);
 	      help_echo_object = glyph->object;
 	      help_echo_pos = glyph->charpos;
@@ -1482,7 +1466,7 @@ static void
 IT_note_mouse_highlight (struct frame *f, int x, int y)
 {
   struct display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  int portion = -1;
+  enum window_part part = ON_NOTHING;
   Lisp_Object window;
   struct window *w;
 
@@ -1508,7 +1492,7 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
     }
 
   /* Which window is that in?  */
-  window = window_from_coordinates (f, x, y, &portion, 0);
+  window = window_from_coordinates (f, x, y, &part, 0);
 
   /* If we were displaying active text in another window, clear that.  */
   if (! EQ (window, dpyinfo->mouse_face_window))
@@ -1523,10 +1507,10 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
   x -= WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X (w);
   y -= WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y (w);
 
-  if (portion == 1 || portion == 3)
+  if (part == ON_MODE_LINE || part == ON_HEADER_LINE)
     {
       /* Mouse is on the mode or top line.  */
-      IT_note_mode_line_highlight (w, x, portion == 1);
+      IT_note_mode_line_highlight (w, x, part == ON_MODE_LINE);
       return;
     }
   else
@@ -1534,8 +1518,7 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 
   /* Are we in a window whose display is up to date?
      And verify the buffer's text has not changed.  */
-  if (/* Within text portion of the window.  */
-      portion == 0
+  if (part == ON_TEXT
       && EQ (w->window_end_valid, w->buffer)
       && XFASTINT (w->last_modified) == BUF_MODIFF (XBUFFER (w->buffer))
       && (XFASTINT (w->last_overlay_modified)
@@ -1731,7 +1714,7 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 
 	  if (!NILP (help))
 	    {
-	      help_echo = help;
+	      help_echo_string = help;
 	      help_echo_window = window;
 	      help_echo_object = overlay;
 	      help_echo_pos = pos;
@@ -1749,7 +1732,7 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 					 Qhelp_echo, glyph->object);
 	      if (!NILP (help))
 		{
-		  help_echo = help;
+		  help_echo_string = help;
 		  help_echo_window = window;
 		  help_echo_object = glyph->object;
 		  help_echo_pos = glyph->charpos;
@@ -3397,12 +3380,10 @@ dos_rawgetc ()
 	  /* Generate SELECT_WINDOW_EVENTs when needed.  */
 	  if (mouse_autoselect_window)
 	    {
-	      int mouse_area;
-
 	      mouse_window = window_from_coordinates (SELECTED_FRAME(),
 						      mouse_last_x,
 						      mouse_last_y,
-						      &mouse_area, 0);
+						      0, 0);
 	      /* A window will be selected only when it is not
 		 selected now, and the last mouse movement event was
 		 not in it.  A minibuffer window will be selected iff
@@ -3422,21 +3403,21 @@ dos_rawgetc ()
 	  else
 	    last_mouse_window = Qnil;
 
-	  previous_help_echo = help_echo;
-	  help_echo = help_echo_object = help_echo_window = Qnil;
+	  previous_help_echo_string = help_echo_string;
+	  help_echo_string = help_echo_object = help_echo_window = Qnil;
 	  help_echo_pos = -1;
 	  IT_note_mouse_highlight (SELECTED_FRAME(),
 				   mouse_last_x, mouse_last_y);
 	  /* If the contents of the global variable help_echo has
 	     changed, generate a HELP_EVENT.  */
-	  if (!NILP (help_echo) || !NILP (previous_help_echo))
+	  if (!NILP (help_echo_string) || !NILP (previous_help_echo_string))
 	    {
 	      event.kind = HELP_EVENT;
 	      event.frame_or_window = selected_frame;
 	      event.arg = help_echo_object;
 	      event.x = WINDOWP (help_echo_window)
 		? help_echo_window : selected_frame;
-	      event.y = help_echo;
+	      event.y = help_echo_string;
 	      event.timestamp = event_timestamp ();
 	      event.code = help_echo_pos;
 	      kbd_buffer_store_event (&event);
@@ -5305,16 +5286,8 @@ syms_of_msdos ()
 {
   recent_doskeys = Fmake_vector (make_number (NUM_RECENT_DOSKEYS), Qnil);
   staticpro (&recent_doskeys);
+
 #ifndef HAVE_X_WINDOWS
-  help_echo = Qnil;
-  staticpro (&help_echo);
-  help_echo_object = Qnil;
-  staticpro (&help_echo_object);
-  help_echo_window = Qnil;
-  staticpro (&help_echo_window);
-  previous_help_echo = Qnil;
-  staticpro (&previous_help_echo);
-  help_echo_pos = -1;
 
   /* The following two are from xfns.c:  */
   Qbar = intern ("bar");
@@ -5332,9 +5305,6 @@ syms_of_msdos ()
 This variable is used only by MSDOS terminals.  */);
   Vdos_unsupported_char_glyph = '\177';
 
-  DEFVAR_BOOL ("mouse-autoselect-window", &mouse_autoselect_window,
-    doc: /* *Non-nil means autoselect window with mouse pointer.  */);
-  mouse_autoselect_window = 0;
 #endif
 #ifndef subprocesses
   DEFVAR_BOOL ("delete-exited-processes", &delete_exited_processes,
