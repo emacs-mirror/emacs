@@ -2390,10 +2390,10 @@ Signals a `file-already-exists' error if file NEWNAME already exists,
 unless a third argument OK-IF-ALREADY-EXISTS is supplied and non-nil.
 A number as third arg means request confirmation if NEWNAME already exists.
 This is what happens in interactive use with M-x.
+Always sets the file modes of the target file to match the source file.
 Fourth arg KEEP-TIME non-nil means give the new file the same
 last-modified time as the old one.  (This works on only some systems.)
-A prefix arg makes KEEP-TIME non-nil.
-Also set the file modes of the target file to match the source file.  */)
+A prefix arg makes KEEP-TIME non-nil.  */)
      (file, newname, ok_if_already_exists, keep_time)
      Lisp_Object file, newname, ok_if_already_exists, keep_time;
 {
