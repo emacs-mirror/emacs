@@ -846,7 +846,11 @@ so there is no danger of generating a name being used by another process.\n\
 \n\
 In addition, this function makes an attempt to choose a name\n\
 which has no existing file.  To make this work,\n\
-PREFIX should be an absolute file name.")
+PREFIX should be an absolute file name.\n\
+\n\
+There is a race condition between calling `make-temp-name' and creating the
+file which opens all kinds of security holes.  For that reason, you should
+probably use `make-temp-file' instead.")
   (prefix)
      Lisp_Object prefix;
 {
