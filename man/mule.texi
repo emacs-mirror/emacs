@@ -636,6 +636,34 @@ a different coding system, you can specify a different coding system for
 the buffer using @code{set-buffer-file-coding-system} (@pxref{Specify
 Coding}).
 
+  While editing a file, you will sometimes insert characters which
+cannot be encoded with the coding system stored in
+@code{buffer-file-coding-system}.  For example, suppose you start with
+an ASCII file and insert a few Latin-1 characters into it.  Or you could
+edit a text file in Polish encoded in @code{iso-8859-2} and add to it
+translations of several Polish words into Russian.  When you save the
+buffer, Emacs can no longer use the previous value of the buffer's
+coding system, because the characters you added cannot be encoded by
+that coding system.
+
+  When that happens, Emacs tries the most-preferred coding system (set
+by @kbd{M-x prefer-coding-system} or @kbd{M-x
+set-language-environment}), and if that coding system can safely encode
+all of the characters in the buffer, Emacs uses it, and stores its value
+in @code{buffer-file-coding-system}.  Otherwise, Emacs pops up a window
+with a list of coding systems suitable for encoding the buffer, and
+prompts you to choose one of those coding systems.
+
+  If you insert characters which cannot be encoded by the buffer's
+coding system while editing a mail message, Emacs behaves a bit
+differently.  It additionally checks whether the most-preferred coding
+system is recommended for use in MIME messages; if it isn't, Emacs tells
+you that the most-preferred coding system is not recommended and prompts
+you for another coding system.  This is so you won't inadvertently send
+a message encoded in a way that your recipient's mail software will have
+difficulty decoding.  (If you do want to use the most-preferred coding
+system, you can type its name to Emacs prompt anyway.)
+
 @vindex sendmail-coding-system
   When you send a message with Mail mode (@pxref{Sending Mail}), Emacs has
 four different ways to determine the coding system to use for encoding
