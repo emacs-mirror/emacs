@@ -588,10 +588,12 @@ child_setup_tty (out)
 #endif
   s.main.c_lflag &= ~ECHO;	/* Disable echo */
   s.main.c_lflag |= ISIG;	/* Enable signals */
+#if 0
   s.main.c_iflag &= ~ICRNL;	/* Disable map of CR to NL on input */
 #ifdef INLCR  /* Just being cautious, since I can't check how
 		 widespread INLCR is--rms.  */
   s.main.c_iflag &= ~INLCR;	/* Disable map of NL to CR on input */
+#endif
 #endif
 #ifdef IUCLC
   s.main.c_iflag &= ~IUCLC;	/* Disable downcasing on input.  */
