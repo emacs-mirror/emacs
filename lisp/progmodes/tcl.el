@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.14 $
+;; Version: $Revision: 1.15 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/05/22 20:18:28 $|$Revision: 1.14 $|~/modes/tcl.el.Z|
+;; $Date: 1994/05/22 20:38:11 $|$Revision: 1.15 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+; Revision 1.15  1994/05/22  20:38:11  tromey
+; Added bug-report keybindings and menu entries.
+;
 ; Revision 1.14  1994/05/22  20:18:28  tromey
 ; Even more compile stuff.
 ;
@@ -210,6 +213,7 @@
 ;; * Consider writing code to find help files automatically (for
 ;;   common cases).
 ;; * `#' shouldn't insert `\#' when point is in string.
+;; * '}' doesn't seem to reindent.
 
 
 
@@ -239,7 +243,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.14 $")
+(defconst tcl-version "$Revision: 1.15 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@busco.lanl.gov>")
 
 ;;
@@ -362,17 +366,20 @@ quoted for Tcl.")
     ["Beginning of function" tcl-beginning-of-defun t]
     ["End of function" tcl-end-of-defun t]
     ["Mark function" tcl-mark-defun t]
-    ["Indent region" indent-region t]
-    ["Comment region" comment-region t]
-    ["Uncomment region" tcl-uncomment-region t]
+    ["Indent region" indent-region (tcl-mark)]
+    ["Comment region" comment-region (tcl-mark)]
+    ["Uncomment region" tcl-uncomment-region (tcl-mark)]
     "----"
     ["Show Tcl process buffer" inferior-tcl t]
-    ["Send function to Tcl process" tcl-eval-defun t]
-    ["Send region to Tcl process" tcl-eval-region t]
-    ["Send file to Tcl process" tcl-load-file t]
+    ["Send function to Tcl process" tcl-eval-defun
+     (get-buffer inferior-tcl-buffer)]
+    ["Send region to Tcl process" tcl-eval-region
+     (get-buffer inferior-tcl-buffer)]
+    ["Send file to Tcl process" tcl-load-file
+     (get-buffer inferior-tcl-buffer)]
     ["Restart Tcl process with file" tcl-restart-with-file t]
     "----"
-    ["Tcl help" tcl-help-on-word t]
+    ["Tcl help" tcl-help-on-word tcl-help-directory-list]
     ["Send bug report" tcl-submit-bug-report t])
   "Lucid Emacs menu for Tcl mode.")
 
@@ -705,6 +712,15 @@ An end of a defun is found by moving forward from the beginning of one."
       (if tcl-using-emacs-19.23
 	  'mark-defun
 	'tcl-internal-mark-defun))
+
+;; In GNU Emacs 19, mark takes an additional "force" argument.  I
+;; don't know about Lucid Emacs, so I'm just assuming it is the same.
+;; Emacs 18 doesn't have this argument.
+(defun tcl-mark ()
+  "Return mark, or nil if none."
+  (if tcl-using-emacs-19
+      (mark t)
+    (mark)))
 
 
 
