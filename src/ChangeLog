@@ -1,3 +1,8 @@
+2004-05-15  Andreas Schwab  <schwab@suse.de>
+
+	* emacs.c (gdb_array_mark_flag): Define.
+	* .gdbinit: Mask off gdb_array_mark_flag from vector sizes.
+
 2004-05-15  Eli Zaretskii  <eliz@gnu.org>
 
 	* lisp.h (DECL_ALIGN) [MSDOS]: Don't define DECL_ALIGN to use
