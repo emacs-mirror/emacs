@@ -1,6 +1,6 @@
 ;;; lisp-mode.el --- Lisp mode, and its idiosyncratic commands
 
-;; Copyright (C) 1985, 1986, 1999, 2000, 2001, 2003, 2004
+;; Copyright (C) 1985, 1986, 1999, 2000, 2001, 2003, 2004, 2005
 ;;           Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -602,7 +602,7 @@ Reinitialize the face according to the `defface' specification."
 	      (boundp (cadr form)))
 	 ;; Force variable to be re-set.
 	 `(progn (defvar ,(nth 1 form) nil ,@(nthcdr 3 form))
-		 (setq ,(nth 1 form) ,(nth 2 form))))
+		 (setq-default ,(nth 1 form) ,(nth 2 form))))
 	;; `defcustom' is now macroexpanded to
 	;; `custom-declare-variable' with a quoted value arg.
 	((and (eq (car form) 'custom-declare-variable)
