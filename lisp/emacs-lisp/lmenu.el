@@ -139,7 +139,7 @@ The syntax, more precisely:
       (setq answer (x-popup-menu (list (list (nth 1 pos) (nthcdr 2 pos))
 				       (car pos))
 				 menu))
-      (setq cmd (lookup-key menu (vector answer)))
+      (setq cmd (lookup-key menu (apply 'vector answer)))
       (setq menu nil)
       (and cmd
 	   (if (keymapp cmd)
