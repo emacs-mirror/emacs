@@ -66,7 +66,7 @@ a font height that isn't optimal."
   '(("courier" "fixed")
     ("helv" "helvetica" "arial" "fixed"))
   "*Alist of alternative font family names.
-Each element has the the form (FAMILY ALTERNATIVE1 ALTERNATIVE2 ...).
+Each element has the form (FAMILY ALTERNATIVE1 ALTERNATIVE2 ...).
 If fonts of family FAMILY can't be loaded, try ALTERNATIVE1, then
 ALTERNATIVE2 etc."
   :tag "Alternative font families to try."
@@ -89,7 +89,7 @@ ALTERNATIVE2 etc."
       ("ksc5601.1989" "ksx1001.1992" "ksc5601.1987")
       ("muletibetan-2" "muletibetan-0")))
   "*Alist of alternative font registry names.
-Each element has the the form (REGISTRY ALTERNATIVE1 ALTERNATIVE2 ...).
+Each element has the form (REGISTRY ALTERNATIVE1 ALTERNATIVE2 ...).
 If fonts of registry REGISTRY can be loaded, font selection
 tries to find a best matching font among all fonts of registry
 REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
