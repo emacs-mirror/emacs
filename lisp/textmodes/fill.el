@@ -900,7 +900,7 @@ If the mark is not active, this applies to the current paragraph."
   (set-justification b e 'left t))
 
 (defun set-justification-right (b e)
-  "Make paragraphs in the region right-justified:
+  "Make paragraphs in the region right-justified.
 Flush at the right margin and ragged on the left.
 If the mark is not active, this applies to the current paragraph."
   (interactive (list (if mark-active (region-beginning) (point))
@@ -908,7 +908,7 @@ If the mark is not active, this applies to the current paragraph."
   (set-justification b e 'right t))
 
 (defun set-justification-full (b e)
-  "Make paragraphs in the region fully justified:
+  "Make paragraphs in the region fully justified.
 This makes lines flush on both margins by inserting spaces between words.
 If the mark is not active, this applies to the current paragraph."
   (interactive (list (if mark-active (region-beginning) (point))
