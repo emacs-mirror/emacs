@@ -1,6 +1,6 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs
 
-;; Copyright (C) 1993, 94, 95, 96, 97, 1999, 2001, 03, 2004
+;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1999, 2001, 2003, 2004, 2005
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
@@ -838,7 +838,7 @@ See `sh-feature'.")
 (defconst sh-st-symbol (string-to-syntax "_"))
 (defconst sh-here-doc-syntax (string-to-syntax "|")) ;; generic string
 
-(defconst sh-here-doc-open-re "<<-?\\s-*\\\\?\\(\\(?:['\"][^'\"]+['\"]\\|\\sw\\|\\s_\\)+\\).*\\(\n\\)")
+(defconst sh-here-doc-open-re "<<-?\\s-*\\\\?\\(\\(?:['\"][^'\"]+['\"]\\|\\sw\\)+\\).*\\(\n\\)")
 
 (defvar sh-here-doc-markers nil)
 (make-variable-buffer-local 'sh-here-doc-markers)
@@ -3631,5 +3631,5 @@ shell command and conveniently use this command."
 
 (provide 'sh-script)
 
-;;; arch-tag: eccd8b72-f337-4fc2-ae86-18155a69d937
+;; arch-tag: eccd8b72-f337-4fc2-ae86-18155a69d937
 ;;; sh-script.el ends here

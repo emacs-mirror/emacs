@@ -1,3 +1,8 @@
+2005-01-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-here-doc-open-re): Don't allow | or other
+	funny chars in the end-of-here-doc marker.
+
 2005-01-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-put-string): Copy/create strings so
@@ -5,9 +10,9 @@
 	fringe and on ttys.
 	(gdb-put-breakpoint-icon, gdb-info-breakpoints-custom):
 	Add breakpoint information as text properties.
-	(gdb-mouse-toggle-breakpoint): 
+	(gdb-mouse-toggle-breakpoint):
 	Rename to gdb-mouse-set-clear-breakpoint.
-	(gdb-mouse-toggle-breakpoint): New function. Enable/disable
+	(gdb-mouse-toggle-breakpoint): New function.  Enable/disable
 	breakpoints in the margin.
 	(gdb-remove-strings): Simplify.
 
