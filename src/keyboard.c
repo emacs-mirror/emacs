@@ -1937,7 +1937,7 @@ kbd_buffer_get_event ()
 
 	  if (! EQ (frame, internal_last_event_frame)
 	      && XFRAME (frame) != selected_frame)
-	    obj = make_lispy_switch_frame (internal_last_event_frame);
+	    obj = make_lispy_switch_frame (frame);
 	  internal_last_event_frame = frame;
 	}
 #endif
