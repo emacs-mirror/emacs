@@ -2,6 +2,7 @@
 
 	* xdisp.c (define_frame_cursor1): Do not change frame cursor
 	while tracking/dragging mouse.
+	(x_draw_vertical_border): Do not draw line if frame has scroll bars.
 
 	* window.c (coordinates_in_window): Relax check for cursor
 	on vertial border between mode lines.
