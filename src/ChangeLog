@@ -1,3 +1,14 @@
+2000-08-16  Gerd Moellmann  <gerd@gnu.org>
+
+	* term.c (write_glyphs): Also turn off inverse video after turning
+	off other appearances in case TS_exit_attribute_mode is not equal
+	to TS_end_standout_mode.
+	(insert_glyphs): Turn inverse video on/off for each run of glyphs
+	with the same face.
+	(turn_off_face): Reset standout_mode only if
+	TS_exit_attribute_mode has been output and TS_exit_attribute_mode
+	is equal to TS_end_standout_mode.
+
 2000-08-16  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (encode_coding): Fix the bug of not flushing ISO escape
