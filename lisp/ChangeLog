@@ -1,3 +1,15 @@
+2002-07-07  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/debug.el (debug-on-entry): Fix the wrapper used for
+	aliases to also work for interactive functions.
+	Use the same wrapper for subroutines.
+	(cancel-debug-on-entry): Get rid of the now-useless wrapper.
+	(debug-on-entry-1): Correctly skip docstrings and interactive forms.
+
+	* textmodes/texinfo.el (texinfo-font-lock-keywords): Disable the
+	automatic environment name update.
+	(texinfo-clone-environment): Fix it not to incorrectly match prefixes.
+
 2002-07-07  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/easymenu.el (easy-menu-popup-menu): Function deleted.
@@ -10,7 +22,7 @@
 	Also allow `safe-local-eval-function' property to be a function
 	or a list of functions.
 	(c-add-style): Delete `safe-local-eval-function' property.
-	
+
 	* files.el (after-find-file): Make buffer read-only if file is
 	marked that way, even for root.
 
@@ -32,6 +44,16 @@
 	* emulation/cua-rect.el (cua--rectangle-operation): Don't call
 	FCT if current column is outside rectangle.
 	(cua--delete-rectangle): Do nothing if zero width or out of bounds.
+
+2002-07-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* net/ange-ftp.el: Use add-hook and find-file-hook.
+	(ange-ftp-parse-netrc): Use run-hooks and find-file-hook.
+	(ange-ftp-ls-parser): Make it into a function.
+	Ignore trailing @ in symlink targets.
+	(ange-ftp-file-entry-p): Ignore FTP errors.
+	(ange-ftp-insert-directory): Use ange-ftp-expand-symlink
+	to correctly expand "/flint:/bla -> ./etc" to /flint:/etc.
 
 2002-07-04  Per Abrahamsen  <abraham@dina.kvl.dk>
 
