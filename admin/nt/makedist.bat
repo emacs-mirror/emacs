@@ -95,15 +95,22 @@ echo Create zip files for bin and lisp archives
 mkdir distrib
 cd distrib
 gunzip -c ..\%2-bin-i386.tar.gz | %TAR% xf -
-zip -rp9 em%5_bin %2
+rem Need to split emacs.exe into fragments because it is too big now
+rem to fit on a floppy even by itself.
+copy %3\stitch.bat %2\bin
+cd %2\bin
+split -b 1000000 emacs.exe emacs
+del emacs.exe
+cd ..\..
+zip -rp9 em%5bin %2
 rm -rf %2
-zipsplit -n 2000000 -b .. em%5_bin.zip
-del em%5_bin.zip
+zipsplit -n 1400000 -b .. em%5bin.zip
+del em%5bin.zip
 gunzip -c ..\%2-lisp.tar.gz | %TAR% xf -
-zip -rp9 em%5_lis %2
+zip -rp9 em%5lis %2
 rm -rf %2
-zipsplit -n 1400000 -b .. em%5_lis.zip
-del em%5_lis.zip
+zipsplit -n 1400000 -b .. em%5lis.zip
+del em%5lis.zip
 cd ..
 
 goto end
