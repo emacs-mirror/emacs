@@ -33,12 +33,13 @@ maximum buffer size.  See etc/MACHINES for instructions.
 new display features described below.
 
 ** This version can be built for the Macintosh, but does not implement
-all of the new display features describe below.  The port currently
+all of the new display features described below.  The port currently
 lacks unexec, asynchronous processes, and networking support.
 
 
 * Changes in Emacs 21.1
 
++++
 ** Refill minor mode provides preliminary support for keeping
 paragraphs filled as you modify them.
 
@@ -2810,7 +2811,7 @@ Currently all unibyte text, i.e. all buffers with
 registry and encoding `face-default-registry'.  This is consistent
 with the fact that languages can also be set globally, only.
 
-++++
++++
 **** Clearing face caches.
 
 The Lisp function `clear-face-cache' can be called to clear face caches

@@ -1,5 +1,18 @@
 2000-10-27  Dave Love  <fx@gnu.org>
 
+	* gnus-group.el (gnus-group-make-menu-bar): Add some :help
+	strings.
+	(gnus-group-make-tool-bar): New function.
+	(gnus-group-mode): Use it.
+
+	* message.el (message-mode-menu): Add some :help strings.
+	(message-mode) [message-tool-bar-map]: Define tool-bar-map.
+	(featurep): Use (featurep 'xemacs).  Install tool bar for Emacs.
+
+	* catchup.xpm, exit-gnus.xpm, gnntg.xpm, subscribe.xpm:
+	* describe-group.xpm, get-news.xpm, kill-group.xpm:
+	* unsubscribe.xpm: New files.
+
 	* mm-decode.el (mm-valid-and-fit-image-p): Don't test
 	display-graphic-p here.
 
