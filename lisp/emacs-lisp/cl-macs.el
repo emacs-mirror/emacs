@@ -1844,23 +1844,14 @@ The form returns true if TAG was found and removed, nil otherwise."
   "(shiftf PLACE PLACE... VAL): shift left among PLACEs.
 Example: (shiftf A B C) sets A to B, B to C, and returns the old A.
 Each PLACE may be a symbol, or any generalized variable allowed by `setf'."
-  (if (not (memq nil (mapcar 'symbolp (butlast (cons place args)))))
-      (list 'prog1 place
-	    (let ((sets nil))
-	      (while args
-		(cl-push (list 'setq place (car args)) sets)
-		(setq place (cl-pop args)))
-	      `(setq ,(cadar sets)
-		     (prog1 ,(caddar sets)
-		       ,@(nreverse (cdr sets))))))
-    (let* ((places (reverse (cons place args)))
-	   (form (cl-pop places)))
-      (while places
-	(let ((method (cl-setf-do-modify (cl-pop places) 'unsafe)))
-	  (setq form (list 'let* (car method)
-			   (list 'prog1 (nth 2 method)
-				 (cl-setf-do-store (nth 1 method) form))))))
-      form)))
+  (cond
+   ((null args) place)
+   ((symbolp place) `(prog1 ,place (setq ,place (shiftf ,@args))))
+   (t
+    (let ((method (cl-setf-do-modify place 'unsafe)))
+      `(let* ,(car method)
+	 (prog1 ,(nth 2 method)
+	   ,(cl-setf-do-store (nth 1 method) `(shiftf ,@args))))))))
 
 (defmacro rotatef (&rest args)
   "(rotatef PLACE...): rotate left among PLACEs.
