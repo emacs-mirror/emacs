@@ -4,7 +4,7 @@
 
 ;; Author: Oliver.Seidel@cl.cam.ac.uk (was valid on Aug 2, 1997)
 ;; Created: 2 Aug 1997
-;; Version: $Id: todo-mode.el,v 1.21 1997/10/18 13:31:40 os10000 Exp $
+;; Version: $Id: todo-mode.el,v 1.21 1997/10/24 16:51:02 os10000 Exp os10000 $
 ;; Keywords: Categorised TODO list editor, todo-mode
 
 ;; This file is part of GNU Emacs.
@@ -77,7 +77,7 @@
 ;;
 ;;      Which version of todo-mode.el does this documentation refer to?
 ;;
-;;      $Id: todo-mode.el,v 1.21 1997/10/18 13:31:40 os10000 Exp $
+;;      $Id: todo-mode.el,v 1.21 1997/10/24 16:51:02 os10000 Exp os10000 $
 ;;
 ;;  Pre-Requisites
 ;;
@@ -250,6 +250,25 @@
 ;;; Change Log:
 
 ;; $Log: todo-mode.el,v $
+;; Revision 1.21  1997/10/24  16:51:02  os10000
+;; Rafael Laboissiere <rafael@icp.inpg.fr> writes:
+;;
+;; I was just annoyed with the fact that there is no way
+;; to dynamically control the insertion accuracy.  I mean:
+;; the variable `todo-insert-threshold' does the job, but
+;; it is not very handy if one wants to mix the two
+;; behaviors (bisection and "insert right here under the
+;; cursor").
+;;
+;; Therefore I did a quick hack in the function
+;; `todo-insert-item'.  Now by giving a prefix argument to
+;; the insert command (i.e. by typing "C-u i"), entries
+;; are inserted exactly at the line where the cursor is.
+;; It would be better to give the value of
+;; `todo-insert-threshold' as a numeric argument of
+;; `todo-insert-item' (like "M-8 i"), but it's too late
+;; now for continuing to hack.
+;;
 ;; Revision 1.20  1997/10/17  15:41:57  os10000
 ;; Thanks to Harald Backer <harald.backer@fou.telenor.no>, we now have
 ;; the following facilities available:
@@ -586,10 +605,14 @@ TODO categories. Use `todo-categories' instead.")
                                      (funcall todo-entry-prefix-function)))))
          (categories todo-categories)
          (history (cons 'categories (1+ todo-category-number)))
-	 (category (completing-read 
+	 (current-category (nth todo-category-number todo-categories))
+	 (category 
+	  (if ARG
+	      current-category
+	      (completing-read 
                     (concat "Category ["
-                            (nth todo-category-number todo-categories) "]: ")
-                    (todo-category-alist) nil nil nil history)))
+                            current-category "]: ")
+                    (todo-category-alist) nil nil nil history))))
     (if (string= "" category)
         (setq category (nth todo-category-number todo-categories)))
     (let ((cat-exists (member category todo-categories)))
