@@ -634,7 +634,7 @@ directory names."
 		  ;; components, then look for lib/mh or mh/lib.
 		  (or (mh-path-search
 		       (mapcar (lambda (p) (expand-file-name p mh-base))
-			       '("lib/mh" "etc/nmh" "/etc/nmh" "mh/lib"))
+			       '("lib/mh" "etc/nmh" "/etc/nmh" "mh/lib" "etc"))
 		       "components"
 		       'file-exists-p))))
 	(or (and mh-lib-progs
