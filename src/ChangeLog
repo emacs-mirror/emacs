@@ -1,3 +1,10 @@
+2002-10-07  Kenichi Handa  <handa@m17n.org>
+
+	* keymap.c (push_key_description): Pay attention to
+	force_multibyte.
+
+	* regex.c (re_search_2): Fix for the case of unibyte buffer.
+
 2002-10-06  Dave Love  <fx@gnu.org>
 
 	* charset.c (define_charset_internal): Rename `supprementary'.
