@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 1995, 2000 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2001 Free Software Foundation, Inc.
 
 ;; Author: Kenichi HANDA <handa@etl.go.jp>
 ;;	   Naoto TAKAHASHI <ntakahas@etl.go.jp>
@@ -1434,6 +1435,7 @@ Return the input string."
 	      (setq unread-command-events
 		    (string-to-list (this-single-command-raw-keys)))
 	      (setq quail-converting nil))))
+	(setq quail-translating nil)
 	(if (overlay-start quail-conv-overlay)
 	    (delete-region (overlay-start quail-conv-overlay)
 			   (overlay-end quail-conv-overlay)))
