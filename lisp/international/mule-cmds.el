@@ -149,8 +149,17 @@
 ;;; (define-key global-map [?\S- ] 'toggle-input-method)
 
 (defun toggle-enable-multibyte-characters (&optional arg)
-  "Change whether this buffer enables multibyte characters.
-With arg, make them enable iff arg is positive."
+  "Change whether this buffer uses multibyte characters.
+With arg, use multibyte characters if the arg is positive.
+
+Note that this command does not convert the byte contents of
+the buffer; it only changes the way those bytes are interpreted.
+In general, therefore, this command *changes* the sequence of
+characters that the current buffer contains.
+
+We suggest you avoid using use this command unless you know what you
+are doing.  If you use it by mistake, and the buffer is now displayed
+wrong, use this command again to toggle back to the right mode."
   (interactive "P")
   (setq enable-multibyte-characters
 	(if (null arg) (null enable-multibyte-characters)
