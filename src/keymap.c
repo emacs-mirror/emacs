@@ -607,7 +607,7 @@ the front of KEYMAP.")
       c = Faref (key, make_number (idx));
 
       if (CONSP (c) && lucid_event_type_list_p (c))
-	c = convert_event_type_list (c);
+	c = Fevent_convert_list (c);
 
       if (INTEGERP (c)
 	  && (XINT (c) & meta_bit)
@@ -701,7 +701,7 @@ recognize the default bindings, just as `read-key-sequence' does.")
       c = Faref (key, make_number (idx));
 
       if (CONSP (c) && lucid_event_type_list_p (c))
-	c = convert_event_type_list (c);
+	c = Fevent_convert_list (c);
 
       if (INTEGERP (c)
 	  && (XINT (c) & meta_bit)
