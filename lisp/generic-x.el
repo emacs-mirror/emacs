@@ -43,6 +43,10 @@
 ;;
 ;; PROBLEMS WHEN USED WITH FOLDING MODE:
 ;;
+;; [The following relates to the obsolete selective-display technique.
+;; Folding mode should use invisible text properties instead. -- Dave
+;; Love]
+;;
 ;; From Anders Lindgren <andersl@csd.uu.se>
 ;; 
 ;; Problem summary: Wayne Adams has found a problem when using folding
