@@ -1,6 +1,6 @@
 ;;; calc-ext.el --- various extension functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Colin Walters <walters@debian.org>
@@ -250,6 +250,7 @@
   (define-key calc-mode-map "d'" 'calc-display-raw)
   (define-key calc-mode-map "d " 'calc-refresh)
   (define-key calc-mode-map "d\r" 'calc-refresh-top)
+  (define-key calc-mode-map "d@" 'calc-toggle-banner)
 
   (define-key calc-mode-map "f" nil)
   (define-key calc-mode-map "f?" 'calc-f-prefix-help)
@@ -1489,6 +1490,12 @@ calc-kill calc-kill-region calc-yank))))
       (if calc-embedded-info (calc-embedded-modes-change var))
       (symbol-value (car var)))))
 
+(defun calc-toggle-banner ()
+  "Toggle display of the friendly greeting calc normally shows above the stack."
+  (interactive)
+  (setq calc-show-banner (not calc-show-banner))
+  (calc-refresh))
+
 (defun calc-refresh-top (n)
   (interactive "p")
   (calc-wrapper
@@ -1533,7 +1540,6 @@ calc-kill calc-kill-region calc-yank))))
 	   (setq num (1- num)))))
   (and calc-embedded-active which-var
        (calc-embedded-var-change which-var)))
-
 
 (defun calc-push (&rest vals)
   (calc-push-list vals))
