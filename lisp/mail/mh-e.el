@@ -59,7 +59,7 @@
 ;; Original version for Gosling emacs by Brian Reid, Stanford, 1982.
 ;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
-;; Modified by Stephen Gildea 1988.  gildea@sto.mail-abuse.org
+;; Modified by Stephen Gildea 1988.  gildea@stop.mail-abuse.org
 (defconst mh-e-RCS-id "$Id: mh-e.el,v 1.28 2001/07/15 19:53:53 pj Exp $")
 
 ;;; Code:
