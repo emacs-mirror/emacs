@@ -274,8 +274,8 @@ address, and postmaster of the mail relay used."
       (if mail-default-headers
           (insert mail-default-headers))
       (if mail-default-reply-to
-	  (insert "Reply-to: " mail-default-reply-to "\n"))
-      (insert mail-header-separator "\n")
+	  (insert "Reply-to: " mail-default-reply-to "\n\n"))
+      (mail-sendmail-delimit-header)
       ;; Insert all our text.  Then go back to the place where we started.
       (if to (setq to (point)))
       ;; Text of ranting.
