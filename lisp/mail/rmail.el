@@ -112,6 +112,24 @@ and the value of the environment variable MAIL overrides it).")
 (defvar rmail-secondary-file-regexp "\\.xmail$"
   "*Regexp for which files are secondary Rmail files.")
 
+;;;###autoload
+(defvar rmail-mode-hook nil
+  "List of functions to call when Rmail is invoked.")
+
+;;;###autoload
+(defvar rmail-get-new-mail-hook nil
+  "List of functions to call when Rmail has retrieved new mail.")
+
+;;;###autoload
+(defvar rmail-show-message-hook nil
+  "List of functions to call when Rmail displays a message.")
+
+;;;###autoload
+(defvar rmail-delete-message-hook nil
+  "List of functions to call when Rmail deletes a message.
+When the hooks are called, the message has been marked deleted but is
+still the current message in the Rmail buffer.")
+
 ;; These may be altered by site-init.el to match the format of mmdf files
 ;;  delimiting used on a given host (delim1 and delim2 from the config
 ;;  files).
@@ -1875,7 +1893,8 @@ If N is negative, go forwards instead."
 (defun rmail-delete-message ()
   "Delete this message and stay on it."
   (interactive)
-  (rmail-set-attribute "deleted" t))
+  (rmail-set-attribute "deleted" t)
+  (run-hooks 'rmail-delete-message-hook))
 
 (defun rmail-undelete-previous-message ()
   "Back up to deleted message, select it, and undelete it."
@@ -1903,6 +1922,7 @@ With prefix argument, delete and move backward.
 Returns t if a new message is displayed after the delete, or nil otherwise."
   (interactive "P")
   (rmail-set-attribute "deleted" t)
+  (run-hooks 'rmail-delete-message-hook)
   (let ((del-msg rmail-current-message))
     (if (rmail-summary-exists)
 	(rmail-select-summary
