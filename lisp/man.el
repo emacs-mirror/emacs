@@ -139,6 +139,7 @@ the associated section number.")
       "-e '/^[ \\t]*Hewlett-Packard[ \\t]*- [0-9]* -.*$/d'"
       "-e '/^ *Page [0-9]*.*(printed [0-9\\/]*)$/d'"
       "-e '/^Printed [0-9].*[0-9]$/d'"
+      "-e '/^[ \\t]*X Version 1[01].*Release [0-9]/d'"
       "-e '/^Sun Microsystems.*Last change:/d'"
       "-e '/^Sun Release [0-9].*[0-9]$/d'"
       "-e '/^\\n$/D'"
@@ -731,7 +732,11 @@ background. Universal argument ARG is passed to Man-getpage-in-background."
     (goto-char page-start)
     (narrow-to-region page-start page-end)
     (Man-build-section-alist)
-    (Man-build-references-alist)
+    ;; Don't let bugs in Man-build-references-alist
+    ;; interfere with ordinary use of this package.
+    (condition-case nil
+	(Man-build-references-alist)
+      (error))
     (widen)
     (narrow-to-region page-start page-end)
     (goto-char (point-min))))
