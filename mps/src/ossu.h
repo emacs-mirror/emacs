@@ -1,6 +1,6 @@
 /*  ==== SUNOS ANSI COMPATABILITY HEADER ====
  *
- *  $HopeName: MMsrc!ossu.h(MMdevel_restr.2) $
+ *  $HopeName: MMsrc!ossu.h(trunk.3) $
  *
  *  Copyright (C) 1994,1995 Harlequin Group, all rights reserved
  *
@@ -19,6 +19,7 @@
 #define ansi_h
 
 #include <stdarg.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <time.h>
@@ -26,6 +27,14 @@
 /* on the Suns, the include files in /usr/include do not include
 declarations for a large number of ANSI functions. We remedy that
 here. */
+
+
+/* stddef.h */
+
+#ifndef offsetof        /* true for platform.susplc for example */
+#define offsetof(ty,mem) ((size_t)((char*)&((ty*)0)->mem - (char*)0))
+#endif
+
 
 /* stdio.h things */
 
@@ -51,17 +60,10 @@ but not declared in stdio.h */
 
 extern int _filbuf(FILE *stream);
 
-#ifdef __GNUC__
 extern int _flsbuf(unsigned char c, FILE *stream);
-#else
-extern int _flsbuf(FILE *stream);
-#endif
 
 /* time.h things */
 
-#ifndef __GNUC__
-typedef long clock_t;
-#endif
 extern size_t strftime (char *s, size_t maxsize, const char *format,
                         const struct tm *timeptr);
 extern time_t time (time_t *timer);

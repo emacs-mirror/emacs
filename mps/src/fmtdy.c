@@ -1,6 +1,6 @@
 /* impl.c.fmtdy: DYLAN OBJECT FORMAT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!fmtdy.c(trunk.5) $
+ *  $HopeName: MMsrc!fmtdy.c(trunk.6) $
  *  Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  *  All objects, B:
@@ -50,8 +50,21 @@
 #include <string.h>
 #include <stdlib.h>
 
+#ifdef MPS_PF_SUSPLC
+/* .hack.stderr: builder.lc (LCC) uses Sun's header files.  Sun's
+   assert.h is broken, as it assumes it can use stderr.  We have to
+   fix it by supplying stderr.
+ */
+#include <stdio.h>
+/* .hack.malloc: builder.lc (LCC) uses Sun's header files.  Sun's
+   stdlib.h is broken, as it has an incorrect declaration of malloc.
+   We fix that here in a very hacky way.
+ */
+#define malloc(x) (void *)malloc(x)
+#endif
 
-#define notreached()    do assert(0); while(0)
+
+#define notreached()    assert(0)
 
 #define ALIGN           sizeof(mps_word_t)
 
