@@ -1,6 +1,6 @@
 /* impl.c.testlib: TEST LIBRARY
  *
- * $HopeName: MMsrc!testlib.c(trunk.18) $
+ * $HopeName: MMsrc!testlib.c(trunk.19) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  * .purpose: A library of functions that may be of use to unit tests.
@@ -9,14 +9,8 @@
 #include "testlib.h"
 #include "mps.h"
 #include "mpm.h"
-#include "mpstd.h"
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
 #include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #ifdef MPS_OS_IA
 struct itimerspec; /* stop complaints from time.h */
 #endif
