@@ -28,11 +28,21 @@
 
 (require 'parse-time)
 
+(autoload 'timezone-make-date-arpa-standard "timezone")
+
 ;;;###autoload
 (defun date-to-time (date)
   "Convert DATE into time."
   (condition-case ()
-      (apply 'encode-time (parse-time-string date))
+      (apply 'encode-time
+	     (parse-time-string
+	      ;; `parse-time-string' isn't sufficiently general or
+	      ;; robust.  It fails to grok some of the formats that
+	      ;; timzeone does (e.g. dodgy post-2000 stuff from some
+	      ;; Elms) and either fails or returns bogus values.  Lars
+	      ;; reverted this change, but that loses non-trivially
+	      ;; often for me.  -- fx
+	      (timezone-make-date-arpa-standard date)))
     (error (error "Invalid date: %s" date))))
 
 (defun time-to-seconds (time)
