@@ -217,7 +217,7 @@ SPC, 6, 3, 4, or 7 specifing a tone (SPC:$(0?v(N(B, 6:$(0Dm(N(B, 3:$(0&9Vy
    dirname))
 
 ;; This value is nil if we are processing phrase dictionary.
-(defconst tit-dictionary t)
+(defvar tit-dictionary t)
 (defvar tit-encode nil)
 (defvar tit-default-encode "GB")
 
