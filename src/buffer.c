@@ -373,7 +373,6 @@ The value is never nil.")
   b->newline_cache = 0;
   b->width_run_cache = 0;
   b->width_table = Qnil;
-  b->prompt_end_charpos = Qnil;
   b->prevent_redisplay_optimizations_p = 1;
 
   /* Put this on the chain of all buffers including killed ones.  */
@@ -453,7 +452,6 @@ NAME should be a string which is not the name of an existing buffer.")
   b->newline_cache = 0;
   b->width_run_cache = 0;
   b->width_table = Qnil;
-  b->prompt_end_charpos = Qnil;
 
   /* Put this on the chain of all buffers including killed ones.  */
   b->next = all_buffers;
@@ -1222,7 +1220,6 @@ with SIGHUP.")
       b->width_run_cache = 0;
     }
   b->width_table = Qnil;
-  b->prompt_end_charpos = Qnil;
   UNBLOCK_INPUT;
   b->undo_list = Qnil;
 
@@ -1704,11 +1701,8 @@ so the buffer is truly empty after this.")
   ()
 {
   Fwiden ();
-  
-  if (INTEGERP (current_buffer->prompt_end_charpos))
-    del_range (XINT (current_buffer->prompt_end_charpos), Z);
-  else
-    del_range (BEG, Z);
+
+  del_range (BEG, Z);
 
   current_buffer->last_window_start = 1;
   /* Prevent warnings, or suspension of auto saving, that would happen
