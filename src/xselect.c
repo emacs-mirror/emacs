@@ -901,7 +901,7 @@ static struct prop_location *
 expect_property_change (display, window, property, state)
      Display *display;
      Window window;
-     Lisp_Object property;
+     Atom property;
      int state;
 {
   struct prop_location *pl
