@@ -187,7 +187,6 @@ static int margin_glyphs_to_reserve P_ ((struct window *, int, Lisp_Object));
 static void sync_window_with_frame_matrix_rows P_ ((struct window *));
 struct window *frame_row_to_window P_ ((struct window *, int));
 
-
 
 /* Non-zero means don't pause redisplay for pending input.  (This is
    for debugging and for a future implementation of EDT-like
@@ -330,6 +329,105 @@ static int window_to_frame_vpos P_ ((struct window *, int));
 static int window_to_frame_hpos P_ ((struct window *, int));
 #define WINDOW_TO_FRAME_VPOS(W, VPOS) window_to_frame_vpos ((W), (VPOS))
 #define WINDOW_TO_FRAME_HPOS(W, HPOS) window_to_frame_hpos ((W), (HPOS))
+
+/* One element of the ring buffer containing redisplay history
+   information.  */
+
+struct redisplay_history
+{
+  char trace[512 + 100];
+};
+
+/* The size of the history buffer.  */
+
+#define REDISPLAY_HISTORY_SIZE	30
+
+/* The redisplay history buffer.  */
+
+static struct redisplay_history redisplay_history[REDISPLAY_HISTORY_SIZE];
+
+/* Next free entry in redisplay_history.  */
+
+static int history_idx;
+
+/* A tick that's incremented each time something is added to the
+   history.  */
+
+static unsigned history_tick;
+
+static void add_frame_display_history P_ ((struct frame *, int));
+static void add_window_display_history P_ ((struct window *, char *, int));
+
+
+/* Add to the redisplay history how window W has been displayed.
+   MSG is a trace containing the information how W's glyph matrix
+   has been contructed.  PAUSED_P non-zero means that the update
+   has been interrupted for pending input.  */
+
+static void
+add_window_display_history (w, msg, paused_p)
+     struct window *w;
+     char *msg;
+     int paused_p;
+{
+  char *buf;
+  
+  if (history_idx >= REDISPLAY_HISTORY_SIZE)
+    history_idx = 0;
+  buf = redisplay_history[history_idx].trace;
+  ++history_idx;
+  
+  sprintf (buf, "%d: window %p (`%s')%s\n",
+	   history_tick++,
+	   w,
+	   ((BUFFERP (w->buffer)
+	     && STRINGP (XBUFFER (w->buffer)->name))
+	    ? (char *) XSTRING (XBUFFER (w->buffer)->name)->data
+	    : "???"),
+	   paused_p ? " ***paused***" : "");
+  strcat (buf, msg);
+}
+
+
+/* Add to the redisplay history that frame F has been displayed.
+   PAUSED_P non-zero means that the update has been interrupted for
+   pending input.  */
+
+static void
+add_frame_display_history (f, paused_p)
+     struct frame *f;
+     int paused_p;
+{
+  char *buf;
+  
+  if (history_idx >= REDISPLAY_HISTORY_SIZE)
+    history_idx = 0;
+  buf = redisplay_history[history_idx].trace;
+  ++history_idx;
+  
+  sprintf (buf, "%d: update frame %p%s",
+	   history_tick++,
+	   f, paused_p ? " ***paused***" : "");
+}
+
+
+DEFUN ("dump-redisplay-history", Fdump_redisplay_history,
+       Sdump_redisplay_history, 0, 0, "",
+   "Dump redisplay history to stderr.")
+     ()
+{
+  int i;
+
+  for (i = history_idx - 1; i != history_idx; --i)
+    {
+      if (i < 0)
+	i = REDISPLAY_HISTORY_SIZE - 1;
+      fprintf (stderr, "%s\n", redisplay_history[i].trace);
+    }
+
+  return Qnil;
+}
+
 
 #else /* GLYPH_DEBUG == 0 */
 
@@ -2613,29 +2711,6 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
 	      SET_CHAR_GLYPH_FROM_GLYPH (*border, right_border_glyph);
 	    }
 
-#if 0 /* This shouldn't be necessary.  Let's check it.  */
-	  /* Due to hooks installed, it normally doesn't happen that
-	     window rows and frame rows of the same matrix are out of
-	     sync, i.e. have a different understanding of where to
-	     find glyphs for the row.  The following is a safety-belt
-	     that doesn't cost much and makes absolutely sure that
-	     window and frame matrices are in sync.  */
-	  if (!glyph_row_slice_p (window_row, frame_row))
-	    {
-	      /* Find the row in the window being a slice.  There
-		 should exist one from program logic.  */
-	      struct glyph_row *slice_row
-		= find_glyph_row_slice (window_matrix, frame_matrix, frame_y);
-	      xassert (slice_row != 0);
-	      
-	      /* Exchange glyphs between both window rows.  */
-	      swap_glyphs_in_rows (window_row, slice_row);
-	      
-	      /* Exchange pointers between both rows.  */
-	      swap_glyph_pointers (window_row, slice_row);
-	    }
-#endif
-
 	  /* Window row window_y must be a slice of frame row
 	     frame_y.  */
 	  xassert (glyph_row_slice_p (window_row, frame_row));
@@ -2645,6 +2720,7 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
 	  
 #if GLYPH_DEBUG
 	  strcpy (w->current_matrix->method, w->desired_matrix->method);
+	  add_window_display_history (w, w->current_matrix->method, 0);
 #endif
 	}
 
@@ -3697,7 +3773,10 @@ update_frame (f, force_p, inhibit_hairy_id_p)
       fflush (stdout);
 
       /* Check window matrices for lost pointers.  */
-      IF_DEBUG (check_window_matrix_pointers (root_window));
+#ifdef GLYPH_DEBUG
+      check_window_matrix_pointers (root_window);
+      add_frame_display_history (f, paused_p);
+#endif
     }
 
   /* Reset flags indicating that a window should be updated.  */
@@ -4015,6 +4094,10 @@ update_window (w, force_p)
   else
     paused_p = 1;
 
+#ifdef GLYPH_DEBUG
+  add_window_display_history (w, w->current_matrix->method, paused_p);
+#endif
+  
   clear_glyph_matrix (desired_matrix);
 
   return paused_p;
@@ -6398,6 +6481,10 @@ syms_of_display ()
   defsubr (&Ssend_string_to_terminal);
   defsubr (&Sinternal_show_cursor);
   defsubr (&Sinternal_show_cursor_p);
+
+#ifdef GLYPH_DEBUG
+  defsubr (&Sdump_redisplay_history);
+#endif
 
   frame_and_buffer_state = Fmake_vector (make_number (20), Qlambda);
   staticpro (&frame_and_buffer_state);
