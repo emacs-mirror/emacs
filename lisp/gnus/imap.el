@@ -1216,7 +1216,7 @@ Returns non-nil if successful."
 ITEMS can be a symbol or a list of symbols, valid symbols are one of
 the STATUS data items -- ie 'messages, 'recent, 'uidnext, 'uidvalidity
 or 'unseen.  If ITEMS is a list of symbols, a list of values is
-returned, if ITEMS is a symbol only it's value is returned."
+returned, if ITEMS is a symbol only its value is returned."
   (with-current-buffer (or buffer (current-buffer))
     (when (imap-ok-p
 	   (imap-send-command-wait (list "STATUS \""
