@@ -3481,6 +3481,24 @@ See the documentation of `x-rebind-key' for more information.")
 #endif /* 0 */
 
 #ifdef HAVE_X11
+
+#ifndef HAVE_XSCREENNUMBEROFSCREEN
+int
+XScreenNumberOfScreen (scr)
+    register Screen *scr;
+{
+  register Display *dpy = scr->display;
+  register Screen *dpyscr = dpy->screens;
+  register int i;
+
+  for (i = 0; i < dpy->nscreens; i++, dpyscr++)
+    if (scr == dpyscr)
+      return i;
+
+  return -1;
+}
+#endif /* not HAVE_XSCREENNUMBEROFSCREEN */
+
 Visual *
 select_visual (screen, depth)
      Screen *screen;
