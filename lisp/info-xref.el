@@ -106,15 +106,12 @@
                       (goto-char (point-min))
                       (if (re-search-forward
                            "^@setfilename[ \t]+\\([^ \t\n]+\\)[ \t]*"
-                           (save-excursion (forward-line 100) (point)) t)
+                           (line-beginning-position 100) t)
                           (expand-file-name (match-string 1)))))))
            (prompt (if default-filename
                        (format "Info file (%s): " default-filename)
                      "Info file: ")))
-      (read-file-name prompt
-                      default-directory
-                      default-filename
-                      t))))
+      (read-file-name prompt nil default-filename t))))
   (info-xref-check-list (list filename)))
 
 ;;;###autoload
@@ -139,15 +136,14 @@ relevant directories are considered, which might mean a lot of extraneous
 things are returned if for instance a source code directory is in the path."
 
   (info-initialize) ;; establish Info-directory-list
-  (apply 'append
+  (apply 'nconc
          (mapcar
           (lambda (dir)
             (let ((result nil))
               (dolist (name (directory-files dir t))
-                (if (and (not (file-directory-p name))
-                         (not (info-xref-subfile-p name)))
-                    (setq result (cons name result))))
-              (reverse result)))
+                (unless (or (file-directory-p name) (info-xref-subfile-p name))
+		  (push name result)))
+              (nreverse result)))
           (append Info-directory-list Info-additional-directory-list))))
 
 (defun info-xref-subfile-p (filename)
@@ -211,15 +207,16 @@ This should be the raw file contents, not `Info-mode'."
           "\\*[Nn]ote[ \n\t]+[^:]*:[ \n\t]+\\(\\(([^)]+)\\)[^.,]+\\)[.,]"
           nil t)
     (let* ((file (match-string 2))
-           (node (info-xref-whitespace (match-string 1))))
+           (node ;; Canonicalize spaces: we could use "[\t\n ]+" but
+	    ;; we try to avoid uselessly replacing " " with " ".
+	    (replace-regexp-in-string "[\t\n][\t\n ]*\\| [\t\n ]+" " "
+				      (match-string 1) t t)))
       ;; see if the file exists, if we haven't tried it before
       (unless (assoc file info-xref-xfile-alist)
         (let ((found (info-xref-goto-node-p file)))
-          (setq info-xref-xfile-alist (cons (cons file found)
-                                            info-xref-xfile-alist))
-          (if (not found)
-              (info-xref-output
-               (format "Not available to check: %s\n" file)))))
+          (push (cons file found) info-xref-xfile-alist)
+          (unless found
+	    (info-xref-output (format "Not available to check: %s\n" file)))))
       ;; if the file exists, try the node, if we haven't before
       (when (cdr (assoc file info-xref-xfile-alist))
         (unless (assoc node info-xref-xfile-alist)
@@ -231,9 +228,8 @@ This should be the raw file contents, not `Info-mode'."
 (defun info-xref-output (str)
   "Emit STR as an info-xref result message."
   (with-current-buffer info-xref-results-buffer
-    (insert info-xref-filename-heading)
-    (setq info-xref-filename-heading "")
-    (insert str)))
+    (insert info-xref-filename-heading str)
+    (setq info-xref-filename-heading "")))
 
 ;; When asking Info-goto-node to fork, *info* needs to be the current
 ;; buffer, otherwise it seems to clone the current buffer but then do the
@@ -247,7 +243,7 @@ This should be the raw file contents, not `Info-mode'."
 ;; this difference by checking before killing.
 ;;
 (defun info-xref-goto-node-p (node)
-  "Return t if it's possible to goto the given NODE."
+  "Return t if it's possible to go to the given NODE."
   (let ((oldbuf (current-buffer)))
     (save-excursion
       (save-window-excursion
@@ -262,27 +258,6 @@ This should be the raw file contents, not `Info-mode'."
               (error nil))
           (unless (equal (current-buffer) oldbuf)
             (kill-buffer (current-buffer))))))))
-
-;; Can this be done better?
-(defun info-xref-whitespace (str)
-  "In STR, convert tabs and newlines to spaces, collapse repeated spaces."
-  (setq str (copy-sequence str))
-  (dotimes (i (length str))
-    (let ((c (elt str i)))
-      (if (or (= c ?\n)
-              (= c ?\t))
-          (aset str i ? ))))
-  (let ((dst 0)
-        (prev -1))
-    (dotimes (i (length str))
-      (let ((c (elt str i)))
-        (unless (and (= c ? )
-                     (= prev ? ))
-          (aset str dst c)
-          (setq dst (1+ dst)))
-        (setq prev c)))
-    (setq str (substring str 0 dst)))
-  str)
 
 (provide 'info-xref)
 
