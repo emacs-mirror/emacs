@@ -1,3 +1,23 @@
+2004-12-15  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* play/zone.el (zone): Set `truncate-lines'.
+	Also, init `tab-width' with value from original buffer.
+	(zone-shift-up): Rewrite for speed.
+	(zone-shift-down, zone-shift-left, zone-shift-right): Likewise.
+	(zone-pgm-jitter): Remove redundant entries from ops vector.
+	(zone-exploding-remove): Reduce iteration count.
+	(zone-cpos): Convert to defsubst.
+	(zone-replace-char): New defsubst.
+	(zone-park/sit-for): Likewise.
+	(zone-fret): Take window-start arg.
+	Update callers. Use `zone-park/sit-for'.
+	(zone-fill-out-screen): Rewrite.
+	(zone-fall-through-ws): Likewise. Update callers.
+	(zone-pgm-drip): Use `zone-replace-char'.
+	Move var inits before while-loop. Use `zone-park/sit-for'.
+	(zone-pgm-random-life): Handle empty initial field.
+	Use `zone-replace-char' and `zone-park/sit-for'.
+
 2004-12-15  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-update): Test isearch-lazy-highlight
