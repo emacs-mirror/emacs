@@ -3126,14 +3126,6 @@ AC_EGREP_CPP(yes..yes,
 	CPP_NEED_TRADITIONAL=no,
 	CPP_NEED_TRADITIONAL=yes)
 
-## New-fangled C preprocessors consider `//' to start a one-line comment.
-## The -ansi option forces GCC's cpp to revert to the old behavior.
-
-AC_EGREP_CPP(yes//yes,
-	[yes//yes],
-	CPP_NEED_ANSI=no,
-	CPP_NEED_ANSI=yes)
-
 AC_OUTPUT(Makefile lib-src/Makefile.c:lib-src/Makefile.in oldXMenu/Makefile \
 	man/Makefile lwlib/Makefile src/Makefile.c:src/Makefile.in \
 	lisp/Makefile lispref/Makefile lispintro/Makefile leim/Makefile, [
@@ -3166,13 +3158,6 @@ ${MAKE-make} epaths-force
 
 if test "x$GCC" = xyes && test "x$CPP_NEED_TRADITIONAL" = xyes; then
   CPPFLAGS="$CPPFLAGS -traditional"
-fi
-
-# Recent GNU cpp versions understand C++-style one-line comments
-# unless invoked with -ansi.  (Works with GCC 3.3, 3.4, 4.0)
-
-if test "x$GCC" = xyes && test "x$CPP_NEED_ANSI" = xyes; then
-  CPPFLAGS="$CPPFLAGS -ansi"
 fi
 
 echo creating lib-src/Makefile
@@ -3215,7 +3200,7 @@ fi
 # This is how we know whether to re-run configure in certain cases.
 touch src/config.stamp
 
-], [GCC="$GCC" NON_GNU_CPP="$NON_GNU_CPP" CPP="$CPP" CPP_NEED_TRADITIONAL="$CPP_NEED_TRADITIONAL" CPP_NEED_ANSI="$CPP_NEED_ANSI" CPPFLAGS="$CPPFLAGS"])
+], [GCC="$GCC" NON_GNU_CPP="$NON_GNU_CPP" CPP="$CPP" CPP_NEED_TRADITIONAL="$CPP_NEED_TRADITIONAL" CPPFLAGS="$CPPFLAGS"])
 
 m4_if(dnl	Do not change this comment
    arch-tag: 156a4dd5-bddc-4d18-96ac-f37742cf6a5e
