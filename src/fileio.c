@@ -2041,14 +2041,17 @@ expand_and_dir_to_file (filename, defdir)
 
    *STATPTR is used to store the stat information if the file exists.
    If the file does not exist, STATPTR->st_mode is set to 0.
-   If STATPTR is null, we don't store into it.  */
+   If STATPTR is null, we don't store into it.
+
+   If QUICK is nonzero, we ask for y or n, not yes or no.  */
 
 void
-barf_or_query_if_file_exists (absname, querystring, interactive, statptr)
+barf_or_query_if_file_exists (absname, querystring, interactive, statptr, quick)
      Lisp_Object absname;
      unsigned char *querystring;
      int interactive;
      struct stat *statptr;
+     int quick;
 {
   register Lisp_Object tem;
   struct stat statbuf;
@@ -2063,8 +2066,12 @@ barf_or_query_if_file_exists (absname, querystring, interactive, statptr)
 		 Fcons (build_string ("File already exists"),
 			Fcons (absname, Qnil)));
       GCPRO1 (absname);
-      tem = do_yes_or_no_p (format1 ("File %s already exists; %s anyway? ",
-				     XSTRING (absname)->data, querystring));
+      tem = format1 ("File %s already exists; %s anyway? ",
+		     XSTRING (absname)->data, querystring);
+      if (quick)
+	tem = Fy_or_n_p (tem);
+      else
+	tem = do_yes_or_no_p (tem);
       UNGCPRO;
       if (NILP (tem))
 	Fsignal (Qfile_already_exists,
@@ -2127,7 +2134,7 @@ A prefix arg makes KEEP-TIME non-nil.")
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (encoded_newname, "copy to it",
-				  INTEGERP (ok_if_already_exists), &out_st);
+				  INTEGERP (ok_if_already_exists), &out_st, 0);
   else if (stat (XSTRING (encoded_newname)->data, &out_st) < 0)
     out_st.st_mode = 0;
 
@@ -2365,7 +2372,7 @@ This is what happens in interactive use with M-x.")
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (encoded_newname, "rename to it",
-				  INTEGERP (ok_if_already_exists), 0);
+				  INTEGERP (ok_if_already_exists), 0, 0);
 #ifndef BSD4_1
   if (0 > rename (XSTRING (encoded_file)->data, XSTRING (encoded_newname)->data))
 #else
@@ -2440,7 +2447,7 @@ This is what happens in interactive use with M-x.")
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (encoded_newname, "make it a new name",
-				  INTEGERP (ok_if_already_exists), 0);
+				  INTEGERP (ok_if_already_exists), 0, 0);
 
   unlink (XSTRING (newname)->data);
   if (0 > link (XSTRING (encoded_file)->data, XSTRING (encoded_newname)->data))
@@ -2507,7 +2514,7 @@ This happens for interactive use with M-x.")
   if (NILP (ok_if_already_exists)
       || INTEGERP (ok_if_already_exists))
     barf_or_query_if_file_exists (encoded_linkname, "make it a link",
-				  INTEGERP (ok_if_already_exists), 0);
+				  INTEGERP (ok_if_already_exists), 0, 0);
   if (0 > symlink (XSTRING (encoded_filename)->data,
 		   XSTRING (encoded_linkname)->data))
     {
@@ -4038,7 +4045,7 @@ to the file, instead of any buffer contents, and END is ignored.")
   filename = Fexpand_file_name (filename, Qnil);
 
   if (! NILP (confirm))
-    barf_or_query_if_file_exists (filename, "overwrite", 1, 0);
+    barf_or_query_if_file_exists (filename, "overwrite", 1, 0, 1);
 
   if (STRINGP (visit))
     visit_file = Fexpand_file_name (visit, Qnil);
