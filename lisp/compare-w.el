@@ -64,11 +64,13 @@ The variable `compare-windows-whitespace' controls how whitespace is skipped.
 If `compare-ignore-case' is non-nil, changes in case are also ignored."
   (interactive "P")
   (let* (p1 p2 maxp1 maxp2 b1 b2 w2
-	    success size
+	    (progress 1)
 	    (opoint1 (point))
 	    opoint2
-	    (skip-whitespace (if ignore-whitespace
-				 compare-windows-whitespace)))
+	    (skip-func (if ignore-whitespace
+			 (if (stringp compare-windows-whitespace)
+			     'compare-windows-skip-whitespace
+			   compare-windows-whitespace))))
     (setq p1 (point) b1 (current-buffer))
     (setq w2 (next-window (selected-window)))
     (if (eq w2 (selected-window))
@@ -83,58 +85,34 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored."
       (setq maxp2 (point-max)))
     (push-mark)
 
-    (setq success t)
-    (while success
-      (setq success nil)
-      ;; if interrupted, show how far we've gotten
-      (goto-char p1)
-      (set-window-point w2 p2)
-
+    (while (> progress 0)
       ;; If both buffers have whitespace next to point,
       ;; optionally skip over it.
 
-      (and skip-whitespace
+      (and skip-func
 	   (save-excursion
 	     (let (p1a p2a w1 w2 result1 result2)
-	       (setq result1
-		     (if (stringp skip-whitespace)
-			 (compare-windows-skip-whitespace opoint1)
-		       (funcall skip-whitespace opoint1)))
+	       (setq result1 (funcall skip-func opoint1))
 	       (setq p1a (point))
 	       (set-buffer b2)
 	       (goto-char p2)
-	       (setq result2
-		     (if (stringp skip-whitespace)
-			 (compare-windows-skip-whitespace opoint2)
-		       (funcall skip-whitespace opoint2)))
+	       (setq result2 (funcall skip-func opoint2))
 	       (setq p2a (point))
 	       (if (or (stringp skip-whitespace)
 		       (and result1 result2 (eq result1 result2)))
 		   (setq p1 p1a
 			 p2 p2a)))))
 
-      ;; Try advancing comparing 1000 chars at a time.
-      ;; When that fails, go 500 chars at a time, and so on.
-      (let ((size 1000)
-	    success-1
+      (let ((size (min (- maxp1 p1) (- maxp2 p2)))
 	    (case-fold-search compare-ignore-case))
-	(while (> size 0)
-	  (setq success-1 t)
-	  ;; Try comparing SIZE chars at a time, repeatedly, till that fails.
-	  (while success-1
-	    (setq size (min size (- maxp1 p1) (- maxp2 p2)))
-	    (setq success-1
-		  (and (> size 0)
-		       (= 0 (compare-buffer-substrings b2 p2 (+ size p2)
-						       b1 p1 (+ size p1)))))
-	    (if success-1
-		(setq p1 (+ p1 size) p2 (+ p2 size)
-		      success t)))
-	  ;; If SIZE chars don't match, try fewer.
-	  (setq size (/ size 2)))))
+	(setq progress (compare-buffer-substrings b2 p2 (+ size p2)
+						  b1 p1 (+ size p1)))
+	(setq progress (if (zerop progress) size (1- (abs progress))))
+	(setq p1 (+ p1 progress) p2 (+ p2 progress)))
+      ;; Advance point now rather than later, in case we're interrupted.
+      (goto-char p1)
+      (set-window-point w2 p2))
 
-    (goto-char p1)
-    (set-window-point w2 p2)
     (if (= (point) opoint1)
 	(ding))))
 
