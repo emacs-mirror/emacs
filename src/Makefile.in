@@ -958,7 +958,8 @@ mocklisp.o: mocklisp.c buffer.h $(config_h)
 msdos.o: msdos.c msdos.h dosfns.h systime.h termhooks.h dispextern.h \
    termopts.h frame.h window.h $(config_h)
 process.o: process.c process.h buffer.h window.h termhooks.h termopts.h \
-   commands.h syssignal.h systime.h systty.h syswait.h frame.h $(config_h)
+   commands.h syssignal.h systime.h systty.h syswait.h frame.h \
+   blockinput.h $(config_h)
 regex.o: regex.c syntax.h buffer.h $(config_h) regex.h
 region-cache.o: region-cache.c buffer.h region-cache.h
 scroll.o: scroll.c termchar.h dispextern.h frame.h $(config_h)
