@@ -505,9 +505,14 @@ but contains full information about each coding systems."
 ;;;###autoload
 (defun describe-font (fontname)
   "Display information about fonts which partially match FONTNAME."
-  (interactive "sFontname: ")
+  (interactive "sFontname (default, current choise for ASCII chars): ")
   (or window-system
       (error "No window system being used"))
+  (when (or (not fontname) (= (length fontname) 0))
+    (setq fontname (cdr (assq 'font (frame-parameters))))
+    (if (query-fontset fontname)
+	(setq fontname
+	      (nth 2 (assq 'ascii (aref (fontset-info fontname) 2))))))
   (let ((font-info (font-info fontname)))
     (if (null font-info)
 	(message "No matching font")
@@ -540,12 +545,12 @@ but contains full information about each coding systems."
     (beginning-of-line)
     (insert fontset)
     (indent-to 58)
-    (insert (if (> size 0) (format "%dx%d" size height) "  ?"))
+    (insert (if (> size 0) (format "%2dx%d" size height) "  -"))
     (indent-to 64)
     (insert style "\n")
     (when print-fonts
       (insert "  O Charset / Fontname\n"
-	      "  - -------\n")
+	      "  - ------------------\n")
       (sort-charset-list)
       (let ((l charset-list)
 	    charset font-info opened fontname)
@@ -569,10 +574,10 @@ but contains full information about each coding systems."
 It prints name, size, and style of FONTSET, and lists up fonts
 contained in FONTSET.
 
-The format of Size column is WIDTHxHEIGHT, where WIDTH and HEIGHT is
-the character sizes (pixels) of each fontset (i.e. those of ASCII font
-in the fontset).  The letter `?' in this column means that the
-corresponding fontset is not yet used in any frame.
+The column WDxHT contains width and height (pixels) of each fontset
+\(i.e. those of ASCII font in the fontset).  The letter `-' in this
+column means that the corresponding fontset is not yet used in any
+frame.
 
 The O column of each font contains one of the following letters.
  o -- font already opened
@@ -598,8 +603,8 @@ displayed by the font."
     (with-output-to-temp-buffer "*Help*"
       (save-excursion
 	(set-buffer standard-output)
-	(insert "Fontset-Name\t\t\t\t\t\t  Size  Style\n")
-	(insert "------------\t\t\t\t\t\t  ----  -----\n")
+	(insert "Fontset-Name\t\t\t\t\t\t  WDxHT Style\n")
+	(insert "------------\t\t\t\t\t\t  ----- -----\n")
 	(print-fontset fontset t)))))
 
 ;;;###autoload
@@ -607,20 +612,14 @@ displayed by the font."
   "Display a list of all fontsets.
 
 It prints name, size, and style of each fontset.
-
-The format of Size column is WIDTHxHEIGHT, where WIDHT and HEIGHT is
-the character sizes (pixels) of each fontset (i.e. those of ASCII font
-in the fontset).  The letter `?' in this column means that the
-corresponding fontset is not yet used in any frame.
-
 With prefix arg, it also lists up fonts contained in each fontset.
 See the function `describe-fontset' for the format of the list."
   (interactive "P")
   (with-output-to-temp-buffer "*Help*"
     (save-excursion
       (set-buffer standard-output)
-      (insert "Fontset-Name\t\t\t\t\t\t  Size  Style\n")
-      (insert "------------\t\t\t\t\t\t  ----  -----\n")
+      (insert "Fontset-Name\t\t\t\t\t\t  WDxHT Style\n")
+      (insert "------------\t\t\t\t\t\t  ----- -----\n")
       (let ((fontsets (fontset-list)))
 	(while fontsets
 	  (print-fontset (car fontsets) arg)
