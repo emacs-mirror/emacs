@@ -1,3 +1,8 @@
+2004-10-11  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (substitute-key-definition): Mention command remapping
+	in doc string.
+
 2004-10-11  Simon Josefsson  <jas@extundo.com>
 
 	* mail/smtpmail.el (smtpmail-open-stream): Look for
