@@ -1,5 +1,7 @@
 2001-07-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* sound.c: Include Emacs' header files with #include "...".
+
 	* eval.c (specbind): Additionally record the buffer that was
 	current when a buffer-local or frame-local variable was bound.
 

@@ -1,5 +1,8 @@
 2001-07-05  Gerd Moellmann  <gerd@gnu.org>
 
+	* calendar/todo-mode.el (todo-top-priorities): Use delete-region
+	instead of kill-line.
+
 	* play/pong.el: Fix first line.  From Pavel Jan,Bm(Bk
 	<Pavel@Janik.cz>.
 
