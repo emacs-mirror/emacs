@@ -380,7 +380,7 @@ Used in `antlr-mode'.  Also a useful function in `java-mode-hook'." nil nil)
 ;;;### (autoloads (appt-make-list appt-delete appt-add appt-display-diary
 ;;;;;;  appt-display-duration appt-msg-window appt-display-mode-line
 ;;;;;;  appt-visible appt-audible appt-message-warning-time appt-issue-message)
-;;;;;;  "appt" "calendar/appt.el" (14406 9222))
+;;;;;;  "appt" "calendar/appt.el" (14406 9730))
 ;;; Generated autoloads from calendar/appt.el
 
 (defvar appt-issue-message t "\
@@ -423,7 +423,7 @@ Delete an appointment from the list of appointments." t nil)
 
 ;;;### (autoloads (apropos-documentation apropos-value apropos apropos-command
 ;;;;;;  apropos-variable apropos-mode) "apropos" "apropos.el" (14411
-;;;;;;  43647))
+;;;;;;  46662))
 ;;; Generated autoloads from apropos.el
 
 (autoload (quote apropos-mode) "apropos" "\
@@ -637,7 +637,7 @@ Calls `update-autoloads-from-directories' on the command line arguments." nil ni
 ;;;***
 
 ;;;### (autoloads (global-auto-revert-mode turn-on-auto-revert-mode
-;;;;;;  auto-revert-mode) "autorevert" "autorevert.el" (14405 18903))
+;;;;;;  auto-revert-mode) "autorevert" "autorevert.el" (14405 19084))
 ;;; Generated autoloads from autorevert.el
 
 (defvar auto-revert-mode nil "\
@@ -738,12 +738,12 @@ Vectors work just like lists.  Nested backquotes are permitted." nil (quote macr
 ;;;***
 
 ;;;### (autoloads (display-battery battery) "battery" "battery.el"
-;;;;;;  (13599 8729))
+;;;;;;  (14422 6607))
 ;;; Generated autoloads from battery.el
 
 (autoload (quote battery) "battery" "\
 Display battery status information in the echo area.
-The text beeing displayed in the echo area is controlled by the variables
+The text being displayed in the echo area is controlled by the variables
 `battery-echo-area-format' and `battery-status-function'." t nil)
 
 (autoload (quote display-battery) "battery" "\
@@ -755,8 +755,8 @@ seconds." t nil)
 
 ;;;***
 
-;;;### (autoloads (bibtex-mode) "bibtex" "textmodes/bibtex.el" (14397
-;;;;;;  43573))
+;;;### (autoloads (bibtex-mode) "bibtex" "textmodes/bibtex.el" (14410
+;;;;;;  26437))
 ;;; Generated autoloads from textmodes/bibtex.el
 
 (autoload (quote bibtex-mode) "bibtex" "\
@@ -983,7 +983,7 @@ a reflection." t nil)
 ;;;;;;  bookmark-load bookmark-save bookmark-write bookmark-delete
 ;;;;;;  bookmark-insert bookmark-rename bookmark-insert-location
 ;;;;;;  bookmark-relocate bookmark-jump bookmark-set) "bookmark"
-;;;;;;  "bookmark.el" (14152 30496))
+;;;;;;  "bookmark.el" (14415 13511))
 ;;; Generated autoloads from bookmark.el
  (define-key ctl-x-map "rb" 'bookmark-jump)
  (define-key ctl-x-map "rm" 'bookmark-set)
@@ -1548,7 +1548,7 @@ from the cursor position." t nil)
 ;;;;;;  calendar-remove-frame-by-deleting mark-diary-entries-in-calendar
 ;;;;;;  number-of-diary-entries view-diary-entries-initially calendar-offset
 ;;;;;;  calendar-week-start-day) "calendar" "calendar/calendar.el"
-;;;;;;  (14393 15349))
+;;;;;;  (14393 15630))
 ;;; Generated autoloads from calendar/calendar.el
 
 (defvar calendar-week-start-day 0 "\
@@ -1996,7 +1996,7 @@ The original function `calendar' has been renamed `calendar-basic-setup'." t nil
 
 ;;;***
 
-;;;### (autoloads nil "cc-langs" "progmodes/cc-langs.el" (14015 5699))
+;;;### (autoloads nil "cc-langs" "progmodes/cc-langs.el" (14419 59474))
 ;;; Generated autoloads from progmodes/cc-langs.el
 
 (defvar c-mode-syntax-table nil "\
@@ -2021,7 +2021,7 @@ Syntax table used in pike-mode buffers.")
 
 ;;;### (autoloads (pike-mode idl-mode java-mode objc-mode c++-mode
 ;;;;;;  c-mode c-initialize-cc-mode) "cc-mode" "progmodes/cc-mode.el"
-;;;;;;  (14015 5739))
+;;;;;;  (14419 59475))
 ;;; Generated autoloads from progmodes/cc-mode.el
 
 (autoload (quote c-initialize-cc-mode) "cc-mode" nil nil nil)
@@ -2132,7 +2132,7 @@ Key bindings:
 ;;;***
 
 ;;;### (autoloads (c-set-offset c-add-style c-set-style) "cc-styles"
-;;;;;;  "progmodes/cc-styles.el" (14015 5750))
+;;;;;;  "progmodes/cc-styles.el" (14419 59471))
 ;;; Generated autoloads from progmodes/cc-styles.el
 
 (autoload (quote c-set-style) "cc-styles" "\
@@ -2142,7 +2142,17 @@ styles described in the variable `c-style-alist'.  See that variable
 for details of setting up styles.
 
 The variable `c-indentation-style' always contains the buffer's current
-style name." t nil)
+style name.
+
+If the optional argument DONT-OVERRIDE is non-nil, no style variables
+that already have values will be overridden.  I.e. in the case of
+`c-offsets-alist', syntactic symbols will only be added, and in the
+case of all other style variables, only those set to `set-from-style'
+will be reassigned.
+
+Obviously, specifying DONT-OVERRIDE is useful mainly when the initial
+style is chosen for a CC Mode buffer by a major mode.  Since this is
+done internally by CC Mode, there's hardly ever a reason to use it." t nil)
 
 (autoload (quote c-add-style) "cc-styles" "\
 Adds a style to `c-style-alist', or updates an existing one.
@@ -2158,12 +2168,12 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil." t nil)
 (autoload (quote c-set-offset) "cc-styles" "\
 Change the value of a syntactic element symbol in `c-offsets-alist'.
 SYMBOL is the syntactic element symbol to change and OFFSET is the new
-offset for that syntactic element.  Optional ADD says to add SYMBOL to
-`c-offsets-alist' if it doesn't already appear there." t nil)
+offset for that syntactic element.  The optional argument is not used
+and exists only for compatibility reasons." t nil)
 
 ;;;***
 
-;;;### (autoloads nil "cc-vars" "progmodes/cc-vars.el" (14015 5758))
+;;;### (autoloads nil "cc-vars" "progmodes/cc-vars.el" (14419 59473))
 ;;; Generated autoloads from progmodes/cc-vars.el
 
 (defconst c-emacs-features (let ((infodock-p (boundp (quote infodock-version))) (comments (let ((table (copy-syntax-table)) entry) (modify-syntax-entry 97 ". 12345678" table) (cond ((arrayp table) (setq entry (aref table 97)) (if (consp entry) (setq entry (car entry)))) ((fboundp (quote get-char-table)) (setq entry (get-char-table 97 table))) ((and (fboundp (quote char-table-p)) (char-table-p table)) (setq entry (car (char-table-range table [97])))) (t (error "CC Mode is incompatible with this version of Emacs"))) (if (= (logand (lsh entry -16) 255) 255) (quote 8-bit) (quote 1-bit))))) (if infodock-p (list comments (quote infodock)) (list comments))) "\
@@ -2172,9 +2182,8 @@ There are many flavors of Emacs out there, each with different
 features supporting those needed by CC Mode.  Here's the current
 supported list, along with the values for this variable:
 
- XEmacs 19:                  (8-bit)
- XEmacs 20:                  (8-bit)
- Emacs 19:                   (1-bit)
+ XEmacs 19, 20, 21:          (8-bit)
+ Emacs 19, 20:               (1-bit)
 
 Infodock (based on XEmacs) has an additional symbol on this list:
 `infodock'.")
@@ -2229,7 +2238,7 @@ The return value is a vector of resulting CCL registers." nil nil)
 ;;;;;;  checkdoc-continue checkdoc-start checkdoc-current-buffer
 ;;;;;;  checkdoc-eval-current-buffer checkdoc-message-interactive
 ;;;;;;  checkdoc-interactive checkdoc) "checkdoc" "emacs-lisp/checkdoc.el"
-;;;;;;  (14301 26365))
+;;;;;;  (14398 50288))
 ;;; Generated autoloads from emacs-lisp/checkdoc.el
 
 (autoload (quote checkdoc) "checkdoc" "\
@@ -2441,7 +2450,7 @@ a future Emacs interpreter will be able to use it.")
 ;;;***
 
 ;;;### (autoloads (common-lisp-indent-function) "cl-indent" "emacs-lisp/cl-indent.el"
-;;;;;;  (14344 26578))
+;;;;;;  (14344 26818))
 ;;; Generated autoloads from emacs-lisp/cl-indent.el
 
 (autoload (quote common-lisp-indent-function) "cl-indent" nil nil nil)
@@ -2529,7 +2538,7 @@ read/written by MS-DOS software, or for display on the MS-DOS terminal." t nil)
 
 ;;;### (autoloads (comint-redirect-results-list-from-process comint-redirect-results-list
 ;;;;;;  comint-redirect-send-command-to-process comint-redirect-send-command
-;;;;;;  comint-run make-comint) "comint" "comint.el" (14410 18534))
+;;;;;;  comint-run make-comint) "comint" "comint.el" (14411 62961))
 ;;; Generated autoloads from comint.el
 
 (autoload (quote make-comint) "comint" "\
@@ -2565,12 +2574,12 @@ If NO-DISPLAY is non-nil, do not show the output buffer." t nil)
 (autoload (quote comint-redirect-results-list) "comint" "\
 Send COMMAND to current process. 
 Return a list of expressions in the output which match REGEXP.
-REGEXP-GROUP is the regular expression group in REGEXP to use." t nil)
+REGEXP-GROUP is the regular expression group in REGEXP to use." nil nil)
 
 (autoload (quote comint-redirect-results-list-from-process) "comint" "\
 Send COMMAND to PROCESS. 
 Return a list of expressions in the output which match REGEXP.
-REGEXP-GROUP is the regular expression group in REGEXP to use." t nil)
+REGEXP-GROUP is the regular expression group in REGEXP to use." nil nil)
 
 ;;;***
 
@@ -2598,7 +2607,7 @@ If `compare-ignore-case' is non-nil, changes in case are also ignored." t nil)
 ;;;### (autoloads (next-error compilation-minor-mode compilation-shell-minor-mode
 ;;;;;;  compilation-mode grep-find grep compile compilation-search-path
 ;;;;;;  compilation-ask-about-save compilation-window-height compilation-mode-hook)
-;;;;;;  "compile" "progmodes/compile.el" (14388 8360))
+;;;;;;  "compile" "progmodes/compile.el" (14388 8490))
 ;;; Generated autoloads from progmodes/compile.el
 
 (defvar compilation-mode-hook nil "\
@@ -2759,6 +2768,203 @@ See also the variable `PC-include-file-path'." t nil)
 
 (autoload (quote dynamic-completion-mode) "completion" "\
 Enable dynamic word-completion." t nil)
+
+;;;***
+
+;;;### (autoloads (decompose-composite-char compose-last-chars compose-chars-after
+;;;;;;  find-composition compose-chars decompose-string compose-string
+;;;;;;  decompose-region compose-region) "composite" "composite.el"
+;;;;;;  (14422 54140))
+;;; Generated autoloads from composite.el
+
+(defconst reference-point-alist (quote ((tl . 0) (tc . 1) (tr . 2) (Bl . 3) (Bc . 4) (Br . 5) (bl . 6) (bc . 7) (br . 8) (cl . 9) (cc . 10) (cr . 11) (top-left . 0) (top-center . 1) (top-right . 2) (base-left . 3) (base-center . 4) (base-right . 5) (bottom-left . 6) (bottom-center . 7) (bottom-right . 8) (center-left . 9) (center-center . 10) (center-right . 11) (ml . 3) (mc . 10) (mr . 5) (mid-left . 3) (mid-center . 10) (mid-right . 5))) "\
+Alist of symbols vs integer codes of glyph reference points.
+A glyph reference point symbol is to be used to specify a composition
+rule in COMPONENTS argument to such functions as `compose-region' and
+`make-composition'.
+
+Meanings of glyph reference point codes are as follows:
+
+    0----1----2 <---- ascent	0:tl or top-left
+    |         |			1:tc or top-center
+    |         |			2:tr or top-right
+    |         |			3:Bl or base-left     9:cl or center-left
+    9   10   11 <---- center	4:Bc or base-center  10:cc or center-center
+    |         |			5:Br or base-right   11:cr or center-right
+  --3----4----5-- <-- baseline	6:bl or bottom-left
+    |         |			7:bc or bottom-center
+    6----7----8 <---- descent	8:br or bottom-right
+
+Glyph reference point symbols are to be used to specify composition
+rule of the form (GLOBAL-REF-POINT . NEW-REF-POINT), where
+GLOBAL-REF-POINT is a reference point in the overall glyphs already
+composed, and NEW-REF-POINT is a reference point in the new glyph to
+be added.
+
+For instance, if GLOBAL-REF-POINT is `br' (bottom-right) and
+NEW-REF-POINT is `tl' (top-left), the overall glyph is updated as
+follows (the point `*' corresponds to both reference points):
+
+    +-------+--+ <--- new ascent
+    |       |  |
+    | global|  |
+    | glyph |  |
+ -- |       |  |-- <--- baseline (doesn't change)
+    +----+--*--+
+    |    | new |
+    |    |glyph|
+    +----+-----+ <--- new descent
+")
+
+(autoload (quote compose-region) "composite" "\
+Compose characters in the current region.
+
+When called from a program, expects these four arguments.
+
+First two arguments START and END are positions (integers or markers)
+specifying the region.
+
+Optional 3rd argument COMPONENTS, if non-nil, is a character or a
+sequence (vector, list, or string) of integers.
+
+If it is a character, it is an alternate character to display instead
+of the text in the region.
+
+If it is a string, the elements are alternate characters.
+
+If it is a vector or list, it is a sequence of alternate characters and
+composition rules, where (2N)th elements are characters and (2N+1)th
+elements are composition rules to specify how to compose (2N+2)th
+elements with previously composed N glyphs.
+
+A composition rule is a cons of global and new glyph reference point
+symbols.  See the documentation of `reference-point-alist' for more
+detail.
+
+Optional 4th argument MODIFICATION-FUNC is a function to call to
+adjust the composition when it gets invalid because of a change of
+text in the composition." t nil)
+
+(autoload (quote decompose-region) "composite" "\
+Decompose text in the current region.
+
+When called from a program, expects two arguments,
+positions (integers or markers) specifying the region." t nil)
+
+(autoload (quote compose-string) "composite" "\
+Compose characters in string STRING.
+
+The return value is STRING where `composition' property is put on all
+the characters in it.
+
+Optional 2nd and 3rd arguments START and END specify the range of
+STRING to be composed.  They defaults to the beginning and the end of
+STRING respectively.
+
+Optional 4th argument COMPONENTS, if non-nil, is a character or a
+sequence (vector, list, or string) of integers.  See the function
+`compose-region' for more detail.
+
+Optional 5th argument MODIFICATION-FUNC is a function to call to
+adjust the composition when it gets invalid because of a change of
+text in the composition." nil nil)
+
+(autoload (quote decompose-string) "composite" "\
+Return STRING where `composition' property is removed." nil nil)
+
+(autoload (quote compose-chars) "composite" "\
+Return a string from arguments in which all characters are composed.
+For relative composition, arguments are characters.
+For rule-based composition, Mth (where M is odd) arguments are
+characters, and Nth (where N is even) arguments are composition rules.
+A composition rule is a cons of glyph reference points of the form
+\(GLOBAL-REF-POINT . NEW-REF-POINT).  See the documentation of
+`reference-point-alist' for more detail." nil nil)
+
+(autoload (quote find-composition) "composite" "\
+Return information about a composition at or nearest to buffer position POS.
+
+If the character at POS has `composition' property, the value is a list
+of FROM, TO, and VALID-P.
+
+FROM and TO specify the range of text that has the same `composition'
+property, VALID-P is non-nil if and only if this composition is valid.
+
+If there's no composition at POS, and the optional 2nd argument LIMIT
+is non-nil, search for a composition toward LIMIT.
+
+If no composition is found, return nil.
+
+Optional 3rd argument STRING, if non-nil, is a string to look for a
+composition in; nil means the current buffer.
+
+If a valid composition is found and the optional 4th argument DETAIL-P
+is non-nil, the return value is a list of FROM, TO, COMPONENTS,
+RELATIVE-P, MOD-FUNC, and WIDTH.
+
+COMPONENTS is a vector of integers, the meaning depends on RELATIVE-P.
+
+RELATIVE-P is t if the composition method is relative, else nil.
+
+If RELATIVE-P is t, COMPONENTS is a vector of characters to be
+composed.  If RELATIVE-P is nil, COMPONENTS is a vector of characters
+and composition rules as described in `compose-region'.
+
+MOD-FUNC is a modification function of the composition.
+
+WIDTH is a number of columns the composition occupies on the screen." nil nil)
+(put 'composition-function-table 'char-table-extra-slots 0)
+
+(defvar composition-function-table (make-char-table (quote composition-function-table)) "\
+Char table of patterns and functions to make a composition.
+
+Each element is nil or an alist of PATTERNs vs FUNCs, where PATTERNs
+are regular expressions and FUNCs are functions.  FUNC is responsible
+for composing text matching the corresponding PATTERN.  FUNC is called
+with three arguments FROM, TO, and PATTERN.  See the function
+`compose-chars-after' for more detail.
+
+This table is looked up by the first character of a composition when
+the composition gets invalid after a change in a buffer.")
+
+(autoload (quote compose-chars-after) "composite" "\
+Compose characters in current buffer after position POS.
+
+It looks up the char-table `composition-function-table' (which see) by
+a character after POS.  If non-nil value is found, the format of the
+value should be an alist of PATTERNs vs FUNCs, where PATTERNs are
+regular expressions and FUNCs are functions.  If the text after POS
+matches one of PATTERNs, call the corresponding FUNC with three
+arguments POS, TO, and PATTERN, where TO is the end position of text
+matching PATTERN, and return what FUNC returns.  Otherwise, return
+nil.
+
+FUNC is responsible for composing the text properly.  The return value
+is:
+  nil -- if no characters were composed.
+  CHARS (integer) -- if CHARS characters were composed.
+
+Optional 2nd arg LIMIT, if non-nil, limits the matching of text.
+
+This function is the default value of `compose-chars-after-function'." nil nil)
+
+(autoload (quote compose-last-chars) "composite" "\
+Compose last characters.
+The argument is a parameterized event of the form (compose-last-chars N),
+where N is the number of characters before point to compose.
+This function is intended to be used from input methods.
+The global keymap binds special event `compose-last-chars' to this
+function.  Input method may generate an event (compose-last-chars N)
+after a sequence character events." t nil)
+(global-set-key [compose-last-chars] 'compose-last-chars)
+
+(autoload (quote decompose-composite-char) "composite" "\
+Convert CHAR to string.
+This is only for backward compatibility with Emacs 20.4 and the earlier.
+
+If optional 2nd arg TYPE is non-nil, it is `string', `list', or
+`vector'.  In this case, CHAR is converted string, list of CHAR, or
+vector of CHAR respectively." nil nil)
 
 ;;;***
 
@@ -3016,7 +3222,7 @@ With ARG, turn CRiSP mode on if ARG is positive, off otherwise." t nil)
 ;;;;;;  customize-option-other-window customize-changed-options customize-option
 ;;;;;;  customize-group-other-window customize-group customize customize-save-variable
 ;;;;;;  customize-set-variable customize-set-value) "cus-edit" "cus-edit.el"
-;;;;;;  (14410 18534))
+;;;;;;  (14417 23470))
 ;;; Generated autoloads from cus-edit.el
  (add-hook 'same-window-regexps "\\`\\*Customiz.*\\*\\'")
 
@@ -3149,7 +3355,12 @@ Create a tree browser for the customize hierarchy." t nil)
 File used for storing customization information.
 The default is nil, which means to use your init file
 as specified by `user-init-file'.  If you specify some other file,
-you need to explicitly load that file for the settings to take effect.")
+you need to explicitly load that file for the settings to take effect.
+
+When you change this variable, look in the previous custom file
+\(usually your init file) for the forms `(custom-set-variables ...)'
+and `(custom-set-faces ...)', and copy them (whichever ones you find)
+to the new custom file.  This will preserve your existing customizations.")
 
 (autoload (quote customize-save-customized) "cus-edit" "\
 Save all user options which have been set in this session." t nil)
@@ -3604,33 +3815,39 @@ to provide correct modes for autoloaded files." nil nil)
 ;;;;;;  devanagari-decompose-string char-to-glyph-devanagari indian-to-devanagari-string
 ;;;;;;  devanagari-to-indian-region indian-to-devanagari-region devanagari-to-indian
 ;;;;;;  indian-to-devanagari setup-devanagari-environment) "devan-util"
-;;;;;;  "language/devan-util.el" (13941 59162))
+;;;;;;  "language/devan-util.el" (14422 54140))
 ;;; Generated autoloads from language/devan-util.el
 
 (autoload (quote setup-devanagari-environment) "devan-util" "\
 Setup multilingual environment (MULE) for languages using Devanagari." t nil)
 
 (autoload (quote indian-to-devanagari) "devan-util" "\
-Convert IS 13194 characters to Devanagari basic characters." nil nil)
+Convert IS 13194 character CHAR to Devanagari basic characters.
+If CHAR is not IS 13194, return CHAR as is." nil nil)
 
 (autoload (quote devanagari-to-indian) "devan-util" "\
-Convert Devanagari basic characters to IS 13194 characters." nil nil)
+Convert Devanagari basic character CHAR to IS 13194 characters.
+If CHAR is not Devanagari basic character, return CHAR as is." nil nil)
 
 (autoload (quote indian-to-devanagari-region) "devan-util" "\
-Convert IS 13194 characters in region to Devanagari basic characters." t nil)
+Convert IS 13194 characters in region to Devanagari basic characters.
+When called from a program, expects two arguments,
+positions (integers or markers) specifying the region." t nil)
 
 (autoload (quote devanagari-to-indian-region) "devan-util" "\
-Convert Devanagari basic characters in region to Indian characters." t nil)
+Convert Devanagari basic characters in region to Indian characters.
+When called from a program, expects two arguments,
+positions (integers or markers) specifying the region." t nil)
 
 (autoload (quote indian-to-devanagari-string) "devan-util" "\
-Convert Indian String to Devanagari Basic Character String." nil nil)
+Convert Indian characters in STRING to Devanagari Basic characters." nil nil)
 
 (autoload (quote char-to-glyph-devanagari) "devan-util" "\
-Convert Devanagari characters in the string to Devanagari glyphs.  
+Convert Devanagari characters in STRING to Devanagari glyphs.  
 Ligatures and special rules are processed." nil nil)
 
 (autoload (quote devanagari-decompose-string) "devan-util" "\
-Decompose Devanagari glyph string STR to basic Devanagari character string." nil nil)
+Decompose Devanagari string STR" nil nil)
 
 (autoload (quote devanagari-decompose-region) "devan-util" nil t nil)
 
@@ -3655,7 +3872,7 @@ Decompose Devanagari characters in the region to IS 13194 characters." t nil)
 ;;;***
 
 ;;;### (autoloads (diary-mail-entries diary) "diary-lib" "calendar/diary-lib.el"
-;;;;;;  (14368 20344))
+;;;;;;  (14368 20503))
 ;;; Generated autoloads from calendar/diary-lib.el
 
 (autoload (quote diary) "diary-lib" "\
@@ -3713,17 +3930,20 @@ The backup file is the first file given to `diff'." t nil)
 
 ;;;***
 
-;;;### (autoloads (diff-mode) "diff-mode" "diff-mode.el" (14341 1829))
+;;;### (autoloads (diff-minor-mode diff-mode) "diff-mode" "diff-mode.el"
+;;;;;;  (14412 45411))
 ;;; Generated autoloads from diff-mode.el
 
 (autoload (quote diff-mode) "diff-mode" "\
-Major mode for viewing context diffs.
+Major mode for viewing/editing context diffs.
 Supports unified and context diffs as well as (to a lesser extent) normal diffs.
 When the buffer is read-only, the ESC prefix is not necessary.
 This mode runs `diff-mode-hook'.
 \\{diff-mode-map}" t nil)
 
-(add-to-list (quote auto-mode-alist) (quote ("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode)))
+(autoload (quote diff-minor-mode) "diff-mode" "\
+Minor mode for viewing/editing context diffs.
+\\{diff-minor-mode-map}" t nil)
 
 ;;;***
 
@@ -3731,7 +3951,7 @@ This mode runs `diff-mode-hook'.
 ;;;;;;  dired dired-copy-preserve-time dired-dwim-target dired-keep-marker-symlink
 ;;;;;;  dired-keep-marker-hardlink dired-keep-marker-copy dired-keep-marker-rename
 ;;;;;;  dired-trivial-filenames dired-ls-F-marks-symlinks dired-listing-switches)
-;;;;;;  "dired" "dired.el" (14349 51117))
+;;;;;;  "dired" "dired.el" (14349 51336))
 ;;; Generated autoloads from dired.el
 
 (defvar dired-listing-switches "-al" "\
@@ -3826,15 +4046,16 @@ Like `dired' but returns the dired buffer as value, does not select it." nil nil
 ;;;### (autoloads (dired-do-query-replace dired-do-search dired-hide-all
 ;;;;;;  dired-hide-subdir dired-tree-down dired-tree-up dired-kill-subdir
 ;;;;;;  dired-mark-subdir-files dired-goto-subdir dired-prev-subdir
-;;;;;;  dired-maybe-insert-subdir dired-downcase dired-upcase dired-do-symlink-regexp
-;;;;;;  dired-do-hardlink-regexp dired-do-copy-regexp dired-do-rename-regexp
-;;;;;;  dired-do-rename dired-do-hardlink dired-do-symlink dired-do-copy
-;;;;;;  dired-create-directory dired-rename-file dired-copy-file
-;;;;;;  dired-relist-file dired-remove-file dired-add-file dired-do-redisplay
-;;;;;;  dired-do-load dired-do-byte-compile dired-do-compress dired-compress-file
-;;;;;;  dired-do-kill-lines dired-do-shell-command dired-do-print
-;;;;;;  dired-do-chown dired-do-chgrp dired-do-chmod dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" (14305 17690))
+;;;;;;  dired-insert-subdir dired-maybe-insert-subdir dired-downcase
+;;;;;;  dired-upcase dired-do-symlink-regexp dired-do-hardlink-regexp
+;;;;;;  dired-do-copy-regexp dired-do-rename-regexp dired-do-rename
+;;;;;;  dired-do-hardlink dired-do-symlink dired-do-copy dired-create-directory
+;;;;;;  dired-rename-file dired-copy-file dired-relist-file dired-remove-file
+;;;;;;  dired-add-file dired-do-redisplay dired-do-load dired-do-byte-compile
+;;;;;;  dired-do-compress dired-compress-file dired-do-kill-lines
+;;;;;;  dired-do-shell-command dired-do-print dired-do-chown dired-do-chgrp
+;;;;;;  dired-do-chmod dired-backup-diff dired-diff) "dired-aux"
+;;;;;;  "dired-aux.el" (14415 3380))
 ;;; Generated autoloads from dired-aux.el
 
 (autoload (quote dired-diff) "dired-aux" "\
@@ -3877,6 +4098,10 @@ If there is output, it goes to a separate buffer.
 Normally the command is run on each file individually.
 However, if there is a `*' in the command then it is run
 just once with the entire file list substituted there.
+
+If there is no `*', but a `?' in the command then it is still run
+on each file individually but with the filename substituted there
+instead of att the end of the command.
 
 No automatic redisplay of dired buffers is attempted, as there's no
 telling what files the command may have changed.  Type
@@ -3988,6 +4213,15 @@ With a prefix arg, you may edit the ls switches used for this listing.
   this subdirectory.
 This function takes some pains to conform to `ls -lR' output." t nil)
 
+(autoload (quote dired-insert-subdir) "dired-aux" "\
+Insert this subdirectory into the same dired buffer.
+If it is already present, overwrites previous entry,
+  else inserts it at its natural place (as `ls -lR' would have done).
+With a prefix arg, you may edit the `ls' switches used for this listing.
+  You can add `R' to the switches to expand the whole tree starting at
+  this subdirectory.
+This function takes some pains to conform to `ls -lR' output." t nil)
+
 (autoload (quote dired-prev-subdir) "dired-aux" "\
 Go to previous subdirectory, regardless of level.
 When called interactively and not on a subdir line, go to this subdir's line." t nil)
@@ -4035,7 +4269,7 @@ with the command \\[tags-loop-continue]." t nil)
 
 ;;;***
 
-;;;### (autoloads (dired-jump) "dired-x" "dired-x.el" (14365 46142))
+;;;### (autoloads (dired-jump) "dired-x" "dired-x.el" (14365 46253))
 ;;; Generated autoloads from dired-x.el
 
 (autoload (quote dired-jump) "dired-x" "\
@@ -4395,7 +4629,7 @@ With prefix arg NOCONFIRM, execute current line as-is without editing." t nil)
 ;;;***
 
 ;;;### (autoloads (edebug-eval-top-level-form def-edebug-spec edebug-all-forms
-;;;;;;  edebug-all-defs) "edebug" "emacs-lisp/edebug.el" (14402 39662))
+;;;;;;  edebug-all-defs) "edebug" "emacs-lisp/edebug.el" (14402 39960))
 ;;; Generated autoloads from emacs-lisp/edebug.el
 
 (defvar edebug-all-defs nil "\
@@ -4758,6 +4992,20 @@ Unequivocally turn on eldoc-mode (see variable documentation)." t nil)
 
 ;;;***
 
+;;;### (autoloads (elide-head) "elide-head" "elide-head.el" (14409
+;;;;;;  5684))
+;;; Generated autoloads from elide-head.el
+
+(autoload (quote elide-head) "elide-head" "\
+Hide header material in buffer according to `elide-head-headers-to-hide'.
+
+The header is made invisible with an overlay.  With a prefix arg, show
+an elided material again.
+
+This is suitable as an entry on `find-file-hooks' or appropriate mode hooks." t nil)
+
+;;;***
+
 ;;;### (autoloads (elint-initialize) "elint" "emacs-lisp/elint.el"
 ;;;;;;  (13363 2909))
 ;;; Generated autoloads from emacs-lisp/elint.el
@@ -4928,7 +5176,7 @@ This function works by modifying `process-environment'." t nil)
 ;;;;;;  pop-tag-mark find-tag-regexp find-tag-other-frame find-tag-other-window
 ;;;;;;  find-tag find-tag-noselect tags-table-files visit-tags-table
 ;;;;;;  find-tag-default-function find-tag-hook tags-add-tables tags-table-list)
-;;;;;;  "etags" "progmodes/etags.el" (14411 45647))
+;;;;;;  "etags" "progmodes/etags.el" (14411 46723))
 ;;; Generated autoloads from progmodes/etags.el
 
 (defvar tags-file-name nil "\
@@ -5368,7 +5616,7 @@ This is used only in conjunction with `expand-add-abbrevs'." t nil)
 
 ;;;***
 
-;;;### (autoloads (f90-mode) "f90" "progmodes/f90.el" (14398 36512))
+;;;### (autoloads (f90-mode) "f90" "progmodes/f90.el" (14398 36751))
 ;;; Generated autoloads from progmodes/f90.el
 
 (autoload (quote f90-mode) "f90" "\
@@ -5436,7 +5684,7 @@ with no args, if that value is non-nil." t nil)
 ;;;;;;  facemenu-remove-special facemenu-remove-all facemenu-remove-face-props
 ;;;;;;  facemenu-set-read-only facemenu-set-intangible facemenu-set-invisible
 ;;;;;;  facemenu-set-face-from-menu facemenu-set-background facemenu-set-foreground
-;;;;;;  facemenu-set-face) "facemenu" "facemenu.el" (14263 35411))
+;;;;;;  facemenu-set-face) "facemenu" "facemenu.el" (14411 63600))
 ;;; Generated autoloads from facemenu.el
  (define-key global-map "\M-g" 'facemenu-keymap)
  (autoload 'facemenu-keymap "facemenu" "Keymap for face-changing commands." t 'keymap)
@@ -5603,7 +5851,7 @@ Unconditionally turn on Fast Lock mode." nil nil)
 
 ;;;### (autoloads (feedmail-queue-reminder feedmail-run-the-queue
 ;;;;;;  feedmail-run-the-queue-global-prompt feedmail-run-the-queue-no-prompts)
-;;;;;;  "feedmail" "mail/feedmail.el" (13855 27094))
+;;;;;;  "feedmail" "mail/feedmail.el" (14415 51114))
 ;;; Generated autoloads from mail/feedmail.el
 
 (autoload (quote feedmail-run-the-queue-no-prompts) "feedmail" "\
@@ -5641,8 +5889,8 @@ you can set feedmail-queue-reminder-alist to nil." t nil)
 
 ;;;***
 
-;;;### (autoloads (dired-at-point ffap-at-mouse ffap-menu ffap find-file-at-point
-;;;;;;  ffap-next) "ffap" "ffap.el" (14021 43058))
+;;;### (autoloads (dired-at-point ffap-at-mouse ffap-menu find-file-at-point
+;;;;;;  ffap-next) "ffap" "ffap.el" (14411 58300))
 ;;; Generated autoloads from ffap.el
 
 (autoload (quote ffap-next) "ffap" "\
@@ -5662,9 +5910,7 @@ See also the variables `ffap-dired-wildcards', `ffap-newfile-prompt',
 and the functions `ffap-file-at-point' and `ffap-url-at-point'.
 
 See <ftp://ftp.mathcs.emory.edu/pub/mic/emacs/> for latest version." t nil)
-
-(autoload (quote ffap) "ffap" "\
-A short alias for the find-file-at-point command." nil nil)
+(defalias 'ffap 'find-file-at-point)
 
 (autoload (quote ffap-menu) "ffap" "\
 Put up a menu of files and urls mentioned in this buffer.
@@ -5963,7 +6209,7 @@ Turn Flyspell mode off." nil nil)
 
 ;;;### (autoloads (follow-delete-other-windows-and-split follow-mode
 ;;;;;;  turn-off-follow-mode turn-on-follow-mode) "follow" "follow.el"
-;;;;;;  (14392 8455))
+;;;;;;  (14392 8635))
 ;;; Generated autoloads from follow.el
 
 (autoload (quote turn-on-follow-mode) "follow" "\
@@ -6030,8 +6276,9 @@ in your `~/.emacs' file, replacing [f7] by your favourite key:
 ;;;***
 
 ;;;### (autoloads (font-lock-fontify-buffer global-font-lock-mode
-;;;;;;  global-font-lock-mode font-lock-add-keywords turn-on-font-lock
-;;;;;;  font-lock-mode) "font-lock" "font-lock.el" (14410 18535))
+;;;;;;  global-font-lock-mode font-lock-remove-keywords font-lock-add-keywords
+;;;;;;  turn-on-font-lock font-lock-mode) "font-lock" "font-lock.el"
+;;;;;;  (14415 42514))
 ;;; Generated autoloads from font-lock.el
 
 (defvar font-lock-mode-hook nil "\
@@ -6092,8 +6339,8 @@ Turn on Font Lock mode conditionally.
 Turn on only if the terminal can display it." nil nil)
 
 (autoload (quote font-lock-add-keywords) "font-lock" "\
-Add highlighting KEYWORDS for MAJOR-MODE.
-MAJOR-MODE should be a symbol, the major mode command name, such as `c-mode'
+Add highlighting KEYWORDS for MODE.
+MODE should be a symbol, the major mode command name, such as `c-mode'
 or nil.  If nil, highlighting keywords are added for the current buffer.
 KEYWORDS should be a list; see the variable `font-lock-keywords'.
 By default they are added at the beginning of the current highlighting list.
@@ -6113,6 +6360,10 @@ comments, and to fontify `and', `or' and `not' words as keywords.
 Note that some modes have specialised support for additional patterns, e.g.,
 see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 `objc-font-lock-extra-types' and `java-font-lock-extra-types'." nil nil)
+
+(autoload (quote font-lock-remove-keywords) "font-lock" "\
+Remove highlighting KEYWORDS from the current buffer.
+A non-nil MODE is currently unsupported." nil nil)
 
 (autoload (quote global-font-lock-mode) "font-lock" "\
 Toggle Global Font Lock mode.
@@ -6140,7 +6391,7 @@ Fontify the current buffer the way the function `font-lock-mode' would." t nil)
 ;;;***
 
 ;;;### (autoloads (create-fontset-from-fontset-spec) "fontset" "international/fontset.el"
-;;;;;;  (14345 58136))
+;;;;;;  (14422 54140))
 ;;; Generated autoloads from international/fontset.el
 
 (autoload (quote create-fontset-from-fontset-spec) "fontset" "\
@@ -6564,7 +6815,7 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful." nil nil)
 ;;;***
 
 ;;;### (autoloads (jdb pdb perldb xdb dbx sdb gdb) "gud" "gud.el"
-;;;;;;  (14369 61534))
+;;;;;;  (14369 61755))
 ;;; Generated autoloads from gud.el
 
 (autoload (quote gdb) "gud" "\
@@ -6761,7 +7012,7 @@ This discards the buffer's undo information." t nil)
 ;;;***
 
 ;;;### (autoloads (hide-ifdef-lines hide-ifdef-read-only hide-ifdef-initially
-;;;;;;  hide-ifdef-mode) "hideif" "progmodes/hideif.el" (14392 886))
+;;;;;;  hide-ifdef-mode) "hideif" "progmodes/hideif.el" (14392 1648))
 ;;; Generated autoloads from progmodes/hideif.el
 
 (defvar hide-ifdef-mode nil "\
@@ -7113,7 +7364,7 @@ This function is absolete." t nil)
 ;;;***
 
 ;;;### (autoloads (icomplete-minibuffer-setup icomplete-mode) "icomplete"
-;;;;;;  "icomplete.el" (14392 118))
+;;;;;;  "icomplete.el" (14392 202))
 ;;; Generated autoloads from icomplete.el
 
 (autoload (quote icomplete-mode) "icomplete" "\
@@ -7439,7 +7690,7 @@ of `inferior-lisp-program').  Runs the hooks from
 
 ;;;### (autoloads (Info-speedbar-browser Info-goto-emacs-key-command-node
 ;;;;;;  Info-goto-emacs-command-node info-standalone info info-other-window)
-;;;;;;  "info" "info.el" (14398 37488))
+;;;;;;  "info" "info.el" (14411 63935))
 ;;; Generated autoloads from info.el
 
 (autoload (quote info-other-window) "info" "\
@@ -7569,7 +7820,7 @@ Toggle input method in interactive search." t nil)
 ;;;***
 
 ;;;### (autoloads (iso-accents-mode) "iso-acc" "international/iso-acc.el"
-;;;;;;  (14388 10886))
+;;;;;;  (14388 11031))
 ;;; Generated autoloads from international/iso-acc.el
 
 (autoload (quote iso-accents-mode) "iso-acc" "\
@@ -7670,7 +7921,7 @@ Add submenus to the Files menu, to convert to and from various formats." t nil)
 ;;;;;;  ispell-region ispell-change-dictionary ispell-kill-ispell
 ;;;;;;  ispell-help ispell-word ispell-dictionary-alist ispell-local-dictionary-alist
 ;;;;;;  ispell-personal-dictionary) "ispell" "textmodes/ispell.el"
-;;;;;;  (14381 62987))
+;;;;;;  (14381 63241))
 ;;; Generated autoloads from textmodes/ispell.el
 
 (defvar ispell-personal-dictionary nil "\
@@ -7891,7 +8142,7 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 
 ;;;### (autoloads (iswitchb-buffer-other-frame iswitchb-display-buffer
 ;;;;;;  iswitchb-buffer-other-window iswitchb-buffer iswitchb-default-keybindings
-;;;;;;  iswitchb-read-buffer) "iswitchb" "iswitchb.el" (14384 5061))
+;;;;;;  iswitchb-read-buffer) "iswitchb" "iswitchb.el" (14384 5216))
 ;;; Generated autoloads from iswitchb.el
 
 (autoload (quote iswitchb-read-buffer) "iswitchb" "\
@@ -8141,12 +8392,37 @@ Use \\[describe-mode] for more info." t nil)
 
 ;;;***
 
-;;;### (autoloads (setup-lao-environment) "lao-util" "language/lao-util.el"
-;;;;;;  (13774 37678))
+;;;### (autoloads (lao-composition-function lao-transcribe-roman-to-lao-string
+;;;;;;  lao-transcribe-single-roman-syllable-to-lao lao-compose-string
+;;;;;;  setup-lao-environment) "lao-util" "language/lao-util.el"
+;;;;;;  (14422 54141))
 ;;; Generated autoloads from language/lao-util.el
 
 (autoload (quote setup-lao-environment) "lao-util" "\
 Setup multilingual environment (MULE) for Lao." t nil)
+
+(autoload (quote lao-compose-string) "lao-util" nil nil nil)
+
+(autoload (quote lao-transcribe-single-roman-syllable-to-lao) "lao-util" "\
+Transcribe a Romanized Lao syllable in the region FROM and TO to Lao string.
+Only the first syllable is transcribed.
+The value has the form: (START END LAO-STRING), where
+START and END are the beggining and end positions of the Roman Lao syllable,
+LAO-STRING is the Lao character transcription of it.
+
+Optional 3rd arg STR, if non-nil, is a string to search for Roman Lao
+syllable.  In that case, FROM and TO are indexes to STR." nil nil)
+
+(autoload (quote lao-transcribe-roman-to-lao-string) "lao-util" "\
+Transcribe Romanized Lao string STR to Lao character string." nil nil)
+
+(autoload (quote lao-composition-function) "lao-util" "\
+Compose Lao text in the region FROM and TO.
+The text matches the regular expression PATTERN.
+Optional 4th argument STRING, if non-nil, is a string containing text
+to compose.
+
+The return value is number of composed characters." nil nil)
 
 ;;;***
 
@@ -8263,7 +8539,7 @@ is nil, raise an error." t nil)
 ;;;***
 
 ;;;### (autoloads (locate-with-filter locate) "locate" "locate.el"
-;;;;;;  (14396 4034))
+;;;;;;  (14396 4145))
 ;;; Generated autoloads from locate.el
 
 (autoload (quote locate) "locate" "\
@@ -8280,7 +8556,7 @@ shown; this is often useful to constrain a big search." t nil)
 
 ;;;### (autoloads (print-region lpr-region print-buffer lpr-buffer
 ;;;;;;  lpr-command lpr-switches printer-name) "lpr" "lpr.el" (14359
-;;;;;;  2960))
+;;;;;;  3115))
 ;;; Generated autoloads from lpr.el
 
 (defvar printer-name (if (memq system-type (quote (ms-dos windows-nt))) "PRN") "\
@@ -8997,7 +9273,7 @@ Legal MIME content types.  See documentation for \\[mh-edit-mhn].")
 
 ;;;***
 
-;;;### (autoloads nil "mh-utils" "mail/mh-utils.el" (14384 5736))
+;;;### (autoloads nil "mh-utils" "mail/mh-utils.el" (14384 6048))
 ;;; Generated autoloads from mail/mh-utils.el
 
 (put (quote mh-progs) (quote risky-local-variable) t)
@@ -9145,7 +9421,7 @@ different buffer menu using the function `msb'." t nil)
 ;;;;;;  list-fontsets describe-fontset describe-font list-coding-categories
 ;;;;;;  list-coding-systems describe-current-coding-system describe-current-coding-system-briefly
 ;;;;;;  describe-coding-system list-character-sets) "mule-diag" "international/mule-diag.el"
-;;;;;;  (14406 33643))
+;;;;;;  (14406 33729))
 ;;; Generated autoloads from international/mule-diag.el
 
 (autoload (quote list-character-sets) "mule-diag" "\
@@ -9248,14 +9524,13 @@ The file is saved in the directory `data-directory'." nil nil)
 
 ;;;***
 
-;;;### (autoloads (decompose-composite-char compose-chars compose-chars-component
-;;;;;;  decompose-string decompose-region compose-region detect-coding-with-language-environment
-;;;;;;  detect-coding-with-priority coding-system-equal coding-system-translation-table-for-encode
+;;;### (autoloads (detect-coding-with-language-environment detect-coding-with-priority
+;;;;;;  coding-system-equal coding-system-translation-table-for-encode
 ;;;;;;  coding-system-translation-table-for-decode coding-system-pre-write-conversion
 ;;;;;;  coding-system-post-read-conversion coding-system-eol-type-mnemonic
 ;;;;;;  lookup-nested-alist set-nested-alist truncate-string-to-width
 ;;;;;;  store-substring string-to-sequence) "mule-util" "international/mule-util.el"
-;;;;;;  (14407 39556))
+;;;;;;  (14422 54140))
 ;;; Generated autoloads from international/mule-util.el
 
 (autoload (quote string-to-sequence) "mule-util" "\
@@ -9338,83 +9613,9 @@ Detect a coding system of the text between FROM and TO with LANG-ENV.
 The detection takes into account the coding system priorities for the
 language environment LANG-ENV." nil nil)
 
-(autoload (quote compose-region) "mule-util" "\
-Compose all characters in the current region into one composite character.
-When called from a program, expects two arguments,
-positions (integers or markers) specifying the region." t nil)
-
-(autoload (quote decompose-region) "mule-util" "\
-Decompose all composite characters in the current region.
-Composite characters are broken up into individual components.
-When called from a program, expects two arguments,
-positions (integers or markers) specifying the region." t nil)
-
-(autoload (quote decompose-string) "mule-util" "\
-Decompose all composite characters in STRING." nil nil)
-
-(defconst reference-point-alist (quote ((tl . 0) (tc . 1) (tr . 2) (ml . 3) (mc . 4) (mr . 5) (bl . 6) (bc . 7) (br . 8) (top-left . 0) (top-center . 1) (top-right . 2) (mid-left . 3) (mid-center . 4) (mid-right . 5) (bottom-left . 6) (bottom-center . 7) (bottom-right . 8) (0 . 0) (1 . 1) (2 . 2) (3 . 3) (4 . 4) (5 . 5) (6 . 6) (7 . 7) (8 . 8))) "\
-Alist of reference point symbols vs reference point codes.
-A reference point symbol is to be used to specify a composition rule
-while making a composite character by the function `compose-chars'
-\(which see).
-
-Meanings of reference point codes are as follows:
-
-    0----1----2 <-- ascent	0:tl or top-left
-    |         |			1:tc or top-center
-    |         |			2:tr or top-right
-    |         |			3:ml or mid-left
-    |    4 <--+---- center	4:mc or mid-center
-    |         |			5:mr or mid-right
---- 3         5 <-- baseline	6:bl or bottom-left
-    |         |			7:bc or bottom-center
-    6----7----8 <-- descent	8:br or bottom-right
-
-Reference point symbols are to be used to specify composition rule of
-the form (GLOBAL-REF-POINT . NEW-REF-POINT), where GLOBAL-REF-POINT
-is a reference point in the overall glyphs already composed, and
-NEW-REF-POINT is a reference point in the new glyph to be added.
-
-For instance, if GLOBAL-REF-POINT is 8 and NEW-REF-POINT is 1, the
-overall glyph is updated as follows:
-
-    +-------+--+ <--- new ascent
-    |       |  |
-    | global|  |
-    | glyph |  |
---- |       |  | <--- baseline (doesn't change)
-    +----+--+--+
-    |    | new |
-    |    |glyph|
-    +----+-----+ <--- new descent
-")
-
-(autoload (quote compose-chars-component) "mule-util" nil nil nil)
-
-(autoload (quote compose-chars) "mule-util" "\
-Return one char string composed from the arguments.
-For relative composition, each argument should be a non-composition character
-or a relative-composition character.
-For rule-based composition, Nth (where N is odd) argument should be
-a non-composition character or a rule-based-composition character,
-and Mth (where M is even) argument should be a composition rule.
-A composition rule has the form (GLOBAL-REF-POINT . NEW-REF-POINT).
-See the documentation of `reference-point-alist' for more detail." nil nil)
-
-(autoload (quote decompose-composite-char) "mule-util" "\
-Convert composite character CHAR to a sequence of the components.
-Optional 1st arg TYPE specifies the type of sequence returned.
-It should be `string' (default), `list', or `vector'.
-Optional 2nd arg WITH-COMPOSITION-RULE non-nil means the returned
-sequence contains embedded composition rules if any.  In this case, the
-order of elements in the sequence is the same as arguments for
-`compose-chars' to create CHAR.
-If TYPE is omitted or is `string', composition rules are omitted
-even if WITH-COMPOSITION-RULE is t." nil nil)
-
 ;;;***
 
-;;;### (autoloads (mwheel-install) "mwheel" "mwheel.el" (14378 51930))
+;;;### (autoloads (mwheel-install) "mwheel" "mwheel.el" (14378 52298))
 ;;; Generated autoloads from mwheel.el
 
 (autoload (quote mwheel-install) "mwheel" "\
@@ -10128,7 +10329,7 @@ The default value is '(\"/usr/local/share/emacs/fonts/bdf\").")
 ;;;***
 
 ;;;### (autoloads (ps-mode) "ps-mode" "progmodes/ps-mode.el" (14380
-;;;;;;  3795))
+;;;;;;  3920))
 ;;; Generated autoloads from progmodes/ps-mode.el
 
 (autoload (quote ps-mode) "ps-mode" "\
@@ -10174,8 +10375,9 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
 ;;;***
 
 ;;;### (autoloads (ps-mule-begin-page ps-mule-begin-job ps-mule-initialize
-;;;;;;  ps-mule-plot-string ps-mule-set-ascii-font ps-mule-prepare-ascii-font)
-;;;;;;  "ps-mule" "ps-mule.el" (14393 17619))
+;;;;;;  ps-mule-plot-composition ps-mule-plot-string ps-mule-set-ascii-font
+;;;;;;  ps-mule-prepare-ascii-font) "ps-mule" "ps-mule.el" (14422
+;;;;;;  54141))
 ;;; Generated autoloads from ps-mule.el
 
 (autoload (quote ps-mule-prepare-ascii-font) "ps-mule" "\
@@ -10188,6 +10390,21 @@ STRING should contain only ASCII characters." nil nil)
 Generate PostScript code for ploting characters in the region FROM and TO.
 
 It is assumed that all characters in this region belong to the same charset.
+
+Optional argument BG-COLOR specifies background color.
+
+Returns the value:
+
+	(ENDPOS . RUN-WIDTH)
+
+Where ENDPOS is the end position of the sequence and RUN-WIDTH is the width of
+the sequence." nil nil)
+
+(autoload (quote ps-mule-plot-composition) "ps-mule" "\
+Generate PostScript code for ploting composition in the region FROM and TO.
+
+It is assumed that all characters in this region belong to the same
+composition.
 
 Optional argument BG-COLOR specifies background color.
 
@@ -10213,8 +10430,8 @@ This checks if all multi-byte characters in the region are printable or not." ni
 ;;;;;;  ps-nb-pages-buffer ps-line-lengths ps-despool ps-spool-region-with-faces
 ;;;;;;  ps-spool-region ps-spool-buffer-with-faces ps-spool-buffer
 ;;;;;;  ps-print-region-with-faces ps-print-region ps-print-buffer-with-faces
-;;;;;;  ps-print-buffer ps-paper-type) "ps-print" "ps-print.el" (14398
-;;;;;;  37488))
+;;;;;;  ps-print-buffer ps-paper-type) "ps-print" "ps-print.el" (14422
+;;;;;;  54141))
 ;;; Generated autoloads from ps-print.el
 
 (defvar ps-paper-type (quote letter) "\
@@ -10348,7 +10565,7 @@ If EXTENSION is any other symbol, it is ignored." nil nil)
 ;;;### (autoloads (quail-update-leim-list-file quail-defrule-internal
 ;;;;;;  quail-defrule quail-install-map quail-define-rules quail-set-keyboard-layout
 ;;;;;;  quail-define-package quail-use-package) "quail" "international/quail.el"
-;;;;;;  (14171 42697))
+;;;;;;  (14422 54140))
 ;;; Generated autoloads from international/quail.el
 
 (autoload (quote quail-use-package) "quail" "\
@@ -10454,6 +10671,10 @@ If TRANSLATION is a Quail map or a function symbol which returns a Quail map,
 
 (autoload (quote quail-install-map) "quail" "\
 Install the Quail map MAP in the current Quail package.
+
+Optional 2nd arg NAME, if non-nil, is a name of Quail package for
+which to install MAP.
+
 The installed map can be referred by the function `quail-map'." nil nil)
 
 (autoload (quote quail-defrule) "quail" "\
@@ -10501,7 +10722,7 @@ of each directory." t nil)
 
 ;;;### (autoloads (quickurl-list quickurl-list-mode quickurl-edit-urls
 ;;;;;;  quickurl-browse-url-ask quickurl-browse-url quickurl-add-url
-;;;;;;  quickurl-ask quickurl) "quickurl" "quickurl.el" (14388 11185))
+;;;;;;  quickurl-ask quickurl) "quickurl" "quickurl.el" (14388 11354))
 ;;; Generated autoloads from quickurl.el
 
 (defconst quickurl-reread-hook-postfix "\n;; Local Variables:\n;; eval: (progn (require 'quickurl) (add-hook 'local-write-file-hooks (lambda () (quickurl-read) nil)))\n;; End:\n" "\
@@ -10774,7 +10995,7 @@ can be modified by the global variable `repeat-on-final-keystroke'." t nil)
 ;;;***
 
 ;;;### (autoloads (reporter-submit-bug-report) "reporter" "mail/reporter.el"
-;;;;;;  (14356 24412))
+;;;;;;  (14356 24489))
 ;;; Generated autoloads from mail/reporter.el
 
 (autoload (quote reporter-submit-bug-report) "reporter" "\
@@ -10895,7 +11116,7 @@ variable." t nil)
 ;;;;;;  rmail-mail-new-frame rmail-primary-inbox-list rmail-delete-after-output
 ;;;;;;  rmail-highlight-face rmail-highlighted-headers rmail-retry-ignored-headers
 ;;;;;;  rmail-displayed-headers rmail-ignored-headers rmail-dont-reply-to-names)
-;;;;;;  "rmail" "mail/rmail.el" (14384 5882))
+;;;;;;  "rmail" "mail/rmail.el" (14384 6041))
 ;;; Generated autoloads from mail/rmail.el
 
 (defvar rmail-dont-reply-to-names nil "\
@@ -11070,7 +11291,7 @@ Set PASSWORD to be used for retrieving mail from a POP server." t nil)
 ;;;***
 
 ;;;### (autoloads (rmail-edit-current-message) "rmailedit" "mail/rmailedit.el"
-;;;;;;  (14387 64145))
+;;;;;;  (14387 64265))
 ;;; Generated autoloads from mail/rmailedit.el
 
 (autoload (quote rmail-edit-current-message) "rmailedit" "\
@@ -11213,7 +11434,7 @@ KEYWORDS is a comma-separated list of labels." t nil)
 ;;;;;;  rmail-summary-by-topic rmail-summary-by-regexp rmail-summary-by-recipients
 ;;;;;;  rmail-summary-by-labels rmail-summary rmail-summary-line-count-flag
 ;;;;;;  rmail-summary-scroll-between-messages) "rmailsum" "mail/rmailsum.el"
-;;;;;;  (14181 58940))
+;;;;;;  (14419 37963))
 ;;; Generated autoloads from mail/rmailsum.el
 
 (defvar rmail-summary-scroll-between-messages t "\
@@ -11366,7 +11587,7 @@ This mode is an extended emacs-lisp mode.
 ;;;***
 
 ;;;### (autoloads (scribe-mode) "scribe" "textmodes/scribe.el" (14381
-;;;;;;  55098))
+;;;;;;  56615))
 ;;; Generated autoloads from textmodes/scribe.el
 
 (autoload (quote scribe-mode) "scribe" "\
@@ -11567,7 +11788,7 @@ Prefix arg means just kill any existing server communications subprocess." t nil
 ;;;***
 
 ;;;### (autoloads (html-mode sgml-mode) "sgml-mode" "textmodes/sgml-mode.el"
-;;;;;;  (14363 23704))
+;;;;;;  (14363 23788))
 ;;; Generated autoloads from textmodes/sgml-mode.el
 
 (autoload (quote sgml-mode) "sgml-mode" "\
@@ -11629,7 +11850,7 @@ To work around that, do:
 ;;;***
 
 ;;;### (autoloads (sh-mode) "sh-script" "progmodes/sh-script.el"
-;;;;;;  (14344 1082))
+;;;;;;  (14419 41150))
 ;;; Generated autoloads from progmodes/sh-script.el
 
 (put (quote sh-mode) (quote mode-class) (quote special))
@@ -11945,8 +12166,18 @@ symmetrical ones, and the same character twice for the others." t nil)
 
 ;;;***
 
+;;;### (autoloads (smerge-mode) "smerge-mode" "smerge-mode.el" (14415
+;;;;;;  42981))
+;;; Generated autoloads from smerge-mode.el
+
+(autoload (quote smerge-mode) "smerge-mode" "\
+Minor mode to simplify editing output from the diff3 program.
+\\{smerge-mode-map}" t nil)
+
+;;;***
+
 ;;;### (autoloads (smtpmail-send-it) "smtpmail" "mail/smtpmail.el"
-;;;;;;  (14342 21398))
+;;;;;;  (14342 21630))
 ;;; Generated autoloads from mail/smtpmail.el
 
 (autoload (quote smtpmail-send-it) "smtpmail" nil nil nil)
@@ -12322,7 +12553,7 @@ Return a vector containing the lines from `spook-phrases-file'." nil nil)
 ;;;***
 
 ;;;### (autoloads (sql-postgres sql-mode sql-help) "sql" "progmodes/sql.el"
-;;;;;;  (14395 64503))
+;;;;;;  (14395 64704))
 ;;; Generated autoloads from progmodes/sql.el
 
 (autoload (quote sql-help) "sql" "\
@@ -12490,7 +12721,7 @@ strokes with
 ;;;***
 
 ;;;### (autoloads (sc-cite-original) "supercite" "mail/supercite.el"
-;;;;;;  (14385 23097))
+;;;;;;  (14385 23496))
 ;;; Generated autoloads from mail/supercite.el
 
 (autoload (quote sc-cite-original) "supercite" "\
@@ -12724,7 +12955,7 @@ tetris-mode keybindings:
 ;;;;;;  tex-start-options-string slitex-run-command latex-run-command
 ;;;;;;  tex-run-command tex-offer-save tex-main-file tex-first-line-header-regexp
 ;;;;;;  tex-directory tex-shell-file-name) "tex-mode" "textmodes/tex-mode.el"
-;;;;;;  (14365 34873))
+;;;;;;  (14365 35043))
 ;;; Generated autoloads from textmodes/tex-mode.el
 
 (defvar tex-shell-file-name nil "\
@@ -13125,10 +13356,10 @@ Info `g*' command is inadequate." t nil)
 
 ;;;***
 
-;;;### (autoloads (thai-pre-write-conversion thai-post-read-conversion
+;;;### (autoloads (thai-composition-function thai-post-read-conversion
 ;;;;;;  thai-compose-buffer thai-compose-string thai-compose-region
 ;;;;;;  setup-thai-environment) "thai-util" "language/thai-util.el"
-;;;;;;  (13969 36846))
+;;;;;;  (14422 54141))
 ;;; Generated autoloads from language/thai-util.el
 
 (autoload (quote setup-thai-environment) "thai-util" "\
@@ -13147,7 +13378,13 @@ Compose Thai characters in the current buffer." t nil)
 
 (autoload (quote thai-post-read-conversion) "thai-util" nil nil nil)
 
-(autoload (quote thai-pre-write-conversion) "thai-util" nil nil nil)
+(autoload (quote thai-composition-function) "thai-util" "\
+Compose Thai text in the region FROM and TO.
+The text matches the regular expression PATTERN.
+Optional 4th argument STRING, if non-nil, is a string containing text
+to compose.
+
+The return value is number of composed characters." nil nil)
 
 ;;;***
 
@@ -13182,60 +13419,40 @@ a symbol as a valid THING." nil nil)
 ;;;***
 
 ;;;### (autoloads (tibetan-pre-write-conversion tibetan-post-read-conversion
-;;;;;;  tibetan-compose-buffer tibetan-decompose-buffer tibetan-compose-region
-;;;;;;  tibetan-decompose-region tibetan-composition tibetan-compose-string
-;;;;;;  tibetan-vertical-stacking tibetan-complete-char-examin tibetan-composable-examin
-;;;;;;  tibetan-char-examin tibetan-transcription-to-tibetan tibetan-tibetan-to-transcription
-;;;;;;  setup-tibetan-environment) "tibet-util" "language/tibet-util.el"
-;;;;;;  (13994 41130))
+;;;;;;  tibetan-compose-buffer tibetan-decompose-buffer tibetan-composition-function
+;;;;;;  tibetan-compose-region tibetan-compose-string tibetan-transcription-to-tibetan
+;;;;;;  tibetan-tibetan-to-transcription tibetan-char-p setup-tibetan-environment)
+;;;;;;  "tibet-util" "language/tibet-util.el" (14422 54141))
 ;;; Generated autoloads from language/tibet-util.el
 
 (autoload (quote setup-tibetan-environment) "tibet-util" nil t nil)
 
-(autoload (quote tibetan-tibetan-to-transcription) "tibet-util" "\
-Return a transcription string of Tibetan character CH" nil nil)
-
-(autoload (quote tibetan-transcription-to-tibetan) "tibet-util" "\
-Translate Roman transcription into a sequence of Tibetan components." nil nil)
-
-(autoload (quote tibetan-char-examin) "tibet-util" "\
+(autoload (quote tibetan-char-p) "tibet-util" "\
 Check if char CH is Tibetan character.
 Returns non-nil if CH is Tibetan. Otherwise, returns nil." nil nil)
 
-(autoload (quote tibetan-composable-examin) "tibet-util" "\
-Check if Tibetan char CH is composable.
-Returns t if CH is a composable char (i.e. neither punctuation nor digit)." nil nil)
+(autoload (quote tibetan-tibetan-to-transcription) "tibet-util" "\
+Transcribe Tibetan string STR and return the corresponding Roman string." nil nil)
 
-(autoload (quote tibetan-complete-char-examin) "tibet-util" "\
-Check if composite char CH contains one or more vowel/vowel modifiers.
-Returns non-nil, if CH contains vowel/vowel modifiers." nil nil)
-
-(autoload (quote tibetan-vertical-stacking) "tibet-util" "\
-Return a vertically stacked composite char consisting of FIRST and SECOND.
-If UPWARD is non-nil, then SECOND is put above FIRST." nil nil)
+(autoload (quote tibetan-transcription-to-tibetan) "tibet-util" "\
+Convert Tibetan Roman string STR to Tibetan character string.
+The returned string has no composition information." nil nil)
 
 (autoload (quote tibetan-compose-string) "tibet-util" "\
-Compose a sequence of Tibetan character components into a composite character.
-Returns a string containing a composite character." nil nil)
-
-(autoload (quote tibetan-composition) "tibet-util" "\
-Interface to quail input method.
-Takes two arguments: char PC and string KEY, where PC is the preceding
-character to be composed with current input KEY.
-Returns a string which is the result of composition." nil nil)
-
-(autoload (quote tibetan-decompose-region) "tibet-util" "\
-Decompose Tibetan characters in the region BEG END into their components.
-Components are: base and subjoined consonants, vowel signs, vowel modifiers.
-One column punctuations are converted to their 2 column equivalents." t nil)
+Compose Tibetan string STR." nil nil)
 
 (autoload (quote tibetan-compose-region) "tibet-util" "\
-Make composite chars from Tibetan character components in the region BEG END.
-Two column punctuations are converted to their 1 column equivalents." t nil)
+Compose Tibetan text the region BEG and END." t nil)
+
+(defalias (quote tibetan-decompose-region) (quote decompose-region))
+
+(defalias (quote tibetan-decompose-string) (quote decompose-string))
+
+(autoload (quote tibetan-composition-function) "tibet-util" nil nil nil)
 
 (autoload (quote tibetan-decompose-buffer) "tibet-util" "\
 Decomposes Tibetan characters in the buffer into their components.
-See also docstring of the function tibetan-decompose-region." t nil)
+See also the documentation of the function `tibetan-decompose-region'." t nil)
 
 (autoload (quote tibetan-compose-buffer) "tibet-util" "\
 Composes Tibetan character components in the buffer.
@@ -13248,7 +13465,7 @@ See also docstring of the function tibetan-compose-region." t nil)
 ;;;***
 
 ;;;### (autoloads (tildify-buffer tildify-region) "tildify" "textmodes/tildify.el"
-;;;;;;  (14357 30776))
+;;;;;;  (14357 30900))
 ;;; Generated autoloads from textmodes/tildify.el
 
 (autoload (quote tildify-region) "tildify" "\
@@ -13763,7 +13980,7 @@ Convert Rmail file FILE to system inbox format file TO-FILE." t nil)
 ;;;***
 
 ;;;### (autoloads (ask-user-about-supersession-threat ask-user-about-lock)
-;;;;;;  "userlock" "userlock.el" (14365 43297))
+;;;;;;  "userlock" "userlock.el" (14365 43399))
 ;;; Generated autoloads from userlock.el
 
 (autoload (quote ask-user-about-lock) "userlock" "\
@@ -13945,7 +14162,7 @@ colors. `vc-annotate-background' specifies the background color." t nil)
 ;;;***
 
 ;;;### (autoloads (vhdl-mode) "vhdl-mode" "progmodes/vhdl-mode.el"
-;;;;;;  (14385 10956))
+;;;;;;  (14385 23382))
 ;;; Generated autoloads from progmodes/vhdl-mode.el
 
 (autoload (quote vhdl-mode) "vhdl-mode" "\
@@ -14552,7 +14769,7 @@ and off otherwise." t nil)
 
 ;;;### (autoloads (whitespace-describe whitespace-cleanup-region
 ;;;;;;  whitespace-cleanup whitespace-region whitespace-buffer) "whitespace"
-;;;;;;  "whitespace.el" (14364 19064))
+;;;;;;  "whitespace.el" (14364 19255))
 ;;; Generated autoloads from whitespace.el
 
 (autoload (quote whitespace-buffer) "whitespace" "\
@@ -14655,7 +14872,7 @@ With arg, turn widget mode on if and only if arg is positive." t nil)
 ;;;***
 
 ;;;### (autoloads (widget-delete widget-create widget-prompt-value)
-;;;;;;  "wid-edit" "wid-edit.el" (14375 20322))
+;;;;;;  "wid-edit" "wid-edit.el" (14376 9418))
 ;;; Generated autoloads from wid-edit.el
 
 (autoload (quote widget-prompt-value) "wid-edit" "\

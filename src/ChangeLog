@@ -1,3 +1,350 @@
+1999-12-15  Kenichi Handa  <handa@etl.go.jp>
+
+	The following changes are for the new composition mechanism.  We
+	have deleted `composition' charset and composite characters,
+	instead introduced a special text property `composition'.
+
+	* Makefile.in (INTERVAL_SRC): Include composite.h.
+	(INTERVAL_OBJ): Include composite.o.
+	(SOME_MACHINE_OBJECTS): Include composite.o.
+	(casefiddle.o) (dispnew.o) (indent.o) (process.o) (search.o)
+	(syntax.o) (window.o) (xdisp.o) (xfaces.o) (xterm.o) (print.o):
+	Depend on composite.h.
+	(doc.o): Depend on charset.h.
+	(keyboard.o) (textprop.o) (intervals.o): Depend on INTERVAL_SRC.
+	(composite.o): New target.
+	
+	* alloc.c (Fmake_string): Adjusted for the change of CHAR_STRING.
+
+	* callproc.c (Fcall_process): Call code_convert_string to encode
+	arguments.  Use CODING_REQUIRE_DECODING to check if the process
+	output should be decoded.
+
+	* casefiddle.c: Include composite.h.
+	(casify_object): Use MAX_MULTIBYTE_LENGTH to allocate memory for a
+	multibyte character.  Adjusted for the change of CHAR_STRING.
+	(casify_region): Likewise.  Call update_compositions.
+
+	* category.h (CATEGORY_SET): Delete codes for a composite
+	character.
+
+	* category.c (word_boundary_p): Delete codes for a composite
+	character.
+	(Fmake_category_table): New function.
+	(syms_of_category): Defsubr it.
+
+	* ccl.c (CCL_WRITE_CHAR): Adjusted for the change of CHAR_STRING.
+	(ccl_driver): Delete codes for a composite character.
+
+	* charset.h: In this entry, just `Modified' means that codes for a
+	composite character is deleted.
+	(LEADING_CODE_COMPOSITION) (CHARSET_COMPOSITION)
+	(charset_composition) (MIN_CHAR_COMPOSITION)
+	(MAX_CHAR_COMPOSITION) (GENERIC_COMPOSITION_CHAR)
+	(COMPOSITE_CHAR_P) (MAKE_COMPOSITE_CHAR) (COMPOSITE_CHAR_ID)
+	(PARSE_COMPOSITE_SEQ) (PARSE_CHARACTER_SEQ): Deleted.
+	(MAX_CHAR) (CHARSET_VALID_P) (CHARSET_DEFINED_P) (CHARSET_AT)
+	(FIRST_CHARSET_AT) (SAME_CHARSET_P) (MAKE_NON_ASCII_CHAR)
+	(PARSE_MULTIBYTE_SEQ) (SPLIT_NON_ASCII_CHAR) (CHAR_PRINTABLE_P):
+	Modified.
+	(SPLIT_STRING): Call split_string, not split_non_ascii_string.
+	(CHAR_STRING): Delete WORKBUF argument.  Call char_string, not
+	non_ascii_char_to_string.
+	(STRING_CHAR): Call string_to_char, not string_to_non_ascii_char.
+	(STRING_CHAR_AND_LENGTH): Likewise.
+	(FETCH_CHAR_ADVANCE): New macro.
+	(MAX_COMPONENT_COUNT) (struct cmpchar_info): Deleted.
+	(MAX_MULTIBYTE_LENGTH): New macro.
+	(MAX_LENGTH_OF_MULTI_BYTE_FORM): Deleted.
+	(find_charset_in_str): Argument adjusted.
+	(CHAR_LEN): Modified.
+	
+	* charset.c: In this entry, just `Modified' means that codes for a
+	composite character is deleted.
+	(Qcomposition) (leading_code_composition)
+	(charset_composition) (min_composite_char) (cmpchar_table)
+	(cmpchar_table_size) (n_cmpchars): Deleted.
+	(SPLIT_COMPOSITE_SEQ): Deleted.
+	(SPLIT_MULTIBYTE_SEQ): Modified.
+	(char_to_string): Renamed from non_ascii_char_to_string.
+	Modified.
+	(string_to_char): Renamed from string_to_non_ascii_char.
+	(split_string): Renamed from split_non_ascii_string.
+	(char_printable_p) (Fsplit_char)
+	(Ffind_charset_region) (Ffind_charset_string) (char_valid_p)
+	(char_bytes) (Fchar_width) (strwidth): Modified.
+	(find_charset_in_str): Argument CMPCHARP deleted.  Modified.
+	(Fstring): Adjusted for the change of CHAR_STRING.  Modified.
+	(hash_string) (CMPCHAR_HASH_TABLE_SIZE) (cmpchar_hash_table)
+	(CMPCHAR_HASH_SIZE) (CMPCHAR_HASH_USED) (CMPCHAR_HASH_CMPCHAR_ID)
+	(str_cmpchar_id) (cmpchar_component) (Fcmpcharp)
+	(Fcmpchar_component) (Fcmpchar_cmp_rule) (Fcmpchar_cmp_rule_p)
+	(Fcmpchar_cmp_count): Deleted.
+	(Fcompose_string): Implemented by Emacs Lisp in composite.el.
+	(init_charset_once): Modified.
+	(syms_of_charset): Modified.
+
+	* cmds.c (internal_self_insert): Adjusted for the change of
+	CHAR_STRING.
+
+	* coding.h (emacs_code_class_type): Delete the member
+	EMACS_leading_code_composition.
+	(COMPOSING_NO) (COMPOSING_WITH_RULE_HEAD) (COMPOSING_NO_RULE_HEAD)
+	(COMPOSING_WITH_RULE_TAIL) (COMPOSING_NO_RULE_TAIL)
+	(COMPOSING_WITH_RULE_RULE) (COMPOSING_HEAD_P)
+	(COMPOSING_WITH_RULE_P): Macros deleted.
+	(COMPOSITION_DATA_SIZE) (COMPOSITION_DATA_MAX_BUNCH_LENGTH): New
+	macros.
+	(struct composition_data): New structure.
+	(CODING_FINISH_INSUFFICIENT_CMP): New macro.
+	(struct coding_system): New members composition_rule_follows,
+	cmp_data, cmp_data_start, cmp_data_index.
+	(coding_save_composition) (coding_free_composition_data)
+	(coding_adjust_composition_offset): Extern them.
+
+	* coding.c: Include composite.h.
+	(DECODE_CHARACTER_ASCII): Don't handle composition here.
+	(DECODE_CHARACTER_DIMENSION1): Likewise.  Don't check the validity
+	of multibyte code here.
+	(DECODE_CHARACTER_DIMENSION2): Likewise.
+	(detect_coding_emacs_mule): Change the case label from
+	EMACS_leading_code_composition to 0x80.
+	(detect_coding_iso2022): Handle new composition sequence.
+	(DECODE_ISO_CHARACTER): Likewise.
+	(check_composing_code): Deleted.
+	(coding_allocate_composition_data): New function.
+	(CODING_ADD_COMPOSITION_START) (CODING_ADD_COMPOSITION_END)
+	(CODING_ADD_COMPOSITION_COMPONENT) (DECODE_COMPOSITION_START)
+	(DECODE_COMPOSITION_END) (DECODE_COMPOSITION_RULE): New macros.
+	(decode_coding_iso2022): Handle new composition sequence.
+	(ENCODE_ISO_CHARACTER): Don't check composition here.
+	(ENCODE_COMPOSITION_RULE) (ENCODE_COMPOSITION_START): New macros.
+	(ENCODE_COMPOSITION_NO_RULE_START)
+	(ENCODE_COMPOSITION_WITH_RULE_START): Deleted.
+	(ENCODE_COMPOSITION_END): Handle new composition sequence.
+	(ENCODE_COMPOSITION_FAKE_START): New macro.
+	(encode_coding_iso2022): Handle new composition sequence.
+	(ENCODE_SJIS_BIG5_CHARACTER): Delete superfluous `;' at the tail.
+	(encode_coding_sjis_big5): Ignore composition.
+	(setup_coding_system): Initialize new members of struct
+	coding_system.  Enable composition only when the coding system has
+	`composition' property t.
+	(coding_free_composition_data) (coding_adjust_composition_offset)
+	(coding_save_composition) (coding_restore_composition): New
+	functions.
+	(code_convert_region): Call coding_save_composition for encoding
+	and coding_allocate_composition_data for decoding.  Don't skip
+	ASCII characters if we handle composition on encoding.  Call
+	signal_after_change with Check_BORDER.
+	(code_convert_string): Call coding_save_composition for encoding
+	and coding_allocate_composition_data for decoding.  Don't skip
+	ASCII characters if we handle composition on encoding.
+	(code_convert_string1): Set Vlast_coding_system_used after calling
+	code_convert_string.
+	(code_convert_string_norecord): Disable composition.
+	(Fset_terminal_coding_system_internal): Likewise.
+	(Fset_safe_terminal_coding_system_internal): Likewise.
+	(Fset_keyboard_coding_system_internal): Likewise.
+	(init_coding_once): Set emacs_code_class[0x80] to
+	EMACS_invalid_code.
+
+	* composite.h: New file.
+
+	* composite.c: New file.
+
+	* data.c (Faref): Delete codes for a composite character..
+	(Faset): Likewise.  Adjusted for the change of CHAR_STRING.
+
+	* dispextern.h (enum glyph_type): New member COMPOSITE_GLYPH.
+	(struct glyph): Add new sub-structure cmp to the union `u'.
+	(enum display_element_type): New member IT_COMPOSITION.
+	(enum prop_idx): New member COMPOSITION_PROP_IDX.
+	(struct it): New members cmp_id, cmp_len.
+
+	* dispnew.c (direct_output_forward_char): Check point moving into
+	or out of a composition.  If so, give up direct method.
+
+	* doprnt.c (doprnt1): Adjusted for the change of CHAR_STRING.
+
+	* editfns.c (Fchar_to_string): Adjusted for the change of
+	CHAR_STRING.
+	(general_insert_function): Likewise.
+	(Finsert_char): Likewise.
+	(Fsubst_char_in_region): Likewise.  Call update_compositions.
+	(Ftranslate_region): Call update_compositions.
+	(Ftranspose_regions): Call update_compositions.
+
+	* emacs.c (main): Call syms_of_composite.
+
+	* fileio.c (Fsubstitute_in_file_name): Adjusted for the change of
+	CHAR_STRING.
+	(Finsert_file_contents): Set Vlast_coding_system_used before
+	calling signal_after_change.  Call update_compositions if some
+	texts are inserted..
+	(Fwrite_region): Adjusted for the change of a_write and e_write.
+	(a_write): Argument changed.  Work based on character position,
+	not byte position.
+	(e_write): Argument changed.  Handle new way of composition.
+
+	* fns.c (Flength): The length of char-table is MAX_CHAR.
+	(concat): Adjusted for the change of CHAR_STRING.
+	(Ffillarray): Adjusted for the change of CHAR_STRING.
+	(Fset_char_table_default): Delete codes for a composite character.
+	(hash_put): Return hash index.
+
+	* fontset.h (struct font_info): New member vertical_centering.
+	(Vvertical_centering_font_regexp): Extern it.
+
+	* fontset.c (Vvertical_centering_font_regexp): New variable.
+	(syms_of_fontset): Declare it as a Lisp variable and initialize.
+	Set Vignore_relative_composition to nil.
+	(fs_load_font): Initialize `vertical_centering' of struct
+	font_info.
+
+	* indent.c (check_composition): New function.
+	(MULTIBYTE_BYTES_WIDTH): Call STRING_CHAR_AND_LENGTH with
+	MAX_MULTIBYTE_LENGTH, not MAX_LENGTH_OF_MULTI_BYTE_FORM.
+	(current_column_1): Handle new way of composition.
+	(Fmove_to_column): Likewise.
+	(compute_motion): Likewise.
+
+	* insdel.c (copy_text): Adjusted for the change of CHAR_STRING.
+	(insert_char): Likewise.
+	(insert): Call update_compositions.
+	(insert_and_inherit): Likewise.
+	(insert_before_markers): Likewise.
+	(insert_before_markers_and_inherit): Likewise.
+	(insert_from_string): Likewise.
+	(insert_from_string_before_markers): Likewise.
+	(insert_from_buffer): Likewise.
+	(replace_range): Likewise.
+	(count_combining_composition): Deleted.
+	(count_combining_before): Delete codes for a composite character.
+	(count_combining_after): Likewise.
+	(del_range_1): Call update_compositions.
+	(del_range_byte): Likewise.
+	(del_range_both): Likewise.
+	(Fcombine_after_change_execute): Likewise.
+
+	* intervals.h: Include composite.h.
+	(get_property_and_range): Extern it.
+	(Vtext_property_default_nonsticky): Extern it.
+	
+	* intervals.c (adjust_intervals_for_insertion): To check stickines
+	of properties, pay attention to text-property-default-nonsticky.
+	(merge_properties_sticky): Likewise.
+	(get_property_and_range): New function.
+
+	* keyboard.c (Vdisable_point_adjustment): New variable.
+	(Vglobal_disable_point_adjustment): New variable.
+	(syms_of_keyboard): Declare them as Lisp variables.
+	(command_loop_1): Check them and call adjust_point_for_property if
+	necessary.
+	(adjust_point_for_property): New function.
+
+	* keymap.c (push_key_description): Adjusted for the change of
+	CHAR_STRING.
+	(Ftext_char_description): Likewise.
+
+	* lisp.h (QCtest, QCweakness, Qequal): Extern them.
+	(hash_put): Adjusted for the change of the definition.
+	(signal_after_change): Likewise.
+	(check_point_in_composition): Extern it.
+
+	* lread.c (readchar): Adjusted for the change of CHAR_STRING.
+	Delete a code that handles an invalid too-long multibyte sequence
+	because we are now sure that we never encounter with such a
+	sequence.
+	(read_multibyte): Use macro MAX_MULTIBYTE_LENGTH, not
+	MAX_LENGTH_OF_MULTI_BYTE_FORM.
+	(init_obarray): Likewise.
+	(read1): Likewise.  Adjusted for the change of CHAR_STRING.
+
+	* print.c (printchar): Adjusted for the change of CHAR_STRING.
+
+	* process.c: Include composite.h.
+	(read_process_output): Call update_compositions.
+
+	* regex.c (regex_compile): Adjusted for the change of CHAR_STRING.
+
+	* search.c (search_buffer): Adjusted for the change of CHAR_STRING.
+
+	* syntax.h (SYNTAX_ENTRY_INT): Delete codes for a composite
+	character.
+
+	* term.c (encode_terminal_code): Delete codes for a composite
+	character.  Adjusted for the change of CHAR_STRING.
+	(produce_glyphs): When called, it->what can be IT_COMPOSITION.
+	Delete codes for a composite character.
+
+	* textprop.c (Vtext_property_default_nonsticky): New variable
+	(syms_of_textprop): Declare it as a Lisp variable.
+
+	* window.c (Frecenter): Clear all caches of compositions.
+
+	* xdisp.c (it_props): Add an entry for composition.
+	(face_before_or_after_it_pos): For composition, check face of a
+	character after the composition.
+	(handle_composition_prop): New function.
+	(get_next_display_element): Adjusted for the change of
+	CHAR_STRING.
+	(set_iterator_to_next): Handle the case that it->method ==
+	next_element_from_composition.
+	(next_element_from_composition): New function.
+	(message_dolog): Adjusted for the change of CHAR_STRING.
+	(set_message_1): Likewise.
+	(check_point_in_composition): New function.
+	(reconsider_clip_changes): If point moved into or out of
+	composition, set b->clip_changed to 1 to force updating of the
+	screen.
+	(disp_char_vector): Delete codes for a composite character.
+	(decode_mode_spec_coding): Adjusted for the change of CHAR_STRING.
+
+	* xfaces.c (choose_face_fontset_font): Delete codes for a
+	composite character.
+	(realize_x_face): Likewise.  Change a place to set local variable
+	`f' to avoid a bug of GCC 2.8.1 on Solaris.
+
+	* xfns.c: Include intervals.h.
+	(syms_of_xfns): Make `display' property nonsticky by default.
+
+	* xselect.c (lisp_data_to_selection_data): Adjusted for the change
+	for find_charset_in_str.
+
+	* xterm.h (struct x_output): Change member font_baseline to
+	baseline_offset.
+
+	* xterm.c (x_append_glyph): Setup members of struct glyph properly
+	for composition.
+	(x_append_composite_glyph): New function.
+	(VCENTER_BASELINE_OFFSET): New macro.
+	(x_produce_glyphs): If it->what == IT_COMPOSITION, setup members
+	of struct it for the composition.  Cache pixel offsets in the
+	struct composition.  Delete codes for a composite character.
+	Handle Vignore_relative_composition in composition code.
+	(struct glyph_string): Delete member cmpcharp, add new member cmp.
+	(x_set_cursor_gc): Check s->cmp, not s->cmpcharp.
+	(x_compute_glyph_string_overhangs): Likewise.
+	(x_get_glyph_overhangs): Delete codes for a composite character.
+	(x_right_overwritten): Check s->cmp, not s->cmpcharp.
+	(x_draw_glyph_string_background): Likewise.  Delete codes for
+	checking s->gidx for a composition.
+	(x_draw_glyph_string_foreground): Delete code for a composite
+	character.
+	(x_draw_composite_glyph_string_foreground): New function.
+	(x_draw_glyph_string_box): Check s->cmp, not s->cmpcharp.
+	(x_draw_glyph_string): Handle the case of COMPOSITE_GLYPH.
+	(struct work): Deleted.
+	(x_fill_composite_glyph_string): Argument changed.  Mostly
+	rewritten for that.
+	(x_fill_glyph_string): Don't check CHARSET_COMPOSITION.
+	(BUILD_CHAR_GLYPH_STRINGS): Don't handle composition here.
+	(BUILD_COMPOSITE_GLYPH_STRING): New macro.
+	(BUILD_GLYPH_STRINGS): For composition, call
+	BUILD_COMPOSITE_GLYPH_STRING.
+	(x_new_font): Initialize f->output_data.x->baseline_offset, not
+	f->output_data.x->font_baseline.
+
 1999-12-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (show_mouse_face): Don't use updated_area, use

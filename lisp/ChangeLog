@@ -1,3 +1,123 @@
+1999-12-15  Kenichi Handa  <handa@etl.go.jp>
+
+	The following changes are for the new composition mechanism.  We
+	have deleted `composition' charset and composite characters,
+	instead introduced a special text property `composition'.
+
+	* composite.el: New file.
+
+	* ps-mule.el: Define encode-composition-rule and find-composition
+	for Emacs 20.4 and the earlier versions.
+	(ps-mule-init-external-library): Just require a feature for
+	external libraries.
+	(ps-mule-prologue): Postscript code modified for new composition.
+	(ps-mule-find-wrappoint): New arg COMPOSITION.
+	(ps-mule-plot-string): Delete code for composite characaters.
+	(ps-mule-plot-composition): New funcion.
+	(ps-mule-prepare-font-for-components): New function.
+	(ps-mule-plot-components): New function.
+	(ps-mule-composition-prologue-generated): Renamed from
+	ps-mule-cmpchar-prologue-generated.
+	(ps-mule-composition-prologue): New named from
+	ps-mule-cmpchar-prologue.  Modified for new composition.
+	(ps-mule-plot-rule-cmpchar, ps-mule-plot-cmpchar,
+	ps-mule-prepare-cmpchar-font): Deleted.
+	(ps-mule-string-encoding): New arg NO-SETFONT.
+	(ps-mule-bitmap-prologue): In Postscript code of BuildGlyphCommon,
+	check Composing, not Cmpchar
+	(ps-mule-initialize): Set ps-mule-composition-prologue-generated
+	to nil.
+	(ps-mule-begin-job): Check existence of new composition.
+
+	* ps-print.el (ps-plot-region): Handle new composition.
+
+	* simple.el (what-cursor-position): Show "(composed)" if the
+	character is composed.
+
+	* international/characters.el: Fix cateogries of Lao symbols.
+
+	* international/fontset.el (vertical-centering-font-regexp): New
+	variable.
+
+	* international/mule.el (mule-version): Updated to 5.0 (AOI).
+	(mule-version-date): Updated to 1999.12.7.
+	(with-category-table): New macro.
+
+	* international/mule-cmds.el (encode-coding-char): Don't check
+	composite character.
+
+	* international/mule-conf.el (iso-2022-7bit, iso-2022-7bit-ss2
+	iso-2022-7bit-lock, iso-2022-7bit-lock-ss2, iso-2022-8bit-ss2,
+	x-ctext): Give `composition' property t.
+
+	* international/mule-util.el (set-nested-alist): Set BRANCHES (if
+	non-nil) at the tail of ALIST.
+	(compose-region, decompose-region, decompse-string,
+	reference-point-alist, compose-chars): Moved to composite.el.
+	(compose-chars-component, compose-chars-rule,
+	decompose-composite-char): Deleted.
+
+	* international/quail.el (quail-install-map): New optional arg
+	NAME.
+	(quail-get-translation): If DEF is a symbol but not a function,
+	ignore it.
+	(quail-start-translation): Put a key sequence undefined in the
+	translation keymap in unread-command-events, not generated-events.
+	Return parameterized event (compose-last-chars N) if the input
+	characters should be composed.
+	(quail-map-definition): If DEF is t, treat it as nil.
+	(quail-delete-last-char): Delete the quail region.
+	(quail-show-translations): Don't show list of translations if the
+	quail package is deterministic.
+	(quail-completion-max-depth): New variable.
+	(quail-completion-1): Pay attention to the above variable.  Fix
+	for the case that a translation is a function.
+	(quail-map-from-table, quail-map-from-table-1,
+	quail-map-from-table-2): New functions.
+	(quail-lookup-map-and-concat): New function
+
+	* language/devan-util.el: Mostly rewritten.
+
+	* language/lao.el: Register lao-composition-function in
+	composition-function-table.
+
+	* language/lao-util.el: Mostly rewritten.
+
+	* language/thai.el: Register thai-composition-function in
+	composition-function-table.
+	(thai-tis620): Delete `pre-write-conversion' property.
+
+	* language/thai-util.el: (thai-category-table): Make it by
+	make-category-table.
+	(thai-composition-pattern): New variable.
+	(thai-compose-region, thai-compose-string): Use
+	with-category-table.
+	(thai-post-read-conversion): Just call thai-compose-region.
+	(thai-pre-write-conversion): Deleted.
+	(thai-composition-function): New funciton.
+
+	* language/tibet-util.el: Most functions rewritten.
+	(tibetan-char-p): Renamed from tibetan-char-examin.
+	(tibetan-composable-examin) (tibetan-complete-char-examin)
+	(tibetan-vertical-stacking) (tibetan-composition): Deleted.
+	(tibetan-add-components): New function.
+	(tibetan-composition-function): New function.
+
+	* language/tibetan.el: Register tibetan-composition-function in
+	composition-function-table.
+	(tibetan-composable-pattern): New variable.
+	(tibetan-subjoined-transcription-alist): Change key "R" to "+R".
+	(tibetan-precomposition-rule-alist): Move punctuations to
+	tibetan-punctuation-transcription-alist and
+	tibetan-obsolete-glyphs.
+	(tibetan-punctuation-transcription-alist): New variable.
+	(tibetan-obsolete-glyphs): New variable.
+	(tibetan-regexp): Improve the initialization code.
+
+	* textmodes/fill.el (fill-find-break-point): Delete codes for
+	composite characters.
+	(fill-region-as-paragraph): Likewise.
+
 1999-12-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* international/mule-cmds.el (default-input-method): Specify

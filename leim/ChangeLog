@@ -1,3 +1,13 @@
+1999-12-15  Kenichi Handa  <handa@etl.go.jp>
+
+	* quail/lao.el: Rewritten for new composition.
+
+	* quail/lrt.el: Rewritten for new composition.
+
+	* quail/thai.el: Rewritten for new composition.
+
+	* quail/tibetan.el: Rewritten for new composition.
+
 1999-12-13  Kenichi Handa  <handa@etl.go.jp>
 
 	* quail/latin-pre.el ("esperanto-prefix"): Make it produce Latin-3
