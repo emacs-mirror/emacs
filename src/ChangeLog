@@ -1,3 +1,7 @@
+1999-10-14  Dave Love  <fx@gnu.org>
+
+	* xdisp.c (handle_fontified_prop): GCPRO `pos'.
+
 1999-10-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* process.c (Fopen_network_stream): Don't loop if gethostbyname
