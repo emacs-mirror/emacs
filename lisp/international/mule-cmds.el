@@ -1415,11 +1415,17 @@ The default status is as follows:
   ;; users shell appropriately, so should not be altered by changing
   ;; language environment.
   (let ((output-coding
-	 (coding-system-change-text-conversion
-	  (car default-process-coding-system) 'undecided))
+	 ;; When bootstrapping, coding-systems are not defined yet, so
+	 ;; we need to catch the error from check-coding-system.
+	 (condition-case nil 
+	     (coding-system-change-text-conversion
+	      (car default-process-coding-system) 'undecided)
+	   (coding-system-error 'undecided)))
 	(input-coding
-	 (coding-system-change-text-conversion
-	  (cdr default-process-coding-system) 'iso-latin-1)))
+	 (condition-case nil
+	     (coding-system-change-text-conversion
+	      (cdr default-process-coding-system) 'iso-latin-1)
+	   (coding-system-error 'iso-latin-1))))
     (setq default-process-coding-system
 	  (cons output-coding input-coding)))
 
