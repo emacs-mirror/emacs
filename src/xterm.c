@@ -58,24 +58,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <strings.h>
 #else /* ! defined (BSD) */
 #ifndef VMS
-#include <sys/termio.h>
 #include <string.h>
 #endif
 #endif /* ! defined (BSD) */
 
-/* Allow m- file to inhibit use of FIONREAD.  */
-#ifdef BROKEN_FIONREAD
-#undef FIONREAD
-#endif /* ! defined (BROKEN_FIONREAD) */
-
-/* We are unable to use interrupts if FIONREAD is not available,
-   so flush SIGIO so we won't try.  */
-#ifndef FIONREAD
-#ifdef SIGIO
-#undef SIGIO
-#endif /* ! defined (SIGIO) */
-#endif /* FIONREAD */
-
+#include "systty.h"
 #include "systime.h"
 
 #include <fcntl.h>
@@ -2855,7 +2842,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 	  if (f != 0)
 	    {
-	      KeySym keysym;
+	      KeySym keysym, orig_keysym;
 	      char copy_buffer[80];
 	      int modifiers;
 
@@ -2875,6 +2862,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      /* Strip off the vendor-specific keysym bit, and take a shot
 		 at recognizing the codes.  HP servers have extra keysyms
 		 that fit into the MiscFunctionKey category.  */
+	      orig_keysym = keysym;
 	      keysym &= ~(1<<28);
 
 	      if (numchars > 1)
@@ -2882,11 +2870,14 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  if ((keysym >= XK_BackSpace && keysym <= XK_Escape)
 		      || keysym == XK_Delete
 		      || IsCursorKey (keysym)       /* 0xff50 <= x < 0xff60 */
-		      || IsMiscFunctionKey (keysym) /* 0xff60 <= x < 0xff80 */
+		      || IsMiscFunctionKey (keysym) /* 0xff60 <= x < 0xff7e */
 #ifdef HPUX
 		      /* This recognizes the "extended function keys".
-			 It seems there's no cleaner way.  */
-		      || ((unsigned) (keysym) >= XK_Select
+			 It seems there's no cleaner way.
+			 Test IsModifierKey to avoid handling mode_switch
+			 incorrectly.  */
+		      || (!IsModifierKey (orig_keysym)
+			  && (unsigned) (keysym) >= XK_Select
 			  && (unsigned)(keysym) < XK_KP_Space)
 #endif
 		      || IsKeypadKey (keysym)       /* 0xff80 <= x < 0xffbe */
