@@ -174,7 +174,9 @@
 (defconst help-xref-mule-regexp-template
   (purecopy (concat "\\(\\<\\("
 		    "\\(coding system\\)\\|"
-		    "\\(input method\\)"
+		    "\\(input method\\)\\|"
+		    "\\(character set\\)\\|"
+		    "\\(charset\\)"
 		    "\\)\\s-+\\)?"
 		    ;; Note starting with word-syntax character:
 		    "`\\(\\sw\\(\\sw\\|\\s_\\)+\\)'")))
@@ -833,6 +835,9 @@ This returns a language environment name as a string."
 	name)))
 
 ;;; Multilingual input methods.
+(defgroup leim nil 
+  "LEIM: Libraries of Emacs Input Methods."
+  :group 'mule)
 
 (defconst leim-list-file-name "leim-list.el"
   "Name of LEIM list file.
