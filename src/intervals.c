@@ -1613,7 +1613,7 @@ set_point (position, buffer)
   /* Check this now, before checking if the buffer has any intervals.
      That way, we can catch conditions which break this sanity check
      whether or not there are intervals in the buffer.  */
-  if (position > BUF_Z (buffer) || position < BUF_BEG (buffer))
+  if (position > BUF_ZV (buffer) || position < BUF_BEGV (buffer))
     abort ();
 
   have_overlays = (! NILP (buffer->overlays_before)
@@ -1671,7 +1671,10 @@ set_point (position, buffer)
      move forward or backward until a change in that property.  */
   if (NILP (Vinhibit_point_motion_hooks)
       && ((! NULL_INTERVAL_P (to) && ! NULL_INTERVAL_P (toprev))
-	  || have_overlays))
+	  || have_overlays)
+      /* Intangibility never stops us from positioning at the beginning
+	 or end of the buffer, so don't bother checking in that case.  */
+      && position != BEGV && position != ZV)
     {
       Lisp_Object intangible_propval;
       Lisp_Object pos;
