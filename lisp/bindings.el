@@ -312,6 +312,8 @@ Keymap to display on minor modes.")
 
   (setq-default mode-line-position
     `((-3 . ,(propertize "%p" 'help-echo help-echo))
+      (size-indication-mode 
+       (8 ,(propertize " of %I" 'help-echo help-echo)))
       (line-number-mode
        ((column-number-mode
 	 (10 ,(propertize " (%l,%c)" 'help-echo help-echo))
