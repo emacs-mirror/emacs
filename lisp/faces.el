@@ -180,7 +180,7 @@ in that frame; otherwise change each frame."
   "Set the explicit-font flag of face FACE to FLAG.
 If the optional FRAME argument is provided, change only
 in that frame; otherwise change each frame."
-  (internal-set-face-1 face 'font flag 9 frame))
+  (internal-set-face-1 face nil flag 9 frame))
 
 (defun set-face-foreground (face color &optional frame)
   "Change the foreground color of face FACE to COLOR (a string).
