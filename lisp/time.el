@@ -63,7 +63,9 @@ past 15 minutes.  The default is to display 1 minute load average."
 (defvar display-time-load-average display-time-default-load-average)
 
 (defcustom display-time-load-average-threshold 0.1
-  "*Load-average values below this value won't be shown in the mode line.")
+  "*Load-average values below this value won't be shown in the mode line."
+  :type 'number
+  :group 'display-time)
 
 ;;;###autoload
 (defcustom display-time-day-and-date nil "\
