@@ -433,7 +433,7 @@ msdos_stdcolor_idx (const char *name)
 }
 
 /* Given a color index, return its standard name.  */
-const char *
+char *
 msdos_stdcolor_name (int idx)
 {
   if (idx < 0 || idx >= sizeof (vga_colors) / sizeof (vga_colors[0]))

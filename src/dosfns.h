@@ -39,5 +39,5 @@ extern Lisp_Object Vdos_display_scancodes;
 extern Lisp_Object Qmsdos_color_translate;
 
 extern int         msdos_stdcolor_idx  P_ ((const char *));
-extern const char *msdos_stdcolor_name P_ ((int));
+extern char       *msdos_stdcolor_name P_ ((int));
 #endif
