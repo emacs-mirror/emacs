@@ -325,14 +325,23 @@ With argument ARG, puts mark at end of a following paragraph, so that
 the number of paragraphs marked equals ARG.
 
 If ARG is negative, point is put at end of this paragraph, mark is put
-at beginning of this or a previous paragraph."
+at beginning of this or a previous paragraph.
+
+If this command is repeated, it marks the next ARG paragraphs after (or
+before, if arg is negative) the ones already marked."
   (interactive "p")
-  (unless arg (setq arg 1))
-  (when (zerop arg)
-    (error "Cannot mark zero paragraphs"))
-  (forward-paragraph arg)
-  (push-mark nil t t)
-  (backward-paragraph arg))
+  (let (here)
+    (unless arg (setq arg 1))
+    (when (zerop arg)
+      (error "Cannot mark zero paragraphs"))
+    (when (and (eq last-command this-command) (mark t))
+      (setq here (point))
+      (goto-char (mark)))
+    (forward-paragraph arg)
+    (push-mark nil t t)
+    (if here
+	(goto-char here)
+      (backward-paragraph arg))))
 
 (defun kill-paragraph (arg)
   "Kill forward to end of paragraph.
@@ -424,13 +433,17 @@ With arg, repeat, or kill forward to Nth end of sentence if negative arg -N."
   (kill-region (point) (progn (backward-sentence arg) (point))))
 
 (defun mark-end-of-sentence (arg)
-  "Put mark at end of sentence.  Arg works as in `forward-sentence'."
+  "Put mark at end of sentence.  Arg works as in `forward-sentence'.
+If this command is repeated, it marks the next ARG sentences after the
+ones already marked."
   (interactive "p")
   (push-mark
-    (save-excursion
-      (forward-sentence arg)
-      (point))
-    nil t))
+   (save-excursion
+     (if (and (eq last-command this-command) (mark t))
+	 (goto-char (mark)))
+     (forward-sentence arg)
+     (point))
+   nil t))
 
 (defun transpose-sentences (arg)
   "Interchange this (next) and previous sentence."

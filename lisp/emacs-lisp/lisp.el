@@ -76,13 +76,18 @@ move to with the same argument.
 If this command is repeated, it marks the next ARG sexps after the ones
 already marked."
   (interactive "p")
-  (push-mark
-    (save-excursion
-      (if (and (eq last-command this-command) (mark t))
-	  (goto-char (mark)))
-      (forward-sexp (or arg 1))
-      (point))
-    nil t))
+  (cond ((and (eq last-command this-command) (mark t))
+	 (set-mark
+	  (save-excursion
+	   (goto-char (mark))
+	   (forward-sexp (or arg 1))
+	   (point))))
+	(t
+	 (push-mark
+	  (save-excursion
+	    (forward-sexp (or arg 1))
+	    (point))
+	  nil t))))
 
 (defun forward-list (&optional arg)
   "Move forward across one balanced group of parentheses.
@@ -250,13 +255,21 @@ is called as a function to find the defun's end."
 
 (defun mark-defun ()
   "Put mark at end of this defun, point at beginning.
-The defun marked is the one that contains point or follows point."
+The defun marked is the one that contains point or follows point.
+If this command is repeated, marks more defuns after the ones
+already marked."
   (interactive)
-  (push-mark (point))
-  (end-of-defun)
-  (push-mark (point) nil t)
-  (beginning-of-defun)
-  (re-search-backward "^\n" (- (point) 1) t))
+  (let (here)
+    (when (and (eq last-command this-command) (mark t))
+      (setq here (point))
+      (goto-char (mark)))
+    (push-mark (point))
+    (end-of-defun)
+    (push-mark (point) nil t)
+    (if here
+	(goto-char here)
+      (beginning-of-defun)
+      (re-search-backward "^\n" (- (point) 1) t))))
 
 (defun narrow-to-defun (&optional arg)
   "Make text outside current defun invisible.

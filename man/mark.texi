@@ -278,7 +278,9 @@ Put region around current page (@code{mark-page}).
 @kbd{M-@@} (@code{mark-word}) puts the mark at the end of the next
 word, while @kbd{C-M-@@} (@code{mark-sexp}) puts it at the end of the
 next balanced expression (@pxref{Expressions}).  These commands handle
-arguments just like @kbd{M-f} and @kbd{C-M-f}.
+arguments just like @kbd{M-f} and @kbd{C-M-f}.  If you repeat these
+commands, the region is extended.  For example, you can type either
+@kbd{C-u 2 M-@@} or @kbd{M-@@ M-@@} to mark the next two words.
 
 @kindex C-x h
 @findex mark-whole-buffer
@@ -292,17 +294,20 @@ paragraph.  With prefix argument, if the argument's value is positive,
 point.  If the prefix argument is @minus{}@var{n}, @kbd{M-h} also
 marks @var{n} paragraphs, running back form the one surrounding point.
 In that last case, point moves forward to the end of that paragraph,
-and the mark goes at the start of the region.
+and the mark goes at the start of the region.  The @kbd{M-h} command
+also supports the extension of the region, similar to @kbd{M-@@} and
+@kbd{C-M-@@}.
 
   @kbd{C-M-h} (@code{mark-defun}) similarly puts point before, and the
 mark after, the current (or following) major top-level definition, or
-defun (@pxref{Moving by Defuns}).  (Currently it only marks one
-defun.)  @kbd{C-x C-p} (@code{mark-page}) puts point before the
-current page, and mark at the end (@pxref{Pages}).  The mark goes
-after the terminating page delimiter (to include it in the region),
-while point goes after the preceding page delimiter (to exclude it).
-A numeric argument specifies a later page (if positive) or an earlier
-page (if negative) instead of the current page.
+defun (@pxref{Moving by Defuns}).  (Currently it only marks one defun,
+but repeating it marks more defuns, like for @kbd{M-@@}.)  @kbd{C-x
+C-p} (@code{mark-page}) puts point before the current page, and mark
+at the end (@pxref{Pages}).  The mark goes after the terminating page
+delimiter (to include it in the region), while point goes after the
+preceding page delimiter (to exclude it).  A numeric argument
+specifies a later page (if positive) or an earlier page (if negative)
+instead of the current page.
 
   Finally, @kbd{C-x h} (@code{mark-whole-buffer}) sets up the entire
 buffer as the region, by putting point at the beginning and the mark at

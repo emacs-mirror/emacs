@@ -1,3 +1,9 @@
+2002-02-15  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* simple.el (mark-word): Mark more if repeated.
+	* textmodes/paragraphs.el (mark-paragraph): Ditto.
+	(mark-end-of-sentence): Ditto.
+
 2002-02-15  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* wid-edit.el (widgetp): Made it more robust.

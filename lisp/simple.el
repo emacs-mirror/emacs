@@ -2812,13 +2812,22 @@ With argument, do this that many times."
   (forward-word (- arg)))
 
 (defun mark-word (arg)
-  "Set mark arg words away from point."
+  "Set mark arg words away from point.
+If this command is repeated, it marks the next ARG words after the ones
+already marked."
   (interactive "p")
-  (push-mark
-    (save-excursion
-      (forward-word arg)
-      (point))
-    nil t))
+  (cond ((and (eq last-command this-command) (mark t))
+	 (set-mark
+	  (save-excursion
+	    (goto-char (mark))
+	    (forward-word arg)
+	    (point))))
+	(t
+	 (push-mark
+	  (save-excursion
+	    (forward-word arg)
+	    (point))
+	  nil t))))
 
 (defun kill-word (arg)
   "Kill characters forward until encountering the end of a word.
