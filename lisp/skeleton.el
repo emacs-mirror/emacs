@@ -164,7 +164,12 @@ of `str' whereas the skeleton's interactor is then ignored."
 		     (and skeleton-autowrap
 			  (or (eq last-command 'mouse-drag-region)
 			      (and transient-mark-mode mark-active))
-			  -1))
+			  ;; Deactivate the mark, in case one of the
+			  ;; elements of the skeleton is sensitive
+			  ;; to such situations (e.g. it is itself a
+			  ;; skeleton).
+			  (progn (deactivate-mark)
+				 -1)))
 		   (if (stringp str)
 		       str))
   ;; Return non-nil to tell expand-abbrev that expansion has happened.
