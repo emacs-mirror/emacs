@@ -149,6 +149,10 @@ Fourth arg NEW-ENTRY non-nil means always create a new entry at the front;
 never append to an existing entry."
   (interactive (list current-prefix-arg
 		     (prompt-for-change-log-name)))
+  (or add-log-full-name
+      (setq add-log-full-name (user-full-name)))
+  (or add-log-mailing-address
+      (setq add-log-mailing-address user-mail-address))
   (if whoami
       (progn
 	(setq add-log-full-name (read-input "Full name: " add-log-full-name))
@@ -158,10 +162,6 @@ never append to an existing entry."
 	 ;; s/he can edit the full name field in prompter if s/he wants.
 	(setq add-log-mailing-address
 	      (read-input "Mailing address: " add-log-mailing-address))))
-  (or add-log-full-name
-      (setq add-log-full-name (user-full-name)))
-  (or add-log-mailing-address
-      (setq add-log-mailing-address user-mail-address))
   (let ((defun (funcall (or add-log-current-defun-function
 			    'add-log-current-defun)))
 	paragraph-end entry)
