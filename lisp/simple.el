@@ -28,6 +28,7 @@
 ;;; Code:
 
 (eval-when-compile
+  (autoload 'widget-convert "wid-edit")
   (require 'cl))
 
 
@@ -3201,7 +3202,7 @@ Valid values include:
 
     `sendmail-user-agent' -- use the default Emacs Mail package
     `mh-e-user-agent'     -- use the Emacs interface to the MH mail system
-    `message-user-agent'  -- use the GNUS mail sending package
+    `message-user-agent'  -- use the Gnus mail sending package
 
 Additional valid symbols may be available; check with the author of
 your package for details."
