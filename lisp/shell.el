@@ -52,19 +52,19 @@
 ;;=============================================================================
 ;; Some suggestions for your .emacs file.
 ;;
-;; ; If cmushell lives in some non-standard directory, you must tell emacs
+;; ; If shell lives in some non-standard directory, you must tell emacs
 ;; ; where to get it. This may or may not be necessary.
 ;; (setq load-path (cons (expand-file-name "~jones/lib/emacs") load-path))
 ;;
-;; ; Autoload cmushell from file cmushell.el
-;; (autoload 'cmushell "cmushell"
+;; ; Autoload shell from file shell.el
+;; (autoload 'shell "shell"
 ;;           "Run an inferior shell process."
 ;;           t)
 ;;
-;; ; Define C-c t to run my favorite command in cmushell mode:
-;; (setq cmushell-load-hook
+;; ; Define C-c t to run my favorite command in shell mode:
+;; (setq shell-load-hook
 ;;       '((lambda () 
-;;           (define-key cmushell-mode-map "\C-ct" 'favorite-cmd))))
+;;           (define-key shell-mode-map "\C-ct" 'favorite-cmd))))
 
 
 ;;; Brief Command Documentation:
@@ -180,6 +180,9 @@ Value is a list of strings, which may be nil.")
   "List of directories saved by pushd in this buffer's shell.
 Thus, this does not include the shell's current directory.")
 
+(defvar shell-last-dir nil
+  "Keep track of last directory for ksh `cd -' command.")
+
 (defvar shell-dirstack-query "dirs"
   "Command used by shell-resync-dirlist to query shell.")
 
@@ -229,6 +232,7 @@ to match their respective commands."
   (use-local-map shell-mode-map)
   (make-local-variable 'shell-dirstack)
   (setq shell-dirstack nil)
+  (setq shell-last-dir nil)
   (make-local-variable 'shell-dirtrackp)
   (setq shell-dirtrackp t)
   (setq comint-input-sentinel 'shell-directory-tracker)
@@ -389,11 +393,15 @@ Environment variables are expanded, see function substitute-in-file-name."
 
 ;;; cd [dir]
 (defun shell-process-cd (arg)
-  (condition-case nil (progn (cd (if (zerop (length arg)) (getenv "HOME")
-				     arg))
-			     (shell-dirstack-message))
-	   (error (message "Couldn't cd."))))
-
+  (condition-case nil 
+      (let ((new-dir (cond
+                      ((zerop (length arg)) (getenv "HOME"))
+                      ((string-equal "-" arg) shell-last-dir)
+                      (t arg))))
+       (setq shell-last-dir default-directory)
+       (cd new-dir)
+       (shell-dirstack-message))
+    (error (message "Couldn't cd."))))
 
 ;;; pushd [+n | dir]
 (defun shell-process-pushd (arg)
@@ -612,6 +620,10 @@ This is a good place to put keybindings.")
 ;;; Jim Blandy 10/30/91
 ;;; - Removed the "cmu" prefix from names, renamed file to shell.el,
 ;;;   to become the standard shell package.
+;;;
+;;; Eric Raymond 3/23/93
+;;; - Merged in Brent Benson's patch to handle cd -.  Made some more
+;;;   cmushell -> shell changes.
 
 (provide 'shell)
 
