@@ -1,3 +1,7 @@
+2001-03-07  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dired-aux.el (dired-do-shell-command): Doc fix.
+
 2001-03-06  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emulation/viper.el (viper-vi-state-mode-list): Add cperl-mode.
