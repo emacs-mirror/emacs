@@ -1,3 +1,10 @@
+2004-01-27  Steven Tamm <steventamm@mac.com>
+
+	* macterm.c (make_mac_frame, make_mac_terminal_frame): Move
+	setting of scroll bars from make_mac_frame to
+	make_mac_terminal_frame to prevent clobbering of
+	scroll-bar-mode.
+
 2004-01-26  Richard M. Stallman  <rms@gnu.org>
 
 	* search.c (Freplace_match): Handle nonexistent

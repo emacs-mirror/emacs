@@ -8205,9 +8205,6 @@ NewMacWindow (FRAME_PTR fp)
 void
 make_mac_frame (struct frame *f)
 {
-  FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
-  FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_right;
-
   FRAME_DESIRED_CURSOR (f) = FILLED_BOX_CURSOR;
 
   NewMacWindow(f);
@@ -8255,6 +8252,9 @@ make_mac_terminal_frame (struct frame *f)
 
   FRAME_COLS (f) = 96;
   FRAME_LINES (f) = 4;
+
+  FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
+  FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_right;
 
   make_mac_frame (f);
 
