@@ -107,6 +107,7 @@ would have the following buffer names in the various styles:
 		(const post-forward)
 		(const post-forward-angle-brackets)
 		(const :tag "standard Emacs behavior (nil)" nil))
+  :require 'uniquify
   :group 'uniquify)
 
 (defcustom uniquify-after-kill-buffer-p nil
