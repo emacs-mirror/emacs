@@ -574,7 +574,7 @@ If `mouse-yank-at-point' is non-nil, insert at point instead."
 
 (defun mouse-sel-lost-selection-hook (selection)
   "Remove the overlay for a lost selection."
-  (let ((overlay (mouse-sel-selection-overlay (car selection))))
+  (let ((overlay (mouse-sel-selection-overlay selection)))
     (delete-overlay overlay)))
 
 (add-hook 'x-lost-selection-hooks 'mouse-sel-lost-selection-hook)
