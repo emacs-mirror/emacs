@@ -672,20 +672,17 @@ integer.  @samp{%x} uses lower case and @samp{%X} uses upper case.
 Replace the specification with the character which is the value given.
 
 @item %e
-@itemx %E
 Replace the specification with the exponential notation for a floating
-point number.  @samp{%e} uses lower case @samp{e} for the exponent and
-@samp{%E} uses upper case.
+point number.
 
 @item %f
 Replace the specification with the decimal-point notation for a floating
 point number.
 
 @item %g
-@itemx %G
 Replace the specification with notation for a floating point number,
 using either exponential notation or decimal-point notation, whichever
-is shorter.  @samp{%G} uses upper case if an exponent is printed.
+is shorter.
 
 @item %%
 Replace the specification with a single @samp{%}.  This format
