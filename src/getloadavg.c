@@ -197,6 +197,14 @@
 
 #endif /* No LOAD_AVE_TYPE.  */
 
+#ifdef OSF_ALPHA
+/* <sys/param.h> defines an incorrect value for FSCALE on Alpha OSF/1,
+   according to ghazi@noc.rutgers.edu.  */
+#undef FSCALE
+#define FSCALE 1024.0
+#endif
+
+
 #ifndef	FSCALE
 
 /* SunOS and some others define FSCALE in sys/param.h.  */
