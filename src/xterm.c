@@ -6314,7 +6314,7 @@ note_mode_line_highlight (w, x, mode_line_p)
 	     setting the global variable help_echo to the help string.  */
 	  help = Fget_text_property (make_number (glyph->charpos),
 				     Qhelp_echo, glyph->object);
-	  if (STRINGP (help))
+	  if (!NILP (help))
 	    help_echo = help;
 
 	  /* Change the mouse pointer according to what is under X/Y.  */
@@ -6571,11 +6571,11 @@ note_mouse_highlight (f, x, y)
 
 	  /* Check overlays first.  */
 	  help = Qnil;
-	  for (i = 0; i < noverlays && !STRINGP (help); ++i)
+	  for (i = 0; i < noverlays && NILP (help); ++i)
 	    help = Foverlay_get (overlay_vec[i], Qhelp_echo); 
 	    
 	  /* Try text properties.  */
-	  if (!STRINGP (help)
+	  if (NILP (help)
 	      && ((STRINGP (glyph->object)
 		   && glyph->charpos >= 0
 		   && glyph->charpos < XSTRING (glyph->object)->size)
@@ -6585,7 +6585,7 @@ note_mouse_highlight (f, x, y)
 	    help = Fget_text_property (make_number (glyph->charpos),
 				       Qhelp_echo, glyph->object);
 	    
-	  if (STRINGP (help))
+	  if (!NILP (help))
 	    help_echo = help;
 	}
 	  
@@ -6818,7 +6818,7 @@ note_tool_bar_highlight (f, x, y)
      XTread_socket does the rest.  */
   help_echo = (XVECTOR (f->current_tool_bar_items)
 	       ->contents[prop_idx + TOOL_BAR_ITEM_HELP]);
-  if (!STRINGP (help_echo))
+  if (NILP (help_echo))
     help_echo = (XVECTOR (f->current_tool_bar_items)
 		 ->contents[prop_idx + TOOL_BAR_ITEM_CAPTION]);
 }
@@ -9773,8 +9773,8 @@ XTread_socket (sd, bufp, numchars, expected)
 
 		/* If the contents of the global variable help_echo
 		   has changed, generate a HELP_EVENT.  */
-		if (STRINGP (help_echo)
-		    || STRINGP (previous_help_echo))
+		if (!NILP (help_echo)
+		    || !NILP (previous_help_echo))
 		  {
 		    Lisp_Object frame;
 

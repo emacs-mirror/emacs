@@ -1375,7 +1375,7 @@ IT_note_mode_line_highlight (struct window *w, int x, int mode_line_p)
 	     setting the global variable help_echo to the help string.  */
 	  help = Fget_text_property (make_number (glyph->charpos),
 				     Qhelp_echo, glyph->object);
-	  if (STRINGP (help))
+	  if (!NILP (help))
 	    help_echo = help;
 	}
     }
@@ -1623,11 +1623,11 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 
 	  /* Check overlays first.  */
 	  help = Qnil;
-	  for (i = 0; i < noverlays && !STRINGP (help); ++i)
+	  for (i = 0; i < noverlays && NILP (help); ++i)
 	    help = Foverlay_get (overlay_vec[i], Qhelp_echo); 
 	    
 	  /* Try text properties.  */
-	  if (!STRINGP (help)
+	  if (NILP (help)
 	      && ((STRINGP (glyph->object)
 		   && glyph->charpos >= 0
 		   && glyph->charpos < XSTRING (glyph->object)->size)
@@ -1637,7 +1637,7 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 	    help = Fget_text_property (make_number (glyph->charpos),
 				       Qhelp_echo, glyph->object);
 
-	  if (STRINGP (help))
+	  if (!NILP (help))
 	    help_echo = help;
 	}
 	  
@@ -3239,7 +3239,7 @@ dos_rawgetc ()
 				   mouse_last_x, mouse_last_y);
 	  /* If the contents of the global variable help_echo has
 	     changed, generate a HELP_EVENT.  */
-	  if (STRINGP (help_echo) || STRINGP (previous_help_echo))
+	  if (!NILP (help_echo) || !NILP (previous_help_echo))
 	    {
 	      event.kind = HELP_EVENT;
 	      event.frame_or_window = Fcons (selected_frame, help_echo);
