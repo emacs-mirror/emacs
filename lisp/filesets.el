@@ -152,7 +152,7 @@ COND-FN takes one argument: the current element."
 	(setq rv (append rv (list elt)))))))
 
 (defun filesets-ormap (fsom-pred lst)
-  "Return the the tail of FSOM-LST for the head of which FSOM-PRED is non-nil."
+  "Return the tail of FSOM-LST for the head of which FSOM-PRED is non-nil."
   (let ((fsom-lst lst)
 	(fsom-rv nil))
     (while (and (not (null fsom-lst))
