@@ -673,7 +673,6 @@
 	(shrink_mini_window): Restore old window sizes only if old
 	size information is valid in all windows in a window tree.
 	
->>>>>>> 1.44
 1999-10-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* xmenu.c (set_frame_menubar): Don't call

@@ -1,3 +1,8 @@
+1999-11-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* simple.el (with-syntax-table): Save buffer explicitly instead of
+	using save-excursion.
+
 1999-11-16  Gerd Moellmann  <gerd@gnu.org>
 
 	* mail/supercite.el: New maintainer.
