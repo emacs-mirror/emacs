@@ -51,7 +51,8 @@
   (setq sendmail-coding-system nil
 	rmail-file-coding-system 'chinese-iso-7bit)
 
-  (setq default-input-method  "chinese-py-punct"))
+  (setq default-input-method  "chinese-py-punct")
+  (setq-default default-input-method "chinese-py-punct"))
 
 ;;;###autoload
 (defun setup-chinese-big5-environment ()
@@ -79,7 +80,8 @@
   (setq sendmail-coding-system nil
 	rmail-file-coding-system 'chienese-iso-7bit)
 
-  (setq default-input-method "chinese-py-punct-b5"))
+  (setq default-input-method "chinese-py-punct-b5")
+  (setq-default default-input-method "chinese-py-punct-b5"))
 
 ;;;###autoload
 (defun setup-chinese-cns-environment ()
@@ -106,7 +108,8 @@
   (setq sendmail-coding-system nil
 	rmail-file-coding-system 'chinese-iso-7bit)
 
-  (setq default-input-method "quail-quick-cns"))
+  (setq default-input-method "chinese-quick-cns")
+  (setq-default default-input-method "chinese-quick-cns"))
 
 ;; Hz/ZW encoding stuffs
 
