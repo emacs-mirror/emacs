@@ -160,6 +160,8 @@ and this notice must be preserved on all copies.  */
 
 #undef EMACS_CONFIGURATION
 
+#undef EMACS_CONFIG_OPTIONS
+
 /* The configuration script defines opsysfile to be the name of the
    s/*.h file that describes the system type you are using.  The file
    is chosen based on the configuration name you give.
