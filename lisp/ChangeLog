@@ -1,5 +1,7 @@
 2000-10-12  Gerd Moellmann  <gerd@gnu.org>
 
+	* calendar/diary-lib.el (diary-cyclic): Doc fix from Ed Reingold.
+
 	* progmodes/scheme.el (scheme-mode-map): Use lisp-mode-shared-map
 	instead of shared-lisp-mode-map.
 
