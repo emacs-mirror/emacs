@@ -118,6 +118,10 @@ struct font_info
      `_MULE_RELATIVE_COMPOSE' which is introduced by Emacs.  */
   int relative_compose;
 
+  /* Non zero means an ascent value to be used for a character
+     registered in char-table `use-default-ascent'.  */
+  int default_ascent;
+
   /* CCL program to calculate code points of the font.  */
   struct ccl_program *font_encoder;
 };
@@ -199,5 +203,6 @@ extern Lisp_Object list_fontsets ();
 extern Lisp_Object Vglobal_fontset_alist;
 
 extern Lisp_Object Qfontset;
+extern Lisp_Object Vuse_default_ascent; 
 
 #endif /* _FONTSET_H */
