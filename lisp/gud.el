@@ -1766,7 +1766,7 @@ The file names should be absolute, or relative to the current directory.")
 	(if user-error
 	    (progn
 	      (kill-buffer (current-buffer))
-	      (error "Error: Omit whitespace between '-classpath' and it's value")))
+	      (error "Error: Omit whitespace between '-classpath' and its value")))
 
 	(if args
 	    (setq massaged-args
