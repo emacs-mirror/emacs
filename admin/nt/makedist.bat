@@ -53,7 +53,7 @@ if not (%4) == () goto end
 echo Create full bin distribution
 copy %3\README.W32 emacs-%1\README.W32
 
-%TAR% --exclude temacs.exe --exclude emacs.mdp --exclude *.pdb --exclude *.opt --exclude *~ -cvf - emacs-%1/BUGS emacs-%1/GETTING.GNU.SOFTWARE emacs-%1/README emacs-%1/README.W32 emacs-%1/bin emacs-%1/etc emacs-%1/info emacs-%1/lisp emacs-%1/lock emacs-%1/site-lisp | gzip -9 > %2-fullbin-i386.tar.gz
+%TAR% --exclude temacs.exe --exclude emacs.mdp --exclude *.pdb --exclude *.opt --exclude *~ -cvf - emacs-%1/BUGS emacs-%1/README emacs-%1/README.W32 emacs-%1/bin emacs-%1/etc emacs-%1/info emacs-%1/lisp emacs-%1/lock emacs-%1/site-lisp | gzip -9 > %2-fullbin-i386.tar.gz
 del emacs-%1\README.W32
 if not (%4) == () goto end
 
@@ -97,7 +97,7 @@ cd distrib
 gunzip -c ..\%2-bin-i386.tar.gz | %TAR% xf -
 zip -rp9 em%5_bin %2
 rm -rf %2
-zipsplit -n 1400000 -b .. em%5_bin.zip
+zipsplit -n 2000000 -b .. em%5_bin.zip
 del em%5_bin.zip
 gunzip -c ..\%2-lisp.tar.gz | %TAR% xf -
 zip -rp9 em%5_lis %2
