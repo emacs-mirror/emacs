@@ -758,15 +758,19 @@ x_after_update_window_line (desired_row)
   
   if (!desired_row->mode_line_p && !w->pseudo_window_p)
     {
+      struct frame *f;
+      int width;
+
       BLOCK_INPUT;
       x_draw_row_bitmaps (w, desired_row);
 
       /* When a window has disappeared, make sure that no rest of
 	 full-width rows stays visible in the internal border.  */
-      if (windows_or_buffers_changed)
+      if (windows_or_buffers_changed
+          && (f = XFRAME (w->frame),
+              width = FRAME_INTERNAL_BORDER_WIDTH (f),
+              width != 0))
 	{
-	  struct frame *f = XFRAME (w->frame);
-	  int width = FRAME_INTERNAL_BORDER_WIDTH (f);
 	  int height = desired_row->visible_height;
 	  int x = (window_box_right (w, -1)
                    + FRAME_X_RIGHT_FLAGS_AREA_WIDTH (f));
@@ -1444,7 +1448,8 @@ w32_encode_char (c, char2b, font_info, two_byte_p)
   /* If charset is not ASCII or Latin-1, may need to move it into
      Unicode space.  */
   if ( font && !font->bdf && w32_use_unicode_for_codepage (codepage)
-       && charset != CHARSET_ASCII && charset != charset_latin_iso8859_1)
+       && charset != CHARSET_ASCII && charset != charset_latin_iso8859_1
+       && charset != CHARSET_8_BIT_CONTROL && charset != CHARSET_8_BIT_GRAPHIC)
     {
       char temp[3];
       temp[0] = BYTE1 (*char2b);
@@ -9076,8 +9081,8 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
     }
   else
     {
-      if (w != XWINDOW (selected_window)
-          || f != FRAME_W32_DISPLAY_INFO (f)->w32_highlight_frame)
+      if (f != FRAME_W32_DISPLAY_INFO (f)->w32_highlight_frame
+          || w != XWINDOW (f->selected_window))
         {
 	  extern int cursor_in_non_selected_windows;
 
@@ -9339,7 +9344,8 @@ x_new_font (f, fontname)
   if (FRAME_W32_WINDOW (f) != 0)
     {
       frame_update_line_height (f);
-      x_set_window_size (f, 0, f->width, f->height);
+      if (NILP (tip_frame) || XFRAME (tip_frame) != f)
+        x_set_window_size (f, 0, f->width, f->height);
     }
   else
     /* If we are setting a new frame's font for the first time,
@@ -10321,7 +10327,7 @@ w32_initialize ()
   estimate_mode_line_height_hook = x_estimate_mode_line_height;
 
   scroll_region_ok = 1;         /* we'll scroll partial frames */
-  char_ins_del_ok = 0;          /* just as fast to write the line */
+  char_ins_del_ok = 1;
   line_ins_del_ok = 1;          /* we'll just blt 'em */
   fast_clear_end_of_line = 1;   /* X does this well */
   memory_below_frame = 0;       /* we don't remember what scrolls
