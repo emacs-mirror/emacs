@@ -112,6 +112,21 @@ Its name should end with a slash.")
     (t "fakemail"))			;In ../etc, to interface to /bin/mail.
   "Program used to send messages.")
 
+(defconst remote-shell-program
+  (cond
+   ;; Some systems use rsh for the remote shell; others use that name for the
+   ;; restricted shell and use remsh for the remote shell.  Let's try to guess
+   ;; based on what we actually find out there.  The restricted shell is
+   ;; almost certainly in /bin or /usr/bin, so it's probably safe to assume
+   ;; that an rsh found elsewhere is the remote shell program.
+   ((file-exists-p "/usr/ucb/remsh") "/usr/ucb/remsh")
+   ((file-exists-p "/usr/ucb/rsh") "/usr/ucb/rsh")
+   ((file-exists-p "/bin/remsh") "/bin/remsh")
+   ((file-exists-p "/usr/bin/remsh") "/bin/remsh")
+   ((file-exists-p "/usr/local/bin/rsh") "/usr/local/bin/rsh")
+   ((memq system-type '(hpux usg-unix-v)) "remsh")
+   (t "rsh")))
+
 (defconst term-file-prefix (if (eq system-type 'vax-vms) "[.term]" "term/")
   "If non-nil, Emacs startup does (load (concat term-file-prefix (getenv \"TERM\")))
 You may set this variable to nil in your `.emacs' file if you do not wish
