@@ -537,6 +537,8 @@ This uses `update-file-autoloads' (which see) do its work."
 	    (append no-autoloads
 		    (delq nil (mapcar 'update-file-autoloads files))))
       (when no-autoloads
+	;; Sort them for better readability.
+	(setq no-autoloads (sort no-autoloads 'string<))
 	;; Add the `no-autoloads' section.
 	(goto-char (point-max))
 	(search-backward "\f" nil t)
