@@ -1,3 +1,7 @@
+2001-04-19  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-defsyntax): Unquote `doc'.
+
 2001-04-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/cl-indent.el (toplevel): Comment out the spec
@@ -9,11 +13,7 @@
 2001-04-18  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in (EMACSLOADPATH): Define.
-	(custom-deps): 
-	(autoloads): 
-	(.el.elc): 
-	(compile-files-CMD): 
-	(compile-files-SH): 
+	(custom-deps, autoloads, .el.elc, compile-files-CMD, compile-files-SH)
 	(recompile): Remove stuff to set EMACSLOADPATH.
 
 2001-04-18  Gerd Moellmann  <gerd@gnu.org>
