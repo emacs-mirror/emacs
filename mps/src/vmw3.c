@@ -1,12 +1,12 @@
-/*  impl.c.vmw3: VIRTUAL MEMORY MAPPING FOR WIN32
+/* impl.c.vmw3: VIRTUAL MEMORY MAPPING FOR WIN32
  *
- * $HopeName: MMsrc!vmw3.c(trunk.29) $
- * Copyright (C) 1997, 1998 Harlequin Group plc.  All rights reserved.
+ * $HopeName: MMsrc!vmw3.c(trunk.30) $
+ * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  *
- *  Design: design.mps.vm
+ * .design: See design.mps.vm.
  *
- *  This is the implementation of the virtual memory mapping interface (vm.h)
- *  for Win32s.
+ * .purpose: This is the implementation of the virtual memory mapping
+ * interface (vm.h) for Win32s.
  *
  *  The documentation for Win32 used is the "Win32 Programmer's Reference"
  *  provided with Microsoft Visual C++ 2.0.
@@ -55,7 +55,7 @@
 
 #include "mpswin.h"
 
-SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.29) $");
+SRCID(vmw3, "$HopeName: MMsrc!vmw3.c(trunk.30) $");
 
 
 /* VMStruct -- virtual memory structure */
@@ -111,12 +111,20 @@ static Res VMRAMSize(VM vm, Size *vmRAMSizeReturn)
 /* VMSetCollectionStrategy -- initialize strategy for platform */
 /* This is not a protocol function - but it could be in future */
 
+static Bool collectionStrategyInited = FALSE;
+
 static Res VMSetCollectionStrategy(VM vm)
 {
   Res res;
   Size vmRAMSize;
 
   AVERT(VM, vm);
+
+  /* Avoid resetting the strategy afterwards.  Should really have locking */
+  /* but frequencies are not critical, and this will soon be rewritten. @@@@ */
+  if (collectionStrategyInited)
+    return ResOK;
+  collectionStrategyInited = TRUE;
 
   res = VMRAMSize(vm, &vmRAMSize);
 
@@ -128,29 +136,29 @@ static Res VMSetCollectionStrategy(VM vm)
   /* Source: request.dylan.160112.sol.more-asg */
   if (ResOK == res) {
     if (vmRAMSize >= 110*1024*1024) {
-      AMCGen0Frequency = 6;
-      AMCGen1Frequency = 48;
-      AMCGen2Frequency = 576;
-      AMCGen0RampmodeFrequency = 12;
-      AMCGen1RampmodeFrequency = 96;
-      AMCRampGenFrequency = 1152;
-      AMCGen2RampmodeFrequency = 10368;
+      AMCGen0Frequency = 6000uL;
+      AMCGen1Frequency = 48000uL;
+      AMCGen2Frequency = 576000uL;
+      AMCGen0RampmodeFrequency = 12000uL;
+      AMCGen1RampmodeFrequency = 96000uL;
+      AMCRampGenFrequency = 1152000uL;
+      AMCGen2RampmodeFrequency = 10368000uL;
     } else if (vmRAMSize >= 60*1024*1024) {
-      AMCGen0Frequency = 6;
-      AMCGen1Frequency = 48;
-      AMCGen2Frequency = 480;
-      AMCGen0RampmodeFrequency = 6;
-      AMCGen1RampmodeFrequency = 48;
-      AMCRampGenFrequency = 288;
-      AMCGen2RampmodeFrequency = 1152;
+      AMCGen0Frequency = 6000uL;
+      AMCGen1Frequency = 48000uL;
+      AMCGen2Frequency = 480000uL;
+      AMCGen0RampmodeFrequency = 6000uL;
+      AMCGen1RampmodeFrequency = 48000uL;
+      AMCRampGenFrequency = 288000uL;
+      AMCGen2RampmodeFrequency = 1152000uL;
     } else {
-      AMCGen0Frequency = 4;
-      AMCGen1Frequency = 20;
-      AMCGen2Frequency = 300;
-      AMCGen0RampmodeFrequency = 4;
-      AMCGen1RampmodeFrequency = 20;
-      AMCRampGenFrequency = 120;
-      AMCGen2RampmodeFrequency = 480;
+      AMCGen0Frequency = 4000uL;
+      AMCGen1Frequency = 20000uL;
+      AMCGen2Frequency = 300000uL;
+      AMCGen0RampmodeFrequency = 4000uL;
+      AMCGen1RampmodeFrequency = 20000uL;
+      AMCRampGenFrequency = 120000uL;
+      AMCGen2RampmodeFrequency = 480000uL;
     }
   }
   return res;
