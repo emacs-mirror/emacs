@@ -139,6 +139,7 @@ Letters do not insert themselves; instead, they are commands.
   "Return buffer described by this line of buffer menu."
   (let* ((where (Buffer-menu-buffer-name-position))
 	 (string (buffer-substring (car where) (cdr where))))
+    (set-text-properties 0 (length string) nil string)
     (or (get-buffer string)
 	(if error-if-non-existent-p
 	    (error "No buffer named \"%s\"" string)
