@@ -641,7 +641,7 @@ lower types.")
   ;; Scan for @-commands.
   (goto-char (point-min))
   (while (search-forward "@" nil t)
-    (if (looking-at "[@{}^'` *\"?!-]")
+    (if (looking-at "[@{}^'` *\"?!]")
         ;; Handle a few special @-followed-by-one-char commands.
         (if (= (following-char) ?*)
             (progn
@@ -1054,7 +1054,8 @@ lower types.")
     (insert ?\n)))
 
 
-;;; Space controlling commands:  @. and @:   
+;;; Space controlling commands:  @. and @:, and the soft hyphen.
+
 (put '\. 'texinfo-format 'texinfo-format-\.)
 (defun texinfo-format-\. ()
   (texinfo-discard-command)
@@ -1062,6 +1063,10 @@ lower types.")
 
 (put '\: 'texinfo-format 'texinfo-format-\:)
 (defun texinfo-format-\: ()
+  (texinfo-discard-command))
+
+(put '\- 'texinfo-format 'texinfo-format-soft-hyphen)
+(defun texinfo-format-soft-hyphen ()
   (texinfo-discard-command))
 
 
