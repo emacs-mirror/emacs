@@ -921,7 +921,7 @@ If BUFFER is omitted or nil, some interesting buffer is returned.")
   notsogood = Qnil;
 
   if (NILP (frame))
-    frame = Fselected_frame ();
+    frame = selected_frame;
 
   tail = Vbuffer_alist;
   pred = frame_buffer_predicate (frame);
@@ -1241,7 +1241,7 @@ record_buffer (buf)
 {
   register Lisp_Object link, prev;
   Lisp_Object frame;
-  frame = Fselected_frame ();
+  frame = selected_frame;
 
   prev = Qnil;
   for (link = Vbuffer_alist; CONSP (link); link = XCONS (link)->cdr)
