@@ -1,3 +1,7 @@
+2002-12-01  Dave Love  <fx@gnu.org>
+
+	* progmodes/cap-words.el: New file.
+
 2002-11-07  Kenichi Handa  <handa@m17n.org>
 
 	The following changes are to make character composition happen
