@@ -1,12 +1,10 @@
 (define-key global-map [menu-bar] (make-sparse-keymap "menu-bar"))
-(setq menu-bar-file-menu (make-sparse-keymap "File"))
-(define-key global-map [menu-bar file] (cons "File" menu-bar-file-menu))
-(setq menu-bar-edit-menu (make-sparse-keymap "Edit"))
-(define-key global-map [menu-bar edit] (cons "Edit" menu-bar-edit-menu))
-(setq menu-bar-buffer-menu (make-sparse-keymap "Buffers"))
-(define-key global-map [menu-bar buffer] (cons "Buffers" menu-bar-buffer-menu))
 (setq menu-bar-help-menu (make-sparse-keymap "Help"))
 (define-key global-map [menu-bar help] (cons "Help" menu-bar-help-menu))
+(setq menu-bar-edit-menu (make-sparse-keymap "Edit"))
+(define-key global-map [menu-bar edit] (cons "Edit" menu-bar-edit-menu))
+(setq menu-bar-file-menu (make-sparse-keymap "File"))
+(define-key global-map [menu-bar file] (cons "File" menu-bar-file-menu))
 
 (define-key menu-bar-file-menu [exit-emacs]
   '("Exit Emacs" . save-buffers-kill-emacs))
@@ -77,7 +75,99 @@
 	       (and (boundp 'pending-undo-list)
 		    pending-undo-list)
 	     buffer-undo-list)))
+
+(define-key global-map [menu-bar buffer] '("Buffers" . mouse-buffer-menu))
 
+(defvar complex-buffers-menu-p nil
+  "*Non-nil says, offer a choice of actions after you pick a buffer.
+This applies to the Buffers menu from the menu bar.")
+
+(defvar buffers-menu-max-size 10
+  "*Maximum number of entries which may appear on the Buffers menu.
+If this is 10, then only the ten most-recently-selected buffers are shown.
+If this is nil, then all buffers are shown.
+A large number or nil slows down menu responsiveness.")
+
+(defun mouse-buffer-menu (event)
+  "Pop up a menu of buffers for selection with the mouse.
+This switches buffers in the window that you clicked on,
+and selects that window."
+  (interactive "e")
+  (let ((buffers (buffer-list))
+	menu)
+    ;; If requested, list only the N most recently selected buffers.
+    (if (and (integerp buffers-menu-max-size)
+	     (> buffers-menu-max-size 1))
+	(if (> (length buffers) buffers-menu-max-size)
+	    (setcdr (nthcdr buffers-menu-max-size buffers) nil)))
+    (setq menu
+	  (list "Buffer Menu"
+		(cons "Select Buffer"
+		      (let ((tail buffers)
+			    (maxlen 0)
+			    head)
+			(while tail
+			  (let ((elt (car tail)))
+			    (if (not (string-match "^ "
+						   (buffer-name elt)))
+				(setq head (cons
+					    (cons
+					     (format
+					      "%14s   %s"
+					      (buffer-name elt)
+					      (or (buffer-file-name elt) ""))
+					     elt)
+					    head)))
+			    (and head (> (length (car (car head))) maxlen)
+				 (setq maxlen (length (car (car head))))))
+			  (setq tail (cdr tail)))
+			(nconc (reverse head)
+			       (list (cons (concat (make-string (- (/ maxlen 2) 8) ?\ )
+						   "List All Buffers")
+					   'list-buffers)))))))
+
+
+    (let ((buf (x-popup-menu (if (listp event) event
+			       (cons '(0 0) (selected-frame)))
+			     menu))
+	  (window (and (listp event) (posn-window (event-start event)))))
+      (if (eq buf 'list-buffers)
+	  (list-buffers)
+	(if buf
+	    (if complex-buffers-menu-p
+		(let ((action (x-popup-menu (if (listp event) event
+					      (cons '(0 0) (selected-frame)))
+					    '("Buffer Action"
+					      (""
+					       ("Save Buffer" . save-buffer)
+					       ("Kill Buffer" . kill-buffer)
+					       ("Select Buffer" . switch-to-buffer))))))
+		  (if (eq action 'save-buffer)
+		      (save-excursion
+			(set-buffer buf)
+			(save-buffer))
+		    (funcall action buf)))
+	      (and (windowp window)
+		   (select-window window))
+	      (switch-to-buffer buf)))))))
+
+;; this version is too slow
+;;;(defun format-buffers-menu-line (buffer)
+;;;  "Returns a string to represent the given buffer in the Buffer menu.
+;;;nil means the buffer shouldn't be listed.  You can redefine this."
+;;;  (if (string-match "\\` " (buffer-name buffer))
+;;;      nil
+;;;    (save-excursion
+;;;     (set-buffer buffer)
+;;;     (let ((size (buffer-size)))
+;;;       (format "%s%s %-19s %6s %-15s %s"
+;;;	       (if (buffer-modified-p) "*" " ")
+;;;	       (if buffer-read-only "%" " ")
+;;;	       (buffer-name)
+;;;	       size
+;;;	       mode-name
+;;;	       (or (buffer-file-name) ""))))))
+
 (let ((frames (frame-list)))
   (while frames
     (modify-frame-parameters (car frames) '((menu-bar-lines . 1)))
