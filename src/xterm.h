@@ -379,6 +379,9 @@ struct x_display
   struct face **computed_faces;
   int n_computed_faces;		/* How many are valid */
   int size_computed_faces;	/* How many are allocated */
+
+  /* This is the gravity value for the specified window position.  */
+  int win_gravity;
 };
 
 /* Get at the computed faces of an X window frame.  */
