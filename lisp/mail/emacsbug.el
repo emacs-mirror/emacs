@@ -1,6 +1,6 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list.
 
-;; Copyright (C) 1985, 1994, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 1997, 1998 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -42,12 +42,12 @@
   :group 'maint
   :group 'mail)
 
-(defcustom report-emacs-bug-address "bug-gnu-emacs@prep.ai.mit.edu"
+(defcustom report-emacs-bug-address "bug-gnu-emacs@gnu.org"
   "*Address of mailing list for GNU Emacs bugs."
   :group 'emacsbug
   :type 'string)
 
-(defcustom report-emacs-bug-pretest-address "emacs-pretest-bug@gnu.ai.mit.edu"
+(defcustom report-emacs-bug-pretest-address "emacs-pretest-bug@gnu.org"
   "*Address of mailing list for GNU Emacs pretest bugs."
   :group 'emacsbug
   :type 'string)
@@ -182,19 +182,17 @@ Type SPC to scroll through this section and its subsections.")))
 	(error "No text entered in bug report"))
 
     ;; Check the buffer contents and reject non-English letters.
-    (let ((charsets (delq 'ascii
-			  (find-charset-region (point-min) (point-max)))))
-      (if charsets
+    (save-excursion
+      (goto-char (point-min))
+      (skip-chars-forward "\0-\177")
+      (if (not (eobp))
 	  (if (or report-emacs-bug-no-confirmation
 		  (y-or-n-p "Convert non-ASCII letters to hexadecimal? "))
-	      (save-excursion
-		(goto-char (point-min))
-		(let ((pattern (format "[^%c-%c]" 0 127))
-		      ch)
-		  (while (re-search-forward pattern nil t)
-		    (setq ch (preceding-char))
-		    (delete-char -1)
-		    (insert (format "=%02x" ch)))))
+	      (while (progn (skip-chars-forward "\0-\177")
+			    (not (eobp)))
+		(let ((ch (following-char)))
+		  (delete-char 1)
+		  (insert (format "=%02x" ch))))
 	    (error "Please convert non-ASCII characters to something else"))))
 
     ;; The last warning for novice users.
