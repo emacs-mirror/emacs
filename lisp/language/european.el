@@ -1,6 +1,6 @@
 ;;; european.el --- European languages -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
+;; Copyright (C) 1995, 1997, 2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
 
 ;; Keywords: multilingual, European
@@ -274,6 +274,36 @@ but default input method is set to \"german-postfix\"."))
 	      (tutorial . "TUTORIAL.sl")
 	      (sample-text . ",B.(Belimo vam uspe,B9(Ben dan!")
 	      (documentation . t))
+ '("European"))
+
+(set-language-info-alist
+ "Spanish" '((tutorial . "TUTORIAL.es")
+	    (charset ascii latin-iso8859-1)
+	    (coding-system iso-latin-1)
+	    (coding-priority iso-latin-1)
+	    (input-method . "spanish-postfix")
+	    (nonascii-translation . iso-latin-1)
+	    (unibyte-syntax . "latin-1")
+	    (unibyte-display . iso-latin-1)
+	    (sample-text . "Spanish (Espa,Aq(Bol)	,A!(BHola!")
+	    (documentation . "\
+This language environment is almost the same as Latin-1,
+but default input method is set to \"spanish-postfix\",
+and select's the Spanish tutorial."))
+ '("European"))
+
+(set-language-info-alist
+ "Dutch" '((tutorial . "TUTORIAL.nl")
+	   (charset ascii latin-iso8859-1)
+	   (coding-system iso-latin-1)
+	   (coding-priority iso-latin-1)
+	   (nonascii-translation . iso-latin-1)
+	   (unibyte-syntax . "latin-1")
+	   (unibyte-display . iso-latin-1)
+	   (sample-text . "Er is een aantal manieren waarop je dit kan doen")
+	   (documentation . "\
+This language environment is almost the same as Latin-1,
+but select's the Dutch tutorial."))
  '("European"))
 
 ;; For Turkish, the character set ISO-8859-9 (Latin-5) is used.  But,
