@@ -1,3 +1,12 @@
+2001-08-31  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* subdirs.el: New file.
+
+	* configure.bat: Copy subdirs.el to the site-lisp directory.
+
+	* makefile.w32-in (install): Copy subdirs.el to the installation
+	directory.
+
 2001-06-20  Jason Rumney  <jasonr@gnu.org>
 
 	* runemacs.c (WinMain): Add quotes around command in case of spaces.
