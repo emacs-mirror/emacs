@@ -1,13 +1,13 @@
 ;;; cl-specs.el --- Edebug specs for cl.el
 
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
-;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
+;; Author: Daniel LaLiberte <liberte@holonexus.org>
 ;; Keywords: lisp, tools, maint
 
 ;; LCD Archive Entry:
-;; cl-specs.el|Daniel LaLiberte|liberte@cs.uiuc.edu
+;; cl-specs.el|Daniel LaLiberte|liberte@holonexus.org
 ;; |Edebug specs for cl.el
-;; |$Date: 2000/01/30 21:20:14 $|1.1|
+;; |$Date: 2000/04/13 19:10:09 $|1.1|
 
 ;; This file is part of GNU Emacs.
 

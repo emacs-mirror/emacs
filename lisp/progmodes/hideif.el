@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1988, 1994 Free Software Foundation, Inc.
 
-;; Author: Daniel LaLiberte <liberte@hypernews.org>
+;; Author: Daniel LaLiberte <liberte@holonexus.org>
 ;; Maintainer: FSF
 ;; Keywords: c, outlines
 

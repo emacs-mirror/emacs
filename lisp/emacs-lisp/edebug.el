@@ -3,7 +3,7 @@
 ;; Copyright (C) 1988, 89, 90, 91, 92, 93, 94, 95, 97, 1999
 ;;       Free Software Foundation, Inc.
 
-;; Author: Daniel LaLiberte <dlaliberte@gte.com>
+;; Author: Daniel LaLiberte <liberte@holonexus.org>
 ;; Maintainer: FSF
 ;; Keywords: lisp, tools, maint
 
@@ -50,7 +50,7 @@
 ;; GTE Labs
 ;; 40 Sylvan Rd
 ;; Waltham, MA  02254
-;; dlaliberte@gte.com
+;; liberte@holonexus.org
 
 ;;; Code:
 

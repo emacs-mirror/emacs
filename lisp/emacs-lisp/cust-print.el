@@ -2,12 +2,12 @@
 
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
-;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
+;; Author: Daniel LaLiberte <liberte@holonexus.org>
 ;; Adapted-By: ESR
 ;; Keywords: extensions
 
 ;; LCD Archive Entry:
-;; cust-print|Daniel LaLiberte|liberte@cs.uiuc.edu
+;; cust-print|Daniel LaLiberte|liberte@holonexus.org
 ;; |Handle print-level, print-circle and more.
 
 ;; This file is part of GNU Emacs.
