@@ -864,12 +864,11 @@ merge in the changes into your working copy."
     (set (make-local-variable 'vc-parent-buffer-name)
 	 (concat " from " (buffer-name vc-parent-buffer)))
     (if file (vc-mode-line file))
-    (vc-log-mode)
+    (vc-log-mode file)
     (make-local-variable 'vc-log-after-operation-hook)
     (if after-hook
 	(setq vc-log-after-operation-hook after-hook))
     (setq vc-log-operation action)
-    (setq vc-log-file file)
     (setq vc-log-version rev)
     (if comment
 	(progn
@@ -1032,7 +1031,7 @@ If nil, uses `change-log-default-name'."
     ;; Now make sure we see the expanded headers
     (if buffer-file-name
 	(vc-resynch-window buffer-file-name vc-keep-workfiles t))
-    (run-hooks after-hook)))
+    (run-hooks after-hook 'vc-finish-logentry-hook)))
 
 ;; Code for access to the comment ring
 
@@ -2334,7 +2333,7 @@ default directory."
 
 ;; Set up key bindings for use while editing log messages
 
-(defun vc-log-mode ()
+(defun vc-log-mode (&optional file)
   "Minor mode for driving version-control tools.
 These bindings are added to the global keymap when you enter this mode:
 \\[vc-next-action]		perform next logical version-control operation on current file
@@ -2399,6 +2398,7 @@ Global user options:
   (setq major-mode 'vc-log-mode)
   (setq mode-name "VC-Log")
   (make-local-variable 'vc-log-file)
+  (setq vc-log-file file)
   (make-local-variable 'vc-log-version)
   (make-local-variable 'vc-comment-ring-index)
   (set-buffer-modified-p nil)
