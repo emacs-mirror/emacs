@@ -119,7 +119,7 @@ The basic fixed-pitch face.
 @cindex fringe
 The face for the fringes to the left and right of windows on graphic
 displays.  (The fringes are the narrow portions of the Emacs frame
-between the text area and the frame's border.)
+between the text area and the window's right and left borders.)
 @item scroll-bar
 This face determines the visual appearance of the scroll bar.
 @item border
