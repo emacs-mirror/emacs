@@ -215,17 +215,7 @@ been generated automatically, with a reference to the keymap."
 		   `(let ((parent (char-table-parent ,syntax)))
 		      (unless (and parent
 				   (not (eq parent (standard-syntax-table))))
-			(set-char-table-parent ,syntax (syntax-table)))))
-		,(when declare-abbrev
-		   `(when local-abbrev-table
-		      (mapatoms
-		       (lambda (symbol)
-			 (or (intern-soft (symbol-name symbol) ,abbrev)
-			     (define-abbrev ,abbrev
-			       (symbol-name symbol)
-			       (symbol-value symbol)
-			       (symbol-function symbol))))
-		       local-abbrev-table)))))
+			(set-char-table-parent ,syntax (syntax-table)))))))
 
 	  (use-local-map ,map)
 	  ,(when syntax `(set-syntax-table ,syntax))
