@@ -1,3 +1,8 @@
+2004-12-15  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* progmodes/idlwave.el (idlwave-skip-multi-commands): Don't match
+	`&&' when skipping multiple statements on a line.
+
 2004-12-15  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* play/zone.el (zone): Set `truncate-lines'.
