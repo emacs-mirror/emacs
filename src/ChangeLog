@@ -1,3 +1,7 @@
+2000-12-20  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (syms_of_w32fns): Initialize and staticpro tip_frame.
+
 2000-12-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* fns.c (Frequire): Doc fix.
