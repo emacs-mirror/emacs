@@ -4515,6 +4515,10 @@ x_connection_closed (display, error_message)
   if (_Xdebug)
     abort ();
 
+  /* Indicate that this display is dead.  */
+
+  dpyinfo->display = 0;
+
   /* First delete frames whose minibuffers are on frames
      that are on the dead display.  */
   FOR_EACH_FRAME (tail, frame)
@@ -4629,13 +4633,11 @@ x_connection_signal (signalnum)	/* If we don't have an argument, */
 {
   x_connection_signal_dpyinfo = x_display_list;
 
-  stop_polling ();
   sigunblock (SIGPIPE);
 
   while (x_connection_signal_dpyinfo)
     {
       signal (SIGPIPE, x_connection_signal_1);
-      signal (SIGALRM, x_connection_signal_1);
 
 #ifdef SOLARIS2
 #ifdef XlibDisplayWriting
@@ -4643,8 +4645,11 @@ x_connection_signal (signalnum)	/* If we don't have an argument, */
 	 This assumes that the library does not make other threads
 	 that can be locking the display legitimately.  */
       if (x_connection_signal_dpyinfo->display->flags & XlibDisplayWriting)
-	x_connection_closed (x_connection_signal_dpyinfo,
-			     "connection was lost");
+	{
+	  x_connection_signal_dpyinfo->display->flags &= ~XlibDisplayWriting;
+	  x_connection_closed (x_connection_signal_dpyinfo->display,
+			       "connection was lost");
+	}
 #endif
 #endif
 
@@ -5539,16 +5544,21 @@ x_destroy_window (f)
 
   BLOCK_INPUT;
 
-  if (f->output_data.x->icon_desc != 0)
-    XDestroyWindow (FRAME_X_DISPLAY (f), f->output_data.x->icon_desc);
-  XDestroyWindow (FRAME_X_DISPLAY (f), f->output_data.x->window_desc);
+  /* If a display connection is dead, don't try sending more
+     commands to the X server.  */
+  if (dpyinfo->display != 0)
+    {
+      if (f->output_data.x->icon_desc != 0)
+	XDestroyWindow (FRAME_X_DISPLAY (f), f->output_data.x->icon_desc);
+      XDestroyWindow (FRAME_X_DISPLAY (f), f->output_data.x->window_desc);
 #ifdef USE_X_TOOLKIT
-  XtDestroyWidget (f->output_data.x->widget);
-  free_frame_menubar (f);
+      XtDestroyWidget (f->output_data.x->widget);
+      free_frame_menubar (f);
 #endif /* USE_X_TOOLKIT */
 
-  free_frame_faces (f);
-  XFlush (FRAME_X_DISPLAY (f));
+      free_frame_faces (f);
+      XFlush (FRAME_X_DISPLAY (f));
+    }
 
   xfree (f->output_data.x);
   f->output_data.x = 0;
@@ -5862,7 +5872,7 @@ x_term_init (display_name, xrm_option, resource_name)
     }
 
 #ifdef HAVE_X_I18N
-  setlocale (LC_ALL, NULL);
+  setlocale (LC_ALL, "");
 #endif
 
 #ifdef USE_X_TOOLKIT
