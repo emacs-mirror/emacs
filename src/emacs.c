@@ -419,6 +419,10 @@ main (argc, argv, envp)
   extern int errno;
   extern sys_nerr;
 
+#ifdef LINUX_SBRK_BUG
+  __sbrk (1);
+#endif
+
   sort_args (argc, argv);
 
   if (argmatch (argv, argc, "-version", "--version", 3, NULL, &skip_args))
