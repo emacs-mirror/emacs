@@ -106,7 +106,7 @@ This should be bound to a mouse click event type."
 	(goto-char (posn-point posn)))))
 
 (defun mouse-set-region (click)
-  "Set the region to the text that the mouse is dragged over.
+  "Set the region to the text dragged over, and copy to kill ring.
 This should be bound to a mouse drag event."
   (interactive "e")
   (let ((posn (event-start click))
@@ -121,7 +121,11 @@ This should be bound to a mouse drag event."
     (push-mark)
     (set-mark (point))
     (if (numberp (posn-point end))
-	(goto-char (posn-point end)))))
+	(goto-char (posn-point end)))
+    ;; Don't set this-command to kill-region, so that a following
+    ;; C-w will not double the text in the kill ring.
+    (let (this-command)
+      (copy-region-as-kill (mark) (point)))))
 
 (defvar mouse-scroll-delay 0.25
   "*The pause between scroll steps caused by mouse drags, in seconds.
@@ -174,11 +178,12 @@ release the mouse button.  Otherwise, it does not."
 	 (bottom (if (window-minibuffer-p start-window)
 		     (nth 3 bounds)
 		   ;; Don't count the mode line.
-		   (1- (nth 3 bounds)))))
+		   (1- (nth 3 bounds))))
+	 (click-count (1- (event-click-count start-event))))
     (mouse-set-point start-event)
-    (move-overlay mouse-drag-overlay
-		  start-point start-point
-		  (window-buffer start-window))
+    (let ((range (mouse-start-end start-point start-point click-count)))
+      (move-overlay mouse-drag-overlay (car range) (nth 1 range)
+		    (window-buffer start-window)))
     (deactivate-mark)
     (let (event end end-point)
       (track-mouse
@@ -201,8 +206,8 @@ release the mouse button.  Otherwise, it does not."
 	     ((and (eq (posn-window end) start-window)
 		   (integer-or-marker-p end-point))
 	      (goto-char end-point)
-	      (move-overlay mouse-drag-overlay
-			    start-point (point)))
+	      (let ((range (mouse-start-end start-point (point) click-count)))
+		(move-overlay mouse-drag-overlay (car range) (nth 1 range))))
 
 	     ;; Are we moving on a different window on the same frame?
 	     ((and (windowp (posn-window end))
@@ -233,56 +238,74 @@ release the mouse button.  Otherwise, it does not."
       (if (and (eq (get (event-basic-type event) 'event-kind) 'mouse-click)
 	       (eq (posn-window (event-end event)) start-window)
 	       (numberp (posn-point (event-end event))))
-	  (progn
-	    (mouse-set-point event)
-	    (if (= (point) start-point)
-		(deactivate-mark)
-	      (set-mark start-point))))
+	  (let ((fun (key-binding (vector (car event)))))
+	    (if (memq fun '(mouse-set-region mouse-set-point))
+		(progn
+		  (push-mark (overlay-start mouse-drag-overlay) t t)
+		  (goto-char (overlay-end mouse-drag-overlay)))
+	      (if (fboundp fun)
+		  (funcall fun event)))))
       (delete-overlay mouse-drag-overlay))))
+
+;; Commands to handle xterm-style multiple clicks.
 
-;;;! (defun mouse-drag-region (click)
-;;;!   "Set the region to the text that the mouse is dragged over.
-;;;! This must be bound to a button-down mouse event."
-;;;!   (interactive "e")
-;;;!   (let ((posn (event-start click))
-;;;! 	done event (mark-active nil))
-;;;!     (select-window (posn-window posn))
-;;;!     ;; Set point temporarily, so user sees where it is.
-;;;!     (if (numberp (posn-point posn))
-;;;! 	(goto-char (posn-point posn)))
-;;;!     ;; Turn off the old mark when we set up an empty region.
-;;;!     (setq deactivate-mark t)))
-;;;! 
-;;;! ;;;Nice hack, but too slow, so not normally in use.
-;;;! (defun mouse-drag-region-1 (click)
-;;;!   "Set the region to the text that the mouse is dragged over.
-;;;! This must be bound to a button-down mouse event."
-;;;!   (interactive "e")
-;;;!   (let (newmark)
-;;;!     (let ((posn (event-start click))
-;;;! 	  done event omark (mark-active t))
-;;;!       (select-window (posn-window posn))
-;;;!       (setq omark (and mark-active (mark)))
-;;;!       (if (numberp (posn-point posn))
-;;;! 	  (goto-char (posn-point posn)))
-;;;!       ;; Set mark temporarily, so highlighting does what we want.
-;;;!       (set-marker (mark-marker) (point))
-;;;!       (track-mouse
-;;;! 	(while (not done)
-;;;! 	  (setq event (read-event))
-;;;! 	  (if (eq (car-safe event) 'mouse-movement)
-;;;! 	      (goto-char (posn-point (event-start event)))
-;;;! 	    ;; Exit when we get the drag event; ignore that event.
-;;;! 	    (setq done t))))
-;;;!       (if (/= (mark) (point))
-;;;! 	  (setq newmark (mark)))
-;;;!       ;; Restore previous mark status.
-;;;!       (if omark (set-marker (mark-marker) omark)))
-;;;!     ;; Now, if we dragged, set the mark at the proper place.
-;;;!     (if newmark
-;;;! 	(push-mark newmark t t)
-;;;!       ;; Turn off the old mark when we set up an empty region.
-;;;!       (setq deactivate-mark t))))
+(defun mouse-skip-word (dir)
+  "Skip over word, over whitespace, or over identical punctuation.
+If DIR is positive skip forward; if negative, skip backward."
+  (let* ((char (following-char))
+	 (syntax (char-to-string (char-syntax char))))
+    (if (or (string= syntax "w") (string= syntax " "))
+	(if (< dir 0)
+	    (skip-syntax-backward syntax)
+	  (skip-syntax-forward syntax))
+      (if (< dir 0)
+	  (while (= (preceding-char) char)
+	    (forward-char -1))
+	(while (= (following-char) char)
+	  (forward-char 1))))))
+
+;; Return a list of region bounds based on START and END according to MODE.
+;; If MODE is 0 then set point to (min START END), mark to (max START END).
+;; If MODE is 1 then set point to start of word at (min START END),
+;; mark to end of word at (max START END).
+;; If MODE is 2 then do the same for lines.
+;; Optional KEEP-END if non-nil means do not change end.
+(defun mouse-start-end (start end mode &optional keep-end)
+  (if (> start end)
+      (let ((temp start))
+        (setq start end
+              end temp)))
+  (cond ((= mode 0)
+	 (list start end))
+        ((and (= mode 1)
+              (= start end)
+              (= (char-syntax (char-after start)) ?\())
+	 (list start (save-excursion (forward-sexp 1) (point))))
+        ((and (= mode 1)
+              (= start end)
+              (= (char-syntax (char-after start)) ?\)))
+	 (list (save-excursion 
+		 (goto-char (1+ start))
+		 (backward-sexp 1))
+	       (1+ start)))
+        ((= mode 1)
+	 (list (save-excursion
+		 (goto-char start)
+		 (mouse-skip-word -1)
+		 (point))
+	       (save-excursion
+		 (goto-char end)
+		 (mouse-skip-word 1)
+		 (point))))
+        ((= mode 2)
+	 (list (save-excursion
+		 (goto-char start)
+		 (beginning-of-line 1)
+		 (point))
+	       (save-excursion
+		 (goto-char end)
+		 (forward-line 1)
+		 (point))))))
 
 ;; Subroutine: set the mark where CLICK happened,
 ;; but don't do anything else.
@@ -982,6 +1005,10 @@ and selects that window."
 (define-key global-map [down-mouse-1] 'mouse-drag-region)
 (global-set-key [mouse-1]	'mouse-set-point)
 (global-set-key [drag-mouse-1]	'mouse-set-region)
+
+;; These are tested for in mouse-drag-region.
+(global-set-key [double-mouse-1] 'mouse-set-point)
+(global-set-key [triple-mouse-1] 'mouse-set-point)
 
 (global-set-key [mouse-2]	'mouse-yank-at-click)
 (global-set-key [mouse-3]	'mouse-save-then-kill)
