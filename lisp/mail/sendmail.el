@@ -194,14 +194,15 @@ C-c C-v  mail-sent-via (add a sent-via field for each To or CC)."
 Prefix arg means don't delete this window."
   (interactive "P")
   (mail-send)
-  (bury-buffer (current-buffer))
-  (if (and (not arg)
-	   (not (one-window-p))
-	   (save-excursion
-	     (set-buffer (window-buffer (next-window (selected-window) 'not)))
-	     (eq major-mode 'rmail-mode)))
-      (delete-window)
-    (switch-to-buffer (other-buffer (current-buffer)))))
+  (let ((newbuf (other-buffer (current-buffer))))
+    (bury-buffer (current-buffer))
+    (if (and (not arg)
+	     (not (one-window-p))
+	     (save-excursion
+	       (set-buffer (window-buffer (next-window (selected-window) 'not)))
+	       (eq major-mode 'rmail-mode)))
+	(delete-window)
+      (switch-to-buffer newbuf))))
 
 (defun mail-send ()
   "Send the message in the current buffer.
