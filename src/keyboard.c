@@ -6750,8 +6750,8 @@ reinvoke_input_signal ()
 
 
 
-static void menu_bar_item P_ ((Lisp_Object, Lisp_Object));
-static void menu_bar_one_keymap P_ ((Lisp_Object));
+static void menu_bar_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object, void*));
+static Lisp_Object menu_bar_one_keymap_changed_items;
 
 /* These variables hold the vector under construction within
    menu_bar_items and its subroutines, and the current index
