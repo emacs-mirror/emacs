@@ -130,6 +130,11 @@ WORLD=$(ASIA) $(EUROPEAN) $(MISC) $(MISC_DIC)
 TIT=$(CHINESE_TIT)
 NON_TIT=$(CHINESE_NON_TIT) $(JAPANESE) $(KOREAN) $(EUROPEAN) $(MISC)
 
+.SUFFIXES: .elc .el
+
+.el.elc:
+	$(RUN_EMACS) -f batch-byte-compile $<
+
 all: $(BUILT_EMACS) $(SUBDIRS) $(TIT) $(MISC_DIC) leim-list.el
 
 # To ensure that we can run Emacs.  This target is ignored (never
@@ -150,7 +155,7 @@ $(SUBDIRS):
 .NO_PARALLEL: $(TIT) $(MISC_DIC)
 
 # Rule to generate quail/*.el from CXTERM-DIC/*.tit.
-$(TIT):	$(SUBDIRS)
+$(TIT):
 	$(RUN_EMACS) -l $(buildlisppath)/international/titdic-cnv \
 	    --eval $(ARGQUOTE)(batch-titdic-convert t)$(ARGQUOTE) \
 	    -dir quail $(srcdir)/CXTERM-DIC
@@ -158,16 +163,11 @@ $(TIT):	$(SUBDIRS)
 	    -f batch-byte-compile $(TIT:.elc=.el)
 
 # Rule to generate quail/*.el from MISC_DIC/*.tit.
-$(MISC_DIC):	$(SUBDIRS)
+$(MISC_DIC):
 	$(RUN_EMACS) -l $(buildlisppath)/international/titdic-cnv \
 	    -f batch-miscdic-convert -dir quail $(srcdir)/MISC-DIC
 	$(RUN_EMACS)  -l $(buildlisppath)/international/quail \
 	    -f batch-byte-compile $(MISC_DIC:.elc=.el)
-
-.SUFFIXES: .elc .el
-
-.el.elc:
-	$(RUN_EMACS) -f batch-byte-compile $<
 
 leim-list.el: $(SUBDIRS) $(WORLD)
 	$(RUN_EMACS) -l $(buildlisppath)/international/quail \
