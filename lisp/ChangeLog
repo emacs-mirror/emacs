@@ -1,14 +1,19 @@
+2002-05-18  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* uniquify.el (uniquify-rationalize-file-buffer-names):
+	Always strip the trailing / even if the file is not a directory.
+
 2002-05-18  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/f90.el (f90-mode-syntax-table, f90-mode-map): Do the
-	initialization in the defvar. 
+	initialization in the defvar.
 	(f90-font-lock-on, f90-font-lock-off): Add 'menu-alias property.
 	(f90-font-lock-1, f90-font-lock-2, f90-font-lock-3)
 	(f90-font-lock-4): Move the doc strings.
 	(f90-menu-bar-menu): New internal variable to hold the top-level menu.
 	(f90-change-case-menu, f90-font-lock-menu): Minor code changes.
 	(f90-mode-abbrev-table): Initialize in the defvar, with
-	define-abbrev-table. 
+	define-abbrev-table.
 
 2002-05-18  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -40,10 +45,21 @@
 
 	* tar-mode.el (tar-octal-time): Fix the last argument of logior.
 
+2002-05-16  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/find-func.el (find-function-search-for-symbol):
+	Find funs defined with defun-cvs-mode.
+	(find-function-space-re): New const.  Skips comments as well.
+	(find-function-regexp, find-variable-regexp): Use it.
+
+	* pcvs.el (cvs-cmd-do): Accept non-CVS dirs with CVS-ctrl'd subdirs.
+	(cvs-mode-add-change-log-entry-other-window): Work on multiple files.
+	(cvs-mode-set-flags): Don't cons unnecessarily.
+
 2002-05-16  Colin Walters  <walters@debian.org>
 
 	* menu-bar.el (menu-bar-tools-menu) <calculator>: Renamed to
-        "Simple Calculator".
+	"Simple Calculator".
 	(menu-bar-tools-menu) <calc>: New.
 
 2002-05-16  Juanma Barranquero  <lektu@terra.es>
