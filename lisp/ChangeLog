@@ -1,3 +1,8 @@
+2002-02-12  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* progmodes/pascal.el (pascal-imenu-generic-expression): Add
+	menu-title and fix parentheses.
+
 2002-02-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* ffap.el (ffap-newsgroup-p): Test for non-nil symbol-value of htb.
