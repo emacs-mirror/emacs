@@ -28,7 +28,7 @@
 pressing <RET>.  There are several different kinds of commands,
 however."
   :tag "Command invocation"
-  :link '(info-link "(eshell.info)Command invocation")
+  :link '(info-link "(eshell)Command invocation")
   :group 'eshell)
 
 ;;; Commentary:
