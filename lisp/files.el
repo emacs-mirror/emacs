@@ -2231,7 +2231,7 @@ names matching REGEXP will be made in DIRECTORY.  DIRECTORY may be
 relative or absolute.  If it is absolute, so that all matching files
 are backed up into the same directory, the file names in this
 directory will be the full name of the file backed up with all
-directory separators changed to `|' to prevent clashes.  This will not
+directory separators changed to `!' to prevent clashes.  This will not
 work correctly if your filesystem truncates the resulting name.
 
 For the common case of all backups going into one directory, the alist
@@ -2274,7 +2274,7 @@ doesn't exist, it is created."
 (defun make-backup-file-name-1 (file)
   "Subroutine of `make-backup-file-name' and `find-backup-file-name'."
   (let ((alist backup-directory-alist)
-	elt backup-directory)
+	elt backup-directory dir-sep-string)
     (while alist
       (setq elt (pop alist))
       (if (string-match (car elt) file)
@@ -2287,14 +2287,34 @@ doesn't exist, it is created."
 	    (make-directory backup-directory 'parents)
 	  (file-error file)))
       (if (file-name-absolute-p backup-directory)
-	  ;; Make the name unique by substituting directory
-	  ;; separators.  It may not really be worth bothering about
-	  ;; doubling `|'s in the original name...
-	  (expand-file-name
-	   (subst-char-in-string
-	    directory-sep-char ?|
-	    (replace-regexp-in-string "|" "||" file))
-	   backup-directory)
+	  (progn
+	    (when (memq system-type '(windows-nt ms-dos))
+	      ;; Normalize DOSish file names: convert all slashes to
+	      ;; directory-sep-char, downcase the drive letter, if any,
+	      ;; and replace the leading "x:" with "/drive_x".
+	      (or (file-name-absolute-p file)
+		  (setq file (expand-file-name file))) ; make defaults explicit
+	      (setq dir-sep-string (char-to-string directory-sep-char))
+	      (or (eq directory-sep-char ?/)
+		  (subst-char-in-string ?/ ?\\ file))
+	      (or (eq directory-sep-char ?\\)
+		  (subst-char-in-string ?\\ ?/ file))
+	      (if (eq (aref file 1) ?:)
+		  (setq file (concat dir-sep-string
+				     "drive_"
+				     (char-to-string (downcase (aref file 0)))
+				     (if (eq (aref file 2) directory-sep-char)
+					 ""
+				       dir-sep-string)
+				     (substring file 2)))))
+	    ;; Make the name unique by substituting directory
+	    ;; separators.  It may not really be worth bothering about
+	    ;; doubling `!'s in the original name...
+	    (expand-file-name
+	     (subst-char-in-string
+	      directory-sep-char ?!
+	      (replace-regexp-in-string "!" "!!" file))
+	     backup-directory))
 	(expand-file-name (file-name-nondirectory file)
 			  (file-name-as-directory
 			   (expand-file-name backup-directory
