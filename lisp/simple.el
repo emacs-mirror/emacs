@@ -3507,8 +3507,11 @@ If this function moves point, it can alter the end of that completion.")
 		  (goto-char (point-max))
 		  (skip-chars-backward (format "^%c" directory-sep-char))
 		  (- (point) (point-min))))
-	;; Otherwise, the whole input is the text being completed.
-	(setq completion-base-size 0))
+	;; Otherwise, in minibuffer, the whole input is being completed.
+	(save-match-data
+	  (if (string-match "\\` \\*Minibuf-[0-9]+\\*\\'"
+			    (buffer-name mainbuf))
+	      (setq completion-base-size 0))))
       (goto-char (point-min))
       (if window-system
 	  (insert (substitute-command-keys
