@@ -43,6 +43,7 @@ Lisp_Object pending_boundary;
 
 static void
 record_point (pt)
+     int pt;
 {
   int at_boundary;
 
