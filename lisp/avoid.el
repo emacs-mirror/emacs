@@ -1,6 +1,6 @@
 ;;; avoid.el --- make mouse pointer stay out of the way of editing
 
-;;; Copyright (C) 1993, 1994, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2000, 2004 Free  Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: mouse
@@ -52,7 +52,7 @@
 ;;
 ;; Bugs / Warnings / To-Do:
 ;;
-;; - Using this code does slow emacs down.  "banish" mode shouldn't
+;; - Using this code does slow Emacs down.  "banish" mode shouldn't
 ;;   be too bad, and on my workstation even "animate" is reasonable.
 ;;
 ;; - It ought to find out where any overlapping frames are and avoid them,
@@ -96,7 +96,7 @@ use either \\[customize] or the function `mouse-avoidance-mode'."
 
 (defcustom mouse-avoidance-nudge-dist 15
   "*Average distance that mouse will be moved when approached by cursor.
-Only applies in mouse-avoidance-mode `jump' and its derivatives.
+Only applies in Mouse-Avoidance mode `jump' and its derivatives.
 For best results make this larger than `mouse-avoidance-threshold'."
   :type 'integer
   :group 'avoid)
@@ -137,7 +137,7 @@ Only applies in mouse-avoidance-modes `animate' and `jump'."
 
 (defun mouse-avoidance-point-position ()
   "Return the position of point as (FRAME X . Y).
-Analogous to mouse-position."
+Analogous to `mouse-position'."
   (let* ((w (selected-window))
 	 (edges (window-inside-edges w))
 	 (list
@@ -194,10 +194,11 @@ Acceptable distance is defined by `mouse-avoidance-threshold'."
 		mouse-avoidance-threshold))))))
 
 (defun mouse-avoidance-banish-destination ()
-  "The position to which mouse-avoidance-mode `banish' moves the mouse.
+  "The position to which Mouse-Avoidance mode `banish' moves the mouse.
 You can redefine this if you want the mouse banished to a different corner."
- (cons (1- (frame-width))
-       0))
+  (let* ((pos (window-edges)))
+    (cons (- (nth 2 pos) 2)
+	  (nth 1 pos))))
 
 (defun mouse-avoidance-banish-mouse ()
   ;; Put the mouse pointer in the upper-right corner of the current frame.
@@ -225,22 +226,27 @@ You can redefine this if you want the mouse banished to a different corner."
 	  (t 0))))
 
 (defun mouse-avoidance-nudge-mouse ()
-  ;; Push the mouse a little way away, possibly animating the move
+  ;; Push the mouse a little way away, possibly animating the move.
   ;; For these modes, state keeps track of the total offset that we've
   ;; accumulated, and tries to keep it close to zero.
   (let* ((cur (mouse-position))
 	 (cur-frame (car cur))
 	 (cur-pos (cdr cur))
+ 	 (pos (window-edges))
+ 	 (wleft (pop pos))
+ 	 (wtop (pop pos))
+ 	 (wright (pop pos))
+ 	 (wbot (pop pos))
 	 (deltax (mouse-avoidance-delta
 		  (car cur-pos) (- (random mouse-avoidance-nudge-var)
 				   (car mouse-avoidance-state))
 		  mouse-avoidance-nudge-dist mouse-avoidance-nudge-var
-		  0 (frame-width)))
+		  wleft (1- wright)))
 	 (deltay (mouse-avoidance-delta
 		  (cdr cur-pos) (- (random mouse-avoidance-nudge-var)
 				   (cdr mouse-avoidance-state))
 		  mouse-avoidance-nudge-dist mouse-avoidance-nudge-var
-		  0 (frame-height))))
+		  wtop (1- wbot))))
     (setq mouse-avoidance-state
 	  (cons (+ (car mouse-avoidance-state) deltax)
 		(+ (cdr mouse-avoidance-state) deltay)))
@@ -277,33 +283,34 @@ redefine this function to suit your own tastes."
   (nth (random mouse-avoidance-n-pointer-shapes)
        mouse-avoidance-pointer-shapes))
 
+(defun mouse-avoidance-ignore-p ()
+  (let ((mp (mouse-position)))
+    (or executing-kbd-macro	       ; don't check inside macro
+	(null (cadr mp))	       ; don't move unless in an Emacs frame
+	(not (eq (car mp) (selected-frame)))
+	;; Don't do anything if last event was a mouse event.
+	;; FIXME: this code fails in the case where the mouse was moved
+	;; since the last key-press but without generating any event.
+	(and (consp last-input-event)
+	     (symbolp (car last-input-event))
+	     (let ((modifiers (event-modifiers (car last-input-event))))
+	       (or (memq (car last-input-event)
+			 '(mouse-movement scroll-bar-movement
+			   select-window switch-frame))
+		   (memq 'click modifiers)
+		   (memq 'double modifiers)
+		   (memq 'triple modifiers)
+		   (memq 'drag modifiers)
+		   (memq 'down modifiers)))))))
+
 (defun mouse-avoidance-banish-hook ()
-  (if (and (not executing-kbd-macro)	; don't check inside macro
-	   (cadr (mouse-position))      ; don't move unless in an Emacs frame
-	   ;; Don't do anything if last event was a mouse event.
-	   (not (and (consp last-input-event)
-		     (symbolp (car last-input-event))
-		     (let ((modifiers (event-modifiers (car last-input-event))))
-		       (or (memq (car last-input-event)
-				 '(mouse-movement scroll-bar-movement))
-			   (memq 'click modifiers)
-			   (memq 'drag modifiers)
-			   (memq 'down modifiers))))))
+  (if (not (mouse-avoidance-ignore-p))
       (mouse-avoidance-banish-mouse)))
 
 (defun mouse-avoidance-exile-hook ()
   ;; For exile mode, the state is nil when the mouse is in its normal
   ;; position, and set to the old mouse-position when the mouse is in exile.
-  (if (and (not executing-kbd-macro)
-	   ;; Don't do anything if last event was a mouse event.
-	   (not (and (consp last-input-event)
-		     (symbolp (car last-input-event))
-		     (let ((modifiers (event-modifiers (car last-input-event))))
-		       (or (memq (car last-input-event)
-				 '(mouse-movement scroll-bar-movement))
-			   (memq 'click modifiers)
-			   (memq 'drag modifiers)
-			   (memq 'down modifiers))))))
+  (if (not (mouse-avoidance-ignore-p))
       (let ((mp (mouse-position)))
 	(cond ((and (not mouse-avoidance-state)
 		    (mouse-avoidance-too-close-p mp))
@@ -321,16 +328,7 @@ redefine this function to suit your own tastes."
 
 (defun mouse-avoidance-fancy-hook ()
   ;; Used for the "fancy" modes, ie jump et al.
-  (if (and (not executing-kbd-macro)	; don't check inside macro
-	   ;; Don't do anything if last event was a mouse event.
-	   (not (and (consp last-input-event)
-		     (symbolp (car last-input-event))
-		     (let ((modifiers (event-modifiers (car last-input-event))))
-		       (or (memq (car last-input-event)
-				 '(mouse-movement scroll-bar-movement))
-			   (memq 'click modifiers)
-			   (memq 'drag modifiers)
-			   (memq 'down modifiers)))))
+  (if (and (not (mouse-avoidance-ignore-p))
 	   (mouse-avoidance-too-close-p (mouse-position)))
       (let ((old-pos (mouse-position)))
 	(mouse-avoidance-nudge-mouse)
@@ -416,5 +414,5 @@ definition of \"random distance\".)"
 (if mouse-avoidance-mode
     (mouse-avoidance-mode mouse-avoidance-mode))
 
-;;; arch-tag: 64ad4ef8-a870-4183-8d96-3aa93b7a6800
+;; arch-tag: 64ad4ef8-a870-4183-8d96-3aa93b7a6800
 ;;; avoid.el ends here

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,97,2000,2001,2002,2003
+@c Copyright (C) 1985,86,87,93,94,95,97,2000,2001,2002,2003,2004
 @c  Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Keyboard Macros, Files, Fixit, Top
@@ -179,7 +179,7 @@ the current region.  It does this line by line, by moving point to the
 beginning of the line and then executing the macro.
 
 @node Keyboard Macro Ring
-@section Where previous keyboard macros are saved
+@section The Keyboard Macro Ring
 
   All defined keyboard macros are recorded in the ``keyboard macro ring'',
 a list of sequences of keys.  There is only one keyboard macro ring,
@@ -220,6 +220,10 @@ immediately by repeating just @kbd{C-n} and @kbd{C-p} until the
 desired macro is at the head of the ring.  To execute the new macro
 ring head immediately, just type @kbd{C-k}.
 
+  Note that Emacs treats the head of the macro ring as the ``last
+defined keyboard macro''.  For instance, it is the keyboard macro that
+@kbd{C-x e} will execute.
+
 @findex kmacro-view-macro-repeat
 @kindex C-x C-k C-v
 
@@ -257,15 +261,14 @@ the macro ring.
 executes the previous (rather than the head) element on the macro ring.
 
 @node Keyboard Macro Counter
-@section Inserting incrementing numbers in macros
+@section The Keyboard Macro Counter
 
   Each keyboard macro has an associated counter which is automatically
 incremented on every repetition of the keyboard macro.  Normally, the
 macro counter is initialized to 0 when you start defining the macro,
 and incremented by 1 after each insertion of the counter value;
 that is, if you insert the macro counter twice while defining the
-macro, it will be incremented by 2 time for each repetition of the
-macro.
+macro, the counter will increase by 2 on each repetition of the macro.
 
 @findex kmacro-insert-counter
 @kindex C-x C-k C-i
@@ -362,18 +365,21 @@ register as a counter, incrementing it on each repetition of the macro.
 @kindex C-x C-k n
   If you wish to save a keyboard macro for later use, you can give it
 a name using @kbd{C-x C-k n} (@code{name-last-kbd-macro}).
-This reads a name as an argument using the minibuffer and defines that name
-to execute the macro.  The macro name is a Lisp symbol, and defining it in
-this way makes it a valid command name for calling with @kbd{M-x} or for
-binding a key to with @code{global-set-key} (@pxref{Keymaps}).  If you
-specify a name that has a prior definition other than another keyboard
-macro, an error message is shown and nothing is changed.
+This reads a name as an argument using the minibuffer and defines that
+name to execute the last keyboard macro, in its current form.  (If you
+later add to the definition of this macro, that does not alter the
+name's definition as a macro.)  The macro name is a Lisp symbol, and
+defining it in this way makes it a valid command name for calling with
+@kbd{M-x} or for binding a key to with @code{global-set-key}
+(@pxref{Keymaps}).  If you specify a name that has a prior definition
+other than a keyboard macro, an error message is shown and nothing is
+changed.
 
 @cindex binding keyboard macros
 @findex kmacro-bind-to-key
 @kindex C-x C-k b
-  Rather than giving a keyboard macro a name, you can bind it to a
-key using @kbd{C-x C-k b} (@code{kmacro-bind-to-key}) followed by the
+  You can also bind the last keyboard macro to a key, using
+@kbd{C-x C-k b} (@code{kmacro-bind-to-key}) followed by the
 key sequence you want the keyboard macro to be bound to.  You can
 bind to any key sequence in the global keymap, but since most key
 sequences already have other bindings, you should select the key
@@ -414,12 +420,12 @@ save in is your init file @file{~/.emacs} (@pxref{Init File}) then the
 macro will be defined each time you run Emacs.
 
   If you give @code{insert-kbd-macro} a numeric argument, it makes
-additional Lisp code to record the keys (if any) that you have bound to the
-keyboard macro, so that the macro will be reassigned the same keys when you
-load the file.
+additional Lisp code to record the keys (if any) that you have bound
+to @var{macroname}, so that the macro will be reassigned the same keys
+when you load the file.
 
 @node Edit Keyboard Macro
-@section Interactively executing and editing a keyboard macro
+@section Editing a Keyboard Macro
 
 @findex kmacro-edit-macro
 @kindex C-x C-k C-e
@@ -443,7 +449,7 @@ keyboard input that you would use to invoke the macro---@kbd{C-x e} or
 @kbd{C-x C-k l} (@code{kmacro-edit-lossage}).
 
 @node Keyboard Macro Step-Edit
-@section Interactively executing and editing a keyboard macro
+@section Stepwise Editing a Keyboard Macro
 
 @findex kmacro-step-edit-macro
 @kindex C-x C-k SPC

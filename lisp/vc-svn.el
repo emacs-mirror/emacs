@@ -1,6 +1,7 @@
 ;;; vc-svn.el --- non-resident support for Subversion version-control
 
-;; Copyright (C) 1995,98,99,2000,2001,02,2003  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;;           Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>
@@ -363,7 +364,10 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	       (append (vc-switches nil 'diff) '("/dev/null")))
 	;; Even if it's empty, it's locally modified.
 	1)
-    (let* ((switches (vc-switches 'SVN 'diff))
+    (let* ((switches
+	    (if vc-svn-diff-switches
+		(vc-switches 'SVN 'diff)
+	      (list "-x" (mapconcat 'identity (vc-switches nil 'diff) " "))))
 	   (async (and (vc-stay-local-p file)
 		       (or oldvers newvers) ; Svn diffs those locally.
 		       (fboundp 'start-process))))
@@ -371,8 +375,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	     (if async 'async 0)
 	     file "diff"
 	     (append
-	      (when switches
-		(list "-x" (mapconcat 'identity switches " ")))
+	      switches
 	      (when oldvers
 		(list "-r" (if newvers (concat oldvers ":" newvers)
 			     oldvers)))))
@@ -504,5 +507,5 @@ essential information."
 
 (provide 'vc-svn)
 
-;;; arch-tag: 02f10c68-2b4d-453a-90fc-1eee6cfb268d
+;; arch-tag: 02f10c68-2b4d-453a-90fc-1eee6cfb268d
 ;;; vc-svn.el ends here

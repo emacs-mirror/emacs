@@ -163,6 +163,12 @@ extern Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 
 extern Lisp_Object Qmenu_bar_update_hook;
 
+#if TARGET_API_MAC_CARBON
+#define ENCODE_MENU_STRING(str) ENCODE_UTF_8 (str)
+#else
+#define ENCODE_MENU_STRING(str) ENCODE_SYSTEM (str)
+#endif
+
 void set_frame_menubar ();
 
 static void push_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
@@ -1246,13 +1252,13 @@ single_submenu (item_key, item_name, maps)
 #ifndef HAVE_MULTILINGUAL_MENU
 	  if (STRING_MULTIBYTE (item_name))
 	    {
-	      item_name = ENCODE_SYSTEM (item_name);
+	      item_name = ENCODE_MENU_STRING (item_name);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_NAME) = item_name;
 	    }
 
 	  if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
 	    {
-	      descrip = ENCODE_SYSTEM (descrip);
+	      descrip = ENCODE_MENU_STRING (descrip);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY) = descrip;
 	    }
 #endif /* not HAVE_MULTILINGUAL_MENU */
@@ -1705,12 +1711,12 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 #ifndef HAVE_MULTILINGUAL_MENU
           if (STRINGP (item_name) && STRING_MULTIBYTE (item_name))
 	    {
-	      item_name = ENCODE_SYSTEM (item_name);
+	      item_name = ENCODE_MENU_STRING (item_name);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_NAME) = item_name;
 	    }
           if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
             {
-	      descrip = ENCODE_SYSTEM (descrip);
+	      descrip = ENCODE_MENU_STRING (descrip);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY) = descrip;
 	    }
 #endif /* not HAVE_MULTILINGUAL_MENU */
@@ -1764,7 +1770,7 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 
 #ifndef HAVE_MULTILINGUAL_MENU
       if (STRING_MULTIBYTE (title))
-	title = ENCODE_SYSTEM (title);
+	title = ENCODE_MENU_STRING (title);
 #endif
       wv_title->name = (char *) SDATA (title);
       wv_title->enabled = TRUE;
@@ -1812,6 +1818,10 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
      during the call.  */
   discard_mouse_events ();
 #endif
+
+  /* Must reset this manually because the button release event is not
+     passed to Emacs event loop. */
+  FRAME_MAC_DISPLAY_INFO (f)->grabbed = 0;
 
   /* Free the widget_value objects we used to specify the
      contents.  */
@@ -2219,8 +2229,18 @@ add_menu_item (MenuHandle menu, widget_value *wv, int submenu,
 	  strncat (item_name, wv->key, 255);
 	}
       item_name[255] = 0;
+#if TARGET_API_MAC_CARBON
+      {
+	CFStringRef string =
+	  CFStringCreateWithCString (NULL, item_name, kCFStringEncodingUTF8);
+
+	SetMenuItemTextWithCFString (menu, pos, string);
+	CFRelease (string);
+      }
+#else
       c2pstr (item_name);
       SetMenuItemText (menu, pos, item_name);
+#endif
 
       if (wv->enabled && !force_disable)
 #if TARGET_API_MAC_CARBON

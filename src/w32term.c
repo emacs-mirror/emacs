@@ -4570,7 +4570,7 @@ w32_read_socket (sd, expected, hold_quit)
 		  f->async_visible = 1;
 		  f->async_iconified = 0;
 
-		  /* wait_reading_process_input will notice this and update
+		  /* wait_reading_process_output will notice this and update
 		     the frame's display structures.  */
 		  SET_FRAME_GARBAGED (f);
 

@@ -1218,7 +1218,7 @@ count_children:
     {
       DebPrint (("select.WaitForMultipleObjects (%d, %lu) failed with %lu\n",
 		 nh + nc, timeout_ms, GetLastError ()));
-      /* don't return EBADF - this causes wait_reading_process_input to
+      /* don't return EBADF - this causes wait_reading_process_output to
 	 abort; WAIT_FAILED is returned when single-stepping under
 	 Windows 95 after switching thread focus in debugger, and
 	 possibly at other times. */

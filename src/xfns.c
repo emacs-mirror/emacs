@@ -281,6 +281,8 @@ x_window_to_frame (dpyinfo, wdesc)
   Lisp_Object tail, frame;
   struct frame *f;
 
+  if (wdesc == None) return 0;
+
   for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
     {
       frame = XCAR (tail);
@@ -329,6 +331,8 @@ x_any_window_to_frame (dpyinfo, wdesc)
   Lisp_Object tail, frame;
   struct frame *f, *found;
   struct x_output *x;
+
+  if (wdesc == None) return NULL;
 
   found = NULL;
   for (tail = Vframe_list; GC_CONSP (tail) && !found; tail = XCDR (tail))
@@ -384,6 +388,8 @@ x_non_menubar_window_to_frame (dpyinfo, wdesc)
   struct frame *f;
   struct x_output *x;
 
+  if (wdesc == None) return 0;
+
   for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
     {
       frame = XCAR (tail);
@@ -430,6 +436,8 @@ x_menubar_window_to_frame (dpyinfo, wdesc)
   struct frame *f;
   struct x_output *x;
 
+  if (wdesc == None) return 0;
+
   for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
     {
       frame = XCAR (tail);
@@ -474,6 +482,8 @@ x_top_window_to_frame (dpyinfo, wdesc)
   Lisp_Object tail, frame;
   struct frame *f;
   struct x_output *x;
+
+  if (wdesc == None) return 0;
 
   for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
     {
@@ -1651,7 +1661,7 @@ x_set_name (f, name, explicit)
 	  }
 #ifdef USE_GTK
         gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                              SDATA (name));
+                              SDATA (ENCODE_UTF_8 (name)));
 #else /* not USE_GTK */
 	XSetWMName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &text);
 #endif /* not USE_GTK */
@@ -1759,7 +1769,7 @@ x_set_title (f, name, old_name)
 
 #ifdef USE_GTK
         gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                              SDATA (name));
+                              SDATA (ENCODE_UTF_8 (name)));
 #else /* not USE_GTK */
 	XSetWMName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &text);
 #endif /* not USE_GTK */

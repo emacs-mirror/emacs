@@ -583,6 +583,8 @@ automatically."
     (mml-insert-empty-tag 'part 'type type 'filename file
                           'disposition dispos 'description description)))
 
+(defvar mh-identity-pgg-default-user-id)
+
 (defun mh-secure-message (method mode &optional identity)
   "Add directive to Encrypt/Sign an entire message.
 METHOD should be one of: \"pgpmime\", \"pgp\", \"smime\".
@@ -848,6 +850,14 @@ If message has been encoded for transfer take that into account."
                         (and cte (intern (downcase
                                           (gnus-strip-whitespace cte))))
                         (car ct))))))
+
+;;;###mh-autoload
+(defun mh-toggle-mh-decode-mime-flag ()
+  "Toggle whether MH-E should decode MIME or not."
+  (interactive)
+  (setq mh-decode-mime-flag (not mh-decode-mime-flag))
+  (mh-show nil t)
+  (message (format "(setq mh-decode-mime-flag %s)" mh-decode-mime-flag)))
 
 ;;;###mh-autoload
 (defun mh-decode-message-header ()

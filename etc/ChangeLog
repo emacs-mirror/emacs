@@ -1,3 +1,22 @@
+2004-08-24  Bill Wohler  <wohler@newt.com>
+
+	* NEWS, MH-E-NEWS: Upgraded to MH-E version 7.82.
+
+2004-08-22  David Kastrup  <dak@gnu.org>
+
+	* PROBLEMS, MAILINGLISTS: Update AUCTeX information.
+
+2004-08-21  Bill Wohler  <wohler@newt.com>
+
+	* NEWS, MH-E-NEWS: Upgraded to MH-E version 7.81.
+
+2004-08-21  Eric S. Raymond  <esr@thyrsus.com>
+
+	* PROBLEMS: Massively rearranged by category, to make environment
+	features and symptoms easier to find.  Bugs relating to
+	20th-century systems moved to the end.  Most problem headers
+	changed to "object: variation" format.
+
 2004-08-15  Bill Wohler  <wohler@newt.com>
 
 	* NEWS, MH-E-NEWS: Upgraded to MH-E version 7.4.80.

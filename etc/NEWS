@@ -98,6 +98,8 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
+** global-whitespace-mode is a new alias for whitespace-global-mode.
+
 +++
 ** There are now two new regular expression operators, \_< and \_>,
 for matching the beginning and end of a symbol.  A symbol is a
@@ -191,6 +193,11 @@ the end of the buffer in that window.  This allows to tail a file:
 just put point at the end of the buffer and it stays there.  This
 rule applies to file buffers.  For non-file buffers, the behavior may
 be mode dependent.
+
+If you are sure that the file will only change by growing at the end,
+then you can tail the file more efficiently by using the new minor
+mode Auto Revert Tail mode.  The function `auto-revert-tail-mode'
+toggles this mode.
 
 ** Auto Revert mode is now more careful to avoid excessive reverts and
 other potential problems when deciding which non-file buffers to
@@ -658,7 +665,7 @@ You can now put the init files .emacs and .emacs_SHELL under
 
 ** MH-E changes.
 
-Upgraded to MH-E version 7.4.80. There have been major changes since
+Upgraded to MH-E version 7.82. There have been major changes since
 version 5.0.2; see MH-E-NEWS for details.
 
 +++

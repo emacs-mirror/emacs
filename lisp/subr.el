@@ -1202,7 +1202,7 @@ Optional args SENTINEL and FILTER specify the sentinel and filter
 
 (make-obsolete 'process-kill-without-query
                "use `process-query-on-exit-flag' or `set-process-query-on-exit-flag'."
-               "21.5")
+               "21.4")
 (defun process-kill-without-query (process &optional flag)
   "Say no query needed if PROCESS is running when Emacs is exited.
 Optional second argument if non-nil says to require a query.

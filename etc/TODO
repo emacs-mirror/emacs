@@ -62,6 +62,11 @@ to the FSF.
 
 * Other features we would like:
 
+** ange-ftp
+*** understand sftp
+*** ignore some irrelevant errors (like IPv6 and kerberos thingies).
+*** Use MLS for ange-ftp-insert-directory if a list of files is specified.
+
 ** Ability to map a key, including all modified-combinations.
    E.g map mouse-4 to wheel-up as well as M-mouse-4 -> M-wheel-up
    M-C-mouse-4 -> M-C-wheel-up, H-S-C-M-s-double-mouse-4 ->

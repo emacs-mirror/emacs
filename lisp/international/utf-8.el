@@ -870,7 +870,9 @@ Also compose particular scripts if `utf-8-compose-scripts' is non-nil."
       ;; version of the string in the loop, since it's always loaded as
       ;; unibyte from a byte-compiled file.
       (let ((range (string-as-multibyte "^\xc0-\xc3\xe1-\xf7"))
+	    (buffer-multibyte enable-multibyte-characters)
 	    hash-table ch)
+	(set-buffer-multibyte t)
 	(when utf-translate-cjk-mode
 	  (if (not utf-translate-cjk-lang-env)
 	      ;; Check these characters:
@@ -893,7 +895,9 @@ Also compose particular scripts if `utf-8-compose-scripts' is non-nil."
 		(progn
 		  (insert ch)
 		  (delete-char 1))
-	      (forward-char 1)))))
+	      (forward-char 1))))
+	(or buffer-multibyte
+	    (set-buffer-multibyte nil)))
 
       (when (and utf-8-compose-scripts (> length 1))
 	;; These currently have definitions which cover the relevant

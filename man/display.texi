@@ -316,7 +316,8 @@ comments, use this:
 @findex font-lock-remove-keywords
   To remove keywords from the font-lock highlighting patterns, use the
 function @code{font-lock-remove-keywords}.  @xref{Search-based
-Fontification,,,elisp}, for documentation of the format of this list.
+Fontification,,, elisp, The Emacs Lisp Reference Manual}, for
+documentation of the format of this list.
 
 @cindex just-in-time (JIT) font-lock
 @cindex background syntax highlighting

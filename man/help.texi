@@ -455,6 +455,7 @@ is available within Info.  Eventually all the documentation of the GNU
 system will be available.  Type @kbd{h} after entering Info to run
 a tutorial on using Info.
 
+@cindex find Info manual by its file name
   If you specify a numeric argument, @kbd{C-h i} prompts for the name of
 a documentation file.  This way, you can browse a file which doesn't
 have an entry in the top-level Info menu.  It is also handy when you

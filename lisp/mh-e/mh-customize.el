@@ -78,6 +78,13 @@
 (when mh-xemacs-flag
   (require 'mh-xemacs))
 
+;; XXX: Functions autoloaded from the following files are used to initialize
+;;  customizable variables. They are require'd here, since otherwise the
+;;  corresponding .elc would be loaded at compile time.
+(eval-when-compile
+  (require 'mh-init)
+  (require 'mh-identity))
+
 (defun mh-customize (&optional delete-other-windows-flag)
   "Customize MH-E variables.
 If optional argument DELETE-OTHER-WINDOWS-FLAG is non-nil, other windows in
@@ -527,7 +534,7 @@ See `mh-auto-fields-list'."
   :group 'mh-identity)
 
 (defcustom mh-identity-handlers
-  '(("default" . mh-identity-handler-bottom)
+  '((":default" . mh-identity-handler-bottom)
     ("from" . mh-identity-handler-top)
     (":attribution-verb" . mh-identity-handler-attribution-verb)
     (":signature" . mh-identity-handler-signature)
@@ -535,9 +542,8 @@ See `mh-auto-fields-list'."
   "Handler functions for fields in `mh-identity-list'.
 This is an alist of fields (strings) and handlers (functions). Strings are
 lowercase. Use \":signature\" for Signature and \":pgg-default-user-id\" for
-GPG Key ID. The function associated with the string \"default\" is used if no
-other functions are appropriate. For this reason, don't name a header field
-\"Default\"."
+GPG Key ID. The function associated with the string \":default\" is used if no
+other functions are appropriate."
   :type '(repeat (cons (string :tag "Field") function))
   :group 'mh-identity)
 
