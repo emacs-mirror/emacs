@@ -1,3 +1,8 @@
+2005-02-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el: Update copyright. Put GDB-Frames before
+	GDB-Windows on the menu-bar as this works better.
+
 2005-02-04  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-embed.el (calc-embedded-update): Don't put in
