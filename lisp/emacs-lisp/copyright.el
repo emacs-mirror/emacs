@@ -34,9 +34,9 @@
 
 
 (defvar copyright-regexp
-  "[Cc]opyright\\s *:?\\s *(C)\\s *\\([1-9][-0-9, ']*[0-9]+\\) "
+  "\\(\251\\|[Cc]opyright\\s *:?\\s *(C)\\)\\s *\\([1-9][-0-9, ']*[0-9]+\\) "
   "*What your copyright notice looks like.
-Must contain \\( \\) construct matching the years.")
+The second \\( \\) construct must match the years.")
 
 
 (defvar copyright-query 'function
@@ -68,7 +68,7 @@ copyright, if any, are updated as well."
 	  (widen)
 	  (goto-char (point-min))
 	  (if (re-search-forward copyright-regexp copyright-limit t)
-	      (if (string= (buffer-substring (- (match-end 1) 2) (match-end 1))
+	      (if (string= (buffer-substring (- (match-end 2) 2) (match-end 2))
 			   (substring copyright-current-year -2))
 		  ()
 		(backward-char 1)
