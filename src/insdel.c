@@ -1546,7 +1546,11 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
      not including the combined-before bytes.  */
   intervals = BUF_INTERVALS (buf);
   if (outgoing_nbytes < BUF_Z_BYTE (buf) - BUF_BEG_BYTE (buf))
-    intervals = copy_intervals (intervals, from, nchars);
+    {
+      if (buf == current_buffer && PT <= from)
+	from += nchars;
+      intervals = copy_intervals (intervals, from, nchars);
+    }
 			       
   /* Insert those intervals.  */
   graft_intervals_into_buffer (intervals, PT, nchars, current_buffer, inherit);
