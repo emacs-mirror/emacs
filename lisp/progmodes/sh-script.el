@@ -831,7 +831,8 @@ Calls the value of `sh-set-shell-hook' if set."
 	imenu-generic-expression (sh-feature sh-imenu-generic-expression)
 	imenu-case-fold-search nil
 	shell (sh-feature sh-variables))
-  (set-syntax-table (sh-feature sh-mode-syntax-table))
+  (set-syntax-table (or (sh-feature sh-mode-syntax-table)
+			(standard-syntax-table)))
   (while shell
     (sh-remember-variable (car shell))
     (setq shell (cdr shell)))
