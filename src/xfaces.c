@@ -5576,7 +5576,7 @@ Value is ORDER.  */)
 DEFUN ("internal-set-alternative-font-family-alist",
        Finternal_set_alternative_font_family_alist,
        Sinternal_set_alternative_font_family_alist, 1, 1, 0,
-  doc: /* Define alternative font families to try in face font selection.
+       doc: /* Define alternative font families to try in face font selection.
 ALIST is an alist of (FAMILY ALTERNATIVE1 ALTERNATIVE2 ...) entries.
 Each ALTERNATIVE is tried in order if no fonts of font family FAMILY can
 be found.  Value is ALIST.  */)
