@@ -1185,7 +1185,7 @@ extern Lisp_Object Flength ();
 extern Lisp_Object Fappend (), Fconcat (), Fvconcat (), Fcopy_sequence ();
 extern Lisp_Object Fsubstring ();
 extern Lisp_Object Fnth (), Fnthcdr (), Fmemq (), Fassq (), Fassoc ();
-extern Lisp_Object Frassq (), Fdelq (), Fsort ();
+extern Lisp_Object Fmember (), Frassq (), Fdelq (), Fsort ();
 extern Lisp_Object Freverse (), Fnreverse (), Fget (), Fput (), Fequal ();
 extern Lisp_Object Ffillarray (), Fnconc (), Fmapcar (), Fmapconcat ();
 extern Lisp_Object Fy_or_n_p (), do_yes_or_no_p ();
