@@ -3540,17 +3540,9 @@ boundaries bind `inhibit-field-text-motion' to t."
   (or arg (setq arg 1))
   (if (/= arg 1)
       (line-move (1- arg) t))
-  (let (done pos)
-    (while (not done)
-      (beginning-of-line 1)
-      ;; (not bolp) means that it stopped at a field boundary.
-      (if (or (bobp) (not (bolp)))
-	  (setq done t)
-	(sit-for 0)
-	(if (and (consp (setq pos (pos-visible-in-window-p (point) nil t)))
-		 (= (car pos) 0))
-	    (setq done t)
-	  (backward-char 1))))))
+  (let ((orig (point)))
+    (vertical-motion 0)
+    (goto-char (constrain-to-field (point) orig (/= arg 1) t nil))))
 
 
 ;;; Many people have said they rarely use this feature, and often type

@@ -1,3 +1,7 @@
+2005-03-15  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (move-beginning-of-line): Use vertical-motion.
+
 2005-03-15  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-error): New variable.
