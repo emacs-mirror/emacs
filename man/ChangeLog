@@ -1,3 +1,9 @@
+2003-09-04  Miles Bader  <miles@gnu.org>
+
+	* Makefile.in (top_srcdir): New variable.
+	($(top_srcdir)/info): New rule.
+	(info): Depend on it.
+
 2003-09-03  Peter Runestig  <peter@runestig.com>
 
 	* makefile.w32-in: New file.
