@@ -1137,6 +1137,7 @@ static struct keyboard_layout_list
 
 static struct dos_keyboard_map *keyboard;
 static int keyboard_map_all;
+static int international_keyboard;
 
 int
 dos_set_keyboard (code, always)
@@ -1144,6 +1145,13 @@ dos_set_keyboard (code, always)
      int always;
 {
   int i;
+  union REGS regs;
+
+  /* See if Keyb.Com is installed (for international keyboard support).  */
+  regs.x.ax = 0xad80;
+  int86 (0x2f, &regs, &regs);
+  if (regs.h.al == 0xff)
+    international_keyboard = 1;
 
   /* Initialize to US settings, for countries that don't have their own.  */
   keyboard = keyboard_layout_list[0].keyboard_map;
@@ -1450,6 +1458,13 @@ dos_get_modifiers (keymask)
 	    {
 	      mask |= SUPER_P;
 	      modifiers |= super_modifier;
+	    }
+	  else if (!international_keyboard)
+	    {
+	      /* If Keyb.Com is NOT installed, let Right Alt behave
+		 like the Left Alt.  */
+	      mask &= ~ALT_GR_P;
+	      mask |= ALT_P;
 	    }
 	}
       
