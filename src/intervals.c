@@ -1680,7 +1680,6 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 {
   register INTERVAL under, over, this, prev;
   register INTERVAL tree;
-  int middle;
 
   tree = BUF_INTERVALS (buffer);
 
@@ -1760,11 +1759,6 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 	= split_interval_left (this, position - under->position);
       copy_properties (under, end_unchanged);
       under->position = position;
-#if 0
-      /* This code has no effect.  */
-      prev = 0;
-      middle = 1;
-#endif /* 0 */
     }
   else
     {
