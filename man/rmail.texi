@@ -976,7 +976,7 @@ means to show the reformatted header, and a zero or negative argument
 means to show the full header.
 
 @vindex rmail-highlighted-headers
-  When used with a terminal that supports multiple fonts, Rmail
+  When used with a terminal that supports multiple fonts or colors, Rmail
 highlights certain header fields that are especially interesting---by
 default, the @samp{From} and @samp{Subject} fields.  The variable
 @code{rmail-highlighted-headers} holds a regular expression that
@@ -993,9 +993,47 @@ highlighting as well.  @xref{Faces}, for how to do this.
 @code{rmail-highlighted-headers} to @code{nil}.
 
 @findex goto-addr
-URLs in messages may be highlighted and activated for following with the
+  URLs in messages may be highlighted and activated for following with the
 mouse or keyboard by customizing the hook @code{rmail-show-message-hook}
 to add @code{goto-addr}.
+
+@cindex decoding mail messages (Rmail)
+  Rmail automatically decodes messages which contain non-@sc{ascii}
+characters, like it does with visited files and output from
+subprocesses.  Rmail uses the standard ``charset=@var{encoding}''
+header in the message to find out how was the message encoded by the
+sender.  It then maps @var{encoding} into the corresponding coding
+system (@pxref{Coding Systems}), and uses that coding system to decode
+message text.  If the message header doesn't have the charset
+specification, or if the @var{encoding} it specifies is not recognized
+by Emacs, Rmail attempts to detect the encoding by applying the usual
+heuristics and defaults (@pxref{Recognize Coding}).
+
+@findex rmail-redecode-body
+@cindex fixing incorrectly decoded mail messages
+  Occasionally, a message might be decoded incorrectly, either because
+Emacs failed to guess the encoding in the absence of the ``charset''
+specification, or because the ``charset'' specification was wrong.
+For example, a misconfigured mailer could send a message with a
+``charset=iso-8859-1'' header whereas the mssage is encoded in koi8-r.
+Whenever you see a message text garbled or some of its characters
+displayed as empty boxes, you can try to fix that by decoding the
+message again using a specific coding system.  (This requires that you
+guess the correct encoding, or talk to the sender and ask them.)  To
+that end, invoke the @code{rmail-redecode-body} command.  It prompts
+for a name of a coding system and then redecodes the message body
+using that coding system.
+
+  Redecoding the message body is a lossless operation with most
+encodings, in particular with 8-bit encodings such as iso-8859 or
+koi8.  So, if the initial attempt to redecode the message didn't
+result in a legible text, you could try other possible encodings,
+until you succeed.
+
+  With some encodings, notably those from the iso-2022 family,
+@code{rmail-redecode-body} might fail to recover the original form of
+the message.  However, such encodings rarely cause the kind of trouble
+for which @code{rmail-redecode-body} is intended to be used.
 
 @node Rmail Editing
 @section Editing Within a Message
