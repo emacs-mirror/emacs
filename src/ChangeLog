@@ -1,3 +1,9 @@
+2002-10-10  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (syms_of_macterm, mac_get_mouse_btn): Reversed
+	functionality of mac-wheel-button-is-mouse-2 to be correct.  Also
+	switched the default to Qnil from Qt.
+
 2002-10-08  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (code_convert_region): When we need more GAP for
