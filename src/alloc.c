@@ -1494,6 +1494,7 @@ mark_object (objptr)
 	mark_object (&ptr->scroll_bars);
 	mark_object (&ptr->condemned_scroll_bars);
 	mark_object (&ptr->menu_bar_items);
+	mark_object (&ptr->face_alist);
       }
       break;
 #endif /* MULTI_FRAME */
