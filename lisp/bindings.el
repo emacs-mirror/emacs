@@ -939,8 +939,10 @@ language you are using."
 (define-key esc-map [?\C-\ ] 'mark-sexp)
 (define-key esc-map "\C-d" 'down-list)
 (define-key esc-map "\C-k" 'kill-sexp)
-(define-key global-map [C-M-delete] 'backward-kill-sexp)
-(define-key global-map [C-M-backspace] 'backward-kill-sexp)
+;;; These are dangerous in various situations,
+;;; so let's not encourage anyone to use them.
+;;;(define-key global-map [C-M-delete] 'backward-kill-sexp)
+;;;(define-key global-map [C-M-backspace] 'backward-kill-sexp)
 (define-key esc-map [C-delete] 'backward-kill-sexp)
 (define-key esc-map [C-backspace] 'backward-kill-sexp)
 (define-key esc-map "\C-n" 'forward-list)
