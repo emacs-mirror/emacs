@@ -152,7 +152,7 @@ It is useful to set this variable in the site customization file.")
 	  "\\|^status:\\|^received:\\|^x400-originator:\\|^x400-recipients:"
 	  "\\|^x400-received:\\|^x400-mts-identifier:\\|^x400-content-type:"
 	  "\\|^\\(resent-\\|\\)message-id:\\|^summary-line:\\|^resent-date:"
-	  "\\|^nntp-posting-host:\\|^path:\\|^x-char.*:\\|^x-face:"
+	  "\\|^nntp-posting-host:\\|^path:\\|^x-char.*:\\|^x-face:\\|^face:"
 	  "\\|^x-mailer:\\|^delivered-to:\\|^lines:\\|^mime-version:"
 	  "\\|^content-transfer-encoding:\\|^x-coding-system:"
 	  "\\|^return-path:\\|^errors-to:\\|^return-receipt-to:"
