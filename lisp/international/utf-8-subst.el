@@ -1,4 +1,4 @@
-;;; utf-8-subst.el --- translation of untranslatable utf-8 to CJK -*-coding: iso-2022-7bit;-*-
+;;; utf-8-subst.el --- translation of undecodable UTF-8/16 to CJK -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 2001, 2002  Free Software Foundation, Inc.
 
@@ -24,22 +24,23 @@
 
 ;;; Commentary:
 
-;; Defines hash table `utf-8-subst-table' which maps UTF-8 otherwise
-;; `untranslatable' characters to characters in specific Emacs CJK
-;; charsets.  The CJK charsets used are chinese-gb2312,
-;; japanese-jisx0208 and korean-ksc5601.  Where their Unicodes
-;; overlap, the priority used is J C K, guessing the likelihood of
-;; fonts being available generally.  This can be altered by changing
-;; the order in which the table is filled.  This should doubtless be
-;; cusomizable somehow.
+;; Defines hash table `ucs-unicode-to-mule-cjk' which maps UTF-8/16
+;; otherwise `undecodable' characters to characters in specific
+;; Emacs CJK charsets.  Defines also the hash table
+;; `ucs-mule-cjk-to-unicode' that does the reverse mapping.  The
+;; CJK charsets used are chinese-gb2312, japanese-jisx0208 and
+;; korean-ksc5601.  Where their Unicodes overlap, the priority used is
+;; J C K, guessing the likelihood of fonts being available generally.
+;; This can be altered by changing the order in which the table is
+;; filled.  This should doubtless be cusomizable somehow.
 
 ;;; Code:
 
 ;; korean-ksc5601
 (mapc
  (lambda (pair)
-   (puthash (car pair) (cadr pair) utf-8-subst-table)
-   (puthash (cadr pair) (car pair) utf-8-subst-rev-table))
+   (puthash (car pair) (cadr pair) ucs-unicode-to-mule-cjk)
+   (puthash (cadr pair) (car pair) ucs-mule-cjk-to-unicode))
  '((#x4E00 ?一)
    (#x4E01 ?丁)
    (#x4E03 ?七)
@@ -7014,8 +7015,8 @@
 ;; chinese-gb2312
 (mapc
  (lambda (pair)
-   (puthash (car pair) (cadr pair) utf-8-subst-table)
-   (puthash (cadr pair) (car pair) utf-8-subst-rev-table))
+   (puthash (car pair) (cadr pair) ucs-unicode-to-mule-cjk)
+   (puthash (cadr pair) (car pair) ucs-mule-cjk-to-unicode))
  '((#x4E00 ?一)
    (#x4E01 ?丁)
    (#x4E03 ?七)
@@ -13784,8 +13785,8 @@
 ;; japanese-jisx0208
 (mapc
  (lambda (pair)
-   (puthash (car pair) (cadr pair) utf-8-subst-table)
-   (puthash (cadr pair) (car pair) utf-8-subst-rev-table))
+   (puthash (car pair) (cadr pair) ucs-unicode-to-mule-cjk)
+   (puthash (cadr pair) (car pair) ucs-mule-cjk-to-unicode))
  '((#x4E00 ?一)
    (#x4E01 ?丁)
    (#x4E03 ?七)
