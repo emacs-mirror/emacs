@@ -1,3 +1,10 @@
+2002-01-24  Andrew Innes  <andrewi@gnu.org>
+
+	* nt/README.W32: Remove unnecessary version number and date
+	references.
+
+	* nt/README-UNDUMP.W32: Ditto.
+
 2001-12-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* make-emacs: Add --trace-move.
