@@ -37,7 +37,11 @@ If you change this, you may have to change paragraph-start also.")
 
 (defconst sentence-end (purecopy "[.?!][]\"')}]*\\($\\| $\\|\t\\|  \\)[ \t\n]*") "\
 *Regexp describing the end of a sentence.
-All paragraph boundaries also end sentences, regardless.")
+All paragraph boundaries also end sentences, regardless.
+
+In order to be recognized as the end of a sentence, the ending period,
+question mark, or exclamation point must be followed by two spaces,
+unless it's inside some sort of quotes or parenthesis.")
 
 (defconst page-delimiter "^\014" "\
 *Regexp describing line-beginnings that separate pages.")
@@ -178,7 +182,7 @@ negative arg -N means kill forward to Nth end of paragraph."
 	      (end-of-paragraph-text))))))
 
 (defun forward-sentence (&optional arg)
-  "Move forward to next`sentence-end'.  With argument, repeat.
+  "Move forward to next `sentence-end'.  With argument, repeat.
 With negative argument, move backward repeatedly to `sentence-beginning'.
 
 The variable `sentence-end' is a regular expression that matches ends of
