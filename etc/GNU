@@ -1,4 +1,4 @@
-Copyright (C) 1985, 1993 Free Software Foundation, Inc.
+Copyright (C) 1985, 1993, 2003 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
 of this document, in any medium, provided that the copyright notice and
@@ -341,7 +341,7 @@ that.)
 other people's lives; and it is usually used to make their lives more
 difficult.
 
-   People who have studied the issue of intellectual property rights
+   People who have studied the issue of intellectual property rights(6)
 carefully (such as lawyers) say that there is no intrinsic right to
 intellectual property.  The kinds of supposed intellectual property
 rights that the government recognizes were created by specific acts of
@@ -530,3 +530,11 @@ this way.  Have you done your part?
    (5)  A group of computer companies recently pooled funds to support
 maintenance of the GNU C Compiler.
 
+   (6) In the 80s I had not yet realized how confusing it was to speak
+of "the issue" of "intellectual property".  That term is obviously
+biased; more subtle is the fact that it lumps together various
+disparate laws which raise very different issues.  Nowadays I urge
+people to reject the term "intellectual property" entirely, lest it
+lead others to suppose this is one coherent issue.  The way to be
+clear is to to discuss patents, copyrights, and trademarks separately.
+See http://www.gnu.org/philosophy/words-to-avoid.html.

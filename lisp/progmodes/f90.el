@@ -1,6 +1,6 @@
 ;;; f90.el --- Fortran-90 mode (free format)
 
-;; Copyright (C) 1995, 1996, 1997, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 2000, 2004 Free Software Foundation, Inc.
 
 ;; Author: Torbj\"orn Einarsson <Torbjorn.Einarsson@era.ericsson.se>
 ;; Maintainer: Glenn Morris <gmorris@ast.cam.ac.uk>
@@ -224,7 +224,10 @@ whether to blink the matching beginning."
   :group 'f90)
 
 (defcustom f90-break-delimiters "[-+\\*/><=,% \t]"
-  "*Regexp holding list of delimiters at which lines may be broken."
+  "*Regexp matching delimiter characters at which lines may be broken.
+There are certain tokens comprised entirely of characters
+matching this regexp that should not be split, and these are
+specified by the constant `f90-no-break-re'."
   :type  'regexp
   :group 'f90)
 
@@ -574,8 +577,12 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
   "Regexp matching the definition of a derived type.")
 
 (defconst f90-no-break-re
-  (regexp-opt '("**" "//" "=>") 'paren)
-  "Regexp specifying where not to break lines when filling.")
+  (regexp-opt '("**" "//" "=>" ">=" "<=" "==" "/=") 'paren)
+  "Regexp specifying where not to break lines when filling.
+This regexp matches certain tokens comprised entirely of
+characters matching the regexp `f90-break-delimiters' that should
+not be split by filling.  Each element is assumed to be two
+characters long.")
 
 (defvar f90-cache-position nil
   "Temporary position used to speed up region operations.")

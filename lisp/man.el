@@ -801,7 +801,7 @@ Same for the ANSI bold and normal escape sequences."
   ;; Try to recognize common forms of cross references.
   (Man-highlight-references)
   (Man-softhyphen-to-minus)
-  (message "%s man page made up" Man-arguments))
+  (message "%s man page formatted" Man-arguments))
 
 (defun Man-highlight-references ()
   "Highlight the references on mouse-over.

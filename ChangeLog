@@ -1,3 +1,7 @@
+2004-01-25  Jerome Marant  <jmarant@free.fr>  (tiny change)
+
+	* make-dist (lispref): Do include lispref/index.texi.
+
 2004-01-06  Eric Hanchrow <offby1@blarg.net> (tiny change)
 
 	* make-dist (tempdir): Include cursors in nt/icons
@@ -14,7 +18,7 @@
 2003-12-24  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in: Check for <sys/socket.h>.  Include it before
-	including <net/if.h>.  Move check for <net/if.h> before it's use.
+	including <net/if.h>.  Move check for <net/if.h> before its use.
 
 2003-12-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 

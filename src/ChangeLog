@@ -1,3 +1,18 @@
+2004-01-26  Andreas Schwab  <schwab@suse.de>
+
+	* print.c (print_preprocess): Declare size as EMACS_INT to not
+	lose bits.
+	(print_object): Likewise.
+	* alloc.c (Fpurecopy): Likewise.
+
+2004-01-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* window.c (Fwindow_minibuffer_p): Doc fix.
+
+2004-01-24  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* editfns.c (Fformat): Make both passes accept the same set of flags.
+
 2004-01-23  Kenichi Handa  <handa@m17n.org>
 
 	* fns.c (Fmd5): If OBJECT is a buffer different from the current

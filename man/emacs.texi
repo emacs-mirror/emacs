@@ -115,7 +115,6 @@ and Sending Mail and Registers and Minibuffer.
 
 @menu
 * Distrib::	        How to get the latest Emacs distribution.
-* Acknowledgements::    Contributors to GNU Emacs.
 * Copying::	        The GNU General Public License gives you permission
 			  to redistribute GNU Emacs on certain terms;
 			  it also explains that there is no warranty.
@@ -902,7 +901,7 @@ all GNU Emacs features.  We don't try to describe VMS usage in this
 manual.  @xref{MS-DOS}, for information about using Emacs on MS-DOS.
 @end iftex
 
-@node Distrib, Acknowledgements, Top, Top
+@node Distrib, Copying, Top, Top
 @unnumbered Distribution
 
 GNU Emacs is @dfn{free software}; this means that everyone is free to
@@ -956,8 +955,9 @@ company policy is unsympathetic to the idea of donating to charity, you
 might instead suggest ordering a CD-ROM from the Foundation
 occasionally, or subscribing to periodic updates.
 
-@node Acknowledgements, Copying, Distrib, Top
-@section Acknowledgements
+@ifnotinfo
+@node Acknowledgments, Copying, Distrib, Top
+@section Acknowledgments
 
 Contributors to GNU Emacs include Per Abrahamsen, Jay K. Adams, Joe
 Arceneaux, Boaz Ben-Zvi, Jim Blandy, Terrence Brannon, Frank Bresz,
@@ -1000,8 +1000,9 @@ Warsaw, Morten Welinder, Joseph Brian Wells, Rodney Whitby, Ed
 Wilkinson, Mike Williams, Steven A. Wood, Dale R. Worley, Felix
 S. T. Wu, Tom Wurgler, Eli Zaretskii, Jamie Zawinski, Ian T. Zimmermann,
 Reto Zimmermann, and Neal Ziring.
+@end ifnotinfo
 
-@node Copying, GNU Free Documentation License, Acknowledgements, Top
+@node Copying, GNU Free Documentation License, Distrib, Top
 @unnumbered GNU GENERAL PUBLIC LICENSE
 @center Version 2, June 1991
 
