@@ -1,3 +1,10 @@
+1999-10-12  Dave Pearson  <davep@hagbard.demon.co.uk>
+
+        * quickurl.el (quickurl-list-insert): `count-lines' was returning
+        a value one line to high if the cursor wasn't at the start of a
+        line. A `beginning-of-line' is now performed before making the
+        call to `count-lines'.
+
 1999-10-11  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* diff-mode.el (vc-backend-diff): get rid of the autoloaded advice.
