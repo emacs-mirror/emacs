@@ -55,16 +55,16 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <Xm/DialogS.h>
 #include <Xm/Form.h>
 
-static void xm_pull_down_callback (Widget, XtPointer, XtPointer);
-static void xm_internal_update_other_instances (Widget, XtPointer,
-						XtPointer);
-static void xm_generic_callback (Widget, XtPointer, XtPointer);
-static void xm_nosel_callback (Widget, XtPointer, XtPointer);
-static void xm_pop_down_callback (Widget, XtPointer, XtPointer);
+static void xm_pull_down_callback (/* Widget, XtPointer, XtPointer */);
+static void xm_internal_update_other_instances (/* Widget, XtPointer,
+						      XtPointer */);
+static void xm_generic_callback (/* Widget, XtPointer, XtPointer */);
+static void xm_nosel_callback (/* Widget, XtPointer, XtPointer */);
+static void xm_pop_down_callback (/* Widget, XtPointer, XtPointer */);
 
-static void
-xm_update_menu (widget_instance* instance, Widget widget, widget_value* val,
-		Boolean deep_p);
+static void xm_update_menu (/* widget_instance*, Widget, widget_value*,
+				  Boolean) */);
+
 
 /* Structures to keep destroyed instances */
 typedef struct _destroyed_instance 
@@ -81,8 +81,12 @@ static destroyed_instance*
 all_destroyed_instances = NULL;
 
 static destroyed_instance*
-make_destroyed_instance (char* name, char* type, Widget widget, Widget parent,
-			 Boolean pop_up_p)
+make_destroyed_instance (name, type, widget, parent, pop_up_p)
+     char* name;
+     char* type;
+     Widget widget;
+     Widget parent;
+     Boolean pop_up_p;
 {
   destroyed_instance* instance =
     (destroyed_instance*)malloc (sizeof (destroyed_instance));
@@ -96,7 +100,8 @@ make_destroyed_instance (char* name, char* type, Widget widget, Widget parent,
 }
 			 
 static void
-free_destroyed_instance (destroyed_instance* instance)
+free_destroyed_instance (instance)
+     destroyed_instance* instance;
 {
   free (instance->name);
   free (instance->type);
@@ -105,13 +110,15 @@ free_destroyed_instance (destroyed_instance* instance)
 
 /* motif utility functions */
 Widget
-first_child (Widget widget)
+first_child (widget)
+     Widget widget;
 {
   return ((CompositeWidget)widget)->composite.children [0];
 }
 
 Boolean
-lw_motif_widget_p (Widget widget)
+lw_motif_widget_p (widget)
+     Widget widget;
 {
   return 
     XtClass (widget) == xmDialogShellWidgetClass
@@ -119,7 +126,9 @@ lw_motif_widget_p (Widget widget)
 }
 
 static XmString
-resource_motif_string (Widget widget, char* name)
+resource_motif_string (widget, name)
+     Widget widget;
+     char* name;
 {
   XtResource resource;
   XmString result = 0;
@@ -138,7 +147,8 @@ resource_motif_string (Widget widget, char* name)
 }
 
 static void
-destroy_all_children (Widget widget)
+destroy_all_children (widget)
+     Widget widget;
 {
   Widget* children;
   unsigned int number;
@@ -164,7 +174,10 @@ destroy_all_children (Widget widget)
 
 /* update the label of anything subclass of a label */
 static void
-xm_update_label (widget_instance* instance, Widget widget, widget_value* val)
+xm_update_label (instance, widget, val)
+     widget_instance* instance;
+     Widget widget;
+     widget_value* val;
 {
   XmString res_string = 0;
   XmString built_string = 0;
@@ -209,7 +222,10 @@ xm_update_label (widget_instance* instance, Widget widget, widget_value* val)
 
 /* update of list */
 static void
-xm_update_list (widget_instance* instance, Widget widget, widget_value* val)
+xm_update_list (instance, widget, val)
+     widget_instance* instance;
+     Widget widget;
+     widget_value* val;
 {
   widget_value* cur;
   int i;
@@ -230,8 +246,10 @@ xm_update_list (widget_instance* instance, Widget widget, widget_value* val)
 
 /* update of buttons */
 static void
-xm_update_pushbutton (widget_instance* instance, Widget widget,
-		      widget_value* val)
+xm_update_pushbutton (instance, widget, val)
+     widget_instance* instance;
+     Widget widget;
+     widget_value* val;
 {
   XtVaSetValues (widget, XmNalignment, XmALIGNMENT_CENTER, 0);
   XtRemoveAllCallbacks (widget, XmNactivateCallback);
@@ -250,7 +268,10 @@ xm_update_cascadebutton (widget_instance* instance, Widget widget,
 
 /* update toggle and radiobox */
 static void
-xm_update_toggle (widget_instance* instance, Widget widget, widget_value* val)
+xm_update_toggle (instance, widget, val)
+     widget_instance* instance;
+     Widget widget;
+     widget_value* val;
 {
   XtRemoveAllCallbacks (widget, XmNvalueChangedCallback);
   XtAddCallback (widget, XmNvalueChangedCallback,
@@ -260,8 +281,11 @@ xm_update_toggle (widget_instance* instance, Widget widget, widget_value* val)
 }
 
 static void
-xm_update_radiobox (widget_instance* instance, Widget widget,
-		    widget_value* val)
+xm_update_radiobox (instance, widget, val)
+     widget_instance* instance;
+     Widget widget;
+     widget_value* val;
+
 {
   Widget toggle;
   widget_value* cur;
@@ -300,7 +324,8 @@ xm_update_radiobox (widget_instance* instance, Widget widget,
 
 /* update a popup menu, pulldown menu or a menubar */
 static Boolean
-all_dashes_p (char* s)
+all_dashes_p (s)
+     char* s;
 {
   char* t;
   for (t = s; *t; t++)
@@ -310,8 +335,10 @@ all_dashes_p (char* s)
 }
 
 static void
-make_menu_in_widget (widget_instance* instance, Widget widget,
-		     widget_value* val)
+make_menu_in_widget (instance, widget, val)
+     widget_instance* instance;
+     Widget widget;
+     widget_value* val;
 {
   Widget* children = 0;
   int num_children;
@@ -403,8 +430,11 @@ make_menu_in_widget (widget_instance* instance, Widget widget,
 }
 
 static void
-update_one_menu_entry (widget_instance* instance, Widget widget,
-		       widget_value* val, Boolean deep_p)
+update_one_menu_entry (instance, widget, val, deep_p)
+     widget_instance* instance;
+     Widget widget;
+     widget_value* val;
+     Boolean deep_p;
 {
   Arg al [256];
   int ac;
@@ -456,8 +486,11 @@ update_one_menu_entry (widget_instance* instance, Widget widget,
 }
 
 static void
-xm_update_menu (widget_instance* instance, Widget widget, widget_value* val,
-		Boolean deep_p)
+xm_update_menu (instance, widget, val, deep_p)
+     widget_instance* instance;
+     Widget widget;
+     widget_value* val;
+     Boolean deep_p;
 {
   /* Widget is a RowColumn widget whose contents have to be updated
    * to reflect the list of items in val->contents */
@@ -498,7 +531,10 @@ xm_update_menu (widget_instance* instance, Widget widget, widget_value* val,
 /* update text widgets */
 
 static void
-xm_update_text (widget_instance* instance, Widget widget, widget_value* val)
+xm_update_text (instance, widget, val)
+     widget_instance* instance;
+     Widget widget;
+     widget_value* val;
 {
   XmTextSetString (widget, val->value ? val->value : "");
   XtRemoveAllCallbacks (widget, XmNactivateCallback);
@@ -509,8 +545,10 @@ xm_update_text (widget_instance* instance, Widget widget, widget_value* val)
 }
 
 static void
-xm_update_text_field (widget_instance* instance, Widget widget,
-		      widget_value* val)
+xm_update_text_field (instance, widget, val)
+     widget_instance* instance;
+     Widget widget;
+     widget_value* val;
 {
   XmTextFieldSetString (widget, val->value ? val->value : "");
   XtRemoveAllCallbacks (widget, XmNactivateCallback);
@@ -524,8 +562,11 @@ xm_update_text_field (widget_instance* instance, Widget widget,
 /* update a motif widget */
 
 void
-xm_update_one_widget (widget_instance* instance, Widget widget,
-		      widget_value* val, Boolean deep_p)
+xm_update_one_widget (instance, widget, val, deep_p)
+     widget_instance* instance;
+     Widget widget;
+     widget_value* val;
+     Boolean deep_p;
 {
   WidgetClass class;
   
@@ -588,8 +629,10 @@ xm_update_one_widget (widget_instance* instance, Widget widget,
 
 /* getting the value back */
 void
-xm_update_one_value (widget_instance* instance, Widget widget,
-		     widget_value* val)
+xm_update_one_value (instance, widget, val)
+     widget_instance* instance;
+     Widget widget;
+     widget_value* val;
 {
   WidgetClass class = XtClass (widget);
   widget_value *old_wv;
@@ -695,10 +738,18 @@ activate_button (Widget widget, XtPointer closure, XtPointer call_data)
 
 /* dialogs */
 static Widget
-make_dialog (char* name, Widget parent, Boolean pop_up_p,
-	     char* shell_title, char* icon_name, Boolean text_input_slot,
-	     Boolean radio_box, Boolean list,
-	     int left_buttons, int right_buttons)
+make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot,
+	     radio_box, list, left_buttons, right_buttons)
+     char* name;
+     Widget parent;
+     Boolean pop_up_p;
+     char* shell_title;
+     char* icon_name;
+     Boolean text_input_slot;
+     Boolean radio_box;
+     Boolean list;
+     int left_buttons;
+     int right_buttons;
 {
   Widget result;
   Widget form;
@@ -946,7 +997,8 @@ make_dialog (char* name, Widget parent, Boolean pop_up_p,
 }
 
 static destroyed_instance*
-find_matching_instance (widget_instance* instance)
+find_matching_instance (instance)
+     widget_instance* instance;
 {
   destroyed_instance*	cur;
   destroyed_instance*	prev;
@@ -983,15 +1035,18 @@ find_matching_instance (widget_instance* instance)
 }
 
 static void
-mark_dead_instance_destroyed (Widget widget, XtPointer closure,
-			      XtPointer call_data)
+mark_dead_instance_destroyed (widget, closure, call_data)
+     Widget widget;
+     XtPointer closure;
+     XtPointer call_data;
 {
   destroyed_instance* instance = (destroyed_instance*)closure;
   instance->widget = NULL;
 }
 
 static void
-recenter_widget (Widget widget)
+recenter_widget (widget)
+     Widget widget;
 {
   Widget parent = XtParent (widget);
   Screen* screen = XtScreen (widget);
@@ -1027,7 +1082,8 @@ recenter_widget (Widget widget)
 }
 
 static Widget
-recycle_instance (destroyed_instance* instance)
+recycle_instance (instance)
+     destroyed_instance* instance;
 {
   Widget widget = instance->widget;
 
@@ -1063,7 +1119,8 @@ recycle_instance (destroyed_instance* instance)
 }
 
 Widget
-xm_create_dialog (widget_instance* instance)
+xm_create_dialog (instance)
+     widget_instance* instance;
 {
   char* 	name = instance->info->type;
   Widget 	parent = instance->parent;
@@ -1139,20 +1196,25 @@ xm_create_dialog (widget_instance* instance)
 }
 
 static Widget
-make_menubar (widget_instance* instance)
+make_menubar (instance)
+     widget_instance* instance;
 {
   return XmCreateMenuBar (instance->parent, instance->info->name, NULL, 0);
 }
 
 static void
-remove_grabs (Widget shell, XtPointer closure, XtPointer call_data)
+remove_grabs (shell, closure, call_data)
+     Widget shell;
+     XtPointer closure;
+     XtPointer call_data;
 {
   Widget menu = (Widget) closure;
   XmRemoveFromPostFromList (menu, XtParent (XtParent (menu)));
 }
 
 static Widget
-make_popup_menu (widget_instance* instance)
+make_popup_menu (instance)
+     widget_instance* instance;
 {
   Widget parent = instance->parent;
   Window parent_window = parent->core.window;
@@ -1167,7 +1229,8 @@ make_popup_menu (widget_instance* instance)
   return result;
 }
 static Widget
-make_main (widget_instance* instance)
+make_main (instance)
+     widget_instance* instance;
 {
   Widget parent = instance->parent;
   Widget result;
@@ -1306,7 +1369,8 @@ xm_creation_table [] =
 
 /* Destruction of instances */
 void
-xm_destroy_instance (widget_instance* instance)
+xm_destroy_instance (instance)
+     widget_instance* instance;
 {
   Widget widget = instance->widget;
   /* recycle the dialog boxes */
@@ -1340,7 +1404,8 @@ xm_destroy_instance (widget_instance* instance)
 
 /* popup utility */
 void
-xm_popup_menu (Widget widget)
+xm_popup_menu (widget)
+     Widget widget;
 {
   XButtonPressedEvent dummy;
   XEvent* event;
@@ -1376,7 +1441,8 @@ xm_popup_menu (Widget widget)
 }
 
 static void
-set_min_dialog_size (Widget w)
+set_min_dialog_size (w)
+     Widget w;
 {
   short width;
   short height;
@@ -1385,7 +1451,9 @@ set_min_dialog_size (Widget w)
 }
 
 void
-xm_pop_instance (widget_instance* instance, Boolean up)
+xm_pop_instance (instance, up)
+     widget_instance* instance;
+     Boolean up;
 {
   Widget widget = instance->widget;
 
@@ -1416,7 +1484,10 @@ xm_pop_instance (widget_instance* instance, Boolean up)
 enum do_call_type { pre_activate, selection, no_selection, post_activate };
 
 static void
-do_call (Widget widget, XtPointer closure, enum do_call_type type)
+do_call (widget, closure, type)
+     Widget widget;
+     XtPointer closure;
+     enum do_call_type type;
 {
   Arg al [256];
   int ac;
@@ -1468,8 +1539,10 @@ do_call (Widget widget, XtPointer closure, enum do_call_type type)
    if the widget was ``destroyed'' by caching it in the all_destroyed_instances
    list */
 static void
-xm_internal_update_other_instances (Widget widget, XtPointer closure,
-				    XtPointer call_data)
+xm_internal_update_other_instances (widget, closure, call_data)
+     Widget widget;
+     XtPointer closure;
+     XtPointer call_data;
 {
   Widget parent;
   for (parent = widget; parent; parent = XtParent (parent))
@@ -1481,14 +1554,20 @@ xm_internal_update_other_instances (Widget widget, XtPointer closure,
 }
 
 static void
-xm_generic_callback (Widget widget, XtPointer closure, XtPointer call_data)
+xm_generic_callback (widget, closure, call_data)
+     Widget widget;
+     XtPointer closure;
+     XtPointer call_data;
 {
   lw_internal_update_other_instances (widget, closure, call_data);
   do_call (widget, closure, selection);
 }
 
 static void
-xm_nosel_callback (Widget widget, XtPointer closure, XtPointer call_data)
+xm_nosel_callback (widget, closure, call_data)
+     Widget widget;
+     XtPointer closure;
+     XtPointer call_data;
 {
   /* This callback is only called when a dialog box is dismissed with the wm's
      destroy button (WM_DELETE_WINDOW.)  We want the dialog box to be destroyed
@@ -1503,24 +1582,33 @@ xm_nosel_callback (Widget widget, XtPointer closure, XtPointer call_data)
 }
 
 static void
-xm_pull_down_callback (Widget widget, XtPointer closure, XtPointer call_data)
+xm_pull_down_callback (widget, closure, call_data)
+     Widget widget;
+     XtPointer closure;
+     XtPointer call_data;
 {
   do_call (widget, closure, pre_activate);
 }
 
 static void
-xm_pop_down_callback (Widget widget, XtPointer closure, XtPointer call_data)
+xm_pop_down_callback (widget, closure, call_data)
+     Widget widget;
+     XtPointer closure;
+     XtPointer call_data;
 {
   widget_instance *instance = (widget_instance *) closure;
 
-  if (!instance->pop_up_p || (XtParent (widget) == instance->parent))
+  if ((!instance->pop_up_p && (XtParent (widget) == instance->widget))
+      || (XtParent (widget) == instance->parent))
     do_call (widget, closure, post_activate);
 }
 
 
 /* set the keyboard focus */
 void
-xm_set_keyboard_focus (Widget parent, Widget w)
+xm_set_keyboard_focus (parent, w)
+     Widget parent;
+     Widget w;
 {
   XmProcessTraversal (w, 0);
   XtSetKeyboardFocus (parent, w);
