@@ -1822,7 +1822,7 @@ if test "${USE_X_TOOLKIT}" = "MOTIF"; then
   AC_CACHE_CHECK(for LessTif where some systems put it,
   [AC_TRY_COMPILE([#include </usr/X11R6/LessTif/Motif1.2/include/Xm/Xm.h>],
     [int x = 5;],
-    emacs_cv_lesstif=yes, emacs_cv_lesstif=no)
+    emacs_cv_lesstif=yes, emacs_cv_lesstif=no)])
   if test $emacs_cv_lesstif = yes; then
     CPPFLAGS="-I/usr/X11R6/LessTif/Motif1.2/include $CPPFLAGS"
     LDFLAGS="-L/usr/X11R6/LessTif/Motif1.2/lib $LDFLAGS"
