@@ -194,6 +194,7 @@ Lisp_Object Qleft;
 Lisp_Object Qright;
 Lisp_Object Qmouse_color;
 Lisp_Object Qnone;
+Lisp_Object Qouter_window_id;
 Lisp_Object Qparent_id;
 Lisp_Object Qscroll_bar_width;
 Lisp_Object Qsuppress_icon;
@@ -1059,6 +1060,9 @@ x_report_frame_params (f, alistptr)
        	   make_number (f->output_data.x->internal_border_width));
   sprintf (buf, "%ld", (long) FRAME_X_WINDOW (f));
   store_in_alist (alistptr, Qwindow_id,
+       	   build_string (buf));
+  sprintf (buf, "%ld", (long) FRAME_OUTER_WINDOW (f));
+  store_in_alist (alistptr, Qouter_window_id,
        	   build_string (buf));
   store_in_alist (alistptr, Qicon_name, f->icon_name);
   FRAME_SAMPLE_VISIBILITY (f);
@@ -5290,6 +5294,8 @@ syms_of_xfns ()
   staticpro (&Qvisibility);
   Qwindow_id = intern ("window-id");
   staticpro (&Qwindow_id);
+  Qouter_window_id = intern ("outer-window-id");
+  staticpro (&Qouter_window_id);
   Qx_frame_parameter = intern ("x-frame-parameter");
   staticpro (&Qx_frame_parameter);
   Qx_resource_name = intern ("x-resource-name");
