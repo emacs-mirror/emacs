@@ -256,7 +256,6 @@ Do the right thing if the file has been compressed or zipped."
 		;; Uninstalled, builddir == srcdir
 		(setq alternative source))
 	      (if (or (member alternative Info-default-directory-list)
-		      (not (file-exists-p alternative))
 		      ;; On DOS/NT, we use movable executables always,
 		      ;; and we must always find the Info dir at run time.
 		      (if (memq system-type '(ms-dos windows-nt))
@@ -265,7 +264,8 @@ Do the right thing if the file has been compressed or zipped."
 			;; only if we used it for exec-directory also.
 			(not (string= exec-directory
 				      (expand-file-name "lib-src/"
-							installation-directory)))))
+							installation-directory))))
+		      (not (file-exists-p alternative)))
 		  Info-default-directory-list
 		;; `alternative' contains the Info files that came with this
 		;; version, so we should look there first.  `Info-insert-dir'
