@@ -1184,7 +1184,7 @@ extern int consing_since_gc;
 
 /* Threshold for doing another gc.  */
 
-extern int gc_cons_threshold;
+extern EMACS_INT gc_cons_threshold;
 
 /* Structure for recording stack slots that need marking.  */
 
