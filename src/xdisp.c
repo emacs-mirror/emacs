@@ -212,10 +212,15 @@ message (m, a1, a2, a3)
       fflush (stderr);
     }
   /* A null message buffer means that the screen hasn't really been
-     initialized yet.  Error messages get trapped by the condition-case
-     in command-line, so this must be just an informative message; toss it.  */
+     initialized yet.  Error messages get reported properly by
+     cmd_error, so this must be just an informative message; toss it.  */
   else if (INTERACTIVE && SCREEN_MESSAGE_BUF (selected_screen))
     {
+#ifdef MULTI_SCREEN
+      choose_minibuf_screen ();
+      Fmake_screen_visible (WINDOW_SCREEN (XWINDOW (minibuf_window)));
+#endif
+
 #ifdef NO_ARG_ARRAY
       int a[3];
       a[0] = a1;
@@ -247,9 +252,6 @@ void
 message1 (m)
      char *m;
 {
-  /* A null message buffer means that the screen hasn't really been
-     initialized yet; write the error message on the standard error
-     as if we were non-interactive.  */
   if (noninteractive)
     {
       if (noninteractive_need_newline)
@@ -259,10 +261,15 @@ message1 (m)
       fflush (stderr);
     }
   /* A null message buffer means that the screen hasn't really been
-     initialized yet.  Error messages get trapped by the condition-case
-     in command-line, so this must be just an informative message; toss it.  */
+     initialized yet.  Error messages get reported properly by
+     cmd_error, so this must be just an informative message; toss it.  */
   else if (INTERACTIVE && SCREEN_MESSAGE_BUF (selected_screen))
     {
+#ifdef MULTI_SCREEN
+      choose_minibuf_screen ();
+      Fmake_screen_visible (WINDOW_SCREEN (XWINDOW (minibuf_window)));
+#endif
+
       echo_area_glyphs = m;
       do_pending_window_change ();
       echo_area_display ();
@@ -279,9 +286,9 @@ echo_area_display ()
 
 #ifdef MULTI_SCREEN
   choose_minibuf_screen ();
-  s = XSCREEN (XWINDOW (minibuf_window)->screen);
+  s = XSCREEN (WINDOW_SCREEN (XWINDOW (minibuf_window)));
 
-  if (!s->visible)
+  if (! SCREEN_VISIBLE_P (s))
     return;
 #endif
 
@@ -467,7 +474,7 @@ redisplay ()
       Lisp_Object tail;
 
       /* Recompute # windows showing selected buffer.
-	 This will be increment each time such a window is displayed.  */
+	 This will be incremented each time such a window is displayed.  */
       buffer_shared = 0;
 
       for (tail = Vscreen_list; CONSP (tail); tail = XCONS (tail)->cdr)
@@ -479,24 +486,8 @@ redisplay ()
 
 	  s = XSCREEN (XCONS (tail)->car);
 	  if (s->visible)
-	    {
-
-	      /* Clear the echo area on screens where the minibuffer isn't.  */
-	      if (s != XSCREEN (XWINDOW (minibuf_window)->screen)
-		  /* But only screens that have minibuffers.  */
-		  && s->has_minibuffer)
-		{
-		  int vpos = XFASTINT (XWINDOW (s->minibuffer_window)->top);
-		  register struct screen_glyphs *line;
-
-		  get_display_line (s, vpos, 0);
-		  display_string (XWINDOW (s->minibuffer_window), vpos, "",
-				  0, 0, 0, s->width);
-		}
-
-	      /* Redraw its windows.  */
-	      redisplay_windows (SCREEN_ROOT_WINDOW (s));
-	    }
+	    /* Redraw its windows.  */
+	    redisplay_windows (SCREEN_ROOT_WINDOW (s));
 	}
 #else
     redisplay_windows (SCREEN_ROOT_WINDOW (s));
@@ -534,7 +525,7 @@ update:
 	  s = XSCREEN (XCONS (tail)->car);
 	  if (s->visible)
 	    {
-	      pause |= update_screen (s, 0, 0, SCREEN_SCROLL_BOTTOM_VPOS (s));
+	      pause |= update_screen (s, 0, 0);
 	      if (!pause)
 		mark_window_display_accurate (s->root_window, 1);
 	    }
@@ -546,19 +537,18 @@ update:
       if (SCREEN_VISIBLE_P (selected_screen))
 	pause = update_screen (selected_screen, 0, 0);
 #ifdef MULTI_SCREEN
-
-      /* We called echo_area_display at the top of this function.  If
-	 the echo area is on another screen, that may have put text on
-	 a screen other than the selected one, so the above call to
-	 update_screen would not have caught it.  Catch it here.  */
-      if (echo_area_glyphs || previous_echo_glyphs)
-	{
-	  SCREEN_PTR mini_screen =
-	    XSCREEN (WINDOW_SCREEN (XWINDOW (minibuf_window)));
-
-	  if (mini_screen != selected_screen)
-	    pause |= update_screen (mini_screen, 0, 0);
-	}
+      /* We may have called echo_area_display at the top of this
+	 function.  If the echo area is on another screen, that may
+	 have put text on a screen other than the selected one, so the
+	 above call to update_screen would not have caught it.  Catch
+	 it here.  */
+      {
+	SCREEN_PTR mini_screen =
+	  XSCREEN (WINDOW_SCREEN (XWINDOW (minibuf_window)));
+	
+	if (mini_screen != selected_screen)
+	  pause |= update_screen (mini_screen, 0, 0);
+      }
 #endif
     }
 
@@ -730,19 +720,38 @@ redisplay_window (window, just_this_one)
     }
   if (NULL (w->buffer))
     abort ();
+  
+  height = window_internal_height (w);
+
+  if (MINI_WINDOW_P (w))
+    {
+      if (w == XWINDOW (minibuf_window))
+	{
+	  if (echo_area_glyphs)
+	    /* We've already displayed the echo area glyphs, if any.  */
+	    return;
+	}
+      else
+	{
+	  /* This is a minibuffer, but it's not the currently active one, so
+	     clear it.  */
+	  int vpos = XFASTINT (XWINDOW (SCREEN_MINIBUF_WINDOW (s))->top);
+	  int i;
+
+	  for (i = 0; i < height; i++)
+	    {
+	      get_display_line (s, vpos + i, 0);
+	      display_string (w, vpos + i, "", 0, 0, 0, width);
+	    }
+	  
+	  return;
+	}
+    }
 
   if (update_mode_lines)
     w->update_mode_line = Qt;
 
   /* Otherwise set up data on this window; select its buffer and point value */
-
-  height = window_internal_height (w);
-
-  if (MINI_WINDOW_P (w)
-      && (echo_area_glyphs
-	  /* Don't display minibuffers except minibuf_window.  */
-	  || w != XWINDOW (minibuf_window)))
-    return;
 
   current_buffer = XBUFFER (w->buffer);
   opoint = point;
@@ -772,19 +781,20 @@ redisplay_window (window, just_this_one)
     }
 
   /* If window-start is screwed up, choose a new one.  */
-
   if (XMARKER (w->start)->buffer != current_buffer)
     goto recenter;
 
   startp = marker_position (w->start);
 
-  /* Handle case where place to start displaying has been specified */
-
+  /* Handle case where place to start displaying has been specified,
+     unless the specified location is outside the visible range.  */
   if (!NULL (w->force_start))
     {
       w->update_mode_line = Qt;
       w->force_start = Qnil;
       XFASTINT (w->last_modified) = 0;
+      if (startp < BEGV) startp = BEGV;
+      if (startp > ZV)   startp = ZV;
       try_window (window, startp);
       if (cursor_vpos < 0)
 	{
@@ -879,7 +889,7 @@ redisplay_window (window, just_this_one)
     }
   else if (startp >= BEGV && startp <= ZV
 	   /* Avoid starting display at end of buffer! */
-	   && (startp <= ZV || startp == BEGV
+	   && (startp < ZV || startp == BEGV
 	       || (XFASTINT (w->last_modified) >= MODIFF)))
     {
       /* Try to redisplay starting at same place as before */
@@ -1753,11 +1763,10 @@ display_mode_line (w)
 
 #ifdef HAVE_X_WINDOWS
   /* I'm trying this out because I saw Unimpress use it, but it's
-     possible that this may fuck adversely with some window managers.  jla */
+     possible that this may mess adversely with some window managers.  jla */
 
   if (SCREEN_IS_X (s)
-      && (XTYPE (Vglobal_minibuffer_screen) != Lisp_Screen
-	  || s != XSCREEN (Vglobal_minibuffer_screen))
+      && ! SCREEN_MINIBUF_ONLY_P (s)
       && w == XWINDOW (s->selected_window)
       && (NULL (Fstring_equal (XBUFFER (w->buffer)->name, s->name))))
     x_set_name (s, XBUFFER (w->buffer)->name, Qnil);
