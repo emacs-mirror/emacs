@@ -165,6 +165,7 @@ Lisp_Object Qinsert_behind_hooks;
 /* For debugging; temporary.  See set_buffer_internal.  */
 /* Lisp_Object Qlisp_mode, Vcheck_symbol; */
 
+void
 nsberror (spec)
      Lisp_Object spec;
 {
@@ -1192,6 +1193,7 @@ with SIGHUP.")
    selected buffers are always closer to the front of the list.  This
    means that other_buffer is more likely to choose a relevant buffer.  */
 
+void
 record_buffer (buf)
      Lisp_Object buf;
 {
@@ -1613,6 +1615,7 @@ so the buffer is truly empty after this.")
   return Qnil;
 }
 
+void
 validate_region (b, e)
      register Lisp_Object *b, *e;
 {
@@ -2617,6 +2620,7 @@ fix_overlays_in_range (start, end)
    `overlays_before' of the buffer *BP.  Before the insertion, `point'
    was at PREV, and now is at POS.  */
 
+void
 fix_overlays_before (bp, prev, pos)
      struct buffer *bp;
      int prev, pos;
