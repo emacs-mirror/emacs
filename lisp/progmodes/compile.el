@@ -182,7 +182,7 @@ of[ \t]+\"?\\([^\":\n]+\\)\"?:" 3 2)
 \\([0-9]+\\):\\(\\([0-9]+\\)[: \t]\\)?" 1 2 4)
 
     ;; Cray C compiler error messages
-    ("\n\\(cc\\| cft\\)-[0-9]+ c\\(c\\|f77\\): ERROR \\([^,]+, \\)* File = \\([^,]+\\), Line = \\([0-9]+\\)" 4 5)
+    ("\n\\(cc\\| cft\\)-[0-9]+ c\\(c\\|f77\\): ERROR \\([^,\n]+, \\)* File = \\([^,\n]+\\), Line = \\([0-9]+\\)" 4 5)
 
     ;; IBM C/C++ Tools 2.01:
     ;;  foo.c(2:0) : informational EDC0804: Function foo is not referenced.
