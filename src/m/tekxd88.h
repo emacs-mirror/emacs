@@ -81,9 +81,7 @@ Boston, MA 02111-1307, USA.  */
    code will not be sharable; but that's better than failing completely.  */
 #define NO_REMAP
 
-#ifdef __GNUC__
-#  define alloca __builtin_alloca	/* Use the gcc builtin alloca() ... */
-#else /* not __GNUC__ */
+#ifndef __GNUC__
 #  define C_OPTIMIZE_SWITCH -O
 #endif /* __GNUC__ */
 

@@ -82,7 +82,6 @@ Boston, MA 02111-1307, USA.  */
 /* #define VIRT_ADDR_VARIES */
 
 #ifdef __GNUC__
-#define alloca __builtin_alloca
 #define C_OPTIMIZE_SWITCH -O -fstrength-reduce -fomit-frame-pointer
 #define LIB_STANDARD -lc /lib/crtn.o
 #else

@@ -47,11 +47,4 @@ Boston, MA 02111-1307, USA.  */
 
 #define NO_UNION_TYPE
 
-#ifdef __GNUC__
-
-/* Use builtin alloca. Also be sure that no other ones are tried out. */
-#define alloca __builtin_alloca
-
-#endif  /* __GNUC__ */
-
 #define NO_REMAP
