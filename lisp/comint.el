@@ -2006,7 +2006,8 @@ This function could be in the list `comint-output-filter-functions'."
 Does not delete the prompt."
   (interactive)
   (let ((proc (get-buffer-process (current-buffer)))
-	(replacement nil))
+	(replacement nil)
+	(inhibit-read-only t))
     (save-excursion
       (let ((pmark (progn (goto-char (process-mark proc))
 			  (forward-line 0)

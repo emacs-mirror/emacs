@@ -184,7 +184,7 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 
     ;; fixme: should be `mips'
     (irix
-     "^[-[:alnum:]_/]+: \\(?:[eE]rror\\|[wW]arnin\\(g\\)\\|[iI]nf\\(o\\)\\)[0-9 ]*:\
+     "^[-[:alnum:]_/]+: \\(?:[sS]evere\\|[eE]rror\\|[wW]arnin\\(g\\)\\|[iI]nf\\(o\\)\\)[0-9 ]*:\
  \\([^,\" \n\t]+\\)\\(?:, line\\|:\\) \\([0-9]+\\):" 3 4 nil (1 . 2))
 
     (java
@@ -587,10 +587,9 @@ Faces `compilation-error-face', `compilation-warning-face',
   "Get the meta-info that will be added as text-properties.
 LINE, END-LINE, COL, END-COL are integers or nil.
 TYPE can be 0, 1, or 2.
-FILE should be (FILENAME . DIRNAME) or nil."
+FILE should be (ABSOLUTE-FILENAME) or (RELATIVE-FILENAME . DIRNAME) or nil."
   (unless file (setq file '("*unknown*")))
-  (setq file (or (gethash file compilation-locs)
-		 (puthash file (list file fmt) compilation-locs)))
+  (setq file (compilation-get-file-structure file fmt))
   ;; Get first already existing marker (if any has one, all have one).
   ;; Do this first, as the compilation-assq`s may create new nodes.
   (let* ((marker-line (car (cddr file)))	; a line structure
@@ -599,19 +598,17 @@ FILE should be (FILENAME . DIRNAME) or nil."
 	 end-marker loc end-loc)
     (if (not (and marker (marker-buffer marker)))
 	(setq marker)			; no valid marker for this file
-      (setq loc (or line 1)		; normalize no linenumber to line 1
-	    marker-line)
-      (catch 'marker		     ; find nearest loc, at least one exists
-	(dolist (x (cddr file))		; loop over lines
-	  (if (> (or (car x) 1) loc)	; still bigger
+      (setq loc (or line 1))		; normalize no linenumber to line 1
+      (catch 'marker			; find nearest loc, at least one exists
+	(dolist (x (nthcdr 3 file))	; loop over remaining lines
+	  (if (> (car x) loc)		; still bigger
 	      (setq marker-line x)
-	    (if (or (not marker-line)	; first in list
-		    (> (- (or (car marker-line) 1) loc)
-		       (- loc (or (car x) 1))))	; current line is nearer
+	    (if (> (- (or (car marker-line) 1) loc)
+		   (- loc (car x)))	; current line is nearer
 		(setq marker-line x))
 	    (throw 'marker t))))
       (setq marker (nth 3 (cadr marker-line))
-	    marker-line (car marker-line))
+	    marker-line (or (car marker-line) 1))
       (with-current-buffer (marker-buffer marker)
 	(save-restriction
 	  (widen)
@@ -1451,6 +1448,7 @@ Use this command in a compilation log buffer.  Sets the mark at point there."
 
 (defun compilation-fake-loc (marker file &optional line col)
   "Preassociate MARKER with FILE.
+FILE should be ABSOLUTE-FILENAME or (RELATIVE-FILENAME . DIRNAME).
 This is useful when you compile temporary files, but want
 automatic translation of the messages to the real buffer from
 which the temporary file came.  This only works if done before a
@@ -1466,13 +1464,12 @@ header with variable assignments and a code region), you must
 call this several times, once each for the last line of one
 region and the first line of the next region."
   (or (consp file) (setq file (list file)))
-  (setq	file (or (gethash file compilation-locs)
-		 (puthash file (list file nil) compilation-locs)))
+  (setq file (compilation-get-file-structure file))
   (let ((loc (compilation-assq (or line 1) (cdr file))))
     (setq loc (compilation-assq col loc))
     (if (cdr loc)
 	(setcdr (cddr loc) (list marker))
-      (setcdr loc (list (or line 1) file marker)))
+      (setcdr loc (list line file marker)))
     loc))
 
 (defcustom compilation-context-lines next-screen-context-lines
@@ -1598,67 +1595,58 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
 	      (overlays-in (point-min) (point-max)))
       buffer)))
 
-(defun compilation-normalize-filename (filename)
-  "Convert FILENAME string found in an error message to make it usable."
+(defun compilation-get-file-structure (file &optional fmt)
+  "Retrieve FILE's file-structure or create a new one.
+FILE should be (ABSOLUTE-FILENAME) or (RELATIVE-FILENAME . DIRNAME)."
 
-  ;; Check for a comint-file-name-prefix and prepend it if
-  ;; appropriate.  (This is very useful for
-  ;; compilation-minor-mode in an rlogin-mode buffer.)
-  (and (boundp 'comint-file-name-prefix)
-       ;; If file name is relative, default-directory will
-       ;; already contain the comint-file-name-prefix (done
-       ;; by compile-abbreviate-directory).
-       (file-name-absolute-p filename)
-       (setq filename
-	     (concat (with-no-warnings 'comint-file-name-prefix) filename)))
+  (or (gethash file compilation-locs)
+      ;; File was not previously encountered, at least not in the form passed.
+      ;; Let's normalize it and look again.
+      (let ((filename (car file))
+	    (default-directory (if (cdr file)
+				   (file-truename (cdr file))
+				 default-directory)))
 
-  ;; If compilation-parse-errors-filename-function is
-  ;; defined, use it to process the filename.
-  (when compilation-parse-errors-filename-function
-    (setq filename
-	  (funcall compilation-parse-errors-filename-function
-		   filename)))
+	;; Check for a comint-file-name-prefix and prepend it if appropriate.
+	;; (This is very useful for compilation-minor-mode in an rlogin-mode
+	;; buffer.)
+	(if (boundp 'comint-file-name-prefix)
+	    (if (file-name-absolute-p filename)
+		(setq filename
+		      (concat (with-no-warnings comint-file-name-prefix) filename))
+	      (setq default-directory
+		    (file-truename
+		     (concat (with-no-warnings comint-file-name-prefix) default-directory)))))
 
-  ;; Some compilers (e.g. Sun's java compiler, reportedly)
-  ;; produce bogus file names like "./bar//foo.c" for file
-  ;; "bar/foo.c"; expand-file-name will collapse these into
-  ;; "/foo.c" and fail to find the appropriate file.  So we
-  ;; look for doubled slashes in the file name and fix them
-  ;; up in the buffer.
-  (setq filename (command-line-normalize-file-name filename)))
+	;; If compilation-parse-errors-filename-function is
+	;; defined, use it to process the filename.
+	(when compilation-parse-errors-filename-function
+	  (setq filename
+		(funcall compilation-parse-errors-filename-function
+			 filename)))
 
+	;; Some compilers (e.g. Sun's java compiler, reportedly) produce bogus
+	;; file names like "./bar//foo.c" for file "bar/foo.c";
+	;; expand-file-name will collapse these into "/foo.c" and fail to find
+	;; the appropriate file.  So we look for doubled slashes in the file
+	;; name and fix them.
+	(setq filename (command-line-normalize-file-name filename))
 
-;; If directory DIR is a subdir of ORIG or of ORIG's parent,
-;; return a relative name for it starting from ORIG or its parent.
-;; ORIG-EXPANDED is an expanded version of ORIG.
-;; PARENT-EXPANDED is an expanded version of ORIG's parent.
-;; Those two args could be computed here, but we run faster by
-;; having the caller compute them just once.
-(defun compile-abbreviate-directory (dir orig orig-expanded parent-expanded)
-  ;; Apply canonical abbreviations to DIR first thing.
-  ;; Those abbreviations are already done in the other arguments passed.
-  (setq dir (abbreviate-file-name dir))
+	;; Now eliminate any "..", because find-file would get them wrong.
+	;; Make relative and absolute filenames, with or without links, the
+	;; same.
+	(setq filename
+	      (list (abbreviate-file-name
+		     (file-truename (if (cdr file)
+					(expand-file-name filename)
+				      filename)))))
 
-  ;; Check for a comint-file-name-prefix and prepend it if appropriate.
-  ;; (This is very useful for compilation-minor-mode in an rlogin-mode
-  ;; buffer.)
-  (if (boundp 'comint-file-name-prefix)
-      (setq dir (concat comint-file-name-prefix dir)))
-
-  (if (and (> (length dir) (length orig-expanded))
-	   (string= orig-expanded
-		    (substring dir 0 (length orig-expanded))))
-      (setq dir
-	    (concat orig
-		    (substring dir (length orig-expanded)))))
-  (if (and (> (length dir) (length parent-expanded))
-	   (string= parent-expanded
-		    (substring dir 0 (length parent-expanded))))
-    (setq dir
-	  (concat (file-name-directory
-		   (directory-file-name orig))
-		  (substring dir (length parent-expanded)))))
-  dir)
+	;; Store it for the possibly unnormalized name
+	(puthash file
+		 ;; Retrieve or create file-structure for normalized name
+		 (or (gethash filename compilation-locs)
+		     (puthash filename (list filename fmt) compilation-locs))
+		 compilation-locs))))
 
 (add-to-list 'debug-ignored-errors "^No more [-a-z ]+s yet$")
 

@@ -1548,6 +1548,8 @@ When a folder is visited, the hook `mh-folder-mode-hook' is run.
 
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(mh-folder-font-lock-keywords t))
+  (make-local-variable 'desktop-save-buffer)
+  (setq desktop-save-buffer t)
   (mh-make-local-vars
    'mh-current-folder (buffer-name)     ; Name of folder, a string
    'mh-show-buffer (format "show-%s" (buffer-name)) ; Buffer that displays msgs

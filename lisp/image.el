@@ -241,7 +241,7 @@ height of the image; integer values are taken as pixel values."
 	  (setq x (+ x dx))))
       (setq x 0.0
 	    y (+ y dy))
-      (insert "\n"))))
+      (insert (propertize "\n" 'line-height 0)))))
 
 
 

@@ -1946,8 +1946,8 @@ or a byte-code object.  IDX starts at 0.  */)
       if (idxval < 0 || idxval >= XBOOL_VECTOR (array)->size)
 	args_out_of_range (array, idx);
 
-      val = (unsigned char) XBOOL_VECTOR (array)->data[idxval / BITS_PER_CHAR];
-      return (val & (1 << (idxval % BITS_PER_CHAR)) ? Qt : Qnil);
+      val = (unsigned char) XBOOL_VECTOR (array)->data[idxval / BOOL_VECTOR_BITS_PER_CHAR];
+      return (val & (1 << (idxval % BOOL_VECTOR_BITS_PER_CHAR)) ? Qt : Qnil);
     }
   else if (CHAR_TABLE_P (array))
     {
@@ -2074,13 +2074,13 @@ bool-vector.  IDX starts at 0.  */)
       if (idxval < 0 || idxval >= XBOOL_VECTOR (array)->size)
 	args_out_of_range (array, idx);
 
-      val = (unsigned char) XBOOL_VECTOR (array)->data[idxval / BITS_PER_CHAR];
+      val = (unsigned char) XBOOL_VECTOR (array)->data[idxval / BOOL_VECTOR_BITS_PER_CHAR];
 
       if (! NILP (newelt))
-	val |= 1 << (idxval % BITS_PER_CHAR);
+	val |= 1 << (idxval % BOOL_VECTOR_BITS_PER_CHAR);
       else
-	val &= ~(1 << (idxval % BITS_PER_CHAR));
-      XBOOL_VECTOR (array)->data[idxval / BITS_PER_CHAR] = val;
+	val &= ~(1 << (idxval % BOOL_VECTOR_BITS_PER_CHAR));
+      XBOOL_VECTOR (array)->data[idxval / BOOL_VECTOR_BITS_PER_CHAR] = val;
     }
   else if (CHAR_TABLE_P (array))
     {

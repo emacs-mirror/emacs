@@ -1,3 +1,160 @@
+2004-04-27  Juri Linkov  <juri@jurta.org>
+
+	* help.el (view-emacs-news): With argument, display info for the
+	selected version by finding it among different NEWS files, and
+	narrowing the buffer to the selected version.
+
+	* info.el: Add *info*<[0-9]+> to same-window-regexps instead of
+	same-window-buffer-names.
+	(info): New arg `buffer'.  Use it.  Doc fix.  Read file name for
+	non-numeric prefix argument, append the number to the buffer name
+	for numeric prefix argument.
+	(info-other-window): Bind same-window-regexps to nil.
+	(Info-reference-name): Rename to Info-point-loc.
+	(Info-find-node-2): Call forward-line for numeric Info-point-loc,
+	and Info-find-index-name for stringy Info-point-loc.
+	(Info-extract-menu-node-name): New arg `index-node'.  Use regexp
+	without middle `.', but with final `.' and optional line number
+	for it.  Set Info-point-loc for index nodes.
+	(Info-index): Remove middle `.' from index entry regexp.
+	Modify line number regexp.
+	(Info-index-next): Decrement line number.
+	(info-apropos): Remove middle `.' from index entry regexp.
+	Add optional line number regexp at the end.  Add matched value
+	for line number to the result list and insert it to the buffer.
+	Replace match-string by match-string-no-properties.
+	Reorder result list.
+	(Info-fontify-node): Hide index line numbers.
+	(Info-goto-node): Replace "\\s *\\'" by "\\s +\\'" to not trim
+	empty matches.
+	(Info-follow-reference): Use `str' instead of
+	Info-following-node-name-re.
+	(Info-toc): Use full file names.  Set Info-current-node to "Top".
+	(Info-fontify-node): Compare file names without directory name.
+	(Info-try-follow-nearest-node): Don't set Info-reference-name.
+	Set second arg of Info-extract-menu-node-name for index nodes.
+	(info-xref-visited): Use magenta3 instead of magenta4.
+	(Info-mode): Add info-apropos to docstring.
+
+	* log-view.el (log-view-diff): Replace interactive code "r"
+	by a list to allow to call it even if region is not active.
+
+	* paren.el (show-paren-highlight-openparen): New var.
+	(show-paren-function): Turn on openparen highlighting when
+	matching forward if show-paren-highlight-openparen is non-nil.
+
+	* simple.el (kill-ring-save): Use blink-matching-delay instead of
+	the constant value 1.
+	(completions-common-part): Expand docstring.
+
+	* textmodes/picture.el (picture-mode-map): Add arrow keys.
+
+2004-04-27  Kim F. Storm  <storm@cua.dk>
+
+	* image.el (insert-sliced-image): Use line-height instead of
+	line-spacing property on newline.
+
+2004-04-26  Lars Hansen  <larsh@math.ku.dk>
+
+	* desktop.el (desktop-buffer-misc-data-function): Rename to
+	desktop-save-buffer and change docstring.
+	(desktop-buffer-modes-to-save): Delete.
+	(desktop-save-buffer-p): Use desktop-save-buffer instead of
+	desktop-buffer-modes-to-save.
+	(desktop-save): Rename desktop-buffer-misc-data-function to
+	desktop-save-buffer and allow non-function value.
+	(desktop-missing-file-warning): Correct docstring.
+
+	* dired.el (dired-mode): Rename desktop-buffer-misc-data-function
+	to desktop-save-buffer.
+
+	* info.el (Info-mode): Rename desktop-buffer-misc-data-function	to
+	desktop-save-buffer.
+
+	* mail/rmail.el (rmail-variables): Bind desktop-save-buffer to t.
+
+	* mh-e/mh-e.el (mh-folder-mode): Bind desktop-save-buffer to t.
+
+2004-04-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/gud.el (gud-pdb-command-name): Change default to
+	"pydb".
+
+
+2004-04-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* ielm.el (ielm-prompt-read-only, ielm-prompt): Expand docstring.
+	(ielm): Only go to the end of the buffer when starting a new process.
+
+2004-04-25  Juanma Barranquero  <lektu@terra.es>
+
+	* ielm.el (inferior-emacs-lisp-mode): Display working buffer on the
+	mode line.  Bind `inhibit-read-only' to t before modifying
+	properties of text in the buffer.
+	(ielm): Force point to the end of buffer, even when running ielm
+	from inside itself.
+
+2004-04-25  Jesper Harder  <harder@ifa.au.dk>
+
+	* info.el (info-apropos): Reset Info-complete-cache.
+
+2004-04-25  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Also recognize severe Irix et al. messages.
+	(compilation-normalize-filename, compile-abbreviate-directory):
+	Delete functions.
+	(compilation-get-file-structure): New function inherits
+	functionality of the two preceding ones.
+	(compilation-internal-error-properties, compilation-fake-loc): Use
+	it so that different paths to the same file share the same
+	markers.  Also optimize finding adjacent marker slightly.
+
+2004-04-25  Kim F. Storm  <storm@cua.dk>
+
+	* image.el (insert-sliced-image): Add line-spacing t property
+	to newlines separating image lines.
+
+2004-04-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* comint.el (comint-delete-output): Bind inhibit-read-only to t.
+
+	* ielm.el (ielm-prompt-read-only): New user option.
+	(ielm-prompt): Expand docstring to describe new behavior.
+	(inferior-emacs-lisp-mode): Implement ielm-prompt-read-only and
+	mention it in the docstring.
+
+2004-04-24  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/sh-script.el (sh-leading-keywords) <sh>: Add "!".
+
+	* diff.el (diff): Set default-directory in diff buffer.
+
+2004-04-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/sendmail.el (mail-bury): Don't delete the frame where the
+	mail was being composed if the terminal cannot display more than
+	one frame; instead, switch to previous frame.
+
+	* mail/rmail.el (rmail-mail-new-frame): Doc fix.
+	(rmail-start-mail): Support rmail-mail-new-frame even on
+	terminals that can display only one frame at a time.
+
+2004-04-23  Juanma Barranquero  <lektu@terra.es>
+
+	* ielm.el (inferior-emacs-lisp-mode): Fix docstring.
+
+	* pcomplete.el (pcomplete-opt, pcomplete-actual-arg)
+	(pcomplete-match-string, pcomplete-comint-setup, pcomplete-here)
+	(pcomplete--help, pcomplete--here): Doc fixes.
+
+2004-04-23  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-hooks.el (vc-default-workfile-unchanged-p): Fix code that
+	handles wrong-number-of-arguments in backend call.
+
+	* vc.el (vc-print-log): Likewise.
+
 2004-04-23  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-util.el (char-displayable-p): Simplified by
@@ -121,9 +278,11 @@
 	Add parameters.  Pause to display error only when
 	desktop-missing-file-warning is non-nil.
 	(dired-desktop-buffer-misc-data): Move from desktop.el.  Add parameter.
+	(dired-mode): Bind desktop-buffer-misc-data-function.
 	* info.el (Info-restore-desktop-buffer): Move from desktop.el.
 	Add Parameters.
 	(Info-desktop-buffer-misc-data): Move from desktop.el.  Add parameter.
+	(Info-mode): Bind desktop-buffer-misc-data-function.
 	* mail/rmail.el (rmail-restore-desktop-buffer): Move from desktop.el.
 	Add Parameters.
 	* mh-e/mh-e.el (mh-restore-desktop-buffer): Move from desktop.el.

@@ -1160,6 +1160,8 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 		  :help "Edit file at cursor"))
     (define-key map [menu-bar immediate create-directory]
       '(menu-item "Create Directory..." dired-create-directory))
+    (define-key map [menu-bar immediate wdired-mode]
+      '(menu-item "Edit File Names" wdired-change-to-wdired-mode))
 
     (define-key map [menu-bar regexp]
       (cons "Regexp" (make-sparse-keymap "Regexp")))
@@ -1402,7 +1404,7 @@ Keybindings:
        (or switches dired-listing-switches))
   (set (make-local-variable 'font-lock-defaults)
        '(dired-font-lock-keywords t nil nil beginning-of-line))
-  (set (make-local-variable 'desktop-buffer-misc-data-function)
+  (set (make-local-variable 'desktop-save-buffer)
        'dired-desktop-buffer-misc-data)
   (dired-sort-other dired-actual-switches t)
   (run-mode-hooks 'dired-mode-hook)

@@ -1,6 +1,6 @@
 ;;; pcomplete.el --- programmable completion
 
-;; Copyright (C) 1999, 2000, 2001, 2002 Free Sofware Foundation
+;; Copyright (C) 1999, 2000,01,02,03,04 Free Sofware Foundation
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: processes abbrev
@@ -505,7 +505,7 @@ See the documentation for `pcomplete-arg'."
 
 (defsubst pcomplete-actual-arg (&optional index offset)
   "Return the actual text representation of the last argument.
-This different from `pcomplete-arg', which returns the textual value
+This is different from `pcomplete-arg', which returns the textual value
 that the last argument evaluated to.  This function returns what the
 user actually typed in."
   (buffer-substring (pcomplete-begin index offset) (point)))
@@ -531,7 +531,7 @@ user actually typed in."
       (throw 'pcompleted nil))))
 
 (defun pcomplete-match-string (which &optional index offset)
-  "Like `string-match', but on the current completion argument."
+  "Like `match-string', but on the current completion argument."
   (let ((arg (pcomplete-arg (or index 1) offset)))
     (if arg
 	(match-string which arg)
@@ -583,8 +583,8 @@ user actually typed in."
 (defun pcomplete-comint-setup (completef-sym)
   "Setup a comint buffer to use pcomplete.
 COMPLETEF-SYM should be the symbol where the
-dynamic-complete-functions are kept.  For comint mode itself, this is
-`comint-dynamic-complete-functions'."
+dynamic-complete-functions are kept.  For comint mode itself,
+this is `comint-dynamic-complete-functions'."
   (set (make-local-variable 'pcomplete-parse-arguments-function)
        'pcomplete-parse-comint-arguments)
   (make-local-variable completef-sym)
@@ -709,7 +709,7 @@ match (files not matching the REGEXP will be excluded).
 If PREDICATE is non-nil, it will also be used to refine the match
 \(files for which the PREDICATE returns nil will be excluded).
 If no directory information can be extracted from the completed
-component, DEFAULT-DIRECTORY is used as the basis for completion."
+component, `default-directory' is used as the basis for completion."
   (let* ((name (substitute-env-vars pcomplete-stub))
 	 (default-directory (expand-file-name
 			     (or (file-name-directory name)
@@ -809,11 +809,10 @@ component, DEFAULT-DIRECTORY is used as the basis for completion."
 (defun pcomplete-opt (options &optional prefix no-ganging args-follow)
   "Complete a set of OPTIONS, each beginning with PREFIX (?- by default).
 PREFIX may be t, in which case no PREFIX character is necessary.
-If REQUIRED is non-nil, the options must be present.
-If NO-GANGING is non-nil, each option is separate.  -xy is not allowed.
-If ARGS-FOLLOW is non-nil, then options which arguments which take may
-have the argument appear after a ganged set of options.  This is how
-tar behaves, for example."
+If NO-GANGING is non-nil, each option is separate (-xy is not allowed).
+If ARGS-FOLLOW is non-nil, then options which take arguments may have
+the argument appear after a ganged set of options.  This is how tar
+behaves, for example."
   (if (and (= pcomplete-index pcomplete-last)
 	   (string= (pcomplete-arg) "-"))
       (let ((len (length options))
@@ -864,7 +863,7 @@ tar behaves, for example."
 	    (setq index (1+ index))))))))
 
 (defun pcomplete--here (&optional form stub paring form-only)
-  "Complete aganst the current argument, if at the end.
+  "Complete against the current argument, if at the end.
 See the documentation for `pcomplete-here'."
   (if (< pcomplete-index pcomplete-last)
       (progn
@@ -893,7 +892,7 @@ See the documentation for `pcomplete-here'."
     (throw 'pcomplete-completions (eval form))))
 
 (defmacro pcomplete-here (&optional form stub paring form-only)
-  "Complete aganst the current argument, if at the end.
+  "Complete against the current argument, if at the end.
 If completion is to be done here, evaluate FORM to generate the list
 of strings which will be used for completion purposes.  If STUB is a
 string, use it as the completion stub instead of the default (which is
@@ -913,10 +912,11 @@ always for the sake of efficiency.
 
 If PARING is nil, this argument will be pared against previous
 arguments using the function `file-truename' to normalize them.
-PARING may be a function, in which case that function is for
-normalization.  If PARING is the value t, the argument dealt with by
-this call will not participate in argument paring.  If it the integer
-0, all previous arguments that have been seen will be cleared.
+PARING may be a function, in which case that function is used for
+normalization.  If PARING is t, the argument dealt with by this
+call will not participate in argument paring.  If it is the
+integer 0, all previous arguments that have been seen will be
+cleared.
 
 If FORM-ONLY is non-nil, only the result of FORM will be used to
 generate the completions list.  This means that the hook
@@ -1129,10 +1129,7 @@ See also `pcomplete-filename'."
 
 (defun pcomplete--help ()
   "Produce context-sensitive help for the current argument.
-If specific documentation can't be given, be generic.
-INFODOC specifies the Info node to goto.  DOCUMENTATION is a sexp
-which will produce documentation for the argument (it is responsible
-for displaying in its own buffer)."
+If specific documentation can't be given, be generic."
   (if (and pcomplete-help
 	   (or (and (stringp pcomplete-help)
 		    (fboundp 'Info-goto-node))

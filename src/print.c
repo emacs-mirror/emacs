@@ -1,5 +1,5 @@
 /* Lisp object printing and output streams.
-   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999, 2000, 01, 2003
+   Copyright (C) 1985, 86, 88, 93, 94, 95, 97, 98, 1999, 2000, 01, 03, 2004
 	Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -1783,7 +1783,8 @@ print_object (obj, printcharfun, escapeflag)
 	  register unsigned char c;
 	  struct gcpro gcpro1;
 	  int size_in_chars
-	    = (XBOOL_VECTOR (obj)->size + BITS_PER_CHAR - 1) / BITS_PER_CHAR;
+	    = ((XBOOL_VECTOR (obj)->size + BOOL_VECTOR_BITS_PER_CHAR - 1)
+	       / BOOL_VECTOR_BITS_PER_CHAR);
 
 	  GCPRO1 (obj);
 
@@ -1813,6 +1814,14 @@ print_object (obj, printcharfun, escapeflag)
 		{
 		  PRINTCHAR ('\\');
 		  PRINTCHAR ('f');
+		}
+	      else if (c > '\177')
+		{
+		  /* Use octal escapes to avoid encoding issues.  */
+		  PRINTCHAR ('\\');
+		  PRINTCHAR ('0' + ((c >> 6) & 3));
+		  PRINTCHAR ('0' + ((c >> 3) & 7));
+		  PRINTCHAR ('0' + (c & 7));
 		}
 	      else
 		{

@@ -60,6 +60,10 @@ Boston, MA 02111-1307, USA.  */
 #define READ_BINARY "r"
 #endif /* not DOS_NT */
 
+#ifndef IS_DIRECTORY_SEP
+#define IS_DIRECTORY_SEP(_c_) ((_c_) == '/')
+#endif
+
 int scan_file ();
 int scan_lisp_file ();
 int scan_c_file ();
@@ -183,11 +187,13 @@ void
 put_filename (filename)
      char *filename;
 {
-  char *tmp = filename;
-  int len;
-  
-  while ((tmp = index (filename, '/')))
-    filename = tmp + 1;
+  char *tmp;
+
+  for (tmp = filename; *tmp; tmp++)
+    {
+      if (IS_DIRECTORY_SEP(*tmp))
+	filename = tmp + 1;
+    }
 
   putc (037, outfile);
   putc ('S', outfile);
