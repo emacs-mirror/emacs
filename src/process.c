@@ -112,7 +112,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "window.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "coding.h"
 #include "process.h"
 #include "termhooks.h"
@@ -600,6 +600,7 @@ setup_process_coding_systems (process)
   struct Lisp_Process *p = XPROCESS (process);
   int inch = XINT (p->infd);
   int outch = XINT (p->outfd);
+  Lisp_Object coding_system;
 
   if (inch < 0 || outch < 0)
     return;
@@ -607,18 +608,18 @@ setup_process_coding_systems (process)
   if (!proc_decode_coding_system[inch])
     proc_decode_coding_system[inch]
       = (struct coding_system *) xmalloc (sizeof (struct coding_system));
-  setup_coding_system (p->decode_coding_system,
-		       proc_decode_coding_system[inch]);
+  coding_system = p->decode_coding_system;
   if (! NILP (p->filter))
     {
       if (NILP (p->filter_multibyte))
-	setup_raw_text_coding_system (proc_decode_coding_system[inch]);
+	coding_system = raw_text_coding_system (coding_system);
     }
   else if (BUFFERP (p->buffer))
     {
       if (NILP (XBUFFER (p->buffer)->enable_multibyte_characters))
-	setup_raw_text_coding_system (proc_decode_coding_system[inch]);
+	coding_system = raw_text_coding_system (coding_system);
     }
+  setup_coding_system (coding_system, proc_decode_coding_system[inch]);
 
   if (!proc_encode_coding_system[outch])
     proc_encode_coding_system[outch]
@@ -4400,7 +4401,7 @@ read_process_output (proc, channel)
      Lisp_Object proc;
      register int channel;
 {
-  register int nchars, nbytes;
+  register int nbytes;
   char *chars;
   register Lisp_Object outstream;
   register struct buffer *old = current_buffer;
@@ -4534,13 +4535,13 @@ read_process_output (proc, channel)
 	 save the match data in a special nonrecursive fashion.  */
       running_asynch_code = 1;
 
-      text = decode_coding_string (make_unibyte_string (chars, nbytes),
-				   coding, 0);
-      Vlast_coding_system_used = coding->symbol;
+      decode_coding_c_string (coding, chars, nbytes, Qt);
+      text = coding->dst_object;
+      Vlast_coding_system_used = CODING_ID_NAME (coding->id);
       /* A new coding system might be found.  */
-      if (!EQ (p->decode_coding_system, coding->symbol))
+      if (!EQ (p->decode_coding_system, Vlast_coding_system_used))
 	{
-	  p->decode_coding_system = coding->symbol;
+	  p->decode_coding_system = Vlast_coding_system_used;
 
 	  /* Don't call setup_coding_system for
 	     proc_decode_coding_system[channel] here.  It is done in
@@ -4556,16 +4557,18 @@ read_process_output (proc, channel)
 	  if (NILP (p->encode_coding_system)
 	      && proc_encode_coding_system[XINT (p->outfd)])
 	    {
-	      p->encode_coding_system = coding->symbol;
-	      setup_coding_system (coding->symbol,
+	      p->encode_coding_system = Vlast_coding_system_used;
+	      setup_coding_system (p->encode_coding_system,
 				   proc_encode_coding_system[XINT (p->outfd)]);
 	    }
 	}
 
-      carryover = nbytes - coding->consumed;
-      bcopy (chars + coding->consumed, SDATA (p->decoding_buf),
-	     carryover);
-      XSETINT (p->decoding_carryover, carryover);
+      if (coding->carryover_bytes > 0)
+	{
+	  bcopy (coding->carryover, SDATA (p->decoding_buf),
+		 coding->carryover_bytes);
+	  XSETINT (p->decoding_carryover, coding->carryover_bytes);
+	}
       /* Adjust the multibyteness of TEXT to that of the filter.  */
       if (NILP (p->filter_multibyte) != ! STRING_MULTIBYTE (text))
 	text = (STRING_MULTIBYTE (text)
@@ -4650,26 +4653,28 @@ read_process_output (proc, channel)
       if (! (BEGV <= PT && PT <= ZV))
 	Fwiden ();
 
-      text = decode_coding_string (make_unibyte_string (chars, nbytes),
-				   coding, 0);
-      Vlast_coding_system_used = coding->symbol;
+      decode_coding_c_string (coding, chars, nbytes, Qt);
+      text = coding->dst_object;
+      Vlast_coding_system_used = CODING_ID_NAME (coding->id);
       /* A new coding system might be found.  See the comment in the
 	 similar code in the previous `if' block.  */
-      if (!EQ (p->decode_coding_system, coding->symbol))
+      if (!EQ (p->decode_coding_system, Vlast_coding_system_used))
 	{
-	  p->decode_coding_system = coding->symbol;
+	  p->decode_coding_system = Vlast_coding_system_used;
 	  if (NILP (p->encode_coding_system)
 	      && proc_encode_coding_system[XINT (p->outfd)])
 	    {
-	      p->encode_coding_system = coding->symbol;
-	      setup_coding_system (coding->symbol,
+	      p->encode_coding_system = Vlast_coding_system_used;
+	      setup_coding_system (p->encode_coding_system,
 				   proc_encode_coding_system[XINT (p->outfd)]);
 	    }
 	}
-      carryover = nbytes - coding->consumed;
-      bcopy (chars + coding->consumed, SDATA (p->decoding_buf),
-	     carryover);
-      XSETINT (p->decoding_carryover, carryover);
+      if (coding->carryover_bytes > 0)
+	{
+	  bcopy (coding->carryover, SDATA (p->decoding_buf),
+		 coding->carryover_bytes);
+	  XSETINT (p->decoding_carryover, coding->carryover_bytes);
+	}
       /* Adjust the multibyteness of TEXT to that of the buffer.  */
       if (NILP (current_buffer->enable_multibyte_characters)
 	  != ! STRING_MULTIBYTE (text))
@@ -4790,86 +4795,77 @@ send_process (proc, buf, len, object)
 	   SDATA (XPROCESS (proc)->name));
 
   coding = proc_encode_coding_system[XINT (XPROCESS (proc)->outfd)];
-  Vlast_coding_system_used = coding->symbol;
+  Vlast_coding_system_used = CODING_ID_NAME (coding->id);
 
   if ((STRINGP (object) && STRING_MULTIBYTE (object))
       || (BUFFERP (object)
 	  && !NILP (XBUFFER (object)->enable_multibyte_characters))
       || EQ (object, Qt))
     {
-      if (!EQ (coding->symbol, XPROCESS (proc)->encode_coding_system))
+      if (!EQ (Vlast_coding_system_used,
+	       XPROCESS (proc)->encode_coding_system))
 	/* The coding system for encoding was changed to raw-text
 	   because we sent a unibyte text previously.  Now we are
 	   sending a multibyte text, thus we must encode it by the
 	   original coding system specified for the current
 	   process.  */
 	setup_coding_system (XPROCESS (proc)->encode_coding_system, coding);
-      /* src_multibyte should be set to 1 _after_ a call to
-	 setup_coding_system, since it resets src_multibyte to
-	 zero.  */
-      coding->src_multibyte = 1;
     }
   else
     {
       /* For sending a unibyte text, character code conversion should
 	 not take place but EOL conversion should.  So, setup raw-text
 	 or one of the subsidiary if we have not yet done it.  */
-      if (coding->type != coding_type_raw_text)
+      if (CODING_REQUIRE_ENCODING (coding))
 	{
 	  if (CODING_REQUIRE_FLUSHING (coding))
 	    {
 	      /* But, before changing the coding, we must flush out data.  */
 	      coding->mode |= CODING_MODE_LAST_BLOCK;
 	      send_process (proc, "", 0, Qt);
+	      coding->mode &= CODING_MODE_LAST_BLOCK;
 	    }
 	  coding->src_multibyte = 0;
-	  setup_raw_text_coding_system (coding);
+	  setup_coding_system (raw_text_coding_system
+			       (Vlast_coding_system_used),
+			       coding);
 	}
     }
   coding->dst_multibyte = 0;
 
   if (CODING_REQUIRE_ENCODING (coding))
     {
-      int require = encoding_buffer_size (coding, len);
-      int from_byte = -1, from = -1, to = -1;
-      unsigned char *temp_buf = NULL;
-
+      coding->dst_object = Qt;
       if (BUFFERP (object))
 	{
-	  from_byte = BUF_PTR_BYTE_POS (XBUFFER (object), buf);
-	  from = buf_bytepos_to_charpos (XBUFFER (object), from_byte);
-	  to = buf_bytepos_to_charpos (XBUFFER (object), from_byte + len);
+	  int from_byte, from, to;
+	  int save_pt, save_pt_byte;
+	  struct buffer *cur = current_buffer;
+
+	  set_buffer_internal (XBUFFER (object));
+	  save_pt = PT, save_pt_byte = PT_BYTE;
+
+	  from_byte = PTR_BYTE_POS (buf);
+	  from = BYTE_TO_CHAR (from_byte);
+	  to = BYTE_TO_CHAR (from_byte + len);
+	  TEMP_SET_PT_BOTH (from, from_byte);
+	  encode_coding_object (coding, object, from, from_byte,
+				to, from_byte + len, Qt);
+	  TEMP_SET_PT_BOTH (save_pt, save_pt_byte);
+	  set_buffer_internal (cur);
 	}
       else if (STRINGP (object))
 	{
-	  from_byte = buf - SDATA (object);
-	  from = string_byte_to_char (object, from_byte);
-	  to =  string_byte_to_char (object, from_byte + len);
+	  encode_coding_string (coding, object, 1);
 	}
-
-      if (coding->composing != COMPOSITION_DISABLED)
+      else
 	{
-	  if (from_byte >= 0)
-	    coding_save_composition (coding, from, to, object);
-	  else
-	    coding->composing = COMPOSITION_DISABLED;
+	  coding->dst_object = make_unibyte_string (buf, len);
+	  coding->produced = len;
 	}
 
-      if (SBYTES (XPROCESS (proc)->encoding_buf) < require)
-	XPROCESS (proc)->encoding_buf = make_uninit_string (require);
-
-      if (from_byte >= 0)
-	buf = (BUFFERP (object)
-	       ? BUF_BYTE_ADDRESS (XBUFFER (object), from_byte)
-	       : SDATA (object) + from_byte);
-
-      object = XPROCESS (proc)->encoding_buf;
-      encode_coding (coding, (char *) buf, SDATA (object),
-		     len, SBYTES (object));
       len = coding->produced;
-      buf = SDATA (object);
-      if (temp_buf)
-	xfree (temp_buf);
+      buf = SDATA (coding->dst_object);
     }
 
 #ifdef VMS
@@ -6499,7 +6495,7 @@ The value takes effect when `start-process' is called.  */);
 
 #include "lisp.h"
 #include "systime.h"
-#include "charset.h"
+#include "character.h"
 #include "coding.h"
 #include "termopts.h"
 #include "sysselect.h"

@@ -1,8 +1,11 @@
 ;;; hebrew.el --- support for Hebrew -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;;   Licensed to the Free Software Foundation.
+;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2003
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H13PRO009
 
 ;; Keywords: multilingual, Hebrew
 
@@ -31,13 +34,12 @@
 
 ;;; Code:
 
-(make-coding-system
- 'hebrew-iso-8bit 2 ?8
- "ISO 2022 based 8-bit encoding for Hebrew (MIME:ISO-8859-8)."
- '(ascii hebrew-iso8859-8 nil nil
-   nil nil nil nil nil nil nil nil t nil nil t)
- '((safe-charsets ascii hebrew-iso8859-8)
-   (mime-charset . iso-8859-8)))
+(define-coding-system 'hebrew-iso-8bit
+  "ISO 2022 based 8-bit encoding for Hebrew (MIME:ISO-8859-8)."
+  :coding-type 'charset
+  :mnemonic ?8
+  :charset-list '(iso-8859-8)
+  :mime-charset 'iso-8859-8)
 
 (define-coding-system-alias 'iso-8859-8 'hebrew-iso-8bit)
 
@@ -49,10 +51,10 @@
 (define-coding-system-alias 'iso-8859-8-i 'hebrew-iso-8bit)
 
 (set-language-info-alist
- "Hebrew" '((charset . (hebrew-iso8859-8))
+ "Hebrew" '((charset iso-8859-8)
 	    (coding-priority hebrew-iso-8bit)
-	    (coding-system . (hebrew-iso-8bit))
-	    (nonascii-translation . hebrew-iso8859-8)
+	    (coding-system hebrew-iso-8bit windows-1255 cp862)
+	    (nonascii-translation . iso-8859-8)
 	    (input-method . "hebrew")
 	    (unibyte-display . hebrew-iso-8bit)
 	    (sample-text . "Hebrew	,Hylem(B")
@@ -61,10 +63,25 @@
 (set-language-info-alist
  "Windows-1255" '((coding-priority windows-1255)
 		  (coding-system windows-1255)
-		  (features code-pages)
 		  (documentation . "\
 Support for Windows-1255 encoding, e.g. for Yiddish.
 Right-to-left writing is not yet supported.")))
+
+(define-coding-system 'windows-1255
+  "windows-1255 (Hebrew) encoding (MIME: WINDOWS-1255)"
+  :coding-type 'charset
+  :mnemonic ?h
+  :charset-list '(windows-1255)
+  :mime-charset 'windows-1255)
+(define-coding-system-alias 'cp1255 'windows-1255)
+
+(define-coding-system 'cp862
+  "DOS codepage 862 (Hebrew)"
+  :coding-type 'charset
+  :mnemonic ?D
+  :charset-list '(cp862)
+  :mime-charset 'cp862)
+(define-coding-system-alias 'ibm862 'cp862)
 
 (provide 'hebrew)
 

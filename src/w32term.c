@@ -996,7 +996,7 @@ w32_encode_char (c, char2b, font_info, two_byte_p)
      struct font_info *font_info;
      int * two_byte_p;
 {
-  int charset = CHAR_CHARSET (c);
+  struct charset *charset = CHAR_CHARSET (c);
   int codepage;
   int unicode_p = 0;
   int internal_two_byte_p = 0;
@@ -1015,18 +1015,18 @@ w32_encode_char (c, char2b, font_info, two_byte_p)
 
       if (CHARSET_DIMENSION (charset) == 1)
 	{
-	  ccl->reg[0] = charset;
+	  ccl->reg[0] = CHARSET_ID (charset);
 	  ccl->reg[1] = XCHAR2B_BYTE2 (char2b);
 	  ccl->reg[2] = -1;
 	}
       else
 	{
-	  ccl->reg[0] = charset;
+	  ccl->reg[0] = CHARSET_ID (charset);
 	  ccl->reg[1] = XCHAR2B_BYTE1 (char2b);
 	  ccl->reg[2] = XCHAR2B_BYTE2 (char2b);
 	}
 
-      ccl_driver (ccl, NULL, NULL, 0, 0, NULL);
+      ccl_driver (ccl, NULL, NULL, 0, 0, Qnil);
 
       /* We assume that MSBs are appropriately set/reset by CCL
 	 program.  */
@@ -1050,11 +1050,10 @@ w32_encode_char (c, char2b, font_info, two_byte_p)
 	STORE_XCHAR2B (char2b, XCHAR2B_BYTE1 (char2b), XCHAR2B_BYTE2 (char2b) | 0x80);
       else if (enc == 4)
         {
-          int sjis1, sjis2;
+          int code = (int) char2b;
 
-          ENCODE_SJIS (XCHAR2B_BYTE1 (char2b), XCHAR2B_BYTE2 (char2b),
-                       sjis1, sjis2);
-          STORE_XCHAR2B (char2b, sjis1, sjis2);
+	  JIS_TO_SJIS (code);
+          STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
         }
     }
   codepage = font_info->codepage;
@@ -1062,8 +1061,7 @@ w32_encode_char (c, char2b, font_info, two_byte_p)
   /* If charset is not ASCII or Latin-1, may need to move it into
      Unicode space.  */
   if ( font && !font->bdf && w32_use_unicode_for_codepage (codepage)
-       && charset != CHARSET_ASCII && charset != charset_latin_iso8859_1
-       && charset != CHARSET_8_BIT_CONTROL && charset != CHARSET_8_BIT_GRAPHIC)
+       && c >= 0x100)
     {
       char temp[3];
       temp[0] = XCHAR2B_BYTE1 (char2b);
@@ -5231,7 +5229,7 @@ x_new_font (f, fontname)
      register char *fontname;
 {
   struct font_info *fontp
-    = FS_LOAD_FONT (f, 0, fontname, -1);
+    = FS_LOAD_FONT (f, fontname);
 
   if (!fontp)
     return Qnil;

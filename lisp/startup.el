@@ -1217,6 +1217,9 @@ where FACE is a valid face specification, as it can be used with
 					'keymap map)))
 	(insert "\n"))))
   (fancy-splash-insert
+   :face '(variable-pitch :background "red")
+   "\n!! This version is ALPHA status.  It may lose your data!!\n\n")
+  (fancy-splash-insert
    :face '(variable-pitch :foreground "red")
    (if (eq system-type 'gnu/linux)
        "GNU Emacs is one component of the GNU/Linux operating system."

@@ -22,7 +22,7 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #include "lisp.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "commands.h"
 #include "syntax.h"
 #include "composite.h"
@@ -37,7 +37,7 @@ casify_object (flag, obj)
      enum case_action flag;
      Lisp_Object obj;
 {
-  register int i, c, len;
+  register int c, c1;
   register int inword = flag == CASE_DOWN;
 
   /* If the case table is flagged as modified, rescan it.  */
@@ -51,13 +51,18 @@ casify_object (flag, obj)
 	  int flagbits = (CHAR_ALT | CHAR_SUPER | CHAR_HYPER
 			  | CHAR_SHIFT | CHAR_CTL | CHAR_META);
 	  int flags = XINT (obj) & flagbits;
+	  int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
 
-	  c = DOWNCASE (XFASTINT (obj) & ~flagbits);
-	  if (inword)
-	    XSETFASTINT (obj, c | flags);
-	  else if (c == (XFASTINT (obj) & ~flagbits))
+	  c1 = XFASTINT (obj) & ~flagbits;
+	  if (! multibyte)
+	    MAKE_CHAR_MULTIBYTE (c1);
+	  c = DOWNCASE (c1);
+	  if (inword || c == c1)
 	    {
-	      c = UPCASE1 ((XFASTINT (obj) & ~flagbits));
+	      if (! inword)
+		c = UPCASE1 (c1);
+	      if (! multibyte)
+		MAKE_CHAR_UNIBYTE (c);
 	      XSETFASTINT (obj, c | flags);
 	    }
 	  return obj;
@@ -66,66 +71,43 @@ casify_object (flag, obj)
       if (STRINGP (obj))
 	{
 	  int multibyte = STRING_MULTIBYTE (obj);
+	  int i, i_byte, len;
+	  int size = SCHARS (obj);
 
 	  obj = Fcopy_sequence (obj);
-	  len = SBYTES (obj);
-
-	  /* Scan all single-byte characters from start of string.  */
-	  for (i = 0; i < len;)
+	  for (i = i_byte = 0; i < size; i++, i_byte += len)
 	    {
-	      c = SREF (obj, i);
-
-	      if (multibyte && c >= 0x80)
-		/* A multibyte character can't be handled in this
-                   simple loop.  */
-		break;
+	      if (multibyte)
+		c = STRING_CHAR_AND_LENGTH (SDATA (obj) + i_byte, 0, len);
+	      else
+		{
+		  c = SREF (obj, i_byte);
+		  len = 1;
+		  MAKE_CHAR_MULTIBYTE (c);
+		}
+	      c1 = c;
 	      if (inword && flag != CASE_CAPITALIZE_UP)
 		c = DOWNCASE (c);
 	      else if (!UPPERCASEP (c)
 		       && (!inword || flag != CASE_CAPITALIZE_UP))
-		c = UPCASE1 (c);
-	      /* If this char won't fit in a single-byte string.
-		 fall out to the multibyte case.  */
-	      if (multibyte ? ! ASCII_BYTE_P (c)
-		  : ! SINGLE_BYTE_CHAR_P (c))
-		break;
-
-	      SSET (obj, i, c);
+		c = UPCASE1 (c1);
 	      if ((int) flag >= (int) CASE_CAPITALIZE)
-		inword = SYNTAX (c) == Sword;
-	      i++;
-	    }
-
-	  /* If we didn't do the whole string as single-byte,
-	     scan the rest in a more complex way.  */
-	  if (i < len)
-	    {
-	      /* The work is not yet finished because of a multibyte
-		 character just encountered.  */
-	      int fromlen, j_byte = i;
-	      char *buf
-		= (char *) alloca ((len - i) * MAX_MULTIBYTE_LENGTH + i);
-
-	      /* Copy data already handled.  */
-	      bcopy (SDATA (obj), buf, i);
-
-	      /* From now on, I counts bytes.  */
-	      while (i < len)
+		inword = (SYNTAX (c) == Sword);
+	      if (c != c1)
 		{
-		  c = STRING_CHAR_AND_LENGTH (SDATA (obj) + i,
-					      len - i, fromlen);
-		  if (inword && flag != CASE_CAPITALIZE_UP)
-		    c = DOWNCASE (c);
-		  else if (!UPPERCASEP (c)
-			   && (!inword || flag != CASE_CAPITALIZE_UP))
-		    c = UPCASE1 (c);
-		  i += fromlen;
-		  j_byte += CHAR_STRING (c, buf + j_byte);
-		  if ((int) flag >= (int) CASE_CAPITALIZE)
-		    inword = SYNTAX (c) == Sword;
+		  if (! multibyte)
+		    {
+		      MAKE_CHAR_UNIBYTE (c);
+		      SSET (obj, i_byte, c);
+		    }
+		  else if (ASCII_CHAR_P (c1) && ASCII_CHAR_P (c))
+		    SSET (obj, i_byte,  c);
+		  else
+		    {
+		      Faset (obj, make_number (i), make_number (c));
+		      i_byte += CHAR_BYTES (c) - len;
+		    }
 		}
-	      obj = make_multibyte_string (buf, SCHARS (obj),
-					   j_byte);
 	    }
 	  return obj;
 	}
@@ -187,13 +169,14 @@ casify_region (flag, b, e)
      enum case_action flag;
      Lisp_Object b, e;
 {
-  register int i;
   register int c;
   register int inword = flag == CASE_DOWN;
   register int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   int start, end;
   int start_byte, end_byte;
   int changed = 0;
+  int opoint = PT;
+  int opoint_byte = PT_BYTE;
 
   if (EQ (b, e))
     /* Not modifying because nothing marked */
@@ -211,82 +194,66 @@ casify_region (flag, b, e)
   start_byte = CHAR_TO_BYTE (start);
   end_byte = CHAR_TO_BYTE (end);
 
-  for (i = start_byte; i < end_byte; i++, start++)
+  while (start < end)
     {
-      int c2;
-      c = c2 = FETCH_BYTE (i);
-      if (multibyte && c >= 0x80)
-	/* A multibyte character can't be handled in this simple loop.  */
-	break;
+      int c2, len;
+
+      if (multibyte)
+	{
+	  c = FETCH_MULTIBYTE_CHAR (start_byte);
+	  len = CHAR_BYTES (c);
+	}
+      else
+	{
+	  c = FETCH_BYTE (start_byte);
+	  MAKE_CHAR_MULTIBYTE (c);
+	  len = 1;
+	}
+      c2 = c;
       if (inword && flag != CASE_CAPITALIZE_UP)
 	c = DOWNCASE (c);
       else if (!UPPERCASEP (c)
 	       && (!inword || flag != CASE_CAPITALIZE_UP))
 	c = UPCASE1 (c);
-      FETCH_BYTE (i) = c;
-      if (c != c2)
-	changed = 1;
       if ((int) flag >= (int) CASE_CAPITALIZE)
-	inword = SYNTAX (c) == Sword && (inword || !SYNTAX_PREFIX (c));
-    }
-  if (i < end_byte)
-    {
-      /* The work is not yet finished because of a multibyte character
-	 just encountered.  */
-      int opoint = PT;
-      int opoint_byte = PT_BYTE;
-      int c2;
-
-      while (i < end_byte)
+	inword = ((SYNTAX (c) == Sword) && (inword || !SYNTAX_PREFIX (c)));
+      if (c != c2)
 	{
-	  if ((c = FETCH_BYTE (i)) >= 0x80)
-	    c = FETCH_MULTIBYTE_CHAR (i);
-	  c2 = c;
-	  if (inword && flag != CASE_CAPITALIZE_UP)
-	    c2 = DOWNCASE (c);
-	  else if (!UPPERCASEP (c)
-		   && (!inword || flag != CASE_CAPITALIZE_UP))
-	    c2 = UPCASE1 (c);
-	  if (c != c2)
+	  changed = 1;
+	  if (! multibyte)
 	    {
-	      int fromlen, tolen, j;
+	      MAKE_CHAR_UNIBYTE (c);
+	      FETCH_BYTE (start_byte) = c;
+	    }
+	  else if (ASCII_CHAR_P (c2) && ASCII_CHAR_P (c))
+	    FETCH_BYTE (start_byte) = c;
+	  else if (len == CHAR_BYTES (c))
+	    {
+	      int j;
 	      unsigned char str[MAX_MULTIBYTE_LENGTH];
 
-	      changed = 1;
-	      /* Handle the most likely case */
-	      if (c < 0400 && c2 < 0400)
-		FETCH_BYTE (i) = c2;
-	      else if (fromlen = CHAR_STRING (c, str),
-		       tolen = CHAR_STRING (c2, str),
-		       fromlen == tolen)
-		{
-		  for (j = 0; j < tolen; ++j)
-		    FETCH_BYTE (i + j) = str[j];
-		}
-	      else
-		{
-		  error ("Can't casify letters that change length");
-#if 0 /* This is approximately what we'd like to be able to do here */
-		  if (tolen < fromlen)
-		    del_range_1 (i + tolen, i + fromlen, 0, 0);
-		  else if (tolen > fromlen)
-		    {
-		      TEMP_SET_PT (i + fromlen);
-		      insert_1 (str + fromlen, tolen - fromlen, 1, 0, 0);
-		    }
-#endif
-		}
+	      CHAR_STRING (c, str);
+	      for (j = 0; j < len; ++j)
+		FETCH_BYTE (start_byte + j) = str[j];
 	    }
-	  if ((int) flag >= (int) CASE_CAPITALIZE)
-	    inword = SYNTAX (c2) == Sword;
-	  INC_BOTH (start, i);
+	  else
+	    {
+	      TEMP_SET_PT_BOTH (start, start_byte);
+	      del_range_2 (start, start_byte, start + 1, start_byte + len, 0);
+	      insert_char (c);
+	      len = CHAR_BYTES (c);
+	    }
 	}
-      TEMP_SET_PT_BOTH (opoint, opoint_byte);
+      start++;
+      start_byte += len;
     }
 
-  start = XFASTINT (b);
+  if (PT != opoint)
+    TEMP_SET_PT_BOTH (opoint, opoint_byte);
+
   if (changed)
     {
+      start = XFASTINT (b);
       signal_after_change (start, end - start, end - start);
       update_compositions (start, end, CHECK_ALL);
     }

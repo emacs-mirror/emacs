@@ -24,7 +24,7 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 #include "lisp.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "keyboard.h"
 #include "frame.h"
 #include "window.h"
@@ -463,11 +463,15 @@ print_string (string, printcharfun)
     {
       int chars;
 
+      if (print_escape_nonascii)
+	string = string_escape_byte8 (string);
+
       if (STRING_MULTIBYTE (string))
 	chars = SCHARS (string);
-      else if (EQ (printcharfun, Qt)
-	       ? ! NILP (buffer_defaults.enable_multibyte_characters)
-	       : ! NILP (current_buffer->enable_multibyte_characters))
+      else if (! print_escape_nonascii
+	       && (EQ (printcharfun, Qt)
+		   ? ! NILP (buffer_defaults.enable_multibyte_characters)
+		   : ! NILP (current_buffer->enable_multibyte_characters)))
 	{
 	  /* If unibyte string STRING contains 8-bit codes, we must
 	     convert STRING to a multibyte string containing the same
@@ -513,11 +517,6 @@ print_string (string, printcharfun)
 	    int len;
 	    int ch = STRING_CHAR_AND_LENGTH (SDATA (string) + i,
 					     size_byte - i, len);
-	    if (!CHAR_VALID_P (ch, 0))
-	      {
-		ch = SREF (string, i);
-		len = 1;
-	      }
 	    PRINTCHAR (ch);
 	    i += len;
 	  }
@@ -1435,10 +1434,7 @@ print_object (obj, printcharfun, escapeflag)
 		{
 		  c = STRING_CHAR_AND_LENGTH (str + i_byte,
 					      size_byte - i_byte, len);
-		  if (CHAR_VALID_P (c, 0))
-		    i_byte += len;
-		  else
-		    c = str[i_byte++];
+		  i_byte += len;
 		}
 	      else
 		c = str[i_byte++];
@@ -1456,8 +1452,7 @@ print_object (obj, printcharfun, escapeflag)
 		  PRINTCHAR ('f');
 		}
 	      else if (multibyte
-		       && ! ASCII_BYTE_P (c)
-		       && (SINGLE_BYTE_CHAR_P (c) || print_escape_multibyte))
+		       && (CHAR_BYTE8_P (c) || print_escape_multibyte))
 		{
 		  /* When multibyte is disabled,
 		     print multibyte string chars using hex escapes.
@@ -1465,9 +1460,15 @@ print_object (obj, printcharfun, escapeflag)
 		     when found in a multibyte string, always use a hex escape
 		     so it reads back as multibyte.  */
 		  unsigned char outbuf[50];
-		  sprintf (outbuf, "\\x%x", c);
+
+		  if (CHAR_BYTE8_P (c))
+		    sprintf (outbuf, "\\%03o", CHAR_TO_BYTE8 (c));
+		  else
+		    {
+		      sprintf (outbuf, "\\x%04x", c);
+		      need_nonhex = 1;
+		    }
 		  strout (outbuf, -1, -1, printcharfun, 0);
-		  need_nonhex = 1;
 		}
 	      else if (! multibyte
 		       && SINGLE_BYTE_CHAR_P (c) && ! ASCII_BYTE_P (c)
@@ -1732,7 +1733,12 @@ print_object (obj, printcharfun, escapeflag)
 
 	  PRINTCHAR ('#');
 	  PRINTCHAR ('&');
-	  sprintf (buf, "%d", XBOOL_VECTOR (obj)->size);
+	  if (sizeof (int) == sizeof (EMACS_INT))
+            sprintf (buf, "%d", XBOOL_VECTOR (obj)->size);
+	  else if (sizeof (long) == sizeof (EMACS_INT))
+            sprintf (buf, "%ld", XBOOL_VECTOR (obj)->size);
+	  else
+	    abort ();
 	  strout (buf, -1, -1, printcharfun, 0);
 	  PRINTCHAR ('\"');
 
@@ -1747,7 +1753,12 @@ print_object (obj, printcharfun, escapeflag)
 	    {
 	      QUIT;
 	      c = XBOOL_VECTOR (obj)->data[i];
-	      if (c == '\n' && print_escape_newlines)
+	      if (! ASCII_BYTE_P (c))
+		{
+		  sprintf (buf, "\\%03o", c);
+		  strout (buf, -1, -1, printcharfun, 0);
+		}
+	      else if (c == '\n' && print_escape_newlines)
 		{
 		  PRINTCHAR ('\\');
 		  PRINTCHAR ('n');
@@ -1841,7 +1852,7 @@ print_object (obj, printcharfun, escapeflag)
 	      PRINTCHAR ('#');
 	      size &= PSEUDOVECTOR_SIZE_MASK;
 	    }
-	  if (CHAR_TABLE_P (obj))
+	  if (CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj))
 	    {
 	      /* We print a char-table as if it were a vector,
 		 lumping the parent and default slots in with the

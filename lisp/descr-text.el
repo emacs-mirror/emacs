@@ -452,38 +452,26 @@ as well as widgets, buttons, overlays, and text properties."
 	 (composed (if composition (buffer-substring (car composition)
 						     (nth 1 composition))))
 	 (multibyte-p enable-multibyte-characters)
-	 item-list max-width unicode)
-    (if (eq charset 'unknown)
+	 item-list max-width)
+    (if (eq charset 'eight-bit)
 	(setq item-list
 	      `(("character"
-		 ,(format "%s (0%o, %d, 0x%x) -- invalid character code"
-			  (if (< char 256)
-			      (single-key-description char)
-			    (char-to-string char))
-			  char char char))))
+		 ,(format "%s (0%o, %d, 0x%x) -- raw byte 0x%x"
+			  (char-to-string char) char char char
+			  (multibyte-char-to-unibyte char)))))
 
-      (if (or (< char 256)
-	      (memq 'mule-utf-8 (find-coding-systems-region pos (1+ pos)))
-	      (get-char-property pos 'untranslated-utf-8))
-	  (setq unicode (or (get-char-property pos 'untranslated-utf-8)
-			    (encode-char char 'ucs))))
       (setq item-list
 	    `(("character"
-	       ,(format "%s (0%o, %d, 0x%x%s)" (if (< char 256)
+	       ,(format "%s (0%o, %d, 0x%x)" (if (< char 256)
 						 (single-key-description char)
 					       (char-to-string char))
-			char char char
-			(if unicode
-			    (format ", U+%04X" unicode)
-			  "")))
-	      ("charset"
+			char char char))
+	      ("preferred charset"
 	       ,(symbol-name charset)
 	       ,(format "(%s)" (charset-description charset)))
 	      ("code point"
-	       ,(let ((split (split-char char)))
-		  (if (= (charset-dimension charset) 1)
-		      (format "%d" (nth 1 split))
-		    (format "%d %d" (nth 1 split) (nth 2 split)))))
+ 	       ,(let ((split (split-char char)))
+		  (mapconcat #'number-to-string (cdr split) " ")))
 	      ("syntax"
  	       ,(let ((syntax (syntax-after pos)))
 		  (with-temp-buffer
@@ -523,11 +511,13 @@ as well as widgets, buttons, overlays, and text properties."
 			 (if encoded
 			     (encoded-string-description encoded coding)
 			   "not encodable"))))
-	      ,@(let ((unicodedata (and unicode
-					(describe-char-unicode-data unicode))))
+	      ,@(let ((unicodedata (unicode-data char)))
 		  (if unicodedata
 		      (cons (list "Unicode data" " ") unicodedata))))))
-    (setq max-width (apply #'max (mapcar #'(lambda (x) (length (car x)))
+    (setq max-width (apply #'max (mapcar #'(lambda (x)
+					     (if (cadr x)
+						 (length (car x))
+					       0))
 					 item-list)))
     (when (eq (current-buffer) (get-buffer "*Help*"))
       (error "Can't describe char in Help buffer"))

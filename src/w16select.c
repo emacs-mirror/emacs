@@ -38,7 +38,7 @@ Boston, MA 02111-1307, USA.  */
 #include "frame.h"	/* Need this to get the X window of selected_frame */
 #include "blockinput.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "coding.h"
 #include "composite.h"
 

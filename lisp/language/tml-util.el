@@ -101,23 +101,6 @@
       (function (lambda (x y) (> (length x) (length y))))))))
 
 
-;;;###autoload
-(defun tamil-composition-function (from to pattern  &optional string)
-  "Compose Tamil characters in REGION, or STRING if specified.
-Assume that the REGION or STRING must fully match the composable 
-PATTERN regexp."
-  (if string (tamil-compose-syllable-string string)
-    (tamil-compose-syllable-region from to))
-  (- to from))
-
-;; Register a function to compose Tamil characters.
-(mapc
- (function (lambda (ucs)
-   (aset composition-function-table (decode-char 'ucs ucs)
-	 (list (cons tamil-composable-pattern
-                     'tamil-composition-function)))))
- (nconc '(#x0b82 #x0b83) (tamil-range #x0b85 #x0bb9)))
-
 ;; Notes on conversion steps.
 
 ;; 1. chars to glyphs
@@ -135,7 +118,7 @@ PATTERN regexp."
 
 (defvar tml-char-glyph
   '(;; various signs
-    ;;("$,1<"(B" . "")
+    ("$,1<"(B" . "$,4)b(B")	;; not good
     ("$,1<#(B" . "$,4*G(B")
     ;; Independent Vowels
     ("$,1<%(B" . "$,4*<(B")
@@ -334,10 +317,18 @@ PATTERN regexp."
         (narrow-to-region from to)
         (goto-char (point-min))
         ;; char-glyph-conversion
-        (while (re-search-forward tml-char-glyph-regexp nil t)
-          (setq match-str (match-string 0))
-          (setq glyph-str
-                (concat glyph-str (gethash match-str tml-char-glyph-hash))))
+        (while (not (eobp))
+	  (if (looking-at tml-char-glyph-regexp)
+	      (progn
+		(setq match-str (match-string 0)
+		      glyph-str
+		      (concat glyph-str
+			      (gethash match-str tml-char-glyph-hash)))
+		(goto-char (match-end 0)))
+	    (setq glyph-str (concat glyph-str (string (following-char))))
+	    (forward-char 1)))
+	(or glyph-str
+	    (aset glyph-str 0 (following-char)))
         ;; glyph reordering
         (when (string-match tml-glyph-reorder-key-glyphs glyph-str)
           (if (string-match (car tml-glyph-reordering-regexp-list)
@@ -361,6 +352,19 @@ PATTERN regexp."
                   (lambda (x) (list '(5 . 3) x))) ;; default ref. point.
                  glyph-str))))
         (compose-region from to glyph-str)))))
+
+;;;###autoload
+(defun tamil-composition-function (pos  &optional string)
+  "Compose Tamil characters after the position POS.
+If STRING is not nil, it is a string, and POS is an index to the string.
+In this case, compose characters after POS of the string."
+  (if string
+      ;; Not yet implemented.
+      nil
+    (goto-char pos)
+    (if (looking-at tamil-composable-pattern)
+	(prog1 (match-end 0)
+	  (tamil-compose-syllable-region pos (match-end 0))))))
 
 (provide 'tml-util)
 

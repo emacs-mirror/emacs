@@ -55,7 +55,7 @@ extern int errno;
 
 #include "lisp.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "coding.h"
 #include "systime.h"
 

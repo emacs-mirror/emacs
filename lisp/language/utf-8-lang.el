@@ -27,14 +27,15 @@
 ;;; Code:
 
 (set-language-info-alist
- "UTF-8" `((coding-system mule-utf-8)
-	   (coding-priority mule-utf-8)
-	   (setup-function
-	    . (lambda ()
-		;; Use Unicode font under Windows.  Jason Rumney fecit.
-		(if (and (fboundp 'w32-add-charset-info)
-			 (not (boundp 'w32-unicode-charset-defined)))
-		    (w32-add-charset-info "iso10646-1" 'w32-charset-ansi t))))
+ "UTF-8" `((coding-system utf-8)
+	   (coding-priority utf-8)
+;; Presumably not relevant now.
+;; 	   (setup-function
+;; 	    . (lambda ()
+;; 		;; Use Unicode font under Windows.  Jason Rumney fecit.
+;; 		(if (and (fboundp 'w32-add-charset-info)
+;; 			 (not (boundp 'w32-unicode-charset-defined)))
+;; 		    (w32-add-charset-info "iso10646-1" 'w32-charset-ansi t))))
 ;; Is this appropriate?
 ;; 	   (exit-function
 ;; 	    . (lambda ()
@@ -45,8 +46,8 @@
 ;; 				  w32-charset-info-alist)))))
 	   (input-method . "rfc1345")	; maybe not the best choice
 	   (documentation . "\
-This language environment is a generic one for a subset of the Unicode
-character set encoded in UTF-8."))
+This language environment is a generic one for the Unicode character set
+encoded in UTF-8."))
  nil)
 
 (provide 'utf-8-lang)

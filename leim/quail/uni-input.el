@@ -1,6 +1,6 @@
 ;;; uni-input.el --- Hex Unicode input method
 
-;; Copyright (C) 2001  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -30,41 +30,15 @@
 ;; This is not really a Quail method, but uses some Quail functions.
 ;; There is probably A Better Way.
 
-;; Compare `ucs-insert', which explicitly inserts a unicoded character
-;; rather than supplying an input method.
+;; You can get a similar effect by using C-q with
+;; `read-quoted-char-radix' set to 16.
+
+;; Note that this only allows you to enter BMP values unless someone
+;; extends it to use variable numbers of digits.
 
 ;;; Code:
 
 (require 'quail)
-
-;; Maybe stolen from Mule-UCS -- I don't remember.
-(define-ccl-program utf-8-ccl-encode
-  `(4 (if (r0 < ?\x80)
-	((write r0))
-      (if (r0 < #x800)
-	  ((write ((r0 >> 6) | ?\xC0))
-	   (write ((r0 & ?\x3F) | ?\x80)))
-	(if (r0 < #x10000)
-	    ((write ((r0 >> 12) | ?\xE0))
-	     (write (((r0 >> 6) & ?\x3F) | ?\x80))
-	     (write ((r0 & ?\x3F) | ?\x80)))
-	  (if (r0 < #x200000)
-	      ((write ((r0 >> 18) | ?\xF0))
-	       (write (((r0 >> 12) & ?\x3F) | ?\x80))
-	       (write (((r0 >> 6) & ?\x3F) | ?\x80))
-	       (write ((r0 & ?\x3F) | ?\x80)))
-	    (if (r0 < #x4000000)
-		((write ((r0 >> 24) | ?\xF8))
-		 (write (((r0 >> 18) & ?\x3F) | ?\x80))
-		 (write (((r0 >> 12) & ?\x3F) | ?\x80))
-		 (write (((r0 >> 6) & ?\x3F) | ?\x80))
-		 (write ((r0 & ?\x3F) | ?\x80)))
-	      ((write ((r0 >> 30) | ?\xFC))
-	       (write (((r0 >> 24) & ?\x3F) | ?\x80))
-	       (write (((r0 >> 18) & ?\x3F) | ?\x80))
-	       (write (((r0 >> 12) & ?\x3F) | ?\x80))
-	       (write (((r0 >> 6) & ?\x3F) | ?\x80))
-	       (write ((r0 & ?\x3F) | ?\x80))))))))))
 
 (defun ucs-input-method (key)
   (if (or buffer-read-only
@@ -91,7 +65,7 @@
 			   (= 1 (length seq))
 			   (setq key (aref seq 0))
 			   (memq key '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?a
-				       ?b ?c ?d ?e ?f ?A ?B ?C ?D ?E ?F)))
+					  ?b ?c ?d ?e ?f ?A ?B ?C ?D ?E ?F)))
 		      (progn
 			(push key events)
 			(let ((last-command-char key)
@@ -105,16 +79,11 @@
 		    (throw 'non-digit (append (reverse events)
 					      (listify-key-sequence seq))))))
 	      (quail-delete-region)
-	      (let* ((n (string-to-number (apply 'string
-						 (cdr (nreverse events)))
-					  16))
-		     (c (decode-char 'ucs n))
-		    (status (make-vector 9 nil)))
-		(if c
-		    (list c)
-		  (aset status 0 n)
-		  (string-to-list (ccl-execute-on-string
-				   'utf-8-ccl-encode status ""))))))
+	      (let ((n (string-to-number (apply 'string
+					    (cdr (nreverse events)))
+				     16)))
+		(if (characterp n)
+		    (list n)))))
 	(quail-delete-overlays)
 	(set-buffer-modified-p modified-p)
 	(run-hooks 'input-method-after-insert-chunk-hook)))))

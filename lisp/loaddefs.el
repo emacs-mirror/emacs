@@ -766,8 +766,8 @@ Returns list of symbols and documentation found.
 
 ;;;***
 
-;;;### (autoloads (archive-mode) "arc-mode" "arc-mode.el" (16111
-;;;;;;  41824))
+;;;### (autoloads (archive-mode) "arc-mode" "arc-mode.el" (16205
+;;;;;;  24895))
 ;;; Generated autoloads from arc-mode.el
 
 (autoload (quote archive-mode) "arc-mode" "\
@@ -2344,7 +2344,7 @@ Also see `make-text-button'.
 ;;;;;;  batch-byte-compile-if-not-done display-call-tree byte-compile
 ;;;;;;  compile-defun byte-compile-file byte-recompile-directory
 ;;;;;;  byte-force-recompile) "bytecomp" "emacs-lisp/bytecomp.el"
-;;;;;;  (16136 53055))
+;;;;;;  (16179 16173))
 ;;; Generated autoloads from emacs-lisp/bytecomp.el
 
 (autoload (quote byte-force-recompile) "bytecomp" "\
@@ -3362,7 +3362,7 @@ and exists only for compatibility reasons.
 
 ;;;### (autoloads (ccl-execute-with-args check-ccl-program define-ccl-program
 ;;;;;;  declare-ccl-program ccl-dump ccl-compile) "ccl" "international/ccl.el"
-;;;;;;  (16111 41831))
+;;;;;;  (16179 23394))
 ;;; Generated autoloads from international/ccl.el
 
 (autoload (quote ccl-compile) "ccl" "\
@@ -3808,9 +3808,9 @@ checking of documentation strings.
 
 ;;;***
 
-;;;### (autoloads (encode-hz-buffer encode-hz-region decode-hz-buffer
-;;;;;;  decode-hz-region) "china-util" "language/china-util.el" (16118
-;;;;;;  44435))
+;;;### (autoloads (pre-write-encode-hz post-read-decode-hz encode-hz-buffer
+;;;;;;  encode-hz-region decode-hz-buffer decode-hz-region) "china-util"
+;;;;;;  "language/china-util.el" (16183 29903))
 ;;; Generated autoloads from language/china-util.el
 
 (autoload (quote decode-hz-region) "china-util" "\
@@ -3834,6 +3834,16 @@ Return the length of resulting text.
 Encode the text in the current buffer to HZ.
 
 \(fn)" t nil)
+
+(autoload (quote post-read-decode-hz) "china-util" "\
+Not documented
+
+\(fn LEN)" nil nil)
+
+(autoload (quote pre-write-encode-hz) "china-util" "\
+Not documented
+
+\(fn FROM TO)" nil nil)
 
 ;;;***
 
@@ -3940,76 +3950,14 @@ of `scheme-program-name').  Runs the hooks `inferior-scheme-mode-hook'
 
 ;;;***
 
-;;;### (autoloads (cp-make-coding-system) "code-pages" "international/code-pages.el"
-;;;;;;  (16121 18697))
-;;; Generated autoloads from international/code-pages.el
-
-(autoload (quote cp-make-coding-system) "code-pages" "\
-Make coding system NAME for and 8-bit, extended-ASCII character set.
-V is a 128-long vector of characters to translate the upper half of
-the charactert set.  DOC-STRING and MNEMONIC are used as the
-corresponding args of `make-coding-system'.  If MNEMONIC isn't given,
-?* is used.
-
-\(fn NAME V &optional DOC-STRING MNEMONIC)" nil (quote macro))
-
-;;;***
-
-;;;### (autoloads (codepage-setup cp-supported-codepages cp-offset-for-codepage
-;;;;;;  cp-language-for-codepage cp-charset-for-codepage cp-make-coding-systems-for-codepage)
-;;;;;;  "codepage" "international/codepage.el" (15941 42961))
+;;;### (autoloads (codepage-setup) "codepage" "international/codepage.el"
+;;;;;;  (16179 34039))
 ;;; Generated autoloads from international/codepage.el
 
-(autoload (quote cp-make-coding-systems-for-codepage) "codepage" "\
-Create a coding system to convert IBM CODEPAGE into charset ISO-NAME
-whose first character is at offset OFFSET from the beginning of 8-bit
-ASCII table.
-
-The created coding system has the usual 3 subsidiary systems: for Unix-,
-DOS- and Mac-style EOL conversion.  However, unlike built-in coding
-systems, the Mac-style EOL conversion is currently not supported by the
-decoder and encoder created by this function.
-
-\(fn CODEPAGE ISO-NAME OFFSET)" nil nil)
-
-(autoload (quote cp-charset-for-codepage) "codepage" "\
-Return the charset for which there is a translation table to DOS CODEPAGE.
-CODEPAGE must be the name of a DOS codepage, a string.
-
-\(fn CODEPAGE)" nil nil)
-
-(autoload (quote cp-language-for-codepage) "codepage" "\
-Return the name of the MULE language environment for CODEPAGE.
-CODEPAGE must be the name of a DOS codepage, a string.
-
-\(fn CODEPAGE)" nil nil)
-
-(autoload (quote cp-offset-for-codepage) "codepage" "\
-Return the offset to be used in setting up coding systems for CODEPAGE.
-CODEPAGE must be the name of a DOS codepage, a string.
-
-\(fn CODEPAGE)" nil nil)
-
-(autoload (quote cp-supported-codepages) "codepage" "\
-Return an alist of supported codepages.
-
-Each association in the alist has the form (NNN . CHARSET), where NNN is the
-codepage number, and CHARSET is the MULE charset which is the closest match
-for the character set supported by that codepage.
-
-A codepage NNN is supported if a variable called `cpNNN-decode-table' exists,
-is a vector, and has a charset property.
-
-\(fn)" nil nil)
-
 (autoload (quote codepage-setup) "codepage" "\
-Create a coding system cpCODEPAGE to support the IBM codepage CODEPAGE.
+Obsolete.  All coding systems are set up initially.
 
-These coding systems are meant for encoding and decoding 8-bit non-ASCII
-characters used by the IBM codepages, typically in conjunction with files
-read/written by MS-DOS software, or for display on the MS-DOS terminal.
-
-\(fn CODEPAGE)" t nil)
+\(fn &optional CODEPAGE)" t nil)
 
 ;;;***
 
@@ -4335,221 +4283,6 @@ Enable dynamic word-completion.
 
 ;;;***
 
-;;;### (autoloads (decompose-composite-char compose-last-chars compose-chars-after
-;;;;;;  find-composition compose-chars decompose-string compose-string
-;;;;;;  decompose-region compose-region) "composite" "composite.el"
-;;;;;;  (15941 42951))
-;;; Generated autoloads from composite.el
-
-(defconst reference-point-alist (quote ((tl . 0) (tc . 1) (tr . 2) (Bl . 3) (Bc . 4) (Br . 5) (bl . 6) (bc . 7) (br . 8) (cl . 9) (cc . 10) (cr . 11) (top-left . 0) (top-center . 1) (top-right . 2) (base-left . 3) (base-center . 4) (base-right . 5) (bottom-left . 6) (bottom-center . 7) (bottom-right . 8) (center-left . 9) (center-center . 10) (center-right . 11) (ml . 3) (mc . 10) (mr . 5) (mid-left . 3) (mid-center . 10) (mid-right . 5))) "\
-Alist of symbols vs integer codes of glyph reference points.
-A glyph reference point symbol is to be used to specify a composition
-rule in COMPONENTS argument to such functions as `compose-region' and
-`make-composition'.
-
-Meanings of glyph reference point codes are as follows:
-
-    0----1----2 <---- ascent	0:tl or top-left
-    |         |			1:tc or top-center
-    |         |			2:tr or top-right
-    |         |			3:Bl or base-left     9:cl or center-left
-    9   10   11 <---- center	4:Bc or base-center  10:cc or center-center
-    |         |			5:Br or base-right   11:cr or center-right
-  --3----4----5-- <-- baseline	6:bl or bottom-left
-    |         |			7:bc or bottom-center
-    6----7----8 <---- descent	8:br or bottom-right
-
-Glyph reference point symbols are to be used to specify composition
-rule of the form (GLOBAL-REF-POINT . NEW-REF-POINT), where
-GLOBAL-REF-POINT is a reference point in the overall glyphs already
-composed, and NEW-REF-POINT is a reference point in the new glyph to
-be added.
-
-For instance, if GLOBAL-REF-POINT is `br' (bottom-right) and
-NEW-REF-POINT is `tc' (top-center), the overall glyph is updated as
-follows (the point `*' corresponds to both reference points):
-
-    +-------+--+ <--- new ascent
-    |       |  |
-    | global|  |
-    | glyph |  |
- -- |       |  |-- <--- baseline (doesn't change)
-    +----+--*--+
-    |    | new |
-    |    |glyph|
-    +----+-----+ <--- new descent
-")
-
-(autoload (quote compose-region) "composite" "\
-Compose characters in the current region.
-
-Characters are composed relatively, i.e. composed by overstricking or
-stacking depending on ascent, descent and other properties.
-
-When called from a program, expects these four arguments.
-
-First two arguments START and END are positions (integers or markers)
-specifying the region.
-
-Optional 3rd argument COMPONENTS, if non-nil, is a character or a
-sequence (vector, list, or string) of integers.  In this case,
-characters are composed not relatively but according to COMPONENTS.
-
-If it is a character, it is an alternate character to display instead
-of the text in the region.
-
-If it is a string, the elements are alternate characters.
-
-If it is a vector or list, it is a sequence of alternate characters and
-composition rules, where (2N)th elements are characters and (2N+1)th
-elements are composition rules to specify how to compose (2N+2)th
-elements with previously composed N glyphs.
-
-A composition rule is a cons of global and new glyph reference point
-symbols.  See the documentation of `reference-point-alist' for more
-detail.
-
-Optional 4th argument MODIFICATION-FUNC is a function to call to
-adjust the composition when it gets invalid because of a change of
-text in the composition.
-
-\(fn START END &optional COMPONENTS MODIFICATION-FUNC)" t nil)
-
-(autoload (quote decompose-region) "composite" "\
-Decompose text in the current region.
-
-When called from a program, expects two arguments,
-positions (integers or markers) specifying the region.
-
-\(fn START END)" t nil)
-
-(autoload (quote compose-string) "composite" "\
-Compose characters in string STRING.
-
-The return value is STRING where `composition' property is put on all
-the characters in it.
-
-Optional 2nd and 3rd arguments START and END specify the range of
-STRING to be composed.  They defaults to the beginning and the end of
-STRING respectively.
-
-Optional 4th argument COMPONENTS, if non-nil, is a character or a
-sequence (vector, list, or string) of integers.  See the function
-`compose-region' for more detail.
-
-Optional 5th argument MODIFICATION-FUNC is a function to call to
-adjust the composition when it gets invalid because of a change of
-text in the composition.
-
-\(fn STRING &optional START END COMPONENTS MODIFICATION-FUNC)" nil nil)
-
-(autoload (quote decompose-string) "composite" "\
-Return STRING where `composition' property is removed.
-
-\(fn STRING)" nil nil)
-
-(autoload (quote compose-chars) "composite" "\
-Return a string from arguments in which all characters are composed.
-For relative composition, arguments are characters.
-For rule-based composition, Mth (where M is odd) arguments are
-characters, and Nth (where N is even) arguments are composition rules.
-A composition rule is a cons of glyph reference points of the form
-\(GLOBAL-REF-POINT . NEW-REF-POINT).  See the documentation of
-`reference-point-alist' for more detail.
-
-\(fn &rest ARGS)" nil nil)
-
-(autoload (quote find-composition) "composite" "\
-Return information about a composition at or nearest to buffer position POS.
-
-If the character at POS has `composition' property, the value is a list
-of FROM, TO, and VALID-P.
-
-FROM and TO specify the range of text that has the same `composition'
-property, VALID-P is non-nil if and only if this composition is valid.
-
-If there's no composition at POS, and the optional 2nd argument LIMIT
-is non-nil, search for a composition toward LIMIT.
-
-If no composition is found, return nil.
-
-Optional 3rd argument STRING, if non-nil, is a string to look for a
-composition in; nil means the current buffer.
-
-If a valid composition is found and the optional 4th argument DETAIL-P
-is non-nil, the return value is a list of FROM, TO, COMPONENTS,
-RELATIVE-P, MOD-FUNC, and WIDTH.
-
-COMPONENTS is a vector of integers, the meaning depends on RELATIVE-P.
-
-RELATIVE-P is t if the composition method is relative, else nil.
-
-If RELATIVE-P is t, COMPONENTS is a vector of characters to be
-composed.  If RELATIVE-P is nil, COMPONENTS is a vector of characters
-and composition rules as described in `compose-region'.
-
-MOD-FUNC is a modification function of the composition.
-
-WIDTH is a number of columns the composition occupies on the screen.
-
-\(fn POS &optional LIMIT STRING DETAIL-P)" nil nil)
-
-(autoload (quote compose-chars-after) "composite" "\
-Compose characters in current buffer after position POS.
-
-It looks up the char-table `composition-function-table' (which see) by
-a character after POS.  If non-nil value is found, the format of the
-value should be an alist of PATTERNs vs FUNCs, where PATTERNs are
-regular expressions and FUNCs are functions.  If the text after POS
-matches one of PATTERNs, call the corresponding FUNC with three
-arguments POS, TO, and PATTERN, where TO is the end position of text
-matching PATTERN, and return what FUNC returns.  Otherwise, return
-nil.
-
-FUNC is responsible for composing the text properly.  The return value
-is:
-  nil -- if no characters were composed.
-  CHARS (integer) -- if CHARS characters were composed.
-
-Optional 2nd arg LIMIT, if non-nil, limits the matching of text.
-
-Optional 3rd arg OBJECT, if non-nil, is a string that contains the
-text to compose.  In that case, POS and LIMIT index to the string.
-
-This function is the default value of `compose-chars-after-function'.
-
-\(fn POS &optional LIMIT OBJECT)" nil nil)
-
-(autoload (quote compose-last-chars) "composite" "\
-Compose last characters.
-The argument is a parameterized event of the form
-	(compose-last-chars N COMPONENTS),
-where N is the number of characters before point to compose,
-COMPONENTS, if non-nil, is the same as the argument to `compose-region'
-\(which see).  If it is nil, `compose-chars-after' is called,
-and that function find a proper rule to compose the target characters.
-This function is intended to be used from input methods.
-The global keymap binds special event `compose-last-chars' to this
-function.  Input method may generate an event (compose-last-chars N COMPONENTS)
-after a sequence character events.
-
-\(fn ARGS)" t nil)
-(global-set-key [compose-last-chars] 'compose-last-chars)
-
-(autoload (quote decompose-composite-char) "composite" "\
-Convert CHAR to string.
-
-If optional 2nd arg TYPE is non-nil, it is `string', `list', or
-`vector'.  In this case, CHAR is converted to string, list of CHAR, or
-vector of CHAR respectively.
-Optional 3rd arg WITH-COMPOSITION-RULE is ignored.
-
-\(fn CHAR &optional TYPE WITH-COMPOSITION-RULE)" nil nil)
-
-(make-obsolete (quote decompose-composite-char) (quote char-to-string) "21.1")
-
-;;;***
-
 ;;;### (autoloads (shuffle-vector cookie-snarf cookie-insert cookie)
 ;;;;;;  "cookie1" "play/cookie1.el" (15366 772))
 ;;; Generated autoloads from play/cookie1.el
@@ -4583,7 +4316,7 @@ Randomly permute the elements of VECTOR (all permutations equally likely).
 ;;;***
 
 ;;;### (autoloads (copyright copyright-update) "copyright" "emacs-lisp/copyright.el"
-;;;;;;  (16111 41827))
+;;;;;;  (16179 16691))
 ;;; Generated autoloads from emacs-lisp/copyright.el
 
 (autoload (quote copyright-update) "copyright" "\
@@ -5248,7 +4981,7 @@ in which `turn-on-cwarn-mode-if-enabled' turns it on.
 
 ;;;### (autoloads (standard-display-cyrillic-translit cyrillic-encode-alternativnyj-char
 ;;;;;;  cyrillic-encode-koi8-r-char) "cyril-util" "language/cyril-util.el"
-;;;;;;  (16118 44435))
+;;;;;;  (16183 31287))
 ;;; Generated autoloads from language/cyril-util.el
 
 (autoload (quote cyrillic-encode-koi8-r-char) "cyril-util" "\
@@ -5683,7 +5416,7 @@ the first time the mode is used.
 ;;;***
 
 ;;;### (autoloads (describe-char describe-text-properties) "descr-text"
-;;;;;;  "descr-text.el" (16111 41824))
+;;;;;;  "descr-text.el" (16182 59079))
 ;;; Generated autoloads from descr-text.el
 
 (autoload (quote describe-text-properties) "descr-text" "\
@@ -5708,7 +5441,7 @@ as well as widgets, buttons, overlays, and text properties.
 
 ;;;### (autoloads (desktop-revert desktop-save-in-load-dir desktop-change-dir
 ;;;;;;  desktop-load-default desktop-read) "desktop" "desktop.el"
-;;;;;;  (16148 4632))
+;;;;;;  (16179 10603))
 ;;; Generated autoloads from desktop.el
 
 (autoload (quote desktop-read) "desktop" "\
@@ -5746,11 +5479,21 @@ Revert to the last loaded desktop.
 
 ;;;***
 
-;;;### (autoloads nil "devan-util" "language/devan-util.el" (16142
-;;;;;;  4985))
+;;;### (autoloads (devanagari-composition-function devanagari-compose-region)
+;;;;;;  "devan-util" "language/devan-util.el" (16194 62590))
 ;;; Generated autoloads from language/devan-util.el
 
-(defconst devanagari-consonant "[\x51ad5-\x51af9\x51b38-\x51b3f]")
+(autoload (quote devanagari-compose-region) "devan-util" "\
+Not documented
+
+\(fn FROM TO)" t nil)
+
+(autoload (quote devanagari-composition-function) "devan-util" "\
+Compose Devanagari characters after the position POS.
+If STRING is not nil, it is a string, and POS is an index to the string.
+In this case, compose characters after POS of the string.
+
+\(fn POS &optional STRING)" nil nil)
 
 ;;;***
 
@@ -7701,7 +7444,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (encoded-kbd-mode) "encoded-kb" "international/encoded-kb.el"
-;;;;;;  (15941 42961))
+;;;;;;  (16179 34394))
 ;;; Generated autoloads from international/encoded-kb.el
 
 (defvar encoded-kbd-mode nil "\
@@ -7759,8 +7502,8 @@ Not documented
 
 ;;;***
 
-;;;### (autoloads (eshell-mode) "esh-mode" "eshell/esh-mode.el" (15678
-;;;;;;  51469))
+;;;### (autoloads (eshell-mode) "esh-mode" "eshell/esh-mode.el" (16179
+;;;;;;  16825))
 ;;; Generated autoloads from eshell/esh-mode.el
 
 (autoload (quote eshell-mode) "esh-mode" "\
@@ -9393,7 +9136,7 @@ in your `~/.emacs' file, replacing [f7] by your favourite key:
 
 ;;;### (autoloads (font-lock-fontify-buffer font-lock-remove-keywords
 ;;;;;;  font-lock-add-keywords font-lock-mode-internal) "font-lock"
-;;;;;;  "font-lock.el" (16138 682))
+;;;;;;  "font-lock.el" (16179 10735))
 ;;; Generated autoloads from font-lock.el
 
 (autoload (quote font-lock-mode-internal) "font-lock" "\
@@ -10163,7 +9906,7 @@ Update the format specification near point.
 ;;;***
 
 ;;;### (autoloads (gnus-declare-backend gnus-unload) "gnus-start"
-;;;;;;  "gnus/gnus-start.el" (15678 51469))
+;;;;;;  "gnus/gnus-start.el" (16179 17130))
 ;;; Generated autoloads from gnus/gnus-start.el
 
 (autoload (quote gnus-unload) "gnus-start" "\
@@ -12478,13 +12221,13 @@ for more information.
 
 ;;;***
 
-;;;### (autoloads (indian-char-glyph indian-glyph-char in-is13194-pre-write-conversion
+;;;### (autoloads (indian-2-column-to-ucs-region in-is13194-pre-write-conversion
 ;;;;;;  in-is13194-post-read-conversion indian-compose-string indian-compose-region)
-;;;;;;  "ind-util" "language/ind-util.el" (16118 44435))
+;;;;;;  "ind-util" "language/ind-util.el" (16183 40136))
 ;;; Generated autoloads from language/ind-util.el
 
 (autoload (quote indian-compose-region) "ind-util" "\
-Compose the region according to `composition-function-table'. 
+Compose the region according to `composition-function-table'.
 
 \(fn FROM TO)" t nil)
 
@@ -12503,21 +12246,10 @@ Not documented
 
 \(fn FROM TO)" nil nil)
 
-(autoload (quote indian-glyph-char) "ind-util" "\
-Return character of charset `indian-glyph' made from glyph index INDEX.
-The variable `indian-default-script' specifies the script of the glyph.
-Optional argument SCRIPT, if non-nil, overrides `indian-default-script'.
-See also the function `indian-char-glyph'.
+(autoload (quote indian-2-column-to-ucs-region) "ind-util" "\
+Convert old Emacs Devanagari characters to UCS.
 
-\(fn INDEX &optional SCRIPT)" nil nil)
-
-(autoload (quote indian-char-glyph) "ind-util" "\
-Return information about the glyph code for CHAR of `indian-glyph' charset.
-The value is (INDEX . SCRIPT), where INDEX is the glyph index
-in the font that Indian script name SCRIPT specifies.
-See also the function `indian-glyph-char'.
-
-\(fn CHAR)" nil nil)
+\(fn FROM TO)" t nil)
 
 ;;;***
 
@@ -13654,10 +13386,9 @@ Use \\[describe-mode] for more info.
 
 ;;;***
 
-;;;### (autoloads (lao-compose-region lao-composition-function lao-post-read-conversion
-;;;;;;  lao-transcribe-roman-to-lao-string lao-transcribe-single-roman-syllable-to-lao
-;;;;;;  lao-compose-string) "lao-util" "language/lao-util.el" (16118
-;;;;;;  44435))
+;;;### (autoloads (lao-compose-region lao-composition-function lao-transcribe-roman-to-lao-string
+;;;;;;  lao-transcribe-single-roman-syllable-to-lao lao-compose-string)
+;;;;;;  "lao-util" "language/lao-util.el" (16183 37779))
 ;;; Generated autoloads from language/lao-util.el
 
 (autoload (quote lao-compose-string) "lao-util" "\
@@ -13682,20 +13413,10 @@ Transcribe Romanized Lao string STR to Lao character string.
 
 \(fn STR)" nil nil)
 
-(autoload (quote lao-post-read-conversion) "lao-util" "\
+(autoload (quote lao-composition-function) "lao-util" "\
 Not documented
 
-\(fn LEN)" nil nil)
-
-(autoload (quote lao-composition-function) "lao-util" "\
-Compose Lao text in the region FROM and TO.
-The text matches the regular expression PATTERN.
-Optional 4th argument STRING, if non-nil, is a string containing text
-to compose.
-
-The return value is number of composed characters.
-
-\(fn FROM TO PATTERN &optional STRING)" nil nil)
+\(fn POS &optional STRING)" nil nil)
 
 (autoload (quote lao-compose-region) "lao-util" "\
 Not documented
@@ -14992,7 +14713,7 @@ Major mode for the mixal asm language.
 ;;;***
 
 ;;;### (autoloads (malayalam-composition-function malayalam-compose-region)
-;;;;;;  "mlm-util" "language/mlm-util.el" (16118 44435))
+;;;;;;  "mlm-util" "language/mlm-util.el" (16194 57623))
 ;;; Generated autoloads from language/mlm-util.el
 
 (autoload (quote malayalam-compose-region) "mlm-util" "\
@@ -15001,11 +14722,11 @@ Not documented
 \(fn FROM TO)" t nil)
 
 (autoload (quote malayalam-composition-function) "mlm-util" "\
-Compose Malayalam characters in REGION, or STRING if specified.
-Assume that the REGION or STRING must fully match the composable 
-PATTERN regexp.
+Compose Malayalam characters after the position POS.
+If STRING is not nil, it is a string, and POS is an index to the string.
+In this case, compose characters after POS of the string.
 
-\(fn FROM TO PATTERN &optional STRING)" nil nil)
+\(fn POS &optional STRING)" nil nil)
 
 ;;;***
 
@@ -15170,56 +14891,16 @@ different buffer menu using the function `msb'.
 
 ;;;***
 
-;;;### (autoloads (mule-diag list-input-methods list-fontsets describe-fontset
-;;;;;;  describe-font list-coding-categories list-coding-systems
-;;;;;;  describe-current-coding-system describe-current-coding-system-briefly
+;;;### (autoloads (unicode-data unicodedata-file mule-diag list-input-methods
+;;;;;;  list-fontsets describe-fontset describe-font list-coding-categories
+;;;;;;  list-coding-systems describe-current-coding-system describe-current-coding-system-briefly
 ;;;;;;  describe-coding-system describe-character-set list-charset-chars
 ;;;;;;  read-charset list-character-sets) "mule-diag" "international/mule-diag.el"
-;;;;;;  (16174 63062))
+;;;;;;  (16194 5746))
 ;;; Generated autoloads from international/mule-diag.el
-
-(defvar non-iso-charset-alist (\` ((mac-roman (ascii latin-iso8859-1 mule-unicode-2500-33ff mule-unicode-0100-24ff mule-unicode-e000-ffff) mac-roman-decoder ((0 255))) (viscii (ascii vietnamese-viscii-lower vietnamese-viscii-upper) viet-viscii-nonascii-translation-table ((0 255))) (vietnamese-tcvn (ascii vietnamese-viscii-lower vietnamese-viscii-upper) viet-tcvn-nonascii-translation-table ((0 255))) (koi8-r (ascii cyrillic-iso8859-5) cyrillic-koi8-r-nonascii-translation-table ((32 255))) (alternativnyj (ascii cyrillic-iso8859-5) cyrillic-alternativnyj-nonascii-translation-table ((32 255))) (koi8-u (ascii cyrillic-iso8859-5 mule-unicode-0100-24ff) cyrillic-koi8-u-nonascii-translation-table ((32 255))) (big5 (ascii chinese-big5-1 chinese-big5-2) decode-big5-char ((32 127) ((161 254) 64 126 161 254))) (sjis (ascii katakana-jisx0201 japanese-jisx0208) decode-sjis-char ((32 127 161 223) ((129 159 224 239) 64 126 128 252))))) "\
-Alist of charset names vs the corresponding information.
-This is mis-named for historical reasons.  The charsets are actually
-non-built-in ones.  They correspond to Emacs coding systems, not Emacs
-charsets, i.e. what Emacs can read (or write) by mapping to (or
-from) Emacs internal charsets that typically correspond to a limited
-set of ISO charsets.
-
-Each element has the following format:
-  (CHARSET CHARSET-LIST TRANSLATION-METHOD [ CODE-RANGE ])
-
-CHARSET is the name (symbol) of the charset.
-
-CHARSET-LIST is a list of Emacs charsets into which characters of
-CHARSET are mapped.
-
-TRANSLATION-METHOD is a translation table (symbol) to translate a
-character code of CHARSET to the corresponding Emacs character
-code.  It can also be a function to call with one argument, a
-character code in CHARSET.
-
-CODE-RANGE specifies the valid code ranges of CHARSET.
-It is a list of RANGEs, where each RANGE is of the form:
-  (FROM1 TO1 FROM2 TO2 ...)
-or
-  ((FROM1-1 TO1-1 FROM1-2 TO1-2 ...) . (FROM2-1 TO2-1 FROM2-2 TO2-2 ...))
-In the first form, valid codes are between FROM1 and TO1, or FROM2 and
-TO2, or...
-The second form is used for 2-byte codes.  The car part is the ranges
-of the first byte, and the cdr part is the ranges of the second byte.")
 
 (autoload (quote list-character-sets) "mule-diag" "\
 Display a list of all character sets.
-
-The ID-NUM column contains a charset identification number for
-internal Emacs use.
-
-The MULTIBYTE-FORM column contains the format of the buffer and string
-multibyte sequence of characters in the charset using one to four
-hexadecimal digits.
-  `xx' stands for any byte in the range 0..127.
-  `XX' stands for any byte in the range 160..255.
 
 The D column contains the dimension of this character set.  The CH
 column contains the number of characters in a block of this character
@@ -15233,9 +14914,7 @@ but still shows the full information.
 
 (autoload (quote read-charset) "mule-diag" "\
 Read a character set from the minibuffer, prompting with string PROMPT.
-It must be an Emacs character set listed in the variable `charset-list'
-or a non-ISO character set listed in the variable
-`non-iso-charset-alist'.
+It must be an Emacs character set listed in the variable `charset-list'.
 
 Optional arguments are DEFAULT-VALUE and INITIAL-INPUT.
 DEFAULT-VALUE, if non-nil, is the default value.
@@ -15246,10 +14925,7 @@ detailed meanings of these arguments.
 \(fn PROMPT &optional DEFAULT-VALUE INITIAL-INPUT)" nil nil)
 
 (autoload (quote list-charset-chars) "mule-diag" "\
-Display a list of characters in the specified character set.
-This can list both Emacs `official' (ISO standard) charsets and the
-characters encoded by various Emacs coding systems which correspond to
-PC `codepages' and other coded character sets.  See `non-iso-charset-alist'.
+Display a list of characters in character set CHARSET.
 
 \(fn CHARSET)" t nil)
 
@@ -15341,14 +15017,29 @@ system which uses fontsets).
 
 \(fn)" t nil)
 
+(defvar unicodedata-file nil "\
+Location of UnicodeData file.
+This is the UnicodeData.txt file from the Unicode consortium, used for
+diagnostics.  If it is non-nil `describe-char-after' will print data
+looked up from it.")
+
+(custom-autoload (quote unicodedata-file) "mule-diag")
+
+(autoload (quote unicode-data) "mule-diag" "\
+Return a list of Unicode data for unicode CHAR.
+Each element is a list of a property description and the property value.
+The list is null if CHAR isn't found in `unicodedata-file'.
+
+\(fn CHAR)" nil nil)
+
 ;;;***
 
 ;;;### (autoloads (detect-coding-with-language-environment detect-coding-with-priority
-;;;;;;  coding-system-equal coding-system-translation-table-for-encode
+;;;;;;  with-coding-priority coding-system-equal coding-system-translation-table-for-encode
 ;;;;;;  coding-system-translation-table-for-decode coding-system-pre-write-conversion
 ;;;;;;  coding-system-post-read-conversion lookup-nested-alist set-nested-alist
 ;;;;;;  truncate-string-to-width store-substring string-to-sequence)
-;;;;;;  "mule-util" "international/mule-util.el" (15829 28908))
+;;;;;;  "mule-util" "international/mule-util.el" (16182 61069))
 ;;; Generated autoloads from international/mule-util.el
 
 (autoload (quote string-to-sequence) "mule-util" "\
@@ -15446,12 +15137,12 @@ Return the value of CODING-SYSTEM's `pre-write-conversion' property.
 \(fn CODING-SYSTEM)" nil nil)
 
 (autoload (quote coding-system-translation-table-for-decode) "mule-util" "\
-Return the value of CODING-SYSTEM's `translation-table-for-decode' property.
+Return the value of CODING-SYSTEM's `decode-translation-table' property.
 
 \(fn CODING-SYSTEM)" nil nil)
 
 (autoload (quote coding-system-translation-table-for-encode) "mule-util" "\
-Return the value of CODING-SYSTEM's `translation-table-for-encode' property.
+Return the value of CODING-SYSTEM's `encode-translation-table' property.
 
 \(fn CODING-SYSTEM)" nil nil)
 
@@ -15461,6 +15152,14 @@ Two coding systems are identical if two symbols are equal
 or one is an alias of the other.
 
 \(fn CODING-SYSTEM-1 CODING-SYSTEM-2)" nil nil)
+
+(autoload (quote with-coding-priority) "mule-util" "\
+Execute BODY like `progn' with CODING-SYSTEMS at the front of priority list.
+CODING-SYSTEMS is a list of coding systems.  See
+`set-coding-priority'.  This affects the implicit sorting of lists of
+coding sysems returned by operations such as `find-coding-systems-region'.
+
+\(fn CODING-SYSTEMS &rest BODY)" nil (quote macro))
 
 (autoload (quote detect-coding-with-priority) "mule-util" "\
 Detect a coding system of the text between FROM and TO with PRIORITY-LIST.
@@ -17734,7 +17433,7 @@ If EXTENSION is any other symbol, it is ignored.
 ;;;;;;  quail-defrule quail-install-decode-map quail-install-map
 ;;;;;;  quail-define-rules quail-show-keyboard-layout quail-set-keyboard-layout
 ;;;;;;  quail-define-package quail-use-package quail-title) "quail"
-;;;;;;  "international/quail.el" (16162 48286))
+;;;;;;  "international/quail.el" (16183 19626))
 ;;; Generated autoloads from international/quail.el
 
 (autoload (quote quail-title) "quail" "\
@@ -18350,7 +18049,7 @@ of master file.
 ;;;***
 
 ;;;### (autoloads (regexp-opt-depth regexp-opt) "regexp-opt" "emacs-lisp/regexp-opt.el"
-;;;;;;  (16054 60749))
+;;;;;;  (16179 16744))
 ;;; Generated autoloads from emacs-lisp/regexp-opt.el
 
 (autoload (quote regexp-opt) "regexp-opt" "\
@@ -19219,8 +18918,8 @@ This function is obsolete.
 
 ;;;***
 
-;;;### (autoloads (ruler-mode) "ruler-mode" "ruler-mode.el" (16111
-;;;;;;  41826))
+;;;### (autoloads (ruler-mode) "ruler-mode" "ruler-mode.el" (16179
+;;;;;;  11153))
 ;;; Generated autoloads from ruler-mode.el
 
 (autoload (quote ruler-mode) "ruler-mode" "\
@@ -19613,7 +19312,7 @@ apply to all visible windows in the same frame.
 ;;;;;;  mail-alias-file mail-default-reply-to mail-archive-file-name
 ;;;;;;  mail-header-separator send-mail-function mail-yank-ignored-headers
 ;;;;;;  mail-interactive mail-self-blind mail-specify-envelope-from
-;;;;;;  mail-from-style) "sendmail" "mail/sendmail.el" (16136 53055))
+;;;;;;  mail-from-style) "sendmail" "mail/sendmail.el" (16183 39073))
 ;;; Generated autoloads from mail/sendmail.el
 
 (defvar mail-from-style (quote angles) "\
@@ -19870,7 +19569,7 @@ These are active only in the minibuffer, when entering or editing a formula:
 ;;;***
 
 ;;;### (autoloads (html-mode sgml-mode) "sgml-mode" "textmodes/sgml-mode.el"
-;;;;;;  (16139 21086))
+;;;;;;  (16183 39901))
 ;;; Generated autoloads from textmodes/sgml-mode.el
 
 (autoload (quote sgml-mode) "sgml-mode" "\
@@ -21979,7 +21678,7 @@ Connect to display DISPLAY for the Emacs talk group.
 
 ;;;***
 
-;;;### (autoloads (tar-mode) "tar-mode" "tar-mode.el" (15961 24151))
+;;;### (autoloads (tar-mode) "tar-mode" "tar-mode.el" (16205 24332))
 ;;; Generated autoloads from tar-mode.el
 
 (autoload (quote tar-mode) "tar-mode" "\
@@ -22078,8 +21777,8 @@ Normally input is edited in Emacs and sent a line at a time.
 
 ;;;***
 
-;;;### (autoloads (ansi-term term make-term) "term" "term.el" (15941
-;;;;;;  42957))
+;;;### (autoloads (ansi-term term make-term) "term" "term.el" (16179
+;;;;;;  13250))
 ;;; Generated autoloads from term.el
 
 (autoload (quote make-term) "term" "\
@@ -22620,9 +22319,9 @@ value of `texinfo-mode-hook'.
 
 ;;;***
 
-;;;### (autoloads (thai-composition-function thai-post-read-conversion
-;;;;;;  thai-compose-buffer thai-compose-string thai-compose-region)
-;;;;;;  "thai-util" "language/thai-util.el" (16118 44435))
+;;;### (autoloads (thai-composition-function thai-compose-buffer
+;;;;;;  thai-compose-string thai-compose-region) "thai-util" "language/thai-util.el"
+;;;;;;  (16185 55426))
 ;;; Generated autoloads from language/thai-util.el
 
 (autoload (quote thai-compose-region) "thai-util" "\
@@ -22642,20 +22341,10 @@ Compose Thai characters in the current buffer.
 
 \(fn)" t nil)
 
-(autoload (quote thai-post-read-conversion) "thai-util" "\
+(autoload (quote thai-composition-function) "thai-util" "\
 Not documented
 
-\(fn LEN)" nil nil)
-
-(autoload (quote thai-composition-function) "thai-util" "\
-Compose Thai text in the region FROM and TO.
-The text matches the regular expression PATTERN.
-Optional 4th argument STRING, if non-nil, is a string containing text
-to compose.
-
-The return value is number of composed characters.
-
-\(fn FROM TO PATTERN &optional STRING)" nil nil)
+\(fn POS &optional STRING)" nil nil)
 
 ;;;***
 
@@ -22721,7 +22410,7 @@ Not documented
 ;;;;;;  tibetan-composition-function tibetan-decompose-string tibetan-decompose-region
 ;;;;;;  tibetan-compose-region tibetan-compose-string tibetan-transcription-to-tibetan
 ;;;;;;  tibetan-tibetan-to-transcription tibetan-char-p) "tibet-util"
-;;;;;;  "language/tibet-util.el" (16118 44435))
+;;;;;;  "language/tibet-util.el" (16195 2278))
 ;;; Generated autoloads from language/tibet-util.el
 
 (autoload (quote tibetan-char-p) "tibet-util" "\
@@ -22768,7 +22457,7 @@ are decomposed into normal Tibetan character sequences.
 (autoload (quote tibetan-composition-function) "tibet-util" "\
 Not documented
 
-\(fn FROM TO PATTERN &optional STRING)" nil nil)
+\(fn POS &optional STRING)" nil nil)
 
 (autoload (quote tibetan-decompose-buffer) "tibet-util" "\
 Decomposes Tibetan characters in the buffer into their components.
@@ -23152,7 +22841,7 @@ be detected.
 ;;;***
 
 ;;;### (autoloads (batch-titdic-convert titdic-convert) "titdic-cnv"
-;;;;;;  "international/titdic-cnv.el" (15941 42961))
+;;;;;;  "international/titdic-cnv.el" (16183 29727))
 ;;; Generated autoloads from international/titdic-cnv.el
 
 (autoload (quote titdic-convert) "titdic-cnv" "\
@@ -23175,7 +22864,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\".
 ;;;***
 
 ;;;### (autoloads (tamil-composition-function tamil-compose-region)
-;;;;;;  "tml-util" "language/tml-util.el" (16118 44435))
+;;;;;;  "tml-util" "language/tml-util.el" (16194 56852))
 ;;; Generated autoloads from language/tml-util.el
 
 (autoload (quote tamil-compose-region) "tml-util" "\
@@ -23184,11 +22873,11 @@ Not documented
 \(fn FROM TO)" t nil)
 
 (autoload (quote tamil-composition-function) "tml-util" "\
-Compose Tamil characters in REGION, or STRING if specified.
-Assume that the REGION or STRING must fully match the composable 
-PATTERN regexp.
+Compose Tamil characters after the position POS.
+If STRING is not nil, it is a string, and POS is an index to the string.
+In this case, compose characters after POS of the string.
 
-\(fn FROM TO PATTERN &optional STRING)" nil nil)
+\(fn POS &optional STRING)" nil nil)
 
 ;;;***
 
@@ -24824,7 +24513,7 @@ Syntax table and abbrevs while in vi mode remain as they were in Emacs.
 ;;;### (autoloads (viqr-pre-write-conversion viqr-post-read-conversion
 ;;;;;;  viet-encode-viqr-buffer viet-encode-viqr-region viet-decode-viqr-buffer
 ;;;;;;  viet-decode-viqr-region viet-encode-viscii-char) "viet-util"
-;;;;;;  "language/viet-util.el" (16118 44435))
+;;;;;;  "language/viet-util.el" (16183 38637))
 ;;; Generated autoloads from language/viet-util.el
 
 (autoload (quote viet-encode-viscii-char) "viet-util" "\
@@ -25358,8 +25047,8 @@ With arg, turn widget mode on if and only if arg is positive.
 ;;;***
 
 ;;;### (autoloads (widget-setup widget-insert widget-delete widget-create
-;;;;;;  widget-prompt-value widgetp) "wid-edit" "wid-edit.el" (16111
-;;;;;;  41826))
+;;;;;;  widget-prompt-value widgetp) "wid-edit" "wid-edit.el" (16179
+;;;;;;  14095))
 ;;; Generated autoloads from wid-edit.el
 
 (autoload (quote widgetp) "wid-edit" "\
@@ -25749,10 +25438,10 @@ Zone-mode does two things:
 ;;;;;;  "calendar/cal-julian.el" "calendar/cal-mayan.el" "calendar/cal-menu.el"
 ;;;;;;  "calendar/cal-move.el" "calendar/cal-persia.el" "calendar/cal-tex.el"
 ;;;;;;  "calendar/cal-x.el" "calendar/parse-time.el" "case-table.el"
-;;;;;;  "cdl.el" "cus-dep.el" "cus-load.el" "cus-start.el" "custom.el"
-;;;;;;  "dos-fns.el" "dos-vars.el" "dos-w32.el" "ediff-diff.el" "ediff-init.el"
-;;;;;;  "ediff-merg.el" "ediff-ptch.el" "ediff-vers.el" "ediff-wind.el"
-;;;;;;  "electric.el" "emacs-lisp/assoc.el" "emacs-lisp/authors.el"
+;;;;;;  "cdl.el" "composite.el" "cus-dep.el" "cus-load.el" "cus-start.el"
+;;;;;;  "custom.el" "dos-fns.el" "dos-vars.el" "dos-w32.el" "ediff-diff.el"
+;;;;;;  "ediff-init.el" "ediff-merg.el" "ediff-ptch.el" "ediff-vers.el"
+;;;;;;  "ediff-wind.el" "electric.el" "emacs-lisp/assoc.el" "emacs-lisp/authors.el"
 ;;;;;;  "emacs-lisp/bindat.el" "emacs-lisp/byte-opt.el" "emacs-lisp/byte-run.el"
 ;;;;;;  "emacs-lisp/cl-compat.el" "emacs-lisp/cl-extra.el" "emacs-lisp/cl-macs.el"
 ;;;;;;  "emacs-lisp/cl-seq.el" "emacs-lisp/cl-specs.el" "emacs-lisp/cust-print.el"
@@ -25801,15 +25490,10 @@ Zone-mode does two things:
 ;;;;;;  "indent.el" "international/characters.el" "international/fontset.el"
 ;;;;;;  "international/iso-ascii.el" "international/iso-insert.el"
 ;;;;;;  "international/iso-swed.el" "international/ja-dic-cnv.el"
-;;;;;;  "international/ja-dic-utl.el" "international/latin-1.el"
-;;;;;;  "international/latin-2.el" "international/latin-3.el" "international/latin-4.el"
-;;;;;;  "international/latin-5.el" "international/latin-8.el" "international/latin-9.el"
-;;;;;;  "international/mule-cmds.el" "international/mule-conf.el"
-;;;;;;  "international/mule.el" "international/ogonek.el" "international/subst-big5.el"
-;;;;;;  "international/subst-gb2312.el" "international/subst-jis.el"
-;;;;;;  "international/subst-ksc.el" "international/swedish.el" "international/ucs-tables.el"
-;;;;;;  "international/utf-16.el" "international/utf-7.el" "international/utf-8.el"
-;;;;;;  "isearch.el" "kermit.el" "language/chinese.el" "language/cyrillic.el"
+;;;;;;  "international/ja-dic-utl.el" "international/mule-cmds.el"
+;;;;;;  "international/mule-conf.el" "international/mule.el" "international/ogonek.el"
+;;;;;;  "international/swedish.el" "international/utf-7.el" "isearch.el"
+;;;;;;  "kermit.el" "language/chinese.el" "language/cyrillic.el"
 ;;;;;;  "language/czech.el" "language/devanagari.el" "language/english.el"
 ;;;;;;  "language/ethiopic.el" "language/european.el" "language/georgian.el"
 ;;;;;;  "language/greek.el" "language/hebrew.el" "language/indian.el"
@@ -25835,32 +25519,33 @@ Zone-mode does two things:
 ;;;;;;  "obsolete/uncompress.el" "obsolete/x-apollo.el" "obsolete/x-menu.el"
 ;;;;;;  "patcomp.el" "paths.el" "pcvs-info.el" "pcvs-parse.el" "pcvs-util.el"
 ;;;;;;  "play/gamegrid.el" "play/gametree.el" "play/meese.el" "progmodes/ada-prj.el"
-;;;;;;  "progmodes/cc-align.el" "progmodes/cc-awk.el" "progmodes/cc-bytecomp.el"
-;;;;;;  "progmodes/cc-cmds.el" "progmodes/cc-compat.el" "progmodes/cc-defs.el"
-;;;;;;  "progmodes/cc-engine.el" "progmodes/cc-fonts.el" "progmodes/cc-langs.el"
-;;;;;;  "progmodes/cc-menus.el" "progmodes/cc-vars.el" "progmodes/ebnf-bnf.el"
-;;;;;;  "progmodes/ebnf-iso.el" "progmodes/ebnf-otz.el" "progmodes/ebnf-yac.el"
-;;;;;;  "progmodes/idlw-rinfo.el" "progmodes/idlw-toolbar.el" "progmodes/mantemp.el"
-;;;;;;  "progmodes/xscheme.el" "register.el" "replace.el" "s-region.el"
-;;;;;;  "saveplace.el" "scroll-bar.el" "select.el" "simple.el" "soundex.el"
-;;;;;;  "startup.el" "subdirs.el" "subr.el" "tempo.el" "term/AT386.el"
-;;;;;;  "term/apollo.el" "term/bg-mouse.el" "term/bobcat.el" "term/internal.el"
-;;;;;;  "term/iris-ansi.el" "term/keyswap.el" "term/linux.el" "term/lk201.el"
-;;;;;;  "term/mac-win.el" "term/news.el" "term/pc-win.el" "term/rxvt.el"
-;;;;;;  "term/sun-mouse.el" "term/sun.el" "term/sup-mouse.el" "term/tty-colors.el"
-;;;;;;  "term/tvi970.el" "term/vt100.el" "term/vt102.el" "term/vt125.el"
-;;;;;;  "term/vt200.el" "term/vt201.el" "term/vt220.el" "term/vt240.el"
-;;;;;;  "term/vt300.el" "term/vt320.el" "term/vt400.el" "term/vt420.el"
-;;;;;;  "term/w32-win.el" "term/wyse50.el" "term/x-win.el" "term/xterm.el"
-;;;;;;  "textmodes/bib-mode.el" "textmodes/fill.el" "textmodes/makeinfo.el"
-;;;;;;  "textmodes/page-ext.el" "textmodes/page.el" "textmodes/paragraphs.el"
-;;;;;;  "textmodes/refbib.el" "textmodes/refer.el" "textmodes/reftex-auc.el"
-;;;;;;  "textmodes/reftex-dcr.el" "textmodes/reftex-global.el" "textmodes/reftex-ref.el"
-;;;;;;  "textmodes/reftex-sel.el" "textmodes/reftex-toc.el" "textmodes/reftex-vars.el"
-;;;;;;  "textmodes/texnfo-upd.el" "textmodes/text-mode.el" "timezone.el"
-;;;;;;  "uniquify.el" "vc-hooks.el" "vcursor.el" "version.el" "vms-patch.el"
-;;;;;;  "vmsproc.el" "vt-control.el" "vt100-led.el" "w32-fns.el"
-;;;;;;  "w32-vars.el" "widget.el" "window.el") (16174 63124 427475))
+;;;;;;  "progmodes/cap-words.el" "progmodes/cc-align.el" "progmodes/cc-awk.el"
+;;;;;;  "progmodes/cc-bytecomp.el" "progmodes/cc-cmds.el" "progmodes/cc-compat.el"
+;;;;;;  "progmodes/cc-defs.el" "progmodes/cc-engine.el" "progmodes/cc-fonts.el"
+;;;;;;  "progmodes/cc-langs.el" "progmodes/cc-menus.el" "progmodes/cc-vars.el"
+;;;;;;  "progmodes/ebnf-bnf.el" "progmodes/ebnf-iso.el" "progmodes/ebnf-otz.el"
+;;;;;;  "progmodes/ebnf-yac.el" "progmodes/idlw-rinfo.el" "progmodes/idlw-toolbar.el"
+;;;;;;  "progmodes/mantemp.el" "progmodes/xscheme.el" "register.el"
+;;;;;;  "replace.el" "s-region.el" "saveplace.el" "scroll-bar.el"
+;;;;;;  "select.el" "simple.el" "soundex.el" "startup.el" "subdirs.el"
+;;;;;;  "subr.el" "tempo.el" "term/AT386.el" "term/apollo.el" "term/bg-mouse.el"
+;;;;;;  "term/bobcat.el" "term/internal.el" "term/iris-ansi.el" "term/keyswap.el"
+;;;;;;  "term/linux.el" "term/lk201.el" "term/mac-win.el" "term/news.el"
+;;;;;;  "term/pc-win.el" "term/rxvt.el" "term/sun-mouse.el" "term/sun.el"
+;;;;;;  "term/sup-mouse.el" "term/tty-colors.el" "term/tvi970.el"
+;;;;;;  "term/vt100.el" "term/vt102.el" "term/vt125.el" "term/vt200.el"
+;;;;;;  "term/vt201.el" "term/vt220.el" "term/vt240.el" "term/vt300.el"
+;;;;;;  "term/vt320.el" "term/vt400.el" "term/vt420.el" "term/w32-win.el"
+;;;;;;  "term/wyse50.el" "term/x-win.el" "term/xterm.el" "textmodes/bib-mode.el"
+;;;;;;  "textmodes/fill.el" "textmodes/makeinfo.el" "textmodes/page-ext.el"
+;;;;;;  "textmodes/page.el" "textmodes/paragraphs.el" "textmodes/refbib.el"
+;;;;;;  "textmodes/refer.el" "textmodes/reftex-auc.el" "textmodes/reftex-dcr.el"
+;;;;;;  "textmodes/reftex-global.el" "textmodes/reftex-ref.el" "textmodes/reftex-sel.el"
+;;;;;;  "textmodes/reftex-toc.el" "textmodes/reftex-vars.el" "textmodes/texnfo-upd.el"
+;;;;;;  "textmodes/text-mode.el" "timezone.el" "uniquify.el" "vc-hooks.el"
+;;;;;;  "vcursor.el" "version.el" "vms-patch.el" "vmsproc.el" "vt-control.el"
+;;;;;;  "vt100-led.el" "w32-fns.el" "w32-vars.el" "widget.el" "window.el")
+;;;;;;  (16205 43209 430396))
 
 ;;;***
 

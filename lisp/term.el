@@ -895,8 +895,6 @@ is buffer-local.")
     (define-key map (make-string 1 i) 'term-send-raw)
     (define-key esc-map (make-string 1 i) 'term-send-raw-meta)
     (setq i (1+ i)))
-  (dolist (elm (generic-character-list))
-    (define-key map (vector elm) 'term-send-raw))
   (define-key map "\e" esc-map)
   (setq term-raw-map map)
   (setq term-raw-escape-map

@@ -574,9 +574,9 @@ in *Help* buffer.  See also the command `describe-char'."
 	(if (or (not coding)
 		(eq (coding-system-type coding) t))
 	    (setq coding default-buffer-file-coding-system))
-	(if (not (char-valid-p char))
+	(if (eq (char-charset char) 'eight-bit)
 	    (setq encoding-msg
-		  (format "(0%o, %d, 0x%x, invalid)" char char char))
+		  (format "(0%o, %d, 0x%x, raw-byte)" char char char))
 	  (setq encoded (and (>= char 128) (encode-coding-char char coding)))
 	  (setq encoding-msg
 		(if encoded

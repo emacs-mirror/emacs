@@ -1,7 +1,12 @@
 ;;; mule-util.el --- utility functions for mulitilingual environment (mule)
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;;   Licensed to the Free Software Foundation.
+;; Copyright (C) 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2003
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H13PRO009
+
 
 ;; Keywords: mule, multilingual
 
@@ -296,22 +301,22 @@ Optional 3rd argument NIL-FOR-TOO-LONG non-nil means return nil
 ;;;###autoload
 (defun coding-system-post-read-conversion (coding-system)
   "Return the value of CODING-SYSTEM's `post-read-conversion' property."
-  (coding-system-get coding-system 'post-read-conversion))
+  (coding-system-get coding-system :post-read-conversion))
 
 ;;;###autoload
 (defun coding-system-pre-write-conversion (coding-system)
   "Return the value of CODING-SYSTEM's `pre-write-conversion' property."
-  (coding-system-get coding-system 'pre-write-conversion))
+  (coding-system-get coding-system :pre-write-conversion))
 
 ;;;###autoload
 (defun coding-system-translation-table-for-decode (coding-system)
-  "Return the value of CODING-SYSTEM's `translation-table-for-decode' property."
-  (coding-system-get coding-system 'translation-table-for-decode))
+  "Return the value of CODING-SYSTEM's `decode-translation-table' property."
+  (coding-system-get coding-system :decode-translation-table))
 
 ;;;###autoload
 (defun coding-system-translation-table-for-encode (coding-system)
-  "Return the value of CODING-SYSTEM's `translation-table-for-encode' property."
-  (coding-system-get coding-system 'translation-table-for-encode))
+  "Return the value of CODING-SYSTEM's `encode-translation-table' property."
+  (coding-system-get coding-system :encode-translation-table))
 
 ;;;###autoload
 (defun coding-system-equal (coding-system-1 coding-system-2)
@@ -319,30 +324,37 @@ Optional 3rd argument NIL-FOR-TOO-LONG non-nil means return nil
 Two coding systems are identical if two symbols are equal
 or one is an alias of the other."
   (or (eq coding-system-1 coding-system-2)
-      (and (equal (coding-system-spec coding-system-1)
-		  (coding-system-spec coding-system-2))
+      (and (equal (coding-system-plist coding-system-1)
+		  (coding-system-plist coding-system-2))
 	   (let ((eol-type-1 (coding-system-eol-type coding-system-1))
 		 (eol-type-2 (coding-system-eol-type coding-system-2)))
 	     (or (eq eol-type-1 eol-type-2)
 		 (and (vectorp eol-type-1) (vectorp eol-type-2)))))))
 
 ;;;###autoload
+(defmacro with-coding-priority (coding-systems &rest body)
+  "Execute BODY like `progn' with CODING-SYSTEMS at the front of priority list.
+CODING-SYSTEMS is a list of coding systems.  See
+`set-coding-priority'.  This affects the implicit sorting of lists of
+coding sysems returned by operations such as `find-coding-systems-region'."
+  (let ((current (make-symbol "current")))
+  `(let ((,current (coding-system-priority-list)))
+     (apply #'set-coding-system-priority ,coding-systems)
+     (unwind-protect
+	 (progn ,@body)
+       (apply #'set-coding-system-priority ,current)))))
+(put 'with-coding-priority 'lisp-indent-function 1)
+(put 'with-coding-priority 'edebug-form-spec t)
+
+;;;###autoload
 (defmacro detect-coding-with-priority (from to priority-list)
   "Detect a coding system of the text between FROM and TO with PRIORITY-LIST.
 PRIORITY-LIST is an alist of coding categories vs the corresponding
 coding systems ordered by priority."
-  `(unwind-protect
-       (let* ((prio-list ,priority-list)
-	      (coding-category-list coding-category-list)
-	      ,@(mapcar (function (lambda (x) (list x x)))
-			coding-category-list))
-	 (mapc (function (lambda (x) (set (car x) (cdr x))))
-	       prio-list)
-	 (set-coding-priority (mapcar #'car prio-list))
-	 (detect-coding-region ,from ,to))
-     ;; We must restore the internal database.
-     (set-coding-priority coding-category-list)
-     (update-coding-systems-internal)))
+  `(with-coding-priority (mapcar #'cdr ,priority-list)
+     (detect-coding-region ,from ,to)))
+(make-obsolete 'detect-coding-with-priority
+	       "Use with-coding-priority and detect-coding-region" "22.1")
 
 ;;;###autoload
 (defun detect-coding-with-language-environment (from to lang-env)
@@ -351,12 +363,8 @@ The detection takes into account the coding system priorities for the
 language environment LANG-ENV."
   (let ((coding-priority (get-language-info lang-env 'coding-priority)))
     (if coding-priority
-	(detect-coding-with-priority
-	 from to
-	 (mapcar (function (lambda (x)
-			     (cons (coding-system-get x 'coding-category) x)))
-		 coding-priority))
-      (detect-coding-region from to))))
+	(with-coding-priority coding-priority
+          (detect-coding-region from to)))))
 
 
 (provide 'mule-util)

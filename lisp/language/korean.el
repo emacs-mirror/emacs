@@ -1,7 +1,10 @@
 ;;; korean.el --- support for Korean -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;;   Licensed to the Free Software Foundation.
+;; Copyright (C) 2003
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H13PRO009
 
 ;; Keywords: multilingual, Korean
 
@@ -28,25 +31,26 @@
 
 ;;; Code:
 
-(make-coding-system
- 'korean-iso-8bit 2 ?K
- "ISO 2022 based EUC encoding for Korean KSC5601 (MIME:EUC-KR)."
- '(ascii korean-ksc5601 nil nil
-   nil ascii-eol ascii-cntl)
- '((safe-charsets ascii korean-ksc5601)
-   (mime-charset . euc-kr)))
+(define-coding-system 'korean-iso-8bit
+  "ISO 2022 based EUC encoding for Korean KSC5601 (MIME:EUC-KR)."
+  :coding-type 'iso-2022
+  :mnemonic ?K
+  :designation [ascii korean-ksc5601 nil nil]
+  :charset-list '(ascii korean-ksc5601)
+  :mime-charset 'euc-kr)
 
 (define-coding-system-alias 'euc-kr 'korean-iso-8bit)
 (define-coding-system-alias 'euc-korea 'korean-iso-8bit)
 
-(make-coding-system
- 'iso-2022-kr 2 ?k
- "ISO 2022 based 7-bit encoding for Korean KSC5601 (MIME:ISO-2022-KR)."
- '(ascii (nil korean-ksc5601) nil nil
-	 nil ascii-eol ascii-cntl seven locking-shift nil nil nil nil nil
-	 designation-bol)
- '((safe-charsets ascii korean-ksc5601)
-   (mime-charset . iso-2022-kr)))
+(define-coding-system 'iso-2022-kr
+  "ISO 2022 based 7-bit encoding for Korean KSC5601 (MIME:ISO-2022-KR)."
+  :coding-type 'iso-2022
+  :mnemonic ?k
+  :designation [ascii (nil korean-ksc5601) nil nil]
+  :flags '(ascii-at-eol ascii-at-cntl 7-bit designation locking-shift
+			designation-bol)
+  :charset-list '(ascii korean-ksc5601)
+  :mime-charset 'iso-2022-kr)
 
 (define-coding-system-alias 'korean-iso-7bit-lock 'iso-2022-kr)
 

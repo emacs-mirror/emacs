@@ -1,7 +1,10 @@
 ;;; titdic-cnv.el --- convert cxterm dictionary (TIT format) to Quail package -*- coding:iso-2022-7bit; -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;;   Licensed to the Free Software Foundation.
+;; Copyright (C) 2003
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H13PRO009
 
 ;; Keywords: Quail, TIT, cxterm
 
@@ -494,24 +497,19 @@ the generated Quail package is saved."
 	    (goto-char (point-min))
 	    (decode-coding-region (point-min) (point-max) coding-system))
 
+	  (set-buffer-multibyte t)
 	  ;; Set point the starting position of the body part.
 	  (goto-char (point-min))
 	  (if (not (search-forward "\nBEGIN" nil t))
 	      (error "TIT dictionary can't be decoded correctly"))
 
-	  ;; Process the header part in multibyte mode.
-	  (with-current-buffer standard-output
-	    (set-buffer-multibyte t))
-	  (set-buffer-multibyte t)
+	  ;; Process the header part.
 	  (forward-line 1)
 	  (narrow-to-region (point-min) (point))
 	  (tit-process-header filename)
 	  (widen)
 
-	  ;; Process the body part.  For speed, we turn off multibyte facility.
-	  (with-current-buffer standard-output
-	    (set-buffer-multibyte nil))
-	  (set-buffer-multibyte nil)
+	  ;; Process the body part
 	  (tit-process-body))))))
 
 ;;;###autoload
@@ -1104,6 +1102,7 @@ the generated Quail package is saved."
       (error "%s does not exist" filename))
   (let ((tail quail-misc-package-ext-info)
 	(default-buffer-file-coding-system 'iso-2022-7bit)
+	(coding-system-for-write 'iso-2022-7bit)
 	slot
 	name title dicfile coding quailfile converter copyright
 	dicbuf)

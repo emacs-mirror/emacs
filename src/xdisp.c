@@ -176,6 +176,7 @@ Boston, MA 02111-1307, USA.  */
 #include "termchar.h"
 #include "dispextern.h"
 #include "buffer.h"
+#include "character.h"
 #include "charset.h"
 #include "indent.h"
 #include "commands.h"
@@ -674,11 +675,13 @@ static enum prop_handled handle_display_prop P_ ((struct it *));
 static enum prop_handled handle_composition_prop P_ ((struct it *));
 static enum prop_handled handle_overlay_change P_ ((struct it *));
 static enum prop_handled handle_fontified_prop P_ ((struct it *));
+static enum prop_handled handle_auto_composed_prop P_ ((struct it *));
 
 /* Properties handled by iterators.  */
 
 static struct props it_props[] =
 {
+  {&Qauto_composed,	AUTO_COMPOSED_PROP_IDX,	handle_auto_composed_prop},
   {&Qfontified,		FONTIFIED_PROP_IDX,	handle_fontified_prop},
   /* Handle `face' before `display' because some sub-properties of
      `display' need to know the face.  */
@@ -3765,6 +3768,44 @@ string_buffer_position (w, string, around_charpos)
 			`composition' property
  ***********************************************************************/
 
+static enum prop_handled
+handle_auto_composed_prop (it)
+     struct it *it;
+{
+  enum prop_handled handled = HANDLED_NORMALLY;
+
+  if (! NILP (Vauto_composition_function))
+    {
+      Lisp_Object val;
+      int pos;
+
+      if (STRINGP (it->string))
+	pos = IT_STRING_CHARPOS (*it);
+      else
+	pos = IT_CHARPOS (*it);
+
+      val =Fget_char_property (make_number (pos), Qauto_composed, it->string);
+      if (NILP (val))
+	{
+	  int count = SPECPDL_INDEX ();
+	  Lisp_Object args[3];
+
+	  args[0] = Vauto_composition_function;
+	  specbind (Qauto_composition_function, Qnil);
+	  args[1] = make_number (pos);
+	  args[2] = it->string;
+	  safe_call (3, args);
+	  unbind_to (count, Qnil);
+
+	  val = Fget_char_property (args[1], Qauto_composed, it->string);
+	  if (! NILP (val))
+	    handled = HANDLED_RECOMPUTE_PROPS;
+	}
+    }
+
+  return handled;
+}
+
 /* Set up iterator IT from `composition' property at its current
    position.  Called from handle_stop.  */
 
@@ -4725,12 +4766,9 @@ get_next_display_element (it)
 	  else if ((it->c < ' '
 		    && (it->area != TEXT_AREA
 			|| (it->c != '\n' && it->c != '\t')))
-		   || (it->multibyte_p
-		       ? ((it->c >= 127
-			   && it->len == 1)
-			  || !CHAR_PRINTABLE_P (it->c))
-		       : (it->c >= 127
-			  && it->c == unibyte_char_to_multibyte (it->c))))
+		   || (it->c != '\n' && it->c != '\t'
+		       && (it->multibyte_p ? !CHAR_PRINTABLE_P (it->c)
+			   : it->c == 127)))
 	    {
 	      /* IT->c is a control character which must be displayed
 		 either as '\003' or as `^C' where the '\\' and '^'
@@ -4776,24 +4814,28 @@ get_next_display_element (it)
 		  else
 		    escape_glyph = FAST_MAKE_GLYPH ('\\', 0);
 
-		  if (SINGLE_BYTE_CHAR_P (it->c))
-		    str[0] = it->c, len = 1;
+		  if (CHAR_BYTE8_P (it->c))
+		    {
+		      str[0] = CHAR_TO_BYTE8 (it->c);
+		      len = 1;
+		    }
+		  else if (it->c < 256)
+		    {
+		      str[0] = it->c;
+		      len = 1;
+		    }
 		  else
 		    {
-		      len = CHAR_STRING_NO_SIGNAL (it->c, str);
-		      if (len < 0)
-			{
-			  /* It's an invalid character, which
-			     shouldn't happen actually, but due to
-			     bugs it may happen.  Let's print the char
-			     as is, there's not much meaningful we can
-			     do with it.  */
-			  str[0] = it->c;
-			  str[1] = it->c >> 8;
-			  str[2] = it->c >> 16;
-			  str[3] = it->c >> 24;
-			  len = 4;
-			}
+		      /* It's an invalid character, which
+			 shouldn't happen actually, but due to
+			 bugs it may happen.  Let's print the char
+			 as is, there's not much meaningful we can
+			 do with it.  */
+		      str[0] = it->c;
+		      str[1] = it->c >> 8;
+		      str[2] = it->c >> 16;
+		      str[3] = it->c >> 24;
+		      len = 4;
 		    }
 
 		  for (i = 0; i < len; i++)
@@ -6208,7 +6250,7 @@ message_dolog (m, nbytes, nlflag, multibyte)
 	  for (i = 0; i < nbytes; i += char_bytes)
 	    {
 	      c = string_char_and_length (m + i, nbytes - i, &char_bytes);
-	      work[0] = (SINGLE_BYTE_CHAR_P (c)
+	      work[0] = (ASCII_CHAR_P (c)
 			 ? c
 			 : multibyte_char_to_unibyte (c, Qnil));
 	      insert_1_both (work, 1, 1, 1, 0, 0);
@@ -7478,7 +7520,7 @@ set_message_1 (a1, a2, nbytes, multibyte_p)
 	  for (i = 0; i < nbytes; i += n)
 	    {
 	      c = string_char_and_length (s + i, nbytes - i, &n);
-	      work[0] = (SINGLE_BYTE_CHAR_P (c)
+	      work[0] = (ASCII_CHAR_P (c)
 			 ? c
 			 : multibyte_char_to_unibyte (c, Qnil));
 	      insert_1_both (work, 1, 1, 1, 0, 0);
@@ -10376,35 +10418,24 @@ disp_char_vector (dp, c)
      struct Lisp_Char_Table *dp;
      int c;
 {
-  int code[4], i;
   Lisp_Object val;
 
-  if (SINGLE_BYTE_CHAR_P (c))
-    return (dp->contents[c]);
-
-  SPLIT_CHAR (c, code[0], code[1], code[2]);
-  if (code[1] < 32)
-    code[1] = -1;
-  else if (code[2] < 32)
-    code[2] = -1;
-
-  /* Here, the possible range of code[0] (== charset ID) is
-     128..max_charset.  Since the top level char table contains data
-     for multibyte characters after 256th element, we must increment
-     code[0] by 128 to get a correct index.  */
-  code[0] += 128;
-  code[3] = -1;		/* anchor */
-
-  for (i = 0; code[i] >= 0; i++, dp = XCHAR_TABLE (val))
+  if (ASCII_CHAR_P (c))
     {
-      val = dp->contents[code[i]];
-      if (!SUB_CHAR_TABLE_P (val))
-	return (NILP (val) ? dp->defalt : val);
+      val = dp->ascii;
+      if (SUB_CHAR_TABLE_P (val))
+	val = XSUB_CHAR_TABLE (val)->contents[c];
     }
+  else
+    {
+      Lisp_Object table;
 
-  /* Here, val is a sub char table.  We return the default value of
-     it.  */
-  return (dp->defalt);
+      XSETCHAR_TABLE (table, dp);
+      val = char_table_ref (table, c);
+    }
+  if (NILP (val))
+    val = dp->defalt;
+  return val;
 }
 
 
@@ -14083,7 +14114,7 @@ extend_face_to_end_of_line (it)
          ASCII face.  This will be automatically undone the next time
          get_next_display_element returns a multibyte character.  Note
          that the character will always be single byte in unibyte text.  */
-  if (!SINGLE_BYTE_CHAR_P (it->c))
+  if (!ASCII_CHAR_P (it->c))
     {
       it->face_id = FACE_FOR_CHAR (f, face, 0);
     }
@@ -14191,7 +14222,7 @@ highlight_trailing_whitespace (f, row)
 		  && glyph->u.ch == ' '))
 	  && trailing_whitespace_p (glyph->charpos))
 	{
-	  int face_id = lookup_named_face (f, Qtrailing_whitespace, 0);
+	  int face_id = lookup_named_face (f, Qtrailing_whitespace);
 
 	  while (glyph >= start
 		 && BUFFERP (glyph->object)
@@ -15602,7 +15633,7 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
   /* The EOL conversion we are using.  */
   Lisp_Object eoltype;
 
-  val = Fget (coding_system, Qcoding_system);
+  val = CODING_SYSTEM_SPEC (coding_system);
   eoltype = Qnil;
 
   if (!VECTORP (val))		/* Not yet decided.  */
@@ -15615,12 +15646,14 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
     }
   else
     {
+      Lisp_Object attrs;
       Lisp_Object eolvalue;
 
-      eolvalue = Fget (coding_system, Qeol_type);
+      attrs = AREF (val, 0);
+      eolvalue = AREF (val, 2);
 
       if (multibyte)
-	*buf++ = XFASTINT (AREF (val, 1));
+	*buf++ = XFASTINT (CODING_ATTR_MNEMONIC (attrs));
 
       if (eol_flag)
 	{
@@ -15630,10 +15663,10 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
 	    eoltype = eol_mnemonic_undecided;
 	  else if (VECTORP (eolvalue)) /* Not yet decided.  */
 	    eoltype = eol_mnemonic_undecided;
-	  else			/* INTEGERP (eolvalue) -- 0:LF, 1:CRLF, 2:CR */
-	    eoltype = (XFASTINT (eolvalue) == 0
+	  else			/* eolvalue is Qunix, Qdos, or Qmac.  */
+	    eoltype = (EQ (eolvalue, Qunix)
 		       ? eol_mnemonic_unix
-		       : (XFASTINT (eolvalue) == 1
+		       : (EQ (eolvalue, Qdos) == 1
 			  ? eol_mnemonic_dos : eol_mnemonic_mac));
 	}
     }
@@ -15646,8 +15679,7 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
 	  eol_str = SDATA (eoltype);
 	  eol_str_len = SBYTES (eoltype);
 	}
-      else if (INTEGERP (eoltype)
-	       && CHAR_VALID_P (XINT (eoltype), 0))
+      else if (CHARACTERP (eoltype))
 	{
 	  unsigned char *tmp = (unsigned char *) alloca (MAX_MULTIBYTE_LENGTH);
 	  eol_str_len = CHAR_STRING (XINT (eoltype), tmp);
@@ -15998,8 +16030,10 @@ decode_mode_spec (w, c, field_width, precision, multibyte)
 	  {
 	    /* No need to mention EOL here--the terminal never needs
 	       to do EOL conversion.  */
-	    p = decode_mode_spec_coding (keyboard_coding.symbol, p, 0);
-	    p = decode_mode_spec_coding (terminal_coding.symbol, p, 0);
+	    p = decode_mode_spec_coding (CODING_ID_NAME (keyboard_coding.id),
+					 p, 0);
+	    p = decode_mode_spec_coding (CODING_ID_NAME (terminal_coding.id),
+					 p, 0);
 	  }
 	p = decode_mode_spec_coding (b->buffer_file_coding_system,
 				     p, eol_flag);
@@ -16270,7 +16304,7 @@ display_string (string, lisp_string, face_string, face_string_pos,
 		}
 	      break;
 	    }
-	  else if (x + glyph->pixel_width > it->first_visible_x)
+	  else if (x + glyph->pixel_width >= it->first_visible_x)
 	    {
 	      /* Glyph is at least partially visible.  */
 	      ++it->hpos;
@@ -16573,24 +16607,25 @@ get_glyph_face_and_encoding (f, glyph, char2b, two_byte_p)
     }
   else
     {
-      int c1, c2, charset;
-
-      /* Split characters into bytes.  If c2 is -1 afterwards, C is
-	 really a one-byte character so that byte1 is zero.  */
-      SPLIT_CHAR (glyph->u.ch, charset, c1, c2);
-      if (c2 > 0)
-	STORE_XCHAR2B (char2b, c1, c2);
-      else
-	STORE_XCHAR2B (char2b, 0, c1);
-
-      /* Maybe encode the character in *CHAR2B.  */
-      if (charset != CHARSET_ASCII)
+      struct font_info *font_info
+	= FONT_INFO_FROM_ID (f, face->font_info_id);
+      if (font_info)
 	{
-	  struct font_info *font_info
-	    = FONT_INFO_FROM_ID (f, face->font_info_id);
-	  if (font_info)
-	    glyph->font_type
-	      = rif->encode_char (glyph->u.ch, char2b, font_info, two_byte_p);
+	  struct charset *charset = CHARSET_FROM_ID (font_info->charset);
+	  unsigned code = ENCODE_CHAR (charset, glyph->u.ch);
+
+	  if (CHARSET_DIMENSION (charset) == 1)
+	    STORE_XCHAR2B (char2b, 0, code);
+	  else
+	    STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
+
+	  /* Maybe encode the character in *CHAR2B.  */
+	  if (CHARSET_ID (charset) != charset_ascii)
+	    {
+	      glyph->font_type
+		= rif->encode_char (glyph->u.ch, char2b, font_info, charset,
+				    two_byte_p);
+	    }
 	}
     }
 
@@ -16970,26 +17005,19 @@ get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p, display_p)
       /* Case of ASCII in a face known to fit ASCII.  */
       STORE_XCHAR2B (char2b, 0, c);
     }
-  else
+  else if (face->font != NULL)
     {
-      int c1, c2, charset;
+      struct font_info *font_info
+	= FONT_INFO_FROM_ID (f, face->font_info_id);
+      struct charset *charset = CHARSET_FROM_ID (font_info->charset);
+      unsigned code = ENCODE_CHAR (charset, c);
 
-      /* Split characters into bytes.  If c2 is -1 afterwards, C is
-	 really a one-byte character so that byte1 is zero.  */
-      SPLIT_CHAR (c, charset, c1, c2);
-      if (c2 > 0)
-	STORE_XCHAR2B (char2b, c1, c2);
+      if (CHARSET_DIMENSION (charset) == 1)
+	STORE_XCHAR2B (char2b, 0, code);
       else
-	STORE_XCHAR2B (char2b, 0, c1);
-
-      /* Maybe encode the character in *CHAR2B.  */
-      if (face->font != NULL)
-	{
-	  struct font_info *font_info
-	    = FONT_INFO_FROM_ID (f, face->font_info_id);
-	  if (font_info)
-	    rif->encode_char (c, char2b, font_info, 0);
-	}
+	STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
+       /* Maybe encode the character in *CHAR2B.  */
+      rif->encode_char (c, char2b, font_info, charset, NULL);
     }
 
   /* Make sure X resources of the face are allocated.  */
@@ -17831,20 +17859,13 @@ x_produce_glyphs (it)
       /* Maybe translate single-byte characters to multibyte, or the
 	 other way.  */
       it->char_to_display = it->c;
-      if (!ASCII_BYTE_P (it->c))
+      if (!ASCII_BYTE_P (it->c)
+	  && ! it->multibyte_p)
 	{
-	  if (unibyte_display_via_language_environment
-	      && SINGLE_BYTE_CHAR_P (it->c)
-	      && (it->c >= 0240
-		  || !NILP (Vnonascii_translation_table)))
-	    {
-	      it->char_to_display = unibyte_char_to_multibyte (it->c);
-	      it->multibyte_p = 1;
-	      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
-	      face = FACE_FROM_ID (it->f, it->face_id);
-	    }
-	  else if (!SINGLE_BYTE_CHAR_P (it->c)
-		   && !it->multibyte_p)
+	  if (SINGLE_BYTE_CHAR_P (it->c)
+	      && unibyte_display_via_language_environment)
+	    it->char_to_display = unibyte_char_to_multibyte (it->c);
+	  if (! SINGLE_BYTE_CHAR_P (it->c))
 	    {
 	      it->multibyte_p = 1;
 	      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display);
@@ -18003,20 +18024,18 @@ x_produce_glyphs (it)
 
 	  /* If we found a font, this font should give us the right
 	     metrics.  If we didn't find a font, use the frame's
-	     default font and calculate the width of the character
-	     from the charset width; this is what old redisplay code
-	     did.  */
+	     default font and calculate the width of the character by
+	     multiplying the width of font by the width of the
+	     character.  */
 
 	  pcm = rif->per_char_metric (font, &char2b,
 				      FONT_TYPE_FOR_MULTIBYTE (font, it->c));
 
 	  if (font_not_found_p || !pcm)
 	    {
-	      int charset = CHAR_CHARSET (it->char_to_display);
-
 	      it->glyph_not_available_p = 1;
 	      it->pixel_width = (FRAME_COLUMN_WIDTH (it->f)
-				 * CHARSET_WIDTH (charset));
+				 * CHAR_WIDTH (it->char_to_display));
 	      it->phys_ascent = FONT_BASE (font) + boff;
 	      it->phys_descent = FONT_DESCENT (font) - boff;
 	    }
@@ -18079,10 +18098,7 @@ x_produce_glyphs (it)
       /* Maybe translate single-byte characters to multibyte.  */
       it->char_to_display = it->c;
       if (unibyte_display_via_language_environment
-	  && SINGLE_BYTE_CHAR_P (it->c)
-	  && (it->c >= 0240
-	      || (it->c >= 0200
-		  && !NILP (Vnonascii_translation_table))))
+	  && it->c >= 0200)
 	{
 	  it->char_to_display = unibyte_char_to_multibyte (it->c);
 	}

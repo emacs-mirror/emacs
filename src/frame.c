@@ -23,7 +23,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include <stdio.h>
 #include "lisp.h"
-#include "charset.h"
+#include "character.h"
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #endif
@@ -3063,14 +3063,14 @@ x_set_font (f, arg, oldval)
 
   BLOCK_INPUT;
   result = (STRINGP (fontset_name)
-            ? x_new_fontset (f, SDATA (fontset_name))
-            : x_new_font (f, SDATA (arg)));
+            ? x_new_fontset (f, fontset_name)
+            : x_new_fontset (f, arg));
   UNBLOCK_INPUT;
 
   if (EQ (result, Qnil))
     error ("Font `%s' is not defined", SDATA (arg));
   else if (EQ (result, Qt))
-    error ("The characters of the given font have varying widths");
+    error ("The default fontset can't be used for a frame font");
   else if (STRINGP (result))
     {
       if (STRINGP (fontset_name))
@@ -3080,10 +3080,10 @@ x_set_font (f, arg, oldval)
 	  if (old_fontset == FRAME_FONTSET (f))
 	    return;
 	}
-      else if (!NILP (Fequal (result, oldval)))
+      store_frame_param (f, Qfont, result);
+      if (!NILP (Fequal (result, oldval)))
         return;
 
-      store_frame_param (f, Qfont, result);
       recompute_basic_faces (f);
     }
   else

@@ -45,7 +45,7 @@ extern int errno;
 #include "window.h"
 #include "commands.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "region-cache.h"
 #include "indent.h"
 #include "blockinput.h"
@@ -186,6 +186,7 @@ static void free_buffer_text P_ ((struct buffer *b));
 static struct Lisp_Overlay * copy_overlays P_ ((struct buffer *, struct Lisp_Overlay *));
 static void modify_overlay P_ ((struct buffer *, EMACS_INT, EMACS_INT));
 
+extern char * emacs_strerror P_ ((int));
 
 /* For debugging; temporary.  See set_buffer_internal.  */
 /* Lisp_Object Qlisp_mode, Vcheck_symbol; */
@@ -2078,8 +2079,10 @@ DEFUN ("set-buffer-multibyte", Fset_buffer_multibyte, Sset_buffer_multibyte,
        doc: /* Set the multibyte flag of the current buffer to FLAG.
 If FLAG is t, this makes the buffer a multibyte buffer.
 If FLAG is nil, this makes the buffer a single-byte buffer.
-The buffer contents remain unchanged as a sequence of bytes
-but the contents viewed as characters do change.  */)
+In these cases, the buffer contents remain unchanged as a sequence of
+bytes but the contents viewed as characters do change.
+If FLAG is `to', this makes the buffer a multibyte buffer by changing
+all eight-bit bytes to eight-bit characters.  */)
      (flag)
      Lisp_Object flag;
 {
@@ -2149,11 +2152,11 @@ but the contents viewed as characters do change.  */)
 	      p = GAP_END_ADDR;
 	      stop = Z;
 	    }
-	  if (MULTIBYTE_STR_AS_UNIBYTE_P (p, bytes))
-	    p += bytes, pos += bytes;
-	  else
+	  if (ASCII_BYTE_P (*p))
+	    p++, pos++;
+	  else if (CHAR_BYTE8_HEAD_P (*p))
 	    {
-	      c = STRING_CHAR (p, stop - pos);
+	      c = STRING_CHAR_AND_LENGTH (p, stop - pos, bytes);
 	      /* Delete all bytes for this 8-bit character but the
 		 last one, and change the last one to the charcter
 		 code.  */
@@ -2168,6 +2171,11 @@ but the contents viewed as characters do change.  */)
 		zv -= bytes;
 	      stop = Z;
 	    }
+	  else
+	    {
+	      bytes = BYTES_BY_CHAR_HEAD (*p);
+	      p += bytes, pos += bytes;
+	    }
 	}
       if (narrowed)
 	Fnarrow_to_region (make_number (begv), make_number (zv));
@@ -2176,13 +2184,14 @@ but the contents viewed as characters do change.  */)
     {
       int pt = PT;
       int pos, stop;
-      unsigned char *p;
+      unsigned char *p, *pend;
 
       /* Be sure not to have a multibyte sequence striding over the GAP.
-	 Ex: We change this: "...abc\201 _GAP_ \241def..."
-	     to: "...abc _GAP_ \201\241def..."  */
+	 Ex: We change this: "...abc\302 _GAP_ \241def..."
+	     to: "...abc _GAP_ \302\241def..."  */
 
-      if (GPT_BYTE > 1 && GPT_BYTE < Z_BYTE
+      if (EQ (flag, Qt)
+	  && GPT_BYTE > 1 && GPT_BYTE < Z_BYTE
 	  && ! CHAR_HEAD_P (*(GAP_END_ADDR)))
 	{
 	  unsigned char *p = GPT_ADDR - 1;
@@ -2201,6 +2210,7 @@ but the contents viewed as characters do change.  */)
       pos = BEG;
       stop = GPT;
       p = BEG_ADDR;
+      pend = GPT_ADDR;
       while (1)
 	{
 	  int bytes;
@@ -2210,16 +2220,21 @@ but the contents viewed as characters do change.  */)
 	      if (pos == Z)
 		break;
 	      p = GAP_END_ADDR;
+	      pend = Z_ADDR;
 	      stop = Z;
 	    }
 
-	  if (UNIBYTE_STR_AS_MULTIBYTE_P (p, stop - pos, bytes))
+	  if (ASCII_BYTE_P (*p))
+	    p++, pos++;
+	  else if (EQ (flag, Qt) && (bytes = MULTIBYTE_LENGTH (p, pend)) > 0)
 	    p += bytes, pos += bytes;
 	  else
 	    {
 	      unsigned char tmp[MAX_MULTIBYTE_LENGTH];
+	      int c;
 
-	      bytes = CHAR_STRING (*p, tmp);
+	      c = BYTE8_TO_CHAR (*p);
+	      bytes = CHAR_STRING (c, tmp);
 	      *p = tmp[0];
 	      TEMP_SET_PT_BOTH (pos + 1, pos + 1);
 	      bytes--;
@@ -2233,6 +2248,7 @@ but the contents viewed as characters do change.  */)
 		zv += bytes;
 	      if (pos <= pt)
 		pt += bytes;
+	      pend = Z_ADDR;
 	      stop = Z;
 	    }
 	}
@@ -3741,15 +3757,13 @@ buffer.  */)
   end = OVERLAY_END (overlay);
   if (OVERLAY_POSITION (end) < b->overlay_center)
     {
-      if (b->overlays_after)
-	XOVERLAY (overlay)->next = b->overlays_after;
-    b->overlays_after = XOVERLAY (overlay);
+      XOVERLAY (overlay)->next = b->overlays_after;
+      b->overlays_after = XOVERLAY (overlay);
     }
   else
     {
-      if (b->overlays_before)
-	XOVERLAY (overlay)->next = b->overlays_before;
-    b->overlays_before = XOVERLAY (overlay);
+      XOVERLAY (overlay)->next = b->overlays_before;
+      b->overlays_before = XOVERLAY (overlay);
     }
 
   /* This puts it in the right list, and in the right order.  */

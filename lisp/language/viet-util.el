@@ -1,7 +1,10 @@
 ;;; viet-util.el --- utilities for Vietnamese  -*- coding: iso-2022-7bit; -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;;   Licensed to the Free Software Foundation.
+;; Copyright (C) 2003
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H13PRO009
 
 ;; Keywords: mule, multilingual, Vietnamese
 
@@ -39,8 +42,7 @@
 ;;;###autoload
 (defun viet-encode-viscii-char (char)
   "Return VISCII character code of CHAR if appropriate."
-  (aref (char-table-extra-slot viet-viscii-nonascii-translation-table 0)
-	char))
+  (encode-char char 'viscii))
 
 ;; VIQR is a menmonic encoding specification for Vietnamese.
 ;; It represents diacritical marks by ASCII characters as follows:

@@ -1,7 +1,10 @@
 ;;; english.el --- support for English -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;;   Licensed to the Free Software Foundation.
+;; Copyright (C) 2003
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H13PRO009
 
 ;; Keywords: multibyte character, character set, syntax, category
 
@@ -37,6 +40,26 @@
 	     (documentation . "\
 Nothing special is needed to handle English.")
 	     ))
+
+;; Mostly because we can now...
+(define-coding-system 'ebcdic-us
+  "US version of EBCDIC"
+  :coding-type 'charset
+  :charset-list '(ebcdic-us)
+  :mnemonic ?*)
+
+(define-coding-system 'ebcdic-uk
+  "UK version of EBCDIC"
+  :coding-type 'charset
+  :charset-list '(ebcdic-uk)
+  :mnemonic ?*)
+
+(define-coding-system 'ibm1047
+  "A version of EBCDIC used in OS/390 Unix"  ; says Groff
+  :coding-type 'charset
+  :charset-list '(ibm1047)
+  :mnemonic ?*)
+(define-coding-system-alias 'cp1047 'ibm1047)
 
 ;; Make "ASCII" an alias of "English" language environment.
 (set-language-info-alist

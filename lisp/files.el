@@ -3533,7 +3533,7 @@ non-nil, it is called instead of rereading visited file contents."
 		   (let ((coding-system-for-read
 			  ;; Auto-saved file shoule be read without
 			  ;; any code conversion.
-			  (if auto-save-p 'emacs-mule-unix
+			  (if auto-save-p 'utf-8-emacs
 			    (or coding-system-for-read
 				buffer-file-coding-system))))
 		     ;; This force after-insert-file-set-coding

@@ -88,6 +88,7 @@ extern struct direct *readdir ();
 #include "lisp.h"
 #include "buffer.h"
 #include "commands.h"
+#include "character.h"
 #include "charset.h"
 #include "coding.h"
 #include "regex.h"

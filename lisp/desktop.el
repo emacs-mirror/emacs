@@ -630,7 +630,7 @@ DIRNAME must be the directory in which the desktop file will be saved."
       (erase-buffer)
 
       (insert
-        ";; -*- coding: emacs-mule; -*-\n"
+        ";; -*- coding: utf-8-emacs; -*-\n"
         desktop-header
         ";; Created " (current-time-string) "\n"
         ";; Desktop file format version " desktop-file-version "\n"
@@ -659,7 +659,7 @@ DIRNAME must be the directory in which the desktop file will be saved."
         info)
       (setq default-directory dirname)
       (when (file-exists-p filename) (delete-file filename))
-      (let ((coding-system-for-write 'emacs-mule))
+      (let ((coding-system-for-write 'utf-8-emacs))
         (write-region (point-min) (point-max) filename nil 'nomessage))))
   (setq desktop-dirname dirname))
 

@@ -68,6 +68,7 @@ Boston, MA 02111-1307, USA.  */
 /* #include <sys/param.h>  */
 
 #include "charset.h"
+#include "character.h"
 #include "coding.h"
 #include "ccl.h"
 #include "frame.h"
@@ -765,7 +766,8 @@ XTreset_terminal_modes ()
 
 /* Function prototypes of this page.  */
 
-static int x_encode_char P_ ((int, XChar2b *, struct font_info *, int *));
+static int x_encode_char P_ ((int, XChar2b *, struct font_info *,
+			      struct charset *, int *));
 
 
 /* Get metrics of character CHAR2B in FONT.  Value is null if CHAR2B
@@ -844,13 +846,13 @@ x_per_char_metric (font, char2b, font_type)
    the two-byte form of C.  Encoding is returned in *CHAR2B.  */
 
 static int
-x_encode_char (c, char2b, font_info, two_byte_p)
+x_encode_char (c, char2b, font_info, charset, two_byte_p)
      int c;
      XChar2b *char2b;
      struct font_info *font_info;
+     struct charset *charset;
      int *two_byte_p;
 {
-  int charset = CHAR_CHARSET (c);
   XFontStruct *font = font_info->font;
 
   /* FONT_INFO may define a scheme by which to encode byte1 and byte2.
@@ -863,31 +865,31 @@ x_encode_char (c, char2b, font_info, two_byte_p)
 
       if (CHARSET_DIMENSION (charset) == 1)
 	{
-	  ccl->reg[0] = charset;
+	  ccl->reg[0] = CHARSET_ID (charset);
 	  ccl->reg[1] = char2b->byte2;
 	  ccl->reg[2] = -1;
 	}
       else
 	{
-	  ccl->reg[0] = charset;
+	  ccl->reg[0] = CHARSET_ID (charset);
 	  ccl->reg[1] = char2b->byte1;
 	  ccl->reg[2] = char2b->byte2;
 	}
 
-      ccl_driver (ccl, NULL, NULL, 0, 0, NULL);
+      ccl_driver (ccl, NULL, NULL, 0, 0, Qnil);
 
       /* We assume that MSBs are appropriately set/reset by CCL
 	 program.  */
       if (font->max_byte1 == 0)	/* 1-byte font */
-	char2b->byte1 = 0, char2b->byte2 = ccl->reg[1];
+	STORE_XCHAR2B (char2b, 0, ccl->reg[1]);
       else
-	char2b->byte1 = ccl->reg[1], char2b->byte2 = ccl->reg[2];
+	STORE_XCHAR2B (char2b, ccl->reg[1], ccl->reg[2]);
     }
-  else if (font_info->encoding[charset])
+  else if (font_info->encoding_type)
     {
       /* Fixed encoding scheme.  See fontset.h for the meaning of the
 	 encoding numbers.  */
-      int enc = font_info->encoding[charset];
+      unsigned char enc = font_info->encoding_type;
 
       if ((enc == 1 || enc == 2)
 	  && CHARSET_DIMENSION (charset) == 2)
@@ -6440,7 +6442,7 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
                   /* The input is converted to events, thus we can't
                      handle composition.  Anyway, there's no XIM that
                      gives us composition information.  */
-                  coding.composing = COMPOSITION_DISABLED;
+                  coding.common_flags &= ~CODING_ANNOTATION_MASK;
 
                   for (i = 0; i < nbytes; i++)
                     {
@@ -6452,22 +6454,22 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
 
                   {
                     /* Decode the input data.  */
-                    int require;
-                    unsigned char *p;
-
-                    require = decoding_buffer_size (&coding, nbytes);
-                    p = (unsigned char *) alloca (require);
-                    coding.mode |= CODING_MODE_LAST_BLOCK;
-                    /* We explicitly disable composition
-                       handling because key data should
-                       not contain any composition
-                       sequence.  */
-                    coding.composing = COMPOSITION_DISABLED;
-                    decode_coding (&coding, copy_bufptr, p,
-                                   nbytes, require);
-                    nbytes = coding.produced;
-                    nchars = coding.produced_char;
-                    copy_bufptr = p;
+		    coding.destination = (unsigned char *) malloc (nbytes);
+		    if (! coding.destination)
+		      break;
+		    coding.dst_bytes = nbytes;
+		    coding.mode |= CODING_MODE_LAST_BLOCK;
+		    decode_coding_c_string (&coding, copy_bufptr,
+					    nbytes, Qnil);
+		    nbytes = coding.produced;
+		    nchars = coding.produced_char;
+		    if (copy_bufsiz < nbytes)
+		      {
+			copy_bufsiz = nbytes;
+			copy_bufptr = (char *) alloca (nbytes);
+		      }
+		    bcopy (coding.destination, copy_bufptr, nbytes);
+		    free (coding.destination);
                   }
 
                   /* Convert the input data to a sequence of
@@ -6480,7 +6482,7 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
                         c = STRING_CHAR_AND_LENGTH (copy_bufptr + i,
                                                     nbytes - i, len);
 
-                      bufp->kind = (SINGLE_BYTE_CHAR_P (c)
+                      bufp->kind = (ASCII_CHAR_P (c)
                                     ? ASCII_KEYSTROKE_EVENT
                                     : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
                       bufp->code = c;
@@ -7876,10 +7878,15 @@ x_new_font (f, fontname)
      register char *fontname;
 {
   struct font_info *fontp
-    = FS_LOAD_FONT (f, 0, fontname, -1);
+    = FS_LOAD_FONT (f, fontname);
 
   if (!fontp)
     return Qnil;
+
+  if (FRAME_FONT (f) == (XFontStruct *) (fontp->font))
+    /* This font is already set in frame F.  There's nothing more to
+       do.  */
+    return build_string (fontp->full_name);
 
   FRAME_FONT (f) = (XFontStruct *) (fontp->font);
   FRAME_BASELINE_OFFSET (f) = fontp->baseline_offset;
@@ -7923,32 +7930,44 @@ x_new_font (f, fontname)
   return build_string (fontp->full_name);
 }
 
-/* Give frame F the fontset named FONTSETNAME as its default font, and
-   return the full name of that fontset.  FONTSETNAME may be a wildcard
-   pattern; in that case, we choose some fontset that fits the pattern.
-   The return value shows which fontset we chose.  */
+/* Give frame F the fontset named FONTSETNAME as its default fontset,
+   and return the full name of that fontset.  FONTSETNAME may be a
+   wildcard pattern; in that case, we choose some fontset that fits
+   the pattern.  FONTSETNAME may be a font name for ASCII characters;
+   in that case, we create a fontset from that font name.
+
+   The return value shows which fontset we chose.
+   If FONTSETNAME specifies the default fontset, return Qt.
+   If an ASCII font in the specified fontset can't be loaded, return
+   Qnil.  */
 
 Lisp_Object
 x_new_fontset (f, fontsetname)
      struct frame *f;
-     char *fontsetname;
+     Lisp_Object fontsetname;
 {
-  int fontset = fs_query_fontset (build_string (fontsetname), 0);
+  int fontset = fs_query_fontset (fontsetname, 0);
   Lisp_Object result;
 
-  if (fontset < 0)
-    return Qnil;
-
-  if (FRAME_FONTSET (f) == fontset)
+  if (fontset > 0 && f->output_data.x->fontset == fontset)
     /* This fontset is already set in frame F.  There's nothing more
        to do.  */
     return fontset_name (fontset);
+  else if (fontset == 0)
+    /* The default fontset can't be the default font.   */
+    return Qt;
 
-  result = x_new_font (f, (SDATA (fontset_ascii (fontset))));
+  if (fontset > 0)
+    result = x_new_font (f, (SDATA (fontset_ascii (fontset))));
+  else
+    result = x_new_font (f, SDATA (fontsetname));
 
   if (!STRINGP (result))
     /* Can't load ASCII font.  */
     return Qnil;
+
+  if (fontset < 0)
+    fontset = new_fontset_from_font_name (result);
 
   /* Since x_new_font doesn't update any fontset information, do it now.  */
   FRAME_FONTSET (f) = fontset;
@@ -7959,7 +7978,7 @@ x_new_fontset (f, fontsetname)
     xic_set_xfontset (f, SDATA (fontset_ascii (fontset)));
 #endif
 
-  return build_string (fontsetname);
+  return fontset_name (fontset);
 }
 
 
@@ -9868,6 +9887,7 @@ x_load_font (f, fontname, size)
     BLOCK_INPUT;
     fontp->font = font;
     fontp->font_idx = i;
+    fontp->charset = -1;	/* fs_load_font sets it.  */
     fontp->name = (char *) xmalloc (strlen (fontname) + 1);
     bcopy (fontname, fontp->name, strlen (fontname) + 1);
 
@@ -9942,10 +9962,10 @@ x_load_font (f, fontname, size)
        the font code-points (0:0x20..0x7F, 1:0xA0..0xFF), or
        (0:0x2020..0x7F7F, 1:0xA0A0..0xFFFF, 3:0x20A0..0x7FFF,
        2:0xA020..0xFF7F).  For the moment, we don't know which charset
-       uses this font.  So, we set information in fontp->encoding[1]
+       uses this font.  So, we set information in fontp->encoding_type
        which is never used by any charset.  If mapping can't be
        decided, set FONT_ENCODING_NOT_DECIDED.  */
-    fontp->encoding[1]
+    fontp->encoding_type
       = (font->max_byte1 == 0
 	 /* 1-byte font */
 	 ? (font->min_char_or_byte2 < 0x80
@@ -10045,6 +10065,98 @@ x_find_ccl_program (fontp)
 }
 
 
+/* Return a char-table whose elements are t if the font FONT_INFO
+   contains a glyph for the corresponding character, and nil if not.
+
+   Fixme: For the moment, this function works only for fonts whose
+   glyph encoding is the same as Unicode (e.g. ISO10646-1 fonts).  */
+
+Lisp_Object
+x_get_font_repertory (f, font_info)
+     FRAME_PTR f;
+     struct font_info *font_info;
+{
+  XFontStruct *font = (XFontStruct *) font_info->font;
+  Lisp_Object table;
+  int min_byte1, max_byte1, min_byte2, max_byte2;
+
+  table = Fmake_char_table (Qnil, Qnil);
+
+  min_byte1 = font->min_byte1;
+  max_byte1 = font->max_byte1;
+  min_byte2 = font->min_char_or_byte2;
+  max_byte2 = font->max_char_or_byte2;
+  if (min_byte1 == 0 && max_byte1 == 0)
+    {
+      if (! font->per_char || font->all_chars_exist == True)
+	char_table_set_range (table, min_byte2, max_byte2, Qt);
+      else
+	{
+	  XCharStruct *pcm = font->per_char;
+	  int from = -1;
+	  int i;
+
+	  for (i = min_byte2; i <= max_byte2; i++, pcm++)
+	    {
+	      if (pcm->width == 0 && pcm->rbearing == pcm->lbearing)
+		{
+		  if (from >= 0)
+		    {
+		      char_table_set_range (table, from, i - 1, Qt);
+		      from = -1;
+		    }
+		}
+	      else if (from < 0)
+		from = i;
+	    }
+	  if (from >= 0)
+	    char_table_set_range (table, from, i - 1, Qt);
+	}
+    }
+  else
+    {
+      if (! font->per_char || font->all_chars_exist == True)
+	{
+	  int i;
+
+	  for (i = min_byte1; i <= max_byte1; i++)
+	    char_table_set_range (table,
+				  (i << 8) | min_byte2, (i << 8) | max_byte2,
+				  Qt);
+	}
+      else
+	{
+	  XCharStruct *pcm = font->per_char;
+	  int i;
+
+	  for (i = min_byte1; i <= max_byte1; i++)
+	    {
+	      int from = -1;
+	      int j;
+
+	      for (j = min_byte2; j <= max_byte2; j++, pcm++)
+		{
+		  if (pcm->width == 0 && pcm->rbearing == pcm->lbearing)
+		    {
+		      if (from >= 0)
+			{
+			  char_table_set_range (table, (i << 8) | from,
+						(i << 8) | (j - 1), Qt);
+			  from = -1;
+			}
+		    }
+		  else if (from < 0)
+		    from = j;
+		}
+	      if (from >= 0)
+		char_table_set_range (table, (i << 8) | from,
+				      (i << 8) | (j - 1), Qt);
+	    }
+	}
+    }
+
+  return table;
+}
 
 /***********************************************************************
 			    Initialization
@@ -10801,8 +10913,6 @@ syms_of_xterm ()
   staticpro (&Qvendor_specific_keysyms);
   Qvendor_specific_keysyms = intern ("vendor-specific-keysyms");
 
-  staticpro (&Qutf_8);
-  Qutf_8 = intern ("utf-8");
   staticpro (&Qlatin_1);
   Qlatin_1 = intern ("latin-1");
 

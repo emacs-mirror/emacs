@@ -1259,9 +1259,10 @@ as returned by `x-server-vendor'."
 	 ;; This is used by DEC's X server.
 	 '((65280 . remove)))))
 
+;; Latin-1
 (let ((i 160))
   (while (< i 256)
-    (puthash i (make-char 'latin-iso8859-1 i) x-keysym-table)
+    (puthash i i x-keysym-table)
     (setq i (1+ i))))
 
 ;; Table from Kuhn's proposed additions to the `KEYSYM Encoding'
@@ -2362,28 +2363,6 @@ order until succeed.")
 
 ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1, ...).
 (create-fontset-from-x-resource)
-
-;; Try to create a fontset from a font specification which comes
-;; from initial-frame-alist, default-frame-alist, or X resource.
-;; A font specification in command line argument (i.e. -fn XXXX)
-;; should be already in default-frame-alist as a `font'
-;; parameter.  However, any font specifications in site-start
-;; library, user's init file (.emacs), and default.el are not
-;; yet handled here.
-
-(let ((font (or (cdr (assq 'font initial-frame-alist))
-		(cdr (assq 'font default-frame-alist))
-		(x-get-resource "font" "Font")))
-      xlfd-fields resolved-name)
-  (if (and font
-	   (not (query-fontset font))
-	   (setq resolved-name (x-resolve-font-name font))
-	   (setq xlfd-fields (x-decompose-font-name font)))
-      (if (string= "fontset" (aref xlfd-fields xlfd-regexp-registry-subnum))
-	  (new-fontset font (x-complement-fontset-spec xlfd-fields nil))
-	;; Create a fontset from FONT.  The fontset name is
-	;; generated from FONT.
-	(create-fontset-from-ascii-font font resolved-name "startup"))))
 
 ;; Sun expects the menu bar cut and paste commands to use the clipboard.
 ;; This has ,? to match both on Sunos and on Solaris.

@@ -44,7 +44,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "coding.h"
 #include "frame.h"
 #include "window.h"
@@ -181,9 +181,7 @@ usage: (char-to-string CHAR)  */)
 
   CHECK_NUMBER (character);
 
-  len = (SINGLE_BYTE_CHAR_P (XFASTINT (character))
-	 ? (*str = (unsigned char)(XFASTINT (character)), 1)
-	 : char_to_string (XFASTINT (character), str));
+  len = CHAR_STRING (XFASTINT (character), str);
   return make_string_from_bytes (str, 1, len);
 }
 
@@ -2016,7 +2014,7 @@ general_insert_function (insert_func, insert_from_string_func,
 	    len = CHAR_STRING (XFASTINT (val), str);
 	  else
 	    {
-	      str[0] = (SINGLE_BYTE_CHAR_P (XINT (val))
+	      str[0] = (ASCII_CHAR_P (XINT (val))
 			? XINT (val)
 			: multibyte_char_to_unibyte (XINT (val), Qnil));
 	      len = 1;
@@ -2185,6 +2183,29 @@ from adjoining text, if those properties are sticky.  */)
 	insert (string, n);
     }
   return Qnil;
+}
+
+DEFUN ("insert-byte", Finsert_byte, Sinsert_byte, 2, 3, 0,
+       doc: /* Insert COUNT (second arg) copies of BYTE (first arg).
+Both arguments are required.
+BYTE is a number of the range 0..255.
+
+If BYTE is 128..255 and the current buffer is multibyte, the
+corresponding eight-bit character is inserted.
+
+Point, and before-insertion markers, are relocated as in the function `insert'.
+The optional third arg INHERIT, if non-nil, says to inherit text properties
+from adjoining text, if those properties are sticky.  */)
+     (byte, count, inherit)
+       Lisp_Object byte, count, inherit;
+{
+  CHECK_NUMBER (byte);
+  if (XINT (byte) < 0 || XINT (byte) > 255)
+    args_out_of_range_3 (byte, make_number (0), make_number (255));
+  if (XINT (byte) >= 128
+      && ! NILP (current_buffer->enable_multibyte_characters))
+    XSETFASTINT (byte, BYTE8_TO_CHAR (XINT (byte)));
+  return Finsert_char (byte, count, inherit);
 }
 
 
@@ -3399,7 +3420,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	    thissize = 30;
 	    if (*format == 'c')
 	      {
-		if (! SINGLE_BYTE_CHAR_P (XINT (args[n]))
+		if (! ASCII_CHAR_P (XINT (args[n]))
 		    /* Note: No one can remeber why we have to treat
 		       the character 0 as a multibyte character here.
 		       But, until it causes a real problem, let's
@@ -3784,8 +3805,20 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
   /* Do these in separate statements,
      then compare the variables.
      because of the way DOWNCASE uses temp variables.  */
-  i1 = DOWNCASE (XFASTINT (c1));
-  i2 = DOWNCASE (XFASTINT (c2));
+  i1 = XFASTINT (c1);
+  if (NILP (current_buffer->enable_multibyte_characters)
+      && ! ASCII_CHAR_P (i1))
+    {
+      MAKE_CHAR_MULTIBYTE (i1);
+    }
+  i2 = XFASTINT (c2);
+  if (NILP (current_buffer->enable_multibyte_characters)
+      && ! ASCII_CHAR_P (i2))
+    {
+      MAKE_CHAR_MULTIBYTE (i2);
+    }
+  i1 = DOWNCASE (i1);
+  i2 = DOWNCASE (i2);
   return (i1 == i2 ? Qt :  Qnil);
 }
 
@@ -4271,6 +4304,7 @@ functions if all the text being accessed has this property.  */);
   defsubr (&Sinsert_and_inherit);
   defsubr (&Sinsert_and_inherit_before_markers);
   defsubr (&Sinsert_char);
+  defsubr (&Sinsert_byte);
 
   defsubr (&Suser_login_name);
   defsubr (&Suser_real_login_name);

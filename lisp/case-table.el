@@ -34,27 +34,25 @@
 
 ;;; Code:
 
-(defvar set-case-syntax-offset 0)
-
-(defvar set-case-syntax-set-multibyte nil)
-
 (defun describe-buffer-case-table ()
   "Describe the case table of the current buffer."
   (interactive)
   (let ((description (make-char-table 'case-table)))
     (map-char-table
      (function (lambda (key value)
-		 (aset
-		  description key
-		  (cond ((not (natnump value))
-			 "case-invariant")
-			((/= key (downcase key))
-			 (concat "uppercase, matches "
-				 (char-to-string (downcase key))))
-			((/= key (upcase key))
-			 (concat "lowercase, matches "
-				 (char-to-string (upcase key))))
-			(t "case-invariant")))))
+		 (if (consp key)
+		     (set-char-table-range description key "case-invariant")
+		   (aset
+		    description key
+		    (cond ((not (natnump value))
+			   "case-invariant")
+			  ((/= key (downcase key))
+			   (concat "uppercase, matches "
+				   (char-to-string (downcase key))))
+			  ((/= key (upcase key))
+			   (concat "lowercase, matches "
+				   (char-to-string (upcase key))))
+			  (t "case-invariant"))))))
      (current-case-table))
     (save-excursion
      (with-output-to-temp-buffer "*Help*"
@@ -71,20 +69,12 @@
     (set-char-table-extra-slot copy 2 nil)
     copy))
 
-(defsubst set-case-syntax-1 (char)
-  "Offset CHAR by `set-case-syntax-offset' if CHAR is a non-ASCII 8-bit char."
-  (if (and (>= char 128) (< char 256))
-      (+ char set-case-syntax-offset)
-    char))
-
 (defun set-case-syntax-delims (l r table)
   "Make characters L and R a matching pair of non-case-converting delimiters.
 This sets the entries for L and R in TABLE, which is a string
 that will be used as the downcase part of a case table.
 It also modifies `standard-syntax-table' to
 indicate left and right delimiters."
-  (setq l (set-case-syntax-1 l))
-  (setq r (set-case-syntax-1 r))
   (aset table l l)
   (aset table r r)
   ;; Clear out the extra slots so that they will be
@@ -103,11 +93,6 @@ This sets the entries for characters UC and LC in TABLE, which is a string
 that will be used as the downcase part of a case table.
 It also modifies `standard-syntax-table' to give them the syntax of
 word constituents."
-  (unless (= (charset-bytes (char-charset uc))
-	     (charset-bytes (char-charset lc)))
-    (error "Can't casify chars with different `charset-bytes' values"))
-  (setq uc (set-case-syntax-1 uc))
-  (setq lc (set-case-syntax-1 lc))
   (aset table uc lc)
   (aset table lc lc)
   (set-char-table-extra-slot table 0 nil)
@@ -122,7 +107,6 @@ This sets the entry for character C in TABLE, which is a string
 that will be used as the downcase part of a case table.
 It also modifies `standard-syntax-table'.
 SYNTAX should be \" \", \"w\", \".\" or \"_\"."
-  (setq c (set-case-syntax-1 c))
   (aset table c c)
   (set-char-table-extra-slot table 0 nil)
   (set-char-table-extra-slot table 1 nil)

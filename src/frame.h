@@ -1034,7 +1034,7 @@ extern void x_set_offset P_ ((struct frame *, int, int, int));
 extern void x_wm_set_icon_position P_ ((struct frame *, int, int));
 
 extern Lisp_Object x_new_font P_ ((struct frame *, char *));
-extern Lisp_Object x_new_fontset P_ ((struct frame *, char *));
+extern Lisp_Object x_new_fontset P_ ((struct frame *, Lisp_Object));
 
 
 /* These are in frame.c  */

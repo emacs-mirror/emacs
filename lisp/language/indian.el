@@ -29,21 +29,16 @@
 
 ;;; Code:
 
-(make-coding-system
- 'in-is13194 2 ?D
- "8-bit encoding for ASCII (MSB=0) and IS13194-Devanagari (MSB=1)."
- '(ascii indian-is13194 nil nil
-   nil ascii-eol)
- `((safe-chars . ,(let ((table (make-char-table 'safe-chars nil)))
-		    (set-char-table-range table 'indian-is13194 t)
-		    (dotimes (i 127)
-		      (aset table i t)
-		      (aset table (decode-char 'ucs (+ #x900 i)) t))
-		    table))
-   (post-read-conversion . in-is13194-post-read-conversion)
-   (pre-write-conversion . in-is13194-pre-write-conversion)))
+(define-coding-system 'in-is13194-devanagari
+  "8-bit encoding for ASCII (MSB=0) and IS13194-Devanagari (MSB=1)."
+  :coding-type 'iso-2022
+  :mnemonic ?D
+  :designation [ascii indian-is13194 nil nil]
+  :charset-list '(ascii indian-is13194)
+  :post-read-conversion 'in-is13194-post-read-conversion
+  :pre-write-conversion 'in-is13194-pre-write-conversion)
 
-(define-coding-system-alias 'devanagari 'in-is13194)
+(define-coding-system-alias 'devanagari 'in-is13194-devanagari)
 
 (defvar indian-font-foundry 'cdac
   "Font foundry for Indian characters.
@@ -156,18 +151,9 @@ Each Indian language environment sets this value
 to one of `indian-script-table' (which see).
 The default value is `devanagari'.")
 
-(define-ccl-program ccl-encode-indian-glyph-font
-  `(0
-    ;; Shorten (r1 = (((((r1 - 32) * 96) + r2) - 32) % 256))
-    (r1 = ((((r1 * 96) + r2) - ,(+ (* 32 96) 32)) % 256))))
-
-(setq font-ccl-encoder-alist
-      (cons (cons "-CDAC" 'ccl-encode-indian-glyph-font)
-	    font-ccl-encoder-alist))
-
-(setq font-ccl-encoder-alist
-      (cons (cons "-AKRUTI" 'ccl-encode-indian-glyph-font)
-	    font-ccl-encoder-alist))
+(defvar indian-composable-pattern
+  (make-char-table nil)
+  "Char table of regexps for composable Indian character sequence.")
 
 (provide 'indian)
 

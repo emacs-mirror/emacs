@@ -1,6 +1,9 @@
 # Makefile for leim subdirectory in GNU Emacs.
 # Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
-# Licensed to the Free Software Foundation.
+#   Licensed to the Free Software Foundation.
+# Copyright (C) 2003
+#   National Institute of Advanced Industrial Science and Technology (AIST)
+#   Registration Number H13PRO009
 
 # This file is part of GNU Emacs.
 
@@ -42,7 +45,7 @@ BUILT-EMACS = ${dot}${dot}/src/emacs
 buildlisppath=${srcdir}/${dot}${dot}/lisp
 
 # How to run Emacs.
-RUN-EMACS = EMACSLOADPATH=$(buildlisppath) \
+RUN-EMACS = EMACSLOADPATH=$(buildlisppath) LC_ALL=C \
 	${BUILT-EMACS} -batch --no-init-file --no-site-file --multibyte
 
 # Subdirectories to be made if ${srcdir} is different from the current

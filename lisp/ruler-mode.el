@@ -129,8 +129,7 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
   "Ensure WIDGET value is a valid character value."
   (save-excursion
     (let ((value (widget-value widget)))
-      (if (char-valid-p value)
-          nil
+      (unless (characterp value)
         (widget-put widget :error
                     (format "Invalid character value: %S" value))
         widget))))

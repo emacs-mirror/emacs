@@ -1191,6 +1191,7 @@ main (argc, argv
       init_alloc_once ();
       init_obarray ();
       init_eval_once ();
+      init_character_once ();
       init_charset_once ();
       init_coding_once ();
       init_syntax_once ();	/* Create standard syntax table.  */
@@ -1302,12 +1303,15 @@ main (argc, argv
 	      Lisp_Object buffer;
 
 	      buffer = Fcdr (XCAR (tail));
-	      /* Verify that all buffers are empty now, as they
-		 ought to be.  */
-	      if (BUF_Z (XBUFFER (buffer)) > BUF_BEG (XBUFFER (buffer)))
-		abort ();
-	      /* It is safe to do this crudely in an empty buffer.  */
-	      XBUFFER (buffer)->enable_multibyte_characters = Qnil;
+	      /* Make a multibyte buffer unibyte.  */
+	      if (BUF_Z_BYTE (XBUFFER (buffer)) > BUF_Z (XBUFFER (buffer)))
+		{
+		  struct buffer *current = current_buffer;
+
+		  set_buffer_temp (XBUFFER (buffer));
+		  Fset_buffer_multibyte (Qnil);
+		  set_buffer_temp (current);
+		}
 	    }
 	}
     }
@@ -1422,6 +1426,7 @@ main (argc, argv
 
   init_callproc ();	/* Must follow init_cmdargs but not init_sys_modes.  */
   init_lread ();
+  init_charset ();
 
   /* Intern the names of all standard functions and variables;
      define standard keys.  */
@@ -1436,6 +1441,7 @@ main (argc, argv
       syms_of_data ();
 #endif
       syms_of_alloc ();
+      syms_of_chartab ();
       syms_of_lread ();
       syms_of_print ();
       syms_of_eval ();
@@ -1454,6 +1460,7 @@ main (argc, argv
       /* Called before init_window_once for Mac OS Classic.  */
       syms_of_ccl ();
 #endif
+      syms_of_character ();
       syms_of_charset ();
       syms_of_cmds ();
 #ifndef NO_DIR_LIBRARY

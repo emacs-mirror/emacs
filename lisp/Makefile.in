@@ -55,13 +55,7 @@ DONTCOMPILE = \
 	$(lisp)/forms-d2.el \
 	$(lisp)/forms-pass.el \
 	$(lisp)/generic-x.el \
-	$(lisp)/international/latin-1.el \
-	$(lisp)/international/latin-2.el \
-	$(lisp)/international/latin-3.el \
-	$(lisp)/international/latin-4.el \
-	$(lisp)/international/latin-5.el \
-	$(lisp)/international/latin-8.el \
-	$(lisp)/international/latin-9.el \
+	$(lisp)/international/latin1-disp.el \
 	$(lisp)/international/mule-conf.el \
 	$(lisp)/language/czech.el \
 	$(lisp)/language/devanagari.el \
@@ -79,6 +73,10 @@ DONTCOMPILE = \
 	$(lisp)/language/thai.el \
 	$(lisp)/language/utf-8-lang.el \
 	$(lisp)/language/georgian.el \
+	$(lisp)/language/vietnamese.el \
+	$(lisp)/language/cyrillic.el \
+	$(lisp)/language/chinese.el \
+	$(lisp)/language/indian.el \
 	$(lisp)/loaddefs.el \
 	$(lisp)/loadup.el \
 	$(lisp)/mail/blessmail.el \
@@ -123,7 +121,7 @@ COMPILE_FIRST = \
 
 # The actual Emacs command run in the targets below.
 
-emacs = EMACSLOADPATH=$(lisp) $(EMACS) $(EMACSOPT)
+emacs = EMACSLOADPATH=$(lisp) LC_ALL=C $(EMACS) $(EMACSOPT)
 
 # Common command to find subdirectories
 
@@ -148,12 +146,12 @@ $(lisp)/cus-load.el:
 custom-deps: $(lisp)/cus-load.el doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
-	$(EMACS) $(EMACSOPT) -l cus-dep --eval '(setq generated-custom-dependencies-file "$(lisp)/cus-load.el")' -f custom-make-dependencies $$wins
+	LC_ALL=C $(EMACS) $(EMACSOPT) -l cus-dep --eval '(setq generated-custom-dependencies-file "$(lisp)/cus-load.el")' -f custom-make-dependencies $$wins
 
 finder-data: doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
-	$(EMACS) $(EMACSOPT) -l finder --eval '(setq generated-finder-keywords-file "$(lisp)/finder-inf.el")' -f finder-compile-keywords-make-dist $$wins
+	LC_ALL=C $(EMACS) $(EMACSOPT) -l finder --eval '(setq generated-finder-keywords-file "$(lisp)/finder-inf.el")' -f finder-compile-keywords-make-dist $$wins
 
 $(lisp)/loaddefs.el:
 	echo ";;; loaddefs.el --- automatically extracted autoloads" >> $@
@@ -168,7 +166,7 @@ $(lisp)/loaddefs.el:
 autoloads: $(lisp)/loaddefs.el doit
 	wd=$(lisp); $(setwins); \
 	echo Directories: $$wins; \
-	$(EMACS) $(EMACSOPT) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
+	LC_ALL=C $(EMACS) $(EMACSOPT) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
 
 $(lisp)/subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
@@ -272,7 +270,7 @@ compile-after-backup: backup-compiled-files compile-always
 # .elc is present.
 
 recompile: doit
-	$(EMACS) $(EMACSOPT) -f batch-byte-recompile-directory $(lisp)
+	LC_ALL=C $(EMACS) $(EMACSOPT) -f batch-byte-recompile-directory $(lisp)
 
 # Prepare a bootstrap in the lisp subdirectory.  Build loaddefs.el,
 # because it's not sure it's up-to-date, and if it's not, that might

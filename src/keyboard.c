@@ -32,7 +32,7 @@ Boston, MA 02111-1307, USA.  */
 #include "window.h"
 #include "commands.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "disptab.h"
 #include "dispextern.h"
 #include "syntax.h"
@@ -1633,7 +1633,7 @@ command_loop_1 ()
 			  : (lose >= 0x20 && lose < 0x7f))
 		      /* To extract the case of continuation on
                          wide-column characters.  */
-		      && (WIDTH_BY_CHAR_HEAD (FETCH_BYTE (PT_BYTE)) == 1)
+		      && ASCII_BYTE_P (lose)
 		      && (XFASTINT (XWINDOW (selected_window)->last_modified)
 			  >= MODIFF)
 		      && (XFASTINT (XWINDOW (selected_window)->last_overlay_modified)
@@ -1690,7 +1690,7 @@ command_loop_1 ()
 		{
 		  unsigned int c
 		    = translate_char (Vtranslation_table_for_input,
-				      XFASTINT (last_command_char), 0, 0, 0);
+				      XFASTINT (last_command_char));
 		  int value;
 		  if (NILP (Vexecuting_macro)
 		      && !EQ (minibuf_window, selected_window))
@@ -2920,8 +2920,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	   && SCHARS (Vkeyboard_translate_table) > (unsigned) XFASTINT (c))
 	  || (VECTORP (Vkeyboard_translate_table)
 	      && XVECTOR (Vkeyboard_translate_table)->size > (unsigned) XFASTINT (c))
-	  || (CHAR_TABLE_P (Vkeyboard_translate_table)
-	      && CHAR_VALID_P (XINT (c), 0)))
+	  || CHAR_TABLE_P (Vkeyboard_translate_table))
 	{
 	  Lisp_Object d;
 	  d = Faref (Vkeyboard_translate_table, c);
@@ -6327,6 +6326,8 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_alist_or_stem,
 	  else if (sizeof (long) == sizeof (EMACS_INT))
 	    sprintf (buf, "%s-%ld", SDATA (name_alist_or_stem),
 		     XINT (symbol_int) + 1);
+	  else
+	    abort ();
 	  value = intern (buf);
 	}
       else if (name_table != 0 && name_table[symbol_num])
@@ -9376,9 +9377,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
       if (first_binding >= nmaps
 	  && fkey.start >= t && keytran.start >= t
 	  && INTEGERP (key)
-	  && ((((XINT (key) & 0x3ffff)
-		< XCHAR_TABLE (current_buffer->downcase_table)->size)
-	       && UPPERCASEP (XINT (key) & 0x3ffff))
+	  && ((CHARACTERP (make_number (XINT (key) & ~CHAR_MODIFIER_MASK))
+	       && UPPERCASEP (XINT (key) & ~CHAR_MODIFIER_MASK))
 	      || (XINT (key) & shift_modifier)))
 	{
 	  Lisp_Object new_key;
@@ -9389,8 +9389,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  if (XINT (key) & shift_modifier)
 	    XSETINT (new_key, XINT (key) & ~shift_modifier);
 	  else
-	    XSETINT (new_key, (DOWNCASE (XINT (key) & 0x3ffff)
-			       | (XINT (key) & ~0x3ffff)));
+	    XSETINT (new_key, (DOWNCASE (XINT (key) & ~CHAR_MODIFIER_MASK)
+			       | (XINT (key) & ~CHAR_MODIFIER_MASK)));
 
 	  /* We have to do this unconditionally, regardless of whether
 	     the lower-case char is defined in the keymaps, because they

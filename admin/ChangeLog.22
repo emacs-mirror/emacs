@@ -1,0 +1,16 @@
+2003-08-16  Kenichi Handa  <handa@m17n.org>
+
+	* charsets: New directory for scripts to generate charset map
+	files in ../etc/charsets/.
+
+	* charsets/Makefile, charsets/mapconv, charsets/compact.awk,
+	charsets/big5.awk charsets/gb18030-2.awk, charsets/gb18030-4.awk,
+	cahrsets/kuten.awk: New files.
+
+;; Local Variables:
+;; coding: iso-2022-7bit-unix
+;; End:
+
+    Copyright (C) 2003 Free Software Foundation, Inc.
+  Copying and distribution of this file, with or without modification,
+  are permitted provided the copyright notice and this notice are preserved.

@@ -27,7 +27,7 @@ Boston, MA 02111-1307, USA.  */
 #include "commands.h"
 #include "buffer.h"
 #include "window.h"
-#include "charset.h"
+#include "character.h"
 #include "syntax.h"
 
 /* An abbrev table is an obarray.
@@ -385,9 +385,15 @@ Returns the abbrev symbol, if expansion took place.  */)
 	  int pos = wordstart_byte;
 
 	  /* Find the initial.  */
-	  while (pos < PT_BYTE
-		 && SYNTAX (*BUF_BYTE_ADDRESS (current_buffer, pos)) != Sword)
-	    pos++;
+	  if (multibyte)
+	    while (pos < PT_BYTE
+		   && SYNTAX (FETCH_MULTIBYTE_CHAR (pos)) != Sword)
+	      INC_POS (pos);
+	  else
+	    while (pos < PT_BYTE
+		   && (SYNTAX (*BUF_BYTE_ADDRESS (current_buffer, pos))
+		       != Sword))
+	      pos++;
 
 	  /* Change just that.  */
 	  pos = BYTE_TO_CHAR (pos);

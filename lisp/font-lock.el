@@ -1821,7 +1821,8 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 	    ;; Move over any item value, etc., to the next item.
 	    (while (not (looking-at "[ \t\n]*\\(\\(,\\)\\|;\\|\\'\\)"))
 	      (goto-char (or (scan-sexps (point) 1) (point-max))))
-	    (goto-char (match-end 2)))
+	    (if (match-end 2)
+		(goto-char (match-end 2))))
 	(error t)))))
 
 ;; Lisp.

@@ -17,3 +17,8 @@ make-emacs		build Emacs in various ways
 make-tarball.txt	instructions to create pretest or release tarballs
 quick-install-emacs	install emacs quickly (`incrementally')
 revdiff			get CVS diffs of files
+
+Brief description of sub-directories:
+
+charsets		scripts for generating charset map files
+			in ../etc/charsets

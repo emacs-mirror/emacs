@@ -400,6 +400,9 @@ extern struct font_info *x_get_font_info P_ ((struct frame *f, int));
 extern struct font_info *x_load_font P_ ((struct frame *, char *, int));
 extern struct font_info *x_query_font P_ ((struct frame *, char *));
 extern void x_find_ccl_program P_ ((struct font_info *));
+extern Lisp_Object x_get_font_repertory P_ ((struct frame *,
+					     struct font_info *));
+
 
 /* Each X frame object points to its own struct x_output object
    in the output_data.x field.  The x_output structure contains

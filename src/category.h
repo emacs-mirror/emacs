@@ -1,6 +1,9 @@
 /* Declarations having to do with Emacs category tables.
    Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
      Licensed to the Free Software Foundation.
+   Copyright (C) 2003
+     National Institute of Advanced Industrial Science and Technology (AIST)
+     Registration Number H13PRO009
 
 This file is part of GNU Emacs.
 
@@ -95,21 +98,7 @@ extern Lisp_Object _temp_category_set;
 #define Vstandard_category_table buffer_defaults.category_table
 
 /* Return the category set of character C in the current category table.  */
-#ifdef __GNUC__
-#define CATEGORY_SET(c)							     \
-  ({ Lisp_Object table = current_buffer->category_table;		     \
-     Lisp_Object temp;							     \
-     if ((c) < CHAR_TABLE_SINGLE_BYTE_SLOTS)				     \
-       while (NILP (temp = XCHAR_TABLE (table)->contents[(unsigned char) c]) \
-	      && NILP (temp = XCHAR_TABLE (table)->defalt))		     \
-	 table = XCHAR_TABLE (table)->parent;				     \
-     else								     \
-       temp = Faref (table, make_number (c));				     \
-     temp; })
-#else
-#define CATEGORY_SET(c) \
-  Faref (current_buffer->category_table, make_number (c))
-#endif
+#define CATEGORY_SET(c) char_category_set (c)
 
 /* Return the doc string of CATEGORY in category table TABLE.  */
 #define CATEGORY_DOCSTRING(table, category) \

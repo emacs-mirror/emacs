@@ -41,6 +41,11 @@
 South Indian language Malayalam is supported in this language environment."))
  '("Indian"))
 
+;; For automatic composition.
+(set-char-table-range composition-function-table '(#x0d00 . #x0d7f)
+		      'malayalam-composition-function)
+
+
 (provide 'malayalam)
 
 ;;; malayalam.el ends here

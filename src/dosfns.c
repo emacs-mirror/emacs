@@ -38,7 +38,7 @@ Boston, MA 02111-1307, USA.  */
 #include "dosfns.h"
 #include "msdos.h"
 #include "dispextern.h"
-#include "charset.h"
+#include "character.h"
 #include "coding.h"
 #include <dpmi.h>
 #include <go32.h>

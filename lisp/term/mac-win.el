@@ -178,40 +178,16 @@ Switch to a buffer editing the last file dropped."
 (defconst kTextEncodingISOLatin2 514 "0x202")
 
 
-(define-ccl-program ccl-encode-mac-roman-font
-  `(0
-    (if (r0 != ,(charset-id 'ascii))
-	(if (r0 == ,(charset-id 'latin-iso8859-1))
-	    (translate-character mac-roman-encoder r0 r1)
-	  ((r1 <<= 7)
-	   (r1 |= r2)
-	   (translate-character mac-roman-encoder r0 r1)))))
-  "CCL program for Mac Roman font")
-
-(setq font-ccl-encoder-alist
-      (cons '("mac-roman" . ccl-encode-mac-roman-font)
-	    font-ccl-encoder-alist))
-
 ;; Create a fontset that uses mac-roman font.  With this fontset,
 ;; characters decoded from mac-roman encoding (ascii, latin-iso8859-1,
 ;; and mule-unicode-xxxx-yyyy) are displayed by a mac-roman font.
 
 (if (fboundp 'new-fontset)
-    (progn
-      (require 'fontset)
-      (setup-default-fontset)
-      (create-fontset-from-fontset-spec
-       "-etl-fixed-medium-r-normal-*-16-*-*-*-*-*-fontset-mac,
-ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
-      (let ((monaco-font '("monaco" . "mac-roman")))
-	(map-char-table
-	 (function
-	  (lambda (key val)
-	    (or (generic-char-p key)
-		(memq (char-charset val)
-		      '(ascii eight-bit-control eight-bit-graphic))
-		(set-fontset-font "fontset-mac" val monaco-font))))
-	 (get 'mac-roman-decoder 'translation-table)))))
+    (create-fontset-from-fontset-spec
+     "-etl-fixed-medium-r-normal-*-16-*-*-*-*-*-fontset-mac,
+ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman
+mac-roman:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman"))
+
 
 (if (eq system-type 'darwin)
     ;; On Darwin filenames are encoded in UTF-8

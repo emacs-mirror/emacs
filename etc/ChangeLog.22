@@ -1,0 +1,40 @@
+2003-09-08  Kenichi Handa  <handa@m17n.org>
+
+	* charsets: New directory for charset mapping tables.
+
+	* charsets/README: New file.
+
+	* charsets/*.map: New files.
+
+2003-04-12  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Change "Hindi" to more common characters.
+
+2003-01-10  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Fix upcase and downcase for several languages.  Change
+	the two German lines into one.  Change "Nederlangs" to
+	"Dutch (Nederlands)".  Add original language names to several
+	entries.
+
+2003-01-06  Kenichi Handa  <handa@m17n.org>
+
+	* TUTORIAL.es: Add local variable coding: latin-1.
+
+2002-10-30  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Change indian-2-column chars of Hindi line to Unicode
+	chars.
+
+2002-05-27  Dave Love  <fx@gnu.org>
+
+	* HELLO: Add pseudo-maths example.
+
+;; Local Variables:
+;; coding: iso-2022-7bit
+;; End:
+
+    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002
+	Free Software Foundation, Inc.
+  Copying and distribution of this file, with or without modification,
+  are permitted provided the copyright notice and this notice are preserved.

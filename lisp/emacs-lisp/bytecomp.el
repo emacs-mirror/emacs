@@ -766,7 +766,7 @@ otherwise pop it")
 	       (setcar (cdr bytes) (logand pc 255))
 	       (setcar bytes (lsh pc -8))))
 	(setq patchlist (cdr patchlist))))
-    (concat (nreverse bytes))))
+    (string-make-unibyte (concat (nreverse bytes)))))
 
 
 ;;; compile-time evaluation
@@ -1776,13 +1776,13 @@ With argument, insert value in current buffer after the form."
 	(delete-region (point) (progn (re-search-forward "^(")
 				      (beginning-of-line)
 				      (point)))
-	(insert ";;; This file contains multibyte non-ASCII characters\n"
-		";;; and therefore cannot be loaded into Emacs 19.\n")
-	;; Replace "19" or "19.29" with "20", twice.
+	(insert ";;; This file contains utf-8 non-ASCII characters\n"
+		";;; and therefore cannot be loaded into Emacs 21 or earlier.\n")
+	;; Replace "19" or "19.29" with "22", twice.
 	(re-search-forward "19\\(\\.[0-9]+\\)")
-	(replace-match "20")
+	(replace-match "22")
 	(re-search-forward "19\\(\\.[0-9]+\\)")
-	(replace-match "20")
+	(replace-match "22")
 	;; Now compensate for the change in size,
 	;; to make sure all positions in the file remain valid.
 	(setq delta (- (point-max) old-header-end))
@@ -1797,7 +1797,7 @@ With argument, insert value in current buffer after the form."
     (set-buffer outbuffer)
     (goto-char 1)
     ;; The magic number of .elc files is ";ELC", or 0x3B454C43.  After
-    ;; that is the file-format version number (18, 19 or 20) as a
+    ;; that is the file-format version number (18, 19, 20, or 22) as a
     ;; byte, followed by some nulls.  The primary motivation for doing
     ;; this is to get some binary characters up in the first line of
     ;; the file so that `diff' will simply say "Binary files differ"
@@ -1809,7 +1809,7 @@ With argument, insert value in current buffer after the form."
 
     (insert
      ";ELC"
-     (if (byte-compile-version-cond byte-compile-compatibility) 18 20)
+     (if (byte-compile-version-cond byte-compile-compatibility) 18 22)
      "\000\000\000\n"
      )
     (insert ";;; Compiled by "
@@ -1868,7 +1868,7 @@ With argument, insert value in current buffer after the form."
 	   ;; Insert semicolons as ballast, so that byte-compile-fix-header
 	   ;; can delete them so as to keep the buffer positions
 	   ;; constant for the actual compiled code.
-	   ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n"))
+	   ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n"))
       ;; Here if we want Emacs 18 compatibility.
       (when dynamic-docstrings
 	(error "Version-18 compatibility doesn't support dynamic doc strings"))
@@ -3237,6 +3237,8 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 (byte-defop-compiler-1 mapc byte-compile-funarg)
 (byte-defop-compiler-1 maphash byte-compile-funarg)
 (byte-defop-compiler-1 map-char-table byte-compile-funarg)
+(byte-defop-compiler-1 map-char-table byte-compile-funarg-2)
+;; map-charset-chars should be funarg but has optional third arg
 (byte-defop-compiler-1 sort byte-compile-funarg-2)
 (byte-defop-compiler-1 let)
 (byte-defop-compiler-1 let*)

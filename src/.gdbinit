@@ -1,4 +1,4 @@
-# Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2000, 2001
+# Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2000, 2001, 2003
 #   Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
@@ -237,10 +237,10 @@ end
 
 define xchartable
 print (struct Lisp_Char_Table *) (($ & $valmask) | gdb_data_seg_bits)
-printf "Purpose: "
-output (char*)&((struct Lisp_Symbol *) ((((int) $->purpose) & $valmask) | gdb_data_seg_bits))->name->data
-printf "  %d extra slots", ($->size & 0x1ff) - 388
+printf "  %d extra slots", ($->size & 0x1ff) - 68
 echo \n
+printf "Purpose: "
+xprintsym $->purpose
 end
 document xchartable
 Print the address of the char-table $, and its purpose.
@@ -330,6 +330,29 @@ define xprintsym
 end
 document xprintsym
   Print argument as a symbol.
+end
+
+define xcoding
+  set $tmp = (struct Lisp_Hash_Table *) ((Vcoding_system_hash_table & $valmask) | gdb_data_seg_bits)
+  set $tmp = (struct Lisp_Vector *) (($tmp->key_and_value & $valmask) | gdb_data_seg_bits)
+  set $name = $tmp->contents[$arg0 * 2]
+  print $name
+  pr
+  print $tmp->contents[$arg0 * 2 + 1]
+  pr
+end
+document xcoding
+  Print the name and attributes of coding system that has ID (argument).
+end
+
+define xcharset
+  set $tmp = (struct Lisp_Hash_Table *) ((Vcharset_hash_table & $valmask) | gdb_data_seg_bits)
+  set $tmp = (struct Lisp_Vector *) (($tmp->key_and_value & $valmask) | gdb_data_seg_bits)
+  p $tmp->contents[$arg0->hash_index * 2]
+  pr
+end
+document xcharset
+  Print the name of charset that has ID (argument).
 end
 
 define xbacktrace

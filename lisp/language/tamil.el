@@ -38,6 +38,9 @@
 South Indian Language Tamil supported in this language environment."))
  '("Indian"))
 
+;; For automatic composition.
+(set-char-table-range composition-function-table '(#x0b80 . #x0bff)
+		      'tamil-composition-function)
 (provide 'tamil)
 
 ;;; tamil.el ends here

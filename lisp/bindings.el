@@ -625,12 +625,6 @@ language you are using."
 ;; that we will not need to keep permanently.
 (garbage-collect)
 
-;; Make all multibyte characters self-insert.
-(let ((l (generic-character-list))
-      (table (nth 1 global-map)))
-  (while l
-    (set-char-table-default table (car l) 'self-insert-command)
-    (setq l (cdr l))))
 
 (setq help-event-list '(help f1))
 

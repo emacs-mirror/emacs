@@ -319,7 +319,6 @@ else
 
 /* Variables used locally in FETCH_MULTIBYTE_CHAR.  */
 extern unsigned char *_fetch_multibyte_char_p;
-extern int _fetch_multibyte_char_len;
 
 /* Return character code of multi-byte form at position POS.  If POS
    doesn't point the head of valid multi-byte form, only the byte at
@@ -327,10 +326,18 @@ extern int _fetch_multibyte_char_len;
 
 #define FETCH_MULTIBYTE_CHAR(pos)				 	\
   (_fetch_multibyte_char_p = (((pos) >= GPT_BYTE ? GAP_SIZE : 0) 	\
-			       + (pos) + BEG_ADDR - BEG_BYTE),		 	\
-   _fetch_multibyte_char_len						\
-      = ((pos) >= GPT_BYTE ? ZV_BYTE : GPT_BYTE) - (pos),		\
-   STRING_CHAR (_fetch_multibyte_char_p, _fetch_multibyte_char_len))
+			       + (pos) + BEG_ADDR - BEG_BYTE),	 	\
+   STRING_CHAR (_fetch_multibyte_char_p, 0))
+
+/* Return character at position POS.  If the current buffer is unibyte
+   and the character is not ASCII, make the returning character
+   multibyte.  */
+
+#define FETCH_CHAR_AS_MULTIBYTE(pos)			\
+  (!NILP (current_buffer->enable_multibyte_characters)	\
+   ? FETCH_MULTIBYTE_CHAR ((pos))			\
+   : unibyte_char_to_multibyte (FETCH_BYTE ((pos))))
+
 
 /* Macros for accessing a character or byte,
    or converting between byte positions and addresses,
@@ -379,10 +386,7 @@ extern int _fetch_multibyte_char_len;
   (_fetch_multibyte_char_p						\
      = (((pos) >= BUF_GPT_BYTE (buf) ? BUF_GAP_SIZE (buf) : 0)		\
         + (pos) + BUF_BEG_ADDR (buf) - BEG_BYTE),			\
-   _fetch_multibyte_char_len						\
-     = (((pos) >= BUF_GPT_BYTE (buf) ? BUF_ZV_BYTE (buf) : BUF_GPT_BYTE (buf)) \
-        - (pos)),							\
-   STRING_CHAR (_fetch_multibyte_char_p, _fetch_multibyte_char_len))
+   STRING_CHAR (_fetch_multibyte_char_p, 0))
 
 /* Define the actual buffer data structures.  */
 
@@ -820,6 +824,7 @@ extern void buffer_slot_type_mismatch P_ ((int));
 extern void fix_overlays_before P_ ((struct buffer *, EMACS_INT, EMACS_INT));
 extern void mmap_set_vars P_ ((int));
 
+EXFUN (Fbuffer_live_p, 1);
 EXFUN (Fbuffer_name, 1);
 EXFUN (Fget_file_buffer, 1);
 EXFUN (Fnext_overlay_change, 1);

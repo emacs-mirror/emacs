@@ -1,8 +1,11 @@
 ;;; lao.el --- support for Lao -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;;   Licensed to the Free Software Foundation.
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2003
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H13PRO009
 
 ;; Keywords: multilingual, Lao
 
@@ -27,41 +30,26 @@
 
 ;;; Code:
 
-(make-coding-system
- 'lao 2 ?L
- "8-bit encoding for ASCII (MSB=0) and LAO (MSB=1)."
- '(ascii lao nil nil
-   nil nil nil nil nil nil nil nil nil nil nil t)
- '((safe-charsets ascii lao)
-   (post-read-conversion . lao-post-read-conversion)))
+(define-coding-system 'lao
+  "8-bit encoding for ASCII (MSB=0) and LAO (MSB=1)."
+  :coding-type 'charset
+  :mnemonic ?L
+  :charset-list '(lao))
 
 (set-language-info-alist
  "Lao" '((charset lao)
 	 (coding-system lao)
 	 (coding-priority lao)
 	 (input-method . "lao")
-	 (nonascii-translation . lao)
 	 (unibyte-display . lao)
 	 (features lao-util)
 	 (documentation . t)))
 
-(aset use-default-ascent ?(1;(B t)
-(aset use-default-ascent ?$,1D;(B t)
-(aset use-default-ascent ?(1=(B t)
-(aset use-default-ascent ?$,1D=(B t)
-(aset use-default-ascent ?(1?(B t)
-(aset use-default-ascent ?$,1D?(B t)
-(aset use-default-ascent ?(1B(B t)
-(aset use-default-ascent ?$,1DB(B t)
-(aset ignore-relative-composition ?(1\(B t)
-(aset ignore-relative-composition ?$,1D\(B t)
-
-;; Register a function to compose Lao characters.
-(let ((patterns '(("\\c0\\c9?\\(\\(\\c2\\|\\c3\\)\\c4?\\|\\c4\\)?"
-	 . lao-composition-function))))
-  (aset composition-function-table (make-char 'lao) patterns)
-  (dotimes (i (1+ (- #xeff #xe80)))
-    (aset composition-function-table (decode-char 'ucs (+ i #xe80)) patterns)))
+;; For automatic composition.
+(let ((chars "(1QTUVWXY[\hijklm(B"))
+  (dotimes (i (length chars))
+    (aset composition-function-table (aref chars i)
+	  'lao-composition-function)))
 
 (provide 'lao)
 

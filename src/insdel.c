@@ -24,7 +24,7 @@ Boston, MA 02111-1307, USA.  */
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "window.h"
 #include "blockinput.h"
 #include "region-cache.h"
@@ -655,22 +655,11 @@ copy_text (from_addr, to_addr, nbytes,
       int bytes_left = nbytes;
       Lisp_Object tbl = Qnil;
 
-      /* We set the variable tbl to the reverse table of
-         Vnonascii_translation_table in advance.  */
-      if (CHAR_TABLE_P (Vnonascii_translation_table))
-	{
-	  tbl = Fchar_table_extra_slot (Vnonascii_translation_table,
-					make_number (0));
-	  if (!CHAR_TABLE_P (tbl))
-	    tbl = Qnil;
-	}
-
-      /* Convert multibyte to single byte.  */
       while (bytes_left > 0)
 	{
 	  int thislen, c;
 	  c = STRING_CHAR_AND_LENGTH (from_addr, bytes_left, thislen);
-	  if (!SINGLE_BYTE_CHAR_P (c))
+	  if (!ASCII_CHAR_P (c))
 	    c = multibyte_char_to_unibyte (c, tbl);
 	  *to_addr++ = c;
 	  from_addr += thislen;
@@ -1164,6 +1153,47 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
 			       current_buffer, inherit);
 
   adjust_point (nchars, outgoing_nbytes);
+
+  CHECK_MARKERS ();
+}
+
+/* Insert a sequence of NCHARS chars which occupy NBYTES bytes
+   starting at GPT_ADDR.  */
+
+void
+insert_from_gap (nchars, nbytes)
+     register int nchars, nbytes;
+{
+  if (NILP (current_buffer->enable_multibyte_characters))
+    nchars = nbytes;
+
+  record_insert (GPT, nchars);
+  MODIFF++;
+
+  GAP_SIZE -= nbytes;
+  GPT += nchars;
+  ZV += nchars;
+  Z += nchars;
+  GPT_BYTE += nbytes;
+  ZV_BYTE += nbytes;
+  Z_BYTE += nbytes;
+  if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor.  */
+
+  if (GPT_BYTE < GPT)
+    abort ();
+
+  adjust_overlays_for_insert (GPT, nchars);
+  adjust_markers_for_insert (GPT, GPT_BYTE,
+			     GPT + nchars, GPT_BYTE + nbytes,
+			     0);
+
+  if (BUF_INTERVALS (current_buffer) != 0)
+    offset_intervals (current_buffer, GPT, nchars);
+
+  if (GPT - nchars < PT)
+    adjust_point (nchars, nbytes);
+
+  CHECK_MARKERS ();
 }
 
 /* Insert text from BUF, NCHARS characters starting at CHARPOS, into the
