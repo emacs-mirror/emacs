@@ -977,12 +977,12 @@ Extra commands should be added to `cua-user-movement-commands'")
 			     'cua-copy-region))
 			  ((eq ds 'supersede)
 			   (if cua--rectangle
-			       'cua-delete-rectangle ;; replace?
-			     'cua-replace-region))
+			       'cua-delete-rectangle
+			     'cua-delete-region))
 			  (t
 			   (if cua--rectangle
-			       'cua-delete-rectangle
-			     'cua-delete-region)))))
+			       'cua-delete-rectangle ;; replace?
+			     'cua-replace-region)))))
 		(if nc
 		    (setq this-original-command this-command
 			  this-command nc)))))
