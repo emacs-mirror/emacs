@@ -43,6 +43,11 @@ extern Lisp_Object make_time ();
 extern void insert_from_buffer ();
 static long difftm ();
 static void set_time_zone_rule ();
+static void update_buffer_properties ();
+
+Lisp_Object Vbuffer_access_fontify_functions;
+Lisp_Object Qbuffer_access_fontify_functions;
+Lisp_Object Vbuffer_access_fontified_property;
 
 /* Some static data, and a function to initialize it for each run */
 
@@ -879,13 +884,17 @@ the data it can't find.")
     return Fmake_list (2, Qnil);
 }
 
+/* This holds the value of `environ' produced by the previous
+   call to Fset_time_zone_rule, or 0 if Fset_time_zone_rule
+   has never been called.  */
+static char **environbuf;
+
 DEFUN ("set-time-zone-rule", Fset_time_zone_rule, Sset_time_zone_rule, 1, 1, 0,
   "Set the local time zone using TZ, a string specifying a time zone rule.\n\
 If TZ is nil, use implementation-defined default time zone information.")
   (tz)
      Lisp_Object tz;
 {
-  static char **environbuf;
   char *tzstring;
 
   if (NILP (tz))
@@ -1142,7 +1151,7 @@ from adjoining text, if those properties are sticky.")
 /* Return a Lisp_String containing the text of the current buffer from
    START to END.  If text properties are in use and the current buffer
    has properties in the range specified, the resulting string will also
-   have them.
+   have them, if PROPS is nonzero.
 
    We don't want to use plain old make_string here, because it calls
    make_uninit_string, which can cause the buffer arena to be
@@ -1153,8 +1162,9 @@ from adjoining text, if those properties are sticky.")
    buffer substrings.  */
 
 Lisp_Object
-make_buffer_string (start, end)
+make_buffer_string (start, end, props)
      int start, end;
+     int props;
 {
   Lisp_Object result, tem, tem1;
 
@@ -1164,15 +1174,56 @@ make_buffer_string (start, end)
   result = make_uninit_string (end - start);
   bcopy (&FETCH_CHAR (start), XSTRING (result)->data, end - start);
 
-  tem = Fnext_property_change (make_number (start), Qnil, make_number (end));
-  tem1 = Ftext_properties_at (make_number (start), Qnil);
-
+  /* If desired, update and copy the text properties.  */
 #ifdef USE_TEXT_PROPERTIES
-  if (XINT (tem) != end || !NILP (tem1))
-    copy_intervals_to_string (result, current_buffer, start, end - start);
+  if (props)
+    {
+      update_buffer_properties (start, end);
+
+      tem = Fnext_property_change (make_number (start), Qnil, make_number (end));
+      tem1 = Ftext_properties_at (make_number (start), Qnil);
+
+      if (XINT (tem) != end || !NILP (tem1))
+	copy_intervals_to_string (result, current_buffer, start, end - start);
+    }
 #endif
 
   return result;
+}
+
+/* Call Vbuffer_access_fontify_functions for the range START ... END
+   in the current buffer, if necessary.  */
+
+static void
+update_buffer_properties (start, end)
+     int start, end;
+{
+#ifdef USE_TEXT_PROPERTIES
+  /* If this buffer has some access functions,
+     call them, specifying the range of the buffer being accessed.  */
+  if (!NILP (Vbuffer_access_fontify_functions))
+    {
+      Lisp_Object args[3];
+      Lisp_Object tem;
+
+      args[0] = Qbuffer_access_fontify_functions;
+      XSETINT (args[1], start);
+      XSETINT (args[2], end);
+
+      /* But don't call them if we can tell that the work
+	 has already been done.  */
+      if (!NILP (Vbuffer_access_fontified_property))
+	{
+	  tem = Ftext_property_any (args[1], args[2],
+				    Vbuffer_access_fontified_property,
+				    Qnil, Qnil);
+	  if (! NILP (tem))
+	    Frun_hook_with_args (3, &args);
+	}
+      else
+	Frun_hook_with_args (3, &args);
+    }
+#endif
 }
 
 DEFUN ("buffer-substring", Fbuffer_substring, Sbuffer_substring, 2, 2, 0,
@@ -1188,7 +1239,24 @@ they can be in either order.")
   beg = XINT (b);
   end = XINT (e);
 
-  return make_buffer_string (beg, end);
+  return make_buffer_string (beg, end, 1);
+}
+
+DEFUN ("buffer-substring-no-properties", Fbuffer_substring_no_properties,
+       Sbuffer_substring_no_properties, 2, 2, 0,
+  "Return the characters of part of the buffer, without the text properties.\n\
+The two arguments START and END are character positions;\n\
+they can be in either order.")
+  (b, e)
+     Lisp_Object b, e;
+{
+  register int beg, end;
+
+  validate_region (&b, &e);
+  beg = XINT (b);
+  end = XINT (e);
+
+  return make_buffer_string (beg, end, 0);
 }
 
 DEFUN ("buffer-string", Fbuffer_string, Sbuffer_string, 0, 0, 0,
@@ -1197,7 +1265,7 @@ If narrowing is in effect, this function returns only the visible part\n\
 of the buffer.")
   ()
 {
-  return make_buffer_string (BEGV, ZV);
+  return make_buffer_string (BEGV, ZV, 1);
 }
 
 DEFUN ("insert-buffer-substring", Finsert_buffer_substring, Sinsert_buffer_substring,
@@ -1210,7 +1278,7 @@ They default to the beginning and the end of BUFFER.")
      Lisp_Object buf, b, e;
 {
   register int beg, end, temp;
-  register struct buffer *bp;
+  register struct buffer *bp, *obuf;
   Lisp_Object buffer;
 
   buffer = Fget_buffer (buf);
@@ -1238,6 +1306,11 @@ They default to the beginning and the end of BUFFER.")
 
   if (!(BUF_BEGV (bp) <= beg && end <= BUF_ZV (bp)))
     args_out_of_range (b, e);
+
+  obuf = current_buffer;
+  set_buffer_internal_1 (bp);
+  update_buffer_properties (beg, end);
+  set_buffer_internal_1 (obuf);
 
   insert_from_buffer (bp, beg, end - beg, 0);
   return Qnil;
@@ -2305,6 +2378,26 @@ Transposing beyond buffer boundaries is an error.")
 void
 syms_of_editfns ()
 {
+  environbuf = 0;
+
+  Qbuffer_access_fontify_functions
+    = intern ("buffer-access-fontify-functions");
+  staticpro (&Qbuffer_access_fontify_functions);
+
+  DEFVAR_LISP ("buffer-access-fontify-functions",
+	       &Vbuffer_access_fontify_functions,
+	       "List of functions called by `buffer-substring' to fontify if necessary.\n\
+Each function is called with two arguments which specify the range\n\
+of the buffer being accessed.");
+  Vbuffer_access_fontify_functions = Qnil;
+
+  DEFVAR_LISP ("buffer_access_fontified_property",
+	       &Vbuffer_access_fontified_property,
+       "Property which (if non-nil) indicates text has been fontified.\n\
+`buffer-substring' need not call the `buffer-access-fontify-functions'\n\
+functions if all the text being accessed has this property.");
+  Vbuffer_access_fontified_property = Qnil;
+
   DEFVAR_LISP ("system-name", &Vsystem_name,
 	       "The name of the machine Emacs is running on.");
   
@@ -2322,6 +2415,7 @@ syms_of_editfns ()
   defsubr (&Sstring_to_char);
   defsubr (&Schar_to_string);
   defsubr (&Sbuffer_substring);
+  defsubr (&Sbuffer_substring_no_properties);
   defsubr (&Sbuffer_string);
 
   defsubr (&Spoint_marker);
