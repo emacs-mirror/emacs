@@ -2224,7 +2224,8 @@ If SUFFIX is non-nil, add that at the end of the file name."
 ;; isearch-mode is deliberately excluded, since you should
 ;; not call it yourself.
 (defvar minor-mode-list '(auto-save-mode auto-fill-mode abbrev-mode
-					 overwrite-mode view-mode)
+					 overwrite-mode view-mode
+                                         hs-minor-mode)
   "List of all minor mode functions.")
 
 (defun add-minor-mode (toggle name &optional keymap after toggle-fun)
