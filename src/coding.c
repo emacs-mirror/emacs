@@ -1,7 +1,7 @@
 /* Coding system handler (conversion, detection, and etc).
    Copyright (C) 1995, 1997, 1998 Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
-   Copyright (C) 2001 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2002 Free Software Foundation, Inc.
    Copyright (C) 2001, 2002
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -4982,9 +4982,9 @@ adjust_coding_eol_type (coding, eol_seen)
   eol_type = CODING_ID_EOL_TYPE (coding->id);
   if (eol_seen & EOL_SEEN_LF)
     coding->id = CODING_SYSTEM_ID (AREF (eol_type, 0));
-  else if (eol_type & EOL_SEEN_CRLF)
+  else if (eol_seen & EOL_SEEN_CRLF)
     coding->id = CODING_SYSTEM_ID (AREF (eol_type, 1));
-  else if (eol_type & EOL_SEEN_CR)
+  else if (eol_seen & EOL_SEEN_CR)
     coding->id = CODING_SYSTEM_ID (AREF (eol_type, 2));
 }
 
