@@ -19,6 +19,10 @@
 
 
 (provide 'mail-utils)
+
+;;; We require lisp-mode to make sure that lisp-mode-syntax-table has
+;;; been initialized.
+(require 'lisp-mode)
 		     
 ;;;###autoload
 (defvar mail-use-rfc822 nil "\

@@ -17,6 +17,7 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+(provide 'lisp-mode)
 
 (defvar lisp-mode-syntax-table nil "")
 (defvar emacs-lisp-mode-syntax-table nil "")
@@ -58,19 +59,17 @@
       (modify-syntax-entry ?\[ "(]  " emacs-lisp-mode-syntax-table)
       (modify-syntax-entry ?\] ")[  " emacs-lisp-mode-syntax-table)))
 
+(if (not lisp-mode-syntax-table)
+    (progn (setq lisp-mode-syntax-table
+		 (copy-syntax-table emacs-lisp-mode-syntax-table))
+	   (modify-syntax-entry ?\| "\"   " lisp-mode-syntax-table)
+	   (modify-syntax-entry ?\[ "_   " lisp-mode-syntax-table)
+	   (modify-syntax-entry ?\] "_   " lisp-mode-syntax-table)))
+
 (define-abbrev-table 'lisp-mode-abbrev-table ())
 
 (defun lisp-mode-variables (lisp-syntax)
   (cond (lisp-syntax
-	  (if (not lisp-mode-syntax-table)
-	      (progn (setq lisp-mode-syntax-table
-			   (copy-syntax-table emacs-lisp-mode-syntax-table))
-		     (modify-syntax-entry ?\| "\"   "
-					  lisp-mode-syntax-table)
-		     (modify-syntax-entry ?\[ "_   "
-					  lisp-mode-syntax-table)
-		     (modify-syntax-entry ?\] "_   "
-					  lisp-mode-syntax-table)))
 	  (set-syntax-table lisp-mode-syntax-table)))
   (setq local-abbrev-table lisp-mode-abbrev-table)
   (make-local-variable 'paragraph-start)
