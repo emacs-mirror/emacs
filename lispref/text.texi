@@ -2826,7 +2826,7 @@ then each element can be any of these possibilities;
 A face name (a symbol or string).
 
 @item
-Starting in Emacs 21, a property list of face attributes.  This has the
+A property list of face attributes.  This has the
 form (@var{keyword} @var{value} @dots{}), where each @var{keyword} is a
 face attribute name and @var{value} is a meaningful value for that
 attribute.  With this feature, you do not need to create a face each
