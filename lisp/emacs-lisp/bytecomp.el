@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.29 $")
+(defconst byte-compile-version "$Revision: 2.30 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -2332,7 +2332,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 (byte-defop-compiler (1+ byte-add1)	1)
 (byte-defop-compiler (1- byte-sub1)	1)
 (byte-defop-compiler goto-char		1)
-(byte-defop-compiler char-after		1)
+(byte-defop-compiler char-after		0-1)
 (byte-defop-compiler set-buffer		1)
 ;;(byte-defop-compiler set-mark		1) ;; obsolete
 (byte-defop-compiler19 forward-word	1)
