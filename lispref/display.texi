@@ -1165,9 +1165,9 @@ sense---only on the screen.
 @item evaporate
 @kindex evaporate @r{(overlay property)}
 If this property is non-@code{nil}, the overlay is deleted automatically
-if it becomes empty (i.e., if its length becomes zero).  However,
-if the overlay is @emph{already} empty, @code{evaporate} does not
-delete it.
+if it becomes empty (i.e., if its length becomes zero).  If you give
+an empty overlay a non-@code{nil} @code{evaporate} property, that deletes
+it immediately.
 
 @item local-map
 @cindex keymap of character (and overlays)
