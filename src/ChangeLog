@@ -1,5 +1,8 @@
 2001-08-13  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (move_it_by_lines) <DVPOS < 0>: If not already on
+	a line start, move back to the line start.
+	
 	* xdisp.c (resize_echo_area_exactly): Don't resize the mini-window
 	exactly when a mini-buffer is active.
 
