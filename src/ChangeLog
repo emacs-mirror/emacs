@@ -1,3 +1,53 @@
+2001-12-01  Kim F. Storm  <no-spam@cua.dk>
+
+	The following changes add left-fringe and right-fringe
+	frame parameters to adjust fringe widths, or remove one or
+	both fringes.
+	
+	* frame.h (struct frame): Remove trunc_area_pixel_width and
+	trunc_area_cols fields.
+	(Qleft_fringe, Qright_fringe): Declare.
+	(FRAME_RIGHT_FRINGE_WIDTH): New macro.
+
+	* frame.c (Qleft_fringe, Qright_fringe): New vars.
+	(syms_of_frame): Initialize them.
+
+	* window.c (coordinates_in_window): Handle separate left and right
+	fringe widths.
+
+	* xterm.h (struct x_output): Add left_fringe_width, right_fringe_width,
+	and fringe_cols fields.
+	(FRAME_FRINGE_BITMAP_WIDTH, FRAME_FRINGE_BITMAP_HEIGHT): Remove macros.
+	(FRAME_X_FRINGE_COLS): Use fringe_cols field.
+	(FRAME_X_FRINGE_WIDTH): Use fringes_extra field.
+	(FRAME_X_LEFT_FRINGE_WIDTH): Use left_fringe_width field.
+	(FRAME_X_RIGHT_FRINGE_WIDTH): Use right_fringe_width field.
+	(x_compute_fringe_widths): Add prototype.
+
+	* xterm.c (zv_height, zv_bits, zv_period): Changed zv bitmap to
+	fill fringe evenly with small dashes.
+	(x_draw_fringe_bitmap): Clear background if necessary. Align and
+	clip the new ZV bitmap to avoid jitter between rows.
+	(x_draw_row_fringe_bitmaps): Rely on x_draw_fringe_bitmap to clear
+	background.  Don't draw fringe bitmaps if fringe width is zero.
+	(x_compute_fringe_widths): New function.
+	(x_new_font, x_set_window_size_1): Use it.
+
+	* xfns.c (x_frame_parms): Add `left-fringe' and `right-fringe' parms.
+	(x_set_frame_parameters): Process Process `font' parameter before other
+	parameters as fringe widths depend on it.
+	(x_set_fringe_width): New function.
+	(x_figure_window_size): Use x_compute_fringe_widths.
+	(Fx_create_frame): Process `left-fringe' and `right-fringe' frame
+	parameters.
+
+	* widget.c (set_frame_size): Use x_compute_fringe_widths.
+	(EmacsFrameSetCharSize): Ditto.
+
+	* w32term.h: Merged changes from xterm.h.
+	* w32term.c: Merged changes from xterm.c.
+	* w32fns.c: Merged changes from xfns.c.
+
 2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* COPYING: Removed.
