@@ -1,3 +1,14 @@
+2002-05-14  Dave Love  <fx@gnu.org>
+
+	* language/european.el: Fix mime-charset properties.
+
+	* international/mule-cmds.el (sort-coding-systems) 
+	(select-safe-coding-system, select-message-coding-system): Use
+	:mime-charset, not 'mime-charset.
+
+	* international/mule-conf.el (utf-8-emacs): Add various
+	:mime-charset properties.
+
 2002-05-13  Dave Love  <fx@gnu.org>
 
 	* international/encoded-kb.el (encoded-kbd-self-insert-ccl): Fix
