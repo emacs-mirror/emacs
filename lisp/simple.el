@@ -134,7 +134,7 @@ Leave one space or none, according to the context."
 (defun delete-blank-lines ()
   "On blank line, delete all surrounding blank lines, leaving just one.
 On isolated blank line, delete that one.
-On nonblank line, delete all blank lines that follow it."
+On nonblank line, delete any immediately following blank lines."
   (interactive "*")
   (let (thisblank singleblank)
     (save-excursion
