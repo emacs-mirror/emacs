@@ -1,3 +1,11 @@
+2004-09-13  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (detect_coding_utf_16): Don't set detect_info->found if
+	BOM is not found.
+	(detect_coding): Optimization for ISO-2022 when no 8-bit data is
+	found.
+	(detect_coding_system): Likewise.
+	
 2004-09-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (x_to_w32_font): Update to use new coding struct.
