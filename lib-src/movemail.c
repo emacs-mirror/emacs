@@ -657,15 +657,6 @@ xmalloc (size)
 #endif
 #include <pwd.h>
 
-#ifdef USG
-#include <fcntl.h>
-/* Cancel substitutions made by config.h for Emacs.  */
-#undef open
-#undef read
-#undef write
-#undef close
-#endif /* USG */
-
 #define NOTOK (-1)
 #define OK 0
 #define DONE 1
