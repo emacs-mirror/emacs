@@ -3699,6 +3699,10 @@ make_lispy_event (event)
 	c |= (event->modifiers
 	      & (meta_modifier | alt_modifier
 		 | hyper_modifier | super_modifier));
+	/* Distinguish Shift-SPC from SPC.  */
+	if ((event->code & 0377) == 040
+	    && event->modifiers & shift_modifier)
+	  c |= shift_modifier;
 	button_down_time = 0;
 	XSETFASTINT (lispy_c, c);
 	return lispy_c;
