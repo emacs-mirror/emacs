@@ -1211,7 +1211,7 @@ Leave point after argument."
         (insert (or fname (car args)) ": ")
         (if (nth 3 args)
             (insert "(" (nth 3 args) ")"))
-        (insert (car args))))))
+        (and (car args) (insert (car args)))))))
 
 (put 'pxref 'texinfo-format 'texinfo-format-pxref)
 (defun texinfo-format-pxref ()
