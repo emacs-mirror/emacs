@@ -1,3 +1,7 @@
+1999-10-22  Dave Love  <fx@gnu.org>
+
+	* latin-9.el: Avoid non-ASCII characters to prevent loadup failure.
+
 1999-10-21  Dave Love  <fx@gnu.org>
 
 	* loadup.el: Add latin-8, latin-9.
