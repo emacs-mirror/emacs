@@ -3118,8 +3118,9 @@ menu_bar_items ()
 	result = menu_bar_one_keymap (def, result);
     }
 
+  result = Fnreverse (result);
   Vinhibit_quit = oquit;
-  return Fnreverse (result);
+  return result;
 }
 
 /* Scan one map KEYMAP, accumulating any menu items it defines
