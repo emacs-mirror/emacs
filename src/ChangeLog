@@ -1,3 +1,8 @@
+2001-02-13  Gerd Moellmann  <gerd@gnu.org>
+
+	* dired.c (directory_files_internal): Initialize errno.
+	(toplevel): Include errno.h.
+
 2001-02-12  Andrew Innes  <andrewi@gnu.org>
 
 	The following changes are to draw box lines inside characters area
