@@ -1,3 +1,8 @@
+2001-10-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (x_draw_glyph_string): Restore clipping after
+	drawing box.
+
 2001-10-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (notice_overwritten_cursor): Renamed from
