@@ -301,10 +301,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.44 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.45 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.44 2003/01/12 20:47:48 schwab Exp $")
+  $Id: forms.el,v 2.45 2003/02/04 11:21:12 lektu Exp $")
 
 (defcustom forms-mode-hooks nil
   "Hook run upon entering Forms mode."
@@ -1287,7 +1287,6 @@ Commands:                        Equivalent keys in read-only mode:
   (setq forms-mode-ro-map (make-keymap))
   (suppress-keymap forms-mode-ro-map)
   (define-key forms-mode-ro-map "\C-c" forms-mode-map)
-  (define-key forms-mode-ro-map "\t" 'forms-next-field)
   (define-key forms-mode-ro-map "q" 'forms-toggle-read-only)
   (define-key forms-mode-ro-map "l" 'forms-jump-record)
   (define-key forms-mode-ro-map "n" 'forms-next-record)
@@ -1304,7 +1303,6 @@ Commands:                        Equivalent keys in read-only mode:
 
   ;; This is the normal, local map.
   (setq forms-mode-edit-map (make-keymap))
-  (define-key forms-mode-edit-map "\t"   'forms-next-field)
   (define-key forms-mode-edit-map "\C-c" forms-mode-map)
   (forms--mode-commands1 forms-mode-edit-map)
   (forms--mode-menu-edit forms-mode-edit-map)
@@ -1405,7 +1403,7 @@ Commands:                        Equivalent keys in read-only mode:
 
 (defun forms--mode-commands1 (map)
   "Helper routine to define keys."
-  (define-key map [TAB] 'forms-next-field)
+  (define-key map "\t" 'forms-next-field)
   (define-key map [S-tab] 'forms-prev-field)
   (define-key map [next] 'forms-next-record)
   (define-key map [prior] 'forms-prev-record)
