@@ -1,13 +1,13 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.17) $
- * Copyright (C) 1996 Harlequin Group, all rights reserved.
+ * $HopeName: MMsrc!mpm.h(trunk.18) $
+ * Copyright (C) 1996,1997 Harlequin Group, all rights reserved.
  */
 
 #ifndef mpm_h
 #define mpm_h
 
-#include "config.h"	/* this must come first: it defines target options */
+#include "config.h"     /* this must come first: it defines target options */
 #include "misc.h"       /* miscellaneous non-specific bits and bobs */
 #include "check.h"      /* assertion and consistency checking support */
 
@@ -90,7 +90,7 @@ extern Size (AddrOffset)(Addr base, Addr limit);
  * power of 2.
  * 
  * SizeFloorLog2 returns the floor of the logarithm in base 2 of size.
- * size can be any value.
+ * size can be any positive non-zero value.
  */
 extern Bool SizeIsP2(Size size);
 extern Shift SizeLog2(Size size);
@@ -103,10 +103,13 @@ extern Shift SizeFloorLog2(Size size);
 #define SizeIsAligned(s, a)     WordIsAligned(SizeWord(s), a)
 #define SizeAlignUp(s, a)       ((Size)WordAlignUp(SizeWord(s), a))
 
+
+/* Formatted Output -- see design.mps.writef, impl.c.mpm */
+
 extern Res WriteF(mps_lib_FILE *stream, ...);
 
 
-/* Ring Interface -- see impl.c.ring */
+/* Ring Interface -- see design.mps.ring, impl.c.ring */
 
 extern Bool RingCheck(Ring ring);
 extern Bool RingCheckSingle(Ring ring);
@@ -116,43 +119,47 @@ extern Bool RingIsSingle(Ring ring);
 extern void (RingInit)(Ring ring);
 #define RingInit(ring) \
   BEGIN \
-    AVER(NULL != (ring)); \
-    (ring)->next = (ring); \
-    (ring)->prev = (ring); \
-    AVER(RingCheck(ring)); \
+    Ring _ring = (ring); \
+    AVER(NULL != _ring); \
+    _ring->next = _ring; \
+    _ring->prev = _ring; \
+    AVER(RingCheck(_ring)); \
   END
 
 /* .ring.finish: */
 extern void (RingFinish)(Ring ring);
 #define RingFinish(ring) \
   BEGIN \
-    AVER(RingCheckSingle(ring)); \
-    (ring)->next = RingNONE; \
-    (ring)->prev = RingNONE; \
+    Ring _ring = (ring); \
+    AVER(RingCheckSingle(_ring)); \
+    _ring->next = RingNONE; \
+    _ring->prev = RingNONE; \
   END
 
 /* .ring.append: */
 extern void (RingAppend)(Ring ring, Ring new);
 #define RingAppend(ring, new) \
   BEGIN \
-    AVER(RingCheck(ring)); \
-    AVER(RingCheckSingle(new)); \
-    (new)->prev = (ring)->prev; \
-    (new)->next = (ring); \
-    (ring)->prev->next = (new); \
-    (ring)->prev = (new); \
+    Ring _ring = (ring), _new = (new); \
+    AVER(RingCheck(_ring)); \
+    AVER(RingCheckSingle(_new)); \
+    _new->prev = _ring->prev; \
+    _new->next = _ring; \
+    _ring->prev->next = _new; \
+    _ring->prev = _new; \
   END
 
 /* .ring.remove: */
 extern void (RingRemove)(Ring old);
 #define RingRemove(old) \
   BEGIN \
-    AVER(RingCheck(old)); \
-    AVER(!RingIsSingle(old)); \
-    (old)->next->prev = (old)->prev; \
-    (old)->prev->next = (old)->next; \
-    (old)->next = (old); \
-    (old)->prev = (old); \
+    Ring _old = (old); \
+    AVER(RingCheck(_old)); \
+    AVER(!RingIsSingle(_old)); \
+    _old->next->prev = _old->prev; \
+    _old->prev->next = _old->next; \
+    _old->next = _old; \
+    _old->prev = _old; \
   END
 
 /* .ring.next: */
