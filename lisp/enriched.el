@@ -52,20 +52,12 @@ This can be increased inside text by changing the 'right-margin text property.
 Measured in character widths.  If the screen is narrower than this, it is
 assumed to be 0.")
 
-(defvar enriched-indent-increment 4
-  "*Number of columns to indent for an <Indent> annotation.
-Should agree with the definition of <Indent> in enriched-annotation-alist.") 
-
 (defvar enriched-fill-after-visiting t
   "If t, fills paragraphs when reading in enriched documents.
 If nil, only fills when you explicitly request it.  If the value is 'ask, then
 it will query you whether to fill.
 Filling is never done if the current text-width is the same as the value
 stored in the file.")
-
-(defvar enriched-default-justification 'left
-  "*Method of justifying text not otherwise specified.
-Can be `left' `right' `both' `center' or `none'.")
 
 (defvar enriched-auto-save-interval 1000
   "*`Auto-save-interval' to use for `enriched-mode'.
@@ -140,14 +132,7 @@ actively working.")
 (defvar enriched-display-table (make-display-table))
 (aset enriched-display-table ?\f (make-vector (1- (frame-width)) ?-))
 
-(defvar enriched-hard-newline
-  (let ((s "\n"))
-    (put-text-property 0 1 'hard-newline t s)
-    s)
-  "String used to indicate hard newline in a enriched buffer.
-This is a newline with the `hard-newline' property set.")
-
-(defvar enriched-show-codes nil "See the function of the same name")
+; (defvar enriched-show-codes nil "See the function of the same name")
 
 (defvar enriched-par-props '(left-margin right-margin justification 
 					 front-sticky)
@@ -190,13 +175,13 @@ compared to that list.")
 		   (excerpt     "excerpt")
 		   (default     )
 		   (nil         enriched-encode-other-face))
-    (hard-newline  (nil         enriched-encode-hard-newline))
+    (hard          (nil         enriched-encode-hard-newline))
     (left-margin   (4           "indent"))
     (right-margin  (4           "indentright"))
     (justification (none        "nofill")
 		   (right       "flushright")
 		   (left        "flushleft")
-		   (both        "flushboth")
+		   (full        "flushboth")
 		   (center      "center")) 
     (PARAMETER     (t           "param")) ; Argument of preceding annotation
     ;; The following are not part of the standard:
@@ -377,7 +362,7 @@ or nil if it is a closing (negative) annotation."
   "Deal with encoding `hard-newline' property change."
   ;; This makes a sequence of N hard newlines into N+1 duplicates of the first
   ;; one- so all property changes are put off until after all the newlines.
-  (if (and new (enriched-justification))  ; no special processing inside NoFill
+  (if (and new (current-justification))  ; no special processing inside NoFill
       (let* ((length (skip-chars-forward "\n"))
 	     (s (make-string length ?\n)))
 	(backward-delete-char (1- length))
@@ -387,9 +372,6 @@ or nil if it is a closing (negative) annotation."
 
 (defun enriched-decode-hard-newline () 
   "Deal with newlines while decoding file."
-  ;; We label double newlines as `hard' and single ones as soft even in NoFill
-  ;; regions; otherwise the paragraph functions would not do anything
-  ;; reasonable in NoFill regions.
   (let ((nofill (equal "nofill" ; find out if we're in NoFill region
 		       (enriched-which-assoc 
 			'("nofill" "flushleft" "flushright" "center" 
@@ -397,7 +379,7 @@ or nil if it is a closing (negative) annotation."
 			enriched-open-ans)))
 	(n (skip-chars-forward "\n")))
     (delete-char (- n))
-    (enriched-insert-hard-newline (if nofill n (1- n)))))
+    (newline (if nofill n (1- n)))))
 
 (defun enriched-encode-other-face (old new)
   "Generate annotations for random face change.
@@ -498,26 +480,21 @@ Commands:
 	   ;; save old variable values before we change them.
 	   (setq enriched-mode t
 		 enriched-old-bindings 
-		 (list 'indent-line-function indent-line-function
-		       'auto-fill-function   auto-fill-function
+		 (list 'auto-save-interval   auto-save-interval
 		       'buffer-display-table buffer-display-table
-		       'fill-column          fill-column
-		       'auto-save-interval   auto-save-interval
-		       'sentence-end-double-space sentence-end-double-space))
-	   (make-local-variable 'auto-fill-function)
+		       'indent-line-function indent-line-function
+		       'use-hard-newlines    use-hard-newlines))
 	   (make-local-variable 'auto-save-interval)
 	   (make-local-variable 'indent-line-function)
-	   (make-local-variable 'sentence-end-double-space)
-	   (setq buffer-display-table enriched-display-table
-		 indent-line-function 'enriched-indent-line
-		 auto-fill-function 'enriched-auto-fill-function
-		 fill-column 0		; always run auto-fill-function
-		 auto-save-interval enriched-auto-save-interval
-		 sentence-end-double-space nil) ; Weird in Center&FlushRight
+	   (make-local-variable 'use-hard-newlines)
+	   (setq auto-save-interval enriched-auto-save-interval
+		 indent-line-function 'indent-to-left-margin
+		 buffer-display-table enriched-display-table
+		 use-hard-newlines t) ; Weird in Center&FlushRight
 	   ;; Add hooks
 	   (add-hook 'write-region-annotate-functions 
 		     'enriched-annotate-function)
-	   (add-hook 'after-change-functions 'enriched-nogrow-hook)
+;	   (add-hook 'after-change-functions 'enriched-nogrow-hook)
 
 	   (put-text-property (point-min) (point-max)
 			      'front-sticky enriched-par-props)
@@ -547,184 +524,14 @@ Commands:
 	  (cons (cons 'enriched-mode enriched-mode-map)
 		minor-mode-map-alist)))
 
-(define-key enriched-mode-map "\r" 'enriched-newline)
-(define-key enriched-mode-map "\n" 'enriched-newline)
-(define-key enriched-mode-map "\C-a" 'enriched-beginning-of-line)
-(define-key enriched-mode-map "\C-o" 'enriched-open-line)
-(define-key enriched-mode-map "\M-{" 'enriched-backward-paragraph)
-(define-key enriched-mode-map "\M-}" 'enriched-forward-paragraph)
-(define-key enriched-mode-map "\M-q" 'enriched-fill-paragraph)
-(define-key enriched-mode-map "\M-S" 'enriched-set-justification-center)
-(define-key enriched-mode-map "\C-x\t" 'enriched-change-left-margin)
-(define-key enriched-mode-map "\C-c\C-l" 'enriched-set-left-margin)
-(define-key enriched-mode-map "\C-c\C-r" 'enriched-set-right-margin)
-(define-key enriched-mode-map "\C-c\C-s" 'enriched-show-codes)
+(define-key enriched-mode-map "\C-a" 'move-to-left-margin)
+(define-key enriched-mode-map "\C-j" 'newline)
 (define-key enriched-mode-map "\M-j" 'enriched-justification-menu-map)
-
-;;; These extend the "Face" menu.
-(let ((menu (and window-system (car (where-is-internal facemenu-menu)))))
-  (if (null menu)
-      nil
-    (define-key enriched-mode-map 
-      (apply 'vector (append menu '(Sep-faces))) '("------"))
-    (define-key enriched-mode-map
-      (apply 'vector (append menu '(Justification)))
-      (cons "Justification" 'enriched-justification-menu-map))
-    (define-key enriched-mode-map 
-      (apply 'vector (append menu '(Indentation)))
-      (cons "Indentation" 'enriched-indentation-menu-map))))
-
-;;; The "Indentation" sub-menu:
-
-(defvar enriched-indentation-menu-map (make-sparse-keymap "Indentation")
-  "Submenu for indentation commands.")
-(defalias 'enriched-indentation-menu-map enriched-indentation-menu-map)
-
-(define-key enriched-indentation-menu-map [UnIndentRight]
-  (cons "UnIndentRight" 'enriched-unindent-right))
-(define-key enriched-indentation-menu-map [IndentRight]
-  (cons "IndentRight" 'enriched-indent-right))
-(define-key enriched-indentation-menu-map [Unindent]
-  (cons "UnIndent" 'enriched-unindent))
-(define-key enriched-indentation-menu-map [Indent]
-  (cons "Indent" ' enriched-indent))
-
-;;; The "Justification" sub-menu:
-(defvar enriched-justification-menu-map (make-sparse-keymap "Justification")
-  "Submenu for text justification commands.")
-(defalias 'enriched-justification-menu-map enriched-justification-menu-map)
-
-(define-key enriched-justification-menu-map [?c]
-  (cons "Center" 'enriched-set-justification-center))
-(define-key enriched-justification-menu-map [?b]  
-  (cons "Flush Both" 'enriched-set-justification-both))
-(define-key enriched-justification-menu-map [?r]  
-  (cons "Flush Right" 'enriched-set-justification-right))
-(define-key enriched-justification-menu-map [?l]  
-  (cons "Flush Left" 'enriched-set-justification-left))
-(define-key enriched-justification-menu-map [?u]  
-  (cons "Unfilled" 'enriched-set-nofill))
-
-;;; 
-;;; Interactive Functions
-;;;
-
-(defun enriched-newline (n)
-  "Insert N hard newlines.
-These are newlines that will not be affected by paragraph filling or
-justification; they are used for necessary line breaks or to separate
-paragraphs."
-  (interactive "*p")
-  (enriched-auto-fill-function)
-  (while (> n 0)
-    (enriched-insert-hard-newline 1)
-    (end-of-line 0)
-    (enriched-justify-line)
-    (beginning-of-line 2)
-    (setq n (1- n)))
-  (enriched-indent-line))
-
-(defun enriched-open-line (arg)
-  "Inserts a newline and leave point before it.
-With arg N, inserts N newlines.  Makes sure all lines are properly indented."
-  (interactive "*p")
-  (save-excursion
-    (enriched-newline arg))
-  (enriched-auto-fill-function)
-  (end-of-line))
-
-(defun enriched-beginning-of-line (&optional n)
-  "Move point to the beginning of the text part of the current line.
-This is after all indentation due to left-margin setting or center or right
-justification, but before any literal spaces or tabs used for indentation.
-With argument ARG not nil or 1, move forward ARG - 1 lines first.
-If scan reaches end of buffer, stop there without error."
-  (interactive "p")
-  (beginning-of-line n)
-;  (if (interactive-p) (enriched-justify-line))
-  (goto-char 
-   (or (text-property-any (point) (point-max) 'enriched-indentation nil)
-       (point-max))))
-
-(defun enriched-backward-paragraph (n)
-  "Move backward N paragraphs.
-Hard newlines are considered to be the only paragraph separators."
-  (interactive "p")
-  (enriched-forward-paragraph (- n)))
-
-(defun enriched-forward-paragraph (n)
-  "Move forward N paragraphs.
-Hard newlines are considered to be the only paragraph separators."
-  (interactive "p")
-  (if (> n 0)
-      (while (> n 0)
-	(skip-chars-forward " \t\n")
-	(enriched-end-of-paragraph)
-	(setq n (1- n)))
-    (while (< n 0)
-      (skip-chars-backward " \t\n")
-      (enriched-beginning-of-paragraph)
-      (setq n (1+ n)))
-    (enriched-beginning-of-line)))
-
-(defun enriched-fill-paragraph ()
-  "Make the current paragraph fit between its left and right margins."
-  (interactive)
-  (save-excursion
-    (enriched-fill-region-as-paragraph (enriched-beginning-of-paragraph)
-				       (enriched-end-of-paragraph))))
-
-(defun enriched-indent (b e)
-  "Make the left margin of the region larger."
-  (interactive "r")
-  (enriched-change-left-margin b e enriched-indent-increment))
-
-(defun enriched-unindent (b e)
-  "Make the left margin of the region smaller."
-  (interactive "r")
-  (enriched-change-left-margin b e (- enriched-indent-increment)))
-
-(defun enriched-indent-right (b e)
-  "Make the right margin of the region larger."
-  (interactive "r")
-  (enriched-change-right-margin b e enriched-indent-increment))
-
-(defun enriched-unindent-right (b e)
-  "Make the right margin of the region smaller."
-  (interactive "r")
-  (enriched-change-right-margin b e (- enriched-indent-increment)))
-
-(defun enriched-set-nofill (b e)
-  "Disable automatic filling in the region.
-Actually applies to all lines ending in the region.
-If mark is not active, applies to the current line."
-  (interactive (enriched-region-pars))
-  (enriched-set-justification b e 'none))
-
-(defun enriched-set-justification-left (b e)
-  "Declare the region to be left-justified.
-This is usually the default, but see `enriched-default-justification'."
-  (interactive (enriched-region-pars))
-  (enriched-set-justification b e 'left))
-
-(defun enriched-set-justification-right (b e)
-  "Declare paragraphs in the region to be right-justified:
-Flush at the right margin and ragged on the left.
-If mark is not active, applies to the current paragraph."
-  (interactive (enriched-region-pars))
-  (enriched-set-justification b e 'right))
-
-(defun enriched-set-justification-both (b e)
-  "Declare the region to be fully justified.
-If mark is not active, applies to the current paragraph."
-  (interactive (enriched-region-pars))
-  (enriched-set-justification b e 'both))
-
-(defun enriched-set-justification-center (b e)
-  "Make each line in the region centered.
-If mark is not active, applies to the current paragraph."
-  (interactive (enriched-region-pars))
-  (enriched-set-justification b e 'center))
+(define-key enriched-mode-map "\M-S" 'set-justification-center)
+(define-key enriched-mode-map "\C-x\t" 'increment-left-margin)
+(define-key enriched-mode-map "\C-c\C-l" 'set-left-margin)
+(define-key enriched-mode-map "\C-c\C-r" 'set-right-margin)
+;;(define-key enriched-mode-map "\C-c\C-s" 'enriched-show-codes)
 
 ;;;
 ;;; General list/stack manipulation
@@ -836,39 +643,6 @@ omitted or nil, use the selected frame."
 	((funcall attr (car face) frame))
 	((enriched-get-face-attribute attr (cdr face) frame))))
 
-(defun enriched-region-pars ()
-  "Return region expanded to begin and end at paragraph breaks.
-If the region is not active, this is just the current paragraph.
-A paragraph does not count as overlapping the region if only whitespace is
-overlapping.  Return value is a list of two numers, the beginning and end of
-the defined region."
-  (save-excursion
-    (let* ((b (progn (if mark-active (goto-char (region-beginning)))
-		     (enriched-beginning-of-paragraph)))
-	   (e (progn (if mark-active (progn (goto-char (region-end))
-					    (skip-chars-backward " \t\n" b)))
-		     (min (point-max)
-			  (1+ (enriched-end-of-paragraph))))))
-      (list b e))))
-
-(defun enriched-end-of-paragraph ()
-  "Move to the end of the current paragraph.
-Only hard newlines delimit paragraphs.  Returns point."
-  (interactive)
-  (if (not (bolp)) (backward-char 1))
-  (if (enriched-search-forward-with-props enriched-hard-newline nil 1)
-      (backward-char 1))
-  (point))
-
-(defun enriched-beginning-of-paragraph ()
-  "Move to beginning of the current paragraph.
-Only hard newlines delimit paragraphs.  Returns point."
-  (interactive)
-  (if (not (eolp)) (forward-char 1))
-  (if (enriched-search-backward-with-props enriched-hard-newline nil 1)
-      (forward-char 1))
-  (point))
-
 (defun enriched-overlays-overlapping (begin end &optional test)
   "Return a list of the overlays which overlap the specified region.
 If optional arg TEST is given, it is called with each overlay as its
@@ -884,103 +658,103 @@ argument, and only those for which it is true are returned."
       (setq overlays (cdr overlays)))
     res))
 
-(defun enriched-show-codes (&rest which)
-  "Enable or disable highlighting of special regions.
-With argument null or `none', turns off highlighting.
-If argument is `newline', turns on display of hard newlines.
-If argument is `indent', highlights the automatic indentation at the beginning
-of each line.
-If argument is `margin', highlights all regions with non-standard margins."
-  (interactive
-   (list (intern (completing-read "Show which codes: "
-				  '(("none") ("newline") ("indent") ("margin"))
-				  nil t))))
-  (if (null which)
-      (setq enriched-show-codes nil)
-    (setq enriched-show-codes which))
-  ;; First delete current overlays
-  (let* ((ol (overlay-lists))
-	 (overlays (append (car ol) (cdr ol))))
-    (while overlays
-      (if (eq (overlay-get (car overlays) 'face) 'enriched-code-face)
-	  (delete-overlay (car overlays)))
-      (setq overlays (cdr overlays))))
-  ;; Now add new ones for each thing displayed.
-  (if (null which)
-      (message "Code display off."))
-  (while which
-    (cond ((eq (car which) 'margin)
-	   (enriched-show-margin-codes))
-	  ((eq (car which) 'indent)
-	   (enriched-map-property-regions 'enriched-indentation
-	     (lambda (v b e)
-	       (if v (enriched-show-region-as-code b e 'indent)))))
-	  ((eq (car which) 'newline)
-	   (save-excursion
-	     (goto-char (point-min))
-	     (while (enriched-search-forward-with-props
-		     enriched-hard-newline nil t)
-	       (enriched-show-region-as-code (match-beginning 0) (match-end 0)
-				       'newline)))))
-    (setq which (cdr which))))
+;(defun enriched-show-codes (&rest which)
+;  "Enable or disable highlighting of special regions.
+;With argument null or `none', turns off highlighting.
+;If argument is `newline', turns on display of hard newlines.
+;If argument is `indent', highlights the automatic indentation at the beginning
+;of each line.
+;If argument is `margin', highlights all regions with non-standard margins."
+;  (interactive
+;   (list (intern (completing-read "Show which codes: "
+;				  '(("none") ("newline") ("indent") ("margin"))
+;				  nil t))))
+;  (if (null which)
+;      (setq enriched-show-codes nil)
+;    (setq enriched-show-codes which))
+;  ;; First delete current overlays
+;  (let* ((ol (overlay-lists))
+;	 (overlays (append (car ol) (cdr ol))))
+;    (while overlays
+;      (if (eq (overlay-get (car overlays) 'face) 'enriched-code-face)
+;	  (delete-overlay (car overlays)))
+;      (setq overlays (cdr overlays))))
+;  ;; Now add new ones for each thing displayed.
+;  (if (null which)
+;      (message "Code display off."))
+;  (while which
+;    (cond ((eq (car which) 'margin)
+;	   (enriched-show-margin-codes))
+;	  ((eq (car which) 'indent)
+;	   (enriched-map-property-regions 'enriched-indentation
+;	     (lambda (v b e)
+;	       (if v (enriched-show-region-as-code b e 'indent)))))
+;	  ((eq (car which) 'newline)
+;	   (save-excursion
+;	     (goto-char (point-min))
+;	     (while (enriched-search-forward-with-props
+;		     enriched-hard-newline nil t)
+;	       (enriched-show-region-as-code (match-beginning 0) (match-end 0)
+;				       'newline)))))
+;    (setq which (cdr which))))
   
-(defun enriched-show-margin-codes (&optional from to)
-  "Highlight regions with nonstandard left-margins.
-See `enriched-show-codes'."
-  (enriched-map-property-regions 'left-margin
-    (lambda (v b e)
-      (if (and v (> v 0))
-	  (enriched-show-region-as-code b e 'margin)))
-    from to)
-  (enriched-map-property-regions 'right-margin
-    (lambda (v b e)
-      (if (and v (> v 0))
-	  (enriched-show-region-as-code b e 'margin)))
-    from to))
+;(defun enriched-show-margin-codes (&optional from to)
+;  "Highlight regions with nonstandard left-margins.
+;See `enriched-show-codes'."
+;  (enriched-map-property-regions 'left-margin
+;    (lambda (v b e)
+;      (if (and v (> v 0))
+;	  (enriched-show-region-as-code b e 'margin)))
+;    from to)
+;  (enriched-map-property-regions 'right-margin
+;    (lambda (v b e)
+;      (if (and v (> v 0))
+;	  (enriched-show-region-as-code b e 'margin)))
+;    from to))
 	
-(defun enriched-show-region-as-code (from to type)
-  "Display region between FROM and TO as a code if TYPE is displayed.
-Displays it only if TYPE is an element of `enriched-show-codes' or is t."
-  (if (or (eq t type) (memq type enriched-show-codes))
-      (let* ((old (enriched-overlays-overlapping 
-		   from to (lambda (o)
-			     (eq 'enriched-code-face 
-				 (overlay-get o 'face)))))
-	     (new (if old (move-overlay (car old) from to)
-		    (make-overlay from to))))
-	(overlay-put new 'face 'enriched-code-face)
-	(overlay-put new 'front-nogrow t)
-	(if (eq type 'margin)
-	    (overlay-put new 'rear-grow t))
-	(while (setq old (cdr old))
-	  (delete-overlay (car old))))))
+;(defun enriched-show-region-as-code (from to type)
+;  "Display region between FROM and TO as a code if TYPE is displayed.
+;Displays it only if TYPE is an element of `enriched-show-codes' or is t."
+;  (if (or (eq t type) (memq type enriched-show-codes))
+;      (let* ((old (enriched-overlays-overlapping 
+;		   from to (lambda (o)
+;			     (eq 'enriched-code-face 
+;				 (overlay-get o 'face)))))
+;	     (new (if old (move-overlay (car old) from to)
+;		    (make-overlay from to))))
+;	(overlay-put new 'face 'enriched-code-face)
+;	(overlay-put new 'front-nogrow t)
+;	(if (eq type 'margin)
+;	    (overlay-put new 'rear-grow t))
+;	(while (setq old (cdr old))
+;	  (delete-overlay (car old))))))
 
-(defun enriched-nogrow-hook (beg end old-length)
-  "Implement front-nogrow and rear-grow for overlays.
-Normally overlays have opposite inheritance properties than
-text-properties: they will expand to include text inserted at their
-beginning, but not text inserted at their end.  However, 
-if this function is an element of `after-change-functions', then
-overlays with a non-nil value of the `front-nogrow' property will not
-expand to include text that is inserted just in front of them, and
-overlays with a non-nil value of the `rear-grow' property will 
-expand to include text that is inserted just after them."
-  (if (not (zerop old-length))
-      nil ;; not an insertion
-    (let ((overlays (overlays-at end)) o)
-      (while overlays
-	(setq o (car overlays)
-	      overlays (cdr overlays))
-	(if (and (overlay-get o 'front-nogrow)
-		 (= beg (overlay-start o)))
-	    (move-overlay o end (overlay-end o)))))
-    (let ((overlays (overlays-at (1- beg))) o)
-      (while overlays
-	(setq o (car overlays)
-	      overlays (cdr overlays))
-	(if (and (overlay-get o 'rear-grow)
-		 (= beg (overlay-end o)))
-	    (move-overlay o (overlay-start o) end))))))
+;(defun enriched-nogrow-hook (beg end old-length)
+;  "Implement front-nogrow and rear-grow for overlays.
+;Normally overlays have opposite inheritance properties than
+;text-properties: they will expand to include text inserted at their
+;beginning, but not text inserted at their end.  However, 
+;if this function is an element of `after-change-functions', then
+;overlays with a non-nil value of the `front-nogrow' property will not
+;expand to include text that is inserted just in front of them, and
+;overlays with a non-nil value of the `rear-grow' property will 
+;expand to include text that is inserted just after them."
+;  (if (not (zerop old-length))
+;      nil ;; not an insertion
+;    (let ((overlays (overlays-at end)) o)
+;      (while overlays
+;	(setq o (car overlays)
+;	      overlays (cdr overlays))
+;	(if (and (overlay-get o 'front-nogrow)
+;		 (= beg (overlay-start o)))
+;	    (move-overlay o end (overlay-end o)))))
+;    (let ((overlays (overlays-at (1- beg))) o)
+;      (while overlays
+;	(setq o (car overlays)
+;	      overlays (cdr overlays))
+;	(if (and (overlay-get o 'rear-grow)
+;		 (= beg (overlay-end o)))
+;	    (move-overlay o (overlay-start o) end))))))
 
 (defun enriched-warn (&rest args)
   "Display a warning message.
@@ -1130,57 +904,6 @@ the first character in the buffer)."
 ;;; Indentation, Filling, Justification
 ;;;
 
-(defun enriched-insert-hard-newline (n)
-  ;; internal function; use enriched-newline for most purposes.
-  (while (> n 0)
-    (insert-and-inherit ?\n)
-    (add-text-properties (1- (point)) (point) 
-			 (list 'hard-newline t 
-			       'rear-nonsticky '(hard-newline)
-			       'front-sticky nil))
-    (enriched-show-region-as-code (1- (point)) (point) 'newline)
-    (setq n (1- n))))
-
-(defun enriched-left-margin ()
-  "Return the left margin of this line.
-This is defined as the value of the text-property `left-margin' in
-effect at the first character of the line, or the value of the
-variable `left-margin' if this is nil, or 0."
-  (save-excursion
-    (beginning-of-line)
-    (or (get-text-property (point) 'left-margin) 0)))
-
-(defun enriched-fill-column (&optional pos)
-  "Return the fill-column in effect at POS or point.
-This is `enriched-text-width' minus the current `right-margin'
-text-property."
-  (- (enriched-text-width)
-     (or (get-text-property (or pos (point)) 'right-margin) 0)))
-
-(defun enriched-move-to-fill-column ()
-  "Move point to right margin of current line.
-For filling, the line should be broken before this point."
-  ;; Defn: The first point where (enriched-fill-column) <= (current-column)
-  (interactive)
-  (goto-char 
-   (catch 'found
-     (enriched-map-property-regions 'right-margin
-       (lambda (v b e)
-	 (goto-char (1- e))
-	 (if (<= (enriched-fill-column) (current-column))
-	     (progn (move-to-column (enriched-fill-column))
-		    (throw 'found (point)))))
-       (progn (beginning-of-line) (point))
-       (progn (end-of-line) (point)))
-     (end-of-line)
-     (point))))
-
-(defun enriched-line-length ()
-  "Length of text part of current line."
-  (save-excursion
-    (- (progn (end-of-line) (current-column))
-       (progn (enriched-beginning-of-line) (current-column)))))
-
 (defun enriched-text-width ()
   "The width of unindented text in this window, in characters.
 This is the width of the window minus `enriched-default-right-margin'."
@@ -1196,30 +919,6 @@ This is the width of the window minus `enriched-default-right-margin'."
   (add-text-properties from to '(enriched-indentation t
 				 rear-nonsticky (enriched-indentation))))
 
-(defun enriched-indent-line (&optional column)
-  "Line-indenting primitive for enriched-mode.
-By default, indents current line to `enriched-left-margin'.
-Optional arg COLUMN asks for indentation to that column, eg to indent a
-centered or flushright line."
-  (save-excursion
-    (beginning-of-line)
-    (or column (setq column (enriched-left-margin)))
-    (let ((bol (point)))
-      (if (not (get-text-property (point) 'enriched-indentation))
-	  nil ; no current indentation
-	(goto-char (or (text-property-any (point) (point-max)
-					  'enriched-indentation nil)
-		       (point)))
-	(if (> (current-column) column) ; too far right
-	    (delete-region bol (point))))
-      (indent-to column)
-      (if (= bol (point))
-	  nil
-	;; Indentation gets same properties as first real char.
-	(set-text-properties bol (point) (text-properties-at (point)))
-	(enriched-show-region-as-code bol (point) 'indent)
-	(enriched-tag-indentation bol (point))))))
-
 (defun enriched-insert-indentation (&optional from to)
   "Indent and justify each line in the region."
   (save-excursion
@@ -1228,7 +927,8 @@ centered or flushright line."
       (goto-char (or from (point-min)))
       (if (not (bolp)) (forward-line 1))
       (while (not (eobp))
-	(enriched-justify-line)
+	(indent-to (current-left-margin))
+	(justify-current-line t nil t)
 	(forward-line 1)))))
 
 (defun enriched-delete-indentation (&optional from to)
@@ -1242,324 +942,14 @@ added automatically, not spaces and tabs inserted by user."
       (if from
 	  (progn (goto-char from)
 		 (if (not (bolp)) (forward-line 1))
-		 (setq from (point))))
-      ;; Remove everything that has the enriched-indentation text
-      ;; property set, unless it is not at the left margin.  In that case, the
-      ;; property must be there by mistake and should be removed.
-      (enriched-map-property-regions 'enriched-indentation
-	(lambda (v b e)
-	  (if (null v)
-	      nil
-	    (goto-char b)
-	    (if (bolp)
-		(delete-region b e)
-	      (remove-text-properties b e '(enriched-indentation nil
-					    rear-nonsticky nil)))))
-	from nil)
-      ;; Remove spaces added for FlushBoth.
+		 (setq from (point)))
+	(setq from (point-min)))
+      (delete-to-left-margin from (point-max))
       (enriched-map-property-regions 'justification
 	(lambda (v b e)
-	  (if (eq v 'both)
-	      (enriched-squeeze-spaces b e)))
+	  (if (eq v 'full)
+	      (canonically-space-region b e)))
 	from nil))))
-
-(defun enriched-change-left-margin (from to inc)
-  "Adjust the left-margin property between FROM and TO by INCREMENT.
-If the given region includes the character at the left margin, it is extended
-to include the indentation too."
-  (interactive "*r\np")
-  (if (interactive-p) (setq inc (* inc enriched-indent-increment)))
-  (save-excursion
-    (let ((from (progn (goto-char from)
-		       (if (<= (current-column) (enriched-left-margin))
-			   (beginning-of-line))
-		       (point)))
-	  (to   (progn (goto-char to)
-		       (point-marker)))
-	  (inhibit-read-only t))
-      (enriched-delete-indentation from to)
-      (enriched-map-property-regions 'left-margin
-	(lambda (v b e)
-	  (put-text-property b e 'left-margin
-			     (max 0 (+ inc (or v 0)))))
-	from to)
-      (enriched-fill-region from to)
-      (enriched-show-margin-codes from to))))
-
-(defun enriched-change-right-margin (from to inc)
-  "Adjust the right-margin property between FROM and TO by INCREMENT.
-If the given region includes the character at the left margin, it is extended
-to include the indentation too."
-  (interactive "r\np")
-  (if (interactive-p) (setq inc (* inc enriched-indent-increment)))
-  (save-excursion
-    (let ((inhibit-read-only t))
-      (enriched-map-property-regions 'right-margin
-	(lambda (v b e)
-	  (put-text-property b e 'right-margin
-			     (max 0 (+ inc (or v 0)))))
-	from to)
-      (fill-region (progn (goto-char from)
-			  (enriched-beginning-of-paragraph))
-		   (progn (goto-char to)
-			  (enriched-end-of-paragraph)))
-      (enriched-show-margin-codes from to))))
-
-(defun enriched-set-left-margin (from to lm)
-  "Set the left margin of the region to WIDTH.
-If the given region includes the character at the left margin, it is extended
-to include the indentation too."
-  (interactive "r\nNSet left margin to column: ")
-  (if (interactive-p) (setq lm (prefix-numeric-value lm)))
-  (save-excursion
-    (let ((from (progn (goto-char from)
-		       (if (<= (current-column) (enriched-left-margin))
-			   (beginning-of-line))
-		       (point)))
-	  (to   (progn (goto-char to)
-		       (point-marker)))
-	  (inhibit-read-only t))
-      (enriched-delete-indentation from to)
-      (put-text-property from to 'left-margin lm)
-      (enriched-fill-region from to)
-      (enriched-show-region-as-code from to 'margin))))
-
-(defun enriched-set-right-margin (from to lm)
-  "Set the right margin of the region to WIDTH.
-The right margin is the space left between fill-column and
-`enriched-text-width'. 
-If the given region includes the leftmost character on a line, it is extended
-to include the indentation too."
-  (interactive "r\nNSet left margin to column: ")
-  (if (interactive-p) (setq lm (prefix-numeric-value lm)))
-  (save-excursion
-    (let ((from (progn (goto-char from)
-		       (if (<= (current-column) (enriched-left-margin))
-			   (end-of-line 0))
-		       (point)))
-	  (to   (progn (goto-char to)
-		       (point-marker)))
-	  (inhibit-read-only t))
-      (enriched-delete-indentation from to)
-      (put-text-property from to 'right-margin lm)
-      (enriched-fill-region from to)
-      (enriched-show-region-as-code from to 'margin))))
-
-(defun enriched-set-justification (b e val)
-  "Set justification of region to new value."
-  (save-restriction
-    (narrow-to-region (point-min) e)
-    (enriched-delete-indentation b (point-max))
-    (put-text-property b (point-max) 'justification val)
-    (enriched-fill-region b (point-max))))
-
-(defun enriched-justification ()
-  "How should we justify at point?
-This returns the value of the text-property `justification' or if that is nil,
-the value of `enriched-default-justification'.  However, it returns nil
-rather than `none' to mean \"don't justify\"."
-  (let ((j (or (get-text-property 
-		(if (and (eolp) (not (bolp))) (1- (point)) (point))
-		'justification)
-	       enriched-default-justification)))
-    (if (eq 'none j)
-	nil
-      j)))
-
-(defun enriched-justify-line ()
-  "Indent and/or justify current line.
-Action depends on `justification' text property."
-  (let ((just (enriched-justification)))
-    (if (or (null just) (eq 'left just))
-	(enriched-indent-line)
-      (save-excursion
-	(let ((left-margin (enriched-left-margin))
-	      (fill-column (enriched-fill-column))
-	      (length      (enriched-line-length)))
-	  (cond ((eq 'both just)
-		 (enriched-indent-line left-margin)
-		 (end-of-line)
-		 (if (not (or (get-text-property (point) 'hard-newline)
-			      (= (current-column) fill-column)))
-		     (justify-current-line)))
-		((eq 'center just)
-		 (let* ((space (- fill-column left-margin)))
-		   (if (and (> length space) enriched-verbose)
-		       (enriched-warn "Line too long to center"))
-		   (enriched-indent-line 
-		    (+ left-margin (/ (- space length) 2)))))
-		((eq 'right just)
-		 (end-of-line)
-		 (let* ((lmar (- fill-column length)))
-		   (if (and (< lmar 0) enriched-verbose)
-		       (enriched-warn "Line to long to justify"))
-		   (enriched-indent-line lmar)))))))))
-
-(defun enriched-squeeze-spaces (from to)
-  "Remove unnecessary spaces between words.
-This should only be used in FlushBoth regions; otherwise spaces are the
-property of the user and should not be tampered with."
-  (save-excursion
-    (goto-char from)
-    (let ((endmark (make-marker)))
-      (set-marker endmark to)
-      (while (re-search-forward "   *" endmark t)
-	(delete-region
-	 (+ (match-beginning 0)
-	    (if (save-excursion
-		  (skip-chars-backward " ]})\"'")
-		  (memq (preceding-char) '(?. ?? ?!)))
-		2 1))
-	 (match-end 0))))))
-
-(defun enriched-fill-region (from to)
-  "Fill each paragraph in region.
-Whether or not filling or justification is done depends on the text properties
-in effect at each location."
-  (interactive "r")
-  (save-excursion
-    (goto-char to)
-    (let ((to (point-marker)))
-      (goto-char from)
-      (while (< (point) to)
-	(let ((begin (point)))
-	  (enriched-end-of-paragraph)
-	  (enriched-fill-region-as-paragraph begin (point)))
-	(if (not (eobp))
-	    (forward-char 1))))))
-
-(defun enriched-fill-region-as-paragraph (from to)
-  "Make sure region is filled properly between margins.
-Whether or not filling or justification is done depends on the text properties
-in effect at each location."
-  (save-restriction
-    (narrow-to-region (point-min) to)
-    (goto-char from)
-    (let ((just (enriched-justification)))
-      (if (not just)
-	  (while (not (eobp))
-	    (enriched-indent-line)
-	    (forward-line 1))
-	(enriched-delete-indentation from (point-max))
-	(enriched-indent-line)
-	;; Following 3 lines taken from fill.el:
-	(while (re-search-forward "[.?!][])}\"']*$" nil t)
-	  (insert-and-inherit ?\ ))
-	(subst-char-in-region from (point-max) ?\n ?\ )
-	;; If we are full-justifying, we can commandeer all extra spaces.
-	;; Remove them before filling.
-	(if (eq 'both just)
-	    (enriched-squeeze-spaces from (point-max)))
-	;; Now call on auto-fill for each different segment of the par.
-	(enriched-map-property-regions 'right-margin
-	  (lambda (v b e)
-	    (goto-char (1- e))
-	    (enriched-auto-fill-function))
-	  from (point-max))
-	(goto-char (point-max))
-	(enriched-justify-line)))))
-  
-(defun enriched-auto-fill-function ()
-  "If past `enriched-fill-column', break current line.
-Line so ended will be filled and justified, as appropriate."
-  (if (and (not enriched-mode) enriched-old-bindings)
-      ;; Mode was turned off improperly.
-      (progn (enriched-mode 0)
-	     (funcall auto-fill-function))
-    ;; Necessary for FlushRight, etc:
-    (enriched-indent-line) ; standardize left margin
-    (let* ((fill-column (enriched-fill-column))
-	   (lmar (save-excursion (enriched-beginning-of-line) (point)))
-	   (rmar (save-excursion (end-of-line) (point)))
-	   (justify (enriched-justification))
-	   (give-up (not justify))) ; don't even start if in a NoFill region.
-      ;; remove inside spaces if FlushBoth
-      (if (eq justify 'both)
-	  (enriched-squeeze-spaces lmar rmar))
-      (while (and (not give-up) (> (current-column) fill-column))
-	;; Determine where to split the line.
-	(setq lmar (save-excursion (enriched-beginning-of-line) (point)))
-	(let ((fill-point 
-	       (let ((opoint (point))
-		     bounce
-		     (first t))
-		 (save-excursion
-		   (enriched-move-to-fill-column)
-		   ;; Move back to a word boundary.
-		   (while (or first
-			      ;; If this is after period and a single space,
-			      ;; move back once more--we don't want to break
-			      ;; the line there and make it look like a
-			      ;; sentence end.
-			      (and (not (bobp))
-				   (not bounce)
-				   sentence-end-double-space
-				   (save-excursion (forward-char -1)
-						   (and (looking-at "\\. ")
-							(not (looking-at "\\.  " ))))))
-		     (setq first nil)
-		     (skip-chars-backward "^ \t\n")
-		     ;; If we are not allowed to break here, move back to
-		     ;; somewhere that may be legal.  If no legal spots, this
-		     ;; will land us at bol.
-		     ;;(if (not (enriched-canbreak))
-		     ;; (goto-char (previous-single-property-change
-		     ;;	     (point) 'justification nil lmar)))
-		     ;; If we find nowhere on the line to break it,
-		     ;; break after one word.  Set bounce to t
-		     ;; so we will not keep going in this while loop.
-		     (if (<= (point) lmar)
-			 (progn
-			   (re-search-forward "[ \t]" opoint t)
-			   ;;(while (and (re-search-forward "[ \t]" opoint t)
-			   ;; (not (enriched-canbreak))))
-			   (setq bounce t)))
-		     (skip-chars-backward " \t"))
-		   ;; Let fill-point be set to the place where we end up.
-		   (point)))))
-	  ;; If that place is not the beginning of the line,
-	  ;; break the line there.
-	  (if				; and (enriched-canbreak)....
-	      (save-excursion
-		(goto-char fill-point)
-		(not (bolp)))
-	      (let ((prev-column (current-column)))
-		;; If point is at the fill-point, do not `save-excursion'.
-		;; Otherwise, if a comment prefix or fill-prefix is inserted,
-		;; point will end up before it rather than after it.
-		(if (save-excursion
-		      (skip-chars-backward " \t")
-		      (= (point) fill-point))
-		    (progn
-		      (insert-and-inherit "\n")
-		      (delete-region (point) 
-				     (progn (skip-chars-forward " ") (point)))
-		      (enriched-indent-line))
-		  (save-excursion
-		    (goto-char fill-point)
-		    (insert-and-inherit "\n")
-		    (delete-region (point) 
-				   (progn (skip-chars-forward " ") (point)))
-		    (enriched-indent-line)))
-		;; Now do proper sort of justification of the previous line
-		(save-excursion
-		  (end-of-line 0)
-		  (enriched-justify-line))
-		;; If making the new line didn't reduce the hpos of
-		;; the end of the line, then give up now;
-		;; trying again will not help.
-		(if (>= (current-column) prev-column)
-		    (setq give-up t)))
-	    ;; No place to break => stop trying.
-	    (setq give-up t))))
-      ;; Check last line too ?
-      )))
-
-(defun enriched-aggressive-auto-fill-function ()
-  "Too slow."
-  (save-excursion
-    (enriched-fill-region (progn (beginning-of-line) (point))
-			  (enriched-end-of-paragraph))))
 
 ;;;
 ;;; Writing Files
@@ -1856,7 +1246,7 @@ This is the primary entry point for decoding."
 	    (enriched-insert-indentation)
 	  (sit-for 1)
 	  (if enriched-verbose (message "Filling paragraphs..."))
-	  (enriched-fill-region (point-min) (point-max))
+	  (fill-region (point-min) (point-max))
 	  (if enriched-verbose (message nil)))
     
 	(if enriched-verbose 
