@@ -625,9 +625,9 @@ file should not be done.
 @c Emacs 19 feature
 @defun visited-file-modtime
 This function returns the current buffer's recorded last file
-modification time, as a list of the form @code{(@var{high} .
-@var{low})}.  (This is the same format that @code{file-attributes}
-uses to return time values; see @ref{File Attributes}.)
+modification time, as a list of the form @code{(@var{high} @var{low})}.
+(This is the same format that @code{file-attributes} uses to return
+time values; see @ref{File Attributes}.)
 
 The function returns zero if the buffer has no recorded last
 modification time, which can happen, for instance, if the record has
