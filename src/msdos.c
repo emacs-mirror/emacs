@@ -2312,8 +2312,20 @@ DEFUN ("msdos-remember-default-colors", Fmsdos_remember_default_colors,
   CHECK_FRAME (frame, 0);
   f= XFRAME (frame);
 
-  initial_screen_colors[0] = FRAME_FOREGROUND_PIXEL (f);
-  initial_screen_colors[1] = FRAME_BACKGROUND_PIXEL (f);
+  /* This function is called after applying default-frame-alist to the
+     initial frame.  At that time, if reverse-colors option was
+     specified in default-frame-alist, it was already applied, and
+     frame colors are reversed.  We need to account for that.  */
+  if (EQ (Fcdr (Fassq (Qreverse, f->param_alist)), Qt))
+    {
+      initial_screen_colors[0] = FRAME_BACKGROUND_PIXEL (f);
+      initial_screen_colors[1] = FRAME_FOREGROUND_PIXEL (f);
+    }
+  else
+    {
+      initial_screen_colors[0] = FRAME_FOREGROUND_PIXEL (f);
+      initial_screen_colors[1] = FRAME_BACKGROUND_PIXEL (f);
+    }
 }
 
 void
@@ -2415,14 +2427,15 @@ IT_set_frame_parameters (f, alist)
 		  Finternal_set_lisp_face_attribute (Qdefault, QCbackground,
 						     val, frame);
 		  prop = Qbackground_color;
+		  bg_set = 1;
 		}
 	      else
 		{
 		  Finternal_set_lisp_face_attribute (Qdefault, QCforeground,
 						     val, frame);
+		  fg_set = 1;
 		}
 	      redraw = 1;
-	      fg_set = 1;
 	      if (termscript)
 		fprintf (termscript, "<FGCOLOR %lu>\n", new_color);
 	    }
@@ -2445,14 +2458,15 @@ IT_set_frame_parameters (f, alist)
 		  Finternal_set_lisp_face_attribute (Qdefault, QCforeground,
 						     val, frame);
 		  prop = Qforeground_color;
+		  fg_set = 1;
 		}
 	      else
 		{
 		  Finternal_set_lisp_face_attribute (Qdefault, QCbackground,
 						     val, frame);
+		  bg_set = 1;
 		}
 	      redraw = 1;
-	      bg_set = 1;
 	      if (termscript)
 		fprintf (termscript, "<BGCOLOR %lu>\n", new_color);
 	    }
@@ -2483,19 +2497,17 @@ IT_set_frame_parameters (f, alist)
       if (!fg_set)
 	{
 	  XSETFRAME (frame, f);
-	  Finternal_set_lisp_face_attribute (Qdefault, QCbackground,
-					     tty_color_name (f, orig_fg),
+	  Finternal_set_lisp_face_attribute (Qdefault, QCforeground,
+					     tty_color_name (f, orig_bg),
 					     frame);
-	  store_frame_param (f, Qbackground_color, frame_fg);
 	  redraw = 1;
 	}
       if (!bg_set)
 	{
 	  XSETFRAME (frame, f);
-	  Finternal_set_lisp_face_attribute (Qdefault, QCforeground,
-					     tty_color_name (f, orig_bg),
+	  Finternal_set_lisp_face_attribute (Qdefault, QCbackground,
+					     tty_color_name (f, orig_fg),
 					     frame);
-	  store_frame_param (f, Qforeground_color, frame_bg);
 	  redraw = 1;
 	}
     }
