@@ -556,6 +556,7 @@ The precise commands we need to type to reproduce the bug.
 
 @findex open-dribble-file
 @cindex dribble file
+@cindex logging keystrokes
   The easy way to record the input to Emacs precisely is to write a
 dribble file.  To start the file, execute the Lisp expression
 
