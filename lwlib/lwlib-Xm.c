@@ -1728,19 +1728,29 @@ xm_popup_menu (widget, event)
 
   if (event->type == ButtonPress || event->type == ButtonRelease)
     {
-      /* This is so totally ridiculous: there's NO WAY to tell Motif
-	 that *any* button can select a menu item.  Only one button
-	 can have that honor.
-       */
-      char *trans = 0;
-      if      (event->xbutton.state & Button5Mask) trans = "<Btn5Down>";
-      else if (event->xbutton.state & Button4Mask) trans = "<Btn4Down>";
-      else if (event->xbutton.state & Button3Mask) trans = "<Btn3Down>";
-      else if (event->xbutton.state & Button2Mask) trans = "<Btn2Down>";
-      else if (event->xbutton.state & Button1Mask) trans = "<Btn1Down>";
-      if (trans) XtVaSetValues (widget, XmNmenuPost, trans, NULL);
+      /* Setting the menuPost resource only required by Motif 1.1 and
+	 LessTif 0.84 and earlier.  With later versions of LessTif,
+	 setting menuPost is unnecessary and may cause problems, so
+	 don't do it.  */
+#if XmVersion < 1002 || (defined LESSTIF_VERSION && LESSTIF_VERSION < 84)
+	{
+	  /* This is so totally ridiculous: there's NO WAY to tell Motif
+	     that *any* button can select a menu item.  Only one button
+	     can have that honor.  */
+      
+	  char *trans = 0;
+	  if      (event->xbutton.state & Button5Mask) trans = "<Btn5Down>";
+	  else if (event->xbutton.state & Button4Mask) trans = "<Btn4Down>";
+	  else if (event->xbutton.state & Button3Mask) trans = "<Btn3Down>";
+	  else if (event->xbutton.state & Button2Mask) trans = "<Btn2Down>";
+	  else if (event->xbutton.state & Button1Mask) trans = "<Btn1Down>";
+	  if (trans) XtVaSetValues (widget, XmNmenuPost, trans, NULL);
+	}
+#endif
+      
       XmMenuPosition (widget, (XButtonPressedEvent *) event);
     }
+  
   XtManageChild (widget);
 }
 
