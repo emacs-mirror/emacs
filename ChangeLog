@@ -1,3 +1,7 @@
+2000-11-20  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in: Use -traditional with GNU cpp.
+
 2000-11-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* make-dist: Handle the Mac port.  Distribute all makefile.w32-in.

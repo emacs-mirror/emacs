@@ -94,21 +94,23 @@ to be built with these libraries.  See below for more details.
 BUILDING AND INSTALLATION:
 
 (This is for a Unix or Unix-like system.  For MSDOS, see below; search
-for MSDOG.  For Windows NT or Windows 95, see the file nt/INSTALL.)
+for MSDOG.  For Windows NT or Windows 95, see the file nt/INSTALL.
+For the Mac, see the file mac/INSTALL.)
 
 1) Make sure your system has enough swapping space allocated to handle
-a program whose pure code is 900k bytes and whose data area is at
-least 400k and can reach 8Mb or more.  If the swapping space is
+a program whose pure code is 1.5 MB and whose data area is at
+least 2.5 MB and can reach 80 MB or more.  If the swapping space is
 insufficient, you will get an error in the command `temacs -batch -l
 loadup dump', found in `./src/Makefile.in', or possibly when
 running the final dumped Emacs.
  
-Building Emacs requires about 70 Mb of disk space (including the Emacs
-sources).  Once installed, Emacs occupies about 35 Mb in the file
-system where it is installed; this includes the executable files, Lisp
-libraries, miscellaneous data files, and on-line documentation.  If
-the building and installation take place in different directories,
-then the installation procedure momentarily requires 70+35 Mb.
+Building Emacs requires about 95 MB of disk space (including the Emacs
+sources), or 130 MB if Leim is used.  Once installed, Emacs occupies
+about 60 MB (70 MB with Leim) in the file system where it is
+installed; this includes the executable files, Lisp libraries,
+miscellaneous data files, and on-line documentation.  If the building
+and installation take place in different directories, then the
+installation procedure momentarily requires 95+60 MB (130+170 MB).
 
 2) Consult `./etc/MACHINES' to see what configuration name you should
 give to the `configure' program.  That file offers hints for
