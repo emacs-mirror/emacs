@@ -1217,6 +1217,12 @@ read1 (readcharfun)
 	      }
 	    else
 	      {
+		/* Allow `\C- ' and `\C-?'.  */
+		if (c == (CHAR_CTL | ' '))
+		  c = 0;
+		else if (c == (CHAR_CTL | '?'))
+		  c = 127;
+
 		if (c & CHAR_META)
 		  /* Move the meta bit to the right place for a string.  */
 		  c = (c & ~CHAR_META) | 0x80;
