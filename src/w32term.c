@@ -24,6 +24,7 @@ Boston, MA 02111-1307, USA.  */
 #include <config.h>
 #include <stdio.h>
 #include "lisp.h"
+#include "charset.h"
 #include "blockinput.h"
 
 #include <w32term.h>

@@ -30,10 +30,10 @@ Boston, MA 02111-1307, USA.
 #include <windows.h>
 
 #include "lisp.h"
+#include "charset.h"
 #include "frame.h"
 #include "disptab.h"
 #include "termhooks.h"
-
 #include "w32inevt.h"
 
 /* from window.c */
