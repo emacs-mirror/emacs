@@ -1,3 +1,22 @@
+2002-08-23  Kenichi Handa  <handa@etl.go.jp>
+
+	* xfaces.c (QCfontset): New variable.
+	(LFACE_FONTSET): New macro.
+	(check_lface_attrs): Check also LFACE_FONTSET_INDEX.
+	(set_lface_from_font_name): Setup LFACE_FONTSET (lface).
+	(Finternal_set_lisp_face_attribute): Handle QCfontset.
+	(Finternal_get_lisp_face_attribute): Likewise.
+	(lface_same_font_attributes_p): Fix checking of LFACE_FONT_INDEX,
+	check also LFACE_FONTSET_INDEX.
+	(face_fontset): Check attrs[LFACE_FONTSET_INDEX], not
+	attrs[LFACE_FONT_INDEX].
+	(syms_of_xfaces): Intern and staticpro QCfontset.
+
+	* dispextern.h (enum lface_attribute_index): New member
+	LFACE_FONTSET_INDEX.
+
+	* fns.c (base64_encode_1): Handle eight-bit chars correctly.
+
 2002-08-21  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (coding_set_destination): Fix coding->destination for
