@@ -646,7 +646,7 @@ If non-nil, NEW means to create a new buffer no matter what."
 This is responsible for parsing the output from the cvs update when
 it is finished."
   (when (memq (process-status proc) '(signal exit))
-    (let ((cvs-postproc (process-get proc 'postprocess))
+    (let ((cvs-postproc (process-get proc 'cvs-postprocess))
 	  (cvs-buf (process-get proc 'cvs-buffer)))
       ;; Since the buffer and mode line will show that the
       ;; process is dead, we can delete it now.  Otherwise it
