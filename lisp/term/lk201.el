@@ -7,8 +7,8 @@
 ;; (define-key function-key-map "\e[D" [left])
 
 (define-key function-key-map "\e[1~" [find])
-(define-key function-key-map "\e[2~" [insertchar])
-(define-key function-key-map "\e[3~" [deletechar])
+(define-key function-key-map "\e[2~" [insert])
+(define-key function-key-map "\e[3~" [delete])
 (define-key function-key-map "\e[4~" [select])
 (define-key function-key-map "\e[5~" [prior])
 (define-key function-key-map "\e[6~" [next])
