@@ -1,3 +1,11 @@
+2000-12-20  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keymap.c (where_is_internal): Check ascii_sequence_p rather than
+	excluding menu-bar and tool-bar.
+	(Fwhere_is_internal): Check ascii_sequence_p when looking up the cache.
+	(menu_item_p): Remove.
+	(where_is_internal_1): Don't ignore menu-items.
+
 2000-12-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (hscroll_window_tree): Take window's min_hscroll
