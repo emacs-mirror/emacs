@@ -179,8 +179,11 @@ definition of a function by looking up which of the files it is in.
 conventional name for a tags table file is @file{TAGS}.
 
   Each entry in the tags table records the name of one tag, the name of the
-file that the tag is defined in (implicitly), and the position in that file
-of the tag's definition.
+file that the tag is defined in (implicitly), and the position in that
+file of the tag's definition.  When a file parsed by @code{etags} is
+created from a different source file, like a C file created by
+@code{bison} from a source Yacc file, the tags of the parsed file
+reference the source file.
 
   Just what names from the described files are recorded in the tags table
 depends on the programming language of the described file.  They

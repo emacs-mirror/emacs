@@ -214,7 +214,7 @@ C-h c, C-h k, C-h w, and C-h f now handle remapped interactive commands.
   that command.
 
 For example, if C-k is bound to kill-line, and kill-line is remapped
-to new-kill-line, these commands now report: 
+to new-kill-line, these commands now report:
 
 - C-h c and C-h k C-k reports:
   C-k runs the command new-kill-line
@@ -365,6 +365,11 @@ additionally by looking for package::sub.
 
 *** New language PHP: tags are functions, classes and defines.  If
 the --members option is specified to etags, tags are vars also.
+
+*** Honour #line directives.  This is useful when dealing with C code
+created from Yacc sources, or with any file created from Cweb source
+files.  When etags tags the generated file, it writes tags pointing to
+the source file.
 
 +++
 ** The command line option --no-windows has been changed to

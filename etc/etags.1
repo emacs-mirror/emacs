@@ -59,7 +59,9 @@ table (defaults: \fBTAGS\fP for \fBetags\fP, \fBtags\fP for
 Files specified with relative file names will be recorded in the tag
 table with file names relative to the directory where the tag table
 resides.  Files specified with absolute file names will be recorded
-with absolute file names.
+with absolute file names.  Files generated from a source file\-\-like a C
+file created by a source Yacc file\-\-will be recorded with the name of the
+source file.
 The programs recognize the language used in an input file based on its
 file name and contents.  The \fB\-\-language\fP switch can be used to force
 parsing of the file names following the switch according to the given
