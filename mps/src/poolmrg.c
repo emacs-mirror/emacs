@@ -1,6 +1,6 @@
 /* impl.c.poolmrg: MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.35) $
+ * $HopeName: MMsrc!poolmrg.c(trunk.36) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
@@ -34,7 +34,7 @@
 #include "mpm.h"
 #include "poolmrg.h"
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.35) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.36) $");
 
 
 /* Types */
@@ -172,6 +172,12 @@ typedef struct MRGRefSegStruct {
 #define RefSegSeg(refseg)        ((Seg)(refseg))
 
 
+/* forward declarations */
+
+extern SegClass EnsureMRGLinkSegClass(void);
+extern SegClass EnsureMRGRefSegClass(void);
+
+
 /* MRGLinkSegCheck -- check a link segment 
  *
  * .link.nullref: During initialization of a link segment the 
@@ -227,7 +233,7 @@ static Res MRGLinkSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVER(BoolCheck(reservoirPermit));
 
   /* Initialize the superclass fields first via next-method call */
-  super = EnsureSegClass();
+  super = SEG_SUPERCLASS(MRGLinkSegClass);
   res = super->init(seg, pool, base, size, reservoirPermit, args);
   if(res != ResOK)
     return res;
@@ -266,7 +272,7 @@ static Res MRGRefSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVERT(MRGLinkSeg, linkseg);
 
   /* Initialize the superclass fields first via next-method call */
-  super = EnsureGCSegClass();
+  super = SEG_SUPERCLASS(MRGRefSegClass);
   res = super->init(seg, pool, base, size, reservoirPermit, args);
   if(res != ResOK)
     return res;

@@ -1,6 +1,6 @@
 /* impl.c.poolsnc: STACK NO CHECKING POOL CLASS
  *
- * $HopeName: MMsrc!poolsnc.c(trunk.8) $
+ * $HopeName: MMsrc!poolsnc.c(trunk.9) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
@@ -26,7 +26,7 @@
 #include "mpm.h"
 
 
-SRCID(poolsnc, "$HopeName: MMsrc!poolsnc.c(trunk.8) $");
+SRCID(poolsnc, "$HopeName: MMsrc!poolsnc.c(trunk.9) $");
 
 
 #define SNCSig  ((Sig)0x519b754c)       /* SIGPooLSNC */
@@ -134,12 +134,13 @@ static Res SNCBufInit (Buffer buffer, Pool pool, va_list args)
 {
   SNCBuf sncbuf;
   Res res;
-  BufferClass superclass = EnsureRankBufClass();
+  BufferClass superclass;
 
   AVERT(Buffer, buffer);
   AVERT(Pool, pool);
 
   /* call next method */
+  superclass = BUFFER_SUPERCLASS(SNCBufClass);
   res = (*superclass->init)(buffer, pool, args);
   if (res != ResOK)
     return res;
@@ -174,7 +175,7 @@ static void SNCBufFinish(Buffer buffer)
   sncbuf->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  super = EnsureRankBufClass();
+  super = BUFFER_SUPERCLASS(SNCBufClass);
   super->finish(buffer);
 }
 
@@ -243,7 +244,7 @@ static Res sncSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVER(BoolCheck(reservoirPermit));
 
   /* Initialize the superclass fields first via next-method call */
-  super = EnsureGCSegClass();
+  super = SEG_SUPERCLASS(SNCSegClass);
   res = super->init(seg, pool, base, size, reservoirPermit, args);
   if(res != ResOK)
     return res;

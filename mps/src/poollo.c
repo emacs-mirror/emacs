@@ -1,6 +1,6 @@
 /* impl.c.poollo: LEAF POOL CLASS
  *
- * $HopeName: MMsrc!poollo.c(trunk.13) $
+ * $HopeName: MMsrc!poollo.c(trunk.14) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * READERSHIP
@@ -19,7 +19,7 @@
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.13) $");
+SRCID(poollo, "$HopeName: MMsrc!poollo.c(trunk.14) $");
 
 
 /* MACROS */
@@ -76,6 +76,8 @@ typedef struct LOSegStruct {
 #define SegLOSeg(seg)             ((LOSeg)(seg))
 #define LOSegSeg(loseg)           ((Seg)(loseg))
 
+extern SegClass EnsureLOSegClass(void);
+
 static Bool LOSegCheck(LOSeg loseg)
 {
   CHECKS(LOSeg, loseg);
@@ -114,7 +116,7 @@ static Res loSegInit(Seg seg, Pool pool, Addr base, Size size,
   AVERT(LO, lo);
 
   /* Initialize the superclass fields first via next-method call */
-  super = EnsureGCSegClass();
+  super = SEG_SUPERCLASS(LOSegClass);
   res = super->init(seg, pool, base, size, reservoirPermit, args);
   if(res != ResOK)
     return res;
@@ -174,7 +176,7 @@ static void loSegFinish(Seg seg)
   loseg->sig = SigInvalid;
 
   /* finish the superclass fields last */
-  super = EnsureGCSegClass();
+  super = SEG_SUPERCLASS(LOSegClass);
   super->finish(seg);
 }
   
