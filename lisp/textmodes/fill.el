@@ -210,12 +210,14 @@ act as a paragraph-separator."
 	  ;; If we get a fill prefix from the second line,
 	  ;; make sure it or something compatible is on the first line too.
 	  (and second-line-prefix first-line-prefix
-	       (if (or (string-match (regexp-quote second-line-prefix)
+	       (if (or (string-match (concat "\\`"
+					     (regexp-quote second-line-prefix)
+					     "\\(\\'\\|[ \t]\\)")
 				     first-line-prefix)
-		       (and (string-match "[ \t]" second-line-prefix)
+		       (and (string-match "\\`[ \t]+\\'" second-line-prefix)
 			    (>= (string-width first-line-prefix)
 				(string-width second-line-prefix))))
-		     second-line-prefix))
+		   second-line-prefix))
 	;; If we get a fill prefix from a one-line paragraph,
 	;; maybe change it to whitespace,
 	;; and check that it isn't a paragraph starter.
