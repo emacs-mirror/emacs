@@ -147,15 +147,14 @@ This means adjusting the indentation so that it equals
 the distance between the end of the text and `fill-column'."
   (interactive)
   (save-excursion
-    (let (line-length)
+    (let ((lm (current-left-margin))
+	  line-length)
       (beginning-of-line)
       (delete-horizontal-space)
       (end-of-line)
       (delete-horizontal-space)
       (setq line-length (current-column))
-      (beginning-of-line)
-      (indent-to 
-	(+ left-margin 
-	   (/ (- fill-column left-margin line-length) 2))))))
+      (indent-line-to 
+	(+ lm (/ (- (fill-column) lm line-length) 2))))))
 
 ;;; text-mode.el ends here
