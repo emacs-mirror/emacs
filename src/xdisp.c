@@ -4702,7 +4702,7 @@ add_to_log (format, arg1, arg2)
   buffer = (char *) alloca (len);
   strcpy (buffer, XSTRING (msg)->data);
   
-  message_dolog (buffer, len, 1, 0);
+  message_dolog (buffer, len - 1, 1, 0);
   UNGCPRO;
 }
 
