@@ -174,7 +174,7 @@ we're in the GUD buffer)."
     (let ((output ""))
 
       ;; Process all the complete markers in this chunk.
-      (while (string-match "^\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n"
+      (while (string-match "\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n"
 			   gud-marker-acc)
 	(setq
 
@@ -198,7 +198,7 @@ we're in the GUD buffer)."
       ;; gud-marker-acc until we receive the rest of it.  Since we
       ;; know the full marker regexp above failed, it's pretty simple to
       ;; test for marker starts.
-      (if (string-match "^\032.*\\'" gud-marker-acc)
+      (if (string-match "\032.*\\'" gud-marker-acc)
 	  (progn
 	    ;; Everything before the potential marker start can be output.
 	    (setq output (concat output (substring gud-marker-acc
@@ -474,7 +474,7 @@ and source-file directory for your debugger."
       (while (string-match
 	      ;; This is like th gdb marker but with an optional
 	      ;; leading break point number like `[1] '
-	      "^[][ 0-9]*\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n"
+	      "[][ 0-9]*\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n"
 	      gud-marker-acc)
 	(setq
 
@@ -498,7 +498,7 @@ and source-file directory for your debugger."
       ;; gud-marker-acc until we receive the rest of it.  Since we
       ;; know the full marker regexp above failed, it's pretty simple to
       ;; test for marker starts.
-      (if (string-match "^[][ 0-9]*\032.*\\'" gud-marker-acc)
+      (if (string-match "[][ 0-9]*\032.*\\'" gud-marker-acc)
 	  (progn
 	    ;; Everything before the potential marker start can be output.
 	    (setq output (concat output (substring gud-marker-acc
@@ -779,7 +779,7 @@ directories if your program contains sources from more than one directory."
     (let ((output ""))
 
       ;; Process all the complete markers in this chunk.
-      (while (string-match "^\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n"
+      (while (string-match "\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n"
 			   gud-marker-acc)
 	(setq
 
@@ -803,7 +803,7 @@ directories if your program contains sources from more than one directory."
       ;; gud-marker-acc until we receive the rest of it.  Since we
       ;; know the full marker regexp above failed, it's pretty simple to
       ;; test for marker starts.
-      (if (string-match "^\032.*\\'" gud-marker-acc)
+      (if (string-match "\032.*\\'" gud-marker-acc)
 	  (progn
 	    ;; Everything before the potential marker start can be output.
 	    (setq output (concat output (substring gud-marker-acc
