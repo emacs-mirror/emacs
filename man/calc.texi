@@ -34289,7 +34289,7 @@ press @kbd{M-# t} to begin.
 If you find a bug in Calc, send e-mail to Jay Belanger,
 
 @example
-belanger@truman.edu
+belanger@@truman.edu
 @end example
 
 @noindent
