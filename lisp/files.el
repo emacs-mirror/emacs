@@ -1047,40 +1047,44 @@ name to this list as a string."
   :type '(repeat (string :tag "Name"))
   :group 'find-file)
 
-(defun find-buffer-visiting (filename)
+(defun find-buffer-visiting (filename &optional predicate)
   "Return the buffer visiting file FILENAME (a string).
 This is like `get-file-buffer', except that it checks for any buffer
 visiting the same file, possibly under a different name.
+If PREDICATE is non-nil, only a buffer satisfying it can be returned.
 If there is no such live buffer, return nil."
-  (let ((buf (get-file-buffer filename))
-	(truename (abbreviate-file-name (file-truename filename))))
-    (or buf
-	(let ((list (buffer-list)) found)
-	  (while (and (not found) list)
-	    (save-excursion
-	      (set-buffer (car list))
-	      (if (and buffer-file-name
-		       (string= buffer-file-truename truename))
-		  (setq found (car list))))
-	    (setq list (cdr list)))
-	  found)
-	(let* ((attributes (file-attributes truename))
-	       (number (nthcdr 10 attributes))
-	       (list (buffer-list)) found)
-	  (and buffer-file-numbers-unique
-	       number
-	       (while (and (not found) list)
-		 (with-current-buffer (car list)
-		   (if (and buffer-file-name
-			    (equal buffer-file-number number)
-			    ;; Verify this buffer's file number
-			    ;; still belongs to its file.
-			    (file-exists-p buffer-file-name)
-			    (equal (file-attributes buffer-file-truename)
-				   attributes))
-		       (setq found (car list))))
-		 (setq list (cdr list))))
-	  found))))
+  (let ((predicate (or predicate #'identity))
+        (truename (abbreviate-file-name (file-truename filename))))
+    (or (let ((buf (get-file-buffer filename)))
+          (when (and buf (funcall predicate buf)) buf))
+        (let ((list (buffer-list)) found)
+          (while (and (not found) list)
+            (save-excursion
+              (set-buffer (car list))
+              (if (and buffer-file-name
+                       (string= buffer-file-truename truename)
+                       (funcall predicate (current-buffer)))
+                  (setq found (car list))))
+            (setq list (cdr list)))
+          found)
+        (let* ((attributes (file-attributes truename))
+               (number (nthcdr 10 attributes))
+               (list (buffer-list)) found)
+          (and buffer-file-numbers-unique
+               number
+               (while (and (not found) list)
+                 (with-current-buffer (car list)
+                   (if (and buffer-file-name
+                            (equal buffer-file-number number)
+                            ;; Verify this buffer's file number
+                            ;; still belongs to its file.
+                            (file-exists-p buffer-file-name)
+                            (equal (file-attributes buffer-file-truename)
+                                   attributes)
+                            (funcall predicate (current-buffer)))
+                       (setq found (car list))))
+                 (setq list (cdr list))))
+          found))))
 
 (defcustom find-file-wildcards t
   "*Non-nil means file-visiting commands should handle wildcards.
@@ -1335,6 +1339,18 @@ This function ensures that none of these modifications will take place."
 	  (fset 'find-buffer-file-type find-buffer-file-type-function)
 	(fmakunbound 'find-buffer-file-type)))))
 
+(defun insert-file-1 (filename insert-func)
+  (if (file-directory-p filename)
+      (signal 'file-error (list "Opening input file" "file is a directory"
+                                filename)))
+  (let* ((buffer (find-buffer-visiting (abbreviate-file-name (file-truename filename))
+                                       #'buffer-modified-p))
+         (tem (funcall insert-func filename)))
+    (push-mark (+ (point) (car (cdr tem))))
+    (when buffer
+      (message "File %s already visited and modified in buffer %s"
+               filename (buffer-name buffer)))))
+
 (defun insert-file-literally (filename)
   "Insert contents of file FILENAME into buffer after point with no conversion.
 
@@ -1342,11 +1358,7 @@ This function is meant for the user to run interactively.
 Don't call it from programs!  Use `insert-file-contents-literally' instead.
 \(Its calling sequence is different; see its documentation)."
   (interactive "*fInsert file literally: ")
-  (if (file-directory-p filename)
-      (signal 'file-error (list "Opening input file" "file is a directory"
-				filename)))
-  (let ((tem (insert-file-contents-literally filename)))
-    (push-mark (+ (point) (car (cdr tem))))))
+  (insert-file-1 filename #'insert-file-contents-literally))
 
 (defvar find-file-literally nil
   "Non-nil if this buffer was made by `find-file-literally' or equivalent.
@@ -3147,11 +3159,7 @@ This function is meant for the user to run interactively.
 Don't call it from programs!  Use `insert-file-contents' instead.
 \(Its calling sequence is different; see its documentation)."
   (interactive "*fInsert file: ")
-  (if (file-directory-p filename)
-      (signal 'file-error (list "Opening input file" "file is a directory"
-				filename)))
-  (let ((tem (insert-file-contents filename)))
-    (push-mark (+ (point) (car (cdr tem))))))
+  (insert-file-1 filename #'insert-file-contents))
 
 (defun append-to-file (start end filename)
   "Append the contents of the region to the end of file FILENAME.
