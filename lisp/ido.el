@@ -835,6 +835,11 @@ whenever a file is opened with ido-find-file and family.")
   "List of file-name-all-completions results.
 Each element in the list is of the form (dir (mtime) file...).")
 
+(defvar ido-ignore-item-temp-list nil
+  "List of items to ignore in current ido invocation.
+Intended to be let-bound by functions which calls ido repeatedly.
+Should never be set permanently.")
+
 ;; Temporary storage
 
 (defvar ido-eoinput 1
@@ -1451,17 +1456,19 @@ If INITIAL is non-nil, it specifies the initial input string."
       (setq ido-rescan t)
       (setq ido-rotate nil)
       (setq ido-text "")
-      (if ido-set-default-item
-       (setq ido-default-item
-	     (cond
-	      ((eq item 'buffer)
-	       (if (bufferp default) (buffer-name default) default))
-	      ((stringp default) default)
-	      ((eq item 'file)
-	       (and ido-enable-last-directory-history 
-		    (let ((d (assoc ido-current-directory ido-last-directory-list)))
-		      (and d (cdr d))))))
-	     ido-set-default-item nil))
+      (when ido-set-default-item
+	(setq ido-default-item
+	      (cond
+	       ((eq item 'buffer)
+		(if (bufferp default) (buffer-name default) default))
+	       ((stringp default) default)
+	       ((eq item 'file)
+		(and ido-enable-last-directory-history 
+		     (let ((d (assoc ido-current-directory ido-last-directory-list)))
+		       (and d (cdr d)))))))
+	(if (member ido-default-item ido-ignore-item-temp-list)
+	    (setq ido-default-item nil))
+	(setq ido-set-default-item nil))
 
       (if ido-process-ignore-lists-inhibit
 	  (setq ido-process-ignore-lists nil))
@@ -1620,13 +1627,11 @@ If INITIAL is non-nil, it specifies the initial input string."
 
        (t
 	(setq ido-selected
-	      (if (and ido-matches (equal ido-final-text ""))
-		  (ido-name (car ido-matches))	;; possibly choose the default file
-		(if (or (eq ido-exit 'takeprompt)
-			(null ido-matches))
-		    ido-final-text
-		  ;; else take head of list
-		  (ido-name (car ido-matches)))))
+	      (if (or (eq ido-exit 'takeprompt)
+		      (null ido-matches))
+		  ido-final-text
+		;; else take head of list
+		(ido-name (car ido-matches))))
 
 	(cond
 	 ((eq item 'buffer)
@@ -1641,7 +1646,6 @@ If INITIAL is non-nil, it specifies the initial input string."
 	  (or (ido-is-root-directory)
 	      (ido-set-current-directory (file-name-directory (substring ido-current-directory 0 -1))))
 	  (setq ido-set-default-item t))
-
 	 ((and (string-equal ido-current-directory "/")
 	       (string-match "..:\\'" ido-selected)) ;; Ange-ftp 
 	  (ido-set-current-directory "/" ido-selected)
@@ -1700,6 +1704,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 
        ;; Check buf is non-nil.
        ((not buf) nil)
+       ((= (length buf) 0) nil)
 
        ;; View buffer if it exists
        ((get-buffer buf)
@@ -2526,7 +2531,7 @@ for first matching file."
 	(mapcar
 	 (lambda (x)
 	   (let ((name (buffer-name x)))
-	     (if (not (or (ido-ignore-item-p name ido-ignore-buffers) (memq name visible)))
+	     (if (not (or (ido-ignore-item-p name ido-ignore-buffers) (member name visible)))
 		 name)))
 	 (buffer-list frame))))
 
@@ -2716,12 +2721,13 @@ for first matching file."
 (defun ido-get-bufname (win)
   ;; Used by `ido-get-buffers-in-frames' to walk through all windows
   (let ((buf (buffer-name (window-buffer win))))
-	(if (not (member buf ido-bufs-in-frame))
-	    ;; Only add buf if it is not already in list.
-	    ;; This prevents same buf in two different windows being
-	    ;; put into the list twice.
-	    (setq ido-bufs-in-frame
-		  (cons buf ido-bufs-in-frame)))))
+	(unless (or (member buf ido-bufs-in-frame)
+		    (member buf ido-ignore-item-temp-list))
+	  ;; Only add buf if it is not already in list.
+	  ;; This prevents same buf in two different windows being
+	  ;; put into the list twice.
+	  (setq ido-bufs-in-frame
+		(cons buf ido-bufs-in-frame)))))
 
 ;;; FIND MATCHING ITEMS
 
@@ -2777,7 +2783,9 @@ for first matching file."
 	 
 (defun ido-ignore-item-p (name re-list &optional ignore-ext)
   ;; Return t if the buffer or file NAME should be ignored.
-  (and ido-process-ignore-lists re-list
+  (or (member name ido-ignore-item-temp-list)
+      (and
+       ido-process-ignore-lists re-list
        (let ((data       (match-data))
 	     (ext-list   (and ignore-ext ido-ignore-extensions
 			      completion-ignored-extensions))
@@ -2808,7 +2816,7 @@ for first matching file."
 	 (if ignorep
 	     (setq ido-ignored-list (cons name ido-ignored-list)))
 	 (set-match-data data)
-	 ignorep)))
+	 ignorep))))
 
 
 ;; Private variable used by `ido-word-matching-substring'.
@@ -3009,7 +3017,7 @@ Record command in command-history if optional RECORD is non-nil."
   ;; If BUFFER is visible in the current frame, return nil.
   (let ((blist (ido-get-buffers-in-frames 'current)))
     ;;If the buffer is visible in current frame, return nil
-    (if (memq buffer blist)
+    (if (member buffer blist)
 	nil
       ;;  maybe in other frame or icon
       (get-buffer-window buffer 0) ; better than 'visible
