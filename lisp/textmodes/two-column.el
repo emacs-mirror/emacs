@@ -327,7 +327,6 @@ These keybindings can be customized in your ~/.emacs by `2C-mode-map',
 The appearance of the screen can be customized by the variables
 `2C-window-width', `2C-beyond-fill-column', `2C-mode-line-format' and
 `truncate-partial-width-windows'."
-  (make-local-hook 'post-command-hook)
   (add-hook 'post-command-hook '2C-autoscroll nil t)
   (setq fill-column (- 2C-window-width
 		       2C-beyond-fill-column)
