@@ -5990,7 +5990,11 @@ x_wm_set_icon_pixmap (f, icon_pixmap)
      struct frame *f;
      Pixmap icon_pixmap;
 {
+#ifdef USE_X_TOOLKIT
+  Window window = XtWindow (f->display.x->widget);
+#else
   Window window = FRAME_X_WINDOW (f);
+#endif
 
   if (icon_pixmap)
     {
@@ -6007,7 +6011,11 @@ x_wm_set_icon_position (f, icon_x, icon_y)
      struct frame *f;
      int icon_x, icon_y;
 {
+#ifdef USE_X_TOOLKIT
+  Window window = XtWindow (f->display.x->widget);
+#else
   Window window = FRAME_X_WINDOW (f);
+#endif
 
   f->display.x->wm_hints.flags |= IconPositionHint;
   f->display.x->wm_hints.icon_x = icon_x;
