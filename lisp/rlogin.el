@@ -20,7 +20,7 @@
 ;; along with this program; if not, write to: The Free Software Foundation,
 ;; Inc.; 675 Massachusetts Avenue.; Cambridge, MA 02139, USA.
 
-;; $Id$
+;; $Id: rlogin.el,v 1.24 1995/02/28 09:51:49 friedman Exp rms $
 
 ;;; Commentary:
 
@@ -100,14 +100,16 @@ this variable is set from that.")
   (define-key rlogin-mode-map "\C-i" 'rlogin-tab-or-complete)))
 
 
+;;;###autoload (add-hook 'same-window-regexps "^\\*rlogin-.*\\*\\(\\|<[0-9]+>\\)")
+
 ;;;###autoload
 (defun rlogin (input-args &optional prefix)
   "Open a network login connection to HOST via the `rlogin' program.
 Input is sent line-at-a-time to the remote connection.
 
-Communication with the remote host is recorded in a buffer *rlogin-HOST*
-\(or *rlogin-USER@HOST* if the remote username differs\).
-If a prefix argument is given and the buffer *rlogin-HOST* already exists,
+Communication with the remote host is recorded in a buffer `*rlogin-HOST*'
+\(or `*rlogin-USER@HOST*' if the remote username differs\).
+If a prefix argument is given and the buffer `*rlogin-HOST*' already exists,
 a new buffer with a different connection will be made.
 
 The variable `rlogin-program' contains the name of the actual program to
@@ -151,21 +153,21 @@ variable."
     (cond
      ((and (null prefix)
            (comint-check-proc buffer-name))
-      (switch-to-buffer buffer-name))
+      (pop-to-buffer buffer-name))
      ;; This next case is done all in the predicate (including side effects
-     ;; like switch-to-buffer) to avoid extra string consing via multiple
+     ;; like pop-to-buffer) to avoid extra string consing via multiple
      ;; concats.
      ((and (numberp prefix)
            (let ((bufname (concat buffer-name "<" prefix ">")))
              (and (comint-check-proc bufname)
-                  (switch-to-buffer bufname)))))
+                  (pop-to-buffer bufname)))))
      (t
       (cond
        ((numberp prefix)
         (setq buffer-name (concat buffer-name "<" prefix ">")))
        (t
         (setq buffer-name (generate-new-buffer-name buffer-name))))
-      (switch-to-buffer buffer-name)
+      (pop-to-buffer buffer-name)
       (comint-exec (current-buffer) buffer-name rlogin-program nil args)
       (setq proc (get-process buffer-name))
       ;; Set process-mark to point-max in case there is text in the
