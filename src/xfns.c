@@ -1796,10 +1796,9 @@ DEFUN ("x-create-screen", Fx_create_screen, Sx_create_screen,
   "Make a new X window, which is called a \"screen\" in Emacs terms.\n\
 Return an Emacs screen object representing the X window.\n\
 ALIST is an alist of screen parameters.\n\
-The value of ``x-screen-defaults'' is an additional alist\n\
-of default parameters which apply when not overridden by ALIST.\n\
 If the parameters specify that the screen should not have a minibuffer,\n\
-then ``default-minibuffer-screen'' must be a screen whose minibuffer can\n\
+and do not specify a specific minibuffer window to use,\n\
+then `default-minibuffer-screen' must be a screen whose minibuffer can\n\
 be shared by the new screen.")
   (parms)
      Lisp_Object parms;
