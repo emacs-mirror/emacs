@@ -198,8 +198,9 @@ region_limit (beginningp)
      int beginningp;
 {
   register Lisp_Object m;
-  if (!NILP (Vtransient_mark_mode) && NILP (current_buffer->mark_active))
-    error ("There is no region now");
+  if (!NILP (Vtransient_mark_mode) && NILP (Vmark_even_if_inactive)
+      && NILP (current_buffer->mark_active))
+    Fsignal (Qmark_inactive, Qnil);
   m = Fmarker_position (current_buffer->mark);
   if (NILP (m)) error ("There is no region now");
   if ((point < XFASTINT (m)) == beginningp)
