@@ -1,5 +1,7 @@
 2001-03-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* print.c (syms_of_print): Doc fixes.
+
 	* fns.c (Fmd5): Doc fix.
 
 2001-03-19  Gerd Moellmann  <gerd@gnu.org>

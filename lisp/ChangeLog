@@ -1,5 +1,8 @@
 2001-03-20  Gerd Moellmann  <gerd@gnu.org>
 
+	* info.el (Info-scroll-down): Add missing WINDOW arg for
+	pos-visible-in-window-p.
+
 	* ehelp.el (electric-help-mode-hook): Add defcustom.
 
 	* mail/sendmail.el (mail-mode): Activate case-folding in
