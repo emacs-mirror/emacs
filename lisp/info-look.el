@@ -682,13 +682,37 @@ Return nil if there is nothing appropriate in the buffer near point."
 (info-lookup-maybe-add-help
  :mode 'autoconf-mode
  :regexp "A[CM]_[_A-Z0-9]+"
- :doc-spec '(("(autoconf)Autoconf Macro Index" "AC_"
+ :doc-spec '(;; Autoconf Macro Index entries are without an "AC_" prefix,
+	     ;; but with "AH_" or "AU_" for those.  So add "AC_" if there
+	     ;; isn't already an "A._".
+             ("(autoconf)Autoconf Macro Index"
+              (lambda (item)
+                (if (string-match "^A._" item) item (concat "AC_" item)))
 	      "^[ \t]+- \\(Macro\\|Variable\\): .*\\<" "\\>")
-	     ("(automake)Macro and Variable Index" nil
-	      "^[ \t]*`" "'")
-	     ;; These are for older versions (probably pre autoconf 2.5x):
+             ;; M4 Macro Index entries are without "AS_" prefixes, and
+             ;; mostly without "m4_" prefixes.  "dnl" is an exception, not
+             ;; wanting any prefix.  So AS_ is added back to upper-case
+             ;; names, m4_ to others which don't already an m4_.
+             ("(autoconf)M4 Macro Index"
+              (lambda (item)
+                (let ((case-fold-search nil))
+                  (cond ((or (string-equal item "dnl")
+                             (string-match "^m4_" item))
+                         item)
+                        ((string-match "^[A-Z0-9_]+$" item)
+                         (concat "AS_" item))
+                        (t
+                         (concat "m4_" item)))))
+	      "^[ \t]+- Macro: .*\\<" "\\>")
+             ;; Autotest Macro Index entries are without "AT_".
+             ("(autoconf)Autotest Macro Index" "AT_"
+	      "^[ \t]+- Macro: .*\\<" "\\>")
+	     ;; This is for older versions (probably pre autoconf 2.5x):
 	     ("(autoconf)Macro Index" "AC_"
 	      "^[ \t]+- \\(Macro\\|Variable\\): .*\\<" "\\>")
+	     ;; Automake has index entries for its notes on various autoconf
+	     ;; macros (eg. AC_PROG_CC).  Ensure this is after the autoconf
+	     ;; index, so as to prefer the autoconf docs.
 	     ("(automake)Macro and Variable Index" nil
 	      "^[ \t]*`" "'"))
  ;; Autoconf symbols are M4 macros.  Thus use M4's parser.
