@@ -1680,7 +1680,7 @@ of vc.el for a detailed list of them).  To make VC use that library,
 you need to put it somewhere into Emacs' load path and add the symbol
 `SYS' to the list `vc-handled-backends'.
 
-*** The customizable EDT emulation package now supports the EDT
+** The customizable EDT emulation package now supports the EDT
 SUBS command and EDT scroll margins.  It also works with more
 terminal/keyboard configurations and it now works under XEmacs.
 See etc/edt-user.doc for more information.
