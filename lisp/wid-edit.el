@@ -922,8 +922,9 @@ Recommended as a parent keymap for modes using widgets.")
   :group 'widget-faces)
 
 (defun widget-button-click (event)
-  "Invoke button below mouse pointer."
+  "Invoke the button that the mouse is pointing at, and move there."
   (interactive "@e")
+  (mouse-set-point event)
   (cond ((and (fboundp 'event-glyph)
 	      (event-glyph event))
 	 (widget-glyph-click event))
