@@ -145,10 +145,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Definitions and declarations.  */
 
 /* The number of face-id's in use (same for all frames).  */
-int next_face_id;
+static int next_face_id;
 
 /* The number of the face to use to indicate the region.  */
-int region_face;
+static int region_face;
 
 /* This is what appears in a slot in a face to signify that the face
    does not specify that display aspect.  */
