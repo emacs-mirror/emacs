@@ -96,6 +96,9 @@ You might find bug-fixes or enhancements in these places.
 
  * Sregex: <URL:http://www.zanshin.com/%7Ebobg/sregex.html>
 
+ * Tramp: Remote file access via rsh/ssh
+   <URL:http://savannah.gnu.org/projects/tramp/>
+
  * Webjump: <URL:http://www.neilvandyke.org/webjump>
 
  * Whitespace: <URL:http://www.dsmit.com/lisp/>
@@ -214,9 +217,6 @@ Several are for Debian GNU/Linux in particular.
 	FreeWnn (jserver, cserver, tserver),
 	Wnn6,
 	SJ3 Ver.2
-
- * Tramp: Remote file access via rsh/ssh
-   <URL:http://savannah.gnu.org/projects/tramp/>
 
  * VM (View Mail): <URL:http://www.wonderworks.com/vm/> Alternative
    mail reader.  There is a VM newsgroup: <URL:news:gnu.emacs.vm.info>
