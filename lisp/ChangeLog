@@ -1,3 +1,20 @@
+2004-06-24  David Kastrup  <dak@gnu.org>
+
+	* replace.el (query-replace-read-args): Implement `\,' and `\#'
+	replacements here.
+	(query-replace-regexp): Doc string explaining this and the new
+	`\?' replacement.  Remove `\,' and `\#' implementation here, as it
+	is better placed in `query-replace-read-args'.
+	(replace-regexp): Explain `\,', `\#' and `\?'.
+	(replace-match-data): New function for thorough reuse/destruction
+	of old match-data.
+	(replace-match-maybe-edit): Function for implementing `\?'
+	editing.
+	(perform-replace): Fix maintaining of the match stack including
+	already matched regions, implement `\?', fix various problems
+	with regions while editing and other stuff.
+	(replace-highlight): Simplified.
+
 2004-06-24  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/grep.el (grep-error-screen-columns): New variable.
