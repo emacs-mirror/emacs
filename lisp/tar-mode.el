@@ -521,7 +521,7 @@ is visible (and the real data of the buffer is hidden)."
 (define-key tar-mode-map [menu-bar immediate view]
   '("View This File" . tar-view))
 (define-key tar-mode-map [menu-bar immediate display]
-  '("Display in Other Window" . tar-display-other-file))
+  '("Display in Other Window" . tar-display-other-window))
 (define-key tar-mode-map [menu-bar immediate find-file-other-window]
   '("Find in Other Window" . tar-extract-other-window))
 (define-key tar-mode-map [menu-bar immediate find-file]
