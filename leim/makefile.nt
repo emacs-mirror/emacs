@@ -146,6 +146,8 @@ $(TIT): $(SUBDIRS)
 	$(RUN_EMACS)  -l $(buildlisppath)/international/quail \
 	    -f batch-byte-compile $(TIT)
 
+.SUFFIXES: .elc .el
+
 .el.elc:
 	set EMACSLOADPATH=$(buildlisppath)
 	$(RUN_EMACS) -f batch-byte-compile $<
