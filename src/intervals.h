@@ -201,7 +201,6 @@ extern INTERVAL balance_intervals ();
 extern INLINE void copy_intervals_to_string ();
 extern INTERVAL copy_intervals ();
 extern Lisp_Object textget ();
-extern Lisp_Object textget_direct ();
 extern Lisp_Object get_local_map ();
 
 /* Declared in textprop.c */
@@ -220,7 +219,7 @@ extern Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
 extern Lisp_Object Qinvisible, Qintangible, Qread_only;
 
 extern Lisp_Object Vinhibit_point_motion_hooks;
-extern Lisp_Object Vdefault_properties;
+extern Lisp_Object Vdefault_text_properties;
 
 /* Sticky properties */
 extern Lisp_Object Qfront_sticky, Qrear_nonsticky;
