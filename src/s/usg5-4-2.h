@@ -44,3 +44,6 @@
     strncpy(pty_name, ptyname, sizeof(pty_name)); \
     pty_name[sizeof(pty_name) - 1] = 0;		\
   }
+
+/* Use libw.a along with X11R6 Xt.  */
+#define NEED_LIBW
