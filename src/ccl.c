@@ -1191,6 +1191,18 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		    reg[rrr] = ((i << 7) | (*src & 0x7F));
 		    src++;
 		  }
+		else if (i == LEADING_CODE_8_BIT_CONTROL)
+		  {
+		    if ((src + 1) >= src_end)
+		      goto ccl_read_multibyte_character_suspend;
+		    reg[RRR] = CHARSET_8_BIT_CONTROL;
+		    reg[rrr] = (*src++ - 0x20);
+		  }
+		else if (i >= 0xA0)
+		  {
+		    reg[RRR] = CHARSET_8_BIT_GRAPHIC;
+		    reg[rrr] = i;
+		  }
 		else
 		  {
 		    /* INVALID CODE.  Return a single byte character.  */
@@ -1215,7 +1227,9 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 
 	    case CCL_WriteMultibyteChar2:
 	      i = reg[RRR]; /* charset */
-	      if (i == CHARSET_ASCII)
+	      if (i == CHARSET_ASCII
+		  || i == CHARSET_8_BIT_CONTROL
+		  || i == CHARSET_8_BIT_GRAPHIC)
 		i = reg[rrr] & 0xFF;
 	      else if (CHARSET_DIMENSION (i) == 1)
 		i = ((i - 0x70) << 7) | (reg[rrr] & 0x7F);
