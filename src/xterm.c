@@ -5254,7 +5254,8 @@ x_new_font (f, fontname)
 	x_font_table[n_fonts].full_name = x_font_table[n_fonts].name;
       f->display.x->font = x_font_table[n_fonts++].font = font;
 
-      fontname = full_name;
+      if (full_name)
+	fontname = full_name;
     }
 
   /* Now make the frame display the given font.  */
