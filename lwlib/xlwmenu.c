@@ -131,20 +131,16 @@ xlwMenuTranslations [] =
 
 /* FIXME: F10 should enter the menu, the first one in the menu-bar.  */
 
-/* FIXME: HAVE_X_I18N does not work yet. */
-#undef HAVE_X_I18N
-
 #define offset(field) XtOffset(XlwMenuWidget, field)
 static XtResource
 xlwMenuResources[] =
 {
 #ifdef HAVE_X_I18N
-  {XtNfont,  XtCFont, XtRFontSet, sizeof(XFontSet),
-     offset(menu.font), XtRString, "XtDefaultFontSet"},
-#else
+  {XtNfontSet,  XtCFontSet, XtRFontSet, sizeof(XFontSet),
+     offset(menu.fontSet), XtRFontSet, NULL},
+#endif
   {XtNfont,  XtCFont, XtRFontStruct, sizeof(XFontStruct *),
      offset(menu.font), XtRString, "XtDefaultFont"},
-#endif
   {XtNforeground, XtCForeground, XtRPixel, sizeof(Pixel),
      offset(menu.foreground), XtRString, "XtDefaultForeground"},
   {XtNdisabledForeground, XtCDisabledForeground, XtRPixel, sizeof(Pixel),
@@ -361,24 +357,31 @@ string_width (mw, s)
      XlwMenuWidget mw;
      char *s;
 {
-#ifdef HAVE_X_I18N
-  XRectangle ink, logical;
-  XmbTextExtents (mw->menu.font, s, strlen (s), &ink, &logical);
-  return logical.width;
-#else
   XCharStruct xcs;
   int drop;
+#ifdef HAVE_X_I18N
+  XRectangle ink, logical;
+  if (mw->menu.fontSet)
+    {
+      XmbTextExtents (mw->menu.fontSet, s, strlen (s), &ink, &logical);
+      return logical.width;
+    }
+#endif
 
   XTextExtents (mw->menu.font, s, strlen (s), &drop, &drop, &drop, &xcs);
   return xcs.width;
-#endif
+
 }
 
 #ifdef HAVE_X_I18N
 #define MENU_FONT_HEIGHT(mw) \
-  ((mw)->menu.font_extents->max_logical_extent.height)
+  ((mw)->menu.fontSet != NULL \
+   ? (mw)->menu.font_extents->max_logical_extent.height   \
+   : (mw)->menu.font->ascent + (mw)->menu.font->descent)
 #define MENU_FONT_ASCENT(mw) \
-  (- (mw)->menu.font_extents->max_logical_extent.y)
+  ((mw)->menu.fontSet != NULL \
+   ? - (mw)->menu.font_extents->max_logical_extent.y \
+   : (mw)->menu.font->ascent)
 #else
 #define MENU_FONT_HEIGHT(mw) \
   ((mw)->menu.font->ascent + (mw)->menu.font->descent)
@@ -1053,10 +1056,14 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
 
 
 #ifdef HAVE_X_I18N
-          XmbDrawString (XtDisplay (mw), ws->window, mw->menu.font,
-#else
-          XDrawString (XtDisplay (mw), ws->window,
+          if (mw->menu.fontSet)
+            XmbDrawString (XtDisplay (mw), ws->window, mw->menu.fontSet,
+                           text_gc, x_offset,
+                           y + v_spacing + shadow + font_ascent,
+                           display_string, strlen (display_string));
+          else
 #endif
+          XDrawString (XtDisplay (mw), ws->window,
 		       text_gc, x_offset,
 		       y + v_spacing + shadow + font_ascent,
 		       display_string, strlen (display_string));
@@ -1083,10 +1090,16 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
 	      else if (val->key)
 		{
 #ifdef HAVE_X_I18N
-		  XmbDrawString (XtDisplay (mw), ws->window, mw->menu.font,
-#else
-		  XDrawString (XtDisplay (mw), ws->window,
+                  if (mw->menu.fontSet)
+                    XmbDrawString (XtDisplay (mw), ws->window,
+                                   mw->menu.fontSet,
+                                   text_gc,
+                                   x + label_width + mw->menu.arrow_spacing,
+                                   y + v_spacing + shadow + font_ascent,
+                                   val->key, strlen (val->key));
+                  else
 #endif
+		  XDrawString (XtDisplay (mw), ws->window,
 			       text_gc,
 			       x + label_width + mw->menu.arrow_spacing,
 			       y + v_spacing + shadow + font_ascent,
@@ -1493,34 +1506,25 @@ make_drawing_gcs (mw)
 {
   XGCValues xgcv;
   float scale;
+  XtGCMask mask = GCForeground | GCBackground;
 
-#ifndef HAVE_X_I18N
+#ifdef HAVE_X_I18N
+  if (!mw->menu.fontSet)
+    {
+      xgcv.font = mw->menu.font->fid;
+      mask |= GCFont;
+    }
+#else
   xgcv.font = mw->menu.font->fid;
+  mask |= GCFont;
 #endif
   xgcv.foreground = mw->menu.foreground;
   xgcv.background = mw->core.background_pixel;
-  mw->menu.foreground_gc = XtGetGC ((Widget)mw,
-#ifndef HAVE_X_I18N
-				    GCFont |
-#endif
-				    GCForeground | GCBackground,
-				    &xgcv);
+  mw->menu.foreground_gc = XtGetGC ((Widget)mw, mask, &xgcv);
 
-#ifndef HAVE_X_I18N
-  xgcv.font = mw->menu.font->fid;
-#endif
   xgcv.foreground = mw->menu.button_foreground;
-  xgcv.background = mw->core.background_pixel;
-  mw->menu.button_gc = XtGetGC ((Widget)mw,
-#ifndef HAVE_X_I18N
-				GCFont |
-#endif
-				GCForeground | GCBackground,
-				&xgcv);
+  mw->menu.button_gc = XtGetGC ((Widget)mw, mask, &xgcv);
 
-#ifndef HAVE_X_I18N
-  xgcv.font = mw->menu.font->fid;
-#endif
   xgcv.background = mw->core.background_pixel;
 
 #define BRIGHTNESS(color) (((color) & 0xff) + (((color) >> 8) & 0xff) + (((color) >> 16) & 0xff))
@@ -1545,49 +1549,26 @@ make_drawing_gcs (mw)
       xgcv.foreground = mw->menu.foreground;
       xgcv.fill_style = FillStippled;
       xgcv.stipple = mw->menu.gray_pixmap;
-      mw->menu.disabled_gc = XtGetGC ((Widget)mw,
-#ifndef HAVE_X_I18N
-				      GCFont |
-#endif
-				      GCForeground | GCBackground
+      mw->menu.disabled_gc = XtGetGC ((Widget)mw, mask
 				      | GCFillStyle | GCStipple, &xgcv);
     }
   else
     {
       /* Many colors available, use disabled pixel.  */
       xgcv.foreground = mw->menu.disabled_foreground;
-      mw->menu.disabled_gc = XtGetGC ((Widget)mw,
-#ifndef HAVE_X_I18N
-				      GCFont |
-#endif
-				      GCForeground | GCBackground, &xgcv);
+      mw->menu.disabled_gc = XtGetGC ((Widget)mw, mask, &xgcv);
     }
 
-#ifndef HAVE_X_I18N
-  xgcv.font = mw->menu.font->fid;
-#endif
   xgcv.foreground = mw->menu.button_foreground;
   xgcv.background = mw->core.background_pixel;
   xgcv.fill_style = FillStippled;
   xgcv.stipple = mw->menu.gray_pixmap;
-  mw->menu.inactive_button_gc = XtGetGC ((Widget)mw,
-#ifndef HAVE_X_I18N
-					 GCFont |
-#endif
-					 GCForeground | GCBackground
+  mw->menu.inactive_button_gc = XtGetGC ((Widget)mw, mask
 					 | GCFillStyle | GCStipple, &xgcv);
 
-#ifndef HAVE_X_I18N
-  xgcv.font = mw->menu.font->fid;
-#endif
   xgcv.foreground = mw->core.background_pixel;
   xgcv.background = mw->menu.foreground;
-  mw->menu.background_gc = XtGetGC ((Widget)mw,
-#ifndef HAVE_X_I18N
-				    GCFont |
-#endif
-				    GCForeground | GCBackground,
-				    &xgcv);
+  mw->menu.background_gc = XtGetGC ((Widget)mw, mask, &xgcv);
 }
 
 static void
@@ -1793,14 +1774,14 @@ XlwMenuInitialize (request, mw, args, num_args)
 				   gray_bitmap_width, gray_bitmap_height,
 				   (unsigned long)1, (unsigned long)0, 1);
 
-#ifndef HAVE_X_I18N
   /* I don't understand why this ends up 0 sometimes,
      but it does.  This kludge works around it.
      Can anyone find a real fix?   -- rms.  */
   if (mw->menu.font == 0)
     mw->menu.font = xlwmenu_default_font;
-#else
-  mw->menu.font_extents = XExtentsOfFontSet (mw->menu.font);
+#ifdef HAVE_X_I18N
+  if (mw->menu.fontSet)
+    mw->menu.font_extents = XExtentsOfFontSet (mw->menu.fontSet);
 #endif
       
   make_drawing_gcs (mw);
@@ -1969,7 +1950,10 @@ XlwMenuSetValues (current, request, new)
 
   if (newmw->core.background_pixel != oldmw->core.background_pixel
       || newmw->menu.foreground != oldmw->menu.foreground
-#ifndef HAVE_X_I18N
+#ifdef HAVE_X_I18N
+      || newmw->menu.fontSet != oldmw->menu.fontSet
+      || (newmw->menu.fontSet == NULL && newmw->menu.font != oldmw->menu.font)
+#else
       || newmw->menu.font != oldmw->menu.font
 #endif
       )
@@ -1999,10 +1983,10 @@ XlwMenuSetValues (current, request, new)
     }
 
 #ifdef HAVE_X_I18N
-  if (newmw->menu.font != oldmw->menu.font)
+  if (newmw->menu.fontSet != oldmw->menu.fontSet && newmw->menu.fontSet != NULL)
     {
       redisplay = True;
-      newmw->menu.font_extents = XExtentsOfFontSet (newmw->menu.font);
+      newmw->menu.font_extents = XExtentsOfFontSet (newmw->menu.fontSet);
     }
 #endif
 
