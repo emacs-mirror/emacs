@@ -75,10 +75,15 @@
   (let (pc)
     (quail-delete-region)
     (quail-delete-overlays)
-    (setq pc (preceding-char))
-    (if (not (eq (point) (point-min)))
-	(delete-backward-char 1 nil))
-    (insert (tibetan-composition pc key))
+    (setq pc (char-before (overlay-start quail-overlay))
+	  quail-current-str (tibetan-composition pc key))
+    (if (not (bobp))
+	(progn
+	  (delete-char -1)
+	  (insert (aref quail-current-str 0))
+	  (setq quail-current-str (substring quail-current-str 1))))
+    (move-overlay quail-overlay (point) (point))
+    (insert quail-current-str)
     (throw 'quail-tag nil)))
 
 
@@ -86,21 +91,21 @@
 "Tibetan character input by Extended Wylie key assignment.
 
     +-------------------------------------+
-    |2$(7"!`#T1$(8!;(B k |2$(7""`#T1$(8!;(B kh |2$(7"#`#T1$(8!;(B g  |2$(7"$`#T1$(8!;(B gh |2$(7"%`#T1$(8!;(B ng|   $(7"S(B i          $(8!=(B        /
-    |2$(7"&`#T1$(8!;(B c |2$(7"'`#T1$(8!;(B ch |2$(7"(`#T1$(8!;(B j  |       |$(7"*$(8!;(B ny|   $(7"U(B u          $(7!>(B       //
-    |$(7"+$(8!;(B T |$(7",$(8!;(B TH |$(7"-$(8!;(B D  |$(7".$(8!;(B DH |$(7"/$(8!;(B N |   $(7"[(B e          2$(7!>P(B P$(7!>1(B    ////
+    |2$(7"!`#T(B1$(8!;(B k |2$(7""`#T(B1$(8!;(B kh |2$(7"#`#T(B1$(8!;(B g  |2$(7"$`#T(B1$(8!;(B gh |2$(7"%`#T(B1$(8!;(B ng|   $(7"S(B i          $(8!=(B        /
+    |2$(7"&`#T(B1$(8!;(B c |2$(7"'`#T(B1$(8!;(B ch |2$(7"(`#T(B1$(8!;(B j  |       |$(7"*$(8!;(B ny|   $(7"U(B u          $(7!>(B       //
+    |$(7"+$(8!;(B T |$(7",$(8!;(B TH |$(7"-$(8!;(B D  |$(7".$(8!;(B DH |$(7"/$(8!;(B N |   $(7"[(B e          2$(7!>P(B P$(7!>(B1    ////
     |$(7"0$(8!;(B t |$(7"1$(8!;(B th |$(7"2$(8!;(B d  |$(7"3$(8!;(B dh |$(7"4$(8!;(B n |   $(7"](B o          $(7!A(B       ;
     |$(7"5$(8!;(B p |$(7"6$(8!;(B ph |$(7"7$(8!;(B b  |$(7"8$(8!;(B bh |$(7"9$(8!;(B m |   $(7"\(B ai (ee, E) $(8!?(B        $
     |$(7":$(8!;(B ts|$(7";$(8!;(B tsh|$(7"<$(8!;(B dz |$(7"=$(8!;(B dzh|$(7">$(8!;(B w |   $(7"^(B au (oo, O) $(8!@(B        &
-    |$(7"?$(8!;(B zh|$(7"@$(8!;(B z  |$(7"A$(8!;(B '  |       |$(7"B$(8!;(B y |   $(7"a(B I          2$(7#RP#SP#S1(B   *
-    |$(7"C$(8!;(B r |$(7"D$(8!;(B l  |$(7"E$(8!;(B sh |$(7"F$(8!;(B SH |$(7"G$(8!;(B s |   $(7"`(B :          2$(7#RP#SP#SP#S1(B #
+    |$(7"?$(8!;(B zh|$(7"@$(8!;(B z  |$(7"A$(8!;(B '  |       |$(7"B$(8!;(B y |   $(7"a(B I          2$(7#RP#SP#S(B1   *
+    |$(7"C$(8!;(B r |$(7"D$(8!;(B l  |$(7"E$(8!;(B sh |$(7"F$(8!;(B SH |$(7"G$(8!;(B s |   $(7"`(B :          2$(7#RP#SP#SP#S(B1 #
     |$(7"H$(8!;(B h |$(7"I$(8!;(B A  |$(7"J$(8!;(B kSH|       |      |   $(7"_(B M           $(7!l(B $(7!m(B   < >
     +-------------------------------------+   $(8!D(B  %
     (The consonant $(7"I$(8!;(B must be typed explicitly.)
 
   NOT SPECIFIED IN EXT. WYLIE:
     +--------------------------------------------------------+
-    |$(7"c(B = ~ |$(7"d(B = ` |$(7"e(B = , |$(7"f(B = @ |$(7!g(B = _o|$(7!e(B = _O|2$(7#RP#S_!I1(B = ^|
+    |$(7"c(B = ~ |$(7"d(B = ` |$(7"e(B = , |$(7"f(B = @ |$(7!g(B = _o|$(7!e(B = _O|2$(7#RP#S_!I(B1 = ^|
     +--------------------------------------------------------+
     |$(7"i(B = x |$(7"j(B = X |$(7"g(B = v |$(7"h(B = V |$(7"k(B = q |$(7"l(B = Q |
     +-----------------------------------------------+
@@ -331,10 +336,15 @@
     (setq trans (cdr (assoc key tibetan-tibkey-to-transcription-alist)))
     (quail-delete-region)
     (quail-delete-overlays)
-    (setq pc (preceding-char))
-    (if (not (eq (point) (point-min)))
-	(delete-backward-char 1 nil))
-    (insert (tibetan-composition pc trans))
+    (setq pc (char-before (overlay-start quail-overlay))
+	  quail-current-str (tibetan-composition pc trans))
+    (if (not (bobp))
+	(progn
+	  (delete-char -1)
+	  (insert (aref quail-current-str 0))
+	  (setq quail-current-str (substring quail-current-str 1))))
+    (move-overlay quail-overlay (point) (point))
+    (insert quail-current-str)
     (throw 'quail-tag nil)))
 
 
@@ -361,7 +371,7 @@
   [SHIFTED]
 
   +----------------------------------------------------------+
-  |~$(7"c(B|!2$(7#RP#S1(B|@$(7#S(B|#  |$  |%$(8!D(B |^$(7!1(B|&  |*  |($(7!l(B|)$(7!m(B|_  |+$(7!A(B| |$(7!8(B|
+  |~$(7"c(B|!2$(7#RP#S(B1|@$(7#S(B|#  |$  |%$(8!D(B |^$(7!1(B|&  |*  |($(7!l(B|)$(7!m(B|_  |+$(7!A(B| |$(7!8(B|
   +----------------------------------------------------------+
      |Q$(7"J(B|W$(7#T(B|E  |R  |T$(7"a(B|Y  |U  |I$(7"f(B|O$(7"+(B|P$(7",(B|{$(7"-(B|}$(7"/(B|
      +-----------------------------------------------+
