@@ -109,7 +109,19 @@ strings or patterns."
 		    ((eq char ?\,)
 		     (setq pos (read-from-string to))
 		     (push `(replace-quote ,(car pos)) list)
-		     (setq to (substring to (cdr pos)))))
+		     (let ((end
+			    ;; Swallow a space after a symbol
+			    ;; if there is a space.
+			    (if (and (or (symbolp (car pos))
+					 ;; Swallow a space after 'foo
+					 ;; but not after (quote foo).
+					 (and (eq (car-safe (car pos)) 'quote)
+					      (= ?\( (aref to-string 0))))
+				     (equal " " (substring to-string (cdr pos)
+							   (1+ (cdr pos)))))
+				(1+ (cdr pos))
+			      (cdr pos))))
+		       (setq to (substring to end)))))
 	      (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\\\[,#]" to)))
 	(setq to (nreverse (delete "" (cons to list)))))
       (replace-match-string-symbols to)
@@ -188,19 +200,17 @@ whatever what matched the Nth `\\(...\\)' in REGEXP.
 `\\?' lets you edit the replacement text in the minibuffer
 at the given position for each replacement.
 
-In interactive calls, the replacement text may contain `\\,'
-followed by a Lisp expression used as part of the replacement
-text.  Inside of that expression, `\\&' is a string denoting the
-whole match, `\\N' a partial matches, `\\#&' and `\\#N' the
-respective numeric values from `string-to-number', and `\\#'
-itself for `replace-count', the number of replacements occured so
-far.
+In interactive calls, the replacement text can contain `\\,'
+followed by a Lisp expression.  Each
+replacement evaluates that expression to compute the replacement
+string.  Inside of that expression, `\\&' is a string denoting the
+whole match as a sting, `\\N' for a partial match, `\\#&' and `\\#N'
+for the whole or a partial match converted to a number with
+`string-to-number', and `\\#' itself for the number of replacements
+done so far (starting with zero).
 
-If your Lisp expression is an identifier and the next letter in
-the replacement string would be interpreted as part of it, you
-can wrap it with an expression like `\\,(or \\#)'.  Incidentally,
-for this particular case you may also enter `\\#' in the
-replacement text directly.
+If the replacement expression is a symbol, write a space after it
+to terminate it.  One space there, if any, will be discarded.
 
 When using those Lisp features interactively in the replacement
 text, TO-STRING is actually made a list instead of a string.
@@ -216,7 +226,6 @@ Use \\[repeat-complex-command] after this command for details."
 	       (region-beginning))
 	   (if (and transient-mark-mode mark-active)
 	       (region-end)))))
-
   (perform-replace regexp to-string t t delimited nil nil start end))
 
 (define-key esc-map [?\C-%] 'query-replace-regexp)
