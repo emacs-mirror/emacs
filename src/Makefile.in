@@ -1124,7 +1124,7 @@ undo.o: undo.c buffer.h commands.h $(config_h)
    of UNEXEC when substituting it in.  */
 UNEXEC_ALIAS=UNEXEC
 $(UNEXEC_ALIAS): UNEXEC_SRC $(config_h)
-w16select.o: w16select.c lisp.h dispextern.h frame.h blockinput.h \
+w16select.o: w16select.c dispextern.h frame.h blockinput.h \
    msdos.h $(config_h)
 widget.o: widget.c xterm.h frame.h dispextern.h widgetprv.h \
    $(srcdir)/../lwlib/lwlib.h $(config_h)
@@ -1146,7 +1146,7 @@ xselect.o: xselect.c dispextern.h frame.h xterm.h blockinput.h charset.h \
   coding.h ccl.h buffer.h $(config_h)
 xrdb.o: xrdb.c $(config_h) epaths.h
 hftctl.o: hftctl.c $(config_h)
-sound.o: sound.c dispextern.h lisp.h $(config_h)
+sound.o: sound.c dispextern.h $(config_h)
 
 /* The files of Lisp proper */
 
