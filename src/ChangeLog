@@ -23,6 +23,7 @@
 	pages to unmap is rounded towards zero.
 
 	* m/mips-siemens.h (XSETUINT, XSETPNTR): Unused macros deleted.
+	(XSETINT): Deleted.
 
 2002-07-20  Richard M. Stallman  <rms@gnu.org>
 
