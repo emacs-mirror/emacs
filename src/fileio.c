@@ -2714,7 +2714,9 @@ to the file, instead of any buffer contents, and END is ignored.")
 #ifdef HAVE_FSYNC
   /* Note fsync appears to change the modtime on BSD4.2 (both vax and sun).
      Disk full in NFS may be reported here.  */
-  if (fsync (desc) < 0)
+  /* mib says that closing the file will try to write as fast as NFS can do
+     it, and that means the fsync here is not crucial for autosave files.  */
+  if (!auto_saving && fsync (desc) < 0)
     failure = 1, save_errno = errno;
 #endif
 
