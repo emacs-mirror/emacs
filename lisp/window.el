@@ -278,6 +278,10 @@ or if the window is the only window of its frame."
                    (> (nth 1 edges) (cdr (assq 'menu-bar-lines params)))))
           (let ((text-height (window-buffer-height window))
                 (window-height (window-height)))
+	    ;; Don't try to redisplay with the cursor at the end
+	    ;; on its own line--that would force a scroll and spoil things.
+	    (when (and (eobp) (bolp))
+	      (forward-char -1))
             (when (> window-height (1+ text-height))
               (shrink-window
                (- window-height (max (1+ text-height) window-min-height)))))))))
