@@ -48,7 +48,7 @@
 	  latin-jisx0201 japanese-jisx0212
 	  chinese-gb2312 korean-ksc5601) nil
 	  (nil latin-iso8859-1 greek-iso8859-7) nil
- short ascii-eol ascii-cntl seven nil single-shift)
+ short ascii-eol ascii-cntl seven nil single-shift nil nil nil init-bol)
  '((safe-charsets ascii japanese-jisx0208-1978 japanese-jisx0208
 		  latin-jisx0201 japanese-jisx0212
 		  chinese-gb2312 korean-ksc5601
