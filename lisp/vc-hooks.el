@@ -6,7 +6,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.166 2004/04/11 15:03:21 spiegel Exp $
+;; $Id: vc-hooks.el,v 1.167 2004/04/16 10:21:51 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -44,8 +44,8 @@
                         "set `vc-handled-backends' to nil to disable VC.")
 
 (defvar vc-master-templates ())
-(make-obsolete-variable 'vc-master-templates 
- "to define master templates for a given BACKEND, use 
+(make-obsolete-variable 'vc-master-templates
+ "to define master templates for a given BACKEND, use
 vc-BACKEND-master-templates.  To enable or disable VC for a given
 BACKEND, use `vc-handled-backends'.")
 
@@ -474,8 +474,8 @@ Return non-nil if FILE is unchanged."
                              (indirect-function
                               (vc-find-backend-function (vc-backend file)
                                                         'diff))))
-                    (not (eq (caddr err) 5)))
-                (signal 'wrong-number-of-arguments err)
+                    (not (eq (caddr err) 4)))
+                (signal (car err) (cdr err))
               (vc-call diff file))))))
 
 (defun vc-workfile-version (file)
