@@ -79,7 +79,7 @@ GNU/Linux systems on the PPC, you will have to manually uncomment the
 following section near the end of the file src/m/macppc.h in the Emacs
 distribution:
 
-  #if 0  /* This breaks things on PPC GNU/Linux ecept for Yellowdog,
+  #if 0  /* This breaks things on PPC GNU/Linux except for Yellowdog,
 	    even with identical GCC, as, ld.  Let's take it out until we
 	    know what's really going on here.  */
   /* GCC 2.95 and newer on GNU/Linux PPC changed the load address to
@@ -371,7 +371,7 @@ configuration alone.  Presumably, the NFS server doesn't commit the
 files' data to disk quickly enough, and the Emacs executable file is
 left ``busy'' for several seconds after Emacs has finished dumping
 itself.  This causes the subsequent commands which invoke the dumped
-Emacs excutable to fail with the above message.
+Emacs executable to fail with the above message.
 
 In some of these cases, a time skew between the NFS server and the
 machine where Emacs is built is detected and reported by GNU Make
@@ -447,7 +447,7 @@ any comment or string.  This is of course not true in general, but the
 vast majority of well-formatted program source files don't have such
 parens, and therefore this assumption is used to allow optimizations
 in Font Lock's syntactical analysis.  These optimizations avoid some
-patological cases where jit-lock, the Just-in-Time fontification
+pathological cases where jit-lock, the Just-in-Time fontification
 introduced with Emacs 21.1, could significantly slow down scrolling
 through the buffer, especially scrolling backwards, and also jumping
 to the end of a very large buffer.
@@ -464,7 +464,7 @@ in a Lisp string you could precede the paren with a backslash.
 * When running on KDE, colors or fonts are not as specified for Emacs,
 or messed up.
 
-For examlpe, you could see background you set for Emacs only in the
+For example, you could see background you set for Emacs only in the
 empty portions of the Emacs display, while characters have some other
 background.
 
@@ -911,7 +911,7 @@ or disable it entirely.
 This is a limitation of the Operating System, and can cause problems
 when shutting down Windows. Ensure that all subprocesses are exited
 cleanly before exiting Emacs. For more details, see the FAQ at
-ftp://ftp.gnu.org/gnu/windows/emacs/doc/index.html
+http://www.gnu.org/software/emacs/windows/.
 
 * Mail sent through Microsoft Exchange in some encodings appears to be
 mangled and is not seen correctly in Rmail or Gnus.  We don't know
