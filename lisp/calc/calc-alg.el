@@ -1085,7 +1085,7 @@
       (and calc-symbolic-mode
 	   (math-known-negp (nth 1 expr))
 	   (math-add (list 'calcFunc-ln (math-neg (nth 1 expr)))
-		     '(var pi var-pi)))
+		     '(* (var pi var-pi) (var i var-i))))
       (and calc-symbolic-mode
 	   (math-known-imagp (nth 1 expr))
 	   (let* ((ip (calcFunc-im (nth 1 expr)))
