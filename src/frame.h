@@ -244,6 +244,9 @@ struct frame
      cleared.  */
   char explicit_name;
 
+  /* Nonzero if size of some window on this frame has changed.  */
+  char window_sizes_changed;
+
   /* Storage for messages to this frame. */
   char *message_buf;
 
@@ -300,6 +303,7 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_NO_SPLIT_P(f) (f)->no_split
 #define FRAME_WANTS_MODELINE_P(f) (f)->wants_modeline
 #define FRAME_ICONIFIED_P(f) (f)->iconified
+#define FRAME_WINDOW_SIZES_CHANGED(f) (f)->window_sizes_changed
 #define FRAME_MINIBUF_WINDOW(f) (f)->minibuffer_window
 #define FRAME_ROOT_WINDOW(f) (f)->root_window
 #define FRAME_SELECTED_WINDOW(f) (f)->selected_window
@@ -444,6 +448,7 @@ extern FRAME_PTR last_nonminibuf_frame;
 #define FRAME_NO_SPLIT_P(f) 0
 #define FRAME_WANTS_MODELINE_P(f) 1
 #define FRAME_ICONIFIED_P(f) 0
+#define FRAME_WINDOW_SIZES_CHANGED(f) the_only_frame.window_sizes_changed
 #define FRAME_MINIBUF_WINDOW(f) (minibuf_window)
 #define FRAME_ROOT_WINDOW(f) (the_only_frame.root_window)
 #define FRAME_SELECTED_WINDOW(f) (selected_window)
