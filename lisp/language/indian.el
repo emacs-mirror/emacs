@@ -40,46 +40,11 @@
 
 (define-coding-system-alias 'devanagari 'in-is13194-devanagari)
 
-(defvar indian-script-table
-  '[
-    devanagari
-    sanskrit
-    bengali
-    tamil
-    telugu
-    assamese
-    oriya
-    kannada
-    malayalam
-    gujarati
-    punjabi
-    ]
-  "Vector of Indian script names.")
-
-(let ((len (length indian-script-table))
-      (i 0))
-  (while (< i len)
-    (put (aref indian-script-table i) 'indian-glyph-code-offset (* 256 i))
-    (setq i (1+ i))))
-
 (defvar indian-default-script 'devanagari
   "Default script for Indian languages.
 Each Indian language environment sets this value
 to one of `indian-script-table' (which see).
 The default value is `devanagari'.")
-
-(define-ccl-program ccl-encode-indian-glyph-font
-  `(0
-    ;; Shorten (r1 = (((((r1 - 32) * 96) + r2) - 32) % 256))
-    (r1 = ((((r1 * 96) + r2) - ,(+ (* 32 96) 32)) % 256))))
-
-;;(setq font-ccl-encoder-alist
-;;      (cons (cons "-CDAC" 'ccl-encode-indian-glyph-font)
-;;	    font-ccl-encoder-alist))
-
-;;(setq font-ccl-encoder-alist
-;;      (cons '("ISO10646.*-1" . ccl-encode-unicode-font)
-;;	    font-ccl-encoder-alist))
 
 (provide 'indian)
 
