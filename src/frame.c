@@ -632,6 +632,10 @@ do_switch_frame (frame, no_enter, track)
 
   Fselect_window (XFRAME (frame)->selected_window);
 
+  if (! FRAME_MINIBUF_ONLY_P (selected_frame)
+      && FRAME_HAS_MINIBUF_P (selected_frame))
+    minibuf_window = selected_frame->minibuffer_window;
+
   /* We want to make sure that the next event generates a frame-switch
      event to the appropriate frame.  This seems kludgy to me, but
      before you take it out, make sure that evaluating something like
