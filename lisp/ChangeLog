@@ -1,5 +1,9 @@
 2002-12-13  Markus Rost  <rost@math.ohio-state.edu>
 
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Use
+	`custom-current-group'. Pass all groups to the hook.
+	(easy-mmode-define-global-mode): Use `custom-current-group'.
+
 	* international/mule-cmds.el (current-language-environment): Set
 	type according to `language-info-alist' also here.
 
@@ -22,7 +26,7 @@
 
 	* international/subst-big5.el, international/subst-gb2312.el:
 	* international/subst-jis.el, international/subst-ksc.el: New.
-	
+
 	* custom.el (defcustom, custom-set-variables): Doc fix.
 
 	* emacs-lisp/bytecomp.el (byte-compile-if): Suppress warnings from
@@ -39,8 +43,8 @@
 
 	* international/mule-cmds.el (current-language-environment): Fix
 	custom type.
-	(set-language-info): Update custom-type of
-	current-language-environment.
+	(set-language-info): Update custom type of
+	`current-language-environment'.
 
 2002-12-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
@@ -49,9 +53,9 @@
 2002-12-10  R. Bernstein  <rocky@panix.com>
 
 	* gud.el (bashdb): Prompt now included parenthesis for subshell
-	levels. Fix erroneous print expression command, and fix typos. 
+	levels. Fix erroneous print expression command, and fix typos.
 	(perldb): Undo previous change in prompt regexp.
-	
+
 2002-12-10  Steven Tamm  <steventamm@mac.com>
 
 	* generic-x.el (javascript-generic-mode): Added C style block
