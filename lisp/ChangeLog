@@ -1,9 +1,14 @@
+2001-11-09  Sam Steingold  <sds@gnu.org>
+
+	* emacs-lisp/debug.el (debugger-make-xrefs):
+	Add buttons to all symbols.
+
 2001-11-09  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el: Add John David Smith to credits.
-		
+
 	Suggested by Kalle Olavi Niemitalo <kon@iki.fi>:
-	
+
 	* vc-hooks.el (vc-error-occured): Backquotified.
 	(vc-file-prop-obarray): Use prime length for better efficiency.
 

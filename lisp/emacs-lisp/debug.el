@@ -277,7 +277,7 @@ That buffer should be current already."
     (set-buffer (or buffer (current-buffer)))
     (goto-char (point-min))
     (let ((buffer-read-only nil))
-      (while (re-search-forward "^[* ] (?\\(\\(\\sw\\|\\s_\\)+\\)" nil t)
+      (while (re-search-forward "\\(\\(\\sw\\|\\s_\\)+\\)" nil t)
         (let* ((sym (intern-soft (match-string 1)))
                (file (symbol-file sym)))
           (when file (help-xref-button 1 'help-function-def sym file)))))))
