@@ -2735,7 +2735,7 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
       Lisp_Object posn;
       int column, row;
 
-      pixel_to_glyph_coords (frame, XINT (x), XINT (y), &column, &row, 0, 0);
+      pixel_to_glyph_coords (frame, XINT (x), XINT (y), &column, &row, 0, 1);
 
       if (frame)
 	window = window_from_coordinates (frame, column, row, &area);
