@@ -289,7 +289,9 @@ Don't use this command in Lisp programs!
 		    (goto-char (window-start))
 		    (vertical-motion (window-height))
 		    (< (point) old-point)))
-	(recenter -3))))
+	(progn
+	  (overlay-recenter (point))
+	  (recenter -3)))))
 
 (defun mark-whole-buffer ()
   "Put point at beginning and mark at end of buffer.
