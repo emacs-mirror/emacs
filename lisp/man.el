@@ -209,6 +209,14 @@ This regular expression should start with a `^' character.")
 (defvar Man-switches ""
   "*Switches passed to the man command, as a single string.")
 
+;; Would someone like to provide a good test for being on Solaris?
+;; We could give it its own value of system-type, but that has drawbacks;
+;; it would require changes in lots of places that test system-type.
+(defvar Man-specified-section-option ""
+  "*Option that indicates a specified a manual section name.
+On most Unix systems, no option is needed for this.
+On Solaris, you need to set this to \"-s \".")
+
 ;; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ;; end user variables
 
@@ -314,7 +322,7 @@ This regular expression should start with a `^' character.")
 				(Man-downcase s2)
 			      s2)
 		    slist nil))))
-	(concat section " " word))
+	(concat Man-specified-section-option section " " word))
     ref))
 
 (defun Man-linepos (&optional position col-p)
