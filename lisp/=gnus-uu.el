@@ -1,12 +1,29 @@
 ;;; gnus-uu.el --- extract, view or save (uu)encoded files from gnus
-;;
+
+;; Copyright (C) 1985, 1986, 1987, 1993, 1994 Free Software Foundation, Inc.
+
 ;; Author: Lars Ingebrigtsen <larsi@ifi.uio.no>
 ;; Created: 2 Oct 1993
-;; Version: gnus-uu.el v 1.3.6 1994/04/07
-;; Keyword: gnus
-;;
-;; For gnus 4.*.
-;;
+;; Keyword: news
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+
+;;; Commentary:
+
 ;; All gnus-uu commands start with `C-c C-v'.
 ;;
 ;; Typing `C-c C-v C-v' (gnus-uu-decode-and-view) in the summary
@@ -300,6 +317,8 @@
 ;; `C-c C-v C-k'      gnus-uu-toggle-kill-carriage-return
 ;; `C-c C-v C-i'      gnus-uu-toggle-interactive-view
 ;; `C-c C-v C-t'      gnus-uu-toggle-any-variable
+
+;;; Code: 
 
 (require 'gnus)
 
@@ -2118,3 +2137,4 @@ C-c C-o                         Save the original file: If the files
 
 (provide 'gnus-uu)
 
+;; gnus-uu.el ends here
