@@ -1000,13 +1000,13 @@ buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
 callint.o: callint.c window.h commands.h buffer.h mocklisp.h \
    keyboard.h $(config_h)
 callproc.o: callproc.c epaths.h buffer.h commands.h $(config_h) \
-	process.h systty.h syssignal.h charset.h coding.h msdos.h
+	process.h systty.h syssignal.h charset.h coding.h ccl.h msdos.h
 casefiddle.o: casefiddle.c syntax.h commands.h buffer.h $(config_h)
 casetab.o: casetab.c buffer.h $(config_h)
 category.o: category.c category.h buffer.h charset.h $(config_h)
 ccl.o: ccl.c ccl.h charset.h coding.h $(config_h)
 charset.o: charset.c charset.h buffer.h coding.h disptab.h $(config_h)
-coding.o: coding.c coding.h buffer.h charset.h $(config_h)
+coding.o: coding.c coding.h ccl.h buffer.h charset.h $(config_h)
 cm.o: cm.c cm.h termhooks.h $(config_h)
 cmds.o: cmds.c syntax.h buffer.h charset.h commands.h window.h $(config_h) \
 	msdos.h
@@ -1025,7 +1025,7 @@ editfns.o: editfns.c window.h buffer.h systime.h INTERVAL_SRC charset.h \
 emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
    termhooks.h buffer.h INTERVAL_SRC $(config_h)
 fileio.o: fileio.c window.h buffer.h systime.h INTERVAL_SRC charset.h \
-   coding.h msdos.h $(config_h)
+   coding.h ccl.h msdos.h $(config_h)
 filelock.o: filelock.c buffer.h systime.h epaths.h $(config_h)
 filemode.o: filemode.c  $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
@@ -1054,10 +1054,10 @@ minibuf.o: minibuf.c syntax.h dispextern.h frame.h window.h \
 mktime.o: mktime.c $(config_h)
 mocklisp.o: mocklisp.c buffer.h $(config_h)
 msdos.o: msdos.c msdos.h dosfns.h systime.h termhooks.h dispextern.h frame.h \
-   termopts.h termchar.h charset.h coding.h disptab.h window.h $(config_h)
+   termopts.h termchar.h charset.h coding.h ccl.h disptab.h window.h $(config_h)
 process.o: process.c process.h buffer.h window.h termhooks.h termopts.h \
    commands.h syssignal.h systime.h systty.h syswait.h frame.h \
-   blockinput.h charset.h coding.h msdos.h $(config_h)
+   blockinput.h charset.h coding.h ccl.h msdos.h $(config_h)
 regex.o: regex.c syntax.h buffer.h $(config_h) regex.h category.h charset.h
 region-cache.o: region-cache.c buffer.h region-cache.h
 scroll.o: scroll.c termchar.h dispextern.h frame.h msdos.h $(config_h)
@@ -1070,7 +1070,7 @@ sysdep.o: sysdep.c $(config_h) dispextern.h termhooks.h termchar.h termopts.h \
    frame.h syssignal.h systty.h systime.h syswait.h blockinput.h window.h \
    msdos.h
 term.o: term.c termchar.h termhooks.h termopts.h $(config_h) cm.h frame.h \
-   disptab.h keyboard.h charset.h coding.h msdos.h
+   disptab.h keyboard.h charset.h coding.h ccl.h msdos.h
 termcap.o: termcap.c $(config_h)
 terminfo.o: terminfo.c $(config_h)
 tparam.o: tparam.c $(config_h)
@@ -1098,7 +1098,7 @@ xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h \
   dispextern.h frame.h disptab.h blockinput.h systime.h syssignal.h \
   keyboard.h gnu.h sink.h sinkmask.h charset.h ccl.h fontset.h $(config_h)
 xselect.o: xselect.c dispextern.h frame.h xterm.h blockinput.h charset.h \
-  coding.h buffer.h $(config_h)
+  coding.h ccl.h buffer.h $(config_h)
 xrdb.o: xrdb.c $(config_h) epaths.h
 hftctl.o: hftctl.c $(config_h)
 
