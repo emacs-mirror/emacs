@@ -37,6 +37,7 @@
     (let ((path (car load-path)))
       (setq load-path (list path
 			    (expand-file-name "emacs-lisp" path)
+			    (expand-file-name "language" path)
 			    (expand-file-name "international" path)))))
 
 (message "Using load-path %s" load-path)
