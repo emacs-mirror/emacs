@@ -807,6 +807,7 @@ case "${canonical}" in
   mips-mips-riscos4* )
     machine=mips4 opsys=bsd4-3
     NON_GNU_CC="cc -systype bsd43"
+    NON_GNU_CPP="cc -systype bsd43 -E"
   ;;
   mips-mips-bsd* )
     machine=mips opsys=bsd4-3
