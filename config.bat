@@ -96,7 +96,7 @@ if exist dir.h ren dir.h vmsdir.h
 
 rem   Create "makefile" from "makefile.in.in" using a context patch.
 rm -f makefile junk.c
-cp %MAKEFILEIN% junk.c
+sed -e "1,/cpp stuff/s@^# .*$@@" <%MAKEFILEIN% >junk.c
 gcc -E junk.c | sed -f ../msdos/sed1.inp >makefile
 rm -f junk.c
 cd ..
@@ -112,7 +112,7 @@ cd ..
 goto end
 :libsrc1
 rem   Create "makefile" from "makefile.in".
-sed -e "s@^# \(Generated.*\)$@/* \1 */@" -e "s@/\*\*/#\(.*\)$@/* \1 */@" <%MAKEFILEIN% >junk.c
+sed -e "1,/cpp stuff/s@^# .*$@@" <%MAKEFILEIN% >junk.c
 gcc -E -I. -I../src junk.c | sed -e "s/^ /	/" -e "/^#/d" -e "/^[ 	]*$/d" >Makefile.new
 sed -f ../msdos/sed3.inp <makefile.new >makefile
 cd ..
