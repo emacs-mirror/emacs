@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Version: 4.0
 
-;;	$Id: vc-hooks.el,v 1.4 1992/10/20 06:44:21 rms Exp rms $	
+;;	$Id: vc-hooks.el,v 1.5 1992/10/20 18:43:33 rms Exp rms $	
 
 ;; This file is part of GNU Emacs.
 
@@ -167,7 +167,7 @@ Returns t if checkout was successful, nil otherwise."
       (define-key global-map "\C-xv" vc-prefix-map)
       (define-key vc-prefix-map "a" 'vc-update-change-log)
       (define-key vc-prefix-map "c" 'vc-cancel-version)
-      (define-key vc-prefix-map "d" 'vc-diff)
+      (define-key vc-prefix-map "d" 'vc-directory)
       (define-key vc-prefix-map "h" 'vc-insert-headers)
       (define-key vc-prefix-map "i" 'vc-register)
       (define-key vc-prefix-map "l" 'vc-print-log)
@@ -175,7 +175,7 @@ Returns t if checkout was successful, nil otherwise."
       (define-key vc-prefix-map "s" 'vc-create-snapshot)
       (define-key vc-prefix-map "u" 'vc-revert-buffer)
       (define-key vc-prefix-map "v" 'vc-next-action)
-      (define-key vc-prefix-map "=" 'vc-directory)
+      (define-key vc-prefix-map "=" 'vc-diff)
       ))
 
 (provide 'vc-hooks)
