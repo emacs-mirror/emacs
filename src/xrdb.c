@@ -29,7 +29,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #endif /* USG5 */
 
 #endif /* 1 */
- 
+
+/* This should be included before the X include files; otherwise, we get
+   warnings about redefining NULL under BSD 4.3.  */
+#include <sys/param.h>
+
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #if 0
@@ -38,7 +42,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <X11/X.h>
 #include <X11/Xutil.h>
 #include <X11/Xresource.h>
-#include <sys/param.h>
 #ifdef VMS
 #include "vms-pwd.h"
 #else

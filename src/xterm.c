@@ -31,7 +31,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "lisp.h"
 
-/* On 4.3 this loses if it comes after xterm.h.  */
+/* On 4.3 these lose if they come after xterm.h.  */
+#include <stdio.h>
 #include <signal.h>
 
 /* This may include sys/types.h, and that somehow loses
@@ -70,7 +71,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "systime.h"
 
 #include <fcntl.h>
-#include <stdio.h>
 #include <ctype.h>
 #include <errno.h>
 #include <setjmp.h>
