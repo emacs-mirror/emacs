@@ -2,7 +2,7 @@
  *
  *                   NULL POOL COVERAGE TEST
  *
- *  $HopeName$
+ *  $HopeName: MMsrc!poolncv.c(trunk.1) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -10,7 +10,6 @@
 
 
 #include "std.h"
-#include "collect.h"
 #include "pool.h"
 #include "pooln.h"
 #include "space.h"
@@ -38,7 +37,6 @@ main(void)
 	    "allocating block from PoolN\n");
     eflag = TRUE;
   }
-  die(Collect(pool), "Collect");
   PoolDestroy(pool);
   SpaceDestroy(space);
   if(eflag) {
