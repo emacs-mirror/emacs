@@ -1,7 +1,10 @@
 2004-05-24  Nick Roberts  <nickrob@gnu.org>
 
-	* progmodes/gdb-ui.el (gdb-breakpoints-mode, gdb-frames-mode) 
+	* progmodes/gdb-ui.el (gdb-breakpoints-mode, gdb-frames-mode)
 	(gdb-locals-mode): Check gud-minor-mode in gud-comint-buffer.
+	(gdb-var-update, gdb-var-update-handler, gdb-var-delete)
+	(gdb-edit-value, gdb-speedbar-expand-node): Handle new value for
+	gud-minor-mode (gdbmi).
 
 2004-05-24  Yoichi NAKAYAMA  <yoichi@geiin.org>  (tiny change)
 
