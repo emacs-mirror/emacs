@@ -1,3 +1,19 @@
+2000-09-17  Dave Love  <fx@gnu.org>
+
+	* calendar/cal-move.el (scroll-calendar-left)
+	(scroll-calendar-right): Make arg optional (for active mode line).
+
+	* calendar/calendar.el (calendar-mode-line-format): Make fields
+	mouse-sensitive.
+	(calendar-read-date, calendar-read-date, calendar-window-list):
+	Unquote lambda.
+	(calendar-month-name): Use aref, not sref.
+
+	* view.el (minor-mode-alist): Propertize the string.
+
+	* international/characters.el (standard-case-table): Add entries
+	for Greek.
+
 2000-09-18  Miles Bader  <miles@gnu.org>
 
 	* info.el (info-node, info-xref): Add dark-background variants.
