@@ -2454,6 +2454,7 @@ scan_sexps_forward (stateptr, from, from_byte, end, targetdepth,
 		    stopbefore, oldstate, commentstop)
      struct lisp_parse_state *stateptr;
      register int from;
+     int from_byte;
      int end, targetdepth, stopbefore;
      Lisp_Object oldstate;
      int commentstop;
