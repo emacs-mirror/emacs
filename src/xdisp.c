@@ -2031,14 +2031,16 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 		  clipped to the window edges.  */
 	       && !(last_point_x <= 0 && hscroll))
 	{
-	  pos = *compute_motion (XFASTINT (w->last_point),
-				 last_point_y, last_point_x, 0,
+	  int last_point = XFASTINT (w->last_point);
+	  int last_point_byte = CHAR_TO_BYTE (last_point);
+
+	  pos = *compute_motion (last_point, last_point_y, last_point_x, 0,
 				 PT, height,
 				 /* BUG FIX: See the comment of
 				    Fpos_visible_in_window_p (window.c).  */
 				 - (1 << (BITS_PER_SHORT - 1)),
 				 width, hscroll,
-				 pos_tab_offset (w, startp, startp_byte),
+				 pos_tab_offset (w, last_point, last_point_byte),
 				 w);
 	}
       else
