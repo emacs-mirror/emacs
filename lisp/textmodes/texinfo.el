@@ -68,8 +68,8 @@
   (define-key texinfo-mode-map "\C-c\C-s"     'texinfo-show-structure)
 
   (define-key texinfo-mode-map "\""           'tex-insert-quote)
-  (define-key texinfo-mode-map "\e}"          'up-list)
-  (define-key texinfo-mode-map "\e{"          'texinfo-insert-braces)
+  (define-key texinfo-mode-map "\C-c}"          'up-list)
+  (define-key texinfo-mode-map "\C-c{"          'texinfo-insert-braces)
 
   (define-key texinfo-mode-map "\C-c\C-cv"    'texinfo-insert-@var)
   (define-key texinfo-mode-map "\C-c\C-cs"    'texinfo-insert-@samp)
