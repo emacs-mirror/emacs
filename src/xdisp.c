@@ -10026,13 +10026,17 @@ try_window_id (w)
      only if buffer has really changed.  The reason is that the gap is
      initially at Z for freshly visited files.  The code below would
      set end_unchanged to 0 in that case.  */
-  if (MODIFF > 1)
+  if (MODIFF > SAVE_MODIFF)
     {
       if (GPT - BEG < BEG_UNCHANGED)
 	BEG_UNCHANGED = GPT - BEG;
       if (Z - GPT < END_UNCHANGED)
 	END_UNCHANGED = Z - GPT;
     }
+
+  /* Some strange bug seems to be causing that to happen sometimes.  */
+  if (BEG_UNCHANGED + END_UNCHANGED > Z_BYTE)
+    abort ();
   
   /* If window starts after a line end, and the last change is in
      front of that newline, then changes don't affect the display.
@@ -10691,7 +10695,17 @@ DEFUN ("trace-redisplay-toggle", Ftrace_redisplay_toggle,
   trace_redisplay_p = !trace_redisplay_p;
   return Qnil;
 }
-       
+
+
+DEFUN ("trace-to-stderr", Ftrace_to_stderr, Strace_to_stderr, 1, 1, "",
+   "Print STRING to stderr.")
+   (string)
+     Lisp_Object string;
+{
+  CHECK_STRING (string, 0);
+  fprintf (stderr, "%s", XSTRING (string)->data);
+  return Qnil;
+}
 	
 #endif /* GLYPH_DEBUG */
 
@@ -12802,6 +12816,7 @@ syms_of_xdisp ()
   defsubr (&Sdump_glyph_row);
   defsubr (&Sdump_tool_bar_row);
   defsubr (&Strace_redisplay_toggle);
+  defsubr (&Strace_to_stderr);
 #endif
 
   staticpro (&Qmenu_bar_update_hook);
