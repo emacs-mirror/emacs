@@ -1,3 +1,7 @@
+2004-10-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/subst-jis.el: Add data for JISX0201.
+
 2004-10-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* obsolete/hilit19.el (hilit-mode): New function.
