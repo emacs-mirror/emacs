@@ -306,9 +306,6 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.")
 #ifdef VMS
 	 && p[-1] != ':' && p[-1] != ']' && p[-1] != '>'
 #endif /* VMS */
-#ifdef MSDOS
-	 && p[-1] != ':' && p[-1] != '\\'
-#endif
 	 ) p--;
 
   if (p == beg)
@@ -372,9 +369,6 @@ or the entire name if it contains no slash.")
 #ifdef VMS
 	 && p[-1] != ':' && p[-1] != ']' && p[-1] != '>'
 #endif /* VMS */
-#ifdef MSDOS
-	 && p[-1] != ':'
-#endif
 	 ) p--;
 
   return make_string (p, end - p);
@@ -470,15 +464,11 @@ file_name_as_directory (out, in)
     }
 #else /* not VMS */
   /* For Unix syntax, Append a slash if necessary */
-#ifdef MSDOS
-  if (out[size] != ':' && out[size] != '/' && out[size] != '\\')
-#else /* not MSDOS */
   if (!IS_ANY_SEP (out[size]))
     {
       out[size + 1] = DIRECTORY_SEP;
       out[size + 2] = '\0';
     }
-#endif /* not MSDOS */
 #endif /* not VMS */
   return out;
 }
