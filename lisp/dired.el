@@ -1418,7 +1418,10 @@ Returns the new value of the alist."
 		    ;; correct) match could have been elsewhere on the
 		    ;; ;; line (e.g. "-" would match somewhere in the
 		    ;; permission bits).
-		  (setq found (dired-move-to-filename)))))))
+		  (setq found (dired-move-to-filename))
+		;; If this isn't the right line, move forward to avoid
+		;; trying this line again.
+		(forward-line 1))))))
     (and found
 	 ;; return value of point (i.e., FOUND):
 	 (goto-char found))))
