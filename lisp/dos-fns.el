@@ -57,7 +57,6 @@ with a definition that really does change some file names."
 	   (string (copy-sequence (file-name-nondirectory filename)))
 	   (lastchar (aref string (1- (length string))))
 	   i firstdot)
-      ;; If the argument is empty, just return it.
       ;; Change a leading period to a leading underscore.
       (if (= (aref string 0) ?.)
 	  (aset string 0 ?_))
