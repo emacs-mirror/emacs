@@ -1072,7 +1072,13 @@ selected frame."
     (princ "Background: ") (princ (face-background face)) (terpri)
     (princ "      Font: ") (princ (face-font face)) (terpri)
     (princ "Underlined: ") (princ (if (face-underline-p face) "yes" "no")) (terpri)
-    (princ "   Stipple: ") (princ (or (face-stipple face) "none"))))
+    (princ "   Stipple: ") (princ (or (face-stipple face) "none")) (terpri)
+    (terpri)
+    (princ "Documentation:") (terpri)
+    (let ((doc (face-doc-string face)))
+      (if doc
+	  (princ doc)
+	(princ "not documented as a face.")))))
 
 ;;; Make the standard faces.
 ;;; The C code knows the default and modeline faces as faces 0 and 1,
