@@ -934,7 +934,7 @@ next_frame (frame, minibuf)
 		if (FRAME_VISIBLE_P (XFRAME (f)))
 		  return f;
 	      }
-	    else if (XFASTINT (minibuf) == 0)
+	    else if (INTEGERP (minibuf) && XINT (minibuf) == 0)
 	      {
 		FRAME_SAMPLE_VISIBILITY (XFRAME (f));
 		if (FRAME_VISIBLE_P (XFRAME (f))
@@ -943,6 +943,10 @@ next_frame (frame, minibuf)
 	      }
 	    else if (WINDOWP (minibuf))
 	      {
+#if 0 /* I don't think the test for frame focus redirection is
+         correct.  This excludes frames "using the current minibuffer"
+         when their focus isn't redirected, which contradicts the doc
+         string of next-frame.  --gerd, 2000-06-30 */
 		if (EQ (FRAME_MINIBUF_WINDOW (XFRAME (f)), minibuf)
 		    /* Check that F either is, or has forwarded its focus to,
 		       MINIBUF's frame.  */
@@ -950,6 +954,11 @@ next_frame (frame, minibuf)
 			|| EQ (WINDOW_FRAME (XWINDOW (minibuf)),
 			       FRAME_FOCUS_FRAME (XFRAME (f)))))
 		  return f;
+#else /* not 0 */
+		if (EQ (FRAME_MINIBUF_WINDOW (XFRAME (f)), minibuf)
+		    || EQ (WINDOW_FRAME (XWINDOW (minibuf)), f))
+		  return f;
+#endif /* not 0 */
 	      }
 	    else
 	      return f;
