@@ -988,7 +988,7 @@ update_menu_bar (window)
 	  FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
 	  current_buffer = prev;
 #ifdef USE_X_TOOLKIT
-	  set_frame_menubar (f);
+	  set_frame_menubar (f, 0);
 #endif /* USE_X_TOOLKIT */
 	}
     }
