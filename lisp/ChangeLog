@@ -1,3 +1,7 @@
+2005-02-22  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el: Comment change.
+
 2005-02-22  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/hideif.el (hide-ifdef-use-define-alist): Use
