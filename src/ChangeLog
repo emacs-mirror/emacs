@@ -1,3 +1,8 @@
+2000-12-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfns.c (x_create_tip_frame): Use unwind_create_tip_frame,
+	not unwind_create_frame.
+
 2000-12-15  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (setup_coding_system): Clear all members of the struct

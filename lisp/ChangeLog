@@ -4,6 +4,8 @@
 
 2000-12-15  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
+	* sort.el (sort-columns): Fix error message.
+
 	* dabbrev.el (dabbrev--last-case-pattern): Value is now
 	`upcase' or `downcase' or nil.
 	(dabbrev-expand): Don't do anything with dabbrev--last-case-pattern.
