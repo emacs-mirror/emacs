@@ -923,13 +923,32 @@ extern struct glyph_row scratch_glyph_row;
       ? MATRIX_HEADER_LINE_ROW (MATRIX)->height	\
       : 0)
 
-/* Return the desired face id for the mode line of window W.
-   This depends on whether the window is selected or not.  */
+/* Return the desired face id for the mode line of a window, depending
+   on whether the window is selected or not, or if the window is the
+   scrolling window for the currently active minibuffer window.
+
+   Due to the way display_mode_lines manipulates with the contents of
+   selected_window, this macro needs three arguments: SELW which is
+   compared against the current value of selected_window, MBW which is
+   compared against minibuf_window (if SELW doesn't match), and SCRW
+   which is compared against Vminibuf_scroll_window (if MBW matches).  */
+
+#define CURRENT_MODE_LINE_FACE_ID_3(SELW, MBW, SCRW)		\
+     ((NILP (Vmode_line_in_non_selected_windows)		\
+       || (SELW) == XWINDOW (selected_window)			\
+       || (EQ (Vmode_line_in_non_selected_windows, Qt)		\
+	   && !NILP (Vminibuf_scroll_window)			\
+	   && minibuf_level					\
+	   && (MBW) == XWINDOW (minibuf_window)			\
+	   && (SCRW) == XWINDOW (Vminibuf_scroll_window)))	\
+      ? MODE_LINE_FACE_ID					\
+      : MODE_LINE_INACTIVE_FACE_ID)
+
+
+/* Return the desired face id for the mode line of window W.  */
 
 #define CURRENT_MODE_LINE_FACE_ID(W)		\
-     ((W) == XWINDOW (selected_window)		\
-      ? MODE_LINE_FACE_ID			\
-      : MODE_LINE_INACTIVE_FACE_ID)
+	(CURRENT_MODE_LINE_FACE_ID_3((W), XWINDOW (selected_window), (W)))
 
 /* Return the current height of the mode line of window W.  If not
    known from current_mode_line_height, look at W's current glyph
@@ -2227,6 +2246,7 @@ void highlight_trailing_whitespace P_ ((struct frame *, struct glyph_row *));
 int tool_bar_item_info P_ ((struct frame *, struct glyph *, int *));
 extern Lisp_Object Qtool_bar;
 extern Lisp_Object Vshow_trailing_whitespace;
+extern Lisp_Object Vmode_line_in_non_selected_windows;
 extern int redisplaying_p;
 extern Lisp_Object Vimage_types;
 extern void add_to_log P_ ((char *, Lisp_Object, Lisp_Object));
