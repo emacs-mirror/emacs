@@ -1456,6 +1456,7 @@ static Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO)
 
 static Res amsBlackenObject(Seg seg, Index i, Addr p, Addr next, void *clos)
 {
+  UNUSED(p);
   AVER(clos == NULL);
   /* Do what amsScanObject does, minus the scanning. */
   if (AMS_IS_GREY(seg, i)) {
