@@ -863,7 +863,13 @@ The current buffer should be the desired compilation output buffer."
 		     (error (if (> move 0)
 				"Moved past last error")
 			    "Moved back past first error"))
-		(compilation-forget-errors)
+		;; Forget existing error messages if compilation has finished.
+		(if (not (and (get-buffer-process (current-buffer))
+			      (eq (process-status
+				   (get-buffer-process
+				    (current-buffer)))
+				  'run)))
+		    (compilation-forget-errors))
 		(error (concat compilation-error-message
 			       (and (get-buffer-process (current-buffer))
 				    (eq (process-status
