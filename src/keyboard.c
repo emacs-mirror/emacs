@@ -10604,7 +10604,9 @@ struct event_head head_table[] = {
   {&Qdelete_frame,        "delete-frame",        &Qdelete_frame},
   {&Qiconify_frame,       "iconify-frame",       &Qiconify_frame},
   {&Qmake_frame_visible,  "make-frame-visible",  &Qmake_frame_visible},
-  {&Qselect_window,       "select-window",       &Qselect_window}
+  /* `select-window' should be handled just like `switch-frame'
+     in read_key_sequence.  */
+  {&Qselect_window,       "select-window",       &Qswitch_frame}
 };
 
 void
