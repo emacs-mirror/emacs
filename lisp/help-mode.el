@@ -507,13 +507,13 @@ help buffer."
        (sdoc
 	;; We now have a help buffer on the variable.
 	;; Insert the function and face text before it.
-      (when (or fdoc facedoc)
+	(when (or fdoc facedoc)
 	  (goto-char (point-min))
 	  (let ((inhibit-read-only t))
 	    (when fdoc
 	      (insert fdoc "\n\n")
-	    (when facedoc
-	      (insert (make-string 30 ?-) "\n\n" (symbol-name symbol)
+	      (when facedoc
+		(insert (make-string 30 ?-) "\n\n" (symbol-name symbol)
 			" is also a " "face." "\n\n")))
 	    (when facedoc
 	      (insert facedoc "\n\n"))
