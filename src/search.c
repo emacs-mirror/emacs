@@ -957,7 +957,7 @@ trivial_regexp_p (regexp)
 	    {
 	    case '|': case '(': case ')': case '`': case '\'': case 'b':
 	    case 'B': case '<': case '>': case 'w': case 'W': case 's':
-	    case 'S': case '=': case '{': case '}':
+	    case 'S': case '=': case '{': case '}': case '_':
 	    case 'c': case 'C':	/* for categoryspec and notcategoryspec */
 	    case '1': case '2': case '3': case '4': case '5':
 	    case '6': case '7': case '8': case '9':
