@@ -468,6 +468,16 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 (defun command-line ()
   (setq command-line-default-directory default-directory)
 
+  ;; Choose a reasonable location for temporary files.
+  (setq temporary-file-directory
+	(file-name-as-directory
+	 (cond ((memq system-type '(ms-dos windows-nt))
+		(or (getenv "TEMP") (getenv "TMPDIR") (getenv "TMP") "c:/temp"))
+	       ((memq system-type '(vax-vms axp-vms))
+		(or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "SYS$SCRATCH:"))
+	       (t
+		(or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "/tmp")))))
+
   ;; See if we should import version-control from the environment variable.
   (let ((vc (getenv "VERSION_CONTROL")))
     (cond ((eq vc nil))			;don't do anything if not set
