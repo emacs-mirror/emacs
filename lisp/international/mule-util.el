@@ -57,8 +57,8 @@ TYPE should be `list' or `vector'."
 ;;;    val)
 )
 (make-obsolete 'string-to-sequence
-	       "Use `string-to-list' or `string-to-vector'"
-	       "21.3")
+	       "use `string-to-list' or `string-to-vector'."
+	       "21.4")
 
 ;;;###autoload
 (defsubst string-to-list (string)
