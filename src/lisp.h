@@ -606,7 +606,7 @@ typedef unsigned char UCHAR;
 #define GLYPH_CHAR(glyph) ((glyph) & 0xff)
 
 /* Return a glyph's face ID.  */
-#define GLYPH_FACE(glyph) (((glyph) >> 8) & 0xff)
+#define GLYPH_FACE(glyph) (((glyph) >> 8) & ((1 << 24) - 1))
 
 
 /* Data type checking */
