@@ -1228,10 +1228,10 @@ configure___ system_malloc=yes
 configure___ system_malloc=no
 #endif
 
-#ifdef REL_ALLOC_MMAP
-configure___ rel_alloc_mmap=yes
+#ifdef USE_MMAP_FOR_BUFFERS
+configure___ use_mmap_for_buffers=yes
 #else
-configure___ rel_alloc_mmap=no
+configure___ use_mmap_for_buffers=no
 #endif
 
 #ifndef C_DEBUG_SWITCH
@@ -1544,13 +1544,13 @@ if test x"${REL_ALLOC}" = x; then
   REL_ALLOC=${GNU_MALLOC}
 fi
 
-dnl For now, need to use an explicit `#define REL_ALLOC_MMAP 1' in
-dnl the system configuration file (s/*.h) to turn the use of mmap
+dnl For now, need to use an explicit `#define USE_MMAP_FOR_BUFFERS 1'
+in dnl the system configuration file (s/*.h) to turn the use of mmap
 dnl in the relocating allocator on.
 
 AC_FUNC_MMAP
-if test $rel_alloc_mmap = yes; then
-  REL_ALLOC=yes
+if test $use_mmap_for_buffers = yes; then
+  REL_ALLOC=no
 fi
 
 LIBS="$libsrc_libs $LIBS"
@@ -2195,7 +2195,7 @@ Configured for \`${canonical}'.
   What compiler should emacs be built with?               ${CC} ${CFLAGS}
   Should Emacs use the GNU version of malloc?             ${GNU_MALLOC}${GNU_MALLOC_reason}
   Should Emacs use a relocating allocator for buffers?    ${REL_ALLOC}
-  Should Emacs use mmap for the relocating allocator?     $rel_alloc_mmap
+  Should Emacs use mmap(2) for buffer allocation?         $use_mmap_for_buffers
   What window system should Emacs use?                    ${window_system}
   What toolkit should Emacs use?                          ${USE_X_TOOLKIT}"
 
