@@ -2180,10 +2180,10 @@ static Lisp_Object button_down_location;
 /* Information about the most recent up-going button event:  Which
    button, what location, and what time. */
 
-static int button_up_button;
-static int button_up_x;
-static int button_up_y;
-static unsigned long button_up_time;
+static int last_mouse_button;
+static int last_mouse_x;
+static int last_mouse_y;
+static unsigned long button_down_time;
 
 /* The maximum time between clicks to make a double-click,
    or Qnil to disable double-click detection,
@@ -2227,14 +2227,14 @@ make_lispy_event (event)
 	c |= (event->modifiers
 	      & (meta_modifier | alt_modifier
 		 | hyper_modifier | super_modifier));
-	button_up_time = 0;
+	button_down_time = 0;
 	return c;
       }
 
       /* A function key.  The symbol may need to have modifier prefixes
 	 tacked onto it.  */
     case non_ascii_keystroke:
-      button_up_time = 0;
+      button_down_time = 0;
       return modify_event_symbol (XFASTINT (event->code), event->modifiers,
 				  Qfunction_key,
 				  lispy_function_keys, &func_key_syms,
@@ -2248,6 +2248,7 @@ make_lispy_event (event)
     case scroll_bar_click:
       {
 	int button = XFASTINT (event->code);
+	int is_double;
 	Lisp_Object position;
 	Lisp_Object *start_pos_ptr;
 	Lisp_Object start_pos;
@@ -2339,10 +2340,34 @@ make_lispy_event (event)
 	start_pos = *start_pos_ptr;
 	*start_pos_ptr = Qnil;
 
+	is_double = (button == last_mouse_button
+		     && XINT (event->x) == last_mouse_x
+		     && XINT (event->y) == last_mouse_y
+		     && button_down_time != 0
+		     && (EQ (Vdouble_click_time, Qt)
+			 || (INTEGERP (Vdouble_click_time)
+			     && ((int)(event->timestamp - button_down_time)
+				 < XINT (Vdouble_click_time)))));
+	last_mouse_button = button;
+	last_mouse_x = XINT (event->x);
+	last_mouse_y = XINT (event->y);
+
 	/* If this is a button press, squirrel away the location, so
            we can decide later whether it was a click or a drag.  */
 	if (event->modifiers & down_modifier)
-	  *start_pos_ptr = Fcopy_alist (position);
+	  {
+	    if (is_double)
+	      {
+		double_click_count++;
+		event->modifiers |= ((double_click_count > 2)
+				     ? triple_modifier
+				     : double_modifier);
+	      }
+	    else
+	      double_click_count = 1;
+	    button_down_time = event->timestamp;
+	    *start_pos_ptr = Fcopy_alist (position);
+	  }
 
 	/* Now we're releasing a button - check the co-ordinates to
            see if this was a click or a drag.  */
@@ -2372,33 +2397,16 @@ make_lispy_event (event)
 		if (EQ (event->x, XCONS (down)->car)
 		    && EQ (event->y, XCONS (down)->cdr))
 		  {
-		    if (button == button_up_button
-			&& XINT (event->x) == button_up_x
-			&& XINT (event->y) == button_up_y
-			&& button_up_time != 0
-			&& (EQ (Vdouble_click_time, Qt)
-			    || (INTEGERP (Vdouble_click_time)
-				&& ((int)(event->timestamp - button_up_time)
-				    < XINT (Vdouble_click_time)))))
-		      {
-			double_click_count++;
-			event->modifiers |= ((double_click_count > 2)
-					     ? triple_modifier
-					     : double_modifier);
-		      }
+		    if (is_double && double_click_count > 1)
+		      event->modifiers |= ((double_click_count > 2)
+					   ? triple_modifier
+					   : double_modifier);
 		    else
-		      {
-			double_click_count = 1;
-			event->modifiers |= click_modifier;
-		      }
-		    button_up_button = button;
-		    button_up_x = XINT (event->x);
-		    button_up_y = XINT (event->y);
-		    button_up_time = event->timestamp;
+		      event->modifiers |= click_modifier;
 		  }
 		else
 		  {
-		    button_up_time = 0;
+		    button_down_time = 0;
 		    event->modifiers |= drag_modifier;
 		  }
 	      }
@@ -2658,10 +2666,10 @@ apply_modifiers_uncached (modifiers, base, base_len)
     if (modifiers & meta_modifier)  { *p++ = 'M'; *p++ = '-'; }
     if (modifiers & shift_modifier) { *p++ = 'S'; *p++ = '-'; }
     if (modifiers & super_modifier) { *p++ = 's'; *p++ = '-'; }
-    if (modifiers & down_modifier)  { strcpy (p, "down-");  p += 5; }
-    if (modifiers & drag_modifier)  { strcpy (p, "drag-");  p += 5; }
     if (modifiers & double_modifier)  { strcpy (p, "double-");  p += 7; }
     if (modifiers & triple_modifier)  { strcpy (p, "triple-");  p += 7; }
+    if (modifiers & down_modifier)  { strcpy (p, "down-");  p += 5; }
+    if (modifiers & drag_modifier)  { strcpy (p, "drag-");  p += 5; }
     /* The click modifier is denoted by the absence of other modifiers.  */
 
     *p = '\0';
@@ -4064,65 +4072,71 @@ read_key_sequence (keybuf, bufsize, prompt)
 	      Lisp_Object breakdown = parse_modifiers (head);
 	      int modifiers = XINT (XCONS (XCONS (breakdown)->cdr)->car);
 
-	      /* We drop unbound `down-' events altogether.  */
-	      if (modifiers & down_modifier)
+	      /* Attempt to reduce an unbound mouse event to a simpler
+		 event that is bound:
+		   Drags reduce to clicks.
+		   Double-clicks reduce to clicks.
+		   Triple-clicks reduce to double-clicks, then to clicks.
+		   Down-clicks are eliminated.
+		   Double-downs reduce to downs, then are eliminated.
+		   Triple-downs reduce to double-downs, then to downs,
+		     then are eliminated. */
+	      if (modifiers & (down_modifier | drag_modifier
+			       | double_modifier | triple_modifier))
 		{
-		  /* Dispose of this event by simply jumping back to
-		     replay_key, to get another event.
-
-		     Note that if this event came from mock input,
-		     then just jumping back to replay_key will just
-		     hand it to us again.  So we have to wipe out any
-		     mock input.
-
-		     We could delete keybuf[t] and shift everything
-		     after that to the left by one spot, but we'd also
-		     have to fix up any variable that points into
-		     keybuf, and shifting isn't really necessary
-		     anyway.
-
-		     Adding prefixes for non-textual mouse clicks
-		     creates two characters of mock input, and both
-		     must be thrown away.  If we're only looking at
-		     the prefix now, we can just jump back to
-		     replay_key.  On the other hand, if we've already
-		     processed the prefix, and now the actual click
-		     itself is giving us trouble, then we've lost the
-		     state of the keymaps we want to backtrack to, and
-		     we need to replay the whole sequence to rebuild
-		     it.
-
-		     Beyond that, only function key expansion could
-		     create more than two keys, but that should never
-		     generate mouse events, so it's okay to zero
-		     mock_input in that case too.
-
-		     Isn't this just the most wonderful code ever?  */
-		  if (t == last_real_key_start)
-		    {
-		      mock_input = 0;
-		      goto replay_key;
-		    }
-		  else
-		    {
-		      mock_input = last_real_key_start;
-		      goto replay_sequence;
-		    }
-		}
-
-	      /* We turn unbound `drag-' events into `click-'
-		 events, if the click would be bound.  */
-	      else if (modifiers & (drag_modifier | double_modifier
-				    | triple_modifier))
-		{
-		  while (modifiers & (drag_modifier | double_modifier
-				      | triple_modifier))
+		  while (modifiers & (down_modifier | drag_modifier
+				      | double_modifier | triple_modifier))
 		    {
 		      Lisp_Object new_head, new_click;
 		      if (modifiers & triple_modifier)
 			modifiers ^= (double_modifier | triple_modifier);
-		      else
+		      else if (modifiers & (drag_modifier | double_modifier))
 			modifiers &= ~(drag_modifier | double_modifier);
+		      else
+			{
+			  /* Dispose of this `down' event by simply jumping
+			     back to replay_key, to get another event.
+
+			     Note that if this event came from mock input,
+			     then just jumping back to replay_key will just
+			     hand it to us again.  So we have to wipe out any
+			     mock input.
+
+			     We could delete keybuf[t] and shift everything
+			     after that to the left by one spot, but we'd also
+			     have to fix up any variable that points into
+			     keybuf, and shifting isn't really necessary
+			     anyway.
+
+			     Adding prefixes for non-textual mouse clicks
+			     creates two characters of mock input, and both
+			     must be thrown away.  If we're only looking at
+			     the prefix now, we can just jump back to
+			     replay_key.  On the other hand, if we've already
+			     processed the prefix, and now the actual click
+			     itself is giving us trouble, then we've lost the
+			     state of the keymaps we want to backtrack to, and
+			     we need to replay the whole sequence to rebuild
+			     it.
+
+			     Beyond that, only function key expansion could
+			     create more than two keys, but that should never
+			     generate mouse events, so it's okay to zero
+			     mock_input in that case too.
+
+			     Isn't this just the most wonderful code ever?  */
+			  if (t == last_real_key_start)
+			    {
+			      mock_input = 0;
+			      goto replay_key;
+			    }
+			  else
+			    {
+			      mock_input = last_real_key_start;
+			      goto replay_sequence;
+			    }
+			}
+
 		      new_head =
 			apply_modifiers (modifiers, XCONS (breakdown)->car);
 		      new_click =
