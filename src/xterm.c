@@ -4583,7 +4583,7 @@ x_connection_signal (signalnum)	/* If we don't have an argument, */
 {
   x_connection_signal_dpyinfo = x_display_list;
 
-  sigunblock (SIGPIPE);
+  sigunblock (sigmask (SIGPIPE));
 
   while (x_connection_signal_dpyinfo)
     {
