@@ -306,6 +306,16 @@ DEFUN ("keymap-parent", Fkeymap_parent, Skeymap_parent, 1, 1, 0,
 }
 
 
+/* Check whether MAP is one of MAPS parents.  */
+int
+keymap_memberp (map, maps)
+     Lisp_Object map, maps;
+{
+  while (KEYMAPP (maps) && !EQ (map, maps))
+    maps = Fkeymap_parent (maps);
+  return (EQ (map, maps));
+}
+
 /* Set the parent keymap of MAP to PARENT.  */
 
 DEFUN ("set-keymap-parent", Fset_keymap_parent, Sset_keymap_parent, 2, 2, 0,
@@ -323,15 +333,10 @@ PARENT should be nil or another keymap.")
   
   if (!NILP (parent))
     {
-      Lisp_Object k;
-      
       parent = get_keymap_1 (parent, 1, 1);
 
       /* Check for cycles.  */
-      k = parent;
-      while (KEYMAPP (k) && !EQ (keymap, k))
-	k = Fkeymap_parent (k);
-      if (EQ (keymap, k))
+      if (keymap_memberp (keymap, parent))
 	error ("Cyclic keymap inheritance");
     }
 
@@ -400,51 +405,21 @@ fix_submap_inheritance (map, event, submap)
   /* SUBMAP is a cons that we found as a key binding.
      Discard the other things found in a menu key binding.  */
 
-  if (CONSP (submap))
-    {
-      /* May be an old format menu item */
-      if (STRINGP (XCAR (submap)))
-	{
-	  submap = XCDR (submap);
-	  /* Also remove a menu help string, if any,
-	     following the menu item name.  */
-	  if (CONSP (submap) && STRINGP (XCAR (submap)))
-	    submap = XCDR (submap);
-	  /* Also remove the sublist that caches key equivalences, if any.  */
-	  if (CONSP (submap)
-	      && CONSP (XCAR (submap)))
-	    {
-	      Lisp_Object carcar;
-	      carcar = XCAR (XCAR (submap));
-	      if (NILP (carcar) || VECTORP (carcar))
-		submap = XCDR (submap);
-	    }
-	}
-
-      /* Or a new format menu item */
-      else if (EQ (XCAR (submap), Qmenu_item)
-	       && CONSP (XCDR (submap)))
-	{
-	  submap = XCDR (XCDR (submap));
-	  if (CONSP (submap))
-	    submap = XCAR (submap);
-	}
-    }
+  submap = get_keymap_1 (get_keyelt (submap, 0), 0, 0);
 
   /* If it isn't a keymap now, there's no work to do.  */
-  if (! CONSP (submap)
-      || ! EQ (XCAR (submap), Qkeymap))
+  if (NILP (submap))
     return;
 
   map_parent = Fkeymap_parent (map);
   if (! NILP (map_parent))
-    parent_entry = access_keymap (map_parent, event, 0, 0);
+    parent_entry = get_keyelt (access_keymap (map_parent, event, 0, 0), 0);
   else
     parent_entry = Qnil;
 
   /* If MAP's parent has something other than a keymap,
      our own submap shadows it completely, so use nil as SUBMAP's parent.  */
-  if (! (CONSP (parent_entry) && EQ (XCAR (parent_entry), Qkeymap)))
+  if (! KEYMAPP (parent_entry))
     parent_entry = Qnil;
 
   if (! EQ (parent_entry, submap))
@@ -455,10 +430,10 @@ fix_submap_inheritance (map, event, submap)
 	{
 	  Lisp_Object tem;
 	  tem = Fkeymap_parent (submap_parent);
-	  if (EQ (tem, parent_entry))
+	  if (keymap_memberp (tem, parent_entry))
+	    /* Fset_keymap_parent could create a cycle.  */
 	    return;
-          if (CONSP (tem)
-	      && EQ (XCAR (tem), Qkeymap))
+          if (KEYMAPP (tem))
 	    submap_parent = tem;
 	  else
 	    break;
@@ -525,7 +500,7 @@ access_keymap (map, idx, t_ok, noinherit)
 	    if (EQ (XCAR (binding), idx))
 	      {
 		val = XCDR (binding);
-		if (noprefix && CONSP (val) && EQ (XCAR (val), Qkeymap))
+		if (noprefix && KEYMAPP (val))
 		  return Qnil;
 		if (CONSP (val))
 		  fix_submap_inheritance (map, idx, val);
@@ -539,7 +514,7 @@ access_keymap (map, idx, t_ok, noinherit)
 	    if (NATNUMP (idx) && XFASTINT (idx) < XVECTOR (binding)->size)
 	      {
 		val = XVECTOR (binding)->contents[XFASTINT (idx)];
-		if (noprefix && CONSP (val) && EQ (XCAR (val), Qkeymap))
+		if (noprefix && KEYMAPP (val))
 		  return Qnil;
 		if (CONSP (val))
 		  fix_submap_inheritance (map, idx, val);
@@ -557,7 +532,7 @@ access_keymap (map, idx, t_ok, noinherit)
 			 | CHAR_SHIFT | CHAR_CTL | CHAR_META)))
 	      {
 		val = Faref (binding, idx);
-		if (noprefix && CONSP (val) && EQ (XCAR (val), Qkeymap))
+		if (noprefix && KEYMAPP (val))
 		  return Qnil;
 		if (CONSP (val))
 		  fix_submap_inheritance (map, idx, val);
@@ -782,7 +757,7 @@ store_in_keymap (keymap, idx, def)
     XCDR (insertion_point)
       = Fcons (Fcons (idx, def), XCDR (insertion_point));
   }
-	  
+  
   return def;
 }
 
