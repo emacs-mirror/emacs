@@ -509,7 +509,9 @@ This function does various newline cleanups based on the value of
 	  ;; this case.  So the marker that we put after "else" would
 	  ;; end up before it.
 	  (setq delete-temp-newline
-		(cons (copy-marker (c-point 'eopl) t)
+		(cons (save-excursion
+			(c-backward-syntactic-ws)
+			(copy-marker (point) t))
 		      (point-marker))))
 	(unwind-protect
 	    (progn
@@ -2671,7 +2673,7 @@ command to conveniently insert and align the necessary backslashes."
 
 		   ;; There's no nonempty prefix on the line after the
 		   ;; comment opener.  If the line is empty, or if the
-		   ;; text on has less or equal indentation than the
+		   ;; text on it has less or equal indentation than the
 		   ;; comment starter we assume it's an unclosed
 		   ;; comment starter, i.e. that
 		   ;; `c-block-comment-prefix' should be used.
