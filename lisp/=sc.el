@@ -1106,11 +1106,11 @@ non-blank line after point.
 	  generic-citation))
        (t nil)))))                                      ;; heuristic #6
 
-(defun sc-consistant-cite-p (prefix)
-  "Check current paragraph for consistant citation.
+(defun sc-consistent-cite-p (prefix)
+  "Check current paragraph for consistent citation.
 Scans to paragraph delineated by (forward|backward)-paragraph to see
 if all lines start with PREFIX. Returns t if entire paragraph is
-consistantly cited, nil otherwise."
+consistently cited, nil otherwise."
   (save-excursion
     (let ((end   (progn (forward-paragraph)
 			(beginning-of-line)
@@ -1173,7 +1173,7 @@ Restrict scan to current paragraph."
 Fill the paragraph containing or following point. Use
 sc-guess-fill-prefix to find the fill-prefix for the paragraph.
 
-If the paragraph is inconsistantly cited (mixed fill-prefix), then the
+If the paragraph is inconsistently cited (mixed fill-prefix), then the
 user is queried to restrict the the fill to only those lines around
 point which begin with the fill prefix.
 
@@ -1186,7 +1186,7 @@ paragraph.  sc-fill-arg is set by sc-fill-paragraph-manually."
       (cond
        ((not fill-prefix)
 	(fill-paragraph sc-fill-arg))
-       ((sc-consistant-cite-p fill-prefix)
+       ((sc-consistent-cite-p fill-prefix)
 	(fill-paragraph sc-fill-arg))
        ((y-or-n-p "Inconsistent citation found. Restrict? ")
 	(message "")
