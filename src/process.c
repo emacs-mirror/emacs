@@ -3653,7 +3653,9 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
      HP-UX 10.10 seem to have problems with signals coming in
      Causes "poll: interrupted system call" messages when Emacs is run
      in an X window
-     Turn off periodic alarms (in case they are in use) */
+     Turn off periodic alarms (in case they are in use),
+     and then turn off any other atimers.  */
+  stop_polling ();
   turn_on_atimers (0);
 #endif
 
@@ -6327,7 +6329,9 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
     }
 
   /* Turn off periodic alarms (in case they are in use)
+     and then turn off any other atimers,
      because the select emulator uses alarms.  */
+  stop_polling ();
   turn_on_atimers (0);
 
   while (1)
