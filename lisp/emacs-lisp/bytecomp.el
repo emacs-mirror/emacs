@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.15 $")
+(defconst byte-compile-version "$Revision: 2.16 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -2473,12 +2473,16 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 ;; Compile a function that accepts one or more args and is right-associative.
 ;; We do it by left-associativity so that the operations
 ;; are done in the same order as in interpreted code.
+;; We treat the one-arg case, as in (+ x), like (+ x 0).
+;; in order to convert markers to numbers, and trigger expected errors.
 (defun byte-compile-associative (form)
   (if (cdr form)
       (let ((opcode (get (car form) 'byte-opcode))
 	    (args (copy-sequence (cdr form))))
 	(byte-compile-form (car args))
 	(setq args (cdr args))
+	(or args (setq args '(0)
+		       opcode (get '+ 'byte-opcode)))
 	(while args
 	  (byte-compile-form (car args))
 	  (byte-compile-out opcode 0)
