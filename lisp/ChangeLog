@@ -1,3 +1,7 @@
+2003-07-27  Markus Rost  <rost@math.ohio-state.edu>
+
+	* files.el (set-visited-file-name): Use truename for buffer-file-name.
+
 2003-07-26  Markus Rost  <rost@math.ohio-state.edu>
 
 	* vc-hooks.el (vc-file-not-found-hook): Doc fix.
