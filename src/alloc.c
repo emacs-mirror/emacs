@@ -3769,7 +3769,7 @@ mark_image (img)
 {
   mark_object (&img->spec);
   
-  if (!NILP (img->data.lisp_val))
+  if (!GC_NILP (img->data.lisp_val))
     mark_object (&img->data.lisp_val);
 }
 
