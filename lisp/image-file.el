@@ -56,7 +56,7 @@ variable is set using \\[customize]."
   :group 'image)
 
 (defcustom image-file-name-regexps nil
-  "*A list of regexps matching image-file filenames.
+  "*List of regexps matching image-file filenames.
 Filenames matching one of these regexps are considered image files,
 in addition to those with an extension in `image-file-name-extensions'.
 
@@ -76,7 +76,7 @@ variable is set using \\[customize]."
 
 ;;;###autoload
 (defun image-file-name-regexp ()
-  "Return a regular expression that matches image-file filenames."
+  "Return a regular expression matching image-file filenames."
   (let ((exts-regexp
 	 (and image-file-name-extensions
 	      (concat "\\."
@@ -150,7 +150,7 @@ the command `insert-file-contents'."
     rval))
 
 (defun image-file-handler (operation &rest args)
-  "File name handler for inserting image files.
+  "Filename handler for inserting image files.
 OPERATION is the operation to perform, on ARGS.
 See `file-name-handler-alist' for details."
   (if (and (eq operation 'insert-file-contents)
