@@ -3,7 +3,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: abbrev
-;; Author: Jim Salem <salem@think.com> of Thinking Machines Inc.
+;; Author: Jim Salem <alem@bbnplanet.com> of Thinking Machines Inc.
 ;;  (ideas suggested by Brewster Kahle)
 
 ;; This file is part of GNU Emacs.
@@ -526,7 +526,7 @@ Used to decide whether to save completions.")
 ;;;-----------------------------------------------
 
 (defun cmpl-make-standard-completion-syntax-table ()
-  (let ((table (make-vector 256 0)) ;; default syntax is whitespace
+  (let ((table (make-syntax-table)) ;; default syntax is whitespace
 	i)
     ;; alpha chars
     (setq i 0)
@@ -2041,7 +2041,7 @@ Prefix args ::
 ;;; Everything else has word syntax
 
 (defun cmpl-make-c-def-completion-syntax-table ()
-  (let ((table (make-vector 256 0))
+  (let ((table (make-syntax-table))
 	(whitespace-chars '(?  ?\n ?\t ?\f  ?\v ?\r))
 	;; unfortunately the ?( causes the parens to appear unbalanced
 	(separator-chars '(?, ?* ?= ?\( ?\;
@@ -2624,10 +2624,15 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
 (define-key lisp-mode-map "^" 'self-insert-command)
 
 ;;; C mode diffs.
-(def-completion-wrapper electric-c-semi :separator)
-(define-key c-mode-map "+" 'completion-separator-self-insert-command)
-(define-key c-mode-map "*" 'completion-separator-self-insert-command)
-(define-key c-mode-map "/" 'completion-separator-self-insert-command)
+(defun completion-c-mode-hook ()
+  (def-completion-wrapper electric-c-semi :separator)
+  (define-key c-mode-map "+" 'completion-separator-self-insert-command)
+  (define-key c-mode-map "*" 'completion-separator-self-insert-command)
+  (define-key c-mode-map "/" 'completion-separator-self-insert-command))
+;; Do this either now or whenever C mode is loaded.
+(if (featurep 'cc-mode)
+    (completion-c-mode-hook)
+  (add-hook 'c-mode-hook 'completion-c-mode-hook))
 
 ;;; FORTRAN mode diffs. (these are defined when fortran is called)
 (defun completion-setup-fortran-mode ()
