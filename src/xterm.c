@@ -3561,7 +3561,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  /* We can't distinguish, from the event, whether the window
 		     has become iconified or invisible.  So assume, if it
 		     was previously visible, than now it is iconified.
-		     We depend on x_make_frame_invisible to mark it iconified.  */
+		     We depend on x_make_frame_invisible to mark it invisible.  */
 		  if (FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f))
 		    f->async_iconified = 1;
 
@@ -5443,6 +5443,11 @@ x_iconify_frame (f)
 	x_wm_set_window_state (f, IconicState);
       /* This was XtPopup, but that did nothing for an iconified frame.  */
       XtMapWidget (f->output_data.x->widget);
+      /* The server won't give us any event to indicate
+	 that an invisible frame was changed to an icon,
+	 so we have to record it here.  */
+      f->iconified = 1;
+      f->async_iconified = 1;
       UNBLOCK_INPUT;
       return;
     }
