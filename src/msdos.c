@@ -2923,7 +2923,7 @@ syms_of_msdos ()
   staticpro (&recent_doskeys);
 
   defsubr (&Srecent_doskeys);
-  defsubt (&Smsdos_long_file_names);
+  defsubr (&Smsdos_long_file_names);
 }
 
 #endif /* MSDOS */
