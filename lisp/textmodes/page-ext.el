@@ -119,9 +119,9 @@
 ;; 
 ;;     FSF
 ;;     Free Software Foundation
-;;     675 Massachusetts Avenue
-;;     Cambridge, MA 02139  USA
-;;     (617) 876-3296
+;;     59 Temple Place - Suite 330
+;;     Boston, MA 02111-1307  USA.
+;;     (617) 542-5942
 ;;     gnu@prep.ai.mit.edu
 ;; 
 ;;     
