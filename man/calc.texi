@@ -12262,9 +12262,13 @@ appended to the end of the file.
 @kindex m R
 @pindex calc-mode-record-mode
 The @kbd{m R} (@code{calc-mode-record-mode}) command tells Calc to
-record the new mode settings (as if by pressing @kbd{m m}) every
-time a mode setting changes.  If Embedded mode is enabled, other
-options are available; @pxref{Mode Settings in Embedded Mode}.
+record all the mode settings (as if by pressing @kbd{m m}) every
+time a mode setting changes.  If the modes are saved this way, then this
+``automatic mode recording'' mode is also saved.
+Type @kbd{m R} again to disable this method of recording the mode
+settings.  To turn it off permanently, the @kbd{m m} command will also be
+necessary.   (If Embedded mode is enabled, other options for recording
+the modes are available; @pxref{Mode Settings in Embedded Mode}.)
 
 @kindex m F
 @pindex calc-settings-file-name
@@ -30451,8 +30455,8 @@ use @kbd{M-# u} to update the buffer by hand.
 @noindent
 The mode settings can be changed while Calc is in embedded mode, but
 will revert to their original values when embedded mode is ended
-(except for the modes changed while the mode-setting mode was
-@code{Save}). 
+(except for the modes saved when the mode-recording mode is
+@code{Save}; see below).
 
 Embedded mode has a rather complicated mechanism for handling mode
 settings in Embedded formulas.  It is possible to put annotations
@@ -30572,10 +30576,11 @@ rules of reading annotations the @samp{(sci 0)} applies to it, too.
 We would have to go down to the other formula and press @kbd{M-# u}
 on it in order to get it to notice the new annotation.
 
-Two more mode-recording modes selectable by @kbd{m R} are @code{Save}
-(which works even outside of Embedded mode), in which mode settings
-are recorded permanently in your Calc init file (the file given by the
-variable @code{calc-settings-file}, typically @file{~/.calc.el})
+Two more mode-recording modes selectable by @kbd{m R} are available
+which are also available outside of Embedded mode.  
+(@pxref{General Mode Commands}.) They are @code{Save},  in which mode
+settings are recorded permanently in your Calc init file (the file given
+by the variable @code{calc-settings-file}, typically @file{~/.calc.el})
 rather than by annotating the current document, and no-recording
 mode (where there is no symbol like @code{Save} or @code{Local} in
 the mode line), in which mode-changing commands do not leave any
