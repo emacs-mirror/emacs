@@ -221,24 +221,23 @@ If so, return the true (non-nil) value returned by PREDICATE."
 ;;; Support for `loop'.
 (defun cl-map-keymap (cl-func cl-map)
   (while (symbolp cl-map) (setq cl-map (symbol-function cl-map)))
-  (if (eq cl-emacs-type 'lucid) (funcall 'map-keymap cl-func cl-map)
-    (if (listp cl-map)
-	(let ((cl-p cl-map))
-	  (while (consp (setq cl-p (cdr cl-p)))
-	    (cond ((consp (car cl-p))
-		   (funcall cl-func (car (car cl-p)) (cdr (car cl-p))))
-		  ((vectorp (car cl-p))
-		   (cl-map-keymap cl-func (car cl-p)))
-		  ((eq (car cl-p) 'keymap)
-		   (setq cl-p nil)))))
-      (let ((cl-i -1))
-	(while (< (setq cl-i (1+ cl-i)) (length cl-map))
-	  (if (aref cl-map cl-i)
-	      (funcall cl-func cl-i (aref cl-map cl-i))))))))
+  (if (listp cl-map)
+      (let ((cl-p cl-map))
+	(while (consp (setq cl-p (cdr cl-p)))
+	  (cond ((consp (car cl-p))
+		 (funcall cl-func (car (car cl-p)) (cdr (car cl-p))))
+		((vectorp (car cl-p))
+		 (cl-map-keymap cl-func (car cl-p)))
+		((eq (car cl-p) 'keymap)
+		 (setq cl-p nil)))))
+    (let ((cl-i -1))
+      (while (< (setq cl-i (1+ cl-i)) (length cl-map))
+	(if (aref cl-map cl-i)
+	    (funcall cl-func cl-i (aref cl-map cl-i)))))))
 
 (defun cl-map-keymap-recursively (cl-func-rec cl-map &optional cl-base)
   (or cl-base
-      (setq cl-base (copy-sequence (if (eq cl-emacs-type 18) "0" [0]))))
+      (setq cl-base (copy-sequence [0])))
   (cl-map-keymap
    (function
     (lambda (cl-key cl-bind)
@@ -246,8 +245,7 @@ If so, return the true (non-nil) value returned by PREDICATE."
       (if (keymapp cl-bind)
 	  (cl-map-keymap-recursively
 	   cl-func-rec cl-bind
-	   (funcall (if (eq cl-emacs-type 18) 'concat 'vconcat)
-		    cl-base (list 0)))
+	   (vconcat cl-base (list 0)))
 	(funcall cl-func-rec cl-base cl-bind))))
    cl-map))
 
@@ -681,7 +679,7 @@ The Common Lisp keywords :rehash-size and :rehash-threshold are ignored."
       (and (fboundp 'hashtablep) (funcall 'hashtablep x))))
 
 (defun cl-not-hash-table (x &optional y &rest z)
-  (signal 'wrong-type-argument (list 'hash-table-p (or y x))))
+  (signal 'wrong-type-argument (list 'cl-hash-table-p (or y x))))
 
 (defun cl-hash-lookup (key table)
   (or (eq (car-safe table) 'cl-hash-table-tag) (cl-not-hash-table table))
@@ -760,7 +758,7 @@ The Common Lisp keywords :rehash-size and :rehash-threshold are ignored."
   "Clear HASH-TABLE."
   (if (consp table)
       (progn
-	(or (hash-table-p table) (cl-not-hash-table table))
+	(or (cl-hash-table-p table) (cl-not-hash-table table))
 	(if (symbolp (nth 2 table)) (set (nth 2 table) nil)
 	  (setcar (cdr (cdr table)) (make-vector (length (nth 2 table)) 0)))
 	(setcar (cdr (cdr (cdr table))) 0))
@@ -769,7 +767,7 @@ The Common Lisp keywords :rehash-size and :rehash-threshold are ignored."
 
 (defun cl-maphash (cl-func cl-table)
   "Call FUNCTION on keys and values from HASH-TABLE."
-  (or (hash-table-p cl-table) (cl-not-hash-table cl-table))
+  (or (cl-hash-table-p cl-table) (cl-not-hash-table cl-table))
   (if (consp cl-table)
       (mapatoms (function (lambda (cl-x)
 			    (setq cl-x (symbol-value cl-x))
@@ -783,7 +781,7 @@ The Common Lisp keywords :rehash-size and :rehash-threshold are ignored."
 
 (defun cl-hash-table-count (table)
   "Return the number of entries in HASH-TABLE."
-  (or (hash-table-p table) (cl-not-hash-table table))
+  (or (cl-hash-table-p table) (cl-not-hash-table table))
   (if (consp table) (nth 3 table) (funcall 'hashtable-fullness table)))
 
 
