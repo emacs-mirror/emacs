@@ -761,12 +761,6 @@ can still override the syntax.)
 @cindex skipping comments
 If the value is non-@code{nil}, then comments are treated as
 whitespace by the functions in this section and by @code{forward-sexp}.
-
-In older Emacs versions, this feature worked only when the comment
-terminator is something like @samp{*/}, and appears only to end a
-comment.  In languages where newlines terminate comments, it was
-necessary make this variable @code{nil}, since not every newline is the
-end of a comment.  This limitation no longer exists.
 @end defvar
 
 @vindex parse-sexp-lookup-properties
