@@ -1,5 +1,9 @@
 2001-07-09  Gerd Moellmann  <gerd@gnu.org>
 
+	* winner.el (winner-equal): Make it a defun.  Don't compare Winner
+	configurations with compare-window-configuration; they aren't
+	window configurations.
+
 	* net/ange-ftp.el (ange-ftp-file-modtime): Check a 213 response
 	from the server for the format we expect.  Don't use it if it
 	doesn't look like what the Internet draft for FTP extensions
