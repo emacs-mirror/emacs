@@ -513,39 +513,55 @@ Each language environment may show different external character components."
 		     pos total percent beg end col hscroll)
 	  (message "point=%d of %d(%d%%)  column %d %s"
 		   pos total percent col hscroll))
-      (if detail
-	  (let* ((internal (split-char char))
-		 (charset (char-charset char))
-		 (slot (assq charset charset-origin-alist))
-		 external)
-	    (if slot
-		(setq external (list (nth 1 slot) (funcall (nth 2 slot) char)))
-	      (if (eq charset 'composition)
-		  (setq internal '("composite-character"))
-		(setq external (cons (charset-short-name charset)
-				     (copy-sequence (cdr internal))))
-		(if (= (charset-iso-graphic-plane charset) 1)
-		    (progn
-		      (setcar (cdr external) (+ (nth 1 external) 128))
-		      (if (nth 2 external)
-			  (setcar (nthcdr 2 external)
-				  (+ (nth 2 external) 128)))))))
-	    (message "Char: %s (0%o, %d, 0x%x) %s %s"
+      (let* ((coding-system buffer-file-coding-system)
+	     (encoding
+	      (encode-coding-string (char-to-string char) coding-system t))
+	     (encoding-string-hex
+	      (mapconcat (lambda (ch) (format "0x%x" ch)) encoding " "))
+	     (encoding-msg
+	      (if (and coding-system
+			       (not (and (= (length encoding) 1)
+					 (= (aref encoding 0) char))))
+		  (format "(0%o, %d, 0x%x, ext %s)"
+			  char char char
+			  encoding-string-hex)
+		(format "(%s, %s, %s)"
+			encoding-string-oct
+			  encoding-string-dec
+			  encoding-string-hex))))
+	(if detail
+	    (let* ((internal (split-char char))
+		   (charset (char-charset char))
+		   (slot (assq charset charset-origin-alist))
+		   external)
+	      (if slot
+		  (setq external (list (nth 1 slot) (funcall (nth 2 slot) char)))
+		(if (eq charset 'composition)
+		    (setq internal '("composite-character"))
+		  (setq external (cons (charset-short-name charset)
+				       (copy-sequence (cdr internal))))
+		  (if (= (charset-iso-graphic-plane charset) 1)
+		      (progn
+			(setcar (cdr external) (+ (nth 1 external) 128))
+			(if (nth 2 external)
+			    (setcar (nthcdr 2 external)
+				    (+ (nth 2 external) 128)))))))
+	      (message "Char: %s %s %s %s"
+		       (if (< char 256)
+			   (single-key-description char)
+			 (char-to-string char))
+		       encoding-msg (or internal "") (or external "")))
+	  (if (or (/= beg 1) (/= end (1+ total)))
+	      (message "Char: %s %s point=%d of %d(%d%%) <%d - %d>  column %d %s"
+		       (if (< char 256)
+			   (single-key-description char)
+			 (char-to-string char))
+		       encoding-msg pos total percent beg end col hscroll)
+	    (message "Char: %s %s point=%d of %d(%d%%)  column %d %s"
 		     (if (< char 256)
 			 (single-key-description char)
 		       (char-to-string char))
-		     char char char (or internal "") (or external "")))
-	(if (or (/= beg 1) (/= end (1+ total)))
-	    (message "Char: %s (0%o, %d, 0x%x) point=%d of %d(%d%%) <%d - %d>  column %d %s"
-		     (if (< char 256)
-			 (single-key-description char)
-		       (char-to-string char))
-		     char char char pos total percent beg end col hscroll)
-	  (message "Char: %s (0%o, %d, 0x%x) point=%d of %d(%d%%)  column %d %s"
-		   (if (< char 256)
-		       (single-key-description char)
-		     (char-to-string char))
-		   char char char pos total percent col hscroll))))))
+		     encoding-msg pos total percent col hscroll)))))))
 
 (defun fundamental-mode ()
   "Major mode not specialized for anything in particular.
