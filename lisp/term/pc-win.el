@@ -293,18 +293,6 @@
 (defvar default-frame-alist nil)
 (modify-frame-parameters terminal-frame default-frame-alist)
 
-(defun msdos-bg-mode (&optional frame)
-  (let* ((frame (or frame (selected-frame)))
-	 (params (frame-parameters frame))
-	 (bg (cdr (assq 'background-color params))))
-    ;; The list of ``dark'' colors should be consistent with
-    ;; `x-color-values' (below) and the dark/light color
-    ;; decisions `frame-set-background-mode' in lisp/faces.el.
-    (if (member bg
-		'("black" "blue" "green" "red" "magenta" "brown" "darkgray"))
-	'dark
-      'light)))
-
 (defun msdos-face-setup ()
   (modify-frame-parameters terminal-frame default-frame-alist)
   (face-clear-tty-colors)
@@ -314,10 +302,7 @@
       (face-register-tty-color (car (car colors)) i)
       (setq colors (cdr colors) i (1+ i))))
 
-  (modify-frame-parameters terminal-frame
-			   (list (cons 'background-mode
-				       (msdos-bg-mode terminal-frame))
-				 (cons 'display-type 'color)))
+  (frame-set-background-mode terminal-frame)
   (face-set-after-frame-default terminal-frame)
 
   (set-face-foreground 'bold "yellow" terminal-frame)
@@ -341,11 +326,15 @@
 (defun make-msdos-frame (&optional parameters)
   (let* ((parms
 	  (append initial-frame-alist default-frame-alist parameters nil))
-	 (frame (make-terminal-frame parms)))
-    (modify-frame-parameters frame
-			     (list (cons 'background-mode
-					 (msdos-bg-mode frame))
-				   (cons 'display-type 'color)))
+	 (frame (make-terminal-frame parms))
+	 success)
+    (unwind-protect
+	(progn
+	  (x-handle-reverse-video frame parms)
+	  (frame-set-background-mode frame)
+	  (face-set-after-frame-default frame)
+	  (setq success t))
+      (unless success (delete-frame frame)))
     frame))
 
 (setq frame-creation-function 'make-msdos-frame)
