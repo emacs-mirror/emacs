@@ -1018,10 +1018,10 @@ merge in the changes into your working copy."
 ;;;###autoload
 (defun vc-register (&optional set-version comment)
   "Register the current file into a version control system.
-With prefix argument SET-VERSION, allow user to specify initial version 
+With prefix argument SET-VERSION, allow user to specify initial version
 level.  If COMMENT is present, use that as an initial comment.
 
-The version-control system to use is found by cycling through the list
+The version control system to use is found by cycling through the list
 `vc-handled-backends'.  The first backend in that list which declares
 itself responsible for the file (usually because other files in that
 directory are already registered under that backend) will be used to
@@ -1053,6 +1053,7 @@ first backend that could register the file is used."
 		  (lambda (file rev comment)
 		    (message "Registering %s... " file)
 		    (let ((backend (vc-responsible-backend file)))
+		      (vc-file-clearprops file)
 		      (vc-call-backend backend 'register file rev comment)
 		      (vc-file-setprop file 'vc-backend backend)
 		      (unless vc-make-backup-files

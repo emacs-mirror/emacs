@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.2 2000/09/05 20:08:20 monnier Exp $
+;; $Id: vc-cvs.el,v 1.3 2000/09/07 20:01:53 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -557,7 +557,6 @@ COMMENT can be used to provide an initial description of FILE.
 
 `vc-register-switches' and `vc-cvs-register-switches' are passed to
 the CVS command (in that order)."
-    (vc-file-clearprops file)
     (let ((switches (list
 		     (if (stringp vc-register-switches)
 			 (list vc-register-switches)
