@@ -195,12 +195,9 @@ Runs `change-log-mode-hook'."
   (set (make-local-variable 'paragraph-start) "^\\s *$\\|^^L")
   (set (make-local-variable 'paragraph-separate) "^\\s *$\\|^^L\\|^\\sw")
   ;; Let all entries for one day behave as one page.
-  ;; Note that a page boundary is also a paragraph boundary.
-  ;; Unfortunately the date line of a page actually belongs to
-  ;; the next day, but I don't see how to avoid that since
-  ;; page moving cmds go to the end of the match, and Emacs
-  ;; regexps don't have a context feature.
-  (set (make-local-variable 'page-delimiter) "^[A-Z][a-z][a-z] .*\n\\|^")
+  ;; Match null string on the date-line so that the date-line
+  ;; is grouped with what follows.
+  (set (make-local-variable 'page-delimiter) "^\\<\\|^")
   (set (make-local-variable 'version-control) 'never)
   (set (make-local-variable 'adaptive-fill-regexp) "\\s *")
   (run-hooks 'change-log-mode-hook))

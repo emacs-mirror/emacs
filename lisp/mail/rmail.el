@@ -319,8 +319,8 @@ Instead, these commands are available:
           Any other label is present only if you add it with `a'.
 \\[rmail-previous-labeled-message]   Move to Previous message with specified label
 \\[rmail-summary]	Show headers buffer, with a one line summary of each message.
-\\[rmail-summary-by-labels]	Like h only just messages with particular label(s) are summarized.
-\\[rmail-summary-by-recipients]   Like h only just messages with particular recipient(s) are summarized.
+\\[rmail-summary-by-labels]	Like \\[rmail-summary] only just messages with particular label(s) are summarized.
+\\[rmail-summary-by-recipients]   Like \\[rmail-summary] only just messages with particular recipient(s) are summarized.
 \\[rmail-toggle-header]	Toggle header, show Rmail header if unformatted or vice versa.
 \\[rmail-edit-current-message]	Edit the current message.  \\[rmail-cease-edit] to return to Rmail."
   (interactive)
