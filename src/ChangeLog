@@ -1,3 +1,10 @@
+2002-07-24  Gerd Moellmann  <gerd.moellmann@t-online.de>
+
+	* xterm.c (expose_overlaps): New function.
+	(expose_window): Use it to fix the display of overlapping rows.
+
+	* xdisp.c (unwind_redisplay): Clear redisplay_updating_p.
+
 2002-07-23  Ken Raeburn  <raeburn@gnu.org>
 
 	* lisp.h (XPNTR): Use NO_UNION_TYPE version for union as well,
