@@ -275,14 +275,6 @@
 #define DONGLE_NONE
 #define PROD_CHECK_DEFAULT CheckSHALLOW
 
-#elif defined(CONFIG_PROD_CONFIGURA)
-#define MPS_PROD_STRING         "configura"
-#define MPS_PROD_CONFIGURA
-#define ARENA_INIT_SPARE_COMMIT_LIMIT   ((Size)10uL*1024uL*1024uL)
-#define THREAD_SINGLE
-#define PROTECTION
-#define DONGLE_NONE
-
 #elif defined(CONFIG_PROD_MPS)
 #define MPS_PROD_STRING         "mps"
 #define MPS_PROD_MPS
