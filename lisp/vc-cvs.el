@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.40 2002/04/09 17:13:51 sds Exp $
+;; $Id: vc-cvs.el,v 1.41 2002/05/12 17:29:29 eliz Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -835,7 +835,7 @@ essential information."
     (unwind-protect
 	(progn
 	  (cond
-	   ;; Sticky Date tag.  Convert to to a proper date value (`encode-time')
+	   ;; Sticky Date tag.  Convert to a proper date value (`encode-time')
 	   ((eq type 'date)
 	    (string-match
 	     "\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)"

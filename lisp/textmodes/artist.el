@@ -5422,7 +5422,7 @@ The event, EV, is the mouse event."
 ;;
 ;;      a. Create one draw-function that draws your shape and one
 ;;         undraw-function that undraws it. The draw- and
-;;         undraw-functions are used to to draw/undraw a segment of
+;;         undraw-functions are used to draw/undraw a segment of
 ;;         your poly-point mode between 2 points. The draw- and
 ;;         undraw-functions are then really 2-point mode functions.
 ;;         They must take the same arguments and return the same
