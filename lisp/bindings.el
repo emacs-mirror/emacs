@@ -251,7 +251,9 @@ Normally nil in most modes, since there is no process to display.")
 
 ;; Actual initialization is below.
 (defvar mode-line-position nil
-  "Mode-line control for displaying line number, column number and fraction.")
+  "Mode-line control for displaying the position in the buffer.
+Normally displays the buffer percentage and, optionally, the
+buffer size, the line number and the column number.")
 
 (defvar mode-line-modes nil
   "Mode-line control for displaying major and minor modes.")
