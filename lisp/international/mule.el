@@ -548,9 +548,10 @@ a value of `safe-charsets' in PLIST."
 	  ((= type 2)			; ISO2022
 	   (let ((i 0)
 		 (vec (make-vector 32 nil))
-		 (g1-designation nil))
+		 (g1-designation nil)
+		 (fl flags))
 	     (while (< i 4)
-	       (let ((charset (car flags)))
+	       (let ((charset (car fl)))
 		 (if (and no-initial-designation
 			  (> i 0)
 			  (or (charsetp charset)
@@ -575,10 +576,10 @@ a value of `safe-charsets' in PLIST."
 			     (setq no-alternative-designation nil)
 			   (error "Invalid charset: %s" charset)))))
 		 (aset vec i charset))
-	       (setq flags (cdr flags) i (1+ i)))
-	     (while (and (< i 32) flags)
-	       (aset vec i (car flags))
-	       (setq flags (cdr flags) i (1+ i)))
+	       (setq fl (cdr fl) i (1+ i)))
+	     (while (and (< i 32) fl)
+	       (aset vec i (car fl))
+	       (setq fl (cdr fl) i (1+ i)))
 	     (aset coding-spec 4 vec)
 	     (setq coding-category
 		   (if (aref vec 8)	; Use locking-shift.
@@ -625,9 +626,10 @@ a value of `safe-charsets' in PLIST."
 	  ;; In the old version, the arg PROPERTIES is a list to be
 	  ;; set in PLIST as a value of property `safe-charsets'.
 	  (plist-put plist 'safe-charsets properties)
-	(while properties
-	  (plist-put plist (car (car properties)) (cdr (car properties)))
-	  (setq properties (cdr properties))))
+	(let ((l properties))
+	  (while l
+	    (plist-put plist (car (car l)) (cdr (car l)))
+	    (setq l (cdr l)))))
       (aset coding-spec coding-spec-plist-idx plist))
     (put coding-system 'coding-system coding-spec)
     (put coding-category 'coding-systems
@@ -646,6 +648,21 @@ a value of `safe-charsets' in PLIST."
   (setq coding-system-list (cons coding-system coding-system-list))
   (setq coding-system-alist (cons (list (symbol-name coding-system))
 				  coding-system-alist))
+
+  ;; For a coding system of cateogory iso-8-1 and iso-8-2, create
+  ;; XXX-with-esc variants.
+  (let ((coding-category (coding-system-category coding-system)))
+    (if (or (eq coding-category 'coding-category-iso-8-1)
+	    (eq coding-category 'coding-category-iso-8-2))
+	(let ((esc (intern (concat (symbol-name coding-system) "-with-esc")))
+	      (doc (format "Same as %s but can handle any charsets by ISO's escape sequences." coding-system)))
+	  (make-coding-system esc type mnemonic doc
+			      (if (listp (car flags))
+				  (cons (append (car flags) '(t)) (cdr flags))
+				(cons (list (car flags) t) (cdr flags)))
+			      properties)
+	  (coding-system-put esc 'safe-charsets t))))
+
   coding-system)
 
 (defun define-coding-system-alias (alias coding-system)
