@@ -65,7 +65,7 @@ with each mail buffer independently.
 * Spook: Distracting NSA.    How to distract the NSA's attention.
 * Fortune::                  `Fortune' items in signatures.
 * Footnotes: Mail Footnotes. Making footnotes in messages.
-* Mail Methods::             Using alternative mail-composition methods.
+* Methods: Mail Methods.     Using alternative mail-composition methods.
 @end menu
 
 @node Mail Format
@@ -605,7 +605,8 @@ After these default contents are inserted, @code{mail-setup-hook} runs.
 mail message.  The keywords are chosen from a list of words that suggest
 you are discussing something subversive.
 
-  The idea behind this feature is the suspicion that the NSA snoops on
+  The idea behind this feature is the suspicion that the
+NSA@footnote{The US National Security Agency.} snoops on
 all electronic mail messages that contain keywords suggesting they might
 find them interesting.  (The NSA says they don't, but that's what they
 @emph{would} say.)  The idea is that if lots of people add suspicious
@@ -629,14 +630,13 @@ entering an outgoing message:
 @findex fortune-from-region
 @cindex signatures, mail/news
 @cindex fortune cookies
-The Fortune package uses the @code{fortune} program to create signatures
-for mail or network news messages.  (@code{fortune} prints a
-random---with luck, interesting---adage, originally inspired by `fortune
-cookie' messages.)  It also allows you automatically to cut regions to a
-Fortune file with @kbd{M-x fortune-from-region} and compile your own
-Fortune database.  To generate signatures, add
-@code{fortune-to-signature} to @code{mail-setup-hook} and/or
-@code{message-setup-hook} as appropriate.
+You can use the @code{fortune} program to create signatures for mail or
+network news messages.  (@code{fortune} prints a random---with luck,
+interesting---adage, originally inspired by `fortune cookie' messages.)
+To generate signatures, add @code{fortune-to-signature} to
+@code{mail-setup-hook} and/or @code{message-setup-hook} as appropriate.
+You can automatically cut regions to a Fortune file with @kbd{M-x
+fortune-from-region} and compile your own Fortune database.
 
 @node Mail Footnotes
 @section Making Footnotes
