@@ -1380,7 +1380,7 @@ command_loop_1 ()
 	  nonundocount = 0;
 	  if (NILP (current_kboard->Vprefix_arg))
 	    Fundo_boundary ();
-	  Fcommand_execute (this_command, Qnil);
+	  Fcommand_execute (this_command, Qnil, Qnil);
 
 	}
     directly_done: ;
@@ -2067,7 +2067,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   if (!NILP (tem))
     {
       last_input_char = c;
-      Fcommand_execute (tem, Qnil);
+      Fcommand_execute (tem, Qnil, Fvector (1, &last_input_char));
       goto retry;
     }
 
@@ -6242,14 +6242,16 @@ DEFUN ("read-key-sequence", Fread_key_sequence, Sread_key_sequence, 1, 4, 0,
   return make_event_array (i, keybuf);
 }
 
-DEFUN ("command-execute", Fcommand_execute, Scommand_execute, 1, 2, 0,
+DEFUN ("command-execute", Fcommand_execute, Scommand_execute, 1, 3, 0,
  "Execute CMD as an editor command.\n\
 CMD must be a symbol that satisfies the `commandp' predicate.\n\
 Optional second arg RECORD-FLAG non-nil\n\
 means unconditionally put this command in `command-history'.\n\
-Otherwise, that is done only if an arg is read using the minibuffer.")
-     (cmd, record)
-     Lisp_Object cmd, record;
+Otherwise, that is done only if an arg is read using the minibuffer.\n\
+The argument KEYS specifies the value to use instead of (this-command-keys)\n\
+when reading the arguments; if it is nil, (this_command_key_count) is used.")
+     (cmd, record, keys)
+     Lisp_Object cmd, record, keys;
 {
   register Lisp_Object final;
   register Lisp_Object tem;
@@ -6305,7 +6307,7 @@ Otherwise, that is done only if an arg is read using the minibuffer.")
       backtrace.nargs = 1;
       backtrace.evalargs = 0;
 
-      tem = Fcall_interactively (cmd, record);
+      tem = Fcall_interactively (cmd, record, keys);
 
       backtrace_list = backtrace.next;
       return tem;
@@ -6422,7 +6424,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 	}
     }
 
-  return Fcommand_execute (function, Qt);
+  return Fcommand_execute (function, Qt, Qnil);
 }
 
 /* Find the set of keymaps now active.
