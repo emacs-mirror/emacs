@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.22) $
+ * $HopeName: MMsrc!poolawl.c(trunk.23) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.22) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.23) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -241,6 +241,22 @@ static void AWLFinish(Pool pool)
     AWLGroupDestroy(group);
   }
   ActionFinish(&awl->actionStruct);
+}
+
+
+/* AWLBufferInit -- the buffer init method
+ *
+ * This just sets rankSet.
+ */
+
+static Res AWLBufferInit(Pool pool, Buffer buffer, va_list args)
+{
+  AVERT(Pool, pool);
+  AVERT(AWL, PoolPoolAWL(pool));
+  UNUSED(args);
+
+  buffer->rankSet = RankSetSingle(RankWEAK);
+  return ResOK;
 }
 
 
@@ -716,6 +732,7 @@ static Res AWLTraceBegin(Pool pool, Trace trace)
   return ResOK;
 }
 
+
 /* @@@@ completely made-up benefit calculation: each AWL pool gradually
  * becomes a better candidate for collection as allocation goes
  * by. Starting a trace on a pool makes it a bad candidate. nickb
@@ -745,7 +762,7 @@ struct PoolClassStruct PoolClassAWLStruct = {
   AWLFinish,
   PoolNoAlloc,
   PoolNoFree,
-  PoolTrivBufferInit,
+  AWLBufferInit,
   AWLBufferFill,
   AWLBufferEmpty,
   PoolTrivBufferFinish,
