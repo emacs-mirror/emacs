@@ -703,6 +703,9 @@ and initial semicolons."
 	;; Non-nil if the current line contains a comment.
 	has-comment
 
+	;; Non-nil if the current line contains code and a comment.
+	has-code-and-comment
+
 	;; If has-comment, the appropriate fill-prefix for the comment.
 	comment-fill-prefix
 	)
@@ -732,7 +735,7 @@ and initial semicolons."
 		 ((memq (char-after (point)) '(?\" ??)) (forward-sexp 1))))
 	      (looking-at ";+[\t ]*"))
 	  (error nil))
-	(setq has-comment t)
+	(setq has-comment t has-code-and-comment t)
 	(setq comment-fill-prefix
 	      (concat (make-string (/ (current-column) 8) ?\t)
 		      (make-string (% (current-column) 8) ?\ )
@@ -765,11 +768,19 @@ and initial semicolons."
 		 (paragraph-separate (concat paragraph-start "\\|[ \t;]*$"))
 		 (paragraph-ignore-fill-prefix nil)
 		 (fill-prefix comment-fill-prefix)
+		 (after-line (if has-code-and-comment
+				 (save-excursion
+				   (forward-line 1) (point))))
 		 (end (progn
 			(forward-paragraph)
 			(or (bolp) (newline 1))
 			(point)))
-		 (beg (progn (backward-paragraph) (point))))
+		 ;; If this comment starts on a line with code,
+		 ;; include that like in the filling.
+		 (beg (progn (backward-paragraph)
+			     (if (eq (point) after-line)
+				 (forward-line -1))
+			     (point))))
 	    (fill-region-as-paragraph beg end
 				      justify nil
 				      (save-excursion
@@ -779,7 +790,6 @@ and initial semicolons."
 					  (re-search-forward comment-start-skip)
 					  (point))))))))
     t))
-
 
 (defun indent-code-rigidly (start end arg &optional nochange-regexp)
   "Indent all lines of code, starting in the region, sideways by ARG columns.
