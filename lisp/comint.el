@@ -277,9 +277,9 @@ This variable is buffer-local."
   :type 'boolean
   :group 'comint)
 
-;; AIX puts the name of the person being su'd to in from of the prompt.
+;; AIX puts the name of the person being su'd to in front of the prompt.
 (defcustom comint-password-prompt-regexp
-  "\\(\\([Oo]ld \\|[Nn]ew \\|'s \\|^\\)[Pp]assword\\|pass phrase\\):\\s *\\'"
+  "\\(\\([Oo]ld \\|[Nn]ew \\|'s \\|login \\|^\\)[Pp]assword\\|pass phrase\\):\\s *\\'"
   "*Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
   :type 'regexp
