@@ -247,36 +247,6 @@
 				(coding-system-get cs 'safe-charsets))))))
 	  (sort-coding-systems (coding-system-list 'base-only))))))
 
-(defvar mm-hack-charsets '(iso-8859-15 iso-2022-jp-2)
-  "A list of special charsets.
-Valid elements include:
-`iso-8859-15'    convert ISO-8859-1, -9 to ISO-8859-15 if ISO-8859-15 exists.
-`iso-2022-jp-2'  convert ISO-2022-jp to ISO-2022-jp-2 if ISO-2022-jp-2 exists."
-)
-
-(defvar mm-iso-8859-15-compatible 
-  '((iso-8859-1 "\xA4\xA6\xA8\xB4\xB8\xBC\xBD\xBE")
-    (iso-8859-9 "\xA4\xA6\xA8\xB4\xB8\xBC\xBD\xBE\xD0\xDD\xDE\xF0\xFD\xFE"))
-  "ISO-8859-15 exchangeable coding systems and inconvertible characters.")
-
-(defvar mm-iso-8859-x-to-15-table
-  (and (fboundp 'coding-system-p)
-       (mm-coding-system-p 'iso-8859-15)
-       (mapcar 
-	(lambda (cs)
-	  (if (mm-coding-system-p (car cs))
-	      (let ((c (string-to-char 
-			(decode-coding-string "\341" (car cs)))))
-		(cons (char-charset c)
-		      (cons
-		       (- (string-to-char 
-			   (decode-coding-string "\341" 'iso-8859-15)) c)
-		       (string-to-list (decode-coding-string (car (cdr cs)) 
-							     (car cs))))))
-	    '(gnus-charset 0)))
-	mm-iso-8859-15-compatible))
-  "A table of the difference character between ISO-8859-X and ISO-8859-15.")
-
 (defvar mm-coding-system-priorities nil
   "Preferred coding systems for encoding outgoing mails.
 
@@ -485,7 +455,7 @@ If the charset is `composition', return the actual one."
   (> (length (memq a mm-coding-system-priorities))
      (length (memq b mm-coding-system-priorities))))
 
-(defun mm-find-mime-charset-region (b e &optional hack-charsets)
+(defun mm-find-mime-charset-region (b e)
   "Return the MIME charsets needed to encode the region between B and E.
 nil means ASCII, a single-element list represents an appropriate MIME
 charset, and a longer list means no appropriate charset."
@@ -511,6 +481,8 @@ charset, and a longer list means no appropriate charset."
 			 (setq systems nil
 			       charsets (list cs))))))
 	       charsets))
+	;; Fixme: won't work for unibyte Emacs 22:
+
 	;; Otherwise we're not multibyte, XEmacs or a single coding
 	;; system won't cover it.
 	(setq charsets 
@@ -518,14 +490,6 @@ charset, and a longer list means no appropriate charset."
 	       (mapcar 'mm-mime-charset
 		       (delq 'ascii
 			     (mm-find-charset-region b e))))))
-    (if (and (memq 'iso-8859-15 charsets)
-	     (memq 'iso-8859-15 hack-charsets)
-	     (save-excursion (mm-iso-8859-x-to-15-region b e)))
-	(mapcar (lambda (x) (setq charsets (delq (car x) charsets)))
-		mm-iso-8859-15-compatible))
-    (if (and (memq 'iso-2022-jp-2 charsets)
-	     (memq 'iso-2022-jp-2 hack-charsets))
-	(setq charsets (delq 'iso-2022-jp charsets)))
     charsets))
 
 (defmacro mm-with-unibyte-buffer (&rest forms)
