@@ -1328,7 +1328,7 @@ fi
 if test "$doug_lea_malloc" = "yes" ; then
   if test "$GNU_MALLOC" = yes ; then
     GNU_MALLOC_reason="
-      (Using new Doug Lea's new malloc from the GNU C Library.)"
+      (Using Doug Lea's new malloc from the GNU C Library.)"
   fi
   AC_DEFINE(DOUG_LEA_MALLOC)
 fi
