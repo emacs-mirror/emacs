@@ -56,13 +56,6 @@
 
 (defconst edebug-version
   (concat "In Emacs version " emacs-version))
-     
-(require 'backquote)
-
-;; Emacs 18 doesn't have defalias.
-(eval-and-compile
-  (or (fboundp 'defalias) (fset 'defalias 'fset)))
-
 
 ;;; Bug reporting
 
@@ -753,7 +746,13 @@ or if an error occurs, leave point after it with mark at the original point."
   ;; lparen, rparen, dot, quote, backquote, comma, string, char, vector,
   ;; or symbol.
   (edebug-skip-whitespace)
-  (aref edebug-read-syntax-table (following-char)))
+  (if (and (eq (following-char) ?.)
+	   (save-excursion
+	     (forward-char 1)
+	     (and (>= (following-char) ?0)
+		  (<= (following-char) ?9))))
+      'symbol
+    (aref edebug-read-syntax-table (following-char))))
 
 
 (defun edebug-skip-whitespace ()
