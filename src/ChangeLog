@@ -1,3 +1,8 @@
+2000-12-07  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dosfns.c (Ffile_system_info): New function.
+	(syms_of_dosfns): Defsubr it.
+
 2000-12-07  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* alloc.c (gc_sweep): Add comment.

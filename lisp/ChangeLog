@@ -1,5 +1,8 @@
 2000-12-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* startup.el (normal-top-level-add-subdirs-to-load-path): Ignore
+	the CVS and RCS subdirectories case-insensitively.
+
 	* dired.el (dired-insert-directory): If file-system-info is
 	fboundp, call it instead of invoking dired-free-space-program.
 
