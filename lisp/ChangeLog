@@ -1,3 +1,7 @@
+2003-01-20  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/calendar.el (calendar-only-one-frame-setup): Autoload it.
+
 2003-01-20  Vasily Korytov  <deskpot@myrealbox.com>  (tiny change)
 
 	* progmodes/cperl-mode.el: Don't make faces depend on window-system.

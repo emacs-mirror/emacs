@@ -1346,6 +1346,9 @@ The Gregorian date Sunday, December 31, 1 BC is imaginary."
   "Move cursor to DATE."
   t)
 
+(autoload 'calendar-only-one-frame-setup "cal-x"
+  "Start calendar and display it in a dedicated frame.")
+
 (autoload 'calendar-one-frame-setup "cal-x"
   "Start calendar and display it in a dedicated frame together with the diary.")
 
