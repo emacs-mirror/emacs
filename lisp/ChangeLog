@@ -1,3 +1,30 @@
+2005-03-30  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.el (org-agenda-phases-of-moon, org-agenda-sunrise-sunset) 
+	(org-agenda-convert-date, org-agenda-goto-calendar): New commands.
+	(org-diary-default-entry): New function.
+	(org-get-entries-from-diary): Better parsing of diary entries
+	(org-agenda-check-no-diary): New function.
+	("diary-lib"): Advice to function `add-to-diary-list', to allow
+	linking to diary entries.
+	(org-agenda-execute-calendar-command): New function
+	(org-agenda): Improved visible section in window.  And
+	use `org-fit-agenda-window'.
+	(org-fit-agenda-window): New option.
+	(org-move-subtree-down): Better handling of empty lines
+	at end of subtree.
+	(org-cycle): Numeric prefix is interpreted now as show-subtree N
+	levels up.
+	(org-fontify-done-headline): New option.
+	(org-headline-done-face): New face.
+	(org-set-font-lock-defaults): Use `org-headline-done-face'.
+	(org-table-copy-down): renamed from
+	`org-table-copy-from-above'.  When current field is non-empty, it
+	is copied to next row.
+	(org-table-copy-from-above): Fixed bug which made it
+	impossible to copy fields containing only a single non-white
+	character.
+
 2005-03-30  Kim F. Storm  <storm@cua.dk>
 
 	* kmacro.el (kmacro-end-macro): Isearch may store this command
