@@ -41,8 +41,6 @@
 	    '("Russian")  '("Ukrainian"))
       "*List of known cyrillic languages")
 
-(setq standard-display-table (make-display-table))
-
 ;;;###autoload
 (defun standard-display-cyrillic-translit (&optional cyrillic-language)
   "Display a cyrillic buffer using a transliteration.
@@ -54,13 +52,15 @@ that affects the choice of transliterations slightly.
 Possible values are listed in 'cyrillic-language-alist'.
 If the argument is t, we use the default cyrillic transliteration.
 If the argument is nil, we return the display table to its standard state."
-  (interactive)
-  (if (interactive-p)
-      (let* ((completion-ignore-case t))
-	(setq cyrillic-language 
-	      (completing-read
-	       "Cyrillic language (default nil): "
-	       cyrillic-language-alist nil t nil nil nil))))
+  (interactive
+   (list
+    (let* ((completion-ignore-case t))
+      (completing-read
+       "Cyrillic language (default nil): "
+       cyrillic-language-alist nil t nil nil nil))))
+
+  (or standard-display-table
+      (setq standard-display-table (make-display-table)))
 
   (if (equal cyrillic-language "")
       (setq cyrillic-language nil))
