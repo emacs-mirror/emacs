@@ -1181,7 +1181,7 @@ With prefix arg (noninteractively: 2nd arg), load the file after compiling."
 ;;;		    (error nil)))
 	  (if (file-writable-p target-file)
 	      (let ((kanji-flag nil))	; for nemacs, from Nakagawa Takayuki
-		(if (eq system-type 'ms-dos)
+		(if (or (eq system-type 'ms-dos) (eq system-type 'windows-nt))
 		    (setq buffer-file-type t))
 		(write-region 1 (point-max) target-file))
 	    ;; This is just to give a better error message than
