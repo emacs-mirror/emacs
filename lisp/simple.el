@@ -1423,48 +1423,46 @@ If the previous command was also a kill command,
 the text killed this time appends to the text killed last time
 to make one entry in the kill ring."
   (interactive "r")
-  (cond
-
-   ;; If the buffer is read-only, we should beep, in case the person
-   ;; just isn't aware of this.  However, there's no harm in putting
-   ;; the region's text in the kill ring, anyway.
-   ((and (not inhibit-read-only)
-	 (or buffer-read-only
-	     (text-property-not-all beg end 'read-only nil)))
-    (copy-region-as-kill beg end)
-    ;; This should always barf, and give us the correct error.
-    (if kill-read-only-ok
-	(message "Read only text copied to kill ring")
-      (setq this-command 'kill-region)
-      ;; Signal an error if the buffer is read-only.
-      (barf-if-buffer-read-only)
-      ;; If the buffer isn't read-only, the text is.
-      (signal 'text-read-only (list (current-buffer)))))
-
-   ;; In certain cases, we can arrange for the undo list and the kill
-   ;; ring to share the same string object.  This code does that.
-   ((not (or (eq buffer-undo-list t)
-	     (eq last-command 'kill-region)
-	     ;; Use = since positions may be numbers or markers.
-	     (= beg end)))
-    ;; Don't let the undo list be truncated before we can even access it.
-    (let ((undo-strong-limit (+ (- (max beg end) (min beg end)) 100))
-	  (old-list buffer-undo-list)
-	  tail)
-      (delete-region beg end)
-      ;; Search back in buffer-undo-list for this string,
-      ;; in case a change hook made property changes.
-      (setq tail buffer-undo-list)
-      (while (not (stringp (car (car tail))))
-	(setq tail (cdr tail)))
-      ;; Take the same string recorded for undo
-      ;; and put it in the kill-ring.
-      (kill-new (car (car tail)))))
-
-   (t
-    (copy-region-as-kill beg end)
-    (delete-region beg end)))
-  (setq this-command 'kill-region))
+  (condition-case nil
+      ;; Don't let the undo list be truncated before we can even access it.
+      (let ((undo-strong-limit (+ (- (max beg end) (min beg end)) 100))
+	    (old-list buffer-undo-list)
+	    tail
+	    ;; If we can't rely on finding the killed text
+	    ;; in the undo list, save it now as a string.
+	    (string (if (or (eq buffer-undo-list t)
+			    (= beg end))
+			(buffer-substring beg end))))
+	(delete-region beg end)
+	;; Search back in buffer-undo-list for this string,
+	;; in case a change hook made property changes.
+	(setq tail buffer-undo-list)
+	(unless string
+	  (while (not (stringp (car (car tail))))
+	    (setq tail (cdr tail)))
+	  ;; If we did not already make the string to use,
+	  ;; use the same one that undo made for us.
+	  (setq string (car (car tail))))
+	;; Add that string to the kill ring, one way or another.
+	(if (eq last-command 'kill-region)
+	    (kill-append string (< end beg))
+	  (kill-new string))
+	(setq this-command 'kill-region))
+    ((buffer-read-only text-read-only)
+     ;; The code above failed because the buffer, or some of the characters
+     ;; in the region, are read-only.
+     ;; We should beep, in case the user just isn't aware of this.
+     ;; However, there's no harm in putting
+     ;; the region's text in the kill ring, anyway.
+     (copy-region-as-kill beg end)
+     ;; This should always barf, and give us the correct error.
+     (if kill-read-only-ok
+	 (message "Read only text copied to kill ring")
+       (setq this-command 'kill-region)
+       ;; Signal an error if the buffer is read-only.
+       (barf-if-buffer-read-only)
+       ;; If the buffer isn't read-only, the text is.
+       (signal 'text-read-only (list (current-buffer)))))))
 
 ;; copy-region-as-kill no longer sets this-command, because it's confusing
 ;; to get two copies of the text when the user accidentally types M-w and
