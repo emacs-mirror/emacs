@@ -1,5 +1,11 @@
 2001-05-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* net/ange-ftp.el (ange-ftp-fix-name-for-vms): Reverse args of
+	subst-char-in-string.
+	(ange-ftp-after-parse-ls-hook): New variable.
+	(ange-ftp-ls): Run that hook.
+	From Peter Milliken <Peter.Milliken@GTECH.COM>.
+
 	* tmm.el (tmm-get-keymap): Fix handling of :filter.
 	(tmm-add-prompt): Bind buffer-read-only to nil when inserting
 	text into *Completions*.
