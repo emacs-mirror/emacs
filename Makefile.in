@@ -175,6 +175,8 @@ docdir=@docdir@
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
+# By default, we uphold the dignity of our programs.
+INSTALL_STRIP =
 
 # ============================= Targets ==============================
 
@@ -274,8 +276,9 @@ install-arch-dep: mkdir
 	(cd lib-src; \
 	  $(MAKE) install $(MFLAGS) prefix=${prefix} \
 	    exec_prefix=${exec_prefix} bindir=${bindir} \
-	    libexecdir=${libexecdir} archlibdir=${archlibdir})
-	${INSTALL_PROGRAM} src/emacs ${bindir}/emacs-${version}
+	    libexecdir=${libexecdir} archlibdir=${archlibdir} \
+	    INSTALL_STRIP=${INSTALL_STRIP})
+	${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs ${bindir}/emacs-${version}
 	-chmod 1755  ${bindir}/emacs-${version}
 	rm -f ${bindir}/$(EMACS)
 	-ln ${bindir}/emacs-${version} ${bindir}/$(EMACS)
@@ -359,7 +362,7 @@ install-arch-indep: mkdir
 
 ### Build Emacs and install it, stripping binaries while installing them.
 install-strip:
-	$(MAKE) INSTALL_PROGRAM='$(INSTALL_PROGRAM) -s' install
+	$(MAKE) INSTALL_STRIP=-s
 
 ### Build all the directories we're going to install Emacs in.	Since
 ### we may be creating several layers of directories (for example,
