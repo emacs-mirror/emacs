@@ -200,16 +200,16 @@ echo "Making links to \`oldXMenu'."
 (cd oldXMenu
  ln *.c *.h ../${tempdir}/oldXMenu
  ln README Makefile Imakefile ChangeLog ../${tempdir}/oldXMenu
- ln compile.mms descrip.mms ../${tempdir}/oldXMenu)
+ ln compile.com descrip.mms ../${tempdir}/oldXMenu)
 
 echo "Making links to \`etc'."
-### Don't distribute = files, TAGS, DOC files, backups, autosaves, or tex litter.
+### Don't distribute = files, TAGS, DOC files, backups, autosaves, or
+### tex litter.
 (cd etc
- ln [0-9a-zA-Z]* ../${tempdir}/etc
+ ln `ls -d * | grep -v 'RCS' | grep -v 'Old'` ../${tempdir}/etc
  cd ../${tempdir}/etc
- rm -f DOC* *~ \#*\# *.dvi *.log *,v core
- rm -fr Old
- rm -f =* TAGS)
+ rm -f DOC* *~ \#*\# *.dvi *.log *,v =* core
+ rm -f TAGS)
 
 echo "Making links to \`cpp'."
 (cd cpp
@@ -279,15 +279,19 @@ if [ "${make_tar}" = yes ]; then
       echo compress
     )`
   fi
+  case "${default_gzip}" in
+    compress* ) gzip_extension=.Z ;;
+    * )         gzip_extension=.z ;;
+  esac
   echo "Creating tar file."
-  (cd ${tempparent}
-   tar cvf - ${emacsname} | ${default_gzip} > ${emacsname}.tar.Z
-  )
+  (cd ${tempparent} ; tar cvf - ${emacsname} ) \
+    | ${default_gzip} \
+    > ${emacsname}.tar${gzip_extension}
 fi
 
 if [ "${clean_up}" = yes ]; then
   echo "Cleaning up the staging directory."
-  rm -rf ${tempdir}
+  rm -rf ${tempparent}
 fi
 
 ### make-dist ends here
