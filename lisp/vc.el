@@ -640,6 +640,8 @@ merge in the changes into your working copy."
   "Register the current file into your version-control system."
   (interactive "P")
   (let ((master (vc-name buffer-file-name)))
+    (or buffer-file-name
+	(error "No visited file"))
     (and master (file-exists-p master)
 	 (error "This file is already registered"))
     (and master
