@@ -721,11 +721,12 @@ One argument, a syntax table.")
   (table)
      Lisp_Object table;
 {
+  int idx;
   check_syntax_table (table);
   current_buffer->syntax_table = table;
   /* Indicate that this buffer now has a specified syntax table.  */
-  current_buffer->local_var_flags
-    |= XFASTINT (buffer_local_flags.syntax_table);
+  idx = BUFFER_LOCAL_VAR_IDX (syntax_table);
+  SET_BUFFER_HAS_LOCAL_VALUE_P (current_buffer, idx, 1);
   return table;
 }
 
