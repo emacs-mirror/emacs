@@ -1,6 +1,6 @@
 ;;; help-fns.el --- Complex help functions
 
-;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001
+;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -115,7 +115,7 @@ and the file name is displayed in the echo area."
   (catch 'answer
     (dolist (dir (or path load-path))
       (dolist (suf (append (unless nosuffix load-suffixes) '("")))
-	(let ((try (expand-file-name (concat library suf) dir)))
+	  (let ((try (expand-file-name (concat library suf) dir)))
 	  (and (file-readable-p try)
 	       (null (file-directory-p try))
 	       (progn
@@ -215,7 +215,7 @@ and the file name is displayed in the echo area."
       ;; This is necessary only for defaliases.
       (let ((location
 	     (condition-case nil
-		 (find-function-search-for-symbol function nil "loaddefs.el") 
+		 (find-function-search-for-symbol function nil "loaddefs.el")
 	       (error nil))))
 	(when location
 	  (with-current-buffer (car location)
@@ -350,7 +350,7 @@ it is displayed along with the global value."
 				(if (symbolp v) (symbol-name v))))
      (list (if (equal val "")
 	       v (intern val)))))
-  (unless (bufferp buffer) (setq buffer (current-buffer)))
+  (unless (buffer-live-p buffer) (setq buffer (current-buffer)))
   (if (not (symbolp variable))
       (message "You did not specify a variable")
     (save-excursion
@@ -392,9 +392,7 @@ it is displayed along with the global value."
 		      (pp val)
 		      (help-xref-on-pp from (point))
 		      (if (< (point) (+ from 20))
-			  (save-excursion
-			    (goto-char from)
-			    (delete-char -1)))))))
+			(delete-region (1- from) from))))))
 	      (terpri))
 	    (terpri)
 	    (with-current-buffer standard-output
@@ -421,6 +419,14 @@ it is displayed along with the global value."
 		  (insert "Automatically becomes buffer-local when set in any fashion.\n"))))
 	    (princ "Documentation:")
 	    (terpri)
+	    (let ((obsolete (get variable 'byte-obsolete-variable)))
+	      (when obsolete
+		(princ "This variable is obsolete")
+		(if (cdr obsolete) (princ (format " since %s" (cdr obsolete))))
+		(princ ".") (terpri)
+		(princ (if (stringp (car obsolete)) (car obsolete)
+			 (format "Use `%s' instead." (car obsolete))))
+		(terpri)))
 	    (let ((doc (documentation-property variable 'variable-documentation)))
 	      (princ (or doc "not documented as a variable.")))
 	  
