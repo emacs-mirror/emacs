@@ -114,7 +114,7 @@ elif [ "$3" == "UNICODE2" ] ; then
     #   0xXXXX	0xYYYY	# ...
     sed -n -e "$2 p" < $1 \
 	| sed -e 's/\([0-9A-Fx]*\)[^0]*\([0-9A-Fx]*\).*/\1 \2/' \
-	| sort | ${AWKPROG}
+	| ${AWKPROG} | sort -n -k 4,4
 elif [ "$3" == "YASUOKA" ] ; then
     # Source format is:
     # YYYY	0-XXXX (XXXX is a Kuten code)
