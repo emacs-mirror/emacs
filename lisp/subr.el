@@ -1117,6 +1117,9 @@ This finishes the change group by reverting all of its changes."
 	;; Revert the undo info to what it was when we grabbed the state.
 	(setq buffer-undo-list elt)))))
 
+;; For compatibility.
+(defalias 'redraw-modeline 'force-mode-line-update)
+
 (defun force-mode-line-update (&optional all)
   "Force the mode line of the current buffer to be redisplayed.
 With optional non-nil ALL, force redisplay of all mode lines."
