@@ -555,7 +555,7 @@ struct interval
   unsigned int position;	/* Cache of interval's character position.  */
 				/* This field is usually updated
 				   simultaneously with an interval
-				   traversal, there is no guaranty
+				   traversal, there is no guarantee
 				   that it is valid for a random
 				   interval.  */
   struct interval *left;	/* Intervals which precede me.  */
@@ -2732,6 +2732,7 @@ EXFUN (Fnext_window, 3);
 EXFUN (Fdelete_window, 1);
 EXFUN (Fselect_window, 1);
 EXFUN (Fset_window_buffer, 2);
+EXFUN (Fwindow_buffer, 1);
 EXFUN (Fget_buffer_window, 2);
 EXFUN (Fsave_window_excursion, UNEVALLED);
 EXFUN (Fsplit_window, 3);
@@ -2797,7 +2798,7 @@ extern void keys_of_frame P_ ((void));
 /* defined in emacs.c */
 extern Lisp_Object decode_env_path P_ ((char *, char *));
 extern Lisp_Object Vinvocation_name, Vinvocation_directory;
-extern Lisp_Object Vinstallation_directory;
+extern Lisp_Object Vinstallation_directory, empty_string;
 EXFUN (Fkill_emacs, 1);
 #if HAVE_SETLOCALE
 void fixup_locale P_ ((void));
