@@ -4695,11 +4695,18 @@ x_update_menu_appearance (f)
 #else
 	  const char *suffix = "";
 #endif
+#if defined HAVE_X_I18N && defined USE_MOTIF
+	  extern char *xic_create_fontsetname
+	    P_ ((char *base_fontname, Bool motif));
+	  char *fontsetname = xic_create_fontsetname (face->font_name, True);
+#else
+	  char *fontsetname = face->font_name;
+#endif
 	  sprintf (line, "%s.pane.menubar*font%s: %s",
-		   myname, suffix, face->font_name);
+		   myname, suffix, fontsetname);
 	  XrmPutLineResource (&rdb, line);
 	  sprintf (line, "%s.%s*font%s: %s",
-		   myname, popup_path, suffix, face->font_name);
+		   myname, popup_path, suffix, fontsetname);
 	  XrmPutLineResource (&rdb, line);
 	  changed_p = 1;
 	}
@@ -7765,7 +7772,7 @@ dump_realized_face (face)
 {
   fprintf (stderr, "ID: %d\n", face->id);
 #ifdef HAVE_X_WINDOWS
-  fprintf (stderr, "gc: %d\n", (int) face->gc);
+  fprintf (stderr, "gc: %ld\n", (long) face->gc);
 #endif
   fprintf (stderr, "foreground: 0x%lx (%s)\n",
 	   face->foreground,
