@@ -1,3 +1,30 @@
+2002-07-16  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (choose-completion-string): Doc fix.
+
+	* cus-edit.el: New operation :custom-standard-value.
+	(Custom-reset-standard): Use it.
+	(custom-variable, custom-face): Define it.
+	(custom-variable-standard-value, custom-face-standard-value): New fns.
+	(custom-face-save): Don't save a face whose value is standard.
+	(custom-save-faces): Use SYMBOL, not 'default, to set NOW and COMMENT.
+	
+	* cus-edit.el (custom-face-edit-fix-value):
+	If VALUE is not a list, pass it thru.
+
+	* compare-w.el (compare-windows-whitespace): Always allow newline
+	even if it does not have whitespace syntax.
+
+2002-07-14  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (find-alternate-file): Offer to save a modified buffer.
+	Handle kill-buffer-query-functions better.
+
+	* startup.el (normal-splash-screen, fancy-splash-text):
+	Update name of help menu item for ordering printed manuals.
+
+	* emacs-lisp/checkdoc.el: Fix doc typos.
+
 2002-07-16  Juanma Barranquero  <lektu@terra.es>
 
 	* timer.el (timer-set-time, timer-set-time-with-usecs): Fix docstring.

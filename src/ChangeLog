@@ -1,3 +1,23 @@
+2002-07-16  Richard M. Stallman  <rms@gnu.org>
+
+	* s/hpux11.h (USG_SUBTTY_WORKS): Defined.
+
+	* xdisp.c (reconsider_clip_changes):
+	Don't test prevent_redisplay_optimizations_p.
+	(redisplay_internal): Test prevent_redisplay_optimizations_p
+	along with clip_changed in some cases.
+	(try_window_id): Likewise.
+	(redisplay_window): New local var buffer_unchanged_p.
+
+	* keyboard.c (cmd_error) [HAVE_X_WINDOWS]: Maybe call cancel_houglass.
+
+	* process.c (create_process): Test USG_SUBTTY_WORKS.
+	(process_send_signal): Clean up handling of GID.
+	Detect errors in ioctls meant to set GID.
+
+	* window.c (temp_output_buffer_show):
+	Don't set prevent_redisplay_optimizations_p.
+
 2002-07-15  Juanma Barranquero  <lektu@terra.es>
 
 	* eval.c (Fdefvaralias): Add docstring argument.
