@@ -3720,8 +3720,18 @@ x_draw_image_foreground (s)
 	}
       else
 	{
-	  XCopyArea (s->display, s->img->pixmap, s->window, s->gc,
-		     0, 0, s->img->width, s->img->height, x, y);
+	  unsigned long mask = GCClipXOrigin | GCClipYOrigin | GCFunction;
+	  XGCValues xgcv;
+	  XRectangle clip_rect, image_rect, r;
+
+	  x_get_glyph_string_clip_rect (s, &clip_rect);
+	  image_rect.x = x;
+	  image_rect.y = y;
+	  image_rect.width = s->img->width;
+	  image_rect.height = s->img->height;
+	  if (x_intersect_rectangles (&clip_rect, &image_rect, &r))
+	    XCopyArea (s->display, s->img->pixmap, s->window, s->gc,
+		       r.x - x, r.y - y, r.width, r.height, r.x, r.y);
 	  
 	  /* When the image has a mask, we can expect that at
 	     least part of a mouse highlight or a block cursor will
