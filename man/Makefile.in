@@ -122,6 +122,13 @@ info.dvi: ${INFOSOURCES}
 emacs.dvi: ${EMACSSOURCES}
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs.texi
 
+# This target is here so you could easily get the list of the *.texi
+# files which belong to the Emacs manual (as opposed to the separate
+# manuals for CL, CC Mode, Ebrowse, etc.).  With this target, you can
+# say things like "grep foo `make emacsman`".
+emacsman:
+	@echo $(EMACSSOURCES)
+
 ../info/ccmode: cc-mode.texi
 	cd $(srcdir); $(MAKEINFO) cc-mode.texi
 cc-mode.dvi: cc-mode.texi
