@@ -3,9 +3,9 @@
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
-;; Version: 5.0
+;; Version: 5.2
 
-;;	$Id: vc.el,v 1.26.1.1 1993/03/16 20:54:53 eggert Exp $	
+;;	$Id: vc.el,v 1.27 1993/03/16 21:09:56 eggert Exp eric $	
 
 ;; This file is part of GNU Emacs.
 
@@ -90,7 +90,8 @@ The value is only computed when needed to avoid an expensive search.")
      "\n#ifndef lint\nstatic char vcid[] = \"\%s\";\n#endif /* lint */\n"))
   "*Associate static header string templates with file types.  A \%s in the
 template is replaced with the first string associated with the file's
-verson-control type in vc-header-strings.")
+verson-control type in vc-header-alist.")
+
 (defvar vc-comment-alist
   '((nroff-mode ".\\\"" ""))
   "*Special comment delimiters to be used in generating vc headers only.
@@ -220,7 +221,7 @@ the master name of FILE; this is appended to an optional list of FLAGS."
 	      (- (point) (length context-string))))))))
 
 (defun vc-revert-buffer1 (&optional arg no-confirm)
-  ;; This code was shamelessly lifted from Sebastian Kremer's rcs.el mode.
+  ;; Most of this was shamelessly lifted from Sebastian Kremer's rcs.el mode.
   ;; Revert buffer, try to keep point and mark where user expects them in spite
   ;; of changes because of expanded version-control key words.
   ;; This is quite important since otherwise typeahead won't work as expected.
@@ -232,7 +233,11 @@ the master name of FILE; this is appended to an optional list of FLAGS."
 			   (vc-position-context (mark-marker))))
 	;; Make the right thing happen in transient-mark-mode.
 	(mark-active nil))
+
+    ;; the actual revisit
     (revert-buffer arg no-confirm)
+
+    ;; Restore point and mark
     (let ((new-point (vc-find-position-by-context point-context)))
       (if new-point (goto-char new-point)))
     (if mark-context
@@ -344,7 +349,7 @@ the option to steal the lock."
 
 (defun vc-checkout-writeable-buffer ()
   "Retrieve a writeable copy of the latest version of the current buffer's file."
-  (vc-checkout buffer-file-name t)
+  (vc-checkout (buffer-file-name) t)
   )
 
 ;;;###autoload
@@ -461,28 +466,32 @@ popped up to accept a comment."
   (interactive)
   (goto-char (point-max))
   (if (not (bolp)) (newline))
-  ;; delimit current page
+  ;; Append the contents of the log buffer to the comment ring
   (save-excursion
-    (widen)
+    (set-buffer (get-buffer-create "*VC-comment-ring*"))
     (goto-char (point-max))
+    (set-mark (point))
+    (insert-buffer-substring "*VC-log*")
     (if (and (not (bobp)) (not (= (char-after (1- (point))) ?\f)))
-	(insert-char ?\f 1)))
-  (if (not (bobp))
-      (forward-char -1))
-  (mark-page)
-  ;; Check for errors
-  (vc-backend-logentry-check vc-log-file)
+	(insert-char ?\f 1))
+    (if (not (bobp))
+	(forward-char -1))
+    (exchange-point-and-mark)
+    ;; Check for errors
+    (vc-backend-logentry-check vc-log-file)
+    )
   ;; OK, do it to it
   (if vc-log-operation
       (funcall vc-log-operation 
 	       vc-log-file
 	       vc-log-version
-	       (buffer-substring (region-beginning) (1- (region-end))))
+	       (buffer-string))
     (error "No log operation is pending."))
   ;; Return to "parent" buffer of this checkin and remove checkin window
   (pop-to-buffer (get-file-buffer vc-log-file))
   (delete-window (get-buffer-window "*VC-log*"))
   (bury-buffer "*VC-log*")
+  (bury-buffer "*VC-comment-ring*")
   ;; Now make sure we see the expanded headers
   (vc-resynch-window buffer-file-name vc-keep-workfiles t)
   (run-hooks vc-log-after-operation-hook)
@@ -493,42 +502,54 @@ popped up to accept a comment."
 (defun vc-next-comment ()
   "Fill the log buffer with the next message in the msg ring."
   (interactive)
-  (widen)
-  (forward-page)
-  (if (= (point) (point-max))
-      (goto-char (point-min)))
-  (mark-page)
-  (narrow-to-page))
+  (erase-buffer)
+  (save-excursion
+    (set-buffer "*VC-comment-ring*")
+    (forward-page)
+    (if (= (point) (point-max))
+	(goto-char (point-min)))
+    (mark-page)
+    (append-to-buffer "*VC-log*" (point) (1- (mark)))
+    ))
 
 (defun vc-previous-comment ()
   "Fill the log buffer with the previous message in the msg ring."
   (interactive)
-  (widen)
-  (if (= (point) (point-min))
-      (goto-char (point-max)))
-  (backward-page)
-  (mark-page)
-  (narrow-to-page))
+  (erase-buffer)
+  (save-excursion
+    (set-buffer "*VC-comment-ring*")
+    (if (= (point) (point-min))
+	(goto-char (point-max)))
+    (backward-page)
+    (mark-page)
+    (append-to-buffer "*VC-log*" (point) (1- (mark)))
+    ))
 
 (defun vc-comment-search-backward (regexp)
   "Fill the log buffer with the last message in the msg ring matching REGEXP."
   (interactive "sSearch backward for: ")
-  (widen)
-  (if (= (point) (point-min))
-      (goto-char (point-max)))
-  (re-search-backward regexp nil t)
-  (mark-page)
-  (narrow-to-page))
+  (erase-buffer)
+  (save-excursion
+    (set-buffer "*VC-comment-ring*")
+    (if (= (point) (point-min))
+	(goto-char (point-max)))
+    (re-search-backward regexp nil t)
+    (mark-page)
+    (append-to-buffer "*VC-log*" (point) (1- (mark)))
+    ))
 
 (defun vc-comment-search-forward (regexp)
   "Fill the log buffer with the next message in the msg ring matching REGEXP."
   (interactive "sSearch forward for: ")
-  (widen)
-  (if (= (point) (point-min))
-      (goto-char (point-max)))
-  (re-search-forward regexp nil t)
-  (mark-page)
-  (narrow-to-page))
+  (erase-buffer)
+  (save-excursion
+    (set-buffer "*VC-comment-ring*")
+    (if (= (point) (point-max))
+	(goto-char (point-min)))
+    (re-search-forward regexp nil t)
+    (mark-page)
+    (append-to-buffer "*VC-log*" (point) (1- (mark)))
+    ))
 
 ;; Additional entry points for examining version histories
 
@@ -602,7 +623,7 @@ files in or below it."
 (defun vc-insert-headers ()
   "Insert headers in a file for use with your version-control system.
 Headers desired are inserted at the start of the buffer, and are pulled from
-the variable vc-header-strings"
+the variable vc-header-alist"
   (interactive)
   (save-excursion
     (save-restriction
@@ -675,14 +696,17 @@ the variable vc-header-strings"
     ))
 
 (defun vc-lookup-triple (file name)
-  (or
-   name
-   (let ((firstchar (aref name 0)))
-     (and (>= firstchar ?0) (<= firstchar ?9) name))
-   (car (vc-master-info
-    (concat (vc-backend-subdirectory-name file) "/" vc-name-assoc-file)
-    (list (concat name "\t:\t" file "\t\\(.+\\)"))))
-   ))
+  ;; Return the numeric version corresponding to a named snapshot of file
+  ;; If name is nil or a version number string it's just passed through
+  (cond ((null name) "")
+	((let ((firstchar (aref name 0)))
+	   (and (>= firstchar ?0) (<= firstchar ?9)))
+	 name)
+	(t
+	 (car (vc-master-info
+	       (concat (vc-backend-subdirectory-name file) "/" vc-name-assoc-file)
+	       (list (concat name "\t:\t" file "\t\\(.+\\)"))))
+	 )))
 
 ;; Named-configuration entry points
 
@@ -766,14 +790,18 @@ to that version."
 (defun vc-cancel-version (norevert)
   "Undo your latest checkin."
   (interactive "P")
-  (let ((target (vc-your-latest-version (buffer-file-name))))
-    (if (null target)
-	(error "You didn't check in the last change."))
-    (and (yes-or-no-p (format "Remove version %s from master? " target))
-      (vc-backend-uncheck (buffer-file-name) target)))
-    (if norevert
-	(vc-mode-line (buffer-file-name))
-	(vc-checkout (buffer-file-name) nil))
+  (let ((target (concat (vc-latest-version (buffer-file-name))))
+	(yours (concat (vc-your-latest-version)))
+	(prompt (if (string-equal yours target)
+		    "Remove your version %s from master?"
+		  "Version %s was not your change.  Remove it anyway?")))
+    (if (null (yes-or-no-p (format prompt target)))
+	nil
+      (vc-backend-uncheck (buffer-file-name) target)
+      (if norevert
+	  (vc-mode-line (buffer-file-name))
+	(vc-checkout (buffer-file-name) nil)))
+    )
   )
 
 (defun vc-rename-file (old new)
@@ -963,7 +991,8 @@ Return nil if there is no such person."
 ;;
 ;; Everything eventually funnels through these functions.  To implement
 ;; support for a new version-control system, add another branch to the
-;; vc-backend-dispatch macro (in vc-hooks.el) and fill it in in each call.
+;; vc-backend-dispatch macro and fill it in in each call.  The variable
+;; vc-master-templates in vc-hooks.el will also have to change.
 
 (defmacro vc-backend-dispatch (f s r)
   "Execute FORM1 or FORM2 depending on whether we're using SCCS or RCS."
@@ -1091,7 +1120,6 @@ Return nil if there is no such person."
   (vc-backend-dispatch file
    (if (>= (- (region-end) (region-beginning)) 512)	;; SCCS
        (progn
-  (message "Reverting %s..." file)
 	 (goto-char 512)
 	 (error
 	  "Log must be less than 512 characters.  Point is now at char 512.")))
@@ -1101,7 +1129,6 @@ Return nil if there is no such person."
 (defun vc-backend-checkin (file &optional rev comment)
   ;; Register changes to FILE as level REV with explanatory COMMENT.
   ;; Automatically retrieves a read-only version of the file with
-  (message "Reverting %s...done" file)
   ;; keywords expanded if vc-keep-workfiles is non-nil, otherwise
   ;; it deletes the workfile.
   (message "Checking in %s..." file)
@@ -1185,6 +1212,9 @@ Return nil if there is no such person."
 
 (defun vc-backend-diff (file oldvers &optional newvers)
   ;; Get a difference report between two versions
+  (if (eq (vc-backend-deduce file) 'SCCS)
+      (setq oldvers (vc-lookup-triple file oldvers))
+      (setq newvers (vc-lookup-triple file newvers)))
   (apply 'vc-do-command 1
 	 (or (vc-backend-dispatch file "vcdiff" "rcsdiff")
 	     (error "File %s is not under version control." file))
@@ -1252,7 +1282,7 @@ Global user options:
 	vc-diff-options         A list consisting of the flags
 				to be used for generating context diffs.
 
-	vc-header-strings	Which keywords to insert when adding headers
+	vc-header-alist		Which keywords to insert when adding headers
 				with \\[vc-insert-headers].  Defaults to
 				'(\"\%\W\%\") under SCCS, '(\"\$Id\$\") under RCS.
 
