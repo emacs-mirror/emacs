@@ -34,7 +34,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Define BIG_ENDIAN iff lowest-numbered byte in a word
    is the most significant byte.  */
 
-#ifndef BIG_ENDIAN
+/* This conflicts with something in the system headers,
+   and isn't currently used, since NO_UNION_TYPE is defined.  */
+#if 0
 #define BIG_ENDIAN
 #endif
 
