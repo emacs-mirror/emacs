@@ -1,5 +1,5 @@
 /* Updating of data structures for redisplay.
-   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 97, 98, 1999
+   Copyright (C) 1985, 86, 87, 88, 93, 94, 95, 97, 98, 1999, 2000
        Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -3981,6 +3981,7 @@ update_text_area (w, vpos)
       int stop, i, x;
       struct glyph *current_glyph = current_row->glyphs[TEXT_AREA];
       struct glyph *desired_glyph = desired_row->glyphs[TEXT_AREA];
+      int overlapping_glyphs_p = current_row->contains_overlapping_glyphs_p;
 
       /* If the desired row extends its face to the text area end,
 	 make sure we write at least one glyph, so that the face
@@ -3995,14 +3996,33 @@ update_text_area (w, vpos)
       
       while (i < stop)
 	{
+	  int skip_equal_glyphs_p = 1;
+	  
 	  /* Skip over glyphs that both rows have in common.  These
-	     don't have to be written.  */
-	  while (i < stop
-		 && GLYPH_EQUAL_P (desired_glyph, current_glyph))
+	     don't have to be written.  We can't skip if the last
+	     current glyph overlaps the glyph to its right.  For
+	     example, consider a current row of `if ' with the `f' in
+	     Courier bold so that it overlaps the ` ' to its right.
+	     If the desired row is ` ', we would skip over the space
+	     after the `if' and there would remain a pixel from the
+	     `f' on the screen.  */
+	  if (overlapping_glyphs_p && i > 0)
 	    {
-	      x += desired_glyph->pixel_width;
-	      ++desired_glyph, ++current_glyph, ++i;
+	      struct glyph *glyph = &current_row->glyphs[TEXT_AREA][i - 1];
+	      int left, right;
+	      
+	      rif->get_glyph_overhangs (glyph, XFRAME (w->frame),
+					&left, &right);
+	      skip_equal_glyphs_p = right == 0;
 	    }
+
+	  if (skip_equal_glyphs_p)
+	    while (i < stop
+		   && GLYPH_EQUAL_P (desired_glyph, current_glyph))
+	      {
+		x += desired_glyph->pixel_width;
+		++desired_glyph, ++current_glyph, ++i;
+	      }
 
 	  /* Consider the case that the current row contains "xxx ppp
 	     ggg" in italic Courier font, and the desired row is "xxx
@@ -4011,12 +4031,13 @@ update_text_area (w, vpos)
 	     current row.  If we would start writing glyphs there, we
 	     wouldn't erase the lbearing of the `p'.  The rest of the
 	     lbearing problem is then taken care of by x_draw_glyphs.  */
-	  if (current_row->contains_overlapping_glyphs_p
+	  if (overlapping_glyphs_p
 	      && i > 0
 	      && i < current_row->used[TEXT_AREA]
 	      && current_row->used[TEXT_AREA] != desired_row->used[TEXT_AREA])
 	    {
 	      int left, right;
+	      
 	      rif->get_glyph_overhangs (current_glyph, XFRAME (w->frame),
 					&left, &right);
 	      while (left > 0 && i > 0)
@@ -4054,7 +4075,7 @@ update_text_area (w, vpos)
 		  desired_glyph = start;
 		  break;
 		}
-	      
+
 	      rif->cursor_to (vpos, start_hpos, desired_row->y, start_x);
 	      rif->write_glyphs (start, i - start_hpos);
 	      changed_p = 1;
