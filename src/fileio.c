@@ -3263,12 +3263,6 @@ searchable directory.  */)
   if (!NILP (handler))
     return call2 (handler, Qfile_accessible_directory_p, filename);
 
-  /* It's an unlikely combination, but yes we really do need to gcpro:
-     Suppose that file-accessible-directory-p has no handler, but
-     file-directory-p does have a handler; this handler causes a GC which
-     relocates the string in `filename'; and finally file-directory-p
-     returns non-nil.  Then we would end up passing a garbaged string
-     to file-executable-p.  */
   GCPRO1 (filename);
   tem = (NILP (Ffile_directory_p (filename))
 	 || NILP (Ffile_executable_p (filename)));
@@ -5617,6 +5611,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
   int count = SPECPDL_INDEX ();
   int orig_minibuffer_auto_raise = minibuffer_auto_raise;
   int old_message_p = 0;
+  struct gcpro gcpro1, gcpro2;
 
   if (max_specpdl_size < specpdl_size + 40)
     max_specpdl_size = specpdl_size + 40;
@@ -5653,11 +5648,14 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
       if (!NILP (Vrun_hooks))
 	{
 	  Lisp_Object dir;
+	  dir = Qnil;
+	  GCPRO2 (dir, listfile);
 	  dir = Ffile_name_directory (listfile);
 	  if (NILP (Ffile_directory_p (dir)))
 	    internal_condition_case_1 (do_auto_save_make_dir,
 				       dir, Fcons (Fcons (Qfile_error, Qnil), Qnil),
 				       do_auto_save_eh);
+	  UNGCPRO;
 	}
       
       stream = fopen (SDATA (listfile), "w");
@@ -6353,10 +6351,7 @@ nil means use format `var'.  This variable is meaningful only on VMS.  */);
 
   DEFVAR_LISP ("directory-sep-char", &Vdirectory_sep_char,
 	       doc: /* Directory separator character for built-in functions that return file names.
-The value should be either ?/ or ?\\ (any other value is treated as ?\\).
-This variable affects the built-in functions only on Windows,
-on other platforms, it is initialized so that Lisp code can find out
-what the normal separator is.  */);
+The value is always ?/.  Don't use this variable, just use `/'.  */);
 
   DEFVAR_LISP ("file-name-handler-alist", &Vfile_name_handler_alist,
 	       doc: /* *Alist of elements (REGEXP . HANDLER) for file names handled specially.
