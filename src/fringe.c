@@ -1255,7 +1255,6 @@ resp.  Return nil if POS is not visible in WINDOW.  */)
      Lisp_Object pos, window;
 {
   struct window *w;
-  struct buffer *old_buffer = NULL;
   struct glyph_row *row;
   int textpos;
 
