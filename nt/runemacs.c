@@ -20,8 +20,6 @@
 
 /* #define CHOOSE_NEWEST_EXE */
 
-#define WIN32
-
 #include <windows.h>
 #include <string.h>
 #include <malloc.h>
