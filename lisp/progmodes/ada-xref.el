@@ -1,12 +1,12 @@
-;; @(#) ada-xref.el --for lookup and completion in Ada mode
+;; @(#) ada-xref.el --- for lookup and completion in Ada mode
 
-;; Copyright (C) 1994-1999 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000 Free Software Foundation, Inc.
 
 ;; Author: Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Rolf Ebert <ebert@inf.enst.fr>
 ;;      Emmanuel Briot <briot@gnat.com>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.99 $
+;; Ada Core Technologies's version:   $Revision: 1.3 $
 ;; Keywords: languages ada xref
 
 ;; This file is not part of GNU Emacs.
