@@ -1,3 +1,7 @@
+2002-08-18  Andreas Schwab  <schwab@suse.de>
+
+	* puresize.h (BASE_PURESIZE): Increase to 720000.
+
 2002-08-15  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in (lisp): Add ucs-tables.elc.
