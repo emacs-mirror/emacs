@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.11 2000/11/16 16:42:10 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.12 2000/11/16 18:10:52 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -316,7 +316,7 @@ REV is the revision to check out into WORKFILE."
 	  (setq default-directory (file-name-directory filename))
 	  (if workfile
 	      (let ((failed t) 
-                    (backup-name (if (string= filename workfile)
+                    (backup-name (if (string= file workfile)
                                      (car (find-backup-file-name filename)))))
                 (when backup-name
                   (copy-file filename backup-name 
@@ -339,11 +339,11 @@ REV is the revision to check out into WORKFILE."
                                  switches)))
 		      (setq failed nil))
 		  (if failed 
-                    (if backup-name
-                        (rename-file backup-name filename 
-                                     'ok-if-already-exists)
-                      (if (file-exists-p filename)
-                          (delete-file filename)))
+                      (if backup-name
+                          (rename-file backup-name filename 
+                                       'ok-if-already-exists)
+                        (if (file-exists-p filename)
+                            (delete-file filename)))
                     (and backup-name
                          (not vc-make-backup-files)
                          (delete-file backup-name)))))
