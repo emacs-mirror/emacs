@@ -6063,19 +6063,24 @@ message_with_string (m, string, log)
 	 cmd_error, so this must be just an informative message; toss it.  */
       if (FRAME_MESSAGE_BUF (f))
 	{
-	  int len;
-	  char *a[1];
-	  a[0] = (char *) XSTRING (string)->data;
+	  Lisp_Object args[2], message;
+	  struct gcpro gcpro1, gcpro2;
 
-	  len = doprnt (FRAME_MESSAGE_BUF (f),
-			FRAME_MESSAGE_BUF_SIZE (f), m, (char *)0, 3, a);
+	  args[0] = build_string (m);
+	  args[1] = message = string;
+	  GCPRO2 (args, message);
+	  gcpro1.nvars = 2;
+	  
+	  message = Fformat (2, args);
 
 	  if (log)
-	    message2 (FRAME_MESSAGE_BUF (f), len,
-		      STRING_MULTIBYTE (string));
+	    message3 (message, STRING_BYTES (XSTRING (message)),
+		      STRING_MULTIBYTE (message));
 	  else
-	    message2_nolog (FRAME_MESSAGE_BUF (f), len,
-			    STRING_MULTIBYTE (string));
+	    message3_nolog (message, STRING_BYTES (XSTRING (message)),
+			    STRING_MULTIBYTE (message));
+
+	  UNGCPRO;
 
 	  /* Print should start at the beginning of the message
 	     buffer next time.  */
