@@ -1,8 +1,8 @@
-;;; pc-select.el --- emulate mark, cut, copy and paste from motif
-;;;		     (or MAC GUI) or MS-windoze (bah)) look-and-feel
-;;;		     including key bindings
+;;; pc-select.el --- emulate mark, cut, copy and paste from Motif
+;;;		     (or MAC GUI or MS-windoze (bah)) look-and-feel
+;;;		     including key bindings.
 
-;; Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Michael Staats <michael@thp.Uni-Duisburg.DE>
 ;; Created: 26 Sep 1995
@@ -57,6 +57,8 @@
 ;; concerning setting of this-command.
 ;; Dan Nicolaescu <done@nexus.sorostm.ro> suggested suppressing the
 ;; scroll-up/scroll-down error.
+;; Eli Barzilay (eli@cs.bgu.ac.il) suggested the sexps functions and
+;; keybindings. 
 ;;
 ;; Ok, some details about the idea of pc-selection-mode:
 ;;
@@ -84,6 +86,14 @@ past the top or bottom of the buffer.  This is annoying when selecting
 text with these commands.  If you set this variable to non-nil, these
 errors are suppressed.")
 
+(defvar pc-select-selection-keys-only nil
+  "*Non-nil means only bind the basic selection keys when started.
+Other keys that emulate pc-behavior will be untouched.
+This gives mostly Emacs-like behaviour with only the selection keys enabled.")
+
+(defvar pc-select-meta-moves-sexps nil
+  "*Non-nil means move sexp-wise with Meta key, otherwise move word-wise.")
+
 ;;;;
 ;; misc
 ;;;;
@@ -101,6 +111,11 @@ and transient-mark-mode."
  (copy-region-as-kill beg end)
  (setq mark-active nil)
  (message "Region saved"))
+
+(defun exchange-point-and-mark-nomark  ()
+  (interactive)
+  (exchange-point-and-mark)
+  (setq mark-active nil))
 
 ;;;;
 ;; non-interactive
@@ -137,6 +152,14 @@ and nil is returned."
   (forward-line arg)
   (setq this-command 'forward-line)
 )
+
+(defun forward-sexp-mark (&optional arg)
+  "Ensure mark is active; move forward across one balanced expression (sexp).
+With argument, do it that many times.  Negative arg -N means
+move backward across N balanced expressions."
+  (interactive "p")
+  (ensure-mark)
+  (forward-sexp arg))
 
 (defun forward-paragraph-mark (&optional arg)
   "Ensure mark is active; move forward to end of paragraph.
@@ -263,6 +286,14 @@ and nil is returned."
   (setq this-command 'forward-line)
 )
 
+(defun forward-sexp-nomark (&optional arg)
+  "Deactivate mark; move forward across one balanced expression (sexp).
+With argument, do it that many times.  Negative arg -N means
+move backward across N balanced expressions."
+  (interactive "p")
+  (setq mark-active nil)
+  (forward-sexp arg))
+
 (defun forward-paragraph-nomark (&optional arg)
   "Deactivate mark; move forward to end of paragraph.
 With arg N, do it N times; negative arg -N means move backward N paragraphs.
@@ -379,6 +410,14 @@ With argument, do this that many times."
   (ensure-mark)
   (backward-word arg))
 
+(defun backward-sexp-mark (&optional arg)
+  "Ensure mark is active; move backward across one balanced expression (sexp).
+With argument, do it that many times.  Negative arg -N means
+move forward across N balanced expressions."
+  (interactive "p")
+  (ensure-mark)
+  (backward-sexp arg))
+
 (defun backward-paragraph-mark (&optional arg)
   "Ensure mark is active; move backward to start of paragraph.
 With arg N, do it N times; negative arg -N means move forward N paragraphs.
@@ -473,6 +512,14 @@ With argument, do this that many times."
   (setq mark-active nil)
   (backward-word arg))
 
+(defun backward-sexp-nomark (&optional arg)
+  "Deactivate mark; move backward across one balanced expression (sexp).
+With argument, do it that many times.  Negative arg -N means
+move forward across N balanced expressions."
+  (interactive "p")
+  (setq mark-active nil)
+  (backward-sexp arg))
+
 (defun backward-paragraph-nomark (&optional arg)
   "Deactivate mark; move backward to start of paragraph.
 With arg N, do it N times; negative arg -N means move forward N paragraphs.
@@ -559,6 +606,12 @@ The shift-arrow keys move, leaving the mark behind.
 C-LEFT and C-RIGHT move back or forward one word, disabling the mark.
 S-C-LEFT and S-C-RIGHT move back or forward one word, leaving the mark behind.
 
+M-LEFT and M-RIGHT move back or forward one word or sexp, disabling the mark.
+S-M-LEFT and S-M-RIGHT move back or forward one word or sexp, leaving the mark
+behind. To control wether these keys move word-wise or sexp-wise set the
+variable pc-select-meta-moves-sexps after loading pc-select.el but before
+turning pc-selection-mode on.
+
 C-DOWN and C-UP move back or forward a paragraph, disabling the mark.
 S-C-DOWN and S-C-UP move back or forward a paragraph, leaving the mark behind.
 
@@ -577,7 +630,9 @@ S-DELETE kills the region (`kill-region').
 S-INSERT yanks text from the kill ring (`yank').
 C-INSERT copies the region into the kill ring (`copy-region-as-kill').
 
-In addition, certain other PC bindings are imitated:
+In addition, certain other PC bindings are imitated (to avoid this, set
+the variable pc-select-selection-keys-only to t after loading pc-select.el
+but before calling pc-selection-mode):
 
   F6           other-window
   DELETE       delete-char
@@ -594,11 +649,11 @@ In addition, certain other PC bindings are imitated:
 
   ;; This is to avoid confusion with the delete-selection-mode
   ;; On simple displays you can't see that a region is active and
-  ;; will be deleted on the next keypress. IMHO especially for
-  ;; copy-region-as-kill this is confusing
+  ;; will be deleted on the next keypress.  IMHO especially for
+  ;; copy-region-as-kill this is confusing.
+  ;; The same goes for exchange-point-and-mark
   (define-key global-map "\M-w" 'copy-region-as-kill-nomark) 
-
-
+  (define-key global-map "\C-x\C-x" 'exchange-point-and-mark-nomark) 
   ;; The following keybindings are for standard ISO keyboards
   ;; as they are used with IBM compatible PCs, IBM RS/6000,
   ;; MACs, many X-Stations and probably more
@@ -606,8 +661,20 @@ In addition, certain other PC bindings are imitated:
   (define-key global-map [right]     'forward-char-nomark)
   (define-key global-map [C-S-right] 'forward-word-mark)
   (define-key global-map [C-right]   'forward-word-nomark)
-  (define-key global-map [M-S-right] 'forward-word-mark)
-  (define-key global-map [M-right]   'forward-word-nomark)
+  (define-key global-map [S-left]    'backward-char-mark)
+  (define-key global-map [left]      'backward-char-nomark)
+  (define-key global-map [C-S-left]  'backward-word-mark)
+  (define-key global-map [C-left]    'backward-word-nomark)
+  (cond (pc-select-meta-moves-sexps
+	 (define-key global-map [M-S-right] 'forward-sexp-mark)
+	 (define-key global-map [M-right]   'forward-sexp-nomark)
+	 (define-key global-map [M-S-left]  'backward-sexp-mark)
+	 (define-key global-map [M-left]    'backward-sexp-nomark))
+	(t
+	 (define-key global-map [M-S-right] 'forward-word-mark)
+	 (define-key global-map [M-right]   'forward-word-nomark)
+	 (define-key global-map [M-S-left]  'backward-word-mark)
+	 (define-key global-map [M-left]    'backward-word-nomark)))
 
   (define-key global-map [S-down]    'next-line-mark)
   (define-key global-map [down]      'next-line-nomark)
@@ -622,13 +689,6 @@ In addition, certain other PC bindings are imitated:
   (define-key global-map [S-next]    'scroll-up-mark)
   (define-key global-map [next]      'scroll-up-nomark)
 
-  (define-key global-map [S-left]    'backward-char-mark)
-  (define-key global-map [left]      'backward-char-nomark)
-  (define-key global-map [C-S-left]  'backward-word-mark)
-  (define-key global-map [C-left]    'backward-word-nomark)
-  (define-key global-map [M-S-left]  'backward-word-mark)
-  (define-key global-map [M-left]    'backward-word-nomark)
-
   (define-key global-map [S-up]      'previous-line-mark)
   (define-key global-map [up]        'previous-line-nomark)
 
@@ -639,50 +699,53 @@ In addition, certain other PC bindings are imitated:
   (global-set-key [S-M-home]         'beginning-of-buffer-mark)
   (global-set-key [M-home]           'beginning-of-buffer-nomark)
 
-  (define-key global-map [S-prior]   'scroll-down-mark)
-  (define-key global-map [prior]     'scroll-down-nomark)
-
-  (define-key global-map [S-insert]  'yank)
-  (define-key global-map [C-insert]  'copy-region-as-kill)
-  (define-key global-map [S-delete]  'kill-region)
-
   (define-key global-map [M-S-down]  'forward-line-mark)
   (define-key global-map [M-down]    'forward-line-nomark)
   (define-key global-map [M-S-up]    'backward-line-mark)
   (define-key global-map [M-up]      'backward-line-nomark)
 
-  ;; The following bindings are useful on Sun Type 3 keyboards
-  ;; They implement the Get-Delete-Put (copy-cut-paste)
-  ;; functions from sunview on the L6, L8 and L10 keys
-  ;; Sam Steingold <sds@ptc.com> says that f16 is copy and f18 is paste.
-  (define-key global-map [f16]  'copy-region-as-kill)
-  (define-key global-map [f18]  'yank)
-  (define-key global-map [f20]  'kill-region)
+  (define-key global-map [S-prior]   'scroll-down-mark)
+  (define-key global-map [prior]     'scroll-down-nomark)
 
-  ;; The following bindings are from Pete Forman.
-  ;; I modified them a little to work together with the
-  ;; mark functionality I added.
-
-  (global-set-key [f6] 'other-window)	; KNextPane     F6
-  (global-set-key [delete] 'delete-char) ; KDelete       Del
-  (global-set-key [C-delete] 'kill-line) ; KEraseEndLine cDel
-  (global-set-key [M-backspace] 'undo)	; KUndo         aBS
-  (global-set-key [C-down] 'forward-paragraph-nomark) ; KNextPara     cDn
-  (global-set-key [C-up] 'backward-paragraph-nomark) ; KPrevPara     cUp
+  ;; Next four lines are from Pete Forman.
+  (global-set-key [C-down] 'forward-paragraph-nomark)	; KNextPara     cDn
+  (global-set-key [C-up] 'backward-paragraph-nomark)	; KPrevPara     cUp
   (global-set-key [S-C-down] 'forward-paragraph-mark)
   (global-set-key [S-C-up] 'backward-paragraph-mark) 
 
-  ;; The following bindings are taken from pc-mode.el
-  ;; as suggested by RMS.
-  ;; I only used the ones that are not covered above.
-  (define-key function-key-map  [M-delete] [?\M-d])
-  (global-set-key [C-M-delete]  'kill-sexp)
-  (global-set-key [C-backspace] 'backward-kill-word)
-  (global-set-key [C-escape]    'list-buffers)
+  (or pc-select-selection-keys-only
+      (progn 
+	(define-key global-map [S-insert]  'yank)
+	(define-key global-map [C-insert]  'copy-region-as-kill)
+	(define-key global-map [S-delete]  'kill-region)
 
+	;; The following bindings are useful on Sun Type 3 keyboards
+	;; They implement the Get-Delete-Put (copy-cut-paste)
+	;; functions from sunview on the L6, L8 and L10 keys
+	;; Sam Steingold <sds@ptc.com> says that f16 is copy and f18 is paste.
+	(define-key global-map [f16]  'copy-region-as-kill)
+	(define-key global-map [f18]  'yank)
+	(define-key global-map [f20]  'kill-region)
+
+	;; The following bindings are from Pete Forman.
+	(global-set-key [f6] 'other-window)	; KNextPane     F6
+	(global-set-key [delete] 'delete-char)	; KDelete       Del
+	(global-set-key [C-delete] 'kill-line)	; KEraseEndLine cDel
+	(global-set-key [M-backspace] 'undo)	; KUndo         aBS
+
+	;; The following bindings are taken from pc-mode.el
+	;; as suggested by RMS.
+	;; I only used the ones that are not covered above.
+	(define-key function-key-map  [M-delete] [?\M-d])
+	(global-set-key [C-M-delete]  'kill-sexp)
+	(global-set-key [C-backspace] 'backward-kill-word)
+	;; Next line proposed by Eli Barzilay
+	(global-set-key [C-escape]    'electric-buffer-list)))
   ;;        
   ;; setup
   ;;
+  ;; Next line proposed by Eli Barzilay
+  (setq highlight-nonselected-windows nil)
   (setq transient-mark-mode t)
   (setq mark-even-if-inactive t)
   (delete-selection-mode 1)
