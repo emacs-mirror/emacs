@@ -787,7 +787,9 @@ other hooks, such as major mode hooks, can do the job."
 This makes or adds to an entry on `after-load-alist'.
 If FILE is already loaded, evaluate FORM right now.
 It does nothing if FORM is already on the list for FILE.
-FILE should be the name of a library, with no directory name."
+FILE must match exactly.  Normally FILE is the name of a library,
+with no directory or extension specified, since that is how `load'
+is normally called."
   ;; Make sure there is an element for FILE.
   (or (assoc file after-load-alist)
       (setq after-load-alist (cons (list file) after-load-alist)))
