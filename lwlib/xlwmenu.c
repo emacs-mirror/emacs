@@ -1813,7 +1813,7 @@ XlwMenuSetValues (current, request, new)
 
       redisplay = True;
       
-      if (XtIsRealized (oldmw))
+      if (XtIsRealized (current))
 	/* If the menu is currently displayed, change the display.  */
 	for (i = 0; i < oldmw->menu.windows_length; i++)
 	  {
