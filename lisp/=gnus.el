@@ -4077,7 +4077,7 @@ is initialized from the SAVEDIR environment variable."
 				  (and default-name
 				       (file-name-directory default-name))))
 	  (gnus-make-directory (file-name-directory filename))
-	  (if (and (file-readable-p filename) (rmail-file-p filename))
+	  (if (and (file-readable-p filename) (mail-file-babyl-p filename))
 	      (gnus-output-to-rmail filename)
 	    (rmail-output filename 1 t t))
 	  ;; Remember the directory name to save articles.
