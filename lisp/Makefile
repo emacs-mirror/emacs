@@ -10,7 +10,7 @@ EMACS = ../src/emacs
 # Command line flags for Emacs.  This must include --multibyte,
 # otherwise some files will not compile.
 
-EMACSOPT = --no-init-file --no-site-file --multibyte -batch
+EMACSOPT = -batch --no-site-file --multibyte
 
 SOURCES = *.el COPYING Makefile
 lisptagsfiles1 = [a-zA-Z]*.el
@@ -79,7 +79,7 @@ loaddefs.el:
 autoloads: loaddefs.el doit
 	wd=.; $(setwins); \
 	echo Directories: $$wins; \
-	$(emacs) --eval '(setq generated-autoload-file "'`pwd`'/loaddefs.el")' -f batch-update-autoloads $$wins
+	$(emacs) -l autoload --eval '(setq generated-autoload-file "'`pwd`'/loaddefs.el")' -f batch-update-autoloads $$wins
 
 subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
@@ -130,7 +130,7 @@ compile-files: subdirs.el doit
 
 backup-compiled-files:
 	-mv elc.tar.gz elc.tar.gz~
-	tar czf elc.tar.gz *.elc */*.elc
+	-tar czf elc.tar.gz *.elc */*.elc
 
 # Compile Lisp files, but save old compiled files first.
 
@@ -155,6 +155,6 @@ bootstrap-clean:
 
 # Generate/update files for the bootstrap process.
 
-bootstrap: compile-files autoloads custom-deps
+bootstrap: autoloads compile-files custom-deps
 
 # Makefile ends here.
