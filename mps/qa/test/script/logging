@@ -1,5 +1,5 @@
 #!/usr/local/perl
-# $HopeName: MMQA_harness!script:logging(trunk.5) $
+# $HopeName: MMQA_harness!script:logging(trunk.6) $
 #
 # provides subroutines to help in creating test logs and
 # reports
@@ -81,7 +81,7 @@ sub dispopts {
 
  print $log_test_opts;
  foreach $key (sort values %qa_options) {
-  unless (exists $qa_unlogged_opts{$key}) {
+  if (defined &getoption($key) && !exists $qa_unlogged_opts{$key}) {
    $val = &getoption($key);
    $rel = "=";
    write;
@@ -156,7 +156,7 @@ $barl = "*********|10s******|30s******|1min*****|2min*****|5min*****|10min      
 #
 
 $log_test_spec   = "SPECIFIED RESULTS\n";
-$log_test_opts   = "MMQA SETTINGS\n";
+$log_test_opts   = "MMQA OPTIONS\n";
 $log_test_params = "PARAMETER SETTINGS\n";
 $log_test_res    = "RESULTS\n";
 $log_test_conc   = "CONCLUSION\n";
