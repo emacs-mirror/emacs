@@ -310,6 +310,7 @@ enum pvec_type
 
 #ifndef USE_LSB_TAG
 /* Just remove the alignment annotation if we don't use it.  */
+#undef DECL_ALIGN
 #define DECL_ALIGN(type, var) type var
 #endif
 
