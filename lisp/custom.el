@@ -353,7 +353,7 @@ Fourth argument TYPE is the custom option type."
 	((eq keyword :tag)
 	 (put symbol 'custom-tag value))
 	(t
-	 (error "Unknown keyword %s" symbol))))  
+	 (error "Unknown keyword %s" keyword))))
 
 (defun custom-add-option (symbol option)
   "To the variable SYMBOL add OPTION.
