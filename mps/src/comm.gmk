@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.48) $
+# $HopeName: MMsrc!comm.gmk(trunk.49) $
 # Copyright (C) 1997.  Harlequin Group plc.  All rights reserved.
 #
 # DESCRIPTION
@@ -110,9 +110,8 @@ endif
 endif
 
 # These flags are included in all compilations.
-CFLAGSCOMMON = \
-	$(PFMDEFS) $(CFLAGSTARGET) \
-	$(CFLAGSCOMPILER)
+CFLAGSCOMMON = -I standard/export -I fwos/export -I fwos/unix/export \
+  $(PFMDEFS) $(CFLAGSTARGET) $(CFLAGSCOMPILER)
 
 # %%VARIETY: Define a macro containing the set of flags for the new
 #            variety.
@@ -181,6 +180,7 @@ FMTDY = fmtdy.c fmtdytst.c
 FMTPS = fmtpstst.c
 PLINTH = mpsliban.c mpsioan.c
 EVENT = event.c
+EVENTPROC = eventcnv.c eventpro.c table.c
 MPMCOMMON = assert.c mpsi.c mpm.c arenavm.c arenacl.c arena.c \
             protocol.c pool.c poolabs.c \
             trace.c root.c seg.c format.c buffer.c ref.c bt.c ring.c \
@@ -243,6 +243,8 @@ PLINTHOBJ = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.o)
 PLINTHDEP = $(PLINTH:%.c=$(PFM)/$(VARIETY)/%.d)
 EVENTOBJ = $(EVENT:%.c=$(PFM)/$(VARIETY)/%.o)
 EVENTDEP = $(EVENT:%.c=$(PFM)/$(VARIETY)/%.d)
+EVENTPROCOBJ = $(EVENTPROC:%.c=$(PFM)/$(VARIETY)/%.o)
+EVENTPROCDEP = $(EVENTPROC:%.c=$(PFM)/$(VARIETY)/%.d)
 endif
 
 
@@ -269,10 +271,12 @@ testrun: mpmss apss amcss amsss awlut mpsicv lockcov poolncv \
 testrunep: epvmss
 	$(^:%=date && $(PFM)/$(VARIETY)/% &&) true
 
+
 # These convenience targets allow one to type "make foo" to build target
-# foo in all varieties.
+# foo in selected varieties (or none, for the latter rule).
 #
-# %%TARGET: Add a pseudo-target for the new target here.
+# %%TARGET: Add a pseudo-target for the new target here, first rule for
+# variety-dependent targets, and second for variety-independent ones.
 
 mpmss apss amcss amsss awlut mpsicv lockcov poolncv \
   locv qs finalcv arenacv bttest teletest epvmss \
@@ -283,6 +287,11 @@ ifdef VARIETY
 else
 	$(MAKE) -f $(PFM).gmk TARGET=$@ target
 endif
+
+eventcnv: phony
+	$(MAKE) -f $(PFM).gmk TARGET=$@ VARIETY=we variety
+# Use the we directory and libraries.
+
 
 # "clean" removes the directory containing the build results for the
 # platform.
@@ -385,6 +394,11 @@ $(PFM)/$(VARIETY)/mv2eptst: $(PFM)/$(VARIETY)/mv2eptst.o \
 $(PFM)/$(VARIETY)/mv2test: $(PFM)/$(VARIETY)/mv2test.o \
 	$(MPMOBJ) $(TESTLIBOBJ) $(ARENAANOBJ)
 
+$(PFM)/$(VARIETY)/eventcnv: $(PFM)/$(VARIETY)/eventcnv.o \
+  $(PFM)/$(VARIETY)/eventpro.o $(PFM)/$(VARIETY)/table.o
+	$(ECHO) "$(PFM): $@"
+	$(CC) $(LINKFLAGS) -o $@ $^ $(LIBS)
+
 $(PFM)/$(VARIETY)/mps.a: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) $(POOLNOBJ)
 
 $(PFM)/$(VARIETY)/mmdw.a: $(MPMOBJ) $(AMCOBJ) $(LOOBJ) $(SNCOBJ) $(POOLNOBJ) \
@@ -467,7 +481,7 @@ ifdef TARGET
 # %%PART: Add the dependency file macro for the new part here.
 include $(MPMDEP) $(AMSDEP) $(AMCDEP) $(LODEP) $(SWDEP) $(ARENAANDEP) \
   $(AWLDEP) $(POOLNDEP) $(TESTLIBDEP) $(FMTDYDEP) $(FMTPSDEP) \
-  $(PLINTHDEP) $(EVENTDEP)
+  $(PLINTHDEP) $(EVENTDEP) $(EVENTPROCDEP)
 endif
 endif
 
