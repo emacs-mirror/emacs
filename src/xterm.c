@@ -292,7 +292,8 @@ static int mouse_face_face_id;
    gc was in progress.  */
 static int mouse_face_deferred_gc;
 
-/* FRAME and X, Y position of mouse when last checked for highlighting.  */
+/* FRAME and X, Y position of mouse when last checked for
+   highlighting.  X and Y can be negative or out of range for the frame.  */
 static FRAME_PTR mouse_face_mouse_frame;
 static int mouse_face_mouse_x, mouse_face_mouse_y;
 
@@ -2085,11 +2086,29 @@ note_mouse_movement (frame, event)
 {
   last_mouse_movement_time = event->time;
 
+  if (event->window != FRAME_X_WINDOW (frame))
+    {
+      mouse_moved = 1;
+      last_mouse_scroll_bar = Qnil;
+
+      note_mouse_highlight (frame, -1, -1);
+
+      /* Ask for another mouse motion event.  */
+      {
+	int dummy;
+
+	XQueryPointer (event->display, FRAME_X_WINDOW (frame),
+		       (Window *) &dummy, (Window *) &dummy,
+		       &dummy, &dummy, &dummy, &dummy,
+		       (unsigned int *) &dummy);
+      }
+    }
+
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
-  if (event->x < last_mouse_glyph.x
-      || event->x >= last_mouse_glyph.x + last_mouse_glyph.width
-      || event->y < last_mouse_glyph.y
-      || event->y >= last_mouse_glyph.y + last_mouse_glyph.height)
+  else if (event->x < last_mouse_glyph.x
+	   || event->x >= last_mouse_glyph.x + last_mouse_glyph.width
+	   || event->y < last_mouse_glyph.y
+	   || event->y >= last_mouse_glyph.y + last_mouse_glyph.height)
     {
       mouse_moved = 1;
       last_mouse_scroll_bar = Qnil;
@@ -2100,7 +2119,7 @@ note_mouse_movement (frame, event)
       {
 	int dummy;
 
-	XQueryPointer (event->display, event->window,
+	XQueryPointer (event->display, FRAME_X_WINDOW (frame),
 		       (Window *) &dummy, (Window *) &dummy,
 		       &dummy, &dummy, &dummy, &dummy,
 		       (unsigned int *) &dummy);
@@ -2113,7 +2132,7 @@ note_mouse_movement (frame, event)
 	 *still* on the same glyph.  */
       int dummy;
       
-      XQueryPointer (event->display, event->window,
+      XQueryPointer (event->display, FRAME_X_WINDOW (frame),
 		     (Window *) &dummy, (Window *) &dummy,
 		     &dummy, &dummy, &dummy, &dummy,
 		     (unsigned int *) &dummy);
@@ -2125,7 +2144,8 @@ static int disable_mouse_highlight;
 
 /* Take proper action when the mouse has moved to position X, Y on frame F
    as regards highlighting characters that have mouse-face properties.
-   Also dehighlighting chars where the mouse was before.  */
+   Also dehighlighting chars where the mouse was before.
+   X and Y can be negative or out of range.  */
 
 static void
 note_mouse_highlight (f, x, y)
@@ -2166,7 +2186,8 @@ note_mouse_highlight (f, x, y)
 
   /* Are we in a window whose display is up to date?
      And verify the buffer's text has not changed.  */
-  if (WINDOWP (window) && portion == 0
+  if (WINDOWP (window) && portion == 0 && row >= 0 && column >= 0
+      && row < FRAME_HEIGHT (f) && column < FRAME_WIDTH (f)
       && EQ (w->window_end_valid, w->buffer)
       && w->last_modified == BUF_MODIFF (XBUFFER (w->buffer)))
     {
