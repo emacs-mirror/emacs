@@ -877,7 +877,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
   environ = env;
   execvp (new_argv[0], new_argv);
 
-  write (1, "Can't exec program: ", 26);
+  write (1, "Can't exec program: ", 20);
   write (1, new_argv[0], strlen (new_argv[0]));
   write (1, "\n", 1);
   _exit (1);
