@@ -449,6 +449,9 @@ If argument is nil or an empty string, cancel for all functions."
 	  (terpri)
 	  (setq list (cdr list))))
       (princ "Note: if you have redefined a function, then it may no longer\n")
-      (princ "be set to debug on entry, even if it is in the list."))))
+      (princ "be set to debug on entry, even if it is in the list."))
+    (save-excursion
+      (set-buffer standard-output)
+      (help-mode))))
 
 ;;; debug.el ends here
