@@ -4421,7 +4421,7 @@ update_text_area (w, vpos)
 	  /* If old row extends to the end of the text area, clear.  */
 	  if (i >= desired_row->used[TEXT_AREA])
 	    rif->cursor_to (vpos, i, desired_row->y,
-			    desired_row->x + desired_row->pixel_width);
+			    desired_row->pixel_width);
 	  rif->clear_end_of_line (-1);
 	  changed_p = 1;
 	}
@@ -4433,7 +4433,7 @@ update_text_area (w, vpos)
 
 	  if (i >= desired_row->used[TEXT_AREA])
 	    rif->cursor_to (vpos, i, desired_row->y,
-			    desired_row->x + desired_row->pixel_width);
+			    desired_row->pixel_width);
 
 	  /* If cursor is displayed at the end of the line, make sure
 	     it's cleared.  Nowadays we don't have a phys_cursor_glyph
@@ -4447,7 +4447,7 @@ update_text_area (w, vpos)
 	      x = -1;
 	    }
 	  else
-	    x = current_row->x + current_row->pixel_width;
+	    x = current_row->pixel_width;
 	  rif->clear_end_of_line (x);
 	  changed_p = 1;
 	}
