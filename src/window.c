@@ -696,6 +696,9 @@ window_display_table (w)
   tem = w->display_table;
   if (DISP_TABLE_P (tem))
     return XCHAR_TABLE (tem);
+  if (NILP (w->buffer))
+    return 0;
+
   tem = XBUFFER (w->buffer)->display_table;
   if (DISP_TABLE_P (tem))
     return XCHAR_TABLE (tem);
