@@ -3101,3 +3101,8 @@ extern Lisp_Object Vdirectory_sep_char;
 	    (EQ (hare, tortoise)			\
 	     && (circular_list_error ((list)), 1)))	\
 	 : 0)))
+
+/* The ubiquitous min and max macros.  */
+
+#define min(a, b)	((a) < (b) ? (a) : (b))
+#define max(a, b)	((a) > (b) ? (a) : (b))
