@@ -2898,6 +2898,7 @@ try_window_id (window)
     Fset_marker (w->start, make_number (pos), Qnil);
 
   val.bytepos = pos_byte;
+  val.ovstring_chars_done = 0;
 
   /* Redisplay the lines where the text was changed */
   last_text_vpos = vpos;
