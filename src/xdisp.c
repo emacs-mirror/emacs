@@ -49,6 +49,7 @@ extern Lisp_Object Voverriding_local_map;
 extern Lisp_Object Voverriding_local_map_menu_flag;
 
 Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
+Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
 
 /* Nonzero means print newline to stdout before next minibuffer message.  */
 
@@ -1498,13 +1499,21 @@ redisplay_window (window, just_this_one)
     {
       /* Forget any recorded base line for line number display.  */
       w->base_line_number = Qnil;
-      /* Redisplay the mode line.  Select the buffer properly for that.  */
-      if (!update_mode_line)
+      /* Redisplay the mode line.  Select the buffer properly for that.
+	 Also, run the hook window-scroll-functions
+	 because we have scrolled.  */
+      if (!update_mode_line
+	  || ! NILP (Vwindow_scroll_functions))
 	{
+	  Lisp_Object temp[3];
+
 	  set_buffer_temp (old);
 	  set_buffer_internal_1 (XBUFFER (w->buffer));
 	  update_mode_line = 1;
 	  w->update_mode_line = Qt;
+	  if (! NILP (Vwindow_scroll_functions))
+	    run_hook_with_args_2 (Qwindow_scroll_functions, window,
+				  make_number (startp));
 	}
       w->force_start = Qnil;
       XSETFASTINT (w->last_modified, 0);
@@ -1678,6 +1687,9 @@ redisplay_window (window, just_this_one)
 
       if (PT >= pos.bufpos)
 	{
+	  if (! NILP (Vwindow_scroll_functions))
+	    run_hook_with_args_2 (Qwindow_scroll_functions, window,
+				  make_number (pos.bufpos));
 	  try_window (window, pos.bufpos);
 	  if (cursor_vpos >= 0)
 	    {
@@ -1700,6 +1712,9 @@ recenter:
   w->base_line_number = Qnil;
 
   pos = *vmotion (PT, - (height / 2), w);
+  if (! NILP (Vwindow_scroll_functions))
+    run_hook_with_args_2 (Qwindow_scroll_functions, window,
+			  make_number (pos.bufpos));
   try_window (window, pos.bufpos);
 
   startp = marker_position (w->start);
@@ -4185,6 +4200,9 @@ syms_of_xdisp ()
   staticpro (&Qoverriding_local_map);
   Qoverriding_local_map = intern ("overriding-local-map");
 
+  staticpro (&Qwindow_scroll_functions);
+  Qwindow_scroll_functions = intern ("window-scroll-functions");
+
   staticpro (&last_arrow_position);
   staticpro (&last_arrow_string);
   last_arrow_position = Qnil;
@@ -4270,6 +4288,12 @@ Just before redisplay, for each frame, if any of its windows have changed\n\
 size since the last redisplay, or have been split or deleted,\n\
 all the functions in the list are called, with the frame as argument.");
   Vwindow_size_change_functions = Qnil;
+
+  DEFVAR_LISP ("window-scroll-functions", &Vwindow_scroll_functions,
+    "Functions to call when a window is redisplayed with scrolling.\n\
+Each function is called with two arguments, the window\n\
+and its new display-start position.");
+  Vwindow_scroll_functions = Qnil;
 }
 
 /* initialize the window system */
