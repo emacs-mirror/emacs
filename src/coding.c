@@ -5797,17 +5797,30 @@ run_pre_post_conversion_on_str (str, coding, encodep)
   int count = specpdl_ptr - specpdl;
   struct gcpro gcpro1;
   int multibyte = STRING_MULTIBYTE (str);
+  Lisp_Object buffer;
+  struct buffer *buf;
 
   record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
   record_unwind_protect (code_convert_region_unwind, Qnil);
   GCPRO1 (str);
-  temp_output_buffer_setup (" *code-converting-work*");
-  set_buffer_internal (XBUFFER (Vstandard_output));
+
+  buffer = Fget_buffer_create (build_string (" *code-converting-work*"));
+  buf = XBUFFER (buffer);
+
+  buf->directory = current_buffer->directory;
+  buf->read_only = Qnil;
+  buf->filename = Qnil;
+  buf->undo_list = Qt;
+  buf->overlays_before = Qnil;
+  buf->overlays_after = Qnil;
+
+  set_buffer_internal (buf);
   /* We must insert the contents of STR as is without
      unibyte<->multibyte conversion.  For that, we adjust the
      multibyteness of the working buffer to that of STR.  */
   Ferase_buffer ();
-  current_buffer->enable_multibyte_characters = multibyte ? Qt : Qnil;
+  buf->enable_multibyte_characters = multibyte ? Qt : Qnil;
+
   insert_from_string (str, 0, 0,
 		      XSTRING (str)->size, STRING_BYTES (XSTRING (str)), 0);
   UNGCPRO;
