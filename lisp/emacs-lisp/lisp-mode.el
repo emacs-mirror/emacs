@@ -320,17 +320,41 @@ which see."
     (terpri)))
 
 
-(defun last-sexp-print ()
+(defun last-sexp-setup-props (beg end value alt1 alt2)
+  "Set up text properties for the output of `eval-last-sexp-1'.
+BEG and END are the start and end of the output in current-buffer.
+VALUE is the Lisp value printed, ALT1 and ALT2 are strings for the 
+alternative printed representations that can be displayed."
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-m" 'last-sexp-toggle-display)
+    (define-key map [down-mouse-2] 'mouse-set-point)
+    (define-key map [mouse-2] 'last-sexp-toggle-display)
+    (add-text-properties
+     beg end 
+     `(printed-value (,value ,alt1 ,alt2)
+		     mouse-face highlight 
+		     keymap ,map
+		     help-echo "RET, mouse-2: toggle abbreviated display"
+		     rear-nonsticky (mouse-face keymap help-echo
+						printed-value)))))
+
+
+(defun last-sexp-toggle-display ()
+  "Toggle between abbreviated and unabbreviated printed representations."
   (interactive)
   (let ((value (get-text-property (point) 'printed-value)))
     (when value
       (let ((beg (previous-single-property-change (point) 'printed-value))
 	    (end (next-single-char-property-change (point) 'printed-value))
 	    (standard-output (current-buffer))
-	    (print-length nil)
-	    (print-level nil))
+	    (point (point)))
 	(delete-region beg end)
-	(prin1 value)))))
+	(insert (nth 1 value))
+	(last-sexp-setup-props beg (point) 
+			       (nth 0 value)
+			       (nth 2 value)
+			       (nth 1 value))
+	(goto-char (min (point-max) point))))))
 
 
 (defun eval-last-sexp-1 (eval-last-sexp-arg-internal)
@@ -401,20 +425,12 @@ With argument, print output into current buffer."
 	(when (and (bufferp standard-output)
 		   (or (not (null print-length))
 		       (not (null print-level)))
-		   (not (string= unabbreviated (buffer-substring beg end))))
-	  (let ((map (make-sparse-keymap)))
-	    (define-key map "\C-m" 'last-sexp-print)
-	    (define-key map [down-mouse-2] 'mouse-set-point)
-	    (define-key map [mouse-2] 'last-sexp-print)
-	    (add-text-properties
-	     beg end 
-	     `(printed-value ,value 
-			     mouse-face highlight 
-			     keymap ,map
-			     help-echo "RET, mouse-2: print unabbreviated"
-			     read-nonsticky (mouse-face keymap help-echo
-							printed-value)
-			     ))))))))
+		   (not (string= unabbreviated
+				 (buffer-substring-no-properties beg end))))
+	  (last-sexp-setup-props beg end value 
+				 unabbreviated
+				 (buffer-substring-no-properties beg end))
+	  )))))
 
 
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
