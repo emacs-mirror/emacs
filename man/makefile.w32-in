@@ -47,7 +47,7 @@ INFO_TARGETS = $(infodir)/emacs $(infodir)/ccmode \
 		$(infodir)/speedbar $(infodir)/tramp \
 		$(infodir)/ses $(infodir)/smtpmail \
 		$(infodir)/flymake $(infodir)/emacs-xtra \
-		$(infodir)/org $(infodir)url \
+		$(infodir)/org $(infodir)/url \
 		$(infodir)/pgg $(infodir)/sieve
 DVI_TARGETS = 	emacs.dvi calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ediff.dvi forms.dvi gnus.dvi message.dvi mh-e.dvi \
