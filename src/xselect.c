@@ -2324,7 +2324,7 @@ DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
 		    Fcons (x_atom_to_symbol (display, type),
 			   Fcons (make_number (format), Qnil))));
 
-  ret = (bytes ? make_string ((char *) data, bytes) : Qnil);
+  ret = (bytes ? make_unibyte_string ((char *) data, bytes) : Qnil);
   /* Use xfree, not XFree, because x_get_window_property
      calls xmalloc itself.  */
   xfree (data);
