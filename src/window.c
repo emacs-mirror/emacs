@@ -3258,6 +3258,7 @@ syms_of_window ()
 
   DEFVAR_LISP ("temp-buffer-show-function", &Vtemp_buffer_show_function,
     "Non-nil means call as function to display a help buffer.\n\
+The function is called with one argument, the buffer to be displayed.\n\
 Used by `with-output-to-temp-buffer'.");
   Vtemp_buffer_show_function = Qnil;
 
