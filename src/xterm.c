@@ -436,8 +436,6 @@ static void x_draw_phys_cursor_glyph P_ ((struct window *,
 					  enum draw_glyphs_face));
 static void x_update_end P_ ((struct frame *));
 static void XTframe_up_to_date P_ ((struct frame *));
-static void XTreassert_line_highlight P_ ((int, int));
-static void x_change_line_highlight P_ ((int, int, int, int));
 static void XTset_terminal_modes P_ ((void));
 static void XTreset_terminal_modes P_ ((void));
 static void XTcursor_to P_ ((int, int, int, int));
@@ -1022,32 +1020,6 @@ x_draw_row_bitmaps (w, row)
 }
 
 
-/***********************************************************************
-			  Line Highlighting
- ***********************************************************************/
-
-/* External interface to control of standout mode.  Not used for X
-   frames.  Aborts when called.  */
-
-static void
-XTreassert_line_highlight (new, vpos)
-     int new, vpos;
-{
-  abort ();
-}
-
-
-/* Call this when about to modify line at position VPOS and change
-   whether it is highlighted.  Not used for X frames.  Aborts when
-   called.  */
-
-static void
-x_change_line_highlight (new_highlight, vpos, y, first_unused_hpos)
-     int new_highlight, vpos, y, first_unused_hpos;
-{
-  abort ();
-}
-
 
 /* This is called when starting Emacs and when restarting after
    suspend.  When starting Emacs, no X window is mapped.  And nothing
@@ -5271,9 +5243,7 @@ x_fix_overlapping_area (w, row, area)
 		 && row->glyphs[area][i].overlaps_vertically_p);
 
 	  x_draw_glyphs (w, start_x, row, area, start, i,
-			 (row->inverse_p
-			  ? DRAW_INVERSE_VIDEO : DRAW_NORMAL_TEXT),
-			 NULL, NULL, 1);
+			 DRAW_NORMAL_TEXT, NULL, NULL, 1);
 	}
       else
 	{
@@ -5308,8 +5278,7 @@ x_write_glyphs (start, len)
   x = x_draw_glyphs (updated_window, output_cursor.x,
 		     updated_row, updated_area,
 		     hpos, hpos + len,
-		     (updated_row->inverse_p
-		      ? DRAW_INVERSE_VIDEO : DRAW_NORMAL_TEXT),
+		     DRAW_NORMAL_TEXT,
 		     &real_start, &real_end, 0);
 
   /* If we drew over the cursor, note that it is not visible any more.  */
@@ -5937,10 +5906,8 @@ expose_area (w, row, r, area)
 
   if (area == TEXT_AREA && row->fill_line_p)
     /* If row extends face to end of line write the whole line.  */
-    x_draw_glyphs (w, 0, row, area,
-		   0, row->used[area],
-		   row->inverse_p ? DRAW_INVERSE_VIDEO : DRAW_NORMAL_TEXT,
-		   NULL, NULL, 0);
+    x_draw_glyphs (w, 0, row, area, 0, row->used[area],
+		   DRAW_NORMAL_TEXT, NULL, NULL, 0);
   else
     {
       /* Set START_X to the window-relative start position for drawing glyphs of
@@ -5978,7 +5945,7 @@ expose_area (w, row, r, area)
 	x_draw_glyphs (w, first_x - start_x, row, area,
 		       first - row->glyphs[area],
 		       last - row->glyphs[area],
-		       row->inverse_p ? DRAW_INVERSE_VIDEO : DRAW_NORMAL_TEXT,
+		       DRAW_NORMAL_TEXT,
 		       NULL, NULL, 0);
     }
 }
@@ -5998,8 +5965,7 @@ expose_line (w, row, r)
   
   if (row->mode_line_p || w->pseudo_window_p)
     x_draw_glyphs (w, 0, row, TEXT_AREA, 0, row->used[TEXT_AREA],
-		   row->inverse_p ? DRAW_INVERSE_VIDEO : DRAW_NORMAL_TEXT,
-		   NULL, NULL, 0);
+		   DRAW_NORMAL_TEXT, NULL, NULL, 0);
   else
     {
       if (row->used[LEFT_MARGIN_AREA])
@@ -11459,8 +11425,6 @@ x_erase_phys_cursor (w)
   /* Erase the cursor by redrawing the character underneath it.  */
   if (mouse_face_here_p)
     hl = DRAW_MOUSE_FACE;
-  else if (cursor_row->inverse_p)
-    hl = DRAW_INVERSE_VIDEO;
   else
     hl = DRAW_NORMAL_TEXT;
   x_draw_phys_cursor_glyph (w, cursor_row, hl);
@@ -14689,7 +14653,6 @@ x_initialize ()
 
   clear_frame_hook = x_clear_frame;
   ins_del_lines_hook = x_ins_del_lines;
-  change_line_highlight_hook = x_change_line_highlight;
   delete_glyphs_hook = x_delete_glyphs;
   ring_bell_hook = XTring_bell;
   reset_terminal_modes_hook = XTreset_terminal_modes;
@@ -14699,7 +14662,6 @@ x_initialize ()
   set_terminal_window_hook = XTset_terminal_window;
   read_socket_hook = XTread_socket;
   frame_up_to_date_hook = XTframe_up_to_date;
-  reassert_line_highlight_hook = XTreassert_line_highlight;
   mouse_position_hook = XTmouse_position;
   frame_rehighlight_hook = XTframe_rehighlight;
   frame_raise_lower_hook = XTframe_raise_lower;
