@@ -1,5 +1,8 @@
 2000-12-15  Kenichi Handa  <handa@etl.go.jp>
 
+	* coding.c (setup_coding_system): Clear all members of the struct
+	coding_system at first.
+
 	* fns.c (Fmd5): Docstring improved.
 
 2000-12-15  Miles Bader  <miles@gnu.org>
