@@ -772,23 +772,37 @@ For CVS, the full name of CVS/Entries is returned."
   (if (and vc-handle-cvs
 	   (file-directory-p (concat dirname "CVS/"))
 	   (file-readable-p (concat dirname "CVS/Entries")))
-      (let (buffer time (fold case-fold-search)
-	    (file (concat dirname basename)))
+      (let ((file (concat dirname basename))
+            ;; make sure that the file name is searched 
+            ;; case-sensitively
+            (case-fold-search nil)
+            buffer)
 	(unwind-protect
 	    (save-excursion
 	      (setq buffer (set-buffer (get-buffer-create "*vc-info*")))
 	      (vc-insert-file (concat dirname "CVS/Entries"))
 	      (goto-char (point-min))
-	      ;; make sure the file name is searched 
-	      ;; case-sensitively
-	      (setq case-fold-search nil)
 	      (cond
+	       ;; entry for a "locally added" file (not yet committed)
+	       ((re-search-forward
+		 (concat "^/" (regexp-quote basename) "/0/") nil t)
+		(vc-file-setprop file 'vc-checkout-time 0)
+		(vc-file-setprop file 'vc-workfile-version "0")
+		(throw 'found (cons (concat dirname "CVS/Entries") 'CVS)))
 	       ;; normal entry
 	       ((re-search-forward
 		 (concat "^/" (regexp-quote basename) 
-			 "/\\([^/]*\\)/\\([^/+]*\\+\\)?[^ /]* \\([A-Z][a-z][a-z]\\) *\\([0-9]*\\) \\([0-9]*\\):\\([0-9]*\\):\\([0-9]*\\) \\([0-9]*\\)")
+                         ;; revision
+                         "/\\([^/]*\\)" 
+                         ;; timestamp
+                         "/[A-Z][a-z][a-z]"       ;; week day (irrelevant)
+                         " \\([A-Z][a-z][a-z]\\)" ;; month name
+                         " *\\([0-9]*\\)"         ;; day of month
+                         " \\([0-9]*\\):\\([0-9]*\\):\\([0-9]*\\)"  ;; hms
+                         " \\([0-9]*\\)"          ;; year
+                         ;; optional conflict field
+                         "\\(+[^/]*\\)?/")
 		 nil t)
-		(setq case-fold-search fold)  ;; restore the old value
 		;; We found it.  Store away version number now that we 
 		;; are anyhow so close to finding it.
 		(vc-file-setprop file
@@ -797,38 +811,38 @@ For CVS, the full name of CVS/Entries is returned."
 		;; If the file hasn't been modified since checkout,
 		;; store the checkout-time.
 		(let ((mtime (nth 5 (file-attributes file)))
-		      (second (string-to-number (match-string 7)))
-		      (minute (string-to-number (match-string 6)))
-		      (hour (string-to-number (match-string 5)))
-		      (day (string-to-number (match-string 4)))
-		      (year (string-to-number (match-string 8))))
+		      (second (string-to-number (match-string 6)))
+		      (minute (string-to-number (match-string 5)))
+		      (hour (string-to-number (match-string 4)))
+		      (day (string-to-number (match-string 3)))
+		      (year (string-to-number (match-string 7))))
 		  (if (equal mtime
 			     (encode-time
 			      second minute hour day
 			      (/ (string-match
-				  (match-string 3)
+				  (match-string 2)
 				  "xxxJanFebMarAprMayJunJulAugSepOctNovDec")
 				 3)
 			      year 0))
 		      (vc-file-setprop file 'vc-checkout-time mtime)
 		    (vc-file-setprop file 'vc-checkout-time 0)))
 		(throw 'found (cons (concat dirname "CVS/Entries") 'CVS)))
-	       ;; entry for a "locally added" file (not yet committed)
+               ;; entry with arbitrary text as timestamp
+               ;; (this means we should consider it modified)
 	       ((re-search-forward
-		 (concat "^/" (regexp-quote basename) "/0/Initial ") nil t)
-		(setq case-fold-search fold) ;; restore the old value
-		(vc-file-setprop file 'vc-checkout-time 0)
-		(vc-file-setprop file 'vc-workfile-version "0")
-		(throw 'found (cons (concat dirname "CVS/Entries") 'CVS)))
-	       ((re-search-forward
-		 (concat "^/" (regexp-quote basename)
-			 "/\\([^/]*\\)/Initial") nil t)
-		(setq case-fold-search fold)  ;; restore the old value
-		(vc-file-setprop file 'vc-workfile-version "0")
-		(vc-file-setprop file 'vc-checkout-time 0)
-		(throw 'found (cons (concat dirname "CVS/Entries") 'CVS)))
-	       (t (setq case-fold-search fold)  ;; restore the old value
-		  nil)))
+		 (concat "^/" (regexp-quote basename) 
+                         ;; revision
+                         "/\\([^/]*\\)" 
+                         ;; timestamp (arbitrary text)
+                         "/[^/]*"
+                         ;; optional conflict field
+                         "\\(+[^/]*\\)?/")
+		 nil t)
+		;; We found it.  Store away version number now that we 
+		;; are anyhow so close to finding it.
+		(vc-file-setprop file 'vc-workfile-version (match-string 1))
+                (vc-file-setprop file 'vc-checkout-time 0))
+	       (t nil)))
 	  (kill-buffer buffer)))))
 
 (defun vc-buffer-backend ()
@@ -843,7 +857,9 @@ If the buffer is visiting a file registered with version control,
 then check the file in or out.  Otherwise, just change the read-only flag
 of the buffer.  With prefix argument, ask for version number."
   (interactive "P")
-  (if (vc-backend (buffer-file-name))
+  (if (or (and (boundp 'vc-dired-mode) vc-dired-mode)
+          ;; use boundp because vc.el might not be loaded
+          (vc-backend (buffer-file-name)))
       (vc-next-action verbose)
     (toggle-read-only)))
 (define-key global-map "\C-x\C-q" 'vc-toggle-read-only)
