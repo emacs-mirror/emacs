@@ -135,6 +135,10 @@ extern char *strerror ();
 extern char *sys_errlist[];
 #endif
 
+#ifndef HAVE_H_ERRNO
+extern int h_errno;
+#endif
+
 #ifndef SYS_SIGLIST_DECLARED
 #ifndef VMS
 #ifndef BSD4_1
@@ -1516,6 +1520,9 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
 #ifndef TERM
   while (1)
     {
+#ifdef TRY_AGAIN
+      h_errno = 0;
+#endif
       host_info_ptr = gethostbyname (XSTRING (host)->data);
 #ifdef TRY_AGAIN
       if (! (host_info_ptr == 0 && h_errno == TRY_AGAIN))
