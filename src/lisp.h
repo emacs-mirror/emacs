@@ -2101,7 +2101,7 @@ extern void syms_of_display P_ ((void));
 extern void safe_bcopy P_ ((char *, char *, int));
 
 /* Defined in xdisp.c */
-extern Lisp_Object Qinhibit_redisplay;
+extern Lisp_Object Qinhibit_redisplay, Qdisplay;
 extern Lisp_Object Qmessage_truncate_lines;
 extern Lisp_Object Vmessage_log_max;
 extern int message_enable_multibyte;
