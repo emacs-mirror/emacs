@@ -1,3 +1,8 @@
+2002-06-12  Miles Bader  <miles@gnu.org>
+
+	* comint.el (comint-send-input): Properly handle empty and
+	no-newline input regions.
+
 2002-06-12  Colin Walters  <walters@gnu.org>
 
 	* calc/calc.el: Use `when', `unless'.
