@@ -54,16 +54,6 @@ typedef char Boolean;
 #define True 1
 #define False 0
 
-#if 0 /* Not used below.  */
-typedef enum _change_type
-{
-  NO_CHANGE = 0,
-  INVISIBLE_CHANGE = 1,
-  VISIBLE_CHANGE = 2,
-  STRUCTURAL_CHANGE = 3
-} change_type;
-#endif
-
 enum button_type
 {
   BUTTON_TYPE_NONE,
@@ -79,8 +69,8 @@ typedef struct _widget_value
   char*		value;
   /* keyboard equivalent. no implications for XtTranslations */ 
   char*		key;
-  /* Help string or null if none.  */
-  char		*help;
+  /* Help string.  */
+  char* 	help;
   /* true if enabled */
   Boolean	enabled;
   /* true if selected */
@@ -1219,6 +1209,7 @@ single_submenu (item_key, item_name, maps)
 	  /* Create a new item within current pane.  */
 	  Lisp_Object item_name, enable, descrip, def, type, selected;
           Lisp_Object help;
+
           /* NTEMACS_TODO: implement popup/modeline help for menus. */
 
 	  item_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_NAME];
@@ -1263,8 +1254,10 @@ single_submenu (item_key, item_name, maps)
 
 	  wv->selected = !NILP (selected);
 	  if (STRINGP (help))
-	    wv->help = XSTRING (help)->data;
-		   
+	    wv->help = (char *) XSTRING (help)->data;
+          else
+            wv->help = NULL;
+
 	  prev_wv = wv;
 
 	  i += MENU_ITEMS_ITEM_LENGTH;
@@ -1666,7 +1659,6 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 	{
 	  /* Create a new item within current pane.  */
 	  Lisp_Object item_name, enable, descrip, def, type, selected, help;
-          char *help_string;
 
 	  item_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_NAME];
 	  enable = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_ENABLE];
@@ -1682,11 +1674,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
             item_name = string_make_unibyte (item_name);
           if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
             descrip = string_make_unibyte (descrip);
-          if (STRINGP (help) && STRING_MULTIBYTE (help))
-            help = string_make_unibyte (help);
 #endif
-
-          help_string = STRINGP (help) ? XSTRING (help)->data : NULL;
 
 	  wv = xmalloc_widget_value ();
 	  if (prev_wv) 
@@ -1712,7 +1700,12 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 	    abort ();
 
 	  wv->selected = !NILP (selected);
-	  
+
+          if (STRINGP (help))
+            wv->help = (char *) XSTRING (help)->data;
+          else
+            wv->help = NULL;
+
 	  prev_wv = wv;
 
 	  i += MENU_ITEMS_ITEM_LENGTH;
@@ -1880,14 +1873,12 @@ w32_dialog_show (f, keymaps, title, error)
 	
 	/* Create a new item within current pane.  */
 	Lisp_Object item_name, enable, descrip, help;
-        char *help_string;
 
 	item_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_NAME];
 	enable = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_ENABLE];
 	descrip
 	  = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_EQUIV_KEY];
         help = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_HELP];
-        help_string = STRINGP (help) ? XSTRING (help)->data : NULL;
 	
 	if (NILP (item_name))
 	  {
@@ -2089,25 +2080,32 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
                 (fuFlags == MF_SEPARATOR) ? NULL: out_string );
 
   /* This must be done after the menu item is created.  */
-  if (wv->button_type == BUTTON_TYPE_RADIO)
-    {
-      /* CheckMenuRadioItem allows us to differentiate TOGGLE and
-         RADIO items, but is not available on NT 3.51 and earlier.  */
-      HMODULE user32 = GetModuleHandle ("user32.dll");
-      FARPROC set_menu_item_info = GetProcAddress (user32, "SetMenuItemInfo");
+  {
+    HMODULE user32 = GetModuleHandle ("user32.dll");
+    FARPROC set_menu_item_info = GetProcAddress (user32, "SetMenuItemInfoA");
 
-      if (set_menu_item_info)
-        {
-          MENUITEMINFO info;
-          bzero (&info, sizeof (info));
-          info.cbSize = sizeof (info);
-          info.fMask = MIIM_TYPE | MIIM_STATE;
-          info.fType = MFT_RADIOCHECK;
-          info.fState = wv->selected ? MFS_CHECKED : MFS_UNCHECKED;
-          set_menu_item_info (menu, item, FALSE, &info);
-        }
-    }
+    if (set_menu_item_info)
+      {
+        MENUITEMINFO info;
+        bzero (&info, sizeof (info));
+        info.cbSize = sizeof (info);
+        info.fMask = MIIM_DATA;
+        /* Set help string for menu item. */
+        info.dwItemData = (DWORD)wv->help;
 
+        if (wv->button_type == BUTTON_TYPE_RADIO)
+          {
+            /* CheckMenuRadioItem allows us to differentiate TOGGLE and
+               RADIO items, but is not available on NT 3.51 and earlier.  */
+            info.fMask |= MIIM_TYPE | MIIM_STATE;
+            info.fType = MFT_RADIOCHECK;
+            info.fState = wv->selected ? MFS_CHECKED : MFS_UNCHECKED;
+          }
+        set_menu_item_info (menu,
+                            item != NULL ? (UINT) item : (UINT) wv->call_data,
+                            FALSE, &info);
+      }
+  }
   return return_value;
 }
 
@@ -2148,6 +2146,45 @@ popup_activated ()
   /* popup_activated_flag not actually used on W32 */
   return 0;
 }
+
+/* Display help string for currently pointed to menu item. Not
+   supported on NT 3.51 and earlier, as GetMenuItemInfo is not
+   available. */
+void
+w32_menu_display_help (HMENU menu, UINT item, UINT flags)
+{
+  HMODULE user32 = GetModuleHandle ("user32.dll");
+  FARPROC get_menu_item_info = GetProcAddress (user32, "GetMenuItemInfoA");
+
+  if (get_menu_item_info)
+    {
+      struct gcpro gcpro1;
+      extern Lisp_Object Vshow_help_function;
+      Lisp_Object msg;
+      MENUITEMINFO info;
+
+      bzero (&info, sizeof (info));
+      info.cbSize = sizeof (info);
+      info.fMask = MIIM_DATA;
+      get_menu_item_info (menu, item, FALSE, &info);
+
+      msg = info.dwItemData ? build_string ((char *) info.dwItemData) : Qnil;
+      GCPRO1 (msg);
+
+      if (!NILP (Vshow_help_function))
+        call1 (Vshow_help_function, msg);
+      else if (!MINI_WINDOW_P (XWINDOW (selected_window)))
+        {
+          if (STRINGP(msg))
+            message3_nolog (msg, XSTRING (msg)->size, STRING_MULTIBYTE (msg));
+          else
+            message (0);
+        }
+      UNGCPRO;
+    }
+}
+
+
 
 #endif /* HAVE_MENUS */
 
