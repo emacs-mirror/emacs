@@ -1,3 +1,7 @@
+2005-03-24  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* print.c (print_object): Delete `\ ' from printed rep of frame.
+
 2005-03-22  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* frame.h (FRAME_LINE_HEIGHT, FRAME_DEFAULT_FONT_WIDTH):
