@@ -312,8 +312,6 @@ int dos_keypad_mode;
 
 Lisp_Object Vdos_version;
 Lisp_Object Vdos_display_scancodes;
-Lisp_Object Vdos_menubar_clock;
-Lisp_Object Vdos_timer_hooks;
   
 void
 init_dosfns ()
@@ -416,15 +414,6 @@ Implicitly modified when the TZ variable is changed.");
 corner of the display (typically at the end of the mode line).\n\
 The output format is: scan code:char code*modifiers.");
   Vdos_display_scancodes = Qnil;
-  
-  DEFVAR_LISP ("dos-menubar-clock", &Vdos_menubar_clock,
-    "*When non-nil, the current time is displayed in the upper right\n\
-corner of the screen (typically at the end of the menu bar).");
-  Vdos_menubar_clock = Qt;
-  
-  DEFVAR_LISP ("dos-timer-hooks", &Vdos_timer_hooks,
-    "List of hooks which are run every second.");
-  Vdos_timer_hooks = Qnil;
   
   DEFVAR_INT ("dos-hyper-key", &dos_hyper_key,
     "*If set to 1, use right ALT key as hyper key.\n\
