@@ -388,24 +388,26 @@ Do the same for the keys of the same name."
 	      `(setq ,variable (not ,variable)))
 	   (message ,message "enabled")
 	 (message ,message "disabled")))
-     '(,doc . ,name)))
+     '(menu-item ,doc ,name .
+                 (:button (:toggle . (and (boundp ',variable) ,variable))))))
 
 (define-key menu-bar-options-menu [debug-on-quit]
   (menu-bar-make-toggle toggle-debug-on-quit debug-on-quit
-			"Toggle Debug on Quit" "Debug on Quit %s"))
+			"Debug on Quit" "Debug on Quit %s"))
 (define-key menu-bar-options-menu [debug-on-error]
   (menu-bar-make-toggle toggle-debug-on-error debug-on-error
-			"Toggle Debug on Error" "Debug on Error %s"))
+			"Debug on Error" "Debug on Error %s"))
 (define-key menu-bar-options-menu [options-separator]
   '("--"))
 (define-key menu-bar-options-menu [save-place]
   (menu-bar-make-toggle toggle-save-place-globally save-place
-			"Toggle Saving Place in Files between Sessions"
+			"Save Place in Files between Sessions"
 			"Saving place in files %s"
+                        (require 'saveplace)
 			(setq-default save-place (not (default-value save-place)))))
 (define-key menu-bar-options-menu [uniquify]
   (menu-bar-make-toggle toggle-uniquify-buffer-names uniquify-buffer-name-style
-			"Toggle Directory Names in Buffer Names"
+			"Use Directory Names in Buffer Names"
 			"Directory name in buffer names (uniquify) %s"
 			(require 'uniquify)
 			(setq uniquify-buffer-name-style
@@ -413,16 +415,20 @@ Do the same for the keys of the same name."
 				  'forward))))
 (define-key menu-bar-options-menu [transient-mark-mode]
   (menu-bar-make-toggle toggle-transient-mark-mode transient-mark-mode
-			"Toggle Transient Mark Mode (highlights region)"
+			"Transient Mark Mode (highlights region)"
 			"Transient Mark mode %s"))
 (define-key menu-bar-options-menu [toggle-auto-compression]
-  '("Toggle Automatic File De/compression" . auto-compression-mode))
+  '(menu-item "Automatic File De/compression"
+             auto-compression-mode .
+             (:button (:toggle . (rassq 'jka-compr-handler
+                                        file-name-handler-alist)))))
 (define-key menu-bar-options-menu [auto-fill-mode]
-  '("Toggle Auto Fill (word wrap) in Text modes"
-    . toggle-text-mode-auto-fill))
+  '(menu-item "Auto Fill (word wrap) in Text modes"
+              toggle-text-mode-auto-fill .
+              (:button (:toggle . (member 'turn-on-auto-fill text-mode-hook)))))
 (define-key menu-bar-options-menu [toggle-global-lazy-font-lock-mode]
-  (menu-bar-make-toggle toggle-global-lazy-font-lock-mode nil
-			"Toggle Global Font Lock (highlights syntax)"
+  (menu-bar-make-toggle toggle-global-lazy-font-lock-mode global-font-lock-mode
+			"Global Font Lock (highlights syntax)"
 			"Global Font Lock mode %s"
 			;; Make sure a support mode is used;
 			;; otherwise Font Lock will be too slow.
