@@ -539,8 +539,6 @@ starting from the left edge column of the rectangle.
 @item C-x r t @var{string} @key{RET}
 Replace rectangle contents with @var{string} on each line.
 (@code{string-rectangle}).
-@item M-x replace-rectangle @key{RET} @var{string} @key{RET}
-Replace each line of the region-rectangle with @var{string}.
 @item M-x string-insert-rectangle @key{RET} @var{string} @key{RET}
 Insert @var{string} on each line of the rectangle.
 @end table
@@ -603,8 +601,7 @@ any difference to this command.
 
 @kindex C-x r t
 @findex string-rectangle
-@findex replace-rectangle
-  The command @kbd{C-x r t} (@code{M-x string-rectangle}) replaces the
+  The command @kbd{C-x r t} (@code{string-rectangle}) replaces the
 contents of a region-rectangle with a string on each line.  The
 string's width need not be the same as the width of the rectangle.  If
 the string's width is less, the text after the rectangle shifts left;
