@@ -1,3 +1,22 @@
+2002-04-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* dispnew.c (marginal_area_string): Check that glyph row is enabled.
+
+2002-04-05  Dave Love  <fx@gnu.org>
+
+	* dispnew.c (marginal_area_string): New.
+
+	* window.c (window_part): Add ON_LEFT_MARGIN, ON_RIGHT_MARGIN.
+	(Qleft_margin, Qright_margin): Declare.
+	(coordinates_in_window, (Fcoordinates_in_window_p): Deal with
+	margins.
+
+	* xterm.c (note_mode_line_or_margin_highlight): Renamed from
+	note_mode_line_highlight and extended.
+
+	* keyboard.c (Qleft_margin, Qright_margin): Declare.
+	(make_lispy_event): Deal with mouse events in margins.
+
 2002-04-12  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* msdos.c (dos_rawgetc): Use a single event for HELP_EVENT.
