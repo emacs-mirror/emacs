@@ -3,7 +3,7 @@ dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.
 dnl
-dnl  Copyright (C) 1994, 1995, 1996 Free Software Foundation, Inc.
+dnl  Copyright (C) 1994, 1995, 1996, 1999 Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
