@@ -55,16 +55,13 @@ in paths.el.")
 
 (defvar Info-directory-list
   (let ((path (getenv "INFOPATH"))
-	(sep (if (or (eq system-type 'ms-dos) 
-		     (eq system-type 'windows-nt))
-		 ";" ":"))
 	(sibling (if installation-directory
 		     (expand-file-name "info/" installation-directory))))
     (if path
 	(let ((list nil)
 	      idx)
 	  (while (> (length path) 0)
-	    (setq idx (or (string-match sep path) (length path))
+	    (setq idx (or (string-match path-separator path) (length path))
 		  list (cons (substring path 0 idx) list)
 		  path (substring path (min (1+ idx)
 					    (length path)))))
