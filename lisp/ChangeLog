@@ -1,3 +1,7 @@
+2003-07-08  Markus Rost  <rost@math.ohio-state.edu>
+
+	* subr.el (dolist, dotimes):  Doc fix.
+
 2003-07-08  Kim F. Storm  <storm@cua.dk>
 
 	* international/mule-cmds.el (set-display-table-and-terminal-coding-system):
