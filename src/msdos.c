@@ -331,6 +331,130 @@ ScreenVisualBell (void)
 
 #ifndef HAVE_X_WINDOWS
 
+/* Set the screen dimensions so that it can show no less than
+   ROWS x COLS frame.  */
+void
+dos_set_window_size (rows, cols)
+     int *rows, *cols;
+{
+  char video_name[30];
+  Lisp_Object video_mode;
+  int video_mode_value;
+  int have_vga = 0;
+  union REGS regs;
+  int current_rows = ScreenRows (), current_cols = ScreenCols ();
+
+  if (*rows == current_rows && *cols == current_cols)
+    return;
+
+  /* Do we have a VGA?  */
+  regs.x.ax = 0x1a00;
+  int86 (0x10, &regs, &regs);
+  if (regs.h.al == 0x1a && regs.h.bl > 5 && regs.h.bl < 13)
+    have_vga = 1;
+
+  mouse_off ();
+
+  /* If the user specify a special video mode for these dimensions,
+     use that mode.  */
+  sprintf (video_name, "screen-dimensions-%dx%d", *rows, *cols);
+  video_mode = XSYMBOL (Fintern_soft (build_string (video_name),
+				      Qnil))-> value;
+
+  if (INTEGERP (video_mode)
+      && (video_mode_value = XINT (video_mode)) > 0)
+    {
+      regs.x.ax = video_mode_value;
+      int86 (0x10, &regs, &regs);
+      regs.h.bl = 0;
+      regs.x.ax = 0x1003;
+      int86 (0x10, &regs, &regs);
+    }
+
+  /* Find one of the dimensions supported by standard EGA/VGA
+     which gives us at least the required dimensions.  */
+
+#if __DJGPP__ > 1
+
+  else
+    {
+      static struct {
+	int rows;
+	int need_vga;
+      }	std_dimension[] = {
+	  {25, 0},
+	  {28, 1},
+	  {35, 0},
+	  {40, 1},
+	  {43, 0},
+	  {50, 1}
+      };
+      int i = 0;
+
+      while (i < sizeof (std_dimension) / sizeof (std_dimension[0]))
+	{
+	 if (std_dimension[i].need_vga <= have_vga
+	     && std_dimension[i].rows >= *rows)
+	   {
+	     if (std_dimension[i].rows != current_rows
+		 || *cols != current_cols)
+	       _set_screen_lines (*rows);
+	     break;
+	   }
+	}
+    }
+
+#else /* not __DJGPP__ > 1 */
+
+  else if (*rows <= 25)
+    {
+      if (current_rows != 25 || current_cols != 80)
+	{
+	  regs.x.ax = 3;
+	  int86 (0x10, &regs, &regs);
+	  regs.x.ax = 0x1101;
+	  regs.h.bl = 0;
+	  int86 (0x10, &regs, &regs);
+	  regs.x.ax = 0x1200;
+	  regs.h.bl = 32;
+	  int86 (0x10, &regs, &regs);
+	  regs.x.ax = 3;
+	  int86 (0x10, &regs, &regs);
+	}
+    }
+  else if (*rows <= 50)
+    if (have_vga && (current_rows != 50 || current_cols != 80)
+	|| *rows <= 43 && (current_rows != 43 || current_cols != 80))
+      {
+	regs.x.ax = 3;
+	int86 (0x10, &regs, &regs);
+	regs.x.ax = 0x1112;
+	regs.h.bl = 0;
+	int86 (0x10, &regs, &regs);
+	regs.x.ax = 0x1200;
+	regs.h.bl = 32;
+	int86 (0x10, &regs, &regs);
+	regs.x.ax = 0x0100;
+	regs.x.cx = 7;
+	int86 (0x10, &regs, &regs);
+      }
+#endif /* not __DJGPP__ > 1 */
+
+  if (have_mouse)
+    {
+      /* Must hardware-reset the mouse, or else it won't update
+	 its notion of screen dimensions.  */
+      regs.x.ax = 0;
+      int86 (0x33, &regs, &regs);
+      mouse_init ();
+      mouse_on ();
+    }
+
+  /* Tell the caller what dimensions have been REALLY set.  */
+  *rows = ScreenRows ();
+  *cols = ScreenCols ();
+}
+
 /*
  * If we write a character in the position where the mouse is,
  * the mouse cursor may need to be refreshed.
