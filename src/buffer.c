@@ -181,6 +181,8 @@ Lisp_Object Qmodification_hooks;
 Lisp_Object Qinsert_in_front_hooks;
 Lisp_Object Qinsert_behind_hooks;
 
+Lisp_Object mask_temp;
+
 static void alloc_buffer_text P_ ((struct buffer *, size_t));
 static void free_buffer_text P_ ((struct buffer *b));
 static Lisp_Object copy_overlays P_ ((struct buffer *, Lisp_Object));
@@ -413,7 +415,7 @@ The value is never nil.  */)
   reset_buffer_local_variables (b, 1);
 
   b->mark = Fmake_marker ();
-  BUF_MARKERS (b) = Qnil;
+  SET_BUF_MARKERS (b, Qnil);
   b->name = name;
 
   /* Put this in the alist of all live buffers.  */
@@ -1412,7 +1414,7 @@ with SIGHUP.  */)
 	{
 	  Lisp_Object next;
 	  m = XMARKER (tem);
-	  next = m->chain;
+	  next = MARKER_CHAIN (m);
 	  if (m->buffer == b)
 	    unchain_marker (tem);
 	  tem = next;
@@ -1426,10 +1428,10 @@ with SIGHUP.  */)
 	{
 	  m = XMARKER (tem);
 	  m->buffer = 0;
-	  tem = m->chain;
-	  m->chain = Qnil;
+	  tem = MARKER_CHAIN (m);
+	  XSET_MARKER_CHAIN (m, Qnil);
 	}
-      BUF_MARKERS (b) = Qnil;
+      SET_BUF_MARKERS (b, Qnil);
       BUF_INTERVALS (b) = NULL_INTERVAL;
 
       /* Perhaps we should explicitly free the interval tree here... */
@@ -2097,7 +2099,7 @@ but the contents viewed as characters do change.  */)
       while (! NILP (tail))
 	{
 	  XMARKER (tail)->charpos = XMARKER (tail)->bytepos;
-	  tail = XMARKER (tail)->chain;
+	  tail = MARKER_CHAIN (XMARKER (tail));
 	}
 
       /* Convert multibyte form of 8-bit characters to unibyte.  */
@@ -2246,7 +2248,7 @@ but the contents viewed as characters do change.  */)
       /* This prevents BYTE_TO_CHAR (that is, buf_bytepos_to_charpos) from
 	 getting confused by the markers that have not yet been updated.
 	 It is also a signal that it should never create a marker.  */
-      BUF_MARKERS (current_buffer) = Qnil;
+      SET_BUF_MARKERS (current_buffer, Qnil);
 
       while (! NILP (tail))
 	{
@@ -2254,7 +2256,7 @@ but the contents viewed as characters do change.  */)
 	    = advance_to_char_boundary (XMARKER (tail)->bytepos);
 	  XMARKER (tail)->charpos = BYTE_TO_CHAR (XMARKER (tail)->bytepos);
 
-	  tail = XMARKER (tail)->chain;
+	  tail = MARKER_CHAIN (XMARKER (tail));
 	}
 
       /* Make sure no markers were put on the chain
@@ -2262,7 +2264,7 @@ but the contents viewed as characters do change.  */)
       if (! EQ (BUF_MARKERS (current_buffer), Qnil))
 	abort ();
 
-      BUF_MARKERS (current_buffer) = markers;
+      SET_BUF_MARKERS (current_buffer, markers);
 
       /* Do this last, so it can calculate the new correspondences
 	 between chars and bytes.  */
@@ -2525,6 +2527,7 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr, change_req)
 		  if (len == 0)
 		    len = 4;
 		  *len_ptr = len;
+
 		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
 		  *vec_ptr = vec;
 		}
@@ -2623,6 +2626,7 @@ overlays_in (beg, end, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
 		  if (len == 0)
 		    len = 4;
 		  *len_ptr = len;
+
 		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
 		  *vec_ptr = vec;
 		}
@@ -2671,6 +2675,7 @@ overlays_in (beg, end, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
 		  if (len == 0)
 		    len = 4;
 		  *len_ptr = len;
+
 		  vec = (Lisp_Object *) xrealloc (vec, len * sizeof (Lisp_Object));
 		  *vec_ptr = vec;
 		}
