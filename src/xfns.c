@@ -2944,7 +2944,8 @@ even if they match PATTERN and FACE.")
 
 
 DEFUN ("x-color-defined-p", Fx_color_defined_p, Sx_color_defined_p, 1, 1, 0,
-  "Return t if the current X display supports the color named COLOR.")
+  "Return non-nil if the X display supports the color named COLOR.\n\
+The value is actually a list of integer RGB values--(RED GREEN BLUE).")
   (color)
      Lisp_Object color;
 {
@@ -2954,7 +2955,14 @@ DEFUN ("x-color-defined-p", Fx_color_defined_p, Sx_color_defined_p, 1, 1, 0,
   CHECK_STRING (color, 0);
 
   if (defined_color (XSTRING (color)->data, &foo))
-    return Qt;
+    {
+      Lisp_Object rgb[3];
+
+      rgb[0] = make_number (foo.red);
+      rgb[1] = make_number (foo.green);
+      rgb[2] = make_number (foo.blue);
+      return Flist (3, rgb);
+    }
   else
     return Qnil;
 }
