@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = add to ld in destroyed space
  language = c
  link = myfmt.o testlib.o

@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = allocate in destroyed AP
  language = c
  link = myfmt.o testlib.o

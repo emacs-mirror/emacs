@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = reserve twice without committing
  language = c
  link = myfmt.o testlib.o

@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = create root in uncreated space
  language = c
  link = myfmt.o testlib.o

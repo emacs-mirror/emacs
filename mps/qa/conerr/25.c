@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = free in pool not supporting alloc (n.b. this means no alloc at the moment)
  language = c
  link = testlib.o

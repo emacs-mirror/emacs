@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = isstale on ld in wrong space
  language = c
  link = myfmt.o testlib.o

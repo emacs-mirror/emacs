@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = alloc in pool not supporting alloc
  language = c
  link = testlib.o

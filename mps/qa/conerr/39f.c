@@ -1,5 +1,6 @@
-/* $HopeName$
+/* 
 TEST_HEADER
+ id = $HopeName$
  summary = commit without reserving
  language = c
  link = myfmt.o testlib.o
