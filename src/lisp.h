@@ -377,6 +377,7 @@ extern int pure_size;
 
 /* Misc types.  */
 #define XMISC(a)   ((union Lisp_Misc *) XPNTR(a))
+#define XMISCTYPE(a)   (XMARKER (a)->type)
 #define XMARKER(a) (&(XMISC(a)->u_marker))
 #define XINTFWD(a) (&(XMISC(a)->u_intfwd))
 #define XBOOLFWD(a) (&(XMISC(a)->u_boolfwd))
@@ -404,7 +405,7 @@ extern int pure_size;
 
 /* Misc types.  */
 #define XSETMISC(a, b) XSET (a, Lisp_Misc, b)
-#define XSETMARKER(a, b) (XSETMISC (a, b), XMISC (a)->type = Lisp_Misc_Marker)
+#define XSETMARKER(a, b) (XSETMISC (a, b), XMISCTYPE (a) = Lisp_Misc_Marker)
 
 /* Pseudovector types.  */
 #define XSETPSEUDOVECTOR(a, b, code) \
@@ -772,9 +773,11 @@ struct Lisp_Kboard_Objfwd
   };
 
 
+/* To get the type field of a union Lisp_Misc, use XMISCTYPE.
+   It uses one of these struct subtypes to get the type field.  */
+
 union Lisp_Misc
   {
-    int type : 16;
     struct Lisp_Free u_free;
     struct Lisp_Marker u_marker;
     struct Lisp_Intfwd u_intfwd;
@@ -926,24 +929,24 @@ typedef unsigned char UCHAR;
 #endif
 #define VECTORP(x) (VECTORLIKEP (x) && !(XVECTOR (x)->size & PSEUDOVECTOR_FLAG))
 #define GC_VECTORP(x) (GC_VECTORLIKEP (x) && !(XVECTOR (x)->size & PSEUDOVECTOR_FLAG))
-#define OVERLAYP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Overlay)
-#define GC_OVERLAYP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Overlay)
-#define MARKERP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Marker)
-#define GC_MARKERP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Marker)
-#define INTFWDP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Intfwd)
-#define GC_INTFWDP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Intfwd)
-#define BOOLFWDP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Boolfwd)
-#define GC_BOOLFWDP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Boolfwd)
-#define OBJFWDP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Objfwd)
-#define GC_OBJFWDP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Objfwd)
-#define BUFFER_OBJFWDP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Buffer_Objfwd)
-#define GC_BUFFER_OBJFWDP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Buffer_Objfwd)
-#define BUFFER_LOCAL_VALUEP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Buffer_Local_Value)
-#define GC_BUFFER_LOCAL_VALUEP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Buffer_Local_Value)
-#define SOME_BUFFER_LOCAL_VALUEP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Some_Buffer_Local_Value)
-#define GC_SOME_BUFFER_LOCAL_VALUEP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Some_Buffer_Local_Value)
-#define KBOARD_OBJFWDP(x) (MISCP (x) && XMISC (x)->type == Lisp_Misc_Kboard_Objfwd)
-#define GC_KBOARD_OBJFWDP(x) (GC_MISCP (x) && XMISC (x)->type == Lisp_Misc_Kboard_Objfwd)
+#define OVERLAYP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Overlay)
+#define GC_OVERLAYP(x) (GC_MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Overlay)
+#define MARKERP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Marker)
+#define GC_MARKERP(x) (GC_MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Marker)
+#define INTFWDP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Intfwd)
+#define GC_INTFWDP(x) (GC_MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Intfwd)
+#define BOOLFWDP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Boolfwd)
+#define GC_BOOLFWDP(x) (GC_MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Boolfwd)
+#define OBJFWDP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Objfwd)
+#define GC_OBJFWDP(x) (GC_MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Objfwd)
+#define BUFFER_OBJFWDP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Buffer_Objfwd)
+#define GC_BUFFER_OBJFWDP(x) (GC_MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Buffer_Objfwd)
+#define BUFFER_LOCAL_VALUEP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Buffer_Local_Value)
+#define GC_BUFFER_LOCAL_VALUEP(x) (GC_MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Buffer_Local_Value)
+#define SOME_BUFFER_LOCAL_VALUEP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Some_Buffer_Local_Value)
+#define GC_SOME_BUFFER_LOCAL_VALUEP(x) (GC_MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Some_Buffer_Local_Value)
+#define KBOARD_OBJFWDP(x) (MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Kboard_Objfwd)
+#define GC_KBOARD_OBJFWDP(x) (GC_MISCP (x) && XMISCTYPE (x) == Lisp_Misc_Kboard_Objfwd)
 
 
 /* True if object X is a pseudovector whose code is CODE.  */
