@@ -1,5 +1,11 @@
 2002-06-24  Dave Love  <fx@gnu.org>
 
+	* latin-post.el: Recoded to utf-8.
+	("latin-postfix"): New method.
+
+	* latin-alt.el: Recoded to utf-8.
+	("latin-alt-postfix"): New method.
+
 	* quail/latin-pre.el: Recoded to utf-8.
 	("latin-1-prefix", "latin-8-prefix", "latin-9-prefix"): Add nbsp.
 	("latin-3-prefix"): Remove bogus Latin-3 characters and ~o -> ,Cu(B,
