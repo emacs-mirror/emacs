@@ -3896,13 +3896,13 @@ properties supported are
 
 `:foreground FG'
 
-FG must be a string specifying the image foreground color.  Default
-is the frame's foreground.
+FG must be a string specifying the image foreground color, or nil
+meaning to use the default.  Default is the frame's foreground.
 
 `:background BG'
 
-BG must be a string specifying the image foreground color.  Default is
-the frame's background color.
+BG must be a string specifying the image foreground color, or nil
+meaning to use the default.  Default is the frame's background color.
 
 XBM images can be constructed from data instead of file.  In this
 case, the image specification must contain the following properties
@@ -3961,13 +3961,13 @@ mono images are
 
 `:foreground FG'
 
-FG must be a string specifying the image foreground color.  Default
-is the frame's foreground.
+FG must be a string specifying the image foreground color, or nil
+meaning to use the default.  Default is the frame's foreground.
 
 `:background FG'
 
-BG must be a string specifying the image foreground color.  Default is
-the frame's background color.
+BG must be a string specifying the image foreground color, or nil
+meaning to use the default.  Default is the frame's background color.
 
 **** JPEG, image type `jpeg'
 
