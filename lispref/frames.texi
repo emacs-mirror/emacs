@@ -997,7 +997,7 @@ Some window systems and window managers direct keyboard input to the
 window object that the mouse is in; others require explicit clicks or
 commands to @dfn{shift the focus} to various window objects.  Either
 way, Emacs automatically keeps track of which frame has the focus.  To
-switch to a different frame from a lisp function, call
+switch to a different frame from a Lisp function, call
 @code{select-frame-set-input-focus}.
 
 Lisp programs can also switch frames ``temporarily'' by calling the
@@ -1006,17 +1006,19 @@ concept of focus; rather, it escapes from the window manager's control
 until that control is somehow reasserted.
 
 When using a text-only terminal, only one frame can be displayed at a
-time on the terminal, so @code{select-frame} actually displays the
-newly selected frame.  This frame remains displayed until a subsequent
-call to @code{select-frame} or @code{select-frame-set-input-focus}.
-Each terminal frame has a number which appears in the mode line before
-the buffer name (@pxref{Mode Line Variables}).
+time on the terminal, so after a call to @code{select-frame}, the next
+redisplay actually displays the newly selected frame.  This frame
+remains displayed until a subsequent call to @code{select-frame} or
+@code{select-frame-set-input-focus}.  Each terminal frame has a number
+which appears in the mode line before the buffer name (@pxref{Mode
+Line Variables}).
 
 @defun select-frame-set-input-focus frame
 This function makes @var{frame} the selected frame, raises it (should
 it happen to be obscured by other frames) and tries to give it the X
-server's focus.  On a text-only terminal, the new frame gets displayed
-on the entire terminal screen.
+server's focus.  On a text-only terminal, the next redisplay displays
+the new frame on the entire terminal screen.  The return value of this
+function is not significant.
 @end defun
 
 @c ??? This is not yet implemented properly.
@@ -1026,7 +1028,8 @@ focus of the X server if any.  The selection of @var{frame} lasts until
 the next time the user does something to select a different frame, or
 until the next time this function is called.  The specified @var{frame}
 becomes the selected frame, as explained above, and the terminal that
-@var{frame} is on becomes the selected terminal.
+@var{frame} is on becomes the selected terminal.  This function
+returns @var{frame}, or @code{nil} if @var{frame} has been deleted.
 
 In general, you should never use @code{select-frame} in a way that could
 switch to a different terminal without switching back when you're done.

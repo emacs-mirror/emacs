@@ -1,6 +1,15 @@
+2004-07-06  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keyboard.c (syms_of_keyboard): Fix `keyboard-translate-table'
+	docstring.
+
+	* fns.c (Fclear_string): Declare `len' before call to CHECK_STRING.
+
 2004-07-06  John Paul Wallington  <jpw@gnu.org>
 
 	* eval.c (Fdefmacro): Signal an error if NAME is not a symbol.
+
+	* fns.c (Fclear_string): Signal an error if STRING is not a string.
 
 2004-07-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 

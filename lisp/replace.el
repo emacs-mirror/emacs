@@ -287,6 +287,7 @@ Third arg DELIMITED (prefix arg if interactive), if non-nil, means replace
 only matches that are surrounded by word boundaries.
 Fourth and fifth arg START and END specify the region to operate on."
   (interactive
+   (progn
    (barf-if-buffer-read-only)
    (let* ((from
 	   ;; Let-bind the history var to disable the "foo -> bar" default.
@@ -305,7 +306,7 @@ Fourth and fifth arg START and END specify the region to operate on."
 	   (if (and transient-mark-mode mark-active)
 	       (region-beginning))
 	   (if (and transient-mark-mode mark-active)
-	       (region-end)))))
+	       (region-end))))))
   (perform-replace regexp (cons 'replace-eval-replacement to-expr)
 		   t 'literal delimited nil nil start end))
 

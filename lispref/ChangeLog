@@ -1,3 +1,20 @@
+2004-07-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frames.texi (Input Focus): Clarify descriptions of
+	`select-frame-set-input-focus' and `select-frame'.
+
+2004-07-06  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* os.texi: Various small changes in addition to:
+	(Killing Emacs): Expand and clarify description of
+	`kill-emacs-query-functions' and `kill-emacs-hook'.
+	(System Environment): Expand and clarify description of `getenv'
+	and `setenv'.
+	(Timers): Clarify description of `run-at-time'.
+	(Translating Input): Correct description of
+	`extra-keyboard-modifiers'.
+	(Flow Control): Correct description of `enable-flow-control'.
+
 2004-07-06  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* os.texi: Update copyright.

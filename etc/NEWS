@@ -2952,6 +2952,11 @@ variable is used by read-file-name-internal to filter the completion list.
 ** The new variable `read-file-name-function' can be used by lisp code
 to override the internal read-file-name function.
 
+
+** The new variable `read-file-name-completion-ignore-case' specifies
+whether completion ignores case when reading a file name with the
+`read-file-name' function.
+
 +++
 ** The new function `read-directory-name' can be used instead of
 `read-file-name' to read a directory name; when used, completion
