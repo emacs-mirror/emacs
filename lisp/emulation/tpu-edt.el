@@ -196,7 +196,7 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
 			     (purecopy "  ")
 			     'tpu-mark-flag
 			     (purecopy " %[(")
-			     'mode-name 'minor-mode-alist "%n" 'mode-line-process
+			     'mode-name 'mode-line-process 'minor-mode-alist "%n"
 			     (purecopy ")%]----")
 			     (purecopy '(-3 . "%p"))
 			     (purecopy "-%-")))
