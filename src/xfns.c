@@ -2270,8 +2270,8 @@ x_set_scroll_bar_width (f, arg, oldval)
 
   if (NILP (arg))
     {
-#ifdef USE_X_TOOLKIT
-      /* A too wide or narrow toolkit scroll bar doesn't look good.  */
+#ifdef USE_TOOLKIT_SCROLL_BARS
+      /* A minimum width of 14 doesn't look good for toolkit scroll bars.  */
       int width = 16 + 2 * VERTICAL_SCROLL_BAR_WIDTH_TRIM;
       FRAME_SCROLL_BAR_COLS (f) = (width + wid - 1) / wid;
       FRAME_SCROLL_BAR_PIXEL_WIDTH (f) = width;
