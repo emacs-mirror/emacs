@@ -4394,7 +4394,7 @@ w32_read_socket (sd, expected, hold_quit)
 
                 if (tool_bar_p
 		    || (dpyinfo->w32_focus_frame
-			&& f == dpyinfo->w32_focus_frame))
+			&& f != dpyinfo->w32_focus_frame))
 		  inev.kind = NO_EVENT;
 	      }
 
