@@ -1184,6 +1184,14 @@ fi
 dnl checks for typedefs
 AC_TYPE_SIGNAL
 
+dnl Check for speed_t typedef.
+AC_CACHE_CHECK(for speed_t, emacs_cv_speed_t,
+AC_TRY_COMPILE([#include <termios.h>], [speed_t x = 1;],
+  emacs_cv_speed_t=yes))
+if test $emacs_cv_speed_t = yes; then
+  AC_DEFINE(HAVE_SPEED_T)
+fi
+
 AC_CACHE_CHECK(for struct timeval, emacs_cv_struct_timeval,
 AC_TRY_COMPILE([#ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
