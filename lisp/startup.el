@@ -86,9 +86,9 @@ The frame system uses this to open frames to display messages while
 Emacs loads the user's initialization file.")
 
 (defvar after-init-hook nil
-  "Functions to call after loading the init file (~/.emacs).
+  "Functions to call after loading the init file (`~/.emacs').
 The call is not protected by a condition-case, so you can set `debug-on-error'
-in .emacs, and put all the actual code on `after-init-hook'.")
+in `.emacs', and put all the actual code on `after-init-hook'.")
 
 (defvar term-setup-hook nil
   "Functions to be called after loading terminal-specific lisp code.
