@@ -1,12 +1,12 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(MMdevel_action2.15) $
+ * $HopeName: MMsrc!trace.c(trunk.20) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(MMdevel_action2.15) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.20) $");
 
 
 /* ScanStateCheck -- check consistency of a ScanState object */
@@ -250,7 +250,7 @@ Res TraceStart(Trace trace, Pool pool)
       /* of references in the segment intersects with the approximation */
       /* to the white set. */
       if(RefSetInter(seg->summary, trace->white) != RefSetEMPTY)
-        PoolGrey(pool, trace, seg);
+        PoolGrey(seg->pool, trace, seg);
     }
 
     seg = SegNext(space, seg);
