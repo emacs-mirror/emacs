@@ -1373,9 +1373,9 @@ DEFUN ("string", Fstring, Sstring, 1, MANY, 0,
 	multibyte_p = 1;
     }
 
-  /* Here, we can't use make_string_from_bytes because of byte
+  /* Here, we can't use make_string_from_bytes because of the byte
      combining problem.  Make a multibyte string if there is any
-     multibyte character in ARGS to make sure that `(insert 2276)'
+     multibyte character in ARGS to make sure that `(string 2276)'
      returns a multibyte string if running --unibyte.  */
   if (multibyte_p)
     val = make_multibyte_string (buf, n, p - buf);
