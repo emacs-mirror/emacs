@@ -60,10 +60,22 @@ in the file it applies to.")
   (define-key outline-mode-map "\C-c\C-u" 'outline-up-heading)
   (define-key outline-mode-map "\C-c\C-f" 'outline-forward-same-level)
   (define-key outline-mode-map "\C-c\C-b" 'outline-backward-same-level)
+  (define-key outline-mode-map "\C-c\C-t" 'hide-body)
+  (define-key outline-mode-map "\C-c\C-a" 'show-all)
+  (define-key outline-mode-map "\C-c\C-c" 'hide-entry)
+  (define-key outline-mode-map "\C-c\C-e" 'show-entry)
+  (define-key outline-mode-map "\C-c\C-l" 'hide-leaves)
+  (define-key outline-mode-map "\C-c\C-k" 'show-branches)
+  (define-key outline-mode-map "\C-c\C-q" 'outline-hide-sublevels)
+  (define-key outline-mode-map "\C-c\C-o" 'outline-hide-other)
 
   (define-key outline-mode-map [menu-bar hide]
     (cons "Hide" (make-sparse-keymap "Hide")))
 
+  (define-key outline-mode-map [menu-bar hide hide-other]
+    '("Hide Other" . outline-hide-other))
+  (define-key outline-mode-map [menu-bar hide hide-sublevels]
+    '("Hide Sublevels" . outline-hide-sublevels))
   (define-key outline-mode-map [menu-bar hide hide-subtree]
     '("Hide Subtree" . hide-subtree))
   (define-key outline-mode-map [menu-bar hide hide-entry]
@@ -170,7 +182,7 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
   (add-hook 'change-major-mode-hook 'show-all)
   (run-hooks 'text-mode-hook 'outline-mode-hook))
 
-(defvar outline-minor-mode-prefix "\C-c"
+(defvar outline-minor-mode-prefix "\C-c\C-o"
   "*Prefix key to use for Outline commands in Outline minor mode.")
 
 (defvar outline-minor-mode-map nil)
@@ -338,6 +350,40 @@ while if FLAG is `\\^M' (control-M) the text is hidden."
   "Show everything after this heading at deeper levels."
   (interactive)
   (outline-flag-subtree ?\n))
+
+(defun hide-sublevels (keep-levels)
+  "Hide everything except the first KEEP-LEVEL headers."
+  (interactive "p")
+  (if (< keep-levels 1)
+      (error "Must keep at least one level of headers"))
+  (setq keep-levels (1- keep-levels))
+  (save-excursion
+    (goto-char (point-min))
+    (hide-subtree)
+    (show-children keep-levels)
+    (condition-case err
+      (while (outline-get-next-sibling)
+	(hide-subtree)
+	(show-children keep-levels))
+      (error nil))))
+
+(defun hide-other ()
+  "Hide everything except for the current body and the parent headings."
+  (interactive)
+  (outline-hide-sublevels 1)
+  (let ((last (point))
+	(pos (point)))
+    (while (save-excursion
+	     (and (re-search-backward "[\n\r]" nil t)
+		  (eq (following-char) ?\r)))
+      (save-excursion
+	(beginning-of-line)
+	(if (eq last (point))
+	    (progn
+	      (outline-next-heading)
+	      (outline-flag-region last (point) ?\n))
+	  (show-children)
+	  (setq last (point)))))))
 
 (defun outline-flag-subtree (flag)
   (save-excursion
