@@ -43,10 +43,9 @@ This defaults to the value returned by the `user-full-name' function.")
 
 ;; This MUST not be autoloaded, since user-login-name
 ;; cannot be known at Emacs dump time.
-(defvar add-log-mailing-address (concat (user-login-name) "@" (system-name))
+(defvar add-log-mailing-address user-mail-address
   "*Electronic mail address of user, for inclusion in ChangeLog daily headers.
-This defaults to the value returned by `user-login-name', followed by
-an `@' character, followed by the value returned by `system-name'.")
+This defaults to the value of `user-mail-address'.")
 
 (defun change-log-name ()
   (or change-log-default-name
