@@ -11050,3 +11050,5 @@ If COUNT is negative, move point forward (- COUNT) words."
 ;; End:
 
 ;; end of thai-word.el
+
+;; arch-tag: 29927f02-e177-4224-a270-7e67210b038a
