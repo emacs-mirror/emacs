@@ -2460,7 +2460,7 @@ extern Lisp_Object oblookup P_ ((Lisp_Object, char *, int, int));
 extern Lisp_Object Vcurrent_load_list;
 extern Lisp_Object Vload_history, Vload_suffixes;
 extern int openp P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
-		      Lisp_Object *, int));
+		      Lisp_Object *, Lisp_Object));
 extern int isfloat_string P_ ((char *));
 extern void map_obarray P_ ((Lisp_Object, void (*) (Lisp_Object, Lisp_Object),
 			     Lisp_Object));
