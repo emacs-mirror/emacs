@@ -2907,8 +2907,12 @@ keymap.  Leaves merge in fast mode."
 ;; Make a temporary file that only we have access to.
 ;; PREFIX is appended to emerge-temp-file-prefix to make the filename prefix.
 (defun emerge-make-temp-file (prefix)
-  (let ((f (make-temp-file (concat emerge-temp-file-prefix prefix))))
-    (set-file-modes f emerge-temp-file-mode)
+  (let (f (old-modes (default-file-modes)))
+    (unwind-protect
+	(progn
+	  (set-default-file-modes emerge-temp-file-mode)
+	  (setq f (make-temp-file (concat emerge-temp-file-prefix prefix))))
+      (set-default-file-modes old-modes))
     f))
 
 ;;; Functions that query the user before he can write out the current buffer.
