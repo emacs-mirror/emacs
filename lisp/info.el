@@ -1703,7 +1703,7 @@ Advanced commands:
   (make-local-variable 'Info-tag-table-marker)
   (make-local-variable 'Info-history)
   (make-local-variable 'Info-index-alternatives)
-  (if (memq (framep (selected-frame)) '(x pc))
+  (if (memq (framep (selected-frame)) '(x pc ms-windows))
       (progn
 	(make-face 'info-node)
 	(make-face 'info-menu-5)
