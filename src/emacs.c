@@ -2184,7 +2184,7 @@ You must run Emacs in batch mode in order to dump it.  */)
     {
       fprintf (stderr, "**************************************************\n");
       fprintf (stderr, "Warning: Your system has a gap between BSS and the\n");
-      fprintf (stderr, "heap (%d byte).  This usually means that exec-shield\n",
+      fprintf (stderr, "heap (%lu byte).  This usually means that exec-shield\n",
                heap_bss_diff);
       fprintf (stderr, "or something similar is in effect.  The dump may\n");
       fprintf (stderr, "fail because of this.  See the section about \n");
