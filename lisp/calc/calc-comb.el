@@ -601,7 +601,7 @@
 ;;; Shuffling algorithm from Numerical Recipes, section 7.1.
 (defun math-random-digit ()
   (let (i math-random-last)
-    (or (eq var-RandSeed math-last-RandSeed)
+    (or (and var-RandSeed (eq var-RandSeed math-last-RandSeed))
 	(math-init-random-base))
     (or math-random-cache
 	(progn
