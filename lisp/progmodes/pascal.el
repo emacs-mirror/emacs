@@ -357,6 +357,8 @@ no args, if that value is non-nil."
   (setq comment-indent-function 'pascal-indent-comment)
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments nil)
+  (make-local-variable 'blink-matching-paren-dont-ignore-comments)
+  (setq blink-matching-paren-dont-ignore-comments t)
   (make-local-variable 'case-fold-search)
   (setq case-fold-search t)
   (make-local-variable 'comment-start)
