@@ -9,12 +9,16 @@
 
 2000-11-16  Andre Spiegel  <spiegel@gnu.org>
 
+	* vc.el: Updated backend documentation.
+	(vc-default-check-headers): New function.
+
 	* vc-{cvs,rcs,sccs}.el: Functions reordered.
 	
 	* vc.el (vc-revert-buffer): Ask for confirmation if file seems 
 	up-to-date.
 	(vc-do-command): In the asynchronous case, output messages only if 
 	the minibuffer is not active.
+
 	* vc-cvs.el (vc-cvs-revert): Use `cvs unedit' only if 
 	`vc-cvs-use-edit' is on.
 	(vc-cvs-checkout): When this is used for reverting the workfile, 
@@ -25,6 +29,7 @@
 	
 	* vc.el (vc-annotate): Changed handling of prefix arg; now asks
 	for both version and ratio in the minibuffer.
+
 	* vc-cvs.el (vc-cvs-annotate-command): New optional arg VERSION.  
 	Use vc-do-command to perform the annotation, not call-process.
 
