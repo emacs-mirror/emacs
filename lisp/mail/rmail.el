@@ -2156,15 +2156,29 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
 
 ;;;; *** Rmail Mailing Commands ***
 
-(defun rmail-start-mail (&rest args)
-  (if (and window-system rmail-mail-new-frame)
-      (prog1
-	(apply 'mail-other-frame args)
-	;; This is not a standard frame parameter;
-	;; nothing except sendmail.el looks at it.
-	(modify-frame-parameters (selected-frame)
-				 '((mail-dedicated-frame . t))))
-    (apply 'mail-other-window args)))
+(defun rmail-start-mail (&optional noerase to subject in-reply-to cc
+				   replybuffer sendactions same-window others)
+  (let (yank-action)
+    (if replybuffer
+	(setq yank-action (list 'insert-buffer replybuffer)))
+    (setq others (cons (cons "cc" cc) others))
+    (setq others (cons (cons "in-reply-to" in-reply-to) others))
+    (if same-window
+	(compose-mail to subject others
+		      noerase nil
+		      yank-action sendactions)
+      (if (and window-system rmail-mail-new-frame)
+	  (prog1
+	      (compose-mail to subject others
+			    noerase 'switch-to-buffer-other-frame
+			    yank-action sendactions)
+	    ;; This is not a standard frame parameter;
+	    ;; nothing except sendmail.el looks at it.
+	    (modify-frame-parameters (selected-frame)
+				     '((mail-dedicated-frame . t))))
+	(compose-mail to subject others
+		      noerase 'switch-to-buffer-other-window
+		      yank-action sendactions)))))
 
 (defun rmail-mail ()
   "Send mail in another window.
@@ -2338,23 +2352,22 @@ see the documentation of `rmail-resend'."
 			       ""))
 			   (or (mail-fetch-field "Subject") "")
 			   "]")))
-      ;; If only one window, use it for the mail buffer.
-      ;; Otherwise, use another window for the mail buffer
-      ;; so that the Rmail buffer remains visible
-      ;; and sending the mail will get back to it.
-      (if (funcall (if (and (not rmail-mail-new-frame) (one-window-p t))
-		       (function mail)
-		     (function rmail-start-mail))
-		   nil nil subject nil nil nil
-		   (list (list (function
-				(lambda ()
-				  (let ((msgnum
-					 rmail-send-actions-rmail-msg-number))
-				    (save-excursion
-				      (set-buffer rmail-send-actions-rmail-buffer)
-				      (if msgnum
-					  (rmail-set-attribute
-					   "forwarded" t msgnum)))))))))
+      (if (rmail-start-mail
+	   nil nil subject nil nil nil
+	   (list (list (function
+			(lambda ()
+			  (let ((msgnum
+				 rmail-send-actions-rmail-msg-number))
+			    (save-excursion
+			      (set-buffer rmail-send-actions-rmail-buffer)
+			      (if msgnum
+				  (rmail-set-attribute
+				   "forwarded" t msgnum))))))))
+	   ;; If only one window, use it for the mail buffer.
+	   ;; Otherwise, use another window for the mail buffer
+	   ;; so that the Rmail buffer remains visible
+	   ;; and sending the mail will get back to it.
+	   (and (not rmail-mail-new-frame) (one-window-p t)))
 	  ;; The mail buffer is now current.
 	  (save-excursion
 	    ;; We keep the rmail buffer and message number in these 
