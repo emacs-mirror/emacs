@@ -1,3 +1,7 @@
+2001-09-04  Gerd Moellmann  <gerd@gnu.org>
+
+	* simple.el (backward-word): Doc fix.
+
 2001-09-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* menu-bar.el: Fix separators in the Edit menu.  Bring "Fill" near

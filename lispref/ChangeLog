@@ -1,3 +1,14 @@
+2001-09-04  Werner LEMBERG  <wl@gnu.org>
+
+	* Makefile.in (srcdir, texinputdir): New variables.
+	(srcs, index.texi, install): Use $(srcdir).
+	(.PHONY): Remove elisp.dvi.
+	(elisp): Use -I switch for makeinfo.
+	(elisp.dvi): Use $(srcdir) and $(texinputdir).
+	(installall, dist): Use $(srcdir).
+	Fix path to texinfo.tex.
+	(maintainer-clean): Add elisp.dvi and elisp.oaux.
+
 2001-08-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* display.texi (Conditional Display): Adjust to API change.
