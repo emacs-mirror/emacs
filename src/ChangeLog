@@ -1,3 +1,7 @@
+2000-12-18  Kenichi Handa  <handa@etl.go.jp>
+
+	* dired.c (directory_files_internal): Always return decoded filenames.
+
 2000-12-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (init_iterator): If noninteractive, and the frame's
