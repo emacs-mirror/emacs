@@ -1,3 +1,14 @@
+2002-08-23  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* regex.c (PATFETCH): Remove the translating fetch.
+	(PATFETCH_RAW): Rename to PATFETCH.
+	(set_image_of_range): New fun.
+	(SET_RANGE_TABLE_WORK_AREA): Use it.
+	(regex_compile): Don't translate the pattern chars so eagerly.
+	Only do it when inserting an `exactn' bytecode or when handling
+	a char-range.
+	(mutually_exclusive_p): Avoid empty statement.
+
 2002-08-22  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (redisplay_window): Do not `goto try_to_scroll' when we
@@ -511,11 +522,10 @@
 	(parse_solitary_modifier, Fexecute_extended_command): Likewise.
 	* textprop.c (validate_interval_range, interval_of): Likewise.
 
-	* fontset.c (Fset_fontset_font): Use SDATA instead of
-	XSTRING()->data.
+	* fontset.c (Fset_fontset_font): Use SDATA instead of XSTRING()->data.
 
-	* charset.h (FETCH_STRING_CHAR_ADVANCE,
-	FETCH_STRING_CHAR_ADVANCE_NO_CHECK): Use SBYTES instead of
+	* charset.h (FETCH_STRING_CHAR_ADVANCE)
+	(FETCH_STRING_CHAR_ADVANCE_NO_CHECK): Use SBYTES instead of
 	XSTRING()->size_byte.
 
 	* lisp.h (SDATA, SREF): Produce rvalue.
@@ -524,8 +534,8 @@
 	* buffer.c (Fother_buffer): Use SREF when retrieving a byte from
 	a string.
 	* casefiddle.c (casify_object): Use SSET.
-	* charset.h (FETCH_STRING_CHAR_ADVANCE,
-	FETCH_STRING_CHAR_ADVANCE_NO_CHECK): Use SDATA when getting
+	* charset.h (FETCH_STRING_CHAR_ADVANCE)
+	(FETCH_STRING_CHAR_ADVANCE_NO_CHECK): Use SDATA when getting
 	address of string contents.
 	* data.c (Faref): Use SDATA.
 	(Faset): Use SDATA, SSET.
