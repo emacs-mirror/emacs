@@ -1,14 +1,12 @@
 /* impl.c.poolmvff: First Fit Manual Variable Pool
  * 
- * $HopeName: MMsrc!poolmvff.c(trunk.19) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!poolmvff.c(trunk.20) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  *
  * .purpose: This is a pool class for manually managed objects of
  * variable size where address-ordered first fit is an appropriate
  * policy.  Provision is made to allocate in reverse.  This pool
  * can allocate across segment boundaries.
- * 
- * .readership: MM developers
  * 
  * .design: design.mps.poolmvff
  *
@@ -24,7 +22,7 @@
 #include "cbs.h"
 #include "mpm.h"
 
-SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.19) $");
+SRCID(poolmvff, "$HopeName: MMsrc!poolmvff.c(trunk.20) $");
 
 
 /* Would go in poolmvff.h if the class had any MPS-internal clients. */
@@ -79,12 +77,10 @@ typedef MVFFDebugStruct *MVFFDebug;
 
 /* MVFFAddToFreeList -- Add given range to free list 
  *
- * Updates MVFF counters for additional free space.
- * Returns maximally coalesced range containing given range.
- * Does not attempt to free segments (see MVFFFreeSegs).
- * Cannot(!) fail.
+ * Updates MVFF counters for additional free space.  Returns maximally
+ * coalesced range containing given range.  Does not attempt to free
+ * segments (see MVFFFreeSegs).  Cannot(!) fail.
  */
-
 static void MVFFAddToFreeList(Addr *baseIO, Addr *limitIO, MVFF mvff) {
   Res res;
   Addr base, limit;
@@ -113,7 +109,6 @@ static void MVFFAddToFreeList(Addr *baseIO, Addr *limitIO, MVFF mvff) {
  * It is not combined with MVFFAddToFreeList because the latter
  * is also called when new segments are added under MVFFAlloc.
  */
-
 static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit) 
 {
   Seg seg;
@@ -171,7 +166,6 @@ static void MVFFFreeSegs(MVFF mvff, Addr base, Addr limit)
  * withReservoirPermit flag) of at least the specified size.  The
  * specified size should be pool-aligned.  Adds it to the free list.
  */
-
 static Res MVFFAddSeg(Seg *segReturn, 
                       MVFF mvff, Size size, Bool withReservoirPermit)
 {
@@ -239,7 +233,6 @@ static Res MVFFAddSeg(Seg *segReturn,
  * Will return FALSE if the free list has no large enough block.
  * In particular, will not attempt to allocate a new segment.
  */
-
 static Bool MVFFFindFirstFree(Addr *baseReturn, Addr *limitReturn,
                               MVFF mvff, Size size)
 {
@@ -343,7 +336,6 @@ static void MVFFFree(Pool pool, Addr old, Size size)
  *
  * Fill it with the largest block we can find.
  */
-
 static Res MVFFBufferFill(Addr *baseReturn, Addr *limitReturn,
                           Pool pool, Buffer buffer, Size size,
                           Bool withReservoirPermit)
@@ -414,7 +406,7 @@ static void MVFFBufferEmpty(Pool pool, Buffer buffer,
 }
 
 
-/* == Initialize == */
+/* MVFFInit -- initialize method for MVFF */
 
 static Res MVFFInit(Pool pool, va_list arg)
 {
@@ -424,7 +416,7 @@ static Res MVFFInit(Pool pool, va_list arg)
   Arena arena;
   Res res;
   void *p;
-  RefSet refset;
+  ZoneSet zones;
 
   AVERT(Pool, pool);
 
@@ -467,9 +459,9 @@ static Res MVFFInit(Pool pool, va_list arg)
   mvff->segPref = (SegPref)p;
   *mvff->segPref = *SegPrefDefault();
   SegPrefExpress(mvff->segPref, arenaHigh ? SegPrefHigh : SegPrefLow, NULL);
-  /* If using refset placement, just put it apart from the others. */
-  refset = RefSetComp(ARENA_DEFAULT_REFSET);
-  SegPrefExpress(mvff->segPref, SegPrefRefSet, (void *)&refset);
+  /* If using zoneset placement, just put it apart from the others. */
+  zones = ZoneSetComp(ArenaDefaultZONESET);
+  SegPrefExpress(mvff->segPref, SegPrefZoneSet, (void *)&zones);
 
   mvff->total = 0;
   mvff->free = 0;
@@ -484,6 +476,8 @@ static Res MVFFInit(Pool pool, va_list arg)
   return ResOK;
 }
 
+
+/* MVFFFinish -- finish method for MVFF */
 
 static void MVFFFinish(Pool pool)
 {
@@ -529,6 +523,8 @@ static PoolDebugMixin MVFFDebugMixin(Pool pool)
   return &(MVFFPoolMVFFDebug(mvff)->debug);
 }
 
+
+/* MVFFDescribe -- describe an MVFF pool */
 
 static Res MVFFDescribe(Pool pool, mps_lib_FILE *stream)
 {
@@ -586,7 +582,6 @@ PoolClass PoolClassMVFF(void)
 
 
 /* Pool class MVFFDebug */
-
 
 DEFINE_POOL_CLASS(MVFFDebugPoolClass, this)
 {

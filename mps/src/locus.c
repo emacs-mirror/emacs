@@ -1,6 +1,6 @@
 /* impl.c.locus: LOCUS MANAGER
  *
- * $HopeName: MMsrc!locus.c(trunk.3) $
+ * $HopeName: MMsrc!locus.c(trunk.4) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
@@ -16,7 +16,7 @@
 #include <float.h> /* for DBL_MAX */
 
 
-SRCID(locus, "$HopeName: MMsrc!locus.c(trunk.3) $");
+SRCID(locus, "$HopeName: MMsrc!locus.c(trunk.4) $");
 
 
 /* SegPrefCheck -- check the consistency of a segment preference */
@@ -25,7 +25,7 @@ Bool SegPrefCheck(SegPref pref)
 {
   CHECKS(SegPref, pref);
   CHECKL(BoolCheck(pref->high));
-  /* refSet can't be checked because it's an arbitrary bit pattern. */
+  /* zones can't be checked because it's arbitrary. */
   CHECKL(BoolCheck(pref->isGen));
   CHECKL(BoolCheck(pref->isCollected));
   /* gen is an arbitrary serial */
@@ -35,14 +35,7 @@ Bool SegPrefCheck(SegPref pref)
 
 /* SegPrefDefault -- return a segment preference representing the defaults */
 
-static SegPrefStruct segPrefDefault = {
-  SegPrefSig,                           /* sig */
-  ARENA_DEFAULT_SEG_HIGH,               /* high */
-  ARENA_DEFAULT_REFSET,                 /* refSet */
-  FALSE,                                /* isCollected */
-  FALSE,                                /* isGen */
-  (Serial)0,                            /* gen */
-};
+static SegPrefStruct segPrefDefault = SegPrefDEFAULT;
 
 SegPref SegPrefDefault(void)
 {
@@ -68,9 +61,9 @@ Res SegPrefExpress(SegPref pref, SegPrefKind kind, void *p)
     pref->high = FALSE;
     break;
 
-  case SegPrefRefSet:
+  case SegPrefZoneSet:
     AVER(p != NULL);
-    pref->refSet = *(RefSet *)p;
+    pref->zones = *(ZoneSet *)p;
     break;
 
   case SegPrefCollected:
@@ -271,7 +264,6 @@ double ChainDeferral(Chain chain)
  * high that the tracer decided to start the collection.  (Usually
  * more than zero, but sometimes less; see mps.design.trace.)
  */
-
 Res ChainCondemnAuto(double *mortalityReturn, Chain chain, Trace trace)
 {
   Res res;
@@ -306,7 +298,7 @@ Res ChainCondemnAuto(double *mortalityReturn, Chain chain, Trace trace)
 
   /* Condemn everything in these zones. */
   if (condemnedSet != ZoneSetEMPTY) {
-    res = TraceCondemnRefSet(trace, condemnedSet);
+    res = TraceCondemnZones(trace, condemnedSet);
     if (res != ResOK)
       return res;
   }
@@ -430,7 +422,6 @@ Bool PoolGenCheck(PoolGen gen)
  * This is a temporary i/f: eventually the locus manager will update
  * these directly.
  */
-
 void PoolGenUpdateZones(PoolGen gen, Seg seg)
 {
   Chain chain;
@@ -442,7 +433,7 @@ void PoolGenUpdateZones(PoolGen gen, Seg seg)
   AVERT(Chain, chain);
   if (gen->nr != chain->genCount)
     chain->gens[gen->nr].zones =
-      ZoneSetUnion(chain->gens[gen->nr].zones, RefSetOfSeg(chain->arena, seg));
+      ZoneSetUnion(chain->gens[gen->nr].zones, ZoneSetOfSeg(chain->arena, seg));
   /* No need to keep track of dynamic gen zoneset. */
 }
 
