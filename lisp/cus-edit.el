@@ -1561,9 +1561,9 @@ item in another window.\n\n"))
   :group 'custom-magic-faces)
 
 (defface custom-set-face '((((class color))
-				(:foreground "blue" :background "white"))
-			       (t
-				(:slant italic)))
+			    (:foreground "blue" :background "white"))
+			   (t
+			    (:slant italic)))
   "Face used when the customize item has been set."
   :group 'custom-magic-faces)
 
@@ -1578,31 +1578,32 @@ item in another window.\n\n"))
   "Face used when the customize item has been saved."
   :group 'custom-magic-faces)
 
-(defconst custom-magic-alist '((nil "#" underline "\
+(defconst custom-magic-alist
+  '((nil "#" underline "\
 uninitialized, you should not see this.")
-			       (unknown "?" italic "\
+    (unknown "?" italic "\
 unknown, you should not see this.")
-			       (hidden "-" default "\
+    (hidden "-" default "\
 hidden, invoke \"Show\" in the previous line to show." "\
 group now hidden, invoke \"Show\", above, to show contents.")
-			       (invalid "x" custom-invalid-face "\
+    (invalid "x" custom-invalid-face "\
 the value displayed for this %c is invalid and cannot be set.")
-			       (modified "*" custom-modified-face "\
+    (modified "*" custom-modified-face "\
 you have edited the value as text, but you have not set the %c." "\
 you have edited something in this group, but not set it.")
-			       (set "+" custom-set-face "\
+    (set "+" custom-set-face "\
 you have set this %c, but not saved it for future sessions." "\
 something in this group has been set, but not saved.")
-			       (changed ":" custom-changed-face "\
+    (changed ":" custom-changed-face "\
 this %c has been changed outside the customize buffer." "\
 something in this group has been changed outside customize.")
-			       (saved "!" custom-saved-face "\
+    (saved "!" custom-saved-face "\
 this %c has been set and saved." "\
 something in this group has been set and saved.")
-			       (rogue "@" custom-rogue-face "\
+    (rogue "@" custom-rogue-face "\
 this %c has not been changed with customize." "\
 something in this group is not prepared for customization.")
-			       (standard " " nil "\
+    (standard " " nil "\
 this %c is unchanged from its standard setting." "\
 visible group members are all at standard settings."))
   "Alist of customize option states.
@@ -2576,7 +2577,7 @@ to switch between two values."
   "Edit face attributes."
   :format "%t: %v"
   :tag "Attributes"
-  :extra-offset 12
+  :extra-offset 13
   :button-args '(:help-echo "Control whether this attribute has any effect.")
   :value-to-internal 'custom-face-edit-fix-value
   :match (lambda (widget value)
@@ -2817,13 +2818,29 @@ Only match frames that support the specified face attributes.")
 
 (define-widget 'custom-face-selected 'group
   "Edit the attributes of the selected display in a face specification."
-  :args '((repeat :format ""
-		  :inline t
-		  (group custom-display-unselected sexp))
-	  (group (sexp :format "") custom-face-edit)
-	  (repeat :format ""
-		  :inline t
-		  sexp)))
+  :args '((choice :inline t
+		  (group :tag "With Defaults" :inline t
+		   (group (const :tag "" default)
+			  (custom-face-edit :tag " Default\n Attributes"))
+		   (repeat :format ""
+			   :inline t
+			   (group custom-display-unselected sexp))
+		   (group (sexp :format "")
+			  (custom-face-edit :tag " Overriding\n Attributes"))
+		   (repeat :format ""
+			   :inline t
+			   sexp))
+		  (group :tag "No Defaults" :inline t
+			 (repeat :format ""
+				 :inline t
+				 (group custom-display-unselected sexp))
+			 (group (sexp :format "")
+				(custom-face-edit :tag "\n Attributes"))
+			 (repeat :format ""
+				 :inline t
+				 sexp)))))
+
+
 
 (defconst custom-face-selected (widget-convert 'custom-face-selected)
   "Converted version of the `custom-face-selected' widget.")
