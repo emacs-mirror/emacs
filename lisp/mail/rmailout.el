@@ -149,7 +149,7 @@ starting with the current one.  Deleted messages are skipped and don't count."
 
 ;;; There are functions elsewhere in Emacs that use this function; check
 ;;; them out before you change the calling method.
-(defun rmail-output (file-name &optional count noattribute)
+(defun rmail-output (file-name &optional count noattribute from-gnus)
   "Append this message to Unix mail file named FILE-NAME.
 A prefix argument N says to output N consecutive messages
 starting with the current one.  Deleted messages are skipped and don't count.
@@ -160,7 +160,9 @@ messages will be appended with pruned headers; otherwise, messages
 will be appended with their original headers.
 
 The optional third argument NOATTRIBUTE, if non-nil, says not
-to set the `filed' attribute, and not to display a message."
+to set the `filed' attribute, and not to display a message.
+
+The optional fourth argument FROM-GNUS is set when called from GNUS."
   (interactive
    (list (setq rmail-last-file
 	       (read-file-name
@@ -185,24 +187,26 @@ to set the `filed' attribute, and not to display a message."
 	  (case-fold-search t)
 	  (tembuf (get-buffer-create " rmail-output"))
 	  (original-headers-p
-	   (save-excursion 
-	     (save-restriction
-	       (narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
-	       (goto-char (point-min))
-	       (forward-line 1)
-	       (= (following-char) ?0))))
+	   (and (not from-gnus)
+		(save-excursion 
+		  (save-restriction
+		    (narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
+		    (goto-char (point-min))
+		    (forward-line 1)
+		    (= (following-char) ?0)))))
 	  header-beginning
 	  mail-from)
       (while (> count 0)
-	(setq mail-from
-	      (save-excursion
-		(save-restriction
-		  (widen)
-		  (goto-char (rmail-msgbeg rmail-current-message))
-		  (setq header-beginning (point))
-		  (search-forward "\n*** EOOH ***\n")
-		  (narrow-to-region header-beginning (point))
-		  (mail-fetch-field "Mail-From"))))
+	(or from-gnus
+	    (setq mail-from
+		  (save-excursion
+		    (save-restriction
+		      (widen)
+		      (goto-char (rmail-msgbeg rmail-current-message))
+		      (setq header-beginning (point))
+		      (search-forward "\n*** EOOH ***\n")
+		      (narrow-to-region header-beginning (point))
+		      (mail-fetch-field "Mail-From")))))
 	(save-excursion
 	  (set-buffer tembuf)
 	  (erase-buffer)
@@ -229,22 +233,23 @@ to set the `filed' attribute, and not to display a message."
 	    (if (equal major-mode 'rmail-mode)
 		(rmail-set-attribute "filed" t)))
 	(setq count (1- count))
-	(let ((next-message-p
-	       (if rmail-delete-after-output
-		   (rmail-delete-forward)
-		 (if (> count 0)
-		     (rmail-next-undeleted-message 1))))
-	      (num-appended (- orig-count count)))
-	  (if (and next-message-p original-headers-p)
-	      (rmail-toggle-header))
-	  (if (and (> count 0) (not next-message-p))
-	      (progn 
-		(error
-		 (save-excursion
-		   (set-buffer rmailbuf)
-		   (format "Only %d message%s appended" num-appended
-			   (if (= num-appended 1) "" "s"))))
-		(setq count 0)))))
+	(or from-gnus
+	    (let ((next-message-p
+		   (if rmail-delete-after-output
+		       (rmail-delete-forward)
+		     (if (> count 0)
+			 (rmail-next-undeleted-message 1))))
+		  (num-appended (- orig-count count)))
+	      (if (and next-message-p original-headers-p)
+		  (rmail-toggle-header))
+	      (if (and (> count 0) (not next-message-p))
+		  (progn 
+		    (error
+		     (save-excursion
+		       (set-buffer rmailbuf)
+		       (format "Only %d message%s appended" num-appended
+			       (if (= num-appended 1) "" "s"))))
+		    (setq count 0))))))
       (kill-buffer tembuf))))
 
 ;;; rmailout.el ends here
