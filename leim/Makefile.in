@@ -42,7 +42,7 @@ BUILT-EMACS = ${dot}${dot}/src/emacs
 buildlisppath=${srcdir}/${dot}${dot}/lisp
 
 # How to run Emacs.
-RUN-EMACS = EMACSLOADPATH=$(buildlisppath) \
+RUN-EMACS = EMACSLOADPATH=$(buildlisppath) LC_ALL=C\
 	${BUILT-EMACS} -batch --no-init-file --no-site-file --multibyte
 
 # Subdirectories to be made if ${srcdir} is different from the current
