@@ -181,6 +181,12 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
   (if command-line-processed
       (message "Back to top level.")
     (setq command-line-processed t)
+    ;; Give *Messages* the same default-directory as *scratch*,
+    ;; just to keep things predictable.
+    (let ((dir default-directory))
+      (save-excursion
+	(set-buffer (get-buffer "*Messages*"))
+	(setq default-directory dir)))
     ;; Look in each dir in load-path for a subdirs.el file.
     ;; If we find one, load it, which will add the appropriate subdirs
     ;; of that dir into load-path,
