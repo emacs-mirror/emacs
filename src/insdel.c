@@ -366,7 +366,7 @@ insert_from_string (string, pos, length, inherit)
   Z += length;
 
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
-  graft_intervals_into_buffer (XSTRING (string)->intervals, point,
+  graft_intervals_into_buffer (XSTRING (string)->intervals, point, length,
 			       current_buffer, inherit);
 
   SET_PT (point + length);
