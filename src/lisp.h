@@ -641,7 +641,7 @@ struct Lisp_Vector
    and 8-bit Europeans characters.  For these characters, do not check
    validity of CT.  Do not follow parent.  */
 #define CHAR_TABLE_REF(CT, IDX)				\
-  ((IDX) < CHAR_TABLE_SINGLE_BYTE_SLOTS			\
+  ((IDX) >= 0 && (IDX) < CHAR_TABLE_SINGLE_BYTE_SLOTS	\
    ? (!NILP (XCHAR_TABLE (CT)->contents[IDX])		\
       ? XCHAR_TABLE (CT)->contents[IDX]			\
       : XCHAR_TABLE (CT)->defalt)			\
