@@ -3278,7 +3278,7 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
     return Qnil;
 
   update_begin (f);
-  if (FRAME_MSDOS_P (f) || FRAME_W32_CONSOLE_P (f))
+  if (FRAME_MSDOS_P (f))
     set_terminal_modes ();
   clear_frame ();
   clear_current_matrices (f);
