@@ -174,6 +174,8 @@ static void adjust_frame_glyphs_for_window_redisplay P_ ((struct frame *));
 static void adjust_frame_glyphs_for_frame_redisplay P_ ((struct frame *));
 static void reverse_rows P_ ((struct glyph_matrix *, int, int));
 static int margin_glyphs_to_reserve P_ ((struct window *, int, Lisp_Object));
+static void sync_window_with_frame_matrix_rows P_ ((struct window *));
+struct window *frame_row_to_window P_ ((struct window *, int));
 
 
 
@@ -1495,6 +1497,17 @@ realloc_glyph_pool (pool, matrix_dim)
 
 #if GLYPH_DEBUG
 
+
+/* Flush standard output.  This is sometimes useful to call from
+   the debugger.  */
+
+void
+flush_stdout ()
+{
+  fflush (stdout);
+}
+
+
 /* Check that no glyph pointers have been lost in MATRIX.  If a
    pointer has been lost, e.g. by using a structure assignment between
    rows, at least one pointer must occur more than once in the rows of
@@ -2439,6 +2452,7 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
 	      SET_CHAR_GLYPH_FROM_GLYPH (*border, right_border_glyph);
 	    }
 
+#if 0 /* This shouldn't be necessary.  Let's check it.  */
 	  /* Due to hooks installed, it normally doesn't happen that
 	     window rows and frame rows of the same matrix are out of
 	     sync, i.e. have a different understanding of where to
@@ -2459,11 +2473,12 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
 	      /* Exchange pointers between both rows.  */
 	      swap_glyph_pointers (window_row, slice_row);
 	    }
+#endif
 
-	  /* Now, we are sure that window row window_y is a slice of
-	     the frame row frame_y.  But, lets check that assumption.  */
+	  /* Window row window_y must be a slice of frame row
+	     frame_y.  */
 	  xassert (glyph_row_slice_p (window_row, frame_row));
-
+	  
 	  /* If rows are in sync, we don't have to copy glyphs because
 	     frame and window share glyphs.  */
 	  
@@ -2697,6 +2712,68 @@ mirrored_line_dance (matrix, unchanged_at_top, nlines, copy_from,
 }
 
 
+/* Synchronize glyph pointers in the current matrix of window W with
+   the current frame matrix.  W must be full-width, and be on a tty
+   frame.  */
+
+static void
+sync_window_with_frame_matrix_rows (w)
+     struct window *w;
+{
+  struct frame *f = XFRAME (w->frame);
+  struct glyph_row *window_row, *window_row_end, *frame_row;
+
+  /* Preconditions: W must be a leaf window and full-width.  Its frame
+     must have a frame matrix.  */
+  xassert (NILP (w->hchild) && NILP (w->vchild));
+  xassert (WINDOW_FULL_WIDTH_P (w));
+  xassert (!FRAME_WINDOW_P (f));
+
+  /* If W is a full-width window, glyph pointers in W's current matrix
+     have, by definition, to be the same as glyph pointers in the
+     corresponding frame matrix.  */
+  window_row = w->current_matrix->rows;
+  window_row_end = window_row + w->current_matrix->nrows;
+  frame_row = f->current_matrix->rows + XFASTINT (w->top);
+  while (window_row < window_row_end)
+    {
+      int area;
+      
+      for (area = LEFT_MARGIN_AREA; area <= LAST_AREA; ++area)
+	window_row->glyphs[area] = frame_row->glyphs[area];
+
+      ++window_row, ++frame_row;
+    }
+}
+
+
+/* Return the window in the window tree rooted in W containing frame
+   row ROW.  Value is null if none is found.  */
+
+struct window *
+frame_row_to_window (w, row)
+     struct window *w;
+     int row;
+{
+  struct window *found = NULL;
+  
+  while (w && !found)
+    {
+      if (!NILP (w->hchild))
+ 	found = frame_row_to_window (XWINDOW (w->hchild), row);
+      else if (!NILP (w->vchild))
+	found = frame_row_to_window (XWINDOW (w->vchild), row);
+      else if (row >= XFASTINT (w->top)
+	       && row < XFASTINT (w->top) + XFASTINT (w->height))
+	found = w;
+      
+      w = NILP (w->next) ? 0 : XWINDOW (w->next);
+    }
+
+  return found;
+}
+
+
 /* Perform a line dance in the window tree rooted at W, after
    scrolling a frame matrix in mirrored_line_dance.
 
@@ -2728,9 +2805,7 @@ mirror_line_dance (w, unchanged_at_top, nlines, copy_from, retained_p)
 	  /* W is a leaf window, and we are working on its current
 	     matrix m.  */
 	  struct glyph_matrix *m = w->current_matrix;
-	  
-	  int i;
-	  
+	  int i, sync_p = 0;
 	  struct glyph_row *old_rows;
 
 	  /* Make a copy of the original rows of matrix m.  */
@@ -2755,20 +2830,14 @@ mirror_line_dance (w, unchanged_at_top, nlines, copy_from, retained_p)
 	      int from_inside_window_p
 		= window_from >= 0 && window_from < m->matrix_h;
 	      
-	      if (from_inside_window_p)
+	      /* Is assigned to line inside window?  */
+	      int to_inside_window_p
+		= window_to >= 0 && window_to < m->matrix_h;
+	      
+	      if (from_inside_window_p && to_inside_window_p)
 		{
-#if GLYPH_DEBUG
-		  /* Is assigned to line inside window?  */
-		  int to_inside_window_p
-		    = window_to >= 0 && window_to < m->matrix_h;
-#endif
-		  
 		  /* Enabled setting before assignment.  */
 		  int enabled_before_p;
-		  
-		  /* If not both lines inside the window, we have a
-		     serious problem.  */
-		  xassert (to_inside_window_p);
 		  
 		  /* Do the assignment.  The enabled_p flag is saved
 		     over the assignment because the old redisplay did
@@ -2781,7 +2850,35 @@ mirror_line_dance (w, unchanged_at_top, nlines, copy_from, retained_p)
 		  if (!retained_p[copy_from[i]])
 		    m->rows[window_to].enabled_p = 0;
 		}
+	      else if (to_inside_window_p)
+		{
+		  /* A copy between windows.  This is an infrequent
+		     case not worth optimizing.  */
+		  struct frame *f = XFRAME (w->frame);
+		  struct window *root = XWINDOW (FRAME_ROOT_WINDOW (f));
+		  struct window *w2;
+		  struct glyph_matrix *m2;
+		  int m2_from;
+
+		  w2 = frame_row_to_window (root, frame_to);
+		  m2 = w2->current_matrix;
+		  m2_from = frame_from - m2->matrix_y;
+		  copy_row_except_pointers (m->rows + window_to,
+					    m2->rows + m2_from);
+		  
+		  /* If frame line is empty, window line is empty, too.  */
+		  if (!retained_p[copy_from[i]])
+		    m->rows[window_to].enabled_p = 0;
+		  sync_p = 1;
+		}
+	      else if (from_inside_window_p)
+		sync_p = 1;
 	    }
+
+	  /* If there was a copy between windows, make sure glyph
+	     pointers are in sync with the frame matrix.  */
+	  if (sync_p)
+	    sync_window_with_frame_matrix_rows (w);
 	  
 	  /* Check that no pointers are lost.  */
 	  CHECK_MATRIX (m);
