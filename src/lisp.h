@@ -226,19 +226,21 @@ Lisp_Object;
 enum pvec_type
 {
   PVEC_NORMAL_VECTOR = 0,
-  PVEC_BUFFER = 0x100,
   PVEC_PROCESS = 0x200,
   PVEC_FRAME = 0x400,
   PVEC_COMPILED = 0x800,
   PVEC_WINDOW = 0x1000,
   PVEC_WINDOW_CONFIGURATION = 0x2000,
   PVEC_SUBR = 0x4000,
-  PVEC_TYPE_MASK = 0x7f00,
+  PVEC_CHAR_TABLE = 0x8000,
+  PVEC_BOOL_VECTOR = 0x10000,
+  PVEC_BUFFER = 0x20000,
+  PVEC_TYPE_MASK = 0x3ff00,
   PVEC_FLAG = PSEUDOVECTOR_FLAG
 };
 
 /* For convenience, we also store the number of elements in these bits.  */
-#define PSEUDOVECTOR_SIZE_MASK 0xff
+#define PSEUDOVECTOR_SIZE_MASK 0x1ff
 
 #endif /* NO_UNION_TYPE */
 
@@ -402,6 +404,8 @@ extern int pure_size;
 #define XWINDOW(a) ((struct window *) XPNTR(a))
 #define XSUBR(a) ((struct Lisp_Subr *) XPNTR(a))
 #define XBUFFER(a) ((struct buffer *) XPNTR(a))
+#define XCHAR_TABLE(a) ((struct Lisp_Char_Table *) XPNTR(a))
+#define XBOOL_VECTOR(a) ((struct Lisp_Bool_Vector *) XPNTR(a))
 
 
 /* Construct a Lisp_Object from a value or address.  */
@@ -427,6 +431,8 @@ extern int pure_size;
 #define XSETSUBR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_SUBR))
 #define XSETCOMPILED(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_COMPILED))
 #define XSETBUFFER(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BUFFER))
+#define XSETCHAR_TABLE(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_CHAR_TABLE))
+#define XSETBOOL_VECTOR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BOOL_VECTOR))
 
 #ifdef USE_TEXT_PROPERTIES
 /* Basic data type for use of intervals.  See the macros in intervals.h.  */
@@ -533,6 +539,55 @@ struct Lisp_Vector
     EMACS_INT size;
     struct Lisp_Vector *next;
     Lisp_Object contents[1];
+  };
+
+/* A char table is a kind of vectorlike, with contents are like a vector
+   but with a few other slots.  For some purposes, it makes sense
+   to handle a chartable with type struct Lisp_Vector.  */
+
+/* This is the number of slots that apply to characters
+   or character sets.  */
+#define CHAR_TABLE_ORDINARY_SLOTS 256
+
+/* This is the number of slots that every char table must have.
+   This counts the ordinary slots and the parent and defalt slots.  */
+#define CHAR_TABLE_STANDARD_SLOTS (256+2)
+
+/* Return the number of "extra" slots in the char table CT.  */
+
+#define CHAR_TABLE_EXTRA_SLOTS(CT)	\
+  (((CT)->size & PSEUDOVECTOR_SIZE_MASK) - CHAR_TABLE_STANDARD_SLOTS)
+
+struct Lisp_Char_Table
+  {
+    /* This is the vector's size field, which also holds the
+       pseudovector type information.  It holds the size, too.
+       The size counts the defalt and parent slots.  */
+    EMACS_INT size;
+    struct Lisp_Vector *next;
+    Lisp_Object contents[CHAR_TABLE_ORDINARY_SLOTS];
+    /* This holds a default value,
+       which is used whenever the value for a specific character is nil.  */
+    Lisp_Object defalt;
+    /* This points to another char table, which we inherit from
+       when the value for a specific character is nil.
+       The `defalt' slot takes precedence over this.  */
+    Lisp_Object parent;
+    /* These hold additional data.  */
+    Lisp_Object extras[1];
+  };
+
+/* A boolvector is a kind of vectorlike, with contents are like a string.  */
+struct Lisp_Bool_Vector
+  {
+    /* This is the vector's size field.  It doesn't have the real size,
+       just the subtype information.  */
+    EMACS_INT vector_size;
+    struct Lisp_Vector *next;
+    /* This is the size in bits.  */
+    EMACS_INT size;
+    /* This contains the actual bits, packed into bytes.  */
+    unsigned char data[1];
   };
 
 /* In a symbol, the markbit of the plist is used as the gc mark bit */
@@ -899,6 +954,10 @@ typedef unsigned char UCHAR;
 #define GC_COMPILEDP(x) GC_PSEUDOVECTORP (x, PVEC_COMPILED)
 #define BUFFERP(x) PSEUDOVECTORP (x, PVEC_BUFFER)
 #define GC_BUFFERP(x) GC_PSEUDOVECTORP (x, PVEC_BUFFER)
+#define CHAR_TABLE_P(x) PSEUDOVECTORP (x, PVEC_CHAR_TABLE)
+#define GC_CHAR_TABLE_P(x) GC_PSEUDOVECTORP (x, PVEC_CHAR_TABLE)
+#define BOOL_VECTOR_P(x) PSEUDOVECTORP (x, PVEC_BOOL_VECTOR)
+#define GC_BOOL_VECTOR_P(x) GC_PSEUDOVECTORP (x, PVEC_BOOL_VECTOR)
 
 #ifdef MULTI_FRAME
 #define FRAMEP(x) PSEUDOVECTORP (x, PVEC_FRAME)
@@ -927,6 +986,10 @@ typedef unsigned char UCHAR;
 
 #define CHECK_SYMBOL(x, i) \
   do { if (!SYMBOLP ((x))) x = wrong_type_argument (Qsymbolp, (x)); } while (0)
+
+#define CHECK_CHAR_TABLE(x, i) \
+  do { if (!CHAR_TABLE_P ((x)) && !NILP (x))				\
+	 x = wrong_type_argument (Qchar_table_p, (x)); } while (0)
 
 #define CHECK_VECTOR(x, i) \
   do { if (!VECTORP ((x))) x = wrong_type_argument (Qvectorp, (x)); } while (0)
@@ -1288,6 +1351,7 @@ extern Lisp_Object Qsymbolp, Qlistp, Qconsp;
 extern Lisp_Object Qstringp, Qarrayp, Qsequencep, Qbufferp;
 extern Lisp_Object Qchar_or_string_p, Qmarkerp, Qvectorp;
 extern Lisp_Object Qinteger_or_marker_p, Qnumber_or_marker_p;
+extern Lisp_Object Qchar_table_p;
 extern Lisp_Object Qboundp, Qfboundp;
 extern Lisp_Object Qbuffer_or_string_p;
 extern Lisp_Object Qcdr;
