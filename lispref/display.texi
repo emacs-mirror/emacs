@@ -928,6 +928,12 @@ if it ever becomes empty (i.e., if it spans no characters).
 If this property is non-@code{nil}, it specifies a keymap for a portion
 of the text.  The property's value replaces the buffer's local map, when
 the character after point is within the overlay.  @xref{Active Keymaps}.
+
+@item keymap
+@kindex keymap @r{(overlay property)}
+The @code{keymap} property is similar to @code{local-map} but overrides the
+buffer's local map (and the map specified by the @code{local-map}
+property) rather than replacing it.
 @end table
 
 @node Managing Overlays
@@ -2477,25 +2483,92 @@ The @code{:algorithm} property, if non-@code{nil}, specifies a
 conversion algorithm that should be applied to the image before it is
 displayed; the value, @var{algorithm}, specifies which algorithm.
 
-Currently, the only meaningful value for @var{algorithm} (aside from
-@code{nil}) is @code{laplace}; this applies the Laplace edge detection
-algorithm, which blurs out small differences in color while highlighting
-larger differences.  People sometimes consider this useful for
-displaying the image for a ``disabled'' button.
+@table @code
+@item laplace
+@itemx emboss
+Specifies the Laplace edge detection algorithm, which blurs out small
+differences in color while highlighting larger differences.  People
+sometimes consider this useful for displaying the image for a
+``disabled'' button.
 
-@item :heuristic-mask @var{transparent-color}
-The @code{:heuristic-mask} property, if non-@code{nil}, specifies that a
-certain color in the image should be transparent.  Each pixel where this
-color appears will actually allow the frame's background to show
-through.
+@item (edge-detection :matrix @var{matrix} :color-adjust @var{adjust})
+Specifies a general edge-detection algorithm.  @var{matrix} must be
+either a nine-element list or a nine-element vector of numbers.  A pixel
+at position @math{x/y} in the transformed image is computed from
+original pixels around that position.  @var{matrix} specifies, for each
+pixel in the neighborhood of @math{x/y}, a factor with which that pixel
+will influence the transformed pixel; element @math{0} specifies the
+factor for the pixel at @math{x-1/y-1}, element @math{1} the factor for
+the pixel at @math{x/y-1} etc., as shown below:
+@iftex
+@tex
+$$\pmatrix{x-1/y-1 & x/y-1  & x+1/y-1 \cr
+   x-1/y  &   x/y &    x+1/y \cr
+   x-1/y+1&   x/y+1 &  x+1/y+1 \cr}$$
+@end tex
+@end iftex
+@ifnottex
+@display
+  (x-1/y-1  x/y-1  x+1/y-1
+   x-1/y    x/y    x+1/y
+   x-1/y+1  x/y+1  x+1/y+1)
+@end display
+@end ifnottex
 
-If @var{transparent-color} is @code{t}, then determine the transparent
-color by looking at the four corners of the image.  This uses the color
-that occurs most frequently near the corners as the transparent color.
+The resulting pixel is computed from the color intensity of the color
+resulting from summing up the RGB values of surrounding pixels,
+multiplied by the specified factors, and dividing that sum by the sum
+of the factors' absolute values.
 
-Otherwise, @var{heuristic-mask} should specify the transparent color
-directly, as a list of three integers in the form @code{(@var{red}
-@var{green} @var{blue})}.
+Laplace edge-detection currently uses a matrix of
+@iftex
+@tex
+$$\pmatrix{1 & 0 & 0 \cr
+   0&  0 &  0 \cr
+   9 & 9 & -1 \cr}$$
+@end tex
+@end iftex
+@ifnottex
+@display
+  (1  0  0
+   0  0  0
+   9  9 -1)
+@end display
+@end ifnottex
+
+Emboss edge-detection uses a matrix of
+@iftex
+@tex
+$$\pmatrix{ 2 & -1 &  0 \cr
+   -1 &  0 &  1 \cr
+    0  & 1 & -2 \cr}$$
+@end tex
+@end iftex
+@ifnottex
+@display
+  ( 2 -1  0
+   -1  0  1
+    0  1 -2)
+@end display
+@end ifnottex
+
+@item disabled
+Specifies transforming the image so that it looks ``disabled''.
+@end table
+
+@item :mask @var{mask}
+If @var{mask} is @code{heuristic} or @code{(heuristic @var{bg})}, build
+a clipping mask for the image, so that the background of a frame is
+visible behind the image.  If @var{bg} is not specified, or if @var{bg}
+is @code{t}, determine the background color of the image by looking at
+the four corners of the image, assuming the most frequently occurring
+color from the corners is the background color of the image.  Otherwise,
+@var{bg} must be a list @code{(@var{red} @var{green} @var{blue})}
+specifying the color to assume for the background of the image.
+
+If @var{mask} is nil, remove a mask from the image, if it has one.  Images
+in some formats include a mask which can be removed by specifying
+@code{:mask nil}.
 
 @item :file @var{file}
 The @code{:file} property specifies to load the image from file
@@ -2514,6 +2587,13 @@ below describing the specific image format.  For some image types,
 for some, @code{:data} alone is not enough, so you need to use other
 image properties along with @code{:data}.
 @end table
+
+@defun image-mask-p spec &optional frame
+@tindex image-mask-p
+This function returns @code{t} if image @var{spec} has a mask bitmap.
+@var{frame} is the frame on which the image will be displayed.
+@var{frame} @code{nil} or omitted means to use the selected frame.
+@end defun
 
 @node XBM Images
 @subsection XBM Images
