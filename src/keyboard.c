@@ -84,7 +84,7 @@ struct backtrace
 
 /* Non-nil disable property on a command means
    do not execute it; call disabled-command-hook's value instead.  */
-Lisp_Object Qdisabled, Vdisabled_command_hook;
+Lisp_Object Qdisabled, Qdisabled_command_hook;
 
 #define NUM_RECENT_KEYS (100)
 int recent_keys_index;	/* Index for storing next element into recent_keys */
@@ -4284,7 +4284,7 @@ Otherwise, that is done only if an arg is read using the minibuffer.")
     {
       tem = Fget (cmd, Qdisabled);
       if (!NILP (tem))
-	return call1 (Vrun_hooks, Vdisabled_command_hook);
+	return call1 (Vrun_hooks, Qdisabled_command_hook);
     }
 
   while (1)
@@ -4918,6 +4918,9 @@ struct event_head head_table[] = {
 
 syms_of_keyboard ()
 {
+  Qdisabled_command_hook = intern ("disabled-command-hook");
+  staticpro (&Qdisabled_command_hook);
+
   Qself_insert_command = intern ("self-insert-command");
   staticpro (&Qself_insert_command);
 
@@ -5041,10 +5044,6 @@ syms_of_keyboard ()
   defsubr (&Sset_input_mode);
   defsubr (&Scurrent_input_mode);
   defsubr (&Sexecute_extended_command);
-
-  DEFVAR_LISP ("disabled-command-hook", &Vdisabled_command_hook,
-    "Value is called instead of any command that is disabled\n\
-\(has a non-nil `disabled' property).");
 
   DEFVAR_LISP ("last-command-char", &last_command_char,
     "Last input event that was part of a command.");
