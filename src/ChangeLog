@@ -1,3 +1,9 @@
+2000-07-25  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* fileio.c (Frename-file) [DOS_NT]: If the file names are
+        identical but for the letter-case, don't call
+        barf_or_query_if_file_exists.
+
 2000-07-25  Miles Bader  <miles@gnu.org>
 
 	* editfns.c (find_field): Honor special `boundary' fields.
