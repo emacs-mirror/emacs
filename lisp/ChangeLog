@@ -1,5 +1,8 @@
 2001-10-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* startup.el (normal-top-level): Check for frame-initial-frame
+	only if it's really used.
+
 	* mail/mh-utils.el (mh-recenter): Call recenter with arg `(4)'.
 
 	* progmodes/compile.el (compilation-parse-errors-filename-function):

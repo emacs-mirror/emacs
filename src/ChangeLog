@@ -1,5 +1,8 @@
 2001-10-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (show_mouse_face): Clean up.  Recognize overwritten
+	cursor differently.
+
 	* xdisp.c (move_it_vertically_backward): Compute line height
 	differently.  Add heuristic to try to be more compatible to 20.x.
 
