@@ -1,5 +1,8 @@
 2003-01-12  Andreas Schwab  <schwab@suse.de>
 
+	* ielm.el (inferior-emacs-lisp-mode): Bind
+	comint-dynamic-complete-functions locally.
+
 	* buff-menu.el (Buffer-menu-select): Fix for effect of header
 	line.
 
