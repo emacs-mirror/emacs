@@ -2787,7 +2787,7 @@ With argument 0, interchanges line point is in with line mark is in."
     (insert word2)))
 
 (defun backward-word (arg)
-  "Move backward until encountering the end of a word.
+  "Move backward until encountering the beginning of a word.
 With argument, do this that many times."
   (interactive "p")
   (forward-word (- arg)))
