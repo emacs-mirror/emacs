@@ -7209,7 +7209,7 @@ DEFUN ("set-safe-terminal-coding-system-internal", Fset_safe_terminal_coding_sys
   /* Character composition should be disabled.  */
   safe_terminal_coding.composing = COMPOSITION_DISABLED;
   /* Error notification should be suppressed.  */
-  terminal_coding.suppress_error = 1;
+  safe_terminal_coding.suppress_error = 1;
   safe_terminal_coding.src_multibyte = 1;
   safe_terminal_coding.dst_multibyte = 0;
   return Qnil;
