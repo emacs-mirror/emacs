@@ -231,7 +231,7 @@ fontset_ref (fontset, c)
 	  for (tail = FONTSET_CHARSET_ALIST (fontset);
 	       CONSP (tail);  tail = XCDR (tail))
 	    {
-	      charset = CHARSET_FROM_ID (XCAR (XCAR (tail)));
+	      charset = CHARSET_FROM_ID (XINT (XCAR (XCAR (tail))));
 	      if (ENCODE_CHAR (charset, c) != CHARSET_INVALID_CODE (charset))
 		{
 		  elt = XCDR (XCAR (tail));
@@ -260,8 +260,8 @@ fontset_set (fontset, idx, elt)
     {
       Lisp_Object id, slot, tail;
       
-      id = make_number (CHARSET_SYMBOL_ID (idx));
-      if (id == charset_ascii)
+      id = CHARSET_SYMBOL_ID (idx);
+      if (XFASTINT (id) == charset_ascii)
 	Fset_char_table_range (fontset,
 			       Fcons (make_number (0), make_number (127)),
 			       elt);
@@ -559,7 +559,7 @@ fs_load_font (f, fontname)
       if (STRINGP (XCAR (elt)) && CHARSETP (XCDR (elt))
 	  && fast_c_string_match_ignore_case (XCAR (elt), fontname) >= 0)
 	{
-	  fontp->charset = CHARSET_SYMBOL_ID (XCDR (elt));
+	  fontp->charset = XFASTINT (CHARSET_SYMBOL_ID (XCDR (elt)));
 	  break;
 	}
     }
@@ -1173,7 +1173,7 @@ If FRAME is omitted, it defaults to the currently selected frame.  */)
     {
       elt = XCAR (tail);
       elt = Fcons ((INTEGERP (XCAR (elt))
-		    ? CHARSET_NAME (CHARSET_FROM_ID (XCAR (elt)))
+		    ? CHARSET_NAME (CHARSET_FROM_ID (XFASTINT (XCAR (elt))))
 		    : XCAR (elt)),
 		   Fcons (XCDR (elt), Qnil));
       XSETCDR (XCAR (val), Fcons (elt, Qnil));
