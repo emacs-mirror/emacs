@@ -278,6 +278,7 @@ in that frame; otherwise change each frame."
   (cond ((eq italic-p nil) (make-face-unitalic face frame t))
 	(t (make-face-italic face frame t))))
 
+(defalias 'set-face-doc-string 'set-face-documentation)
 (defun set-face-documentation (face string)
   "Set the documentation string for FACE to STRING."
   (put face 'face-documentation string))
