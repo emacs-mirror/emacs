@@ -1,3 +1,10 @@
+2003-06-06  Era Eriksson  <era@iki.fi>  (tiny change)
+
+	* shell.el (shell-resync-dirs): Tolerate an extra line of output
+	before the list of directories from `shell-dirstack-query' (it
+	looks for, and ignores, a literal copy of the value of
+	shell-dirstack-query).
+
 2003-06-06  Lute Kamstra  <Lute.Kamstra@cwi.nl>
 
 	* info.el (Info-complete-menu-item): Revert change of 2003-06-03.
