@@ -1320,7 +1320,7 @@ See @ref{Anonymous Functions}.
 See @ref{Calling Functions}.
 
 @item indirect-function
-See @ref{Definition of indirect-function}.
+See @ref{Function Indirection}.
 
 @item interactive
 See @ref{Using Interactive}.
@@ -1341,7 +1341,7 @@ See @ref{Char-Tables}.
 See @ref{Mapping Functions}.
 
 @item undefined
-See @ref{Key Lookup}.
+See @ref{Functions for Key Lookup}.
 @end table
 
 @ignore

@@ -239,9 +239,8 @@ This function returns the @code{interactive} form of @var{function}.  If
 @var{function} is a command (@pxref{Interactive Call}), the value is a
 list of the form @code{(interactive @var{spec})}, where @var{spec} is
 the descriptor specification used by the command's @code{interactive}
-form to compute the function's arguments (@pxref{Using Interactive}).
-If @var{function} is not a command, @code{interactive-form} returns
-@code{nil}.
+form to compute the function's arguments.  If @var{function} is not a
+command, @code{interactive-form} returns @code{nil}.
 @end defun
 
 @node Interactive Codes
@@ -328,7 +327,7 @@ The position of point, as an integer (@pxref{Point}).  No I/O.
 
 @item D
 A directory name.  The default is the current default directory of the
-current buffer, @code{default-directory} (@pxref{System Environment}).
+current buffer, @code{default-directory} (@pxref{File Name Expansion}).
 Existing, Completion, Default, Prompt.
 
 @item e

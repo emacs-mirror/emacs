@@ -19028,9 +19028,9 @@ get_window_cursor_type (w, glyph, width, active_cursor)
     cursor_type = get_specified_cursor_type (b->cursor_type, width);
 
   /* Use normal cursor if not blinked off.  */
-  if (!w->cursor_off_p && glyph != NULL)
+  if (!w->cursor_off_p)
     {
-      if (glyph->type == IMAGE_GLYPH) {
+      if (glyph != NULL && glyph->type == IMAGE_GLYPH) {
 	if (cursor_type == FILLED_BOX_CURSOR)
 	  cursor_type = HOLLOW_BOX_CURSOR;
       }
@@ -19347,7 +19347,6 @@ display_and_set_cursor (w, on, hpos, vpos, x, y)
   int new_cursor_type;
   int new_cursor_width;
   int active_cursor;
-  struct glyph_matrix *current_glyphs;
   struct glyph_row *glyph_row;
   struct glyph *glyph;
 
@@ -19365,11 +19364,7 @@ display_and_set_cursor (w, on, hpos, vpos, x, y)
   if (!on && !w->phys_cursor_on_p)
     return;
 
-  current_glyphs = w->current_matrix;
-  glyph_row = MATRIX_ROW (current_glyphs, vpos);
-  glyph = (glyph_row->cursor_in_fringe_p ? NULL
-	   : glyph_row->glyphs[TEXT_AREA] + hpos);
-
+  glyph_row = MATRIX_ROW (w->current_matrix, vpos);
   /* If cursor row is not enabled, we don't really know where to
      display the cursor.  */
   if (!glyph_row->enabled_p)
@@ -19377,6 +19372,11 @@ display_and_set_cursor (w, on, hpos, vpos, x, y)
       w->phys_cursor_on_p = 0;
       return;
     }
+
+  glyph = NULL;
+  if (!glyph_row->exact_window_width_line_p
+      || hpos < glyph_row->used[TEXT_AREA])
+    glyph = glyph_row->glyphs[TEXT_AREA] + hpos;
 
   xassert (interrupt_input_blocked);
 

@@ -1,3 +1,11 @@
+2004-02-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* markers.texi (Marker Insertion Types): Minor change.
+
+	* locals.texi (Standard Buffer-Local Variables):
+	* commands.texi (Interactive Codes, Using Interactive):
+	* functions.texi (Related Topics): Fix xrefs.
+
 2004-02-16  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* lists.texi (Sets And Lists): Update description of delete-dups.

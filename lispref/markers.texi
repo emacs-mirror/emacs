@@ -326,10 +326,6 @@ marker should do by setting its @dfn{insertion type}.  Note that use of
 @code{insert-before-markers} ignores markers' insertion types, always
 relocating a marker to point after the inserted text.
 
-Most functions that create markers, without explicitly specifying an
-insertion type, create them with insertion type @code{nil}.  Also, the
-mark has, by default, insertion type @code{nil}.
-
 @defun set-marker-insertion-type marker type
 This function sets the insertion type of marker @var{marker} to
 @var{type}.  If @var{type} is @code{t}, @var{marker} will advance when
@@ -340,6 +336,10 @@ text is inserted at its position.  If @var{type} is @code{nil},
 @defun marker-insertion-type marker
 This function reports the current insertion type of @var{marker}.
 @end defun
+
+Most functions that create markers, without explicitly specifying an
+insertion type, create them with insertion type @code{nil}.  Also, the
+mark has, by default, insertion type @code{nil}.
 
 @node Moving Markers
 @section Moving Marker Positions

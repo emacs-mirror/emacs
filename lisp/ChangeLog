@@ -1,3 +1,17 @@
+2004-02-18  Markus Rost  <rost@mathematik.uni-bielefeld.de>
+
+	* progmodes/executable.el (executable-command-find-posix-p):  Fix
+	choice of the directory.
+
+2004-02-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* simple.el (interprogram-cut-function)
+	(interprogram-paste-function, kill-new, kill-append):
+	Doc fixes.
+	(kill-region): Make it return nil.  Doc fix.
+	(yank-pop): Make its argument optional.
+	(yank): Make ARG `-' equivalent to `-1'.
+
 2004-02-17  Eli Zaretskii  <eliz@elta.co.il>
 
 	* mail/rmail.el (rmail-get-new-mail): Don't reference

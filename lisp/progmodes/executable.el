@@ -145,12 +145,8 @@ See `compilation-error-regexp-alist'.")
   "Check if PROGRAM handles arguments Posix-style.
 If PROGRAM is non-nil, use that instead of \"find\"."
   ;;  Pick file to search from location we know
-  (let* ((dir   (car load-path))
-         (file  (find-if
-                 (lambda (x)
-                   ;; Filter directories . and ..
-                   (not (string-match "^\\.\\.?$" x)))
-                 (directory-files dir))))
+  (let* ((dir (file-truename data-directory))
+         (file (car (directory-files dir nil "^[^.]"))))
     (with-temp-buffer
       (call-process (or program "find")
                     nil
