@@ -452,12 +452,21 @@ vs. corresponding command to be called."
   (if (overlayp quail-conv-overlay)
       (delete-overlay quail-conv-overlay)))
 
+;; Kill Quail guidance buffer.  Set in kill-buffer-hook.
+(defun quail-kill-guidance-buf ()
+  (if (buffer-live-p quail-guidance-buf)
+      (kill-buffer quail-guidance-buf)))
+
 (defun quail-mode (&optional arg)
   "Toggle Quail minor mode.
 With arg, turn Quail mode on if and only if arg is positive.
-Try \\[describe-bindings] in Quail mode to see the available key binding.
+
+You should not turn on and off Quail mode manually, instead use
+the commands `toggle-input-method' or `select-input-methods' (which
+see).  They automatically turn on or off this mode.
+
+Try \\[describe-bindings] in Quail mode to see the available key bindings.
 The command \\[describe-input-method] describes the current Quail package."
-  (interactive "P")
   (setq quail-mode
 	(if (null arg) (null quail-mode)
 	  (> (prefix-numeric-value arg) 0)))
@@ -492,15 +501,18 @@ The command \\[describe-input-method] describes the current Quail package."
     (setq describe-current-input-method-function 'quail-help)
     (quail-delete-overlays)
     (quail-show-guidance-buf)
-    ;; If we are in minibuffer, turn off Quail mode before exiting.
+    ;; If we are in minibuffer, turn off the current input method
+    ;; before exiting.
     (if (eq (selected-window) (minibuffer-window))
 	(add-hook 'minibuffer-exit-hook 'quail-exit-from-minibuffer))
     (make-local-hook 'post-command-hook)
+    (make-local-hook 'kill-buffer-hook)
+    (add-hook 'kill-buffer-hook 'quail-kill-guidance-buf nil t)
     (run-hooks 'quail-mode-hook))
   (force-mode-line-update))
 
 (defun quail-exit-from-minibuffer ()
-  (if quail-mode (quail-mode -1))
+  (inactivate-input-method)
   (if (<= (minibuffer-depth) 1)
       (remove-hook 'minibuffer-exit-hook 'quail-exit-from-minibuffer)))
 
@@ -879,7 +891,11 @@ The returned value is a Quail map specific to KEY."
   (setq unread-command-events
 	(cons last-command-event unread-command-events))
   ;; Check the possibility of translating the last key.
-  (if (assq last-command-event (cdr (quail-map)))
+  (if (and (integerp last-command-event)
+	   (assq (if (quail-kbd-translate)
+		     (quail-keyboard-translate last-command-event)
+		   last-command-event)
+		 (cdr (quail-map))))
       ;; Ok, we can start translation.
       (if (quail-conversion-keymap)
 	  ;; We must start translation in conversion mode.
@@ -907,7 +923,11 @@ The returned value is a Quail map specific to KEY."
   (setq unread-command-events
 	(cons last-command-event unread-command-events))
   ;; Check the possibility of translating the last key.
-  (if (assq last-command-event (cdr (quail-map)))
+  (if (and (integerp last-command-event)
+	   (assq (if (quail-kbd-translate)
+		     (quail-keyboard-translate last-command-event)
+		   last-command-event)
+		 (cdr (quail-map))))
       ;; Ok, we can start translation.
       (progn
 	(quail-setup-overlays t)
@@ -927,7 +947,9 @@ The returned value is a Quail map specific to KEY."
 		     (overlay-end quail-overlay))))
 
 (defun quail-terminate-translation ()
-  "Terminate the translation of the current key."
+  "Terminate the translation of the current key.
+Optional arg SUPPRESS-INSERT-CHUNK-HOOK if non-nil means don't run hooks
+in `input-method-after-insert-chunk-hook' (which see)."
   (let ((start (overlay-start quail-overlay)))
     (if (and start
 	     (< start (overlay-end quail-overlay)))
@@ -954,7 +976,8 @@ The returned value is a Quail map specific to KEY."
   (setq overriding-terminal-local-map
 	(if (and (overlayp quail-conv-overlay)
 		 (overlay-start quail-conv-overlay))
-	    (quail-conversion-keymap))))
+	    (quail-conversion-keymap)))
+  (run-hooks 'input-method-after-insert-chunk-hook))
 
 (defun quail-select-current ()
   "Select the current text shown in Quail translation region."
@@ -985,9 +1008,8 @@ The returned value is a Quail map specific to KEY."
 			(substring quail-current-key 0 len))))
 	(insert (or quail-current-str quail-current-key)))))
   (quail-update-guidance)
-  (when control-flag
-    (quail-terminate-translation)
-    (run-hooks 'input-method-after-insert-chunk-hook)))
+  (if control-flag
+      (quail-terminate-translation)))
 
 (defun quail-self-insert-command ()
   "Add the typed character to the key for translation."
@@ -1280,6 +1302,15 @@ Remaining args are for FUNC."
       (set-window-buffer win buf)
       (set-window-dedicated-p win t))))
 
+;; Setup Quail completion buffer.
+(defun quail-setup-completion-buf ()
+  (unless (buffer-live-p quail-completion-buf)
+    (setq quail-completion-buf (get-buffer-create "*Quail Completions*"))
+    (save-excursion
+      (set-buffer quail-completion-buf)
+      (setq quail-overlay (make-overlay 1 1))
+      (overlay-put quail-overlay 'face 'highlight))))
+
 (defun quail-show-guidance-buf ()
   "Display a guidance buffer for Quail input method in some window.
 Create the buffer if it does not exist yet.
@@ -1334,13 +1365,7 @@ or in a newly created frame (if the selected frame has no other windows)."
       (setq quail-guidance-win win)))
 
   ;; And, create a buffer for completion.
-  (or (buffer-live-p quail-completion-buf)
-      (progn
-	(setq quail-completion-buf (get-buffer-create "*Quail Completions*"))
-	(save-excursion
-	  (set-buffer quail-completion-buf)
-	  (setq quail-overlay (make-overlay 1 1))
-	  (overlay-put quail-overlay 'face 'highlight))))
+  (quail-setup-completion-buf)
   (bury-buffer quail-completion-buf))
 
 (defun quail-hide-guidance-buf ()
@@ -1475,6 +1500,7 @@ or in a newly created frame (if the selected frame has no other windows)."
 All possible translations of the current key and whole possible longer keys
  are shown."
   (interactive)
+  (quail-setup-completion-buf)
   (let ((key quail-current-key)
 	(map (quail-lookup-key quail-current-key)))
     (save-excursion
