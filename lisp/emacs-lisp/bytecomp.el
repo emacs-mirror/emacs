@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.103 $")
+(defconst byte-compile-version "$Revision: 2.104 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1206,8 +1206,8 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 	     ;; These aren't all aliases of subrs, so not trivial to
 	     ;; avoid hardwiring the list.
 	     (not (memq func
-			'(cl-block-wrapper cl-block-throw values values-list
-			  multiple-value-list multiple-value-call nth-value
+			'(cl-block-wrapper cl-block-throw
+			  multiple-value-call nth-value
 			  copy-seq first second rest endp cl-member))))
 	(byte-compile-warn "Function `%s' from cl package called at runtime"
 			   func)))
@@ -1588,7 +1588,7 @@ With argument, insert value in current buffer after the form."
 	   (byte-compile-last-position byte-compile-read-position)
 	   (byte-compile-last-warned-form 'nothing)
 	   (value (eval
-		   (let ((read-with-symbol-positions inbuffer)
+		   (let ((read-with-symbol-positions (current-buffer))
 			 (read-symbol-positions-list nil))
 		     (displaying-byte-compile-warnings
 		      (byte-compile-sexp (read (current-buffer))))))))
