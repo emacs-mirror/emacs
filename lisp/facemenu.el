@@ -326,8 +326,8 @@ will not show through at all will be removed.
 
 Interactively, the face to be used is read with the minibuffer.
 
-If the region is active and there is no prefix argument,
-this command sets the region to the requested face.
+In the Transient Mark mode, if the region is active and there is no
+prefix argument, this command sets the region to the requested face.
 
 Otherwise, this command specifies the face for the next character
 inserted.  Moving point or switching buffers before
@@ -377,8 +377,8 @@ typing a character cancels the request."
 This function is designed to be called from a menu; the face to use
 is the menu item's name.
 
-If the region is active and there is no prefix argument,
-this command sets the region to the requested face.
+In the Transient Mark mode, if the region is active and there is no
+prefix argument, this command sets the region to the requested face.
 
 Otherwise, this command specifies the face for the next character
 inserted.  Moving point or switching buffers before
