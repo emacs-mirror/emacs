@@ -1662,6 +1662,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       jmp_buf temp;
       save_getcjmp (temp);
       Fdo_auto_save (Qnil, Qnil);
+      /* Hooks can actually change some buffers in auto save.  */
+      redisplay ();
       restore_getcjmp (temp);
     }
 
@@ -1713,12 +1715,10 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 		 consing going on to make it worthwhile.  */
 	      if (!detect_input_pending ()
 		  && consing_since_gc > gc_cons_threshold / 2)
-		{
-		  Fgarbage_collect ();
-		  /* prepare_menu_bars isn't safe here, but it should
-		     also be unnecessary.  */
-		  redisplay ();
-		}
+		Fgarbage_collect ();
+	      /* prepare_menu_bars isn't safe here, but it should
+		 also be unnecessary.  */
+	      redisplay ();
 	    }
 	}
     }
@@ -5262,6 +5262,30 @@ read_key_sequence (keybuf, bufsize, prompt)
 	  keybuf[t - 1] = key;
 	  mock_input = t;
 	  goto replay_sequence;
+	}
+      /* If KEY is not defined in any of the keymaps,
+	 and cannot be part of a function key or translation,
+	 and is a shifted function key,
+	 use the corresponding unshifted function key instead.  */
+      if (first_binding == nmaps && ! function_key_possible
+	  && ! key_translation_possible
+	  && SYMBOLP (key))
+	{
+	  Lisp_Object breakdown;
+	  int modifiers;
+
+	  breakdown = parse_modifiers (key);
+	  modifiers = XINT (XCONS (XCONS (breakdown)->cdr)->car);
+	  if (modifiers & shift_modifier)
+	    {
+	      modifiers &= ~shift_modifier;
+	      key = apply_modifiers (make_number (modifiers),
+				     XCONS (breakdown)->car);
+
+	      keybuf[t - 1] = key;
+	      mock_input = t;
+	      goto replay_sequence;
+	    }
 	}
     }
 
