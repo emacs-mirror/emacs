@@ -3484,7 +3484,7 @@
 	* emulation/cua-base.el (cua--repeat-replace-text): New variable.
 	(cua-repeat-replace-region): New command.
 	(cua--init-keymaps): Bind it to M-v in cua--cua-keys-keymap.
-	Misc improvements to the commantary.
+	Misc improvements to the commentary.
 
 2002-05-26  Simon Josefsson  <jas@extundo.com>
 
