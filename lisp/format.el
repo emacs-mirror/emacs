@@ -636,7 +636,7 @@ to write these unknown annotations back into the file."
 		      ;; Store as value of text-property `unknown'.
 		      (let ((extents top-extents)
 			    (start (car (car top-extents)))
-			    (loc (cdr (car top-extents))))
+			    (loc (or (cdr (car top-extents)) loc)))
 			(while extents
 			  (setq open-ans (cdr open-ans)
 				todo (cons (list start loc 'unknown top-name)
