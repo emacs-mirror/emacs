@@ -8507,7 +8507,7 @@ jpeg_load (f, img)
 
 #if HAVE_TIFF
 
-#include <tiff34/tiffio.h>
+#include <tiffio.h>
 
 static int tiff_image_p P_ ((Lisp_Object object));
 static int tiff_load P_ ((struct frame *f, struct image *img));
