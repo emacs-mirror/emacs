@@ -1,3 +1,7 @@
+2003-01-17  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* Version 21.3 released.
+
 2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Version 21.2 released.
@@ -186,7 +190,7 @@
 
 2001-01-24  Andrew Innes  <andrewi@gnu.org>
 
-	* makefile.w32-in (cleanall-other-dirs-nmake): 
+	* makefile.w32-in (cleanall-other-dirs-nmake):
 	(cleanall-other-dirs-gmake): New targets.
 	(cleanall): Invoke them.
 
@@ -508,7 +512,7 @@
 	(DEL_TREE): Use rd instead of rmdir.
 	(ARCH_CFLAGS): Optimize for P6.  Align structures on 8-byte boundaries.
 	* makefile.nt: Compile multiple source files when possible.
-	
+
 1998-10-05  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* cmdproxy.c (main): Treat command line options as case-insensitive.
@@ -547,7 +551,7 @@
 
 	* cmdproxy.c (main): Only set environment size for real shell, and
  	provide extra directory argument, when running on Windows 95.
-	
+
 1998-04-17  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* cmdproxy.c (fail): Exit with a negative return value.
@@ -595,15 +599,15 @@
 	Pass on unhandled switches to real shell.
 	Quote program name.
 
-	* makefile.def (CFLAGS_COMMON): Place pdb file in object build 
+	* makefile.def (CFLAGS_COMMON): Place pdb file in object build
 	directory.
-	(CFLAGS) [!MSVCNT11]: Define _CRTAPI1.	
+	(CFLAGS) [!MSVCNT11]: Define _CRTAPI1.
 
 	* runemacs.c (WinMain): Allow Emacs process to be started with
  	high or low priority.
 
 	* emacs.bat.in: Remove OS dependent operations.
-	
+
 1997-09-02  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* addpm.c (env_vars): No longer set INFOPATH.
@@ -722,13 +726,13 @@
 	inc/sys/socket.h, inc/sys/time.h: New header files.
 
 	* inc/sys/file.h (F_OK, X_OK, W_OK, R_OK): New macros.
-	
+
 1996-03-27  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* makefile.def (DEL): Defined.
 	(DEL_TREE) [win95]: Defined.
 	(SYS_LDFLAGS): Set executable versions to 3.10.
-	
+
 	* makefile.nt: Change uses of del to $(DEL).
 
 1996-01-17  Erik Naggum  <erik@naggum.no>
@@ -778,12 +782,12 @@
 	* makefile.nt: Define .c to .obj suffix rule.
 	(addpm.obj): Compile directly, use CFLAGS.
 	(addpm.exe): Link from addpm.obj.
-	
+
 	* makefile.def (MSVCNT11): Defined.
 	(BASE_LIBS) [MSVCNT11]: Use oldnames.lib.
 	(CFLAGS_COMMON): Defined.
 	(CFLAGS) [MSVCNT11]: Define _CRTAPI1 to _cdecl.
-	
+
 1995-06-09  Geoff Voelker  <voelker@cs.washington.edu>
 
 	* emacs.bat.in: Renamed from emacs.bat
@@ -808,7 +812,7 @@
 
 	* config.w95: Created.
 	* config.h: Changed to config.nt.
-	
+
 	* makefile.nt (SUBDIRS): Commented out.
 	(all,install,clean): Expand for-loops.
 	(BUILD_CMD,INSTALL_CMD,CLEAN_CMD): Defined.
@@ -883,7 +887,7 @@
 	* makefile.nt: New file.
 
         * makefile.def: New file.
- 
+
         * install.cmd: New file.
 
         * install: New file.

@@ -1,3 +1,7 @@
+2003-01-17  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* Version 21.3 released.
+
 2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Version 21.2 released.
@@ -283,10 +287,10 @@
 	* sed1.inp: Replace `make-docfile' with `make-doc.exe'.  In case
 	src/Makefile needs to rebuild `make-doc.exe', use one command per line.
 	Undo the previous change.
-	
+
 1996-04-15  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
-	* sed1.inp: Change make-docfile to make-doc.exe in a second place. 
+	* sed1.inp: Change make-docfile to make-doc.exe in a second place.
 
 1996-04-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -294,7 +298,7 @@
 	a long sed command line (some versions of Sed don't handle that).
 	(gdb): Merged back into src, undoing April 13 change.
 	(install): Do use if statements, but not a loop.
-	
+
 1996-04-13  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
 	* mainmake.v2 (gdb): New target, broken out of src.
@@ -452,7 +456,7 @@
 	to terra@diku.dk, but be prepared to sign a copyright disclaimer.
 	(This file contains non-printable characters.)
 
-	* sed3.inp: New file for changing lib-src/makefile.in into 
+	* sed3.inp: New file for changing lib-src/makefile.in into
 	lib-src/makefile.
 
 	* sed2.inp: New file for changing src/config.h-in into src/config.h

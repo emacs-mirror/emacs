@@ -1,3 +1,7 @@
+2003-01-17  Francesco Potortì  <pot@gnu.org>
+
+	* Version 21.3 released.
+
 2002-01-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (VERSION): Set to 2.8.
@@ -41,7 +45,7 @@
 2001-09-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* keymaps.texi (Creating Keymaps): Fix the description of the
-	result of make-keymap. 
+	result of make-keymap.
 
 2001-09-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -328,7 +332,7 @@ Tue Feb 23 10:50:25 1993  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 	* Makefile (dist): Don't bother excluding autosave files; they'll
 	never make it into the temp directory anyway, and the hash marks
 	in the name are problematic for make and the Bourne shell.
-	(srcs): 
+	(srcs):
 
 Fri Feb 12 16:54:38 1993  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 

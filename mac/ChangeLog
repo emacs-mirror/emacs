@@ -1,3 +1,7 @@
+2003-01-17  Francesco Potortì  <pot@gnu.org>
+
+	* Version 21.3 released.
+
 2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Version 21.2 released.
@@ -20,7 +24,7 @@
 	of smRoman for the second entry of a Japanese font.
 	(XLoadQueryFont): Recognize a font as having the smRoman script
 	code if its encoding is jisx0201.1976-0.
-	
+
 	* makefile.MPW: Generate etc/DOC file from .elc files instead of
 	.el files.
 
@@ -29,7 +33,7 @@
 	files.
 	(sleep) [__MRC__]: Place loop around WaitNextEvent to check time
 	elapsed instead of use WaitNextEvent call as a delay.
-	
+
 2001-08-24  Andrew Choi  <akochoi@cse.cuhk.edu.hk>
 
 	* src/macterm.c (init_font_name_table): Add an additional entry to
@@ -90,7 +94,7 @@
 	* src/macterm.c (do_app_resume): Set cursor to arrow.
 	(clear_mouse_face): check for NIL Lisp object instead of null
 	pointer.
-	
+
 	* INSTALL: Delete note on compiling Lisp files on a Unix system.
 	Add note on turning off end of line conversion.
 
@@ -121,7 +125,7 @@
 
 	* src/Emacs.r: Add ALRT resource #129 for alert when there is over
 	256 MB RAM.
-	
+
 2001-02-20  Andrew Choi  <akochoi@i-cable.com>
 
 	* mac/INSTALL:
@@ -139,7 +143,7 @@
 
 	* src/macterm.c (x_list_fonts): Protect pattern and newlist from
 	garbage collection.
-	
+
 	* src/macfns.c (QCconversion): Replaces QCalgorithm.
 
 	* src/macfns.c (image_ascent, lookup_image): Adapt to change of
@@ -152,7 +156,7 @@
 	* src/macterm.c (mac_to_x_fontname): Change charset name of
 	Simplify Chinese fonts from gb2312 to gb2312.1980 and Korean fonts
 	from ksc5601 to ksc5601.1989.
-	
+
 2000-12-12  Andrew Choi  <akochoi@i-cable.com>
 
 	* cw5-mcp.xml: add md5.c to project.
@@ -245,7 +249,7 @@
 	* src/EmacsMPW.r: New file.
 
 	* src/chdir.c: New file.
-	
+
 	* src/mac.c: New file.
 
 	* src/macfns.c: New file.
