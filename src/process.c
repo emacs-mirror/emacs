@@ -235,7 +235,11 @@ int update_tick;
 /* We could get this from param.h, but better not to depend on finding that.
    And better not to risk that it might define other symbols used in this
    file.  */
+#ifdef FD_SETSIZE
+#define MAXDESC FD_SETSIZE
+#else
 #define MAXDESC 64
+#endif
 #define SELECT_TYPE fd_set
 #else /* no FD_SET */
 #define MAXDESC 32
