@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2001 Free Software Foundation, Inc.
 
 ;; Author: Ken'ichi HANDA <handa@etl.go.jp>
 
@@ -47,7 +48,7 @@ For instance, typing `v' and `%' insert `％'.
 ")
 
 (setcar (nthcdr 2 quail-current-package)
-	(nth 2 (assoc "chinese-py" quail-package-alist)))
+	(copy-sequence (nth 2 (assoc "chinese-py" quail-package-alist))))
 
 (quail-defrule "v" (nth 2 (assoc "chinese-punct" quail-package-alist)))
 
@@ -68,6 +69,9 @@ by any key sequences defined in `chinese-punct'.
 For instance, typing `v' and `%' insert `％'.
 ")
 
-(quail-defrule "v" (nth 2 (assoc "chinese-punct-b5" quail-package-alist)))
+(setcar (nthcdr 2 quail-current-package)
+	(copy-sequence (nth 2 (assoc "chinese-tonepy" quail-package-alist))))
+
+(quail-defrule "v" (nth 2 (assoc "chinese-punct" quail-package-alist)))
 
 ;;; py-punct.el ends here
