@@ -1131,6 +1131,12 @@ Also accepts Space to mean yes, or Delete to mean no.")
 	  answer = 1;
 	  break;
 	}
+      else if (EQ (def, intern ("recenter")))
+	{
+	  Frecenter (Qnil);
+	  xprompt = prompt;
+	  continue;
+	}
       else if (EQ (def, intern ("quit")))
 	Vquit_flag = Qt;
 
