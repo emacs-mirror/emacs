@@ -318,7 +318,7 @@ make_frame_glyphs (frame, empty)
   return new;
 }
 
-static void
+void
 free_frame_glyphs (frame, glyphs)
      FRAME_PTR frame;
      struct frame_glyphs *glyphs;
