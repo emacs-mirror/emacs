@@ -20,7 +20,7 @@
 ;; along with this program; if not, write to: The Free Software Foundation,
 ;; Inc.; 675 Massachusetts Avenue.; Cambridge, MA 02139, USA.
 
-;; $Id: rlogin.el,v 1.26 1995/04/07 22:17:06 friedman Exp friedman $
+;; $Id: rlogin.el,v 1.27 1995/04/07 22:27:24 friedman Exp roland $
 
 ;;; Commentary:
 
@@ -102,6 +102,8 @@ this variable is set from that.")
 
 ;;;###autoload (add-hook 'same-window-regexps "^\\*rlogin-.*\\*\\(\\|<[0-9]+>\\)")
 
+(defvar rlogin-history nil)
+
 ;;;###autoload
 (defun rlogin (input-args &optional prefix)
   "Open a network login connection to HOST via the `rlogin' program.
@@ -134,7 +136,8 @@ If you wish to change directory tracking styles during a session, use the
 function `rlogin-directory-tracking-mode' rather than simply setting the
 variable."
   (interactive (list
-		(read-from-minibuffer "rlogin arguments (hostname first): ")
+		(read-from-minibuffer "rlogin arguments (hostname first): "
+				      nil nil nil 'rlogin-history)
 		current-prefix-arg))
 
   (let* ((process-connection-type rlogin-process-connection-type)
