@@ -30,6 +30,7 @@ Boston, MA 02111-1307, USA.
 #include <fcntl.h>
 #include <ctype.h>
 #include <signal.h>
+#include <sys/file.h>
 #include <sys/time.h>
 #include <sys/utime.h>
 
@@ -627,6 +628,42 @@ extern Lisp_Object Vsystem_configuration;
 void
 init_environment ()
 {
+  int len;
+  static const char * const tempdirs[] = {
+    "$TMPDIR", "$TEMP", "$TMP", "c:/"
+  };
+  int i;
+  const int imax = sizeof (tempdirs) / sizeof (tempdirs[0]);
+
+  /* Make sure they have a usable $TMPDIR.  Many Emacs functions use
+     temporary files and assume "/tmp" if $TMPDIR is unset, which
+     will break on DOS/Windows.  Refuse to work if we cannot find
+     a directory, not even "c:/", usable for that purpose.  */
+  for (i = 0; i < imax ; i++)
+    {
+      const char *tmp = tempdirs[i];
+
+      if (*tmp == '$')
+	tmp = getenv (tmp + 1);
+      /* Note that `access' can lie to us if the directory resides on a
+	 read-only filesystem, like CD-ROM or a write-protected floppy.
+	 The only way to be really sure is to actually create a file and
+	 see if it succeeds.  But I think that's too much to ask.  */
+      if (tmp && access (tmp, D_OK) == 0)
+	{
+	  char * var = alloca (strlen (tmp) + 8);
+	  sprintf (var, "TMPDIR=%s", tmp);
+	  putenv (var);
+	  break;
+	}
+    }
+  if (i >= imax)
+    cmd_error_internal
+      (Fcons (Qerror,
+	      Fcons (build_string ("no usable temporary directories found!!"),
+		     Qnil)),
+       "While setting TMPDIR: ");
+
   /* Check for environment variables and use registry if they don't exist */
   {
     int i;
@@ -1135,6 +1172,18 @@ map_w32_filename (const char * name, const char ** pPath)
   return shortname;
 }
 
+static int
+is_exec (const char * name)
+{
+  char * p = strrchr (name, '.');
+  return
+    (p != NULL
+     && (stricmp (p, ".exe") == 0 ||
+	 stricmp (p, ".com") == 0 ||
+	 stricmp (p, ".bat") == 0 ||
+	 stricmp (p, ".cmd") == 0));
+}
+
 /* Emulate the Unix directory procedures opendir, closedir, 
    and readdir.  We can't use the procedures supplied in sysdep.c,
    so we provide them here.  */
@@ -1240,7 +1289,33 @@ readdir (DIR *dirp)
 int
 sys_access (const char * path, int mode)
 {
-  return _access (map_w32_filename (path, NULL), mode);
+  DWORD attributes;
+
+  /* MSVC implementation doesn't recognize D_OK.  */
+  path = map_w32_filename (path, NULL);
+  if ((attributes = GetFileAttributes (path)) == -1)
+    {
+      /* Should try mapping GetLastError to errno; for now just indicate
+	 that path doesn't exist.  */
+      errno = EACCES;
+      return -1;
+    }
+  if ((mode & X_OK) != 0 && !is_exec (path))
+    {
+      errno = EACCES;
+      return -1;
+    }
+  if ((mode & W_OK) != 0 && (attributes & FILE_ATTRIBUTE_READONLY) != 0)
+    {
+      errno = EACCES;
+      return -1;
+    }
+  if ((mode & D_OK) != 0 && (attributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+    {
+      errno = EACCES;
+      return -1;
+    }
+  return 0;
 }
 
 int
@@ -1444,9 +1519,8 @@ sys_open (const char * path, int oflag, int mode)
 int
 sys_rename (const char * oldname, const char * newname)
 {
-  char temp[MAX_PATH];
-  DWORD attr;
   int result;
+  char temp[MAX_PATH];
 
   /* MoveFile on Windows 95 doesn't correctly change the short file name
      alias in a number of circumstances (it is not easy to predict when
@@ -1465,39 +1539,53 @@ sys_rename (const char * oldname, const char * newname)
 
   if (os_subtype == OS_WIN95)
     {
+      char * o;
       char * p;
+      int    i = 0;
+
+      oldname = map_w32_filename (oldname, NULL);
+      if (o = strrchr (oldname, '\\'))
+	o++;
+      else
+	o = (char *) oldname;
 
       if (p = strrchr (temp, '\\'))
 	p++;
       else
 	p = temp;
-      /* Force temp name to require a manufactured 8.3 alias - this
-	 seems to make the second rename work properly. */
-      strcpy (p, "_rename_temp.XXXXXX");
-      sys_mktemp (temp);
-      if (rename (map_w32_filename (oldname, NULL), temp) < 0)
+
+      do
+	{
+	  /* Force temp name to require a manufactured 8.3 alias - this
+	     seems to make the second rename work properly.  */
+	  sprintf (p, ".%s.%u", o, i);
+	  i++;
+	}
+      /* This loop must surely terminate!  */
+      while (rename (oldname, temp) < 0 && errno == EEXIST);
+      if (errno != EEXIST)
 	return -1;
     }
 
   /* Emulate Unix behaviour - newname is deleted if it already exists
      (at least if it is a file; don't do this for directories).
-     However, don't do this if we are just changing the case of the file
-     name - we will end up deleting the file we are trying to rename!  */
-  newname = map_w32_filename (newname, NULL);
 
-  /* Suggested by Pekka Pirila <pekka.pirila@vtt.fi>: stricmp does not
-     handle accented characters correctly, so comparing filenames will
-     accidentally delete these files.  Instead, do the rename first;
-     newname will not be deleted if successful or if errno == EACCES.
-     In this case, delete the file explicitly.  */
+     Since we mustn't do this if we are just changing the case of the
+     file name (we would end up deleting the file we are trying to
+     rename!), we let rename detect if the destination file already
+     exists - that way we avoid the possible pitfalls of trying to
+     determine ourselves whether two names really refer to the same
+     file, which is not always possible in the general case.  (Consider
+     all the permutations of shared or subst'd drives, etc.)  */
+
+  newname = map_w32_filename (newname, NULL);
   result = rename (temp, newname);
-  if (result < 0 && errno == EACCES
-      && (attr = GetFileAttributes (newname)) != -1
-      && (attr & FILE_ATTRIBUTE_DIRECTORY) == 0)
-    {
-      _chmod (newname, 0666);
-      _unlink (newname);
-    }
+
+  if (result < 0
+      && errno == EEXIST
+      && _chmod (newname, 0666) == 0
+      && _unlink (newname) == 0)
+    result = rename (temp, newname);
 
   return result;
 }
@@ -1813,16 +1901,8 @@ stat (const char * path, struct stat * buf)
   
   if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
     permission |= _S_IEXEC;
-  else
-    {
-      char * p = strrchr (name, '.');
-      if (p != NULL
-	  && (stricmp (p, ".exe") == 0 ||
-	      stricmp (p, ".com") == 0 ||
-	      stricmp (p, ".bat") == 0 ||
-	      stricmp (p, ".cmd") == 0))
-	permission |= _S_IEXEC;
-    }
+  else if (is_exec (name))
+    permission |= _S_IEXEC;
 
   buf->st_mode |= permission | (permission >> 3) | (permission >> 6);
 
