@@ -821,6 +821,9 @@ shut_down_emacs (sig, no_x, stuff)
      int sig, no_x;
      Lisp_Object stuff;
 {
+  /* Prevent running of hooks from now on.  */
+  Vrun_hooks = Qnil;
+
   /* If we are controlling the terminal, reset terminal modes */
 #ifdef EMACS_HAVE_TTY_PGRP
   {
