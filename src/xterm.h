@@ -602,8 +602,13 @@ struct scroll_bar {
 
 /* Return the inside width of a vertical scroll bar, given the outside
    width.  */
-#define VERTICAL_SCROLL_BAR_INSIDE_WIDTH(width) \
-  ((width) - VERTICAL_SCROLL_BAR_LEFT_BORDER - VERTICAL_SCROLL_BAR_RIGHT_BORDER)
+#define VERTICAL_SCROLL_BAR_INSIDE_WIDTH(f, width) \
+  ((width) \
+   - VERTICAL_SCROLL_BAR_LEFT_BORDER \
+   - VERTICAL_SCROLL_BAR_RIGHT_BORDER \
+   - (FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f) \
+      ? LEFT_VERTICAL_SCROLL_BAR_WIDTH_TRIM \
+      : 0))
 
 /* Return the length of the rectangle within which the top of the
    handle must stay.  This isn't equivalent to the inside height,
@@ -612,12 +617,12 @@ struct scroll_bar {
    This is the real range of motion for the scroll bar, so when we're
    scaling buffer positions to scroll bar positions, we use this, not
    VERTICAL_SCROLL_BAR_INSIDE_HEIGHT.  */
-#define VERTICAL_SCROLL_BAR_TOP_RANGE(height) \
-  (VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (height) - VERTICAL_SCROLL_BAR_MIN_HANDLE)
+#define VERTICAL_SCROLL_BAR_TOP_RANGE(f, height) \
+  (VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (f, height) - VERTICAL_SCROLL_BAR_MIN_HANDLE)
 
 /* Return the inside height of vertical scroll bar, given the outside
    height.  See VERTICAL_SCROLL_BAR_TOP_RANGE too.  */
-#define VERTICAL_SCROLL_BAR_INSIDE_HEIGHT(height) \
+#define VERTICAL_SCROLL_BAR_INSIDE_HEIGHT(f, height) \
   ((height) - VERTICAL_SCROLL_BAR_TOP_BORDER - VERTICAL_SCROLL_BAR_BOTTOM_BORDER)
 
 
@@ -639,6 +644,10 @@ struct scroll_bar {
 
 /* Minimum lengths for scroll bar handles, in pixels.  */
 #define VERTICAL_SCROLL_BAR_MIN_HANDLE (5)
+
+/* For a left-side scroll bar, trimming off a few pixels prevents
+   text from glomming up against the scroll bar */
+#define LEFT_VERTICAL_SCROLL_BAR_WIDTH_TRIM (2)
 
 
 /* Manipulating pixel sizes and character sizes.
