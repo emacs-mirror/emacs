@@ -110,6 +110,17 @@ The target is used in the prompt for file copy, rename etc.")
   "*If non-nil, Dired preserves the last-modified time in a file copy.
 \(This works on only some systems.)")
 
+(defvar dired-font-lock-keywords
+  '(;; Put directory headers in italics.
+    ("^  \\(/.+\\)$" 1 font-lock-type-face)
+    ;; Put symlinks in bold italics.
+    ("\\([^ ]+\\) -> [^ ]+$" . font-lock-function-name-face)
+    ;; Put marks in bold.
+    ("^\\([^ ]\\).*$" 1 font-lock-keyword-face t)
+    ;; Put files that are subdirectories in bold.
+    ("^..d.* \\([^ ]+\\)$" 1 font-lock-keyword-face))
+  "Additional expressions to highlight in Dired mode.")
+
 ;;; Hook variables
 
 (defvar dired-load-hook nil
@@ -980,6 +991,8 @@ Keybindings:
        (expand-file-name dired-directory))
   (set (make-local-variable 'dired-actual-switches)
        (or switches dired-listing-switches))
+  (make-local-variable 'font-lock-keywords)
+  (setq font-lock-keywords dired-font-lock-keywords)
   (dired-sort-other dired-actual-switches t)
   (run-hooks 'dired-mode-hook))
 
