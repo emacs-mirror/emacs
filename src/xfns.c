@@ -1671,6 +1671,17 @@ x_window (f)
   class_hints.res_class = EMACS_CLASS;
   XSetClassHint (x_current_display, f->display.x->window_desc, &class_hints);
 
+  /* x_set_name normally ignores requests to set the name if the
+     requested name is the same as the current name.  This is the one
+     place where that assumption isn't correct; f->name is set, but
+     the X server hasn't been told.  */
+  {
+    Lisp_Object name = f->name;
+
+    f->name = Qnil;
+    x_set_name (f, name, Qnil);
+  }
+
   XDefineCursor (XDISPLAY f->display.x->window_desc,
 		 f->display.x->text_cursor);
   UNBLOCK_INPUT;

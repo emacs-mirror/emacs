@@ -327,10 +327,18 @@ otherwise a string <2> or <3> or ... is appended to get an unused name."
 Choose the buffer's name using generate-new-buffer-name."
   (get-buffer-create (generate-new-buffer-name name)))
 
+(defconst automount-dir-prefix "^/tmp_mnt/"
+  "Regexp to match the automounter prefix in a directory name.")
+
 (defun abbreviate-file-name (filename)
   "Return a version of FILENAME shortened using directory-abbrev-alist.
 This also substitutes \"~\" for the user's home directory.
 See \\[describe-variable] directory-abbrev-alist RET for more information."
+  ;; Get rid of the prefixes added by the automounter.
+  (if (and (string-match automount-dir-prefix filename)
+	   (file-exists-p (file-name-directory
+			   (substring filename (1- (match-end 0))))))
+      (setq filename (substring filename (1- (match-end 0)))))
   (let ((tail directory-abbrev-alist))
     (while tail
       (if (string-match (car (car tail)) filename)
@@ -347,13 +355,9 @@ See \\[describe-variable] directory-abbrev-alist RET for more information."
 If a buffer exists visiting FILENAME, return that one, but
 verify that the file has not changed since visited or saved.
 The buffer is not selected, just returned to the caller."
-  (setq filename (expand-file-name filename))
-  ;; Get rid of the prefixes added by the automounter.
-  (if (and (string-match "^/tmp_mnt/" filename)
-	   (file-exists-p (file-name-directory
-			   (substring filename (1- (match-end 0))))))
-      (setq filename (substring filename (1- (match-end 0)))))
-  (setq filename (abbreviate-file-name filename))
+  (setq filename
+	(abbreviate-file-name
+	 (expand-file-name filename)))
   (if (file-directory-p filename)
       (if find-file-run-dired
 	  (dired-noselect filename)

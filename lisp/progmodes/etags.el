@@ -164,7 +164,7 @@ file the tag was in."
 						       default-directory)
 				     t)
 		     current-prefix-arg))
-  (setq file (expand-file-name file))
+  (setq file (abbreviate-file-name (expand-file-name file)))
   (if (file-directory-p file)
       (setq file (expand-file-name "TAGS" file)))
   (if local
