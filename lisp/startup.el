@@ -1,6 +1,6 @@
 ;;; startup.el --- process Emacs shell arguments
 
-;; Copyright (C) 1985, 1986, 1992, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 92, 94, 95, 1996 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal

@@ -1,9 +1,9 @@
 ;; pc-win.el -- setup support for `PC windows' (whatever that is).
 
-;; Copyright (C) 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1996 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
-;; Version: 1,00
+;; Maintainer: FSF
 
 ;; This file is part of GNU Emacs.
 

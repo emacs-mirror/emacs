@@ -1,6 +1,7 @@
 ;;; files.el --- file input and output commands for Emacs
 
-;; Copyright (C) 1985, 86, 87, 92, 93, 94, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 92, 93,
+;;		 94, 95, 1996 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 

@@ -1,6 +1,6 @@
 ;;; sendmail.el --- mail sending commands for Emacs.
 
-;; Copyright (C) 1985, 1986, 1992, 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail

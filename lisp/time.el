@@ -1,6 +1,6 @@
 ;;; time.el --- display time and load in mode line of Emacs.
 
-;; Copyright (C) 1985, 1986, 1987, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 93, 94, 1996 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 

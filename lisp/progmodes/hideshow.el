@@ -1,6 +1,6 @@
 ;;; hideshow.el --- minor mode cmds to selectively display blocks of code
 
-;; Copyright (C) 1994,1995 Free Software Foundation
+;; Copyright (C) 1994,1995,1996 Free Software Foundation
 
 ;; Author: Thien-Thi Nguyen <ttn@netcom.com>
 ;; Version: 3.4

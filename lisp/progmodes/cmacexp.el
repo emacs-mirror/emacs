@@ -1,9 +1,9 @@
 ;;; cmacexp.el --- expand C macros in a region
 
-;; Copyright (C) 1992, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1996 Free Software Foundation, Inc.
 
 ;; Author: Francesco Potorti` <pot@cnuce.cnr.it>
-;; Version: $Id: cmacexp.el,v 1.21 1996/01/14 07:34:30 erik Exp rms $
+;; Version: $Id: cmacexp.el,v 1.22 1996/01/29 05:26:21 rms Exp rms $
 ;; Adapted-By: ESR
 ;; Keywords: c
 

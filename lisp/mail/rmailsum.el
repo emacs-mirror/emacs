@@ -1,6 +1,6 @@
 ;;; rmailsum.el --- make summary buffers for the mail reader
 
-;; Copyright (C) 1985, 1993, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1993, 1994, 1995, 1996 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail

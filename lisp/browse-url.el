@@ -1,6 +1,6 @@
 ;;; browse-url.el --- ask a WWW browser to load a URL
 
-;; Copyright 1995 Free Software Foundation, Inc.
+;; Copyright 1995, 1996 Free Software Foundation, Inc.
 
 ;; Author: Denis Howe <dbh@doc.ic.ac.uk>
 ;; Maintainer: Denis Howe <dbh@doc.ic.ac.uk>

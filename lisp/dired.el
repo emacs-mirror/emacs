@@ -1,6 +1,6 @@
 ;;; dired.el --- directory-browsing commands
 
-;; Copyright (C) 1985, 1986, 1992, 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 92, 93, 94, 95, 1996 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Maintainer: FSF

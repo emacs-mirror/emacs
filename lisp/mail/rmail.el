@@ -1,6 +1,6 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs.
 
-;; Copyright (C) 1985,86,87,88,93,94,95 Free Software Foundation, Inc.
+;; Copyright (C) 1985,86,87,88,93,94,95,96 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
