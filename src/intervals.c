@@ -549,7 +549,7 @@ split_interval_left (interval, offset)
    is updated in the interval found.  Other functions (e.g., next_interval)
    will update this cache based on the result of find_interval.  */
 
-INLINE INTERVAL
+INTERVAL
 find_interval (tree, position)
      register INTERVAL tree;
      register int position;
