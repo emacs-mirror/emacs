@@ -250,6 +250,4 @@ but default input method is set to \"german-postfix\"."))
 	      (documentation . t))
  '("European"))
 
-(provide 'slovenian)
-
 ;;; european.el ends here
