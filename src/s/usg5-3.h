@@ -148,8 +148,12 @@ Boston, MA 02111-1307, USA.  */
 #define _longjmp longjmp
 
 /* On USG systems these have different names */
+#ifndef HAVE_INDEX
 #define index strchr
+#endif /* ! defined (HAVE_INDEX) */
+#ifndef HAVE_RINDEX
 #define rindex strrchr
+#endif /* ! defined (HAVE_RINDEX) */
 
 /* USG systems tend to put everything declared static
    into the initialized data area, which becomes pure after dumping Emacs.
