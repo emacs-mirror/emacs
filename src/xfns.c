@@ -2208,12 +2208,12 @@ fonts), even if they match PATTERN and FACE.")
       FRAME_PTR f = NILP (frame) ? selected_frame : XFRAME (frame);
       int face_id = face_name_id_number (f, face);
 
-      if (face_id < 0 || face_id >= FRAME_N_FACES (f)
-	  || FRAME_FACES (f) [face_id] == 0)
+      if (face_id < 0 || face_id >= FRAME_N_PARAM_FACES (f)
+	  || FRAME_PARAM_FACES (f) [face_id] == 0)
 	size_ref = f->display.x->font;
       else
 	{
-	  size_ref = FRAME_FACES (f) [face_id]->font;
+	  size_ref = FRAME_PARAM_FACES (f) [face_id]->font;
 	  if (size_ref == (XFontStruct *) (~0))
 	    size_ref = f->display.x->font;
 	}
@@ -3483,7 +3483,9 @@ arg XRM_STRING is a string of resources in xrdb format.")
     }
   else
     xrm_option = (unsigned char *) 0;
+  BLOCK_INPUT;
   xrdb = x_load_resources (x_current_display, xrm_option, EMACS_CLASS);
+  UNBLOCK_INPUT;
 #if defined (HAVE_X11R5) || defined (HAVE_XRMSETDATABASE)
   XrmSetDatabase (x_current_display, xrdb);
 #else
