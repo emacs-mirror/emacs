@@ -33,6 +33,7 @@ Boston, MA 02111-1307, USA.  */
 Lisp_Object Vglobal_fontset_alist;
 
 Lisp_Object Vfont_encoding_alist;
+Lisp_Object Vuse_default_ascent;
 
 /* We had better have our own strcasecmp function because some system
    doesn't have it.  */
@@ -196,7 +197,6 @@ fs_load_font (f, font_table, charset, fontname, fontset)
 
 	      for (tmp = XCONS (elt)->cdr; CONSP (tmp); tmp = XCONS (tmp)->cdr)
 		if (CONSP (XCONS (tmp)->car)
-		    && INTEGERP (XCONS (XCONS (tmp)->car)->car)
 		    && ((i = get_charset_id (XCONS (XCONS (tmp)->car)->car))
 			>= 0)
 		    && INTEGERP (XCONS (XCONS (tmp)->car)->cdr)
@@ -251,8 +251,12 @@ fs_load_font (f, font_table, charset, fontname, fontset)
 
 		  if (fontp2->size != fontp->size * CHARSET_WIDTH (i))
 		    fontsetp->font_indexes[i] = FONT_NOT_OPENED;
+		  /* The following code should be disabled until Emacs
+		     supports variable height lines.  */
+#if 0
 		  else if (fontsetp->height < fontp->height)
 		    fontsetp->height = fontp->height;
+#endif
 		}
 	    }
 	}
@@ -613,11 +617,12 @@ If FRAME is omitted or nil, all frames are affected.")
   if (NILP (frame))
     {
       Lisp_Object fontset_info = Fassoc (fullname, Vglobal_fontset_alist);
-      Lisp_Object tem = Fassq (charset, XCONS (fontset_info)->cdr);
+      Lisp_Object tem = Fassq (charset_symbol, XCONS (fontset_info)->cdr);
 
       if (NILP (tem))
 	XCONS (fontset_info)->cdr
-	  = Fcons (Fcons (charset, fontname), XCONS (fontset_info)->cdr);
+	  = Fcons (Fcons (charset_symbol, fontname),
+		   XCONS (fontset_info)->cdr);
       else
 	XCONS (tem)->cdr = fontname;
     }
@@ -636,13 +641,13 @@ If FRAME is omitted or nil, all frames are affected.")
 	  struct fontset_info *fontsetp
 	    = FRAME_FONTSET_DATA (f)->fontset_table[fontset];
 
-	  if (fontsetp->fontname[XINT (charset)])
-	    xfree (fontsetp->fontname[XINT (charset)]);
-	  fontsetp->fontname[XINT (charset)]
+	  if (fontsetp->fontname[charset])
+	    xfree (fontsetp->fontname[charset]);
+	  fontsetp->fontname[charset]
 	    = (char *) xmalloc (XSTRING (fontname)->size + 1);
-	  bcopy (XSTRING (fontname)->data, fontsetp->fontname[XINT (charset)],
+	  bcopy (XSTRING (fontname)->data, fontsetp->fontname[charset],
 		 XSTRING (fontname)->size + 1);
-	  fontsetp->font_indexes[XINT (charset)] = FONT_NOT_OPENED;
+	  fontsetp->font_indexes[charset] = FONT_NOT_OPENED;
 
 	  if (charset == CHARSET_ASCII)
 	    {
@@ -667,7 +672,7 @@ DEFUN ("font-info", Ffont_info, Sfont_info, 1, 2, 0,
   "Return information about a font named NAME on frame FRAME.\n\
 If FRAME is omitted or nil, use the selected frame.\n\
 The returned value is a vector of OPENED-NAME, FULL-NAME, CHARSET, SIZE,\n\
-  HEIGHT, BASELINE-OFFSET, and RELATIVE-COMPOSE,\n\
+  HEIGHT, BASELINE-OFFSET, RELATIVE-COMPOSE, and DEFAULT-ASCENT,\n\
 where\n\
   OPENED-NAME is the name used for opening the font,\n\
   FULL-NAME is the full name of the font,\n\
@@ -675,7 +680,8 @@ where\n\
   SIZE is the minimum bound width of the font,\n\
   HEIGHT is the height of the font,\n\
   BASELINE-OFFSET is the upward offset pixels from ASCII baseline,\n\
-  RELATIVE-COMPOSE is the number controlling how to compose characters.\n\
+  RELATIVE-COMPOSE and DEFAULT-ASCENT are the numbers controlling\n\
+    how to compose characters.\n\
 If the named font is not yet loaded, return nil.")
   (name, frame)
      Lisp_Object name, frame;
@@ -702,7 +708,7 @@ If the named font is not yet loaded, return nil.")
   if (!fontp)
     return Qnil;
 
-  info = Fmake_vector (make_number (6), Qnil);
+  info = Fmake_vector (make_number (7), Qnil);
 
   XVECTOR (info)->contents[0] = build_string (fontp->name);
   XVECTOR (info)->contents[1] = build_string (fontp->full_name);
@@ -711,6 +717,7 @@ If the named font is not yet loaded, return nil.")
   XVECTOR (info)->contents[4] = make_number (fontp->height);
   XVECTOR (info)->contents[5] = make_number (fontp->baseline_offset);
   XVECTOR (info)->contents[6] = make_number (fontp->relative_compose);
+  XVECTOR (info)->contents[7] = make_number (fontp->default_ascent);
 
   return info;
 }
@@ -790,6 +797,7 @@ syms_of_fontset ()
     /* Window system initializer should have set proper functions.  */
     abort ();
 
+  Qfontset = intern ("fontset");
   staticpro (&Qfontset);
 
   Vcached_fontset_data = Qnil;
@@ -812,6 +820,12 @@ ENCODING is one of the following integer values:\n\
 	2: code points 0x20A0..0x7FFF are used,\n\
 	3: code points 0xA020..0xFF7F are used.");
   Vfont_encoding_alist = Qnil;
+
+  DEFVAR_LISP ("use-default-ascent", &Vuse_default_ascent,
+     "Char table of characters of which ascent values should be ignored.\n\
+If an entry for a character is non-nil, the ascent value of the glyph\n\
+is assumed to be what specified by _MULE_DEFAULT_ASCENT property of a font.");
+  Vuse_default_ascent = Qnil;
 
   defsubr (&Squery_fontset);
   defsubr (&Snew_fontset);
