@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs-util.el,v 1.1 2000/03/11 03:42:30 monnier Exp $
+;; Revision: $Id: pcvs-util.el,v 1.2 2000/03/17 10:07:00 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -189,15 +189,6 @@ The SEPARATOR regexp defaults to \"\\s-+\"."
 	      (let ((rfs (read-from-string string i)))
 		(cons (car rfs)
 		      (cvs-string->strings (substring string (cdr rfs)) sep)))))))
-      
-
-(defun cvs-string-fill (str n &optional filling truncate)
-  "Add FILLING (defaults to the space char) to STR to reach size N.
-If STR is longer than N, truncate if TRUNCATE is set, else don't do anything."
-  (let ((l (length str)))
-    (if (> l n)
-	(if truncate (substring str 0 n) str)
-      (concat str (make-string (- n l) (or filling ? ))))))
 
 ;;;; 
 ;;;; file names

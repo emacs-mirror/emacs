@@ -14,7 +14,7 @@
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
 ;; Version: $Name:  $
-;; Revision: $Id: pcl-cvs.el,v 1.75 2000/03/05 21:32:21 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.1 2000/03/11 03:42:30 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -35,105 +35,78 @@
 
 ;;; Commentary:
 
+;; PCL-CVS is a front-end to the CVS version control system.  For people
+;; familiar with VC, it is somewhat like VC-dired: it presents the status of
+;; all the files in your working area and allows you to commit/update several
+;; of them at a time.  Compared to VC-dired, it is considerably better and
+;; faster (but only for CVS).
+
+;; PCL-CVS was originally written by Per Cederqvist many years ago.  This
+;; version derives from the XEmacs-21 version, itself based on the 2.0b2
+;; version (last release from Per).  It is a thorough rework.
+
+;; Contrary to what you'd expect, PCL-CVS is not a replacement for VC but only
+;; for VC-dired.  As such, I've tried to make PCL-CVS and VC interoperate
+;; seamlessly (I also use VC).
+
+;; To use PCL-CVS just use `M-x cvs-examine RET <dir> RET'.
+;; There used to be a TeXinfo manual, but it's now so out of date that
+;; it's not even worth looking at it.
+
 ;;; Todo:
 
-;; * FIX THE DOCUMENTATION
+;; ******** FIX THE DOCUMENTATION *********
 ;; 
-;; * Emacs-21 adaptation
-;; ** use the new arg of save-some-buffers
-;; ** add toolbar entries
-;; ** use `format' now that it keeps properties
-;; ** use propertize
-;; ** add compatibility with older name's variables.
-;; 
-;; * New Features
-;; 
-;; ** marking
-;; *** marking directories should jump to just after the dir.
-;; *** allow (un)marking directories at a time with the mouse.
-;; *** marking with the mouse should not move point.
-;; 
-;; ** liveness indicator
-;; 
-;; ** indicate in docstring if the cmd understands the `b' prefix(es).
-;; 
-;; ** call smerge-mode when opening CONFLICT files.
-;; 
-;; ** after-parse-hook (to eliminate *.elc from Emacs' CVS repository :-)
-;; 
-;; ** have vc-checkin delegate to cvs-mode-commit when applicable
-;; 
-;; ** higher-level CVS operations
-;; 
-;; *** cvs-mode-rename
-;; *** cvs-mode-branch
-;; 
-;; ** module-level commands
-;; 
-;; *** add support for parsing 'modules' file ("cvs co -c")
-;; 
-;; *** cvs-mode-rcs2log
-;; *** cvs-rdiff
-;; *** cvs-release
-;; *** cvs-import
-;; *** C-u M-x cvs-checkout should ask for a cvsroot
-;; 
-;; *** cvs-mode-handle-new-vendor-version
+;; - write cvs-fast-examine that parses CVS/Entries instead of running cvs
+;;   we could even steal code from vc-cvs-hooks for that.
+;; - add toolbar entries
+;; - marking
+;;    marking directories should jump to just after the dir.
+;;    allow (un)marking directories at a time with the mouse.
+;;    marking with the mouse should not move point.
+;; - liveness indicator
+;; - indicate in docstring if the cmd understands the `b' prefix(es).
+;; - call smerge-mode when opening CONFLICT files.
+;; - after-parse-hook (to eliminate *.elc from Emacs' CVS repository :-)
+;; - have vc-checkin delegate to cvs-mode-commit when applicable
+;; - higher-level CVS operations
+;;    cvs-mode-rename
+;;    cvs-mode-branch
+;; - module-level commands
+;;    add support for parsing 'modules' file ("cvs co -c")
+;;    cvs-mode-rcs2log
+;;    cvs-rdiff
+;;    cvs-release
+;;    cvs-import
+;;    C-u M-x cvs-checkout should ask for a cvsroot
+;;    cvs-mode-handle-new-vendor-version
 ;; 	- checks out module, or alternately does update join
 ;; 	- does "cvs -n tag LAST_VENDOR" to find old files into *cvs*
-;; 
-;; *** cvs-export
+;;    cvs-export
 ;; 	(with completion on tag names and hooks to
 ;; 	help generate full releases)
-;; 
-;; ** allow cvs-cmd-do to either clear the marks or not.
-;; 
-;; ** allow more concurrency: if the output buffer is busy, pick a new one.
-;; 
-;; ** configurable layout/format of *cvs*.
-;; 
-;; ** display stickiness information.  And current CVS/Tag as well.
-;; 
-;; ** cvs-log-mode should know how to extract version info
-;; 	cvs-log-current-tag is a nop right now :-(
-;; 
-;; ** write 'cvs-mode-admin' to do arbitrary 'cvs admin' commands
-;; 
-;; ** cvs-mode-incorporate
+;; - allow cvs-cmd-do to either clear the marks or not.
+;; - allow more concurrency: if the output buffer is busy, pick a new one.
+;; - display stickiness information.  And current CVS/Tag as well.
+;; - write 'cvs-mode-admin' to do arbitrary 'cvs admin' commands
+;; - cvs-mode-incorporate
 ;; 	It would merge in the status from one ``*cvs*'' buffer into another.
 ;; 	This would be used to populate such a buffer that had been created with
 ;; 	a `cvs {update,status,checkout} -l'.
-;; 
-;; ** cvs-mode-(i)diff-other-{file,buffer,cvs-buffer}
-;; 
-;; ** offer the choice to kill the process when the user kills the cvs buffer.
+;; - cvs-mode-(i)diff-other-{file,buffer,cvs-buffer}
+;; - offer the choice to kill the process when the user kills the cvs buffer.
 ;; 	right now, it's killed without further ado.
-;; 
-;; ** make `cvs-mode-ignore' allow manually entering a pattern.
+;; - make `cvs-mode-ignore' allow manually entering a pattern.
 ;; 	to which dir should it apply ?
-;; 
-;; ** cvs-mode-ignore should try to remove duplicate entries.
-;; 
-;; * Old misfeatures
-;; 
-;; ** cvs-mode-<foo> commands tend to require saving too many buffers
-;; 	they should only require saving the files concerned by the command
-;; 
-;; * Secondary issues
-;; 
-;; ** maybe poll/check CVS/Entries files to react to external `cvs' commands ?
-;; 
-;; ** some kind of `cvs annotate' support ?
+;; - cvs-mode-ignore should try to remove duplicate entries.
+;; - maybe poll/check CVS/Entries files to react to external `cvs' commands ?
+;; - some kind of `cvs annotate' support ?
 ;; 	but vc-annotate can be used instead.
-;; 
-;; * probably not worth the trouble
-;; 
-;; ** dynamic `g' mapping
+;; - dynamic `g' mapping
 ;; 	Make 'g', and perhaps other commands, use either cvs-update or
 ;; 	cvs-examine depending on the read-only status of the cvs buffer, for
 ;; 	instance.
-;; 
-;; ** add message-levels so that we can hide some levels of messages
+;; - add message-levels so that we can hide some levels of messages
 
 ;;; Code:
 
@@ -457,24 +430,18 @@ If non-nil, NEW means to create a new buffer no matter what."
 	 (setq default-directory dir)
 	 (setq buffer-read-only nil)
 	 (erase-buffer)
+	 (insert "\
+Repository : " (directory-file-name (cvs-get-cvsroot)) "
+Module     : " (cvs-get-module) "
+Working dir: " (abbreviate-file-name dir) "
+
+")
 	 (setq buffer-read-only t)
 	 (cvs-mode)
 	 (set (make-local-variable 'list-buffers-directory) buffer-name)
 	 ;;(set (make-local-variable 'cvs-temp-buffer) (cvs-temp-buffer))
-	 (let ((cookies
-		(ewoc-create
-		 buffer 'cvs-fileinfo-pp
-		 (format "%s\n\nRepository       : %s\nWorking directory: %s\n"
-			 cvs-startup-message
-			 (directory-file-name (cvs-get-cvsroot))
-			 dir))))
+	 (let ((cookies (ewoc-create 'cvs-fileinfo-pp "\n" "")))
 	   (set (make-local-variable 'cvs-cookies) cookies)
-	   (ewoc-enter-first
-	    cookies
-	    (cvs-create-fileinfo 'MESSAGE "" " " "\n" :subtype 'HEADER))
-	   (ewoc-enter-last
-	    cookies
-	    (cvs-create-fileinfo 'MESSAGE "" " " "\n" :subtype 'FOOTER))
 	   (make-local-hook 'kill-buffer-hook)
 	   (add-hook 'kill-buffer-hook
 		     (lambda ()
@@ -599,14 +566,8 @@ If non-nil, NEW means to create a new buffer no matter what."
 		"\n")))
     (if nil (insert str) ;inline
       ;;(with-current-buffer cvs-buffer
-	(let* ((tin0 (ewoc-nth cvs-cookies 0))
-	       (tin-1 (ewoc-nth cvs-cookies -1))
-	       (header (ewoc-data tin0))
-	       (footer (ewoc-data tin-1))
-	       (prev-msg (cvs-fileinfo->full-log header))
-	       (tin tin0))
-	  (assert (and (eq 'HEADER (cvs-fileinfo->subtype header))
-		       (eq 'FOOTER (cvs-fileinfo->subtype footer))))
+	(let* ((prev-msg (car (ewoc-get-hf cvs-cookies)))
+	       (tin (ewoc-nth cvs-cookies 0)))
 	  ;; look for the first *real* fileinfo (to determine emptyness)
 	  (while
 	      (and tin
@@ -621,13 +582,11 @@ If non-nil, NEW means to create a new buffer no matter what."
 		   (match-string 1 prev-msg)
 		   " --")))
 	  ;; set the new header and footer
-	  (setf (cvs-fileinfo->full-log header) str)
-	  (setf (cvs-fileinfo->full-log footer)
-		(concat "\n--------------------- "
-			(if tin "End" "Empty")
-			" ---------------------\n"
-			prev-msg))
-	  (ewoc-invalidate cvs-cookies tin0 tin-1)))));;)
+	  (ewoc-set-hf cvs-cookies
+		       str (concat "\n--------------------- "
+				   (if tin "End" "Empty")
+				   " ---------------------\n"
+				   prev-msg))))))
 
 
 ;;----------
@@ -999,10 +958,9 @@ the override will persist until the next toggle."
 
 ;;----------
 (put 'cvs-mode 'mode-class 'special)
-(easy-mmode-define-derived-mode cvs-mode fundamental-mode "CVS"
+(define-derived-mode cvs-mode fundamental-mode "CVS"
   "Mode used for PCL-CVS, a frontend to CVS.
-Full documentation is in the Texinfo file.
-Pcl-cvs runs `pcl-cvs-load-hook' after being loaded."
+Full documentation is in the Texinfo file."
   (setq mode-line-process
 	'("" cvs-force-command cvs-ignore-marks-modif
 	  ":" (cvs-branch-prefix
@@ -1012,6 +970,7 @@ Pcl-cvs runs `pcl-cvs-load-hook' after being loaded."
   (buffer-disable-undo (current-buffer))
   ;;(set (make-local-variable 'goal-column) cvs-cursor-column)
   (set (make-local-variable 'revert-buffer-function) 'cvs-mode-revert-buffer)
+  (setq truncate-lines t)
   (cvs-prefix-make-local 'cvs-branch-prefix)
   (cvs-prefix-make-local 'cvs-secondary-branch-prefix)
   (cvs-prefix-make-local 'cvs-force-command)
@@ -1578,6 +1537,18 @@ Signal an error if there is no backup file."
 	(setf (cvs-fileinfo->type fi) 'DEAD))
     (setf (cvs-fileinfo->type fi) 'DEAD)))
 
+(defun cvs-is-within-p (fis dir)
+  "Non-nil is buffer is inside one of FIS (in DIR)."
+  (when (stringp buffer-file-name)
+    (setq buffer-file-name (expand-file-name buffer-file-name))
+    (let (ret)
+      (dolist (fi (or fis (list (cvs-create-fileinfo 'DIRCHANGE "" "." ""))))
+	(when (cvs-string-prefix-p
+	       (expand-file-name (cvs-fileinfo->full-path fi) dir)
+	       buffer-file-name)
+	  (setq ret t)))
+      ret)))
+
 (defun* cvs-mode-run (cmd flags fis
 		      &key (buf (cvs-temp-buffer))
 		           dont-change-disc cvsargs postproc)
@@ -1588,7 +1559,9 @@ DONT-CHANGE-DISC non-nil indicates that the command will not change the
   contents of files.  This is only used by the parser.
 POSTPROC is a list of expressions to be evaluated at the very end (after
   parsing if applicable).  It will be prepended with `progn' is necessary."
-  (save-some-buffers)
+  (let ((def-dir default-directory))
+    ;; Save the relevant buffers
+    (save-some-buffers nil (lambda () (cvs-is-within-p fis def-dir))))
   (unless (listp flags) (error "flags should be a list of strings"))
   (let* ((cvs-buf (current-buffer))
 	 (single-dir (or (not (listp cvs-execute-single-dir))

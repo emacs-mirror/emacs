@@ -68,7 +68,6 @@
 ;; certain point in a certain buffer.  (The buffer and point are
 ;; fixed when the ewoc is created).  The header and the footer
 ;; are constant strings.  They appear before and after the elements.
-;; (Currently, once set, they can not be changed).
 ;;
 ;; Ewoc does not affect the mode of the buffer in any way. It
 ;; merely makes it easy to connect an underlying data representation
@@ -94,7 +93,7 @@
 ;; In the mean time `grep '^(.*ewoc-[^-]' emacs-lisp/ewoc.el' can help
 ;; you find all the exported functions:
 ;; 
-;; (defun ewoc-create (buffer pretty-printer &optional header footer pos)
+;; (defun ewoc-create (pretty-printer &optional header footer)
 ;; (defalias 'ewoc-data 'ewoc--node-data)
 ;; (defun ewoc-enter-first (ewoc data)
 ;; (defun ewoc-enter-last (ewoc data)
@@ -113,7 +112,8 @@
 ;; (defun ewoc-refresh (ewoc)
 ;; (defun ewoc-collect (ewoc predicate &rest args)
 ;; (defun ewoc-buffer (ewoc)
-
+;; (defun ewoc-get-hf (ewoc)
+;; (defun ewoc-set-hf (ewoc header footer)
 
 ;;     Coding conventions
 ;;     ==================
@@ -234,27 +234,6 @@ BUT if it is the header or the footer in EWOC return nil instead."
     node))
 
 
-(defun ewoc--create-special-node (data string pos)
-  "Insert STRING at POS in current buffer. Remember the start
-position. Create a wrapper containing that start position and the
-element DATA."
-  (save-excursion
-    ;; Remember the position as a number so that it doesn't move
-    ;; when we insert the string.
-    (when (markerp pos) (setq pos (marker-position pos)))
-    (goto-char pos)
-    (let ((inhibit-read-only t))
-      ;; Use insert-before-markers so that the marker for the
-      ;; next element is updated.
-      (insert-before-markers string)
-      ;; Always insert a newline. You want invisible elements? You
-      ;; lose. (At least in this version). FIXME-someday. (It is
-      ;; harder to fix than it might seem. All markers have to point
-      ;; to the right place all the time...)
-      (insert-before-markers ?\n)
-      (ewoc--node-create (copy-marker pos) data))))
-
-
 (defun ewoc--create-node (data pretty-printer pos)
   "Call PRETTY-PRINTER with point set at POS in current buffer.
 Remember the start position. Create a wrapper containing that
@@ -293,32 +272,26 @@ consume any more resources."
     (ewoc--node-delete node)))
 
 
-(defvar dll)				;passed by dynamic binding
-
-(defun ewoc--refresh-node (ewoc node)
-  "Redisplay the element represented by NODE.
-Can not be used on the footer. dll *must* be bound to
-\(ewoc--dll ewoc)."
+(defun ewoc--refresh-node (pp node)
+  "Redisplay the element represented by NODE using the pretty-printer PP."
   (let ((inhibit-read-only t))
     (save-excursion
       ;; First, remove the string from the buffer:
       (delete-region (ewoc--node-start-marker node)
 		     (1- (marker-position
-			  (ewoc--node-start-marker (ewoc--node-next dll node)))))
+			  (ewoc--node-start-marker (ewoc--node-right node)))))
       ;; Calculate and insert the string.
       (goto-char (ewoc--node-start-marker node))
-      (funcall (ewoc--pretty-printer ewoc)
-	       (ewoc--node-data node)))))
+      (funcall pp (ewoc--node-data node)))))
 
 ;;; ===========================================================================
 ;;;                  Public members of the Ewoc package
 
 
-(defun ewoc-create (buffer pretty-printer &optional header footer pos)
+(defun ewoc-create (pretty-printer &optional header footer)
   "Create an empty ewoc.
 
-The ewoc will be inserted in BUFFER. BUFFER may be a
-buffer or a buffer name. It is created if it does not exist.
+The ewoc will be inserted in the current buffer at the current position.
 
 PRETTY-PRINTER should be a function that takes one argument, an
 element, and inserts a string representing it in the buffer (at
@@ -330,27 +303,22 @@ insert-before-markers.
 Optional third argument HEADER is a string that will always be
 present at the top of the ewoc. HEADER should end with a
 newline.  Optionaly fourth argument FOOTER is similar, and will
-always be inserted at the bottom of the ewoc.
-
-Optional fifth argument POS is a buffer position, specifying
-where the ewoc will be inserted. It defaults to the
-beginning of the buffer."
+be inserted at the bottom of the ewoc."
   (let ((new-ewoc
-	 (ewoc--create (get-buffer-create buffer)
-			    pretty-printer nil nil (ewoc--dll-create))))
+	 (ewoc--create (current-buffer)
+		       pretty-printer nil nil (ewoc--dll-create)))
+	(pos (point)))
     (ewoc--set-buffer-bind-dll new-ewoc
       ;; Set default values
       (unless header (setq header ""))
       (unless footer (setq footer ""))
-      (unless pos (setq pos (point-min)))
-      ;; Force header to be above footer.
-      (if (markerp pos) (setq pos (marker-position pos)))
-      (let ((foot (ewoc--create-special-node footer footer pos))
-	    (head (ewoc--create-special-node header header pos)))
+      (setf (ewoc--node-start-marker dll) (copy-marker pos))
+      (let ((foot (ewoc--create-node footer (lambda (x) (insert footer)) pos))
+	    (head (ewoc--create-node header (lambda (x) (insert header)) pos)))
 	(ewoc--node-enter-first dll head)
 	(ewoc--node-enter-last  dll foot)
-	(setf (ewoc--header new-ewoc) (ewoc--node-nth dll 0))
-	(setf (ewoc--footer new-ewoc) (ewoc--node-nth dll -1))))
+	(setf (ewoc--header new-ewoc) head)
+	(setf (ewoc--footer new-ewoc) foot)))
     ;; Return the ewoc
     new-ewoc))
 
@@ -427,7 +395,7 @@ arguments will be passed to MAP-FUNCTION."
        (node (ewoc--node-nth dll 1)))
     (while (not (eq node footer))
       (if (apply map-function (ewoc--node-data node) args)
-	  (ewoc--refresh-node ewoc node))
+	  (ewoc--refresh-node (ewoc--pretty-printer ewoc) node))
       (setq node (ewoc--node-next dll node)))))
 
 (defun ewoc-filter (ewoc predicate &rest args)
@@ -521,7 +489,7 @@ If the EWOC is empty, nil is returned."
 The pretty-printer that for EWOC will be called for all NODES."
   (ewoc--set-buffer-bind-dll ewoc
     (dolist (node nodes)
-      (ewoc--refresh-node ewoc node))))
+      (ewoc--refresh-node (ewoc--pretty-printer ewoc) node))))
 
 (defun ewoc-goto-prev (ewoc pos arg)
   "Move point to the ARGth previous element.
@@ -566,8 +534,7 @@ will be called for all elements in EWOC.
 Note that `ewoc-invalidate' is more efficient if only a small
 number of elements needs to be refreshed."
   (ewoc--set-buffer-bind-dll-let* ewoc
-      ((header (ewoc--header ewoc))
-       (footer (ewoc--footer ewoc)))
+      ((footer (ewoc--footer ewoc)))
     (let ((inhibit-read-only t))
       (delete-region (ewoc--node-start-marker (ewoc--node-nth dll 1))
 		     (ewoc--node-start-marker footer))
@@ -608,6 +575,18 @@ remaining arguments will be passed to PREDICATE."
 Returns nil if the buffer has been deleted."
   (let ((buf (ewoc--buffer ewoc)))
     (when (buffer-name buf) buf)))
+
+(defun ewoc-get-hf (ewoc)
+  "Return a cons cell containing the (HEADER . FOOTER) of EWOC."
+  (cons (ewoc--node-data (ewoc--header ewoc))
+	(ewoc--node-data (ewoc--footer ewoc))))
+
+(defun ewoc-set-hf (ewoc header footer)
+  "Set the HEADER and FOOTER of EWOC."
+  (setf (ewoc--node-data (ewoc--header ewoc)) header)
+  (setf (ewoc--node-data (ewoc--footer ewoc)) footer)
+  (ewoc--refresh-node (lambda (x) (insert header)) (ewoc--header ewoc))
+  (ewoc--refresh-node (lambda (x) (insert footer)) (ewoc--footer ewoc)))
 
 
 (provide 'ewoc)

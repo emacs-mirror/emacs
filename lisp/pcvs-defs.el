@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs-defs.el,v 1.1 2000/03/11 03:42:29 monnier Exp $
+;; Revision: $Id: pcvs-defs.el,v 1.2 2000/03/15 21:28:58 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -294,10 +294,6 @@ This variable is buffer local and only used in the *cvs* buffer.")
 ;;;; Global internal variables
 ;;;;
 
-(defconst cvs-startup-message
-  (concat "PCL-CVS release " pcl-cvs-version)
-  "*Startup message for CVS.")
-
 (defconst cvs-vendor-branch "1.1.1"
   "The default branch used by CVS for vendor code.")
 
@@ -460,17 +456,25 @@ It is expected to call the function.")
 (defconst cvs-pcl-cvs-dirchange-re "^pcl-cvs: descending directory \\(.*\\)$")
 
 ;;;; 
-;;;; 
+;;;; autoload the global menu
 ;;;; 
 
-(if (progn (condition-case () (require 'easymenu) (error nil))
-	   (fboundp 'easy-menu-add-item))
-    (easy-menu-add-item nil '("tools")
-			'("PCL CVS"
-			  ["Update Directory"    cvs-update    t]
-			  ["Examine Directory"   cvs-examine   t]
-			  ["Status Directory"    cvs-status    t]
-			  ["Checkout Module"     cvs-checkout  t]) "vc"))
+;;;###autoload
+(defvar cvs-global-menu
+  (let ((m (make-sparse-keymap "PCL-CVS")))
+    (define-key m [status]
+      '(menu-item "Directory Status" cvs-status
+		  :help "A more verbose status of a workarea"))
+    (define-key m [checkout]
+      '(menu-item "Checkout Module" cvs-checkout
+		  :help "Check out a module from the repository"))
+    (define-key m [update]
+      '(menu-item "Update Directory" cvs-update
+		  :help "Fetch updates from the repository"))
+    (define-key m [examine]
+      '(menu-item "Examine Directory" cvs-examine
+		  :help "Examine the current state of a workarea"))
+    m))
 
 
 ;; cvs-1.10 and above can take file arguments in other directories

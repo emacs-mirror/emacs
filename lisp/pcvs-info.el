@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
 ;; Version: $Name:  $
-;; Revision: $Id: pcl-cvs-info.el,v 1.28 2000/03/05 21:32:21 monnier Exp $
+;; Revision: $Id: pcvs-info.el,v 1.1 2000/03/11 03:42:29 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -212,8 +212,6 @@ to confuse some users sometimes."
   ;;					  to display a text that should be in
   ;;					  full-log."
   ;;   TEMP	A temporary message that should be removed
-  ;;   HEADER	A message that should stick at the top of the display
-  ;;   FOOTER	A message that should stick at the bottom of the display
   )
 (defun cvs-create-fileinfo (type dir file msg &rest keys)
   (cvs-check-fileinfo (apply #'-cvs-create-fileinfo type dir file msg keys)))
@@ -362,10 +360,8 @@ For use by the cookie package."
 					'cvs-header-face cvs-dirname-map)
 			  ":"))
        (MESSAGE
-	(if (memq (cvs-fileinfo->subtype fileinfo) '(FOOTER HEADER))
-	    (cvs-fileinfo->full-log fileinfo)
-	  (cvs-add-face (format "Message: %s" (cvs-fileinfo->full-log fileinfo))
-			'cvs-msg-face)))
+	(cvs-add-face (format "Message: %s" (cvs-fileinfo->full-log fileinfo))
+		      'cvs-msg-face))
        (t
 	(let* ((status (if (cvs-fileinfo->marked fileinfo)
 			   (cvs-add-face "*" 'cvs-marked-face)
@@ -390,24 +386,9 @@ For use by the cookie package."
 		      ;; or the head-rev
 		      (when (and head (not (string= head base))) head)
 		      ;; or nothing
-		      ""))
-	       ;; (action (cvs-add-face (case (cvs-default-action fileinfo)
-	       ;; 			  (commit "com")
-	       ;; 			  (update "upd")
-	       ;; 			  (undo   "udo")
-	       ;; 			  (t      "   "))
-	       ;; 			'cvs-action-face
-	       ;; 			cvs-action-map))
-	       )
-	  (concat (cvs-string-fill side 11) " "
-		  status " "
-		  (cvs-string-fill type 11) " "
-		  ;; action " "
-		  (cvs-string-fill base 11) " "
-		  file)))))))
-;;        it seems that `format' removes text-properties.  Too bad!
-;; 	  (format "%-11s %s %-11s %-11s %s"
-;; 	  	  side status type base file)))))))
+		      "")))
+	  (format "%-11s %s %-11s %-11s %s"
+	  	  side status type base file)))))))
 
 
 (defun cvs-fileinfo-update (fi fi-new)
@@ -433,12 +414,6 @@ fileinfo will appear first, followed by all files (alphabetically)."
   (let ((subtypea (cvs-fileinfo->subtype a))
 	(subtypeb (cvs-fileinfo->subtype b)))
     (cond
-     ;; keep header and footer where they belong. Note: the order is important
-     ((eq subtypeb 'HEADER) nil)
-     ((eq subtypea 'HEADER) t)
-     ((eq subtypea 'FOOTER) nil)
-     ((eq subtypeb 'FOOTER) t)
-
      ;; Sort according to directories.
      ((string< (cvs-fileinfo->dir a) (cvs-fileinfo->dir b)) t)
      ((not (string= (cvs-fileinfo->dir a) (cvs-fileinfo->dir b))) nil)

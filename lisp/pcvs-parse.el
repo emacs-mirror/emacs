@@ -5,7 +5,7 @@
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
 ;; Version: $Name:  $
-;; Revision: $Id: pcl-cvs-parse.el,v 1.41 2000/03/05 21:32:21 monnier Exp $
+;; Revision: $Id: pcvs-parse.el,v 1.1 2000/03/11 03:42:29 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -154,7 +154,7 @@ Match RE and if successful, execute MATCHES."
      (and
       (cvs-match ".*$")
       (cvs-create-fileinfo 'MESSAGE cvs-current-dir " "
-			   (concat " Parser Error: '" (cvs-parse-msg) "'")
+			   (concat " Unknown msg: '" (cvs-parse-msg) "'")
 			   :subtype 'ERROR)))))
 
 
@@ -317,6 +317,10 @@ The remaining KEYS are passed directly to `cvs-create-fileinfo'."
        ;; File unknown.
        (and (cvs-match "use `.+ add' to create an entry for \\(.*\\)$" (path 1))
 	    (cvs-parsed-fileinfo 'UNKNOWN path))
+
+       ;; [commit]
+       (and (cvs-match "Up-to-date check failed for `\\(.+\\)'$" (file 1))
+	    (cvs-parsed-fileinfo 'NEED-MERGE file))
 
        ;; We use cvs-execute-multi-dir but cvs can't handle it
        ;; Probably because the cvs-client can but the cvs-server can't
