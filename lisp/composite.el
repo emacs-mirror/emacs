@@ -296,26 +296,8 @@ WIDTH is a number of columns the composition occupies on the screen."
     result))
 
 
-;; A char-table of functions to call for compositions.
 ;;;###autoload
-(put 'composition-function-table 'char-table-extra-slots 0)
-
-;;;###autoload
-(defvar composition-function-table
-  (make-char-table 'composition-function-table)
-  "Char table of patterns and functions to make a composition.
-
-Each element is nil or an alist of PATTERNs vs FUNCs, where PATTERNs
-are regular expressions and FUNCs are functions.  FUNC is responsible
-for composing text matching the corresponding PATTERN.  FUNC is called
-with three arguments FROM, TO, and PATTERN.  See the function
-`compose-chars-after' for more detail.
-
-This table is looked up by the first character of a composition when
-the composition gets invalid after a change in a buffer.")
-
-;;;###autoload
-(defun compose-chars-after (pos &optional limit)
+(defun compose-chars-after (pos &optional limit object)
   "Compose characters in current buffer after position POS.
 
 It looks up the char-table `composition-function-table' (which see) by
@@ -333,6 +315,9 @@ is:
   CHARS (integer) -- if CHARS characters were composed.
 
 Optional 2nd arg LIMIT, if non-nil, limits the matching of text.
+
+Optional 3rd arg OBJECT, if non-nil, is a string that contains the
+text to compose.  In that case, POS and LIMIT index to the string.
 
 This function is the default value of `compose-chars-after-function'."
   (let ((tail (aref composition-function-table (char-after pos)))
