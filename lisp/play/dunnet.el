@@ -148,9 +148,15 @@
 your objects, to give off an eerie glow."))
   (if (and (= dun-current-room fourth-vermont-intersection) dun-hole)
       (progn
-	(dun-mprincl"You fall into a hole in the ground.")
-	(setq dun-current-room vermont-station)
-	(dun-describe-room vermont-station)))
+	(if (not dun-inbus)
+	    (progn
+	      (dun-mprincl"You fall into a hole in the ground.")
+	      (setq dun-current-room vermont-station)
+	      (dun-describe-room vermont-station))
+	  (progn
+	    (dun-mprincl 
+"The bus falls down a hole in the ground and explodes.")
+	    (dun-die "burning")))))
 
   (if (> dun-current-room endgame-computer-room)
       (progn
