@@ -76,7 +76,7 @@ struct Lisp_Process
 #define ChannelMask(n) (1<<(n))
 
 /* Indexed by descriptor, gives the process (if any) for that descriptor.  */
-extern Lisp_Object chan_process[MAXDESC];
+extern Lisp_Object chan_process[];
 
 /* Alist of elements (NAME . PROCESS).  */
 extern Lisp_Object Vprocess_alist;
