@@ -28,53 +28,38 @@
 ;;; Code:
 
 ;;;###autoload
-(defvar isearch-input-method nil
-  "Input method activated in interactive search.")
-
-(defvar isearch-input-method-title nil
-  "Title string of input method activated in interactive search.")
-
-;;;###autoload
 (defun isearch-toggle-specified-input-method ()
   "Select an input method and turn it on in interactive search."
   (interactive)
-  (setq isearch-input-method nil)
-  (let ((default-input-method nil))
-    (isearch-toggle-input-method)))
+  (let ((overriding-terminal-local-map nil))
+    (toggle-input-method t))
+  (isearch-update))
 
 ;;;###autoload
 (defun isearch-toggle-input-method ()
   "Toggle input method in interactive search."
   (interactive)
-  (if isearch-input-method
-      (setq isearch-input-method nil)
-    (setq isearch-input-method
-	  (or default-input-method
-	      (let ((overriding-terminal-local-map nil))
-		(read-input-method-name "Input method: "))))
-    (if isearch-input-method
-	(setq isearch-input-method-title
-	      (nth 3 (assoc isearch-input-method input-method-alist)))
-      (ding)))
+  (let ((overriding-terminal-local-map nil))
+    (toggle-input-method))
   (isearch-update))
 
-(defun isearch-input-method-after-insert-chunk-function ()
-  (funcall inactivate-current-input-method-function))
-
+;;;###autoload
 (defun isearch-process-search-multibyte-characters (last-char)
   (let ((overriding-terminal-local-map nil)
 	;; Let input method exit when a chunk is inserted.
-	(input-method-after-insert-chunk-hook
-	 '(isearch-input-method-after-insert-chunk-function))
+	(input-method-after-insert-chunk-hook '(inactivate-input-method))
 	(input-method-inactivate-hook '(exit-minibuffer))
 	;; Let input method work rather tersely.
 	(input-method-verbose-flag nil)
+	;; A key not handled by the current input method should
+	;; terminate the input method.
+	(input-method-exit-on-invalid-key t)
 	str)
     (setq unread-command-events (cons last-char unread-command-events))
     (setq str (read-multilingual-string
 	       (concat (isearch-message-prefix) isearch-message)
 	       nil
-	       isearch-input-method))
+	       current-input-method))
     (isearch-process-search-string str str)))
 
 ;;; isearch-x.el ends here
