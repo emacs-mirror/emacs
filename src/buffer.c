@@ -1570,6 +1570,7 @@ do not put this buffer at the front of the list of recently selected ones.")
     }
   Fset_buffer (buf);
   if (NILP (norecord))
+    /* This seems bogus since Fselect_window will call record_buffer anyway.  */
     record_buffer (buf);
   Fselect_window (Fdisplay_buffer (buf, other_window, Qnil));
   return buf;
@@ -1826,10 +1827,18 @@ selected window if it is displayed there.")
   /* Figure out what buffer we're going to bury.  */
   if (NILP (buffer))
     {
+      Lisp_Object tem;
       XSETBUFFER (buffer, current_buffer);
 
+      tem = Fwindow_buffer (selected_window);
       /* If we're burying the current buffer, unshow it.  */
-      Fswitch_to_buffer (Fother_buffer (buffer, Qnil, Qnil), Qnil);
+      if (EQ (buffer, tem))
+	if (NILP (Fwindow_dedicated_p (selected_window)))
+	  Fswitch_to_buffer (Fother_buffer (buffer, Qnil, Qnil), Qnil);
+	else if (NILP (XWINDOW (selected_window)->parent))
+	  Ficonify_frame (Fwindow_frame (selected_window));
+	else
+	  Fdelete_window (selected_window);
     }
   else
     {
@@ -5159,34 +5168,28 @@ nil here means use current buffer's major mode.");
     "Pretty name of current buffer's major mode (a string).");
 
   DEFVAR_PER_BUFFER ("abbrev-mode", &current_buffer->abbrev_mode, Qnil, 
-    "Non-nil turns on automatic expansion of abbrevs as they are inserted.\n\
-Automatically becomes buffer-local when set in any fashion.");
+    "Non-nil turns on automatic expansion of abbrevs as they are inserted.");
 
   DEFVAR_PER_BUFFER ("case-fold-search", &current_buffer->case_fold_search,
 		     Qnil,
-    "*Non-nil if searches and matches should ignore case.\n\
-Automatically becomes buffer-local when set in any fashion.");
+    "*Non-nil if searches and matches should ignore case.");
 
   DEFVAR_PER_BUFFER ("fill-column", &current_buffer->fill_column,
 		     make_number (Lisp_Int),
-    "*Column beyond which automatic line-wrapping should happen.\n\
-Automatically becomes buffer-local when set in any fashion.");
+    "*Column beyond which automatic line-wrapping should happen.");
 
   DEFVAR_PER_BUFFER ("left-margin", &current_buffer->left_margin,
 		     make_number (Lisp_Int),
     "*Column for the default indent-line-function to indent to.\n\
-Linefeed indents to this column in Fundamental mode.\n\
-Automatically becomes buffer-local when set in any fashion.");
+Linefeed indents to this column in Fundamental mode.");
 
   DEFVAR_PER_BUFFER ("tab-width", &current_buffer->tab_width,
 		     make_number (Lisp_Int),
-    "*Distance between tab stops (for display of tab characters), in columns.\n\
-Automatically becomes buffer-local when set in any fashion.");
+    "*Distance between tab stops (for display of tab characters), in columns.");
 
   DEFVAR_PER_BUFFER ("ctl-arrow", &current_buffer->ctl_arrow, Qnil,
     "*Non-nil means display control chars with uparrow.\n\
 A value of nil means use backslash and octal digits.\n\
-Automatically becomes buffer-local when set in any fashion.\n\
 This variable does not apply to characters whose display is specified\n\
 in the current display table (if there is one).");
 
@@ -5216,8 +5219,7 @@ for the buffer file.\n\
 \n\
 The variable `coding-system-for-write', if non-nil, overrides this variable.\n\
 \n\
-This variable is never applied to a way of decoding\n\
-a file while reading it.");
+This variable is never applied to a way of decoding a file while reading it.");
 
   DEFVAR_PER_BUFFER ("direction-reversed", &current_buffer->direction_reversed,
 		     Qnil,
@@ -5226,7 +5228,6 @@ a file while reading it.");
   DEFVAR_PER_BUFFER ("truncate-lines", &current_buffer->truncate_lines, Qnil,
     "*Non-nil means do not display continuation lines;\n\
 give each line of text one screen line.\n\
-Automatically becomes buffer-local when set in any fashion.\n\
 \n\
 Note that this is overridden by the variable\n\
 `truncate-partial-width-windows' if that variable is non-nil\n\
@@ -5244,51 +5245,43 @@ On other systems, this variable is normally always nil.");
   DEFVAR_PER_BUFFER ("default-directory", &current_buffer->directory,
 		     make_number (Lisp_String),
     "Name of default directory of current buffer.  Should end with slash.\n\
-Each buffer has its own value of this variable.  To change the\n\
-default directory, use function `cd'.");
+To interactively change the default directory, use command `cd'.");
 
   DEFVAR_PER_BUFFER ("auto-fill-function", &current_buffer->auto_fill_function,
 		     Qnil,
     "Function called (if non-nil) to perform auto-fill.\n\
 It is called after self-inserting any character specified in\n\
 the `auto-fill-chars' table.\n\
-Each buffer has its own value of this variable.\n\
 NOTE: This variable is not a hook;\n\
 its value may not be a list of functions.");
 
   DEFVAR_PER_BUFFER ("buffer-file-name", &current_buffer->filename,
 		     make_number (Lisp_String),
-    "Name of file visited in current buffer, or nil if not visiting a file.\n\
-Each buffer has its own value of this variable.");
+    "Name of file visited in current buffer, or nil if not visiting a file.");
 
   DEFVAR_PER_BUFFER ("buffer-file-truename", &current_buffer->file_truename,
 		     make_number (Lisp_String),
     "Abbreviated truename of file visited in current buffer, or nil if none.\n\
 The truename of a file is calculated by `file-truename'\n\
-and then abbreviated with `abbreviate-file-name'.\n\
-Each buffer has its own value of this variable.");
+and then abbreviated with `abbreviate-file-name'.");
 
   DEFVAR_PER_BUFFER ("buffer-auto-save-file-name",
 		     &current_buffer->auto_save_file_name,
 		     make_number (Lisp_String),
     "Name of file for auto-saving current buffer,\n\
-or nil if buffer should not be auto-saved.\n\
-Each buffer has its own value of this variable.");
+or nil if buffer should not be auto-saved.");
 
   DEFVAR_PER_BUFFER ("buffer-read-only", &current_buffer->read_only, Qnil,
-    "Non-nil if this buffer is read-only.\n\
-Each buffer has its own value of this variable.");
+    "Non-nil if this buffer is read-only.");
 
   DEFVAR_PER_BUFFER ("buffer-backed-up", &current_buffer->backed_up, Qnil,
     "Non-nil if this buffer's file has been backed up.\n\
-Backing up is done before the first time the file is saved.\n\
-Each buffer has its own value of this variable.");
+Backing up is done before the first time the file is saved.");
 
   DEFVAR_PER_BUFFER ("buffer-saved-size", &current_buffer->save_length,
 		     make_number (Lisp_Int),
     "Length of current buffer when last read in, saved or auto-saved.\n\
-0 initially.\n\
-Each buffer has its own value of this variable.");
+0 initially.");
 
   DEFVAR_PER_BUFFER ("selective-display", &current_buffer->selective_display,
 		     Qnil,
@@ -5296,15 +5289,13 @@ Each buffer has its own value of this variable.");
 Integer N as value means display only lines\n\
  that start with less than n columns of space.\n\
 A value of t means, after a ^M, all the rest of the line is invisible.\n\
- Then ^M's in the file are written into files as newlines.\n\n\
-Automatically becomes buffer-local when set in any fashion.");
+ Then ^M's in the file are written into files as newlines.");
 
 #ifndef old
   DEFVAR_PER_BUFFER ("selective-display-ellipses",
 		    &current_buffer->selective_display_ellipses,
 		     Qnil,
-    "t means display ... on previous line when a line is invisible.\n\
-Automatically becomes buffer-local when set in any fashion.");
+    "t means display ... on previous line when a line is invisible.");
 #endif
 
   DEFVAR_PER_BUFFER ("overwrite-mode", &current_buffer->overwrite_mode, Qnil,
@@ -5314,15 +5305,13 @@ The value should be one of `overwrite-mode-textual',\n\
 If it is `overwrite-mode-textual', self-insertion still\n\
 inserts at the end of a line, and inserts when point is before a tab,\n\
 until the tab is filled in.\n\
-If `overwrite-mode-binary', self-insertion replaces newlines and tabs too.\n\
-Automatically becomes buffer-local when set in any fashion.");
+If `overwrite-mode-binary', self-insertion replaces newlines and tabs too.");
 
 #if 0 /* The doc string is too long for some compilers,
 	 but make-docfile can find it in this comment.  */
   DEFVAR_PER_BUFFER ("buffer-display-table", &current_buffer->display_table,
 		     Qnil,
     "Display table that controls display of the contents of current buffer.\n\
-Automatically becomes buffer-local when set in any fashion.\n\
 \n\
 If this variable is nil, the value of `standard-display-table' is used.\n\
 Each window can have its own, overriding display table, see\n\
@@ -5363,37 +5352,32 @@ See also the functions `display-table-slot' and `set-display-table-slot'.");
   DEFVAR_PER_BUFFER ("left-margin-width", &current_buffer->left_margin_width,
 		     Qnil,
     "*Width of left marginal area for display of a buffer.\n\
-Automatically becomes buffer-local when set in any fashion.\n\
 A value of nil means no marginal area.");
   
   DEFVAR_PER_BUFFER ("right-margin-width", &current_buffer->right_margin_width,
 		     Qnil,
     "*Width of right marginal area for display of a buffer.\n\
-Automatically becomes buffer-local when set in any fashion.\n\
 A value of nil means no marginal area.");
   
   DEFVAR_PER_BUFFER ("indicate-empty-lines",
 		     &current_buffer->indicate_empty_lines, Qnil,
     "*Visually indicate empty lines after the buffer end.\n\
 If non-nil, a bitmap is displayed in the left fringe of a window on\n\
-window-systems.\n\
-Automatically becomes buffer-local when set in any fashion.\n");
+window-systems.");
   
   DEFVAR_PER_BUFFER ("scroll-up-aggressively",
 		     &current_buffer->scroll_up_aggressively, Qnil,
     "*If a number, scroll display up aggressively.\n\
 If scrolling a window because point is above the window start, choose\n\
 a new window start so that point ends up that fraction of the window's\n\
-height from the top of the window.\n\
-Automatically becomes buffer-local when set in any fashion.");
+height from the top of the window.");
   
   DEFVAR_PER_BUFFER ("scroll-down-aggressively",
 		     &current_buffer->scroll_down_aggressively, Qnil,
     "*If a number, scroll display down aggressively.\n\
 If scrolling a window because point is below the window end, choose\n\
 a new window start so that point ends up that fraction of the window's\n\
-height from the bottom of the window.\n\
-Automatically becomes buffer-local when set in any fashion.");
+height from the bottom of the window.");
   
 /*DEFVAR_LISP ("debug-check-symbol", &Vcheck_symbol,
     "Don't ask.");
@@ -5448,7 +5432,6 @@ The functions are run using the `run-hooks' function.");
 	 but make-docfile can find it in this comment.  */
   DEFVAR_PER_BUFFER ("buffer-undo-list", &current_buffer->undo_list, Qnil,
     "List of undo entries in current buffer.\n\
-This variable is always local in all buffers.\n\
 Recent changes come first; older changes follow newer.\n\
 \n\
 An entry (BEG . END) represents an insertion which begins at\n\
@@ -5484,12 +5467,10 @@ If the value of the variable is t, undo information is not recorded.");
     0);
 
   DEFVAR_PER_BUFFER ("mark-active", &current_buffer->mark_active, Qnil, 
-    "Non-nil means the mark and region are currently active in this buffer.\n\
-Automatically local in all buffers.");
+    "Non-nil means the mark and region are currently active in this buffer.");
 
   DEFVAR_PER_BUFFER ("cache-long-line-scans", &current_buffer->cache_long_line_scans, Qnil, 
     "Non-nil means that Emacs should use caches to handle long lines more quickly.\n\
-This variable is buffer-local, in all buffers.\n\
 \n\
 Normally, the line-motion functions work by scanning the buffer for\n\
 newlines.  Columnar operations (like move-to-column and\n\
@@ -5517,19 +5498,16 @@ the cache should not affect the behavior of any of the motion\n\
 functions; it should only affect their performance.");
 
   DEFVAR_PER_BUFFER ("point-before-scroll", &current_buffer->point_before_scroll, Qnil,
-  "Value of point before the last series of scroll operations, or nil.\n\
-This variable is always local in all buffers.");
+  "Value of point before the last series of scroll operations, or nil.");
 
   DEFVAR_PER_BUFFER ("buffer-file-format", &current_buffer->file_format, Qnil,
     "List of formats to use when saving this buffer.\n\
-This variable is always local in all buffers.\n\
 Formats are defined by `format-alist'.  This variable is\n\
 set when a file is visited.  Automatically local in all buffers.");
 
   DEFVAR_PER_BUFFER ("buffer-invisibility-spec",
 		     &current_buffer->invisibility_spec, Qnil,
   "Invisibility spec of this buffer.\n\
-This variable is always local in all buffers.\n\
 The default is t, which means that text is invisible\n\
 if it has a non-nil `invisible' property.\n\
 If the value is a list, a text character is invisible if its `invisible'\n\
@@ -5541,13 +5519,11 @@ and they have an ellipsis as well if ELLIPSIS is non-nil.");
   DEFVAR_PER_BUFFER ("buffer-display-count",
 		     &current_buffer->display_count, Qnil,
   "A number incremented each time this buffer is displayed in a window.\n\
-This variable is always local in all buffers.\n\
 The function `set-window-buffer increments it.");
 
   DEFVAR_PER_BUFFER ("buffer-display-time",
 		     &current_buffer->display_time, Qnil,
   "Time stamp updated each time this buffer is displayed in a window.\n\
-This variable is always local in all buffers.\n\
 The function `set-window-buffer' updates this variable\n\
 to the value obtained by calling `current-time'.\n\
 If the buffer has never been shown in a window, the value is nil.");
