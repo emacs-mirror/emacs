@@ -1,3 +1,9 @@
+2005-03-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-start.el (gnus-display-time-event-handler):
+	Check display-time-timer at runtime rather than only at load time
+	in case display-time-mode is turned off in the mean time.
+
 2005-03-16  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* nnimap.el (nnimap-open-connection): Print which authinfo file is
@@ -11,8 +17,8 @@
 
 2005-03-15  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* nnmaildir.el (nnmaildir-request-accept-article): Use
-	`nnheader-cancel-timer' for compatibility with current XEmacs.
+	* nnmaildir.el (nnmaildir-request-accept-article):
+	Use `nnheader-cancel-timer' for compatibility with current XEmacs.
 
 2005-03-13  Steve Youngs  <steve@sxemacs.org>
 
@@ -26,12 +32,12 @@
 	for `with-timeout'.
 
 	* mail-source.el: Require timer-funcs at compile time when in
-	XEmacs for `run-with-idle-timer'.  
+	XEmacs for `run-with-idle-timer'.
 
 	* gnus-async.el: Ditto.
 
 	* dgnushack.el: No need to ignore `run-with-idle-timer', XEmacs
-	has this function now. 
+	has this function now.
 
 2005-03-16  Lute Kamstra  <lute@gnu.org>
 
@@ -43,8 +49,7 @@
 
 2005-03-10  Arne J,Ax(Brgensen <arne@arnested.dk>  (tiny change)
 
-	* nnimap.el (nnimap-retrieve-headers-from-server): Fix off-by-one
-	flaw.
+	* nnimap.el (nnimap-retrieve-headers-from-server): Fix off-by-one flaw.
 
 2005-03-08  Bjorn Solberg <bjorn_ding@hekneby.org>  (tiny change)
 

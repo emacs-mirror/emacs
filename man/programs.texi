@@ -1843,15 +1843,51 @@ mode provides special commands to move by statements.
 @table @kbd
 @kindex C-c C-n @r{(Fortran mode)}
 @findex fortran-next-statement
+@findex f90-next-statement
 @item C-c C-n
-Move to beginning of current or next statement
-(@code{fortran-next-statement}).
+Move to the beginning of the next statement
+(@code{fortran-next-statement}/@code{f90-next-statement}).
 
 @kindex C-c C-p @r{(Fortran mode)}
 @findex fortran-previous-statement
+@findex f90-previous-statement
 @item C-c C-p
-Move to beginning of current or previous statement
-(@code{fortran-previous-statement}).
+Move to the beginning of the previous statement
+(@code{fortran-previous-statement}/@code{f90-previous-statement}).
+If there is no previous statement (i.e. if called from the first
+statement in the buffer), move to the start of the buffer.
+
+@kindex C-c C-e @r{(F90 mode)}
+@findex f90-next-block
+@item C-c C-e
+Move point forward to the start of the next code block
+(@code{f90-next-block}).  A code block is a subroutine,
+@code{if}--@code{endif} statement, and so forth.  This command exists
+for F90 mode only, not Fortran mode.  With a numeric argument, this
+moves forward that many blocks.
+
+@kindex C-c C-a @r{(F90 mode)}
+@findex f90-previous-block
+@item C-c C-a
+Move point backward to the previous code block
+(@code{f90-previous-block}).  This is like @code{f90-next-block}, but
+moves backwards.
+
+@kindex C-M-n @r{(F90 mode)}
+@findex f90-end-of-block
+@item C-M-n
+Move to the end of the current code block (@code{f90-end-of-block}).
+This is for F90 mode only.  With a numeric agument, move forward that
+number of blocks.  This command checks for consistency of block types
+and labels (if present), but it does not check the outermost block
+since that may be incomplete.  The mark is set before moving point.
+
+@kindex C-M-p @r{(F90 mode)}
+@findex f90-beginning-of-block
+@item C-M-p
+Move to the start of the current code block
+(@code{f90-beginning-of-block}). This is like @code{f90-end-of-block},
+but moves backwards.
 @end table
 
 @node Fortran Indent

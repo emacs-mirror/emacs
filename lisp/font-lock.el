@@ -1909,7 +1909,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 		   ;; Function declarations.
 		   "\\(advice\\|varalias\\|alias\\|generic\\|macro\\*?\\|method\\|"
                    "setf\\|subst\\*?\\|un\\*?\\|"
-                   "ine-\\(condition\\|\\(?:derived\\|minor\\)-mode\\|"
+                   "ine-\\(condition\\|\\(?:derived\\|minor\\|generic\\)-mode\\|"
                    "method-combination\\|setf-expander\\|skeleton\\|widget\\|"
                    "function\\|\\(compiler\\|modify\\|symbol\\)-macro\\)\\)\\|"
 		   ;; Variable declarations.

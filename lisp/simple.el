@@ -735,9 +735,10 @@ that uses or sets the mark."
 
 (defun goto-line (arg &optional buffer)
   "Goto line ARG, counting from line 1 at beginning of buffer.
-Normally, move point in the curren buffer.
-With just C-u as argument, move point in the most recently displayed
-other buffer, and switch to it.
+Normally, move point in the current buffer.
+With just \\[universal-argument] as argument, move point in the most recently
+displayed other buffer, and switch to it.  When called from Lisp code,
+the optional argument BUFFER specifies a buffer to switch to.
 
 If there's a number in the buffer at point, it is the default for ARG."
   (interactive

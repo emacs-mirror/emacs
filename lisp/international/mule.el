@@ -1542,7 +1542,9 @@ text, and convert it in the temporary buffer.  Otherwise, convert in-place."
 ;;; FILE I/O
 
 (defcustom auto-coding-alist
-  '(("\\.\\(arc\\|zip\\|lzh\\|zoo\\|jar\\|sx[dmicw]\\|tar\\|tgz\\)\\'" . no-conversion)
+  '(("\\.\\(arc\\|zip\\|lzh\\|zoo\\|[jew]ar\\)\\'" . no-conversion)
+    ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|[JEW]AR\\)\\'" . no-conversion)
+    ("\\.\\(sx[dmicw]\\|tar\\|tgz\\)\\'" . no-conversion)
     ("\\.\\(gz\\|Z\\|bz\\|bz2\\|gpg\\)\\'" . no-conversion)
     ("/#[^/]+#\\'" . emacs-mule))
   "Alist of filename patterns vs corresponding coding systems.

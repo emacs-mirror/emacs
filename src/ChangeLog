@@ -1,6 +1,49 @@
+2005-03-22  Kim F. Storm  <storm@cua.dk>
+
+	* xfaces.c (lookup_derived_face): Add arg SIGNAL_P.
+	* dispextern.h (lookup_derived_face): Fix prototype.
+	* msdos.c (XMenuActivate): Fix call to lookup_derived_face.
+
+	* xdisp.c (handle_single_display_spec): Derive left-fringe and
+	right-fringe face from fringe face.
+
+	* fringe.c (draw_fringe_bitmap_1, Fset_fringe_bitmap_face):
+	Derive face from fringe face.
+
+2005-03-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xrdb.c (x_load_resources): Undo previous change (2005-03-18).
+
+2005-03-22  David Kastrup  <dak@gnu.org>
+
+	* textprop.c (Fnext_char_property_change)
+	(Fprevious_char_property_change): allow marker as limit.
+	(Fnext_single_char_property_change)
+	(Fprevious_single_char_property_change): Check that limit is a
+	number in strings.
+	(Fnext_single_char_property_change): Coerce position to integer.
+	(Fprevious_single_char_property_change): Same here.
+
+2005-03-21  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* s/openbsd.h (LD_SWITCH_SYSTEM_tmp): Define if undefined.
+
+2005-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.c (Fignore_event): Remove.
+	(syms_of_frame): Don't defsubr it.
+
+	* keyboard.c (keys_of_keyboard): Just use `ignore' instead of the
+	redundant `ignore-event'.
+
+2005-03-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* unexec.c (write_segment, unexec): Move these functions to avoid
+	forward references (which cause errors with "gcc -gcoff").
+
 2005-03-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xfns.c (x_create_tip_frame): Removed setting of Vx_resource_name so
+	* xfns.c (x_create_tip_frame): Remove setting of Vx_resource_name so
 	that it doesn't become "tooltip".  The specbind is enough.
 
 	* xrdb.c (x_load_resources): Use different char *helv when I18N

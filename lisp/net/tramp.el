@@ -47,16 +47,12 @@
 ;; Also see the todo list at the bottom of this file.
 ;;
 ;; The current version of Tramp can be retrieved from the following URL:
-;;            http://savannah.nongnu.org/download/tramp/
+;;            http://ftp.gnu.org/gnu/tramp/
 ;;
 ;; There's a mailing list for this, as well.  Its name is:
-;;            tramp-devel@mail.freesoftware.fsf.org
-;; Send a mail with `help' in the subject (!) to the administration
-;; address for instructions on joining the list.  The administration
-;; address is:
-;;            tramp-devel-request@mail.freesoftware.fsf.org
-;; You can also use the Web to subscribe, under the following URL:
-;;            http://mail.freesoftware.fsf.org/mailman/listinfo/tramp-devel
+;;            tramp-devel@gnu.org
+;; You can use the Web to subscribe, under the following URL:
+;;            http://lists.gnu.org/mailman/listinfo/tramp-devel
 ;;
 ;; For the adventurous, the current development sources are available
 ;; via CVS.  You can find instructions about this at the following URL:
@@ -3501,7 +3497,7 @@ Used in `tramp-handle-shell-command'")
 This will break if COMMAND prints a newline, followed by the value of
 `tramp-end-of-output', followed by another newline."
   ;; Asynchronous processes are far from being perfect.  But it works at least
-  ;; for `find-grep-dired' and `find-name-dired' in Emacs 22.1.
+  ;; for `find-grep-dired' and `find-name-dired' in Emacs 22.
   (if (tramp-tramp-file-p default-directory)
       (with-parsed-tramp-file-name default-directory nil
 	(let ((asynchronous (string-match "[ \t]*&[ \t]*\\'" command))
@@ -4108,7 +4104,7 @@ ARGS are the arguments OPERATION has been called with."
 	    (list 'dired-call-process
                   ; Emacs only
 		  'shell-command
-                  ; Post Emacs 21.3 only
+                  ; Emacs 22 only
                   'process-file
 	          ; XEmacs only
 		  'dired-print-file 'dired-shell-call-process))
@@ -4213,7 +4209,7 @@ Falls back to normal file name handler if no tramp file name handler exists."
 
 (defun tramp-repair-jka-compr ()
   "If jka-compr is already loaded, move it to the front of
-`file-name-handler-alist'.  On Emacs 22.1 or so this will not be
+`file-name-handler-alist'.  On Emacs 22 or so this will not be
 necessary anymore."
   (let ((jka (rassoc 'jka-compr-handler file-name-handler-alist)))
     (when jka
@@ -6937,8 +6933,8 @@ as default."
             (tramp-make-auto-save-file-name (buffer-file-name)))
     ad-do-it))
 
-;; In Emacs < 22.1 and XEmacs < 21.5 autosaved remote files have
-;; permission 666 minus umask. This is a security threat.
+;; In Emacs < 22 and XEmacs < 21.5 autosaved remote files have
+;; permission 0666 minus umask. This is a security threat.
 
 (defun tramp-set-auto-save-file-modes ()
   "Set permissions of autosaved remote files to the original permissions."
@@ -6946,20 +6942,18 @@ as default."
     (when (and (stringp bfn)
 	       (tramp-tramp-file-p bfn)
 	       (stringp buffer-auto-save-file-name)
-	       (not (equal bfn buffer-auto-save-file-name))
-	       (not (file-exists-p buffer-auto-save-file-name)))
-      (write-region "" nil buffer-auto-save-file-name)
+	       (not (equal bfn buffer-auto-save-file-name)))
+      (unless (file-exists-p buffer-auto-save-file-name)
+	(write-region "" nil buffer-auto-save-file-name))
+      ;; Permissions should be set always, because there might be an old
+      ;; auto-saved file belonging to another original file.  This could
+      ;; be a security threat.
       (set-file-modes buffer-auto-save-file-name (file-modes bfn)))))
 
 (unless (or (> emacs-major-version 21)
 	    (and (featurep 'xemacs)
 		 (= emacs-major-version 21)
-		 (> emacs-minor-version 4))
-	    (and (not (featurep 'xemacs))
-		 (= emacs-major-version 21)
-		 (or (> emacs-minor-version 3)
-		     (and (string-match "^21\\.3\\.\\([0-9]+\\)" emacs-version)
-			  (>= (string-to-int (match-string 1 emacs-version)) 50)))))
+		 (> emacs-minor-version 4)))
   (add-hook 'auto-save-hook 'tramp-set-auto-save-file-modes))
 
 (defun tramp-subst-strs-in-string (alist string)
@@ -7206,72 +7200,73 @@ Only works for Bourne-like shells."
   "Submit a bug report to the TRAMP developers."
   (interactive)
   (require 'reporter)
-  (let ((reporter-prompt-for-summary-p	t))
-    (reporter-submit-bug-report
-     tramp-bug-report-address		; to-address
-     (format "tramp (%s)" tramp-version) ; package name and version
-     `(;; Current state
-       tramp-ls-command
-       tramp-test-groks-nt
-       tramp-file-exists-command
-       tramp-current-multi-method
-       tramp-current-method
-       tramp-current-user
-       tramp-current-host
+  (catch 'dont-send
+    (let ((reporter-prompt-for-summary-p	t))
+      (reporter-submit-bug-report
+       tramp-bug-report-address		; to-address
+       (format "tramp (%s)" tramp-version) ; package name and version
+       `(;; Current state
+	 tramp-ls-command
+	 tramp-test-groks-nt
+	 tramp-file-exists-command
+	 tramp-current-multi-method
+	 tramp-current-method
+	 tramp-current-user
+	 tramp-current-host
 
-       ;; System defaults
-       tramp-auto-save-directory        ; vars to dump
-       tramp-default-method
-       tramp-rsh-end-of-line
-       tramp-default-password-end-of-line
-       tramp-remote-path
-       tramp-login-prompt-regexp
-       tramp-password-prompt-regexp
-       tramp-wrong-passwd-regexp
-       tramp-yesno-prompt-regexp
-       tramp-yn-prompt-regexp
-       tramp-terminal-prompt-regexp
-       tramp-out-of-band-prompt-regexp
-       tramp-temp-name-prefix
-       tramp-file-name-structure
-       tramp-file-name-regexp
-       tramp-multi-file-name-structure
-       tramp-multi-file-name-hop-structure
-       tramp-multi-methods
-       tramp-multi-connection-function-alist
-       tramp-methods
-       tramp-end-of-output
-       tramp-coding-commands
-       tramp-actions-before-shell
-       tramp-actions-copy-out-of-band
-       tramp-multi-actions
-       tramp-terminal-type
-       tramp-shell-prompt-pattern
-       tramp-chunksize
-       ,(when (boundp 'tramp-backup-directory-alist)
-	  'tramp-backup-directory-alist)
-       ,(when (boundp 'tramp-bkup-backup-directory-info)
-	  'tramp-bkup-backup-directory-info)
+	 ;; System defaults
+	 tramp-auto-save-directory        ; vars to dump
+	 tramp-default-method
+	 tramp-rsh-end-of-line
+	 tramp-default-password-end-of-line
+	 tramp-remote-path
+	 tramp-login-prompt-regexp
+	 tramp-password-prompt-regexp
+	 tramp-wrong-passwd-regexp
+	 tramp-yesno-prompt-regexp
+	 tramp-yn-prompt-regexp
+	 tramp-terminal-prompt-regexp
+	 tramp-out-of-band-prompt-regexp
+	 tramp-temp-name-prefix
+	 tramp-file-name-structure
+	 tramp-file-name-regexp
+	 tramp-multi-file-name-structure
+	 tramp-multi-file-name-hop-structure
+	 tramp-multi-methods
+	 tramp-multi-connection-function-alist
+	 tramp-methods
+	 tramp-end-of-output
+	 tramp-coding-commands
+	 tramp-actions-before-shell
+	 tramp-actions-copy-out-of-band
+	 tramp-multi-actions
+	 tramp-terminal-type
+	 tramp-shell-prompt-pattern
+	 tramp-chunksize
+	 ,(when (boundp 'tramp-backup-directory-alist)
+	    'tramp-backup-directory-alist)
+	 ,(when (boundp 'tramp-bkup-backup-directory-info)
+	    'tramp-bkup-backup-directory-info)
 
-       ;; Non-tramp variables of interest
-       shell-prompt-pattern
-       backup-by-copying
-       backup-by-copying-when-linked
-       backup-by-copying-when-mismatch
-       ,(when (boundp 'backup-by-copying-when-privileged-mismatch)
-          'backup-by-copying-when-privileged-mismatch)
-       ,(when (boundp 'password-cache)
-          'password-cache)
-       ,(when (boundp 'password-cache-expiry)
-          'password-cache-expiry)
-       ,(when (boundp 'backup-directory-alist)
-	  'backup-directory-alist)
-       ,(when (boundp 'bkup-backup-directory-info)
-	  'bkup-backup-directory-info)
-       file-name-handler-alist)
-     nil				; pre-hook
-     nil				; post-hook
-     "\
+	 ;; Non-tramp variables of interest
+	 shell-prompt-pattern
+	 backup-by-copying
+	 backup-by-copying-when-linked
+	 backup-by-copying-when-mismatch
+	 ,(when (boundp 'backup-by-copying-when-privileged-mismatch)
+	    'backup-by-copying-when-privileged-mismatch)
+	 ,(when (boundp 'password-cache)
+	    'password-cache)
+	 ,(when (boundp 'password-cache-expiry)
+	    'password-cache-expiry)
+	 ,(when (boundp 'backup-directory-alist)
+	    'backup-directory-alist)
+	 ,(when (boundp 'bkup-backup-directory-info)
+	    'bkup-backup-directory-info)
+	 file-name-handler-alist)
+       nil				; pre-hook
+       'tramp-append-tramp-buffers	; post-hook
+       "\
 Enter your bug report in this message, including as much detail as you
 possibly can about the problem, what you did to cause it and what the
 local and remote machines are.
@@ -7286,7 +7281,73 @@ of the *tramp/foo* buffer and the *debug tramp/foo* buffer in your bug
 report.
 
 --bug report follows this line--
-")))
+"))))
+
+(defun tramp-append-tramp-buffers ()
+  "Append Tramp buffers into the bug report."
+
+  ;; We load mml.el from Gnus.
+  (if (featurep 'xemacs)
+      (load "mml" 'noerror)
+    (require 'mml nil 'noerror))
+
+  (when (and
+	 ;; We don't want to add another dependency.
+	 (functionp 'mml-insert-empty-tag)
+	 ;; 2nd parameter since Emacs 22.
+	 (condition-case nil
+	     (list-buffers-noselect nil nil)
+	   (t nil)))
+    (let ((buffer-list
+	   (delq nil
+	    (mapcar '(lambda (b)
+	     (when (string-match "^\\*\\(debug \\)?tramp/" (buffer-name b)) b))
+	     (buffer-list))))
+	  (curbuf (current-buffer)))
+
+      ;; There is at least one Tramp buffer.
+      (when buffer-list
+	(switch-to-buffer (list-buffers-noselect nil buffer-list))
+	(delete-other-windows)
+	(setq buffer-read-only nil)
+	(goto-char (point-max))
+	(insert "
+The buffer(s) above will be appended to this message.  If you don't want
+to append a buffer because it contains sensible data, or because the buffer
+is too large, you should delete the respective buffer.  The buffer(s) will
+contain user and host names.  Passwords will never be included there.")
+
+	(when (and tramp-debug-buffer (> tramp-verbose 9))
+	  (insert "\n\n")
+	  (let ((start (point)))
+	    (insert "\
+Please note that you have set `tramp-verbose' to a value greater than 9.
+Therefore, the contents of files might be included in the debug buffer(s).")
+	    (add-text-properties start (point) (list 'face 'italic))))
+
+	(set-buffer-modified-p nil)
+	(setq buffer-read-only t)
+	(goto-char (point-min))
+
+	(if (y-or-n-p "Do you want to append the buffer(s)? ")
+	    ;; OK, let's send.  First we delete the buffer list.
+	    (progn
+	      (kill-buffer nil)
+	      (switch-to-buffer curbuf)
+	      (goto-char (point-max))
+	      (insert "\n\n")
+	      (dolist (buffer buffer-list)
+		(mml-insert-empty-tag
+		 'part 'type "text/plain" 'encoding "base64"
+		 'disposition "attachment" 'buffer (buffer-name buffer)
+		 'description (buffer-name buffer)))
+	      (set-buffer-modified-p nil))
+
+	  ;; Don't send.  Delete the message buffer.
+	  (set-buffer curbuf)
+	  (set-buffer-modified-p nil)
+	  (kill-buffer nil)
+	  (throw 'dont-send nil))))))
 
 (defalias 'tramp-submit-bug 'tramp-bug)
 

@@ -4,7 +4,7 @@
 @c In the Tramp CVS, the version number is auto-frobbed from
 @c configure.ac, so you should edit that file and run
 @c "autoconf && ./configure" to change the version number.
-@set trampver 2.0.47
+@set trampver 2.0.48
 
 @c Other flags from configuration
 @set prefix /usr/local
@@ -25,7 +25,7 @@
 
 @c Emacs values.
 @ifset emacs
-@set emacsname          Emacs
+@set emacsname          GNU Emacs
 @set emacsdir           emacs
 @set ftppackagename     Ange-FTP
 @set prefix             /
@@ -49,7 +49,7 @@
 @set postfix            ]
 @set postfixsinglehop   /
 @set postfixmultihop    :
-@set emacsothername     Emacs
+@set emacsothername     GNU Emacs
 @set emacsotherdir      emacs
 @set emacsotherfilename tramp-emacs.html
 @set japanesemanual     tramp_ja-xemacs.html

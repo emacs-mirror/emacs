@@ -39,7 +39,7 @@ files.
 * Hiding Subdirectories::     Making subdirectories visible or invisible.
 * Updating: Dired Updating.   Discarding lines for files of no interest.
 * Find: Dired and Find.	      Using `find' to choose the files for Dired.
-* Misc: Misc Dired Commands.  Various other features.
+* Misc: Misc Dired Features.  Various other features.
 @end menu
 
 @node Dired Enter
@@ -1098,33 +1098,38 @@ may need to change the value of this variable.
 program.  @kbd{M-x locate-with-filter} is similar, but keeps only lines
 matching a given regular expression.
 
-These buffers don't work entirely like ordinary Dired buffers.  File
+  These buffers don't work entirely like ordinary Dired buffers.  File
 operations work, but do not always automatically update the buffer.
 Reverting the buffer with @kbd{g} deletes all inserted subdirectories,
 and erases all flags and marks.
 
-@node Misc Dired Commands
-@section Other Dired Commands
+@node Misc Dired Features
+@section Other Dired Features
 
-@table @kbd
-@item w
 @cindex Adding to the kill ring in Dired.
 @kindex w @r{(Dired)}
 @findex dired-copy-filename-as-kill
-The @kbd{w} command (@code{dired-copy-filename-as-kill}) puts the
+  The @kbd{w} command (@code{dired-copy-filename-as-kill}) puts the
 names of the marked (or next @var{n}) files into the kill ring, as if
-you had killed them with @kbd{C-w}.  With a zero prefix argument
-@var{n}=0, use the absolute file name of each marked file.  With just
-@kbd{C-u} as the prefix argument, use the relative file name of each
-marked file.  As a special case, if no prefix argument is given and
-point is on a directory headerline, @kbd{w} gives you the name of that
-directory without looking for marked files.
+you had killed them with @kbd{C-w}.
 
-The main purpose of the @kbd{w} command is so that you can yank the
-file names into arguments for other Emacs commands.  It also displays
-what was pushed onto the kill ring, so you can use it to display the
-list of currently marked files in the echo area.
-@end table
+  The main purpose of this command is so that you can yank the file
+names into arguments for other Emacs commands.  It also displays what
+was pushed onto the kill ring, so you can use it to display the list
+of currently marked files in the echo area.  With a zero prefix
+argument @var{n}=0, this uses the absolute file name of each marked
+file.  With just @kbd{C-u} as the prefix argument, it uses the
+relative file name of each marked file.  As a special case, if no
+prefix argument is given and point is on a directory headerline,
+@kbd{w} gives you the name of that directory without looking for
+marked files.
+
+  On the X window system, Emacs supports the ``drag and drop''
+protocol.  You can drag a file object from another program, and drop
+it onto a Dired buffer; this either moves, copies, or creates a link
+to the file in that directory.  Precisely which action is taken is
+determined by the originating program.  Dragging files out of a Dired
+buffer is currently not supported.
 
 @ignore
    arch-tag: d105f9b9-fc1b-4c5f-a949-9b2cf3ca2fc1

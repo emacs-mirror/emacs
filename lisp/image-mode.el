@@ -43,6 +43,7 @@
 ;;;###autoload (push '("\\.tiff\\'" . image-mode) auto-mode-alist)
 ;;;###autoload (push '("\\.tif\\'" . image-mode) auto-mode-alist)
 ;;;###autoload (push '("\\.xbm\\'" . image-mode) auto-mode-alist)
+;;;###autoload (push '("\\.xpm\\'" . image-mode) auto-mode-alist)
 ;;;###autoload (push '("\\.pbm\\'" . image-mode) auto-mode-alist)
 ;;;###autoload (push '("\\.pgm\\'" . image-mode) auto-mode-alist)
 ;;;###autoload (push '("\\.ppm\\'" . image-mode) auto-mode-alist)
@@ -75,10 +76,12 @@ and showing the image as an image."
   (interactive)
   (if (get-text-property (point-min) 'display)
       (let ((inhibit-read-only t)
-	    (buffer-undo-list t))
+	    (buffer-undo-list t)
+	    (modified (buffer-modified-p)))
 	(remove-list-of-text-properties (point-min) (point-max)
 					'(display intangible read-nonsticky
 						  read-only front-sticky))
+	(set-buffer-modified-p modified)
 	(kill-local-variable 'cursor-type)
 	(kill-local-variable 'truncate-lines)
 	(message "Repeat this command to go back to displaying the image"))
@@ -97,8 +100,10 @@ and showing the image as an image."
 		      ;; read-only when we're visiting the file (as
 		      ;; opposed to just inserting it).
 		      read-only t front-sticky (read-only)))
-	   (buffer-undo-list t))
+	   (buffer-undo-list t)
+	   (modified (buffer-modified-p)))
       (add-text-properties (point-min) (point-max) props)
+      (set-buffer-modified-p modified)
       ;; Inhibit the cursor when the buffer contains only an image,
       ;; because cursors look very strange on top of images.
       (setq cursor-type nil)

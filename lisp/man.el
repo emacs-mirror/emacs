@@ -1305,7 +1305,9 @@ Specify which REFERENCE to use; default is based on word at point."
        (error "There are no references in the current man page")
      (list (let* ((default (or
 			    (car (all-completions
-				  (let ((word (Man-possibly-hyphenated-word)))
+				  (let ((word
+					 (or (Man-possibly-hyphenated-word)
+					     "")))
 				    ;; strip a trailing '-':
 				    (if (string-match "-$" word)
 					(substring word 0

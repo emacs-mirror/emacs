@@ -1,3 +1,10 @@
+2005-03-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xlwmenuP.h: Temporary #undef HAVE_X_I18N until FontSet for UTF-8
+	on XFree86 is investigated.
+
+	* xlwmenu.c: Ditto.
+
 2005-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Add support for I18N to Lucid menus.

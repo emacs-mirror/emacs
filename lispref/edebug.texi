@@ -1082,7 +1082,7 @@ the @code{for} example macro (@pxref{Argument Evaluation}).
 (defmacro for (var from init to final do &rest body)
   "Execute a simple \"for\" loop.
 For example, (for i from 1 to 10 do (print i))."
-  (declare (debug symbolp "from" form "to" form "do" &rest form))
+  (declare (debug (symbolp "from" form "to" form "do" &rest form)))
   ...)
 @end example
 

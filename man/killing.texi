@@ -151,7 +151,8 @@ characters: spaces, tabs and newlines.  @kbd{M-\}
 characters before and after point.  @kbd{M-@key{SPC}}
 (@code{just-one-space}) does likewise but leaves a single space after
 point, regardless of the number of spaces that existed previously (even
-if there were none before).
+if there were none before).  With a numeric argument @var{n}, it
+leaves @var{n} spaces after point.
 
   @kbd{C-x C-o} (@code{delete-blank-lines}) deletes all blank lines
 after the current line.  If the current line is blank, it deletes all

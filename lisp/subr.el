@@ -2762,7 +2762,9 @@ change the displayed message."
 	 (min-value    (aref parameters 1))
 	 (max-value    (aref parameters 2))
 	 (one-percent  (/ (- max-value min-value) 100.0))
-	 (percentage   (truncate (/ (- value min-value) one-percent)))
+	 (percentage   (if (= max-value min-value)
+			   0
+			 (truncate (/ (- value min-value) one-percent))))
 	 (update-time  (aref parameters 0))
 	 (current-time (float-time))
 	 (enough-time-passed
