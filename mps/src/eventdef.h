@@ -1,6 +1,6 @@
 /* impl.h.eventdef -- Event Logging Definitions
  *
- * $HopeName$
+ * $HopeName: MMsrc!eventdef.h(trunk.19) $
  * Copyright (C) 1997, 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * .readership: MPS developers.
@@ -63,10 +63,11 @@ RELATION(AMCGenCreate                    , 0x0001, TRUE, Pool, PP)
 RELATION(AMCGenDestroy                   , 0x0002, TRUE, Pool, P)
 RELATION(AMCInit                         , 0x0003, TRUE, Pool, PP)
 RELATION(AMCFinish                       , 0x0004, TRUE, Pool, P)
-/* AMCBufferInit's Kind (below) should be Gen or Cohort or something */
+#if 0 /* Not in use */
 RELATION(AMCBufferInit                   , 0x0005, TRUE, Pool, PP)
 RELATION(AMCBufferFill                   , 0x0006, TRUE, Seg, PPWAW)
 RELATION(AMCBufferEmpty                  , 0x0007, TRUE, Seg, PPW)
+#endif
 RELATION(MeterInit                       , 0x0008, TRUE, Pool, PP)
 RELATION(MeterValues                     , 0x0009, TRUE, Pool, PDDUUU)
 RELATION(AMCScanBegin                    , 0x000a, TRUE, Trace, PPP)
