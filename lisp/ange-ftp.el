@@ -4286,13 +4286,13 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
       (ange-ftp-real-file-name-sans-versions file keep-backup-version))))
 
 ;; This is the handler for shell-command.
-(defun ange-ftp-shell-command (command &optional output-buffer)
+(defun ange-ftp-shell-command (command &optional output-buffer error-buffer)
   (let* ((parsed (ange-ftp-ftp-name default-directory))
 	 (host (nth 0 parsed))
 	 (user (nth 1 parsed))
 	 (name (nth 2 parsed)))
     (if (not parsed)
-	(ange-ftp-real-shell-command command output-buffer)
+	(ange-ftp-real-shell-command command output-buffer error-buffer)
       (if (> (length name) 0)		; else it's $HOME
 	  (setq command (concat "cd " name "; " command)))
       (setq command
@@ -4303,7 +4303,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
       ;; Cannot call ange-ftp-real-dired-run-shell-command here as it
       ;; would prepend "cd default-directory" --- which bombs because
       ;; default-directory is in ange-ftp syntax for remote file names.
-      (ange-ftp-real-shell-command command output-buffer))))
+      (ange-ftp-real-shell-command command output-buffer error-buffer))))
 
 ;;; This is the handler for call-process.
 (defun ange-ftp-dired-call-process (program discard &rest arguments)
