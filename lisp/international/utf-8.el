@@ -300,6 +300,6 @@ into eight-bit-control or eight-bit-graphic."
     mule-unicode-e000-ffff)
    (mime-charset . utf-8)
    ;; Kluge to ensure the translation table is loaded.
-   `(pre-write-conversion . ,(lambda (junk) (require 'ucs-tables)))))
+   (pre-write-conversion . ,(lambda (junk) (require 'ucs-tables)))))
 
 (define-coding-system-alias 'utf-8 'mule-utf-8)
