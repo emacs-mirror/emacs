@@ -98,7 +98,7 @@ the section of autoloads for a file.")
 (defun generate-file-autoloads (file)
   "Insert at point a loaddefs autoload section for FILE.
 autoloads are generated for defuns and defmacros in FILE
-marked by `generate-autoload-regexp' (which see).
+marked by `generate-autoload-cookie' (which see).
 If FILE is being visited in a buffer, the contents of the buffer
 are used."
   (interactive "fGenerate autoloads for file: ")
