@@ -1,5 +1,8 @@
 2001-10-29  Gerd Moellmann  <gerd@gnu.org>
 
+	* enriched.el (enriched-face-ans): Handle face attributes
+	of the form `(FACE1 FACE2 ...)'.
+
 	* dired-x.el (dired-omit-startup): Show ``Omit'' only in Dired
 	buffers.
 

@@ -1,5 +1,8 @@
 2001-10-29  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfaces.c (Fface_font): Use UNSPECIFIEDP instead of NILP for
+	the slant attribute if FRAME is t.
+
 	* xfns.c (x_set_internal_border_width): Set frame garbaged
 	when X window doesn't exist yet.
 
