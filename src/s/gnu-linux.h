@@ -171,16 +171,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Linux has crt0.o in a non-standard place */
 #define START_FILES pre-crt0.o /usr/lib/crt0.o
 
-/* Linux has SIGIO defined, but not implemented, as of version 0.99.8
- * What an ugly kludge!  This will not be necessary if the
- * INTERRUPT_INPUT define gets fully implemented.
- */
+/* As of version 1.1.51, Linux does not actually implement SIGIO.  */
+/* Here we assume that signal.h is already included.  */
 #ifdef emacs
-#include <signal.h>
 #undef SIGIO
-#undef signal
-#define signal sys_signal
-#include <values.h>
 #endif
 
 /* This is needed for sysdep.c */
