@@ -1,31 +1,3 @@
-2000-01-02  Dave Love  <fx@gnu.org>
-
-	* outline.el (outline-mode-menu-bar-map): Add
-	outline-headers-as-kill.
-	(outline-mode): Define imenu-generic-expression.
-	(outline-headers-as-kill): New command.
-
-	* text-mode.el (text-mode): Remove page-delimiter's `^' from
-	paragraph-start.
-	(paragraph-indent-minor-mode): New command.
-
-	* fortran.el (fortran-mode-map): Don't bind M-C-a, M-C-e, M-C-h,
-	C-j, C-xnd, TAB.
-	(fortran-mode): Set beginning-of-defun, end-of-defun.
-	(fortran-column-ruler): Simplify.
-	(fortran-mark-subprogram, fortran-narrow-to-subprogram): Deleted.
-	(fortran-with-subprogram-narrowing): Likewise.
-	(fortran-indent-subprogram): Call mark-defun.
-	(fortran-check-for-matching-do): Change narrowing.
-
-	* cl-extra.el (cl-make-hash-table): Use make-hash-table.
-	(cl-lucid-hash-tag): Delete.
-	(cl-hash-table-p): Correct test for native table.
-	(cl-hash-table-count): Use hash-table-count.
-
-	* browse-url.el (browse-url): Fix case of
-	browse-url-browser-function being an alist.
-
 2000-01-05  Carsten Dominik  <cd@gnu.org>
 
 	* textmodes/reftex-vars.el (reftex-parse-file-extension,
@@ -36,7 +8,7 @@
 
 	* textmodes/reftex.el (reftex-access-parse-file): Use new option
 	 `reftex-parse-file-extension'.
-	
+
 2000-01-05  Dave Love  <fx@gnu.org>
 
 	* lisp.el (beginning-of-defun): New variable.
@@ -150,6 +122,34 @@
 
 	* simple.el (completion-setup-function): Count completion-size
 	from minibuffer-prompt-end, not from point-min.
+
+2000-01-02  Dave Love  <fx@gnu.org>
+
+	* outline.el (outline-mode-menu-bar-map): Add
+	outline-headers-as-kill.
+	(outline-mode): Define imenu-generic-expression.
+	(outline-headers-as-kill): New command.
+
+	* text-mode.el (text-mode): Remove page-delimiter's `^' from
+	paragraph-start.
+	(paragraph-indent-minor-mode): New command.
+
+	* fortran.el (fortran-mode-map): Don't bind M-C-a, M-C-e, M-C-h,
+	C-j, C-xnd, TAB.
+	(fortran-mode): Set beginning-of-defun, end-of-defun.
+	(fortran-column-ruler): Simplify.
+	(fortran-mark-subprogram, fortran-narrow-to-subprogram): Deleted.
+	(fortran-with-subprogram-narrowing): Likewise.
+	(fortran-indent-subprogram): Call mark-defun.
+	(fortran-check-for-matching-do): Change narrowing.
+
+	* cl-extra.el (cl-make-hash-table): Use make-hash-table.
+	(cl-lucid-hash-tag): Delete.
+	(cl-hash-table-p): Correct test for native table.
+	(cl-hash-table-count): Use hash-table-count.
+
+	* browse-url.el (browse-url): Fix case of
+	browse-url-browser-function being an alist.
 
 2000-01-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
