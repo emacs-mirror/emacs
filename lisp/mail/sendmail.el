@@ -324,13 +324,12 @@ for the recipient, who may not know how to decode them properly."
 The value should be an expression to test whether the problem will
 actually occur.")
 
-(defvar mail-mode-syntax-table nil
-  "Syntax table used while in mail mode.")
-
-(if (not mail-mode-syntax-table)
-    (progn
-     (setq mail-mode-syntax-table (copy-syntax-table text-mode-syntax-table))
-     (modify-syntax-entry ?% ". " mail-mode-syntax-table)))
+(defvar mail-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    ;; define-derived-mode will make it inherit from text-mode-syntax-table.
+    (modify-syntax-entry ?% ". " st)
+    st)
+  "Syntax table used while in `mail-mode'.")
 
 (defvar mail-font-lock-keywords
   (eval-when-compile
@@ -456,7 +455,7 @@ actually occur.")
   :options '(footnote-mode))
 
 ;;;###autoload
-(defun mail-mode ()
+(define-derived-mode mail-mode text-mode "Mail"
   "Major mode for editing mail to be sent.
 Like Text Mode but with these additional commands:
 \\[mail-send]  mail-send (send the message)    \\[mail-send-and-exit]  mail-send-and-exit
@@ -471,15 +470,8 @@ Here are commands that move to a header field (and create it if there isn't):
 \\[mail-sent-via]  mail-sent-via (add a Sent-via field for each To or CC).
 Turning on Mail mode runs the normal hooks `text-mode-hook' and
 `mail-mode-hook' (in that order)."
-  (interactive)
-  (kill-all-local-variables)
   (make-local-variable 'mail-reply-action)
   (make-local-variable 'mail-send-actions)
-  (set-syntax-table mail-mode-syntax-table)
-  (use-local-map mail-mode-map)
-  (setq local-abbrev-table text-mode-abbrev-table)
-  (setq major-mode 'mail-mode)
-  (setq mode-name "Mail")
   (setq buffer-offer-save t)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(mail-font-lock-keywords t t))
@@ -494,12 +486,12 @@ Turning on Mail mode runs the normal hooks `text-mode-hook' and
   (set (make-local-variable 'comment-start) mail-yank-prefix)
   (make-local-variable 'adaptive-fill-regexp)
   (setq adaptive-fill-regexp
-	(concat adaptive-fill-regexp
-		"\\|[ \t]*[-[:alnum:]]*>+[ \t]*"))
+	(concat "[ \t]*[-[:alnum:]]*>+[ \t]*\\|"
+		adaptive-fill-regexp))
   (make-local-variable 'adaptive-fill-first-line-regexp)
   (setq adaptive-fill-first-line-regexp
-	(concat adaptive-fill-first-line-regexp
-		"\\|[ \t]*[-[:alnum:]]*>+[ \t]*"))
+	(concat "[ \t]*[-[:alnum:]]*>+[ \t]*\\|"
+		adaptive-fill-first-line-regexp))
   ;; `-- ' precedes the signature.  `-----' appears at the start of the
   ;; lines that delimit forwarded messages.
   ;; Lines containing just >= 3 dashes, perhaps after whitespace,
@@ -509,8 +501,7 @@ Turning on Mail mode runs the normal hooks `text-mode-hook' and
 				"\\|[ \t]*[[:alnum:]]*>+[ \t]*$\\|[ \t]*$\\|"
 				"-- $\\|---+$\\|"
 				page-delimiter))
-  (setq paragraph-separate paragraph-start)
-  (run-hooks 'text-mode-hook 'mail-mode-hook))
+  (setq paragraph-separate paragraph-start))
 
 
 (defun mail-header-end ()
@@ -597,7 +588,7 @@ If within the headers, this makes the new lines into continuation lines."
 
 (if mail-mode-map
     nil
-  (setq mail-mode-map (nconc (make-sparse-keymap) text-mode-map))
+  (setq mail-mode-map (make-sparse-keymap))
   (define-key mail-mode-map "\M-\t" 'mail-complete)
   (define-key mail-mode-map "\C-c?" 'describe-mode)
   (define-key mail-mode-map "\C-c\C-f\C-t" 'mail-to)
