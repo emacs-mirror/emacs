@@ -219,12 +219,12 @@ The normal global definition of the character C-x indirects to this keymap.")
 
 (defvar ctl-x-4-map (make-sparse-keymap)
   "Keymap for subcommands of C-x 4")
-(fset 'ctl-x-4-prefix ctl-x-4-map)
+(defalias 'ctl-x-4-prefix ctl-x-4-map)
 (define-key ctl-x-map "4" 'ctl-x-4-prefix)
 
 (defvar ctl-x-5-map (make-sparse-keymap)
   "Keymap for frame commands.")
-(fset 'ctl-x-5-prefix ctl-x-5-map)
+(defalias 'ctl-x-5-prefix ctl-x-5-map)
 (define-key ctl-x-map "5" 'ctl-x-5-prefix)
 
 
@@ -353,27 +353,27 @@ nas returned by the `event-start' and `event-end' functions."
 
 ;;;; Obsolescent names for functions.
 
-(fset 'make-syntax-table 'copy-syntax-table)
-(fset 'dot 'point)
-(fset 'dot-marker 'point-marker)
-(fset 'dot-min 'point-min)
-(fset 'dot-max 'point-max)
-(fset 'window-dot 'window-point)
-(fset 'set-window-dot 'set-window-point)
-(fset 'read-input 'read-string)
-(fset 'send-string 'process-send-string)
-(fset 'send-region 'process-send-region)
-(fset 'show-buffer 'set-window-buffer)
-(fset 'buffer-flush-undo 'buffer-disable-undo)
-(fset 'eval-current-buffer 'eval-buffer)
-(fset 'compiled-function-p 'byte-code-function-p)
+(defalias 'make-syntax-table 'copy-syntax-table)
+(defalias 'dot 'point)
+(defalias 'dot-marker 'point-marker)
+(defalias 'dot-min 'point-min)
+(defalias 'dot-max 'point-max)
+(defalias 'window-dot 'window-point)
+(defalias 'set-window-dot 'set-window-point)
+(defalias 'read-input 'read-string)
+(defalias 'send-string 'process-send-string)
+(defalias 'send-region 'process-send-region)
+(defalias 'show-buffer 'set-window-buffer)
+(defalias 'buffer-flush-undo 'buffer-disable-undo)
+(defalias 'eval-current-buffer 'eval-buffer)
+(defalias 'compiled-function-p 'byte-code-function-p)
 
 ;;; This name isn't mentioned in the manual, and we've been hoping to
 ;;; phase it out, but there's still a lot of code out there, even for
 ;;; Emacs 18.59, which uses mod.  I'm going to let the byte compiler's
 ;;; make-obsolete function to poke people a little more, and leave the
 ;;; `mod' name around for a while longer.
-(fset 'mod '%)
+(defalias 'mod '%)
 
 ;; Some programs still use this as a function.
 (defun baud-rate ()
@@ -383,23 +383,23 @@ nas returned by the `event-start' and `event-end' functions."
 
 ;;;; Alternate names for functions - these are not being phased out.
 
-(fset 'string= 'string-equal)
-(fset 'string< 'string-lessp)
-(fset 'move-marker 'set-marker)
-(fset 'eql 'eq)
-(fset 'not 'null)
-(fset 'rplaca 'setcar)
-(fset 'rplacd 'setcdr)
-(fset 'beep 'ding) ;preserve lingual purtity
-(fset 'indent-to-column 'indent-to)
-(fset 'backward-delete-char 'delete-backward-char)
-(fset 'search-forward-regexp (symbol-function 're-search-forward))
-(fset 'search-backward-regexp (symbol-function 're-search-backward))
-(fset 'int-to-string 'number-to-string)
+(defalias 'string= 'string-equal)
+(defalias 'string< 'string-lessp)
+(defalias 'move-marker 'set-marker)
+(defalias 'eql 'eq)
+(defalias 'not 'null)
+(defalias 'rplaca 'setcar)
+(defalias 'rplacd 'setcdr)
+(defalias 'beep 'ding) ;preserve lingual purtity
+(defalias 'indent-to-column 'indent-to)
+(defalias 'backward-delete-char 'delete-backward-char)
+(defalias 'search-forward-regexp (symbol-function 're-search-forward))
+(defalias 'search-backward-regexp (symbol-function 're-search-backward))
+(defalias 'int-to-string 'number-to-string)
 
 ;;; Should this be an obsolete name?  If you decide it should, you get
 ;;; to go through all the sources and change them.
-(fset 'string-to-int 'string-to-number)
+(defalias 'string-to-int 'string-to-number)
 
 ;;;; Hook manipulation functions.
 
