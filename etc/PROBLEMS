@@ -10,11 +10,8 @@ dates.  The preprocessor in those versions expands ".." into ". .",
 which breaks relative file names that reference the parent directory.
 
 The solution is to make sure the preprocessor is run with the
-`-traditional' option.  (The `configure' script should do that
-automatically with Emacs 21 and later.)
-
-Versions of the GNU preprocessor after Feb 1 2001 reportedly don't
-have this problem, so upgrading should solve this.
+`-traditional' option.  (The `configure' script does that
+automatically.)
 
 Note that this problem does not pertain to the MS-Windows port of
 Emacs, since it doesn't use the preprocessor to generate Makefile's.
@@ -50,6 +47,11 @@ in the `/gnu/emacs/windows' directory a program called `djtarnt.exe'
 which can be used to unpack `.tar.gz' and `.zip' archives without
 mangling them.
 
+* JPEG images aren't displayed.
+
+This has been reported when Emacs is built with jpeg-6a library.
+Upgrading to jpeg-6b solves the problem.
+
 * Building `ctags' for MS-Windows with the MinGW port of GCC fails.
 
 This might happen due to a bug in the MinGW header assert.h, which
@@ -76,11 +78,6 @@ patch to assert.h should solve this:
   #else /* debugging enabled */
   
 
-* `put-image' and `insert-image' don't work with JPEG images
-
-This can happen if Emacs is built with jpeg-6a library.  Upgrading to
-jpeg-6b reportedly solves the problem.
-
 * When using Xaw3d scroll bars without arrows, the very first mouse
 click in a scroll bar might be ignored by the scroll bar widget.  This
 is probably a bug in Xaw3d; when Xaw3d is compiled with arrows, the
@@ -94,50 +91,42 @@ a good way of implementing it with widgets).  If Emacs is configured
 
 * Colors are not available on a tty or in xterm.
 
-Emacs 21 supports colors on character terminals and in xterm (when
-Emacs is invoked with the `-nw' option), but this support on Unix and
-GNU/Linux systems relies on the termcap entry to specify that the
-display supports color.  Emacs looks at the "Co" capability for the
-terminal to find out how many colors are supported; it should be
-non-zero to activate the color support within Emacs.  (Most color
-terminals support 8 or 16 colors.)
+Emacs 21 supports colors on character terminals and terminal
+emulators, but this support relies on the terminfo or termcap database
+entry to specify that the display supports color.  Emacs looks at the
+"Co" capability for the terminal to find out how many colors are
+supported; it should be non-zero to activate the color support within
+Emacs.  (Most color terminals support 8 or 16 colors.)
 
-Emacs uses the termcap entry for the terminal whose name is the value
-of the environment variable TERM.  On an xterm, a common terminal
+Emacs uses the database entry for the terminal whose name is the value
+of the environment variable TERM.  With `xterm', a common terminal
 entry that supports color is `xterm-color', so setting TERM's value to
-`xterm-color' might activate the color support.
+`xterm-color' might activate the color support on an xterm-compatible
+emulator.
 
-When Emacs runs on MS-DOS or MS-Windows systems, it always supports
-colors, so the above is only relevant for Unix and GNU/Linux systems.
-
-Some editing modes do not use colors unless you turn on the Font-lock
-mode.  Some people have long ago set their `~/.emacs' files to turn
-on Font-lock on X only, so they won't see colors on a tty.  One easy
-way of turning on Font-lock is by typing "M-x global-font-lock-mode RET".
+Some modes do not use colors unless you turn on the Font-lock mode.
+Some people have long ago set their `~/.emacs' files to turn on
+Font-lock on X only, so they won't see colors on a tty.  The
+recommended way of turning on Font-lock is by typing "M-x
+global-font-lock-mode RET" or by customizing`global-font-lock-mode'.
 
 * Problems in Emacs built with LessTif.
 
 The problems seem to depend on the version of LessTif and the Motif
 emulation for which it is set up.
 
-To the best of our knowledge, only the Motif 1.2 emulation seemed to
-be stable enough in LessTif.  Lesstif 0.92-17's Motif 1.2 emulation
-seems to work okay on FreeBSD.  On GNU/Linux systems, lesstif-0.92.6
-configured with "./configure --enable-build-12 --enable-default-12" is
-reported to be the most successful.  By contrast,
-lesstif-0.92.0-1.i386.rpm was reported to have problems with menu
-placement, and should probably be avoided.
+Only the Motif 1.2 emulation seems to be stable enough in LessTif.
+Lesstif 0.92-17's Motif 1.2 emulation seems to work okay on FreeBSD.
+On GNU/Linux systems, lesstif-0.92.6 configured with "./configure
+--enable-build-12 --enable-default-12" is reported to be the most
+successful.  The binary GNU/Linux package
+lesstif-devel-0.92.0-1.i386.rpm was reported to have problems with
+menu placement.
 
 On some systems, even with Motif 1.2 emulation, Emacs occasionally
-locks up, grabbing all mouse and keyboard events.  The mouse still
-moves, but will not go outside of the Emacs window (so you can't get
-it over the frame title barm, for instance).  None of the menus are
-responsive.  In addition, the keyboard will not respond.  Keypresses
-are totally ignored, including Ctrl-Alt-F1 to Ctrl-Alt-F6.  This means
-you can not even get to the virtual console.
-
-We still don't know what causes these problems; they are not
-reproducible on some systems, notably those used by Emacs developers.
+locks up, grabbing all mouse and keyboard events.  We still don't know
+what causes these problems; they are not reproducible by Emacs
+developers.
 
 * Known problems with the MS-Windows port of Emacs 21.1.
 
@@ -176,18 +165,14 @@ install a shared version of the library, `libjpeg.so'.  One system
 where this is known to happen is Compaq OSF/1 (`Tru64'), but it
 probably isn't limited to that system.
 
-It is possible to build Emacs linked statically, but that makes the
-binary much larger.
+You can configure the jpeg library with the `--enable-shared' option
+and then rebuild libjpeg.  This produces a shared version of libjpeg,
+which you need to install.  Finally, rerun the Emacs configure script,
+which should now find the jpeg library.  Alternatively, modify the
+generated src/Makefile to link the .a file explicitly.
 
-If you want to avoid building a statically linked Emacs, configure the
-jpeg library with the `--enable-shared' option and then rebuild
-libjpeg.  This produces a shared version of libjpeg, which you need to
-install.  Finally, rerun the Emacs configure script, which should now
-find the jpeg library.
-
-(If you need the static version of the jpeg library as well, you can
-configure libjpeg with both `--enable-static' and `--enable-shared'
-options.
+(If you need the static version of the jpeg library as well, configure
+libjpeg with both `--enable-static' and `--enable-shared' options.)
 
 * Building Emacs over NFS fails with ``Text file busy''.
 
@@ -220,7 +205,7 @@ could wait for a few seconds and then type "make install" again.  In
 one particular case, waiting for 10 or more seconds seemed to work
 around the problem.
 
-* Some accented ISO-8859-1 characters or umlauts are displayed as | or _.
+* Accented ISO-8859-1 characters are displayed as | or _.
 
 Try other font set sizes (S-mouse-1).  If the problem persists with
 other sizes as well, your text is corrupted, probably through software
@@ -657,15 +642,11 @@ from Emacs 19.34 distribution:
 
 * The `oc-unicode' package doesn't work with Emacs 21.
 
-It seems that `oc-unicode' introduces 5 2-dimensional charsets to
-cover the BMP (Basic Multilingual Plane) subset of Unicode.  However,
-Emacs 21 adds three mule-unicode-xxxx-yyyy charsets and one
-japanese-jisx0213-2 in the private charset area of the Mule character
-representation.  This leaves only one free slot left for additional
-dimension-2 charsets, which is not enough for `oc-unicode'.
-
-The solution is to modify `oc-unicode' to use the Emacs mule-unicode-*
-charsets.  We don't yet have a patch for that.
+This package tries to define more private charsets than there are free
+slots now.  If the built-in Unicode/UTF-8 support is insufficient,
+e.g. if you need more CJK coverage, use the current Mule-UCS package.
+Any files encoded as emacs-mule using oc-unicode won't be read
+correctly by Emacs 21.
 
 * On systems with shared libraries you might encounter run-time errors
 from the dynamic linker telling you that it is unable to find some
