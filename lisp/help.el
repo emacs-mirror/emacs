@@ -105,7 +105,7 @@
 	   1 'font-lock-reference-face t)
      ;;
      ;; CLisp `:' keywords as references.
-     (list (concat "\\<:" sym-char "+\\>") 0 font-lock-reference-face t)))
+     (list (concat "\\<:" sym-char "+\\>") 0 'font-lock-reference-face t)))
   "Default expressions to highlight in Help mode.")
 
 (defun help-mode ()
