@@ -58,14 +58,14 @@ extern int errno;
    that's too unreliable.  Hence the separate file, which could
    theoretically be updated by daemons running separately -- but this
    whole idea is unimplemented; in practice, at least in our
-   environment, it seems such stale locks arise fiarly infrequently, and
+   environment, it seems such stale locks arise fairly infrequently, and
    Emacs' standard methods of dealing with clashes suffice.
 
    We use symlinks instead of normal files because (1) they can be
    stored more efficiently on the filesystem, since the kernel knows
    they will be small, and (2) all the info about the lock can be read
    in a single system call (readlink).  Although we could use regular
-   files to be useful on old systems lacking symlinks, noawdays
+   files to be useful on old systems lacking symlinks, nowadays
    virtually all such systems are probably single-user anyway, so it
    didn't seem worth the complication.
    
