@@ -1,3 +1,11 @@
+2000-09-14  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in: Standardize indentation somewhat.
+	(bootstrap-temacs): Use $(ARGQUOTE) instead of literal quotes, to
+	cater for differences between shells.
+
+	* w32term.c (w32_per_char_metric): Handle non-TrueType fonts.
+
 2000-09-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_produce_glyphs): If the distance from the current

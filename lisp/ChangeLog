@@ -1,5 +1,8 @@
 2000-09-14  Andrew Innes  <andrewi@gnu.org>
 
+	* makefile.w32-in: Add bootstrap support.  Also copy lisp source
+	when installing.
+
 	* makefile.nt (DONTCOMPILE): Fix typo.
 
 	* shell.el (shell-write-history-on-exit): New function.

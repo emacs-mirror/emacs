@@ -1,3 +1,24 @@
+2000-09-14  Andrew Innes  <andrewi@gnu.org>
+
+	* INSTALL: Add note about expected error messages when configure
+	is run.
+
+	* configure.bat: Simplify the generation of makefiles (don't need
+	to generate various top-level targets that invoke make in other
+	directories).
+
+	* gmake.defs (SHELLTYPE): New define.
+	(SETLOADPATH): New define.
+
+	* nmake.defs (SHELLTYPE): New define.
+
+	* makefile.w32-in: Standardize indentation somewhat.
+	Add bootstrap support.
+	Pass $(MFLAGS) when invoking make recursively.
+	Add shell-specific variants of top-level targets that invoke make
+	recursively in other directories, and add necessary computed
+	dependencies.
+
 2000-09-03  Andrew Innes  <andrewi@gnu.org>
 
 	* makefile.w32-in: Change to DOS line endings.
