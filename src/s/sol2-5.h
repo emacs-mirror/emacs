@@ -25,15 +25,3 @@
    We can optimize this later.  */
 
 #undef USE_MMAP_FOR_BUFFERS
-
-/* Newer versions of Solaris have bcopy etc. as functions, with
-   prototypes in strings.h.  They lose if the defines from usg5-4.h
-   are visible, which happens when X headers are included.  */
-#ifdef HAVE_BCOPY
-#undef bcopy
-#undef bzero
-#undef bcmp
-#ifndef NOT_C_CODE
-#include <strings.h>
-#endif
-#endif
