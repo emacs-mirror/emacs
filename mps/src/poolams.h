@@ -1,6 +1,6 @@
 /* impl.h.poolams: AUTOMATIC MARK & SWEEP POOL CLASS INTERFACE
  *
- * $HopeName: MMsrc!poolams.h(trunk.10) $
+ * $HopeName: MMsrc!poolams.h(trunk.11) $
  * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
  *
  * .purpose: Internal interface to AMS functionality.
@@ -14,28 +14,28 @@
 
 
 typedef struct AMSStruct *AMS;
-typedef struct AMSGroupStruct *AMSGroup;
+typedef struct AMSSegStruct *AMSSeg;
 
 
-/* GroupInitFunction is the type of a group init method. */
-typedef Res (*GroupInitFunction)(AMSGroup group, Pool pool);
-/* GroupFinishFunction is the type of a group finish method. */
-typedef void (*GroupFinishFunction)(AMSGroup group);
 /* AMSRingFunction is the type of the method to find the ring that */
 /* the AMS pool is allocating on. */
 typedef Ring (*AMSRingFunction)(AMS ams, RankSet rankSet, Size size);
-/* AMSGroupsDestroyFunction is the type of the method to destroy all */
-/* groups of an AMS pool. */
-typedef void (*AMSGroupsDestroyFunction)(AMS ams);
+/* AMSSegClassFunction is the type of the method to indicate */
+/* the segment class of an AMS pool. Returns a subclass of AMSSegClass. */
+/* The type is congruent with Ensure*SegClass functions.  */
+typedef SegClass (*AMSSegClassFunction)(void);
+/* AMSSegsDestroyFunction is the type of the method to destroy all */
+/* segs of an AMS pool. */
+typedef void (*AMSSegsDestroyFunction)(AMS ams);
 /* AMSSegSizePolicyFunction is the type of the method which picks */
-/* a segment (group) size given an object size. */
+/* a segment size given an object size. */
 typedef Res (*AMSSegSizePolicyFunction)(Size *sizeReturn,
                                         Pool pool, Size size,
 					RankSet rankSet);
 /* AMSObjectFunction is the type of the method that an */
-/* AMSIterateFunction applies to each object in a group. */
+/* AMSIterateFunction applies to each object in a segment. */
 typedef Res (*AMSObjectFunction)(
-  /* the group */                AMSGroup group,
+  /* the segment */              Seg seg,
   /* the object grain index */   Index i,
   /* the address of the object */Addr p,
   /*  "   "   after the object */Addr next,
@@ -44,7 +44,7 @@ typedef Res (*AMSObjectFunction)(
 #define AMSObjectFunctionCheck(f) \
   ((f) != NULL) /* that's the best we can do */
 
-typedef Res (*AMSIterateFunction)(AMSGroup group,
+typedef Res (*AMSIterateFunction)(Seg seg,
                                   AMSObjectFunction f, void *closure);
 
 
@@ -56,23 +56,18 @@ typedef struct AMSStruct {
   Size lastReclaimed;          /* size after last reclaim */
   AMSIterateFunction iterate;  /* iterator function */
   AMSSegSizePolicyFunction segSize; /* SegSize policy */
-  RingStruct groupRing;        /* ring of groups in the pool */
+  RingStruct segRing;          /* ring of segments in the pool */
   AMSRingFunction allocRing;   /* fn to get the ring to allocate from */
-  AMSGroupsDestroyFunction groupsDestroy;
-  /* The next four might someday be part of a generic group class. */
-  size_t groupSize;            /* size of outer group structure */
-  size_t groupOffset;          /* offset of generic group in group */
-  GroupInitFunction groupInit;
-  GroupFinishFunction groupFinish;
+  AMSSegsDestroyFunction segsDestroy;
+  AMSSegClassFunction segClass;/* fn to get the class for segments */
   Sig sig;                     /* design.mps.pool.outer-structure.sig */
 } AMSStruct;
 
 
-typedef struct AMSGroupStruct {
-  Sig sig;
-  Seg seg;               /* segment of group's memory */
+typedef struct AMSSegStruct {
+  GCSegStruct gcSegStruct;  /* superclass fields must come first */
   AMS ams;               /* owning ams */
-  RingStruct groupRing;  /* ring that this group belongs to */
+  RingStruct segRing;    /* ring that this seg belongs to */
   Count grains;          /* number of grains */
   Count free;            /* number of free grains */
   Bool allocTableInUse;  /* whether we use allocTable */
@@ -84,10 +79,14 @@ typedef struct AMSGroupStruct {
   Bool colourTablesInUse;/* whether we use the colour tables */
   BT nongreyTable;       /* set if grain not grey */
   BT nonwhiteTable;      /* set if grain not white */
-} AMSGroupStruct;
+  Sig sig;
+} AMSSegStruct;
 
 
 /* macros to get between child and parent structures */
+
+#define SegAMSSeg(seg)             ((AMSSeg)(seg))
+#define AMSSegSeg(amsseg)          ((Seg)(amsseg))
 
 #define PoolPoolAMS(pool) PARENT(AMSStruct, poolStruct, (pool))
 #define AMSPool(ams)      (&(ams)->poolStruct)
@@ -102,83 +101,76 @@ typedef struct AMSGroupStruct {
 /* only use when size is a multiple of the grain size */
 #define AMSGrains(ams, size) ((size) >> (ams)->grainShift)
 
-#define AMSGroupBase(group)  SegBase((group)->seg)
-#define AMSGroupLimit(group) SegLimit((group)->seg)
+#define AMSSegShift(seg) (SegAMSSeg(seg)->ams->grainShift)
 
-#define AMSGroupShift(group) ((group)->ams->grainShift)
-
-#define AMS_ADDR_INDEX(group, addr) \
-  ((Index)(AddrOffset(AMSGroupBase((group)), (addr)) \
-           >> AMSGroupShift((group))))
-#define AMS_INDEX_ADDR(group, index) \
-  AddrAdd(AMSGroupBase((group)), \
-          (Size)(index) << AMSGroupShift((group)))
-
-#define AMSSegGroup(seg) ((AMSGroup)SegP((seg)))
-
-#define AMSArena(ams) PoolArena(AMSPool((ams)))
-
-#define AMSGroupArena(group) AMSArena((group)->ams)
+#define AMS_ADDR_INDEX(seg, addr) \
+  ((Index)(AddrOffset(SegBase(seg), (addr)) \
+           >> AMSSegShift(seg)))
+#define AMS_INDEX_ADDR(seg, index) \
+  AddrAdd(SegBase(seg), \
+          (Size)(index) << AMSSegShift(seg))
 
 
 /* colour ops */
 
-#define AMSIsWhite(group, index) !BTGet((group)->nonwhiteTable, (index))
+#define AMSIsWhite(seg, index) \
+  (!BTGet(SegAMSSeg(seg)->nonwhiteTable, (index)))
 
-#define AMSIsGrey(group, index) !BTGet((group)->nongreyTable, (index))
+#define AMSIsGrey(seg, index) \
+  (!BTGet(SegAMSSeg(seg)->nongreyTable, (index)))
 
-#define AMSIsBlack(group, index) \
-  (!AMSIsGrey((group), (index)) && !AMSIsWhite((group), (index)))
+#define AMSIsBlack(seg, index) \
+  (!AMSIsGrey((seg), (index)) && !AMSIsWhite((seg), (index)))
 
-#define AMSIsInvalidColor(group, index) \
-  (AMSIsGrey((group), (index)) && AMSIsWhite((group), (index)))
+#define AMSIsInvalidColor(seg, index) \
+  (AMSIsGrey((seg), (index)) && AMSIsWhite((seg), (index)))
 
-#define AMSGreyBlacken(group, index) \
+#define AMSGreyBlacken(seg, index) \
   BEGIN \
-    BTSet((group)->nongreyTable, (index)); \
+    BTSet(SegAMSSeg(seg)->nongreyTable, (index)); \
   END
 
-#define AMSWhiteGreyen(group, index) \
+#define AMSWhiteGreyen(seg, index) \
   BEGIN \
-    BTSet((group)->nonwhiteTable, (index)); \
-    BTRes((group)->nongreyTable, (index)); \
+    BTSet(SegAMSSeg(seg)->nonwhiteTable, (index)); \
+    BTRes(SegAMSSeg(seg)->nongreyTable, (index)); \
   END
 
-#define AMSWhiteBlacken(group, index) \
+#define AMSWhiteBlacken(seg, index) \
   BEGIN \
-    BTSet((group)->nonwhiteTable, (index)); \
+    BTSet(SegAMSSeg(seg)->nonwhiteTable, (index)); \
   END
 
-#define AMSRangeWhiteBlacken(group, base, limit) \
+#define AMSRangeWhiteBlacken(seg, base, limit) \
   BEGIN \
-    BTSetRange((group)->nonwhiteTable, (base), (limit)); \
+    BTSetRange(SegAMSSeg(seg)->nonwhiteTable, (base), (limit)); \
   END
 
-#define AMSRangeWhiten(group, base, limit) \
+#define AMSRangeWhiten(seg, base, limit) \
   BEGIN \
-    BTResRange((group)->nonwhiteTable, (base), (limit)); \
-    BTSetRange((group)->nongreyTable, (base), (limit)); \
+    BTResRange(SegAMSSeg(seg)->nonwhiteTable, (base), (limit)); \
+    BTSetRange(SegAMSSeg(seg)->nongreyTable, (base), (limit)); \
   END
 
-#define AMSRangeBlacken(group, base, limit) \
+#define AMSRangeBlacken(seg, base, limit) \
   BEGIN \
-    BTSetRange((group)->nonwhiteTable, (base), (limit)); \
-    BTSetRange((group)->nongreyTable, (base), (limit)); \
+    BTSetRange(SegAMSSeg(seg)->nonwhiteTable, (base), (limit)); \
+    BTSetRange(SegAMSSeg(seg)->nongreyTable, (base), (limit)); \
   END
 
-#define AMSFindGrey(pos, dummy, group, base, limit) \
-  BTFindShortResRange((pos), (dummy), (group)->nongreyTable, \
+#define AMSFindGrey(pos, dummy, seg, base, limit) \
+  BTFindShortResRange((pos), (dummy), SegAMSSeg(seg)->nongreyTable, \
                       (base), (limit), 1) \
 
-#define AMSFindWhite(pos, dummy, group, base, limit) \
-  BTFindShortResRange((pos), (dummy), (group)->nonwhiteTable, \
+#define AMSFindWhite(pos, dummy, seg, base, limit) \
+  BTFindShortResRange((pos), (dummy), SegAMSSeg(seg)->nonwhiteTable, \
                       (base), (limit), 1) \
 
 
-#define AMS_ALLOCED(group, index) \
-  ((group)->allocTableInUse \
-   ? BTGet((group)->allocTable, (index)) \
-   : ((group)->firstFree > (index)))
+#define AMS_ALLOCED(seg, index) \
+  (SegAMSSeg(seg)->allocTableInUse \
+   ? BTGet(SegAMSSeg(seg)->allocTable, (index)) \
+   : (SegAMSSeg(seg)->firstFree > (index)))
 
 
 extern Res AMSInit(Pool pool, va_list arg);
@@ -198,11 +190,10 @@ extern Res AMSFix(Pool pool, ScanState ss, Seg seg, Ref *refIO);
 extern void AMSBlacken(Pool pool, TraceSet traceSet, Seg seg);
 extern void AMSReclaim(Pool pool, Trace trace, Seg seg);
 
-extern Res AMSGroupInit(AMSGroup group, Pool pool);
-extern void AMSGroupFinish(AMSGroup group);
-extern void AMSGroupDestroy(AMSGroup group);
-extern Bool AMSGroupCheck(AMSGroup group);
-extern Res AMSGroupDescribe(AMSGroup group, mps_lib_FILE *stream);
+typedef SegClass AMSSegClass;
+typedef SegClassStruct AMSSegClassStruct;
+extern AMSSegClass EnsureAMSSegClass(void);
+extern Bool AMSSegCheck(AMSSeg seg);
 
 typedef PoolClass AMSPoolClass;
 typedef PoolClassStruct AMSPoolClassStruct;
