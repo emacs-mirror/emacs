@@ -1,3 +1,8 @@
+2004-06-19  Nick Roberts  <nickrob@gnu.org>
+
+	* man.el (Man-getpage-in-background): Revert previous change but
+	make cygwin a special case.
+
 2004-06-18  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* autorevert.el (global-auto-revert-non-file-buffers): Update
