@@ -1,3 +1,9 @@
+2004-10-08  Sebastien Kirche  <seki@seki.fr>  (tiny change)
+
+	* mail/mail-extr.el (mail-extr-ignore-realname-equals-mailbox-name):
+	New defcustom.
+	(extract-address-components): Use it.
+
 2004-10-08  Paul Pogonyshev  <pogonyshev@gmx.net>
 
 	* subr.el (make-progress-reporter, progress-reporter-update)
