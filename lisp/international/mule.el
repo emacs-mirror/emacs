@@ -304,7 +304,7 @@ Currently the only supported coded character set is `ucs' (ISO/IEC
 Optional argument RESTRICTION specifies a way to map the pair of CCS
 and CODE-POINT to a chracter.   Currently not supported and just ignored."
   (cond ((eq ccs 'ucs)
-	 (cond ((< code-point 128)
+	 (cond ((< code-point 160)
 		code-point)
 	       ((< code-point 256)
 		(make-char 'latin-iso8859-1 code-point))
@@ -312,7 +312,7 @@ and CODE-POINT to a chracter.   Currently not supported and just ignored."
 		(setq code-point (- code-point #x0100))
 		(make-char 'mule-unicode-0100-24ff 
 			   (+ (/ code-point 96) 32) (+ (% code-point 96) 32)))
-	       ((< code-point #x33ff)
+	       ((< code-point #x3400)
 		(setq code-point (- code-point #x2500))
 		(make-char 'mule-unicode-2500-33ff
 			   (+ (/ code-point 96) 32) (+ (% code-point 96) 32)))
@@ -330,7 +330,7 @@ Currently the only supported coded character set is `ucs' (ISO/IEC
 
 CHAR should be in one of these charsets:
   ascii, latin-iso8859-1, mule-unicode-0100-24ff, mule-unicode-2500-33ff,
-  mule-unicode-e000-ffff
+  mule-unicode-e000-ffff, eight-bit-control
 Otherwise, return nil.
 
 Optional argument RESTRICTION specifies a way to map CHAR to a
@@ -350,7 +350,9 @@ code-point in CCS.  Currently not supported and just ignored."
 			       (- (nth 2 split) 32))))
 		 ((eq charset 'mule-unicode-e000-ffff)
 		  (+ #xe000 (+ (* (- (nth 1 split) 32) 96)
-			       (- (nth 2 split) 32)))))))))
+			       (- (nth 2 split) 32))))
+		 ((eq charset 'eight-bit-control)
+		  char))))))
 
 
 ;; Coding system stuff
