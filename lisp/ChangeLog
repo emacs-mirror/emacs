@@ -1,3 +1,10 @@
+2000-08-01  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
+
+	* ebnf2ps.el: Update ps-print functions call.  Indentation fix.  Doc
+	fix.
+	(ebnf-version): New version number (3.2).
+	(ebnf-format-color, ebnf-begin-job): Code fix.
+	
 2000-08-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* net/net-utils.el (nslookup-font-lock-keywords): Don't condition
