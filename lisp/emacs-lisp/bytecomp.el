@@ -206,7 +206,7 @@ You may want to redefine `byte-compile-dest-file' if you change this.")
 	     (concat (substring filename 0 (string-match ";" filename)) "c"))
 	    ((string-match emacs-lisp-file-regexp filename)
 	     (concat (substring filename 0 (match-beginning 0)) ".elc"))
-	    (t (concat filename "c")))))
+	    (t (concat filename ".elc")))))
 
 ;; This can be the 'byte-compile property of any symbol.
 (autoload 'byte-compile-inline-expand "byte-opt")
@@ -1083,7 +1083,8 @@ A nonzero prefix argument also means ask about each subdirectory."
 	 (while files
 	   (setq source (expand-file-name (car files) directory))
 	   (if (and (not (member (car files) '("." ".." "RCS" "CVS")))
-		    (file-directory-p source))
+		    (file-directory-p source)
+		    (not (file-symlink-p source)))
 	       (if (or (null arg)
 		       (eq 0 arg)
 		       (y-or-n-p (concat "Check " source "? ")))
@@ -3032,6 +3033,7 @@ For example, invoke \"emacs -batch -f batch-byte-compile $emacs/ ~/*.el\""
 	      (prin1-to-string (cdr err)))
      nil)))
 
+;;;###autoload
 (defun batch-byte-recompile-directory ()
   "Runs `byte-recompile-directory' on the dirs remaining on the command line.
 Must be used only with `-batch', and kills Emacs on completion.
