@@ -36,7 +36,7 @@ INFO_TARGETS = ../info/emacs ../info/ccmode ../info/cl \
 	        ../info/dired-x ../info/ediff ../info/forms ../info/gnus \
 		../info/info ../info/message ../info/mh-e ../info/reftex \
 		../info/sc ../info/vip ../info/viper ../info/widget \
-		../info/efaq ../info/ada-mode ../info/autotype \
+		../info/efaq ../info/ada-mode ../info/autotype ../info/calc \
 		../info/idlwave ../info/eudc ../info/ebrowse ../info/pcl-cvs \
 		../info/woman ../info/emacs-mime ../info/eshell \
 		../info/speedbar
@@ -217,6 +217,11 @@ faq.dvi: faq.texi
 	cd $(srcdir); $(MAKEINFO) autotype.texi
 autotype.dvi: autotype.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/autotype.texi
+
+../info/calc: calc.texi
+	cd $(srcdir); $(MAKEINFO) calc.texi
+#autotype.dvi: autotype.texi
+#	$(ENVADD) $(TEXI2DVI) ${srcdir}/autotype.texi
 
 # This is produced with --no-split to avoid making files whose
 # names clash on DOS 8+3 filesystems
