@@ -204,15 +204,6 @@ Thank you for your help in stamping out bugs.
   "r" gnus-summary-resend-message)
 
 ;;;###autoload
-(defun gnus-msg-mail (&rest args)
-  "Start editing a mail message to be sent.
-Like `message-mail', but with Gnus paraphernalia, particularly the
-the Gcc: header for archiving purposes."
-  (interactive)
-  (gnus-setup-message 'message
-    (apply 'message-mail args)))
-
-;;;###autoload
 (define-mail-user-agent 'gnus-user-agent
       'gnus-msg-mail 'message-send-and-exit
       'message-kill-buffer 'message-send-hook)
@@ -435,7 +426,15 @@ header line with the old Message-ID."
 	       (gnus-cache-possibly-remove-article ,article nil nil nil t)
 	       (gnus-summary-mark-as-read ,article gnus-canceled-mark)))))
        message-send-actions))))
-
+
+;;;###autoload
+(defun gnus-msg-mail (&rest args)
+  "Start editing a mail message to be sent.
+Like `message-mail', but with Gnus paraphernalia, particularly the
+the Gcc: header for archiving purposes."
+  (interactive)
+  (gnus-setup-message 'message
+    (apply 'message-mail args)))
 
 
 (defun gnus-copy-article-buffer (&optional article-buffer)
@@ -622,8 +621,9 @@ If SILENT, don't prompt the user."
 
 
 ;; Dummies to avoid byte-compile warning.
-(defvar nnspool-rejected-article-hook)
-(defvar xemacs-codename)
+(eval-when-compile
+  (defvar nnspool-rejected-article-hook)
+  (defvar xemacs-codename))
 
 (defun gnus-extended-version ()
   "Stringified Gnus version and Emacs version."
