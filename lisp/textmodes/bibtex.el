@@ -1070,7 +1070,7 @@ the value of `bibtex-text-indentation', minus 2."
 (defconst bibtex-reference-head
   (concat "^[ \t]*\\("
 	  bibtex-reference-type
-	  "\\)[ \t]*[({][ \t]*\\("
+	  "\\)[ \t]*[({][ \t\n]*\\("
 	  bibtex-reference-key
 	  "\\)"))
 ;; Regexp defining format of the header line of a BibTeX reference
