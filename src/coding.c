@@ -363,9 +363,14 @@ char *coding_category_name[CODING_CATEGORY_IDX_MAX] = {
   "coding-category-binary"
 };
 
-/* Table pointers to coding systems corresponding to each coding
+/* Table of pointers to coding systems corresponding to each coding
    categories.  */
 struct coding_system *coding_system_table[CODING_CATEGORY_IDX_MAX];
+
+/* Table of coding category masks.  Nth element is a mask for a coding
+   cateogry of which priority is Nth.  */
+static
+int coding_priorities[CODING_CATEGORY_IDX_MAX];
 
 /* Flag to tell if we look up translation table on character code
    conversion.  */
@@ -3167,6 +3172,9 @@ setup_coding_system (coding_system, coding)
 
 */
 
+static
+int ascii_skip_code[256];
+
 /* Detect how a text of length SRC_BYTES pointed by SOURCE is encoded.
    If it detects possible coding systems, return an integer in which
    appropriate flag bits are set.  Flag bits are defined by macros
@@ -3181,24 +3189,17 @@ detect_coding_mask (source, src_bytes, priorities, skip)
 {
   register unsigned char c;
   unsigned char *src = source, *src_end = source + src_bytes;
-  unsigned int mask = (CODING_CATEGORY_MASK_ISO_7BIT
-		       | CODING_CATEGORY_MASK_ISO_SHIFT);
+  unsigned int mask;
   int i;
 
   /* At first, skip all ASCII characters and control characters except
      for three ISO2022 specific control characters.  */
+  ascii_skip_code[ISO_CODE_SO] = 0;
+  ascii_skip_code[ISO_CODE_SI] = 0;
+  ascii_skip_code[ISO_CODE_ESC] = 0;
+
  label_loop_detect_coding:
-  while (src < src_end)
-    {
-      c = *src;
-      if (c >= 0x80
-	  || ((mask & CODING_CATEGORY_MASK_ISO_7BIT)
-	      && c == ISO_CODE_ESC)
-	  || ((mask & CODING_CATEGORY_MASK_ISO_SHIFT)
-	      && (c == ISO_CODE_SI || c == ISO_CODE_SO)))
-	break;
-      src++;
-    }
+  while (src < src_end && ascii_skip_code[*src]) src++;
   *skip = src - source;
 
   if (src >= src_end)
@@ -3216,9 +3217,10 @@ detect_coding_mask (source, src_bytes, priorities, skip)
 	{
 	  /* No valid ISO2022 code follows C.  Try again.  */
 	  src++;
-	  mask = (c != ISO_CODE_ESC
-		  ? CODING_CATEGORY_MASK_ISO_7BIT
-		  : CODING_CATEGORY_MASK_ISO_SHIFT);
+	  if (c == ISO_CODE_ESC)
+	    ascii_skip_code[ISO_CODE_ESC] = 1;
+	  else
+	    ascii_skip_code[ISO_CODE_SO] = ascii_skip_code[ISO_CODE_SI] = 1;
 	  goto label_loop_detect_coding;
 	}
       if (priorities)
@@ -3312,27 +3314,9 @@ detect_coding (coding, src, src_bytes)
 {
   unsigned int idx;
   int skip, mask, i;
-  int priorities[CODING_CATEGORY_IDX_MAX];
   Lisp_Object val = Vcoding_category_list;
 
-  i = 0;
-  while (CONSP (val) && i < CODING_CATEGORY_IDX_MAX)
-    {
-      if (! SYMBOLP (XCONS (val)->car))
-	break;
-      idx = XFASTINT (Fget (XCONS (val)->car, Qcoding_category_index));
-      if (idx >= CODING_CATEGORY_IDX_MAX)
-	break;
-      priorities[i++] = (1 << idx);
-      val = XCONS (val)->cdr;
-    }
-  /* If coding-category-list is valid and contains all coding
-     categories, `i' should be CODING_CATEGORY_IDX_MAX now.  If not,
-     the following code saves Emacs from craching.  */
-  while (i < CODING_CATEGORY_IDX_MAX)
-    priorities[i++] = CODING_CATEGORY_MASK_RAW_TEXT;
-
-  mask = detect_coding_mask (src, src_bytes, priorities, &skip);
+  mask = detect_coding_mask (src, src_bytes, coding_priorities, &skip);
   coding->heading_ascii = skip;
 
   if (!mask) return;
@@ -4987,6 +4971,34 @@ call this function:\n\
   return Qnil;
 }
 
+DEFUN ("set-coding-priority-internal", Fset_coding_priority_internal,
+       Sset_coding_priority_internal, 0, 0, 0,
+  "Update internal database for the current value of `coding-category-list'.\n\
+This function is internal use only.")
+  ()
+{
+  int i = 0, idx;
+  Lisp_Object val = Vcoding_category_list;
+
+  while (CONSP (val) && i < CODING_CATEGORY_IDX_MAX)
+    {
+      if (! SYMBOLP (XCONS (val)->car))
+	break;
+      idx = XFASTINT (Fget (XCONS (val)->car, Qcoding_category_index));
+      if (idx >= CODING_CATEGORY_IDX_MAX)
+	break;
+      coding_priorities[i++] = (1 << idx);
+      val = XCONS (val)->cdr;
+    }
+  /* If coding-category-list is valid and contains all coding
+     categories, `i' should be CODING_CATEGORY_IDX_MAX now.  If not,
+     the following code saves Emacs from craching.  */
+  while (i < CODING_CATEGORY_IDX_MAX)
+    coding_priorities[i++] = CODING_CATEGORY_MASK_RAW_TEXT;
+
+  return Qnil;
+}
+
 #endif /* emacs */
 
 
@@ -5041,6 +5053,10 @@ init_coding_once ()
   setup_coding_system (Qnil, &safe_terminal_coding);
 
   bzero (coding_system_table, sizeof coding_system_table);
+
+  bzero (ascii_skip_code, sizeof ascii_skip_code);
+  for (i = 0; i < 128; i++)
+    ascii_skip_code[i] = 1;
 
 #if defined (MSDOS) || defined (WINDOWSNT)
   system_eol_type = CODING_EOL_CRLF;
@@ -5180,6 +5196,7 @@ syms_of_coding ()
   defsubr (&Skeyboard_coding_system);
   defsubr (&Sfind_operation_coding_system);
   defsubr (&Supdate_iso_coding_systems);
+  defsubr (&Sset_coding_priority_internal);
 
   DEFVAR_LISP ("coding-system-list", &Vcoding_system_list,
     "List of coding systems.\n\
