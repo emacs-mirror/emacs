@@ -1232,7 +1232,25 @@ ESC or `q' to not overwrite any of the remaining files,
 		    (concat (if dired-one-file op1 operation) " %s to: ")
 		    (dired-dwim-target-directory)
 		    op-symbol arg rfn-list)))
-	 (into-dir (cond ((null how-to) (file-directory-p target))
+	 (into-dir (cond ((null how-to)
+			  ;; Allow DOS/Windows users to change the letter
+			  ;; case of a directory.  If we don't test these
+			  ;; conditions up front, file-directory-p below
+			  ;; will return t because the filesystem is
+			  ;; case-insensitive, and Emacs will try to move
+			  ;; foo -> foo/foo, which fails.
+			  (if (and (memq system-type '(ms-dos windows-nt))
+				   (eq op-symbol 'move)
+				   dired-one-file
+				   (string= (downcase
+					     (expand-file-name (car fn-list)))
+					    (downcase
+					     (expand-file-name target)))
+				   (not (string=
+					 (file-name-nondirectory (car fn-list))
+					 (file-name-nondirectory target))))
+			      nil
+			    (file-directory-p target)))
 			 ((eq how-to t) nil)
 			 (t (funcall how-to target)))))
     (if (and (consp into-dir) (functionp (car into-dir)))
