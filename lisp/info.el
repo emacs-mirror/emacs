@@ -71,7 +71,7 @@ nil means not yet initialized.  In this case, Info uses the environment
 variable INFOPATH to initialize it, or `Info-default-directory-list'
 if there is no INFOPATH variable in the environment.
 The last element of `Info-default-directory-list' is the directory
-where Emacs's installs the Info files that come with it.
+where Emacs installs the Info files that come with it.
 If Emacs finds it has been installed elsewhere, or not yet installed,
 it replaces that element with the directory that its Info files are in.")
 
