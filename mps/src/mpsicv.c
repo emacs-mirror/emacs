@@ -1,7 +1,7 @@
 /* impl.c.mpsicv: MPSI COVERAGE TEST
  *
- * $HopeName: MMsrc!mpsicv.c(trunk.9) $
- * Copyright (C) 1996 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!mpsicv.c(trunk.10) $
+ * Copyright (C) 1996, 1997 Harlequin Group, all rights reserved
  */
 
 #include "testlib.h"
@@ -74,23 +74,23 @@ static void alloc_v_test(mps_pool_t pool, ...)
   mps_free(pool, p, size);
 }
 
-static void pool_create_v_test(mps_space_t space, ...)
+static void pool_create_v_test(mps_arena_t arena, ...)
 {
   va_list args;
 
-  va_start(args, space);
-  die(mps_pool_create_v(&amcpool, space, mps_class_amc(), args),
+  va_start(args, arena);
+  die(mps_pool_create_v(&amcpool, arena, mps_class_amc(), args),
       "pool_create_v(amc)");
   va_end(args);
 }
 
-static void ap_create_v_test(mps_pool_t pool, mps_rank_t rank, ...)
+static void ap_create_v_test(mps_pool_t pool, ...)
 {
   mps_ap_t apt;
   va_list args;
 
-  va_start(args, rank);
-  die(mps_ap_create_v(&apt, pool, rank, args), "ap_create_v");
+  va_start(args, pool);
+  die(mps_ap_create_v(&apt, pool, args), "ap_create_v");
   va_end(args);
   mps_ap_destroy(apt);
 }
@@ -103,7 +103,7 @@ static mps_res_t root_single(mps_ss_t ss, void *p, size_t s)
 
 static void *test(void *arg, size_t s)
 {
-  mps_space_t space;
+  mps_arena_t arena;
   mps_fmt_t format;
   mps_root_t exact_root, ambig_root;
   mps_root_t single_root, fmt_root;
@@ -115,19 +115,19 @@ static void *test(void *arg, size_t s)
   mps_addr_t obj;
   mps_ld_s ld;
 
-  space = (mps_space_t)arg;
+  arena = (mps_arena_t)arg;
   testlib_unused(s);
 
-  die(mps_fmt_create_A(&format, space, dylan_fmt_A()), "fmt_create");
+  die(mps_fmt_create_A(&format, arena, dylan_fmt_A()), "fmt_create");
 
-  die(mps_pool_create(&mv, space, mps_class_mv(), 0x10000, 32, 0x10000),
+  die(mps_pool_create(&mv, arena, mps_class_mv(), 0x10000, 32, 0x10000),
       "pool_create(mv)");
   
-  pool_create_v_test(space, format); /* creates amc pool */
+  pool_create_v_test(arena, format); /* creates amc pool */
 
-  ap_create_v_test(amcpool, MPS_RANK_WEAK);
+  ap_create_v_test(amcpool);
 
-  die(mps_ap_create(&ap, amcpool, MPS_RANK_EXACT), "ap_create");
+  die(mps_ap_create(&ap, amcpool), "ap_create");
 
   for(i=0; i<NR_EXACT_ROOTS; ++i)
     exact_roots[i] = OBJNULL;
@@ -136,19 +136,19 @@ static void *test(void *arg, size_t s)
     ambig_roots[i] = (mps_addr_t)rnd();
 
 
-  die(mps_root_create_table(&exact_root, space,
+  die(mps_root_create_table(&exact_root, arena,
                             MPS_RANK_EXACT, (mps_rm_t)0,
                             &exact_roots[0], NR_EXACT_ROOTS),
                             "root_create_table(exact)");
 
-  die(mps_root_create_table(&ambig_root, space,
+  die(mps_root_create_table(&ambig_root, arena,
                             MPS_RANK_AMBIG, (mps_rm_t)0,
                             &ambig_roots[0], NR_AMBIG_ROOTS),
                             "root_create_table(ambig)");
 
   obj = OBJNULL;
 
-  die(mps_root_create(&single_root, space,
+  die(mps_root_create(&single_root, arena,
                       MPS_RANK_EXACT, (mps_rm_t)0,
                       &root_single, &obj, 0),
                       "root_create(single)");
@@ -161,19 +161,19 @@ static void *test(void *arg, size_t s)
   die(dylan_init(alloced_obj, asize, exact_roots, NR_EXACT_ROOTS),
     "dylan_init(alloced_obj)");
 
-  die(mps_root_create_fmt(&fmt_root, space,
+  die(mps_root_create_fmt(&fmt_root, arena,
                           MPS_RANK_EXACT, (mps_rm_t)0,
                           dylan_fmt_A()->scan,
                           alloced_obj,
                           (mps_addr_t)(((char*)alloced_obj)+asize)),
                           "root_create_fmt");
 
-  mps_ld_reset(&ld, space);
-  mps_ld_add(&ld, space, obj);
+  mps_ld_reset(&ld, arena);
+  mps_ld_add(&ld, arena, obj);
 
-  if(mps_ld_isstale(&ld, space, obj)) {
-    mps_ld_reset(&ld, space);
-    mps_ld_add(&ld, space, obj);
+  if(mps_ld_isstale(&ld, arena, obj)) {
+    mps_ld_reset(&ld, arena);
+    mps_ld_add(&ld, arena, obj);
   }
 
   collections = 0;
@@ -182,7 +182,7 @@ static void *test(void *arg, size_t s)
     unsigned c;
     size_t r;
 
-    c = mps_collections(space);
+    c = mps_collections(arena);
 
     if(collections != c) {
       collections = c;
@@ -218,26 +218,26 @@ static void *test(void *arg, size_t s)
 
 int main(void)
 {
-  mps_space_t space;
+  mps_arena_t arena;
   mps_thr_t thread;
   mps_root_t reg_root;
   void *r;
   void *marker = &marker;
 
   (void)mps_assert_install(mps_assert_default());
-  die(mps_space_create(&space), "space_create");
-  die(mps_thread_reg(&thread, space), "thread_reg");
+  die(mps_arena_create(&arena), "arena_create");
+  die(mps_thread_reg(&thread, arena), "thread_reg");
 
-  die(mps_root_create_reg(&reg_root, space,
+  die(mps_root_create_reg(&reg_root, arena,
                           MPS_RANK_AMBIG, (mps_rm_t)0,
                           thread, &mps_stack_scan_ambig, marker, (size_t)0),
                           "root_create_reg");
 
-  (mps_tramp)(&r, test, space, 0);  /* non-inlined trampoline */
-  mps_tramp(&r, test, space, 0);
+  (mps_tramp)(&r, test, arena, 0);  /* non-inlined trampoline */
+  mps_tramp(&r, test, arena, 0);
   mps_root_destroy(reg_root);
   mps_thread_dereg(thread);
-  mps_space_destroy(space);
+  mps_arena_destroy(arena);
 
   return 0;
 }
