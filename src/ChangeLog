@@ -1,3 +1,14 @@
+2004-12-01  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c: Add commentary for last change.
+	(XMALLOC_PUT_SIZE, XMALLOC_GET_SIZE): New macros to handle
+	sizeof(size_t) != 4.
+	(overrun_check_malloc, overrun_check_realloc, overrun_check_free):
+	Use them.  Also clear header and trailer of freed memory.
+	(GC_STRING_OVERRUN_COOKIE_SIZE): Rename from GC_STRING_EXTRA.
+	(string_overrun_cookie): Rename from string_overrun_pattern.
+	(GC_STRING_EXTRA): Define from GC_STRING_OVERRUN_COOKIE_SIZE.
+
 2004-12-01  Andreas Schwab  <schwab@suse.de>
 
 	* lisp.h: Declare string_to_multibyte.
