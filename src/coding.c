@@ -3138,7 +3138,7 @@ setup_coding_system (coding_system, coding)
 		    int end = XINT (XCONS (this)->cdr);
 
 		    if (start >= 0 && start <= end && end < 256)
-		      while (start < end)
+		      while (start <= end)
 			coding->spec.ccl.valid_codes[start++] = 1;
 		  }
 	      }
@@ -4169,12 +4169,16 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
   int fake_multibyte = 0;
   unsigned char *src, *dst;
   Lisp_Object deletion;
+  int orig_point = PT, orig_len = len;
 
   deletion = Qnil;
   saved_coding_symbol = Qnil;
 
   if (from < PT && PT < to)
-    SET_PT_BOTH (from, from_byte);
+    {
+      TEMP_SET_PT_BOTH (from, from_byte);
+      orig_point = from;
+    }
 
   if (replace)
     {
@@ -4269,10 +4273,18 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
 	  new = current_buffer;
 	  set_buffer_internal_1 (prev);
 	  del_range_2 (from, from_byte, to, to_byte);
-	  insert_from_buffer (new, BEG, len, 0);
+	  TEMP_SET_PT_BOTH (from, from_byte);
+	  insert_from_buffer (new, 1, len, 0);
+	  if (orig_point >= to)
+	    orig_point += len - orig_len;
+	  else if (orig_point > from)
+	    orig_point = from;
+	  orig_len = len;
 	  to = from + len;
+	  from_byte = multibyte ? CHAR_TO_BYTE (from) : from_byte;
 	  to_byte = multibyte ? CHAR_TO_BYTE (to) : to;
 	  len_byte = to_byte - from_byte;
+	  TEMP_SET_PT_BOTH (from, from_byte);
 	}
     }
 
@@ -4516,18 +4528,24 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
   if (! encodep && ! NILP (coding->post_read_conversion))
     {
       Lisp_Object val;
-      int orig_inserted = inserted, pos = PT;
 
-      if (from != pos)
-	temp_set_point_both (current_buffer, from, from_byte);
+      if (from != PT)
+	TEMP_SET_PT_BOTH (from, from_byte);
       val = call1 (coding->post_read_conversion, make_number (inserted));
       if (! NILP (val))
 	{
 	  CHECK_NUMBER (val, 0);
 	  inserted = XFASTINT (val);
 	}
-      if (pos >= from + orig_inserted)
-	temp_set_point (current_buffer, pos + (inserted - orig_inserted));
+    }
+
+  if (orig_point >= from)
+    {
+      if (orig_point >= from + orig_len)
+	orig_point += inserted - orig_len;
+      else
+	orig_point = from;
+      TEMP_SET_PT (orig_point);
     }
 
   signal_after_change (from, to - from, inserted);
@@ -4565,7 +4583,7 @@ code_convert_string (str, coding, encodep, nocopy)
          code_convert_region.  */
       int count = specpdl_ptr - specpdl;
       struct buffer *prev = current_buffer;
-      
+
       record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
       temp_output_buffer_setup (" *code-converting-work*");
       set_buffer_internal (XBUFFER (Vstandard_output));
@@ -4619,7 +4637,8 @@ code_convert_string (str, coding, encodep, nocopy)
       SHRINK_CONVERSION_REGION (&from, &to_byte, coding, XSTRING (str)->data,
 				encodep);
     }
-  if (from == to_byte)
+  if (from == to_byte
+      && coding->type != coding_type_ccl)
     return (nocopy ? str : Fcopy_sequence (str));
 
   if (encodep)
