@@ -203,6 +203,16 @@ The screen position of the top edge, in pixels.  The value may be
 @code{-} instead of a number; that represents @samp{-0} in a geometry
 specification.
 
+@item icon-left
+The screen position of the left edge @emph{of the frame's icon}, in
+pixels, counting from the left edge of the screen.  This takes effect if
+and when the frame is iconified.
+
+@item icon-top
+The screen position of the top edge @emph{of the frame's icon}, in
+pixels, counting from the top edge of the screen.  This takes effect if
+and when the frame is iconified.
+
 @item user-position
 Non-@code{nil} if the screen position of the frame was explicitly
 requested by the user (for example, with the @samp{-geometry} option).
