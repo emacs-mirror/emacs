@@ -1,3 +1,15 @@
+2004-10-19  Kenichi Handa  <handa@m17n.org>
+
+	* international/titdic-cnv.el (tit-process-header): Fix embedded
+	coding tag.
+	(titdic-convert): Bind coding-system-for-write to the coding
+	system specfied in the map file.  Remove `charset' property after
+	decoding.
+	(miscdic-convert): Bind coding-system-for-write to the coding
+	system specfied for the map file.  Fix LANGUAGE arg to
+	quail-define-package.
+	(batch-miscdic-convert): Check if a file is directory or not.
+
 2004-10-16  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (coding-system-equal): Move from mule-util.el.
