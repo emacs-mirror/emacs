@@ -1217,7 +1217,7 @@ item in another window.\n\n"))
   (goto-char (point-min)))
 
 (define-widget 'custom-browse-visibility 'item
-  "Control visibility of of items in the customize tree browser."
+  "Control visibility of items in the customize tree browser."
   :format "%[[%t]%]"
   :action 'custom-browse-visibility-action)
 
