@@ -33,6 +33,9 @@ Boston, MA 02111-1307, USA.  */
 /* On 4.3 this loses if it comes after xterm.h.  */
 #include <signal.h>
 #include <config.h>
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
 
 #include <stdio.h>
 #include "lisp.h"

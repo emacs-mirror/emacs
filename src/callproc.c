@@ -42,6 +42,10 @@ extern char *strerror ();
 #include <fcntl.h>
 #endif
 
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+
 #ifdef WINDOWSNT
 #define NOMINMAX
 #include <windows.h>

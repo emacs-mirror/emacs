@@ -20,6 +20,9 @@ Boston, MA 02111-1307, USA.  */
 
 
 #include <config.h>
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
