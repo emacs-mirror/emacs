@@ -136,3 +136,4 @@
 * Implement, in C, a ``focus follows mouse'' mode that selects a window
   when the mouse enters it.
 
+* Check what hooks would help Emacspeak -- see the defadvising in W3.

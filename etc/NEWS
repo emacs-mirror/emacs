@@ -1988,12 +1988,15 @@ which uses both `local-map' and `keymap' properties (for portability)
 may, for instance, give rise to duplicate menus when the keymaps from
 these properties are active.
 
-** The change in the treatment of non_ASCII characters in search
+** The change in the treatment of non-ASCII characters in search
 ranges may affect some code.
 
 ** A non-nil value for the LOCAL arg of add-hook makes the hook
 buffer-local even if `make-local-hook' hasn't been called, which might
 make a difference to some code.
+
+** The new treatment of the minibuffer prompt might affect code which
+operates on the minibuffer.
 
 
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
