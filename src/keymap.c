@@ -272,6 +272,10 @@ access_keymap (map, idx, t_ok)
      be put in the canonical order.  */
   if (XTYPE (idx) == Lisp_Symbol)
     idx = reorder_modifiers (idx);
+  else if (INTEGERP (idx))
+    /* Clobber the high bits that can be present on a machine
+       with more than 24 bits of integer.  */
+    XFASTINT (idx) = XINT (idx) & ((1 << 24) - 1);
 
   {
     Lisp_Object tail;
@@ -368,7 +372,10 @@ store_in_keymap (keymap, idx, def)
      be put in the canonical order.  */
   if (XTYPE (idx) == Lisp_Symbol)
     idx = reorder_modifiers (idx);
-
+  else if (INTEGERP (idx))
+    /* Clobber the high bits that can be present on a machine
+       with more than 24 bits of integer.  */
+    XFASTINT (idx) = XINT (idx) & ((1 << 24) - 1);
 
   /* Scan the keymap for a binding of idx.  */
   {
