@@ -1578,6 +1578,36 @@ struct gcpro
 #endif
   };
 
+/* Values of GC_MARK_STACK during compilation:
+
+   0	Use GCPRO as before
+   1	Do the real thing, make GCPROs and UNGCPRO no-ops.
+   2    Mark the stack, and check that everything GCPRO'd is
+	marked.
+   3	Mark using GCPRO's, mark stack last, and count how many
+	dead objects are kept alive.  */
+
+
+#define GC_USE_GCPROS_AS_BEFORE		0
+#define GC_MAKE_GCPROS_NOOPS		1
+#define GC_MARK_STACK_CHECK_GCPROS	2
+#define GC_USE_GCPROS_CHECK_ZOMBIES	3
+
+#ifndef GC_MARK_STACK
+#define GC_MARK_STACK GC_USE_GCPROS_AS_BEFORE
+#endif
+
+#if GC_MARK_STACK == GC_MAKE_GCPROS_NOOPS
+
+#define GCPRO1(varname) ((void) 0)
+#define GCPRO2(varname1, varname2)((void) 0) 
+#define GCPRO3(varname1, varname2, varname3) ((void) 0) 
+#define GCPRO4(varname1, varname2, varname3, varname4) ((void) 0)
+#define GCPRO5(varname1, varname2, varname3, varname4, varname5) ((void) 0)
+#define UNGCPRO ((void) 0)
+
+#else /* GC_MARK_STACK != GC_MAKE_GCPROS_NOOPS */
+
 #ifndef DEBUG_GCPRO
 
 #define GCPRO1(varname) \
@@ -1661,6 +1691,8 @@ extern int gcpro_level;
   : ((gcprolist = gcpro1.next), 0))
 
 #endif /* DEBUG_GCPRO */
+#endif /* GC_MARK_STACK != GC_MAKE_GCPROS_NOOPS */
+
 
 /* Evaluate expr, UNGCPRO, and then return the value of expr.  */
 #define RETURN_UNGCPRO(expr)			\
