@@ -486,7 +486,7 @@ around a text block relevant to that mode).
 
 Other variables include that for syntactic keyword fontification,
 `font-lock-syntactic-keywords'
-and those for buffer-specialised fontification functions,
+and those for buffer-specialized fontification functions,
 `font-lock-fontify-buffer-function', `font-lock-unfontify-buffer-function',
 `font-lock-fontify-region-function', `font-lock-unfontify-region-function',
 `font-lock-inhibit-thing-lock' and `font-lock-maximum-size'.")
@@ -803,7 +803,7 @@ When used from an elisp package (such as a minor mode), it is recommended
 to use nil for MODE (and place the call in a loop or on a hook) to avoid
 subtle problems due to details of the implementation.
 
-Note that some modes have specialised support for additional patterns, e.g.,
+Note that some modes have specialized support for additional patterns, e.g.,
 see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 `objc-font-lock-extra-types' and `java-font-lock-extra-types'."
   (cond (mode
