@@ -1,6 +1,6 @@
 /* impl.c.poolmv: MANUAL VARIABLE POOL
  *
- * $HopeName: MMsrc!poolmv.c(MMdevel_lib.3) $
+ * $HopeName: MMsrc!poolmv.c(trunk.15) $
  * Copyright (C) 1994, 1995 Harlequin Group, all rights reserved
  *
  * **** RESTRICTION: This pool may not allocate from the arena control
@@ -37,7 +37,7 @@
 #include "poolmfs.h"
 #include "mpscmv.h"
 
-SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(MMdevel_lib.3) $");
+SRCID(poolmv, "$HopeName: MMsrc!poolmv.c(trunk.15) $");
 
 
 #define BLOCKPOOL(mv)   (MFSPool(&(mv)->blockPoolStruct))
@@ -514,13 +514,13 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
 
   res = WriteF(stream,
                "  blockPool $P ($U)\n",
-               (void *)BLOCKPOOL(mv), (unsigned long)BLOCKPOOL(mv)->serial,
+               (WriteFP)BLOCKPOOL(mv), (WriteFU)BLOCKPOOL(mv)->serial,
                "  spanPool  $P ($U)\n",
-               (void *)SPANPOOL(mv), (unsigned long)SPANPOOL(mv)->serial,
-               "  extendBy  $W\n",  (Word)mv->extendBy,
-               "  avgSize   $W\n",  (Word)mv->avgSize,
-               "  maxSize   $W\n",  (Word)mv->maxSize,
-               "  space     $P\n",  (void *)mv->space,
+               (WriteFP)SPANPOOL(mv), (WriteFU)SPANPOOL(mv)->serial,
+               "  extendBy  $W\n",  (WriteFW)mv->extendBy,
+               "  avgSize   $W\n",  (WriteFW)mv->avgSize,
+               "  maxSize   $W\n",  (WriteFW)mv->maxSize,
+               "  space     $P\n",  (WriteFP)mv->space,
                NULL);
   if(res != ResOK) return res;               
 
@@ -533,10 +533,10 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
     AVERT(MVSpan, span);
 
     res = WriteF(stream,
-                 "    span $P",     (void *)span,
-                 "  seg $P",      (void *)span->seg,
-                 "  space $W",    (unsigned long)span->space,
-                 "  blocks $U\n", (unsigned long)span->blockCount,
+                 "    span $P",   (WriteFP)span,
+                 "  seg $P",      (WriteFP)span->seg,
+                 "  space $W",    (WriteFW)span->space,
+                 "  blocks $U\n", (WriteFU)span->blockCount,
                  NULL);
     if(res != ResOK) return res;
   }
@@ -552,7 +552,7 @@ static Res MVDescribe(Pool pool, mps_lib_FILE *stream)
     Addr i, j;
     MVBlock block;
     span = RING_ELT(MVSpan, spans, node);
-    res = WriteF(stream, "    MVSpan $P\n", (void *)span, NULL);
+    res = WriteF(stream, "    MVSpan $P\n", (WriteFP)span, NULL);
     if(res != ResOK) return res;
 
     block = span->blocks;

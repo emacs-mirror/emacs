@@ -2,7 +2,7 @@
  *
  *                  ANSI THREADS MANAGER
  *
- *  $HopeName: MMsrc!than.c(trunk.12) $
+ *  $HopeName: MMsrc!than.c(trunk.13) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -17,7 +17,7 @@
 
 #include "mpm.h"
 
-SRCID(than, "$HopeName: MMsrc!than.c(trunk.12) $");
+SRCID(than, "$HopeName: MMsrc!than.c(trunk.13) $");
 
 
 Bool ThreadCheck(Thread thread)
@@ -103,9 +103,10 @@ Res ThreadDescribe(Thread thread, mps_lib_FILE *stream)
   Res res;
   
   res = WriteF(stream,
-               "Thread $P ($U) {\n", (void *)thread, (unsigned long)thread->serial,
-               "  space $P ($U)\n",  (void *)thread->space, (unsigned long)thread->space->serial,
-               "} Thread $P ($U)\n", (void *)thread, (unsigned long)thread->serial,
+               "Thread $P ($U) {\n", (WriteFP)thread, (WriteFU)thread->serial,
+               "  space $P ($U)\n",  
+               (WriteFP)thread->space, (WriteFU)thread->space->serial,
+               "} Thread $P ($U)\n", (WriteFP)thread, (WriteFU)thread->serial,
                NULL);
   if(res != ResOK) return res;
 

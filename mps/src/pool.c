@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.18) $
+ * $HopeName: MMsrc!pool.c(trunk.19) $
  * Copyright (C) 1994,1995,1996 Harlequin Group, all rights reserved
  *
  * This is the implementation of the generic pool interface.  The
@@ -12,7 +12,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.18) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.19) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -297,10 +297,12 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream)
   AVER(stream != NULL);
   
   res = WriteF(stream,
-               "Pool $P ($U) {\n", (void *)pool, (unsigned long)pool->serial,
-               "  class $P (\"$S\")\n", (void *)pool->class, pool->class->name,
-               "  space $P ($U)\n", (void *)pool->space, (unsigned long)pool->space->serial,
-               "  alignment $W\n", (Word)pool->alignment,
+               "Pool $P ($U) {\n", (WriteFP)pool, (WriteFU)pool->serial,
+               "  class $P (\"$S\")\n", 
+               (WriteFP)pool->class, pool->class->name,
+               "  space $P ($U)\n", 
+               (WriteFP)pool->space, (WriteFU)pool->space->serial,
+               "  alignment $W\n", (WriteFW)pool->alignment,
                NULL);
   if(res != ResOK) return res;
 
@@ -316,7 +318,7 @@ Res PoolDescribe(Pool pool, mps_lib_FILE *stream)
   }
 
   res = WriteF(stream,
-               "} Pool $P ($U)\n", (void *)pool, (unsigned long)pool->serial,
+               "} Pool $P ($U)\n", (WriteFP)pool, (WriteFU)pool->serial,
                NULL);
   if(res != ResOK) return res;
 

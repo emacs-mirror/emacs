@@ -2,7 +2,7 @@
  *
  *                   ROOT IMPLEMENTATION
  *
- *  $HopeName: MMsrc!root.c(trunk.16) $
+ *  $HopeName: MMsrc!root.c(trunk.17) $
  *
  *  Copyright (C) 1995,1996 Harlequin Group, all rights reserved
  *
@@ -13,7 +13,7 @@
 
 #include "mpm.h"
 
-SRCID(root, "$HopeName: MMsrc!root.c(trunk.16) $");
+SRCID(root, "$HopeName: MMsrc!root.c(trunk.17) $");
 
 /* .rootcheck: Keep synchonized with impl.h.mpmst.root */
 Bool RootCheck(Root root)
@@ -270,11 +270,11 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
   AVER(stream != NULL);
 
   res = WriteF(stream,
-               "Root $P ($U) {\n", (Pointer)root, (unsigned long)root->serial,
-               "  space $P ($U)\n", (Pointer)root->space, 
-               (unsigned long)root->space->serial,
-               "  rank $U\n", (unsigned long)root->rank,
-               "  grey $B\n", (unsigned long)root->grey,
+               "Root $P ($U) {\n", (WriteFP)root, (WriteFU)root->serial,
+               "  space $P ($U)\n", (WriteFP)root->space, 
+               (WriteFU)root->space->serial,
+               "  rank $U\n", (WriteFU)root->rank,
+               "  grey $B\n", (WriteFB)root->grey,
                NULL);
   if(res != ResOK) return res;
 
@@ -291,16 +291,16 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
 
     case RootFUN:
     res = WriteF(stream,
-                 "  scan function $P\n", (void *)root->the.fun.scan,
+                 "  scan function $F\n", (WriteFF)root->the.fun.scan,
                  "  environment p $P s $W\n",
-                 root->the.fun.p, (Word)root->the.fun.s,
+                 root->the.fun.p, (WriteFW)root->the.fun.s,
                  NULL);
     if(res != ResOK) return res;
     break;
 
     case RootREG:
     res = WriteF(stream,
-                 "  thread $P\n", (Pointer)root->the.reg.thread,
+                 "  thread $P\n", (WriteFP)root->the.reg.thread,
                  "  environment p $P", root->the.reg.p,
                  NULL);
     if(res != ResOK) return res;
@@ -308,7 +308,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
 
     case RootFMT:
     res = WriteF(stream,
-                 "  scan function $P\n", (void *)root->the.fmt.scan,
+                 "  scan function $F\n", (WriteFF)root->the.fmt.scan,
                  "  format base $A limit $A\n",
                  root->the.fmt.base,
                  root->the.fmt.limit,
@@ -321,7 +321,7 @@ Res RootDescribe(Root root, mps_lib_FILE *stream)
   }
 
   res = WriteF(stream,
-               "} Root $P ($U)\n", (Pointer)root, (unsigned long)root->serial,
+               "} Root $P ($U)\n", (WriteFP)root, (WriteFU)root->serial,
                NULL);
   if(res != ResOK) return res;
 
