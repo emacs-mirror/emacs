@@ -177,8 +177,10 @@ coding-system for reading and writing respectively."
 
 ;; Encode a mail message before sending it.
 (defun gnus-mule-message-send-mail-function ()
-  (if sendmail-coding-system
-      (encode-coding-region (point-min) (point-max) sendmail-coding-system)))
+  (let ((coding (if enable-multibyte-characters
+		    (select-message-coding-system))))
+    (if coding
+	(encode-coding-region (point-min) (point-max) coding))))
 
 ;;;###autoload
 (defun gnus-mule-initialize ()
