@@ -504,7 +504,8 @@ the minibuffer."
 	(let ((comment-start nil) (comment-start-skip nil))
 	  (do-auto-fill)))))
 
-(defvar lisp-indent-offset nil)
+(defvar lisp-indent-offset nil
+  "If non-nil, indent second line of expressions that many more columns.")
 (defvar lisp-indent-function 'lisp-indent-function)
 
 (defun lisp-indent-line (&optional whole-exp)
