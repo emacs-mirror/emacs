@@ -832,10 +832,15 @@ the buffer, which may aid debugging."
   :type 'boolean
   :group 'woman-formatting)
 
-(defcustom woman-preserve-ascii nil
-  "*If non-nil then preserve ASCII characters in the WoMan buffer.
-Otherwise, non-ASCII characters (that display as ASCII) may remain.
-This is irrelevant unless the buffer is to be saved to a file."
+(defcustom woman-preserve-ascii t
+  "*If non-nil, preserve ASCII characters in the WoMan buffer.
+Otherwise, to save time, some backslashes and spaces may be
+represented differently (as the values of the variables
+`woman-escaped-escape-char' and `woman-unpadded-space-char'
+respectively) so that the buffer content is strictly wrong even though
+it should display correctly.  This should be irrelevant unless the
+buffer text is searched, copied or saved to a file."
+  ;; This option should probably be removed!
   :type 'boolean
   :group 'woman-formatting)
 

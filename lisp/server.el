@@ -177,8 +177,10 @@ This means that the server should not kill the buffer when you say you
 are done with it in the server.")
 (make-variable-buffer-local 'server-existing-buffer)
 
-(defvar server-socket-name
-  (format "/tmp/emacs%d/server" (user-uid)))
+(defvar server-name "server")
+
+(defvar server-socket-dir
+  (format "/tmp/emacs%d" (user-uid)))
 
 (defun server-log (string &optional client)
   "If a *server* buffer exists, write STRING to it for logging purposes."
@@ -330,12 +332,14 @@ Emacs distribution as your standard \"editor\".
 Prefix arg means just kill any existing server communications subprocess."
   (interactive "P")
   ;; Make sure there is a safe directory in which to place the socket.
-  (server-ensure-safe-dir (file-name-directory server-socket-name))
+  (server-ensure-safe-dir server-socket-dir)
   ;; kill it dead!
   (if server-process
       (condition-case () (delete-process server-process) (error nil)))
   ;; Delete the socket files made by previous server invocations.
-  (condition-case () (delete-file server-socket-name) (error nil))
+  (condition-case ()
+      (delete-file (expand-file-name server-name server-socket-dir))
+    (error nil))
   ;; If this Emacs already had a server, clear out associated status.
   (while server-clients
     (let ((buffer (nth 1 (car server-clients))))
@@ -355,7 +359,7 @@ Prefix arg means just kill any existing server communications subprocess."
       (setq server-process
 	    (make-network-process
 	     :name "server" :family 'local :server t :noquery t
-	     :service server-socket-name
+	     :service (expand-file-name server-name server-socket-dir)
 	     :sentinel 'server-sentinel :filter 'server-process-filter
 	     ;; We must receive file names without being decoded.
 	     ;; Those are decoded by server-process-filter according

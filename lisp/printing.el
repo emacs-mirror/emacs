@@ -5,7 +5,7 @@
 
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
-;; Time-stamp: <2004/02/29 23:18:15 vinicius>
+;; Time-stamp: <2004/03/10 20:37:21 vinicius>
 ;; Keywords: wp, print, PostScript
 ;; Version: 6.7.2
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
@@ -165,6 +165,27 @@ Please send all bug fixes and enhancements to
 ;;         If it's printed 2 (two) sheets of paper, then your PostScript
 ;;         printer doesn't have duplex feature; otherwise, it's ok, your
 ;;         printer does have duplex feature.
+;;
+;; NOTE 4: See Tips section.
+;;
+;;
+;; Tips
+;; ----
+;;
+;; 1. If your have a local printer, that is, a printer which is connected
+;;    directly to your computer, don't forget to connect the printer to your
+;;    computer before printing.
+;;
+;; 2. If you try to print a file and it seems that the file was printed, but
+;;    there is no paper in the printer, then try to set `pr-delete-temp-file'
+;;    to nil.  Probably `printing' is deleting the temporary file before your
+;;    local system can get it to send to the printer.
+;;
+;; 3. Don't try to print a dynamic buffer, that is, a buffer which is
+;;    modifying while `printing' tries to print.  Eventually you got an error
+;;    message.  Instead, save the dynamic buffer to a file or copy it in
+;;    another buffer and, then, print the file or the new static buffer.
+;;    An example of dynamic buffer is the *Messages* buffer.
 ;;
 ;;
 ;; Using `printing'
@@ -840,8 +861,8 @@ Please send all bug fixes and enhancements to
 ;; Acknowledgments
 ;; ---------------
 ;;
-;; Thanks to Drew Adams <?@?> for directory processing and `pr-path-alist'
-;; suggestions.
+;; Thanks to Drew Adams <drew.adams@oracle.com> for directory processing and
+;; `pr-path-alist' suggestions.
 ;;
 ;; Thanks to Fred Labrosse <f.labrosse@maths.bath.ac.uk> for XEmacs tests.
 ;;

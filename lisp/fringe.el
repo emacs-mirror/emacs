@@ -218,6 +218,17 @@ default appearance of fringes on all frames, see the command
    (list (cons 'left-fringe (if (consp mode) (car mode) mode))
 	 (cons 'right-fringe (if (consp mode) (cdr mode) mode)))))
 
+(defsubst fringe-columns (side &optional real)
+  "Return the width, measured in columns, of the fringe area on SIDE.
+If optional argument REAL is non-nil, return a real floating point
+number instead of a rounded integer value.
+SIDE must be the symbol `left' or `right'."
+  (funcall (if real '/ 'ceiling)
+	   (or (funcall (if (eq side 'left) 'car 'cadr)
+			(window-fringes))
+	       0)
+           (float (frame-char-width))))
+  
 (provide 'fringe)
 
 ;;; arch-tag: 6611ef60-0869-47ed-8b93-587ee7d3ff5d

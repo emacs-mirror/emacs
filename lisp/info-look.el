@@ -338,7 +338,8 @@ If optional argument QUERY is non-nil, query for the help mode."
 	       (info-frame (and window (window-frame window))))
 	  (if (and info-frame
 		   (display-multi-frame-p)
-		   (memq info-frame (frames-on-display-list)))
+		   (memq info-frame (frames-on-display-list))
+		   (not (eq info-frame (selected-frame))))
 	    (select-frame info-frame)
 	  (switch-to-buffer-other-window "*info*")))))
     (while (and (not found) modes)

@@ -54,6 +54,23 @@ that scroll bar position."
   ;; with a large scroll bar portion can easily overflow a lisp int.
   (truncate (/ (* (float (car num-denom)) whole) (cdr num-denom))))
 
+(defun scroll-bar-columns (side)
+  "Return the width, measured in columns, of the vertical scrollbar on SIDE.
+SIDE must be the symbol `left' or `right'."
+  (let* ((wsb   (window-scroll-bars))
+         (vtype (nth 2 wsb))
+         (cols  (nth 1 wsb)))
+    (cond
+     ((not (memq side '(left right)))
+      (error "`left' or `right' expected instead of %S" side))
+     ((and (eq vtype side) cols))
+     ((eq (frame-parameter nil 'vertical-scroll-bars) side)
+      ;; nil means it's a non-toolkit scroll bar, and its width in
+      ;; columns is 14 pixels rounded up.
+      (ceiling (or (frame-parameter nil 'scroll-bar-width) 14)
+               (frame-char-width)))
+     (0))))
+
 
 ;;;; Helpful functions for enabling and disabling scroll bars.
 

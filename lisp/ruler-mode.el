@@ -94,6 +94,9 @@
 ;; WARNING: To keep ruler graduations aligned on text columns it is
 ;; important to use the same font family and size for ruler and text
 ;; areas.
+;;
+;; You can override the ruler format by defining an appropriate 
+;; function as the buffer-local value of `ruler-mode-ruler-function'.
 
 ;; Installation
 ;;
@@ -108,6 +111,8 @@
 ;;; Code:
 (eval-when-compile
   (require 'wid-edit))
+(require 'scroll-bar)
+(require 'fringe)
 
 (defgroup ruler-mode nil
   "Display a ruler in the header line."
@@ -294,46 +299,6 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
   "Face used to highlight the `current-column' character."
   :group 'ruler-mode)
 
-(defsubst ruler-mode-left-fringe-cols (&optional real)
-  "Return the width, measured in columns, of the left fringe area.
-If optional argument REAL is non-nil, return a real floating point
-number instead of a rounded integer value."
-  (funcall (if real '/ 'ceiling)
-           (or (car (window-fringes)) 0)
-           (float (frame-char-width))))
-
-(defsubst ruler-mode-right-fringe-cols (&optional real)
-  "Return the width, measured in columns, of the right fringe area.
-If optional argument REAL is non-nil, return a real floating point
-number instead of a rounded integer value."
-  (funcall (if real '/ 'ceiling)
-            (or (nth 1 (window-fringes)) 0)
-            (float (frame-char-width))))
-
-(defun ruler-mode-scroll-bar-cols (side)
-  "Return the width, measured in columns, of the vertical scrollbar on SIDE.
-SIDE must be the symbol `left' or `right'."
-  (let* ((wsb   (window-scroll-bars))
-         (vtype (nth 2 wsb))
-         (cols  (nth 1 wsb)))
-    (cond
-     ((not (memq side '(left right)))
-      (error "`left' or `right' expected instead of %S" side))
-     ((and (eq vtype side) cols))
-     ((eq (frame-parameter nil 'vertical-scroll-bars) side)
-      ;; nil means it's a non-toolkit scroll bar, and its width in
-      ;; columns is 14 pixels rounded up.
-      (ceiling (or (frame-parameter nil 'scroll-bar-width) 14)
-               (frame-char-width)))
-     (0))))
-
-(defmacro ruler-mode-right-scroll-bar-cols ()
-  "Return the width, measured in columns, of the right vertical scrollbar."
-  '(ruler-mode-scroll-bar-cols 'right))
-
-(defmacro ruler-mode-left-scroll-bar-cols ()
-  "Return the width, measured in columns, of the left vertical scrollbar."
-  '(ruler-mode-scroll-bar-cols 'left))
 
 (defsubst ruler-mode-full-window-width ()
   "Return the full width of the selected window."
@@ -346,8 +311,8 @@ N is a column number relative to selected frame."
   (- n
      (car (window-edges))
      (or (car (window-margins)) 0)
-     (ruler-mode-left-fringe-cols)
-     (ruler-mode-left-scroll-bar-cols)))
+     (fringe-columns 'left)
+     (scroll-bar-columns 'left)))
 
 (defun ruler-mode-mouse-set-left-margin (start-event)
   "Set left margin end to the graduation where the mouse pointer is on.
@@ -360,10 +325,10 @@ START-EVENT is the mouse click event."
       (save-selected-window
         (select-window (posn-window start))
         (setq col (- (car (posn-col-row start)) (car (window-edges))
-                     (ruler-mode-left-scroll-bar-cols))
+                     (scroll-bar-columns 'left))
               w   (- (ruler-mode-full-window-width)
-                     (ruler-mode-left-scroll-bar-cols)
-                     (ruler-mode-right-scroll-bar-cols)))
+                     (scroll-bar-columns 'left)
+                     (scroll-bar-columns 'right)))
         (when (and (>= col 0) (< col w))
           (setq lm (window-margins)
                 rm (or (cdr lm) 0)
@@ -382,10 +347,10 @@ START-EVENT is the mouse click event."
       (save-selected-window
         (select-window (posn-window start))
         (setq col (- (car (posn-col-row start)) (car (window-edges))
-                     (ruler-mode-left-scroll-bar-cols))
+                     (scroll-bar-columns 'left))
               w   (- (ruler-mode-full-window-width)
-                     (ruler-mode-left-scroll-bar-cols)
-                     (ruler-mode-right-scroll-bar-cols)))
+                     (scroll-bar-columns 'left)
+                     (scroll-bar-columns 'right)))
         (when (and (>= col 0) (< col w))
           (setq lm  (window-margins)
                 rm  (or (cdr lm) 0)
@@ -568,9 +533,17 @@ START-EVENT is the mouse click event."
   "Hold previous value of `header-line-format'.")
 (make-variable-buffer-local 'ruler-mode-header-line-format-old)
 
+(defvar ruler-mode-ruler-function nil
+  "If non-nil, function to call to return ruler string.
+This variable is expected to be made buffer-local by modes.")
+
 (defconst ruler-mode-header-line-format
-  '(:eval (ruler-mode-ruler))
-  "`header-line-format' used in ruler mode.")
+  '(:eval (funcall (if ruler-mode-ruler-function
+		       ruler-mode-ruler-function
+		     'ruler-mode-ruler)))
+  "`header-line-format' used in ruler mode.
+If the non-nil value for ruler-mode-ruler-function is given, use it.
+Else use `ruler-mode-ruler' is used as default value.")
 
 ;;;###autoload
 (define-minor-mode ruler-mode
@@ -657,11 +630,11 @@ Optional argument PROPS specifies other text properties to apply."
   (when ruler-mode
     (let* ((w     (window-width))
            (m     (window-margins))
-           (lsb   (ruler-mode-left-scroll-bar-cols))
-           (lf    (ruler-mode-left-fringe-cols t))
+           (lsb   (scroll-bar-columns 'left))
+           (lf    (fringe-columns 'left t))
            (lm    (or (car m) 0))
-           (rsb   (ruler-mode-right-scroll-bar-cols))
-           (rf    (ruler-mode-right-fringe-cols t))
+           (rsb   (scroll-bar-columns 'right))
+           (rf    (fringe-columns 'right t))
            (rm    (or (cdr m) 0))
            (ruler (make-string w ruler-mode-basic-graduation-char))
            (i     0)

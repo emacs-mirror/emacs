@@ -1512,6 +1512,7 @@ main (argc, argv
       syms_of_xdisp ();
 #ifdef HAVE_WINDOW_SYSTEM
       syms_of_fringe ();
+      syms_of_image ();
 #endif /* HAVE_WINDOW_SYSTEM */
 #ifdef HAVE_X_WINDOWS
       syms_of_xterm ();
@@ -1525,10 +1526,12 @@ main (argc, argv
 #endif
 #endif /* HAVE_X_WINDOWS */
 
+#ifdef HAVE_MENUS
 #ifndef HAVE_NTGUI
 #ifndef MAC_OS
       /* Called before init_window_once for Mac OS Classic.  */
       syms_of_xmenu ();
+#endif
 #endif
 #endif
 
@@ -1589,13 +1592,11 @@ main (argc, argv
 #endif /* VMS */
       init_display ();	/* Determine terminal type.  Calls init_sys_modes.  */
     }
-#if defined (HAVE_X_WINDOWS) || defined (WINDOWSNT) || defined (HAVE_CARBON)
-  init_xfns ();
-#endif /* HAVE_X_WINDOWS */
   init_fns ();
   init_xdisp ();
 #ifdef HAVE_WINDOW_SYSTEM
   init_fringe ();
+  init_image ();
 #endif /* HAVE_WINDOW_SYSTEM */
   init_macros ();
   init_editfns ();

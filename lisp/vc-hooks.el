@@ -1,12 +1,12 @@
 ;;; vc-hooks.el --- resident support for version-control
 
-;; Copyright (C) 1992,93,94,95,96,98,99,2000,2003
+;; Copyright (C) 1992,93,94,95,96,98,99,2000,03,2004
 ;;           Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.160 2003/09/01 15:45:17 miles Exp $
+;; $Id: vc-hooks.el,v 1.161 2004/03/15 03:53:05 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -52,7 +52,8 @@ BACKEND, use `vc-handled-backends'.")
 (defvar vc-header-alist ())
 (make-obsolete-variable 'vc-header-alist 'vc-BACKEND-header)
 
-(defcustom vc-handled-backends '(RCS CVS SVN MCVS SCCS)
+(defcustom vc-handled-backends '(RCS CVS SVN SCCS Arch MCVS)
+  ;; Arch and MCVS come last because they are per-tree rather than per-dir.
   "*List of version control backends for which VC will be used.
 Entries in this list will be tried in order to determine whether a
 file is under that sort of version control.
@@ -698,6 +699,9 @@ current, and kill the buffer that visits the link."
       (set-buffer true-buffer)
       (kill-buffer this-buffer))))
 
+(defun vc-default-find-file-hook (backend)
+  nil)
+
 (defun vc-find-file-hook ()
   "Function for `find-file-hook' activating VC mode if appropriate."
   ;; Recompute whether file is version controlled,
@@ -713,7 +717,9 @@ current, and kill the buffer that visits the link."
       (unless vc-make-backup-files
 	;; Use this variable, not make-backup-files,
 	;; because this is for things that depend on the file name.
-	(set (make-local-variable 'backup-inhibited) t)))
+	(set (make-local-variable 'backup-inhibited) t))
+      ;; Let the backend setup any buffer-local things he needs.
+      (vc-call-backend (vc-backend buffer-file-name) 'find-file-hook))
      ((let* ((link (file-symlink-p buffer-file-name))
 	     (link-type (and link (vc-backend (file-chase-links link)))))
 	(cond ((not link-type) nil)	;Nothing to do.

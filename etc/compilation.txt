@@ -1,0 +1,342 @@
+* Introduction  -*-compilation-*-
+
+This shows the different kinds of messages compile recognizes by default and
+how they are rendered.  It is intended both to help you decide which matchers
+you need and as a test of the matchers.  Move the mouse over a colored part or
+use `compilation-message-face', to see how much text was actually matched.
+
+The important part is the symbol(s) line at the beginning of each entry.
+These are the symbols you can customize `compilation-error-regexp-alist' for,
+to match the messages shown in that entry.  A few complex cases have more than
+one symbol, which should be selected together.
+
+
+* Absoft FORTRAN 77 Compiler 3.1.3
+
+symbol: absoft
+
+Error on line 3 of t.f: Execution error unclassifiable statement
+Line 45 of "foo.c": bloofle undefined
+error on line 19 of fplot.f: spelling error?
+warning on line 17 of fplot.f: data type is undefined for variable d
+
+
+* Ada & Mpatrol (memory leak debugger)
+
+symbol: ada
+
+This matches only the end of line, the beginning is covered by GNU style.
+
+foo.adb:61:11:  [...] in call to size declared at foo.ads:11
+	0x8008621 main+16 at error.c:17
+
+
+* IBM AIX PS/2 C version 1.1
+
+symbol: aix
+
+****** Error number 140 in line 8 of file errors.c ******
+
+
+* Ant Java: works at least for jikes and javac
+
+symbol: ant
+
+The regexps found on http://ant.apache.org/faq.html, and since integrated in
+both Emacsen, were hairy.  Why so many numbers for jikes -- is one a column
+number?
+
+    [javac] /src/DataBaseTestCase.java:27: unreported exception ...
+    [javac] /src/DataBaseTestCase.java:49: warning: finally clause cannot complete normally
+    [jikes]  foo.java:3:5:7:9: blah blah
+
+
+* Bash v2
+
+symbol: bash
+
+a.sh: line 1: ls-l: command not found
+
+
+* Borland C++, C++Builder
+
+symbol: borland
+
+Error ping.c 15: Unable to open include file 'sys/types.h'
+Warning ping.c 68: Call to function 'func' with no prototype
+Error E2010 ping.c 15: Unable to open include file 'sys/types.h'
+Warning W1022 ping.c 68: Call to function 'func' with no prototype
+
+
+* Caml & Python
+
+symbol: caml
+
+File "foobar.ml", lines 5-8, characters 20-155: blah blah
+File "F:\ocaml\sorting.ml", line 65, characters 2-145:
+Warning: this expression should have type unit.
+  File "/usr/share/gdesklets/display/TargetGauge.py", line 41, in add_children
+
+
+* Apollo cc, 4.3BSD fc & IBM RS6000/AIX xlc compiler & Microtec mcc68k & GNAT (July 94)
+
+symbol: comma
+
+"foo.f", line 3: Error: syntax error near end of statement
+"vvouch.c", line 19.5: 1506-046 (S) Syntax error.
+"foo.c", line 32 pos 1; (E) syntax error; unexpected symbol: "lossage"
+"foo.adb", line 2(11): warning: file name does not match ...
+"src/swapping.c", line 30.34: 1506-342 (W) "/*" detected in comment.
+
+
+* EPC F90 compiler
+
+symbol: epc
+
+Error 24 at (2:progran.f90) : syntax error
+
+
+* IAR Systems C Compiler
+
+symbol: iar
+
+"foo.c",3  Error[32]: Error message
+"foo.c",3  Warning[32]: Error message
+
+
+* IBM C/C++ Tools 2.01
+
+symbol: ibm
+
+foo.c(2:0) : informational EDC0804: Function foo is not referenced.
+foo.c(3:8) : warning EDC0833: Implicit return statement encountered.
+foo.c(5:5) : error EDC0350: Syntax error.
+
+
+* Ultrix MIPS RISC CC & DEC AXP OSF/1 cc & IRIX 5.2
+
+symbol: irix
+
+ccom: Error: foo.c, line 2: syntax error
+cfe: Warning 712: foo.c, line 2: illegal combination of pointer and ...
+cfe: Warning 600: xfe.c: 170: Not in a conditional directive while ...
+/usr/lib/cmplrs/cc/cfe: Error: foo.c: 1: blah blah
+/usr/lib/cmplrs/cc/cfe: warning: foo.c: 1: blah blah
+
+
+* Java Exception & Valgrind (memory debugger for x86 GNU/Linux)
+
+symbol: java
+
+Register 6 contains wrong type
+	at org.foo.ComponentGateway.doGet(ComponentGateway.java:172)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:740)
+==1332== Invalid write of size 1
+==1332==    at 0x4040743C: System::getErrorString() (../src/Lib/System.cpp:217)
+==1332==    by 0x8008621: main (vtest.c:180)
+
+
+* IBM jikes
+
+symbols: jikes-file jikes-line
+
+Jikes separates file names from the actual error messages.  For visual
+feedback the underline and the word "Error" on the 3rd line is fontified like
+a file name would be.
+
+Found 2 semantic errors compiling "../javax/swing/BorderFactory.java":
+
+   150.               case '{':
+                           <->
+*** Error: The type of this expression, "char", is not ...
+
+   312.     return new CompoundBorder(outside, inside);
+                   <--------------------------------->
+*** Error: No match was found for constructor ...
+
+Issued 1 semantic warning compiling "java/awt/Toolkit.java":
+
+   504. void imgProduceImage( ImageNativeProducer prod, Ptr imgData);
+                              <----------------->
+*** Warning: The type "ImageNativeProducer" is defined ...
+
+
+* GCC include message
+
+symbol: gcc-include
+
+The last file, i.e. the one you are compiling, is the interesting one.
+
+In file included from /usr/include/c++/3.3/backward/warn.h:4,
+                 from /usr/include/c++/3.3/backward/iostream.h:31,
+                 from test_clt.cc:1:
+
+
+* GNU style
+
+symbol: gnu
+
+foo.c:8: message
+../foo.c:8: W: message
+/tmp/foo.c:8:warning message
+foo/bar.py:8: FutureWarning message
+foo.py:8: RuntimeWarning message
+foo.c:8:I: message
+foo.c:8.23: info: message
+foo.c:8:23:information: message
+foo.c:8.23-45: Informational: message
+foo.c:8-23: message
+foo.c:8-45.3: message
+foo.c:8.23-9.1: message
+jade:dbcommon.dsl:133:17:E: missing argument for function call
+G:/cygwin/dev/build-myproj.xml:54: Compiler Adapter 'javac' can't be found.
+file:G:/cygwin/dev/build-myproj.xml:54: Compiler Adapter 'javac' can't be found.
+
+
+* Lucid Compiler, lcc 3.x
+
+symbol: lcc
+
+E, file.cc(35,52) Illegal operation on pointers
+W, file.cc(36,52) blah blah
+
+
+* makepp 1.20
+
+symbol: makepp
+
+makepp: Scanning `/foo/bar.c'
+makepp: warning: bla bla `/foo/bar.c' and `/foo/bar.h'
+makepp: bla bla `/foo/Makeppfile:12' bla
+makepp: bla bla `/foo/bar.c' and `/foo/bar.h'
+
+
+* MIPS lint; looks good for SunPro lint also
+
+symbols: mips-1 mips-2
+
+This can match multiple times on a line.
+
+TrimMask (255) in solomon.c may be indistinguishable from TrimMasks (93) in solomon.c due to truncation
+name defined but never used: LinInt in cmap_calc.c(199)
+
+
+* Microsoft C/C++
+
+symbol: msft
+
+This used to be less selective and allowed characters other than parens around
+the line number, but that caused confusion for GNU-style error messages.  This
+used to reject spaces and dashes in file names, but they are valid now; so I
+made it more strict about the error message that follows.
+
+keyboard handler.c(537) : warning C4005: 'min' : macro redefinition
+d:\tmp\test.c(23) : error C2143: syntax error : missing ';' before 'if'
+
+
+* Oracle pro*c
+
+symbol: oracle
+
+Semantic error at line 528, column 5, file erosacqdb.pc:
+
+
+* Perl
+
+symbol: perl
+
+syntax error at automake line 922, near "':'"
+Died at test.pl line 27.
+store::odrecall('File_A', 'x2') called at store.pm line 90
+
+
+* RXP
+
+symbol: rxp
+
+GPL XML validator at http://www.cogsci.ed.ac.uk/~richard/rxp.html
+
+Error: Mismatched end tag: expected </geroup>, got </group>
+in unnamed entity at line 71 char 8 of file:///home/reto/test/group.xml
+Warning: Start tag for undeclared element geroup
+in unnamed entity at line 4 char 8 of file:///home/reto/test/group.xml
+
+
+* Sparc Pascal
+
+symbols: sparc-pascal-file sparc-pascal-line sparc-pascal-example
+
+These messages don't contain a file name.  Instead the compiler gives a
+message whenever the file being compiled is changed.  For visual feedback the
+error code is fontified like a file name would be.
+
+Thu May 14 10:46:12 1992  mom3.p:
+          20      linjer      : array[1..4] of linje;
+w 18480-----------^---  Inserted ';'
+          20      linjer      : array[1..4] of linje;
+e 18480-----------^---  Inserted ';'
+w 18520 line 61 -  0 is undefined
+E 18520 line 61 -  0 is undefined
+
+
+* SGI IRIX MipsPro 7.3 & Sun F90 & Cray C
+
+symbol: sun
+
+cc-1020 CC: REMARK File = CUI_App.h, Line = 735
+cc-1070 cc: WARNING File = linkl.c, Line = 38
+cf90-113 f90comp: ERROR NSE, File = Hoved.f90, Line = 16, Column = 3
+
+
+* Sun Ada (VADS, Solaris)
+
+symbol: sun-ada
+
+/home3/xdhar/rcds_rc/main.a, line 361, char 6:syntax error: "," inserted
+
+
+* Ultrix 3.0 f77 & Some SGI cc version
+
+symbol: ultrix
+
+fort: Severe: addstf.f, line 82: Missing operator or delimiter symbol
+cfe: Warning 835: foo.c, line 2: something
+
+
+* 4.3BSD grep, cc, lint
+
+symbol: 4bsd
+
+/usr/src/foo/foo.c(8): warning: w may be used before set
+/usr/src/foo/foo.c(9): error: w is used before set
+strcmp: variable # of args. llib-lc(359)  ::  /usr/src/foo/foo.c(8)
+bloofle defined( /users/wolfgang/foo.c(4) ), but never used
+
+
+* Directory tracking
+
+Directories are matched via `compilation-directory-matcher'.  Files which are
+not shown as full paths are searched for relative to the directory where the
+message was issued.
+
+Entering directory `/a/b/c'
+Leaving directory `/a/b/c'
+gmake[2]: Entering directory `/a/b/c'
+makepp: Leaving directory `/a/b/c'
+
+
+* Miscellaneous
+
+These are not messages that can be gone to.  They are only highlighted via
+`compilation-mode-font-lock-keywords' to recognize some useful information at
+a glance.
+
+checking dynamic linker characteristics... GNU/Linux ld.so
+checking if libtool supports shared libraries... yes
+checking whether to build shared libraries... yes
+checking whether -lc should be explicitly linked in... (cached) no
+checking For GLIB - version >= 2.0.0... yes (version 2.1.0)
+checking FONTCONFIG_CFLAGS...
+g++ -o foo.o foo.cc
+tool1 -output=foo foo.x
+tool2 --outfile foo foo.y
