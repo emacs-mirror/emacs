@@ -231,7 +231,7 @@ With arg, turn Keyboard-kbd mode on in and only if arg is positive.
 
 When in Encoded-kbd mode, a text sent from a terminal keyboard
 is accepted as a multilingual text encoded in a coding system
-set by the command `set-keyboard-coding-system'"
+set by the command `encoded-kbd-set-coding-system'"
   (interactive "P")
   (setq encoded-kbd-mode
 	(if (null arg) (null encoded-kbd-mode)
@@ -285,14 +285,17 @@ set by the command `set-keyboard-coding-system'"
   (force-mode-line-update))
 
 ;;;###autoload
-(defun encoded-kbd-select-terminal (terminal coding-system)
-  "Activate Encoded-Kbd mode appropriately for TERMINAL using CODING-SYSTEM."
-  (interactive "STerminal name: \nzcoding-system: ")
+(defun encoded-kbd-set-coding-system (coding-system)
+  "Activate Encoded-kbd mode appropriately for a terminal using CODING-SYSTEM.
+If you specify nil for CODING-SYSTEM, Encoded-kbd mode is toggled off."
+  (interactive "zCoding system: ")
   (if window-system
       (error "Should run emacs on an ordinary terminal"))
-  (set-terminal-coding-system coding-system)
-  (set-keyboard-coding-system coding-system)
-  (setq current-input-method-title terminal)
-  (encoded-kbd-mode t))
+  (if (check-coding-system coding-system)
+      (progn
+	(set-keyboard-coding-system coding-system)
+	(encoded-kbd-mode 1))
+    (set-keyboard-coding-system nil)
+    (encoded-kbd-mode 0)))
 
 ;;; encoded-kb.el ends here
