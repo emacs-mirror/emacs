@@ -1974,7 +1974,23 @@ on the gateway machine to do the ftp instead."
     (process-kill-without-query proc)
     (set-process-sentinel proc (function ange-ftp-process-sentinel))
     (set-process-filter proc (function ange-ftp-process-filter))
-    (accept-process-output proc)	;wait for ftp startup message
+    ;; wait for ftp startup message
+    (if (not (eq system-type 'windows-nt))
+	(accept-process-output proc)
+      ;; On Windows, the standard ftp client behaves a little oddly,
+      ;; initially buffering its output (because stdin/out are pipe
+      ;; handles).  As a result, the startup message doesn't appear
+      ;; until enough output is generated to flush stdout, so a plain
+      ;; accept-process-output call at this point would hang
+      ;; indefinitely.  So if nothing appears within 2 seconds, we try
+      ;; sending an innocuous command ("help foo") that forces some
+      ;; output.  Curiously, once we start sending normal commands, the
+      ;; output no longer appears to be buffered, and everything works
+      ;; correctly (or at least appears to!).
+      (if (accept-process-output proc 2)
+	  nil
+ 	(process-send-string proc "help foo\n")
+	(accept-process-output proc)))
     proc))
 
 (put 'internal-ange-ftp-mode 'mode-class 'special)
