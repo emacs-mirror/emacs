@@ -230,9 +230,9 @@ Thus, this does not include the shell's current directory.")
 (defvar shell-dirstack-query "dirs"
   "Command used by `shell-resync-dir' to query the shell.")
 
-(defvar shell-mode-map '())
+(defvar shell-mode-map nil)
 (cond ((not shell-mode-map)
-       (setq shell-mode-map (full-copy-sparse-keymap comint-mode-map))
+       (setq shell-mode-map (copy-keymap comint-mode-map))
        (define-key shell-mode-map "\C-c\C-f" 'shell-forward-command)
        (define-key shell-mode-map "\C-c\C-b" 'shell-backward-command)
        (define-key shell-mode-map "\t" 'comint-dynamic-complete)
