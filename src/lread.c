@@ -266,7 +266,7 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii)
 	      /* Merge this symbol's modifier bits
 		 with the ASCII equivalent of its basic code.  */
 	      if (!NILP (tem1))
-		XFASTINT (val) = XINT (tem1) | XINT (Fcar (Fcdr (tem)));
+		XSETFASTINT (val, XINT (tem1) | XINT (Fcar (Fcdr (tem))));
 	    }
 	}
 	  
@@ -1721,7 +1721,7 @@ init_obarray ()
   int hash;
   Lisp_Object *tem;
 
-  XFASTINT (oblength) = OBARRAY_SIZE;
+  XSETFASTINT (oblength, OBARRAY_SIZE);
 
   Qnil = Fmake_symbol (make_pure_string ("nil", 3));
   Vobarray = Fmake_vector (oblength, make_number (0));
