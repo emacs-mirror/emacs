@@ -1,5 +1,7 @@
 2000-09-13  Gerd Moellmann  <gerd@gnu.org>
 
+	* sound.c (Fplay_sound): Doc fix.
+
 	* keyboard.c: Avoid some more compiler warnings.
 	(parse_tool_bar_item): Ignore cached key bindings.
 
