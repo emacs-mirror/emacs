@@ -215,8 +215,8 @@
 
 (defvar org-version "3.04"
   "The version number of the file org.el.")
-(defun org-version (arg)
-  (interactive "P")
+(defun org-version ()
+  (interactive)
   (message "Org-mode version %s" org-version))
 
 ;; The following two constants are for compatibility with different 
