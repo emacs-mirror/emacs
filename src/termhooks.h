@@ -241,7 +241,8 @@ enum event_kind
 				   milliseconds) for the click.  */
   selection_request_event,	/* Another X client wants a selection from us.
 				   See `struct selection_event'.  */
-  selection_clear_event		/* Another X client cleared our selection.  */
+  selection_clear_event,	/* Another X client cleared our selection.  */
+  delete_window_event		/* An X client said "delete this window".  */
 };
 
 /* If a struct input_event has a kind which is selection_request_event
