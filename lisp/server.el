@@ -368,39 +368,47 @@ Emacs distribution as your standard \"editor\".
 
 Prefix arg means just kill any existing server communications subprocess."
   (interactive "P")
-  ;; It is safe to get the user id now.
-  (setq server-socket-dir (or server-socket-dir
-			      (format "/tmp/emacs%d" (user-uid))))
-  ;; Make sure there is a safe directory in which to place the socket.
-  (server-ensure-safe-dir server-socket-dir)
-  ;; kill it dead!
-  (if server-process
-      (condition-case () (delete-process server-process) (error nil)))
-  ;; Delete the socket files made by previous server invocations.
-  (condition-case ()
-      (delete-file (expand-file-name server-name server-socket-dir))
-    (error nil))
-  ;; If this Emacs already had a server, clear out associated status.
-  (while server-clients
-    (server-delete-client (car server-clients)))
-  (unless leave-dead
+  (when (or
+	 (not server-clients)
+	 (yes-or-no-p
+	  "The current server still has clients; delete them? "))
+    ;; It is safe to get the user id now.
+    (setq server-socket-dir (or server-socket-dir
+				(format "/tmp/emacs%d" (user-uid))))
+    ;; Make sure there is a safe directory in which to place the socket.
+    (server-ensure-safe-dir server-socket-dir)
+    ;; kill it dead!
     (if server-process
-	(server-log (message "Restarting server")))
-    (letf (((default-file-modes) ?\700))
-      (add-hook 'delete-tty-after-functions 'server-handle-delete-tty)
-      (add-hook 'suspend-tty-functions 'server-handle-suspend-tty)
-      (add-hook 'delete-frame-functions 'server-handle-delete-frame)
-      (add-hook 'kill-buffer-query-functions 'server-kill-buffer-query-function)
-      (add-hook 'kill-emacs-query-functions 'server-kill-emacs-query-function)
-      (setq server-process
-	    (make-network-process
-	     :name "server" :family 'local :server t :noquery t
-	     :service (expand-file-name server-name server-socket-dir)
-	     :sentinel 'server-sentinel :filter 'server-process-filter
-	     ;; We must receive file names without being decoded.
-	     ;; Those are decoded by server-process-filter according
-	     ;; to file-name-coding-system.
-	     :coding 'raw-text)))))
+	(condition-case () (delete-process server-process) (error nil)))
+    ;; Delete the socket files made by previous server invocations.
+    (condition-case ()
+	(delete-file (expand-file-name server-name server-socket-dir))
+      (error nil))
+    ;; If this Emacs already had a server, clear out associated status.
+    (while server-clients
+      (server-delete-client (car server-clients)))
+    (if leave-dead
+	(progn
+	  (server-log (message "Server stopped"))
+	  (setq server-process nil))
+      (if server-process
+	  (server-log (message "Restarting server"))
+	(server-log (message "Starting server")))
+      (letf (((default-file-modes) ?\700))
+	(add-hook 'delete-tty-after-functions 'server-handle-delete-tty)
+	(add-hook 'suspend-tty-functions 'server-handle-suspend-tty)
+	(add-hook 'delete-frame-functions 'server-handle-delete-frame)
+	(add-hook 'kill-buffer-query-functions 'server-kill-buffer-query-function)
+	(add-hook 'kill-emacs-query-functions 'server-kill-emacs-query-function)
+	(setq server-process
+	      (make-network-process
+	       :name "server" :family 'local :server t :noquery t
+	       :service (expand-file-name server-name server-socket-dir)
+	       :sentinel 'server-sentinel :filter 'server-process-filter
+	       ;; We must receive file names without being decoded.
+	       ;; Those are decoded by server-process-filter according
+	       ;; to file-name-coding-system.
+	       :coding 'raw-text))))))
 
 ;;;###autoload
 (define-minor-mode server-mode
