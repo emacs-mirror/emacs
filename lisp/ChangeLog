@@ -3,8 +3,7 @@
 	* international/mule-conf.el: New charsets mule-unicode-2500-33ff
 	and mule-unicode-e000-ffff.
 
-	* international/mule.el (unicode-char): New function.
-	(char-unicode): New function.
+	* international/mule.el (decode-char, encode-char): New functions.
 	(make-coding-system): Accept a symbol of translation table as a
 	value of property `safe-chars'.
 

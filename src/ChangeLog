@@ -1,5 +1,7 @@
 2000-10-30  Kenichi Handa  <handa@etl.go.jp>
 
+	* puresize.h (BASE_PURESIZE): Increase to 680000.
+
 	* fns.c (Foptimize_char_table): Fix arg for CHARSET_DIMENSION.
 
 2000-10-29  Jason Rumney  <jasonr@gnu.org>
