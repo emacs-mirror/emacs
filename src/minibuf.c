@@ -317,8 +317,7 @@ read_minibuf_noninteractive (map, initial, prompt, backup_n, expflag,
 
   return val;
 }
-
-
+
 DEFUN ("minibuffer-prompt-end", Fminibuffer_prompt_end,
        Sminibuffer_prompt_end, 0, 0, 0,
        doc: /* Return the buffer position of the end of the minibuffer prompt.
@@ -367,7 +366,15 @@ The current buffer must be a minibuffer.  */)
   return Qnil;
 }
 
+/* Get the text in the minibuffer before point.
+   That is what completion commands operate on.  */
 
+minibuffer_completion_contents ()
+{
+  int prompt_end = XINT (Fminibuffer_prompt_end ());
+  return make_buffer_string (prompt_end, PT, 1);
+}
+
 /* Read from the minibuffer using keymap MAP, initial contents INITIAL
    (a string), putting point minus BACKUP_N bytes from the end of INITIAL,
    prompting with PROMPT (a string), using history list HISTVAR
@@ -1626,7 +1633,7 @@ do_completion ()
   Lisp_Object last;
   struct gcpro gcpro1, gcpro2;
 
-  completion = Ftry_completion (Fminibuffer_contents (),
+  completion = Ftry_completion (minibuffer_completion_contents (),
 				Vminibuffer_completion_table,
 				Vminibuffer_completion_predicate);
   last = last_exact_completion;
@@ -1648,7 +1655,7 @@ do_completion ()
       return 1;
     }
 
-  string = Fminibuffer_contents ();
+  string = minibuffer_completion_contents ();
 
   /* COMPLETEDP should be true if some completion was done, which
      doesn't include simply changing the case of the entered string.
@@ -1661,7 +1668,19 @@ do_completion ()
   if (!EQ (tem, Qt))
     /* Rewrite the user's input.  */
     {
-      Fdelete_minibuffer_contents (); /* Some completion happened */
+      int prompt_end = XINT (Fminibuffer_prompt_end ());
+      /* Some completion happened */
+
+      if (! NILP (Vminibuffer_completing_file_name)
+	  && XSTRING (completion)->data[STRING_BYTES (XSTRING (completion)) - 1] == '/'
+	  && PT < ZV
+	  && FETCH_CHAR (PT_BYTE) == '/')
+	{
+	  del_range (prompt_end, PT + 1);
+	}
+      else
+	del_range (prompt_end, PT);
+
       Finsert (1, &completion);
 
       if (! completedp)
@@ -1703,7 +1722,7 @@ do_completion ()
   last_exact_completion = completion;
   if (!NILP (last))
     {
-      tem = Fminibuffer_contents ();
+      tem = minibuffer_completion_contents ();
       if (!NILP (Fequal (tem, last)))
 	Fminibuffer_completion_help ();
     }
@@ -1880,12 +1899,12 @@ Return nil if there is no valid completion, else t.  */)
   register int i, i_byte;
   register unsigned char *completion_string;
   struct gcpro gcpro1, gcpro2;
-  int prompt_end_charpos;
+  int prompt_end_charpos = XINT (Fminibuffer_prompt_end ());
 
   /* We keep calling Fbuffer_string rather than arrange for GC to
      hold onto a pointer to one of the strings thus made.  */
 
-  completion = Ftry_completion (Fminibuffer_contents (),
+  completion = Ftry_completion (minibuffer_completion_contents (),
 				Vminibuffer_completion_table,
 				Vminibuffer_completion_predicate);
   if (NILP (completion))
@@ -1917,7 +1936,7 @@ Return nil if there is no valid completion, else t.  */)
     int buffer_nchars, completion_nchars;
 
     CHECK_STRING (completion);
-    tem = Fminibuffer_contents ();
+    tem = minibuffer_completion_contents ();
     GCPRO2 (completion, tem);
     /* If reading a file name,
        expand any $ENVVAR refs in the buffer and in TEM.  */
@@ -1928,12 +1947,11 @@ Return nil if there is no valid completion, else t.  */)
 	if (! EQ (substituted, tem))
 	  {
 	    tem = substituted;
-	    Fdelete_minibuffer_contents ();
-	    insert_from_string (tem, 0, 0, XSTRING (tem)->size,
-				STRING_BYTES (XSTRING (tem)), 0);
+	    del_range (prompt_end_charpos, PT);
+	    Finsert (1, &tem);
 	  }
       }
-    buffer_nchars = XSTRING (tem)->size; /* ie ZV - BEGV */
+    buffer_nchars = XSTRING (tem)->size; /* # chars in what we completed.  */
     completion_nchars = XSTRING (completion)->size;
     i = buffer_nchars - completion_nchars;
     if (i > 0
@@ -1947,7 +1965,8 @@ Return nil if there is no valid completion, else t.  */)
       {
 	int start_pos;
 
-	/* Set buffer to longest match of buffer tail and completion head.  */
+	/* Make buffer (before point) contain the longest match
+	   of TEM's tail and COMPLETION's head.  */
 	if (i <= 0) i = 1;
 	start_pos= i;
 	buffer_nchars -= i;
@@ -1964,19 +1983,16 @@ Return nil if there is no valid completion, else t.  */)
 	    buffer_nchars--;
 	  }
 	del_range (1, i + 1);
-	SET_PT_BOTH (ZV, ZV_BYTE);
       }
     UNGCPRO;
   }
 #endif /* Rewritten code */
 
-  prompt_end_charpos = XINT (Fminibuffer_prompt_end ());
-
   {
     int prompt_end_bytepos;
     prompt_end_bytepos = CHAR_TO_BYTE (prompt_end_charpos);
-    i = ZV - prompt_end_charpos;
-    i_byte = ZV_BYTE - prompt_end_bytepos;
+    i = PT - prompt_end_charpos;
+    i_byte = PT_BYTE - prompt_end_bytepos;
   }
 
   /* If completion finds next char not unique,
@@ -1984,7 +2000,8 @@ Return nil if there is no valid completion, else t.  */)
   if (i == XSTRING (completion)->size)
     {
       GCPRO1 (completion);
-      tem = Ftry_completion (concat2 (Fminibuffer_contents (), build_string (" ")),
+      tem = Ftry_completion (concat2 (minibuffer_completion_contents (),
+				      build_string (" ")),
 			     Vminibuffer_completion_table,
 			     Vminibuffer_completion_predicate);
       UNGCPRO;
@@ -1995,7 +2012,8 @@ Return nil if there is no valid completion, else t.  */)
 	{
 	  GCPRO1 (completion);
 	  tem =
-	    Ftry_completion (concat2 (Fminibuffer_contents (), build_string ("-")),
+	    Ftry_completion (concat2 (minibuffer_completion_contents (),
+				      build_string ("-")),
 			     Vminibuffer_completion_table,
 			     Vminibuffer_completion_predicate);
 	  UNGCPRO;
@@ -2027,7 +2045,7 @@ Return nil if there is no valid completion, else t.  */)
 
   /* If got no characters, print help for user.  */
 
-  if (i == ZV - prompt_end_charpos)
+  if (i == PT - prompt_end_charpos)
     {
       if (!NILP (Vcompletion_auto_help))
 	Fminibuffer_completion_help ();
@@ -2036,7 +2054,16 @@ Return nil if there is no valid completion, else t.  */)
 
   /* Otherwise insert in minibuffer the chars we got */
 
-  Fdelete_minibuffer_contents ();
+  if (! NILP (Vminibuffer_completing_file_name)
+      && XSTRING (completion)->data[STRING_BYTES (XSTRING (completion)) - 1] == '/'
+      && PT < ZV
+      && FETCH_CHAR (PT_BYTE) == '/')
+    {
+      del_range (prompt_end_charpos, PT + 1);
+    }
+  else
+    del_range (prompt_end_charpos, PT);
+
   insert_from_string (completion, 0, 0, i, i_byte, 1);
   return Qt;
 }
@@ -2232,7 +2259,7 @@ DEFUN ("minibuffer-completion-help", Fminibuffer_completion_help, Sminibuffer_co
   Lisp_Object completions;
 
   message ("Making completion list...");
-  completions = Fall_completions (Fminibuffer_contents (),
+  completions = Fall_completions (minibuffer_completion_contents (),
 				  Vminibuffer_completion_table,
 				  Vminibuffer_completion_predicate,
 				  Qt);
