@@ -158,7 +158,7 @@ end
 
 define xstring
 print (struct Lisp_String *) (($ & $valmask) | gdb_data_seg_bits)
-output ($->size > 1000) ? 0 : ($->data[0])@($->size)
+output ($->size > 1000) ? 0 : ($->data[0])@($->size_byte)
 echo \n
 end
 document xstring
