@@ -4503,12 +4503,12 @@ actually used.  */)
 	     this way, we can run Lisp program safely before decoding
 	     the inserted text.  */
 	  Lisp_Object unwind_data;
-	      int count = SPECPDL_INDEX ();
+	  int count = SPECPDL_INDEX ();
 
 	  unwind_data = Fcons (current_buffer->enable_multibyte_characters,
 			       Fcons (current_buffer->undo_list,
 				      Fcurrent_buffer ()));
-	      current_buffer->enable_multibyte_characters = Qnil;
+	  current_buffer->enable_multibyte_characters = Qnil;
 	  current_buffer->undo_list = Qt;
 	  record_unwind_protect (decide_coding_unwind, unwind_data);
 
@@ -4530,7 +4530,6 @@ actually used.  */)
 	      if (CONSP (coding_systems))
 		val = XCAR (coding_systems);
 	    }
-
 	  unbind_to (count, Qnil);
 	  inserted = Z_BYTE - BEG_BYTE;
 	}
@@ -4541,7 +4540,7 @@ actually used.  */)
 	 on some system.  */
       {
 	struct coding_system temp_coding;
-	setup_coding_system (val, &temp_coding);
+	setup_coding_system (Fcheck_coding_system (val), &temp_coding);
 	bcopy (&temp_coding, &coding, sizeof coding);
       }
       /* Ensure we set Vlast_coding_system_used.  */
