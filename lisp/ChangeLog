@@ -1,3 +1,36 @@
+2004-12-12  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-edit-string): Set 7th arg of
+	`read-from-minibuffer' to `t' to inherit the current input
+	method (whose name is indicated by [IM] in the minibuffer prompt)
+	from the current buffer to the minibuffer.
+	(isearch-lazy-highlight-update): Put body to `with-local-quit'
+	to allow C-g quitting for lazy highlighting looping inside the
+	search with nested repetition operators.  Add overlay to the list
+	before setting its face and other properties to avoid the case of
+	code quitting after placing the new overlay but before it's
+	recorded on the list.  Select the window where isearch was
+	activated, to highlight matches in the right window when isearch
+	switches the current window to the minibuffer.
+
+	* international/isearch-x.el
+	(isearch-process-search-multibyte-characters):
+	Use `isearch-message' as initial input for `read-string' instead
+	of adding it to the minibuffer prompt.  After reading a string
+	remove the initial value of `isearch-message' from the string.
+
+	* replace.el (replace-match-maybe-edit): Doc fix.
+	(perform-replace): Don't call `replace-highlight' when automatic
+	replacement is requested in literal mode, since it is intended
+	only to highlight words during entering a new replacement string
+	for \? in non-literal mode.
+
+	* replace.el (query-replace-highlight): Add new value `isearch'
+	that allows query replacement to use isearch highlighting.
+	Change type from `boolean' to `choice'.  Doc fix.
+	(replace-highlight, replace-dehighlight, perform-replace):
+	Use isearch highlighting if query-replace-highlight eq `isearch'.
+
 2004-12-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/checkdoc.el (checkdoc-continue, checkdoc-comments)
