@@ -733,7 +733,12 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 		      ccl->reg[0] = charset;
 		      ccl->reg[1] = cp->byte2;
 		      ccl_driver (ccl, NULL, NULL, 0, 0, NULL);
-		      cp->byte2 = ccl->reg[1];
+		      /* We assume that MSBs are appropriately
+                         set/reset by CCL program.  */
+		      if (font->max_byte1 == 0)	/* 1-byte font */
+			cp->byte2 = ccl->reg[1];
+		      else
+			cp->byte1 = ccl->reg[1], cp->byte2 = ccl->reg[2];
 		    }
 		else
 		  for (cp = x_2byte_buffer; cp < x_2byte_buffer + len; cp++)
@@ -741,7 +746,12 @@ dumpglyphs (f, left, top, gp, n, hl, just_foreground, cmpcharp)
 		      ccl->reg[0] = charset;
 		      ccl->reg[1] = cp->byte1, ccl->reg[2] = cp->byte2;
 		      ccl_driver (ccl, NULL, NULL, 0, 0, NULL);
-		      cp->byte1 = ccl->reg[1], cp->byte2 = ccl->reg[2];
+		      /* We assume that MSBs are appropriately
+                         set/reset by CCL program.  */
+		      if (font->max_byte1 == 0)	/* 1-byte font */
+			cp->byte2 = ccl->reg[1];
+		      else
+			cp->byte1 = ccl->reg[1], cp->byte2 = ccl->reg[2];
 		    }
 	      }
 	    else if (fontp->encoding[charset])
@@ -3825,19 +3835,28 @@ XTread_socket (sd, bufp, numchars, expected)
 			   could be the shell widget window
 			   if the frame has no title bar.  */
 			f = x_any_window_to_frame (dpyinfo, event.xclient.window);
-			/* Since we set WM_TAKE_FOCUS, we must call
-			   XSetInputFocus explicitly.  But not if f is null,
-			   since that might be an event for a deleted frame.  */
 #ifdef HAVE_X_I18N
 			/* Not quite sure this is needed -pd */
 			if (f && FRAME_XIC (f))
 			  XSetICFocus (FRAME_XIC (f));
 #endif
+			/* Since we set WM_TAKE_FOCUS, we must call
+			   XSetInputFocus explicitly.  But not if f is null,
+			   since that might be an event for a deleted frame.  */
 			if (f)
-			  XSetInputFocus (event.xclient.display,
-					  event.xclient.window,
-					  RevertToPointerRoot,
-					  event.xclient.data.l[1]);
+			  {
+			    Display *d = event.xclient.display;
+			    /* Catch and ignore errors, in case window has been
+			       iconified by a window manager such as GWM.  */
+			    int count = x_catch_errors (d);
+			    XSetInputFocus (d, event.xclient.window,
+					    RevertToPointerRoot,
+					    event.xclient.data.l[1]);
+			    /* This is needed to detect the error
+			       if there is an error.  */
+			    XSync (d, False);
+			    x_uncatch_errors (d, count);
+			  }  
 			/* Not certain about handling scroll bars here */
 		      }
 		    else if (event.xclient.data.l[0]
