@@ -1,0 +1,28 @@
+# impl.gmk.sc: GNUMAKEFILE FRAGMENT FOR CXREF
+#
+# $HopeName: MMsrc!sc.gmk(trunk.3) $
+#
+# This file is included by platform makefiles that generate a c
+# cross-reference using the cxref tool.
+#
+# This file was created using the cxref tool supplied with the
+# Sun Pro C compilation system on a Solaris 2.x system (lizard)
+# (see pkginfo SPROcc).
+#
+# The options may be different for other vendors' cxref, then again
+# it may be the same.
+
+
+# We need a symbol for a non-empty defintion with empty value
+ifdef MPS_EMPTY
+error "dc.gmk: MPS_EMPTY defined"
+endif
+
+CC = cxref
+CFLAGSCOMPILER = -d -R -W30,10,30,20
+CFLAGSHOT = $(MPS_EMPTY)
+CFLAGSCOOL = $(MPS_EMPTY)
+CFLAGSINTERNAL = $(MPS_EMPTY)
+CFLAGSEXTERNAL = $(MPS_EMPTY)
+
+include comm.gmk
