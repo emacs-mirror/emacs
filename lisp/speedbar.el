@@ -5,7 +5,7 @@
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.7.2c
 ;; Keywords: file, tags, tools
-;; X-RCS: $Id: speedbar.el,v 1.14 1998/09/12 13:56:25 zappo Exp zappo $
+;; X-RCS: $Id: speedbar.el,v 1.15 1998/09/12 13:58:46 zappo Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -272,7 +272,9 @@ inserting buttons.")
 The expansion list `speedbar-initial-expansion-mode-alist' contains
 the names and associated functions to use for buttons in speedbar."
   :group 'speedbar
-  :type '(radio (const :tag "File Directorys" file)
+  :type '(radio (const :tag "File Directories" "files")
+		(const "buffers")
+		(const "quick buffers")
 	       ))
 
 (defvar speedbar-previously-used-expansion-list-name "files"
