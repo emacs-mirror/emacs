@@ -5738,10 +5738,17 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 #ifdef HAVE_WINDOW_SYSTEM
 			  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
 			    {
-			      if (!get_next_display_element (it)
-				  || BUFFER_POS_REACHED_P ())
+			      if (!get_next_display_element (it))
 				{
 				  result = MOVE_POS_MATCH_OR_ZV;
+				  break;
+				}
+			      if (BUFFER_POS_REACHED_P ())
+				{
+				  if (ITERATOR_AT_END_OF_LINE_P (it))
+				    result = MOVE_POS_MATCH_OR_ZV;
+				  else
+				    result = MOVE_LINE_CONTINUED;
 				  break;
 				}
 			      if (ITERATOR_AT_END_OF_LINE_P (it))
