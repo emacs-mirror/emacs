@@ -1827,11 +1827,16 @@ scan_lists (from, count, depth, sexpflag)
   int temp_pos;
   int last_good = from;
   int found;
-  int from_byte = CHAR_TO_BYTE (from);
+  int from_byte;
   int out_bytepos, out_charpos;
   int temp;
 
   if (depth > 0) min_depth = 0;
+
+  if (from > ZV) from = ZV;
+  if (from < BEGV) from = BEGV;
+
+  from_byte = CHAR_TO_BYTE (from);
 
   immediate_quit = 1;
   QUIT;
