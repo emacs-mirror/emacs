@@ -1,3 +1,7 @@
+2004-11-06  Andreas Schwab  <schwab@suse.de>
+
+	* emacs-lisp/easymenu.el (easy-menu-get-map): Fix last change.
+
 2004-11-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/easymenu.el (easy-menu-get-map-look-for-name): Remove.
