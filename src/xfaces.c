@@ -6084,7 +6084,7 @@ build_scalable_font_name (f, font, specified_pt)
      struct font_name *font;
      int specified_pt;
 {
-  char point_size[20], pixel_size[20];
+  char pixel_size[20];
   int pixel_value;
   double resy = FRAME_X_DISPLAY_INFO (f)->resy;
   double pt;
@@ -6108,10 +6108,12 @@ build_scalable_font_name (f, font, specified_pt)
   /* We should keep POINT_SIZE 0.  Otherwise, X server can't open a
      font of the specified PIXEL_SIZE.  */
 #if 0
-  /* Set point size of the font.  */
-  sprintf (point_size, "%d", (int) pt);
-  font->fields[XLFD_POINT_SIZE] = point_size;
-  font->numeric[XLFD_POINT_SIZE] = pt;
+  { /* Set point size of the font.  */
+    char point_size[20];
+    sprintf (point_size, "%d", (int) pt);
+    font->fields[XLFD_POINT_SIZE] = point_size;
+    font->numeric[XLFD_POINT_SIZE] = pt;
+  }
 #endif
 
   /* Set pixel size.  */
