@@ -7176,7 +7176,7 @@ usage: (find-operation-coding-system OPERATION ARGUMENTS ...)  */)
 
 DEFUN ("set-coding-system-priority", Fset_coding_system_priority,
        Sset_coding_system_priority, 1, MANY, 0,
-       doc: /* Assign higher priority to coding systems given as arguments.
+       doc: /* Assign higher priority to the coding systems given as arguments.
 usage: (set-coding-system-priority CODING-SYSTEM ...)  */)
      (nargs, args)
      int nargs;
@@ -7226,7 +7226,8 @@ usage: (set-coding-system-priority CODING-SYSTEM ...)  */)
 
 DEFUN ("coding-system-priority-list", Fcoding_system_priority_list,
        Scoding_system_priority_list, 0, 1, 0,
-       doc: /* Return a list of coding systems ordered by their priorities.  */)
+       doc: /* Return a list of coding systems ordered by their priorities.
+HIGHESTP non-nil means just return the highest priority one.  */)
      (highestp)
      Lisp_Object highestp;
 {
@@ -7717,6 +7718,8 @@ usage: (define-coding-system-internal ...)  */)
 			 make_number (nargs)));
 }
 
+/* Fixme: should this record the alias relationships for
+   diagnostics?  */
 DEFUN ("define-coding-system-alias", Fdefine_coding_system_alias,
        Sdefine_coding_system_alias, 2, 2, 0,
        doc: /* Define ALIAS as an alias for CODING-SYSTEM.  */)
@@ -7756,7 +7759,7 @@ DEFUN ("define-coding-system-alias", Fdefine_coding_system_alias,
 DEFUN ("coding-system-base", Fcoding_system_base, Scoding_system_base,
        1, 1, 0,
        doc: /* Return the base of CODING-SYSTEM.
-Any alias or subsidiary coding systems are not base coding system.  */)
+Any alias or subsidiary coding system is not a base coding system.  */)
   (coding_system)
      Lisp_Object coding_system;
 {
@@ -7787,9 +7790,7 @@ DEFUN ("coding-system-plist", Fcoding_system_plist, Scoding_system_plist,
 
 DEFUN ("coding-system-aliases", Fcoding_system_aliases, Scoding_system_aliases,
        1, 1, 0,
-       doc: /* Return the list of aliases of CODING-SYSTEM.
-A base coding system is what made by `define-coding-system'.
-Any alias nor subsidiary coding systems are not base coding system.  */)
+       doc: /* Return the list of aliases of CODING-SYSTEM.  */)
      (coding_system)
      Lisp_Object coding_system;
 {
@@ -7798,7 +7799,7 @@ Any alias nor subsidiary coding systems are not base coding system.  */)
   if (NILP (coding_system))
     coding_system = Qno_conversion;
   CHECK_CODING_SYSTEM_GET_SPEC (coding_system, spec);
-  return AREF (spec, 2);
+  return AREF (spec, 1);
 }
 
 DEFUN ("coding-system-eol-type", Fcoding_system_eol_type,
