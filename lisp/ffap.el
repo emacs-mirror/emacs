@@ -1160,8 +1160,7 @@ which may actually result in an url rather than a filename."
 		  (ffap-file-exists-string
 		   (ffap-replace-path-component remote-dir name))))))
 	 )
-      (store-match-data data))))
-
+      (set-match-data data))))
 
 ;;; Prompting (`ffap-read-file-or-url'):
 ;;
