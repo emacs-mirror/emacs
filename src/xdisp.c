@@ -1951,6 +1951,8 @@ redisplay_window (window, just_this_one, preserve_echo_area)
       w->force_start = Qnil;
       /* Forget any recorded base line for line number display.  */
       w->base_line_number = Qnil;
+      /* The old bottom-of-screen position is no longer valid.  */
+      w->window_end_valid = Qnil;
       /* Redisplay the mode line.  Select the buffer properly for that.
 	 Also, run the hook window-scroll-functions
 	 because we have scrolled.  */
@@ -2275,6 +2277,8 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 			  scroll_conservatively ? pos.vpos + 1 : scroll_step,
 			  w);
 
+	  /* The old bottom-of-screen position is no longer valid.  */
+	  w->window_end_valid = Qnil;
 	  if (! NILP (Vwindow_scroll_functions))
 	    {
 	      set_marker_both (w->start, Qnil, pos.bufpos, pos.bytepos);
@@ -2316,6 +2320,8 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 			  scroll_conservatively ? -pos.vpos : - scroll_step,
 			  w);
 
+	  /* The old bottom-of-screen position is no longer valid.  */
+	  w->window_end_valid = Qnil;
 	  if (! NILP (Vwindow_scroll_functions))
 	    {
 	      set_marker_both (w->start, Qnil, pos.bufpos, pos.bytepos);
@@ -2356,6 +2362,9 @@ redisplay_window (window, just_this_one, preserve_echo_area)
 
       if (PT >= pos.bufpos)
 	{
+	  /* The old bottom-of-screen position is no longer valid.  */
+	  w->window_end_valid = Qnil;
+
 	  if (! NILP (Vwindow_scroll_functions))
 	    {
 	      set_marker_both (w->start, Qnil, pos.bufpos, pos.bytepos);
@@ -2406,6 +2415,9 @@ recenter:
   /* Set startp here explicitly in case that helps avoid an infinite loop
      in case the window-scroll-functions functions get errors.  */
   set_marker_both (w->start, Qnil, pos.bufpos, pos.bytepos);
+
+  /* The old bottom-of-screen position is no longer valid.  */
+  w->window_end_valid = Qnil;
   if (! NILP (Vwindow_scroll_functions))
     {
       run_hook_with_args_2 (Qwindow_scroll_functions, window,
