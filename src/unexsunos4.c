@@ -22,16 +22,6 @@
  *  __DYNAMIC and data_start,  just make sure that pre-crt0.o (the name
  *  is somewhat abused here) is loaded first!
  *
- * $Log:	unexsunos4.c,v $
- * Revision 1.3  90/02/15  04:27:40  root
- * Now it actually works.
- * 
- * Revision 1.2  90/02/15  02:02:01  root
- * Many comments,  fixes,  works not only with emacs.
- * 
- * Revision 1.1  90/01/29  19:43:46  root
- * Initial revision
- * 
  */
 #ifdef emacs
 #include "config.h"
