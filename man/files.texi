@@ -513,7 +513,7 @@ be @file{eval.c~}.
   You can change this behaviour by defining the variable
 @code{make-backup-file-name-function} to a suitable function.
 Alternatively you can customize the variable
-@var{backup-directory-alist} to specify that files matching certain
+@code{backup-directory-alist} to specify that files matching certain
 patterns should be backed up in specific directories.  A typical use is
 to add an element @code{("." . @var{dir})} to make all backups in the
 directory with absolute name @var{dir}; the names will be mangled to
