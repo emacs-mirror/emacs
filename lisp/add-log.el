@@ -387,6 +387,21 @@ Prefix arg means justify as well."
   :group 'change-log)
 
 ;;;###autoload
+(defvar add-log-lisp-like-modes
+    '(emacs-lisp-mode lisp-mode scheme-mode lisp-interaction-mode)
+  "*Modes that look like Lisp to `add-log-current-defun'.")
+
+;;;###autoload
+(defvar add-log-c-like-modes
+    '(c-mode c++-mode c++-c-mode objc-mode)
+  "*Modes that look like C to `add-log-current-defun'.")
+
+;;;###autoload
+(defvar add-log-tex-like-modes
+    '(TeX-mode plain-TeX-mode LaTeX-mode plain-tex-mode latex-mode)
+  "*Modes that look like TeX to `add-log-current-defun'.")
+
+;;;###autoload
 (defun add-log-current-defun ()
   "Return name of function definition point is in, or nil.
 
@@ -402,8 +417,7 @@ Has a preference of looking backwards."
   (condition-case nil
       (save-excursion
 	(let ((location (point)))
-	  (cond ((memq major-mode '(emacs-lisp-mode lisp-mode scheme-mode
-						    lisp-interaction-mode))
+	  (cond ((memq major-mode add-log-lisp-like-modes)
 		 ;; If we are now precisely at the beginning of a defun,
 		 ;; make sure beginning-of-defun finds that one
 		 ;; rather than the previous one.
@@ -422,14 +436,15 @@ Has a preference of looking backwards."
 		       (skip-chars-forward " '")
 		       (buffer-substring (point)
 					 (progn (forward-sexp 1) (point))))))
-		((and (memq major-mode '(c-mode c++-mode c++-c-mode objc-mode))
-		      (save-excursion (beginning-of-line)
-				      ;; Use eq instead of = here to avoid
-				      ;; error when at bob and char-after
-				      ;; returns nil.
-				      (while (eq (char-after (- (point) 2)) ?\\)
-					(forward-line -1))
-				      (looking-at "[ \t]*#[ \t]*define[ \t]")))
+		((and (memq major-mode add-log-c-like-modes)
+		      (save-excursion
+			(beginning-of-line)
+			;; Use eq instead of = here to avoid
+			;; error when at bob and char-after
+			;; returns nil.
+			(while (eq (char-after (- (point) 2)) ?\\)
+			  (forward-line -1))
+			(looking-at "[ \t]*#[ \t]*define[ \t]")))
 		 ;; Handle a C macro definition.
 		 (beginning-of-line)
 		 (while (eq (char-after (- (point) 2)) ?\\) ;not =; note above
@@ -438,7 +453,7 @@ Has a preference of looking backwards."
 		 (skip-chars-forward " \t")
 		 (buffer-substring (point)
 				   (progn (forward-sexp 1) (point))))
-		((memq major-mode '(c-mode c++-mode c++-c-mode objc-mode))
+		((memq major-mode add-log-c-like-modes)
 		 (beginning-of-line)
 		 ;; See if we are in the beginning part of a function,
 		 ;; before the open brace.  If so, advance forward.
@@ -533,10 +548,7 @@ Has a preference of looking backwards."
 					(looking-at "struct \\|union \\|class ")
 					(setq middle (point)))
 				   (buffer-substring middle end)))))))))
-		((memq major-mode
-		       '(TeX-mode plain-TeX-mode LaTeX-mode;; tex-mode.el
-				  plain-tex-mode latex-mode;; cmutex.el
-				  ))
+		((memq major-mode add-log-tex-like-modes)
 		 (if (re-search-backward
 		      "\\\\\\(sub\\)*\\(section\\|paragraph\\|chapter\\)" nil t)
 		     (progn
