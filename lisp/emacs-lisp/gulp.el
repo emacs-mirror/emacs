@@ -42,10 +42,8 @@
 (defvar gulp-request-header
   (concat
    "This message was created automatically.
-A new version of GNU Emacs, "
-   (format "%d.%d" emacs-major-version (+ emacs-minor-version 1))
-   ", is entering the pretest state,
-and it is high time to submit the updates to the various emacs packages.
+I'm going to start pretesting a new version of GNU Emacs soon, so I'd
+like to ask if you have any updates for the Emacs packages you work on.
 You're listed as the maintainer of the following package(s):\n\n")
   "*The starting text of a gulp message.")
 
@@ -55,6 +53,12 @@ You're listed as the maintainer of the following package(s):\n\n")
    (format "%d.%d" emacs-major-version emacs-minor-version)
    "),
 please send them to me ASAP.
+
+Please don't send the whole file.  Instead, please send a patch made with
+`diff -c' that shows precisely the changes you would like me to install.
+Also please include itemized change log entries for your changes;
+please use lisp/ChangeLog as a guide for the style and for what kinds
+of information to include.
 
 Thanks.")
   "*The closing text in a gulp message.")
@@ -78,6 +82,10 @@ is left in the `*gulp*' buffer at the end."
 	  ;; Temporarily inhibit undo in the *gulp* buffer.
 	  (buffer-undo-list t)
 	  mail-setup-hook msg node)
+      (setq m-p-alist
+	    (sort (function (lambda (a b)
+			      (string< (car (car a)) (car (car b)))))
+		  m-p-alist))
       (while (setq node (car m-p-alist))
 	(setq msg (gulp-create-message (cdr node) time))
 	(setq mail-setup-hook
@@ -111,7 +119,7 @@ is left in the `*gulp*' buffer at the end."
   "Create the maintainer/package alist for files in FLIST in DIR.
 That is a list of elements, each of the form (MAINTAINER PACKAGES...)."
   (save-excursion
-    (let (mplist filen node mnt-tm mnt tm)
+    (let (mplist filen node mnt-tm mnt tm fl-tm)
       (get-buffer-create gulp-tmp-buffer)
       (set-buffer gulp-tmp-buffer)
       (setq buffer-undo-list t)
@@ -122,7 +130,6 @@ That is a list of elements, each of the form (MAINTAINER PACKAGES...)."
 		(setq mplist (cons (cons mnt (cons (cons filen tm) (cdr node)))
 				   (delete node mplist)))
 	      (setq mplist (cons (list mnt (cons filen (cdr fl-tm))) mplist))))
-	(message "%s -- %s" filen fl-tm)
 	(setq flist (cdr flist)))
       (erase-buffer)
       mplist)))
