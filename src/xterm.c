@@ -7258,7 +7258,8 @@ x_draw_hollow_cursor (w, row)
   /* Compute the proper height and ascent of the rectangle, based
      on the actual glyph.  Using the full height of the row looks
      bad when there are tall images on that row.  */
-  h = max (FRAME_LINE_HEIGHT (f), cursor_glyph->ascent + cursor_glyph->descent);
+  h = max (min (FRAME_LINE_HEIGHT (f), row->height),
+	   cursor_glyph->ascent + cursor_glyph->descent);
   if (h < row->height)
     y += row->ascent /* - w->phys_cursor_ascent */ + cursor_glyph->descent - h;
   h--;
