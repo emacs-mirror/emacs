@@ -1,3 +1,7 @@
+2003-05-15  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keyboard.c (apply_modifiers): Don't fill the other cache.
+
 2003-05-14  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* .gdbinit-union: New file, for USE_LISP_UNION_TYPE users.
