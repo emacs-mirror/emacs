@@ -51,8 +51,8 @@ bindir=@bindir@
 # Where to install and expect executable files to be run by Emacs
 # rather than directly by users, and other architecture-dependent
 # data.  ${archlibdir} is usually below this.  This is set with the
-# --libdir option to `../configure'.
-libdir=@libdir@
+# --libexecdir option to `../configure'.
+libexecdir=@libexecdir@
 
 # Where to find the source code.  This is set by the configure
 # script's `--srcdir' option.  However, the value of ${srcdir} in
