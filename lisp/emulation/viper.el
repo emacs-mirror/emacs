@@ -315,6 +315,8 @@
 	)))
 ;; end pacifier
 
+(require 'viper-init)
+
 ;; better be defined before Viper custom group.
 (defvar vip-custom-file-name (vip-convert-standard-file-name "~/.viper")
   "Viper customisation file.
