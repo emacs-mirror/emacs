@@ -67,7 +67,8 @@ normally should come last (so that local files override standard ones).
 Once Info is started, the list of directories to search
 comes from the variable `Info-directory-list'.
 This variable `Info-default-directory-list' is used as the default
-for initializing `Info-directory-list' when Info is started.")
+for initializing `Info-directory-list' when Info is started, unless
+the environment variable INFOPATH is set.")
 
 (defvar news-path
   (if (file-exists-p "/usr/spool/news/")
