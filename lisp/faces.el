@@ -1767,6 +1767,14 @@ created."
   :group 'basic-faces)
 
 
+(defface minibuffer-prompt '((t ()))
+  "Face for minibuffer prompts."
+  :version "21.3"
+  :group 'basic-faces)
+
+(setq minibuffer-prompt-properties
+      (append minibuffer-prompt-properties (list 'face 'minibuffer-prompt)))
+
 (defface region
   '((((type tty) (class color))
      (:background "blue" :foreground "white"))
