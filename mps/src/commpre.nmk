@@ -1,6 +1,6 @@
 # ==== FIRST COMMON FRAGMENT FOR PLATFORMS USING MV AND NMAKE
 #
-# $HopeName: MMsrc!commpre.nmk(trunk.7) $
+# $HopeName: MMsrc!commpre.nmk(trunk.8) $
 # Copyright (C) 1995,1997 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -93,7 +93,6 @@ ECHO = echo
 # %%VARIETY: Define a macro containing the set of flags for the new variety.
 
 # All compilations
-# [Sadly /W4 causes <windows.h> to emit thousands of warnings]
 # /MT means compile for multi-threaded environment.
 # /ML means compile for single-threaded environment.
 # some C flags depend on the target we are building.
@@ -108,7 +107,7 @@ CFLAGSTARGET = /MT /DCONFIG_PROD_MPS
 !endif
 !endif
 
-CFLAGSCOMMON = /nologo /W3 /WX $(PFMDEFS) $(CFLAGSTARGET)
+CFLAGSCOMMON = /nologo /W4 /WX $(PFMDEFS) $(CFLAGSTARGET)
 
 # Flags for use in the variety combinations
 CFLAGSHOT = /O2 /DNDEBUG
