@@ -231,6 +231,10 @@ and the value of the environment variable MAIL overrides it)."
   "List of functions to call when Rmail displays a message.")
 
 ;;;###autoload
+(defvar rmail-quit-hook nil
+  "List of functions to call when quitting out of Rmail.")
+
+;;;###autoload
 (defvar rmail-delete-message-hook nil
   "List of functions to call when Rmail deletes a message.
 When the hooks are called, the message has been marked deleted but is
