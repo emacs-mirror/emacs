@@ -2,6 +2,7 @@
 
 	* progmodes/hideshow.el: Update copyright.
 	(hs-minor-mode-map): Change bindings to use `C-c @' prefix.
+	(hs-minor-mode-hook): Include `:version' in defcustom form.
 
 2001-03-13  Gerd Moellmann  <gerd@gnu.org>
 

@@ -889,8 +889,9 @@ the normal block-hiding function.
 *** The command `hs-show-region' has been removed.
 
 *** The key bindings have changed to fit the Emacs conventions,
-roughly imitating those of Outline mode.  See the documentation for
-`hs-minor-mode'.
+roughly imitating those of Outline minor mode.  Notably, the prefix
+for all bindings is now `C-c @'.  For details, see the documentation
+for `hs-minor-mode'.
 
 ** Changes to Change Log mode and Add-Log functions
 

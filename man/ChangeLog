@@ -1,3 +1,7 @@
+2001-03-13  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* programs.texi: Update hideshow key bindings.
+
 Francesco Potorti`  <pot@gnu.org>
 
 	* programs.texi (Tags): Mention that file names are tags.  Change by
