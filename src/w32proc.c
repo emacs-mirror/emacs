@@ -366,10 +366,8 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
   if (cp->pid < 0)
     cp->pid = -cp->pid;
 
-#if defined(NO_UNION_TYPE) && !defined (USE_LSB_TAG)
   /* pid must fit in a Lisp_Int */
-  cp->pid = (cp->pid & VALMASK);
-#endif
+  cp->pid = make_number (cp->pid);
 
   *pPid = cp->pid;
 
