@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.51) $
+ * $HopeName: MMsrc!poolawl.c(trunk.52) $
  * Copyright (C) 1998.  Harlequin Group plc.  All rights reserved.
  *
  * READERSHIP
@@ -45,7 +45,7 @@
 #include "mpm.h"
 
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.51) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.52) $");
 
 
 #define AWLSig  ((Sig)0x519b7a37)       /* SIGPooLAWL */
@@ -79,7 +79,6 @@ typedef struct AWLStatTotalStruct {
 /* design.mps.poolawl.poolstruct */
 typedef struct AWLStruct {
   PoolStruct poolStruct;
-  Format format;
   Shift alignShift;
   ActionStruct actionStruct;
   double lastCollected;
@@ -418,7 +417,7 @@ static Res AWLInit(Pool pool, va_list arg)
   format = va_arg(arg, Format);
 
   AVERT(Format, format);
-  awl->format = format;
+  pool->format = format;
   awl->alignShift = SizeLog2(pool->alignment);
   ActionInit(&awl->actionStruct, pool);
   awl->lastCollected = ArenaMutatorAllocSize(PoolArena(pool));
@@ -827,11 +826,11 @@ static Res awlScanSinglePass(Bool *anyScannedReturn,
       continue;
     }
     /* design.mps.poolawl.fun.scan.object-end */
-    objectLimit = (*awl->format->skip)(p);
+    objectLimit = (*pool->format->skip)(p);
     /* design.mps.poolawl.fun.scan.scan */
     if(scanAllObjects ||
          (BTGet(group->mark, i) && !BTGet(group->scanned, i))) {
-      Res res = awlScanObject(arena, ss, awl->format->scan,
+      Res res = awlScanObject(arena, ss, pool->format->scan,
                               p, objectLimit);
       if(res != ResOK) {
         return res;
@@ -995,7 +994,7 @@ static void AWLReclaim(Pool pool, Trace trace, Seg seg)
       }
     }
     j = awlIndexOfAddr(base, awl,
-                       AddrAlignUp(awl->format->skip(p), pool->alignment));
+                       AddrAlignUp(pool->format->skip(p), pool->alignment));
     AVER(j <= group->grains);
     if(BTGet(group->mark, i)) {
       AVER(BTGet(group->scanned, i));
@@ -1150,9 +1149,9 @@ static void AWLWalk(Pool pool, Seg seg, FormattedObjectsStepMethod f,
       object = AddrAdd(object, pool->alignment);
       continue;
     }
-    next = AddrAlignUp((*awl->format->skip)(object), pool->alignment);
+    next = AddrAlignUp((*pool->format->skip)(object), pool->alignment);
     if(BTGet(group->mark, i) && BTGet(group->scanned, i)) {
-      (*f)(object, awl->format, pool, p, s);
+      (*f)(object, pool->format, pool, p, s);
     }
     object = next;
   }
