@@ -916,6 +916,15 @@ for this to be permanent."
       (narrow-to-region 1 tar-header-offset))))
 
 
+(defun tar-octal-time (timeval)
+  ;; Format a timestamp as 11 octal digits.  Ghod, I hope this works...
+  (let ((hibits (car timeval)) (lobits (car (cdr timeval))))
+    (insert (format "%05o%01o%05o"
+		    (lsh hibits -2)
+		    (logior (lsh (logand 3 hibits) 1) (> (logand lobits 32768) 0))
+		    (logand 32767 lobits)
+		    ))))
+
 (defun tar-subfile-save-buffer ()
   "In tar subfile mode, write this buffer back into its parent tar-file buffer.
 This doesn't write anything to disk - you must save the parent tar-file buffer
@@ -974,7 +983,7 @@ to make your changes permanent."
 		  nil
 		(goto-char (+ header-start tar-time-offset))
 		(delete-region (point) (+ (point) 12))
-		(insert (format "%11o" (current-time)))
+		(insert (tar-octal-time (current-time)))
 		(insert ? ))
 	      ;;
 	      ;; compute a new checksum and insert it.
