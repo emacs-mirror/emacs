@@ -1305,8 +1305,8 @@ ARG is a list of coding categories ordered by priority."
     ("ISO8859-14" . latin-iso8859-14)
     ("KOI8-R" . koi8-r)
     ("BIG5-0" . big5))
-  "Alist of font charset names defined by XLFD, and the corresponding Emacs
-charsets or coding systems.")
+  "Alist of font charset names defined by XLFD.
+The cdr of each element is the corresponding Emacs charset or coding system.")
 
 ;; Functions to support "Non-Standard Character Set Encodings" defined
 ;; by the COMPOUND-TEXT spec.
