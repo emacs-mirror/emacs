@@ -6262,6 +6262,7 @@ with_echo_area_buffer (w, which, fn, a1, a2, a3, a4)
   current_buffer->undo_list = Qt;
   current_buffer->read_only = Qnil;
   specbind (Qinhibit_read_only, Qt);
+  specbind (Qinhibit_modification_hooks, Qt);
 
   if (clear_buffer_p && Z > BEG)
     del_range (BEG, Z);
