@@ -95,8 +95,11 @@ mkdir ${tempdir}
 # README while the rest of the tar file is still unpacking.  Whoopee.
 echo "Making links to top-level files." 
 ln GETTING.GNU.SOFTWARE INSTALL PROBLEMS README move-if-change ${tempdir}
-ln ChangeLog Makefile.in build-install.in configure config.sub ${tempdir}
-ln make-dist ${tempdir}
+ln ChangeLog Makefile.in build-install.in configure make-dist ${tempdir}
+# Copy these files; on the GNU machines, at least, they are symbolic
+# links to files on another file system, so we can't make a hard link
+# to it.  Eech.
+cp config.sub ${tempdir}
 
 echo "Creating subdirectories."
 for subdir in lisp lisp/term local-lisp external-lisp \
