@@ -47,13 +47,13 @@ struct event *events;		/* events[0 .. num_events-1] are the
 char *pname;      /* programme name for error messages */
 
 /* Accepts a string of two fields seperated by FS.
-   First field is string for getdate, saying when to wake-up.
+   First field is string for get_date, saying when to wake-up.
    Second field is a token to identify the request.  */
 void
 schedule (str)
      char *str;
 {
-  extern time_t getdate ();
+  extern time_t get_date ();
   extern char *strcpy ();
   time_t now;
   register char *p;
