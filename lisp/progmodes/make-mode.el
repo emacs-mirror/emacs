@@ -124,7 +124,7 @@
 (defcustom makefile-macro-assign " = "
   "String to append to all macro names inserted by `makefile-insert-macro'.
 The normal value should be \" = \", since this is what
-standard make expects. However, newer makes such as dmake
+standard make expects.  However, newer makes such as dmake
 allow a larger variety of different macro assignments, so you
 might prefer to use \" += \" or \" := \" ."
   :type 'string
@@ -196,7 +196,7 @@ Otherwise filenames are omitted."
   "If non-nil, automatically clean up continuation lines when saving.
 A line is cleaned up by removing all whitespace following a trailing
 backslash.  This is done silently.
-IMPORTANT: Please note that enabling this option causes makefile-mode
+IMPORTANT: Please note that enabling this option causes Makefile mode
 to MODIFY A FILE WITHOUT YOUR CONFIRMATION when \"it seems necessary\"."
   :type 'boolean
   :group 'makefile)
@@ -224,8 +224,8 @@ you enter a \".\" at the beginning of a line in makefile-mode."
 (defcustom makefile-runtime-macros-list
   '(("@") ("&") (">") ("<") ("*") ("^") ("+") ("?") ("%") ("$"))
   "List of macros that are resolved by make at runtime.
-If you insert a macro reference using makefile-insert-macro-ref, the name
-of the macro is checked against this list. If it can be found its name will
+If you insert a macro reference using `makefile-insert-macro-ref', the name
+of the macro is checked against this list.  If it can be found its name will
 not be enclosed in { } or ( )."
   :type '(repeat (list string))
   :group 'makefile)
@@ -237,7 +237,7 @@ not be enclosed in { } or ( )."
   "^ *\\([^ \n\t#:=]+\\([ \t]+\\([^ \t\n#:=]+\\|\\$[({][^ \t\n#})]+[})]\\)\\)*\\)[ \t]*:\\([ \t]*$\\|\\([^=\n].*$\\)\\)"
   "Regex used to find dependency lines in a makefile.")
 
-;; Note that the first subexpression is used by font lock.  Note 
+;; Note that the first subexpression is used by font lock.  Note
 ;; that if you change this regexp you might have to fix the imenu
 ;; index in makefile-imenu-generic-expression.
 (defconst makefile-macroassign-regex
@@ -284,7 +284,7 @@ not be enclosed in { } or ( )."
   (list
    (list "Dependencies" makefile-dependency-regex  1)
    (list "Macro Assignment" makefile-macroassign-regex 1))
-  "Imenu generic expression for makefile-mode.  See `imenu-generic-expression'.")
+  "Imenu generic expression for Makefile mode.  See `imenu-generic-expression'.")
 
 ;;; ------------------------------------------------------------
 ;;; The following configurable variables are used in the
@@ -320,7 +320,7 @@ The function must satisfy this calling convention:
   be checked, as a string.
 
 * As its second argument, it may accept the name of a makefile
-  as a string. Depending on what you're going to do you may
+  as a string.  Depending on what you're going to do you may
   not need this.
 
 * It must return the integer value 0 (zero) if the given target
@@ -383,17 +383,17 @@ The function must satisfy this calling convention:
     ()
   (setq makefile-browser-map (make-sparse-keymap))
   (define-key makefile-browser-map "n"    'makefile-browser-next-line)
-  (define-key makefile-browser-map "\C-n" 'makefile-browser-next-line)    
+  (define-key makefile-browser-map "\C-n" 'makefile-browser-next-line)
   (define-key makefile-browser-map "p"    'makefile-browser-previous-line)
   (define-key makefile-browser-map "\C-p" 'makefile-browser-previous-line)
   (define-key makefile-browser-map " "    'makefile-browser-toggle)
   (define-key makefile-browser-map "i"    'makefile-browser-insert-selection)
-  (define-key makefile-browser-map "I"    'makefile-browser-insert-selection-and-quit)  
+  (define-key makefile-browser-map "I"    'makefile-browser-insert-selection-and-quit)
   (define-key makefile-browser-map "\C-c\C-m" 'makefile-browser-insert-continuation)
   (define-key makefile-browser-map "q"    'makefile-browser-quit)
   ;; disable horizontal movement
   (define-key makefile-browser-map "\C-b" 'undefined)
-  (define-key makefile-browser-map "\C-f" 'undefined))  
+  (define-key makefile-browser-map "\C-f" 'undefined))
 
 
 (defvar makefile-mode-syntax-table nil)
@@ -404,7 +404,7 @@ The function must satisfy this calling convention:
   (modify-syntax-entry ?\) ")(    " makefile-mode-syntax-table)
   (modify-syntax-entry ?\[ "(]    " makefile-mode-syntax-table)
   (modify-syntax-entry ?\] ")[    " makefile-mode-syntax-table)
-  (modify-syntax-entry ?\{ "(}    " makefile-mode-syntax-table)  
+  (modify-syntax-entry ?\{ "(}    " makefile-mode-syntax-table)
   (modify-syntax-entry ?\} "){    " makefile-mode-syntax-table)
   (modify-syntax-entry ?\' "\"     " makefile-mode-syntax-table)
   (modify-syntax-entry ?\` "\"     " makefile-mode-syntax-table)
@@ -492,7 +492,7 @@ makefile-macro-assign:
    The string that gets appended to all macro names
    inserted by `makefile-insert-macro'.
    The normal value should be \" = \", since this is what
-   standard make expects. However, newer makes such as dmake
+   standard make expects.  However, newer makes such as dmake
    allow a larger variety of different macro assignments, so you
    might prefer to use \" += \" or \" := \" .
 
@@ -525,12 +525,12 @@ makefile-pickup-everything-picks-up-filenames-p:
    filenames are omitted.
 
 makefile-cleanup-continuations-p:
-   If this variable is set to a non-nil value then makefile-mode
+   If this variable is set to a non-nil value then Makefile mode
    will assure that no line in the file ends with a backslash
    (the continuation character) followed by any whitespace.
    This is done by silently removing the trailing whitespace, leaving
    the backslash itself intact.
-   IMPORTANT: Please note that enabling this option causes makefile-mode
+   IMPORTANT: Please note that enabling this option causes Makefile mode
    to MODIFY A FILE WITHOUT YOUR CONFIRMATION when \"it seems necessary\".
 
 makefile-browser-hook:
@@ -684,7 +684,7 @@ Anywhere else just self-inserts."
 	(makefile-remember-target target-name))))
 
 (defun makefile-insert-target-ref (target-name)
-  "Complete on a list of known targets, then insert target-ref at point."
+  "Complete on a list of known targets, then insert TARGET-NAME at point."
   (interactive
    (list
     (progn
@@ -905,7 +905,7 @@ The context determines which are considered."
 With no argument, inserts backslashes and aligns existing backslashes.
 With an argument, deletes the backslashes.
 
-This function does not modify the last line of the region if the region ends 
+This function does not modify the last line of the region if the region ends
 right at the start of the following line; it does not modify blank lines
 at the start of the region.  So you can put the region around an entire macro
 definition and conveniently use this command."
@@ -1298,7 +1298,7 @@ and generates the overview, one line per target name."
     (function (lambda (item)
 		(let* ((target-name (car item))
 		       (no-prereqs (not (member target-name prereq-list)))
-		       (needs-rebuild (or no-prereqs 
+		       (needs-rebuild (or no-prereqs
 					  (funcall
 					   makefile-query-one-target-method
 					   target-name
