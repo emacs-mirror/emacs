@@ -1,11 +1,11 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985, 1986, 1987, 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 1, or (at your option)
+the Free Software Foundation; either version 2, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -1392,7 +1392,7 @@ Also, a symbol satisfies `commandp' if its function definition does so.")
      have an element whose index is COMPILED_INTERACTIVE, which is
      where the interactive spec is stored.  */
   else if (COMPILEDP (fun))
-    return (XVECTOR (fun)->size > COMPILED_INTERACTIVE
+    return (XVECTOR (fun)->size & PSEUDOVECTOR_SIZE_MASK > COMPILED_INTERACTIVE
 	    ? Qt : Qnil);
 
   /* Strings and vectors are keyboard macros.  */
