@@ -365,6 +365,9 @@ See also the documentation of make-char."
 ;; ENCODING-FUNCTION is a function to encode a character in CHARSET
 ;; to the code in EXTERNAL-CHARSET-NAME.  The command what-cursor-position
 ;; uses this information of the buffer-file-coding-system.
+;; ENCODING-FUNCTION may be a translation table or a symbol whose
+;; property `translation-table' is a translation table.  In these case,
+;; the translation table is used to encode the character.
 ;;
 ;; o valid-codes (meaningful only for a coding system based on CCL)
 ;;
