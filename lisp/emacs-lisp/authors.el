@@ -97,7 +97,7 @@ author and what he did in hash table TABLE.  See the description of
     (if (null entry)
 	(puthash author (cons (list file action) value) table)
       (unless (memq action entry)
-	(append entry (list action))))))
+	(nconc entry (list action))))))
 
 
 (defun authors-process-lines (program &rest args)
