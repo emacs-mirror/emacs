@@ -2151,7 +2151,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       && !current_kboard->immediate_echo
       && this_command_key_count > 0
       && ! noninteractive
-      && !NILP (Vecho_keystrokes)
+      && (FLOATP (Vecho_keystrokes) || INTEGERP (Vecho_keystrokes))
+      && NILP (Fzerop (Vecho_keystrokes))
       && (/* No message.  */
 	  NILP (echo_area_buffer[0])
 	  /* Or empty message.  */
@@ -2608,7 +2609,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       before_command_echo_length = echo_length ();
 
       /* Don't echo mouse motion events.  */
-      if (! NILP (Vecho_keystrokes)
+      if ((FLOATP (Vecho_keystrokes) || INTEGERP (Vecho_keystrokes))
+	  && NILP (Fzerop (Vecho_keystrokes))
 	  && ! (EVENT_HAS_PARAMETERS (c)
 		&& EQ (EVENT_HEAD_KIND (EVENT_HEAD (c)), Qmouse_movement)))
 	{
@@ -2678,7 +2680,8 @@ record_menu_key (c)
   before_command_echo_length = echo_length ();
 
   /* Don't echo mouse motion events.  */
-  if (! NILP (Vecho_keystrokes))
+  if ((FLOATP (Vecho_keystrokes) || INTEGERP (Vecho_keystrokes))
+      && NILP (Fzerop (Vecho_keystrokes)))
     {
       echo_char (c);
 
@@ -7458,7 +7461,9 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
     {
       if (!NILP (prompt))
 	echo_prompt (XSTRING (prompt)->data);
-      else if (cursor_in_echo_area && !NILP (Vecho_keystrokes))
+      else if (cursor_in_echo_area
+	       && (FLOATP (Vecho_keystrokes) || INTEGERP (Vecho_keystrokes))
+	       && NILP (Fzerop (Vecho_keystrokes)))
 	/* This doesn't put in a dash if the echo buffer is empty, so
 	   you don't always see a dash hanging out in the minibuffer.  */
 	echo_dash ();
@@ -7604,7 +7609,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	{
 	  key = keybuf[t];
 	  add_command_key (key);
-	  if (!NILP (Vecho_keystrokes))
+	  if ((FLOATP (Vecho_keystrokes) || INTEGERP (Vecho_keystrokes))
+	      && NILP (Fzerop (Vecho_keystrokes)))
 	    echo_char (key);
 	}
 
@@ -8393,7 +8399,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
      Better ideas?  */
   for (; t < mock_input; t++)
     {
-      if (!NILP (Vecho_keystrokes))
+      if ((FLOATP (Vecho_keystrokes) || INTEGERP (Vecho_keystrokes))
+	  && NILP (Fzerop (Vecho_keystrokes)))
 	echo_char (keybuf[t]);
       add_command_key (keybuf[t]);
     }
@@ -9939,7 +9946,8 @@ Emacs also does a garbage collection if that seems to be warranted.");
   XSETFASTINT (Vauto_save_timeout, 30);
 
   DEFVAR_LISP ("echo-keystrokes", &Vecho_keystrokes,
-    "*Nonzero means echo unfinished commands after this many seconds of pause.");
+    "*Nonzero means echo unfinished commands after this many seconds of pause.\n\
+The value may be integer or floating point.");
   Vecho_keystrokes = make_number (1);
 
   DEFVAR_INT ("polling-period", &polling_period,
