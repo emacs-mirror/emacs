@@ -404,7 +404,7 @@ completion commands are available on @kbd{M-@key{TAB}},
 @code{find-file} so that the @samp{<@var{include}>} stands for the
 file named @var{include} in some directory in the path
 @code{PC-include-file-path}.  If you set @code{PC-disable-includes} to
-@code{nil}, this feature is disabled.
+non-@code{nil}, this feature is disabled.
 
 @cindex Icomplete mode
 @findex icomplete-mode
