@@ -34,11 +34,12 @@
  t
  "$(0&d'GTT&,!J3<5x!K(B and `v' for $(0O:X5>KHATT&,(B
 
-This is the combination of Quail packages \"chinese-py-b5\"
-and \"chinese-punct-b5\".
-You can enter normal Chinese characters by the same way as \"chinese-py-b5\".
+This is the combination of the input method `chinese-py-b5' and
+`chinese-punct-b5'.
+
+You can enter normal Chinese characters by the same way as `chinese-py-b5'.
 And, you can enter symbols by typing `v' followed by any key sequences
-defined in \"chinese-punct-b5\".
+defined in `chinese-punct-b5'.
 
 For instance, typing `v' and `%' insert `$(0"h(B'.
 ")
