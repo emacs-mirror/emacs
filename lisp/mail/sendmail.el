@@ -798,7 +798,11 @@ external program defined by `sendmail-program'."
 ;;;	resend-to-addresses
 	delimline
 	fcc-was-found
-	(mailbuf (current-buffer)))
+	(mailbuf (current-buffer))
+	(program (if (boundp 'sendmail-program)
+		     sendmail-program
+		   "/usr/lib/sendmail"))
+	(originator user-mail-address))
     (unwind-protect
 	(save-excursion
 	  (set-buffer tembuf)
@@ -962,12 +966,10 @@ external program defined by `sendmail-program'."
 			  (select-message-coding-system)))
 		     (args 
 		      (append (list (point-min) (point-max)
-				    (if (boundp 'sendmail-program)
-					sendmail-program
-				      "/usr/lib/sendmail")
+				    program
 				    nil errbuf nil "-oi")
 			      (and mail-specify-envelope-from 
-				   (list "-f" user-mail-address))
+				   (list "-f" originator))
 ;;; 			      ;; Don't say "from root" if running under su.
 ;;; 			      (and (equal (user-real-login-name) "root")
 ;;; 				   (list "-f" (user-login-name)))
