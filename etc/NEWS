@@ -8,6 +8,10 @@ For older news, see the file ONEWS
 
 * Changes in Emacs 21.2
 
+** When the *scratch* buffer is recreated, its mode is set from
+initial-major-mode, which normally is lisp-interaction-mode,
+instead of using default-major-mode.
+
 
 * Lisp Changes in Emacs 21.2
 
