@@ -9881,11 +9881,13 @@ x_stop_queuing_selection_requests (display)
 
 /* The main X event-reading loop - XTread_socket.  */
 
+#if 0
 /* Time stamp of enter window event.  This is only used by XTread_socket,
    but we have to put it out here, since static variables within functions
    sometimes don't work.  */
 
 static Time enter_timestamp;
+#endif
 
 /* This holds the state XLookupString needs to implement dead keys
    and other tricks known as "compose processing".  _X Window System_
