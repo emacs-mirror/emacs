@@ -49,8 +49,6 @@ typedef GtkWidget *xt_or_gtk_widget;
 
 #endif /* USE_GTK */
 
-/* The class of this X application.  */
-#define EMACS_CLASS "Emacs"
 
 /* Bookkeeping to distinguish X versions.  */
 
@@ -648,17 +646,6 @@ struct x_output
 
 enum
 {
-  /* Values used as a bit mask, BOTH == WIDTH | HEIGHT.  */
-  FULLSCREEN_NONE       = 0,
-  FULLSCREEN_WIDTH      = 1,
-  FULLSCREEN_HEIGHT     = 2,
-  FULLSCREEN_BOTH       = 3,
-  FULLSCREEN_WAIT       = 4,
-  FULLSCREEN_MOVE_WAIT  = 8,
-};
-
-enum
-{
   /* Values for focus_state, used as bit mask.
      EXPLICIT means we received a FocusIn for the frame and know it has
      the focus.  IMPLICIT means we recevied an EnterNotify and the frame
@@ -1030,7 +1017,6 @@ extern void x_free_gcs P_ ((struct frame *));
 
 /* From xrdb.c.  */
 
-char *x_get_string_resource P_ ((XrmDatabase, char *, char *));
 char *x_get_customization_string P_ ((XrmDatabase, char *, char *));
 XrmDatabase x_load_resources P_ ((Display *, char *, char *, char *));
 int x_get_resource P_ ((XrmDatabase, char *, char *,
@@ -1039,8 +1025,6 @@ void x_delete_display P_ ((struct x_display_info *));
 void x_make_frame_visible P_ ((struct frame *));
 void x_iconify_frame P_ ((struct frame *));
 void x_wm_set_size_hint P_ ((struct frame *, long, int));
-void x_set_offset P_ ((struct frame *, int, int, int));
-void x_wm_set_icon_position P_ ((struct frame *, int, int));
 int x_catch_errors P_ ((Display *));
 int x_had_errors_p P_ ((Display *));
 void x_uncatch_errors P_ ((Display *, int));
@@ -1063,9 +1047,6 @@ extern int x_catch_errors P_ ((Display *));
 extern void x_check_errors P_ ((Display *, char *));
 extern int x_had_errors_p P_ ((Display *));
 extern void x_uncatch_errors P_ ((Display *, int));
-extern Lisp_Object x_new_font P_ ((struct frame *, char *));
-extern Lisp_Object x_new_fontset P_ ((struct frame *, char *));
-extern void x_set_offset P_ ((struct frame *, int, int, int));
 extern void x_set_window_size P_ ((struct frame *, int, int, int));
 extern void x_set_mouse_position P_ ((struct frame *, int, int));
 extern void x_set_mouse_pixel_position P_ ((struct frame *, int, int));
@@ -1079,7 +1060,6 @@ extern void x_destroy_window P_ ((struct frame *));
 extern void x_wm_set_size_hint P_ ((struct frame *, long, int));
 extern void x_wm_set_window_state P_ ((struct frame *, int));
 extern void x_wm_set_icon_pixmap P_ ((struct frame *, int));
-extern void x_wm_set_icon_position P_ ((struct frame *, int, int));
 extern void x_delete_display P_ ((struct x_display_info *));
 extern void x_initialize P_ ((void));
 extern unsigned long x_copy_color P_ ((struct frame *, unsigned long));
@@ -1089,9 +1069,6 @@ extern XtAppContext Xt_app_con;
 extern void x_query_colors P_ ((struct frame *f, XColor *, int));
 extern void x_query_color P_ ((struct frame *f, XColor *));
 extern void x_clear_area P_ ((Display *, Window, int, int, int, int, int));
-
-extern void x_fullscreen_adjust P_ ((struct frame *f, int *, int *,
-                                     int *, int *));
 
 extern int x_dispatch_event P_ ((XEvent *, Display *));
 
@@ -1114,9 +1091,7 @@ extern int x_create_bitmap_from_data P_ ((struct frame *, char *,
 					  unsigned int, unsigned int));
 extern int x_create_bitmap_from_file P_ ((struct frame *, Lisp_Object));
 extern void x_destroy_bitmap P_ ((struct frame *, int));
-extern void x_set_frame_parameters P_ ((struct frame *, Lisp_Object));
 extern void x_real_positions P_ ((struct frame *, int *, int *));
-extern void x_report_frame_params P_ ((struct frame *, Lisp_Object *));
 extern int defined_color P_ ((struct frame *, char *, XColor *, int));
 extern void x_set_border_pixel P_ ((struct frame *, int));
 extern void x_set_menu_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
