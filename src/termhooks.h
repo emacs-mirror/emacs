@@ -1,6 +1,6 @@
 /* Hooks by which low level terminal operations
    can be made to call other routines.
-   Copyright (C) 1985, 1986, 1992 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1992, 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -18,6 +18,14 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+
+/* Miscellanea.   */
+
+/* If nonzero, send all terminal output characters to this stream also.  */
+extern FILE *termscript;
+
+
+/* Text display hooks.  */
 
 extern int (*cursor_to_hook) ();
 extern int (*raw_cursor_to_hook) ();
@@ -43,7 +51,9 @@ extern int (*update_begin_hook) ();
 extern int (*update_end_hook) ();
 extern int (*set_terminal_window_hook) ();
 
-extern int (*read_socket_hook) ();
+
+
+/* Multi-frame and mouse support hooks.  */
 
 enum scrollbar_part {
   scrollbar_above_handle,
@@ -52,11 +62,25 @@ enum scrollbar_part {
 };
 
 /* Return the current position of the mouse.
-   Set `bar' to point to the scrollbar if the mouse movement started
-   in a scrollbar, or zero if it started elsewhere in the frame.
-   This should clear mouse_moved until the next motion event arrives.  */
+
+   Set *f to the frame the mouse is in, or zero if the mouse is in no
+   Emacs frame.  If it is set to zero, all the other arguments are
+   garbage.
+
+   If the motion started in a scrollbar, set *bar_window to the
+   scrollbar's window, *part to the part the mouse is currently over,
+   *x to the position of the mouse along the scrollbar, and *y to the
+   overall length of the scrollbar.
+
+   Otherwise, set *bar_window to Qnil, and *x and *y to the column and
+   row of the character cell the mouse is over.
+
+   Set *time to the time the mouse was at the returned position.
+
+   This should clear mouse_moved until the next motion
+   event arrives.  */
 extern void (*mouse_position_hook) ( /* FRAME_PTR *f,
-					struct scrollbar **bar,
+					Lisp_Object *bar_window,
 					enum scrollbar_part *part,
 					Lisp_Object *x,
 					Lisp_Object *y,
@@ -72,15 +96,38 @@ extern int mouse_moved;
    X, this means that Emacs lies about where the focus is.  */
 extern void (*frame_rehighlight_hook) ( /* void */ );
 
-/* Set vertical scollbar BAR to have its upper left corner at (TOP,
-   LEFT), and be LENGTH rows high.  Set its handle to indicate that we
-   are displaying PORTION characters out of a total of WHOLE
-   characters, starting at POSITION.  Return BAR.  If BAR is zero,
-   create a new scrollbar and return a pointer to it.  */
-extern struct scrollbar *(*set_vertical_scrollbar_hook)
-     ( /* struct scrollbar *BAR,
-	  struct window *window,
-	  int portion, int whole, int position */ );
+
+
+/* Scrollbar hooks.  */
+
+/* The representation of scrollbars is determined by the code which
+   implements them, except for one thing: they must be represented by
+   lisp objects.  This allows us to place references to them in
+   Lisp_Windows without worrying about those references becoming
+   dangling references when the scrollbar is destroyed.
+
+   The window-system-independent portion of Emacs just refers to
+   scrollbars via their windows, and never looks inside the scrollbar
+   representation; it always uses hook functions to do all the
+   scrollbar manipulation it needs.
+
+   The `vertical_scrollbar' field of a Lisp_Window refers to that
+   window's scrollbar, or is nil if the window doesn't have a
+   scrollbar.
+
+   The `scrollbars' and `condemned_scrollbars' fields of a Lisp_Frame
+   are free for use by the scrollbar implementation in any way it sees
+   fit.  They are marked by the garbage collector.  */
+
+
+/* Set the vertical scrollbar for WINDOW to have its upper left corner
+   at (TOP, LEFT), and be LENGTH rows high.  Set its handle to
+   indicate that we are displaying PORTION characters out of a total
+   of WHOLE characters, starting at POSITION.  If WINDOW doesn't yet
+   have a scrollbar, create one for it.  */
+extern void (*set_vertical_scrollbar_hook)
+            ( /* struct window *window,
+	         int portion, int whole, int position */ );
 
 
 /* The following three hooks are used when we're doing a thorough
@@ -93,20 +140,39 @@ extern struct scrollbar *(*set_vertical_scrollbar_hook)
 
 /* Arrange for all scrollbars on FRAME to be removed at the next call
    to `*judge_scrollbars_hook'.  A scrollbar may be spared if
-   `*redeem_scrollbar_hook' is applied to it before the judgement.  */
-extern void (*condemn_scrollbars_hook)( /* FRAME_PTR *FRAME */ );
+   `*redeem_scrollbar_hook' is applied to its window before the judgement. 
 
-/* Unmark BAR for deletion in this judgement cycle.  */
-extern void (*redeem_scrollbar_hook)( /* struct scrollbar *BAR */ );
+   This should be applied to each frame each time its window tree is
+   redisplayed, even if it is not displaying scrollbars at the moment;
+   if the HAS_SCROLLBARS flag has just been turned off, only calling
+   this and the judge_scrollbars_hook will get rid of them.
+
+   If non-zero, this hook should be safe to apply to any frame,
+   whether or not it can support scrollbars, and whether or not it is
+   currently displaying them.  */
+extern void (*condemn_scrollbars_hook)( /* FRAME_PTR *frame */ );
+
+/* Unmark WINDOW's scrollbar for deletion in this judgement cycle.
+   Note that it's okay to redeem a scrollbar that is not condemned.  */
+extern void (*redeem_scrollbar_hook)( /* struct window *window */ );
 
 /* Remove all scrollbars on FRAME that haven't been saved since the
-   last call to `*condemn_scrollbars_hook'.  */
+   last call to `*condemn_scrollbars_hook'.  
+
+   This should be applied to each frame after each time its window
+   tree is redisplayed, even if it is not displaying scrollbars at the
+   moment; if the HAS_SCROLLBARS flag has just been turned off, only
+   calling this and condemn_scrollbars_hook will get rid of them.
+
+   If non-zero, this hook should be safe to apply to any frame,
+   whether or not it can support scrollbars, and whether or not it is
+   currently displaying them.  */
 extern void (*judge_scrollbars_hook)( /* FRAME_PTR *FRAME */ );
 
+
+/* Input queue declarations and hooks.  */
 
-
-/* If nonzero, send all terminal output characters to this stream also.  */
-extern FILE *termscript;
+extern int (*read_socket_hook) ();
 
 /* Expedient hack: only provide the below definitions to files that
    are prepared to handle lispy things.  XINT is defined iff lisp.h
@@ -125,8 +191,8 @@ struct input_event {
     no_event,			/* nothing happened.  This should never
 				   actually appear in the event queue.  */
     ascii_keystroke,		/* The ASCII code is in .code.
-				   .frame is the frame in which the key
-				   was typed.
+				   .frame_or_window is the frame in
+				   which the key was typed.
 				   Note that this includes meta-keys, and
 				   the modifiers field of the event
 				   is unused.
@@ -140,8 +206,8 @@ struct input_event {
 				   should feel free to add missing keys.
 				   .modifiers holds the state of the
 				   modifier keys.
-				   .frame is the frame in which the key
-				   was typed.
+				   .frame_or_window is the frame in
+				   which the key was typed.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the keystroke.  */
     mouse_click,		/* The button number is in .code; it must
@@ -151,48 +217,32 @@ struct input_event {
 				   modifier keys.
 				   .x and .y give the mouse position,
 				   in characters, within the window.
-				   .frame gives the frame the mouse
-				   click occurred in.
+				   .frame_or_window gives the frame
+				   the mouse click occurred in.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the click.  */
-
     scrollbar_click,		/* .code gives the number of the mouse button
 				   that was clicked.
 				   .modifiers holds the state of the modifier
 				   keys.
 				   .part is a lisp symbol indicating which
 				   part of the scrollbar got clicked.
-				   .scrollbar is a pointer to the scrollbar
-				   clicked on.  Since redisplay may delete
-				   scrollbars at any time, you may not assume
-				   that this scrollbar still exists when you
-				   dequeue this event.  You have to traverse
-				   the window tree to make it's in a valid
-				   window.
 				   .x gives the distance from the start of the
 				   scroll bar of the click; .y gives the total
 				   length of the scroll bar.
-				   .frame gives the frame the click should
-				   apply to.
+				   .frame_or_window gives the window
+				   whose scrollbar was clicked in.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the click.  */
   } kind;
   
   Lisp_Object code;
   enum scrollbar_part part;
-  struct scrollbar *scrollbar;
 
-/* This is obviously wrong, but I'm not sure what else I should do.
-   Obviously, this should be a FRAME_PTR.  But that would require that
-   every file which #includes this one should also #include "frame.h",
-   which would mean that files like cm.c and other innocents would be
-   dragged into the set of frame.h users.  Maybe the definition of this
-   structure should be elsewhere?  In its own file?  */
-#ifdef MULTI_FRAME
-  struct frame *frame;
-#else
-  int frame;
-#endif
+  /* This field is copied into a vector while the event is in the queue,
+     so that garbage collections won't kill it.  */
+  Lisp_Object frame_or_window;
+
   int modifiers;		/* See enum below for interpretation.  */
 
   Lisp_Object x, y;
