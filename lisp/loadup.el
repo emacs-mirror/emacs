@@ -118,10 +118,10 @@
 (load "window")
 (garbage-collect)
 (load "frame")
+(garbage-collect)
+(load "faces")
 (if (fboundp 'frame-face-alist)
     (progn
-      (garbage-collect)
-      (load "faces")
       (load "facemenu")))
 (if (fboundp 'track-mouse)
     (progn
