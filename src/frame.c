@@ -454,7 +454,7 @@ DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
   XSET (tem, Lisp_Frame, selected_frame);
   return tem;
 }
-
+
 DEFUN ("window-frame", Fwindow_frame, Swindow_frame, 1, 1, 0,
   "Return the frame object that window WINDOW is on.")
   (window)
@@ -520,6 +520,30 @@ If omitted, FRAME defaults to the currently selected frame.")
   return XFRAME (frame)->selected_window;
 }
 
+DEFUN ("set-frame-selected-window", Fset_frame_selected_window,
+       Sset_frame_selected_window, 2, 2, 0,
+  "Set the selected window of frame object FRAME to WINDOW.\n\
+If FRAME is nil, the selected frame is used.\n\
+If FRAME is the selected frame, this makes WINDOW the selected window.")
+  (frame, window)
+     Lisp_Object frame, window;
+{
+  if (NILP (frame))
+    XSET (frame, Lisp_Frame, selected_frame);
+  else
+    CHECK_LIVE_FRAME (frame, 0);
+
+  CHECK_LIVE_WINDOW (window, 1);
+
+  if (! EQ (frame, WINDOW_FRAME (XWINDOW (window))))
+    error ("In `set-frame-selected-window', WINDOW is not on FRAME");
+
+  if (XFRAME (frame) == selected_frame)
+    return Fselect_window (window);
+
+  return XFRAME (frame)->selected_window = window;
+}
+
 DEFUN ("frame-list", Fframe_list, Sframe_list,
        0, 0, 0,
        "Return a list of all frames.")
@@ -1698,6 +1722,7 @@ For values specific to the separate minibuffer frame, see\n\
   defsubr (&Swindow_frame);
   defsubr (&Sframe_root_window);
   defsubr (&Sframe_selected_window);
+  defsubr (&Sset_frame_selected_window);
   defsubr (&Sframe_list);
   defsubr (&Snext_frame);
   defsubr (&Sprevious_frame);
