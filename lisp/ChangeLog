@@ -1,3 +1,8 @@
+2000-03-26  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* emacs-lisp/bytecomp.el (byte-compile-eval): Fix and reenable
+	the code.
+
 2000-03-26  Dave Love  <fx@gnu.org>
 
 	* net/browse-url.el (browse-url): Re-fix case of
@@ -13,6 +18,10 @@
 	* emacs-lisp/lisp-mode.el (lisp-eval-defun): Make arglist
 	compatible with inf-lisp version.
 	(eval-defun-1): Fix custom-declare-variable case.
+
+2000-03-25  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* cus-edit.el (hook): Use `dolist' instead of CL's `mapc'.
 
 2000-03-24  Gerd Moellmann  <gerd@gnu.org>
 
