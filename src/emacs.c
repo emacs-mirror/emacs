@@ -943,6 +943,7 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
 
   init_alloc ();
   init_eval ();
+  init_coding ();
   init_data ();
   running_asynch_code = 0;
 
