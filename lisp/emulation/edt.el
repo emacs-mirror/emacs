@@ -399,7 +399,7 @@ Accepts a positive prefix argument for the number of BOL marks to move."
 ;;;
 
 (defun edt-find-forward (&optional find)
-  "Find first occurance of a string in forward direction and save it."
+  "Find first occurrence of a string in forward direction and save it."
   (interactive)
   (if (not find)
       (set 'search-last-string (read-string "Search forward: ")))
@@ -407,14 +407,14 @@ Accepts a positive prefix argument for the number of BOL marks to move."
       (search-backward search-last-string)))
 
 (defun edt-find-backward (&optional find)
-  "Find first occurance of a string in the backward direction and save it."
+  "Find first occurrence of a string in the backward direction and save it."
   (interactive)
   (if (not find)
       (set 'search-last-string (read-string "Search backward: ")))
   (search-backward search-last-string))
 
 (defun edt-find ()
-  "Find first occurance of string in current direction and save it."
+  "Find first occurrence of string in current direction and save it."
   (interactive)
   (set 'search-last-string (read-string "Search: "))
   (if (equal edt-direction-string edt-forward-string)
@@ -427,7 +427,7 @@ Accepts a positive prefix argument for the number of BOL marks to move."
 ;;;
 
 (defun edt-find-next-forward ()
-  "Find next occurance of a string in forward direction."
+  "Find next occurrence of a string in forward direction."
   (interactive)
   (forward-char 1)
   (if (search-forward search-last-string nil t)
@@ -437,14 +437,14 @@ Accepts a positive prefix argument for the number of BOL marks to move."
         (error "Search failed: \"%s\"." search-last-string))))
 
 (defun edt-find-next-backward ()
-  "Find next occurance of a string in backward direction."
+  "Find next occurrence of a string in backward direction."
   (interactive)
   (if (eq (search-backward search-last-string nil t) nil)
       (progn
         (error "Search failed: \"%s\"." search-last-string))))
 
 (defun edt-find-next ()
-  "Find next occurance of a string in current direction."
+  "Find next occurrence of a string in current direction."
   (interactive)
   (if (equal edt-direction-string edt-forward-string)
       (edt-find-next-forward)
