@@ -3690,7 +3690,8 @@ detect_coding (coding, src, src_bytes)
   Lisp_Object val;
 
   val = Vcoding_category_list;
-  mask = detect_coding_mask (src, src_bytes, coding_priorities, &skip, 0);
+  mask = detect_coding_mask (src, src_bytes, coding_priorities, &skip,
+			     coding->src_multibyte);
   coding->heading_ascii = skip;
 
   if (!mask) return;
@@ -4831,9 +4832,6 @@ code_convert_region (from, from_byte, to, to_byte, coding, encodep, replace)
   int orig_point = PT, orig_len = len;
   int prev_Z;
   int multibyte_p = !NILP (current_buffer->enable_multibyte_characters);
-
-  coding->src_multibyte = replace && multibyte_p;
-  coding->dst_multibyte = multibyte_p;
 
   deletion = Qnil;
   saved_coding_symbol = Qnil;
