@@ -240,8 +240,9 @@ The first character of S should be one of the following:\n\
   (           open-parenthesis.     )   close-parenthesis.\n\
   \"           string quote.         \\   escape.\n\
   $           paired delimiter.     '   expression quote or prefix operator.\n\
-  <           comment starter.      >   comment ender.\n\                  
+  <           comment starter.      >   comment ender.\n\
   /           character-quote.\n\
+\n\
 Only single-character comment start and end sequences are represented thus.\n\
 Two-character sequences are represented as described below.\n\
 The second character of S is the matching parenthesis,\n\
@@ -255,8 +256,8 @@ Defined flags are the characters 1, 2, 3, 4, b, and p.\n\
 \n\
 There can be up to two orthogonal comment sequences. This is to support\n\
 language modes such as C++.  By default, all comment sequences are of style\n\
-a, but you can set the comment sequence style to b (on the second character of a\n\
-comment-start, or the first character of a comment-end sequence) by using\n\
+a, but you can set the comment sequence style to b (on the second character\n\
+of a comment-start, or the first character of a comment-end sequence) using\n\
 this flag:\n\
  b means C is part of comment sequence b.\n\
 \n\
