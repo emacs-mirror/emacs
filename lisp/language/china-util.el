@@ -159,8 +159,7 @@ Return the length of resulting text."
       ;; Chinese GB2312 -> "~{...~}"
       (goto-char (point-min))
       (if (re-search-forward "\\cc" nil t)
-	  (let ((enable-multibyte-characters nil)
-		pos)
+	  (let (pos)
 	    (goto-char (setq pos (match-beginning 0)))
 	    (encode-coding-region pos (point-max) 'iso-2022-7bit)
 	    (goto-char pos)
