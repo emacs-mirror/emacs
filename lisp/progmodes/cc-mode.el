@@ -1,6 +1,6 @@
 ;;; cc-mode.el --- major mode for editing C, C++, Objective-C, and Java code
 
-;; Copyright (C) 1985,1987,1992-2001 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2001,2003 Free Software Foundation, Inc.
 
 ;; Authors:    2000- Martin Stjernholm
 ;;	       1998-1999 Barry A. Warsaw and Martin Stjernholm
@@ -464,7 +464,6 @@ Key bindings:
   (use-local-map c-mode-map)
   (c-common-init 'c-mode)
   (cc-imenu-init cc-imenu-c-generic-expression)
-  (set (make-local-variable 'gud-find-expr) 'gud-find-c-expr)
   (run-hooks 'c-mode-common-hook)
   (run-hooks 'c-mode-hook)
   (c-update-modeline))
