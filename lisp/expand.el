@@ -338,7 +338,7 @@ This variable is local to a buffer.")
 (put 'expand-abbrev-hook 'no-self-insert t)
 (defun expand-abbrev-hook ()
   "Abbrev hook used to do the expansion job of expand abbrevs.
-See `expand-add-abbrevs'."
+See `expand-add-abbrevs'.  Value is non-nil if expansion was done."
   ;; Expand only at the end of a line if we are near a word that has
   ;; an abbrev built from expand-add-abbrev.
   (if (and (eolp)
@@ -364,8 +364,9 @@ See `expand-add-abbrevs'."
 			  expand-pos (expand-list-to-markers expand-list)
 			  expand-list nil)))
 	      (run-hooks 'expand-expand-hook)
-	      t))))
-  )
+	      t)
+	  nil))
+    nil))
 
 (defun expand-do-expansion ()
   (delete-backward-char (length last-abbrev-text))
