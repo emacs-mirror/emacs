@@ -1,3 +1,12 @@
+2005-03-05  Juri Linkov  <juri@jurta.org>
+
+	* emacs.c (USAGE1): Replace Info node name "command arguments"
+	with "emacs invocation".
+	(USAGE3): Fix usage of `--color=MODE' which actually doesn't
+	allow arguments `--color' and `MODE' to be separated by space.
+	Add --no-blinking-cursor, -nbc.
+	(standard_args): Add -nbc, --no-blinking-cursor.
+
 2005-03-04  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* s/vms.h: Define NO_HYPHENS_IN_FILENAMES.

@@ -1,3 +1,9 @@
+2005-03-05  Juri Linkov  <juri@jurta.org>
+
+	* cmdargs.texi (Emacs Invocation): Add cindex
+	"invocation (command line arguments)"
+	(Misc X): Add -nbc, --no-blinking-cursor.
+
 2005-03-04  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar.texi (iCalendar): No need to require it now.

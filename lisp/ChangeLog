@@ -1,3 +1,15 @@
+2005-03-05  Juri Linkov  <juri@jurta.org>
+
+	* frame.el (blink-cursor-mode): Replace `emacs-quick-startup'
+	with `no-blinking-cursor'.
+
+	* startup.el (no-blinking-cursor): New defvar.
+	(command-line): Add `--no-blinking-cursor' to longopts.
+	Set `no-blinking-cursor' to t for command line arguments
+	-Q, -nbc, --no-blinking-cursor.  Replace `emacs-quick-startup'
+	with `no-blinking-cursor' in the condition for calling
+	`blink-cursor-mode'.
+
 2005-03-04  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* menu-bar.el (menu-bar-make-mm-toggle): Doc fix.
