@@ -1,3 +1,8 @@
+2001-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (basic-save-buffer): If a before-write hook displays
+	an echo area message, pause before calling basic-save-buffer-1.
+
 2001-12-29  Markus Rost  <rost@math.ohio-state.edu>
 
 	* textmodes/reftex-global.el (reftex-query-replace-document)

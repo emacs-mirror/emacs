@@ -280,6 +280,9 @@ SQL buffer.
 
 * Lisp Changes in Emacs 21.3
 
+** A hex escape in a string forces the string to be multibyte.
+An octal escape makes it unibyte.
+
 ** The position after an invisible, intangible character
 is considered an unacceptable value for point;
 intangibility processing effectively treats the following character

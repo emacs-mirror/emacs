@@ -1,9 +1,21 @@
+2001-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* print.c (print_object): In multibyte string, use hex escapes.
+	Use octal only for unibyte strings.
+	(PRINTPREPARE): Don't ever set Qprint_escape_nonascii.
+
+	* lread.c (read_escape): New arg BYTEREP for reporting whether
+	escape forces unibyte or multibyte.
+	(read1): When reading a string, take note of that info.
+
 2001-12-29  Ken Raeburn  <raeburn@gnu.org>
 
 	* abbrev.c (Fexpand_abbrev): Use NILP instead of implicit zero
 	comparison to test lisp value returned by Fget.
 
 2001-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* lisp.h (max_specpdl_size): Add declaration.
 
 	* fileio.c (Fdo_auto_save): If NO_MESSAGE, don't call push_message.
 
