@@ -47,3 +47,8 @@
    the internationalization code causes the modifier keys C, M and Shift
    to beep after a mouse click.  */
 #define X11R5_INHIBIT_I18N
+
+/* string.h defines rindex as a macro, at least with native cc, so we
+   lose declaring char * rindex without this.
+   It is just a guess which versions of AIX need this definition.  */
+#undef HAVE_STRING_H
