@@ -2,9 +2,10 @@
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002  Free Software Foundation, Inc.
 
-;; Keywords: multilingual, input method, Cyrillic
+;; Author: TAKAHASHI Naoto <ntakahas@m17n.org>
+;; Keywords: multilingual, input method, Cyrillic, i18n
 
 ;; This file is part of GNU Emacs.
 
@@ -29,9 +30,19 @@
 
 (require 'quail)
 
+;; This was `cyrillic-jcuken'.  Alexander Mikhailian
+;; <mikhailian@altern.org> says:  "cyrillic-jcuken" is actually
+;; russian.  It is ok but a bit outdated.  This layout has been used
+;; in typewriters for ages but it has been superceeded on desktops by
+;; a variation of this layout, implemented in M$ Windows software.
+;; The Windows layout is greatly preferred because of the comma and
+;; period being placed more conviniently and, of course, because of
+;; the popularity of Windows software. This layout is a common option
+;; in X Windows and console layouts for GNU/Linux.  [See
+;; `russian-computer' below.]
 (quail-define-package
- "cyrillic-jcuken" "Cyrillic" ",L69(B" nil
- ",L9FC:5=(B keyboard layout widely used in Russia (ISO 8859-5 encoding)"
+ "cyrillic-typewriter" "Russian" ",L69(B" nil
+ ",L9FC:5=(B Russian typewriter layout."
  nil t t t t nil nil nil nil nil t)
 
 ;;  1! 2" 3' 4* 5: 6, 7. 8; 9( 0) -_ =+ ,L!(B
@@ -96,8 +107,8 @@
  ("^" ?,)
  ("&" ?.)
  ("*" ?\;)
- ("(" ?()
-  (")" ?))
+ ("(" ?\()
+ (")" ?\))
  ("_" ?_)
  ("+" ?+)
  ("~" ?,L!(B)
@@ -134,13 +145,15 @@
  ("M" ?,LL(B)
  ("<" ?,L1(B)
  (">" ?,LN(B)
- ("?" ??))
+ ("?" ?,))
 
-;;
+;; Mikhailian couldn't check the next two.  
 
+;; This seems to have the same layout for letters as mk in XKB, but at
+;; least the top row is different.
 (quail-define-package
  "cyrillic-macedonian" "Cyrillic" ",L6(BM" nil
- ",L)*5@B7(B-,L#,(B keyboard layout based on JUS.I.K1.004 (ISO 8859-5 encoding)"
+ ",L)*5@B7(B-,L#,(B keyboard layout based on JUS.I.K1.004"
  nil t t t t nil nil nil nil nil t)
 
 ;;  1! 2" 3# 4$ 5% 6& 7' 8( 9) 0= /? +* <>
@@ -249,7 +262,7 @@
 
 (quail-define-package
  "cyrillic-serbian" "Cyrillic" ",L6(BS" nil
- ",L)*5@B7(B-,L"+(B keyboard layout based on JUS.I.K1.005 (ISO 8859-5 encoding)"
+ ",L)*5@B7(B-,L"+(B keyboard layout based on JUS.I.K1.005"
  nil t t t t nil nil nil nil nil t)
 
 ;;  1! 2" 3# 4$ 5% 6& 7' 8( 9) 0= /? +* <>
@@ -356,120 +369,126 @@
 
 ;;
 
-(quail-define-package
- "cyrillic-beylorussian" "Belarussian" ",L6(BB" nil
- ",L)*5@B7(B-,L&.(B BEYLORUSSIAN (ISO 8859-5 encoding)"
- nil t t t t nil nil nil nil nil t)
+;; Alexander Mikhailian comments:
+;; Having worked for several years as a Belarusian linguist, I still
+;; can not find the origin of this layout which BTW does include
+;; several characters that are not present in Belarusian and does not
+;; include a few ones that do exist in Belarusian.  Besides, the typo
+;; in the name of this layout speaks for itself since Belarusian has
+;; an outdated version of spelling which is "Byelorussian" and not
+;; "beylorussian".  I suggest that you just remove this layout.
 
-;;  1! 2" 3# 4$ 5% 6& 7' 8( 9) 0= /? +* <>
-;;   ,L)(B  ,L*(B  ,L5(B  ,L@(B  ,LB(B  ,L7(B  ,LC(B  ,L8(B  ,L>(B  ,L?(B  ,LH(B  ,L&(B
-;;    ,L0(B  ,LA(B  ,L4(B  ,LD(B  ,L3(B  ,LE(B  ,L((B  ,L:(B  ,L;(B  ,LG(B  ,L.(B  ,L6(B
-;;     ,L%(B  ,L/(B  ,LF(B  ,L2(B  ,L1(B  ,L=(B  ,L<(B  ,; .: -_
+;; [`derived from JUS.I.K1' according to an old Mule note -- fx]
 
-(quail-define-rules
- ("1" ?1)
- ("2" ?2)
- ("3" ?3)
- ("4" ?4)
- ("5" ?5)
- ("6" ?6)
- ("7" ?7)
- ("8" ?8)
- ("9" ?9)
- ("0" ?0)
- ("-" ?/)
- ("=" ?+)
- ("`" ?<)
- ("q" ?,Ly(B)
- ("w" ?,Lz(B)
- ("e" ?,LU(B)
- ("r" ?,L`(B)
- ("t" ?,Lb(B)
- ("y" ?,LW(B)
- ("u" ?,Lc(B)
- ("i" ?,LX(B)
- ("o" ?,L^(B)
- ("p" ?,L_(B)
- ("[" ?,Lh(B)
- ("]" ?,Lv(B)
- ("a" ?,LP(B)
- ("s" ?,La(B)
- ("d" ?,LT(B)
- ("f" ?,Ld(B)
- ("g" ?,LS(B)
- ("h" ?,Le(B)
- ("j" ?,Lx(B)
- ("k" ?,LZ(B)
- ("l" ?,L[(B)
- (";" ?,Lg(B)
- ("'" ?,L~(B)
- ("\\" ?,LV(B)
- ("z" ?,Lu(B)
- ("x" ?,L(B)
- ("c" ?,Lf(B)
- ("v" ?,LR(B)
- ("b" ?,LQ(B)
- ("n" ?,L](B)
- ("m" ?,L\(B)
- ("," ?,)
- ("." ?.)
- ("/" ?-)
+;; (quail-define-package
+;;  "cyrillic-beylorussian" "Belarussian" ",L6(BB" nil
+;;  ",L)*5@B7(B-,L&.(B BEYLORUSSIAN (ISO 8859-5 encoding)"
+;;  nil t t t t nil nil nil nil nil t)
+
+;; ;;  1! 2" 3# 4$ 5% 6& 7' 8( 9) 0= /? +* <>
+;; ;;   ,L)(B  ,L*(B  ,L5(B  ,L@(B  ,LB(B  ,L7(B  ,LC(B  ,L8(B  ,L>(B  ,L?(B  ,LH(B  ,L&(B
+;; ;;    ,L0(B  ,LA(B  ,L4(B  ,LD(B  ,L3(B  ,LE(B  ,L((B  ,L:(B  ,L;(B  ,LG(B  ,L.(B  ,L6(B
+;; ;;     ,L%(B  ,L/(B  ,LF(B  ,L2(B  ,L1(B  ,L=(B  ,L<(B  ,; .: -_
+
+;; (quail-define-rules
+;;  ("-" ?/)
+;;  ("=" ?+)
+;;  ("`" ?<)
+;;  ("q" ?,Ly(B)
+;;  ("w" ?,Lz(B)
+;;  ("e" ?,LU(B)
+;;  ("r" ?,L`(B)
+;;  ("t" ?,Lb(B)
+;;  ("y" ?,LW(B)
+;;  ("u" ?,Lc(B)
+;;  ("i" ?,LX(B)
+;;  ("o" ?,L^(B)
+;;  ("p" ?,L_(B)
+;;  ("[" ?,Lh(B)
+;;  ("]" ?,Lv(B)
+;;  ("a" ?,LP(B)
+;;  ("s" ?,La(B)
+;;  ("d" ?,LT(B)
+;;  ("f" ?,Ld(B)
+;;  ("g" ?,LS(B)
+;;  ("h" ?,Le(B)
+;;  ("j" ?,Lx(B)
+;;  ("k" ?,LZ(B)
+;;  ("l" ?,L[(B)
+;;  (";" ?,Lg(B)
+;;  ("'" ?,L~(B)
+;;  ("\\" ?,LV(B)
+;;  ("z" ?,Lu(B)
+;;  ("x" ?,L(B)
+;;  ("c" ?,Lf(B)
+;;  ("v" ?,LR(B)
+;;  ("b" ?,LQ(B)
+;;  ("n" ?,L](B)
+;;  ("m" ?,L\(B)
+;;  ("/" ?-)
  
- ("!" ?!)
- ("@" ?\")
- ("#" ?#)
- ("$" ?$)
- ("%" ?%)
- ("^" ?&)
- ("&" ?')
- ("*" ?\()
- ("(" ?\))
- (")" ?=)
- ("_" ??)
- ("+" ?*)
- ("~" ?>)
- ("Q" ?,L)(B)
- ("W" ?,L*(B)
- ("E" ?,L5(B)
- ("R" ?,L@(B)
- ("T" ?,LB(B)
- ("Y" ?,L7(B)
- ("U" ?,LC(B)
- ("I" ?,L8(B)
- ("O" ?,L>(B)
- ("P" ?,L?(B)
- ("{" ?,LH(B)
- ("}" ?,L&(B)
- ("A" ?,L0(B)
- ("S" ?,LA(B)
- ("D" ?,L4(B)
- ("F" ?,LD(B)
- ("G" ?,L3(B)
- ("H" ?,LE(B)
- ("J" ?,L((B)
- ("K" ?,L:(B)
- ("L" ?,L;(B)
- (":" ?,LG(B)
- ("\"" ?,L.(B)
- ("|" ?,L6(B)
- ("Z" ?,L%(B)
- ("X" ?,L/(B)
- ("C" ?,LF(B)
- ("V" ?,L2(B)
- ("B" ?,L1(B)
- ("N" ?,L=(B)
- ("M" ?,L<(B)
- ("<" ?\;)
- (">" ?:)
- ("?" ?_))
+;;  ("@" ?\")
+;;  ("^" ?&)
+;;  ("&" ?')
+;;  ("*" ?\()
+;;  ("(" ?\))
+;;  (")" ?=)
+;;  ("_" ??)
+;;  ("+" ?*)
+;;  ("~" ?>)
+;;  ("Q" ?,L)(B)
+;;  ("W" ?,L*(B)
+;;  ("E" ?,L5(B)
+;;  ("R" ?,L@(B)
+;;  ("T" ?,LB(B)
+;;  ("Y" ?,L7(B)
+;;  ("U" ?,LC(B)
+;;  ("I" ?,L8(B)
+;;  ("O" ?,L>(B)
+;;  ("P" ?,L?(B)
+;;  ("{" ?,LH(B)
+;;  ("}" ?,L&(B)
+;;  ("A" ?,L0(B)
+;;  ("S" ?,LA(B)
+;;  ("D" ?,L4(B)
+;;  ("F" ?,LD(B)
+;;  ("G" ?,L3(B)
+;;  ("H" ?,LE(B)
+;;  ("J" ?,L((B)
+;;  ("K" ?,L:(B)
+;;  ("L" ?,L;(B)
+;;  (":" ?,LG(B)
+;;  ("\"" ?,L.(B)
+;;  ("|" ?,L6(B)
+;;  ("Z" ?,L%(B)
+;;  ("X" ?,L/(B)
+;;  ("C" ?,LF(B)
+;;  ("V" ?,L2(B)
+;;  ("B" ?,L1(B)
+;;  ("N" ?,L=(B)
+;;  ("M" ?,L<(B)
+;;  ("<" ?\;)
+;;  (">" ?:)
+;;  ("?" ?_))
 
 ;;
 
+;; Alexander Mikhailian reports the opinion of fellow Ukrainian
+;; linguist Bogdan Babych <babych@altern.org>:
+;; He had seen this layout on some oldish systems but that the vast
+;; majority of the population uses a modified version of the M$ Windows
+;; layout.  In fact, Microsoft shipped for a while a layout that was lacking
+;; two characters, precisely the "GHE_WITH_UPTURN" and the apostrophe.  The
+;; latest versions of Windows software do have the "GHE_WITH_UPTURN" in the
+;; ukrainian keyborad layout but the apostrophe is still not there, whereas
+;; there is one letter, "Cyrillic_YO", not used in ukrainian.  Ukrainians
+;; normally replace the "Cyrillic_YO" by the apostrophe sign and live
+;; happily with this little change.  [See "ukrainian-computer" below.]
+
+;; Fixme: add GHE_WITH_UPTURN.
 (quail-define-package 
  "cyrillic-ukrainian" "Ukrainian" ",L6(BU" nil
- ",L$'5@B7(B-,L&.(B UKRAINIAN (ISO 8859-5 encoding)
-
-Sorry, but 'ghe with upturn' is not included in ISO 8859-5"
+ ",L$'5@B7(B-,L&.(B UKRAINIAN"
  nil t t t t nil nil nil nil nil t)
 
 ;;  1! 2" 3# 4$ 5% 6& 7' 8( 9) 0= /? +* <>
@@ -574,13 +593,123 @@ Sorry, but 'ghe with upturn' is not included in ISO 8859-5"
  (">" ?:)
  ("?" ?_))
 
+
+(quail-define-package
+ "ukrainian-computer" "Ukrainian" "UK" nil
+ ",L9FC:5=(B Ukrainian."
+ nil t t t t nil nil nil nil nil t)
+
+;;  ' 1! 2" 3,Lp(B 4; 5% 6: 7? 8* 9( 0) -_ =+
+;;   ,L9(B  ,LF(B  ,LC(B  ,L:(B  ,L5(B  ,L=(B  ,L3(B  ,LH(B  ,LI(B  ,L7(B  ,LE(B  ,L'(B
+;;    ,LD(B  ,L&(B  ,L2(B  ,L0(B  ,L?(B  ,L@(B  ,L>(B  ,L;(B  ,L4(B  ,L6(B  ,L$(B  $,1)P(B
+;;      ,LO(B  ,LG(B  ,LA(B  ,L<(B  ,L8(B  ,LB(B  ,LL(B  ,L1(B  ,LN(B  .,
+
+(quail-define-rules
+ ("1" ?1)
+ ("2" ?2)
+ ("3" ?3)
+ ("4" ?4)
+ ("5" ?5)
+ ("6" ?6)
+ ("7" ?7)
+ ("8" ?8)
+ ("9" ?9)
+ ("0" ?0)
+ ("-" ?-)
+ ("=" ?=)
+ ("`" ?')
+ ("q" ?,LY(B)
+ ("w" ?,Lf(B)
+ ("e" ?,Lc(B)
+ ("r" ?,LZ(B)
+ ("t" ?,LU(B)
+ ("y" ?,L](B)
+ ("u" ?,LS(B)
+ ("i" ?,Lh(B)
+ ("o" ?,Li(B)
+ ("p" ?,LW(B)
+ ("[" ?,Le(B)
+ ("]" ?,Lw(B)
+ ("a" ?,Ld(B)
+ ("s" ?,Lv(B)
+ ("d" ?,LR(B)
+ ("f" ?,LP(B)
+ ("g" ?,L_(B)
+ ("h" ?,L`(B)
+ ("j" ?,L^(B)
+ ("k" ?,L[(B)
+ ("l" ?,LT(B)
+ (";" ?,LV(B)
+ ("'" ?,Lt(B)
+;;  ("\\" ?\\)
+ ("z" ?,Lo(B)
+ ("x" ?,Lg(B)
+ ("c" ?,La(B)
+ ("v" ?,L\(B)
+ ("b" ?,LX(B)
+ ("n" ?,Lb(B)
+ ("m" ?,Ll(B)
+ ("," ?,LQ(B)
+ ("." ?,Ln(B)
+ ("/" ?.)
+;;  ("!" ?!)
+ ("@" ?\")
+ ("#" ?,Lp(B)
+ ("$" ?\;)
+;;  ("%" ?%)
+ ("^" ?:)
+ ("&" ??)
+;;  ("*" ?*)
+;;  ("(" ?()
+;;  (")" ?))
+;;  ("_" ?_)
+;;  ("+" ?+)
+ ("~" ?')
+ ("Q" ?,L9(B)
+ ("W" ?,LF(B)
+ ("E" ?,LC(B)
+ ("R" ?,L:(B)
+ ("T" ?,L5(B)
+ ("Y" ?,L=(B)
+ ("U" ?,L3(B)
+ ("I" ?,LH(B)
+ ("O" ?,LI(B)
+ ("P" ?,L7(B)
+ ("{" ?,LE(B)
+ ("}" ?,L'(B)
+ ("A" ?,LD(B)
+ ("S" ?,L&(B)
+ ("D" ?,L2(B)
+ ("F" ?,L0(B)
+ ("G" ?,L?(B)
+ ("H" ?,L@(B)
+ ("J" ?,L>(B)
+ ("K" ?,L;(B)
+ ("L" ?,L4(B)
+ (":" ?,L6(B)
+ ("\"" ?,L$(B)
+ ("Z" ?,LO(B)
+ ("X" ?,LG(B)
+ ("C" ?,LA(B)
+ ("V" ?,L<(B)
+ ("B" ?,L8(B)
+ ("N" ?,LB(B)
+ ("M" ?,LL(B)
+ ("<" ?,L1(B)
+ (">" ?,LN(B)
+ ("?" ?,)
+ ("\\" ?$,1)Q(B)
+ ("|" ?$,1)P(B))
 ;;
 
+;; Alexander Mikhailian says this is of limited use.  It has been
+;; popular among emigrants or foreigners who have to type in Cyrillic
+;; (mostly Russian) from time to time.
 (quail-define-package 
  "cyrillic-yawerty" "Cyrillic" ",L6O(B" nil
- ",LO25@BK(B Roman transcription (ISO 8859-5 encoding)
+ ",LO25@BK(B Roman transcription.
 
-This layout is based on Roman transcription.
+This layout is based on Roman transcription by phonemic resemblance.
 When preceded by a '/', the second and the third rows (number key row) change
 as follows.
 
@@ -726,10 +855,19 @@ as follows.
 
 ;; This was provided by Valery Alexeev <valery@domovoy.math.uga.edu>.
 
+;; Ognyan Kulev <ogi@fmi.uni-sofia.bg> wrote:
+
+;; I would suggest future `cyrillic-translit' to be with the
+;; modification of `cyrillic-translit-bulgarian' applied and the
+;; latter to disappear.  It could be used by people who write
+;; bulgarian e-mails with latin letters for kick start (phonetic input
+;; method is not so obvious as translit input method but each letter
+;; is one keypress and a *lot* of people know it).
+
 (quail-define-package
  "cyrillic-translit" "Cyrillic" ",L6(Bt" nil
  "Intuitively transliterated keyboard layout.
-Most convenient for entering Russian but all cyrillic characters are included.
+Most convenient for entering Russian but all Cyrillic characters are included.
 Should handle most cases. However:
   for ,Lf(B (TSE) use \"c\", never \"ts\"
   ,Li(B (SHCHA = Bulgarian SHT) = \"shch\", \"sj\", \"/sht\" or \"/t\",
@@ -743,7 +881,7 @@ Russian alphabet: a b v=w g d e yo=jo zh z i j=j' k l m n o p r s t
 u f h=kh=x c ch sh shch=sj=/s=/sht ~ y ' e' yu=ju ya=ja=q
 
 Also included are Ukrainian ,Lt(B (YE) = \"/e\" and ,Lw(B (YI) = \"yi\", 
-Belorussian ,L~(B (SHORT U) = \"u'\",
+Belarusian ,L~(B (SHORT U) = \"u'\",
 Serbo-Croatian ,Lr(B (DJE) = \"/d\", ,L{(B (CHJE)= \"/ch\", 
 Macedonian ,Ls(B (GJE) = \"/g\", ,Lu(B (DZE) = \"/s\", ,L|(B (KJE) = \"/k\",
 cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\", 
@@ -792,125 +930,63 @@ cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\",
  ("/I" ?,L&(B) ("/J" ?,L((B) ("/L" ?,L)(B) ("/N" ?,L*(B) ("/Z" ?,L/(B)
 )
 
+;; Originally from Yudit's `Belarusian input table according to
+;; STB955-94 belarusian standard' by Alexander Mikhailian
+;; <mikhailian@altern.org>, subsequently amended by AM.
 (quail-define-package
- "cyrillic-translit-bulgarian" "Bulgarian" ",L6(Btb" nil
- "Intuitively transliterated keyboard layout optimized for Bulgarian.
-The only difference with cyrillic-translit is that \"sht\" translates as
-,Li(B (SHCHA = Bulgarian SHT) insteat of ,Lhb(B (SH+T)."
+ "belarusian" "Belarusian" "BE" nil
+ ",L9FC:5=(B keyboard layout registered as STB955-94 Belarusian standard."
  nil t t t t nil nil nil nil nil t)
 
-(quail-define-rules
- ("a" ?,LP(B)("b" ?,LQ(B) ("v" ?,LR(B) ("w" ?,LR(B) ("g" ?,LS(B) ("d" ?,LT(B) 
- ("e" ?,LU(B) ("je" ?,LU(B) 
- ("yo" ?,Lq(B) ("jo" ?,Lq(B)
- ("zh" ?,LV(B) ("z" ?,LW(B) ("i" ?,LX(B) 
- ("j" ?,LY(B) ("j'" ?,LY(B) ("j`" ?,LY(B) ("k" ?,LZ(B) ("l" ?,L[(B)
- ("m" ?,L\(B) ("n" ?,L](B) ("o" ?,L^(B) ("p" ?,L_(B) ("r" ?,L`(B) ("s" ?,La(B) ("t" ?,Lb(B) ("u" ?,Lc(B)
- ("f" ?,Ld(B) ("x" ?,Le(B) ("h" ?,Le(B) ("kh" ?,Le(B)
- ("c" ?,Lf(B) ("ch" ?,Lg(B)
- ("sh" ?,Lh(B) 
- ("shch" ?,Li(B) ("sj" ?,Li(B) 
- ("/sht" ?,Li(B) ("/t" ?,Li(B) ("sht" ?,Li(B)
- ("~" ?,Lj(B) ("y" ?,Lk(B) ("'" ?,Ll(B) ("`" ?,Ll(B) 
- ("e'" ?,Lm(B) ("e`" ?,Lm(B) ("@" ?,Lm(B) 
- ("yu" ?,Ln(B) ("ju" ?,Ln(B) 
- ("ya" ?,Lo(B) ("ja" ?,Lo(B) ("q" ?,Lo(B)
-
- ("A" ?,L0(B) ("B" ?,L1(B) ("V" ?,L2(B) ("W" ?,L2(B) ("G" ?,L3(B) ("D" ?,L4(B) 
- ("E" ?,L5(B) ("Je" ?,L5(B) ("JE" ?,L5(B)
- ("Yo" ?,L!(B) ("YO" ?,L!(B) ("Jo" ?,L!(B) ("JO" ?,L!(B) 
- ("Zh" ?,L6(B) ("ZH" ?,L6(B) ("Z" ?,L7(B) ("I" ?,L8(B) 
- ("J" ?,L9(B) ("J'" ?,L9(B) ("J`" ?,L9(B) ("K" ?,L:(B) ("L" ?,L;(B)
- ("M" ?,L<(B) ("N" ?,L=(B) ("O" ?,L>(B) ("P" ?,L?(B) ("R" ?,L@(B) ("S" ?,LA(B) ("T" ?,LB(B) ("U" ?,LC(B)
- ("F" ?,LD(B) ("X" ?,LE(B) ("H" ?,LE(B) ("Kh" ?,LE(B) ("KH" ?,LE(B)
- ("C" ?,LF(B) ("Ch" ?,LG(B) ("CH" ?,LG(B) 
- ("Sh" ?,LH(B) ("SH" ?,LH(B) 
- ("Shch" ?,LI(B) ("SHCH" ?,LI(B) ("Sj" ?,LI(B) ("SJ" ?,LI(B) 
- ("/Sht" ?,LI(B) ("/SHT" ?,LI(B) ("/T" ?,LI(B) ("Sht" ?,LI(B) ("SHT" ?,LI(B) 
- ("~~" ",LJ(B") ("Y" ?,LK(B) ("''" ",LL(B") ("E'" ?,LM(B) ("E`" ?,LM(B) 
- ("Yu" ?,LN(B) ("YU" ?,LN(B) ("Ju" ?,LN(B) ("JU" ?,LN(B) 
- ("Ya" ?,LO(B) ("YA" ?,LO(B) ("Ja" ?,LO(B) ("JA" ?,LO(B) ("Q" ?,LO(B)
-
- ("/e" ?,Lt(B) ("yi" ?,Lw(B) ("u'" ?,L~(B)
- ("/d" ?,Lr(B) ("/ch" ?,L{(B)
- ("/g" ?,Ls(B) ("/s" ?,Lu(B) ("/k" ?,L|(B)
- ("/i" ?,Lv(B) ("/j" ?,Lx(B) ("/l" ?,Ly(B) ("/n" ?,Lz(B) ("/z" ?,L(B)
- ("/E" ?,L$(B) ("YE" ?,L$(B) ("Yi" ?,L'(B) ("YI" ?,L'(B) ("U'" ?,L.(B) 
- ("/D" ?,L"(B) ("/Ch" ?,L+(B) ("/CH" ?,L+(B)
- ("/G" ?,L#(B) ("/S" ?,L%(B) ("/K" ?,L,(B) 
- ("/I" ?,L&(B) ("/J" ?,L((B) ("/L" ?,L)(B) ("/N" ?,L*(B) ("/Z" ?,L/(B)
-)
-
-;; From Yudit's `Belarusian input table according to STB955-94
-;; belarusian standard'.  Alexander Mikhailian <mikhailian@altern.org>
-(quail-define-package
- "belarusian" "Belarusian" "$,1(v(B" ; fixme
- nil
- "Belarusian STB955-94 input, producing Unicode"
- nil t t t t nil nil nil nil nil t)
+;; ,Lq!(B 1! 2" 3N 4; 5% 6: 7? 8* 9( 0) -_ =+
+;;     ,L9(B  ,LF(B  ,LC(B  ,L:(B  ,L5(B  ,L=(B  ,L3(B  ,LH(B  ,L.(B ,L7(B  ,LE(B  '
+;;      ,LD(B  ,LK(B  ,L2(B  ,L0(B  ,L?(B  ,L@(B  ,L>(B  ,L;(B  ,L4(B ,L6(B  ,LM(B
+;;       ,LO(B  ,LG(B  ,LA(B  ,L<(B  ,L&(B  ,LB(B  ,LL(B  ,L1(B  ,LN(B  .,
 
 (quail-define-rules
- ("<<" ?,A+(B)
- (">>" ?,A;(B)
- (",," ?$,1r}(B)
- ("``" ?$,1r|(B)
- ("C)" ?,A)(B)
- ("x)" ?$,1s"(B)
- (":)" ?$,2#:(B)
- (":(" ?$,2#9(B)
- ("C-" ?,A$(B)
- ("E-" ?$,1tL(B)
- ("L-" ?,A#(B)
-
- ("~" ?$,1(!(B)
- ("!" ?!)
+ ("~" ?,L!(B)
  ("@" ?\")
- ("#" ?$,1uV(B)
+ ("#" ?,Lp(B)
  ("$" ?\;)
  ("%" ?%)
  ("^" ?:)
  ("&" ??)
- ("*" ?*)
- ("(" ?\()
- (")" ?\))
- ("_" ?_)
- ("+" ?+)
- ("Q" ?$,1(9(B)
- ("W" ?$,1(F(B)
- ("E" ?$,1(C(B)
- ("R" ?$,1(:(B)
- ("T" ?$,1(5(B)
- ("Y" ?$,1(=(B)
- ("U" ?$,1(3(B)
- ("I" ?$,1(H(B)
- ("O" ?$,1(.(B)
- ("P" ?$,1(7(B)
- ("{" ?$,1(E(B)
+ ("Q" ?,L9(B)
+ ("W" ?,LF(B)
+ ("E" ?,LC(B)
+ ("R" ?,L:(B)
+ ("T" ?,L5(B)
+ ("Y" ?,L=(B)
+ ("U" ?,L3(B)
+ ("I" ?,LH(B)
+ ("O" ?,L.(B)
+ ("P" ?,L7(B)
+ ("{" ?,LE(B)
  ("}" ?')
- ("A" ?$,1(D(B)
- ("S" ?$,1(K(B)
- ("D" ?$,1(2(B)
- ("F" ?$,1(0(B)
- ("G" ?$,1(?(B)
- ("H" ?$,1(@(B)
- ("J" ?$,1(>(B)
- ("K" ?$,1(;(B)
- ("L" ?$,1(4(B)
- (":" ?$,1(6(B)
- ("\"" ?$,1(M(B)
- ("|" ?/)
- ("Z" ?$,1(O(B)
- ("X" ?$,1(G(B)
- ("C" ?$,1(A(B)
- ("V" ?$,1(<(B)
- ("B" ?$,1(&(B)
- ("N" ?$,1(B(B)
- ("M" ?$,1(L(B)
- ("<" ?$,1(1(B)
- (">" ?$,1(N(B)
+ ("A" ?,LD(B)
+ ("S" ?,LK(B)
+ ("D" ?,L2(B)
+ ("F" ?,L0(B)
+ ("G" ?,L?(B)
+ ("H" ?,L@(B)
+ ("J" ?,L>(B)
+ ("K" ?,L;(B)
+ ("L" ?,L4(B)
+ (":" ?,L6(B)
+ ("\"" ?,LM(B)
+ ("|" ?|)
+ ("Z" ?,LO(B)
+ ("X" ?,LG(B)
+ ("C" ?,LA(B)
+ ("V" ?,L<(B)
+ ("B" ?,L&(B)
+ ("N" ?,LB(B)
+ ("M" ?,LL(B)
+ ("<" ?,L1(B)
+ (">" ?,LN(B)
  ("?" ?,)
 
- ("`" ?$,1(q(B)
+ ("`" ?,Lq(B)
  ("1" ?1)
  ("2" ?2)
  ("3" ?3)
@@ -923,76 +999,40 @@ The only difference with cyrillic-translit is that \"sht\" translates as
  ("0" ?0)
  ("-" ?-)
  ("=" ?=)
- ("q" ?$,1(Y(B)
- ("w" ?$,1(f(B)
- ("e" ?$,1(c(B)
- ("r" ?$,1(Z(B)
- ("t" ?$,1(U(B)
- ("y" ?$,1(](B)
- ("u" ?$,1(S(B)
- ("i" ?$,1(h(B)
- ("o" ?$,1(~(B)
- ("p" ?$,1(W(B)
- ("[" ?$,1(e(B)
+ ("q" ?,LY(B)
+ ("w" ?,Lf(B)
+ ("e" ?,Lc(B)
+ ("r" ?,LZ(B)
+ ("t" ?,LU(B)
+ ("y" ?,L](B)
+ ("u" ?,LS(B)
+ ("i" ?,Lh(B)
+ ("o" ?,L~(B)
+ ("p" ?,LW(B)
+ ("[" ?,Le(B)
  ("]" ?')
- ("a" ?$,1(d(B)
- ("s" ?$,1(k(B)
- ("d" ?$,1(R(B)
- ("f" ?$,1(P(B)
- ("g" ?$,1(_(B)
- ("h" ?$,1(`(B)
- ("j" ?$,1(^(B)
- ("k" ?$,1([(B)
- ("l" ?$,1(T(B)
- (";" ?$,1(V(B)
- ("'" ?$,1(m(B)
+ ("a" ?,Ld(B)
+ ("s" ?,Lk(B)
+ ("d" ?,LR(B)
+ ("f" ?,LP(B)
+ ("g" ?,L_(B)
+ ("h" ?,L`(B)
+ ("j" ?,L^(B)
+ ("k" ?,L[(B)
+ ("l" ?,LT(B)
+ (";" ?,LV(B)
+ ("'" ?,Lm(B)
  ("\\" ?\\)
- ("z" ?$,1(o(B)
- ("x" ?$,1(g(B)
- ("c" ?$,1(a(B)
- ("v" ?$,1(\(B)
- ("b" ?$,1(v(B)
- ("n" ?$,1(b(B)
- ("m" ?$,1(l(B)
- ("," ?$,1(Q(B)
- ("." ?$,1(n(B)
- ("/" ?.)
-
- ("D-" ?$,1("(B)
- ("G'" ?$,1(#(B)
- ("E>" ?$,1($(B)
- ("Z>" ?$,1(%(B)
- ("I/ " ?$,1(8(B)
- ("I:" ?$,1('(B)
- ("J<" ?$,1(((B)
- ("L>" ?$,1()(B)
- ("N>" ?$,1(*(B)
- ("C'" ?$,1(+(B)
- ("K'" ?$,1(,(B)
- ("D>" ?$,1(/(B)
-
- ("d-" ?$,1(r(B)
- ("g'" ?$,1(s(B)
- ("e>" ?$,1(t(B)
- ("z>" ?$,1(u(B)
- ("i/ " ?$,1(X(B)
- ("i:" ?$,1(w(B)
- ("j<" ?$,1(x(B)
- ("l>" ?$,1(y(B)
- ("c'" ?$,1({(B)
- ("k'" ?$,1(|(B)
- ("d>" ?$,1((B)
-
- ("G`" ?$,1)P(B)
- ("g`" ?$,1)Q(B)
- ("E<" ?$,1)"(B)
- ("e<" ?$,1)#(B)
- ("A<" ?$,1)*(B)
- ("a<" ?$,1)+(B)
- ("F`" ?$,1)2(B)
- ("f`" ?$,1)3(B)
- ("Y`" ?$,1)4(B)
- ("y`" ?$,1)5(B))
+ ("z" ?,Lo(B)
+ ("x" ?,Lg(B)
+ ("c" ?,La(B)
+ ("v" ?,L\(B)
+ ("b" ?,Lv(B)
+ ("n" ?,Lb(B)
+ ("m" ?,Ll(B)
+ ("," ?,LQ(B)
+ ("." ?,Ln(B)
+ ("/" ?.))
 
 ;; From `Bulgarian-PHO.kmap for Yudit', Alexander Shopov
 ;; <al_shopov@web.bg>.
@@ -1001,79 +1041,162 @@ The only difference with cyrillic-translit is that \"sht\" translates as
 ;; (cyrillic-iso8859-5) implementation by Ognyan Kulev
 ;; <ogi@fmi.uni-sofia.bg>.
 (quail-define-package
- "bulgarian-pho" "Bulgarian" "$,1(6(1(D(B"
+ "bulgarian-pho" "Bulgarian" ",L61D(B"
  nil
- "Bulgarian Phonetic keyboard layout, producing Unicode
+ "Bulgarian Phonetic keyboard layout.
 
 The layout is similar to `cyrillic-translit', but all Bulgarian
-characters are typed with a single key."
+characters are typed with a single key.
+
+Use /& for ,A'(B (Cyrillic paragraph) and /# for ,Lp(B."
  nil t t t t nil nil nil nil nil t)
 
-;;   $,1(O(B  $,1(2(B  $,1(5(B  $,1(@(B  $,1(B(B  $,1(J(B  $,1(C(B  $,1(8(B  $,1(>(B  $,1(?(B  $,1(H(B  $,1(I(B
-;;    $,1(0(B  $,1(A(B  $,1(4(B  $,1(D(B  $,1(3(B  $,1(E(B  $,1(9(B  $,1(:(B  $,1(;(B        $,1(G(B
-;;  $,1(N(B  $,1(7(B  $,1(L(B  $,1(F(B  $,1(6(B  $,1(1(B  $,1(=(B  $,1(<(B
+;;   ,LO(B  ,L2(B  ,L5(B  ,L@(B  ,LB(B  ,LJ(B  ,LC(B  ,L8(B  ,L>(B  ,L?(B  ,LH(B  ,LI(B
+;;    ,L0(B  ,LA(B  ,L4(B  ,LD(B  ,L3(B  ,LE(B  ,L9(B  ,L:(B  ,L;(B        ,LG(B
+;;  ,LN(B  ,L7(B  ,LL(B  ,LF(B  ,L6(B  ,L1(B  ,L=(B  ,L<(B
 
 (quail-define-rules
- ("A" ?$,1(0(B)
- ("B" ?$,1(1(B)
- ("W" ?$,1(2(B)
- ("G" ?$,1(3(B)
- ("D" ?$,1(4(B)
- ("E" ?$,1(5(B)
- ("V" ?$,1(6(B)
- ("Z" ?$,1(7(B)
- ("I" ?$,1(8(B)
- ("J" ?$,1(9(B)
- ("K" ?$,1(:(B)
- ("L" ?$,1(;(B)
- ("M" ?$,1(<(B)
- ("N" ?$,1(=(B)
- ("O" ?$,1(>(B)
- ("P" ?$,1(?(B)
- ("R" ?$,1(@(B)
- ("S" ?$,1(A(B)
- ("T" ?$,1(B(B)
- ("U" ?$,1(C(B)
- ("F" ?$,1(D(B)
- ("H" ?$,1(E(B)
- ("C" ?$,1(F(B)
- ("~" ?$,1(G(B)
- ("{" ?$,1(H(B)
- ("}" ?$,1(I(B)
- ("Y" ?$,1(J(B)
- ("X" ?$,1(L(B)
- ("|" ?$,1(N(B)
- ("Q" ?$,1(O(B)
- ("a" ?$,1(P(B)
- ("b" ?$,1(Q(B)
- ("w" ?$,1(R(B)
- ("g" ?$,1(S(B)
- ("d" ?$,1(T(B)
- ("e" ?$,1(U(B)
- ("v" ?$,1(V(B)
- ("z" ?$,1(W(B)
- ("i" ?$,1(X(B)
- ("j" ?$,1(Y(B)
- ("k" ?$,1(Z(B)
- ("l" ?$,1([(B)
- ("m" ?$,1(\(B)
- ("n" ?$,1(](B)
- ("o" ?$,1(^(B)
- ("p" ?$,1(_(B)
- ("r" ?$,1(`(B)
- ("s" ?$,1(a(B)
- ("t" ?$,1(b(B)
- ("u" ?$,1(c(B)
- ("f" ?$,1(d(B)
- ("h" ?$,1(e(B)
- ("c" ?$,1(f(B)
- ("`" ?$,1(g(B)
- ("[" ?$,1(h(B)
- ("]" ?$,1(i(B)
- ("y" ?$,1(j(B)
- ("x" ?$,1(l(B)
- ("\\" ?$,1(n(B)
- ("q" ?$,1(o(B))
+ ("/&" ?,A'(B)
+ ("/#" ?,Lp(B)
+ ("A" ?,L0(B)
+ ("B" ?,L1(B)
+ ("W" ?,L2(B)
+ ("G" ?,L3(B)
+ ("D" ?,L4(B)
+ ("E" ?,L5(B)
+ ("V" ?,L6(B)
+ ("Z" ?,L7(B)
+ ("I" ?,L8(B)
+ ("J" ?,L9(B)
+ ("K" ?,L:(B)
+ ("L" ?,L;(B)
+ ("M" ?,L<(B)
+ ("N" ?,L=(B)
+ ("O" ?,L>(B)
+ ("P" ?,L?(B)
+ ("R" ?,L@(B)
+ ("S" ?,LA(B)
+ ("T" ?,LB(B)
+ ("U" ?,LC(B)
+ ("F" ?,LD(B)
+ ("H" ?,LE(B)
+ ("C" ?,LF(B)
+ ("~" ?,LG(B)
+ ("{" ?,LH(B)
+ ("}" ?,LI(B)
+ ("Y" ?,LJ(B)
+ ("X" ?,LL(B)
+ ("|" ?,LN(B)
+ ("Q" ?,LO(B)
+ ("a" ?,LP(B)
+ ("b" ?,LQ(B)
+ ("w" ?,LR(B)
+ ("g" ?,LS(B)
+ ("d" ?,LT(B)
+ ("e" ?,LU(B)
+ ("v" ?,LV(B)
+ ("z" ?,LW(B)
+ ("i" ?,LX(B)
+ ("j" ?,LY(B)
+ ("k" ?,LZ(B)
+ ("l" ?,L[(B)
+ ("m" ?,L\(B)
+ ("n" ?,L](B)
+ ("o" ?,L^(B)
+ ("p" ?,L_(B)
+ ("r" ?,L`(B)
+ ("s" ?,La(B)
+ ("t" ?,Lb(B)
+ ("u" ?,Lc(B)
+ ("f" ?,Ld(B)
+ ("h" ?,Le(B)
+ ("c" ?,Lf(B)
+ ("`" ?,Lg(B)
+ ("[" ?,Lh(B)
+ ("]" ?,Li(B)
+ ("y" ?,Lj(B)
+ ("x" ?,Ll(B)
+ ("\\" ?,Ln(B)
+ ("|" ?,LN(B)
+ ("q" ?,Lo(B))
+
+;; Based on an implementation by Ognyan Kulev <ogi@fmi.uni-sofia.bg>.
+;; This follows XKB bg.
+
+(quail-define-package
+ "bulgarian-standard" "Bulgarian" ",L14A(B" nil
+ "Bulgarian standard keyboard layout (BDS)
+
+This keyboard layout is standard for Bulgarian typewriters."
+ nil t t t t nil nil nil nil nil t)
+
+;;  1! 2? 3+ 4" 5% 6= 7: 8/ 9_ 0,Lp(B -I .V
+;;   ,,Lk(B ,LC(B  ,L5(B  ,L8(B  ,LH(B  ,LI(B  ,L:(B  ,LA(B  ,L4(B  ,L7(B  ,LF(B  ;,A'(B
+;;    ,Ll(B  ,LO(B  ,L0(B  ,L>(B  ,L6(B  ,L3(B  ,LB(B  ,L=(B  ,L2(B  ,L<(B  ,LG(B  ()
+;;     ,LN(B  ,L9(B  ,LJ(B  ,LM(B  ,LD(B  ,LE(B  ,L?(B  ,L@(B  ,L;(B  ,L1(B
+
+(quail-define-rules
+
+ ("1" ?1) ("!" ?!)
+ ("2" ?2)
+ ("@" ??)
+ ("3" ?3)
+ ("#" ?+)
+ ("4" ?4)
+ ("$" ?\")
+ ("5" ?5) ("%" ?%)
+ ("6" ?6)
+ ("^" ?=)
+ ("7" ?7)
+ ("&" ?:)
+ ("8" ?8)
+ ("*" ?/)
+ ("9" ?9)
+ ("(" ?_)
+ ("0" ?0)
+ (")" ?,Lp(B)
+ ("-" ?-)
+ ("_" ?I)
+ ("=" ?.) ("+" ?V)
+
+ ("q" ?,) ("Q" ?,Lk(B)
+ ("w" ?,Lc(B) ("W" ?,LC(B)
+ ("e" ?,LU(B) ("E" ?,L5(B)
+ ("r" ?,LX(B) ("R" ?,L8(B)
+ ("t" ?,Lh(B) ("T" ?,LH(B)
+ ("y" ?,Li(B) ("Y" ?,LI(B)
+ ("u" ?,LZ(B) ("U" ?,L:(B)
+ ("i" ?,La(B) ("I" ?,LA(B)
+ ("o" ?,LT(B) ("O" ?,L4(B)
+ ("p" ?,LW(B) ("P" ?,L7(B)
+ ("[" ?,Lf(B) ("{" ?,LF(B)
+ ("]" ?\;)
+ ("}" ?,A'(B) ;; not in XKB's bg
+
+ ("a" ?,Ll(B) ("A" ?,LL(B)
+ ("s" ?,Lo(B) ("S" ?,LO(B)
+ ("d" ?,LP(B) ("D" ?,L0(B)
+ ("f" ?,L^(B) ("F" ?,L>(B)
+ ("g" ?,LV(B) ("G" ?,L6(B)
+ ("h" ?,LS(B) ("H" ?,L3(B)
+ ("j" ?,Lb(B) ("J" ?,LB(B)
+ ("k" ?,L](B) ("K" ?,L=(B)
+ ("l" ?,LR(B) ("L" ?,L2(B)
+ (";" ?,L\(B) (":" ?,L<(B)
+ ("'" ?,Lg(B) ("\"" ?,LG(B)
+ ("`" ?\() ("~" ?\))
+
+ ("z" ?,Ln(B) ("Z" ?,LN(B)
+ ("x" ?,LY(B) ("X" ?,L9(B)
+ ("c" ?,Lj(B) ("C" ?,LJ(B)
+ ("v" ?,Lm(B) ("V" ?,LM(B)
+ ("b" ?,Ld(B) ("B" ?,LD(B)
+ ("n" ?,Le(B) ("N" ?,LE(B)
+ ("m" ?,L_(B) ("M" ?,L?(B)
+ ("," ?,L`(B) ("<" ?,L@(B)
+ ("." ?,L[(B) (">" ?,L;(B)
+ ("/" ?,LQ(B) ("?" ?,L1(B)
+ ("\\" ?') ("|" ?,LK(B))
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit
