@@ -146,7 +146,7 @@ Interactively, NUMBER is the prefix arg (none means nil)."
 		  (if (looking-at "\\s-*-?[0-9]+")
 		      (progn
 			(goto-char (match-end 0))
-			(string-to-int (match-string 0)))
+			(string-to-number (match-string 0)))
 		    0))))
 
 (defun increment-register (number register)
