@@ -634,9 +634,11 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 					  tags-table-set-list)))
 			  ;; Clear out buffers holding old tables.
 			  (dolist (table tags-table-list)
-			    (let ((buffer (find-buffer-visiting table)))
+			    ;; The list can contain items `t'.
+			    (if (stringp table)
+				(let ((buffer (find-buffer-visiting table)))
 			      (if buffer
-				  (kill-buffer buffer))))
+				  (kill-buffer buffer)))))
 			  (setq tags-table-list (list local-tags-file-name))))
 
 		      ;; Recompute tags-table-computed-list.
