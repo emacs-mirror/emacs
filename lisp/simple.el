@@ -2640,7 +2640,7 @@ it were the arg to `interactive' (which see) to interactively read the value."
 (defvar completion-reference-buffer nil
   "Record the buffer that was current when the completion list was requested.
 This is a local variable in the completion list buffer.
-Initial value is nil to avoid some compiler warnings."
+Initial value is nil to avoid some compiler warnings.")
 
 (defvar completion-base-size nil
   "Number of chars at beginning of minibuffer not involved in completion.
