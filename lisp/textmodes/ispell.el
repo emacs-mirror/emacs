@@ -729,7 +729,15 @@ Otherwise returns the library path if defined."
     (save-excursion
       (set-buffer (get-buffer-create " *ispell-tmp*"))
       (erase-buffer)
-      (setq status (call-process ispell-program-name nil t nil "-vv"))
+      (setq status (call-process
+		    ispell-program-name nil t nil
+		    ;; aspell doesn't accept the -vv switch.
+		    (let ((case-fold-search
+			   (memq system-type '(ms-dos windows-nt)))
+			  (speller
+			   (file-name-nondirectory ispell-program-name)))
+		      ;; Assume anything that isn't `aspell' is Ispell.
+		      (if (string-match "\\`aspell" speller) "-v" "-vv"))))
       (goto-char (point-min))
       (if interactivep
 	  (progn
