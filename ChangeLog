@@ -1,3 +1,7 @@
+2004-12-05  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (info): Ignore errors building info files.
+
 2004-11-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat: If 8-byte alignment is not supported, define

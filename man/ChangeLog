@@ -1,5 +1,8 @@
 2004-12-05  Richard M. Stallman  <rms@gnu.org>
 
+	* cmdargs.texi, doclicense.texi, xresources.texi, emacs.texi:
+	* entering.texi: Rename Command Line to Emacs Invocation.
+
 	* Makefile.in (org.dvi, ../info/org): New targets.
 	(INFO_TARGETS): Add ../info/org.
 	(DVI_TARGETS): Add org.dvi.

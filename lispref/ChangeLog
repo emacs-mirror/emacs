@@ -1,3 +1,8 @@
+2004-12-05  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (maintainer-clean): Remove the info files
+	in $(infodir) where they are created.
+
 2004-12-03  Richard M. Stallman  <rms@gnu.org>
 
 	* windows.texi (Selecting Windows): get-lru-window and
