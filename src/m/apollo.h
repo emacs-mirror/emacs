@@ -94,3 +94,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifndef APOLLO_SR10
 #undef BSTRING
 #endif
+
+/* The function x_destroy_database doesn't exist in the version of X
+   on the Apollo.  */
+#define NO_X_DESTROY_DATABASE
