@@ -6,7 +6,7 @@
 ;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: comment uncomment
 ;; Version: $Name:  $
-;; Revision: $Id: newcomment.el,v 1.16 2000/06/04 22:02:11 monnier Exp $
+;; Revision: $Id: newcomment.el,v 1.17 2000/06/20 09:40:36 fx Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -589,10 +589,10 @@ comment markers."
 	    ;; Remove the end-comment (and leading padding and such).
 	    (goto-char (point-max)) (comment-enter-backward)
 	    ;; Check for special `=' used sometimes in comment-box.
-	    (when (and (= (- (point-max) (point)) 1) (> (point) 7)
-		       (save-excursion (backward-char 7)
-				       (looking-at "=\\{7\\}")))
-	      (skip-chars-backward "="))
+	    (when (= (- (point-max) (point)) 1)
+	      (let ((pos (point)))
+		;; skip `=' but only if there are at least 7.
+		(when (> (skip-chars-backward "=") -7) (goto-char pos))))
 	    (unless (looking-at "\\(\n\\|\\s-\\)*\\'")
 	      (when (and (bolp) (not (bobp))) (backward-char))
 	      (if (null arg) (delete-region (point) (point-max))
@@ -961,6 +961,10 @@ unless optional argument SOFT is non-nil."
 
 ;;; Change Log:
 ;; $Log: newcomment.el,v $
+;; Revision 1.17  2000/06/20 09:40:36  fx
+;; (comment) <defgroup>: Add :version.
+;; (comment-multi-line): Doc fix.
+;;
 ;; Revision 1.16  2000/06/04 22:02:11  monnier
 ;; (comment-indent): Ignore comment-indent-hook.
 ;;
