@@ -524,6 +524,7 @@ make_gap (nbytes_added)
 
   /* Call the newly allocated space a gap at the end of the whole space.  */
   GPT = Z + GAP_SIZE;
+  GPT_BYTE = Z_BYTE + GAP_SIZE;
   GAP_SIZE = nbytes_added;
 
   /* Move the new gap down to be consecutive with the end of the old one.
