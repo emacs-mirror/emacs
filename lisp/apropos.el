@@ -169,6 +169,11 @@ variables.  If JUST-VARS is non-nil, show only variables."
 						     (user-variable-p symbol)))
 			      (if just-vars 'user-variable-p
 				'commandp))))
+    (let ((tem apropos-accumulator))
+      (while tem
+	(if (get (car tem) 'apropos-inhibit)
+	    (setq apropos-accumulator (delq (car tem) apropos-accumulator)))
+	(setq tem (cdr tem))))
     (if (apropos-print
 	 t
 	 (lambda (p)
@@ -208,6 +213,11 @@ Returns list of symbols and documentation found."
 				     (boundp symbol)
 				     (facep symbol)
 				     (symbol-plist symbol))))))
+  (let ((tem apropos-accumulator))
+    (while tem
+      (if (get (car tem) 'apropos-inhibit)
+	  (setq apropos-accumulator (delq (car tem) apropos-accumulator)))
+      (setq tem (cdr tem))))
   (apropos-print
    (or do-all apropos-do-all)
    (lambda (p)
