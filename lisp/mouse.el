@@ -478,11 +478,13 @@ Upon exit, point is at the far edge of the newly visible text."
 		 (progn
 		   (set-window-start window (point))
 		   (if (natnump jump)
-		       (progn
-			 (goto-char (window-end window))
-			 ;; window-end doesn't reflect the window's new
-			 ;; start position until the next redisplay.  Hurrah.
-			 (vertical-motion (1- jump) window))
+		       (if (window-end window)
+			   (progn
+			     (goto-char (window-end window))
+			     ;; window-end doesn't reflect the window's new
+			     ;; start position until the next redisplay.
+			     (vertical-motion (1- jump) window))
+			 (vertical-motion (- (window-height window) 2)))
 		     (goto-char (window-start window)))
 		   (if overlay
 		       (move-overlay overlay start (point)))
