@@ -598,9 +598,11 @@ Don't use this command in Lisp programs!
   (setq this-command 'end-of-buffer)
   (end-of-buffer arg))
 
-(define-key mail-mode-map "\C-c\C-a" 'mail-abbrev-insert-alias)
-(define-key mail-mode-map "\e\t"	; like lisp-complete-symbol
-  'mail-abbrev-complete-alias) 
+(eval-after-load "sendmail"
+  '(progn
+     (define-key mail-mode-map "\C-c\C-a" 'mail-abbrev-insert-alias)
+     (define-key mail-mode-map "\e\t"	; like lisp-complete-symbol
+       'mail-abbrev-complete-alias)))
 
 ;;(define-key mail-mode-map "\C-n" 'mail-abbrev-next-line)
 ;;(define-key mail-mode-map "\M->" 'mail-abbrev-end-of-buffer)
