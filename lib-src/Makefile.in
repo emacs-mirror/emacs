@@ -123,14 +123,6 @@ SOURCES = COPYING ChangeLog Makefile.in README emacs.csh \
 #			mail host for the site.
 MOVE_FLAGS=
 
-# Additional libraries for movemail:
-# For KERBEROS
-# MOVE_LIBS= -lkrb -ldes -lcom_err
-# For KERBEROS + KRB5
-# MOVE_LIBS= -lkrb5 -lcrypto -lisode -lcom_err
-# Add "-lhesiod" if HESIOD is defined.
-MOVE_LIBS=
-
 # ========================== start of cpp stuff =======================
 /* From here on, comments must be done in C syntax.  */
 
@@ -185,6 +177,19 @@ MOVE_LIBS=
 #define BLESSMAIL blessmail
 #else
 #define BLESSMAIL
+#endif
+
+#if defined (KERBEROS) && defined (HAVE_LIBKRB) && defined (HAVE_LIBDES)
+MOVE_LIBS= -lkrb -ldes -lcom_err
+/* For KERBEROS + KRB5
+    MOVE_LIBS= -lkrb5 -lcrypto -lisode -lcom_err
+    Add "-lhesiod" if HESIOD is defined.  */
+#else
+#if defined (KERBEROS) && defined (HAVE_LIBKRB)
+MOVE_LIBS= -lkrb -lcom_err
+#else
+MOVE_LIBS=
+#endif
 #endif
 
 LOADLIBES=LIBS_SYSTEM LIBS_MACHINE LIB_STANDARD_LIBSRC
