@@ -1,5 +1,8 @@
 2001-01-16  Kenichi Handa  <handa@etl.go.jp>
 
+	* language/japanese.el ("Japanese"): Add japanese-jisx0213-1 and
+	japanese-jisx0213-2 in `charset' property of this lang. env.
+
 	* language/european.el ("Latin-1"): Add description for Dutch and
 	Spanish lang. env.
 
