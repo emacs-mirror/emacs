@@ -726,14 +726,6 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
   (define-key dired-mode-map "\C-_" 'dired-undo)
   (define-key dired-mode-map "\C-xu" 'dired-undo)
   )
-
-(or (member '(dired-sort-mode dired-sort-mode) minor-mode-alist)
-    ;; Test whether this has already been done in case dired is reloaded
-    ;; There may be several elements with dired-sort-mode as car.
-    (setq minor-mode-alist
-	  (cons '(dired-sort-mode dired-sort-mode)
-		;; dired-sort-mode is nil outside dired
-		minor-mode-alist)))
 
 ;; Make menu bar items.
 
@@ -951,7 +943,6 @@ Keybindings:
        dired-directory)
   (set (make-local-variable 'dired-actual-switches)
        (or switches dired-listing-switches))
-  (make-local-variable 'dired-sort-mode)
   (dired-sort-other dired-actual-switches t)
   (run-hooks 'dired-mode-hook))
 
@@ -2016,23 +2007,19 @@ Thus, use \\[backward-page] to find the beginning of a group of errors."
   (concat "^-[^t" dired-ls-sorting-switches "]+$")
   "Regexp recognized by dired to set `by name' mode.")
 
-(defvar dired-sort-mode nil
-  "Whether Dired sorts by name, date etc. (buffer-local).")
-;; This is nil outside dired buffers so it can be used in the modeline
-
 (defun dired-sort-set-modeline ()
   ;; Set modeline display according to dired-actual-switches.
   ;; Modeline display of "by name" or "by date" guarantees the user a
   ;; match with the corresponding regexps.  Non-matching switches are
   ;; shown literally.
-  (setq dired-sort-mode
+  (setq mode-name
 	(let (case-fold-search)
 	  (cond ((string-match dired-sort-by-name-regexp dired-actual-switches)
-		 " by name")
+		 "Dired by name")
 		((string-match dired-sort-by-date-regexp dired-actual-switches)
-		 " by date")
+		 "Dired by date")
 		(t
-		 (concat " " dired-actual-switches)))))
+		 (concat "Dired " dired-actual-switches)))))
   ;; update mode line:
   (set-buffer-modified-p (buffer-modified-p)))
 
