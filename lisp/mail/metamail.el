@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993, 1996  Masanobu UMEDA
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Id: metamail.el,v 1.6 1997/05/05 05:45:46 eggert Exp rms $
+;; Version: $Id: metamail.el,v 1.7 1997/05/05 11:51:44 rms Exp rms $
 ;; Keywords: mail, news, mime, multimedia
 
 ;; This file is part of GNU Emacs.
@@ -170,10 +170,7 @@ redisplayed as output is inserted."
     (save-excursion
       ;; Gee!  Metamail does not ouput to stdout if input comes from
       ;; stdin.
-      (let ((selective-display nil)	;Disable ^M to nl translation.
-	    (kanji-fileio-code 2)	;Write in JIS code when nemacs.
-	    (file-coding-system		;Write in JUNET style when mule.
-	     (if (featurep 'mule) *junet*)))
+      (let ((selective-display nil))	;Disable ^M to nl translation.
 	(write-region beg end metafile nil 'nomessage))
       (if buffer
 	  (set-buffer buffer))
@@ -187,12 +184,8 @@ redisplayed as output is inserted."
       ;; to pass such information directly.
       (let ((process-environment
 	     (append process-environment
-		     metamail-environment option-environment)))
-	;; Specify character coding system.
-	(if (boundp 'NEMACS)
-	    (define-program-kanji-code nil metamail-program-name 2)) ;JIS
-	(if (featurep 'mule)
-	    (define-program-coding-system nil metamail-program-name *junet*))
+		     metamail-environment option-environment))
+	    (coding-system-for-read 'undecided))
 	(apply (function call-process)
 	       metamail-program-name
 	       nil
