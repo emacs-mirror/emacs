@@ -1450,16 +1450,17 @@ the inserted text.  Value is always t."
   (if window-system (require 'cal-menu))
   (calendar-for-loop i from 0 to 9 do
        (define-key calendar-mode-map (int-to-string i) 'digit-argument))
+  ;; kill-region and copy-region-as-kill are omitted from this list
+  ;; because they cause an ugly second pane in the Edit menu.
   (let ((l (list 'narrow-to-region 'mark-word 'mark-sexp 'mark-paragraph
-                 'mark-defun 'mark-whole-buffer 'mark-page 'kill-region
-                 'copy-region-as-kill 'downcase-region 'upcase-region
+                 'mark-defun 'mark-whole-buffer 'mark-page
+                 'downcase-region 'upcase-region
                  'capitalize-region 'write-region)))
-    (while (car l)
-      (let ((k (where-is-internal (car l) '(keymap))))
-        (while (car k)
-          (define-key calendar-mode-map (car k) 'calendar-not-implemented)
-          (setq k (cdr k)))
-        (setq l (cdr l)))))
+   
+    (while l
+      (substitute-key-definition (car l) 'calendar-not-implemented
+				 calendar-mode-map global-map)
+      (setq l (cdr l))))
   (define-key calendar-mode-map "-"     'negative-argument)
   (define-key calendar-mode-map "\C-x>" 'scroll-calendar-right)
   (define-key calendar-mode-map [prior] 'scroll-calendar-right-three-months)
