@@ -1,8 +1,8 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: woman.texi,v 1.8 2002/03/16 19:33:21 eliz Exp $
+@c $Id: woman.texi,v 1.9 2002/07/01 08:05:00 rms Exp $
 @c %**start of header
 @setfilename ../info/woman
-@settitle WoMan: Browse Unix Manual Pages ``Wo (without) Man''
+@settitle WoMan: Browse Unix Manual Pages ``W.O. (without) Man''
 @c Manual last updated:
 @set UPDATED Time-stamp: <2001-03-05 17:10:30 eliz>
 @c Software version:
@@ -16,11 +16,11 @@
 
 @dircategory Emacs
 @direntry
-* WoMan: (woman).       Browse UN*X Manual Pages "Wo (without) Man".
+* WoMan: (woman).       Browse UN*X Manual Pages "W.O. (without) Man".
 @end direntry
 
 @ifinfo
-This file documents WoMan: A program to browse Unix manual pages `wo
+This file documents WoMan: A program to browse Unix manual pages `W.O.
 (without) man'.
 
 Copyright @copyright{} 2001  Free Software Foundation, Inc.
@@ -47,7 +47,7 @@ license to the document, as described in section 6 of the license.
 
 @titlepage
 @title WoMan
-@subtitle Browse Unix Manual Pages ``Wo (without) Man''
+@subtitle Browse Unix Manual Pages ``W.O. (without) Man''
 @subtitle Software Version @value{VERSION}
 @author Francis J. Wright
 @sp 2
@@ -91,7 +91,7 @@ license to the document, as described in section 6 of the license.
 @ifnottex
 @node Top, Introduction, (dir), (dir)
 @comment  node-name,  next,  previous,  up
-@top WoMan: Browse Unix Manual Pages ``Wo (without) Man''
+@top WoMan: Browse Unix Manual Pages ``W.O. (without) Man''
 
 @display
 Software Version @value{VERSION}
