@@ -1,3 +1,9 @@
+2001-01-10  Gerd Moellmann  <gerd@gnu.org>
+
+	* simple.el (set-variable): Force a thorough redisplay for the
+	case that the variable has an effect on the display, like
+	`tab-width' has.
+
 2001-01-10  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el: Add documentation for backend interface.

@@ -79,12 +79,17 @@ cases) in the @kbd{C-q} command (@pxref{Multibyte Conversion}).
 
 @kindex C-h h
 @findex view-hello-file
+@cindex undisplayable characters
+@cindex ?
+@cindex ??
   The command @kbd{C-h h} (@code{view-hello-file}) displays the file
 @file{etc/HELLO}, which shows how to say ``hello'' in many languages.
 This illustrates various scripts.  If the font you're using doesn't have
 characters for all those different languages, you will see some hollow
 boxes instead of characters; see @ref{Fontsets}.  On non-windowing
-displays, @samp{?} is displayed in place of the hollow box.
+displays, @samp{?} is displayed in place of the hollow box.  More than
+one @samp{?} is displayed for undisplayable characters that are wider
+than one column.
 
 @findex list-charset-chars
 @cindex characters in a certain charset

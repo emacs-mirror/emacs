@@ -1,3 +1,13 @@
+2001-01-10  Dave Love  <fx@gnu.org>
+
+	* configure.in: Don't reset LIBS at end of -lXmu test.  Test for
+	-lXext.
+	(HAVE_XKBGETKEYBOARD): Fix reporting of result.
+	(HAVE_LIBXP): Remove -lXt from AC_CHECK_LIB.
+	(HAVE_XAW3D, HAVE_XPM, HAVE_JPEG, HAVE_PNG, HAVE_TIFF, HAVE_GIF):
+	Don't frob CFLAGS.  Remove extra X libs from AC_CHECK_LIB
+	(now in $LIBS).
+
 2001-01-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* config.bat: Run the preprocessor with -traditional.

@@ -1,3 +1,8 @@
+2001-01-10  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (${etc}DOC): Depend on ${shortlisp} and
+	${SOME_MACHINE_LISP}, not ${lisp}.
+
 2001-01-10  Gerd Moellmann  <gerd@gnu.org>
 
 	* xdisp.c (display_line): On ttys, produce more than one

@@ -464,11 +464,16 @@ nonblank line.
 @cindex wrapping
 @cindex line wrapping
   If you add too many characters to one line without breaking it with
-@key{RET}, the line will grow to occupy two (or more) lines on the screen,
-with a @samp{\} at the extreme right margin of all but the last of them.
-The @samp{\} says that the following screen line is not really a distinct
-line in the text, but just the @dfn{continuation} of a line too long to fit
-the screen.  Continuation is also called @dfn{line wrapping}.
+@key{RET}, the line will grow to occupy two (or more) lines on the
+screen.  On terminals, one or more @samp{\} characters are displayed
+at the extreme right margin of all but the last of them.  The @samp{\}
+characters say that the following screen line is not really a distinct
+line in the text, but just the @dfn{continuation} of a line too long
+to fit the screen.  Continuation is also called @dfn{line wrapping}.
+More than one @samp{\} is displayed for a wrapped character which is
+wider than one column.  On window systems, small bitmaps are displayed
+in the fringes to the left and right of the window to indicate line
+wrapping.
 
   Sometimes it is nice to have Emacs insert newlines automatically when
 a line gets too long.  Continuation on the screen does not do that.  Use
@@ -478,10 +483,12 @@ Auto Fill mode (@pxref{Filling}) if that's what you want.
 @findex toggle-truncate-lines
 @cindex truncation
   As an alternative to continuation, Emacs can display long lines by
-@dfn{truncation}.  This means that all the characters that do not fit in
-the width of the screen or window do not appear at all.  They remain in
-the buffer, temporarily invisible.  @samp{$} is used in the last column
-instead of @samp{\} to inform you that truncation is in effect.
+@dfn{truncation}.  This means that all the characters that do not fit
+in the width of the screen or window do not appear at all.  They
+remain in the buffer, temporarily invisible.  On terminals, @samp{$}
+is used in the last column instead of @samp{\} to inform you that
+truncation is in effect.  On window systems, a small bitmap in the
+fringe to the right of the window indicates line truncation.
 
   Truncation instead of continuation happens whenever horizontal
 scrolling is in use, and optionally in all side-by-side windows
