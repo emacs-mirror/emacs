@@ -48,40 +48,6 @@ Boston, MA 02111-1307, USA.  */
 #include "dosfns.h"
 #endif
 
-/* Evaluate this expression to rebuild the section of syms_of_frame
-   that initializes and staticpros the symbols declared below.  Note
-   that Emacs 18 has a bug that keeps C-x C-e from being able to
-   evaluate this expression.
-
-(progn
-  ;; Accumulate a list of the symbols we want to initialize from the
-  ;; declarations at the top of the file.
-  (goto-char (point-min))
-  (search-forward "/\*&&& symbols declared here &&&*\/\n")
-  (let (symbol-list)
-    (while (looking-at "Lisp_Object \\(Q[a-z_]+\\)")
-      (setq symbol-list
-	    (cons (buffer-substring (match-beginning 1) (match-end 1))
-		  symbol-list))
-      (forward-line 1))
-    (setq symbol-list (nreverse symbol-list))
-    ;; Delete the section of syms_of_... where we initialize the symbols.
-    (search-forward "\n  /\*&&& init symbols here &&&*\/\n")
-    (let ((start (point)))
-      (while (looking-at "^  Q")
-	(forward-line 2))
-      (kill-region start (point)))
-    ;; Write a new symbol initialization section.
-    (while symbol-list
-      (insert (format "  %s = intern (\"" (car symbol-list)))
-      (let ((start (point)))
-	(insert (substring (car symbol-list) 1))
-	(subst-char-in-region start (point) ?_ ?-))
-      (insert (format "\");\n  staticpro (&%s);\n" (car symbol-list)))
-      (setq symbol-list (cdr symbol-list)))))
-  */        
-
-/*&&& symbols declared here &&&*/
 Lisp_Object Qframep;
 Lisp_Object Qframe_live_p;
 Lisp_Object Qheight;
@@ -104,72 +70,12 @@ Lisp_Object Qbuffer_list;
 Lisp_Object Qtitle;
 Lisp_Object Qdisplay_type;
 Lisp_Object Qbackground_mode;
+Lisp_Object Qinhibit_default_face_x_resources;
 
 Lisp_Object Vterminal_frame;
 Lisp_Object Vdefault_frame_alist;
 Lisp_Object Vmouse_position_function;
 
-static void
-syms_of_frame_1 ()
-{
-  /*&&& init symbols here &&&*/
-  Qframep = intern ("framep");
-  staticpro (&Qframep);
-  Qframe_live_p = intern ("frame-live-p");
-  staticpro (&Qframe_live_p);
-  Qheight = intern ("height");
-  staticpro (&Qheight);
-  Qicon = intern ("icon");
-  staticpro (&Qicon);
-  Qminibuffer = intern ("minibuffer");
-  staticpro (&Qminibuffer);
-  Qmodeline = intern ("modeline");
-  staticpro (&Qmodeline);
-  Qname = intern ("name");
-  staticpro (&Qname);
-  Qonly = intern ("only");
-  staticpro (&Qonly);
-  Qunsplittable = intern ("unsplittable");
-  staticpro (&Qunsplittable);
-  Qmenu_bar_lines = intern ("menu-bar-lines");
-  staticpro (&Qmenu_bar_lines);
-  Qtool_bar_lines = intern ("tool-bar-lines");
-  staticpro (&Qtool_bar_lines);
-  Qwidth = intern ("width");
-  staticpro (&Qwidth);
-  Qx = intern ("x");
-  staticpro (&Qx);
-  Qw32 = intern ("w32");
-  staticpro (&Qw32);
-  Qpc = intern ("pc");
-  staticpro (&Qpc);
-  Qmac = intern ("mac");
-  staticpro (&Qmac);
-  Qvisible = intern ("visible");
-  staticpro (&Qvisible);
-  Qbuffer_predicate = intern ("buffer-predicate");
-  staticpro (&Qbuffer_predicate);
-  Qbuffer_list = intern ("buffer-list");
-  staticpro (&Qbuffer_list);
-  Qtitle = intern ("title");
-  staticpro (&Qtitle);
-  Qdisplay_type = intern ("display-type");
-  staticpro (&Qdisplay_type);
-  Qbackground_mode = intern ("background-mode");
-  staticpro (&Qbackground_mode);
-
-  DEFVAR_LISP ("default-frame-alist", &Vdefault_frame_alist,
-    "Alist of default values for frame creation.\n\
-These may be set in your init file, like this:\n\
-  (setq default-frame-alist '((width . 80) (height . 55) (menu-bar-lines . 1))\n\
-These override values given in window system configuration data,\n\
- including X Windows' defaults database.\n\
-For values specific to the first Emacs frame, see `initial-frame-alist'.\n\
-For values specific to the separate minibuffer frame, see\n\
- `minibuffer-frame-alist'.\n\
-The `menu-bar-lines' element of the list controls whether new frames\n\
- have menu bars; `menu-bar-mode' works by altering this element.");
-  Vdefault_frame_alist = Qnil;
 }
 
 static void
@@ -2214,6 +2120,15 @@ enabled such bindings for that variable with `make-variable-frame-local'.")
 {
   FRAME_PTR f;
   register Lisp_Object tail, prop, val;
+  int count = BINDING_STACK_SIZE ();
+
+  /* Bind this to t to inhibit initialization of the default face from
+     X resources in face-set-after-frame-default.  If we don't inhibit
+     this, modifying the `font' frame parameter, for example, while
+     there is a `default.attributeFont' X resource, won't work,
+     because `default's font is reset to the value of the X resource
+     and that resets the `font' frame parameter.  */
+  specbind (Qinhibit_default_face_x_resources, Qt);
 
   if (EQ (frame, Qnil))
     frame = selected_frame;
@@ -2262,7 +2177,7 @@ enabled such bindings for that variable with `make-variable-frame-local'.")
 	}
     }
 
-  return Qnil;
+  return unbind_to (count, Qnil);
 }
 
 DEFUN ("frame-char-height", Fframe_char_height, Sframe_char_height,
@@ -2476,9 +2391,67 @@ the rightmost or bottommost possible position (that stays within the screen).")
 void
 syms_of_frame ()
 {
-  syms_of_frame_1 ();
+  Qframep = intern ("framep");
+  staticpro (&Qframep);
+  Qframe_live_p = intern ("frame-live-p");
+  staticpro (&Qframe_live_p);
+  Qheight = intern ("height");
+  staticpro (&Qheight);
+  Qicon = intern ("icon");
+  staticpro (&Qicon);
+  Qminibuffer = intern ("minibuffer");
+  staticpro (&Qminibuffer);
+  Qmodeline = intern ("modeline");
+  staticpro (&Qmodeline);
+  Qname = intern ("name");
+  staticpro (&Qname);
+  Qonly = intern ("only");
+  staticpro (&Qonly);
+  Qunsplittable = intern ("unsplittable");
+  staticpro (&Qunsplittable);
+  Qmenu_bar_lines = intern ("menu-bar-lines");
+  staticpro (&Qmenu_bar_lines);
+  Qtool_bar_lines = intern ("tool-bar-lines");
+  staticpro (&Qtool_bar_lines);
+  Qwidth = intern ("width");
+  staticpro (&Qwidth);
+  Qx = intern ("x");
+  staticpro (&Qx);
+  Qw32 = intern ("w32");
+  staticpro (&Qw32);
+  Qpc = intern ("pc");
+  staticpro (&Qpc);
+  Qmac = intern ("mac");
+  staticpro (&Qmac);
+  Qvisible = intern ("visible");
+  staticpro (&Qvisible);
+  Qbuffer_predicate = intern ("buffer-predicate");
+  staticpro (&Qbuffer_predicate);
+  Qbuffer_list = intern ("buffer-list");
+  staticpro (&Qbuffer_list);
+  Qtitle = intern ("title");
+  staticpro (&Qtitle);
+  Qdisplay_type = intern ("display-type");
+  staticpro (&Qdisplay_type);
+  Qbackground_mode = intern ("background-mode");
+  staticpro (&Qbackground_mode);
 
-  staticpro (&Vframe_list);
+  DEFVAR_LISP ("default-frame-alist", &Vdefault_frame_alist,
+    "Alist of default values for frame creation.\n\
+These may be set in your init file, like this:\n\
+  (setq default-frame-alist '((width . 80) (height . 55) (menu-bar-lines . 1))\n\
+These override values given in window system configuration data,\n\
+ including X Windows' defaults database.\n\
+For values specific to the first Emacs frame, see `initial-frame-alist'.\n\
+For values specific to the separate minibuffer frame, see\n\
+ `minibuffer-frame-alist'.\n\
+The `menu-bar-lines' element of the list controls whether new frames\n\
+ have menu bars; `menu-bar-mode' works by altering this element.");
+  Vdefault_frame_alist = Qnil;
+
+  Qinhibit_default_face_x_resources
+    = intern ("inhibit-default-face-x-resources");
+  staticpro (&Qinhibit_default_face_x_resources);
 
   DEFVAR_LISP ("terminal-frame", &Vterminal_frame,
     "The initial frame-object, which represents Emacs's stdout.");
@@ -2505,6 +2478,8 @@ minibuffer, no matter what this variable is set to.  This means that\n\
 this variable doesn't necessarily say anything meaningful about the\n\
 current set of frames, or where the minibuffer is currently being\n\
 displayed.");
+
+  staticpro (&Vframe_list);
 
   defsubr (&Sactive_minibuffer_window);
   defsubr (&Sframep);
