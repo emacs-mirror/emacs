@@ -1,3 +1,9 @@
+2000-10-11  Kenichi Handa  <handa@mule.m17n.org>
+
+	* process.c (read_process_output): On adjusting multibyteness of
+	text to insert in a buffer, use make_string_unibyte/multibyte
+	instead of Fstring_as_unibyte/multibyte.
+
 2000-10-10  Andreas Schwab  <schwab@suse.de>
 
 	* alloc.c (mark_object): Remove all workarounds installed on
