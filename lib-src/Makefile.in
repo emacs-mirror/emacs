@@ -264,7 +264,7 @@ clean: mostlyclean
 
 distclean: clean
 	-rm -f TAGS
-	-rm -f Makefile Makefile.in blessmail
+	-rm -f Makefile Makefile.c blessmail
 
 maintainer-clean: distclean
 	true
@@ -378,7 +378,7 @@ timer: ${TIMEROBJS}
 	$(CC) $(LINK_CFLAGS) ${TIMEROBJS} $(LOADLIBES) -o timer
 
 /* These are NOT included in INSTALLABLES or UTILITIES.
-   See ../src/Makefile.in.in.  */
+   See ../src/Makefile.in.  */
 emacstool: ${srcdir}/emacstool.c
 	$(CC) ${srcdir}/emacstool.c -o emacstool ${ALL_CFLAGS} \
 	  -lsuntool -lsunwindow -lpixrect $(LOADLIBES)
