@@ -183,6 +183,7 @@ Lisp_Object Qafter_insert_file_set_coding;
 
 /* Functions to be called to create text property annotations for file.  */
 Lisp_Object Vwrite_region_annotate_functions;
+Lisp_Object Qwrite_region_annotate_functions;
 
 /* During build_annotations, each time an annotation function is called,
    this holds the annotations made by the previous functions.  */
@@ -5217,7 +5218,7 @@ build_annotations (start, end)
   Lisp_Object p, res;
   struct gcpro gcpro1, gcpro2;
   Lisp_Object original_buffer;
-  int i;
+  int i, used_global = 0;
 
   XSETBUFFER (original_buffer, current_buffer);
 
@@ -5227,6 +5228,15 @@ build_annotations (start, end)
   while (CONSP (p))
     {
       struct buffer *given_buffer = current_buffer;
+      if (EQ (Qt, XCAR (p)) && !used_global)
+	{ /* Use the global value of the hook.  */
+	  Lisp_Object arg[2];
+	  used_global = 1;
+	  arg[0] = Fdefault_value (Qwrite_region_annotate_functions);
+	  arg[1] = XCDR (p);
+	  p = Fappend (2, arg);
+	  continue;
+	}
       Vwrite_region_annotations_so_far = annotations;
       res = call2 (XCAR (p), start, end);
       /* If the function makes a different buffer current,
@@ -6449,8 +6459,13 @@ inserted at the specified positions of the file being written (1 means to
 insert before the first byte written).  The POSITIONs must be sorted into
 increasing order.  If there are several functions in the list, the several
 lists are merged destructively.  Alternatively, the function can return
-with a different buffer current and value nil.*/);
+with a different buffer current; in that case it should pay attention
+to the annotations returned by previous functions and listed in
+`write-region-annotations-so-far'.*/);
   Vwrite_region_annotate_functions = Qnil;
+  staticpro (&Qwrite_region_annotate_functions);
+  Qwrite_region_annotate_functions
+    = intern ("write-region-annotate-functions");
 
   DEFVAR_LISP ("write-region-annotations-so-far",
 	       &Vwrite_region_annotations_so_far,
