@@ -441,7 +441,9 @@ string is passed through `substitute-command-keys'.  */)
 
   /* If DOC is 0, it's typically because of a dumped file missing
      from the DOC file (bug in src/Makefile.in).  */
-  if (INTEGERP (doc) && !EQ (tem, make_number (0)) || CONSP (doc))
+  if (EQ (tem, make_number (0))
+      tem = Qnil;
+  if (INTEGERP (doc) || CONSP (doc))
     {
       Lisp_Object tem;
       tem = get_doc_string (doc, 0, 0);
@@ -485,8 +487,9 @@ aren't strings.  */)
  documentation_property:
   
   tem = Fget (symbol, prop);
-  if (INTEGERP (tem) && !EQ (tem, make_number (0))
-      || (CONSP (tem) && INTEGERP (XCDR (tem))))
+  if (EQ (tem, make_number (0))
+      tem = Qnil;
+  if (INTEGERP (tem) || (CONSP (tem) && INTEGERP (XCDR (tem))))
     {
       Lisp_Object doc = tem;
       tem = get_doc_string (tem, 0, 0);
