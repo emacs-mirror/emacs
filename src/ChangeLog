@@ -1,5 +1,8 @@
 2000-05-23  Kenichi Handa  <handa@etl.go.jp>
 
+	* syntax.c (skip_chars): Use FETCH_STRING_CHAR_ADVANCE
+	unconditionally.
+
 	* msdos.c (IT_write_glyphs): Set coding->src_multibyte to 1.
 
 	* term.c (encode_terminal_code): Set coding->src_multibyte
