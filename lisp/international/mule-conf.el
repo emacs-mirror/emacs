@@ -174,16 +174,7 @@
 (define-charset 167 'lao
   [1 94 1 0 ?1 0 "Lao" "Lao" "Lao characters (ISO10646 0E80..0EDF)"])
 
-;; Mac Roman.  Mac Roman uses all upper 128 characters.  Emacs can
-;; handle it by using two characters sets: mac-roman-lower for code
-;; points 128 to 159 and mac-roman-upper for code points 160 to 255.
-(define-charset 168 'mac-roman-lower
-  [1 96 1 0 ?3 1 "Mac Roman lower" "Mac Roman lower" "Mac Roman lower"])
-
-(define-charset 169 'mac-roman-upper
-  [1 96 1 0 ?4 1 "Mac Roman upper" "Mac Roman upper" "Mac Roman upper"])
-
-;; CHARSET-IDs 170..223 are not used.
+;; CHARSET-IDs 168..223 are not used.
 
 ;; 1-byte 2-column charsets.  Valid range of CHARSET-ID is 224..239.
 
