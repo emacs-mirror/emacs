@@ -1,6 +1,6 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.66) $
+ * $HopeName: MMsrc!trace.c(trunk.67) $
  * Copyright (C) 1997, 1998 The Harlequin Group Limited.  All rights reserved.
  *
  * .design: design.mps.trace.
@@ -8,7 +8,7 @@
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.66) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.67) $");
 
 
 /* Types
@@ -1081,13 +1081,13 @@ Res TraceFix(ScanState ss, Ref *refIO)
         return res;
     }
   } else {
-    /* See d.m.t.exact.legal */
+    /* See design.mps.trace.exact.legal */
     AVER(ss->rank < RankEXACT ||
 	 !ArenaIsReservedAddr(ss->arena, ref));
   }
 
 
-  /* See d.m.t.fix.fixed.all */
+  /* See design.mps.trace.fix.fixed.all */
   ss->fixedSummary = RefSetAdd(ss->arena, ss->fixedSummary, *refIO);
 
   return ResOK;
@@ -1120,12 +1120,12 @@ Res TraceFixEmergency(ScanState ss, Ref *refIO)
       PoolFixEmergency(pool, ss, seg, refIO);
     }
   } else {
-    /* See d.m.t.exact.legal */
+    /* See design.mps.trace.exact.legal */
     AVER(ss->rank < RankEXACT ||
 	 !ArenaIsReservedAddr(ss->arena, ref));
   }
 
-  /* See d.m.t.fix.fixed.all */
+  /* See design.mps.trace.fix.fixed.all */
   ss->fixedSummary = RefSetAdd(ss->arena, ss->fixedSummary, *refIO);
 
   return ResOK;
