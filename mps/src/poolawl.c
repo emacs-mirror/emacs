@@ -1,6 +1,6 @@
 /* impl.c.poolawl: AUTOMATIC WEAK LINKED POOL CLASS
  *
- * $HopeName: MMsrc!poolawl.c(trunk.27) $
+ * $HopeName: MMsrc!poolawl.c(trunk.28) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * READERSHIP
@@ -16,7 +16,7 @@
 #include "mpm.h"
 #include "mpscawl.h"
 
-SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.27) $");
+SRCID(poolawl, "$HopeName: MMsrc!poolawl.c(trunk.28) $");
 
 
 #define AWLSig	((Sig)0x519b7a37)	/* SIGPooLAWL */
@@ -208,7 +208,7 @@ static Res AWLInit(Pool pool, va_list arg)
   awl->format = format;
   awl->alignShift = SizeLog2(pool->alignment);
   ActionInit(&awl->actionStruct, pool);
-  awl->lastCollected = PoolArena(pool)->allocTime;
+  awl->lastCollected = ArenaMutatorAllocSize(PoolArena(pool));
   awl->sig = AWLSig;
 
   AVERT(AWL, awl);
@@ -725,7 +725,7 @@ static Res AWLTraceBegin(Pool pool, Trace trace)
   AVERT(AWL, awl);
   AVERT(Trace, trace);
 
-  awl->lastCollected = PoolArena(pool)->allocTime;
+  awl->lastCollected = ArenaMutatorAllocSize(PoolArena(pool));
   return ResOK;
 }
 
@@ -745,7 +745,8 @@ static double AWLBenefit(Pool pool, Action action)
   AVERT(Action, action);
   AVER(awl == ActionAWL(action));
 
-  return (PoolArena(pool)->allocTime - awl->lastCollected) - 10*1024*1024.0;
+  return (ArenaMutatorAllocSize(PoolArena(pool)) - awl->lastCollected) -
+            10*1024*1024.0;
 }
 
 
@@ -790,7 +791,7 @@ static Bool AWLCheck(AWL awl)
   CHECKL(awl->poolStruct.class == &PoolClassAWLStruct);
   CHECKL(1uL << awl->alignShift == awl->poolStruct.alignment);
   CHECKD(Action, &awl->actionStruct);
-  CHECKL(awl->poolStruct.arena->allocTime >= awl->lastCollected);
+  CHECKL(ArenaMutatorAllocSize(awl->poolStruct.arena) >= awl->lastCollected);
   return TRUE;
 }
 
