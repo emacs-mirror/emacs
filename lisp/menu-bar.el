@@ -212,8 +212,9 @@ Do the same for the keys of the same name."
 (define-key menu-bar-help-menu [describe-mode]
   '("Describe Mode" . describe-mode))
 (define-key menu-bar-help-menu [info] '("Info" . info))
-
+(define-key menu-bar-help-menu [emacs-faq] '("Emacs FAQ" . view-emacs-FAQ))
 (define-key menu-bar-help-menu [emacs-news] '("Emacs News" . view-emacs-news))
+
 (defun kill-this-buffer ()	; for the menubar
   "Kills the current buffer."
   (interactive)
