@@ -1,3 +1,8 @@
+2004-11-14  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-start.el (gnus-convert-old-newsrc): Assign
+	legacy-gnus-agent to 5.10.7.
+
 2004-11-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-emphasis-alist): Don't hide asterisks by
