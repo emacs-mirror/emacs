@@ -615,7 +615,7 @@ DEFUN ("read-from-minibuffer", Fread_from_minibuffer, Sread_from_minibuffer, 1, 
   if (NILP (keymap))
     keymap = Vminibuffer_local_map;
   else
-    keymap = get_keymap (keymap,2);
+    keymap = get_keymap (keymap);
 
   if (SYMBOLP (hist))
     {
@@ -1373,7 +1373,7 @@ scroll the window of possible completions.")
       tem = Fpos_visible_in_window_p (make_number (ZV), window);
       if (! NILP (tem))
 	/* If end is in view, scroll up to the beginning.  */
-	Fset_window_start (window, BEGV, Qnil);
+	Fset_window_start (window, make_number (BEGV), Qnil);
       else
 	/* Else scroll down one screen.  */
 	Fscroll_other_window (Qnil);
