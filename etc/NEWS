@@ -1799,7 +1799,7 @@ configuration files.
 
 ** The default value of `sentence-end' is now defined using the new
 variable `sentence-end-without-space' which contains such characters
-that ends a sentecen without following spaces.
+that end a sentence without following spaces.
 
 +++
 ** The flags, width, and precision options for %-specifications in function
