@@ -17,7 +17,7 @@ Copyright 1990,1991,1992 Joseph Brian Wells@*
 
 @quotation
 This list of frequently asked questions about GNU Emacs with answers
-("FAQ") may be translated into other languages, transformed into other
+(``FAQ'') may be translated into other languages, transformed into other
 formats (e.g. Texinfo, Info, WWW, WAIS), and updated with new information.
 
 The same conditions apply to any derivative of the FAQ as apply to the FAQ
@@ -906,8 +906,8 @@ where that is).
 Emacs General Public License
 
 @item DISTRIB
-Emacs Availability Information, including the popular "Free Software
-Foundation Order Form"
+Emacs Availability Information, including the popular Free Software
+Foundation Order Form
 
 @item FTP
 How to get GNU Software by Internet FTP or by UUCP
@@ -935,7 +935,7 @@ Emacs news, a history of recent user-visible changes
 GNU Service Directory
 
 @item SUN-SUPPORT
-including "Using Emacstool with GNU Emacs"
+including ``Using Emacstool with GNU Emacs''
 
 @end table
 
@@ -1045,7 +1045,7 @@ send usenet/news.answers/GNU-Emacs-FAQ/part5
 @end example
 
 For more information, send email to @email{mail-server@@rtfm.mit.edu}
-with "help" and "index" in the body on separate lines.
+with @samp{help} and @samp{index} in the body on separate lines.
 
 @item
 As the very last resort, you can e-mail a request to
@@ -1864,7 +1864,7 @@ edge of the window.
 @end itemize
 
 @node Overwrite mode, Turning off beeping, Horizontal scrolling, Common requests
-@section How do I make Emacs "typeover" or "overwrite" instead of inserting?
+@section How do I make Emacs ``typeover'' or ``overwrite'' instead of inserting?
 @cindex @key{Insert}
 @cindex @code{overwrite-mode}
 @cindex Overwriting existing text
@@ -2075,7 +2075,7 @@ onwards), to look at the resource names for the menu bar, assuming Emacs
 was compiled with the X toolkit.
 
 @node Evaluating Emacs Lisp code, Changing the length of a Tab, Valid X resources, Common requests
-@section How do I execute ("evaluate") a piece of Emacs Lisp code?
+@section How do I execute (``evaluate'') a piece of Emacs Lisp code?
 @cindex Evaluating Lisp code
 @cindex Lisp forms, evaluating
 
@@ -2162,7 +2162,7 @@ since version 19.20.  @xref{Changing the included text prefix}, for
 additional information.
 
 @node Underlining paragraphs, Repeating a command as many times as possible, Inserting > at the beginning of each line, Common requests
-@section How do I insert "_^H" before each character in a region to get an underlined paragraph?
+@section How do I insert @samp{_^H} before each character in a region to get an underlined paragraph?
 @cindex Underlining a region of text
 @cindex @code{underline-region}
 
@@ -2264,7 +2264,7 @@ Quick command-line switch descriptions are also available.  For example,
 You probably don't want to do this, since backups are useful, especially
 when something goes wrong.
 
-To avoid seeing backup files (and other "uninteresting" files) in Dired,
+To avoid seeing backup files (and other ``uninteresting'' files) in Dired,
 load @code{dired-x} by adding the following to your @file{.emacs} file:
 
 @lisp
@@ -2733,7 +2733,7 @@ sizes of up to 33,554,431 bytes):
 @end example
 
 @noindent
-This method may result in "ILLEGAL DATATYPE" and other random errors on
+This method may result in ``ILLEGAL DATATYPE'' and other random errors on
 some machines.
 
 @email{daveg@@csvax.cs.caltech.edu, David Gillespie} explains how this
@@ -2824,7 +2824,7 @@ stty -icrnl -onlcr -echo susp ^Z
 @end example
 
 @node Shell process exits abnormally, Problems with Shell Mode on MS-Windows, ^M in the shell buffer, Bugs and problems
-@section Why do I get "Process shell exited abnormally with code 1"?
+@section Why do I get ``Process shell exited abnormally with code 1''?
 @cindex Abnormal exits from @code{shell-mode}
 @cindex @code{shell-mode} exits
 @cindex Process shell exited
@@ -2881,7 +2881,7 @@ antivirus software; disabling the resident antivirus program solves
 the problems in those cases.
 
 @node Termcap/Terminfo entries for Emacs, Spontaneous entry into isearch-mode, Problems with Shell Mode on MS-Windows, Bugs and problems
-@section Where is the termcap/terminfo entry for terminal type "emacs"?
+@section Where is the termcap/terminfo entry for terminal type @samp{emacs}?
 @cindex Termcap
 @cindex Terminfo
 @cindex Emacs entries for termcap/terminfo
@@ -2915,7 +2915,7 @@ if ("$term" == emacs) set term=dumb
 @end example
 
 @node Spontaneous entry into isearch-mode, Problems talking to certain hosts, Termcap/Terminfo entries for Emacs, Bugs and problems
-@section Why does Emacs spontaneously start displaying "I-search:" and beeping?
+@section Why does Emacs spontaneously start displaying @samp{I-search:} and beeping?
 @cindex Spontaneous entry into isearch-mode
 @cindex isearch-mode, spontaneous entry into
 @cindex Beeping without obvious reason
@@ -2972,7 +2972,7 @@ properly told to do DNS lookups with the correct command line switch.
 @end itemize
 
 @node Errors with init files, Emacs ignores X resources, Problems talking to certain hosts, Bugs and problems
-@section Why does Emacs say "Error in init file"?
+@section Why does Emacs say @samp{Error in init file}?
 @cindex Error in @file{.emacs}
 @cindex Error in init file
 @cindex Init file, errors in
@@ -3238,7 +3238,7 @@ access control enabled, only authorized clients can connect
 @end itemize
 
 @node Dired claims that no file is on this line,  , Security risks with Emacs, Bugs and problems
-@section Dired says, "no file on this line" when I try to do something.
+@section Dired says, @samp{no file on this line} when I try to do something.
 @cindex Dired does not see a file
 
 @c FIXME: I think this is fixed in Emacs 21, but I didn't have time to
@@ -3441,7 +3441,7 @@ Emacs needs to be linked with the static version of the X11 library,
 @file{libX11.a}.  This may be missing.
 
 On OpenWindows, you may need to use @code{add_services} to add the
-"OpenWindows Programmers" optional software category from the CD-ROM.
+``OpenWindows Programmers'' optional software category from the CD-ROM.
 
 On HP-UX 8.0, you may need to run @code{update} again to load the
 X11-PRG ``fileset''.  This may be missing even if you specified ``all
@@ -3580,34 +3580,37 @@ A list of sites mirroring @samp{ftp.gnu.org} can be found at
 @uref{http://www.gnu.org/order/ftp.html}
 
 @node Difference between Emacs and XEmacs, Emacs for MS-DOS, Current GNU distributions, Finding Emacs and related packages
-@section What is the difference between Emacs and XEmacs (formerly "Lucid Emacs")?
+@section What is the difference between Emacs and XEmacs (formerly Lucid Emacs)?
 @cindex XEmacs
 @cindex Difference Emacs and XEmacs
 @cindex Lucid Emacs
 @cindex Epoch
 
-XEmacs is a branch version of Emacs.  It was earlier called as Lucid
-Emacs, and it was based on a prerelease version of Emacs 19.  In this
-FAQ, we use the name ``Emacs'' only for the official version.
+XEmacs is a branch version of Emacs.  It was first called Lucid Emacs,
+and was initially derived from a prerelease version of Emacs 19.  In
+this FAQ, we use the name ``Emacs'' only for the official version.
 
 Emacs and XEmacs each come with Lisp packages that are lacking in the
 other.  The two versions have some significant differences at the Lisp
-programming level.  Many XEmacs features have found their way into
-recent versions of Emacs, and more features can be expected in the
-future, but there are still many differences between the two.
+programming level.  Their current features are roughly comparable,
+though the support for some operating systems, character sets and
+specific packages might be quite different.
 
-We have used some of the code in XEmacs, and would like to use other
-parts, but the earlier XEmacs maintainers did not always keep track of
-the authors of contributed code, which makes it impossible for the FSF
-to get copyright papers signed for that code.  (The FSF requires these
-papers for all the code included in the Emacs release, aside from
-generic C support packages that retain their separate identity and are
-not integrated into the code of Emacs proper.)
+Some XEmacs code has been contributed to Emacs, and we would like to
+use other parts, but the earlier XEmacs maintainers did not always
+keep track of the authors of contributed code, which makes it
+impossible for the FSF to get copyright papers signed for that code.
+(The FSF requires these papers for all the code included in the Emacs
+release, aside from generic C support packages that retain their
+separate identity and are not integrated into the code of Emacs
+proper.)
 
 If you want to talk about these two versions and distinguish them,
 please call them ``Emacs'' and ``XEmacs.''  To contrast ``XEmacs''
 with ``GNU Emacs'' would be misleading, since XEmacs too has its
-origin in the GNU Project.
+origin in the work of the GNU Project.  Terms such as ``Emacsen'' and
+``(X)Emacs'' are not wrong, but they are not very clear, so it
+is better to write ``Emacs and XEmacs.''
 
 @node Emacs for MS-DOS, Emacs for Windows, Difference between Emacs and XEmacs, Finding Emacs and related packages
 @section Where can I get Emacs for my PC running MS-DOS?
@@ -3683,7 +3686,7 @@ directory of the Emacs sources contains some additional information
 regarding Emacs under MS-DOS.
 
 For a list of other MS-DOS implementations of Emacs (and Emacs
-look-alikes), consult the list of "Emacs implementations and literature,"
+look-alikes), consult the list of ``Emacs implementations and literature,''
 available at
 
 @uref{ftp://rtfm.mit.edu/pub/usenet/comp.emacs/}
@@ -3768,18 +3771,11 @@ menus, and multiple frames.  You can get it from
 @cindex Apple computers, Emacs for
 @cindex Macintosh, Emacs for
 
-An unofficial port of GNU Emacs 18.59 to the Macintosh is available at a
-number of ftp sites, the home being
-@uref{ftp://ftp.cs.cornell.edu/pub/parmet/Emacs-1.17.sit.bin}.
-
-A port of Emacs 20.4 is available at
-@uref{http://www.cs.hku.hk/~choi/emacs/index.html}.
-
 Beginning with version 21.1, the Macintosh is supported in the official
 Emacs distribution; see the files @file{mac/README} and
 @file{mac/INSTALL} in the Emacs distribution for build instructions.
 
-Apple's forthcoming "OS X" is based largely on NeXTSTEP and OpenStep.
+Apple's ``OS X'' is based largely on NeXTSTEP and OpenStep.
 @xref{Emacs for NeXTSTEP}, for more details about that version.
 
 @node Emacs for VMS and DECwindows, Modes for various languages, Emacs for Apple computers, Finding Emacs and related packages
@@ -4174,7 +4170,7 @@ jde-subscribe@@sunsite.auc.dk
 @end table
 
 @node Patch,  , JDE, Major packages and programs
-@section Patch --- program to apply "diffs" for updating files
+@section Patch --- program to apply ``diffs'' for updating files
 @cindex Updating files with diffs
 @cindex Patching source files with diffs
 @cindex Diffs and patching
@@ -4247,8 +4243,8 @@ command are required.  For example,
 
 @noindent
 can be placed directly into the @file{.emacs} file.  If the key binding is
-local, the command is used in conjunction with the "add-hook" command.
-For example, in tex-mode, a local binding might be
+local, the command is used in conjunction with the @samp{add-hook} function.
+For example, in TeX mode, a local binding might be
 
 @lisp
 (add-hook 'tex-mode-hook
@@ -4287,7 +4283,7 @@ can be bound to a key and thus treated as a macro.  For example:
 @end itemize
 
 @node Invalid prefix characters, Terminal setup code works after Emacs has begun, Binding keys to commands, Key bindings
-@section Why does Emacs say "Key sequence XXX uses invalid prefix characters"?
+@section Why does Emacs say @samp{Key sequence XXX uses invalid prefix characters}?
 @cindex Prefix characters, invalid
 @cindex Invalid prefix characters
 @cindex Misspecified key sequences
@@ -4682,7 +4678,7 @@ translation.
 @cindex Generating control characters
 @cindex Control characters, generating
 
-On terminals (but not under X), some common "aliases" are:
+On terminals (but not under X), some common ``aliases'' are:
 
 @table @asis
 
