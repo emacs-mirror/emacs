@@ -187,7 +187,7 @@ other windows; see @ref{Optional Mode Line}, for more about this.
   Normally, the mode line looks like this:
 
 @example
--@var{cs}:@var{ch}  @var{buf}      (@var{major} @var{minor})--@var{line}--@var{pos}------
+-@var{cs}:@var{ch}  @var{buf}      @var{line} @var{pos}   (@var{major} @var{minor})------
 @end example
 
 @noindent
