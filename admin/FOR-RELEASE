@@ -44,109 +44,111 @@ isearch faces.
 
 ** Check the Emacs manual.
 
-Write you name/initials in the DONE column when you have
-proof-read the corresponding manual section.
+Each manual section should be proof-read by two people.  Write you
+name/initials in the DONE1 or DONE2 column when you have proof-read
+the corresponding manual section.
 
-DONE	SECTION
+DONE1	DONE2	SECTION
 ---------------------------------------------
-	man/abbrevs.texi
-	man/anti.texi
-LT	man/basic.texi
-LT	man/buffers.texi
-	man/building.texi
-	man/calendar.texi
-	man/cmdargs.texi
-LT	man/commands.texi
-	man/custom.texi
-	man/dired.texi
-LT	man/display.texi
-LT	man/emacs.texi
-LT	man/entering.texi
-LT	man/files.texi
-LT	man/fixit.texi
-LT	man/frames.texi
-	man/glossary.texi
-LT	man/help.texi
-LT	man/indent.texi
-LT	man/killing.texi
-LT	man/kmacro.texi
-	man/macos.texi
-	man/maintaining.texi
-LT	man/major.texi
-LT	man/mark.texi
-LT	man/mini.texi
-	man/misc.texi
-	man/msdog.texi
-LT	man/mule.texi
-LT	man/m-x.texi
-	man/picture.texi
-	man/programs.texi
-LT	man/regs.texi
-	man/rmail.texi
-LT	man/screen.texi
-LT	man/search.texi
-	man/sending.texi
-LT	man/text.texi
-	man/trouble.texi
-LT	man/windows.texi
-	man/xresources.texi
+		man/abbrevs.texi
+		man/anti.texi
+LT		man/basic.texi
+LT		man/buffers.texi
+		man/building.texi
+		man/calendar.texi
+		man/cmdargs.texi
+LT		man/commands.texi
+		man/custom.texi
+		man/dired.texi
+LT		man/display.texi
+LT		man/emacs.texi
+LT		man/entering.texi
+LT		man/files.texi
+LT		man/fixit.texi
+LT		man/frames.texi
+		man/glossary.texi
+LT		man/help.texi
+LT		man/indent.texi
+LT		man/killing.texi
+LT		man/kmacro.texi
+		man/macos.texi
+		man/maintaining.texi
+LT		man/major.texi
+LT		man/mark.texi
+LT		man/mini.texi
+		man/misc.texi
+		man/msdog.texi
+LT		man/mule.texi
+LT		man/m-x.texi
+		man/picture.texi
+		man/programs.texi
+LT		man/regs.texi
+		man/rmail.texi
+LT		man/screen.texi
+LT		man/search.texi
+		man/sending.texi
+LT		man/text.texi
+		man/trouble.texi
+LT		man/windows.texi
+		man/xresources.texi
 
 ** Check the Emacs Lisp manual.
 
-Write you name/initials in the DONE column when you have
-proof-read the corresponding manual section.
+Each manual section should be proof-read by two people.  Write you
+name/initials in the DONE1 or DONE2 column when you have proof-read
+the corresponding manual section.
 
-DONE	SECTION
+DONE1	DONE2	SECTION
 ---------------------------------------------
-LT	lispref/abbrevs.texi
-	lispref/advice.texi
-	lispref/anti.texi
-LT	lispref/backups.texi
-LT	lispref/buffers.texi
-	lispref/calendar.texi
-LT	lispref/commands.texi
-LT	lispref/compile.texi
-LT	lispref/control.texi
-	lispref/customize.texi
-	lispref/debugging.texi
-	lispref/display.texi
-	lispref/edebug.texi
-LT	lispref/elisp.texi
-LT	lispref/errors.texi
-LT	lispref/eval.texi
-LT	lispref/files.texi
-LT	lispref/frames.texi
-LT	lispref/functions.texi
-LT	lispref/hash.texi
-LT	lispref/help.texi
-	lispref/hooks.texi
-LT	lispref/internals.texi
-LT	lispref/intro.texi
-LT	lispref/keymaps.texi
-LT	lispref/lists.texi
-LT	lispref/loading.texi
-	lispref/locals.texi
-LT	lispref/macros.texi
-	lispref/maps.texi
-LT	lispref/markers.texi
-LT	lispref/minibuf.texi
-	lispref/modes.texi
-LT	lispref/nonascii.texi
-LT	lispref/numbers.texi
-LT	lispref/objects.texi
-LT	lispref/os.texi
-LT	lispref/positions.texi
-	lispref/processes.texi
-LT	lispref/searching.texi
-LT	lispref/sequences.texi
-LT	lispref/streams.texi
-LT	lispref/strings.texi
-LT	lispref/symbols.texi
-LT	lispref/syntax.texi
-	lispref/text.texi
-LT	lispref/tips.texi
-LT	lispref/variables.texi
-LT	lispref/windows.texi
+LT		lispref/abbrevs.texi
+		lispref/advice.texi
+		lispref/anti.texi
+LT		lispref/backups.texi
+LT		lispref/buffers.texi
+		lispref/calendar.texi
+LT		lispref/commands.texi
+LT		lispref/compile.texi
+LT		lispref/control.texi
+		lispref/customize.texi
+		lispref/debugging.texi
+		lispref/display.texi
+		lispref/edebug.texi
+LT		lispref/elisp.texi
+LT		lispref/errors.texi
+LT		lispref/eval.texi
+LT		lispref/files.texi
+LT		lispref/frames.texi
+LT		lispref/functions.texi
+LT		lispref/hash.texi
+LT		lispref/help.texi
+		lispref/hooks.texi
+LT		lispref/internals.texi
+LT		lispref/intro.texi
+LT		lispref/keymaps.texi
+LT		lispref/lists.texi
+LT		lispref/loading.texi
+		lispref/locals.texi
+LT		lispref/macros.texi
+		lispref/maps.texi
+LT		lispref/markers.texi
+LT		lispref/minibuf.texi
+		lispref/modes.texi
+LT		lispref/nonascii.texi
+LT		lispref/numbers.texi
+LT		lispref/objects.texi
+LT		lispref/os.texi
+LT		lispref/positions.texi
+		lispref/processes.texi
+LT		lispref/searching.texi
+LT		lispref/sequences.texi
+LT		lispref/streams.texi
+LT		lispref/strings.texi
+LT		lispref/symbols.texi
+LT		lispref/syntax.texi
+		lispref/text.texi
+LT		lispref/tips.texi
+LT		lispref/variables.texi
+LT		lispref/windows.texi
 
 
 Local variables:
