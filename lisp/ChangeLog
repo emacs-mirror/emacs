@@ -1,5 +1,18 @@
-2002-05-09  Markus Rost  <rost@math.ohio-state.edu>
+2002-05-09  Colin Walters  <walters@verbum.org>
 
+	* ibuffer.el (ibuffer-mode-map): Add :enable guards for
+	`ibuffer-filter-disable', `ibuffer-pop-filter',
+	`ibuffer-or-filter', `ibuffer-negate-filter',
+	`ibuffer-decompose-filter', `ibuffer-save-filters',
+	`ibuffer-switch-to-saved-filters', `ibuffer-delete-saved-filters',
+	`ibuffer-save-filter-groups',
+	`ibuffer-switch-to-saved-filter-groups',
+	`ibuffer-delete-saved-filter-groups'.
+	
+	* ibuf-ext.el (ibuffer-do-occur): Default to 0 context lines.
+	
+2002-05-09  Markus Rost  <rost@math.ohio-state.edu>
+	
 	* woman.el (woman-menu):  Move symbol before the comment so that
 	find-function-search-for-symbol finds it.
 
