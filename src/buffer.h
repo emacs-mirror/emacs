@@ -436,6 +436,9 @@ struct buffer
        or nil if that window no longer displays this buffer.  */
     Lisp_Object last_selected_window;
 
+    /* Incremented each time the buffer is displayed in a window.  */
+    Lisp_Object display_count;
+ 
     /* These are so we don't have to recompile everything
        the next few times we add a new slot.  */
     Lisp_Object extra2, extra3;
