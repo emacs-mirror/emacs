@@ -60,54 +60,23 @@ Lisp_Object Vx_pointer_shape, Vx_nontext_pointer_shape, Vx_mode_pointer_shape;
 /* Color of chars displayed in cursor box. */
 Lisp_Object Vx_cursor_fore_pixel;
 
+/* The screen being used.  */
+static Screen *x_screen;
+
 /* The X Visual we are using for X windows (the default) */
 Visual *screen_visual;
-
-/* How many screens this X display has. */
-int x_screen_count;
-
-/* The vendor supporting this X server. */
-Lisp_Object Vx_vendor;
-
-/* The vendor's release number for this X server. */
-int x_release;
 
 /* Height of this X screen in pixels. */
 int x_screen_height;
 
-/* Height of this X screen in millimeters. */
-int x_screen_height_mm;
-
 /* Width of this X screen in pixels. */
 int x_screen_width;
-
-/* Width of this X screen in millimeters. */
-int x_screen_width_mm;
-
-/* Does this X screen do backing store? */
-Lisp_Object Vx_backing_store;
-
-/* Does this X screen do save-unders? */
-int x_save_under;
 
 /* Number of planes for this screen. */
 int x_screen_planes;
 
-/* X Visual type of this screen. */
-Lisp_Object Vx_screen_visual;
-
 /* Non nil if no window manager is in use. */
 Lisp_Object Vx_no_window_manager;
-
-static char *x_visual_strings[] =
-  {
-    "StaticGray",
-    "GrayScale",
-    "StaticColor",
-    "PseudoColor",
-    "TrueColor",
-    "DirectColor"
-  };
 
 /* `t' if a mouse button is depressed. */
 
@@ -2333,6 +2302,152 @@ DEFUN ("x-color-display-p", Fx_color_display_p, Sx_color_display_p, 0, 0, 0,
     }
 }
 
+DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
+  0, 1, 0,
+  "Returns the width in pixels of the display FRAME is on.")
+  (frame)
+     Lisp_Object frame;
+{
+  Display *dpy = x_current_display;
+  return make_number (DisplayWidth (dpy, DefaultScreen (dpy)));
+}
+
+DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
+  Sx_display_pixel_height, 0, 1, 0,
+  "Returns the height in pixels of the display FRAME is on.")
+  (frame)
+     Lisp_Object frame;
+{
+  Display *dpy = x_current_display;
+  return make_number (DisplayHeight (dpy, DefaultScreen (dpy)));
+}
+
+DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
+  0, 1, 0,
+  "Returns the number of bitplanes of the display FRAME is on.")
+  (frame)
+     Lisp_Object frame;
+{
+  Display *dpy = x_current_display;
+  return make_number (DisplayPlanes (dpy, DefaultScreen (dpy)));
+}
+
+DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
+  0, 1, 0,
+  "Returns the number of color cells of the display FRAME is on.")
+  (frame)
+     Lisp_Object frame;
+{
+  Display *dpy = x_current_display;
+  return make_number (DisplayCells (dpy, DefaultScreen (dpy)));
+}
+
+DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
+  "Returns the vendor ID string of the X server FRAME is on.")
+  (frame)
+     Lisp_Object frame;
+{
+  Display *dpy = x_current_display;
+  char *vendor;
+  vendor = ServerVendor (dpy);
+  if (! vendor) vendor = "";
+  return build_string (vendor);
+}
+
+DEFUN ("x-server-version", Fx_server_version, Sx_server_version, 0, 1, 0,
+  "Returns the version numbers of the X server in use.\n\
+The value is a list of three integers: the major and minor\n\
+version numbers of the X Protocol in use, and the vendor-specific release\n\
+number.  See also the variable `x-server-vendor'.")
+  (frame)
+     Lisp_Object frame;
+{
+  Display *dpy = x_current_display;
+  return Fcons (make_number (ProtocolVersion (dpy)),
+		Fcons (make_number (ProtocolRevision (dpy)),
+		       Fcons (make_number (VendorRelease (dpy)), Qnil)));
+}
+
+DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
+  "Returns the number of screens on the X server FRAME is on.")
+  (frame)
+     Lisp_Object frame;
+{
+  return make_number (ScreenCount (x_current_display));
+}
+
+DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height, 0, 1, 0,
+  "Returns the height in millimeters of the X screen FRAME is on.")
+  (frame)
+     Lisp_Object frame;
+{
+  return make_number (HeightMMOfScreen (x_screen));
+}
+
+DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
+  "Returns the width in millimeters of the X screen FRAME is on.")
+  (frame)
+     Lisp_Object frame;
+{
+  return make_number (WidthMMOfScreen (x_screen));
+}
+
+DEFUN ("x-display-backing-store", Fx_display_backing_store,
+  Sx_display_backing_store, 0, 1, 0,
+  "Returns an indication of whether the X screen FRAME is on does backing store.\n\
+The value may be `always', `when-mapped', or `not-useful'.")
+  (frame)
+     Lisp_Object frame;
+{
+  switch (DoesBackingStore (x_screen))
+    {
+    case Always:
+      return intern ("always");
+
+    case WhenMapped:
+      return intern ("when-mapped");
+
+    case NotUseful:
+      return intern ("not-useful");
+
+    default:
+      error ("Strange value for BackingStore parameter of screen");
+    }
+}
+
+DEFUN ("x-display-visual-class", Fx_display_visual_class,
+  Sx_display_visual_class, 0, 1, 0,
+  "Returns the visual class of the display `screen' is on.\n\
+The value is one of the symbols `static-gray', `gray-scale',\n\
+`static-color', `pseudo-color', `true-color', or `direct-color'.")
+	(screen)
+     Lisp_Object screen;
+{
+  switch (screen_visual->class)
+    {
+    case StaticGray:  return (intern ("static-gray"));
+    case GrayScale:   return (intern ("gray-scale"));
+    case StaticColor: return (intern ("static-color"));
+    case PseudoColor: return (intern ("pseudo-color"));
+    case TrueColor:   return (intern ("true-color"));
+    case DirectColor: return (intern ("direct-color"));
+    default:
+      error ("Display has an unknown visual class");
+    }
+}
+
+DEFUN ("x-display-save-under", Fx_display_save_under,
+  Sx_display_save_under, 0, 1, 0,
+  "Returns t if the X screen FRAME is on supports the save-under feature.")
+  (frame)
+     Lisp_Object frame;
+{
+  if (DoesSaveUnders (x_screen) == True)
+    return Qt;
+  else
+    return Qnil;
+}
+
 x_pixel_width (f)
      register struct frame *f;
 {
@@ -3621,7 +3736,6 @@ arg XRM_STRING is a string of resources in xrdb format.")
      Lisp_Object display, xrm_string;
 {
   unsigned int n_planes;
-  register Screen *x_screen;
   unsigned char *xrm_option;
 
   CHECK_STRING (display, 0);
@@ -3647,42 +3761,10 @@ arg XRM_STRING is a string of resources in xrdb format.")
 
   x_screen = DefaultScreenOfDisplay (x_current_display);
 
-  x_screen_count = ScreenCount (x_current_display);
-  Vx_vendor = build_string (ServerVendor (x_current_display));
-  x_release = VendorRelease (x_current_display);
-                    
-  x_screen_height = HeightOfScreen (x_screen);
-  x_screen_height_mm = HeightMMOfScreen (x_screen);
-  x_screen_width = WidthOfScreen (x_screen);
-  x_screen_width_mm = WidthMMOfScreen (x_screen);
-
-  switch (DoesBackingStore (x_screen))
-    {
-    case Always:
-      Vx_backing_store = intern ("Always");
-      break;
-
-    case WhenMapped:
-      Vx_backing_store = intern ("WhenMapped");
-      break;
-
-    case NotUseful:
-      Vx_backing_store = intern ("NotUseful");
-      break;
-
-    default:
-      error ("Strange value for BackingStore.");
-      break;
-    }
-
-  if (DoesSaveUnders (x_screen) == True)
-    x_save_under = 1;
-  else
-    x_save_under = 0;
-
   screen_visual = select_visual (x_screen, &n_planes);
   x_screen_planes = n_planes;
-  Vx_screen_visual = intern (x_visual_strings [screen_visual->class]);
+  x_screen_height = HeightOfScreen (x_screen);
+  x_screen_width = WidthOfScreen (x_screen);
 
   /* X Atoms used by emacs. */
   Xatoms_of_xselect ();
@@ -3843,29 +3925,6 @@ syms_of_xfns ()
 	       "Non-nil if a mouse button is currently depressed.");
   Vmouse_depressed = Qnil;
 
-  DEFVAR_INT ("x-screen-count", &x_screen_count,
-	      "The number of screens associated with the current display.");
-  DEFVAR_INT ("x-release", &x_release,
-	      "The release number of the X server in use.");
-  DEFVAR_LISP ("x-vendor", &Vx_vendor,
-	       "The vendor supporting the X server in use.");
-  DEFVAR_INT ("x-screen-height", &x_screen_height,
-	      "The height of this X screen in pixels.");
-  DEFVAR_INT ("x-screen-height-mm", &x_screen_height_mm,
-	      "The height of this X screen in millimeters.");
-  DEFVAR_INT ("x-screen-width", &x_screen_width,
-	      "The width of this X screen in pixels.");
-  DEFVAR_INT ("x-screen-width-mm", &x_screen_width_mm,
-	      "The width of this X screen in millimeters.");
-  DEFVAR_LISP ("x-backing-store", &Vx_backing_store,
-	       "The backing store capability of this screen.\n\
-Values can be the symbols Always, WhenMapped, or NotUseful.");
-  DEFVAR_BOOL ("x-save-under", &x_save_under,
-	       "*Non-nil means this X screen supports the SaveUnder feature.");
-  DEFVAR_INT ("x-screen-planes", &x_screen_planes,
-	      "The number of planes this monitor supports.");
-  DEFVAR_LISP ("x-screen-visual", &Vx_screen_visual,
-	       "The default X visual for this X screen.");
   DEFVAR_LISP ("x-no-window-manager", &Vx_no_window_manager,
 	       "t if no X window manager is in use.");
 
@@ -3879,6 +3938,18 @@ Values can be the symbols Always, WhenMapped, or NotUseful.");
 #endif
   defsubr (&Sx_color_display_p);
   defsubr (&Sx_defined_color);
+  defsubr (&Sx_server_vendor);
+  defsubr (&Sx_server_version);
+  defsubr (&Sx_display_pixel_width);
+  defsubr (&Sx_display_pixel_height);
+  defsubr (&Sx_display_mm_width);
+  defsubr (&Sx_display_mm_height);
+  defsubr (&Sx_display_screens);
+  defsubr (&Sx_display_planes);
+  defsubr (&Sx_display_color_cells);
+  defsubr (&Sx_display_visual_class);
+  defsubr (&Sx_display_backing_store);
+  defsubr (&Sx_display_save_under);
 #if 0
   defsubr (&Sx_track_pointer);
   defsubr (&Sx_grab_pointer);
