@@ -1,6 +1,6 @@
 /* impl.c.bt: BIT TABLES
  *
- * $HopeName: MMsrc!bt.c(trunk.9) $
+ * $HopeName: MMsrc!bt.c(trunk.10) $
  * Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  * READERSHIP
@@ -19,7 +19,7 @@
 
 #include "mpm.h"
 
-SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.9) $");
+SRCID(bt, "$HopeName: MMsrc!bt.c(trunk.10) $");
 
 /* is the whole word of bits at this index set? */
 
@@ -251,7 +251,7 @@ static Bool BTFindResRange(Index *baseReturn, Index *limitReturn,
         }
         -- i;
       }
-      base = i + 1;                 /* skip to first trailing set bit */
+      base = i + 1;                 /* Skip to reset or unknown bit */
     }
   }
   /* failure */
@@ -298,7 +298,7 @@ static Bool BTFindResRangeHigh(Index *baseReturn, Index *limitReturn,
 	  /* try to extend to maxLength */
 	  while ((length < maxLength) &&
 		 (base > searchBase) &&
-                 !BTGet(bt,base)) {
+                 !BTGet(bt, base - 1)) {
 	    ++ length;
 	    -- base;
 	  }
@@ -307,7 +307,7 @@ static Bool BTFindResRangeHigh(Index *baseReturn, Index *limitReturn,
           return TRUE;
         }
       }
-      limit = i;                        /* skip to last leading set bit */
+      limit = i;                        /* skip to reset or unknown bit */
     }
   }
   /* failure */
