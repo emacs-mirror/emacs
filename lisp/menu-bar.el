@@ -647,6 +647,9 @@ Do the same for the keys of the same name."
 (define-key menu-bar-tools-menu [separator-games]
   '("--"))
 
+(define-key menu-bar-games-menu [zone]
+  '(menu-item "Zone Out"  zone
+	      :help "Play tricks with Emacs display when Emacs is idle"))
 (define-key menu-bar-games-menu [yow]
   '(menu-item "Random Quotation"  yow
 	      :help "Display a random Zippy quotation"))
