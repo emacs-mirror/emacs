@@ -918,13 +918,14 @@ type C-h ? and Emacs will tell you what kinds of help it can give.
 If you have typed C-h and decide you do not want any help, just
 type C-g to cancel it.
 
-(Some sites rebind the character C-h.  They really should not do this
-as a blanket measure, so complain to the system administrator.
-Meanwhile, if C-h does not display a message about help at the bottom
-of the screen, try typing M-x help RET instead.)
+(Some sites change the meaning of the character C-h.  They really
+should not do this as a blanket measure for all users, so you have
+grounds to complain to the system administrator.  Meanwhile, if C-h
+does not display a message about help at the bottom of the screen, try
+typing the F1 key or M-x help RET instead.)
 
-The most basic HELP feature is C-h c.  Type C-h, a c, and a
-command character or sequence, and Emacs displays a very brief
+The most basic HELP feature is C-h c.  Type C-h, the character c, and
+a command character or sequence; then Emacs displays a very brief
 description of the command.
 
 >> Type C-h c Control-p.
