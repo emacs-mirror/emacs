@@ -279,9 +279,6 @@ Extend Octave to support programs that were written
 to run on Khoros.
 
 @item
-Rewrite GNU @code{sed} completely, to make it cleaner.
-
-@item
 Rewrite Automake and Deja-GNU in Scheme, so they can run in Guile.
 Right now they are written in Perl and TCL, respectively.  There are
 also other programs, not terribly long, which we would also like
