@@ -355,6 +355,18 @@ by `lisp-body-indent'."
                (&whole nil &rest 1))
              path state indent-point sexp-column normal-indent)))
 
+(defun lisp-indent-defmethod (path state indent-point sexp-column 
+				   normal-indent)
+  "Indentation function defmethod."
+  (lisp-indent-259 (if (save-excursion (goto-char (elt state 1))
+				       (forward-char 1)
+				       (forward-sexp 2)
+				       (looking-at "\\s-+:"))
+		       '(4 4 (&whole 4 &rest 4) &body)
+		     (get 'defun 'common-lisp-indent-function))
+		   path state indent-point sexp-column normal-indent))
+
+
 (defun lisp-indent-function-lambda-hack (path state indent-point
                                          sexp-column normal-indent)
   ;; indent (function (lambda () <newline> <body-forms>)) kludgily.
@@ -393,9 +405,7 @@ by `lisp-body-indent'."
            (define-setf-method . defun)
            (define-setf-expander . defun)
            (defmacro . defun) (defsubst . defun) (deftype . defun)
-	   ;; The following indents the first line of the body of a
-	   ;; defmethod wrong.
-           ;(defmethod   (4 4 (&whole 4 &rest 1) &body))
+	   (defmethod	lisp-indent-defmethod)
            (defpackage  (4 2))
            (defstruct   ((&whole 4 &rest (&whole 2 &rest 1))
                          &rest (&whole 2 &rest 1)))
