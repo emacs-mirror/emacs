@@ -281,7 +281,8 @@ done
 #### actually we just re-copy anything with a link count greater
 #### than two.
 echo "Breaking intra-tree links."
-find ${tempdir} ! -type d -links +2 -exec cp {} $$ \; -exec mv $$ {} \;
+find ${tempdir} ! -type d -links +2 \
+  -exec cp {} $$ \; -exec rm -f {} \; -exec mv $$ {} \;
 
 if [ "${newer}" ]; then
   echo "Removing files older than $newer."
