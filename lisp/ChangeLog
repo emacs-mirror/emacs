@@ -1,3 +1,8 @@
+2001-06-12  John Wiegley  <johnw@gnu.org>
+
+	* eshell/esh-mode.el: Disabled a test that often yields false
+	failures.
+
 2001-06-18  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* textmodes/sgml-mode.el (sgml-mode-map): Fix thinko.
@@ -158,6 +163,7 @@
 	* server.el (server-process, server-buffer-clients): Doc fix.
 	From Pavel Jan,Bm(Bk <Pavel@Janik.cz>.
 
+>>>>>>> 1.2419
 2001-06-09  John Wiegley  <johnw@gnu.org>
 
 	* eshell/esh-cmd.el (eshell-exit-success-p): Use a string-match to
