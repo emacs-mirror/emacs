@@ -1,3 +1,9 @@
+2003-11-01  Christoph Wedler  <wedler@users.sourceforge.net>  (tiny change)
+
+	* textmodes/texinfmt.el (texinfo-pre-format-hook): New variable.
+	(texinfo-format-region): Use it.
+	(texinfo-format-buffer-1): Ditto.
+
 2003-11-01  Alan Mackenzie  <acm@muc.de>
 
 	Changes to allow scrolling whilst in isearch mode:
