@@ -169,6 +169,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef HAVE_MKTIME
 #undef HAVE_EACCESS
 #undef HAVE_GETPAGESIZE
+#undef LOCALTIME_CACHE
 #undef HAVE_INET_SOCKETS
 
 #undef HAVE_AIX_SMT_EXP
