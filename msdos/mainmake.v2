@@ -42,6 +42,10 @@ lib-src: FRC
 src: FRC
 	cd src
 	$(MAKE)
+	cd ..
+
+gdb: src
+	cd src
 	redir -o gdb.tmp sed \
 	 -e '/-geometry/s,^.*,set environment HOME $(topdir),' \
 	 -e '/environment *TERM/s/^.*/set environment TERM internal/' \
@@ -54,9 +58,12 @@ src: FRC
 	cd ..
 
 install: all
-	if not exist bin\\nul md bin
+	-md bin
 	cd lib-src
-	for %%p in (hexl.exe etags.exe ctags.exe b2m.exe) do if exist %%p mv -f %%p ../bin/
+	-copy hexl.exe ..\\bin
+	-copy etags.exe ..\\bin
+	-copy ctags.exe ..\\bin
+	-copy b2m.exe ..\\bin
 	cd ..
 	cd src
 	stubify emacs
