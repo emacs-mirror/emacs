@@ -1,6 +1,6 @@
 2001-01-03  Karl Fogel  <kfogel@red-bean.com>
 
-	* mail/mail-hist.el (mail-hist-text-too-long-p): doc fix.
+	* mail/mail-hist.el (mail-hist-text-too-long-p): Doc fix.
 
 2001-01-02  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
