@@ -669,11 +669,22 @@ static tr_stack *mapping_stack_pointer;
 #define CCL_WRITE_CHAR(ch)					\
   do {								\
     int bytes = SINGLE_BYTE_CHAR_P (ch) ? 1: CHAR_BYTES (ch);	\
+    if (ch == '\n' && ccl->eol_type == CODING_EOL_CRLF)		\
+      bytes++;							\
     if (!dst)							\
       CCL_INVALID_CMD;						\
     else if (dst + bytes <= (dst_bytes ? dst_end : src))	\
       {								\
-	if (bytes == 1)						\
+	if (ch == '\n')						\
+	  {							\
+	    if (ccl->eol_type == CODING_EOL_CRLF)		\
+	      *dst++ = '\r', *dst++ = '\n';			\
+	    else if (ccl->eol_type == CODING_EOL_CR)		\
+	      *dst++ = '\r';					\
+	    else						\
+	      *dst++ = '\n';					\
+	  }							\
+	else if (bytes == 1)					\
 	  *dst++ = (ch);					\
 	else							\
 	  dst += CHAR_STRING (ch, dst);				\
@@ -1755,6 +1766,7 @@ setup_ccl_program (ccl, ccl_prog)
   ccl->private_state = 0;
   ccl->status = 0;
   ccl->stack_idx = 0;
+  ccl->eol_type = CODING_EOL_LF;
   return 0;
 }
 
