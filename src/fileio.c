@@ -1,5 +1,6 @@
 /* File IO for GNU Emacs.
-   Copyright (C) 1985,86,87,88,93,94,95,96,97,98,1999 Free Software Foundation, Inc.
+   Copyright (C) 1985,86,87,88,93,94,95,96,97,98,99,2000
+     Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4317,7 +4318,8 @@ DEFUN ("write-region", Fwrite_region, Swrite_region, 3, 7,
 When called from a program, takes three arguments:\n\
 START, END and FILENAME.  START and END are buffer positions.\n\
 Optional fourth argument APPEND if non-nil means\n\
-  append to existing file contents (if any).\n\
+  append to existing file contents (if any).  If it is an integer,\n\
+  seek to that offset in the file before writing.\n\
 Optional fifth argument VISIT if t means\n\
   set the last-save-file-modtime of buffer to this file's modtime\n\
   and mark buffer not modified.\n\
@@ -4615,8 +4617,6 @@ This does code conversion according to the value of\n\
 #endif /* not DOS_NT */
 #endif /* not VMS */
 
-  UNGCPRO;
-
   if (desc < 0)
     {
 #ifdef CLASH_DETECTION
@@ -4624,19 +4624,31 @@ This does code conversion according to the value of\n\
       if (!auto_saving) unlock_file (lockname);
       errno = save_errno;
 #endif /* CLASH_DETECTION */
+      UNGCPRO;
       report_file_error ("Opening output file", Fcons (filename, Qnil));
     }
 
   record_unwind_protect (close_file_unwind, make_number (desc));
 
   if (!NILP (append) && !NILP (Ffile_regular_p (filename)))
-    if (lseek (desc, 0, 2) < 0)
-      {
+    {
+      long ret;
+      
+      if (NUMBERP (append))
+	ret = lseek (desc, XINT (append), 1);
+      else
+	ret = lseek (desc, 0, 2);
+      if (ret < 0)
+	{
 #ifdef CLASH_DETECTION
-	if (!auto_saving) unlock_file (lockname);
+	  if (!auto_saving) unlock_file (lockname);
 #endif /* CLASH_DETECTION */
-	report_file_error ("Lseek error", Fcons (filename, Qnil));
-      }
+	  UNGCPRO;
+	  report_file_error ("Lseek error", Fcons (filename, Qnil));
+	}
+    }
+  
+  UNGCPRO;
 
 #ifdef VMS
 /*
