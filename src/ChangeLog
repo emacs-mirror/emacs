@@ -1,3 +1,8 @@
+2000-07-18  Dave Love  <fx@gnu.org>
+
+	* Makefile.in: Fix dependencies of blockinput.h on atimer.h,
+	systime.h.
+
 2000-07-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* alloc.c (allocate_string_data): If string had already data

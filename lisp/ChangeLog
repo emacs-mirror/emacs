@@ -1,3 +1,12 @@
+2000-07-18  Dave Love  <fx@gnu.org>
+
+	* cus-edit.el (custom-variable-reset-saved)
+	(custom-variable-reset-standard): Remove unused bindings.
+
+	* rect.el (open-rectangle-line): Remove unused let.
+
+	* hl-line.el (hl-line-highlight): Check hl-line-mode.
+
 2000-07-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* cdl.el: Fix `Maintainer' keyword.
@@ -56,7 +65,7 @@
 
 2000-07-16  John Wiegley  <johnw@gnu.org>
 
-	* lisp/align.el (align-newline-and-indent): Adding new function
+	* lisp/align.el (align-newline-and-indent): Adding new function.
 	for auto-aligning blocks of code on RET.
 	(align-region): Fixed badly formatted minibuffer message.
 
