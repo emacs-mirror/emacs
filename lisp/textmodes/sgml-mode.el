@@ -239,6 +239,7 @@ separated by a space."
   :type '(choice (const nil) integer)
   :group 'sgml)
 
+(defconst sgml-namespace-re "[_[:alpha:]][-_.[:alnum:]]*")
 (defconst sgml-name-re "[_:[:alpha:]][-_.:[:alnum:]]*")
 (defconst sgml-tag-name-re (concat "<\\([!/?]?" sgml-name-re "\\)"))
 (defconst sgml-attrs-re "\\(?:[^\"'/><]\\|\"[^\"]*\"\\|'[^']*'\\)*")
@@ -246,13 +247,24 @@ separated by a space."
   "Regular expression that matches a non-empty start tag.
 Any terminating `>' or `/' is not matched.")
 
+(defface sgml-namespace-face
+  '((t (:inherit font-lock-builtin-face)))
+  "`sgml-mode' face used to highlight the namespace part of identifiers.")
+(defvar sgml-namespace-face 'sgml-namespace-face)
 
 ;; internal
 (defconst sgml-font-lock-keywords-1
   `((,(concat "<\\([!?]" sgml-name-re "\\)") 1 font-lock-keyword-face)
-    (,(concat "<\\(/?" sgml-name-re"\\)") 1 font-lock-function-name-face)
+    ;; We could use the simpler "\\(" sgml-namespace-re ":\\)?" instead,
+    ;; but it would cause a bit more backtracking in the re-matcher.
+    (,(concat "</?\\(" sgml-namespace-re "\\)\\(?::\\(" sgml-name-re "\\)\\)?")
+     (1 (if (match-end 2) sgml-namespace-face font-lock-function-name-face))
+     (2 font-lock-function-name-face nil t))
     ;; FIXME: this doesn't cover the variables using a default value.
-    (,(concat "\\(" sgml-name-re "\\)=[\"']") 1 font-lock-variable-name-face)
+    (,(concat "\\(" sgml-namespace-re "\\)\\(?::\\("
+	      sgml-name-re "\\)\\)?=[\"']")
+     (1 (if (match-end 2) sgml-namespace-face font-lock-variable-name-face))
+     (2 font-lock-variable-name-face nil t))
     (,(concat "[&%]" sgml-name-re ";?") . font-lock-variable-name-face)))
 
 (defconst sgml-font-lock-keywords-2
