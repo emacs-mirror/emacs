@@ -464,7 +464,7 @@ supply if the command inquires which events were used to invoke it.  */)
 	  int nchars = doprnt (callint_message, callint_message_size,
 			       prompt1, (char *)0,
 			       j - 1, (char **) argstrings + 1);
-	  if (nchars < callint_message_size)
+	  if (nchars < callint_message_size - 1)
 	    break;
 	  callint_message_size *= 2;
 	  callint_message
