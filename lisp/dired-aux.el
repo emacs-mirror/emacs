@@ -850,7 +850,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 	      ;; the relative one.  That may be hard to fix since it
 	      ;; is probably controlled by something in ftp.
 	      (goto-char opoint)	
-	      (let ((inserted-name (dired-get-filename)))
+	      (let ((inserted-name (dired-get-filename 'verbatim)))
 		(if (file-name-directory inserted-name)
 		    (progn
 		      (end-of-line)
