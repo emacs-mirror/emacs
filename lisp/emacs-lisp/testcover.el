@@ -87,9 +87,9 @@ these.  This list is quite incomplete!"
 (defcustom testcover-1value-functions
   '(backward-char barf-if-buffer-read-only beginning-of-line
     buffer-disable-undo buffer-enable-undo current-global-map deactivate-mark
-    delete-char delete-region ding error forward-char insert insert-and-inherit
-    kill-all-local-variables lambda mapc narrow-to-region noreturn push-mark
-    put-text-property run-hooks set-text-properties signal
+    delete-char delete-region ding error forward-char function* insert
+    insert-and-inherit kill-all-local-variables lambda mapc narrow-to-region
+    noreturn push-mark put-text-property run-hooks set-text-properties signal
     substitute-key-definition suppress-keymap throw undo use-local-map while
     widen yank)
   "Functions that always return the same value.  No brown splotch is shown
@@ -403,31 +403,31 @@ eliminated by adding more test cases."
 	 ov j item)
     (or (and def-mark points coverage)
 	(error "Missing edebug data for function %s" def))
-    (set-buffer (marker-buffer def-mark))
-    (mapc 'delete-overlay (overlays-in def-mark
-				       (+ def-mark (aref points (1- len)) 1)))
-    (while (> len 0)
-      (setq len  (1- len)
-	    data (aref coverage len))
-      (when (and (not (eq data 'ok-coverage))
-		 (setq j (+ def-mark (aref points len))))
+    (when len
+      (set-buffer (marker-buffer def-mark))
+      (mapc 'delete-overlay
+	    (overlays-in def-mark (+ def-mark (aref points (1- len)) 1)))
+      (while (> len 0)
+	(setq len  (1- len)
+	      data (aref coverage len))
+	(when (and (not (eq data 'ok-coverage))
+		   (setq j (+ def-mark (aref points len))))
 	  (setq ov (make-overlay (1- j) j))
 	  (overlay-put ov 'face
 		       (if (memq data '(unknown 1value))
 			   'testcover-nohits-face
 			 'testcover-1value-face))))
-    (set-buffer-modified-p changed)))
+      (set-buffer-modified-p changed))))
 
 (defun testcover-mark-all (&optional buffer)
   "Mark all forms in BUFFER that did not get completley tested during
-coverage tests.  This function creates many overlays.  SKIPFUNCS is a list
-of function-symbols that should not be marked."
+coverage tests.  This function creates many overlays."
   (interactive "b")
   (if buffer
       (switch-to-buffer buffer))
   (goto-char 1)
   (dolist (x edebug-form-data)
-    (if (fboundp (car x))
+    (if (get (car x) 'edebug)
 	(testcover-mark (car x)))))
 
 (defun testcover-unmark-all (buffer)
