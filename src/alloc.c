@@ -1363,7 +1363,7 @@ mark_object (objptr)
 	mark_object (&ptr->param_alist);
       }
       break;
-#endif /* MULTI_FRAME */
+#endif /* not MULTI_FRAME */
 
 #if 0
     case Lisp_Temp_Vector:
