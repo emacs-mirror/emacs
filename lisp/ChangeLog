@@ -1,3 +1,8 @@
+2001-02-22  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* textmodes/fill.el (fill-region-as-paragraph): Skip spaces backward
+	rather than using (match-beginning 0) when searching for break point.
+
 2001-02-22  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* textmodes/texinfmt.el (texinfo-format-scan): Signal an error if
