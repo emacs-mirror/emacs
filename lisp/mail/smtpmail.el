@@ -122,7 +122,11 @@ This is relative to `smtpmail-queue-dir'.")
 	(tembuf (generate-new-buffer " smtpmail temp"))
 	(case-fold-search nil)
 	delimline
-	(mailbuf (current-buffer)))
+	(mailbuf (current-buffer))
+	(smtpmail-code-conv-from
+	 (if enable-multibyte-characters
+	     (let ((sendmail-coding-system smtpmail-code-conv-from))
+	       (select-message-coding-system)))))
     (unwind-protect
 	(save-excursion
 	  (set-buffer tembuf)
@@ -564,8 +568,10 @@ This is relative to `smtpmail-queue-dir'.")
 (defun smtpmail-send-data-1 (process data)
   (goto-char (point-max))
 
-  (when smtpmail-code-conv-from
-    (setq data (encode-coding-string data *internal* smtpmail-code-conv-from)))
+  (if (and (multibyte-string-p data)
+	   smtpmail-code-conv-from)
+      (setq data (string-as-multibyte
+		  (encode-coding-string data smtpmail-code-conv-from))))
 	
   (if smtpmail-debug-info
       (insert data "\r\n"))
