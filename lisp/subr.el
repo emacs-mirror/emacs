@@ -231,8 +231,11 @@ Unibyte strings are converted to multibyte for comparison."
 (defun member-ignore-case (elt list)
   "Like `member', but ignores differences in case and text representation.
 ELT must be a string.  Upper-case and lower-case letters are treated as equal.
-Unibyte strings are converted to multibyte for comparison."
-  (while (and list (not (eq t (compare-strings elt 0 nil (car list) 0 nil t))))
+Unibyte strings are converted to multibyte for comparison.
+Non-strings in LIST are ignored."
+  (while (and list
+	      (not (and (stringp (car list))
+			(eq t (compare-strings elt 0 nil (car list) 0 nil t)))))
     (setq list (cdr list)))
   list)
 
@@ -1282,10 +1285,29 @@ Otherwise just like (insert STRINGS...)."
 
     (apply 'insert strings)
 
-    (let ((inhibit-read-only t))
+    (let ((inhibit-read-only t)
+	  (end (point)))
+
+      ;; Replace any `category' property with the properties it stands for.
+      (unless (memq yank-excluded-properties '(t nil))
+	(save-excursion
+	  (goto-char opoint)
+	  (while (< (point) end)
+	    (let ((cat (get-text-property (point) 'category))
+		  run-end)
+	      (when cat
+		(setq run-end
+		      (next-single-property-change (point) 'category nil end))
+		(remove-list-of-text-properties (point) run-end '(category))
+		(add-text-properties (point) run-end (symbol-plist cat))
+		(goto-char (or run-end end)))
+	      (setq run-end
+		    (next-single-property-change (point) 'category nil end))
+	      (goto-char (or run-end end))))))
+
       (if (eq yank-excluded-properties t)
-	  (set-text-properties opoint (point) nil)
-	(remove-list-of-text-properties opoint (point)
+	  (set-text-properties opoint end nil)
+	(remove-list-of-text-properties opoint end
 					yank-excluded-properties)))))
 
 (defun insert-buffer-substring-no-properties (buf &optional start end)
