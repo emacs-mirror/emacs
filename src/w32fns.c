@@ -7313,7 +7313,7 @@ button down event is generated instead.");
 The value is the minimum time in milliseconds that must elapse between\n\
 successive mouse move (or scroll bar drag) events before they are\n\
 reported as lisp events.");
-  XSETINT (Vw32_mouse_move_interval, 50);
+  XSETINT (Vw32_mouse_move_interval, 0);
 
   init_x_parm_symbols ();
 
