@@ -1513,9 +1513,9 @@ IT_clear_end_of_line (int first_unused)
     return;
 
   IT_set_face (0);
-  if (termscript)
-    fprintf (termscript, "<CLR:EOL>");
   i = (j = first_unused - new_pos_X) * 2;
+  if (termscript)
+    fprintf (termscript, "<CLR:EOL[%d..%d)>", new_pos_X, first_unused);
   spaces = sp = alloca (i);
   
   while (--j >= 0)
@@ -1555,7 +1555,7 @@ IT_clear_to_end (void)
 
   while (new_pos_Y < screen_size_Y) {
     new_pos_X = 0;
-    IT_clear_end_of_line (0);
+    IT_clear_end_of_line (screen_size_X);
     new_pos_Y++;
   }
 }
@@ -3172,6 +3172,8 @@ glyph_to_pixel_coords (f, x, y, pix_x, pix_y)
    grab the nearest Xlib manual (down the hall, second-to-last door on the
    left), but I don't think it's worth the effort.  */
 
+static char *menu_help_message, *prev_menu_help_message;
+
 static XMenu *
 IT_menu_create ()
 {
@@ -3194,6 +3196,7 @@ IT_menu_make_room (XMenu *menu)
       menu->text = (char **) xmalloc (count * sizeof (char *));
       menu->submenu = (XMenu **) xmalloc (count * sizeof (XMenu *));
       menu->panenumber = (int *) xmalloc (count * sizeof (int));
+      menu->help_text = (char **) xmalloc (count * sizeof (char *));
     }
   else if (menu->allocated == menu->count)
     {
@@ -3204,6 +3207,8 @@ IT_menu_make_room (XMenu *menu)
 	= (XMenu **) xrealloc (menu->submenu, count * sizeof (XMenu *));
       menu->panenumber
 	= (int *) xrealloc (menu->panenumber, count * sizeof (int));
+      menu->help_text
+	= (char **) xrealloc (menu->help_text, count * sizeof (char *));
     }
 }
 
@@ -3251,7 +3256,7 @@ IT_menu_calc_size (XMenu *menu, int *width, int *height)
 /* Display MENU at (X,Y) using FACES.  */
 
 static void
-IT_menu_display (XMenu *menu, int y, int x, int *faces)
+IT_menu_display (XMenu *menu, int y, int x, int *faces, int disp_help)
 {
   int i, j, face, width;
   struct glyph *text, *p;
@@ -3260,6 +3265,8 @@ IT_menu_display (XMenu *menu, int y, int x, int *faces)
   int enabled, mousehere;
   int row, col;
   struct frame *sf = SELECTED_FRAME();
+
+  menu_help_message = NULL;
 
   width = menu->width;
   text = (struct glyph *) xmalloc ((width + 2) * sizeof (struct glyph));
@@ -3275,6 +3282,8 @@ IT_menu_display (XMenu *menu, int y, int x, int *faces)
 	= (!menu->submenu[i] && menu->panenumber[i]) || (menu->submenu[i]);
       mousehere = (y + i == my && x <= mx && mx < x + width + 2);
       face = faces[enabled + mousehere * 2];
+      if (disp_help && enabled + mousehere * 2 >= 2)
+	menu_help_message = menu->help_text[i];
       p = text;
       SET_CHAR_GLYPH (*p, ' ', face, 0);
       p++;
@@ -3347,6 +3356,7 @@ XMenuAddPane (Display *foo, XMenu *menu, char *txt, int enable)
   menu->submenu[menu->count] = IT_menu_create ();
   menu->text[menu->count] = txt;
   menu->panenumber[menu->count] = ++menu->panecount;
+  menu->help_text[menu->count] = NULL;
   menu->count++;
 
   /* Adjust length for possible control characters (which will
@@ -3365,7 +3375,7 @@ XMenuAddPane (Display *foo, XMenu *menu, char *txt, int enable)
 
 int
 XMenuAddSelection (Display *bar, XMenu *menu, int pane,
-		   int foo, char *txt, int enable)
+		   int foo, char *txt, int enable, char *help_text)
 {
   int len;
   char *p;
@@ -3377,6 +3387,7 @@ XMenuAddSelection (Display *bar, XMenu *menu, int pane,
   menu->submenu[menu->count] = (XMenu *) 0;
   menu->text[menu->count] = txt;
   menu->panenumber[menu->count] = enable;
+  menu->help_text[menu->count] = help_text;
   menu->count++;
 
   /* Adjust length for possible control characters (which will
@@ -3416,7 +3427,8 @@ struct IT_menu_state
 
 int
 XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
-	       int x0, int y0, unsigned ButtonMask, char **txt)
+	       int x0, int y0, unsigned ButtonMask, char **txt,
+	       void (*help_callback)(char *))
 {
   struct IT_menu_state *state;
   int statecount;
@@ -3483,7 +3495,8 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
      panes, which is ugly.  */
   IT_display_cursor (0);
 
-  IT_menu_display (menu, y0 - 1, x0 - 1, title_faces); /* display menu title */
+  /* Display the menu title.  */
+  IT_menu_display (menu, y0 - 1, x0 - 1, title_faces, 0);
   if (buffers_num_deleted)
     menu->text[0][7] = ' ';
   if ((onepane = menu->count == 1 && menu->submenu[0]))
@@ -3542,7 +3555,7 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
 			IT_menu_display (state[i].menu,
 					 state[i].y,
 					 state[i].x,
-					 faces);
+					 faces, 1);
 			state[statecount].menu = state[i].menu->submenu[dy];
 			state[statecount].pane = state[i].menu->panenumber[dy];
 			mouse_off ();
@@ -3558,12 +3571,20 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
 	  IT_menu_display (state[statecount - 1].menu,
 			   state[statecount - 1].y,
 			   state[statecount - 1].x,
-			   faces);
+			   faces, 1);
 	}
       else
-	/* We are busy-waiting for the mouse to move, so let's be nice
-	   to other Windows applications by releasing our time slice.  */
-	__dpmi_yield ();
+	{
+	  if ((menu_help_message || prev_menu_help_message)
+	      && menu_help_message != prev_menu_help_message)
+	    {
+	      help_callback (menu_help_message);
+	      prev_menu_help_message = menu_help_message;
+	    }
+	  /* We are busy-waiting for the mouse to move, so let's be nice
+	     to other Windows applications by releasing our time slice.  */
+	  __dpmi_yield ();
+	}
       for (b = 0; b < mouse_button_count && !leave; b++)
 	{
 	  /* Only leave if user both pressed and released the mouse, and in
@@ -3583,6 +3604,7 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   ScreenUpdate (state[0].screen_behind);
   if (screen_virtual_segment)
     dosv_refresh_virtual_screen (0, screen_size);
+  message (0);
   while (statecount--)
     xfree (state[statecount].screen_behind);
   IT_display_cursor (1);	/* turn cursor back on */
@@ -3611,8 +3633,10 @@ XMenuDestroy (Display *foo, XMenu *menu)
       xfree (menu->text);
       xfree (menu->submenu);
       xfree (menu->panenumber);
+      xfree (menu->help_text);
     }
   xfree (menu);
+  menu_help_message = prev_menu_help_message = NULL;
 }
 
 int
