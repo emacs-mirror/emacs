@@ -4408,7 +4408,7 @@ x_draw_stretch_glyph_string (s)
 	    }
 	}
     }
-  else
+  else if (!s->background_filled_p)
     x_draw_glyph_string_bg_rect (s, s->x, s->y, s->background_width,
 				 s->height);
   
