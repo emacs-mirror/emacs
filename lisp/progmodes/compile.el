@@ -1,6 +1,6 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages.
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 93, 94, 1995, 1996 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@prep.ai.mit.edu>
 ;; Maintainer: FSF
@@ -259,9 +259,9 @@ The head element is the directory the compilation was started in.")
 
 (defvar compilation-exit-message-function nil "\
 If non-nil, called when a compilation process dies to return a status message.
-This should be a function a two arguments as passed to a process sentinel
-\(see `set-process-sentinel\); it returns a cons (MESSAGE . MODELINE) of the
-strings to write into the compilation buffer, and to put in its mode line.")
+This should be a function of three arguments: process status, exit status,
+and exit message; it returns a cons (MESSAGE . MODELINE) of the strings to
+write into the compilation buffer, and to put in its mode line.")
 
 ;; History of compile commands.
 (defvar compile-history nil)
@@ -331,16 +331,15 @@ easily repeat a grep command."
     (save-excursion
       (set-buffer buf)
       (set (make-local-variable 'compilation-exit-message-function)
-	   (lambda (proc msg)
-	     (let ((code (process-exit-status proc)))
-	       (if (eq (process-status proc) 'exit)
-		   (cond ((zerop code)
-			  '("finished (matches found)\n" . "matched"))
-			 ((= code 1)
-			  '("finished with no matches found\n" . "no match"))
-			 (t
-			  (cons msg code)))
-		 (cons msg code))))))))
+	   (lambda (status code msg)
+	     (if (eq status 'exit)
+		 (cond ((zerop code)
+			'("finished (matches found)\n" . "matched"))
+		       ((= code 1)
+			'("finished with no matches found\n" . "no match"))
+		       (t
+			(cons msg code)))
+	       (cons msg code)))))))
 
 (defun compile-internal (command error-message
 				 &optional name-of-mode parser regexp-alist
@@ -434,36 +433,27 @@ Returns the compilation buffer created."
 	      (set-marker (process-mark proc) (point) outbuf)
 	      (setq compilation-in-progress
 		    (cons proc compilation-in-progress)))
-	  ;; No asynchronous processes available
-	  (message (format "Executing `%s'..." command))
+	  ;; No asynchronous processes available.
+	  (message "Executing `%s'..." command)
 	  ;; Fake modeline display as if `start-process' were run.
 	  (setq mode-line-process ":run")
-	  (sit-for 0) ;; Force redisplay
+	  (force-mode-line-update)
+	  (sit-for 0)			; Force redisplay
 	  (let ((status (call-process shell-file-name nil outbuf nil "-c"
-				      command))
-		finish-msg)
-	    ;; Fake modeline after exit.
-	    (setq mode-line-process
-		  (cond ((numberp status) (format ":exit[%d]" status))
-			((stringp status) (format ":exit[-1: %s]" status))
-			(t ":exit[???]")))
-	    ;; Call `compilation-finish-function' as `compilation-sentinel'
-	    ;; would, and finish up the compilation buffer with the same
-	    ;; message we would get from `start-process'.
-	    (setq finish-msg
-		  (if (numberp status)
-		      (if (zerop status)
-			  "finished\n"
-			(format "exited abnormally with code %d\n" status))
-		    "exited abnormally with code -1\n"))
-	    (goto-char (point-max))
-	    (insert "\nCompilation " finish-msg)
-	    (forward-char -1)
-	    (insert " at " (substring (current-time-string) 0 19)) ; no year
-	    (forward-char 1)
-	    (if compilation-finish-function
-		(funcall compilation-finish-function outbuf finish-msg)))
-	(message (format "Executing `%s'...done" command)))))
+				      command)))
+	    (cond ((numberp status)
+		   (compilation-handle-exit 'exit status
+					    (if (zerop status)
+						"finished\n"
+					      (format "\
+exited abnormally with code %d\n"
+						      status))))
+		  ((stringp status)
+		   (compilation-handle-exit 'signal status
+					    (concat status "\n")))
+		  (t
+		   (compilation-handle-exit 'bizarre status status))))
+	  (message "Executing `%s'...done" command))))
     ;; Make it so the next C-x ` will use this buffer.
     (setq compilation-last-buffer outbuf)))
 
@@ -581,6 +571,32 @@ See `compilation-mode'."
 				     (> (prefix-numeric-value arg) 0)))
       (compilation-setup)))
 
+;; Write msg in the current buffer and hack its mode-line-process.
+(defun compilation-handle-exit (process-status exit-status msg)
+  (let ((buffer-read-only nil)
+	(status (if compilation-exit-message-function
+		    (funcall compilation-exit-message-function
+			     process-status exit-status msg)
+		  (cons msg exit-status)))
+	(omax (point-max))
+	(opoint (point)))
+    ;; Record where we put the message, so we can ignore it
+    ;; later on.
+    (goto-char omax)
+    (insert ?\n mode-name " " (car status))
+    (forward-char -1)
+    (insert " at " (substring (current-time-string) 0 19))
+    (forward-char 1)
+    (setq mode-line-process
+	  (format ":%s [%s]"
+		  (process-status proc) (cdr status)))
+    ;; Force mode line redisplay soon.
+    (force-mode-line-update)
+    (if (and opoint (< opoint omax))
+	(goto-char opoint))
+    (if compilation-finish-function
+	(funcall compilation-finish-function buffer msg))))
+
 ;; Called when compilation process changes state.
 (defun compilation-sentinel (proc msg)
   "Sentinel for compilation buffers."
@@ -590,8 +606,7 @@ See `compilation-mode'."
 	  (if (null (buffer-name buffer))
 	      ;; buffer killed
 	      (set-process-buffer proc nil)
-	    (let ((obuf (current-buffer))
-		  omax opoint)
+	    (let ((obuf (current-buffer)))
 	      ;; save-excursion isn't the right thing if
 	      ;; process-buffer is current-buffer
 	      (unwind-protect
@@ -599,33 +614,13 @@ See `compilation-mode'."
 		    ;; Write something in the compilation buffer
 		    ;; and hack its mode line.
 		    (set-buffer buffer)
-		    (let ((buffer-read-only nil)
-			  (status (if compilation-exit-message-function
-				      (funcall compilation-exit-message-function
-					       proc msg)
-				    (cons msg (process-exit-status proc)))))
-		      (setq omax (point-max)
-			    opoint (point))
-		      (goto-char omax)
-		      ;; Record where we put the message, so we can ignore it
-		      ;; later on.
-		      (insert ?\n mode-name " " (car status))
-		      (forward-char -1)
-		      (insert " at " (substring (current-time-string) 0 19))
-		      (forward-char 1)
-		      (setq mode-line-process
-			    (format ":%s [%s]"
-				    (process-status proc) (cdr status)))
-		      ;; Since the buffer and mode line will show that the
-		      ;; process is dead, we can delete it now.  Otherwise it
-		      ;; will stay around until M-x list-processes.
-		      (delete-process proc)
-		      ;; Force mode line redisplay soon.
-		      (force-mode-line-update))
-		    (if (and opoint (< opoint omax))
-			(goto-char opoint))
-		    (if compilation-finish-function
-			(funcall compilation-finish-function buffer msg)))
+		    (compilation-handle-exit (process-status proc)
+					     (process-exit-status proc)
+					     msg)
+		    ;; Since the buffer and mode line will show that the
+		    ;; process is dead, we can delete it now.  Otherwise it
+		    ;; will stay around until M-x list-processes.
+		    (delete-process proc))
 		(set-buffer obuf))))
 	  (setq compilation-in-progress (delq proc compilation-in-progress))
 	  ))))
