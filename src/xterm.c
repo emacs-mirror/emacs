@@ -4502,6 +4502,14 @@ x_iconify_frame (f)
      IconicState.  */
   x_wm_set_window_state (f, IconicState);
 
+  if (!FRAME_VISIBLE_P (f))
+    {
+      /* If the frame was withdrawn, before, we must map it.  */
+      XMapWindow (XDISPLAY FRAME_X_WINDOW (f));
+      if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
+	XMapSubwindows (x_current_display, FRAME_X_WINDOW (f));
+    }
+
   f->async_iconified = 1;
 #else /* ! defined (HAVE_X11) */
   XUnmapWindow (XDISPLAY FRAME_X_WINDOW (f));
