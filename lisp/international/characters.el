@@ -908,7 +908,7 @@
 	 (#x3400 #x9FAF han)
 	 (#xA000 #xA4CF yi)
 	 (#xAC00 #xD7AF hangul)
-	 (#xF900 #xFA5F han)
+	 (#xF900 #xFAFF han)
 	 (#xFB1D #xFB4F hebrew)
 	 (#xFB50 #xFDFF arabic)
 	 (#xFE70 #xFEFC arabic)
