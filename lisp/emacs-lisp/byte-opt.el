@@ -1162,8 +1162,8 @@
 	 int-to-string
 	 keymap-parent
 	 length local-variable-if-set-p local-variable-p log log10 logand
-	 logb logior lognot logxor lsh
-	 marker-buffer max member memq min mod
+	 logb logior lognot logxor lsh langinfo
+	 marker-buffer max member memq min mod multibyte-char-to-unibyte
 	 next-window nth nthcdr number-to-string
 	 parse-colon-path prefix-numeric-value previous-window propertize
 	 radians-to-degrees rassq regexp-quote reverse round
