@@ -495,6 +495,7 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
     (setq mark-alist;; only after dired-remember-hidden since this unhides:
 	  (dired-remember-marks (point-min) (point-max)))
     ;; treat top level dir extra (it may contain wildcards)
+    (dired-uncache dired-directory)
     (dired-readin dired-directory (current-buffer))
     (let ((dired-after-readin-hook nil))
       ;; don't run that hook for each subdir...
@@ -571,8 +572,23 @@ If DIRNAME is already in a dired buffer, that buffer is used without refresh."
 		old-subdir-alist (cdr old-subdir-alist)
 		dir (car elt))
 	  (condition-case ()
-	      (dired-insert-subdir dir)
+	      (progn
+		(dired-uncache dir)
+		(dired-insert-subdir dir))
 	    (error nil))))))
+
+;; Remove directory DIR from any directory cache.
+(defun dired-uncache (dir)
+  (let (handler (handlers file-name-handler-alist))
+    (save-match-data
+     (while (and (consp handlers) (null handler))
+       (if (and (consp (car handlers))
+		(stringp (car (car handlers)))
+		(string-match (car (car handlers)) dir))
+	   (setq handler (cdr (car handlers))))
+       (setq handlers (cdr handlers))))
+    (if handler
+	(funcall handler 'dired-uncache dir))))
 
 ;; dired mode key bindings and initialization
 
@@ -854,7 +870,7 @@ otherwise, display it in another buffer."
   (if (file-directory-p (dired-get-filename))
       (or (and dired-subdir-alist (dired-goto-subdir (dired-get-filename)))
 	  (dired (dired-get-filename)))
-    (view-file (file-name-sans-versions (dired-get-filename) t))))
+    (view-file (dired-get-filename))))
 
 (defun dired-find-file-other-window ()
   "In dired, visit this file or directory in another window."

@@ -146,6 +146,15 @@ perhaps they ought to be."
 	  (setcdr (car keymap) newdef))
       (setq keymap (cdr keymap)))))
 
+(defmacro save-match-data (&rest body)
+  "Execute the BODY forms, restoring the global value of the match data."
+  (let ((original (make-symbol "match-data")))
+    (list
+     'let (list (list original '(match-data)))
+     (list 'unwind-protect
+           (cons 'progn body)
+           (list 'store-match-data original)))))
+
 ;; Avoids useless byte-compilation.
 ;; In the future, would be better to fix byte compiler
 ;; not to really compile in cases like this,
