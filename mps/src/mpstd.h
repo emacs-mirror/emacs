@@ -1,7 +1,7 @@
 /* impl.h.mpstd: HARLEQUIN MEMORY POOL SYSTEM TARGET DETECTION
  *
- * $HopeName: MMsrc!mpstd.h(trunk.13) $
- * Copyright (C) 1996 Harlequin Group, all rights reserved
+ * $HopeName: MMsrc!mpstd.h(trunk.14) $
+ * Copyright (C) 1997 Harlequin Group, all rights reserved
  *
  * Detect the target platform using predefined preprocessor symbols
  * defined by the build environment.  The symbols are derived from the
@@ -15,17 +15,46 @@
 #ifndef mpstd_h
 #define mpstd_h
 
-/* Some random pickings from cc(1) on a mips IRIX 5.2 machine (atilla) */
+/* Irix 5/6 man cc and man abi. We can't check for _ABIO32 (see
+ * os.i5), as we have to support Irix 5.2, which doesn't define it. We
+ * check the value of _MIPS_FPSET, as it is defined across all Irix 5
+ * and 6 platforms, and on Irix 6 distinguishes O32 from the other two
+ * ABIs. When we support the other ABIs, we need a new OS name for
+ * them.  See analysis.irix-cpp */
 
-#if defined(__DSO__) && defined(__sgi) && defined(__unix) && defined(__mips)
-#define MPS_PF_IRR4CC
-#define MPS_OS_IR
+#if defined(__sgi) && defined(__unix) && defined(__mips) && defined(_SYSTYPE_SVR4) && (_MIPS_FPSET == 16)
+#define MPS_PF_I5R4CC
+#define MPS_OS_I5
 #define MPS_ARCH_R4
 #define MPS_BUILD_CC
-#define MPS_T_WORD	unsigned long
-#define MPS_WORD_WIDTH	32
-#define MPS_WORD_SHIFT	5
-#define MPS_PF_ALIGN	8 /* .hack.align */
+#define MPS_T_WORD      unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    8 /* .hack.align */
+
+/* Irix 4 man cc. See analysis.irix-cpp */
+
+#elif defined(__sgi) && defined(__unix) && defined(__mips) && defined(_SYSTYPE_SYSV) && defined(__SVR3)
+#define MPS_PF_I4R4CC
+#define MPS_OS_I4
+#define MPS_ARCH_R4
+#define MPS_BUILD_CC
+#define MPS_T_WORD      unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    8 /* .hack.align */
+
+/* GCC 2.7.2, gcc -E -dM */
+
+#elif defined(__sgi) && defined(__unix) && defined(__mips) && defined(__SYSTYPE_SYSV) && defined(__GNUC__)
+#define MPS_PF_I4R4GC
+#define MPS_OS_I4
+#define MPS_ARCH_R4
+#define MPS_BUILD_GC
+#define MPS_T_WORD      unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    8 /* .hack.align */
 
 /* winnt.h (D:\packages\msvc20\include\winnt.h on aaron) */
 /* really ought to check this more thoroughly */
@@ -92,10 +121,10 @@
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8 /* .hack.align */
 
-/* 1. MPW 3.0 C Ref, p. 43.						*/
-/* 2. MPW SC/SCpp C/C++ Compiler for 68k Macintosh, p 3-60.		*/
-/* These are the two MPW 68k compilers. They do not define anything 	*/
-/* which lets us determine the system version. 				*/
+/* 1. MPW 3.0 C Ref, p. 43.                                             */
+/* 2. MPW SC/SCpp C/C++ Compiler for 68k Macintosh, p 3-60.             */
+/* These are the two MPW 68k compilers. They do not define anything     */
+/* which lets us determine the system version.                          */
 
 #elif defined(m68k) && (defined (applec) || defined(__SC__))
 #define MPS_PF_S7M6AC
@@ -107,10 +136,10 @@
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8 /* .hack.align */
 
-/* 1. C++/C Compiler for Macintosh with PowerPC, p 3-36.		*/
-/* 2. MPW MrC/MrCpp C/C++ Compiler for Power Macintosh, p 3-57.		*/
-/* These are the two MPW PowerPC compilers. They do not define anything	*/
-/* which lets us determine the system version. 				*/
+/* 1. C++/C Compiler for Macintosh with PowerPC, p 3-36.                */
+/* 2. MPW MrC/MrCpp C/C++ Compiler for Power Macintosh, p 3-57.         */
+/* These are the two MPW PowerPC compilers. They do not define anything */
+/* which lets us determine the system version.                          */
 
 #elif defined(__PPCC__) || (defined(__MRC__) && defined(__POWERPC))
 #define MPS_PF_S7PPAC
@@ -143,7 +172,7 @@
 #define MPS_OS_SU
 #define MPS_ARCH_SP
 #define MPS_BUILD_LC
-#define MPS_T_WORD	unsigned long
+#define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
 #define MPS_PF_ALIGN    8
@@ -156,6 +185,21 @@
 #define MPS_OS_SO
 #define MPS_ARCH_SP
 #define MPS_BUILD_GC
+#define MPS_T_WORD      unsigned long
+#define MPS_WORD_WIDTH  32
+#define MPS_WORD_SHIFT  5
+#define MPS_PF_ALIGN    8
+
+/* SunPro C, man cc (confirmed by grep). Note that this doesn't
+ * actually nail down UltraSPARCs; there are no compiler predefined
+ * macros for that. */
+
+#elif defined(__sun) && defined(__SUNPRO_C) && defined(__SVR4) && defined(__sparc)
+
+#define MPS_PF_SOUSSC
+#define MPS_OS_SO
+#define MPS_ARCH_US
+#define MPS_BUILD_SC
 #define MPS_T_WORD      unsigned long
 #define MPS_WORD_WIDTH  32
 #define MPS_WORD_SHIFT  5
