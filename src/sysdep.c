@@ -40,6 +40,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef read
 #undef write
 
+#ifdef WINDOWSNT
+#define read _read
+#define write _write
+#include <windows.h>
+extern int errno;
+#endif /* not WINDOWSNT */
+
 #ifndef close
 #define sys_close close
 #else 
@@ -97,7 +104,7 @@ extern int errno;
 #ifndef RAB$C_BID
 #include <rab.h>
 #endif
-#define	MAXIOSIZE ( 32 * PAGESIZE )	/* Don't I/O more than 32 blocks at a time */
+#define MAXIOSIZE (32 * PAGESIZE) /* Don't I/O more than 32 blocks at a time */
 #endif /* VMS */
 
 #ifndef BSD4_1
@@ -149,6 +156,14 @@ extern int quit_char;
 #include "termopts.h"
 #include "dispextern.h"
 #include "process.h"
+
+#ifdef WINDOWSNT
+#include <direct.h>
+/* In process.h which conflicts with the local copy.  */
+#define _P_WAIT 0
+int _CRTAPI1 _spawnlp (int, const char *, const char *, ...);
+int _CRTAPI1 _getpid (void);
+#endif
 
 #ifdef NONSYSTEM_DIR_LIBRARY
 #include "ndir.h"
@@ -210,6 +225,7 @@ change_input_fd (fd)
 
 discard_tty_input ()
 {
+#ifndef WINDOWSNT
   struct emacs_tty buf;
 
   if (noninteractive)
@@ -232,15 +248,16 @@ discard_tty_input ()
     ioctl (input_fd, TIOCFLUSH, &zero);
   }
 #else /* not Apollo */
-#ifdef MSDOS	/* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
+#ifdef MSDOS    /* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
   while (dos_keyread () != -1)
-  	;
+    ;
 #else /* not MSDOS */
   EMACS_GET_TTY (input_fd, &buf);
   EMACS_SET_TTY (input_fd, &buf, 0);
 #endif /* not MSDOS */
 #endif /* not Apollo */
 #endif /* not VMS */
+#endif /* not WINDOWSNT */
 }
 
 #ifdef SIGTSTP
@@ -270,9 +287,9 @@ init_baud_rate ()
     ospeed = 0;
   else
     {
-#ifdef MSDOS
+#ifdef DOS_NT
     ospeed = 15;
-#else
+#else  /* not DOS_NT */
 #ifdef VMS
       struct sensemode sg;
 
@@ -312,11 +329,11 @@ init_baud_rate ()
 #endif /* not HAVE_TERMIO */
 #endif /* not HAVE_TERMIOS */
 #endif /* not VMS */
-#endif /* not MSDOS */
+#endif /* not DOS_NT */
     }
    
   baud_rate = (ospeed < sizeof baud_convert / sizeof baud_convert[0]
- 	       ? baud_convert[ospeed] : 9600);
+	       ? baud_convert[ospeed] : 9600);
   if (baud_rate == 0)
     baud_rate = 1200;
 }
@@ -346,7 +363,7 @@ wait_without_blocking ()
 #endif /* not subprocesses */
 
 int wait_debugging;   /* Set nonzero to make following function work under dbx
-		         (at least for bsd).  */
+			 (at least for bsd).  */
 
 SIGTYPE
 wait_for_termination_signal ()
@@ -377,7 +394,7 @@ wait_for_termination (pid)
 	 if that causes the problem to go away or get worse.  */
       sigsetmask (sigmask (SIGCHLD));
       if (0 > kill (pid, 0))
-        {
+	{
 	  sigsetmask (SIGEMPTYMASK);
 	  kill (getpid (), SIGCHLD);
 	  break;
@@ -392,7 +409,7 @@ wait_for_termination (pid)
 	break;
       wait (0);
 #else /* neither BSD nor UNIPLUS: random sysV */
-#ifdef POSIX_SIGNALS	/* would this work for LINUX as well? */
+#ifdef POSIX_SIGNALS    /* would this work for LINUX as well? */
       sigblock (sigmask (SIGCHLD));
       if (0 > kill (pid, 0))
 	{
@@ -410,12 +427,17 @@ wait_for_termination (pid)
 	}
       sigpause (SIGCHLD);
 #else /* not HAVE_SYSV_SIGPAUSE */
+#ifdef WINDOWSNT
+      wait (0);
+      break;
+#else /* not WINDOWSNT */
       if (0 > kill (pid, 0))
 	break;
       /* Using sleep instead of pause avoids timing error.
 	 If the inferior dies just before the sleep,
 	 we lose just one second.  */
       sleep (1);
+#endif /* not WINDOWSNT */
 #endif /* not HAVE_SYSV_SIGPAUSE */
 #endif /* not POSIX_SIGNALS */
 #endif /* not UNIPLUS */
@@ -473,7 +495,7 @@ flush_pending_output (channel)
 child_setup_tty (out)
      int out;
 {
-#ifndef MSDOS
+#ifndef DOS_NT
   struct emacs_tty s;
 
   EMACS_GET_TTY (out, &s);
@@ -561,7 +583,7 @@ child_setup_tty (out)
     ioctl (out, FIOASYNC, &zero);
   }
 #endif /* RTU */
-#endif /* not MSDOS */
+#endif /* not DOS_NT */
 }
 #endif /* not VMS */
 
@@ -686,15 +708,19 @@ sys_subshell ()
   str[len] = 0;
  xyzzy:
 
+#ifdef WINDOWSNT
+  pid = -1;
+#else /* not WINDOWSNT */
   pid = vfork ();
 
   if (pid == -1)
     error ("Can't spawn subshell");
   if (pid == 0)
+#endif /* not WINDOWSNT */
     {
       char *sh;
 
-#ifdef MSDOS	/* MW, Aug 1993 */
+#ifdef MSDOS    /* MW, Aug 1993 */
       getwd (oldwd);
 #endif
       sh = (char *) egetenv ("SHELL");
@@ -718,15 +744,26 @@ sys_subshell ()
       }
 #endif
 
-#ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida */
+#ifdef MSDOS    /* Demacs 1.1.2 91/10/20 Manabu Higashida */
       st = system (sh);
       chdir (oldwd);
       if (st)
-        report_file_error ("Can't execute subshell", Fcons (build_string (sh), Qnil));
+	report_file_error ("Can't execute subshell", Fcons (build_string (sh), Qnil));
 #else /* not MSDOS */
+#ifdef  WINDOWSNT
+      restore_console ();
+
+      /* Waits for process completion */
+      pid = _spawnlp (_P_WAIT, sh, sh, NULL);
+      if (pid == -1)
+	write (1, "Can't execute subshell", 22);
+
+      take_console ();
+#else   /* not WINDOWSNT */
       execlp (sh, sh, 0);
       write (1, "Can't execute subshell", 22);
       _exit (1);
+#endif  /* not WINDOWSNT */
 #endif /* not MSDOS */
     }
 
@@ -963,11 +1000,11 @@ emacs_get_tty (fd, settings)
     return -1;
 
 #else
-#ifndef MSDOS
+#ifndef DOS_NT
   /* I give up - I hope you have the BSD ioctls.  */
   if (ioctl (fd, TIOCGETP, &settings->main) < 0)
     return -1;
-#endif /* not MSDOS */
+#endif /* not DOS_NT */
 #endif
 #endif
 #endif
@@ -1055,11 +1092,11 @@ emacs_set_tty (fd, settings, waitp)
     return -1;
 
 #else
-#ifndef MSDOS
+#ifndef DOS_NT
   /* I give up - I hope you have the BSD ioctls.  */
   if (ioctl (fd, (waitp) ? TIOCSETP : TIOCSETN, &settings->main) < 0)
     return -1;
-#endif /* not MSDOS */
+#endif /* not DOS_NT */
 
 #endif
 #endif
@@ -1282,12 +1319,12 @@ init_sys_modes ()
 	tty.main.tt_char &= ~TT$M_TTSYNC;
       tty.main.tt2_char |= TT2$M_PASTHRU | TT2$M_XON;
 #else /* not VMS (BSD, that is) */
-#ifndef MSDOS
+#ifndef DOS_NT
       tty.main.sg_flags &= ~(ECHO | CRMOD | XTABS);
       if (meta_key)
 	tty.main.sg_flags |= ANYP;
       tty.main.sg_flags |= interrupt_input ? RAW : CBREAK;
-#endif
+#endif /* not DOS_NT */
 #endif /* not VMS (BSD, that is) */
 #endif /* not HAVE_TERMIO */
 
@@ -2181,6 +2218,7 @@ select_alarm ()
     longjmp (read_alarm_throw, 1);
 }
 
+#ifndef WINDOWSNT
 /* Only rfds are checked.  */
 int
 select (nfds, rfds, wfds, efds, timeout)
@@ -2311,6 +2349,7 @@ select (nfds, rfds, wfds, efds, timeout)
     }
   return ravail;
 }
+#endif /* not WINDOWSNT */
 
 /* Read keyboard input into the standard buffer,
    waiting for at least one character.  */
@@ -2801,6 +2840,7 @@ char *sys_errlist[] =
 #endif /* VMS */
 
 #ifndef HAVE_STRERROR
+#ifndef WINDOWSNT
 char *
 strerror (errnum)
      int errnum;
@@ -2812,7 +2852,7 @@ strerror (errnum)
     return sys_errlist[errnum];
   return (char *) "Unknown error";
 }
-
+#endif /* not WINDOWSNT */
 #endif /* ! HAVE_STRERROR */
 
 #ifdef INTERRUPTIBLE_OPEN
@@ -2893,16 +2933,16 @@ sys_write (fildes, buf, nbyte)
 #endif /* INTERRUPTIBLE_IO */
 
 #ifndef HAVE_VFORK
-
+#ifndef WINDOWSNT
 /*
- *	Substitute fork for vfork on USG flavors.
+ *      Substitute fork for vfork on USG flavors.
  */
 
 vfork ()
 {
   return (fork ());
 }
-
+#endif /* not WINDOWSNT */
 #endif /* not HAVE_VFORK */
 
 #ifdef USG
@@ -3662,8 +3702,8 @@ sys_access (path, mode)
 #else /* not VMS4_4 */
 
 #include <prvdef.h>
-#define	ACE$M_WRITE	2
-#define	ACE$C_KEYID	1
+#define ACE$M_WRITE     2
+#define ACE$C_KEYID     1
 
 static unsigned short memid, grpid;
 static unsigned int uic;
@@ -3696,13 +3736,13 @@ sys_access (filename, type)
       grpid = uic >> 16;
     }
 
-  if (type != 2)		/* not checking write access */
+  if (type != 2)                /* not checking write access */
     return access (filename, type);
 
   /* Check write protection. */
     
-#define	CHECKPRIV(bit)    (prvmask.bit)
-#define	WRITEABLE(field)  (! ((xab.xab$w_pro >> field) & XAB$M_NOWRITE))
+#define CHECKPRIV(bit)    (prvmask.bit)
+#define WRITEABLE(field)  (! ((xab.xab$w_pro >> field) & XAB$M_NOWRITE))
 
   /* Find privilege bits */
   status = SYS$SETPRV (0, 0, 0, prvmask);
