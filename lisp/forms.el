@@ -292,10 +292,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.29 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.30 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.29 1996/03/01 21:13:01 jvromans Exp kwzh $")
+  $Id: forms.el,v 2.30 1997/06/10 18:32:33 kwzh Exp rms $")
 
 (defvar forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode.")
@@ -505,22 +505,22 @@ Commands:                        Equivalent keys in read-only mode:
 	;; Check if the mandatory variables make sense.
 	(or forms-file
 	    (error (concat "Forms control file error: " 
-			   "'forms-file' has not been set")))
+			   "`forms-file' has not been set")))
 
 	;; Check forms-field-sep first, since it can be needed to
 	;; construct a default format list.
 	(or (stringp forms-field-sep)
 	    (error (concat "Forms control file error: "
-			   "'forms-field-sep' is not a string")))
+			   "`forms-field-sep' is not a string")))
 
 	(if forms-number-of-fields
 	    (or (and (numberp forms-number-of-fields)
 		     (> forms-number-of-fields 0))
 		(error (concat "Forms control file error: "
-			       "'forms-number-of-fields' must be a number > 0")))
+			       "`forms-number-of-fields' must be a number > 0")))
 	  (or (null forms-format-list)
 	      (error (concat "Forms control file error: "
-			     "'forms-number-of-fields' has not been set"))))
+			     "`forms-number-of-fields' has not been set"))))
 
 	(or forms-format-list
 	    (forms--intuit-from-file))
@@ -530,9 +530,9 @@ Commands:                        Equivalent keys in read-only mode:
 		     (eq (length forms-multi-line) 1))
 		(if (string= forms-multi-line forms-field-sep)
 		    (error (concat "Forms control file error: " 
-				   "'forms-multi-line' is equal to 'forms-field-sep'")))
+				   "`forms-multi-line' is equal to 'forms-field-sep'")))
 	      (error (concat "Forms control file error: "
-			     "'forms-multi-line' must be nil or a one-character string"))))
+			     "`forms-multi-line' must be nil or a one-character string"))))
 	(or (fboundp 'set-text-properties)
 	    (setq forms-use-text-properties nil))
 	    
@@ -556,12 +556,12 @@ Commands:                        Equivalent keys in read-only mode:
 	(if (and forms-new-record-filter
 		 (not (fboundp forms-new-record-filter)))
 	    (error (concat "Forms control file error: "
-			   "'forms-new-record-filter' is not a function")))
+			   "`forms-new-record-filter' is not a function")))
 
 	(if (and forms-modified-record-filter
 		 (not (fboundp forms-modified-record-filter)))
 	    (error (concat "Forms control file error: "
-			   "'forms-modified-record-filter' is not a function")))
+			   "`forms-modified-record-filter' is not a function")))
 
 	;; The filters acces the contents of the forms using `forms-fields'.
 	(make-local-variable 'forms-fields)
@@ -721,11 +721,11 @@ Commands:                        Equivalent keys in read-only mode:
   ;; Verify that `forms-format-list' is not nil.
   (or forms-format-list
       (error (concat "Forms control file error: "
-		     "'forms-format-list' has not been set")))
+		     "`forms-format-list' has not been set")))
   ;; It must be a list.
   (or (listp forms-format-list)
       (error (concat "Forms control file error: "
-		     "'forms-format-list' is not a list")))
+		     "`forms-format-list' is not a list")))
 
   ;; Assume every field is painted once.
   ;; `forms--elements' will grow if needed.
@@ -786,7 +786,7 @@ Commands:                        Equivalent keys in read-only mode:
 	  ;; Validate.
 	  (or (fboundp (car-safe el))
 	      (error (concat "Forms format error: "
-			     "not a function %S")
+			     "%S is not a function")
 		     (car-safe el)))
 
 	  ;; Shift.
@@ -1148,12 +1148,12 @@ Commands:                        Equivalent keys in read-only mode:
 	(if forms--field
 	    (` ((setq here (point))
 		(if (not (search-forward (, el) nil t nil))
-		    (error "Parse error: cannot find \"%s\"" (, el)))
+		    (error "Parse error: cannot find `%s'" (, el)))
 		(aset forms--recordv (, (1- forms--field))
 		      (buffer-substring-no-properties here
 					(- (point) (, (length el)))))))
 	  (` ((if (not (looking-at (, (regexp-quote el))))
-		  (error "Parse error: not looking at \"%s\"" (, el)))
+		  (error "Parse error: not looking at `%s'" (, el)))
 	      (forward-char (, (length el))))))
       (setq forms--seen-text t)
       (setq forms--field nil)))
@@ -1173,13 +1173,13 @@ Commands:                        Equivalent keys in read-only mode:
 	    (` ((let ((here (point))
 		      (forms--dyntext (aref forms--dyntexts (, forms--dyntext))))
 		  (if (not (search-forward forms--dyntext nil t nil))
-		      (error "Parse error: cannot find \"%s\"" forms--dyntext))
+		      (error "Parse error: cannot find `%s'" forms--dyntext))
 		  (aset forms--recordv (, (1- forms--field))
 			(buffer-substring-no-properties here
 					  (- (point) (length forms--dyntext)))))))
 	  (` ((let ((forms--dyntext (aref forms--dyntexts (, forms--dyntext))))
 		(if (not (looking-at (regexp-quote forms--dyntext)))
-		    (error "Parse error: not looking at \"%s\"" forms--dyntext))
+		    (error "Parse error: not looking at `%s'" forms--dyntext))
 		(forward-char (length forms--dyntext))))))
       (setq forms--dyntext (1+ forms--dyntext))
       (setq forms--seen-text t)
@@ -1833,21 +1833,25 @@ after the current record."
 
   (let (the-line the-record here
 		 (fld-sep forms-field-sep))
-    (if (save-excursion
-	  (set-buffer forms--file-buffer)
-	  (setq here (point))
-	  (end-of-line)
-	  (if (null (re-search-forward regexp nil t))
-	      (progn
-		(goto-char here)
-		(message "\"%s\" not found" regexp)
-		nil)
+    (save-excursion
+      (set-buffer forms--file-buffer)
+      (end-of-line)
+      (setq here (point))
+      (if (or (re-search-forward regexp nil t)
+	      (and (> here (point-min))
+		   (progn
+		     (goto-char (point-min))
+		     (re-search-forward regexp here t))))
+	  (progn
 	    (setq the-record (forms--get-record))
-	    (setq the-line (1+ (count-lines (point-min) (point))))))
-	(progn
-	  (setq forms--current-record the-line)
-	  (forms--show-record the-record)
-	  (re-search-forward regexp nil t))))
+	    (setq the-line (1+ (count-lines (point-min) (point))))
+	    (if (< (point) here)
+		(message "Wrapped")))
+	(goto-char here)
+	(error "Search failed: %s" regexp)))
+    (setq forms--current-record the-line)
+    (forms--show-record the-record))
+  (re-search-forward regexp nil t)
   (setq forms--search-regexp regexp))
 
 (defun forms-search-backward (regexp)
@@ -1865,21 +1869,25 @@ after the current record."
 
   (let (the-line the-record here
 		 (fld-sep forms-field-sep))
-    (if (save-excursion
-	  (set-buffer forms--file-buffer)
-	  (setq here (point))
-	  (beginning-of-line)
-	  (if (null (re-search-backward regexp nil t))
-	      (progn
-		(goto-char here)
-		(message "\"%s\" not found" regexp)
-		nil)
+    (save-excursion
+      (set-buffer forms--file-buffer)
+      (beginning-of-line)
+      (setq here (point))
+      (if (or (re-search-backward regexp nil t)
+	      (and (< (point) (point-max))
+		   (progn
+		     (goto-char (point-max))
+		     (re-search-backward regexp here t))))
+	  (progn
 	    (setq the-record (forms--get-record))
-	    (setq the-line (1+ (count-lines (point-min) (point))))))
-	(progn
-	  (setq forms--current-record the-line)
-	  (forms--show-record the-record)
-	  (re-search-forward regexp nil t))))
+	    (setq the-line (1+ (count-lines (point-min) (point))))
+	    (if (> (point) here)
+		(message "Wrapped")))
+	(goto-char here)
+	(error "Search failed: %s" regexp)))
+    (setq forms--current-record the-line)
+    (forms--show-record the-record))
+  (re-search-forward regexp nil t)
   (setq forms--search-regexp regexp))
 
 (defun forms-save-buffer (&optional args)
@@ -1894,9 +1902,10 @@ after writing out the data."
     (save-excursion
       (set-buffer forms--file-buffer)
       (let ((inhibit-read-only t))
-      (if write-file-filter 
-	  (save-excursion 
-	      (run-hooks 'write-file-filter))) 
+	;; Write file hooks are run via local-write-file-hooks.
+	;; (if write-file-filter 
+	;;  (save-excursion 
+	;;   (run-hooks 'write-file-filter))) 
 	(save-buffer args)
 	(if read-file-filter
 	   (save-excursion
