@@ -482,54 +482,53 @@ If optional argument QUERY is non-nil, query for the help mode."
     result))
 
 (defun info-lookup-guess-default (topic mode)
-  "Pick up default item at point (with favor to look back).
-Return nil if there is nothing appropriate."
+  "Return a guess for a symbol to look up, based on text around point.
+Try all related modes applicable to TOPIC and MODE.
+Return nil if there is nothing appropriate in the buffer near point."
   (let ((modes (info-lookup->all-modes topic mode))
-	(start (point)) guess whitespace)
+	guess)
     (while (and (not guess) modes)
       (setq guess (info-lookup-guess-default* topic (car modes))
-	    modes (cdr modes))
-      (goto-char start))
+	    modes (cdr modes)))
     ;; Collapse whitespace characters.
-    (and guess (concat (delete nil (mapcar (lambda (ch)
-					     (if (or (char-equal ch ? )
-						     (char-equal ch ?\t)
-						     (char-equal ch ?\n))
-						 (if (not whitespace)
-						     (setq whitespace ? ))
-					       (setq whitespace nil) ch))
-					   guess))))))
+    (when guess
+      (let ((pos 0))
+	(while (string-match "[ \t\n]+" guess pos)
+	  (setq pos (1+ (match-beginning 0)))
+	  (setq guess (replace-match " " t t guess)))))
+    guess))
 
 (defun info-lookup-guess-default* (topic mode)
   (let ((case-fold-search (info-lookup->ignore-case topic mode))
 	(rule (or (info-lookup->parse-rule topic mode)
 		  (info-lookup->regexp topic mode)))
 	(start (point)) end regexp subexp result)
-    (if (symbolp rule)
-	(setq result (funcall rule))
-      (if (consp rule)
-	  (setq regexp (car rule)
-		subexp (cdr rule))
-	(setq regexp rule
-	      subexp 0))
-      (skip-chars-backward " \t\n") (setq end (point))
-      (while (and (re-search-backward regexp nil t)
-		  (looking-at regexp)
-		  (>= (match-end 0) end))
-	(setq result (match-string subexp)))
-      (if (not result)
-	  (progn
-	    (goto-char start)
-	    (skip-chars-forward " \t\n")
-	    (and (looking-at regexp)
-		 (setq result (match-string subexp))))))
+    (save-excursion
+      (if (symbolp rule)
+	  (setq result (funcall rule))
+	(if (consp rule)
+	    (setq regexp (car rule)
+		  subexp (cdr rule))
+	  (setq regexp rule
+		subexp 0))
+	(skip-chars-backward " \t\n") (setq end (point))
+	(while (and (re-search-backward regexp nil t)
+		    (looking-at regexp)
+		    (>= (match-end 0) end))
+	  (setq result (match-string subexp)))
+	(if (not result)
+	    (progn
+	      (goto-char start)
+	      (skip-chars-forward " \t\n")
+	      (and (looking-at regexp)
+		   (setq result (match-string subexp)))))))
     result))
 
 (defun info-lookup-guess-c-symbol ()
   "Get the C symbol at point."
   (condition-case nil
       (progn
-	(backward-sexp)
+	(skip-syntax-backward "w_")
 	(let ((start (point)) prefix name)
 	  ;; Test for a leading `struct', `union', or `enum' keyword
 	  ;; but ignore names like `foo_struct'.
