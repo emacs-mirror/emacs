@@ -1065,9 +1065,10 @@ Requires floating point."
            (d1 (list (car d0) (floor (car (cdr d0))) (car (cdr (cdr d0)))))
            (h0 (* 24 (- (car (cdr d0)) (floor (car (cdr d0))))))
            (adj (dst-adjust-time d1 h0))
-           (d (list (car d1) (+ (car (cdr d1))  
-                  (/ (car (cdr adj)) 24.0))
-                    (car (cdr (cdr d1)))))
+           (d (list (car (car adj))
+                    (+ (car (cdr (car adj))  )
+                       (/ (car (cdr adj)) 24.0))
+                    (car (cdr (cdr (car adj))))))
            ; The following is nearly as accurate, but not quite:
 	   ;(d0 (solar-date-next-longitude
            ;    (calendar-astro-from-absolute
