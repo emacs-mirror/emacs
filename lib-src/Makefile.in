@@ -302,8 +302,14 @@ getopt1.o: ${srcdir}/getopt1.c ${srcdir}/getopt.h
 alloca.o: ${srcdir}/alloca.c
 	${CC} -c ${BASE_CFLAGS} ${srcdir}/alloca.c
 
+#ifdef REGEXP_IN_LIBC
+REGEXPOBJ =
+REGEXPDEPS =
+#else
 REGEXPOBJ = regex.o
 REGEXPDEPS = $(REGEXPOBJ) ../src/regex.h
+#endif
+
 regex.o: ../src/regex.c ../src/regex.h
 	${CC} -c ${BASE_CFLAGS} -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER ${srcdir}/../src/regex.c
 
