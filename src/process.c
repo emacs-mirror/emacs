@@ -847,6 +847,45 @@ DEFUN ("set-process-window-size", Fset_process_window_size,
     return Qt;
 }
 
+DEFUN ("set-process-inherit-coding-system-flag",
+  Fset_process_inherit_coding_system_flag,
+  Sset_process_inherit_coding_system_flag, 2, 2, 0,
+  "Determine whether buffer of PROCESS will inherit coding-system.\n\
+If the second argument FLAG is non-nil, then the variable\n\
+`buffer-file-coding-system' of the buffer associated with PROCESS\n\
+will be bound to the value of the coding system used to decode\n\
+the process output.\n\
+\n\
+This is useful when the coding system specified for the process buffer\n\
+leaves either the character code conversion or the end-of-line conversion\n\
+unspecified, or if the coding system used to decode the process output\n\
+is more appropriate for saving the process buffer.\n\
+\n\
+Binding the variable `inherit-process-coding-system' to non-nil before\n\
+starting the process is an alternative way of setting the inherit flag\n\
+for the process which will run.")
+  (process, flag)
+     register Lisp_Object process, flag;
+{
+  CHECK_PROCESS (process, 0);
+  XPROCESS (process)->inherit_coding_system_flag = !Fnull (flag);
+  return flag;
+}
+
+DEFUN ("process-inherit-coding-system-flag",
+  Fprocess_inherit_coding_system_flag, Sprocess_inherit_coding_system_flag,
+  1, 1, 0,
+  "Return the value of inherit-coding-system flag for PROCESS.\n\
+If this flag is t, `buffer-file-coding-system' of the buffer\n\
+associated with PROCESS will inherit the coding system used to decode\n\
+the process output.")
+  (process)
+     register Lisp_Object process;
+{
+  CHECK_PROCESS (process, 0);
+  return XPROCESS (process)->inherit_coding_system_flag ? Qt : Qnil;
+}
+
 DEFUN ("process-kill-without-query", Fprocess_kill_without_query,
   Sprocess_kill_without_query, 1, 2, 0,
   "Say no query needed if PROCESS is running when Emacs is exited.\n\
@@ -1232,6 +1271,9 @@ Remaining arguments are strings to give program as arguments.")
   XPROCESS (proc)->decoding_carryover = make_number (0);
   XPROCESS (proc)->encoding_buf = make_uninit_string (0);
   XPROCESS (proc)->encoding_carryover = make_number (0);
+
+  XPROCESS (proc)->inherit_coding_system_flag
+    = (NILP (buffer) || !inherit_process_coding_system) ? 0 : 1;
 
   create_process (proc, (char **) new_argv, current_dir);
 
@@ -2022,6 +2064,9 @@ Fourth arg SERVICE is name of the service desired, or an integer\n\
   XPROCESS (proc)->decoding_carryover = make_number (0);
   XPROCESS (proc)->encoding_buf = make_uninit_string (0);
   XPROCESS (proc)->encoding_carryover = make_number (0);
+
+  XPROCESS (proc)->inherit_coding_system_flag =
+    NILP (buffer) || !inherit_process_coding_system ? 0 : 1;
 
   UNGCPRO;
   return proc;
@@ -2869,6 +2914,19 @@ read_process_output (proc, channel)
 
   XSETINT (p->decoding_carryover, carryover);
   Vlast_coding_system_used = coding->symbol;
+
+  /* If the caller required, let the process associated buffer
+     inherit the coding-system used to decode the process output.  */
+  if (p->inherit_coding_system_flag
+      && !NILP (p->buffer) && !NILP (XBUFFER (p->buffer)->name))
+    {
+      struct buffer *prev_buf = current_buffer;
+
+      Fset_buffer (p->buffer);
+      call1 (intern ("after-insert-file-set-buffer-file-coding-system"),
+	     make_number (nbytes));
+      set_buffer_internal (prev_buf);
+    }
 
   /* Read and dispose of the process output.  */
   outstream = p->filter;
@@ -4385,6 +4443,8 @@ The value takes effect when `start-process' is called.");
   defsubr (&Sset_process_sentinel);
   defsubr (&Sprocess_sentinel);
   defsubr (&Sset_process_window_size);
+  defsubr (&Sset_process_inherit_coding_system_flag);
+  defsubr (&Sprocess_inherit_coding_system_flag);
   defsubr (&Sprocess_kill_without_query);
   defsubr (&Sprocess_contact);
   defsubr (&Slist_processes);
@@ -4417,6 +4477,8 @@ The value takes effect when `start-process' is called.");
 
 #include "lisp.h"
 #include "systime.h"
+#include "charset.h"
+#include "coding.h"
 #include "termopts.h"
 #include "sysselect.h"
 
@@ -4652,6 +4714,20 @@ DEFUN ("get-buffer-process", Fget_buffer_process, Sget_buffer_process, 1, 1, 0,
   return Qnil;
 }
 
+DEFUN ("process-inherit-coding-system-flag",
+  Fprocess_inherit_coding_system_flag, Sprocess_inherit_coding_system_flag,
+  1, 1, 0,
+  /* Don't confuse make-docfile by having two doc strings for this function.
+     make-docfile does not pay attention to #if, for good reason!  */
+  0)
+  (process)
+     register Lisp_Object process;
+{
+  /* Ignore the argument and return the value of
+     inherit-process-coding-system.  */
+  return inherit_process_coding_system ? Qt : Qnil;
+}
+
 /* Kill all processes associated with `buffer'.
    If `buffer' is nil, kill all processes.
    Since we have no subprocesses, this does nothing.  */
@@ -4669,6 +4745,7 @@ init_process ()
 syms_of_process ()
 {
   defsubr (&Sget_buffer_process);
+  defsubr (&Sprocess_inherit_coding_system_flag);
 }
 
 
