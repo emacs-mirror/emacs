@@ -373,13 +373,7 @@ string is passed through `substitute-command-keys'.")
     }
 
   if (NILP (raw))
-    {
-      struct gcpro gcpro1;
-
-      GCPRO1 (doc);
-      doc = Fsubstitute_command_keys (doc);
-      UNGCPRO;
-    }
+    doc = Fsubstitute_command_keys (doc);
   return doc;
 }
 
