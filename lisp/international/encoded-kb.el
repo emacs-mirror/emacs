@@ -74,7 +74,7 @@
 	final-char)
     (while l
       (setq final-char (charset-iso-final-char (car l)))
-      (if final-char
+      (if (> final-char 0)
 	  (define-key map (char-to-string final-char)
 	    'encoded-kbd-iso2022-designation))
       (setq l (cdr l)))
