@@ -11179,8 +11179,24 @@ XTread_socket (sd, bufp, numchars, expected)
 		     in the emacs widget, which messes up Motif menus.  */
 		  if (event.xconfigure.x == 0 && event.xconfigure.y == 0)
 		    {
-		      event.xconfigure.x = f->output_data.x->widget->core.x;
-		      event.xconfigure.y = f->output_data.x->widget->core.y;
+                      Window child;
+		      int count;
+
+		      /* We can get a ConfigureNotify because of a resize,
+			 so we can't just take x and y from the widget.
+			 Since this event may come on something else than
+			 the top level window,  we can't use x_real_position
+			 either.  So we get the root window x/y for 0/0 in
+			 the window in the event. */
+		      count = x_catch_errors (FRAME_X_DISPLAY (f));
+                      XTranslateCoordinates (FRAME_X_DISPLAY (f),
+                                             event.xconfigure.window,
+                                             FRAME_X_DISPLAY_INFO (f)->root_window,
+                                             0, 0,
+                                             &event.xconfigure.x,
+                                             &event.xconfigure.y,
+                                             &child);
+		      x_uncatch_errors (FRAME_X_DISPLAY (f), count);
 		    }
 #endif /* USE_MOTIF */
 		}
