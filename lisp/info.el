@@ -2382,7 +2382,8 @@ Allowed only if variable `Info-enable-edit' is non-nil."
     ("copyright" . "autotype") ("executable" . "autotype")
     ("time-stamp" . "autotype") ("quickurl" . "autotype")
     ("tempo" . "autotype") ("hippie-expand" . "autotype")
-    ("cvs" . "pcl-cvs") ("ada" . "ada-mode")
+    ("cvs" . "pcl-cvs") ("ada" . "ada-mode") "calc"
+    ("calcAlg" . "calc") ("calcDigit" . "calc") ("calcVar" . "calc")
     "ebrowse" "eshell" "cl" "reftex" "speedbar" "widget" "woman"
     ("mail-header" . "emacs-mime") ("mail-content" . "emacs-mime")
     ("mail-encode" . "emacs-mime") ("mail-decode" . "emacs-mime")
