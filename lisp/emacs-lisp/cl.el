@@ -107,6 +107,7 @@
 (defvar cl-optimize-safety 1)
 
 
+;;;###autoload
 (defvar custom-print-functions nil
   "This is a list of functions that format user objects for printing.
 Each function is called in turn with three arguments: the object, the
