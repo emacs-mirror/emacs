@@ -2268,7 +2268,7 @@ indirect definition itself.")
     {
       Lisp_Object *defns;
       int i, n;
-      struct gcpro gcpro1, gcpro2;
+      struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
       
       /* Check heuristic-consistency of the cache.  */
       if (NILP (Fequal (keymaps, where_is_cache_keymaps)))
