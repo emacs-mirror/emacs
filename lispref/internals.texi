@@ -1156,11 +1156,6 @@ redisplay does if point is off the screen: instead of scrolling the
 window to show the text around point, it moves point to a location that
 is on the screen.
 
-@item optional_new_start
-Set to a non-@code{nil} value when we have explicitly changed the value of
-@code{start}, but don't want the next redisplay to be obliged to use the
-new value.
-
 @item frozen_window_start_p
 This field is set temporarily to 1 to indicate to redisplay that 
 @code{start} of this window should not be changed, even if point
