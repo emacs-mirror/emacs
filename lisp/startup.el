@@ -470,31 +470,35 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	(run-hooks 'emacs-startup-hook)
 	(and term-setup-hook
 	     (run-hooks 'term-setup-hook))
-	;; Modify the initial frame based on what .emacs puts into
-	;; ...-frame-alist.
-	(if (fboundp 'frame-notice-user-settings)
-	    (frame-notice-user-settings))
-	(if (fboundp 'frame-set-background-mode)
-	    ;; Set the faces for the initial background mode even if
-	    ;; frame-notice-user-settings didn't (such as on a tty).
-	    ;; frame-set-background-mode is idempotent, so it won't
-	    ;; cause any harm if it's already been done.
-	    (let ((frame-background-mode frame-background-mode)
-		  (frame (selected-frame))
-		  term)
-	      (when (and (null window-system)
-			 ;; Don't override a possibly customized value.
-			 (null frame-background-mode)
-			 ;; Don't override user specifications.
-			 (null (frame-parameter frame 'reverse))
-			 (let ((bg (frame-parameter frame 'background-color)))
-			   (or (null bg)
-			       (member bg '(unspecified "unspecified-bg")))))
-		(setq term (getenv "TERM"))
-		(if (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)"
-				  term)
-		    (setq frame-background-mode 'light)))
-	      (frame-set-background-mode (selected-frame))))
+
+	;; Don't do this if we failed to create the initial frame,
+	;; for instance due to a dense colormap.
+	(when frame-initial-frame
+	  ;; Modify the initial frame based on what .emacs puts into
+	  ;; ...-frame-alist.
+	  (if (fboundp 'frame-notice-user-settings)
+	      (frame-notice-user-settings))
+	  (if (fboundp 'frame-set-background-mode)
+	      ;; Set the faces for the initial background mode even if
+	      ;; frame-notice-user-settings didn't (such as on a tty).
+	      ;; frame-set-background-mode is idempotent, so it won't
+	      ;; cause any harm if it's already been done.
+	      (let ((frame-background-mode frame-background-mode)
+		    (frame (selected-frame))
+		    term)
+		(when (and (null window-system)
+			   ;; Don't override a possibly customized value.
+			   (null frame-background-mode)
+			   ;; Don't override user specifications.
+			   (null (frame-parameter frame 'reverse))
+			   (let ((bg (frame-parameter frame 'background-color)))
+			     (or (null bg)
+				 (member bg '(unspecified "unspecified-bg")))))
+		  (setq term (getenv "TERM"))
+		  (if (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)"
+				    term)
+		      (setq frame-background-mode 'light)))
+		(frame-set-background-mode (selected-frame)))))
 
 	;; Now we know the user's default font, so add it to the menu.
 	(if (fboundp 'font-menu-add-default)
