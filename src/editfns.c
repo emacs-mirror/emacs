@@ -1450,8 +1450,8 @@ Finally, %n is a newline, %t is a tab, %% is a literal %.
 Certain flags and modifiers are available with some format controls.
 The flags are `_', `-', `^' and `#'.  For certain characters X,
 %_X is like %X, but padded with blanks; %-X is like %X,
-ut without padding.  %^X is like %X but with all textual
-characters up-cased; %#X is like %X but with letter-case of
+but without padding.  %^X is like %X, but with all textual
+characters up-cased; %#X is like %X, but with letter-case of
 all textual characters reversed.
 %NX (where N stands for an integer) is like %X,
 but takes up at least N (a number) positions.
