@@ -205,19 +205,26 @@ get_keymap_1 (object, error, autoload)
   if (CONSP (tem) && EQ (XCONS (tem)->car, Qkeymap))
     return tem;
 
-  /* Should we do an autoload?  */
+  /* Should we do an autoload?  Autoload forms for keymaps have
+     Qkeymap as their fifth element.  */
   if (autoload
       && XTYPE (object) == Lisp_Symbol
       && CONSP (tem)
       && EQ (XCONS (tem)->car, Qautoload))
     {
-      struct gcpro gcpro1, gcpro2;
+      Lisp_Object tail;
 
-      GCPRO2 (tem, object)
-      do_autoload (tem, object);
-      UNGCPRO;
+      tail = Fnth (make_number (4), tem);
+      if (EQ (tail, Qkeymap))
+	{
+	  struct gcpro gcpro1, gcpro2;
 
-      goto autoload_retry;
+	  GCPRO2 (tem, object)
+	    do_autoload (tem, object);
+	  UNGCPRO;
+
+	  goto autoload_retry;
+	}
     }
 
   if (error)
