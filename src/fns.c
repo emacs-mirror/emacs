@@ -1047,7 +1047,6 @@ string_to_multibyte (string)
 {
   unsigned char *buf;
   int nbytes;
-  int i;
 
   if (STRING_MULTIBYTE (string))
     return string;
@@ -2699,6 +2698,14 @@ map_char_table (c_function, function, subtable, arg, depth, indices)
     }
 }
 
+static void void_call2 P_ ((Lisp_Object a, Lisp_Object b, Lisp_Object c));
+static void
+void_call2 (a, b, c)
+     Lisp_Object a, b, c;
+{
+  call2 (a, b, c);
+}
+
 DEFUN ("map-char-table", Fmap_char_table, Smap_char_table,
        2, 2, 0,
        doc: /* Call FUNCTION for each (normal and generic) characters in CHAR-TABLE.
@@ -2712,7 +2719,11 @@ The key is always a possible IDX argument to `aref'.  */)
 
   CHECK_CHAR_TABLE (char_table);
 
-  map_char_table ((POINTER_TYPE *) call2, Qnil, char_table, function, 0, indices);
+  /* When Lisp_Object is represented as a union, `call2' cannot directly
+     be passed to map_char_table because it returns a Lisp_Object rather
+     than returning nothing.
+     Casting leads to crashes on some architectures.  -stef  */
+  map_char_table (void_call2, Qnil, char_table, function, 0, indices);
   return Qnil;
 }
 
@@ -3490,7 +3501,7 @@ The data read from the system are decoded using `locale-coding-system'.  */)
 	     it is consistent with CODESET?  If not, what to do?  */
 	  Faset (v, make_number (i),
 		 code_convert_string_norecord (val, Vlocale_coding_system,
-					       Qnil));
+					       0));
 	}
       return v;
     }
@@ -3508,7 +3519,7 @@ The data read from the system are decoded using `locale-coding-system'.  */)
 	  str = nl_langinfo (months[i]);
 	  val = make_unibyte_string (str, strlen (str));
 	  p->contents[i] =
-	    code_convert_string_norecord (val, Vlocale_coding_system, Qnil);
+	    code_convert_string_norecord (val, Vlocale_coding_system, 0);
 	}
       XSETVECTOR (val, p);
       return val;
