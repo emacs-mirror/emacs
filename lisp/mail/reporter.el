@@ -1,13 +1,12 @@
 ;;; reporter.el --- customizable bug reporting of lisp programs
 
-;; Copyright (C) 1993, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1993 1994 1995 1996 Free Software Foundation, Inc.
 
-;; Author: 1993 Barry A. Warsaw <bwarsaw@cnri.reston.va.us>
-;; Maintainer:      bwarsaw@cnri.reston.va.us
+;; Author:          1993-1996 Barry A. Warsaw
 ;; Created:         19-Apr-1993
-;; Version:         2.21
-;; Last Modified:   1994/11/29 16:13:50
-;; Keywords: bug reports lisp
+;; Version:         3.3
+;; Last Modified:   1996/07/02 00:39:09
+;; Keywords: maint mail tools
 
 ;; This file is part of GNU Emacs.
 
@@ -28,16 +27,29 @@
 
 ;;; Commentary:
 
-;; Introduction
-;; ============
-;; This program is for lisp package authors and can be used to ease
-;; reporting of bugs.  When invoked, reporter-submit-bug-report will
-;; set up a mail buffer with the appropriate bug report address,
-;; including a lisp expression the maintainer of the package can eval
-;; to completely reproduce the environment in which the bug was
-;; observed (e.g. by using eval-last-sexp). This package proved
-;; especially useful during my development of cc-mode.el, which is
-;; highly dependent on its configuration variables.
+;; End User Interface
+;; ==================
+;; The variable `mail-user-agent' contains a symbol indicating which
+;; Emacs mail package end users would like to use to compose outgoing
+;; mail.  See that variable for details.
+
+;; Mail Package Interface
+;; ======================
+;; Mail package authors can configure reporter to support their
+;; package by calling the function `define-mail-user-agent' See that
+;; function for details.
+
+;; Lisp Package Authors
+;; ====================
+;; Reporter was written primarily for Emacs Lisp package authors so
+;; that their users can easily report bugs.  When invoked,
+;; reporter-submit-bug-report will set up an outgoing mail buffer with
+;; the appropriate bug report address, including a lisp expression the
+;; maintainer of the package can eval to completely reproduce the
+;; environment in which the bug was observed (e.g. by using
+;; eval-last-sexp).  This package proved especially useful during my
+;; development of cc-mode, which is highly dependent on its
+;; configuration variables.
 ;;
 ;; Do a "C-h f reporter-submit-bug-report" for more information.
 ;; Here's an example usage:
@@ -47,7 +59,6 @@
 ;;(defun mypkg-submit-bug-report ()
 ;;  "Submit via mail a bug report on mypkg"
 ;;  (interactive)
-;;  (require 'reporter)
 ;;  (reporter-submit-bug-report
 ;;   mypkg-maintainer-address
 ;;   (concat "mypkg.el " mypkg-version)
@@ -58,38 +69,45 @@
 
 ;; Mailing List
 ;; ============
-;; I've set up a mailing list to report bugs or suggest enhancements,
-;; etc. This list's intended audience is elisp package authors who are
-;; using reporter and want to stay current with releases. Here are the
-;; relevant addresses:
+;; I've set up a Majordomo mailing list to report bugs or suggest
+;; enhancements, etc.  This list's intended audience is elisp package
+;; authors who are using reporter and want to stay current with
+;; releases. Here are the relevant addresses:
 ;;
-;; Administrivia: reporter-request@anthem.nlm.nih.gov
-;; Submissions:   reporter@anthem.nlm.nih.gov
+;; Administrivia: reporter-request@python.org
+;; Submissions:   reporter@python.org
 
 ;; Packages that currently use reporter are: cc-mode, supercite, elp,
-;; tcl, ediff, crypt, vm, edebug, archie, and efs.  If you know of
-;; others, please email me!
-
-;; LCD Archive Entry:
-;; reporter|Barry A. Warsaw|bwarsaw@cnri.reston.va.us|
-;; Customizable bug reporting of lisp programs.|
-;; 1994/11/29 16:13:50|2.21|~/misc/reporter.el.Z|
+;; tcl, ediff, crypt++ (crypt), dired-x, rmailgen, mode-line, vm,
+;; mh-e, edebug, archie, viper, w3-mode, framepop, hl319, hilit19,
+;; pgp, eos, hm--html, efs.
+;;
+;; If you know of others, please email me!
 
 ;;; Code:
 
 
-;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-;; user defined variables
+;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+;; End user interface
 
-(defvar reporter-mailer '(vm-mail reporter-mail)
-  "*Mail package to use to generate bug report buffer.
-This can either be a function symbol or a list of function symbols.
-If a list, it tries to use each specified mailer in order until an
-existing one is found.
+;;;###autoload
+(defvar mail-user-agent 'sendmail-user-agent
+  "*Your preference for a mail composition package.
+Various Emacs Lisp packages (e.g. reporter) require you to compose an
+outgoing email message.  As there are several such packages available
+for Emacs, you can indicate your preference by setting this variable.
 
-MH-E users may want to use `mh-smail'.")
+Valid values currently are:
+
+    'sendmail-user-agent -- use Emacs built-in Mail package
+    'vm-user-agent       -- use Kyle Jones' VM package
+    'mh-e-user-agent     -- use the Emacs interface to the MH mail system
+
+Additional valid symbols may be available; check with the author of
+your package for details.")
 
 
+
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ;; Package author interface variables
 
@@ -97,10 +115,11 @@ MH-E users may want to use `mh-smail'.")
   "Interface variable controlling prompting for problem summary.
 When non-nil, `reporter-submit-bug-report' prompts the user for a
 brief summary of the problem, and puts this summary on the Subject:
-line.
+line.  If this variable is a string, that string is used as the prompt
+string.
 
 Default behavior is to not prompt (i.e. nil). If you want reporter to
-prompt, you should `let' bind this variable to t before calling
+prompt, you should `let' bind this variable before calling
 `reporter-submit-bug-report'.  Note that this variable is not
 buffer-local so you should never just `setq' it.")
 
@@ -117,24 +136,26 @@ Note that this variable is not buffer-local so you should never just
 `setq' it.  If you want to changes its default value, you should `let'
 bind it.")
 
-;; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+;; ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ;; End of editable variables
 
-
+
 (defvar reporter-eval-buffer nil
   "Buffer to retrieve variable's value from.
 This is necessary to properly support the printing of buffer-local
 variables.  Current buffer will always be the mail buffer being
 composed.")
 
-(defconst reporter-version "2.21"
+(defconst reporter-version "3.2"
   "Reporter version number.")
 
 (defvar reporter-initial-text nil
   "The automatically created initial text of a bug report.")
 (make-variable-buffer-local 'reporter-initial-text)
 
+
 
+;; status feedback to the user
 (defvar reporter-status-message nil)
 (defvar reporter-status-count nil)
 
@@ -147,6 +168,7 @@ composed.")
   (setq reporter-status-count (1+ reporter-status-count)))
 
 
+;; dumping/pretty printing of values
 (defun reporter-beautify-list (maxwidth compact-p)
   ;; pretty print a list
   (reporter-update-status)
@@ -221,7 +243,8 @@ composed.")
        (mail-position-on-field "X-Reporter-Void-Vars-Found")
        (end-of-line)
        (insert (symbol-name varsym) " ")))
-    (error (error ""))))
+    (error
+     (error ""))))
 
 (defun reporter-dump-state (pkgname varlist pre-hooks post-hooks)
   ;; Dump the state of the mode specific variables.
@@ -306,14 +329,35 @@ composed.")
      'move)				;search for and move
     (buffer-substring (match-beginning 0) (match-end 0))))
 
-;; Serves as an interface to `mail',
-;; but when the user says "no" to discarding an unset message,
-;; it gives an error.
+
+;; Serves as an interface to `mail' (sendmail.el), but when the user
+;; answers "no" to discarding an unsent message, it gives an error.
 (defun reporter-mail (&rest args)
-  (interactive "P")
   (or (apply 'mail args)
       (error "Bug report aborted")))
 
+(defun reporter-compose-outgoing ()
+  ;; compose the outgoing mail buffer, and return the selected
+  ;; paradigm, with the current-buffer tacked onto the beginning of
+  ;; the list.
+  (let* ((agent mail-user-agent)
+	 (compose (get mail-user-agent 'composefunc)))
+    ;; Sanity check.  If this fails then we'll try to use the SENDMAIL
+    ;; protocol, otherwise we must signal an error.
+    (if (not (and compose (fboundp compose)))
+	(progn
+	  (setq agent 'sendmail-user-agent
+		compose (get agent 'composefunc))
+	  (if (not (and compose (fboundp compose)))
+	      (error "Could not find a valid `mail-user-agent'.")
+	    (ding)
+	    (message "`%s' is an invalid `mail-user-agent'; using `sendmail-user-agent'."
+		     mail-user-agent)
+	    )))
+    (funcall compose)
+    agent))
+
+
 ;;;###autoload
 (defun reporter-submit-bug-report
   (address pkgname varlist &optional pre-hooks post-hooks salutation)
@@ -329,47 +373,31 @@ composed.")
   ;; This function will prompt for a summary if
   ;; reporter-prompt-for-summary-p is non-nil.
 
-  ;; The mailer used is described in the variable `reporter-mailer'.
+  ;; The mailer used is described in by the variable `mail-user-agent'.
   (let ((reporter-eval-buffer (current-buffer))
 	final-resting-place
 	after-sep-pos
 	(reporter-status-message "Formatting bug report buffer...")
 	(reporter-status-count 0)
 	(problem (and reporter-prompt-for-summary-p
-		      (read-string "(Very) brief summary of problem: ")))
-	(mailbuf
-	 ;; Normally *mail* is directed to appear in the same window,
-	 ;; but we don't want that to happen here.
-	 (let (same-window-buffer-names
-	       same-window-regexps)
-	   (call-interactively
-	    (if (nlistp reporter-mailer)
-		reporter-mailer
-	      (let ((mlist reporter-mailer)
-		    (mailer nil))
-		(while mlist
-		  (if (commandp (car mlist))
-		      (setq mailer (car mlist)
-			    mlist nil)
-		    (setq mlist (cdr mlist))))
-		(if (not mailer)
-		    (error
-		     "Variable `%s' does not contain a command for mailing"
-		     "reporter-mailer"))
-		mailer)))
-	   (current-buffer))))
+		      (read-string (if (stringp reporter-prompt-for-summary-p)
+				       reporter-prompt-for-summary-p
+				     "(Very) brief summary of problem: "))))
+	(agent (reporter-compose-outgoing))
+	(mailbuf (current-buffer))
+	hookvar)
+    ;; do the work
     (require 'sendmail)
-    ;; If mailbuf did not get made visible before,
-    ;; make it visible now.
-    (let (same-window-buffer-names
-	  same-window-regexps)
+    ;; If mailbuf did not get made visible before, make it visible now.
+    (let (same-window-buffer-names same-window-regexps)
       (pop-to-buffer mailbuf)
-      ;; Just in case the original buffer is not visible now,
-      ;; bring it back somewhere.
+      ;; Just in case the original buffer is not visible now, bring it
+      ;; back somewhere
       (display-buffer reporter-eval-buffer))
     (goto-char (point-min))
     ;; different mailers use different separators, some may not even
-    ;; use m-h-s, but sendmail.el stuff must have m-h-s bound.
+    ;; use mail-header-separator, but sendmail.el stuff must have this
+    ;; variable bound.
     (let ((mail-header-separator (reporter-calculate-separator)))
       (mail-position-on-field "to")
       (insert address)
@@ -392,29 +420,32 @@ composed.")
 	(set-marker final-resting-place nil)))
 
     ;; save initial text and set up the `no-empty-submission' hook.
-    ;; This only works for mailers that support mail-send-hook,
-    ;; e.g. sendmail.el
-    (if (fboundp 'add-hook)
+    ;; This only works for mailers that support a pre-send hook, and
+    ;; for which the paradigm has a non-nil value for the `hookvar'
+    ;; key in its agent (i.e. sendmail.el's mail-send-hook).
+    (save-excursion
+      (goto-char (point-max))
+      (skip-chars-backward " \t\n")
+      (setq reporter-initial-text (buffer-substring after-sep-pos (point))))
+    (if (setq hookvar (get agent 'hookvar))
 	(progn
-	  (save-excursion
-	    (goto-char (point-max))
-	    (skip-chars-backward " \t\n")
-	    (setq reporter-initial-text
-		  (buffer-substring after-sep-pos (point))))
-	  (make-variable-buffer-local 'mail-send-hook)
-	  (add-hook 'mail-send-hook 'reporter-bug-hook)))
+	  (make-variable-buffer-local hookvar)
+	  (add-hook hookvar 'reporter-bug-hook)))
 
-    ;; minibuf message
-    ;; C-c C-c can't be generalized because they don't always run
-    ;; mail-send-and-exit. E.g. vm-mail-send-and-exit.  I don't want
-    ;; to hard code these.
-    (let* ((sendkey "C-c C-c")
-	   (killkey-whereis (where-is-internal 'kill-buffer nil t))
-	   (killkey (if killkey-whereis
-			(key-description killkey-whereis)
-		      "M-x kill-buffer")))
-      (message "Please type in your report.  Hit %s to send, %s to abort."
-	       sendkey killkey))
+    ;; compose the minibuf message and display this.
+    (let* ((sendkey-whereis (where-is-internal
+			     (get agent 'sendfunc) nil t))
+	   (abortkey-whereis (where-is-internal
+			      (get agent 'abortfunc) nil t))
+	   (sendkey (if sendkey-whereis
+			(key-description sendkey-whereis)
+		      "C-c C-c"))   ; TBD: BOGUS hardcode
+	   (abortkey (if abortkey-whereis
+			 (key-description abortkey-whereis)
+		       "M-x kill-buffer"))  ; TBD: BOGUS hardcode
+	   )
+      (message "Please enter your report.  Type %s to send, %s to abort."
+	       sendkey abortkey))
     ))
 
 (defun reporter-bug-hook ()
@@ -432,10 +463,51 @@ composed.")
 		  (length reporter-initial-text))
 	       (string= (buffer-substring after-sep-pos (point))
 			reporter-initial-text))
-	  (error "Empty bug report cannot be sent"))
+	  (error "Empty bug report cannot be sent."))
       )))
 
 
-(provide 'reporter)
+;; paradigm definitions
+(defun define-mail-user-agent (symbol composefunc sendfunc
+				      &optional abortfunc hookvar)
+  "Define a symbol appropriate for `mail-user-agent'.
 
+SYMBOL can be any meaningful lisp symbol.  It need not have a function
+or variable definition, as it is only used for its property list.
+The property names are equivalent to the formal argument described
+below (but in lower case).  Additional properties can be placed on the
+symbol.
+
+COMPOSEFUNC is program callable function that composes an outgoing
+mail message buffer.  This function should set up the basics of the
+buffer without requiring user interaction.  It should populate the
+standard mail headers, leaving the `to:' and `subject:' headers blank.
+
+SENDFUNC is the command a user would type to send the message.
+
+Optional ABORTFUNC is the command a user would type to abort the
+message.  For mail packages that don't have a separate abort function,
+this can be `kill-buffer' (the equivalent of omitting this argument).
+
+Optional HOOKVAR is a hook variable that gets run before the message
+is actually sent.  Reporter will install `reporter-bug-hook' onto this
+hook so that empty bug reports can be suppressed by raising an error.
+If not supplied, `mail-send-hook' will be used."
+  (put symbol 'composefunc composefunc)
+  (put symbol 'sendfunc sendfunc)
+  (put symbol 'abortfunc (or abortfunc 'kill-buffer))
+  (put symbol 'hookvar (or hookvar 'mail-send-hook)))
+
+(define-mail-user-agent 'sendmail-user-agent
+  'reporter-mail 'mail-send-and-exit)
+
+(define-mail-user-agent 'vm-user-agent
+  'vm-mail 'vm-mail-send-and-exit)
+
+(define-mail-user-agent 'mh-e-user-agent
+  'mh-smail-batch 'mh-send-letter 'mh-fully-kill-draft
+  'mh-before-send-letter-hook)
+
+
+(provide 'reporter)
 ;;; reporter.el ends here
