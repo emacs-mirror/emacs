@@ -206,6 +206,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    likes that */
 #define FILE_SYSTEM_CASE Fdowncase
 
+/* Define this to be the separator between devices and paths */
+#define DEVICE_SEP ':'
+
+/* We'll support either convention on MSDOG.  */
+#define IS_DIRECTORY_SEP(_c_) ((_c_) == '/' || (_c_) == '\\')
+#define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_) || IS_DEVICE_SEP (_c_))
+
 /* bcopy under djgpp is quite safe */
 #define GAP_USE_BCOPY
 #define BCOPY_UPWARD_SAFE 1
