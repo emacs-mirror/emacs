@@ -18,7 +18,7 @@
 #define LIB_X11_LIB -L/usr/X11/lib -lX11
 #define LIBS_SYSTEM -lutil -lkvm -lcompat
 
-#define HAVE_GETLOADAVG
+#define HAVE_GETLOADAVG 1
 
 #undef BSD_PGRPS
 
