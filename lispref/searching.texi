@@ -90,7 +90,7 @@ If @var{repeat} is supplied (it must be a positive number), then the
 search is repeated that many times (each time starting at the end of the
 previous time's match).  If these successive searches succeed, the
 function succeeds, moving point and returning its new value.  Otherwise
-the search fails.
+the search fails, leaving point where it started.
 @end deffn
 
 @deffn Command search-backward string &optional limit noerror repeat
@@ -1433,7 +1433,8 @@ intended to access the match data for that search.
 @defun set-match-data match-list
 This function sets the match data from the elements of @var{match-list},
 which should be a list that was the value of a previous call to
-@code{match-data}.
+@code{match-data}.  (More precisely, anything that has the same format
+will work.)
 
 If @var{match-list} refers to a buffer that doesn't exist, you don't get
 an error; that sets the match data in a meaningless but harmless way.
