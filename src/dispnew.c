@@ -1387,6 +1387,7 @@ scrolling (frame)
   int *old_hash = (int *) alloca (FRAME_HEIGHT (frame) * sizeof (int));
   int *new_hash = (int *) alloca (FRAME_HEIGHT (frame) * sizeof (int));
   int *draw_cost = (int *) alloca (FRAME_HEIGHT (frame) * sizeof (int));
+  int *old_draw_cost = (int *) alloca (FRAME_HEIGHT (frame) * sizeof (int));
   register int i;
   int free_at_end_vpos = FRAME_HEIGHT (frame);
   register struct frame_glyphs *current_frame = FRAME_CURRENT_GLYPHS (frame);
@@ -1419,10 +1420,11 @@ scrolling (frame)
       else if (i == unchanged_at_top)
 	unchanged_at_top++;
       draw_cost[i] = line_draw_cost (desired_frame, i);
+      old_draw_cost[i] = line_draw_cost (current_frame, i);
     }
 
   /* If changed lines are few, don't allow preemption, don't scroll.  */
-  if (changed_lines < baud_rate / 2400
+  if (!scroll_region_ok && changed_lines < baud_rate / 2400
       || unchanged_at_bottom == FRAME_HEIGHT (frame))
     return 1;
 
@@ -1436,7 +1438,7 @@ scrolling (frame)
 
   /* If large window, fast terminal and few lines in common between
      current frame and desired frame, don't bother with i/d calc. */
-  if (window_size >= 18 && baud_rate > 2400
+  if (!scroll_region_ok && window_size >= 18 && baud_rate > 2400
       && (window_size >=
 	  10 * scrolling_max_lines_saved (unchanged_at_top,
 					  FRAME_HEIGHT (frame) - unchanged_at_bottom,
@@ -1445,6 +1447,7 @@ scrolling (frame)
 
   scrolling_1 (frame, window_size, unchanged_at_top, unchanged_at_bottom,
 	       draw_cost + unchanged_at_top - 1,
+	       old_draw_cost + unchanged_at_top - 1,
 	       old_hash + unchanged_at_top - 1,
 	       new_hash + unchanged_at_top - 1,
 	       free_at_end_vpos - unchanged_at_top);
