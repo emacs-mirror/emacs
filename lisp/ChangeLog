@@ -1,3 +1,8 @@
+2004-11-30  Markus Rost  <rost@ias.edu>
+
+	* textmodes/tex-mode.el (tex-main-file): Add a compatibility with
+	AUCTeX.
+
 2004-11-30  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-arith.el (math-possible-signs): Made stronger checks
