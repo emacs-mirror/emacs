@@ -734,8 +734,7 @@ a value of `safe-charsets' in PLIST."
 	 (cons coding-system (get coding-category 'coding-systems))))
 
   ;; Next, set a value of `eol-type' property.
-  (if (and (not eol-type)
-	   (or (<= type 3) (= type 5)))
+  (if (not eol-type)
       ;; If EOL-TYPE is nil, set a vector of subsidiary coding
       ;; systems, each corresponds to a coding system for the detected
       ;; EOL format.
