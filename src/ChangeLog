@@ -1,5 +1,21 @@
 2001-11-19  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* syntax.c (describe_syntax): Add dummy arg.
+	(describe_syntax_1): Update call to describe_vector.
+
+	* category.c (describe_category): Add dummy arg.
+	(describe_category_1): Update call to describe_vector.
+
+	* keymap.c (Fdescribe_vector): Add `describer' parameter.
+	(describe_command, describe_translation): Add dummy second param.
+	(describe_map): Call elt_describer with two arguments.
+	(describe_vector_princ): Add `fun' parameter.
+	Call it instead of the hardcoded `princ'.
+	(describe_vector): Add arg `args'.
+	Pass it as a new second argument to elt_describer.
+
+	* keymap.h (describe_vector): Update prototype.
+
 	* frame.c: Don't include keymap.h any more.
 	(keys_of_frame): Remove.
 
