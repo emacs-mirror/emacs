@@ -684,7 +684,8 @@ highlight-changes-toggle-hook - when entering active or passive state
 highlight-changes-disable-hook - when turning off Highlight Changes mode.
 "
   (interactive "P")
-  (if window-system
+  (if (or (display-color-p)
+	  (and (fboundp 'x-display-grayscale-p) (x-display-grayscale-p)))
       (let ((was-on highlight-changes-mode)
 	    (new-highlight-changes-mode
 	     (cond
@@ -717,7 +718,7 @@ highlight-changes-disable-hook - when turning off Highlight Changes mode.
 	  (run-hooks 'highlight-changes-disable-hook)
 	  (hilit-chg-clear))
 	)
-    (message "Highlight Changes mode only works when using a window system"))
+    (message "Highlight Changes mode requires color or grayscale display"))
   )
 
 
