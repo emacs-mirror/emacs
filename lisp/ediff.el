@@ -108,7 +108,7 @@
 ;;; Code:
 
 (require 'ediff-init)
-(require 'ediff-meta)
+(require 'ediff-mult)
 
 (defvar ediff-use-last-dir nil
   "*If t, Ediff uses previous directory as default when reading file name.")
