@@ -1,3 +1,8 @@
+2002-05-25  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-engine.el (c-add-stmt-syntax): Fixed some cases
+	of wrong anchoring, e.g. for else-if compounds.
+
 2002-05-25  Miles Bader  <miles@gnu.org>
 
 	* menu-bar.el (menu-bar-showhide-fringe-menu-customize-left) 
