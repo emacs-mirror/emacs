@@ -6067,11 +6067,21 @@ Buffer modification stores t in this variable.");
   Vcommand_hook_internal = Qnil;
 
   DEFVAR_LISP ("pre-command-hook", &Vpre_command_hook,
-    "Normal hook run before each command is executed.");
+    "Normal hook run before each command is executed.\n\
+While the hook is run, its value is temporarily set to nil\n\
+to avoid an unbreakable infinite loop if a hook function gets an error.\n\
+As a result, a hook function cannot straightforwardly alter the value of\n\
+`pre-command-hook'.  See the Emacs Lisp manual for a way of\n\
+implementing hook functions that alter the set of hook functions.");
   Vpre_command_hook = Qnil;
 
   DEFVAR_LISP ("post-command-hook", &Vpost_command_hook,
-    "Normal hook run after each command is executed.");
+    "Normal hook run after each command is executed.\n\
+While the hook is run, its value is temporarily set to nil\n\
+to avoid an unbreakable infinite loop if a hook function gets an error.\n\
+As a result, a hook function cannot straightforwardly alter the value of\n\
+`post-command-hook'.  See the Emacs Lisp manual for a way of\n\
+implementing hook functions that alter the set of hook functions.");
   Vpost_command_hook = Qnil;
 
   DEFVAR_LISP ("lucid-menu-bar-dirty-flag", &Vlucid_menu_bar_dirty_flag,
