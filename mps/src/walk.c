@@ -1,13 +1,13 @@
 /* impl.c.walk: OBJECT WALKER
  *
- * $HopeName: MMsrc!walk.c(trunk.5) $
+ * $HopeName: MMsrc!walk.c(trunk.6) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(walk, "$HopeName: MMsrc!walk.c(trunk.5) $");
+SRCID(walk, "$HopeName: MMsrc!walk.c(trunk.6) $");
 
 
 /* Heap Walking
@@ -354,7 +354,7 @@ void mps_arena_roots_walk(mps_arena_t mps_arena, mps_roots_stepper_t f,
   AVER(FUNCHECK(f));
   /* p and s are arbitrary closures, hence can't be checked */
 
-  AVER(arena->clamped);                /* .assume.parked */
+  AVER(ArenaGlobals(arena)->clamped);          /* .assume.parked */
   AVER(arena->busyTraces == TraceSetEMPTY);    /* .assume.parked */
 
   res = ArenaRootsWalk(ArenaGlobals(arena), f, p, s);

@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.74) $
+ * $HopeName: MMsrc!pool.c(trunk.75) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  * DESIGN
@@ -31,7 +31,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.74) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.75) $");
 
 
 /* PoolClassCheck -- check a pool class */
@@ -300,7 +300,7 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size,
   /* All PoolAllocs should advance the allocation clock, so we count */
   /* it all in the fillMutatorSize field. */
   pool->fillMutatorSize += size;
-  PoolArena(pool)->fillMutatorSize += size;
+  ArenaGlobals(PoolArena(pool))->fillMutatorSize += size;
 
   EVENT_PAW(PoolAlloc, pool, *pReturn, size);
 
@@ -540,6 +540,12 @@ Bool PoolFormat(Format *formatReturn, Pool pool)
 }
 
 
+/* PoolOfAddr -- return the pool containing the given address
+ *
+ * If the address points to a page assigned to a pool, this returns TRUE
+ * and sets *poolReturn to that pool.  Otherwise, it returns FALSE, and
+ * *poolReturn is unchanged. */
+
 Bool PoolOfAddr(Pool *poolReturn, Arena arena, Addr addr)
 {
   Tract tract;
@@ -567,11 +573,4 @@ Bool PoolHasAddr(Pool pool, Addr addr)
   arena = PoolArena(pool);
   managed = PoolOfAddr(&addrPool, arena, addr);
   return (managed && addrPool == pool);
-}
-
-
-double PoolMutatorAllocSize(Pool pool)
-{
-  AVERT(Pool, pool);
-  return pool->fillMutatorSize - pool->emptyMutatorSize;
 }
