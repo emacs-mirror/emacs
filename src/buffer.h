@@ -26,6 +26,9 @@ Boston, MA 02111-1307, USA.  */
 #define BUF_SET_PT(buffer, position) (set_point ((position), (buffer)))
 #define BUF_TEMP_SET_PT(buffer, position) (temp_set_point ((position), (buffer)))
 
+extern void set_point P_ ((int, struct buffer *));
+extern INLINE void temp_set_point P_ ((int, struct buffer *));
+
 #else  /* don't support text properties */
 
 #define SET_PT(position) (current_buffer->pt = (position))
@@ -525,13 +528,25 @@ extern int _fetch_multibyte_char_len;
 #define BUFFER_CEILING_OF(n) (((n) < GPT && GPT < ZV ? GPT : ZV) - 1)
 #define BUFFER_FLOOR_OF(n) (BEGV <= GPT && GPT <= (n) ? GPT : BEGV)
 
-extern void reset_buffer ();
-extern void evaporate_overlays ();
+extern void reset_buffer P_ ((struct buffer *));
+extern void evaporate_overlays P_ ((int));
+extern int overlays_at P_ ((int, int, Lisp_Object **, int *, int *, int *));
+extern int sort_overlays P_ ((Lisp_Object *, int, struct window *));
+extern void recenter_overlay_lists P_ ((struct buffer *, int));
+extern int overlay_strings P_ ((int, struct window *, unsigned char **));
+extern void validate_region P_ ((Lisp_Object *, Lisp_Object *));
+extern void set_buffer_internal P_ ((struct buffer *));
+extern void set_buffer_internal_1 P_ ((struct buffer *));
+extern void set_buffer_temp P_ ((struct buffer *));
+extern void record_buffer P_ ((Lisp_Object));
+extern void buffer_slot_type_mismatch P_ ((int));
+extern void fix_overlays_before P_ ((struct buffer *, int, int));
 
-extern Lisp_Object Fbuffer_name ();
-extern Lisp_Object Fget_file_buffer ();
-extern Lisp_Object Fnext_overlay_change ();
-extern Lisp_Object Fdelete_overlay ();
+
+EXFUN (Fbuffer_name, 1);
+EXFUN (Fget_file_buffer, 1);
+EXFUN (Fnext_overlay_change, 1);
+EXFUN (Fdelete_overlay, 1);
 
 /* Functions to call before and after each text change.  */
 extern Lisp_Object Vbefore_change_function;
