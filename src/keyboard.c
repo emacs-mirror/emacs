@@ -10463,7 +10463,7 @@ See also `current-input-mode'.  */)
 
 #ifndef DOS_NT
   /* this causes startup screen to be restored and messes with the mouse */
-  if (FRAME_TERMCAP_P (SELECTED_FRAME ()))
+  if (FRAME_TERMCAP_P (SELECTED_FRAME ()) && CURTTY ()->type)
     reset_sys_modes (CURTTY ());
 #endif
 
@@ -10507,7 +10507,7 @@ See also `current-input-mode'.  */)
     quit_char = XINT (quit) & (CURTTY ()->meta_key ? 0377 : 0177);
 
 #ifndef DOS_NT
-  if (FRAME_TERMCAP_P (XFRAME (selected_frame)))
+  if (FRAME_TERMCAP_P (XFRAME (selected_frame)) && CURTTY ()->type)
     init_sys_modes (CURTTY ());
 #endif
 
