@@ -2270,7 +2270,6 @@ If FORCE is non-nil, the .newsrc file is read."
               (when (and load-from
                          (not (fboundp func)))
                 (load load-from t))
-              
               (or prompt-displayed
                   (not (gnus-convert-converter-needs-prompt func))
                   (while (let (c
