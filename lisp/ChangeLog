@@ -1,3 +1,11 @@
+2005-01-15  Jorgen Schaefer  <forcer@forcix.cx>  (tiny change)
+
+	* type-break.el (type-break-mode, type-break-file-time)
+	(type-break-file-keystroke-count, type-break-choose-file): Don't
+	store data in or load data from the file if type-break-file-name
+	is nil.
+	(type-break-file-name): Doc update as per the above.
+
 2005-01-15  Stephen Eglen  <S.J.Eglen@damtp.cam.ac.uk>  (tiny change)
 
 	* woman.el (woman-dired-define-key-maybe): If KEY is undefined,
