@@ -404,12 +404,12 @@ Menu of mode operations in the mode line.")
 (define-key mode-line-mode-menu [highlight-changes-mode]
   `(menu-item ,(purecopy "Highlight changes (Chg)") highlight-changes-mode
 	      :button (:toggle . highlight-changes-mode)))
-(define-key mode-line-mode-menu [glasses-mode]
-  `(menu-item ,(purecopy "Glasses (o^o)") glasses-mode
-	      :button (:toggle . (bound-and-true-p glasses-mode))))
 (define-key mode-line-mode-menu [hide-ifdef-mode]
   `(menu-item ,(purecopy "Hide ifdef (Ifdef)") hide-ifdef-mode
 	      :button (:toggle . (bound-and-true-p hide-ifdef-mode))))
+(define-key mode-line-mode-menu [glasses-mode]
+  `(menu-item ,(purecopy "Glasses (o^o)") glasses-mode
+	      :button (:toggle . (bound-and-true-p glasses-mode))))
 (define-key mode-line-mode-menu [font-lock-mode]
   `(menu-item ,(purecopy "Font Lock") font-lock-mode
 	      :button (:toggle . font-lock-mode)))
@@ -419,12 +419,15 @@ Menu of mode operations in the mode line.")
 (define-key mode-line-mode-menu [column-number-mode]
   `(menu-item ,(purecopy "Column number") column-number-mode
 	      :button (:toggle . column-number-mode)))
-(define-key mode-line-mode-menu [auto-fill-mode]
-  `(menu-item ,(purecopy "Auto Fill (Fill)") auto-fill-mode
-	      :button (:toggle . auto-fill-function)))
+(define-key mode-line-mode-menu [auto-revert-tail-mode]
+  `(menu-item ,(purecopy "Auto revert tail (Tail)") auto-revert-tail-mode
+	      :button (:toggle . auto-revert-tail-mode)))
 (define-key mode-line-mode-menu [auto-revert-mode]
   `(menu-item ,(purecopy "Auto revert (ARev)") auto-revert-mode
 	      :button (:toggle . auto-revert-mode)))
+(define-key mode-line-mode-menu [auto-fill-mode]
+  `(menu-item ,(purecopy "Auto fill (Fill)") auto-fill-mode
+	      :button (:toggle . auto-fill-function)))
 (define-key mode-line-mode-menu [abbrev-mode]
   `(menu-item ,(purecopy "Abbrev (Abbrev)") abbrev-mode
 	      :button (:toggle . abbrev-mode)))
