@@ -26,6 +26,8 @@
 ;; executable if it isn't.  Support code for the likes of sh-, awk-, perl-,
 ;; tcl- or makefile-mode.
 
+;; Would someone please explain clearly what this is to be used for? -- rms.
+
 ;;; Code:
 
 (defvar executable-insert 'not-modified
@@ -63,7 +65,8 @@ Typical values are 73 (+x) or -493 (rwxr-xr-x).")
 (defvar executable-command nil)
 
 
-;;;###autoload
+;; Autoload cookie deleted here because it made loaddefs.el fail to load.
+;; -rms
 (or (assoc "tail" interpreter-mode-alist)
     (nconc interpreter-mode-alist
 	   '(("tail" . text-mode)

@@ -51,7 +51,9 @@
 (require 'executable)
 
 
-;;;###autoload
+
+;; Autoload cookie deleted here because it made loaddefs.el fail to load.
+;; -rms
 (or (assoc "sh" interpreter-mode-alist)
     (setq auto-mode-alist
 	  ;; matches files
