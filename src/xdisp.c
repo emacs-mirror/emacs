@@ -1765,7 +1765,8 @@ init_from_display_pos (it, w, pos)
 	 POS, make sure to pop the iterator because it will be in
 	 front of that overlay string.  When POS is ZV, we've thereby
 	 also ``processed'' overlay strings at ZV.  */
-      pop_it (it);
+      while (it->sp)
+	pop_it (it);
       it->current.overlay_string_index = -1;
       it->method = next_element_from_buffer;
       if (CHARPOS (pos->pos) == ZV)
