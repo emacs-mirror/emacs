@@ -1,5 +1,14 @@
 2004-04-20  Kenichi Handa  <handa@m17n.org>
 
+	* international/quail.el (quail-lookup-key): New optional arg
+	NOT-RESET-INDICES.
+	(quail-get-translations): Call quail-lookup-key with
+	NOT-RESET-INDICES t.
+	(quail-completion): Likewise.
+	(quail-lookup-map-and-concat): Likewise.
+
+2004-04-20  Kenichi Handa  <handa@m17n.org>
+
 	* international/quail.el (quail-update-translation): Don't insert
 	such an unsupported multibyte char in a unibyte buffer.
 
