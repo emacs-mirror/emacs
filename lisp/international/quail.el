@@ -1694,86 +1694,119 @@ key		binding
 This is a sub-directory of LEIM directory.")
 
 ;;;###autoload
-(defun quail-update-leim-list-file (dirname)
-  "Update entries for Quail packages in LEIM list file of directory DIRNAME.
-LEIM is a directory containing Emacs input methods;
+(defun quail-update-leim-list-file (dirname &rest dirnames)
+  "Update entries for Quail packages in `LEIM' list file in directory DIRNAME.
+DIRNAME is a directory containing Emacs input methods;
 normally, it should specify the `leim' subdirectory
-of the Emacs source tree."
+of the Emacs source tree.
+
+It searches for Quail packages under `quail' subdirectory of DIRNAME,
+and update the file \"leim-list.el\" in DIRNAME.
+
+When called from a program, the remaining arguments are additional
+directory names to search for Quail packages under `quail' subdirectory
+of each directory."
   (interactive "FDirectory of LEIM: ")
-  (setq dirname (file-name-as-directory (expand-file-name dirname)))
-  (let ((quail-dir (concat dirname quail-directory-name))
-	(filename (concat dirname leim-list-file-name))
-	list-buf pkg-list pkg-buf pos)
-    (if (not (file-exists-p quail-dir))
-	nil
-      (if (not (file-readable-p quail-dir))
-	  (message "Can't write to file \"%s\"" filename)
-	(if (not (file-writable-p filename))
-	    (message "Can't write to file \"%s\"" filename)
-	  (setq list-buf (find-file-noselect filename))
-	  (setq pkg-list (directory-files quail-dir 'full ".*\\.el$" 'nosort))
-	  (message "Updating %s ..." filename)
+  (setq dirname (expand-file-name dirname))
+  (let ((leim-list (expand-file-name leim-list-file-name dirname))
+	quail-dirs list-buf pkg-list pkg-buf pos)
+    (if (not (file-writable-p leim-list))
+	(error "Can't write to file \"%s\"" leim-list))
+    (message "Updating %s ..." leim-list)
+    (setq list-buf (find-file-noselect leim-list))
 
-	  ;; At first, clean up the file.
-	  (save-excursion
-	    (set-buffer list-buf)
-	    (goto-char 1)
+    ;; At first, clean up the file.
+    (save-excursion
+      (set-buffer list-buf)
+      (goto-char 1)
 
-	    ;; Insert the correct header.
-	    (if (looking-at (regexp-quote leim-list-header))
-		(goto-char (match-end 0))
-	      (insert leim-list-header))
-	    (setq pos (point))
-	    (if (not (re-search-forward leim-list-entry-regexp nil t))
-		nil
+      ;; Insert the correct header.
+      (if (looking-at (regexp-quote leim-list-header))
+	  (goto-char (match-end 0))
+	(insert leim-list-header))
+      (setq pos (point))
+      (if (not (re-search-forward leim-list-entry-regexp nil t))
+	  nil
 
-	      ;; Remove garbages after the header.
+	;; Remove garbages after the header.
+	(goto-char (match-beginning 0))
+	(if (< pos (point))
+	    (delete-region pos (point)))
+
+	;; Remove all entries for Quail.
+	(while (re-search-forward leim-list-entry-regexp nil 'move)
+	  (goto-char (match-beginning 0))
+	  (setq pos (point))
+	  (condition-case nil
+	      (let ((form (read list-buf)))
+		(when (equal (nth 3 form) ''quail-use-package)
+		  (if (eolp) (forward-line 1))
+		  (delete-region pos (point))))
+	    (error
+	     ;; Delete the remaining contents because it seems that
+	     ;; this file is broken.
+	     (message "Garbages in %s deleted" leim-list)
+	     (delete-region pos (point-max)))))))
+
+    ;; Search for `quail' subdirector under each DIRNAMES.
+    (setq dirnames (cons dirname dirnames))
+    (let ((l dirnames))
+      (while l
+	(setcar l (expand-file-name (car l)))
+	(setq dirname (expand-file-name quail-directory-name (car l)))
+	(if (file-readable-p dirname)
+	    (setq quail-dirs (cons dirname quail-dirs))
+	  (message "%s doesn't has `%s' subdirectory, just ignored"
+		   (car l) quail-directory-name)
+	  (setq quail-dirs (cons nil quail-dirs)))
+	(setq l (cdr l)))
+      (setq quail-dirs (nreverse quail-dirs)))
+
+    ;; Insert input method registering forms.
+    (while quail-dirs
+      (setq dirname (car quail-dirs))
+      (when dirname
+	(setq pkg-list (directory-files dirname 'full "\\.el$" 'nosort))
+	(while pkg-list
+	  (message "Checking %s ..." (car pkg-list))
+	  (with-temp-buffer
+	    (insert-file-contents (car pkg-list))
+	    (goto-char (point-min))
+	    (while (search-forward "(quail-define-package" nil t)
 	      (goto-char (match-beginning 0))
-	      (if (< pos (point))
-		  (delete-region pos (point)))
-
-	      ;; Remove all entries for Quail.
-	      (while (re-search-forward leim-list-entry-regexp nil 'move)
-		(goto-char (match-beginning 0))
-		(setq pos (point))
-		(let ((form (read list-buf)))
-		  (if (equal (nth 3 form) ''quail-use-package)
-		      (progn
-			(if (eolp) (forward-line 1))
-			(delete-region pos (point))))))))
-
-	  ;; Insert entries for Quail.
-	  (while pkg-list
-	    (message "Checking %s ..." (car pkg-list))
-	    (with-temp-buffer
-	      (insert-file-contents (car pkg-list))
-	      (goto-char (point-min))
-	      (while (search-forward "(quail-define-package" nil t)
-		(goto-char (match-beginning 0))
-		(let ((form (read (current-buffer))))
-		  (save-excursion
-		    (set-buffer list-buf)
-		    (insert (format "(register-input-method
+	      (condition-case nil
+		  (let ((form (read (current-buffer))))
+		    (save-excursion
+		      (set-buffer list-buf)
+		      (insert
+		       (format "(register-input-method
  %S %S '%s
  %S %S
  %S)\n"
-				    (nth 1 form)	; PACKAGE-NAME
-				    (nth 2 form)	; LANGUAGE
-				    'quail-use-package	; ACTIVATE-FUNC
-				    (nth 3 form)	; PACKAGE-TITLE
-				    (progn    ; PACKAGE-DESCRIPTION (one line)
-				      (string-match ".*" (nth 5 form))
-				      (match-string 0 (nth 5 form)))
-				    (file-relative-name ; PACKAGE-FILENAME
-				     (file-name-sans-extension (car pkg-list))
-				     dirname)))))))
-	    (setq pkg-list (cdr pkg-list)))
-	  (save-excursion
-	    (set-buffer list-buf)
-	    (setq buffer-file-coding-system 'iso-2022-7bit)
-	    (save-buffer 0))
-	  (kill-buffer list-buf)
-	  (message "Updating %s ... done" (buffer-file-name list-buf)))))))
+			       (nth 1 form) ; PACKAGE-NAME
+			       (nth 2 form) ; LANGUAGE
+			       'quail-use-package ; ACTIVATE-FUNC
+			       (nth 3 form) ; PACKAGE-TITLE
+			       (progn	; PACKAGE-DESCRIPTION (one line)
+				 (string-match ".*" (nth 5 form))
+				 (match-string 0 (nth 5 form)))
+			       (file-relative-name ; PACKAGE-FILENAME
+				(file-name-sans-extension (car pkg-list))
+				(car dirnames))))))
+		(error
+		 ;; Ignore the remaining contents of this file.
+		 (goto-char (point-max))
+		 (message "Some part of \"%s\" is broken" dirname)))))
+	  (setq pkg-list (cdr pkg-list)))
+	(setq quail-dirs (cdr quail-dirs) dirnames (cdr dirnames))))
+
+    ;; At last, write out LEIM list file.
+    (save-excursion
+      (set-buffer list-buf)
+      (setq buffer-file-coding-system 'iso-2022-7bit)
+      (save-buffer 0))
+    (kill-buffer list-buf)
+    (message "Updating %s ... done" leim-list)))
 ;;
 (provide 'quail)
 
