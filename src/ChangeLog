@@ -1,5 +1,7 @@
 2000-07-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* window.c (foreach_window_1): Fix typo reversing an if-condition.
+	
 	* window.c (foreach_window): Instead of a fake variable argument
 	list, take one USER_DATA argument.
 	(foreach_window_1): Likewise, and call callback functions with two

@@ -1,3 +1,8 @@
+2000-07-21  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* Activate.c (XMenuActivate): Call help callback with two more
+	arguments: the pane number and selection number.
+
 2000-01-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* Activate.c (XMenuActivate): Add parameter HELP_CALLBACK.
