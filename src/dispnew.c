@@ -39,11 +39,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "intervals.h"
 
 #include "systty.h"
-#include "systime.h"
 
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #endif	/* HAVE_X_WINDOWS */
+
+/* Include systime.h after xterm.h to avoid double inclusion of time.h. */
+#include "systime.h"
 
 #include <errno.h>
 
