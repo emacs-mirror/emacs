@@ -53,10 +53,12 @@ Boston, MA 02111-1307, USA.  */
 #include <ctype.h>
 
 extern void free_frame_menubar ();
-extern void x_compute_fringe_widths (struct frame *, int);
+extern void x_compute_fringe_widths P_ ((struct frame *, int));
 extern double atof ();
-extern int w32_console_toggle_lock_key (int vk_code, Lisp_Object new_state);
-extern void w32_menu_display_help (HWND owner, HMENU menu, UINT menu_item, UINT flags);
+extern int w32_console_toggle_lock_key P_ ((int, Lisp_Object));
+extern void w32_menu_display_help P_ ((HWND, HMENU, UINT, UINT));
+extern void w32_free_menu_strings P_ ((HWND));
+
 extern int quit_char;
 
 /* A definition of XColor for non-X frames.  */
@@ -279,6 +281,10 @@ static W32Msg saved_mouse_button_msg;
 static unsigned mouse_button_timer;	/* non-zero when timer is active */
 static W32Msg saved_mouse_move_msg;
 static unsigned mouse_move_timer;
+
+/* Window that is tracking the mouse.  */
+static HWND track_mouse_window;
+FARPROC track_mouse_event_fn;
 
 /* W95 mousewheel handler */
 unsigned int msh_mousewheel = 0;	
@@ -4581,8 +4587,24 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
       return 0;
 
-    case WM_VSCROLL:
     case WM_MOUSEMOVE:
+      /* If the mouse has just moved into the frame, start tracking
+	 it, so we will be notified when it leaves the frame.  Mouse
+	 tracking only works under W98 and NT4 and later. On earlier
+	 versions, there is no way of telling when the mouse leaves the
+	 frame, so we just have to put up with help-echo and mouse
+	 highlighting remaining while the frame is not active.  */
+      if (track_mouse_event_fn && !track_mouse_window)
+	{
+	  TRACKMOUSEEVENT tme;
+	  tme.cbSize = sizeof (tme);
+	  tme.dwFlags = TME_LEAVE;
+	  tme.hwndTrack = hwnd;
+
+	  track_mouse_event_fn (&tme);
+	  track_mouse_window = hwnd;
+	}
+    case WM_VSCROLL:
       if (XINT (Vw32_mouse_move_interval) <= 0
 	  || (msg == WM_MOUSEMOVE && button_state == 0))
   	{
@@ -4698,6 +4720,9 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
     case WM_EXITMENULOOP:
       f = x_window_to_frame (dpyinfo, hwnd);
 
+      /* Free memory used by owner-drawn and help-echo strings.  */
+      w32_free_menu_strings (hwnd);
+
       /* Indicate that menubar can be modified again.  */
       if (f)
 	f->output_data.w32->menubar_active = 0;
@@ -4807,6 +4832,10 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	return MA_ACTIVATEANDEAT;
       goto dflt;
 #endif
+
+    case WM_MOUSELEAVE:
+      /* No longer tracking mouse.  */
+      track_mouse_window = NULL;
 
     case WM_ACTIVATEAPP:
     case WM_ACTIVATE:
@@ -8398,7 +8427,7 @@ x_clear_image_1 (f, img, pixmap_p, mask_p, colors_p)
      struct image *img;
      int pixmap_p, mask_p, colors_p;
 {
-#if 0
+#if 0 /* TODO: W32 image support  */
   if (pixmap_p && img->pixmap)
     {
       XFreePixmap (FRAME_X_DISPLAY (f), img->pixmap);
@@ -13129,7 +13158,9 @@ x_create_tip_frame (dpyinfo, parms, text)
 
   frame = Qnil;
   GCPRO3 (parms, name, frame);
-  f = make_frame (1);
+  /* Make a frame without minibuffer nor mode-line.  */
+  f = make_frame (0);
+  f->wants_modeline = 0;
   XSETFRAME (frame, f);
 
   buffer = Fget_buffer_create (build_string (" *tip*"));
@@ -13256,7 +13287,14 @@ x_create_tip_frame (dpyinfo, parms, text)
 
   f->output_data.w32->dwStyle = WS_BORDER | WS_POPUP | WS_DISABLED;
   f->output_data.w32->parent_desc = FRAME_W32_DISPLAY_INFO (f)->root_window;
+
   window_prompting = x_figure_window_size (f, parms);
+
+  /* No fringes on tip frame.  */
+  f->output_data.w32->fringes_extra = 0;
+  f->output_data.w32->fringe_cols = 0;
+  f->output_data.w32->left_fringe_width = 0;
+  f->output_data.w32->right_fringe_width = 0;
 
   if (window_prompting & XNegative)
     {
@@ -14218,8 +14256,15 @@ If the underlying system call fails, value is nil.  */)
 void
 syms_of_w32fns ()
 {
+  HMODULE user32_lib = GetModuleHandle ("user32.dll");
+
   /* This is zero if not using MS-Windows.  */
   w32_in_use = 0;
+
+  /* TrackMouseEvent not available in all versions of Windows, so must load
+     it dynamically.  Do it once, here, instead of every time it is used.  */
+  track_mouse_event_fn = GetProcAddress (user32_lib, "TrackMouseEvent");
+  track_mouse_window = NULL;
 
   /* The section below is built by the lisp expression at the top of the file,
      just above where these variables are declared.  */
