@@ -1,3 +1,19 @@
+2000-03-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* regex.c (CHAR_CHARSET, CHARSET_LEADING_CODE_BASE): Add default
+	definitions for non-Emacs compilation.
+	(enum re_opcode_t): Remove (not)wordchar and move (not)syntaxspec
+	outside of `#ifdef emacs'.
+	(print_partial_compiled_pattern): Update.
+	(regex_compile): Use (not)syntaxspec(Sword) instead of (not)wordchar.
+	(re_compile_fastmap): Merge handling of charset and charset_not (for
+	emacs and non-emacs compilation as well).
+	Similarly for (not)categoryspec and (not)syntaxspec.
+	Don't use the fastmap when reaching `anychar' since the added
+	complexity is not justified.
+	(re_match_2_internal): Merge (not)wordchar (emacs and non-emacs)
+	and (not)syntaxspec.  Merge (not)categoryspec.
+
 2000-03-22  Kenichi Handa  <handa@etl.go.jp>
 
 	* dispextern.h [!HAVE_WINDOW_SYSTEM] (FACE_SUITABLE_FOR_CHAR_P,
