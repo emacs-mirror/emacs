@@ -166,3 +166,6 @@ struct timezone
 
 /* PTX doesn't seem to have memmove.  */
 #define MEMMOVE_MISSING
+
+/* Kenneth Stailey <kstailey@eagle.dol-esa.gov> says this is needed.  */
+#define POSIX_SIGNALS
