@@ -486,7 +486,7 @@ The result of the body appears to the compiler as a quoted constant."
 Each clause looks like (KEYLIST BODY...).  EXPR is evaluated and compared
 against each key in each KEYLIST; the corresponding BODY is evaluated.
 If no clause succeeds, case returns nil.  A single atom may be used in
-place of a KEYLIST of one atom.  A KEYLIST of `t' or `otherwise' is
+place of a KEYLIST of one atom.  A KEYLIST of t or `otherwise' is
 allowed only in the final clause, and matches if no other keys match.
 Key values are compared by `eql'."
   (let* ((temp (if (cl-simple-expr-p expr 3) expr (gensym)))
@@ -523,7 +523,7 @@ Key values are compared by `eql'."
   "Evals EXPR, chooses from CLAUSES on that value.
 Each clause looks like (TYPE BODY...).  EXPR is evaluated and, if it
 satisfies TYPE, the corresponding BODY is evaluated.  If no clause succeeds,
-typecase returns nil.  A TYPE of `t' or `otherwise' is allowed only in the
+typecase returns nil.  A TYPE of t or `otherwise' is allowed only in the
 final clause, and matches if no other keys match."
   (let* ((temp (if (cl-simple-expr-p expr 3) expr (gensym)))
 	 (type-list nil)
