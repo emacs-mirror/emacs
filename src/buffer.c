@@ -1557,6 +1557,8 @@ selected window if it is displayed there.")
     Vbuffer_alist = nconc2 (Vbuffer_alist, link);
   }
 
+  frames_bury_buffer (buffer)
+
   return Qnil;
 }
 
