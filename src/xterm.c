@@ -11248,7 +11248,9 @@ notice_overwritten_cursor (w, area, x0, x1, y0, y1)
 	     Likewise if part of the cursor is below y1, with the
 	     exception of the cursor being in the first blank row at
 	     the buffer and window end because update_text_area
-	     doesn't draw that row.  */
+	     doesn't draw that row.  (Except when it does, but
+	     that's handled in update_text_area.)  */
+	  
 	  if (((y0 >= cy0 && y0 < cy1) || (y1 > cy0 && y1 < cy1))
 	      && w->current_matrix->rows[w->phys_cursor.vpos].displays_text_p)
 	    w->phys_cursor_on_p = 0;
@@ -11767,6 +11769,7 @@ x_display_and_set_cursor (w, on, hpos, vpos, x, y)
 	  break;
 
 	case NO_CURSOR:
+	  w->phys_cursor_width = 0;
 	  break;
 
 	default:
