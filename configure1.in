@@ -1407,14 +1407,14 @@ if [ ! -f ./config.status ]; then
    exit $status
 fi
 topsrcdir=${srcdir}
-  # We discard all lines in Makefile.in that start with # or /**/#
+  # We discard all lines in Makefile.in that start with `# Generated' or /**/#
   # because some cpps get confused by them.
   # Really we should preserve them somehow into Makefile,
   # but that is beyond my level of shell programming.
 makefile_command='echo "creating src/Makefile";
   topsrcdir='"${topsrcdir}"';
 ( cd ./src;
-  sed -e '\''s/^#.*//'\'' -e '\''s%/\*\*/#.*%%'\'' < Makefile.in > junk.c;
+  sed -e '\''s/^# Generated.*//'\'' -e '\''s%/\*\*/#.*%%'\'' < Makefile.in > junk.c;
   eval `echo ${CPP} -I. -I${topsrcdir}/src ${CPPFLAGS} junk.c \>junk.cpp`;
   < junk.cpp							'\
 '    sed -e '\''s/^#.*//'\''					'\
