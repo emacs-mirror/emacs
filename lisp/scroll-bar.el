@@ -91,10 +91,9 @@ This is nil while loading `scroll-bar.el', and t afterward.")
   "*Specify whether to have vertical scroll bars, and on which side.
 Possible values are nil (no scroll bars), `left' (scroll bars on left)
 and `right' (scroll bars on right).
-When you set the variable in a Lisp program, it takes effect for new frames,
-and for existing frames when `toggle-scroll-bar' is used.
-When you set this with the customization buffer,
-it takes effect immediately for all frames."
+To set this variable in a Lisp program, use `set-scroll-bar-mode'
+to make it take real effect.
+Setting the variable with a customization buffer also takes effect."
   :type '(choice (const :tag "none (nil)")
 		 (const left)
 		 (const right))
