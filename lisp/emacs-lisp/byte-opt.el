@@ -1381,7 +1381,8 @@
     pop-up-frames pop-up-windows print-escape-multibyte
     print-escape-newlines
     print-escape-nonascii print-quoted scroll-preserve-screen-position
-    system-uses-terminfo truncate-partial-width-windows use-dialog-box
+    system-uses-terminfo truncate-partial-width-windows
+    unibyte-display-via-language-environment use-dialog-box
     visible-bell vms-stmlf-recfm words-include-escapes)
   "DEFVAR_BOOL variables.  Giving these any non-nil value sets them to t.
 If this does not enumerate all DEFVAR_BOOL variables, the byte-optimizer
