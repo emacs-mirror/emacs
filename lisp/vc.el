@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.347 2002/12/26 14:04:21 spiegel Exp $
+;; $Id: vc.el,v 1.348 2003/02/04 12:12:09 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -645,15 +645,14 @@ is sensitive to blank lines."
   :group 'vc)
 
 (defcustom vc-checkout-carefully (= (user-uid) 0)
-  "*This variable is obsolete
-The corresponding checks are always done now.
-From the old doc string:
-
-Non-nil means be extra-careful in checkout.
+  "*Non-nil means be extra-careful in checkout.
 Verify that the file really is not locked
 and that its contents match what the master file says."
   :type 'boolean
   :group 'vc)
+(make-obsolete-variable 'vc-checkout-carefully
+                        "the corresponding checks are always done now."
+                        "21.1")
 
 
 ;; The main keymap
@@ -3133,14 +3132,12 @@ or OFFSET if present."
 (defun vc-annotate-display (&optional color-map offset)
   "Highlight `vc-annotate' output in the current buffer.
 COLOR-MAP, if present, overrides `vc-annotate-color-map'.
-The annotations are relative to the current time, unless overridden by OFFSET.
-
-This function is obsolete, and has been replaced by
-`vc-annotate-display-select'."
+The annotations are relative to the current time, unless overridden by OFFSET."
   (if (and color-map (not (eq color-map vc-annotate-color-map)))
       (set (make-local-variable 'vc-annotate-color-map) color-map))
   (set (make-local-variable 'vc-annotate-offset) offset)
   (font-lock-mode 1))
+(make-obsolete 'vc-annotate-display 'vc-annotate-display-select "21.4")
 
 (defvar vc-annotate-offset nil)
 
