@@ -525,6 +525,7 @@ which font is being used for displaying the character."
 	 (composition (find-composition (point) nil nil t))
 	 (composed (if composition (buffer-substring (car composition)
 						     (nth 1 composition))))
+	 (multibyte-p enable-multibyte-characters)
 	 item-list max-width)
     (if (eq charset 'unknown)
 	(setq item-list
@@ -582,6 +583,7 @@ which font is being used for displaying the character."
     (with-output-to-temp-buffer "*Help*"
       (save-excursion
 	(set-buffer standard-output)
+	(set-buffer-multibyte multibyte-p)
 	(let ((formatter (format "%%%ds:" max-width)))
 	  (dolist (elt item-list)
 	    (insert (format formatter (car elt)))
