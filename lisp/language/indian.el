@@ -97,7 +97,7 @@
 	'(;; chars	syntax	category
 	  ("(5!"#(B"	"w"	?7) ; vowel-modifying diacritical mark
 				    ; chandrabindu, anuswar, visarga
-	  ("(5$(B-(52(B"	"w"	?5) ; independent vowel
+	  ("(5$(B-(52(B"	"w"	?1) ; base (independent) vowel
 	  ("(53(B-(5X(B"	"w"	?0) ; consonant
 	  ("(5Z(B-(5g(B"	"w"	?8) ; matra
 	  ("(5q(B-(5z(B"	"w"	?6) ; digit
