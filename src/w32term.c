@@ -6606,7 +6606,7 @@ static int last_tool_bar_item;
    Return in *GLYPH a pointer to the glyph of the tool-bar item in
    the current matrix of the tool-bar window of F, or NULL if not
    on a tool-bar item.  Return in *PROP_IDX the index of the tool-bar
-   item in F->current_tool_bar_items.  Value is
+   item in F->tool_bar_items.  Value is
 
    -1	if X/Y is not on a tool-bar item
    0	if X/Y is on the same item that was highlighted before.
@@ -6629,7 +6629,7 @@ x_tool_bar_item (f, x, y, glyph, hpos, vpos, prop_idx)
     return -1;
 
   /* Get the start of this tool-bar item's properties in
-     f->current_tool_bar_items.  */
+     f->tool_bar_items.  */
   if (!tool_bar_item_info (f, *glyph, prop_idx))
     return -1;
 
@@ -6671,8 +6671,7 @@ w32_handle_tool_bar_click (f, button_event)
     return;
 
   /* If item is disabled, do nothing.  */
-  enabled_p = (XVECTOR (f->current_tool_bar_items)
-	       ->contents[prop_idx + TOOL_BAR_ITEM_ENABLED_P]);
+  enabled_p = AREF (f->tool_bar_items, prop_idx + TOOL_BAR_ITEM_ENABLED_P);
   if (NILP (enabled_p))
     return;
   
@@ -6692,8 +6691,7 @@ w32_handle_tool_bar_click (f, button_event)
       show_mouse_face (dpyinfo, DRAW_IMAGE_RAISED);
       dpyinfo->mouse_face_image_state = DRAW_IMAGE_RAISED;
 
-      key = (XVECTOR (f->current_tool_bar_items)
-	     ->contents[prop_idx + TOOL_BAR_ITEM_KEY]);
+      key = AREF (f->tool_bar_items, prop_idx + TOOL_BAR_ITEM_KEY);
 
       XSETFRAME (frame, f);
       event.kind = TOOL_BAR_EVENT;
@@ -6765,8 +6763,7 @@ note_tool_bar_highlight (f, x, y)
   draw = mouse_down_p ? DRAW_IMAGE_SUNKEN : DRAW_IMAGE_RAISED;
   
   /* If tool-bar item is not enabled, don't highlight it.  */
-  enabled_p = (XVECTOR (f->current_tool_bar_items)
-	       ->contents[prop_idx + TOOL_BAR_ITEM_ENABLED_P]);
+  enabled_p = AREF (f->tool_bar_items, prop_idx + TOOL_BAR_ITEM_ENABLED_P);
   if (!NILP (enabled_p))
     {
       /* Compute the x-position of the glyph.  In front and past the
@@ -6800,11 +6797,9 @@ note_tool_bar_highlight (f, x, y)
      w32_read_socket does the rest.  */
   help_echo_object = help_echo_window = Qnil;
   help_echo_pos = -1;
-  help_echo = (XVECTOR (f->current_tool_bar_items)
-	       ->contents[prop_idx + TOOL_BAR_ITEM_HELP]);
+  help_echo = AREF (f->tool_bar_items, prop_idx + TOOL_BAR_ITEM_HELP);
   if (NILP (help_echo))
-    help_echo = (XVECTOR (f->current_tool_bar_items)
-		 ->contents[prop_idx + TOOL_BAR_ITEM_CAPTION]);
+    help_echo = AREF (f->tool_bar_items, prop_idx + TOOL_BAR_ITEM_CAPTION);
 }
 
 
