@@ -1,7 +1,7 @@
 2002-11-14  Edward M. Reingold  <reingold@emr.cs.iit.edu>
 
-	* calendar/diary-lib.el (make-diary-entry): Allow for local variables at
-	end of diary file.
+	* calendar/diary-lib.el (make-diary-entry): Allow for local variables
+	at end of diary file.
 
 2002-11-14  Kim F. Storm  <storm@cua.dk>
 
@@ -38,6 +38,10 @@
 	paragraph with `fill-nobreak-invisible' let-bound to t.
 	Don't use `display' property; insert "see" directly in buffer.
 
+2002-11-13  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* pcvs.el (cvs-mode-run): Don't pass "." if not needed.
+
 2002-11-13  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-rcs.el (vc-rcs-registered): Improve comment.
@@ -46,8 +50,8 @@
 
 2002-11-13  Tim Van Holder  <tim.vanholder@anubex.com>  (tiny change)
 
-	* progmodes/compile.el (compilation-error-regexp-alist): Don't
-	include colon and space after a file name as part of the name.
+	* progmodes/compile.el (compilation-error-regexp-alist):
+	Don't include colon and space after a file name as part of the name.
 
 2002-11-13  Richard M. Stallman  <rms@gnu.org>
 
@@ -56,13 +60,32 @@
 2002-11-13  Kenichi Handa  <handa@m17n.org>
 
 	* replace.el (occur-engine): Set buffer-file-coding-system of
-	OUT-BUF to that of one of BUFFERS if they locally bind that
-	variable.
+	OUT-BUF to that of one of BUFFERS if they locally bind that variable.
 
 2002-11-13   Markus Rost  <rost@math.ohio-state.edu>
 
 	* custom.el (custom-handle-all-keywords): Fix arg passed to
 	custom-add-to-group.
+
+2002-11-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* pcvs-defs.el (cvs-mode-map): Remove M-f binding.
+	(cvs-minor-mode-map): Add e binding in log-view-mode.
+
+	* progmodes/perl-mode.el (perl-hanging-paren-p): New fun.
+	(perl-indent-line): Look at the open-paren to indent a close-paren.
+	(perl-calculate-indent): Try to better indent args after hanging paren.
+	Remove special code for open-paren-in-column-0.
+
+	* textmodes/sgml-mode.el (sgml-namify-char): New cmd.
+	(sgml-name-char): Use it.
+	(sgml-tag-last, sgml-tag-history): New vars.
+	(sgml-tag): Use them.
+	(sgml-skip-tag-forward): Use sgml-tag-syntax-table.
+	(sgml-delete-tag): Remove resulting empty lines.
+	(sgml-tag) <symbol-plist>: Don't make intangible.
+	(sgml-parse-tag-backward): Add limit argument.
+	(html-autoview-mode): Use define-minor-mode.
 
 2002-11-12   Markus Rost  <rost@math.ohio-state.edu>
 
@@ -111,8 +134,7 @@
 
 2002-11-09  Dave Love  <fx@gnu.org>
 
-	* international/mule-cmds.el (current-language-environment): Fix
-	:type.
+	* international/mule-cmds.el (current-language-environment): Fix :type.
 
 	* international/ucs-tables.el: Revert to using
 	translation-table-for-input instead of keyboard-translate-table.

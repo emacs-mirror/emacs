@@ -2,20 +2,19 @@
 
 	* alloc.c (SETJMP_WILL_NOT_WORK): Add note.
 
-	* xterm.c (x_draw_relief_rect, x_draw_box_rect, x_update_cursor): 
-	* xmenu.c (unuse_menu_items, digest_single_submenu): 
-	* xfns.c (x_put_x_image): 
-	* xdisp.c (message2_nolog, set_message): 
-	* undo.c (record_point): 
-	* terminfo.c (tparam): 
-	* syntax.c (scan_sexps_forward): 
-	* scroll.c (calculate_scrolling, calculate_direct_scrolling): 
-	* composite.c (update_compositions): 
-	* cm.c (calccost, cmgoto): 
+	* xterm.c (x_draw_relief_rect, x_draw_box_rect, x_update_cursor):
+	* xmenu.c (unuse_menu_items, digest_single_submenu):
+	* xfns.c (x_put_x_image):
+	* xdisp.c (message2_nolog, set_message):
+	* undo.c (record_point):
+	* terminfo.c (tparam):
+	* syntax.c (scan_sexps_forward):
+	* scroll.c (calculate_scrolling, calculate_direct_scrolling):
+	* composite.c (update_compositions):
+	* cm.c (calccost, cmgoto):
 	* charset.c (c_string_width): Declare all args (per C99).
 
-	* frame.h (get_specified_cursor_type, get_window_cursor_type):
-	Declare.
+	* frame.h (get_specified_cursor_type, get_window_cursor_type): Declare.
 
 	* lisp.h (get_specified_cursor_type, get_window_cursor_type):
 	Don't declare.
@@ -34,6 +33,8 @@
 	dependency on `risky-local-variable' and the :propertize form.
 
 2002-11-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* fns.c (Fmap_char_table): Don't use map_char_table's function arg.
 
 	* syntax.c (scan_sexps_forward): Undo last patch.
 	Use a more obvious fix: check eob before updating the syntax table.
