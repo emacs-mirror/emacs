@@ -72,10 +72,10 @@ int interrupt_input_blocked;
 int interrupt_input_pending;
 
 
-#ifdef HAVE_X_WINDOWS
 /* File descriptor to use for input.  */
 extern int input_fd;
 
+#ifdef HAVE_X_WINDOWS
 /* Make all keyboard buffers much bigger when using X windows.  */
 #define KBD_BUFFER_SIZE 4096
 #else	/* No X-windows, character input */
