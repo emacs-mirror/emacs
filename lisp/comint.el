@@ -1894,32 +1894,32 @@ Does not delete the prompt."
 (defalias 'comint-kill-output 'comint-delete-output)
 (make-obsolete 'comint-kill-output 'comint-delete-output "21.1")
 
-(defun comint-write-output (filename &optional mustbenew)
+(defun comint-write-output (filename &optional append mustbenew)
   "Write output from interpreter since last input to FILENAME.
 Any prompt at the end of the output is not written.
 
-If the optional argument MUSTBENEW (the prefix argument when interactive),
-is non-nil, check for an existing file with the same name.  If MUSTBENEW
-is `excl', that means to get an error if the file already exists; never
-overwrite.  If MUSTBENEW is neither nil nor `excl', that means ask for
-confirmation before overwriting, but do go ahead and overwrite the file
-if the user confirms."
-  (interactive "FWrite output to file: \np")
+If the optional argument APPEND (the prefix argument when interactive)
+is non-nil, the output is appended to the file instead.
+
+If the optional argument MUSTBENEW is non-nil, check for an existing
+file with the same name.  If MUSTBENEW is `excl', that means to get an
+error if the file already exists; never overwrite.  If MUSTBENEW is
+neither nil nor `excl', that means ask for confirmation before
+overwriting, but do go ahead and overwrite the file if the user
+confirms.  When interactive, MUSTBENEW is nil when appending, and t
+otherwise."
+  (interactive
+   (list (read-file-name
+	  (if current-prefix-arg
+	      "Append output to file: "
+	    "Write output to file: "))
+	 current-prefix-arg
+	 (not current-prefix-arg)))
   (save-excursion
     (goto-char (process-mark (get-buffer-process (current-buffer))))
     (forward-line 0)
-    (write-region comint-last-input-end (point)
-		  filename nil nil nil mustbenew)))
-
-(defun comint-append-output-to-file (filename)
-  "Append output from interpreter since last input to FILENAME.
-Any prompt at the end of the output is not written."
-  (interactive "FAppend output to file: ")
-  (save-excursion
-    (goto-char (process-mark (get-buffer-process (current-buffer))))
-    (forward-line 0)
-    (write-region comint-last-input-end (point) filename t)))
-
+    (write-region comint-last-input-end (point) filename
+		  append nil nil mustbenew)))
 
 (defun comint-show-output ()
   "Display start of this batch of interpreter output at top of window.
