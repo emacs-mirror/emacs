@@ -17,7 +17,7 @@ doit:
 custom-deps: doit
 	subdirs=`find . -type d -print`; \
 	for file in $$subdirs; do \
-	   case $$file in */Old | */RCS) ;; \
+	   case $$file in */Old | */RCS | */=* ) ;; \
 		*) wins="$$wins $$file" ;; \
 	   esac; \
         done; \
