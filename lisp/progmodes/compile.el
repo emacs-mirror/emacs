@@ -748,6 +748,36 @@ original use.  Otherwise, it recompiles using `compile-command'."
 		  (t (format "%s <D> <X> -type f <F> -exec %s <R> {} %s \\;"
 			     find-program gcmd null-device)))))))
 
+(defun grep-default-command ()
+  (let ((tag-default
+	 (funcall (or find-tag-default-function
+		      (get major-mode 'find-tag-default-function)
+		      ;; We use grep-tag-default instead of
+		      ;; find-tag-default, to avoid loading etags.
+		      'grep-tag-default)))
+	(sh-arg-re "\\(\\(?:\"\\(?:[^\"]\\|\\\\\"\\)+\"\\|'[^']+'\\|[^\"' \t\n]\\)+\\)")
+	(grep-default (or (car grep-history) grep-command)))
+    ;; Replace the thing matching for with that around cursor.
+    (when (or (string-match
+	       (concat "[^ ]+\\s +\\(?:-[^ ]+\\s +\\)*"
+		       sh-arg-re "\\(\\s +\\(\\S +\\)\\)?")
+	       grep-default)
+	      ;; If the string is not yet complete.
+	      (string-match "\\(\\)\\'" grep-default))
+      (unless (or (not (stringp buffer-file-name))
+		  (when (match-beginning 2)
+		    (save-match-data
+		      (string-match
+		       (wildcard-to-regexp
+			(file-name-nondirectory
+			 (match-string 3 grep-default)))
+		       (file-name-nondirectory buffer-file-name)))))
+	(setq grep-default (concat (substring grep-default
+					      0 (match-beginning 2))
+				   " *."
+				   (file-name-extension buffer-file-name))))
+      (replace-match (or tag-default "") t t grep-default 1))))
+
 ;;;###autoload
 (defun grep (command-args)
   "Run grep, with user-specified args, and collect output in a buffer.
@@ -764,28 +794,16 @@ tag the cursor is over, substituting it into the last grep command
 in the grep command history (or into `grep-command'
 if that history list is empty)."
   (interactive
-   (let (grep-default (arg current-prefix-arg))
+   (progn
      (unless (and grep-command
 		  (or (not grep-use-null-device) (eq grep-use-null-device t)))
        (grep-compute-defaults))
-     (when arg
-       (let ((tag-default
-	      (funcall (or find-tag-default-function
-			   (get major-mode 'find-tag-default-function)
-			   ;; We use grep-tag-default instead of
-			   ;; find-tag-default, to avoid loading etags.
-			   'grep-tag-default))))
-	 (setq grep-default (or (car grep-history) grep-command))
-	 ;; Replace the thing matching for with that around cursor
-	 (when (string-match "[^ ]+\\s +\\(-[^ ]+\\s +\\)*\\(\"[^\"]+\"\\|[^ ]+\\)\\(\\s-+\\S-+\\)?" grep-default)
-	   (unless (or (match-beginning 3) (not (stringp buffer-file-name)))
-	     (setq grep-default (concat grep-default "*."
-					(file-name-extension buffer-file-name))))
-	   (setq grep-default (replace-match (or tag-default "")
-					     t t grep-default 2)))))
-     (list (read-from-minibuffer "Run grep (like this): "
-				 (or grep-default grep-command)
-				 nil nil 'grep-history))))
+     (let ((default (grep-default-command)))
+       (list (read-from-minibuffer "Run grep (like this): "
+				   (if current-prefix-arg
+				       default grep-command)
+				   nil nil 'grep-history
+				   (if current-prefix-arg nil default))))))
 
   ;; Setting process-setup-function makes exit-message-function work
   ;; even when async processes aren't supported.
@@ -1136,6 +1154,20 @@ exited abnormally with code %d\n"
 	     (when (window-live-p w)
 	       (select-window w)))))))
 
+(defvar compilation-menu-map
+  (let ((map (make-sparse-keymap "Errors")))
+    (define-key map [stop-subjob]
+      '("Stop Compilation" . comint-interrupt-subjob))
+    (define-key map [compilation-mode-separator2]
+      '("----" . nil))
+    (define-key map [compilation-mode-first-error]
+      '("First Error" . first-error))
+    (define-key map [compilation-mode-previous-error]
+      '("Previous Error" . previous-error))
+    (define-key map [compilation-mode-next-error]
+      '("Next Error" . next-error))
+    map))
+
 (defvar compilation-minor-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [mouse-2] 'compile-mouse-goto-error)
@@ -1146,6 +1178,9 @@ exited abnormally with code %d\n"
     (define-key map "\M-p" 'compilation-previous-error)
     (define-key map "\M-{" 'compilation-previous-file)
     (define-key map "\M-}" 'compilation-next-file)
+    ;; Set up the menu-bar
+    (define-key map [menu-bar compilation]
+      (cons "Errors" compilation-menu-map))
     map)
   "Keymap for `compilation-minor-mode'.")
 
@@ -1158,50 +1193,30 @@ exited abnormally with code %d\n"
     (define-key map "\M-{" 'compilation-previous-file)
     (define-key map "\M-}" 'compilation-next-file)
     ;; Set up the menu-bar
-    (define-key map [menu-bar errors-menu]
-      (cons "Errors" (make-sparse-keymap "Errors")))
-    (define-key map [menu-bar errors-menu stop-subjob]
-      '("Stop" . comint-interrupt-subjob))
-    (define-key map [menu-bar errors-menu compilation-mode-separator2]
-      '("----" . nil))
-    (define-key map [menu-bar errors-menu compilation-mode-first-error]
-      '("First Error" . first-error))
-    (define-key map [menu-bar errors-menu compilation-mode-previous-error]
-      '("Previous Error" . previous-error))
-    (define-key map [menu-bar errors-menu compilation-mode-next-error]
-      '("Next Error" . next-error))
+    (define-key map [menu-bar compilation]
+      (cons "Errors" compilation-menu-map))
     map)
   "Keymap for `compilation-shell-minor-mode'.")
 
 (defvar compilation-mode-map
-  (let ((map (cons 'keymap compilation-minor-mode-map)))
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map compilation-minor-mode-map)
     (define-key map " " 'scroll-up)
     (define-key map "\^?" 'scroll-down)
     ;; Set up the menu-bar
-    (define-key map [menu-bar compilation-menu]
+    (define-key map [menu-bar compilation]
       (cons "Compile" (make-sparse-keymap "Compile")))
-
-    (define-key map [menu-bar compilation-menu compilation-mode-kill-compilation]
-      '("Stop Compilation" . kill-compilation))
-    (define-key map [menu-bar compilation-menu compilation-mode-separator2]
+    (define-key map [menu-bar compilation compilation-separator2]
       '("----" . nil))
-    (define-key map [menu-bar compilation-menu compilation-mode-first-error]
-      '("First Error" . first-error))
-    (define-key map [menu-bar compilation-menu compilation-mode-previous-error]
-      '("Previous Error" . previous-error))
-    (define-key map [menu-bar compilation-menu compilation-mode-next-error]
-      '("Next Error" . next-error))
-    (define-key map [menu-bar compilation-menu compilation-separator2]
-      '("----" . nil))
-    (define-key map [menu-bar compilation-menu compilation-mode-grep]
+    (define-key map [menu-bar compilation compilation-mode-grep]
       '("Search Files (grep)" . grep))
-    (define-key map [menu-bar compilation-menu compilation-mode-recompile]
+    (define-key map [menu-bar compilation compilation-mode-recompile]
       '("Recompile" . recompile))
-    (define-key map [menu-bar compilation-menu compilation-mode-compile]
+    (define-key map [menu-bar compilation compilation-mode-compile]
       '("Compile..." . compile))
     map)
   "Keymap for compilation log buffers.
-`compilation-minor-mode-map' is a cdr of this.")
+`compilation-minor-mode-map' is a parent of this.")
 
 (put 'compilation-mode 'mode-class 'special)
 
@@ -1241,63 +1256,28 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
   (make-local-variable 'compilation-error-screen-columns)
   (setq compilation-last-buffer (current-buffer)))
 
-(defvar compilation-shell-minor-mode nil
-  "Non-nil when in `compilation-shell-minor-mode'.
-In this minor mode, all the error-parsing commands of the
-Compilation major mode are available but bound to keys that don't
-collide with Shell mode.")
-(make-variable-buffer-local 'compilation-shell-minor-mode)
-
-(or (assq 'compilation-shell-minor-mode minor-mode-alist)
-    (setq minor-mode-alist
-	  (cons '(compilation-shell-minor-mode " Shell-Compile")
-		minor-mode-alist)))
-(or (assq 'compilation-shell-minor-mode minor-mode-map-alist)
-    (setq minor-mode-map-alist (cons (cons 'compilation-shell-minor-mode
-					   compilation-shell-minor-mode-map)
-				     minor-mode-map-alist)))
-
-(defvar compilation-minor-mode nil
-  "Non-nil when in `compilation-minor-mode'.
-In this minor mode, all the error-parsing commands of the
-Compilation major mode are available.")
-(make-variable-buffer-local 'compilation-minor-mode)
-
-(or (assq 'compilation-minor-mode minor-mode-alist)
-    (setq minor-mode-alist (cons '(compilation-minor-mode " Compilation")
-				 minor-mode-alist)))
-(or (assq 'compilation-minor-mode minor-mode-map-alist)
-    (setq minor-mode-map-alist (cons (cons 'compilation-minor-mode
-					   compilation-minor-mode-map)
-				     minor-mode-map-alist)))
-
 ;;;###autoload
-(defun compilation-shell-minor-mode (&optional arg)
+(define-minor-mode compilation-shell-minor-mode
   "Toggle compilation shell minor mode.
 With arg, turn compilation mode on if and only if arg is positive.
-See `compilation-mode'.
+In this minor mode, all the error-parsing commands of the
+Compilation major mode are available but bound to keys that don't
+collide with Shell mode.  See `compilation-mode'.
 Turning the mode on runs the normal hook `compilation-shell-minor-mode-hook'."
-  (interactive "P")
-  (if (setq compilation-shell-minor-mode (if (null arg)
-				       (null compilation-shell-minor-mode)
-				     (> (prefix-numeric-value arg) 0)))
-      (let ((mode-line-process))
-	(compilation-setup)
-	(run-hooks 'compilation-shell-minor-mode-hook))))
+  nil " Shell-Compile" nil
+  (let (mode-line-process)
+    (compilation-setup)))
 
 ;;;###autoload
-(defun compilation-minor-mode (&optional arg)
+(define-minor-mode compilation-minor-mode
   "Toggle compilation minor mode.
 With arg, turn compilation mode on if and only if arg is positive.
-See `compilation-mode'.
+In this minor mode, all the error-parsing commands of the
+Compilation major mode are available.  See `compilation-mode'.
 Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
-  (interactive "P")
-  (if (setq compilation-minor-mode (if (null arg)
-				       (null compilation-minor-mode)
-				     (> (prefix-numeric-value arg) 0)))
-      (let ((mode-line-process))
-	(compilation-setup)
-	(run-hooks 'compilation-minor-mode-hook))))
+  nil " Compilation" nil
+  (let ((mode-line-process))
+    (compilation-setup)))
 
 (defun compilation-handle-exit (process-status exit-status msg)
   "Write msg in the current buffer and hack its mode-line-process."
