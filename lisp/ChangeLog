@@ -1,5 +1,14 @@
-2003-03-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-03-02  Matt Swift  <swift@alum.mit.edu>
 
+	* emacs-lisp/lisp-mode.el (emacs-lisp-docstring-fill-column): New
+	custom variable.
+	(lisp-fill-paragraph): Use it.  Add ?, to `paragraph-separate' so
+	that first docstring lines ending with a comma are respected.  Add
+	"`(" to same so that function and macro bodies beginning with a
+	backquote do not get disturbed.  Revise the comments.
+	
+2003-03-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+	
 	* startup.el (command-line): Call menu-bar-mode with 1 instead of t.
 
 	* menu-bar.el (menu-bar-mode): Change to define-minor-mode
@@ -35,7 +44,7 @@
 	First black-listed constellation is GNU Emacs/ hpux.
 	(tramp-send-region): Correct debug message.
 	(tramp-bug): Add `tramp-chunksize'.
-
+	
 2003-02-26  Matt Swift  <swift@alum.mit.edu>
 	
 	* startup.el: Streamline code in several functions for efficiency
