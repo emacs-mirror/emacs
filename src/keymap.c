@@ -75,6 +75,9 @@ Lisp_Object Vminor_mode_map_alist;
    minor mode variables and keymaps.  */
 Lisp_Object Vminor_mode_overriding_map_alist;
 
+/* List of emulation mode keymap alists.  */
+Lisp_Object Vemulation_mode_map_alists;
+
 /* Keymap mapping ASCII function key sequences onto their preferred forms.
    Initialized by the terminal-specific lisp files.  See DEFVAR for more
    documentation.  */
@@ -1278,81 +1281,94 @@ current_minor_maps (modeptr, mapptr)
   int i = 0;
   int list_number = 0;
   Lisp_Object alist, assoc, var, val;
+  Lisp_Object emulation_alists;
   Lisp_Object lists[2];
 
+  emulation_alists = Vemulation_mode_map_alists;
   lists[0] = Vminor_mode_overriding_map_alist;
   lists[1] = Vminor_mode_map_alist;
 
   for (list_number = 0; list_number < 2; list_number++)
-    for (alist = lists[list_number];
-	 CONSP (alist);
-	 alist = XCDR (alist))
-      if ((assoc = XCAR (alist), CONSP (assoc))
-	  && (var = XCAR (assoc), SYMBOLP (var))
-	  && (val = find_symbol_value (var), !EQ (val, Qunbound))
-	  && !NILP (val))
+    {
+      if (CONSP (emulation_alists))
 	{
-	  Lisp_Object temp;
-
-	  /* If a variable has an entry in Vminor_mode_overriding_map_alist,
-	     and also an entry in Vminor_mode_map_alist,
-	     ignore the latter.  */
-	  if (list_number == 1)
-	    {
-	      val = assq_no_quit (var, lists[0]);
-	      if (!NILP (val))
-		continue;
-	    }
-
-	  if (i >= cmm_size)
-	    {
-	      Lisp_Object *newmodes, *newmaps;
-
-	      /* Use malloc/realloc here.  See the comment above
-		 this function.  */
-	      if (cmm_maps)
-		{
-		  BLOCK_INPUT;
-		  cmm_size *= 2;
-		  newmodes
-		    = (Lisp_Object *) realloc (cmm_modes,
-						cmm_size * sizeof *newmodes);
-		  newmaps
-		    = (Lisp_Object *) realloc (cmm_maps,
-						cmm_size * sizeof *newmaps);
-		  UNBLOCK_INPUT;
-		}
-	      else
-		{
-		  BLOCK_INPUT;
-		  cmm_size = 30;
-		  newmodes
-		    = (Lisp_Object *) malloc (cmm_size * sizeof *newmodes);
-		  newmaps
-		    = (Lisp_Object *) malloc (cmm_size * sizeof *newmaps);
-		  UNBLOCK_INPUT;
-		}
-
-	      if (newmodes)
-		cmm_modes = newmodes;
-	      if (newmaps)
-		cmm_maps = newmaps;
-	      
-	      if (newmodes == NULL || newmaps == NULL)
-		break;
-	    }
-
-	  /* Get the keymap definition--or nil if it is not defined.  */
-	  temp = internal_condition_case_1 (Findirect_function,
-					    XCDR (assoc),
-					    Qerror, current_minor_maps_error);
-	  if (!NILP (temp))
-	    {
-	      cmm_modes[i] = var;
-	      cmm_maps [i] = temp;
-	      i++;
-	    }
+	  alist = XCAR (emulation_alists);
+	  emulation_alists = XCDR (emulation_alists);
+	  if (SYMBOLP (alist))
+	    alist = find_symbol_value (alist);
+	  list_number = -1;
 	}
+      else
+	alist = lists[list_number];
+
+      for ( ; CONSP (alist); alist = XCDR (alist))
+	if ((assoc = XCAR (alist), CONSP (assoc))
+	    && (var = XCAR (assoc), SYMBOLP (var))
+	    && (val = find_symbol_value (var), !EQ (val, Qunbound))
+	    && !NILP (val))
+	  {
+	    Lisp_Object temp;
+
+	    /* If a variable has an entry in Vminor_mode_overriding_map_alist,
+	       and also an entry in Vminor_mode_map_alist,
+	       ignore the latter.  */
+	    if (list_number == 1)
+	      {
+		val = assq_no_quit (var, lists[0]);
+		if (!NILP (val))
+		  continue;
+	      }
+
+	    if (i >= cmm_size)
+	      {
+		Lisp_Object *newmodes, *newmaps;
+
+		/* Use malloc/realloc here.  See the comment above
+		   this function.  */
+		if (cmm_maps)
+		  {
+		    BLOCK_INPUT;
+		    cmm_size *= 2;
+		    newmodes
+		      = (Lisp_Object *) realloc (cmm_modes,
+						 cmm_size * sizeof *newmodes);
+		    newmaps
+		      = (Lisp_Object *) realloc (cmm_maps,
+						 cmm_size * sizeof *newmaps);
+		    UNBLOCK_INPUT;
+		  }
+		else
+		  {
+		    BLOCK_INPUT;
+		    cmm_size = 30;
+		    newmodes
+		      = (Lisp_Object *) malloc (cmm_size * sizeof *newmodes);
+		    newmaps
+		      = (Lisp_Object *) malloc (cmm_size * sizeof *newmaps);
+		    UNBLOCK_INPUT;
+		  }
+
+		if (newmodes)
+		  cmm_modes = newmodes;
+		if (newmaps)
+		  cmm_maps = newmaps;
+	      
+		if (newmodes == NULL || newmaps == NULL)
+		  break;
+	      }
+
+	    /* Get the keymap definition--or nil if it is not defined.  */
+	    temp = internal_condition_case_1 (Findirect_function,
+					      XCDR (assoc),
+					      Qerror, current_minor_maps_error);
+	    if (!NILP (temp))
+	      {
+		cmm_modes[i] = var;
+		cmm_maps [i] = temp;
+		i++;
+	      }
+	  }
+    }
 
   if (modeptr) *modeptr = cmm_modes;
   if (mapptr)  *mapptr  = cmm_maps;
@@ -3578,6 +3594,16 @@ This variable is a alist just like `minor-mode-map-alist', and it is
 used the same way (and before `minor-mode-map-alist'); however,
 it is provided for major modes to bind locally.  */);
   Vminor_mode_overriding_map_alist = Qnil;
+
+  DEFVAR_LISP ("emulation-mode-map-alists", &Vemulation_mode_map_alists,
+	       doc: /* List of keymap alists to use for emulations modes.
+It is intended for modes or packages using multiple minor-mode keymaps.
+Each element is a keymap alist just like `minor-mode-map-alist', or a
+symbol with a variable binding which is a keymap alist, and it is used
+the same way.  The "active" keymaps in each alist are used before
+`minor-mode-map-alist' and `minor-mode-overriding-map-alist'.  */); 
+  Vemulation_mode_map_alists = Qnil;
+
 
   DEFVAR_LISP ("function-key-map", &Vfunction_key_map,
 	       doc: /* Keymap mapping ASCII function key sequences onto their preferred forms.
