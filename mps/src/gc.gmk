@@ -1,7 +1,7 @@
 #
 #              GENERIC BUILD.GC MAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc/!gc.gmk(trunk.1)$
+# $HopeName: MMsrc/!gc.gmk(trunk.2)$
 #
 # Copyright (C) 1995 Harlequin Group, all rights reserved
 #
@@ -17,6 +17,7 @@
 #               the compiler, e.g. "-DOS_SUNOS -DARCH_SPARC -DBUILD_GCC"
 #   STD		list of sources which make up the "std" part for this platform
 #   MPM		as above for the "mpm" part
+#   AMC		as above for the "amc" part
 #   TESTLIB	as above for the "testlib" part
 #   LIBS	extra libraries to include in tests (usually "-lm")
 #   NOISY	if defined and non-empty, causes commands to be emitted
@@ -53,6 +54,9 @@ error "gc.gmk: STD not defined"
 endif
 ifndef MPM
 error "gc.gmk: MPM not defined"
+endif
+ifndef AMC
+error "gc.gmk: AMC not defined"
 endif
 ifndef TESTLIB
 error "gc.gmk: TESTLIB not defined"
@@ -105,6 +109,8 @@ STDOBJ = $(STD:%.c=$(PFM)/$(VARIETY)/%.o)
 STDDEP = $(STD:%.c=$(PFM)/$(VARIETY)/%.d)
 MPMOBJ = $(MPM:%.c=$(PFM)/$(VARIETY)/%.o)
 MPMDEP = $(MPM:%.c=$(PFM)/$(VARIETY)/%.d)
+AMCOBJ = $(AMC:%.c=$(PFM)/$(VARIETY)/%.o)
+AMCDEP = $(AMC:%.c=$(PFM)/$(VARIETY)/%.d)
 TESTLIBOBJ = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.o)
 TESTLIBDEP = $(TESTLIB:%.c=$(PFM)/$(VARIETY)/%.d)
 endif
@@ -128,14 +134,14 @@ endif
 # "all" builds all varieties of all targets
 # %%TARGET: Add the target to the all dependencies.
 
-all: lockcov stdcover mpmstres std.a
+all: amcdev lockcov stdcover mpmstres std.a
 
 # These convenience targets allow one to type "make foo" to build target
 # foo in all varieties.
 #
 # %%TARGET: Add a pseudo-target for the new target here.
 
-lockcov stdcover mpmstres std.a: phony
+amcdev lockcov stdcover mpmstres std.a: phony
 	$(MAKE) -f $(PFM).gmk TARGET=$@ target
 
 # "clean" removes the directory containing the build results for the platform.
@@ -185,6 +191,9 @@ $(PFM)/$(VARIETY)/mpmstres: $(PFM)/$(VARIETY)/mpmstres.o \
 $(PFM)/$(VARIETY)/lockcov: $(PFM)/$(VARIETY)/lockcov.o \
 	$(MPMOBJ) $(STDOBJ)
 
+$(PFM)/$(VARIETY)/amcdev: $(PFM)/$(VARIETY)/amcdev.o \
+	$(MPMOBJ) $(STDOBJ) $(AMCOBJ) $(TESTLIBOBJ)
+
 $(PFM)/$(VARIETY)/std.a: $(STDOBJ)
 
 $(PFM)/$(VARIETY)/mpm.a: $(MPMOBJ)
@@ -227,7 +236,7 @@ $(PFM)/$(VARIETY)/%.d: %.c
 ifdef VARIETY
 ifdef TARGET
 # %%PART: Add the depency file macro for the new part here.
-include $(STDDEP) $(MPMDEP)
+include $(STDDEP) $(MPMDEP) $(AMCDEP)
 endif
 endif
 

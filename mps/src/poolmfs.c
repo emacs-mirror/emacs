@@ -40,6 +40,7 @@
 #include "poolst.h"
 #include "poolmfs.h"
 #include "poolmfss.h"
+#include "trace.h"
 #include <stdarg.h>
 #include <stddef.h>
 
@@ -69,7 +70,9 @@ PoolClass PoolClassMFS(void)
                 sizeof(PoolMFSStruct), offsetof(PoolMFSStruct, poolStruct),
                 create, destroy,
                 allocP, freeP,
-                NULL, NULL,
+                NULL, NULL,		/* bufferCreate, bufferDestroy */
+                NULL, NULL, NULL,	/* comdemn, mark, scan */
+                NULL, NULL,		/* fix, relcaim */
                 describe);
   return(&PoolClassMFSStruct);
 }
@@ -218,16 +221,16 @@ void PoolMFSFinish(PoolMFS poolMFS)
 {
   Addr seg;
   Arena arena;
-  Pool arpool;
+  Pool pool;
 
   AVER(ISVALID(PoolMFS, poolMFS));
-  arena = SpaceArena(PoolSpace(PoolMFSPool(poolMFS)));
-  arpool = PoolArenaPool(arena);
+  pool = PoolMFSPool(poolMFS);
+  arena = SpaceArena(PoolSpace(pool));
 
   seg = poolMFS->segList;
   while(seg != (Addr)0) {
-    Addr nextSeg = (Addr)ArenaGet(arena, seg, 1);
-    PoolFreeP(arpool, (void *)seg, poolMFS->extendBy);
+    Addr nextSeg = (Addr)ArenaGet(arena, seg, ARENA_CLASS);
+    PoolSegFree(pool, seg, poolMFS->extendBy);
     seg = nextSeg;
   }
   PoolFinish(&poolMFS->poolStruct);
@@ -270,12 +273,13 @@ static Error allocP(void **pReturn, Pool pool, size_t size)
     Header header = NULL, next;
 
     /* Create a new segment and attach it to the pool. */
+    e = PoolSegAlloc(&seg, pool, MFS->extendBy);
+    if(e != ErrSUCCESS)
+      return(e);
 
-    arena = SpaceArena(PoolSpace(pool));
-    e = PoolAllocP((void **)&seg, PoolArenaPool(arena), MFS->extendBy);
-    if(e != ErrSUCCESS) return(e);
     /* chain segs through Key1; can find them when finishing */
-    ArenaPut(arena, seg, 1, (void *)MFS->segList);
+    arena = SpaceArena(PoolSpace(pool));
+    ArenaPut(arena, seg, ARENA_CLASS, (void *)MFS->segList);
     MFS->segList = seg;
 
     /* Sew together all the new empty units in the segment, working down */
