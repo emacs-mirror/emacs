@@ -33,6 +33,12 @@
   :group 'dired
   :prefix "find-")
 
+(defcustom find-dired-find-program "find"
+  "Program used to find files."
+  :group 'dired
+  :type 'file
+  )
+
 ;; find's -ls corresponds to these switches.
 ;; Note -b, at least GNU find quotes spaces etc. in filenames
 ;;;###autoload
@@ -92,7 +98,7 @@ as the final argument."
     (erase-buffer)
     (setq default-directory dir
 	  find-args args		; save for next interactive call
-	  args (concat "find . "
+	  args (concat find-dired-find-program " . "
 		       (if (string= args "")
 			   ""
 			 (concat "\\( " args " \\) "))
@@ -120,7 +126,7 @@ as the final argument."
     ;; ``wildcard'' line. 
     (insert "  " args "\n")
     ;; Start the find process.
-    (let ((proc (start-process-shell-command "find" (current-buffer) args)))
+    (let ((proc (start-process-shell-command find-dired-find-program (current-buffer) args)))
       (set-process-filter proc (function find-dired-filter))
       (set-process-sentinel proc (function find-dired-sentinel))
       ;; Initialize the process marker; it is used by the filter.
