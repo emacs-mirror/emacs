@@ -239,57 +239,44 @@ or if the window is not the full width of the frame,
 or if the window is the only window of its frame."
   (interactive)
   (or window (setq window (selected-window)))
-  (save-excursion
-    (set-buffer (window-buffer window))
-    (let* ((w (selected-window))	;save-window-excursion can't win
-	   (buffer-file-name buffer-file-name)
-	   (p (point))
-	   (n 0)
-	   (ignore-final-newline
-	    ;; If buffer ends with a newline, ignore it when counting height
-	    ;; unless point is after it.
-	    (and (not (eobp))
-		 (eq ?\n (char-after (1- (point-max))))))
-	   (buffer-read-only nil)
-	   (modified (buffer-modified-p))
-	   (buffer (current-buffer))
-	   (params (frame-parameters (window-frame window)))
-	   (mini (cdr (assq 'minibuffer params)))
-	   (edges (window-edges (selected-window))))
-      (if (and (< 1 (let ((frame (selected-frame)))
-		      (select-frame (window-frame window))
-		      (unwind-protect
-			  (count-windows)
-			(select-frame frame))))
-	       (= (window-width window) (frame-width (window-frame window)))
-	       (pos-visible-in-window-p (point-min) window)
-	       (not (eq mini 'only))
-	       (or (not mini)
-		   (< (nth 3 edges)
-		      (nth 1 (window-edges mini)))
-		   (> (nth 1 edges)
-		      (cdr (assq 'menu-bar-lines params)))))
-	  (unwind-protect
-	      (progn
-		(select-window (or window w))
-		(goto-char (point-min))
-		(while (pos-visible-in-window-p
-			(- (point-max)
-			   (if ignore-final-newline 1 0)))
-		  ;; defeat file locking... don't try this at home, kids!
-		  (setq buffer-file-name nil)
-		  (insert ?\n) (setq n (1+ n)))
-		(if (> n 0)
-		    (shrink-window (min (1- n)
-					(- (window-height)
-					   window-min-height)))))
-	    (delete-region (point-min) (point))
-	    (set-buffer-modified-p modified)
-	    (goto-char p)
-	    (select-window w)
-	    ;; Make sure we unbind buffer-read-only
-	    ;; with the proper current buffer.
-	    (set-buffer buffer))))))
+  (let* ((ignore-final-newline
+	  ;; If buffer ends with a newline, ignore it when counting height
+	  ;; unless point is after it.
+	  (and (not (eobp))
+	       (eq ?\n (char-after (1- (point-max))))))
+	 (params (frame-parameters (window-frame window)))
+	 (mini (cdr (assq 'minibuffer params)))
+	 (edges (window-edges (selected-window))))
+    (if (and (< 1 (save-selected-window
+		    (select-window window)
+		    (count-windows)))
+	     (= (window-width window) (frame-width (window-frame window)))
+	     (pos-visible-in-window-p (point-min) window)
+	     (not (eq mini 'only))
+	     (or (not mini)
+		 (< (nth 3 edges)
+		    (nth 1 (window-edges mini)))
+		 (> (nth 1 edges)
+		    (cdr (assq 'menu-bar-lines params)))))
+	(save-selected-window
+	  (select-window window)
+	  (let (result height)
+	    (save-excursion
+	      (set-buffer (window-buffer window))
+	      (goto-char (point-min))
+	      (setq result
+		    (compute-motion (point-min) '(0 . 0)
+				    (- (point-max)
+				       (if ignore-final-newline 1 0))
+				    (cons 0 (window-height))
+				    (window-width) nil
+				    window))
+	      ;; Get number of screen lines that the text needs.
+	      (setq text-height (+ 1 (nth 2 result)))
+	      ;; Shrink down to that, or as far as we can go.
+	      (if (> (window-height) (1+ text-height))
+		  (shrink-window (- (window-height)
+				    (max (1+ text-height) window-min-height))))))))))
 
 (defun kill-buffer-and-window ()
   "Kill the current buffer and delete the selected window."
