@@ -137,6 +137,7 @@ Lisp_Object Qlast_nonmenu_event;
 /* QCfamily is declared and initialized in xfaces.c,
    QCfilter in keyboard.c.  */
 extern Lisp_Object QCfamily, QCfilter;
+Lisp_Object QCfilter_multibyte;
 
 /* Qexit is declared and initialized in eval.c.  */
 
@@ -586,6 +587,39 @@ remove_process (proc)
 
   deactivate_process (proc);
 }
+
+/* Setup coding systems of PROCESS.  */
+
+void
+setup_process_coding_systems (process)
+     Lisp_Object process;
+{
+  struct Lisp_Process *p = XPROCESS (process);
+  int inch = XINT (p->infd);
+  int outch = XINT (p->outfd);
+
+  if (!proc_decode_coding_system[inch])
+    proc_decode_coding_system[inch]
+      = (struct coding_system *) xmalloc (sizeof (struct coding_system));
+  setup_coding_system (p->decode_coding_system,
+		       proc_decode_coding_system[inch]);
+  if (! NILP (p->filter))
+    {
+      if (NILP (p->filter_multibyte))
+	setup_raw_text_coding_system (proc_decode_coding_system[inch]);
+    }
+  else if (BUFFERP (p->buffer))
+    {
+      if (NILP (XBUFFER (p->buffer)->enable_multibyte_characters))
+	setup_raw_text_coding_system (proc_decode_coding_system[inch]);
+    }
+
+  if (!proc_encode_coding_system[outch])
+    proc_encode_coding_system[outch]
+      = (struct coding_system *) xmalloc (sizeof (struct coding_system));
+  setup_coding_system (p->encode_coding_system,
+		       proc_encode_coding_system[outch]);
+}
 
 DEFUN ("processp", Fprocessp, Sprocessp, 1, 1, 0,
        doc: /* Return t if OBJECT is a process.  */)
@@ -816,6 +850,7 @@ DEFUN ("set-process-buffer", Fset_process_buffer, Sset_process_buffer,
   p->buffer = buffer;
   if (NETCONN1_P (p))
     p->childp = Fplist_put (p->childp, QCbuffer, buffer);
+  setup_process_coding_systems (process);
   return buffer;
 }
 
@@ -890,6 +925,7 @@ The string argument is normally a multibyte string, except:
   p->filter = filter;
   if (NETCONN1_P (p))
     p->childp = Fplist_put (p->childp, QCfilter, filter);
+  setup_process_coding_systems (process);
   return filter;
 }
 
@@ -1438,6 +1474,8 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   XPROCESS (proc)->buffer = buffer;
   XPROCESS (proc)->sentinel = Qnil;
   XPROCESS (proc)->filter = Qnil;
+  XPROCESS (proc)->filter_multibyte
+    = buffer_defaults.enable_multibyte_characters;
   XPROCESS (proc)->command = Flist (nargs - 2, args + 2);
 
   /* Make the process marker point into the process buffer (if any).  */
@@ -1748,16 +1786,7 @@ create_process (process, new_argv, current_dir)
     XSETFASTINT (XPROCESS (process)->subtty, forkin);
   XPROCESS (process)->pty_flag = (pty_flag ? Qt : Qnil);
   XPROCESS (process)->status = Qrun;
-  if (!proc_decode_coding_system[inchannel])
-    proc_decode_coding_system[inchannel]
-      = (struct coding_system *) xmalloc (sizeof (struct coding_system));
-  setup_coding_system (XPROCESS (process)->decode_coding_system,
-		       proc_decode_coding_system[inchannel]);
-  if (!proc_encode_coding_system[outchannel])
-    proc_encode_coding_system[outchannel]
-      = (struct coding_system *) xmalloc (sizeof (struct coding_system));
-  setup_coding_system (XPROCESS (process)->encode_coding_system,
-		       proc_encode_coding_system[outchannel]);
+  setup_process_coding_systems (process);
 
   /* Delay interrupts until we have a chance to store
      the new fork's pid in its process structure */
@@ -2590,6 +2619,11 @@ The stopped state is cleared by `continue-process' and set by
 
 :filter FILTER -- Install FILTER as the process filter.
 
+:filter-multibyte BOOL -- If BOOL is non-nil, a string given to the
+process filter is multibyte, otherwise it is unibyte.  If this keyword
+is not specified, the string is multibyte iff
+`default-enable-multibyte-characters' is non-nil.
+
 :sentinel SENTINEL -- Install SENTINEL as the process sentinel.
 
 :log LOG -- Install LOG as the server process log function.  This
@@ -3185,6 +3219,10 @@ usage: (make-network-process &rest ARGS)  */)
   p->buffer = buffer;
   p->sentinel = sentinel;
   p->filter = filter;
+  p->filter_multibyte = buffer_defaults.enable_multibyte_characters;
+  /* Override the above only if :filter-multibyte is specified.  */
+  if (! NILP (Fplist_member (contact, QCfilter_multibyte)))
+    p->filter_multibyte = Fplist_get (contact, QCfilter_multibyte);
   p->log = Fplist_get (contact, QClog);
   if (tem = Fplist_get (contact, QCnoquery), !NILP (tem))
     p->kill_without_query = Qt;
@@ -3296,17 +3334,7 @@ usage: (make-network-process &rest ARGS)  */)
       }
     p->encode_coding_system = val;
   }
-
-  if (!proc_decode_coding_system[inch])
-    proc_decode_coding_system[inch]
-      = (struct coding_system *) xmalloc (sizeof (struct coding_system));
-  setup_coding_system (p->decode_coding_system,
-		       proc_decode_coding_system[inch]);
-  if (!proc_encode_coding_system[outch])
-    proc_encode_coding_system[outch]
-      = (struct coding_system *) xmalloc (sizeof (struct coding_system));
-  setup_coding_system (p->encode_coding_system,
-		       proc_encode_coding_system[outch]);
+  setup_process_coding_systems (proc);
 
   p->decoding_buf = make_uninit_string (0);
   p->decoding_carryover = make_number (0);
@@ -3641,17 +3669,7 @@ server_accept_connection (server, channel)
 
   p->decode_coding_system = ps->decode_coding_system;
   p->encode_coding_system = ps->encode_coding_system;
-
-  if (!proc_decode_coding_system[s])
-    proc_decode_coding_system[s]
-      = (struct coding_system *) xmalloc (sizeof (struct coding_system));
-  setup_coding_system (p->decode_coding_system,
-		       proc_decode_coding_system[s]);
-  if (!proc_encode_coding_system[s])
-    proc_encode_coding_system[s]
-      = (struct coding_system *) xmalloc (sizeof (struct coding_system));
-  setup_coding_system (p->encode_coding_system,
-		       proc_encode_coding_system[s]);
+  setup_process_coding_systems (proc);
 
   p->decoding_buf = make_uninit_string (0);
   p->decoding_carryover = make_number (0);
@@ -4517,10 +4535,6 @@ read_process_output (proc, channel)
 
       text = decode_coding_string (make_unibyte_string (chars, nbytes),
 				   coding, 0);
-      if (NILP (buffer_defaults.enable_multibyte_characters))
-	/* We had better return unibyte string.  */
-	text = string_make_unibyte (text);
-
       Vlast_coding_system_used = coding->symbol;
       /* A new coding system might be found.  */
       if (!EQ (p->decode_coding_system, coding->symbol))
@@ -4551,6 +4565,11 @@ read_process_output (proc, channel)
       bcopy (chars + coding->consumed, SDATA (p->decoding_buf),
 	     carryover);
       XSETINT (p->decoding_carryover, carryover);
+      /* Adjust the multibyteness of TEXT to that of the filter.  */
+      if (NILP (p->filter_multibyte) != ! STRING_MULTIBYTE (text))
+	text = (STRING_MULTIBYTE (text)
+		? Fstring_as_unibyte (text)
+		: Fstring_to_multibyte (text));
       nbytes = SBYTES (text);
       nchars = SCHARS (text);
       if (nbytes > 0)
@@ -4657,7 +4676,7 @@ read_process_output (proc, channel)
 	  != ! STRING_MULTIBYTE (text))
 	text = (STRING_MULTIBYTE (text)
 		? Fstring_as_unibyte (text)
-		: Fstring_as_multibyte (text));
+		: Fstring_to_multibyte (text));
       nbytes = SBYTES (text);
       nchars = SCHARS (text);
       /* Insert before markers in case we are inserting where
@@ -6118,13 +6137,12 @@ encode subprocess input.  */)
     error ("Input file descriptor of %s closed", SDATA (p->name));
   if (XINT (p->outfd) < 0)
     error ("Output file descriptor of %s closed", SDATA (p->name));
+  Fcheck_coding_system (decoding);
+  Fcheck_coding_system (encoding);
 
-  p->decode_coding_system = Fcheck_coding_system (decoding);
-  p->encode_coding_system = Fcheck_coding_system (encoding);
-  setup_coding_system (decoding,
-		       proc_decode_coding_system[XINT (p->infd)]);
-  setup_coding_system (encoding,
-		       proc_encode_coding_system[XINT (p->outfd)]);
+  p->decode_coding_system = decoding;
+  p->encode_coding_system = encoding;
+  setup_process_coding_systems (proc);
 
   return Qnil;
 }
@@ -6139,6 +6157,42 @@ DEFUN ("process-coding-system",
   return Fcons (XPROCESS (proc)->decode_coding_system,
 		XPROCESS (proc)->encode_coding_system);
 }
+
+DEFUN ("set-process-filter-multibyte", Fset_process_filter_multibyte,
+       Sset_process_filter_multibyte, 2, 2, 0,
+       doc: /* Set multibyteness of a string given to PROCESS's filter.
+If FLAG is non-nil, the filter is given a multibyte string.
+If FLAG is nil, the filter is give a unibyte string.  In this case,
+all character code conversion except for end-of-line conversion is
+suppressed.  */)
+     (proc, flag)
+     Lisp_Object proc, flag;
+{
+  register struct Lisp_Process *p;
+
+  CHECK_PROCESS (proc);
+  p = XPROCESS (proc);
+  p->filter_multibyte = flag;
+  setup_process_coding_systems (proc);
+
+  return Qnil;
+}
+
+DEFUN ("process-filter-multibyte-p", Fprocess_filter_multibyte_p,
+       Sprocess_filter_multibyte_p, 1, 1, 0,
+       doc: /* Return t if a multibyte string is given to PROCESS's filter.*/)
+     (proc)
+     Lisp_Object proc;
+{
+  register struct Lisp_Process *p;
+
+  CHECK_PROCESS (proc);
+  p = XPROCESS (proc);
+
+  return (NILP (p->filter_multibyte) ? Qnil : Qt);
+}
+
+
 
 /* The first time this is called, assume keyboard input comes from DESC
    instead of from where we used to expect it.
@@ -6345,6 +6399,8 @@ syms_of_process ()
 
   Qlast_nonmenu_event = intern ("last-nonmenu-event");
   staticpro (&Qlast_nonmenu_event);
+  QCfilter_multibyte = intern ("filter-multibyte");
+  staticpro (&QCfilter_multibyte);
 
   staticpro (&Vprocess_alist);
 
@@ -6414,6 +6470,8 @@ The value takes effect when `start-process' is called.  */);
 /*  defsubr (&Sprocess_connection); */
   defsubr (&Sset_process_coding_system);
   defsubr (&Sprocess_coding_system);
+  defsubr (&Sset_process_filter_multibyte);
+  defsubr (&Sprocess_filter_multibyte_p);
 }
 
 
