@@ -1,3 +1,11 @@
+2003-09-14  Kim F. Storm  <storm@cua.dk>
+
+	* process.c [HAVE_SOCKETS]: Include sys/ioctl.h and net/if.h.
+	(Fnetwork_interface_list, Fget_network_interface_info): New defuns.
+	(syms_of_process): Defsubr them.
+
+	* config.in: Regenerate.
+	
 2003-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.h (VALBITS): Don't remove 1 for the markbit.
