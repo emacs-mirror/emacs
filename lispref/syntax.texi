@@ -220,7 +220,7 @@ following is ever affected.
 Characters in this class count as part of words if
 @code{words-include-escapes} is non-@code{nil}.  @xref{Word Motion}.
 
-This class is not currently used in any standard Emacs modes.
+This class is used for backslash in @TeX{} mode.
 @end deffn
 
 @deffn {Syntax class} @w{paired delimiter}
