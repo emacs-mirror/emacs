@@ -3530,7 +3530,7 @@ in the definition is used to check that VALUE is valid."
   (let ((type (get var 'custom-type)))
     (when type
       ;; Match with custom type.
-      (require 'wid-edit)
+      (require 'cus-edit)
       (setq type (widget-convert type))
       (unless (widget-apply type :match val)
 	(error "Value `%S' does not match type %S of %S"
