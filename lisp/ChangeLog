@@ -1,3 +1,12 @@
+2001-01-29  Dave Love  <fx@gnu.org>
+
+	* progmodes/tcl.el (outline, dabbrev, add-log): Require when
+	compiling.
+	(tcl-using-emacs-19-23): Consider Emacs 21+.
+	(tcl-help-directory-list, tcl-command-switches): Fix :type.
+	(tcl-add-emacs-menu): Supply menu name.
+	(tcl-beginning-of-defun, tcl-end-of-defun): Defalias, don't fset.
+
 2001-01-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* simple.el (delete-trailing-whitespace): Don't delete formfeeds.
