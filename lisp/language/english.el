@@ -38,6 +38,19 @@
 Nothing special is needed to handle English.")
 	     ))
 
+;; Mostly because we can now...
+(define-coding-system 'ebcdic-us
+  "US version of EBCDIC"
+  :coding-type 'charset
+  :charset-list '(ebcdic-us)
+  :mnemonic ?*)
+
+(define-coding-system 'ebcdic-uk
+  "UK version of EBCDIC"
+  :coding-type 'charset
+  :charset-list '(ebcdic-uk)
+  :mnemonic ?*)
+
 ;; Make "ASCII" an alias of "English" language environment.
 (set-language-info-alist
  "ASCII" (cdr (assoc "English" language-info-alist)))
