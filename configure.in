@@ -1766,7 +1766,15 @@ if test "${HAVE_X11}" = "yes"; then
     old_c_flags="${CFLAGS}"
     CFLAGS="${LD_SWITCH_X_SITE}"
     AC_CHECK_HEADER(X11/xpm.h,
-      AC_CHECK_LIB(Xpm, XpmReturnAllocPixels, HAVE_XPM=yes, , -lX11))
+      AC_CHECK_LIB(Xpm, XpmReadFileToPixmap, HAVE_XPM=yes, , -lX11))
+    if test "${HAVE_XPM}" = "yes"; then
+       AC_EGREP_CPP(no_return_alloc_pixels,
+       [#include "X11/xpm.h"
+#ifndef XpmReturnAllocPixels
+no_return_alloc_pixels
+#endif
+	], HAVE_XPM=no, HAVE_XPM=yes)
+    fi
     CFLAGS="${old_c_flags}"
   fi
 
