@@ -1,3 +1,50 @@
+2003-12-02  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (Fset_fontset_font): Fix docstring.
+
+	* lisp.h (detect_coding_system): Adjust prototype.
+
+	* fileio.c (kill_workbuf_unwind): Delete this function.
+	(Finsert_file_contents): Adjust the call of detect_coding_system.
+	Get conversion_buffer by code_conversion_save.  Use the macor
+	CODING_MAY_REQUIRE_DECODING.  After decoding, update
+	coding_system.
+
+	* coding.h (make_conversion_work_buffer): Delete extern.
+	(code_conversion_save): Extern it.
+
+	* coding.c (enum iso_code_class_type): Delete ISO_carriage_return.
+	(CODING_GET_INFO): Delete argument eol_type.  Callers changed.
+	(decode_coding_utf_8): Don't do eol converion.
+	(detect_coding_utf_16): Check coding->src_chars, not
+	coding->src_bytes.  Add heuristics for those that have no
+	signature.
+	(decode_coding_emacs_mule): Don't do eol converion.
+	(decode_coding_iso_2022): Likewise.
+	(decode_coding_sjis): Likewise.
+	(decode_coding_big5): Likewise.
+	(decode_coding_charset): Likewise.
+	(adjust_coding_eol_type): Return a new coding system.
+	(detect_coding): Don't detect eol.  Fix for utf-16 detection.
+	(decode_eol): In case of CRLF->LF conversion, use del_range_2 on
+	each change.
+	(decode_coding): Pay attention to undo_list.  Do eol convesion for
+	all types of coding-systems (if necessary).
+	(Vcode_conversion_work_buf_list): Delete it.
+	(Vcode_conversion_reused_workbuf): Renamed from
+	Vcode_conversion_reused_work_buf.
+	(Vcode_conversion_workbuf_name): New variable.
+	(reused_workbuf_in_use): New variable.
+	(make_conversion_work_buffer): Delete the arg DEPTH.
+	(code_conversion_restore): Argument changed to cons.
+	(code_conversion_save): Delete the argument BUFFER.  Callers
+	changed.
+	(detect_coding_system): New argument src_chars.  Callers changed.
+	Fix for utf-16 detection.
+	(init_coding_once): Don't use ISO_carriage_return.
+	(syms_of_coding): Initialized Vcode_conversion_workbuf_name and
+	reused_workbuf_in_use.
+
 2003-11-24  Kenichi Handa  <handa@m17n.org>
 
 	* keymap.c (store_in_keymap): Pay attention to the case that idx
