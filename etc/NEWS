@@ -564,12 +564,12 @@ variable is found in `default-indicate-empty-lines'.
 When scrolling up because point is above the window start, if the
 value of the buffer-local variable `scroll-up-aggessively' is a
 number, Emacs chooses a new window start so that point ends up that
-fraction of the window's height from the bottom of the window.
+fraction of the window's height from the top of the window.
 
 When scrolling down because point is below the window end, if the
 value of the buffer-local variable `scroll-down-aggessively' is a
 number, Emacs chooses a new window start so that point ends up that
-fraction of the window's height from the top of the window.
+fraction of the window's height from the bottom of the window.
 
 ** The rectangle commands now avoid inserting undesirable spaces,
 notably at the end of lines.
