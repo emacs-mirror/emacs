@@ -1,3 +1,9 @@
+2001-03-29  Gerd Moellmann  <gerd@gnu.org>
+
+	* alloc.c (live_string_p, live_cons_p, live_symbol_p)
+	(live_float_p, live_misc_p): Return 1 only if the offset of the
+	pointer in its block is >= 0.
+
 2001-03-28  Paul Eggert <eggert@twinsun.com>
 
 	* editfns.c (Ffloat_time): Fix off-by-factor-of-10 bug in the
