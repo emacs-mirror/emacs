@@ -319,6 +319,18 @@ which see."
     (eval-last-sexp t)
     (terpri)))
 
+
+(defun last-sexp-print ()
+  (interactive)
+  (let ((value (get-text-property (point) 'printed-value)))
+    (when value
+      (let ((beg (previous-single-property-change (point) 'printed-value))
+	    (end (next-single-char-property-change (point) 'printed-value))
+	    (standard-output (current-buffer)))
+	(delete-region beg end)
+	(prin1 value)))))
+
+
 (defun eval-last-sexp-1 (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.
 With argument, print output into current buffer."
@@ -378,10 +390,23 @@ With argument, print output into current buffer."
 		     (set-syntax-table stab))))))
       (let ((print-length eval-expression-print-length)
 	    (print-level eval-expression-print-level)
-	    (start (point)))
+	    (beg (point)))
 	(prin1 value)
-	(when (bufferp standard-output)
-	  (put-text-property start (point) 'printed-value value))))))
+	(when (and (bufferp standard-output)
+		   (or (not (null print-length))
+		       (not (null print-level))))
+	  (let ((map (make-sparse-keymap))
+		(end (point)))
+	    (define-key map "\C-m" 'last-sexp-print)
+	    (define-key map [down-mouse-2] 'mouse-set-point)
+	    (define-key map [mouse-2] 'last-sexp-print)
+	    (add-text-properties
+	     beg end 
+	     `(printed-value ,value 
+			     mouse-face highlight 
+			     keymap ,map
+			     help-echo "RET, mouse-2: print unabbreviated"))))))))
+
 
 (defun eval-last-sexp (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.
