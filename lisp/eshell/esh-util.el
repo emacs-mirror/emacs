@@ -88,7 +88,7 @@ Numeric form is tested using the regular expression
   :type 'boolean
   :group 'eshell-util)
 
-(defcustom eshell-number-regexp "\\(0\\|-?[1-9][0-9]*\\(\\.[0-9]+\\)?\\)"
+(defcustom eshell-number-regexp "-?\\([0-9]*\\.\\)?[0-9]+\\(e[-0-9.]+\\)?"
   "*Regular expression used to match numeric arguments.
 If `eshell-convert-numeric-arguments' is non-nil, and an argument
 matches this regexp, it will be converted to a Lisp number, using the
