@@ -3549,7 +3549,7 @@ If LINE, insert the rebuilt thread starting on line LINE."
       (setq thread (gnus-remove-thread id)))
     (setq old-pos (gnus-point-at-bol))
     (setq current (save-excursion
-		    (and (zerop (forward-line -1))
+		    (and (re-search-backward "[\r\n]" nil t)
 			 (gnus-summary-article-number))))
     ;; If this is a gathered thread, we have to go some re-gathering.
     (when (stringp (car thread))

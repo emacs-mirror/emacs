@@ -1,3 +1,7 @@
+2002-02-17  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus-sum.el (gnus-rebuild-thread): Count hidden lines too.
+
 2002-02-13  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
 	* gnus-art.el (gnus-article-edit-mode): Use define-derived-mode.
