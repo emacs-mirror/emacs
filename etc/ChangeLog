@@ -1,3 +1,8 @@
+2001-08-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* HELLO: Slovak language name added to be compatible with other
+	languages.
+
 2001-08-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* TUTORIAL.pl: Updated in accordance with the English version.
