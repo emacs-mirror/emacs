@@ -232,13 +232,18 @@ following the containing message."
   ;; If we are in a summary buffer, switch to the Rmail buffer.
   (unwind-protect
       (with-current-buffer rmail-buffer
-	(narrow-to-region (rmail-msgbeg rmail-current-message)
-			  (rmail-msgend rmail-current-message))
 	(goto-char (point-min))
+	(narrow-to-region (point)
+			  (save-excursion (search-forward "\n\n") (point)))
 	(let ((buffer-read-only nil)
-	      (forwarded-from (mail-fetch-field "From"))
-	      (forwarded-date (mail-fetch-field "Date"))
+	      (old-fwd-from (mail-fetch-field "Forwarded-From" nil nil t))
+	      (old-fwd-date (mail-fetch-field "Forwarded-Date" nil nil t))
+	      (fwd-from (mail-fetch-field "From"))
+	      (fwd-date (mail-fetch-field "Date"))
 	      beg end prefix forward-msg)
+	  (narrow-to-region (rmail-msgbeg rmail-current-message)
+			    (rmail-msgend rmail-current-message))
+	  (goto-char (point-min))
 	  (cond ((re-search-forward rmail-forward-separator-regex nil t)
 		 (forward-line 1)
 		 (skip-chars-forward "\n")
@@ -274,8 +279,13 @@ following the containing message."
 	  (narrow-to-region (point) (point))
 	  (insert rmail-mail-separator)
 	  (narrow-to-region (point) (point))
-	  (insert "Forwarded-From: " forwarded-from "\n")
-	  (insert "Forwarded-Date: " forwarded-date "\n")
+	  (while old-fwd-from
+	    (insert "Forwarded-From: " (car old-fwd-from) "\n")
+	    (insert "Forwarded-Date: " (car old-fwd-date) "\n")
+	    (setq old-fwd-from (cdr old-fwd-from))
+	    (setq old-fwd-date (cdr old-fwd-date)))
+	  (insert "Forwarded-From: " fwd-from "\n")
+	  (insert "Forwarded-Date: " fwd-date "\n")
 	  (insert forward-msg)
 	  (save-restriction
 	    (goto-char (point-min))
