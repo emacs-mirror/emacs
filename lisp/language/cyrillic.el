@@ -1,7 +1,7 @@
 ;;; cyrillic.el --- Support for languages which use Cyrillic characters
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
+;; Licensed to the Free Software Foundation.
 
 ;; Keywords: multilingual, Cyrillic
 
