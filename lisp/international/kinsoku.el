@@ -47,7 +47,7 @@ The value 0 means there's no limitation.")
 	 ;; ASCII
 	 "!)-_~}]:;',.?"
 	 ;; Latin JISX0201
-	 ;; Instead of putting Latin JISX0201 string directyly, we
+	 ;; Instead of putting Latin JISX0201 string directly, we
 	 ;; generate the string as below to avoid character
 	 ;; unification problem.
 	 (let* ((str1 "!)-_~}]:;',.?")

@@ -269,7 +269,7 @@ Comparison done with EQ."
 All coding systems in the list can safely encode any multibyte characters
 in the text.
 
-If the text contains no multibyte charcters, return a list of a single
+If the text contains no multibyte characters, return a list of a single
 element `undecided'."
   (find-coding-systems-for-charsets (find-charset-region from to)))
 
@@ -278,7 +278,7 @@ element `undecided'."
 All coding systems in the list can safely encode any multibyte characters
 in STRING.
 
-If STRING contains no multibyte charcters, return a list of a single
+If STRING contains no multibyte characters, return a list of a single
 element `undecided'."
   (find-coding-systems-for-charsets (find-charset-string string)))
 
@@ -329,7 +329,7 @@ where
   COUNT is a number of characters,
   CHARs are found characters of the character set.
 Optional 3rd arg MAXCOUNT limits how many CHARs are put in the above list.
-Optioanl 4th arg EXCLUDE is a list of character sets to be ignored."
+Optional 4th arg EXCLUDE is a list of character sets to be ignored."
   (let ((chars nil)
 	charset char)
     (if (stringp from)
@@ -561,7 +561,7 @@ globally disabled, i.e. the value of `default-enable-multibyte-characters'
 is nil.
 
   unibyte-syntax     value is a library name to load to set
-			unibyte 8-bit charcater syntaxes for this
+			unibyte 8-bit character syntaxes for this
 			language environment.
 
   unibyte-display    value is a coding system to encode characters
@@ -685,7 +685,7 @@ Emacs loads this file at startup time.")
 ;;; %s -- list of LEIM (Library of Emacs Input Method)
 ;;
 ;; This file contains a list of LEIM (Library of Emacs Input Method)
-;; in the same directory as this file.  Loading this file registeres
+;; in the same directory as this file.  Loading this file registers
 ;; the whole input methods in Emacs.
 ;;
 ;; Each entry has the form:
@@ -1017,7 +1017,7 @@ But, if this flag is non-nil, it displays them in echo area instead.")
   "This flag controls the behaviour of an input method on invalid key input.
 Usually, when a user types a key which doesn't start any character
 handled by the input method, the key is handled by turning off the
-input method temporarily.  After that key, the input method is renabled.
+input method temporarily.  After that key, the input method is re-enabled.
 But, if this flag is non-nil, the input method is never back on.")
 
 
@@ -1034,7 +1034,7 @@ cancel the effect.")
 When this hook is run, the variable `current-language-environment'
 is still bound to the language environment being exited.
 
-This hook is mainly used for cancelling the effect of
+This hook is mainly used for canceling the effect of
 `set-language-environment-hook' (which-see).")
 
 (defun setup-specified-language-environment ()
@@ -1080,7 +1080,7 @@ The default status is as follows:
 	coding-category-sjis		japanese-shift-jis
 	coding-category-big5		chinese-big5
 	coding-category-ccl		nil
-	coding-category-binarry		no-conversion
+	coding-category-binary		no-conversion
 "
   (interactive)
   ;; This function formerly set default-enable-multibyte-characters to t,

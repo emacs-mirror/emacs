@@ -304,7 +304,7 @@
  '((safe-charsets ascii)))
 
 ;; Use iso-safe for terminal output if some other coding system is not
-;; specified explicitely.
+;; specified explicitly.
 (set-safe-terminal-coding-system-internal 'iso-safe)
 
 ;; The other coding-systems are defined in each language specific

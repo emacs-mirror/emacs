@@ -118,7 +118,7 @@
 (put 'encoded-kbd-iso2022-invocations 'permanent-local t)
 
 (defun encoded-kbd-iso2022-designation ()
-  "Do ISO2022 designation according to the curren key in Encoded-kbd mode.
+  "Do ISO2022 designation according to the current key in Encoded-kbd mode.
 The following key sequence may cause multilingual text insertion."
   (interactive)
   (let ((key-seq (this-command-keys))
@@ -156,16 +156,16 @@ The following key sequence may cause multilingual text insertion."
 	;; Graphic plane 0 (0x20..0x7f) is for ASCII.  We don't have
 	;; to handle characters in this range specially.
 	(if (not (memq prev-g0-charset '(ascii latin-jisx0201)))
-	    ;; We must exit recusive edit now.
+	    ;; We must exit recursive edit now.
 	    (throw 'exit nil))
       ;; Graphic plane 0 is for non-ASCII.
       (if (memq prev-g0-charset '(ascii latin-jisx0201))
-	  ;; We must handle kyes specially.
+	  ;; We must handle keys specially.
 	  (let ((overriding-local-map encoded-kbd-iso2022-non-ascii-map))
 	    (recursive-edit))))))
 
 (defun encoded-kbd-handle-8bit ()
-  "Handle an 8-bit character enterned in Encoded-kbd mode."
+  "Handle an 8-bit character entered in Encoded-kbd mode."
   (interactive)
   (cond ((eq encoded-kbd-coding 'iso2022-7)
 	 (error "Can't handle the character code %d" last-command-char))

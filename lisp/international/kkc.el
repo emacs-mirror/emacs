@@ -237,7 +237,7 @@ and the return value is the length of the conversion."
 	(goto-char to)
 	(kkc-update-conversion 'all)
 
-	;; Then, ask users to selecte a desirable conversion.
+	;; Then, ask users to select a desirable conversion.
 	(force-mode-line-update)
 	(setq kkc-converting t)
 	(while kkc-converting

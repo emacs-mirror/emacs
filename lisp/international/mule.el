@@ -235,7 +235,7 @@ See the function `charset-info' for more detail."
     `(aref (charset-info ,charset) 14)))
 
 (defun set-charset-plist (charset plist)
-  "Set CHARSET's property list to PLIST, and retrun PLIST."
+  "Set CHARSET's property list to PLIST, and return PLIST."
   (aset (charset-info  charset) 14 plist))
 
 (defun make-char (charset &optional c1 c2)
@@ -355,7 +355,7 @@ See also the documentation of make-char."
 ;; The value is a list to indicate valid byte ranges of the encoded
 ;; file.  Each element of the list is an integer or a cons of integer.
 ;; In the former case, the integer value is a valid byte code.  In the
-;; latter case, the integers specifies the range of valie byte codes.
+;; latter case, the integers specifies the range of valid byte codes.
 
 
 ;; Return coding-spec of CODING-SYSTEM
@@ -535,7 +535,7 @@ a value of `safe-charsets' in PLIST."
     (if (or (not (integerp type)) (< type 0) (> type 5))
 	(error "TYPE argument must be 0..5"))
     (if (or (not (integerp mnemonic)) (<= mnemonic ? ) (> mnemonic 127))
-	(error "MNEMONIC arguemnt must be an ASCII printable character."))
+	(error "MNEMONIC argument must be an ASCII printable character."))
     (aset coding-spec coding-spec-type-idx type)
     (aset coding-spec coding-spec-mnemonic-idx mnemonic)
     (aset coding-spec coding-spec-doc-string-idx
@@ -763,7 +763,7 @@ the text is encoded or decoded by CODING-SYSTEM."
   (check-coding-system coding-system)
   (setq selection-coding-system coding-system))
 
-;; Coding system lastly specfied by the command
+;; Coding system lastly specified by the command
 ;; set-next-selection-coding-system.
 (defvar last-next-selection-coding-system nil)
 
@@ -789,7 +789,7 @@ This setting is effective for the next communication only."
 LIST is a list of coding categories ordered by priority."
   (let ((l arg)
 	(current-list (copy-sequence coding-category-list)))
-    ;; Check the varidity of ARG while deleting coding categories in
+    ;; Check the validity of ARG while deleting coding categories in
     ;; ARG from CURRENT-LIST.  We assume that CODING-CATEGORY-LIST
     ;; contains all coding categories.
     (while l
@@ -827,7 +827,7 @@ and the last 3k of the file, but the middle may be omitted.
 It checks FILENAME against the variable `auto-coding-alist'.
 If FILENAME doesn't match any entries in the variable,
 it checks for a `coding:' tag in the first one or two lines following
-point.  If no `coding:' tag is found, it checks for alocal variables
+point.  If no `coding:' tag is found, it checks for local variables
 list in the last 3K bytes out of the SIZE bytes.
 
 The return value is the specified coding system,
@@ -851,7 +851,7 @@ function by default."
 	       (tail-end (+ head-start size))
 	       coding-system head-found tail-found pos)
 	  ;; Try a short cut by searching for the string "coding:"
-	  ;; and for "unibyte:" at th ehead and tail of SIZE bytes.
+	  ;; and for "unibyte:" at the head and tail of SIZE bytes.
 	  (setq head-found (or (search-forward "coding:" head-end t)
 			       (search-forward "unibyte:" head-end t)))
 	  (if (and head-found (> head-found tail-start))
@@ -1018,7 +1018,7 @@ There are three of such tables, `file-coding-system-alist',
 TARGET-TYPE specifies which of them to modify.
 If it is `file', it affects `file-coding-system-alist' (which see).
 If it is `process', it affects `process-coding-system-alist' (which see).
-If it is `network', it affects `network-codign-system-alist' (which see).
+If it is `network', it affects `network-coding-system-alist' (which see).
 
 REGEXP is a regular expression matching a target of I/O operation.
 The target is a file name if TARGET-TYPE is `file', a program name if
@@ -1158,7 +1158,7 @@ See also the variable `nonascii-translation-table'."
     table))
 
 (defun define-translation-table (symbol &rest args)
-  "Define SYMBOL as a name of translation table makde by ARGS.
+  "Define SYMBOL as a name of translation table made by ARGS.
 
 See the documentation of the function `make-translation-table' for the
 meaning of ARGS.

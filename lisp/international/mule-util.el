@@ -124,7 +124,7 @@ the resulting string may be narrower than END-COLUMN."
 	  (concat head-padding str tail-padding)
 	str))))
 
-;;; For backward compatiblity ...
+;;; For backward compatibility ...
 ;;;###autoload
 (defalias 'truncate-string 'truncate-string-to-width)
 (make-obsolete 'truncate-string 'truncate-string-to-width)
@@ -134,7 +134,7 @@ the resulting string may be narrower than END-COLUMN."
 
 ;;;###autoload
 (defsubst nested-alist-p (obj)
-  "Return t if OBJ is a nesetd alist.
+  "Return t if OBJ is a nested alist.
 
 Nested alist is a list of the form (ENTRY . BRANCHES), where ENTRY is
 any Lisp object, and BRANCHES is a list of cons cells of the form
@@ -148,13 +148,13 @@ can be a string, a vector, or a list."
 ;;;###autoload
 (defun set-nested-alist (keyseq entry alist &optional len branches)
   "Set ENTRY for KEYSEQ in a nested alist ALIST.
-Optional 4th arg LEN non-nil means the firlst LEN elements in KEYSEQ
+Optional 4th arg LEN non-nil means the first LEN elements in KEYSEQ
  is considered.
 Optional argument BRANCHES if non-nil is branches for a keyseq
 longer than KEYSEQ.
 See the documentation of `nested-alist-p' for more detail."
   (or (nested-alist-p alist)
-      (error "Invalid arguement %s" alist))
+      (error "Invalid argument %s" alist))
   (let ((islist (listp keyseq))
 	(len (or len (length keyseq)))
 	(i 0)
@@ -189,7 +189,7 @@ If ALIST is not deep enough for KEYSEQ, return number which is
 Optional 3rd argument NIL-FOR-TOO-LONG non-nil means return nil
  even if ALIST is not deep enough."
   (or (nested-alist-p alist)
-      (error "invalid arguement %s" alist))
+      (error "invalid argument %s" alist))
   (or len
       (setq len (length keyseq)))
   (let ((i (or start 0)))
@@ -266,9 +266,9 @@ If optional arg BASE-ONLY is non-nil, only base coding systems are listed."
       (let* ((coding (car (cdr tail)))
 	     (aliases (coding-system-get coding 'alias-coding-systems)))
 	(if (or
-	     ;; CODING is an eol varinant if not in ALIASES.
+	     ;; CODING is an eol variant if not in ALIASES.
 	     (not (memq coding aliases))
-	     ;; CODING is an alias if it is not car of ALISES.
+	     ;; CODING is an alias if it is not car of ALIASES.
 	     (and base-only (not (eq coding (car aliases)))))
 	    (setcdr tail (cdr (cdr tail)))
 	  (setq tail (cdr tail)))))
@@ -347,7 +347,7 @@ coding systems ordered by priority."
 ;;;###autoload
 (defun detect-coding-with-language-environment (from to lang-env)
   "Detect a coding system of the text between FROM and TO with LANG-ENV.
-The detection takes into accont the coding system priorities for the
+The detection takes into account the coding system priorities for the
 language environment LANG-ENV."
   (let ((coding-priority (get-language-info lang-env 'coding-priority)))
     (if coding-priority
@@ -359,7 +359,7 @@ language environment LANG-ENV."
       (detect-coding-region from to))))
 
 
-;;; Composite charcater manipulations.
+;;; Composite character manipulations.
 
 ;;;###autoload
 (defun compose-region (start end)
@@ -483,7 +483,7 @@ overall glyph is updated as follows:
 ;;;###autoload
 (defun compose-chars (first-component &rest args)
   "Return one char string composed from the arguments.
-Each argument is a character (including a composite chararacter)
+Each argument is a character (including a composite character)
 or a composition rule.
 A composition rule has the form \(GLOBAL-REF-POINT . NEW-REF-POINT).
 See the documentation of `reference-point-alist' for more detail."

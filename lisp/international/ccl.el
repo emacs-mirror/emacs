@@ -100,7 +100,7 @@
 ;;	| < | > | == | <= | >= | != | de-sjis | en-sjis
 ;; ASSIGNMENT_OPERATOR :=
 ;;	+= | -= | *= | /= | %= | &= | '|=' | ^= | <<= | >>=
-;; ARRAY := '[' interger ... ']'
+;; ARRAY := '[' integer ... ']'
 
 ;;; Code:
 
@@ -332,7 +332,7 @@
 
 ;;;###autoload
 (defun ccl-compile (ccl-program)
-  "Return a comiled code of CCL-PROGRAM as a vector of integer."
+  "Return a compiled code of CCL-PROGRAM as a vector of integer."
   (if (or (null (consp ccl-program))
 	  (null (integerp (car ccl-program)))
 	  (null (listp (car (cdr ccl-program)))))
@@ -1321,7 +1321,7 @@ register CCL-PROGRAM by name NAME, and return NAME."
 ;;;###autoload
 (defun ccl-execute-with-args (ccl-prog &rest args)
   "Execute CCL-PROGRAM with registers initialized by the remaining args.
-The return value is a vector of resulting CCL registeres."
+The return value is a vector of resulting CCL registers."
   (let ((reg (make-vector 8 0))
 	(i 0))
     (while (and args (< i 8))

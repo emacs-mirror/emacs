@@ -27,10 +27,10 @@
 ;; Set standard REGISTRY property of charset to find an appropriate
 ;; font for each charset.  This is used to generate a font name in a
 ;; fontset.  If the value contains a character `-', the string before
-;; that is embeded in `CHARSET_REGISTRY' field, and the string after
-;; that is embeded in `CHARSET_ENCODING' field.  If the value does not
-;; contain `-', the whole string is embeded in `CHARSET_REGISTRY'
-;; field, and a wild card character `*' is embeded in
+;; that is embedded in `CHARSET_REGISTRY' field, and the string after
+;; that is embedded in `CHARSET_ENCODING' field.  If the value does not
+;; contain `-', the whole string is embedded in `CHARSET_REGISTRY'
+;; field, and a wild card character `*' is embedded in
 ;; `CHARSET_ENCODING' field.
 
 (defvar x-charset-registries
@@ -327,7 +327,7 @@ automatically."
 	  (let ((l x-font-name-charset-alist))
 	    ;; If the ASCII font can also be used for another
 	    ;; charsets, use that font instead of what generated based
-	    ;; on x-charset-registery in the previous code.
+	    ;; on x-charset-registry in the previous code.
 	    (while l
 	      (if (string-match (car (car l)) ascii-font)
 		  (let ((charsets (cdr (car l))))
@@ -530,7 +530,7 @@ It returns a name of the created fontset."
 			(or font
 			    (x-modify-font-name resolved-ascii-font style)))
 		  ;; but leave fonts for the other charsets unmodified
-		  ;; for the momemnt.  They are modified for the style
+		  ;; for the moment.  They are modified for the style
 		  ;; in instantiate-fontset.
 		  (setq uninstantiated-fontset-alist
 			(cons (list new-name
@@ -557,8 +557,8 @@ Optional 2nd arg FONTSET-NAME is a string to be used in
 an appropriate name is generated automatically.
 
 Style variants of the fontset is created too.  Font names in the
-variants are generated automatially from FONT unless X resources
-XXX.attribyteFont explicitly specify them.
+variants are generated automatically from FONT unless X resources
+XXX.attributeFont explicitly specify them.
 
 It returns a name of the created fontset."
   (or resolved-font
@@ -602,7 +602,7 @@ It returns a name of the created fontset."
 					  styles))))
 
 (defun instantiate-fontset (fontset)
-  "Make FONTSET be readly to use.
+  "Make FONTSET be ready to use.
 FONTSET should be in the variable `uninstantiated-fontset-alist' in advance.
 Return FONTSET if it is created successfully, else return nil."
   (let ((fontset-data (assoc fontset uninstantiated-fontset-alist)))
