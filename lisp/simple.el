@@ -2115,7 +2115,7 @@ in the mode line."
   "Move cursor momentarily to the beginning of the sexp before point."
   (interactive)
   (and (> (point) (1+ (point-min)))
-       (/= (char-syntax (char-after (- (point) 2))) ?\\ )
+       (not (memq (char-syntax (char-after (- (point) 2))) '(?/ ?\\ )))
        blink-matching-paren
        (let* ((oldpos (point))
 	      (blinkpos)
