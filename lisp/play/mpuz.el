@@ -53,9 +53,6 @@
 (defvar mpuz-mode-map nil
   "Local keymap to use in Mult Puzzle.")
 
-(defvar mpuz-read-map nil
-  "Local keymap to use (sometimes) in Mult Puzzle.")
-
 (if mpuz-mode-map nil
     (setq mpuz-mode-map (make-sparse-keymap))
     (define-key mpuz-mode-map "a" 'mpuz-try-letter)
@@ -80,13 +77,6 @@
     (define-key mpuz-mode-map "J" 'mpuz-try-letter)
     (define-key mpuz-mode-map "\C-g" 'mpuz-offer-abort)
     (define-key mpuz-mode-map "?" 'describe-mode))
-
-(if mpuz-read-map nil
-    (setq mpuz-read-map (make-keymap))
-    (let ((i 0))
-      (while (< i (length mpuz-read-map))
-	(define-key mpuz-read-map (char-to-string i) 'exit-minibuffer)
-	(setq i (1+ i)))))
 
 (defun mpuz-mode ()
   "Multiplication puzzle mode.
@@ -372,23 +362,19 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
   (interactive)
   (if mpuz-in-progress
       (let (letter-char digit digit-char message)
-	(setq letter-char (if (or (< last-command-char ?a)
-				  (> last-command-char ?z))
-			      last-command-char
-			      (- last-command-char 32))
+	(setq letter-char (upcase last-command-char)
 	      digit (mpuz-to-digit (- letter-char ?A)))
 	(cond ((mpuz-digit-solved-p digit)
 	       (message "%c already solved." letter-char))
 	      ((null (aref mpuz-board digit))
 	       (message "%c does not appear." letter-char))
-	      ((progn (setq message (format "%c = " letter-char))
+	      ((progn (message "%c = " letter-char)
 		      ;; <char> has been entered.
 		      ;; Print "<char> =" and
 		      ;; read <num> or = <num>
-		      (read-from-minibuffer message nil mpuz-read-map)
-		      (if (= last-input-char ?\=)
-			  (read-from-minibuffer message nil mpuz-read-map))
-		      (setq digit-char last-input-char) 
+		      (setq digit-char (read-char))
+		      (if (eq digit-char ?=)
+			  (setq digit-char (read-char)))
 		      (message "%c = %c" letter-char digit-char)
 		      (or (> digit-char ?9) (< digit-char ?0))) ; bad input
 	       (ding t))
