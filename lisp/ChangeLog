@@ -1,5 +1,8 @@
 2001-08-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* man.el (man): Mention Man-switches in the doc string.
+	(Man-switches): Mention -a in the doc string.
+
 	* textmodes/ispell.el (ispell-alternate-dictionary): Add
 	/usr/share/lib/dict/words, for Irix.
 
