@@ -2607,6 +2607,8 @@ and (2) it puts less data in the undo list.")
       char buffer[1 << 14];
       int same_at_start = BEGV;
       int same_at_end = ZV;
+      int overlap;
+
       immediate_quit = 1;
       QUIT;
       /* Count how many chars at the start of the file
@@ -2678,9 +2680,16 @@ and (2) it puts less data in the undo list.")
 	    break;
 	}
       immediate_quit = 0;
+
+      /* Don't try to reuse the same piece of text twice.  */
+      overlap = same_at_start - BEGV - (same_at_end + st.st_size - ZV);
+      if (overlap > 0)
+	same_at_end += overlap;
+
       /* Arrange to read only the nonmatching middle part of the file.  */
       XFASTINT (beg) = same_at_start - BEGV;
       XFASTINT (end) = st.st_size - (ZV - same_at_end);
+
       del_range_1 (same_at_start, same_at_end, 0);
       /* Insert from the file at the proper position.  */
       SET_PT (same_at_start);
