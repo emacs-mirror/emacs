@@ -497,6 +497,15 @@ DEFUN ("position-bytes", Fposition_bytes, Sposition_bytes, 1, 1, 0,
   CHECK_NUMBER_COERCE_MARKER (position, 1);
   return make_number (CHAR_TO_BYTE (XINT (position)));
 }
+
+DEFUN ("byte-to-position", Fbyte_to_position, Sbyte_to_position, 1, 1, 0,
+  "Return the character position for byte position BYTEPOS.")
+  (bytepos)
+     Lisp_Object bytepos;
+{
+  CHECK_NUMBER (bytepos, 1);
+  return make_number (BYTE_TO_CHAR (XINT (bytepos)));
+}
 
 DEFUN ("following-char", Ffollowing_char, Sfollowing_char, 0, 0, 0,
   "Return the character following point, as a number.\n\
@@ -3117,6 +3126,7 @@ functions if all the text being accessed has this property.");
   defsubr (&Sgap_position);
   defsubr (&Sgap_size);
   defsubr (&Sposition_bytes);
+  defsubr (&Sbyte_to_position);
 
   defsubr (&Sbobp);
   defsubr (&Seobp);
