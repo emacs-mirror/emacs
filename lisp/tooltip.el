@@ -76,6 +76,28 @@ Do so after `tooltip-short-delay'."
   :group 'tooltip)
 
 
+(defcustom tooltip-x-offset nil
+  "Specify an X offset for the display of tooltips.
+The offset is relative to the position of the mouse.  It must
+be chosen so that the tooltip window doesn't contain the mouse
+when it pops up."
+  :tag "X offset"
+  :type '(choice (const :tag "Default" nil)
+		 (integer :tag "Offset" :value 1))
+  :group 'tooltip)
+
+
+(defcustom tooltip-y-offset nil
+  "Specify an Y offset for the display of tooltips.
+The offset is relative to the position of the mouse.  It must
+be chosen so that the tooltip window doesn't contain the mouse
+when it pops up."
+  :tag "Y offset"
+  :type '(choice (const :tag "Default" nil)
+		 (integer :tag "Offset" :value 1))
+  :group 'tooltip)
+
+
 (defcustom tooltip-frame-parameters
   '((name . "tooltip")
     (foreground-color . "black")
@@ -284,7 +306,12 @@ ACTIVATEP non-nil means activate mouse motion events."
   "Show a tooltip window at the current mouse position displaying TEXT."
   (if tooltip-use-echo-area
       (message "%s" text)
-      (x-show-tip text (selected-frame) tooltip-frame-parameters)))
+    (x-show-tip text
+		(selected-frame)
+		tooltip-frame-parameters
+		nil
+		tooltip-x-offset
+		tooltip-y-offset)))
 
 (defun tooltip-hide (&optional ignored-arg)
   "Hide a tooltip, if one is displayed.
