@@ -41,6 +41,7 @@ TRES		= $(BLD)\emacs.res
 !else
 TRES		= $(BLD)\emacs.rbj
 !endif
+TLASTLIB	= $(BLD)\lastfile.lib
 
 LINK_FLAGS      = $(ARCH_LDFLAGS) -stack:0x1000000 -base:0xD00000 -debug:full -debugtype:cv -machine:$(ARCH) -subsystem:console -entry:_start 
 
@@ -73,7 +74,6 @@ OBJ1 =  $(BLD)\abbrev.obj       \
 	$(BLD)\insdel.obj       \
 	$(BLD)\keyboard.obj     \
 	$(BLD)\keymap.obj       \
-	$(BLD)\lastfile.obj     \
 	$(BLD)\lread.obj        \
 	$(BLD)\macros.obj       \
 	$(BLD)\marker.obj       \
@@ -112,6 +112,7 @@ OBJ2 =  $(BLD)\nt.obj           \
 
 LIBS =  $(TLIB1)	\
 	$(TLIB2)	\
+	$(TLASTLIB)	\
 	$(BASE_LIBS)	\
 	$(ADVAPI32)	\
 	user32.lib
@@ -144,19 +145,15 @@ $(DOC):;	cd ..\lib-src
 #
 emacs:          $(EMACS)
 $(EMACS):       $(PREPARED_HEADERS) $(DOC) $(TEMACS)
-!if "$(OS_TYPE)" == "win95"
-		move $(BLD)\temacs.exe $(BLD)\emacs.exe
-!else
 		cd $(BLD)
 		temacs.exe -batch -l loadup dump
 		cd ..\..
-!endif
 
 #
 # The undumped executable
 #
 temacs:         $(BLD) $(TEMACS)
-$(TEMACS):      $(TLIB1) $(TLIB2) $(TOBJ) $(TRES)
+$(TEMACS):      $(TLIB1) $(TLIB2) $(TLASTLIB) $(TOBJ) $(TRES)
 		$(LINK) -out:$(TEMACS) $(LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
 
 #
@@ -176,6 +173,13 @@ $(TRES):	..\nt\emacs.rc
 $(TLIB1):       $(OBJ1)
 		@- $(AR) -out:$@ $**
 $(TLIB2):	$(OBJ2)
+		@- $(AR) -out:$@ $**
+#
+# Place lastfile.obj in it's own library so that it can be loaded after
+# the source libraries but before any system libraries.  Doing so defines
+# the end of Emacs' data section portably across compilers.
+#
+$(TLASTLIB):	$(BLD)\lastfile.obj
 		@- $(AR) -out:$@ $**
 
 #
