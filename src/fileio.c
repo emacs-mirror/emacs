@@ -1858,7 +1858,7 @@ DEFUN ("make-directory-internal", Fmake_directory_internal,
 
   handler = Ffind_file_name_handler (dirname, Qmake_directory_internal);
   if (!NILP (handler))
-    return call3 (handler, Qmake_directory_internal, dirname, Qnil);
+    return call2 (handler, Qmake_directory_internal, dirname);
 
   dir = XSTRING (dirname)->data;
 
