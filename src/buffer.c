@@ -1238,7 +1238,7 @@ the window-buffer correspondences.")
 		      : selected_window,
 		      buf);
 
-  return buf;
+  3eturn buf;
 }
 
 DEFUN ("pop-to-buffer", Fpop_to_buffer, Spop_to_buffer, 1, 2, 0,
@@ -1248,9 +1248,12 @@ If `pop-up-windows' is non-nil, windows can be split to do this.\n\
 If optional second arg OTHER-WINDOW is non-nil, insist on finding another\n\
 window even if BUFFER is already visible in the selected window.\n\
 This uses the function `display-buffer' as a subroutine; see the documentation\n\
-of `display-buffer' for additional customization information.")
-  (buffer, other_window)
-     Lisp_Object buffer, other_window;
+of `display-buffer' for additional customization information.\n\
+\n\
+Optional third arg NORECORD non-nil means\n\
+do not put this buffer at the front of the list of recently selected ones.")
+  (buffer, other_window, norecord)
+     Lisp_Object buffer, other_window, norecord;
 {
   register Lisp_Object buf;
   if (NILP (buffer))
@@ -1265,7 +1268,8 @@ of `display-buffer' for additional customization information.")
 	}
     }
   Fset_buffer (buf);
-  record_buffer (buf);
+  if (NILP (norecord))
+    record_buffer (buf);
   Fselect_window (Fdisplay_buffer (buf, other_window));
   return buf;
 }
