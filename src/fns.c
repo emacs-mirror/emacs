@@ -410,20 +410,30 @@ concat (nargs, args, target_type, last_special)
     {
       this = args[argnum];
       len = Flength (this);
-      if (VECTORP (this) && target_type == Lisp_String)
+      if ((VECTORP (this) || CONSP (this)) && target_type == Lisp_String)
+
 	{
 	  /* We must pay attention to a multibyte character which
              takes more than one byte in string.  */
 	  int i;
 	  Lisp_Object ch;
 
-	  for (i = 0; i < XFASTINT (len); i++)
-	    {
-	      ch = XVECTOR (this)->contents[i];
-	      if (! INTEGERP (ch))
-		wrong_type_argument (Qintegerp, ch);
-	      leni += Fchar_bytes (ch);
-	    }
+	  if (VECTORP (this))
+	    for (i = 0; i < XFASTINT (len); i++)
+	      {
+		ch = XVECTOR (this)->contents[i];
+		if (! INTEGERP (ch))
+		  wrong_type_argument (Qintegerp, ch);
+		leni += Fchar_bytes (ch);
+	      }
+	  else
+	    for (; CONSP (this); this = XCONS (this)->cdr)
+	      {
+		ch = XCONS (this)->car;
+		if (! INTEGERP (ch))
+		  wrong_type_argument (Qintegerp, ch);
+		leni += Fchar_bytes (ch);
+	      }
 	}
       else
 	leni += XFASTINT (len);
