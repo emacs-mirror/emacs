@@ -3468,7 +3468,8 @@ This does code conversion according to the value of\n\
       inserted -= (Z - same_at_end) + (same_at_start - BEG);
       move_gap (same_at_start);
       del_range_1 (same_at_start, same_at_end, 0);
-      insert (conversion_buffer + same_at_start - BEG, inserted);
+      SET_PT (same_at_start);
+      insert_1 (conversion_buffer + same_at_start - BEG, inserted, 0, 0);
 
       free (conversion_buffer);
       close (fd);
@@ -3687,7 +3688,11 @@ This does code conversion according to the value of\n\
       inserted = XFASTINT (insval);
     }
 
-  if (inserted > 0 && NILP (visit) && total > 0)
+  /* Call after-change hooks for the inserted text, aside from the case
+     of normal visiting (not with REPLACE), which is done in a new buffer
+     "before" the buffer is changed.  */
+  if (inserted > 0 && total > 0
+      && (NILP (visit) || !NILP (replace)))
     signal_after_change (PT, 0, inserted);
 
   if (inserted > 0)
