@@ -1,3 +1,7 @@
+2000-09-29  Dave Love  <fx@gnu.org>
+
+	* configure.in: Fix alpha*-dec-osf4 using the osf5 config.
+
 2000-09-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* make-dist: Adapt to the change of leim/Makefile which was

@@ -891,7 +891,7 @@ case "${canonical}" in
     # to have been a usable /usr/bin/cpp.
     NON_GNU_CPP='cpp'
     case "${canonical}" in
-    alpha*-dec-osf[4-9]*)
+    alpha*-dec-osf[5-9]*)
       opsys=osf5-0 ;;
     esac
   ;;
@@ -3504,7 +3504,7 @@ else
 int main() {
 
 /* Ultrix mips cc rejects this.  */
-typedef int charset[2]; const charset x;
+typedef int charset[2]; const charset x = {0,0};
 /* SunOS 4.1.1 cc rejects this.  */
 char const *const *ccp;
 char **p;
@@ -4152,7 +4152,7 @@ if test x"${REL_ALLOC}" = x; then
   REL_ALLOC=${GNU_MALLOC}
 fi
 
-in 
+
 for ac_hdr in stdlib.h unistd.h sys/stat.h
 do
 ac_safe=`echo "$ac_hdr" | sed 'y%./+-%__p_%'`
@@ -5652,7 +5652,7 @@ else
 #include "confdefs.h"
 #include <alloca.h>
 int main() {
-char *p = alloca(2 * sizeof(int));
+void *p = alloca(2 * sizeof(int));
 ; return 0; }
 EOF
 if { (eval echo configure:5659: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
