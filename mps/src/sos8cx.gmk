@@ -1,19 +1,18 @@
 # impl.gmk.sos8cx: BUILD FOR SOLARIS/SPARC v8/CXREF PLATFORM
 #
-# $HopeName: MMsrc!sos8cx.gmk(trunk.8) $
-# Copyright (C) 2000.  Harlequin Ltd.  All rights reserved.
+# $HopeName: MMsrc!sos8cx.gmk(trunk.9) $
+# Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 #
 # Instead of compiling object files, this platform (using the cxref
 # builder) generates a C cross reference listing.
 # It falls over if you try and build an executable, but this is
 # okay as we only wanted the C cross references.
-#
 
 PFM = sos8cx
 
 MPMPF = mpsliban.c mpsioan.c lockan.c than.c vmso.c \
         protso.c prmcan.c span.c
-SWPF = lockan.c than.c vmso.c protsw.c prmcan.c ssan.c
+SWPF = than.c vmso.c protsw.c prmcan.c ssan.c
 LIBS = -lm
 
 include cx.gmk
