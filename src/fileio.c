@@ -650,10 +650,17 @@ directory_file_name (src, dst)
   /* Process as Unix format: just remove any final slash.
      But leave "/" unchanged; do not change it to "".  */
   strcpy (dst, src);
+#ifdef APOLLO
+  /* Handle // as root for apollo's.  */
+  if ((slen > 2 && dst[slen - 1] == '/')
+      || (slen > 1 && dst[0] != '/' && dst[slen - 1] == '/'))
+    dst[slen - 1] = 0;
+#else
   if (slen > 1 
       && IS_DIRECTORY_SEP (dst[slen - 1])
       && !IS_ANY_SEP (dst[slen - 2]))
     dst[slen - 1] = 0;
+#endif
   return 1;
 }
 
@@ -1900,9 +1907,6 @@ A prefix arg makes KEEP-TIME non-nil.")
 	  if (set_file_times (XSTRING (newname)->data, atime, mtime))
 	    report_file_error ("I/O error", Fcons (newname, Qnil));
 	}
-#ifdef APOLLO
-      if (!egetenv ("USE_DOMAIN_ACLS"))
-#endif
 	chmod (XSTRING (newname)->data, st.st_mode & 07777);
     }
 
@@ -2591,36 +2595,8 @@ Only the 12 low bits of MODE are used.")
   if (!NILP (handler))
     return call3 (handler, Qset_file_modes, abspath, mode);
 
-#ifndef APOLLO
   if (chmod (XSTRING (abspath)->data, XINT (mode)) < 0)
     report_file_error ("Doing chmod", Fcons (abspath, Qnil));
-#else /* APOLLO */
-  if (!egetenv ("USE_DOMAIN_ACLS"))
-    {
-      struct stat st;
-      struct timeval tvp[2];
-
-      /* chmod on apollo also change the file's modtime; need to save the
-	 modtime and then restore it. */
-      if (stat (XSTRING (abspath)->data, &st) < 0)
-	{
-	  report_file_error ("Doing chmod", Fcons (abspath, Qnil));
-	  return (Qnil);
-	}
- 
-      if (chmod (XSTRING (abspath)->data, XINT (mode)) < 0)
-	report_file_error ("Doing chmod", Fcons (abspath, Qnil));
- 
-      /* reset the old accessed and modified times.  */
-      tvp[0].tv_sec = st.st_atime + 1; /* +1 due to an Apollo roundoff bug */
-      tvp[0].tv_usec = 0;
-      tvp[1].tv_sec = st.st_mtime + 1; /* +1 due to an Apollo roundoff bug */
-      tvp[1].tv_usec = 0;
- 
-      if (utimes (XSTRING (abspath)->data, tvp) < 0)
-	report_file_error ("Doing utimes", Fcons (abspath, Qnil));
-    }
-#endif /* APOLLO */
 
   return Qnil;
 }
