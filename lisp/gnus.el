@@ -5981,7 +5981,7 @@ score file entries for articles to include in the group."
 (defun gnus-group-enter-directory (dir)
   "Enter an ephemeral nneething group."
   (interactive "DDirectory to read: ")
-  (let* ((method (list 'nneething dir (nneething-read-only t)))
+  (let* ((method (list 'nneething dir '(nneething-read-only t)))
 	 (leaf (gnus-group-prefixed-name
 		(file-name-nondirectory (directory-file-name dir))
 		method))
