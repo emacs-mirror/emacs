@@ -10066,10 +10066,8 @@ x_find_ccl_program (fontp)
 
 
 /* Return a char-table whose elements are t if the font FONT_INFO
-   contains a glyph for the corresponding character, and nil if not.
-
-   Fixme: For the moment, this function works only for fonts whose
-   glyph encoding is the same as Unicode (e.g. ISO10646-1 fonts).  */
+   contains a glyph for the corresponding character, and nil if
+   not.  */
 
 Lisp_Object
 x_get_font_repertory (f, font_info)
@@ -10079,6 +10077,9 @@ x_get_font_repertory (f, font_info)
   XFontStruct *font = (XFontStruct *) font_info->font;
   Lisp_Object table;
   int min_byte1, max_byte1, min_byte2, max_byte2;
+  int c;
+  struct charset *charset = (font_info->charset == charset_unicode
+			     ? NULL : CHARSET_FROM_ID (font_info->charset));
 
   table = Fmake_char_table (Qnil, Qnil);
 
@@ -10102,7 +10103,14 @@ x_get_font_repertory (f, font_info)
 		{
 		  if (from >= 0)
 		    {
-		      char_table_set_range (table, from, i - 1, Qt);
+		      if (! charset)
+			char_table_set_range (table, from, i - 1, Qt);
+		      else
+			for (; from < i; from++)
+			  {
+			    c = ENCODE_CHAR (charset, from);
+			    CHAR_TABLE_SET (table, c, Qt);
+			  }
 		      from = -1;
 		    }
 		}
@@ -10110,19 +10118,36 @@ x_get_font_repertory (f, font_info)
 		from = i;
 	    }
 	  if (from >= 0)
-	    char_table_set_range (table, from, i - 1, Qt);
+	    {
+	      if (! charset)
+		char_table_set_range (table, from, i - 1, Qt);
+	      else
+		for (; from < i; from++)
+		  {
+		    c = ENCODE_CHAR (charset, from);
+		    CHAR_TABLE_SET (table, c, Qt);
+		  }
+	    }
 	}
     }
   else
     {
       if (! font->per_char || font->all_chars_exist == True)
 	{
-	  int i;
+	  int i, j;
 
-	  for (i = min_byte1; i <= max_byte1; i++)
-	    char_table_set_range (table,
-				  (i << 8) | min_byte2, (i << 8) | max_byte2,
-				  Qt);
+	  if (! charset)
+	    for (i = min_byte1; i <= max_byte1; i++)
+	      char_table_set_range (table,
+				    (i << 8) | min_byte2, (i << 8) | max_byte2,
+				    Qt);
+	  else
+	    for (i = min_byte1; i <= max_byte1; i++)	    
+	      for (j = min_byte2; j <= max_byte2; j++)
+		{
+		  unsigned code = (i << 8) | j;
+		  c = ENCODE_CHAR (charset, code);
+		}
 	}
       else
 	{
@@ -10140,8 +10165,18 @@ x_get_font_repertory (f, font_info)
 		    {
 		      if (from >= 0)
 			{
-			  char_table_set_range (table, (i << 8) | from,
-						(i << 8) | (j - 1), Qt);
+			  if (! charset)
+			    char_table_set_range (table, (i << 8) | from,
+						  (i << 8) | (j - 1), Qt);
+			  else
+			    {
+			      for (; from < j; from++)
+				{
+				  unsigned code = (i << 8) | from;
+				  c = ENCODE_CHAR (charset, code);
+				  CHAR_TABLE_SET (table, c, Qt);
+				}
+			    }
 			  from = -1;
 			}
 		    }
@@ -10149,8 +10184,20 @@ x_get_font_repertory (f, font_info)
 		    from = j;
 		}
 	      if (from >= 0)
-		char_table_set_range (table, (i << 8) | from,
-				      (i << 8) | (j - 1), Qt);
+		{
+		  if (! charset)
+		    char_table_set_range (table, (i << 8) | from,
+					  (i << 8) | (j - 1), Qt);
+		  else
+		    {
+		      for (; from < j; from++)
+			{
+			  unsigned code = (i << 8) | from;
+			  c = ENCODE_CHAR (charset, code);
+			  CHAR_TABLE_SET (table, c, Qt);
+			}
+		    }
+		}
 	    }
 	}
     }
