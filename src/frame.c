@@ -28,6 +28,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "window.h"
 #include "termhooks.h"
 
+/* These help us bind and responding to switch-frame events.  */
+#include "commands.h"
+#include "keyboard.h"
+
 Lisp_Object Vemacs_iconified;
 Lisp_Object Vframe_list;
 Lisp_Object Vterminal_frame;
@@ -313,13 +317,25 @@ make_terminal_frame ()
   return f;
 }
 
-DEFUN ("select-frame", Fselect_frame, Sselect_frame, 1, 2, 0,
+DEFUN ("select-frame", Fselect_frame, Sselect_frame, 1, 2, "e",
   "Select the frame FRAME.  FRAME's selected window becomes \"the\"\n\
 selected window.  If the optional parameter NO-ENTER is non-nil, don't\n\
-focus on that frame.")
+focus on that frame.\n\
+\n\
+This function is interactive, and may be bound to the ``switch-frame''\n\
+event; when invoked this way, it switches to the frame named in the\n\
+event.  When called from lisp, FRAME may be a ``switch-frame'' event;\n\
+if it is, select the frame named in the event.")
   (frame, no_enter)
      Lisp_Object frame, no_enter;
 {
+  /* If FRAME is a switch-frame event, extract the frame we should
+     switch to.  */
+  if (CONSP (frame)
+      && EQ (XCONS (frame)->car, Qswitch_frame)
+      && CONSP (XCONS (frame)->cdr))
+    frame = XCONS (XCONS (frame)->cdr)->car;
+
   CHECK_LIVE_FRAME (frame, 0);
 
   if (selected_frame == XFRAME (frame))
@@ -1364,6 +1380,11 @@ For values specific to the separate minibuffer frame, see\n\
 #endif	/* HAVE_X11 */
 }
 
+keys_of_frame ()
+{
+  initial_define_lispy_key (global_map, "switch-frame", "select-frame");
+}
+
 #else /* not MULTI_FRAME */
 
 /* If we're not using multi-frame stuff, we still need to provide some
@@ -1473,6 +1494,10 @@ syms_of_frame ()
   Ffset (intern ("screen-height"), intern ("frame-height"));
   defsubr (&Sframe_width);
   Ffset (intern ("screen-width"), intern ("frame-width"));
+}
+
+keys_of_frame ()
+{
 }
 
 #endif /* not MULTI_FRAME */
