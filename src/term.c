@@ -1347,7 +1347,12 @@ term_init (terminal_type)
   if (status < 0)
     fatal ("Cannot open termcap database file.\n");
   if (status == 0)
-    fatal ("Terminal type %s is not defined.\n", terminal_type);
+    fatal ("Terminal type %s is not defined.\n\
+If that is not the actual type of terminal you have,\n\
+use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
+`setenv TERM ...') to specify the correct type.  It may be necessary\n\
+to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.\n",
+	   terminal_type);
 
 #ifdef TERMINFO
   area = (char *) malloc (2044);
@@ -1558,8 +1563,9 @@ or `define EMACS_TERM \"terminal type\"' for non-DEC terminals.\n",
     fatal ("Terminal type \"%s\" is not powerful enough to run Emacs.\n\
 It lacks the ability to position the cursor.\n\
 If that is not the actual type of terminal you have,\n\
-use the C-shell command `setenv TERM ...' to specify the correct type.\n\
-It may be necessary to do `unsetenv TERMCAP' as well.\n",
+use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
+`setenv TERM ...') to specify the correct type.  It may be necessary\n\
+to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.\n",
 	   terminal_type);
 #endif
   if (FRAME_HEIGHT (selected_frame) <= 0
