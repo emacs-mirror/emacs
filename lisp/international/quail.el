@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1995, 2000 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Kenichi HANDA <handa@etl.go.jp>
 ;;	   Naoto TAKAHASHI <ntakahas@etl.go.jp>
@@ -1279,11 +1279,9 @@ Do so while interleaving with the following special events:
   (let* ((events (mapcar
 		  (lambda (c)
 		    ;; This gives us the chance to unify on input
-		    ;; (e.g. using ucs-tables.el).  Fixme: The result
-		    ;; of Quail input doesn't currently go through
-		    ;; `keyboard-translate-table'.
-		    (or (and (char-table-p keyboard-translate-table)
-			     (aref keyboard-translate-table c))
+		    ;; (e.g. using ucs-tables.el).
+		    (or (and translation-table-for-input
+			     (aref translation-table-for-input c))
 			c))
 		  str))
 	 (len (length str))
