@@ -1,10 +1,11 @@
-/* $HopeName: MMQA_harness!testlib:rankfmt.c(trunk.5) $
+/* $HopeName: MMQA_harness!testlib:rankfmt.c(trunk.6) $
 rankfmt.c
    See comments in header file for usage.
 */
 
 #include "rankfmt.h"
 #include <string.h>
+
 
 /* some options on the format are controlled by global
    variables. Of course for efficiency we'd do it in the
@@ -20,11 +21,12 @@ int deathcomments=0;
 int skipcomments=0;
 int splurgeassoc=0; /* write madly to associated objects */
 
+
 long int nextid=0x1000000;
 
 long int checkobjcount=0;
 
-mps_addr_t exfmt_root=NULL;
+mycell *exfmt_root = NULL;
 
 int counters[PAD_COUNT+1] = {0};
 int prevcounters[PAD_COUNT+1] = {0};
@@ -32,6 +34,7 @@ int maxcounters[PAD_COUNT+1] = {0};
 
 long int maxcopy = 0;
 int freeze=0;
+
 
 /* The AWL pool makes certain assumptions about the object format,
    some necessary and some unnecessary but useful for detecting problems
@@ -71,14 +74,17 @@ struct wrapper wrapobj = {
 
 mycell *wrapper = (mycell *) &wrapobj;
 
+
 #define INCCOUNT(c) do {if(!freeze) counters[c]+=1;} while (0)
 #define INCCOUNTIF(f, c) do {if(f) INCCOUNT(c);} while (0)
+
 
 /* a cell can be one of four things, depending on its type:
   MCpad       - a pad item
   MCheart     - a broken heart, aka forwarding object
   MCdata      - a real object
 */
+
 
 /* the scanning function doesn't try to fix null refs
 */
@@ -89,6 +95,7 @@ static void myfwd(mps_addr_t object, mps_addr_t to);
 static mps_addr_t myisfwd(mps_addr_t object);
 static void mycopy(mps_addr_t object, mps_addr_t to);
 static void mypad(mps_addr_t base, size_t size);
+
 
 struct mps_fmt_A_s fmtA =
 {
@@ -101,12 +108,14 @@ struct mps_fmt_A_s fmtA =
  &mypad
 };
 
+
 /* in the following, size is the number of refs you want
    the allocated object to have
 */
 
-mps_res_t allocrdumb(mps_addr_t *addr, mps_ap_t ap,
-                      size_t size, mps_rank_t rank) {
+mps_res_t allocrdumb(mycell **rvar, mps_ap_t ap,
+                     size_t size, mps_rank_t rank) {
+ mps_addr_t addr;
  mycell *q;
  size_t bytes;
  mps_res_t res;
@@ -116,15 +125,15 @@ mps_res_t allocrdumb(mps_addr_t *addr, mps_ap_t ap,
 
  alignment = MPS_PF_ALIGN; /* needed to make it as wide as size_t */
 
-/* twiddle the value of size to make it aligned */
+ /* twiddle the value of size to make it aligned */
  bytes = (bytes+alignment-1) & ~(alignment-1);
 
  do
  {
-  res = mps_reserve(addr, ap, bytes);
+  res = mps_reserve(&addr, ap, bytes);
   if (res) goto Finish;
   INCCOUNT(RESERVE_COUNT);
-  q=*addr;
+  q = (mycell *)addr;
   q->data.tag = (mps_word_t) wrapper;
   q->data.assoc = NULL;
   q->data.id = nextid;
@@ -134,14 +143,16 @@ mps_res_t allocrdumb(mps_addr_t *addr, mps_ap_t ap,
   q->data.rank = rank;
   q->data.size = bytes;
  }
- while (!mps_commit(ap, *addr, bytes));
+ while (!mps_commit(ap, addr, bytes));
  INCCOUNT(ALLOC_COUNT);
  commentif(alloccomments, "allocated id %li at %p.", nextid, q);
  nextid += 1;
+ *rvar = q;
 
 Finish:
  return res;
 }
+
 
 mycell *allocdumb(mps_ap_t ap, size_t size, mps_rank_t rank) {
  mycell *q;
@@ -151,7 +162,9 @@ mycell *allocdumb(mps_ap_t ap, size_t size, mps_rank_t rank) {
  return q;
 }
 
-mps_res_t allocrone(mps_addr_t *addr, mps_ap_t ap, int size, mps_rank_t rank) {
+
+mps_res_t allocrone(mycell **rvar, mps_ap_t ap, int size, mps_rank_t rank) {
+ mps_addr_t addr;
  mycell *q;
  int i;
  size_t bytes;
@@ -162,15 +175,15 @@ mps_res_t allocrone(mps_addr_t *addr, mps_ap_t ap, int size, mps_rank_t rank) {
 
  alignment = MPS_PF_ALIGN; /* needed to make it as wide as size_t */
 
-/* twiddle the value of size to make it aligned */
+ /* twiddle the value of size to make it aligned */
  bytes = (bytes+alignment-1) & ~(alignment-1);
 
  do
  {
-  res = mps_reserve(addr, ap, bytes);
+  res = mps_reserve(&addr, ap, bytes);
   if (res) goto Finish;
   INCCOUNT(RESERVE_COUNT);
-  q=*addr;
+  q = (mycell *)addr;
   q->data.tag = MCdata + (mps_word_t) wrapper;
   q->data.assoc = NULL;
   q->data.id = nextid;
@@ -186,14 +199,16 @@ mps_res_t allocrone(mps_addr_t *addr, mps_ap_t ap, int size, mps_rank_t rank) {
    q->data.ref[i].id   = 0;
   }
  }
- while (!mps_commit(ap, *addr, bytes));
+ while (!mps_commit(ap, addr, bytes));
  INCCOUNT(ALLOC_COUNT);
  commentif(alloccomments, "allocated id %li at %p.", nextid, q);
  nextid += 1;
+ *rvar = q;
 
 Finish:
  return res;
 }
+
 
 mycell *allocone(mps_ap_t ap, int size, mps_rank_t rank) {
  mycell *q;
@@ -203,8 +218,10 @@ mycell *allocone(mps_ap_t ap, int size, mps_rank_t rank) {
  return q;
 }
 
-mps_res_t reservoir_allocrdumb(mps_addr_t *addr, mps_ap_t ap,
+
+mps_res_t reservoir_allocrdumb(mycell **rvar, mps_ap_t ap,
                                size_t size, mps_rank_t rank) {
+ mps_addr_t addr;
  mycell *q;
  size_t bytes;
  mps_res_t res;
@@ -214,15 +231,15 @@ mps_res_t reservoir_allocrdumb(mps_addr_t *addr, mps_ap_t ap,
 
  alignment = MPS_PF_ALIGN; /* needed to make it as wide as size_t */
 
-/* twiddle the value of size to make it aligned */
+ /* twiddle the value of size to make it aligned */
  bytes = (bytes+alignment-1) & ~(alignment-1);
 
  do
  {
-  res = mps_reserve_with_reservoir_permit(addr, ap, bytes);
+  res = mps_reserve_with_reservoir_permit(&addr, ap, bytes);
   if (res) goto Finish;
   INCCOUNT(RESERVE_COUNT);
-  q=*addr;
+  q = (mycell *)addr;
   q->data.tag = (mps_word_t) wrapper;
   q->data.assoc = NULL;
   q->data.id = nextid;
@@ -232,14 +249,16 @@ mps_res_t reservoir_allocrdumb(mps_addr_t *addr, mps_ap_t ap,
   q->data.rank = rank;
   q->data.size = bytes;
  }
- while (!mps_commit(ap, *addr, bytes));
+ while (!mps_commit(ap, addr, bytes));
  INCCOUNT(ALLOC_COUNT);
  commentif(alloccomments, "allocated id %li at %p.", nextid, q);
  nextid += 1;
+ *rvar = q;
 
 Finish:
  return res;
 }
+
 
 mycell *reservoir_allocdumb(mps_ap_t ap, size_t size, mps_rank_t rank) {
  mycell *q;
@@ -249,8 +268,10 @@ mycell *reservoir_allocdumb(mps_ap_t ap, size_t size, mps_rank_t rank) {
  return q;
 }
 
-mps_res_t reservoir_allocrone(mps_addr_t *addr, mps_ap_t ap,
+
+mps_res_t reservoir_allocrone(mycell **rvar, mps_ap_t ap,
                               int size, mps_rank_t rank) {
+ mps_addr_t addr;
  mycell *q;
  int i;
  size_t bytes;
@@ -261,15 +282,15 @@ mps_res_t reservoir_allocrone(mps_addr_t *addr, mps_ap_t ap,
 
  alignment = MPS_PF_ALIGN; /* needed to make it as wide as size_t */
 
-/* twiddle the value of size to make it aligned */
+ /* twiddle the value of size to make it aligned */
  bytes = (bytes+alignment-1) & ~(alignment-1);
 
  do
  {
-  res = mps_reserve_with_reservoir_permit(addr, ap, bytes);
+  res = mps_reserve_with_reservoir_permit(&addr, ap, bytes);
   if (res) goto Finish;
   INCCOUNT(RESERVE_COUNT);
-  q=*addr;
+  q = (mycell *)addr;
   q->data.tag = MCdata + (mps_word_t) wrapper;
   q->data.assoc = NULL;
   q->data.id = nextid;
@@ -285,14 +306,16 @@ mps_res_t reservoir_allocrone(mps_addr_t *addr, mps_ap_t ap,
    q->data.ref[i].id   = 0;
   }
  }
- while (!mps_commit(ap, *addr, bytes));
+ while (!mps_commit(ap, addr, bytes));
  INCCOUNT(ALLOC_COUNT);
  commentif(alloccomments, "allocated id %li at %p.", nextid, q);
  nextid += 1;
+ *rvar = q;
 
 Finish:
  return res;
 }
+
 
 mycell *reservoir_allocone(mps_ap_t ap, int size, mps_rank_t rank) {
  mycell *q;
@@ -301,6 +324,7 @@ mycell *reservoir_allocone(mps_ap_t ap, int size, mps_rank_t rank) {
  q = exfmt_root;
  return q;
 }
+
 
 static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
 {
@@ -389,6 +413,7 @@ static mps_res_t myscan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit)
  return MPS_RES_OK;
 }
 
+
 static mps_addr_t myskip(mps_addr_t object)
 {
  mycell *obj = object;
@@ -411,6 +436,7 @@ static mps_addr_t myskip(mps_addr_t object)
  }
 }
 
+
 static void mycopy(mps_addr_t object, mps_addr_t to)
 {
  mycell *boj = object;
@@ -423,11 +449,11 @@ static void mycopy(mps_addr_t object, mps_addr_t to)
  commentif(formatcomments, "copy: %li: %p -> %p\n",
   boj->data.id, object, to);
 
-/* this line would be bad, because the objects might overlap,
-   and then C doesn't guarantee to do the right thing!
+ /* this line would be bad, because the objects might overlap,
+    and then C doesn't guarantee to do the right thing!
 
-   *toj = *boj;
-*/
+    *toj = *boj;
+ */
 
  memmove(to, object, boj->data.size);
  if (!freeze)
@@ -436,6 +462,7 @@ static void mycopy(mps_addr_t object, mps_addr_t to)
   if (toj->data.copycount > maxcopy) maxcopy = toj->data.copycount;
  }
 }
+
 
 /* pad stores not its size but a pointer to the next object,
    because we know we'll never be asked to copy it
@@ -451,6 +478,7 @@ static void mypad(mps_addr_t base, size_t size)
  obj->pad.tag = MCpad + (mps_word_t) ((char *) base + size);
 }
 
+
 static mps_addr_t myisfwd(mps_addr_t object)
 {
  mycell *obj = object;
@@ -465,6 +493,7 @@ static mps_addr_t myisfwd(mps_addr_t object)
   return obj->heart.obj;
  }
 }
+
 
 static void myfwd(mps_addr_t object, mps_addr_t to)
 {
@@ -509,6 +538,7 @@ void setref(mycell *obj, int n, mycell *to)
  obj->data.ref[n].id = (to==NULL ? 0 : to->data.id);
 }
 
+
 mycell *getref(mycell *obj, int n)
 {
  asserts(obj->tag == MCdata + (mps_word_t) wrapper,
@@ -517,10 +547,12 @@ mycell *getref(mycell *obj, int n)
  return obj->data.ref[n].addr;
 }
 
+
 mps_addr_t getdata(mycell *obj)
 {
  return (mps_addr_t) &(obj->data.ref[0]);
 }
+
 
 long int getid(mycell *obj)
 {
@@ -529,6 +561,7 @@ long int getid(mycell *obj)
  return obj->data.id;
 }
 
+
 long int getcopycount(mycell *obj)
 {
  asserts(obj->tag == MCdata + (mps_word_t) wrapper,
@@ -536,12 +569,14 @@ long int getcopycount(mycell *obj)
  return obj->data.copycount;
 }
 
+
 long int getsize(mycell *obj)
 {
  asserts(obj->tag == MCdata + (mps_word_t) wrapper,
   "getsize: non-data object.");
  return obj->data.numrefs;
 }
+
 
 /* ---------------------------------------------------------------
    Now the useful things specially for checking the graph
@@ -587,6 +622,7 @@ static void checkloop(mycell *obj, int dir)
  }
 }
 
+
 void checkfrom(mycell *obj)
 {
  int k;
@@ -603,6 +639,7 @@ void checkfrom(mycell *obj)
  freeze = 0; /* resume counting */
 }
 
+
 /* ----------------------------------------------------------
    Now things to reset and display the counters
 */
@@ -618,6 +655,7 @@ void resetcounters(void)
  }
  maxcopy = 0;
 }
+
 
 void updatecounters(void)
 {
@@ -638,10 +676,12 @@ static void d_c(int i, char *name)
  comment("%10d %s", counters[i], name);
 }
 
+
 static void d_mc(int i, char *name)
 {
  comment("%10d %s", maxcounters[i], name);
 }
+
 
 void displaycounters(void)
 {
@@ -661,6 +701,7 @@ void displaycounters(void)
  d_c(DYING_REFERENCE_COUNT, "references fixed to NULL");
  comment("--------");
 }
+
 
 void displaymaxcounters(void)
 {
@@ -682,4 +723,3 @@ void displaymaxcounters(void)
  comment("max copies of a single object: %li.", maxcopy);
  comment("--------");
 }
-
