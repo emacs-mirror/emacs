@@ -15,4 +15,7 @@ struct passwd {
     char *pw_shell;
 };
 
+typedef int uid_t;
+typedef uid_t gid_t;
+
 #endif /* _PWD_H_ */
