@@ -1,3 +1,11 @@
+2002-06-21  Andreas Schwab  <schwab@suse.de>
+
+	* files.el (find-file-read-args): Add new argument `mustmatch' and
+	pass it down to read-file-name.
+	(find-file, find-file-other-window, find-file-other-frame)
+	(find-file-read-only, find-file-read-only-other-window)
+	(find-file-read-only-other-frame): Use it and fix prompts.
+
 2002-06-20  Emmanuel Briot  <briot@act-europe.fr>
 
 	* progmodes/ada-mode.el: Update copyright notice.
