@@ -1,3 +1,9 @@
+2000-12-15  Miles Bader  <miles@gnu.org>
+
+	* xdisp.c (window_box_height): Only use mode-line glyph-rows that
+	are actually marked as mode-lines; otherwise use
+	estimate_mode_line_height.
+
 2000-12-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* editfns.c (Fformat): Prevent a buffer overrun when the format

@@ -1,3 +1,17 @@
+2000-12-15  Miles Bader  <miles@gnu.org>
+
+	* window.el (mode-line-window-height-fudge): Function removed.
+	(height-affecting-face-attributes, mode-line-window-height-fudge): 
+	Variables removed.
+	* textmodes/ispell.el (ispell-overlay-window): Ensure that the new
+	window is really the right size.  Use vertical-motion
+	rather than forward-line.
+	(ispell-help): Don't use ispell-mode-line-window-height-fudge.
+	(ispell-command-loop, ispell-show-choices): Use the variable
+	ispell-choices-win-default-height, rather than the function.
+	(ispell-choices-win-default-height): Function removed.
+	(ispell-mode-line-window-height-fudge): Function removed.
+	
 2000-12-14  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* add-log.el (add-change-log-entry): Only expand-file-name if non-nil.
@@ -46,6 +60,20 @@
 	x-show-tip, display that error, and display the help in the
 	echo area.
 
+2000-12-15  Miles Bader  <miles@gnu.org>
+
+	* window.el (mode-line-window-height-fudge): Function removed.
+	(height-affecting-face-attributes, mode-line-window-height-fudge): 
+	Variables removed.
+	* textmodes/ispell.el (ispell-overlay-window): Ensure that the new
+	window is really the right size.  Use vertical-motion
+	rather than forward-line.
+	(ispell-help): Don't use ispell-mode-line-window-height-fudge.
+	(ispell-choices-win-default-height): Function removed.
+	(ispell-command-loop, ispell-show-choices): Use the variable
+	ispell-mode-line-window-height-fudge, rather than the function.
+	(ispell-mode-line-window-height-fudge): Function removed.
+	
 2000-12-14  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/ja-dic-cnv.el (skkdic-set-okuri-nasi): Show
