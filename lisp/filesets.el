@@ -32,9 +32,10 @@
 ;; pattern, a base directory and a search pattern (for files), or an
 ;; inclusion group (i.e. a base file including other files).
 
-;; Usage: 1. Put (require 'filesets) into your start-up file.  2. Type
-;; M-x filesets-edit or choose "Edit Filesets" from the menu.  3. Save
-;; your customizations.
+;; Usage:
+;; 1. Put (require 'filesets) and (filesets-init) in your .emacs file.
+;; 2. Type ;; M-x filesets-edit or choose "Edit Filesets" from the menu.
+;; 3. Save your customizations.
 
 ;; Caveat: Fileset names have to be unique.
 
@@ -2504,9 +2505,6 @@ Set up hooks, load the cache file -- if existing -- and build the menu."
 	    (setq filesets-menu-use-cached-flag t)))
     (filesets-build-menu)))
 
-
-;;; run
-(filesets-init)
 
 (provide 'filesets)
 
