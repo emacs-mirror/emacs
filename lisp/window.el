@@ -448,19 +448,16 @@ header-line."
   (let* ((window-height
 	  ;; The current height of WINDOW
 	  (window-height window))
-	 (extra
-	  ;; The amount by which the text height differs from the window
-	  ;; height.
-	  (- window-height (window-text-height window)))
 	 (text-height
 	  ;; The height necessary to show the buffer displayed by WINDOW
 	  ;; (`count-screen-lines' always works on the current buffer).
-	  (with-current-buffer (window-buffer window)
-	    (count-screen-lines)))
+	  ;; We add 1 for mode-line.
+	  (1+ (with-current-buffer (window-buffer window)
+		(count-screen-lines))))
 	 (delta
 	  ;; Calculate how much the window height has to change to show
 	  ;; text-height lines, constrained by MIN-HEIGHT and MAX-HEIGHT.
-	  (- (max (min (+ text-height extra) max-height)
+	  (- (max (min text-height max-height)
 		  (or min-height window-min-height))
 	     window-height))
 	 ;; We do our own height checking, so avoid any restrictions due to
@@ -478,7 +475,22 @@ header-line."
 	  (enlarge-window delta)
 	(save-selected-window
 	  (select-window window)
-	  (enlarge-window delta))))))
+	  (enlarge-window delta))))
+
+    ;; Check if the last line is surely fully visible.  If not,
+    ;; enlarge the window.
+    (let ((pos (with-current-buffer (window-buffer window)
+		 (save-excursion
+		   (goto-char (point-max))
+		   (if (and (bolp) (not (bobp)))
+		       (1- (point))
+		     (point))))))
+      (set-window-vscroll window 0)
+      (save-selected-window
+	(select-window window)
+	(while (and (< (window-height window) max-height) 
+		    (not (pos-visible-in-window-p pos window t)))
+	  (enlarge-window 1))))))
 
 (defun shrink-window-if-larger-than-buffer (&optional window)
   "Shrink the WINDOW to be as small as possible to display its contents.
