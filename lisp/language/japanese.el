@@ -29,8 +29,14 @@
 
 ;;; Code:
 
-(define-coding-system-alias 'iso-2022-jp 'iso-2022-7bit)
-(define-coding-system-alias 'junet 'iso-2022-7bit)
+(make-coding-system
+ 'iso-2022-jp 2 ?J
+ "ISO 2022 based 7bit encoding for Japanese (MIME:ISO-2022-JP)"
+ '((ascii japanese-jisx0208-1978 japanese-jisx0208
+	  latin-jisx0201 japanese-jisx0212 katakana-jisx0201 t) nil nil nil
+   short ascii-eol ascii-cntl seven))
+
+(define-coding-system-alias 'junet 'iso-2022-jp)
 
 (make-coding-system
  'japanese-shift-jis 1 ?S
@@ -42,7 +48,8 @@
 (make-coding-system
  'japanese-iso-7bit-1978-irv 2 ?j
  "ISO 2022 based 7-bit encoding for Japanese JISX0208-1978 and JISX0201-Roman"
- '((ascii t) nil nil nil
+ '((ascii japanese-jisx0208-1978 japanese-jisx0208
+	  latin-jisx0201 japanese-jisx0212 katakana-jisx0201 t) nil nil nil
    short ascii-eol ascii-cntl seven nil nil use-roman use-oldjis))
 
 (define-coding-system-alias 'iso-2022-jp-1978-irv 'japanese-iso-7bit-1978-irv)
@@ -51,8 +58,9 @@
 (make-coding-system
  'japanese-iso-8bit 2 ?E
  "ISO 2022 based EUC encoding for Japanese (MIME:EUC-JP)"
- '(ascii japanese-jisx0208 katakana-jisx0201 japanese-jisx0212
-	 short ascii-eol ascii-cntl nil nil single-shift))
+ '((ascii latin-jisx0201) (japanese-jisx0208 japanese-jisx0208-1978)
+   katakana-jisx0201 japanese-jisx0212
+   short ascii-eol ascii-cntl nil nil single-shift))
 
 (define-coding-system-alias 'euc-japan-1990 'japanese-iso-8bit)
 (define-coding-system-alias 'euc-japan 'japanese-iso-8bit)
