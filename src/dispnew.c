@@ -1509,9 +1509,10 @@ buffer_posn_from_coords (window, col, line)
      the window, but it isn't maintained correctly, and I'm not even
      sure I will keep it.  */
   posn = compute_motion (startp, 0,
-			 (window == XWINDOW (minibuf_window) && startp == 1
-			  ? minibuf_prompt_width : 0)
-			 + (hscroll ? 1 - hscroll : 0),
+			 ((window == XWINDOW (minibuf_window) && startp == BEG
+			   ? minibuf_prompt_width : 0)
+			  + (hscroll ? 1 - hscroll : 0)),
+			 0,
 			 ZV, line, col,
 			 window_width, hscroll, 0, window);
 
