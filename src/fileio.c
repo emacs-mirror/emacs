@@ -3024,7 +3024,9 @@ Otherwise returns nil.")
 }
 
 DEFUN ("file-directory-p", Ffile_directory_p, Sfile_directory_p, 1, 1, 0,
-  "Return t if FILENAME names an existing directory.")
+  "Return t if FILENAME names an existing directory.\n\
+Symbolic links to directories count as directories.\n\
+See `file-symlink-p' to distinguish symlinks.")
   (filename)
      Lisp_Object filename;
 {
