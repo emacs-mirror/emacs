@@ -1,3 +1,11 @@
+2001-10-27  Gerd Moellmann  <gerd@gnu.org>
+
+	* sound.c (sound_perror): Unblock SIGIO, turn on atimers.
+	Display errno only if non-zero.
+	(sound_warning): New function.
+	(vox_configure): Don't treat failing to set sample rate as error.
+	(various places): Improve error messages.
+
 2001-10-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* fileio.c (Faccess_file): Run the argument filename through
