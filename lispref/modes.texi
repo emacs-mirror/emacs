@@ -1055,7 +1055,7 @@ Changing this variable does not force an update of the mode line.
 
 @defvar mode-line-buffer-identification
 This variable identifies the buffer being displayed in the window.  Its
-default value is @samp{Emacs: %17b}, which means that it displays
+default value is @code{("Emacs: %17b")}, which means that it displays
 @samp{Emacs:} followed by seventeen characters of the buffer name.  You
 may want to change this in modes such as Rmail that do not behave like a
 ``normal'' Emacs.
