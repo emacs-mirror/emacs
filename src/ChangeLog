@@ -1,5 +1,17 @@
 2000-11-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (x_set_toolkit_scroll_bar_thumb, x_scroll_bar_create)
+	(x_scroll_bar_remove, XTset_vertical_scroll_bar): Call
+	SCROLL_BAR_X_WIDGET with addtional argument DPY.
+
+	* xterm.h (struct scroll_bar): Members x_widget_low, x_widget_high
+	removed.
+	(SCROLL_BAR_X_WIDGET): Get the widget via XtWindowToWidget.
+	Take the X display as additional argument.
+	(SET_SCROLL_BAR_X_WIDGET): Store the window of the widget, since
+	`Widget' is a pointer type that's not easily stored in Lisp_Object
+	form in a portable way.
+	
 	* dispnew.c (update_text_area): Fix last change.
 
 2000-11-18  Gerd Moellmann  <gerd@gnu.org>
