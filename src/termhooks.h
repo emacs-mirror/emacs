@@ -240,7 +240,7 @@ enum event_kind
 				   milliseconds) for the click.  */
   selection_request_event,	/* Another X client wants a selection from us.
 				   See `struct selection_event'.  */
-  selection_clear_event,	/* Another X client cleared our selection.  */
+  selection_clear_event X client cleared our selection.  */
 };
 
 /* If a struct input_event has a kind which is selection_request_event
@@ -320,7 +320,7 @@ enum {
   hyper_modifier=  CHAR_HYPER,	/* Under X, the XK_Hyper_[LR] keysyms.  */
   shift_modifier=  CHAR_SHIFT,
   ctrl_modifier	=  CHAR_CTL,
-  meta_modifier	=  CHAR_META,	/* Under X, the XK_Meta_[LR] keysyms.  */
+  meta_modifier	=  CHAR_META	/* Under X, the XK_Meta_[LR] keysyms.  */
 };
 
 #endif
