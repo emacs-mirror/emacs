@@ -581,7 +581,7 @@ help buffer."
   (interactive)
   (if help-xref-stack
       (help-xref-go-back (current-buffer))
-    (error "No previous help buffer.")))
+    (error "No previous help buffer")))
 
 (defun help-do-xref (pos function args)
   "Call the help cross-reference function FUNCTION with args ARGS.

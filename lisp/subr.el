@@ -644,7 +644,11 @@ The normal global definition of the character C-x indirects to this keymap.")
   "Return a list of symbols representing the modifier keys in event EVENT.
 The elements of the list may include `meta', `control',
 `shift', `hyper', `super', `alt', `click', `double', `triple', `drag',
-and `down'."
+and `down'.
+EVENT may be an event or an event type.  If EVENT is a symbol
+that has never been used in an event that has been read as input
+in the current Emacs session, then this function can return nil,
+even when EVENT actually has modifiers."
   (let ((type event))
     (if (listp type)
 	(setq type (car type)))
@@ -671,7 +675,10 @@ and `down'."
 
 (defun event-basic-type (event)
   "Return the basic type of the given event (all modifiers removed).
-The value is a printing character (not upper case) or a symbol."
+The value is a printing character (not upper case) or a symbol.
+EVENT may be an event or an event type.  If EVENT is a symbol
+that has never been used in an event that has been read as input
+in the current Emacs session, then this function may return nil."
   (if (consp event)
       (setq event (car event)))
   (if (symbolp event)
@@ -1894,7 +1901,10 @@ See also `with-temp-file' and `with-output-to-string'."
 	 (kill-buffer nil)))))
 
 (defmacro with-local-quit (&rest body)
-  "Execute BODY with `inhibit-quit' temporarily bound to nil."
+  "Execute BODY, allowing quits to terminate BODY but not escape further.
+When a quit terminates BODY, `with-local-quit' requests another quit when
+it finishes.  That quit will be processed in turn, the next time quitting
+is again allowed."
   (declare (debug t) (indent 0))
   `(condition-case nil
        (let ((inhibit-quit nil))
