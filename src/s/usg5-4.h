@@ -89,8 +89,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define HAVE_SELECT
 #define HAVE_TIMEVAL
 #define HAVE_CLOSEDIR
-#define HAVE_GETTIMEOFDAY
-#define HAVE_DUP2
 
 /* <sys/stat.h> *defines* stat(2) as a static function.  If "static"
  * is blank, then many files will have a public definition for stat(2).
