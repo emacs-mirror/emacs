@@ -1,3 +1,7 @@
+2005-01-13  Francis Litterio  <franl@world.std.com>  (tiny change)
+
+	* keymaps.texi (Active Keymaps): Fix overriding-local-map description.
+
 2005-01-12  Kim F. Storm  <storm@cua.dk>
 
 	* text.texi (Links and Mouse-1): Rename section from Enabling
