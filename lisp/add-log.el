@@ -300,7 +300,8 @@ Has a preference of looking backwards."
   (condition-case nil
       (save-excursion
 	(let ((location (point)))
-	  (cond ((memq major-mode '(emacs-lisp-mode lisp-mode scheme-mode))
+	  (cond ((memq major-mode '(emacs-lisp-mode lisp-mode scheme-mode
+						    lisp-interaction-mode))
 		 ;; If we are now precisely a the beginning of a defun,
 		 ;; make sure beginning-of-defun finds that one
 		 ;; rather than the previous one.
