@@ -1,0 +1,28 @@
+#
+#     BUILD FOR SUNOS/SPARC/LCC PLATFORM
+#
+#  $HopeName$
+#
+#  Copyright (C) 1996,1997 Harlequin Group, all rights reserved
+#
+#  This is the GNU makefile for platform.susplc.
+#
+
+PFM = susplc
+
+MPM = assert.c ring.c mpsliban.c mpm.c \
+      arenavm.c vmsu.c space.c pool.c poolmfs.c \
+      poolmv.c root.c format.c buffer.c lockan.c ref.c \
+      trace.c than.c protsu.c shield.c mpsi.c ld.c
+MPMS = sssusp.s
+AMC = amc.c
+LO = lo.c
+DW = fmtdy.c dw.c
+SW = assert.c ring.c mpsliban.c mpm.c \
+     arenavm.c vmrm.c space.c pool.c poolmfs.c \
+     poolmv.c root.c format.c buffer.c lockan.c ref.c \
+     trace.c than.c protsu.c shield.c mpsi.c ld.c ssan.c
+
+TESTLIB = testlib.c
+
+include lc.gmk
