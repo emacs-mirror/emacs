@@ -375,17 +375,17 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Valid values for `ps-print-control-characters' are:
 ;;
-;;  '8-bit          This is the value to use when you want an ascii encoding of
+;;  8-bit           This is the value to use when you want an ascii encoding of
 ;;                  any control or non-ascii character. Control characters are
 ;;                  encoded as "^D", and non-ascii characters have an
 ;;                  octal encoding.
 ;;
-;;  'control-8-bit  This is the value to use when you want an ascii encoding of
+;;  control-8-bit   This is the value to use when you want an ascii encoding of
 ;;                  any control character, whether it is 7 or 8-bit.
 ;;                  European 8-bits accented characters are printed according
 ;;                  the current font.
 ;;
-;;  'control        Only ascii control characters have an ascii encoding.
+;;  control         Only ascii control characters have an ascii encoding.
 ;;                  European 8-bits accented characters are printed according
 ;;                  the current font.
 ;;
@@ -394,7 +394,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Any other value is treated as nil.
 ;;
-;; The default is 'control-8-bit.
+;; The default is `control-8-bit'.
 ;;
 ;; Characters TAB, NEWLINE and FORMFEED are always treated by ps-print engine.
 ;;
@@ -999,17 +999,17 @@ it is sent the string \"^D\".
 
 Valid values are:
 
-  '8-bit          This is the value to use when you want an ascii encoding of
+  `8-bit'         This is the value to use when you want an ascii encoding of
                   any control or non-ascii character. Control characters are
                   encoded as \"^D\", and non-ascii characters have an
                   octal encoding.
 
-  'control-8-bit  This is the value to use when you want an ascii encoding of
+  `control-8-bit' This is the value to use when you want an ascii encoding of
                   any control character, whether it is 7 or 8-bit.
                   European 8-bits accented characters are printed according
                   the current font.
 
-  'control        Only ascii control characters have an ascii encoding.
+  `control'       Only ascii control characters have an ascii encoding.
                   European 8-bits accented characters are printed according
                   the current font.
 
@@ -1400,8 +1400,7 @@ You can get all the fonts of YOUR printer using `ReportAllFontInfo'."
   :group 'ps-print-font)
 
 (defcustom ps-header-title-font-size (if ps-landscape-mode 12 14)
-  "Font size, in points, for the top line of text in the header,
-when generating PostScript."
+  "Font size, in points, for the top line of text in header, in PostScript."
   :type 'number
   :group 'ps-print-font)
 
@@ -1529,7 +1528,7 @@ about its setting, though."
 
 If this variable is non-nil, ps-print will rebuild its internal
 reference lists of bold and italic faces *every* time one of the
--with-faces commands is called.  Most users shouldn't need to set this
+...-with-faces commands is called.  Most users shouldn't need to set this
 variable."
   :type 'boolean
   :group 'ps-print-face)
@@ -1664,7 +1663,7 @@ The table depends on the current ps-print setup."
 
 ;;;###autoload
 (defun ps-setup ()
-  "Return the current setup."
+  "Return the current PostScript-generation setup."
   (format
    "
 \(setq ps-print-color-p  %s
@@ -2428,8 +2427,8 @@ StandardEncoding 46 82 getinterval aload pop
 ;; it'll do for now.
 
 (defvar ps-header-pad 0
-  "Vertical and horizontal space in points (1/72 inch) between the header frame
-and the text it contains.")
+  "Vertical and horizontal space between the header frame and the text.
+This is in units of points (1/72 inch).")
 
 ;; Define accessors to the dimensions list.
 
@@ -2649,7 +2648,7 @@ If EXTENSION is any other symbol, it is ignored."
 
 
 (defvar ps-printing-region nil
-  "Variable used to indicate if it is printing a region.
+  "Variable used to indicate if ps-print is printing a region.
 If non-nil, it is a cons, the car of which is the line number
 where the region begins, and its cdr is the total number of lines
 in the buffer.  Formatting functions can use this information
@@ -2752,9 +2751,9 @@ Try: pr -t file | awk '{printf \"%3d %s\n\", length($0), $0}' | sort -r | head"
     (display-buffer buf 'not-this-window)))
 
 (defun ps-nb-pages (nb-lines)
-  "Display an approximate correspondence between a font size and the number
-of pages the number of lines would require to print
-using the current ps-print setup."
+  "Display correspondence between font size and the number of pages.
+The correspondence is based on having NB-LINES lines of text,
+and on the current ps-print setup."
   (let ((buf (get-buffer-create "*Nb-Pages*"))
 	(ifs ps-font-size)		; initial font size
 	(ilh (ps-line-height 'ps-font-for-text)) ; initial line height
