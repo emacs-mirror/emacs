@@ -3416,7 +3416,7 @@ Each buffer has its own value of this variable.");
 
   DEFVAR_PER_BUFFER ("buffer-file-truename", &current_buffer->file_truename,
 		     make_number (Lisp_String),
-    "Truename of file visited in current buffer, or nil if not visiting a file.\n\
+    "Abbreviated truename of file visited in current buffer, or nil if none.\n\
 The truename of a file is calculated by `file-truename'\n\
 and then abbreviated with `abbreviate-file-name'.\n\
 Each buffer has its own value of this variable.");
