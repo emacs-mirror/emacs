@@ -1135,7 +1135,9 @@ delimiter regions"))
     (setq args (append (split-string options) files))
     (setq args (delete "" (delq nil args))) ; delete nil and "" from arguments
     ;; the --binary option, if present, should be used only for buffer jobs
+    ;; or for refining the differences
     (or (string-match "buffer" (symbol-name ediff-job-name))
+	(eq buffer ediff-fine-diff-buffer)
 	(setq args (delete "--binary" args)))
     (unwind-protect
 	(let ((directory default-directory)

@@ -1895,7 +1895,8 @@ Undo previous insertion and inserts new."
 
 
 (defcustom viper-smart-suffix-list
-  '("" "tex" "c" "cc" "C" "el" "java" "html" "htm" "pl" "flr" "P" "p")
+  '("" "tex" "c" "cc" "C" "java" "el" "html" "htm" "xml"
+    "pl" "flr" "P" "p" "h" "H")
   "*List of suffixes that Viper tries to append to filenames ending with a `.'.
 This is useful when you the current directory contains files with the same
 prefix and many different suffixes.  Usually, only one of the suffixes

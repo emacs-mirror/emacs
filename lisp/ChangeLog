@@ -1,3 +1,13 @@
+2000-06-05  Michael Kifer  <kifer@cs.sunysb.edu>
+	
+	* ediff-init.el (ediff-has-face-support-p): make it paint faces on
+	tty's.
+	* ediff-diff.el (ediff-exec-process): use --binary for fine
+	differences whenever apropriate.
+	* viper-cmd.el (viper-smart-suffix-list): rearranged list members.
+	* viper.el (find-file,find-file-other-window): get viper to do
+	wildcards. 
+	
 2000-06-04  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/easy-mmode.el (easy-mmode-define-toggle):

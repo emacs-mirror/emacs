@@ -400,6 +400,7 @@ widget."
     ps-mode
 				  
     completion-list-mode
+    diff-mode
     
     perl-mode
     javascript-mode
@@ -982,53 +983,44 @@ remains buffer-local."
   (defadvice find-file (before viper-add-suffix-advice activate)
     "Use `read-file-name' for reading arguments."
     (interactive (cons (read-file-name "Find file: " nil default-directory)
-		       ;; if Mule and prefix argument, ask for coding system
-		       (cond ((and viper-emacs-p 
-				   (boundp 'MULE))   ; Emacs 20 with MULE
-			      nil)
-			     ((and viper-xemacs-p
-				   (featurep 'mule)) ; XEmacs 20 with MULE
+		       ;; XEmacs: if Mule & prefix arg, ask for coding system
+		       (cond ((and viper-xemacs-p (featurep 'mule))
 			      (list
 			       (and current-prefix-arg
-				    (read-coding-system 
-				     "Coding-system: "))))
-			     )
-		       )))
+				    (read-coding-system "Coding-system: "))))
+			     ;; Emacs: do wildcards
+			     ((and viper-emacs-p (boundp 'find-file-wildcards))
+				   (list find-file-wildcards))))
+		 ))
   
   (defadvice find-file-other-window (before viper-add-suffix-advice activate)
     "Use `read-file-name' for reading arguments."
     (interactive (cons (read-file-name "Find file in other window: "
 				       nil default-directory)
-		       ;; if Mule and prefix argument, ask for coding system
-		       (cond ((and viper-emacs-p 
-				   (boundp 'MULE)) ; Emacs 20 with MULE
-			      nil)
-			     ((and viper-xemacs-p
-				   (featurep 'mule))   ; XEmacs 20 with MULE
+		       ;; XEmacs: if Mule & prefix arg, ask for coding system
+		       (cond ((and viper-xemacs-p (featurep 'mule))
 			      (list
 			       (and current-prefix-arg
-				    (read-coding-system 
-				     "Coding-system: "))))
-			     )
-		       )))
+				    (read-coding-system "Coding-system: "))))
+			     ;; Emacs: do wildcards
+			     ((and viper-emacs-p (boundp 'find-file-wildcards))
+			      (list find-file-wildcards))))
+		 ))
   
 
   (defadvice find-file-other-frame (before viper-add-suffix-advice activate)
     "Use `read-file-name' for reading arguments."
     (interactive (cons (read-file-name "Find file in other frame: "
 				       nil default-directory)
-		       ;; if Mule and prefix argument, ask for coding system
-		       (cond ((and viper-emacs-p 
-				   (boundp 'MULE))   ; Emacs 20 with MULE
-			      nil)
-			     ((and viper-xemacs-p
-				   (featurep 'mule)) ; XEmacs 20 with MULE
+		       ;; XEmacs: if Mule & prefix arg, ask for coding system
+		       (cond ((and viper-xemacs-p (featurep 'mule))
 			      (list
 			       (and current-prefix-arg
-				    (read-coding-system 
-				     "Coding-system: "))))
-			     )
-		       )))
+				    (read-coding-system "Coding-system: "))))
+			     ;; Emacs: do wildcards
+			     ((and viper-emacs-p (boundp 'find-file-wildcards))
+			      (list find-file-wildcards))))
+		 ))
 
   
   (defadvice read-file-name (around viper-suffix-advice activate)
