@@ -168,6 +168,82 @@ width_run_cache_on_off ()
 }
 
 
+/* Skip some invisible characters starting from POS.
+   This includes characters invisible because of text properties
+   and characters invisible because of overlays.
+
+   If position POS is followed by invisible characters,
+   skip some of them and return the position after them.
+   Otherwise return POS itself.
+
+   Set *NEXT_BOUNDARY_P to the next position at which
+   it will be necessary to call this function again.
+
+   Don't scan past TO, and don't set *NEXT_BOUNDARY_P
+   to a value greater than TO.
+
+   If WINDOW is non-nil, and this buffer is displayed in WINDOW,
+   take account of overlays that apply only in WINDOW.
+
+   We don't necessarily skip all the invisible characters after POS
+   because that could take a long time.  We skip a reasonable number
+   which can be skipped quickly.  If there might be more invisible
+   characters immediately following, then *NEXT_BOUNDARY_P
+   will equal the return value.  */
+
+static int
+skip_invisible (pos, next_boundary_p, to, window)
+     int pos;
+     int *next_boundary_p;
+     int to;
+     Lisp_Object window;
+{
+  Lisp_Object prop, position, end, overlay_limit, proplimit;
+  Lisp_Object buffer;
+
+  XSETFASTINT (position, pos);
+  XSETBUFFER (buffer, current_buffer);
+
+  /* Give faster response for overlay lookup near POS.  */
+  recenter_overlay_lists (current_buffer, pos);
+
+  /* We must not advance farther than the next overlay change.
+     The overlay change might change the invisible property;
+     or there might be overlay strings to be displayed there.  */
+  overlay_limit = Fnext_overlay_change (position);
+  /* As for text properties, this gives a lower bound
+     for where the invisible text property could change.  */
+  proplimit = Fnext_property_change (position, buffer, Qt);
+  if (XFASTINT (overlay_limit) < XFASTINT (proplimit))
+    proplimit = overlay_limit;
+  /* PROPLIMIT is now a lower bound for the next change
+     in invisible status.  If that is plenty far away,
+     use that lower bound.  */
+  if (XFASTINT (proplimit) > pos + 100 || XFASTINT (proplimit) >= to)
+    *next_boundary_p = XFASTINT (proplimit);
+  /* Otherwise, scan for the next `invisible' property change.  */
+  else
+    {
+      /* Don't scan terribly far.  */
+      XSETFASTINT (proplimit, min (pos + 100, to));
+      /* No matter what. don't go past next overlay change.  */
+      if (XFASTINT (overlay_limit) < XFASTINT (proplimit))
+	proplimit = overlay_limit;
+      end = Fnext_single_property_change (position, Qinvisible,
+					  buffer, proplimit);
+      *next_boundary_p = XFASTINT (end);
+    }
+  /* if the `invisible' property is set, we can skip to
+     the next property change */
+  if (!NILP (window) && EQ (XWINDOW (window)->buffer, buffer))
+    prop = Fget_char_property (position, Qinvisible, window);
+  else
+    prop = Fget_char_property (position, Qinvisible, buffer);
+  if (TEXT_PROP_MEANS_INVISIBLE (prop))
+    return *next_boundary_p;
+  return pos;
+}
+
 DEFUN ("current-column", Fcurrent_column, Scurrent_column, 0, 0, 0,
   "Return the horizontal position of point.  Beginning of line is column 0.\n\
 This is calculated by adding together the widths of all the displayed\n\
@@ -208,6 +284,16 @@ current_column ()
   if (point == last_known_column_point
       && MODIFF == last_known_column_modified)
     return last_known_column;
+
+  /* If the buffer has overlays or text properties,
+     use a more general algorithm.  */
+  if (BUF_INTERVALS (current_buffer)
+      || !NILP (current_buffer->overlays_before)
+      || !NILP (current_buffer->overlays_after))
+    return current_column_1 (point);
+
+  /* Scan backwards from point to the previous newline,
+     counting width.  Tab characters are the only complicated case.  */
 
   /* Make a pointer for decrementing through the chars before point.  */
   ptr = &FETCH_CHAR (point - 1) + 1;
@@ -266,6 +352,75 @@ current_column ()
       col = ((col + tab_width) / tab_width) * tab_width;
       col += post_tab;
     }
+
+  last_known_column = col;
+  last_known_column_point = point;
+  last_known_column_modified = MODIFF;
+
+  return col;
+}
+
+/* Return the column number of position POS
+   by scanning forward from the beginning of the line.
+   This function handles characters that are invisible
+   due to text properties or overlays.  */
+
+static int
+current_column_1 (pos)
+     int pos;
+{
+  register int tab_width = XINT (current_buffer->tab_width);
+  register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
+  register struct Lisp_Char_Table *dp = buffer_display_table ();
+
+  /* Start the scan at the beginning of this line with column number 0.  */
+  register int col = 0;
+  int scan = find_next_newline (pos, -1);
+  int next_boundary = scan;
+
+  if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
+
+  /* Scan forward to the target position.  */
+  while (scan < pos)
+    {
+      int c;
+
+      /* Occasionally we may need to skip invisible text.  */
+      while (scan == next_boundary)
+	{
+	  /* This updates NEXT_BOUNDARY to the next place
+	     where we might need to skip more invisible text.  */
+	  scan = skip_invisible (scan, &next_boundary, pos, Qnil);
+	  if (scan >= pos)
+	    goto endloop;
+	}
+
+      c = FETCH_CHAR (scan);
+      if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
+	{
+	  col += XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;
+	  scan++;
+	  continue;
+	}
+      if (c == '\n')
+	break;
+      if (c == '\r' && EQ (current_buffer->selective_display, Qt))
+	break;
+      scan++;
+      if (c == '\t')
+	{
+	  int prev_col = col;
+	  col += tab_width;
+	  col = col / tab_width * tab_width;
+	}
+      else if (ctl_arrow && (c < 040 || c == 0177))
+        col += 2;
+      else if (c < 040 || c >= 0177)
+        col += 4;
+      else
+	col++;
+    }
+ endloop:
 
   last_known_column = col;
   last_known_column_point = point;
@@ -421,20 +576,45 @@ position_indentation (pos)
   register int tab_width = XINT (current_buffer->tab_width);
   register unsigned char *p;
   register unsigned char *stop;
+  unsigned char *start;
+  int next_boundary = pos;
+  int ceiling = pos;
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
-  stop = &FETCH_CHAR (BUFFER_CEILING_OF (pos)) + 1;
   p = &FETCH_CHAR (pos);
+  /* STOP records the value of P at which we will need
+     to think about the gap, or about invisible text,
+     or about the end of the buffer.  */
+  stop = p;
+  /* START records the starting value of P.  */
+  start = p;
   while (1)
     {
       while (p == stop)
 	{
+	  int stop_pos;
+
+	  /* If we have updated P, set POS to match.
+	     The first time we enter the loop, POS is already right.  */
+	  if (p != start)
+	    pos = PTR_CHAR_POS (p);
+	  /* Consider the various reasons STOP might have been set here.  */
 	  if (pos == ZV)
 	    return column;
-	  pos += p - &FETCH_CHAR (pos);
+	  if (pos == next_boundary)
+	    pos = skip_invisible (pos, &next_boundary, ZV, Qnil);
+	  if (pos >= ceiling)
+	    ceiling = BUFFER_CEILING_OF (pos) + 1;
+	  /* Compute the next place we need to stop and think,
+	     and set STOP accordingly.  */
+	  stop_pos = min (ceiling, next_boundary);
+	  /* The -1 and +1 arrange to point at the first byte of gap
+	     (if STOP_POS is the position of the gap)
+	     rather than at the data after the gap.  */
+	     
+	  stop = &FETCH_CHAR (stop_pos - 1) + 1;
 	  p = &FETCH_CHAR (pos);
-	  stop = &FETCH_CHAR (BUFFER_CEILING_OF (pos)) + 1;
 	}
       switch (*p++)
 	{
@@ -461,7 +641,6 @@ indented_beyond_p (pos, column)
     pos = find_next_newline_no_quit (pos - 1, -1);
   return (position_indentation (pos) >= column);
 }
-
 
 DEFUN ("move-to-column", Fmove_to_column, Smove_to_column, 1, 2, "p",
   "Move point to column COLUMN in the current line.\n\
@@ -493,24 +672,34 @@ The return value is the current column.")
   int prev_col;
   int c;
 
+  int next_boundary;
+
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
   CHECK_NATNUM (column, 0);
   goal = XINT (column);
 
- retry:
   pos = point;
   end = ZV;
+  next_boundary = pos;
 
   /* If we're starting past the desired column,
      back up to beginning of line and scan from there.  */
   if (col > goal)
     {
+      end = pos;
       pos = find_next_newline (pos, -1);
       col = 0;
     }
 
   while (col < goal && pos < end)
     {
+      while (pos == next_boundary)
+	{
+	  pos = skip_invisible (pos, &next_boundary, end, Qnil);
+	  if (pos >= end)
+	    goto endloop;
+	}
+
       c = FETCH_CHAR (pos);
       if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))
 	{
@@ -536,6 +725,7 @@ The return value is the current column.")
       else
 	col++;
     }
+ endloop:
 
   SET_PT (pos);
 
@@ -565,7 +755,6 @@ The return value is the current column.")
   XSETFASTINT (val, col);
   return val;
 }
-
 
 /* compute_motion: compute buffer posn given screen posn and vice versa */
 
@@ -713,49 +902,11 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	  if (pos >= to)
 	    break;
 
-	  {
-	    Lisp_Object prop, position, end, limit, proplimit;
-
-	    XSETFASTINT (position, pos);
-
-	    /* Give faster response for overlay lookup near POS.  */
-	    recenter_overlay_lists (current_buffer, pos);
-
-	    /* We must not advance farther than the next overlay change.
-	       The overlay change might change the invisible property;
-	       or there might be overlay strings to be displayed there.  */
-	    limit = Fnext_overlay_change (position);
-	    /* As for text properties, this gives a lower bound
-	       for where the invisible text property could change.  */
-	    proplimit = Fnext_property_change (position, buffer, Qt);
-	    if (XFASTINT (limit) < XFASTINT (proplimit))
-	      proplimit = limit;
-	    /* PROPLIMIT is now a lower bound for the next change
-	       in invisible status.  If that is plenty far away,
-	       use that lower bound.  */
-	    if (XFASTINT (proplimit) > pos + 100 || XFASTINT (proplimit) >= to)
-	      next_boundary = XFASTINT (proplimit);
-	    /* Otherwise, scan for the next `invisible' property change.  */
-	    else
-	      {
-		/* Don't scan terribly far.  */
-		XSETFASTINT (proplimit, min (pos + 100, to));
-		/* No matter what. don't go past next overlay change.  */
-		if (XFASTINT (limit) < XFASTINT (proplimit))
-		  proplimit = limit;
-		end = Fnext_single_property_change (position, Qinvisible,
-						    buffer, proplimit);
-		next_boundary = XFASTINT (end);
-	      }
-	    /* if the `invisible' property is set, we can skip to
-	       the next property change */
-	    if (EQ (win->buffer, buffer))
-	      prop = Fget_char_property (position, Qinvisible, window);
-	    else
-	      prop = Fget_char_property (position, Qinvisible, buffer);
-	    if (TEXT_PROP_MEANS_INVISIBLE (prop))
-	      pos = next_boundary;
-	  }
+	  /* Advance POS past invisible characters
+	     (but not necessarily all that there are here),
+	     and store in next_boundary the next position where
+	     we need to call skip_invisible.  */
+	  pos = skip_invisible (pos, &next_boundary, to, window);
 	}
 
       /* Handle right margin.  */
