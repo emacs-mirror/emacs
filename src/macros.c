@@ -143,6 +143,7 @@ An argument of zero means repeat until error.")
 
 /* Store character c into kbd macro being defined */
 
+void
 store_kbd_macro_char (c)
      Lisp_Object c;
 {
@@ -170,6 +171,7 @@ store_kbd_macro_char (c)
 /* Declare that all chars stored so far in the kbd macro being defined
  really belong to it.  This is done in between editor commands.  */
 
+void
 finalize_kbd_macro_chars ()
 {
   current_kboard->kbd_macro_end = current_kboard->kbd_macro_ptr;
@@ -288,12 +290,14 @@ COUNT is a repeat count, or nil for once, or 0 for infinite loop.")
   return unbind_to (pdlcount, Qnil);
 }
 
+void
 init_macros ()
 {
   Vexecuting_macro = Qnil;
   executing_macro = Qnil;
 }
 
+void
 syms_of_macros ()
 {
   Qexecute_kbd_macro = intern ("execute-kbd-macro");
@@ -319,6 +323,7 @@ syms_of_macros ()
     "Last kbd macro defined, as a string or vector; nil if none defined.");
 }
 
+void
 keys_of_macros ()
 {
   initial_define_key (control_x_map, ('e'), "call-last-kbd-macro");
