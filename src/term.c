@@ -29,6 +29,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "screen.h"
 #include "disptab.h"
 #include "termhooks.h"
+#include "keyboard.h"
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
@@ -1062,6 +1063,63 @@ calculate_costs (screen)
   cmcostinit ();		/* set up cursor motion costs */
 }
 
+/* Find the escape codes sent by the function keys for Vfunction_key_map.
+   This function scans the termcap function key sequence entries, and 
+   adds entries to Vfunction_key_map for each function key it finds.  */
+
+void
+term_get_fkeys (address)
+     char **address;
+{
+  extern char *tgetstr ();
+  struct fkey_table {
+    char *cap, *name;
+  };
+  static struct fkey_table keys[] = {
+    "kl", "left",
+    "kr", "right",
+    "ku", "up",
+    "kd", "down",
+    "kh", "home",
+    "k1", "f1",
+    "k2", "f2",
+    "k3", "f3",
+    "k4", "f4",
+    "k5", "f5",
+    "k6", "f6",
+    "k7", "f7",
+    "k8", "f8",
+    "k9", "f9",
+    "k0", "f10",
+    "kH", "home-down",
+    "ka", "clear-tabs",
+    "kt", "clear-tab",
+    "kT", "set-tab",
+    "kC", "clear",
+    "kL", "deleteline",
+    "kM", "exit-insert",
+    "kE", "clear-eol",
+    "kS", "clear-eos",
+    "kI", "insert",
+    "kA", "insertline",
+    "kN", "next",
+    "kP", "prior",
+    "kF", "scroll-forward",
+    "kR", "scroll-reverse"
+  };
+  int i;
+
+  for (i = 0; i < (sizeof (keys)/sizeof (keys[0])); i++)
+    {
+      char *sequence = tgetstr (keys[i].cap, address);
+      if (sequence)
+	Fdefine_key (Vfunction_key_map,
+		     build_string (sequence),
+		     Fmake_vector (make_number (1), intern (keys[i].name)));
+    }
+}
+
+
 term_init (terminal_type)
      char *terminal_type;
 {
@@ -1164,6 +1222,8 @@ term_init (terminal_type)
   MagicWrap = tgetflag ("xn");
   TF_xs = tgetflag ("xs");
   TF_teleray = tgetflag ("xt");
+
+  term_get_fkeys (address);
 
   /* Get screen size from system, or else from termcap.  */
   get_screen_size (&SCREEN_WIDTH (selected_screen),
