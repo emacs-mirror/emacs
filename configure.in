@@ -3,7 +3,7 @@ dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.
 dnl
-dnl  Copyright (C) 1994, 1995, 1996, 1999 Free Software Foundation, Inc.
+dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000 Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -1062,10 +1062,6 @@ if test x"${opsys}" = x; then
   esac
 fi
 
-if test "x$RANLIB" = x; then
-  RANLIB=ranlib
-fi
-
 changequote([, ])dnl
 
 if test $unported = yes; then
@@ -1140,6 +1136,9 @@ AC_PROG_LN_S
 AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_YACC
+if test "x$RANLIB" = x; then
+  AC_PROG_RANLIB
+fi
 
 dnl checks for Unix variants
 AC_AIX
@@ -1207,7 +1206,25 @@ if test $emacs_cv_tm_gmtoff = yes; then
 fi
 
 dnl checks for compiler characteristics
+
+dnl Testing __STDC__ to determine prototype support isn't good enough.
+dnl DEC C, for instance, doesn't define it with default options, and
+dnl is used on 64-bit systems (OSF Alphas).  Similarly for volatile
+dnl and void *.
+AC_C_PROTOTYPES
+AC_C_VOLATILE
 AC_C_CONST
+dnl This isn't useful because we can't turn on use of `inline' unless
+dnl the compiler groks `extern inline'.
+dnl AC_C_INLINE
+AC_CACHE_CHECK([for void * support], emacs_cv_void_star,
+  [AC_TRY_COMPILE(, [void * foo;], 
+                   emacs_cv_void_star=yes, emacs_cv_void_star=no)])
+if test $emacs_cv_void_star = yes; then
+  AC_DEFINE(POINTER_TYPE, void)
+else
+  AC_DEFINE(POINTER_TYPE, char)
+fi
 
 dnl check for Make feature
 AC_PROG_MAKE_SET
@@ -2003,7 +2020,6 @@ AC_SUBST(CFLAGS)
 AC_SUBST(X_TOOLKIT_TYPE)
 AC_SUBST(machfile)
 AC_SUBST(opsysfile)
-AC_SUBST(RANLIB)
 
 AC_DEFINE_UNQUOTED(EMACS_CONFIGURATION,  "${canonical}")
 AC_DEFINE_UNQUOTED(EMACS_CONFIG_OPTIONS, "${ac_configure_args}")
