@@ -157,6 +157,11 @@ The target is used in the prompt for file copy, rename etc."
   :type 'boolean
   :group 'dired)
 
+; These variables were deleted and the replacements are on files.el.
+; We leave aliases behind for back-compatibility.
+(defvaralias 'dired-free-space-program 'directory-free-space-program)
+(defvaralias 'dired-free-space-args 'directory-free-space-args)
+
 ;;; Hook variables
 
 (defvar dired-load-hook nil
