@@ -1410,8 +1410,10 @@ ALL other buffers."
 		     ;; (or (easy-mmode-derived-mode-p 'latex-mode)
 		     ;; 	 (easy-mmode-derived-mode-p 'plain-tex-mode))
 		     (save-excursion
-		       (goto-char (point-min))
-		       (re-search-forward header-re 10000 t)))
+		       (save-restriction
+			 (widen)
+			 (goto-char (point-min))
+			 (re-search-forward header-re 10000 t))))
 	    (throw 'found (expand-file-name buffer-file-name))))))))
 
 (defun tex-main-file ()
