@@ -1,3 +1,7 @@
+2000-09-28  Kenichi Handa  <handa@etl.go.jp>
+
+	* syntax.c (skip_chars): Handle negation correctly.
+
 2000-09-27  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (realize_default_face): Call set_lface_from_font_name
