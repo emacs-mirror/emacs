@@ -1,3 +1,19 @@
+2005-01-27  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (get_phys_cursor_geometry): New function to calculate
+	phys cursor position and size for hollow cursor.  Position is
+	aligned with get_glyph_string_clip_rect and ensures that a hollow
+	cursor is shown, even when the actual glyph is not visible.
+
+	* dispextern.h (get_phys_cursor_geometry): Add prototype.
+
+	* xterm.c (x_clip_to_row): Ensure y >= 0.
+	(x_draw_hollow_cursor): Use get_phys_cursor_geometry.
+
+	* w32term.c (x_draw_hollow_cursor): Use get_phys_cursor_geometry.
+
+	* macterm.c (x_draw_hollow_cursor): Use get_phys_cursor_geometry.
+
 2005-01-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xterm.c (x_error_quitter): Add a prototype.  Make it static again.
