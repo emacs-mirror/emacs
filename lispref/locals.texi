@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1999 Free Software Foundation, Inc. 
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/locals
 @node Standard Buffer-Local Variables, Standard Keymaps, Standard Errors, Top
@@ -32,6 +32,9 @@ use, but we don't try to list them all here.
 
 @item buffer-display-table
 @xref{Display Tables}.
+
+@item buffer-file-coding-system
+@xref{Encoding and I/O}.
 
 @item buffer-file-format
 @xref{Format Conversion}.
@@ -90,8 +93,17 @@ use, but we don't try to list them all here.
 @item goal-column
 @xref{Moving Point,,, emacs, The GNU Emacs Manual}.
 
+@item header-line-format
+@xref{Mode Line Data}.
+
+@item indicate-empty-lines
+@xref{Usual Display}.
+
 @item left-margin
 @xref{Indentation}.
+
+@item left-margin-width
+@xref{Display Margins}.
 
 @item local-abbrev-table
 @xref{Abbrevs}.
@@ -136,10 +148,19 @@ use, but we don't try to list them all here.
 @xref{Standard Regexps}.
 
 @item point-before-scroll
-Ued for communication between mouse commands and scroll-bar commands..
+Used for communication between mouse commands and scroll-bar commands..
 
 @item require-final-newline
 @xref{Insertion}.
+
+@item right-margin-width
+@xref{Display Margins}.
+
+@item scroll-down-aggressively
+@xref{Textual Scrolling}.
+
+@item scroll-up-aggressively
+@xref{Textual Scrolling}.
 
 @item selective-display
 @xref{Selective Display}.
@@ -156,3 +177,4 @@ Ued for communication between mouse commands and scroll-bar commands..
 @item vc-mode
 @xref{Mode Line Variables}.
 @end table
+
