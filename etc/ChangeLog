@@ -28,7 +28,7 @@
 	* HELLO: Fix the Italian and Maltese entries.  From Trevor Spiteri
 	<tbspit@eng.um.edu.mt>.
 
-2001-08-25  Pavel Jan$(D+?(Bk  <Pavel@Janik.cz>
+2001-08-25  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* HELLO: Slovak language name added to be compatible with other
 	languages.
@@ -36,7 +36,7 @@
 2001-08-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* TUTORIAL.pl: Updated in accordance with the English version.
-	From Beata Wierzcho$(D)H(Bowska <beataw@orient.uw.edu.pl> and
+	From Beata Wierzcho$,1 b(Bowska <beataw@orient.uw.edu.pl> and
 	Janusz S. Bien <jsbien@mail.uw.edu.pl>
 
 2001-08-14  Eli Zaretskii  <eliz@is.elta.co.il>
@@ -45,26 +45,26 @@
 	per config.sub and config.guess.  Reported by Ryo Furue
 	<furufuru@ccsr.u-tokyo.ac.jp>.
 
-2001-08-10  Pavel Jan$(D+?(Bk  <Pavel@Janik.cz>
+2001-08-10  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* TUTORIAL.sk: Updated in accordance with the English version.
-	From Miroslav Va$(D+^(Bko <vasko@debian.cz>.
+	From Miroslav Va$,1!!(Bko <vasko@debian.cz>.
 
 2001-08-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* TUTORIAL.ko: Updated in accordance with the English version.
 	From Koaunghi Un <koaunghi@world.kaist.ac.kr>.
 
-2001-08-06  Pavel Jan$(D+?(Bk  <Pavel@Janik.cz>
+2001-08-06  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* TUTORIAL.cs: Update from Milan Zamazal.
 
-2001-08-05  Pavel Jan$(D+?(Bk  <Pavel@Janik.cz>
+2001-08-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* TUTORIAL.cs, TUTORIAL.sk, cs-refcard.tex, sk-refcard.tex: e-mail
 	address of Milan Zamazal changed.
 
-2001-08-04  Pavel Jan$(D+?(Bk  <Pavel@Janik.cz>
+2001-08-04  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* TUTORIAL, TUTORIAL.cs: Be consistent when naming CONTROL and
 	META keys.
@@ -96,7 +96,7 @@
 	* sk-dired-ref.tex: New files.
 
 	* cs-survival.tex, cs-dired-ref.ps, cs-dired-ref.tex: New files.
-	From Pavel@Janik.cz (Pavel Jan$(D+?(Bk).
+	From Pavel@Janik.cz (Pavel Jan,Am(Bk).
 
 2001-04-10  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
