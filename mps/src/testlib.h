@@ -1,8 +1,8 @@
 /*  ==== TEST LIBRARY ====
  *
- *  $HopeName: MMsrc!testlib.h(trunk.8) $
+ *  $HopeName: MMsrc!testlib.h(trunk.9) $
  *
- *  Copyright (C) 1995, 1997, 1998 Harlequin Group, all rights reserved
+ *  Copyright (C) 1995, 1998.  Harlequin Group plc.  All rights reserved.
  *
  *  This is a library of functions that unit test developers might find
  *  useful.  We hope they enhance your programming pleasure.
@@ -16,6 +16,13 @@
 #define testlib_h
 
 #include "mps.h"
+
+#include <stdio.h>
+/* On SunOS, need ossu.h as well */
+#include "mpstd.h"
+#ifdef MPS_OS_SU
+#include "ossu.h"
+#endif
 
 
 /* Suppress Visual C warnings at warning level 4, */
