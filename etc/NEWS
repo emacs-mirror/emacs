@@ -550,6 +550,7 @@ As an example: if a block cursor is over a tab character, it will be
 drawn as wide as that tab on the display.  To do this, set
 `x-stretch-cursor' to a non-nil value.
 
++++
 ** Empty display lines at the end of a buffer may be marked with a
 bitmap (this is similar to the tilde displayed by vi).
 
