@@ -364,7 +364,7 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
             while (region_cache_forward
                    (current_buffer, newline_cache, start, &next_change))
               start = next_change;
-            immediate_quit = 1;
+            immediate_quit = allow_quit;
 
             /* start should never be after end.  */
             if (start >= end)
@@ -431,7 +431,7 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
             while (region_cache_backward
                    (current_buffer, newline_cache, start, &next_change))
               start = next_change;
-            immediate_quit = 1;
+            immediate_quit = allow_quit;
 
             /* Start should never be at or before end.  */
             if (start <= end)
@@ -507,6 +507,7 @@ find_next_newline (from, cnt)
    find_next_newline (...)-1, because you might hit TO.  */
 int
 find_before_next_newline (from, to, cnt)
+     int from, to, cnt;
 {
   int shortage;
   int pos = scan_buffer ('\n', from, to, cnt, &shortage, 1);
