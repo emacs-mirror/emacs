@@ -449,6 +449,12 @@ ALL_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_MACHINE LD_SWITCH_SITE $(LDFLAGS)
 #define GETLOADAVG_OBJ getloadavg.o
 #endif
 
+#ifdef HAVE_MKTIME
+#define MKTIME_OBJ
+#else
+#define MKTIME_OBJ mktime.o
+#endif
+
 /* lastfile must follow all files
    whose initialized data areas should be dumped as pure by dump-emacs. */
 obj=    dispnew.o frame.o scroll.o xdisp.o window.o \
@@ -461,7 +467,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o window.o \
 	eval.o floatfns.o fns.o print.o lread.o \
 	abbrev.o syntax.o UNEXEC mocklisp.o bytecode.o \
 	process.o callproc.o \
-	doprnt.o strftime.o mktime.o GETLOADAVG_OBJ
+	doprnt.o strftime.o MKTIME_OBJ GETLOADAVG_OBJ
 
 /* Object files used on some machine or other.
    These go in the DOC file on all machines
