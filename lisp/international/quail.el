@@ -2109,7 +2109,7 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 	      (scroll-other-window)))
 	(setq quail-current-key key)
 	(erase-buffer)
-	(insert "Possible completion and corresponding translations are:\n")
+	(insert "Possible completion and corresponding characters are:\n")
 	(quail-completion-1 key map 1)
 	(goto-char (point-min))
 	(display-buffer (current-buffer))
