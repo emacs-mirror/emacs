@@ -6,9 +6,8 @@
 
 	* xmenu.c (pop_down_menu): Remove global variable current_menu,
 	extract pointer from arg with XSAVE_VALUE.
-	(create_and_show_popup_menu, create_and_show_dialog,
-	xmenu_show): Construct arg to record_unwind_protect with
-	make_save_value.
+	(create_and_show_popup_menu, create_and_show_dialog, xmenu_show):
+	Construct arg to record_unwind_protect with make_save_value.
 
 2004-11-13  Richard M. Stallman  <rms@gnu.org>
 
@@ -36,8 +35,8 @@
 
 	* gtkutil.c (xg_file_sel_ok, xg_file_sel_cancel)
 	(xg_file_sel_destroy): Removed.
-	(xg_file_response_cb, pop_down_file_dialog,
-	xg_get_file_name_from_chooser, xg_get_file_name_from_selector):
+	(xg_file_response_cb, pop_down_file_dialog)
+	(xg_get_file_name_from_chooser, xg_get_file_name_from_selector):
 	New functions.
 	(xg_get_file_with_chooser, xg_get_file_with_selection): Take
 	new argument func, set it to xg_get_file_name_from_chooser/selector.
