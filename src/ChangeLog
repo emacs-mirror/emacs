@@ -1,5 +1,8 @@
 2000-07-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* dispnew.c (update_text_area): Write the whole row if it
+	has mouse-face in it.
+
 	* xfaces.c (face-alternative-font-family-alist): Remove
 	DEFVAR_LISP; staticpro instead.
 

@@ -1,3 +1,8 @@
+2000-07-18  Gerd Moellmann  <gerd@gnu.org>
+
+	* faces.el (face-font-selection-order) 
+	(face-font-family-alternatives): Add custom type.
+	
 2000-07-18  Dave Love  <fx@gnu.org>
 
 	* cus-edit.el (custom-variable-reset-saved)
