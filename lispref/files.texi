@@ -1328,15 +1328,22 @@ be an integer).  Only the low 12 bits of @var{mode} are used.
 @defun set-default-file-modes mode
 This function sets the default file protection for new files created by
 Emacs and its subprocesses.  Every file created with Emacs initially has
-this protection.  On Unix and GNU/Linux, the default protection is the
-bitwise complement of the ``umask'' value.
+this protection, or a subset of it (@code{write-region} will not give a
+file execute permission even if the default file protection allows
+execute permission).  On Unix and GNU/Linux, the default protection is
+the bitwise complement of the ``umask'' value.
 
 The argument @var{mode} must be an integer.  On most systems, only the
-low 9 bits of @var{mode} are meaningful.
+low 9 bits of @var{mode} are meaningful.  You can use the Lisp construct
+for octal character codes to enter @var{mode}; for example,
+
+@example
+(set-default-file-modes ?\644)
+@end example
 
 Saving a modified version of an existing file does not count as creating
-the file; it does not change the file's mode, and does not use the
-default file protection.
+the file; it preserves the existing file's mode, whatever that is.  So
+the default file protection has no effect.
 @end defun
 
 @defun default-file-modes
