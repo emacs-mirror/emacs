@@ -52,7 +52,7 @@ startup."
 		 file)
   :group 'octave-inferior)
 
-(defcustom inferior-octave-startup-args '("-i")
+(defcustom inferior-octave-startup-args '("-i" "--no-line-editing")
   "*List of command line arguments for the inferior Octave process.
 For example, for suppressing the startup message and using `traditional'
 mode, set this to (\"-q\" \"--traditional\")."
