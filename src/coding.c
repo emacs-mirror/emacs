@@ -556,7 +556,11 @@ enum iso_code_class_type
 
 #define CODING_ISO_FLAG_EUC_TW_SHIFT	0x4000
 
-#define CODING_ISO_FLAG_FULL_SUPPORT	0x8000
+#define CODING_ISO_FLAG_USE_ROMAN	0x8000
+
+#define CODING_ISO_FLAG_USE_OLDJIS	0x10000
+
+#define CODING_ISO_FLAG_FULL_SUPPORT	0x100000
 
 /* A character to be produced on output if encoding of the original
    character is prohibited by CODING_ISO_FLAG_SAFE.  */
@@ -2268,7 +2272,7 @@ setup_iso_safe_charsets (attrs)
 
       id = XCAR (tail);
       charset = CHARSET_FROM_ID (XINT (id));
-      reg = Fcdr (Fassq (request, id));
+      reg = Fcdr (Fassq (id, request));
       if (! NILP (reg))
 	XSTRING (safe_charsets)->data[XINT (id)] = XINT (reg);
       else if (charset->iso_chars_96)
@@ -2562,6 +2566,16 @@ detect_coding_iso_2022 (coding, mask)
 	goto invalid_code;						\
       }									\
     prev = CODING_ISO_DESIGNATION (coding, reg);			\
+    if (id == charset_jisx0201_roman)					\
+      {									\
+	if (CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_USE_ROMAN)	\
+	  id = charset_ascii;						\
+      }									\
+    else if (id == charset_jisx0208_1978)				\
+      {									\
+	if (CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_USE_OLDJIS)	\
+	  id = charset_jisx0208;					\
+      }									\
     CODING_ISO_DESIGNATION (coding, reg) = id;				\
     /* If there was an invalid designation to REG previously, and this	\
        designation is ASCII to REG, we should keep this designation	\
@@ -3201,6 +3215,14 @@ decode_coding_iso_2022 (coding)
 #define ENCODE_ISO_CHARACTER_DIMENSION1(charset, c1)			\
   do {									\
     int id = CHARSET_ID (charset);					\
+									\
+    if ((CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_USE_ROMAN)		\
+	&& id == charset_ascii)						\
+      {									\
+	id = charset_jisx0201_roman;					\
+	charset = CHARSET_FROM_ID (id);					\
+      }									\
+									\
     if (CODING_ISO_SINGLE_SHIFTING (coding))				\
       {									\
 	if (CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_SEVEN_BITS)	\
@@ -3237,6 +3259,14 @@ decode_coding_iso_2022 (coding)
 #define ENCODE_ISO_CHARACTER_DIMENSION2(charset, c1, c2)		\
   do {									\
     int id = CHARSET_ID (charset);					\
+									\
+    if ((CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_USE_OLDJIS)	\
+	&& id == charset_jisx0208)					\
+      {									\
+	id = charset_jisx0208_1978;					\
+	charset = CHARSET_FROM_ID (id);					\
+      }									\
+									\
     if (CODING_ISO_SINGLE_SHIFTING (coding))				\
       {									\
 	if (CODING_ISO_FLAGS (coding) & CODING_ISO_FLAG_SEVEN_BITS)	\
@@ -3520,7 +3550,10 @@ encode_coding_iso_2022 (coding)
 	  if (ascii_compatible)
 	    EMIT_ONE_ASCII_BYTE (c);
 	  else
-	    ENCODE_ISO_CHARACTER (CHARSET_FROM_ID (charset_ascii), c);
+	    {
+	      struct charset *charset = CHARSET_FROM_ID (charset_ascii);
+	      ENCODE_ISO_CHARACTER (charset, c);
+	    }
 	}
       else
 	{
