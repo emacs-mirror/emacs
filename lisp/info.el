@@ -833,11 +833,55 @@ NAME may be an abbreviation of the reference name."
       (aset str i ?\ ))
     str))
 
-;; No one calls this and Info-menu-item doesn't exist.
+;; No one calls this.
 ;;(defun Info-menu-item-sequence (list)
 ;;  (while list
-;;    (Info-menu-item (car list))
+;;    (Info-menu (car list))
 ;;    (setq list (cdr list))))
+
+(defun Info-complete-menu-item (string predicate action)
+  (let ((case-fold-search t))
+    (cond ((eq action nil)
+	   (let (completions
+		 (pattern (concat "\n\\* \\("
+				  (regexp-quote string)
+				  "[^:\t\n]*\\):")))
+	     (save-excursion
+	       (set-buffer Info-complete-menu-buffer)
+	       (goto-char (point-min))
+	       (while (re-search-forward pattern nil t)
+		 (setq completions (cons (cons (format "%s"
+						       (buffer-substring
+							(match-beginning 1)
+							(match-end 1)))
+					       (match-beginning 1))
+					 completions))))
+	     (try-completion string completions predicate)))
+	  ((eq action t)
+	   (let (completions
+		 (pattern (concat "\n\\* \\("
+				  (regexp-quote string)
+				  "[^:\t\n]*\\):")))
+	     (save-excursion
+	       (set-buffer Info-complete-menu-buffer)
+	       (goto-char (point-min))
+	       (while (re-search-forward pattern nil t)
+		 (setq completions (cons (cons (format "%s"
+						       (buffer-substring
+							(match-beginning 1)
+							(match-end 1)))
+					       (match-beginning 1))
+					 completions))))
+	     (all-completions string completions predicate)))
+	  (t
+	   (save-excursion
+	     (set-buffer Info-complete-menu-buffer)
+	     (goto-char (point-min))
+	     (re-search-forward (concat "\n\\* "
+					(regexp-quote string)
+					":")
+				nil t))))))
+
 
 (defun Info-menu (menu-item)
   "Go to node for menu item named (or abbreviated) NAME.
@@ -852,30 +896,24 @@ Completion is allowed, and the menu item point is on is the default."
        (goto-char (point-min))
        (if (not (search-forward "\n* menu:" nil t))
 	   (error "No menu in this node"))
-       (while (re-search-forward
-		"\n\\* \\([^:\t\n]*\\):" nil t)
-	 (if (and (null default)
-		  (prog1 (if last (< last p) nil)
-		    (setq last (match-beginning 0)))
-		  (<= p last))
-	     (setq default (car (car completions))))
-	 (setq completions (cons (cons (buffer-substring
-					 (match-beginning 1)
-					 (match-end 1))
-				       (match-beginning 1))
-				 completions)))
-       (if (and (null default) last
-		(< last p)
-		(<= p (progn (end-of-line) (point))))
-	   (setq default (car (car completions)))))
+       (setq beg (point))
+       (and (< (point) p)
+	    (save-excursion
+	      (goto-char p)
+	      (end-of-line)
+	      (re-search-backward "\n\\* \\([^:\t\n]*\\):" beg t)
+	      (setq default (format "%s" (buffer-substring
+					  (match-beginning 1)
+					  (match-end 1)))))))
      (let ((item nil))
        (while (null item)
-	 (setq item (let ((completion-ignore-case t))
+	 (setq item (let ((completion-ignore-case t)
+			  (Info-complete-menu-buffer (current-buffer)))
 		      (completing-read (if default
 					   (format "Menu item (default %s): "
 						   default)
 					   "Menu item: ")
-				       completions nil t)))
+				       'Info-complete-menu-item nil t)))
 	 ;; we rely on the fact that completing-read accepts an input
 	 ;; of "" even when the require-match argument is true and ""
 	 ;; is not a valid possibility
