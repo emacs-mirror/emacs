@@ -1,12 +1,30 @@
+2005-01-02  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-yank.el (calc-edit-top): New variable.
+	(calc-edit-mode): Set calc-edit-top to be the beginning of the edited
+	object.  Change header properties.
+	(calc-edit-finish, calc-edit-finish-stack-object)
+	(calc-edit-show-buffer): Use calc-edit-top to find the beginning of the
+	edited object.
+	* calc/calc-sel.el (calc-finish-selection-edit): Use calc-edit-top
+	for the beginning of the edited object.
+	* calc/calc-embed.el (calc-embedded-finish-edit): Use calc-edit-top
+	for the beginning of the edited object.
+	* calc/calc-prog.el (calc-edit-macro-finish-edit)
+	(calc-finish-formula-edit, calc-macro-repeats)
+	(calc-edit-macro-adjust-buffer, calc-edit-format-macro-buffer)
+	(calc-edit-macro-pre-finish-edit): Use calc-edit-top for the
+	beginning of the edited object.
+	(calc-user-define-edit): Change the header for editing macros.
+	Remove unnecessary variable.
+
 2005-01-01  Jay Belanger  <belanger@truman.edu>
 
-	* calc-yank.el (calc-edit-mode): Change default header.
+	* calc/calc-yank.el (calc-edit-mode): Change default header.
 	(calc-edit-finish, calc-show-edit-buffer): Adjust to handle new
 	header. 
-	
-	* calc-store.el (calc-edit-variable): Change title to match new
+	* calc/calc-store.el (calc-edit-variable): Change title to match new
 	header.
-
 	* calc/calc-prog.el (calc-edit-user-syntax): Change title in edit
 	mode to match new header.
 	(calc-user-define-edit): Change titles to include names of commands.
