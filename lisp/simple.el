@@ -652,12 +652,21 @@ in this use of the minibuffer.")
 (defun minibuffer-history-initialize ()
   (setq minibuffer-text-before-history nil))
 
+(defcustom minibuffer-history-case-insensitive-variables nil
+  "*Minibuffer history variables for which matching should ignore case.
+If a history variable is a member of this list, then the
+\\[previous-matching-history-element] and \\[next-matching-history-element]\
+ commands ignore case when searching it, regardless of `case-fold-search'."
+  :type '(repeat variable)
+  :group 'minibuffer)
+
 (defun previous-matching-history-element (regexp n)
   "Find the previous history element that matches REGEXP.
 \(Previous history elements refer to earlier actions.)
 With prefix argument N, search for Nth previous match.
 If N is negative, find the next or Nth next match.
-An uppercase letter in REGEXP makes the search case-sensitive."
+An uppercase letter in REGEXP makes the search case-sensitive.
+See also `minibuffer-history-case-insensitive-variables'."
   (interactive
    (let* ((enable-recursive-minibuffers t)
 	  (regexp (read-from-minibuffer "Previous element matching (regexp): "
@@ -678,8 +687,12 @@ An uppercase letter in REGEXP makes the search case-sensitive."
   (let ((history (symbol-value minibuffer-history-variable))
 	(case-fold-search
 	 (if (isearch-no-upper-case-p regexp t)	; assume isearch.el is dumped
-	     ;; Respect the user's setting for case-fold-search:
-	     case-fold-search
+	     ;; On some systems, ignore case for file names.
+	     (if (memq minibuffer-history-variable
+		       minibuffer-history-case-insensitive-variables)
+		 t
+	       ;; Respect the user's setting for case-fold-search:
+	       case-fold-search)
 	   nil))
 	prevpos
 	(pos minibuffer-history-position))
