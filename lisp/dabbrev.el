@@ -297,7 +297,7 @@ this list.")
 (define-key esc-map "/" 'dabbrev-expand)
 ;;;??? Do we want this?
 ;;;###autoload
-(define-key esc-map [?\C-/] 'dabbrev-completion))
+(define-key esc-map [?\C-/] 'dabbrev-completion)
 
 ;;;###autoload
 (defun dabbrev-completion (&optional arg)
