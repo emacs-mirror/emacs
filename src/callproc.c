@@ -1228,7 +1228,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 
 #ifdef MSDOS
   pid = run_msdos_command (new_argv, pwd_var + 4, in, out, err, env);
-  free (pwd_var);
+  xfree (pwd_var);
   if (pid == -1)
     /* An error occurred while trying to run the subprocess.  */
     report_file_error ("Spawning child process", Qnil);
