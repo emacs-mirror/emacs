@@ -125,7 +125,14 @@
     (progn
       (setq blink-paren-function nil)
       (add-hook 'post-command-hook 'show-paren-command-hook)))
-
+;;; This is in case paren.el is preloaded.
+(add-hook 'window-setup-hook
+	  (function (lambda ()
+		      (if window-system
+			  (progn
+			    (setq blink-paren-function nil)
+			    (add-hook 'post-command-hook
+				      'show-paren-command-hook))))))
 (provide 'paren)
 
 ;;; paren.el ends here
