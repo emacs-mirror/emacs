@@ -349,7 +349,7 @@ w32con_write_glyphs (register struct glyph *string, register int len)
 	    }
 
 	  /* Write the characters.  */
-	  if (!WriteConsoleOutputCharacter (cur_screen, terminal_encode_buffer,
+	  if (!WriteConsoleOutputCharacter (cur_screen, conversion_buffer,
 					    coding->produced, cursor_coords,
 					    &r))
 	    {
