@@ -86,6 +86,19 @@ Using @code{eval-when-compile} avoids loading @var{bar} when
 the compiled version of @var{foo} is @emph{used}.
 
 @item
+Please don't require the @code{cl} package of Common Lisp extensions at
+run time.  Use of this package is optional, and it is not part of the
+standard Emacs namespace.  If your package loads @code{cl} at run time,
+that could cause name clashes for users who don't use that package.
+
+However, there is no problem with using the @code{cl} package at compile
+time, for the sake of macros.  You do that like this:
+
+@example
+(eval-when-compile (require 'cl))
+@end example
+
+@item
 When defining a major mode, please follow the major mode
 conventions.  @xref{Major Mode Conventions}.
 

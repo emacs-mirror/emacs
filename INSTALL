@@ -20,18 +20,20 @@ ADDITIONAL DISTRIBUTION FILES
 * leim-M.N.tar.gz
 
 The Emacs Lisp code for input methods for various international
-character scripts is distributed in a separate tar file because of its
-large size.  This file is called leim-M.N.tar.gz, with the same
-version number as Emacs, and it unpacks into the directory
-emacs-M.N/leim.  Thus, if you unpack it in the same directory where
-you unpacked the Emacs distribution, it fills in a subdirectory
-of the Emacs distribution.
+character scripts is distributed in a separate tar file because it
+amounts to a significant fraction of the size of the distribution.
+This tar file is called leim-M.N.tar.gz, with the same version number
+as Emacs, and it unpacks into the directory emacs-M.N/leim.
 
-If you have already unpacked the Leim tar file into a subdirectory of
-the Emacs sources, building and installing Emacs automatically
-installs the input method support as well.  If you unpack the Leim tar
-file into the Emacs sources after building and installing Emacs, just
-build Emacs again and install it again.
+You should unpack leim-M.N.tar.gz into the same directory where you
+have previously unpacked the main Emacs distribution.  It fills in the
+contents of one subdirectory, which is present in the main Emacs
+distribution only in dummy form.
+
+Once you have unpacked the Leim tar file into the Emacs source tree,
+building and installing Emacs automatically installs the input method
+support as well.  If you have built Emacs without unpacking Leim
+first, just unpack Leim, build Emacs again, and install it again.
 
 * intlfonts-VERSION.tar.gz
 
