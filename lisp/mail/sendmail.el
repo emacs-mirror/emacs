@@ -1,6 +1,6 @@
 ;;; sendmail.el --- mail sending commands for Emacs.
 
-;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 1998 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -71,8 +71,8 @@ nil means let mailer mail back a message to report errors."
 ;;;###autoload
 (defvar send-mail-function 'sendmail-send-it "\
 Function to call to send the current buffer as mail.
-The headers should be delimited by a line whose contents
-match the variable `mail-header-separator'.")
+The headers should be delimited by a line which is
+not a valid RFC822 header or continuation line.")
 
 ;;;###autoload
 (defcustom mail-header-separator "--text follows this line--" "\
@@ -416,17 +416,37 @@ Here are commands that move to a header field (and create it if there isn't):
   (setq paragraph-separate paragraph-start)
   (run-hooks 'text-mode-hook 'mail-mode-hook))
 
+
+(defun mail-header-end ()
+  "Return the buffer location of the end of headers, as a number."
+  (save-excursion
+    (rfc822-goto-eoh)
+    (point)))
+
+(defun mail-text-start ()
+  "Return the buffer location of the start of text, as a number."
+  (save-excursion
+    (rfc822-goto-eoh)
+    (forward-line 1)
+    (point)))
+
+(defun mail-sendmail-delimit-header ()
+  "Set up whatever header delimiter convention sendmail will use.
+Concretely: replace the first blank line in the header with the separator."
+  (rfc822-goto-eoh)
+  (insert mail-header-separator)
+  (point))
+
+(defun mail-sendmail-undelimit-header ()
+  "Remove header separator to put the message in correct form for sendmail.
+Leave point at the start of the delimiter line."
+  (rfc822-goto-eoh)
+  (delete-region (point) (progn (end-of-line) (point))))
+
 (defun mail-mode-auto-fill ()
   "Carry out Auto Fill for Mail mode.
 If within the headers, this makes the new lines into continuation lines."
-  (if (< (point)
-	 (save-excursion
-	   (goto-char (point-min))
-	   (if (re-search-forward
-		(concat "^" (regexp-quote mail-header-separator) "$")
-		nil t)
-	       (point)
-	     0)))
+  (if (< (point) (mail-header-end))
       (let ((old-line-start (save-excursion (beginning-of-line) (point))))
 	(if (do-auto-fill)
 	    (save-excursion
@@ -441,14 +461,7 @@ If within the headers, this makes the new lines into continuation lines."
 
 (defun mail-mode-fill-paragraph (arg)
   ;; Do something special only if within the headers.
-  (if (< (point)
-	 (save-excursion
-	   (goto-char (point-min))
-	   (if (re-search-forward
-		(concat "^" (regexp-quote mail-header-separator) "$")
-		nil t)
-	       (point)
-	     0)))
+  (if (< (point) (mail-header-end))
       (let (beg end fieldname) 
 	(re-search-backward "^[-a-zA-Z]+:" nil 'yes)
 	(setq beg (point))
@@ -623,7 +636,7 @@ the user from the mailer."
 		(error "Message contains non-ASCII characters"))))
 	;; Complain about any invalid line.
 	(goto-char (point-min))
-	(while (not (looking-at (regexp-quote mail-header-separator)))
+	(while (< (point) (mail-header-end))
 	  (unless (looking-at "[ \t]\\|.*:\\|$")
 	    (push-mark opoint)
 	    (error "Invalid header line (maybe a continuation line lacks initial whitespace)"))
@@ -684,11 +697,8 @@ the user from the mailer."
 	  (or (= (preceding-char) ?\n)
 	      (insert ?\n))
 	  ;; Change header-delimiter to be what sendmail expects.
-	  (goto-char (point-min))
-	  (re-search-forward
-	    (concat "^" (regexp-quote mail-header-separator) "\n"))
-	  (replace-match "\n")
-	  (backward-char 1)
+	  (goto-char (mail-header-end))
+	  (delete-region (point) (progn (end-of-line) (point)))
 	  (setq delimline (point-marker))
 	  (sendmail-sync-aliases)
 	  (if mail-aliases
@@ -986,12 +996,8 @@ the user from the mailer."
   "Make a Sent-via header line from each To or CC header line."
   (interactive)
   (save-excursion
-    (goto-char (point-min))
-    ;; find the header-separator
-    (search-forward (concat "\n" mail-header-separator "\n"))
-    (forward-line -1)
     ;; put a marker at the end of the header
-    (let ((end (point-marker))
+    (let ((end (make-marker (mail-header-end)))
 	  (case-fold-search t)
 	  to-line)
       (goto-char (point-min))
@@ -1054,9 +1060,7 @@ the user from the mailer."
 (defun mail-position-on-field (field &optional soft)
   (let (end
 	(case-fold-search t))
-    (goto-char (point-min))
-    (re-search-forward (concat "^" (regexp-quote mail-header-separator) "$"))
-    (setq end (match-beginning 0))
+    (setq end (mail-header-end))
     (goto-char (point-min))
     (if (re-search-forward (concat "^" (regexp-quote field) ":") end t)
 	(progn
@@ -1074,8 +1078,7 @@ the user from the mailer."
   "Move point to beginning of message text."
   (interactive)
   (expand-abbrev)
-  (goto-char (point-min))
-  (search-forward (concat "\n" mail-header-separator "\n")))
+  (goto-char (mail-text-start)))
 
 (defun mail-signature (atpoint)
   "Sign letter with contents of the file `mail-signature-file'.
@@ -1096,8 +1099,7 @@ Prefix arg means put contents at point."
 Numeric argument means justify as well."
   (interactive "P")
   (save-excursion
-    (goto-char (point-min))
-    (search-forward (concat "\n" mail-header-separator "\n") nil t)
+    (goto-char (mail-text-start))
     (fill-individual-paragraphs (point)
 				(point-max)
 				justifyp
