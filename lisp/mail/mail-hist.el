@@ -1,9 +1,9 @@
 ;;; mail-hist.el --- Headers and message body history for outgoing mail.
+
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@cs.oberlin.edu>
 ;; Created: March, 1994
-;; Version: See variable `mail-hist-version'.
 ;; Keywords: mail, history
 
 ;; This file is part of GNU Emacs.
@@ -17,6 +17,11 @@
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
 
@@ -55,9 +60,6 @@
 ;;; Code:
 (require 'ring)
 
-(defconst mail-hist-version "1.3.4"
-  "The version number of this mail-hist package.")
-
 ;;;###autoload
 (defun mail-hist-define-keys ()
   "Define keys for accessing mail header history.  For use in hooks."
@@ -65,13 +67,9 @@
   (local-set-key "\M-n" 'mail-hist-next-input))
 
 ;;;###autoload
-(add-hook 'mail-mode-hook 'mail-hist-define-keys)
-
-;;;###autoload
-(add-hook 'vm-mail-mode-hook 'mail-hist-define-keys)
-
-;;;###autoload
-(add-hook 'mail-send-hook 'mail-hist-put-headers-into-history)
+(defun mail-hist-enable ()
+  (add-hook 'mail-mode-hook 'mail-hist-define-keys)
+  (add-hook 'mail-send-hook 'mail-hist-put-headers-into-history))
 
 (defvar mail-hist-header-ring-alist nil
   "Alist of form (header-name . history-ring).
@@ -102,14 +100,16 @@ Oldest elements are dumped first.")
 Returns nil if not in a header, implying that point is in the body of
 the message."
   (if (save-excursion
-        (re-search-backward
-         (concat "^" (regexp-quote mail-header-separator)) nil t))
+        (re-search-backward (concat "^" (regexp-quote mail-header-separator)
+				    "$")
+			    nil t))
       nil ; then we are in the body of the message
     (save-excursion
       (let* ((body-start ; limit possibility of false headers
               (save-excursion
                 (re-search-forward
-                 (concat "^" (regexp-quote mail-header-separator)) nil t)))
+		 (concat "^" (regexp-quote mail-header-separator) "$")
+		 nil t)))
              (name-start
               (re-search-backward mail-hist-header-regexp nil t))
              (name-end
@@ -122,40 +122,42 @@ the message."
 (defsubst mail-hist-forward-header (count)
   "Move forward COUNT headers (backward if COUNT is negative).
 If last/first header is encountered first, stop there and returns
-nil.
-Places point directly after the colon."
-  (let ((boundary
-         (save-excursion
-           (if (re-search-forward
-                (concat "^" (regexp-quote mail-header-separator)) nil t)
-               (progn
-                 (beginning-of-line)
-                 (1- (point)))
-             nil))))
+nil.  
 
-    (if boundary
-        (let ((unstopped t))
-          (if (> count 0)
-              ;; Moving forward.
-              (while (> count 0)
-                (setq
-                 unstopped
-                 (re-search-forward mail-hist-header-regexp boundary t))
-                (setq count (1- count)))
-            ;; Else moving backward.
-            ;; Decrement because the current header will match too.
-            (setq count (1- count))
-            ;; count is negative
-            (while (< count 0)
-              (setq
-               unstopped
-               (re-search-backward mail-hist-header-regexp nil t))
-              (setq count (1+ count)))
-            ;; We end up behind the header, so must move to the front.
-            (re-search-forward mail-hist-header-regexp boundary t))
-          ;; Poof!  Now we're sitting just past the colon.  Finito.
-          ;; Return nil if didn't go as far as asked, otherwise point
-          unstopped))))
+Places point on the first non-whitespace on the line following the
+colon after the header name, or on the second space following that if
+the header is empty."
+  (let ((boundary (save-excursion
+		    (re-search-forward
+		     (concat "^" (regexp-quote mail-header-separator) "$")
+		     nil t))))
+    (and
+     boundary
+     (let ((unstopped t))
+       (setq boundary (save-excursion
+                    (goto-char boundary)
+                    (beginning-of-line)
+                    (1- (point))))
+       (if (> count 0)
+           (while (> count 0)
+             (setq
+              unstopped
+              (re-search-forward mail-hist-header-regexp boundary t))
+             (setq count (1- count)))
+         ;; because the current header will match too.
+         (setq count (1- count))
+         ;; count is negative
+         (while (< count 0)
+           (setq
+            unstopped
+            (re-search-backward mail-hist-header-regexp nil t))
+           (setq count (1+ count)))
+         ;; we end up behind the header, so must move to the front
+         (re-search-forward mail-hist-header-regexp boundary t))
+       ;; Now we are right after the colon
+       (and (looking-at "\\s-") (forward-char 1))
+       ;; return nil if didn't go as far as asked, otherwise point
+       unstopped))))
 
 (defsubst mail-hist-beginning-of-header ()
   "Move to the start of the current header.
@@ -174,7 +176,7 @@ colon, or just after the colon if it is not followed by whitespace."
     (let ((start (point)))
       (or (mail-hist-forward-header 1)
           (re-search-forward
-           (concat "^" (regexp-quote mail-header-separator))))
+	   (concat "^" (regexp-quote mail-header-separator) "$")))
       (beginning-of-line)
       (buffer-substring start (1- (point))))))
 
@@ -184,26 +186,24 @@ HEADER is a string without the colon."
   (setq header (downcase header))
   (cdr (assoc header mail-hist-header-ring-alist)))
 
-
 (defvar mail-hist-text-size-limit nil
-  "*Don't store any header or body with more than this many
-characters, plus one.  Nil means there will be no limit on text size.")
+  "*Don't store any header or body with more than this many characters.
+If the value is nil, that means no limit on text size.")
 
+(defun mail-hist-text-too-long-p (text)
+  "Return t if TEXT does not exceed mail-hist's size limit.
+The variable `mail-hist-text-size-limit' defines this limit."
+  (if mail-hist-text-size-limit
+      (> (length text) mail-hist-text-size-limit)))
 
 (defsubst mail-hist-add-header-contents-to-ring (header &optional contents)
-  "Add the contents of the current HEADER to the header history ring.
-HEADER is a string; it will be downcased.
+  "Add the contents of HEADER to the header history ring.
 Optional argument CONTENTS is a string which will be the contents
-\(instead of whatever's found in the header\)."
+\(instead of whatever's found in the header)."
   (setq header (downcase header))
   (let ((ctnts (or contents (mail-hist-current-header-contents)))
         (ring  (cdr (assoc header mail-hist-header-ring-alist))))
-
-    ;; Possibly truncate the text.  Note that
-    ;; `mail-hist-text-size-limit' might be nil, in which case no
-    ;; truncation would take place.
-    (setq ctnts (substring ctnts 0 mail-hist-text-size-limit))
-
+    (if (mail-hist-text-too-long-p ctnts) (setq ctnts ""))
     (or ring
         ;; If the ring doesn't exist, we'll have to make it and add it
         ;; to the mail-header-ring-alist:
@@ -212,7 +212,6 @@ Optional argument CONTENTS is a string which will be the contents
           (setq mail-hist-header-ring-alist
                 (cons (cons header ring) mail-hist-header-ring-alist))))
     (ring-insert ring ctnts)))
-
 
 ;;;###autoload
 (defun mail-hist-put-headers-into-history ()
@@ -228,63 +227,16 @@ This function normally would be called when the message is sent."
      (while (mail-hist-forward-header 1)
        (mail-hist-add-header-contents-to-ring
         (mail-hist-current-header-name)))
-     ;; We do body contents specially.  This is bad.  Had I thought to
-     ;; include body-saving when I first wrote mail-hist, things might
-     ;; be cleaner now.  Sigh.
      (let ((body-contents
             (save-excursion
-            (goto-char (point-min))
-            (re-search-forward
-             (concat "^" (regexp-quote mail-header-separator)) nil)
-            (forward-line 1)
-            (buffer-substring (point) (point-max)))))
+	      (goto-char (point-min))
+	      (re-search-forward
+	       (concat "^" (regexp-quote mail-header-separator) "$")
+	       nil)
+	      (forward-line 1)
+	      (buffer-substring (point) (point-max)))))
        (mail-hist-add-header-contents-to-ring "body" body-contents)))))
 
-(defun mail-hist-header-virgin-p ()
-  "Return non-nil if it looks like this header had no contents.
-If it has exactly one space following the colon, then we consider it
-virgin."
-  (save-excursion
-    (mail-hist-forward-header -1)
-    (mail-hist-forward-header 1)
-    (looking-at " \n")))
-
-(defun mail-hist-next-or-previous-input (header nextp)
-  "Insert next or previous contents of this mail header or message body.
-Moves back through the history of sent mail messages.  Each header has
-its own independent history, as does the body of the message."
-  (if (null header) (error "Not in a header."))
-  (setq header (downcase header))
-  (let* ((ring (cdr (assoc header mail-hist-header-ring-alist)))
-         (len (ring-length ring))
-         (repeat (eq last-command 'mail-hist-input-access)))
-    (if repeat
-        (setq mail-hist-access-count
-              (funcall (if nextp 'ring-minus1 'ring-plus1)
-                       mail-hist-access-count len))
-      (setq mail-hist-access-count 0))
-    (if (null ring)
-        (progn
-          (ding)
-          (message "No history for \"%s\"." header))
-      (if (ring-empty-p ring)
-          (error "\"%s\" ring is empty." header)
-        (if repeat
-             (delete-region (car mail-hist-last-bounds)
-                            (cdr mail-hist-last-bounds))
-          ;; Else if this looks like a virgin header, we'll want to
-          ;; get rid of its single space, because saved header
-          ;; contents already include that space, and it's usually
-          ;; desirable to have only one space between the colon and
-          ;; the start of your header contents.
-          (if (mail-hist-header-virgin-p)
-              (delete-backward-char 1)))
-        (let ((start (point)))
-          (insert (ring-ref ring mail-hist-access-count))
-          (setq mail-hist-last-bounds (cons start (point)))
-          (setq this-command 'mail-hist-input-access))))))
-
-
 (defun mail-hist-previous-input (header)
   "Insert the previous contents of this mail header or message body.
 Moves back through the history of sent mail messages.  Each header has
@@ -293,8 +245,27 @@ its own independent history, as does the body of the message.
 The history only contains the contents of outgoing messages, not
 received mail."
   (interactive (list (or (mail-hist-current-header-name) "body")))
-  (mail-hist-next-or-previous-input header nil))
-
+  (setq header (downcase header))
+  (let* ((ring (cdr (assoc header mail-hist-header-ring-alist)))
+         (len (ring-length ring))
+         (repeat (eq last-command 'mail-hist-input-access)))
+    (if repeat
+        (setq mail-hist-access-count
+              (ring-plus1 mail-hist-access-count len))
+      (setq mail-hist-access-count 0))
+    (if (null ring)
+        (progn
+          (ding)
+          (message "No history for \"%s\"." header))
+      (if (ring-empty-p ring)
+          (error "\"%s\" ring is empty." header)
+        (and repeat
+             (delete-region (car mail-hist-last-bounds)
+                            (cdr mail-hist-last-bounds)))
+        (let ((start (point)))
+          (insert (ring-ref ring mail-hist-access-count))
+          (setq mail-hist-last-bounds (cons start (point)))
+          (setq this-command 'mail-hist-input-access))))))
 
 (defun mail-hist-next-input (header)
   "Insert next contents of this mail header or message body.
@@ -308,8 +279,27 @@ without having called `mail-hist-previous-header' first
 The history only contains the contents of outgoing messages, not
 received mail."
   (interactive (list (or (mail-hist-current-header-name) "body")))
-  (mail-hist-next-or-previous-input header t))
-
+  (setq header (downcase header))
+  (let* ((ring (cdr (assoc header mail-hist-header-ring-alist)))
+         (len (ring-length ring))
+         (repeat (eq last-command 'mail-hist-input-access)))
+    (if repeat
+        (setq mail-hist-access-count
+              (ring-minus1 mail-hist-access-count len))
+      (setq mail-hist-access-count 0))
+    (if (null ring)
+        (progn
+          (ding)
+          (message "No history for \"%s\"." header))
+      (if (ring-empty-p ring)
+          (error "\"%s\" ring is empty." header)
+        (and repeat
+             (delete-region (car mail-hist-last-bounds)
+                            (cdr mail-hist-last-bounds)))
+        (let ((start (point)))
+          (insert (ring-ref ring mail-hist-access-count))
+          (setq mail-hist-last-bounds (cons start (point)))
+          (setq this-command 'mail-hist-input-access))))))
 
 (provide 'mail-hist)
 
