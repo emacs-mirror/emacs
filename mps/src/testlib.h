@@ -1,6 +1,6 @@
 /*  ==== TEST LIBRARY ====
  *
- *  $HopeName: MMsrc!testlib.h(trunk.3) $
+ *  $HopeName: MMsrc!testlib.h(trunk.4) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -15,7 +15,7 @@
 #ifndef testlib_h
 #define testlib_h
 
-#include "mpm.h"
+#include "mps.h"
 
 /*  == SUCCEED OR DIE ==
  *
@@ -26,7 +26,7 @@
  *   die(SpaceInit(space), "SpaceInit");
  */
 
-extern void die(Res res, const char *s);
+extern void die(mps_res_t res, const char *s);
 
 /*  == RANDOM NUMBER GENERATOR ==
  *
