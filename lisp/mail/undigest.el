@@ -31,11 +31,7 @@
 (require 'rmail)
 
 (defcustom rmail-digest-end-regexps
-  (list (concat "End of.*Digest.*\n"
-		(regexp-quote "*********") "*"
-		"\\(\n------*\\)*")
-	(concat "End of.*\n"
-		(regexp-quote "*") "*"))
+  (list "End of.*Digest.*\n" "End of.*\n")
   "*Regexps matching the end of a digest message."
   :group 'rmail
   :type '(repeat regexp))
@@ -86,13 +82,11 @@ Leaves original message, deleted, before the undigestified messages."
 			(regexps rmail-digest-end-regexps))
 		    (while (and regexps (not found))
 		      (goto-char (point-max))
-		      (skip-chars-backward " \t\n")
 		      ;; compensate for broken un*x digestifiers.  Sigh Sigh.
-		      (while (and (> (point) start) (not found))
-			(forward-line -1)
-			(if (looking-at (car regexps))
-			    (setq found t))
-			(setq regexps (cdr regexps))))
+		      (setq found (re-search-backward
+				   (concat "^\\(?:" (car regexps) "\\)")
+				   start t))
+		      (setq regexps (cdr regexps)))
 		    (unless found
 		      (error "Message is not a digest--no end line"))))
 		(re-search-forward (concat "^" (make-string 55 ?-) "-*\n*"))
