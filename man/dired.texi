@@ -289,15 +289,11 @@ to display the file, like the @kbd{o} command.
 @item v
 @kindex v @r{(Dired)}
 @findex dired-view-file
-View the file described on the current line, using either an external
-viewing program or @kbd{M-x view-file} (@code{dired-view-file}).
-
-@vindex dired-view-command-alist
-External viewers are used for certain file types under the control of
-@code{dired-view-command-alist}.  Viewing a file with @code{view-file}
-is like visiting it, but is slanted toward moving around in the file
+View the file described on the current line, using @kbd{M-x view-file}
+(@code{dired-view-file}).  Viewing a file with @code{view-file} is
+like visiting it, but is slanted toward moving around in the file
 conveniently and does not allow changing the file.  @xref{Misc File
-Ops,View File, Miscellaneous File Operations}.
+Ops, View File, Miscellaneous File Operations}.
 
 @item ^
 @kindex ^ @r{(Dired)}
@@ -376,13 +372,17 @@ Move point to previous line and remove any mark on that line
 (@code{dired-unmark-backward}).
 
 @item * !
+@itemx U
 @kindex * ! @r{(Dired)}
+@kindex U @r{(Dired)}
 @findex dired-unmark-all-marks
 Remove all marks from all the files in this Dired buffer
 (@code{dired-unmark-all-marks}).
 
 @item * ? @var{markchar}
+@itemx M-@key{DEL}
 @kindex * ? @r{(Dired)}
+@kindex M-DEL @r{(Dired)}
 @findex dired-unmark-all-files
 Remove all marks that use the character @var{markchar}
 (@code{dired-unmark-all-files}).  The argument is a single
@@ -396,17 +396,23 @@ asking whether to remove its mark.  You can answer @kbd{y} meaning yes,
 files without asking about them.
 
 @item * C-n
+@itemx M-@}
 @findex dired-next-marked-file
 @kindex * C-n @r{(Dired)}
+@kindex M-@} @r{(Dired)}
 Move down to the next marked file (@code{dired-next-marked-file})
 A file is ``marked'' if it has any kind of mark.
 
 @item * C-p
+@itemx M-@{
 @findex dired-prev-marked-file
 @kindex * C-p @r{(Dired)}
+@kindex M-@{ @r{(Dired)}
 Move up to the previous marked file (@code{dired-prev-marked-file})
 
-@item * t
+@item t
+@itemx * t
+@kindex t @r{(Dired)}
 @kindex * t @r{(Dired)}
 @findex dired-toggle-marks
 @cindex toggling marks (in Dired)
@@ -968,9 +974,6 @@ ignore files in hidden directories even if they are marked.  Thus you
 can use hiding to temporarily exclude subdirectories from operations
 without having to remove the markers.
 
-  The subdirectory hiding commands toggle; that is, they hide what was
-visible, and show what was hidden.
-
 @node Dired Updating
 @section Updating the Dired Buffer
 @cindex updating Dired buffer
@@ -1145,18 +1148,18 @@ C-c}.
 @findex dired-copy-filename-as-kill
   The @kbd{w} command (@code{dired-copy-filename-as-kill}) puts the
 names of the marked (or next @var{n}) files into the kill ring, as if
-you had killed them with @kbd{C-w}.
+you had killed them with @kbd{C-w}.  The names are separated by a space.
 
   The main purpose of this command is so that you can yank the file
 names into arguments for other Emacs commands.  It also displays what
 was pushed onto the kill ring, so you can use it to display the list
 of currently marked files in the echo area.  With a zero prefix
-argument @var{n}=0, this uses the absolute file name of each marked
-file.  With just @kbd{C-u} as the prefix argument, it uses the
-relative file name of each marked file.  As a special case, if no
-prefix argument is given and point is on a directory headerline,
-@kbd{w} gives you the name of that directory without looking for
-marked files.
+argument, this uses the absolute file name of each marked file.  With
+just @kbd{C-u} as the prefix argument, it uses file names relative to
+the Dired buffer's default directory.  (This can still contain slashes
+if in a subdirectory.)  As a special case, if point is on a directory
+headerline, @kbd{w} gives you the absolute name of that directory.
+Any prefix argument or marked files are ignored in this case.
 
   On the X window system, Emacs supports the ``drag and drop''
 protocol.  You can drag a file object from another program, and drop
