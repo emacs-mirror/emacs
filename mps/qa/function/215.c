@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!215.c(trunk.2) $
  summary = test of ramp allocation
  language = c
  link = testlib.o rankfmt.o
@@ -89,7 +89,7 @@ static void test(void) {
   mps_ap_create(&apamc, poolamc, MPS_RANK_EXACT),
   "create ap");
 
- mps_message_type_enable(arena, mps_message_type_collection_stats());
+ mps_message_type_enable(arena, mps_message_type_gc());
 
  inramp = 0;
 
@@ -130,12 +130,12 @@ static void test(void) {
     rsize = 0;
    }
   }
-  if(mps_message_get(&message, arena, mps_message_type_collection_stats())) {
+  if(mps_message_get(&message, arena, mps_message_type_gc())) {
     unsigned long live, condemned, notCondemned;
-    live = mps_message_collection_stats_live_size(arena, message);
-    condemned = mps_message_collection_stats_condemned_size(arena, message);
+    live = mps_message_gc_live_size(arena, message);
+    condemned = mps_message_gc_condemned_size(arena, message);
     notCondemned = 
-      mps_message_collection_stats_not_condemned_size(arena, message);
+      mps_message_gc_not_condemned_size(arena, message);
     comment("Collection: live=%ld,  condemned=%ld,  not condemned = %ld",
       live, condemned, notCondemned);
     mps_message_discard(arena, message);
