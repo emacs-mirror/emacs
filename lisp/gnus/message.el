@@ -255,7 +255,12 @@ included.  Organization and User-Agent are optional."
   :group 'message-news
   :group 'message-headers
   :link '(custom-manual "(message)Message Headers")
-  :type 'regexp)
+  :type '(repeat :value-to-internal (lambda (widget value)
+				      (custom-split-regexp-maybe value))
+		 :match (lambda (widget value)
+			  (or (stringp value)
+			      (widget-editable-list-match widget value)))
+		 regexp))
 
 (defcustom message-ignored-mail-headers
   "^[GF]cc:\\|^Resent-Fcc:\\|^Xref:\\|^X-Draft-From:\\|^X-Gnus-Agent-Meta-Information:"
@@ -271,7 +276,12 @@ It's best to delete old Path and Date headers before posting to avoid
 any confusion."
   :group 'message-interface
   :link '(custom-manual "(message)Superseding")
-  :type 'regexp)
+  :type '(repeat :value-to-internal (lambda (widget value)
+				      (custom-split-regexp-maybe value))
+		 :match (lambda (widget value)
+			  (or (stringp value)
+			      (widget-editable-list-match widget value)))
+		 regexp))
 
 (defcustom message-subject-re-regexp
   "^[ \t]*\\([Rr][Ee]\\(\\[[0-9]*\\]\\)*:[ \t]*\\)*[ \t]*"
@@ -534,13 +544,22 @@ Done before generating the new subject of a forward."
   "*All headers that match this regexp will be deleted when resending a message."
   :group 'message-interface
   :link '(custom-manual "(message)Resending")
-  :type 'regexp)
+  :type '(repeat :value-to-internal (lambda (widget value)
+				      (custom-split-regexp-maybe value))
+		 :match (lambda (widget value)
+			  (or (stringp value)
+			      (widget-editable-list-match widget value)))
+		 regexp))
 
 (defcustom message-forward-ignored-headers "^Content-Transfer-Encoding:\\|^X-Gnus"
   "*All headers that match this regexp will be deleted when forwarding a message."
   :version "21.1"
   :group 'message-forwarding
-  :type '(choice (const :tag "None" nil)
+  :type '(repeat :value-to-internal (lambda (widget value)
+				      (custom-split-regexp-maybe value))
+		 :match (lambda (widget value)
+			  (or (stringp value)
+			      (widget-editable-list-match widget value)))
 		 regexp))
 
 (defcustom message-ignored-cited-headers "."

@@ -1,3 +1,17 @@
+2004-10-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (New Features): Add 5.11.
+
+	* message.texi (Resending): Remove wrong default value.
+
+	* gnus.texi (Mail Source Specifiers): Describe possible problems
+	of `pop3-leave-mail-on-server'.  Add `pop3-movemail' and
+	`pop3-leave-mail-on-server' to the index.
+
+2004-10-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.texi (Canceling News): Add how to set a password.
+
 2004-10-12  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-faq.texi ([5.9]): Improve code for reply-in-news.
