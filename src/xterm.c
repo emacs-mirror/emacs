@@ -4394,6 +4394,11 @@ x_update_cursor (f, on)
      struct frame *f;
      int on;
 {
+  /* If we don't have any previous cursor position to use,
+     leave the cursor off.  */
+  if (f->phys_cursor_x < 0)
+    return;
+
   BLOCK_INPUT;
 
   if (FRAME_DESIRED_CURSOR (f) == filled_box_cursor)
@@ -5076,9 +5081,12 @@ x_set_window_size (f, change_gravity, cols, rows)
 {
   int pixelwidth, pixelheight;
   int mask;
+  Lisp_Object window;
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+
+  BLOCK_INPUT;
 
 #ifdef USE_X_TOOLKIT
-  BLOCK_INPUT;
   {
     /* The x and y position of the widget is clobbered by the
        call to XtSetValues within EmacsFrameSetCharSize.
@@ -5090,11 +5098,8 @@ x_set_window_size (f, change_gravity, cols, rows)
     f->output_data.x->widget->core.x = xpos;
     f->output_data.x->widget->core.y = ypos;
   }
-  UNBLOCK_INPUT;
 
 #else /* not USE_X_TOOLKIT */
-
-  BLOCK_INPUT;
 
   check_frame_size (f, &rows, &cols);
   f->output_data.x->vertical_scroll_bar_extra
@@ -5127,6 +5132,16 @@ x_set_window_size (f, change_gravity, cols, rows)
   PIXEL_WIDTH (f) = pixelwidth;
   PIXEL_HEIGHT (f) = pixelheight;
 
+  /* We've set {FRAME,PIXEL}_{WIDTH,HEIGHT} to the values we hope to
+     receive in the ConfigureNotify event; if we get what we asked
+     for, then the event won't cause the screen to become garbaged, so
+     we have to make sure to do it here.  */
+  SET_FRAME_GARBAGED (f);
+
+  XFlush (FRAME_X_DISPLAY (f));
+
+#endif /* not USE_X_TOOLKIT */
+
   /* If cursor was outside the new size, mark it as off.  */
   if (f->phys_cursor_y >= rows
       || f->phys_cursor_x >= cols)
@@ -5135,15 +5150,19 @@ x_set_window_size (f, change_gravity, cols, rows)
       f->phys_cursor_y = -1;
     }
 
-  /* We've set {FRAME,PIXEL}_{WIDTH,HEIGHT} to the values we hope to
-     receive in the ConfigureNotify event; if we get what we asked
-     for, then the event won't cause the screen to become garbaged, so
-     we have to make sure to do it here.  */
-  SET_FRAME_GARBAGED (f);
+  /* Clear out any recollection of where the mouse highlighting was,
+     since it might be in a place that's outside the new frame size. 
+     Actually checking whether it is outside is a pain in the neck,
+     so don't try--just let the highlighting be done afresh with new size.  */
+  window = dpyinfo->mouse_face_window;
+  if (! NILP (window) && XFRAME (window) == f)
+    {
+      dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
+      dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
+      dpyinfo->mouse_face_window = Qnil;
+    }
 
-  XFlush (FRAME_X_DISPLAY (f));
   UNBLOCK_INPUT;
-#endif /* not USE_X_TOOLKIT */
 }
 
 /* Mouse warping.  */
