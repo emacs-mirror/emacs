@@ -60,6 +60,9 @@ extern Lisp_Object unread_switch_frame;
 /* Previous command symbol found here for comparison */
 extern Lisp_Object last_command;
 
+/* Previous value of point */
+extern int last_point_position;
+
 /* Nonzero means ^G can quit instantly */
 extern int immediate_quit;
 
