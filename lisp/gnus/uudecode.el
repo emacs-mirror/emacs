@@ -32,6 +32,10 @@
 ;; should presumably use a vector or list buffer for partial results
 ;; rather than with-current-buffer.  -- fx
 
+;; Only `uudecode-decode-region' should be advertised, and whether or
+;; not that uses a program should be customizable, but I guess it's
+;; too late now.  -- fx
+
 ;;; Code:
 
 (eval-when-compile (require 'cl))
