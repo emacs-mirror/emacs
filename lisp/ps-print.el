@@ -2134,7 +2134,7 @@ that a line is printed):
 		22       +   22          +
 		--------     -----------     ---------     ----------------
 
-Any other value is treated as `nil'."
+Any other value is treated as nil."
   :type '(choice :menu-tag "Zebra Stripe Follow"
 		 :tag "Zebra Stripe Follow"
 		 (const :tag "Always Restart" nil)
