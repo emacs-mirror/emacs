@@ -299,7 +299,6 @@
 
   ;; these variables should always be buffer local; they do not affect
   ;; indentation style.
-  (make-local-variable 'require-final-newline)
   (make-local-variable 'parse-sexp-ignore-comments)
   (make-local-variable 'indent-line-function)
   (make-local-variable 'indent-region-function)
@@ -326,8 +325,7 @@
 	       'c-indent-new-comment-line)))
 
   ;; now set their values
-  (setq require-final-newline c-require-final-newline
-	parse-sexp-ignore-comments t
+  (setq parse-sexp-ignore-comments t
 	indent-line-function 'c-indent-line
 	indent-region-function 'c-indent-region
 	outline-regexp "[^#\n\^M]"
@@ -336,6 +334,12 @@
 	comment-column 32
 	comment-start-skip "/\\*+ *\\|//+ *"
 	comment-multi-line t)
+
+  ;; Set `require-final-newline' only if we should.
+  (let ((rfn (assq mode c-require-final-newline)))
+    (when rfn
+      (make-local-variable 'require-final-newline)
+      (setq require-final-newline (cdr rfn))))
 
   ;; Fix keyword regexps.
   (c-init-language-vars)
