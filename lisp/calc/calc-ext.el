@@ -26,26 +26,7 @@
 
 ;;; Code:
 
-(provide 'calc-ext)
 (require 'calc)
-
-(setq calc-extensions-loaded t)
-
-;;; This function is the autoload "hook" to cause this file to be loaded.
-;;;###autoload
-(defun calc-extensions ()
-  "This function is part of the autoload linkage for parts of Calc."
-  t)
-
-;;; Auto-load calc.el part, in case this part was loaded first.
-(if (fboundp 'calc-dispatch)
-    (and (eq (car-safe (symbol-function 'calc-dispatch)) 'autoload)
-	 (load (nth 1 (symbol-function 'calc-dispatch))))
-  (if (fboundp 'calc)
-      (and (eq (car-safe (symbol-function 'calc)) 'autoload)
-	   (load (nth 1 (symbol-function 'calc))))
-    (error "Main part of Calc must be present in order to load this file")))
-
 (require 'calc-macs)
 
 (defvar math-simplifying nil)
@@ -1674,7 +1655,7 @@ calc-kill calc-kill-region calc-yank))))
 
 (defun calc-load-everything ()
   (interactive)
-  (calc-need-macros)       ; calc-macs.el
+  (require 'calc-macs)       ; calc-macs.el
   (calc-record-list nil)   ; calc-misc.el
   (math-read-exprs "0")    ; calc-aent.el
 
@@ -3371,5 +3352,6 @@ A key may contain additional specs for Inverse, Hyperbolic, and Inv+Hyp.")
 
 (run-hooks 'calc-ext-load-hook)
 
+(provide 'calc-ext)
 ;;; arch-tag: 1814ba7f-a390-49dc-9e25-a5adc205e97e
 ;;; calc-ext.el ends here
