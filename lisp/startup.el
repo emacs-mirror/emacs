@@ -1,7 +1,7 @@
 ;;; startup.el --- process Emacs shell arguments
 
-;; Copyright (C) 1985, 86, 92, 94, 95, 96, 97, 98, 99, 2000, 01, 02, 2004
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
+;;   2001, 2002, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -565,22 +565,9 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (setq command-line-default-directory default-directory)
 
   ;; Choose a reasonable location for temporary files.
-  (setq temporary-file-directory
-	(file-name-as-directory
-	 (cond ((memq system-type '(ms-dos windows-nt))
-		(or (getenv "TEMP") (getenv "TMPDIR") (getenv "TMP") "c:/temp"))
-	       ((memq system-type '(vax-vms axp-vms))
-		(or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "SYS$SCRATCH:"))
-	       (t
-		(or (getenv "TMPDIR") (getenv "TMP") (getenv "TEMP") "/tmp")))))
-  (setq small-temporary-file-directory
-	(if (eq system-type 'ms-dos)
-	    (getenv "TMPDIR")))
-  (setq auto-save-file-name-transforms
-	(list (list (car (car auto-save-file-name-transforms))
-		    ;; Don't put "\\2" inside expand-file-name, since
-		    ;; it will be transformed to "/2" on DOS/Windows.
-		    (concat temporary-file-directory "\\2") t)))
+  (custom-reevaluate-setting 'temporary-file-directory)
+  (custom-reevaluate-setting 'small-emporary-file-directory)
+  (custom-reevaluate-setting 'auto-save-file-name-transforms)
 
   ;; See if we should import version-control from the environment variable.
   (let ((vc (getenv "VERSION_CONTROL")))
@@ -742,35 +729,14 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (tool-bar-mode 1))
 
   ;; Can't do this init in defcustom because the relevant variables
-  ;; are not set.  If you make any changes to the `or' form below,
-  ;; you should also change the corresponding expression in the
-  ;; defcustom in frame.el, or Custom will be badly confused.
-  (unless (or noninteractive
-	      no-blinking-cursor
-              (eq system-type 'ms-dos)
-              (not (memq window-system '(x w32))))
-    (blink-cursor-mode 1))
-
-  (unless noninteractive
-    ;; DOS/Windows systems have a PC-type keyboard which has both
-    ;; <delete> and <backspace> keys.
-    (when (or (memq system-type '(ms-dos windows-nt))
-	      (and (memq window-system '(x))
-		   (fboundp 'x-backspace-delete-keys-p)
-		   (x-backspace-delete-keys-p))
-	      ;; If the terminal Emacs is running on has erase char
-	      ;; set to ^H, use the Backspace key for deleting
-	      ;; backward and, and the Delete key for deleting forward.
-	      (and (null window-system)
-		   (eq tty-erase-char 8)))
-      (setq-default normal-erase-is-backspace t)
-      (normal-erase-is-backspace-mode 1)))
+  ;; are not set.
+  (custom-reevaluate-setting 'blink-cursor-mode)
+  (custom-reevaluate-setting 'normal-erase-is-backspace)
 
   (unless (or noninteractive
 	      emacs-quick-startup
               (not (display-graphic-p))
               (not (fboundp 'x-show-tip)))
-    (setq-default tooltip-mode t)
     (tooltip-mode 1))
 
   ;; Register default TTY colors for the case the terminal hasn't a
@@ -1751,5 +1717,5 @@ normal otherwise."
       (setq file (replace-match "/" t t file)))
     file))
 
-;;; arch-tag: 7e294698-244d-4758-984b-4047f887a5db
+;; arch-tag: 7e294698-244d-4758-984b-4047f887a5db
 ;;; startup.el ends here

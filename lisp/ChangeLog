@@ -1,5 +1,16 @@
 2005-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* simple.el (normal-erase-is-backspace): Define default value.
+
+	* custom.el (custom-theme-set-variables): Remove unused var `immediate'.
+	(custom-reevaluate-setting): Simple function to handle
+	variables that are defined before their default value can really
+	be computed.
+
+	* startup.el (command-line): Use it for temporary-file-directory,
+	small-emporary-file-directory, auto-save-file-name-transforms,
+	blink-cursor-mode, and normal-erase-is-backspace.
+
 	* font-lock.el (font-lock-fontify-keywords-region): Ensure forward
 	progress, even with buggy anchored keywords.
 
