@@ -1399,6 +1399,35 @@ create_process (process, new_argv, current_dir)
   setup_coding_system (XPROCESS (process)->encode_coding_system,
 		       proc_encode_coding_system[outchannel]);
 
+  if (CODING_REQUIRE_ENCODING (proc_encode_coding_system[outchannel]))
+    {
+      /* Here we encode arguments by the coding system used for
+	 sending data to the process.  We don't support using
+	 different coding systems for encoding arguments and for
+	 encoding data sent to the process.  */
+      struct gcpro gcpro1;
+      int i = 1;
+      struct coding_system *coding = proc_encode_coding_system[outchannel];
+
+      coding->last_block = 1;
+      GCPRO1 (process);
+      while (new_argv[i] != 0)
+	{
+	  int len = strlen (new_argv[i]);
+	  int size = encoding_buffer_size (coding, len);
+	  unsigned char *buf = (unsigned char *) alloca (size);
+	  int produced, dmy;
+
+	  produced = encode_coding (coding, new_argv[i], buf, len, size, &dmy);
+	  buf[produced] = 0;
+	  /* We don't have to free new_argv[i] because it points to a
+             Lisp string given as an argument to `start-process'.  */
+	  new_argv[i++] = buf;
+	}
+      UNGCPRO;
+      coding->last_block = 0;
+    }
+
   /* Delay interrupts until we have a chance to store
      the new fork's pid in its process structure */
 #ifdef POSIX_SIGNALS
@@ -2754,7 +2783,8 @@ read_process_output (proc, channel)
   /* Now set NCHARS how many bytes we must decode.  */
   nchars += coding->carryover_size;
 
-  if (! CODING_REQUIRE_NO_CONVERSION (coding))
+  if (CODING_REQUIRE_DECODING (coding)
+      || CODING_REQUIRE_DETECTION (coding))
     {
       int require = decoding_buffer_size (coding, nchars);
       int consumed, produced;
@@ -3010,7 +3040,7 @@ send_process (proc, buf, len, object)
     error ("Output file descriptor of %s is closed", procname);
 
   coding = proc_encode_coding_system[XINT (XPROCESS (proc)->outfd)];
-  if (! CODING_MAY_REQUIRE_NO_CONVERSION (coding))
+  if (CODING_REQUIRE_ENCODING (coding))
     {
       int require = encoding_buffer_size (coding, len);
       int offset, dummy;
