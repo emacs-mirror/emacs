@@ -31,7 +31,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #else
 
-#if defined (__osf__) && (defined (__mips) || defined (mips))
+#if defined (__osf__) && (defined (__mips) || defined (mips) || defined(__alpha))
 #include <sys/time.h>
 #include <sys/resource.h>
 #endif
@@ -73,9 +73,9 @@ typedef unsigned long SIZE;
 extern POINTER start_of_data ();
 #ifdef DATA_SEG_BITS
 #define EXCEEDS_LISP_PTR(ptr) \
-  (((unsigned int) (ptr) & ~DATA_SEG_BITS) >> VALBITS)
+  (((EMACS_UINT) (ptr) & ~DATA_SEG_BITS) >> VALBITS)
 #else
-#define EXCEEDS_LISP_PTR(ptr) ((unsigned int) (ptr) >> VALBITS)
+#define EXCEEDS_LISP_PTR(ptr) ((EMACS_UINT) (ptr) >> VALBITS)
 #endif
 
 #ifdef BSD
