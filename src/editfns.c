@@ -1992,7 +1992,7 @@ general_insert_function (insert_func, insert_from_string_func,
 	    len = CHAR_STRING (XFASTINT (val), str);
 	  else
 	    {
-	      str[0] = (SINGLE_BYTE_CHAR_P (XINT (val))
+	      str[0] = (ASCII_CHAR_P (XINT (val))
 			? XINT (val)
 			: multibyte_char_to_unibyte (XINT (val), Qnil));
 	      len = 1;
