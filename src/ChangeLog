@@ -1,3 +1,8 @@
+2004-10-19  Richard M. Stallman  <rms@gnu.org>
+
+	* editfns.c (Fdelete_and_extract_region):
+	If region is empty, return null string.
+
 2004-10-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.h (xg_update_scrollbar_pos): Remove arguments real_left 
