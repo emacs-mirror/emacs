@@ -924,9 +924,7 @@ string_byte_to_char (string, byte_index)
   return i;
 }
 
-/* Convert STRING to a multibyte string.
-   Single-byte characters 0240 through 0377 are converted
-   by adding nonascii_insert_offset to each.  */
+/* Convert STRING to a multibyte string.  */
 
 Lisp_Object
 string_make_multibyte (string)
