@@ -90,8 +90,8 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 21.4
 
-** New command quail-show-key shows what key to type to input a
-character at point.
+** New command quail-show-key shows what key (or a sequence of keys)
+to type in the current input method to input a character at point.
 
 ** Convenient commands to switch buffers in a cyclic order are C-x <left>
 (prev-buffer) and C-x <right> (next-buffer).
