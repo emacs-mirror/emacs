@@ -347,7 +347,9 @@ struct x_display
   Window icon_desc;
 
   /* The X window that is the parent of this X window.
-     Usually but not always RootWindow.  */
+     Usually this is a window that was made by the window manager,
+     but it can be the root window, and it can be explicitly specified
+     (see the explicit_parent field, below).  */
   Window parent_desc;
 
 #ifdef USE_X_TOOLKIT
@@ -439,6 +441,10 @@ struct x_display
 
   /* This is the Emacs structure for the X display this frame is on.  */
   struct x_display_info *display_info;
+
+  /* Nonzero means our parent is another application's window
+     and was explicitly specified.  */
+  char explicit_parent;
 };
 
 /* Get at the computed faces of an X window frame.  */
