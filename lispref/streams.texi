@@ -125,7 +125,13 @@ came from''.  In this case, it makes no difference what value
 @code{t} used as a stream means that the input is read from the
 minibuffer.  In fact, the minibuffer is invoked once and the text
 given by the user is made into a string that is then used as the
-input stream.
+input stream.  If Emacs is running in batch mode, standard input is used
+instead of the minibuffer.  For example,
+@example
+(message "%s" (read t))
+@end example
+will read a Lisp expression from standard input and print the result
+to standard output.
 
 @item @code{nil}
 @cindex @code{nil} input stream
