@@ -566,13 +566,14 @@ See `compilation-mode'."
 (defun compilation-filter (proc string)
   "Process filter for compilation buffers.
 Just inserts the text, but uses `insert-before-markers'."
-  (save-excursion
-    (set-buffer (process-buffer proc))
-    (let ((buffer-read-only nil))
+  (if (buffer-name (process-buffer proc))
       (save-excursion
-	(goto-char (process-mark proc))
-	(insert-before-markers string)
-	(set-marker (process-mark proc) (point))))))
+	(set-buffer (process-buffer proc))
+	(let ((buffer-read-only nil))
+	  (save-excursion
+	    (goto-char (process-mark proc))
+	    (insert-before-markers string)
+	    (set-marker (process-mark proc) (point)))))))
 
 ;; Return the cdr of compilation-old-error-list for the error containing point.
 (defun compile-error-at-point ()
