@@ -742,8 +742,8 @@ to the current time zone and daylight savings time if not specified; if\n\
 specified, it can be either a list (as from `current-time-zone') or an\n\
 integer (as from `decode-time'), and is applied without consideration for\n\
 daylight savings time.\n\
-If YEAR is less than 100, values in the range 0 through 69 are treated\n\
-as 2000 through 2069; values 70 through 99 are treated as 1970...1999.")
+Year numbers less than 100 are treated just like other year numbers.\n\
+If you them to stand for years above 1900, you must do that yourself.")
   (sec, min, hour, day, month, year, zone)
      Lisp_Object sec, min, hour, day, month, year, zone;
 {
@@ -759,13 +759,6 @@ as 2000 through 2069; values 70 through 99 are treated as 1970...1999.")
   CHECK_NATNUM (year, 5);
 
   fullyear = XINT (year);
-  if (fullyear < 100)
-    {
-      if (fullyear < 70)		/* Epoch is 1970.  */
-	fullyear += 2000;
-      else
-	fullyear += 1900;
-    }
 
   /* Adjust incoming datespec to epoch = March 1, year 0.  */
   mon = XINT (month) - 1 + 10;
