@@ -2748,6 +2748,8 @@ file @var{old} is copied and deleted.
   The similar command @kbd{M-x add-name-to-file} is used to add an
 additional name to an existing file without removing its old name.
 The new name must belong on the same file system that the file is on.
+On Windows, this command works only if the file resides in an NTFS
+file system.  On MS-DOS, it works by copying the file.
 
 @findex copy-file
 @cindex copying files
@@ -2767,7 +2769,8 @@ not in use at that time.  This command does not expand the argument
 as the target of the link.
 
   Confirmation is required when creating the link if @var{linkname} is
-in use.  Note that not all systems support symbolic links.
+in use.  Note that not all systems support symbolic links; on systems
+that don't support them, this command is not defined.
 
 @node Compressed Files
 @section Accessing Compressed Files
