@@ -1096,6 +1096,7 @@ static struct face *x_get_char_face_and_encoding P_ ((struct frame *, int,
 static XCharStruct *x_per_char_metric P_ ((XFontStruct *, XChar2b *));
 static void x_encode_char P_ ((int, XChar2b *, struct font_info *));
 static void x_append_glyph P_ ((struct it *));
+static void x_append_composite_glyph P_ ((struct it *));
 static void x_append_stretch_glyph P_ ((struct it *it, Lisp_Object,
 					int, int, double));
 static void x_produce_glyphs P_ ((struct it *));
@@ -1310,9 +1311,9 @@ x_get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p)
 
       /* Get the face for displaying C.  If `face' is not suitable for
 	 charset, get the one that fits.  (This can happen for the
-	 translations of composite characters where the glyph
-	 specifies a face for ASCII, but translations have a different
-	 charset.)  */
+	 translations of a composition where the glyph
+	 specifies a face for the first component, but the other
+	 components have a different charset.)  */
       if (!FACE_SUITABLE_FOR_CHARSET_P (face, charset))
 	{
 	  face_id = FACE_FOR_CHARSET (f, face_id, charset);
@@ -1432,6 +1433,42 @@ x_append_glyph (it)
       glyph->pixel_width = it->pixel_width;
       glyph->u.ch.code = it->char_to_display;
       glyph->u.ch.face_id = it->face_id;
+      glyph->charpos = CHARPOS (it->position);
+      glyph->object = it->object;
+      glyph->left_box_line_p = it->start_of_box_run_p;
+      glyph->right_box_line_p = it->end_of_box_run_p;
+      glyph->voffset = it->voffset;
+      glyph->multibyte_p = it->multibyte_p;
+      glyph->overlaps_vertically_p = (it->phys_ascent > it->ascent
+				      || it->phys_descent > it->descent);
+      ++it->glyph_row->used[area];
+    }
+}
+
+/* Store one glyph for the composition IT->cmp_id in IT->glyph_row.  
+   Called from x_produce_glyphs when IT->glyph_row is non-null.  */
+
+static INLINE void
+x_append_composite_glyph (it)
+     struct it *it;
+{
+  struct glyph *glyph;
+  enum glyph_row_area area = it->area;
+  
+  xassert (it->glyph_row);
+  
+  glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
+  if (glyph < it->glyph_row->glyphs[area + 1])
+    {
+      /* Play it safe.  If sub-structures of the glyph are not all the
+	 same size, it otherwise be that some bits stay set.  This
+	 would prevent a comparison with GLYPH_EQUAL_P.  */
+      glyph->u.val = 0;
+      
+      glyph->type = COMPOSITE_GLYPH;
+      glyph->pixel_width = it->pixel_width;
+      glyph->u.cmp.id = it->cmp_id;
+      glyph->u.cmp.face_id = it->face_id;
       glyph->charpos = CHARPOS (it->position);
       glyph->object = it->object;
       glyph->left_box_line_p = it->start_of_box_run_p;
@@ -1709,6 +1746,38 @@ x_produce_stretch_glyph (it)
   take_vertical_position_into_account (it);
 }
 
+/* Return proper value to be used as baseline offset of font that has
+   ASCENT and DESCENT to draw characters by the font at the vertical
+   center of the line of frame F.
+
+   Here, out task is to find the value of BOFF in the following figure;
+
+	-------------------------+-----------+-
+	 -+-+---------+-+        |           |
+	  | |         | |        |           |
+	  | |         | |        F_ASCENT    F_HEIGHT
+	  | |         | ASCENT   |           |
+     HEIGHT |         | |        |           |
+	  | |         |-|-+------+-----------|------- baseline
+	  | |         | | BOFF   |           |
+	  | |---------|-+-+      |           |
+	  | |         | DESCENT  |           |
+	 -+-+---------+-+        F_DESCENT   |
+	-------------------------+-----------+-
+
+	-BOFF + DESCENT + (F_HEIGHT - HEIGHT) / 2 = F_DESCENT
+	BOFF = DESCENT +  (F_HEIGHT - HEIGHT) / 2 - F_DESCENT
+	DESCENT = FONT->descent
+	HEIGHT = FONT_HEIGHT (FONT)
+	F_DESCENT = (F->output_data.x->font->descent
+		     - F->output_data.x->baseline_offset)
+	F_HEIGHT = FRAME_LINE_HEIGHT (F)
+*/
+
+#define VCENTER_BASELINE_OFFSET(FONT, F)		\
+ ((FONT)->descent						\
+  + (FRAME_LINE_HEIGHT ((F)) - FONT_HEIGHT ((FONT))) / 2	\
+  - ((F)->output_data.x->font->descent - (F)->output_data.x->baseline_offset))
 
 /* Produce glyphs/get display metrics for the display element IT is
    loaded with.  See the description of struct display_iterator in
@@ -1725,6 +1794,8 @@ x_produce_glyphs (it)
       struct face *face;
       XCharStruct *pcm;
       int font_not_found_p;
+      struct font_info *font_info;
+      int boff;			/* baseline offset */
 
       /* Maybe translate single-byte characters to multibyte.  */
       it->char_to_display = it->c;
@@ -1747,7 +1818,18 @@ x_produce_glyphs (it)
       /* When no suitable font found, use the default font.  */
       font_not_found_p = font == NULL;
       if (font_not_found_p)
-	font = FRAME_FONT (it->f);
+	{
+	  font = FRAME_FONT (it->f);
+	  boff = it->f->output_data.x->baseline_offset;
+	  font_info = NULL;
+	}
+      else
+	{
+	  font_info = FONT_INFO_FROM_ID (it->f, face->font_info_id);
+	  boff = font_info->baseline_offset;
+	  if (font_info->vertical_centering)
+	    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
+	}
 
       if (it->char_to_display >= ' '
 	  && (!it->multibyte_p || it->char_to_display < 128))
@@ -1758,10 +1840,10 @@ x_produce_glyphs (it)
 	  it->nglyphs = 1;
 
 	  pcm = x_per_char_metric (font, &char2b);
-	  it->ascent = font->ascent;
-	  it->descent = font->descent;
-	  it->phys_ascent = pcm->ascent;
-	  it->phys_descent = pcm->descent;
+	  it->ascent = font->ascent + boff;
+	  it->descent = font->descent - boff;
+	  it->phys_ascent = pcm->ascent + boff;
+	  it->phys_descent = pcm->descent - boff;
 	  it->pixel_width = pcm->width;
 
 	  /* If this is a space inside a region of text with
@@ -1820,8 +1902,8 @@ x_produce_glyphs (it)
 	  /* A newline has no width but we need the height of the line.  */
 	  it->pixel_width = 0;
 	  it->nglyphs = 0;
-	  it->ascent = it->phys_ascent = font->ascent;
-	  it->descent = it->phys_descent = font->descent;
+	  it->ascent = it->phys_ascent = font->ascent + boff;
+	  it->descent = it->phys_descent = font->descent - boff;
       
 	  if (face->box != FACE_NO_BOX)
 	    {
@@ -1840,8 +1922,8 @@ x_produce_glyphs (it)
       
 	  it->pixel_width = next_tab_x - x;
 	  it->nglyphs = 1;
-	  it->ascent = it->phys_ascent = font->ascent;
-	  it->descent = it->phys_descent = font->descent;
+	  it->ascent = it->phys_ascent = font->ascent + boff;
+	  it->descent = it->phys_descent = font->descent - boff;
 	  
 	  if (it->glyph_row)
 	    {
@@ -1854,55 +1936,26 @@ x_produce_glyphs (it)
 	{
 	  /* A multi-byte character.  Assume that the display width of the
 	     character is the width of the character multiplied by the
-	     width of the font.  There has to be better support for
-	     variable sizes in cmpchar_info to do anything better than
-	     that.
+	     width of the font.  */
 
-	     Note: composite characters are represented as one glyph in
-	     the glyph matrix.  There are no padding glyphs.  */
-	  if (it->charset == CHARSET_COMPOSITION)
-	    {
-	      struct cmpchar_info *cmpcharp;
-	      int idx;
-
-	      idx = COMPOSITE_CHAR_ID (it->char_to_display);
-	      cmpcharp = cmpchar_table[idx];
-	      it->pixel_width = font->max_bounds.width * cmpcharp->width;
-	  
-	      /* There are no padding glyphs, so there is only one glyph
-		 to produce for the composite char.  Important is that
-		 pixel_width, ascent and descent are the values of what is
-		 drawn by draw_glyphs.  */
-	      it->nglyphs = 1;
-
-	      /* These settings may not be correct.  We must have more
-		 information in cmpcharp to do the correct setting.  */
-	      it->ascent = font->ascent;
-	      it->descent = font->descent;
-	      it->phys_ascent = font->max_bounds.ascent;
-	      it->phys_descent = font->max_bounds.descent;
-	    }
-	  else
-	    {
-	      /* If we found a font, this font should give us the right
-		 metrics.  If we didn't find a font, use the frame's
-		 default font and calculate the width of the character
-		 from the charset width; this is what old redisplay code
-		 did.  */
-	      pcm = x_per_char_metric (font, &char2b);
-	      it->pixel_width = pcm->width;
-	      if (font_not_found_p)
-		it->pixel_width *= CHARSET_WIDTH (it->charset);
-	      it->nglyphs = 1;
-	      it->ascent = font->ascent;
-	      it->descent = font->descent;
-	      it->phys_ascent = pcm->ascent;
-	      it->phys_descent = pcm->descent;
-	      if (it->glyph_row
-		  && (pcm->lbearing < 0
-		      || pcm->rbearing > pcm->width))
-		it->glyph_row->contains_overlapping_glyphs_p = 1;
-	    }
+	  /* If we found a font, this font should give us the right
+	     metrics.  If we didn't find a font, use the frame's
+	     default font and calculate the width of the character
+	     from the charset width; this is what old redisplay code
+	     did.  */
+	  pcm = x_per_char_metric (font, &char2b);
+	  it->pixel_width = pcm->width;
+	  if (font_not_found_p)
+	    it->pixel_width *= CHARSET_WIDTH (it->charset);
+	  it->nglyphs = 1;
+	  it->ascent = font->ascent + boff;
+	  it->descent = font->descent - boff;
+	  it->phys_ascent = pcm->ascent + boff;
+	  it->phys_descent = pcm->descent - boff;
+	  if (it->glyph_row
+	      && (pcm->lbearing < 0
+		  || pcm->rbearing > pcm->width))
+	    it->glyph_row->contains_overlapping_glyphs_p = 1;
 	
 	  if (face->box != FACE_NO_BOX)
 	    {
@@ -1926,6 +1979,245 @@ x_produce_glyphs (it)
 	  if (it->glyph_row)
 	    x_append_glyph (it);
 	}
+    }
+  else if (it->what == IT_COMPOSITION)
+    {
+      /* Note: A composition is represented as one glyph in the
+	 glyph matrix.  There are no padding glyphs.  */
+      XChar2b char2b;
+      XFontStruct *font;
+      struct face *face;
+      XCharStruct *pcm;
+      int font_not_found_p;
+      struct font_info *font_info;
+      int boff;			/* baseline offset */
+      struct composition *cmp = composition_table[it->cmp_id];
+
+      /* Maybe translate single-byte characters to multibyte.  */
+      it->char_to_display = it->c;
+      if (unibyte_display_via_language_environment
+	  && SINGLE_BYTE_CHAR_P (it->c)
+	  && (it->c >= 0240
+	      || (it->c >= 0200
+		  && !NILP (Vnonascii_translation_table))))
+	{
+	  it->char_to_display = unibyte_char_to_multibyte (it->c);
+	  it->charset = CHAR_CHARSET (it->char_to_display);
+	}
+      
+      /* Get face and font to use.  Encode IT->char_to_display.  */
+      face = x_get_char_face_and_encoding (it->f, it->char_to_display,
+					   it->face_id, &char2b,
+					   it->multibyte_p);
+      font = face->font;
+
+      /* When no suitable font found, use the default font.  */
+      font_not_found_p = font == NULL;
+      if (font_not_found_p)
+	{
+	  font = FRAME_FONT (it->f);
+	  boff = it->f->output_data.x->baseline_offset;
+	  font_info = NULL;
+	}
+      else
+	{
+	  font_info = FONT_INFO_FROM_ID (it->f, face->font_info_id);
+	  boff = font_info->baseline_offset;
+	  if (font_info->vertical_centering)
+	    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
+	}
+
+      /* There are no padding glyphs, so there is only one glyph to
+	 produce for the composition.  Important is that pixel_width,
+	 ascent and descent are the values of what is drawn by
+	 draw_glyphs (i.e. the values of the overall glyphs composed).  */
+      it->nglyphs = 1;
+
+      /* If we have not yet calculated pixel size data of glyphs of
+	 the composition for the current face font, calculate them
+	 now.  Theoretically, we have to check all fonts for the
+	 glyphs, but that requires much time and memory space.  So,
+	 here we check only the font of the first glyph.  This leads
+	 to incorrect display very rarely, and C-l (recenter) can
+	 correct the display anyway.  */
+      if (cmp->font != (void *) font)
+	{
+	  /* Ascent and descent of the font of the first character of
+	     this composition (adjusted by baseline offset).  Ascent
+	     and descent of overall glyphs should not be less than
+	     them respectively.  */
+	  int font_ascent = font->ascent + boff;
+	  int font_descent = font->descent - boff;
+	  /* Bounding box of the overall glyphs.  */
+	  int leftmost, rightmost, lowest, highest;
+	  int i;
+
+	  cmp->font = (void *) font;
+
+	  /* Initialize the bounding box.  */
+	  pcm = x_per_char_metric (font, &char2b);
+	  leftmost = 0;
+	  rightmost = pcm->width;
+	  lowest = - pcm->descent + boff;
+	  highest = pcm->ascent + boff;
+	  if (font_info
+	      && font_info->default_ascent
+	      && CHAR_TABLE_P (Vuse_default_ascent)
+	      && !NILP (Faref (Vuse_default_ascent,
+			       make_number (it->char_to_display))))
+	    highest = font_info->default_ascent + boff;
+
+	  /* Draw the first glyph at the normal position.  It may be
+	     shifted to right later if some other glyphs are drawn at
+	     the left.  */
+	  cmp->offsets[0] = 0;
+	  cmp->offsets[1] = boff;
+
+	  /* Set cmp->offsets for the remaining glyphs.  */
+	  for (i = 1; i < cmp->glyph_len; i++)
+	    {
+	      int left, right, btm, top;
+	      int ch = COMPOSITION_GLYPH (cmp, i);
+
+	      face = x_get_char_face_and_encoding (it->f, ch,
+						   it->face_id, &char2b,
+						   it->multibyte_p);
+	      font = face->font;
+	      if (font == NULL)
+		{
+		  font = FRAME_FONT (it->f);
+		  boff = it->f->output_data.x->baseline_offset;
+		  font_info = NULL;
+		}
+	      else
+		{
+		  font_info
+		    = FONT_INFO_FROM_ID (it->f, face->font_info_id);
+		  boff = font_info->baseline_offset;
+		  if (font_info->vertical_centering)
+		    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
+		}
+
+	      pcm = x_per_char_metric (font, &char2b);
+
+	      if (cmp->method != COMPOSITION_WITH_RULE_ALTCHARS)
+		{
+		  /* Relative composition with or without
+		     alternate chars.  */
+		  left = (leftmost + rightmost - pcm->width) / 2;
+		  btm = - pcm->descent + boff;
+		  if (font_info && font_info->relative_compose
+		      && (! CHAR_TABLE_P (Vignore_relative_composition)
+			  || NILP (Faref (Vignore_relative_composition,
+					  make_number (ch)))))
+		    {
+
+		      if (- pcm->descent
+			  >= font_info->relative_compose)
+			/* One extra pixel between two glyphs.  */
+			btm = highest + 1;
+		      else if (pcm->ascent <= 0)
+			/* One extra pixel between two glyphs.  */
+			btm = lowest - 1 - pcm->ascent - pcm->descent;
+		    }
+		}
+	      else
+		{
+		  /* A composition rule is specified by an integer
+		     value that encodes global and new reference
+		     points (GREF and NREF).  GREF and NREF are
+		     specified by numbers as below:
+
+			0---1---2 -- ascent
+			|       |
+			|       |
+			|       |
+			9--10--11 -- center
+			|       |
+		     ---3---4---5--- baseline
+			|       |
+			6---7---8 -- descent
+		  */
+		  int rule = COMPOSITION_RULE (cmp, i);
+		  int gref, nref, grefx, grefy, nrefx, nrefy;
+
+		  COMPOSITION_DECODE_RULE (rule, gref, nref);
+		  grefx = gref % 3, nrefx = nref % 3;
+		  grefy = gref / 3, nrefy = nref / 3;
+
+		  left = (leftmost
+			  + grefx * (rightmost - leftmost) / 2
+			  - nrefx * pcm->width / 2);
+		  btm = ((grefy == 0 ? highest
+			  : grefy == 1 ? 0
+			  : grefy == 2 ? lowest
+			  : (highest + lowest) / 2)
+			 - (nrefy == 0 ? pcm->ascent + pcm->descent
+			    : nrefy == 1 ? pcm->descent - boff
+			    : nrefy == 2 ? 0
+			    : (pcm->ascent + pcm->descent) / 2));
+		}
+
+	      cmp->offsets[i * 2] = left;
+	      cmp->offsets[i * 2 + 1] = btm + pcm->descent;
+
+	      /* Update the bounding box of the overall glyphs. */
+	      right = left + pcm->width;
+	      top = btm + pcm->descent + pcm->ascent;
+	      if (left < leftmost)
+		leftmost = left;
+	      if (right > rightmost)
+		rightmost = right;
+	      if (top > highest)
+		highest = top;
+	      if (btm < lowest)
+		lowest = btm;
+	    }
+
+	  /* If there are glyphs whose x-offsets are negative,
+	     shift all glyphs to the right and make all x-offsets
+	     non-negative.  */
+	  if (leftmost < 0)
+	    {
+	      for (i = 0; i < cmp->glyph_len; i++)
+		cmp->offsets[i * 2] -= leftmost;
+	      rightmost -= leftmost;
+	    }
+
+	  cmp->pixel_width = rightmost;
+	  cmp->ascent = highest;
+	  cmp->descent = - lowest;
+	  if (cmp->ascent < font_ascent)
+	    cmp->ascent = font_ascent;
+	  if (cmp->descent < font_descent)
+	    cmp->descent = font_descent;
+	}
+
+      it->pixel_width = cmp->pixel_width;
+      it->ascent = it->phys_ascent = cmp->ascent;
+      it->descent = it->phys_descent = cmp->descent;
+
+      if (face->box != FACE_NO_BOX)
+	{
+	  int thick = face->box_line_width;
+	  it->ascent += thick;
+	  it->descent += thick;
+	  
+	  if (it->start_of_box_run_p)
+	    it->pixel_width += thick;
+	  if (it->end_of_box_run_p)
+	    it->pixel_width += thick;
+	}
+  
+      /* If face has an overline, add the height of the overline
+	 (1 pixel) and a 1 pixel margin to the character height.  */
+      if (face->overline_p)
+	it->ascent += 2;
+
+      take_vertical_position_into_account (it);
+  
+      if (it->glyph_row)
+	x_append_composite_glyph (it);
     }
   else if (it->what == IT_IMAGE)
     x_produce_image_glyph (it);
@@ -2043,14 +2335,13 @@ struct glyph_string
   /* Font info for this string.  */
   struct font_info *font_info;
 
-  /* Non-null means this string describes (part of) a composite
-     character.  All characters from char2b are drawn at the same
-     x-origin in that case.  */
-  struct cmpchar_info *cmpcharp;
+  /* Non-null means this string describes (part of) a composition.
+     All characters from char2b are drawn composed.  */
+  struct composition *cmp;
 
   /* Index of this glyph string's first character in the glyph
-     definition of cmpcharp.  If this is zero, this glyph string
-     describes the first character of a composite character.  */
+     definition of CMP.  If this is zero, this glyph string describes
+     the first character of a composition.  */
   int gidx;
 
   /* 1 means this glyph strings face has to be drawn to the right end
@@ -2146,6 +2437,7 @@ static void x_set_glyph_string_gc P_ ((struct glyph_string *));
 static void x_draw_glyph_string_background P_ ((struct glyph_string *,
 						int));
 static void x_draw_glyph_string_foreground P_ ((struct glyph_string *));
+static void x_draw_composite_glyph_string_foreground P_ ((struct glyph_string *));
 static void x_draw_glyph_string_box P_ ((struct glyph_string *));
 static void x_draw_glyph_string  P_ ((struct glyph_string *));
 static void x_compute_glyph_string_overhangs P_ ((struct glyph_string *));
@@ -2239,7 +2531,7 @@ x_set_cursor_gc (s)
   if (s->font == FRAME_FONT (s->f)
       && s->face->background == FRAME_BACKGROUND_PIXEL (s->f)
       && s->face->foreground == FRAME_FOREGROUND_PIXEL (s->f)
-      && !s->cmpcharp)
+      && !s->cmp)
     s->gc = s->f->output_data.x->cursor_gc;
   else
     {
@@ -2466,13 +2758,13 @@ x_set_glyph_string_clipping (s)
 
 
 /* Compute left and right overhang of glyph string S.  If S is a glyph
-   string for a composite character, assume overhangs don't exist.  */
+   string for a composition, assume overhangs don't exist.  */
 
 static INLINE void
 x_compute_glyph_string_overhangs (s)
      struct glyph_string *s;
 {
-  if (s->cmpcharp == NULL
+  if (s->cmp == NULL
       && s->first_glyph->type == CHAR_GLYPH)
     {
       XCharStruct cs;
@@ -2519,8 +2811,8 @@ x_compute_overhangs_and_x (s, x, backward_p)
 
 
 /* Set *LEFT and *RIGHT to the left and right overhang of GLYPH on
-   frame F.  Overhangs of glyphs other than type CHAR_GLYPH or of
-   character glyphs for composite characters are assumed to be zero.  */
+   frame F.  Overhangs of glyphs other than type CHAR_GLYPH are
+   assumed to be zero.  */
 
 static void
 x_get_glyph_overhangs (glyph, f, left, right)
@@ -2532,9 +2824,7 @@ x_get_glyph_overhangs (glyph, f, left, right)
   
   *left = *right = 0;
   
-  if (glyph->type == CHAR_GLYPH
-      && (c = glyph->u.ch.code,
-	  CHAR_CHARSET (c) != CHARSET_COMPOSITION))
+  if (glyph->type == CHAR_GLYPH)
     {
       XFontStruct *font;
       struct face *face;
@@ -2626,7 +2916,7 @@ x_right_overwritten (s)
     {
       int x = 0, i;
       struct glyph *glyphs = s->row->glyphs[s->area];
-      int first = (s->first_glyph - glyphs) + (s->cmpcharp ? 1 : s->nchars);
+      int first = (s->first_glyph - glyphs) + (s->cmp ? 1 : s->nchars);
       int end = s->row->used[s->area];
       
       for (i = first; i < end && s->right_overhang > x; ++i)
@@ -2650,7 +2940,7 @@ x_right_overwriting (s)
   int i, k, x;
   int end = s->row->used[s->area];
   struct glyph *glyphs = s->row->glyphs[s->area];
-  int first = (s->first_glyph - glyphs) + (s->cmpcharp ? 1 : s->nchars);
+  int first = (s->first_glyph - glyphs) + (s->cmp ? 1 : s->nchars);
 
   k = -1;
   x = 0;
@@ -2685,7 +2975,8 @@ x_clear_glyph_string_rect (s, x, y, w, h)
 /* Draw the background of glyph_string S.  If S->background_filled_p
    is non-zero don't draw it.  FORCE_P non-zero means draw the
    background even if it wouldn't be drawn normally.  This is used
-   when a string preceding S draws into the background of S.  */
+   when a string preceding S draws into the background of S, or S
+   contains the first component of a composition.  */
 
 static void
 x_draw_glyph_string_background (s, force_p)
@@ -2696,16 +2987,7 @@ x_draw_glyph_string_background (s, force_p)
      shouldn't be drawn in the first place.  */
   if (!s->background_filled_p)
     {
-      if (s->cmpcharp
-	  && s->gidx > 0
-	  && !s->font_not_found_p
-	  && !s->extends_to_end_of_line_p)
-	{
-	  /* Don't draw background for glyphs of a composite
-	     characters, except for the first one.  */
-	  s->background_filled_p = 1;
-	}
-      else if (s->stippled_p)
+      if (s->stippled_p)
 	{
 	  /* Fill background with a stipple pattern.  */
 	  XSetFillStyle (s->display, s->gc, FillOpaqueStippled);
@@ -2719,7 +3001,6 @@ x_draw_glyph_string_background (s, force_p)
       else if (FONT_HEIGHT (s->font) < s->height - 2 * s->face->box_line_width
 	       || s->font_not_found_p
 	       || s->extends_to_end_of_line_p
-	       || s->cmpcharp
 	       || force_p)
 	{
 	  x_clear_glyph_string_rect (s, s->x, s->y + s->face->box_line_width,
@@ -2747,192 +3028,96 @@ x_draw_glyph_string_foreground (s)
   else
     x = s->x;
 
-  if (s->cmpcharp == NULL)
+  /* Draw characters of S as rectangles if S's font could not be
+     loaded.  */
+  if (s->font_not_found_p)
     {
-      /* Not a composite character.  Draw characters of S as
-	 rectangles if S's font could not be loaded.  */
-      if (s->font_not_found_p)
+      for (i = 0; i < s->nchars; ++i)
 	{
-	  for (i = 0; i < s->nchars; ++i)
-	    {
-	      struct glyph *g = s->first_glyph + i;
-	      XDrawRectangle (s->display, s->window,
-			      s->gc, x, s->y, g->pixel_width - 1,
-			      s->height - 1);
-	      x += g->pixel_width;
-	    }
-	}
-      else
-	{
-	  char *char1b = (char *) s->char2b;
-
-	  /* If we can use 8-bit functions, condense S->char2b.  */
-	  if (!s->two_byte_p)
-	    for (i = 0; i < s->nchars; ++i)
-	      char1b[i] = s->char2b[i].byte2;
-
-	  /* Draw text with XDrawString if background has already been
-	     filled.  Otherwise, use XDrawImageString.  (Note that
-	     XDrawImageString is usually faster than XDrawString.)
-	     Always use XDrawImageString when drawing the cursor so
-	     that there is no chance that characters under a box
-	     cursor are invisible.  */
-	  if (s->for_overlaps_p
-	      || (s->background_filled_p && s->hl != DRAW_CURSOR))
-	    {
-	      /* Draw characters with 16-bit or 8-bit functions.  */
-	      if (s->two_byte_p)
-		XDrawString16 (s->display, s->window, s->gc, x, s->ybase, 
-			       s->char2b, s->nchars);
-	      else
-		XDrawString (s->display, s->window, s->gc, x, s->ybase, 
-			     char1b, s->nchars);
-	    }
-	  else
-	    {
-	      if (s->two_byte_p)
-		XDrawImageString16 (s->display, s->window, s->gc,
-				    x, s->ybase, s->char2b, s->nchars);
-	      else
-		XDrawImageString (s->display, s->window, s->gc,
-				  x, s->ybase, char1b, s->nchars);
-	    }
+	  struct glyph *g = s->first_glyph + i;
+	  XDrawRectangle (s->display, s->window,
+			  s->gc, x, s->y, g->pixel_width - 1,
+			  s->height - 1);
+	  x += g->pixel_width;
 	}
     }
   else
     {
-      /* S is a glyph string for a composite character. S->gidx is the
-	 index of the first character drawn in the vector
-	 S->cmpcharp->glyph.  S->gidx == 0 means we are drawing the
-	 very first component character of a composite char.  */
+      char *char1b = (char *) s->char2b;
+      int boff = s->font_info->baseline_offset;
 
-      /* Draw a single rectangle for the composite character if S's
-	 font could not be loaded.  */
-      if (s->font_not_found_p && s->gidx == 0)
-	XDrawRectangle (s->display, s->window, s->gc, x, s->y,
-			s->width - 1, s->height - 1);
+      if (s->font_info->vertical_centering)
+	boff = VCENTER_BASELINE_OFFSET (s->font, s->f) - boff;
+
+      /* If we can use 8-bit functions, condense S->char2b.  */
+      if (!s->two_byte_p)
+	for (i = 0; i < s->nchars; ++i)
+	  char1b[i] = s->char2b[i].byte2;
+
+      /* Draw text with XDrawString if background has already been
+	 filled.  Otherwise, use XDrawImageString.  (Note that
+	 XDrawImageString is usually faster than XDrawString.)  Always
+	 use XDrawImageString when drawing the cursor so that there is
+	 no chance that characters under a box cursor are invisible.  */
+      if (s->for_overlaps_p
+	  || (s->background_filled_p && s->hl != DRAW_CURSOR))
+	{
+	  /* Draw characters with 16-bit or 8-bit functions.  */
+	  if (s->two_byte_p)
+	    XDrawString16 (s->display, s->window, s->gc, x,
+			   s->ybase - boff, s->char2b, s->nchars);
+	  else
+	    XDrawString (s->display, s->window, s->gc, x,
+			 s->ybase - boff, char1b, s->nchars);
+	}
       else
 	{
-	  XCharStruct *pcm;
-	  int relative_compose, default_ascent, i;
-	  int highest = 0, lowest = 0;
-
-	  /* The value of font_info my be null if we couldn't find it
-	     in x_get_char_face_and_encoding.  */
-	  if (s->cmpcharp->cmp_rule == NULL && s->font_info)
-	    {
-	      relative_compose = s->font_info->relative_compose;
-	      default_ascent = s->font_info->default_ascent;
-	    }
+	  if (s->two_byte_p)
+	    XDrawImageString16 (s->display, s->window, s->gc, x,
+				s->ybase - boff, s->char2b, s->nchars);
 	  else
-	    relative_compose = default_ascent = 0;
-
-	  if ((s->cmpcharp->cmp_rule || relative_compose)
-	      && s->gidx == 0)
-	    {
-	      /* This is the first character.  Initialize variables.
-		 Highest is the highest position of glyphs ever
-		 written, lowest the lowest position.  */
-	      int x_offset = 0;
-	      int first_ch = s->first_glyph->u.ch.code;
-
-	      if (default_ascent
-		  && CHAR_TABLE_P (Vuse_default_ascent)
-		  && !NILP (Faref (Vuse_default_ascent, first_ch)))
-		{
-		  highest = default_ascent;
-		  lowest = 0;
-		}
-	      else
-		{
-		  pcm = PER_CHAR_METRIC (s->font, s->char2b);
-		  highest = pcm->ascent + 1;
-		  lowest = - pcm->descent;
-		}
-
-	      if (s->cmpcharp->cmp_rule)
-		x_offset = (s->cmpcharp->col_offset[0]
-			    * FONT_WIDTH (s->f->output_data.x->font));
-
-	      /* Draw the first character at the normal position.  */
-	      XDrawString16 (s->display, s->window, s->gc,
-			     x + x_offset,
-			     s->ybase, s->char2b, 1);
-	      i = 1;
-	      ++s->gidx;
-	    }
-	  else
-	    i = 0;
-
-	  for (; i < s->nchars; i++, ++s->gidx)
-	    {
-	      int x_offset = 0, y_offset = 0;
-
-	      if (relative_compose)
-		{
-		  pcm = PER_CHAR_METRIC (s->font, s->char2b + i);
-		  if (NILP (Vignore_relative_composition)
-		      || NILP (Faref (Vignore_relative_composition,
-				      make_number (s->cmpcharp->glyph[s->gidx]))))
-		    {
-		      if (- pcm->descent >= relative_compose)
-			{
-			  /* Draw above the current glyphs.  */
-			  y_offset = highest + pcm->descent;
-			  highest += pcm->ascent + pcm->descent;
-			}
-		      else if (pcm->ascent <= 0)
-			{
-			  /* Draw beneath the current glyphs.  */
-			  y_offset = lowest - pcm->ascent;
-			  lowest -= pcm->ascent + pcm->descent;
-			}
-		    }
-		  else
-		    {
-		      /* Draw the glyph at normal position.  If
-			 it sticks out of HIGHEST or LOWEST,
-			 update them appropriately.  */
-		      if (pcm->ascent > highest)
-			highest = pcm->ascent;
-		      else if (- pcm->descent < lowest)
-			lowest = - pcm->descent;
-		    }
-		}
-	      else if (s->cmpcharp->cmp_rule)
-		{
-		  int gref = (s->cmpcharp->cmp_rule[s->gidx] - 0xA0) / 9;
-		  int nref = (s->cmpcharp->cmp_rule[s->gidx] - 0xA0) % 9;
-		  int bottom, top;
-
-		  /* Re-encode GREF and NREF so that they specify
-		     only Y-axis information:
-		     0:top, 1:base, 2:bottom, 3:center  */
-		  gref = gref / 3 + (gref == 4) * 2;
-		  nref = nref / 3 + (nref == 4) * 2;
-
-		  pcm = PER_CHAR_METRIC (s->font, s->char2b + i);
-		  bottom = ((gref == 0 ? highest : gref == 1 ? 0
-			     : gref == 2 ? lowest
-			     : (highest + lowest) / 2)
-			    - (nref == 0 ? pcm->ascent + pcm->descent
-			       : nref == 1 ? pcm->descent : nref == 2 ? 0
-			       : (pcm->ascent + pcm->descent) / 2));
-		  top = bottom + (pcm->ascent + pcm->descent);
-		  if (top > highest)
-		    highest = top;
-		  if (bottom < lowest)
-		    lowest = bottom;
-		  y_offset = bottom + pcm->descent;
-		  x_offset = (s->cmpcharp->col_offset[s->gidx]
-			      * FONT_WIDTH (FRAME_FONT (s->f)));
-		}
-
-	      XDrawString16 (s->display, s->window, s->gc,
-			     x + x_offset, s->ybase - y_offset,
-			     s->char2b + i, 1);
-	    }
+	    XDrawImageString (s->display, s->window, s->gc, x,
+			      s->ybase - boff, char1b, s->nchars);
 	}
+    }
+}
+
+/* Draw the foreground of composite glyph string S.  */
+
+static void
+x_draw_composite_glyph_string_foreground (s)
+     struct glyph_string *s;
+{
+  int i, x;
+
+  /* If first glyph of S has a left box line, start drawing the text
+     of S to the right of that box line.  */
+  if (s->face->box != FACE_NO_BOX
+      && s->first_glyph->left_box_line_p)
+    x = s->x + s->face->box_line_width;
+  else
+    x = s->x;
+
+  /* S is a glyph string for a composition.  S->gidx is the index of
+     the first character drawn for glyphs of this composition.
+     S->gidx == 0 means we are drawing the very first character of
+     this composition.  */
+
+  /* Draw a rectangle for the composition if the font for the very
+     first character of the composition could not be loaded.  */
+  if (s->font_not_found_p)
+    {
+      if (s->gidx == 0)
+	XDrawRectangle (s->display, s->window, s->gc, x, s->y,
+			s->width - 1, s->height - 1);
+    }
+  else
+    {
+      for (i = 0; i < s->nchars; i++, ++s->gidx)
+	XDrawString16 (s->display, s->window, s->gc,
+		       x + s->cmp->offsets[s->gidx * 2],
+		       s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
+		       s->char2b + i, 1);
     }
 }
 
@@ -3315,7 +3500,7 @@ x_draw_glyph_string_box (s)
     }
   
   /* The glyph that may have a right box line.  */
-  last_glyph = (s->cmpcharp || s->img
+  last_glyph = (s->cmp || s->img
 		? s->first_glyph
 		: s->first_glyph + s->nchars - 1);
 
@@ -3774,6 +3959,14 @@ x_draw_glyph_string (s)
       x_draw_glyph_string_foreground (s);
       break;
 
+    case COMPOSITE_GLYPH:
+      if (s->for_overlaps_p || s->gidx > 0)
+	s->background_filled_p = 1;
+      else
+	x_draw_glyph_string_background (s, 1);
+      x_draw_composite_glyph_string_foreground (s);
+      break;
+
     default:
       abort ();
     }
@@ -3853,94 +4046,44 @@ x_draw_glyph_string (s)
 }
 
 
-/* A work-list entry used during the construction of glyph_string
-   structures for a composite character.  */
-
-struct work
-{
-  /* Pointer to composite char info defining has the composite
-     character is drawn.  */
-  struct cmpchar_info *cmpcharp;
-
-  /* Start index in compcharp->glyph[].  */
-  int gidx;
-
-  /* Next in stack.  */
-  struct work *next;
-};
+static int x_fill_composite_glyph_string P_ ((struct glyph_string *,
+					      struct face **, int));
 
 
-static void x_fill_composite_glyph_string P_ ((struct glyph_string *,
-					       int, struct work **,
-					       struct work **, int));
+/* Load glyph string S with a composition components specified by S->cmp.
+   FACES is an array of faces for all components of this composition.
+   S->gidx is the index of the first component for S.
+   OVERLAPS_P non-zero means S should draw the foreground only, and
+   use its lines physical height for clipping.
 
+   Value is the index of a component not in S.  */
 
-/* Load glyph string S with information from the top of *STACK for a
-   composite character.  FACE_ID is the id of the face in which S is
-   drawn.  *NEW is a pointer to a struct work not on the stack, that
-   can be used if this function needs to push a new structure on the
-   stack.  If it uses it, *NEW is set to null.  OVERLAPS_P non-zero
-   means S should draw the foreground only, and use its lines physical
-   height for clipping.  */
-
-static void
-x_fill_composite_glyph_string (s, face_id, stack, new, overlaps_p)
+static int
+x_fill_composite_glyph_string (s, faces, overlaps_p)
      struct glyph_string *s;
-     int face_id;
-     struct work **stack, **new;
+     struct face **faces;
      int overlaps_p;
 {
-  int i, c;
-  struct work *work;
+  int i;
 
-  xassert (s && *new && *stack);
+  xassert (s);
 
-  s->for_overlaps_p = 1;
+  s->for_overlaps_p = overlaps_p;
   
-  /* Pop the work stack.  */
-  work = *stack;
-  *stack = work->next;
-  
-  /* For all glyphs of cmpcharp->glyph, starting at the offset
-     work->offset, until we reach the end of the definition or
-     encounter another composite char, get the font and face to use,
-     and add it to S.  */
-  for (i = work->gidx; i < work->cmpcharp->glyph_len; ++i)
-    {
-      c = FAST_GLYPH_CHAR (work->cmpcharp->glyph[i]);
-      if (CHAR_CHARSET (c) == CHARSET_COMPOSITION)
-	break;
-      s->face = x_get_char_face_and_encoding (s->f, c, face_id,
-					      s->char2b + s->nchars, 1);
-      s->font = s->face->font;
-      s->font_info = FONT_INFO_FROM_ID (s->f, s->face->font_info_id);
-      ++s->nchars;
-    }
+  s->face = faces[s->gidx];
+  s->font = s->face->font;
+  s->font_info = FONT_INFO_FROM_ID (s->f, s->face->font_info_id);
 
-  /* If we find another composite char in the glyph definition of
-     work->cmpcharp, put back the rest of the glyphs on the work
-     stack, and make a new entry for the composite char.  */
-  if (i < work->cmpcharp->glyph_len)
-    {
-      /* Push back an unprocessed rest of this glyph spec.  */
-      if (i < work->cmpcharp->glyph_len - 1)
-	{
-	  work->gidx = i + 1;
-	  work->next = *stack;
-	  *stack = work;
-	  work = *new;
-	  *new = NULL;
-	}
+  /* For all glyphs of this composition, starting at the offset
+     S->gidx, until we reach the end of the definition or encounter a
+     glyph that requires the different face, add it to S.  */
+  ++s->nchars;
+  for (i = s->gidx + 1; i < s->cmp->glyph_len && faces[i] == s->face; ++i)
+    ++s->nchars;
 
-      /* Make an entry for the composite char on the work stack.  */
-      work->cmpcharp = cmpchar_table[COMPOSITE_CHAR_ID (c)];
-      work->gidx = 0;
-      work->next = *stack;
-      *stack = work;
-    }
+  /* All glyph strings for the same composition has the same width,
+     i.e. the width set for the first component of the composition.  */
 
-  /* The width of this glyph string equals the width of the first
-     glyph.  All characters are drawn at the same x-position.  */
   s->width = s->first_glyph->pixel_width;
 
   /* If the specified font could not be loaded, use the frame's
@@ -3960,10 +4103,12 @@ x_fill_composite_glyph_string (s, face_id, stack, new, overlaps_p)
 
   /* This glyph string must always be drawn with 16-bit functions.  */
   s->two_byte_p = 1;
+
+  return s->gidx + s->nchars;
 }
 
 
-/* Load glyph string S with a sequence of non-composite characters.
+/* Load glyph string S with a sequence characters.
    FACE_ID is the face id of the string.  START is the index of the
    first glyph to consider, END is the index of the last + 1.
    OVERLAPS_P non-zero means S should draw the foreground only, and
@@ -3980,7 +4125,6 @@ x_fill_glyph_string (s, face_id, start, end, overlaps_p)
   struct glyph *glyph, *last;
   int voffset;
   
-  xassert (s->charset != CHARSET_COMPOSITION);
   xassert (s->f == XFRAME (s->w->frame));
   xassert (s->nchars == 0);
   xassert (start >= 0 && end > start);
@@ -4195,66 +4339,71 @@ x_set_glyph_string_background_width (s, start, last_x)
 	 charset = CHAR_CHARSET (c);					   \
 	 face_id = (ROW)->glyphs[AREA][START].u.ch.face_id;		   \
 									   \
-	 if (charset == CHARSET_COMPOSITION)				   \
-	   {								   \
-	     struct work *stack, *work, *new = NULL;			   \
-	     int n = 0;							   \
-             struct glyph_string *first_s = NULL;			   \
-									   \
-	     /* Push an initial entry for character c on the stack.  */	   \
-	     stack = NULL;						   \
-	     work = (struct work *) alloca (sizeof *work);		   \
-	     work->cmpcharp = cmpchar_table[COMPOSITE_CHAR_ID (c)];	   \
-	     work->gidx = 0;						   \
-	     work->next = stack;					   \
-	     stack = work;						   \
-									   \
-	     /* While the stack is not empty, append glyph_strings	   \
-		to head/tail for glyphs to draw.  */			   \
-	     while (stack)						   \
-	       {							   \
-		 s = (struct glyph_string *) alloca (sizeof *s);	   \
-		 char2b = (XChar2b *) alloca (stack->cmpcharp->glyph_len   \
-					      * sizeof (XChar2b));	   \
-		 x_init_glyph_string (s, char2b, W, ROW, AREA, START, HL); \
-		 x_append_glyph_string (&(HEAD), &(TAIL), s);		   \
-		 s->cmpcharp = stack->cmpcharp;				   \
-		 s->gidx = stack->gidx;					   \
-		 s->charset = charset;					   \
-		 s->x = (X);						   \
-									   \
-                 if (n == 0)						   \
-		   {							   \
-		     /* Don't draw the background except for the	   \
-			first glyph string.  */				   \
-                     s->background_filled_p = n > 0;			   \
-		     first_s = s;					   \
-		   }							   \
-		 ++n;							   \
-									   \
-		 if (new == NULL)					   \
-		   new = (struct work *) alloca (sizeof *new);		   \
-		 x_fill_composite_glyph_string (s, face_id, &stack,	   \
-						&new, OVERLAPS_P);	   \
-	       }							   \
-									   \
-	     ++START;							   \
-             s = first_s;						   \
-	   }								   \
-	 else								   \
-	   {								   \
-	     s = (struct glyph_string *) alloca (sizeof *s);		   \
-	     char2b = (XChar2b *) alloca ((END - START) * sizeof *char2b); \
-	     x_init_glyph_string (s, char2b, W, ROW, AREA, START, HL);	   \
-	     x_append_glyph_string (&HEAD, &TAIL, s);			   \
-	     s->charset = charset;					   \
-	     s->x = (X);						   \
-	     START = x_fill_glyph_string (s, face_id, START, END,	   \
+	 s = (struct glyph_string *) alloca (sizeof *s);		   \
+	 char2b = (XChar2b *) alloca ((END - START) * sizeof *char2b);	   \
+	 x_init_glyph_string (s, char2b, W, ROW, AREA, START, HL);	   \
+	 x_append_glyph_string (&HEAD, &TAIL, s);			   \
+	 s->charset = charset;						   \
+	 s->x = (X);							   \
+	 START = x_fill_glyph_string (s, face_id, START, END,		   \
                                           OVERLAPS_P);			   \
-	   }								   \
        }								   \
      while (0)
      
+
+/* Add a glyph string for a composite sequence to the list of strings
+   between HEAD and TAIL.  START is the index of the first glyph in
+   row area AREA of glyph row ROW that is part of the new glyph
+   string.  END is the index of the last glyph in that glyph row area.
+   X is the current output position assigned to the new glyph string
+   constructed.  HL overrides that face of the glyph; e.g. it is
+   DRAW_CURSOR if a cursor has to be drawn.  LAST_X is the right-most
+   x-position of the drawing area.  */
+
+#define BUILD_COMPOSITE_GLYPH_STRING(W, ROW, AREA, START, END, HEAD,	  \
+				       TAIL, HL, X, LAST_X, OVERLAPS_P)	  \
+  do {									  \
+    int cmp_id = (ROW)->glyphs[AREA][START].u.cmp.id;			  \
+    int face_id = (ROW)->glyphs[AREA][START].u.cmp.face_id;		  \
+    struct composition *cmp = composition_table[cmp_id];		  \
+    int glyph_len = cmp->glyph_len;					  \
+    XChar2b *char2b;							  \
+    struct face **faces;						  \
+    struct glyph_string *first_s = NULL;				  \
+    int n;								  \
+    									  \
+    char2b = (XChar2b *) alloca ((sizeof *char2b) * glyph_len);		  \
+    faces = (struct face **) alloca ((sizeof *faces) * glyph_len);	  \
+    /* At first, fill in `char2b' and `faces'.  */			  \
+    for (n = 0; n < glyph_len; n++)					  \
+      {									  \
+	int c = FAST_GLYPH_CHAR (COMPOSITION_GLYPH (cmp, n));		  \
+	faces[n] = x_get_char_face_and_encoding (XFRAME (w->frame), c,	  \
+						 face_id, char2b + n, 1); \
+      }									  \
+    									  \
+    /* Make glyph_strings for each glyph sequence that is drawable by	  \
+       the same face, and append them to HEAD/TAIL.  */			  \
+    for (n = 0; n < cmp->glyph_len;)					  \
+      {									  \
+	s = (struct glyph_string *) alloca (sizeof *s);			  \
+	x_init_glyph_string (s, char2b + n, W, ROW, AREA, START, HL);	  \
+	x_append_glyph_string (&(HEAD), &(TAIL), s);			  \
+	s->cmp = cmp;							  \
+	s->gidx = n;							  \
+	s->charset = 0;							  \
+	s->x = (X);							  \
+									  \
+	if (n == 0)							  \
+	  first_s = s;							  \
+									  \
+	n = x_fill_composite_glyph_string (s, faces, OVERLAPS_P);	  \
+      }									  \
+    									  \
+    ++START;								  \
+    s = first_s;							  \
+  } while (0)
+    
 
 /* Build a list of glyph strings between HEAD and TAIL for the glyphs
    of AREA of glyph row ROW on window W between indices START and END.
@@ -4279,6 +4428,12 @@ x_set_glyph_string_background_width (s, start, last_x)
                  BUILD_CHAR_GLYPH_STRINGS (W, ROW, AREA, START, END, HEAD, \
 		                           TAIL, HL, X, LAST_X,		   \
                                            OVERLAPS_P);	                   \
+		 break;							   \
+									   \
+	       case COMPOSITE_GLYPH:					   \
+                 BUILD_COMPOSITE_GLYPH_STRING (W, ROW, AREA, START, END,   \
+						 HEAD, TAIL, HL, X, LAST_X,\
+						 OVERLAPS_P);		   \
 		 break;							   \
 									   \
 	       case STRETCH_GLYPH:					   \
@@ -10646,8 +10801,7 @@ x_new_font (f, fontname)
     return Qnil;
 
   f->output_data.x->font = (XFontStruct *) (fontp->font);
-  f->output_data.x->font_baseline
-    = (f->output_data.x->font->ascent + fontp->baseline_offset);
+  f->output_data.x->baseline_offset = fontp->baseline_offset;
   f->output_data.x->fontset = -1;
   
   /* Compute the scroll bar width in character columns.  */
