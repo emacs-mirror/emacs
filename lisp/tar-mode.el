@@ -683,7 +683,8 @@ save your changes to disk."
 		(set-buffer buffer)
 		(insert-buffer-substring tar-buffer start end)
 		(goto-char 0)
-		(set-visited-file-name name) ; give it a name to decide mode.
+		;; Give it a name for lit-buffers and to decide mode.
+		(set-visited-file-name (concat tarname ":" name))
 		(normal-mode)  ; pick a mode.
 ;;; Without a file name, save-buffer doesn't work.
 ;;;		(set-visited-file-name nil)  ; nuke the name - not meaningful.
@@ -1078,10 +1079,14 @@ to make your changes permanent."
 	      (next-line position)
 	      (beginning-of-line)
 	      (let ((p (point))
+		    after
 		    (m (set-marker (make-marker) tar-header-offset)))
 		(forward-line 1)
-		(delete-region p (point))
+		(setq after (point))
+		;; Insert the new text after the old, before deleting,
+		;; to preserve the window start.
 		(insert-before-markers (summarize-tar-header-block tokens t) "\n")
+		(delete-region p after)
 		(setq tar-header-offset (marker-position m)))
 	      )))
 	;; after doing the insertion, add any final padding that may be necessary.
@@ -1090,7 +1095,7 @@ to make your changes permanent."
     (set-buffer-modified-p t)   ; mark the tar file as modified
     (set-buffer subfile)
     (set-buffer-modified-p nil) ; mark the tar subfile as unmodified
-    (message "saved into tar-buffer \"%s\" - remember to save that buffer!"
+    (message "saved into tar-buffer `%s' -- remember to save that buffer!"
 	     (buffer-name tar-superior-buffer))
     ;; Prevent ordinary saving from happening.
     t)))
