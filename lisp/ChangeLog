@@ -40,16 +40,17 @@
 
 	* ps-mule.el (ps-multibyte-buffer): Likewise.
 
-	* speedbar.el (speedbar-mode): Likewise.
-
 	* textmodes/fill.el (fill-nonuniform-paragraphs)
 	(fill-individual-paragraphs): Likewise.
 
 	* textmodes/reftex.el (reftex-TeX-master-file): Likewise.
 
-	* textmodes/reftex-vars.el (reftex-multiref-punctuation): Likewise.
-
 	* vcursor.el (vcursor-toggle-vcursor-map): Likewise.
+
+	* speedbar.el (speedbar-mode): Fix spacing. Fix typos.
+
+	* textmodes/reftex-vars.el (reftex-label-menu-flags): Fix typo.
+	(reftex-multiref-punctuation): Fix spacing.
 
 2002-09-05  Richard M. Stallman  <rms@gnu.org>
 
