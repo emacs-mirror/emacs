@@ -1,3 +1,8 @@
+2002-03-27  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sedlisp.inp <bootstrap-clean>: Make sure all *.el files have
+	Unix EOLs, to avoid overflowing pure storage while bootstrapping.
+
 2002-03-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mainmake.v2 (bootstrap-lisp-1, bootstrap-lisp, bootstrap-src) 

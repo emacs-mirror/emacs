@@ -1,3 +1,20 @@
+2002-03-27  Zoltan Kemenczy  <zoltan@ieee.org>
+
+	* gud.el (gud-jdb-sourcepath): New variable, saves jdb -sourcepath
+	parameter value.
+	(gud-jdb-build-source-files-list): Comment clarification.
+	(gud-jdb-massage-args): Reworked into loop-based argument list
+	processing in order to support -classpath and -sourcepath argument
+	processing.
+	(gud-jdb-find-source-using-classpath): Prepend gud-jdb-sourcepath
+	to gud-jdb-classpath to obtain search list.
+	(gud-jdb-parse-classpath-string): Remove any trailing slashes from
+	directory names in classpath/sourcepath lists, update comment.
+	(jdb): Add setting of gud-jdb-sourcepath, update comment.
+	(gud-find-class): Add gud-jdb-sourcepath use, and correct
+	behaviour for the case when classpath is not used--backward
+	compatibility fix.
+
 2002-03-27  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (compile, compile-always): Don't try to compile
