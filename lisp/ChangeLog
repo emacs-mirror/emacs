@@ -1,3 +1,11 @@
+1999-10-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* subr.el (with-current-buffer): don't use backquotes to avoid
+	  bootstrapping problems.
+	loadup.el (load-path): add subdirs for bootstrapping.
+	(docstrings): ignore errors during bootstrapping.
+	(args): new `bootstrap' argument (for use in place of `dump').
+
 1999-10-12  Emmanuel Briot  <briot@gnat.com>
 
 	* ada-stmt.el: Doc-string fixes.

@@ -977,9 +977,9 @@ Wildcards and redirection are handled as usual in the shell."
   "Execute the forms in BODY with BUFFER as the current buffer.
 The value returned is the value of the last form in BODY.
 See also `with-temp-buffer'."
-  `(save-current-buffer
-    (set-buffer ,buffer)
-    ,@body))
+  (cons 'save-current-buffer
+	(cons (list 'set-buffer buffer)
+	      body)))
 
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.
