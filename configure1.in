@@ -769,9 +769,10 @@ case "${canonical}" in
     machine=symmetry opsys=bsd4-3
   ;;
 
-  ## Unspecified sysv on an ncr machine defaults to svr4.
+  ## Unspecified sysv on an ncr machine defaults to svr4.2.
+  ## (Plain usg5-4 doesn't turn on POSIX signals, which we need.)
   i[34]86-ncr-sysv* )
-    machine=intel386 opsys=usg5-4
+    machine=intel386 opsys=usg5-4-2
   ;;
 
   ## Intel 860
@@ -1547,7 +1548,7 @@ test -n "${prefix}" &&
 test -n "${exec_prefix}" &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`
 ]
-AC_OUTPUT(Makefile lib-src/Makefile oldXMenu/Makefile lwlib/Makefile src/Makefile.in, [
+AC_OUTPUT(Makefile lib-src/Makefile.in oldXMenu/Makefile lwlib/Makefile src/Makefile.in, [
 
 # Build src/Makefile from ${srcdir}/src/Makefile.in.  This must be done
 # after src/config.h is built, since we rely on that file.
@@ -1566,6 +1567,19 @@ sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/  */ -U/g'  \
 `"
 changequote([,])dnl
 
+echo creating lib-src/Makefile
+( cd lib-src
+  rm -f junk.c
+  sed -e 's@^# \(Generated.*\)$@/* \1 */@' \
+      -e 's@/\*\*/#\(.*\)$@/* \1 */@' \
+      < Makefile.in > junk.c
+  $CPP $undefs -I. -I$top_srcdir/lib-src $CPPFLAGS junk.c |
+  sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > Makefile.new
+  rm -f junk.c
+  chmod 444 Makefile.new;
+  mv -f Makefile.new Makefile;
+)
+
 echo creating src/Makefile
 ( cd src
   rm -f junk.c
@@ -1578,28 +1592,3 @@ echo creating src/Makefile
   chmod 444 Makefile.new;
   mv -f Makefile.new Makefile;
 )])
-
-# Now recalculate libsrc_libs based on the new decisions made above,
-# and substitute it into lib-src/Makefile.
-# This is necessary in case the m/ or s/ file contains conditionals
-# that test macros defined by config.h.
-
-[
-echo '
-#include "config.h"
-#ifndef LIBS_MACHINE
-#define LIBS_MACHINE
-#endif
-#ifndef LIBS_SYSTEM
-#define LIBS_SYSTEM
-#endif
-configure___ libsrc_libs=LIBS_MACHINE LIBS_SYSTEM
-' > ${tempcname}
-eval `${CPP} -Isrc -I${srcdir}/src ${tempcname} \
-       | grep 'configure___' \
-       | sed -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/'`
-rm ${tempcname}
-
-cat lib-src/Makefile | sed -e "s/@libsrc_libs@/$libsrc_libs/" > lib-src/Makefoo
-mv lib-src/Makefoo lib-src/Makefile
-]
