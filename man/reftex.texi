@@ -3486,7 +3486,7 @@ the command @code{reftex-view-crossref-from-bibtex}.  With one or two
 View location in a LaTeX document which cites the BibTeX entry at point.
 Since BibTeX files can be used by many LaTeX documents, this function
 prompts upon first use for a buffer in @b{Ref@TeX{}} mode.  To reset this
-link to a document, call the function with with a prefix arg.  Calling
+link to a document, call the function with a prefix arg.  Calling
 this function several times find successive citation locations.
 @end deffn
 
@@ -4450,7 +4450,7 @@ viewing can be useful.  Each entry has the structure
 @end example
 @var{macro-re} is matched against the macro.  @var{search-re} is the
 regexp used to search for cross references.  @samp{%s} in this regexp is
-replaced with with the macro argument at point.  @var{highlight} is an
+replaced with the macro argument at point.  @var{highlight} is an
 integer indicating which subgroup of the match should be highlighted.
 @end defopt
 
