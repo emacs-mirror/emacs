@@ -251,7 +251,7 @@ static int line_number_display_limit;
 Lisp_Object Vmessage_log_max;
 
 #define COERCE_MARKER(X)	\
-  (MARKERP ((X)) ? make_number (marker_position (X)) : (X))
+  (MARKERP ((X)) ? Fmarker_position (X) : (X))
 
 /* Output a newline in the *Messages* buffer if "needs" one.  */
 
@@ -1835,13 +1835,14 @@ redisplay_window (window, just_this_one, preserve_echo_area)
       && INTEGERP (w->window_end_vpos)
       && XFASTINT (w->window_end_vpos) < XFASTINT (w->height)
       && !EQ (window, minibuf_window)
-      && current_buffer != XMARKER (Voverlay_arrow_position)->buffer)
+      && (!MARKERP (Voverlay_arrow_position)
+	  || current_buffer != XMARKER (Voverlay_arrow_position)->buffer))
     {
+      /* All positions in this clause are relative to the window edge.  */
+
       int this_scroll_margin = scroll_margin;
       int last_point_y = XFASTINT (w->last_point_y) - XINT (w->top);
-      int last_point_x = (XFASTINT (w->last_point_x)
-			  + (hscroll ? 1 - hscroll : 0)
-			  - WINDOW_LEFT_MARGIN (w));
+      int last_point_x = (XFASTINT (w->last_point_x) - WINDOW_LEFT_MARGIN (w));
 
       /* Find where PT is located now on the frame.  */
       /* Check just_this_one as a way of verifying that the 
@@ -2915,7 +2916,6 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
   XSETFASTINT (default_invis_vector[2], '.');
   default_invis_vector[0] = default_invis_vector[1] = default_invis_vector[2];
 
-  hpos += WINDOW_LEFT_MARGIN (w);
   get_display_line (f, vpos, WINDOW_LEFT_MARGIN (w));
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
@@ -2951,7 +2951,8 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 
 	  minibuf_prompt_width
 	    = (display_string (w, vpos, XSTRING (minibuf_prompt)->data,
-			       XSTRING (minibuf_prompt)->size, hpos,
+			       XSTRING (minibuf_prompt)->size,
+			       hpos + WINDOW_LEFT_MARGIN (w),
 			       /* Display a space if we truncate.  */
 			       ' ',
 			       1, -1,
@@ -2960,7 +2961,7 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
 				  on the first line.  */
 			       (XFASTINT (w->width) > 10
 				? XFASTINT (w->width) - 4 : -1))
-	       - hpos);
+	       - hpos - WINDOW_LEFT_MARGIN (w));
 	  hpos += minibuf_prompt_width;
 	  taboffset -= minibuf_prompt_width - old_width;
 	}
@@ -3001,6 +3002,8 @@ display_text_line (w, start, vpos, hpos, taboffset, ovstr_done)
           hpos = left_edge->hpos;
         }
     }
+
+  hpos += WINDOW_LEFT_MARGIN (w);
 
   desired_glyphs->bufp[vpos] = start;
   p1 = desired_glyphs->glyphs[vpos] + hpos;
