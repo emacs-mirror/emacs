@@ -1472,15 +1472,17 @@ then the value includes only maps for prefixes that start with PREFIX.")
 	      Lisp_Object copy;
 
 	      copy = Fmake_vector (make_number (XSTRING (prefix)->size), Qnil);
-	      for (i = 0, i_byte; i < XSTRING (prefix)->size;)
+	      for (i = 0, i_byte = 0; i < XSTRING (prefix)->size;)
 		{
 		  int i_before = i;
 		  if (STRING_MULTIBYTE (prefix))
 		    FETCH_STRING_CHAR_ADVANCE (c, prefix, i, i_byte);
 		  else
-		    c = XSTRING (prefix)->data[i++];
-		  if (c & 0200)
-		    c ^= 0200 | meta_modifier;
+		    {
+		      c = XSTRING (prefix)->data[i++];
+		      if (c & 0200)
+			c ^= 0200 | meta_modifier;
+		    }
 		  XVECTOR (copy)->contents[i_before] = make_number (c);
 		}
 	      prefix = copy;
@@ -1704,7 +1706,7 @@ spaces are put between sequence elements, etc.")
     {
       Lisp_Object vector;
       vector = Fmake_vector (Flength (keys), Qnil);
-      for (i = 0; i < XSTRING (keys)->size; )
+      for (i = 0, i_byte = 0; i < XSTRING (keys)->size; )
 	{
 	  int c;
 	  int i_before = i;
@@ -1712,13 +1714,13 @@ spaces are put between sequence elements, etc.")
 	  if (STRING_MULTIBYTE (keys))
 	    FETCH_STRING_CHAR_ADVANCE (c, keys, i, i_byte);
 	  else
-	    c = XSTRING (keys)->data[i++];
+	    {
+	      c = XSTRING (keys)->data[i++];
+	      if (c & 0200)
+		c ^= 0200 | meta_modifier;
+	    }
 
-	  if (c & 0x80)
-	    XSETFASTINT (XVECTOR (vector)->contents[i_before],
-			 meta_modifier | (c & ~0x80));
-	  else
-	    XSETFASTINT (XVECTOR (vector)->contents[i_before], c);
+	  XSETFASTINT (XVECTOR (vector)->contents[i_before], c);
 	}
       keys = vector;
     }
