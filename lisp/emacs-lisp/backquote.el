@@ -36,7 +36,7 @@
 ;; Generates faster run-time expressions.
 ;; One third fewer calories than our regular beer.
 
-;; This backquote will generate calls to the list* form.
+;; This backquote will generate calls to the backquote-list* form.
 ;; Both a function version and a macro version are included.
 ;; The macro version is used by default because it is faster
 ;; and needs no run-time support.  It should really be a subr.
@@ -45,12 +45,12 @@
 
 (provide 'backquote)
 
-;; function and macro versions of list*
+;; function and macro versions of backquote-list*
 
-(defun list*-function (first &rest list)
+(defun backquote-list*-function (first &rest list)
   "Like `list' but the last argument is the tail of the new list.
 
-For example (list* 'a 'b 'c) => (a b . c)"
+For example (backquote-list* 'a 'b 'c) => (a b . c)"
   (if list
       (let* ((rest list) (newlist (cons first nil)) (last newlist))
 	(while (cdr rest)
@@ -61,10 +61,10 @@ For example (list* 'a 'b 'c) => (a b . c)"
 	newlist)
     first))
 
-(defmacro list*-macro (first &rest list)
-  "Like `cons' but accepts more arguments.
+(defmacro backquote-list*-macro (first &rest list)
+  "Like `list' but the last argument is the tail of the new list.
 
-For example (list* 'a 'b 'c) == (cons 'a (cons 'b 'c))"
+For example (backquote-list* 'a 'b 'c) => (a b . c)"
   (setq list (reverse (cons first list))
 	first (car list)
 	list (cdr list))
@@ -78,7 +78,7 @@ For example (list* 'a 'b 'c) == (cons 'a (cons 'b 'c))"
 	newlist)
     first))
 
-(fset 'list* (symbol-function 'list*-macro))
+(fset 'backquote-list* (symbol-function 'backquote-list*-macro))
 
 ;; A few advertised variables that control which symbols are used
 ;; to represent the backquote, unquote, and splice operations.
@@ -87,10 +87,10 @@ For example (list* 'a 'b 'c) == (cons 'a (cons 'b 'c))"
   "*Symbol used to represent a backquote or nested backquote (e.g. `).")
 
 (defvar backquote-unquote-symbol ',
-  "*Symbol used to represent an unquote (e.g. ,) inside a backquote.")
+  "*Symbol used to represent an unquote (e.g. `,') inside a backquote.")
 
 (defvar backquote-splice-symbol ',@
-  "*Symbol used to represent a splice (e.g. ,@) inside a backquote.")
+  "*Symbol used to represent a splice (e.g. `,'@) inside a backquote.")
 
 (defmacro backquote (arg)
   "Argument STRUCTURE describes a template to build.
@@ -105,25 +105,22 @@ b                 => (ba bb bc)		; assume b has this value
 \(` (a (, b) c))   => (a (ba bb bc) c)	; insert the value of b
 \(` (a (,@ b) c))  => (a ba bb bc c)	; splice in the value of b
 
-Vectors work just like lists.  Nested backquotes are permitted.
-
-Variables: backquote-backquote-symbol, backquote-unquote-symbol,
-backquote-splice-symbol"
-  (cdr (bq-process arg)))
+Vectors work just like lists.  Nested backquotes are permitted."
+  (cdr (backquote-process arg)))
 
 ;; GNU Emacs has no reader macros
 
 (fset backquote-backquote-symbol (symbol-function 'backquote))
 
-;; bq-process returns a dotted-pair of a tag (0, 1, or 2) and
+;; backquote-process returns a dotted-pair of a tag (0, 1, or 2) and
 ;; the backquote-processed structure.  0 => the structure is
 ;; constant, 1 => to be unquoted, 2 => to be spliced in.
 ;; The top-level backquote macro just discards the tag.
 
-(defun bq-process (s)
+(defun backquote-process (s)
   (cond
    ((vectorp s)
-    (let ((n (bq-process (append s ()))))
+    (let ((n (backquote-process (append s ()))))
       (if (= (car n) 0)
 	  (cons 0 s)
 	(cons 1 (cond
@@ -142,27 +139,28 @@ backquote-splice-symbol"
    ((eq (car s) backquote-splice-symbol)
     (cons 2 (nth 1 s)))
    ((eq (car s) backquote-backquote-symbol)
-    (bq-process (cdr (bq-process (nth 1 s)))))
+    (backquote-process (cdr (backquote-process (nth 1 s)))))
    (t
     (let ((rest s) (item nil) (firstlist nil) (list nil) (lists nil))
       (while (consp rest)
 	(if (eq (car rest) backquote-unquote-symbol)
 	    (setq rest (list (list backquote-splice-symbol (nth 1 rest)))))
-	(setq item (bq-process (car rest)))
+	(setq item (backquote-process (car rest)))
 	(cond
 	 ((= (car item) 2)
 	  (if (null firstlist)
 	      (setq firstlist list
 		    list nil))
 	  (if list
-	      (setq lists (cons (bq-listify list '(0 . nil)) lists)))
+	      (setq lists (cons (backquote-listify list '(0 . nil)) lists)))
 	  (setq lists (cons (cdr item) lists))
 	  (setq list nil))
 	 (t
 	  (setq list (cons item list))))
 	(setq rest (cdr rest)))
       (if (or rest list)
-	  (setq lists (cons (bq-listify list (bq-process rest)) lists)))
+	  (setq lists (cons (backquote-listify list (backquote-process rest))
+			    lists)))
       (setq lists
 	    (if (or (cdr lists)
 		    (and (consp (car lists))
@@ -170,16 +168,16 @@ backquote-splice-symbol"
 		(cons 'append (nreverse lists))
 	      (car lists)))
       (if firstlist
-	  (setq lists (bq-listify firstlist (cons 1 lists))))
+	  (setq lists (backquote-listify firstlist (cons 1 lists))))
       (if (eq (car lists) 'quote)
 	  (cons 0 (list 'quote s))
 	(cons 1 lists))))))
 
-;; bq-listify takes (tag . structure) pairs from bq-process
-;; and decides between append, list, list*, and cons depending
+;; backquote-listify takes (tag . structure) pairs from backquote-process
+;; and decides between append, list, backquote-list*, and cons depending
 ;; on which tags are in the list.
 
-(defun bq-listify (list old-tail)
+(defun backquote-listify (list old-tail)
   (let ((heads nil) (tail (cdr old-tail)) (list-tail list) (item nil))
     (if (= (car old-tail) 0)
 	(setq tail (eval tail)
@@ -199,7 +197,7 @@ backquote-splice-symbol"
 			       (and (consp (car heads))
 				    (eq (car (car heads))
 					backquote-splice-symbol)))))
-	    (cons (if use-list* 'list* 'cons)
+	    (cons (if use-list* 'backquote-list* 'cons)
 		  (append heads (list tail))))
 	tail))
      (t (cons 'list heads)))))
