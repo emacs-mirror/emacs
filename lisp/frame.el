@@ -1342,7 +1342,7 @@ This timer calls `blink-cursor-timer-function' every
   (not (or noninteractive
 	   emacs-quick-startup
 	   (eq system-type 'ms-dos)
-	   (not (memq window-system '(x w32)))))
+	   (not (memq initial-window-system '(x w32)))))
   "*Non-nil means Blinking Cursor mode is active."
   :group 'cursor
   :tag "Blinking cursor"
