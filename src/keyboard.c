@@ -412,7 +412,7 @@ Lisp_Object Vecho_keystrokes;
 /* Form to evaluate (if non-nil) when Emacs is started.  */
 Lisp_Object Vtop_level;
 
-/* User-supplied string to translate input characters through.  */
+/* User-supplied table to translate input characters.  */
 Lisp_Object Vkeyboard_translate_table;
 
 /* Keymap mapping ASCII function key sequences onto their preferred forms.  */
@@ -598,7 +598,7 @@ Lisp_Object Fthis_command_keys ();
 Lisp_Object Qextended_command_history;
 EMACS_TIME timer_check ();
 
-extern Lisp_Object Vhistory_length;
+extern Lisp_Object Vhistory_length, Vtranslation_table_for_input;
 
 extern char *x_get_keysym_name ();
 
@@ -1629,10 +1629,12 @@ command_loop_1 ()
 		  goto directly_done;
 		}
 	      else if (EQ (Vthis_command, Qself_insert_command)
-		       /* Try this optimization only on ascii keystrokes.  */
-		       && INTEGERP (last_command_char))
+		       /* Try this optimization only on character keystrokes.  */
+		       && CHAR_VALID_P (last_command_char, 0))
 		{
-		  unsigned int c = XINT (last_command_char);
+		  unsigned int c =
+		    translate_char (Vtranslation_table_for_input,
+				    XINT (last_command_char), 0, 0, 0);
 		  int value;
 		  if (NILP (Vexecuting_macro)
 		      && !EQ (minibuf_window, selected_window))
@@ -10900,7 +10902,10 @@ Each character is looked up in this string and the contents used instead.
 The value may be a string, a vector, or a char-table.
 If it is a string or vector of length N,
 character codes N and up are untranslated.
-In a vector or a char-table, an element which is nil means "no translation".  */);
+In a vector or a char-table, an element which is nil means "no translation".
+
+This is applied to the characters supplied to input methods, not their
+output.  See also `translation-table-for-input'.  */);
   Vkeyboard_translate_table = Qnil;
 
   DEFVAR_BOOL ("cannot-suspend", &cannot_suspend,
