@@ -175,6 +175,8 @@ It creates the Imenu index for the buffer, if necessary."
 ;;;###autoload
 (defalias 'which-func-mode 'which-function-mode)
 
+(defvar which-func-update-timer nil)
+
 ;; This is the name people would normally expect.
 ;;;###autoload
 (define-minor-mode which-function-mode
@@ -188,14 +190,16 @@ and off otherwise."
   (if which-function-mode
       ;;Turn it on
       (progn
-        (add-hook 'post-command-idle-hook 'which-func-update)
+        (setq which-func-update-timer
+              (run-with-idle-timer idle-update-delay t 'which-func-update))
         (dolist (buf (buffer-list))
           (with-current-buffer buf
             (setq which-func-mode
                   (or (eq which-func-modes t)
                       (member major-mode which-func-modes))))))
     ;; Turn it off
-    (remove-hook 'post-command-idle-hook 'which-func-update)
+    (cancel-timer which-func-update-timer)
+    (setq which-func-update-timer nil)
     (dolist (buf (buffer-list))
       (with-current-buffer buf (setq which-func-mode nil)))))
 
@@ -222,7 +226,7 @@ If no function name is found, return nil."
         (while alist
           (setq elem  (car-safe alist)
                 alist (cdr-safe alist))
-          ;; Elements of alist are either ("name" . marker), or 
+          ;; Elements of alist are either ("name" . marker), or
           ;; ("submenu" ("name" . marker) ... ).
           (unless (listp (cdr elem))
               (setq elem (list elem)))
