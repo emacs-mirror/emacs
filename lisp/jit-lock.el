@@ -115,15 +115,16 @@ See also `jit-lock-stealth-nice'."
   :group 'jit-lock)
 
 
-(defcustom jit-lock-defer-contextually 'syntax-driven
-  "*If non-nil, means deferred fontification should be syntactically true.
-If nil, means deferred fontification occurs only on those lines modified.  This
+(defvaralias 'jit-lock-defer-contextually 'jit-lock-contextually)
+(defcustom jit-lock-contextually 'syntax-driven
+  "*If non-nil, means fontification should be syntactically true.
+If nil, means fontification occurs only on those lines modified.  This
 means where modification on a line causes syntactic change on subsequent lines,
 those subsequent lines are not refontified to reflect their new context.
-If t, means deferred fontification occurs on those lines modified and all
+If t, means fontification occurs on those lines modified and all
 subsequent lines.  This means those subsequent lines are refontified to reflect
 their new syntactic context, either immediately or when scrolling into them.
-If any other value, e.g., `syntax-driven', means deferred syntactically true
+If any other value, e.g., `syntax-driven', means syntactically true
 fontification occurs only if syntactic fontification is performed using the
 buffer mode's syntax table, i.e., only if `font-lock-keywords-only' is nil.
 
@@ -187,7 +188,7 @@ following ways:
   been idle for `jit-lock-stealth-time' seconds, while Emacs remains idle.
   This is useful if any buffer has any deferred fontification.
 
-- Deferred context fontification if `jit-lock-defer-contextually' is
+- Deferred context fontification if `jit-lock-contextually' is
   non-nil.  This means fontification updates the buffer corresponding to
   true syntactic context, after `jit-lock-stealth-time' seconds of Emacs
   idle time, while Emacs remains idle.  Otherwise, fontification occurs
@@ -219,7 +220,7 @@ the variable `jit-lock-stealth-nice'."
 				      'jit-lock-deferred-fontify)))
 
 	 ;; Initialize contextual fontification if requested.
-	 (when (eq jit-lock-defer-contextually t)
+	 (when (eq jit-lock-contextually t)
 	   (setq jit-lock-context-unfontify-pos
 		 (or jit-lock-context-unfontify-pos (point-max))))
 
@@ -254,8 +255,8 @@ FUN will be called with two arguments START and END indicating the region
 that needs to be (re)fontified.
 If non-nil, CONTEXTUAL means that a contextual fontification would be useful."
   (add-hook 'jit-lock-functions fun nil t)
-  (when (and contextual jit-lock-defer-contextually)
-    (set (make-local-variable 'jit-lock-defer-contextually) t))
+  (when (and contextual jit-lock-contextually)
+    (set (make-local-variable 'jit-lock-contextually) t))
   (jit-lock-mode t))
 
 (defun jit-lock-unregister (fun)
@@ -336,7 +337,13 @@ Defaults to the whole buffer.  END can be out of bounds."
 	   ;; We mark it first, to make sure that we don't indefinitely
 	   ;; re-execute this fontification if an error occurs.
 	   (put-text-property start next 'fontified t)
-	   (run-hook-with-args 'jit-lock-functions start next)
+	   (condition-case err
+	       (run-hook-with-args 'jit-lock-functions start next)
+	     ;; If the user quits (which shouldn't happen in normal on-the-fly
+	     ;; jit-locking), make sure the fontification will be performed
+	     ;; before displaying the block again.
+	     (quit (put-text-property start next 'fontified nil)
+		   (funcall 'signal (car err) (cdr err))))
 
 	   ;; Find the start of the next chunk, if any.
 	   (setq start (text-property-any next end 'fontified nil))))))))
@@ -396,11 +403,9 @@ This functions is called after Emacs has been idle for
     (let ((buffers (buffer-list))
 	  minibuffer-auto-raise
 	  message-log-max)
-      (while (and buffers (not (input-pending-p)))
-	(let ((buffer (car buffers)))
-	  (setq buffers (cdr buffers))
-
-	  (with-current-buffer buffer
+      (with-local-quit
+	(while (and buffers (not (input-pending-p)))
+	  (with-current-buffer (pop buffers)
 	    (when jit-lock-mode
 	      ;; This is funny.  Calling sit-for with 3rd arg non-nil
 	      ;; so that it doesn't redisplay, internally calls
