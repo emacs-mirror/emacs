@@ -124,7 +124,10 @@ This should be nil to put them at the top of the menu, or t to put them
 just before \"Other\" at the end.")
 
 (defvar facemenu-unlisted-faces
-  '(modeline region secondary-selection highlight scratch-face)
+  '(modeline region secondary-selection highlight scratch-face
+    font-lock-comment-face font-lock-string-face font-lock-keyword-face
+    font-lock-function-name-face font-lock-variable-name-face
+    font-lock-type-face font-lock-reference-face)
   "List of faces not to include in the Face menu.
 Set this before loading facemenu.el, or call `facemenu-update' after
 changing it.
@@ -375,9 +378,9 @@ This sets the `read-only' text property; it can be undone with
 	  (setq props (cdr (cdr props))))))))
 
 ;;;###autoload
-(defun facemenu-read-color (prompt)
+(defun facemenu-read-color (&optional prompt)
   "Read a color using the minibuffer."
-  (let ((col (completing-read (or  "Color: ") 
+  (let ((col (completing-read (or prompt "Color: ") 
 			      (or facemenu-color-alist
 				  (if (eq 'x window-system)
 				      (mapcar 'list (x-defined-colors))))
