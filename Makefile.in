@@ -338,7 +338,8 @@ install-arch-indep: mkdir info
 	  && [ `(cd $${dir} && /bin/pwd)` != `(cd $${dest} && /bin/pwd)` ] \
 	  && (echo "Copying $${dir} to $${dest}..." ; \
 	      (cd $${dir}; tar -cf - . ) \
-		|(cd $${dest};umask 022; tar -xvf - && cat > /dev/null); \
+		| (cd $${dest}; umask 022; \
+                   tar -xvf - && cat > /dev/null) || exit 1; \
 	      for subdir in `find $${dest} -type d ! -name RCS ! -name CVS -print` ; do \
 		chmod a+rx $${subdir} ; \
 		rm -rf $${subdir}/RCS ; \
@@ -375,7 +376,7 @@ install-arch-indep: mkdir info
 	then \
 	   echo "Copying etc/DOC-* to ${docdir} ..." ; \
 	   (cd ./etc; tar -cf - DOC*) \
-	     |(cd ${docdir}; umask 0; tar -xvf - && cat > /dev/null); \
+	     |(cd ${docdir}; umask 0; tar -xvf - && cat > /dev/null) || exit 1; \
 	   (cd $(docdir); chmod a+r DOC*; rm DOC); \
 	else true; fi
 	-unset CDPATH; \
@@ -386,7 +387,7 @@ install-arch-indep: mkdir info
 	then \
 	   echo "Copying lisp/*.el and lisp/*.elc to ${lispdir} ..." ; \
 	   (cd lisp; tar -cf - *.el *.elc) \
-	     |(cd ${lispdir}; umask 0; tar -xvf - && cat > /dev/null); \
+	     |(cd ${lispdir}; umask 0; tar -xvf - && cat > /dev/null) || exit 1; \
 	else true; fi
 	-unset CDPATH; \
 	thisdir=`/bin/pwd`; \
