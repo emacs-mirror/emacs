@@ -1,18 +1,21 @@
-/* impl.c.lockcov
- *                     LOCK COVERAGE TEST
+/* impl.c.lockcov: LOCK COVERAGE TEST
  *
- * $HopeName: MMsrc!lockcov.c(trunk.3) $
+ * $HopeName: MMsrc!lockcov.c(trunk.4) $
+ * Copyright (C) 1997 Harlequin Limited.  All rights reserved.
  */
 
 #include "mpm.h"
+#include "testlib.h"
 #include <stdlib.h>             /* for malloc & free */
 
-int main(void){
+
+int main(void)
+{
   Lock a = malloc(LockSize());
   Lock b = malloc(LockSize());
 
-  AVER(a != NULL);
-  AVER(b != NULL);
+  Insist(a != NULL);
+  Insist(b != NULL);
 
   LockInit(a);
   LockInit(b);
@@ -41,5 +44,7 @@ int main(void){
   free(a);
   free(b);
 
+  fflush(stdout); /* synchronize */
+  fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
   return 0;
 }
