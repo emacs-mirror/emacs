@@ -791,6 +791,32 @@ unrequest_sigio ()
 
 #else /* not FASYNC, not STRIDE */
  
+#ifdef _CX_UX
+
+#include <termios.h>
+
+request_sigio ()
+{
+  int on = 1;
+  sigset_t st;
+
+  sigemptyset(&st);
+  sigaddset(&st, SIGIO);
+  ioctl (input_fd, FIOASYNC, &on);
+  interrupts_deferred = 0;
+  sigprocmask(SIG_UNBLOCK, &st, (sigset_t *)0);
+}
+
+unrequest_sigio ()
+{
+  int off = 0;
+
+  ioctl (input_fd, FIOASYNC, &off);
+  interrupts_deferred = 1;
+}
+
+#else /* ! _CX_UX */
+
 request_sigio ()
 {
   croak ("request_sigio");
@@ -801,6 +827,7 @@ unrequest_sigio ()
   croak ("unrequest_sigio");
 }
  
+#endif /* _CX_UX */
 #endif /* STRIDE */
 #endif /* FASYNC */
 #endif /* F_SETFL */
@@ -2337,7 +2364,14 @@ sys_signal (int signal_number, signal_handler_t action)
 #else
   sigemptyset (&new_action.sa_mask);
   new_action.sa_handler = action;
+#ifdef SA_RESTART
+  /* Emacs mostly works better with restartable system services. If this
+   * flag exists, we probably want to turn it on here.
+   */
+  new_action.sa_flags = SA_RESTART;
+#else
   new_action.sa_flags = 0;
+#endif
   sigaction (signal_number, &new_action, &old_action);
   return (old_action.sa_handler);
 #endif /* DGUX */
