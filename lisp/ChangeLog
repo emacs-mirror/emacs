@@ -1,3 +1,11 @@
+2000-12-07  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* font-lock.el (font-lock-default-fontify-region):
+	Include the terminating \n (off-by-one error).
+	(font-lock-set-defaults): Use dolist.
+
+	* derived.el (define-derived-mode): Don't use combine-run-hooks.
+
 2000-12-07  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-cmds.el (describe-language-environment): Fix

@@ -1,3 +1,7 @@
+2000-12-07  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* alloc.c (gc_sweep): Add comment.
+
 2000-12-07  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfns.c (x_free_gcs): New function.
