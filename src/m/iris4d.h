@@ -119,7 +119,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* This machine requires completely different unexec code
    which lives in a separate file.  Specify the file name.  */
 
+#ifdef USG5_4
+#undef UNEXEC
+#define UNEXEC unexelfsgi.o
+#else
 #define UNEXEC unexmips.o
+#endif
 
 #define TEXT_START 0x400000
 
@@ -145,6 +150,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    you define _BSD_COMPAT, -or- you call `BSDgetpgrp' explicitly.
    Emacs does the latter.  */
 
+#ifndef USG5_4
 #ifdef HAVE_CRTN
 /* Must define START-FILES so that the linker can find /usr/lib/crt0.o.  */
 #define START_FILES pre-crt0.o /usr/lib/crt1.o
@@ -154,6 +160,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* The entry-point label (start of text segment) is `start', not `__start'.  */
 #define DEFAULT_ENTRY_ADDRESS start
 #define LIB_STANDARD -lc
+#endif
 #endif
 
 /* Use terminfo instead of termcap.  */
