@@ -181,6 +181,10 @@ static int malloc_hysteresis;
 
 Lisp_Object Vpurify_flag;
 
+/* Non-nil means we are handling a memory-full error.  */
+
+Lisp_Object Vmemory_full;
+
 #ifndef HAVE_SHM
 
 /* Force it into data space! */
@@ -224,7 +228,7 @@ char *pending_malloc_warning;
 
 /* Pre-computed signal argument for use when memory is exhausted.  */
 
-Lisp_Object memory_signal_data;
+Lisp_Object Vmemory_signal_data;
 
 /* Maximum amount of C stack to save when a GC happens.  */
 
@@ -469,6 +473,8 @@ display_malloc_warning ()
 void
 memory_full ()
 {
+  Vmemory_full = Qt;
+
 #ifndef SYSTEM_MALLOC
   bytes_used_when_full = BYTES_USED;
 #endif
@@ -483,7 +489,7 @@ memory_full ()
   /* This used to call error, but if we've run out of memory, we could
      get infinite recursion trying to build the string.  */
   while (1)
-    Fsignal (Qnil, memory_signal_data);
+    Fsignal (Qnil, Vmemory_signal_data);
 }
 
 
@@ -503,10 +509,12 @@ buffer_memory_full ()
   memory_full ();
 #endif
 
+  Vmemory_full = Qt;
+
   /* This used to call error, but if we've run out of memory, we could
      get infinite recursion trying to build the string.  */
   while (1)
-    Fsignal (Qerror, memory_signal_data);
+    Fsignal (Qnil, Vmemory_signal_data);
 }
 
 
@@ -5541,11 +5549,17 @@ which includes both saved text and other data.  */);
   Qpost_gc_hook = intern ("post-gc-hook");
   staticpro (&Qpost_gc_hook);
 
+  DEFVAR_LISP ("memory-signal-data", &Vmemory_signal_data,
+	       doc: /* Precomputed `signal' argument for memory-full error.  */);
   /* We build this in advance because if we wait until we need it, we might
      not be able to allocate the memory to hold it.  */
-  memory_signal_data
-    = Fcons (Qerror, Fcons (build_string ("Memory exhausted--use M-x save-some-buffers RET"), Qnil));
-  staticpro (&memory_signal_data);
+  Vmemory_signal_data
+    = list2 (Qerror,
+	     build_string ("Memory exhausted--use M-x save-some-buffers then exit and restart Emacs"));
+
+  DEFVAR_LISP ("memory-full", &Vmemory_full,
+	       doc: /* Non-nil means we are handling a memory-full error.  */);
+  Vmemory_full = Qnil;
 
   staticpro (&Qgc_cons_threshold);
   Qgc_cons_threshold = intern ("gc-cons-threshold");
