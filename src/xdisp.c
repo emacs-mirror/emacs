@@ -844,7 +844,7 @@ update:
 
   /* If we just did a pending size change, redisplay again
      for the new size.  */
-  if (windows_or_buffers_changed)
+  if (windows_or_buffers_changed && !pause)
     redisplay ();
 }
 
