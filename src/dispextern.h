@@ -2195,11 +2195,19 @@ struct run
 };
 
 
+/* Handlers for setting frame parameters.  */
+
+typedef void (*frame_parm_handler) P_ ((struct frame *, Lisp_Object, Lisp_Object));
+
+
 /* Structure holding system-dependent interface functions needed
    for window-based redisplay.  */
 
 struct redisplay_interface
 {
+  /* Handlers for setting frame parameters.  */
+  frame_parm_handler *frame_parm_handlers;
+
   /* Produce glyphs/get display metrics for the display element IT is
      loaded with.  */
   void (*produce_glyphs) P_ ((struct it *it));
@@ -2886,5 +2894,36 @@ extern void do_line_insertion_deletion_costs P_ ((struct frame *, char *,
 						  char *, char *, int));
 void scrolling_1 P_ ((struct frame *, int, int, int, int *, int *, int *,
 		      int *, int));
+
+/* Defined in frame.c */
+
+#ifdef HAVE_WINDOW_SYSTEM
+
+/* Types we might convert a resource string into.  */
+enum resource_types
+{
+  RES_TYPE_NUMBER,
+  RES_TYPE_FLOAT,
+  RES_TYPE_BOOLEAN,
+  RES_TYPE_STRING,
+  RES_TYPE_SYMBOL
+};
+
+extern Lisp_Object x_get_arg P_ ((Display_Info *, Lisp_Object,
+				  Lisp_Object, char *, char *class,
+				  enum resource_types));
+extern Lisp_Object x_frame_get_arg P_ ((struct frame *, Lisp_Object,
+					Lisp_Object, char *, char *,
+					enum resource_types));
+extern Lisp_Object x_frame_get_and_record_arg P_ ((
+					struct frame *, Lisp_Object,
+					Lisp_Object, char *, char *,
+					enum resource_types));
+extern Lisp_Object x_default_parameter P_ ((struct frame *, Lisp_Object,
+					    Lisp_Object, Lisp_Object,
+					    char *, char *,
+					    enum resource_types));
+
+#endif /* HAVE_WINDOW_SYSTEM */
 
 #endif /* not DISPEXTERN_H_INCLUDED */
