@@ -102,6 +102,9 @@ is); do @kbd{C-x C-x} to put point at that end of the region, and then
 move it.  A second use of @kbd{C-x C-x}, if necessary, puts the mark at
 the new position with point back at its original position.
 
+  For more facilities that allow you to go to previously set marks, see
+@ref{Mark Ring}.
+
 @kindex C-@@
   There is no such character as @kbd{C-@key{SPC}} in ASCII; when you
 type @key{SPC} while holding down @key{CTRL}, what you get on most
