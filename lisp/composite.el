@@ -456,6 +456,32 @@ With arg, enable it iff arg is positive."
       (save-restriction
 	(widen)
 	(put-text-property (point-min) (point-max) 'auto-composed nil)))))
+
+(defun auto-compose-region (from to)
+  "Force automatic character composition on the region FROM and TO."
+  (save-excursion
+    (if (get-text-property from 'auto-composed)
+	(setq from (next-single-property-change from 'auto-composed nil to)))
+    (goto-char from)
+    (let ((modified-p (buffer-modified-p))
+	  (inhibit-read-only '(composition auto-composed))
+	  (stop (next-single-property-change (point) 'auto-composed nil to)))
+      (while (< (point) to)
+	(if (= (point) stop)
+	    (progn
+	      (goto-char (next-single-property-change (point)
+						      'auto-composed nil to))
+	      (setq stop (next-single-property-change (point)
+						      'auto-composed nil to)))
+	  (let ((func (aref composition-function-table (following-char)))
+		(pos (point)))
+	    (if (functionp func)
+		(goto-char (funcall func (point) nil)))
+	    (if (<= (point) pos)
+		(forward-char 1)))))
+      (put-text-property from to 'auto-composed t)
+      (set-buffer-modified-p modified-p))))
+
 
 ;;; The following codes are only for backward compatibility with Emacs
 ;;; 20.4 and earlier.
