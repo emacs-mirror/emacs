@@ -14,7 +14,7 @@
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs.el,v 1.4 2000/06/12 04:48:35 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.1 2000/08/05 19:28:18 gerd Exp gerd $
 
 ;; This file is part of GNU Emacs.
 
@@ -109,7 +109,7 @@
 
 ;;; Code:
 
-(require 'cl)
+(eval-when-compile (require 'cl))
 (require 'ewoc)				;Ewoc was once cookie
 (require 'pcvs-defs)
 (require 'pcvs-util)
