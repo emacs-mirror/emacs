@@ -1,3 +1,11 @@
+2004-10-11  Simon Josefsson  <jas@extundo.com>
+
+	* mail/smtpmail.el (smtpmail-open-stream): Look for
+	starttls-gnutls-program instead of starttls-program iff
+	starttls-use-gnutls is non-nil.
+	(smtpmail-open-stream): Don't overwrite user settings of
+	starttls-extra-arguments and starttls-extra-args.
+
 2004-10-10  Kai Grossjohann  <kai.grossjohann@gmx.net>
 
 	* net/ange-ftp.el (ange-ftp-remote-shell): Remove variable.
