@@ -50,7 +50,7 @@
 ;; --terminal FILE           Using this implies "-nw" also.
 ;;                           This option is handled by emacs.c
 ;; -------------------------
-;; -d DISPNAME               Use DISPNAME as the name of the X-windows
+;; -d DISPNAME               Use DISPNAME as the name of the X
 ;; -display DISPNAME         display for the initial frame.
 ;; --display DISPNAME        This option is handled by emacs.c
 ;; -------------------------
@@ -77,13 +77,13 @@
 ;; --debug-init              debugger run.
 ;; -------------------------
 ;; -i ICONTYPE               Set type of icon using when Emacs is
-;; -itype ICONTYPE           iconified under X-windows.
+;; -itype ICONTYPE           iconified under X.
 ;; --icon-type ICONTYPE      This option is passed on to term/x-win.el
 ;;
-;; -iconic                   Start Emacs iconified under X-windows.
+;; -iconic                   Start Emacs iconified.
 ;; --iconic                  This option is passed on to term/x-win.el
 ;; -------------------------
-;; Various X-windows options for colors/fonts/geometry/title etc.
+;; Various X options for colors/fonts/geometry/title etc.
 ;; These options are passed on to term/x-win.el which see.  Certain
 ;; of these are also found in term/pc-win.el
 ;; -------------------------
