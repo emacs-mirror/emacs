@@ -351,7 +351,7 @@ that form should be displayed.")
 
 ; pattern to match initial identifier, !, &&, ||, (, or ).
 ; Added ==, + and -: garyo@avs.com 8/9/94
-(defconst hif-token-regexp "^\\(!\\|&&\\|||\\|[!=]=\\|[()+-]\\|\\w+\\)")
+(defconst hif-token-regexp "^\\(&&\\|||\\|[!=]=\\|!\\|[()+-]\\|\\w+\\)")
 (defconst hif-end-of-comment "\\*/")
 
 
