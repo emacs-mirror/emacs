@@ -676,6 +676,8 @@ modify_region (buffer, start, end)
     record_first_change ();
   MODIFF++;
 
+  buffer->point_before_scroll = Qnil;
+
   if (buffer != old_buffer)
     set_buffer_internal (old_buffer);
 }
