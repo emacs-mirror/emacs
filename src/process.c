@@ -775,6 +775,22 @@ See `set-process-sentinel' for more info on sentinels.")
   return XPROCESS (proc)->sentinel;
 }
 
+DEFUN ("set-process-window-size", Fset_process_window_size,
+  Sset_process_window_size, 3, 3, 0,
+  "Tell PROCESS that it has logical window size HEIGHT and WIDTH.")
+  (proc, height, width)
+     register Lisp_Object proc, height, width;
+{
+  CHECK_PROCESS (proc, 0);
+  CHECK_NATNUM (height, 0);
+  CHECK_NATNUM (width, 0);
+  if (set_window_size (XINT (XPROCESS (proc)->infd),
+		       XINT (height), XINT(width)) <= 0)
+    return Qnil;
+  else
+    return Qt;
+}
+
 DEFUN ("process-kill-without-query", Fprocess_kill_without_query,
   Sprocess_kill_without_query, 1, 2, 0,
   "Say no query needed if PROCESS is running when Emacs is exited.\n\
@@ -3149,6 +3165,7 @@ effect when `start-process' is called.");
   defsubr (&Sset_process_filter);
   defsubr (&Sprocess_filter);
   defsubr (&Sset_process_sentinel);
+  defsubr (&Sset_process_window_size);
   defsubr (&Sprocess_sentinel);
   defsubr (&Sprocess_kill_without_query);
   defsubr (&Slist_processes);
