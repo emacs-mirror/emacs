@@ -2120,7 +2120,6 @@ EXFUN (Fchar_width, 1);
 EXFUN (Fstring, MANY);
 extern int chars_in_text P_ ((unsigned char *, int));
 extern int multibyte_chars_in_text P_ ((unsigned char *, int));
-extern int unibyte_char_to_multibyte P_ ((int));
 extern int multibyte_char_to_unibyte P_ ((int, Lisp_Object));
 extern Lisp_Object Qcharset;
 extern void init_charset P_ ((void));
