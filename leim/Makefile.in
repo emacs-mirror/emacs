@@ -131,6 +131,8 @@ WORLD=${ASIA} ${EUROPEAN} ${MISC}
 TIT=${CHINESE-TIT}
 NON-TIT=${CHINESE-NON-TIT} ${JAPANESE} ${KOREAN} ${EUROPEAN} ${MISC}
 
+.SUFFIXES: .elc .el
+
 .el.elc:
 	${RUN-EMACS} -f batch-byte-compile $<
 
