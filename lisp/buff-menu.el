@@ -645,7 +645,7 @@ For more information, see the function `buffer-menu'."
   (let* ((old-buffer (current-buffer))
 	 (standard-output standard-output)
 	 (mode-end (make-string (- Buffer-menu-mode-width 2) ? ))
-	 (header (concat " " (propertize "CRM " 'face 'fixed-pitch)
+	 (header (concat (propertize "CRM " 'face 'fixed-pitch)
 			 (Buffer-menu-buffer+size
 			  (Buffer-menu-make-sort-button "Buffer" 2)
 			  (Buffer-menu-make-sort-button "Size" 3))
@@ -661,7 +661,7 @@ For more information, see the function `buffer-menu'."
 	  (setq pos (match-end 0))
 	  (put-text-property (match-beginning 0) pos 'display
 			     ;; Assume fixed-size chars
-			     (list 'space :align-to (1- pos))
+			     (list 'space :align-to pos)
 			     header))))
     (with-current-buffer (get-buffer-create "*Buffer List*")
       (setq buffer-read-only nil)
@@ -670,8 +670,7 @@ For more information, see the function `buffer-menu'."
       (unless Buffer-menu-use-header-line
 	(insert header (propertize "---" 'face 'fixed-pitch) " ")
 	(insert (Buffer-menu-buffer+size "------" "----"))
-	(insert "  ----" mode-end "----\n")
-	(put-text-property 1 (point) 'intangible t))
+	(insert "  ----" mode-end "----\n"))
       (if buffer-list
 	  (setq list buffer-list)
 	;; Collect info for every buffer we're interested in.
