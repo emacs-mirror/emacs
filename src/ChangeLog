@@ -1,3 +1,7 @@
+2001-02-14  Dave Love  <fx@gnu.org>
+
+	* coding.c: Doc and message fixes.
+
 2001-02-14  Andrew Innes  <andrewi@gnu.org>
 
 	* w32fns.c (w32_wnd_proc) <WM_GETMINMAXINFO>: Allow resizing the

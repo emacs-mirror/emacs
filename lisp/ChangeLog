@@ -1,3 +1,10 @@
+2001-02-15  Dave Love  <fx@gnu.org>
+
+	* battery.el (battery-status-function): Fix doc, :type.
+
+	* calendar/timeclock.el (timeclock-get-workday-function): Fix
+	:type.
+
 2001-02-15  Gerd Moellmann  <gerd@gnu.org>
 
 	* subr.el (read-passwd): Clear Lisp memory holding password.
