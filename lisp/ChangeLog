@@ -1,3 +1,7 @@
+2005-03-12  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-search): Four fixes for backward search.
+
 2005-03-11  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc.el (calc-language-alist): New variable.
