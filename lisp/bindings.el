@@ -197,16 +197,16 @@ is okay.  See `mode-line-format'.")
 	"^No manpage [0-9]* found$"
 
 	;; etags
-	"^No tags table in use!  Use .* to select one\\.$"
+	"^No tags table in use; use .* to select one$"
 	"^There is no default tag$"
 	"^No previous tag locations$"
 	"^File .* is not a valid tags table$"
 	"^No \\(more \\|\\)tags \\(matching\\|containing\\) "
 	"^Rerun etags: `.*' not found in "
-	"^All files processed\\.$"
-	"^No .* or .* in progress.$"
+	"^All files processed$"
+	"^No .* or .* in progress$"
 	"^File .* not in current tags tables$"
-	"No tags table loaded."
+	"^No tags table loaded"
 	"^Nothing to complete$"
 
 	;; BBDB
@@ -218,7 +218,7 @@ is okay.  See `mode-line-format'.")
 
 (define-key esc-map "\t" 'complete-symbol)
 
-(defun complete-symbol ()
+(defun complete-symbol (arg)
   "Perform tags completion on the text around point.
 Completes to the set of names listed in the current tags table.
 The string to complete is chosen in the same way as the default
