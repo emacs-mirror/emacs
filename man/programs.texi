@@ -428,11 +428,12 @@ overall indentation.  To correct that as well, type @key{TAB} first.
 @kindex C-u TAB
   If you like the relative indentation within a grouping, but not the
 indentation of its first line, you can type @kbd{C-u @key{TAB}} to
-reindent the whole grouping as a rigid unit.  @key{TAB} with a numeric
-argument reindents the current line as usual, then reindents by the
-same amount all the lines in the parenthetical grouping starting on
-the current line.  It is clever, though, and does not alter lines that
-start inside strings, or C preprocessor lines when in C mode.
+reindent the whole grouping as a rigid unit.  (This works in Lisp
+modes and C and related modes.)  @key{TAB} with a numeric argument
+reindents the current line as usual, then reindents by the same amount
+all the lines in the parenthetical grouping starting on the current
+line.  It is clever, though, and does not alter lines that start
+inside strings, or C preprocessor lines when in C mode.
 
 @findex indent-code-rigidly
   Another way to specify the range to be reindented is with the region.
