@@ -709,7 +709,7 @@ prepare_menu_bars ()
      has yet been specified."
      I think that is no longer a concern.  */
 #ifdef HAVE_WINDOW_SYSTEM
-  if (windows_or_buffers_changed)
+  if (windows_or_buffers_changed || update_mode_lines)
     {
       Lisp_Object tail, frame;
 
