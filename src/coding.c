@@ -2205,7 +2205,8 @@ enum iso_code_class_type iso_code_class[256];
   (CODING_ISO_INITIAL (&coding_categories[category], 1) >= 0)
 
 static void
-setup_iso_safe_charsets (Lisp_Object attrs)
+setup_iso_safe_charsets (attrs)
+     Lisp_Object attrs;
 {
   Lisp_Object charset_list, safe_charsets;
   Lisp_Object request;
@@ -7248,12 +7249,13 @@ DEFUN ("coding-system-priority-list", Fcoding_system_priority_list,
   return Fnreverse (val);
 }
 
+static char *suffixes[] = { "-unix", "-dos", "-mac" };
+
 static Lisp_Object
 make_subsidiaries (base)
      Lisp_Object base;
 {
   Lisp_Object subsidiaries;
-  char *suffixes[] = { "-unix", "-dos", "-mac" };
   int base_name_len = STRING_BYTES (XSYMBOL (base)->name);
   char *buf = (char *) alloca (base_name_len + 6);
   int i;
