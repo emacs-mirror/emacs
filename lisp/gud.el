@@ -57,7 +57,7 @@ This association list has elements of the form
    (function (lambda (p) (fset (car p) (symbol-function (cdr p)))))
    gud-overload-alist))
 
-(defun gud-debugger-startup (file args)
+(defun gud-massage-args (file args)
   (error "GUD not properly entered."))
 
 (defun gud-marker-filter (str)
@@ -128,12 +128,12 @@ we're in the GUD buffer)."
 ;;
 ;;<name>
 ;; comint-prompt-regexp
-;; gud-<name>-debugger-startup
+;; gud-<name>-massage-args
 ;; gud-<name>-marker-filter
 ;; gud-<name>-find-file
 ;;
-;; The job of the startup-command method is to fire up a copy of the debugger,
-;; given a list of debugger arguments.
+;; The job of the massage-args method is to modify the given list of
+;; debugger arguments before running the debugger.
 ;;
 ;; The job of the marker-filter method is to detect file/line markers in
 ;; strings and set the global gud-last-frame to indicate what display
@@ -152,8 +152,8 @@ we're in the GUD buffer)."
 ;;; History of argument lists passed to gdb.
 (defvar gud-gdb-history nil)
 
-(defun gud-gdb-debugger-startup (file args)
-  (apply 'make-comint (concat "gud-" file) "gdb" nil "-fullname" args))
+(defun gud-gdb-massage-args (file args)
+  (cons "-fullname" (cons file args)))
 
 (defun gud-gdb-marker-filter (string)
   (if (string-match  "\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n" string)
@@ -175,23 +175,23 @@ we're in the GUD buffer)."
   (find-file-noselect f))
 
 ;;;###autoload
-(defun gdb (args)
+(defun gdb (command-line)
   "Run gdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
   (interactive
-   (list (read-from-minibuffer "Run gdb (like this): gdb "
+   (list (read-from-minibuffer "Run gdb (like this): "
 			       (if (consp gud-gdb-history)
 				   (car gud-gdb-history)
-				 "")
+				 "gdb ")
 			       nil nil
 			       '(gud-gdb-history . 1))))
-  (gud-overload-functions '((gud-debugger-startup . gud-gdb-debugger-startup)
-			    (gud-marker-filter    . gud-gdb-marker-filter)
-			    (gud-find-file        . gud-gdb-find-file)
+  (gud-overload-functions '((gud-massage-args . gud-gdb-massage-args)
+			    (gud-marker-filter . gud-gdb-marker-filter)
+			    (gud-find-file . gud-gdb-find-file)
 			    ))
 
-  (gud-common-init args)
+  (gud-common-init command-line)
 
   (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
   (gud-def gud-tbreak "tbreak %f:%l" "\C-t" "Set breakpoint at current line.")
@@ -221,8 +221,8 @@ and source-file directory for your debugger."
 
 (defvar gud-sdb-lastfile nil)
 
-(defun gud-sdb-debugger-startup (file args)
-  (apply 'make-comint (concat "gud-" file) "sdb" nil args))
+(defun gud-sdb-massage-args (file args)
+  (cons file args))
 
 (defun gud-sdb-marker-filter (string)
   (cond 
@@ -255,26 +255,26 @@ and source-file directory for your debugger."
     (find-file-noselect f)))
 
 ;;;###autoload
-(defun sdb (args)
+(defun sdb (command-line)
   "Run sdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
   (interactive
-   (list (read-from-minibuffer "Run sdb (like this): sdb "
+   (list (read-from-minibuffer "Run sdb (like this): "
 			       (if (consp gud-sdb-history)
 				   (car gud-sdb-history)
-				 "")
+				 "sdb ")
 			       nil nil
 			       '(gud-sdb-history . 1))))
   (if (and gud-sdb-needs-tags
 	   (not (and (boundp 'tags-file-name) (file-exists-p tags-file-name))))
       (error "The sdb support requires a valid tags table to work."))
-  (gud-overload-functions '((gud-debugger-startup . gud-sdb-debugger-startup)
-			    (gud-marker-filter    . gud-sdb-marker-filter)
-			    (gud-find-file        . gud-sdb-find-file)
+  (gud-overload-functions '((gud-massage-args . gud-sdb-massage-args)
+			    (gud-marker-filter . gud-sdb-marker-filter)
+			    (gud-find-file . gud-sdb-find-file)
 			    ))
 
-  (gud-common-init args)
+  (gud-common-init command-line)
 
   (gud-def gud-break  "%l b" "\C-b"   "Set breakpoint at current line.")
   (gud-def gud-tbreak "%l c" "\C-t"   "Set temporary breakpoint at current line.")
@@ -295,8 +295,8 @@ and source-file directory for your debugger."
 ;;; History of argument lists passed to dbx.
 (defvar gud-dbx-history nil)
 
-(defun gud-dbx-debugger-startup (file args)
-  (apply 'make-comint (concat "gud-" file) "dbx" nil args))
+(defun gud-dbx-massage-args (file args)
+  (cons file args))
 
 (defun gud-dbx-marker-filter (string)
   (if (string-match
@@ -312,23 +312,23 @@ and source-file directory for your debugger."
   (find-file-noselect f))
 
 ;;;###autoload
-(defun dbx (args)
+(defun dbx (command-line)
   "Run dbx on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
   (interactive
-   (list (read-from-minibuffer "Run dbx (like this): dbx "
+   (list (read-from-minibuffer "Run dbx (like this): "
 			       (if (consp gud-dbx-history)
 				   (car gud-dbx-history)
-				 "")
+				 "dbx ")
 			       nil nil
 			       '(gud-dbx-history . 1))))
-  (gud-overload-functions '((gud-debugger-startup . gud-dbx-debugger-startup)
-			    (gud-marker-filter    . gud-dbx-marker-filter)
-			    (gud-find-file        . gud-dbx-find-file)
+  (gud-overload-functions '((gud-massage-args . gud-dbx-massage-args)
+			    (gud-marker-filter . gud-dbx-marker-filter)
+			    (gud-find-file . gud-dbx-find-file)
 			    ))
 
-  (gud-common-init args)
+  (gud-common-init command-line)
 
   (gud-def gud-break  "stop at \"%f\":%l"
 	   			  "\C-b" "Set breakpoint at current line.")
@@ -359,15 +359,14 @@ will be known to xdb.
 The file names should be absolute, or relative to the directory
 containing the executable being debugged.")
 
-(defun gud-xdb-debugger-startup (file args)
-  (apply 'make-comint (concat "gud-" file) "xdb" nil
-         (append (let ((directories gud-xdb-directories)
-                       (result nil))
-                   (while directories
-                     (setq result (cons (car directories) (cons "-d" result)))
-                     (setq directories (cdr directories)))
-                   (nreverse result))
-                 args)))
+(defun gud-xdb-massage-args (file args)
+  (nconc (let ((directories gud-xdb-directories)
+	       (result nil))
+	   (while directories
+	     (setq result (cons (car directories) (cons "-d" result)))
+	     (setq directories (cdr directories)))
+	   (nreverse (cons file result)))
+	 args))
 
 (defun gud-xdb-file-name (f)
   "Transform a relative pathname to a full pathname in xdb mode"
@@ -410,7 +409,7 @@ containing the executable being debugged.")
     (if realf (find-file-noselect realf))))
 
 ;;;###autoload
-(defun xdb (args)
+(defun xdb (command-line)
   "Run xdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger.
@@ -418,17 +417,17 @@ and source-file directory for your debugger.
 You can set the variable 'gud-xdb-directories' to a list of program source
 directories if your program contains sources from more than one directory."
   (interactive
-   (list (read-from-minibuffer "Run xdb (like this): xdb "
+   (list (read-from-minibuffer "Run xdb (like this): "
 			       (if (consp gud-xdb-history)
 				   (car gud-xdb-history)
-				 "")
+				 "xdb ")
 			       nil nil
 			       '(gud-xdb-history . 1))))
-  (gud-overload-functions '((gud-debugger-startup . gud-xdb-debugger-startup)
-			    (gud-marker-filter    . gud-xdb-marker-filter)
-			    (gud-find-file        . gud-xdb-find-file)))
+  (gud-overload-functions '((gud-massage-args . gud-xdb-massage-args)
+			    (gud-marker-filter . gud-xdb-marker-filter)
+			    (gud-find-file . gud-xdb-find-file)))
 
-  (gud-common-init args)
+  (gud-common-init command-line)
 
   (gud-def gud-break  "b %f:%l"    "\C-b" "Set breakpoint at current line.")
   (gud-def gud-tbreak "b %f:%l\\t" "\C-t"
@@ -563,37 +562,41 @@ comint mode, which see."
 
 (defvar gud-comint-buffer nil)
 
-(defun gud-common-init (args)
-  ;; Perform initializations common to all debuggers
-  ;; There *must* be a cleaner way to lex the arglist...
-  (let (file i)
-    (if (string= args "")
-	(setq args nil)
-      (save-excursion
-	(set-buffer (get-buffer-create "*gud-scratch*"))
-	(erase-buffer)
-	(insert args)
-	(goto-char (point-max))
-	(insert "\")")
-	(goto-char (point-min))
-	(insert "(\"")
-	(while (re-search-forward " +" nil t)
-	  (replace-match "\" \"" nil nil))
-	(goto-char (point-min))
-	(while (re-search-forward "\"\"" nil t)
-	  (replace-match "" nil nil))
-	(setq args (read (buffer-string)))
-	(kill-buffer (current-buffer))))
-    (setq i (1- (length args)))
-    (while (and (>= i 0) (not (= (aref (nth i args) 0) ?-)))
-      (setq file (nth i args)) (setq i (1- i)))
-    (let* ((path (expand-file-name file))
-	   (filepart (file-name-nondirectory path)))
+;; Chop STRING into words separated by SPC or TAB and return a list of them.
+(defun gud-chop-words (string)
+  (let ((i 0) (beg 0)
+	(len (length string))
+	(words nil))
+    (while (< i len)
+      (if (memq (aref string i) '(?\t ? ))
+	  (progn
+	    (setq words (cons (substring string beg i) words)
+		  beg (1+ i))
+	    (while (and (< beg len) (memq (aref string beg) '(?\t ? )))
+	      (setq beg (1+ beg)))
+	    (setq i (1+ beg)))
+	(setq i (1+ i))))
+    (if (< beg len)
+	(setq words (cons (substring string beg) words)))
+    (nreverse words)))
+
+;; Perform initializations common to all debuggers.
+(defun gud-common-init (command-line)
+  (let* ((words (gud-chop-words command-line))
+	 (program (car words))
+	 (file-word (let ((w (cdr words)))
+		      (while (and w (= ?- (aref (car w) 0)))
+			(setq w (cdr w)))
+		      (car w)))
+	 (args (delq file-word (cdr words)))
+	 (file (expand-file-name file-word))
+	 (filepart (file-name-nondirectory file)))
       (switch-to-buffer (concat "*gud-" filepart "*"))
-      (setq default-directory (file-name-directory path))
+      (setq default-directory (file-name-directory file))
       (or (bolp) (newline))
       (insert "Current directory is " default-directory "\n")
-      (gud-debugger-startup filepart args)))
+      (apply 'make-comint (concat "gud-" filepart) program nil
+	     (gud-massage-args file args)))
   (gud-mode)
   (set-process-filter (get-buffer-process (current-buffer)) 'gud-filter)
   (set-process-sentinel (get-buffer-process (current-buffer)) 'gud-sentinel)
