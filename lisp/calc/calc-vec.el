@@ -1470,6 +1470,15 @@
 ;; indirectly) by math-read-brackets.
 (defvar math-rb-close)
 
+;; The next few variables are local to math-read-exprs in calc-aent.el 
+;; and math-read-expr in calc-ext.el, but are set in functions they call.
+(defvar math-exp-pos)
+(defvar math-exp-str)
+(defvar math-exp-old-pos)
+(defvar math-exp-token)
+(defvar math-exp-keep-spaces)
+(defvar math-expr-data)
+
 (defun math-read-brackets (space-sep math-rb-close)
   (and space-sep (setq space-sep (not (math-check-for-commas))))
   (math-read-token)
