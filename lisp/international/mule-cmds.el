@@ -598,7 +598,14 @@ and TO is ignored."
 	    (with-output-to-temp-buffer "*Warning*"
 	      (save-excursion
 		(set-buffer standard-output)
-		(insert "The following default coding systems were tried:\n")
+		(insert "These default coding systems were tried")
+		(if (stringp from)
+		    (insert " to encode \""
+			    (if (> (length from) 10)
+				(substring from 0 10)
+			      from)
+			    "...\""))
+		(insert ":\n")
 		(let ((pos (point))
 		      (fill-prefix "  "))
 		  (mapcar (function (lambda (x) (princ "  ") (princ (car x))))
