@@ -1,4 +1,4 @@
-2005-03-31  Kenichi Handa  <handa@etlken2>
+2005-03-31  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (syms_of_coding): Fix previous change.
 

@@ -6,7 +6,7 @@
 
 	* tooltip.el (tooltip-show-help-function): Don't fixup message here.
 
-2005-03-31  Kenichi Handa  <handa@etlken2>
+2005-03-31  Kenichi Handa  <handa@m17n.org>
 
 	* language/thai-word.el (thai-find-word-ends): Pay attention to
 	the case that we reach the end of buffer.
