@@ -4317,14 +4317,7 @@ This function is an internal primitive--use `make-frame' instead.")
   tem = x_get_arg (dpyinfo, parms, Qunsplittable, 0, 0, RES_TYPE_BOOLEAN);
   f->no_split = minibuffer_only || EQ (tem, Qt);
 
-  /* Create the X widget or window.  Add the tool-bar height to the
-     initial frame height so that the user gets a text display area of
-     the size he specified with -g or via .Xdefaults.  Later changes
-     of the tool-bar height don't change the frame size.  This is done
-     so that users can create tall Emacs frames without having to
-     guess how tall the tool-bar will get.  */
-  f->height += FRAME_TOOL_BAR_LINES (f);
-
+  /* Create the X widget or window.  */
 #ifdef USE_X_TOOLKIT
   x_window (f, window_prompting, minibuffer_only);
 #else
@@ -4358,6 +4351,35 @@ This function is an internal primitive--use `make-frame' instead.")
      f->height.  */
   width = f->width;
   height = f->height;
+  
+  /* Add the tool-bar height to the initial frame height so that the
+     user gets a text display area of the size he specified with -g or
+     via .Xdefaults.  Later changes of the tool-bar height don't
+     change the frame size.  This is done so that users can create
+     tall Emacs frames without having to guess how tall the tool-bar
+     will get.  */
+  if (FRAME_TOOL_BAR_LINES (f))
+    {
+      int margin, relief, bar_height;
+      
+      relief = (tool_bar_button_relief > 0
+		? tool_bar_button_relief
+		: DEFAULT_TOOL_BAR_BUTTON_RELIEF);
+
+      if (INTEGERP (Vtool_bar_button_margin)
+	  && XINT (Vtool_bar_button_margin) > 0)
+	margin = XFASTINT (Vtool_bar_button_margin);
+      else if (CONSP (Vtool_bar_button_margin)
+	       && INTEGERP (XCDR (Vtool_bar_button_margin))
+	       && XINT (XCDR (Vtool_bar_button_margin)) > 0)
+	margin = XFASTINT (XCDR (Vtool_bar_button_margin));
+      else
+	margin = 0;
+	  
+      bar_height = DEFAULT_TOOL_BAR_IMAGE_HEIGHT + 2 * margin + 2 * relief;
+      height += (bar_height + CANON_Y_UNIT (f) - 1) / CANON_Y_UNIT (f);
+    }
+
   f->height = 0;
   SET_FRAME_WIDTH (f, 0);
   change_frame_size (f, height, width, 1, 0, 0);
