@@ -890,7 +890,7 @@ If nil, selections displayed but ignored.")
     calc-check-user-syntax calc-do-alg-entry calc-do-calc-eval
     calc-do-quick-calc calc-match-user-syntax math-build-parse-table
     math-find-user-tokens math-read-expr-list math-read-exprs math-read-if
-    math-read-token math-remove-dashes)
+    math-read-token math-remove-dashes math-read-preprocess-string)
 
  ("calc-embed" calc-do-embedded-activate)
 
