@@ -28,10 +28,10 @@ Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
  *	Francesco Potorti` reorganised C and C++ based on work by Joe Wells.
  *	Regexp tags by Tom Tromey.
  *
- *	Francesco Potorti` (pot@cnuce.cnr.it) is the current maintainer.
+ *	Francesco Potorti` (F.Potorti@cnuce.cnr.it) is the current maintainer.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 11.53";
+char pot_etags_version[] = "@(#) pot revision number is 11.59";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -41,22 +41,22 @@ char pot_etags_version[] = "@(#) pot revision number is 11.53";
 #endif
 
 #ifdef MSDOS
-#include <fcntl.h>
-#include <sys/param.h>
+# include <fcntl.h>
+# include <sys/param.h>
 #endif /* MSDOS */
 
 #ifdef WINDOWSNT
-#include <stdlib.h>
-#include <fcntl.h>
-#include <string.h>
-#define MAXPATHLEN _MAX_PATH
+# include <stdlib.h>
+# include <fcntl.h>
+# include <string.h>
+# define MAXPATHLEN _MAX_PATH
 #endif
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
-/* On some systems, Emacs defines static as nothing for the sake
-   of unexec.  We don't want that here since we don't use unexec. */
-#undef static
+# include <config.h>
+  /* On some systems, Emacs defines static as nothing for the sake
+     of unexec.  We don't want that here since we don't use unexec. */
+# undef static
 #endif
 
 #include <stdio.h>
@@ -75,7 +75,7 @@ extern int errno;
 #include <getopt.h>
 
 #ifdef ETAGS_REGEXPS
-#include <regex.h>
+# include <regex.h>
 #endif /* ETAGS_REGEXPS */
 
 /* Define CTAGS to make the program "ctags" compatible with the usual one.
@@ -90,11 +90,11 @@ extern int errno;
 
 /* Exit codes for success and failure.  */
 #ifdef VMS
-#define	GOOD	1
-#define BAD	0
+# define	GOOD	1
+# define	BAD	0
 #else
-#define	GOOD	0
-#define	BAD	1
+# define	GOOD	0
+# define	BAD	1
 #endif
 
 /* C extensions. */
@@ -113,7 +113,8 @@ extern int errno;
 #define	endtoken(arg)	(_etk[arg])	/* T if char ends tokens	*/
 
 #ifdef DOS_NT
-# define absolutefn(fn) (fn[0] == '/' || (isalpha (fn[0]) && fn[1] == ':'))
+# define absolutefn(fn) (fn[0] == '/' \
+			 || (isalpha (fn[0]) && fn[1] == ':' && fn[2] == '/'))
 #else
 # define absolutefn(fn) (fn[0] == '/')
 #endif
@@ -156,6 +157,7 @@ Lang_function default_C_entries;
 Lang_function C_entries;
 Lang_function Cplusplus_entries;
 Lang_function Cstar_entries;
+Lang_function Erlang_functions;
 Lang_function Fortran_functions;
 Lang_function Yacc_entries;
 Lang_function Lisp_functions;
@@ -172,6 +174,7 @@ void default_C_entries ();
 void plain_C_entries ();
 void Cplusplus_entries ();
 void Cstar_entries ();
+void Erlang_functions ();
 void Fortran_functions ();
 void Yacc_entries ();
 void Lisp_functions ();
@@ -347,6 +350,9 @@ char *Cplusplus_suffixes [] =
 char *Cstar_suffixes [] =
   { "cs", "hs", NULL };
 
+char *Erlang_suffixes [] =
+  { "erl", "hrl", NULL };
+
 char *Fortran_suffixes [] =
   { "F", "f", "f90", "for", NULL };
 
@@ -398,6 +404,7 @@ struct lang_entry lang_names [] =
   { "c",       default_C_entries,   default_C_suffixes,	  NULL              },
   { "c++",     Cplusplus_entries,   Cplusplus_suffixes,	  NULL              },
   { "c*",      Cstar_entries,	    Cstar_suffixes,	  NULL              },
+  { "erlang",  Erlang_functions,    Erlang_suffixes,	  NULL              },
   { "fortran", Fortran_functions,   Fortran_suffixes,	  NULL              },
   { "lisp",    Lisp_functions,	    Lisp_suffixes,	  NULL              },
   { "pascal",  Pascal_functions,    Pascal_suffixes,	  NULL              },
@@ -453,7 +460,11 @@ print_help ()
 {
   printf ("These are the options accepted by %s.  You may use unambiguous\n\
 abbreviations for the long option names.  A - as file name means read\n\
-names from stdin.\n\n", progname);
+names from stdin.", progname);
+  if (!CTAGS)
+    printf ("  Absolute names are stored in the output file as they\n\
+are.  Relative ones are stored relative to the output file's directory.");
+  puts ("\n");
 
   puts ("-a, --append\n\
         Append tag entries to existing tags file.");
@@ -843,19 +854,14 @@ main (argc, argv)
     }
 
   if (tagfile == NULL)
-    {
-      tagfile = CTAGS ? "tags" : "TAGS";
-    }
+    tagfile = CTAGS ? "tags" : "TAGS";
   cwd = etags_getcwd ();	/* the current working directory */
-  strcat (cwd, "/");
+  if (cwd[strlen(cwd)-1] != '/')
+    strcat (cwd, "/");
   if (streq (tagfile, "-"))
-    {
-      tagfiledir = cwd;
-    }
+    tagfiledir = cwd;
   else
-    {
-      tagfiledir = absolute_dirname (tagfile, cwd);
-    }
+    tagfiledir = absolute_dirname (tagfile, cwd);
 
   init ();			/* set up boolean "functions" */
 
@@ -3451,91 +3457,63 @@ TEX_Token (cp)
   return -1;
 }
 
-/* Support for Prolog.  */
-
-/* Whole head (not only functor, but also arguments)
-   is gotten in compound term. */
-void
-prolog_getit (s)
-     char *s;
-{
-  char *save_s;
-  int insquote, npar;
-
-  save_s = s;
-  insquote = FALSE;
-  npar = 0;
-  while (1)
-    {
-      if (s[0] == '\0')		/* syntax error. */
-	return;
-      else if (insquote && s[0] == '\'' && s[1] == '\'')
-	s += 2;
-      else if (s[0] == '\'')
-	{
-	  insquote = !insquote;
-	  s++;
-	}
-      else if (!insquote && s[0] == '(')
-	{
-	  npar++;
-	  s++;
-	}
-      else if (!insquote && s[0] == ')')
-	{
-	  npar--;
-	  s++;
-	  if (npar == 0)
-	    break;
-	  else if (npar < 0)	/* syntax error. */
-	    return;
-	}
-      else if (!insquote && s[0] == '.'
-	       && (isspace (s[1]) || s[1] == '\0'))
-	{			/* fullstop. */
-	  if (npar != 0)	/* syntax error. */
-	    return;
-	  s++;
-	  break;
-	}
-      else
-	s++;
-    }
-  pfnote ((CTAGS) ? savenstr (save_s, s-save_s) : NULL, TRUE,
-	  save_s, s-save_s, lineno, linecharno);
-}
-
-/* It is assumed that prolog predicate starts from column 0. */
+/*
+ * Prolog support (rewritten) by Anders Lindgren, Mar. 96
+ *
+ * Assumes that the predicate starts at column 0.
+ * Only the first clause of a predicate is added. 
+ */
 void
 Prolog_functions (inf)
      FILE *inf;
 {
-  void skip_comment (), prolog_getit ();
+  int prolog_pred ();
+  void prolog_skip_comment ();
 
-  lineno = linecharno = charno = 0;
+  char * last;
+  int len;
+  int allocated;
+
+  allocated = 0;
+  len = 0;
+  last = NULL;
+
+  lineno = 0;
+  linecharno = 0;
+  charno = 0;
+
   while (!feof (inf))
     {
       lineno++;
       linecharno += charno;
-      charno = readline (&lb, inf) + 1;	/* 1 for newline. */
+      charno = readline (&lb, inf);
       dbp = lb.buffer;
-      if (isspace (dbp[0]))	/* not predicate header. */
+      if (dbp[0] == '\0')	/* Empty line */
 	continue;
-      else if (dbp[0] == '%')	/* comment. */
+      else if (isspace (dbp[0])) /* Not a predicate */
 	continue;
       else if (dbp[0] == '/' && dbp[1] == '*')	/* comment. */
-	skip_comment (&lb, inf, &lineno, &linecharno);
-      else			/* found. */
-	prolog_getit (dbp);
+	prolog_skip_comment (&lb, inf, &lineno, &linecharno);
+      else if (len = prolog_pred (dbp, last)) 
+	{
+	  /* Predicate.  Store the function name so that we only
+	   * generates a tag for the first clause.  */
+	  if (last == NULL)
+	    last = xnew(len + 1, char);
+	  else if (len + 1 > allocated)
+	    last = (char *) xrealloc(last, len + 1);
+	  allocated = len + 1;
+	  strncpy (last, dbp, len);
+	  last[len] = '\0';
+	}
     }
 }
 
+
 void
-skip_comment (plb, inf, plineno, plinecharno)
+prolog_skip_comment (plb, inf)
      struct linebuffer *plb;
      FILE *inf;
-     int *plineno;		/* result */
-     long *plinecharno;		/* result */
 {
   char *cp;
 
@@ -3544,10 +3522,344 @@ skip_comment (plb, inf, plineno, plinecharno)
       for (cp = plb->buffer; *cp != '\0'; cp++)
 	if (cp[0] == '*' && cp[1] == '/')
 	  return;
-      (*plineno)++;
-      *plinecharno += readline (plb, inf) + 1; /* 1 for newline. */
+      lineno++;
+      linecharno += readline (plb, inf);
     }
   while (!feof(inf));
+}
+
+/*
+ * A predicate definition is added if it matches:
+ *     <beginning of line><Prolog Atom><whitespace>(
+ *
+ * It is added to the tags database if it doesn't match the
+ * name of the previous clause header.
+ *
+ * Return the size of the name of the predicate, or 0 if no header
+ * was found.
+ */
+int
+prolog_pred (s, last)
+     char *s;
+     char *last;		/* Name of last clause. */
+{
+  int prolog_atom();
+  int prolog_white();
+
+  int pos;
+  int len;
+
+  pos = prolog_atom(s, 0);
+  if (pos < 1)
+    return 0;
+
+  len = pos;
+  pos += prolog_white(s, pos);
+
+  if ((s[pos] == '(') || (s[pos] == '.'))
+    {
+      if (s[pos] == '(')
+	pos++;
+
+      /* Save only the first clause. */
+      if ((last == NULL) ||
+	  (len != strlen(last)) ||
+	  (strncmp(s, last, len) != 0))
+	{
+	  pfnote ((CTAGS) ? savenstr (s, len) : NULL, TRUE,
+		  s, pos, lineno, linecharno);
+	  return len;
+	}
+    }
+  return 0;
+}
+
+/*
+ * Consume a Prolog atom.
+ * Return the number of bytes consumed, or -1 if there was an error.
+ *
+ * A prolog atom, in this context, could be one of:
+ * - An alphanumeric sequence, starting with a lower case letter.
+ * - A quoted arbitrary string. Single quotes can escape themselves.
+ *   Backslash quotes everything.
+ */
+int
+prolog_atom (s, pos)
+     char *s;
+     int pos;
+{
+  int origpos;
+
+  origpos = pos;
+
+  if (islower(s[pos]) || (s[pos] == '_'))
+    {
+      /* The atom is unquoted. */
+      pos++;
+      while (isalnum(s[pos]) || (s[pos] == '_'))
+	{
+	  pos++;
+	}
+      return pos - origpos;
+    }
+  else if (s[pos] == '\'')
+    {
+      pos++;
+
+      while (1) 
+	{
+	  if (s[pos] == '\'')
+	    {
+	      pos++;
+	      if (s[pos] != '\'')
+		break;
+	      pos++;		/* A double quote */
+	    }
+	  else if (s[pos] == '\0')
+	    /* Multiline quoted atoms are ignored. */
+	    return -1;
+	  else if (s[pos] == '\\')
+	    {
+	      if (s[pos+1] == '\0')
+		return -1;
+	      pos += 2;
+	    }
+	  else
+	    pos++;
+	}
+      return pos - origpos;
+    }
+  else
+    return -1;
+}
+
+/* Consume whitespace.  Return the number of bytes eaten. */
+int
+prolog_white (s, pos)
+     char *s;
+     int pos;
+{
+  int origpos;
+
+  origpos = pos;
+
+  while (isspace(s[pos]))
+    pos++;
+
+  return pos - origpos;
+}
+
+/* 
+ * Support for Erlang  --  Anders Lindgren, Feb 1996.
+ *
+ * Generates tags for functions, defines, and records.
+ *
+ * Assumes that Erlang functions start at column 0.
+ */
+void
+Erlang_functions (inf)
+     FILE *inf;
+{
+  int erlang_func ();
+  void erlang_attribute ();
+
+  char * last;
+  int len;
+  int allocated;
+
+  allocated = 0;
+  len = 0;
+  last = NULL;
+
+  lineno = 0;
+  linecharno = 0;
+  charno = 0;
+
+  while (!feof (inf))
+    {
+      lineno++;
+      linecharno += charno;
+      charno = readline (&lb, inf);
+      dbp = lb.buffer;
+      if (dbp[0] == '\0')	/* Empty line */
+	continue;
+      else if (isspace (dbp[0])) /* Not function nor attribute */
+	continue;
+      else if (dbp[0] == '%')	/* comment */
+	continue;
+      else if (dbp[0] == '"')	/* Sometimes, strings start in column one */
+	continue;
+      else if (dbp[0] == '-') 	/* attribute, e.g. "-define" */
+	{
+	  erlang_attribute(dbp);
+	  last = NULL;
+	}
+      else if (len = erlang_func (dbp, last)) 
+	{
+	  /* 
+	   * Function.  Store the function name so that we only
+	   * generates a tag for the first clause.
+	   */
+	  if (last == NULL)
+	    last = xnew(len + 1, char);
+	  else if (len + 1 > allocated)
+	    last = (char *) xrealloc(last, len + 1);
+	  allocated = len + 1;
+	  strncpy (last, dbp, len);
+	  last[len] = '\0';
+	}
+    }
+}
+
+
+/*
+ * A function definition is added if it matches:
+ *     <beginning of line><Erlang Atom><whitespace>(
+ *
+ * It is added to the tags database if it doesn't match the
+ * name of the previous clause header.
+ *
+ * Return the size of the name of the function, or 0 if no function
+ * was found.
+ */
+int
+erlang_func (s, last)
+     char *s;
+     char *last;		/* Name of last clause. */
+{
+  int erlang_atom ();
+  int erlang_white ();
+
+  int pos;
+  int len;
+
+  pos = erlang_atom(s, 0);
+  if (pos < 1)
+    return 0;
+
+  len = pos;
+  pos += erlang_white(s, pos);
+
+  if (s[pos++] == '(')
+    {
+      /* Save only the first clause. */
+      if ((last == NULL) ||
+	  (len != strlen(last)) ||
+	  (strncmp(s, last, len) != 0))
+	{
+	  pfnote ((CTAGS) ? savenstr (s, len) : NULL, TRUE,
+		  s, pos, lineno, linecharno);
+	  return len;
+	}
+    }
+  return 0;
+}
+
+
+/*
+ * Handle attributes.  Currently, tags are generated for defines 
+ * and records.
+ *
+ * They are on the form:
+ * -define(foo, bar).
+ * -define(Foo(M, N), M+N).
+ * -record(graph, {vtab = notable, cyclic = true}).
+ */
+void
+erlang_attribute (s)
+     char *s;
+{
+  int erlang_atom ();
+  int erlang_white ();
+
+  int pos;
+  int len;
+
+  if ((strncmp(s, "-define", 7) == 0) ||
+      (strncmp(s, "-record", 7) == 0))
+    {
+      pos = 7;
+      pos += erlang_white(s, pos);
+
+      if (s[pos++] == '(') 
+	{
+	  pos += erlang_white(s, pos);
+	
+	  if (len = erlang_atom(s, pos))
+	    {
+	      pfnote ((CTAGS) ? savenstr (& s[pos], len) : NULL, TRUE,
+		      s, pos + len, lineno, linecharno);
+	    }
+	}
+    }
+  return;
+}
+
+
+/*
+ * Consume an Erlang atom (or variable).
+ * Return the number of bytes consumed, or -1 if there was an error.
+ */
+int
+erlang_atom (s, pos)
+     char *s;
+     int pos;
+{
+  int origpos;
+
+  origpos = pos;
+
+  if (isalpha (s[pos]) || s[pos] == '_')
+    {
+      /* The atom is unquoted. */
+      pos++;
+      while (isalnum (s[pos]) || s[pos] == '_')
+	pos++;
+      return pos - origpos;
+    }
+  else if (s[pos] == '\'')
+    {
+      pos++;
+
+      while (1) 
+	{
+	  if (s[pos] == '\'')
+	    {
+	      pos++;
+	      break;
+	    }
+	  else if (s[pos] == '\0')
+	    /* Multiline quoted atoms are ignored. */
+	    return -1;
+	  else if (s[pos] == '\\')
+	    {
+	      if (s[pos+1] == '\0')
+		return -1;
+	      pos += 2;
+	    }
+	  else
+	    pos++;
+	}
+      return pos - origpos;
+    }
+  else
+    return -1;
+}
+
+/* Consume whitespace.  Return the number of bytes eaten */
+int
+erlang_white (s, pos)
+     char *s;
+     int pos;
+{
+  int origpos;
+
+  origpos = pos;
+
+  while (isspace (s[pos]))
+    pos++;
+
+  return pos - origpos;
 }
 
 #ifdef ETAGS_REGEXPS
@@ -3754,6 +4066,7 @@ readline_internal (linebuffer, stream)
 	}
       if (c == EOF)
 	{
+	  *p = '\0';
 	  chars_deleted = 0;
 	  break;
 	}
@@ -3843,6 +4156,9 @@ void
 just_read_file (inf)
      FILE *inf;
 {
+  lineno = 0;
+  charno = 0;
+
   while (!feof (inf))
     {
       ++lineno;
