@@ -1737,6 +1737,11 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+** The new hook `before-save-hook' is invoked by `basic-save-buffer'
+before saving buffers.  This allows packages to perform various final
+tasks, for example; it can be used by the copyright package to make
+sure saved files have the current year in any copyright headers.
+
 ** The function `insert-for-yank' now supports strings where the
 `yank-handler' property does not span the first character of the
 string.  The old behavior is available if you call

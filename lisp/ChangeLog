@@ -1,3 +1,23 @@
+2004-01-05  Karl Berry  <karl@gnu.org>
+
+	* emacs-lisp/copyright.el (copyright-regexp): might as well allow
+	/ and *, too.
+
+2003-12-31  Simon Josefsson  <jas@extundo.com>
+
+	* files.el (before-save-hook): Add.
+	(basic-save-buffer): Use before-save-hook.
+
+	* emacs-lisp/copyright.el: Fix comment to recommend
+	before-save-hook instead of write-file-functions.
+
+2004-01-05  Richard M. Stallman  <rms@gnu.org>
+
+	* finder.el (finder-commentary): Call delete-other-windows.
+
+	* net/ange-ftp.el (ange-ftp-file-attributes):
+	Pass 2 args to ange-ftp-real-file-attributes only if ID-FORMAT non-nil.
+
 2004-01-04  Karl Berry  <karl@gnu.org>
 
 	* emacs-lisp/copyright.el (copyright-regexp): allow the common
