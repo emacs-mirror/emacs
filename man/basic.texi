@@ -353,7 +353,7 @@ the sequence of undoing, then type more undo commands.
 @kindex C-u C-x u
   Ordinary undo applies to all changes made in the current buffer.  You
 can also perform @dfn{selective undo}, limited to the current region
-(@pxref{The Region}).
+(@pxref{Mark}).
 To do this, specify the region you want, then run the @code{undo}
 command with a prefix argument (the value does not matter): @kbd{C-u C-x
 u} or @kbd{C-u C-_}.  This undoes the most recent change in the region.
