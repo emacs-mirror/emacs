@@ -238,7 +238,7 @@ This also sets the following values:
 		 base coding-system))
     (set-default-coding-systems (or base coding-system))))
 
-(defun subset-p (list1 list2)
+(defun find-coding-systems-region-subset-p (list1 list2)
   "Return non-nil if all elements in LIST1 are included in LIST2.
 Comparison done with EQ."
   (catch 'tag
@@ -287,7 +287,7 @@ CHARSETS is a list of character sets."
 	(if (and (eq coding (coding-system-base coding))
 		 (setq safe (coding-system-get coding 'safe-charsets))
 		 (or (eq safe t)
-		     (subset-p charsets safe)))
+		     (find-coding-systems-region-subset-p charsets safe)))
 	    ;; We put the higher priority to coding systems included
 	    ;; in CHARSET-PREFERED-CODINGS, and within them, put the
 	    ;; higher priority to coding systems which support smaller
@@ -380,61 +380,65 @@ Please select one from the following safe coding systems:\n"
 ;;; Language support staffs.
 
 (defvar language-info-alist nil
-  "Alist of language names vs the corresponding information of various kind.
+  "Alist of language environment definitions.
 Each element looks like:
 	(LANGUAGE-NAME . ((KEY . INFO) ...))
-where LANGUAGE-NAME is a string,
-KEY is a symbol denoting the kind of information,
-INFO is any Lisp object which contains the actual information related
-to KEY.")
+where LANGUAGE-NAME is a string, the name of the language environment,
+KEY is a symbol denoting the kind of information, and
+INFO is the data associated with KEY.
+Meaningful values for KEY include
 
-(defun get-language-info (language-name key)
-  "Return the information for LANGUAGE-NAME of the kind KEY.
-KEY is a symbol denoting the kind of required information."
-  (if (symbolp language-name)
-      (setq language-name (symbol-name language-name)))
-  (let ((lang-slot (assoc-ignore-case language-name language-info-alist)))
+  documentation      value is documentation of what this language environment
+			is meant for, and how to use it.
+  charset	     value is a list of the character sets used by this
+			language environment.
+  sample-text	     value is one line of text,
+			written using those character sets,
+			appropriate for this language environment.
+  setup-function     value is a function to call to switch to this
+			language environment.
+  exit-function      value is a function to call to leave this
+		        language environment.
+  coding-system      value is a list of coding systems that are good
+			for saving text written in this language environment.
+			This list serves as suggestions to the user;
+			in effect, as a kind of documentation.
+  coding-priority    value is a list of coding systems for this language
+			environment, in order of decreasing priority.
+			This is used to set up the coding system priority
+			list when you switch to this language environment.")
+
+(defun get-language-info (lang-env key)
+  "Return information listed under KEY for language environment LANG-ENV.
+KEY is a symbol denoting the kind of information.
+For a list of useful values for KEY and their meanings,
+see `language-info-alist'."
+  (if (symbolp lang-env)
+      (setq lang-env (symbol-name lang-env)))
+  (let ((lang-slot (assoc-ignore-case lang-env language-info-alist)))
     (if lang-slot
 	(cdr (assq key (cdr lang-slot))))))
 
-(defun set-language-info (language-name key info
-					&optional describe-map setup-map)
-  "Set for LANGUAGE-NAME the information INFO under KEY.
+(defun set-language-info (lang-env key info
+				   &optional describe-map setup-map)
+  "Modify part of the definition of language environment LANG-ENV.
+Specifically, this stores the information INFO under KEY
+in the definition of this language environment.
 KEY is a symbol denoting the kind of information.
-INFO is any Lisp object which contains the actual information specific
-  to LANGUAGE-NAME.
+INFO is the value for that information.
 
-Currently, the following KEYs are used by Emacs:
-
-charset: list of charsets.
-
-coding-system: list of coding systems.
-
-coding-priority: list of coding systems ordered by priority.
-
-tutorial: a tutorial file name written in the language.
-
-sample-text: one line short text containing characters of the language.
-
-documentation: t or a string describing how Emacs supports the language.
-  If a string is specified, it is shown before any other information
-  of the language by the command `describe-language-environment'.
-
-setup-function: a function to call for setting up environment
-  convenient for a user of the language.
-
-We will define more KEYs in the future.  To avoid conflict,
-if you want to use your own KEY values, make them start with `user-'.
+For a list of useful values for KEY and their meanings,
+see `language-info-alist'.
 
 Optional 4th and 5th args DESCRIBE-MAP and SETUP-MAP are keymaps to
-register LANGUAGE-NAME in the menu of `Mule'->`Describe Language
-Environment' and `Mule'->`Setup Language Environment' respectively."
-  (if (symbolp language-name)
-      (setq language-name (symbol-name language-name)))
+register LANG-ENV in the menus `Mule'->`Describe Language
+Environment' and `Mule'->`Setup Language Environment', respectively."
+  (if (symbolp lang-env)
+      (setq lang-env (symbol-name lang-env)))
   (let (lang-slot key-slot)
-    (setq lang-slot (assoc language-name language-info-alist))
+    (setq lang-slot (assoc lang-env language-info-alist))
     (if (null lang-slot)		; If no slot for the language, add it.
-	(setq lang-slot (list language-name)
+	(setq lang-slot (list lang-env)
 	      language-info-alist (cons lang-slot language-info-alist)))
     (setq key-slot (assq key lang-slot))
     (if (null key-slot)			; If no slot for the key, add it.
@@ -443,25 +447,27 @@ Environment' and `Mule'->`Setup Language Environment' respectively."
 	  (setcdr lang-slot (cons key-slot (cdr lang-slot)))))
     ;; Setup menu.
     (cond ((eq key 'documentation)
-	   (define-key-after describe-map (vector (intern language-name))
-	     (cons language-name 'describe-specified-language-support) t))
+	   (define-key-after describe-map (vector (intern lang-env))
+	     (cons lang-env 'describe-specified-language-support) t))
 	  ((eq key 'setup-function)
-	   (define-key-after setup-map (vector (intern language-name))
-	     (cons language-name 'setup-specified-language-environment) t)))
+	   (define-key-after setup-map (vector (intern lang-env))
+	     (cons lang-env 'setup-specified-language-environment) t)))
 
     (setcdr key-slot info)
     ))
 
-(defun set-language-info-alist (language-name alist &optional parents)
-  "Set for LANGUAGE-NAME the information in ALIST.
-ALIST is an alist of KEY and INFO.  See the documentation of
+(defun set-language-info-alist (lang-env alist &optional parents)
+  "Store ALIST as the definition of language environment LANG-ENV.
+ALIST is an alist of KEY and INFO values.  See the documentation of
 `set-langauge-info' for the meanings of KEY and INFO.
 
-Optional arg PARENTS is a list of parent language environments ordered
-from the highest to the lower.  If it is nil, we make LANGUAGE-NAME
-the top level language environment."
-  (if (symbolp language-name)
-      (setq language-name (symbol-name language-name)))
+Optional arg PARENTS is a list of parent menu names; it specifies
+where to put this language environment in the 
+Describe Language Environment and Set Language Environment menus.
+For example, (\"European\") means to put this language environment
+in the European submenu in each of those two menus."
+  (if (symbolp lang-env)
+      (setq lang-env (symbol-name lang-env)))
   (let ((describe-map describe-language-environment-map)
 	(setup-map setup-language-environment-map))
     (if parents
@@ -491,14 +497,14 @@ the top level language environment."
 	    (setq setup-map (symbol-value map))
 	    (setq l (cdr l)))))
     (while alist
-      (set-language-info language-name (car (car alist)) (cdr (car alist))
+      (set-language-info lang-env (car (car alist)) (cdr (car alist))
 			 describe-map setup-map)
       (setq alist (cdr alist)))))
 
 (defun read-language-name (key prompt &optional default)
-  "Read language name which has information for KEY, prompting with PROMPT.
-DEFAULT is the default choice of language.
-This returns a language name as a string."
+  "Read a language environment name which has information for KEY.
+Prompt with PROMPT.  DEFAULT is the default choice of language environment.
+This returns a language environment name as a string."
   (let* ((completion-ignore-case t)
 	 (name (completing-read prompt
 				language-info-alist
@@ -593,21 +599,22 @@ This function is called with no argument.")
 (put 'describe-current-input-method-function 'permanent-local t)
 
 (defvar input-method-alist nil
-  "Alist of input method names vs the corresponding information to use it.
+  "Alist of input method names vs how to use them.
 Each element has the form:
-	(INPUT-METHOD LANGUAGE-NAME ACTIVATE-FUNC TITLE DESCRIPTION ...)
-See the function `register-input-method' for the meanings of each elements.")
+   (INPUT-METHOD LANGUAGE-ENV ACTIVATE-FUNC TITLE DESCRIPTION ARGS...)
+See the function `register-input-method' for the meanings of the elements.")
 
-(defun register-input-method (input-method language-name &rest args)
-  "Register INPUT-METHOD as an input method for LANGUAGE-NAME.
-INPUT-METHOD and LANGUAGE-NAME are symbols or strings.
+(defun register-input-method (input-method env &rest args)
+  "Register INPUT-METHOD as an input method for language environment ENV.
+INPUT-METHOD and ENV are symbols or strings.
+
 The remaining arguments are:
-	ACTIVATE-FUNC, TITLE, DESCRIPTION, and ARG ...
- where,
-ACTIVATE-FUNC is a function to call for activating this method.
-TITLE is a string shown in mode-line while this method is active,
-DESCRIPTION is a string describing about this method,
-Arguments to ACTIVATE-FUNC are INPUT-METHOD and ARGs."
+	ACTIVATE-FUNC, TITLE, DESCRIPTION, and ARGS...
+ACTIVATE-FUNC is a function to call to activate this method.
+TITLE is a string to show in the mode line when this method is active.
+DESCRIPTION is a string describing this method and what it is good for.
+The ARGS, if any, are passed as arguments to ACTIVATE-FUNC.
+All told, the arguments to ACTIVATE-FUNC are INPUT-METHOD and the ARGS."
   (if (symbolp language-name)
       (setq language-name (symbol-name language-name)))
   (if (symbolp input-method)
@@ -640,14 +647,15 @@ The return value is a string."
 	  (error "No valid input method is specified")))))
 
 (defun activate-input-method (input-method)
-  "Turn INPUT-METHOD on.
-If some input method is already on, turn it off at first."
+  "Switch to input method INPUT-METHOD for the current buffer.
+If some other input method is already active, turn it off first.
+If INPUT-METHOD is nil, deactivate any current input method."
   (if (symbolp input-method)
       (setq input-method (symbol-name input-method)))
   (if (and current-input-method
 	   (not (string= current-input-method input-method)))
     (inactivate-input-method))
-  (unless current-input-method
+  (unless (or current-input-method (null input-method))
     (let ((slot (assoc input-method input-method-alist)))
       (if (null slot)
 	  (error "Can't activate input method `%s'" input-method))
@@ -680,9 +688,8 @@ If some input method is already on, turn it off at first."
 	      current-input-method-title nil)))))
 
 (defun set-input-method (input-method)
-  "Select and turn on INPUT-METHOD.
-This sets the default input method to what you specify,
-and turn it on for the current buffer."
+  "Select and activate input method INPUT-METHOD for the current buffer.
+This also sets the default input method to the one you specify."
   (interactive
    (let* ((default (or (car input-method-history) default-input-method)))
      (list (read-input-method-name
@@ -722,7 +729,7 @@ When there's no input method to turn on, turn on what read from minibuffer."
 	  (setq default-input-method current-input-method)))))
 
 (defun describe-input-method (input-method)
-  "Describe  input method INPUT-METHOD."
+  "Describe input method INPUT-METHOD."
   (interactive
    (list (read-input-method-name
 	  "Describe input method (default, current choice): ")))
