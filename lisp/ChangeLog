@@ -23,13 +23,43 @@
 	* desktop.el (desktop-create-buffer): Undo last change.
 	(desktop-kill, desktop-save, desktop-remove): Use expand-directory
 	rather than concat to construct desktop filename.
-	(desktop-kill, desktop-read, desktop-change-dir): Ensure
-	desktop-dirname is a directory name.
+	(desktop-kill, desktop-read, desktop-change-dir):
+	Ensure desktop-dirname is a directory name.
 	(desktop-change-dir): Fix bug when DIR was relative.
 
 2003-06-04  Alex Coventry  <alex_c@mit.edu>  (tiny change)
 
 	* files.el (after-find-file): Fix arguments of call to `sit-for'.
+
+2003-06-03  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* info.el (Info-extract-menu-node-name): Remove unused arg `errmessage'.
+	(Info-follow-reference): Update corresponding call.
+	(Info-node-spec-re): New const.
+	(Info-complete-menu-item): Use it to only allow : when necessary.
+	(Info-fontify-node): Use it as well.  Fixup typo.
+
+	* info.el (info-fontify-node): Use better help-echo text.
+	Use :align-to display prop.
+	Use `invisible' rather than `display' prop to hide text.
+
+	* info.el (Info-mode-hook): Obey obsolete `Info-fontify'.
+	(Info-find-in-tag-table-1): Remove unused vars.
+	(Info-display-images-node): Remove unused var paragraph-markers.
+	(Info-header-line): Remove.
+	(Info-select-node): Don't set it.
+	(Info-search): Remove unused var `current'.
+	(Info-follow-reference): Remove unused var `beg'.
+	(Info-extract-menu-node-name): Remove unused var `i'.
+	(Info-complete-menu-item): Use `with-current-buffer'.
+	(Info-index): Remove unused var `rnode'.
+	(Info-mode): Set header-line-format to check text-properties directly.
+	(Info-find-emacs-command-nodes): Remove unused var `found' and `exact'.
+	(Info-fontify-node): Use `push'.
+	(Info-speedbar-hierarchy-buttons): Use `dolist'.
+	(Info-speedbar-goto-node, Info-speedbar-fetch-file-nodes):
+	Check the return value of `string-match'.
+	(Info-speedbar-fetch-file-nodes): Factor out common code.
 
 2003-06-03  Lute Kamstra  <Lute.Kamstra@cwi.nl>
 
