@@ -209,7 +209,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* #define ADDR_CORRECT(x) (x) */
 
+#ifndef __GNUC__
 #define LINKER cc
+#endif
 
 /* Prevent -lg from being used for debugging.  Not needed.  */
 

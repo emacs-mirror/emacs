@@ -131,5 +131,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef NEED_SIOCTL
 #undef NEED_PTEM_H
 
-#undef LINKER
-#define LINKER cc -Wl,-bnso,-bnodelcsect,-bI:/lib/syscalls.exp
+#ifdef __GNUC__
+#  define ORDINARY_LINK
+#else
+#  undef LINKER
+#  define LINKER cc -Wl,-bnso,-bnodelcsect,-bI:/lib/syscalls.exp
+#endif
