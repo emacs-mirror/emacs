@@ -95,6 +95,7 @@ Normally nil in most modes, since there is no process to display.")
    'mode-name 'mode-line-process 'minor-mode-alist
    (purecopy "%n")
    (purecopy ")%]--")
+   '(which-func-mode ("" which-func-format "--"))
    (purecopy '(line-number-mode "L%l--"))
    (purecopy '(column-number-mode "C%c--"))
    (purecopy '(-3 . "%p"))
