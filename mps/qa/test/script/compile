@@ -22,7 +22,7 @@ sub compiler_settings {
   $cc_conly = "/c";
   $cc_obj = "/Fo";
   $cc_exe = "/Fe";
-  $run_command = "";
+  $try_command = "";
  } elsif ($PLATFORM =~ "^(sun|sol)") {
   if ($PLATFORM =~ "^sol") {
    $cc_link = "$obj_dir/platform.o -lm";
@@ -38,7 +38,7 @@ sub compiler_settings {
   $cc_conly = "-c";
   $cc_obj = "-o ";
   $cc_exe = "-o ";
-  $run_command = "sh -c ";
+  $try_command = "sh -c ";
  } else {
   die "Sorry: I don't know how to compile on ".$PLATFORM."\n";
  }
@@ -75,6 +75,26 @@ sub compile_and_link {
 sub try_test {
  local ($exefile) = @_;
 
- system($run_command.$exefile);
+ system($try_command.$exefile);
 }
+
+sub run_test {
+ local ($exefile) = @_;
+
+ local ($tempfile) = "$obj_dir/tmp_f";
+
+ system($try_command.$exefile." >> ".$tempfile."1 2> ".$tempfile."2");
+ system("cat ".$tempfile."1 ".$tempfile."2 | ".$tempfile."3");
+
+die "*** need to munge $tempfile3 into results format";
+
+ open(OUTPUT, "tmp_output");
+ &filevars(OUTPUT);  *** need new version of this here!
+ close(OUTPUT);
+
+ if (&passfail()) {
+  print "RESULT: PASS\n";
+ } else {
+  print "RESULT: FAIL\n";
+ }
 
