@@ -1,3 +1,8 @@
+2001-11-25  Simon Josefsson  <jas@extundo.com>
+
+	* mail/smtpmail.el (smtpmail-deduce-address-list): Don't use
+	insert-string.  Suggested by Pavel@Janik.cz (Pavel Jan,Bm(Bk).
+
 2001-11-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* play/snake.el (snake-mode): Remove make-local-hook.
