@@ -1,5 +1,7 @@
 1999-12-08  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
+	* bookmark.el (bookmark-bmenu-mode-map): Bind RET like f.
+
 	* dired-aux.el (dired-insert-subdir): Add autoload cookie.
 
 1999-12-07  Dave Love  <fx@gnu.org>
