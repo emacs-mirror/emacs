@@ -2381,8 +2381,8 @@ Emacs was built without floating point support.\n\
    waiting for input as well.  */
 
 Lisp_Object
-sit_for (sec, usec, reading, display)
-     int sec, usec, reading, display;
+sit_for (sec, usec, reading, display, initial_display)
+     int sec, usec, reading, display, initial_display;
 {
   Lisp_Object read_kbd;
 
@@ -2391,7 +2391,7 @@ sit_for (sec, usec, reading, display)
   if (detect_input_pending_run_timers (display))
     return Qnil;
 
-  if (display)
+  if (initial_display)
     redisplay_preserve_echo_area ();
 
   if (sec == 0 && usec == 0)
@@ -2445,7 +2445,7 @@ Value is t if waited the full time with no input arriving.")
     error ("millisecond `sit-for' not supported on %s", SYSTEM_TYPE);
 #endif
 
-  return sit_for (sec, usec, 0, NILP (nodisp));
+  return sit_for (sec, usec, 0, NILP (nodisp), NILP (nodisp));
 }
 
 char *terminal_type;
