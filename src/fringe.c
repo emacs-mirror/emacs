@@ -1017,7 +1017,9 @@ If WHICH overrides a standard fringe bitmap, the original bitmap is restored.  *
    On X, we bit-swap the built-in bitmaps and reduce bitmap
    from short to char array if width is <= 8 bits.
 
-   On W32 and MAC, there's no need to do this.
+   On MAC with big-endian CPU, we need to byte-swap each short.
+
+   On W32 and MAC (little endian), there's no need to do this.
 */
 
 void
@@ -1033,7 +1035,7 @@ init_fringe_bitmap (which, fb, once_p)
 	= { 0x0, 0x8, 0x4, 0xc,    /* 0000 1000 0100 1100 */
 	    0x2, 0xa, 0x6, 0xe,    /* 0010 1010 0110 1110 */
 	    0x1, 0x9, 0x5, 0xd,    /* 0001 1001 0101 1101 */
-	    0x3, 0xb, 0x7, 0xf };	 /* 0011 1011 0111 1111 */
+	    0x3, 0xb, 0x7, 0xf };  /* 0011 1011 0111 1111 */
       unsigned short *bits = fb->bits;
       int j;
 
@@ -1061,7 +1063,16 @@ init_fringe_bitmap (which, fb, once_p)
 	      *bits++ = (b >> (16 - fb->width));
 	    }
 	}
-#endif
+#endif /* HAVE_X_WINDOWS */
+
+#if defined (MAC_OS) && defined (WORDS_BIG_ENDIAN)
+      unsigned short *bits = fb->bits;
+      for (j = 0; j < fb->height; j++)
+	{
+	  unsigned short b = *bits;
+	  *bits++ = ((b >> 8) & 0xff) | ((b & 0xff) << 8);
+	}
+#endif /* MAC_OS && WORDS_BIG_ENDIAN */
     }
 
   if (!once_p)
@@ -1339,7 +1350,7 @@ w32_reset_fringes ()
     rif->destroy_fringe_bitmap (bt);
 }
 
-#endif
+#endif /* HAVE_NTGUI */
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
