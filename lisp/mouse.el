@@ -1,6 +1,6 @@
 ;;; mouse.el --- window system-independent mouse support
 
-;; Copyright (C) 1993, 94, 95, 1999, 2000, 01, 2004
+;; Copyright (C) 1993, 94, 95, 1999, 2000, 2001, 2002, 2003, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -46,6 +46,7 @@
 (defcustom mouse-drag-copy-region t
   "*If non-nil, mouse drag copies region to kill-ring."
   :type 'boolean
+  :version "21.4"
   :group 'mouse)
 
 
@@ -363,6 +364,7 @@ MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
 	 (start-nwindows (count-windows t))
 	 (old-selected-window (selected-window))
 	 (minibuffer (frame-parameter nil 'minibuffer))
+	 (mouse-autoselect-window nil)
 	 should-enlarge-minibuffer event mouse y top bot edges wconfig growth)
     (track-mouse
       (progn
@@ -741,6 +743,7 @@ If the click is in the echo area, display the `*Messages*' buffer."
 	 (start-frame (window-frame start-window))
 	 (start-hscroll (window-hscroll start-window))
 	 (bounds (window-edges start-window))
+	 (make-cursor-line-fully-visible nil)
 	 (top (nth 1 bounds))
 	 (bottom (if (window-minibuffer-p start-window)
 		     (nth 3 bounds)
