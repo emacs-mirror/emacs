@@ -610,8 +610,7 @@ If enable-local-variables is nil, this function will not check for a
     (if mode (funcall mode))))
 
 (defun hack-local-variables ()
-  "Parse (and bind or evaluate as appropriate) any local variables
-for current buffer."
+  "Parse and put into effect this buffer's local variables spec."
   ;; Look for "Local variables:" line in last page.
   (save-excursion
     (goto-char (point-max))
