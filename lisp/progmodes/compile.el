@@ -391,6 +391,7 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
   "Non-nil when in compilation-minor-mode.
 In this minor mode, all the error-parsing commands of the
 Compilation major mode are available.")
+(make-variable-buffer-local 'compilation-minor-mode)
 
 (or (assq 'compilation-minor-mode minor-mode-alist)
     (setq minor-mode-alist (cons '(compilation-minor-mode " Compilation")
@@ -400,6 +401,7 @@ Compilation major mode are available.")
 					   compilation-minor-mode-map)
 				     minor-mode-map-alist)))
 
+;;;###autoload
 (defun compilation-minor-mode (&optional arg)
   "Toggle compilation minor mode.
 With arg, turn compilation mode on if and only if arg is positive.
