@@ -1482,6 +1482,10 @@ shut_down_emacs (sig, no_x, stuff)
 #ifdef WINDOWSNT
   term_ntproc ();
 #endif
+
+#ifdef MSDOS
+  dos_cleanup ();
+#endif
 }
 
 
