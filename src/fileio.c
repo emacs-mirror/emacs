@@ -198,16 +198,16 @@ Lisp_Object Qwrite_region;
 Lisp_Object Qverify_visited_file_modtime;
 Lisp_Object Qset_visited_file_modtime;
 
-DEFUN ("find-file-name-handler", Ffind_file_name_handler, Sfind_file_name_handler, 1, 1, 0,
-  "Return FILENAME's handler function, if its syntax is handled specially.\n\
+DEFUN ("find-file-name-handler", Ffind_file_name_handler, Sfind_file_name_handler, 2, 2, 0,
+  "Return FILENAME's handler function for OPERATION, if it has one.\n\
 Otherwise, return nil.\n\
 A file name is handled if one of the regular expressions in\n\
 `file-name-handler-alist' matches it.\n\n\
 If FILENAME is a member of `inhibit-file-name-handlers',\n\
-then its handler is not run.  This is lets handlers\n\
+then its handler is not run.  This lets handlers\n\
 use the standard functions without calling themselves recursively.")
-  (filename)
-    Lisp_Object filename;
+  (filename, operation)
+    Lisp_Object filename, operation;
 {
   /* This function must not munge the match data.  */
   Lisp_Object chain;
@@ -264,7 +264,7 @@ on VMS, perhaps instead a string ending in `:', `]' or `>'.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (file);
+  handler = Ffind_file_name_handler (file, Qfile_name_directory);
   if (!NILP (handler))
     return call2 (handler, Qfile_name_directory, file);
 
@@ -322,7 +322,7 @@ or the entire name if it contains no slash.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (file);
+  handler = Ffind_file_name_handler (file, Qfile_name_nondirectory);
   if (!NILP (handler))
     return call2 (handler, Qfile_name_nondirectory, file);
 
@@ -356,7 +356,7 @@ get a current directory to run processes in.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename);
+  handler = Ffind_file_name_handler (filename, Qunhandled_file_name_directory);
   if (!NILP (handler))
     return call2 (handler, Qunhandled_file_name_directory, filename);
 
@@ -462,7 +462,7 @@ On VMS, converts \"[X]FOO.DIR\" to \"[X.FOO]\", etc.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (file);
+  handler = Ffind_file_name_handler (file, Qfile_name_as_directory);
   if (!NILP (handler))
     return call2 (handler, Qfile_name_as_directory, file);
 
@@ -643,7 +643,7 @@ it returns a file name such as \"[X]Y.DIR.1\".")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (directory);
+  handler = Ffind_file_name_handler (directory, Qdirectory_file_name);
   if (!NILP (handler))
     return call2 (handler, Qdirectory_file_name, directory);
 
@@ -712,7 +712,7 @@ See also the function `substitute-in-file-name'.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (name);
+  handler = Ffind_file_name_handler (name, Qexpand_file_name);
   if (!NILP (handler))
     return call3 (handler, Qexpand_file_name, name, defalt);
 
@@ -1732,10 +1732,10 @@ A prefix arg makes KEEP-TIME non-nil.")
 
   /* If the input file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename);
+  handler = Ffind_file_name_handler (filename, Qcopy_file);
   /* Likewise for output file name.  */
   if (NILP (handler))
-    handler = Ffind_file_name_handler (newname);
+    handler = Ffind_file_name_handler (newname, Qcopy_file);
   if (!NILP (handler))
     RETURN_UNGCPRO (call5 (handler, Qcopy_file, filename, newname,
 			   ok_if_already_exists, keep_date));
@@ -1830,7 +1830,7 @@ DEFUN ("make-directory-internal", Fmake_directory_internal,
   CHECK_STRING (dirname, 0);
   dirname = Fexpand_file_name (dirname, Qnil);
 
-  handler = Ffind_file_name_handler (dirname);
+  handler = Ffind_file_name_handler (dirname, Qmake_directory);
   if (!NILP (handler))
     return call3 (handler, Qmake_directory, dirname, Qnil);
 
@@ -1854,7 +1854,7 @@ DEFUN ("delete-directory", Fdelete_directory, Sdelete_directory, 1, 1, "FDelete 
   dirname = Fexpand_file_name (dirname, Qnil);
   dir = XSTRING (dirname)->data;
 
-  handler = Ffind_file_name_handler (dirname);
+  handler = Ffind_file_name_handler (dirname, Qdelete_directory);
   if (!NILP (handler))
     return call2 (handler, Qdelete_directory, dirname);
 
@@ -1874,7 +1874,7 @@ If file has multiple names, it continues to exist with the other names.")
   CHECK_STRING (filename, 0);
   filename = Fexpand_file_name (filename, Qnil);
 
-  handler = Ffind_file_name_handler (filename);
+  handler = Ffind_file_name_handler (filename, Qdelete_file);
   if (!NILP (handler))
     return call2 (handler, Qdelete_file, filename);
 
@@ -1908,9 +1908,9 @@ This is what happens in interactive use with M-x.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename);
+  handler = Ffind_file_name_handler (filename, Qrename_file);
   if (NILP (handler))
-    handler = Ffind_file_name_handler (newname);
+    handler = Ffind_file_name_handler (newname, Qrename_file);
   if (!NILP (handler))
     RETURN_UNGCPRO (call4 (handler, Qrename_file,
 			   filename, newname, ok_if_already_exists));
@@ -1973,7 +1973,7 @@ This is what happens in interactive use with M-x.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename);
+  handler = Ffind_file_name_handler (filename, Qadd_name_to_file);
   if (!NILP (handler))
     RETURN_UNGCPRO (call4 (handler, Qadd_name_to_file, filename,
 			   newname, ok_if_already_exists));
@@ -2027,7 +2027,7 @@ This happens for interactive use with M-x.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename);
+  handler = Ffind_file_name_handler (filename, Qmake_symbolic_link);
   if (!NILP (handler))
     RETURN_UNGCPRO (call4 (handler, Qmake_symbolic_link, filename,
 			   linkname, ok_if_already_exists));
@@ -2148,7 +2148,7 @@ See also `file-readable-p' and `file-attributes'.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (abspath);
+  handler = Ffind_file_name_handler (abspath, Qfile_exists_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_exists_p, abspath);
 
@@ -2170,7 +2170,7 @@ For a directory, this means you can access files in that directory.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (abspath);
+  handler = Ffind_file_name_handler (abspath, Qfile_executable_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_executable_p, abspath);
 
@@ -2191,7 +2191,7 @@ See also `file-exists-p' and `file-attributes'.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (abspath);
+  handler = Ffind_file_name_handler (abspath, Qfile_readable_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_readable_p, abspath);
 
@@ -2217,7 +2217,7 @@ Otherwise returns nil.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename);
+  handler = Ffind_file_name_handler (filename, Qfile_symlink_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_symlink_p, filename);
 
@@ -2284,7 +2284,7 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (abspath);
+  handler = Ffind_file_name_handler (abspath, Qfile_writable_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_writable_p, abspath);
 
@@ -2321,7 +2321,7 @@ if the directory so specified exists and really is a directory.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (abspath);
+  handler = Ffind_file_name_handler (abspath, Qfile_directory_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_directory_p, abspath);
 
@@ -2344,7 +2344,7 @@ searchable directory.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename);
+  handler = Ffind_file_name_handler (filename, Qfile_accessible_directory_p);
   if (!NILP (handler))
     return call2 (handler, Qfile_accessible_directory_p, filename);
 
@@ -2368,7 +2368,7 @@ DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (abspath);
+  handler = Ffind_file_name_handler (abspath, Qfile_modes);
   if (!NILP (handler))
     return call2 (handler, Qfile_modes, abspath);
 
@@ -2404,7 +2404,7 @@ Only the 12 low bits of MODE are used.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (abspath);
+  handler = Ffind_file_name_handler (abspath, Qset_file_modes);
   if (!NILP (handler))
     return call3 (handler, Qset_file_modes, abspath, mode);
 
@@ -2507,9 +2507,9 @@ otherwise, if FILE2 does not exist, the answer is t.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (abspath1);
+  handler = Ffind_file_name_handler (abspath1, Qfile_newer_than_file_p);
   if (NILP (handler))
-    handler = Ffind_file_name_handler (abspath2);
+    handler = Ffind_file_name_handler (abspath2, Qfile_newer_than_file_p);
   if (!NILP (handler))
     return call3 (handler, Qfile_newer_than_file_p, abspath1, abspath2);
 
@@ -2569,7 +2569,7 @@ and (2) it puts less data in the undo list.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename);
+  handler = Ffind_file_name_handler (filename, Qinsert_file_contents);
   if (!NILP (handler))
     {
       val = call6 (handler, Qinsert_file_contents, filename,
@@ -2943,10 +2943,10 @@ to the file, instead of any buffer contents, and END is ignored.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (filename);
+  handler = Ffind_file_name_handler (filename, Qwrite_region);
   /* If FILENAME has no handler, see if VISIT has one.  */
   if (NILP (handler) && XTYPE (visit) == Lisp_String)
-    handler = Ffind_file_name_handler (visit);    
+    handler = Ffind_file_name_handler (visit, Qwrite_region);    
 
   if (!NILP (handler))
     {
@@ -3339,7 +3339,8 @@ This means that the file has not been changed since it was visited or saved.")
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
-  handler = Ffind_file_name_handler (b->filename);
+  handler = Ffind_file_name_handler (b->filename,
+				     Qverify_visited_file_modtime);
   if (!NILP (handler))
     return call2 (handler, Qverify_visited_file_modtime, buf);
 
@@ -3404,7 +3405,7 @@ An argument specifies the modification time value to use\n\
 
       /* If the file name has special constructs in it,
 	 call the corresponding file handler.  */
-      handler = Ffind_file_name_handler (filename);
+      handler = Ffind_file_name_handler (filename, Qset_visited_file_modtime);
       if (!NILP (handler))
 	/* The handler can find the file name the same way we did.  */
 	return call2 (handler, Qset_visited_file_modtime, Qnil);
@@ -3511,7 +3512,8 @@ Non-nil second argument means save only current buffer.")
 	    /* -1 means we've turned off autosaving for a while--see below.  */
 	    && XINT (b->save_length) >= 0
 	    && (do_handled_files
-		|| NILP (Ffind_file_name_handler (b->auto_save_file_name))))
+		|| NILP (Ffind_file_name_handler (b->auto_save_file_name,
+						  Qwrite_region))))
 	  {
 	    EMACS_TIME before_time, after_time;
 
