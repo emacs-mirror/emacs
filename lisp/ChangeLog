@@ -1,5 +1,8 @@
 2001-06-29  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* term/w32-win.el (x-colors): Add colors from the recent rgb.txt
+	file.
+
 	* ps-bdf.el (bdf-directory-list): Use the value relative to
 	installation-directory for MS-Windows as well.
 
