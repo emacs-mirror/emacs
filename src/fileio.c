@@ -2112,7 +2112,7 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
 
   if (access (XSTRING (abspath)->data, 0) >= 0)
     return ((access (XSTRING (abspath)->data, 2) >= 0
-	     && ! ro_fsys (XSTRING (abspath)))
+	     && ! ro_fsys ((char *) XSTRING (abspath)->data))
 	    ? Qt : Qnil);
   dir = Ffile_name_directory (abspath);
 #ifdef VMS
@@ -2120,7 +2120,7 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
     dir = Fdirectory_file_name (dir);
 #endif /* VMS */
   return ((access (!NILP (dir) ? (char *) XSTRING (dir)->data : "", 2) >= 0
-	   && ! ro_fsys ((char *) XSTRING (dir)))
+	   && ! ro_fsys ((char *) XSTRING (dir)->data))
 	  ? Qt : Qnil);
 }
 
