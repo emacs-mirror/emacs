@@ -614,57 +614,64 @@ archive.
 
   (if archive-lemacs
       ()				; out of luck
-    ;; Get rid of the Edit menu bar item to save space.
-    (define-key archive-mode-map [menu-bar edit] 'undefined)
 
     (define-key archive-mode-map [menu-bar immediate]
       (cons "Immediate" (make-sparse-keymap "Immediate")))
     (define-key archive-mode-map [menu-bar immediate alternate]
-      '("Alternate Display" . archive-alternate-display))
-    (put 'archive-alternate-display 'menu-enable
-	 '(boundp (archive-name "alternate-display")))
+      '(menu-item "Alternate Display" archive-alternate-display
+		  :enable (boundp (archive-name "alternate-display"))
+		  :help "Toggle alternate file info display"))
     (define-key archive-mode-map [menu-bar immediate view]
-      '("View This File" . archive-view))
+      '(menu-item "View This File" archive-view
+		  :help "Display file at cursor in View Mode"))
     (define-key archive-mode-map [menu-bar immediate display]
-      '("Display in Other Window" . archive-display-other-window))
+      '(menu-item "Display in Other Window" archive-display-other-window
+		  :help "Display file at cursor in another window"))
     (define-key archive-mode-map [menu-bar immediate find-file-other-window]
-      '("Find in Other Window" . archive-extract-other-window))
+      '(menu-item "Find in Other Window" archive-extract-other-window
+		  :help "Edit file at cursor in another window"))
     (define-key archive-mode-map [menu-bar immediate find-file]
-      '("Find This File" . archive-extract))
+      '(menu-item "Find This File" archive-extract
+		  :help "Extract file at cursor and edit it"))
 
     (define-key archive-mode-map [menu-bar mark]
       (cons "Mark" (make-sparse-keymap "Mark")))
     (define-key archive-mode-map [menu-bar mark unmark-all]
-      '("Unmark All" . archive-unmark-all-files))
+      '(menu-item "Unmark All" archive-unmark-all-files
+		  :help "Unmark all marked files"))
     (define-key archive-mode-map [menu-bar mark deletion]
-      '("Flag" . archive-flag-deleted))
+      '(menu-item "Flag" archive-flag-deleted
+		  :help "Flag file at cursor for deletion"))
     (define-key archive-mode-map [menu-bar mark unmark]
-      '("Unflag" . archive-unflag))
+      '(menu-item "Unflag" archive-unflag
+		  :help "Unmark file at cursor"))
     (define-key archive-mode-map [menu-bar mark mark]
-      '("Mark" . archive-mark))
+      '(menu-item "Mark" archive-mark
+		  :help "Mark file at cursor"))
 
     (define-key archive-mode-map [menu-bar operate]
       (cons "Operate" (make-sparse-keymap "Operate")))
     (define-key archive-mode-map [menu-bar operate chown]
-      '("Change Owner..." . archive-chown-entry))
-    (put 'archive-chown-entry 'menu-enable
-	 '(fboundp (archive-name "chown-entry")))
+      '(menu-item "Change Owner..." archive-chown-entry
+		  :enable (fboundp (archive-name "chown-entry"))
+		  :help "Change owner of marked files"))
     (define-key archive-mode-map [menu-bar operate chgrp]
-      '("Change Group..." . archive-chgrp-entry))
-    (put 'archive-chgrp-entry 'menu-enable
-	 '(fboundp (archive-name "chgrp-entry")))
+      '(menu-item "Change Group..." archive-chgrp-entry
+		  :enable (fboundp (archive-name "chgrp-entry"))
+		  :help "Change group ownership of marked files"))
     (define-key archive-mode-map [menu-bar operate chmod]
-      '("Change Mode..." . archive-chmod-entry))
-    (put 'archive-chmod-entry 'menu-enable
-	 '(fboundp (archive-name "chmod-entry")))
+      '(menu-item "Change Mode..." archive-chmod-entry
+		  :enable (fboundp (archive-name "chmod-entry"))
+		  :help "Change mode (permissions) of marked files"))
     (define-key archive-mode-map [menu-bar operate rename]
-      '("Rename to..." . archive-rename-entry))
-    (put 'archive-rename-entry 'menu-enable
-	 '(fboundp (archive-name "rename-entry")))
+      '(menu-item "Rename to..." archive-rename-entry
+		  :enable (fboundp (archive-name "rename-entry"))
+		  :help "Rename marked files"))
     ;;(define-key archive-mode-map [menu-bar operate copy]
-    ;;  '("Copy to..." . archive-copy))
+    ;;  '(menu-item "Copy to..." archive-copy))
     (define-key archive-mode-map [menu-bar operate expunge]
-      '("Expunge Marked Files" . archive-expunge))
+      '(menu-item "Expunge Marked Files" archive-expunge
+		  :help "Delete all flagged files from archive"))
   ))
 
 (let* ((item1 '(archive-subfile-mode " Archive"))
