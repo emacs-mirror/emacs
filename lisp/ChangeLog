@@ -1,5 +1,8 @@
 2000-10-13  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/lisp.el (down-list, backward-up-list, up-list): Doc
+	fix.
+
 	* toolbar/*.xpm: Reduce to max. 8 colors (mogrify -colorspace 
 	transparent -colors 8).
 
