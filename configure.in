@@ -2274,7 +2274,7 @@ sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/^/ /' -e 's/  *$//' \
 changequote([, ])dnl
 
 echo creating src/epaths.h
-make epaths-force
+${MAKE-make} epaths-force
 
 # As of 2000-11-19, newest development versions of GNU cpp preprocess
 # `..' to `. .'  unless invoked with -traditional
