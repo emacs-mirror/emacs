@@ -1,3 +1,13 @@
+2003-02-23  Simon Josefsson  <jas@extundo.com>
+
+	* smtpmail.texi: New file.
+
+	* sending.texi: Remove SMTP node.
+	(Mail Sending): Describe `send-mail-function'.  Link to SMTP
+	library.
+
+	* Makefile.in: Build SMTP manual.
+
 2003-02-22  Simon Josefsson  <jas@extundo.com>
 
 	* sending.texi (Mail Methods): Add node about SMTP.
