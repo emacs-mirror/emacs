@@ -1,3 +1,7 @@
+2005-03-30  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-help.el (calc-full-help): Remove email address.
+
 2005-03-30  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* help-fns.el (help-with-tutorial): Delete title line.
