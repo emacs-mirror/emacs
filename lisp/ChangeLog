@@ -1,3 +1,21 @@
+2002-08-23  Alan Shutko  <ats@acm.org>
+
+	* calendar/diary-lib.el (list-diary-entries): Pass a marker
+	indicating source of entry to add-to-diary-list.
+	(diary-button-face, diary-entry, diary-goto-entry): New, to
+	support click to diary file.
+	(fancy-diary-display): Buttonize diary entries.
+	(list-sexp-diary-entries): Pass a marker indicating source of
+	entry to add-to-diary-list.
+	(diary-date): Return mark as well as entry.
+
+	* calendar/calendar.el (diary-face): New.
+	(european-calendar-display-form, describe-calendar-mode) 
+	(mark-visible-calendar-date, calendar-mark-today): Tidy doc string.
+	(calendar-make-alist): New.
+	(calendar-mode): Set up font-lock mode.
+	(generate-calendar-window): Fontify if font-lock-mode is on.
+
 2002-11-16  Ivan Zakharyaschev <imz@altlinux.org>  (tiny change)
 
 	* international/codepage.el (cp866-decode-table): Fix the
