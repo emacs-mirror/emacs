@@ -890,7 +890,7 @@ Lisp_Object
 make_buffer_string (start, end)
      int start, end;
 {
-  Lisp_Object result;
+  Lisp_Object result, tem;
 
   if (start < GPT && GPT < end)
     move_gap (start);
@@ -898,8 +898,12 @@ make_buffer_string (start, end)
   result = make_uninit_string (end - start);
   bcopy (&FETCH_CHAR (start), XSTRING (result)->data, end - start);
 
-  /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
-  copy_intervals_to_string (result, current_buffer, start, end - start);
+  tem = Fnext_property_change (make_number (start), Qnil, make_number (end));
+
+#ifdef USE_TEXT_PROPERTIES
+  if (XINT (tem) != end)
+    copy_intervals_to_string (result, current_buffer, start, end - start);
+#endif
 
   return result;
 }
@@ -991,7 +995,7 @@ They default to the beginning and the end of BUFFER.")
 
   /* Only defined if Emacs is compiled with USE_TEXT_PROPERTIES */
   graft_intervals_into_buffer (copy_intervals (bp->intervals, start, len),
-			       opoint, bp, 0);
+			       opoint, len, current_buffer, 0);
 
   return Qnil;
 }
@@ -1127,6 +1131,7 @@ and don't mark the buffer as really changed.")
      Lisp_Object start, end, fromchar, tochar, noundo;
 {
   register int pos, stop, look;
+  int changed = 0;
 
   validate_region (&start, &end);
   CHECK_NUMBER (fromchar, 2);
@@ -1136,7 +1141,6 @@ and don't mark the buffer as really changed.")
   stop = XINT (end);
   look = XINT (fromchar);
 
-  modify_region (current_buffer, pos, stop);
   if (! NILP (noundo))
     {
       if (MODIFF - 1 == current_buffer->save_modified)
@@ -1149,14 +1153,22 @@ and don't mark the buffer as really changed.")
     {
       if (FETCH_CHAR (pos) == look)
 	{
+	  if (! changed)
+	    {
+	      modify_region (current_buffer, XINT (start), stop);
+	      changed = 1;
+	    }
+
 	  if (NILP (noundo))
 	    record_change (pos, 1);
 	  FETCH_CHAR (pos) = XINT (tochar);
-	  if (NILP (noundo))
-	    signal_after_change (pos, 1, 1);
 	}
       pos++;
     }
+
+  if (changed)
+    signal_after_change (XINT (start),
+			 stop - XINT (start), stop - XINT (start));
 
   return Qnil;
 }
