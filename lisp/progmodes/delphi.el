@@ -65,11 +65,14 @@
 (provide 'delphi)
 
 (defconst delphi-version
-  (let ((revision "$Revision: 3.3 $"))
+  (let ((revision "$Revision: 3.4 $"))
     (string-match ": \\([^ ]+\\)" revision)
     (match-string 1 revision))
   "Version of this delphi mode.")
 ;;; $Log: delphi.el,v $
+;;; Revision 3.4  2000/02/09 07:04:15  blaak
+;;; Make resourcestring a declaration region, like const and var.
+;;;
 ;;; Revision 3.3  2000/02/01 14:32:21  fx
 ;;; (delphi): Add :version to defgroup.
 ;;;
@@ -182,22 +185,22 @@ differs from the default."
 
 (defcustom delphi-comment-face 'font-lock-comment-face
   "*Face used to color delphi comments."
-  :type 'facep
+  :type 'face
   :group 'delphi)
 
 (defcustom delphi-string-face 'font-lock-string-face
   "*Face used to color delphi strings."
-  :type 'facep
+  :type 'face
   :group 'delphi)
 
 (defcustom delphi-keyword-face 'font-lock-keyword-face
   "*Face used to color delphi keywords."
-  :type 'facep
+  :type 'face
   :group 'delphi)
 
 (defcustom delphi-other-face nil
   "*Face used to color everything else."
-  :type 'facep
+  :type 'face
   :group 'delphi)
 
 (defconst delphi-directives
