@@ -1298,7 +1298,7 @@ and announce itself normally when it is run.")
 #ifndef WINDOWSNT
   /* On Windows, this was done before dumping, and that once suffices.
      Meanwhile, my_edata is not valid on Windows.  */
-  memory_warnings (&my_edata, malloc_warning);
+  memory_warnings (my_edata, malloc_warning);
 #endif /* not WINDOWSNT */
 #endif
   unexec (XSTRING (intoname)->data,
