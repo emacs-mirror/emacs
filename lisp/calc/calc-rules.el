@@ -1,4 +1,4 @@
-;;; calc-rules.el --- 
+;;; calc-rules.el --- rules for simplifying algebraic expressions in Calc
 
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
