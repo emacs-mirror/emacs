@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.33) $
+ * $HopeName: MMsrc!mpsi.c(trunk.34) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .purpose: This code bridges between the MPS interface to C,
@@ -27,8 +27,7 @@
  * meet checking requirements.
  *
  * .varargs: (rule.universal.complete) The varargs passed to mps_alloc(_v)
- * and mps_ap_create(_v) are ignored at the moment.  None of the pool
- * implementations use them, and they're not passed through.
+ * are ignored at the moment.  None of the pool implementations use them.
  *
  * .poll: (rule.universal.complete) Various allocation methods call
  * ArenaPoll to allow the MPM to "steal" CPU time and get on with
@@ -52,7 +51,7 @@
 #include "mps.h"
 #include "mpsavm.h" /* only for mps_space_create */
 
-SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.33) $");
+SRCID(mpsi, "$HopeName: MMsrc!mpsi.c(trunk.34) $");
 
 
 /* mpsi_check -- check consistency of interface mappings
@@ -517,27 +516,26 @@ void mps_free(mps_pool_t mps_pool, mps_addr_t p, size_t size)
 }
 
 
-mps_res_t mps_ap_create(mps_ap_t *mps_ap_o, mps_pool_t mps_pool,
-                        mps_rank_t mps_rank, ...)
+/* mps_ap_create -- create an allocation point */
+
+mps_res_t mps_ap_create(mps_ap_t *mps_ap_o, mps_pool_t mps_pool, ...)
 {
   Pool pool = (Pool)mps_pool;
-  Rank rank = (Rank)mps_rank;
   Arena arena;
   Buffer buf;
   Res res;
   va_list args;
   
+  AVER(mps_ap_o != NULL);
   AVER(CHECKT(Pool, pool));
   arena = PoolArena(pool);
 
   ArenaEnter(arena);
 
-  AVER(mps_ap_o != NULL);
   AVERT(Pool, pool);
 
-  /* See .varargs. */
-  va_start(args, mps_rank);
-  res = BufferCreate(&buf, pool, rank);
+  va_start(args, mps_pool);
+  res = BufferCreateV(&buf, pool, args);
   va_end(args);
 
   ArenaLeave(arena);
@@ -548,26 +546,26 @@ mps_res_t mps_ap_create(mps_ap_t *mps_ap_o, mps_pool_t mps_pool,
   return MPS_RES_OK;
 }
 
+
+/* mps_ap_create_v -- create an allocation point, with varargs */
+
 mps_res_t mps_ap_create_v(mps_ap_t *mps_ap_o, mps_pool_t mps_pool,
-                          mps_rank_t mps_rank, va_list args)
+                          va_list args)
 {
   Pool pool = (Pool)mps_pool;
-  Rank rank = (Rank)mps_rank;
   Arena arena;
   Buffer buf;
   Res res;
   
+  AVER(mps_ap_o != NULL);
   AVER(CHECKT(Pool, pool));
   arena = PoolArena(pool);
 
   ArenaEnter(arena);
 
-  AVER(mps_ap_o != NULL);
   AVERT(Pool, pool);
-  UNUSED(args);
 
-  /* See .varargs. */
-  res = BufferCreate(&buf, pool, rank);
+  res = BufferCreateV(&buf, pool, args);
 
   ArenaLeave(arena);
 
