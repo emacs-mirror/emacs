@@ -608,8 +608,8 @@ Fifth arg HIST, if non-nil, specifies a history list\n\
 Sixth arg DEFAULT-VALUE is the default value.  If non-nil, it is used\n\
  for history commands, and as the value to return if the user enters\n\
  the empty string.\n\
-Seventh arg INHERIT-INPUT-METHOD non-nil means the minibuffer inherits\n\
- the current input method.\n\
+Seventh arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits\n\
+ the current input method and the setting of enable-multibyte-characters.\n\
 If the variable `minibuffer-allow-text-properties is non-nil,\n\
  then the string which is returned includes whatever text properties\n\
  were present in the minibuffer.  Otherwise the value has no text properties.")
@@ -714,8 +714,8 @@ If non-nil, second arg INITIAL-INPUT is a string to insert before reading.\n\
 The third arg HISTORY, if non-nil, specifies a history list\n\
   and optionally the initial position in the list.\n\
 See `read-from-minibuffer' for details of HISTORY argument.\n\
-The forth arg INHERIT-INPUT-METHOD non-nil means the minibuffer inherits\n\
-  the current input method.")
+Fourth arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits\n\
+ the current input method and the setting of enable-multibyte-characters.")
   (prompt, initial_input, history, default_value, inherit_input_method)
      Lisp_Object prompt, initial_input, history, default_value;
      Lisp_Object inherit_input_method;
@@ -728,8 +728,8 @@ The forth arg INHERIT-INPUT-METHOD non-nil means the minibuffer inherits\n\
 DEFUN ("read-no-blanks-input", Fread_no_blanks_input, Sread_no_blanks_input, 1, 3, 0,
   "Args PROMPT and INIT, strings.  Read a string from the terminal, not allowing blanks.\n\
 Prompt with PROMPT, and provide INIT as an initial value of the input string.\n\
-The third optional arg INHERIT-INPUT-METHOD non-nil means the minibuffer\n\
-  inherits the current input method.")
+Third arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits\n\
+the current input method and the setting of enable-multibyte-characters.")
   (prompt, init, inherit_input_method)
      Lisp_Object prompt, init, inherit_input_method;
 {
@@ -1192,7 +1192,7 @@ HIST, if non-nil, specifies a history list\n\
 DEF, if non-nil, is the default value.\n\
 \n\
 If INHERIT-INPUT-METHOD is non-nil, the minibuffer inherits\n\
-  the current input method.\n\
+  the current input method and the setting of enable-multibyte-characters.\n\
 \n\
 Completion ignores case if the ambient value of\n\
   `completion-ignore-case' is non-nil."
