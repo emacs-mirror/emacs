@@ -282,7 +282,7 @@ Has a preference of looking backwards."
 				(beginning-of-line)
 				(setq tem (point))
 				(looking-at "DEFUN\\b"))
-			      (>= location (point)))
+			      (>= location tem))
 			 (progn
 			   (goto-char tem)
 			   (down-list 1)
