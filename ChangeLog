@@ -1,3 +1,7 @@
+2000-02-18  Dave Love  <fx@gnu.org>
+
+	* configure.in: Define NON_GNU_CPP on alpha-dec-osf5+.
+
 2000-02-18  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (install-arch-indep): Add eudc to list of installed

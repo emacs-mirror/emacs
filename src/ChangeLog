@@ -1,3 +1,13 @@
+2000-02-18  Dave Love  <fx@gnu.org>
+
+	* keyboard.c (echo_keystrokes): Remove declaration.
+	(Vecho_keystrokes) New variable.
+	(read_char, record_menu_key, read_key_sequence): Use it to allow
+	use of float value.
+	(syms_of_keyboard): Change Vecho_keystrokes declaration.
+
+	* lread.c: Undef feature selection macros before defining.
+
 2000-02-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* data.c (let_shadows_buffer_binding_p): Ignore specbindings
