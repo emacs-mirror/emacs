@@ -1460,7 +1460,7 @@ buffer_posn_from_coords (window, col, line)
 			  ? minibuf_prompt_width : 0)
 			 + (hscroll ? 1 - hscroll : 0),
 			 ZV, line, col,
-			 window_width, hscroll, 0);
+			 window_width, hscroll, 0, window);
 
   current_buffer = old_current_buffer;
 

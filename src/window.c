@@ -223,7 +223,7 @@ POS defaults to point; WINDOW, to the selected window.")
       posval = *compute_motion (top, 0, (hscroll ? 1 - hscroll : 0),
 				posint, height, 0,
 				window_internal_width (w) - 1,
-				hscroll, 0);
+				hscroll, 0, w);
 
       return posval.vpos < height ? Qt : Qnil;
     }

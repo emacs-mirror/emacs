@@ -677,7 +677,7 @@ redisplay ()
 				 point, 2, - (1 << (SHORTBITS - 1)),
 				 window_internal_width (w) - 1,
 				 XINT (w->hscroll),
-				 pos_tab_offset (w, tlbufpos));
+				 pos_tab_offset (w, tlbufpos), w);
 	  if (pos.vpos < 1)
 	    {
 	      FRAME_CURSOR_X (selected_frame)
@@ -1143,7 +1143,7 @@ redisplay_window (window, just_this_one)
 				(hscroll ? 1 - hscroll : 0),
 				ZV, height / 2,
 				- (1 << (SHORTBITS - 1)),
-				width, hscroll, pos_tab_offset (w, startp));
+				width, hscroll, pos_tab_offset (w, startp), w);
 	  SET_PT (pos.bufpos);
 	  if (w != XWINDOW (selected_window))
 	    Fset_marker (w->pointm, make_number (point), Qnil);
@@ -1178,7 +1178,7 @@ redisplay_window (window, just_this_one)
     {
       pos = *compute_motion (startp, 0, (hscroll ? 1 - hscroll : 0),
 			    point, height + 1, 10000, width, hscroll,
-			    pos_tab_offset (w, startp));
+			    pos_tab_offset (w, startp), w);
 
       if (pos.vpos < height)
 	{
@@ -1467,7 +1467,7 @@ try_window_id (window)
   /* Find position before which nothing is changed.  */
   bp = *compute_motion (start, 0, lmargin,
 			min (ZV, beg_unchanged + BEG), height + 1, 0,
-			width, hscroll, pos_tab_offset (w, start));
+			width, hscroll, pos_tab_offset (w, start), w);
   if (bp.vpos >= height)
     {
       if (point < bp.bufpos && !bp.contin)
@@ -1478,7 +1478,7 @@ try_window_id (window)
 	     any change in buffer size.  */
 	  bp = *compute_motion (start, 0, lmargin,
 				Z, height, 0,
-				width, hscroll, pos_tab_offset (w, start));
+				width, hscroll, pos_tab_offset (w, start), w);
 	  XFASTINT (w->window_end_vpos) = height;
 	  XFASTINT (w->window_end_pos) = Z - bp.bufpos;
 	  return 1;
@@ -1526,7 +1526,7 @@ try_window_id (window)
   /* Compute the cursor position after that newline.  */
   ep = *compute_motion (pos, vpos, val.hpos, tem,
 			height, - (1 << (SHORTBITS - 1)),
-			width, hscroll, pos_tab_offset (w, bp.bufpos));
+			width, hscroll, pos_tab_offset (w, bp.bufpos), w);
 
   /* If changes reach past the text available on the frame,
      just display rest of frame.  */
@@ -1557,7 +1557,7 @@ try_window_id (window)
       epto = pos_tab_offset (w, ep.bufpos);
       xp = *compute_motion (ep.bufpos, ep.vpos, ep.hpos,
 			    Z - XFASTINT (w->window_end_pos),
-			    10000, 0, width, hscroll, epto);
+			    10000, 0, width, hscroll, epto, w);
       scroll_amount = xp.vpos - XFASTINT (w->window_end_vpos);
 
       /* Is everything on frame below the changes whitespace?
@@ -1580,13 +1580,14 @@ try_window_id (window)
 	    {
 	      pp = *compute_motion (ep.bufpos, ep.vpos, ep.hpos,
 				    point, height, - (1 << (SHORTBITS - 1)),
-				    width, hscroll, epto);
+				    width, hscroll, epto, w);
 	    }
 	  else
 	    {
 	      pp = *compute_motion (xp.bufpos, xp.vpos, xp.hpos,
 				    point, height, - (1 << (SHORTBITS - 1)),
-				    width, hscroll, pos_tab_offset (w, xp.bufpos));
+				    width, hscroll,
+				    pos_tab_offset (w, xp.bufpos), w);
 	    }
 	  if (pp.bufpos < point || pp.vpos == height)
 	    return 0;
@@ -1786,7 +1787,7 @@ try_window_id (window)
   if (cursor_vpos < 0)
     {
       val = *compute_motion (start, 0, lmargin, point, 10000, 10000,
-			     width, hscroll, pos_tab_offset (w, start));
+			     width, hscroll, pos_tab_offset (w, start), w);
       /* Admit failure if point is off frame now */
       if (val.vpos >= height)
 	{
@@ -1805,7 +1806,7 @@ try_window_id (window)
     {
       val = *compute_motion (start, 0, lmargin, ZV,
 			     height, - (1 << (SHORTBITS - 1)),
-			     width, hscroll, pos_tab_offset (w, start));
+			     width, hscroll, pos_tab_offset (w, start), w);
       if (val.vpos != XFASTINT (w->window_end_vpos))
 	abort ();
       if (XFASTINT (w->window_end_pos)
