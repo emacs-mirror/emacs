@@ -1,7 +1,7 @@
 /* impl.c.arenavm: VIRTUAL MEMORY ARENA CLASS
  *
- * $HopeName: MMsrc!arenavm.c(trunk.72) $
- * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
+ * $HopeName: MMsrc!arenavm.c(trunk.73) $
+ * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  *
  *
  * DESIGN
@@ -26,7 +26,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.72) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.73) $");
 
 
 /* @@@@ Arbitrary calculation for the maximum number of distinct */
@@ -401,7 +401,6 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
   Res res;
   VMArena vmArena;
   Arena arena;
-  Lock lock;
   Index gen;
   VM arenaVM;
   Chunk chunk;
@@ -411,20 +410,19 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
   AVER(class == VMArenaClassGet() || class == VMNZArenaClassGet());
   AVER(userSize > 0);
 
-  /* Create a VM to hold the arena and the lock, and map it. */
+  /* Create a VM to hold the arena and map it. */
   vmArenaSize = SizeAlignUp(sizeof(VMArenaStruct), MPS_PF_ALIGN); 
-  res = VMCreate(&arenaVM, vmArenaSize + LockSize());
+  res = VMCreate(&arenaVM, vmArenaSize);
   if (res != ResOK)
     goto failVMCreate;
   res = VMMap(arenaVM, VMBase(arenaVM), VMLimit(arenaVM));
   if (res != ResOK)
     goto failVMMap;
   vmArena = (VMArena)VMBase(arenaVM);
-  lock = (Lock)PointerAdd((void *)vmArena, vmArenaSize);
 
   arena = VMArena2Arena(vmArena);
   /* impl.c.arena.init.caller */
-  res = ArenaInit(arena, lock, class);
+  res = ArenaInit(arena, class);
   if (res != ResOK)
     goto failArenaInit;
   arena->committed = VMMapped(arenaVM);
