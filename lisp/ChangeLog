@@ -39,6 +39,12 @@
 	* progmodes/cc-menus.el (imenu-generic-expression)
 	(imenu-progress-message): Only defvar when compiling.
 
+	* emacs-lisp/elp.el (elp-unload-hook): New function.
+
+	* loadhist.el (unload-feature): Call elp-restore-function,
+	checking for symbols; don't use elp-restore-all.
+	(loadhist-hook-functions): Doc fix.
+
 2000-10-30  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* log-edit.el (log-edit-confirm): Fix the default.
