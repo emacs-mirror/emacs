@@ -32,6 +32,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'skeleton))
+
 (defgroup sgml nil
   "SGML editing mode"
   :group 'languages)
@@ -207,9 +209,9 @@ Any terminating `>' or `/' is not matched.")
 
 ;; internal
 (defconst sgml-font-lock-keywords-1
-  '(("<\\([!?][a-z][-.a-z0-9]+\\)" 1 font-lock-keyword-face)
-    ("<\\(/?[a-z][-.a-z0-9]+\\)" 1 font-lock-function-name-face)
-    ("[&%][a-z][-.a-z0-9]+;?" . font-lock-variable-name-face)
+  '(("<\\([!?][a-z][-.a-z0-9]*\\)" 1 font-lock-keyword-face)
+    ("<\\(/?[a-z][-.a-z0-9]*\\)" 1 font-lock-function-name-face)
+    ("[&%][a-z][-.a-z0-9]*;?" . font-lock-variable-name-face)
     ("<! *--.*-- *>" . font-lock-comment-face)))
 
 (defconst sgml-font-lock-keywords-2 ())
@@ -275,6 +277,8 @@ an optional alist of possible values."
   :type '(repeat (cons (string :tag "Tag Name")
 		       (string :tag "Description")))
   :group 'sgml)
+
+(defvar v2)				; free for skeleton
 
 (defun sgml-mode-common (sgml-tag-face-alist sgml-display-text)
   "Common code for setting up `sgml-mode' and derived modes.
