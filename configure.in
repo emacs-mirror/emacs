@@ -124,6 +124,8 @@ AC_ARG_ENABLE(carbon-app,
 [[  --enable-carbon-app[=DIR]  [DIR=/Application]
                           specify install directory for Emacs.app on Mac OS X]],
 [ carbon_appdir_x=${enableval}])
+AC_ARG_ENABLE(boehm-gc,
+[  --enable-boehm-gc       use Boehm's conservative GC])
 
 #### Make srcdir absolute, if it isn't already.  It's important to
 #### avoid running the path through pwd unnecessarily, since pwd can
@@ -1345,6 +1347,11 @@ configure___ use_mmap_for_buffers=no
 configure___ ld_switch_system=LD_SWITCH_SYSTEM
 configure___ ld_switch_machine=LD_SWITCH_MACHINE
 
+/* Fixme: Make this properly consistent with lisp.h.  */
+#ifdef _LP64
+configure___ LP64=1
+#endif
+
 #ifdef THIS_IS_CONFIGURE
 
 /* Get the CFLAGS for tests in configure.  */
@@ -1519,6 +1526,9 @@ AH_TEMPLATE(POINTER_TYPE,
 dnl This could be used for targets which can have both byte sexes.
 dnl We could presumably replace the hardwired WORDS_BIG_ENDIAN generally.
 dnl AC_C_BIGENDIAN
+
+AC_CHECK_SIZEOF(int*)
+AC_CHECK_SIZEOF(long)
 
 dnl check for Make feature
 AC_PROG_MAKE_SET
@@ -2079,6 +2089,10 @@ no_return_alloc_pixels
   fi
 fi
 
+# Set up the CFLAGS for real compilation, so we can substitute it.
+CFLAGS="$REAL_CFLAGS"
+CPPFLAGS="$REAL_CPPFLAGS"
+
 ### Use -ljpeg if available, unless `--with-jpeg=no'.
 HAVE_JPEG=no
 if test "${HAVE_X11}" = "yes"; then
@@ -2493,9 +2507,22 @@ dnl fi
 
 dnl Fixme: Use AC_FUNC_MEMCMP since memcmp is used.  (Needs libobj replacement.)
 
-# Set up the CFLAGS for real compilation, so we can substitute it.
-CFLAGS="$REAL_CFLAGS"
-CPPFLAGS="$REAL_CPPFLAGS"
+dnl Put this after tests which would use LDFLAGS, for instance.
+### Use Boehm GC
+if test "$enable_boehm_gc" = yes; then
+  AC_DEFINE(BOEHM_GC, 1, [Define to 1 to use Boehm's GC.])
+  if test -z "$LP64"; then
+     valmask=0xfffffff
+  else
+     valmask=0xfffffffffffffff
+  fi
+  # Fixme: It would be good to be able to turn off -fexceptions.
+  ac_configure_args="$ac_configure_args --disable-shared --disable-threads --enable-cppflags='$CPPFLAGS -DPOINTER_MASK=$valmask -DAVOID_MMAP -UALL_INTERIOR_POINTERS -UJAVA_FINALIZATION -UGC_GCJ_SUPPORT'"
+  AC_DEFINE(AVOID_MMAP, 1, [Define to 1 consistent with the gc library.])
+  AC_DEFINE(POINTER_MASK, $valmask, [Define consistent with the gc library.])
+dnl  CPPFLAGS="'-I${top_srcdir}/gc/include' $CPPFLAGS"
+  AC_CONFIG_SUBDIRS(gc)
+fi
 
 #### Find out which version of Emacs this is.
 [version=`grep 'defconst[	 ]*emacs-version' ${srcdir}/lisp/version.el \
