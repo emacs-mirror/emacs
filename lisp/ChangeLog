@@ -1,3 +1,7 @@
+2004-10-25  Kenichi Handa  <handa@m17n.org>
+
+	* select.el (x-set-cut-buffer): Encode STRING if necessary.
+
 2004-10-24  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* indent.el (set-left-margin, set-right-margin): Delete redundant
