@@ -3372,17 +3372,17 @@ See also `auto-save-file-name-p'."
 	  (if (string-match (car (car list)) filename)
 	      (setq result (replace-match (cadr (car list)) t nil
 					  filename)
-				uniq (caddr (car list))))
+		    uniq (caddr (car list))))
 	  (setq list (cdr list)))
 	(if result
-		(if uniq
-			(setq filename (concat
-							(file-name-directory result)
-							(subst-char-in-string
-							 directory-sep-char ?!
-							 (replace-regexp-in-string "!" "!!"
-														 filename))))
-		  (setq filename result)))
+	    (if uniq
+		(setq filename (concat
+				(file-name-directory result)
+				(subst-char-in-string
+				 directory-sep-char ?!
+				 (replace-regexp-in-string "!" "!!"
+							   filename))))
+	      (setq filename result)))
 	(setq result
 	      (if (and (eq system-type 'ms-dos)
 		       (not (msdos-long-file-names)))
@@ -3447,7 +3447,8 @@ See also `auto-save-file-name-p'."
 	     ;; file it creates, so we must fix the file name _before_
 	     ;; make-temp-file is called.
 	     (convert-standard-filename fname)
-	   fname))))))
+	   fname))
+       nil "#"))))
 
 (defun auto-save-file-name-p (filename)
   "Return non-nil if FILENAME can be yielded by `make-auto-save-file-name'.
