@@ -1243,7 +1243,7 @@ More precisely, a regexp to match any one such character.")
 	   (posn-point (event-start event))))
 	((ediff-key-press-event-p event)
 	 (point))
-	(t (error))))
+	(t (error ""))))
 
 (defun ediff-event-buffer (event)
   (cond ((ediff-mouse-event-p event)
@@ -1252,7 +1252,7 @@ More precisely, a regexp to match any one such character.")
 	   (window-buffer (posn-window (event-start event)))))
 	((ediff-key-press-event-p event)
 	 (current-buffer))
-	(t (error))))
+	(t (error ""))))
    
     
 (defsubst ediff-frame-iconified-p (frame)
