@@ -378,17 +378,19 @@ These get fixed-format comments fontified.")
   (list
    (list
     nil
-    ;; Lines below are: 1. leading whitespace; 2. function
-    ;; declaration with optional type, e.g. `real', `real*4',
-    ;; character(*), `double precision' and possible statement
-    ;; continuation; 3. untyped declarations; 4. the variable to
-    ;; index.  [This will be fooled by `end function' allowed by G77.
-    ;; Also, it assumes sensible whitespace is employed.]
-    (concat "^\\s-+\\(\
-\\(\\sw\\|\\s-\\|[*()+]\\)*\
-\\<function\\|subroutine\\|entry\\|block\\s-*data\\|program\\)\
-[ \t" fortran-continuation-string "]+\
-\\(\\sw+\\)")
+    ;; [This will be fooled by `end function' allowed by G77.  Also,
+    ;; it assumes sensible whitespace is employed.]
+    (concat
+     ;; leading whitespace:
+     "^\\s-+\\("
+     ;; function declaration with optional type, e.g. `real',
+     ;; `real*4', character(*), `double precision':
+     "\\(\\sw\\|\\s-\\|[*()+]\\)*"
+     "\\<function\\|subroutine\\|entry\\|block\\s-*data\\|program\\)"
+     ;; Possible statement continuation:
+     "[ \t" fortran-continuation-string "]+"
+     ;; Variable to index:
+     "\\(\\sw+\\)")
     3)
    ;; Un-named block data
    (list nil "^\\s-+\\(block\\s-*data\\)\\s-*$" 1))
@@ -424,13 +426,13 @@ These get fixed-format comments fontified.")
        fortran-mode-menu map ""
        `("Fortran"
 	 ["Manual" (info "(emacs)Fortran")]
-;;; This loads cus-edit as things stand -- needs to be done lazily.
-;;; 	 ,(customize-menu-create 'fortran)
-;;; 	 ["Set" Custom-set t]
-;;; 	 ["Save" Custom-save t]
-;;; 	 ["Reset to Current" Custom-reset-current t]
-;;; 	 ["Reset to Saved" Custom-reset-saved t]
-;;; 	 ["Reset to Standard Settings" Custom-reset-standard t]
+	 ["Customize" :filter (lambda (&rest junk)
+				(cdr (custom-menu-create 'fortran)))]
+	 ["Set" Custom-set t]
+	 ["Save" Custom-save t]
+	 ["Reset to Current" Custom-reset-current t]
+	 ["Reset to Saved" Custom-reset-saved t]
+	 ["Reset to Standard Settings" Custom-reset-standard t]
 	 "----"
 	 ["Toggle Auto-fill" fortran-auto-fill-mode :style toggle
 	  :selected (eq auto-fill-function 'fortran-auto-fill)]
