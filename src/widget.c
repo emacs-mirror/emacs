@@ -942,21 +942,18 @@ EmacsFrameSetCharSize (widget, columns, rows)
       lw_refigure_widget (f->output_data.x->column_widget, False);
       update_hints_inhibit = 1;
 
-      ac = 0;
-      XtSetArg (al[ac], XtNheight, pixel_height); ac++;
-      XtSetArg (al[ac], XtNwidth, pixel_width); ac++;
-      XtSetValues ((Widget) ew, al, ac);
+      /* Do parents first, otherwise LessTif's geometry
+	 management enters an infinite loop (as of 2000-01-15).  */
+      XtVaSetValues (f->output_data.x->widget,
+      		     XtNheight, outer_widget_height + hdelta,
+		     XtNwidth, outer_widget_width + wdelta, NULL);
+      XtVaSetValues (f->output_data.x->column_widget,
+      		     XtNheight, column_widget_height + hdelta,
+      		     XtNwidth, column_widget_width + wdelta, NULL);
+      XtVaSetValues ((Widget) ew,
+                     XtNheight, pixel_height,
+      		     XtNwidth, pixel_width, NULL);
  
-      ac = 0;
-      XtSetArg (al[ac], XtNheight, column_widget_height + hdelta); ac++;
-      XtSetArg (al[ac], XtNwidth, column_widget_width + wdelta); ac++;
-      XtSetValues (f->output_data.x->column_widget, al, ac);
-
-      ac = 0;
-      XtSetArg (al[ac], XtNheight, outer_widget_height + hdelta); ac++;
-      XtSetArg (al[ac], XtNwidth, outer_widget_width + wdelta); ac++;
-      XtSetValues (f->output_data.x->widget, al, ac);
-
       lw_refigure_widget (f->output_data.x->column_widget, True);
 
       update_hints_inhibit = 0;
