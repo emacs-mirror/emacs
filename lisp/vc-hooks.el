@@ -210,20 +210,20 @@ visiting FILE."
 	      (let* ((lock-pattern
 		      (concat "[ \b\t\n\v\f\r]+\\("
 			      (regexp-quote (user-login-name))
-			      ":\\|\\)"))
+			      ":\\)?"))
 		     (locks
 		      (save-restriction
 			(narrow-to-region (match-beginning 1) (match-end 1))
 			(goto-char (point-min))
 			(while (re-search-forward lock-pattern nil t)
-			  (replace-match " " t t))
+			  (replace-match "-" t t))
 			(buffer-string)))
 		     (status
 		      (if (not (string-equal locks ""))
 			  locks
 			(goto-char (point-min))
 			(if (looking-at "head[ \b\t\n\v\f\r]+\\([.0-9]+\\)")
-			    (concat " " (buffer-substring (match-beginning 1)
+			    (concat "-" (buffer-substring (match-beginning 1)
 							  (match-end 1)))
 			  " @@"))))
 		;; Clean work buffer.
