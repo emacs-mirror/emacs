@@ -462,7 +462,8 @@ adjust_point (nchars, nbytes)
 
 /* Adjust markers for a replacement of a text at FROM (FROM_BYTE) of
    length OLD_CHARS (OLD_BYTES) to a new text of length NEW_CHARS
-   (NEW_BYTES).  */
+   (NEW_BYTES).  It is assumed that OLD_CHARS > 0, i.e., this is not
+   an insertion.  */
 
 static void
 adjust_markers_for_replace (from, from_byte, old_chars, old_bytes,
@@ -478,17 +479,12 @@ adjust_markers_for_replace (from, from_byte, old_chars, old_bytes,
     {
       register struct Lisp_Marker *m = XMARKER (marker);
 
-      if (m->bytepos >= prev_to_byte
-	  && (old_bytes != 0
-	      /* If this is an insertion (replacing 0 chars),
-		 reject the case of a marker that is at the
-		 insertion point and should stay before the insertion.  */
-	      || m->bytepos > from_byte || m->insertion_type))
+      if (m->bytepos >= prev_to_byte)
 	{
-	  m->charpos = min (from + new_chars, m->charpos + diff_chars);
-	  m->bytepos = min (from_byte + new_bytes, m->bytepos + diff_bytes);
+	  m->charpos += diff_chars;
+	  m->bytepos += diff_bytes;
 	}
-      else if (m->bytepos >= from_byte)
+      else if (m->bytepos > from_byte)
 	{
 	  m->charpos = from;
 	  m->bytepos = from_byte;
@@ -1277,8 +1273,12 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
   GPT += len; GPT_BYTE += len_byte;
   if (GAP_SIZE > 0) *(GPT_ADDR) = 0; /* Put an anchor. */
 
-  adjust_markers_for_replace (from, from_byte, nchars_del, nbytes_del,
-			      len, len_byte);
+  if (nchars_del > 0)
+    adjust_markers_for_replace (from, from_byte, nchars_del, nbytes_del,
+				len, len_byte);
+  else
+    adjust_markers_for_insert (from, from_byte,
+			       from + len, from_byte + len_byte, 0);
 
   if (! EQ (current_buffer->undo_list, Qt))
     {
