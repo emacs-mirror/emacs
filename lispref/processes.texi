@@ -328,7 +328,7 @@ The arguments are handled in almost the same way as for
 
 Some file handlers may not support all combinations and forms of the
 arguments @var{infile}, @var{buffer}, and @var{display}.  For example,
-some file handlers might behave as if @var{display} was @code{nil},
+some file handlers might behave as if @var{display} were @code{nil},
 regardless of the value actually passed.  As another example, some
 file handlers might not support separating standard output and error
 output by way of the @var{buffer} argument.
