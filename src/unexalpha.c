@@ -26,7 +26,6 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <stdio.h>
-#include <varargs.h>
 #include <errno.h>
 #ifdef HAVE_STRING_H
 #include <string.h>
