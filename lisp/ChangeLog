@@ -1,3 +1,12 @@
+2002-01-05  Richard M. Stallman  <rms@gnu.org>
+
+	* enriched.el (enriched-make-annotation): Doc fix.
+
+	* format.el (format-replace-strings, format-subtract-regions) 
+	(format-annotate-region, format-annotate-location) 
+	(format-annotate-atomic-property-change)
+	(format-annotate-single-property-change): Doc fixes.
+
 2002-01-05  Jason Rumney  <jasonr@gnu.org>
 
 	* term/w32-win.el: Require fontset unconditionally.
