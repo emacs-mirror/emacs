@@ -1584,15 +1584,23 @@ examine the brightness for you."
 	     (underline "Underline text." ((t (:underline t))))
 	     (default "Used for text not covered by other faces." ((t nil)))
 	     (highlight "Highlight text in some way."
-			((((class color)) (:background "darkseagreen2"))
+			((((class color) (background light))
+			  (:background "darkseagreen2"))
+			 (((class color) (background dark))
+			  (:background "darkolivegreen"))
 			 (t (:inverse-video t))))
 	     (modeline "Used for displaying the modeline."
 		       ((t (:inverse-video t))))
 	     (region "Used for displaying the region."
-		     ((t (:background "gray"))))
+		     ((((class color) (background dark))
+		       (:background "blue"))
+		      (t (:background "gray"))))
 	     (secondary-selection
 	      "Used for displaying the secondary selection."
-	      ((((class color)) (:background "paleturquoise"))
+	      ((((class color) (background light))
+		(:background "paleturquoise"))
+	       (((class color) (background dark))
+		(:background "darkslateblue"))
 	       (t (:inverse-video t))))))
       entry symbol doc spec)
   (while all
