@@ -1,3 +1,32 @@
+2004-01-01  Miles Bader  <miles@gnu.org>
+
+	* display.texi (Buttons): New section.
+
+2003-12-31  Andreas Schwab  <schwab@suse.de>
+
+	* numbers.texi (Math Functions): sqrt reports a domain-error
+	error.
+	(Float Basics): Use `(/ 0.0 0.0)' instead of `(sqrt -1.0)'.
+
+2003-12-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* tips.texi (Documentation Tips): Update item on hyperlinks in
+	documentation strings.
+
+	* errors.texi (Standard Errors): Various small corrections and
+	additions.
+
+	* control.texi: Various small changes in addition to the
+	following.
+	(Signaling Errors): Provide some more details on how `signal'
+	constructs the error message.  Add anchor to the definition of
+	`signal'.
+	(Error Symbols): Describe special treatment of `quit'.
+	(Cleanups): Rename BODY argument of `unwind-protect' to BODY-FORM
+	to emphasize that it has to be a single form.
+
+	* buffers.texi: Add anchor.
+
 2003-12-29  Richard M. Stallman  <rms@gnu.org>
 
 	* windows.texi (Choosing Window): Add same-window-p, special-display-p.
@@ -16,9 +45,9 @@
 	* os.texi (Time of Day): Add set-time-zone-rule.
 
 	* numbers.texi (Math Functions): asin, acos, log, log10
-	report domain-error errors.	
+	report domain-error errors.
 
-	* nonascii.texi (Converting Representations): 
+	* nonascii.texi (Converting Representations):
 	Add multibyte-char-to-unibyte and unibyte-char-to-multibyte.
 	(Encoding and I/O): Add file-name-coding-system.
 
@@ -36,7 +65,7 @@
 	* frames.texi (Frames and Windows): Add set-frame-selected-window
 	and frame-root-window.
 
-	* files.texi (Contents of Directories): 
+	* files.texi (Contents of Directories):
 	Add directory-files-and-attributes.
 
 	* display.texi (Refresh Screen): Add force-window-update.
@@ -81,7 +110,7 @@
 	mention `eval-current-buffer' as an alias for `current-buffer'.
 	Correct the description and mention all optional arguments.
 
-	* nonascii.texi : Various small changes in addition to the
+	* nonascii.texi: Various small changes in addition to the
 	following.
 	(Converting Representations): Clarify behavior of
 	`string-make-multibyte' and `string-to-multibyte' for unibyte all

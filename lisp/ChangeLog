@@ -1,3 +1,23 @@
+2003-12-31  John Paul Wallington  <jpw@gnu.org>
+
+	* bindings.el (completion-ignored-extensions): Add .pfsl.
+
+2003-12-31  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-nonreadable-directory-p): New defun to check for
+	nonreadable directory without activating tramp (to avoid problems
+	with checking incomplete tramp paths.
+	(ido-set-current-directory, ido-file-internal)
+	(ido-file-name-all-completions1): Use it.
+
+2003-12-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* help-mode.el (help-xref-info-regexp): Make hyperlinks to Info
+	documentation if the anchor (or node) name is preceded by `info
+	anchor' or `Info anchor' in addition to earlier `info node' and
+	`Info node'.
+	(help-make-xrefs): Adapt to new value of `help-xref-info-regexp'.
+
 2003-12-30  Eli Zaretskii  <eliz@elta.co.il>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format): Fix off-by-one

@@ -496,7 +496,7 @@ This construct executes @var{body} once for each integer from 0
 (inclusive) to @var{count} (exclusive), using the variable @var{var} to
 hold the integer for the current iteration.  Then it returns the value
 of evaluating @var{result}, or @code{nil} if @var{result} is omitted.
-Here is an example of using @code{dotimes} do something 100 times:
+Here is an example of using @code{dotimes} to do something 100 times:
 
 @example
 (dotimes (i 100)
@@ -757,7 +757,7 @@ should not end with any sort of punctuation.
 
 @defun error format-string &rest args
 This function signals an error with an error message constructed by
-applying @code{format} (@pxref{String Conversion}) to
+applying @code{format} (@pxref{Formatting Strings}) to
 @var{format-string} and @var{args}.
 
 These examples show typical uses of @code{error}:
@@ -784,6 +784,7 @@ contains @samp{%}, it will be interpreted as a format specifier, with
 undesirable results.  Instead, use @code{(error "%s" @var{string})}.
 @end defun
 
+@anchor{Definition of signal}
 @defun signal error-symbol data
 This function signals an error named by @var{error-symbol}.  The
 argument @var{data} is a list of additional Lisp objects relevant to the
@@ -792,19 +793,26 @@ circumstances of the error.
 The argument @var{error-symbol} must be an @dfn{error symbol}---a symbol
 bearing a property @code{error-conditions} whose value is a list of
 condition names.  This is how Emacs Lisp classifies different sorts of
-errors.
+errors. @xref{Error Symbols}, for a description of error symbols,
+error conditions and condition names.
+
+If the error is not handled, the two arguments are used in printing
+the error message.  Normally, this error message is provided by the
+@code{error-message} property of @var{error-symbol}.  If @var{data} is
+non-@code{nil}, this is followed by a colon and a comma separated list
+of the unevaluated elements of @var{data}.  For @code{error}, the
+error message is the @sc{car} of @var{data} (that must be a string).
+Subcategories of @code{file-error} are handled specially.
 
 The number and significance of the objects in @var{data} depends on
 @var{error-symbol}.  For example, with a @code{wrong-type-arg} error,
 there should be two objects in the list: a predicate that describes the type
 that was expected, and the object that failed to fit that type.
-@xref{Error Symbols}, for a description of error symbols.
 
 Both @var{error-symbol} and @var{data} are available to any error
 handlers that handle the error: @code{condition-case} binds a local
 variable to a list of the form @code{(@var{error-symbol} .@:
-@var{data})} (@pxref{Handling Errors}).  If the error is not handled,
-these two values are used in printing the error message.
+@var{data})} (@pxref{Handling Errors}).
 
 The function @code{signal} never returns (though in older Emacs versions
 it could sometimes return).
@@ -989,7 +997,7 @@ error symbol and associated data are not available to the handler.
 @defun error-message-string error-description
 This function returns the error message string for a given error
 descriptor.  It is useful if you want to handle an error by printing the
-usual error message for that error.
+usual error message for that error.  @xref{Definition of signal}.
 @end defun
 
 @cindex @code{arith-error} example
@@ -1071,10 +1079,10 @@ classes called @dfn{error conditions}, identified by @dfn{condition
 names}.  The narrowest such classes belong to the error symbols
 themselves: each error symbol is also a condition name.  There are also
 condition names for more extensive classes, up to the condition name
-@code{error} which takes in all kinds of errors.  Thus, each error has
-one or more condition names: @code{error}, the error symbol if that
-is distinct from @code{error}, and perhaps some intermediate
-classifications.
+@code{error} which takes in all kinds of errors (but not @code{quit}).
+Thus, each error has one or more condition names: @code{error}, the
+error symbol if that is distinct from @code{error}, and perhaps some
+intermediate classifications.
 
   In order for a symbol to be an error symbol, it must have an
 @code{error-conditions} property which gives a list of condition names.
@@ -1082,13 +1090,16 @@ This list defines the conditions that this kind of error belongs to.
 (The error symbol itself, and the symbol @code{error}, should always be
 members of this list.)  Thus, the hierarchy of condition names is
 defined by the @code{error-conditions} properties of the error symbols.
+Because quitting is not considered an error, the value of the
+@code{error-conditions} property of @code{quit} is just @code{(quit)}.
 
+@cindex peculiar error
   In addition to the @code{error-conditions} list, the error symbol
 should have an @code{error-message} property whose value is a string to
 be printed when that error is signaled but not handled.  If the
+error symbol has no @code{error-message} property or if the
 @code{error-message} property exists, but is not a string, the error
-message @samp{peculiar error} is used.
-@cindex peculiar error
+message @samp{peculiar error} is used.  @xref{Definition of signal}.
 
   Here is how we define a new error symbol, @code{new-error}:
 
@@ -1114,8 +1125,8 @@ classification; and @code{error}, which is the widest of all.
 not end with a period.  This is for consistency with the rest of Emacs.
 
   Naturally, Emacs will never signal @code{new-error} on its own; only
-an explicit call to @code{signal} (@pxref{Signaling Errors}) in your
-code can do this:
+an explicit call to @code{signal} (@pxref{Definition of signal}) in
+your code can do this:
 
 @example
 @group
@@ -1158,32 +1169,34 @@ and their conditions.
 temporarily put a data structure in an inconsistent state; it permits
 you to make the data consistent again in the event of an error or throw.
 
-@defspec unwind-protect body cleanup-forms@dots{}
+@defspec unwind-protect body-form cleanup-forms@dots{}
 @cindex cleanup forms
 @cindex protected forms
 @cindex error cleanup
 @cindex unwinding
-@code{unwind-protect} executes the @var{body} with a guarantee that the
-@var{cleanup-forms} will be evaluated if control leaves @var{body}, no
-matter how that happens.  The @var{body} may complete normally, or
-execute a @code{throw} out of the @code{unwind-protect}, or cause an
-error; in all cases, the @var{cleanup-forms} will be evaluated.
+@code{unwind-protect} executes @var{body-form} with a guarantee that
+the @var{cleanup-forms} will be evaluated if control leaves
+@var{body-form}, no matter how that happens.  @var{body-form} may
+complete normally, or execute a @code{throw} out of the
+@code{unwind-protect}, or cause an error; in all cases, the
+@var{cleanup-forms} will be evaluated.
 
-If the @var{body} forms finish normally, @code{unwind-protect} returns
-the value of the last @var{body} form, after it evaluates the
-@var{cleanup-forms}.  If the @var{body} forms do not finish,
-@code{unwind-protect} does not return any value in the normal sense.
+If @var{body-form} finishes normally, @code{unwind-protect} returns the
+value of @var{body-form}, after it evaluates the @var{cleanup-forms}.
+If @var{body-form} does not finish, @code{unwind-protect} does not
+return any value in the normal sense.
 
-Only the @var{body} is protected by the @code{unwind-protect}.  If any
+Only @var{body-form} is protected by the @code{unwind-protect}.  If any
 of the @var{cleanup-forms} themselves exits nonlocally (via a
 @code{throw} or an error), @code{unwind-protect} is @emph{not}
 guaranteed to evaluate the rest of them.  If the failure of one of the
-@var{cleanup-forms} has the potential to cause trouble, then protect it
-with another @code{unwind-protect} around that form.
+@var{cleanup-forms} has the potential to cause trouble, then protect
+it with another @code{unwind-protect} around that form.
 
 The number of currently active @code{unwind-protect} forms counts,
 together with the number of local variable bindings, against the limit
-@code{max-specpdl-size} (@pxref{Local Variables}).
+@code{max-specpdl-size} (@pxref{Definition of max-specpdl-size,, Local
+Variables}).
 @end defspec
 
   For example, here we make an invisible buffer for temporary use, and
@@ -1195,7 +1208,7 @@ make sure to kill it before finishing:
   (let ((buffer (get-buffer-create " *temp*")))
     (set-buffer buffer)
     (unwind-protect
-        @var{body}
+        @var{body-form}
       (kill-buffer buffer))))
 @end group
 @end smallexample
@@ -1203,15 +1216,16 @@ make sure to kill it before finishing:
 @noindent
 You might think that we could just as well write @code{(kill-buffer
 (current-buffer))} and dispense with the variable @code{buffer}.
-However, the way shown above is safer, if @var{body} happens to get an
-error after switching to a different buffer!  (Alternatively, you could
-write another @code{save-excursion} around the body, to ensure that the
-temporary buffer becomes current again in time to kill it.)
+However, the way shown above is safer, if @var{body-form} happens to
+get an error after switching to a different buffer!  (Alternatively,
+you could write another @code{save-excursion} around @var{body-form},
+to ensure that the temporary buffer becomes current again in time to
+kill it.)
 
   Emacs includes a standard macro called @code{with-temp-buffer} which
-expands into more or less the code shown above (@pxref{Current Buffer}).
-Several of the macros defined in this manual use @code{unwind-protect}
-in this way.
+expands into more or less the code shown above (@pxref{Definition of
+with-temp-buffer,, Current Buffer}).  Several of the macros defined in
+this manual use @code{unwind-protect} in this way.
 
 @findex ftp-login
   Here is an actual example derived from an FTP package.  It creates a

@@ -101,6 +101,18 @@ struct Lisp_Process
        generated, and can be changed by the function
        `set-process-fileter-multibyte'. */
     Lisp_Object filter_multibyte;
+    /* Should we delay reading output from this process.
+       Initialized from `Vprocess_adaptive_read_buffering'.  */
+    Lisp_Object adaptive_read_buffering;
+    /* Hysteresis to try to read process output in larger blocks.
+       On some systems, e.g. the Linux kernel, emacs is seen as 
+       an interactive app also when reading process output, meaning
+       that process output can be read in as little as 1 byte at a
+       time.  Value is micro-seconds to delay reading output from
+       this process.  Range is 0 .. 50000.  */
+    Lisp_Object read_output_delay;
+    /* Skip reading this process on next read.  */
+    Lisp_Object read_output_skip;
 };
 
 /* Every field in the preceding structure except for the first two

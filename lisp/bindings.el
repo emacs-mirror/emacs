@@ -258,14 +258,14 @@ buffer size, the line number and the column number.")
 (defvar mode-line-modes nil
   "Mode-line control for displaying major and minor modes.")
 
-(defvar mode-line-major-mode-keymap 
+(defvar mode-line-major-mode-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map [mode-line mouse-2] 'describe-mode)
     (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
     map) "\
 Keymap to display on major mode.")
 
-(defvar mode-line-minor-mode-keymap 
+(defvar mode-line-minor-mode-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map [mode-line mouse-2] 'mode-line-minor-mode-help)
     (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
@@ -314,7 +314,7 @@ Keymap to display on minor modes.")
 
   (setq-default mode-line-position
     `((-3 ,(propertize "%p" 'help-echo help-echo))
-      (size-indication-mode 
+      (size-indication-mode
        (8 ,(propertize " of %I" 'help-echo help-echo)))
       (line-number-mode
        ((column-number-mode
@@ -511,8 +511,8 @@ is okay.  See `mode-line-format'.")
 	 ".fas" ".lib" ".mem"
 	 ;; CMUCL
 	 ".x86f" ".sparcf"
-         ;; Other CL implementations (Allegro, LispWorks)
-         ".fasl" ".ufsl" ".fsl" ".dxl"
+         ;; Other CL implementations (Allegro, LispWorks, OpenMCL)
+         ".fasl" ".ufsl" ".fsl" ".dxl" ".pfsl"
 	 ;; Libtool
 	 ".lo" ".la"
 	 ;; Gettext

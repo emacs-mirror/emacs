@@ -1,3 +1,40 @@
+2004-01-02  Kim F. Storm  <storm@cua.dk>
+
+	* process.h (struct Lisp_Process): New members for adaptive read
+	buffering: adaptive_read_buffering, read_output_delay, and
+	read_output_skip.
+
+	* process.c (ADAPTIVE_READ_BUFFERING): New conditional.
+	(READ_OUTPUT_DELAY_INCREMENT, READ_OUTPUT_DELAY_MAX)
+	(READ_OUTPUT_DELAY_MAX_MAX): New constants.
+	(process_output_delay_count, process_output_skip): New vars.
+	(Vprocess_adaptive_read_buffering): New variable.
+	(make_process): Initialize adaptive read buffering members.
+	(Fstart_process): Set adaptive_read_buffering member.
+	(deactivate_process): Cleanup adaptive read buffering.
+	(wait_reading_process_input): Temporarily omit delayed
+	subprocesses from the set of file descriptors to read from;
+	adjust the select timeout if we skipped any subprocesses.
+	(read_process_output): Increase adaptive read buffering delay if
+	we read less than a full buffer; reduce delay when we read a
+	full buffer.
+	(send_process): Simplify using local Lisp_Process var.
+	Reset adaptive read buffering delay after write.
+	(init_process): Initialize process_output_delay_count and
+	process_output_skip.
+	(syms_of_process): DEFVAR_LISP Vprocess_adaptive_read_buffering.
+
+2004-01-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_text_out): Use s->font, for consistency with
+	callers.
+
+2003-12-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* print.c (Ferror_message_string): Add hyperlink in the docstring
+	to the definition of `signal' in the Elisp manual.
+	* eval.c (Fsignal): Ditto.
+
 2003-12-29  James Clark <jjc@jclark.com>  (tiny change)
 
 	* fns.c (internal_equal): Return t for two NaN arguments.

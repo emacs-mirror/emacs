@@ -967,7 +967,9 @@ debug_print (arg)
 
 DEFUN ("error-message-string", Ferror_message_string, Serror_message_string,
        1, 1, 0,
-       doc: /* Convert an error value (ERROR-SYMBOL . DATA) to an error message.  */)
+       doc: /* Convert an error value (ERROR-SYMBOL . DATA) to an error message.
+See Info anchor `(elisp)Definition of signal' for some details on how this
+error message is constructed.  */)
      (obj)
      Lisp_Object obj;
 {
