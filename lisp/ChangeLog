@@ -1,3 +1,8 @@
+2003-04-11  ARISAWA Akihiro  <ari@mbf.sphere.ne.jp>  (tiny change)
+
+	* international/utf-8.el (utf-translate-cjk-mode): Fix incorrect
+	place of parenthesis.
+
 2003-04-11  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/etags.el (select-tags-table-mode-map): 

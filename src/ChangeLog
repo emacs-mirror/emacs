@@ -1,4 +1,4 @@
-2003-04-11  Kenichi Handa  <handa@etlken2>
+2003-04-11  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Vafter_insert_file_adjust_coding_function): Delete
 	this variable.
