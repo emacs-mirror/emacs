@@ -38,9 +38,6 @@
 (require 'mail-utils)
 
 ;; For Emacs V18 compatibility
-(and (not (fboundp 'user-original-login-name))
-     (fboundp 'user-real-login-name)
-     (defalias 'user-original-login-name 'user-real-login-name))
 (and (not (fboundp 'buffer-disable-undo))
      (fboundp 'buffer-flush-undo)
      (defalias 'buffer-disable-undo 'buffer-flush-undo))
@@ -577,7 +574,7 @@ Instead, these commands are available:
 	     (or rmail-primary-inbox-list
 		 (list (or (getenv "MAIL")
 			   (concat rmail-spool-directory
-				   (user-original-login-name)))))))
+				   (user-login-name)))))))
   (make-local-variable 'rmail-keywords)
   ;; this gets generated as needed
   (setq rmail-keywords nil)
@@ -782,7 +779,7 @@ argument causes us to read a file name and use that file as the inbox."
 	    ;; On some systems, /usr/spool/mail/foo is a directory
 	    ;; and the actual inbox is /usr/spool/mail/foo/foo.
 	    (if (file-directory-p file)
-		(setq file (expand-file-name (user-original-login-name)
+		(setq file (expand-file-name (user-login-name)
 					     file)))))
       (if popmail
 	  (message "Getting mail from post office ...")
