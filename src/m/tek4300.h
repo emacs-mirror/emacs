@@ -103,3 +103,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    src/Makefile.in so it doesn't pass ${CFLAGS} when creating xmakefile. */
 
 #define C_DEBUG_SWITCH
+
+/* eirik@elf.ithaca.ny.us said this was needed in 19.22.  */
+#define NO_MODE_T
