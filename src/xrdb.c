@@ -323,13 +323,13 @@ gethomedir ()
 
 
 static int
-file_p (path)
-     char *path;
+file_p (filename)
+     char *filename;
 {
   struct stat status;
 
-  return (access (path, 4) == 0			/* exists and is readable */
-	  && stat (path, &status) == 0		/* get the status */
+  return (access (filename, 4) == 0             /* exists and is readable */
+	  && stat (filename, &status) == 0	/* get the status */
 	  && (S_ISDIR (status.st_mode)) == 0);	/* not a directory */
 }
 
