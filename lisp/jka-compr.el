@@ -593,7 +593,7 @@ There should be no more than seven characters after the final `/'."
 	     (file-exists-p local-copy)
 	     (delete-file local-copy)))
 
-	  (decode-coding-region-as-inserted-from-file
+	  (decode-coding-inserted-region
 	   (point) (+ (point) size) 
 	   (jka-compr-byte-compiler-base-file-name file)
 	   visit beg end replace)
