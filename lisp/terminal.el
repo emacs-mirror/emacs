@@ -1120,8 +1120,9 @@ subprocess started."
   (if (null height) (setq height (- (window-height (selected-window)) 1)))
   (terminal-mode)
   (setq te-width width te-height height)
-  (setq te-terminal-name (concat te-terminal-name-prefix te-width
-				 te-height))
+  (setq te-terminal-name (concat te-terminal-name-prefix
+				 (number-to-string te-width)
+				 (number-to-string te-height)))
   (setq mode-line-buffer-identification
 	(list (format "Emacs terminal %dx%d: %%b  " te-width te-height)
 	      'te-pending-output-info))
