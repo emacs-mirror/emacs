@@ -159,7 +159,12 @@ set_case_table (table, standard)
   if (standard)
     Vascii_downcase_table = table;
   else
-    current_buffer->downcase_table = table;
+    {
+      current_buffer->downcase_table = table;
+      current_buffer->upcase_table = up;
+      current_buffer->case_canon_table = canon;
+      current_buffer->case_eqv_table = eqv;
+    }
 
   return table;
 }
