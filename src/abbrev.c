@@ -354,7 +354,9 @@ is not undone.")
       /* This isn't correct if Vlast_abbrev->function was used
          to do the expansion */
       Lisp_Object val;
-      XSET (val, Lisp_String, XSYMBOL (Vlast_abbrev)->value);
+      val = XSYMBOL (Vlast_abbrev)->value;
+      if (XTYPE (val) != Lisp_String)
+	error ("value of abbrev-symbol must be a string");
       adjust = XSTRING (val)->size;
       del_range (point, point + adjust);
       insert_from_string (Vlast_abbrev_text, 0,
