@@ -1,4 +1,4 @@
-/* X Selection processing for emacs
+/* X Selection processing for Emacs.
    Copyright (C) 1993, 1994 Free Software Foundation.
 
 This file is part of GNU Emacs.
