@@ -957,6 +957,7 @@ appear until you deiconify it.
 @appendixsec X Resources
 @cindex resources
 
+@cindex X resources, @file{~/.Xdefaults} file
   Programs running under the X Window System organize their user options
 under a hierarchy of classes and resources.  You can specify default
 values for these options in your X resources file, usually named
@@ -967,6 +968,7 @@ collection of related options, for one program or for several programs
 (optionally even for all programs).
 
 @cindex Registry (MS-Windows)
+@cindex @file{.Xdefaults} file, and MS-Windows
   MS-Windows systems don't support @file{~/.Xdefaults} files, but
 Emacs compiled for Windows looks for X resources in the Windows
 Registry, under the keys @samp{HKEY_CURRENT_USER\SOFTWARE\GNU\Emacs}
