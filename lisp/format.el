@@ -428,9 +428,9 @@ Formats are defined in `format-alist'.  Optional arg is the PROMPT to use."
 
 (defun format-replace-strings (alist &optional reverse beg end)
   "Do multiple replacements on the buffer.
-ALIST is a list of (from . to) pairs, which should be proper arguments to
+ALIST is a list of (FROM . TO) pairs, which should be proper arguments to
 `search-forward' and `replace-match' respectively.
-Optional 2nd arg REVERSE, if non-nil, means the pairs are (to . from), so that
+Optional 2nd arg REVERSE, if non-nil, means the pairs are (TO . FROM), so that
 you can use the same list in both directions if it contains only literal
 strings.
 Optional args BEG and END specify a region of the buffer on which to operate."
@@ -723,7 +723,7 @@ to write these unknown annotations back into the file."
 
 (defun format-subtract-regions (minu subtra)
   "Remove from the regions in MINUend the regions in SUBTRAhend.
-A region is a dotted pair (from . to).  Both parameters are lists of
+A region is a dotted pair (FROM . TO).  Both parameters are lists of
 regions.  Each list must contain nonoverlapping, noncontiguous
 regions, in descending order.  The result is also nonoverlapping,
 noncontiguous, and in descending order.  The first element of MINUEND
@@ -812,14 +812,14 @@ function to `format-insert-annotations'.
 Format of the TRANSLATIONS argument:
 
 Each element is a list whose car is a PROPERTY, and the following
-elements are VALUES of that property followed by the names of zero or more
-ANNOTATIONS.  Whenever the property takes on that value, the annotations
+elements have the form (VALUE ANNOTATIONS...).
+Whenever the property takes on the value VALUE, the annotations
 \(as formatted by FORMAT-FN) are inserted into the file.
 When the property stops having that value, the matching negated annotation
 will be inserted \(it may actually be closed earlier and reopened, if
 necessary, to keep proper nesting).
 
-If the property's value is a list, then each element of the list is dealt with
+If VALUE is a list, then each element of the list is dealt with
 separately.
 
 If a VALUE is numeric, then it is assumed that there is a single annotation
@@ -831,9 +831,9 @@ If the VALUE is nil, then instead of annotations, a function should be
 specified.  This function is used as a default: it is called for all
 transitions not explicitly listed in the table.  The function is called with
 two arguments, the OLD and NEW values of the property.  It should return
-lists of annotations like `format-annotate-location' does.
+a cons cell (CLOSE . OPEN) as `format-annotate-single-property-change' does.
 
-    The same structure can be used in reverse for reading files."
+The same TRANSLATIONS structure can be used in reverse for reading files."
   (let ((all-ans nil)    ; All annotations - becomes return value
 	(open-ans nil)   ; Annotations not yet closed
 	(loc nil)	 ; Current location
@@ -898,12 +898,17 @@ This includes any properties that change between LOC-1 and LOC.
 If ALL is true, don't look at previous location, but generate annotations for
 all non-nil properties.
 Third argument IGNORE is a list of text-properties not to consider.
-Use the TRANSLATIONS alist.
+Use the TRANSLATIONS alist (see `format-annotate-region' for doc).
 
 Return value is a vector of 3 elements:
-1. List of names of the annotations to close
-2. List of the names of annotations to open.
-3. List of properties that were ignored or couldn't be annotated."
+1. List of annotations to close
+2. List of annotations to open.
+3. List of properties that were ignored or couldn't be annotated.
+
+The annotations in lists 1 and 2 need not be strings.
+They can be whatever the FORMAT-FN in `format-annotate-region'
+can handle.  If that is `enriched-make-annotation', they can be
+either strings, or lists of the form (PARAMETER VALUE)."
   (let* ((prev-loc (1- loc))
 	 (before-plist (if all nil (text-properties-at prev-loc)))
 	 (after-plist (text-properties-at loc))
@@ -937,13 +942,22 @@ Return value is a vector of 3 elements:
 		      positives (nconc positives (cdr result)))))))))
     (vector negatives positives not-found)))
 
-(defun format-annotate-single-property-change (prop old new trans)
+(defun format-annotate-single-property-change (prop old new translations)
   "Return annotations for property PROP changing from OLD to NEW.
-These are searched for in the translations alist TRANS.
+These are searched for in the translations alist TRANSLATIONS
+ (see `format-annotate-region' for the format).
 If NEW does not appear in the list, but there is a default function, then that
 function is called.
-Annotations to open and to close are returned as a dotted pair."
-  (let ((prop-alist (cdr (assoc prop trans)))
+Returns a cons of the form (CLOSE . OPEN)
+where CLOSE is a list of annotations to close
+and OPEN is a list of annotations to open.
+
+The annotations in CLOSE and OPEN need not be strings.
+They can be whatever the FORMAT-FN in `format-annotate-region'
+can handle.  If that is `enriched-make-annotation', they can be
+either strings, or lists of the form (PARAMETER VALUE)."
+
+  (let ((prop-alist (cdr (assoc prop translations)))
 	default)
     (if (not prop-alist)
 	nil
@@ -974,7 +988,7 @@ Annotations to open and to close are returned as a dotted pair."
 
 (defun format-annotate-atomic-property-change (prop-alist old new)
   "Internal function annotate a single property change.
-PROP-ALIST is the relevant segment of a TRANSLATIONS list.
+PROP-ALIST is the relevant element of a TRANSLATIONS list.
 OLD and NEW are the values."
   (let (num-ann)
     ;; If old and new values are numbers,
