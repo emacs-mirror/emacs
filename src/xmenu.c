@@ -1167,7 +1167,7 @@ popup_get_selection (initial_event, dpyinfo, id)
    menu_bar_activate_event out of the Emacs event queue.
 
    To activate the menu bar, we use the X button-press event
-   that was saved in saved_button_event.
+   that was saved in saved_menu_event.
    That makes the toolkit do its thing.
 
    But first we recompute the menu bar contents (the whole tree).
@@ -1179,17 +1179,17 @@ popup_get_selection (initial_event, dpyinfo, id)
 x_activate_menubar (f)
      FRAME_PTR f;
 {
-  if (f->output_data.x->saved_button_event->type != ButtonPress)
+  if (!f->output_data.x->saved_menu_event->type)
     return;
 
   set_frame_menubar (f, 0, 1);
 
   BLOCK_INPUT;
-  XtDispatchEvent ((XEvent *) f->output_data.x->saved_button_event);
+  XtDispatchEvent ((XEvent *) f->output_data.x->saved_menu_event);
   UNBLOCK_INPUT;
 
   /* Ignore this if we get it a second time.  */
-  f->output_data.x->saved_button_event->type = 0;
+  f->output_data.x->saved_menu_event->type = 0;
 }
 
 /* Detect if a dialog or menu has been posted.  */
