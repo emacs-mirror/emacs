@@ -1,5 +1,9 @@
 2001-04-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* emulation/pc-select.el (pc-selection-mode): Call
+	normal-erase-is-backspace-mode instead of binding keys
+	individually.
+
 	* cus-load.el (normal-erase-is-backspace): Use it instead of
 	delete-key-deletes-forward.
 
