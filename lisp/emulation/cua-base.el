@@ -903,7 +903,7 @@ sets the mark at the new position if repeated with argument."
     end-of-buffer beginning-of-buffer
     scroll-up scroll-down    forward-paragraph backward-paragraph)
   "List of standard movement commands.
-Extra commands should be added to `cua-user-movement-commands'")
+Extra commands should be added to `cua-movement-commands'")
 
 (defvar cua-movement-commands nil
   "User may add additional movement commands to this list.")
