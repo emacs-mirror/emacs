@@ -1,3 +1,18 @@
+2001-11-09  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el: Use the keymap property
+	instead of local-map, and don't use a minor-mode map.
+	(flyspell-mode-map): Variable deleted.
+	Don't mess with minor-mode-map-alist.
+	(calling add-minor-mode): Specify nil for keymap.
+	And always use add-minor-mode, now that it exists.
+	(flyspell-overlay-keymap-property-name): Set it to `keymap'.
+	(flyspell-mode-on): Don't locally bind flyspell-mouse-map
+	or flyspell-local-mouse-map.
+	(make-flyspell-overlay): Use flyspell-mouse-map directly.
+	(flyspell-mode): Doc fix.
+	(flyspell-mode-on): Don't call make-local-hook.
+
 2001-11-09  Sam Steingold  <sds@gnu.org>
 
 	* emacs-lisp/debug.el (debugger-make-xrefs):
@@ -34,6 +49,10 @@
 
 	* international/mule.el (make-translation-table): Doc fix.
 	Suggested by Alex Schroeder <alex@gnu.org>.
+
+2001-11-07  Richard M. Stallman  <rms@gnu.org>
+
+	* info.el (Info-fontify-node): Highlight every third menu item.
 
 2001-11-07  Per Abrahamsen  <abraham@dina.kvl.dk>
 
