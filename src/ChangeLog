@@ -1,3 +1,8 @@
+2000-03-23  Gerd Moellmann  <gerd@gnu.org>
+
+	* xterm.c (fast_find_position): Make sure not to consider rows
+	not visible in the window.
+
 2000-03-22  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* regex.c (enum syntaxcode): Provide default for non-Emacs.
