@@ -148,3 +148,5 @@ Boston, MA 02111-1307, USA.  */
    It doesn't have the kind of sockets that emacsclient.c
    and emacsserver.c would use.  */
 #define NO_SOCKETS_IN_FILE_SYSTEM
+
+#define NARROWPROTO 1

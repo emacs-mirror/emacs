@@ -169,3 +169,5 @@ Boston, MA 02111-1307, USA.  */
 #define START_FILES pre-crt0.o /usr/ccs/lib/crt1.o /usr/ccs/lib/values-Xt.o
 #undef LIB_STANDARD
 #define LIB_STANDARD -lc /usr/ccs/lib/crtn.o
+
+#define NARROWPROTO 1

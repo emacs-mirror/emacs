@@ -127,3 +127,6 @@ char *_getpty();
 /* Prevent the variable ospeed from being defined by -lcurses
    because it defines it with too few bytes.  */
 #define ospeed ospeed_
+
+#define NARROWPROTO 1
+

@@ -79,3 +79,5 @@
    this problem, and will also work on earlier NetBSD releases */
 
 #define LINKER $(CC) -nostartfiles
+
+#define NARROWPROTO 1

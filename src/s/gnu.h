@@ -76,3 +76,5 @@ Boston, MA 02111-1307, USA.  */
 #ifndef NOT_C_CODE
 #include <fcntl.h>
 #endif
+
+#define NARROWPROTO 1
