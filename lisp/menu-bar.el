@@ -45,7 +45,7 @@
 (define-key menu-bar-file-menu [epatch]
   '("Apply Patch" . menu-bar-epatch-menu))
 (define-key menu-bar-file-menu [ediff]
-  '("Compare Files" . menu-bar-ediff-menu))
+  '("Compare" . menu-bar-ediff-menu))
 (define-key menu-bar-file-menu [emerge] '("Emerge" . menu-bar-emerge-menu))
 
 (define-key menu-bar-file-menu [separator-misc]
@@ -79,6 +79,10 @@
 (define-key menu-bar-file-menu [save-buffer] '("Save Buffer" . save-buffer))
 (define-key menu-bar-file-menu [dired] '("Open Directory..." . dired))
 (define-key menu-bar-file-menu [open-file] '("Open File..." . find-file))
+
+;; This is just one element of the ediff menu--the first.
+(define-key menu-bar-ediff-menu [window]
+  '("This Window And Next Window" . compare-windows))
 
 (define-key menu-bar-edit-menu [query-replace]
   '("Query Replace" . query-replace))
