@@ -1056,6 +1056,9 @@ in which folder to put messages automatically.
 with non-ASCII characters if Emacs happens to decode it incorrectly
 due to missing or malformed "charset=" header.
 
+** The new user-option `mail-envelope-from' can be used to specify
+an envelope-from address different from user-mail-address.
+
 ** Changes to TeX mode
 
 *** The default mode has been changed from `plain-tex-mode' to
