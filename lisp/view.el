@@ -46,11 +46,11 @@
 
 ;;;###autoload
 (defvar view-highlight-face 'highlight
-   "*The overlay face used for highlighting the match found by View mode search.")
+   "*The face used for highlighting the match found by View mode search.")
 
 ;; `view-mode-auto-exit' is replaced by the following global variable which
 ;; only says if scrolling past buffer end should leave view mode or not, it
-;; doesn't say if leaving view mode should restore windows or not. The latter
+;; doesn't say if leaving view mode should restore windows or not.  The latter
 ;; is now controlled by the presence of a value in `view-return-to-alist'.
 ;;;###autoload
 (defvar view-scroll-auto-exit nil
@@ -65,7 +65,7 @@ only rings the bell and gives a message on how to leave.")
 ;;;###autoload
 (defvar view-remove-frame-by-deleting nil
   "*Determine how to remove a not needed frame.
-If nil, make an icon of the frame. If non-nil, delete the frame.")
+If nil, make an icon of the frame.  If non-nil, delete the frame.")
 
 ;;;###autoload
 (defvar view-exit-all-windows-at-exit nil
@@ -104,7 +104,7 @@ If nil then the local value of this is initially set to half window size.")
   "What to do with selected window and where to go when leaving View mode.
 Added to by view-mode-enter when entering View mode.
 See RETURN-TO-ALIST argument of function `view-mode-exit' for format of
-view-return-to-alist.")
+`view-return-to-alist'.")
 (make-variable-buffer-local 'view-return-to-alist)
 
 (defvar view-exit-action nil
@@ -189,7 +189,7 @@ This is local in each buffer, once it is used.")
 
 ;; Always leave view mode before changing major mode.
 ;; This is to guarantee that the buffer-read-only variable is restored.
-(add-hook 'change-major-mode-hook 'view-mode-exit)
+(add-hook 'change-major-mode-hook 'view-mode-disable)
 
 ;;; Commands that enter or exit view mode.
 
@@ -253,7 +253,7 @@ For list of all View commands, type H or h while viewing.
 This command runs the normal hook `view-mode-hook'.
 
 Optional argument EXIT-ACTION is either nil or a function with buffer as
-argument. This function is called when finished viewing buffer.
+argument.  This function is called when finished viewing buffer.
 Use this argument instead of explicitly setting `view-exit-action'."
 
   (interactive "bView buffer: ")
@@ -276,7 +276,7 @@ For list of all View commands, type H or h while viewing.
 This command runs the normal hook `view-mode-hook'.
 
 Optional argument EXIT-ACTION is either nil or a function with buffer as
-argument. This function is called when finished viewing buffer.
+argument.  This function is called when finished viewing buffer.
 Use this argument instead of explicitly setting `view-exit-action'."
   (interactive "bIn other window view buffer:\nP")
   (let* ((win				; This window will be selected by
@@ -308,7 +308,7 @@ For list of all View commands, type H or h while viewing.
 This command runs the normal hook `view-mode-hook'.
 
 Optional argument EXIT-ACTION is either nil or a function with buffer as
-argument. This function is called when finished viewing buffer.
+argument.  This function is called when finished viewing buffer.
 Use this argument instead of explicitly setting `view-exit-action'."
   (interactive "bView buffer in other frame: \nP")
   (let ((return-to
@@ -320,13 +320,13 @@ Use this argument instead of explicitly setting `view-exit-action'."
 ;;;###autoload
 (defun view-mode (&optional arg)
   ;; In the following documentation string we have to use some explicit key
-  ;; bindings instead of using the \\[] construction. The reason for this
+  ;; bindings instead of using the \\[] construction.  The reason for this
   ;; is that most commands have more than one key binding.
   "Toggle View mode, a minor mode for viewing text but not editing it.
 With arg, turn View mode on iff arg is positive.
 
 Emacs commands that do not change the buffer contents are available as usual.
-Kill commands insert text in kill buffers but do not delete. Other commands
+Kill commands insert text in kill buffers but do not delete.  Other commands
 \(among them most letters and punctuation) beep and tell that the buffer is
 read-only.
 \\<view-mode-map>
@@ -359,31 +359,31 @@ y	scroll backward prefix (default one) line(s).
 x	exchanges point and mark.
 \\[View-back-to-mark]	return to mark and pops mark ring.
 	  Mark ring is pushed at start of every successful search and when
-	  jump to line occurs. The mark is set on jump to buffer start or end.
+	  jump to line occurs.  The mark is set on jump to buffer start or end.
 \\[point-to-register]	save current position in character register.
 '	go to position saved in character register.
 s	do forward incremental search.
 r	do reverse incremental search.
 \\[View-search-regexp-forward]	searches forward for regular expression, starting after current page.
 	  ! and @ have a special meaning at the beginning of the regexp.
-	  ! means search for a line with no match for regexp. @ means start
+	  ! means search for a line with no match for regexp.  @ means start
 	  search at beginning (end for backward search) of buffer.
 \\	searches backward for regular expression, starting before current page.
 \\[View-search-last-regexp-forward]	searches forward for last regular expression.
 p	searches backward for last regular expression.
 \\[View-quit]	quit View mode, trying to restore window and buffer to previous state.
 	  \\[View-quit] is the normal way to leave view mode.
-\\[View-exit]	exit View mode but stay in current buffer. Use this if you started
+\\[View-exit]	exit View mode but stay in current buffer.  Use this if you started
 	  viewing a buffer (file) and find out you want to edit it.
 \\[View-exit-and-edit]	exit View mode and make the current buffer editable.
 \\[View-quit-all]	quit View mode, trying to restore windows and buffer to previous state.
 \\[View-leave]	quit View mode and maybe switch buffers, but don't kill this buffer.
 \\[View-kill-and-leave]	quit View mode, kill current buffer and go back to other buffer.
 
-The effect of \\[View-leave] , \\[View-quit] and \\[View-kill-and-leave] depends on how view-mode was entered. If it was
+The effect of \\[View-leave] , \\[View-quit] and \\[View-kill-and-leave] depends on how view-mode was entered.  If it was
 entered by view-file, view-file-other-window or view-file-other-frame (\\[view-file],
 \\[view-file-other-window], \\[view-file-other-frame] or the dired mode v command), then \\[View-quit] will try to kill the
-current buffer. If view-mode was entered from another buffer as is done by
+current buffer.  If view-mode was entered from another buffer as is done by
 View-buffer, View-buffer-other-window, View-buffer-other frame, View-file,
 View-file-other-window or View-file-other-frame then \\[view-leave] , \\[view-quit] and \\[view-kill-and-leave] will return
 to that buffer.
@@ -394,49 +394,62 @@ Entry to view-mode runs the normal hook `view-mode-hook'."
    ((and arg
 	 (if (> (prefix-numeric-value arg) 0) view-mode (not view-mode)))
     ())					; Do nothing if already OK.
-   (view-mode (view-mode-exit))
-   (t (view-mode-enter))))
+   (view-mode (view-mode-disable))
+   (t (view-mode-enable))))
+
+(defun view-mode-enable ()
+  "Turn on View mode."
+  (setq view-mode t
+	view-page-size (view-page-size-default view-page-size)
+	view-half-page-size (or view-half-page-size (/ (view-window-size) 2))
+	view-old-buffer-read-only buffer-read-only
+	buffer-read-only t
+	view-old-Helper-return-blurb (and (boundp 'Helper-return-blurb)
+					  Helper-return-blurb)
+	Helper-return-blurb
+	(format "continue viewing %s"
+		(if (buffer-file-name)
+		    (file-name-nondirectory (buffer-file-name))
+		  (buffer-name))))
+  (run-hooks 'view-mode-hook))
+
+(defun view-mode-disable ()
+  "Turn off View mode."
+  (and view-overlay (delete-overlay view-overlay))
+  (setq view-mode nil
+	Helper-return-blurb view-old-Helper-return-blurb
+	buffer-read-only view-old-buffer-read-only))
 
 ;;;###autoload
 (defun view-mode-enter (&optional return-to exit-action) "\
 Enter View mode and set up exit from view mode depending on optional arguments.
 If RETURN-TO is non-nil it is added as an element to the buffer local alist
 view-return-to-alist.
-Save EXIT-ACTION in buffer local variable view-exit-action.
-RETURN-TO is either nil, meaning do nothing when exiting view mode, or
-\(<window> <old-window> . <old-buf-info>).
-<window> is a window used for viewing.
-<old-window> is nil or the window to select after viewing.
-<old-buf-info> tells what to do with <window> when exiting. It is one of:
-1) nil       Do nothing.
-2) t         Delete <window> or, if it is the only window, its frame.
-3) (<old-buff> <start> <point>)  Display buffer <old-buff> with displayed text
-                          starting at <start> and point at <point> in <window>.
-EXIT-ACTION is either nil or a function with buffer as argument. This function
-is called by view-mode-exit.
+Save EXIT-ACTION in buffer local variable `view-exit-action'.
+It should be either nil or a function that takes a buffer as argument.
+This function will called by `view-mode-exit'.
 
-See the function `view-mode' for details of view mode.
+RETURN-TO is either nil, meaning do nothing when exiting view mode, or
+   \(WINDOW OLD-WINDOW . OLD-BUF-INFO).
+WINDOW is a window used for viewing.
+OLD-WINDOW is nil or the window to select after viewing.
+OLD-BUF-INFO tells what to do with WINDOW when exiting.  It is one of:
+1) nil       Do nothing.
+2) t         Delete WINDOW or, if it is the only window, its frame.
+3) (OLD-BUFF START POINT)  Display buffer OLD-BUFF with displayed text
+                           starting at START and point at POINT in WINDOW.
+
+See the function `view-mode' for the commands of View mode.
 
 This function runs the normal hook `view-mode-hook'."
   (if return-to
       (let ((entry (assq (car return-to) view-return-to-alist)))
 	(if entry (setcdr entry (cdr return-to))
 	  (setq view-return-to-alist (cons return-to view-return-to-alist)))))
-  (if view-mode ()			; Do nothing if already in view mode.
-    (setq view-mode t
-	  view-page-size (view-page-size-default view-page-size)
-	  view-half-page-size (or view-half-page-size (/ (view-window-size) 2))
-	  view-old-buffer-read-only buffer-read-only
-	  buffer-read-only t
-	  view-old-Helper-return-blurb (and (boundp 'Helper-return-blurb)
-					    Helper-return-blurb)
-	  Helper-return-blurb
-	  (format "continue viewing %s"
-		  (if (buffer-file-name)
-		      (file-name-nondirectory (buffer-file-name))
-		    (buffer-name)))
-	  view-exit-action exit-action)
-    (run-hooks 'view-mode-hook)
+  (if view-mode			; Do nothing if already in view mode.
+      nil
+    (setq view-exit-action exit-action)
+    (view-mode-enable)
     (force-mode-line-update)
     (message "%s"
 	     (substitute-command-keys "\
@@ -449,18 +462,18 @@ exit.
 EXIT-ACTION is nil or a function that is called with current buffer as
 argument.
 RETURN-TO-ALIST is an alist that for some of the windows displaying the current
-buffer, associate information on what to do with those windows. If ALL-WIN is
+buffer, associate information on what to do with those windows.  If ALL-WIN is
 non-nil, then all windows on RETURN-TO-ALIST are restored to their old state.
 If ALL-WIN is nil, then only the selected window is affected (if it is on
-ALL-WIN). Each element has the format (<window> <old-window> . <old-buf-info>)
-where <window> is a window displaying the current buffer and <old-buf-info> is
-information on what to do with <window>. <old-buf-info> is one of:
+ALL-WIN).  Each element has the format (WINDOW OLD-WINDOW . OLD-BUF-INFO)
+where WINDOW is a window displaying the current buffer and OLD-BUF-INFO is
+information on what to do with WINDOW.  OLD-BUF-INFO is one of:
 1) nil       Do nothing.
-2) t         Delete <window> or, if it is the only window, its frame.
-3) (<old-buf> <start> <point>)  Display buffer <old-buf> with displayed text
-                          starting at <start> and point at <point> in <window>.
-If one of the <window> in RETURN-TO-ALIST is the selected window and the
-corresponding <old-window> is a live window, then select <old-window>."
+2) t         Delete WINDOW or, if it is the only window, its frame.
+3) (OLD-BUF START POINT)  Display buffer OLD-BUF with displayed text
+                          starting at START and point at POINT in WINDOW.
+If one of the WINDOW in RETURN-TO-ALIST is the selected window and the
+corresponding OLD-WINDOW is a live window, then select OLD-WINDOW."
   (if view-mode		; Only do something if in view mode.
       (let* ((buffer (current-buffer))
 	     window
@@ -471,12 +484,9 @@ corresponding <old-window> is a live window, then select <old-window>."
 			      (or all-win view-exit-all-windows-at-exit))
 			return-to-alist	; Try to restore all windows.
 		      (and sel-old (list sel-old))))) ; Only selected window.
-	(and view-overlay (delete-overlay view-overlay))
-	(setq view-mode nil
-	      view-exit-action nil
-	      view-return-to-alist nil
-	      Helper-return-blurb view-old-Helper-return-blurb
-	      buffer-read-only view-old-buffer-read-only)
+	(view-mode-disable)
+	(setq view-exit-action nil
+	      view-return-to-alist nil)
 	(while alist			; Restore windows with info.
 	  (if (and (window-live-p (setq window (car (car alist))))
 		   (eq buffer (window-buffer window)))
@@ -521,14 +531,14 @@ corresponding <old-window> is a live window, then select <old-window>."
 
 (defun View-quit ()
   "Quit View mode, trying to restore window and buffer to previous state.
-Maybe kill current buffer. Try to restore selected window to previous state
+Maybe kill this buffer.  Try to restore selected window to previous state
 and go to previous buffer or window."
   (interactive)
   (view-mode-exit view-return-to-alist view-exit-action))
 
 (defun View-quit-all ()
-  "Quit View mode, trying to restore all windows and buffer to previous state.
-Maybe kill current buffer. Try to restore all windows viewing buffer to
+  "Quit View mode, trying to restore windows and buffers to previous state.
+Maybe kill current buffer.  Try to restore all windows viewing buffer to
 previous state and go to previous buffer or window."
   (interactive)
   (view-mode-exit view-return-to-alist view-exit-action t))
@@ -583,7 +593,7 @@ previous state and go to previous buffer or window."
 (defun View-goto-percent (&optional percent)
   "Move to end (or prefix PERCENT) of buffer in View mode.
 Display is centered at point.
-Sets mark at starting position and pushes mark ring."
+Also set the mark at the position where point was."
   (interactive "P")
   (push-mark)
   (goto-char
@@ -608,7 +618,7 @@ Sets mark at starting position and pushes mark ring."
 (defun View-goto-line (&optional line)
   "Move to first (or prefix LINE) line in View mode.
 Display is centered at LINE.
-Sets mark at starting position and pushes mark ring."
+Also set the mark at the position where point was."
   (interactive "p")
   (push-mark)
   (goto-line line)
@@ -624,9 +634,9 @@ Sets mark at starting position and pushes mark ring."
 
 (defun view-scroll-lines (lines backward default maxdefault)
   ;; This function does the job for all the scrolling commands.
-  ;; Scroll forward LINES lines. If BACKWARD is true scroll backwards.
-  ;; If LINES is negative scroll in the other direction. If LINES is 0 or nil,
-  ;; scroll DEFAULT lines. If MAXDEFAULT is true then scroll no more than a
+  ;; Scroll forward LINES lines.  If BACKWARD is true scroll backwards.
+  ;; If LINES is negative scroll in the other direction.  If LINES is 0 or nil,
+  ;; scroll DEFAULT lines.  If MAXDEFAULT is true then scroll no more than a
   ;; window full.
   (if (or (null lines) (zerop (setq lines (prefix-numeric-value lines))))
       (setq lines default))
@@ -650,7 +660,7 @@ Sets mark at starting position and pushes mark ring."
       (beginning-of-line))))
 
 (defun view-really-at-end ()
-  ;; Return true if buffer end visible. Maybe revert buffer and test.
+  ;; Return true if buffer end visible.  Maybe revert buffer and test.
   (and (pos-visible-in-window-p (point-max))
        (let ((buf (current-buffer))
 	     (bufname (buffer-name))
@@ -680,7 +690,7 @@ Sets mark at starting position and pushes mark ring."
 
 (defun View-scroll-page-forward (&optional lines)
   "Scroll \"page size\" or prefix LINES lines forward in View mode.
-This will exit if end of text is visible and view-scroll-auto-exit is non-nil.
+Exit if end of text is visible and `view-scroll-auto-exit' is non-nil.
 \"page size\" is whole window full, or number of lines set by
 \\[View-scroll-page-forward-set-page-size] or
 \\[View-scroll-page-backward-set-page-size].
@@ -690,18 +700,18 @@ If LINES is more than a window-full, only the last window-full is shown."
 
 (defun View-scroll-page-backward (&optional lines) 
   "Scroll \"page size\" or prefix LINES lines backward in View mode.
-See further View-scroll-page-forward."
+See also `View-scroll-page-forward'."
   (interactive "P")
   (view-scroll-lines lines t view-page-size nil))
   
 (defun View-scroll-page-forward-set-page-size (&optional lines)
-  "Scroll forward prefix LINES lines in View mode, setting the \"page size\".
+  "Scroll forward LINES lines in View mode, setting the \"page size\".
 This is the number of lines which \\[View-scroll-page-forward] and
-\\[View-scroll-page-backward] scroll by default. If LINES is omitted or = 0,
+\\[View-scroll-page-backward] scroll by default.  If LINES is omitted or = 0,
 sets \"page size\" to window height and scrolls forward that much, otherwise
 scrolls forward LINES lines and sets \"page size\" to the minimum of window
 height and the absolute value of LINES.
-See further View-scroll-page-forward."
+See also `View-scroll-page-forward'."
   (interactive "P")
   (view-scroll-lines lines nil
 		     (setq view-page-size (view-page-size-default lines))
@@ -709,7 +719,7 @@ See further View-scroll-page-forward."
 
 (defun View-scroll-page-backward-set-page-size (&optional lines)
   "Scroll backward prefix LINES lines in View mode, setting the \"page size\".
-See further View-scroll-page-forward-set-page-size."
+See also `View-scroll-page-forward-set-page-size'."
   (interactive "P")
   (view-scroll-lines lines t
 		     (setq view-page-size (view-page-size-default lines))
@@ -717,19 +727,19 @@ See further View-scroll-page-forward-set-page-size."
 
 (defun View-scroll-line-forward (&optional lines)
   "Scroll forward one line (or prefix LINES lines) in View mode.
-See further View-scroll-page-forward, but note that scrolling is limited
+See also `View-scroll-page-forward,' but note that scrolling is limited
 to minimum of LINES and one window-full."
   (interactive "P")
   (view-scroll-lines lines nil 1 t))
 
 (defun View-scroll-line-backward (&optional lines)
   "Scroll backward one line (or prefix LINES lines) in View mode.
-See further View-scroll-line-forward."
+See also `View-scroll-line-forward'."
   (interactive "P")
   (view-scroll-lines lines t 1 t))
 
 (defun View-scroll-half-page-forward (&optional lines)
-  "Scroll forward \"half page size\" (or prefix LINES) lines in View mode.
+  "Scroll forward a \"half page\" (or prefix LINES) lines in View mode.
 If LINES is not omitted, the \"half page size\" is set to the minimum of
 window height and the absolute value of LINES.
 LINES=0 resets \"half page size\" to half window height."
@@ -737,17 +747,19 @@ LINES=0 resets \"half page size\" to half window height."
   (view-scroll-lines lines nil (view-set-half-page-size-default lines) t))
 
 (defun View-scroll-half-page-backward (&optional lines)
-  "Scroll backward \"half page size\" (or prefix LINES) lines in View mode.
-See further View-scroll-half-page-forward."
+  "Scroll backward a \"half page\" (or prefix LINES) lines in View mode.
+See also `View-scroll-half-page-forward'."
   (interactive "P")
   (view-scroll-lines lines t (view-set-half-page-size-default lines) t))
 
-(defun View-revert-buffer-scroll-page-forward (&optional lines)  "\
-Scroll \"page size\" or prefix LINES lines forward reverting buffer if needed.
+(defun View-revert-buffer-scroll-page-forward (&optional lines)
+  "Scroll forward, reverting buffer if needed, in View mode.
 If buffer has not been changed and the corresponding file is newer, first
 revert the buffer, then scroll.
 This command is useful if you are viewing a changing file.
-\"page size\" is whole window full, or number of lines set by
+
+The prefix argument LINES says how many lines to scroll.
+If you don't specify a prefix argument, it uses the number of lines set by
 \\[View-scroll-page-forward-set-page-size] or
 \\[View-scroll-page-backward-set-page-size].
 If LINES is more than a window-full, only the last window-full is shown."
@@ -758,7 +770,8 @@ If LINES is more than a window-full, only the last window-full is shown."
 
 (defun View-back-to-mark (&optional ignore)
   "Return to last mark set in View mode, else beginning of file.
-Displays line at center of window.  Pops mark ring so successive
+Display that line at the center of the window.
+This command pops the mark ring, so that successive
 invocations return to earlier marks."
   (interactive)
   (goto-char (or (mark t) (point-min)))
@@ -768,11 +781,11 @@ invocations return to earlier marks."
 (defun View-search-regexp-forward (n regexp)
   "Search forward for first (or prefix Nth) occurrence of REGEXP in View mode.
 Displays line found at center of window.  REGEXP is remembered for searching
-with \\[View-search-last-regexp-forward] and \\[View-search-last-regexp-backward]. Sets mark at starting position and pushes mark ring.
+with \\[View-search-last-regexp-forward] and \\[View-search-last-regexp-backward].  Sets mark at starting position and pushes mark ring.
 Characters @ or ! or combined as @! or !@ are special if entered at the
-beginning of REGEXP. They modify the search rather than become part of pattern
-searched for. @ means start search at the beginning of buffer. ! means search
-for line that not contains match for pattern. If REGEXP only consist of these
+beginning of REGEXP.  They modify the search rather than become part of pattern
+searched for.  @ means start search at the beginning of buffer.  ! means search
+for line that not contains match for pattern.  If REGEXP only consist of these
 control characters, then an earlier remembered REGEXP is used.
 
 The variable `view-highlight-face' controls the face that is used
@@ -783,11 +796,11 @@ for highlighting the match that is found."
 (defun View-search-regexp-backward (n regexp)
   "Search backward for first (or prefix Nth) occurrence of REGEXP in View mode.
 Displays line found at center of window.  REGEXP is remembered for searching
-with \\[View-search-last-regexp-forward] and \\[View-search-last-regexp-backward]. Sets mark at starting position and pushes mark ring.
+with \\[View-search-last-regexp-forward] and \\[View-search-last-regexp-backward].  Sets mark at starting position and pushes mark ring.
 Characters @ or ! or combined as @! or !@ are special if entered at the
-beginning of REGEXP. They modify the search rather than become part of pattern
-searched for. @ means start search at the end of buffer. ! means search
-for line that not contains match for pattern. If REGEXP only consist of these
+beginning of REGEXP.  They modify the search rather than become part of pattern
+searched for.  @ means start search at the end of buffer.  ! means search
+for line that not contains match for pattern.  If REGEXP only consist of these
 control characters, then an earlier remembered REGEXP is used.
 
 The variable `view-highlight-face' controls the face that is used
