@@ -203,9 +203,9 @@ if that value is non-nil."
 (defun eval-print-last-sexp ()
   "Evaluate sexp before point; print value into current buffer."
   (interactive)
-  (newline)
+  (terpri (current-buffer))
   (eval-last-sexp t)
-  (newline))
+  (terpri (current-buffer)))
 
 (defun eval-last-sexp (arg)
   "Evaluate sexp before point; print value in minibuffer.
