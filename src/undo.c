@@ -105,8 +105,24 @@ record_delete (beg, string)
     Fundo_boundary ();
   XSETBUFFER (last_undo_buffer, current_buffer);
 
-  at_boundary = (CONSP (current_buffer->undo_list)
-		 && NILP (XCONS (current_buffer->undo_list)->car));
+  if (CONSP (current_buffer->undo_list))
+    {
+      /* Set AT_BOUNDARY to 1 only when we have nothing other than
+         marker adjustment before undo boundary.  */
+
+      Lisp_Object tail = current_buffer->undo_list, elt;
+
+      while (1)
+	{
+	  elt = XCONS (tail)->car;
+	  if (NILP (elt) || ! (CONSP (elt) && MARKERP (XCONS (elt)->car)))
+	    break;
+	  tail = XCONS (tail)->cdr;
+	}
+      at_boundary = NILP (elt);
+    }
+  else
+    at_boundary = 0;
 
   if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
