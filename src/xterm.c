@@ -8314,12 +8314,15 @@ x_set_offset (f, xoff, yoff, change_gravity)
       f->win_gravity = NorthWestGravity;
     }
   x_calc_absolute_position (f);
-
+ 
   BLOCK_INPUT;
   x_wm_set_size_hint (f, (long) 0, 0);
 
   modified_left = f->left_pos;
   modified_top = f->top_pos;
+  modified_left += FRAME_X_OUTPUT (f)->x_pixels_outer_diff;
+  modified_top += FRAME_X_OUTPUT (f)->y_pixels_outer_diff;
+
 #if 0 /* Running on psilocin (Debian), and displaying on the NCD X-terminal,
 	 this seems to be unnecessary and incorrect.  rms, 4/17/97.  */
   /* It is a mystery why we need to add the border_width here
