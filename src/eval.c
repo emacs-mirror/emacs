@@ -149,7 +149,7 @@ extern Lisp_Object ml_apply (); /* Apply a mocklisp function to unevaluated argu
 init_eval_once ()
 {
   specpdl_size = 50;
-  specpdl = (struct specbinding *) malloc (specpdl_size * sizeof (struct specbinding));
+  specpdl = (struct specbinding *) xmalloc (specpdl_size * sizeof (struct specbinding));
   max_specpdl_size = 600;
   max_lisp_eval_depth = 200;
 }
