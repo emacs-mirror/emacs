@@ -1278,11 +1278,11 @@ Ligatures and special rules are processed."
 ;;;###autoload
 (defun in-is13194-devanagari-pre-write-conversion (from to)
   (let ((old-buf (current-buffer)))
-    (with-temp-buffer
-      (if (stringp from)
-	  (insert from)
-	(insert-buffer-substring old-buf from to))
-      (devanagari-decompose-to-is13194-region (point-min) (point-max)))
+    (set-buffer (generate-new-buffer " *temp*"))
+    (if (stringp from)
+	(insert from)
+      (insert-buffer-substring old-buf from to))
+    (devanagari-decompose-to-is13194-region (point-min) (point-max))
     ;; Should return nil as annotations.
     nil))
 
