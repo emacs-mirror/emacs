@@ -170,10 +170,6 @@ Return a modified address list."
 	   (setq address (mail-string-delete address (1- close) close))
 	   (setq address (mail-string-delete address junk-beg junk-end))))
        address))))
-  
-(or (and (boundp 'rmail-default-dont-reply-to-names)
-	 (not (null rmail-default-dont-reply-to-names)))
-    (setq rmail-default-dont-reply-to-names "info-"))
 
 ; rmail-dont-reply-to-names is defined in loaddefs
 (defun rmail-dont-reply-to (userids)
