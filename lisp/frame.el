@@ -99,14 +99,14 @@ These supersede the values given in `default-frame-alist'."
 			 (sexp :tag "Value")))
   :group 'frames)
 
-;; Display BUFFER in its own frame, reusing an existing window if any.
-;; Return the window chosen.
-;; Currently we do not insist on selecting the window within its frame.
-;; If ARGS is an alist, use it as a list of frame parameter specs.
-;; If ARGS is a list whose car is a symbol,
-;; use (car ARGS) as a function to do the work.
-;; Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args.
 (defun special-display-popup-frame (buffer &optional args)
+  "Display BUFFER in its own frame, reusing an existing window if any.
+Return the window chosen.
+Currently we do not insist on selecting the window within its frame.
+If ARGS is an alist, use it as a list of frame parameter specs.
+If ARGS is a list whose car is a symbol,
+use (car ARGS) as a function to do the work.
+Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
   (if (and args (symbolp (car args)))
       (apply (car args) buffer (cdr args))
     (let ((window (get-buffer-window buffer t)))
@@ -122,8 +122,8 @@ These supersede the values given in `default-frame-alist'."
 	  (set-window-dedicated-p (frame-selected-window frame) t)
 	  (frame-selected-window frame))))))
 
-;; Handle delete-frame events from the X server.
 (defun handle-delete-frame (event)
+  "Handle delete-frame events from the X server."
   (interactive "e")
   (let ((frame (posn-window (event-start event)))
 	(i 0)
@@ -167,7 +167,7 @@ These supersede the values given in `default-frame-alist'."
 ;;; file - if there is no frame with a minibuffer open now, create
 ;;; one to display messages while loading the init file.
 (defun frame-initialize ()
-
+  "Create an in initial frame if necessary."
   ;; Are we actually running under a window system at all?
   (if (and window-system (not noninteractive) (not (eq window-system 'pc)))
       (progn
@@ -215,7 +215,8 @@ These supersede the values given in `default-frame-alist'."
 ;;; file.  Now default-frame-alist and initial-frame-alist contain
 ;;; information to which we must react; do what needs to be done.
 (defun frame-notice-user-settings ()
-
+  "Act on user's init file settings of frame parameters.
+React to settings of `default-frame-alist', `initial-frame-alist' there."
   ;; Make menu-bar-mode and default-frame-alist consistent.
   (if (boundp 'menu-bar-mode)
       (let ((default (assq 'menu-bar-lines default-frame-alist)))
@@ -272,13 +273,13 @@ These supersede the values given in `default-frame-alist'."
 	      ;; when we first made the frame.
 	      (setq parms (cons '(reverse) (delq (assq 'reverse parms) parms)))
 	      (if (assq 'height frame-initial-geometry-arguments)
-		  (setq parms (frame-delete-all 'height parms)))
+		  (setq parms (assoc-delete-all 'height parms)))
 	      (if (assq 'width frame-initial-geometry-arguments)
-		  (setq parms (frame-delete-all 'width parms)))
+		  (setq parms (assoc-delete-all 'width parms)))
 	      (if (assq 'left frame-initial-geometry-arguments)
-		  (setq parms (frame-delete-all 'left parms)))
+		  (setq parms (assoc-delete-all 'left parms)))
 	      (if (assq 'top frame-initial-geometry-arguments)
-		  (setq parms (frame-delete-all 'top parms)))
+		  (setq parms (assoc-delete-all 'top parms)))
 	      (setq new
 		    (make-frame
 		     ;; Use the geometry args that created the existing
@@ -344,13 +345,13 @@ These supersede the values given in `default-frame-alist'."
 	    (setq allparms (append initial-frame-alist
 				   default-frame-alist))
 	    (if (assq 'height frame-initial-geometry-arguments)
-		(setq allparms (frame-delete-all 'height allparms)))
+		(setq allparms (assoc-delete-all 'height allparms)))
 	    (if (assq 'width frame-initial-geometry-arguments)
-		(setq allparms (frame-delete-all 'width allparms)))
+		(setq allparms (assoc-delete-all 'width allparms)))
 	    (if (assq 'left frame-initial-geometry-arguments)
-		(setq allparms (frame-delete-all 'left allparms)))
+		(setq allparms (assoc-delete-all 'left allparms)))
 	    (if (assq 'top frame-initial-geometry-arguments)
-		(setq allparms (frame-delete-all 'top allparms)))
+		(setq allparms (assoc-delete-all 'top allparms)))
 	    (setq tail allparms)
 	    ;; Find just the parms that have changed since we first
 	    ;; made this frame.  Those are the ones actually set by
@@ -394,23 +395,12 @@ These supersede the values given in `default-frame-alist'."
 	(make-frame-on-display display parms)
       (make-frame parms))))
 
-;; Delete from ALIST all elements whose car is KEY.
-;; Return the modified alist.
-(defun frame-delete-all (key alist)
-  (setq alist (copy-sequence alist))
-  (let ((tail alist))
-    (while tail
-      (if (eq (car (car tail)) key)
-	  (setq alist (delq (car tail) alist)))
-      (setq tail (cdr tail)))
-    alist))
-
 ;;;; Creation of additional frames, and other frame miscellanea
 
-;;; Return some frame other than the current frame, creating one if
-;;; necessary.  Note that the minibuffer frame, if separate, is not
-;;; considered (see next-frame).
 (defun get-other-frame ()
+  "Return some frame other than the current frame.
+Create one if necessary.  Note that the minibuffer frame, if separate,
+is not considered (see `next-frame')."
   (let ((s (if (equal (next-frame (selected-frame)) (selected-frame))
 	       (make-frame)
 	     (next-frame (selected-frame)))))
@@ -665,7 +655,7 @@ If FRAME is omitted, describe the currently selected frame."
 
 (defalias 'set-default-font 'set-frame-font)
 (defun set-frame-font (font-name)
-  "Set the font of the selected frame to FONT.
+  "Set the font of the selected frame to FONT-NAME.
 When called interactively, prompt for the name of the font to use.
 To get the frame's current default font, use `frame-parameters'."
   (interactive "sFont name: ")
@@ -676,36 +666,36 @@ To get the frame's current default font, use `frame-parameters'."
   (run-hooks 'after-setting-font-hooks))
 
 (defun set-background-color (color-name)
-  "Set the background color of the selected frame to COLOR.
+  "Set the background color of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current background color, use `frame-parameters'."
-  (interactive "sColor: ")
+  (interactive (list (facemenu-read-color)))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'background-color color-name)))
   (frame-update-face-colors (selected-frame)))
 
 (defun set-foreground-color (color-name)
-  "Set the foreground color of the selected frame to COLOR.
+  "Set the foreground color of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current foreground color, use `frame-parameters'."
-  (interactive "sColor: ")
+  (interactive (list (facemenu-read-color)))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'foreground-color color-name)))
   (frame-update-face-colors (selected-frame)))
 
 (defun set-cursor-color (color-name)
-  "Set the text cursor color of the selected frame to COLOR.
+  "Set the text cursor color of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current cursor color, use `frame-parameters'."
-  (interactive "sColor: ")
+  (interactive (list (facemenu-read-color)))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'cursor-color color-name))))
 
 (defun set-mouse-color (color-name)
-  "Set the color of the mouse pointer of the selected frame to COLOR.
+  "Set the color of the mouse pointer of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current mouse color, use `frame-parameters'."
-  (interactive "sColor: ")
+  (interactive (list (facemenu-read-color)))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'mouse-color
 				       (or color-name
@@ -713,10 +703,10 @@ To get the frame's current mouse color, use `frame-parameters'."
 						      (frame-parameters))))))))
 
 (defun set-border-color (color-name)
-  "Set the color of the border of the selected frame to COLOR.
+  "Set the color of the border of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current border color, use `frame-parameters'."
-  (interactive "sColor: ")
+  (interactive (list (facemenu-read-color)))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'border-color color-name))))
 
@@ -763,18 +753,18 @@ one frame, otherwise the name is displayed on the frame's caption bar."
 (defalias 'screen-width 'frame-width)
 
 (defun set-screen-width (cols &optional pretend)
-  "Obsolete function to change the size of the screen to COLS columns.\n\
-Optional second arg non-nil means that redisplay should use COLS columns\n\
-but that the idea of the actual width of the frame should not be changed.\n\
-This function is provided only for compatibility with Emacs 18; new code\n\
+  "Obsolete function to change the size of the screen to COLS columns.
+Optional second arg non-nil means that redisplay should use COLS columns
+but that the idea of the actual width of the frame should not be changed.
+This function is provided only for compatibility with Emacs 18; new code
 should use `set-frame-width instead'."
   (set-frame-width (selected-frame) cols pretend))
 
 (defun set-screen-height (lines &optional pretend)
-  "Obsolete function to change the height of the screen to LINES lines.\n\
-Optional second arg non-nil means that redisplay should use LINES lines\n\
-but that the idea of the actual height of the screen should not be changed.\n\
-This function is provided only for compatibility with Emacs 18; new code\n\
+  "Obsolete function to change the height of the screen to LINES lines.
+Optional second arg non-nil means that redisplay should use LINES lines
+but that the idea of the actual height of the screen should not be changed.
+This function is provided only for compatibility with Emacs 18; new code
 should use `set-frame-height' instead."
   (set-frame-height (selected-frame) lines pretend))
 
@@ -801,6 +791,7 @@ should use `set-frame-height' instead."
 
 (defgroup cursor nil
   "Cursor on frames."
+  :version "21.1"
   :group 'frames)
 
 (defcustom blink-cursor-delay 0.5
@@ -906,3 +897,4 @@ the timer blink-cursor-timer and removes itself from the hook."
 (provide 'frame)
 
 ;;; frame.el ends here
+(frame-notice-user-settings): 
