@@ -1369,8 +1369,9 @@ and we don't even do that unless it would come from the file name."
 
 (defun hack-local-variables-prop-line ()
   ;; Set local variables specified in the -*- line.
-  ;; Ignore any specification for `mode:';
-  ;; set-auto-mode should already have handled that.
+  ;; Ignore any specification for `mode:' and `coding:';
+  ;; set-auto-mode should already have handled `mode:',
+  ;; set-auto-coding should already have handled `coding:'.
   (save-excursion
     (goto-char (point-min))
     (let ((result nil)
@@ -1406,7 +1407,9 @@ and we don't even do that unless it would come from the file name."
 		 ;; case when checking for `mode' in set-auto-mode,
 		 ;; so we must do that here as well.
 		 ;; That is inconsistent, but we're stuck with it.
+		 ;; The same can be said for `coding' in set-auto-coding.
 		 (or (equal (downcase (symbol-name key)) "mode")
+		     (equal (downcase (symbol-name key)) "coding")
 		     (setq result (cons (cons key val) result)))
 		 (skip-chars-forward " \t;")))
 	     (setq result (nreverse result))))
@@ -1558,6 +1561,9 @@ is specified, returning t if it is specified."
   (cond ((eq var 'mode)
 	 (funcall (intern (concat (downcase (symbol-name val))
 				  "-mode"))))
+	((eq var 'coding)
+	 ;; We have already handled coding: tag in set-auto-coding.
+	 nil)
 	((memq var ignored-local-variables)
 	 nil)
 	;; "Setting" eval means either eval it or do nothing.
