@@ -1,23 +1,16 @@
 /* impl.c.mpmss: MPM STRESS TEST
  *
- * $HopeName$
+ * $HopeName: MMsrc!mpmss.c(trunk.23) $
  * Copyright (C) 1998 Harlequin Limited.  All rights reserved.
  */
-
-
-#include <stdio.h>
-#include "mpstd.h"
-#ifdef MPS_OS_SU
-#include "ossu.h"
-#endif
-#include <stdlib.h>
-#include <stdarg.h>
 
 #include "mpscmv.h"
 #include "mpslib.h"
 #include "mpsavm.h"
 #include "testlib.h"
 #include "mps.h"
+#include <stdlib.h>
+#include <stdarg.h>
 
 
 /* @@@@ Hack due to missing mpscmfs.h */
@@ -55,11 +48,7 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
       return res;
     if (ss[i] >= sizeof(ps[i]))
       *ps[i] = 1; /* Write something, so it gets swap. */
-
-    if (i && i%4==0) putchar('\n');
-    printf("%8lX %6lX ", (unsigned long)ps[i], (unsigned long)ss[i]);
   }
-  putchar('\n');
 
   mps_pool_check_fenceposts(pool);
 
@@ -87,11 +76,7 @@ static mps_res_t stress(mps_class_t class, mps_arena_t arena,
       ss[i] = (*size)(i);
       res = mps_alloc((mps_addr_t *)&ps[i], pool, ss[i]);
       if (res != MPS_RES_OK) return res;
-      
-      if (i && i%4==0) putchar('\n');
-      printf("%8lX %6lX ", (unsigned long)ps[i], (unsigned long)ss[i]);
     }
-    putchar('\n');
   }
     
   mps_pool_destroy(pool);
@@ -126,15 +111,18 @@ static mps_pool_debug_option_s debugOptions = { (void *)"postpost", 8 };
 
 static int testInArena(mps_arena_t arena)
 {
+  printf("MV debug\n");
   die(stress(mps_class_mv_debug(), arena, randomSize,
              &debugOptions, (size_t)65536, (size_t)32, (size_t)65536),
-      "stress MV");
+      "stress MV debug");
 
+  printf("MFS\n");
   fixedSizeSize = 13;
   die(stress(PoolClassMFS(),
              arena, fixedSize, (size_t)100000, fixedSizeSize),
       "stress MFS");
 
+  printf("MV\n");
   die(stress(mps_class_mv(), arena, randomSize,
              (size_t)65536, (size_t)32, (size_t)65536),
       "stress MV");
@@ -151,17 +139,15 @@ int main(int argc, char **argv)
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
       "mps_arena_create");
-
   testInArena(arena);
-
   mps_arena_destroy(arena);
 
   die(mps_arena_create(&arena, mps_arena_class_vm(), smallArenaSIZE),
       "mps_arena_create");
-
   testInArena(arena);
-
   mps_arena_destroy(arena);
 
+  fflush(stdout); /* synchronize */
+  fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
   return 0;
 }
