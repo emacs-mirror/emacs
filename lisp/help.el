@@ -240,7 +240,7 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
 	(if (or (null defn) (integerp defn))
 	    (princ (format "%s is undefined" key-desc))
 	  (princ (format (if insert
-			     "%s (%s)"
+			     "`%s' (`%s')"
 			   (if (windowp window)
 			       "%s at that spot runs the command %s"
 			     "%s runs the command %s"))
