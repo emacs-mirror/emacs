@@ -670,8 +670,8 @@ do \"M-x r2b-help\" for more info."
       
       
 (defun r2b-convert-buffer (output-name)
-   "Transform current buffer and append to buffer OUTPUT;
-do \"M-x r2b-help\" for more info."
+   "Transform current buffer and append to buffer OUTPUT.
+Do `M-x r2b-help' for more info."
    (interactive 
       (list (read-string "Output to buffer: " r2b-out-buf-name)))
    (save-excursion
@@ -686,11 +686,6 @@ do \"M-x r2b-help\" for more info."
    (message "Done, results in %s, errors in %s" 
       r2b-out-buf-name r2b-log-name)
    )
-
-(defcustom r2b-load-quietly nil
-  "*Non-nil means don't print help message when loaded."
-  :type 'boolean
-  :group 'refbib)
 
 (defvar r2b-help-message
 "                   Refer to Bibtex Bibliography Conversion
@@ -727,11 +722,6 @@ to text, or substituting bibtex macros.  Do M-x describe-variable on
      r2b-proceedings-list
 for information on these features.
 
-If you don't want to see this help message when you load this utility,
-then include the following line in your .emacs file:
-	(setq r2b-load-quietly t)
-To see this message again, perform 
-         M-x r2b-help
 Please send bug reports and suggestions to
 	Henry Kautz
         kautz@research.att.com
@@ -739,7 +729,7 @@ Please send bug reports and suggestions to
 
 
 (defun r2b-help ()
-   "Print help message."
+   "Print help describing the `refbib' package."
    (interactive)
    (with-output-to-temp-buffer "*Help*"
       (princ r2b-help-message)
@@ -747,11 +737,7 @@ Please send bug reports and suggestions to
 	(set-buffer standard-output)
 	(help-mode))))
 
-(if (not r2b-load-quietly)
-   (r2b-help))
-
-(message "r2b loaded")
-
+(provide 'refbib)
 (provide 'refer-to-bibtex)
 
 ;;; refbib.el ends here
