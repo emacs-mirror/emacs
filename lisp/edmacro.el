@@ -105,7 +105,7 @@ With a prefix argument, format the macro in a more concise way."
       (cond (store-hook
 	     (setq mac keys)
 	     (setq cmd nil))
-	    ((or (eq cmd 'call-last-kbd-macro)
+	    ((or (memq cmd '(call-last-kbd-macro kmacro-call-macro kmacro-end-or-call-macro))
 		 (member keys '("\r" [return])))
 	     (or last-kbd-macro
 		 (y-or-n-p "No keyboard macro defined.  Create one? ")
