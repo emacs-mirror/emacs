@@ -1,3 +1,12 @@
+2003-07-19  John Paul Wallington  <jpw@gnu.org>
+
+	* textmodes/artist.el (artist-butlast-fn, artist-draw-sline)
+	(artist-draw-rect, artist-draw-square): Doc fixes.
+
+	* textmodes/enriched.el (enriched-decode-display-prop): Doc fix.
+
+	* textmodes/two-column.el (2C-mode-line-format): Doc fix.
+
 2003-07-19  Kenichi Handa  <handa@m17n.org>
 
 	* international/kkc.el (kkc-show-conversion-list-update):
@@ -33,7 +42,7 @@
 	* progmodes/cc-engine.el (c-literal-faces): Declare as a variable
 	since it might be modified.
 
-	* progmodes/cc-langs.el: (c++-make-template-syntax-table)
+	* progmodes/cc-langs.el (c++-make-template-syntax-table)
 	(c-syntactic-ws-start, c-syntactic-ws-end): Give more consistent
 	names to these language constants.
 
