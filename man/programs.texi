@@ -36,11 +36,19 @@ Judicious use of blank lines to make the program clearer will also
 provide useful chunks of text for the paragraph commands to work
 on.
 
+@cindex selective display
+@cindex outline
+@cindex folding
+@findex outline-minor-mode
+@cindex outlines
   The selective display feature is useful for looking at the overall
 structure of a function (@pxref{Selective Display}).  This feature
 causes only the lines that are indented less than a specified amount to
-appear on the screen.  Programming modes often support outline minor
-mode (@pxref{Outline Mode}).
+appear on the screen.  Programming modes often support Outline minor
+mode (@pxref{Outline Mode}).  The Foldout package (@pxref{Foldout}) can
+provide convenient folding-editor features on top of the minor mode.
+The Hideshow package (@pxref{Hideshow}) can also be used to display
+bocks of code selectively.
 
   The `automatic typing' features may be useful when writing programs.
 @xref{Top, Autotyping, autotype, Features for Automatic Typing}.
@@ -57,15 +65,17 @@ mode (@pxref{Outline Mode}).
 * Balanced Editing::    Inserting two matching parentheses at once, etc.
 * Symbol Completion::   Completion on symbol names of your program or language.
 * Which Function::      Which Function mode shows which function you are in.
+* Hideshow::            Displaying blocks selectively.
 * Documentation::       Getting documentation of functions you plan to call.
 * Change Log::	        Maintaining a change history for your program.
 * Tags::	        Go direct to any function in your program in one
 			  command.  Tags remembers which file it is in.
+* Imenu::               Making buffer indexes as menus.
 * Emerge::	        A convenient way of merging two versions of a program.
 * C Modes::             Special commands of C, C++, Objective-C,
                           Java, and Pike modes.
-* Fortran::	        Fortran mode and its special features.
-* Asm Mode::	        Asm mode and its special features.
+* Fortran::             Fortran mode and its special features.
+* Asm Mode::            Asm mode and its special features.
 @end menu
 
 @node Program Modes
@@ -88,12 +98,21 @@ mode (@pxref{Outline Mode}).
 @cindex M4 mode
 @cindex Shell-script mode
   Emacs also has major modes for the programming languages Lisp, Scheme
-(a variant of Lisp) and the Scheme-based DSSSL expression language, Awk,
-C, C++, Fortran (free and fixed format), Icon, Java, Metafont (@TeX{}'s
-+companion for font creation), Modula2, Objective-C, Octave, Pascal,
-Perl, Pike, Prolog, Simula, VHDL, CORBA IDL, and Tcl.  There is also a
-major mode for makefiles, called Makefile mode.  An alternative mode for
-Perl is called CPerl mode.
+(a variant of Lisp) and the Scheme-based DSSSL expression language, Ada,
+Awk, C, C++, Fortran (free and fixed format), Icon, IDLWAVE,
+Java, Metafont (@TeX{}'s companion for font creation), Modula2,
+Objective-C, Octave, Pascal, Perl, Pike, Prolog, Simula, VHDL, CORBA
+IDL, and Tcl.  There is also a major mode for makefiles, called Makefile
+mode.  An alternative mode for Perl is called CPerl mode.  Modes
+are available for scripts for the common Unix shells, VMS DCL and
+MS-DOS/MS-Windows `BAT' files.  In a similar fashion to programming
+languages, modes are provided for editing various sorts of configuration
+files.
+
+Separate manuals are available for th modes for Ada (@pxref{Top, , Ada Mode,
+ada-mode, Ada Mode}), C/C++/Objective C/Java/Corba IDL (@pxref{Top, , CC Mode,
+ccmode, CC Mode}) and the IDLWAVE modes (@pxref{Top, , IDLWAVE,
+idlwave, IDLWAVE User Manual}).
 
   Ideally, a major mode should be implemented for each programming
 language that you might want to edit with Emacs; but often the mode for
@@ -132,7 +151,6 @@ which it creates.
 @vindex emacs-lisp-mode-hook
 @vindex lisp-interaction-mode-hook
 @vindex scheme-mode-hook
-@vindex muddle-mode-hook
   Turning on a major mode runs a normal hook called the @dfn{mode hook},
 which is the value of a Lisp variable.  Each major mode has a mode hook,
 and the hook's name is always made from the mode command's name by
@@ -1455,7 +1473,57 @@ only affects certain major modes, those listed in the value of
 mode applies to all major modes that know how to support it---which are
 the major modes that support Imenu.)
 
-@node Documentation
+@node Hideshow
+@section Hideshow minor mode
+
+@findex hs-minor-mode
+Hideshow minor mode provides selective display of blocks.  Use @kbd{M-x
+hs-minor-mode} to toggle the mode or add @code{hs-minor-mode} to the
+hook for major modes with which you want to use it and which support it.
+
+Blocks are defined dependent on the mode.  In C mode or C++ mode, they
+are delimited by braces, while in Lisp-ish modes they are delimited by
+parens.  Multi-line comments can also be hidden.
+
+@findex hs-hide-all
+@findex hs-hide-block
+@findex hs-show-all
+@findex hs-show-block
+@findex hs-show-region
+@findex hs-hide-level
+@findex hs-minor-mode
+@kindex C-c h
+@kindex C-c s
+@kindex C-c H
+@kindex C-c S
+@kindex C-c R
+@kindex C-c L
+@kindex S-mouse-2
+The mode provides the commands @kbd{C-c h} (@kbd{M-x hs-hide-all}),
+@kbd{C-c s} (@kbd{M-x hs-hide-block}), @kbd{C-c H} (@kbd{M-x
+hs-show-all}), @kbd{C-c S} (@kbd{M-x hs-show-block}), @kbd{C-c R}
+(@kbd{M-x hs-show-region}) and @kbd{C-c L} (@kbd{M-x hs-hide-level})
+with obvious functions and @kbd{S-mouse-2} toggles hiding of a block
+with the mouse.
+
+@vindex hs-hide-comments-when-hiding-all
+@vindex hs-show-hidden-short-form
+@vindex hs-isearch-open
+@vindex hs-special-modes-alist
+Hideshow is customized by the variables
+@table @code
+@item hs-hide-comments-when-hiding-all
+Specifies whether @kbd{hs-hide-all} should hide comments too.
+@item hs-show-hidden-short-form
+Specifies whether or not the last line in a form is omitted (saving
+screen space).
+@item hs-isearch-open
+Specifies what kind of hidden blocks to open in Isearch mode.
+@item hs-special-modes-alist
+Initializes Hideshow variables for different modes.
+@end table
+
+@node Documentation, Change Log, Hideshow, Programs
 @section Documentation Commands
 
   As you edit Lisp code to be run in Emacs, the commands @kbd{C-h f}
@@ -1487,7 +1555,11 @@ You specify the symbol with the minibuffer; by default, it uses the
 symbol that appears in the buffer at point.  The major mode determines
 where to look for documentation for the symbol---which Info files and
 which indices.  You can also use @kbd{M-x info-lookup-file} to look for
-documentation for a file name.
+documentation for a file name.  Currently the modes supported by
+Info-lookup are: Awk, Autoconf, Bison, C, Emacs Lisp, LaTeX, M4,
+Makefile, Octave, Perl, Scheme and Texinfo.  The relevant Info files
+mostly must be obtained separately, typically from the appropriate GNU
+package.
 
 @findex manual-entry
   You can read the ``man page'' for an operating system command, library
@@ -2218,7 +2290,50 @@ documentation for details.
   You can also perform completion in the buffer on the name space of tag
 names in the current tags tables.  @xref{Symbol Completion}.
 
-@node Emerge
+@node Imenu
+@section Imenu
+@cindex indexes of buffer contents
+@cindex buffer content indexes
+@cindex tags
+
+The Imenu package provides mode-specific indexes of the contents of
+single buffers and provides selection from a menu.  Selecting a menu
+item takes you to the indexed point in the buffer, in a similar way to
+the Tags facility.  Indexing is typically by names of program routines
+and variables but in Texinfo mode, for instance, node names are indexed.
+Most major modes for which it is appropriate have Imenu support.
+
+@findex imenu
+@findex imenu-add-menu-bar-index
+@kbd{M-x imenu} builds the index if necessary and presents you with an
+electric buffer menu from which to select an entry (with completion).
+You can add an index menubar on the menubar with
+@kbd{imenu-add-menu-bar-index}.
+
+Some major modes provide facilities for invoking Imenu; otherwise you
+could add @code{imenu-add-menu-bar-index} to a major mode's hook to
+generate an index for each buffer created in that mode.  (If you do
+that, it takes sime time to generate the index when finding a file,
+depending on the file's size and the complexity of the indexing function
+for that mode.)
+
+@vindex imenu-auto-rescan
+The index should be regenerated (via the @samp{*Rescan*} menu item) when
+indexable items are added to or deleted from the buffer.  Rescanning is
+done when a menu selction is requested if the option
+@code{imenu-auto-rescan} is set.  By default buffer positions are in
+terms of markers, so that changing non-indexable text doesn't require
+rescanning.
+
+@vindex imenu-sort-function
+The way the menus are sorted can be customized via the option
+@code{imenu-sort-function}.  By default names are ordered as they occur
+in the buffer; alphabetic sorting is provided as an alternative.
+
+Imenu provides the information used by Which Function mode (@pxref{Which
+Function}).  It may also be used by Speedbar (@pxref{Hyperlinking}).
+
+@node Emerge, C Modes, Imenu, Programs
 @section Merging Files with Emerge
 @cindex Emerge
 @cindex merging files
@@ -2624,6 +2739,9 @@ commands.
   This section describes special features available in C, C++,
 Objective-C, Java, CORBA IDL, and Pike modes.  When we say ``C mode and
 related modes,'' those are the modes we mean.
+
+Additional information is available in the separate manual for these
+modes.  @xref{Top, CC Mode, ccmode, , CC Mode}.
 
 @menu
 * Motion in C::
