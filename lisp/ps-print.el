@@ -1,6 +1,6 @@
 ;;; ps-print.el --- Print text from the buffer as PostScript
 
-;; Copyright (C) 1993, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1993-2000 Free Software Foundation, Inc.
 
 ;; Author:	Jim Thompson (was <thompson@wg2.waii.com>)
 ;; Author:	Jacques Duthen (was <duthen@cegelec-red.fr>)
@@ -14,7 +14,7 @@
 ;; X-URL:	http://www.cpqd.com.br/~vinicius/emacs/
 
 (defconst ps-print-version "6.3.1"
-  "ps-print.el, v 6.3.1 <2000/10/30 vinicius>
+  "ps-print.el, v 6.3.1 <2000/11/01 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -2962,6 +2962,7 @@ The table depends on the current ps-print setup."
     (require 'faces))			; face-font, face-underline-p,
 					; x-font-regexp
 
+
   ;; Return t if the device (which can be changed during an emacs session)
   ;; can handle colors.
   ;; This function is not yet implemented for GNU emacs.
@@ -3028,8 +3029,9 @@ The table depends on the current ps-print setup."
 					; lucid
 	(t				; epoch
 
-	 (or (ps-x-find-coding-system 'raw-text-unix)
-	     (ps-x-copy-coding-system 'no-conversion-unix 'raw-text-unix))
+	 (and (fboundp 'find-coding-system)
+	      (or (ps-x-find-coding-system 'raw-text-unix)
+		  (ps-x-copy-coding-system 'no-conversion-unix 'raw-text-unix)))
 
 	 (defun ps-color-values (x-color)
 	   (let ((color (ps-xemacs-color-name x-color)))
