@@ -1,4 +1,9 @@
-2004-11-15  Luc Teirlinck  <teirllm@auburn.edu>
+2004-11-16  Kim F. Storm  <storm@cua.dk>
+
+	* indent.c (Fvertical_motion): Fix last change.  Only reseat when
+	moving backwards.
+
+2004-11-16  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* dispextern.h: Extern reseat_at_previous_visible_line_start.
 
