@@ -1,3 +1,8 @@
+2001-12-07  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sed2.inp (HAVE_VFORK): Don't define: the fragment in sysdep.c
+	which needed it is gone.
+
 2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* COPYING: Removed.

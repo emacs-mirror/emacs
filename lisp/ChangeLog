@@ -1,5 +1,8 @@
 2001-12-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* term/internal.el (IT-character-translations): Add entries for
+	more points.
+
 	* international/characters.el: Resurrect the Hebrew category
 	settings for all Hebrew characters removed by the last change.
 	Add code for setting the Hebrew category of the Unicode Hebrew
