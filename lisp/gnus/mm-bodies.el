@@ -26,13 +26,13 @@
 
 (eval-and-compile
   (or (fboundp  'base64-decode-region)
-      (require 'base64))
-  (autoload 'binhex-decode-region "binhex"))
+      (require 'base64)))
+(eval-when-compile
+  (require 'mm-uu))
 
 (require 'mm-util)
 (require 'rfc2047)
-(require 'qp)
-(require 'uudecode)
+(require 'mm-encode)
 
 ;; 8bit treatment gets any char except: 0x32 - 0x7f, CR, LF, TAB, BEL,
 ;; BS, vertical TAB, form feed, and ^_
@@ -93,20 +93,25 @@ If no encoding was done, nil is returned."
 		    (when start
 		      (save-restriction
 			(narrow-to-region start (point))
-			(mm-encode-coding-region start (point) charset)
+			(mm-encode-coding-region
+			 start (point) (mm-charset-to-coding-system charset))
 			(goto-char (point-max)))
 		      (setq start nil))
 		  (unless start
 		    (setq start (point))))
 		(forward-char 1))
 	      (when start
-		(mm-encode-coding-region start (point) charset)
+		(mm-encode-coding-region start (point)
+					 (mm-charset-to-coding-system charset))
 		(setq start nil)))
 	    charset)))))))
+
+(eval-when-compile (defvar message-posting-charset))
 
 (defun mm-body-encoding (charset &optional encoding)
   "Do Content-Transfer-Encoding and return the encoding of the current buffer."
   (let ((bits (mm-body-7-or-8)))
+    (require 'message)
     (cond
      ((and (not mm-use-ultra-safe-encoding) (eq bits '7bit))
       bits)
@@ -182,8 +187,10 @@ If no encoding was done, nil is returned."
 	    ;; Do nothing.
 	    )
 	   ((memq encoding '(x-uuencode x-uue))
+	    (require 'mm-uu)
 	    (funcall mm-uu-decode-function (point-min) (point-max)))
 	   ((eq encoding 'x-binhex)
+	    (require 'mm-uu)
 	    (funcall mm-uu-binhex-decode-function (point-min) (point-max)))
 	   ((functionp encoding)
 	    (funcall encoding (point-min) (point-max)))
@@ -213,21 +220,21 @@ The characters in CHARSET should then be decoded."
     (when encoding
       (mm-decode-content-transfer-encoding encoding type))
     (when (featurep 'mule)
-      (let ((mule-charset (mm-charset-to-coding-system charset)))
-	(if (and (not mule-charset)
+      (let ((coding-system (mm-charset-to-coding-system charset)))
+	(if (and (not coding-system)
 		 (listp mail-parse-ignored-charsets)
 		 (memq 'gnus-unknown mail-parse-ignored-charsets))
-	    (setq mule-charset 
+	    (setq coding-system 
 		  (mm-charset-to-coding-system mail-parse-charset)))
-	(when (and charset mule-charset
+	(when (and charset coding-system
 		   ;; buffer-file-coding-system
 		   ;;Article buffer is nil coding system
 		   ;;in XEmacs
 		   (mm-multibyte-p)
-		   (or (not (eq mule-charset 'ascii))
-		       (setq mule-charset mail-parse-charset))
-		   (not (eq mule-charset 'gnus-decoded)))
-	  (mm-decode-coding-region (point-min) (point-max) mule-charset))))))
+		   (or (not (eq coding-system 'ascii))
+		       (setq coding-system mail-parse-charset))
+		   (not (eq coding-system 'gnus-decoded)))
+	  (mm-decode-coding-region (point-min) (point-max) coding-system))))))
 
 (defun mm-decode-string (string charset)
   "Decode STRING with CHARSET."
@@ -240,17 +247,17 @@ The characters in CHARSET should then be decoded."
     (setq charset mail-parse-charset))
   (or
    (when (featurep 'mule)
-     (let ((mule-charset (mm-charset-to-coding-system charset)))
-       (if (and (not mule-charset)
+     (let ((coding-system (mm-charset-to-coding-system charset)))
+       (if (and (not coding-system)
 		(listp mail-parse-ignored-charsets)
 		(memq 'gnus-unknown mail-parse-ignored-charsets))
-	   (setq mule-charset 
+	   (setq coding-system 
 		 (mm-charset-to-coding-system mail-parse-charset)))
-       (when (and charset mule-charset
+       (when (and charset coding-system
 		  (mm-multibyte-p)
-		  (or (not (eq mule-charset 'ascii))
-		      (setq mule-charset mail-parse-charset)))
-	 (mm-decode-coding-string string mule-charset))))
+		  (or (not (eq coding-system 'ascii))
+		      (setq coding-system mail-parse-charset)))
+	 (mm-decode-coding-string string coding-system))))
    string))
 
 (provide 'mm-bodies)
