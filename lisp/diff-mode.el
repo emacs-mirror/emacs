@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id: diff-mode.el,v 1.16 2000/09/19 16:24:30 monnier Exp $
+;; Revision: $Id: diff-mode.el,v 1.17 2000/09/19 16:25:43 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -1085,7 +1085,7 @@ was non-nil."
 
 	    ;; fixup POS to reflect the hunk line offset
 	    (goto-char pos)
-	    (forward-line (cdr new))
+	    (forward-line (cdr (if dry-run old new)))
 	    (setq pos (point)))
 
 	  ;; Display BUF in a window, and maybe select it
