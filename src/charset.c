@@ -1177,7 +1177,7 @@ function `unibyte-charset'.  */)
   for (i = 128; i < 256; i++)
     {
       c = DECODE_CHAR (cs, i);
-      unibyte_to_multibyte_table[i] = (c < 0 ? i : c);
+      unibyte_to_multibyte_table[i] = (c < 0 ? BYTE8_TO_CHAR (i) : c);
     }
 
   return Qnil;
@@ -2058,8 +2058,10 @@ init_charset_once ()
   charset_jisx0208_1978 = -1;
   charset_jisx0208 = -1;
 
-  for (i = 0; i < 256; i++)
+  for (i = 0; i < 128; i++)
     unibyte_to_multibyte_table[i] = i;
+  for (; i < 256; i++)
+    unibyte_to_multibyte_table[i] = BYTE8_TO_CHAR (i);
 }
 
 #ifdef emacs
