@@ -1,3 +1,11 @@
+2001-09-21  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* dired.el (dired-build-subdir-alist): Accept optional arg
+	SWITCHES.
+
+	* dired-aux.el (dired-insert-subdir): Pass switches to
+	dired-build-subdir-alist.
+
 2001-09-21  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
 	* time-stamp.el (time-stamp-string-preprocess): Fix bug that
