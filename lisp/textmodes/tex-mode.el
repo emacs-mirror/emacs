@@ -812,6 +812,7 @@ line numbers for the errors."
 
 ;;; The utility functions:
 
+;;;###autoload
 (defun tex-start-shell ()
   (save-excursion
     (set-buffer
