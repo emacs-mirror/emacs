@@ -1,6 +1,6 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Copyright (C) 1985, 86, 88, 93, 94, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 88, 93, 94, 97, 1998 Free Software Foundation, Inc.
 
 ;; Keywords: tools
 
@@ -27,9 +27,12 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'fortran))
+
 (defgroup change-log nil
   "Change log maintenance"
   :group 'tools
+  :link '(custom-manual "(emacs)Change Log")
   :prefix "change-log-"
   :prefix "add-log-")
 
@@ -77,26 +80,34 @@ and `current-time-string' are two valid values."
   :group 'change-log)
 
 (defcustom add-log-keep-changes-together nil
-  "*If non-nil, then keep changes to the same file together.
-If this variable is nil and you add log for (e.g.) two files,
-the change log entries are added cumulatively to the beginning of log.
-This is the old behaviour:
+  "*If non-nil, normally keep day's log entries for one file together.
 
-    Wday Mon DD TIME YYYY
+Log entries for a given file made with \\[add-change-log-entry] or
+\\[add-change-log-entry-other-window] will only be added to others \
+for that file made
+today if this variable is non-nil or that file comes first in today's
+entries.  Otherwise another entry for that file will be started.  An
+original log:
 
-	file A log2  << added this later
-	file B log1
-	File A log1
+	* foo (...): ...
+	* bar (...): change 1
 
-But if this variable is non-nil, then same file's changes are always kept
-together.  Notice that Log2 has been appended and it is the most recent
-for file A.
+in the latter case, \\[add-change-log-entry-other-window] in a \
+buffer visiting `bar', yields:
 
-    Wday Mon DD TIME YYYY
+	* bar (...): -!-
+	* foo (...): ...
+	* bar (...): change 1
 
-	file B log1
-	File A log1
-	file A log2  << Added this later"
+and in the former:
+
+	* foo (...): ...
+	* bar (...): change 1
+	(...): -!-
+
+The NEW-ENTRY arg to `add-change-log-entry' can override the effect of
+this variable."
+  :version "20.3"
   :type 'boolean
   :group 'change-log)
 
@@ -248,19 +259,6 @@ current buffer to the complete file name."
   (set (make-local-variable 'change-log-default-name) file-name)
   file-name)
 
-
-
-(defun change-log-add-make-room ()
-  "Begin a new empty change log entry at point."
-  ;; Delete excess empty lines; make just 2.
-  ;;
-  (while (and (not (eobp)) (looking-at "^\\s *$"))
-    (delete-region (point) (save-excursion (forward-line 1) (point))))
-  (insert "\n\n")
-  (forward-line -2)
-  (indent-relative-maybe)
-  )
-
 ;;;###autoload
 (defun add-change-log-entry (&optional whoami file-name other-window new-entry)
   "Find change log file and add an entry for today.
@@ -270,8 +268,11 @@ name and site.
 Second arg is FILE-NAME of change log.  If nil, uses `change-log-default-name'.
 Third arg OTHER-WINDOW non-nil means visit in other window.
 Fourth arg NEW-ENTRY non-nil means always create a new entry at the front;
-never append to an existing entry.  Today's date is calculated according to
-`change-log-time-zone-rule' if non-nil, otherwise in local time."
+never append to an existing entry.  Option `add-log-keep-changes-together'
+otherwise affects whether a new entry is created.
+
+Today's date is calculated according to `change-log-time-zone-rule' if
+non-nil, otherwise in local time."
   (interactive (list current-prefix-arg
 		     (prompt-for-change-log-name)))
   (or add-log-full-name
@@ -289,11 +290,8 @@ never append to an existing entry.  Today's date is calculated according to
 	      (read-input "Mailing address: " add-log-mailing-address))))
   (let ((defun (funcall (or add-log-current-defun-function
 			    'add-log-current-defun)))
-	today-end
-	paragraph-end
-	entry
+	bound entry)
 
-	)
     (setq file-name (expand-file-name (find-change-log file-name)))
 
     ;; Set ENTRY to the file name to use in the new entry.
@@ -321,30 +319,20 @@ never append to an existing entry.  Today's date is calculated according to
 	  (forward-line 1)
 	(insert new-entry "\n\n")))
 
-    ;; Search only within the first paragraph.
-    (if (looking-at "\n*[^\n* \t]")
-	(skip-chars-forward "\n")
-      (forward-paragraph 1))
-    (setq paragraph-end (point))
+    (setq bound
+	  (progn
+            (if (looking-at "\n*[^\n* \t]")
+                (skip-chars-forward "\n")
+	      (if add-log-keep-changes-together
+		  (forward-page)	; page delimits entries for date
+		(forward-paragraph)))	; paragraph delimits entries for file
+	    (point)))
     (goto-char (point-min))
-
-    ;; Today page's end point.  Used in search boundary
-
-    (save-excursion
-      (goto-char (point-min))	;Latest change log day
-      (forward-line 1)
-      (setq today-end
-	    (if (re-search-forward "^[^ \t\n]" nil t) ;Seek to next day's hdr
-		(match-beginning 0)
-	      (point-max))))		;No next day, use point max
-
     ;; Now insert the new line for this entry.
-    (cond ((re-search-forward "^\\s *\\*\\s *$" paragraph-end t)
+    (cond ((re-search-forward "^\\s *\\*\\s *$" bound t)
 	   ;; Put this file name into the existing empty entry.
 	   (if entry
-	       (insert entry))
-	   )
-
+	       (insert entry)))
 	  ((and (not new-entry)
 		(let (case-fold-search)
 		  (re-search-forward
@@ -352,24 +340,16 @@ never append to an existing entry.  Today's date is calculated according to
 			   ;; Don't accept `foo.bar' when
 			   ;; looking for `foo':
 			   "\\(\\s \\|[(),:]\\)")
-		   paragraph-end t)))
+		   bound t)))
 	   ;; Add to the existing entry for the same file.
 	   (re-search-forward "^\\s *$\\|^\\s \\*")
 	   (goto-char (match-beginning 0))
-	   (change-log-add-make-room)
-	   )
-
-	  ;;  See if there is existing entry and append to it.
-	  ;;  * file.txt:
-	  ;;
-	  ((and add-log-keep-changes-together ;enabled ?
-		(re-search-forward (regexp-quote (concat "* " entry))
-				   today-end t))
-	   (re-search-forward "^\\s *$\\|^\\s \\*")
-	   (goto-char (match-beginning 0))
-	   (change-log-add-make-room)
-	   )
-
+	   ;; Delete excess empty lines; make just 2.
+	   (while (and (not (eobp)) (looking-at "^\\s *$"))
+	     (delete-region (point) (save-excursion (forward-line 1) (point))))
+	   (insert "\n\n")
+	   (forward-line -2)
+	   (indent-relative-maybe))
 	  (t
 	   ;; Make a new entry.
 	   (forward-line 1)
@@ -405,8 +385,10 @@ never append to an existing entry.  Today's date is calculated according to
   "Find change log file in other window and add an entry for today.
 Optional arg WHOAMI (interactive prefix) non-nil means prompt for user
 name and site.
-Second arg is file name of change log.  \
-If nil, uses `change-log-default-name'."
+Second optional arg FILE-NAME is file name of change log.
+If nil, use `change-log-default-name'.
+
+Affected by the same options as `add-change-log-entry'."
   (interactive (if current-prefix-arg
 		   (list current-prefix-arg
 			 (prompt-for-change-log-name))))
@@ -417,7 +399,7 @@ If nil, uses `change-log-default-name'."
 (defun change-log-mode ()
   "Major mode for editing change logs; like Indented Text Mode.
 Prevents numeric backups and sets `left-margin' to 8 and `fill-column' to 74.
-New log entries are usually made with \\[add-change-log-entry] or \\[add-change-log-before-other-window].
+New log entries are usually made with \\[add-change-log-entry] or \\[add-change-log-entry-other-window].
 Each entry behaves as a paragraph, and the entries for one day as a page.
 Runs `change-log-mode-hook'."
   (interactive)
@@ -469,7 +451,7 @@ Prefix arg means justify as well."
 
 ;;;###autoload
 (defvar add-log-lisp-like-modes
-    '(emacs-lisp-mode lisp-mode scheme-mode lisp-interaction-mode)
+    '(emacs-lisp-mode lisp-mode scheme-mode dsssl-mode lisp-interaction-mode)
   "*Modes that look like Lisp to `add-log-current-defun'.")
 
 ;;;###autoload
@@ -646,25 +628,31 @@ Has a preference of looking backwards."
 		 (if (re-search-backward "^sub[ \t]+\\([^ \t\n]+\\)" nil t)
 		     (buffer-substring (match-beginning 1)
 				       (match-end 1))))
-                ((eq major-mode 'fortran-mode)
+                ((or (eq major-mode 'fortran-mode)
+		     ;; Needs work for f90, but better than nothing.
+		     (eq major-mode 'f90-mode))
                  ;; must be inside function body for this to work
                  (beginning-of-fortran-subprogram)
                  (let ((case-fold-search t)) ; case-insensitive
                    ;; search for fortran subprogram start
                    (if (re-search-forward
 			 "^[ \t]*\\(program\\|subroutine\\|function\
-\\|[ \ta-z0-9*]*[ \t]+function\\)"
-			 nil t)
+\\|[ \ta-z0-9*()]*[ \t]+function\\|\\(block[ \t]*data\\)\\)"
+			 (progn (end-of-fortran-subprogram)
+				(point))
+			 t)
+                       (or (match-string 2)
                        (progn
                          ;; move to EOL or before first left paren
                          (if (re-search-forward "[(\n]" nil t)
-			     (progn (forward-char -1)
+				 (progn (backward-char)
 				    (skip-chars-backward " \t"))
 			   (end-of-line))
 			 ;; Use the name preceding that.
                          (buffer-substring (point)
-                                           (progn (forward-sexp -1)
-                                                  (point)))))))
+					       (progn (backward-sexp)
+						      (point)))))
+		     "main")))
 		(t
 		 ;; If all else fails, try heuristics
 		 (let (case-fold-search)
