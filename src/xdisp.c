@@ -8760,7 +8760,7 @@ make_cursor_line_fully_visible (w)
 {
   struct glyph_matrix *matrix;
   struct glyph_row *row;
-  int window_height, header_line_height;
+  int window_height;
   
   /* It's not always possible to find the cursor, e.g, when a window
      is full of overlay strings.  Don't do anything in that case.  */
@@ -11758,7 +11758,7 @@ append_space (it, default_face_p)
 	     Must save IT->c and IT->len because otherwise
 	     ITERATOR_AT_END_P wouldn't work anymore after
 	     append_space has been called.  */
-	  int saved_what = it->what;
+	  enum display_element_type saved_what = it->what;
 	  int saved_c = it->c, saved_len = it->len;
 	  int saved_x = it->current_x;
 	  int saved_face_id = it->face_id;
@@ -11859,7 +11859,7 @@ extend_face_to_end_of_line (it)
       int saved_x = it->current_x;
       struct text_pos saved_pos;
       Lisp_Object saved_object;
-      int saved_what = it->what;
+      enum display_element_type saved_what = it->what;
       int saved_face_id = it->face_id;
 
       saved_object = it->object;
