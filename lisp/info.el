@@ -661,11 +661,13 @@ NAME may be an abbreviation of the reference name."
 	       (cons (cons str nil)
 		     completions))))
      (if completions
-	 (list (completing-read (if default
-				    (concat "Follow reference named: ("
-					    default ") ")
-				  "Follow reference named: ")
-				completions default t))
+	 (let ((input (completing-read (if default
+					   (concat "Follow reference named: ("
+						   default ") ")
+					 "Follow reference named: ")
+				       completions nil t)))
+	   (list (if (equal input "")
+		     default input)))
        (error "No cross-references in this node"))))
   (let (target beg i (str (concat "\\*note " footnotename)))
     (while (setq i (string-match " " str i))
