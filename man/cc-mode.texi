@@ -9,11 +9,6 @@
 
 @setfilename  ../info/ccmode
 @settitle     CC Mode Version 5 Documentation
-@dircategory Emacs
-@direntry
-* CC Mode: (cc-mode).   Emacs mode for editing C, C++, Objective-C,
-                          Java, Pike, and IDL code.
-@end direntry
 @footnotestyle end
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -28,11 +23,16 @@
 @comment Generated from the original README file by Krishna Padmasola
 @comment <krishna@earth-gw.njit.edu>
 @comment 
-@comment Maintained by Barry A. Warsaw and Martin Stjernholm
-@comment <bug-cc-mode@gnu.org> (or <cc-mode-help@python.org>)
+@comment Maintained by Martin Stjernholm <bug-cc-mode@gnu.org>
 @comment 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+@comment Info directory entry for use by install-info
+@dircategory Emacs
+@direntry
+* CC Mode: (cc-mode).      Emacs mode for editing C, C++, Objective-C,
+                             Java, Pike, and IDL code.
+@end direntry
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @comment The following line inserts the copyright notice 
@@ -40,7 +40,7 @@
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @ifinfo
-Copyright @copyright{} 1995,1996,1997,1998,1999 Free Software Foundation, Inc.
+Copyright @copyright{} 1995-2000 Free Software Foundation, Inc.
 @end ifinfo
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -55,11 +55,11 @@ Copyright @copyright{} 1995,1996,1997,1998,1999 Free Software Foundation, Inc.
 @comment The title is printed in a large font.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-@center @titlefont{CC Mode 5.26}
+@center @titlefont{CC Mode 5.27}
 @sp 2
 @center @subtitlefont{A GNU Emacs mode for editing C and C-like languages}
 @sp 2
-@center Barry A. Warsaw
+@center Current maintainer:
 @center Martin Stjernholm
 
 
@@ -70,7 +70,7 @@ Copyright @copyright{} 1995,1996,1997,1998,1999 Free Software Foundation, Inc.
 
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1995,1996,1997,1998,1999 Free Software Foundation, Inc.
+Copyright @copyright{} 1995-2000 Free Software Foundation, Inc.
 @end titlepage
 
 
@@ -189,10 +189,11 @@ milestone in the mode's life.  It has been fully merged back with Emacs
 19's @file{c-mode.el}. Also a new, more intuitive and flexible mechanism
 for controlling indentation has been developed.  Late in 1997, Martin
 joined the @ccmode{} Maintainers Team, and implemented the Pike support.
+As of 2000 Martin has taken over as the sole maintainer.
 
 This manual describes @ccmode{}
 @comment The following line must appear on its own, so that the automated
-version 5.26.
+version 5.27.
 @comment Release.py script can update the version number automatically
 
 @ccmode{} supports the editing of K&R and ANSI C, @dfn{ARM}
@@ -1281,7 +1282,7 @@ E. Jones' Filladapt package@footnote{It's available from
 lack a feature that makes it work suboptimally when
 @code{c-comment-prefix-regexp} matches the empty string (which it does
 by default).  A patch for that is available from
-@uref{http://www.python.org/emacs/cc-mode/,, the CC Mode site}.},
+@uref{http://cc-mode.sourceforge.net/,, the CC Mode site}.},
 which handles things like bulleted lists nicely.  There's a convenience
 function @code{c-setup-filladapt} that tunes the relevant variables in
 Filladapt for use in @ccmode{}.  Call it from a mode hook, e.g. with
@@ -2021,12 +2022,13 @@ this manual does not cover how that works.
 
 Variables set like this at the top level in @file{.emacs} take effect in
 all @ccmode{} buffers, regardless of language.  The indentation style
-related variables that you don't set get their value from the style
-system (@pxref{Styles}), and they therefore depend on the setting of
-@code{c-default-style}.  Note that if you use Customize, this means that
-the greyed-out default values presented there might not be the ones you
-actually get, since the actual values depend on the style, which may
-very well be different for different languages.
+related variables, e.g. @code{c-basic-offset}, that you don't set this
+way get their value from the style system (@pxref{Styles}), and they
+therefore depend on the setting of @code{c-default-style}.  Note that if
+you use Customize, this means that the greyed-out default values
+presented there might not be the ones you actually get, since the actual
+values depend on the style, which may very well be different for
+different languages.
 
 If you want to make more advanced configurations, e.g. language-specific
 customization, global variable settings isn't enough.  For that you can
@@ -3455,46 +3457,52 @@ The lines to note in this example include:
 
 @cindex func-decl-cont syntactic symbol
 @item
-line 2, assigned the @code{func-decl-cont} syntax;
+Line 2 is assigned the @code{func-decl-cont} syntax.
 
 @cindex comment-intro syntactic symbol
 @item
-line 4, assigned both @code{defun-block-intro} @emph{and}
-@code{comment-intro} syntax;
+Line 4 is assigned both @code{defun-block-intro} @emph{and}
+@code{comment-intro} syntax.
 
 @cindex c syntactic symbol
 @item
-line 5, assigned @code{c} syntax;
+Line 5 is assigned @code{c} syntax.
 
 @item
 @cindex syntactic whitespace
-line 6 which, even though it contains nothing but whitespace, is
+Line 6 which, even though it contains nothing but whitespace, is
 assigned @code{defun-block-intro}.  Note that the appearance of the
 comment on lines 4 and 5 do not cause line 6 to be assigned
 @code{statement} syntax because comments are considered to be
 @dfn{syntactic whitespace}, which are ignored when analyzing
-code;
+code.
 
 @cindex string syntactic symbol
 @item
-line 8, assigned @code{string} syntax;
+Line 8 is assigned @code{string} syntax.
 
 @cindex label syntactic symbol
 @item
-line 10, assigned @code{label} syntax;
+Line 10 is assigned @code{label} syntax.
 
 @cindex block-open syntactic symbol
 @item
-line 11, assigned @code{block-open} syntax;
+Line 11 is assigned @code{block-open} syntax.
 
 @cindex cpp-macro syntactic symbol
 @cindex cpp-macro-cont syntactic symbol
 @item
-lines 12 and 14, assigned @code{cpp-macro} syntax.
+Lines 12 and 14 are assigned @code{cpp-macro} syntax in addition to the
+normal syntactic symbols (@code{statement-block-intro} and
+@code{statement}, respectively).  Normally @code{cpp-macro} is
+configured to cancel out the normal syntactic context to make all
+preprocessor directives stick to the first column, but that's easily
+changed if you want preprocessor directives to be indented like the rest
+of the code.
 
 @cindex stream-op syntactic symbol
 @item
-line 17, assigned @code{stream-op} syntax.
+Line 17 is assigned @code{stream-op} syntax.
 
 @end itemize
 
@@ -3759,10 +3767,41 @@ Line up C++ stream operators (i.e. @samp{<<} and @samp{>>}).
 @findex c-lineup-multi-inher
 @findex lineup-multi-inher (c-)
 @item c-lineup-multi-inher
-Line up the classes in C++ multiple inheritance clauses under each
-other.
+Line up the classes in C++ multiple inheritance clauses and member
+initializers under each other.  E.g:
+@example
+@group
 
-@workswith @code{inher-cont}.
+Foo::Foo (int a, int b):
+    Cyphr (a),
+    Bar (b)              // c-lineup-multi-inher
+
+@end group
+@end example
+@noindent
+and
+@example
+@group
+
+class Foo
+    : public Cyphr,
+      public Bar         // c-lineup-multi-inher
+
+@end group
+@end example
+@noindent
+and
+@example
+@group
+
+Foo::Foo (int a, int b)
+    : Cyphr (a)
+    , Bar (b)            // c-lineup-multi-inher
+
+@end group
+@end example
+
+@workswith @code{inher-cont}, @code{member-init-cont}.
 
 @findex c-lineup-java-inher
 @findex lineup-java-inher (c-)
@@ -4272,11 +4311,9 @@ of putting the @code{c-set-offset} line in your top-level
 @file{.emacs} file, put it in your @code{c-mode-common-hook}, or
 simply modify @code{c-offsets-alist} directly:
 @example
-@group
 
-(setq c-offsets-alist (cons '(substatement-open . 0)
-                            c-offsets-alist))
-@end group
+(setq c-offsets-alist '((substatement-open . 0)))
+
 @end example
 
 @sp 1
@@ -4348,7 +4385,7 @@ compatibility, etc. are all available via the Web at:
 @example
 @group
 
-        @uref{http://www.python.org/emacs/cc-mode/}
+        @uref{http://cc-mode.sourceforge.net/}
 
 @end group
 @end example
@@ -4394,8 +4431,7 @@ the individual files, including PostScript documentation.
   "My C Programming Style")
 
 ;; offset customizations not in my-c-style
-(setq c-offsets-alist (cons '(member-init-intro . ++)
-                            c-offsets-alist))
+(setq c-offsets-alist '((member-init-intro . ++)))
 
 ;; Customizations for all modes in CC Mode.
 (defun my-c-mode-common-hook ()
@@ -4486,20 +4522,16 @@ Bug reports are now sent to the following email addresses:
 latter is mirrored on the Usenet newsgroup @code{gnu.emacs.bug}.  You
 can send other questions and suggestions (kudos? @t{;-)} to
 @email{bug-cc-mode@@gnu.org}, or @email{help-gnu-emacs@@gnu.org} which is
-mirrored on newsgroup @code{gnu.emacs.help}.  The old contact address
-@email{cc-mode-help@@python.org} is still active, but its use is
-discouraged.
+mirrored on newsgroup @code{gnu.emacs.help}.
 
 @cindex beta testers mailing list
 @cindex announcement mailing list
-If you want to get announcements of new @ccmode{} releases, send the word
-@emph{subscribe} in the body of a message to
-@email{cc-mode-announce-request@@python.org}.  Announcements will also
-be posted to the Usenet newsgroups @code{gnu.emacs.sources},
+If you want to get announcements of new @ccmode{} releases, send the
+word @emph{subscribe} in the body of a message to
+@email{cc-mode-announce-request@@lists.sourceforge.net}.  Announcements
+will also be posted to the Usenet newsgroups @code{gnu.emacs.sources},
 @code{comp.emacs}, @code{comp.emacs.xemacs}, and possibly some of the
-language oriented newsgroups.  Note that the
-@code{cc-mode-victims@@python.org} mailing list has been
-decommissioned.
+language oriented newsgroups.
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
