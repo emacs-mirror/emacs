@@ -477,19 +477,6 @@ $(BLD)\doprnt.obj : \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\src\config.h
 
-$(BLD)\dosfns.obj : \
-	$(SRC)\dosfns.c \
-	$(EMACS_ROOT)\src\s\ms-w32.h \
-	$(EMACS_ROOT)\src\m\intel386.h \
-	$(EMACS_ROOT)\src\config.h \
-	$(SRC)\lisp.h \
-	$(SRC)\buffer.h \
-	$(SRC)\termchar.h \
-	$(SRC)\termhooks.h \
-	$(SRC)\frame.h \
-	$(SRC)\dosfns.h \
-	$(SRC)\msdos.h
-
 $(BLD)\editfns.obj : \
 	$(SRC)\editfns.c \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
