@@ -635,16 +635,16 @@ If word not found in dictionary, display possible corrections in a window
 and let user select.
   With a prefix argument (or if CONTINUE is non-nil),
 resume interrupted spell-checking of a buffer or region.
-  If optional argument FOLLOWING is non-nil or if ispell-following-word
+  If optional argument FOLLOWING is non-nil or if `ispell-following-word'
 is non-nil when called interactively, then the following word
-\(rather than preceding\) will be checked when the cursor is not over a word.
-  When the optional argument QUIETLY is non-nil or ispell-quietly is non-nil
+\(rather than preceding\) is checked when the cursor is not over a word.
+  When the optional argument QUIETLY is non-nil or `ispell-quietly' is non-nil
 when called interactively, non-corrective messages are suppressed.
 
-  Word syntax described by ispell-dictionary-alist (which see).
+  Word syntax described by `ispell-dictionary-alist' (which see).
 
 This will check or reload the dictionary.  Use \\[ispell-change-dictionary]
-or \\[ispell-region] to update the ispell process."
+or \\[ispell-region] to update the Ispell process."
   (interactive (list nil nil current-prefix-arg))
   (if continue
       (ispell-continue)
@@ -678,7 +678,7 @@ or \\[ispell-region] to update the ispell process."
 	  (setq poss (ispell-parse-output (car ispell-filter))))
       (cond ((eq poss t)
 	     (or quietly
-		 (message "%s is correct." (funcall ispell-format-word word))))
+		 (message "%s is correct" (funcall ispell-format-word word))))
 	    ((stringp poss)
 	     (or quietly
 		 (message "%s is correct because of root %s"
@@ -718,13 +718,13 @@ or \\[ispell-region] to update the ispell process."
 
 (defun ispell-get-word (following &optional extra-otherchars)
   "Return the word for spell-checking according to ispell syntax.
-  If optional argument FOLLOWING is non-nil or if ispell-following-word
+If optional argument FOLLOWING is non-nil or if `ispell-following-word'
 is non-nil when called interactively, then the following word
-\(rather than preceeding\) will be checked when the cursor is not over a word.
+\(rather than preceeding\) is checked when the cursor is not over a word.
   Optional second argument contains otherchars that can be included in word
 many times.
 
-  Word syntax described by ispell-dictionary-alist (which see)."
+  Word syntax described by `ispell-dictionary-alist' (which see)."
   (let* ((ispell-casechars (ispell-get-casechars))
 	 (ispell-not-casechars (ispell-get-not-casechars))
 	 (ispell-otherchars (ispell-get-otherchars))
@@ -781,7 +781,7 @@ many times.
 ;;;###autoload
 (defun ispell-pdict-save (&optional no-query force-save)
   "Check to see if the personal dictionary has been modified.
-  If so, ask if it needs to be saved."
+If so, ask if it needs to be saved."
   (interactive (list ispell-silently-savep t))
   (if (and ispell-pdict-modified-p (listp ispell-pdict-modified-p))
       (setq ispell-pdict-modified-p (car ispell-pdict-modified-p)))
@@ -801,8 +801,8 @@ Returns nil to keep word.
         list for new replacement word (will be rechecked).
 	  Optional second argument means replace misspelling in
 	  the rest of the region.
-Global ispell-pdict-modified-p becomes a list where the only value
-indicates whether the dictionary has been modified when option a or i is
+Global `ispell-pdict-modified-p' becomes a list where the only value
+indicates whether the dictionary has been modified when option `a' or `i' is
 used."
   (unwind-protect
   (save-window-excursion
@@ -835,7 +835,7 @@ used."
  		  (setq line (1+ line))))
  	    (insert (car guess) "    ")
  	    (setq guess (cdr guess)))
- 	  (insert "\nUse option \"i\" if this is a correct composition from the derivative root.\n")
+ 	  (insert "\nUse option `i' if this is a correct composition from the derivative root\n")
  	  (setq line (+ line (if choices 3 2)))))
     (while (and choices
 		(< (if (> (+ 7 (current-column) (length (car choices))
@@ -915,11 +915,19 @@ used."
 	     ((or (= char ??) (= char help-char) (= char ?\C-h))
 	      (ispell-help)
 	      t)
-	     ;; quit or quit and stay at this point.
-	     ((or (= char ?x) (= char ?X)) ; quit.
+	     ;; Quit and move point back.
+	     ((= char ?x)
 	      (ispell-pdict-save ispell-silently-savep)
-	      (message "exited ispell")
-	      (setq ispell-quit (if (= char ?X) (point) t))
+	      (message "Exited spell-checking")
+	      (setq ispell-quit t)
+	      nil)
+	     ;; Quit and preserve point.
+	     ((= char ?X)
+	      (ispell-pdict-save ispell-silently-savep)
+	      (message
+	       (substitute-command-keys
+		"Spell-checking suspended; use C-u \\[ispell-word] to resume"))
+	      (setq ispell-quit (max (point-min) (- (point) (length word))))
 	      nil)
 	     ((= char ?q)
 	      (if (y-or-n-p "Really quit ignoring changes? ")
@@ -996,7 +1004,7 @@ used."
 
 ;;;###autoload
 (defun ispell-help ()
-  "This gives a list of the options available when a misspelling is encountered.
+  "Display a list of the options available when a misspelling is encountered.
 
 Selections are:
 
@@ -1050,11 +1058,11 @@ DIGIT: Replace the word with a digit offered in the *Choices* buffer.
 
 (defun lookup-words (word &optional lookup-dict)
   "Look up word in word-list dictionary.
-A '*' is used for wild cards.  If no wild cards, 'look' is used if it exists.
- Otherwise the variable ispell-grep-command contains the command used to
+A `*' is serves as a wild card.  If no wild cards, `look' is used if it exists.
+ Otherwise the variable `ispell-grep-command' contains the command used to
  search for the words (usually egrep).
-Optional second argument contains the dictionary to use, the default is
- ispell-alternate-dictionary."
+Optional second argument contains the dictionary to use; the default is
+ `ispell-alternate-dictionary'."
   ;; We don't use the filter for this function, rather the result is written
   ;; into a buffer.  Hence there is no need to save the filter values.
   (if (null lookup-dict)
@@ -1146,10 +1154,9 @@ Optional second argument contains the dictionary to use, the default is
 ;;; This function destroys the mark location if it is in the word being
 ;;; highlighted.
 (defun highlight-spelling-error-generic (start end &optional highlight)
-  "Highlight the word from START to END by deleting and reinserting it
-while toggling the variable \"inverse-video\".  When the optional
-third arg HIGHLIGHT is set, the word is highlighted otherwise it is
-displayed normally."
+  "Highlight the word from START to END with a kludge using `inverse-video'.
+When the optional third arg HIGHLIGHT is set, the word is highlighted;
+otherwise it is displayed normally."
   (let ((modified (buffer-modified-p))	; don't allow this fn to modify buffer
 	(buffer-read-only nil)		; Allow highlighting read-only buffers.
 	(text (buffer-substring start end)) ; Save highlight region
@@ -1167,8 +1174,8 @@ displayed normally."
 
 
 (defun highlight-spelling-error-lucid (start end &optional highlight)
-  "Highlight the word from START to END using isearch-highlight.  When
-the optional third arg HIGHLIGHT is set, the word is highlighted
+  "Highlight the word from START to END using `isearch-highlight'.
+When the optional third arg HIGHLIGHT is set, the word is highlighted
 otherwise it is displayed normally."
   (if highlight
       (isearch-highlight start end)
@@ -1178,9 +1185,9 @@ otherwise it is displayed normally."
 
 
 (defun highlight-spelling-error-overlay (start end &optional highlight)
-  "Highlight the word from START to END using overlays.  When the
-optional third arg HIGHLIGHT is set, the word is highlighted otherwise
-it is displayed normally.
+  "Highlight the word from START to END using overlays.
+When the optional third arg HIGHLIGHT is set, the word is highlighted
+otherwise it is displayed normally.
   The variable ispell-highlight-face selects the face that will be used
 for highlighting."
   (if highlight
@@ -1201,10 +1208,9 @@ for highlighting."
 
 
 (defun ispell-overlay-window (height)
-  "Create a (usually small) window covering the top HEIGHT lines of the
-current window.  Ensure that the line above point is still visible but
-otherwise avoid scrolling the current window.  Should leave the old
-window selected."
+  "Create a window covering the top HEIGHT lines of the current window.
+Ensure that the line above point is still visible but otherwise avoid
+scrolling the current window.  Leave the old window selected."
   (save-excursion
     (let ((oldot (save-excursion (forward-line -1) (point)))
 	  (top (save-excursion (move-to-window-line height) (point))))
@@ -1218,14 +1224,14 @@ window selected."
 
 ;;; Should we add a compound word match return value?
 (defun ispell-parse-output (output)
-  "Parse the OUTPUT string of 'ispell' and return:
+  "Parse the OUTPUT string of `ispell' and return:
 1: T for an exact match.
 2: A string containing the root word for a match via suffix removal.
 3: A list of possible correct spellings of the format:
-   '(\"original-word\" offset miss-list guess-list)
-   original-word is a string of the possibly misspelled word.
-   offset is an integer giving the line offset of the word.
-   miss-list and guess-list are possibly null lists of guesses and misses."
+   '(\"ORIGINAL-WORD\" OFFSET MISS-LIST GUESS-LIST)
+   ORIGINAL-WORD is a string of the possibly misspelled word.
+   OFFSET is an integer giving the line offset of the word.
+   MISS-LIST and GUESS-LIST are possibly null lists of guesses and misses."
   (cond
    ((string= output "") t)		; for startup with pipes...
    ((string= output "*") t)		; exact match
@@ -1299,7 +1305,7 @@ window selected."
 
 
 (defun ispell-init-process ()
-  "Check status of 'ispell' process and start if necessary."
+  "Check status of Ispell process and start if necessary."
   (if (and ispell-process
 	   (eq (process-status ispell-process) 'run)
 	   ;; If we're using a personal dictionary, assure
@@ -1309,7 +1315,7 @@ window selected."
       (setq ispell-filter nil ispell-filter-continue nil)
     ;; may need to restart to select new personal dictionary.
     (ispell-kill-ispell t)
-    (message "Starting new ispell process...")
+    (message "Starting new Ispell process...")
     (sit-for 0)
     (check-ispell-version)
     (setq ispell-process
@@ -1372,7 +1378,7 @@ With NO-ERROR, just return non-nil if there was no ispell running."
 	  (error "There is no ispell process running!"))
     (kill-process ispell-process)
     (setq ispell-process nil)
-    (message "Killed ispell process.")
+    (message "Ispell process killed")
     nil))
 
 
@@ -1407,7 +1413,7 @@ With prefix argument, set the default directory."
 		   (setq ispell-local-dictionary dict)))
 	   (error "Illegal dictionary: %s" dict))
 	 (ispell-kill-ispell t)
-	 (message "(Next %sispell command will use %s dictionary)"
+	 (message "(Next %sIspell command will use %s dictionary)"
 		  (cond ((equal ispell-local-dictionary ispell-dictionary)
 			 "")
 			(arg "global ")
@@ -1428,7 +1434,7 @@ With prefix argument, set the default directory."
   (ispell-accept-buffer-local-defs)	; set up dictionary, local words, etc.
   (unwind-protect
   (save-excursion
-  (message "Spelling %s..."
+  (message "Spell checking %s..."
 	   (if (and (= reg-start (point-min)) (= reg-end (point-max)))
 	       (buffer-name) "region"))
   (sit-for 0)
@@ -1486,7 +1492,7 @@ With prefix argument, set the default directory."
 		(progn
 		  (ispell-pdict-save ispell-silently-savep)
 		  (ding)
-		  (message "Open tib reference.   Set ispell-skip-tib to nil to avoid this error.")
+		  (message "Open tib reference--set `ispell-skip-tib' to nil to avoid this error")
 		  (setq ispell-quit (- (point) 2)))) ; leave dot at error loc.
 	  ;; tib ref starts later on line.  Check spelling before tib.
 	  (let ((limit (- (point) 2)))
@@ -1533,7 +1539,7 @@ With prefix argument, set the default directory."
 				       (search-forward (car poss) word-end t)
 				       (point)))
 			;; This usually occurs due to filter pipe problems
-			(error "***ispell misalignment: word \"%s\" point %d; please retry."
+			(error "Ispell misalignment: word `%s' point %d; please retry"
 			       (car poss) word-start))
 		    (unwind-protect
 		    (progn
@@ -1597,7 +1603,7 @@ With prefix argument, set the default directory."
 			      offset-change (+ offset-change change)
 			      end (+ end change)))))
 		    (if (not ispell-quit)
-			(message "continuing spelling check..."))
+			(message "Continuing spelling check..."))
 		    (sit-for 0)))
 	      (setq ispell-filter (cdr ispell-filter))))) ; finished with line
       (goto-char end)))))
@@ -1622,7 +1628,7 @@ With prefix argument, set the default directory."
     (set-marker ispell-region-end nil)
     ;; Only save if successful exit.
     (ispell-pdict-save ispell-silently-savep)
-    (message "Spell done."))))
+    (message "Spell-checking done"))))
 
 
 
