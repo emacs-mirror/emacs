@@ -627,7 +627,7 @@ pattern.
 			      (end (match-end index)))
 			  (setq found t)
 			  (push 
-			   (cons (buffer-substring beg end) beg)
+			   (cons (buffer-substring-no-properties beg end) beg)
 			   (cdr 
 			    (or (if (not (stringp menu-title)) index-alist) 
 				(assoc 
