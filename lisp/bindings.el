@@ -275,10 +275,26 @@ Keymap for what is displayed by `mode-line-buffer-identification'.")
 
 (defun last-buffer () "\
 Return the last non-hidden buffer in the buffer list."
-  (let ((list (reverse (buffer-list))))
-    (while (eq (aref (buffer-name (car list)) 0) ? )
-      (setq list (cdr list)))
-    (car list)))
+  ;; This logic is more or less copied from bury-buffer,
+  ;; except that we reverse the buffer list.
+  (let ((fbl  (frame-parameter 'buffer-list))
+	(list (buffer-list))
+	(pred (frame-parameter nil 'buffer-predicate))
+	found notsogood)
+    ;; Merge the frame buffer list with the whole buffer list,
+    ;; and reverse it.
+    (dolist (buffer fbl)
+      (setq list (delq buffer list)))
+    (setq list (nreverse (append fbl list)))
+    (while (not found)
+      (unless (or (eq (aref (buffer-name (car list)) 0) ? )
+		  ;; If the selected frame has a buffer_predicate,
+		  ;; disregard buffers that don't fit the predicate.
+		  (and pred (not (funcall pred (car list)))))
+	(if (get-buffer-window (car list) 'visible)
+	    (unless notsogood (setq notsogood (car list)))
+	  (setq found (car list)))))
+    (or found notsogood)))
 
 (defun unbury-buffer () "\
 Switch to the last buffer in the buffer list."
