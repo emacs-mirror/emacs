@@ -435,7 +435,7 @@ init_float ()
 free_float (ptr)
      struct Lisp_Float *ptr;
 {
-  XSETFASTINT (ptr->type, (EMACS_INT) float_free_list);
+  *(struct Lisp_Float **)&ptr->type = float_free_list;
   float_free_list = ptr;
 }
 
@@ -448,7 +448,7 @@ make_float (float_value)
   if (float_free_list)
     {
       XSETFLOAT (val, float_free_list);
-      float_free_list = (struct Lisp_Float *) XFASTINT (float_free_list->type);
+      float_free_list = *(struct Lisp_Float **)&float_free_list->type;
     }
   else
     {
@@ -508,7 +508,7 @@ init_cons ()
 free_cons (ptr)
      struct Lisp_Cons *ptr;
 {
-  XSETFASTINT (ptr->car, (EMACS_INT) cons_free_list);
+  *(struct Lisp_Cons **)&ptr->car = cons_free_list;
   cons_free_list = ptr;
 }
 
@@ -522,7 +522,7 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
   if (cons_free_list)
     {
       XSETCONS (val, cons_free_list);
-      cons_free_list = (struct Lisp_Cons *) XFASTINT (cons_free_list->car);
+      cons_free_list = *(struct Lisp_Cons **)&cons_free_list->car;
     }
   else
     {
@@ -708,8 +708,7 @@ Its value and function definition are void, and its property list is nil.")
   if (symbol_free_list)
     {
       XSETSYMBOL (val, symbol_free_list);
-      symbol_free_list
-	= (struct Lisp_Symbol *) XFASTINT (symbol_free_list->value);
+      symbol_free_list = *(struct Lisp_Symbol **)&symbol_free_list->value;
     }
   else
     {
@@ -1788,8 +1787,8 @@ gc_sweep ()
 	for (i = 0; i < lim; i++)
 	  if (!XMARKBIT (cblk->conses[i].car))
 	    {
-	      XSETFASTINT (cblk->conses[i].car, (EMACS_INT) cons_free_list);
 	      num_free++;
+	      *(struct Lisp_Cons **)&cblk->conses[i].car = cons_free_list;
 	      cons_free_list = &cblk->conses[i];
 	    }
 	  else
@@ -1818,8 +1817,8 @@ gc_sweep ()
 	for (i = 0; i < lim; i++)
 	  if (!XMARKBIT (fblk->floats[i].type))
 	    {
-	      XSETFASTINT (fblk->floats[i].type, (EMACS_INT) float_free_list);
 	      num_free++;
+	      *(struct Lisp_Float **)&fblk->floats[i].type = float_free_list;
 	      float_free_list = &fblk->floats[i];
 	    }
 	  else
@@ -1882,7 +1881,7 @@ gc_sweep ()
 	for (i = 0; i < lim; i++)
 	  if (!XMARKBIT (sblk->symbols[i].plist))
 	    {
-	      XSETFASTINT (sblk->symbols[i].value, (EMACS_INT) symbol_free_list);
+	      *(struct Lisp_Symbol **)&sblk->symbols[i].value = symbol_free_list;
 	      symbol_free_list = &sblk->symbols[i];
 	      num_free++;
 	    }
