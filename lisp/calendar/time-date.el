@@ -1,5 +1,5 @@
 ;;; time-date.el --- date and time handling functions
-;; Copyright (C) 1998, 1999, 2000, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu Umeda <umerin@mse.kyutech.ac.jp>
@@ -24,9 +24,71 @@
 
 ;;; Commentary:
 
+;; Time values come in three formats.  The oldest format is a cons
+;; cell of the form (HIGH . LOW).  This format is obsolete, but still
+;; supported.  The two other formats are the lists (HIGH LOW) and
+;; (HIGH LOW MICRO).  The first two formats specify HIGH * 2^16 + LOW
+;; seconds; the third format specifies HIGH * 2^16 + LOW + MICRO /
+;; 1000000 seconds.  We should have 0 <= MICRO < 1000000 and 0 <= LOW
+;; < 2^16.  If the time value represents a point in time, then HIGH is
+;; nonnegative.  If the time value is a time difference, then HIGH can
+;; be negative as well.  The macro `with-decoded-time-value' and the
+;; function `encode-time-value' make it easier to deal with these
+;; three formats.  See `time-subtract' for an example of how to use
+;; them.
+
 ;;; Code:
 
-(require 'parse-time)
+(defmacro with-decoded-time-value (varlist &rest body)
+  "Decode a time value and bind it according to VARLIST, then eval BODY.
+
+The value of the last form in BODY is returned.
+
+Each element of the list VARLIST is a list of the form
+\(HIGH-SYMBOL LOW-SYMBOL MICRO-SYMBOL [TYPE-SYMBOL] TIME-VALUE).
+The time value TIME-VALUE is decoded and the result it bound to
+the symbols HIGH-SYMBOL, LOW-SYMBOL and MICRO-SYMBOL.
+
+The optional TYPE-SYMBOL is bound to the type of the time value.
+Type 0 is the cons cell (HIGH . LOW), type 1 is the list (HIGH
+LOW), and type 3 is the list (HIGH LOW MICRO)."
+  (declare (indent 1)
+	   (debug ((&rest (symbolp symbolp symbolp &or [symbolp form] form))
+		   body)))
+  (if varlist
+      (let* ((elt (pop varlist))
+	     (high (pop elt))
+	     (low (pop elt))
+	     (micro (pop elt))
+	     (type (unless (eq (length elt) 1)
+		     (pop elt)))
+	     (time-value (car elt))
+	     (gensym (make-symbol "time")))
+	`(let* ,(append `((,gensym ,time-value)
+			  (,high (pop ,gensym))
+			  ,low ,micro)
+			(when type `(,type)))
+	   (if (consp ,gensym)
+	       (progn
+		 (setq ,low (pop ,gensym))
+		 (if ,gensym
+		     ,(append `(setq ,micro (car ,gensym))
+			      (when type `(,type 2)))
+		   ,(append `(setq ,micro 0)
+			    (when type `(,type 1)))))
+	     ,(append `(setq ,low ,gensym ,micro 0)
+		      (when type `(,type 0))))
+	   (with-decoded-time-value ,varlist ,@body)))
+    `(progn ,@body)))
+
+(defun encode-time-value (high low micro type)
+  "Encode HIGH, LOW, and MICRO into a time value of type TYPE.
+Type 0 is the cons cell (HIGH . LOW), type 1 is the list (HIGH LOW),
+and type 3 is the list (HIGH LOW MICRO)."
+  (cond
+   ((eq type 0) (cons high low))
+   ((eq type 1) (list high low))
+   ((eq type 2) (list high low micro))))
 
 (autoload 'timezone-make-date-arpa-standard "timezone")
 
@@ -49,33 +111,37 @@
 (defun time-to-seconds (time)
   "Convert time value TIME to a floating point number.
 You can use `float-time' instead."
-  (+ (* (car time) 65536.0)
-     (cadr time)
-     (/ (or (nth 2 time) 0) 1000000.0)))
+  (with-decoded-time-value ((high low micro time))
+    (+ (* 1.0 high #x10000)
+       low
+       (/ micro 1000000.0))))
 
 ;;;###autoload
 (defun seconds-to-time (seconds)
   "Convert SECONDS (a floating point number) to a time value."
-  (list (floor seconds 65536)
-	(floor (mod seconds 65536))
+  (list (floor seconds #x10000)
+	(floor (mod seconds #x10000))
 	(floor (* (- seconds (ffloor seconds)) 1000000))))
 
 ;;;###autoload
 (defun time-less-p (t1 t2)
   "Say whether time value T1 is less than time value T2."
-  (or (< (car t1) (car t2))
-      (and (= (car t1) (car t2))
-	   (< (nth 1 t1) (nth 1 t2)))))
+  (with-decoded-time-value ((high1 low1 micro1 t1)
+			    (high2 low2 micro2 t2))
+    (or (< high1 high2)
+	(and (= high1 high2)
+	     (or (< low1 low2)
+		 (and (= low1 low2)
+		      (< micro1 micro2)))))))
 
 ;;;###autoload
 (defun days-to-time (days)
   "Convert DAYS into a time value."
   (let* ((seconds (* 1.0 days 60 60 24))
-	 (rest (expt 2 16))
-	 (ms (condition-case nil (floor (/ seconds rest))
-	       (range-error (expt 2 16)))))
-    (list ms (condition-case nil (round (- seconds (* ms rest)))
-	       (range-error (expt 2 16))))))
+	 (high (condition-case nil (floor (/ seconds #x10000))
+		 (range-error most-positive-fixnum))))
+    (list high (condition-case nil (floor (- seconds (* 1.0 high #x10000)))
+		 (range-error #xffff)))))
 
 ;;;###autoload
 (defun time-since (time)
@@ -84,11 +150,7 @@ TIME should be either a time value or a date-time string."
   (when (stringp time)
     ;; Convert date strings to internal time.
     (setq time (date-to-time time)))
-  (let* ((current (current-time))
-	 (rest (when (< (nth 1 current) (nth 1 time))
-		 (expt 2 16))))
-    (list (- (+ (car current) (if rest -1 0)) (car time))
-	  (- (+ (or rest 0) (nth 1 current)) (nth 1 time)))))
+  (time-subtract (current-time) time))
 
 ;;;###autoload
 (defalias 'subtract-time 'time-subtract)
@@ -97,37 +159,36 @@ TIME should be either a time value or a date-time string."
 (defun time-subtract (t1 t2)
   "Subtract two time values.
 Return the difference in the format of a time value."
-  (let ((borrow (< (cadr t1) (cadr t2))))
-    (list (- (car t1) (car t2) (if borrow 1 0))
-	  (- (+ (if borrow 65536 0) (cadr t1)) (cadr t2)))))
+  (with-decoded-time-value ((high low micro type t1)
+			    (high2 low2 micro2 type2 t2))
+    (setq high (- high high2)
+	  low (- low low2)
+	  micro (- micro micro2)
+	  type (max type type2))
+    (when (< micro 0)
+      (setq low (1- low)
+	    micro (+ micro 1000000)))
+    (when (< low 0)
+      (setq high (1- high)
+	    low (+ low #x10000)))
+    (encode-time-value high low micro type)))
 
 ;;;###autoload
 (defun time-add (t1 t2)
   "Add two time values.  One should represent a time difference."
-  (let ((high (car t1))
-	(low (if (consp (cdr t1)) (nth 1 t1) (cdr t1)))
-	(micro (if (numberp (car-safe (cdr-safe (cdr t1))))
-		   (nth 2 t1)
-		 0))
-	(high2 (car t2))
-	(low2 (if (consp (cdr t2)) (nth 1 t2) (cdr t2)))
-	(micro2 (if (numberp (car-safe (cdr-safe (cdr t2))))
-		    (nth 2 t2)
-		  0)))
-    ;; Add
-    (setq micro (+ micro micro2))
-    (setq low (+ low low2))
-    (setq high (+ high high2))
-
-    ;; Normalize
-    ;; `/' rounds towards zero while `mod' returns a positive number,
-    ;; so we can't rely on (= a (+ (* 100 (/ a 100)) (mod a 100))).
-    (setq low (+ low (/ micro 1000000) (if (< micro 0) -1 0)))
-    (setq micro (mod micro 1000000))
-    (setq high (+ high (/ low 65536) (if (< low 0) -1 0)))
-    (setq low (logand low 65535))
-
-    (list high low micro)))
+  (with-decoded-time-value ((high low micro type t1)
+			    (high2 low2 micro2 type2 t2))
+    (setq high (+ high high2)
+	  low (+ low low2)
+	  micro (+ micro micro2)
+	  type (max type type2))
+    (when (>= micro 1000000)
+      (setq low (1+ low)
+	    micro (- micro 1000000)))
+    (when (>= low #x10000)
+      (setq high (1+ high)
+	    low (- low #x10000)))
+    (encode-time-value high low micro type)))
 
 ;;;###autoload
 (defun date-to-day (date)
@@ -180,7 +241,7 @@ The Gregorian date Sunday, December 31, 1bce is imaginary."
 (defun time-to-number-of-days (time)
   "Return the number of days represented by TIME.
 The number of days will be returned as a floating point number."
-  (/ (+ (* 1.0 65536 (car time)) (cadr time)) (* 60 60 24)))
+  (/ (time-to-seconds time) (* 60 60 24)))
 
 ;;;###autoload
 (defun safe-date-to-time (date)
