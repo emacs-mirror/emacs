@@ -844,10 +844,18 @@ DEFUN ("set-process-filter", Fset_process_filter, Sset_process_filter,
        2, 2, 0,
        doc: /* Give PROCESS the filter function FILTER; nil means no filter.
 t means stop accepting output from the process.
-When a process has a filter, each time it does output
-the entire string of output is passed to the filter.
+
+When a process has a filter, its buffer is not used for output.
+Instead, each time it does output, the entire string of output is
+passed to the filter.  
+
 The filter gets two arguments: the process and the string of output.
-If the process has a filter, its buffer is not used for output.  */)
+The string argument is normally a multibyte string, except:
+- if the process' input coding system is no-conversion or raw-text,
+  it is a unibyte string (the non-converted input), or else
+- if `default-enable-multibyte-characters' is nil, it is a unibyte
+  string (the result of converting the decoded input multibyte
+  string to unibyte with `string-make-unibyte').  */)
      (process, filter)
      register Lisp_Object process, filter;
 {
