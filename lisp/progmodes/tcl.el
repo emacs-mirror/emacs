@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.66 $
+;; Version: $Revision: 1.67 $
 
 ;; This file is part of GNU Emacs.
 
@@ -506,6 +506,11 @@ Uses variables `tcl-proc-regexp' and `tcl-keyword-list'."
     ()
   (tcl-set-font-lock-keywords))
 
+
+(defvar tcl-imenu-generic-expression
+  '((nil "^proc[ \t]+\\([-A-Za-z0-9_:+*]+\\)" 1))
+  "Imenu generic expression for `tcl-mode'.  See `imenu-generic-expression'.")
+
 
 
 ;;
@@ -549,8 +554,10 @@ Commands:
   (set (make-local-variable 'paragraph-start) "$\\|")
   (set (make-local-variable 'paragraph-separate) paragraph-start)
 
-  (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
-  (set (make-local-variable 'fill-paragraph-function) 'tcl-do-fill-paragraph)
+  (unless (and (boundp 'filladapt-mode) filladapt-mode)
+    (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
+    (set (make-local-variable 'fill-paragraph-function)
+	 'tcl-do-fill-paragraph))
 
   (set (make-local-variable 'indent-line-function) 'tcl-indent-line)
   (set (make-local-variable 'comment-indent-function) 'tcl-comment-indent)
@@ -571,8 +578,8 @@ Commands:
 	 (font-lock-syntactic-keywords . tcl-font-lock-syntactic-keywords)
 	 (parse-sexp-lookup-properties . t)))
 
-  (set (make-local-variable 'imenu-create-index-function)
-       'tcl-imenu-create-index-function)
+  (set (make-local-variable 'imenu-generic-expression)
+       'tcl-imenu-generic-expression)
   
   ;; Settings for new dabbrev code.
   (set (make-local-variable 'dabbrev-case-fold-search) nil)
@@ -987,23 +994,6 @@ Returns nil if line starts inside a string, t if in a comment."
 ;; Interfaces to other packages.
 ;;
 
-(defun tcl-imenu-create-index-function ()
-  "Generate alist of indices for `imenu'."
-  (let ((re (concat tcl-proc-regexp "\\([^ \t\n{]+\\)"))
-	alist prev-pos)
-    (goto-char (point-min))
-    (imenu-progress-message prev-pos 0)
-    (save-match-data
-      (while (re-search-forward re nil t)
-	(imenu-progress-message prev-pos)
-	;; Position on start of proc name, not beginning of line.
-	(setq alist (cons
-		     (cons (buffer-substring (match-beginning 2) (match-end 2))
-			   (match-beginning 2))
-		     alist))))
-    (imenu-progress-message prev-pos 100)
-    (nreverse alist)))
-
 ;; FIXME Definition of function is very ad-hoc.  Should use
 ;; beginning-of-defun.  Also has incestuous knowledge about the
 ;; format of tcl-proc-regexp.
@@ -1108,7 +1098,7 @@ Prefix argument means switch to the Tcl buffer afterwards."
 (define-derived-mode inferior-tcl-mode comint-mode "Inferior Tcl"
   "Major mode for interacting with Tcl interpreter.
 
-A Tcl process can be started with M-x inferior-tcl.
+You can start a Tcl process with \\[inferior-tcl].
 
 Entry to this mode runs the normal hooks `comint-mode-hook' and
 `inferior-tcl-mode-hook', in that order.
