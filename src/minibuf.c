@@ -926,7 +926,7 @@ scmp (s1, s2, len)
 
   if (completion_ignore_case)
     {
-      while (l && DOWNCASE (*s1++) == DOWNCASE (*s2++))
+      while (l && EQ (DOWNCASE (*s1++), DOWNCASE (*s2++)))
 	l--;
     }
   else
@@ -1623,18 +1623,18 @@ It can find the completion buffer in `standard-output'.")
 	  /* Compute the length of this element.  */
 	  if (CONSP (elt))
 	    {
-	      tem = Fcar (elt);
+	      tem = XCAR (elt);
 	      CHECK_STRING (tem, 0);
-	      length = XINT (XSTRING (tem)->size);
+	      length = XSTRING (tem)->size;
 
-	      tem = Fcar (Fcdr (elt));
+	      tem = Fcar (XCDR (elt));
 	      CHECK_STRING (tem, 0);
-	      length += XINT (XSTRING (tem)->size);
+	      length += XSTRING (tem)->size;
 	    }
 	  else
 	    {
 	      CHECK_STRING (elt, 0);
-	      length = XINT (XSTRING (elt)->size);
+	      length = XSTRING (elt)->size;
 	    }
 
 	  /* This does a bad job for narrower than usual windows.
