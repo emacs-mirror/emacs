@@ -569,12 +569,10 @@ If that doesn't give a function, return nil."
 That file records the part of `load-history' for preloaded files,
 which is cleared out before dumping to make Emacs smaller.")
 
-(defun symbol-file (function)
-  "Return the input source from which FUNCTION was loaded.
-The value is normally a string that was passed to `load':
-either an absolute file name, or a library name
-\(with no directory name and no `.el' or `.elc' at the end).
-It can also be nil, if the definition is not associated with any file."
+(defun load-symbol-file-load-history ()
+  "Load the file `fns-VERSION.el' in `exec-directory' if not already done.
+That file records the part of `load-history' for preloaded files,
+which is cleared out before dumping to make Emacs smaller."
   (unless symbol-file-load-history-loaded
     (load (expand-file-name
 	   ;; fns-XX.YY.ZZ.el does not work on DOS filesystem.
@@ -584,7 +582,15 @@ It can also be nil, if the definition is not associated with any file."
 	   exec-directory)
 	  ;; The file name fns-%s.el already has a .el extension.
 	  nil nil t)
-    (setq symbol-file-load-history-loaded t))
+    (setq symbol-file-load-history-loaded t)))
+
+(defun symbol-file (function)
+  "Return the input source from which FUNCTION was loaded.
+The value is normally a string that was passed to `load':
+either an absolute file name, or a library name
+\(with no directory name and no `.el' or `.elc' at the end).
+It can also be nil, if the definition is not associated with any file."
+  (load-symbol-file-load-history)
   (let ((files load-history)
 	file functions)
     (while files
