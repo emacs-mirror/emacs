@@ -34,7 +34,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
    is the most significant byte.  */
 
+#ifdef USG5_4
+#undef WORDS_BIG_ENDIAN
+#else
 #define WORDS_BIG_ENDIAN
+#endif
 
 /* Define NO_ARG_ARRAY if you cannot take the address of the first of a
  * group of arguments and treat it as an array of the arguments.  */
@@ -54,24 +58,34 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* Define CANNOT_DUMP on machines where unexec does not work.
    Then the function dump-emacs will not be defined
    and temacs will do (load "loadup") automatically unless told otherwise.  */
-/* #define CANNOT_DUMP */
+#ifdef USG5_4
+#define CANNOT_DUMP
+#endif
 
+#ifndef UNEXEC
 #define UNEXEC unexaix.o
+#endif
 
 /* Define addresses, macros, change some setup for dump */
 
 #define NO_REMAP
 
+#ifndef USG5_4
 #define TEXT_START 0x10000000
 #define TEXT_END 0
 #define DATA_START 0x20000000
 #define DATA_END 0
+#endif
 
 /* The data segment in this machine always starts at address 0x20000000.
    An address of data cannot be stored correctly in a Lisp object;
    we always lose the high bits.  We must tell XPNTR to add them back.	*/
 
+#ifndef USG5_4
 #define DATA_SEG_BITS 0x20000000
+#else
+#define DATA_SEG_BITS 0
+#endif
 
 #ifdef CANNOT_DUMP
 /* Define shared memory segment symbols */
@@ -119,7 +133,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define OBJECTS_MACHINE hftctl.o
 #endif
 
+#ifndef USG5_4
 #define C_SWITCH_MACHINE -D_BSD
+#endif
 
 #ifdef AIX3_2
 /* -lpthreads seems to be necessary for Xlib in X11R6, and should be harmless
@@ -131,7 +147,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define LIBS_MACHINE -lrts -lIM -liconv
 #endif
 #else
+#ifdef USG5_4
+#define LIBS_MACHINE
+#else
 #define LIBS_MACHINE -lIM
+#endif
 #endif
 
 #define START_FILES
@@ -145,6 +165,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef NEED_PTEM_H
 
 #define ORDINARY_LINK
+
+#ifndef USG5_4
 /* sfreed@unm.edu says add -bI:/usr/lpp/X11/bin/smt.exp for AIX 3.2.4.  */
 /* marc@sti.com (Marc Pawliger) says ibmrs6000.inp is needed to avoid
    linker error for updated X11R5 libraries, which references pthread library
@@ -164,3 +186,4 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 /* AIX supposedly doesn't use this interface, but on the RS/6000
    it apparently does.  */
 #define NLIST_STRUCT
+#endif /* USG5_4 */
