@@ -467,8 +467,7 @@ If the argument is left out or nil, then the current buffer is considered."
 
 ;; Create an alist with all buffers from LIST that lies under the same
 ;; directory will be in the same item as the directory string.
-;; ((PATH1 . (BUFFER-1 BUFFER-2 ...)) (PATH2 . (BUFFER-K BUFFER-K+1...)) =
-...)
+;; ((PATH1 . (BUFFER-1 BUFFER-2 ...)) (PATH2 . (BUFFER-K BUFFER-K+1...)) ...)
 (defun msb--init-file-alist (list)
   (let ((buffer-alist
 	 ;; Make alist that looks like
@@ -494,7 +493,7 @@ If the argument is left out or nil, then the current buffer is considered."
 		(lambda (item)
 		  (cond
 		   ((and path
-			 (string=3D path (car item)))
+			 (string= path (car item)))
 		    ;; The same path as earlier: Add to current list of
 		    ;; buffers.
 		    (push (cdr item) buffers)
@@ -861,7 +860,7 @@ If the argument is left out or nil, then the current buffer is considered."
 (defun msb--toggle-menu-type ()
   (interactive)
   (setq msb-files-by-directory (not msb-files-by-directory))
-  (menu-bar-update-buffers t))
+  (menu-bar-update-buffers))
 
 (defun mouse-select-buffer (event)
   "Pop up several menus of buffers, for selection with the mouse.
