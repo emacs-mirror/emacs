@@ -1,3 +1,9 @@
+2003-05-19  Joe Kelsey  <joek@flyingcroc.net>
+
+	* skeleton.el (skeleton-internal-1): Allow - as alternate
+	interesting point marker and revert @ to just setting
+	skeleton-positions.
+
 2003-05-18  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (put-arrow): Rename gdb-put-arrow and simplify.
@@ -14,18 +20,18 @@
 	(ibuffer-update-title-and-summary): Respect it.
 
 2003-05-18  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-	* ediff-mult.el (ediff-default-filtering-regexp): new variable.
-	
-	* ediff-util.el (ediff-maybe-save-and-delete-merge): change in a
+
+	* ediff-mult.el (ediff-default-filtering-regexp): New variable.
+
+	* ediff-util.el (ediff-maybe-save-and-delete-merge): Change in a
 	message.
-	
-	* ediff.el (ediff-directories,ediff-directory-revisions,
-	ediff-directories3,ediff-merge-directories,
-	ediff-merge-directories-with-ancestor,ediff-merge-directory-revisions,
-	ediff-merge-directory-revisions-with-ancestor): make use of the new
+
+	* ediff.el (ediff-directories,ediff-directory-revisions)
+	(ediff-directories3,ediff-merge-directories)
+	(ediff-merge-directories-with-ancestor,ediff-merge-directory-revisions)
+	(ediff-merge-directory-revisions-with-ancestor): Make use of the new
 	ediff-default-filtering-regexp variable.
-	
+
 2003-05-18  Richard M. Stallman  <rms@gnu.org>
 
 	* which-func.el (which-func-current, which-func-format):
