@@ -629,8 +629,7 @@ This must be bound to a button-down mouse event."
 	       ;; Are we moving within the original window?
 	       ((and (eq (posn-window end) start-window)
 		     (integer-or-marker-p end-point))
-		(if (/= start-point end-point)
-		    (set-marker mouse-secondary-start nil))
+		(set-marker mouse-secondary-start nil)
 		(let ((range (mouse-start-end start-point end-point
 					      click-count)))
 		  (move-overlay mouse-secondary-overlay
