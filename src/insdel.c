@@ -1111,7 +1111,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
     outgoing_nbytes = nchars;
   else if (! STRING_MULTIBYTE (string))
     outgoing_nbytes
-      = count_size_as_multibyte (&SREF (string, pos_byte),
+      = count_size_as_multibyte (SDATA (string) + pos_byte,
 				 nbytes);
 
   GCPRO1 (string);
