@@ -252,26 +252,30 @@ lispref/windows.texi     "Luc Teirlinck"   Chong Yidong
 
 ** Check the Emacs Tutorial.
 
-The first line of every tutorial must be "Emacs Tutorial" in the
-repective language. It is used as a title in the tutorial and also used
-in the splash screen. After each file name, on the same line or the
-following line, come the names of the people who have checked it.
+The first line of every tutorial must begin with a sentence saying
+"Emacs Tutorial" in the respective language.  This should be followed
+by "See end for copying conditions", likewise in the respective
+language.
+
+After each file name, on the same line or the following line, come the
+names of the people who have checked it.
+
 
 SECTION                  READERS
 ----------------------------------
-etc/TUTORIAL             Marcelo Toledo <marcelo@marcelotoledo.org>
+etc/TUTORIAL             rms
 etc/TUTORIAL.bg
 etc/TUTORIAL.cn
 etc/TUTORIAL.cs
 etc/TUTORIAL.de
-etc/TUTORIAL.es          Marcelo Toledo <marcelo@marcelotoledo.org>
-etc/TUTORIAL.fr          Jaco <eric.jacoboni@gmail.com>
-etc/TUTORIAL.it          Alfredo Finelli <alfredof@libero.it>
+etc/TUTORIAL.es
+etc/TUTORIAL.fr
+etc/TUTORIAL.it
 etc/TUTORIAL.ja
 etc/TUTORIAL.ko
-etc/TUTORIAL.nl          Pieter Schoenmakers <tiggr@tiggr.net>
+etc/TUTORIAL.nl
 etc/TUTORIAL.pl
-etc/TUTORIAL.pt_BR       Marcelo Toledo <marcelo@marcelotoledo.org>
+etc/TUTORIAL.pt_BR
 etc/TUTORIAL.ro
 etc/TUTORIAL.ru
 etc/TUTORIAL.sk
