@@ -1136,7 +1136,9 @@ menubar_selection_callback (widget, id, client_data)
       else
 	{
 	  entry = XVECTOR (vector)->contents[i + MENU_ITEMS_ITEM_VALUE];
-	  if ((int) client_data == i)
+	  /* The EMACS_INT cast avoids a warning.  There's no problem
+	     as long as pointers have enough bits to hold small integers.  */
+	  if ((int) (EMACS_INT) client_data == i)
 	    {
 	      int j;
 	      struct input_event buf;
@@ -1342,7 +1344,9 @@ single_submenu (item_key, item_name, maps)
 	  if (!NILP (descrip))
 	    wv->key = (char *) XSTRING (descrip)->data;
 	  wv->value = 0;
-	  wv->call_data = (!NILP (def) ? (void *) i : 0);
+	  /* The EMACS_INT cast avoids a warning.  There's no problem
+	     as long as pointers have enough bits to hold small integers.  */
+	  wv->call_data = (!NILP (def) ? (void *) (EMACS_INT) i : 0);
 	  wv->enabled = !NILP (enable);
 	  prev_wv = wv;
 
@@ -1864,7 +1868,9 @@ dialog_selection_callback (widget, id, client_data)
      LWLIB_ID id;
      XtPointer client_data;
 {
-  if ((int)client_data != -1)
+  /* The EMACS_INT cast avoids a warning.  There's no problem
+     as long as pointers have enough bits to hold small integers.  */
+  if ((int) (EMACS_INT) client_data != -1)
     menu_item_selection = (Lisp_Object *) client_data;
   BLOCK_INPUT;
   lw_destroy_all_widgets (id);
