@@ -165,7 +165,8 @@ This function returns ARGS minus the arguments that have been processed."
   ;; We use ARGS to accumulate the args that we don't handle here, to return.
   (setq x-invocation-args args
 	args nil)
-  (while x-invocation-args
+  (while (and x-invocation-args
+	      (not (equal (car x-invocation-args) "--")))
     (let* ((this-switch (car x-invocation-args))
 	   (orig-this-switch this-switch)
 	   completion argval aelt handler)
@@ -197,7 +198,7 @@ This function returns ARGS minus the arguments that have been processed."
 		(funcall handler this-switch))
 	    (funcall handler this-switch))
 	(setq args (cons orig-this-switch args)))))
-  (nreverse args))
+  (nconc (nreverse args) x-invocation-args))
 
 ;;
 ;; Standard X cursor shapes, courtesy of Mr. Fox, who wanted ALL of them.
