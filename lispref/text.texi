@@ -1480,6 +1480,17 @@ does not count as the end of a sentence, and the filling functions
 avoid breaking the line at such a place.
 @end defopt
 
+@defopt sentence-end-without-period
+If this variable is non-@code{nil}, a sentence can end without a
+period.  This is used for languages like Thai, where sentences end
+with a double space but without a period.
+@end defopt
+
+@defopt sentence-end-without-space
+If this variable is non-@code{nil}, it should be a string of
+characters that can end a sentence without following spaces.
+@end defopt
+
 @defvar fill-paragraph-function
 This variable provides a way for major modes to override the filling of
 paragraphs.  If the value is non-@code{nil}, @code{fill-paragraph} calls
@@ -2619,9 +2630,9 @@ list.
 @end defun
 
 @defun remove-list-of-text-properties start end list-of-properties &optional object
-Like @code{remove-list-properties} except that
+Like @code{remove-text-properties} except that
 @var{list-of-properties} is a list property names only, not an
-alternating list of property values.
+alternating list of property names and values.
 @end defun
 
 @defun set-text-properties start end props &optional object
