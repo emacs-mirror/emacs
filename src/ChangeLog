@@ -1,5 +1,8 @@
 2001-09-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* xfns.c (x_kill_gs_process): Recognize if someone has cleared
+	the image cache under us.
+
 	* xdisp.c (display_mode_element): If the mode element is a symbol
 	with a string value, use that string's multibyteness for
 	displaying.
