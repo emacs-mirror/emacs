@@ -1,3 +1,24 @@
+2001-11-11  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/sh-script.el (sh-must-be-shell-mode): 
+	Allow modes derived from sh-mode.
+
+	* emacs-lisp/checkdoc.el (checkdoc-file-comments-engine): 
+	Turn off error in some re-search-forward calls.
+
+	* replace.el (query-replace-skip-read-only): New variable.
+	(perform-replace): If that variable is non-nil, ignore matches
+	that have a read-only property.
+
+	* derived.el (define-derived-mode): Doc fix.
+
+	* server.el (server-buffer-done): Test of server-existing-buffer
+	was backwards.
+	(server-existing-buffer): Doc fix.
+
+	* textmodes/flyspell.el (flyspell-default-dictionary):
+	Allow nil as value, and make nil the default.
+
 2001-11-11  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* subdirs.el: Regenerated.
@@ -38,6 +59,14 @@
 	(calcAlg-enter): Use `minibuffer-prompt-end' instead of `point-min'.
 
 2001-11-10  Richard M. Stallman  <rms@gnu.org>
+
+	* abbrev.el (read-abbrev-file): Don't set save-abbrevs.
+	(quietly-read-abbrev-file): Doc fix.
+
+	* startup.el (command-line): Read standard abbrev
+	file (abbrev-file-name), if it exists.
+
+	* files.el (save-abbrevs): Default value is t.
 
 	* progmodes/compile.el (compile-goto-error): Fix previous change
 	in the case where subsequent errors have not been parsed yet

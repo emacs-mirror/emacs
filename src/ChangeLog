@@ -1,3 +1,21 @@
+2001-11-11  Richard M. Stallman  <rms@gnu.org>
+
+	* insdel.c (replace_range): Use adjust_markers_for_replace
+	instead of adjust_markers_for_delete and adjust_markers_for_insert.
+
+	* intervals.h: Declare set_text_properties and set_text_properties_1.
+
+	* textprop.c (set_text_properties_1): New subroutine
+	broken out of set_text_properties.
+	(set_text_properties): Use set_text_properties_1.
+
+	* intervals.c (graft_intervals_into_buffer):
+	Use set_text_properties_1 to clear out properties.
+
+	* search.c (Freplace_match): Use replace_range to insert
+	and delete.  Don't request property inheritance from
+	surrounding text.
+
 2001-11-10  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (enum_font_cb2): Use leading @ on face name to detect
