@@ -1067,26 +1067,12 @@ Specify which reference to use; default is based on word at point."
 (defun Man-kill ()
   "Kill the buffer containing the manpage."
   (interactive)
-  (let ((buff (current-buffer)))
-    (delete-windows-on buff)
-    (kill-buffer buff))
-  (if (and window-system
-	   (or (eq Man-notify-method 'newframe)
-	       (and pop-up-frames
-		    (eq Man-notify-method 'bully))))
-      (delete-frame)))
+  (quit-window t))
 
 (defun Man-quit ()
   "Bury the buffer containing the manpage."
   (interactive)
-  (let ((buff (current-buffer)))
-    (delete-windows-on buff)
-    (bury-buffer buff))
-  (if (and window-system
-	   (or (eq Man-notify-method 'newframe)
-	       (and pop-up-frames
-		    (eq Man-notify-method 'bully))))
-      (delete-frame)))
+  (quit-window))
 
 (defun Man-goto-page (page)
   "Go to the manual page on page PAGE."
