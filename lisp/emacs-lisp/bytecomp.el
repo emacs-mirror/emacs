@@ -4,13 +4,12 @@
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
+;; Maintainer: FSF
 ;; Keywords: lisp
-
-;; Subsequently modified by RMS.
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.35 $")
+(defconst byte-compile-version "$Revision: 2.36 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1381,6 +1380,10 @@ With argument, insert value in current buffer after the form."
 	(case-fold-search nil)
 	(print-length nil)
 	(print-level nil)
+	;; Prevent edebug from interfering when we compile
+	;; and put the output into a file.
+	(edebug-all-defs nil)
+	(edebug-all-forms nil)
 	;; Simulate entry to byte-compile-top-level
 	(byte-compile-constants nil)
 	(byte-compile-variables nil)
