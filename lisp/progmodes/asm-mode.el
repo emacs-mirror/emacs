@@ -1,6 +1,6 @@
 ;;; asm-mode.el --- mode for editing assembler code
 
-;; Copyright (C) 1991 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 2003 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
@@ -80,9 +80,10 @@
   )
 
 (defconst asm-font-lock-keywords
- '(("^\\(\\(\\sw\\|\\s_\\)+\\)\\>:?[ \t]*\\(\\sw+\\(\\.[lLwWbBsS]\\)?\\)?"
+ '(("^\\(\\(\\sw\\|\\s_\\)+\\)\\>:?[ \t]*\\(\\sw+\\(\\.\\sw+\\)*\\)?"
     (1 font-lock-function-name-face) (3 font-lock-keyword-face nil t))
-   ("^\\s +\\(\\(\\sw\\|\\s_\\)+\\(\\.[lLwWbBsS]\\)?\\)" 1 font-lock-keyword-face))
+   ("^\\((\\sw+)\\)?\\s +\\(\\(\\sw\\|\\s_\\)+\\(\\.\\sw+\\)*\\)"
+    2 font-lock-keyword-face))
  "Additional expressions to highlight in Assembler mode.")
 
 (defvar asm-code-level-empty-comment-pattern nil)
