@@ -42,7 +42,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 do								\
   {								\
     Lisp_Object val;						\
-    XSET (val, Lisp_Cons, (char *) address + size);		\
+    XSETCONS (val, (char *) address + size);		\
     if ((char *) XCONS (val) != (char *) address + size)	\
       {								\
 	xfree (address);					\
@@ -447,7 +447,7 @@ make_float (float_value)
 
   if (float_free_list)
     {
-      XSET (val, Lisp_Float, float_free_list);
+      XSETFLOAT (val, float_free_list);
       float_free_list = (struct Lisp_Float *) XFASTINT (float_free_list->type);
     }
   else
@@ -460,7 +460,7 @@ make_float (float_value)
 	  float_block = new;
 	  float_block_index = 0;
 	}
-      XSET (val, Lisp_Float, &float_block->floats[float_block_index++]);
+      XSETFLOAT (val, &float_block->floats[float_block_index++]);
     }
   XFLOAT (val)->data = float_value;
   XFASTINT (XFLOAT (val)->type) = 0;	/* bug chasing -wsr */
@@ -521,7 +521,7 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 
   if (cons_free_list)
     {
-      XSET (val, Lisp_Cons, cons_free_list);
+      XSETCONS (val, cons_free_list);
       cons_free_list = (struct Lisp_Cons *) XFASTINT (cons_free_list->car);
     }
   else
@@ -534,7 +534,7 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 	  cons_block = new;
 	  cons_block_index = 0;
 	}
-      XSET (val, Lisp_Cons, &cons_block->conses[cons_block_index++]);
+      XSETCONS (val, &cons_block->conses[cons_block_index++]);
     }
   XCONS (val)->car = car;
   XCONS (val)->cdr = cdr;
@@ -601,7 +601,7 @@ See also the function `vector'.")
   p = (struct Lisp_Vector *) xmalloc (sizeof (struct Lisp_Vector) + (sizei - 1) * sizeof (Lisp_Object));
   VALIDATE_LISP_STORAGE (p, 0);
 
-  XSET (vector, Lisp_Vector, p);
+  XSETVECTOR (vector, p);
   consing_since_gc += sizeof (struct Lisp_Vector) + (sizei - 1) * sizeof (Lisp_Object);
 
   p->size = sizei;
@@ -707,7 +707,7 @@ Its value and function definition are void, and its property list is nil.")
 
   if (symbol_free_list)
     {
-      XSET (val, Lisp_Symbol, symbol_free_list);
+      XSETSYMBOL (val, symbol_free_list);
       symbol_free_list
 	= (struct Lisp_Symbol *) XFASTINT (symbol_free_list->value);
     }
@@ -721,7 +721,7 @@ Its value and function definition are void, and its property list is nil.")
 	  symbol_block = new;
 	  symbol_block_index = 0;
 	}
-      XSET (val, Lisp_Symbol, &symbol_block->symbols[symbol_block_index++]);
+      XSETSYMBOL (val, &symbol_block->symbols[symbol_block_index++]);
     }
   p = XSYMBOL (val);
   p->name = XSTRING (str);
@@ -769,7 +769,7 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
 
   if (marker_free_list)
     {
-      XSET (val, Lisp_Marker, marker_free_list);
+      XSETMARKER (val, marker_free_list);
       marker_free_list
 	= (struct Lisp_Marker *) XFASTINT (marker_free_list->chain);
     }
@@ -783,7 +783,7 @@ DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
 	  marker_block = new;
 	  marker_block_index = 0;
 	}
-      XSET (val, Lisp_Marker, &marker_block->markers[marker_block_index++]);
+      XSETMARKER (val, &marker_block->markers[marker_block_index++]);
     }
   p = XMARKER (val);
   p->buffer = 0;
@@ -918,8 +918,9 @@ make_uninit_string (length)
   if (fullsize <= STRING_BLOCK_SIZE - current_string_block->pos)
     /* This string can fit in the current string block */
     {
-      XSET (val, Lisp_String,
-	    (struct Lisp_String *) (current_string_block->chars + current_string_block->pos));
+      XSETSTRING (val,
+		  ((struct Lisp_String *)
+		   (current_string_block->chars + current_string_block->pos)));
       current_string_block->pos += fullsize;
     }
   else if (fullsize > STRING_BLOCK_OUTSIZE)
@@ -932,8 +933,9 @@ make_uninit_string (length)
       new->pos = fullsize;
       new->next = large_string_blocks;
       large_string_blocks = new;
-      XSET (val, Lisp_String,
-	    (struct Lisp_String *) ((struct string_block_head *)new + 1));
+      XSETSTRING (val,
+		  ((struct Lisp_String *)
+		   ((struct string_block_head *)new + 1)));
     }
   else
     /* Make a new current string block and start it off with this string */
@@ -947,8 +949,8 @@ make_uninit_string (length)
       new->next = 0;
       current_string_block = new;
       new->pos = fullsize;
-      XSET (val, Lisp_String,
-	    (struct Lisp_String *) current_string_block->chars);
+      XSETSTRING (val,
+		  (struct Lisp_String *) current_string_block->chars);
     }
     
   XSTRING (val)->size = length;
@@ -1014,7 +1016,7 @@ make_pure_string (data, length)
 
   if (pureptr + size > PURESIZE)
     error ("Pure Lisp storage exhausted");
-  XSET (new, Lisp_String, PUREBEG + pureptr);
+  XSETSTRING (new, PUREBEG + pureptr);
   XSTRING (new)->size = length;
   bcopy (data, XSTRING (new)->data, length);
   XSTRING (new)->data[length] = 0;
@@ -1037,7 +1039,7 @@ pure_cons (car, cdr)
 
   if (pureptr + sizeof (struct Lisp_Cons) > PURESIZE)
     error ("Pure Lisp storage exhausted");
-  XSET (new, Lisp_Cons, PUREBEG + pureptr);
+  XSETCONS (new, PUREBEG + pureptr);
   pureptr += sizeof (struct Lisp_Cons);
   XCONS (new)->car = Fpurecopy (car);
   XCONS (new)->cdr = Fpurecopy (cdr);
@@ -1075,7 +1077,7 @@ make_pure_float (num)
 
   if (pureptr + sizeof (struct Lisp_Float) > PURESIZE)
     error ("Pure Lisp storage exhausted");
-  XSET (new, Lisp_Float, PUREBEG + pureptr);
+  XSETFLOAT (new, PUREBEG + pureptr);
   pureptr += sizeof (struct Lisp_Float);
   XFLOAT (new)->data = num;
   XFASTINT (XFLOAT (new)->type) = 0;	/* bug chasing -wsr */
@@ -1094,7 +1096,7 @@ make_pure_vector (len)
   if (pureptr + size > PURESIZE)
     error ("Pure Lisp storage exhausted");
 
-  XSET (new, Lisp_Vector, PUREBEG + pureptr);
+  XSETVECTOR (new, PUREBEG + pureptr);
   pureptr += size;
   XVECTOR (new)->size = len;
   return new;
@@ -1690,18 +1692,14 @@ mark_buffer (buf)
      Since the strings may be relocated, we must mark them
      in their actual slots.  So gc_sweep must convert each slot
      back to an ordinary C pointer.  */
-  XSET (*(Lisp_Object *)&buffer->upcase_table,
-	Lisp_String, buffer->upcase_table);
+  XSETSTRING (*(Lisp_Object *)&buffer->upcase_table, buffer->upcase_table);
   mark_object ((Lisp_Object *)&buffer->upcase_table);
-  XSET (*(Lisp_Object *)&buffer->downcase_table,
-	Lisp_String, buffer->downcase_table);
+  XSETSTRING (*(Lisp_Object *)&buffer->downcase_table, buffer->downcase_table);
   mark_object ((Lisp_Object *)&buffer->downcase_table);
 
-  XSET (*(Lisp_Object *)&buffer->sort_table,
-	Lisp_String, buffer->sort_table);
+  XSETSTRING (*(Lisp_Object *)&buffer->sort_table, buffer->sort_table);
   mark_object ((Lisp_Object *)&buffer->sort_table);
-  XSET (*(Lisp_Object *)&buffer->folding_sort_table,
-	Lisp_String, buffer->folding_sort_table);
+  XSETSTRING (*(Lisp_Object *)&buffer->folding_sort_table, buffer->folding_sort_table);
   mark_object ((Lisp_Object *)&buffer->folding_sort_table);
 #endif
 
@@ -1863,7 +1861,7 @@ gc_sweep ()
 	    {
 	      Lisp_Object tem;
 	      tem1 = &mblk->markers[i];  /* tem1 avoids Sun compiler bug */
-	      XSET (tem, Lisp_Marker, tem1);
+	      XSETMARKER (tem, tem1);
 	      unchain_marker (tem);
 	      XFASTINT (mblk->markers[i].chain) = (EMACS_INT) marker_free_list;
 	      marker_free_list = &mblk->markers[i];
@@ -2055,11 +2053,11 @@ compact_strings ()
 		  size = XFASTINT (*objptr) & ~MARKBIT;
 		  if (XMARKBIT (*objptr))
 		    {
-		      XSET (*objptr, Lisp_String, newaddr);
+		      XSETSTRING (*objptr, newaddr);
 		      XMARK (*objptr);
 		    }
 		  else
-		    XSET (*objptr, Lisp_String, newaddr);
+		    XSETSTRING (*objptr, newaddr);
 		}
 	      /* Store the actual size in the size field.  */
 	      newaddr->size = size;
@@ -2070,9 +2068,8 @@ compact_strings ()
 	      if (! NULL_INTERVAL_P (newaddr->intervals))
 		{
 		  UNMARK_BALANCE_INTERVALS (newaddr->intervals);
-		  XSET (* (Lisp_Object *) &newaddr->intervals->parent,
-			Lisp_String,
-			newaddr);
+		  XSETSTRING (* (Lisp_Object *) &newaddr->intervals->parent,
+			      newaddr);
 		}
 #endif /* USE_TEXT_PROPERTIES */
 	    }
@@ -2121,7 +2118,7 @@ We divide the value by 1024 to make sure it fits in a Lisp integer.")
 {
   Lisp_Object end;
 
-  XSET (end, Lisp_Int, (EMACS_INT) sbrk (0) / 1024);
+  XSETINT (end, (EMACS_INT) sbrk (0) / 1024);
 
   return end;
 }
