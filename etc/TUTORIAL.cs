@@ -213,7 +213,7 @@ C-u 4 C-v posune obrazovku o 4 øádky.
 To by mìlo posunout obrazovku o 8 øádkù nahoru.  Pokud byste ji chtìli
 posunout zpìt dolù, mù¾ete dát argument pøíkazu M-v.
 
-Pou¾íváte-li X Windows, mìli byste mít na levé stranì emacsovského okna
+Pou¾íváte-li X Window, mìli byste mít na levé stranì emacsového okna
 vysokou obdélníkovou oblast, nazývanou scrollbar.  Mù¾ete pak text
 posouvat klikáním my¹í na scrollbar.
 
@@ -345,13 +345,19 @@ paralelu zapoèatou C-f a M-f (pravda, <Delete> opravdu není control
 znak, ale netrapme se tím).  C-k a M-k jsou jako C-e a M-e ve smyslu
 vztahu øádkù k vìtám.
 
-Kdy¾ sma¾ete více znakù najednou, Emacs smazaný text ulo¾í, abyste jej
-mohli opìt vrátit.  Vracení zru¹eného ("killed") textu se nazývá
-vhazování ("yanking").
+Libovolnou èást bufferu mù¾ete té¾ zru¹it následující metodou.
+Pøesuòte se na konec této èásti a stisknìte C-@ nebo C-SPC (libovolnou
+z tìchto kombinací). (SPC oznaèuje mezerník.)  Pøesuòte se na druhý
+konec této èásti a stisknìte C-w.  Text mezi tìmito pozicemi bude
+zru¹en.
 
-Zru¹ený text mù¾ete vhodit na toté¾ místo, kde byl zru¹en, nebo na
-jiné místo v textu.  Text mù¾ete vhodit nìkolikrát za sebou,
-potøebujete-li vyrobit nìkolik jeho kopií.  Vhazovací pøíkaz je C-y.
+>> Pøesuòte kurzor na písmeno L na zaèátku pøedchozího odstavce.
+>> Stisknìte C-SPC.  Emacs by mìl ve spodním øádku obrazovky
+   zobrazit zprávu "Mark set".
+>> Pøesuòte kurzor na písmeno c ve slovì "konec" na druhém øádku
+   odstavce.
+>> Stisknìte C-w.  Text zaèínající písmenem L a konèící pøed písmenem
+   c bude zru¹en.
 
 Uvìdomte si, ¾e rozdíl mezi "ru¹ením" ("killing") a "mazáním"
 ("deleting") je ten, ¾e "zru¹ené" vìci mohou být zpìt vhozeny, zatímco
@@ -370,14 +376,19 @@ argument speciálnì: zru¹í odpovídající poèet øádkù VÈETNÌ jejich
 obsahu.  To u¾ není opakování.  C-u 2 C-k zru¹í dva øádky a jejich
 obsah; dvojitý stisk C-k by toto obvykle neudìlal.
 
-Vyta¾ení posledního zru¹eného textu a jeho vlo¾ení na pozici, kde se
-momentálnì nachází kurzor, dosáhnete stiskem C-y.
+Vracení textu zpìt se nazývá "vhazování" ("yanking").  (Pøedstavte
+si opìtovné vhazování, vracení zpìt textu, který byl odstranìn.)
+Smazaný text mù¾ete vhodit buï na stejné místo, odkud byl smazán,
+nebo na jiné místo v bufferu, nebo dokonce i do jiného souboru.
+Text mù¾ete vhodit i vícekrát, kdy vytváøíte jeho dal¹í kopie.
+
+Pøíkazem pro vhazování je C-y.  Tento pøíkaz vlo¾í poslední smazaný
+text na pozici, na které se nachází kurzor.
 
 >> Zkuste to; stisknìte C-y pro vhození textu zpìt.
 
-Chápejte C-y, jako kdybyste si zpátky vzali nìco, co vám nìkdo sebral.
-V¹imnìte si, ¾e pokud provedete nìkolik C-k za sebou, ve¹kerý zru¹ený
-text je ulo¾en pohromadì, aby jediné C-y vlo¾ilo v¹echny tyto øádky.
+Stisknete-li nìkolikrát C-k po sobì, v¹echen smazaný text je ulo¾en
+spoleènì tak, aby bylo mo¾né vhodit zpìt v¹echny øádky najednou.
 
 >> Stisknìte nìkolikrát C-k.
 
@@ -411,7 +422,7 @@ bodu (poslednì zru¹enému textu).
 ------
 
 Jestli¾e provedete v textu zmìnu a pak zjistíte, ¾e to byl omyl, mù¾ete
-zmìnu vrátit pøíkazem undo C-x u.
+zmìnu vrátit pøíkazem undo, C-x u.
 
 C-x u obvykle vrátí zmìny provedené jedním pøíkazem; pokud C-x u
 zopakujete nìkolikrát za sebou, ka¾dé opakování vrátí jeden dal¹í
@@ -433,6 +444,10 @@ proè nabízíme i C-x u.  Na nìkterých terminálech mù¾ete C-_ vyvolat
 stiskem / pøi stisknutém CTRL.
 
 Numerický argument pro C-_ a C-x u funguje jako poèet opakování.
+
+Pomocí pøíkazu undo mù¾ete vrátit zru¹ený stejnì jako smazaný text.
+Rozdíl mezi mazáním a ru¹ením textu ovlivòuje mo¾nost vhození tohoto
+textu pomocí C-y, neovlivòuje mo¾nosti pøíkazu undo.
 
 
 * SOUBORY
@@ -544,7 +559,7 @@ Podívejte se, ¾e ka¾dý buffer má v seznamu jméno a mù¾e tam mít také jméno
 souboru, jeho¾ text obsahuje.  Nìkteré buffery neodpovídají souborùm.
 Napøíklad buffer pojmenovaný "*Buffer List*" nemá ¾ádný soubor.  Je to
 buffer, který obsahuje seznam bufferù vytvoøený pomocí C-x C-b.
-JAKÝKOLIV text, který vidíte v emacsovském oknì, je v¾dy souèástí
+JAKÝKOLIV text, který vidíte v emacsovém oknì, je v¾dy souèástí
 nìjakého bufferu.
 
 >> Stisknìte C-x 1, abyste se zbavili seznamu bufferù.
@@ -939,7 +954,7 @@ K získání více informací o pøíkazu místo C-h c pou¾ijte C-h k.
 
 >> Stisknìte C-h k Control-p.
 
-To zobrazí dokumentaci k funkci a její jméno v emacsovském oknì.  A¾
+To zobrazí dokumentaci k funkci a její jméno v emacsovém oknì.  A¾
 výstup pøeètete, stisknìte C-x 1, abyste se textu nápovìdy zbavili.
 Nemusíte to dìlat hned.  Mù¾ete chvíli editovat a nahlí¾et do textu
 nápovìdy a teprve pak stisknout C-x 1.
@@ -951,6 +966,10 @@ Zde jsou dal¹í u¾iteèné C-h volby:
 >> Zkuste napsat C-h f previous-line<Return>.
    To vypí¹e ve¹keré informace, které Emacs má o funkci implementující
    pøíkaz C-p.
+
+Podobný pøíkaz C-h v zobrazí dokumentaci promìnné, její¾ hodnotu
+mù¾ete nastavit pro nastavení chování Emacsu.  Jméno promìnné musíte
+zadat a¾ se na nìj Emacs zeptá.
 
    C-h a	Pøíkazové apropos.  Zadejte klíèové slovo a Emacs vypí¹e
 		v¹echny pøíkazy, jejich¾ jména obsahují toto klíèové
@@ -969,6 +988,17 @@ odpovídajících jmen pøíkazù jako find-file.
 
 >> Stisknìte C-x 1 pro smazání okna s nápovìdou.
 
+   C-h i	Ètení on-line manuálù (té¾ Info).  Tento pøíkaz
+		Vás pøepne do speciálního bufferu s názvem `*info*',
+		ve kterém mù¾ete èíst on-line manuály pro balíky
+		nainstalované na va¹em systému.  Pokud stisknete
+		m emacs <Return> mù¾ete si napø. pøeèíst manuál
+		k Emacsu.  Pokud jste dosud nikdy nepou¾ívali Info,
+		stisknìte ? a Emacs vám pøedstaví hlavní mo¾nosti
+		módu pro Info.  Pokud toto pøedstavení absolvujete,
+		mìli byste pou¾ívat Info manuál Emacsu jako svoji
+		primární dokumentaci.
+
 
 * ZÁVÌR
 -------
@@ -985,7 +1015,7 @@ narazíte-li na nìco nejasného, tak neusedejte a neklaïte to za vinu sobì
 KOPÍROVÁNÍ
 ----------
 
-Tento tutoriál vychází z dlouhé øady emacsovských tutoriálù zahájené
+Tento tutoriál vychází z dlouhé øady emacsových tutoriálù zahájené
 tutoriálem napsaným Stuartem Cracraftem pro pùvodní Emacs.
 
 Tato verze tutoriálu je, podobnì jako GNU Emacs, chránìna copyrightem a
