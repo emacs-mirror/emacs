@@ -41,36 +41,53 @@ even if it is active."
 				(enlarge-window (- size (window-height)))))
 		    'nomini))))
 
+;;; Many people find the minimal-redisplay window splitting annoying,
+;;; so we make it an option. 
+
+(defvar split-window-keep-point nil
+  "*If non-nil, split windows so that both windows keep the original
+value of point.  This is often more convenient for editing.
+If nil, split windows to minimize redisplay.  This is convenient on
+slow terminals, but point may be moved strangely to accommodate the
+redisplay.")
+
 (defun split-window-vertically (&optional arg)
   "Split current window into two windows, one above the other.
 The uppermost window gets ARG lines and the other gets the rest.
 With no argument, split equally or close to it.
 Both windows display the same buffer now current.
-The new selected window is the one that the current value of point
-appears in.
 
-The value of point can change if the text around point 
-is hidden by the new mode line."
+If the variable split-window-keep-point is non-nil, both new windows
+will get the same value of point as the current window.  This is often
+more convenient for editing.
+
+Otherwise, we chose window starts so as to minimize the amount of
+redisplay; this is convenient on slow terminals.  The new selected
+window is the one that the current value of point appears in.  The
+value of point can change if the text around point is hidden by the
+new mode line."
   (interactive "P")
   (let ((old-w (selected-window))
 	(old-point (point))
 	new-w bottom switch)
     (setq new-w (split-window nil (and arg (prefix-numeric-value arg))))
-    (save-excursion
-      (set-buffer (window-buffer))
-      (goto-char (window-start))
-      (vertical-motion (window-height))
-      (set-window-start new-w (point))
-      (if (> (point) (window-point new-w))
-	  (set-window-point new-w (point)))
-      (vertical-motion -1)
-      (setq bottom (point)))
-    (if (<= bottom (point))
-	(set-window-point old-w (1- bottom)))
-    (if (< (window-start new-w) old-point)
+    (if (not split-window-keep-point)
 	(progn
-	  (set-window-point new-w old-point)
-	  (select-window new-w)))))
+	  (save-excursion
+	    (set-buffer (window-buffer))
+	    (goto-char (window-start))
+	    (vertical-motion (window-height))
+	    (set-window-start new-w (point))
+	    (if (> (point) (window-point new-w))
+		(set-window-point new-w (point)))
+	    (vertical-motion -1)
+	    (setq bottom (point)))
+	  (if (<= bottom (point))
+	      (set-window-point old-w (1- bottom)))
+	  (if (< (window-start new-w) old-point)
+	      (progn
+		(set-window-point new-w old-point)
+		(select-window new-w)))))))
 
 (defun split-window-horizontally (&optional arg)
   "Split current window into two windows side by side.
