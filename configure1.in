@@ -1336,7 +1336,7 @@ fi
 
 if [ "$run_in_place" = "1" ]; then
    lispdir='${srcdir}/lisp'
-   locallisppath='${srcdir}/site-lisp:${datadir}/emacs/site-lisp'
+   locallisppath='${srcdir}/site-lisp'
    etcdir='${srcdir}/etc'
    lockdir='${srcdir}/lock'
    archlibdir='${srcdir}/lib-src'
