@@ -1292,8 +1292,7 @@ with SIGHUP.  */)
       }
 
     /* Then run the hooks.  */
-    if (!NILP (Vrun_hooks))
-      call1 (Vrun_hooks, Qkill_buffer_hook);
+    Frun_hooks (1, &Qkill_buffer_hook);
     unbind_to (count, Qnil);
   }
 
