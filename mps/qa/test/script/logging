@@ -1,0 +1,88 @@
+#!/usr/local/perl
+#
+# provides subroutines to help in creating test logs and
+# reports
+#
+
+1;
+
+#
+# &describe_test(report_type)
+#
+# prints out report on a test. report_type is one of:
+#   full:    everything
+#   result:  test, spec output, results, conclusion
+#
+
+sub describe_test {
+ local ($report) = @_;
+
+ $~ = "LOGHEAD";
+ write;
+ %keyvalues = %test_header;
+ %keyrelations = ();
+ &dispvals;
+ %keyvalues = %spec_output;
+ %keyrelations = %spec_rel;
+ print $log_test_spec;
+ &dispvals;
+ %keyvalues = %real_output;
+ %keyrelations = ();
+ print $log_test_res;
+ &dispvals;
+ print $log_test_conc;
+ $~ = "LOGCONC";
+ write;
+ if ($report eq "full") {
+  &displog;
+ }
+}
+
+sub dispvals {
+ local ($key, $rel, $val);
+
+ $~ = "LOGVALS";
+
+ foreach $key (sort keys %keyvalues) {
+  $val = $keyvalues{$key};
+  $rel = ($keyrelations{$key} || "=");
+  write;
+ }
+}
+
+sub displog {
+ open(TESTLOG, $testlogfile);
+ print $log_test_tran;
+ while ($line = <TESTLOG>) {
+  print $line;
+ }
+ print $log_test_end;
+}
+
+#
+# what the output looks like:
+#
+
+$log_test_spec = "SPECIFIED RESULTS\n";
+$log_test_res  = "RESULTS\n";
+$log_test_conc = "CONCLUSION\n";
+$log_test_tran = "TRANSCRIPT\n";
+$log_test_end  = "END OF TRANSCRIPT\n\n";
+
+format LOGHEAD =
+------------------------------------------------------------------------
+@<<<ED TEST @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$testconclusion, $testfile
+.
+
+format LOGVALS =
+  @<<<<<<<<< @< @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$key, $rel, $val
+.
+
+format LOGCONC =
+  @<<<<<<<<<    @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$testconclusion, $testconcreason
+
+.
+
