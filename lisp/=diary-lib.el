@@ -1167,12 +1167,6 @@ A number of built-in functions are available for this type of diary entry:
                   day before.  (If `european-calendar-style' is t, the order
                   of the parameters should be changed to DAY, MONTH, YEAR.)
                   
-      %%(diary-sunrise-sunset)
-                  Diary entries giving the local times of Sabbath candle
-                  lighting will be made every day.  Note that since there is
-                  no text, it makes sense only if the fancy diary display is
-                  used.  Floating point required.
-
       %%(diary-rosh-hodesh)
                   Diary entries will be made on the dates of Rosh Hodesh on
                   the Hebrew calendar.  Note that since there is no text, it
@@ -1539,7 +1533,7 @@ Do nothing if DATE or STRING is nil."
        (setq diary-entries-list 
              (append diary-entries-list (list (list date string))))))
 
-(defconst hebrew-calendar-parashiot-names
+(defvar hebrew-calendar-parashiot-names
 ["Bereshith"   "Noah"      "Lech L'cha" "Vayera"    "Hayei Sarah" "Toledoth"
  "Vayetze"     "Vayishlah" "Vayeshev"   "Mikketz"   "Vayiggash"   "Vayhi"
  "Shemoth"     "Vaera"     "Bo"         "Beshallah" "Yithro"      "Mishpatim"
