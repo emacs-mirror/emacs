@@ -13,6 +13,23 @@
 
 2000-09-08  Dave Love  <fx@gnu.org>
 
+	* s/sol2.h (REL_ALLOC_MMAP): Define.
+	* s/irix5-0.h (REL_ALLOC_MMAP): Likewise.
+
+	* ralloc.c: Don't include string.h (redundant).
+	(MAP_ANON) [REL_ALLOC_MMAP]: Ensure it's defined.
+	[!MAP_ANON]: Include fcntl.h.
+	(mmap_fd) [REL_ALLOC_MMAP]: New variable.
+	(r_alloc, r_re_alloc, r_alloc_free)
+	(mmap_enlarge, mmap_set_vars): Use it.
+	(r_alloc_init_fd): New function.
+	(__morecore) [SYSTEM_MALLOC]: Don't declare.
+	(r_alloc_init): Call r_alloc_init_fd.  Conditionalize stuff on
+	malloc type.
+
+	* Makefile.in (allocaobj) [!SYSTEM_MALLOC && REL_ALLOC_MMAP]:
+	Remove vm-limit.o.
+
 	* unexelf.c (SHT_MIPS_DEBUG, HDRR) [__mips__]: Really confine last
 	change to __NetBSD__.
 
