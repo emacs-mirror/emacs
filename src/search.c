@@ -130,13 +130,6 @@ compile_pattern_1 (cp, pattern, translate, regp, posix)
     Fsignal (Qinvalid_regexp, Fcons (build_string (val), Qnil));
 
   cp->regexp = Fcopy_sequence (pattern);
-
-  /* Advise the searching functions about the space we have allocated
-     for register data.  */
-  BLOCK_INPUT;
-  if (regp)
-    re_set_registers (&cp->buf, regp, regp->num_regs, regp->start, regp->end);
-  UNBLOCK_INPUT;
 }
 
 /* Compile a regexp if necessary, but first check to see if there's one in
@@ -181,6 +174,11 @@ compile_pattern (pattern, regp, translate, posix)
   *cpp = cp->next;
   cp->next = searchbuf_head;
   searchbuf_head = cp;
+
+  /* Advise the searching functions about the space we have allocated
+     for register data.  */
+  if (regp)
+    re_set_registers (&cp->buf, regp, regp->num_regs, regp->start, regp->end);
 
   return &cp->buf;
 }
