@@ -1253,7 +1253,9 @@ DEFUN ("set-face-attribute-internal", Fset_face_attribute_internal,
   if (garbaged)
     {
       SET_FRAME_GARBAGED (f);
+#ifdef HAVE_X_WINDOWS
       FRAME_X_DISPLAY_INFO (f)->mouse_face_defer = 1;
+#endif
     }
 
   return Qnil;
