@@ -1,3 +1,25 @@
+2003-05-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* window.h (Qwindowp, Qwindow_live_p, Vwindow_list)
+	(Fwindow_end, Fselected_window, Fdelete_window, Fwindow_buffer)
+	(Fget_buffer_window, Fsave_window_excursion, Fsplit_window)
+	(Fset_window_configuration, Fcurrent_window_configuration)
+	(compare_window_configurations, Fcoordinates_in_window_p, Fwindow_at)
+	(Fpos_visible_in_window_p, mark_window_cursors_off)
+	(window_internal_height, window_internal_width, Frecenter)
+	(Fscroll_other_window, Fset_window_start, temp_output_buffer_show)
+	(replace_buffer_in_all_windows, init_window_once, init_window)
+	(syms_of_window, keys_of_window): Move from lisp.h.
+	* lisp.h: Move window.c declarations to window.h.
+
+	* bytecode.c: Include window.h.
+	* emacs.c: Include window.h.
+
+	* keyboard.c (make_lispy_event): Apply modifiers to multibyte-char keys.
+	(keyremap): Add `parent' field.
+	(keyremap_step): Use it.  Remove `parent' argument.
+	(read_key_sequence): Setup and use the new `parent' field.
+
 2003-05-11  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* keyboard.c (adjust_point_for_property): Ensure termination.
