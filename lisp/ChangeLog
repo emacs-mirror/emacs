@@ -1,3 +1,8 @@
+2001-03-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* font-lock.el (save-buffer-state): Use inhibit-modification-hooks
+	rather than (before|after)-change-functions.
+
 2001-03-01  Gerd Moellmann  <gerd@gnu.org>
 
 	* ediff-util.el (ediff-scroll-horizontally): Arrange for
@@ -70,7 +75,7 @@
 
 	* international/fontset.el (x-complement-fontset-spec): In the
 	case that we use ASCII font for the other charsets, use only
-	family and regisry part of it.
+	family and registry part of it.
 
 2001-02-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -243,8 +248,7 @@
 
 	* battery.el (battery-status-function): Fix doc, :type.
 
-	* calendar/timeclock.el (timeclock-get-workday-function): Fix
-	:type.
+	* calendar/timeclock.el (timeclock-get-workday-function): Fix :type.
 
 2001-02-15  Gerd Moellmann  <gerd@gnu.org>
 
@@ -347,8 +351,7 @@
 	* emacs-lisp/re-builder.el (reb-mode): Quote the hook name.  From
 	Juanma Barranquero.
 
-	* emacs-lisp/authors.el (authors): Expand `root' before running
-	find.
+	* emacs-lisp/authors.el (authors): Expand `root' before running find.
 
 2001-02-09  Kenichi Handa  <handa@etl.go.jp>
 
