@@ -9,11 +9,11 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<2000/03/21 00:02:42 vinicius>
-;; Version:	5.1.1
+;; Time-stamp:	<2000/03/22 09:12:07 vinicius>
+;; Version:	5.1.2
 
-(defconst ps-print-version "5.1.1"
-  "ps-print.el, v 5.1.1 <2000/03/21 vinicius>
+(defconst ps-print-version "5.1.2"
+  "ps-print.el, v 5.1.2 <2000/03/22 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs,
@@ -3740,7 +3740,6 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 
     (ps-output "\n%%EndProcSet\n\n")
 
-    (ps-output-boolean "SkipFirstPage      " ps-banner-page-when-duplexing)
     (ps-output-boolean "LandscapeMode      "
 		       (or ps-landscape-mode
 			   (eq (ps-n-up-landscape n-up) 'pag)))
@@ -3854,7 +3853,9 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 		 "\n\n"
 		 ps-print-duplex-feature
 		 "\n%%EndFeature\n")))
-  (ps-output "\n/Lines 0 def\n/PageCount 0 def\n\nBeginDoc\n%%EndSetup\n"))
+  (ps-output "\n/Lines 0 def\n/PageCount 0 def\n\nBeginDoc\n%%EndSetup\n")
+  (and ps-banner-page-when-duplexing
+       (ps-output "\n%%Page: 0 0\nsave showpage restore\n")))
 
 
 (defun ps-insert-string (prologue)
@@ -3936,7 +3937,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 (defmacro ps-page-number ()
   `(1+ (/ (1- ps-page-count) ps-number-of-columns)))
 
-(defun ps-end-file ()
+(defun ps-end-file (needs-begin-file)
   (ps-flush-output)
   ;; Back to the PS output buffer to set the last page n-up printing
   (save-excursion
@@ -3952,7 +3953,10 @@ XSTART YSTART are the relative position for the first page in a sheet.")
        (ps-dummy-page))
   ;; Set end of PostScript file
   (ps-output "EndSheet\n\n%%Trailer\n%%Pages: "
-	     (format "%d" ps-page-order)
+	     (format "%d"
+		     (if (and needs-begin-file ps-banner-page-when-duplexing)
+			 (1+ ps-page-order)
+		       ps-page-order))
 	     "\n\nEndDoc\n\n%%EOF\n"))
 
 
@@ -4619,7 +4623,7 @@ If FACE is not a valid face name, it is used default face."
 		(funcall genfunc from to)
 		(ps-end-page)
 
-		(ps-end-file)
+		(ps-end-file needs-begin-file)
 		(ps-end-job)
 
 		;; Setting this variable tells the unwind form that the
