@@ -1,6 +1,6 @@
 /* impl.h.mpmtypes: MEMORY POOL MANAGER TYPES
  *
- * $HopeName: MMsrc!mpmtypes.h(trunk.15) $
+ * $HopeName: MMsrc!mpmtypes.h(trunk.16) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .readership: MM developers.
@@ -104,8 +104,8 @@ typedef void (*FormatPadMethod)    (Addr base, Size size);
 
 
 /* Root*Method -- see design.mps.root-interface */
-/* These methods must match those defined in the MPS C Interface. */
-/* (See impl.h.mps.fmt-methods.) */
+/* .root-methods: These methods must match those defined in the */
+/* MPS C Interface.  (See impl.h.mps.root-methods.) */
 
 typedef Res (*RootScanMethod)   (ScanState ss, void *p, size_t s);
 typedef Res (*RootScanRegMethod)(ScanState ss, Thread thread, void *p, 
