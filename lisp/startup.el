@@ -147,6 +147,7 @@ directory name of the directory where the `.emacs' file was looked for.")
       (run-hooks 'emacs-startup-hook)
       (and term-setup-hook
 	   (run-hooks 'term-setup-hook))
+      (frame-notice-user-settings)
       (and window-setup-hook
 	   (run-hooks 'window-setup-hook)))))
 
@@ -211,6 +212,11 @@ directory name of the directory where the `.emacs' file was looked for.")
     
     ;; Re-attach the program name to the front of the arg list.
     (setcdr command-line-args args))
+
+  ;; Under X Windows, this creates the X frame and deletes the terminal frame.
+  (frame-initialize)
+
+  (face-initialize)
 
   (run-hooks 'before-init-hook)
 
