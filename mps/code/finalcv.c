@@ -1,12 +1,12 @@
-/* impl.c.finalcv: FINALIZATION COVERAGE TEST
+/* finalcv.c: FINALIZATION COVERAGE TEST
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  * Copyright (C) 2002 Global Graphics Software.
  *
  * DESIGN
  *
- * See design.mps.poolmrg.test.
+ * See <design/poolmrg/#test>.
  *
  * DEPENDENCIES
  *
@@ -15,7 +15,7 @@
  *
  * NOTES
  *
- * This code was created by first copying impl.c.weakcv
+ * This code was created by first copying <code/weakcv.c>
  */
 
 #include "testlib.h"
@@ -120,8 +120,8 @@ static void *test(void *arg, size_t s)
       "root_create\n");
   die(mps_ap_create(&ap, amc, MPS_RANK_EXACT), "ap_create\n");
 
-  /* design.mps.poolmrg.test.promise.ut.alloc */
-  for (i = 0; i < rootCOUNT; ++i) {
+  /* <design/poolmrg/#test.promise.ut.alloc> */
+  for(i = 0; i < rootCOUNT; ++i) {
     do {
       MPS_RESERVE_BLOCK(e, p, ap, slotSIZE);
       die(e, "MPS_RES_OK");
@@ -138,7 +138,7 @@ static void *test(void *arg, size_t s)
 #ifdef CONFIG_PROD_EPCORE
   gcThreshold = mps_arena_committed(arena) + gcINTERVAL;
 #endif
-  /* design.mps.poolmrg.test.promise.ut.churn */
+  /* <design/poolmrg/#test.promise.ut.churn> */
   while (mps_collections(arena) < collectionCOUNT) {
     churn(ap);
     /* design.mps.poolmrg.test.promise.ut.drop */
@@ -167,14 +167,14 @@ static void *test(void *arg, size_t s)
       mps_word_t objind;
       mps_addr_t objaddr;
 
-      /* design.mps.poolmrg.test.promise.ut.message */
+      /* <design/poolmrg/#test.promise.ut.message> */
       cdie(mps_message_get(&message, arena, mps_message_type_finalization()),
            "get");
       mps_message_finalization_ref(&objaddr, arena, message);
       obj = objaddr;
       objind = dylan_int_int(obj[2]);
       printf("Finalizing: object %lu at %p\n", objind, objaddr);
-      /* design.mps.poolmrg.test.promise.ut.final.check */
+      /* <design/poolmrg/#test.promise.ut.final.check> */
       cdie(root[objind] == NULL, "finalized live");
       cdie(state[objind] == finalizableSTATE, "finalized dead");
       state[objind] = finalizedSTATE;
@@ -185,7 +185,7 @@ static void *test(void *arg, size_t s)
     }
   }
 
-  /* @@@@ design.mps.poolmrg.test.promise.ut.nofinal.check missing */
+  /* @@@@ <design/poolmrg/#test.promise.ut.nofinal.check> missing */
 
   mps_ap_destroy(ap);
   mps_root_destroy(mps_root[1]);
@@ -217,3 +217,45 @@ int main(int argc, char **argv)
   fprintf(stderr, "\nConclusion:  Failed to find any defects.\n");
   return 0;
 }
+
+
+/* C. COPYRIGHT AND LICENSE
+ *
+ * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * All rights reserved.  This is an open source license.  Contact
+ * Ravenbrook for commercial licensing options.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * 
+ * 3. Redistributions in any form must be accompanied by information on how
+ * to obtain complete source code for this software and any accompanying
+ * software that uses this software.  The source code must either be
+ * included in the distribution or be available for no more than the cost
+ * of distribution plus a nominal fee, and must be freely redistributable
+ * under reasonable conditions.  For an executable file, complete source
+ * code means the source code for all modules it contains. It does not
+ * include source code for modules or files that typically accompany the
+ * major components of the operating system on which the executable file
+ * runs.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */

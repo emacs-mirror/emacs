@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>The design of the ring data structure</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+</div>
+
+<pre>
+                 THE DESIGN OF THE RING DATA STRUCTURE
+                            design.mps.ring
+                             incomplete doc
+                           richard 1996-09-26
+
+INTRODUCTION
+
+<a id="source" name="source">.source</a>: rings are derived from the earlier use of Deques.  See 
+design.mps.deque.
+
+
+DESCRIPTION
+
+<a id="def.ring" name="def.ring">.def.ring</a>: Rings are circular doubly-linked lists of ring "nodes".  The nodes 
+are fields of structures which are the "elements" of the ring.
+
+Ring node structures (RingStruct) are in-lined in the structures on the ring, 
+like this:
+
+  typedef struct FooStruct *Foo;     /* the element type */
+  typedef struct FooStruct {         /* the element structure */
+    int baz, bim;
+    RingStruct ring;                 /* the ring node */
+    float bip, bop;
+  } FooStruct;
+
+This arrangement means that they do not need to be managed separately.  This is 
+especially useful in avoiding re-entrancy and bootstrapping problems in the 
+memory manager.  Rings also provide flexible insertion and deletion because the 
+entire ring can be found from any node.
+
+In the MPS, rings are used to connect a "parent" structure (such as a Space) to 
+a number of "child" structures (such as Pools), as shown in .fig.ring (note the 
+slight abuse of naming convention (in that barRing is not called 
+barRingStruct)).
+
+<a id="fig.ring" name="fig.ring">.fig.ring</a>: A ring of Bar objects owned by a Foo object.
+
+
+
+<a id="fig.empty" name="fig.empty">.fig.empty</a>: An empty ring of Bar objects owned by a Foo object.
+
+
+<a id="def.singleton" name="def.singleton">.def.singleton</a>: A "singleton" ring is a ring containing one node, whose 
+previous and next nodes are itself (see .fig.single).
+
+<a id="fig.single" name="fig.single">.fig.single</a>: A singleton Bar object not on any ring.
+
+
+<a id="fig.elt" name="fig.elt">.fig.elt</a>: How RING_ELT gets a parent pointer from a node pointer.
+
+
+ - Ring Diagrams 
+
+INIT / FINISH
+
+<a id="init" name="init">.init</a>: Rings are initialized with the RingInit function.  They are initialized 
+to be a singleton ring (.def.singleton).
+
+<a id="finish" name="finish">.finish</a>: Rings are finished with the RingFinish funtion.  A ring must be a 
+singleton ring before it can be finished (it is an error to attempt to finish a 
+non-singleton ring).
+
+
+ITERATION
+
+<a id="for" name="for">.for</a>: A macro is used for iterating over the elements in a ring.  This macro is 
+called RING_FOR.  RING_FOR takes three arguments, the first is an iteration 
+variable: "node", the second is the "parent" element in the ring: "ring", the 
+third is a variable used by the iterator for working state (it holds a pointer 
+to the next node): "next".  All arguments must be of type Ring.  The "node" and 
+"next" variables must be declared and in scope already.  All elements except 
+for the "parent" element are iterated over.  The macro expands to a for 
+statement.  During execution of the loop, the "node" variable (the first 
+argument to the macro) will be the value of successive elements in the Ring (at 
+the beginning of the statement in the body of the loop).  <a id="for.error" name="for.error">.for.error</a>: It is an 
+error (possibly unchecked) for the "node" and "next" variables to be modified 
+except implicitly by using this iterator.  <a id="for.safe" name="for.safe">.for.safe</a>: It is safe to delete the 
+current node during the iteration.
+
+<a id="for.ex" name="for.ex">.for.ex</a>:
+
+An example:
+
+Ring node, nextNode;
+RING_FOR(node, &amp;foo-&gt;barRing, nextNode) {
+  Bar bar = RING_ELT(Bar, FooRing, node);
+  frob(bar);
+}
+
+<a id="for.ex.elt" name="for.ex.elt">.for.ex.elt</a>: Notice the idiomatic use of RING_ELT which is almost universal 
+when using RING_FOR.
+
+
+SUBCLASS
+
+<a id="elt" name="elt">.elt</a>: RING_ELT is a macro that converts a pointer to a ring structure to a 
+pointer to the enclosing parent structure.
+RING_ELT has three arguments which are, in order:
+type, the type of a pointer to the enclosing structure,
+field, the name of the ring structure field within it,
+ring, the ring node.
+The result is a pointer to the enclosing structure.
+
+[ Why does RING_ELT not use PARENT or even offsetof?  Apparently it's so that 
+it can cope with arrays of rings.  GavinM 1997-04-15]
+ 
+
+APPEND / REMOVE
+
+<a id="append" name="append">.append</a>: RingAppend appends a singleton ring to a ring (such that the newly 
+added element will be last in the iteration sequence).
+
+<a id="insert" name="insert">.insert</a>: RingInsert adds a singleton rung to a ring (such that the newly added 
+element will be first in the
+iteration sequence).
+
+<a id="remove" name="remove">.remove</a>: RingRemove removes an element from a ring, the newly removed element 
+becomes a singleton ring.  It is an error for the element to already be a 
+singleton.
+
+<a id="improve.join" name="improve.join">.improve.join</a>:  it would be possible to add a RingJoin operation.  This is not 
+done as it is not required.
+
+
+NAMING
+
+<a id="naming" name="naming">.naming</a>: By convention, when one structure Foo contains one ring of Bar 
+structures, the field is Foo is usually known as barRing, and the field in Bar 
+is known as fooRing.  If the Foo structure contains more than one ring of Bar 
+structures, then they will have names such as spongRing and frobRing.
+
+
+DEQUES
+
+This section documents where rings differ significantly from deques.
+
+<a id="head" name="head">.head</a>: Deques used a distinguished head structure for the head of the ring.  
+Rings still have a separate head structure, but it is not distinguished by type.
+
+
+DEFECTS
+
+This section documents known defects with the current design.
+
+<a id="app_for.misuse" name="app_for.misuse">.app_for.misuse</a>: It is easy to pass RingAppend and RING_FOR the arguments in 
+the wrong order as all the arguments have the same type.  see .head.
+
+<a id="check.improve" name="check.improve">.check.improve</a>: There is no method for performing a full integrity check.  This 
+could be added.
+
+ATTACHMENT
+   "Ring Diagrams"
+
+</pre>
+
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<!-- Template Entry
+
+<table>
+
+<tr valign="top">
+
+  <td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
+
+  <td>
+    "#REF_TITLE#";
+    #REF_AUTHOR#;
+    &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
+    #REF_DATE#.
+  </td>
+
+</tr>
+
+</table>
+
+-->
+
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+
+<tr valign="top">
+
+  <td>2002-06-07</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Converted from MMInfo database design document.</td>
+
+</tr>
+
+</table>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+</div>
+
+</body>
+
+</html>

@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>Design of the manually-managed variable-size first-fit pool</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+</div>
+
+<pre>
+      DESIGN OF THE MANUALLY-MANAGED VARIABLE-SIZE FIRST-FIT POOL
+                          design.mps.poolmvff
+                             incomplete doc
+                           gavinm 1998-09-09
+
+INTRODUCTION
+
+<a id="intro" name="intro">.intro</a>: The pool was created in a response to a belief that EPDL/EPDR's first 
+fit policy is beneficial for some classes of client behaviour, but the 
+performance of a linear free list was unacceptable.  This pool implements a 
+first (or last) fit policy for variable-sized manually-managed objects, with 
+control over first/last, segment preference high/low, and slot fit low/high.
+
+
+Document History
+
+<a id="hist.0" name="hist.0">.hist.0</a>: GavinM wrote a list of methods and function plus some notes 1998-09-09.
+
+<a id="hist.1" name="hist.1">.hist.1</a>: Added overview, removed bogus ArenaEnter design, and described 
+buffered allocation.  pekka 1999-01-06
+
+<a id="hist.2" name="hist.2">.hist.2</a>: Modified for the "Sunset On Segments" redesign of segments. Buffered 
+allocation is no longer limited to segment boundaries.
+
+OVERVIEW
+
+<a id="over" name="over">.over</a>: This pool implements certain variants of the address-ordered first-fit 
+policy.  The implementation allows allocation across segment boundaries.  
+<a id="over.buffer" name="over.buffer">.over.buffer</a>: Buffered allocation is also supported, but in that case, the 
+buffer-filling policy is worst-fit.  Buffered and unbuffered allocation can be 
+used at the same time, but in that case, the first ap must be created before 
+any allocations. <a id="over.buffer.class" name="over.buffer.class">.over.buffer.class</a>: The pool uses the simplest buffer class, 
+BufferClass. This is appropriate since these buffers don't attach to segments, 
+and hence don't constrain buffered regions to lie within segment boundaries. 
+<a id="over.segments" name="over.segments">.over.segments</a>: The pool uses the simplest segment class (SegClass). There's no 
+need for anything more complex.
+
+
+METHODS
+
+<a id="method" name="method">.method</a>: The MVFF pool supports the following methods:
+
+<a id="method.init" name="method.init">.method.init</a>: Res MVFFInit(Pool pool, va_list arg) 
+  This takes six vararg parameters:
+  - extendBy -- the segment size;
+  - avgSize -- the average object size;
+  - alignment -- the alignment of allocations and frees (must be at least 
+sizeof(void*));
+  - slotHigh -- whether to allocate objects at the end of free blocks found, as 
+opposed to at the start (for unbuffered allocation);
+  - arenaHigh -- whether to express SegPrefHIGH to the arena, as opposed to 
+SegPrefLOW;
+  - firstFit -- whether to use the suitable block of lowest address, as opposed 
+to the highest (for unbuffered allocation).
+<a id="method.init.epdl" name="method.init.epdl">.method.init.epdl</a>: To simulate the EPDL pool, specify extendBy, avgSize, and 
+maxSize as normal, and use slotHigh=FALSE, arenaHigh=FALSE, firstFit=TRUE.  
+<a id="method.init.epdr" name="method.init.epdr">.method.init.epdr</a>: To simulate the EPDL pool, specify extendBy, avgSize, and 
+maxSize as normal, and use slotHigh=TRUE, arenaHigh=TRUE, firstFit=TRUE.  
+<a id="method.init.other" name="method.init.other">.method.init.other</a>: The performance characteristics of other combinations are 
+unknown.
+
+<a id="method.finish" name="method.finish">.method.finish</a>: The PoolFinish method,
+
+<a id="method.alloc" name="method.alloc">.method.alloc</a>: Alloc and Free methods are supported, implementing the policy 
+set by the pool params (see .method.init).
+
+<a id="method.describe" name="method.describe">.method.describe</a>: The usual describe method.
+
+<a id="method.buffer" name="method.buffer">.method.buffer</a>: The buffer methods implement a worst-fit fill strategy.
+
+
+EXTERNAL FUNCTIONS
+
+<a id="function" name="function">.function</a>: MVFF supports the following external functions:
+
+<a id="function.free-size" name="function.free-size">.function.free-size</a>: size_t mps_mvff_free_size(mps_pool_t pool)
+  This function returns the total size of free space in segments allocated to 
+the MVFF pool instance.
+
+<a id="function.size" name="function.size">.function.size</a>: size_t mps_mvff_size(mps_pool_t pool)
+  This function returns the total memory used by pool segments, whether free or 
+allocated.
+
+<a id="function.class" name="function.class">.function.class</a>: mps_class_t mps_class_mvff(void)
+  This function returns the class object for the pool class, to be used in pool 
+creation.
+
+
+IMPLEMENTATION
+
+<a id="impl.free-list" name="impl.free-list">.impl.free-list</a>: The pool stores its free list in a CBS (see design.mps.cbs).  
+It uses the CBS's mayUseInline facility to avoid running out of memory to store 
+the free this.  This is the reason for the alignment restriction above.
+
+
+
+DETAILS
+
+<a id="design.seg-size" name="design.seg-size">.design.seg-size</a>: When adding a segment, we use extendBy as the segment size 
+unless the object won't fit, in which case we use the object size (in both 
+cases we align up).
+
+<a id="design.seg-fail" name="design.seg-fail">.design.seg-fail</a>: If allocating a segment fails, we try again with a segment 
+size just large enough for the object we're allocating.  This is in response to 
+request.mps.170186.
+
+</pre>
+
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<!-- Template Entry
+
+<table>
+
+<tr valign="top">
+
+  <td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
+
+  <td>
+    "#REF_TITLE#";
+    #REF_AUTHOR#;
+    &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
+    #REF_DATE#.
+  </td>
+
+</tr>
+
+</table>
+
+-->
+
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+
+<tr valign="top">
+
+  <td>2002-06-07</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Converted from MMInfo database design document.</td>
+
+</tr>
+
+</table>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+</div>
+
+</body>
+
+</html>

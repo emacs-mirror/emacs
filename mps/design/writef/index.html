@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>The design of the MPS writef function</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+</div>
+
+<pre>
+                 THE DESIGN OF THE MPS WRITEF FUNCTION
+                           design.mps.writef
+                               draft doc
+                           richard 1996-10-18
+
+INTRODUCTION
+
+<a id="intro" name="intro">.intro</a>: This document describes the WriteF function, which allows formatted 
+output in a manner similar to ANSI C printf, but allows the MPM to operate in a 
+freestanding environment (see design.mps.exec-env).
+
+<a id="background" name="background">.background</a>: The documents design.mps.exec-env and design.mps.lib describe the 
+design of
+the library interface and the reason that it exists.
+
+
+DESIGN
+
+<a id="no-printf" name="no-printf">.no-printf</a>: There is no dependency on printf has been removed.  The MPM only 
+depends on fputc and fputs, via the Library Interface (design.mps.lib).  This 
+makes it much easier to deploy the MPS in a freestanding environment.  This is 
+achieved by implementing our own internal output routines in mpm.c.
+
+Our output requirements are few, so the code is short.  The only output 
+function which should be used in the rest of the MPM is WriteF, which is 
+similar to fprintf:
+
+  Res WriteF(mps_lib_FILE *stream, ...);
+
+WriteF expects a format string followed by zero or more items to insert into 
+the output, followed by another format string, more items, etc., then a NULL 
+format string, e.g.
+
+  WriteF(stream,
+         "Hello: $A\n", address,
+         "Spong: $U ($S)\n", number, string,
+         NULL);
+
+This makes Describe methods much easier to do, e.g.:
+
+  WriteF(stream,
+         "Buffer $P ($U) {\n", (WriteFP)buffer, (WriteFU)buffer-&gt;serial,
+         "  base $A  init $A  alloc $A  limit $A\n",
+         (WriteFA)buffer-&gt;base, (WriteFA)buffer-&gt;ap.init, 
+         (WriteFA)buffer-&gt;ap.alloc, (WriteFA)buffer-&gt;ap.limit,
+         "  Pool $P\n",        (WriteFP)buffer-&gt;pool,
+         "  Seg $P\n",         (WriteFP)buffer-&gt;seg,
+         "  rank $U\n",        (WriteFU)buffer-&gt;rank,
+         "  alignment $W\n",   (WriteFW)buffer-&gt;alignment,
+         "  grey $B\n",        (WriteFB)buffer-&gt;grey,
+         "  shieldMode $B\n",  (WriteFB)buffer-&gt;shieldMode,
+         "  p $P  i $U\n",     (WriteFP)buffer-&gt;p, (WriteFU)buffer-&gt;i,
+         "} Buffer $P ($U)\n", (WriteFP)buffer, (WriteFU)buffer-&gt;serial,
+         NULL);
+
+<a id="types" name="types">.types</a>: For each format $X that WriteF supports, there is a type defined in 
+impl.h.mpmtypes WriteFX which is the promoted version of that type.  These are 
+provided both to ensure promotion and to avoid any confusion about what type 
+should be used in a cast.  It is easy to check the casts against the formats to 
+ensure that they correspond.  <a id="types.future" name="types.future">.types.future</a>: It is possibly that this type set 
+or similar may be used in future in some generalisation of varargs in the MPS.
+
+<a id="formats" name="formats">.formats</a>: The formats supported are as follows.
+
+  code    name        type            example rendering
+
+  $A      address     Addr            9EF60010
+  $P      pointer     void *          9EF60100
+  $F      function    void *(*)()     9EF60100 (may be plaform-specific length 
+and format)
+  $S      string      char *          hello
+  $C      character   char            x
+  $W      word        unsigned long   00109AE0
+  $U      decimal     unsigned long   42
+  $B      binary      unsigned long   00000000000000001011011110010001
+  $$      dollar      -               $
+
+Note that WriteFC is an int, because that is the default promotion of a char 
+(see .types).
+
+<a id="snazzy" name="snazzy">.snazzy</a>: We should resist the temptation to make WriteF an incredible snazzy 
+output engine.  We only need it for Describe methods and assertion messages.  
+At the moment it's a very simple bit of code -- let's keep it that way.
+
+<a id="f" name="f">.f</a>: The F code is used for function pointers.  They are currently printed as a 
+hexedecimal string of the appropriate length for the platform, and may one day 
+be extended to include function name lookup.
+
+</pre>
+
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<!-- Template Entry
+
+<table>
+
+<tr valign="top">
+
+  <td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
+
+  <td>
+    "#REF_TITLE#";
+    #REF_AUTHOR#;
+    &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
+    #REF_DATE#.
+  </td>
+
+</tr>
+
+</table>
+
+-->
+
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+
+<tr valign="top">
+
+  <td>2002-06-07</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Converted from MMInfo database design document.</td>
+
+</tr>
+
+</table>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+</div>
+
+</body>
+
+</html>

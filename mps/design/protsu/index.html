@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>SunOS 4 implementation of protection module</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+</div>
+
+<pre>
+              SUNOS 4 IMPLEMENTATION OF PROTECTION MODULE
+                           design.mps.protsu
+                             incomplete doc
+                             drj 1997-03-20
+
+INTRODUCTION
+
+<a id="readership" name="readership">.readership</a>: Any MPS developer
+
+<a id="intro" name="intro">.intro</a>: This is the design of the SunOS 4 implementation of the protection 
+module.  It is intended to be used only in SunOS 4 (os.su).  It makes use of 
+various services provided by SunOS 4.
+
+[largely unwritten]
+
+REQUIREMENTS
+
+<a id="req.general" name="req.general">.req.general</a>: Required to implement the general protection interface defined in 
+design.mps.prot.if.*.
+
+
+OVERVIEW
+
+[uses mprotect]
+
+MISC
+
+<a id="improve.sig-stack" name="improve.sig-stack">.improve.sig-stack</a>: Currently we do not handle signals on a separate signal 
+stack.  If we handled signals on our own stack then we could guarantee not to 
+run out of stack while we were handling the signal.  This would be useful (it 
+may even be required).  We would have to use sigvec(2) rather than signal(3) 
+(set the SV_ONSTACK flag and use sigstack(2)).  This has drawbacks as the 
+signal stack is not grown automatically, so we would have to to frig the stacks 
+back if we wanted to pass on the signal to some other handler as that handler 
+may require arbitrary amounts of stack.
+
+<a id="improve.sigvec" name="improve.sigvec">.improve.sigvec</a>: Note 1 of ProtSetup notes that we can't honour the sigvec(2) 
+entries of the next handler in the chain.  What if when we want to pass on the 
+signal instead of calling the handler we call sigvec with the old entry and use 
+kill to send the signal to ourselves and then restore our handler using sigvec 
+again.  ramble ramble. [need more detail and analysis here].
+
+assume mprotect never fails and why.  [We also need a policy here]
+
+DATASTRUCTURES
+
+<a id="data.signext" name="data.signext">.data.signext</a>: This is static.  Because that is the only communications channel 
+available to signal handlers. [write a little more here]
+
+
+FUNCTIONS
+
+<a id="fun.setup" name="fun.setup">.fun.setup</a>:
+
+ProtSetup
+
+The setup involves installing a signal handler for the signal SIGSEGV to catch 
+and handle protection faults (this handler is the function sigHandle, see 
+.fun.sighandle). The previous handler is recorded (in the variable sigNext, see 
+.data.signext) so that it can be reached from sigHandle if it fails to handle 
+the fault.
+
+The problem with this approach is that we can't honor the wishes of the 
+sigvec(2) entry for the previous handler (in terms of masks in particular).
+
+Obviously it would be okay to always chain the previous signal handler onto 
+sigNext, however in the case where the previous handler is the one we've just 
+installed (ie, sigHandle) then it is not necessary to chain the handler, so we 
+don't.
+
+<a id="fun.set" name="fun.set">.fun.set</a>:
+
+void ProtSet(Addr base, Addr limit, AccessSet mode)
+
+<a id="fun.set.convert" name="fun.set.convert">.fun.set.convert</a>: The requested protection (which is expressed in the mode 
+parameter, see design.mps.prot.if.set) is translated into an OS protection.  If 
+read accesses are to be forbidden then all accesses are forbidden, this is done 
+by setting the protection of the page to PROT_NONE.  If write access are to be 
+forbidden (and not read accesses) then write accesses are forbidden and read 
+accesses are allowed, this is done by setting the protection of the page to 
+PROT_READ|PROT_EXEC.  Otherwise (all access are okay), the protection is set to 
+PROT_READ|PROT_WRITE|PROT_EXEC.
+
+<a id="fun.set.assume.mprotect" name="fun.set.assume.mprotect">.fun.set.assume.mprotect</a>: We assume that the call to mprotect always succeeds.  
+<a id="fun.set.assume.mprotect" name="fun.set.assume.mprotect">.fun.set.assume.mprotect</a>: This is because we should always call the function 
+with valid arguments (aligned, references to mapped pages, and with an access 
+that is compatible with the access of the underlying object).
+
+<a id="fun.sync" name="fun.sync">.fun.sync</a>:
+
+void ProtSync(Space space);
+
+This does nothing in this implementation as ProtSet sets the protection without 
+any delay.
+
+<a id="fun.tramp" name="fun.tramp">.fun.tramp</a>:
+
+void ProtTramp(void **resultReturn, void *(*f)(void *, size_t), void *p, size_t 
+s);
+
+The protection trampoline is trivial under SunOS, as there is nothing that 
+needs to be done in the dynamic context of the mutator in  order to catch 
+faults.  (Contrast this with Win32 Structured Exception Handling.)
+
+
+</pre>
+
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<!-- Template Entry
+
+<table>
+
+<tr valign="top">
+
+  <td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
+
+  <td>
+    "#REF_TITLE#";
+    #REF_AUTHOR#;
+    &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
+    #REF_DATE#.
+  </td>
+
+</tr>
+
+</table>
+
+-->
+
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+
+<tr valign="top">
+
+  <td>2002-06-07</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Converted from MMInfo database design document.</td>
+
+</tr>
+
+</table>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 1995-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+</div>
+
+</body>
+
+</html>

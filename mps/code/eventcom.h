@@ -1,6 +1,6 @@
-/* impl.h.eventcom -- Event Logging Common Definitions
+/* <code/eventcom.h> -- Event Logging Common Definitions
  *
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  * $Id$
  *
  * .sources: mps.design.telemetry
@@ -45,14 +45,14 @@ typedef EventUnion *Event;
 #endif
 
 
-/* Event types -- see design.mps.telemetry
+/* Event types -- see <design/telemetry/>
  *
  * These names are intended to be mnemonic.  They are derived from
  * selected letters as indicated, using the transliteration in
  * guide.hex.trans.
  *
  * These definitions will be unnecessary when the event codes are
- * changed to 16-bit.  See impl.h.eventdef.
+ * changed to 16-bit.  See <code/eventdef.h>.
  */
                                                     /* EVent ... */
 #define EventEventTime      ((EventType)0xEF213E99) /* TIME */
@@ -148,3 +148,45 @@ typedef EventUnion *Event;
 
 
 #endif /* eventcom_h */
+
+
+/* C. COPYRIGHT AND LICENSE
+ *
+ * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * All rights reserved.  This is an open source license.  Contact
+ * Ravenbrook for commercial licensing options.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * 
+ * 3. Redistributions in any form must be accompanied by information on how
+ * to obtain complete source code for this software and any accompanying
+ * software that uses this software.  The source code must either be
+ * included in the distribution or be available for no more than the cost
+ * of distribution plus a nominal fee, and must be freely redistributable
+ * under reasonable conditions.  For an executable file, complete source
+ * code means the source code for all modules it contains. It does not
+ * include source code for modules or files that typically accompany the
+ * major components of the operating system on which the executable file
+ * runs.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */

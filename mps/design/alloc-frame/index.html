@@ -1,0 +1,517 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+<title>Design of the MPS allocation frame protocol</title>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#000099" vlink="#660066" alink="#FF0000">
+
+<div align="center">
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+<p><i><a href="/project/mps/">Memory Pool System Project</a></i></p>
+
+<hr />
+
+</div>
+
+<pre>
+              DESIGN OF THE MPS ALLOCATION FRAME PROTOCOL
+                         design.mps.alloc-frame
+                             incomplete doc
+                            tony 1998-10-02
+
+INTRODUCTION
+
+<a id="intro" name="intro">.intro</a>: This document explains the design of the support for allocation frames 
+in MPS. 
+
+<a id="readership" name="readership">.readership</a>: This document is intended for any MM developer.
+
+<a id="overview" name="overview">.overview</a>: Allocation frames are used for implementing stack pools; each stack 
+frame corresponds to an allocation frame.  Allocation frames may also be 
+suitable for implementing other sub-pool groupings, such as generations and 
+ramp allocation patterns.  <a id="overview.ambition" name="overview.ambition">.overview.ambition</a>: We now believe this to be a 
+design that loses too many advantages of stack allocation for questionable 
+gains.  The requirements are almost entirely based on unanalysed anecdote, 
+instead of actual clients.  [We plan to supersede this with a stack pool design 
+at some point in the future.  pekka 2000-03-09]
+
+<a id="hist.0" name="hist.0">.hist.0</a>: Written by Tony 1998-10-02
+
+
+DEFINITIONS
+
+<a id="def.alloc-frame" name="def.alloc-frame">.def.alloc-frame</a>: An allocation frame is a generic name for a device which 
+groups objects together with other objects at allocation time, and which may 
+have a perent/child relationship with other allocation frames.
+
+
+PURPOSE
+
+<a id="purpose.stack-allocation" name="purpose.stack-allocation">.purpose.stack-allocation</a>: The allocation frame protocol is intended to support 
+efficient memory management for stack allocation, i.e., the allocation of 
+objects which have dynamic extent.
+
+<a id="purpose.general" name="purpose.general">.purpose.general</a>: The allocation frame protocol is intended to be sufficiently 
+general that it will be useful in supporting other types of nested allocation 
+patterns too.  For example, it could be used to for EPVM-style save and 
+restore, ramp allocation patterns or generations. 
+
+
+REQUIREMENTS
+
+Known requirements
+
+<a id="req.stack-alloc" name="req.stack-alloc">.req.stack-alloc</a>: Provide a interface for clients to describe a stack 
+allocation pattern, as an alternative to using the control stack.
+
+<a id="req.efficient" name="req.efficient">.req.efficient</a>: Permit an implementation which is comparable in efficiency to 
+allocating on the control stack.
+
+<a id="req.ap" name="req.ap">.req.ap</a>: Support allocation via allocation points (APs).
+
+<a id="req.format" name="req.format">.req.format</a>: Support the allocation of formatted objects.
+
+<a id="req.scan" name="req.scan">.req.scan</a>: Ensure that objects in allocation frames can participate in garbage 
+collection by being scanned.
+
+<a id="req.fix" name="req.fix">.req.fix</a>: Ensure that objects in allocation frames can participate in garbage 
+collection by accepting Fix requests.
+
+<a id="req.condemn" name="req.condemn">.req.condemn</a>: Ensure that objects in allocation frames can participate in 
+garbage collection by being condemned.
+
+<a id="attr.locking" name="attr.locking">.attr.locking</a>: Minimize the synchronization cost for the creation and 
+destruction of frames.
+
+
+Proto-requirements
+
+<a id="proto-req" name="proto-req">.proto-req</a>: The following are possible requirements that might be important in 
+the future. The design does not necessarily meet all these requirements, but it 
+does consider them all. Each requirement either has direct support in the 
+framework, or could be supported with future additions to the framework.
+
+<a id="req.parallels" name="req.parallels">.req.parallels</a>: The allocation frame protocol should provide a framework for 
+exploiting the parallels between stack extents, generations and "ramps".
+
+<a id="req.pool-destroy" name="req.pool-destroy">.req.pool-destroy</a>: It should be possible to use allocation frames to free all 
+objects in a pool without destroying the pool.
+
+<a id="req.epvm" name="req.epvm">.req.epvm</a>: It should be possible to implement EPVM-style save and restore 
+operations by creating and destroying allocation frames.
+
+<a id="req.subst" name="req.subst">.req.subst</a>: It should be possible to substitute a stack pool with a GC-ed pool 
+so that erroneous use of a stack pool can be detected.
+
+<a id="req.format-extensions" name="req.format-extensions">.req.format-extensions</a>: It should be possible for stack pools to utilize the 
+same format as any other pool, including debugging formats that include 
+fenceposting, etc.
+
+<a id="req.mis-nest" name="req.mis-nest">.req.mis-nest</a>: Should ensure "mis-nested" stacks are safe.
+
+<a id="req.non-top-level" name="req.non-top-level">.req.non-top-level</a>: Should support allocation in the non-top stack extent.
+
+<a id="req.copy-if-necessary" name="req.copy-if-necessary">.req.copy-if-necessary</a>: Should ensure that stack pools can support 
+"copy-if-necessary" (so that low-level system code can heapify stack objects.)
+
+<a id="req.preserve" name="req.preserve">.req.preserve</a>: When an object is in an allocation frame which is being 
+destroyed, it should be possible to preserve that object in the parent frame.
+
+<a id="req.contained" name="req.contained">.req.contained</a>: Should allow clients to ask if an object is "contained" in a 
+frame. The object is contained in a frame if it is affected when the frame is 
+ended.
+
+<a id="req.alloc-with-other" name="req.alloc-with-other">.req.alloc-with-other</a>:  Should allow clients to allocate an object in the same 
+frame as another object.
+
+
+OVERVIEW
+
+<a id="frame-classes" name="frame-classes">.frame-classes</a>: The protocol supports different types of allocation frames, 
+which are represented as "frame classes".  It's up to pools to determine which 
+classes of allocation frames they support.  Pools which support more than one 
+frame class rely on the client to indicate which class is currently of 
+interest.  The client indicates this by means of an operation which stores the 
+class in the buffer to which the allocation point is attached.
+
+<a id="frame-handles" name="frame-handles">.frame-handles</a>: Allocation frames are described via abstract "frame handles".  
+Pools may choose what the representation of a frame handle should be.  Frame 
+handles are static, and the client need not store them in a GC root.
+
+<a id="lightweight-frames" name="lightweight-frames">.lightweight-frames</a>: The design includes an extention to the allocation point 
+protocol, which permits the creation and destruction of allocation frames 
+without the necessity for claiming the arena lock.  Such frames are called 
+"lightweight frames".
+
+
+OPERATIONS
+
+<a id="op.intro" name="op.intro">.op.intro</a>: Each operation has both an external (client) interface and an 
+internal (MPS) interface.  The external function takes an allocation point as a 
+parameter, determines which buffer and pool it belongs to, and calls the 
+internal function with the buffer and pool as parameters.
+
+<a id="op.obligatory" name="op.obligatory">.op.obligatory</a>: The following operations are supported on any allocation point 
+which supports allocation frames:-
+
+<a id="operation.push" name="operation.push">.operation.push</a>: The PushFrame operation creates a new allocation frame of the 
+currently chosen frame class, makes this new frame the current frame, and 
+returns a handle for the frame.
+
+<a id="operation.pop" name="operation.pop">.operation.pop</a>: The PopFrame operation takes a frame handle as a parameter.  
+Some pool classes might insist or assume that this is the handle for the 
+current frame.  It finds the parent of that frame and makes it the current 
+frame.  The operation indicates that all children of the new current frame 
+contain objects which are likely to be dead.  The reclaim policy is up to the 
+pool; some classes might insist or assume that the objects must be dead, and 
+eagerly free them.  Note that this might introduce the possibility of leaving 
+dangling pointers elsewhere in the arena.  If so, it's up to the pool to decide 
+what to do about this.
+
+<a id="op.optional" name="op.optional">.op.optional</a>: The following operations are supported for some allocation 
+frames, but not all. Pools may choose to support some or all of these 
+operations for certain frame classes. An unsupported operation will return a 
+failure value:-
+
+<a id="operation.select" name="operation.select">.operation.select</a>: The SelectFrame operation takes a frame handle as a 
+parameter and makes that frame the current frame.  It does not indicate that 
+any children of the current frame contain objects which are likely to be dead.
+
+<a id="operation.select-addr" name="operation.select-addr">.operation.select-addr</a>: The SelectFrameOfAddr operation takes an address as a 
+parameter and makes the frame of that address the current frame.  It does not 
+indicate that any children of the current frame contain objects which are 
+likely to be dead.
+
+<a id="operation.in-frame" name="operation.in-frame">.operation.in-frame</a>: The AddrInFrame operation determines whether the supplied 
+address is the address of an object allocated in the supplied frame, or any 
+child of that frame.
+
+<a id="operation.set" name="operation.set">.operation.set</a>: The SetFrameClass operation takes a frame class and an 
+allocation point as parameters, and makes that the current frame class for the 
+allocation point.  The next PushFrame operation will create a new frame of that 
+class.
+
+
+INTERFACE
+
+External types (used by all client of allocation frames)
+
+<a id="type.client.frame-handle" name="type.client.frame-handle">.type.client.frame-handle</a>: Frame handles are defined as an abstract type:
+        typedef struct mps_frame_s *mps_frame_t;  
+
+
+External types  (complete set)
+
+<a id="type.client.frame-class" name="type.client.frame-class">.type.client.frame-class</a>: Frame classes are defined as an abstract type:
+        typedef struct mps_frame_class_s *mps_frame_class_t;  
+
+<a id="type.client.frame-class.access" name="type.client.frame-class.access">.type.client.frame-class.access</a>: Clients access frame classes by means of 
+dedicated functions for each frame class. 
+
+
+External functions (used by all client of allocation frames)
+
+<a id="fn.client.push" name="fn.client.push">.fn.client.push</a>: The following function is used by clients to invoke the 
+PushFrame operation.  For lightweight frames, this might not invoke the 
+corresponding internal function:
+       mps_res_t mps_ap_frame_push(mps_frame_t *frame_o, mps_ap_t buf);  
+
+<a id="fn.client.pop" name="fn.client.pop">.fn.client.pop</a>:  The following function is used by clients to invoke the 
+PopFrame operation.  For lightweight frames, this might not invoke the 
+corresponding internal function:
+       mps_res_t mps_ap_frame_pop(mps_ap_t buf, mps_frame_t frame);
+
+
+External functions (complete set)
+
+<a id="fn.client.select" name="fn.client.select">.fn.client.select</a>:  The following function is used by clients to invoke the 
+SelectFrame operation:
+       mps_res_t mps_ap_frame_select(mps_ap_t buf, mps_frame_t frame);
+
+<a id="fn.client.select-addr" name="fn.client.select-addr">.fn.client.select-addr</a>:  The following function is used by clients to invoke 
+the SelectFrameOfAddr operation:
+       mps_res_t mps_ap_frame_select_from_addr(mps_ap_t buf, mps_addr_t addr);
+
+<a id="fn.client.in-frame" name="fn.client.in-frame">.fn.client.in-frame</a>:  The following function is used by clients to invoke the 
+AddrInFrame operation:
+       mps_res_t mps_ap_addr_in_frame(mps_bool_t *inframe_o, mps_ap_t buf, 
+                                      mps_addr_t *addrref, mps_frame_t frame);  
+
+<a id="fn.client.set" name="fn.client.set">.fn.client.set</a>: The following function is used by clients to invoke the 
+SetFrameClass operation:
+       mps_res_t mps_ap_set_frame_class(mps_ap_t buf, mps_frame_class_t 
+class);  
+
+
+<a id="fn.client.stack-frame-class" name="fn.client.stack-frame-class">.fn.client.stack-frame-class</a>: The following function is used by clients to 
+access the frame class used for simple stack allocation:
+       mps_frame_class_t mps_alloc_frame_class_stack(void);  
+
+
+Internal types (used by all implementations of allocation frames)
+
+<a id="type.frame-handle" name="type.frame-handle">.type.frame-handle</a>: Frame handles are defined as an abstract type:
+       typedef struct AllocFrameStruct *AllocFrame;
+
+
+Internal types  (complete set)
+
+<a id="type.frame-class" name="type.frame-class">.type.frame-class</a>: Frame classes are defined as an abstract type:
+       typedef struct AllocFrameClassStruct *AllocFrameClass;
+
+
+Internal functions (used by all implementations of allocation frames)
+
+
+<a id="fn.push" name="fn.push">.fn.push</a>: A pool method of the following type is called (if needed) to invoke 
+the PushFrame operation:
+       typedef Res (*PoolFramePushMethod)(AllocFrame *frameReturn,
+                                          Pool pool, Buffer buf);
+ 
+<a id="fn.pop" name="fn.pop">.fn.pop</a>: A pool method of the following type is called (if needed) to invoke 
+the PopFrame operation:
+       typedef Res (*PoolFramePopMethod)(Pool pool, Buffer buf,
+                                         AllocFrame frame);
+
+Internal functions (complete set)
+
+<a id="fn.select" name="fn.select">.fn.select</a>: A pool method of the following type is called to invoke the 
+SelectFrame operation:
+       typedef Res (*PoolFrameSelectMethod)(Pool pool, Buffer buf,
+                                            AllocFrame frame);
+
+<a id="fn.select-addr" name="fn.select-addr">.fn.select-addr</a>: A pool method of the following type is called to invoke the 
+SelectFrameOfAddr operation:
+       typedef Res (*PoolFrameSelectFromAddrMethod)(Pool pool, Buffer buf,
+                                                    Addr addr);
+
+<a id="fn.in-frame" name="fn.in-frame">.fn.in-frame</a>: A pool method of the following type is called to invoke the 
+AddrInFrame operation:
+       typedef Res (*PoolAddrInFrameMethod)(Bool *inframeReturn, 
+                                            Pool pool, Seg seg, Addr *addrref, 
+                                            AllocFrame frame);
+
+<a id="fn.set" name="fn.set">.fn.set</a>: A pool method of the following type is called to invoke the 
+SetFrameClass operation:
+       typedef Res (*PoolSetFrameClassMethod)(Pool pool, Buffer buf, 
+                                              AllocFrameClass class);
+
+
+LIGHTWEIGHT FRAMES 
+
+Overview
+
+<a id="lw-frame.overview" name="lw-frame.overview">.lw-frame.overview</a>: Allocation points provide direct support for lightweight 
+frames, and are designed to permit PushFrame and PopFrame operations without 
+the need for locking and delegation to the pool method.  Pools can disable this 
+mechanism for any allocation point, so that the pool method is always called.  
+The pool method will be called whenever synchronization is required for other 
+reasons (e.g. the buffer is tripped).
+
+<a id="lw-frame.model" name="lw-frame.model">.lw-frame.model</a>: Lightweight frames offer direct support for a particular model 
+of allocation frame use, whereby the PushFrame operation returns the current 
+allocation pointer as a frame handle, and the PopFrame operation causes the 
+allocation pointer to be reset to the address of the frame handle.  This model 
+should be suitable for simple stack frames, where more advanced operations like 
+SelectFrame are not supported.  It may also be suitable for more advanced 
+allocation frame models when they are being used simply.  The use of a complex 
+operation always involves synchronization via locking, and the pool may disable 
+lightweight synchronization temporarily at this time.
+
+State
+
+<a id="lw-frame.states" name="lw-frame.states">.lw-frame.states</a>: Allocation points supporting lightweight frames will be in 
+one of the following states:-
+Valid:        Indicates that PushFrame can be a lightweight operation and need 
+not be synchronized
+PopPending:   Indicates that there has been a PopFrame operation that the pool 
+must respond to
+Disabled:     Indicates that the pool has disabled support for lightweight 
+operations for this AP
+These states are in addition to the state normally held by an AP for allocation 
+purposes. An AP will be in the Disabled state at creation.
+
+<a id="lw-frame.transitions" name="lw-frame.transitions">.lw-frame.transitions</a>: State transitions happen under the following 
+circumstances:-
+Valid -&gt; PopPending    :  As a result of a client PopFrame operation
+Valid -&gt; Disabled      :  At the choice of the pool (e.g. when responding to a 
+SelectFrame operation)
+PopPending -&gt; Valid    :  At the choice of the pool, when processing a PopFrame
+PopPending -&gt; Disabled :  At the choice of the pool, when processing a PopFrame
+Disabled -&gt; Valid      :  At the choice of the pool
+Disabled -&gt; Popframe   :  Illegal
+
+<a id="lw-frame.state-impl" name="lw-frame.state-impl">.lw-frame.state-impl</a>: Each AP contains 3 additional fields to hold this state:
+
+  mps_addr_t frameptr; 
+  mps_bool_t enabled; 
+  mps_bool_t lwPopPending;
+
+<a id="lw-frame.enabled" name="lw-frame.enabled">.lw-frame.enabled</a>: The enabled slot holds the following values for each state:
+Valid:      TRUE
+PopPending: TRUE
+Disabled:   FALSE
+
+<a id="lw-frame.frameptr" name="lw-frame.frameptr">.lw-frame.frameptr</a>: The frameptr slot holds the following values for each state:
+
+Valid:      NULL
+PopPending: Frame handle for most recently popped frame.
+Disabled:   NULL
+
+.lw-frame.lwPopPending: The lwPopPending slot holds the following values for 
+each state:
+
+Valid:      FALSE
+PopPending: TRUE
+Disabled:   FALSE
+
+
+<a id="lw-frame.state-for-gc" name="lw-frame.state-for-gc">.lw-frame.state-for-gc</a>: It is not necessary for the tracer, format code, pool, 
+or any other part of the GC support in MPS to read either of the 2 additional 
+AP fields in order to scan a segment which supports a lightweight allocation 
+frame.
+
+
+Synchronization
+
+<a id="lw-frame.sync" name="lw-frame.sync">.lw-frame.sync</a>: The purpose of the design is that mutator may access the state 
+of an AP without locking with MPS (via the external functions).  The design 
+assumes the normal MPS restriction that an operation on an AP may only be 
+performed by a single mutator thread at a time.  Each of the operations on 
+allocation frames counts as an operation on an AP.
+
+<a id="lw-frame.sync.pool" name="lw-frame.sync.pool">.lw-frame.sync.pool</a>: Pools are permitted to read or modify the lightweight 
+frame state of an AP only in response to an operation on that AP.
+
+<a id="lw-frame.sync.external" name="lw-frame.sync.external">.lw-frame.sync.external</a>: The external functions mps_ap_frame_push and 
+mps_ap_frame_pop are permitted to read the values of the enabled and frameptr 
+fields for the supplied AP without claiming the arena lock.  They are permitted 
+to modify the frameptr field iff enabled == FALSE.
+
+<a id="lw-frame.sync.trip" name="lw-frame.sync.trip">.lw-frame.sync.trip</a>: When a buffer trip happens, and the trap wasn't set by MPS 
+itself (i.e. it wasn't because of a flip or for logging), then the buffer code 
+must check whether the AP has state PopPending.  If it does, the buffer code 
+must call the Pool.
+
+
+Implementation
+
+<a id="lw-frame.push" name="lw-frame.push">.lw-frame.push</a>: The external PushFrame operation (mps_ap_frame_push) performs 
+the following operations:
+   IF (!APIsTrapped(ap) &amp;&amp; StateOfFrame(ap) == Valid &amp;&amp; ap-&gt;init == ap-&gt;alloc)
+      *frame_o = ap-&gt;init;
+   ELSE
+     WITH_ARENA_LOCK
+       PerformInternalPushFrameOperation(...)
+     END
+   END
+
+
+<a id="lw-frame.pop" name="lw-frame.pop">.lw-frame.pop</a>: The external PopFrame operation (mps_ap_frame_pop) performs the 
+following operations:
+   IF (StateOfFrame(ap) != Disabled)
+     TrapAP(ap);  /* ensure next allocation or push involves the pool */
+     ap-&gt;frameptr = frame;
+     ap-&gt;lwpopPending = TRUE;
+   ELSE
+     WITH_ARENA_LOCK
+       PerformInternalPopFrameOperation(...)
+     END
+   END
+</pre>
+
+
+<h2><a id="section-A" name="section-A">A. References</a></h2>
+
+<!-- Template Entry
+
+<table>
+
+<tr valign="top">
+
+  <td>[<a id="ref-#REF#" name="ref-#REF#" href="#REF_URL#">#REF_NAME#</a>]</td>
+
+  <td>
+    "#REF_TITLE#";
+    #REF_AUTHOR#;
+    &lt;URL: <a href="#REF_URL#">#REF_URL#</a>&gt;;
+    #REF_DATE#.
+  </td>
+
+</tr>
+
+</table>
+
+-->
+
+
+<h2><a id="section-B" name="section-B">B. Document History</a></h2>
+
+<table>
+
+<tr valign="top">
+
+  <td>2002-06-07</td>
+
+  <td><a href="mailto:rb@ravenbrook.com">RB</a></td>
+
+  <td>Converted from MMInfo database design document.</td>
+
+</tr>
+
+</table>
+
+
+<h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
+
+<p> This document is copyright &copy; 1997-2002 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+
+<p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
+
+<ol>
+
+<li> Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer. </li>
+
+<li> Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution. </li>
+
+<li> Redistributions in any form must be accompanied by information on how to obtain complete source code for the this software and any accompanying software that uses this software.  The source code must either be included in the distribution or be available for no more than the cost of distribution plus a nominal fee, and must be freely redistributable under reasonable conditions.  For an executable file, complete source code means the source code for all modules it contains. It does not include source code for modules or files that typically accompany the major components of the operating system on which the executable file runs. </li>
+
+</ol>
+
+<p> <strong> This software is provided by the copyright holders and contributors "as is" and any express or implied warranties, including, but not limited to, the implied warranties of merchantability, fitness for a particular purpose, or non-infringement, are disclaimed.  In no event shall the copyright holders and contributors be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of the use of this software, even if advised of the possibility of such damage. </strong> </p>
+
+
+<hr />
+
+<div align="center">
+
+<p><code>$Id$</code></p>
+
+<p>
+<a href="/">Ravenbrook</a> /
+<a href="/project/">Projects</a> /
+<a href="/project/mps/">Memory Pool System</a> /
+<a href="/project/mps/master/">Master Product Sources</a> /
+<a href="/project/mps/master/design/">Design Documents</a>
+</p>
+
+</div>
+
+</body>
+
+</html>

@@ -1,16 +1,16 @@
-/* impl.c.mpsi: MEMORY POOL SYSTEM C INTERFACE LAYER
+/* mpsi.c: MEMORY POOL SYSTEM C INTERFACE LAYER
  *
  * $Id$
- * Copyright (c) 2001 Ravenbrook Limited.
+ * Copyright (c) 2001 Ravenbrook Limited.  See end of file for license.
  * Copyright (c) 2002 Global Graphics Software.
  *
  * .purpose: This code bridges between the MPS interface to C,
- * impl.h.mps, and the internal MPM interfaces, as defined by
- * impl.h.mpm.  .purpose.check: It performs checking of the C client's
+ * <code/mps.h>, and the internal MPM interfaces, as defined by
+ * <code/mpm.h>.  .purpose.check: It performs checking of the C client's
  * usage of the MPS Interface.  .purpose.thread: It excludes multiple
  * threads from the MPM by locking the Arena (see .thread-safety).
  *
- * .design: design.mps.interface.c
+ * .design: <design/interface-c/>
  *
  *
  * NOTES
@@ -45,7 +45,7 @@
  * interface is designed allows for the possibility of change.
  *
  * .naming: (rule.impl.guide) The exported identifiers do not follow the
- * normal MPS naming conventions.  See design.mps.interface.c.naming.  */
+ * normal MPS naming conventions.  See <design/interface-c/#naming>.  */
 
 #include "mpm.h"
 #include "mps.h"
@@ -59,7 +59,7 @@ SRCID(mpsi, "$Id$");
 /* mpsi_check -- check consistency of interface mappings
  *
  * .check.purpose: The mpsi_check function attempts to check whether
- * the defintions in impl.h.mpsi match the equivalent definition in
+ * the defintions in <code/mpsi.h> match the equivalent definition in
  * the MPM.  It is checking the assumptions made in the other functions
  * in this implementation.
  *
@@ -71,7 +71,7 @@ SRCID(mpsi, "$Id$");
 static Bool mpsi_check(void)
 {
   /* .check.rc: Check that external and internal result codes match. */
-  /* See impl.h.mps.result-codes and impl.h.mpmtypes.result-codes. */
+  /* See <code/mps.h#result-codes> and <code/mpmtypes.h#result-codes>. */
   /* Also see .check.enum.cast. */
   CHECKL(CHECKTYPE(mps_res_t, Res));
   CHECKL((int)MPS_RES_OK == (int)ResOK);
@@ -84,7 +84,7 @@ static Bool mpsi_check(void)
   CHECKL((int)MPS_RES_COMMIT_LIMIT == (int)ResCOMMIT_LIMIT);
 
   /* Check that external and internal rank numbers match. */
-  /* See impl.h.mps.ranks and impl.h.mpmtypes.ranks. */
+  /* See <code/mps.h#ranks> and <code/mpmtypes.h#ranks>. */
   /* Also see .check.enum.cast. */
   CHECKL(CHECKTYPE(mps_rank_t, Rank));
   CHECKL((int)MPS_RANK_AMBIG == (int)RankAMBIG);
@@ -92,7 +92,7 @@ static Bool mpsi_check(void)
   CHECKL((int)MPS_RANK_WEAK == (int)RankWEAK);
 
   /* The external idea of a word width and the internal one */
-  /* had better match.  See design.mps.interface.c.cons. */
+  /* had better match.  See <design/interface-c/#cons>. */
   CHECKL(sizeof(mps_word_t) == sizeof(void *));
   CHECKL(CHECKTYPE(mps_word_t, Word));
 
@@ -101,19 +101,19 @@ static Bool mpsi_check(void)
   CHECKL(CHECKTYPE(mps_addr_t, Addr));
 
   /* The external idea of size and the internal one had */
-  /* better match.  See design.mps.interface.c.cons.size */
-  /* and design.mps.interface.c.pun.size. */
+  /* better match.  See <design/interface-c/#cons.size> */
+  /* and <design/interface-c/#pun.size>. */
   CHECKL(CHECKTYPE(size_t, Size));
 
   /* Check ap_s/APStruct compatibility by hand */
-  /* .check.ap: See impl.h.mps.ap and impl.h.buffer.ap. */
+  /* .check.ap: See <code/mps.h#ap> and <code/buffer.h#ap>. */
   CHECKL(sizeof(mps_ap_s) == sizeof(APStruct));
   CHECKL(CHECKFIELD(mps_ap_s, init,  APStruct, init));
   CHECKL(CHECKFIELD(mps_ap_s, alloc, APStruct, alloc));
   CHECKL(CHECKFIELD(mps_ap_s, limit, APStruct, limit));
 
   /* Check sac_s/ExternalSACStruct compatibility by hand */
-  /* See impl.h.mps.sac and impl.h.sac.sac. */
+  /* See <code/mps.h#sac> and <code/sac.h#sac>. */
   CHECKL(sizeof(mps_sac_s) == sizeof(ExternalSACStruct));
   CHECKL(CHECKFIELD(mps_sac_s, mps_middle, ExternalSACStruct, middle));
   CHECKL(CHECKFIELD(mps_sac_s, mps_trapped,
@@ -132,7 +132,7 @@ static Bool mpsi_check(void)
                     SACFreeListBlockStruct, blocks));
 
   /* Check sac_classes_s/SACClassesStruct compatibility by hand */
-  /* See impl.h.mps.sacc and impl.h.sac.sacc. */
+  /* See <code/mps.h#sacc> and <code/sac.h#sacc>. */
   CHECKL(sizeof(mps_sac_classes_s) == sizeof(SACClassesStruct));
   CHECKL(CHECKFIELD(mps_sac_classes_s, mps_block_size,
                     SACClassesStruct, blockSize));
@@ -142,19 +142,19 @@ static Bool mpsi_check(void)
                     SACClassesStruct, frequency));
 
   /* Check ss_s/ScanStateStruct compatibility by hand */
-  /* .check.ss: See impl.h.mps.ss and impl.h.mpmst.ss. */
+  /* .check.ss: See <code/mps.h#ss> and <code/mpmst.h#ss>. */
   /* Note that the size of the mps_ss_s and ScanStateStruct */
-  /* are not equal.  See impl.h.mpmst.ss.  CHECKFIELDAPPROX */
+  /* are not equal.  See <code/mpmst.h#ss>.  CHECKFIELDAPPROX */
   /* is used on the fix field because its type is punned and */
   /* therefore isn't exactly checkable.  See */
-  /* design.mps.interface.c.pun.addr. */
+  /* <design/interface-c/#pun.addr>. */
   CHECKL(CHECKFIELDAPPROX(mps_ss_s, fix, ScanStateStruct, fix));
   CHECKL(CHECKFIELD(mps_ss_s, w0, ScanStateStruct, zoneShift));
   CHECKL(CHECKFIELD(mps_ss_s, w1, ScanStateStruct, white));
   CHECKL(CHECKFIELD(mps_ss_s, w2, ScanStateStruct, unfixedSummary));
 
   /* Check ld_s/LDStruct compatibility by hand */
-  /* .check.ld: See also impl.h.mpmst.ld.struct and impl.h.mps.ld */
+  /* .check.ld: See also <code/mpmst.h#ld.struct> and <code/mps.h#ld> */
   CHECKL(sizeof(mps_ld_s) == sizeof(LDStruct));
   CHECKL(CHECKFIELD(mps_ld_s, w0, LDStruct, epoch));
   CHECKL(CHECKFIELD(mps_ld_s, w1, LDStruct, rs));
@@ -451,7 +451,7 @@ mps_bool_t mps_arena_has_addr(mps_arena_t mps_arena, mps_addr_t p)
  *
  * .fmt.create.A.purpose: This function converts an object format spec
  * of variant "A" into an MPM Format object.  See
- * design.mps.interface.c.fmt.extend for justification of the way that
+ * <design/interface-c/#fmt.extend> for justification of the way that
  * the format structure is declared as "mps_fmt_A".  */
 
 mps_res_t mps_fmt_create_A(mps_fmt_t *mps_fmt_o,
@@ -678,7 +678,7 @@ mps_res_t mps_alloc(mps_addr_t *p_o, mps_pool_t mps_pool, size_t size, ...)
   AVERT(Pool, pool);
   AVER(size > 0);
   /* Note: class may allow unaligned size, see */
-  /* design.mps.class-interface.alloc.size.align. */
+  /* <design/class-interface/#alloc.size.align>. */
   /* Rest ignored, see .varargs. */
 
   /* @@@@ There is currently no requirement for reservoirs to work */
@@ -718,7 +718,7 @@ void mps_free(mps_pool_t mps_pool, mps_addr_t p, size_t size)
   AVER(PoolHasAddr(pool, p));
   AVER(size > 0);
   /* Note: class may allow unaligned size, see */
-  /* design.mps.class-interface.alloc.size.align. */
+  /* <design/class-interface/#alloc.size.align>. */
 
   PoolFree(pool, (Addr)p, size);
   ArenaLeave(arena);
@@ -808,7 +808,7 @@ void mps_ap_destroy(mps_ap_t mps_ap)
 /* mps_reserve -- allocate store in preparation for initialization
  *
  * .reserve.call: mps_reserve does not call BufferReserve, but instead
- * uses the in-line macro from impl.h.mps.  This is so that it calls
+ * uses the in-line macro from <code/mps.h>.  This is so that it calls
  * mps_ap_fill and thence ArenaPoll (.poll).  The consistency checks are
  * those which can be done outside the MPM.  See also .commit.call.  */
 
@@ -850,7 +850,7 @@ mps_res_t mps_reserve_with_reservoir_permit(mps_addr_t *p_o,
 /* mps_commit -- commit initialized object, finishing allocation
  *
  * .commit.call: mps_commit does not call BufferCommit, but instead uses
- * the in-line commit macro from impl.h.mps.  This is so that it calls
+ * the in-line commit macro from <code/mps.h>.  This is so that it calls
  * mps_ap_trip and thence ArenaPoll in future (.poll).  The consistency
  * checks here are the ones which can be done outside the MPM.  See also
  * .reserve.call.  */
@@ -877,7 +877,7 @@ mps_bool_t (mps_commit)(mps_ap_t mps_ap, mps_addr_t p, size_t size)
 
 /* mps_ap_frame_push -- push a new allocation frame
  *
- * See design.mps.alloc-frame.lw-frame.push. */
+ * See <design/alloc-frame/#lw-frame.push>. */
 
 mps_res_t (mps_ap_frame_push)(mps_frame_t *frame_o, mps_ap_t mps_ap)
 {
@@ -918,7 +918,7 @@ mps_res_t (mps_ap_frame_push)(mps_frame_t *frame_o, mps_ap_t mps_ap)
 
 /* mps_ap_frame_pop -- push a new allocation frame
  *
- * See design.mps.alloc-frame.lw-frame.pop.  */
+ * See <design/alloc-frame/#lw-frame.pop>.  */
 
 mps_res_t (mps_ap_frame_pop)(mps_ap_t mps_ap, mps_frame_t frame)
 {
@@ -1427,7 +1427,7 @@ void mps_ld_reset(mps_ld_t mps_ld, mps_arena_t mps_arena)
 
 /* mps_ld_add -- add a reference to a location dependency
  *
- * See design.mps.interface.c.lock-free.  */
+ * See <design/interface-c/#lock-free>.  */
 
 void mps_ld_add(mps_ld_t mps_ld, mps_arena_t mps_arena, mps_addr_t addr)
 {
@@ -1440,7 +1440,7 @@ void mps_ld_add(mps_ld_t mps_ld, mps_arena_t mps_arena, mps_addr_t addr)
 
 /* mps_ld_merge -- merge two location dependencies
  *
- * See design.mps.interface.c.lock-free.  */
+ * See <design/interface-c/#lock-free>.  */
 
 void mps_ld_merge(mps_ld_t mps_ld, mps_arena_t mps_arena,
                   mps_ld_t mps_from)
@@ -1455,7 +1455,7 @@ void mps_ld_merge(mps_ld_t mps_ld, mps_arena_t mps_arena,
 
 /* mps_ld_isstale -- check whether a location dependency is "stale"
  *
- * See design.mps.interface.c.lock-free.  */
+ * See <design/interface-c/#lock-free>.  */
 
 mps_bool_t mps_ld_isstale(mps_ld_t mps_ld, mps_arena_t mps_arena,
                           mps_addr_t addr)
@@ -1483,7 +1483,7 @@ mps_res_t mps_fix(mps_ss_t mps_ss, mps_addr_t *ref_io)
 mps_word_t mps_collections(mps_arena_t mps_arena)
 {
   Arena arena = (Arena)mps_arena;
-  return ArenaEpoch(arena); /* thread safe: see impl.h.arena.epoch.ts */
+  return ArenaEpoch(arena); /* thread safe: see <code/arena.h#epoch.ts> */
 }
 
 
@@ -1902,3 +1902,45 @@ void mps_chain_destroy(mps_chain_t mps_chain)
   ChainDestroy(chain);
   ArenaLeave(arena);
 }
+
+
+/* C. COPYRIGHT AND LICENSE
+ *
+ * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * All rights reserved.  This is an open source license.  Contact
+ * Ravenbrook for commercial licensing options.
+ * 
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ * 
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * 
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ * 
+ * 3. Redistributions in any form must be accompanied by information on how
+ * to obtain complete source code for this software and any accompanying
+ * software that uses this software.  The source code must either be
+ * included in the distribution or be available for no more than the cost
+ * of distribution plus a nominal fee, and must be freely redistributable
+ * under reasonable conditions.  For an executable file, complete source
+ * code means the source code for all modules it contains. It does not
+ * include source code for modules or files that typically accompany the
+ * major components of the operating system on which the executable file
+ * runs.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+ * IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
