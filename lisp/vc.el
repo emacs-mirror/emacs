@@ -5,7 +5,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.303 2001/07/30 15:01:49 spiegel Exp $
+;; $Id: vc.el,v 1.304 2001/07/30 18:25:58 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2560,7 +2560,7 @@ To get a prompt, use a prefix argument."
       (error "%s is not registered in %s" file backend))
     (vc-mode-line file)))
 
-;;;autoload
+;;;###autoload
 (defun vc-transfer-file (file new-backend)
   "Transfer FILE to another version control system NEW-BACKEND.
 If NEW-BACKEND has a higher precedence than FILE's current backend
