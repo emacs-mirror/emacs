@@ -110,7 +110,7 @@ static struct hfctlack  ACK =
 #ifdef __STDC__
 static GT_ACK (int fd, int req, char *buf);
 static WR_REQ (int fd, int request, int cmdlen, char *cmd, int resplen);
-static hft_alrm(int sig);
+static void hft_alrm(int sig);
 #else
 static GT_ACK ();
 static WR_REQ ();
@@ -275,9 +275,9 @@ GT_ACK (fd, req, buf)
 }
 
 /*************** HFT_ALRM FUNCTION ******************************/
-static int
-hft_alrm (sig)                    /* Function hft_alrm - handle  */
-        int sig;		/* alarm signal               */
+static void
+hft_alrm (sig)                  /* Function hft_alrm - handle */
+     int sig;			/* alarm signal		      */
 {
   signal (SIGALRM, sav_alrm);	/* reset to previous          */
 
