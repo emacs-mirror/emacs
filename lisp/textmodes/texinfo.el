@@ -396,9 +396,10 @@ value of texinfo-mode-hook."
 ;;; Insert string commands
 
 (defconst texinfo-environment-regexp
-  "^@\\(f?table\\|enumerate\\|itemize\\|ifinfo\\|iftex\\|ifset\\|ifclear\
+  "^@\\(f?table\\|enumerate\\|itemize\
+\\|ifhtml\\|ifinfo\\|iftex\\|ifset\\|ifclear\
 \\|example\\|quotation\\|lisp\\|smallexample\\|smalllisp\\|display\\|format\
-\\|flushleft\\|flushright\\|ignore\\|group\\|tex\\|cartouche\\|menu\
+\\|flushleft\\|flushright\\|ignore\\|group\\|tex\\|html\\|cartouche\\|menu\
 \\|titlepage\\|end\\|def[a-z]*[a-wyz]\\>\\)"
   "Regexp for environment-like Texinfo list commands.
 Subexpression 1 is what goes into the corresponding `@end' statement.")
