@@ -691,6 +691,15 @@ This list in not complete.")
 ;; Simple protocols
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defcustom finger-X.500-host-regexps nil
+  "A list of regular expressions matching host names.
+If a host name passed to `finger' matches one of these regular
+expressions, it is assumed to be a host that doesn't accept
+queries of the form USER@HOST, and wants a query containing USER only."
+  :group 'net-utils
+  :type '(repeat regexp)
+  :version "21.1")
+
 ;; Finger protocol
 ;;;###autoload
 (defun finger (user host)
@@ -704,23 +713,24 @@ This list in not complete.")
 					 (net-utils-url-at-point)))
 	   (index  (string-match (regexp-quote "@") answer)))
       (if index
-	  (list 
-	   (substring answer 0 index)
-	   (substring answer (1+ index)))
-	(list
-	 answer
-	 (read-from-minibuffer "At Host: " (net-utils-machine-at-point))))))
-  (let* (
-	 (user-and-host (concat user "@" host))
-	 (process-name 
-	  (concat "Finger [" user-and-host "]"))
-	 )
+	  (list (substring answer 0 index)
+		(substring answer (1+ index)))
+	(list answer
+	      (read-from-minibuffer "At Host: "
+				    (net-utils-machine-at-point))))))
+  (let* ((user-and-host (concat user "@" host))
+	 (process-name (concat "Finger [" user-and-host "]"))
+	 (regexps finger-X.500-host-regexps)
+	 found)
+    (while (not (string-match (car regexps) host))
+      (setq regexps (cdr regexps)))
+    (when regexps
+      (setq user-and-host user))
     (run-network-program 
      process-name 
      host 
      (cdr (assoc 'finger network-connection-service-alist))
-     user-and-host
-     )))
+     user-and-host)))
 
 (defcustom whois-server-name "rs.internic.net"
   "Default host name for the whois service."
