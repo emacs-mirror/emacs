@@ -49,7 +49,7 @@ this variable should be nil.")
 ;; Default is nil, because that enables us to use pr -f
 ;; which is more reliable than pr with no args, which is what lpr -p does.
 (defvar lpr-headers-switches nil
-  "*List of strings to use as options for `lpr' to request page headings.
+  "*List of strings of options to request page headings in the printer program.
 If nil, we run `lpr-page-header-program' to make page headings
 and print the result.")
 
@@ -61,7 +61,8 @@ See definition of `print-region-1' for calling conventions.")
   "*Name of program for adding page headers to a file.")
 
 (defvar lpr-page-header-switches '("-f")
-  "*List of strings to use as options for `lpr-page-header-program'.")
+  "*List of strings to use as options for the page-header-generating program.
+The variable `lpr-page-header-program' specifies the program to use.")
 
 ;;;###autoload
 (defun lpr-buffer ()
