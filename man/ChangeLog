@@ -1,3 +1,7 @@
+2004-08-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fixit.texi (Spelling): Fix typo.
+
 2004-08-11  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* help.texi (Help): Fix Texinfo usage.
