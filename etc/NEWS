@@ -5390,9 +5390,16 @@ variables as buffer-local variables.
 *** DSSSL mode is a variant of Scheme mode, for editing DSSSL scripts.
 Use M-x dsssl-mode.
 
-** The emacsclient program now accepts an option --no-wait which tells
+** Changes to the emacsclient program
+
+*** The emacsclient program now accepts an option --no-wait which tells
 it to return immediately without waiting for you to "finish" the
 buffer in Emacs.
+
+*** The new option --alternate-editor allows to specify an editor to
+use if Emacs is not running.  The environment variable
+ALTERNATE_EDITOR can be used for the same effect; the command line
+option takes precedence.
 
 ** M-x eldoc-mode enables a minor mode in which the echo area
 constantly shows the parameter list for function being called at point
