@@ -3118,17 +3118,45 @@ Use %% to put a single % into the output.")
   while (format != end)
     if (*format++ == '%')
       {
-	int minlen, thissize = 0;
+	int thissize = 0;
 	unsigned char *this_format_start = format - 1;
+	int field_width, precision;
 
-	/* Process a numeric arg and skip it.  */
-	minlen = atoi (format);
-	if (minlen < 0)
-	  minlen = - minlen;
+	/* General format specifications look like
 
-	while ((*format >= '0' && *format <= '9')
-	       || *format == '-' || *format == ' ' || *format == '.')
-	  format++;
+	   '%' [flags] [field-width] [precision] format
+
+	   where
+
+	   flags	::= [#-* 0]+
+	   field-width	::= [0-9]+
+	   precision	::= '.' [0-9]*
+
+	   If a field-width is specified, it specifies to which width
+	   the output should be padded with blanks, iff the output
+	   string is shorter than field-width.
+
+	   if precision is specified, it specifies the number of
+	   digits to print after the '.' for floats, or the max.
+	   number of chars to print from a string.  */
+
+	precision = field_width = 0;
+	
+	while (index ("-*# 0", *format))
+	  ++format;
+
+	if (*format >= '0' && *format <= '9')
+	  {
+	    for (field_width = 0; *format >= '0' && *format <= '9'; ++format)
+	      field_width = 10 * field_width + *format - '0';
+	  }
+
+	if (*format == '.')
+	  {
+	    ++format;
+	    for (precision = 0; *format >= '0' && *format <= '9'; ++format)
+	      precision = 10 * precision + *format - '0';
+	  }
 
 	if (format - this_format_start + 1 > longest_format)
 	  longest_format = format - this_format_start + 1;
@@ -3204,7 +3232,11 @@ Use %% to put a single % into the output.")
 	  {
 	    if (! (*format == 'e' || *format == 'f' || *format == 'g'))
 	      args[n] = Ftruncate (args[n], Qnil);
-	    thissize = 200;
+
+	    /* Note that we're using sprintf to print floats,
+	       so we have to take into account what that function
+	       prints.  */
+	    thissize = 200 + precision;
 	  }
 	else
 	  {
@@ -3220,9 +3252,7 @@ Use %% to put a single % into the output.")
 	    goto string;
 	  }
 
-	if (thissize < minlen)
-	  thissize = minlen;
-
+	thissize = max (field_width, thissize);
 	total += thissize + 4;
       }
 
@@ -3373,6 +3403,9 @@ Use %% to put a single % into the output.")
       else
 	*p++ = *format++, nchars++;
     }
+
+  if (p > buf + total + 1)
+    abort ();
 
   if (maybe_combine_byte)
     nchars = multibyte_chars_in_text (buf, p - buf);
