@@ -1,3 +1,11 @@
+2001-12-21  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* info.el (Info-select-node): If Info-use-header-line is nil, set
+	header-line-format to nil.
+	(Info-fontify-node): Don't put a keymap text property on the
+	heading if we are not going to display the header line.  Remove
+	any such text properties left over from past visits to this node.
+
 2001-12-21  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): 
