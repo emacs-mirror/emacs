@@ -485,6 +485,10 @@ for \\[find-tag] (which see)."
 (define-key esc-map "\t" 'lisp-complete-symbol)
 
 (define-key ctl-x-map "\C-e" 'eval-last-sexp)
+
+(define-key ctl-x-map "m" 'compose-mail)
+(define-key ctl-x-4-map "m" 'compose-mail-other-window)
+(define-key ctl-x-5-map "m" 'compose-mail-other-frame)
 
 (define-key ctl-x-map "r\C-@" 'point-to-register)
 (define-key ctl-x-map [?r ?\C-\ ] 'point-to-register)
