@@ -872,14 +872,25 @@ are shown; the contents of those subgroups are initially hidden."
 			(format "*Customize Option: %s*"
 				(custom-unlispify-tag-name symbol))))
 
+(defvar customize-changed-options-previous-release "20.2"
+  "Version for `customize-changed-options' to refer back to by default.")
+
 ;;;###autoload
 (defun customize-changed-options (since-version)
-  "Customize all user option variables whose default values changed recently.
-This means, in other words, variables and groups defined with a `:version' 
-option."
+  "Customize all user option variables changed in Emacs itself.
+This includes new user option variables and faces, and new
+customization groups, as well as older options and faces whose default
+values have changed since the previous major Emacs release.
+
+With argument SINCE-VERSION (a string), customize all user option
+variables that were added (or their meanings were changed) since that
+version."
+
   (interactive "sCustomize options changed, since version (default all versions): ")
   (if (equal since-version "")
       (setq since-version nil))
+  (unless since-version
+    (setq since-version customize-changed-options-previous-release))
   (let ((found nil)
 	(versions nil))
     (mapatoms (lambda (symbol)
@@ -906,7 +917,8 @@ option."
 			       (cons (list symbol 'custom-group) found)
 			     (cons (list symbol 'custom-variable) found))))))
     (if (not found)
-	(error "No user options have changed defaults in recent Emacs versions")
+	(error "No user option defaults have been changed since Emacs %s"
+	       since-version)
       (let ((flist nil))
 	(while versions
 	  (push (copy-sequence 
@@ -927,6 +939,10 @@ option."
 			    "*Customize Changed Options*"))))
 
 (defun customize-version-lessp (version1 version2)
+  ;; In case someone made a mistake and left out the quotes
+  ;; in the :version value.
+  (if (numberp version2)
+      (setq version2 (prin1-to-string version2)))
   (let (major1 major2 minor1 minor2)
     (string-match "\\([0-9]+\\)[.]\\([0-9]+\\)" version1)
     (setq major1 (read (match-string 1 version1)))
