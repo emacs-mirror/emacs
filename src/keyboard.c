@@ -3586,6 +3586,15 @@ menu_bar_one_keymap (keymap, result)
   return result;
 }
 
+/* This is used as the handler when calling internal_condition_case_1.  */
+
+static Lisp_Object
+menu_bar_item_1 (arg)
+     Lisp_Object arg;
+{
+  return Qnil;
+}
+
 static Lisp_Object
 menu_bar_item (key, item_string, def, result)
      Lisp_Object key, item_string, def, result;
@@ -3610,7 +3619,10 @@ menu_bar_item (key, item_string, def, result)
 	 Otherwise, enable if value is not nil.  */
       tem = Fget (def, Qmenu_enable);
       if (!NILP (tem))
-	enabled = Feval (tem);
+	/* (condition-case nil (eval tem)
+	     (error nil))  */
+	enabled = internal_condition_case_1 (Feval, tem, Qerror,
+					     menu_bar_item_1);
     }
 
   /* Add an entry for this key and string
