@@ -763,7 +763,8 @@ cached information about equivalent key sequences.")
       check_x ();
 
       /* Decode the first argument: find the window and the coordinates.  */
-      if (EQ (position, Qt))
+      if (EQ (position, Qt)
+	  || (CONSP (position) && EQ (XCONS (position)->car, Qmenu_bar)))
 	{
 	  /* Use the mouse's current position.  */
 	  FRAME_PTR new_f = selected_frame;
@@ -1078,12 +1079,14 @@ popup_get_selection (initial_event, dpyinfo)
 	dpyinfo->grabbed &= ~(1 << event.xbutton.button);
 
       /* Queue all events not for this popup,
-	 except for Expose, which we've already handled.  */
+	 except for Expose, which we've already handled.
+	 Note that the X window is associated with the frame if this
+	 is a menu bar popup, but not if it's a dialog box.  So we use
+	 x_non_menubar_window_to_frame, not x_any_window_to_frame.  */
       if (event.type != Expose
 	  && (event.xany.display != dpyinfo->display
-	      || ! x_any_window_to_frame (dpyinfo, event.xany.window)))
+	      || x_non_menubar_window_to_frame (dpyinfo, event.xany.window)))
 	{
-
 	  queue_tmp = (struct event_queue *) malloc (sizeof (struct event_queue));
 
 	  if (queue_tmp != NULL) 
@@ -1093,8 +1096,8 @@ popup_get_selection (initial_event, dpyinfo)
 	      queue = queue_tmp;
 	    }
 	}
-
-      XtDispatchEvent (&event);
+      else
+	XtDispatchEvent (&event);
 
       if (!popup_activated ())
 	break;
@@ -1191,7 +1194,7 @@ menubar_selection_callback (widget, id, client_data)
 
 	      XSETFRAME (frame, f);
 	      buf.kind = menu_bar_event;
-	      buf.frame_or_window = Fcons (frame, Qmenu_bar);
+	      buf.frame_or_window = Fcons (frame, Fcons (Qmenu_bar, Qnil));
 	      kbd_buffer_store_event (&buf);
 
 	      for (j = 0; j < submenu_depth; j++)
@@ -1902,6 +1905,7 @@ dialog_selection_callback (widget, id, client_data)
   BLOCK_INPUT;
   lw_destroy_all_widgets (id);
   UNBLOCK_INPUT;
+  popup_activated_flag = 0;
 }
 
 static char * button_names [] = {
