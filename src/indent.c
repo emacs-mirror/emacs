@@ -616,10 +616,12 @@ current_column_1 ()
 	      unsigned char *ptr;
 	      int bytes, width, wide_column;
 	      
-	      scan_byte--;
 	      ptr = BYTE_POS_ADDR (scan_byte);
 	      MULTIBYTE_BYTES_WIDTH (ptr, dp);
 	      scan_byte += bytes;
+	      /* Subtract one to compensate for the increment
+		 that is going to happen below.  */
+	      scan_byte--;
 	      col += width;
 	    }
 	  else if (ctl_arrow && (c < 040 || c == 0177))
