@@ -34,6 +34,13 @@
 
 ;;;; Utilities.
 
+(defun scroll-bar-event-ratio (event)
+  "Given a scroll bar event EVENT, return the scroll bar position as a ratio.
+The value is a cons cell (PORTION . WHOLE) containing two integers
+whose ratio gives the event's vertical position in the scroll bar, with 0
+referring to the top and 1 to the bottom."
+  (nth 2 event))
+
 (defun scroll-bar-scale (num-denom whole)
   "Given a pair (NUM . DENOM) and WHOLE, return (/ (* NUM WHOLE) DENOM).
 This is handy for scaling a position on a scroll bar into real units,
