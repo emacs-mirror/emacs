@@ -1,5 +1,5 @@
 /* Lisp parsing and input streams.
-   Copyright (C) 1985, 86, 87, 88, 89, 93, 94, 95, 97, 98, 1999
+   Copyright (C) 1985, 86, 87, 88, 89, 93, 94, 95, 97, 98, 99, 2000
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2120,9 +2120,10 @@ read1 (readcharfun, pch, first_in_list)
 	  {
 	    if (end - p < MAX_MULTIBYTE_LENGTH)
 	      {
-		char *new = (char *) xrealloc (read_buffer, read_buffer_size *= 2);
-		p += new - read_buffer;
-		read_buffer += new - read_buffer;
+		int offset = p - read_buffer;
+		read_buffer = (char *) xrealloc (read_buffer,
+						 read_buffer_size *= 2);
+		p = read_buffer + offset;
 		end = read_buffer + read_buffer_size;
 	      }
 
@@ -2260,10 +2261,10 @@ read1 (readcharfun, pch, first_in_list)
 	    {
 	      if (end - p < MAX_MULTIBYTE_LENGTH)
 		{
-		  char *new = (char *) xrealloc (read_buffer,
-						 read_buffer_size *= 2);
-		  p += new - read_buffer;
-		  read_buffer += new - read_buffer;
+		  int offset = p - read_buffer;
+		  read_buffer = (char *) xrealloc (read_buffer,
+						   read_buffer_size *= 2);
+		  p = read_buffer + offset;
 		  end = read_buffer + read_buffer_size;
 		}
 	      
@@ -2283,10 +2284,11 @@ read1 (readcharfun, pch, first_in_list)
 
 	  if (p == end)
 	    {
-	      char *new = (char *) xrealloc (read_buffer, read_buffer_size *= 2);
-	      p += new - read_buffer;
-	      read_buffer += new - read_buffer;
-/*	      end = read_buffer + read_buffer_size;  */
+	      int offset = p - read_buffer;
+	      read_buffer = (char *) xrealloc (read_buffer,
+					       read_buffer_size *= 2);
+	      p = read_buffer + offset;
+	      end = read_buffer + read_buffer_size;
 	    }
 	  *p = 0;
 	  if (c >= 0)
