@@ -1,3 +1,8 @@
+2004-03-14  Masatake YAMATO  <jet@gyve.org>
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Accept HEADER_LINE
+	when keymap and cursor are setup.
+
 2004-03-14  Steven Tamm <steventamm@mac.com>
 
 	* Makefile.in (XMENU_OBJ): Do not include xmenu.o if
