@@ -3356,13 +3356,14 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
       SELECT_TYPE mask;
       EMACS_TIME timeout;
 
-      FD_SET(fd, &mask);
+      FD_ZERO (&mask);
+      FD_SET (fd, &mask);
       EMACS_SET_SECS_USECS (timeout, 0, 0);
       if (0 != select (fd + 1, &mask, (long *) 0, (long *) 0, &timeout)
 	  && !XStuffPending ())
 	kill (getpid (), SIGHUP);
     }
-#endif /* ! defined (HAVE_SELECT) */
+#endif /* HAVE_SELECT */
 
 #ifndef HAVE_X11
   if (updating_frame == 0)
@@ -4872,29 +4873,19 @@ Check the DISPLAY environment variable or use \"-d\"\n",
 #endif
 
   if (ConnectionNumber (x_current_display) != 0)
-    {
-      dup2 (ConnectionNumber (x_current_display), 0);
-
-#ifndef SYSV_STREAMS
-      /* Streams somehow keeps track of which descriptor number
-	 is being used to talk to X.  So it is not safe to substitute
-	 descriptor 0.  But it is safe to make descriptor 0 a copy of it.  */
-      close (ConnectionNumber (x_current_display));
-      ConnectionNumber (x_current_display) = 0;	/* Looks a little strange?
-						 * check the def of the macro;
-						 * it is a genuine lvalue */
-#endif /* SYSV_STREAMS */
-    }
+    change_keyboard_wait_descriptor (ConnectionNumber (x_current_display));
+  change_input_fd (ConnectionNumber (x_current_display));
 
 #endif /* ! defined (HAVE_X11) */
   
 #ifndef F_SETOWN_BUG
 #ifdef F_SETOWN
-  old_fcntl_owner = fcntl (0, F_GETOWN, 0);
+  old_fcntl_owner = fcntl (ConnectionNumber (x_current_display), F_GETOWN, 0);
 #ifdef F_SETOWN_SOCK_NEG
-  fcntl (0, F_SETOWN, -getpid ());	/* stdin is a socket here */
+  /* stdin is a socket here */
+  fcntl (ConnectionNumber (x_current_display), F_SETOWN, -getpid ());
 #else /* ! defined (F_SETOWN_SOCK_NEG) */
-  fcntl (0, F_SETOWN, getpid ());
+  fcntl (ConnectionNumber (x_current_display), F_SETOWN, getpid ());
 #endif /* ! defined (F_SETOWN_SOCK_NEG) */
 #endif /* ! defined (F_SETOWN) */
 #endif /* F_SETOWN_BUG */
