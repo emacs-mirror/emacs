@@ -1538,6 +1538,17 @@ between them, return t; otherwise return nil.")
 	      comstyle = SYNTAX_COMMENT_STYLE (c1);
 	      from = temp_pos;
 	    }
+	  if (from > stop && SYNTAX_COMSTART_SECOND (c)
+	      && (c1 = FETCH_CHAR (temp_pos),
+		  SYNTAX_COMSTART_FIRST (c1))
+	      && !char_quoted (temp_pos))
+	    {
+	      /* We must record the comment style encountered so that
+		 later, we can match only the proper comment begin
+		 sequence of the same style.  */
+	      code = Scomment;
+	      from = temp_pos;
+	    }
 
 	  if (code == Scomment_fence)
 	    {
