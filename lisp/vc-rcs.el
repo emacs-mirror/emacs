@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.9 2000/10/01 19:35:24 monnier Exp $
+;; $Id: vc-rcs.el,v 1.10 2000/10/03 11:33:59 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -735,37 +735,13 @@ whether to remove it."
 	 (yes-or-no-p (format "Directory %s is empty; remove it? " dir))
 	 (delete-directory dir))))
 
-(defun vc-rcs-receive-file (file move)
+(defun vc-rcs-receive-file (file rev)
   "Implementation of receive-file for RCS."
-  (let ((old-backend (vc-backend file))
-	(rev (vc-workfile-version file))
-	(state (vc-state file))
-	(checkout-model (vc-checkout-model file))
-	(comment (and move (vc-call comment-history file))))
-    (if move (vc-unregister file))
-    (vc-file-clearprops file)
-    (if (not (vc-rcs-registered file))
-	(progn
-	  ;; TODO: If the file was 'edited under the old backend,
-	  ;; this should actually register the version 
-	  ;; it was based on.
-	  (vc-rcs-register file rev "")
-	  (vc-file-setprop file 'vc-backend 'RCS)
-	  (if (eq checkout-model 'implicit)
-	      (vc-rcs-set-non-strict-locking file))
-	  (if (not move)
-	      (vc-do-command nil 0 "rcs" file (concat "-b" rev ".1"))))
-      (vc-file-setprop file 'vc-backend 'RCS)
-      (vc-file-setprop file 'vc-state 'edited)
-      (set-file-modes file
-		      (logior (file-modes file) 128)))
-    (when (or move (eq state 'edited))
-      (vc-file-setprop file 'vc-state 'edited)
-      ;; Explicit branch revision number will cause vc-rcs-checkin
-      ;; to use "ci -f".  This is a trick to force creation of 
-      ;; the branch, even if we couldn't use the unmodified base 
-      ;; version for registration above.
-      (vc-checkin file (concat rev ".1.1") comment (stringp comment)))))
+  (let ((checkout-model (vc-checkout-model file)))
+    (vc-rcs-register file rev "")
+    (when (eq checkout-model 'implicit)
+      (vc-rcs-set-non-strict-locking file))
+    (vc-rcs-set-default-branch file (concat rev ".1"))))
 
 (defun vc-rcs-set-non-strict-locking (file)
   (vc-do-command nil 0 "rcs" file "-U")
