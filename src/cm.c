@@ -264,11 +264,11 @@ x:
      * for using n2tabs, then pick the minimum.
      */
 
-		   /* cost for ntabs     +    cost for right motion */
+		   /* cost for ntabs           +    cost for right motion */
     tabcost = ntabs ? ntabs * tty->Wcm->cc_tab + (dstx - tabx) * tty->Wcm->cc_right
 		    : BIG;
 
-		   /* cost for n2tabs    +    cost for left motion */
+		   /* cost for n2tabs          +    cost for left motion */
     c = n2tabs  ?    n2tabs * tty->Wcm->cc_tab + (tab2x - dstx) * tty->Wcm->cc_left
 		: BIG;
 
@@ -396,9 +396,9 @@ cmgoto (tty, row, col)
     {
       /* compute REAL direct cost */
       cost = 0;
-      p = dcm == tty->Wcm->cm_habs
-        ? tgoto (dcm, row, col)
-        : tgoto (dcm, col, row);
+      p = (dcm == tty->Wcm->cm_habs
+           ? tgoto (dcm, row, col)
+           : tgoto (dcm, col, row));
       emacs_tputs (tty, p, 1, evalcost);
       if (cost <= relcost)
 	{	/* really is cheaper */

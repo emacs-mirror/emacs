@@ -4050,8 +4050,11 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	 If there is no valid info, it does not store anything
 	 so x remains nil.  */
       x = Qnil;
-      if (f && FRAME_DISPLAY (f)->mouse_position_hook) /* XXX Can f or mouse_position_hook be NULL here? */
-        (*FRAME_DISPLAY (f)->mouse_position_hook) (&f, 0, &bar_window, &part, &x, &y, &time);
+      
+      /* XXX Can f or mouse_position_hook be NULL here? */
+      if (f && FRAME_DISPLAY (f)->mouse_position_hook) 
+        (*FRAME_DISPLAY (f)->mouse_position_hook) (&f, 0, &bar_window,
+                                                   &part, &x, &y, &time);
 
       obj = Qnil;
 
@@ -10550,9 +10553,9 @@ The elements of this list correspond to the arguments of
   if (FRAME_TERMCAP_P (sf))
     {
       val[1] = FRAME_TTY (sf)->flow_control ? Qt : Qnil;
-      val[2] = FRAME_TTY (sf)->meta_key == 2
-        ? make_number (0)
-        : CURTTY ()->meta_key == 1 ? Qt : Qnil;
+      val[2] = (FRAME_TTY (sf)->meta_key == 2
+                ? make_number (0)
+                : (CURTTY ()->meta_key == 1 ? Qt : Qnil));
     }
   else
     {

@@ -285,9 +285,7 @@ void
 set_terminal_window (size)
      int size;
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   if (FRAME_DISPLAY (f)->set_terminal_window_hook)
     (*FRAME_DISPLAY (f)->set_terminal_window_hook) (size);
@@ -298,9 +296,7 @@ set_terminal_window (size)
 void
 tty_set_terminal_window (int size)
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   struct tty_display_info *tty = FRAME_TTY (f);
 
@@ -314,9 +310,7 @@ set_scroll_region (start, stop)
      int start, stop;
 {
   char *buf;
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   struct tty_display_info *tty = FRAME_TTY (f);
 
@@ -439,9 +433,7 @@ void
 cursor_to (vpos, hpos)
      int vpos, hpos;
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   if (FRAME_DISPLAY (f)->cursor_to_hook)
     (*FRAME_DISPLAY (f)->cursor_to_hook) (vpos, hpos);
@@ -450,9 +442,7 @@ cursor_to (vpos, hpos)
 void
 tty_cursor_to (int vpos, int hpos)
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
   
   struct tty_display_info *tty = FRAME_TTY (f);
 
@@ -477,9 +467,7 @@ void
 raw_cursor_to (row, col)
      int row, col;
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   if (FRAME_DISPLAY (f)->raw_cursor_to_hook)
     (*FRAME_DISPLAY (f)->raw_cursor_to_hook) (row, col);  
@@ -488,9 +476,7 @@ raw_cursor_to (row, col)
 void
 tty_raw_cursor_to (int row, int col)
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   struct tty_display_info *tty = FRAME_TTY (f);
 
@@ -510,9 +496,7 @@ tty_raw_cursor_to (int row, int col)
 void
 clear_to_end ()
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   if (FRAME_DISPLAY (f)->clear_to_end_hook)
     (*FRAME_DISPLAY (f)->clear_to_end_hook) ();
@@ -524,9 +508,7 @@ void
 tty_clear_to_end (void)
 {
   register int i;
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
   struct tty_display_info *tty = FRAME_TTY (f);
 
   if (tty->TS_clr_to_bottom)
@@ -560,9 +542,7 @@ clear_frame ()
 void
 tty_clear_frame ()
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   struct tty_display_info *tty = FRAME_TTY (f);
 
@@ -588,9 +568,7 @@ void
 clear_end_of_line (first_unused_hpos)
      int first_unused_hpos;
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   if (FRAME_DISPLAY (f)->clear_end_of_line_hook)
     (*FRAME_DISPLAY (f)->clear_end_of_line_hook) (first_unused_hpos);
@@ -604,9 +582,7 @@ void
 tty_clear_end_of_line (int first_unused_hpos)
 {
   register int i;
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
   struct tty_display_info *tty = FRAME_TTY (f);
 
   /* Detect the case where we are called from reset_sys_modes
@@ -758,9 +734,7 @@ write_glyphs (string, len)
      register struct glyph *string;
      register int len;
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   if (FRAME_DISPLAY (f)->write_glyphs_hook)
     (*FRAME_DISPLAY (f)->write_glyphs_hook) (string, len);
@@ -775,9 +749,7 @@ tty_write_glyphs (struct glyph *string, int len)
   unsigned char conversion_buffer[1024];
   int conversion_buffer_size = sizeof conversion_buffer;
 
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   struct tty_display_info *tty = FRAME_TTY (f);
 
@@ -872,9 +844,7 @@ insert_glyphs (start, len)
      register struct glyph *start;
      register int len;
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   if (len <= 0)
     return;
@@ -890,9 +860,7 @@ tty_insert_glyphs (struct glyph *start, int len)
 {
   char *buf;
   struct glyph *glyph = NULL;
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   struct tty_display_info *tty = FRAME_TTY (f);
 
@@ -974,9 +942,7 @@ void
 delete_glyphs (n)
      register int n;
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   if (FRAME_DISPLAY (f)->delete_glyphs_hook)
     (*FRAME_DISPLAY (f)->delete_glyphs_hook) (n);
@@ -989,9 +955,7 @@ tty_delete_glyphs (int n)
 {
   char *buf;
   register int i;
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   struct tty_display_info *tty = FRAME_TTY (f);
 
@@ -1024,9 +988,7 @@ void
 ins_del_lines (vpos, n)
      int vpos, n;
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
   
   if (FRAME_DISPLAY (f)->ins_del_lines_hook)
     (*FRAME_DISPLAY (f)->ins_del_lines_hook) (vpos, n);
@@ -1037,9 +999,7 @@ ins_del_lines (vpos, n)
 void
 tty_ins_del_lines (int vpos, int n)
 {
-  struct frame *f = (updating_frame
-                     ? updating_frame
-                     : XFRAME (selected_frame));
+  struct frame *f = (updating_frame ? updating_frame : XFRAME (selected_frame));
 
   struct tty_display_info *tty = FRAME_TTY (f);
   char *multi = n > 0 ? tty->TS_ins_multi_lines : tty->TS_del_multi_lines;

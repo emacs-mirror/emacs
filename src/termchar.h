@@ -63,7 +63,6 @@ struct tty_display_info
 
   /* Redisplay. */
 
-  /* XXX GC does not know about this; is this a problem? */
   Lisp_Object top_frame;        /* The topmost frame on this tty. */
   
   /* The previous terminal frame we displayed on this tty.  */
