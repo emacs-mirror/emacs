@@ -1466,15 +1466,12 @@ out of view."
     (let* ((max-height (if (functionp temp-buffer-max-height)
                            (funcall temp-buffer-max-height (current-buffer))
                          temp-buffer-max-height))
-           (win-height (1- (window-height)))
+           (win-height (- (window-height)
+			  (mode-line-window-height-fudge)
+			  1))
            (min-height (1- window-min-height))
            (text-height (count-screen-lines))
            (new-height (max (min text-height max-height) min-height)))
-      (when (display-graphic-p)
-	;; This egregious hack is because mode-lines on graphics
-	;; displays often use faces that make them more than one `line'
-	;; high, and so obscure the last line of the window proper.
-	(setq win-height (1- win-height)))
       (enlarge-window (- new-height win-height)))))
 
 ;; `help-manyarg-func-alist' is defined primitively (in doc.c).
