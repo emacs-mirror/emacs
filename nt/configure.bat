@@ -1,7 +1,7 @@
 @echo off
 rem   ----------------------------------------------------------------------
-rem   Configuration script for MS Windows 95/98 and NT/2000
-rem   Copyright (C) 1999-2001 Free Software Foundation, Inc.
+rem   Configuration script for MS Windows 95/98/Me and NT/2000/XP
+rem   Copyright (C) 1999-2003 Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
 
@@ -22,7 +22,7 @@ rem   Boston, MA 02111-1307, USA.
 rem   ----------------------------------------------------------------------
 rem   YOU'LL NEED THE FOLLOWING UTILITIES TO MAKE EMACS:
 rem
-rem   + MS Windows 95/98 or NT/2000
+rem   + MS Windows 95/98/Me or NT/2000/XP
 rem   + either MSVC 2.x or later, or gcc-2.95 or later (with gmake 3.75
 rem     or later) and the Mingw32 and W32 API headers and libraries
 rem
@@ -87,6 +87,7 @@ if "%1" == "--cflags" goto usercflags
 if "%1" == "--ldflags" goto userldflags
 if "%1" == "--without-png" goto withoutpng
 if "%1" == "--without-jpeg" goto withoutjpeg
+if "%1" == "--without-gif" goto withoutgif
 if "%1" == "" goto checkutils
 :usage
 echo Usage: configure [options]
@@ -101,6 +102,7 @@ echo.   --cflags FLAG           pass FLAG to compiler
 echo.   --ldflags FLAG          pass FLAG to compiler when linking
 echo.   --without-png           do not use libpng even if it is installed
 echo.   --without-jpeg          do not use jpeglib even if it is installed
+echo.   --without-gif           do not use giflib even if it is installed
 goto end
 rem ----------------------------------------------------------------------
 :setprefix
@@ -160,6 +162,14 @@ rem ----------------------------------------------------------------------
 :withoutjpeg
 set jpegsupport=N
 set HAVE_JPEG=
+shift
+goto again
+
+rem ----------------------------------------------------------------------
+
+:withoutgif
+set gifsupport=N
+set HAVE_GIF=
 shift
 goto again
 
@@ -286,7 +296,7 @@ rm -f junk.c junk.obj
 
 if (%jpegsupport%) == (N) goto jpegDone
 
-echo Checking for jpeg ...
+echo Checking for jpeg...
 echo #include "jconfig.h" >junk.c
 echo main (){} >>junk.c
 rem   -o option is ignored with cl, but allows result to be consistent.
@@ -302,6 +312,26 @@ echo ...JPEG header available, building with JPEG support.
 set HAVE_JPEG=1
 
 :jpegDone
+rm -f junk.c junk.obj
+
+if (%gifsupport%) == (N) goto gifDone
+
+echo Checking for gif...
+echo #include "gif_lib.h" >junk.c
+echo main (){} >>junk.c
+rem   -o option is ignored with cl, but allows result to be consistent.
+%COMPILER% %usercflags% -c junk.c -o junk.obj
+if exist junk.obj goto haveGif
+
+echo ...building without GIF support.
+set HAVE_GIF=
+goto :gifDone
+
+:haveGif
+echo ...GIF header available, building with GIF support.
+set HAVE_GIF=1
+
+:gifDone
 rm -f junk.c junk.obj
 
 rem ----------------------------------------------------------------------
@@ -332,6 +362,7 @@ if not "(%usercflags%)" == "()" echo #define USER_CFLAGS " %usercflags%">>..\src
 if not "(%userldflags%)" == "()" echo #define USER_LDFLAGS " %userldflags%">>..\src\config.h
 if not "(%HAVE_PNG%)" == "()" echo #define HAVE_PNG 1 >>..\src\config.h
 if not "(%HAVE_JPEG%)" == "()" echo #define HAVE_JPEG 1 >>..\src\config.h
+if not "(%HAVE_GIF%)" == "()" echo #define HAVE_GIF 1 >>..\src\config.h
 echo /* End of settings from configure.bat.  */ >>..\src\config.h
 
 copy paths.h ..\src\epaths.h
