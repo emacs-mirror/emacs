@@ -3,6 +3,7 @@
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
+;; Maintainer: bugs@gnus.org
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -1771,7 +1772,9 @@ Return the name of the group if selection was successful."
 	  (when (gnus-group-read-group t t group select-articles)
 	    group)
 	;;(error nil)
-	(quit nil)))))
+	(quit
+	 (message "Quit reading the ephemeral group")
+	 nil)))))
 
 (defun gnus-group-jump-to-group (group)
   "Jump to newsgroup GROUP."
@@ -2359,13 +2362,14 @@ score file entries for articles to include in the group."
 					  "Match on header: " headers nil t))))
 	(setq regexps nil)
 	(while (not (equal "" (setq regexp (read-string
-					    (format "Match on %s (string): "
+					    (format "Match on %s (regexp): "
 						    header)))))
 	  (push (list regexp nil nil 'r) regexps))
 	(push (cons header regexps) scores))
       scores)))
   (gnus-group-make-group group "nnkiboze" address)
-  (let* ((score-file (gnus-score-file-name (concat "nnkiboze:" group)))
+  (let* ((nnkiboze-current-group group)
+	 (score-file (car (nnkiboze-score-file "")))
 	 (score-dir (file-name-directory score-file)))
     (unless (file-exists-p score-dir)
       (make-directory score-dir))
@@ -2450,8 +2454,9 @@ score file entries for articles to include in the group."
       (error "Killed group; can't be edited"))
     (unless (eq (car (setq method (gnus-find-method-for-group group))) 'nnimap)
       (error "%s is not an nnimap group" group))
-    (gnus-edit-form (setq acl (nnimap-acl-get mailbox (cadr method)))
-		    (format "Editing the access control list for `%s'.
+    (unless (setq acl (nnimap-acl-get mailbox (cadr method)))
+      (error "Server does not support ACL's"))
+    (gnus-edit-form acl (format "Editing the access control list for `%s'.
 
    An access control list is a list of (identifier . rights) elements.
 
