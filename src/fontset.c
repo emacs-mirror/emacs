@@ -92,20 +92,18 @@ Boston, MA 02111-1307, USA.  */
    A parent of a base fontset is nil.  A parent of a realized fontset
    is a base fontset.
 
-   All fontsets (except for the default fontset described below) are
-   recorded in Vfontset_table.
+   All fontsets are recorded in Vfontset_table.
 
 
    DEFAULT FONTSET
 
    There's a special fontset named `default fontset' which defines a
-   default fontname that contains only REGISTRY field for each
-   character.  When a base fontset doesn't specify a font for a
-   specific character, the corresponding value in the default fontset
-   is used.  The format is the same as a base fontset.
+   default fontname pattern.  When a base fontset doesn't specify a
+   font for a specific character, the corresponding value in the
+   default fontset is used.  The format is the same as a base fontset.
 
-   The parent of realized fontsets created for faces that have no
-   fontset is the default fontset.
+   The parent of a realized fontset created for such a face that has
+   no fontset is the default fontset.
 
 
    These structures are hidden from the other codes than this file.
@@ -190,7 +188,7 @@ static Lisp_Object font_family_registry P_ ((Lisp_Object));
 /* Return the fontset with ID.  No check of ID's validness.  */
 #define FONTSET_FROM_ID(id) AREF (Vfontset_table, id)
 
-/* Macros to access extra, default, and parent slots, of fontset.  */
+/* Macros to access special values of FONTSET.  */
 #define FONTSET_ID(fontset)		XCHAR_TABLE (fontset)->extras[0]
 #define FONTSET_NAME(fontset)		XCHAR_TABLE (fontset)->extras[1]
 #define FONTSET_FRAME(fontset)		XCHAR_TABLE (fontset)->extras[2]
@@ -204,7 +202,7 @@ static Lisp_Object font_family_registry P_ ((Lisp_Object));
 
 #define FONTSET_REF(fontset, c)	fontset_ref (fontset, c)
 
-static INLINE Lisp_Object
+static Lisp_Object
 fontset_ref (fontset, c)
      Lisp_Object fontset;
      int c;
@@ -238,7 +236,7 @@ fontset_ref (fontset, c)
 
 #define FONTSET_REF_VIA_BASE(fontset, c) fontset_ref_via_base (fontset, &c)
 
-static INLINE Lisp_Object
+static Lisp_Object
 fontset_ref_via_base (fontset, c)
      Lisp_Object fontset;
      int *c;
@@ -272,7 +270,7 @@ fontset_ref_via_base (fontset, c)
 }
 
 
-/* Store into the element of FONTSET at index C the value NEWETL.  */
+/* Store into the element of FONTSET at index C the value NEWELT.  */
 #define FONTSET_SET(fontset, c, newelt) fontset_set(fontset, c, newelt)
 
 static void
@@ -1031,9 +1029,15 @@ name of a font, REGSITRY is a registry name of a font.")
       family = XCAR (fontname);
       registry = XCDR (fontname);
       if (!NILP (family))
-	CHECK_STRING (family, 2);
+	{
+	  CHECK_STRING (family, 2);
+	  family = Fdowncase (family);
+	}
       if (!NILP (registry))
-	CHECK_STRING (registry, 2);
+	{
+	  CHECK_STRING (registry, 2);
+	  registry = Fdowncase (registry);
+	}
       elt = Fcons (make_number (from), Fcons (family, registry));
     }
 
