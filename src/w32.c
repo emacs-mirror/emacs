@@ -533,6 +533,19 @@ w32_get_long_filename (char * name, char * buf, int size)
   return TRUE;
 }
 
+int
+is_unc_volume (const char *filename)
+{
+  const char *ptr = filename;
+
+  if (!IS_DIRECTORY_SEP (ptr[0]) || !IS_DIRECTORY_SEP (ptr[1]) || !ptr[2])
+    return 0;
+
+  if (strpbrk (ptr + 2, "*?|<>\"\\/"))
+    return 0;
+
+  return 1;
+}
 
 /* Routines that are no-ops on NT but are defined to get Emacs to compile.  */
 
@@ -1194,6 +1207,13 @@ static int    dir_is_fat;
 static char   dir_pathname[MAXPATHLEN+1];
 static WIN32_FIND_DATA dir_find_data;
 
+/* Support shares on a network resource as subdirectories of a read-only
+   root directory. */
+static HANDLE wnet_enum_handle = INVALID_HANDLE_VALUE;
+HANDLE open_unc_volume (char *);
+char  *read_unc_volume (HANDLE, char *, int);
+void   close_unc_volume (HANDLE);
+
 DIR *
 opendir (char *filename)
 {
@@ -1202,9 +1222,19 @@ opendir (char *filename)
   /* Opening is done by FindFirstFile.  However, a read is inherent to
      this operation, so we defer the open until read time.  */
 
-  if (!(dirp = (DIR *) malloc (sizeof (DIR))))
-    return NULL;
   if (dir_find_handle != INVALID_HANDLE_VALUE)
+    return NULL;
+  if (wnet_enum_handle != INVALID_HANDLE_VALUE)
+    return NULL;
+
+  if (is_unc_volume (filename))
+    {
+      wnet_enum_handle = open_unc_volume (filename);
+      if (wnet_enum_handle == INVALID_HANDLE_VALUE)
+	return NULL;
+    }
+
+  if (!(dirp = (DIR *) malloc (sizeof (DIR))))
     return NULL;
 
   dirp->dd_fd = 0;
@@ -1227,14 +1257,26 @@ closedir (DIR *dirp)
       FindClose (dir_find_handle);
       dir_find_handle = INVALID_HANDLE_VALUE;
     }
+  else if (wnet_enum_handle != INVALID_HANDLE_VALUE)
+    {
+      close_unc_volume (wnet_enum_handle);
+      wnet_enum_handle = INVALID_HANDLE_VALUE;
+    }
   xfree ((char *) dirp);
 }
 
 struct direct *
 readdir (DIR *dirp)
 {
+  if (wnet_enum_handle != INVALID_HANDLE_VALUE)
+    {
+      if (!read_unc_volume (wnet_enum_handle, 
+			      dir_find_data.cFileName, 
+			      MAX_PATH))
+	return NULL;
+    }
   /* If we aren't dir_finding, do a find-first, otherwise do a find-next. */
-  if (dir_find_handle == INVALID_HANDLE_VALUE)
+  else if (dir_find_handle == INVALID_HANDLE_VALUE)
     {
       char filename[MAXNAMLEN + 3];
       int ln;
@@ -1280,6 +1322,80 @@ readdir (DIR *dirp)
   return &dir_static;
 }
 
+HANDLE
+open_unc_volume (char *path)
+{
+  NETRESOURCE nr; 
+  HANDLE henum;
+  int result;
+
+  nr.dwScope = RESOURCE_GLOBALNET; 
+  nr.dwType = RESOURCETYPE_DISK; 
+  nr.dwDisplayType = RESOURCEDISPLAYTYPE_SERVER; 
+  nr.dwUsage = RESOURCEUSAGE_CONTAINER; 
+  nr.lpLocalName = NULL; 
+  nr.lpRemoteName = map_w32_filename (path, NULL);
+  nr.lpComment = NULL; 
+  nr.lpProvider = NULL;   
+
+  result = WNetOpenEnum(RESOURCE_GLOBALNET, RESOURCETYPE_DISK,  
+			RESOURCEUSAGE_CONNECTABLE, &nr, &henum);
+
+  if (result == NO_ERROR)
+    return henum;
+  else
+    return INVALID_HANDLE_VALUE;
+}
+
+char *
+read_unc_volume (HANDLE henum, char *readbuf, int size)
+{
+  int count;
+  int result;
+  int bufsize = 512;
+  char *buffer;
+  char *ptr;
+
+  count = 1;
+  buffer = alloca (bufsize);
+  result = WNetEnumResource (wnet_enum_handle, &count, buffer, &bufsize);
+  if (result != NO_ERROR)
+    return NULL;
+
+  /* WNetEnumResource returns \\resource\share...skip forward to "share". */
+  ptr = ((LPNETRESOURCE) buffer)->lpRemoteName;
+  ptr += 2;
+  while (*ptr && !IS_DIRECTORY_SEP (*ptr)) ptr++;
+  ptr++;
+
+  strncpy (readbuf, ptr, size);
+  return readbuf;
+}
+
+void
+close_unc_volume (HANDLE henum)
+{
+  if (henum != INVALID_HANDLE_VALUE)
+    WNetCloseEnum (henum);
+}
+
+DWORD
+unc_volume_file_attributes (char *path)
+{
+  HANDLE henum;
+  DWORD attrs;
+
+  henum = open_unc_volume (path);
+  if (henum == INVALID_HANDLE_VALUE)
+    return -1;
+
+  attrs = FILE_ATTRIBUTE_READONLY | FILE_ATTRIBUTE_DIRECTORY;
+
+  close_unc_volume (henum);
+
+  return attrs;
+}
+
 
 /* Shadow some MSVC runtime functions to map requests for long filenames
    to reasonable short names if necessary.  This was originally added to
@@ -1293,7 +1409,15 @@ sys_access (const char * path, int mode)
 
   /* MSVC implementation doesn't recognize D_OK.  */
   path = map_w32_filename (path, NULL);
-  if ((attributes = GetFileAttributes (path)) == -1)
+  if (is_unc_volume (path))
+    {
+      attributes = unc_volume_file_attributes (path);
+      if (attributes == -1) {
+	errno = EACCES;
+	return -1;
+      }
+    }
+  else if ((attributes = GetFileAttributes (path)) == -1)
     {
       /* Should try mapping GetLastError to errno; for now just indicate
 	 that path doesn't exist.  */
@@ -1759,7 +1883,21 @@ stat (const char * path, struct stat * buf)
 	     && (IS_DIRECTORY_SEP (*path) || *path == 0));
   name = strcpy (alloca (len + 2), name);
 
-  if (rootdir)
+  if (is_unc_volume (name))
+    {
+      DWORD attrs = unc_volume_file_attributes (name);
+
+      if (attrs == -1)
+	return -1;
+
+      memset (&wfd, 0, sizeof (wfd));
+      wfd.dwFileAttributes = attrs;
+      wfd.ftCreationTime = utc_base_ft;
+      wfd.ftLastAccessTime = utc_base_ft;
+      wfd.ftLastWriteTime = utc_base_ft;
+      strcpy (wfd.cFileName, name);
+    }
+  else if (rootdir)
     {
       if (!IS_DIRECTORY_SEP (name[len-1]))
 	strcat (name, "\\");
