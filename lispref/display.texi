@@ -19,8 +19,9 @@ that Emacs presents to the user.
 * Overlay Arrow::       Display of an arrow to indicate position.
 * Temporary Displays::  Displays that go away automatically.
 * Overlays::		Use overlays to highlight parts of the buffer.
-* Width::               How wide is a character or string.
-* Faces::		A face defines a graphics appearance: font, color, etc.
+* Width::               How wide a character or string is on the screen.
+* Faces::		A face defines a graphics style for text characters:
+                          font, colors, etc.
 * Display Property::    Enabling special display features.
 * Images::              Displaying images in Emacs buffers.
 * Blinking::            How Emacs shows the matching open parenthesis.
@@ -313,11 +314,11 @@ subsequently make various subsets visible or invisible by changing the
 value of @code{buffer-invisibility-spec}.
 
 Controlling visibility with @code{buffer-invisibility-spec} is
-especially useful in a program to display the list of entries in a data
-base.  It permits the implementation of convenient filtering commands to
-view just a part of the entries in the data base.  Setting this variable
-is very fast, much faster than scanning all the text in the buffer
-looking for properties to change.
+especially useful in a program to display the list of entries in a
+database.  It permits the implementation of convenient filtering
+commands to view just a part of the entries in the database.  Setting
+this variable is very fast, much faster than scanning all the text in
+the buffer looking for properties to change.
 
 @defvar buffer-invisibility-spec
 This variable specifies which kinds of @code{invisible} properties
@@ -359,6 +360,7 @@ Add the element @var{element} to @code{buffer-invisibility-spec}
 @defun remove-from-invisibility-spec element
 @tindex remove-from-invisibility-spec
 Remove the element @var{element} from @code{buffer-invisibility-spec}.
+This does nothing if @var{element} is not in the list.
 @end defun
 
   One convention about the use of @code{buffer-invisibility-spec} is
@@ -446,9 +448,10 @@ lines, or portions of lines, may be made invisible.
 
 @itemize @bullet
 @item
-If the value of @code{selective-display} is @code{t}, then any portion
-of a line that follows a control-m is not displayed.  This is explicit
-selective display.
+If the value of @code{selective-display} is @code{t}, then the character
+control-m marks the start of invisible text; the control-m, and the rest
+of the line following it, are not displayed.  This is explicit selective
+display.
 
 @item
 If the value of @code{selective-display} is a positive integer, then
@@ -780,7 +783,7 @@ This property controls the way text is displayed---for example, which
 font and which colors.  @xref{Faces}, for more information.
 
 In the simplest case, the value is a face name.  It can also be a list;
-then each element can be any of these possibilities;
+then each element can be any of these possibilities:
 
 @itemize @bullet
 @item
@@ -819,8 +822,8 @@ or shorter, higher or lower, wider or narror, or replaced with an image.
 @kindex help-echo @r{(text property)}
 If an overlay has a string as its @code{help-echo} property, then when
 you move the mouse onto the text in the overlay, Emacs displays that
-string in the echo area, or in the tooltip window.  It is available
-starting in Emacs 21.
+string in the echo area, or in the tooltip window.  This feature is
+available starting in Emacs 21.
 
 @item modification-hooks
 @kindex modification-hooks @r{(overlay property)}
@@ -880,17 +883,13 @@ visible, temporarily, during the search.  @xref{Invisible Text}.
 @kindex before-string @r{(overlay property)}
 This property's value is a string to add to the display at the beginning
 of the overlay.  The string does not appear in the buffer in any
-sense---only on the screen.  The string should contain only characters
-that display as a single column---control characters, including tabs or
-newlines, will give strange results.
+sense---only on the screen.
 
 @item after-string
 @kindex after-string @r{(overlay property)}
 This property's value is a string to add to the display at the end of
 the overlay.  The string does not appear in the buffer in any
-sense---only on the screen.  The string should contain only characters
-that display as a single column---control characters, including tabs or
-newlines, will give strange results.
+sense---only on the screen.
 
 @item evaporate
 @kindex evaporate @r{(overlay property)}
@@ -943,14 +942,15 @@ a Lisp object, but ceases to be attached to the buffer it belonged to,
 and ceases to have any effect on display.
 
 A deleted overlay is not permanently useless.  You can give it
-a new buffer position by calling @code{move-overlay}.
+a position in a buffer again by calling @code{move-overlay}.
 @end defun
 
 @defun move-overlay overlay start end &optional buffer
 This function moves @var{overlay} to @var{buffer}, and places its bounds
 at @var{start} and @var{end}.  Both arguments @var{start} and @var{end}
 must specify buffer positions; they may be integers or markers.  If
-@var{buffer} is omitted, the overlay stays in the same buffer.
+@var{buffer} is omitted, @var{overlay} stays in the same buffer;
+if @var{overlay} was deleted, it goes into the current buffer.
 
 The return value is @var{overlay}.
 
@@ -1090,8 +1090,9 @@ This face is used for ordinary text.
 
 @item mode-line
 @kindex mode-line @r{(face name)}
-This face is used for mode lines, and for menu bars
-when toolkit menus are not used.
+This face is used for mode lines, and for menu bars when toolkit menus
+are not used---but only if @code{mode-line-inverse-video} is
+non-@code{nil}.
 
 @item modeline
 @kindex modeline @r{(face name)}
@@ -1101,6 +1102,10 @@ old Emacs versions.
 @item header-line
 @kindex header-line @r{(face name)}
 This face is used for the header lines of windows that have them.
+
+@item menu
+This face controls the display of menus, both their colors and their
+font.  (This works only on certain systems.)
 
 @item fringe
 @kindex fringe @r{(face name)}
@@ -1129,7 +1134,8 @@ This face is meant to be used for highlighting for various purposes.
 
 @item trailing-whitespace
 @kindex trailing-whitespace @r{(face name)}
-This face is used to display excess whitespace at the end of a line.
+This face is used to display excess whitespace at the end of a line,
+if @code{show-trailing-whitespace} is non-@code{nil}.
 @end table
 
   In contrast, these faces are provided to change the appearance of text
@@ -1163,9 +1169,16 @@ This face forces use of a particular fixed-width font.
 @item variable-patch
 @kindex variable-patch @r{(face name)}
 This face forces use of a particular variable-width font.  It's
-reasonable to customize this to use a diffrent variable-width font, if
+reasonable to customize this to use a different variable-width font, if
 you like, but you should not make it a fixed-width font.
 @end table
+
+@defvar show-trailing-whitespace
+@tindex show-trailing-whitespace
+If this variable is non-@code{nil}, Emacs uses the
+@code{trailing-whitespace} face to display any spaces and tabs at the
+end of a line.
+@end defvar
 
 @node Defining Faces
 @subsection Defining Faces
@@ -1177,18 +1190,20 @@ emacs, The GNU Emacs Manual}).
 
 @defmac defface face spec doc [keyword value]... 
 @tindex defface
-Declare @var{face} as a customizable face that defaults according to
-@var{spec}.  Do not quote the symbol @var{face}.  The argument @var{doc}
-specifies the face documentation.
+This declares @var{face} as a customizable face that defaults according
+to @var{spec}.  You should not quote the symbol @var{face}.  The
+argument @var{doc} specifies the face documentation.  The keywords you
+can use in @code{defface} are the same ones that are meaningful in both
+@code{defgroup} and @code{defcustom} (@pxref{Common Keywords}).
 
 When @code{defface} executes, it defines the face according to
 @var{spec}, then uses any customizations that were read from the
-@file{.emacs} file to override that specification.
+init file (@pxref{Init File}) to override that specification.
 
 The purpose of @var{spec} is to specify how the face should appear on
 different kinds of terminals.  It should be an alist whose elements have
-the form @code{(@var{display} @var{atts})}.  The element's @sc{car},
-@var{display}, specifies a class of terminals.  The @sc{cdr},
+the form @code{(@var{display} @var{atts})}.  Each element's @sc{car},
+@var{display}, specifies a class of terminals.  The element's second element,
 @var{atts}, is a list of face attributes and their values; it specifies
 what the face should look like on that kind of terminal.  The possible
 attributes are defined in the value of @code{custom-face-attributes}.
@@ -1234,15 +1249,25 @@ frame must match one of the @var{value}s specified for it in
 @end table
 @end defmac
 
-  Here's how the standard face @code{region} could be defined
-with @code{defface}:
+  Here's how the standard face @code{region} is defined:
 
 @example
+@group
 (defface region
-         ((((class color) (background dark))
-           (:background "blue"))
-          (t (:background "gray")))
-  "Used for displaying the region.")
+  `((((type tty) (class color))
+     (:background "blue" :foreground "white"))
+@end group
+    (((type tty) (class mono))
+     (:inverse-video t))
+    (((class color) (background dark))
+     (:background "blue"))
+    (((class color) (background light))
+     (:background "lightblue"))
+    (t (:background "gray")))
+@group
+  "Basic face for highlighting the region."
+  :group 'basic-faces)
+@end group
 @end example
 
   Internally, @code{defface} uses the symbol property
@@ -1266,9 +1291,9 @@ as if they had a light background.
 
   The effect of using a face is determined by a fixed set of @dfn{face
 attributes}.  This table lists all the face attributes, and what they
-mean.  Note that in general, more than one face be specified for a given
-piece of text; when that happens, the attributes of all the faces are
-merged to specify how to display the text.  @xref{Merging Faces}.
+mean.  Note that in general, more than one face can be specified for a
+given piece of text; when that happens, the attributes of all the faces
+are merged to specify how to display the text.  @xref{Merging Faces}.
 
   In Emacs 21, any attribute in a face can have the value
 @code{unspecified}.  This means the face doesn't specify that attribute.
@@ -1276,14 +1301,17 @@ In face merging, when the first face fails to specify a particular
 attribute, that means the next face gets a chance.  However, the
 @code{default} face must specify all attributes.
 
-  Some of these font attributes are meaningful only on certain
-kinds of displays---if your display cannot handle a certain attribute,
-the attribute is ignored.
+  Some of these font attributes are meaningful only on certain kinds of
+displays---if your display cannot handle a certain attribute, the
+attribute is ignored.  (The attributes @code{:family}, @code{:width},
+@code{:height}, @code{:weight}, and @code{:slant} correspond to parts of
+an X Logical Font Descriptor.)
 
 @table @code
 @item :family
 Font family name, or fontset name (@pxref{Fontsets}).  If you specify a
-font family name, the wild-cards @samp{*} and @samp{?} are allowed.
+font family name, the wild-card characters @samp{*} and @samp{?} are
+allowed.
 
 @item :width
 Relative proportionate width, also known as the character set width or
@@ -1293,18 +1321,21 @@ set width.  This should be one of the symbols @code{ultra-condensed},
 @code{extra-expanded}, or @code{ultra-expanded}.
    
 @item :height
-Font height, an integer in units of 1/10pt.
+Font height, an integer in units of 1/10 point.
    
 @item :weight
 Font weight---a symbol from this series (from most dense to most faint):
 @code{ultra-bold}, @code{extra-bold}, @code{bold}, @code{semi-bold},
 @code{normal}, @code{semi-light}, @code{light}, @code{extra-light},
-@code{ultra-light}, or else @code{nil} meaning this attribute is not
-specified.
+or @code{ultra-light}.
 
 On a text-only terminal, any weight greater than normal is displayed as
 extra bright, and any weight less than normal is displayed as
 half-bright (This is provided the terminal supports the feature.)
+
+On a text-only terminal, any weight greater than normal is displayed as
+extra bright, and any weight less than normal is displayed as
+half-bright (provided the terminal supports the feature).
 
 @item :slant
 Font slant---one of the symbols @code{italic}, @code{oblique}, @code{normal},
@@ -1324,16 +1355,18 @@ Whether or not characters should be displayed in inverse video.  The
 value should be @code{t} (yes) or @code{nil} (no).
 
 @item :stipple
-The background stipple, a bitmap name.
+The background stipple, a bitmap.
 
-The value can be a string; then is the name of a file of pixmap data.
-The file is found in the directories listed in the variable
-@code{x-bitmap-file-path}.
+The value can be a string; that should be the name of a file containing
+external-format X bitmap data.  The file is found in the directories
+listed in the variable @code{x-bitmap-file-path}.
 
-Alternatively, the value can be a list of the form @code{(@var{width}
-@var{height} @var{data})}.  Here, width and height are the size in
-pixels, and @var{data} is a string containing the raw bits of the
-bitmap.
+Alternatively, the value can specify the bitmap directly, with a list of
+the form @code{(@var{width} @var{height} @var{data})}.  Here,
+@var{width} and @var{height} specify the size in pixels, and @var{data}
+is a string containing the raw bits of the bitmap, row by row.  Each row
+occupies @math{(@var{width} + 7) / 8} consecutie bytes in the string
+(which should be a unibyte string for best results).
 
 If the value is @code{nil}, that means use no stipple pattern.
 
@@ -1356,8 +1389,7 @@ color.  The value is used like that of @code{:underline}.
 
 @item :box
 Whether or not a box should be drawn around characters, its color, the
-width of the box lines, and 3D appearance.  See below for the possible
-values and what they mean.
+width of the box lines, and 3D appearance.
 @end table
 
   Here are the possible values of the @code{:box} attribute, and what
@@ -1391,12 +1423,12 @@ is used.
   The attributes @code{:overline}, @code{:strike-through} and
 @code{:box} are new in Emacs 21.  The attributes @code{:family},
 @code{:height}, @code{:width}, @code{:weight}, @code{:slant} are also
-new, previous versions had another way to specify some of the same
-information.
+new; previous versions used the following attributes, now semi-obsolete,
+to specify some of the same information:
 
 @table @code
 @item :font
-This attribute specified the font name.
+This attribute specifies the font name.
 
 @item :bold
 A non-@code{nil} value specifies a bold font.
@@ -1410,11 +1442,9 @@ even though they are not real face attributes.  Here is what that does:
 
 @table @code
 @item :font
-@code{:font} is not really a font attribute, but you can use it in
-@code{set-face-attribute} to specify several attributes at once.  You
-specify an X font name as the value, and based on this font name, and
-it sets the attributes @code{:family}, @code{:width}, @code{:height},
-@code{:weight}, and @code{:slant} according to the font name.
+You can specify an X font name as the ``value'' of this ``attribute'';
+that sets the @code{:family}, @code{:width}, @code{:height},
+@code{:weight}, and @code{:slant} attributes according to the font name.
 
 If the value is a pattern with wildcards, the first font that matches
 the pattern is used to set these attributes.
@@ -1433,6 +1463,12 @@ This variable specifies a list of directories for searching
 for bitmap files, for the @code{:stipple} attribute.
 @end defvar
 
+@defun pixmap-spec-p object
+This returns @code{t} if @var{object} is a valid bitmap
+specification, suitable for use with @code{:stipple}.
+It returns @code{nil} otherwise.
+@end defun
+
 @node Attribute Functions
 @subsection Face Attribute Functions
 
@@ -1449,7 +1485,7 @@ the attribute for all frames, and the defaults for new frames.
 
 The extra arguments @var{arguments} specify the attributes to set, and
 the values for them.  They should consist of alternating attribute names
-(such as @code{:family} or @code{:underline} and corresponding values.
+(such as @code{:family} or @code{:underline}) and corresponding values.
 Thus,
 
 @example
@@ -1481,7 +1517,8 @@ For example,
 @end example
 @end defun
 
-  For older Emacs versions, you can these functions to set
+  The functions above did not exist before Emacs 21.  For compatibility
+with older Emacs versions, you can use the following functions to set
 and examine the face attributes which existed in those versions.
 
 @defun set-face-foreground face color &optional frame
@@ -1547,6 +1584,8 @@ This function inverts the @code{:inverse-video} attribute of face
 
   These functions examine the attributes of a face.  If you don't
 specify @var{frame}, they refer to the default data for new frames.
+They return the symbol @code{unspecified} if the face doesn't define any
+value for that attribute.
 
 @defun face-foreground face &optional frame
 @defunx face-background face &optional frame
@@ -1798,15 +1837,9 @@ same attributes for display.
 
 @defun face-differs-from-default-p face &optional frame
 This returns @code{t} if the face @var{face} displays differently from
-the default face.  A face is considered to be ``the same'' as the normal
-face if each attribute is either the same as that of the default face or
-@code{nil} (meaning to inherit from the default).
-@end defun
-
-@tindex frame-update-face-colors
-@defun frame-update-face-colors frame
-This function updates the way faces display on @var{frame}, for a change
-in @var{frame}'s foreground or background color.
+the default face.  A face is considered to be ``the same'' as the
+default face if each attribute is either the same as that of the default
+face, or unspecified (meaning to inherit from the default).
 @end defun
 
 @node Auto Faces
@@ -2026,18 +2059,22 @@ field.
 @cindex display specification
 @kindex display @r{(text property)}
 
-  The @code{display} text property is used to insert images into text,
-and also control other aspects of how text displays.  These features are
-available starting in Emacs 21.  The value of the @code{display}
-property should be a display specification, or a list or vector
-containing several display specifications.  The rest of this section
-describes several kinds of display specifications and what they mean.
+  The @code{display} text property (or overlay property) is used to
+insert images into text, and also control other aspects of how text
+displays.  These features are available starting in Emacs 21.  The value
+of the @code{display} property should be a display specification, or a
+list or vector containing several display specifications.  The rest of
+this section describes several kinds of display specifications and what
+they mean.
 
 @menu
-* Specified Space::
-* Other Display Specs::
-* Display Margins::
-* Conditional Display::
+* Specified Space::     Displaying one space with a specified width.
+* Other Display Specs:: Displaying an image; magnifying text; moving it
+                          up or down on the page; adjusting the width 
+                          of spaces within text.
+* Display Margins::     Displaying text or images to the side of the main text.
+* Conditional Display:: Making any of the above features conditional
+                          depending on some Lisp expression.
 @end menu
 
 @node Specified Space
@@ -2047,10 +2084,12 @@ describes several kinds of display specifications and what they mean.
 @cindex variable-width spaces
 
   To display a space of specified width and/or height, use a display
-specification of the form @code{(space @var{props})}, where @var{props}
-is a property list (see below).  You can put this property on one or
-more consecutive characters; a space of the specified height and width
-is displayed in place of @emph{all} of those characters.
+specification of the form @code{(space . @var{props})}, where
+@var{props} is a property list (a list of alternating properties and
+values).  You can put this property on one or more consecutive
+characters; a space of the specified height and width is displayed in
+place of @emph{all} of those characters.  These are the properties you
+can use to specify the weight of the space:
 
 @table @code
 @item :width @var{width}
@@ -2066,7 +2105,8 @@ character, multiplied by @var{factor}.
 
 @item :align-to @var{hpos}
 Specifies that the space should be wide enough to reach @var{hpos}.  The
-value @var{hpos} is measured in units of the normal character width.
+value @var{hpos} is measured in units of the normal character width.  It
+may be an interer or a floating point number.
 @end table
 
   Exactly one of the above properties should be used.  You can also
@@ -2083,8 +2123,9 @@ of the text having this display specification by @var{factor}.
 
 @item :ascent @var{ascent}
 Specifies that @var{ascent} percent of the height of the space should be
-considered as the ascent of the space.  The value of @var{ascent} must
-be a non-negative number no greater than 100.
+considered as the ascent of the space---that is, the part above the
+baseline.  The value of @var{ascent} must be a non-negative number no
+greater than 100.
 @end table
 
   You should not use both @code{:height} and @code{:relative-height}
@@ -2100,10 +2141,11 @@ display specification, it means to display the image instead of the text
 that has the display specification.
 
 @item (space-width @var{factor})
-This display specification affects all the spaces in the text that has
-the specification.  It displays all of these spaces @var{factor} times
-as wide as normal.  The element @var{factor} should be an integer or
-float.
+This display specification affects all the space characters within the
+text that has the specification.  It displays all of these spaces
+@var{factor} times as wide as normal.  The element @var{factor} should
+be an integer or float.  Characters other than spaces are not affected
+at all; in particular, this has no effect on tab characters.
 
 @item (height @var{height})
 This display specification makes the text taller or shorter.
@@ -2112,8 +2154,10 @@ Here are the possibilities for @var{height}:
 @table @asis
 @item @code{(+ @var{n})}
 This means to use a font that is @var{n} steps larger.  A ``step'' is
-defined by the set of available fonts; each size for which a font is
-available counts as a step.  @var{n} should be an integer.
+defined by the set of available fonts---specifically, those that match
+what was otherwise specified for this text, in all attributes except
+height.  Each size for which a suitable font is available counts as
+another step.  @var{n} should be an integer.
 
 @item @code{(- @var{n})}
 This means to use a font that is @var{n} steps smaller.
@@ -2237,15 +2281,15 @@ supported in the current configuration.
 @end defvar
 
 @menu
-* Image Descriptors::
-* XBM Images::                    
-* XPM Images::
-* GIF Images::
-* Postscript Images::
-* Other Image Types::
-* Defining Images::
-* Showing Images::
-* Image Cache::
+* Image Descriptors::   How to specify an image for use in @code{:display}.
+* XBM Images::          Special features for XBM format.
+* XPM Images::          Special features for XPM format.
+* GIF Images::          Special features for GIF format.
+* Postscript Images::   Special features for Postscript format.
+* Other Image Types::   Various other formats are supported.
+* Defining Images::     Convenient ways to define an image for later use.
+* Showing Images::      Convenient ways to display an image once it is defined.
+* Image Cache::         Internal mechanisms of image display.
 @end menu
 
 @node Image Descriptors
@@ -2507,10 +2551,11 @@ Each argument in @var{specs} has the form of a property list, and each
 one should specify at least the @code{:type} property and the
 @code{:file} property.  Here is an example:
 
-@smallexample
-(defimage test-image ((:type xpm :file \"~/test1.xpm\")
-                      (:type xbm :file \"~/test1.xbm\")))"
-@end smallexample
+@example
+(defimage test-image
+  '((:type xpm :file "~/test1.xpm")
+    (:type xbm :file "~/test1.xbm")))
+@end example
 
 @code{defimage} tests each argument, one by one, to see if it is
 usable---that is, if the type is supported and the file exists.  The
@@ -2528,11 +2573,12 @@ as @code{nil}.
 property yourself, but it is easier to use the functions in this
 section.
 
-@defun insert-image image &optional area
+@defun insert-image image string &optional area
 This function inserts @var{image} in the current buffer at point.  The
 value @var{image} should be an image descriptor; it could be a value
 returned by @code{create-image}, or the value of a symbol defined with
-@code{defimage}.
+@code{defimage}.  The argument @var{string} specifies the text to put in
+the buffer to hold the image.
 
 The argument @var{area} specifies whether to put the image in a margin.
 If it is @code{left-margin}, the image appears in the left margin;
@@ -2540,15 +2586,16 @@ If it is @code{left-margin}, the image appears in the left margin;
 @code{nil} or omitted, the image is displayed at point within the
 buffer's text.
 
-Internally, this function inserts an @samp{x} in the buffer, and gives
-it a @code{display} property which specifies this image.  @xref{Display
+Internally, this function inserts @var{string} in the buffer, and gives
+it a @code{display} property which specifies @var{image}.  @xref{Display
 Property}.
 @end defun
 
-@defun put-image image pos &optional area
+@defun put-image image pos string &optional area
 This function puts image @var{image} in front of @var{pos} in the
 current buffer.  The argument @var{pos} should be an integer or a
 marker.  It specifies the buffer position where the image should appear.
+The argument @var{string} specifies the text that should hold the image.
 
 The argument @var{image} must be an image descriptor, perhaps returned
 by @code{create-image} or stored by @code{defimage}.
@@ -2671,14 +2718,14 @@ default is @code{nil}.
 @end defopt
 
 @defopt mode-line-inverse-video
-This variable controls the use of inverse video for mode lines.  If it
-is non-@code{nil}, then mode lines are displayed in inverse video.
-Otherwise, mode lines are displayed normally, just like text.  The
-default is @code{t}.
+This variable controls the use of inverse video for mode lines and menu
+bars.  If it is non-@code{nil}, then these lines are displayed in
+inverse video.  Otherwise, they lines are displayed normally, just like
+other text.  The default is @code{t}.
 
-For window frames, this displays mode lines using the face named
-@code{modeline}, which is normally the inverse of the default face
-unless you change it.
+For window frames, this feature actually applies the face named
+@code{mode-line}; that face is normally set up as the inverse of the
+default face, unless you change it.
 @end defopt
 
 @node Usual Display
@@ -2759,9 +2806,10 @@ buffers that do not override it.  @xref{Default Value}.
 
 @defopt tab-width
 The value of this variable is the spacing between tab stops used for
-displaying tab characters in Emacs buffers.  The default is 8.  Note
-that this feature is completely independent of the user-settable tab
-stops used by the command @code{tab-to-tab-stop}.  @xref{Indent Tabs}.
+displaying tab characters in Emacs buffers.  The value is in units of
+columns, and the default is 8.  Note that this feature is completely
+independent of the user-settable tab stops used by the command
+@code{tab-to-tab-stop}.  @xref{Indent Tabs}.
 @end defopt
 
 @node Display Tables
@@ -3014,7 +3062,9 @@ capability (@samp{vb}).
 @defvar ring-bell-function
 @tindex ring-bell-function
 If this is non-@code{nil}, it specifies how Emacs should ``ring the
-bell.''  Its value should be a function of no arguments.
+bell.''  Its value should be a function of no arguments.  If this is
+non-@code{nil}, it takes precedence over the @code{visible-bell}
+variable.
 @end defvar
 
 @node Window Systems
@@ -3047,7 +3097,7 @@ Emacs is using a character-based terminal.
 @defvar window-setup-hook
 This variable is a normal hook which Emacs runs after handling the
 initialization files.  Emacs runs this hook after it has completed
-loading your @file{.emacs} file, the default initialization file (if
+loading your init file, the default initialization file (if
 any), and the terminal-specific Lisp code, and running the hook
 @code{term-setup-hook}.
 

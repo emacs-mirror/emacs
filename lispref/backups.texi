@@ -73,7 +73,7 @@ is @code{nil} (see below).
 The following example shows how to change the @code{make-backup-files}
 variable only in the Rmail buffers and not elsewhere.  Setting it
 @code{nil} stops Emacs from making backups of these files, which may
-save disk space.  (You would put this code in your @file{.emacs} file.)
+save disk space.  (You would put this code in your init file.)
 
 @smallexample
 @group

@@ -168,14 +168,15 @@ definition that is generated in order to run the advice (@pxref{Combined
 Definition}).  Therefore, the advice expressions can use the argument
 variables in this list to access argument values.
 
-This argument list must be compatible with the argument list of the
-original function, so that it can handle the ways the function is
-actually called.  If more than one piece of advice specifies an argument
-list, then the first one (the one with the smallest position) found in
-the list of all classes of advice is used.
+The argument list used in advice need not be the same as the argument
+list used in the original function, but must be compatible with it, so
+that it can handle the ways the function is actually called.  If two
+pieces of advice for a function both specify an argument list, they must
+specify the same argument list.
 
 @xref{Argument Access in Advice}, for more information about argument
-lists and advice.
+lists and advice, and a more flexible way for advice to access the
+arguments.
 
 The remaining elements, @var{flags}, are symbols that specify further
 information about how to use this piece of advice.  Here are the valid

@@ -105,6 +105,12 @@ Windows cannot be made fixed-width or fixed-height;
 Emacs will adjust the size of all windows when it needs to.
 
 @item
+The string used as the value of the @code{before-string} or
+@code{after-string} property must contain only characters that display
+as a single column---control characters, including tabs and newlines,
+will give strange results.
+
+@item
 The minibuffer prompt does not actually appear in content of the
 minibuffer; it is displayed specially in the minibuffer window.
 

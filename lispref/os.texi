@@ -85,9 +85,10 @@ It loads the library @file{site-start}, unless the option
 @cindex @file{site-start.el}
 
 @item 
-It loads the file @file{~/.emacs}, unless @samp{-q} or @samp{-batch} was
-specified on the command line.  The @samp{-u} option can specify another
-user whose home directory should be used instead of @file{~}.
+It loads your init file (usually @file{~/.emacs}), unless @samp{-q} or
+@samp{-batch} was specified on the command line.  The @samp{-u} option
+can specify another user whose home directory should be used instead of
+@file{~}.
 
 @item 
 It loads the library @file{default}, unless @code{inhibit-default-init}
@@ -147,36 +148,45 @@ the information they are supposed to see.
 @defopt inhibit-startup-echo-area-message
 This variable controls the display of the startup echo area message.
 You can suppress the startup echo area message by adding text with this
-form to your @file{.emacs} file:
+form to your init file:
 
 @example
 (setq inhibit-startup-echo-area-message
       "@var{your-login-name}")
 @end example
 
-Emacs explicitly checks for an expression as shown above in your
-@file{.emacs} file; your login name must appear in the expression as a
-Lisp string constant.  Other methods of setting
+Emacs explicitly checks for an expression as shown above in your init
+file; your login name must appear in the expression as a Lisp string
+constant.  Other methods of setting
 @code{inhibit-startup-echo-area-message} to the same value do not
 inhibit the startup message.
 
 This way, you can easily inhibit the message for yourself if you wish,
-but thoughtless copying of your @file{.emacs} file will not inhibit the
-message for someone else.
+but thoughtless copying of your init file will not inhibit the message
+for someone else.
 @end defopt
 
 @node Init File
-@subsection The Init File: @file{.emacs}
+@subsection The Init File, @file{.emacs}
 @cindex init file
 @cindex @file{.emacs}
 
-  When you start Emacs, it normally attempts to load the file
-@file{.emacs} from your home directory.  This file is called your
-@dfn{init file}.  If it exists, it must contain Lisp code.  The
-command-line switches @samp{-q} and @samp{-u} affect the use of the init
-file; @samp{-q} says not to load an init file, and @samp{-u} says to
-load a specified user's init file instead of yours.  @xref{Entering
-Emacs,,, emacs, The GNU Emacs Manual}.
+  When you start Emacs, it normally attempts to load your @dfn{init
+file}, a file in your home directory.  Its normal name is @file{.emacs},
+but you can alternatively call it @file{.emacs.el}, which enables you to
+byte-compile it (@pxref{Byte Compilation}); then the actual file loaded
+will be @file{.emacs.elc}.
+
+  The command-line switches @samp{-q} and @samp{-u} control whether and
+where to find the init file; @samp{-q} says not to load an init file,
+and @samp{-u @var{user}} says to load @var{user}'s init file instead of
+yours.  @xref{Entering Emacs,,, emacs, The GNU Emacs Manual}.  If
+neither option is specified, Emacs uses the @code{LOGNAME} environment
+variable, or the @code{USER} (most systems) or @code{USERNAME} (MS
+systems) variable, to find your home directory and thus your init file;
+this way, even if you have su'd, Emacs still loads your own init file.
+If those environment variables are absent, though, Emacs uses your
+user-id to find your home directory.
 
 @cindex default init file
   A site may have a @dfn{default init file}, which is the library named
@@ -199,10 +209,6 @@ user's init file.  Its normal value is @code{"site-start"}.  The only
 way you can change it with real effect is to do so before dumping
 Emacs.
 @end defvar
-
-  If there is a great deal of code in your @file{.emacs} file, you
-can make it load faster by renaming it to @file{.emacs.el}
-and then byte-compiling it (@pxref{Byte Compilation}).
 
   @xref{Init File Examples,,, emacs, The GNU Emacs Manual}, for
 examples of how to make various commonly desired customizations in your
@@ -253,7 +259,7 @@ the @file{term/aaa} library.  If necessary, the library can evaluate
 @code{(getenv "TERM")} to find the full name of the terminal
 type.@refill
 
-  Your @file{.emacs} file can prevent the loading of the
+  Your init file can prevent the loading of the
 terminal-specific library by setting the variable
 @code{term-file-prefix} to @code{nil}.  This feature is useful when
 experimenting with your own peculiar customizations.
@@ -262,7 +268,7 @@ experimenting with your own peculiar customizations.
 terminal-specific library by setting the variable
 @code{term-setup-hook}.  This is a normal hook which Emacs runs using
 @code{run-hooks} at the end of Emacs initialization, after loading both
-your @file{.emacs} file and any terminal-specific libraries.  You can
+your init file and any terminal-specific libraries.  You can
 use this variable to define initializations for terminals that do not
 have their own libraries.  @xref{Hooks}.
 
@@ -277,9 +283,9 @@ a terminal-specific initialization file as follows:
 
 @noindent
 You may set the @code{term-file-prefix} variable to @code{nil} in your
-@file{.emacs} file if you do not wish to load the
+init file if you do not wish to load the
 terminal-initialization file.  To do this, put the following in
-your @file{.emacs} file: @code{(setq term-file-prefix nil)}.
+your init file: @code{(setq term-file-prefix nil)}.
 
 On MS-DOS, if the environment variable @code{TERM} is not set, Emacs
 uses @samp{internal} as the terminal type.
@@ -287,7 +293,7 @@ uses @samp{internal} as the terminal type.
 
 @defvar term-setup-hook 
 This variable is a normal hook that Emacs runs after loading your
-@file{.emacs} file, the default initialization file (if any) and the
+init file, the default initialization file (if any) and the
 terminal-specific Lisp file.
 
 You can use @code{term-setup-hook} to override the definitions made by a
@@ -327,7 +333,7 @@ kill the Emacs until you are about to log out.)
 
 @defun command-line
 This function parses the command line that Emacs was called with,
-processes it, loads the user's @file{.emacs} file and displays the
+processes it, loads the user's init file and displays the
 startup messages.
 @end defun
 
@@ -811,7 +817,7 @@ files or user profile.
 This holds the nominal email address of the user who is using Emacs.
 Emacs normally sets this variable to a default value after reading your
 init files, but not if you have already set it.  So you can set the
-variable to some other value in your @file{~/.emacs} file if you do not
+variable to some other value in your init file if you do not
 want to use the default value.
 @end defvar
 
@@ -1788,7 +1794,7 @@ for them using @code{keyboard-translate-table} (@pxref{Translating Input}).
 @end deffn
 
 You can use the function @code{enable-flow-control-on} in your
-@file{.emacs} file to enable flow control automatically on certain
+init file to enable flow control automatically on certain
 terminal types.
 
 @defun enable-flow-control-on &rest termtypes

@@ -52,8 +52,8 @@ returns the symbol @code{foo}.  Printing a list whose elements are
 text produces a list (but not the same list) with elements @code{a}
 and @code{b}.
 
-  However, these two operations are not precisely inverses.  There are
-three kinds of exceptions:
+  However, these two operations are not precisely inverse to each other.
+There are three kinds of exceptions:
 
 @itemize @bullet
 @item
@@ -783,31 +783,3 @@ If non-@code{nil}, this variable enables detection of uninterned symbols
 uninterned symbols print with the prefix @samp{#:}, which tells the Lisp
 reader to produce an uninterned symbol.
 @end defvar
-
-@tindex print-continuous-numbering
-@defvar print-continuous-numbering
-To print several objects with shared structure in common, you should
-bind @code{print-continuous-numbering} to @code{t} around them all.
-That tells @code{print} not to reinitialize @code{print-number-table}
-each time.
-@end defvar
-
-@tindex print-number-table
-@defvar print-number-table
-This variable holds the table used as the basis of outputting
-@samp{#@var{n}=} and @samp{#@var{n}#} constructs for circular and shared
-structure.  When you want to print several objects with shared structure
-in common, you should bind @code{print-number-table} to @code{nil}
-around them all.
-@end defvar
-
-  Here is an example of printing two objects with a common
-set of shared substructure:
-
-@example
-(let ((print-circle t)
-      (print-continuous-numbering t)
-      print-number-table)
-  (print1 x)
-  (print1 y))
-@end example

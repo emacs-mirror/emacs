@@ -620,9 +620,9 @@ enables or disables a minor mode.  @xref{Keymaps and Minor Modes}.
 
 Note that elements of @code{minor-mode-map-alist} do not have the same
 structure as elements of @code{minor-mode-alist}.  The map must be the
-@sc{cdr} of the element; a list with the map as the @sc{cadr} will not
-do.  The @sc{cadr} can be either a keymap (a list) or a symbol
-whose function definition is a keymap.
+@sc{cdr} of the element; a list with the map as the second element will
+not do.  The @sc{cdr} can be either a keymap (a list) or a symbol whose
+function definition is a keymap.
 
 When more than one minor mode keymap is active, their order of priority
 is the order of @code{minor-mode-map-alist}.  But you should design
@@ -1224,8 +1224,8 @@ Dired mode is set up:
   This section describes some convenient interactive interfaces for
 changing key bindings.  They work by calling @code{define-key}.
 
-  People often use @code{global-set-key} in their @file{.emacs} file for
-simple customization.  For example,
+  People often use @code{global-set-key} in their init files
+(@pxref{Init File}) for simple customization.  For example,
 
 @smallexample
 (global-set-key "\C-x\C-\\" 'next-line)
@@ -1658,7 +1658,7 @@ currently used by Emacs).
 
 @item :button (@var{type} . @var{selected})
 This property provides a way to define radio buttons and toggle buttons.
-The @sc{car}, @var{type}, says which: is should be @code{:toggle} or
+The @sc{car}, @var{type}, says which: it should be @code{:toggle} or
 @code{:radio}.  The @sc{cdr}, @var{selected}, should be a form; the
 result of evaluating it says whether this button is currently selected.
 

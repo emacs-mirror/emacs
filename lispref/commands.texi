@@ -2573,15 +2573,15 @@ the commands by accident.
   The low-level mechanism for disabling a command is to put a
 non-@code{nil} @code{disabled} property on the Lisp symbol for the
 command.  These properties are normally set up by the user's
-@file{.emacs} file with Lisp expressions such as this:
+init file (@pxref{Init File}) with Lisp expressions such as this:
 
 @example
 (put 'upcase-region 'disabled t)
 @end example
 
 @noindent
-For a few commands, these properties are present by default and may be
-removed by the @file{.emacs} file.
+For a few commands, these properties are present by default (you can
+remove them in your init file if you wish).
 
   If the value of the @code{disabled} property is a string, the message
 saying the command is disabled includes that string.  For example:
@@ -2598,13 +2598,13 @@ programs.
 
 @deffn Command enable-command command
 Allow @var{command} to be executed without special confirmation from now
-on, and (if the user confirms) alter the user's @file{.emacs} file so
-that this will apply to future sessions.
+on, and (if the user confirms) alter the user's init file (@pxref{Init
+File}) so that this will apply to future sessions.
 @end deffn
 
 @deffn Command disable-command command
 Require special confirmation to execute @var{command} from now on, and
-(if the user confirms) alter the user's @file{.emacs} file so that this
+(if the user confirms) alter the user's init file so that this
 will apply to future sessions.
 @end deffn
 

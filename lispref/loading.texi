@@ -192,8 +192,9 @@ export EMACSLOADPATH
 EMACSLOADPATH=.:/user/bil/emacs:/usr/local/share/emacs/20.3/lisp
 @end smallexample
 
-  Here is an example of code you can place in a @file{.emacs} file to add
-several directories to the front of your default @code{load-path}:
+  Here is an example of code you can place in your init file (@pxref{Init
+File}) to add several directories to the front of your default
+@code{load-path}:
 
 @smallexample
 @group

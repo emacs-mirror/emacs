@@ -30,7 +30,7 @@ diary suit your personal tastes.
 @code{t}, calling up the calendar automatically displays the diary
 entries for the current date as well.  The diary dates appear only if
 the current date is visible.  If you add both of the following lines to
-your @file{.emacs} file:@refill
+your init file:@refill
 
 @example
 (setq view-diary-entries-initially t)

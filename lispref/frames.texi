@@ -217,7 +217,7 @@ doesn't change.
 @subsection Initial Frame Parameters
 
 You can specify the parameters for the initial startup frame
-by setting @code{initial-frame-alist} in your @file{.emacs} file.
+by setting @code{initial-frame-alist} in your init file (@pxref{Init File}).
 
 @defvar initial-frame-alist
 This variable's value is an alist of parameter values used when creating
@@ -229,7 +229,7 @@ Each element has the form:
 (@var{parameter} . @var{value})
 @end example
 
-Emacs creates the initial frame before it reads your @file{~/.emacs}
+Emacs creates the initial frame before it reads your init
 file.  After reading that file, Emacs checks @code{initial-frame-alist},
 and applies the parameter settings in the altered value to the already
 created initial frame.

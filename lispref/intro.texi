@@ -458,8 +458,8 @@ or experiment to learn something not covered in the manual, then perhaps
 the manual should be fixed.  Please let us know.
 
 @iftex
-  As you use the manual, we ask that you mark pages with corrections so
-you can later look them up and send them in.  If you think of a simple,
+  As you use this manual, we ask that you mark pages with corrections so
+you can later look them up and send them to us.  If you think of a simple,
 real-life example for a function or group of functions, please make an
 effort to write it up and send it in.  Please reference any comments to
 the chapter name, section name, and function name, as appropriate, since
@@ -474,7 +474,7 @@ find them.  If you think of a simple, real life example for a function
 or group of functions, please make an effort to write it up and send it
 in.  Please reference any comments to the node name and function or
 variable name, as appropriate.  Also state the number of the edition
-which you are criticizing.
+you are criticizing.
 @end ifinfo
 
 Please mail comments and corrections to
@@ -924,7 +924,7 @@ Richard M. Stallman and Chris Welty, the volunteers of the GNU manual
 group, in an effort extending over several years.  Robert J. Chassell
 helped to review and edit the manual, with the support of the Defense
 Advanced Research Projects Agency, ARPA Order 6082, arranged by Warren
-A. Hunt, Jr. of Computational Logic, Inc.
+A. Hunt, Jr.@: of Computational Logic, Inc.
 
   Corrections were supplied by Karl Berry, Jim Blandy, Bard Bloom,
 Stephane Boucher, David Boyes, Alan Carroll, Richard Davis, Lawrence
@@ -935,6 +935,6 @@ Ida, Dan Jacobson, Jak Kirman, Bob Knighten, Frederick M. Korz, Joe
 Lammens, Glenn M. Lewis, K. Richard Magill, Brian Marick, Roland
 McGrath, Skip Montanaro, John Gardiner Myers, Thomas A. Peterson,
 Francesco Potorti, Friedrich Pukelsheim, Arnold D. Robbins, Raul
-Rockwell, Per Starback, Shinichirou Sugou, Kimmo Suominen, Edward Tharp,
+Rockwell, Per Starb@"ack, Shinichirou Sugou, Kimmo Suominen, Edward Tharp,
 Bill Trost, Rickard Westman, Jean White, Matthew Wilding, Carl Witty,
 Dale Worley, Rusty Wright, and David D. Zuhn.

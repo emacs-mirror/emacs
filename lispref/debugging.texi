@@ -137,16 +137,16 @@ enter the debugger.
 @code{debug-on-error} is @code{nil}.
 @end defopt
 
-  To debug an error that happens during loading of the @file{.emacs}
-file, use the option @samp{--debug-init}, which binds
-@code{debug-on-error} to @code{t} while loading @file{.emacs}, and
+  To debug an error that happens during loading of the init
+file, use the option @samp{--debug-init}.  This binds
+@code{debug-on-error} to @code{t} while loading the init file., and
 bypasses the @code{condition-case} which normally catches errors in the
 init file.
 
-  If your @file{.emacs} file sets @code{debug-on-error}, the effect may
-not last past the end of loading @file{.emacs}.  (This is an undesirable
+  If your init file sets @code{debug-on-error}, the effect may
+not last past the end of loading the init file.  (This is an undesirable
 byproduct of the code that implements the @samp{--debug-init} command
-line option.)  The best way to make @file{.emacs} set
+line option.)  The best way to make the init file set
 @code{debug-on-error} permanently is with @code{after-init-hook}, like
 this:
 

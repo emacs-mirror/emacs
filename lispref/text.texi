@@ -424,6 +424,10 @@ syntax. (@xref{Abbrevs}, and @ref{Syntax Class Table}.)
 
 This is also responsible for calling @code{blink-paren-function} when
 the inserted character has close parenthesis syntax (@pxref{Blinking}).
+
+Do not try substituting your own definition of
+@code{self-insert-command} for the standard one.  The editor command
+loop handles this function specially.
 @end deffn
 
 @deffn Command newline &optional number-of-newlines 
@@ -2398,6 +2402,41 @@ from the specified range of text.  Here's an example:
 @example
 (set-text-properties @var{start} @var{end} nil)
 @end example
+@end defun
+
+  The easiest way to make a string with text properties
+is with @code{propertize}:
+
+@defun propertize string &rest properties
+@tindex propertize
+This function returns a copy of @var{string} which has the text
+properties @var{properties}.  These properties apply to all the
+characters in the string that is returned.  Here is an example that
+constructs a string with a @code{face} property and a @code{mouse-face}
+property:
+
+@smallexample
+(propertize "foo" 'face 'italic
+            'mouse-face 'bold-italic)
+     @result{} #("foo" 0 3 (mouse-face bold-italic face italic))
+@end smallexample
+
+To put different properties on various parts of a string, you can
+construct each part with @code{propertize} and then combine them with
+@code{concat}:
+
+@smallexample
+(concat
+ (propertize "foo" 'face 'italic
+             'mouse-face 'bold-italic)
+ " and "
+ (propertize "bar" 'face 'italic
+             'mouse-face 'bold-italic))
+     @result{} #("foo and bar"
+                 0 3 (face italic mouse-face bold-italic)
+                 3 8 nil
+                 8 11 (face italic mouse-face bold-italic))
+@end smallexample
 @end defun
 
   See also the function @code{buffer-substring-no-properties}

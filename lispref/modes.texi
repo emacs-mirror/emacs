@@ -54,9 +54,9 @@ the old one to serve two purposes, since it may become harder to use and
 maintain.  Instead, copy and rename an existing major mode definition
 and alter the copy---or define a @dfn{derived mode} (@pxref{Derived
 Modes}).  For example, Rmail Edit mode, which is in
-@file{emacs/lisp/rmailedit.el}, is a major mode that is very similar to
-Text mode except that it provides three additional commands.  Its
-definition is distinct from that of Text mode, but was derived from it.
+@file{emacs/lisp/mail/rmailedit.el}, is a major mode that is very similar to
+Text mode except that it provides two additional commands.  Its
+definition is distinct from that of Text mode, but uses that of Text mode.
 
   Rmail Edit mode offers an example of changing the major mode
 temporarily for a buffer, so it can be edited in a different way (with
@@ -73,8 +73,9 @@ Editing}.
   The standard GNU Emacs Lisp library directory tree contains the code
 for several major modes, in files such as @file{text-mode.el},
 @file{texinfo.el}, @file{lisp-mode.el}, @file{c-mode.el}, and
-@file{rmail.el}.  You can study these libraries to see how modes are
-written.  Text mode is perhaps the simplest major mode aside from
+@file{rmail.el}.  They are found in various subdirectories of the
+@file{lisp} directory.  You can study these libraries to see how modes
+are written.  Text mode is perhaps the simplest major mode aside from
 Fundamental mode.  Rmail mode is a complicated and specialized mode.
 
 @menu
@@ -210,8 +211,10 @@ variable local to every buffer in which it is subsequently set, which
 would affect buffers that do not use this mode.  It is undesirable for a
 mode to have such global effects.  @xref{Buffer-Local Variables}.
 
-It's OK to use @code{make-variable-buffer-local}, if you wish, for a
-variable used only within a single Lisp package.
+With rare exceptions, the only reasonable way to use use
+@code{make-variable-buffer-local} in a Lisp package is for a variable
+which is used only within that package.  Using it on a variable used by
+other packages would interfere with them.
 
 @item
 @cindex mode hook
@@ -258,10 +261,9 @@ autoload, you should add this element in the same file that calls
 file that contains the mode definition.  @xref{Auto Major Mode}.
 
 @item
-@cindex @file{.emacs} customization
 In the documentation, you should provide a sample @code{autoload} form
 and an example of how to add to @code{auto-mode-alist}, that users can
-include in their @file{.emacs} files.
+include in their init files (@pxref{Init File}).
 
 @item
 @cindex mode loading
@@ -300,11 +302,15 @@ the conventions listed above:
 @end group
 
 @group
-(defvar text-mode-map nil)   ; @r{Create a mode-specific keymap.}
+(defvar text-mode-map nil    ; @r{Create a mode-specific keymap.}
+  "Keymap for Text mode.
+Many other modes, such as Mail mode, Outline mode and Indented Text mode,
+inherit all the commands defined in this map.")
 
 (if text-mode-map
     ()              ; @r{Do not change the keymap if it is already set up.}
   (setq text-mode-map (make-sparse-keymap))
+  (define-key text-mode-map "\e\t" 'ispell-complete-word)
   (define-key text-mode-map "\t" 'indent-relative)
   (define-key text-mode-map "\es" 'center-line)
   (define-key text-mode-map "\eS" 'center-paragraph))
@@ -334,6 +340,8 @@ Turning on text-mode runs the hook `text-mode-hook'."
   (setq paragraph-start (concat "[ \t]*$\\|" page-delimiter))
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate paragraph-start)
+  (make-local-variable 'indent-line-function)
+  (setq indent-line-function 'indent-relative-maybe)
 @end group
 @group
   (setq mode-name "Text")
@@ -422,6 +430,7 @@ rest of @code{lisp-mode-variables}.
 @group
   (make-local-variable 'comment-indent-function)
   (setq comment-indent-function 'lisp-comment-indent))
+  @dots{}
 @end group
 @end smallexample
 
@@ -642,7 +651,7 @@ file in the proper mode according to the name sans @samp{.gz}.
 
 Here is an example of how to prepend several pattern pairs to
 @code{auto-mode-alist}.  (You might use this sort of expression in your
-@file{.emacs} file.)
+init file.)
 
 @smallexample
 @group
@@ -881,15 +890,21 @@ check for an existing element, to avoid duplication.  For example:
 
 @smallexample
 @group
-(or (assq 'leif-mode minor-mode-alist)
-    (setq minor-mode-alist
-          (cons '(leif-mode " Leif") minor-mode-alist)))
+(unless (assq 'leif-mode minor-mode-alist)
+  (setq minor-mode-alist
+        (cons '(leif-mode " Leif") minor-mode-alist)))
+@end group
+@end smallexample
+
+@noindent
+or like this, using @code{add-to-list} (@pxref{Setting Variables}):
+
+@smallexample
+@group
+(add-to-list 'minor-mode-alist '(leif-mode " Leif"))
 @end group
 @end smallexample
 @end itemize
-
-  You can also use @code{add-to-list} to add an element to this list
-just once (@pxref{Setting Variables}).
 
   Global minor modes distributed with Emacs should if possible support
 enabling and disabling via Custom (@pxref{Customization}).  To do this,
@@ -1064,11 +1079,11 @@ Force redisplay of the current buffer's mode line and header line.
 @cindex mode line construct
 
   The mode line contents are controlled by a data structure of lists,
-strings, symbols, and numbers kept in the buffer-local variable
-@code{mode-line-format}.  The data structure is called a @dfn{mode line
-construct}, and it is built in recursive fashion out of simpler mode line
-constructs.  The same data structure is used for constructing
-frame titles (@pxref{Frame Titles}).
+strings, symbols, and numbers kept in buffer-local variables.  The data
+structure is called a @dfn{mode line construct}, and it is built in
+recursive fashion out of simpler mode line constructs.  The same data
+structure is used for constructing frame titles (@pxref{Frame Titles})
+and header lines (@pxref{Header Lines}).
 
 @defvar mode-line-format
 The value of this variable is a mode line construct with overall
@@ -1299,9 +1314,23 @@ status in modes used for communicating with subprocesses.  It is
 displayed immediately following the major mode name, with no intervening
 space.  For example, its value in the @samp{*shell*} buffer is
 @code{(":%s")}, which allows the shell to display its status along
-with the major mode as: @samp{(Shell:@: run)}.  Normally this variable
+with the major mode as: @samp{(Shell:run)}.  Normally this variable
 is @code{nil}.
 @end defvar
+
+  Some variables are used by @code{minor-mode-alist} to display
+a string for various minor modes when enabled.  This is a typical
+example:
+
+@defvar vc-mode
+The variable @code{vc-mode}, buffer-local in each buffer, records
+whether the buffer's visited file is maintained with version control,
+and, if so, which kind.  Its value is a string that appears in the mode
+line, or @code{nil} for no version control.
+@end defvar
+
+  The variable @code{default-mode-line-format} is where
+@code{mode-line-format} usually gets its value:
 
 @defvar default-mode-line-format
 This variable holds the default @code{mode-line-format} for buffers
@@ -1322,6 +1351,9 @@ The default value of @code{default-mode-line-format} is this list:
  global-mode-string
 @group
  "   %[("
+ ;; @r{@code{mode-line-mode-name} is a function}
+ ;; @r{that copies the mode name and adds text
+ ;; @r{properties to make it mouse-sensitive.}
  (:eval (mode-line-mode-name))
  mode-line-process
  minor-mode-alist 
@@ -1338,13 +1370,6 @@ The default value of @code{default-mode-line-format} is this list:
 @end example
 @end defvar
 
-@defvar vc-mode
-The variable @code{vc-mode}, buffer-local in each buffer, records
-whether the buffer's visited file is maintained with version control,
-and, if so, which kind.  Its value is @code{nil} for no version control,
-or a string that appears in the mode line.
-@end defvar
-
 @node %-Constructs
 @subsection @code{%}-Constructs in the Mode Line
 
@@ -1357,6 +1382,9 @@ integer after the @samp{%} to specify how many characters to display.
 The current buffer name, obtained with the @code{buffer-name} function.
 @xref{Buffer Names}.
 
+@item %c
+The current column number of point.
+
 @item %f
 The visited file name, obtained with the @code{buffer-file-name}
 function.  @xref{Buffer File Name}.
@@ -1365,12 +1393,33 @@ function.  @xref{Buffer File Name}.
 The title (only on a window system) or the name of the selected frame.
 @xref{Window Frame Parameters}.
 
-@item %c
-The current column number of point.
-
 @item %l
 The current line number of point, counting within the accessible portion
 of the buffer.
+
+@item %n
+@samp{Narrow} when narrowing is in effect; nothing otherwise (see
+@code{narrow-to-region} in @ref{Narrowing}).
+
+@item %p
+The percentage of the buffer text above the @strong{top} of window, or
+@samp{Top}, @samp{Bottom} or @samp{All}.  Note that the default
+mode-line specification truncates this to three characters.
+
+@item %P
+The percentage of the buffer text that is above the @strong{bottom} of
+the window (which includes the text visible in the window, as well as
+the text above the top), plus @samp{Top} if the top of the buffer is
+visible on screen; or @samp{Bottom} or @samp{All}.
+
+@item %s
+The status of the subprocess belonging to the current buffer, obtained with
+@code{process-status}.  @xref{Process Information}.
+
+@item %t
+Whether the visited file is a text file or a binary file.  This is a
+meaningful distinction only on certain operating systems (@pxref{MS-DOS
+File Types}).
 
 @item %*
 @samp{%} if the buffer is read only (see @code{buffer-read-only}); @*
@@ -1386,28 +1435,6 @@ read-only buffer.  @xref{Buffer Modification}.
 @item %&
 @samp{*} if the buffer is modified, and @samp{-} otherwise.
 
-@item %s
-The status of the subprocess belonging to the current buffer, obtained with
-@code{process-status}.  @xref{Process Information}.
-
-@item %t
-Whether the visited file is a text file or a binary file.  (This is a
-meaningful distinction only on certain operating systems.)
-
-@item %p
-The percentage of the buffer text above the @strong{top} of window, or
-@samp{Top}, @samp{Bottom} or @samp{All}.
-
-@item %P
-The percentage of the buffer text that is above the @strong{bottom} of
-the window (which includes the text visible in the window, as well as
-the text above the top), plus @samp{Top} if the top of the buffer is
-visible on screen; or @samp{Bottom} or @samp{All}.
-
-@item %n
-@samp{Narrow} when narrowing is in effect; nothing otherwise (see
-@code{narrow-to-region} in @ref{Narrowing}).
-
 @item %[
 An indication of the depth of recursive editing levels (not counting
 minibuffer levels): one @samp{[} for each editing level.
@@ -1417,12 +1444,12 @@ minibuffer levels): one @samp{[} for each editing level.
 One @samp{]} for each recursive editing level (not counting minibuffer
 levels).
 
+@item %-
+Dashes sufficient to fill the remainder of the mode line.
+
 @item %%
 The character @samp{%}---this is how to include a literal @samp{%} in a
 string in which @code{%}-constructs are allowed.
-
-@item %-
-Dashes sufficient to fill the remainder of the mode line.
 @end table
 
 The following two @code{%}-constructs are still supported, but they are
@@ -1467,7 +1494,7 @@ structure, and make @var{form} evaluate to a string that has a
 
   You use the @code{local-map} property to specify a keymap.  Like any
 keymap, it can bind character keys and function keys; but that has no
-effect, since is impossible to move point into the mode line, This
+effect, since it is impossible to move point into the mode line.  This
 keymap can only take real effect for mouse clicks.
 
 @node Header Lines
@@ -1504,9 +1531,10 @@ It is normally @code{nil}, so that ordinary buffers have no header line.
 section in the buffer, from a menu which lists all of them, to go
 directly to that location in the buffer.  Imenu works by constructing a
 buffer index which lists the names and buffer positions of the
-definitions, or portions of the buffer, so the user can pick one of them
-to move to.  This section explains how to customize Imenu for a major
-mode.
+definitions, or other named portions of the buffer; then the user can
+choose one of them and move point to it.  This section explains how to
+customize how Imenu finds the definitions or buffer portions for a
+particular major mode.
 
   The usual and simplest way is to set the variable
 @code{imenu-generic-expression}:
@@ -1528,8 +1556,8 @@ in the top level of the buffer index.
 
 The second item in the list, @var{regexp}, is a regular expression
 (@pxref{Regular Expressions}); anything in the buffer that it matches is
-considered a definition, to mention in the buffer index.  The third
-item, @var{subexp}, indicates which subexpression in @var{regexp}
+considered a definition, something to mention in the buffer index.  The
+third item, @var{subexp}, indicates which subexpression in @var{regexp}
 matches the definition's name.
 
 An element can also look like this:
@@ -1539,8 +1567,8 @@ An element can also look like this:
 @end example
 
 Each match for this element creates a special index item which, if
-selected by the user, calls @var{function} with arguments
-@var{item-name}, the buffer position, and @var{arguments}.
+selected by the user, calls @var{function} with arguments consisting of
+the item name, the buffer position, and @var{arguments}.
 
 For Emacs Lisp mode, @var{pattern} could look like this:
 
@@ -1610,12 +1638,12 @@ variables @code{imenu-prev-index-position-function} and
 @code{imenu-extract-index-name-function}:
 
 @defvar imenu-prev-index-position-function
-If this variable is non-@code{nil}, its value should be a function for
-finding the next definition to mention in the buffer index, moving
-backwards in the file.
-
-The function should leave point at the place to be connected to the
-index item; it should return @code{nil} if it doesn't find another item.
+If this variable is non-@code{nil}, its value should be a funtion that
+finds the next ``definition'' to put in the buffer index, scanning
+backward in the buffer from point.  It should return @code{nil} if it
+doesn't find another ``definition'' before point.  Otherwise it shuould
+leave point at the place it finds a ``definition,'' and return any
+non-@code{nil} value.
 
 Setting this variable makes it buffer-local in the current buffer.
 @end defvar
@@ -1630,7 +1658,7 @@ Setting this variable makes it buffer-local in the current buffer.
 @end defvar
 
   The last way to customize Imenu for a major mode is to set the
-variables @code{imenu-create-index-function}:
+variable @code{imenu-create-index-function}:
 
 @defvar imenu-create-index-function
 This variable specifies the function to use for creating a buffer index.
@@ -1673,16 +1701,16 @@ A nested sub-alist element looks like @code{(@var{index-name}
   @dfn{Font Lock mode} is a feature that automatically attaches
 @code{face} properties to certain parts of the buffer based on their
 syntactic role.  How it parses the buffer depends on the major mode;
-most major modes define syntactic criteria for which faces to use, in
+most major modes define syntactic criteria for which faces to use in
 which contexts.  This section explains how to customize Font Lock for a
-particular language---in other words, for a particular major mode.
+particular major mode.
 
   Font Lock mode finds text to highlight in two ways: through syntactic
 parsing based on the syntax table, and through searching (usually for
 regular expressions).  Syntactic fontification happens first; it finds
 comments and string constants, and highlights them using
 @code{font-lock-comment-face} and @code{font-lock-string-face}
-(@pxref{Faces for Font Lock}); search-based fontification follows.
+(@pxref{Faces for Font Lock}).  Search-based fontification follows.
 
 @menu
 * Font Lock Basics::
@@ -1714,7 +1742,7 @@ this:
 
 The first element, @var{keywords}, indirectly specifies the value of
 @code{font-lock-keywords}.  It can be a symbol, a variable whose value
-is list to use for @code{font-lock-keywords}.  It can also be a list of
+is the list to use for @code{font-lock-keywords}.  It can also be a list of
 several such symbols, one for each possible level of fontification.  The
 first symbol specifies how to do level 1 fontification, the second
 symbol how to do level 2, and so on.
@@ -1737,10 +1765,12 @@ table is stored in @code{font-lock-syntax-table}.
 The fifth element, @var{syntax-begin}, specifies the value of
 @code{font-lock-beginning-of-syntax-function} (see below).
 
-Any further elements @var{other-vars} are of the form
-@code{(@var{variable} . @var{value})}.  This kind of element means to
-make @var{variable} buffer-local and then set it to @var{value}.  This
-is used to set other variables that affect fontification.
+All the remaining elements (if any) are collectively called
+@var{other-vars}.  Each of these elements should have the form
+@code{(@var{variable} . @var{value})}---which means, make @var{variable}
+buffer-local and then set it to @var{value}.  You can use these
+@var{other-vars} to set other variables that affect fontification,
+aside from those you can control with the first five elements.
 @end defvar
 
 @node Search-based Fontification
@@ -2110,7 +2140,7 @@ value is one of those two types.
   A @dfn{hook} is a variable where you can store a function or functions
 to be called on a particular occasion by an existing program.  Emacs
 provides hooks for the sake of customization.  Most often, hooks are set
-up in the @file{.emacs} file, but Lisp programs can set them also.
+up in the init file (@pxref{Init File}), but Lisp programs can set them also.
 @xref{Standard Hooks}, for a list of standard hook variables.
 
 @cindex normal hook
@@ -2136,7 +2166,7 @@ a Function}).  Most normal hook variables are initially void;
 
 @cindex abnormal hook
   If the hook variable's name does not end with @samp{-hook}, that
-indicates it is probably an @dfn{abnormal hook}; you should look at its
+indicates it is probably an @dfn{abnormal hook}.  Then you should look at its
 documentation to see how to use the hook properly.
 
   If the variable's name ends in @samp{-functions} or @samp{-hooks},
@@ -2161,11 +2191,10 @@ in Lisp Interaction mode:
 run particular hooks.  This function calls the hook functions that have
 been added with @code{add-hook}.
 
-@defun run-hooks &rest hookvar
+@defun run-hooks &rest hookvars
 This function takes one or more hook variable names as arguments, and
-runs each hook in turn.  Each @var{hookvar} argument should be a symbol
-that is a hook variable.  These arguments are processed in the order
-specified.
+runs each hook in turn.  Each argument should be a symbol that is a hook
+variable.  These arguments are processed in the order specified.
 
 If a hook variable has a non-@code{nil} value, that value may be a
 function or a list of functions.  If the value is a function (either a
@@ -2193,8 +2222,8 @@ This function is the way to run an abnormal hook which passes arguments
 to the hook functions, and stops as soon as any hook function fails.  It
 calls each of the hook functions, passing each of them the arguments
 @var{args}, until some hook function returns @code{nil}.  Then it stops,
-and returns @code{nil} if some hook function did, and otherwise
-returns a non-@code{nil} value.
+and returns @code{nil} if some hook function returned @code{nil}.
+Otherwise it returns a non-@code{nil} value.
 @end defun
 
 @defun run-hook-with-args-until-success hook &rest args
@@ -2252,9 +2281,9 @@ current buffer.  When a hook variable is buffer-local, it can have
 buffer-local and global hook functions, and @code{run-hooks} runs all of
 them.
 
-This function works by making @code{t} an element of the buffer-local
-value.  That serves as a flag to use the hook functions in the default
-value of the hook variable as well as those in the buffer-local value.
+This function works by adding @code{t} as an element of the buffer-local
+value.  That serves as a flag to use the hook functions listed in the default
+value of the hook variable, as well as those listed in the buffer-local value.
 Since @code{run-hooks} understands this flag, @code{make-local-hook}
 works with all normal hooks.  It works for only some non-normal
 hooks---those whose callers have been updated to understand this meaning

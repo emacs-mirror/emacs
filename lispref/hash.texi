@@ -99,7 +99,9 @@ referenced anywhere else); if a particular value does get collected, the
 corresponding association is removed from the hash table.
 
 The default for @var{weak} is @code{nil}, so that all keys and values
-referenced in the hash table are preserved from garbage collection.
+referenced in the hash table are preserved from garbage collection.  If
+@var{weak} is @code{t}, neither keys nor values are protected (that is,
+both are weak).
 
 @item :size @var{size}
 This specifies a hint for how many associations you plan to store in the
@@ -115,10 +117,11 @@ When you add an association to a hash table and the table is ``full,''
 it grows automatically.  This value specifies how to make the hash table
 larger, at that time.
 
-If @var{rehash-size} is an integer, it had better be positive, and the
-hash table grows by adding that much to the size.  If @var{rehash-size}
-is a floating point number, it had better be greater than 1, and the
-hash table grows by multiplying the old size by that number.
+If @var{rehash-size} is an integer, it should be positive, and the hash
+table grows by adding that much to the nominal size.  If
+@var{rehash-size} is a floating point number, it had better be greater
+than 1, and the hash table grows by multiplying the old size by that
+number.
 
 The default value is 1.5.
 
@@ -278,7 +281,8 @@ This function returns the actual number of entries in @var{table}.
 
 @tindex hash-table-rehash-test
 @defun hash-table-rehash-test table
-This returns the test @var{table} uses to hash and compare keys---see
+This returns the @var{test} value that was given when @var{table} was
+created, to specify how to hash and compare keys.  See
 @code{make-hash-table} (@pxref{Creating Hash}).
 @end defun
 

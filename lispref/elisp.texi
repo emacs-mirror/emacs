@@ -72,7 +72,7 @@ instead of in the original English.
 
 @titlepage
 @title GNU Emacs Lisp Reference Manual
-@subtitle For Emacs Version 20.4
+@subtitle For Emacs Version 21
 @c The edition number appears in several places in this file
 @c and also in the file intro.texi.
 @subtitle Revision 2.6, September 1999
@@ -179,8 +179,7 @@ Reference Manual, corresponding to GNU Emacs version 21.1.
 * Processes::               Running and communicating with subprocesses.
 * System Interface::        Getting the user id, system type, environment
                               variables, and other such things.
-* Display::	            Parameters controlling screen usage.
-                              The bell.  Waiting for input.
+* Display::	            Features for controlling the screen display.
 * Calendar::		    Customizing the calendar and diary.
 
 Appendices
@@ -197,7 +196,7 @@ Appendices
 * Index::                   Index including concepts, functions, variables,
                               and other terms.
 
-* New Symbols::             New functions and variables in Emacs 20.
+* New Symbols::             New functions and variables in Emacs 21.
 
       --- The Detailed Node Listing ---
 
@@ -248,7 +247,7 @@ Programming Types
 * Integer Type::        Numbers without fractional parts.
 * Floating Point Type:: Numbers with fractional parts and with a large range.
 * Character Type::      The representation of letters, numbers and
-                        control characters.
+                          control characters.
 * Sequence Type::       Both lists and arrays are classified as sequences.
 * Cons Cell Type::      Cons cells, and lists (which are made from cons cells).
 * Array Type::          Arrays include strings and vectors.
@@ -262,7 +261,7 @@ Programming Types
 * Primitive Function Type::     A function written in C, callable from Lisp.
 * Byte-Code Type::      A function written in Lisp, then compiled.
 * Autoload Type::       A type used for automatically loading seldom-used
-                        functions.
+                          functions.
 
 List Type
 
@@ -554,7 +553,7 @@ Keymaps
 				  or for use from the terminal.
 * Active Keymaps::	        Each buffer has a local keymap
                                   to override the standard (global) bindings.
-				Each minor mode can also override them.
+				  Each minor mode can also override them.
 * Key Lookup::                  How extracting elements from keymaps works.
 * Functions for Key Lookup::    How to request key lookup.
 * Changing Key Bindings::       Redefining a key in a keymap.
@@ -964,6 +963,7 @@ Object Internals
 
 @c  REMOVE this:  include non-hacker.texi
 
+@include anti.texi
 @include tips.texi
 @include internals.texi
 @include errors.texi
