@@ -206,15 +206,22 @@ when editing big diffs)."
 (defvar diff-changed-face 'diff-changed-face)
 
 (defvar diff-font-lock-keywords
-  '(("^@@ -[0-9,]+ \\+[0-9,]+ @@.*$" . diff-hunk-header-face) ;unified
-    ("^--- .+ ----$" . diff-hunk-header-face) ;context
-    ("^\\*\\*\\*\\(.+\\*\\*\\*\\|\\*\\{12\\}.*\\)\n" . diff-hunk-header-face) ;context
-    ("^\\(---\\|\\+\\+\\+\\|\\*\\*\\*\\) .*\n" . diff-file-header-face)
+  '(("^@@ \\(-[0-9,]+ \\+[0-9,]+\\) @@\\(.*\\)$" ;unified
+     (1 diff-hunk-header-face)
+     (2 font-lock-comment-face))
+    ("^--- \\(.+\\) ----$"		;context
+     (1 diff-hunk-header-face))
+    ("\\(\\*\\{15\\}\\)\\(.*\\)\n"	;context
+     (1 diff-hunk-header-face)
+     (2 font-lock-comment-face))
+    ("^\\*\\*\\* \\(.+\\) \\*\\*\\*"	;context
+      (1 diff-hunk-header-face))
+    ("^\\(---\\|\\+\\+\\+\\|\\*\\*\\*\\) \\(\\S-+\\)"  (2 diff-file-header-face))
     ("^[0-9,]+[acd][0-9,]+$" . diff-hunk-header-face)
     ("^!.*\n" . diff-changed-face)	;context
     ("^[+>].*\n" . diff-added-face)
     ("^[-<].*\n" . diff-removed-face)
-    ("^Index: .*\n" . diff-index-face)
+    ("^Index: \\(.+\\)$"  (1 diff-index-face))
     ("^#.*" . font-lock-string-face)
     ("^[^-=+*!<>].*\n" . font-lock-comment-face)))
 
@@ -479,6 +486,12 @@ If the prefix arg is bigger than 8 (for example with \\[universal-argument] \\[u
 	(push-mark (point) t t)
 	(goto-line (cadr loc))))))
 
+(defun diff-mouse-goto-source (event)
+  "Run `diff-goto-source' for the diff at a mouse click."
+  (interactive "e")
+  (save-excursion
+    (mouse-set-point event)
+    (diff-goto-source)))
 
 (defun diff-ediff-patch ()
   "Call `ediff-patch-file' on the current buffer."
@@ -822,7 +835,16 @@ This mode runs `diff-mode-hook'.
   (set (make-local-variable 'outline-regexp) diff-outline-regexp)
   (set (make-local-variable 'imenu-generic-expression)
        diff-imenu-generic-expression)
- ;; compile support
+  ;; These are not perfect.  They would be better done separately for
+  ;; context diffs and unidiffs.
+  ;; (set (make-local-variable 'paragraph-start)
+  ;;        (concat "@@ "			; unidiff hunk
+  ;; 	       "\\|\\*\\*\\* "		; context diff hunk or file start
+  ;; 	       "\\|--- [^\t]+\t"))	; context or unidiff file
+  ;; 					; start (first or second line)
+  ;;   (set (make-local-variable 'paragraph-separate) paragraph-start)
+  ;;   (set (make-local-variable 'page-delimiter) "--- [^\t]+\t")
+  ;; compile support
   (set (make-local-variable 'compilation-file-regexp-alist)
        diff-file-regexp-alist)
   (set (make-local-variable 'compilation-error-regexp-alist)
