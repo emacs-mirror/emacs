@@ -1706,10 +1706,12 @@ extern void defvar_kboard P_ ((char *, int));
    means we saw a buffer-local or frame-local value.  Other values of
    WHERE mean an internal error.  */
 
+typedef Lisp_Object (*specbinding_func) P_ ((Lisp_Object));
+
 struct specbinding
   {
     volatile Lisp_Object symbol, old_value;
-    volatile Lisp_Object (*func) P_ ((Lisp_Object));
+    volatile specbinding_func func;
     Lisp_Object unused;		/* Dividing by 16 is faster than by 12 */
   };
 
@@ -2313,7 +2315,7 @@ EXFUN (Fcompare_strings, 7);
 EXFUN (Fstring_lessp, 2);
 extern int char_table_translate P_ ((Lisp_Object, int));
 extern void map_char_table P_ ((void (*) (Lisp_Object, Lisp_Object, Lisp_Object),
-				Lisp_Object, Lisp_Object, Lisp_Object, int,
+				Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, int,
 				Lisp_Object *));
 extern Lisp_Object char_table_ref_and_index P_ ((Lisp_Object, int, int *));
 extern void syms_of_fns P_ ((void));
