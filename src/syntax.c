@@ -45,6 +45,68 @@ struct lisp_parse_state
     int comstart;	/* Position just after last comment starter.  */
   };
 
+/* These variables are a cache for finding the start of a defun.
+   find_start_pos is the place for which the defun start was found.
+   find_start_value is the defun start position found for it.
+   find_start_buffer is the buffer it was found in.
+   find_start_begv is the BEGV value when it was found.
+   find_start_modiff is the value of MODIFF when it was found.  */
+
+static int find_start_pos;
+static int find_start_value;
+static struct buffer *find_start_buffer;
+static int find_start_begv;
+static int find_start_modiff;
+
+/* Find a defun-start that is the last one before POS (or nearly the last).
+   We record what we find, so that another call in the same area
+   can return the same value right away.  */
+
+static int
+find_defun_start (pos)
+     int pos;
+{
+  int tem;
+  int shortage;
+
+  /* Use previous finding, if it's valid and applies to this inquiry.  */
+  if (current_buffer == find_start_buffer
+      /* Reuse the defun-start even if POS is a little farther on.
+	 POS might be in the next defun, but that's ok.
+	 Our value may not be the best possible, but will still be usable.  */
+      && pos <= find_start_pos + 1000
+      && pos >= find_start_value
+      && BEGV == find_start_begv
+      && MODIFF == find_start_modiff)
+    return find_start_value;
+
+  /* Back up to start of line.  */
+  tem = scan_buffer ('\n', pos, -1, &shortage);
+  /* If we found a newline, we moved back over it, so advance fwd past it.  */
+  if (shortage == 0)
+    tem++;
+
+  while (tem > BEGV)
+    {
+      /* Open-paren at start of line means we found our defun-start.  */
+      if (SYNTAX (FETCH_CHAR (tem)) == Sopen)
+	break;
+      /* Move to beg of previous line.  */
+      tem = scan_buffer ('\n', tem, -2, &shortage);
+      if (shortage == 0)
+	tem++;
+    }
+
+  /* Record what we found, for the next try.  */
+  find_start_value = tem;
+  find_start_buffer = current_buffer;
+  find_start_modiff = MODIFF;
+  find_start_begv = BEGV;
+  find_start_pos = pos;
+
+  return find_start_value;
+}
+
 DEFUN ("syntax-table-p", Fsyntax_table_p, Ssyntax_table_p, 1, 1, 0,
   "Return t if ARG is a syntax table.\n\
 Any vector of 256 elements will do.")
@@ -750,6 +812,27 @@ scan_lists (from, count, depth, sexpflag)
 	    case Sendcomment:
 	      if (!parse_sexp_ignore_comments)
 		break;
+	      if (code != SYNTAX (c))
+		/* For a two-char comment ender, we can assume
+		   it does end a comment.  So scan back in a simple way.  */
+		{
+		  if (from != stop) from--;
+		  while (1)
+		    {
+		      if (SYNTAX (c = FETCH_CHAR (from)) == Scomment
+			  && SYNTAX_COMMENT_STYLE (c) == comstyle)
+			break;
+		      if (from == stop) goto done;
+		      from--;
+		      if (SYNTAX_COMSTART_SECOND (c)
+			  && SYNTAX_COMSTART_FIRST (FETCH_CHAR (from))
+			  && SYNTAX_COMMENT_STYLE (c) == comstyle
+			  && !char_quoted (from))
+			break;
+		    }
+		  break;
+		}
+
 	      /* Look back, counting the parity of string-quotes,
 		 and recording the comment-starters seen.
 		 When we reach a safe place, assume that's not in a string;
@@ -760,13 +843,12 @@ scan_lists (from, count, depth, sexpflag)
 		 which is I+2X quotes from the comment-end.
 		 PARITY is current parity of quotes from the comment end.  */
 	      {
-		int ofrom[2];
 		int parity = 0;
 		char my_stringend = 0;
 		int string_lossage = 0;
 		int comment_end = from;
-
-		ofrom[0] = ofrom[1] = from;
+		int comstart_pos = 0;
+		int comstart_parity = 0;
 
 		/* At beginning of range to scan, we're outside of strings;
 		   that determines quote parity to the comment-end.  */
@@ -799,13 +881,13 @@ scan_lists (from, count, depth, sexpflag)
 		    if (char_quoted (from))
 		      continue;
 
-		    /* Track parity of quotes between here and comment-end.  */
+		    /* Track parity of quotes.  */
 		    if (code == Sstring)
 		      {
 			parity ^= 1;
 			if (my_stringend == 0)
 			  my_stringend = c;
-			/* We have two kinds of string delimiters.
+			/* If we have two kinds of string delimiters.
 			   There's no way to grok this scanning backwards.  */
 			else if (my_stringend != c)
 			  string_lossage = 1;
@@ -814,18 +896,34 @@ scan_lists (from, count, depth, sexpflag)
 		    /* Record comment-starters according to that
 		       quote-parity to the comment-end.  */
 		    if (code == Scomment)
-		      ofrom[parity] = from;
+		      {
+			comstart_parity = parity;
+			comstart_pos = from;
+		      }
 
-		    /* If we come to another comment-end,
-		       assume it's not inside a string.
-		       That determines the quote parity to the comment-end.
-		       Note that the comment style this character ends must
-		       match the style that we have begun */
+		    /* If we find another earlier comment-ender,
+		       any comment-starts earier than that don't count
+		       (because they go with the earlier comment-ender).  */
 		    if (code == Sendcomment
 			&& SYNTAX_COMMENT_STYLE (FETCH_CHAR (from)) == comstyle)
 		      break;
+
+		    /* Assume a defun-start point is outside of strings.  */
+		    if (code == Sopen
+			&& (from == stop || FETCH_CHAR (from - 1) == '\n'))
+		      break;
 		  }
-		if (string_lossage)
+
+		if (comstart_pos == 0)
+		  from = comment_end;
+		/* If the earliest comment starter
+		   is followed by uniform paired string quotes or none,
+		   we know it can't be inside a string
+		   since if it were then the comment ender would be inside one.
+		   So it does start a comment.  Skip back to it.  */
+		else if (comstart_parity == 0 && !string_lossage)
+		  from = comstart_pos;
+		else
 		  {
 		    /* We had two kinds of string delimiters mixed up
 		       together.  Decode this going forwards.
@@ -833,16 +931,14 @@ scan_lists (from, count, depth, sexpflag)
 		       to the one in question; this records where we
 		       last passed a comment starter.  */
 		    struct lisp_parse_state state;
-		    scan_sexps_forward (&state, from + 1, comment_end - 1,
-					-10000, 0, Qnil);
+		    scan_sexps_forward (&state, find_defun_start (comment_end),
+					comment_end - 1, -10000, 0, Qnil);
 		    if (state.incomment)
 		      from = state.comstart;
 		    else
 		      /* We can't grok this as a comment; scan it normally.  */
 		      from = comment_end;
 		  }
-		else
-		  from = ofrom[parity];
 	      }
 	      break;
 
