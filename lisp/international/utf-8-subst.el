@@ -20144,13 +20144,5 @@
    (#x9F9D ?龝)
    (#x9FA0 ?龠))) 
 
-(let ((tab (make-char-table 'translation-table)))
-  (maphash (lambda (k v)
-	     (aset tab k v))
-	   ucs-mule-cjk-to-unicode)
-  (register-char-codings 'mule-utf-8 tab)
-  (register-char-codings 'mule-utf-16-be tab)
-  (register-char-codings 'mule-utf-16-le tab))
-
 (provide 'utf-8-subst)
 ;;; utf-8-subst.el ends here
