@@ -11428,7 +11428,9 @@ try_window_id (w)
 	  int first_unchanged_at_end_vpos
 	    = MATRIX_ROW_VPOS (first_unchanged_at_end_row, w->current_matrix);
 	  int from = XFASTINT (w->top) + first_unchanged_at_end_vpos;
-	  int end = XFASTINT (w->top) + window_internal_height (w);
+	  int end = (XFASTINT (w->top)
+		     + (WINDOW_WANTS_HEADER_LINE_P (w) ? 1 : 0)
+		     + window_internal_height (w));
 	  
 	  /* Perform the operation on the screen.  */
 	  if (dvpos > 0)
