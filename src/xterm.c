@@ -25,6 +25,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    
 */
 
+/* Xt features made by Fred Pierresteguy.  */
+
 #define NEW_SELECTIONS
 
 /* On 4.3 these lose if they come after xterm.h.  */
@@ -34,6 +36,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <signal.h>
 
 #include <config.h>
+
+/* Need syssignal.h for various externs and definitions that may be required
+ * by some configurations for calls to signal() later in this source file.
+ */
+#include "syssignal.h"
 
 #ifdef HAVE_X_WINDOWS
 
@@ -85,6 +92,11 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "disptab.h"
 #include "buffer.h"
 #include "window.h"
+
+#ifdef USE_X_TOOLKIT
+extern XtAppContext Xt_app_con;
+extern Widget Xt_app_shell;
+#endif /* USE_X_TOOLKIT */
 
 #ifdef HAVE_X11
 #define XMapWindow XMapRaised		/* Raise them when mapping. */
@@ -316,6 +328,7 @@ extern FONT_TYPE *XOpenFont ();
 
 static void flashback ();
 static void redraw_previous_char ();
+static unsigned int x_x_to_emacs_modifiers ();
 
 #ifndef HAVE_X11
 static void dumpqueue ();
@@ -365,10 +378,6 @@ XTupdate_end (f)
      struct frame *f;
 {	
   int mask;
-
-  if (updating_frame == 0
-      || updating_frame != f)
-    abort ();
 
   BLOCK_INPUT;
 #ifndef HAVE_X11
@@ -1589,6 +1598,30 @@ x_find_modifier_meanings ()
   XFreeModifiermap (mods);
 }
 
+/* Prepare a menu-event in *RESULT for placement in the input queue.  */
+
+static Lisp_Object
+construct_menu_click (result, event, f)
+     struct input_event *result;
+     XButtonEvent *event;
+     struct frame *f;
+{
+  /* Make the event type no_event; we'll change that when we decide
+     otherwise.  */
+  result->kind = mouse_click;
+  XSET (result->code, Lisp_Int, event->button - Button1);
+  result->timestamp = event->time;
+  result->modifiers = (x_x_to_emacs_modifiers (event->state)
+		       | (event->type == ButtonRelease
+			  ? up_modifier 
+			  : down_modifier));
+
+  {
+    XFASTINT (result->x) = event->x;
+    XFASTINT (result->y) = -1;    /* special meaning for menubar */
+    XSET (result->frame_or_window, Lisp_Frame, f);
+  }
+}
 
 /* Convert between the modifier bits X uses and the modifier bits
    Emacs uses.  */
@@ -1993,7 +2026,6 @@ x_scroll_bar_create (window, top, left, width, height)
   {
     XSetWindowAttributes a;
     unsigned long mask;
-
     a.background_pixel = frame->display.x->background_pixel;
     a.event_mask = (ButtonPressMask | ButtonReleaseMask
 		    | ButtonMotionMask | PointerMotionHintMask
@@ -2002,7 +2034,21 @@ x_scroll_bar_create (window, top, left, width, height)
 
     mask = (CWBackPixel | CWEventMask | CWCursor);
 
-    SET_SCROLL_BAR_X_WINDOW
+#if 0
+
+    ac = 0;
+    XtSetArg (al[ac], XtNx, left); ac++;
+    XtSetArg (al[ac], XtNy, top); ac++;
+    XtSetArg (al[ac], XtNwidth, width); ac++;
+    XtSetArg (al[ac], XtNheight, height); ac++;
+    XtSetArg (al[ac], XtNborderWidth, 0); ac++;
+    sb_widget = XtCreateManagedWidget ("box",
+					 boxWidgetClass,
+					 frame->display.x->edit_widget, al, ac);
+   SET_SCROLL_BAR_X_WINDOW
+      (bar, sb_widget->core.window);
+#endif    
+   SET_SCROLL_BAR_X_WINDOW
       (bar, 
        XCreateWindow (x_current_display, FRAME_X_WINDOW (frame),
 
@@ -2593,6 +2639,41 @@ x_scroll_bar_clear (f)
 		0, 0, 0, 0, True);
 }
 
+/* This processes Expose events from the menubar specific X event
+   loop in menubar.c.  This allows to redisplay the frame if necessary
+   when handling menubar or popup items.  */
+
+void
+process_expose_from_menu (event)
+     XEvent event;
+{
+  FRAME_PTR f;
+
+  f = x_window_to_frame (event.xexpose.window);
+  if (f)
+    {
+      if (f->async_visible == 0)
+	{
+	  f->async_visible = 1;
+	  f->async_iconified = 0;
+	  SET_FRAME_GARBAGED (f);
+	}
+      else
+	{
+	  dumprectangle (x_window_to_frame (event.xexpose.window),
+			 event.xexpose.x, event.xexpose.y,
+			 event.xexpose.width, event.xexpose.height);
+	}
+    }
+  else
+    {
+      struct scroll_bar *bar
+	= x_window_to_scroll_bar (event.xexpose.window);
+      
+      if (bar)
+	x_scroll_bar_expose (bar, &event);
+    }
+}
 
 
 /* The main X event-reading loop - XTread_socket.  */
@@ -2708,7 +2789,12 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      {
 		if (event.xclient.data.l[0] == Xatom_wm_take_focus)
 		  {
+#ifdef USE_X_TOOLKIT
+		    /* f = x_any_window_to_frame (event.xclient.window); */
 		    f = x_window_to_frame (event.xclient.window);
+#else
+		    f = x_window_to_frame (event.xclient.window);
+#endif
 		    if (f)
 		      x_focus_on_frame (f);
 		    /* Not certain about handling scroll bars here */
@@ -2764,13 +2850,24 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 #ifdef NEW_SELECTIONS
 	case SelectionNotify:
+#ifdef USE_X_TOOLKIT
+	  if (x_window_to_frame (event.xselection.requestor))
+	    x_handle_selection_notify (&event);
+	  else
+	    goto OTHER;
+#else /* not USE_X_TOOLKIT */
 	  x_handle_selection_notify (&event);
+#endif /* not USE_X_TOOLKIT */
 	  break;
-#endif
+#endif /* NEW_SELECTIONS */
 
 	case SelectionClear:	/* Someone has grabbed ownership. */
 #ifdef NEW_SELECTIONS
 	  {
+#ifdef USE_X_TOOLKIT
+	  if (x_window_to_frame (event.xselectionclear.window))
+	    {
+#endif /* USE_X_TOOLKIT */
 	    XSelectionClearEvent *eventp = (XSelectionClearEvent *) &event;
 
 	    if (numchars == 0)
@@ -2784,17 +2881,26 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 	    count += 1;
 	    numchars -= 1;
+#ifdef USE_X_TOOLKIT
 	  }
-#else
+	  else
+	    goto OTHER;
+#endif /* USE_X_TOOLKIT */
+	  }
+#else /* not NEW_SELECTIONS */
 	  x_disown_selection (event.xselectionclear.window,
 			      event.xselectionclear.selection,
 			      event.xselectionclear.time);
-#endif
+#endif /* not NEW_SELECTIONS */
 	  break;
 
 	case SelectionRequest:	/* Someone wants our selection. */
 #ifdef NEW_SELECTIONS
 	  {
+#ifdef USE_X_TOOLKIT
+	  if (x_window_to_frame (event.xselectionrequest.owner))
+	    {
+#endif /* USE_X_TOOLKIT */
 	    XSelectionRequestEvent *eventp = (XSelectionRequestEvent *) &event;
 
 	    if (numchars == 0)
@@ -2811,16 +2917,28 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 	    count += 1;
 	    numchars -= 1;
+#ifdef USE_X_TOOLKIT
 	  }
-#else
+	  else
+	    goto OTHER;
+#endif /* USE_X_TOOLKIT */
+	  }
+#else /* not NEW_SELECTIONS */
 	  x_answer_selection_request (event);
-#endif
+#endif /* not NEW_SELECTIONS */
 	  break;
 
 	case PropertyNotify:
 #ifdef NEW_SELECTIONS
+#ifdef USE_X_TOOLKIT
+	  if (x_any_window_to_frame (event.xproperty.window))
+	    x_handle_property_notify (&event);
+	  else
+	    goto OTHER;
+#else /* not USE_X_TOOLKIT */
 	  x_handle_property_notify (&event);
-#else
+#endif /* not USE_X_TOOLKIT */
+#else /* not NEW_SELECTIONS */
 	  /* If we're being told about a root window property, then it's
 	     a cut buffer change.  */
 	  if (event.xproperty.window == ROOT_WINDOW)
@@ -2834,7 +2952,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		 about re-selecting. */
 	      x_send_incremental (event);
 	    }
-#endif
+#endif /* not NEW_SELECTIONS */
 	  break;
 
 	case ReparentNotify:
@@ -2864,9 +2982,13 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    {
 	      struct scroll_bar *bar
 		= x_window_to_scroll_bar (event.xexpose.window);
-
+	      
 	      if (bar)
-		x_scroll_bar_expose (bar, &event);
+	        x_scroll_bar_expose (bar, &event);
+#ifdef USE_X_TOOLKIT
+	      else
+		goto OTHER;
+#endif /* USE_X_TOOLKIT */
 	    }
 	  break;
 
@@ -2881,6 +3003,10 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 			     event.xgraphicsexpose.width,
 			     event.xgraphicsexpose.height);
 	    }
+#ifdef USE_X_TOOLKIT
+	  else
+	    goto OTHER;
+#endif /* USE_X_TOOLKIT */
 	  break;
 
 	case NoExpose:		/* This occurs when an XCopyArea's
@@ -2952,10 +3078,17 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      if (FRAME_VISIBLE_P (f) || FRAME_ICONIFIED_P (f))
 		f->async_iconified = 1;
 	    }
+#ifdef USE_X_TOOLKIT
+	  goto OTHER;
+#endif /* USE_X_TOOLKIT */
 	  break;
 
 	case MapNotify:
+#ifdef USE_X_TOOLKIT
+	  f = x_any_window_to_frame (event.xmap.window);
+#else /* not USE_X_TOOLKIT */
 	  f = x_window_to_frame (event.xmap.window);
+#endif /* not USE_X_TOOLKIT */
 	  if (f)
 	    {
 	      f->async_visible = 1;
@@ -2965,7 +3098,10 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		 the frame's display structures.  */
 	      SET_FRAME_GARBAGED (f);
 	    }
-	  break;
+#ifdef USE_X_TOOLKIT
+	  goto OTHER;
+#endif /* USE_X_TOOLKIT */
+  break;
 
 	  /* Turn off processing if we become fully obscured. */
 	case VisibilityNotify:
@@ -3191,7 +3327,9 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    }
 	  else if (f == x_focus_frame)
 	    x_new_focus_frame (0);
-
+#ifdef USE_X_TOOLKIT
+	  goto OTHER;
+#endif /* USE_X_TOOLKIT */
 	  break;
 
 	case FocusIn:
@@ -3200,6 +3338,9 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    x_focus_event_frame = f;
 	  if (f)
 	    x_new_focus_frame (f);
+#ifdef USE_X_TOOLKIT
+	  goto OTHER;
+#endif /* USE_X_TOOLKIT */
 	  break;
 
 
@@ -3220,6 +3361,9 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      if (f == x_focus_frame)
 		x_new_focus_frame (0);
 	    }
+#ifdef USE_X_TOOLKIT
+	  goto OTHER;
+#endif /* USE_X_TOOLKIT */
 	  break;
 
 	case FocusOut:
@@ -3229,6 +3373,9 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    x_focus_event_frame = 0;
 	  if (f && f == x_focus_frame)
 	    x_new_focus_frame (0);
+#ifdef USE_X_TOOLKIT
+	  goto OTHER;
+#endif /* USE_X_TOOLKIT */
 	  break;
 
 #else /* ! defined (HAVE_X11) */
@@ -3285,9 +3432,16 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		  x_scroll_bar_note_movement (bar, &event);
 	      }
 	  }
+#ifdef USE_X_TOOLKIT
+	  goto OTHER;
+#endif /* USE_X_TOOLKIT */
 	  break;
 
 	case ConfigureNotify:
+#ifdef USE_X_TOOLKIT
+	      /* process done in widget.c */
+	  goto OTHER;
+#else /* not USE_X_TOOLKIT */
 	  f = x_window_to_frame (event.xconfigure.window);
 	  if (f)
 	    {
@@ -3338,6 +3492,7 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	      f->display.x->left_pos = event.xconfigure.x;
 	      f->display.x->top_pos = event.xconfigure.y;
 	    }
+#endif /* not USE_X_TOOLKIT */
 	  break;
 
 	case ButtonPress:
@@ -3361,6 +3516,15 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 
 		if (bar)
 		  x_scroll_bar_handle_click (bar, &event, &emacs_event);
+#ifdef USE_X_TOOLKIT
+		else
+		  {
+ 		    f = x_any_window_to_frame (event.xbutton.window);
+		    if (f && event.type == ButtonPress)
+		      construct_menu_click (&emacs_event,
+					    &event, f);
+		  }
+#endif /* USE_X_TOOLKIT */
 	      }
 
 	    if (numchars >= 1 && emacs_event.kind != no_event)
@@ -3370,6 +3534,10 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		count++;
 		numchars--;
 	      }
+
+#ifdef USE_X_TOOLKIT
+	    goto OTHER;
+#endif /* USE_X_TOOLKIT */
 	  }
 	  break;
 
@@ -3434,9 +3602,18 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 	    case MappingKeyboard:
 	      XRefreshKeyboardMapping (&event.xmapping);
 	    }
+#ifdef USE_X_TOOLKIT
+	  goto OTHER;
+#endif /* USE_X_TOOLKIT */
 	  break;
 
 	default:
+#ifdef USE_X_TOOLKIT
+	OTHER:
+	  BLOCK_INPUT;
+	  XtDispatchEvent (&event);
+	  UNBLOCK_INPUT;
+#endif /* USE_X_TOOLKIT */
 	  break;
 	}
     }
@@ -4258,8 +4435,6 @@ x_new_font (f, newname)
 }
 #endif /* ! defined (HAVE_X11) */
 
-/* X Window sizes and positions.  */
-
 x_calc_absolute_position (f)
      struct frame *f;
 {
@@ -4324,8 +4499,13 @@ x_set_offset (f, xoff, yoff)
   x_calc_absolute_position (f);
 
   BLOCK_INPUT;
+#ifdef USE_X_TOOLKIT
+  XMoveWindow (XDISPLAY XtWindow (f->display.x->widget),
+	       f->display.x->left_pos, f->display.x->top_pos);
+#else /* not USE_X_TOOLKIT */
   XMoveWindow (XDISPLAY FRAME_X_WINDOW (f),
 	       f->display.x->left_pos, f->display.x->top_pos);
+#endif /* not USE_X_TOOLKIT */
 #ifdef HAVE_X11
   x_wm_set_size_hint (f, 0, xoff, yoff);
 #endif /* ! defined (HAVE_X11) */
@@ -4351,6 +4531,11 @@ x_set_window_size (f, cols, rows)
   pixelwidth = CHAR_TO_PIXEL_WIDTH (f, cols);
   pixelheight = CHAR_TO_PIXEL_HEIGHT (f, rows);
 
+#if 0
+#ifdef USE_X_TOOLKIT
+  EmacsFrameSetCharSize (f->display.x->edit_widget, cols, rows);
+#endif /* USE_X_TOOLKIT */
+#endif
 #ifdef HAVE_X11
   x_wm_set_size_hint (f, 0, 0, 0);
 #endif /* ! defined (HAVE_X11) */
@@ -4454,7 +4639,11 @@ x_raise_frame (f)
   if (f->async_visible)
     {
       BLOCK_INPUT;
+#ifdef USE_X_TOOLKIT
+      XRaiseWindow (XDISPLAY XtWindow (f->display.x->widget));
+#else /* not USE_X_TOOLKIT */
       XRaiseWindow (XDISPLAY FRAME_X_WINDOW (f));
+#endif /* not USE_X_TOOLKIT */
       XFlushQueue ();
       UNBLOCK_INPUT;
     }
@@ -4468,7 +4657,11 @@ x_lower_frame (f)
   if (f->async_visible)
     {
       BLOCK_INPUT;
+#ifdef USE_X_TOOLKIT
+      XLowerWindow (XDISPLAY XtWindow (f->display.x->widget));
+#else /* not USE_X_TOOLKIT */
       XLowerWindow (XDISPLAY FRAME_X_WINDOW (f));
+#endif /* not USE_X_TOOLKIT */
       XFlushQueue ();
       UNBLOCK_INPUT;
     }
@@ -4500,8 +4693,11 @@ x_make_frame_visible (f)
 #ifdef HAVE_X11
       if (! EQ (Vx_no_window_manager, Qt))
 	x_wm_set_window_state (f, NormalState);
-
+#ifdef USE_X_TOOLKIT
+      XtPopup (f->display.x->widget, XtGrabNone);
+#else /* not USE_X_TOOLKIT */
       XMapWindow (XDISPLAY FRAME_X_WINDOW (f));
+#endif /* not USE_X_TOOLKIT */
       if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
 	XMapSubwindows (x_current_display, FRAME_X_WINDOW (f));
 #else /* ! defined (HAVE_X11) */
@@ -4594,6 +4790,7 @@ x_iconify_frame (f)
      struct frame *f;
 {
   int mask;
+  int result;
 
   /* Don't keep the highlight on an invisible frame.  */
   if (x_highlight_frame == f)
@@ -4601,6 +4798,19 @@ x_iconify_frame (f)
 
   if (f->async_iconified)
     return;
+
+#ifdef USE_X_TOOLKIT
+  BLOCK_INPUT;
+  result = XIconifyWindow (x_current_display,
+			   XtWindow(f->display.x->widget),
+			   DefaultScreen (x_current_display));
+  UNBLOCK_INPUT;
+
+  if (!result)
+    error ("Can't notify window manager of iconification.");
+
+  f->async_iconified = 1;
+#else /* not USE_X_TOOLKIT */
 
   BLOCK_INPUT;
 
@@ -4653,6 +4863,7 @@ x_iconify_frame (f)
       refreshicon (f);
     }
 #endif /* ! defined (HAVE_X11) */
+#endif /* not USE_X_TOOLKIT */
 
   XFlushQueue ();
   UNBLOCK_INPUT;
@@ -4668,6 +4879,10 @@ x_destroy_window (f)
   if (f->display.x->icon_desc != 0)
     XDestroyWindow (XDISPLAY f->display.x->icon_desc);
   XDestroyWindow (XDISPLAY f->display.x->window_desc);
+#ifdef USE_X_TOOLKIT
+  XtDestroyWidget (f->display.x->widget);
+#endif /* USE_X_TOOLKIT */
+
   free_frame_faces (f);
   XFlushQueue ();
 
@@ -4768,7 +4983,12 @@ x_wm_set_size_hint (f, prompting, spec_x, spec_y)
      int spec_x, spec_y;
 {
   XSizeHints size_hints;
+
+#ifdef USE_X_TOOLKIT
+  Window window = XtWindow(f->display.x->widget);
+#else /* not USE_X_TOOLKIT */
   Window window = FRAME_X_WINDOW (f);
+#endif /* not USE_X_TOOLKIT */
 
   size_hints.flags = PResizeInc | PMinSize /* | PMaxSize */;
 
@@ -4842,10 +5062,10 @@ x_wm_set_size_hint (f, prompting, spec_x, spec_y)
       size_hints.win_gravity = NorthWestGravity;
       break;
     case 1:
-      size_hints.win_gravity = SouthWestGravity;
+      size_hints.win_gravity = NorthEastGravity;
       break;
     case 2:
-      size_hints.win_gravity = NorthEastGravity;
+      size_hints.win_gravity = SouthWestGravity;
       break;
     case 3:
       size_hints.win_gravity = SouthEastGravity;
@@ -4866,7 +5086,11 @@ x_wm_set_window_state (f, state)
      struct frame *f;
      int state;
 {
+#ifdef USE_X_TOOLKIT
+  Window window = XtWindow(f->display.x->widget);
+#else /* not USE_X_TOOLKIT */
   Window window = FRAME_X_WINDOW (f);
+#endif /* not USE_X_TOOLKIT */
 
   f->display.x->wm_hints.flags |= StateHint;
   f->display.x->wm_hints.initial_state = state;
@@ -4907,12 +5131,33 @@ x_wm_set_icon_position (f, icon_x, icon_y)
 
 /* Initialization.  */
 
+#ifdef USE_X_TOOLKIT
+static XrmOptionDescRec emacs_options[] = {
+  {"-geometry",	".geometry", XrmoptionSepArg, NULL},
+  {"-iconic",	".iconic", XrmoptionNoArg, (XtPointer) "yes"},
+
+  {"-internal-border-width", "*EmacsScreen.internalBorderWidth",
+     XrmoptionSepArg, NULL},
+  {"-ib",	"*EmacsScreen.internalBorderWidth", XrmoptionSepArg, NULL},
+
+  {"-T",	"*EmacsShell.title", XrmoptionSepArg, (XtPointer) NULL},
+  {"-wn",	"*EmacsShell.title", XrmoptionSepArg, (XtPointer) NULL},
+  {"-title",	"*EmacsShell.title", XrmoptionSepArg, (XtPointer) NULL},
+  {"-iconname",	"*EmacsShell.iconName", XrmoptionSepArg, (XtPointer) NULL},
+  {"-in",	"*EmacsShell.iconName", XrmoptionSepArg, (XtPointer) NULL},
+  {"-mc",	"*pointerColor", XrmoptionSepArg, (XtPointer) NULL},
+  {"-cr",	"*cursorColor", XrmoptionSepArg, (XtPointer) NULL}
+};
+#endif /* USE_X_TOOLKIT */
+
 void
 x_term_init (display_name)
      char *display_name;
 {
   Lisp_Object frame;
   char *defaultvalue;
+  int argc = 0;
+  char** argv = 0;
 #ifndef F_SETOWN_BUG
 #ifdef F_SETOWN
   extern int old_fcntl_owner;
@@ -4921,7 +5166,22 @@ x_term_init (display_name)
   
   x_focus_frame = x_highlight_frame = 0;
 
+#ifdef USE_X_TOOLKIT
+  argv = XtMalloc (3 * sizeof (char *));
+  argv [0] = "";
+  argv [1] = "-display";
+  argv [2] = display_name;
+  argc = 3;
+  Xt_app_shell = XtAppInitialize (&Xt_app_con, "Emacs",
+				  emacs_options, XtNumber(emacs_options),
+				  &argc, argv,
+				  NULL, NULL, 0);
+  XtFree (argv);
+  x_current_display = XtDisplay (Xt_app_shell);
+
+#else /* not USE_X_TOOLKIT */
   x_current_display = XOpenDisplay (display_name);
+#endif /* not USE_X_TOOLKIT */
   if (x_current_display == 0)
     fatal ("X server %s not responding.\n\
 Check the DISPLAY environment variable or use \"-d\"\n",
