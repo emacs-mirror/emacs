@@ -1336,6 +1336,7 @@ extern void args_out_of_range ();
 extern void args_out_of_range_3 ();
 extern Lisp_Object wrong_type_argument ();
 extern void store_symval_forwarding ();
+extern Lisp_Object do_symval_forwarding ();
 #ifdef LISP_FLOAT_TYPE
 extern Lisp_Object Ffloat_to_int(), Fint_to_float();
 extern double extract_float();
@@ -1584,6 +1585,7 @@ extern int window_internal_height (), window_internal_width ();
 
 /* defined in frame.c */
 extern Lisp_Object Qvisible;
+extern Lisp_Object frame_buffer_predicate ();
 extern Lisp_Object Fframep ();
 extern Lisp_Object Fselect_frame ();
 extern Lisp_Object Ffocus_frame ();
