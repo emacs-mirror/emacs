@@ -388,12 +388,14 @@ main (argc, argv)
 	   that init_editfns uses to set the global Vuser_full_name.  */
 
 	char *user_name = (char *) getenv ("LOGNAME");
+
 	if (!user_name)
 	  user_name = (char *) getenv ("USER");
 
 	if (user_name)
 	  {
 	    struct passwd *pw = getpwnam (user_name);
+
 	    if (pw && (pw->pw_uid != geteuid ()))
 	      {
 		/* We're running under su, apparently. */
@@ -412,6 +414,8 @@ main (argc, argv)
 		sock_status = socket_status (server.sun_path);
 		saved_errno = errno;
 	      }
+	    else
+	      errno = saved_errno;
 	  }
       }
 
