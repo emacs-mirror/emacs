@@ -677,9 +677,7 @@ typedef struct ArenaStruct {
   /* policy fields */
   double tracedSize;
   double tracedTime;
-  double savedStepTime;
-  Word lastStep;
-  Word lastCollected;
+  Word lastWorldCollect;
 
   RingStruct greyRing[RankLIMIT]; /* ring of grey segments at each rank */
   STATISTIC_DECL(Count writeBarrierHitCount); /* write barrier hits */

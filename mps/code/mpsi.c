@@ -361,12 +361,14 @@ mps_res_t mps_arena_collect(mps_space_t mps_space)
   return res;
 }
 
-mps_bool_t mps_arena_step(mps_arena_t mps_arena, double time)
+mps_bool_t mps_arena_step(mps_arena_t mps_arena,
+                          double interval,
+                          double multiplier)
 {
   Bool b;
   Arena arena = (Arena)mps_arena;
   ArenaEnter(arena);
-  b = ArenaStep(ArenaGlobals(arena), time);
+  b = ArenaStep(ArenaGlobals(arena), interval, multiplier);
   ArenaLeave(arena);
   return b;
 }
