@@ -2454,7 +2454,9 @@ int window_box_height P_ ((struct window *));
 int window_text_bottom_y P_ ((struct window *));
 int window_box_width P_ ((struct window *, int));
 int window_box_left P_ ((struct window *, int));
+int window_box_left_offset P_ ((struct window *, int));
 int window_box_right P_ ((struct window *, int));
+int window_box_right_offset P_ ((struct window *, int));
 void window_box_edges P_ ((struct window *, int, int *, int *, int *, int *));
 int estimate_mode_line_height P_ ((struct frame *, enum face_id));
 void pixel_to_glyph_coords P_ ((struct frame *, int, int, int *, int *,
@@ -2663,8 +2665,10 @@ extern int inverse_video;
 extern int required_matrix_width P_ ((struct window *));
 extern int required_matrix_height P_ ((struct window *));
 extern Lisp_Object mode_line_string P_ ((struct window *, int *, int *,
+					 int *, int *,
 					 enum window_part, int *));
 extern Lisp_Object marginal_area_string P_ ((struct window *, int *, int *,
+					     int *, int *,
 					     enum window_part, int *));
 extern void redraw_frame P_ ((struct frame *));
 extern void redraw_garbaged_frames P_ ((void));
@@ -2707,6 +2711,7 @@ int update_frame P_ ((struct frame *, int, int));
 void update_single_window P_ ((struct window *, int));
 int scrolling P_ ((struct frame *));
 void buffer_posn_from_coords P_ ((struct window *, int *, int *,
+				  int *, int *,
 				  Lisp_Object *, struct display_pos *));
 void do_pending_window_change P_ ((int));
 void change_frame_size P_ ((struct frame *, int, int, int, int, int));
