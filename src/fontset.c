@@ -624,7 +624,7 @@ If FRAME is omitted or nil, all frames are affected.")
     error ("Invalid charset: %s", XSYMBOL (charset_symbol)->name->data);
 
   fullname = Fquery_fontset (name, Qnil);
-  if (!NILP (fullname))
+  if (NILP (fullname))
     error ("Fontset `%s' does not exist", XSTRING (name)->data);
 
   /* If FRAME is not specified, we must, at first, update contents of
