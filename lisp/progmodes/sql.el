@@ -812,17 +812,6 @@ Inserts SELECT or commas if appropriate."
 	       (point))))
     (sql-send-region start end)))
 
-(defun sql-send-paragraph ()
-  "Send the current paragraph to the SQL process."
-  (interactive)
-  (let ((start (save-excursion
-		 (backward-paragraph)
-		 (point)))
-	(end (save-excursion
-	       (forward-paragraph)
-	       (point))))
-    (sql-send-region start end)))
-
 (defun sql-send-buffer ()
   "Send the buffer contents to the SQL process."
   (interactive)
