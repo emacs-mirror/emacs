@@ -3656,6 +3656,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
   struct w32_display_info *dpyinfo = &one_w32_display_info;
   W32Msg wmsg;
   int windows_translate;
+  int key;
 
   /* Note that it is okay to call x_window_to_frame, even though we are
      not running in the main lisp thread, because frame deletion
@@ -3757,9 +3758,16 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       if (dpyinfo->faked_key == wParam)
 	{
 	  dpyinfo->faked_key = 0;
-	  /* Make sure TranslateMessage sees them though.  */
-	  windows_translate = 1;
-	  goto translate;
+	  /* Make sure TranslateMessage sees them though (as long as
+	     they don't produce WM_CHAR messages).  This ensures that
+	     indicator lights are toggled promptly on Windows 9x, for
+	     example.  */
+	  if (lispy_function_keys[wParam] != 0)
+	    {
+	      windows_translate = 1;
+	      goto translate;
+	    }
+	  return 0;
 	}
 
       /* Synchronize modifiers with current keystroke.  */
@@ -3780,16 +3788,15 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	      if (GetAsyncKeyState (wParam) & 1)
 		{
 		  if (NUMBERP (Vw32_phantom_key_code))
-		    wParam = XUINT (Vw32_phantom_key_code) & 255;
+		    key = XUINT (Vw32_phantom_key_code) & 255;
 		  else
-		    wParam = VK_SPACE;
-		  dpyinfo->faked_key = wParam;
-		  keybd_event (wParam, (BYTE) MapVirtualKey (wParam, 0), 0, 0);
+		    key = VK_SPACE;
+		  dpyinfo->faked_key = key;
+		  keybd_event (key, (BYTE) MapVirtualKey (key, 0), 0, 0);
 		}
 	    }
 	  if (!NILP (Vw32_lwindow_modifier))
 	    return 0;
-	  windows_translate = 1;
 	  break;
 	case VK_RWIN:
 	  if (NILP (Vw32_pass_rwindow_to_system))
@@ -3797,21 +3804,19 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	      if (GetAsyncKeyState (wParam) & 1)
 		{
 		  if (NUMBERP (Vw32_phantom_key_code))
-		    wParam = XUINT (Vw32_phantom_key_code) & 255;
+		    key = XUINT (Vw32_phantom_key_code) & 255;
 		  else
-		    wParam = VK_SPACE;
-		  dpyinfo->faked_key = wParam;
-		  keybd_event (wParam, (BYTE) MapVirtualKey (wParam, 0), 0, 0);
+		    key = VK_SPACE;
+		  dpyinfo->faked_key = key;
+		  keybd_event (key, (BYTE) MapVirtualKey (key, 0), 0, 0);
 		}
 	    }
 	  if (!NILP (Vw32_rwindow_modifier))
 	    return 0;
-	  windows_translate = 1;
 	  break;
-	case VK_APPS:
+  	case VK_APPS:
 	  if (!NILP (Vw32_apps_modifier))
 	    return 0;
-	  windows_translate = 1;
 	  break;
 	case VK_MENU:
 	  if (NILP (Vw32_pass_alt_to_system)) 
