@@ -191,7 +191,7 @@ Reference manuals for C++, Objective C, Pascal, Fortran 77, and Java.
 A tutorial manual for the C++ STL (standard template library).
 
 @item
-Reference and introductory manuals for Gforth.
+A tutorial manual for Gforth.
 
 @item
 GNU Objective-C Runtime Library Manual; this would be a reference manual
