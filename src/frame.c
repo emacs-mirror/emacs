@@ -967,6 +967,8 @@ Return the symbol `icon' if frame is visible only as an icon.")
 {
   CHECK_LIVE_FRAME (frame, 0);
 
+  FRAME_SAMPLE_VISIBILITY (XFRAME (frame));
+
   if (FRAME_VISIBLE_P (XFRAME (frame)))
     return Qt;
   if (FRAME_ICONIFIED_P (XFRAME (frame)))
