@@ -91,7 +91,7 @@ static void arenaDenounce(Arena arena)
   AVERT(Arena, arena);
 
   /* Temporarily give up the arena lock to avoid deadlock, */
-  /* see design.mps.thread-safety.deadlock. */
+  /* see <design/thread-safety/#deadlock>. */
   ArenaLeave(arena);
 
   /* Detach the arena from the global list. */
@@ -599,7 +599,7 @@ Res ArenaFinalize(Arena arena, Ref obj)
 
 /* ArenaDefinalize -- removes one finalization registration of an object
  *
- * See design.mps.finalize.  */
+ * See <design/finalize>.  */
 
 Res ArenaDefinalize(Arena arena, Ref obj)
 {

@@ -5,7 +5,7 @@
  * Portions copyright (c) 2002 Global Graphics Software.
  *
  * This scans the stack and fixes the registers which may contain
- * roots.  See design.mps.thread-manager.
+ * roots.  See <design/thread-manager/>.
  *
  * .roots: The non-global registers are preserved into the stackframe
  * by the "ta 3" instruction.  This leaves the global registers.

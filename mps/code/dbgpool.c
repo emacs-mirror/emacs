@@ -160,7 +160,7 @@ static Res DebugPoolInit(Pool pool, va_list args)
   /* free-checking init */
   /* @@@@ This parses a user argument, options, so it should really */
   /* go through the MPS interface.  The template needs to be copied */
-  /* into Addr memory, to avoid breaking design.mps.type.addr.use. */
+  /* into Addr memory, to avoid breaking <design/type#addr.use>. */
   debug->freeSize = options->freeSize;
   if (debug->freeSize != 0) {
     if (PoolAlignment(pool) % debug->freeSize != 0) {
@@ -420,7 +420,7 @@ static Res tagAlloc(PoolDebugMixin debug,
   UNUSED(pool);
   res = PoolAlloc((Addr*)&tag, debug->tagPool, debug->tagSize, FALSE);
   if (res != ResOK) {
-    if (withReservoir) { /* design.mps.object-debug.out-of-space */
+    if (withReservoir) { /* <design/object-debug/#out-of-space */
       debug->missingTags++;
       return ResOK;
     } else {
