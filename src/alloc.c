@@ -2541,11 +2541,13 @@ Its value and function definition are void, and its property list is nil.")
   
   p = XSYMBOL (val);
   p->name = XSTRING (name);
-  p->obarray = Qnil;
   p->plist = Qnil;
   p->value = Qunbound;
   p->function = Qunbound;
-  p->next = 0;
+  p->next = NULL;
+  p->interned = SYMBOL_UNINTERNED;
+  p->constant = 0;
+  p->indirect_variable = 0;
   consing_since_gc += sizeof (struct Lisp_Symbol);
   symbols_consed++;
   return val;
