@@ -892,7 +892,7 @@ static void next_overlay_string P_ ((struct it *));
 static void reseat P_ ((struct it *, struct text_pos, int));
 static void reseat_1 P_ ((struct it *, struct text_pos, int));
 static void back_to_previous_visible_line_start P_ ((struct it *));
-static void reseat_at_previous_visible_line_start P_ ((struct it *));
+void reseat_at_previous_visible_line_start P_ ((struct it *));
 static void reseat_at_next_visible_line_start P_ ((struct it *, int));
 static int next_element_from_display_vector P_ ((struct it *));
 static int next_element_from_string P_ ((struct it *));
@@ -4592,7 +4592,7 @@ back_to_previous_visible_line_start (it)
    selective display.  At the end, update IT's overlay information,
    face information etc.  */
 
-static void
+void
 reseat_at_previous_visible_line_start (it)
      struct it *it;
 {
@@ -4897,8 +4897,9 @@ get_next_display_element (it)
 	     translated to octal form.  */
 	  else if ((it->c < ' '
 		    && (it->area != TEXT_AREA
-			/* In mode line, treat \n, \t like other crl chars.  */
-			|| (it->glyph_row && it->glyph_row->mode_line_p)
+			/* In mode line, treat \n like other crl chars.  */
+			|| (it->c == '\n'
+			    && it->glyph_row && it->glyph_row->mode_line_p)
 			|| (it->c != '\n' && it->c != '\t')))
 		   || (it->multibyte_p
 		       ? ((it->c >= 127
