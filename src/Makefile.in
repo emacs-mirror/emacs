@@ -984,7 +984,7 @@ extraclean: distclean
 
 /* The rule for the [sm] files has to be written a little funny to
    avoid looking like a C comment to CPP. */
-SOURCES = *.[ch] [sm]/?* COPYING Makefile \
+SOURCES = *.[ch] [sm]/?* COPYING Makefile.in.in \
 	config.h.in README COPYING ChangeLog vms.pp-trans
 unlock:
 	chmod u+w $(SOURCES)
