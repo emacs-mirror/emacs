@@ -30,6 +30,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #undef write
 #undef open
 #undef close
+#undef signal
 
 
 #if !defined(HAVE_SOCKETS) && !defined(HAVE_SYSVIPC)
