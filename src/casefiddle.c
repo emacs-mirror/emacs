@@ -101,7 +101,7 @@ casify_object (flag, obj)
 	    {
 	      /* The work is not yet finished because of a multibyte
 		 character just encountered.  */
-	      int fromlen, tolen, j_byte = i;
+	      int fromlen, j_byte = i;
 	      char *buf
 		= (char *) alloca ((len - i) * MAX_MULTIBYTE_LENGTH + i);
 
