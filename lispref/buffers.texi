@@ -938,7 +938,8 @@ ask for confirmation from the user.  If any of them returns @code{nil},
 This is a normal hook run by @code{kill-buffer} after asking all the
 questions it is going to ask, just before actually killing the buffer.
 The buffer to be killed is current when the hook functions run.
-@xref{Hooks}.
+@xref{Hooks}.  This variable is a permanent local, so its local binding
+is not cleared by changing major modes.
 @end defvar
 
 @defvar buffer-offer-save
