@@ -579,6 +579,9 @@ This is in addition to the primary selection.")
 	 (t
 	  (setq x-last-selected-text text))))))
 
+(defalias 'x-cut-buffer-or-selection-value 'x-get-selection-value)
+
+
 ;;; Do the actual Windows setup here; the above code just defines
 ;;; functions and variables that we use now.
 
@@ -613,6 +616,101 @@ This is in addition to the primary selection.")
 ;; W32 expects the menu bar cut and paste commands to use the clipboard.
 ;; This has ,? to match both on Sunos and on Solaris.
 (menu-bar-enable-clipboard)
+
+;; W32 systems have different fonts than commonly found on X, so
+;; we define our own standard fontset here.
+(defvar w32-standard-fontset-spec
+ "-*-Courier New-normal-r-*-*-13-*-*-*-c-*-fontset-standard,
+ latin-iso8859-2:-*-Courier New CE-normal-r-*-*-13-*-*-*-c-*-iso8859-2,
+ latin-iso8859-3:-*-Courier New Tur-normal-r-*-*-13-*-*-*-c-*-iso8859-3,
+ latin-iso8859-4:-*-Courier New Baltic-normal-r-*-*-13-*-*-*-c-*-iso8859-4,
+ cyrillic-iso8859-5:-*-Courier New Cyr-normal-r-*-*-13-*-*-*-c-*-iso8859-5,
+ greek-iso8859-7:-*-Courier New Greek-normal-r-*-*-13-*-*-*-c-*-iso8859-7"
+ "String of fontset spec of the standard fontset. This defines a
+fontset consisting of the Courier New variations for European
+languages which are distributed with Windows as \"Multilanguage Support\".
+
+See the documentation of `create-fontset-from-fontset-spec for the format.")
+
+(if (fboundp 'new-fontset)
+    (progn
+      (defun w32-create-initial-fontsets ()
+        "Create fontset-startup, fontset-standard and any fontsets
+specified in X resources."
+        ;; Create the standard fontset.
+        (create-fontset-from-fontset-spec w32-standard-fontset-spec t)
+
+        ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1,...).
+        (create-fontset-from-x-resource)
+
+        ;; Try to create a fontset from a font specification which comes
+        ;; from initial-frame-alist, default-frame-alist, or X resource.
+        ;; A font specification in command line argument (i.e. -fn XXXX)
+        ;; should be already in default-frame-alist as a `font'
+        ;; parameter.  However, any font specifications in site-start
+        ;; library, user's init file (.emacs), and default.el are not
+        ;; yet handled here.
+
+        (let ((font (or (cdr (assq 'font initial-frame-alist))
+                        (cdr (assq 'font default-frame-alist))
+                        (x-get-resource "font" "Font")))
+              xlfd-fields resolved-name)
+          (if (and font
+                   (not (query-fontset font))
+                   (setq resolved-name (x-resolve-font-name font))
+                   (setq xlfd-fields (x-decompose-font-name font)))
+              (if (string= "fontset"
+                           (aref xlfd-fields xlfd-regexp-registry-subnum))
+                  (new-fontset font
+                               (x-complement-fontset-spec xlfd-fields nil))
+                ;; Create a fontset from FONT.  The fontset name is
+                ;; generated from FONT.  Create style variants of the
+                ;; fontset too.  Font names in the variants are
+                ;; generated automatially unless X resources
+                ;; XXX.attribyteFont explicitly specify them.
+                (let ((styles (mapcar 'car x-style-funcs-alist))
+                      (faces '(bold italic bold-italic))
+                      face face-font fontset fontset-spec)
+                  (while faces
+                    (setq face (car faces))
+                    (setq face-font (x-get-resource (concat (symbol-name face)
+                                                            ".attributeFont")
+                                                    "Face.AttributeFont"))
+                    (if face-font
+                        (setq styles (cons (cons face face-font)
+                                           (delq face styles))))
+                    (setq faces (cdr faces)))
+                  (aset xlfd-fields xlfd-regexp-foundry-subnum nil)
+                  (aset xlfd-fields xlfd-regexp-family-subnum nil)
+                  (aset xlfd-fields xlfd-regexp-registry-subnum "fontset")
+                  (aset xlfd-fields xlfd-regexp-encoding-subnum "startup")
+                  ;; The fontset name should have concrete values in
+                  ;; weight and slant field.
+                  (let ((weight (aref xlfd-fields xlfd-regexp-weight-subnum))
+                        (slant (aref xlfd-fields xlfd-regexp-slant-subnum))
+                        xlfd-temp)
+                    (if (or (not weight) (string-match "[*?]*" weight))
+                        (progn
+                          (setq xlfd-temp
+                                (x-decompose-font-name resolved-name))
+                          (aset xlfd-fields xlfd-regexp-weight-subnum
+                                (aref xlfd-temp xlfd-regexp-weight-subnum))))
+                    (if (or (not slant) (string-match "[*?]*" slant))
+                        (progn
+                          (or xlfd-temp
+                              (setq xlfd-temp
+                                    (x-decompose-font-name resolved-name)))
+                          (aset xlfd-fields xlfd-regexp-slant-subnum
+                                (aref xlfd-temp xlfd-regexp-slant-subnum)))))
+                  (setq fontset (x-compose-font-name xlfd-fields))
+                  (create-fontset-from-fontset-spec
+                   (concat fontset ", ascii:" font) styles)
+                  )))))
+      ;; This cannot be run yet, as creating fontsets requires a
+      ;; Window to be initialised so the fonts can be listed.
+      ;; Add it to a hook so it gets run later.
+      (add-hook 'before-init-hook 'w32-create-initial-fontsets)
+      ))
 
 ;; Apply a geometry resource to the initial frame.  Put it at the end
 ;; of the alist, so that anything specified on the command line takes
@@ -702,7 +800,7 @@ This is in addition to the primary selection.")
 
 ;; Redefine the font selection to use the standard W32 dialog
 (defvar w32-use-w32-font-dialog t
-  "Use the standard font dialog if 't' - otherwise pop up a menu of
+  "*Use the standard font dialog if 't' - otherwise pop up a menu of
 some standard fonts like X does - including fontsets")
 
 (defvar w32-fixed-font-alist
@@ -790,7 +888,8 @@ Courier. These fonts are used in the font menu if the variable
      (x-popup-menu
       last-nonmenu-event
     ;; Append list of fontsets currently defined.
-    (append w32-fixed-font-alist (list (generate-fontset-menu))))))
+      (if (fboundp 'new-fontset)
+      (append w32-fixed-font-alist (list (generate-fontset-menu)))))))
   (if fonts
       (let (font)
 	(while fonts
@@ -805,79 +904,3 @@ Courier. These fonts are used in the font menu if the variable
 	    (error "Font not found")))))
 
 ;;; w32-win.el ends here
-;;; The code in w32-init-fontsets requires a w32 frame to have been created,
-;;; which is not the case when this file is loaded during startup.
-(add-hook 'before-init-hook 'w32-init-fontsets)
-
-(defun w32-init-fontsets ()
-  "Initialize standard fontsets for w32."
-  (if (fboundp 'new-fontset)
-      (progn
-	;; Create the standard fontset.
-	(create-fontset-from-fontset-spec standard-fontset-spec t)
-
-	;; Create fontset specified in X resources "Fontset-N" (N is 0, 1, ...).
-	(create-fontset-from-x-resource)
-
-	;; Try to create a fontset from a font specification which comes
-	;; from initial-frame-alist, default-frame-alist, or X resource.
-	;; A font specification in command line argument (i.e. -fn XXXX)
-	;; should be already in default-frame-alist as a `font'
-	;; parameter.  However, any font specifications in site-start
-	;; library, user's init file (.emacs), and default.el are not
-	;; yet handled here.
-
-	(let ((font (or (cdr (assq 'font initial-frame-alist))
-			(cdr (assq 'font default-frame-alist))
-			(x-get-resource "font" "Font")))
-	      xlfd-fields resolved-name)
-	  (if (and font
-		   (not (query-fontset font))
-		   (setq resolved-name (x-resolve-font-name font))
-		   (setq xlfd-fields (x-decompose-font-name font)))
-	      (if (string= "fontset"
-			   (aref xlfd-fields xlfd-regexp-registry-subnum))
-		  (new-fontset font (x-complement-fontset-spec xlfd-fields nil))
-		;; Create a fontset from FONT.  The fontset name is
-		;; generated from FONT.  Create style variants of the
-		;; fontset too.  Font names in the variants are
-		;; generated automatially unless X resources
-		;; XXX.attribyteFont explicitly specify them.
-		(let ((styles (mapcar 'car x-style-funcs-alist))
-		      (faces '(bold italic bold-italic))
-		      face face-font fontset fontset-spec)
-		  (while faces
-		    (setq face (car faces))
-		    (setq face-font (x-get-resource (concat (symbol-name face)
-							    ".attributeFont")
-						    "Face.AttributeFont"))
-		    (if face-font
-			(setq styles (cons (cons face face-font)
-					   (delq face styles))))
-		    (setq faces (cdr faces)))
-		  (aset xlfd-fields xlfd-regexp-foundry-subnum nil)
-		  (aset xlfd-fields xlfd-regexp-family-subnum nil)
-		  (aset xlfd-fields xlfd-regexp-registry-subnum "fontset")
-		  (aset xlfd-fields xlfd-regexp-encoding-subnum "startup")
-		  ;; The fontset name should have concrete values in
-		  ;; weight and slant field.
-		  (let ((weight (aref xlfd-fields xlfd-regexp-weight-subnum))
-			(slant (aref xlfd-fields xlfd-regexp-slant-subnum))
-			xlfd-temp)
-		    (if (or (not weight) (string-match "[*?]*" weight))
-			(progn
-			  (setq xlfd-temp (x-decompose-font-name resolved-name))
-			  (aset xlfd-fields xlfd-regexp-weight-subnum
-				(aref xlfd-temp xlfd-regexp-weight-subnum))))
-		    (if (or (not slant) (string-match "[*?]*" slant))
-			(progn
-			  (or xlfd-temp
-			      (setq xlfd-temp
-				    (x-decompose-font-name resolved-name)))
-			  (aset xlfd-fields xlfd-regexp-slant-subnum
-				(aref xlfd-temp xlfd-regexp-slant-subnum)))))
-		  (setq fontset (x-compose-font-name xlfd-fields))
-		  (create-fontset-from-fontset-spec
-		   (concat fontset ", ascii:" font) styles)
-		  )))))))
-
