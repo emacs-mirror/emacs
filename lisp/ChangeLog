@@ -10,6 +10,9 @@
 
 2002-06-15  Richard M. Stallman  <rms@gnu.org>
 
+	* emacs-lisp/bytecomp.el (byte-recompile-directory): Doc fix.
+	(batch-byte-recompile-directory): Undo previous change.
+
 	* comint.el (comint-skip-input): New function.
 	(comint-interrupt-subjob, comint-kill-subjob, comint-quit-subjob) 
 	(comint-stop-subjob): Use comint-skip-input.
