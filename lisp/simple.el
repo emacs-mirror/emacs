@@ -91,36 +91,49 @@ to navigate in it.")
     (or (and extra-test (funcall extra-test))
 	next-error-function)))
 
-;; Return a next-error capable buffer.
-;; If the current buffer is such, return it.
-;; If next-error-last-buffer is set to a live buffer, use that.
-;; Otherwise, look for a next-error capable buffer and signal an error
-;; if there are none.
+;; Return a next-error capable buffer according to the following rules:
+;; 1. If the current buffer is a next-error capable buffer, return it.
+;; 2. If one window on the selected frame displays such buffer, return it.
+;; 3. If next-error-last-buffer is set to a live buffer, use that.
+;; 4. Otherwise, look for a next-error capable buffer in a buffer list.
+;; 5. Signal an error if there are none.
 (defun next-error-find-buffer (&optional other-buffer extra-test)
   (if (and (not other-buffer)
 	   (next-error-buffer-p (current-buffer) extra-test))
       ;; The current buffer is a next-error capable buffer.
       (current-buffer)
-    (if (and next-error-last-buffer (buffer-name next-error-last-buffer)
-	     (next-error-buffer-p next-error-last-buffer extra-test)
-	     (or (not other-buffer) (not (eq next-error-last-buffer
-					     (current-buffer)))))
-	next-error-last-buffer
-      (let ((buffers (buffer-list)))
-	(while (and buffers (or (not (next-error-buffer-p (car buffers) extra-test))
-				(and other-buffer
-				     (eq (car buffers) (current-buffer)))))
-	  (setq buffers (cdr buffers)))
-	(if buffers
-	    (car buffers)
-	  (or (and other-buffer
-		   (next-error-buffer-p (current-buffer) extra-test)
-		   ;; The current buffer is a next-error capable buffer.
-		   (progn
-		     (if other-buffer
-			 (message "This is the only next-error capable buffer."))
-		     (current-buffer)))
-	      (error "No next-error capable buffer found!")))))))
+    (or
+     (let ((window-buffers
+            (delete-dups
+             (delq nil
+              (mapcar (lambda (w)
+                        (and (next-error-buffer-p (window-buffer w) extra-test)
+                             (window-buffer w)))
+                      (window-list))))))
+       (if other-buffer
+           (setq window-buffers (delq (current-buffer) window-buffers)))
+       (if (eq (length window-buffers) 1)
+           (car window-buffers)))
+     (if (and next-error-last-buffer (buffer-name next-error-last-buffer)
+              (next-error-buffer-p next-error-last-buffer extra-test)
+              (or (not other-buffer) (not (eq next-error-last-buffer
+                                              (current-buffer)))))
+         next-error-last-buffer
+       (let ((buffers (buffer-list)))
+         (while (and buffers (or (not (next-error-buffer-p (car buffers) extra-test))
+                                 (and other-buffer
+                                      (eq (car buffers) (current-buffer)))))
+           (setq buffers (cdr buffers)))
+         (if buffers
+             (car buffers)
+           (or (and other-buffer
+                    (next-error-buffer-p (current-buffer) extra-test)
+                    ;; The current buffer is a next-error capable buffer.
+                    (progn
+                      (if other-buffer
+                          (message "This is the only next-error capable buffer."))
+                      (current-buffer)))
+               (error "No next-error capable buffer found!"))))))))
 
 (defun next-error (arg &optional reset)
   "Visit next next-error message and corresponding source code.
