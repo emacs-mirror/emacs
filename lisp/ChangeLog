@@ -1,5 +1,10 @@
 2000-10-12  Gerd Moellmann  <gerd@gnu.org>
 
+	* startup.el (fancy-splash-screens): Don't add a pre-command hook.
+	(fancy-splash-pre-command, fancy-splash-pending-command): Removed.
+	(command-line-1): Don't use fancy-splash-pending-command.
+	(fancy-splash-screens-1): Goto point-min after inserting text.
+
 	* calendar/diary-lib.el (diary-cyclic): Doc fix from Ed Reingold.
 
 	* progmodes/scheme.el (scheme-mode-map): Use lisp-mode-shared-map
