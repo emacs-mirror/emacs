@@ -1,23 +1,21 @@
 /* impl.c.walk: OBJECT WALKER
  *
- * $HopeName: MMsrc!walk.c(MMdevel_tony_sunset.3) $
- * Copyright (C) 1999.  Harlequin Limited.  All rights reserved.
- *
- * .readership: Any MPS developer
- *
+ * $HopeName: MMsrc!walk.c(trunk.2) $
+ * Copyright (C) 1999 Harlequin Limited.  All rights reserved.
  */
 
 
 #include "mpm.h"
 #include "mps.h"
 
-SRCID(walk, "$HopeName: MMsrc!walk.c(MMdevel_tony_sunset.3) $");
+SRCID(walk, "$HopeName: MMsrc!walk.c(trunk.2) $");
 
 
 
 /* Heap Walking
  *
  */
+
 
 #define FormattedObjectsStepClosureSig ((Sig)0x519F05C1)
 
@@ -149,7 +147,6 @@ void mps_arena_formatted_objects_walk(mps_arena_t mps_arena,
  * fix method. If the format code does pass on the address, the 
  * client can be sure to be passed the address of any root other
  * than a register or stack.
- * 
  */
 
 
@@ -221,8 +218,7 @@ static void RootsStepClosureInit(RootsStepClosure rsc,
 
   /* First initialize the ScanState superclass */
   ss = &rsc->ssStruct;
-  ScanStateInit(ss, TraceSetSingle(trace->ti),
-                arena, RankAMBIG, trace->white);
+  ScanStateInit(ss, TraceSetSingle(trace), arena, RankAMBIG, trace->white);
 
   /* Initialize the fix method in the ScanState */
   ss->fix = rootFix;
@@ -255,8 +251,7 @@ static void RootsStepClosureFinish(RootsStepClosure rsc)
   ScanStateFinish(ss);
 }
 
-/* RootsWalkTraceStart -- Initialize a minimal trace for root walking 
- */
+/* RootsWalkTraceStart -- Initialize a minimal trace for root walking */
 
 static Res RootsWalkTraceStart(Trace trace)
 {
@@ -281,8 +276,7 @@ static Res RootsWalkTraceStart(Trace trace)
 } 
 
 
-/* RootsWalkTraceFinish -- Finish a minimal trace for root walking 
- */
+/* RootsWalkTraceFinish -- Finish a minimal trace for root walking */
 
 static void RootsWalkTraceFinish(Trace trace)
 {
@@ -294,7 +288,7 @@ static void RootsWalkTraceFinish(Trace trace)
   /* Need to set the state of the trace, and add it to the  */
   /* arena's set of flipped traces */
   arena = trace->arena;
-  arena->flippedTraces = TraceSetAdd(arena->flippedTraces, trace->ti);
+  arena->flippedTraces = TraceSetAdd(arena->flippedTraces, trace);
   trace->state = TraceFINISHED;
   TraceDestroy(trace);
 }
@@ -419,13 +413,11 @@ static Res ArenaRootsWalk(Arena arena,
 }
 
 
-/* mps_arena_roots_walk -- Client interface 
- */
+/* mps_arena_roots_walk -- Client interface for walking */
 
 void mps_arena_roots_walk(mps_arena_t mps_arena,
                           mps_roots_stepper_t f,
-                          void *p,
-                          size_t s)
+                          void *p, size_t s)
 {
   Arena arena = (Arena)mps_arena;
   Res res;
