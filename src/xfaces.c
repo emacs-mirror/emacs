@@ -6569,7 +6569,7 @@ compute_char_face (f, ch, prop)
   int face_id;
 
   if (NILP (current_buffer->enable_multibyte_characters))
-    ch = -1;
+    ch = 0;
 
   if (NILP (prop))
     {
