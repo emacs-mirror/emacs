@@ -2606,6 +2606,7 @@ After saving the buffer, this function runs `after-save-hook'."
 	(set-buffer (buffer-base-buffer)))
     (if (buffer-modified-p)
 	(let ((recent-save (recent-auto-save-p))
+	      msg
 	      setmodes tempsetmodes)
 	  ;; On VMS, rename file and buffer to get rid of version number.
 	  (if (and (eq system-type 'vax-vms)
@@ -2652,14 +2653,18 @@ After saving the buffer, this function runs `after-save-hook'."
 		   (save-excursion
 		     (goto-char (point-max))
 		     (insert ?\n))))
+	    (setq msg (current-message))
 	    ;; Support VC version backups.
 	    (vc-before-save)
 	    (or (run-hook-with-args-until-success 'write-contents-hooks)
 		(run-hook-with-args-until-success 'local-write-file-hooks)
 		(run-hook-with-args-until-success 'write-file-hooks)
-		;; If a hook returned t, file is already "written".
-		;; Otherwise, write it the usual way now.
-		(setq setmodes (basic-save-buffer-1)))
+		(progn
+		  (unless (equal msg (current-message))
+		    (sit-for 2))
+		  ;; If a hook returned t, file is already "written".
+		  ;; Otherwise, write it the usual way now.
+		  (setq setmodes (basic-save-buffer-1))))
 	    ;; Now we have saved the current buffer.  Let's make sure
 	    ;; that buffer-file-coding-system is fixed to what
 	    ;; actually used for saving by binding it locally.
@@ -3731,7 +3736,7 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 	      (let ((available (get-free-disk-space ".")))
 		(when available
 		  ;; Replace "total" with "used", to avoid confusion.
-		  (replace-match "used")
+		  (replace-match "total used in directory")
 		  (end-of-line)
 		  (insert " available " available))))))))))
 
