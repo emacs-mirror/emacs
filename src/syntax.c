@@ -1504,6 +1504,18 @@ skip_chars (forwardp, syntaxp, string, lim)
     int start_point = PT;
     int pos = PT;
     int pos_byte = PT_BYTE;
+    unsigned char *p = PT_ADDR, *endp, *stop;
+
+    if (forwardp)
+      {
+	endp = (XINT (lim) == GPT) ? GPT_ADDR : CHAR_POS_ADDR (XINT (lim));
+	stop = (pos < GPT && GPT < XINT (lim)) ? GPT_ADDR : endp; 
+      }
+    else
+      {
+	endp = CHAR_POS_ADDR (XINT (lim));
+	stop = (pos >= GPT && GPT > XINT (lim)) ? GAP_END_ADDR : endp; 
+      }
 
     immediate_quit = 1;
     if (syntaxp)
@@ -1512,60 +1524,85 @@ skip_chars (forwardp, syntaxp, string, lim)
 	if (forwardp)
 	  {
 	    if (multibyte)
-	      {
-		if (pos < XINT (lim))
-		  while (fastmap[(int) SYNTAX (FETCH_CHAR (pos_byte))])
+	      while (1)
+		{
+		  int nbytes;
+
+		  if (p >= stop)
 		    {
-		      /* Since we already checked for multibyteness,
-			 avoid using INC_BOTH which checks again.  */
-		      INC_POS (pos_byte);
-		      pos++;
-		      if (pos >= XINT (lim))
-		    	break;
-		      UPDATE_SYNTAX_TABLE_FORWARD (pos);
+		      if (p >= endp)
+			break;
+		      p = GAP_END_ADDR;
+		      stop = endp;
 		    }
-	      }
+		  c = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, nbytes);
+		  if (! fastmap[(int) SYNTAX (c)])
+		    break;
+		  p += nbytes, pos++, pos_byte += nbytes;
+		  UPDATE_SYNTAX_TABLE_FORWARD (pos);
+		}
 	    else
-	      {
-		while (pos < XINT (lim)
-		       && fastmap[(int) SYNTAX (FETCH_BYTE (pos))])
-		  {
-		    pos++;
-		    UPDATE_SYNTAX_TABLE_FORWARD (pos);
-		  }
-	      }
+	      while (1)
+		{
+		  if (p >= stop)
+		    {
+		      if (p >= endp)
+			break;
+		      p = GAP_END_ADDR;
+		      stop = endp;
+		    }
+		  if (! fastmap[(int) SYNTAX (*p)])
+		    break;
+		  p++, pos++;
+		  UPDATE_SYNTAX_TABLE_FORWARD (pos);
+		}
 	  }
 	else
 	  {
 	    if (multibyte)
-	      {
-		while (pos > XINT (lim))
-		  {
-		    int savepos = pos_byte;
-		    /* Since we already checked for multibyteness,
-		       avoid using DEC_BOTH which checks again.  */
-		    pos--;
-		    DEC_POS (pos_byte);
-		    UPDATE_SYNTAX_TABLE_BACKWARD (pos);
-		    if (!fastmap[(int) SYNTAX (FETCH_CHAR (pos_byte))])
-		      {
-			pos++;
-			pos_byte = savepos;
-			break;
-		      }
-		  }
-	      }
-	    else
-	      {
-		if (pos > XINT (lim))
-		  while (fastmap[(int) SYNTAX (FETCH_BYTE (pos - 1))])
+	      while (1)
+		{
+		  unsigned char *prev_p;
+		  int nbytes;
+
+		  if (p <= stop)
 		    {
-		      pos--;
-		      if (pos <= XINT (lim))
+		      if (p <= endp)
 			break;
-		      UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
+		      p = GPT_ADDR;
+		      stop = endp;
 		    }
-	      }
+		  prev_p = p;
+		  while (--p >= stop && ! CHAR_HEAD_P (*p));
+		  PARSE_MULTIBYTE_SEQ (p, MAX_MULTIBYTE_LENGTH, nbytes);
+		  if (prev_p - p > nbytes)
+		    p = prev_p - 1, c = *p, nbytes = 1;
+		  else
+		    c = STRING_CHAR (p, MAX_MULTIBYTE_LENGTH);
+		  pos--, pos_byte -= nbytes;
+		  UPDATE_SYNTAX_TABLE_BACKWARD (pos);
+		  if (! fastmap[(int) SYNTAX (c)])
+		    {
+		      pos++;
+		      pos_byte += nbytes;
+		      break;
+		    }
+		}
+	    else
+	      while (1)
+		{
+		  if (p <= stop)
+		    {
+		      if (p <= endp)
+			break;
+		      p = GPT_ADDR;
+		      stop = endp;
+		    }
+		  if (! fastmap[(int) SYNTAX (p[-1])])
+		    break;
+		  p--, pos--;
+		  UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
+		}
 	  }
       }
     else
@@ -1573,9 +1610,18 @@ skip_chars (forwardp, syntaxp, string, lim)
 	if (forwardp)
 	  {
 	    if (multibyte)
-	      while (pos < XINT (lim))
+	      while (1)
 		{
-		  c = FETCH_MULTIBYTE_CHAR (pos_byte);
+		  int nbytes;
+
+		  if (p >= stop)
+		    {
+		      if (p >= endp)
+			break;
+		      p = GAP_END_ADDR;
+		      stop = endp;
+		    }
+		  c = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, nbytes);
 		  if (SINGLE_BYTE_CHAR_P (c))
 		    {
 		      if (!fastmap[c])
@@ -1598,21 +1644,45 @@ skip_chars (forwardp, syntaxp, string, lim)
 		      if (!(negate ^ (i < n_char_ranges)))
 			break;
 		    }
-		  INC_BOTH (pos, pos_byte);
+		  p += nbytes, pos++, pos_byte += nbytes;
 		}
 	    else
-	      while (pos < XINT (lim) && fastmap[FETCH_BYTE (pos)])
-		pos++;
+	      while (1)
+		{
+		  if (p >= stop)
+		    {
+		      if (p >= endp)
+			break;
+		      p = GAP_END_ADDR;
+		      stop = endp;
+		    }
+		  if (fastmap[*p])
+		    break;
+		  p++, pos++;
+		}
 	  }
 	else
 	  {
 	    if (multibyte)
-	      while (pos > XINT (lim))
+	      while (1)
 		{
-		  int prev_pos_byte = pos_byte;
+		  unsigned char *prev_p;
+		  int nbytes;
 
-		  DEC_POS (prev_pos_byte);
-		  c = FETCH_MULTIBYTE_CHAR (prev_pos_byte);
+		  if (p <= stop)
+		    {
+		      if (p <= endp)
+			break;
+		      p = GPT_ADDR;
+		      stop = endp;
+		    }
+		  prev_p = p;
+		  while (--p >= stop && ! CHAR_HEAD_P (*p));
+		  PARSE_MULTIBYTE_SEQ (p, MAX_MULTIBYTE_LENGTH, nbytes);
+		  if (prev_p - p > nbytes)
+		    p = prev_p - 1, c = *p, nbytes = 1;
+		  else
+		    c = STRING_CHAR (p, MAX_MULTIBYTE_LENGTH);
 		  if (SINGLE_BYTE_CHAR_P (c))
 		    {
 		      if (!fastmap[c])
@@ -1627,12 +1697,22 @@ skip_chars (forwardp, syntaxp, string, lim)
 		      if (!(negate ^ (i < n_char_ranges)))
 			break;
 		    }
-		  pos--;
-		  pos_byte = prev_pos_byte;
+		  pos--, pos_byte -= nbytes;
 		}
 	    else
-	      while (pos > XINT (lim) && fastmap[FETCH_BYTE (pos - 1)])
-		pos--;
+	      while (1)
+		{
+		  if (p <= stop)
+		    {
+		      if (p <= endp)
+			break;
+		      p = GPT_ADDR;
+		      stop = endp;
+		    }
+		  if (fastmap[p[-1]])
+		    break;
+		  p--, pos--;
+		}
 	  }
       }
 
