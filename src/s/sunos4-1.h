@@ -22,7 +22,9 @@
    setting libsrc_libs to -lresolv in lib-src/Makefile.  configure
    includes this file without defining any of the HAVE_* macros.  */
 #ifdef HAVE_GETHOSTNAME
-#ifndef HAVE_RES_INIT
+/* This was #ifndef, but Stephen P Potter <spp@cis.ufl.edu> says
+   it should be #ifdef.  */
+#ifdef HAVE_RES_INIT
 #define LIBS_SYSTEM -lresolv
 #endif
 #endif
