@@ -1,3 +1,10 @@
+2000-03-02  Dave Love  <fx@gnu.org>
+
+	* m/powerpcle.h, m/sparc.h: Don't set C_OPTIMIZE_SWITCH.
+
+	* m/mips-siemens.h, m/news-r6.h, m/news-risc.h, m/tekxd88.h: Don't
+	set C_OPTIMIZE_SWITCH for gcc.
+
 2000-03-02  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (coding_save_composition): Be sure to allocate

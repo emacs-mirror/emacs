@@ -1,3 +1,9 @@
+2000-03-01  Dave Love  <fx@gnu.org>
+
+	* international/mule-diag.el (list-character-sets): Call
+	help-setup-xref.  Add help-echo to xrefs.
+	(list-character-sets-1): Add help-echo to xrefs.
+
 2000-03-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* frame.el (blink-cursor-mode): Switch cursor on when turning
