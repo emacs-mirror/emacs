@@ -153,17 +153,24 @@ It creates the Imenu index for the buffer, if necessary."
      (setq which-func-mode nil))))
 
 (defun which-func-update ()
-  ;; Update the string containing the current function.
-  (when which-func-mode
-    (condition-case info
-	(progn
-	  (setq which-func-current (or (which-function) which-func-unknown))
-	  (unless (string= which-func-current which-func-previous)
-	    (force-mode-line-update)
-	    (setq which-func-previous which-func-current)))
-      (error
-       (which-func-mode -1)
-       (error "Error in which-func-update: %s" info)))))
+  "Update the Which-Function mode display for all windows."
+  (walk-windows 'which-func-update-1 nil 'visible))
+
+(defun which-func-update-1 (window)
+  "Update the Which-Function mode display for window WINDOW."
+  (save-selected-window
+    (select-window window)
+    ;; Update the string containing the current function.
+    (when which-func-mode
+      (condition-case info
+	  (progn
+	    (setq which-func-current (or (which-function) which-func-unknown))
+	    (unless (string= which-func-current which-func-previous)
+	      (force-mode-line-update)
+	      (setq which-func-previous which-func-current)))
+	(error
+	 (which-func-mode -1)
+	 (error "Error in which-func-update: %s" info))))))
 
 ;;;###autoload
 (defalias 'which-func-mode 'which-function-mode)
@@ -192,12 +199,22 @@ and off otherwise."
     (dolist (buf (buffer-list))
       (with-current-buffer buf (setq which-func-mode nil)))))
 
+(defvar which-function-imenu-failed nil
+  "Locally t in a buffer if `imenu--make-index-alist' found nothing there.")
+
 (defun which-function ()
   "Return current function name based on point.
 Uses `imenu--index-alist' or `add-log-current-defun-function'.
 If no function name is found, return nil."
   (let (name)
-    ;; First try using imenu support.
+    ;; If Imenu is loaded, try to make an index alist with it.
+    (when (and (boundp 'imenu--index-alist) (null imenu--index-alist)
+	       (null which-function-imenu-failed))
+      (imenu--make-index-alist)
+      (unless imenu--index-alist
+	(make-local-variable 'which-function-imenu-failed)
+	(setq which-function-imenu-failed t)))
+    ;; If we have an index alist, use it.
     (when (and (boundp 'imenu--index-alist) imenu--index-alist)
       (let ((pair (car-safe imenu--index-alist))
 	    (rest (cdr-safe imenu--index-alist)))
