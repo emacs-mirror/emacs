@@ -1,7 +1,7 @@
 ;;; mh-utils.el --- mh-e code needed for both sending and reading
 ;; Time-stamp: <95/10/22 17:58:16 gildea>
 
-;; Copyright (C) 1993, 1995, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 1997, 2000 Free Software Foundation, Inc.
 
 ;; This file is part of mh-e, part of GNU Emacs.
 
@@ -542,6 +542,7 @@ Non-nil third argument means not to show the message."
 	     (buffer-substring start (point)))))))
 
 (defvar mail-user-agent)
+(defvar read-mail-command)
 
 (defvar mh-find-path-run nil
   "Non-nil if `mh-find-path' has been run already.")
@@ -554,6 +555,7 @@ Non-nil third argument means not to show the message."
   (mh-find-progs)
   (unless mh-find-path-run
     (setq mh-find-path-run t)
+    (setq read-mail-command 'mh-rmail)
     (setq mail-user-agent 'mh-e-user-agent))
   (save-excursion
     ;; Be sure profile is fully expanded before switching buffers
