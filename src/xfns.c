@@ -9155,7 +9155,6 @@ static struct image_type gif_type =
   NULL
 };
 
-
 /* Return non-zero if OBJECT is a valid GIF image specification.  */
 
 static int
@@ -9185,13 +9184,18 @@ typedef struct
 }
 gif_memory_source;
 
+/* Make the current memory source available to gif_read_from_memory.
+   It's done this way because not all versions of libungif support
+   a UserData field in the GifFileType structure.  */
+static gif_memory_source *current_gif_memory_src;
+
 static int
 gif_read_from_memory (file, buf, len)
      GifFileType *file;
      GifByteType *buf;
      int len;
 {
-  gif_memory_source *src = (gif_memory_source *) file->UserData;
+  gif_memory_source *src = current_gif_memory_src;
 
   if (len > src->len - src->index)
     return -1;
@@ -9250,6 +9254,7 @@ gif_load (f, img)
   else
     {
       /* Read from memory! */
+      current_gif_memory_src = &memsrc;
       memsrc.bytes = XSTRING (specified_data)->data;
       memsrc.len = STRING_BYTES (XSTRING (specified_data));
       memsrc.index = 0;
