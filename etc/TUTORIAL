@@ -44,8 +44,7 @@ The following commands are useful for viewing screenfuls:
 	M-v	Move backward one screenful
 	C-l	Clear screen and redisplay everything
 		 putting the text near the cursor at the center.
-		 (That's control-L, not control-1.
-		  There is no such character as control-1.)
+		 (That's control-L, not control-1.)
 
 >> Find the cursor and remember what text is near it.
    Then type a C-l.
@@ -557,16 +556,16 @@ at the bottom of the screen in an area called the "echo area."  The echo
 area contains the bottom line of the screen.  The line immediately above
 it is called the MODE LINE.  The mode line says something like
 
-----**--Emacs: TUTORIAL		    (Fundamental)----58%-------------
+--**-Emacs: TUTORIAL          (Fundamental)--58%----------------------
 
 This is a very useful "information" line.
 
 You already know what the filename means--it is the file you have
 found.  What the --NN%-- means is that NN percent of the file is
 above the top of the screen.  If the top of the file is on the screen,
-it will say --TOP-- instead of --00%--.  If the bottom of the file is
-on the screen, it will say --BOT--.  If you are looking at a file so
-small it all fits on the screen, it says --ALL--.
+it will say --Top-- instead of --00%--.  If the bottom of the file is
+on the screen, it will say --Bot--.  If you are looking at a file so
+small it all fits on the screen, it says --All--.
 
 The stars near the front mean that you have made changes to the text.
 Right after you visit or save a file, there are no stars, just dashes.
@@ -583,7 +582,7 @@ a program, and since each programming language has a different idea of
 what a comment should look like, each major mode has to insert
 comments differently.  Each major mode is the name of an extended
 command, which is how you get into the mode.  For example,
-M-X fundamental-mode is how to get into Fundamental mode.
+M-x fundamental-mode is how to get into Fundamental mode.
 
 If you are going to be editing English text, such as this file, you
 should probably use Text Mode.
@@ -676,9 +675,9 @@ text to the occurrence of 'c' where the search took you before you
 typed the 'u'.  This provides a useful means for backing up while you
 are searching.
 
-If you are in the middle of a search and happen to type a control
-character (other than a C-s or C-r, which tell Emacs to search for the
-next occurrence of the string), the search is terminated.
+If you are in the middle of a search and type a control or meta
+character (with a few exceptions--characters that are special in
+a search, such as C-s and C-r), the search is terminated.
 
 The C-s starts a search that looks for any occurrence of the search
 string AFTER the current cursor position.  But what if you want to
@@ -779,7 +778,7 @@ To use the HELP features, type the C-h character, and then a
 character saying what kind of help you want.  If you are REALLY lost,
 type C-h ? and Emacs will tell you what kinds of help it can give.
 If you have typed C-h and decide you don't want any help, just
-type C-G to cancel it.
+type C-g to cancel it.
 
 The most basic HELP feature is C-h c.  Type C-h, a c, and a
 command character or sequence, and Emacs displays a very brief
@@ -815,7 +814,7 @@ Here are some other useful C-h options:
 
 >> Try typing C-h f previous-line<Return>.
    This prints all the information Emacs has about the
-   function which implements the C-P command.
+   function which implements the C-p command.
 
    C-h a	Command Apropos.  Type in a keyword and Emacs will list
 		all the commands whose names contain that keyword.
