@@ -865,7 +865,7 @@ performs the inverse transformation.
 @subsection Replace Commands and Case
 
   If the first argument of a replace command is all lower case, the
-commands ignores case while searching for occurrences to
+command ignores case while searching for occurrences to
 replace---provided @code{case-fold-search} is non-@code{nil}.  If
 @code{case-fold-search} is set to @code{nil}, case is always significant
 in all searches.
