@@ -196,7 +196,7 @@ unchain_marker (marker)
      register Lisp_Object marker;
 {
   register Lisp_Object tail, prev, next;
-  register int omark;
+  register EMACS_INT omark;
   register struct buffer *b;
 
   b = XMARKER (marker)->buffer;
