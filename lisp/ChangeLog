@@ -1,3 +1,8 @@
+2004-01-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (write-file-functions, write-contents-functions):
+	Clarify docstrings.
+
 2004-01-07  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (set-auto-coding): Fix for the case that

@@ -1,3 +1,10 @@
+2004-01-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.texi (Saving Buffers): Clarify descriptions of
+	`write-contents-functions' and `before-save-hook'.
+	Make the defvar's for `before-save-hook' and `after-save-hook'
+	into defopt's.
+
 2004-01-07  Kim F. Storm  <storm@cua.dk>
 
 	* commands.texi (Click Events): Describe new image and
