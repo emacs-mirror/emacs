@@ -972,36 +972,23 @@ load_pixmap (f, name, w_ptr, h_ptr)
 
 #ifdef HAVE_X_WINDOWS
 
-/* Update the line_height of frame F according to the biggest font in
-   any face.  Return non-zero if line height changes.  */
+/* Update the line_height of frame F.  Return non-zero if line height
+   changes.  */
 
 int
 frame_update_line_height (f)
      struct frame *f;
 {
-  int i;
-  int fontset = f->output_data.x->fontset;
-  int biggest = (fontset > 0
-		 ? FRAME_FONTSET_DATA (f)->fontset_table[fontset]->height
-		 : FONT_HEIGHT (f->output_data.x->font));
-  struct face_cache *c = FRAME_FACE_CACHE (f);
-  int changed_p;
-
-  for (i = 0; i < c->used; ++i)
-    {
-      struct face *face = c->faces_by_id[i];
-      if (face)
-	{
-	  int height
-	    = (face->fontset >= 0 
-	       ? FRAME_FONTSET_DATA (f)->fontset_table[face->fontset]->height
-	       : FONT_HEIGHT (face->font));
-	  biggest = max (height, biggest);
-	}
-    }
-
-  changed_p = biggest != f->output_data.x->line_height;
-  f->output_data.x->line_height = biggest;
+  int fontset, line_height, changed_p;
+  
+  fontset = f->output_data.x->fontset;
+  if (fontset > 0)
+    line_height = FRAME_FONTSET_DATA (f)->fontset_table[fontset]->height;
+  else
+    line_height = FONT_HEIGHT (f->output_data.x->font);
+  
+  changed_p = line_height != f->output_data.x->line_height;
+  f->output_data.x->line_height = line_height;
   return changed_p;
 }
 
