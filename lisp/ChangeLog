@@ -1,3 +1,8 @@
+2002-11-01  Kim F. Storm  <storm@cua.dk>
+
+	* info.el (Info-hide-note-references): New defcustom.
+	(Info-fontify-node): Use it.
+
 2002-10-31  Kim F. Storm  <storm@cua.dk>
 
 	* shell.el (explicit-bash-args): Bash 1.x doesn't grook
