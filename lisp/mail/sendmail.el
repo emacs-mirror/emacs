@@ -1,6 +1,6 @@
 ;;; sendmail.el --- mail sending commands for Emacs.  -*- byte-compile-dynamic: t -*-
 
-;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 98, 2000, 2001, 2002
+;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 98, 2000, 2001, 2002, 2003
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -622,6 +622,7 @@ If within the headers, this makes the new lines into continuation lines."
   (define-key mail-mode-map "\C-c\C-t" 'mail-text)
   (define-key mail-mode-map "\C-c\C-y" 'mail-yank-original)
   (define-key mail-mode-map "\C-c\C-r" 'mail-yank-region)
+  (define-key mail-mode-map [remap split-line] 'mail-split-line)
   (define-key mail-mode-map "\C-c\C-q" 'mail-fill-yanked-message)
   (define-key mail-mode-map "\C-c\C-w" 'mail-signature)
   (define-key mail-mode-map "\C-c\C-v" 'mail-sent-via)
@@ -1418,6 +1419,13 @@ and don't delete any header fields."
 	       (if mail-yank-hooks
 		   (run-hooks 'mail-yank-hooks)
 		 (mail-indent-citation))))))))
+
+(defun mail-split-line ()
+  "Split current line, moving portion beyond point vertically down.
+If the current line has `mail-yank-prefix', insert it on the new line."
+  (interactive "*")
+  (split-line mail-yank-prefix))
+
 
 (defun mail-attach-file (&optional file)
   "Insert a file at the end of the buffer, with separator lines around it."
