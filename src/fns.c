@@ -1,5 +1,5 @@
 /* Random utility Lisp functions.
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 99, 2000
+   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 99, 2000, 2001
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -2811,8 +2811,8 @@ is nil and `use-dialog-box' is non-nil.")
   GCPRO2 (prompt, xprompt);
 
 #ifdef HAVE_X_WINDOWS
-  if (display_busy_cursor_p)
-    cancel_busy_cursor ();
+  if (display_hourglass_p)
+    cancel_hourglass ();
 #endif
 
   while (1)

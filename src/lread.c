@@ -1,5 +1,5 @@
 /* Lisp parsing and input streams.
-   Copyright (C) 1985, 86, 87, 88, 89, 93, 94, 95, 97, 98, 99, 2000
+   Copyright (C) 1985, 86, 87, 88, 89, 93, 94, 95, 97, 98, 99, 2000, 2001
       Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -427,8 +427,8 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
   register Lisp_Object val, delayed_switch_frame;
 
 #ifdef HAVE_WINDOW_SYSTEM
-  if (display_busy_cursor_p)
-    cancel_busy_cursor ();
+  if (display_hourglass_p)
+    cancel_hourglass ();
 #endif
   
   delayed_switch_frame = Qnil;
@@ -489,8 +489,8 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
     unread_switch_frame = delayed_switch_frame;
 
 #ifdef HAVE_WINDOW_SYSTEM
-  if (display_busy_cursor_p)
-    start_busy_cursor ();
+  if (display_hourglass_p)
+    start_hourglass ();
 #endif
   return val;
 }

@@ -241,8 +241,8 @@ call_debugger (arg)
     max_specpdl_size = specpdl_size + 40;
   
 #ifdef HAVE_X_WINDOWS
-  if (display_busy_cursor_p)
-    cancel_busy_cursor ();
+  if (display_hourglass_p)
+    cancel_hourglass ();
 #endif
 
   debug_on_next_call = 0;
@@ -1366,7 +1366,7 @@ See also the function `condition-case'.")
   Lisp_Object debugger_value;
   Lisp_Object string;
   Lisp_Object real_error_symbol;
-  extern int display_busy_cursor_p;
+  extern int display_hourglass_p;
   struct backtrace *bp;
 
   immediate_quit = handling_signal = 0;
@@ -1381,8 +1381,8 @@ See also the function `condition-case'.")
     real_error_symbol = error_symbol;
 
 #ifdef HAVE_X_WINDOWS
-  if (display_busy_cursor_p)
-    cancel_busy_cursor ();
+  if (display_hourglass_p)
+    cancel_hourglass ();
 #endif
 
   /* This hook is used by edebug.  */
