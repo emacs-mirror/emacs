@@ -787,7 +787,10 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	     (color (car colors)))
 	(while colors
 	  (tty-color-define (car color) (cadr color) (cddr color))
-	  (setq colors (cdr colors) color (car colors)))))
+	  (setq colors (cdr colors) color (car colors)))
+	;; Modifying color mappings means realized faces don't
+	;; use the right colors, so clear them.
+	(clear-face-cache)))
   
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
