@@ -244,8 +244,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
  *      Use BSD and POSIX-style signals.  This is crucial!
  */
 
+/* pmr now says the GNU malloc works.  */
 /* pmr@rock.concert.net says Emacs fails without this.  We don't know why.  */
-#define SYSTEM_MALLOC
+/* #define SYSTEM_MALLOC */
 
 /* MAKING_MAKEFILE must be defined in "ymakefile" before including config.h */
 #ifndef THIS_IS_YMAKEFILE
