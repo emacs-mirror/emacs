@@ -1,6 +1,6 @@
 /* impl.c.amcss: POOL CLASS AMC STRESS TEST
  *
- * $HopeName: MMsrc!amcss.c(trunk.34) $
+ * $HopeName: MMsrc!amcss.c(trunk.35) $
  * Copyright (C) 2001 Harlequin Limited.  All rights reserved.
  */
 
@@ -18,19 +18,19 @@
 
 
 /* These values have been tuned to cause one top-generation collection. */
-#define testArenaSIZE     ((size_t)1100*1024)
+#define testArenaSIZE     ((size_t)1000*1024)
 #define avLEN             3
 #define exactRootsCOUNT   200
 #define ambigRootsCOUNT   50
 #define genCOUNT          2
-#define collectionsCOUNT  39
+#define collectionsCOUNT  37
 #define rampSIZE          9
 #define initTestFREQ      6000
 
 /* testChain -- generation parameters for the test */
 
 static mps_gen_param_s testChain[genCOUNT] = {
-  { 150, 0.85 }, { 170, 0.35 } };
+  { 150, 0.85 }, { 170, 0.45 } };
 
 
 /* objNULL needs to be odd so that it's ignored in exactRoots. */
