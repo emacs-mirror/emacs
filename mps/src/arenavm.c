@@ -1,6 +1,6 @@
 /* impl.c.arenavm: VIRTUAL MEMORY ARENA CLASS
  *
- * $HopeName: MMsrc!arenavm.c(trunk.64) $
+ * $HopeName: MMsrc!arenavm.c(trunk.65) $
  * Copyright (C) 2000 Harlequin Limited.  All rights reserved.
  *
  *
@@ -27,7 +27,7 @@
 #include "mpm.h"
 #include "mpsavm.h"
 
-SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.64) $");
+SRCID(arenavm, "$HopeName: MMsrc!arenavm.c(trunk.65) $");
 
 
 /* @@@@ Arbitrary calculation for the maximum number of distinct */
@@ -485,6 +485,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class,
   return ResOK;
 
 failChunkCreate:
+  VMUnmap(arenaVM, VMBase(arenaVM), VMLimit(arenaVM));
 failVMMap:
   VMDestroy(arenaVM);
 failVMCreate:
