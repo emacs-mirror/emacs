@@ -3939,7 +3939,6 @@ init_buffer_once ()
   XSETINT (buffer_local_flags.display_count, -1);
   XSETINT (buffer_local_flags.display_time, -1);
   XSETINT (buffer_local_flags.enable_multibyte_characters, -1);
-  XSETINT (buffer_local_flags.cursor_type, -1);
 
   idx = 1;
   XSETFASTINT (buffer_local_flags.mode_line_format, idx); ++idx;
@@ -3976,6 +3975,7 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.scroll_up_aggressively, idx); ++idx;
   XSETFASTINT (buffer_local_flags.scroll_down_aggressively, idx); ++idx;
   XSETFASTINT (buffer_local_flags.header_line_format, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.cursor_type, idx); ++idx;
 
   /* Need more room? */
   if (idx >= MAX_BUFFER_LOCAL_VARS)
@@ -4130,6 +4130,10 @@ This is the same as (default-value 'mode-line-format).");
 		     &buffer_defaults.header_line_format,
     "Default value of `header-line-format' for buffers that don't override it.\n\
 This is the same as (default-value 'header-line-format).");
+
+  DEFVAR_LISP_NOPRO ("default-cursor-type", &buffer_defaults.cursor_type,
+    "Default value of `cursor-type' for buffers that don't override it.\n\
+This is the same as (default-value 'cursor-type).");
 
   DEFVAR_LISP_NOPRO ("default-abbrev-mode",
 	      &buffer_defaults.abbrev_mode,
