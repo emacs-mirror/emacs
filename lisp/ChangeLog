@@ -1,3 +1,8 @@
+2005-01-12  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-help.el (calc-describe-key): Use temporary info buffer
+	to create a Calc summary.
+
 2005-01-12  Kim F. Storm  <storm@cua.dk>
 
 	* mouse.el (mouse-on-link-p): Change functionality and doc
