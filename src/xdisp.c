@@ -1723,7 +1723,9 @@ display_text_line (w, start, vpos, hpos, taboffset)
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
   /* Show where to highlight the region.  */
-  if (highlight_region && XMARKER (current_buffer->mark)->buffer != 0)
+  if (highlight_region && XMARKER (current_buffer->mark)->buffer != 0
+      /* Highlight only in selected window.  */
+      && w == XWINDOW (FRAME_SELECTED_WINDOW (f)))
     {
       region_beg = marker_position (current_buffer->mark);
       if (PT < region_beg)
