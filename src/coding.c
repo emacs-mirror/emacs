@@ -399,6 +399,8 @@ Lisp_Object Qcoding_system_p, Qcoding_system_error;
    end-of-line format.  */
 Lisp_Object Qemacs_mule, Qraw_text;
 
+Lisp_Object Qutf_8;
+
 /* Coding-systems are handed between Emacs Lisp programs and C internal
    routines by the following three variables.  */
 /* Coding-system for reading files and receiving data from process.  */
@@ -7583,6 +7585,9 @@ syms_of_coding ()
 
   Qraw_text = intern ("raw-text");
   staticpro (&Qraw_text);
+
+  Qutf_8 = intern ("utf-8");
+  staticpro (&Qutf_8);
 
   defsubr (&Scoding_system_p);
   defsubr (&Sread_coding_system);
