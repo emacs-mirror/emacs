@@ -1,5 +1,7 @@
 2002-01-03  Richard M. Stallman  <rms@gnu.org>
 
+	* calendar/diary-lib.el (diary-block): Doc fix.
+
 	* custom.el (defcustom): Fix syntax of previous change.
 
 2002-01-03  Per Abrahamsen  <abraham@dina.kvl.dk>
