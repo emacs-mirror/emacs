@@ -74,7 +74,7 @@
 ;;  Andre Srinivasan <andre@visigenic.com> 9 Sep 97
 ;; Add uniquify-list-buffers-directory-modes
 ;;   Stefan Monnier <monnier@cs.yale.edu> 17 Nov 2000
-;; Algorithm change reduced consing when using lots of buffers
+;; Algorithm and data structure changed to reduce consing with lots of buffers
 ;;   Francesco Potortì <pot@gnu.org> (ideas by rms and monnier) 2001-07-18
 
 ;; Valuable feedback was provided by
@@ -173,11 +173,11 @@ contains the name of the directory which the buffer is visiting.")
   (file-name-nondirectory (directory-file-name file-name)))
 
 ;; uniquify-fix-list data structure
-(defalias 'uniquify-fix-item-base 'car)
-(defalias 'uniquify-fix-item-filename 'cadr)
-(defsubst uniquify-fix-item-buffer (x) (car (cdr (cdr x))))
-(defsubst uniquify-fix-item-proposed (x) (nth 3 x))
-(defsubst uniquify-set-proposed (x p) (setcar (nthcdr 3 x) p))
+(defsubst uniquify-ref-base (x) (aref x 0))
+(defsubst uniquify-ref-filename (x) (aref x 1))
+(defsubst uniquify-ref-buffer (x) (aref x 2))
+(defsubst uniquify-ref-proposed (x) (aref x 3))
+(defsubst uniquify-set-proposed (x p) (aset x 3 p))
 
 ;; Internal variables used free
 (defvar uniquify-non-file-buffer-names nil)
@@ -212,8 +212,8 @@ file name elements.  Arguments cause only a subset of buffers to be renamed."
 		     (equal rawname newbuffile-nd))
 		 (setq proposed (uniquify-get-proposed-name
 				 rawname bfn uniquify-min-dir-content)))
-	    (push (list rawname bfn buffer proposed) fix-list)
-	  (push (list bufname) uniquify-non-file-buffer-names))))
+	    (push [rawname bfn buffer proposed] fix-list)
+	  (push bufname uniquify-non-file-buffer-names))))
     ;; selects buffers whose names may need changing, and others that
     ;; may conflict, then bring conflicting names together
     (uniquify-rationalize-a-list fix-list uniquify-min-dir-content)))
@@ -239,23 +239,23 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 		    dired-directory)))))))))
 
 (defun uniquify-item-greaterp (item1 item2)
-  (string-lessp (uniquify-fix-item-proposed item2)
-		(uniquify-fix-item-proposed item1)))
+  (string-lessp (uniquify-ref-proposed item2)
+		(uniquify-ref-proposed item1)))
 
 (defun uniquify-rationalize-a-list (fix-list depth)
   (let (conflicting-sublist	; all elements have the same proposed name
-	(old-name "")
-	proposed-name)
+	(old-proposed "")
+	proposed)
     (dolist (item (sort fix-list 'uniquify-item-greaterp))
-      (setq proposed-name (uniquify-fix-item-proposed item))
-      (unless (equal proposed-name old-name)
+      (setq proposed (uniquify-ref-proposed item))
+      (unless (equal proposed old-proposed)
 	(uniquify-rationalize-conflicting-sublist conflicting-sublist
-						  old-name depth)
+						  old-proposed depth)
 	(setq conflicting-sublist nil))
       (push item conflicting-sublist)
-      (setq old-name proposed-name))
-    (uniquify-rationalize-conflicting-sublist
-     conflicting-sublist old-name depth)))
+      (setq old-proposed proposed))
+    (uniquify-rationalize-conflicting-sublist conflicting-sublist
+					      old-proposed depth)))
 
 (defun uniquify-get-proposed-name (base filename depth)
   (let (index
@@ -318,30 +318,29 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 (defun uniquify-rationalize-conflicting-sublist (conf-list old-name depth)
   (when conf-list
     (if (or (cdr conf-list)
-	    (assoc old-name uniquify-non-file-buffer-names))
+	    (member old-name uniquify-non-file-buffer-names))
 	(when uniquify-possibly-resolvable
 	  (setq uniquify-possibly-resolvable nil
 		depth (1+ depth))
 	  (dolist (item conf-list)
-	    (uniquify-set-proposed
-	     item (uniquify-get-proposed-name
-		   (uniquify-fix-item-base item)
-		   (uniquify-fix-item-filename item)
-		   depth)))
+	    (uniquify-set-proposed item (uniquify-get-proposed-name
+					 (uniquify-ref-base item)
+					 (uniquify-ref-filename item)
+					 depth)))
 	  (uniquify-rationalize-a-list conf-list depth))
       (unless (string= old-name "")
 	(uniquify-rename-buffer (car conf-list) old-name)))))
 
 
 (defun uniquify-rename-buffer (item newname)
-  (let ((buffer (uniquify-fix-item-buffer item)))
-    (if (not (equal newname (buffer-name buffer)))
-	(let ((unset (current-buffer))
-	      ;; avoid hooks on rename-buffer
-	      (uniquify-buffer-name-style nil))
-	  (set-buffer buffer)
-	  (rename-buffer newname)
-	  (set-buffer unset)))))
+  (let ((buffer (uniquify-ref-buffer item)))
+    (unless (equal newname (buffer-name buffer))
+      (let ((unset (current-buffer))
+	    ;; avoid hooks on rename-buffer
+	    (uniquify-buffer-name-style nil))
+	(set-buffer buffer)
+	(rename-buffer newname)
+	(set-buffer unset)))))
 
 (defun uniquify-reverse-components (instring)
   (let ((sofar '())
