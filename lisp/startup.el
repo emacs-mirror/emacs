@@ -438,7 +438,7 @@ specified by the LC_ALL, LC_CTYPE and LANG environment variables.")
 	     (error "Option `%s' doesn't allow an argument" argi))))
 
     ;; Re-attach the program name to the front of the arg list.
-    (setcdr command-line-args args))
+    (and command-line-args (setcdr command-line-args args)))
 
   ;; Under X Windows, this creates the X frame and deletes the terminal frame.
   (if (fboundp 'face-initialize)
