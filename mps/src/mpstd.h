@@ -1,6 +1,6 @@
 /* impl.h.mpstd: HARLEQUIN MEMORY POOL SYSTEM TARGET DETECTION
  *
- * $HopeName: MMsrc!mpstd.h(trunk.9) $
+ * $HopeName: MMsrc!mpstd.h(trunk.10) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved
  *
  * Detect the target platform using predefined preprocessor symbols
@@ -99,7 +99,7 @@
 /* These are the two MPW PowerPC compilers. They do not define anything	*/
 /* which lets us determine the system version. 				*/
 
-#elif defined(__PPCC__) || (defined(__MRC__) && defined(__POWERPC__))
+#elif defined(__PPCC__) || (defined(__MRC__) && defined(__POWERPC))
 #define MPS_PF_S7PPAC
 #define MPS_OS_S7
 #define MPS_ARCH_PP
