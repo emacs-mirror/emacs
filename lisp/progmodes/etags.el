@@ -1737,12 +1737,15 @@ with the command \\[tags-loop-continue].
 See documentation of variable `tags-file-name'."
   (interactive (query-replace-read-args "Tags query replace (regexp)" t))
   (setq tags-loop-scan (list 'prog1
-			     (list 'if (list 're-search-forward
-					     (list 'quote from) nil t)
-				   ;; When we find a match, move back
-				   ;; to the beginning of it so perform-replace
-				   ;; will see it.
-				   '(goto-char (match-beginning 0))))
+			     (list 'let
+				   (if (not (equal from (downcase from)))
+				       '((case-fold-search nil)))
+				   (list 'if (list 're-search-forward
+						   (list 'quote from) nil t)
+					 ;; When we find a match, move back
+					 ;; to the beginning of it so
+					 ;; perform-replace will see it.
+					 '(goto-char (match-beginning 0)))))
 	tags-loop-operate (list 'perform-replace
 				(list 'quote from) (list 'quote to)
 				t t (list 'quote delimited)))
