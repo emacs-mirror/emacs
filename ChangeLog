@@ -1,3 +1,7 @@
+2002-09-05  Dave Love  <fx@gnu.org>
+
+	* configure.in (AH_BOTTOM): Add Local Variables comment.
+
 2002-07-31  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (leim): Don't put PARALLEL in environment.
@@ -6,9 +10,10 @@
 	trunk.
 
 	* configure.in: Require autoconf 2.53.  Merge changes from trunk.
-	Test for sys/mman.h, sys/param.h
+	Test for pty.h, sys/mman.h, sys/param.h
 	(AC_PROG_YACC): Deleted.
 	(AH_BOTTOM): Maybe include strings.h.
+	(HAVE_LANGINFO_CODESET): New.
 
 2002-06-11  Dave Love  <fx@gnu.org>
 

@@ -1,8 +1,11 @@
 2002-09-05  Dave Love  <fx@gnu.org>
 
+	* qp.el (quoted-printable-decode-region): Use mm-insert-byte.
+
 	* mm-util.el (mm-hack-charsets, mm-iso-8859-15-compatible) 
-	(mm-iso-8859-x-to-15-table): Deleted.
+	(mm-iso-8859-x-to-15-table, mm-iso-8859-x-to-15-region): Deleted.
 	(mm-find-mime-charset-region): Remove hack-charsets stuff.
+	(mm-insert-byte): New.
 
 	* rfc2047.el (message-posting-charset): defvar when compiling.
 	(rfc2047-header-encoding-alist): Add `address-mime' part.
