@@ -1,6 +1,6 @@
 /* impl.h.mpswin: HARLEQUIN MEMORY POOL SYSTEM WINDOWS.H INTERFACE
  *
- * $HopeName$
+ * $HopeName: MMsrc!mpswin.h(trunk.1) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  *
  * .readership: customers, MPS developers.
@@ -15,11 +15,11 @@
 /* see mail.richard.1997-09-25.13-26. */
 #ifdef MPS_BUILD_MV
 #pragma warning(disable: 4514)
-#pragma warning(disable: 4115 4201 4214)
+#pragma warning(disable: 4115 4201 4209 4214)
 #endif
 #include <windows.h>
 #ifdef MPS_BUILD_MV
-#pragma warning(default: 4115 4201 4214)
+#pragma warning(default: 4115 4201 4209 4214)
 #endif
 
 #endif /* mpswin_h */
