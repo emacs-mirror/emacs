@@ -1,6 +1,6 @@
 /* impl.c.arenacl: ARENA IMPLEMENTATION USING CLIENT MEMORY
  *
- * $HopeName: MMsrc!arenacl.c(trunk.5) $
+ * $HopeName: MMsrc!arenacl.c(trunk.6) $
  * 
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
@@ -41,14 +41,14 @@
 #error "Client arena not configured"
 #endif
 
-SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.5) $");
+SRCID(arenacl, "$HopeName: MMsrc!arenacl.c(trunk.6) $");
 
 Bool ArenaCheck(Arena arena)
 {
   CHECKS(Arena,arena);
   CHECKL(RingCheck(&arena->chunkRing));
   /* no possible check on arena->chunkSerial */
-  CHECKL(arena->pageShift < MPS_WORD_WIDTH);
+  CHECKL(ShiftCheck(arena->pageShift));
   CHECKL(arena->pageSize == 1uL << arena->pageShift);
   return TRUE;
 }
