@@ -313,6 +313,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 
   {
     register int nread;
+    int first = 1;
 
     while ((nread = read (fd[0], buf, sizeof buf)) > 0)
       {
@@ -320,7 +321,12 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	if (!NILP (buffer))
 	  insert (buf, nread);
 	if (!NILP (display) && INTERACTIVE)
-	  redisplay_preserve_echo_area ();
+	  {
+	    if (first)
+	      prepare_menu_bars ();
+	    first = 0;
+	    redisplay_preserve_echo_area ();
+	  }
 	immediate_quit = 1;
 	QUIT;
       }
@@ -603,7 +609,7 @@ getenv_internal (var, varlen, value, valuelen)
   return 0;
 }
 
-DEFUN ("getenv", Fgetenv, Sgetenv, 1, 2, 0,
+DEFUN ("getenv", Fgetenv, Sgetenv, 1, 1, 0,
   "Return the value of environment variable VAR, as a string.\n\
 VAR should be a string.  Value is nil if VAR is undefined in the environment.\n\
 This function consults the variable ``process-environment'' for its value.")
