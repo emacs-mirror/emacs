@@ -1,5 +1,5 @@
 /* machine description file for Elxsi machine (running enix).
-   Copyright (C) 1986 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1992 Free Software Foundation, Inc.
    Adapted by John Salmon
 
 This file is part of GNU Emacs.
@@ -94,10 +94,9 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    Then the function dump-emacs will not be defined
    and temacs will do (load "loadup") automatically unless told otherwise.
 
-   The Elxsi can in principle dump, but the necessary changes to
-   unexec, which involve byte-swapping, were too ugly to install.
-   If someone submits simple code that supports dumping on the Elxsi,
-   it can be installed and CANNOT_DUMP can be turned off.  */
+   Earlier versions couldn't dump.
+   Changes for 12.0 release are in 19.1.
+   Dumping should work now.  */
 
 /* #define CANNOT_DUMP */
 
