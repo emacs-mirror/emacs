@@ -460,10 +460,9 @@ apply to all other coding systems.
 
 @defun make-translation-table &rest translations
 This function returns a translation table based on the argument
-@var{translations}.  Each element of
-@var{translations} should be a list of the form @code{(@var{from}
-. @var{to})}; this says to translate the character @var{from} into
-@var{to}.
+@var{translations}.  Each element of @var{translations} should be a
+list of elements of the form @code{(@var{from} . @var{to})}; this says
+to translate the character @var{from} into @var{to}.
 
 The arguments and the forms in each argument are processed in order,
 and if a previous form already translates @var{to} to some other
