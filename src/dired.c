@@ -80,6 +80,7 @@ extern struct re_pattern_buffer searchbuf;
 #define lstat stat
 #endif
 
+extern int completion_ignore_case;
 extern Lisp_Object Ffind_file_name_handler ();
 
 Lisp_Object Vcompletion_ignored_extensions;
@@ -392,14 +393,43 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 		  matchsize = scmp(p1, p2, compare);
 		  if (matchsize < 0)
 		    matchsize = compare;
-		  /* If this dirname all matches,
-		     see if implicit following slash does too.  */
+		  if (completion_ignore_case)
+		    {
+		      /* If this is an exact match except for case,
+			 use it as the best match rather than one that is not
+			 an exact match.  This way, we get the case pattern
+			 of the actual match.  */
+		      if ((matchsize == len
+			   && matchsize + !!directoryp 
+			      < XSTRING (bestmatch)->size)
+			  ||
+			  /* If there is no exact match ignoring case,
+			     prefer a match that does not change the case
+			     of the input.  */
+			  (((matchsize == len)
+			    ==
+			    (matchsize + !!directoryp 
+			     == XSTRING (bestmatch)->size))
+			   /* If there is more than one exact match aside from
+			      case, and one of them is exact including case,
+			      prefer that one.  */
+			   && !bcmp (p2, XSTRING (file)->data, XSTRING (file)->size)
+			   && bcmp (p1, XSTRING (file)->data, XSTRING (file)->size)))
+			{
+			  bestmatch = make_string (dp->d_name, len);
+			  if (directoryp)
+			    bestmatch = Ffile_name_as_directory (bestmatch);
+			}
+		    }
+
+		  /* If this dirname all matches, see if implicit following
+		     slash does too.  */
 		  if (directoryp
 		      && compare == matchsize
 		      && bestmatchsize > matchsize
 		      && p1[matchsize] == '/')
 		    matchsize++;
-		  bestmatchsize = min (matchsize, bestmatchsize);
+		  bestmatchsize = matchsize;
 		}
 	    }
 	}
