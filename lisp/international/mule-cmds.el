@@ -721,7 +721,9 @@ and TO is ignored."
 	(setq coding-system buffer-file-coding-system))
     ;; Check we're not inconsistent with what `coding:' spec &c would
     ;; give when file is re-read.
-    (unless (stringp from)
+    ;; But don't do this if we explicitly ignored the cookie
+    ;; by using `find-file-literally'.
+    (unless (or (stringp from) find-file-literally)
       (let ((auto-cs (save-excursion
 		       (save-restriction
 			 (widen)
