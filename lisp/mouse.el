@@ -111,6 +111,7 @@ This must be bound to a mouse drag event."
 	     (eq (framep (selected-frame)) 'x))
 	(sit-for 1))
     (push-mark)
+    (set-mark (point))
     (if (numberp (posn-point end))
 	(goto-char (posn-point end)))))
 
