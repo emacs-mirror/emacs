@@ -4139,16 +4139,19 @@ after it has been set up properly in other respects."
 
 (defmacro with-syntax-table (table &rest body)
   "Evaluate BODY with syntax table of current buffer set to a copy of TABLE.
-Point, mark, current buffer, and syntax table are saved, BODY is
-evaluated, and the saved values are restored, even in case of an
-abnormal exit.  Value is what BODY returns."
-  (let ((old-table (gensym)))
-    '(let ((,old-table (syntax-table)))
+Current buffer and syntax table are saved, BODY is evaluated, and the
+saved values are restored, even in case of an abnormal exit.
+Value is what BODY returns."
+  (let ((old-table (gensym))
+	(old-buffer (gensym)))
+    '(let ((,old-table (syntax-table))
+	   (,old-buffer (current-buffer)))
        (unwind-protect
-	   (save-excursion
+	   (progn
 	     (set-syntax-table (copy-syntax-table ,table))
 	     ,@body)
-	   (set-syntax-table ,old-table)))))
+	 (set-buffer ,old-buffer)
+	 (set-syntax-table ,old-table)))))
 
 (put 'with-syntax-table 'lisp-indent-function 1)
 (put 'with-syntax-table 'edebug-form-spec '(form body))
