@@ -1920,10 +1920,15 @@ the current state.\n")
   Lisp_Object tail, frame, buf;
   Lisp_Object *vecp;
   int n;
+
   vecp = XVECTOR (frame_and_buffer_state)->contents;
   FOR_EACH_FRAME (tail, frame)
-    if (!EQ (*vecp++, frame))
-      goto changed;
+    {
+      if (!EQ (*vecp++, frame))
+	goto changed;
+      if (!EQ (*vecp++, XFRAME (frame)->name))
+	goto changed;
+    }
   /* Check that the buffer info matches.
      No need to test for the end of the vector
      because the last element of the vector is lambda
@@ -1957,7 +1962,10 @@ the current state.\n")
     frame_and_buffer_state = Fmake_vector (make_number (n), Qlambda);
   vecp = XVECTOR (frame_and_buffer_state)->contents;
   FOR_EACH_FRAME (tail, frame)
-    *vecp++ = frame;
+    {
+      *vecp++ = frame;
+      *vecp++ = XFRAME (frame)->name;
+    }
   for (tail = Vbuffer_alist; CONSP (tail); tail = XCONS (tail)->cdr)
     {
       buf = XCONS (XCONS (tail)->car)->cdr;
