@@ -1,7 +1,7 @@
 ;;; isearch.el --- incremental search minor mode
 
-;; Copyright (C) 1992, 93, 94, 95, 96, 97, 1999, 2000, 01, 2003, 2004
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1999,
+;;   2000, 2001, 2003, 2004  Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Maintainer: FSF
@@ -59,7 +59,6 @@
 
 ;; TODO
 ;; - Integrate the emacs 19 generalized command history.
-;; - Think about incorporating query-replace.
 ;; - Hooks and options for failed search.
 
 ;;; Change Log:
@@ -338,8 +337,8 @@ Default value, nil, means edit the string instead."
     (define-key map "\M-r" 'isearch-toggle-regexp)
     (define-key map "\M-e" 'isearch-edit-string)
 
-    (define-key map (kbd   "M-%") 'isearch-query-replace)
-    (define-key map (kbd "C-M-%") 'isearch-query-replace-regexp)
+    (define-key map [?\M-%] 'isearch-query-replace)
+    (define-key map [?\C-\M-%] 'isearch-query-replace-regexp)
 
     map)
   "Keymap for `isearch-mode'.")
@@ -1062,14 +1061,15 @@ Use `isearch-exit' to quit without signaling."
 (defun isearch-query-replace ()
   "Start query-replace with string to replace from last search string."
   (interactive)
-  (let ((query-replace-interactive t)
-        (case-fold-search isearch-case-fold-search))
-    ;; Put search string into the right ring
-    (setq isearch-regexp nil)
+  (barf-if-buffer-read-only)
+  (let ((case-fold-search isearch-case-fold-search))
     (isearch-done)
     (isearch-clean-overlays)
     (and isearch-forward isearch-other-end (goto-char isearch-other-end))
-    (call-interactively 'query-replace)))
+    (perform-replace
+     isearch-string
+     (query-replace-read-to isearch-string "Query replace" isearch-regexp)
+     t isearch-regexp isearch-word)))
 
 (defun isearch-query-replace-regexp ()
   "Start query-replace-regexp with string to replace from last search string."
@@ -2380,5 +2380,5 @@ CASE-FOLD non-nil means the search was case-insensitive."
 	isearch-case-fold-search case-fold)
   (isearch-search))
 
-;;; arch-tag: 74850515-f7d8-43a6-8a2c-ca90a4c1e675
+;; arch-tag: 74850515-f7d8-43a6-8a2c-ca90a4c1e675
 ;;; isearch.el ends here
