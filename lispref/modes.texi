@@ -1742,6 +1742,7 @@ comments and string constants, and highlights them using
 * Search-based Fontification::
 * Other Font Lock Variables::
 * Levels of Font Lock::
+* Precalculated Fontification::
 * Faces for Font Lock::
 * Syntactic Font Lock::
 @end menu
@@ -2083,6 +2084,18 @@ Level 3: in addition to level 2, highlight the symbols being defined in
 function and variable declarations, and all builtin function names,
 wherever they appear.
 @end itemize
+
+@node Precalculated Fontification
+@subsection Precalculated Fontification
+
+In addition to using @code{font-lock-defaults} for search-based
+fontification, you may use the special character property
+@code{font-lock-face} (@pxref{Special Properties}).  This property
+acts just like the explicit @code{face} property, but its activation
+is toggled when the user calls @kbd{M-x font-lock-mode}.  Using
+@code{font-lock-face} is especially conveninent for special modes
+which construct their text programmatically, such as
+@code{list-buffers} and @code{occur}.
 
 @node Faces for Font Lock
 @subsection Faces for Font Lock
