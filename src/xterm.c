@@ -8956,9 +8956,10 @@ x_scroll_bar_create (w, top, left, width, height)
     /* Clear the area of W that will serve as a scroll bar.  This is
        for the case that a window has been split horizontally.  In
        this case, no clear_frame is generated to reduce flickering.  */
-    x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  left, top, width,
-		  window_box_height (w), False);
+    if (width > 0 && height > 0)
+      x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		    left, top, width,
+		    window_box_height (w), False);
 
     window = XCreateWindow (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 			    /* Position and size of scroll bar.  */
@@ -9201,7 +9202,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
   /* Does the scroll bar exist yet?  */
   if (NILP (w->vertical_scroll_bar))
     {
-      if (width && height)
+      if (width > 0 && height > 0)
 	{
 	  BLOCK_INPUT;
 	  x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
@@ -9233,7 +9234,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 
       /* Since toolkit scroll bars are smaller than the space reserved
 	 for them on the frame, we have to clear "under" them.  */
-      if (width && height)
+      if (width > 0 && height > 0)
 	x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		      left, top, width, height, False);
 
