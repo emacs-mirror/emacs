@@ -72,10 +72,13 @@ After each update, `display-time-hook' is run with `run-hooks'."
 	      (setq global-mode-string
 		    (append global-mode-string '(display-time-string))))
 	  (setq display-time-string "")
-	  (setq display-time-process
-		(start-process "display-time" nil
-			       (expand-file-name "wakeup" exec-directory)
-			       (int-to-string display-time-interval)))
+	  ;; Using a pty is wasteful, and the separate session causes
+	  ;; annoyance sometimes (some systems kill idle sessions).
+	  (let ((process-connection-type nil))
+	    (setq display-time-process
+		  (start-process "display-time" nil
+				 (expand-file-name "wakeup" exec-directory)
+				 (int-to-string display-time-interval))))
 	  (process-kill-without-query display-time-process)
 	  (set-process-sentinel display-time-process 'display-time-sentinel)
 	  (set-process-filter display-time-process 'display-time-filter)))))
