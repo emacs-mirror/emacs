@@ -63,81 +63,40 @@ variety is actually just an alias for the -unix variety)."
 			  (logand dos-unsupported-char-glyph 255)
 			127)
 		    ??))
-	   (ccl-decoder-dos
+	   (ccl-decoder
 	    (ccl-compile
-	     `(4 (loop (read r1)
-		       (if (r1 != ?\r)
-			   (if (r1 >= 128)
-			       ((r0 = ,(charset-id 'ascii))
-				(translate-character ,decoder r0 r1)
-				(if (r0 == ,(charset-id 'ascii))
-				    (write r1)
-				  (write-multibyte-character r0 r1)))
-			     (write r1)))
-		       (repeat)))))
-	   (ccl-decoder-unix
-	    (ccl-compile
+	     ;; The 4 here supplies the buf_magnification parameter
+	     ;; for the CCL program.  A multibyte character may take
+	     ;; at most 4-byte.
 	     `(4 (loop (read r1)
 		       (if (r1 >= 128)
 			   ((r0 = ,(charset-id 'ascii))
 			    (translate-character ,decoder r0 r1)
-			    (if (r0 == ,(charset-id 'ascii))
-				(write r1)
-			      (write-multibyte-character r0 r1)))
+			    (write-multibyte-character r0 r1))
 			 (write r1))
 		       (repeat)))))
-	   (ccl-encoder-dos
+	   (ccl-encoder
 	    (ccl-compile
 	     ;; The 2 here supplies the buf_magnification parameter for
 	     ;; the CCL program.  Since the -dos coding system generates
 	     ;; \r\n for each \n, a factor of 2 covers even the worst case
 	     ;; of empty lines with a single \n.
 	     `(2 (loop (read-multibyte-character r0 r1)
-		       (if (r1 == ?\n)
-			   (write ?\r)
-			 (if (r0 != ,(charset-id 'ascii))
-			     ((translate-character ,encoder r0 r1)
-			      (if (r0 == ,(charset-id 'japanese-jisx0208))
-				  ((r1 = ,undef)
-				   (write r1))))))
-		       (write-repeat r1)))))
-	   (ccl-encoder-unix
-	    (ccl-compile
-	     `(1 (loop (read-multibyte-character r0 r1)
 		       (if (r0 != ,(charset-id 'ascii))
 			   ((translate-character ,encoder r0 r1)
 			    (if (r0 == ,(charset-id 'japanese-jisx0208))
 				((r1 = ,undef)
 				 (write r1)))))
 		       (write-repeat r1))))))
-      (if (memq coding coding-system-list)
-	  (setq coding-system-list (delq coding coding-system-list)))
 
       ;; Make coding system CODING.
       (make-coding-system
        coding 4 mnemonic
        (concat "8-bit encoding of " (symbol-name iso-name)
 	       " characters using IBM codepage " coding-name)
-       (cons ccl-decoder-unix ccl-encoder-unix)
+       (cons ccl-decoder ccl-encoder)
        `((safe-charsets ascii eight-bit-control eight-bit-graphic ,iso-name)
-	 (valid-codes (0 . 255))
-	 (charset-origin-alist ,(list iso-name (symbol-name coding) encoder))))
-      ;;; Make coding systems CODING-unix, CODING-dos, CODING-mac.
-      (make-subsidiary-coding-system coding)
-      (put coding 'eol-type (vector (intern (format "%s-unix" coding))
-				    (intern (format "%s-dos" coding))
-				    (intern (format "%s-mac" coding))))
-      ;; Change CCL code for CODING-dos.
-      (let ((coding-spec (copy-sequence (get coding 'coding-system))))
-	(aset coding-spec 4
-	      (cons (check-ccl-program
-		     ccl-decoder-dos
-		     (intern (format "%s-dos-decoder" coding)))
-		    (check-ccl-program
-		     ccl-encoder-dos
-		     (intern (format "%s-dos-encoder" coding)))))
-	(put (intern (concat coding-name "-dos")) 'coding-system
-	     coding-spec)))))
+	 (valid-codes (0 . 255)))))))
 
 (defun cp-decoding-vector-for-codepage (table charset offset)
   "Create a vector for decoding IBM PC characters using conversion table
