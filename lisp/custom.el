@@ -315,7 +315,6 @@ information."
   (while members
     (apply 'custom-add-to-group symbol (car members))
     (setq members (cdr members)))
-  (put symbol 'custom-group (nconc members (get symbol 'custom-group)))
   (when doc
     ;; This text doesn't get into DOC.
     (put symbol 'group-documentation (purecopy doc)))
