@@ -1071,7 +1071,8 @@ of a global face.  Value is the new attribute value."
 If optional argument FRAME Is nil or omitted, use the selected frame."
   (let ((completion-ignore-case t))
     (completing-read (format "Set font attributes of face `%s' from font: " face)
-		     (mapcar 'list (x-list-fonts "*" nil frame)))))
+		     (mapcar 'list (append (fontset-list)
+					   (x-list-fonts "*" nil frame))))))
 
 
 (defun read-all-face-attributes (face &optional frame)
