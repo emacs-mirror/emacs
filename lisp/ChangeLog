@@ -1,5 +1,10 @@
 2001-08-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* gs.el (gs-set-ghostview-colors-window-prop): Call
+	x-change-window-property with 3rd arg FRAME.
+	(gs-load-image): Wait for a previoius Ghostscript process
+	to complete before starting a new one.
+
 	* image.el (image-type-regexps): Make sure that the TIFF
 	pattern is only matched at the beginning of a string.
 	From Markus Rost <rost@math.ohio-state.edu>.
