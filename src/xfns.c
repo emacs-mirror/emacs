@@ -663,9 +663,6 @@ x_create_bitmap_from_file (f, file)
   fd = openp (Vx_bitmap_file_path, file, "", &found, 0);
   if (fd < 0)
     return -1;
-  /* XReadBitmapFile won't handle magic file names.  */
-  if (fd == 0)
-    return -1;
   emacs_close (fd);
 
   filename = (char *) XSTRING (found)->data;
@@ -6110,7 +6107,7 @@ x_find_image_file (file)
   /* Try to find FILE in data-directory, then x-bitmap-file-path.  */
   fd = openp (search_path, file, "", &file_found, 0);
   
-  if (fd < 0)
+  if (fd == -1)
     file_found = Qnil;
   else
     close (fd);
