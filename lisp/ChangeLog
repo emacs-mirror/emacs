@@ -9,6 +9,9 @@
 	(byte-discardN-preserve-tos): Alias to byte-discardN.
 	(byte-compile-push-binding-init): Don't push unused variables on
 	init-lexenv.
+	(byte-compile-push-binding-init): Don't use LFORMINFO if it's nil.
+	(byte-compile-lambda): Don't look at lexical environment unless
+	we're using lexical binding.
 
 	* emacs-lisp/byte-lexbind.el (byte-compile-unbind): Optimize the
 	dynamic-bindings-only case.
