@@ -1,3 +1,28 @@
+2004-04-13  Dave Love  <fx@gnu.org>
+
+	* progmodes/python.el: Doc fixes.  Changes for compiler warnings.
+	(syntax): Don't require.
+	(python) <defgroup>: Add :version.
+	(python-quote-syntax): Re-written.
+	(inferior-python-mode): Move stuff here from run-python and add
+	some more.
+	(python-preoutput-continuation, python-preoutput-result)
+	(python-dotty-syntax-table): New.
+	(python-describe-symbol): Use them.
+	(run-python): Move stuff to inferior-python-mode.  Modify code
+	loaded into Python.
+	(python-send-region): Use python-proc, python-send-string.
+	(python-send-string): Send newlines too.  Callers changed.
+	(python-load-file): Re-written.
+	(python-eldoc-function): New.
+	(info-look): Don't require.
+	(python-after-info-look): New.  A modified version of former
+	top-level code for use with eval-after-load.
+	(python-maybe-jython, python-guess-indent): Use widened buffer.
+	(python-fill-paragraph): Re-written.
+	(python-mode): Fix outline-regexp.  Set outline-heading-end-regexp,
+	eldoc-print-current-symbol-info-function.  Add to eldoc-mode-hook.
+
 2004-04-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/python.el (run-python): Use compilation-shell-minor-mode.
