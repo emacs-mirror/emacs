@@ -1243,15 +1243,16 @@ line_bottom_y (it)
 }
 
 
-/* Return 1 if position CHARPOS is visible in window W.  Set *FULLY to
-   1 if POS is visible and the line containing POS is fully visible.
+/* Return 1 if position CHARPOS is visible in window W.
+   If visible, set *X and *Y to pixel coordinates of top left corner.
+   Set *RTOP and *RBOT to pixel height of an invisible area of glyph at POS.
    EXACT_MODE_LINE_HEIGHTS_P non-zero means compute exact mode-line
    and header-lines heights.  */
 
 int
-pos_visible_p (w, charpos, fully, x, y, exact_mode_line_heights_p)
+pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
      struct window *w;
-     int charpos, *fully, *x, *y, exact_mode_line_heights_p;
+     int charpos, *x, *y, *rtop, *rbot, exact_mode_line_heights_p;
 {
   struct it it;
   struct text_pos top;
@@ -1264,7 +1265,7 @@ pos_visible_p (w, charpos, fully, x, y, exact_mode_line_heights_p)
       set_buffer_internal_1 (XBUFFER (w->buffer));
     }
 
-  *fully = visible_p = 0;
+  visible_p = 0;
   SET_TEXT_POS_FROM_MARKER (top, w->start);
 
   /* Compute exact mode line heights, if requested.  */
@@ -1295,14 +1296,16 @@ pos_visible_p (w, charpos, fully, x, y, exact_mode_line_heights_p)
       if (top_y < window_top_y)
 	visible_p = bottom_y > window_top_y;
       else if (top_y < it.last_visible_y)
-	{
 	  visible_p = 1;
-	  *fully = bottom_y <= it.last_visible_y;
-	}
       if (visible_p && x)
 	{
 	  *x = it.current_x;
 	  *y = max (top_y + it.max_ascent - it.ascent, window_top_y);
+	  if (rtop)
+	    {
+	      *rtop = max (0, window_top_y - top_y);
+	      *rbot = max (0, bottom_y - it.last_visible_y);
+	    }
 	}
     }
   else if (it.current_y + it.max_ascent + it.max_descent > it.last_visible_y)
@@ -1319,6 +1322,11 @@ pos_visible_p (w, charpos, fully, x, y, exact_mode_line_heights_p)
 	      move_it_to (&it2, charpos, -1, -1, -1, MOVE_TO_POS);
 	      *x = it2.current_x;
 	      *y = it2.current_y + it2.max_ascent - it2.ascent;
+	      if (rtop)
+		{
+		  *rtop = 0;
+		  *rbot = max (0, (it2.current_y + it2.max_ascent + it2.max_descent) - it.last_visible_y);
+		}
 	    }
 	}
     }
