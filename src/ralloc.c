@@ -1014,84 +1014,84 @@ r_alloc_init ()
 int
 r_alloc_check ()
 {
-    int found = 0;
-    heap_ptr h, ph = 0;
-    bloc_ptr b, pb = 0;
+  int found = 0;
+  heap_ptr h, ph = 0;
+  bloc_ptr b, pb = 0;
 
-    if (!r_alloc_initialized)
-      return;
+  if (!r_alloc_initialized)
+    return;
 
-    assert (first_heap);
-    assert (last_heap->end <= (POINTER) sbrk (0));
-    assert ((POINTER) first_heap < first_heap->start);
-    assert (first_heap->start <= virtual_break_value);
-    assert (virtual_break_value <= first_heap->end);
+  assert (first_heap);
+  assert (last_heap->end <= (POINTER) sbrk (0));
+  assert ((POINTER) first_heap < first_heap->start);
+  assert (first_heap->start <= virtual_break_value);
+  assert (virtual_break_value <= first_heap->end);
 
-    for (h = first_heap; h; h = h->next)
-      {
-	assert (h->prev == ph);
-	assert ((POINTER) ROUNDUP (h->end) == h->end);
-	assert ((POINTER) MEM_ROUNDUP (h->start) == h->start);
-	assert ((POINTER) MEM_ROUNDUP (h->bloc_start) == h->bloc_start);
-	assert (h->start <= h->bloc_start && h->bloc_start <= h->end);
+  for (h = first_heap; h; h = h->next)
+    {
+      assert (h->prev == ph);
+      assert ((POINTER) ROUNDUP (h->end) == h->end);
+      assert ((POINTER) MEM_ROUNDUP (h->start) == h->start);
+      assert ((POINTER) MEM_ROUNDUP (h->bloc_start) == h->bloc_start);
+      assert (h->start <= h->bloc_start && h->bloc_start <= h->end);
 
-	if (ph)
-	  {
-	    assert (ph->end < h->start);
-	    assert (h->start <= (POINTER)h && (POINTER)(h+1) <= h->bloc_start);
-	  }
+      if (ph)
+	{
+	  assert (ph->end < h->start);
+	  assert (h->start <= (POINTER)h && (POINTER)(h+1) <= h->bloc_start);
+	}
 
-	if (h->bloc_start <= break_value && break_value <= h->end)
-	    found = 1;
+      if (h->bloc_start <= break_value && break_value <= h->end)
+	found = 1;
 
-	ph = h;
-      }
+      ph = h;
+    }
 
-    assert (found);
-    assert (last_heap == ph);
+  assert (found);
+  assert (last_heap == ph);
 
-    for (b = first_bloc; b; b = b->next)
-      {
-	assert (b->prev == pb);
-	assert ((POINTER) MEM_ROUNDUP (b->data) == b->data);
-	assert ((SIZE) MEM_ROUNDUP (b->size) == b->size);
+  for (b = first_bloc; b; b = b->next)
+    {
+      assert (b->prev == pb);
+      assert ((POINTER) MEM_ROUNDUP (b->data) == b->data);
+      assert ((SIZE) MEM_ROUNDUP (b->size) == b->size);
 
-	ph = 0;
-	for (h = first_heap; h; h = h->next)
-	  {
-	    if (h->bloc_start <= b->data && b->data + b->size <= h->end)
-		break;
-	    ph = h;
-	  }
+      ph = 0;
+      for (h = first_heap; h; h = h->next)
+	{
+	  if (h->bloc_start <= b->data && b->data + b->size <= h->end)
+	    break;
+	  ph = h;
+	}
 
-	assert (h);
+      assert (h);
 
-	if (pb && pb->data + pb->size != b->data)
-	  {
-	    assert (ph && b->data == h->bloc_start);
-	    while (ph)
-	      {
-		if (ph->bloc_start <= pb->data
-		    && pb->data + pb->size <= ph->end)
-		  {
-		    assert (pb->data + pb->size + b->size > ph->end);
-		    break;
-		  }
-		else
-		  {
-		    assert (ph->bloc_start + b->size > ph->end);
-		  }
-		ph = ph->prev;
-	      }
-	  }
-	pb = b;
-      }
+      if (pb && pb->data + pb->size != b->data)
+	{
+	  assert (ph && b->data == h->bloc_start);
+	  while (ph)
+	    {
+	      if (ph->bloc_start <= pb->data
+		  && pb->data + pb->size <= ph->end)
+		{
+		  assert (pb->data + pb->size + b->size > ph->end);
+		  break;
+		}
+	      else
+		{
+		  assert (ph->bloc_start + b->size > ph->end);
+		}
+	      ph = ph->prev;
+	    }
+	}
+      pb = b;
+    }
 
-    assert (last_bloc == pb);
+  assert (last_bloc == pb);
 
-    if (last_bloc)
-	assert (last_bloc->data + last_bloc->size == break_value);
-    else
-	assert (first_heap->bloc_start == break_value);
+  if (last_bloc)
+    assert (last_bloc->data + last_bloc->size == break_value);
+  else
+    assert (first_heap->bloc_start == break_value);
 }
 #endif /* DEBUG */
