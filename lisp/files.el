@@ -787,6 +787,7 @@ run `normal-mode' explicitly."
 				  ("\\.s\\'" . asm-mode)
 				  ("ChangeLog\\'" . change-log-mode)
 				  ("change.log\\'" . change-log-mode)
+				  ("changelo\\'" . change-log-mode)
 				  ("ChangeLog.[0-9]+\\'" . change-log-mode)
 				  ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
 ;; The following should come after the ChangeLog pattern
