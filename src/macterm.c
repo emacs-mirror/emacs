@@ -11586,10 +11586,10 @@ mac_get_mouse_btn (EventRef ref)
     case kEventMouseButtonPrimary:
       return 0;
     case kEventMouseButtonSecondary:
-      return NILP (Vmac_wheel_button_is_mouse_2) ? 2 : 1; 
+      return NILP (Vmac_wheel_button_is_mouse_2) ? 1 : 2; 
     case kEventMouseButtonTertiary:
     case 4:  /* 4 is the number for the mouse wheel button */
-      return NILP (Vmac_wheel_button_is_mouse_2) ? 1 : 2; 
+      return NILP (Vmac_wheel_button_is_mouse_2) ? 2 : 1; 
     default:
       return 0;
     }
@@ -13636,7 +13636,7 @@ Otherwise the option key is used.  */);
    doc: /* Non-nil means that the wheel button will be treated as mouse-2 and
 the right click will be mouse-3.
 Otherwise, the right click will be mouse-2 and the wheel button mouse-3.*/);
-  Vmac_wheel_button_is_mouse_2 = Qt;
+  Vmac_wheel_button_is_mouse_2 = Qnil;
 
   DEFVAR_LISP ("mac-pass-command-to-system", &Vmac_pass_command_to_system,
    doc: /* If non-nil, the Mac \"Command\" key is passed on to the Mac
