@@ -1,3 +1,7 @@
+2003-02-17  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (string_to_multibyte): Always return a multibyte string.
+
 2003-02-16  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (w32_list_bdf_fonts, w32_list_fonts): Negative
