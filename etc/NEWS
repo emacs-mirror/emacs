@@ -2360,9 +2360,6 @@ NOMODIFY.  If it is non-nil, it means don't mark the buffer modified.
 ** The new function syntax-after returns the syntax code
 of the character after a specified buffer position, taking account
 of text properties as well as the character code.
-It returns the value compatibly with char-syntax, except
-that the value can be a list (SYNTAX . MATCHER) which says
-what the matching character is.
 
 +++
 ** The new primitive `get-internal-run-time' returns the processor
