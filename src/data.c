@@ -1284,6 +1284,11 @@ Use `make-local-hook' instead.")
   tem = Fassq (sym, current_buffer->local_var_alist);
   if (NILP (tem))
     {
+      /* Swap out any local binding for some other buffer, and make
+	 sure the current value is permanently recorded, if it's the
+	 default value.  */
+      find_symbol_value (sym);
+
       current_buffer->local_var_alist
         = Fcons (Fcons (sym, XCONS (XCONS (XBUFFER_LOCAL_VALUE (XSYMBOL (sym)->value)->cdr)->cdr)->cdr),
 		 current_buffer->local_var_alist);
@@ -1292,7 +1297,9 @@ Use `make-local-hook' instead.")
 	 force it to look once again for this buffer's value */
       {
 	Lisp_Object *pvalbuf;
+
 	valcontents = XSYMBOL (sym)->value;
+
 	pvalbuf = &XCONS (XBUFFER_LOCAL_VALUE (valcontents)->cdr)->car;
 	if (current_buffer == XBUFFER (*pvalbuf))
 	  *pvalbuf = Qnil;
