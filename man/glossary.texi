@@ -245,6 +245,10 @@ people.
 The particular form of copyleft used by the GNU project is called the
 GNU General Public License.  @xref{Copying}.
 
+@item @key{CTRL}
+The @key{CTLR} or ``control'' key is what you hold down
+in order to enter a control character (q.v.).
+
 @item Current Buffer
 The current buffer in Emacs is the Emacs buffer on which most editing
 commands operate.  You can select any Emacs buffer as the current one.
@@ -302,8 +306,10 @@ A defun is a major definition at the top level in a program.  The name
 @code{defun}.  @xref{Defuns}.
 
 @item @key{DEL}
-@key{DEL} is a character that runs the command to delete one character of
-text.  @xref{Basic,DEL,Basic Editing}.
+@key{DEL} is a character that runs the command to delete one character
+of text.  It is typically either the @key{DELETE} key or the
+@key{BACKSPACE} key, whichever one is easy to type.
+@xref{Basic,DEL,Basic Editing}.
 
 @item Deletion
 Deletion means erasing text without copying it into the kill ring
@@ -767,13 +773,14 @@ a keyboard interface to navigate it.  @xref{Menu Bars}.
 See `mail.'
 
 @item Meta
-Meta is the name of a modifier bit which a command character may have.
-It is present in a character if the character is typed with the
-@key{META} key held down.  Such characters are given names that start
-with @kbd{Meta-} (usually written @kbd{M-} for short).  For example,
-@kbd{M-<} is typed by holding down @key{META} and at the same time
-typing @kbd{<} (which itself is done, on most terminals, by holding
-down @key{SHIFT} and typing @kbd{,}).  @xref{User Input,Meta}.
+Meta is the name of a modifier bit which you can use in a command
+character.  To enter a meta character, you hold down the @key{META} or
+@key{ALT} key while typing the character.  We refer to such characters
+with names that start with @kbd{Meta-} (usually written @kbd{M-} for
+short).  For example, @kbd{M-<} is typed by holding down @key{META}
+and at the same time typing @kbd{<} (which itself is done, on most
+terminals, by holding down @key{SHIFT} and typing @kbd{,}).
+@xref{User Input,Meta}.
 
 @item Meta Character
 A Meta character is one whose character code includes the Meta bit.
@@ -1076,6 +1083,10 @@ or her work.  Emacs detects all cases of simultaneous editing, and
 warns one of the users to investigate.
 @xref{Interlocking,Interlocking,Simultaneous Editing}.
 
+@item @key{SPC}
+@key{SPC} is the space character, which you enter by pressing the
+space bar.
+
 @item Speedbar
 Speedbar is a special tall frame that provides fast access to Emacs
 buffers, functions within those buffers, Info nodes, and other
@@ -1122,6 +1133,10 @@ Suspending Emacs means stopping it temporarily and returning control
 to its parent process, which is usually a shell.  Unlike killing a job
 (q.v.@:), you can later resume the suspended Emacs job without losing
 your buffers, unsaved edits, undo history, etc.  @xref{Exiting}.
+
+@item @key{TAB}
+@key{TAB} is the tab character.  In Emacs it is typically used for
+indentation or completion.
 
 @item Tags Table
 A tags table is a file that serves as an index to the function
