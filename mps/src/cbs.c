@@ -1,6 +1,6 @@
 /* impl.c.cbs: COALESCING BLOCK STRUCTURE IMPLEMENTATION
  *
- * $HopeName: MMsrc!cbs.c(MMdevel_gavinm_splay.11) $
+ * $HopeName: MMsrc!cbs.c(trunk.2) $
  * Copyright (C) 1998 Harlequin Group plc, all rights reserved.
  *
  * .readership: Any MPS developer.
@@ -18,7 +18,7 @@
 #include "mpm.h"
 
 
-SRCID(cbs, "$HopeName: MMsrc!cbs.c(MMdevel_gavinm_splay.11) $");
+SRCID(cbs, "$HopeName: MMsrc!cbs.c(trunk.2) $");
 
 typedef struct CBSEmergencyBlockStruct *CBSEmergencyBlock;
 typedef struct CBSEmergencyBlockStruct {
@@ -213,7 +213,8 @@ static Res CBSBlockNew(CBS cbs, Addr base, Addr limit) {
 
   AVERT(CBS, cbs);
 
-  res = PoolAlloc(&p, cbs->blockPool, sizeof(CBSBlockStruct));
+  res = PoolAlloc(&p, cbs->blockPool, sizeof(CBSBlockStruct),
+                  /* withReservoirPermit */ FALSE);
   if(res != ResOK)
     goto failPoolAlloc;
   block = (CBSBlock)p;

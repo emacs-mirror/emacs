@@ -1,6 +1,6 @@
 /* impl.c.mpm: GENERAL MPM SUPPORT
  *
- * $HopeName: MMsrc!mpm.c(trunk.21) $
+ * $HopeName: MMsrc!mpm.c(trunk.22) $
  * Copyright (C) 1996.  Harlequin Group plc.  All rights reserved.
  *
  * .readership: MM developers.
@@ -17,7 +17,7 @@
 #include <float.h>
 
 
-SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.21) $");
+SRCID(mpm, "$HopeName: MMsrc!mpm.c(trunk.22) $");
 
 
 /* MPMCheck -- test MPM assumptions */
@@ -276,6 +276,17 @@ size_t (PointerOffset)(void *base, void *limit)
   AVER(limit != NULL);
   AVER(base <= limit);
   return PointerOffset(base, limit);
+}
+
+
+/* ResIsAllocFailure 
+ *
+ * Test whether a result code is in the set of allocation failure codes.
+ */
+
+Bool ResIsAllocFailure(Res res)
+{
+  return res == ResMEMORY || res == ResRESOURCE || res == ResCOMMIT_LIMIT;
 }
 
 

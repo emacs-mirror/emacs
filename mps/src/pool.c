@@ -1,6 +1,6 @@
 /* impl.c.pool: POOL IMPLEMENTATION
  *
- * $HopeName: MMsrc!pool.c(trunk.56) $
+ * $HopeName: MMsrc!pool.c(trunk.57) $
  * Copyright (C) 1997. Harlequin Group plc. All rights reserved.
  *
  * READERSHIP
@@ -37,7 +37,7 @@
 
 #include "mpm.h"
 
-SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.56) $");
+SRCID(pool, "$HopeName: MMsrc!pool.c(trunk.57) $");
 
 
 Bool PoolClassCheck(PoolClass class)
@@ -256,7 +256,8 @@ void PoolDestroy(Pool pool)
 
 /* PoolAlloc -- allocate a block of memory from a pool */
 
-Res PoolAlloc(Addr *pReturn, Pool pool, Size size)
+Res PoolAlloc(Addr *pReturn, Pool pool, Size size, 
+              Bool withReservoirPermit)
 {
   Res res;
 
@@ -264,8 +265,9 @@ Res PoolAlloc(Addr *pReturn, Pool pool, Size size)
   AVERT(Pool, pool);
   AVER((pool->class->attr & AttrALLOC) != 0);
   AVER(size > 0);
+  AVER(BoolCheck(withReservoirPermit));
 
-  res = (*pool->class->alloc)(pReturn, pool, size);
+  res = (*pool->class->alloc)(pReturn, pool, size, withReservoirPermit);
   if(res != ResOK)
     return res;
   /* Make sure that the allocated address was in the pool's memory. */
@@ -572,20 +574,24 @@ void PoolTrivFinish(Pool pool)
   NOOP;
 }
 
-Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size)
+Res PoolNoAlloc(Addr *pReturn, Pool pool, Size size,
+                Bool withReservoirPermit)
 {
   AVER(pReturn != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
+  AVER(BoolCheck(withReservoirPermit));
   NOTREACHED;
   return ResUNIMPL;
 }
 
-Res PoolTrivAlloc(Addr *pReturn, Pool pool, Size size)
+Res PoolTrivAlloc(Addr *pReturn, Pool pool, Size size,
+                  Bool withReservoirPermit)
 {
   AVER(pReturn != NULL);
   AVERT(Pool, pool);
   AVER(size > 0);
+  AVER(BoolCheck(withReservoirPermit));
   return ResLIMIT;
 }
 
@@ -647,7 +653,8 @@ void PoolTrivBufferFinish(Pool pool, Buffer buffer)
 }
 
 Res PoolNoBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
-                     Pool pool, Buffer buffer, Size size)
+                     Pool pool, Buffer buffer, Size size,
+                     Bool withReservoirPermit)
 {
   AVER(segReturn != NULL);
   AVER(baseReturn != NULL);
@@ -655,12 +662,14 @@ Res PoolNoBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(size > 0);
+  AVER(BoolCheck(withReservoirPermit));
   NOTREACHED;
   return ResUNIMPL;
 }
 
 Res PoolTrivBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
-                       Pool pool, Buffer buffer, Size size)
+                       Pool pool, Buffer buffer, Size size,
+                       Bool withReservoirPermit)
 {
   Res res;
   Addr p;
@@ -673,8 +682,9 @@ Res PoolTrivBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
   AVERT(Pool, pool);
   AVERT(Buffer, buffer);
   AVER(size > 0);
+  AVER(BoolCheck(withReservoirPermit));
 
-  res = PoolAlloc(&p, pool, size);
+  res = PoolAlloc(&p, pool, size, withReservoirPermit);
   if(res != ResOK) return res;
   
   b = SegOfAddr(&seg, PoolArena(pool), p);

@@ -1,6 +1,6 @@
 /* impl.c.poolmfs: MANUAL FIXED SMALL UNIT POOL
  *
- * $HopeName: MMsrc!poolmfs.c(trunk.28) $
+ * $HopeName: MMsrc!poolmfs.c(trunk.29) $
  * Copyright (C) 1997 Harlequin Group plc.  All rights reserved.
  *
  * This is the implementation of the MFS pool class.
@@ -35,7 +35,7 @@
 #include "poolmfs.h"
 #include "mpm.h"
 
-SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(trunk.28) $");
+SRCID(poolmfs, "$HopeName: MMsrc!poolmfs.c(trunk.29) $");
 
 
 /* ROUND -- Round up
@@ -137,7 +137,8 @@ static void MFSFinish(Pool pool)
  *  and returning it.  If there are none, a new segment is allocated.
  */
 
-static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
+static Res MFSAlloc(Addr *pReturn, Pool pool, Size size,
+                    Bool withReservoirPermit)
 {
   Header f;
   Res res;
@@ -149,6 +150,7 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
 
   AVER(pReturn != NULL);
   AVER(size == mfs->unroundedUnitSize);
+  AVER(BoolCheck(withReservoirPermit));
 
   f = mfs->freeList;
 
@@ -163,7 +165,8 @@ static Res MFSAlloc(Addr *pReturn, Pool pool, Size size)
     Header header = NULL, next;
 
     /* Create a new segment and attach it to the pool. */
-    res = SegAlloc(&seg, SegPrefDefault(), mfs->extendBy, pool);
+    res = SegAlloc(&seg, SegPrefDefault(), mfs->extendBy, pool,
+                   withReservoirPermit);
     if(res != ResOK)
       return res;
 
