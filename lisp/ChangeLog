@@ -1,3 +1,9 @@
+2000-04-26  Dave Love  <fx@gnu.org>
+
+	* international/mule-cmds.el (locale-translation-file-name):
+	Defvar to nil.
+	(set-locale-environment): Set it here (at runtime).
+
 2000-04-25  Gerd Moellmann  <gerd@gnu.org>
 
 	* replace.el (perform-replace): Add parameters START and END.  Use
