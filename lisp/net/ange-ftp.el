@@ -2092,30 +2092,31 @@ Create a new process if needed."
 	;; grab a suitable process.
 	(setq proc (ange-ftp-start-process host user name))
 
-	;; login to FTP server.
-	(if (and (ange-ftp-use-smart-gateway-p host)
-		 ange-ftp-gateway-host)
-	    (ange-ftp-smart-login host user pass account proc)
-	  (ange-ftp-normal-login host user pass account proc))
+	(save-match-data
+	  ;; login to FTP server.
+	  (if (and (ange-ftp-use-smart-gateway-p host)
+		   ange-ftp-gateway-host)
+	      (ange-ftp-smart-login host user pass account proc)
+	    (ange-ftp-normal-login host user pass account proc))
 
-	;; Tell client to send back hash-marks as progress.  It isn't usually
-	;; fatal if this command fails.
-	(ange-ftp-guess-hash-mark-size proc)
+	  ;; Tell client to send back hash-marks as progress.  It isn't usually
+	  ;; fatal if this command fails.
+	  (ange-ftp-guess-hash-mark-size proc)
 
-	;; Guess at the host type.
-	(ange-ftp-guess-host-type host user)
+	  ;; Guess at the host type.
+	  (ange-ftp-guess-host-type host user)
 
-	;; Try to use passive mode if asked to.
-	(when ange-ftp-try-passive-mode
-	  (let ((answer (cdr (ange-ftp-raw-send-cmd
-			      proc "passive" "Trying passive mode..." nil))))
-	    (if (string-match "\\?\\|refused" answer)
-		(message "Trying passive mode...ok")
-	      (message "Trying passive mode...failed"))))
+	  ;; Try to use passive mode if asked to.
+	  (when ange-ftp-try-passive-mode
+	    (let ((answer (cdr (ange-ftp-raw-send-cmd
+				proc "passive" "Trying passive mode..." nil))))
+	      (if (string-match "\\?\\|refused" answer)
+		  (message "Trying passive mode...ok")
+		(message "Trying passive mode...failed"))))
 
-	;; Run any user-specified hooks.  Note that proc, host and user are
-	;; dynamically bound at this point.
-	(run-hooks 'ange-ftp-process-startup-hook))
+	  ;; Run any user-specified hooks.  Note that proc, host and user are
+	  ;; dynamically bound at this point.
+	  (run-hooks 'ange-ftp-process-startup-hook)))
       proc)))
 
 ;; Variables for caching host and host-type
@@ -2211,30 +2212,31 @@ and NOWAIT."
 	     host-type (ange-ftp-host-type host user))
        ;; This will trigger an FTP login, if one doesn't exist
        (eq cmd0 'dir))
-      (setq cmd1 (funcall
-		  (or (cdr (assq host-type ange-ftp-fix-dir-name-func-alist))
-		      'identity)
-		  cmd1)
-	    cmd3 (nth 3 cmd))
-      ;; Need to deal with the HP-UX ftp bug. This should also allow
-      ;; us to resolve symlinks to directories on SysV machines. (Sebastian will
-      ;; be happy.)
-      (and (eq host-type 'unix)
-	   (string-match "/$" cmd1)
-	   (not (string-match "R" cmd3))
-	   (setq cmd1 (concat cmd1 ".")))
+      (save-match-data
+	(setq cmd1 (funcall
+		    (or (cdr (assq host-type ange-ftp-fix-dir-name-func-alist))
+			'identity)
+		    cmd1)
+	      cmd3 (nth 3 cmd))
+	;; Need to deal with the HP-UX ftp bug. This should also allow
+	;; us to resolve symlinks to directories on SysV machines. (Sebastian will
+	;; be happy.)
+	(and (eq host-type 'unix)
+	     (string-match "/$" cmd1)
+	     (not (string-match "R" cmd3))
+	     (setq cmd1 (concat cmd1 ".")))
 
-      ;; If the dir name contains a space, some ftp servers will
-      ;; refuse to list it.  We instead change directory to the
-      ;; directory in question and ls ".".
-      (when (string-match " " cmd1)
-	(ange-ftp-cd host user (nth 1 cmd))
-	(setq cmd1 "."))
+	;; If the dir name contains a space, some ftp servers will
+	;; refuse to list it.  We instead change directory to the
+	;; directory in question and ls ".".
+	(when (string-match " " cmd1)
+	  (ange-ftp-cd host user (nth 1 cmd))
+	  (setq cmd1 "."))
 
-      ;; If the remote ls can take switches, put them in
-      (or (memq host-type ange-ftp-dumb-host-types)
-	  (setq cmd0 'ls
-		cmd1 (format "\"%s %s\"" cmd3 cmd1))))
+	;; If the remote ls can take switches, put them in
+	(or (memq host-type ange-ftp-dumb-host-types)
+	    (setq cmd0 'ls
+		  cmd1 (format "\"%s %s\"" cmd3 cmd1)))))
 
      ;; First argument is the remote name
      ((progn
@@ -3847,7 +3849,8 @@ Value is (0 0) if the modification time cannot be determined."
 	     completions)))
 
       (if (or (and (eq system-type 'windows-nt)
-		   (string-match "^[a-zA-Z]:[/\\]$" ange-ftp-this-dir))
+		   (save-match-data
+		     (string-match "^[a-zA-Z]:[/\\]$" ange-ftp-this-dir)))
 	      (string-equal "/" ange-ftp-this-dir))
 	  (nconc (all-completions file (ange-ftp-generate-root-prefixes))
 		 (ange-ftp-real-file-name-all-completions file
@@ -3879,7 +3882,8 @@ Value is (0 0) if the modification time cannot be determined."
 		     (function ange-ftp-file-entry-active-p)))))))
 
       (if (or (and (eq system-type 'windows-nt)
-		   (string-match "^[a-zA-Z]:[/\\]$" ange-ftp-this-dir))
+		   (save-match-data
+		     (string-match "^[a-zA-Z]:[/\\]$" ange-ftp-this-dir)))
 	      (string-equal "/" ange-ftp-this-dir))
 	  (try-completion
 	   file
@@ -4324,21 +4328,23 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;; So the format conversion should be all that is needed.
 
 (defun ange-ftp-insert-directory (file switches &optional wildcard full)
-  (let ((short (ange-ftp-abbreviate-filename file))
-	(parsed (ange-ftp-ftp-name (expand-file-name file)))
-	tem)
-    (if parsed
-	(if (and (not wildcard)
-		 (setq tem (file-symlink-p (directory-file-name file))))
-	    (ange-ftp-insert-directory
-	     (ange-ftp-replace-name-component file tem)
-	     switches wildcard full)
-	  (insert
-	   (if wildcard
-	       (let ((default-directory (file-name-directory file)))
-		 (ange-ftp-ls (file-name-nondirectory file) switches nil nil t))
-	     (ange-ftp-ls file switches full))))q
-      (ange-ftp-real-insert-directory file switches wildcard full))))
+  (save-match-data
+    (let ((short (ange-ftp-abbreviate-filename file))
+	  (parsed (ange-ftp-ftp-name (expand-file-name file)))
+	  tem)
+      (if parsed
+	  (if (and (not wildcard)
+		   (setq tem (file-symlink-p (directory-file-name file))))
+	      (ange-ftp-insert-directory
+	       (ange-ftp-replace-name-component file tem)
+	       switches wildcard full)
+	    (insert
+	     (if wildcard
+		 (let ((default-directory (file-name-directory file)))
+		   (ange-ftp-ls (file-name-nondirectory file)
+				switches nil nil t))
+	       (ange-ftp-ls file switches full))))
+	       (ange-ftp-real-insert-directory file switches wildcard full)))))
 
 (defun ange-ftp-dired-uncache (dir)
   (if (ange-ftp-ftp-name (expand-file-name dir))
@@ -4368,6 +4374,10 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	(ange-ftp-real-shell-command command output-buffer error-buffer)
       (if (> (length name) 0)		; else it's $HOME
 	  (setq command (concat "cd " name "; " command)))
+      ;; Remove port from the hostname.
+      (save-match-data
+	(when (string-match "\\(.*\\)#" host)
+	  (setq host (match-string 1 host))))
       (setq command
 	    (format  "%s %s \"%s\""	; remsh -l USER does not work well
 					; on a hp-ux machine I tried

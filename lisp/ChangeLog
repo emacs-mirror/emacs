@@ -1,3 +1,10 @@
+2002-01-14  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* net/ange-ftp.el (ange-ftp-get-process, ange-ftp-send-cmd)
+	(ange-ftp-file-name-all-completions, ange-ftp-file-name-completion)
+	(ange-ftp-insert-directory): Preserve match-data.
+	(ange-ftp-shell-command): Strip port number from the host if present.
+
 2002-01-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* files.el (find-file-noselect): Don't consider a buffer as
@@ -8,7 +15,7 @@
 	* net/ange-ftp.el (ange-ftp-allow-child-lookup): Always return nil.
 	This fixes a bug that treated all files as directories.
 	(ange-ftp-insert-directory): Explicitly follow symlinks.
-	
+
 2001-12-28  Simon Josefsson  <jas@extundo.com>
 
 	* mail/sendmail.el (mail-envelope-from): Fix :type.
@@ -40,7 +47,7 @@
 
 	* net/ange-ftp.el (ange-ftp-file-modtime): Use save-match-data.
 
-	* emacs-lisp/easy-mmode.el (define-minor-mode): 
+	* emacs-lisp/easy-mmode.el (define-minor-mode):
 	Make no arg by default in an interactive call,
 	so that repeating the command toggles again.
 
@@ -60,10 +67,10 @@
 
 2001-12-13  Richard M. Stallman  <rms@gnu.org>
 
-	* font-lock.el (font-lock-mode): 
+	* font-lock.el (font-lock-mode):
 	Put our function at the end of after-change-functions.
 
-	* emacs-lisp/advice.el (ad-compile-function): 
+	* emacs-lisp/advice.el (ad-compile-function):
 	Byte compile the function under another (uninterned) name.
 
 2001-12-10  Eli Zaretskii  <eliz@is.elta.co.il>
