@@ -1484,6 +1484,17 @@ is not *inside* the region START...END."
 	    (t
 	     '(0 . 0)))
     '(0 . 0)))
+
+;; When the first undo batch in an undo list is longer than undo-outer-limit,
+;; this function gets called to ask the user what to do.
+;; Garbage collection is inhibited around the call,
+;; so it had better not do a lot of consing.
+(setq undo-outer-limit-function 'undo-outer-limit-truncate)
+(defun undo-outer-limit-truncate (size)
+  (if (yes-or-no-p (format "Buffer %s undo info is %d bytes long; discard it? "
+			   (buffer-name) size))
+      (progn (setq buffer-undo-list nil) t)
+    nil))
 
 (defvar shell-command-history nil
   "History list for some commands that read shell commands.")
