@@ -1,6 +1,13 @@
 This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.
 
+* Emacs crashes on Mac OS X (Carbon) after system software upgrade.
+
+Between Mac OS X release 10.2.1 and 10.2.2 there was an incompatible
+change in the memory allocator that causes a EXC_BAD_ACCESS error near
+xrealloc().  Relinking the application (by deleting src/temacs and
+running make) will solve the problem.  It appears to be caused by some
+problems with the unexec code and its interaction with libSystem.B.
 
 * Characters from the mule-unicode charsets aren't displayed under X.
 
