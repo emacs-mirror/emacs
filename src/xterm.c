@@ -1387,24 +1387,20 @@ x_append_glyph (it)
   glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
   if (glyph < it->glyph_row->glyphs[area + 1])
     {
-      /* Play it safe.  If sub-structures of the glyph are not all the
-	 same size, it otherwise be that some bits stay set.  This
-	 would prevent a comparison with GLYPH_EQUAL_P.  */
-      glyph->u.val = 0;
-      
-      glyph->type = CHAR_GLYPH;
-      glyph->pixel_width = it->pixel_width;
-      glyph->u.ch = it->char_to_display;
-      glyph->face_id = it->face_id;
       glyph->charpos = CHARPOS (it->position);
       glyph->object = it->object;
+      glyph->pixel_width = it->pixel_width;
+      glyph->voffset = it->voffset;
+      glyph->type = CHAR_GLYPH;
+      glyph->multibyte_p = it->multibyte_p;
       glyph->left_box_line_p = it->start_of_box_run_p;
       glyph->right_box_line_p = it->end_of_box_run_p;
-      glyph->voffset = it->voffset;
-      glyph->multibyte_p = it->multibyte_p;
       glyph->overlaps_vertically_p = (it->phys_ascent > it->ascent
 				      || it->phys_descent > it->descent);
+      glyph->padding_p = 0;
       glyph->glyph_not_available_p = it->glyph_not_available_p;
+      glyph->face_id = it->face_id;
+      glyph->u.ch = it->char_to_display;
       ++it->glyph_row->used[area];
     }
 }
@@ -1424,23 +1420,20 @@ x_append_composite_glyph (it)
   glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
   if (glyph < it->glyph_row->glyphs[area + 1])
     {
-      /* Play it safe.  If sub-structures of the glyph are not all the
-	 same size, it otherwise be that some bits stay set.  This
-	 would prevent a comparison with GLYPH_EQUAL_P.  */
-      glyph->u.val = 0;
-      
-      glyph->type = COMPOSITE_GLYPH;
-      glyph->pixel_width = it->pixel_width;
-      glyph->u.cmp_id = it->cmp_id;
-      glyph->face_id = it->face_id;
       glyph->charpos = CHARPOS (it->position);
       glyph->object = it->object;
+      glyph->pixel_width = it->pixel_width;
+      glyph->voffset = it->voffset;
+      glyph->type = COMPOSITE_GLYPH;
+      glyph->multibyte_p = it->multibyte_p;
       glyph->left_box_line_p = it->start_of_box_run_p;
       glyph->right_box_line_p = it->end_of_box_run_p;
-      glyph->voffset = it->voffset;
-      glyph->multibyte_p = it->multibyte_p;
       glyph->overlaps_vertically_p = (it->phys_ascent > it->ascent
 				      || it->phys_descent > it->descent);
+      glyph->padding_p = 0;
+      glyph->glyph_not_available_p = 0;
+      glyph->face_id = it->face_id;
+      glyph->u.cmp_id = it->cmp_id;
       ++it->glyph_row->used[area];
     }
 }
@@ -1515,16 +1508,19 @@ x_produce_image_glyph (it)
       glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
       if (glyph < it->glyph_row->glyphs[area + 1])
 	{
-	  glyph->type = IMAGE_GLYPH;
-	  glyph->u.img_id = img->id;
-	  glyph->face_id = it->face_id;
-	  glyph->pixel_width = it->pixel_width;
 	  glyph->charpos = CHARPOS (it->position);
 	  glyph->object = it->object;
+	  glyph->pixel_width = it->pixel_width;
+	  glyph->voffset = it->voffset;
+	  glyph->type = IMAGE_GLYPH;
+	  glyph->multibyte_p = it->multibyte_p;
 	  glyph->left_box_line_p = it->start_of_box_run_p;
 	  glyph->right_box_line_p = it->end_of_box_run_p;
-	  glyph->voffset = it->voffset;
-	  glyph->multibyte_p = it->multibyte_p;
+	  glyph->overlaps_vertically_p = 0;
+          glyph->padding_p = 0;
+	  glyph->glyph_not_available_p = 0;
+	  glyph->face_id = it->face_id;
+	  glyph->u.img_id = img->id;
 	  ++it->glyph_row->used[area];
 	}
     }
@@ -1551,17 +1547,20 @@ x_append_stretch_glyph (it, object, width, height, ascent)
   glyph = it->glyph_row->glyphs[area] + it->glyph_row->used[area];
   if (glyph < it->glyph_row->glyphs[area + 1])
     {
-      glyph->type = STRETCH_GLYPH;
-      glyph->u.stretch.ascent = height * ascent;
-      glyph->u.stretch.height = height;
-      glyph->face_id = it->face_id;
-      glyph->pixel_width = width;
       glyph->charpos = CHARPOS (it->position);
       glyph->object = object;
+      glyph->pixel_width = width;
+      glyph->voffset = it->voffset;
+      glyph->type = STRETCH_GLYPH;
+      glyph->multibyte_p = it->multibyte_p;
       glyph->left_box_line_p = it->start_of_box_run_p;
       glyph->right_box_line_p = it->end_of_box_run_p;
-      glyph->voffset = it->voffset;
-      glyph->multibyte_p = it->multibyte_p;
+      glyph->overlaps_vertically_p = 0;
+      glyph->padding_p = 0;
+      glyph->glyph_not_available_p = 0;
+      glyph->face_id = it->face_id;
+      glyph->u.stretch.ascent = height * ascent;
+      glyph->u.stretch.height = height;
       ++it->glyph_row->used[area];
     }
 }
