@@ -53,15 +53,21 @@ BODY should be a list of lisp expressions."
 
 ;;;; Window tree functions.
 
-(defun one-window-p (&optional nomini)
+(defun one-window-p (&optional nomini all-frames)
   "Returns non-nil if there is only one window.
 Optional arg NOMINI non-nil means don't count the minibuffer
-even if it is active."
+even if it is active.
+
+The optional arg ALL-FRAMES t means count windows on all frames.
+If it is `visible', count windows on all visible frames.
+ALL-FRAMES nil or omitted means count only the selected frame, 
+plus the minibuffer it uses (which may be on another frame).
+If ALL-FRAMES is neither nil nor t, count only the selected frame."
   (let ((base-window (selected-window)))
     (if (and nomini (eq base-window (minibuffer-window)))
 	(setq base-window (next-window base-window)))
     (eq base-window
-	(next-window base-window (if nomini 'arg)))))
+	(next-window base-window (if nomini 'arg) all-frames))))
 
 (defun walk-windows (proc &optional minibuf all-frames)
   "Cycle through all visible windows, calling PROC for each one.
