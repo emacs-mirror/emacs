@@ -3198,13 +3198,19 @@ If only ASCII characters are found, it returns `undecided'\n\
   int coding_mask, eol_type;
   Lisp_Object val;
   int beg, end;
+  int beg_byte, end_byte;
 
   validate_region (&b, &e);
   beg = XINT (b), end = XINT (e);
-  if (beg < GPT && end >= GPT) move_gap (end);
+  beg_byte = CHAR_TO_BYTE (beg);
+  end_byte = CHAR_TO_BYTE (end);
 
-  coding_mask = detect_coding_mask (POS_ADDR (beg), end - beg);
-  eol_type  = detect_eol_type (POS_ADDR (beg), end - beg);
+  if (beg < GPT && end >= GPT)
+    move_gap_both (end, end_byte);
+
+  coding_mask = detect_coding_mask (BYTE_POS_ADDR (beg_byte),
+				    end_byte - beg_byte);
+  eol_type = detect_eol_type (BYTE_POS_ADDR (beg_byte), end_byte - beg_byte);
 
   if (coding_mask == CODING_CATEGORY_MASK_ANY)
     {
@@ -3378,8 +3384,8 @@ shrink_conversion_area (begp, endp, coding, encodep)
   return;
 }
 
-/* Encode to (iff ENCODEP is 1) or decode form coding system CODING a
-   text between B and E.  B and E are buffer position.  */
+/* Encode into or decode from (according to ENCODEP) coding system CODING
+   the text between char positions B and E.  */
 
 Lisp_Object
 code_convert_region (b, e, coding, encodep)
@@ -3390,12 +3396,18 @@ code_convert_region (b, e, coding, encodep)
   int beg, end, len, consumed, produced;
   char *buf;
   unsigned char *begp, *endp;
-  int pos = PT;
+  int opoint = PT, opoint_byte = PT_BYTE;
+  int beg_byte, end_byte, len_byte;
+  int zv_before = ZV;
+  int zv_byte_before = ZV_BYTE;
 
   validate_region (&b, &e);
   beg = XINT (b), end = XINT (e);
+  beg_byte = CHAR_TO_BYTE (beg);
+  end_byte = CHAR_TO_BYTE (end);
+
   if (beg < GPT && end >= GPT)
-    move_gap (end);
+    move_gap_both (end, end_byte);
 
   if (encodep && !NILP (coding->pre_write_conversion))
     {
@@ -3403,22 +3415,25 @@ code_convert_region (b, e, coding, encodep)
 	 text to be converted in a new buffer.  */
       struct buffer *old = current_buffer, *new;
 
-      TEMP_SET_PT (beg);
+      TEMP_SET_PT_BOTH (beg, beg_byte);
       call2 (coding->pre_write_conversion, b, e);
       if (old != current_buffer)
 	{
 	  /* Replace the original text by the text just generated.  */
 	  len = ZV - BEGV;
+	  len_byte = ZV_BYTE - BEGV_BYTE;
 	  new = current_buffer;
 	  set_buffer_internal (old);
-	  del_range (beg, end);
+	  del_range_both (beg, end, beg_byte, end_byte, 1);
 	  insert_from_buffer (new, 1, len, 0);
 	  end = beg + len;
+	  end_byte = len_byte;
 	}
     }
 
   /* We may be able to shrink the conversion region.  */
-  begp = POS_ADDR (beg); endp = begp + (end - beg);
+  begp = BYTE_POS_ADDR (beg_byte);
+  endp = begp + (end_byte - beg_byte);
   shrink_conversion_area (&begp, &endp, coding, encodep);
 
   if (begp == endp)
@@ -3426,54 +3441,84 @@ code_convert_region (b, e, coding, encodep)
     len = end - beg;
   else
     {
-      beg += begp - POS_ADDR (beg);
-      end =  beg + (endp - begp);
+      int shrunk_beg_byte, shrunk_end_byte;
+      int shrunk_beg;
+      int shrunk_len_byte;
+      int new_len_byte;
+      int buflen;
+      int zv_before;
+
+      shrunk_beg_byte = PTR_BYTE_POS (begp);
+      shrunk_beg = BYTE_TO_CHAR (shrunk_beg_byte);
+      shrunk_end_byte = PTR_BYTE_POS (endp);
+      shrunk_len_byte = shrunk_end_byte - shrunk_beg_byte;
 
       if (encodep)
-	len = encoding_buffer_size (coding, end - beg);
+	buflen = encoding_buffer_size (coding, shrunk_len_byte);
       else
-	len = decoding_buffer_size (coding, end - beg);
-      buf = get_conversion_buffer (len);
+	buflen = decoding_buffer_size (coding, shrunk_len_byte);
+      buf = get_conversion_buffer (buflen);
 
       coding->last_block = 1;
       produced = (encodep
-		  ? encode_coding (coding, POS_ADDR (beg), buf, end - beg, len,
+		  ? encode_coding (coding, begp, buf, shrunk_len_byte, buflen,
 				   &consumed)
-		  : decode_coding (coding, POS_ADDR (beg), buf, end - beg, len,
+		  : decode_coding (coding, begp, buf, shrunk_len_byte, buflen,
 				   &consumed));
 
-      len = produced + (beg - XINT (b)) + (XINT (e) - end);
-
-      TEMP_SET_PT (beg);
+      TEMP_SET_PT_BOTH (shrunk_beg, shrunk_beg_byte);
       insert (buf, produced);
-      del_range (PT, PT + end - beg);
-      if (pos >= end)
-	pos = PT + (pos - end);
-      else if (pos > beg)
-	pos = beg;
-      TEMP_SET_PT (pos);
-  }
+      del_range_byte (PT_BYTE, PT_BYTE + shrunk_len_byte, 1);
+
+      if (opoint >= end)
+	{
+	  opoint += ZV - zv_before;
+	  opoint_byte += ZV_BYTE - zv_byte_before;
+	}
+      else if (opoint > beg)
+	{
+	  opoint = beg;
+	  opoint_byte = beg_byte;
+	}
+      TEMP_SET_PT_BOTH (opoint, opoint_byte);
+
+      end += ZV - zv_before;
+    }
 
   if (!encodep && !NILP (coding->post_read_conversion))
     {
-      /* We must call a post-conversion function which may alter
-	 the text just converted.  */
       Lisp_Object insval;
 
-      beg = XINT (b);
-      TEMP_SET_PT (beg);
-      insval = call1 (coding->post_read_conversion, make_number (len));
+      /* We must call a post-conversion function which may alter
+	 the text just converted.  */
+      zv_before = ZV;
+      zv_byte_before = ZV_BYTE;
+
+      TEMP_SET_PT_BOTH (beg, beg_byte);
+      insval = call1 (coding->post_read_conversion, make_number (end - beg));
       CHECK_NUMBER (insval, 0);
-      if (pos >= beg + len)
-	pos += XINT (insval) - len;
-      else if (pos > beg)
-	pos = beg;
-      TEMP_SET_PT (pos);
+
+      if (opoint >= beg + ZV - zv_before)
+	{
+	  opoint += ZV - zv_before;
+	  opoint_byte += ZV_BYTE - zv_byte_before;
+	}
+      else if (opoint > beg)
+	{
+	  opoint = beg;
+	  opoint_byte = beg_byte;
+	}
+      TEMP_SET_PT_BOTH (opoint, opoint_byte);
       len = XINT (insval);
     }
 
   return make_number (len);
 }
+
+/* Encode or decode (according to ENCODEP) the text of string STR
+   using coding CODING.  If NOCOPY is nil, we never return STR
+   itself, but always a copy.  If NOCOPY is non-nil, we return STR
+   if no change is needed.  */
 
 Lisp_Object
 code_convert_string (str, coding, encodep, nocopy)
