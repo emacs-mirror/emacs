@@ -296,8 +296,17 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	  }
 	setup_coding_system (Fcheck_coding_system (val), &process_coding);
 #ifdef MSDOS
-	/* On MSDOS, if the user did not ask for binary,
-	   treat it as "text" which means doing CRLF conversion.  */
+	/* On MSDOS, if the user did not ask for binary, treat it as
+	   "text" which means doing CRLF conversion.  Otherwise, leave
+	   the EOLs alone.
+
+	   Note that ``binary'' here only means whether EOLs should or
+	   should not be converted, since that's what Vbinary_process_XXXput
+	   meant in the days before the coding systems were introduced.
+
+	   For other conversions, the caller should set coding-system
+	   variables explicitly, or rely on auto-detection.  */
+
 	/* FIXME: this probably should be moved into the guts of
 	   `Ffind_operation_coding_system' for the case of `call-process'.  */
 	if (NILP (Vbinary_process_output))
@@ -307,6 +316,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 	      /* FIXME: should we set type to undecided?  */
 	      process_coding.type = coding_type_emacs_mule;
 	  }
+	else
+	  process_coding.eol_type = CODING_EOL_LF;
 #endif
       }
   }
@@ -802,57 +813,57 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   end = args[1];
   /* Decide coding-system of the contents of the temporary file.  */
 #ifdef DOS_NT
+  /* This is to cause find-buffer-file-type-coding-system (see
+     dos-w32.el) to choose correct EOL translation for write-region.  */
   specbind (Qbuffer_file_type, Vbinary_process_input);
-  if (NILP (Vbinary_process_input))
+#endif
+  if (!NILP (Vcoding_system_for_write))
+    val = Vcoding_system_for_write;
+  else if (NILP (current_buffer->enable_multibyte_characters))
     val = Qnil;
   else
-#endif
     {
-      if (!NILP (Vcoding_system_for_write))
-	val = Vcoding_system_for_write;
-      else if (NILP (current_buffer->enable_multibyte_characters))
-	val = Qnil;
+      args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
+      args2[0] = Qcall_process_region;
+      for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
+      coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
+      if (CONSP (coding_systems))
+	val = XCONS (coding_systems)->cdr;
+      else if (CONSP (Vdefault_process_coding_system))
+	val = XCONS (Vdefault_process_coding_system)->cdr;
       else
-	{
-	  args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
-	  args2[0] = Qcall_process_region;
-	  for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
-	  coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
-	  if (CONSP (coding_systems))
-	    val = XCONS (coding_systems)->cdr;
-	  else if (CONSP (Vdefault_process_coding_system))
-	    val = XCONS (Vdefault_process_coding_system)->cdr;
-	  else
-	    val = Qnil;
-	}
+	val = Qnil;
     }
+
+#ifdef DOS_NT
+  /* binary-process-input tells whether the buffer needs to be
+     written with EOL conversions, but it doesn't say anything
+     about the rest of text encoding.  It takes effect whenever
+     the coding system doesn't otherwise specify what to do for
+     eol conversion.  */
+  if (NILP (val))
+    {
+      if (! NILP (Vbinary_process_input))
+	val = intern ("undecided-unix");
+      else
+	val = intern ("undecided-dos");
+    }
+  else if (SYMBOLP (val))
+    {
+      Lisp_Object eolval;
+      eolval = Fget (val, Qeol_type);
+      if (VECTORP (eolval) && XVECTOR (eolval)->size > 1)
+	/* Use element 1 (CRLF conversion) for "text",
+	   and element 0 (LF conversion) for "binary".  */
+	val = XVECTOR (eolval)->contents[NILP (Vbinary_process_input)];
+    }
+#endif
+
   specbind (intern ("coding-system-for-write"), val);
   Fwrite_region (start, end, filename_string, Qnil, Qlambda, Qnil);
 
-#ifdef DOS_NT
-  if (NILP (Vbinary_process_input))
-    val = Qnil;
-  else
-#endif
-    {
-      if (!NILP (Vcoding_system_for_read))
-	val = Vcoding_system_for_read;
-      else if (NILP (current_buffer->enable_multibyte_characters))
-	val = Qemacs_mule;
-      else
-	{
-	  if (EQ (coding_systems, Qt))
-	    {
-	      args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
-	      args2[0] = Qcall_process_region;
-	      for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
-	      coding_systems = Ffind_operation_coding_system (nargs + 1,
-							      args2);
-	    }
-	  val = CONSP (coding_systems) ? XCONS (coding_systems)->car : Qnil;
-	}
-    }
-  specbind (intern ("coding-system-for-read"), val);
+  /* Note that Fcall_process takes care of binding 
+     coding-system-for-read.  */
 
   record_unwind_protect (delete_temp_file, filename_string);
 
