@@ -11,6 +11,10 @@
 @c In the Tramp CVS, the version number is auto-frobbed from
 @c configure.ac, so you should edit that file and run
 @c "autoconf && ./configure" to change the version number.
+
+@c Additionally, flags are set with respect to the Emacs flavor; and
+@c depending whether Tramp is packaged into (X)Emacs, or standalone.
+
 @include trampver.texi
 
 @c Entries for @command{install-info} to use
@@ -24,33 +28,6 @@
 @macro tramp
 @sc{tramp}
 @end macro
-
-@c Some flags which make the text independent on the (X)Emacs flavor.
-@c "emacs" resp "xemacs" are set in the Makefile.
-
-@c Emacs values.
-@ifset emacs
-@set emacs-name               Emacs
-@set emacs-dir                emacs
-@set ftp-package-name         Ange-FTP
-@set tramp-prefix             /
-@set tramp-prefix-single-hop
-@set tramp-postfix            :
-@set tramp-postfix-single-hop :
-@set tramp-postfix-multi-hop  :
-@end ifset
-
-@c XEmacs counterparts.
-@ifset xemacs
-@set emacs-name               XEmacs
-@set emacs-dir                xemacs
-@set ftp-package-name         EFS
-@set tramp-prefix             /[
-@set tramp-prefix-single-hop  [
-@set tramp-postfix            ]
-@set tramp-postfix-single-hop /
-@set tramp-postfix-multi-hop  :
-@end ifset
 
 @c Macros for formatting a filename.
 @c trampfn is for a full filename, trampfnmhp means method, host, localname
@@ -118,6 +95,12 @@ programs, such as @command{ssh}/@command{scp}.
 You can find the latest version of this document on the web at
 @uref{http://www.freesoftware.fsf.org/tramp/}.
 
+@c Pointer to the other Emacs flavor is necessary only in case of
+@c standalone installation.  Text taken from trampinst.texi.
+@ifset tramp-inst
+@otherflavor{}
+@end ifset
+
 @ifhtml
 This manual is also available as a @uref{tramp_ja.html, Japanese
 translation}.
@@ -144,21 +127,33 @@ well as the usual Savannah archives.
 * Overview::                    What @tramp{} can and cannot do.
 
 For the end user:
+
 * Obtaining @tramp{}::             How to obtain @tramp{}.
 * History::                     History of @tramp{}.
+@ifset tramp-inst
 * Installation::                Installing @tramp{} with your @value{emacs-name}.
+@end ifset
 * Configuration::               Configuring @tramp{} for use.
 * Usage::                       An overview of the operation of @tramp{}.
 * Bug Reports::                 Reporting Bugs and Problems.
 * Frequently Asked Questions::  Questions and answers from the mailing list.
 
 For the developer:
+
 * Version Control::             The inner workings of remote version control.
 * Files directories and localnames::  How file names, directories and localnames are mangled and managed.
 * Issues::                      Debatable Issues and What Was Decided.
 
 @detailmenu
  --- The Detailed Node Listing ---
+@c
+@ifset tramp-inst
+Installing @tramp{} with your @value{emacs-name}
+
+* Installation parameters::     Parameters in order to control installation.
+* Load paths::                  How to plug-in @tramp{} into your environment.
+
+@end ifset
 
 Configuring @tramp{} for use
 
@@ -194,7 +189,7 @@ Things related to Version Control that don't fit elsewhere
 * Remote File Ownership::       How VC determines who owns a workfile.
 * Back-end Versions::           How VC determines what release your RCS is.
 
-How file names, directories and localnames are mangled and managed.
+How file names, directories and localnames are mangled and managed
 
 * Localname deconstruction::    Breaking a localname into its components.
 
@@ -438,188 +433,10 @@ The most recent addition of major features were the multi-hop methods
 added in April 2000 and the unification of @tramp{} and Ange-FTP
 filenames in July 2002.
 
-
-@node Installation
-@chapter Installing @tramp{} into @value{emacs-name}.
-@cindex installation
-
-If you use the version that comes with your @value{emacs-name}, the
-following information is not necessary.  Installing @tramp{} into your
-@value{emacs-name} is a relatively easy process, at least compared
-to rebuilding your machine from scratch. ;)
-
-Seriously though, the installation should be a fairly simple matter.
-The easiest way to proceed is as follows:
-
-@itemize @bullet
-@item
-Choose a directory, say @file{~/@value{emacs-dir}/}.  Change into that
-directory and unpack the tarball.  This will give you a directory
-@file{~/@value{emacs-dir}/tramp-@trampver{}/} which contains
-subdirectories @file{lisp} for the Lisp code and @file{texi} for the
-documentation.  Make a symbolic link:
-
-@example
-ln -s tramp-@trampver{} tramp
-@end example
-
-@item
-@command{cd} to @file{~/@value{emacs-dir}/tramp/} and type
-@command{./configure} to configure Tramp for your system.
-
-Running `configure' takes awhile.  While running, it prints some
-messages telling which features it is checking for.
-
-@item
-Type @command{make} to build the byte-compiled Lisp files as well as
-the Info manual.
-
-@item
-Type @command{make install} to install the Tramp Lisp files and Info
-manual.
-
-@item
-You can remove the byte-compiled Lisp files and the Info manual from
-the source directory by typing @command{make clean}.  To also remove
-the files that @command{configure} created, type @command{make
-distclean}.
-
-@item
-NOTE: If you run into problems running the example @command{make}
-command, don't despair.  You can still byte compile the @file{*.el}
-files by opening @value{emacs-name} in @command{dired} (@command{C-x
-d}) mode, at @file{~/@value{emacs-dir}/tramp/lisp}.  Mark the lisp files with
-@kbd{m}, then press @kbd{B} to byte compile your selections.
-
-Something similar can be done to create the info manual.  Just change
-to directory @file{~/@value{emacs-dir}/tramp/texi} and load the
-@file{tramp.texi} file in @value{emacs-name}.  Then press @kbd{M-x
-texinfo-format-buffer @key{RET}} to generate
-@file{~/@value{emacs-dir}/tramp/info/tramp}.
-@end itemize
-
-@menu
-* Installation parameters::     Parameters in order to control installation.
-* Load paths::                  How to plug-in @tramp{} into your environment.
-@end menu
-
-@node Installation parameters
-@section Parameters in order to control installation.
-@cindex installation
-
-By default, @command{make install} will install @tramp{}'s files in
-@file{@value{lispdir}} and @file{@value{infodir}}.  You can specify an
-installation prefix other than @file{@value{prefix}} by giving
-@command{configure} the option @command{--prefix=PATH}.
-
-If your installed copy of Emacs is named something other than
-@command{@value{emacs-dir}}, you will need to tell `make' where to find it so
-that it can correctly byte-compile the @tramp{} sources.
-
-Also, the @command{--prefix=PATH} option to @command{configure} may
-not be general enough to set the paths you want.  If not, you can pass
-variables to the @command{make} command to control the installation.
-For a complete list of tweakable variables, look in the makefile.
-
-For example, to put the Lisp files in @file{~/elisp} and the Info file
-in @file{~/info}, you would type:
-
-@example
-./configure
-make
-make lispdir=~/elisp infodir=~/info install
-@end example
-
-@tramp{} has some packages in its @file{contrib} directory which are
-missing in older Emacsen.  If you want to use them, you must use the
-@command{USE_CONTRIB} environment variable:
-
-@example
-make USE_CONTRIB=1
-make USE_CONTRIB=1 install
-@end example
-
-@node Load paths
-@section How to plug-in @tramp{} into your environment.
-@cindex installation
-
-If you don't install @tramp{} into the intended directories, but prefer
-to use from the source directory, you need to add the following lines
-into your @file{.emacs}:
-
-@lisp
-(add-to-list 'load-path "~/@value{emacs-dir}/tramp/lisp/")
-(add-to-list 'load-path "~/@value{emacs-dir}/tramp/contrib/")
-(require 'tramp)
-@end lisp
-
-The second load-path must be used only if you've applied the
-@command{USE_CONTRIB} parameter.
-
-@ifset xemacs
-NOTE: For @value{emacs-name}, the package @file{fsf-compat} must be
-installed.  For details on package installation, see @ref{Packages, ,
-,xemacs}.
-@ifhtml
-(If the previous link doesn't work, try the @value{emacs-name}
-documentation at
-@uref{http://www.xemacs.org/Documentation/packageGuide.html,the
-@value{emacs-name} site}.)
-@end ifhtml
-@end ifset
-
-To be able to read the Info documentation, create a file
-@file{~/@value{emacs-dir}/tramp/info/dir} using the
-@command{install-info} command, and add the directory to the search
-path for Info.
-
-NOTE:
-On systems using the @cite{gnu} version of @command{install-info}, the
-@command{install-info} syntax is very direct and simple.  One can
-change to directory @file{~/@value{emacs-dir}/tramp/info} and type:
-
-@example
-install-info tramp dir
-@end example
-
-and a @file{dir} file will be created with the @tramp{}
-entry.  The info reader will know how to interpret it, but must
-be told where to find it (see below).  If you want anything fancier
-you'll need to look through @kbd{man install-info}.
-
-Debian gnu/linux doesn't default to @cite{gnu} @command{install-info}
-and uses its own version.  This version does not create a @file{dir}
-file for you from scratch.  You must provide a skeleton @file{dir}
-file it recognizes.  One can be found in a default installation of
-@value{emacs-name} at @file{/usr/info/dir}.  Copy the top of this file
-down to the first occurrence of @code{* Menu} including that line plus
-one more blank line, to your working directory
-@file{~/@value{emacs-dir}/tramp/info}, or use the sample
-@file{~/@value{emacs-dir}/tramp/texi/dir_sample}.
-
-Once a @file{dir} file is in place, this command will make the entry:
-
-@example
-install-info --infodir=. tramp
-@end example
-
-If you want it in a specific category see @kbd{man install-info} for
-further details.
-
-If the environment variable @env{INFOPATH} is set, add the directory
-@file{~/@value{emacs-dir}/tramp/info/} to it.  Else, add the directory to
-@ifset emacs
-@code{Info-default-directory-list}, as follows:
-
-@lisp
-(add-to-list 'Info-default-directory-list "~/@value{emacs-dir}/tramp/info/")
-@end lisp
-@end ifset
-@ifset xemacs
-@code{Info-directory-list}, as follows:
-@lisp
-(add-to-list 'Info-directory-list "~/@value{emacs-dir}/tramp/info/")
-@end lisp
+@c Installation chapter is necessary only in case of standalone
+@c installation.  Text taken from trampinst.texi.
+@ifset tramp-inst
+@installationchapter{}
 @end ifset
 
 @node Configuration

@@ -1,3 +1,8 @@
+2003-04-08  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* tramp.texi: Version 2.0.33 released.
+	Remove installation chapter.  Remove XEmacs specifics.
+
 2003-03-29  Richard M. Stallman  <rms@gnu.org>
 
 	* tramp.texi (Top): Undo the previous renaming.
