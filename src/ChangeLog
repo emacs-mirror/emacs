@@ -1,5 +1,9 @@
 2000-09-11  Gerd Moellmann  <gerd@gnu.org>
 
+	* lread.c (init_lread): Set Vloads_in_progress to nil.
+	(Fload): Show list of recursively loaded files, when signaling an
+	error.
+
 	* lread.c (Vloads_in_progress): New variable.
 	(record_load_unwind): New function.
 	(Fload): Check for recursive loads.
