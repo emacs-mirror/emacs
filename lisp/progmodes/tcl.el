@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.42 $
+;; Version: $Revision: 1.43 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1995/07/17 19:55:25 $|$Revision: 1.42 $|~/modes/tcl.el.Z|
+;; $Date: 1995/07/17 19:59:49 $|$Revision: 1.43 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.43  1995/07/17  19:59:49  tromey
+;; (inferior-tcl-mode): Use modeline-process if it exists.
+;;
 ;; Revision 1.42  1995/07/17  19:55:25  tromey
 ;; XEmacs currently must use tcl-internal-end-of-defun
 ;;
@@ -339,7 +342,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.42 $")
+(defconst tcl-version "$Revision: 1.43 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -379,7 +382,7 @@ detecting function is used.  This variable is only used in GNU Emacs
 (defvar tcl-electric-hash-style 'smart
   "*Style of electric hash insertion to use.
 Possible values are 'backslash, meaning that `\\' quoting should be
-done; `quote, meaning that `\"' quoting should be done; 'smart,
+done; 'quote, meaning that `\"' quoting should be done; 'smart,
 meaning that the choice between 'backslash and 'quote should be
 made depending on the number of hashes inserted; or nil, meaning that
 no quoting should be done.  Any other value for this variable is
@@ -899,6 +902,9 @@ documentation for details):
   tcl-use-hairy-comment-detector
     If t, use more complicated, but slower, comment detector.
     This variable is only used in GNU Emacs 19.
+  tcl-use-smart-word-finder
+    If not nil, use a smarter, Tcl-specific way to find the current
+    word when looking up help on a Tcl command.
 
 Turning on Tcl mode calls the value of the variable `tcl-mode-hook'
 with no args, if that value is non-nil.  Read the documentation for
