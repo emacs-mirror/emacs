@@ -7,8 +7,8 @@
 
 @ifinfo
 @c The edition number appears in several places in this file
-This is the thirteenth edition of the @cite{GNU Emacs Manual},
-updated for Emacs version 20.4
+This is the fourteenth edition of the @cite{GNU Emacs Manual},
+updated for Emacs version 21.1
 @c Please REMEMBER to update edition number in *three* places in this file.
 
 @dircategory Emacs
@@ -20,7 +20,7 @@ Published by the Free Software Foundation
 59 Temple Place, Suite 330
 Boston, MA  02111-1307 USA
 
-Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999
+Copyright (C) 1985, 1986,1987,1993,1994,1995,1996,1997,1998,1999,2000
    Free Software Foundation, Inc.
 
 Permission is granted to make and distribute verbatim copies of
@@ -64,17 +64,17 @@ original English.
 @sp 6
 @center @titlefont{GNU Emacs Manual}
 @sp 4
-@center Thirteenth Edition, Updated for Emacs Version 20.4
+@center Fourteenth Edition, Updated for Emacs Version 21.1
 @sp 5
 @center Richard Stallman
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999
+Copyright @copyright{} 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000
    Free Software Foundation, Inc.
 @sp 2
-Thirteenth Edition @*
-Updated for Emacs Version 20.4, @*
-February 1999
+Fourteenth Edition @*
+Updated for Emacs Version 21.1, @*
+August 2000
 
 ISBN 1-882114-06-X
 @sp 1
@@ -111,7 +111,7 @@ Cover art by Etienne Suvasa.
 
 Emacs is the extensible, customizable, self-documenting real-time
 display editor.  This Info file describes how to edit with Emacs and
-some of how to customize it; it corresponds to GNU Emacs version 20.4.
+some of how to customize it; it corresponds to GNU Emacs version 21.1.
 For information on extending Emacs, see @ref{,Emacs Lisp,, elisp, The
 Emacs Lisp Reference Manual}.
 @end ifnottex
