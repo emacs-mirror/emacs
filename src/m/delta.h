@@ -143,6 +143,10 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define HAVE_TIMEVAL
 #define SIGNALS_VIA_CHARACTERS
 #define BROKEN_CLOSEDIR		/* builtin closedir is interruptible */
+#undef HAVE_BCOPY		/* b* functions are just stubs to mem* ones */
+#define bcopy(from,to,bytes)	memcpy(to,from,bytes)
+#define bzero(to,bytes)		memset(to,0,bytes)
+#define bcmp memcmp
 #define memmove safe_bcopy	/* for overlapping copies */
 #undef KERNEL_FILE
 #define KERNEL_FILE "/sysv68"
@@ -218,6 +222,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 		 the Green Hills compiler to create stack frames even for
 		 functions with few local variables. */
 #  define C_SWITCH_MACHINE -ga -O
+#  define GAP_USE_BCOPY		/* *++to = *++from  is inefficient */
+#  define BCOPY_DOWNWARD_SAFE	/* bcopy does: mov.b (%a1)+,(%a0)+ */
 # else
  /* We are using the standard AT&T Portable C Compiler */
 #  define SWITCH_ENUM_BUG
