@@ -91,55 +91,70 @@ After each update, `display-time-hook' is run with `run-hooks'."
   (set-buffer-modified-p (buffer-modified-p))
   (sit-for 0))
 
+(defvar display-time-string-forms
+  '((if display-time-day-and-date
+        (format "%s %s %s " dayname monthname day)
+      "")
+    (format "%s:%s%s"
+            (if display-time-24hr-format 24-hours 12-hours)
+            minutes
+            (if display-time-24hr-format "" am-pm))
+    load
+    (if mail " Mail" ""))
+  "*A list of expressions governing display of the time in the mode line.
+This expression is a list of expressions that can involve the keywords
+`load', `day', `month', and `year', `12-hours', `24-hours', `minutes',
+`seconds', all numbers in string form, and `monthname', `dayname', `am-pm',
+and `time-zone' all alphabetic strings, and `mail' a true/nil value.
+
+For example, the form
+
+  '((substring year -2) \"/\" month \"/\" day
+    " " 24-hours \":\" minutes \":\" seconds
+    (if time-zone \" (\") time-zone (if time-zone \")\")
+    (if mail \" Mail\" \"\"))
+
+would give mode line times like `94/12/30 21:07:48 (UTC)'.")
+
 (defun display-time-filter (proc string)
-  (let ((time (current-time-string))
-	(load (condition-case ()
-		  (if (zerop (car (load-average))) ""
-		    (let ((str (format " %03d" (car (load-average)))))
-		      (concat (substring str 0 -2) "." (substring str -2))))
-		(error "")))
-	(mail-spool-file (or display-time-mail-file
-			     (getenv "MAIL")
-			     (concat rmail-spool-directory
-				     (user-login-name))))
-	hour am-pm-flag mail-flag)
-    (setq hour (read (substring time 11 13)))
-    (if (not display-time-24hr-format)
-	(progn
-	  (setq am-pm-flag (if (>= hour 12) "pm" "am"))
-	  (if (> hour 12)
-	      (setq hour (- hour 12))
-	    (if (= hour 0)
-		(setq hour 12))))
-      (setq am-pm-flag ""))
-    (setq mail-flag
-	  (if (and (or (null display-time-server-down-time)
-		       ;; If have been down for 20 min, try again.
-		       (> (- (nth 1 (current-time))
-			     display-time-server-down-time)
-			  1200))
-		   (let ((start-time (current-time)))
-		     (prog1
-			 (display-time-file-nonempty-p mail-spool-file)
-		       (if (> (- (nth 1 (current-time)) (nth 1 start-time))
-			      20)
-			   ;; Record that mail file is not accessible.
-			   (setq display-time-server-down-time 
-				 (nth 1 (current-time)))
-			 ;; Record that mail file is accessible.
-			 (setq display-time-server-down-time nil))
-		       )))
-	      " Mail"
-	    ""))
+  (let* ((time (current-time-string))
+         (load (condition-case ()
+                   (if (zerop (car (load-average))) ""
+                     (let ((str (format " %03d" (car (load-average)))))
+                       (concat (substring str 0 -2) "." (substring str -2))))
+                 (error "")))
+         (mail-spool-file (or display-time-mail-file
+                              (getenv "MAIL")
+                              (concat rmail-spool-directory
+                                      (or (getenv "LOGNAME")
+                                          (getenv "USER")
+                                          (user-login-name)))))
+         (mail (and (file-exists-p mail-spool-file)
+                    (display-time-file-nonempty-p mail-spool-file)))
+         (24-hours (substring time 11 13))
+         (hour (string-to-int 24-hours))
+         (12-hours (int-to-string (if (> hour 12)
+                                      (- hour 12)
+                                    (if (= hour 0)
+                                        12
+                                      hour))))
+         (am-pm (if (> hour 12) "pm" "am"))
+         (minutes (substring time 14 16))
+         (seconds (substring time 17 19))
+         (time-zone (car (cdr (current-time-zone))))
+         (day (substring time 8 10))
+         (year (substring time 20 24))
+         (monthname (substring time 4 7))
+         (month
+          (cdr
+           (assoc
+            monthname
+            '(("Jan" . "1") ("Feb" . "2") ("Mar" . "3") ("Apr" . "4")
+              ("May" . "5") ("Jun" . "6") ("Jul" . "7") ("Aug" . "8")
+              ("Sep" . "9") ("Oct" . "10") ("Nov" . "11") ("Dec" . "12")))))
+         (dayname (substring time 0 3)))
     (setq display-time-string
-	  (concat (format "%d" hour) (substring time 13 16)
-		  am-pm-flag
-		  load
-		  mail-flag))
-    ;; Append the date if desired.
-    (if display-time-day-and-date
-	(setq display-time-string
-	      (concat (substring time 0 11) display-time-string))))
+          (mapconcat 'eval display-time-string-forms "")))
   (run-hooks 'display-time-hook)
   ;; Force redisplay of all buffers' mode lines to be considered.
   (save-excursion (set-buffer (other-buffer)))
