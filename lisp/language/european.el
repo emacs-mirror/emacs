@@ -360,6 +360,36 @@ but select's the Dutch tutorial."))
 	   (documentation . t))
  '("European"))
 
+(set-language-info-alist
+ "Welsh" `((coding-system utf-8 latin-8) ; the input method is Unicode-based
+	   (coding-priority utf-8 latin-8)
+	   (input-method . "welsh")
+	   (documentation . "Support for Welsh, using Unicode."))
+ '("European"))
+
+(set-language-info-alist
+ "Latin-7" `((coding-system latin-7)
+	     (coding-priority latin-7)
+	     ;; Fixme: input-method
+	     (features code-pages)
+	     (documentation . "Support for Latin-7, e.g. Latvian, Lithuanian."))
+ '("European"))
+
+(set-language-info-alist
+ "Lithuanian" `((coding-system latin-7)
+		(coding-priority latin-7)
+		(input-method . "lithuanian-keyboard")
+		(features code-pages)
+		(documentation . "Support for Lithuanian."))
+ '("European"))
+
+(set-language-info-alist
+ "Latvian" `((coding-system latin-7)
+	     (coding-priority latin-7)
+	     (input-method . "latvian-keyboard")
+	     (features code-pages)
+	     (documentation . "Support for Latvian."))
+ '("European"))
 
 ;; Definitions for the Mac Roman character sets and coding system.
 ;; The Mac Roman encoding uses all 128 code points in the range 128 to
