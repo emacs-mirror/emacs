@@ -388,7 +388,12 @@ extern int _fetch_multibyte_char_len;
 
 struct buffer_text
   {
-    unsigned char *beg;		/* Actual address of buffer contents.  */
+    /* Actual address of buffer contents.  If REL_ALLOC is defined,
+       this address might change when blocks are relocated which can
+       e.g. happen when malloc is called.  So, don't pass a pointer
+       into a buffer's text to functions that malloc.  */
+    unsigned char *beg;
+    
     int gpt;			/* Char pos of gap in buffer.  */
     int z;			/* Char pos of end of buffer.  */
     int gpt_byte;		/* Byte pos of gap in buffer.  */
