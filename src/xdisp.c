@@ -1107,8 +1107,11 @@ update:
 	 above call to update_frame would not have caught it.  Catch
 	 it here.  */
       {
-	FRAME_PTR mini_frame
-	  = XFRAME (WINDOW_FRAME (XWINDOW (minibuf_window)));
+	Lisp_Object mini_window;
+	FRAME_PTR mini_frame;
+
+	mini_window = FRAME_MINIBUF_WINDOW (selected_frame);
+	mini_frame = XFRAME (WINDOW_FRAME (XWINDOW (mini_window)));
 	
 	if (mini_frame != selected_frame
 	    && ! FRAME_TERMCAP_P (mini_frame))
