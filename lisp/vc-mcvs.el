@@ -177,7 +177,7 @@ This is only meaningful if you don't use the implicit checkout model
   ;; This would assume the Meta-CVS sandbox is synchronized.
   ;; (vc-mcvs-cvs state file))
   "Meta-CVS-specific version of `vc-state'."
-  (if (vc-mcvs-stay-local-p file)
+  (if (vc-stay-local-p file)
       (let ((state (vc-file-getprop file 'vc-state)))
         ;; If we should stay local, use the heuristic but only if
         ;; we don't have a more precise state already available.
@@ -196,7 +196,7 @@ This is only meaningful if you don't use the implicit checkout model
   "Find the Meta-CVS state of all files in DIR."
   ;; if DIR is not under Meta-CVS control, don't do anything.
   (when (file-readable-p (expand-file-name "MCVS/CVS/Entries" dir))
-    (if (vc-mcvs-stay-local-p dir)
+    (if (vc-stay-local-p dir)
 	(vc-mcvs-dir-state-heuristic dir)
       (let ((default-directory dir))
 	;; Don't specify DIR in this command, the default-directory is
@@ -282,15 +282,17 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
   (unless (or (not rev) (vc-mcvs-valid-version-number-p rev))
     (if (not (vc-mcvs-valid-symbolic-tag-name-p rev))
 	(error "%s is not a valid symbolic tag name" rev)
-      ;; If the input revison is a valid symbolic tag name, we create it
+      ;; If the input revision is a valid symbolic tag name, we create it
       ;; as a branch, commit and switch to it.
       (apply 'vc-mcvs-command nil 0 file "tag" "-b" (list rev))
       (apply 'vc-mcvs-command nil 0 file "update" "-r" (list rev))
       (vc-file-setprop file 'vc-mcvs-sticky-tag rev)
       (setq rev nil)))
+  ;; This commit might cvs-commit several files (e.g. MAP and TYPES)
+  ;; so using numbered revs here is dangerous and somewhat meaningless.
+  (when rev (error "Cannot commit to a specific revision number"))
   (let ((status (apply 'vc-mcvs-command nil 1 file
-		       "ci" (if rev (concat "-r" rev))
-		       "-m" comment
+		       "ci" "-m" comment
 		       (vc-switches 'MCVS 'checkin))))
     (set-buffer "*vc*")
     (goto-char (point-min))
@@ -440,7 +442,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
   "Get change log associated with FILE."
   (vc-mcvs-command
    nil
-   (if (and (vc-mcvs-stay-local-p file) (fboundp 'start-process)) 'async 0)
+   (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
    file "log"))
 
 (defun vc-mcvs-diff (file &optional oldvers newvers)
@@ -457,7 +459,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	       (append (vc-switches nil 'diff) '("/dev/null")))
 	;; Even if it's empty, it's locally modified.
 	1)
-    (let* ((async (and (vc-mcvs-stay-local-p file) (fboundp 'start-process)))
+    (let* ((async (and (vc-stay-local-p file) (fboundp 'start-process)))
 	   (status
 	    (apply 'vc-mcvs-command "*vc-diff*"
 		   (if async 'async 1)
@@ -471,7 +473,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
   "Diff all files at and below DIR."
   (with-current-buffer "*vc-diff*"
     (setq default-directory dir)
-    (if (vc-mcvs-stay-local-p dir)
+    (if (vc-stay-local-p dir)
         ;; local diff: do it filewise, and only for files that are modified
         (vc-file-tree-walk
          dir
@@ -496,7 +498,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 Optional arg VERSION is a version to annotate from."
   (vc-mcvs-command
    buffer
-   (if (and (vc-mcvs-stay-local-p file) (fboundp 'start-process)) 'async 0)
+   (if (and (vc-stay-local-p file) (fboundp 'start-process)) 'async 0)
    file "annotate" (if version (concat "-r" version))))
 
 (defalias 'vc-mcvs-annotate-current-time 'vc-cvs-annotate-current-time)
@@ -554,7 +556,7 @@ If UPDATE is non-nil, then update (resynch) any affected buffers."
 ;;; Miscellaneous
 ;;;
 
-(defalias 'vc-mcvs-make-version-backups-p 'vc-mcvs-stay-local-p
+(defalias 'vc-mcvs-make-version-backups-p 'vc-stay-local-p
   "Return non-nil if version backups should be made for FILE.")
 (defalias 'vc-mcvs-check-headers 'vc-cvs-check-headers)
 
@@ -584,7 +586,8 @@ and that it passes `vc-mcvs-global-switches' to it before FLAGS."
 			       " | mcvs filt"))
       (apply 'vc-do-command buffer okstatus "mcvs" file args))))
 
-(defun vc-mcvs-stay-local-p (file) (vc-mcvs-cvs stay-local-p file))
+(defun vc-mcvs-repository-hostname (dirname)
+  (vc-cvs-repository-hostname (vc-mcvs-root dirname)))
 
 (defun vc-mcvs-dir-state-heuristic (dir)
   "Find the Meta-CVS state of all files in DIR, using only local information."
