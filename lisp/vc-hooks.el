@@ -746,13 +746,6 @@ control system name."
 	 (zerop (user-uid))
 	 (not (equal (user-login-name) (vc-locking-user file)))
 	 (setq buffer-read-only t))
-    (and (null vc-type)
-	 (file-symlink-p file)
-	 (let ((link-type (vc-backend (file-symlink-p file))))
-	   (if link-type
-	       (message
-		"Warning: symbolic link to %s-controlled source file"
-		link-type))))
     (force-mode-line-update)
     ;;(set-buffer-modified-p (buffer-modified-p)) ;;use this if Emacs 18
     vc-type))
@@ -800,7 +793,13 @@ control system name."
 	     ;; Use this variable, not make-backup-files,
 	     ;; because this is for things that depend on the file name.
 	     (make-local-variable 'backup-inhibited)
-	     (setq backup-inhibited t))))))))
+	     (setq backup-inhibited t))))
+     ((let* ((link (file-symlink-p buffer-file-name))
+	     (link-type (and link (vc-backend link))))
+	(if link-type
+	    (message
+	     "Warning: symbolic link to %s-controlled source file"
+	     link-type))))))))
 
 (add-hook 'find-file-hooks 'vc-find-file-hook)
 
