@@ -353,11 +353,13 @@ internal_self_insert (c, noautofill)
   int hairy = 0;
   Lisp_Object tem;
   register enum syntaxcode synt;
-  Lisp_Object overwrite;
+  Lisp_Object overwrite, string;
   /* Length of multi-byte form of C.  */
   int len;
   /* Working buffer and pointer for multi-byte form of C.  */
   unsigned char workbuf[4], *str;
+  int number_to_delete = 0;
+  int spaces_to_insert = 0;
 
   if (c >= 0200 && c <= 0377
       && ! NILP (current_buffer->enable_multibyte_characters))
@@ -409,11 +411,12 @@ internal_self_insert (c, noautofill)
 		   || XFASTINT (current_buffer->tab_width) > 20
 		   || !(target_clm % XFASTINT (current_buffer->tab_width))))))
 	{
+	  int pos = PT;
+
 	  if (target_clm == 0)
-	    del_range (PT, forward_point (1));
+	    number_to_delete = forward_point (1) - PT;
 	  else
 	    {
-	      int pos = PT;
 	      /* The actual cursor position after the trial of moving
 		 to column TARGET_CLM.  It is greater than TARGET_CLM
 		 if the TARGET_CLM is middle of multi-column
@@ -422,15 +425,16 @@ internal_self_insert (c, noautofill)
 	      int actual_clm
 		= XFASTINT (Fmove_to_column (make_number (target_clm), Qnil));
 
-	      del_range (pos, PT);
+	      number_to_delete = PT - pos;
+
 	      if (actual_clm > target_clm)
 		{
-		  /* We deleted too many columns.  Let's fill columns
+		  /* We will delete too many columns.  Let's fill columns
 		     by spaces so that the remaining text won't move.  */
-		  insert("        ",  actual_clm - target_clm);
-		  SET_PT (pos);
+		  spaces_to_insert = actual_clm - target_clm;
 		}
 	    }
+	  SET_PT (pos);
 	  hairy = 2;
 	}
       hairy = 2;
@@ -460,13 +464,29 @@ internal_self_insert (c, noautofill)
       if (MODIFF != modiff)
 	hairy = 2;
     }
+
+  if (number_to_delete)
+    {
+      string = make_string (str, len);
+      if (spaces_to_insert)
+	{
+	  tem = Fmake_string (make_number (spaces_to_insert),
+			      make_number (' '));
+	  string = concat2 (tem, string);
+	}
+
+      replace_range (PT, PT + number_to_delete, string, 1, 1);
+      SET_PT (PT + XSTRING (string)->size);
+    }
+  else
+    insert_and_inherit (str, len);
+
   if ((c == ' ' || c == '\n')
       && !noautofill
       && !NILP (current_buffer->auto_fill_function))
     {
       Lisp_Object tem;
 
-      insert_and_inherit (str, len);
       if (c == '\n')
 	/* After inserting a newline, move to previous line and fill */
 	/* that.  Must have the newline in place already so filling and */
@@ -478,8 +498,6 @@ internal_self_insert (c, noautofill)
       if (!NILP (tem))
 	hairy = 2;
     }
-  else
-    insert_and_inherit (str, len);
 
 #ifdef HAVE_FACES
   /* If previous command specified a face to use, use it.  */
@@ -493,6 +511,7 @@ internal_self_insert (c, noautofill)
       Vself_insert_face = Qnil;
     }
 #endif
+
   synt = SYNTAX (c);
   if ((synt == Sclose || synt == Smath)
       && !NILP (Vblink_paren_function) && INTERACTIVE
