@@ -3212,7 +3212,7 @@ usage: (format STRING &rest OBJECTS)  */)
      string itself, will not be used.  Element NARGS, corresponding to
      no argument, *will* be assigned to in the case that a `%' and `.'
      occur after the final format specifier.  */
-  int * precision = (int *) (_alloca(nargs * sizeof (int)));
+  int *precision = (int *) (alloca(nargs * sizeof (int)));
   int longest_format;
   Lisp_Object val;
   struct info
@@ -3385,10 +3385,8 @@ usage: (format STRING &rest OBJECTS)  */)
 	    /* Note that we're using sprintf to print floats,
 	       so we have to take into account what that function
 	       prints.  */
-	    /* Filter out flag value of -1.  This is a conditional with omitted
-	       operand: the value is PRECISION[N] if the conditional is >=0 and
-	       otherwise is 0. */
-	    thissize = MAX_10_EXP + 100 + ((precision[n] > 0)?precision[n]:0);
+	    /* Filter out flag value of -1.  */
+	    thissize = MAX_10_EXP + 100 + ((precision[n] > 0) ? precision[n] : 0);
 	  }
 	else
 	  {
