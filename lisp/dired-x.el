@@ -3,8 +3,8 @@
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;	Lawrence R. Dodd <dodd@roebling.poly.edu>
 ;; Maintainer: Lawrence R. Dodd <dodd@roebling.poly.edu>
-;; Version: 2.37
-;; Date: 1994/06/28 15:53:34
+;; Version: 2.37+
+;; Date: 1994/08/18 19:27:42
 ;; Keywords: dired extensions
 
 ;; Copyright (C) 1993, 1994 Free Software Foundation
@@ -575,6 +575,7 @@ This functions works by temporarily binding `dired-marker-char' to
   (interactive "sOmit files (regexp): ")
   (if dired-omit-files-p
       (let ((omit-re (or regexp (dired-omit-regexp)))
+            (old-modified-p (buffer-modified-p))
             count)
         (or (string= omit-re "")
             (let ((dired-marker-char dired-omit-marker-char))
@@ -585,6 +586,12 @@ This functions works by temporarily binding `dired-marker-char' to
                     ;; Force an update of modeline.
                     (set-buffer-modified-p (buffer-modified-p)))
                 (message "(Nothing to omit)"))))
+        ;; Try to preserve modified state of buffer.  So `%*' doesn't appear
+        ;; in mode-line of omitted buffers.
+        (set-buffer-modified-p (and old-modified-p 
+                                    (save-excursion
+                                      (goto-char (point-min))
+                                      (re-search-forward dired-re-mark nil t))))
         count)))
 
 (defun dired-omit-regexp ()
@@ -1300,7 +1307,7 @@ Uses ../lisp/man.el of \\[manual-entry] fame."
   (interactive)
   (require 'man)
   (let ((file (dired-get-filename))
-	(manual-program "nroff -man -h"))
+        (manual-program "nroff -man -h"))
     (Man-getpage-in-background file)))
 
 ;;; Run Info on files.
