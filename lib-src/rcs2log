@@ -2,12 +2,15 @@
 
 # RCS to ChangeLog generator
 
-#	$Id: rcs2log,v 1.4 1992/03/21 05:58:05 eggert Exp eggert $
+#	$Id: rcs2log,v 1.5 1992/04/01 08:57:55 eggert Exp eggert $
 
 # Generate a change log prefix from RCS/* and the existing ChangeLog (if any).
 # Output the new prefix to standard output.
 # You can edit this prefix by hand, and then prepend it to ChangeLog.
 
+# Ignore log entries that start with `#'.
+# Clump together log entries that start with `{topic} ',
+# where `topic' contains neither white space nor `}'.
 
 # Parse options.
 
@@ -150,8 +153,8 @@ awk <$rlogout '
 			printf "%s %s %s %s \r", filename, $2, time, author
 			next
 		}
-		if ($0 ~ /^(-----------*|===========*)/) { print ""; next }
-		{ printf "%s\r", $0 }
+		if ($0 ~ /^(-----------*|===========*)$/) { print ""; next }
+		printf "%s\r", $0
 	}
 ' |
 
@@ -201,8 +204,13 @@ awk '
 		mo[8]=243; mo[9]=273; mo[10]=304; mo[11]=334
 		mo[12]=365
 	}
+
 	{
 		newlog = substr($0, 1 + index($0, "\r"))
+
+		# Ignore log entries prefixed by "#".
+		if (newlog ~ /^#/) { next }
+
 		if (Log != newlog || date != $2 || author != $4) {
 
 			# The previous log and this log differ.
@@ -217,7 +225,7 @@ awk '
 			newclumpname = ""
 			sep = "\n"
 			if (date == "") sep = ""
-			if (newlog ~ /^{[^	 }]+}[	 ]/) {
+			if (newlog ~ /^{[^	 }]*}[	 ]/) {
 				i = index(newlog, "}")
 				newclumpname = substr(newlog, 1, i)
 				while (substr(newlog, i+1) ~ /^[	 ]/) i++
