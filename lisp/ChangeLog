@@ -1,3 +1,9 @@
+2004-06-13  Kenichi Handa  <handa@m17n.org>
+
+	* international/utf-8.el (ccl-decode-mule-utf-8): Fix previous
+	change.
+	(ccl-untranslated-to-ucs): Fix typo.
+
 2004-06-12  Karl Chen  <quarl@hkn.eecs.berkeley.edu>  (tiny change)
 
 	* progmodes/python.el (python-open-block-statement-p): Fix

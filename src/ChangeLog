@@ -1,3 +1,7 @@
+2004-06-13  Kenichi Handa  <handa@m17n.org>
+
+	* ccl.c (CCL_READ_CHAR): If hit EOF, set REG to -1.
+
 2004-06-12  Matthew Mundell  <matt@mundell.ukfsn.org>
 
 	* eval.c (Fdefun): Signal an error if NAME is not a symbol.
