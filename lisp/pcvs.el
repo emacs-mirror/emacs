@@ -14,7 +14,7 @@
 ;; Maintainer: (Stefan Monnier) monnier+lists/cvs/pcl@flint.cs.yale.edu
 ;; Keywords: CVS, version control, release management
 ;; Version: $Name:  $
-;; Revision: $Id: pcvs.el,v 1.11 2000/10/05 22:45:59 monnier Exp $
+;; Revision: $Id: pcvs.el,v 1.12 2000/10/08 19:11:34 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -440,7 +440,6 @@ Working dir: " (abbreviate-file-name dir) "
 	 ;;(set (make-local-variable 'cvs-temp-buffer) (cvs-temp-buffer))
 	 (let ((cookies (ewoc-create 'cvs-fileinfo-pp "\n" "")))
 	   (set (make-local-variable 'cvs-cookies) cookies)
-	   (make-local-hook 'kill-buffer-hook)
 	   (add-hook 'kill-buffer-hook
 		     (lambda ()
 		       (ignore-errors (kill-buffer cvs-temp-buffer)))
@@ -506,7 +505,6 @@ Working dir: " (abbreviate-file-name dir) "
 		 postprocess
 	       ;; else, we have to register ourselves to be rerun on the rest
 	       `(cvs-run-process ',args ',rest ',postprocess ',single-dir)))
-	(make-local-hook 'kill-buffer-hook)
 	(add-hook 'kill-buffer-hook
 		  (lambda ()
 		    (let ((proc (get-buffer-process (current-buffer))))
@@ -708,14 +706,14 @@ before calling the real function `" (symbol-name fun-1) "'.\n")
 ;;;
 
 (defun cvs-addto-collection (c fi &optional tin)
-  "Add FI to C and return a tin.
+  "Add FI to C and return FI's corresponding tin.
 FI is inserted in its proper place or maybe even merged with a preexisting
   fileinfo if applicable.
 TIN specifies an optional starting point."
   (unless tin (setq tin (ewoc-nth c 0)))
   (while (and tin (cvs-fileinfo< fi (ewoc-data tin)))
     (setq tin (ewoc-prev c tin)))
-  (if (null tin) (progn (ewoc-enter-first c fi) nil) ;empty collection
+  (if (null tin) (ewoc-enter-first c fi) ;empty collection
     (assert (not (cvs-fileinfo< fi (ewoc-data tin))))
     (let ((next-tin (ewoc-next c tin)))
       (while (not (or (null next-tin)
@@ -726,8 +724,8 @@ TIN specifies an optional starting point."
 	  (ewoc-enter-after c tin fi)
 	;; fi == tin
 	(cvs-fileinfo-update (ewoc-data tin) fi)
-	(ewoc-invalidate c tin))
-      tin)))
+	(ewoc-invalidate c tin)
+	tin))))
 
 (defcustom cvs-cleanup-functions nil
   "Functions to tweak the cleanup process.
@@ -1339,7 +1337,9 @@ The POSTPROC specified there (typically `cvs-edit') is then called,
 			   (error nil)))))
   (let ((file (file-relative-name (directory-file-name file))) last)
     (dolist (fi (cvs-fileinfo-from-entries file))
-      (setq last (cvs-addto-collection cvs-cookies fi last)))))
+      (setq last (cvs-addto-collection cvs-cookies fi last)))
+    ;; There should have been at least one entry.
+    (goto-char (ewoc-location last))))
 
 (defun-cvs-mode (cvs-mode-add . SIMPLE) (flags)
   "Add marked files to the cvs repository.
