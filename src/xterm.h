@@ -351,7 +351,18 @@ struct x_display
   /* The size of the extra width currently allotted for vertical
      scroll bars, in pixels.  */
   int vertical_scroll_bar_extra;
+
+  /* Table of faces for this frame.  */
+  struct face **faces;
+  /* Length of that table.  */
+  int n_faces;
 };
+
+/* Get at the faces of an X window frame.  */
+#define FRAME_FACES(f) ((f)->display.x->faces)
+#define FRAME_N_FACES(f) ((f)->display.x->n_faces)
+#define FRAME_DEFAULT_FACE(f) ((f)->display.x->faces[0])
+#define FRAME_MODE_LINE_FACE(f) ((f)->display.x->faces[1])
 
 /* Return the window associated with the frame F.  */
 #define FRAME_X_WINDOW(f) ((f)->display.x->window_desc)
@@ -363,13 +374,13 @@ struct x_display
 #define FRAME_DESIRED_CURSOR(f) ((f)->display.x->desired_cursor)
 
 
-/* When X windows are used, a glyf may be a 16 bit unsigned datum.
+/* When X windows are used, a glyph may be a 16 bit unsigned datum.
    The high order byte is the face number and is used as an index
    in the face table.  A face is a font plus:
     1) the unhighlighted foreground color,
     2) the unhighlighted background color.
    For highlighting, the two colors are exchanged.
-   Face number 0 is unused.  The low order byte of a glyf gives
+   Face number 0 is unused.  The low order byte of a glyph gives
    the character within the font.  All fonts are assumed to be
    fixed width, and to have the same height and width. */
 
