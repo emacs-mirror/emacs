@@ -1,3 +1,7 @@
+2002-01-12  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* faces.el (minibuffer-prompt): A better face definition for MS-DOS.
+
 2002-01-11  Richard M. Stallman  <rms@gnu.org>
 
 	* startup.el (initial-scratch-message): Fix custom type, add group.
