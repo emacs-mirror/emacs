@@ -2,7 +2,7 @@
 
 # RCS to ChangeLog generator
 
-#	$Id: rcs2clog,v 1.2 1992/02/05 04:31:18 eggert Exp eggert $
+#	$Id: rcs2clog,v 1.3 1992/02/05 17:25:10 eggert Exp eggert $
 
 # Generate a change log prefix from RCS/* and the existing ChangeLog (if any).
 # Output the new prefix to standard output.
@@ -91,7 +91,7 @@ done
 # Function to print a single log line.
 # We don't use awk functions, to stay compatible with old awk versions.
 # `Log' is the log message (with \n replaced by \r).
-# `files' contains the affected files (each preceded by a space).
+# `files' contains the affected files.
 printlogline='{
 
 	# Following the GNU coding standards, rewrite
@@ -117,8 +117,6 @@ printlogline='{
 		sep = indent_string
 		Log = substr(Log, i+1)
 	}
-
-	printf "\n"
 }'
 
 hostname=`(
@@ -198,9 +196,27 @@ awk '
 	{
 		newlog = substr($0, 1 + index($0, "\r"))
 		if (Log != newlog || date != $2 || author != $4) {
+
 			# The previous log and this log differ.
-			# Print the old one.
+
+			# Print the old log.
 			if (date != "") '"$printlogline"'
+
+			# Logs that begin with "{clumpname} " should be grouped together,
+			# and the clumpname should be removed.
+			# Extract the new clumpname from the log header,
+			# and use it to decide whether to output a blank line.
+			newclumpname = ""
+			sep = "\n"
+			if (newlog ~ /^{[^	 }]+}[	 ]/) {
+				i = index(newlog, "}")
+				newclumpname = substr(newlog, 1, i)
+				while (substr(newlog, i+1) ~ /^[	 ]/) i++
+				newlog = substr(newlog, i+1)
+				if (clumpname == newclumpname) sep = ""
+			}
+			printf sep
+			clumpname = newclumpname
 
 			# Get ready for the next log.
 			Log = newlog
@@ -240,12 +256,16 @@ awk '
 		}
 		if (! filesknown[$1]) {
 			filesknown[$1] = 1
-			files = files " " $1
+			if (files == "") files = " " $1
+			else files = files ", " $1
 		}
 	}
 	END {
 		# Print the last log.
-		if (date != "") '"$printlogline"'
+		if (date != "") {
+			'"$printlogline"'
+			printf "\n"
+		}
 	}
 ' &&
 
