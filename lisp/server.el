@@ -353,6 +353,7 @@ or nil.  KILLED is t if we killed the BUFFER (because it was a temp file)."
 		    (buffer-backed-up nil))
 		(save-buffer))
 	    (if (and (buffer-modified-p)
+		     buffer-file-name
 		     (y-or-n-p (concat "Save file " buffer-file-name "? ")))
 		(save-buffer buffer)))
 	  (server-buffer-done buffer)))))
