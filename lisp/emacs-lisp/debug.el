@@ -272,12 +272,13 @@ That buffer should be current already."
 		    (cdr debugger-args) debugger-args)
 		(current-buffer))
 	 (insert ?\n)))
-  (when (re-search-forward "^  eval-buffer(" nil t)
-    (end-of-line)
-    (insert (format "\n  ;;; Reading at buffer position %d"
-		    (let ((level (+ (debugger-frame-number)
-				    debugger-frame-offset -4)))
-		      (with-current-buffer (nth 2 (backtrace-frame level))
+  ;; After any frame that uses eval-buffer,
+  ;; insert a line that states the buffer position it's reading at.
+  (save-excursion
+    (while (re-search-forward "^  eval-buffer(" nil t)
+      (end-of-line)
+      (insert (format "\n  ;;; Reading at buffer position %d"
+		      (with-current-buffer (nth 2 (backtrace-frame (debugger-frame-number)))
 			(point))))))
   (debugger-make-xrefs))
 
@@ -375,19 +376,10 @@ will be used, such as in a debug on exit from a frame."
   (prin1 debugger-value)
   (exit-recursive-edit))
 
-;; Chosen empirically to account for all the frames
-;; that will exist when debugger-frame is called
-;; within the first one that appears in the backtrace buffer.
-;; Assumes debugger-frame is called from a key;
-;; will be wrong if it is called with Meta-x.
-(defconst debugger-frame-offset 8 "")
-
 (defun debugger-jump ()
   "Continue to exit from this frame, with all debug-on-entry suspended."
   (interactive)
-  ;; Compensate for the two extra stack frames for debugger-jump.
-  (let ((debugger-frame-offset (+ debugger-frame-offset 2)))
-    (debugger-frame))
+  (debugger-frame)
   ;; Turn off all debug-on-entry functions
   ;; but leave them in the list.
   (let ((list debug-function-list))
@@ -414,6 +406,8 @@ will be used, such as in a debug on exit from a frame."
     (beginning-of-line)
     (let ((opoint (point))
 	  (count 0))
+      (while (not (eq (cadr (backtrace-frame count)) 'debug))
+	(setq count (1+ count)))
       (goto-char (point-min))
       (if (or (equal (buffer-substring (point) (+ (point) 6))
 		     "Signal")
@@ -444,8 +438,7 @@ Applies to the frame whose line point is on in the backtrace."
     (if (looking-at " *;;;\\|[a-z]")
 	(error "This line is not a function call")))
   (beginning-of-line)
-  (let ((level (debugger-frame-number)))
-    (backtrace-debug (+ level debugger-frame-offset) t))
+  (backtrace-debug (debugger-frame-number) t)
   (if (= (following-char) ? )
       (let ((buffer-read-only nil))
 	(delete-char 1)
@@ -461,8 +454,7 @@ Applies to the frame whose line point is on in the backtrace."
     (if (looking-at " *;;;\\|[a-z]")
 	(error "This line is not a function call")))
   (beginning-of-line)
-  (let ((level (debugger-frame-number)))
-    (backtrace-debug (+ level debugger-frame-offset) nil))
+  (backtrace-debug (debugger-frame-number) nil)
   (if (= (following-char) ?*)
       (let ((buffer-read-only nil))
 	(delete-char 1)
