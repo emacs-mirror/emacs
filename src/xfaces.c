@@ -4059,7 +4059,8 @@ set_font_frame_param (frame, lface)
       font_name = build_string (font);
       xfree (font);
     }
-  store_frame_param (f, Qfont, font_name);
+  
+  Fmodify_frame_parameters (frame, Fcons (Fcons (Qfont, font_name), Qnil));
 }
 
 
