@@ -1,3 +1,8 @@
+2000-12-06  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/fontset.el: Correct the font registries for
+	japanese-jisx0213-1 and japanese-jisx0213-2.
+
 2000-12-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* textmodes/reftex-toc.el (reftex-toc-menu): Fix typo.
