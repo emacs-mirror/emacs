@@ -409,9 +409,7 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 	    (when (assq 'background-color newparms)
 	      (unless (assq 'background-mode newparms)
 		(frame-set-background-mode frame-initial-frame))
-	      (face-set-after-frame-default frame-initial-frame))
-	    (if (assq 'font newparms)
-		(frame-update-faces frame-initial-frame)))))
+	      (face-set-after-frame-default frame-initial-frame)))))
 
     ;; Restore the original buffer.
     (set-buffer old-buffer)
