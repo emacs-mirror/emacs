@@ -595,7 +595,8 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 	      for (regexps = Vcompletion_regexp_list; CONSP (regexps);
 		   regexps = XCDR (regexps))
 		{
-		  tem = Fstring_match (XCAR (regexps), elt, zero);
+		  tem = Fstring_match (XCAR (regexps),
+				       make_string (dp->d_name, len), zero);
 		  if (NILP (tem))
 		    break;
 		}
