@@ -66,7 +66,7 @@ with the contents of the startup message.")
   "*Non-nil inhibits the initial startup echo area message.
 Inhibition takes effect only if your `.emacs' file contains
 a line of the form
- (setq inhibit-startup-echo-area-message "YOUR-USER-NAME")
+ (setq inhibit-startup-echo-area-message \"YOUR-USER-NAME\")
 Thus, someone else using a copy of your `.emacs' file will see
 the startup message unless he personally acts to inhibit it.")
 
