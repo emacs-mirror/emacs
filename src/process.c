@@ -2226,7 +2226,6 @@ process_send_signal (process, signo, current_group, nomsg)
   if (NILP (p->pty_flag))
     current_group = Qnil;
 
-#ifdef TIOCGPGRP		/* Not sure about this! (fnf) */
   /* If we are using pgrps, get a pgrp number and make it negative.  */
   if (!NILP (current_group))
     {
@@ -2251,12 +2250,11 @@ process_send_signal (process, signo, current_group, nomsg)
 	  send_process (proc, &lc.t_suspc, 1);
 	  return Qnil;
 	}
-#endif /* have TIOCGLTC and have TIOCGETC */
+#endif /* ! defined (TIOCGLTC) && defined (TIOCGETC) */
       /* It is possible that the following code would work
 	 on other kinds of USG systems, not just on the IRIS.
 	 This should be tried in Emacs 19.  */
-#if defined (IRIS) && defined (HAVE_SETSID) /* Check for Irix, not older
-					       systems.  */
+#if defined (USG)
       struct termio t;
       switch (signo)
 	{
@@ -2273,13 +2271,14 @@ process_send_signal (process, signo, current_group, nomsg)
 	  send_process (proc, &t.c_cc[VSWTCH], 1);
 	  return Qnil;
 	}
-#endif /* IRIS and HAVE_SETSID */
+#endif /* ! defined (USG) */
 
+#ifdef TIOCGPGRP 
       /* Get the pgrp using the tty itself, if we have that.
 	 Otherwise, use the pty to get the pgrp.
 	 On pfa systems, saka@pfu.fujitsu.co.JP writes:
 	 "TICGPGRP symbol defined in sys/ioctl.h at E50.
-	  But, TIOCGPGRP donot work on E50 ;-P work fine on E60"
+	  But, TIOCGPGRP does not work on E50 ;-P works fine on E60"
 	 His patch indicates that if TIOCGPGRP returns an error, then
 	 we should just assume that p->pid is also the process group id.  */
       {
@@ -2293,20 +2292,20 @@ process_send_signal (process, signo, current_group, nomsg)
 #ifdef pfa
 	if (err == -1)
 	  gid = - XFASTINT (p->pid);
-#endif
+#endif /* ! defined (pfa) */
       }
       if (gid == -1)
 	no_pgrp = 1;
       else
 	gid = - gid;
+#else /* ! defined (TIOCGPGRP ) */
+      /* Can't select pgrps on this system, so we know that
+	 the child itself heads the pgrp.  */
+      gid = - XFASTINT (p->pid);
+#endif /* ! defined (TIOCGPGRP ) */
     }
   else
     gid = - XFASTINT (p->pid);
-#else /* not using pgrps */
-  /* Can't select pgrps on this system, so we know that
-     the child itself heads the pgrp.  */
-  gid = - XFASTINT (p->pid);
-#endif /* not using pgrps */
 
   switch (signo)
     {
@@ -2319,7 +2318,7 @@ process_send_signal (process, signo, current_group, nomsg)
       if (!nomsg)
 	status_notify ();
       break;
-#endif
+#endif /* ! defined (SIGCONT) */
     case SIGINT:
 #ifdef VMS
       send_process (proc, "\003", 1);	/* ^C */
@@ -2357,9 +2356,9 @@ process_send_signal (process, signo, current_group, nomsg)
       gid = - XFASTINT (p->pid);
       kill (gid, signo);
     }
-#else /* no TIOCSIGSEND */
+#else /* ! defined (TIOCSIGSEND) */
   EMACS_KILLPG (-gid, signo);
-#endif
+#endif /* ! defined (TIOCSIGSEND) */
 }
 
 DEFUN ("interrupt-process", Finterrupt_process, Sinterrupt_process, 0, 2, 0,
