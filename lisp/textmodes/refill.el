@@ -114,6 +114,7 @@ This is used to optimize refilling.")
       ;; leading to excessive refilling and wrong choice of fill-prefix.
       ;; might be a bug in my paragraphs.el.
       (forward-paragraph)
+      (skip-syntax-backward "-")
       (let ((end (point))
 	    (beg (progn (backward-paragraph) (point)))
 	    (obeg (overlay-start refill-ignorable-overlay))
