@@ -69,7 +69,7 @@
 ;;;
 ;;;  Revision Information
 ;;;
-(defconst tpu-mapper-revision "$Revision: 1.3 $"
+(defconst tpu-mapper-revision "$Revision: 1.5 $"
     "Revision number of TPU-edt x-windows emacs key mapper.")
 
 
@@ -351,7 +351,11 @@
 
 (cond (tpu-lucid-emacs19-p
        (insert (format "(setq tpu-help-enter \"%s\")\n" tpu-enter-seq))
-       (insert (format "(setq tpu-help-return \"%s\")\n" tpu-return-seq)))
+       (insert (format "(setq tpu-help-return \"%s\")\n" tpu-return-seq))
+       (insert "(setq tpu-help-N \"[#<keypress-event N>]\")\n")
+       (insert "(setq tpu-help-n \"[#<keypress-event n>]\")\n")
+       (insert "(setq tpu-help-P \"[#<keypress-event P>]\")\n")
+       (insert "(setq tpu-help-p \"[#<keypress-event p>]\")\n"))
       (t
        (insert (format "(setq tpu-help-enter \"%s\")\n" tpu-enter))))
 
