@@ -708,15 +708,17 @@ struct selection_input_event
 {
   int kind;
   Display *display;
-  Window requester;
+  /* We spell it with an "o" here because X does.  */
+  Window requestor;
   Atom selection, target, property;
   Time time;
 };
 
 #define SELECTION_EVENT_DISPLAY(eventp)	\
   (((struct selection_input_event *) (eventp))->display)
-#define SELECTION_EVENT_REQUESTER(eventp)	\
-  (((struct selection_input_event *) (eventp))->requester)
+/* We spell it with an "o" here because X does.  */
+#define SELECTION_EVENT_REQUESTOR(eventp)	\
+  (((struct selection_input_event *) (eventp))->requestor)
 #define SELECTION_EVENT_SELECTION(eventp)	\
   (((struct selection_input_event *) (eventp))->selection)
 #define SELECTION_EVENT_TARGET(eventp)	\
