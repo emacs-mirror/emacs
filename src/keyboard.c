@@ -232,6 +232,9 @@ Lisp_Object last_command;
    instead of the actual command.  */
 Lisp_Object this_command;
 
+/* The value of point when the last command was executed.  */
+int last_point_position;
+
 #ifdef MULTI_FRAME
 /* The frame in which the last input event occurred, or Qmacro if the
    last event came from a macro.  We use this to determine when to
@@ -906,6 +909,7 @@ command_loop_1 ()
   no_redisplay = 0;
   this_command_key_count = 0;
   last_command = this_command;
+  last_point_position = PT;
 
   /* Make sure this hook runs after commands that get errors and
      throw to top level.  */
