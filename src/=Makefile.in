@@ -8,8 +8,9 @@ MAKE = make
 # ==================== Things `configure' might edit ====================
 
 CC=cc
-DEFS=-g
+CFLAGS=-g
 srcdir=.
+LN_S=ln -s
 
 # ============================= Targets ==============================
 
@@ -19,12 +20,12 @@ CPP = $(CC) -E -Is -Im
 # Just to avoid uncertainty.
 SHELL = /bin/sh
 
-CFLAGS=${DEFS}
+SUBMAKEFLAGS = CC='${CC}' LN_S='${LN_S}'
 
 all: doall
 
 doall: xmakefile
-	$(MAKE) CC='${CC}' -f xmakefile ${MFLAGS} all
+	$(MAKE) ${SUBMAKEFLAGS} -f xmakefile ${MFLAGS} all
 
 #This is used in making a distribution.
 #Do not use it on development directories!
@@ -44,13 +45,13 @@ emacs: doemacs
 	@true
 
 doemacs: xmakefile
-	$(MAKE) CC='${CC}' -f xmakefile ${MFLAGS} emacs
+	$(MAKE) ${SUBMAKEFLAGS} -f xmakefile ${MFLAGS} emacs
 
 temacs: dotemacs
 	@true
 
 dotemacs: xmakefile
-	$(MAKE) CC='${CC}' -f xmakefile ${MFLAGS} temacs
+	$(MAKE) ${SUBMAKEFLAGS} -f xmakefile ${MFLAGS} temacs
 
 SOURCES = *.[ch] [sm]/* COPYING Makefile.in ymakefile \
 	config.h.in README COPYING ChangeLog vms.pp-trans
