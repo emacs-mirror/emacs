@@ -1465,6 +1465,7 @@ If that does not exists, call the value of `widget-complete-field'."
 	(inhibit-modification-hooks t)
 	(inhibit-read-only t))
     (widget-apply widget :value-delete)
+    (widget-children-value-delete widget)
     (when inactive-overlay
       (delete-overlay inactive-overlay))
     (when button-overlay

@@ -2018,7 +2018,7 @@ store_frame_param (f, prop, val)
   if (EQ (prop, Qminibuffer) && WINDOWP (val))
     {
       if (! MINI_WINDOW_P (XWINDOW (val)))
-	error ("Surrogate minibuffer windows must be minibuffer windows.");
+	error ("Surrogate minibuffer windows must be minibuffer windows");
 
       if ((FRAME_HAS_MINIBUF_P (f) || FRAME_MINIBUF_ONLY_P (f))
 	  && !EQ (val, f->minibuffer_window))

@@ -1007,7 +1007,7 @@ clicking on them with @kbd{Mouse-2} or by moving to one and typing
 @section Rmail and Coding Systems
 
 @cindex decoding mail messages (Rmail)
-  Rmail automatically decodes messages which contain non-ASCII
+  Rmail automatically decodes messages which contain non-@acronym{ASCII}
 characters, just as Emacs does with files you visit and with subprocess
 output.  Rmail uses the standard @samp{charset=@var{charset}} header in
 the message, if any, to determine how the message was encoded by the

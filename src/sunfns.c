@@ -299,7 +299,7 @@ sel_read (sel, file)
     error("fread botch in sel_read");
     return(-1);
   } else if (n < 0) {
-    error("Error reading selection.");
+    error("Error reading selection");
     return(-1);
   }
   /*

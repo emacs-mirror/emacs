@@ -526,9 +526,9 @@ before point in the shell buffer
 @item C-d
 @kindex C-d @r{(Shell mode)}
 @findex comint-delchar-or-maybe-eof
-Either delete a character or send @sc{eof}
+Either delete a character or send @acronym{EOF}
 (@code{comint-delchar-or-maybe-eof}).  Typed at the end of the shell
-buffer, @kbd{C-d} sends @sc{eof} to the subshell.  Typed at any other
+buffer, @kbd{C-d} sends @acronym{EOF} to the subshell.  Typed at any other
 position in the buffer, @kbd{C-d} deletes a character as usual.
 
 @item C-c C-a
@@ -1502,13 +1502,13 @@ printable using the fonts built into your printer.  You can augment
 the fonts supplied with the printer with those from the GNU Intlfonts
 package, or you can instruct Emacs to use Intlfonts exclusively.  The
 variable @code{ps-multibyte-buffer} controls this: the default value,
-@code{nil}, is appropriate for printing ASCII and Latin-1
+@code{nil}, is appropriate for printing @acronym{ASCII} and Latin-1
 characters; a value of @code{non-latin-printer} is for printers which
-have the fonts for ASCII, Latin-1, Japanese, and Korean
+have the fonts for @acronym{ASCII}, Latin-1, Japanese, and Korean
 characters built into them.  A value of @code{bdf-font} arranges for
 the BDF fonts from the Intlfonts package to be used for @emph{all}
 characters.  Finally, a value of @code{bdf-font-except-latin}
-instructs the printer to use built-in fonts for ASCII and Latin-1
+instructs the printer to use built-in fonts for @acronym{ASCII} and Latin-1
 characters, and Intlfonts BDF fonts for the rest.
 
 @vindex bdf-directory-list
@@ -1531,7 +1531,7 @@ identify a @dfn{sort key} for each record, and then reorder the records
 into the order determined by the sort keys.  The records are ordered so
 that their keys are in alphabetical order, or, for numeric sorting, in
 numeric order.  In alphabetic sorting, all upper-case letters `A' through
-`Z' come before lower-case `a', in accord with the ASCII character
+`Z' come before lower-case `a', in accord with the @acronym{ASCII} character
 sequence.
 
   The various sort commands differ in how they divide the text into sort

@@ -1778,6 +1778,10 @@ struct it
      thus we need at most 16 bytes here.  */
   Lisp_Object ctl_chars[16];
 
+  /* Initial buffer or string position of the iterator, before skipping
+     over display properties and invisible text.  */
+  struct display_pos start;
+
   /* Current buffer or string position of the iterator, including
      position in overlay strings etc.  */
   struct display_pos current;
@@ -1963,6 +1967,9 @@ struct it
   /* Current y-position.  Automatically incremented by the height of
      glyph_row in move_it_to and display_line.  */
   int current_y;
+
+  /* Vertical matrix position of first text line in window.  */
+  int first_vpos;
 
   /* Current vertical matrix position, or line number.  Automatically
      incremented by move_it_to and display_line.  */

@@ -33,7 +33,7 @@
 Copyright @copyright{} 1999, 2000, 2001, 2002, 2003 Free Software
 Foundation, Inc.
 
-@quotation     
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with no
@@ -208,7 +208,7 @@ control, and @command{dired} are transparently enabled.
 
 Your access to the remote machine can be with the @command{rsh},
 @command{rlogin}, @command{telnet} programs or with any similar
-connection method.  This connection must pass ASCII successfully to be
+connection method.  This connection must pass @acronym{ASCII} successfully to be
 usable but need not be 8-bit clean.
 
 The package provides support for @command{ssh} connections out of the
@@ -635,7 +635,7 @@ easy to implement, so I haven't got around to it, yet.
 @cindex sshx method
 @cindex Cygwin (with sshx method)
 
-As you expect, this is similar to @option{ssh}, only a little
+As you would expect, this is similar to @option{ssh}, only a little
 different.  Whereas @option{ssh} opens a normal interactive shell on
 the remote host, this option uses @samp{ssh -t -t @var{host} -l
 @var{user} /bin/sh} to open a connection.  This is useful for users
@@ -800,7 +800,7 @@ This method supports the @samp{-p} hack.
 @cindex ssh (with scpx method)
 @cindex Cygwin (with scpx method)
 
-As you expect, this is similar to @option{scp}, only a little
+As you would expect, this is similar to @option{scp}, only a little
 different.  Whereas @option{scp} opens a normal interactive shell on
 the remote host, this option uses @samp{ssh -t -t @var{host} -l
 @var{user} /bin/sh} to open a connection.  This is useful for users
@@ -1109,7 +1109,7 @@ Example:
 
 @defun tramp-set-completion-function method function-list
 This function sets @var{function-list} as list of completion functions
-for @var{method}. 
+for @var{method}.
 
 Example:
 @example
@@ -1241,7 +1241,7 @@ There are different possible strategies for pursuing this problem.  One
 strategy is to enable @tramp{} to deal with all possible situations.
 This is a losing battle, since it is not possible to deal with
 @emph{all} situations.  The other strategy is to require you to set up
-the remote host such that it behaves like @tramp{} expect.  This might
+the remote host such that it behaves like @tramp{} expects.  This might
 be inconvenient because you have to invest a lot of effort into shell
 setup before you can begin to use @tramp{}.
 
@@ -1744,7 +1744,7 @@ packages which make @value{ftp-package-name} file name handlers active.
 You can see it applying @kbd{C-h v file-name-handler-alist}:
 
 @example
-file-name-handler-alist's value is 
+file-name-handler-alist's value is
 (("^/[^/:]*\\'" . ange-ftp-completion-hook-function)
  ("^/[^/:]*[^/:.]:" . ange-ftp-hook-function)
  ("^/[^/]*$" . tramp-completion-file-name-handler)
@@ -1931,7 +1931,7 @@ operations on files accessed via @tramp{}.
 
 In the case of a remote file, the @code{shell-command} interface is
 used, with some wrapper code, to provide the same functionality on the
-remote machine as would be seen on the local machine. 
+remote machine as would be seen on the local machine.
 
 
 @node Changed workfiles

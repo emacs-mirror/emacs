@@ -731,6 +731,7 @@ lisp= \
 	${lispsource}language/cyrillic.elc \
 	${lispsource}language/indian.elc \
 	${lispsource}language/devanagari.el \
+	${lispsource}language/kannada.el \
 	${lispsource}language/malayalam.el \
 	${lispsource}language/tamil.el \
 	${lispsource}language/english.el \
@@ -820,6 +821,7 @@ shortlisp= \
 	../lisp/language/cyrillic.elc \
 	../lisp/language/indian.elc \
 	../lisp/language/devanagari.el \
+	../lisp/language/kannada.el \
 	../lisp/language/malayalam.el \
 	../lisp/language/tamil.el \
 	../lisp/language/english.el \

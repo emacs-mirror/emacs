@@ -308,7 +308,7 @@ x_window_to_frame (dpyinfo, wdesc)
 #ifdef USE_GTK
       if (f->output_data.x->edit_widget)
       {
-        GtkWidget *gwdesc = xg_win_to_widget (wdesc);
+        GtkWidget *gwdesc = xg_win_to_widget (dpyinfo->display, wdesc);
         struct x_output *x = f->output_data.x;
         if (gwdesc != 0 && gwdesc == x->edit_widget)
           return f;
@@ -352,7 +352,7 @@ x_any_window_to_frame (dpyinfo, wdesc)
 	  else if (x->widget)
 	    {
 #ifdef USE_GTK
-              GtkWidget *gwdesc = xg_win_to_widget (wdesc);
+              GtkWidget *gwdesc = xg_win_to_widget (dpyinfo->display, wdesc);
               if (gwdesc != 0
                   && (gwdesc == x->widget
                       || gwdesc == x->edit_widget
@@ -404,7 +404,7 @@ x_non_menubar_window_to_frame (dpyinfo, wdesc)
       else if (x->widget)
 	{
 #ifdef USE_GTK
-          GtkWidget *gwdesc = xg_win_to_widget (wdesc);
+          GtkWidget *gwdesc = xg_win_to_widget (dpyinfo->display, wdesc);
           if (gwdesc != 0
               && (gwdesc == x->widget
                   || gwdesc == x->edit_widget
@@ -448,7 +448,7 @@ x_menubar_window_to_frame (dpyinfo, wdesc)
 #ifdef USE_GTK
       if (x->menubar_widget)
         {
-          GtkWidget *gwdesc = xg_win_to_widget (wdesc);
+          GtkWidget *gwdesc = xg_win_to_widget (dpyinfo->display, wdesc);
           int found = 0;
 
           BLOCK_INPUT;
@@ -494,7 +494,7 @@ x_top_window_to_frame (dpyinfo, wdesc)
 	{
 	  /* This frame matches if the window is its topmost widget.  */
 #ifdef USE_GTK
-          GtkWidget *gwdesc = xg_win_to_widget (wdesc);
+          GtkWidget *gwdesc = xg_win_to_widget (dpyinfo->display, wdesc);
           if (gwdesc == x->widget)
             return f;
 #else
@@ -762,7 +762,7 @@ static void x_destroy_x_image P_ ((XImage *ximg));
    It's nicer with some borders in this context */
 
 int
-x_create_bitmap_mask(f, id)
+x_create_bitmap_mask (f, id)
      struct frame *f;
      int id;
 {
@@ -780,9 +780,9 @@ x_create_bitmap_mask(f, id)
   if (!(id > 0))
     return -1;
 
-  pixmap = x_bitmap_pixmap(f, id);
-  width = x_bitmap_width(f, id);
-  height = x_bitmap_height(f, id);
+  pixmap = x_bitmap_pixmap (f, id);
+  width = x_bitmap_width (f, id);
+  height = x_bitmap_height (f, id);
 
   BLOCK_INPUT;
   ximg = XGetImage (FRAME_X_DISPLAY (f), pixmap, 0, 0, width, height,
@@ -799,7 +799,7 @@ x_create_bitmap_mask(f, id)
   UNBLOCK_INPUT;
   if (!result)
     {
-      XDestroyImage(ximg);
+      XDestroyImage (ximg);
       return -1;
     }
 
@@ -838,7 +838,7 @@ x_create_bitmap_mask(f, id)
   dpyinfo->bitmaps[id - 1].mask = mask;
 
   XDestroyImage (ximg);
-  x_destroy_x_image(mask_img);
+  x_destroy_x_image (mask_img);
 
   return 0;
 }
@@ -1106,7 +1106,7 @@ static Lisp_Object x_find_image_file P_ ((Lisp_Object file));
    may be any format that GdkPixbuf knows about, i.e. not just bitmaps.  */
 
 int
-xg_set_icon(f, file)
+xg_set_icon (f, file)
     FRAME_PTR f;
     Lisp_Object file;
 {
@@ -2458,8 +2458,8 @@ create_frame_xic (f)
 
       xic = XCreateIC (xim,
 		       XNInputStyle, xic_style,
-		       XNClientWindow, FRAME_X_WINDOW(f),
-		       XNFocusWindow, FRAME_X_WINDOW(f),
+		       XNClientWindow, FRAME_X_WINDOW (f),
+		       XNFocusWindow, FRAME_X_WINDOW (f),
 		       XNStatusAttributes, status_attr,
 		       XNPreeditAttributes, preedit_attr,
 		       NULL);
@@ -2550,7 +2550,7 @@ xic_set_statusarea (f)
   XFree (needed);
 
   attr = XVaCreateNestedList (0, XNArea, &area, NULL);
-  XSetICValues(xic, XNStatusAttributes, attr, NULL);
+  XSetICValues (xic, XNStatusAttributes, attr, NULL);
   XFree (attr);
 }
 
@@ -2670,7 +2670,7 @@ x_window (f, window_prompting, minibuffer_only)
   {
     int len;
     char *tem, shell_position[32];
-    Arg al[2];
+    Arg al[10];
     int ac = 0;
     int extra_borders = 0;
     int menubar_size
@@ -2722,9 +2722,19 @@ x_window (f, window_prompting, minibuffer_only)
 		 (xneg ? '-' : '+'), left,
 		 (yneg ? '-' : '+'), top);
       else
-	sprintf (shell_position, "=%dx%d",
-		 FRAME_PIXEL_WIDTH (f) + extra_borders,
-		 FRAME_PIXEL_HEIGHT (f) + menubar_size + extra_borders);
+        {
+          sprintf (shell_position, "=%dx%d",
+                   FRAME_PIXEL_WIDTH (f) + extra_borders,
+                   FRAME_PIXEL_HEIGHT (f) + menubar_size + extra_borders);
+
+          /* Setting x and y when the position is not specified in
+             the geometry string will set program position in the WM hints.
+             If Emacs had just one program position, we could set it in
+             fallback resources, but since each make-frame call can specify
+             different program positions, this is easier.  */
+          XtSetArg (al[ac], XtNx, left); ac++;
+          XtSetArg (al[ac], XtNy, top); ac++;
+        }
     }
 
     len = strlen (shell_position) + 1;
@@ -2783,7 +2793,7 @@ x_window (f, window_prompting, minibuffer_only)
     {
       /* XIM server might require some X events. */
       unsigned long fevent = NoEventMask;
-      XGetICValues(FRAME_XIC (f), XNFilterEvents, &fevent, NULL);
+      XGetICValues (FRAME_XIC (f), XNFilterEvents, &fevent, NULL);
       attributes.event_mask |= fevent;
     }
 #endif /* HAVE_X_I18N */
@@ -2837,7 +2847,7 @@ if (use_xim)
       {
 	/* XIM server might require some X events. */
 	unsigned long fevent = NoEventMask;
-	XGetICValues(FRAME_XIC (f), XNFilterEvents, &fevent, NULL);
+	XGetICValues (FRAME_XIC (f), XNFilterEvents, &fevent, NULL);
 
 	if (fevent != NoEventMask)
 	  {
@@ -2901,7 +2911,7 @@ x_window (f)
 	{
 	  /* XIM server might require some X events. */
 	  unsigned long fevent = NoEventMask;
-	  XGetICValues(FRAME_XIC (f), XNFilterEvents, &fevent, NULL);
+	  XGetICValues (FRAME_XIC (f), XNFilterEvents, &fevent, NULL);
 	  attributes.event_mask |= fevent;
 	  attribute_mask = CWEventMask;
 	  XChangeWindowAttributes (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
@@ -9156,7 +9166,7 @@ gif_load (f, img)
       memsrc.len = SBYTES (specified_data);
       memsrc.index = 0;
 
-      gif = DGifOpen(&memsrc, gif_read_from_memory);
+      gif = DGifOpen (&memsrc, gif_read_from_memory);
       if (!gif)
 	{
 	  image_error ("Cannot open memory source `%s'", img->spec, Qnil);

@@ -1186,7 +1186,7 @@ If STRING is multibyte, the result is STRING itself.
 Otherwise it is a newly created string, with no text properties.
 Characters 0200 through 0237 are converted to eight-bit-control
 characters of the same character code.  Characters 0240 through 0377
-are converted to eight-bit-control characters of the same character
+are converted to eight-bit-graphic characters of the same character
 codes.  */)
      (string)
      Lisp_Object string;
@@ -4274,7 +4274,7 @@ hashfn_eq (h, key)
      Lisp_Object key;
 {
   unsigned hash = XUINT (key) ^ XGCTYPE (key);
-  xassert ((hash & ~VALMASK) == 0);
+  xassert ((hash & ~INTMASK) == 0);
   return hash;
 }
 
@@ -4293,7 +4293,7 @@ hashfn_eql (h, key)
     hash = sxhash (key, 0);
   else
     hash = XUINT (key) ^ XGCTYPE (key);
-  xassert ((hash & ~VALMASK) == 0);
+  xassert ((hash & ~INTMASK) == 0);
   return hash;
 }
 
@@ -4308,7 +4308,7 @@ hashfn_equal (h, key)
      Lisp_Object key;
 {
   unsigned hash = sxhash (key, 0);
-  xassert ((hash & ~VALMASK) == 0);
+  xassert ((hash & ~INTMASK) == 0);
   return hash;
 }
 
@@ -4495,7 +4495,7 @@ maybe_resize_hash_table (h)
       index_size = next_almost_prime ((int)
 				      (new_size
 				       / XFLOATINT (h->rehash_threshold)));
-      if (max (index_size, 2 * new_size) & ~VALMASK)
+      if (max (index_size, 2 * new_size) > MOST_POSITIVE_FIXNUM)
 	error ("Hash table too large to resize");
 
       h->key_and_value = larger_vector (h->key_and_value, 2 * new_size, Qnil);
@@ -4585,7 +4585,7 @@ hash_put (h, key, value, hash)
 {
   int start_of_bucket, i;
 
-  xassert ((hash & ~VALMASK) == 0);
+  xassert ((hash & ~INTMASK) == 0);
 
   /* Increment count after resizing because resizing may fail.  */
   maybe_resize_hash_table (h);
@@ -4870,7 +4870,7 @@ sxhash_string (ptr, len)
       hash = ((hash << 3) + (hash >> 28) + c);
     }
 
-  return hash & VALMASK;
+  return hash & INTMASK;
 }
 
 
@@ -4938,7 +4938,7 @@ sxhash_bool_vector (vec)
 
 
 /* Return a hash code for OBJ.  DEPTH is the current depth in the Lisp
-   structure.  Value is an unsigned integer clipped to VALMASK.  */
+   structure.  Value is an unsigned integer clipped to INTMASK.  */
 
 unsigned
 sxhash (obj, depth)
@@ -5002,7 +5002,7 @@ sxhash (obj, depth)
       abort ();
     }
 
-  return hash & VALMASK;
+  return hash & INTMASK;
 }
 
 

@@ -736,8 +736,8 @@ DEFUN ("defvaralias", Fdefvaralias, Sdefvaralias, 2, 3, 0,
        doc: /* Make SYMBOL a variable alias for symbol ALIASED.
 Setting the value of SYMBOL will subsequently set the value of ALIASED,
 and getting the value of SYMBOL will return the value ALIASED has.
-ALIASED nil means remove the alias; SYMBOL is unbound after that.
-Third arg DOCSTRING, if non-nil, is documentation for SYMBOL.  */)
+Third arg DOCSTRING, if non-nil, is documentation for SYMBOL.
+The return value is ALIASED.  */)
      (symbol, aliased, docstring)
      Lisp_Object symbol, aliased, docstring;
 {

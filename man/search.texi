@@ -19,14 +19,15 @@ more flexible replacement command called @code{query-replace}, which
 asks interactively which occurrences to replace.
 
 @menu
-* Incremental Search::	   Search happens as you type the string.
-* Nonincremental Search::  Specify entire string and then search.
-* Word Search::		   Search for sequence of words.
-* Regexp Search::	   Search for match for a regexp.
-* Regexps::		   Syntax of regular expressions.
-* Search Case::		   To ignore case while searching, or not.
-* Replace::		   Search, and replace some or all matches.
-* Other Repeating Search:: Operating on all matches for some regexp.
+* Incremental Search::		Search happens as you type the string.
+* Nonincremental Search::	Specify entire string and then search.
+* Word Search::			Search for sequence of words.
+* Regexp Search::		Search for match for a regexp.
+* Regexps::			Syntax of regular expressions.
+* Search Case::			To ignore case while searching, or not.
+* Configuring Scrolling::	Scrolling within incremental search.
+* Replace::			Search, and replace some or all matches.
+* Other Repeating Search::	Operating on all matches for some regexp.
 @end menu
 
 @node Incremental Search, Nonincremental Search, Search, Search
@@ -122,9 +123,9 @@ following character to be treated the way any ``ordinary'' character is
 treated in the same context.  You can also specify a character by its
 octal code: enter @kbd{C-q} followed by a sequence of octal digits.
 
-@cindex searching for non-ASCII characters
+@cindex searching for non-@acronym{ASCII} characters
 @cindex input method, during incremental search
-  To search for non-ASCII characters, you must use an input method
+  To search for non-@acronym{ASCII} characters, you must use an input method
 (@pxref{Input Methods}).  If an input method is enabled in the
 current buffer when you start the search, you can use it while you
 type the search string also.  Emacs indicates that by including the
@@ -225,6 +226,34 @@ If you don't like this feature, you can turn it off by setting
 alter their bindings in the keymap @code{isearch-mode-map}.  For a list
 of bindings, look at the documentation of @code{isearch-mode} with
 @kbd{C-h f isearch-mode @key{RET}}.
+
+@subsection Scrolling During Incremental Search
+
+  Vertical scrolling during incremental search can be enabled by
+setting the customizable variable @code{isearch-allow-scroll} to a
+non-nil value.
+
+  You can then use the vertical scroll-bar or certain keyboard
+commands such as @kbd{@key{PRIOR}} (@code{scroll-down}),
+@kbd{@key{NEXT}} (@code{scroll-up}) and @kbd{C-l} (@code{recenter})
+within the search, thus letting you see more of the text near the
+current match.  You must run these commands via their key sequences to
+stay in the search - typing M-x @var{comand-name} will always
+terminate a search.
+
+  You can give prefix arguments to these commands in the usual way.
+The current match cannot be scrolled out of the window - this is
+intentional.
+
+  Several other commands, such as @kbd{C-x 2}
+(@code{split-window-vertically}) and @kbd{C-x ^}
+(@code{enlarge-window}) which don't scroll the window, are
+nevertheless made available under this rubric, since they are likewise
+handy during a search.
+
+  For a list of commands which are configured as scrolling commands by
+default and instructions on how thus to configure other commands, see
+@ref{Configuring Scrolling}.
 
 @subsection Slow Terminal Incremental Search
 
@@ -505,9 +534,9 @@ matches @samp{cr}, @samp{car}, @samp{cdr}, @samp{caddaar}, etc.
 
 You can also include character ranges in a character set, by writing the
 starting and ending characters with a @samp{-} between them.  Thus,
-@samp{[a-z]} matches any lower-case ASCII letter.  Ranges may be
+@samp{[a-z]} matches any lower-case @acronym{ASCII} letter.  Ranges may be
 intermixed freely with individual characters, as in @samp{[a-z$%.]},
-which matches any lower-case ASCII letter or @samp{$}, @samp{%} or
+which matches any lower-case @acronym{ASCII} letter or @samp{$}, @samp{%} or
 period.
 
 Note that the usual regexp special characters are not special inside a
@@ -531,7 +560,7 @@ is somewhat ill-defined, and it may change in future Emacs versions.
 @item @kbd{[^ @dots{} ]}
 @samp{[^} begins a @dfn{complemented character set}, which matches any
 character except the ones specified.  Thus, @samp{[^a-z0-9A-Z]} matches
-all characters @emph{except} ASCII letters and digits.
+all characters @emph{except} @acronym{ASCII} letters and digits.
 
 @samp{^} is not special in a character set unless it is the first
 character.  The character following the @samp{^} is treated as if it
@@ -762,7 +791,7 @@ colors, Emacs blinks the cursor around the matched text, as it does
 for matching parens.)
 @end ignore
 
-@node Search Case, Replace, Regexps, Search
+@node Search Case, Configuring Scrolling, Regexps, Search
 @section Searching and Case
 
   Incremental searches in Emacs normally ignore the case of the text
@@ -792,7 +821,82 @@ This variable applies to nonincremental searches also, including those
 performed by the replace commands (@pxref{Replace}) and the minibuffer
 history matching commands (@pxref{Minibuffer History}).
 
-@node Replace, Other Repeating Search, Search Case, Search
+@node Configuring Scrolling, Replace, Search Case, Search
+@section Configuring Scrolling
+@cindex scrolling in incremental search
+@vindex isearch-allow-scroll
+
+Scrolling, etc., during incremental search is enabled by setting the
+customizable variable @code{isearch-allow-scroll} to a non-nil value.
+
+@c See Subject: Info file:  How do I get an itemized list without blank lines?
+@c Date: Sat, 12 Apr 2003 09:45:31 +0000  in gnu.emacs.help
+@subsection Standard scrolling commands
+Here is the list of commands which are configured by default to be
+``scrolling'' commands in an incremental search, together with their
+usual bindings:
+@subsubsection Commands which scroll the window:
+@table @asis
+@item @code{scroll-bar-toolkit-scroll} (@kbd{@key{vertical-scroll-bar}@key{mouse-1}} in X-Windows)
+@itemx @code{mac-handle-scroll-bar-event} (@kbd{@key{vertical-scroll-bar}@key{mouse-1}} on a Mac)
+@itemx @code{w32-handle-scroll-bar-event} (@kbd{@key{vertical-scroll-bar}@key{mouse-1}} in MS-Windows)
+@item @code{recenter} (@kbd{C-l}) @xref{Scrolling}.
+@itemx @code{reposition-window} (@kbd{C-M-l}) @xref{Scrolling}.
+@itemx @code{scroll-up} (@kbd{@key{NEXT}}) @xref{Scrolling}.
+@itemx @code{scroll-down} (@kbd{@key{PRIOR}}) @xref{Scrolling}.
+@end table
+
+@subsubsection Commands which act on the other window:
+@table @asis
+@item @code{list-buffers} (@kbd{C-x C-b}) @xref{List Buffers}.
+@itemx @code{scroll-other-window} (@kbd{C-M-v}) @xref{Other Window}.
+@itemx @code{scroll-other-window-down} (@kbd{C-M-S-v}) @xref{Other Window}.
+@itemx @code{beginning-of-buffer-other-window} (@kbd{M-@key{home}})
+@itemx @code{end-of-buffer-other-window} (@kbd{M-@key{end}})
+@end table
+
+@subsubsection Commands which change the window layout:
+@table @asis
+@item @code{delete-other-windows} (@kbd{C-x 1}) @xref{Change Window}.
+@itemx @code{balance-windows} (@kbd{C-x +}) @xref{Change Window}.
+@itemx @code{split-window-vertically} (@kbd{C-x 2}) @xref{Split Window}.
+@itemx @code{enlarge-window} (@kbd{C-x ^}) @xref{Change Window}.
+@end table
+
+@subsection Configuring other commands as scrolling commands
+To do this, set a command's isearch-scroll property to the value t.
+For example:
+
+@example
+@code{(put 'my-command 'isearch-scroll t)}
+@end example
+
+You should only thus configure commands which are ``safe'': i.e., they
+won't leave emacs in an inconsistent state when executed within a
+search - that is to say, the following things may be changed by a
+command only temporarily, and must be restored before the command
+finishes:
+
+@enumerate
+@item
+Point.
+@item
+The buffer contents.
+@item
+The selected window and selected frame.
+@item
+The current match-data @xref{Match Data,,,elisp}.
+@end enumerate
+
+Additionally, the command must not delete the current window and must
+not itself attempt an incremental search.  It may, however, change the
+window's size, or create or delete other windows and frames.
+
+Note that an attempt by a command to scroll the text
+@emph{horizontally} won't work, although it will do no harm - any such
+scrolling will be overriden and nullified by the display code.
+
+@node Replace, Other Repeating Search, Configuring Scrolling, Search
 @section Replacement Commands
 @cindex replacement
 @cindex search-and-replace commands
@@ -814,10 +918,10 @@ parallel using the command @code{expand-region-abbrevs}
 (@pxref{Expanding Abbrevs}).
 
 @menu
-* Unconditional Replace::  Replacing all matches for a string.
-* Regexp Replace::         Replacing all matches for a regexp.
-* Replacement and Case::   How replacements preserve case of letters.
-* Query Replace::          How to use querying.
+* Unconditional Replace::	Replacing all matches for a string.
+* Regexp Replace::		Replacing all matches for a regexp.
+* Replacement and Case::	How replacements preserve case of letters.
+* Query Replace::		How to use querying.
 @end menu
 
 @node Unconditional Replace, Regexp Replace, Replace, Replace

@@ -6126,7 +6126,7 @@ parse_modifiers (symbol)
 					 SBYTES (SYMBOL_NAME (symbol)) - end),
 			    Qnil);
 
-      if (modifiers & ~VALMASK)
+      if (modifiers & ~INTMASK)
 	abort ();
       XSETFASTINT (mask, modifiers);
       elements = Fcons (unmodified, Fcons (mask, Qnil));
@@ -6163,7 +6163,7 @@ apply_modifiers (modifiers, base)
   Lisp_Object cache, index, entry, new_symbol;
 
   /* Mask out upper bits.  We don't know where this value's been.  */
-  modifiers &= VALMASK;
+  modifiers &= INTMASK;
 
   /* The click modifier never figures into cache indices.  */
   cache = Fget (base, Qmodifier_cache);

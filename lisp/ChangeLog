@@ -1,3 +1,456 @@
+2003-11-20  Kim F. Storm  <storm@cua.dk>
+
+	* gdb-ui.el (gud-gdba-command-name): Find gdb command via PATH.
+	(breakpoint-xpm-data, breakpoint-enabled-pbm-data): Make smoother.
+	(breakpoint-enabled-icon, breakpoint-disabled-icon): Set :ascent
+	to 100 for icons to avoid increasing line height when shown.
+
+2003-11-19  Andreas Schwab  <schwab@suse.de>
+
+	* simple.el (set-variable): Fix indentation.
+
+2003-11-17  Kenichi Handa  <handa@m17n.org>
+
+	* international/latin1-disp.el (latin1-display-ucs-per-lynx): Fix
+	docstring.
+
+2003-11-17  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+
+	* international/latin1-disp.el (latin1-display): Fix docstring.
+
+2003-11-16  John Wiegley  <johnw@newartisans.com>
+
+	* eshell/em-ls.el (eshell-ls-file): There are times with
+	size-width is nil and uncomputed (when directories are created in
+	dired, for example); in this case, 4 is reasonable default value,
+	although it may caused skewed new entries (which could be avoided
+	by returning the original value of 8 in all cases, but 99% of the
+	time this is a waste of whitespace).
+
+2003-11-16  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* cc-engine.el (c-guess-continued-construct,
+	c-guess-basic-syntax): Check a little more carefully if it's a
+	function declaration when an unknown construct followed by a block
+	is found inside a statement context.  This avoids macros followed
+	by blocks to be taken as function declarations.
+
+	(c-guess-continued-construct): Changed the analysis of a statement
+	continuation with a brace open to `substatement-block', for
+	consistency with recognized statements.
+
+	(c-add-stmt-syntax): Don't continue to the surrounding sexp if the
+	start is in a position so that `c-beginning-of-statement-1' jumped
+	to the beginning of the same statement.
+
+	* cc-fonts.el, cc-engine.el (c-forward-<>-arglist-recur): Don't
+	accept binary operators in the arglist if we're in a function call
+	context, i.e. if `c-restricted-<>-arglists' is set.  That avoids
+	template recognition in cases like "if (a < b || c > d)".
+
+	(c-restricted-<>-arglists): New more appropriate name for
+	`c-disallow-comma-in-<>-arglists'.
+
+	Accessing functions updated for the variable name change.
+
+	* cc-engine.el (c-syntactic-re-search-forward): Fix bug where the
+	match data could get clobbered if NOT-INSIDE-TOKEN is used.
+
+	* cc-engine.el (c-beginning-of-statement-1): Don't allow parens in
+	labels.
+
+	(c-backward-to-decl-anchor): Use `c-beginning-of-statement-1'
+	instead of duplicating parts of it.  This fixes bogus label
+	recognition.
+
+	* cc-align.el (c-gnu-impose-minimum): Reverted to the old method
+	of checking the context in which to apply the minimum indentation,
+	so that it isn't enforced in e.g. namespace blocks.
+
+	* cc-vars.el (c-inside-block-syms): New constant used by
+	`c-gnu-impose-minimum'.  It's defined close to `c-offsets-alist'
+	to somewhat reduce the risk of becoming stale.
+
+	* cc-cmds.el, cc-engine.el (c-shift-line-indentation): Moved from
+	cc-cmds to cc-engine to allow use from cc-align.
+
+	* cc-engine.el (c-beginning-of-inheritance-list): Cope with fully
+	qualified identifiers containing "::".
+
+	* cc-defs.el (c-make-keywords-re): Added kludge for bug in
+	`regexp-opt' in Emacs 20 and XEmacs when strings contain newlines.
+
+	* cc-vars.el (c-emacs-features): Use a space in front of the name
+	of the temporary buffer.  That also avoids dumping problems in
+	XEmacs due to undo info being left around after the buffer is
+	killed.
+
+	* cc-engine.el (c-in-knr-argdecl): Look closer at the function
+	arglist to see if it's a K&R style declaration.
+
+	(c-guess-basic-syntax): CASE 5B.2: Check with `c-in-knr-argdecl'
+	before returning `knr-argdecl-intro'.
+
+2003-11-16  John Wiegley  <johnw@newartisans.com>
+
+	* eshell/em-ls.el (eshell-ls-file): Instead of making the size
+	field in a long-listing always 8 characters, use `size-width',
+	which has already been computed.
+
+2003-11-15  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* subr.el (minor-mode-list): Add `hs-minor-mode'.
+
+2003-11-14  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* diff-mode.el (diff-hunk-prev, diff-hunk-next): Support
+	operation while narrowed, with `diff-restrict-view'.
+
+2003-11-14  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation): Take
+	additional optional arg NARROWFUN.  For the generated functions: Add
+	local var `was-narrowed-p'.  Also, if NARROWFUN is specified, include
+	frags that arrange to check for and save narrowing state before the
+	move and then conditionally call NARROWFUN after the move.
+
+2003-11-14  John Wiegley  <johnw@newartisans.com>
+
+	* eshell/esh-var.el (eshell-parse-variable-ref): Added a backslash
+	that was optional, but obviously missing based on surrounding
+	code.
+
+	* eshell/esh-cmd.el (eshell-lisp-command): Do not late-convert
+	string arguments to numbers unless the whole argument was seen as
+	a number.
+
+2003-11-14  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (ctext-non-standard-encodings-alist): Fix
+	coding systems.
+
+2003-11-10  Kenichi Handa  <handa@m17n.org>
+
+	* language/kannada.el ("Kannada"): Add sample-text.
+
+	* language/knd-util.el (kannada-compose-region)
+	(kannada-compose-string, kannada-post-read-conversion): Add
+	autoload cookie.
+
+	* international/quail.el (quail-completion): Change the message
+	"corresponding translations" to "corresponding characters".
+
+2003-11-09  Markus Rost  <rost@mathematik.uni-bielefeld.de>
+
+	* descr-text.el (describe-char): Fix typo.
+
+2003-11-08  Kailash C. Chowksey <klchxbec@m-net.arbornet.org>
+
+	These changes are to support Kannada language/script.
+
+	* Makefile.in (DONTCOMPILE): Add kannada.el.
+
+	* makefile.w32-in (DONTCOMPILE): Add kannada.el.
+
+	* loadup.el: Preload kannada.el.
+
+	* language/ind-util.el (ucs-kannada-to-is13194-alist)
+	(is13194-to-ucs-kannada-hashtbl, is13194-to-ucs-kannada-regexp):
+	New variables.
+
+	* language/kannada.el: New file.
+
+	* language/knd-util.el: New file.
+
+2003-11-07  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/autoconf.el (autoconf-font-lock-keywords): Also
+	highlight AH_*.
+
+	* xml.el (xml-parse-dtd): Fix misplaced paren.
+
+2003-11-07  Kenichi Handa  <handa@m17n.org>
+
+	* language/european.el (windows-1252): Fix table (0x8F and 0x9E).
+
+2003-11-05  Juri Linkov  <juri@jurta.org>
+
+	* desktop.el (desktop-locals-to-save): Add buffer-file-coding-system.
+	(desktop-buffer-file): Use saved buffer-file-coding-system
+	for file reading.  Set auto-insert to nil to prevent automatic
+	insertion into restored empty files.
+
+2003-11-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (risky-local-variable-p): Make second argument optional.
+
+2003-11-03  Eli Zaretskii  <eliz@elta.co.il>
+
+	* mail/rmail.el (rmail-convert-to-babyl-format): If
+	base64-decode-region signals an error, catch it and silently
+	ignore it.
+
+2003-11-01  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el: Allow comments following the top-level element.
+	Separate out namespace parsing into special functions.
+	Change namespace parsing to return ('ns-uri . "local-name")
+	instead of '{ns-uri}local-name.
+
+2003-11-01  era@iki.fi  <era@iki.fi>  (tiny change)
+
+	* dired.el (dired-ls-sorting-switches): Doc fix.
+
+2003-11-01  Oliver Scholz  <epameinondas@gmx.de>
+
+	* emacs-lisp/rx.el (rx-or): Fix the case of
+	"(rx (and ?a (or ?b ?c) ?d))".
+
+2003-11-01  Christoph Wedler  <wedler@users.sourceforge.net>  (tiny change)
+
+	* textmodes/texinfmt.el (texinfo-pre-format-hook): New variable.
+	(texinfo-format-region): Use it.
+	(texinfo-format-buffer-1): Ditto.
+
+2003-11-01  Alan Mackenzie  <acm@muc.de>
+
+	Changes to allow scrolling whilst in isearch mode:
+	* isearch.el (isearch-unread-key-sequence): New function,
+	extracted from isearch-other-meta-char.
+	(top level): (put 'foo 'isearch-scroll) on all Emacs's
+	"scrollable" standard functions.
+	(isearch-allow-scroll): New customizable variable.
+	(isearch-string-out-of-window, isearch-back-into-window)
+	(isearch-reread-key-sequence-naturally)
+	(isearch-lookup-scroll-key): New functions.
+	(isearch-other-meta-char): Doc string and functionality enhanced.
+	Now accepts a prefix argument.
+	(isearch-lazy-highlight-window-end): New variable.
+	(isearch-lazy-highlight-new-loop): Pay attention to the window's
+	end (thru isearch-lazy-highlight-window-end), not only its start.
+
+	* simple.el (overriding-map-is-bound, saved-overriding-map): New
+	variables.
+	(ensure-overriding-map-is-bound, restore-overriding-map): New
+	functions.
+	(universal-argument, universal-argument-more, negative-argument)
+	(digit-argument, universal-argument-other-key): Minor changes.
+
+2003-11-01  Alexander Pohoyda  <alexander.pohoyda@gmx.net>  (tiny change)
+
+	* mail/rmailsum.el (rmail-summary-goto-msg): Don't call itself
+	recursively if the last message is deleted, thus avoiding an
+	infinite loop.
+
+2003-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-compile-commands): Add `yap' and `ps2pdf'.
+	(tex-main-file): Don't add .tex if the extension is already present.
+	(tex-uptodate-p): Don't recurse indefinitely with symlinks.
+
+2003-10-29  Lute Kamstra  <lute@gnu.org>
+
+	* progmodes/octave-inf.el (inferior-octave-prompt):
+	Recognize version number in prompt.
+
+2003-10-28  Dave Love  <fx@gnu.org>
+
+	* international/characters.el: Fix some Unicode ranges.
+
+2003-10-28  Kenichi Handa  <handa@m17n.org>
+
+	* disp-table.el (standard-display-8bit)
+	(standard-display-default, standard-display-ascii)
+	(standard-display-g1, standard-display-graphic)
+	(standard-display-underline): Assure that standard-display-table
+	is a display table.
+
+2003-10-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (reindent-then-newline-and-indent): Delete space *after*
+	reindenting the first line.
+
+2003-10-25  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* wid-edit.el (widget-default-delete): Always delete child widgets.
+
+2003-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-indent): Don't call indent-according-to-mode
+	if the line has code.
+	Don't try to line up with something that's too far left.
+
+	* progmodes/octave-mod.el (octave-comment-start): Simplify.
+	(octave-mode-syntax-table): Add % as a comment starter.
+	(octave-point): Remove.
+	(octave-in-comment-p, octave-in-string-p)
+	(octave-not-in-string-or-comment-p, calculate-octave-indent)
+	(octave-blink-matching-block-open, octave-auto-fill):
+	Use line-(beginning|end)-position instead.
+
+2003-10-23  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* emacs-lisp/authors.el (authors-aliases): Add correct realname
+	for Francesco Potort,Al(B.
+
+2003-10-23  Dave Love  <fx@gnu.org>
+
+	* international/mule-cmds.el (locale-charset-to-coding-system):
+	Don't rely on nil being a coding system.
+
+	* mail/mail-extr.el (mail-extr-ignore-single-names): Add :version.
+	(mail-extr-address-syntax-table): Remove non-ASCII unibyte chars.
+	(mail-extr-voodoo): Use char classes in regexps (for non-ASCII).
+
+2003-10-21  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (gdb-current-language): New variable.
+	(gdb-update-flag): Remove variable.
+	(gud-watch, gdb-frame-handler): Adapt for other languages (Fortran).
+	(gdb-take-last-elt): Remove function.
+	(gdb-dequeue-input): Avoid recursion by not using gdb-take-last-elt.
+	(gdb-post-prompt): Check for variable object changes here.
+
+	* progmodes/gud.el (gud-speedbar-buttons): Check for variable
+	object changes in gdb-ui.el.
+
+2003-10-21  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/edebug.el (edebug-display-freq-count): Doc fix.
+
+	* ls-lisp.el (ls-lisp-insert-directory): Arg is now wildcard-regexp.
+	Don't check for foo*/ wildcard form here.
+	(insert-directory): Recognize foo*/ as a wildcard.
+	Separate wildcard-regexp variable from the arg, wildcard.
+
+	* subr.el (add-hook): Correctly detect when make-local-hook was used.
+	(remove-hook): Correctly handle strange cases about local hooks.
+
+2003-10-21  David Ponce  <david@dponce.com>
+
+	* ruler-mode.el (ruler-mode-left-fringe-cols): Add new optional
+	argument REAL, to return a real number instead of a rounded
+	integer value.  Define as inline function.
+	(ruler-mode-right-fringe-cols): Likewise.
+	(ruler-mode-scroll-bar-cols): New function.
+	(ruler-mode-left-scroll-bar-cols): Use it.  Define as macro.
+	(ruler-mode-right-scroll-bar-cols): Likewise.
+	(ruler-mode-space): New function.
+	(ruler-mode-ruler): Use it.  Handle variations of fringe style,
+	scroll bar mode and margins in a more robust way.
+
+2003-10-21  Christoph Wedler  <Christoph.Wedler@sap.com>
+
+	* progmodes/antlr-mode.el: Make major mode work with cc-mode-5.30+.
+	(antlr-c-init-language-vars): New function.
+	(antlr-mode): Use it with cc-mode before v5.29.
+	(antlr-c-common-init): Don't set some local vars here.
+	(antlr-mode): Set them here.
+	(antlr-c-forward-sws): New function alias.
+	(antlr-mode): Redefine with cc-mode before v5.30.
+	(antlr-skip-sexps): Use it.
+	(antlr-skip-exception-part): Ditto.
+	(antlr-skip-file-prelude): Ditto.
+	(antlr-outside-rule-p): Ditto.
+	(antlr-end-of-body): Ditto.
+	(antlr-option-kind): Ditto.
+	(antlr-insert-option-area): Ditto.
+	(antlr-file-dependencies): Ditto.
+
+2003-10-21  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-move-outside-of-entry):
+	Move backward only if point was not inside an entry.
+
+2003-10-21  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compile-auto-highlight): Undo July 7 change.
+
+2003-10-21  Juri Linkov  <juri@jurta.org>
+
+	* compare-w.el: Automatically skip non-matching text to resync.
+	(compare-windows-whitespace): Doc fix.
+	(compare-windows-sync, compare-windows-sync-string-size)
+	(compare-windows-recenter, compare-ignore-whitespace)
+	(compare-windows-highlight, compare-windows-face): New variables.
+	(compare-windows): Use compare-windows-sync.
+	(compare-windows-highlight, compare-windows-dehighlight)
+	(compare-windows-sync-regexp)
+	(compare-windows-sync-default-function): New functions.
+
+2003-10-21  Juri Linkov  <juri@jurta.org>
+
+	* diff.el (diff-parse-differences): Don't visit the files now;
+	instead, just record the error locus.
+
+2003-10-21  Dave Love  <fx@gnu.org>
+
+	* progmodes/cfengine.el: New file.
+
+2003-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* complete.el (PC-do-completion): Do not forget to use `pred' as the
+	default-directory when completing file names.
+
+2003-10-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* help-mode.el (help-make-xrefs): Make sure that if a symbol is
+	followed by the word `face', it gets treated as a face, even if
+	it is also defined as a variable or a function.
+
+2003-10-20  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation):
+	Avoid incf in macro expansion.
+
+2003-10-20  John Paul Wallington  <jpw@gnu.org>
+
+	* emacs-lisp/elint.el (elint-check-defcustom-form): Don't use
+	`evenp'	so we don't implicitly require cl library at runtime.
+
+2003-10-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* help-mode.el (help-xref-symbol-regexp): Treat newlines as whitespace.
+	(help-make-xrefs): Only make cross-references for faces if
+	preceded or followed by the word `face'.  Do not make a
+	cross-reference for variables without variable documentation,
+	unless preceded by the word `variable' or `option'.  Update doc
+	string accordingly.
+
+2003-10-18  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/hideshow.el: Rewrite one-armed `if'
+	constructs using either `when' or `unless'.
+	(hs-grok-mode-type): Elide superfluous `progn'; nfc.
+
+2003-10-16  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (breakpoint-xpm-data, breakpoint-enabled-pbm-data)
+	(breakpoint-disabled-pbm-data): Make breakpoint icons 10x10
+	instead of 12x12.
+
+2003-10-16  Eli Zaretskii  <eliz@elta.co.il>
+
+	* mail/rmail.el (rmail-convert-to-babyl-format): Display a
+	message while converting to Babyl.
+
+2003-10-16  Vadim Nasardinov  <vadimn@redhat.com>  (tiny change)
+
+	* allout.el (allout-mode): Doc fix.
+
+2003-10-16  Lute Kamstra  <lute@gnu.org>
+
+	* subr.el (force-mode-line-update): Fix docstring.
+
+2003-10-14  Dave Love  <fx@gnu.org>
+
+	* international/mule-cmds.el (find-multibyte-characters): Doc fix.
+	(default-input-method): Add :link, improve :type.
+	(locale-charset-language-names): Fix utf-8 pattern.
+	(locale-charset-match-p, locale-charset-alist)
+	(locale-charset-to-coding-system): New.
+	(set-locale-environment): Deal with codeset part of locale specs.
+
 2003-10-14  Lute Kamstra  <lute@gnu.org>
 
 	* fringe.el (fringe-mode): Use active voice in docstring.
@@ -9,21 +462,22 @@
 	(set-fringe-style): Ditto.
 
 2003-10-12  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-	* ediff-mult.el (ediff-filegroup-action): use
-	ediff-default-filtering-regexp.
-	
-	* ediff-util.el (ediff-recenter): don't call
+
+	* ediff-mult.el (ediff-filegroup-action):
+	Use ediff-default-filtering-regexp.
+
+	* ediff-util.el (ediff-recenter): Don't call
 	ediff-restore-highlighting twice.
-	(ediff-select-difference): set current difference.
-	(ediff-unselect-and-select-difference): added comment.
-	
-	* ediff.el (ediff-directories,ediff-directory-revisions,
-	ediff-directories3,ediff-merge-directories,
-	ediff-merge-directories-with-ancestor,ediff-merge-directory-revisions,
-	ediff-merge-directory-revisions-with-ancestor): use
-	ediff-default-filtering-regexp.
-	
+	(ediff-select-difference): Set current difference.
+	(ediff-unselect-and-select-difference): Add comment.
+
+	* ediff.el (ediff-directories,ediff-directory-revisions)
+	(ediff-directories3,ediff-merge-directories)
+	(ediff-merge-directories-with-ancestor)
+	(ediff-merge-directory-revisions)
+	(ediff-merge-directory-revisions-with-ancestor):
+	Use ediff-default-filtering-regexp.
+
 2003-10-12  Andreas Schwab  <schwab@suse.de>
 
 	* international/mule-cmds.el (locale-charset-language-names):
@@ -72,7 +526,7 @@
 	* info.el (Info-following-node-name): New function.
 
 	* loadhist.el (unload-feature-special-hooks):
-	Renamed from loadhist-hook-functions.
+	Rename from loadhist-hook-functions.
 	(loadhist-hook-functions): Now an alias.
 
 2003-10-04  Eli Zaretskii  <eliz@elta.co.il>
@@ -80,8 +534,8 @@
 	* ldefs-boot.el: Renamed from loaddefs-boot.el, to prevent
 	file-name clashes on 8+3 filesystems.
 
-	* Makefile.in (DONTCOMPILE, bootstrap-clean): Rename
-	loaddefs-boot.el to ldefs-boot.el
+	* Makefile.in (DONTCOMPILE, bootstrap-clean):
+	Rename loaddefs-boot.el to ldefs-boot.el
 
 	* makefile.w32-in (DONTCOMPILE, bootstrap-clean-CMD)
 	(bootstrap-clean-SH): Rename loaddefs-boot.el to ldefs-boot.el
@@ -104,13 +558,12 @@
 
 2003-10-02  Kenichi Handa  <handa@m17n.org>
 
-	* international/utf-8.el (ccl-decode-mule-utf-8): Lookup
-	utf-subst-table-for-decode even for U+E000..U+FFFF.
+	* international/utf-8.el (ccl-decode-mule-utf-8):
+	Lookup utf-subst-table-for-decode even for U+E000..U+FFFF.
 
-	* international/subst-jis.el: Include U+FF00..U+FFEF in decode
-	table.
+	* international/subst-jis.el: Include U+FF00..U+FFEF in decode table.
 	* international/subst-big5.el: Likewise.
-	* international/subst-gb2312.el: Likewise
+	* international/subst-gb2312.el: Likewise.
 	* international/subst-ksc.el: Likewise.
 
 2003-10-01  Glenn Morris  <gmorris@ast.cam.ac.uk>
@@ -119,8 +572,7 @@
 	(calendar-leap-year-p, calendar-absolute-from-gregorian)
 	(generate-calendar, calendar-read-date, calendar-interval)
 	(calendar-day-of-week): Handle years BC.
-	(generate-calendar-month, calendar-gregorian-from-absolute): Doc
-	fix.
+	(generate-calendar-month, calendar-gregorian-from-absolute): Doc fix.
 
 2003-10-01  Dave Love  <fx@gnu.org>
 
@@ -144,8 +596,8 @@
 
 	* toolbar/gud-display.xpm, toolbar/gud-display.pbm: Remove.
 
-	* progmodes/gud.el (gud-menu-map, gud-tool-bar-map): Replace
-	gud-display with gud-watch.
+	* progmodes/gud.el (gud-menu-map, gud-tool-bar-map):
+	Replace gud-display with gud-watch.
 	(gud-speedbar-buttons): Add stuff for watching expressions
 	in the speedbar when using M-x gdba. Use dolist on old part
 	of this function.
@@ -158,9 +610,8 @@
 	(gdb-var-list-children, gdb-var-list-children-handler)
 	(gdb-var-create-regexp, gdb-var-update-regexp)
 	(gdb-var-list-children-regexp): New constants.
-	(gud-gdba-command-name): Don't specify -noasync so that GDB/MI
-	works.
-	(gdb-annotation-rules): Reduced annotation set (level 3).
+	(gud-gdba-command-name): Don't specify -noasync so that GDB/MI works.
+	(gdb-annotation-rules): Reduce annotation set (level 3).
 	(gdb-pre-prompt, gdb-prompt): Call handler in gdb-prompt.
 	(gdb-post-prompt): Don't update GDB buffers every time speedbar
 	updates.
@@ -226,14 +677,13 @@
 
 	* desktop.el: A lot of comments updated.
 	(desktop-save-mode): Minor mode introduced.
-	(desktop-enable, desktop-clear-preserve-buffers): Variables made
-	obsolete.
+	(desktop-enable, desktop-clear-preserve-buffers): Make vars obsolete.
 	(desktop-load-default): Function made obsolete.
 	(desktop-locals-to-save): Variable made customizable.
 	(desktop-read): Optional parameter `dirname' added.
 	(desktop-change-dir, desktop-revert): Parameter `dirname' in
 	`desktop-read' used.
-	(desktop-save-in-load-dir): Renamed to `desktop-save-in-desktop-dir'.
+	(desktop-save-in-load-dir): Rename to `desktop-save-in-desktop-dir'.
 
 2003-09-29  Rajesh Vaidheeswarran  <rv@gnu.org>
 
@@ -268,8 +718,8 @@
 	(describe-char): Pay attention to display table on describing how
 	a character is displayed.
 
-	* international/mule-cmds.el (encoded-string-description): Prepend
-	"0x" to each encoded byte.
+	* international/mule-cmds.el (encoded-string-description):
+	Prepend "0x" to each encoded byte.
 
 2003-09-28  Andreas Schwab  <schwab@suse.de>
 
@@ -298,8 +748,7 @@
 
 2003-09-28  David Ponce  <david@dponce.com>
 
-	* recentf.el (recentf-initialize-file-name-history): New
-	defcustom.
+	* recentf.el (recentf-initialize-file-name-history): New defcustom.
 	(recentf-load-list): When `recentf-initialize-file-name-history'
 	is non-nil, initialize an empty `file-name-history' with the
 	recent list.
@@ -383,8 +832,7 @@
 2003-09-24  Rajesh Vaidheeswarran  <rv@gnu.org>
 
 	* ffap.el (ffap-shell-prompt-regexp): Add regexp to identify
-	common shell prompts that are not common filename or URL
-	characters.
+	common shell prompts that are not common filename or URL characters.
 	(ffap-file-at-point): Use the new regexp to strip the prompts from
 	the file names. This is an issue mostly for user prompts that
 	don't have a trailing space and find-file-at-point is invoked from
@@ -1100,17 +1548,45 @@
 
 2003-08-11  Carsten Dominik  <dominik@sand.science.uva.nl>
 
-	* textmodes/reftex.el: Updated to version 4.21
-	* reftex-auc.el: likewise.
-	* reftex-cite.el: likewise.
-	* reftex-dcr.el: likewise.
-	* reftex-global.el: likewise.
-	* reftex-index.el: likewise.
-	* reftex-parse.el: likewise.
-	* reftex-ref.el: likewise.
-	* reftex-sel.el: likewise.
-	* reftex-toc.el: likewise.
-	* reftex-vars.el: likewise.
+	* reftex-toc.el (reftex-toc-rename-label): New function.
+	(reftex-toc-check-docstruct): New function.
+
+	* reftex.el (reftex-region-active-p): New function.
+
+	* reftex-parse.el (reftex-locate-bibliography-files): Improved the
+	regexp to find the \bibliography macro.
+
+	* reftex-vars.el (reftex-section-levels): Removed subsubparagraph,
+	which does not exist in LaTeX.
+	(reftex-cite-format-builtin): Added amsrefs support.
+	(reftex-toc-confirm-promotion): New option
+	
+	* reftex-toc.el
+	(reftex-toc): Use `reftex-toc-split-windows-fraction'.
+	(reftex-toc-demote, reftex-toc-promote)
+	(reftex-toc-do-promote, reftex-toc-promote-prepare)
+	(reftex-toc-promote-action, reftex-toc-extract-section-number)
+	(reftex-toc-newhead-from-alist)
+	(reftex-toc-load-all-files-for-promotion): New functions.
+	(reftex-toc-help): Added description of new keys.
+	(reftex-toc-split-windows-fraction): New option.
+	(reftex-recenter-toc-when-idle): Search *toc* window on all
+	visible frames.
+	(reftex-toc): Additional parameter REUSE
+	(reftex-toc-recenter): Remember current frame.  Call `reftex-toc'
+	with REUSE argument.
+	(reftex-recenter-toc-when-idle): Reset `current-prefix-arg' for
+	the call of `reftex-toc'.
+	(reftex-make-separate-toc-frame): New function .
+	(reftex-toc-recenter): When called with triple prefix arg, call
+	`reftex-make-separate-toc-frame' first.
+	(reftex-toc-toggle-dedicated-frame): New command.
+	(reftex-toc-quit): Adapted to delete frame when called in
+	dedicated frame.
+
+	* reftex-index.el (reftex-index-phrase-match-is-indexed): Check
+	all enclosing macros.
+
 
 2003-08-08  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 

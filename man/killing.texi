@@ -152,8 +152,8 @@ what they ought to do, you need to tell Emacs which key to use for
 @findex normal-erase-is-backspace-mode
   On most text-only terminals, Emacs cannot tell which keys the
 keyboard really has, so it follows a uniform plan which may or may not
-fit your keyboard.  The uniform plan is that the ASCII @key{DEL}
-character deletes, and the ASCII @key{BS} (backspace) character asks
+fit your keyboard.  The uniform plan is that the @acronym{ASCII} @key{DEL}
+character deletes, and the @acronym{ASCII} @key{BS} (backspace) character asks
 for help (it is the same as @kbd{C-h}).  If this is not right for your
 keyboard, such as if you find that the key which ought to delete backwards
 enters Help instead, see @ref{DEL Does Not Delete}.

@@ -1,6 +1,6 @@
 ;;; complete.el --- partial completion mechanism plus other goodies
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 1999, 2000
+;; Copyright (C) 1990, 1991, 1992, 1993, 1999, 2000, 2003
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
@@ -394,7 +394,9 @@ of `minibuffer-completion-table' and the minibuffer contents.")
       ;; Add wildcards if necessary
       (and filename
            (let ((dir (file-name-directory str))
-                 (file (file-name-nondirectory str)))
+                 (file (file-name-nondirectory str))
+		 ;; The base dir for file-completion is passed in `predicate'.
+		 (default-directory (expand-file-name pred)))
              (while (and (stringp dir) (not (file-directory-p dir)))
                (setq dir (directory-file-name dir))
                (setq file (concat (replace-regexp-in-string
@@ -408,6 +410,8 @@ of `minibuffer-completion-table' and the minibuffer contents.")
       (and filename
 	   (string-match "\\*.*/" str)
 	   (let ((pat str)
+		 ;; The base dir for file-completion is passed in `predicate'.
+		 (default-directory (expand-file-name pred))
 		 files)
 	     (setq p (1+ (string-match "/[^/]*\\'" pat)))
 	     (while (setq p (string-match PC-delim-regex pat p))

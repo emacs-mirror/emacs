@@ -197,6 +197,75 @@
 (make-variable-buffer-local 'c-type-decl-end-used)
 
 
+;; Basic handling of preprocessor directives.
+
+;; This is a dynamically bound cache used together with
+;; `c-query-macro-start' and `c-query-and-set-macro-start'.  It only
+;; works as long as point doesn't cross a macro boundary.
+(defvar c-macro-start 'unknown)
+
+(defsubst c-query-and-set-macro-start ()
+  ;; This function does not do any hidden buffer changes.
+  (if (symbolp c-macro-start)
+      (setq c-macro-start (save-excursion
+			    (and (c-beginning-of-macro)
+				 (point))))
+    c-macro-start))
+
+(defsubst c-query-macro-start ()
+  ;; This function does not do any hidden buffer changes.
+  (if (symbolp c-macro-start)
+      (save-excursion
+	(and (c-beginning-of-macro)
+	     (point)))
+    c-macro-start))
+
+(defun c-beginning-of-macro (&optional lim)
+  "Go to the beginning of a preprocessor directive.
+Leave point at the beginning of the directive and return t if in one,
+otherwise return nil and leave point unchanged.
+
+This function does not do any hidden buffer changes."
+  (when c-opt-cpp-prefix
+    (let ((here (point)))
+      (save-restriction
+	(if lim (narrow-to-region lim (point-max)))
+	(beginning-of-line)
+	(while (eq (char-before (1- (point))) ?\\)
+	  (forward-line -1))
+	(back-to-indentation)
+	(if (and (<= (point) here)
+		 (looking-at c-opt-cpp-start))
+	    t
+	  (goto-char here)
+	  nil)))))
+
+(defun c-end-of-macro ()
+  "Go to the end of a preprocessor directive.
+More accurately, move point to the end of the closest following line
+that doesn't end with a line continuation backslash.
+
+This function does not do any hidden buffer changes."
+  (while (progn
+	   (end-of-line)
+	   (when (and (eq (char-before) ?\\)
+		      (not (eobp)))
+	     (forward-char)
+	     t))))
+
+(defun c-forward-to-cpp-define-body ()
+  ;; Assuming point is at the "#" that introduces a preprocessor
+  ;; directive, it's moved forward to the start of the definition body
+  ;; if it's a "#define".  Non-nil is returned in this case, in all
+  ;; other cases nil is returned and point isn't moved.
+  (when (and (looking-at
+	      (concat "#[ \t]*"
+		      "define[ \t]+\\(\\sw\\|_\\)+\\(\([^\)]*\)\\)?"
+		      "\\([ \t]\\|\\\\\n\\)*"))
+	     (not (= (match-end 0) (c-point 'eol))))
+    (goto-char (match-end 0))))
+
+
 ;;; Basic utility functions.
 
 (defun c-syntactic-content (from to)
@@ -267,6 +336,37 @@
 ;; `c-doc-face-name' when fontification is activated in cc-fonts.el.
 (defvar c-literal-faces
   '(font-lock-comment-face font-lock-string-face))
+
+(defun c-shift-line-indentation (shift-amt)
+  ;; This function does not do any hidden buffer changes.
+  (let ((pos (- (point-max) (point)))
+	(c-macro-start c-macro-start)
+	tmp-char-inserted)
+    (if (zerop shift-amt)
+	nil
+      (when (and (c-query-and-set-macro-start)
+		 (looking-at "[ \t]*\\\\$")
+		 (save-excursion
+		   (skip-chars-backward " \t")
+		   (bolp)))
+	(insert ?x)
+	(backward-char)
+	(setq tmp-char-inserted t))
+      (unwind-protect
+	  (let ((col (current-indentation)))
+	    (delete-region (c-point 'bol) (c-point 'boi))
+	    (beginning-of-line)
+	    (indent-to (+ col shift-amt)))
+	(when tmp-char-inserted
+	  (delete-char 1))))
+    ;; If initial point was within line's indentation and we're not on
+    ;; a line with a line continuation in a macro, position after the
+    ;; indentation.  Else stay at same point in text.
+    (if (and (< (point) (c-point 'boi))
+	     (not tmp-char-inserted))
+	(back-to-indentation)
+      (if (> (- (point-max) pos) (point))
+	  (goto-char (- (point-max) pos))))))
 
 
 ;; Some debug tools to visualize various special positions.  This
@@ -592,7 +692,7 @@ COMMA-DELIM is non-nil then ',' is treated likewise."
 
 		;; The PDA state handling.
                 ;;
-                ;; Refer to the description of the PDA in the openining
+                ;; Refer to the description of the PDA in the opening
                 ;; comments.  In the following OR form, the first leaf
                 ;; attempts to handles one of the specific actions detailed
                 ;; (e.g., finding token "if" whilst in state `else-boundary').
@@ -769,7 +869,9 @@ COMMA-DELIM is non-nil then ',' is treated likewise."
 			sym 'boundary)
 		  (throw 'loop t))) ; like a C "continue".  Analyze the next sexp.
 
-	      (when (and (numberp c-maybe-labelp) (not ignore-labels))
+	      (when (and (numberp c-maybe-labelp)
+			 (not ignore-labels)
+			 (not (looking-at "\\s\(")))
 		;; c-crosses-statement-barrier-p has found a colon, so
 		;; we might be in a label now.
 		(if (not after-labels-pos)
@@ -1010,75 +1112,6 @@ This function does not do any hidden buffer changes."
 			 (< (point) start))
 		(backward-char)
 		t))))))
-
-
-;; Basic handling of preprocessor directives.
-
-;; This is a dynamically bound cache used together with
-;; `c-query-macro-start' and `c-query-and-set-macro-start'.  It only
-;; works as long as point doesn't cross a macro boundary.
-(defvar c-macro-start 'unknown)
-
-(defsubst c-query-and-set-macro-start ()
-  ;; This function does not do any hidden buffer changes.
-  (if (symbolp c-macro-start)
-      (setq c-macro-start (save-excursion
-			    (and (c-beginning-of-macro)
-				 (point))))
-    c-macro-start))
-
-(defsubst c-query-macro-start ()
-  ;; This function does not do any hidden buffer changes.
-  (if (symbolp c-macro-start)
-      (save-excursion
-	(and (c-beginning-of-macro)
-	     (point)))
-    c-macro-start))
-
-(defun c-beginning-of-macro (&optional lim)
-  "Go to the beginning of a preprocessor directive.
-Leave point at the beginning of the directive and return t if in one,
-otherwise return nil and leave point unchanged.
-
-This function does not do any hidden buffer changes."
-  (when c-opt-cpp-prefix
-    (let ((here (point)))
-      (save-restriction
-	(if lim (narrow-to-region lim (point-max)))
-	(beginning-of-line)
-	(while (eq (char-before (1- (point))) ?\\)
-	  (forward-line -1))
-	(back-to-indentation)
-	(if (and (<= (point) here)
-		 (looking-at c-opt-cpp-start))
-	    t
-	  (goto-char here)
-	  nil)))))
-
-(defun c-end-of-macro ()
-  "Go to the end of a preprocessor directive.
-More accurately, move point to the end of the closest following line
-that doesn't end with a line continuation backslash.
-
-This function does not do any hidden buffer changes."
-  (while (progn
-	   (end-of-line)
-	   (when (and (eq (char-before) ?\\)
-		      (not (eobp)))
-	     (forward-char)
-	     t))))
-
-(defun c-forward-to-cpp-define-body ()
-  ;; Assuming point is at the "#" that introduces a preprocessor
-  ;; directive, it's moved forward to the start of the definition body
-  ;; if it's a "#define".  Non-nil is returned in this case, in all
-  ;; other cases nil is returned and point isn't moved.
-  (when (and (looking-at
-	      (concat "#[ \t]*"
-		      "define[ \t]+\\(\\sw\\|_\\)+\\(\([^\)]*\)\\)?"
-		      "\\([ \t]\\|\\\\\n\\)*"))
-	     (not (= (match-end 0) (c-point 'eol))))
-    (goto-char (match-end 0))))
 
 
 ;; Tools for skipping over syntactic whitespace.
@@ -2451,7 +2484,8 @@ syntactic whitespace."
 			  (< check-pos
 			     (save-excursion
 			       (goto-char check-pos)
-			       (c-end-of-current-token last-token-end-pos)
+			       (save-match-data
+				 (c-end-of-current-token last-token-end-pos))
 			       (setq last-token-end-pos (point))))))
 		 ;; Match inside a token.
 		 (cond ((<= (point) bound)
@@ -2516,9 +2550,7 @@ syntactic whitespace."
 i.e. don't stop at positions inside syntactic whitespace or string
 literals.  Preprocessor directives are also ignored, with the exception
 of the one that the point starts within, if any.  If LIMIT is given,
-it's assumed to be at a syntactically relevant position.
-
-This function does not do any hidden buffer changes."
+it's assumed to be at a syntactically relevant position."
 
   (let ((start (point))
 	;; A list of syntactically relevant positions in descending
@@ -3351,9 +3383,20 @@ This function does not do any hidden buffer changes."
 (defvar c-promote-possible-types nil)
 
 ;; Dynamically bound variable that instructs `c-forward-<>-arglist' to
-;; not accept arglists that contain more than one argument.  It's used
-;; to handle ambiguous cases like "foo (a < b, c > d)" better.
-(defvar c-disallow-comma-in-<>-arglists nil)
+;; not accept arglists that contain binary operators.
+;;
+;; This is primarily used to handle C++ template arglists.  C++
+;; disambiguates them by checking whether the preceding name is a
+;; template or not.  We can't do that, so we assume it is a template
+;; if it can be parsed as one.  That usually works well since
+;; comparison expressions on the forms "a < b > c" or "a < b, c > d"
+;; in almost all cases would be pointless.
+;;
+;; However, in function arglists, e.g. in "foo (a < b, c > d)", we
+;; should let the comma separate the function arguments instead.  And
+;; in a context where the value of the expression is taken, e.g. in
+;; "if (a < b || c > d)", it's probably not a template.
+(defvar c-restricted-<>-arglists nil)
 
 ;; Dynamically bound variables that instructs `c-forward-name',
 ;; `c-forward-type' and `c-forward-<>-arglist' to record the ranges of
@@ -3494,7 +3537,7 @@ This function does not do any hidden buffer changes."
 	     (eq (char-after) ?<)
 	     (c-forward-<>-arglist (c-keyword-member kwd-sym 'c-<>-type-kwds)
 				   (or c-record-type-identifiers
-				       c-disallow-comma-in-<>-arglists)))
+				       c-restricted-<>-arglists)))
 	(c-forward-syntactic-ws)
 	(setq safe-pos (point)))
 
@@ -3543,16 +3586,7 @@ This function does not do any hidden buffer changes."
   ;; necessary if the various side effects, e.g. recording of type
   ;; ranges, are important.  Setting REPARSE to t only applies
   ;; recursively to nested angle bracket arglists if
-  ;; `c-disallow-comma-in-<>-arglists' is set.
-  ;;
-  ;; This is primarily used in C++ to mark up template arglists.  C++
-  ;; disambiguates them by checking whether the preceding name is a
-  ;; template or not.  We can't do that, so we assume it is a template
-  ;; if it can be parsed as one.  This usually works well since
-  ;; comparison expressions on the forms "a < b > c" or "a < b, c > d"
-  ;; in almost all cases would be pointless.  Cases like function
-  ;; calls on the form "foo (a < b, c > d)" needs to be handled
-  ;; specially through the `c-disallow-comma-in-<>-arglists' variable.
+  ;; `c-restricted-<>-arglists' is set.
 
   (let ((start (point))
 	;; If `c-record-type-identifiers' is set then activate
@@ -3683,11 +3717,18 @@ This function does not do any hidden buffer changes."
 			(forward-char)
 			t)
 
-		      ;; Note: This regexp exploits the match order in
-		      ;; \| so that "<>" is matched by "<" rather than
-		      ;; "[^>:-]>".
+		      ;; Note: These regexps exploit the match order in \| so
+		      ;; that "<>" is matched by "<" rather than "[^>:-]>".
 		      (c-syntactic-re-search-forward
-		       "[<;{},]\\|\\([^>:-]>\\)" nil 'move t t 1)
+		       (if c-restricted-<>-arglists
+			   ;; Stop on ',', '|', '&', '+' and '-' to catch
+			   ;; common binary operators that could be between
+			   ;; two comparison expressions "a<b" and "c>d".
+			   "[<;{},|&+-]\\|\\([^>:-]>\\)"
+			 ;; Otherwise we still stop on ',' to find the
+			 ;; argument start positions.
+			 "[<;{},]\\|\\([^>:-]>\\)")
+		       nil 'move t t 1)
 
 		      ;; If the arglist starter has lost its open paren
 		      ;; syntax but not the closer, we won't find the
@@ -3776,7 +3817,7 @@ This function does not do any hidden buffer changes."
 					   (c-keyword-sym (match-string 1))
 					   'c-<>-type-kwds))
 				     (and reparse
-					  c-disallow-comma-in-<>-arglists))))
+					  c-restricted-<>-arglists))))
 			    )))
 
 			;; It was not an angle bracket arglist.
@@ -3812,7 +3853,7 @@ This function does not do any hidden buffer changes."
 		  t)
 
 		 ((and (eq (char-before) ?,)
-		       (not c-disallow-comma-in-<>-arglists))
+		       (not c-restricted-<>-arglists))
 		  ;; Just another argument.  Record the position.  The
 		  ;; type check stuff that made us stop at it is at
 		  ;; the top of the loop.
@@ -3959,7 +4000,7 @@ This function does not do any hidden buffer changes."
 	       (when (let ((c-record-type-identifiers nil)
 			   (c-record-found-types nil))
 		       (c-forward-<>-arglist
-			nil c-disallow-comma-in-<>-arglists))
+			nil c-restricted-<>-arglists))
 		 (c-forward-syntactic-ws)
 		 (setq pos (point))
 		 (if (and c-opt-identifier-concat-key
@@ -4202,7 +4243,7 @@ This function does not do any hidden buffer changes."
     (c-with-syntax-table c++-template-syntax-table
       (c-backward-token-2 0 t lim)
       (while (and (or (looking-at c-symbol-start)
-		      (looking-at "[<,]"))
+		      (looking-at "[<,]\\|::"))
 		  (zerop (c-backward-token-2 1 t lim))))
       (skip-chars-forward "^:"))))
 
@@ -4326,8 +4367,7 @@ brace."
   ;; position that bounds the backward search for the argument list.
   ;;
   ;; Note: A declaration level context is assumed; the test can return
-  ;; false positives for statements.  This test is even more easily
-  ;; fooled than `c-just-after-func-arglist-p'.
+  ;; false positives for statements.
 
   (save-excursion
     (save-restriction
@@ -4337,13 +4377,12 @@ brace."
       ;; check that it's followed by some symbol before the next ';'
       ;; or '{'.  If it does, it's the header of the K&R argdecl we're
       ;; in.
-      (if lim (narrow-to-region lim (point)))
+      (if lim (narrow-to-region lim (c-point 'eol)))
       (let ((outside-macro (not (c-query-macro-start)))
 	    paren-end)
 
 	(catch 'done
-	  (while (if (and (c-safe (setq paren-end
-					(c-down-list-backward (point))))
+	  (while (if (and (setq paren-end (c-down-list-backward (point)))
 			  (eq (char-after paren-end) ?\)))
 		     (progn
 		       (goto-char (1+ paren-end))
@@ -4354,7 +4393,26 @@ brace."
 	(and (progn
 	       (c-forward-syntactic-ws)
 	       (looking-at "\\w\\|\\s_"))
-	     (c-safe (c-up-list-backward paren-end))
+
+	     (save-excursion
+	       ;; The function header in a K&R declaration should only
+	       ;; contain identifiers separated by comma.  It should
+	       ;; also contain at least one identifier since there
+	       ;; wouldn't be anything to declare in the K&R region
+	       ;; otherwise.
+	       (when (c-go-up-list-backward paren-end)
+		 (forward-char)
+		 (catch 'knr-ok
+		   (while t
+		     (c-forward-syntactic-ws)
+		     (if (or (looking-at c-known-type-key)
+			     (looking-at c-keywords-regexp))
+			 (throw 'knr-ok nil))
+		     (c-forward-token-2)
+		     (if (eq (char-after) ?,)
+			 (forward-char)
+		       (throw 'knr-ok (and (eq (char-after) ?\))
+					   (= (point) paren-end))))))))
 
 	     (save-excursion
 	       ;; If it's a K&R declaration then we're now at the
@@ -4405,24 +4463,12 @@ brace."
       (if start
 	  (goto-char start)))))
 
-(defun c-backward-to-decl-anchor (&optional lim)
+(defsubst c-backward-to-decl-anchor (&optional lim)
   ;; Assuming point is at a brace that opens the block of a top level
   ;; declaration of some kind, move to the proper anchor point for
   ;; that block.
   (unless (= (point) (c-point 'boi))
-    ;; What we have below is actually an extremely stripped variant of
-    ;; c-beginning-of-statement-1.
-    (let ((pos (point)) c-maybe-labelp)
-      ;; Switch syntax table to avoid stopping at line continuations.
-      (save-restriction
-	(if lim (narrow-to-region lim (point-max)))
-	(while (and (progn
-		      (c-backward-syntactic-ws)
-		      (c-safe (goto-char (scan-sexps (point) -1)) t))
-		    (not (c-crosses-statement-barrier-p (point) pos))
-		    (not c-maybe-labelp))
-	  (setq pos (point)))
-	(goto-char pos)))))
+    (c-beginning-of-statement-1 lim)))
 
 (defun c-search-decl-header-end ()
   ;; Search forward for the end of the "header" of the current
@@ -4619,7 +4665,7 @@ brace."
       nil)))
 
 (defun c-beginning-of-member-init-list (&optional limit)
-  ;; Goes to the beginning of a member init list (i.e. just after the
+  ;; Go to the beginning of a member init list (i.e. just after the
   ;; ':') if inside one.  Returns t in that case, nil otherwise.
   (or limit
       (setq limit (point-min)))
@@ -5196,7 +5242,7 @@ brace."
 			 (eq step-type 'label)
 			 (/= savepos boi))
 
-		     (progn
+		     (let ((save-step-type step-type))
 		       ;; Current position might not be good enough;
 		       ;; skip backward another statement.
 		       (setq step-type (c-beginning-of-statement-1
@@ -5228,14 +5274,20 @@ brace."
 			   (c-add-syntax 'substatement nil))
 
 			 (setq boi (c-point 'boi))
-			 (/= (point) savepos)))))
+			 (if (= (point) savepos)
+			     (progn
+			       (setq step-type save-step-type)
+			       nil)
+			   t)))))
 
 		(setq savepos (point)
 		      at-comment nil))
 	      (setq at-comment nil)
 
-	      (when (and (eq step-type 'same)
-			 containing-sexp)
+	      (when (and containing-sexp
+			 (if (memq step-type '(nil same))
+			     (/= (point) boi)
+			   (eq step-type 'label)))
 		(goto-char containing-sexp)
 
 		;; Don't stop in the middle of a special brace list opener
@@ -5395,21 +5447,32 @@ brace."
 
        ;; CASE B.3: The body of a function declared inside a normal
        ;; block.  Can occur e.g. in Pike and when using gcc
-       ;; extensions.  Might also trigger it with some macros followed
-       ;; by blocks, and this gives sane indentation then too.
+       ;; extensions, but watch out for macros followed by blocks.
        ;; C.f. cases E, 16F and 17G.
        ((and (not (c-looking-at-bos))
 	     (eq (c-beginning-of-statement-1 containing-sexp nil nil t)
-		 'same))
+		 'same)
+	     (save-excursion
+	       ;; Look for a type followed by a symbol, i.e. the start of a
+	       ;; function declaration.  Doesn't work for declarations like
+	       ;; "int *foo() ..."; we'd need to refactor the more competent
+	       ;; analysis in `c-font-lock-declarations' for that.
+	       (and (c-forward-type)
+		    (progn
+		      (c-forward-syntactic-ws)
+		      (looking-at c-symbol-start)))))
 	(c-add-stmt-syntax 'defun-open nil t nil
 			   containing-sexp paren-state))
 
-       ;; CASE B.4: Continued statement with block open.
+       ;; CASE B.4: Continued statement with block open.  The most
+       ;; accurate analysis is perhaps `statement-cont' together with
+       ;; `block-open' but we play DWIM and use `substatement-open'
+       ;; instead.  The rationaly is that this typically is a macro
+       ;; followed by a block which makes it very similar to a
+       ;; statement with a substatement block.
        (t
-	(goto-char beg-of-same-or-containing-stmt)
-	(c-add-stmt-syntax 'statement-cont nil nil nil
-			   containing-sexp paren-state)
-	(c-add-syntax 'block-open))
+	(c-add-stmt-syntax 'substatement-open nil nil nil
+			   containing-sexp paren-state))
        ))
 
      ;; CASE C: iostream insertion or extraction operator
@@ -5428,8 +5491,8 @@ brace."
      ((and (save-excursion
 	     ;; Check that the next token is a '{'.  This works as
 	     ;; long as no language that allows nested function
-	     ;; definitions doesn't allow stuff like member init
-	     ;; lists, K&R declarations or throws clauses there.
+	     ;; definitions allows stuff like member init lists, K&R
+	     ;; declarations or throws clauses there.
 	     ;;
 	     ;; Note that we do a forward search for something ahead
 	     ;; of the indentation line here.  That's not good since
@@ -5440,7 +5503,16 @@ brace."
 	     (eq (char-after) ?{))
 	   (not (c-looking-at-bos))
 	   (eq (c-beginning-of-statement-1 containing-sexp nil nil t)
-	       'same))
+	       'same)
+	   (save-excursion
+	     ;; Look for a type followed by a symbol, i.e. the start of a
+	     ;; function declaration.  Doesn't work for declarations like "int
+	     ;; *foo() ..."; we'd need to refactor the more competent analysis
+	     ;; in `c-font-lock-declarations' for that.
+	     (and (c-forward-type)
+		  (progn
+		    (c-forward-syntactic-ws)
+		    (looking-at c-symbol-start)))))
       (c-add-stmt-syntax 'func-decl-cont nil t nil
 			 containing-sexp paren-state))
 
@@ -5852,7 +5924,8 @@ This function does not do any hidden buffer changes."
 	      ;; should be relative to the ctor's indentation
 	      )
 	     ;; CASE 5B.2: K&R arg decl intro
-	     (c-recognize-knr-p
+	     ((and c-recognize-knr-p
+		   (c-in-knr-argdecl lim))
 	      (c-beginning-of-statement-1 lim)
 	      (c-add-syntax 'knr-argdecl-intro (c-point 'boi))
 	      (if inclass-p
@@ -6493,16 +6566,24 @@ This function does not do any hidden buffer changes."
 		(c-add-syntax 'inline-close (point))))
 	     ;; CASE 16F: Can be a defun-close of a function declared
 	     ;; in a statement block, e.g. in Pike or when using gcc
-	     ;; extensions.  Might also trigger it with some macros
-	     ;; followed by blocks, and this gives sane indentation
-	     ;; then too.  Let it through to be handled below.
+	     ;; extensions, but watch out for macros followed by
+	     ;; blocks.  Let it through to be handled below.
 	     ;; C.f. cases B.3 and 17G.
 	     ((and (not inenclosing-p)
 		   lim
 		   (save-excursion
 		     (and (not (c-looking-at-bos))
 			  (eq (c-beginning-of-statement-1 lim nil nil t) 'same)
-			  (setq placeholder (point)))))
+			  (setq placeholder (point))
+			  ;; Look for a type or identifier followed by a
+			  ;; symbol, i.e. the start of a function declaration.
+			  ;; Doesn't work for declarations like "int *foo()
+			  ;; ..."; we'd need to refactor the more competent
+			  ;; analysis in `c-font-lock-declarations' for that.
+			  (c-forward-type)
+			  (progn
+			    (c-forward-syntactic-ws)
+			    (looking-at c-symbol-start)))))
 	      (back-to-indentation)
 	      (if (/= (point) containing-sexp)
 		  (goto-char placeholder))
@@ -6627,13 +6708,21 @@ This function does not do any hidden buffer changes."
 	    (c-add-syntax 'defun-block-intro (point)))
 	   ;; CASE 17G: First statement in a function declared inside
 	   ;; a normal block.  This can occur in Pike and with
-	   ;; e.g. the gcc extensions.  Might also trigger it with
-	   ;; some macros followed by blocks, and this gives sane
-	   ;; indentation then too.  C.f. cases B.3 and 16F.
+	   ;; e.g. the gcc extensions, but watch out for macros
+	   ;; followed by blocks.  C.f. cases B.3 and 16F.
 	   ((save-excursion
 	      (and (not (c-looking-at-bos))
 		   (eq (c-beginning-of-statement-1 lim nil nil t) 'same)
-		   (setq placeholder (point))))
+		   (setq placeholder (point))
+		   ;; Look for a type or identifier followed by a
+		   ;; symbol, i.e. the start of a function declaration.
+		   ;; Doesn't work for declarations like "int *foo()
+		   ;; ..."; we'd need to refactor the more competent
+		   ;; analysis in `c-font-lock-declarations' for that.
+		   (c-forward-type)
+		   (progn
+		     (c-forward-syntactic-ws)
+		     (looking-at c-symbol-start))))
 	    (back-to-indentation)
 	    (if (/= (point) containing-sexp)
 		(goto-char placeholder))

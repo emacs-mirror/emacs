@@ -1,8 +1,233 @@
+2003-11-19  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (init_iterator): Initialize it->start to position
+	before reseating (in case start position is invisible).
+	(init_to_row_start): Set it->start to row-start.
+	(redisplay_window): Accept optional_new_start if start position
+	is invisible (in which case IT_CHARPOS overshoots PT).
+	(display_line): Setup row->start from it->start (rather than
+	it->current which is wrong if first char on line is invisible).
+	When done, reseat it->start to it->current (= start of next row).
+	(expose_area): Fix exposure of text area when first char (e.g. TAB)
+	is only partially visible.
+
+	* dispextern.h (struct it): New member start.
+
+2003-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (parse_modifiers, apply_modifiers): Use INTMASK instead
+	of VALMASK.
+
+	* fns.c (hashfn_eq, hashfn_eql, hashfn_equal, hash_put)
+	(sxhash_string, sxhash): Use INTMASK instead of VALMASK.
+	(maybe_resize_hash_table): Use MOST_POSITIVE_FIXNUM.
+
+	* lisp.h (VALMASK): Only define for non-union type.
+	(MARKBIT): Remove.
+	(ARRAY_MARK_FLAG): Use previous value of MARKBIT.
+	(XTYPE): Define unconditionally.
+	(XSETTYPE): Remove one more remnant.
+	(EQ): Define differently for the union and non-union cases.
+	(INTMASK): New bit mask.
+	(struct Lisp_Marker): Move down to prepare for upcoming patch.
+	(GC_EQ): Delegate to EQ.
+
+	* coding.c (coding_restore_composition): Lisp_Object/int mixup.
+
+2003-11-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_window_to_scroll_bar): Move check of display to
+	where window_id is compared.
+
+2003-11-17  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (struct it): New member first_vpos.
+
+	* xdisp.c (start_display): Set it->first_vpos.
+	(try_window_id): Use first_vpos to start display in first _text_
+	line if no reusable lines at start of window with header line.
+
+2003-11-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* w32fns.c (XPutPixel):
+	* w32bdf.c (w32_init_bdf_font):
+	* sunfns.c (sel_read):
+	* process.c (Fmake_network_process):
+	* frame.c (store_frame_param):
+	* fontset.c (Fset_fontset_font):
+	* emacs.c (shut_down_emacs):
+	* ccl.c (ccl_driver):  Remove period at end of error message.
+
+	* config.in: Regenerate.
+
+	* xfns.c (x_window_to_frame, x_any_window_to_frame)
+	(x_non_menubar_window_to_frame, x_menubar_window_to_frame)
+	(x_top_window_to_frame): Add Display* argument to xg_win_to_widget.
+	(x_create_bitmap_mask, xg_set_icon, create_frame_xic)
+	(xic_set_statusarea, x_window, gif_load): Formatting adjustments.
+
+	* xterm.h (struct x_display_info): New field xg_cursor for GTK.
+
+	* xterm.c: Add Display * to x_window_to_scroll_bar declaration.
+	(XTmouse_position, handle_one_xevent): Pass Display* to
+	x_window_to_scroll_bar.
+	(x_window_to_scroll_bar): Take a Display* argument.
+	Check that display for frame is equal to Display* argument.
+	(event_handler_gdk): Remove current_dpyinfo.  Get dpyinfo from
+	x_display_info_for_display instead.  Use Display in xev instead
+	of GDK_DISPLAY.
+	(x_dispatch_event): Call x_display_info_for_display.
+	(XTread_socket): Move GTK part out of loop. current_dpyinfo removed.
+	(x_connection_closed): Call xg_display_close for GTK.
+	(x_term_init): Call xg_display_open for additional displays.
+	Initiate dpyinfo->xg_cursor with call to xg_create_default_cursor
+	for GTK.
+
+	* xmenu.c (single_menu_item, mouse_position_for_popup)
+	(x_activate_menubar): Formatting adjustments.
+
+	* xdisp.c (update_tool_bar, redisplay_tool_bar): Formatting
+	adjustments.
+
+	* gtkutil.c (xg_get_gdk_display, xg_set_screen, xg_display_open)
+	(xg_display_close, xg_create_default_cursor)
+	(xg_get_gdk_pixmap_and_mask): New functions for multiple display
+	handling.
+	(xg_left_ptr_cursor): Remove.
+	(xg_set_cursor): Change cursor to GdkCursor*.  Do not create
+	cursor here.
+	(xg_win_to_widget): Take Display* argument, call
+	gdk_xid_table_lookup_for_display.
+	(xg_create_frame_widgets, xg_get_file_name, create_menus)
+	(xg_create_widget, xg_modify_menubar_widgets): Call xg_set_screen.
+	(xg_create_widget, xg_create_scroll_bar): Use xg_cursor
+	in FRAME_X_DISPLAY_INFO.
+	(xg_get_scroll_id_for_window): Take Display* argument.
+	(update_frame_tool_bar): Call xg_get_gdk_pixmap_and_mask.
+	(xg_initialize): Remove xg_left_ptr_cursor.
+
+	* gtkutil.h: xg_get_scroll_id_for_window, xg_win_to_widget takes
+	Display* argument also.  Declare xg_display_open,
+	xg_display_close, xg_create_default_cursor.
+
+2003-11-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_detect_focus_change): Do not change focus frame for
+	Enter/LeaveNotify if the current focus frame has explicit focus.
+
+2003-11-14  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (update_text_area): Fix redisplay error when hscroll
+	is active and first glyph is only partially visible.
+
+2003-11-13  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (select_frame_for_redisplay): New function.
+	(redisplay_internal): Record also selected_frame for
+	unwind_redisplay.  Call select_frame_for_redisplay before
+	redrawing each frame.
+	(unwind_redisplay): Argument changed to a cons.
+
+2003-11-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fns.c (Fstring_to_multibyte): Doc fix.
+
+2003-11-11  Kenichi Handa  <handa@m17n.org>
+
+	* xterm.c (x_list_fonts): Fix excluding of auto-scaled fonts.
+
+2003-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (x_window): Set XtNx and XtNy in shell widget for
+	program specified positions.
+
+2003-11-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (XAW_ARROW_SCROLLBARS): Define it for Xaw 1.5E.
+
+2003-11-08  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (lisp): Add kannada.el.
+	(shortlisp): Likewise.
+
+2003-11-07  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (coding_allocate_composition_data):
+	Reset coding->composing to COMPOSITION_NO.
+	(coding_restore_composition): Detect invalid composition data.
+	Give Fstring and Fvector a Lispy integer, not C int.
+
+2003-11-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* floatfns.c (Flogb): Don't use VALMASK.
+
+	* m/amdx86-64.h (VALBITS, XINT, XUINT): Remove.
+	* m/ia64.h (VALBITS, XINT, XUINT): Remove.
+
+	* lisp.h (XINT): Move the cast to clarify what is going on.
+	(GCTYPEMASK, XSETTYPE): Remove.
+	(XGCTYPE): Make it an alias of XTYPE.
+
+2003-11-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_term_init): Fix formatting.
+
+2003-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.h: Declare xg_have_tear_offs, remove xg_keep_popup
+	and xg_did_tearoff.
+
+	* gtkutil.c: Remove variable xg_did_tearoff.
+	(xg_have_tear_offs): New function.
+	(tearoff_remove): Just decrease xg_detached_menus.
+	(tearoff_activate): Increase xg_detached_menus and call
+	tearoff_remove when tearoff is removed.
+	(xg_keep_popup): Remove function.
+	(create_menus): Give add_tearoff_p as argument to recursive
+	call to create_menus.
+	(xg_create_widget): Use variables instead of multiple
+	strcmp.  Tell create_menus to create tear off only for
+	menu bar menus.
+	(xg_update_menubar): Change title for a detached menu also.
+	(xg_modify_menubar_widgets): Always call xg_update_menubar, regardless
+	of deep_p.
+	(xg_initialize): Initialize xg_detached_menus, remove
+	initialization of xg_did_tearoff.
+
+	* xmenu.c (set_frame_menubar): For GTK, set deep_p if
+	xg_have_tear_offs returns non-zero.
+	(create_and_show_popup_menu): Remove setting of xg_did_tearoff and
+	call to xg_keep_popup.
+
+2003-11-01  Andrew Choi  <akochoi@shaw.ca>
+
+	* macterm.c (XTread_socket): Handle menubar selection and grow
+	window only for mouseDown events.
+
+2003-10-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_term_init): For GTK part, increase x_initialized
+	to check for more than one display.  Use error instead of return 0.
+
+2003-10-31  Andrew Choi  <akochoi@shaw.ca>
+
+	* unexmacosx.c (unrelocate): New function (contributed by Nozomu Ando).
+	(copy_dysymtab): Call it.
+
+2003-10-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* eval.c (Fdefvaralias): Doc fix.
+
+2003-10-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* data.c (Fsetplist): Doc fix.
+
 2003-10-14  Lute Kamstra  <lute@gnu.org>
 
 	* window.c (Fset_window_fringes): Clarify docstring.
 
 2003-10-14  Kim F. Storm  <storm@cua.dk>
+
 	* window.c (Fset_window_margins): Simplify arg checking.
 
 2003-10-13  Richard M. Stallman  <rms@gnu.org>
@@ -23,8 +248,7 @@
 
 2003-10-12  Andrew Choi  <akochoi@shaw.ca>
 
-	* macterm.c (XTread_socket): Call DragWindow only for mouseDown
-	events.
+	* macterm.c (XTread_socket): Call DragWindow only for mouseDown events.
 
 	* s/darwin.h (GC_MARK_STACK): Define.
 
@@ -40,8 +264,7 @@
 
 2003-10-08  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (Fcoding_system_p): Return t for auto-loading coding
-	system.
+	* coding.c (Fcoding_system_p): Return t for auto-loading coding system.
 
 2003-10-07  Kenichi Handa  <handa@m17n.org>
 
@@ -69,7 +292,7 @@
 
 	* xterm.h (struct x_output): New members: move_offset_top/left.
 
-	* frame.c (x_set_frame_parameters): x_fullscreen_move removed,
+	* frame.c (x_set_frame_parameters): Remove x_fullscreen_move,
 	call x_set_offset directly.
 
 	* frame.h (enum): FULLSCREEN_MOVE_WAIT removed.
@@ -79,8 +302,8 @@
 	* xterm.c (x_delete_display): Free font names and font_encoder
 	in dpyinfo->font_table.
 
-	* xfns.c (Fx_close_connection): Only call XFreeFont here.  xfree
-	of font names moved to x_delete_display.
+	* xfns.c (Fx_close_connection): Only call XFreeFont here.
+	Move xfree of font names to x_delete_display.
 
 	* xterm.h (struct x_display_info): New member, wm_type.
 	(struct x_output): New members, expected_top/left and
@@ -88,11 +311,11 @@
 
 	* xterm.c (handle_one_xevent): Reset wm_type when ReparentNotify
 	is received.
-	(handle_one_xevent): x_check_expected_move renamed from
-	x_check_fullscreen_move
+	(handle_one_xevent): Rename x_check_expected_move from
+	x_check_fullscreen_move.
 	(x_set_offset): Only add WM decoration sizes to	modified_top/left
 	for X_WMTYPE_A.  Set check_expected_move when WM type is unknown.
-	(x_check_expected_move): Renamed from x_check_fullscreen_move.
+	(x_check_expected_move): Rename from x_check_fullscreen_move.
 	Removed fullscreen specific code.  Use check_expected_move,
 	expected_left/top instead.  Also, set wm_type.
 	(x_term_init): Initialize wm_type to unknown.
@@ -120,8 +343,8 @@
 
 2003-10-02  Jason Rumney  <jasonr@gnu.org>
 
-	* makefile.w32-in (emacs.o, coding.o, bytecode.o): Sync
-	dependancies with Makefile.in.
+	* makefile.w32-in (emacs.o, coding.o, bytecode.o):
+	Sync dependencies with Makefile.in.
 	(alloca.o): Remove.
 
 	* w32fns.c (w32_load_system_font): Clear all members of FONTP before
@@ -134,7 +357,7 @@
 	* term.c (set_tty_color_mode): Calculate current_mode_spec
 	regardless of value of VAL.
 
-	* intervals.c (graft_intervals_into_buffer): 
+	* intervals.c (graft_intervals_into_buffer):
 	Set BUF_INTERVALS (buffer)->up_obj when appropriate.
 	Handle over_used when splitting UNDER.
 
@@ -205,8 +428,7 @@
 
 2003-09-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xterm.c (x_set_offset): Take window manager decorations
-	into account.
+	* xterm.c (x_set_offset): Take window manager decorations into account.
 
 2003-09-19  Richard M. Stallman  <rms@gnu.org>
 

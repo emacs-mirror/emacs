@@ -83,6 +83,12 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
++++
+** Help mode now only makes hyperlinks for faces when the face name is
+preceded or followed by the word `face'.  It no longer makes
+hyperlinks for variables without variable documentation, unless
+preceded by one of the words `variable' or `option'.
+
 ** The max size of buffers and integers has been doubled.
 On 32bit machines, it is now 256M (i.e. 268435455).
 
@@ -1465,7 +1471,7 @@ use for the modifiers.  For example, the following two lines swap
 Meta and Alt:
     (setq x-alt-keysym 'meta)
     (setq x-meta-keysym 'alt)
-
+
 * New modes and packages in 21.4
 
 +++
@@ -1683,8 +1689,27 @@ in Indented-Text mode.
 a match if part of it has a read-only property.
 
 ** The new Lisp library fringe.el controls the apperance of fringes.
+
+** `cfengine-mode' is a major mode for editing GNU Cfengine
+configuration files.
 
 * Lisp Changes in Emacs 21.4
+
++++
+** `split-string' now includes null substrings in the returned list if
+the optional argument SEPARATORS is non-nil and there are matches for
+SEPARATORS at the beginning or end of the string.  If SEPARATORS is
+nil, or if the new optional third argument OMIT-NULLS is non-nil, all
+empty matches are omitted from the returned list.
+
++++
+** `makehash' is now obsolete.  Use `make-hash-table' instead.
+
++++
+** If optional third argument APPEND to `add-to-list' is non-nil, a
+new element gets added at the end of the list instead of at the
+beginning.  This change actually occurred in Emacs-21.1, but was not
+documented.
 
 ** Major modes can define `eldoc-print-current-symbol-info-function'
 locally to provide Eldoc functionality by some method appropriate to
@@ -2564,6 +2589,7 @@ indentation of keywords and forms in loop forms.
 ** Indentation of backquoted forms has been made customizable in the
 cl-indent package.  See the new user option `lisp-backquote-indentation'.
 
++++
 ** Already true in Emacs 21.1, but not emphasized clearly enough:
 
 Multibyte buffers can now faithfully record all 256 character codes
@@ -2579,12 +2605,15 @@ the time it takes to convert the format.
 3. For binary files where format conversion would be pointless and
 wasteful.
 
++++
 ** If text has a `keymap' property, that keymap takes precedence
 over minor mode keymaps.
 
++++
 ** A hex escape in a string forces the string to be multibyte.
 An octal escape makes it unibyte.
 
++++
 ** At the end of a command, point moves out from within invisible
 text, in the same way it moves out from within text covered by an
 image or composition property.
@@ -2594,29 +2623,6 @@ This is particularly good because the intangible property often has
 unexpected side-effects since the property applies to everything
 (including `goto-char', ...) whereas this new code is only run after
 post-command-hook and thus does not care about intermediate states.
-
-** Only one of the beginning or end of an invisible, intangible region is
-considered an acceptable value for point; which one is determined by
-examining how the invisible/intangible properties are inherited when new
-text is inserted adjacent to them.  (The `front-sticky' and `rear-sticky'
-properties control this.)
-
-If the invisible/intangible would be inherited by any text inserted
-before this region, then the position before it is considered
-unacceptable, and point is forced to continue (if moving forwards, to
-the position following the invisible/intangible text; if moving
-backwards, to one position before).  If the properties would be
-inherited by any text inserted after, then the position after is
-considered unacceptable, and point is forced to keep moving (if moving
-backwards, to the position preceding the invisible/intangible text; if
-moving forwards, to one position later).
-
-Thus, point can only go to one end of an invisible, intangible region, but
-not the other one.  This prevents C-f and C-b from appearing to stand still
-on the screen.
-
-You should not set it up so that both the position before and the position
-after are unacceptable.
 
 +++
 ** field-beginning and field-end now accept an additional optional
@@ -2821,9 +2827,8 @@ running under X.
 GDB. You can interact with GDB through the GUD buffer in the usual way, but
 there are also further buffers which control the execution and describe the
 state of your program.  It separates the input/output of your program from
-that of GDB and displays expressions and their current values in their own
-buffers.  It also uses features of Emacs 21 such as the display margin for
-breakpoints, and the toolbar.
+that of GDB and watches expressions in the speedbar.  It also uses features of
+Emacs 21 such as the display margin for breakpoints, and the toolbar.
 
 Use M-x gdba to start GDB-UI.
 
@@ -5280,7 +5285,7 @@ comparison is done with `eq'.
 
 ** The meaning of the `:weakness WEAK' argument of make-hash-table
 has been changed: WEAK can now have new values `key-or-value' and
-`key-and-value', in addition the `nil', `key', `value', and `t'.
+`key-and-value', in addition to `nil', `key', `value', and `t'.
 
 ** Function `aset' stores any multibyte character in any string
 without signaling "Attempt to change char length of a string".  It may

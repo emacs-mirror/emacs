@@ -131,6 +131,7 @@ extern void _XEditResCheckMessages ();
 #include <X11/Xaw3d/Simple.h>
 #include <X11/Xaw3d/Scrollbar.h>
 #define ARROW_SCROLLBAR
+#define XAW_ARROW_SCROLLBARS
 #include <X11/Xaw3d/ScrollbarP.h>
 #else /* !HAVE_XAW3D */
 #include <X11/Xaw/Simple.h>
@@ -356,7 +357,7 @@ static void x_flush P_ ((struct frame *f));
 static void x_update_begin P_ ((struct frame *));
 static void x_update_window_begin P_ ((struct window *));
 static void x_after_update_window_line P_ ((struct glyph_row *));
-static struct scroll_bar *x_window_to_scroll_bar P_ ((Window));
+static struct scroll_bar *x_window_to_scroll_bar P_ ((Display *, Window));
 static void x_scroll_bar_report_motion P_ ((struct frame **, Lisp_Object *,
 					    enum scroll_bar_part *,
 					    Lisp_Object *, Lisp_Object *,
@@ -3208,16 +3209,22 @@ x_detect_focus_change (dpyinfo, event, bufp, numchars)
     {
     case EnterNotify:
     case LeaveNotify:
-      if (event->xcrossing.detail != NotifyInferior
-          && event->xcrossing.focus
-          && ! (frame->output_data.x->focus_state & FOCUS_EXPLICIT))
-        nr_events = x_focus_changed ((event->type == EnterNotify
-                                      ? FocusIn : FocusOut),
-                                     FOCUS_IMPLICIT,
-                                     dpyinfo,
-                                     frame,
-                                     bufp,
-                                     numchars);
+      {
+        struct frame *focus_frame = dpyinfo->x_focus_event_frame;
+        int focus_state
+          = focus_frame ? focus_frame->output_data.x->focus_state : 0;
+
+        if (event->xcrossing.detail != NotifyInferior
+            && event->xcrossing.focus
+            && ! (focus_state & FOCUS_EXPLICIT))
+          nr_events = x_focus_changed ((event->type == EnterNotify
+                                        ? FocusIn : FocusOut),
+                                       FOCUS_IMPLICIT,
+                                       dpyinfo,
+                                       frame,
+                                       bufp,
+                                       numchars);
+      }
       break;
 
     case FocusIn:
@@ -3770,7 +3777,9 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 	/* If not, is it one of our scroll bars?  */
 	if (! f1)
 	  {
-	    struct scroll_bar *bar = x_window_to_scroll_bar (win);
+	    struct scroll_bar *bar;
+
+            bar = x_window_to_scroll_bar (FRAME_X_DISPLAY (*fp), win);
 
 	    if (bar)
 	      {
@@ -3841,18 +3850,20 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 
 /* Scroll bar support.  */
 
-/* Given an X window ID, find the struct scroll_bar which manages it.
+/* Given an X window ID and a DISPLAY, find the struct scroll_bar which
+   manages it.
    This can be called in GC, so we have to make sure to strip off mark
    bits.  */
 
 static struct scroll_bar *
-x_window_to_scroll_bar (window_id)
+x_window_to_scroll_bar (display, window_id)
+     Display *display;
      Window window_id;
 {
   Lisp_Object tail;
 
 #ifdef USE_GTK
-  window_id = (Window) xg_get_scroll_id_for_window (window_id);
+  window_id = (Window) xg_get_scroll_id_for_window (display, window_id);
 #endif /* USE_GTK */
 
   for (tail = Vframe_list;
@@ -3876,7 +3887,8 @@ x_window_to_scroll_bar (window_id)
 			       condemned = Qnil,
 			       ! GC_NILP (bar));
 	   bar = XSCROLL_BAR (bar)->next)
-	if (SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar)) == window_id)
+	if (SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar)) == window_id &&
+            FRAME_X_DISPLAY (XFRAME (frame)) == display)
 	  return XSCROLL_BAR (bar);
     }
 
@@ -5662,7 +5674,6 @@ x_filter_event (dpyinfo, event)
 #endif
 
 #ifdef USE_GTK
-static struct x_display_info *current_dpyinfo;
 static struct input_event **current_bufp;
 static int *current_numcharsp;
 static int current_count;
@@ -5677,26 +5688,34 @@ event_handler_gdk (gxev, ev, data)
      GdkEvent *ev;
      gpointer data;
 {
-  XEvent *xev = (XEvent*)gxev;
+  XEvent *xev = (XEvent *) gxev;
 
   if (current_numcharsp)
     {
+      struct x_display_info *dpyinfo;
+
+      dpyinfo = x_display_info_for_display (xev->xany.display);
+
 #ifdef HAVE_X_I18N
       /* Filter events for the current X input method.
          GTK calls XFilterEvent but not for key press and release,
          so we do it here.  */
       if (xev->type == KeyPress || xev->type == KeyRelease)
-        if (x_filter_event (current_dpyinfo, xev))
+        if (dpyinfo && x_filter_event (dpyinfo, xev))
           return GDK_FILTER_REMOVE;
 #endif
-      current_count += handle_one_xevent (current_dpyinfo,
-                                          xev,
-                                          current_bufp,
-                                          current_numcharsp,
-                                          &current_finish);
+
+      if (! dpyinfo)
+        current_finish = X_EVENT_NORMAL;
+      else
+        current_count += handle_one_xevent (dpyinfo,
+                                            xev,
+                                            current_bufp,
+                                            current_numcharsp,
+                                            &current_finish);
     }
   else
-    current_finish = x_dispatch_event (xev, GDK_DISPLAY ());
+    current_finish = x_dispatch_event (xev, xev->xany.display);
 
   if (current_finish == X_EVENT_GOTO_OUT || current_finish == X_EVENT_DROP)
     return GDK_FILTER_REMOVE;
@@ -6036,7 +6055,8 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
           /* Dispatch event to the widget.  */
           goto OTHER;
 #else /* not USE_TOOLKIT_SCROLL_BARS */
-          bar = x_window_to_scroll_bar (event.xexpose.window);
+          bar = x_window_to_scroll_bar (event.xexpose.display,
+                                        event.xexpose.window);
 
           if (bar)
             x_scroll_bar_expose (bar, &event);
@@ -6662,7 +6682,7 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
                 /* Window will be selected only when it is not selected now and
                    last mouse movement event was not in it.  Minibuffer window
                    will be selected iff it is active.  */
-                if (WINDOWP(window)
+                if (WINDOWP (window)
                     && !EQ (window, last_window)
                     && !EQ (window, selected_window)
                     && numchars > 0)
@@ -6681,7 +6701,8 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
           {
 #ifndef USE_TOOLKIT_SCROLL_BARS
             struct scroll_bar *bar
-              = x_window_to_scroll_bar (event.xmotion.window);
+              = x_window_to_scroll_bar (event.xmotion.display,
+                                        event.xmotion.window);
 
             if (bar)
               x_scroll_bar_note_movement (bar, &event);
@@ -6844,7 +6865,8 @@ handle_one_xevent (dpyinfo, eventp, bufp_r, numcharsp, finish)
         else
           {
             struct scroll_bar *bar
-              = x_window_to_scroll_bar (event.xbutton.window);
+              = x_window_to_scroll_bar (event.xbutton.display,
+                                        event.xbutton.window);
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
             /* Make the "Ctrl-Mouse-2 splits window" work for toolkit
@@ -7005,9 +7027,7 @@ x_dispatch_event (event, display)
     EVENT_INIT (*bufpp);
   bufpp = bufp;
 
-  for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
-    if (dpyinfo->display == display)
-      break;
+  dpyinfo = x_display_info_for_display (display);
 
   if (dpyinfo)
     {
@@ -7109,30 +7129,7 @@ XTread_socket (sd, bufp, numchars, expected)
       UNBLOCK_INPUT;
 #endif
 
-#ifdef USE_GTK
-      /* For GTK we must use the GTK event loop.  But XEvents gets passed
-         to our filter function above, and then to the big event switch.
-         We use a bunch of globals to communicate with our filter function,
-         that is kind of ugly, but it works. */
-      current_dpyinfo = dpyinfo;
-
-      while (gtk_events_pending ())
-        {
-          current_count = count;
-          current_numcharsp = &numchars;
-          current_bufp = &bufp;
-
-          gtk_main_iteration ();
-
-          count = current_count;
-          current_bufp = 0;
-          current_numcharsp = 0;
-
-          if (current_finish == X_EVENT_GOTO_OUT)
-            goto out;
-        }
-
-#else /* not USE_GTK */
+#ifndef USE_GTK
       while (XPending (dpyinfo->display))
 	{
           int finish;
@@ -7155,8 +7152,35 @@ XTread_socket (sd, bufp, numchars, expected)
           if (finish == X_EVENT_GOTO_OUT)
             goto out;
         }
-#endif /* USE_GTK */
+#endif /* not USE_GTK */
     }
+
+#ifdef USE_GTK
+
+  /* For GTK we must use the GTK event loop.  But XEvents gets passed
+     to our filter function above, and then to the big event switch.
+     We use a bunch of globals to communicate with our filter function,
+     that is kind of ugly, but it works.
+
+     There is no way to do one display at the time, GTK just does events
+     from all displays.  */
+
+  while (gtk_events_pending ())
+    {
+      current_count = count;
+      current_numcharsp = &numchars;
+      current_bufp = &bufp;
+
+      gtk_main_iteration ();
+
+      count = current_count;
+      current_bufp = 0;
+      current_numcharsp = 0;
+
+      if (current_finish == X_EVENT_GOTO_OUT)
+        break;
+    }
+#endif /* USE_GTK */
 
  out:;
 
@@ -7475,13 +7499,13 @@ x_bitmap_icon (f, file)
   if (STRINGP (file))
     {
 #ifdef USE_GTK
-      /* Use gtk_window_set_icon_from_file() if available,
+      /* Use gtk_window_set_icon_from_file () if available,
 	 It's not restricted to bitmaps */
-      if (xg_set_icon(f, file))
+      if (xg_set_icon (f, file))
 	return 0;
 #endif /* USE_GTK */
       bitmap_id = x_create_bitmap_from_file (f, file);
-      x_create_bitmap_mask(f, bitmap_id);
+      x_create_bitmap_mask (f, bitmap_id);
     }
   else
     {
@@ -7491,7 +7515,7 @@ x_bitmap_icon (f, file)
 	  FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id
 	    = x_create_bitmap_from_data (f, gnu_bits,
 					 gnu_width, gnu_height);
-	  x_create_bitmap_mask(f, FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id);
+	  x_create_bitmap_mask (f, FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id);
 	}
 
       /* The first time we create the GNU bitmap and mask,
@@ -7758,6 +7782,11 @@ x_connection_closed (dpy, error_message)
       XtCloseDisplay (dpy);
       fatal_error_signal_hook = NULL;
     }
+#endif
+
+#ifdef USE_GTK
+  if (dpyinfo)
+    xg_display_close (dpyinfo->display);
 #endif
 
   /* Indicate that this display is dead.  */
@@ -9442,11 +9471,11 @@ x_list_fonts (f, pattern, size, maxnames)
   Display *dpy = dpyinfo->display;
   int try_XLoadQueryFont = 0;
   int count;
-  int allow_scalable_fonts_p = 0;
+  int allow_auto_scaled_font = 0;
 
   if (size < 0)
     {
-      allow_scalable_fonts_p = 1;
+      allow_auto_scaled_font = 1;
       size = 0;
     }
 
@@ -9469,7 +9498,7 @@ x_list_fonts (f, pattern, size, maxnames)
 	 ((((PATTERN . MAXNAMES) . SCALABLE) (FONTNAME . WIDTH) ...) ...)  */
       tem = XCDR (dpyinfo->name_list_element);
       key = Fcons (Fcons (pattern, make_number (maxnames)),
-		   allow_scalable_fonts_p ? Qt : Qnil);
+		   allow_auto_scaled_font ? Qt : Qnil);
       list = Fassoc (key, tem);
       if (!NILP (list))
 	{
@@ -9575,25 +9604,28 @@ x_list_fonts (f, pattern, size, maxnames)
 	    {
 	      int width = 0;
 	      char *p = names[i];
-	      int average_width = -1, dashes = 0;
+	      int average_width = -1, resx = 0, dashes = 0;
 
 	      /* Count the number of dashes in NAMES[I].  If there are
-		 14 dashes, and the field value following 12th dash
-		 (AVERAGE_WIDTH) is 0, this is a auto-scaled font which
-		 is usually too ugly to be used for editing.  Let's
-		 ignore it.  */
+		 14 dashes, the field value following 9th dash
+		 (RESOLUTION_X) is nonzero, and the field value
+		 following 12th dash (AVERAGE_WIDTH) is 0, this is a
+		 auto-scaled font which is usually too ugly to be used
+		 for editing.  Let's ignore it.  */
 	      while (*p)
 		if (*p++ == '-')
 		  {
 		    dashes++;
 		    if (dashes == 7) /* PIXEL_SIZE field */
 		      width = atoi (p);
+		    else if (dashes == 9)
+		      resx = atoi (p);
 		    else if (dashes == 12) /* AVERAGE_WIDTH field */
 		      average_width = atoi (p);
 		  }
 
-	      if (allow_scalable_fonts_p
-		  || dashes < 14 || average_width != 0)
+	      if (allow_auto_scaled_font
+		  || dashes < 14 || average_width != 0 || resx == 0)
 		{
 		  tem = build_string (names[i]);
 		  if (NILP (Fassoc (tem, list)))
@@ -10201,59 +10233,65 @@ x_term_init (display_name, xrm_option, resource_name)
     char **argv2 = argv;
     GdkAtom atom;
 
-    /* GTK 2.0 can only handle one display, GTK 2.2 can handle more
-       than one, but this remains to be implemented.  */
-    if (x_initialized > 1)
-      return 0;
-
-    for (argc = 0; argc < NUM_ARGV; ++argc)
-      argv[argc] = 0;
-
-    argc = 0;
-    argv[argc++] = initial_argv[0];
-
-    if (! NILP (display_name))
+    if (x_initialized++ > 1)
       {
-        argv[argc++] = "--display";
-        argv[argc++] = SDATA (display_name);
-      }
+        /* Opening another display.  If xg_display_open returns less
+           than zero, we are probably on GTK 2.0, which can only handle
+           one display.  GTK 2.2 or later can handle more than one.  */
+        if (xg_display_open (SDATA (display_name), &dpy) < 0)
+          error ("Sorry, this version of GTK can only handle one display");
+     }
+    else
+      {
+        for (argc = 0; argc < NUM_ARGV; ++argc)
+          argv[argc] = 0;
 
-    argv[argc++] = "--name";
-    argv[argc++] = resource_name;
+        argc = 0;
+        argv[argc++] = initial_argv[0];
+
+        if (! NILP (display_name))
+          {
+            argv[argc++] = "--display";
+            argv[argc++] = SDATA (display_name);
+          }
+
+        argv[argc++] = "--name";
+        argv[argc++] = resource_name;
 
 #ifdef HAVE_X11R5
-    XSetLocaleModifiers ("");
+        XSetLocaleModifiers ("");
 #endif
 
-    gtk_init (&argc, &argv2);
+        gtk_init (&argc, &argv2);
 
-    /* gtk_init does set_locale.  We must fix locale after calling it.  */
-    fixup_locale ();
-    xg_initialize ();
+        /* gtk_init does set_locale.  We must fix locale after calling it.  */
+        fixup_locale ();
+        xg_initialize ();
 
-    dpy = GDK_DISPLAY ();
+        dpy = GDK_DISPLAY ();
 
-    /* NULL window -> events for all windows go to our function */
-    gdk_window_add_filter (NULL, event_handler_gdk, NULL);
+        /* NULL window -> events for all windows go to our function */
+        gdk_window_add_filter (NULL, event_handler_gdk, NULL);
 
-    /* Load our own gtkrc if it exists.  */
-    {
-      struct gcpro gcpro1, gcpro2;
-      char *file = "~/.emacs.d/gtkrc";
-      Lisp_Object s, abs_file;
+        /* Load our own gtkrc if it exists.  */
+        {
+          struct gcpro gcpro1, gcpro2;
+          char *file = "~/.emacs.d/gtkrc";
+          Lisp_Object s, abs_file;
 
-      GCPRO2 (s, abs_file);
-      s = make_string (file, strlen (file));
-      abs_file = Fexpand_file_name(s, Qnil);
+          GCPRO2 (s, abs_file);
+          s = make_string (file, strlen (file));
+          abs_file = Fexpand_file_name (s, Qnil);
 
-      if (! NILP (abs_file) && !NILP (Ffile_readable_p (abs_file)))
-        gtk_rc_parse (SDATA (abs_file));
+          if (! NILP (abs_file) && !NILP (Ffile_readable_p (abs_file)))
+            gtk_rc_parse (SDATA (abs_file));
 
-      UNGCPRO;
-    }
+          UNGCPRO;
+        }
 
-    XSetErrorHandler (x_error_handler);
-    XSetIOErrorHandler (x_io_error_quitter);
+        XSetErrorHandler (x_error_handler);
+        XSetIOErrorHandler (x_io_error_quitter);
+      }
   }
 #else /* not USE_GTK */
 #ifdef USE_X_TOOLKIT
@@ -10374,6 +10412,11 @@ x_term_init (display_name, xrm_option, resource_name)
   x_find_modifier_meanings (dpyinfo);
 
   /* Get the scroll bar cursor.  */
+#ifdef USE_GTK
+  /* We must create a GTK cursor, it is required for GTK widgets.  */
+  dpyinfo->xg_cursor = xg_create_default_cursor (dpyinfo->display);
+#endif /* USE_GTK */
+
   dpyinfo->vertical_scroll_bar_cursor
     = XCreateFontCursor (dpyinfo->display, XC_sb_v_double_arrow);
 

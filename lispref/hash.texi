@@ -76,8 +76,10 @@ alternatives:
 
 @table @code
 @item eql
-Keys which are numbers are ``the same'' if they are equal in value;
-otherwise, two distinct objects are never ``the same''.
+Keys which are numbers are ``the same'' if they are @code{equal}, that
+is, if they are equal in value and either both are integers or both
+are floating point numbers; otherwise, two distinct objects are never
+``the same''.
 
 @item eq
 Any two distinct Lisp objects are ``different'' as keys.
@@ -158,8 +160,7 @@ This is equivalent to @code{make-hash-table}, but with a different style
 argument list.  The argument @var{test} specifies the method
 of key lookup.
 
-If you want to specify other parameters, you should use
-@code{make-hash-table}.
+This function is obsolete. Use @code{make-hash-table} instead.
 @end defun
 
 @node Hash Access
@@ -187,6 +188,10 @@ value @var{value}.  If @var{key} already has an association in
 This function removes the association for @var{key} from @var{table}, if
 there is one.  If @var{key} has no association, @code{remhash} does
 nothing.
+
+@b{Common Lisp note:} In Common Lisp, @code{remhash} returns
+non-@code{nil} if it actually removed an association and @code{nil}
+otherwise.  In Emacs Lisp, @code{remhash} always returns @code{nil}.
 @end defun
 
 @tindex clrhash
@@ -194,6 +199,9 @@ nothing.
 This function removes all the associations from hash table @var{table},
 so that it becomes empty.  This is also called @dfn{clearing} the hash
 table.
+
+@b{Common Lisp note:} In Common Lisp, @code{clrhash} returns the empty
+@var{table}.  In Emacs Lisp, it returns @code{nil}.
 @end defun
 
 @tindex maphash
@@ -255,8 +263,8 @@ If two objects @var{obj1} and @var{obj2} are equal, then @code{(sxhash
 @var{obj1})} and @code{(sxhash @var{obj2})} are the same integer.
 
 If the two objects are not equal, the values returned by @code{sxhash}
-are usually different, but not always; but once in a rare while, by
-luck, you will encounter two distinct-looking objects that give the same
+are usually different, but not always; once in a rare while, by luck,
+you will encounter two distinct-looking objects that give the same
 result from @code{sxhash}.
 @end defun
 

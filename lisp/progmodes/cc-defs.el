@@ -105,7 +105,7 @@
 
 ;;; Variables also used at compile time.
 
-(defconst c-version "5.30.7"
+(defconst c-version "5.30.8"
   "CC Mode version number.")
 
 (defconst c-version-sym (intern c-version))
@@ -1001,8 +1001,8 @@ This function does not do any hidden buffer changes."
 
 (defun c-make-keywords-re (adorn list &optional mode)
   "Make a regexp that matches all the strings the list.
-Duplicates in the list are removed.  The regexp may contain zero or
-more submatch expressions.
+Duplicates in the list are removed.  The resulting regexp may contain
+zero or more submatch expressions.
 
 If ADORN is non-nil there will be at least one submatch and the first
 matches the whole keyword, and the regexp will also not match a prefix
@@ -1010,6 +1010,7 @@ of any identifier.  Adorned regexps cannot be appended.  The language
 variable `c-nonsymbol-key' is used to make the adornment.  The
 optional MODE specifies the language to get it in.  The default is the
 current language (taken from `c-buffer-is-cc-mode')."
+
   (let (unique)
     (dolist (elt list)
       (unless (member elt unique)
@@ -1017,6 +1018,27 @@ current language (taken from `c-buffer-is-cc-mode')."
     (setq list unique))
   (if list
       (let ((re (c-regexp-opt list)))
+
+	;; Emacs < 21 and XEmacs (all versions so far) has a buggy
+	;; regexp-opt that doesn't always cope with strings containing
+	;; newlines.  This kludge doesn't handle shy parens correctly
+	;; so we can't advice regexp-opt directly with it.
+	(let (fail-list)
+	  (while list
+	    (and (string-match "\n" (car list)) ; To speed it up a little.
+		 (not (string-match (concat "\\`\\(" re "\\)\\'")
+				    (car list)))
+		 (setq fail-list (cons (car list) fail-list)))
+	    (setq list (cdr list)))
+	  (when fail-list
+	    (setq re (concat re
+			     "\\|"
+			     (mapconcat 'regexp-quote
+					(sort fail-list
+					      (lambda (a b)
+						(> (length a) (length b))))
+					"\\|")))))
+
 	;; Add our own grouping parenthesis around re instead of
 	;; passing adorn to `regexp-opt', since in XEmacs it makes the
 	;; top level grouping "shy".
@@ -1026,10 +1048,12 @@ current language (taken from `c-buffer-is-cc-mode')."
 		    (c-get-lang-constant 'c-nonsymbol-key nil mode)
 		    "\\|$\\)")
 	  re))
+
     ;; Produce a regexp that matches nothing.
     (if adorn
 	"\\(\\<\\>\\)"
       "\\<\\>")))
+
 (put 'c-make-keywords-re 'lisp-indent-function 1)
 
 

@@ -4145,8 +4145,8 @@ You must include newlines in FMT to break lines, but one newline is appended."
 ;;; Frequency count and coverage
 
 (defun edebug-display-freq-count ()
-  "Display the frequency count data for each line of the current
-definition.  The frequency counts are inserted as comment lines after
+  "Display the frequency count data for each line of the current definition.
+The frequency counts are inserted as comment lines after
 each line, and you can undo all insertions with one `undo' command.
 
 The counts are inserted starting under the `(' before an expression

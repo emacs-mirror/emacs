@@ -752,7 +752,7 @@ before count is used up, @code{nil} is returned.
 @defvar multibyte-syntax-as-symbol
 @tindex multibyte-syntax-as-symbol
 If this variable is non-@code{nil}, @code{scan-sexps} treats all
-non-@sc{ascii} characters as symbol constituents regardless
+non-@acronym{ASCII} characters as symbol constituents regardless
 of what the syntax table says about them.  (However, text properties
 can still override the syntax.)
 @end defvar
@@ -946,7 +946,7 @@ category table defines its own categories, but normally these are
 initialized by copying from the standard categories table, so that the
 standard categories are available in all modes.
 
-  Each category has a name, which is an @sc{ascii} printing character in
+  Each category has a name, which is an @acronym{ASCII} printing character in
 the range @w{@samp{ }} to @samp{~}.  You specify the name of a category
 when you define it with @code{define-category}.
 

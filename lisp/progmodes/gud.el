@@ -321,7 +321,6 @@ off the specialized speedbar mode."
   (let ((minor-mode (with-current-buffer buffer gud-minor-mode)))
     (cond 
      ((eq minor-mode 'gdba)
-      (gdb-var-update)
       (when (or gdb-var-changed
 		(not (save-excursion 
 		       (goto-char (point-min))

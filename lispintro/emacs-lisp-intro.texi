@@ -21,8 +21,8 @@
 
 @comment %**end of header
 
-@set edition-number 2.10
-@set update-date 2003 July 15
+@set edition-number 2.12
+@set update-date 2003 Nov 19
 
 @ignore
  ## Summary of shell commands to create various output formats:
@@ -3519,7 +3519,7 @@ this.
 
 Alternatively, if the special letter-codes are not right for your
 application, you can pass your own arguments to @code{interactive} as
-a list.  @xref{interactive, , Using @code{Interactive}, elisp, The
+a list.  @xref{Using Interactive, , Using @code{Interactive}, elisp, The
 GNU Emacs Lisp Reference Manual}, for more information about this advanced
 technique.
 
@@ -8066,8 +8066,8 @@ internal variables that you would not expect a user to change and for
 variables that you do expect a user to change.  Although you can still
 use @code{defvar} for user customizable variables, please use
 @code{defcustom} instead, since that special form provides a path into
-the Customization commands.  (@xref{defcustom, , Setting Variables
-with @code{defcustom}}.)
+the Customization commands.  (@xref{defcustom, , Specifying Variables
+using @code{defcustom}}.)
 
 When you specified a variable using the @code{defvar} special form,
 you could distinguish a readily settable variable from others by
@@ -8082,23 +8082,24 @@ string.  For example:
 @end group
 @end smallexample
 
+@findex set-variable
 @noindent
-This means that you could (and still can) use the @code{edit-options}
-command to change the value of
-@code{shell-command-default-error-buffer} temporarily.
-
-@findex edit-options
-However, options set using @code{edit-options} are set only for the
-duration of your editing session.  The new values are not saved
-between sessions.  Each time Emacs starts, it reads the original
+You could (and still can) use the @code{set-variable} command to
+change the value of @code{shell-command-default-error-buffer}
+temporarily.  However, options set using @code{set-variable} are set
+only for the duration of your editing session.  The new values are not
+saved between sessions.  Each time Emacs starts, it reads the original
 value, unless you change the value within your @file{.emacs} file,
 either by setting it manually or by using @code{customize}.
 @xref{Emacs Initialization, , Your @file{.emacs} File}.
 
-For me, the major use of the @code{edit-options} command is to suggest
-variables that I might want to set in my @file{.emacs} file.  I urge
-you to look through the list.  (@xref{Edit Options, , Editing Variable
-Values, emacs, The GNU Emacs Manual}.)
+For me, the major use of the @code{set-variable} command is to suggest
+variables that I might want to set in my @file{.emacs} file.  There
+are now more than 700 such variables --- far too many to remember
+readily.  Fortunately, you can press @key{TAB} after calling the
+@code{M-x set-variable} command to see the list of variables.
+(@xref{Examining, , Examining and Setting Variables, emacs,
+The GNU Emacs Manual}.)
 
 @node copy-region-as-kill, cons & search-fwd Review, defvar, Cutting & Storing Text
 @comment  node-name,  next,  previous,  up
@@ -9142,7 +9143,7 @@ address-boxes, the first of which holds the address of @code{violet},
 and the second of which holds the address of @code{buttercup}.
 
 A pair of address-boxes is called a @dfn{cons cell} or @dfn{dotted
-pair}.  @xref{List Type, , List Type , elisp, The GNU Emacs Lisp
+pair}.  @xref{Cons Cell Type, , Cons Cell and List Types, elisp, The GNU Emacs Lisp
 Reference Manual}, and @ref{Dotted Pair Notation, , Dotted Pair
 Notation, elisp, The GNU Emacs Lisp Reference Manual}, for more
 information about cons cells and dotted pairs.
@@ -14373,7 +14374,7 @@ version, you may have to evaluate the following:
 @end smallexample
 
 @noindent
-(@xref{defcustom, , Setting Variables with @code{defcustom}}.
+(@xref{defcustom, , Specifying Variables using @code{defcustom}}.)
 Then evaluate the @code{lengths-list-file} expression.)
 
 @need 1200
@@ -16125,9 +16126,9 @@ For example, the customizable user option variable
 The name of the variable is @code{text-mode-hook}; it has no default
 value; and its documentation string tells you what it does.
 
-The @code{:type} keyword tells Emacs what kind of data
-@code{text-mode-hook} should be set to and how to display the value in
-a Customization buffer.
+The @code{:type} keyword tells Emacs the kind of data to which
+@code{text-mode-hook} should be set and how to display the value in a
+Customization buffer.
 
 The @code{:options} keyword specifies a suggested list of values for
 the variable.  Currently, you can use @code{:options} only for a hook.

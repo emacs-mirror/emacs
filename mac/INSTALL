@@ -58,16 +58,11 @@ must be typed to the shell to enable Emacs to locate its resources
 correctly.  You may want to create a symlink or alias to this path to
 quickly access both the terminal and GUI versions.
 
-If you are building Emacs to run on Mac OS X and X Window, you need to
-create a directory containing statically-linked X libraries.
+If you are building Emacs to run on Mac OS X and X Window,
+instead of typing `./configure' above, type
 
-  sudo mkdir /usr/X11R6/libstatic
-  cd /usr/X11R6/libstatic
-  sudo ln -s ../lib/lib*.a ../lib/X11 .
+  ./configure --without-carbon --with-x
 
-Instead of typing `./configure' above, type
-
-  ./configure --without-carbon --with-x --x-libraries=/usr/X11R6/libstatic
 
 To use colors in a terminal, put the following lines in the file
 ~/.termcap and log in again.
@@ -159,11 +154,6 @@ options to user
 	      	    $prefix/bin/emacs to reduce disk space.  Note, this
 		    option may removed in the future.
 
-If you are intending to build a binary distribution for X windows, you
-will probably want to follow the directions above to create static
-X11R6 libraries and run the make-package script like this
-
-./make-package --with-x -C,--x-libraries=/usr/X11R6/libstatic
 
 For usage of other options, use the --help option.
 

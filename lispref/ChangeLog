@@ -1,3 +1,140 @@
+2003-11-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* numbers.texi (Numeric Conversions): Not just `floor', but also
+	`truncate', `ceiling' and `round' accept optional argument DIVISOR.
+
+2003-11-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* markers.texi (Creating Markers): Specify insertion type of
+	created markers.  Add xref to `Marker Insertion Types'.
+	Second argument to `copy-marker' is optional.
+	(Marker Insertion Types): Mention that most markers are created
+	with insertion type nil.
+	(The Mark): Correctly describe when `mark' signals an error.
+	(The Region): Correctly describe when `region-beginning' and
+	`region-end' signal an error.
+
+2003-11-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* hash.texi (Creating Hash): Clarify description of `eql'.
+	`makehash' is obsolete.
+	(Hash Access): Add Common Lisp notes for `remhash' and `clrhash'.
+
+	* positions.texi (Point): Change description of `buffer-end', so
+	that it is also correct for floating point arguments.
+	(List Motion): Correct argument lists of `beginning-of-defun' and
+	`end-of-defun'.
+	(Excursions): Add xref to `Marker Insertion Types'.
+	(Narrowing): Argument to `narrow-to-page' is optional.
+
+2003-11-06  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* streams.texi (Output Streams): Clarify behavior of point for
+	marker output streams.
+
+2003-11-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* variables.texi (Defining Variables): Second argument to
+	`defconst' is not optional.
+	(Setting Variables): Mention optional argument APPEND to
+	`add-to-list'.
+	(Creating Buffer-Local): Expand description of
+	`make-variable-buffer-local'.
+	(Frame-Local Variables): Expand description of
+	`make-variable-frame-local'.
+	(Variable Aliases): Correct description of optional argument
+	DOCSTRING to `defvaralias'.  Mention return value of
+	`defvaralias'.
+	(File Local Variables): Add xref to `File variables' in Emacs
+	Manual.  Correct description of `hack-local-variables'.  Mention
+	`safe-local-variable' property.  Mention optional second argument
+	to `risky-local-variable-p'.
+
+2003-11-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* symbols.texi (Symbol Plists): Mention return value of `setplist'.
+
+2003-11-02  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+
+	* lispref/anti.texi, lispref/backups.texi, lispref/commands.texi
+	lispref/customize.texi, lispref/display.texi, lispref/files.texi,
+	lispref/internals.texi, lispref/keymaps.texi, lispref/loading.texi,
+	lispref/modes.texi, lispref/nonascii.texi, lispref/numbers.texi,
+	lispref/objects.texi, lispref/os.texi, lispref/positions.texi,
+	lispref/processes.texi, lispref/searching.texi,
+	lispref/sequences.texi, lispref/streams.texi, lispref/strings.texi,
+	lispref/syntax.texi, lispref/text.texi: Replace @sc{foo} with
+	@acronym{FOO}.
+
+2003-10-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* strings.texi (Creating Strings): Argument START to `substring'
+	can not be `nil'.  Expand description of
+	`substring-no-properties'.  Correct description of `split-string',
+	especially with respect to empty matches.  Prevent very bad line
+	break in definition of `split-string-default-separators'.
+	(Text Comparison): `string=' and `string<' also accept symbols as
+	arguments.
+	(String Conversion): More completely describe argument BASE in
+	`string-to-number'.
+	(Formatting Strings): `%s' and `%S" in `format' do require
+	corresponding object.  Clarify behavior of numeric prefix after
+	`%' in `format'.
+	(Case Conversion): The argument to `upcase-initials' can be a
+	character.
+
+2003-10-27  Kenichi Handa  <handa@m17n.org>
+
+	* display.texi (Fontsets): Fix texinfo usage.
+
+2003-10-25  Kenichi Handa  <handa@m17n.org>
+
+	* display.texi (Fontsets): Add description of the function
+	set-fontset-font.
+
+2003-10-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* display.texi (Temporary Displays): Add xref to `Documentation
+	Tips'.
+
+	* functions.texi (Function Safety): Use inforef instead of pxref
+	for SES.
+
+2003-10-23  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (TEX, texinputdir): Don't define.
+	(TEXI2DVI): Define.
+	(srcs): Remove $(srcdir)/index.perm and $(srcdir)/index.unperm,
+	add $(srcdir)/index.texi.
+	($(infodir)/elisp): Remove index.texi dependency.
+	(elisp.dvi): Likewise.  Use $(TEXI2DVI).
+	(index.texi): Remove target.
+	(dist): Don't link $(srcdir)/permute-index.
+	(clean): Don't remove index.texi.
+
+	* permute-index, index.perm: Remove.
+	* index.texi: Rename from index.unperm.
+
+2003-10-22  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* tips.texi (Documentation Tips): Document new behavior for face
+	and variable hyperlinks in Help mode.
+
+2003-10-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* objects.texi (Integer Type): Update for extra bit of integer range.
+	(Character Type): Ditto.
+
+2003-10-16  Eli Zaretskii  <eliz@elta.co.il>
+
+	* numbers.texi (Integer Basics): Add index entries for reading
+	numbers in hex, octal, and binary.
+
+2003-10-16  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Mode Line Format): Mention force-mode-line-update's
+	argument.
+
 2003-10-13  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* windows.texi (Choosing Window): Fix typo.
@@ -383,7 +520,7 @@
 	(Hooks): Add run-mode-hooks and delay-mode-hooks.
 
 	* variables.texi (Creating Buffer-Local): Add buffer-local-value.
-	(Variable Aliases): Clarify defvralias.
+	(Variable Aliases): Clarify defvaralias.
 
 	* loading.texi (Library Search): Add load-suffixes.
 

@@ -1388,7 +1388,7 @@ A function called whenever the process receives a signal, or @code{nil}.
 The associated buffer of the process.
 
 @item pid
-An integer, the Unix process @sc{id}.
+An integer, the Unix process @acronym{ID}.
 
 @item childp
 A flag, non-@code{nil} if this is really a child process.
@@ -1418,7 +1418,7 @@ needs to be reported, either by running the sentinel or by inserting a
 message in the process buffer.
 
 @item pty_flag
-Non-@code{nil} if communication with the subprocess uses a @sc{pty};
+Non-@code{nil} if communication with the subprocess uses a @acronym{PTY};
 @code{nil} if it uses a pipe.
 
 @item infd

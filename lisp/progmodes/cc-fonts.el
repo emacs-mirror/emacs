@@ -894,7 +894,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 
   (save-restriction
     (let (start-pos
-	  c-disallow-comma-in-<>-arglists
+	  c-restricted-<>-arglists
 	  ;; Nonzero if the `c-decl-prefix-re' match is in an arglist context,
 	  ;; as opposed to a statement-level context.  The major difference is
 	  ;; that "," works as declaration delimiter in an arglist context,
@@ -1050,11 +1050,11 @@ casts and declarations are fontified.  Used on level 2 and higher."
 		 ;; If we're in a normal arglist context we don't want to
 		 ;; recognize commas in nested angle bracket arglists since
 		 ;; those commas could be part of our own arglist.
-		 c-disallow-comma-in-<>-arglists
+		 c-restricted-<>-arglists
 		 (and c-recognize-<>-arglists
 		      (eq arglist-type 'other)))
 
-	   (when (and c-disallow-comma-in-<>-arglists
+	   (when (and c-restricted-<>-arglists
 		      (/= arglist-match ?,))
 	     ;; We're standing at the start of a normal arglist so remove any
 	     ;; angle bracket arglists containing commas that's been

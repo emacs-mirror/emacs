@@ -2,8 +2,8 @@
 
 	* emacsclient.c (quote_file_name): Print the result instead of
 	returning it.  Fix the return type accordingly.
-	(main): Under --eval, don't fail if left with additional
-	arguments after decoding options.  Quote file names.
+	(main): With --eval, if no file name, read from stdin.
+	Quote file names.
 
 2003-09-10  Richard M. Stallman  <rms@gnu.org>
 

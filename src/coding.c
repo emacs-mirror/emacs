@@ -1689,6 +1689,7 @@ coding_allocate_composition_data (coding, char_offset)
     coding->cmp_data->next = cmp_data;
   coding->cmp_data = cmp_data;
   coding->cmp_data_start = 0;
+  coding->composing = COMPOSITION_NO;
 }
 
 /* Handle composition start sequence ESC 0, ESC 2, ESC 3, or ESC 4.
@@ -5440,6 +5441,10 @@ coding_restore_composition (coding, obj)
 	  enum composition_method method = (enum composition_method) data[3];
 	  Lisp_Object components;
 
+	  if (data[0] < 0 || i + data[0] > cmp_data->used)
+	    /* Invalid composition data.  */
+	    break;
+
 	  if (method == COMPOSITION_RELATIVE)
 	    components = Qnil;
 	  else
@@ -5453,7 +5458,8 @@ coding_restore_composition (coding, obj)
 	      for (j = 0; j < len; j++)
 		args[j] = make_number (data[4 + j]);
 	      components = (method == COMPOSITION_WITH_ALTCHARS
-			    ? Fstring (len, args) : Fvector (len, args));
+			    ? Fstring (len, args)
+			    : Fvector (len, args));
 	    }
 	  compose_text (data[1], data[2], components, Qnil, obj);
 	}

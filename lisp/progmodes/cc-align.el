@@ -1121,35 +1121,20 @@ ACTION associated with `block-close' syntax."
 	'(before after)))))
 
 (defun c-gnu-impose-minimum ()
-  "Imposes a minimum indentation for lines inside a top-level construct.
+  "Imposes a minimum indentation for lines inside code blocks.
 The variable `c-label-minimum-indentation' specifies the minimum
 indentation amount."
 
-  ;; Don't adjust macro or comment-only lines.
-  (unless (or (assq 'cpp-macro c-syntactic-context)
-	      (assq 'comment-intro c-syntactic-context))
-
-    (let ((paren-state (save-excursion
-			 ;; Get the parenthesis state, but skip past
-			 ;; an initial closing paren on the line since
-			 ;; the close brace of a block shouldn't be
-			 ;; considered to be inside the block.
-			 (back-to-indentation)
-			 (when (looking-at "\\s\)")
-			   (forward-char))
-			 (c-parse-state))))
-
-      ;; Search for an enclosing brace on paren-state.
-      (while (and paren-state
-		  (not (and (integer-or-marker-p (car paren-state))
-			    (eq (char-after (car paren-state)) ?{))))
-	(setq paren-state (cdr paren-state)))
-
-      (when paren-state
-	(save-excursion
-	  (back-to-indentation)
-	  (if (zerop (current-column))
-	      (insert-char ?\  c-label-minimum-indentation t)))))))
+  (when (and (not
+	      ;; Don't adjust macro or comment-only lines.
+	      (or (assq 'cpp-macro c-syntactic-context)
+		  (assq 'comment-intro c-syntactic-context)))
+	     (c-intersect-lists c-inside-block-syms c-syntactic-context)
+	     (save-excursion
+	       (back-to-indentation)
+	       (< (current-column) c-label-minimum-indentation)))
+    (c-shift-line-indentation (- c-label-minimum-indentation
+				 (current-indentation)))))
 
 
 ;; Useful for c-hanging-semi&comma-criteria

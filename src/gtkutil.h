@@ -150,9 +150,9 @@ extern void xg_modify_menubar_widgets P_ ((GtkWidget *menubar,
 
 extern int xg_update_frame_menubar P_ ((FRAME_PTR f));
 
-extern void xg_keep_popup P_ ((GtkWidget *menu, GtkWidget *submenu));
+extern int xg_have_tear_offs P_ ((void));
 
-extern int xg_get_scroll_id_for_window P_ ((Window wid));
+extern int xg_get_scroll_id_for_window P_ ((Display *dpy, Window wid));
 
 extern void xg_create_scroll_bar P_ ((FRAME_PTR f,
                                       struct scroll_bar *bar,
@@ -184,7 +184,12 @@ extern void xg_resize_widgets P_ ((FRAME_PTR f,
                                    int pixelheight));
 extern void xg_frame_cleared P_ ((FRAME_PTR f));
 extern void xg_frame_set_char_size P_ ((FRAME_PTR f, int cols, int rows));
-extern GtkWidget * xg_win_to_widget P_ ((Window));
+extern GtkWidget * xg_win_to_widget P_ ((Display *dpy, Window wdesc));
+
+extern int xg_display_open P_ ((char *display_name, Display **dpy));
+extern void xg_display_close P_ ((Display *dpy));
+extern GdkCursor * xg_create_default_cursor P_ ((Display *dpy));
+
 extern int xg_create_frame_widgets P_ ((FRAME_PTR f));
 extern void x_wm_set_size_hint P_ ((FRAME_PTR f,
                                     long flags,
@@ -200,12 +205,6 @@ extern void xg_initialize P_ ((void));
 /* Setting scrollbar values invokes the callback.  Use this variable
    to indicate that the callback should do nothing.  */
 extern int xg_ignore_gtk_scrollbar;
-
-/* If a detach of a menu is done, this is the menu widget that got
-   detached.  Must be set to NULL before popping up popup menus.
-   Used with xg_keep_popup to delay deleting popup menus when they
-   have been detached.  */
-extern GtkWidget *xg_did_tearoff;
 
 #endif /* USE_GTK */
 #endif /* GTKUTIL_H */

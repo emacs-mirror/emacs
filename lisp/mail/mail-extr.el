@@ -231,6 +231,7 @@ we will assume that \"John Q. Smith\" is the fellow's name."
 If true, then when we see an address like \"Idiot <dumb@stupid.com>\"
 we will act as though we couldn't find a full name in the address."
   :type 'boolean
+  :version "21.4"
   :group 'mail-extr)
 
 ;; Matches a leading title that is not part of the name (does not
@@ -272,27 +273,6 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
 ;;
 ;; Constant definitions.
 ;;
-
-;;           Codes in
-;; Names in  ISO 8859-1 Name
-;; ISO 10XXX ISO 8859-2 in
-;; ISO 6937  ISO 10646  RFC            Swedish
-;; etc.      Hex Oct    1345 TeX Split ASCII Description
-;; --------- ---------- ---- --- ----- ----- -------------------------------
-;; %a        E4  344    a:   \"a ae    {     latin small   a + diaeresis   d
-;; %o        F6  366    o:   \"o oe    |     latin small   o + diaeresis   v
-;; @a        E5  345    aa   \oa aa    }     latin small   a + ring above  e
-;; %u        FC  374    u:   \"u ue    ~     latin small   u + diaeresis   |
-;; /e        E9  351    e'   \'e       `     latin small   e + acute       i
-;; %A        C4  304    A:   \"A AE    [     latin capital a + diaeresis   D
-;; %O        D6  326    O:   \"O OE    \     latin capital o + diaeresis   V
-;; @A        C5  305    AA   \oA AA    ]     latin capital a + ring above  E
-;; %U        DC  334    U:   \"U UE    ^     latin capital u + diaeresis   \
-;; /E        C9  311    E'   \'E       @     latin capital e + acute       I
-
-;; NOTE: @a and @A are not in ISO 8859-2 (the codes mentioned above invoke
-;; /l and /L).  Some of this data was retrieved from
-;; listserv@jhuvm.hcf.jhu.edu.
 
 ;; Any character that can occur in a name, not counting characters that
 ;; separate parts of a multipart name (hyphen and period).
@@ -530,8 +510,6 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
     (?\040	 " ")			;SPC
     (?! ?~	 "w")			;printable characters
     (?\177	 "w")			;DEL
-    (?\200 ?\377 "w")			;high-bit-on characters
-    (?\240	 " ")			;nobreakspace
     (?\t " ")
     (?\r " ")
     (?\n " ")
@@ -613,6 +591,10 @@ by translating things like \"foo!bar!baz@host\" into \"baz@bar.UUCP\"."
 ;;
 ;; Utility functions and macros.
 ;;
+
+;; Fixme: There are Latin-1 nbsp below.  If such characters should be
+;; included, this is the wrong thing to do -- it should use syntax (or
+;; regexp char classes).
 
 (defsubst mail-extr-skip-whitespace-forward ()
   ;; v19 fn skip-syntax-forward is more tasteful, but not byte-coded.
@@ -1727,19 +1709,19 @@ consing a string.)"
 	  (and (>= word-count 2)
 	       (not lower-case-flag)
 	       (or
-		;; A trailing 4-or-more letter lowercase words preceded by
+		;; Trailing 4-or-more letter lowercase words preceded by
 		;; mixed case or uppercase words will be dropped.
-		(looking-at "[a-z][a-z][a-z][a-z]+[ \t]*\\'")
+		(looking-at "[[:lower:]]\\{4,\\}[ \t]*\\'")
 		;; Drop a trailing word which is terminated with a period.
 		(eq ?. (char-after (1- name-end))))
 	       (setq drop-this-word-if-trailing-flag t))
 
 	  ;; Set the flags that indicate whether we have seen a lowercase
 	  ;; word, a mixed case word, and an uppercase word.
-	  (if (re-search-forward "[a-z]" name-end t)
+	  (if (re-search-forward "[[:lower:]]" name-end t)
 	      (if (progn
 		    (goto-char name-beg)
-		    (re-search-forward "[A-Z]" name-end t))
+		    (re-search-forward "[[:upper:]]" name-end t))
 		  (setq mixed-case-flag t)
 		(setq lower-case-flag t))
 ;;	    (setq upper-case-flag t)

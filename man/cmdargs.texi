@@ -671,7 +671,7 @@ emacs --display=glasperle:0 &
 @end smallexample
 
   You can inhibit the direct use of the window system and GUI with the
-@samp{-nw} option.  It tells Emacs to display using ordinary ASCII on
+@samp{-nw} option.  It tells Emacs to display using ordinary @acronym{ASCII} on
 its controlling terminal.  This is also an initial option.
 
   Sometimes, security arrangements prevent a program on a remote system

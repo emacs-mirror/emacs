@@ -250,25 +250,13 @@ LISP_MAKE_RVALUE (Lisp_Object o)
 #define LISP_MAKE_RVALUE(o) (0+(o))
 #endif /* NO_UNION_TYPE */
 
-#ifndef VALMASK
-#define VALMASK ((((EMACS_INT) 1)<<VALBITS) - 1)
-#endif
-#define GCTYPEMASK ((((EMACS_INT) 1)<<GCTYPEBITS) - 1)
-
 /* Two flags that are set during GC.  On some machines, these flags
    are defined differently by the m- file.  */
-
-/* This is set in the car of a cons to indicate it is marked.
-   Likewise in the type slot of a float and in the size slot of strings.  */
-
-#ifndef MARKBIT
-#define MARKBIT ((EMACS_INT) ((EMACS_UINT) 1 << (VALBITS + GCTYPEBITS - 1)))
-#endif /*MARKBIT */
 
 /* In the size word of a vector, this bit means the vector has been marked.  */
 
 #ifndef ARRAY_MARK_FLAG
-#define ARRAY_MARK_FLAG ((MARKBIT >> 1) & ~MARKBIT)
+#define ARRAY_MARK_FLAG ((EMACS_INT) ((EMACS_UINT) 1 << (VALBITS + GCTYPEBITS - 1)))
 #endif /* no ARRAY_MARK_FLAG */
 
 /* In the size word of a struct Lisp_Vector, this bit means it's really
@@ -311,32 +299,25 @@ enum pvec_type
 
 #ifdef NO_UNION_TYPE
 
+#define VALMASK ((((EMACS_INT) 1) << VALBITS) - 1)
+
 /* One need to override this if there must be high bits set in data space
    (doing the result of the below & ((1 << (GCTYPE + 1)) - 1) would work
     on all machines, but would penalize machines which don't need it)
  */
-#ifndef XTYPE
 #define XTYPE(a) ((enum Lisp_Type) (((EMACS_UINT) (a)) >> VALBITS))
-#endif
-
-#ifndef XSETTYPE
-#define XSETTYPE(a, b) ((a)  =  XUINT (a) | ((EMACS_INT)(b) << VALBITS))
-#endif
 
 /* For integers known to be positive, XFASTINT provides fast retrieval
    and XSETFASTINT provides fast storage.  This takes advantage of the
-   fact that Lisp_Int is 0.
-   Beware: XFASTINT applied to a non-positive integer or to something
-   else than an integer should return something that preserves all the
-   info that was in the Lisp_Object, because it is used in EQ.  */
+   fact that Lisp_Int is 0.  */
 #define XFASTINT(a) ((a) + 0)
 #define XSETFASTINT(a, b) ((a) = (b))
 
 /* Extract the value of a Lisp_Object as a signed integer.  */
 
 #ifndef XINT   /* Some machines need to do this differently.  */
-#define XINT(a) ((EMACS_INT) (((a) << (BITS_PER_EMACS_INT - VALBITS)) \
-			      >> (BITS_PER_EMACS_INT - VALBITS)))
+#define XINT(a) ((((EMACS_INT) (a)) << (BITS_PER_EMACS_INT - VALBITS))	\
+		 >> (BITS_PER_EMACS_INT - VALBITS))
 #endif
 
 /* Extract the value as an unsigned integer.  This is a basis
@@ -356,22 +337,11 @@ enum pvec_type
 #define make_number(N)		\
   ((((EMACS_INT) (N)) & VALMASK) | ((EMACS_INT) Lisp_Int) << VALBITS)
 
-/* During garbage collection, XGCTYPE must be used for extracting types
- so that the mark bit is ignored.  XMARKBIT accesses the markbit.
- Markbits are used only in particular slots of particular structure types.
- Other markbits are always zero.
- Outside of garbage collection, all mark bits are always zero.  */
+#define EQ(x, y) ((x) == (y))
 
-#ifndef XGCTYPE
-#define XGCTYPE(a) ((enum Lisp_Type) (((a) >> VALBITS) & GCTYPEMASK))
-#endif
-
-#endif /* NO_UNION_TYPE */
-
-#ifndef NO_UNION_TYPE
+#else /* not NO_UNION_TYPE */
 
 #define XTYPE(a) ((enum Lisp_Type) (a).u.type)
-#define XSETTYPE(a, b) ((a).u.type = (char) (b))
 
 /* For integers known to be positive, XFASTINT provides fast retrieval
    and XSETFASTINT provides fast storage.  This takes advantage of the
@@ -399,15 +369,20 @@ enum pvec_type
 extern Lisp_Object make_number ();
 #endif
 
+#define EQ(x, y) ((x).s.val == (y).s.val)
+
+#endif /* NO_UNION_TYPE */
+
 /* During garbage collection, XGCTYPE must be used for extracting types
- so that the mark bit is ignored.  XMARKBIT access the markbit.
+ so that the mark bit is ignored.  XMARKBIT accesses the markbit.
  Markbits are used only in particular slots of particular structure types.
  Other markbits are always zero.
  Outside of garbage collection, all mark bits are always zero.  */
 
-#define XGCTYPE(a) ((a).gu.type)
-
-#endif /* NO_UNION_TYPE */
+#ifndef XGCTYPE
+/* The distinction does not exist now that the MARKBIT has been eliminated.  */
+#define XGCTYPE(a) XTYPE (a)
+#endif
 
 #ifndef XPNTR
 #ifdef HAVE_SHM
@@ -434,6 +409,9 @@ extern size_t pure_size;
 
 #define MOST_NEGATIVE_FIXNUM	- ((EMACS_INT) 1 << (VALBITS - 1))
 #define MOST_POSITIVE_FIXNUM	(((EMACS_INT) 1 << (VALBITS - 1)) - 1)
+/* Mask indicating the significant bits of a Lisp_Int.
+   I.e. (x & INTMASK) == XUINT (make_number (x)).  */
+#define INTMASK ((((EMACS_INT) 1) << VALBITS) - 1)
 
 /* Value is non-zero if C integer I doesn't fit into a Lisp fixnum.  */
 
@@ -1005,15 +983,6 @@ struct Lisp_Hash_Table
 
 /* These structures are used for various misc types.  */
 
-/* A miscellaneous object, when it's on the free list.  */
-struct Lisp_Free
-  {
-    int type : 16;	/* = Lisp_Misc_Free */
-    unsigned gcmarkbit : 1;
-    int spacer : 15;
-    union Lisp_Misc *chain;
-  };
-
 struct Lisp_Marker
 {
   int type : 16;		/* = Lisp_Misc_Marker */
@@ -1178,6 +1147,15 @@ struct Lisp_Save_Value
   };
 
 
+/* A miscellaneous object, when it's on the free list.  */
+struct Lisp_Free
+  {
+    int type : 16;	/* = Lisp_Misc_Free */
+    unsigned gcmarkbit : 1;
+    int spacer : 15;
+    union Lisp_Misc *chain;
+  };
+
 /* To get the type field of a union Lisp_Misc, use XMISCTYPE.
    It uses one of these struct subtypes to get the type field.  */
 
@@ -1338,7 +1316,7 @@ typedef unsigned char UCHAR;
 #define GC_NATNUMP(x) (GC_INTEGERP (x) && XINT (x) >= 0)
 
 #define INTEGERP(x) (XTYPE ((x)) == Lisp_Int)
-#define GC_INTEGERP(x) (XGCTYPE ((x)) == Lisp_Int)
+#define GC_INTEGERP(x) INTEGERP (x)
 #define SYMBOLP(x) (XTYPE ((x)) == Lisp_Symbol)
 #define GC_SYMBOLP(x) (XGCTYPE ((x)) == Lisp_Symbol)
 #define MISCP(x) (XTYPE ((x)) == Lisp_Misc)
@@ -1409,8 +1387,7 @@ typedef unsigned char UCHAR;
 
 #define SUB_CHAR_TABLE_P(x) (CHAR_TABLE_P (x) && NILP (XCHAR_TABLE (x)->top))
 
-#define EQ(x, y) (XFASTINT (x) == XFASTINT (y))
-#define GC_EQ(x, y) (XGCTYPE (x) == XGCTYPE (y) && XPNTR (x) == XPNTR (y))
+#define GC_EQ(x, y) EQ (x, y)
 
 #define CHECK_LIST(x) \
   do { if (!CONSP ((x)) && !NILP (x)) x = wrong_type_argument (Qlistp, (x)); } while (0)

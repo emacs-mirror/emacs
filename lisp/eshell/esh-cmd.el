@@ -1400,7 +1400,8 @@ messages, and errors."
 		      (let ((arg (car args)))
 			(if (and (stringp arg)
 				 (> (length arg) 0)
-				 (get-text-property 0 'number arg))
+				 (not (text-property-not-all
+				       0 (length arg) 'number t arg)))
 			    (setcar args (string-to-number arg))))
 		      (setq args (cdr args))))
 		  (eshell-apply object eshell-last-arguments))

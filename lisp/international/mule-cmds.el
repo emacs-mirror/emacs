@@ -288,12 +288,12 @@ wrong, use this command again to toggle back to the right mode."
 	       (not (eq cmd 'universal-argument-other-key)))
 	(let ((current-prefix-arg prefix-arg)
 	      ;; Have to bind `last-command-char' here so that
-	      ;; `digit-argument', for isntance, can compute the
+	      ;; `digit-argument', for instance, can compute the
 	      ;; prefix arg.
 	      (last-command-char (aref keyseq 0)))
 	  (call-interactively cmd)))
 
-      ;; This is the final call to `univeral-argument-other-key', which
+      ;; This is the final call to `universal-argument-other-key', which
       ;; set's the final `prefix-arg.
       (let ((current-prefix-arg prefix-arg))
 	(call-interactively cmd))
@@ -541,7 +541,7 @@ The return value is an alist of the following format:
 where
   CHARSET is a character set,
   COUNT is a number of characters,
-  CHARs are found characters of the character set.
+  CHARs are the characters found from the character set.
 Optional 3rd arg MAXCOUNT limits how many CHARs are put in the above list.
 Optional 4th arg EXCLUDE is a list of character sets to be ignored.
 
@@ -1191,8 +1191,13 @@ If nil, that means no input method is activated now.")
   "*Default input method for multilingual text (a string).
 This is the input method activated automatically by the command
 `toggle-input-method' (\\[toggle-input-method])."
+  :link  '(custom-manual "(emacs)Input Methods")
   :group 'mule
-  :type '(choice (const nil) string)
+  :type '(choice (const nil) (string
+			      :completion-ignore-case t
+			      :complete-function widget-string-complete
+			      :completion-alist input-method-alist
+			      :prompt-history input-method-history))
   :set-after '(current-language-environment))
 
 (put 'input-method-function 'permanent-local t)
@@ -1852,7 +1857,7 @@ of `buffer-file-coding-system' set by this function."
 
 (put 'describe-specified-language-support 'apropos-inhibit t)
 
-;; Print a language specific information such as input methods,
+;; Print language-specific information such as input methods,
 ;; charsets, and coding systems.  This function is intended to be
 ;; called from the menu:
 ;;   [menu-bar mule describe-language-environment LANGUAGE]
@@ -1975,6 +1980,13 @@ of `buffer-file-coding-system' set by this function."
     ;; TERRITORY is a country code taken from ISO 3166
     ;; http://www.din.de/gremien/nas/nabd/iso3166ma/codlstp1/en_listp1.html.
     ;; CODESET and MODIFIER are implementation-dependent.
+
+     ;; jasonr comments: MS Windows uses three letter codes for
+     ;; languages instead of the two letter ISO codes that POSIX
+     ;; uses. In most cases the first two letters are the same, so
+     ;; most of the regexps in locale-language-names work. Japanese
+     ;; and Chinese are exceptions, which are listed in the
+     ;; non-standard section at the bottom of locale-language-names.
 
     ; aa Afar
     ; ab Abkhazian
@@ -2169,13 +2181,13 @@ If the language name is nil, there is no corresponding language environment.")
      (".*8859[-_]?9\\>" . "Latin-5")
      (".*8859[-_]?14\\>" . "Latin-8")
      (".*8859[-_]?15\\>" . "Latin-9")
-     (".*utf-?8\\>" . "UTF-8")
+     (".*utf\\(?:-?8\\)?\\>" . "UTF-8")
      ;; utf-8@euro exists, so put this last.  (@euro really specifies
      ;; the currency, rather than the charset.)
      (".*@euro\\>" . "Latin-9")))
   "List of pairs of locale regexps and charset language names.
 The first element whose locale regexp matches the start of a downcased locale
-specifies the language name whose charsets corresponds to that locale.
+specifies the language name whose charset corresponds to that locale.
 This language name is used if its charsets disagree with the charsets of
 the language name that would otherwise be used for this locale.")
 
@@ -2202,17 +2214,52 @@ start of KEY, or nil if there is no match."
       (setq alist (cdr alist)))
     (cdr element)))
 
+(defun locale-charset-match-p (charset1 charset2)
+  "Whether charset names (strings) CHARSET1 and CHARSET2 are equivalent.
+Matching is done ignoring case and any hyphens and underscores in the
+names.  E.g. `ISO_8859-1' and `iso88591' both match `iso-8859-1'."
+  (setq charset1 (replace-regexp-in-string "[-_]" "" charset1))
+  (setq charset2 (replace-regexp-in-string "[-_]" "" charset2))
+  (eq t (compare-strings charset1 nil nil charset2 nil nil t)))
+
+(defvar locale-charset-alist nil
+  "Coding system alist keyed on locale-style charset name.
+Used by `locale-charset-to-coding-system'.")
+
+(defun locale-charset-to-coding-system (charset)
+  "Find coding system corresponding to CHARSET.
+CHARSET is any sort of non-Emacs charset name, such as might be used
+in a locale codeset, or elsewhere.  It is matched to a coding system
+first by case-insensitive lookup in `locale-charset-alist'.  Then
+matches are looked for in the coding system list, treating case and
+the characters `-' and `_' as insignificant.  The coding system base
+is returned.  Thus, for instance, if charset \"ISO8859-2\",
+`iso-latin-2' is returned."
+  (or (car (assoc-ignore-case charset locale-charset-alist))
+      (let ((cs coding-system-alist)
+	    c)
+	(while (and (not c) cs)
+	  (if (locale-charset-match-p charset (caar cs))
+	      (setq c (intern (caar cs)))
+	    (pop cs)))
+	(if c (coding-system-base c)))))
+
+;; Fixme: This ought to deal with the territory part of the locale
+;; too, for setting things such as calendar holidays, ps-print paper
+;; size, spelling dictionary.
+
 (defun set-locale-environment (&optional locale-name)
   "Set up multi-lingual environment for using LOCALE-NAME.
 This sets the language environment, the coding system priority,
 the default input method and sometimes other things.
 
-LOCALE-NAME should be a string
-which is the name of a locale supported by the system;
-often it is of the form xx_XX.CODE, where xx is a language,
-XX is a country, and CODE specifies a character set and coding system.
-For example, the locale name \"ja_JP.EUC\" might name a locale
-for Japanese in Japan using the `japanese-iso-8bit' coding-system.
+LOCALE-NAME should be a string which is the name of a locale supported
+by the system.  Often it is of the form xx_XX.CODE, where xx is a
+language, XX is a country, and CODE specifies a character set and
+coding system.  For example, the locale name \"ja_JP.EUC\" might name
+a locale for Japanese in Japan using the `japanese-iso-8bit'
+coding-system.  The name may also have a modifier suffix, e.g. `@euro'
+or `@cyrillic'.
 
 If LOCALE-NAME is nil, its value is taken from the environment
 variables LC_ALL, LC_CTYPE and LANG (the first one that is set).
@@ -2231,7 +2278,7 @@ See also `locale-charset-language-names', `locale-language-names',
   (setq locale-translation-file-name
 	(let ((files
 	       '("/usr/lib/X11/locale/locale.alias" ; e.g. X11R6.4
-		 "/usr/X11R6/lib/X11/locale/locale.alias" ; e.g. RedHat 4.2
+		 "/usr/X11R6/lib/X11/locale/locale.alias" ; XFree86, e.g. RedHat 4.2
 		 "/usr/openwin/lib/locale/locale.alias" ; e.g. Solaris 2.6
 		 ;;
 		 ;; The following name appears after the X-related names above,
@@ -2278,7 +2325,11 @@ See also `locale-charset-language-names', `locale-language-names',
 	    (charset-language-name
 	     (locale-name-match locale locale-charset-language-names))
 	    (coding-system
-	     (locale-name-match locale locale-preferred-coding-systems)))
+	     (or (locale-name-match locale locale-preferred-coding-systems)
+		 (when locale
+		   (if (string-match "\\.\\([^@]+\\)" locale)
+		       (locale-charset-to-coding-system
+			(match-string 1 locale)))))))
 
 	;; Give preference to charset-language-name over language-name.
 	(if (and charset-language-name
@@ -2421,7 +2472,7 @@ If CODING-SYSTEM can't safely encode CHAR, return nil."
 	      (and safe-chars (aref safe-chars char)))
       ;; We must find the encoded string of CHAR.  But, just encoding
       ;; CHAR will put extra control sequences (usually to designate
-      ;; ASCII charaset) at the tail if type of CODING is ISO 2022.
+      ;; ASCII charset) at the tail if type of CODING is ISO 2022.
       ;; To exclude such tailing bytes, we at first encode one-char
       ;; string and two-char string, then check how many bytes at the
       ;; tail of both encoded strings are the same.

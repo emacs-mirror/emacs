@@ -161,19 +161,19 @@ written inside quotes or on lines by themselves, like this:
 Any real spaces in such a key sequence should be ignored; only @key{SPC}
 really means press the space key.
 
-The ASCII code sent by @kbd{C-x} (except for @kbd{C-?}) is the value
+The @acronym{ASCII} code sent by @kbd{C-x} (except for @kbd{C-?}) is the value
 that would be sent by pressing just @key{x} minus 96 (or 64 for
 upper-case @key{X}) and will be from 0 to 31.  On Unix and GNU/Linux
-terminals, the ASCII code sent by @kbd{M-x} is the sum of 128 and the
-ASCII code that would be sent by pressing just @key{x}.  Essentially,
+terminals, the @acronym{ASCII} code sent by @kbd{M-x} is the sum of 128 and the
+@acronym{ASCII} code that would be sent by pressing just @key{x}.  Essentially,
 @key{Control} turns off bits 5 and 6 and @key{Meta} turns on bit
 7@footnote{
 DOS and Windows terminals don't set bit 7 when the @key{Meta} key is
 pressed.}.
 
-@kbd{C-?} (aka @key{DEL}) is ASCII code 127.  It is a misnomer to call
+@kbd{C-?} (aka @key{DEL}) is @acronym{ASCII} code 127.  It is a misnomer to call
 @kbd{C-?}  a ``control'' key, since 127 has both bits 5 and 6 turned ON.
-Also, on very few keyboards does @kbd{C-?} generate ASCII code 127.
+Also, on very few keyboards does @kbd{C-?} generate @acronym{ASCII} code 127.
 
 @inforef{Text Characters, Text Characters, emacs}, and @inforef{Keys,
 Keys, emacs}, for more information.  (@xref{On-line manual}, for more
@@ -4541,7 +4541,7 @@ actually behaves.
 @cindex Help invoked by Backspace
 @cindex DEL key does not delete
 
-The @key{Backspace} key (on most keyboards) generates ASCII code 8.
+The @key{Backspace} key (on most keyboards) generates @acronym{ASCII} code 8.
 @kbd{C-h} sends the same code.  In Emacs by default @kbd{C-h} invokes
 help-command.  This is intended to be easy to remember since the first
 letter of @samp{help} is @samp{h}.  The easiest solution to this problem
@@ -4739,7 +4739,7 @@ press @key{Meta} and @key{a} together, but with @key{ESC}, you press
 @cindex Lacking an Escape key
 @cindex Escape key, lacking
 
-Type @kbd{C-[} instead.  This should send ASCII code 27 just like an
+Type @kbd{C-[} instead.  This should send @acronym{ASCII} code 27 just like an
 Escape key would.  @kbd{C-3} may also work on some terminal (but not
 under X).  For many terminals (notably DEC terminals) @key{F11}
 generates @key{ESC}.  If not, the following form can be used to bind it:
@@ -4791,7 +4791,7 @@ is how to make @kbd{H-M-RIGHT} move forward a word:
 @item
 Not all modifiers are permitted in all situations.  @key{Hyper},
 @key{Super}, and @key{Alt} are not available on Unix character
-terminals.  Non-ASCII keys and mouse events (e.g. @kbd{C-=} and
+terminals.  Non-@acronym{ASCII} keys and mouse events (e.g. @kbd{C-=} and
 @kbd{Mouse-1}) also fall under this category.
 
 @end itemize
@@ -4821,7 +4821,7 @@ For X11: Make sure it really is a @key{Meta} key.  Use @code{xev} to
 find out what keysym your @key{Meta} key generates.  It should be either
 @code{Meta_L} or @code{Meta_R}.  If it isn't, use @file{xmodmap} to fix
 the situation.  If @key{Meta} does generate @code{Meta_L} or
-@code{Meta_R}, but @kbd{M-x} produces a non-ASCII character, put this in
+@code{Meta_R}, but @kbd{M-x} produces a non-@acronym{ASCII} character, put this in
 your @file{~/.Xdefaults} file:
 
 @example
@@ -4914,7 +4914,7 @@ Support, emacs}.  On a Unix, when Emacs runs on a text-only terminal
 display or is invoked with @samp{emacs -nw}, you typically need to use
 @code{set-terminal-coding-system} to tell Emacs what the terminal can
 display, even after setting the language environment; otherwise
-non-ASCII characters will display as @samp{?}.  On other operating
+non-@acronym{ASCII} characters will display as @samp{?}.  On other operating
 systems, such as MS-DOS and MS-Windows, Emacs queries the OS about the
 character set supported by the display, and sets up the required
 terminal coding system automatically.

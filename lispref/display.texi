@@ -801,11 +801,12 @@ they print into the buffer named @var{buffer-name}, which is first
 created if necessary, and put into Help mode.  Finally, the buffer is
 displayed in some window, but not selected.
 
-If the @var{forms} do not change the major mode in the output buffer, so
-that it is still Help mode at the end of their execution, then
+If the @var{forms} do not change the major mode in the output buffer,
+so that it is still Help mode at the end of their execution, then
 @code{with-output-to-temp-buffer} makes this buffer read-only at the
-end, and also scans it for function and variable names to make them into
-clickable cross-references.
+end, and also scans it for function and variable names to make them
+into clickable cross-references.  @xref{Documentation Tips, , Tips for
+Documentation Strings}.
 
 The string @var{buffer-name} specifies the temporary buffer, which
 need not already exist.  The argument must be a string, not a buffer.
@@ -2076,28 +2077,6 @@ face attributes, as determined by face merging, specify most of the
 font choice, but not all.  Part of the choice depends on what character
 it is.
 
-  For multibyte characters, typically each font covers only one
-character set.  So each character set (@pxref{Character Sets}) specifies
-a registry and encoding to use, with the character set's
-@code{x-charset-registry} property.  Its value is a string containing
-the registry and the encoding, with a dash between them:
-
-@example
-(plist-get (charset-plist 'latin-iso8859-1)
-           'x-charset-registry)
-     @result{} "ISO8859-1"
-@end example
-
-  Unibyte text does not have character sets, so displaying a unibyte
-character takes the registry and encoding from the variable
-@code{face-default-registry}.
-
-@defvar face-default-registry
-This variable specifies which registry and encoding to use in choosing
-fonts for unibyte characters.  The value is initialized at Emacs startup
-time from the font the user specified for Emacs.
-@end defvar
-
   If the face specifies a fontset name, that fontset determines a
 pattern for fonts of the given charset.  If the face specifies a font
 family, a font pattern is constructed.
@@ -2435,7 +2414,7 @@ times in the specification string.
   For the remaining character sets, those that you don't specify
 explicitly, Emacs chooses a font based on @var{fontpattern}: it replaces
 @samp{fontset-@var{alias}} with a value that names one character set.
-For the @sc{ascii} character set, @samp{fontset-@var{alias}} is replaced
+For the @acronym{ASCII} character set, @samp{fontset-@var{alias}} is replaced
 with @samp{ISO8859-1}.
 
   In addition, when several consecutive fields are wildcards, Emacs
@@ -2451,7 +2430,7 @@ better to use the smaller font in its own size, which Emacs does.
 @end example
 
 @noindent
-the font specification for @sc{ascii} characters would be this:
+the font specification for @acronym{ASCII} characters would be this:
 
 @example
 -*-fixed-medium-r-normal-*-24-*-ISO8859-1
@@ -2479,6 +2458,36 @@ Then, the font specifications for all but Chinese GB2312 characters have
 @samp{fixed} in the @var{family} field, and the font specification for
 Chinese GB2312 characters has a wild card @samp{*} in the @var{family}
 field.
+
+@defun set-fontset-font name character fontname &optional frame
+This function modifies the existing fontset @var{name} to
+use the font name @var{fontname} for the character @var{character}.
+
+If @var{name} is @code{nil}, this function modifies the default
+fontset of which short name is @samp{fontset-default}.
+
+@var{character} may be a cons; @code{(@var{from} . @var{to})}, where
+@var{from} and @var{to} are non-generic characters.  In that case, use
+@var{fontname} for all characters in the range @var{from} and @var{to}
+(inclusive).
+
+@var{character} may be a charset.  In that case, use
+@var{fontname} for all character in the charsets.
+
+@var{fontname} may be a cons; @code{(@var{family} . @var{registry})},
+where @var{family} is a family name of a font (possibly including a
+foundry name at the head), @var{registry} is a registry name of a font
+(possibly including an encoding name at the tail).
+
+For instance, this changes the default fontset to use a font of which
+registry name is @samp{JISX0208.1983} for all characters belonging to
+the charset @code{japanese-jisx0208}.
+
+@example
+(set-fontset-font nil 'japanese-jisx0208 '(nil . "JISX0208.1983"))
+@end example
+
+@end defun
 
 @defun char-displayable-p char
 This function returns @code{t} if Emacs ought to be able to display
@@ -3467,19 +3476,19 @@ Character code 10 is a newline.
 All other codes in the range 0 through 31, and code 127, display in one
 of two ways according to the value of @code{ctl-arrow}.  If it is
 non-@code{nil}, these codes map to sequences of two glyphs, where the
-first glyph is the @sc{ascii} code for @samp{^}.  (A display table can
+first glyph is the @acronym{ASCII} code for @samp{^}.  (A display table can
 specify a glyph to use instead of @samp{^}.)  Otherwise, these codes map
 just like the codes in the range 128 to 255.
 
 On MS-DOS terminals, Emacs arranges by default for the character code
 127 to be mapped to the glyph code 127, which normally displays as an
-empty polygon.  This glyph is used to display non-@sc{ascii} characters
+empty polygon.  This glyph is used to display non-@acronym{ASCII} characters
 that the MS-DOS terminal doesn't support.  @xref{MS-DOS and MULE,,,
 emacs, The GNU Emacs Manual}.
 
 @item
 Character codes 128 through 255 map to sequences of four glyphs, where
-the first glyph is the @sc{ascii} code for @samp{\}, and the others are
+the first glyph is the @acronym{ASCII} code for @samp{\}, and the others are
 digit characters representing the character code in octal.  (A display
 table can specify a glyph to use instead of @samp{\}.)
 
@@ -3542,7 +3551,7 @@ independent of the user-settable tab stops used by the command
 @cindex display table
 You can use the @dfn{display table} feature to control how all possible
 character codes display on the screen.  This is useful for displaying
-European languages that have letters not in the @sc{ascii} character
+European languages that have letters not in the @acronym{ASCII} character
 set.
 
 The display table maps each character code into a sequence of

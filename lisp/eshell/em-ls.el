@@ -480,8 +480,8 @@ whose cdr is the list of file attributes."
 		     ""))
 		(let* ((str (eshell-ls-printable-size (nth 7 attrs)))
 		       (len (length str)))
-		  (if (< len 8)
-		      (concat (make-string (- 8 len) ? ) str)
+		  (if (< len (or size-width 4))
+		      (concat (make-string (- (or size-width 4) len) ? ) str)
 		    str))
 		" " (format-time-string
 		     (concat

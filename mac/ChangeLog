@@ -1,3 +1,15 @@
+2003-11-02  Andrew Choi  <akochoi@shaw.ca>
+
+	* src/Emacs.r [!TARGET_API_MAC_CARBON]: Don't define hfdr
+	resource.
+	* Emacs.app/Contents/Resources/Emacs.rsrc: Remove.
+	
+2003-10-31  Andrew Choi  <akochoi@shaw.ca>
+
+	* INSTALL: Add Nozomu Ando's changes to instructions for
+	installing on X Window (that static libraries are no longer
+	necessary after his changes to src/unexmacosx.c).
+
 2003-04-28  Andrew Choi  <akochoi@shaw.ca>
 
 	* make-package: Allocate 5% extra space on disk image for

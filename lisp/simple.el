@@ -303,14 +303,14 @@ In programming language modes, this is the same as TAB.
 In some text modes, where TAB inserts a tab, this indents to the
 column specified by the function `current-left-margin'."
   (interactive "*")
-  (delete-horizontal-space t)
   (let ((pos (point)))
     ;; Be careful to insert the newline before indenting the line.
     ;; Otherwise, the indentation might be wrong.
     (newline)
     (save-excursion
       (goto-char pos)
-      (indent-according-to-mode))
+      (indent-according-to-mode)
+      (delete-horizontal-space t))
     (indent-according-to-mode)))
 
 (defun quoted-insert (arg)
@@ -1657,6 +1657,26 @@ specifies the value of ERROR-BUFFER."
 `universal-argument-other-key' uses this to discard those events
 from (this-command-keys), and reread only the final command.")
 
+(defvar overriding-map-is-bound nil
+  "Non-nil when `overriding-terminal-local-map' is `universal-argument-map'.")
+
+(defvar saved-overriding-map nil
+  "The saved value of `overriding-terminal-local-map'.
+That variable gets restored to this value on exiting \"universal
+argument mode\".")
+
+(defun ensure-overriding-map-is-bound ()
+  "Check `overriding-terminal-local-map' is `universal-argument-map'."
+  (unless overriding-map-is-bound
+    (setq saved-overriding-map overriding-terminal-local-map)
+    (setq overriding-terminal-local-map universal-argument-map)
+    (setq overriding-map-is-bound t)))
+
+(defun restore-overriding-map ()
+  "Restore `overriding-terminal-local-map' to its saved value."
+  (setq overriding-terminal-local-map saved-overriding-map)
+  (setq overriding-map-is-bound nil))
+
 (defun universal-argument ()
   "Begin a numeric argument for the following command.
 Digits or minus sign following \\[universal-argument] make up the numeric argument.
@@ -1670,7 +1690,7 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
   (interactive)
   (setq prefix-arg (list 4))
   (setq universal-argument-num-events (length (this-command-keys)))
-  (setq overriding-terminal-local-map universal-argument-map))
+  (ensure-overriding-map-is-bound))
 
 ;; A subsequent C-u means to multiply the factor by 4 if we've typed
 ;; nothing but C-u's; otherwise it means to terminate the prefix arg.
@@ -1681,7 +1701,7 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
     (if (eq arg '-)
 	(setq prefix-arg (list -4))
       (setq prefix-arg arg)
-      (setq overriding-terminal-local-map nil)))
+      (restore-overriding-map)))
   (setq universal-argument-num-events (length (this-command-keys))))
 
 (defun negative-argument (arg)
@@ -1695,7 +1715,7 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
 	(t
 	 (setq prefix-arg '-)))
   (setq universal-argument-num-events (length (this-command-keys)))
-  (setq overriding-terminal-local-map universal-argument-map))
+  (ensure-overriding-map-is-bound))
 
 (defun digit-argument (arg)
   "Part of the numeric argument for the next command.
@@ -1714,7 +1734,7 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
 	  (t
 	   (setq prefix-arg digit))))
   (setq universal-argument-num-events (length (this-command-keys)))
-  (setq overriding-terminal-local-map universal-argument-map))
+  (ensure-overriding-map-is-bound))
 
 ;; For backward compatibility, minus with no modifiers is an ordinary
 ;; command if digits have already been entered.
@@ -1735,7 +1755,7 @@ These commands include \\[set-mark-command] and \\[start-kbd-macro]."
 	  (append (nthcdr universal-argument-num-events keylist)
 		  unread-command-events)))
   (reset-this-command-lengths)
-  (setq overriding-terminal-local-map nil))
+  (restore-overriding-map))
 
 ;;;; Window system cut and paste hooks.
 
@@ -3348,7 +3368,7 @@ Just \\[universal-argument] as argument means to use the current column."
       (setq arg (current-column)))
   (if (not (integerp arg))
       ;; Disallow missing argument; it's probably a typo for C-x C-f.
-      (error "set-fill-column requires an explicit argument")
+      (error "Set-fill-column requires an explicit argument")
     (message "Fill column set to %d (was %d)" arg fill-column)
     (setq fill-column arg)))
 
@@ -3810,25 +3830,25 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
                    (read-variable (format "Set variable (default %s): " default-var)
                                   default-var)
                  (read-variable "Set variable: ")))
-		      (minibuffer-help-form '(describe-variable var))
-		      (prop (get var 'variable-interactive))
-		      (prompt (format "Set %s%s to value: " var
-				      (cond ((local-variable-p var)
-					     " (buffer-local)")
-					    ((or current-prefix-arg
-						 (local-variable-if-set-p var))
-					     " buffer-locally")
-					    (t " globally"))))
-		      (val (if prop
-			       ;; Use VAR's `variable-interactive' property
-			       ;; as an interactive spec for prompting.
-			       (call-interactively `(lambda (arg)
-						      (interactive ,prop)
-						      arg))
-			     (read
-			      (read-string prompt nil
-					   'set-variable-value-history)))))
-		 (list var val current-prefix-arg)))
+	  (minibuffer-help-form '(describe-variable var))
+	  (prop (get var 'variable-interactive))
+	  (prompt (format "Set %s%s to value: " var
+			  (cond ((local-variable-p var)
+				 " (buffer-local)")
+				((or current-prefix-arg
+				     (local-variable-if-set-p var))
+				 " buffer-locally")
+				(t " globally"))))
+	  (val (if prop
+		   ;; Use VAR's `variable-interactive' property
+		   ;; as an interactive spec for prompting.
+		   (call-interactively `(lambda (arg)
+					  (interactive ,prop)
+					  arg))
+		 (read
+		  (read-string prompt nil
+			       'set-variable-value-history)))))
+     (list var val current-prefix-arg)))
 
   (and (custom-variable-p var)
        (not (get var 'custom-type))

@@ -423,7 +423,7 @@ correspondingly more complicated.  Here are excerpts from
 @group
       ;; @r{Set syntax of chars up to 0 to class of chars that are}
       ;;   @r{part of symbol names but not words.}
-      ;;   @r{(The number 0 is @code{48} in the @sc{ascii} character set.)}
+      ;;   @r{(The number 0 is @code{48} in the @acronym{ASCII} character set.)}
       (while (< i ?0)
         (modify-syntax-entry i "_   " emacs-lisp-mode-syntax-table)
         (setq i (1+ i)))
@@ -1139,10 +1139,12 @@ update of the mode line so as to display the new information or
 display it in the new way.
 
 @c Emacs 19 feature
-@defun force-mode-line-update
+@defun force-mode-line-update &optional all
 Force redisplay of the current buffer's mode line and header line.
 The next redisplay will update the mode line and header line based on
-the latest values of all relevant variables.
+the latest values of all relevant variables.  With optional
+non-@code{nil} @var{all}, force redisplay of all mode lines and header
+lines.
 
 This function also forces recomputation of the menu bar menus
 and the frame title.
@@ -2159,7 +2161,11 @@ Its value should have one of the forms described in this table.
 to match text which spans lines; this does not work reliably.  While
 @code{font-lock-fontify-buffer} handles multi-line patterns correctly,
 updating when you edit the buffer does not, since it considers text one
-line at a time.
+line at a time.  If you have patterns that typically only span one
+line but can occasionally span two or three, such as
+@samp{<title>...</title>}, you can ask font-lock to be more careful by
+setting @code{font-lock-multiline} to @code{t}.  But it still will not
+work in all cases.
 
 @node Other Font Lock Variables
 @subsection Other Font Lock Variables
@@ -2227,6 +2233,20 @@ being managed by Font Lock mode.  Font Lock mode normally manages only
 the @code{font-lock-face} property; if you want it to manage others as
 well, you must specify them in a @var{facename} in
 @code{font-lock-keywords} as well as adding them to this list.
+@end defvar
+
+@defvar font-lock-syntactic-face-function
+A function to determine which face to use for a given syntactic
+element (a string or a comment).  The function is called with one
+argument, the parse state at point returned by
+@code{parse-partial-sexp}, and should return a face.  The default
+value returns @code{font-lock-comment-face} for comments and
+@code{font-lock-string-face} for strings.
+
+This can be used to highlighting different kinds of strings or
+comments differently.  It is also sometimes abused together with
+@code{font-lock-syntactic-keywords} to highlight elements that span
+multiple lines, but this is too obscure to document in this manual.
 @end defvar
 
 @node Levels of Font Lock

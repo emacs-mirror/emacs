@@ -1,3 +1,44 @@
+2003-11-02  Jesper Harder  <harder@ifa.au.dk>  (tiny change)
+
+	* man/ack.texi, man/basic.texi, man/cmdargs.texi:
+	* man/commands.texi, man/custom.texi, man/display.texi:
+	* man/ediff.texi, man/emacs.texi, man/faq.texi, man/files.texi:
+	* man/frames.texi, man/glossary.texi, man/killing.texi:
+	* man/macos.texi, man/mark.texi, man/misc.texi, man/msdog.texi:
+	* man/mule.texi, man/rmail.texi, man/search.texi:
+	* man/sending.texi, man/text.texi, man/tramp.texi:
+	* man/trouble.texi, man/vip.texi, man/viper.texi, man/widget.texi:
+	* man/woman.texi: Replace @sc{ascii} and ASCII with @acronym{ASCII}.
+
+2003-11-01  Alan Mackenzie  <acm@muc.de>
+
+	* search.texi (Scrolling During Incremental Search): Document a
+	new scrolling facility in isearch mode.
+
+2003-10-26  Karl Berry  <karl@gnu.org>
+
+	* info.texi (Info Search): echo area, not echo are.  From Debian
+	diff.
+
+2003-10-26  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* widget.texi (Defining New Widgets): Document new beavior of
+	:buttons and :children keywords.
+
+2003-10-22  Miles Bader  <miles@gnu.org>
+
+	* Makefile.in (info): Move before $(top_srcdir)/info.
+
+2003-10-22  Nick Roberts  <nick@nick.uklinux.net>
+
+	* building.texi (Watch Expressions): Update section on data display
+	to reflect code changes (GDB Graphical Interface).
+
+2003-10-17  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* tramp.texi (Inline methods): Small grammar fix.
+	(External transfer methods): Likewise.
+
 2003-10-13  Richard M. Stallman  <rms@gnu.org>
 
 	* xresources.texi (GTK resources): Clean up previous change.

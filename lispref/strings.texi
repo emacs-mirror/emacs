@@ -44,7 +44,7 @@ used.  Thus, strings really contain integers.
   The length of a string (like any array) is fixed, and cannot be
 altered once the string exists.  Strings in Lisp are @emph{not}
 terminated by a distinguished character code.  (By contrast, strings in
-C are terminated by a character with @sc{ascii} code 0.)
+C are terminated by a character with @acronym{ASCII} code 0.)
 
   Since strings are arrays, and therefore sequences as well, you can
 operate on them with the general array and sequence functions.
@@ -52,10 +52,10 @@ operate on them with the general array and sequence functions.
 change individual characters in a string using the functions @code{aref}
 and @code{aset} (@pxref{Array Functions}).
 
-  There are two text representations for non-@sc{ascii} characters in
+  There are two text representations for non-@acronym{ASCII} characters in
 Emacs strings (and in buffers): unibyte and multibyte (@pxref{Text
-Representations}).  An @sc{ascii} character always occupies one byte in a
-string; in fact, when a string is all @sc{ascii}, there is no real
+Representations}).  An @acronym{ASCII} character always occupies one byte in a
+string; in fact, when a string is all @acronym{ASCII}, there is no real
 difference between the unibyte and multibyte representations.
 For most Lisp programming, you don't need to be concerned with these two
 representations.
@@ -66,8 +66,8 @@ characters (which are large integers) rather than character
 codes in the range 128 to 255.
 
   Strings cannot hold characters that have the hyper, super or alt
-modifiers; they can hold @sc{ascii} control characters, but no other
-control characters.  They do not distinguish case in @sc{ascii} control
+modifiers; they can hold @acronym{ASCII} control characters, but no other
+control characters.  They do not distinguish case in @acronym{ASCII} control
 characters.  If you want to store such characters in a sequence, such as
 a key sequence, you must use a vector instead of a string.
 @xref{Character Type}, for more information about the representation of meta
@@ -172,7 +172,7 @@ In this example, the index for @samp{e} is @minus{}3, the index for
 @samp{f} is @minus{}2, and the index for @samp{g} is @minus{}1.
 Therefore, @samp{e} and @samp{f} are included, and @samp{g} is excluded.
 
-When @code{nil} is used as an index, it stands for the length of the
+When @code{nil} is used for @var{end}, it stands for the length of the
 string.  Thus,
 
 @example
@@ -208,10 +208,11 @@ For example:
      @result{} [b (c)]
 @end example
 
-A @code{wrong-type-argument} error is signaled if either @var{start} or
-@var{end} is not an integer or @code{nil}.  An @code{args-out-of-range}
-error is signaled if @var{start} indicates a character following
-@var{end}, or if either integer is out of range for @var{string}.
+A @code{wrong-type-argument} error is signaled if @var{start} is not
+an integer or if @var{end} is neither an integer nor @code{nil}.  An
+@code{args-out-of-range} error is signaled if @var{start} indicates a
+character following @var{end}, or if either integer is out of range
+for @var{string}.
 
 Contrast this function with @code{buffer-substring} (@pxref{Buffer
 Contents}), which returns a string containing a portion of the text in
@@ -219,9 +220,12 @@ the current buffer.  The beginning of a string is at index 0, but the
 beginning of a buffer is at index 1.
 @end defun
 
-@defun substring-no-properties string start &optional end
-This works like @code{substring} but discards all text properties
-from the value.
+@defun substring-no-properties string &optional start end
+This works like @code{substring} but discards all text properties from
+the value.  Also, @var{start} may be omitted or @code{nil}, which is
+equivalent to 0.  Thus, @w{@code{(substring-no-properties
+@var{string})}} returns a copy of @var{string}, with all text
+properties removed.
 @end defun
 
 @defun concat &rest sequences
@@ -264,7 +268,7 @@ description of @code{mapconcat} in @ref{Mapping Functions},
 Lists}.
 @end defun
 
-@defun split-string string separators omit-nulls
+@defun split-string string &optional separators omit-nulls
 This function splits @var{string} into substrings at matches for the
 regular expression @var{separators}.  Each match for @var{separators}
 defines a splitting point; the substrings between the splitting points
@@ -285,7 +289,7 @@ null strings are always omitted from the result.  Thus:
 
 @example
 (split-string "  two words ")
-@result{} ("two" "words")
+     @result{} ("two" "words")
 @end example
 
 The result is not @samp{("" "two" "words" "")}, which would rarely be
@@ -294,33 +298,62 @@ useful.  If you need such a result, use an explict value for
 
 @example
 (split-string "  two words " split-string-default-separators)
-@result{} ("" "two" "words" "")
+     @result{} ("" "two" "words" "")
 @end example
 
 More examples:
 
 @example
 (split-string "Soup is good food" "o")
-@result{} ("S" "up is g" "" "d f" "" "d")
+     @result{} ("S" "up is g" "" "d f" "" "d")
 (split-string "Soup is good food" "o" t)
-@result{} ("S" "up is g" "d f" "d")
+     @result{} ("S" "up is g" "d f" "d")
 (split-string "Soup is good food" "o+")
-@result{} ("S" "up is g" "d f" "d")
+     @result{} ("S" "up is g" "d f" "d")
 @end example
 
-Empty matches do count, when not adjacent to another match:
+Empty matches do count, except that @code{split-string} will not look
+for a final empty match when it already reached the end of the string
+using a non-empty match or when @var{string} is empty:
 
 @example
-(split-string "Soup is good food" "o*")
-@result{}("S" "u" "p" " " "i" "s" " " "g" "d" " " "f" "d")
-(split-string "Nice doggy!" "")
-@result{}("N" "i" "c" "e" " " "d" "o" "g" "g" "y" "!")
+(split-string "aooob" "o*")
+     @result{} ("" "a" "" "b" "")
+(split-string "ooaboo" "o*")
+     @result{} ("" "" "a" "b" "")
+(split-string "" "")
+     @result{} ("")
+@end example
+
+However, when @var{separators} can match the empty string,
+@var{omit-nulls} is usually @code{t}, so that the subtleties in the
+three previous examples are rarely relevant:
+
+@example
+(split-string "Soup is good food" "o*" t)
+     @result{} ("S" "u" "p" " " "i" "s" " " "g" "d" " " "f" "d")
+(split-string "Nice doggy!" "" t)
+     @result{} ("N" "i" "c" "e" " " "d" "o" "g" "g" "y" "!")
+(split-string "" "" t)
+     @result{} nil
+@end example
+
+Somewhat odd, but predictable, behavior can occur for certain
+``non-greedy'' values of @var{separators} that can prefer empty
+matches over non-empty matches.  Again, such values rarely occur in
+practice:
+
+@example
+(split-string "ooo" "o*" t)
+     @result{} nil
+(split-string "ooo" "\\|o+" t)
+     @result{} ("o" "o" "o")
 @end example
 @end defun
 
 @defvar split-string-default-separators
 The default value of @var{separators} for @code{split-string}, initially
-@samp{"[ \f\t\n\r\v]+"}.
+@w{@samp{"[ \f\t\n\r\v]+"}}.
 @end defvar
 
 @node Modifying Strings
@@ -367,7 +400,8 @@ in case if @code{case-fold-search} is non-@code{nil}.
 
 @defun string= string1 string2
 This function returns @code{t} if the characters of the two strings
-match exactly.
+match exactly.  Symbols are also allowed as arguments, in which case
+their print names are used.
 Case is always significant, regardless of @code{case-fold-search}.
 
 @example
@@ -383,7 +417,7 @@ The function @code{string=} ignores the text properties of the two
 strings.  When @code{equal} (@pxref{Equality Predicates}) compares two
 strings, it uses @code{string=}.
 
-If the strings contain non-@sc{ascii} characters, and one is unibyte
+If the strings contain non-@acronym{ASCII} characters, and one is unibyte
 while the other is multibyte, then they cannot be equal.  @xref{Text
 Representations}.
 @end defun
@@ -405,11 +439,11 @@ function returns @code{t}.  If the lesser character is the one from
 
 Pairs of characters are compared according to their character codes.
 Keep in mind that lower case letters have higher numeric values in the
-@sc{ascii} character set than their upper case counterparts; digits and
+@acronym{ASCII} character set than their upper case counterparts; digits and
 many punctuation characters have a lower numeric value than upper case
-letters.  An @sc{ascii} character is less than any non-@sc{ascii}
-character; a unibyte non-@sc{ascii} character is always less than any
-multibyte non-@sc{ascii} character (@pxref{Text Representations}).
+letters.  An @acronym{ASCII} character is less than any non-@acronym{ASCII}
+character; a unibyte non-@acronym{ASCII} character is always less than any
+multibyte non-@acronym{ASCII} character (@pxref{Text Representations}).
 
 @example
 @group
@@ -441,6 +475,9 @@ no characters is less than any other string.
      @result{} nil
 @end group
 @end example
+
+Symbols are also allowed as arguments, in which case their print names
+are used.
 @end defun
 
 @defun string-lessp string1 string2
@@ -514,7 +551,7 @@ This function returns a new string containing one character,
 @cindex string to character
   This function returns the first character in @var{string}.  If the
 string is empty, the function returns 0.  The value is also 0 when the
-first character of @var{string} is the null character, @sc{ascii} code
+first character of @var{string} is the null character, @acronym{ASCII} code
 0.
 
 @example
@@ -545,8 +582,10 @@ negative.
 @example
 (number-to-string 256)
      @result{} "256"
+@group
 (number-to-string -23)
      @result{} "-23"
+@end group
 (number-to-string -23.5)
      @result{} "-23.5"
 @end example
@@ -560,20 +599,22 @@ See also the function @code{format} in @ref{Formatting Strings}.
 @defun string-to-number string &optional base
 @cindex string to number
 This function returns the numeric value of the characters in
-@var{string}.  If @var{base} is non-@code{nil}, integers are converted
-in that base.  If @var{base} is @code{nil}, then base ten is used.
-Floating point conversion always uses base ten; we have not implemented
-other radices for floating point numbers, because that would be much
-more work and does not seem useful.  If @var{string} looks like an
-integer but its value is too large to fit into a Lisp integer,
+@var{string}.  If @var{base} is non-@code{nil}, it must be an integer
+between 2 and 16 (inclusive), and integers are converted in that base.
+If @var{base} is @code{nil}, then base ten is used.  Floating point
+conversion only works in base ten; we have not implemented other
+radices for floating point numbers, because that would be much more
+work and does not seem useful.  If @var{string} looks like an integer
+but its value is too large to fit into a Lisp integer,
 @code{string-to-number} returns a floating point result.
 
-The parsing skips spaces and tabs at the beginning of @var{string}, then
-reads as much of @var{string} as it can interpret as a number.  (On some
-systems it ignores other whitespace at the beginning, not just spaces
-and tabs.)  If the first character after the ignored whitespace is
-neither a digit, nor a plus or minus sign, nor the leading dot of a
-floating point number, this function returns 0.
+The parsing skips spaces and tabs at the beginning of @var{string},
+then reads as much of @var{string} as it can interpret as a number in
+the given base.  (On some systems it ignores other whitespace at the
+beginning, not just spaces and tabs.)  If the first character after
+the ignored whitespace is neither a digit in the given base, nor a
+plus or minus sign, nor the leading dot of a floating point number,
+this function returns 0.
 
 @example
 (string-to-number "256")
@@ -675,15 +716,11 @@ Starting in Emacs 21, if the object is a string, its text properties are
 copied into the output.  The text properties of the @samp{%s} itself
 are also copied, but those of the object take priority.
 
-If there is no corresponding object, the empty string is used.
-
 @item %S
 Replace the specification with the printed representation of the object,
 made with quoting (that is, using @code{prin1}---@pxref{Output
 Functions}).  Thus, strings are enclosed in @samp{"} characters, and
 @samp{\} characters appear where necessary before special characters.
-
-If there is no corresponding object, the empty string is used.
 
 @item %o
 @cindex integer to octal
@@ -747,12 +784,17 @@ operation} error.
 @cindex padding
   All the specification characters allow an optional numeric prefix
 between the @samp{%} and the character.  The optional numeric prefix
-defines the minimum width for the object.  If the printed representation
-of the object contains fewer characters than this, then it is padded.
-The padding is on the left if the prefix is positive (or starts with
-zero) and on the right if the prefix is negative.  The padding character
-is normally a space, but if the numeric prefix starts with a zero, zeros
-are used for padding.  Here are some examples of padding:
+defines the minimum width for the object.  If the printed
+representation of the object contains fewer characters than this, then
+it is padded.  The padding is on the left if the prefix is positive
+(or starts with zero) and on the right if the prefix is negative.  The
+padding character is normally a space, but if the numeric prefix
+starts with a zero, zeros are used for padding.  Some of these
+conventions are ignored for specification characters for which they do
+not make sense.  That is, %s, %S and %c accept a numeric prefix
+starting with 0, but still pad with @emph{spaces} on the left.  Also,
+%% accepts a numeric prefix, but ignores it.  Here are some examples
+of padding:
 
 @example
 (format "%06d is padded on the left with zeros" 123)
@@ -804,7 +846,7 @@ not truncated.  In the third case, the padding is on the right.
   The character case functions change the case of single characters or
 of the contents of strings.  The functions normally convert only
 alphabetic characters (the letters @samp{A} through @samp{Z} and
-@samp{a} through @samp{z}, as well as non-@sc{ascii} letters); other
+@samp{a} through @samp{z}, as well as non-@acronym{ASCII} letters); other
 characters are not altered.  You can specify a different case
 conversion mapping by specifying a case table (@pxref{Case Tables}).
 
@@ -812,7 +854,7 @@ conversion mapping by specifying a case table (@pxref{Case Tables}).
 arguments.
 
   The examples below use the characters @samp{X} and @samp{x} which have
-@sc{ascii} codes 88 and 120 respectively.
+@acronym{ASCII} codes 88 and 120 respectively.
 
 @defun downcase string-or-char
 This function converts a character or a string to lower case.
@@ -872,11 +914,15 @@ When the argument to @code{capitalize} is a character, @code{capitalize}
 has the same result as @code{upcase}.
 
 @example
+@group
 (capitalize "The cat in the hat")
      @result{} "The Cat In The Hat"
+@end group
 
+@group
 (capitalize "THE 77TH-HATTED CAT")
      @result{} "The 77th-Hatted Cat"
+@end group
 
 @group
 (capitalize ?x)
@@ -885,15 +931,19 @@ has the same result as @code{upcase}.
 @end example
 @end defun
 
-@defun upcase-initials string
-This function capitalizes the initials of the words in @var{string},
-without altering any letters other than the initials.  It returns a new
-string whose contents are a copy of @var{string}, in which each word has
+@defun upcase-initials string-or-char
+If @var{string-or-char} is a string, this function capitalizes the
+initials of the words in @var{string-or-char}, without altering any
+letters other than the initials.  It returns a new string whose
+contents are a copy of @var{string-or-char}, in which each word has
 had its initial letter converted to upper case.
 
 The definition of a word is any sequence of consecutive characters that
 are assigned to the word constituent syntax class in the current syntax
 table (@pxref{Syntax Class Table}).
+
+When the argument to @code{upcase-initials} is a character,
+@code{upcase-initials} has the same result as @code{upcase}.
 
 @example
 @group
@@ -951,7 +1001,7 @@ of them, or @samp{A} for both of them).
 
   The extra table @var{equivalences} is a map that cyclicly permutes
 each equivalence class (of characters with the same canonical
-equivalent).  (For ordinary @sc{ascii}, this would map @samp{a} into
+equivalent).  (For ordinary @acronym{ASCII}, this would map @samp{a} into
 @samp{A} and @samp{A} into @samp{a}, and likewise for each set of
 equivalent characters.)
 
@@ -988,7 +1038,7 @@ This sets the current buffer's case table to @var{table}.
 @end defun
 
   The following three functions are convenient subroutines for packages
-that define non-@sc{ascii} character sets.  They modify the specified
+that define non-@acronym{ASCII} character sets.  They modify the specified
 case table @var{case-table}; they also modify the standard syntax table.
 @xref{Syntax Tables}.  Normally you would use these functions to change
 the standard case table.

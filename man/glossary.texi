@@ -27,16 +27,16 @@ Input, Alt}.
 @item Argument
 See `numeric argument.'
 
-@item ASCII character
-An ASCII character is either an ASCII control character or an ASCII
+@item @acronym{ASCII} character
+An @acronym{ASCII} character is either an @acronym{ASCII} control character or an @acronym{ASCII}
 printing character.  @xref{User Input}.
 
-@item ASCII control character
-An ASCII control character is the Control version of an upper-case
+@item @acronym{ASCII} control character
+An @acronym{ASCII} control character is the Control version of an upper-case
 letter, or the Control version of one of the characters @samp{@@[\]^_?}.
 
-@item ASCII printing character
-ASCII printing characters include letters, digits, space, and these
+@item @acronym{ASCII} printing character
+@acronym{ASCII} printing characters include letters, digits, space, and these
 punctuation characters: @samp{!@@#$%^& *()_-+=|\~` @{@}[]:;"' <>,.?/}.
 
 @item Auto Fill Mode
@@ -621,8 +621,8 @@ keys, pressing or releasing mouse buttons, and switching between Emacs
 frames.  @xref{User Input}.
 
 @item Input Method
-An input method is a system for entering non-ASCII text characters by
-typing sequences of ASCII characters (q.v.@:).  @xref{Input Methods}.
+An input method is a system for entering non-@acronym{ASCII} text characters by
+typing sequences of @acronym{ASCII} characters (q.v.@:).  @xref{Input Methods}.
 
 @item Insertion
 Insertion means copying text into the buffer, either from the keyboard
@@ -688,7 +688,7 @@ to exist.  Any data within it, if not saved in a file, is lost.
 @item Language Environment
 Your choice of language environment specifies defaults for the input
 method (q.v.@:) and coding system (q.v.@:).  @xref{Language
-Environments}.  These defaults are relevant if you edit non-ASCII text
+Environments}.  These defaults are relevant if you edit non-@acronym{ASCII} text
 (@pxref{International}).
 
 @item Line Wrapping
@@ -833,13 +833,13 @@ another.  The usual way to move text by killing (q.v.@:) and then
 yanking (q.v.@:).  @xref{Killing}.
 
 @item MULE
-MULE refers to the Emacs features for editing multilingual non-ASCII text
+MULE refers to the Emacs features for editing multilingual non-@acronym{ASCII} text
 using multibyte characters (q.v.@:).  @xref{International}.
 
 @item Multibyte Character
 A multibyte character is a character that takes up several bytes in a
-buffer.  Emacs uses multibyte characters to represent non-ASCII text,
-since the number of non-ASCII characters is much more than 256.
+buffer.  Emacs uses multibyte characters to represent non-@acronym{ASCII} text,
+since the number of non-@acronym{ASCII} characters is much more than 256.
 @xref{International Chars, International Characters}.
 
 @item Named Mark
@@ -875,7 +875,7 @@ characters replace the existing text after point rather than pushing
 it to the right.  @xref{Minor Modes}.
 
 @item Page
-A page is a unit of text, delimited by formfeed characters (ASCII
+A page is a unit of text, delimited by formfeed characters (@acronym{ASCII}
 control-L, code 014) coming at the beginning of a line.  Some Emacs
 commands are provided for moving over and operating on pages.
 @xref{Pages}.

@@ -312,7 +312,7 @@ pages.
 @cindex pages
 @cindex formfeed
   Files are often thought of as divided into @dfn{pages} by the
-@dfn{formfeed} character (ASCII control-L, octal code 014).  When you
+@dfn{formfeed} character (@acronym{ASCII} control-L, octal code 014).  When you
 print hardcopy for a file, this character forces a page break; thus,
 each page of the file goes on a separate page on paper.  Most Emacs
 commands treat the page-separator character just like any other

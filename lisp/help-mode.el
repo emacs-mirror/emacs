@@ -213,7 +213,8 @@ Commands:
 		    "\\(function\\|command\\)\\|"
 		    "\\(face\\)\\|"
 		    "\\(symbol\\)\\|"
-		    "\\(source \\(?:code \\)?\\(?:of\\|for\\)\\)\\)\\s-+\\)?"
+		    "\\(source \\(?:code \\)?\\(?:of\\|for\\)\\)\\)"
+		    "[ \t\n]+\\)?"
 		    ;; Note starting with word-syntax character:
 		    "`\\(\\sw\\(\\sw\\|\\s_\\)+\\)'"))
   "Regexp matching doc string references to symbols.
@@ -278,7 +279,10 @@ Find cross-reference information in a buffer and activate such cross
 references for selection with `help-follow'.  Cross-references have
 the canonical form `...'  and the type of reference may be
 disambiguated by the preceding word(s) used in
-`help-xref-symbol-regexp'.
+`help-xref-symbol-regexp'.  Faces only get cross-referenced if
+preceded or followed by the word `face'.  Variables without
+variable documentation do not get cross-referenced, unless
+preceded by the word `variable' or `option'.
 
 If the variable `help-xref-mule-regexp' is non-nil, find also
 cross-reference information related to multilingual environment
@@ -342,11 +346,11 @@ that."
                          (sym (intern-soft data)))
                     (if sym
                         (cond
-                         ((match-string 3) ; `variable' &c
+                         ((match-string 3)  ; `variable' &c
                           (and (boundp sym) ; `variable' doesn't ensure
                                         ; it's actually bound
                                (help-xref-button 8 'help-variable sym)))
-                         ((match-string 4) ; `function' &c
+                         ((match-string 4)   ; `function' &c
                           (and (fboundp sym) ; similarly
                                (help-xref-button 8 'help-function sym)))
 			 ((match-string 5) ; `face'
@@ -354,23 +358,27 @@ that."
 			       (help-xref-button 8 'help-face sym)))
                          ((match-string 6)) ; nothing for `symbol'
 			 ((match-string 7)
-;; this used:
-;; 			   #'(lambda (arg)
-;; 			       (let ((location
-;; 				      (find-function-noselect arg)))
-;; 				 (pop-to-buffer (car location))
-;; 				 (goto-char (cdr location))))
+;;;  this used:
+;;; 			  #'(lambda (arg)
+;;; 			      (let ((location
+;;; 				     (find-function-noselect arg)))
+;;; 				(pop-to-buffer (car location))
+;;; 				(goto-char (cdr location))))
 			  (help-xref-button 8 'help-function-def sym))
+			 ((facep sym)
+			  (if (save-match-data (looking-at "[ \t\n]+face\\W"))
+			      (help-xref-button 8 'help-face sym)))
                          ((and (boundp sym) (fboundp sym))
                           ;; We can't intuit whether to use the
                           ;; variable or function doc -- supply both.
                           (help-xref-button 8 'help-symbol sym))
-                         ((boundp sym)
+                         ((and
+			   (boundp sym)
+			   (documentation-property sym
+						   'variable-documentation))
 			  (help-xref-button 8 'help-variable sym))
 			 ((fboundp sym)
-			  (help-xref-button 8 'help-function sym))
-			 ((facep sym)
-			  (help-xref-button 8 'help-face sym)))))))
+			  (help-xref-button 8 'help-function sym)))))))
               ;; An obvious case of a key substitution:
               (save-excursion
                 (while (re-search-forward

@@ -294,49 +294,46 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
   "Face used to highlight the `current-column' character."
   :group 'ruler-mode)
 
-(defmacro ruler-mode-left-fringe-cols ()
-  "Return the width, measured in columns, of the left fringe area."
-  '(ceiling (or (car (window-fringes)) 0)
-            (frame-char-width)))
+(defsubst ruler-mode-left-fringe-cols (&optional real)
+  "Return the width, measured in columns, of the left fringe area.
+If optional argument REAL is non-nil, return a real floating point
+number instead of a rounded integer value."
+  (funcall (if real '/ 'ceiling)
+           (or (car (window-fringes)) 0)
+           (float (frame-char-width))))
 
-(defmacro ruler-mode-right-fringe-cols ()
-  "Return the width, measured in columns, of the right fringe area."
-  '(ceiling (or (nth 1 (window-fringes)) 0)
-            (frame-char-width)))
+(defsubst ruler-mode-right-fringe-cols (&optional real)
+  "Return the width, measured in columns, of the right fringe area.
+If optional argument REAL is non-nil, return a real floating point
+number instead of a rounded integer value."
+  (funcall (if real '/ 'ceiling)
+            (or (nth 1 (window-fringes)) 0)
+            (float (frame-char-width))))
 
-(defun ruler-mode-left-scroll-bar-cols ()
-  "Return the width, measured in columns, of the right vertical scrollbar."
+(defun ruler-mode-scroll-bar-cols (side)
+  "Return the width, measured in columns, of the vertical scrollbar on SIDE.
+SIDE must be the symbol `left' or `right'."
   (let* ((wsb   (window-scroll-bars))
          (vtype (nth 2 wsb))
          (cols  (nth 1 wsb)))
-    (if (or (eq vtype 'left)
-            (and (eq vtype t)
-                 (eq (frame-parameter nil 'vertical-scroll-bars) 'left)))
-        (or cols
-            (ceiling
-             ;; nil means it's a non-toolkit scroll bar,
-             ;; and its width in columns is 14 pixels rounded up.
-             (or (frame-parameter nil 'scroll-bar-width) 14)
-             ;; Always round up to multiple of columns.
-             (frame-char-width)))
-      0)))
+    (cond
+     ((not (memq side '(left right)))
+      (error "`left' or `right' expected instead of %S" side))
+     ((and (eq vtype side) cols))
+     ((eq (frame-parameter nil 'vertical-scroll-bars) side)
+      ;; nil means it's a non-toolkit scroll bar, and its width in
+      ;; columns is 14 pixels rounded up.
+      (ceiling (or (frame-parameter nil 'scroll-bar-width) 14)
+               (frame-char-width)))
+     (0))))
 
-(defun ruler-mode-right-scroll-bar-cols ()
+(defmacro ruler-mode-right-scroll-bar-cols ()
   "Return the width, measured in columns, of the right vertical scrollbar."
-  (let* ((wsb   (window-scroll-bars))
-         (vtype (nth 2 wsb))
-         (cols  (nth 1 wsb)))
-    (if (or (eq vtype 'right)
-            (and (eq vtype t)
-                 (eq (frame-parameter nil 'vertical-scroll-bars) 'right)))
-        (or cols
-            (ceiling
-             ;; nil means it's a non-toolkit scroll bar,
-             ;; and its width in columns is 14 pixels rounded up.
-             (or (frame-parameter nil 'scroll-bar-width) 14)
-             ;; Always round up to multiple of columns.
-             (frame-char-width)))
-      0)))
+  '(ruler-mode-scroll-bar-cols 'right))
+
+(defmacro ruler-mode-left-scroll-bar-cols ()
+  "Return the width, measured in columns, of the left vertical scrollbar."
+  '(ruler-mode-scroll-bar-cols 'left))
 
 (defsubst ruler-mode-full-window-width ()
   "Return the full width of the selected window."
@@ -647,29 +644,33 @@ mouse-2: unset goal column"
 (defconst ruler-mode-fringe-help-echo
   "%s fringe %S"
   "Help string shown when mouse is over a fringe area.")
+
+(defsubst ruler-mode-space (width &rest props)
+  "Return a single space string of WIDTH times the normal character width.
+Optional argument PROPS specifies other text properties to apply."
+  (if (> width 0)
+      (apply 'propertize " " 'display (list 'space :width width) props)
+    ""))
 
 (defun ruler-mode-ruler ()
   "Return a string ruler."
   (when ruler-mode
-    (let* ((fullw (ruler-mode-full-window-width))
-           (w     (window-width))
+    (let* ((w     (window-width))
            (m     (window-margins))
            (lsb   (ruler-mode-left-scroll-bar-cols))
-           (lf    (ruler-mode-left-fringe-cols))
+           (lf    (ruler-mode-left-fringe-cols t))
            (lm    (or (car m) 0))
            (rsb   (ruler-mode-right-scroll-bar-cols))
-           (rf    (ruler-mode-right-fringe-cols))
+           (rf    (ruler-mode-right-fringe-cols t))
            (rm    (or (cdr m) 0))
-           (ruler (make-string fullw ruler-mode-basic-graduation-char))
-           (o     (+ lsb lf lm))
-           (x     0)
-           (i     o)
+           (ruler (make-string w ruler-mode-basic-graduation-char))
+           (i     0)
            (j     (window-hscroll))
            k c l1 l2 r2 r1 h1 h2 f1 f2)
 
       ;; Setup the default properties.
-      (put-text-property 0 fullw 'face 'ruler-mode-default-face ruler)
-      (put-text-property 0 fullw
+      (put-text-property 0 w 'face 'ruler-mode-default-face ruler)
+      (put-text-property 0 w
                          'help-echo
                          (cond
                           (ruler-mode-show-tab-stops
@@ -680,10 +681,10 @@ mouse-2: unset goal column"
                            ruler-mode-ruler-help-echo))
                          ruler)
       ;; Setup the local map.
-      (put-text-property 0 fullw 'local-map ruler-mode-map ruler)
+      (put-text-property 0 w 'local-map ruler-mode-map ruler)
 
       ;; Setup the active area.
-      (while (< x w)
+      (while (< i w)
         ;; Graduations.
         (cond
          ;; Show a number graduation.
@@ -742,8 +743,7 @@ mouse-2: unset goal column"
            i (1+ i) 'face 'ruler-mode-tab-stop-face
            ruler)))
         (setq i (1+ i)
-              j (1+ j)
-              x (1+ x)))
+              j (1+ j)))
 
       ;; Highlight the fringes and margins.
       (if (nth 2 (window-fringes))
@@ -765,25 +765,16 @@ mouse-2: unset goal column"
               h2 ruler-mode-fringe-help-echo
               f1 'ruler-mode-margins-face
               f2 'ruler-mode-fringes-face))
-      (setq i lsb j (+ i l1))
-      (put-text-property i j 'face f1 ruler)
-      (put-text-property i j 'help-echo (format h1 "Left" l1) ruler)
-      (setq i j j (+ i l2))
-      (put-text-property i j 'face f2 ruler)
-      (put-text-property i j 'help-echo (format h2 "Left" l2) ruler)
-      (setq i (+ o w) j (+ i r2))
-      (put-text-property i j 'face f2 ruler)
-      (put-text-property i j 'help-echo (format h2 "Right" r2) ruler)
-      (setq i j j (+ i r1))
-      (put-text-property i j 'face f1 ruler)
-      (put-text-property i j 'help-echo (format h1 "Right" r1) ruler)
-
-      ;; Show inactive areas.
-      (put-text-property 0 lsb   'face 'ruler-mode-pad-face ruler)
-      (put-text-property j fullw 'face 'ruler-mode-pad-face ruler)
-
-      ;; Return the ruler propertized string.
-      ruler)))
+      ;; Return the ruler propertized string.  Using list here,
+      ;; instead of concat visually separate the different areas.
+      (list
+       (ruler-mode-space lsb 'face 'ruler-mode-pad-face)
+       (ruler-mode-space l1 'face f1 'help-echo (format h1 "Left" l1))
+       (ruler-mode-space l2 'face f2 'help-echo (format h2 "Left" l2))
+       ruler
+       (ruler-mode-space r2 'face f2 'help-echo (format h2 "Right" r2))
+       (ruler-mode-space r1 'face f1 'help-echo (format h1 "Right" r1))
+       (ruler-mode-space rsb 'face 'ruler-mode-pad-face)))))
 
 (provide 'ruler-mode)
 

@@ -103,10 +103,10 @@ EMACSSOURCES= \
 	${srcdir}/ack.texi \
 	${srcdir}/kmacro.texi
 
+info: $(top_srcdir)/info $(INFO_TARGETS)
+
 $(top_srcdir)/info:
 	mkdir $@
-
-info: $(top_srcdir)/info $(INFO_TARGETS)
 
 dvi: $(DVI_TARGETS)
 

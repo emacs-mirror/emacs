@@ -212,7 +212,8 @@ that work are: A a c i r S s t u U X g G B C R and F partly."
 	       file switches wildcard full-directory-p)
     ;; We need the directory in order to find the right handler.
     (let ((handler (find-file-name-handler (expand-file-name file)
-					   'insert-directory)))
+					   'insert-directory))
+	  wildcard-regexp)
       (if handler
 	  (funcall handler 'insert-directory file switches
 		   wildcard full-directory-p)
@@ -221,16 +222,25 @@ that work are: A a c i r S s t u U X g G B C R and F partly."
 	    (setq switches (replace-match "" nil nil switches)))
 	;; Convert SWITCHES to a list of characters.
 	(setq switches (delete ?- (append switches nil)))
+	;; Sometimes we get ".../foo*/" as FILE.  While the shell and
+	;; `ls' don't mind, we certainly do, because it makes us think
+	;; there is no wildcard, only a directory name.
+	(if (and ls-lisp-support-shell-wildcards
+		 (string-match "[[?*]" file))
+	    (progn
+	      (or (not (eq (aref file (1- (length file))) ?/))
+		  (setq file (substring file 0 (1- (length file)))))
+	      (setq wildcard t)))
 	(if wildcard
-	    (setq wildcard
+	    (setq wildcard-regexp
 		  (if ls-lisp-support-shell-wildcards
 		      (wildcard-to-regexp (file-name-nondirectory file))
 		    (file-name-nondirectory file))
 		  file (file-name-directory file))
-	  (if (memq ?B switches) (setq wildcard "[^~]\\'")))
+	  (if (memq ?B switches) (setq wildcard-regexp "[^~]\\'")))
 	(ls-lisp-insert-directory
 	 file switches (ls-lisp-time-index switches)
-	 wildcard full-directory-p)
+	 wildcard-regexp full-directory-p)
 	;; Try to insert the amount of free space.
 	(save-excursion
 	  (goto-char (point-min))
@@ -244,29 +254,20 @@ that work are: A a c i r S s t u U X g G B C R and F partly."
 		(insert " available " available)))))))))
 
 (defun ls-lisp-insert-directory
-  (file switches time-index wildcard full-directory-p)
+  (file switches time-index wildcard-regexp full-directory-p)
   "Insert directory listing for FILE, formatted according to SWITCHES.
 Leaves point after the inserted text.  This is an internal function
 optionally called by the `ls-lisp.el' version of `insert-directory'.
 It is called recursively if the -R switch is used.
 SWITCHES is a *list* of characters.  TIME-INDEX is the time index into
-file-attributes according to SWITCHES.  WILDCARD is nil or an *Emacs
+file-attributes according to SWITCHES.  WILDCARD-REGEXP is nil or an *Emacs
 regexp*.  FULL-DIRECTORY-P means file is a directory and SWITCHES does
 not contain `d', so that a full listing is expected."
-  ;; Sometimes we get ".../foo*/" as FILE.  While the shell and
-  ;; `ls' don't mind, we certainly do, because it makes us think
-  ;; there is no wildcard, only a directory name.
-  (if (and ls-lisp-support-shell-wildcards
-	   (string-match "[[?*]" file))
-      (progn
-	(or (not (eq (aref file (1- (length file))) ?/))
-	    (setq file (substring file 0 (1- (length file)))))
-	(setq wildcard t)))
-  (if (or wildcard full-directory-p)
+  (if (or wildcard-regexp full-directory-p)
       (let* ((dir (file-name-as-directory file))
 	     (default-directory dir)	; so that file-attributes works
 	     (file-alist
-	      (directory-files-and-attributes dir nil wildcard t))
+	      (directory-files-and-attributes dir nil wildcard-regexp t))
 	     (now (current-time))
 	     (sum 0)
 	     ;; do all bindings here for speed
@@ -322,7 +323,7 @@ not contain `d', so that a full listing is expected."
 		(setq elt (expand-file-name (car elt) dir))
 		(insert "\n" elt ":\n")
 		(ls-lisp-insert-directory
-		 elt switches time-index wildcard full-directory-p)))))
+		 elt switches time-index wildcard-regexp full-directory-p)))))
     ;; If not full-directory-p, FILE *must not* end in /, as
     ;; file-attributes will not recognize a symlink to a directory,
     ;; so must make it a relative filename as ls does:

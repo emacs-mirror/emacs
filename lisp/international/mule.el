@@ -1332,8 +1332,8 @@ ARG is a list of coding categories ordered by priority."
 ;;; X selections
 
 (defvar ctext-non-standard-encodings-alist
-  '(("ISO8859-15" . latin-iso8859-15)
-    ("ISO8859-14" . latin-iso8859-14)
+  '(("ISO8859-15" . iso-8859-15)
+    ("ISO8859-14" . iso-8859-14)
     ("KOI8-R" . koi8-r)
     ("BIG5-0" . big5))
   "Alist of non-standard encoding names vs Emacs coding systems.

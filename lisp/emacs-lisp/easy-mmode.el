@@ -1,6 +1,6 @@
 ;;; easy-mmode.el --- easy definition for major and minor modes
 
-;; Copyright (C) 1997, 2000, 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: Georges Brun-Cottan <Georges.Brun-Cottan@inria.fr>
 ;; Maintainer: Stefan Monnier <monnier@gnu.org>
@@ -419,7 +419,7 @@ CSS contains a list of syntax specifications of the form (CHAR . SYNTAX)."
 ;;; easy-mmode-define-navigation
 ;;;
 
-(defmacro easy-mmode-define-navigation (base re &optional name endfun)
+(defmacro easy-mmode-define-navigation (base re &optional name endfun narrowfun)
   "Define BASE-next and BASE-prev to navigate in the buffer.
 RE determines the places the commands should move point to.
 NAME should describe the entities matched by RE.  It is used to build
@@ -427,10 +427,20 @@ NAME should describe the entities matched by RE.  It is used to build
 BASE-next also tries to make sure that the whole entry is visible by
   searching for its end (by calling ENDFUN if provided or by looking for
   the next entry) and recentering if necessary.
-ENDFUN should return the end position (with or without moving point)."
+ENDFUN should return the end position (with or without moving point).
+NARROWFUN non-nil means to check for narrowing before moving, and if
+found, do widen first and then call NARROWFUN with no args after moving."
   (let* ((base-name (symbol-name base))
 	 (prev-sym (intern (concat base-name "-prev")))
-	 (next-sym (intern (concat base-name "-next"))))
+	 (next-sym (intern (concat base-name "-next")))
+         (check-narrow-maybe (when narrowfun
+                               '(setq was-narrowed-p
+                                      (prog1 (or (/= (point-min) 1)
+                                                 (/= (point-max)
+                                                     (1+ (buffer-size))))
+                                        (widen)))))
+         (re-narrow-maybe (when narrowfun
+                            `(when was-narrowed-p (,narrowfun)))))
     (unless name (setq name base-name))
     `(progn
        (add-to-list 'debug-ignored-errors
@@ -440,27 +450,34 @@ ENDFUN should return the end position (with or without moving point)."
 	 (interactive)
 	 (unless count (setq count 1))
 	 (if (< count 0) (,prev-sym (- count))
-	   (if (looking-at ,re) (incf count))
-	   (if (not (re-search-forward ,re nil t count))
-	       (if (looking-at ,re)
-		   (goto-char (or ,(if endfun `(,endfun)) (point-max)))
-		 (error "No next %s" ,name))
-	     (goto-char (match-beginning 0))
-	     (when (and (eq (current-buffer) (window-buffer (selected-window)))
-			(interactive-p))
-	       (let ((endpt (or (save-excursion
-				  ,(if endfun `(,endfun)
-				     `(re-search-forward ,re nil t 2)))
-				(point-max))))
-		 (unless (pos-visible-in-window-p endpt nil t)
-		   (recenter '(0))))))))
+	   (if (looking-at ,re) (setq count (1+ count)))
+           (let (was-narrowed-p)
+             ,check-narrow-maybe
+             (if (not (re-search-forward ,re nil t count))
+                 (if (looking-at ,re)
+                     (goto-char (or ,(if endfun `(,endfun)) (point-max)))
+                   (error "No next %s" ,name))
+               (goto-char (match-beginning 0))
+               (when (and (eq (current-buffer) (window-buffer (selected-window)))
+                          (interactive-p))
+                 (let ((endpt (or (save-excursion
+                                    ,(if endfun `(,endfun)
+                                       `(re-search-forward ,re nil t 2)))
+                                  (point-max))))
+                   (unless (pos-visible-in-window-p endpt nil t)
+                     (recenter '(0))))))
+             ,re-narrow-maybe)))
        (defun ,prev-sym (&optional count)
 	 ,(format "Go to the previous COUNT'th %s" (or name base-name))
 	 (interactive)
 	 (unless count (setq count 1))
 	 (if (< count 0) (,next-sym (- count))
-	   (unless (re-search-backward ,re nil t count)
-	     (error "No previous %s" ,name)))))))
+           (let (was-narrowed-p)
+             ,check-narrow-maybe
+             (unless (re-search-backward ,re nil t count)
+               (error "No previous %s" ,name))
+             ,re-narrow-maybe))))))
+
 
 (provide 'easy-mmode)
 

@@ -327,7 +327,7 @@ when editing big diffs)."
 
 ;; Define diff-{hunk,file}-{prev,next}
 (easy-mmode-define-navigation
- diff-hunk diff-hunk-header-re "hunk" diff-end-of-hunk)
+ diff-hunk diff-hunk-header-re "hunk" diff-end-of-hunk diff-restrict-view)
 (easy-mmode-define-navigation
  diff-file diff-file-header-re "file" diff-end-of-hunk)
 

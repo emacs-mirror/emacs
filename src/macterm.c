@@ -7773,14 +7773,15 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 	  switch (part_code)
 	    {
 	    case inMenuBar:
-              {
-                struct frame *f = ((mac_output *)
-				   GetWRefCon (FrontWindow ()))->mFP;
-                saved_menu_event_location = er.where;
-                bufp->kind = MENU_BAR_ACTIVATE_EVENT;
-                XSETFRAME (bufp->frame_or_window, f);
-                count++;
-              }
+	      if (er.what == mouseDown)  
+		{
+		  struct frame *f = ((mac_output *)
+				     GetWRefCon (FrontWindow ()))->mFP;
+		  saved_menu_event_location = er.where;
+		  bufp->kind = MENU_BAR_ACTIVATE_EVENT;
+		  XSETFRAME (bufp->frame_or_window, f);
+		  count++;
+		}
 	      break;
 
 	    case inContent:
@@ -7899,8 +7900,11 @@ XTread_socket (int sd, struct input_event *bufp, int numchars, int expected)
 
 	    /* window resize handling added --ben */
 	    case inGrow:
-	      do_grow_window(window_ptr, &er);
-	      break;
+              if (er.what == mouseDown)  
+		{
+		  do_grow_window(window_ptr, &er);
+		  break;
+		}
 
 	    /* window zoom handling added --ben */
 	    case inZoomIn:

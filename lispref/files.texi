@@ -993,7 +993,7 @@ then the file is executable by all users, if the second-lowest-order bit
 is 1, then the file is writable by all users, etc.
 
 The highest value returnable is 4095 (7777 octal), meaning that
-everyone has read, write, and execute permission, that the @sc{suid} bit
+everyone has read, write, and execute permission, that the @acronym{SUID} bit
 is set for both others and group, and that the sticky bit is set.
 
 @example
@@ -1066,10 +1066,10 @@ links, can be created by using the @code{add-name-to-file} function
 (@pxref{Changing Files}).
 
 @item
-The file's @sc{uid}.
+The file's @acronym{UID}.
 
 @item
-The file's @sc{gid}.
+The file's @acronym{GID}.
 
 @item
 The time of last access, as a list of two integers.
@@ -1092,7 +1092,7 @@ The file's modes, as a string of ten letters or dashes,
 as in @samp{ls -l}.
 
 @item
-@code{t} if the file's @sc{gid} would change if file were
+@code{t} if the file's @acronym{GID} would change if file were
 deleted and recreated; @code{nil} otherwise.
 
 @item
@@ -1136,10 +1136,10 @@ has only one name (the name @file{files.texi} in the current default
 directory).
 
 @item 2235
-is owned by the user with @sc{uid} 2235.
+is owned by the user with @acronym{UID} 2235.
 
 @item 75
-is in the group with @sc{gid} 75.
+is in the group with @acronym{GID} 75.
 
 @item (8489 20284)
 was last accessed on Aug 19 00:09.
@@ -1158,7 +1158,7 @@ if some of the bytes belong to multibyte sequences.)
 has a mode of read and write access for the owner, group, and world.
 
 @item nil
-would retain the same @sc{gid} if it were recreated.
+would retain the same @acronym{GID} if it were recreated.
 
 @item 129500
 has an inode number of 129500.

@@ -84,7 +84,7 @@ This option also treats some characters in the `mule-unicode-...'
 charsets if you don't have a Unicode font with which to display them.
 
 Setting this variable directly does not take effect;
-use either M-x customize of the function `latin1-display'."
+use either \\[customize] or the function `latin1-display'."
   :group 'latin1-display
   :type 'boolean
   :require 'latin1-disp
@@ -767,11 +767,11 @@ is.  If FORCE is non-nil, set up the display regardless."
 ;;;###autoload
 (defcustom latin1-display-ucs-per-lynx nil
   "Set up Latin-1/ASCII display for Unicode characters.
-This uses the transliterations of the Lynx browser.  The display is't
+This uses the transliterations of the Lynx browser.  The display isn't
 changed if the display can render Unicode characters.
 
 Setting this variable directly does not take effect;
-use either M-x customize of the function `latin1-display'."
+use either \\[customize] or the function `latin1-display'."
   :group 'latin1-display
   :type 'boolean
   :require 'latin1-disp

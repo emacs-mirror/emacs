@@ -6,7 +6,7 @@
 @syncodeindex vr cp
 @syncodeindex ky cp
 @comment %**end of header
-@comment $Id: info.texi,v 1.36 2003/09/21 20:13:23 karl Exp $
+@comment $Id: info.texi,v 1.37 2003/10/27 00:01:25 karl Exp $
 
 @copying
 This file describes how to use Info, the on-line, menu-driven GNU
@@ -1031,7 +1031,7 @@ you typed @emph{as a substring}.  For each match, Info shows in the
 echo area the full index entry it found.  Often, the text of the full
 index entry already gives you enough information to decide whether it
 is relevant to what you are looking for, so we recommend that you read
-what Emacs shows in the echo are before looking at the node it
+what Emacs shows in the echo area before looking at the node it
 displays.
 
   Since @kbd{i} looks for a substring, you can search for subjects even

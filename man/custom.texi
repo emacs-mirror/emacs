@@ -1081,7 +1081,7 @@ name which usually consists of lower-case letters and hyphens.
 * Init Rebinding::      Rebinding keys with your init file, @file{.emacs}.
 * Function Keys::       Rebinding terminal function keys.
 * Named ASCII Chars::   Distinguishing @key{TAB} from @kbd{C-i}, and so on.
-* Non-ASCII Rebinding:: Rebinding non-ASCII characters such as Latin-1.
+* Non-ASCII Rebinding:: Rebinding non-@acronym{ASCII} characters such as Latin-1.
 * Mouse Buttons::       Rebinding mouse buttons in Emacs.
 * Disabling::           Disabling a command means confirmation is required
                           before it can be executed.  This is done to protect
@@ -1405,8 +1405,8 @@ command is less work to invoke when you really want to.
 you can specify them in your @file{.emacs} file by using their Lisp
 syntax.  (@xref{Init File}.)
 
-  The simplest method for doing this works for ASCII characters and
-Meta-modified ASCII characters only.  This method uses a string to
+  The simplest method for doing this works for @acronym{ASCII} characters and
+Meta-modified @acronym{ASCII} characters only.  This method uses a string to
 represent the key sequence you want to rebind.  For example, here's how
 to bind @kbd{C-z} to @code{shell}:
 
@@ -1436,7 +1436,7 @@ string, you can use the Emacs Lisp escape sequences, @samp{\t},
 (global-set-key "\C-x\t" 'indent-rigidly)
 @end example
 
-  These examples show how to write some other special ASCII characters
+  These examples show how to write some other special @acronym{ASCII} characters
 in strings for key bindings:
 
 @example
@@ -1446,7 +1446,7 @@ in strings for key bindings:
 @end example
 
   When the key sequence includes function keys or mouse button events,
-or non-ASCII characters such as @code{C-=} or @code{H-a}, you must use
+or non-@acronym{ASCII} characters such as @code{C-=} or @code{H-a}, you must use
 the more general method of rebinding, which uses a vector to specify the
 key sequence.
 
@@ -1458,8 +1458,8 @@ character, write it as a Lisp character constant: @samp{?} followed by
 the character as it would appear in a string.
 
   Here are examples of using vectors to rebind @kbd{C-=} (a control
-character not in ASCII), @kbd{C-M-=} (not in ASCII because @kbd{C-=}
-is not), @kbd{H-a} (a Hyper character; ASCII doesn't have Hyper at
+character not in @acronym{ASCII}), @kbd{C-M-=} (not in @acronym{ASCII} because @kbd{C-=}
+is not), @kbd{H-a} (a Hyper character; @acronym{ASCII} doesn't have Hyper at
 all), @key{F7} (a function key), and @kbd{C-Mouse-1} (a
 keyboard-modified mouse button):
 
@@ -1490,7 +1490,7 @@ by listing each of the characters within the square brackets that
 delimit the vector.
 
   Language and coding systems can cause problems with key bindings
-for non-ASCII characters.  @xref{Non-ASCII Rebinding}.
+for non-@acronym{ASCII} characters.  @xref{Non-ASCII Rebinding}.
 
 @node Function Keys
 @subsection Rebinding Function Keys
@@ -1535,7 +1535,7 @@ given function key on your terminal, type @kbd{C-h c} followed by that
 key.
 
   A key sequence which contains function key symbols (or anything but
-ASCII characters) must be a vector rather than a string.  The vector
+@acronym{ASCII} characters) must be a vector rather than a string.  The vector
 syntax uses spaces between the elements, and square brackets around the
 whole vector.  Thus, to bind function key @samp{f1} to the command
 @code{rmail}, write the following:
@@ -1583,10 +1583,10 @@ word:
 @end example
 
 @node Named ASCII Chars
-@subsection Named ASCII Control Characters
+@subsection Named @acronym{ASCII} Control Characters
 
   @key{TAB}, @key{RET}, @key{BS}, @key{LFD}, @key{ESC} and @key{DEL}
-started out as names for certain ASCII control characters, used so often
+started out as names for certain @acronym{ASCII} control characters, used so often
 that they have special keys of their own.  Later, users found it
 convenient to distinguish in Emacs between these keys and the ``same''
 control characters typed with the @key{CTRL} key.
@@ -1595,25 +1595,25 @@ control characters typed with the @key{CTRL} key.
 reports these keys to Emacs.  It treats the ``special'' keys as function
 keys named @code{tab}, @code{return}, @code{backspace}, @code{linefeed},
 @code{escape}, and @code{delete}.  These function keys translate
-automatically into the corresponding ASCII characters @emph{if} they
+automatically into the corresponding @acronym{ASCII} characters @emph{if} they
 have no bindings of their own.  As a result, neither users nor Lisp
 programs need to pay attention to the distinction unless they care to.
 
   If you do not want to distinguish between (for example) @key{TAB} and
-@kbd{C-i}, make just one binding, for the ASCII character @key{TAB}
+@kbd{C-i}, make just one binding, for the @acronym{ASCII} character @key{TAB}
 (octal code 011).  If you do want to distinguish, make one binding for
-this ASCII character, and another for the ``function key'' @code{tab}.
+this @acronym{ASCII} character, and another for the ``function key'' @code{tab}.
 
-  With an ordinary ASCII terminal, there is no way to distinguish
+  With an ordinary @acronym{ASCII} terminal, there is no way to distinguish
 between @key{TAB} and @kbd{C-i} (and likewise for other such pairs),
 because the terminal sends the same character in both cases.
 
 @node Non-ASCII Rebinding
-@subsection Non-ASCII Characters on the Keyboard
-@cindex rebinding non-ASCII keys
-@cindex non-ASCII keys, binding
+@subsection Non-@acronym{ASCII} Characters on the Keyboard
+@cindex rebinding non-@acronym{ASCII} keys
+@cindex non-@acronym{ASCII} keys, binding
 
-If your keyboard has keys that send non-ASCII characters, such as
+If your keyboard has keys that send non-@acronym{ASCII} characters, such as
 accented letters, rebinding these keys is a bit tricky.  There are two
 solutions you can use.  One is to specify a keyboard coding system,
 using @code{set-keyboard-coding-system} (@pxref{Specify Coding}).
@@ -1629,7 +1629,7 @@ Events,,,elisp, The Emacs Lisp Reference Manual}.}, like this:
 @noindent
 Type @kbd{C-q} followed by the key you want to bind, to insert @var{char}.
 
-Since this puts a non-ASCII character in the @file{.emacs}, you should
+Since this puts a non-@acronym{ASCII} character in the @file{.emacs}, you should
 specify the proper coding system for that file.  @xref{Init Syntax}.
 Specify the same coding system for the file that you use for your
 keyboard.
@@ -1868,8 +1868,8 @@ input processing; the keys that are looked up in keymaps contain the
 characters that result from keyboard translation.
 
   On a window system, the keyboard key named @key{DELETE} is a function
-key and is distinct from the ASCII character named @key{DEL}.
-@xref{Named ASCII Chars}.  Keyboard translations affect only ASCII
+key and is distinct from the @acronym{ASCII} character named @key{DEL}.
+@xref{Named ASCII Chars}.  Keyboard translations affect only @acronym{ASCII}
 character input, not function keys; thus, the above example used on a
 window system does not affect the @key{DELETE} key.  However, the
 translation above isn't necessary on window systems, because Emacs can
@@ -2002,17 +2002,17 @@ Backslash and double-quote are the only characters for which backslash
 sequences are mandatory.
 
 @samp{\C-} can be used as a prefix for a control character, as in
-@samp{\C-s} for ASCII control-S, and @samp{\M-} can be used as a prefix for
+@samp{\C-s} for @acronym{ASCII} control-S, and @samp{\M-} can be used as a prefix for
 a Meta character, as in @samp{\M-a} for @kbd{Meta-A} or @samp{\M-\C-a} for
 @kbd{Control-Meta-A}.@refill
 
 @cindex international characters in @file{.emacs}
-@cindex non-ASCII characters in @file{.emacs}
-If you want to include non-ASCII characters in strings in your init
+@cindex non-@acronym{ASCII} characters in @file{.emacs}
+If you want to include non-@acronym{ASCII} characters in strings in your init
 file, you should consider putting a @w{@samp{-*-coding:
 @var{coding-system}-*-}} tag on the first line which states the coding
 system used to save your @file{.emacs}, as explained in @ref{Recognize
-Coding}.  This is because the defaults for decoding non-ASCII text might
+Coding}.  This is because the defaults for decoding non-@acronym{ASCII} text might
 not yet be set up by the time Emacs reads those parts of your init file
 which use such strings, possibly leading Emacs to decode those strings
 incorrectly.
@@ -2025,7 +2025,7 @@ strings and characters are not interchangeable in Lisp; some contexts
 require one and some contexts require the other.
 
 @xref{Non-ASCII Rebinding}, for information about binding commands to
-keys which send non-ASCII characters.
+keys which send non-@acronym{ASCII} characters.
 
 @item True:
 @code{t} stands for `true'.

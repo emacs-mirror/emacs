@@ -51,7 +51,7 @@ uses the @key{option} key as the @key{META} key.
 
   Most people should want to use the @key{command} key as the @key{META} key,
 so that dead-key processing with the @key{option} key will still work.  This is
-useful for entering non-ASCII Latin characters directly from the Mac
+useful for entering non-@acronym{ASCII} Latin characters directly from the Mac
 keyboard, for example.
 
   Emacs recognizes the setting in the Keyboard control panel and

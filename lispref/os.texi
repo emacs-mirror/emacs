@@ -590,7 +590,7 @@ after a suspension.
 
   Emacs provides access to variables in the operating system environment
 through various functions.  These variables include the name of the
-system, the user's @sc{uid}, and so on.
+system, the user's @acronym{UID}, and so on.
 
 @defvar system-configuration
 This variable holds the GNU configuration name for the hardware/software
@@ -820,7 +820,7 @@ lewis@@rocky[5] % uptime
 @end defun
 
 @defun emacs-pid
-This function returns the process @sc{id} of the Emacs process.
+This function returns the process @acronym{ID} of the Emacs process.
 @end defun
 
 @defvar tty-erase-char
@@ -870,7 +870,7 @@ If you don't specify @var{uid}, this function returns the name under
 which the user is logged in.  If the environment variable @code{LOGNAME}
 is set, that value is used.  Otherwise, if the environment variable
 @code{USER} is set, that value is used.  Otherwise, the value is based
-on the effective @sc{uid}, not the real @sc{uid}.
+on the effective @acronym{UID}, not the real @acronym{UID}.
 
 If you specify @var{uid}, the value is the user name that corresponds
 to @var{uid} (which should be an integer).
@@ -885,7 +885,7 @@ to @var{uid} (which should be an integer).
 
 @defun user-real-login-name
 This function returns the user name corresponding to Emacs's real
-@sc{uid}.  This ignores the effective @sc{uid} and ignores the
+@acronym{UID}.  This ignores the effective @acronym{UID} and ignores the
 environment variables @code{LOGNAME} and @code{USER}.
 @end defun
 
@@ -921,7 +921,7 @@ variables are also useful for constructing frame titles (@pxref{Frame
 Titles}).
 
 @defun user-real-uid
-This function returns the real @sc{uid} of the user.
+This function returns the real @acronym{UID} of the user.
 The value may be a floating point number.
 
 @example
@@ -933,7 +933,7 @@ The value may be a floating point number.
 @end defun
 
 @defun user-uid
-This function returns the effective @sc{uid} of the user.
+This function returns the effective @acronym{UID} of the user.
 The value may be a floating point number.
 @end defun
 
@@ -1935,7 +1935,7 @@ entries and DEC terminal concentrators, see @file{emacs/etc/TERMS}.
 @code{C-s} and @kbd{C-q} for flow control.  Therefore, the choice of
 @kbd{C-s} and @kbd{C-q} as command characters for searching and quoting
 was natural and uncontroversial.  With so many commands needing key
-assignments, of course we assigned meanings to nearly all @sc{ascii}
+assignments, of course we assigned meanings to nearly all @acronym{ASCII}
 control characters.
 
   Later, some terminals were introduced which required these characters

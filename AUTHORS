@@ -502,17 +502,15 @@ Florian Weimer: changed gnus-msg.el mm-bodies.el message.el mm-util.el
   mml.el mailcap.el rfc2047.el gnus-cite.el gnus-score.el gnus-spec.el
   gnus-uu.el mm-encode.el nnultimate.el qp.el
 
-Francesco Potorti: wrote cmacexp.el
+Francesco Potort,Al(B: wrote cmacexp.el
 and changed etags.c man.el delta.h uniquify.el latin-post.el latin-alt.el
   rmail.el sgml-mode.el Makefile.in comint.el configure.in etags.1
   filelock.c gud.el hanoi.el mailalias.el sendmail.el simple.el
-  skeleton.el vc-hooks.el b2m.c and 16 other files
-
-Francesco Potort,Al(B: changed undigest.el comint.el etags.el data.c
+  skeleton.el vc-hooks.el b2m.c undigest.el etags.el data.c
   generic-x.el tetris.el admin.el ange-ftp.el configure.in delta.h
   dired-aux.el dos-w32.el etags.1 fileio.c files.el fns.c
   maintaining.texi make-announcement make-tarball.txt mule.el pong.el
-  and 5 other files
+  and 21 other files
 
 Francis J. Wright: wrote woman.el
 

@@ -89,8 +89,9 @@ that you narrowed to.  (@xref{Narrowing}.)
 @end defun
 
 @defun buffer-end flag
-This function returns @code{(point-min)} if @var{flag} is less than 1,
-@code{(point-max)} otherwise.  The argument @var{flag} must be a number.
+This function returns @code{(point-max)} if @var{flag} is greater than
+0, @code{(point-min)} otherwise.  The argument @var{flag} must be a
+number.
 @end defun
 
 @defun buffer-size &optional buffer
@@ -655,8 +656,8 @@ A negative argument means move backward but still to a less deep spot.
 @end deffn
 
 @deffn Command down-list &optional arg
-This function moves forward into @var{arg} (default 1) levels of parentheses.  A
-negative argument means move backward but still go
+This function moves forward into @var{arg} (default 1) levels of
+parentheses.  A negative argument means move backward but still go
 deeper in parentheses (@minus{}@var{arg} levels).
 @end deffn
 
@@ -688,13 +689,13 @@ other kinds, such as words and string constants
 This function moves backward across @var{arg} (default 1) balanced expressions.
 @end deffn
 
-@deffn Command beginning-of-defun arg
+@deffn Command beginning-of-defun &optional arg
 This function moves back to the @var{arg}th beginning of a defun.  If
 @var{arg} is negative, this actually moves forward, but it still moves
 to the beginning of a defun, not to the end of one.
 @end deffn
 
-@deffn Command end-of-defun arg
+@deffn Command end-of-defun &optional arg
 This function moves forward to the @var{arg}th end of a defun.  If
 @var{arg} is negative, this actually moves backward, but it still moves
 to the end of a defun, not to the beginning of one.
@@ -787,7 +788,7 @@ comes back" twice.
 Note that char classes are not currently supported in
 @var{character-set}; they will be treated as literals.  Thus you
 cannot use @code{"[:alpha:]"} instead of @code{"a-zA-Z"} to include
-non-ASCII letters.  A way to skip forward over all letters is:
+non-@acronym{ASCII} letters.  A way to skip forward over all letters is:
 
 @example
 (re-search-forward "\\=[[:alpha:]]*" nil t)
@@ -867,8 +868,9 @@ The value returned by @code{save-excursion} is the result of the last of
 
   @strong{Warning:} Ordinary insertion of text adjacent to the saved
 point value relocates the saved value, just as it relocates all markers.
-Therefore, when the saved point value is restored, it normally comes
-before the inserted text.
+More precisely, the saved value is a marker with insertion type
+@code{nil}.  @xref{Marker Insertion Types}.  Therefore, when the saved
+point value is restored, it normally comes before the inserted text.
 
   Although @code{save-excursion} saves the location of the mark, it does
 not prevent functions which modify the buffer from setting
@@ -909,7 +911,7 @@ In an interactive call, @var{start} and @var{end} are set to the bounds
 of the current region (point and the mark, with the smallest first).
 @end deffn
 
-@deffn Command narrow-to-page move-count
+@deffn Command narrow-to-page &optional move-count
 This function sets the accessible portion of the current buffer to
 include just the current page.  An optional first argument
 @var{move-count} non-@code{nil} means to move forward or backward by

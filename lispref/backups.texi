@@ -633,7 +633,7 @@ work that was otherwise lost.  The @code{recover-session} command uses
 this file to find them.
 
 The default name for this file specifies your home directory and starts
-with @samp{.saves-}.  It also contains the Emacs process @sc{id} and the
+with @samp{.saves-}.  It also contains the Emacs process @acronym{ID} and the
 host name.
 @end defvar
 

@@ -623,7 +623,7 @@ Char: c (0143, 99, 0x63)  point=21044 of 26883(78%)  column 53
 
   The four values after @samp{Char:} describe the character that follows
 point, first by showing it and then by giving its character code in
-octal, decimal and hex.  For a non-ASCII multibyte character, these are
+octal, decimal and hex.  For a non-@acronym{ASCII} multibyte character, these are
 followed by @samp{ext} and the character's representation, in hex, in
 the buffer's coding system, if that coding system encodes the character
 safely and with a single byte (@pxref{Coding Systems}).  If the
@@ -665,7 +665,7 @@ point=26957 of 26956(100%)  column 0
 @cindex text properties at point
   @w{@kbd{C-u C-x =}} displays additional information about a
 character, including the character set name and the codes that
-identify the character within that character set; ASCII characters are
+identify the character within that character set; @acronym{ASCII} characters are
 identified as belonging to the @code{ascii} character set.  It also
 shows the character's syntax, categories, and encodings both
 internally in the buffer and externally if you save the file.  It also

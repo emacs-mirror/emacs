@@ -3140,7 +3140,7 @@ Return, Enter
 
 We also use @samp{word} for alphanumeric/non-alphanumeric words, and
 @samp{WORD} for whitespace delimited words.  @samp{char} refers to any
-ASCII character, @samp{CHAR} to non-whitespace character.
+@acronym{ASCII} character, @samp{CHAR} to non-whitespace character.
 Brackets @samp{[]} indicate optional parameters; @samp{<count>} also
 optional, usually defaulting to 1.  Brackets are elided for
 @samp{<count>} to eschew obfuscation.

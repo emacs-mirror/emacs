@@ -36,9 +36,128 @@ Boston, MA 02111-1307, USA.  */
 #include "coding.h"
 #include <gdk/gdkkeysyms.h>
 
+
 #define FRAME_TOTAL_PIXEL_HEIGHT(f) \
   (FRAME_PIXEL_HEIGHT (f) + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f))
 
+
+/***********************************************************************
+                      Display handling functions
+ ***********************************************************************/
+
+#ifdef HAVE_GTK_MULTIDISPLAY
+
+/* Return the GdkDisplay that corresponds to the X display DPY.  */
+static GdkDisplay *
+xg_get_gdk_display (dpy)
+     Display *dpy;
+{
+  return gdk_x11_lookup_xdisplay (dpy);
+}
+
+/* When the GTK widget W is to be created on a display for F that
+   is not the default display, set the display for W.
+   W can be a GtkMenu or a GtkWindow widget.  */
+static void
+xg_set_screen (w, f)
+     GtkWidget *w;
+     FRAME_PTR f;
+{
+  if (FRAME_X_DISPLAY (f) != GDK_DISPLAY ())
+    {
+      GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (FRAME_X_DISPLAY (f));
+      GdkScreen *gscreen = gdk_display_get_default_screen (gdpy);
+
+      if (GTK_IS_MENU (w))
+        gtk_menu_set_screen (GTK_MENU (w), gscreen);
+      else
+        gtk_window_set_screen (GTK_WINDOW (w), gscreen);
+    }
+}
+
+
+#else /* not HAVE_GTK_MULTIDISPLAY */
+
+/* Make some defines so we can use the GTK 2.2 functions when
+   compiling with GTK 2.0.  */
+#define xg_set_screen(w, f)
+#define gdk_xid_table_lookup_for_display(dpy, w)    gdk_xid_table_lookup (w)
+#define gdk_pixmap_foreign_new_for_display(dpy, p)  gdk_pixmap_foreign_new (p)
+#define gdk_cursor_new_for_display(dpy, c)          gdk_cursor_new (c)
+#define gdk_x11_lookup_xdisplay(dpy)                0
+#define GdkDisplay                                  void
+
+#endif /* not HAVE_GTK_MULTIDISPLAY */
+
+/* Open a display named by DISPLAY_NAME.  The display is returned in *DPY.
+   *DPY is set to NULL if the display can't be opened.
+
+   Returns non-zero if display could be opened, zero if display could not
+   be opened, and less than zero if the GTK version doesn't support
+   multipe displays.  */
+int
+xg_display_open (display_name, dpy)
+     char *display_name;
+     Display **dpy;
+{
+#ifdef HAVE_GTK_MULTIDISPLAY
+  GdkDisplay *gdpy;
+
+  gdpy = gdk_display_open (display_name);
+  *dpy = gdpy ? GDK_DISPLAY_XDISPLAY (gdpy) : NULL;
+
+  return gdpy != NULL;
+
+#else /* not HAVE_GTK_MULTIDISPLAY */
+
+  return -1;
+#endif /* not HAVE_GTK_MULTIDISPLAY */
+}
+
+
+void
+xg_display_close (Display *dpy)
+{
+#ifdef HAVE_GTK_MULTIDISPLAY
+  GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (dpy);
+
+  /* GTK 2.2 has a bug that makes gdk_display_close crash (bug
+     http://bugzilla.gnome.org/show_bug.cgi?id=85715).  This way
+     we can continue running, but there will be memory leaks.  */
+
+#if GTK_MAJOR_VERSION == 2 && GTK_MINOR_VERSION < 4
+
+  /* If this is the default display, we must change it before calling
+     dispose, otherwise it will crash.  */
+  if (gdk_display_get_default () == gdpy)
+    {
+      struct x_display_info *dpyinfo;
+      Display *new_dpy = 0;
+      GdkDisplay *gdpy_new;
+
+      /* Find another display.  */
+      for (dpyinfo = x_display_list; dpyinfo; dpyinfo = dpyinfo->next)
+        if (dpyinfo->display != dpy)
+          {
+            new_dpy = dpyinfo->display;
+            break;
+          }
+
+      if (! new_dpy) return; /* Emacs will exit anyway.  */
+
+      gdpy_new = gdk_x11_lookup_xdisplay (new_dpy);
+      gdk_display_manager_set_default_display (gdk_display_manager_get (),
+                                               gdpy_new);
+    }
+
+  g_object_run_dispose (G_OBJECT (gdpy));
+
+#else
+  /* I hope this will be fixed in GTK 2.4.  It is what bug 85715 says.  */
+  gdk_display_close (gdpy);
+#endif
+#endif /* HAVE_GTK_MULTIDISPLAY */
+}
 
 
 /***********************************************************************
@@ -47,10 +166,6 @@ Boston, MA 02111-1307, USA.  */
 /* The timer for scroll bar repetition and menu bar timeouts.
    NULL if no timer is started.  */
 static struct atimer *xg_timer;
-
-/* The cursor used for scroll bars and popup menus.
-   We only have one cursor for all scroll bars and all popup menus.  */
-static GdkCursor *xg_left_ptr_cursor;
 
 
 /* The next two variables and functions are taken from lwlib.  */
@@ -103,24 +218,48 @@ free_widget_value (wv)
     }
 }
 
-/* Set *CURSOR on W and all widgets W contain.  We must do like this
-   for scroll bars and menu because they create widgets internally,
-   and it is those widgets that are visible.
 
-   If *CURSOR is NULL, create a GDK_LEFT_PTR cursor and set *CURSOR to
-   the created cursor.  */
-void
+/* Create and return the cursor to be used for popup menus and
+   scroll bars on display DPY.  */
+GdkCursor *
+xg_create_default_cursor (dpy)
+     Display *dpy;
+{
+  GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (dpy);
+  return gdk_cursor_new_for_display (gdpy, GDK_LEFT_PTR);
+}
+
+/* For the image defined in IMG, make and return a GdkPixmap for
+   the pixmap in *GPIX, and a GdkBitmap for the mask in *GMASK.
+   If IMG has no mask, *GMASK is set to NULL.
+   The image is defined on the display where frame F is.  */
+static void
+xg_get_gdk_pixmap_and_mask (f, img, gpix, gmask)
+     FRAME_PTR f;
+     struct image *img;
+     GdkPixmap **gpix;
+     GdkBitmap **gmask;
+{
+  GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (FRAME_X_DISPLAY (f));
+
+  *gpix = gdk_pixmap_foreign_new_for_display (gdpy, img->pixmap);
+  *gmask = img->mask ?
+    (GdkBitmap*) gdk_pixmap_foreign_new_for_display (gdpy, img->mask)
+    : 0;
+}
+
+
+/* Set CURSOR on W and all widgets W contain.  We must do like this
+   for scroll bars and menu because they create widgets internally,
+   and it is those widgets that are visible.  */
+static void
 xg_set_cursor (w, cursor)
      GtkWidget *w;
-     GdkCursor **cursor;
+     GdkCursor *cursor;
 {
   GList *children = gdk_window_peek_children (w->window);
 
-  /* Create the cursor unless already created.  */
-  if (! *cursor)
-    *cursor = gdk_cursor_new (GDK_LEFT_PTR);
-
-  gdk_window_set_cursor (w->window, *cursor);
+  gdk_window_set_cursor (w->window, cursor);
 
   /* The scroll bar widget has more than one GDK window (had to look at
      the source to figure this out), and there is no way to set cursor
@@ -128,7 +267,7 @@ xg_set_cursor (w, cursor)
      Ditto for menus.  */
 
   for ( ; children; children = g_list_next (children))
-    gdk_window_set_cursor (GDK_WINDOW (children->data), *cursor);
+    gdk_window_set_cursor (GDK_WINDOW (children->data), cursor);
 }
 
 /*  Timer function called when a timeout occurs for xg_timer.
@@ -381,20 +520,23 @@ xg_frame_set_char_size (f, cols, rows)
   cancel_mouse_face (f);
 }
 
-/* Convert an X Window WSESC to its corresponding GtkWidget.
+/* Convert an X Window WSESC on display DPY to its corresponding GtkWidget.
    Must be done like this, because GtkWidget:s can have "hidden"
    X Window that aren't accessible.
 
    Return 0 if no widget match WDESC.  */
 GtkWidget *
-xg_win_to_widget (wdesc)
+xg_win_to_widget (dpy, wdesc)
+     Display *dpy;
      Window wdesc;
 {
   gpointer gdkwin;
   GtkWidget *gwdesc = 0;
 
   BLOCK_INPUT;
-  gdkwin = gdk_xid_table_lookup (wdesc);
+
+  gdkwin = gdk_xid_table_lookup_for_display (gdk_x11_lookup_xdisplay (dpy),
+                                             wdesc);
   if (gdkwin)
     {
       GdkEvent event;
@@ -429,9 +571,9 @@ xg_pix_to_gcolor (w, pixel, c)
    Return TRUE to tell GTK that this expose event has been fully handeled
    and that GTK shall do nothing more with it.  */
 static gboolean
-xg_fixed_handle_expose(GtkWidget *widget,
-                       GdkEventExpose *event,
-                       gpointer user_data)
+xg_fixed_handle_expose (GtkWidget *widget,
+                        GdkEventExpose *event,
+                        gpointer user_data)
 {
   GList *iter;
 
@@ -483,6 +625,8 @@ xg_create_frame_widgets (f)
   BLOCK_INPUT;
 
   wtop = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  xg_set_screen (wtop, f);
+
   wvbox = gtk_vbox_new (FALSE, 0);
   wfixed = gtk_fixed_new ();  /* Must have this to place scroll bars  */
 
@@ -512,7 +656,8 @@ xg_create_frame_widgets (f)
 
   gtk_fixed_set_has_window (GTK_FIXED (wfixed), TRUE);
 
-  gtk_widget_set_size_request (wfixed, FRAME_PIXEL_WIDTH (f), FRAME_PIXEL_HEIGHT (f));
+  gtk_widget_set_size_request (wfixed, FRAME_PIXEL_WIDTH (f),
+                               FRAME_PIXEL_HEIGHT (f));
 
   gtk_container_add (GTK_CONTAINER (wtop), wvbox);
   gtk_box_pack_end (GTK_BOX (wvbox), wfixed, TRUE, TRUE, 0);
@@ -963,6 +1108,8 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p)
   filewin = gtk_file_selection_new (prompt);
   filesel = GTK_FILE_SELECTION (filewin);
 
+  xg_set_screen (filewin, f);
+
   gtk_widget_set_name (filewin, "emacs-filedialog");
 
   gtk_window_set_transient_for (GTK_WINDOW (filewin),
@@ -1333,27 +1480,29 @@ xg_separator_p (char *label)
   return 0;
 }
 
-GtkWidget *xg_did_tearoff;
+static int xg_detached_menus;
 
-/* Callback invoked when a detached menu window is removed.  Here we
-   delete the popup menu.
-   WIDGET is the top level window that is removed (the parent of the menu).
-   EVENT is the event that triggers the window removal.
-   CLIENT_DATA points to the menu that is detached.
-
-   Returns TRUE to tell GTK to stop processing this event.  */
-static gboolean
-tearoff_remove (widget, event, client_data)
-     GtkWidget *widget;
-     GdkEvent *event;
-     gpointer client_data;
+/* Returns non-zero if there are detached menus.  */
+int
+xg_have_tear_offs ()
 {
-  gtk_widget_destroy (GTK_WIDGET (client_data));
-  return TRUE;
+  return xg_detached_menus > 0;
 }
 
-/* Callback invoked when a menu is detached.  It sets the xg_did_tearoff
-   variable.
+/* Callback invoked when a detached menu window is removed.  Here we
+   decrease the xg_detached_menus count.
+   WIDGET is the top level window that is removed (the parent of the menu).
+   CLIENT_DATA is not used.  */
+static void
+tearoff_remove (widget, client_data)
+     GtkWidget *widget;
+     gpointer client_data;
+{
+  if (xg_detached_menus > 0) --xg_detached_menus;
+}
+
+/* Callback invoked when a menu is detached.  It increases the
+   xg_detached_menus count.
    WIDGET is the GtkTearoffMenuItem.
    CLIENT_DATA is not used.  */
 static void
@@ -1362,31 +1511,15 @@ tearoff_activate (widget, client_data)
      gpointer client_data;
 {
   GtkWidget *menu = gtk_widget_get_parent (widget);
-  if (! gtk_menu_get_tearoff_state (GTK_MENU (menu)))
-    return;
-
-  xg_did_tearoff = menu;
+  if (gtk_menu_get_tearoff_state (GTK_MENU (menu)))
+    {
+      ++xg_detached_menus;
+      g_signal_connect (G_OBJECT (gtk_widget_get_toplevel (widget)),
+                        "destroy",
+                        G_CALLBACK (tearoff_remove), 0);
+    }
 }
 
-/* If a detach of a popup menu is done, this function should be called
-   to keep the menu around until the detached window is removed.
-   MENU is the top level menu for the popup,
-   SUBMENU is the menu that got detached (that is MENU or a
-   submenu of MENU), see the xg_did_tearoff variable.  */
-void
-xg_keep_popup (menu, submenu)
-     GtkWidget *menu;
-     GtkWidget *submenu;
-{
-  GtkWidget *p;
-
-  /* Find the top widget for the detached menu.  */
-  p = gtk_widget_get_toplevel (submenu);
-
-  /* Delay destroying the menu until the detached menu is removed.  */
-  g_signal_connect (G_OBJECT (p), "unmap_event",
-                    G_CALLBACK (tearoff_remove), menu);
-}
 
 /* Create a menu item widget, and connect the callbacks.
    ITEM decribes the menu item.
@@ -1514,7 +1647,11 @@ create_menus (data, f, select_cb, deactivate_cb, highlight_cb,
 
   if (! topmenu)
     {
-      if (! menu_bar_p) wmenu = gtk_menu_new ();
+      if (! menu_bar_p)
+      {
+        wmenu = gtk_menu_new ();
+        xg_set_screen (wmenu, f);
+      }
       else wmenu = gtk_menu_bar_new ();
 
       /* Put cl_data on the top menu for easier access.  */
@@ -1585,7 +1722,7 @@ create_menus (data, f, select_cb, deactivate_cb, highlight_cb,
                                                  highlight_cb,
                                                  0,
                                                  0,
-                                                 1,
+                                                 add_tearoff_p,
                                                  0,
                                                  cl_data,
                                                  0);
@@ -1626,37 +1763,39 @@ xg_create_widget (type, name, f, val,
      GCallback highlight_cb;
 {
   GtkWidget *w = 0;
+  int menu_bar_p = strcmp (type, "menubar") == 0;
+  int pop_up_p = strcmp (type, "popup") == 0;
+
   if (strcmp (type, "dialog") == 0)
     {
       w = create_dialog (val, select_cb, deactivate_cb);
+      xg_set_screen (w, f);
       gtk_window_set_transient_for (GTK_WINDOW (w),
                                     GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
       gtk_window_set_destroy_with_parent (GTK_WINDOW (w), TRUE);
-
-      if (w)
-        gtk_widget_set_name (w, "emacs-dialog");
+      gtk_widget_set_name (w, "emacs-dialog");
     }
-  else if (strcmp (type, "menubar") == 0 || strcmp (type, "popup") == 0)
+  else if (menu_bar_p || pop_up_p)
     {
       w = create_menus (val->contents,
                         f,
                         select_cb,
                         deactivate_cb,
                         highlight_cb,
-                        strcmp (type, "popup") == 0,
-                        strcmp (type, "menubar") == 0,
-                        1,
+                        pop_up_p,
+                        menu_bar_p,
+                        menu_bar_p,
                         0,
                         0,
                         name);
 
       /* Set the cursor to an arrow for popup menus when they are mapped.
          This is done by default for menu bar menus.  */
-      if (strcmp (type, "popup") == 0)
+      if (pop_up_p)
         {
           /* Must realize so the GdkWindow inside the widget is created.  */
           gtk_widget_realize (w);
-          xg_set_cursor (w, &xg_left_ptr_cursor);
+          xg_set_cursor (w, FRAME_X_DISPLAY_INFO (f)->xg_cursor);
         }
     }
   else
@@ -1834,8 +1973,15 @@ xg_update_menubar (menubar, f, list, iter, pos, val,
               is up to date when leaving the minibuffer.  */
           GtkLabel *wlabel = GTK_LABEL (gtk_bin_get_child (GTK_BIN (witem)));
           char *utf8_label = get_utf8_string (val->name);
+          GtkWidget *submenu = gtk_menu_item_get_submenu (witem);
 
           gtk_label_set_text (wlabel, utf8_label);
+
+          /* If this item has a submenu that has been detached, change
+             the title in the WM decorations also.  */
+          if (submenu && gtk_menu_get_tearoff_state (GTK_MENU (submenu)))
+            /* Set the title of the detached window.  */
+            gtk_menu_set_title (GTK_MENU (submenu), utf8_label);
 
           iter = g_list_next (iter);
           val = val->next;
@@ -2222,18 +2368,15 @@ xg_modify_menubar_widgets (menubar, f, val, deep_p,
   cl_data = (xg_menu_cb_data*) g_object_get_data (G_OBJECT (menubar),
                                                   XG_FRAME_DATA);
 
-  if (! deep_p)
-    {
-      widget_value *cur = val->contents;
-      xg_update_menubar (menubar, f, &list, list, 0, cur,
-                         select_cb, highlight_cb, cl_data);
-    }
-  else
+  xg_update_menubar (menubar, f, &list, list, 0, val->contents,
+                     select_cb, highlight_cb, cl_data);
+
+  if (deep_p);
     {
       widget_value *cur;
 
       /* Update all sub menus.
-         We must keep the submenu names (GTK menu item widgets) since the
+         We must keep the submenus (GTK menu item widgets) since the
          X Window in the XEvent that activates the menu are those widgets.  */
 
       /* Update cl_data, menu_item things in F may have changed.  */
@@ -2268,8 +2411,10 @@ xg_modify_menubar_widgets (menubar, f, val, deep_p,
              a new menu bar item, it has no sub menu yet.  So we set the
              newly created sub menu under witem.  */
           if (newsub != sub)
-            gtk_menu_item_set_submenu (witem, newsub);
-
+            {
+              xg_set_screen (newsub, f);
+              gtk_menu_item_set_submenu (witem, newsub);
+            }
         }
     }
 
@@ -2425,16 +2570,17 @@ xg_get_widget_from_map (idx)
   return 0;
 }
 
-/* Return the scrollbar id for X Window WID.
+/* Return the scrollbar id for X Window WID on display DPY.
    Return -1 if WID not in id_to_widget.  */
 int
-xg_get_scroll_id_for_window (wid)
+xg_get_scroll_id_for_window (dpy, wid)
+     Display *dpy;
      Window wid;
 {
   int idx;
   GtkWidget *w;
 
-  w = xg_win_to_widget (wid);
+  w = xg_win_to_widget (dpy, wid);
 
   if (w)
     {
@@ -2541,7 +2687,7 @@ xg_create_scroll_bar (f, bar, scroll_callback, scroll_bar_name)
                  wscroll, -1, -1);
 
   /* Set the cursor to an arrow.  */
-  xg_set_cursor (wscroll, &xg_left_ptr_cursor);
+  xg_set_cursor (wscroll, FRAME_X_DISPLAY_INFO (f)->xg_cursor);
 
   SET_SCROLL_BAR_X_WINDOW (bar, scroll_id);
 }
@@ -2960,8 +3106,8 @@ xg_tool_bar_item_expose_callback (w, event, client_data)
   event->area.x -= width > event->area.width ? width-event->area.width : 0;
   event->area.y -= height > event->area.height ? height-event->area.height : 0;
 
-  event->area.x = max(0, event->area.x);
-  event->area.y = max(0, event->area.y);
+  event->area.x = max (0, event->area.x);
+  event->area.y = max (0, event->area.y);
   
   event->area.width = max (width, event->area.width);
   event->area.height = max (height, event->area.height);
@@ -2983,7 +3129,7 @@ xg_tool_bar_expose_callback (w, event, client_data)
      GdkEventExpose *event;
      gpointer client_data;
 {
-  update_frame_tool_bar((FRAME_PTR)client_data);
+  update_frame_tool_bar ((FRAME_PTR) client_data);
   return FALSE;
 }
 
@@ -3116,11 +3262,12 @@ update_frame_tool_bar (f)
 
       if (! wicon)
         {
-          GdkPixmap *gpix = gdk_pixmap_foreign_new (img->pixmap);
-          GdkBitmap *gmask = img->mask ?
-            (GdkBitmap*) gdk_pixmap_foreign_new (img->mask) : 0;
+          GdkPixmap *gpix;
+          GdkBitmap *gmask;
+          GtkWidget *w;
 
-          GtkWidget *w = gtk_image_new_from_pixmap (gpix, gmask);
+          xg_get_gdk_pixmap_and_mask (f, img, &gpix, &gmask);
+          w = gtk_image_new_from_pixmap (gpix, gmask);
           gtk_toolbar_append_item (GTK_TOOLBAR (x->toolbar_widget),
                                    0, 0, 0,
                                    w,
@@ -3178,10 +3325,10 @@ update_frame_tool_bar (f)
 
           if (old_img != img->pixmap)
             {
-              GdkPixmap *gpix = gdk_pixmap_foreign_new (img->pixmap);
-              GdkBitmap *gmask = img->mask ?
-                (GdkBitmap*) gdk_pixmap_foreign_new (img->mask) : 0;
+              GdkPixmap *gpix;
+              GdkBitmap *gmask;
 
+              xg_get_gdk_pixmap_and_mask (f, img, &gpix, &gmask);
               gtk_image_set_from_pixmap (wimage, gpix, gmask);
             }
 
@@ -3249,9 +3396,7 @@ void
 xg_initialize ()
 {
   xg_ignore_gtk_scrollbar = 0;
-  xg_left_ptr_cursor = 0;
-  xg_did_tearoff = 0;
-
+  xg_detached_menus = 0;
   xg_menu_cb_list.prev = xg_menu_cb_list.next =
     xg_menu_item_cb_list.prev = xg_menu_item_cb_list.next = 0;
 

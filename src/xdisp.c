@@ -814,6 +814,7 @@ static int message_log_check_duplicate P_ ((int, int, int, int));
 static void push_it P_ ((struct it *));
 static void pop_it P_ ((struct it *));
 static void sync_frame_with_window_matrix_rows P_ ((struct window *));
+static void select_frame_for_redisplay P_ ((Lisp_Object));
 static void redisplay_internal P_ ((int));
 static int echo_area_display P_ ((int));
 static void redisplay_windows P_ ((Lisp_Object));
@@ -2179,6 +2180,8 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
       else
 	IT_BYTEPOS (*it) = bytepos;
 
+      it->start = it->current;
+
       /* Compute faces etc.  */
       reseat (it, it->current.pos, 1);
     }
@@ -2200,6 +2203,7 @@ start_display (it, w, pos)
 
   row = w->desired_matrix->rows + first_vpos;
   init_iterator (it, w, CHARPOS (pos), BYTEPOS (pos), row, DEFAULT_FACE_ID);
+  it->first_vpos = first_vpos;
 
   if (!it->truncate_lines_p)
     {
@@ -2441,6 +2445,7 @@ init_to_row_start (it, w, row)
      struct glyph_row *row;
 {
   init_from_display_pos (it, w, &row->start);
+  it->start = row->start;
   it->continuation_lines_width = row->continuation_lines_width;
   CHECK_IT (it);
 }
@@ -8141,7 +8146,7 @@ update_tool_bar (f, save_match_data)
      int save_match_data;
 {
 #ifdef USE_GTK
-  int do_update = FRAME_EXTERNAL_TOOL_BAR(f);
+  int do_update = FRAME_EXTERNAL_TOOL_BAR (f);
 #else
   int do_update = WINDOWP (f->tool_bar_window)
     && WINDOW_TOTAL_LINES (XWINDOW (f->tool_bar_window)) > 0;
@@ -8538,7 +8543,7 @@ redisplay_tool_bar (f)
   int change_height_p = 0;
 
 #ifdef USE_GTK
-  if (FRAME_EXTERNAL_TOOL_BAR(f))
+  if (FRAME_EXTERNAL_TOOL_BAR (f))
     update_frame_tool_bar (f);
   return 0;
 #endif
@@ -9542,6 +9547,44 @@ reconsider_clip_changes (w, b)
     }
 }
 
+
+/* Select FRAME to forward the values of frame-local variables into C
+   variables so that the redisplay routines can access those values
+   directly.  */
+
+static void
+select_frame_for_redisplay (frame)
+     Lisp_Object frame;
+{
+  Lisp_Object tail, sym, val;
+  Lisp_Object old = selected_frame;
+  
+  selected_frame = frame;
+
+  for (tail = XFRAME (frame)->param_alist; CONSP (tail); tail = XCDR (tail))
+    if (CONSP (XCAR (tail))
+	&& (sym = XCAR (XCAR (tail)),
+	    SYMBOLP (sym))
+	&& (sym = indirect_variable (sym),
+	    val = SYMBOL_VALUE (sym),
+	    (BUFFER_LOCAL_VALUEP (val)
+	     || SOME_BUFFER_LOCAL_VALUEP (val)))
+	&& XBUFFER_LOCAL_VALUE (val)->check_frame)
+      Fsymbol_value (sym);
+
+  for (tail = XFRAME (old)->param_alist; CONSP (tail); tail = XCDR (tail))
+    if (CONSP (XCAR (tail))
+	&& (sym = XCAR (XCAR (tail)),
+	    SYMBOLP (sym))
+	&& (sym = indirect_variable (sym),
+	    val = SYMBOL_VALUE (sym),
+	    (BUFFER_LOCAL_VALUEP (val)
+	     || SOME_BUFFER_LOCAL_VALUEP (val)))
+	&& XBUFFER_LOCAL_VALUE (val)->check_frame)
+      Fsymbol_value (sym);
+}
+
+
 #define STOP_POLLING					\
 do { if (! polling_stopped_here) stop_polling ();	\
        polling_stopped_here = 1; } while (0)
@@ -9607,7 +9650,8 @@ redisplay_internal (preserve_echo_area)
   /* Record a function that resets redisplaying_p to its old value
      when we leave this function.  */
   count = SPECPDL_INDEX ();
-  record_unwind_protect (unwind_redisplay, make_number (redisplaying_p));
+  record_unwind_protect (unwind_redisplay,
+			 Fcons (make_number (redisplaying_p), selected_frame));
   ++redisplaying_p;
   specbind (Qinhibit_free_realized_faces, Qnil);
 
@@ -10021,6 +10065,11 @@ redisplay_internal (preserve_echo_area)
 
 	  if (FRAME_WINDOW_P (f) || f == sf)
 	    {
+	      if (! EQ (frame, selected_frame))
+		/* Select the frame, for the sake of frame-local
+		   variables.  */
+		select_frame_for_redisplay (frame);
+
 #ifdef HAVE_WINDOW_SYSTEM
 	      if (clear_face_cache_count % 50 == 0
 		  && FRAME_WINDOW_P (f))
@@ -10273,13 +10322,20 @@ redisplay_preserve_echo_area (from_where)
 /* Function registered with record_unwind_protect in
    redisplay_internal.  Reset redisplaying_p to the value it had
    before redisplay_internal was called, and clear
-   prevent_freeing_realized_faces_p.  */
+   prevent_freeing_realized_faces_p.  It also selects the previously
+   selected frame.  */
 
 static Lisp_Object
-unwind_redisplay (old_redisplaying_p)
-     Lisp_Object old_redisplaying_p;
+unwind_redisplay (val)
+     Lisp_Object val;
 {
+  Lisp_Object old_redisplaying_p, old_frame;
+
+  old_redisplaying_p = XCAR (val);
   redisplaying_p = XFASTINT (old_redisplaying_p);
+  old_frame = XCDR (val);
+  if (! EQ (old_frame, selected_frame))
+    select_frame_for_redisplay (old_frame);
   return Qnil;
 }
 
@@ -11527,6 +11583,11 @@ redisplay_window (window, just_this_one_p)
 		  MOVE_TO_POS | MOVE_TO_X | MOVE_TO_Y);
       if (IT_CHARPOS (it) == PT)
 	w->force_start = Qt;
+      /* IT may overshoot PT if text at PT is invisible.  */
+      else if (IT_CHARPOS (it) > PT && CHARPOS (startp) <= PT)
+	w->force_start = Qt;
+
+
     }
 
   /* Handle case where place to start displaying has been specified,
@@ -13040,8 +13101,9 @@ try_window_id (w)
   else
     {
       /* There are no reusable lines at the start of the window.
-	 Start displaying in the first line.  */
+	 Start displaying in the first text line.  */
       start_display (&it, w, start);
+      it.vpos = it.first_vpos;
       start_pos = it.current.pos;
     }
 
@@ -14276,7 +14338,7 @@ display_line (it)
   prepare_desired_row (row);
 
   row->y = it->current_y;
-  row->start = it->current;
+  row->start = it->start;
   row->continuation_lines_width = it->continuation_lines_width;
   row->displays_text_p = 1;
   row->starts_in_middle_of_char_p = it->starts_in_middle_of_char_p;
@@ -14667,6 +14729,7 @@ display_line (it)
   it->current_y += row->height;
   ++it->vpos;
   ++it->glyph_row;
+  it->start = it->current;
   return row->displays_text_p;
 }
 
@@ -20230,9 +20293,9 @@ expose_area (w, row, r, area)
 	 AREA.  The first glyph of the text area can be partially visible.
 	 The first glyphs of other areas cannot.  */
       start_x = window_box_left_offset (w, area);
-      if (area == TEXT_AREA)
-	start_x += row->x;
       x = start_x;
+      if (area == TEXT_AREA)
+	x += row->x;
 
       /* Find the first glyph that must be redrawn.  */
       while (first < end

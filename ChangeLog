@@ -1,3 +1,9 @@
+2003-11-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in (HAVE_GTK_MULTIDISPLAY): Check if GTK can handle
+	multiple displays.
+        Wrong number of args to AC_CHECK_LIB for HAVE_X_SM test corrected.
+
 2003-09-23  Dave Love  <fx@gnu.org>
 
 	* configure.in: Check members of struct ifreq.

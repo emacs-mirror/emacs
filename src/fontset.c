@@ -1012,7 +1012,7 @@ name of a font, REGISTRY is a registry name of a font.  */)
       from = XINT (XCAR (character));
       to = XINT (XCDR (character));
       if (!char_valid_p (from, 0) || !char_valid_p (to, 0))
-	error ("Character range should be by non-generic characters.");
+	error ("Character range should be by non-generic characters");
       if (!NILP (name)
 	  && (SINGLE_BYTE_CHAR_P (from) || SINGLE_BYTE_CHAR_P (to)))
 	error ("Can't change font for a single byte character");

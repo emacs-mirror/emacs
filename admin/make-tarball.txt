@@ -49,7 +49,13 @@ For each step, check for possible errors.
     to make deltas with respect to NEW.  Anouncements for pretests need
     to be crafted by hand.  Use an older announcement to start with.
 
-12. For a pretest, do:
+12. For the moment, put the tarballs on a public site and send a GPG
+    signed email to <maintainers@gnu.org> with the URLs of the tarballs
+    and their md5sum signatures.  As of 2003-10, the GNU maintainers are
+    working on a better procedure.  For reference, here are the previous
+    instructions, which are no more valid after the break-in of 2003-08:
+     ====
+    For a pretest, do:
     rsync -aP emacs-NEW.tar.gz emacs-OLD-NEW.xdelta compile-NEW.log \
     emacs-NEW.announce alpha.gnu.org:/home/alpha/gnu/emacs/pretest/.
     For a release, do:

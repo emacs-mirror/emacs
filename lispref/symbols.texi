@@ -475,7 +475,7 @@ This function returns the property list of @var{symbol}.
 @defun setplist symbol plist
 This function sets @var{symbol}'s property list to @var{plist}.
 Normally, @var{plist} should be a well-formed property list, but this is
-not enforced.
+not enforced.  The return value is @var{plist}.
 
 @smallexample
 (setplist 'foo '(a 1 b (2 3) c nil))

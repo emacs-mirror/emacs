@@ -191,11 +191,11 @@ Understands the following styles:
 	   ;; Styles: (8) with timezone.
 	   (setq year 1 month 2 day 3 time 4 zone 5))
 	  ((string-match
-	    "\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+\\)[ \t]+\\([-+a-zA-Z0-9:]+\\)" date)
+	    "\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)[T \t]+\\([0-9]+:[0-9]+\\)[ \t]+\\([-+a-zA-Z0-9:]+\\)" date)
 	   ;; Styles: (8) with timezone with a colon in it.
 	   (setq year 1 month 2 day 3 time 4 zone 5))
 	  ((string-match
-	    "\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9]+:[0-9]+\\)" date)
+	    "\\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\)[T \t]+\\([0-9]+:[0-9]+:[0-9]+\\)" date)
 	   ;; Styles: (8) without timezone.
 	   (setq year 1 month 2 day 3 time 4 zone nil))
 	  )

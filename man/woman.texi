@@ -1,5 +1,5 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: woman.texi,v 1.15 2003/09/30 20:42:15 rms Exp $
+@c $Id: woman.texi,v 1.16 2003/11/02 07:01:19 eliz Exp $
 @c %**start of header
 @setfilename ../info/woman
 @settitle WoMan: Browse Unix Manual Pages ``W.O. (without) Man''
@@ -196,7 +196,7 @@ requests.
 
 The distinction between @code{TROFF} and @code{NROFF} is that
 @code{TROFF} was designed to drive a phototypesetter whereas
-@code{NROFF} was designed to produce essentially @sc{ascii} output for a
+@code{NROFF} was designed to produce essentially @acronym{ASCII} output for a
 character-based device similar to a teletypewriter (usually abbreviated
 to ``teletype'' or ``tty'').  Hence, @code{TROFF} supports much finer
 control over output positioning than does @code{NROFF} and can be seen
@@ -298,8 +298,8 @@ WoMan is running byte code whereas most of the formatting done by
 @code{man} uses machine code, and is a testimony to the quality of the
 Emacs Lisp system.
 
-@code{NROFF} simulates non-@sc{ascii} characters by using one or more
-@sc{ascii} characters.  WoMan should be able to do much better than
+@code{NROFF} simulates non-@acronym{ASCII} characters by using one or more
+@acronym{ASCII} characters.  WoMan should be able to do much better than
 this.  I have recently begun to add support for WoMan to use more of the
 characters in its default font and to use a symbol font, and it is an
 aspect that I intend to develop further in the near future.  It should
@@ -766,7 +766,7 @@ primarily used internally by WoMan.
 Emacs provides an interface to detect automatically the format of a file
 and decode it when it is visited.  It is used primarily by the
 facilities for editing rich (i.e.@: formatted) text, as a way to store
-formatting information transparently as @sc{ascii} markup.  WoMan can in
+formatting information transparently as @acronym{ASCII} markup.  WoMan can in
 principle use this interface, but it must be configured explicitly.
 
 This use of WoMan does not seem to be particularly advantageous, so it
@@ -1388,9 +1388,9 @@ ignored.  Default is @code{t}.  This gives the standard @code{ROFF} behavior.
 If @code{nil} then they are left in the buffer, which may aid debugging.
 
 @item woman-preserve-ascii
-A boolean value.  If non-@code{nil} then preserve @sc{ascii} characters in the
-WoMan buffer.  Otherwise, non-@sc{ascii} characters (that display as
-@sc{ascii}) may remain, which is irrelevant unless the buffer is to be
+A boolean value.  If non-@code{nil} then preserve @acronym{ASCII} characters in the
+WoMan buffer.  Otherwise, non-@acronym{ASCII} characters (that display as
+@acronym{ASCII}) may remain, which is irrelevant unless the buffer is to be
 saved to a file.  Default is @code{nil}.
 
 @item woman-emulation
@@ -1445,7 +1445,7 @@ This section currently applies @emph{only} to Microsoft Windows.
 
 WoMan provides partial experimental support for special symbols,
 initially only for MS-Windows and only for MS-Windows fonts.  This
-includes both non-@sc{ascii} characters from the main text font and use
+includes both non-@acronym{ASCII} characters from the main text font and use
 of a separate symbol font.  Later, support will be added for other font
 types (e.g.@: @code{bdf} fonts) and for the X Window System.  In Emacs
 20.7, the current support works partially under Windows 9x but may not
@@ -1453,7 +1453,7 @@ work on any other platform.
 
 @vtable @code
 @item woman-use-extended-font
-A boolean value.  If non-@code{nil} then WoMan may use non-@sc{ascii} characters
+A boolean value.  If non-@code{nil} then WoMan may use non-@acronym{ASCII} characters
 from the default font.  Default is @code{t}.
 
 @item woman-use-symbol-font

@@ -1915,13 +1915,24 @@ if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk"; then
   AC_SUBST(GTK_CFLAGS)
   AC_SUBST(GTK_LIBS)
   C_SWITCH_X_SITE="$C_SWITCH_X_SITE $GTK_CFLAGS"
+  CFLAGS="$CFLAGS $GTK_CFLAGS"
+  LIBS="$GTK_LIBS $LIBS"
   HAVE_GTK=yes
   AC_DEFINE(HAVE_GTK, 1, [Define to 1 if using GTK.])
   USE_X_TOOLKIT=none
 
-  dnl  GTK scrollbars resembles toolkit scrollbars alot, so to avoid
+  dnl  GTK scrollbars resemble toolkit scrollbars a lot, so to avoid
   dnl  a lot if #ifdef:s, say we have toolkit scrollbars.
   with_toolkit_scroll_bars=yes
+
+  dnl  Check if we can use multiple displays with this GTK version.
+  dnl  If gdk_display_open exists, assume all others are there also.
+  HAVE_GTK_MULTIDISPLAY=no
+  AC_CHECK_FUNCS(gdk_display_open, HAVE_GTK_MULTIDISPLAY=yes)
+  if test "${HAVE_GTK_MULTIDISPLAY}" = "yes"; then
+    AC_DEFINE(HAVE_GTK_MULTIDISPLAY, 1,
+              [Define to 1 if GTK can handle more than one display.])
+  fi
 fi
 
 dnl Do not put whitespace before the #include statements below.
@@ -2244,7 +2255,7 @@ fi
 HAVE_X_SM=no
 if test "${HAVE_X11}" = "yes"; then
   AC_CHECK_HEADER(X11/SM/SMlib.h,
-    AC_CHECK_LIB(SM, SmcOpenConnection, HAVE_X_SM=yes, -lICE))
+    AC_CHECK_LIB(SM, SmcOpenConnection, HAVE_X_SM=yes, , -lICE))
 
   if test "${HAVE_X_SM}" = "yes"; then
     AC_DEFINE(HAVE_X_SM, 1, [Define to 1 if you have the SM library (-lSM).])

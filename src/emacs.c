@@ -1994,7 +1994,7 @@ shut_down_emacs (sig, no_x, stuff)
 	fflush (stdout);
 	reset_sys_modes ();
 	if (sig && sig != SIGTERM)
-	  fprintf (stderr, "Fatal error (%d).", sig);
+	  fprintf (stderr, "Fatal error (%d)", sig);
       }
   }
 #else

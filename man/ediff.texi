@@ -641,7 +641,7 @@ user can always forcefully refine specific difference regions by typing
 @kindex h
 Cycles between full highlighting, the mode where fine differences are not
 highlighted (but computed), and the mode where highlighting is done with
-ASCII strings.  The latter is not really recommended, unless on a dumb TTY.
+@acronym{ASCII} strings.  The latter is not really recommended, unless on a dumb TTY.
 
 @item r
 @kindex r

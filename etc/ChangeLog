@@ -1,3 +1,27 @@
+2003-11-10  Kailash C. Chowksey <klchxbec@m-net.arbornet.org>
+
+	* HELLO: Add Kannada.
+
+2003-11-05  Juri Linkov  <juri@jurta.org>
+
+	* HELLO: Fix language names.  Add C, Braille, Georgian, Ukrainian.
+	Add IPA pronunciation to English.  Fix tab widths.
+
+2003-11-03  David Ponce  <david.ponce@wanadoo.fr>
+
+	* PROBLEMS: Document segfaults with Linux kernels that enable the
+	Exec-shield functionality.
+
+2003-10-30  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Fix cases of language names.  Make German lines one.
+	Delete FORTRAN, add Mathematics
+
+2003-10-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* PROBLEMS: Characters are displayed as empty boxes or
+	with wrong font under X.
+
 2003-09-30  Werner Lemberg  <wl@gnu.org>
 
 	* TUTORIAL.de: Minor updates and grammatical fixes.

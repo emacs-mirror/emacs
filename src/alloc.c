@@ -2229,15 +2229,17 @@ make_float (float_value)
 	  new = (struct float_block *) lisp_align_malloc (sizeof *new,
 							  MEM_TYPE_FLOAT);
 	  new->next = float_block;
+	  bzero ((char *) new->gcmarkbits, sizeof new->gcmarkbits);
 	  float_block = new;
 	  float_block_index = 0;
 	  n_float_blocks++;
 	}
-      XSETFLOAT (val, &float_block->floats[float_block_index++]);
+      XSETFLOAT (val, &float_block->floats[float_block_index]);
+      float_block_index++;
     }
 
   XFLOAT_DATA (val) = float_value;
-  FLOAT_UNMARK (XFLOAT (val));
+  eassert (!FLOAT_MARKED_P (XFLOAT (val)));
   consing_since_gc += sizeof (struct Lisp_Float);
   floats_consed++;
   return val;
@@ -2345,17 +2347,19 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 	  register struct cons_block *new;
 	  new = (struct cons_block *) lisp_align_malloc (sizeof *new,
 							 MEM_TYPE_CONS);
+	  bzero ((char *) new->gcmarkbits, sizeof new->gcmarkbits);
 	  new->next = cons_block;
 	  cons_block = new;
 	  cons_block_index = 0;
 	  n_cons_blocks++;
 	}
-      XSETCONS (val, &cons_block->conses[cons_block_index++]);
+      XSETCONS (val, &cons_block->conses[cons_block_index]);
+      cons_block_index++;
     }
 
   XSETCAR (val, car);
   XSETCDR (val, cdr);
-  CONS_UNMARK (XCONS (val));
+  eassert (!CONS_MARKED_P (XCONS (val)));
   consing_since_gc += sizeof (struct Lisp_Cons);
   cons_cells_consed++;
   return val;
@@ -2804,7 +2808,8 @@ Its value and function definition are void, and its property list is nil.  */)
 	  symbol_block_index = 0;
 	  n_symbol_blocks++;
 	}
-      XSETSYMBOL (val, &symbol_block->symbols[symbol_block_index++]);
+      XSETSYMBOL (val, &symbol_block->symbols[symbol_block_index]);
+      symbol_block_index++;
     }
 
   p = XSYMBOL (val);
@@ -2883,7 +2888,8 @@ allocate_misc ()
 	  marker_block_index = 0;
 	  n_marker_blocks++;
 	}
-      XSETMISC (val, &marker_block->markers[marker_block_index++]);
+      XSETMISC (val, &marker_block->markers[marker_block_index]);
+      marker_block_index++;
     }
 
   consing_since_gc += sizeof (union Lisp_Misc);
@@ -4494,13 +4500,6 @@ returns nil, because real GC can't be done.  */)
   gc_sweep ();
 
   /* Clear the mark bits that we set in certain root slots.  */
-
-#if (GC_MARK_STACK == GC_USE_GCPROS_AS_BEFORE \
-     || GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES)
-  {
-    register struct gcpro *tail;
-  }
-#endif
 
   unmark_byte_stack ();
   VECTOR_UNMARK (&buffer_defaults);

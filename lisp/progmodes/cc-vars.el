@@ -878,12 +878,11 @@ This hook gets called after a line is indented by the mode."
   :group 'c)
 
 (defcustom-c-stylevar c-label-minimum-indentation 1
-  "*Minimum indentation for lines inside of top-level constructs.
+  "*Minimum indentation for lines inside code blocks.
 This variable typically only affects code using the `gnu' style, which
-mandates a minimum of one space in front of every line inside
-top-level constructs.  Specifically, the function
-`c-gnu-impose-minimum' on your `c-special-indent-hook' is what
-enforces this."
+mandates a minimum of one space in front of every line inside code
+blocks.  Specifically, the function `c-gnu-impose-minimum' on your
+`c-special-indent-hook' is what enforces this."
   :type 'integer
   :group 'c)
 
@@ -1271,6 +1270,14 @@ Here is the current list of valid syntactic element symbols:
 	   (get 'c-offsets-alist 'c-stylevar-fallback)))
   :group 'c)
 
+;; The syntactic symbols that can occur inside code blocks. Used by
+;; `c-gnu-impose-minimum'.
+(defconst c-inside-block-syms
+  '(defun-block-intro block-open block-close statement statement-cont
+    statement-block-intro statement-case-intro statement-case-open
+    substatement substatement-open substatement-label case-label label
+    do-while-closure else-clause catch-clause inlambda))
+
 (defcustom c-style-variables-are-local-p t
   "*Whether style variables should be buffer local by default.
 If non-nil, then all indentation style related variables will be made
@@ -1575,7 +1582,7 @@ Set from `c-comment-prefix-regexp' at mode initialization.")
 			 '1-bit)
 		       list)))
 
-    (let ((buf (generate-new-buffer "test"))
+    (let ((buf (generate-new-buffer " test"))
 	  parse-sexp-lookup-properties
 	  parse-sexp-ignore-comments
 	  lookup-syntax-properties)

@@ -1584,6 +1584,7 @@ If NOT-ALL is non-nil, save the `.dvi' file."
 	     " " (if (< 0 (length tex-start-commands))
 		     (shell-quote-argument tex-start-commands)) " %f")
      t "%r.dvi")
+    ("yap %r &" "%r.dvi")
     ("xdvi %r &" "%r.dvi")
     ("advi %r &" "%r.dvi")
     ("bibtex %r" "%r.aux" "%r.bbl")
@@ -1592,6 +1593,7 @@ If NOT-ALL is non-nil, save the `.dvi' file."
     ("dvipdfm %r" "%r.dvi" "%r.pdf")
     ("dvipdf %r" "%r.dvi" "%r.pdf")
     ("dvips %r" "%r.dvi" "%r.ps")
+    ("ps2pdf %r.ps" "%r.ps" "%r.pdf")
     ("gv %r.ps &" "%r.ps")
     ("gv %r.pdf &" "%r.pdf")
     ("xpdf %r.pdf &" "%r.pdf")
@@ -1670,7 +1672,8 @@ of the current buffer."
 			    (tex-guess-main-file 'sub)
 			    ;; (tex-guess-main-file t)
 			    buffer-file-name)))))))
-    (if (file-exists-p file) file (concat file ".tex"))))
+    (if (or (file-exists-p file) (string-match "\\.tex\\'" file))
+	file (concat file ".tex"))))
 
 (defun tex-summarize-command (cmd)
   (if (not (stringp cmd)) ""
@@ -1717,7 +1720,9 @@ FILE is typically the output DVI or PDF file."
 	 (uptodate t))
      (while (and files uptodate)
        (let ((f (pop files)))
-	 (if (file-directory-p f)
+	 (if (and (file-directory-p f)
+		  ;; Avoid infinite loops.
+		  (not (file-symlink-p f)))
 	     (unless (string-match ignored-dirs-re f)
 	       (setq files (nconc
 			    (directory-files f t tex-input-files-re)

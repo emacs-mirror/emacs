@@ -50,7 +50,7 @@
 		 integer)
   :group 'compilation)
 
-(defcustom compile-auto-highlight t
+(defcustom compile-auto-highlight nil
   "*Specify how many compiler errors to highlight (and parse) initially.
 \(Highlighting applies to an error message when the mouse is over it.)
 If this is a number N, all compiler error messages in the first N lines

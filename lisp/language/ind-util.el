@@ -715,6 +715,7 @@ FUNCTION will be called 15 times."
 (defvar ucs-tamil-to-is13194-alist nil)
 (defvar ucs-telugu-to-is13194-alist nil)
 (defvar ucs-malayalam-to-is13194-alist nil)
+(defvar ucs-kannada-to-is13194-alist nil)
 
 (defvar is13194-default-repartory 'devanagari)
 
@@ -751,6 +752,8 @@ FUNCTION will be called 15 times."
 (defvar is13194-to-ucs-telugu-regexp nil)
 (defvar is13194-to-ucs-malayalam-hashtbl nil)
 (defvar is13194-to-ucs-malayalam-regexp nil)
+(defvar is13194-to-ucs-kannada-hashtbl nil)
+(defvar is13194-to-ucs-kannada-regexp nil)
 
 (mapc
  (function (lambda (script)
@@ -771,7 +774,7 @@ FUNCTION will be called 15 times."
                             "-to-is13194-alist"))))
      (set regexp (indian-regexp-of-hashtbl-keys (eval hashtable))))))
  '(devanagari bengali assamese gurmukhi gujarati
-   oriya tamil telugu malayalam))
+   oriya tamil telugu malayalam kannada))
 
 (defvar ucs-to-is13194-regexp
   ;; only Devanagari is supported now.

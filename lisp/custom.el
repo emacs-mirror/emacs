@@ -264,7 +264,7 @@ FACE does not need to be quoted.
 
 Third argument DOC is the face documentation.
 
-If FACE has been set with `custom-set-face', set the face attributes
+If FACE has been set with `custom-set-faces', set the face attributes
 as specified by that function, otherwise set the face attributes
 according to SPEC.
 

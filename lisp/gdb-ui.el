@@ -54,11 +54,11 @@
 (defvar gdb-previous-address nil)
 (defvar gdb-previous-frame nil)
 (defvar gdb-current-frame "main")
-(defvar gdb-view-source t "Non-nil means that source code can be viewed")
-(defvar gdb-selected-view 'source "Code type that user wishes to view")
-(defvar  gdb-var-list nil "List of variables in watch window")
-(defvar  gdb-var-changed nil "Non-nil means that gdb-var-list has changed")
-(defvar gdb-update-flag t "Non-il means update buffers")
+(defvar gdb-current-language nil)
+(defvar gdb-view-source t "Non-nil means that source code can be viewed.")
+(defvar gdb-selected-view 'source "Code type that user wishes to view.")
+(defvar gdb-var-list nil "List of variables in watch window")
+(defvar gdb-var-changed nil "Non-nil means that gdb-var-list has changed.")
 (defvar gdb-buffer-type nil)
 (defvar gdb-variables '()
   "A list of variables that are local to the GUD buffer.")
@@ -156,7 +156,6 @@ The following interactive lisp functions help control operation :
   (setq gdb-selected-view 'source)
   (setq gdb-var-list nil)
   (setq gdb-var-changed nil)
-  (setq gdb-update-flag t)
   ;;
   (mapc 'make-local-variable gdb-variables)
   (setq gdb-buffer-type 'gdba)
@@ -174,10 +173,11 @@ The following interactive lisp functions help control operation :
   (run-hooks 'gdba-mode-hook))
 
 (defun gud-watch ()
-  "Watch expression."
+  "Watch expression at point."
   (interactive)
   (let ((expr (tooltip-identifier-from-point (point))))
-    (setq expr (concat gdb-current-frame "::" expr))
+    (if (string-equal gdb-current-language "c")
+	(setq expr (concat gdb-current-frame "::" expr)))
     (catch 'already-watched
       (dolist (var gdb-var-list)
 	(if (string-equal expr (car var)) (throw 'already-watched nil)))
@@ -215,14 +215,16 @@ The following interactive lisp functions help control operation :
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
     (goto-char (point-min))
     (re-search-forward ".*value=\"\\(.*?\\)\"" nil t)
-    (let ((var-list nil))
-      (dolist (var gdb-var-list)
-	(if (string-equal varnum (cadr var))
-	    (progn
-	      (push (nreverse (cons (match-string-no-properties 1) 
-				    (cdr (nreverse var)))) var-list))
-	  (push var var-list)))
-      (setq gdb-var-list (nreverse var-list))))
+    (catch 'var-found
+      (let ((var-list nil) (num 0))
+	(dolist (var gdb-var-list)
+	  (if (string-equal varnum (cadr var))
+	      (progn
+		(setcar (nthcdr 4 var) 
+			(match-string-no-properties 1))
+		(setcar (nthcdr num gdb-var-list) var)
+		(throw 'var-found nil)))
+	  (setq num (+ num 1))))))
   (setq gdb-var-changed t))
 
 (defun gdb-var-list-children (varnum)
@@ -263,7 +265,6 @@ The following interactive lisp functions help control operation :
        (setq gdb-var-list (nreverse var-list))))))
 
 (defun gdb-var-update ()
-  (setq gdb-update-flag nil)
   (if (not (member 'gdb-var-update (gdb-get-pending-triggers)))
       (progn
 	(gdb-enqueue-input (list "server interpreter mi \"-var-update *\"\n" 
@@ -567,19 +568,9 @@ This filter may simply queue output for a later time."
 (defun gdb-dequeue-input ()
   (let ((queue (gdb-get-input-queue)))
     (and queue
-	 (if (not (cdr queue))
-	     (let ((answer (car queue)))
-	       (gdb-set-input-queue '())
-	       answer)
-	   (gdb-take-last-elt queue)))))
-
-;; Don't use this in general.
-(defun gdb-take-last-elt (l)
-  (if (cdr (cdr l))
-      (gdb-take-last-elt (cdr l))
-    (let ((answer (car (cdr l))))
-      (setcdr l '())
-      answer)))
+	 (let ((last (car (last queue))))
+	   (unless (nbutlast queue) (gdb-set-input-queue '()))
+	   last))))
 
 
 ;;
@@ -598,7 +589,7 @@ This filter may simply queue output for a later time."
 ;; any newlines.
 ;;
 
-(defcustom gud-gdba-command-name "~/gdb/gdb/gdb -annotate=3"
+(defcustom gud-gdba-command-name "gdb -annotate=3"
   "Default command to execute an executable under the GDB-UI debugger."
   :type 'string
   :group 'gud)
@@ -729,7 +720,7 @@ that if we already set the output sink to 'user in gdb-stopping, that is fine."
 (defun gdb-post-prompt (ignored)
   "An annotation handler for `post-prompt'. This begins the collection of
 output from the current command if that happens to be appropriate."
-  (if (and (not (gdb-get-pending-triggers)) gdb-update-flag)
+  (if (not (gdb-get-pending-triggers))
       (progn
 	(gdb-get-current-frame)
 	(gdb-invalidate-frames)
@@ -737,8 +728,8 @@ output from the current command if that happens to be appropriate."
 	(gdb-invalidate-assembler)
 	(gdb-invalidate-registers)
 	(gdb-invalidate-locals)
-	(gdb-invalidate-threads)))
-  (setq gdb-update-flag t)
+	(gdb-invalidate-threads)
+	(gdb-var-update)))
   (let ((sink (gdb-get-output-sink)))
     (cond
      ((eq sink 'user) t)
@@ -938,67 +929,61 @@ output from the current command if that happens to be appropriate."
 (defconst breakpoint-xpm-data "/* XPM */
 static char *magick[] = {
 /* columns rows colors chars-per-pixel */
-\"12 12 2 1\",
+\"10 10 2 1\",
 \"  c red\",
 \"+ c None\",
 /* pixels */
-\"++++++++++++\",
-\"+++      +++\",
-\"++        ++\",
-\"+          +\",
-\"+          +\",
-\"+          +\",
-\"+          +\",
-\"+          +\",
-\"+          +\",
-\"++        ++\",
-\"+++      +++\",
-\"++++++++++++\"
+\"+++    +++\",
+\"++      ++\",
+\"+        +\",
+\"          \",
+\"          \",
+\"          \",
+\"          \",
+\"+        +\",
+\"++      ++\",
+\"+++    +++\",
 };"
   "XPM data used for breakpoint icon.")
 
 (defconst breakpoint-enabled-pbm-data
 "P1
-12 12\",
-0 0 0 0 0 0 0 0 0 0 0 0
+10 10\",
+0 0 0 0 1 1 1 1 0 0 0 0
 0 0 0 1 1 1 1 1 1 0 0 0
 0 0 1 1 1 1 1 1 1 1 0 0
 0 1 1 1 1 1 1 1 1 1 1 0
 0 1 1 1 1 1 1 1 1 1 1 0
 0 1 1 1 1 1 1 1 1 1 1 0
 0 1 1 1 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 1 1 1 0
-0 1 1 1 1 1 1 1 1 1 1 0
 0 0 1 1 1 1 1 1 1 1 0 0
 0 0 0 1 1 1 1 1 1 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0"
+0 0 0 0 1 1 1 1 0 0 0 0"
   "PBM data used for enabled breakpoint icon.")
 
 (defconst breakpoint-disabled-pbm-data
 "P1
-12 12\",
-0 0 0 0 0 0 0 0 0 0 0 0
-0 0 0 1 0 1 0 1 0 0 0 0
-0 0 1 0 1 0 1 0 1 0 0 0
-0 1 0 1 0 1 0 1 0 1 0 0
-0 0 1 0 1 0 1 0 1 0 1 0
-0 1 0 1 0 1 0 1 0 1 0 0
-0 0 1 0 1 0 1 0 1 0 1 0
-0 1 0 1 0 1 0 1 0 1 0 0
-0 0 1 0 1 0 1 0 1 0 1 0
-0 0 0 1 0 1 0 1 0 1 0 0
-0 0 0 0 1 0 1 0 1 0 0 0
-0 0 0 0 0 0 0 0 0 0 0 0"
+10 10\",
+0 0 1 0 1 0 1 0 0 0
+0 1 0 1 0 1 0 1 0 0
+1 0 1 0 1 0 1 0 1 0
+0 1 0 1 0 1 0 1 0 1
+1 0 1 0 1 0 1 0 1 0
+0 1 0 1 0 1 0 1 0 1
+1 0 1 0 1 0 1 0 1 0
+0 1 0 1 0 1 0 1 0 1
+0 0 1 0 1 0 1 0 1 0
+0 0 0 1 0 1 0 1 0 0"
   "PBM data used for disabled breakpoint icon.")
 
 (defvar breakpoint-enabled-icon
-  (find-image `((:type xpm :data ,breakpoint-xpm-data)
-		(:type pbm :data ,breakpoint-enabled-pbm-data)))
+  (find-image `((:type xpm :data ,breakpoint-xpm-data :ascent 100)
+		(:type pbm :data ,breakpoint-enabled-pbm-data :ascent 100)))
   "Icon for enabled breakpoint in display margin")
 
 (defvar breakpoint-disabled-icon
-  (find-image `((:type xpm :data ,breakpoint-xpm-data :conversion disabled)
-		(:type pbm :data ,breakpoint-disabled-pbm-data)))
+  (find-image `((:type xpm :data ,breakpoint-xpm-data :conversion disabled :ascent 100)
+		(:type pbm :data ,breakpoint-disabled-pbm-data :ascent 100)))
   "Icon for disabled breakpoint in display margin")
 
 ;;-put breakpoint icons in relevant margins (even those set in the GUD buffer)
@@ -1907,7 +1892,9 @@ BUFFER nil or omitted means use the current buffer."
 		 gdb-source-window
 		 (gdb-get-create-buffer 'gdb-assembler-buffer))
 		;;update with new frame for machine code if necessary
-		(gdb-invalidate-assembler)))))))
+		(gdb-invalidate-assembler))))))
+    (if (looking-at "source language  \\(\\S-*\\)")
+	(setq gdb-current-language (match-string 1))))
 
 (provide 'gdb-ui)
 

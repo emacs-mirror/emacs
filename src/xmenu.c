@@ -610,7 +610,7 @@ single_menu_item (key, item, dummy, skp_v)
 #endif /* not HAVE_BOXES */
 
 #if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
-  if (!NILP(map))
+  if (!NILP (map))
     /* Indicate visually that this is a submenu.  */
     item_string = concat2 (item_string, build_string (" >"));
 #endif
@@ -696,7 +696,7 @@ list_of_items (pane)
    the scroll bar or the edit window.  Fx_popup_menu needs to be
    sure it is the edit window.  */
 static void
-mouse_position_for_popup(f, x, y)
+mouse_position_for_popup (f, x, y)
      FRAME_PTR f;
      int *x;
      int *y;
@@ -1217,7 +1217,8 @@ x_activate_menubar (f)
     return;
 
 #ifdef USE_GTK
-  if (! xg_win_to_widget (f->output_data.x->saved_menu_event->xany.window))
+  if (! xg_win_to_widget (FRAME_X_DISPLAY (f),
+                          f->output_data.x->saved_menu_event->xany.window))
     return;
 #endif
 
@@ -1866,6 +1867,12 @@ set_frame_menubar (f, first_time, deep_p)
       f->output_data.x->saved_menu_event->type = 0;
     }
 
+#ifdef USE_GTK
+  /* If we have detached menus, we must update deep so detached menus
+     also gets updated.  */
+  deep_p = deep_p || xg_have_tear_offs ();
+#endif
+
   if (deep_p)
     {
       /* Make a widget-value tree representing the entire menu trees.  */
@@ -2066,7 +2073,7 @@ set_frame_menubar (f, first_time, deep_p)
   xg_crazy_callback_abort = 1;
   if (menubar_widget)
     {
-      /* The third arg is DEEP_P, which says to consider the entire
+      /* The fourth arg is DEEP_P, which says to consider the entire
 	 menu trees we supply, rather than just the menu bar item names.  */
       xg_modify_menubar_widgets (menubar_widget,
                                  f,
@@ -2343,17 +2350,13 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
   gtk_widget_show_all (menu);
   gtk_menu_popup (GTK_MENU (menu), 0, 0, pos_func, &popup_x_y, i, 0);
 
-  xg_did_tearoff = 0;
   /* Set this to one.  popup_widget_loop increases it by one, so it becomes
      two.  show_help_echo uses this to detect popup menus.  */
   popup_activated_flag = 1;
   /* Process events that apply to the menu.  */
   popup_widget_loop ();
 
-  if (xg_did_tearoff)
-    xg_keep_popup (menu, xg_did_tearoff);
-  else
-    gtk_widget_destroy (menu);
+  gtk_widget_destroy (menu);
 
   /* Must reset this manually because the button release event is not passed
      to Emacs event loop. */

@@ -208,13 +208,14 @@ If PARSE-NS is non-nil, then QNAMES are expanded."
 	    (if (search-forward "<" nil t)
 		(progn
 		  (forward-char -1)
-		  (if xml
+		  (setq result (xml-parse-tag parse-dtd parse-ns))
+		  (if (and xml result)
 		      ;;  translation of rule [1] of XML specifications
 		      (error "XML files can have only one toplevel tag")
-		    (setq result (xml-parse-tag parse-dtd parse-ns))
 		    (cond
 		     ((null result))
-		     ((listp (car result))
+		     ((and (listp (car result))
+			   parse-dtd)
 		      (setq dtd (car result))
 		      (if (cdr result)	; possible leading comment
 			  (add-to-list 'xml (cdr result))))
@@ -225,6 +226,73 @@ If PARSE-NS is non-nil, then QNAMES are expanded."
 	      (cons dtd (nreverse xml))
 	    (nreverse xml)))))))
 
+(defun xml-ns-parse-ns-attrs (attr-list &optional xml-ns)
+  "Parse the namespace attributes and return a list of cons in the form:
+\(namespace . prefix)"
+
+  (mapcar
+   (lambda (attr)
+     (let* ((splitup (split-string (car attr) ":"))
+	    (prefix (nth 0 splitup))
+	    (lname (nth 1 splitup)))
+       (when (string= "xmlns" prefix)
+	 (push (cons (if lname
+			 lname
+		       "")
+		     (cdr attr))
+	       xml-ns)))) attr-list)
+  xml-ns)
+
+;; expand element names
+(defun xml-ns-expand-el (el xml-ns)
+  "Expand the XML elements from \"prefix:local-name\" to a cons in the form
+\"(namespace . local-name)\"."
+
+  (let* ((splitup (split-string el ":"))
+	 (lname (or (nth 1 splitup)
+		    (nth 0 splitup)))
+	 (prefix (if (nth 1 splitup)
+		     (nth 0 splitup)
+		   (if (string= lname "xmlns")
+		       "xmlns"
+		     "")))
+	 (ns (cdr (assoc-string prefix xml-ns))))
+    (if (string= "" ns)
+	lname
+      (cons (intern (concat ":" ns))
+	    lname))))
+
+;; expand attribute names
+(defun xml-ns-expand-attr (attr-list xml-ns)
+  "Expand the attribute list for a particular element from the form
+\"prefix:local-name\" to the form \"{namespace}:local-name\"."
+
+  (mapcar
+   (lambda (attr)
+     (let* ((splitup (split-string (car attr) ":"))
+	    (lname (or (nth 1 splitup)
+		       (nth 0 splitup)))
+	    (prefix (if (nth 1 splitup)
+			(nth 0 splitup)
+		      (if (string= (car attr) "xmlns")
+			  "xmlns"
+			"")))
+	    (ns (cdr (assoc-string prefix xml-ns))))
+       (setcar attr
+	       (if (string= "" ns)
+		   lname
+		 (cons (intern (concat ":" ns))
+		       lname)))))
+   attr-list)
+  attr-list)
+
+
+(defun xml-intern-attrlist (attr-list)
+  "Convert attribute names to symbols for backward compatibility."
+  (mapcar (lambda (attr)
+	    (setcar attr (intern (car attr))))
+	  attr-list)
+  attr-list)
 
 (defun xml-parse-tag (&optional parse-dtd parse-ns)
   "Parse the tag at point.
@@ -276,52 +344,21 @@ Returns one of:
      ;;  opening tag
      ((looking-at "<\\([^/>[:space:]]+\\)")
       (goto-char (match-end 1))
+
+      ;; Parse this node
       (let* ((node-name (match-string 1))
-	     ;; Parse the attribute list.
-	     (children (list (xml-parse-attlist) (intern node-name)))
+	     (attr-list (xml-parse-attlist))
+	     (children (if  (consp xml-ns) ;; take care of namespace parsing
+			    (progn 
+			      (setq xml-ns (xml-ns-parse-ns-attrs
+					    attr-list xml-ns))
+			      (list (xml-ns-expand-attr 
+				     attr-list xml-ns)
+				    (xml-ns-expand-el 
+				     node-name xml-ns)))
+			    (list (xml-intern-attrlist attr-list)
+				  (intern node-name))))
 	     pos)
-
-	;; add the xmlns:* attrs to our cache
-	(when (consp xml-ns)
-	  (mapcar
-	   (lambda (attr)
-	     (let* ((splitup (split-string (symbol-name (car attr)) ":"))
-		    (prefix (nth 0 splitup))
-		    (lname (nth 1 splitup)))
-	       (when (string= "xmlns" prefix)
-		 (setq xml-ns (append (list (cons (if lname
-						      lname
-						    "")
-						  (cdr attr)))
-				      xml-ns)))))
-	   (car children))
-
-	  ;; expand element names
-	  (let* ((splitup (split-string (symbol-name (cadr children)) ":"))
-		 (lname (or (nth 1 splitup)
-			    (nth 0 splitup)))
-		 (prefix (if (nth 1 splitup)
-			     (nth 0 splitup)
-			   "")))
-	    (setcdr children (list
-			      (intern (concat "{"
-					     (cdr (assoc-string prefix xml-ns))
-					     "}" lname)))))
-
-	  ;; expand attribute names
-	  (mapcar
-	   (lambda (attr)
-	     (let* ((splitup (split-string (symbol-name (car attr)) ":"))
-		    (lname (or (nth 1 splitup)
-			       (nth 0 splitup)))
-		    (prefix (if (nth 1 splitup)
-				(nth 0 splitup)
-			      (caar xml-ns))))
-
-	       (setcar attr (intern (concat "{"
-					    (cdr (assoc-string prefix xml-ns))
-					    "}" lname)))))
-	   (car children)))
 
 	;; is this an empty element ?
 	(if (looking-at "/>")
@@ -377,13 +414,14 @@ Returns one of:
       (error "XML: Invalid character")))))
 
 (defun xml-parse-attlist ()
-  "Return the attribute-list after point.Leave point at the first non-blank character after the tag."
+  "Return the attribute-list after point.  Leave point at the
+first non-blank character after the tag."
   (let ((attlist ())
-	start-pos name)
+	end-pos name)
     (skip-syntax-forward " ")
     (while (looking-at (eval-when-compile
 			 (concat "\\(" xml-name-regexp "\\)\\s-*=\\s-*")))
-      (setq name (intern (match-string 1)))
+      (setq name (match-string 1))
       (goto-char (match-end 0))
 
       ;; See also: http://www.w3.org/TR/2000/REC-xml-20001006#AVNormalize
@@ -391,9 +429,9 @@ Returns one of:
       ;; Do we have a string between quotes (or double-quotes),
       ;;  or a simple word ?
       (if (looking-at "\"\\([^\"]*\\)\"")
-	  (setq start-pos (match-beginning 0))
+	  (setq end-pos (match-end 0))
 	(if (looking-at "'\\([^']*\\)'")
-	    (setq start-pos (match-beginning 0))
+	    (setq end-pos (match-end 0))
 	  (error "XML: Attribute values must be given between quotes")))
 
       ;; Each attribute must be unique within a given element
@@ -407,9 +445,7 @@ Returns one of:
 	(replace-regexp-in-string "\\s-\\{2,\\}" " " string)
 	(push (cons name (xml-substitute-special string)) attlist))
 
-      (goto-char start-pos)
-      (forward-sexp)			; we have string syntax
-
+      (goto-char end-pos)
       (skip-syntax-forward " "))
     (nreverse attlist)))
 
@@ -490,7 +526,7 @@ This follows the rule [28] in the XML specifications."
 	   ((looking-at
 	     "<!ELEMENT\\s-+\\([[:alnum:].%;]+\\)\\s-+\\([^>]+\\)>")
 
-	    (setq element (intern (match-string 1))
+	    (setq element (match-string 1)
 		  type    (match-string-no-properties 2))
 	    (setq end-pos (match-end 0))
 
@@ -510,7 +546,7 @@ This follows the rule [28] in the XML specifications."
 	    ;;  rule [45]: the element declaration must be unique
 	    (if (assoc element dtd)
 		(error "XML: element declarations must be unique in a DTD (<%s>)"
-		       (symbol-name element)))
+		       element))
 
 	    ;;  Store the element in the DTD
 	    (push (list element type) dtd)
@@ -524,7 +560,6 @@ This follows the rule [28] in the XML specifications."
 	  ;;  Skip the end of the DTD
 	  (search-forward ">"))))
     (nreverse dtd)))
-
 
 (defun xml-parse-elem-type (string)
   "Convert element type STRING into a Lisp structure."

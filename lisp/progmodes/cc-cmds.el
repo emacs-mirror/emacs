@@ -54,37 +54,6 @@
 
 (defvar c-fix-backslashes t)
 
-(defun c-shift-line-indentation (shift-amt)
-  ;; This function does not do any hidden buffer changes.
-  (let ((pos (- (point-max) (point)))
-	(c-macro-start c-macro-start)
-	tmp-char-inserted)
-    (if (zerop shift-amt)
-	nil
-      (when (and (c-query-and-set-macro-start)
-		 (looking-at "[ \t]*\\\\$")
-		 (save-excursion
-		   (skip-chars-backward " \t")
-		   (bolp)))
-	(insert ?x)
-	(backward-char)
-	(setq tmp-char-inserted t))
-      (unwind-protect
-	  (let ((col (current-indentation)))
-	    (delete-region (c-point 'bol) (c-point 'boi))
-	    (beginning-of-line)
-	    (indent-to (+ col shift-amt)))
-	(when tmp-char-inserted
-	  (delete-char 1))))
-    ;; If initial point was within line's indentation and we're not on
-    ;; a line with a line continuation in a macro, position after the
-    ;; indentation.  Else stay at same point in text.
-    (if (and (< (point) (c-point 'boi))
-	     (not tmp-char-inserted))
-	(back-to-indentation)
-      (if (> (- (point-max) pos) (point))
-	  (goto-char (- (point-max) pos))))))
-
 (defun c-indent-line (&optional syntax quiet ignore-point-pos)
   "Indent the current line according to the syntactic context,
 if `c-syntactic-indentation' is non-nil.  Optional SYNTAX is the

@@ -189,6 +189,11 @@ struct x_display_info
   /* The cursor to use for vertical scroll bars.  */
   Cursor vertical_scroll_bar_cursor;
 
+#ifdef USE_GTK
+  /* The GDK cursor for scroll bars and popup menus.  */
+  GdkCursor *xg_cursor;
+#endif
+
   /* X Resource data base */
   XrmDatabase xrdb;
 
