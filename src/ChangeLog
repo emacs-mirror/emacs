@@ -1,5 +1,9 @@
 2001-09-25  Gerd Moellmann  <gerd@gnu.org>
 
+	* xdisp.c (display_mode_element): If the mode element is a symbol
+	with a string value, use that string's multibyteness for
+	displaying.
+
 	* keyboard.c (read_char): Don't clear a message for a switch-frame
 	event.   From Stefan Monnier  <monnier@cs.yale.edu>.
 
