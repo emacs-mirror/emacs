@@ -54,6 +54,13 @@ Once a file is found, `change-log-default-name' is set locally in the
 current buffer to the complete file name."
   (or file-name
       (setq file-name (or change-log-default-name
+			  ;; Chase links in the source file
+			  ;; and use the change log in the dir where it points.
+			  (and buffer-file-name
+			       (let (temp (file buffer-file-name))
+				 (while (setq temp (file-symlink-p file))
+				   (setq file temp))
+				 (file-name-directory file)))
 			  default-directory)))
   (if (and (eq file-name change-log-default-name)
 	   (assq 'change-log-default-name (buffer-local-variables)))
