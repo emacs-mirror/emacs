@@ -1053,10 +1053,10 @@ string_to_multibyte (string)
     return string;
 
   nbytes = parse_str_to_multibyte (SDATA (string), SBYTES (string));
-  /* If all the chars are ASCII, they won't need any more bytes
-     once converted.  In that case, we can return STRING itself.  */
+  /* If all the chars are ASCII or eight-bit-graphic, they won't need
+     any more bytes once converted.  */
   if (nbytes == SBYTES (string))
-    return string;
+    return make_multibyte_string (SDATA (string), nbytes, nbytes);
 
   buf = (unsigned char *) alloca (nbytes);
   bcopy (SDATA (string), buf, SBYTES (string));
