@@ -7159,9 +7159,11 @@ x_clear_mouse_face (w)
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (XFRAME (w->frame));
   Lisp_Object window;
 
+  BLOCK_INPUT;
   XSETWINDOW (window, w);
   if (EQ (window, dpyinfo->mouse_face_window))
     clear_mouse_face (dpyinfo);
+  UNBLOCK_INPUT;
 }
 
 
