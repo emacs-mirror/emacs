@@ -157,14 +157,14 @@ and this notice must be preserved on all copies.  */
    HAVE_X_WINDOWS above and your X libraries aren't in a place that
    your loader can find on its own, you might want to add "-L/..." or
    something similar.  */
-#define LD_SWITCH_X_SITE
+#undef LD_SWITCH_X_SITE
 
 /* Define C_SWITCH_X_SITE to contain any special flags your compiler
    may need to deal with X Windows.  For instance, if you've defined
    HAVE_X_WINDOWS above and your X include files aren't in a place
    that your compiler can find on its own, you might want to add
    "-I/..." or something similar.  */
-#define C_SWITCH_X_SITE
+#undef C_SWITCH_X_SITE
 
 /* Define the return type of signal handlers if the s-xxx file
    did not already do so.  */
