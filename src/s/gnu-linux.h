@@ -191,7 +191,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define SYSV_SYSTEM_DIR       /* use dirent.h */
 #define USG_SYS_TIME          /* use sys/time.h, not time.h */
 
-#define POSIX                 /* affects only getpagesize.h */
+#define POSIX                 /* affects getpagesize.h and systty.h */
 #define POSIX_SIGNALS
 
 /* libc-linux/sysdeps/linux/i386/ulimit.c says that due to shared library, */
