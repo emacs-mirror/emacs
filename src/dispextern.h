@@ -2158,6 +2158,7 @@ void produce_special_glyphs P_ ((struct it *, enum display_element_type));
 void start_display P_ ((struct it *, struct window *, struct text_pos));
 void move_it_to P_ ((struct it *, int, int, int, int, int));
 void move_it_vertically P_ ((struct it *, int));
+void move_it_vertically_backward P_ ((struct it *, int));
 void move_it_by_lines P_ ((struct it *, int, int));
 void move_it_past_eol P_ ((struct it *));
 int frame_mode_line_height P_ ((struct frame *));
