@@ -1319,6 +1319,10 @@ sort_args (argc, argv)
     }
 
   bcopy (new, argv, sizeof (char *) * argc);
+
+  free (options);
+  free (new);
+  free (priority);
 }
 
 DEFUN ("kill-emacs", Fkill_emacs, Skill_emacs, 0, 1, "P",
