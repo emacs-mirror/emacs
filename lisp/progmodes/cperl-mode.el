@@ -63,49 +63,54 @@
 ;;; Code:
 
 ;; Some macros are needed for `defcustom'
-(if (fboundp 'eval-when-compile)
-    (eval-when-compile
-      (defconst cperl-xemacs-p (string-match "XEmacs\\|Lucid" emacs-version))
-      (defmacro cperl-is-face (arg)	; Takes quoted arg
-	(cond ((fboundp 'find-face)
-	       `(find-face ,arg))
-	      (;;(and (fboundp 'face-list)
-	       ;;	(face-list))
-	       (fboundp 'face-list)
-	       `(member ,arg (and (fboundp 'face-list)
-				  (face-list))))
-	      (t
-	       `(boundp ,arg))))
-      (defmacro cperl-make-face (arg descr) ; Takes unquoted arg
-	(cond ((fboundp 'make-face)
-	       `(make-face (quote ,arg)))
-	      (t
-	       `(defconst ,arg (quote ,arg) ,descr))))
-      (defmacro cperl-force-face (arg descr) ; Takes unquoted arg
+(eval-when-compile
+  (require 'font-lock)
+  (defvar msb-menu-cond)
+  (defvar gud-perldb-history)
+  (defvar font-lock-background-mode)	; not in Emacs
+  (defvar font-lock-display-type)	; ditto
+  (defconst cperl-xemacs-p (string-match "XEmacs\\|Lucid" emacs-version))
+  (defmacro cperl-is-face (arg)		; Takes quoted arg
+    (cond ((fboundp 'find-face)
+	   `(find-face ,arg))
+	  (;;(and (fboundp 'face-list)
+	   ;;	(face-list))
+	   (fboundp 'face-list)
+	   `(member ,arg (and (fboundp 'face-list)
+			      (face-list))))
+	  (t
+	   `(boundp ,arg))))
+  (defmacro cperl-make-face (arg descr) ; Takes unquoted arg
+    (cond ((fboundp 'make-face)
+	   `(make-face (quote ,arg)))
+	  (t
+	   `(defconst ,arg (quote ,arg) ,descr))))
+  (defmacro cperl-force-face (arg descr) ; Takes unquoted arg
+    `(progn
+       (or (cperl-is-face (quote ,arg))
+	   (cperl-make-face ,arg ,descr))
+       (or (boundp (quote ,arg))	; We use unquoted variants too
+	   (defconst ,arg (quote ,arg) ,descr))))
+  (if cperl-xemacs-p
+      (defmacro cperl-etags-snarf-tag (file line)
 	`(progn
-	   (or (cperl-is-face (quote ,arg))
-	       (cperl-make-face ,arg ,descr))
-	   (or (boundp (quote ,arg))	; We use unquoted variants too
-	       (defconst ,arg (quote ,arg) ,descr))))
-      (if cperl-xemacs-p
-	  (defmacro cperl-etags-snarf-tag (file line)
-	    `(progn
-	       (beginning-of-line 2)
-	       (list ,file ,line)))
-	(defmacro cperl-etags-snarf-tag (file line)
-	  `(etags-snarf-tag)))
-      (if cperl-xemacs-p
-	  (defmacro cperl-etags-goto-tag-location (elt)
-	    ;;(progn
-	    ;; (switch-to-buffer (get-file-buffer (elt (, elt) 0)))
-	    ;; (set-buffer (get-file-buffer (elt (, elt) 0)))
-	    ;; Probably will not work due to some save-excursion???
-	    ;; Or save-file-position?
-	    ;; (message "Did I get to line %s?" (elt (, elt) 1))
-	    `(goto-line (string-to-int (elt ,elt 1))))
-	;;)
-	(defmacro cperl-etags-goto-tag-location (elt)
-	  `(etags-goto-tag-location ,elt)))))
+	   (beginning-of-line 2)
+	   (list ,file ,line)))
+    (defmacro cperl-etags-snarf-tag (file line)
+      `(etags-snarf-tag)))
+  (if cperl-xemacs-p
+      (defmacro cperl-etags-goto-tag-location (elt)
+	;;(progn
+	;; (switch-to-buffer (get-file-buffer (elt (, elt) 0)))
+	;; (set-buffer (get-file-buffer (elt (, elt) 0)))
+	;; Probably will not work due to some save-excursion???
+	;; Or save-file-position?
+	;; (message "Did I get to line %s?" (elt (, elt) 1))
+	`(goto-line (string-to-int (elt ,elt 1))))
+    ;;)
+    (defmacro cperl-etags-goto-tag-location (elt)
+      `(etags-goto-tag-location ,elt)))
+  (autoload 'tmm-prompt "tmm"))
 
 (defun cperl-choose-color (&rest list)
   (let (answer)
@@ -343,24 +348,24 @@ Can be overwritten by `cperl-hairy' to be 5 sec if nil."
   :group 'cperl-affected-by-hairy)
 
 (defcustom cperl-pod-face 'font-lock-comment-face
-  "*The result of evaluation of this expression is used for pod highlighting."
+  "*Face for pod highlighting."
   :type 'face
   :group 'cperl-faces)
 
 (defcustom cperl-pod-head-face 'font-lock-variable-name-face
-  "*The result of evaluation of this expression is used for pod highlighting.
+  "*Face for pod highlighting.
 Font for POD headers."
   :type 'face
   :group 'cperl-faces)
 
 (defcustom cperl-here-face 'font-lock-string-face
-  "*The result of evaluation of this expression is used for here-docs highlighting."
+  "*Face for here-docs highlighting."
   :type 'face
   :group 'cperl-faces)
 
-(defcustom cperl-invalid-face ''underline ; later evaluated by `font-lock'
-  "*The result of evaluation of this expression highlights trailing whitespace."
-  :type 'sexp
+(defcustom cperl-invalid-face 'underline
+  "*Face for highlighting trailing whitespace."
+  :type 'face
   :group 'cperl-faces)
 
 (defcustom cperl-pod-here-fontify '(featurep 'font-lock)
@@ -964,38 +969,34 @@ the faces: please specify bold, italic, underline, shadow and box.)
 ;;;(and (boundp 'interpreter-mode-alist)
 ;;;     (setq interpreter-mode-alist (append interpreter-mode-alist
 ;;;					  '(("miniperl" . perl-mode))))))
-(if (fboundp 'eval-when-compile)
-    (eval-when-compile
-      (condition-case nil
-	  (require 'imenu)
-	(error nil))
-      (condition-case nil
-	  (require 'easymenu)
-	(error nil))
-      (condition-case nil
-	  (require 'etags)
-	(error nil))
-      (condition-case nil
-	  (require 'timer)
-	(error nil))
-      (condition-case nil
-	  (require 'man)
-	(error nil))
-      (condition-case nil
-	  (require 'info)
-	(error nil))
-      (if (fboundp 'ps-extend-face-list)
-	  (defmacro cperl-ps-extend-face-list (arg)
-	    `(ps-extend-face-list ,arg))
-	(defmacro cperl-ps-extend-face-list (arg)
-	  `(error "This version of Emacs has no `ps-extend-face-list'.")))
-      ;; Calling `cperl-enable-font-lock' below doesn't compile on XEmacs,
-      ;; macros instead of defsubsts don't work on Emacs, so we do the
-      ;; expansion manually.  Any other suggestions?
-      (if (or (string-match "XEmacs\\|Lucid" emacs-version)
-	      window-system)
-	  (require 'font-lock))
-      (require 'cl)))
+(eval-when-compile
+  (condition-case nil
+      (require 'imenu)
+    (error nil))
+  (condition-case nil
+      (require 'easymenu)
+    (error nil))
+  (condition-case nil
+      (require 'etags)
+    (error nil))
+  (condition-case nil
+      (require 'timer)
+    (error nil))
+  (condition-case nil
+      (require 'man)
+    (error nil))
+  (condition-case nil
+      (require 'info)
+    (error nil))
+  (if (fboundp 'ps-extend-face-list)
+      (defmacro cperl-ps-extend-face-list (arg)
+	`(ps-extend-face-list ,arg))
+    (defmacro cperl-ps-extend-face-list (arg)
+      `(error "This version of Emacs has no `ps-extend-face-list'.")))
+  ;; Calling `cperl-enable-font-lock' below doesn't compile on XEmacs,
+  ;; macros instead of defsubsts don't work on Emacs, so we do the
+  ;; expansion manually.  Any other suggestions?
+  (require 'cl))
 
 (defvar cperl-mode-abbrev-table nil
   "Abbrev table in use in Cperl-mode buffers.")
@@ -1232,10 +1233,6 @@ The expansion is entirely correct because it uses the C preprocessor."
 (defvar cperl-faces-init nil)
 ;; Fix for msb.el
 (defvar cperl-msb-fixed nil)
-(defvar font-lock-syntactic-keywords)
-(defvar perl-font-lock-keywords)
-(defvar perl-font-lock-keywords-1)
-(defvar perl-font-lock-keywords-2)
 ;;;###autoload
 (defun cperl-mode ()
   "Major mode for editing Perl code.
@@ -1470,7 +1467,7 @@ or as help on variables `cperl-tips', `cperl-problems',
   ;;(setq auto-fill-function 'cperl-do-auto-fill) ; Need to switch on and off!
   (make-local-variable 'imenu-create-index-function)
   (setq imenu-create-index-function
-	(function imenu-example--create-perl-index))
+	(function cperl-imenu--create-perl-index))
   (make-local-variable 'imenu-sort-function)
   (setq imenu-sort-function nil)
   (make-local-variable 'vc-header-alist)
@@ -1512,14 +1509,8 @@ or as help on variables `cperl-tips', `cperl-problems',
 		  '(t (cperl-fontify-syntaxically))
 		'(t)))))
   (make-local-variable 'cperl-old-style)
-  (or (fboundp 'cperl-old-auto-fill-mode)
-      (progn
-	(fset 'cperl-old-auto-fill-mode (symbol-function 'auto-fill-mode))
-	(defun auto-fill-mode (&optional arg)
-	  (interactive "P")
-	  (eval '(cperl-old-auto-fill-mode arg)) ; Avoid a warning
-	  (and auto-fill-function (eq major-mode 'perl-mode)
-	       (setq auto-fill-function 'cperl-do-auto-fill)))))
+  (set (make-local-variable 'normal-auto-fill-function)
+       #'cperl-old-auto-fill-mode)
   (if (cperl-enable-font-lock)
       (if (cperl-val 'cperl-font-lock) 
 	  (progn (or cperl-faces-init (cperl-init-faces))
@@ -1540,7 +1531,6 @@ or as help on variables `cperl-tips', `cperl-problems',
 	      (cperl-find-pods-heres)))))
 
 ;; Fix for perldb - make default reasonable
-(defvar gud-perldb-history)
 (defun cperl-db ()
   (interactive)
   (require 'gud)
@@ -1555,7 +1545,6 @@ or as help on variables `cperl-tips', `cperl-problems',
 				nil nil
 				'(gud-perldb-history . 1))))
 
-(defvar msb-menu-cond)
 (defun cperl-msb-fix ()
   ;; Adds perl files to msb menu, supposes that msb is already loaded
   (setq cperl-msb-fixed t)
@@ -3004,9 +2993,6 @@ Returns true if comment is found."
     ;; go-forward: has 2 args, and the second part is empth
     (list i i2 ender starter go-forward)))
 
-(defvar font-lock-string-face)
-;;(defvar font-lock-reference-face)
-(defvar font-lock-constant-face)
 (defsubst cperl-postpone-fontification (b e type val &optional now) 
   ;; Do after syntactic fontification?
   (if cperl-syntaxify-by-font-lock
@@ -3701,9 +3687,6 @@ CHARS is a string that contains good characters to have before us (however,
 	     "\\(map\\|grep\\|printf?\\|system\\|exec\\|tr\\|s\\)\\>")))))))
 
 
-(defvar innerloop-done nil)
-(defvar last-depth nil)
-
 (defun cperl-indent-exp ()
   "Simple variant of indentation of continued-sexp.
 
@@ -4116,7 +4099,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
       ;; Previous space could have gone:
       (or (memq (preceding-char) '(?\ ?\t)) (insert " "))))))
 
-(defvar imenu-example--function-name-regexp-perl
+(defvar cperl-imenu--function-name-regexp-perl
   (concat 
    "^\\("
        "[ \t]*\\(sub\\|package\\)[ \t\n]+\\([a-zA-Z_0-9:']+\\)[ \t]*\\(([^()]*)[ \t]*\\)?"
@@ -4144,8 +4127,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 		 (if isback (cdr lst) lst))
 	 lst)))
 
-(defun imenu-example--create-perl-index (&optional regexp)
-  (require 'cl)
+(defun cperl-imenu--create-perl-index (&optional regexp)
   (require 'imenu)			; May be called from TAGS creator
   (let ((index-alist '()) (index-pack-alist '()) (index-pod-alist '()) 
 	(index-unsorted-alist '()) (i-s-f (default-value 'imenu-sort-function))
@@ -4159,7 +4141,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
     ;; Search for the function
     (progn ;;save-match-data
       (while (re-search-forward
-	      (or regexp imenu-example--function-name-regexp-perl)
+	      (or regexp cperl-imenu--function-name-regexp-perl)
 	      nil t)
 	(or noninteractive
 	    (imenu-progress-message prev-pos))
@@ -4319,6 +4301,13 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	 "ps-print"
 	 '(or cperl-faces-init (cperl-init-faces))))))
 
+(defvar perl-font-lock-keywords-1 nil
+  "Additional expressions to highlight in Perl mode.  Minimal set.")
+(defvar perl-font-lock-keywords nil
+  "Additional expressions to highlight in Perl mode.  Default set.")
+(defvar perl-font-lock-keywords-2 nil
+  "Additional expressions to highlight in Perl mode.  Maximal set")
+
 (defun cperl-load-font-lock-keywords ()
   (or cperl-faces-init (cperl-init-faces))
   perl-font-lock-keywords)
@@ -4331,15 +4320,6 @@ indentation and initial hashes.  Behaves usually outside of comment."
   (or cperl-faces-init (cperl-init-faces))
   perl-font-lock-keywords-2)
 
-(defvar perl-font-lock-keywords-1 nil
-  "Additional expressions to highlight in Perl mode.  Minimal set.")
-(defvar perl-font-lock-keywords nil
-  "Additional expressions to highlight in Perl mode.  Default set.")
-(defvar perl-font-lock-keywords-2 nil
-  "Additional expressions to highlight in Perl mode.  Maximal set")
-
-(defvar font-lock-background-mode)
-(defvar font-lock-display-type)
 (defun cperl-init-faces-weak ()
   ;; Allow `cperl-find-pods-heres' to run.
   (or (boundp 'font-lock-constant-face)
@@ -5297,7 +5277,6 @@ See `cperl-lazy-help-time' too."
 	(set 'parse-sexp-lookup-properties t))))
 
 (defun cperl-xsub-scan ()
-  (require 'cl)
   (require 'imenu)
   (let ((index-alist '()) 
 	(prev-pos 0) index index1 name package prefix)
@@ -5359,7 +5338,7 @@ See `cperl-lazy-help-time' too."
 	    (error (message "While scanning for syntax: %s" err))))
       (if xs
 	  (setq lst (cperl-xsub-scan))
-	(setq ind (imenu-example--create-perl-index))
+	(setq ind (cperl-imenu--create-perl-index))
 	(setq lst (cdr (assoc "+Unsorted List+..." ind))))
       (setq lst 
 	    (mapcar 
