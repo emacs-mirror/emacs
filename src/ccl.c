@@ -627,10 +627,10 @@ static tr_stack *mapping_stack_pointer;
 #define CCL_GE		0x14	/* X = (X >= Y) */
 #define CCL_NE		0x15	/* X = (X != Y) */
 
-#define CCL_ENCODE_SJIS 0x16	/* X = HIGHER_BYTE (SJIS (Y, Z))
-				   r[7] = LOWER_BYTE (SJIS (Y, Z) */
-#define CCL_DECODE_SJIS 0x17	/* X = HIGHER_BYTE (DE-SJIS (Y, Z))
+#define CCL_DECODE_SJIS 0x16	/* X = HIGHER_BYTE (DE-SJIS (Y, Z))
 				   r[7] = LOWER_BYTE (DE-SJIS (Y, Z)) */
+#define CCL_ENCODE_SJIS 0x17	/* X = HIGHER_BYTE (SJIS (Y, Z))
+				   r[7] = LOWER_BYTE (SJIS (Y, Z) */
 
 /* Terminate CCL program successfully.  */
 #define CCL_SUCCESS		   	\
@@ -1073,8 +1073,8 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	    case CCL_LE: reg[rrr] = i <= j; break;
 	    case CCL_GE: reg[rrr] = i >= j; break;
 	    case CCL_NE: reg[rrr] = i != j; break;
-	    case CCL_ENCODE_SJIS: ENCODE_SJIS (i, j, reg[rrr], reg[7]); break;
 	    case CCL_DECODE_SJIS: DECODE_SJIS (i, j, reg[rrr], reg[7]); break;
+	    case CCL_ENCODE_SJIS: ENCODE_SJIS (i, j, reg[rrr], reg[7]); break;
 	    default: CCL_INVALID_CMD;
 	    }
 	  code &= 0x1F;
