@@ -52,7 +52,6 @@ extern char *strerror ();
 #endif
 
 #ifdef MSDOS	/* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
-#include "msdos.h"
 #define INCLUDED_FCNTL
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -77,6 +76,10 @@ extern char *strerror ();
 #include "process.h"
 #include "syssignal.h"
 #include "systty.h"
+
+#ifdef MSDOS
+#include "msdos.h"
+#endif
 
 #ifdef VMS
 extern noshare char **environ;
