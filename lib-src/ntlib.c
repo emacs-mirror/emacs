@@ -41,7 +41,7 @@ sleep(int seconds)
 }
 
 /* Get the current working directory.  */
-int
+char *
 getwd (char *dir)
 {
   if (GetCurrentDirectory (MAXPATHLEN, dir) > 0)
