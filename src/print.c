@@ -956,6 +956,26 @@ float_to_string (buf, data)
   unsigned char *cp;
   int width;
       
+  /* Check for plus infinity in a way that won't lose
+     if there is no plus infinity.  */
+  if (data == data / 2 && data > 1.0)
+    {
+      strcpy (buf, "1.0e+INF");
+      return;
+    }
+  /* Likewise for minus infinity.  */
+  if (data == data / 2 && data < -1.0)
+    {
+      strcpy (buf, "-1.0e+INF");
+      return;
+    }
+  /* Check for NaN in a way that won't fail if there are no NaNs.  */
+  if (! (data * 0.0 >= 0.0))
+    {
+      strcpy (buf, "0.0e+NaN");
+      return;
+    }
+
   if (NILP (Vfloat_output_format)
       || !STRINGP (Vfloat_output_format))
   lose:
