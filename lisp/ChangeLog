@@ -1,3 +1,8 @@
+2000-11-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* mail/emacsbug.el (report-emacs-bug): Fix whitespace and
+	punctuation in the warning inserted into the *mail* buffer.
+
 2000-11-02  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/authors.el (authors-public-domain-files): New variable.
