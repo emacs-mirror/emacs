@@ -3,10 +3,8 @@
 ;; Copyright (C) 1991 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
-;; Last-Modified: 14 Jul 1992
+;; Maintainer: FSF
 ;; Keywords: tools, languages
-
-;; 	@(#)asm-mode.el	1.7
 
 ;; This file is part of GNU Emacs.
 
@@ -43,7 +41,7 @@
 ;; appropriate spot.
 
 ;; This mode runs two hooks:
-;;   1) An asm-set-comment-hook before the part of the initialization
+;;   1) An asm-mode-set-comment-hook before the part of the initialization
 ;; depending on asm-comment-char, and
 ;;   2) an asm-mode-hook at the end of initialization.
 
@@ -95,8 +93,8 @@ Features a private abbrev table and the following bindings:
 The character used for making comments is set by the variable
 `asm-comment-char' (which defaults to `?;').
 
-Alternatively, you may set this variable in `asm-set-comment-hook', which is
-called near the beginning of mode initialization.
+Alternatively, you may set this variable in `asm-mode-set-comment-hook',
+which is called near the beginning of mode initialization.
 
 Turning on Asm mode runs the hook `asm-mode-hook' at the end of initialization.
 
