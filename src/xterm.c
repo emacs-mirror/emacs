@@ -3284,7 +3284,7 @@ x_draw_glyph_string_box (s)
   left_x = s->x;
   right_x = ((s->row->full_width_p
 	      ? last_x - 1
-	      : min (last_x, s->x + s->width) - 1));
+	      : min (last_x, s->x + s->background_width) - 1));
   top_y = s->y;
   bottom_y = top_y + s->height - 1;
 
