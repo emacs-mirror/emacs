@@ -968,7 +968,7 @@ Optional second arg RAWFILE non-nil means the file is read literally."
       (kill-local-variable 'find-file-literally)
       ;; Needed in case we are re-visiting the file with a different
       ;; text representation.
-      (setq buffer-file-coding-system default-buffer-file-coding-system)
+      (kill-local-variable 'buffer-file-coding-system)
       (erase-buffer)
       (and (default-value 'enable-multibyte-characters)
 	   (not rawfile)
@@ -2183,7 +2183,9 @@ We don't want excessive versions piling up, so there are variables
  Defaults are 2 old versions and 2 new.
 `dired-kept-versions' controls dired's clean-directory (.) command.
 If `delete-old-versions' is nil, system will query user
- before trimming versions.  Otherwise it does it silently."
+ before trimming versions.  Otherwise it does it silently.
+
+See the subroutine `basic-save-buffer' for more information."
   (interactive "p")
   (let ((modp (buffer-modified-p))
 	(large (> (buffer-size) 50000))
@@ -2220,7 +2222,10 @@ in such cases.")
 
 (defun basic-save-buffer ()
   "Save the current buffer in its visited file, if it has been modified.
-After saving the buffer, run `after-save-hook'."
+The hooks `write-contents-hooks', `local-write-file-hooks' and
+`write-file-hooks' get a chance to do the job of saving; if they do not,
+then the buffer is saved in the visited file file in the usual way.
+After saving the buffer, this function runs `after-save-hook'."
   (interactive)
   (save-current-buffer
     ;; In an indirect buffer, save its base buffer instead.
