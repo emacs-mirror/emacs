@@ -1,3 +1,9 @@
+2003-07-29  Ken Brush  <ken@wirex.com>
+
+	* emacsclient.c (main)
+	* etags.c (suggest_asking_for_help)
+	* movemail.c (main): Fix having macros in a printf statement.
+
 2003-05-31  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in (lisp): Fix references to byte-run.el,

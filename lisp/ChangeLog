@@ -1,3 +1,7 @@
+2003-07-29  Thomas W Murphy  <twm@andrew.cmu.edu>  (tiny change)
+
+	* outline.el (outline-mode-hook): Add defvar.
+
 2003-07-28  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-setup-windows, gdb-restore-windows): Restore
@@ -12,9 +16,9 @@
 
 2003-07-23  Masatake YAMATO  <jet@gyve.org>
 
-	* progmodes/gud.el (gdb-script-font-lock-keywords): 
+	* progmodes/gud.el (gdb-script-font-lock-keywords):
 	Put `font-lock-function-name-face' on a symbol which includes
-	`-' like `hook-run'. Put font-lock-variable-name-face 
+	`-' like `hook-run'. Put font-lock-variable-name-face
 	on a symbol starting with $.
 
 2003-07-27  Markus Rost  <rost@math.ohio-state.edu>
@@ -27,7 +31,7 @@
 
 2003-07-26  Andre Spiegel  <spiegel@gnu.org>
 
-	* vc-hooks.el (vc-default-registered, vc-make-version-backup): 
+	* vc-hooks.el (vc-default-registered, vc-make-version-backup):
 	Use with-no-warnings.
 	(vc-file-not-found-hook): Add this to find-file-not-found-functions,
 	rather than to find-file-not-found-hook, which doesn't exist.
