@@ -106,6 +106,8 @@ extern int input_fd;
 #define KBD_BUFFER_SIZE 4096
 #endif	/* No X-windows */
 
+#define abs(x)		((x) >= 0 ? (x) : -(x))
+
 /* Following definition copied from eval.c */
 
 struct backtrace
@@ -4543,10 +4545,15 @@ static int last_mouse_x;
 static int last_mouse_y;
 static unsigned long button_down_time;
 
-/* The maximum time between clicks to make a double-click,
-   or Qnil to disable double-click detection,
-   or Qt for no time limit.  */
+/* The maximum time between clicks to make a double-click, or Qnil to
+   disable double-click detection, or Qt for no time limit.  */
+
 Lisp_Object Vdouble_click_time;
+
+/* Maximum number of pixels the mouse may be moved between clicks
+   to make a double-click.  */
+
+int double_click_fuzz;
 
 /* The number of clicks in this multiple-click. */
 
@@ -4846,13 +4853,16 @@ make_lispy_event (event)
 	*start_pos_ptr = Qnil;
 
 	is_double = (button == last_mouse_button
-		     && XINT (event->x) == last_mouse_x
-		     && XINT (event->y) == last_mouse_y
+		     && (abs (XINT (event->x) - last_mouse_x)
+			 <= double_click_fuzz)
+		     && (abs (XINT (event->y) - last_mouse_y)
+			 <= double_click_fuzz)
 		     && button_down_time != 0
 		     && (EQ (Vdouble_click_time, Qt)
 			 || (INTEGERP (Vdouble_click_time)
 			     && ((int)(event->timestamp - button_down_time)
 				 < XINT (Vdouble_click_time)))));
+	
 	last_mouse_button = button;
 	last_mouse_x = XINT (event->x);
 	last_mouse_y = XINT (event->y);
@@ -10514,6 +10524,12 @@ t means double-clicks have no time limit and are detected\n\
 by position only.");
   Vdouble_click_time = make_number (500);
 
+  DEFVAR_INT ("double-click-fuzz", &double_click_fuzz,
+    "*Maximum mouse movement between clicks to make a double-click.\n\
+Value is the number of pixels the mouse may ha moved horizontally or\n\
+vertically between two clicks to make a double-click.");
+  double_click_fuzz = 3;
+  
   DEFVAR_BOOL ("inhibit-local-menu-bar-menus", &inhibit_local_menu_bar_menus,
     "*Non-nil means inhibit local map menu bar menus.");
   inhibit_local_menu_bar_menus = 0;
