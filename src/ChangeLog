@@ -1,4 +1,4 @@
-2004-11-01  Andy Petrusenco  <Igrek@star-sw.com>
+2004-11-01  Andy Petrusenco  <Igrek@star-sw.com>  (tiny change)
 
 	* w32term.c (x_scroll_run): Delete region objects after use.
 
