@@ -377,8 +377,31 @@ copy directories recursively.
 ** The variable mail-specify-envelope-from controls whether to
 use the -f option when sending mail.
 
-** In Isearch mode, mouse-2 in the echo area now yanks the current
+** Isearch changes
+
+*** In Isearch mode, mouse-2 in the echo area now yanks the current
 selection into the search string rather than giving an error.
+
+*** There is a new lazy highlighting feature in incremental search.
+
+Lazy highlighting is activated by customizing variable
+`isearch-lazy-highlight'.  When active, all matches for the current
+search string are highlighted.  The current match is highlighted as
+before using face `isearch' or `region'.  All other matches are
+highlighted using face `isearch-lazy-highlight-face' which defaults to
+`secondary-selection'.  
+
+The extra highlighting makes it easier to anticipate where the cursor
+will end up each time you press C-s or C-r to repeat a pending search.
+Highlighting of these additional matches happens in a deferred fashion
+using "idle timers," so the cycles needed do not rob isearch of its
+usual snappy response.
+
+If `isearch-lazy-highlight-cleanup' is set to t, highlights for
+matches are automatically cleared when you end the search.  If it is
+set to nil, you can remove the highlights manually with `M-x
+isearch-lazy-highlight-cleanup'.
+
 
 ** Ange-ftp allows you to specify of a port number in remote file
 names cleanly.  It is appended to the host name, separated by a hash
