@@ -405,8 +405,9 @@ x_consider_frame_title (frame)
 
   if (FRAME_X_P (f) && ! FRAME_MINIBUF_ONLY_P (f))
     {
-      Lisp_Object title = Qnil;
+      Lisp_Object title;
 
+      title = Qnil;
       if (! EQ (Fnext_frame (frame, Qnil), frame))
 	title = XBUFFER (XWINDOW (f->selected_window)->buffer)->name;
 
@@ -2704,10 +2705,11 @@ decode_mode_spec (w, c, maxwidth)
      register char c;
      register int maxwidth;
 {
-  Lisp_Object obj = Qnil;
+  Lisp_Object obj;
   FRAME_PTR f = XFRAME (WINDOW_FRAME (w));
   char *decode_mode_spec_buf = (char *) FRAME_TEMP_GLYPHS (f)->total_contents;
 
+  obj = Qnil;
   if (maxwidth > FRAME_WIDTH (f))
     maxwidth = FRAME_WIDTH (f);
 
