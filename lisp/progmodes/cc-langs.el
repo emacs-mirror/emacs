@@ -1362,7 +1362,8 @@ too.
 Note: Use `c-typeless-decl-kwds' for keywords followed by a function
 or variable identifier (that's being defined)."
   t    '("struct" "union" "enum")
-  (c c++ awk) nil
+  (c awk) nil
+  c++  '("operator")
   objc (append '("@class" "@interface" "@implementation" "@protocol")
 	       (c-lang-const c-type-list-kwds))
   java '("class" "import" "interface" "new" "extends" "implements" "throws")
