@@ -15,10 +15,8 @@
 	("Bulgarian", "Belarusian"): Remove `features'.
 	(windows-1251): Moved from code-pages.
 
-	* international/mule-diag.el (non-iso-charset-alist): Define as
-	nil.
-	(top-level): Append to non-iso-charset-alist (without `codepage'
-	stuff).
+	* international/mule-diag.el (non-iso-charset-alist): Remove
+	`codepage' stuff.
 	(print-designation, list-coding-systems-1): Output fixes.
 
 	* international/code-pages.el (cp-make-translation-table)
