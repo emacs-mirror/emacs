@@ -1,6 +1,8 @@
 2003-02-22  Simon Josefsson  <jas@extundo.com>
 
 	* sending.texi (Mail Methods): Add node about SMTP.
+	(Sending via SMTP): Explain MTA/MUA, text from Alex Schroeder
+	<alex@emacswiki.org>.
 
 2003-02-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
