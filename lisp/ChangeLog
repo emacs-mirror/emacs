@@ -1,3 +1,13 @@
+2003-05-18  Nick Roberts  <nick@nick.uklinux.net>
+
+	* gdb-ui.el (put-arrow): Rename gdb-put-arrow and simplify.
+	(put-string): Rename gdb-put-string and simplify.
+	(remove-strings): Rename gdb-remove-strings.
+	(remove-arrow): Rename gdb-remove-arrow.
+	(gdb-assembler-custom): Try to get line marker (arrow) to display
+	in window (revisited).
+	Use with-current-buffer where possible.
+
 2003-05-18  John Paul Wallington  <jpw@gnu.org>
 
 	* ibuffer.el (ibuffer-display-summary): New customizable variable.
