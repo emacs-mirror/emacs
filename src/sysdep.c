@@ -230,7 +230,9 @@ static int baud_convert[] =
   };
 #endif
 
-#ifdef HAVE_TERMIOS_H
+#if defined (HAVE_TERMIOS_H) || defined (LINUX)
+/* HJL's version of libc is said to need this on the Alpha.
+   On the other hand, DEC OSF1 on the Alpha needs ospeed to be a short.  */
 extern speed_t ospeed;
 #else
 extern short ospeed;
@@ -2275,8 +2277,8 @@ init_system_name ()
 
       for (;;)
 	{
-	  char *fqdn = (char *) alloca (hostlen + 1 + domain_size);
-	  char *domain = fqdn + hostlen + 1;
+	  char *domain = (char *) alloca (domain_size + 1);
+	  char *fqdn = (char *) alloca (hostlen + 1 + domain_size + 1);
 #if HAVE_SYSINFO && defined (SI_SRPC_DOMAIN)
 	  int sys_domain_size = sysinfo (SI_SRPC_DOMAIN, domain, domain_size);
 	  if (sys_domain_size <= 0)
@@ -2304,7 +2306,13 @@ init_system_name ()
 	    }
 #endif /* HAVE_GETDOMAINNAME */
 	  strcpy (fqdn, hostname);
-	  fqdn[hostlen] = '.';
+	  if (domain[0] == '.')
+	    strcpy (fqdn + hostlen, domain);
+	  else
+	    {
+	      fqdn[hostlen] = '.';
+	      strcpy (fqdn + hostlen + 1, domain);
+	    }
 	  hostname = fqdn;
 	  break;
 	}
