@@ -181,15 +181,20 @@ PATTERN.  If no full XLFD name is gotten, return nil."
 		       (error)))
       (if (and fontname
 	       (string-match xlfd-tight-regexp fontname))
+	  ;; We get a full XLFD name.
 	  (let ((len (length pattern))
 		(i 0)
 		l)
+	    ;; Setup xlfd-fields by the full XLFD name.  Each element
+	    ;; should be a cons of matched index and matched string.
 	    (setq xlfd-fields (make-vector 14 nil))
 	    (while (< i 14)
 	      (aset xlfd-fields i
 		    (cons (match-beginning (1+ i))
 			  (match-string (1+ i) fontname)))
 	      (setq i (1+ i)))
+
+	    ;; Replace wild cards in PATTERN by regexp codes.
 	    (setq i 0)
 	    (while (< i len)
 	      (let ((ch (aref pattern i)))
@@ -206,19 +211,31 @@ PATTERN.  If no full XLFD name is gotten, return nil."
 			    len (+ len 5)
 			    i (+ i 5))
 		    (setq i (1+ i))))))
-	    (string-match pattern fontname)
-	    (setq l (cdr (cdr (match-data))))
-	    (setq i 0)
-	    (while (< i 14)
-	      (if (or (null l) (< (car (aref xlfd-fields i)) (car l)))
-		  (progn
-		    (aset xlfd-fields i (cdr (aref xlfd-fields i)))
-		    (setq i (1+ i)))
-		(if (< (car (aref xlfd-fields i)) (car (cdr l)))
-		    (progn
-		      (aset xlfd-fields i "*")
-		      (setq i (1+ i)))
-		  (setq l (cdr (cdr l))))))
+
+	    ;; Set each element of xlfd-fields to proper strings.
+	    (if (string-match pattern fontname)
+		;; The regular expression PATTERN matchs the full XLFD
+		;; name.  Set elements that correspond to a wild card
+		;; in PATTERN to "*", set the other elements to the
+		;; exact strings in PATTERN.
+		(let ((l (cdr (cdr (match-data)))))
+		  (setq i 0)
+		  (while (< i 14)
+		    (if (or (null l) (< (car (aref xlfd-fields i)) (car l)))
+			(progn
+			  (aset xlfd-fields i (cdr (aref xlfd-fields i)))
+			  (setq i (1+ i)))
+		      (if (< (car (aref xlfd-fields i)) (car (cdr l)))
+			  (progn
+			    (aset xlfd-fields i "*")
+			    (setq i (1+ i)))
+			(setq l (cdr (cdr l)))))))
+	      ;; Set each element of xlfd-fields to the exact string
+	      ;; in the corresonding fields in full XLFD name.
+	      (setq i 0)
+	      (while (< i 14)
+		(aset xlfd-fields i (cdr (aref xlfd-fields i)))
+		(setq i (1+ i))))
 	    xlfd-fields)))))
 
 ;; Replace consecutive wild-cards (`*') in NAME to one.
