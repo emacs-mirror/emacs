@@ -6,8 +6,8 @@
 ;;;
 ;;;
 ;;; Authors         : Ken Stevens <k.stevens@ieee.org>
-;;; Last Modified On: Thu Dec  8 13:17:41 EST 1994
-;;; Update Revision : 2.34
+;;; Last Modified On: Mon Feb  6 17:39:38 EST 1995
+;;; Update Revision : 2.36
 ;;; Syntax          : emacs-lisp
 ;;; Status	    : Release with 3.1.12+ ispell.
 ;;; Version	    : International Ispell Version 3.1 by Geoff Kuenning.
@@ -128,6 +128,14 @@
 ;;;  On some versions of emacs, growing the minibuffer fails.
 ;;;
 ;;; HISTORY
+;;;
+;;; Revision 2.36  1995/2/6 17:39:38	stevens
+;;; Properly adjust screen with different ispell-choices-win-default-height
+;;; settings.  Skips SGML entity references.
+;;;
+;;; Revision 2.35  1995/1/13 14:16:46	stevens
+;;; Skips SGML tags, ispell-change-dictionary fix for add-hook, assure personal
+;;; dictionary is saved when called from the menu
 ;;;
 ;;; Revision 2.34  1994/12/08 13:17:41  stevens
 ;;; Interaction corrected to function with all 3.1 ispell versions.
@@ -560,7 +568,7 @@ language.aff file \(e.g., english.aff\).")
       (define-key ispell-menu-map [ispell-kill-ispell]
 	'("Kill Process" . ispell-kill-ispell))
       (define-key ispell-menu-map [ispell-pdict-save]
-	'("Save Dictionary" . (lambda () (interactive) (ispell-pdict-save t))))
+	'("Save Dictionary" . (lambda () (interactive) (ispell-pdict-save t t))))
       (define-key ispell-menu-map [ispell-complete-word]
 	'("Complete Word" . ispell-complete-word))
       (define-key ispell-menu-map [ispell-complete-word-interior-frag]
@@ -606,7 +614,7 @@ language.aff file \(e.g., english.aff\).")
 	     ["Complete Word"	ispell-complete-word		t]
 	     ["Kill Process"	ispell-kill-ispell		t]
 	     "-"
-	     ["Save Dictionary"	(ispell-pdict-save t)		t]
+	     ["Save Dictionary"	(ispell-pdict-save t t)		t]
 	     ["Change Dictionary" ispell-change-dictionary	t]))
 	  name)
       (while dicts
@@ -720,6 +728,11 @@ The above keyword string should be followed by `latex-mode' or
 Extended character mode can be changed for this buffer by placing
 a `~' followed by an extended-character mode -- such as `~.tex'.")
 
+(defvar ispell-skip-sgml nil
+  "Skips spell checking of SGML tags and entity references when non-nil.
+This variable is set when major-mode is sgml-mode.")
+
+;;;###autoload
 (defvar ispell-local-pdict ispell-personal-dictionary
   "A buffer local variable containing the current personal dictionary.
 If non-nil, the value must be a string, which is a file name.
@@ -760,8 +773,9 @@ You can set this variable in hooks in your init file -- eg:
 ;;; **********************************************************************
 
 
-(if (string-lessp "19" emacs-version)
-    (defalias 'ispell 'ispell-buffer))
+(and (string-lessp "19" emacs-version)
+     (not (boundp 'epoch::version))
+     (defalias 'ispell 'ispell-buffer))
 
 ;;;###autoload (define-key global-map "\M-$" 'ispell-word)
 
@@ -921,7 +935,9 @@ If so, ask if it needs to be saved."
       (setq ispell-pdict-modified-p (car ispell-pdict-modified-p)))
   (if (or ispell-pdict-modified-p force-save)
       (if (or no-query (y-or-n-p "Personal dictionary modified.  Save? "))
-	  (process-send-string ispell-process "#\n")))
+	  (progn
+	    (process-send-string ispell-process "#\n")
+	    (message "Personal dictionary saved."))))
   ;; unassert variable, even if not saved to avoid questioning.
   (setq ispell-pdict-modified-p nil))
 
@@ -993,19 +1009,23 @@ used."
     ;; Display choices for misspelled word.
     (let ((choices-window (get-buffer-window ispell-choices-buffer)))
       (if choices-window
-	  (if (not (equal line (window-height choices-window)))
-	      ;; *Choices* window changed size.  Adjust the choices window
-	      ;; without scrolling the spelled window when possible
-	      (let ((window-line (- line (window-height choices-window)))
-		    (visible (progn (forward-line -1) (point))))
-		(move-to-window-line 0)
-		(forward-line window-line)
-		(set-window-start (selected-window)
-				  (if (> (point) visible) visible (point)))
-		(goto-char end)
-		(select-window (previous-window)) ; *Choices* window
-		(enlarge-window window-line))
-	    (select-window choices-window))
+	  (if (= line (window-height choices-window))
+	      (select-window choices-window)
+	    ;; *Choices* window changed size.  Adjust the choices window
+	    ;; without scrolling the spelled window when possible
+	    (let ((window-line (- line (window-height choices-window)))
+		  (visible (progn (forward-line -1) (point))))
+	      (if (< line ispell-choices-win-default-height)
+		  (setq window-line (+ window-line
+				       (- ispell-choices-win-default-height
+					  line))))
+	      (move-to-window-line 0)
+	      (forward-line window-line)
+	      (set-window-start (selected-window)
+				(if (> (point) visible) visible (point)))
+	      (goto-char end)
+	      (select-window (previous-window)) ; *Choices* window
+	      (enlarge-window window-line)))
 	;; Overlay *Choices* window when it isn't showing
 	(ispell-overlay-window (max line ispell-choices-win-default-height)))
       (switch-to-buffer ispell-choices-buffer)
@@ -1122,11 +1142,19 @@ used."
 				      count (1+ count)))
 			      (setq count (- count ?0 skipped)))
 			    (select-window (previous-window))
-			    (if (/= new-line line)
-				(progn
+			    (if (and (/= new-line line)
+				     (> (max line new-line)
+					ispell-choices-win-default-height))
+				(let* ((minh ispell-choices-win-default-height)
+				       (gr-bl (if (< line minh) ; blanks
+						  (- minh line)
+						0))
+				       (shr-bl (if (< new-line minh) ; blanks
+						   (- minh new-line)
+						 0)))
 				  (if (> new-line line)
-				      (enlarge-window (- new-line line))
-				    (shrink-window (- line new-line)))
+				      (enlarge-window (- new-line line gr-bl))
+				    (shrink-window (- line new-line shr-bl)))
 				  (setq line new-line)))
 			    (select-window (next-window)))))
 		    t)			; reselect from new choices
@@ -1443,13 +1471,13 @@ scrolling the current window.  Leave the new window selected."
   ;; all versions, since versions earlier than 3.0.09 didn't identify
   ;; themselves on startup.
   (save-excursion
-    (set-buffer (get-buffer-create " *ispell-tmp*"))
-    (erase-buffer)
-    ;; Avoid obscure bugs caused by users who change the syntax of `.' in
-    ;; whatever default major mode the user uses, e.g. text mode.
-    (fundamental-mode)
-    (let ((status (call-process ispell-program-name nil t nil "-v"))
-	  (case-fold-search t))
+    (let ((case-fold-search t)
+	  ;; avoid bugs when syntax of `.' changes in various default modes
+	  (default-major-mode 'fundamental-mode)
+	  status)
+      (set-buffer (get-buffer-create " *ispell-tmp*"))
+      (erase-buffer)
+      (setq status (call-process ispell-program-name nil t nil "-v"))
       (goto-char (point-min))
       (if (not (memq status '(0 nil)))
 	  (error "%s exited with %s %s" ispell-program-name
@@ -1548,6 +1576,9 @@ With NO-ERROR, just return non-nil if there was no Ispell running."
     nil))
 
 
+;;; ispell-change-dictionary is set in some people's hooks.  Maybe it should
+;;;  call ispell-init-process rather than wait for a spell checking command?
+
 ;;;###autoload
 (defun ispell-change-dictionary (dict &optional arg)
   "Change `ispell-dictionary' (q.v.) and kill old Ispell process.
@@ -1567,9 +1598,11 @@ With prefix argument, set the default directory."
 	 (message "Using %s dictionary"
 		  (or ispell-local-dictionary ispell-dictionary "default")))
 	((and (equal dict ispell-dictionary)
-	      (equal dict ispell-local-dictionary))
+	      (or (null ispell-local-dictionary)
+		  (equal dict ispell-local-dictionary)))
 	 ;; Specified dictionary is the default already.  No-op
-	 (message "No change, using %s dictionary" (or dict "default")))
+	 (and (interactive-p)
+	      (message "No change, using %s dictionary" (or dict "default"))))
 	(t				; reset dictionary!
 	 (if (assoc dict ispell-dictionary-alist)
 	     (progn
@@ -1607,7 +1640,8 @@ With prefix argument, set the default directory."
 	;; Returns cursor to original location.
 	(save-window-excursion
 	  (goto-char reg-start)
-	  (let ((transient-mark-mode nil))
+	  (let ((transient-mark-mode nil)
+		ref-type)
 	    (while (and (not ispell-quit) (< (point) reg-end))
 	      (let ((start (point))
 		    (offset-change 0)
@@ -1642,23 +1676,41 @@ With prefix argument, set the default directory."
 					"\n")
 				offset-change (- offset-change ispell-offset)))
 		      (goto-char limit))))
-		 ((and ispell-skip-tib	; SKIP TIB REFERENCES!
-		       (re-search-forward ispell-tib-ref-beginning end t))
-		  (if (= (- (point) 2) start) ; tib ref is 2 chars.
-		      ;; Skip to end of tib ref, not necessarily on this line.
-		      ;; Return an error if tib ref not found
-		      (if (not(re-search-forward ispell-tib-ref-end reg-end t))
+		 ((looking-at "[---#@*+!%~^]") ; SKIP SPECIAL ISPELL CHARACTERS
+		  (forward-char 1))
+		 ((or (and ispell-skip-tib ; SKIP TIB REFERENCES OR SGML MARKUP
+			   (re-search-forward ispell-tib-ref-beginning end t)
+			   (setq ref-type 'tib))
+		      (and ispell-skip-sgml
+			   (search-forward "[<&]" end t)
+			   (setq ref-type 'sgml)))
+		  (if (or (and (eq 'tib ref-type) ; tib tag is 2 chars.
+			       (= (- (point) 2) start))
+			  (and (eq 'sgml ref-type) ; sgml skips 1 char.
+			       (= (- (point) 1) start)))
+		      ;; Skip to end of reference, not necessarily on this line
+		      ;; Return an error if tib/sgml reference not found
+		      (if (or
+			   (and
+			    (eq 'tib ref-type)
+			    (not
+			     (re-search-forward ispell-tib-ref-end reg-end t)))
+			   (and (eq 'sgml ref-type)
+				(not (search-forward "[>;]" reg-end t))))
 			  (progn
 			    (ispell-pdict-save ispell-silently-savep)
 			    (ding)
 			    (message
 			     (concat
-			      "Open tib reference--set `ispell-skip-tib'"
-			      " to nil to avoid this error"))
+			      "Open tib or SGML command.  Fix buffer or set "
+			      (if (eq 'tib ref-type)
+				  "ispell-skip-tib"
+				"ispell-skip-sgml")
+			      " to nil"))
 			    ;; keep cursor at error location
 			    (setq ispell-quit (- (point) 2))))
-		    ;; tib ref starts later on line. Check spelling before tib.
-		    (let ((limit (- (point) 2)))
+		    ;; Check spelling between reference and start of the line.
+		    (let ((limit (- (point) (if (eq 'tib ref-type) 2 1))))
 		      (goto-char start)
 		      (if (or (re-search-forward ispell-casechars limit t)
 			      (re-search-forward "[][()$]" limit t))
@@ -1667,8 +1719,6 @@ With prefix argument, set the default directory."
 					"\n")
 				offset-change (- offset-change ispell-offset)))
 		      (goto-char limit))))
-		 ((looking-at "[---#@*+!%~^]") ; SKIP SPECIAL ISPELL CHARACTERS
-		  (forward-char 1))
 		 ((or (re-search-forward ispell-casechars end t) ; TEXT EXISTS
 		      (re-search-forward "[][()$]" end t)) ; or MATH COMMANDS
 		  (setq string (concat "^" (buffer-substring start end) "\n")
@@ -2085,14 +2135,27 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 	(while (and (looking-at cite-regexp-start)
 		    (< (point) limit)
 		    (zerop (forward-line 1))))
+
 	(if (< (point) limit)
-	    ;; Check the next batch of lines that *aren't* cited.
-	    (let ((end (save-excursion
-			 (if (re-search-forward cite-regexp-end limit 'end)
-			     (match-beginning 0)
-			   (marker-position limit)))))
-	      (ispell-region (point) end)
-	      (goto-char end))))
+	    (let* ((start (point))
+		   ;; Check the next batch of lines that *aren't* cited.
+		   (end-c (and (re-search-forward cite-regexp-end limit 'end)
+			       (match-beginning 0)))
+		   ;; skip a forwarded message
+		   (end-fwd (and (goto-char start)
+				 (re-search-forward "---* Forwarded Message"
+						    limit 'end)))
+		   (end (or (and end-c end-fwd (min end-c end-fwd))
+			    end-c end-fwd
+			    ;; defalut to limit of text.
+			    (marker-position limit))))
+	      (goto-char start)
+	      (ispell-region start end)
+	      (if (and end-fwd (= end end-fwd))
+		  (progn
+		    (goto-char end)
+		    (search-forward "--- End of Forwarded Message" limit 'end))
+		(goto-char end)))))
       (set-marker limit nil))))
 
 
@@ -2126,6 +2189,8 @@ Includes latex/nroff modes and extended character mode."
 	  (eq ispell-parser 'tex))
       (process-send-string ispell-process "+\n") ; set ispell mode to tex
     (process-send-string ispell-process "-\n"))	; set mode to normal (nroff)
+  ;; Hard-wire test for SGML mode.
+  (setq ispell-skip-sgml (eq 'sgml-mode major-mode))
   ;; Set default extended character mode for given buffer, if any.
   (let ((extended-char-mode (ispell-get-extended-character-mode)))
     (if extended-char-mode
@@ -2249,7 +2314,7 @@ Both should not be used to define a buffer-local dictionary."
   reg-end)
 
 
-(defconst ispell-version "2.34 -- Thu Dec  8 13:17:41 EST 1994")
+(defconst ispell-version "2.36 -- Mon Feb  6 17:39:38 EST 1995")
 
 (provide 'ispell)
 
