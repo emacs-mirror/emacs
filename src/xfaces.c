@@ -34,6 +34,12 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "blockinput.h"
 #include "window.h"
 
+/* Compensate for bug in Xos.h on hpux.  */
+#if HPUX
+#include <time.h>
+#define __TIMEVAL__
+#endif
+
 /* Display Context for the icons */ 
 #include <X11/Intrinsic.h>
 #include <X11/StringDefs.h>
