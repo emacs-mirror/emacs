@@ -1,3 +1,7 @@
+2002-04-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* simple.el (play-sound): New function (uses play-sound-internal).
+
 2002-04-04  Richard M. Stallman  <rms@gnu.org>
 
 	* calendar/solar.el (solar-northern-spring-or-summer-season): Doc fix.

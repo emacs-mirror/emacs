@@ -1,3 +1,8 @@
+2002-04-05  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* sound.c (Fplay_sound_internal): Renamed from Fplay_sound.
+	Doc fix to reflect it.
+
 2002-04-04  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (display_mode_element): New arg RISKY.
