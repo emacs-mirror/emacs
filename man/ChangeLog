@@ -1,3 +1,8 @@
+2004-08-22  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* kmacro.texi (Keyboard Macro Counter, Keyboard Macro Step-Edit):
+	Change section names.
+
 2004-08-22  David Kastrup  <dak@gnu.org>
 
 	* reftex.texi (AUCTeX): Update links, section name.
