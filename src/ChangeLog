@@ -1,3 +1,33 @@
+2003-05-28  Kenichi Handa  <handa@m17n.org>
+
+	* coding.h (make_conversion_work_buffer): Prototype adjusted.
+	(code_conversion_restore): Don't extern it.
+
+	* coding.c (detected_mask): Delete unused variable.
+	(decode_coding_iso_2022): Pay attention to the byte sequence of
+	CTEXT extended segment, and retain those bytes as is.
+	(decode_coding_ccl): Delete unused variable `valids'.
+	(setup_coding_system): Delete unused variable `category'.
+	(consume_chars): Delete unused variable `category'.  Make it work
+	for non-multibyte case.
+	(make_conversion_work_buffer): Argument changed.
+	(saved_coding): Delete unused variable.
+	(code_conversion_restore): Don't check saved_coding->destination.
+	(code_conversion_save): New function.
+	(decode_coding_gap, encode_coding_gap): Call code_conversion_save
+	instead of record_unwind_protect.
+	(decode_coding_object, encode_coding_object): Likewise.  Recover
+	PT.
+	(detect_coding_system): Delete unused variable `mask'.
+	(Fdefine_coding_system_internal): Delete unsed vaiable id;
+
+	* fileio.c (kill_workbuf_unwind): New function.
+	(Finsert_file_contents): On replacing, call
+	make_conversion_work_buffer with correct args, and call
+	record_unwind_protect with the first arg kill_workbuf_unwind.
+
+	* lisp.h (Fgenerate_new_buffer_name): EXFUN it.
+
 2003-05-20  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (BASE_FONTSET_P): Check FONTSET_BASE, not
