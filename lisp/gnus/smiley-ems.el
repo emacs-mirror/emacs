@@ -43,7 +43,8 @@
 
 ;; Maybe this should go.
 (defcustom smiley-data-directory (nnheader-find-etc-directory "smilies")
-  "*Location of the smiley faces files."
+  "*Directory to search for the smiley image files.
+This is in addition to the normal image search path."
   :type 'directory
   :group 'smiley)
 
@@ -56,7 +57,7 @@
   "*A list of regexps to map smilies to images.
 The elements are (REGEXP MATCH FILE), where MATCH is the submatch in
 rgexp to replace with IMAGE.  IMAGE is the name of a PBM file in
-`smiley-data-directory'."
+`smiley-data-directory' or the normal image search path."
   :type '(repeat (list regexp
 		       (integer :tag "Regexp match number")
 		       (string :tag "Image name")))
