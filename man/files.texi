@@ -972,10 +972,12 @@ links point to directories.
   If you visit two names for the same file, normally Emacs makes
 two different buffers, but it warns you about the situation.
 
-@vindex find-file-existing-other-name
-  If you wish to avoid visiting the same file in two buffers under
-different names, set the variable @code{find-file-existing-other-name}
-to a non-@code{nil} value.  Then @code{find-file} uses the existing
+@vindex find-file-existing-other-name 
+
+  If Emacs should use different buffers when visiting the same file
+under different names, set the variable
+@code{find-file-existing-other-name} to @code{nil}.  A non-@code{nil}
+value, which is the default, means @code{find-file} uses the existing
 buffer visiting the file, no matter which of the file's names you
 specify.
 
