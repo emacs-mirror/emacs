@@ -1,3 +1,29 @@
+2001-06-01  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.nt (TIT_GB): Remove quail/PY.elc and quail/ZIRANMA.elc.
+	(NON_TIT_BIG5): Remove $(srcdir)/quail/tsang-b5.elc and
+	$(srcdir)/quail/pypunct-b5.elc.
+	(NON_TIT_CNS): Remove.
+	(CHINESE_NON_TIT): Remove $(NON_TIT_CNS).
+	(CHINESE_CNS): Remove.
+	(KOREAN): Add $(srcdir)/quail/hanja3.elc.
+	(LATIN): Add $(srcdir)/quail/latin-alt.elc and
+	$(srcdir)/quail/latin-ltx.elc.
+	(MISC_DIC): Copy from Makefile.in.
+	(CHINESE): Remove $(CHINESE_CNS).
+	(all): Add $(MISC_DIC) as target.
+	(.NOTPARALLEL): New target.
+	(.NO_PARALLEL): New target.
+	($(MISC_DIC)): New target.
+	(clean mostlyclean): Clean more stuff.
+	(TIT_EL): New macro.
+	(MISC_DIC_EL): New macro.
+
+	* makefile.w32-in (TIT-GB): Remove CTLau.elc from it.
+	(TIT-BIG5): Remove CTLauB.elc from it.
+	(MISC-DIC): Add CTLau.elc and CTLau-b5.elc to it.
+	(clean mostlyclean): Remove obsolete reference.
+
 2001-06-01  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* quail/latin-ltx.el [ms-dos]: Call IT-setup-unicode-display.

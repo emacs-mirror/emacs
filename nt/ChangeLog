@@ -1,3 +1,8 @@
+2001-06-01  Andrew Innes  <andrewi@gnu.org>
+
+	* gmake.defs (sh_output): Don't use $(warning ...) to output
+	messages, since that is not supported by GNU make 3.77.
+
 2001-05-24  Jason Rumney  <jasonr@gnu.org>
 
 	* INSTALL: Clarify that building with MSVC requires nmake.
