@@ -376,8 +376,9 @@ Autoload section for %s is up to date."
 			 (widen)
 			 (goto-char (point-min))
 			 (prog1
-			     (if (search-forward
-				  (concat "\n" generate-autoload-cookie)
+			     (if (re-search-forward
+				  (concat "^" (regexp-quote
+					       generate-autoload-cookie))
 				  nil t)
 				 nil
 			       (if (interactive-p)
