@@ -108,20 +108,20 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    your system and must be used only through an encapsulation
    (Which you should place, by convention, in sysdep.c).  */
 
-/* Do you have the shareable library bug?  If you link with a shareable
+/* Do you have the sharable library bug?  If you link with a sharable
    library that contains psects with the NOSHR attribute and also refer to
    those psects in your program, the linker give you a private version of
-   the psect which is not related to the version used by the shareable
+   the psect which is not related to the version used by the sharable
    library.  The end result is that your references to variables in that
    psect have absolutely nothing to do with library references to what is
    supposed to be the same variable.  If you intend to link with the standard
-   C library (NOT the shareable one) you don't need to define this.  (This
+   C library (NOT the sharable one) you don't need to define this.  (This
    is NOT fixed in V4.4...) */
 
-#define SHAREABLE_LIB_BUG
+#define SHARABLE_LIB_BUG
 
 /* Partially due to the above mentioned bug and also so that we don't need
-   to require that people have a shareable C library, the default for Emacs
+   to require that people have a sharable C library, the default for Emacs
    is to link with the non-shared library.  If you want to link with the
    shared library, define this and remake xmakefile and fileio.c. This allows
    us to ship a guaranteed executable image. */
@@ -145,7 +145,7 @@ extern double mth$dmod(double, double);
 #define drem mth$dmod
 #endif
 
-/* Some time rountines are missing in the VAX C RTL, or needs some
+/* Some time routines are missing in the VAX C RTL, or needs some
    extra bit of code */
 #define tzset sys_tzset
 #define localtime sys_localtime
@@ -209,7 +209,7 @@ extern double mth$dmod(double, double);
 /* Cause initialization of vmsfns.c to be run.  */
 #define SYMS_SYSTEM syms_of_vmsfns ()
 
-/* VAXCRTL access doesn't deal with SYSPRV very well (among other oddites...)
+/* VAXCRTL access doesn't deal with SYSPRV very well (among other oddities...)
    Here, we use $CHKPRO to really determine access. */
 #define access sys_access
 
