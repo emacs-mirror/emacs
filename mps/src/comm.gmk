@@ -1,6 +1,6 @@
 # impl.gmk.comm: COMMON GNUMAKEFILE FRAGMENT
 #
-# $HopeName: MMsrc!comm.gmk(trunk.26) $
+# $HopeName: MMsrc!comm.gmk(trunk.27) $
 # Copyright (C) 1995,1996,1997, 1998 Harlequin Group, all rights reserved
 #
 # DESCRIPTION
@@ -161,7 +161,6 @@ AMC = amc.c
 AMS = poolams.c
 AWL = poolawl.c
 LO = lo.c
-DW = fmtdy.c dw.c
 POOLN = pooln.c
 ARENAAN = arenaan.c
 TESTLIB = testlib.c
@@ -189,8 +188,6 @@ AWLOBJ = $(AWL:%.c=$(PFM)/$(VARIETY)/%.o)
 AWLDEP = $(AWL:%.c=$(PFM)/$(VARIETY)/%.d)
 LOOBJ = $(LO:%.c=$(PFM)/$(VARIETY)/%.o)
 LODEP = $(LO:%.c=$(PFM)/$(VARIETY)/%.d)
-DWOBJ = $(DW:%.c=$(PFM)/$(VARIETY)/%.o)
-DWDEP = $(DW:%.c=$(PFM)/$(VARIETY)/%.d)
 POOLNOBJ = $(POOLN:%.c=$(PFM)/$(VARIETY)/%.o)
 POOLNDEP = $(POOLN:%.c=$(PFM)/$(VARIETY)/%.d)
 ARENAANOBJ = $(ARENAAN:%.c=$(PFM)/$(VARIETY)/%.o)
@@ -225,7 +222,7 @@ endif
 # Not all targets need be specified in the "all" target.  It is
 # just a convenient set of targets to build.
 
-all: mpmss amcss amsss awlut dwstress mpsicv lockcov poolncv mps.a \
+all: mpmss amcss amsss awlut mpsicv lockcov poolncv mps.a \
      lo.a locv qs mpmconft finalcv arenacv bttest
 
 # These convenience targets allow one to type "make foo" to build target
@@ -233,7 +230,7 @@ all: mpmss amcss amsss awlut dwstress mpsicv lockcov poolncv mps.a \
 #
 # %%TARGET: Add a pseudo-target for the new target here.
 
-mpmss amcss amsss awlut dwstress mpsicv lockcov poolncv \
+mpmss amcss amsss awlut mpsicv lockcov poolncv \
   locv qs mpmconft finalcv arenacv bttest epvmss \
   mps.a lo.a awl.a mmsw.a: phony
 ifdef VARIETY
@@ -317,9 +314,6 @@ $(PFM)/$(VARIETY)/epvmss: $(PFM)/$(VARIETY)/epvmss.o \
 $(PFM)/$(VARIETY)/awlut: $(PFM)/$(VARIETY)/awlut.o \
 	$(FMTDYOBJ) $(MPMOBJ) $(LOOBJ) $(AWLOBJ) $(TESTLIBOBJ)
 
-$(PFM)/$(VARIETY)/dwstress: $(PFM)/$(VARIETY)/dwstress.o \
-	$(FMTDYOBJ) $(MPMOBJ) $(AMCOBJ) $(DWOBJ) $(TESTLIBOBJ)
-
 $(PFM)/$(VARIETY)/poolncv: $(PFM)/$(VARIETY)/poolncv.o \
 	$(MPMOBJ) $(TESTLIBOBJ) $(POOLNOBJ) $(ARENAANOBJ)
 
@@ -385,7 +379,7 @@ ifdef VARIETY
 ifdef TARGET
 # %%PART: Add the dependency file macro for the new part here.
 include $(MPMDEP) $(AMSDEP) $(AMCDEP) $(LODEP) $(SWDEP) $(ARENAANDEP) \
-  $(AWLDEP) $(DWDEP) $(POOLNDEP) $(TESTLIBDEP) $(FMTDYDEP) $(FMTPSDEP) \
+  $(AWLDEP) $(POOLNDEP) $(TESTLIBDEP) $(FMTDYDEP) $(FMTPSDEP) \
   $(PLINTHDEP) $(EVENTDEP)
 endif
 endif
