@@ -814,6 +814,7 @@ static int message_log_check_duplicate P_ ((int, int, int, int));
 static void push_it P_ ((struct it *));
 static void pop_it P_ ((struct it *));
 static void sync_frame_with_window_matrix_rows P_ ((struct window *));
+static void select_frame_for_redisplay P_ ((Lisp_Object));
 static void redisplay_internal P_ ((int));
 static int echo_area_display P_ ((int));
 static void redisplay_windows P_ ((Lisp_Object));
@@ -9542,6 +9543,44 @@ reconsider_clip_changes (w, b)
     }
 }
 
+
+/* Select FRAME to forward the values of frame-local variables into C
+   variables so that the redisplay routines can access those values
+   directly.  */
+
+static void
+select_frame_for_redisplay (frame)
+     Lisp_Object frame;
+{
+  Lisp_Object tail, sym, val;
+  Lisp_Object old = selected_frame;
+  
+  selected_frame = frame;
+
+  for (tail = XFRAME (frame)->param_alist; CONSP (tail); tail = XCDR (tail))
+    if (CONSP (XCAR (tail))
+	&& (sym = XCAR (XCAR (tail)),
+	    SYMBOLP (sym))
+	&& (sym = indirect_variable (sym),
+	    val = SYMBOL_VALUE (sym),
+	    (BUFFER_LOCAL_VALUEP (val)
+	     || SOME_BUFFER_LOCAL_VALUEP (val)))
+	&& XBUFFER_LOCAL_VALUE (val)->check_frame)
+      Fsymbol_value (sym);
+
+  for (tail = XFRAME (old)->param_alist; CONSP (tail); tail = XCDR (tail))
+    if (CONSP (XCAR (tail))
+	&& (sym = XCAR (XCAR (tail)),
+	    SYMBOLP (sym))
+	&& (sym = indirect_variable (sym),
+	    val = SYMBOL_VALUE (sym),
+	    (BUFFER_LOCAL_VALUEP (val)
+	     || SOME_BUFFER_LOCAL_VALUEP (val)))
+	&& XBUFFER_LOCAL_VALUE (val)->check_frame)
+      Fsymbol_value (sym);
+}
+
+
 #define STOP_POLLING					\
 do { if (! polling_stopped_here) stop_polling ();	\
        polling_stopped_here = 1; } while (0)
@@ -9607,7 +9646,8 @@ redisplay_internal (preserve_echo_area)
   /* Record a function that resets redisplaying_p to its old value
      when we leave this function.  */
   count = SPECPDL_INDEX ();
-  record_unwind_protect (unwind_redisplay, make_number (redisplaying_p));
+  record_unwind_protect (unwind_redisplay,
+			 Fcons (make_number (redisplaying_p), selected_frame));
   ++redisplaying_p;
   specbind (Qinhibit_free_realized_faces, Qnil);
 
@@ -10021,6 +10061,11 @@ redisplay_internal (preserve_echo_area)
 
 	  if (FRAME_WINDOW_P (f) || f == sf)
 	    {
+	      if (! EQ (frame, selected_frame))
+		/* Select the frame, for the sake of frame-local
+		   variables.  */
+		select_frame_for_redisplay (frame);
+
 #ifdef HAVE_WINDOW_SYSTEM
 	      if (clear_face_cache_count % 50 == 0
 		  && FRAME_WINDOW_P (f))
@@ -10273,13 +10318,20 @@ redisplay_preserve_echo_area (from_where)
 /* Function registered with record_unwind_protect in
    redisplay_internal.  Reset redisplaying_p to the value it had
    before redisplay_internal was called, and clear
-   prevent_freeing_realized_faces_p.  */
+   prevent_freeing_realized_faces_p.  It also selects the previously
+   selected frame.  */
 
 static Lisp_Object
-unwind_redisplay (old_redisplaying_p)
-     Lisp_Object old_redisplaying_p;
+unwind_redisplay (val)
+     Lisp_Object val;
 {
+  Lisp_Object old_redisplaying_p, old_frame;
+
+  old_redisplaying_p = XCAR (val);
   redisplaying_p = XFASTINT (old_redisplaying_p);
+  old_frame = XCDR (val);
+  if (! EQ (old_frame, selected_frame))
+    select_frame_for_redisplay (old_frame);
   return Qnil;
 }
 
