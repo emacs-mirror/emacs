@@ -948,19 +948,22 @@ redisplay ()
       FOR_EACH_FRAME (tail, frame)
 	{
 	  FRAME_PTR f = XFRAME (frame);
+	  if (! FRAME_TERMCAP_P (f) || f == selected_frame)
+	    {
 
-	  /* Mark all the scroll bars to be removed; we'll redeem the ones
-	     we want when we redisplay their windows.  */
-	  if (condemn_scroll_bars_hook)
-	    (*condemn_scroll_bars_hook) (f);
+	      /* Mark all the scroll bars to be removed; we'll redeem the ones
+		 we want when we redisplay their windows.  */
+	      if (condemn_scroll_bars_hook)
+		(*condemn_scroll_bars_hook) (f);
 
-	  if (FRAME_VISIBLE_P (f))
-	    redisplay_windows (FRAME_ROOT_WINDOW (f));
+	      if (FRAME_VISIBLE_P (f))
+		redisplay_windows (FRAME_ROOT_WINDOW (f));
 
-	  /* Any scroll bars which redisplay_windows should have nuked
-	     should now go away.  */
-	  if (judge_scroll_bars_hook)
-	    (*judge_scroll_bars_hook) (f);
+	      /* Any scroll bars which redisplay_windows should have nuked
+		 should now go away.  */
+	      if (judge_scroll_bars_hook)
+		(*judge_scroll_bars_hook) (f);
+	    }
 	}
     }
   else if (FRAME_VISIBLE_P (selected_frame))
