@@ -241,8 +241,10 @@ Archive and member name will be added.")
 (make-variable-buffer-local 'archive-subfile-dos)
 (put 'archive-subfile-dos 'permanent-local t)
 
-(defvar archive-files nil "Vector of file descriptors.  Each descriptor is
-a vector of [ext-file-name int-file-name case-fiddled mode ...]")
+(defvar archive-files nil
+  "Vector of file descriptors.
+Each descriptor is a vector of the form
+ [EXT-FILE-NAME INT-FILE-NAME CASE-FIDDLED MODE ...]")
 (make-variable-buffer-local 'archive-files)
 
 (defvar archive-lemacs
@@ -610,7 +612,7 @@ is visible (and the real data of the buffer is hidden)."
     (archive-next-line no)))
 
 (defun archive-summarize-files (files)
-  "Insert a description of a list of files annotated with proper mouse face"
+  "Insert a description of a list of files annotated with proper mouse face."
   (setq archive-file-list-start (point-marker))
   (setq archive-file-name-indent (if files (aref (car files) 1) 0))
   ;; We don't want to do an insert for each element since that takes too
