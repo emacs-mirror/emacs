@@ -2341,24 +2341,15 @@ When calling from a program, supply a number as argument or nil.")
   scroll_command (n, -1);
   return Qnil;
 }
-
-DEFUN ("scroll-other-window", Fscroll_other_window, Sscroll_other_window, 0, 1, "P",
-  "Scroll next window upward ARG lines; or near full screen if no ARG.\n\
-The next window is the one below the current one; or the one at the top\n\
-if the current one is at the bottom.  Negative ARG means scroll downward.\n\
-When calling from a program, supply a number as argument or nil.\n\
-\n\
+
+DEFUN ("other-window-for-scrolling", Fother_window_for_scrolling, Sother_window_for_scrolling, 0, 0, 0,
+  "Return the other window for \"other window scroll\" commands.\n\
 If in the minibuffer, `minibuffer-scroll-window' if non-nil\n\
-specifies the window to scroll.\n\
-If `other-window-scroll-buffer' is non-nil, scroll the window\n\
-showing that buffer, popping the buffer up if necessary.")
-  (n)
-     register Lisp_Object n;
+specifies the window.\n\
+If `other-window-scroll-buffer' is non-nil, a window\n\
+showing that buffer is used.")
 {
-  register Lisp_Object window;
-  register int ht;
-  register struct window *w;
-  register int count = specpdl_ptr - specpdl;
+  Lisp_Object window;
 
   if (MINI_WINDOW_P (XWINDOW (selected_window))
       && !NILP (Vminibuf_scroll_window))
@@ -2389,6 +2380,29 @@ showing that buffer, popping the buffer up if necessary.")
 
   if (EQ (window, selected_window))
     error ("There is no other window");
+
+  return window;
+}
+
+DEFUN ("scroll-other-window", Fscroll_other_window, Sscroll_other_window, 0, 1, "P",
+  "Scroll next window upward ARG lines; or near full screen if no ARG.\n\
+The next window is the one below the current one; or the one at the top\n\
+if the current one is at the bottom.  Negative ARG means scroll downward.\n\
+When calling from a program, supply a number as argument or nil.\n\
+\n\
+If in the minibuffer, `minibuffer-scroll-window' if non-nil\n\
+specifies the window to scroll.\n\
+If `other-window-scroll-buffer' is non-nil, scroll the window\n\
+showing that buffer, popping the buffer up if necessary.")
+  (n)
+     register Lisp_Object n;
+{
+  register Lisp_Object window;
+  register int ht;
+  register struct window *w;
+  register int count = specpdl_ptr - specpdl;
+
+  window = Fother_window_for_scrolling ();
 
   w = XWINDOW (window);
   ht = window_internal_height (w);
@@ -3165,6 +3179,7 @@ If there is only one window, it is split regardless of this value.");
   defsubr (&Sscroll_down);
   defsubr (&Sscroll_left);
   defsubr (&Sscroll_right);
+  defsubr (&Sother_window_for_scrolling);
   defsubr (&Sscroll_other_window);
   defsubr (&Srecenter);
   defsubr (&Smove_to_window_line);
