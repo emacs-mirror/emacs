@@ -152,11 +152,11 @@ visiting FILE."
     vc-type))
 
 (defun vc-rcs-status (file)
-  ;; Return string " [LOCKER:REV]" if FILE under RCS control, otherwise nil,
-  ;; for placement in modeline by `vc-mode-line'.
-
-  ;; If FILE is not locked then return just "".  If the FILE is locked
-  ;; then return *all* the locks currently set, in a single string of the
+  ;; Return string for placement in modeline by `vc-mode-line'.
+  ;; If FILE is not registered under RCS, return nil.
+  ;; If FILE is registered but not locked, return " REV" if there is a head
+  ;; revision and " @@" otherwise.
+  ;; If FILE is locked then return all locks in a string of the
   ;; form " LOCKER1:REV1 LOCKER2:REV2 ...".
 
   ;; Algorithm: 
@@ -177,6 +177,7 @@ visiting FILE."
 
   ;; The output doesn't show which version you are actually looking at.
   ;; The modeline can get quite cluttered when there are multiple locks.
+  ;; The head revision is probably not what you want if you've used `rcs -b'.
 
   (let ((master (vc-name file))
 	found)
@@ -205,13 +206,21 @@ visiting FILE."
 
           (if found
 	      ;; Clean control characters from text.
-	      (let ((status
-		     (save-restriction
-		       (narrow-to-region (match-beginning 1) (match-end 1))
-		       (goto-char (point-min))
-		       (while (re-search-forward "[ \b\t\n\v\f\r]+" nil t)
-			 (replace-match " " t t))
-		       (buffer-string))))
+	      (let* ((locks
+		      (save-restriction
+			(narrow-to-region (match-beginning 1) (match-end 1))
+			(goto-char (point-min))
+			(while (re-search-forward "[ \b\t\n\v\f\r]+" nil t)
+			  (replace-match " " t t))
+			(buffer-string)))
+		     (status
+		      (if (not (string-equal locks ""))
+			  locks
+			(goto-char (point-min))
+			(if (looking-at "head[ \b\t\n\v\f\r]+\\([.0-9]+\\)")
+			    (concat " " (buffer-substring (match-beginning 1)
+							  (match-end 1)))
+			  " @@"))))
 		;; Clean work buffer.
 		(erase-buffer)
 		(set-buffer-modified-p nil)
