@@ -1257,12 +1257,19 @@ It is saved for when this flag is not set.")
 	      (comint-output-filter proc output)))
 
 	  ;; Put the arrow on the source line.
-	  :; This must be outside of the save-excursion
+	  ;; This must be outside of the save-excursion
 	  ;; in case the source file is our current buffer.
 	  (if process-window
 	      (save-selected-window
 		(select-window process-window)
-		(gud-display-frame)))
+		(gud-display-frame))
+	    ;; We have to be in the proper buffer, (process-buffer proc),
+	    ;; but not in a save-excursion, because that would restore point.
+	    (let ((old-buf (current-buffer)))
+	      (set-buffer (process-buffer proc))
+	      (unwind-protect
+		  (gud-display-frame)
+		(set-buffer old-buf))))
 
 	  ;; If we deferred text that arrived during this processing,
 	  ;; handle it now.
