@@ -1,3 +1,9 @@
+2000-11-24  Andrew Innes  <andrewi@gnu.org>
+
+	* makefile.w32-in (.SUFFIXES): New target, include .elc .el.
+
+	* makefile.nt (.SUFFIXES): New target, include .elc .el.
+
 2000-11-21  Kenichi Handa  <handa@etl.go.jp>
 
 	* Makefile.in (.SUFFIXES): New target, include .elc .el.
