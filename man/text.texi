@@ -63,6 +63,7 @@ Then the formatting appears on the screen in Emacs while you edit.
 * Text Mode::	        The major modes for editing text files.
 * Outline Mode::        Editing outlines.
 * TeX Mode::	        Editing input to the formatter TeX.
+* HTML Mode::           Editing HTML files.
 * Nroff Mode::	        Editing input to the formatter nroff.
 * Formatted Text::      Editing formatted text directly in WYSIWYG fashion.
 @end menu
@@ -562,6 +563,16 @@ fill commands put two spaces after a colon.
 example, a sentence in Thai text ends with double space but without a
 period.  Set the variable @code{sentence-end-without-period} to
 @code{t} to tell the sentence commands that a period is not necessary.
+
+@vindex fill-nobreak-predicate
+  The variable @code{fill-nobreak-predicate} specifies additional
+conditions for where line-breaking is allowed.  Its value is either
+@code{nil} or a Lisp function; the function is called with no
+arguments, and if it returns a non-@code{nil} value, then point is not
+a good place to break the line.  The standard functions you can use
+@code{fill-single-word-nobreak-p} (don't break after the first word of
+a sentence or before the last) and @code{fill-french-nobreak-p} (don't
+break after @samp{(} or before @samp{)}, @samp{:} or @samp{?}).
 
 @node Fill Prefix
 @subsection The Fill Prefix
@@ -1640,6 +1651,98 @@ required.  This is set up for Czech---customize the group
 @cindex La@TeX{} references
   For managing all kinds of references for La@TeX{}, you can use
 Ref@TeX{}.  @xref{Top, , RefTeX, reftex}.
+
+@node HTML Mode
+@section SGML and HTML Modes
+
+  The major modes for SGML and HTML include indentation support and
+commands to operate on tags.  This section describes the special
+commands of these modes.  (HTML mode is a slightly customized variant
+of SGML mode.)
+
+@table @kbd
+@item C-c C-n
+@kindex C-c C-n @r{(SGML mode)}
+@findex sgml-name-char
+Interactively specify a special character and insert the SGML
+@samp{&}-command for that character.
+
+@item C-c C-t
+@kindex C-c C-t @r{(SGML mode)}
+@findex sgml-tag
+Interactively specify a tag and its attributes (@code{sgml-tag}).
+This command asks you for a tag name and for the attribute values,
+then inserts both the opening tag and the closing tag, leaving point
+between them.
+
+With a prefix argument @var{n}, the command puts the tag around the
+@var{n} words already present in the buffer after point.  With
+@minus{}1 as argument, it puts the tag around the region.  (In
+Transient Mark mode, it does this whenever a region is active.)
+
+@item C-c C-a
+@kindex C-c C-a @r{(SGML mode)}
+@findex sgml-attributes
+Interactively insert attribute values for the current tag
+(@code{sgml-attributes}).
+
+@item C-c C-f
+@kindex C-c C-f @r{(SGML mode)}
+@findex sgml-skip-tag-forward
+Skip across a balanced tag group (which extends from an opening tag
+through its corresponding closing tag) (@code{sgml-skip-tag-forward}).
+A numeric argument acts as a repeat count.
+
+@item C-c C-b
+@kindex C-c C-b @r{(SGML mode)}
+@findex sgml-skip-tag-backward
+Skip backward across a balanced tag group (which extends from an
+opening tag through its corresponding closing tag)
+(@code{sgml-skip-tag-forward}).  A numeric argument acts as a repeat
+count.
+
+@item C-c C-d
+@kindex C-c C-d @r{(SGML mode)}
+@findex sgml-delete-tag
+Delete the tag at or after point, and delete the matching tag too
+(@code{sgml-delete-tag}).  If the tag at or after point is an opening
+tag, delete the closing tag too; if it is a closing tag, delete the
+opening tag too.
+
+@item C-c ? @var{tag} @key{RET}
+@kindex C-c ? @r{(SGML mode)}
+@findex sgml-tag-help
+Display a description of the meaning of tag @var{tag}
+(@code{sgml-tag-help}).  If the argument @var{tag} is empty, describe
+the tag at point.
+
+@item C-c /
+@kindex C-c / @r{(SGML mode)}
+@findex sgml-close-tag
+Insert a close tag for the innermost unterminated tag (@code{sgml-close-tag}).
+
+@item C-c 8
+@kindex C-c 8 @r{(SGML mode)}
+@findex sgml-name-8bit-mode
+Toggle a minor mode in which Latin-1 characters insert the
+corresponding SGML commands that stand for them, instead of the
+characters themselves (@code{sgml-name-8bit-mode}).
+
+@item C-c C-v
+@kindex C-c C-v @r{(SGML mode)}
+@findex sgml-validate
+Run a shell command (which you must specify) to validate the current
+buffer as SGML (@code{sgml-validate}).
+@end table
+
+@vindex sgml-xml-mode
+  SGML mode and HTML mode support XML also.  In XML, every opening tag
+must have an explicit closing tag.  When @code{sgml-xml-mode} is
+non-@code{nil}, SGML mode (and HTML mode) always insert explicit
+closing tags.  When you visit a file, these modes determine from the
+file contents whether it is XML or not, and set @code{sgml-xml-mode}
+accordingly, so that they does the right thing for the file in either
+case.
 
 @node Nroff Mode
 @section Nroff Mode
