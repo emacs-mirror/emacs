@@ -3,7 +3,7 @@
 ;; Copyright (C) 1992, 1994, 1995 Free Software Foundation, Inc.
 
 ;; Author: Stefan Schoef <schoef@informatik.uni-oldenburg.de>
-;;      Bengt Martensson <ubrinf!mond!bengt>
+;;      Bengt Martensson <bengt@mathematik.uni-Bremen.de>
 ;;	Mark Shapiro <shapiro@corto.inria.fr>
 ;;	Mike Newton <newton@gumby.cs.caltech.edu>
 ;;	Aaron Larson <alarson@src.honeywell.com>
