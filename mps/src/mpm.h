@@ -1,13 +1,13 @@
 /* impl.h.mpm: MEMORY POOL MANAGER DEFINITIONS
  *
- * $HopeName: MMsrc!mpm.h(trunk.49) $
+ * $HopeName: MMsrc!mpm.h(trunk.50) $
  * Copyright (C) 1997 The Harlequin Group Limited.  All rights reserved.
  */
 
 #ifndef mpm_h
 #define mpm_h
 
-#include "config.h"     /* this must come first: it defines target options */
+#include "config.h"     /* must come first: it defines target options */
 #include "misc.h"       /* miscellaneous non-specific bits and bobs */
 #include "check.h"      /* assertion and consistency checking support */
 
@@ -63,7 +63,7 @@ extern Pointer (PointerSub)(Pointer p, Size s);
 
 extern Size (PointerOffset)(Pointer base, Pointer limit);
 #define PointerOffset(base, limit) \
-                                ((Size)((char *)(limit) - (char *)(base)))
+  ((Size)((char *)(limit) - (char *)(base)))
 
 extern Addr (AddrAdd)(Addr addr, Size size);
 #define AddrAdd(p, s)           ((Addr)PointerAdd((Pointer)p, s))
@@ -186,13 +186,13 @@ extern Ring (RingNext)(Ring ring);
    ((type)((char *)(node) - (size_t)(&((type)0)->field)))
 
 /* .ring.for: Robust to permit deletion  */
-#define RING_FOR(node, ring, next)                               \
+#define RING_FOR(node, ring, next)                              \
   for(node = RingNext(ring), next = RingNext(node);             \
       node != (ring) ;                                          \
       node = (next), next = RingNext(node))
 
 
-/* Bit Table Interface -- see design.mps.bt.if.* for the interface doc */
+/* Bit Table Interface -- see design.mps.bt.if.* for doc */
 
 /* design.mps.bt.if.size */
 extern Size (BTSize)(unsigned long length);
@@ -235,7 +235,8 @@ extern Bool BTFindLongResRange(Index *baseReturn, Index *limitReturn,
                                Index searchBase, Index searchLimit,
                                unsigned long length);
 extern Bool BTRangesSame(BT BTx, BT BTy, Index base, Index limit);
-extern void BTCopyInvertRange(BT fromBT, BT toBT, Index base, Index limit);
+extern void BTCopyInvertRange(BT fromBT, BT toBT,
+                              Index base, Index limit);
 
 
 /* Pool Interface -- see impl.c.pool */
@@ -289,9 +290,11 @@ extern Res PoolNoBufferInit(Pool pool, Buffer buf);
 extern Res PoolTrivBufferInit(Pool pool, Buffer buf);
 extern void PoolNoBufferFinish(Pool pool, Buffer buf);
 extern void PoolTrivBufferFinish(Pool pool, Buffer buf);
-extern Res PoolNoBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
+extern Res PoolNoBufferFill(Seg *segReturn,
+                            Addr *baseReturn, Addr *limitReturn,
                             Pool pool, Buffer buffer, Size size);
-extern Res PoolTrivBufferFill(Seg *segReturn, Addr *baseReturn, Addr *limitReturn,
+extern Res PoolTrivBufferFill(Seg *segReturn,
+                              Addr *baseReturn, Addr *limitReturn,
                               Pool pool, Buffer buffer, Size size);
 extern void PoolNoBufferEmpty(Pool pool, Buffer buffer);
 extern void PoolTrivBufferEmpty(Pool pool, Buffer buffer);
@@ -318,14 +321,16 @@ extern Bool MessageClassCheck(MessageClass class);
 extern Bool MessageTypeCheck(MessageType type);
 extern MessageClass MessageGetClass(Message message);
 extern Arena MessageArena(Message message);
-extern void MessageInit(Arena arena, Message message, MessageClass class);
+extern void MessageInit(Arena arena, Message message,
+                        MessageClass class);
 extern void MessageFinish(Message message);
 extern void MessagePost(Arena arena, Message message);
 extern Bool MessagePoll(Arena arena);
 extern MessageType MessageGetType(Message message);
 extern void MessageDiscard(Arena arena, Message message);
 extern void MessageEmpty(Arena arena);
-extern Bool MessageGet(Message *messageReturn, Arena arena, MessageType type);
+extern Bool MessageGet(Message *messageReturn, Arena arena,
+                       MessageType type);
 extern Bool MessageQueueType(MessageType *typeReturn, Arena arena);
 extern void MessageTypeEnable(Arena arena, MessageType type);
 
@@ -461,12 +466,13 @@ extern Res ArenaCollect(Arena arena);
 extern Res ArenaAlloc(void **baseReturn, Arena arena, Size size);
 extern void ArenaFree(Arena arena, void *base, Size size);
 
-/* == Peek/Poke
+/* Peek/Poke
  *
  * These are provided so that modules in the MPS can make
  * occasional access to client data.
  * They perform the appropriate shield and summary manipulations
- * that are necessary */
+ * that are necessary.
+ */
 
 /* Peek reads a value from our managed heap */
 extern Word ArenaPeek(Arena arena, Addr addr);
@@ -521,15 +527,18 @@ extern void SegSetSummary(Seg seg, RefSet summary);
 extern void SegSetRankSet(Seg seg, RankSet rankSet);
 
 #define SegPool(seg)		((seg)->_pool)
-#define SegSingle(seg)		((seg)->_single)
-#define SegRankSet(seg)		((seg)->_rankSet)
-#define SegPM(seg)		((seg)->_pm)
-#define SegSM(seg)		((seg)->_sm)
-#define SegDepth(seg)		((seg)->_depth)
+/* .bitfield.promote: The bit field accesses need to be cast to the */
+/* right type, otherwise they'll be promoted to signed int, see */
+/* standard.ansic.6.2.1.1. */
+#define SegSingle(seg)		((Bool)(seg)->_single)
+#define SegRankSet(seg)		((RankSet)(seg)->_rankSet)
+#define SegPM(seg)		((AccessSet)(seg)->_pm)
+#define SegSM(seg)		((AccessSet)(seg)->_sm)
+#define SegDepth(seg)		((unsigned)(seg)->_depth)
 #define SegP(seg)		((seg)->_p)
-#define SegGrey(seg)		((seg)->_grey)
-#define SegWhite(seg)		((seg)->_white)
-#define SegSummary(seg)		((seg)->_summary)
+#define SegGrey(seg)		((TraceSet)(seg)->_grey)
+#define SegWhite(seg)		((TraceSet)(seg)->_white)
+#define SegSummary(seg)		((RefSet)(seg)->_summary)
 #define SegBuffer(seg)		((seg)->_buffer)
 #define SegPoolRing(seg)	(&(seg)->_poolRing)
 #define SegOfPoolRing(node)	RING_ELT(Seg, _poolRing, node)
