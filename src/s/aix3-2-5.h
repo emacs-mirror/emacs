@@ -11,3 +11,15 @@
 #define C_DEBUG_SWITCH -O
 #define C_OPTIMIZE_SWITCH -O
 #endif
+
+/* Perry Smith <pedz@ddivt1.austin.ibm.com> says these are correct.  */
+#define SIGNALS_VIA_CHARACTERS
+#define MAIL_USE_LOCKF
+#define CLASH_DETECTION
+
+/* Perry Smith <pedz@ddivt1.austin.ibm.com> says these are correct.  */
+#define POSIX_SIGNALS
+#undef sigmask
+#undef sigsetmask
+#undef _setjmp
+#undef _longjmp
