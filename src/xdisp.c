@@ -3423,7 +3423,7 @@ get_next_display_element (it)
 	      else
 		{
 		  unsigned char str[MAX_MULTIBYTE_LENGTH];
-		  int len = CHAR_STRING (it->c, str);
+		  int len;
 		  int i;
 		  GLYPH escape_glyph;
 
@@ -3434,6 +3434,11 @@ get_next_display_element (it)
 		    escape_glyph = XFASTINT (DISP_ESCAPE_GLYPH (it->dp));
 		  else
 		    escape_glyph = FAST_MAKE_GLYPH ('\\', 0);
+
+		  if (SINGLE_BYTE_CHAR_P (it->c))
+		    str[0] = it->c, len = 1;
+		  else
+		    len = CHAR_STRING (it->c, str);
 
 		  for (i = 0; i < len; i++)
 		    {
@@ -3664,7 +3669,7 @@ next_element_from_display_vector (it)
 
       g = XFASTINT (it->dpvec[it->current.dpvec_index]);
       it->c = FAST_GLYPH_CHAR (g);
-      it->len = CHAR_LEN (it->c);
+      it->len = CHAR_BYTES (it->c);
 
       /* The entry may contain a face id to use.  Such a face id is
 	 the id of a Lisp face, not a realized face.  A face id of
@@ -7990,7 +7995,7 @@ disp_char_vector (dp, c)
   if (SINGLE_BYTE_CHAR_P (c))
     return (dp->contents[c]);
   
-  SPLIT_NON_ASCII_CHAR (c, code[0], code[1], code[2]);
+  SPLIT_CHAR (c, code[0], code[1], code[2]);
   if (code[1] < 32)
     code[1] = -1;
   else if (code[2] < 32)
