@@ -34,7 +34,7 @@
 ;; As long as Emacs' syntax can't be complemented with predicates to context
 ;; sensitively confirm the syntax of characters, we have to live with this
 ;; kludgy kind of tradeoff.
-(defvar sgml-specials '(?\" ?-)
+(defvar sgml-specials '(?\")
   "List of characters that have a special meaning for sgml-mode.
 This list is used when first loading the sgml-mode library.
 The supported characters and potential disadvantages are:
@@ -45,9 +45,10 @@ The supported characters and potential disadvantages are:
 
 When only one of ?\\\" or ?' are included, \"'\" or '\"' as it can be found in
 DTDs, start a string.  To partially avoid this problem this also makes these
-self insert as named entities depending on `sgml-quick-keys'.  <!----> must
-contain an even multiple of two (4, 8, ...) minuses, or Emacs' syntax
-mechanism won't recognize a comment.")
+self insert as named entities depending on `sgml-quick-keys'.
+
+Including ?- has the problem of affecting dashes that have nothing to do
+with comments, so we normally turn it off.")
 
 (defvar sgml-quick-keys nil
   "Use <, >, &, SPC and `sgml-specials' keys ``electrically'' when non-nil.
@@ -188,7 +189,8 @@ Any terminating > or / is not matched.")
 (defvar sgml-font-lock-keywords
   '(("<\\([!?][a-z0-9]+\\)" 1 font-lock-keyword-face)
     ("<\\(/?[a-z0-9]+\\)" 1 font-lock-function-name-face)
-    ("[&%][-.A-Za-z0-9]+;?" . font-lock-variable-name-face))
+    ("[&%][-.A-Za-z0-9]+;?" . font-lock-variable-name-face)
+    ("<!--[^<>]*-->" . font-lock-comment-face))
   "*Rules for highlighting SGML code.  See also `sgml-tag-face-alist'.")
 
 ;; internal
