@@ -540,7 +540,7 @@ count_combining (str, len, i)
 
 /* This structure holds information of an argument of `concat' that is
    a string and has text properties to be copied.  */
-struct textproc_rec
+struct textprop_rec
 {
   int argnum;			/* refer to ARGS (arguments of `concat') */
   int from;			/* refer to ARGS[argnum] (argument string) */
@@ -570,9 +570,9 @@ concat (nargs, args, target_type, last_special)
      string can't be decided until we finish the whole concatination.
      So, we record strings that have text properties to be copied
      here, and copy the text properties after the concatination.  */
-  struct textproc_rec  *textprocs;
-  /* Number of elments in textprocs.  */
-  int num_textprocs = 0;
+  struct textprop_rec  *textprops;
+  /* Number of elments in textprops.  */
+  int num_textprops = 0;
 
   /* In append, the last arg isn't treated like the others */
   if (last_special && nargs > 0)
@@ -682,8 +682,8 @@ concat (nargs, args, target_type, last_special)
 
   prev = Qnil;
   if (STRINGP (val))
-    textprocs
-      = (struct textproc_rec *) alloca (sizeof (struct textproc_rec) * nargs);
+    textprops
+      = (struct textprop_rec *) alloca (sizeof (struct textprop_rec) * nargs);
 
   for (argnum = 0; argnum < nargs; argnum++)
     {
@@ -712,10 +712,10 @@ concat (nargs, args, target_type, last_special)
 		       : 0);
 	  if (! NULL_INTERVAL_P (XSTRING (this)->intervals))
 	    {
-	      textprocs[num_textprocs].argnum = argnum;
+	      textprops[num_textprops].argnum = argnum;
 	      /* We ignore text properties on characters being combined.  */
-	      textprocs[num_textprocs].from = combined;
-	      textprocs[num_textprocs++].to = toindex;
+	      textprops[num_textprops].from = combined;
+	      textprops[num_textprops++].to = toindex;
 	    }
 	  toindex_byte += thislen_byte;
 	  toindex += thisleni - combined;
@@ -726,9 +726,9 @@ concat (nargs, args, target_type, last_special)
 	{
 	  if (! NULL_INTERVAL_P (XSTRING (this)->intervals))
 	    {
-	      textprocs[num_textprocs].argnum = argnum;
-	      textprocs[num_textprocs].from = 0;
-	      textprocs[num_textprocs++].to = toindex;
+	      textprops[num_textprops].argnum = argnum;
+	      textprops[num_textprops].from = 0;
+	      textprops[num_textprops++].to = toindex;
 	    }
 	  toindex_byte += copy_text (XSTRING (this)->data,
 				     XSTRING (val)->data + toindex_byte,
@@ -829,14 +829,14 @@ concat (nargs, args, target_type, last_special)
   if (!NILP (prev))
     XCONS (prev)->cdr = last_tail;
 
-  if (num_textprocs > 0)
+  if (num_textprops > 0)
     {
-      for (argnum = 0; argnum < num_textprocs; argnum++)
+      for (argnum = 0; argnum < num_textprops; argnum++)
 	{
-	  this = args[textprocs[argnum].argnum];
-	  copy_text_properties (make_number (textprocs[argnum].from),
+	  this = args[textprops[argnum].argnum];
+	  copy_text_properties (make_number (textprops[argnum].from),
 				XSTRING (this)->size, this,
-				make_number (textprocs[argnum].to), val, Qnil);
+				make_number (textprops[argnum].to), val, Qnil);
 	}
     }
   return val;
