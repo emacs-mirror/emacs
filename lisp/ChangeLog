@@ -1,3 +1,8 @@
+2002-02-13  Kim F. Storm  <storm@cua.dk>
+
+	* cus-start.el (mode-line-in-non-selected-windows):
+	Allow customization.
+
 2002-02-13  Richard M. Stallman  <rms@gnu.org>
 
 	* mail/mailabbrev.el (define-mail-abbrev): Define as system abbrev.

@@ -1,4 +1,4 @@
-2002-02-13  Kim F. Storm  <no-spam@cua.dk>
+2002-02-13  Kim F. Storm  <storm@cua.dk>
 
 	* window.c: (Vmode_line_in_non_selected_windows): Removed.
 	(mode_line_in_non_selected_windows): New variable.
@@ -29,7 +29,7 @@
 	(syms_of_xdisp): Initialze and staticpro QCpropertize and 
 	mode_line_proptrans_alist.
 	
-2002-02-11  Kim F. Storm  <no-spam@cua.dk>
+2002-02-11  Kim F. Storm  <storm@cua.dk>
 
 	* window.c: (Vmode_line_in_non_selected_windows): New variable.
 	(syms_of_window): DEFVAR_LISP it.
