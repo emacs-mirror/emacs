@@ -1,3 +1,10 @@
+2004-03-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/sendmail.el (mail-mode): Set comment-start-skip.
+
+	* newcomment.el (uncomment-region): Allow non-terminated comment.
+	(comment-normalize-vars): Check the user-specified comstart marker.
+
 2004-03-04  Jesper Harder  <harder@ifa.au.dk>
 
 	* sort.el (sort-columns): Don't use external 'sort' on ms-windows.
@@ -9,7 +16,7 @@
 	* hexl.el (hexl-mode): Set `hexl-print-current-point-info'
 	as the callback function for eldoc.
 	(hexl-print-current-point-info): New function.
-	(hexl-current-address): print the address in both decimal 
+	(hexl-current-address): Print the address in both decimal
 	and hexadecimal format.
 
 2004-03-04  Richard M. Stallman  <rms@gnu.org>
@@ -41,11 +48,11 @@
 	* font-lock.el (lisp-font-lock-keywords-2):
 	Turn off the CL with-... and do-... general patterns.
 	Instead, recognize several specific with... and do... constructs.
-	
-	* files.el (switch-to-buffer-other-window): Bind
-	same-window-buffer-names and same-window-regexps to nil.
+
+	* files.el (switch-to-buffer-other-window):
+	Bind same-window-buffer-names and same-window-regexps to nil.
 	(switch-to-buffer-other-frame): Likewise.
-	
+
 2004-03-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/fill.el (fill-comment-paragraph): Be more careful when
