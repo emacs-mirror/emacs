@@ -87,7 +87,8 @@ All the commands defined in Text mode are inherited unless overridden.")
     (setq indented-text-mode-map (nconc newmap text-mode-map))))
 
 (defun indented-text-mode ()
-  "Major mode for editing indented text intended for humans to read.\\{indented-text-mode-map}
+  "Major mode for editing indented text intended for humans to read.
+\\{indented-text-mode-map}
 Turning on `indented-text-mode' calls the value of the variable
 `text-mode-hook', if that value is non-nil."
   (interactive)
