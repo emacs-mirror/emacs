@@ -481,10 +481,15 @@ Runs the usual ange-ftp hook, but only for completion operations."
 
 (defun convert-standard-filename (filename)
   "Convert a standard file's name to something suitable for the current OS.
-This function's standard definition is trivial; it just returns the argument.
-However, on some systems, the function is redefined with a definition
-that really does change some file names to canonicalize certain
-patterns and to guarantee valid names."
+This means to guarantee valid names and perhaps to canonicalize
+certain patterns.
+
+This function's standard definition is trivial; it just returns
+the argument.  However, on Windows and DOS, replace invalid
+characters.  On DOS, make sure to obey the 8.3 limitations.  On
+Windows, turn Cygwin names into native names, and also turn
+slashes into backslashes if the shell requires it (see
+`w32-shell-dos-semantics')."
   filename)
 
 (defun read-directory-name (prompt &optional dir default-dirname mustmatch initial)
