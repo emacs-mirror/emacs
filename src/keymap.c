@@ -502,8 +502,11 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
   {
     Lisp_Object tail;
     Lisp_Object t_binding;
+    Lisp_Object generic_binding;
 
     t_binding = Qnil;
+    generic_binding = Qnil;
+    
     for (tail = XCDR (map);
 	 (CONSP (tail)
 	  || (tail = get_keymap (tail, 0, autoload), CONSP (tail)));
@@ -521,7 +524,10 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 	  }
 	else if (CONSP (binding))
 	  {
-	    if (EQ (XCAR (binding), idx))
+	    Lisp_Object key = XCAR (binding);
+	    int c1, c2, charset;
+	    
+	    if (EQ (key, idx))
 	      {
 		val = XCDR (binding);
 		if (noprefix && KEYMAPP (val))
@@ -530,7 +536,21 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 		  fix_submap_inheritance (map, idx, val);
 		return get_keyelt (val, autoload);
 	      }
-	    if (t_ok && EQ (XCAR (binding), Qt))
+	    else if (INTEGERP (idx)
+		     && INTEGERP (key)
+		     && !SINGLE_BYTE_CHAR_P (XINT (idx))
+		     && !SINGLE_BYTE_CHAR_P (XINT (key))
+		     && CHAR_VALID_P (XINT (key), 1)
+		     && !CHAR_VALID_P (XINT (key), 0)
+		     && (CHAR_CHARSET (XINT (key))
+			 == CHAR_CHARSET (XINT (idx))))
+	      {
+		/* KEY is the generic character of the charset of IDX.
+		   Use KEY's binding if there isn't a binding for IDX
+		   itself.  */
+		generic_binding = binding;
+	      }
+	    else if (t_ok && EQ (XCAR (binding), Qt))
 	      t_binding = XCDR (binding);
 	  }
 	else if (VECTORP (binding))
@@ -566,6 +586,9 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 
 	QUIT;
       }
+
+    if (!NILP (generic_binding))
+      return get_keyelt (generic_binding, autoload);
 
     return get_keyelt (t_binding, autoload);
   }
