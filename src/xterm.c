@@ -80,6 +80,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "buffer.h"
 #include "window.h"
 #include "keyboard.h"
+#include "intervals.h"
 
 #ifdef USE_X_TOOLKIT
 extern XtAppContext Xt_app_con;

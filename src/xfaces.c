@@ -33,6 +33,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include "frame.h"
 #include "blockinput.h"
 #include "window.h"
+#include "intervals.h"
 
 /* Compensate for bug in Xos.h on some systems, on which it requires
    time.h.  On some such systems, Xos.h tries to redefine struct
