@@ -63,6 +63,7 @@
 (defvar cookie-cache (make-vector 511 0)
   "Cache of cookie files that have already been snarfed.")
 
+;;;###autoload
 (defun cookie (phrase-file startmsg endmsg)
   "Return a random phrase from PHRASE-FILE.  When the phrase file
 is read in, display STARTMSG at beginning of load, ENDMSG at end."
@@ -70,6 +71,7 @@ is read in, display STARTMSG at beginning of load, ENDMSG at end."
     (shuffle-vector cookie-vector)
     (aref cookie-vector 1)))
 
+;;;###autoload
 (defun cookie-insert (phrase-file &optional count startmsg endmsg)
   "Insert random phrases from PHRASE-FILE; COUNT of them.  When the phrase file
 is read in, display STARTMSG at beginning of load, ENDMSG at end."
@@ -88,6 +90,7 @@ is read in, display STARTMSG at beginning of load, ENDMSG at end."
 	   (insert " ")
 	   (cookie1 (1- arg) cookie-vec))))
 
+;;;###autoload
 (defun cookie-snarf (phrase-file startmsg endmsg)
   "Reads in the PHRASE-FILE, returns it as a vector of strings.  Emit
 STARTMSG and ENDMSG before and after.  Caches the result; second and
@@ -126,6 +129,7 @@ subsequent calls on the same file won't go to disk."
 ; [of the University of Birmingham Computer Science Department]
 ; for the iterative version of this shuffle.
 ;
+;;;###autoload
 (defun shuffle-vector (vector)
   "Randomly permute the elements of VECTOR (all permutations equally likely)"
   (let ((i 0)
