@@ -201,12 +201,12 @@ or matched by `dabbrev-ignored-regexps'."
 
 (defcustom dabbrev-ignored-buffer-names '("*Messages*" "*Buffer List*")
   "*List of buffer names that dabbrev should not check.
-See also `dabbrev-ignored-regexps'."
+See also `dabbrev-ignored-buffer-regexps'."
   :type '(repeat (string :tag "Buffer name"))
   :group 'dabbrev
   :version "20.3")
 
-(defcustom dabbrev-ignored-regexps nil
+(defcustom dabbrev-ignored-buffer-regexps nil
   "*List of regexps matching names of buffers that dabbrev should not check.
 See also `dabbrev-ignored-buffer-names'."
   :type '(repeat regexp)
@@ -764,7 +764,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 			   (and (not (member bn dabbrev-ignored-buffer-names))
 				(not (memq buffer dabbrev--friend-buffer-list))
 				(not
-				 (let ((tail dabbrev-ignored-regexps)
+				 (let ((tail dabbrev-ignored-buffer-regexps)
 				       (match nil))
 				   (while (and tail (not match))
 				     (setq match (string-match (car tail) bn)
