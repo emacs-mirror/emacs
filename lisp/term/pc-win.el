@@ -295,6 +295,9 @@ The value may be different for frames on different X displays."
 (defun x-frob-font-slant (font which)
   font)
 
+;; From lisp/term/x-win.el: make iconify-or-deiconify-frame a no-op.
+(fset 'iconify-or-deiconify-frame 'ignore)
+
 ;; From lisp/frame.el
 (fset 'set-default-font 'ignore)
 (fset 'set-mouse-color 'ignore)		; We cannot, I think.
