@@ -1,3 +1,7 @@
+2002-10-15  Dave Love  <fx@gnu.org>
+
+	* editfns.c (Finsert_byte): Return a proper value.
+
 2002-10-14  Kenichi Handa  <handa@etl.go.jp>
 
 	* coding.c (decode_coding): Fix args to translate_chars.  Pay

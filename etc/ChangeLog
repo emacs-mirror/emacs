@@ -1,6 +1,6 @@
 2002-10-11  Dave Love  <fx@gnu.org>
 
-	* charsets/ibm1047.map: New.
+	* charsets/ibm1047.map, charsets/alternativnj: New.
 
 2002-10-10  Dave Love  <fx@gnu.org>
 
