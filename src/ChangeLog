@@ -1,3 +1,8 @@
+2001-10-25  Gerd Moellmann  <gerd@gnu.org>
+
+	* xdisp.c (move_it_vertically_backward): Compute line height
+	differently.  Add heuristic to try to be more compatible to 20.x.
+
 2001-10-24  Gerd Moellmann  <gerd@gnu.org>
 
 	* xterm.c (x_draw_glyphs): Don't check for cursor overwriting
