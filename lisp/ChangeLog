@@ -1,5 +1,8 @@
 2000-08-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* font-lock.el: Require jit-lock to prevent a very late
+	`Loading jit-lock' message.
+
 	* emacs-lisp/cust-print.el, emacs-lisp/cl-specs.el
 	* emacs-lisp/edebug.el, progmodes/hideif.el: Change authors' 
 	mail address.

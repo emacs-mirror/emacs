@@ -1,3 +1,9 @@
+2000-08-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* term.c (turn_off_face): Reset standout_mode when resetting
+	apparances with capability `me'.
+	(write_glyphs): Switch on inverse video before each face change.
+
 2000-08-14  Dave Love  <fx@gnu.org>
 
 	* alloc.c [HAVE_UNISTD_H]: Include unistd.h; don't declare sbrk.
