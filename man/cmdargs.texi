@@ -783,14 +783,14 @@ emacs -ms coral -cr 'slate blue' &
 text-only terminals as well as on window systems.
 
 @node Window Size X
-@appendixsec Options for Window Geometry
+@appendixsec Options for Window Size and Position
 @cindex geometry of Emacs window
 @cindex position and size of Emacs frame
 @cindex width and height of Emacs frame
+@cindex specifying fullscreen for Emacs frame
 
-  The @samp{--geometry} option controls the size and position of the
-initial Emacs frame.  Here is the format for specifying the window
-geometry:
+  Here is a list of the command-line options for specifying size and
+position of the initial Emacs frame: 
 
 @table @samp
 @item -g @var{width}x@var{height}@r{[@{}+-@r{@}}@var{xoffset}@r{@{}+-@r{@}}@var{yoffset}@r{]]}
@@ -802,10 +802,33 @@ columns and lines), and positions @var{xoffset} and @var{yoffset}
 @item --geometry=@var{width}x@var{height}@r{[@{}+-@r{@}}@var{xoffset}@r{@{}+-@r{@}}@var{yoffset}@r{]]}
 @opindex --geometry
 This is another way of writing the same thing.
+
+@item -fs
+@opindex -fs
+@itemx --fullscreen
+@opindex --fullscreen
+@cindex fullscreen, command-line argument
+Specify that width and height shall be the size of the screen.
+
+@item -fh
+@opindex -fh
+@itemx --fullheight
+@opindex --fullheight
+@cindex fullheight, command-line argument
+Specify that the height shall be the height of the screen.
+
+@item -fw
+@opindex -fw
+@itemx --fullwidth
+@opindex --fullwidth
+@cindex fullwidth, command-line argument
+Specify that the width shall be the width of the screen.
 @end table
 
+
 @noindent
-@code{@r{@{}+-@r{@}}} means either a plus sign or a minus sign.  A plus
+In the @samp{--geometry} option, @code{@r{@{}+-@r{@}}} means either a plus
+ sign or a minus sign.  A plus
 sign before @var{xoffset} means it is the distance from the left side of
 the screen; a minus sign means it counts from the right side.  A plus
 sign before @var{yoffset} means it is the distance from the top of the
@@ -851,6 +874,16 @@ which means both sizes are omitted.  Thus, @samp{-3} specifies the
   You can specify a default for any or all of the fields in
 @file{.Xdefaults} file, and then override selected fields with a
 @samp{--geometry} option.
+
+
+ When using one of @samp{--fullscreen}, @samp{--fullwidth} or
+@samp{--fullheight} there may be some space around the frame
+anyway.  That is because Emacs rounds the sizes so they are an
+even number of character heights and widths.
+
+ Some window managers have options that can make them ignore both
+program-specified and user-specified positions (sawfish is one).
+If these are set, Emacs fails to position the window correctly.
 
 @node Borders X
 @appendixsec Internal and External Borders
