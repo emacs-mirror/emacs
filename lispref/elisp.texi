@@ -157,7 +157,7 @@ Appendices
 
 * Antinews::                Info for users downgrading to Emacs 20.
 * GNU Free Documentation Licence:: The license for this documentation
-* Copying::                 Conditions for copying and changing GNU Emacs.
+* GPL::                     Conditions for copying and changing GNU Emacs.
 * Tips::                    Advice and coding conventions for Emacs Lisp.
 * GNU Emacs Internals::     Building and dumping Emacs;
                               internal data structures.
