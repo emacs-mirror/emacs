@@ -516,6 +516,7 @@ Returns (parse-state) if line starts inside a string."
 	     ;; line is expression, not statement:
 	     ;; indent to just after the surrounding open.
 	     (goto-char (1+ containing-sexp))
+	     (skip-chars-forward " \t")
 	     (current-column))
 	    (t
 	     ;; Statement level.  Is it a continuation or a new statement?
