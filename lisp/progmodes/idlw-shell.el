@@ -6,7 +6,7 @@
 ;; Author: Chris Chase <chase@att.com>
 ;; Maintainer: Carsten Dominik <dominik@strw.leidenuniv.nl>
 ;; Version: 3.11
-;; Date: $Date: 1999/12/20 11:12:17 $
+;; Date: $Date: 2000/01/03 14:19:10 $
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
