@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.328 2002/02/28 09:59:08 spiegel Exp $
+;; $Id: vc.el,v 1.329 2002/02/28 13:01:48 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2739,13 +2739,13 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
       ;; `registered' might have switched under us.
       (vc-switch-backend file old-backend)
       (let* ((rev (vc-workfile-version file))
-	     (modified-file (and edited (make-temp-name file)))
+	     (modified-file (and edited (make-temp-file file)))
 	     (unmodified-file (and modified-file (vc-version-backup-file file))))
 	;; Go back to the base unmodified file.
 	(unwind-protect
 	    (progn
 	      (when modified-file
-		(copy-file file modified-file)
+		(copy-file file modified-file 'ok-if-already-exists)
 		;; If we have a local copy of the unmodified file, handle that
 		;; here and not in vc-revert-file because we don't want to
 		;; delete that copy -- it is still useful for OLD-BACKEND.
@@ -2886,8 +2886,7 @@ Uses `rcs2log' which only works for RCS and CVS."
   (let ((odefault default-directory)
 	(changelog (find-change-log))
 	;; Presumably not portable to non-Unixy systems, along with rcs2log:
-	(tempfile (funcall
-		   (if (fboundp 'make-temp-file) 'make-temp-file 'make-temp-name)
+	(tempfile (make-temp-file
 		   (expand-file-name "vc"
 				     (or small-temporary-file-directory
 					 temporary-file-directory))))
