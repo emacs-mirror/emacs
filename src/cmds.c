@@ -283,6 +283,7 @@ internal_self_insert (c1, noautofill)
       && (overwrite_binary_mode
 	  || FETCH_CHAR (point) != '\t'
 	  || XINT (current_buffer->tab_width) <= 0
+	  || XFASTINT (current_buffer->tab_width) > 20
 	  || !((current_column () + 1) % XFASTINT (current_buffer->tab_width))))
     {
       del_range (point, point + 1);
