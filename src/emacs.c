@@ -1076,30 +1076,8 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
   init_callproc ();	/* Must follow init_cmdargs but not init_sys_modes.  */
   init_lread ();
 
-  if (!noninteractive)
-    {
-#ifdef VMS
-      init_vms_input ();/* init_display calls get_frame_size, that needs this */
-#endif /* VMS */
-      init_display ();	/* Determine terminal type.  init_sys_modes uses results */
-    }
-  init_keyboard ();	/* This too must precede init_sys_modes */
-#ifdef VMS
-  init_vmsproc ();	/* And this too. */
-#endif /* VMS */
-  init_sys_modes ();	/* Init system terminal modes (RAW or CBREAK, etc.) */
-  init_xdisp ();
-  init_macros ();
-  init_editfns ();
-#ifdef LISP_FLOAT_TYPE
-  init_floatfns ();
-#endif
-#ifdef VMS
-  init_vmsfns ();
-#endif /* VMS */
-  init_process ();
-
-/* Intern the names of all standard functions and variables; define standard keys */
+  /* Intern the names of all standard functions and variables;
+     define standard keys.  */
 
   if (!initialized)
     {
@@ -1202,6 +1180,29 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
       keys_of_window ();
       keys_of_frame ();
     }
+
+  if (!noninteractive)
+    {
+#ifdef VMS
+      init_vms_input ();/* init_display calls get_frame_size, that needs this */
+#endif /* VMS */
+      init_display ();	/* Determine terminal type.  init_sys_modes uses results */
+    }
+  init_keyboard ();	/* This too must precede init_sys_modes */
+#ifdef VMS
+  init_vmsproc ();	/* And this too. */
+#endif /* VMS */
+  init_sys_modes ();	/* Init system terminal modes (RAW or CBREAK, etc.) */
+  init_xdisp ();
+  init_macros ();
+  init_editfns ();
+#ifdef LISP_FLOAT_TYPE
+  init_floatfns ();
+#endif
+#ifdef VMS
+  init_vmsfns ();
+#endif /* VMS */
+  init_process ();
 
   if (!initialized)
     {
