@@ -188,7 +188,12 @@ DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
 
 #endif /* not MULTI_SCREEN */
 
+/* Buffer used for messages formatted by `message'.  */
 char *message_buf;
+
+/* Nonzero if message_buf is being used by print;
+   zero if being used by message.  */
+int message_buf_print;
 
 /* dump an informative message to the minibuf */
 /* VARARGS 1 */
@@ -222,6 +227,11 @@ message (m, a1, a2, a3)
 #endif /* NO_ARG_ARRAY */
 
       echo_area_glyphs = SCREEN_MESSAGE_BUF (selected_screen);
+
+      /* Print should start at the beginning of the message
+	 buffer next time.  */
+      message_buf_print = 0;
+
       do_pending_window_change ();
       echo_area_display ();
       update_screen (XSCREEN (XWINDOW (minibuf_window)->screen), 1, 1);
@@ -234,9 +244,6 @@ void
 message1 (m)
      char *m;
 {
-  if (!NULL (Vwindow_system) && SCREEN_IS_TERMCAP (selected_screen))
-    return;
-
   if (noninteractive)
     {
       if (noninteractive_need_newline)
