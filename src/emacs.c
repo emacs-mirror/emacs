@@ -159,7 +159,7 @@ init_cmdargs (argc, argv, skip_args)
 {
   register int i;
 
-  Vinvocation_name = Ffile_name_nondirectory (argv[0]);
+  Vinvocation_name = Ffile_name_nondirectory (build_string (argv[0]));
 
   Vcommand_line_args = Qnil;
 
