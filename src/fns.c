@@ -3443,14 +3443,16 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
 
   CHECK_SYMBOL (feature);
 
+  /* Record the presence of `require' in this file
+     even if the feature specified is already loaded.  */
+  LOADHIST_ATTACH (Fcons (Qrequire, feature));
+
   tem = Fmemq (feature, Vfeatures);
 
   if (NILP (tem))
     {
       int count = SPECPDL_INDEX ();
       int nesting = 0;
-
-      LOADHIST_ATTACH (Fcons (Qrequire, feature));
 
       /* This is to make sure that loadup.el gives a clear picture
 	 of what files are preloaded and when.  */
