@@ -2464,6 +2464,7 @@ make_lispy_event (event)
 				   / sizeof (lispy_function_keys[0])));
       break;
 
+#ifdef MULTI_FRAME
       /* A mouse click.  Figure out where it is, decide whether it's 
          a press, click or drag, and build the appropriate structure.  */
     case mouse_click:
@@ -2692,6 +2693,7 @@ make_lispy_event (event)
 				 Qnil));
 	}
       }
+#endif /* MULTI_FRAME */
 
       /* The 'kind' field of the event is something we don't recognize.  */
     default:
@@ -3301,14 +3303,17 @@ read_avail_input (expected)
 	 the kbd_buffer can really hold.  That may prevent loss
 	 of characters on some systems when input is stuffed at us.  */
       unsigned char cbuf[KBD_BUFFER_SIZE - 1];
+      int n_to_read;
 
+      /* Determine how many characters we should *try* to read.  */
 #ifdef MSDOS
-      nread = dos_keysns ();
-      if (nread == 0) return 0;
+      n_to_read = dos_keysns ();
+      if (n_to_read == 0)
+	return 0;
 #else */ not MSDOS */
 #ifdef FIONREAD
       /* Find out how much input is available.  */
-      if (ioctl (0, FIONREAD, &nread) < 0)
+      if (ioctl (0, FIONREAD, &n_to_read) < 0)
 	/* Formerly simply reported no input, but that sometimes led to
 	   a failure of Emacs to terminate.
 	   SIGHUP seems appropriate if we can't reach the terminal.  */
@@ -3316,14 +3321,14 @@ read_avail_input (expected)
 	   rather than to the whole process group?
 	   Perhaps on systems with FIONREAD Emacs is alone in its group.  */
 	kill (getpid (), SIGHUP);
-      if (nread == 0)
+      if (n_to_read == 0)
 	return 0;
-      if (nread > sizeof cbuf)
-	nread = sizeof cbuf;
+      if (n_to_read > sizeof cbuf)
+	n_to_read = sizeof cbuf;
 #else /* no FIONREAD */
 #if defined(USG) || defined(DGUX)
       /* Read some input if available, but don't wait.  */
-      nread = sizeof cbuf;
+      n_to_read = sizeof cbuf;
       fcntl (fileno (stdin), F_SETFL, O_NDELAY);
 #else
       you lose;
@@ -3331,14 +3336,15 @@ read_avail_input (expected)
 #endif
 #endif /* not MSDOS */
 
-      /* Now read; for one reason or another, this will not block.  */
+      /* Now read; for one reason or another, this will not block.
+	 NREAD is set to the number of chars read.  */
       while (1)
 	{
 #ifdef MSDOS
 	  cbuf[0] = dos_keyread();
 	  nread = 1;
 #else
-	  nread = read (fileno (stdin), cbuf, nread);
+	  nread = read (fileno (stdin), cbuf, n_to_read);
 #endif
 #ifdef AIX
 	  /* The kernel sometimes fails to deliver SIGHUP for ptys.
@@ -3348,9 +3354,7 @@ read_avail_input (expected)
 	  if (nread == 0)
 	    kill (0, SIGHUP);
 #endif
-	  /* This code is wrong, but at least it gets the right results.
-	     Fix it for 19.23.  */
-	  /* Retry the read if it is interrupted.  */
+	  /* Retry the read if it was interrupted.  */
 	  if (nread >= 0
 	      || ! (errno == EAGAIN 
 #ifdef EFAULT
