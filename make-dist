@@ -126,6 +126,13 @@ if [ "${bogosities}" != "" ]; then
 fi
 rm -f /tmp/el /tmp/elc
 
+### Check for .el files that would overflow the 14-char limit if compiled.
+long=`find lisp -name '???????????*.el' -print`
+if [ "$long" != "" ]; then
+  echo "The following .el file names are too long:"
+  echo "$long"
+fi
+
 ### Make sure configure is newer than configure.in.
 if [ "x`ls -t configure configure.in | head -1`" != "xconfigure" ]; then
   echo "\`./configure.in' is newer than \`./configure'" >&2
