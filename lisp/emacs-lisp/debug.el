@@ -52,6 +52,7 @@ first will be printed into the backtrace buffer."
 	(debugger-step-after-exit nil)
 	;; Don't keep reading from an executing kbd macro!
 	(executing-macro nil)
+	last-command this command
 	(cursor-in-echo-area nil))
     (unwind-protect
 	(save-excursion
