@@ -203,14 +203,14 @@ SORT-KEY should be `name' or `iso-spec' (default `name')."
 
 (defvar non-iso-charset-alist nil
   "Obsolete.")
-(make-obsolete-variable 'non-iso-charset-alist "no longer relevant" "22.1")
+(make-obsolete-variable 'non-iso-charset-alist "no longer relevant" "23.1")
 
 (defun decode-codepage-char (codepage code)
   "Decode a character that has code CODE in CODEPAGE.
 Return a decoded character string.  Each CODEPAGE corresponds to a
 coding system cpCODEPAGE.  This function is obsolete."
   (decode-char (intern (format "cp%d" codepage)) code))
-(make-obsolete 'decode-codepage-char 'decode-char "22.1")
+(make-obsolete 'decode-codepage-char 'decode-char "23.1")
 
 ;; A variable to hold charset input history.
 (defvar charset-history nil)

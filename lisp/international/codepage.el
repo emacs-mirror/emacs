@@ -1,6 +1,6 @@
 ;;; codepage.el --- MS-DOS/MS-Windows specific coding systems
 
-;; Copyright (C) 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2005 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii
 ;; Maintainer: FSF
@@ -137,7 +137,7 @@
 (defun codepage-setup (&optional codepage)
   "Obsolete.  All coding systems are set up initially."
   (interactive))
-(make-obsolete 'codepage-setup "no longer relevant" "22.1")
+(make-obsolete 'codepage-setup "no longer relevant" "23.1")
 
 (provide 'codepage)
 

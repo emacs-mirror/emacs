@@ -1,7 +1,7 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998, 2000, 2001, 2002,
-;;   2003, 2004  Free Software Foundation, Inc.
+;;   2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -1845,9 +1845,9 @@ With argument, insert value in current buffer after the form."
 		";;; and therefore cannot be loaded into Emacs 21 or earlier.\n")
 	;; Replace "19" or "19.29" with "22", twice.
 	(re-search-forward "19\\(\\.[0-9]+\\)")
-	(replace-match "22")
+	(replace-match "23")
 	(re-search-forward "19\\(\\.[0-9]+\\)")
-	(replace-match "22")
+	(replace-match "23")
 	;; Now compensate for the change in size,
 	;; to make sure all positions in the file remain valid.
 	(setq delta (- (point-max) old-header-end))
@@ -1862,7 +1862,7 @@ With argument, insert value in current buffer after the form."
     (set-buffer outbuffer)
     (goto-char 1)
     ;; The magic number of .elc files is ";ELC", or 0x3B454C43.  After
-    ;; that is the file-format version number (18, 19, 20, or 22) as a
+    ;; that is the file-format version number (18, 19, 20, or 23) as a
     ;; byte, followed by some nulls.  The primary motivation for doing
     ;; this is to get some binary characters up in the first line of
     ;; the file so that `diff' will simply say "Binary files differ"
@@ -1874,7 +1874,7 @@ With argument, insert value in current buffer after the form."
 
     (insert
      ";ELC"
-     (if (byte-compile-version-cond byte-compile-compatibility) 18 22)
+     (if (byte-compile-version-cond byte-compile-compatibility) 18 23)
      "\000\000\000\n"
      )
     (insert ";;; Compiled by "

@@ -1,5 +1,5 @@
 ;;; mm-util.el --- Utility functions for Mule and low level things
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -288,7 +288,7 @@ with Mule charsets.  It is completely useless for Emacs."
 	  cs mime mule alist)
       (while css
 	(setq cs (pop css)
-	      mime (or (coding-system-get cs :mime-charset) ; Emacs 22
+	      mime (or (coding-system-get cs :mime-charset) ; Emacs 23
 		       (coding-system-get cs 'mime-charset)))
 	(when (and mime
 		   (not (eq t (setq mule
@@ -648,7 +648,7 @@ charset, and a longer list means no appropriate charset."
 	;; Otherwise, we'll get nil, and the next setq will get invoked.
 	(setq charsets (mm-xemacs-find-mime-charset b e))
 
-	;; Fixme: won't work for unibyte Emacs 22:
+	;; Fixme: won't work for unibyte Emacs 23:
 
 	;; We're not multibyte, or a single coding system won't cover it.
 	(setq charsets

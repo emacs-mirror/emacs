@@ -467,17 +467,17 @@ Return -1 if charset isn't an ISO 2022 one."
 This function is provided for backward compatibility.
 Now we have the variable `charset-list'."
   charset-list)
-(make-obsolete 'charset-list "Use variable `charset-list'" "22.1")
+(make-obsolete 'charset-list "Use variable `charset-list'" "23.1")
 
 
 ;;; CHARACTER
 (defalias 'char-valid-p 'characterp)
-(make-obsolete 'char-valid-p 'characterp "22.1")
+(make-obsolete 'char-valid-p 'characterp "23.1")
 
 (defun generic-char-p (char)
   "Always return nil.  This is provided for backward compatibility."
   nil)
-(make-obsolete 'generic-char-p "Generic characters no longer exist" "22.1")
+(make-obsolete 'generic-char-p "Generic characters no longer exist" "23.1")
 
 (defun make-char-internal (charset-id &optional code1 code2)
   (let ((charset (aref emacs-mule-charset-table charset-id)))
@@ -1311,7 +1311,7 @@ This function is provided for backward compatibility.
 Now we have more convenient function `set-coding-system-priority'."
   (apply 'set-coding-system-priority
 	 (mapcar #'(lambda (x) (symbol-value x)) arg)))
-(make-obsolete 'set-coding-priority 'set-coding-system-priority "22.1")
+(make-obsolete 'set-coding-priority 'set-coding-system-priority "23.1")
 
 ;;; X selections
 
@@ -2136,7 +2136,7 @@ Analogous to `define-translation-table', but updates
       (make-char-table 'ignore-relative-composition))
 
 (make-obsolete 'set-char-table-default
-	       "Generic characters no longer exist" "22.1")
+	       "Generic characters no longer exist" "23.1")
 
 ;;; Built-in auto-coding-functions:
 

@@ -1,0 +1,6 @@
+2005-02-13  Miles Bader  <miles@gnu.org>
+
+	Rename unicode-branch-specific ChangeLog files to
+	"ChangeLog.unicode" from "ChangeLog.22"
+
+;; arch-tag: a75b78b5-dcea-4597-ad68-97d90683e613

@@ -1800,7 +1800,7 @@ remove them from the language info until you next restart Emacs.
 Setting this variable directly does not take effect.  See
 `set-language-info-alist' for use in programs."
   :group 'mule
-  :version "22.1"
+  :version "23.1"
   :set (lambda (s v)
 	 (custom-set-default s v)
 	 ;; Can't do this before language environments are set up.

@@ -1,6 +1,6 @@
 ;;; qp.el --- Quoted-Printable functions
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, extensions
@@ -102,7 +102,7 @@ encode lines starting with \"From\"."
   (interactive "r")
   (save-excursion
     (goto-char from)
-    (if (fboundp 'string-to-multibyte)	; Emacs 22
+    (if (fboundp 'string-to-multibyte)	; Emacs 23
 	(if (re-search-forward (string-to-multibyte "[^\x0-\x7f\x80-\xff]")
 			       to t)
 	    ;; Fixme: This is somewhat misleading.
@@ -122,7 +122,7 @@ encode lines starting with \"From\"."
 		  (not (eobp)))
 	(insert
 	 (prog1
-	     ;; To unibyte in case of Emacs 22 eight-bit.
+	     ;; To unibyte in case of Emacs 23 eight-bit.
 	     (format "=%02X" (mm-multibyte-char-to-unibyte (char-after)))
 	   (delete-char 1))))
       ;; Encode white space at the end of lines.

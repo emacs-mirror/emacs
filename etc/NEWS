@@ -14,10 +14,10 @@ Temporary note:
 When you add a new item, please add it without either +++ or ---
 so we will look at it and add it to the manual.
 
-Fixme: The notes about Emacs 22 are quite incomplete.
+Fixme: The notes about Emacs 23 are quite incomplete.
 
 
-* Changes in Emacs 22.1
+* Changes in Emacs 23.1
 
 ** The Emacs character set is now a superset of Unicode.  
 (It has about four times the code space, which should be plenty).
@@ -35,12 +35,12 @@ sets which are problematic with Unicode.
 Since the internal encoding is also used by default for byte-compiled
 files -- i.e. the normal coding system for byte-compiled Lisp files is
 now utf-8-Emacs -- Lisp containing non-ASCII characters which is
-compiled by Emacs 22 can't be read by earlier versions of Emacs.
-Files compiled by Emacs 20 or 21 are loaded correctly as emacs-mule
-(whether or not they contain multibyte characters), which makes
-loading them somewhat slower than Emacs 22-compiled files.  Thus it
-may be worth recompiling existing .elc files which don't need to be
-shared with older Emacsen.
+compiled by Emacs 23 can't be read by earlier versions of Emacs.  Files
+compiled by Emacs 20, 21, or 22 are loaded correctly as emacs-mule
+(whether or not they contain multibyte characters), which makes loading
+them somewhat slower than Emacs 23-compiled files.  Thus it may be worth
+recompiling existing .elc files which don't need to be shared with older
+Emacsen.
 
 ** There are assorted new coding systems/aliases -- see
 M-x list-coding-systems.
@@ -62,7 +62,7 @@ unicodes for display &c.
 Minor modes: unify-8859-on-encoding-mode, unify-8859-on-decoding-mode
 
 
-* Lisp changes in Emacs 22.1
+* Lisp changes in Emacs 23.1
 
 map-char-table's behaviour has changed.
 

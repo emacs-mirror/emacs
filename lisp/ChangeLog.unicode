@@ -1,3 +1,18 @@
+2005-02-12  Miles Bader  <miles@gnu.org>
+
+	* version.el (emacs-version): Change to "23.0.0".
+
+	* descr-text.el (describe-char-unidata-list):
+	Replace references to Emacs version "22" with "23".
+	* emacs-lisp/bytecomp.el (byte-compile-fix-header)
+	(byte-compile-insert-header): Likewise.
+	* international/mule.el (charset-list, set-coding-priority)
+	(ignore-relative-composition): Likewise.
+	* international/mule-util.el (detect-coding-with-priority): Likewise.
+	* international/mule-diag.el: Likewise.
+	* international/mule-cmds.el (language-info-custom-alist): Likewise.
+	* international/codepage.el (codepage-setup): Likewise.
+
 2005-02-13  Kenichi Handa  <handa@m17n.org>
 
 	* case-table.el: Adjust code merged from trunk for unicode

@@ -1,6 +1,6 @@
 ;;; version.el --- record version number of Emacs -*- no-byte-compile: t -*-
 
-;;; Copyright (C) 1985, 1992, 1994, 1995, 1999, 2000, 2001
+;;; Copyright (C) 1985, 1992, 1994, 1995, 1999, 2000, 2001, 2005
 ;;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -27,7 +27,7 @@
 
 ;;; Code:
 
-(defconst emacs-version "22.0.0" "\
+(defconst emacs-version "23.0.0" "\
 Version numbers of this version of Emacs.")
 
 (defconst emacs-major-version

@@ -340,7 +340,7 @@ coding systems ordered by priority."
   `(with-coding-priority (mapcar #'cdr ,priority-list)
      (detect-coding-region ,from ,to)))
 (make-obsolete 'detect-coding-with-priority
-	       "Use with-coding-priority and detect-coding-region" "22.1")
+	       "Use with-coding-priority and detect-coding-region" "23.1")
 
 ;;;###autoload
 (defun detect-coding-with-language-environment (from to lang-env)

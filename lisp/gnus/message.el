@@ -3582,8 +3582,8 @@ It should typically alter the sending method in some way or other."
 	  (when (let ((char (char-after)))
 		  (or (< (mm-char-int char) 128)
 		      (and (mm-multibyte-p)
-			   ;; Fixme: Wrong for Emacs 22 and for things
-			   ;; like undecable utf-8.  Should at least
+			   ;; Fixme: Wrong for Emacs 23 and for things
+			   ;; like undectable utf-8.  Should at least
 			   ;; use find-coding-systems-region.
 			   (memq (char-charset char)
 				 '(eight-bit-control eight-bit-graphic

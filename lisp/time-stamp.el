@@ -1,6 +1,6 @@
 ;;; time-stamp.el --- Maintain last change time stamps in files edited by Emacs
 
-;; Copyright 1989, 1993, 1994, 1995, 1997, 2000, 2001
+;; Copyright 1989, 1993, 1994, 1995, 1997, 2000, 2001, 2005
 ;;;	Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -687,7 +687,7 @@ around literals."
 ;;; Some functions used in time-stamp-format
 
 ;;; These functions have been obsolete since 1995
-;;; and will be removed in Emacs 22.
+;;; and will be removed in Emacs 23.
 ;;; Meanwhile, discourage other packages from using them.
 (let ((obsolete-functions '(time-stamp-month-dd-yyyy
 			    time-stamp-dd/mm/yyyy

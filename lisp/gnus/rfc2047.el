@@ -1,5 +1,5 @@
 ;;; rfc2047.el --- functions for encoding and decoding rfc2047 messages
-;; Copyright (C) 1998, 1999, 2000, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2002, 2003, 2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -277,7 +277,7 @@ The buffer may be narrowed."
   ;; (make-char-table 'syntax-table '(2)) only works in Emacs.
   (let ((table (make-syntax-table)))
     ;; The following is done to work for setting all elements of the table
-    ;; in Emacs 21 and 22 and XEmacs; it appears to be the cleanest way.
+    ;; in Emacs 21-23 and XEmacs; it appears to be the cleanest way.
     ;; Play safe and don't assume the form of the word syntax entry --
     ;; copy it from ?a.
     (if (fboundp 'set-char-table-range)	; Emacs

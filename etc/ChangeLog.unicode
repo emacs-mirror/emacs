@@ -1,3 +1,8 @@
+2005-02-12  Miles Bader  <miles@gnu.org>
+
+	* TODO, PROBLEMS, NEWS: Replace references to Emacs version "22"
+	with "23".
+
 2004-02-12  Kenichi Handa  <handa@m17n.org>
 
 	* charsets/CNS-[234567].map: Regenerated.

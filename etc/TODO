@@ -31,7 +31,7 @@ to the FSF.
 
 ** Provide user-friendly ways to list all available font families,
   display a font as a sample, etc.  [fx is looking at multilingual
-  font selection for Emacs 22.]
+  font selection for Emacs 23.]
 
 ** Program Enriched mode to read and save in RTF.  [Is there actually a
   decent single definition of RTF?  Maybe see info at
@@ -233,7 +233,7 @@ to the FSF.
   (with ASCIIfied fallback via latin1-disp).  Examples include
   box-drawing graphics in Custom buffers, W3 rules and tables, and
   tree displays generally, mode-line mail indicator.  [See work done
-  already for Emacs 22 and consult fx.]
+  already for Emacs 23 and consult fx.]
 
 ** Do something to make rms happy with fx's dynamic loading, and use it
   to implement things like auto-loaded buffer parsers and database

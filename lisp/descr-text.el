@@ -217,7 +217,7 @@ otherwise."
 (defcustom describe-char-unidata-list nil
   "List of Unicode-based character property names shown by `describe-char'."
   :group 'mule
-  :version "22.1"
+  :version "23.1"
   :type '(set
 	  (const :tag "Unicode Name" name)
 	  (const :tag "Unicode general category " general-category)
