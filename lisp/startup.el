@@ -294,7 +294,7 @@ directory name of the directory where the `.emacs' file was looked for.")
 		 (progn
 		   (insert (emacs-version)
 			   "
-Copyright (C) 1991 Free Software Foundation, Inc.\n\n")
+Copyright (C) 1993 Free Software Foundation, Inc.\n\n")
 		   ;; If keys have their default meanings,
 		   ;; use precomputed string to save lots of time.
 		   (if (and (eq (key-binding "\C-h") 'help-command)
