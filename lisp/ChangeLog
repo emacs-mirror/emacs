@@ -1,3 +1,9 @@
+2000-05-25  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* international/codepage.el (cp-make-coding-systems-for-codepage):
+	Remove the eight-bit-graphic and eight-bit-control charsets from
+	the list of charsets which we convert into `?'.
+
 2000-05-25  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-conf.el: Specify CHARSET-ID explicitely for
