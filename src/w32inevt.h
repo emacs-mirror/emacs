@@ -18,8 +18,8 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#ifndef __NTINEVT_H__
-#define __NTINEVT_H__
+#ifndef EMACS_W32INEVT_H
+#define EMACS_W32INEVT_H
 
 extern int w32_console_read_socket (int sd, struct input_event *bufp, 
 				    int numchars, int expected);
@@ -29,4 +29,4 @@ extern void w32_console_mouse_position (FRAME_PTR *f, int insist,
 					Lisp_Object *x, Lisp_Object *y, 
 					unsigned long *time);
 
-#endif
+#endif /* EMACS_W32INEVT_H */

@@ -1,3 +1,13 @@
+2000-06-12  Jason Rumney  <jasonr@gnu.org>
+
+	* w32bdf.h (EMACS_W32BDF_H): Renamed from __W32BDF_H__
+
+	* w32.h (EMACS_W32_H): Renamed from _NT_H_
+
+	* w32gui.h (EMACS_W32GUI_H): Renamed from __W32GUI_H__
+
+	* w32inevt.h (EMACS_W32INEVT_H): Renamed from __NTINEVT_H__
+
 2000-06-12  Gerd Moellmann  <gerd@gnu.org>
 
 	* xfaces.c (Fdump_colors) [DEBUG_X_COLORS]: New function.
