@@ -198,6 +198,16 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
 		(setq i (1+ i))))))
       (setq scan (cdr scan)))))
 
+(defun listify-key-sequence (key)
+  "Convert a key sequence to a list of events."
+  (if (vectorp key)
+      (append key nil)
+    (mapcar (function (lambda (c)
+			(if (> c 127)
+			    (logxor c 8388736)
+			  c)))
+	    (append key nil))))
+
 (defmacro save-match-data (&rest body)
   "Execute the BODY forms, restoring the global value of the match data."
   (let ((original (make-symbol "match-data")))
