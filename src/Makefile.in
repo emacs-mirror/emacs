@@ -631,7 +631,7 @@ lisp= \
 	${lispsource}abbrev.elc \
 	${lispsource}buff-menu.elc \
 	${lispsource}byte-run.elc \
-	${lispsource}cus-start.elc \
+	${lispsource}cus-start.el \
 	${lispsource}custom.elc \
 	${lispsource}files.elc \
 	${lispsource}fill.elc \
@@ -695,7 +695,7 @@ shortlisp= \
 	../lisp/abbrev.elc \
 	../lisp/buff-menu.elc \
 	../lisp/byte-run.elc \
-	../lisp/cus-start.elc \
+	../lisp/cus-start.el \
 	../lisp/custom.elc \
 	../lisp/files.elc \
 	../lisp/fill.elc \
