@@ -1,6 +1,6 @@
 ;;; startup.el --- process Emacs shell arguments
 
-;; Copyright (C) 1985, 86, 92, 94, 95, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 92, 94, 95, 96, 97, 1998 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -760,77 +760,94 @@ If this is nil, no message will be displayed."
 		       (if (eq system-type 'gnu/linux)
 			   (insert ", one component of a Linux-based GNU system."))
 		       (insert "\n")
-		       ;; If keys have their default meanings,
-		       ;; use precomputed string to save lots of time.
-		       (if (and (eq (key-binding "\C-h") 'help-command)
-				(eq (key-binding "\C-xu") 'advertised-undo)
-				(eq (key-binding "\C-x\C-c") 'save-buffers-kill-emacs)
-				(eq (key-binding "\C-ht") 'help-with-tutorial)
-				(eq (key-binding "\C-hi") 'info)
-				(eq (key-binding "\C-h\C-n") 'view-emacs-news))
-			   (insert "
+		       (if (assq 'display (frame-parameters))
+			   (progn
+			     (insert "\
+The menu bar menus above are sufficient for basic editing with the mouse,
+
+Useful Files menu items:
+Exit Emacs		(or type Control-x followed by Control-c)
+Recover Session		recover files you were editing before a crash
+
+Important Help menu items:
+Emacs Tutorial		Learn-by-doing tutorial for using Emacs efficiently.
+\(Non)Warranty		GNU Emacs comes with ABSOLUTELY NO WARRANTY
+Copying Conditions	Conditions for redistributing and changing Emacs.
+Getting New Versions	How to obtain the latest version of Emacs.
+")
+			     (insert "\n\n" (emacs-version)
+				     "
+Copyright (C) 1998 Free Software Foundation, Inc."))
+			 ;; If keys have their default meanings,
+			 ;; use precomputed string to save lots of time.
+			 (if (and (eq (key-binding "\C-h") 'help-command)
+				  (eq (key-binding "\C-xu") 'advertised-undo)
+				  (eq (key-binding "\C-x\C-c") 'save-buffers-kill-emacs)
+				  (eq (key-binding "\C-ht") 'help-with-tutorial)
+				  (eq (key-binding "\C-hi") 'info)
+				  (eq (key-binding "\C-h\C-n") 'view-emacs-news))
+			     (insert "
 Get help	   C-h  (Hold down CTRL and press h)
 Undo changes	   C-x u       Exit Emacs		C-x C-c
 Get a tutorial	   C-h t       Use Info to read docs	C-h i")
-			 (insert (substitute-command-keys
-				  (format "\n
+			   (insert (substitute-command-keys
+				    (format "\n
 Get help	   %s
 Undo changes	   \\[advertised-undo]
 Exit Emacs	   \\[save-buffers-kill-emacs]
 Get a tutorial	   \\[help-with-tutorial]
 Use Info to read docs	\\[info]"
-					  (let ((where (where-is-internal
-							'help-command nil t)))
-					    (if where
-						(key-description where)
-					      "M-x help"))))))
-		       ;; Say how to use the menu bar
-		       ;; if that is not with the mouse.
-		       (if (not (assq 'display (frame-parameters)))
-			   (if (and (eq (key-binding "\M-`") 'tmm-menubar)
-				    (eq (key-binding [f10]) 'tmm-menubar))
-			       (insert "
+					    (let ((where (where-is-internal
+							  'help-command nil t)))
+					      (if where
+						  (key-description where)
+						"M-x help"))))))
+			 ;; Say how to use the menu bar
+			 ;; if that is not with the mouse.
+			 (if (and (eq (key-binding "\M-`") 'tmm-menubar)
+				  (eq (key-binding [f10]) 'tmm-menubar))
+			     (insert "
 Activate menubar   F10  or  ESC `  or   M-`")
-			     (insert (substitute-command-keys "
-Activate menubar     \\[tmm-menubar]"))))
+			   (insert (substitute-command-keys "
+Activate menubar     \\[tmm-menubar]")))
 
 		       ;; Windows and MSDOS (currently) do not count as
 		       ;; window systems, but do have mouse support.
-		       (if window-system
-			   (insert "
+			 (if window-system
+			     (insert "
 Mode-specific menu   C-mouse-3 (third button, with CTRL)"))
-		       ;; Many users seem to have problems with these.
-		       (insert "
+			 ;; Many users seem to have problems with these.
+			 (insert "
 \(`C-' means use the CTRL key.  `M-' means use the Meta (or Alt) key.
 If you have no Meta key, you may instead type ESC followed by the character.)")
-		       (and auto-save-list-file-prefix
-			    (directory-files
-			     (file-name-directory auto-save-list-file-prefix)
-			     nil
-			     (concat "\\`"
-				     (regexp-quote (file-name-nondirectory
-						    auto-save-list-file-prefix)))
-			     t)
-			    (insert "\n\nIf an Emacs session crashed recently, "
-				    "type M-x recover-session RET\nto recover"
-				    " the files you were editing."))
+			 (and auto-save-list-file-prefix
+			      (directory-files
+			       (file-name-directory auto-save-list-file-prefix)
+			       nil
+			       (concat "\\`"
+				       (regexp-quote (file-name-nondirectory
+						      auto-save-list-file-prefix)))
+			       t)
+			      (insert "\n\nIf an Emacs session crashed recently, "
+				      "type M-x recover-session RET\nto recover"
+				      " the files you were editing."))
 
-		       (insert "\n\n" (emacs-version)
-			       "
-Copyright (C) 1997 Free Software Foundation, Inc.")
-		       (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
-				(eq (key-binding "\C-h\C-d") 'describe-distribution)
-				(eq (key-binding "\C-h\C-w") 'describe-no-warranty))
-			   (insert 
-			    "\n
+			 (insert "\n\n" (emacs-version)
+				 "
+Copyright (C) 1998 Free Software Foundation, Inc.")
+			 (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
+				  (eq (key-binding "\C-h\C-d") 'describe-distribution)
+				  (eq (key-binding "\C-h\C-w") 'describe-no-warranty))
+			     (insert 
+			      "\n
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type C-h C-w for full details.
 You may give out copies of Emacs; type C-h C-c to see the conditions.
 Type C-h C-d for information on getting the latest version.")
-			 (insert (substitute-command-keys
-				  "\n
+			   (insert (substitute-command-keys
+				    "\n
 GNU Emacs comes with ABSOLUTELY NO WARRANTY; type \\[describe-no-warranty] for full details.
 You may give out copies of Emacs; type \\[describe-copying] to see the conditions.
-Type \\[describe-distribution] for information on getting the latest version.")))
+Type \\[describe-distribution] for information on getting the latest version."))))
 		       (goto-char (point-min))
 
 		       (set-buffer-modified-p nil)
