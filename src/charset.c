@@ -1015,7 +1015,7 @@ The conversion is done based on `nonascii-translation-table' (which see)\n\
 }
 
 DEFUN ("char-bytes", Fchar_bytes, Schar_bytes, 1, 1, 0,
-  "Return 1 regardless of the argument CHAR.
+  "Return 1 regardless of the argument CHAR.\n\
 This is now an obsolte function.  We keep is just for backward compatibility.")
   (ch)
      Lisp_Object ch;
