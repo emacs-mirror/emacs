@@ -105,6 +105,9 @@ int nonascii_insert_offset;
    to multibyte codes, or nil.  */
 Lisp_Object Vnonascii_translation_table;
 
+/* List of all possible generic characters.  */
+Lisp_Object Vgeneric_character_list;
+
 #define min(X, Y) ((X) < (Y) ? (X) : (Y))
 #define max(X, Y) ((X) > (Y) ? (X) : (Y))
 
@@ -578,6 +581,15 @@ DESCRIPTION (string) is the description string of the charset.")
   CHARSET_SYMBOL (XINT (charset_id)) = charset_symbol;
   Vcharset_list = Fcons (charset_symbol, Vcharset_list);
   return Qnil;
+}
+
+DEFUN ("generic-character-list", Fgeneric_character_list,
+       Sgeneric_character_list, 0, 0, 0,
+  "Return a list of all possible generic characters.\n\
+It includes a generic character for a charset not yet defined.")
+  ()
+{
+  return Vgeneric_character_list;
 }
 
 DEFUN ("get-unused-iso-final-char", Fget_unused_iso_final_char,
@@ -1662,6 +1674,7 @@ init_charset_once ()
 
   staticpro (&Vcharset_table);
   staticpro (&Vcharset_symbol_table);
+  staticpro (&Vgeneric_character_list);
 
   /* This has to be done here, before we call Fmake_char_table.  */
   Qcharset_table = intern ("charset-table");
@@ -1706,6 +1719,21 @@ init_charset_once ()
   WIDTH_BY_CHAR_HEAD (LEADING_CODE_PRIVATE_12) = 2;
   WIDTH_BY_CHAR_HEAD (LEADING_CODE_PRIVATE_21) = 1;
   WIDTH_BY_CHAR_HEAD (LEADING_CODE_PRIVATE_22) = 2;
+
+  {
+    Lisp_Object val = Qnil;
+
+    for (i = 0x81; i < 0x90; i++)
+      val = Fcons (make_number ((i - 0x70) << 7), val);
+    for (; i < 0x9A; i++)
+      val = Fcons (make_number ((i - 0x8F) << 14), val);
+    for (i = 0xA0; i < 0xF0; i++)
+      val = Fcons (make_number ((i - 0x70) << 7), val);
+    for (; i < 0xFF; i++)
+      val = Fcons (make_number ((i - 0xE0) << 14), val);
+    val = Fcons (make_number (GENERIC_COMPOSITION_CHAR), val);
+    Vgeneric_character_list = Fnreverse (val);
+  }
 }
 
 #ifdef emacs
@@ -1737,6 +1765,7 @@ syms_of_charset ()
   CHARSET_SYMBOL (CHARSET_COMPOSITION) = Qcomposition;
 
   defsubr (&Sdefine_charset);
+  defsubr (&Sgeneric_character_list);
   defsubr (&Sget_unused_iso_final_char);
   defsubr (&Sdeclare_equiv_charset);
   defsubr (&Sfind_charset_region);
