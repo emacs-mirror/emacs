@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.40 $
+;; Version: $Revision: 1.41 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1995/07/11 03:13:15 $|$Revision: 1.40 $|~/modes/tcl.el.Z|
+;; $Date: 1995/07/14 21:54:56 $|$Revision: 1.41 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,10 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.41  1995/07/14  21:54:56  tromey
+;; Changes to make menus work in XEmacs.
+;; From Mike Scheidler <c23mts@kocrsv01.delcoelect.com>
+;;
 ;; Revision 1.40  1995/07/11  03:13:15  tromey
 ;; (tcl-mode): Customize for new dabbrev.
 ;;
@@ -332,7 +336,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.40 $")
+(defconst tcl-version "$Revision: 1.41 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -782,7 +786,7 @@ An end of a defun is found by moving forward from the beginning of one."
 
 ;; Ditto end-of-defun.
 (fset 'tcl-end-of-defun
-      (if tcl-using-emacs-19
+      (if (and tcl-using-emacs-19 (not tcl-using-xemacs-19))
 	  'end-of-defun
 	'tcl-internal-end-of-defun))
 
