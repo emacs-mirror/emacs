@@ -126,7 +126,7 @@ struct glyph_matrix *new_glyph_matrix P_ ((struct glyph_pool *));
 static void free_glyph_matrix P_ ((struct glyph_matrix *));
 static void adjust_glyph_matrix P_ ((struct window *, struct glyph_matrix *,
 				     int, int, struct dim));
-static void change_frame_size_1 P_ ((struct frame *, int, int, int, int));
+static void change_frame_size_1 P_ ((struct frame *, int, int, int, int, int));
 static void swap_glyphs_in_rows P_ ((struct glyph_row *, struct glyph_row *));
 static void swap_glyph_pointers P_ ((struct glyph_row *, struct glyph_row *));
 static int glyph_row_slice_p P_ ((struct glyph_row *, struct glyph_row *));
@@ -155,8 +155,10 @@ static void make_current P_ ((struct glyph_matrix *, struct glyph_matrix *,
 			      int));
 static void mirror_make_current P_ ((struct window *, int));
 void check_window_matrix_pointers P_ ((struct window *));
+#if GLYPH_DEBUG
 static void check_matrix_pointers P_ ((struct glyph_matrix *,
 				       struct glyph_matrix *));
+#endif
 static void mirror_line_dance P_ ((struct window *, int, int, int *, char *));
 static int update_window_tree P_ ((struct window *, int));
 static int update_window P_ ((struct window *, int));
@@ -2096,10 +2098,6 @@ adjust_frame_glyphs_for_window_redisplay (f)
 
 /* Adjust/ allocate message buffer of frame F. 
 
-   The global variables echo_area_glyphs and previous_echo_area_glyphs
-   may be pointing to the frames message buffer and must be relocated
-   if the buffer is reallocated.
-
    Note that the message buffer is never freed.  Since I could not
    find a free in 19.34, I assume that freeing it would be
    problematic in some way and don't do it either.
@@ -2117,12 +2115,6 @@ adjust_frame_message_buffer (f)
     {
       char *buffer = FRAME_MESSAGE_BUF (f);
       char *new_buffer = (char *) xrealloc (buffer, size);
- 
-      if (buffer == echo_area_glyphs)
-        echo_area_glyphs = new_buffer;
-      if (buffer == previous_echo_glyphs)
-        previous_echo_glyphs = new_buffer;
-
       FRAME_MESSAGE_BUF (f) = new_buffer;
     }
   else
@@ -3028,8 +3020,7 @@ direct_output_for_insert (g)
       /* Give up if buffer appears in two places.  */
       || buffer_shared > 1
       /* Give up if w is mini-buffer and a message is being displayed there */
-      || (MINI_WINDOW_P (w)
-	  && (echo_area_glyphs || STRINGP (echo_area_message)))
+      || (MINI_WINDOW_P (w) && !NILP (echo_area_buffer[0]))
       /* Give up for hscrolled mini-buffer because display of the prompt
 	 is handled specially there (see display_line).  */
       || (MINI_WINDOW_P (w) && XFASTINT (w->hscroll))
@@ -3586,12 +3577,14 @@ update_window (w, force_p)
      struct window *w;
      int force_p;
 {
-  struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct glyph_matrix *desired_matrix = w->desired_matrix;
   int paused_p;
   int preempt_count = baud_rate / 2400 + 1;
   extern int input_pending;
+#if GLYPH_DEBUG
+  struct frame *f = XFRAME (WINDOW_FRAME (w));
   extern struct frame *updating_frame;
+#endif
 
   /* Check that W's frame doesn't have glyph matrices.  */
   xassert (FRAME_WINDOW_P (f));
@@ -4019,13 +4012,12 @@ set_window_cursor_after_update (w)
   /* Not intended for frame matrix updates.  */
   xassert (FRAME_WINDOW_P (f));
   
-  if ((cursor_in_echo_area
-       /* If we are showing a message instead of the mini-buffer,
-	  show the cursor for the message instead of for the
-	  (now hidden) mini-buffer contents.  */
-       || (XWINDOW (minibuf_window) == w
-	   && EQ (minibuf_window, echo_area_window)
-	   && (echo_area_glyphs || STRINGP (echo_area_message))))
+  if (cursor_in_echo_area
+      && !NILP (echo_area_buffer[0])
+      /* If we are showing a message instead of the mini-buffer,
+	 show the cursor for the message instead.  */
+      && XWINDOW (minibuf_window) == w
+      && EQ (minibuf_window, echo_area_window)
       /* These cases apply only to the frame that contains
 	 the active mini-buffer window.  */
       && FRAME_HAS_MINIBUF_P (f)
@@ -4044,7 +4036,9 @@ set_window_cursor_after_update (w)
 	  int yb = window_text_bottom_y (w);
 
 	  last_row = NULL;
-	  for (row = MATRIX_ROW (w->current_matrix, 0);; ++row)
+	  for (row = MATRIX_ROW (w->current_matrix, 0);
+	       row->enabled_p;
+	       ++row)
 	    {
 	      if (row->used[TEXT_AREA]
 		  && row->glyphs[TEXT_AREA][0].charpos >= 0)
@@ -4057,9 +4051,9 @@ set_window_cursor_after_update (w)
 	  if (last_row)
 	    {
 	      struct glyph *start = row->glyphs[TEXT_AREA];
-	      struct glyph *last = start + row->used[TEXT_AREA];
+	      struct glyph *last = start + row->used[TEXT_AREA] - 1;
 
-	      while (last > start && (last - 1)->charpos < 0)
+	      while (last > start && last->charpos < 0)
 		--last;
 	      
 	      for (glyph = start; glyph < last; ++glyph)
@@ -4529,7 +4523,7 @@ update_frame_1 (f, force_p, inhibit_id_p)
 	      (now hidden) mini-buffer contents.  */
 	   || (EQ (minibuf_window, selected_window)
 	       && EQ (minibuf_window, echo_area_window)
-	       && (echo_area_glyphs || STRINGP (echo_area_message))))
+	       && !NILP (echo_area_buffer[0])))
 	  /* These cases apply only to the frame that contains
 	     the active mini-buffer window.  */
 	  && FRAME_HAS_MINIBUF_P (f)
@@ -4561,7 +4555,6 @@ update_frame_1 (f, force_p, inhibit_id_p)
 		    {
 		      /* Frame rows are filled up with spaces that
 			 must be ignored here.  */
-		      int i;
 		      struct glyph_row *r = MATRIX_ROW (current_matrix,
 							row);
 		      struct glyph *start = r->glyphs[TEXT_AREA];
@@ -5186,7 +5179,7 @@ window_change_signal (signalnum) /* If we don't have an argument, */
       {
 	if (FRAME_TERMCAP_P (XFRAME (frame)))
 	  {
-	    change_frame_size (XFRAME (frame), height, width, 0, 1);
+	    change_frame_size (XFRAME (frame), height, width, 0, 1, 0);
 	    break;
 	  }
       }
@@ -5198,12 +5191,18 @@ window_change_signal (signalnum) /* If we don't have an argument, */
 #endif /* SIGWINCH */
 
 
-/* Do any change in frame size that was requested by a signal.  */
+/* Do any change in frame size that was requested by a signal.  SAFE
+   non-zero means this function is called from a place where it is
+   safe to change frame sizes  while a redisplay is in progress.  */
 
 void
-do_pending_window_change ()
+do_pending_window_change (safe)
+     int safe;
 {
   /* If window_change_signal should have run before, run it now.  */
+  if (redisplaying_p && !safe)
+    return;
+  
   while (delayed_size_change)
     {
       Lisp_Object tail, frame;
@@ -5218,7 +5217,7 @@ do_pending_window_change ()
 	  int width = FRAME_NEW_WIDTH (f);
 
 	  if (height != 0 || width != 0)
-	    change_frame_size (f, height, width, 0, 0);
+	    change_frame_size (f, height, width, 0, 0, safe);
 	}
     }
 }
@@ -5230,12 +5229,15 @@ do_pending_window_change ()
    If DELAY is non-zero, then assume we're being called from a signal
    handler, and queue the change for later - perhaps the next
    redisplay.  Since this tries to resize windows, we can't call it
-   from a signal handler.  */
+   from a signal handler.
+
+   SAFE non-zero means this function is called from a place where it's
+   safe to change frame sizes while a redisplay is in progress.  */
 
 void
-change_frame_size (f, newheight, newwidth, pretend, delay)
+change_frame_size (f, newheight, newwidth, pretend, delay, safe)
      register struct frame *f;
-     int newheight, newwidth, pretend, delay;
+     int newheight, newwidth, pretend, delay, safe;
 {
   Lisp_Object tail, frame;
 
@@ -5246,23 +5248,22 @@ change_frame_size (f, newheight, newwidth, pretend, delay)
       FOR_EACH_FRAME (tail, frame)
 	if (! FRAME_WINDOW_P (XFRAME (frame)))
 	  change_frame_size_1 (XFRAME (frame), newheight, newwidth,
-			       pretend, delay);
+			       pretend, delay, safe);
     }
   else
-    change_frame_size_1 (f, newheight, newwidth, pretend, delay);
+    change_frame_size_1 (f, newheight, newwidth, pretend, delay, safe);
 }
 
 static void
-change_frame_size_1 (f, newheight, newwidth, pretend, delay)
+change_frame_size_1 (f, newheight, newwidth, pretend, delay, safe)
      register struct frame *f;
-     int newheight, newwidth, pretend, delay;
+     int newheight, newwidth, pretend, delay, safe;
 {
   int new_frame_window_width;
-  unsigned int total_glyphs;
   int count = specpdl_ptr - specpdl;
 
   /* If we can't deal with the change now, queue it for later.  */
-  if (delay)
+  if (delay || (redisplaying_p && !safe))
     {
       FRAME_NEW_HEIGHT (f) = newheight;
       FRAME_NEW_WIDTH (f) = newwidth;
