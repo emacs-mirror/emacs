@@ -34,6 +34,7 @@
   "Paragraph and sentence parsing."
   :group 'editing)
 
+(put 'use-hard-newlines 'permanent-local t)
 (define-minor-mode use-hard-newlines
   "Minor mode to distinguish hard and soft newlines.
 When active, the functions `newline' and `open-line' add the
