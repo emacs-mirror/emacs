@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/07/02 21:34:15 $|$Revision: 1.44 $
+;; |$Date: 1993/07/08 22:33:57 $|$Revision: 1.45 $
 
 ;; This file is not yet part of GNU Emacs, but it is based almost
 ;; entirely on isearch.el which is part of GNU Emacs.
@@ -675,7 +675,7 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
   ;; Editing doesn't back up the search point.  Should it?
   (interactive)
   (condition-case err
-      (let (isearch-nonincremental	; should search nonincrementally?
+      (let ((isearch-nonincremental isearch-nonincremental)
 
 	    ;; Locally bind all isearch global variables to protect them
 	    ;; from recursive isearching.
