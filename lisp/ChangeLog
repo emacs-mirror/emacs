@@ -3,6 +3,7 @@
 	* faces.el (frame-set-background-mode): Pay attention to saved
 	face specs as well as default ones.  Only do anything if the
 	bg-mode or display-type has actually changed.  Use `dolist'.
+	(region): Make dark-background `region' face less in-your-face.
 
 2000-10-10  Sam Steingold  <sds@gnu.org>
 
