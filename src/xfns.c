@@ -2739,6 +2739,7 @@ This function is an internal primitive--use `make-frame' instead.")
   Lisp_Object display;
   struct x_display_info *dpyinfo;
   Lisp_Object parent;
+  struct kboard *kb;
 
   check_x ();
 
@@ -2746,6 +2747,11 @@ This function is an internal primitive--use `make-frame' instead.")
   if (EQ (display, Qunbound))
     display = Qnil;
   dpyinfo = check_x_display_info (display);
+#ifdef MULTI_KBOARD
+  kb = dpyinfo->kboard;
+#else
+  kb = &the_only_kboard;
+#endif
 
   name = x_get_arg (parms, Qname, "title", "Title", string);
   if (!STRINGP (name)
@@ -2762,14 +2768,14 @@ This function is an internal primitive--use `make-frame' instead.")
 
   tem = x_get_arg (parms, Qminibuffer, 0, 0, symbol);
   if (EQ (tem, Qnone) || NILP (tem))
-    f = make_frame_without_minibuffer (Qnil);
+    f = make_frame_without_minibuffer (Qnil, kb);
   else if (EQ (tem, Qonly))
     {
       f = make_minibuffer_frame ();
       minibuffer_only = 1;
     }
   else if (WINDOWP (tem))
-    f = make_frame_without_minibuffer (tem);
+    f = make_frame_without_minibuffer (tem, kb);
   else
     f = make_frame (1);
 
@@ -2786,7 +2792,7 @@ This function is an internal primitive--use `make-frame' instead.")
 
   FRAME_X_DISPLAY_INFO (f) = dpyinfo;
 #ifdef MULTI_KBOARD
-  FRAME_KBOARD (f) = dpyinfo->kboard;
+  FRAME_KBOARD (f) = kb;
 #endif
 
   /* Specify the parent under which to make this X window.  */
