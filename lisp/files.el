@@ -268,13 +268,15 @@ accessible."
 The truename of a file name is found by chasing symbolic links
 both at the level of the file and at the level of the directories
 containing it, until no links are left at any level."
+  (if (string= filename "~")
+      (setq filename (expand-file-name filename)))
   (let ((dir (file-name-directory filename))
 	target)
     ;; Get the truename of the directory.
     (or (string= dir "/")
 	(setq dir (file-name-as-directory (file-truename (directory-file-name dir)))))
     ;; Put it back on the file name.
-    (setq filename (concat (file-name-nondirectory filename) dir))
+    (setq filename (concat dir (file-name-nondirectory filename)))
     ;; Is the file name the name of a link?
     (setq target (file-symlink-p filename))
     (if target
