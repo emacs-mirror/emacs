@@ -2000,7 +2000,7 @@ argument function's results.
 signal an error instead of returning nil if decoding fails.
 
 ** The function sendmail-user-agent-compose now recognizes a `body'
-header is the list of headers passed to it.
+header in the list of headers passed to it.
 
 ** The new function member-ignore-case works like `member', but
 ignores differences in case and text representation.
