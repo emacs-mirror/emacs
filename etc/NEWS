@@ -2453,7 +2453,7 @@ restriction to be restored incorrectly.
 when they find 8-bit characters.  Previously, they included `ascii' in a
 multibyte buffer and `unknown' in a unibyte buffer.
 
-*** The functions `set-buffer-modified', `string-as-multibyte' and
+*** The functions `set-buffer-multibyte', `string-as-multibyte' and
 `string-as-unibyte' change the byte sequence of a buffer or a string
 if it contains a character from the `eight-bit-control' character set.
 
