@@ -179,11 +179,6 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    your system and must be used only through an encapsulation
    (Which you should place, by convention, in sysdep.c).  */
 
-/* Some compilers tend to put everything declared static
-   into the initialized data area, which becomes pure after dumping Emacs.
-   On these systems, you must #define static as nothing to foil this.
-   Note that emacs carefully avoids static vars inside functions.  */
-
 /* Define this to be the separator between path elements */
 #define DIRECTORY_SEP '\\'
 
