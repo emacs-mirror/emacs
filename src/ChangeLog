@@ -1,5 +1,8 @@
 2002-08-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* sysdep.c [MSDOS]: Don't define request_sigio and
+	unrequest_sigio, they are defined on msdos.c.
+
 	* mem-limits.h [MSDOS]: Declare etext.
 
 	* fileio.c (Ffile_name_directory) [DOS_NT]: Don't declare `beg'
