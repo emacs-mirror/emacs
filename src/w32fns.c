@@ -5736,6 +5736,8 @@ w32_to_x_font (lplogfont, lpxstr, len)
 
   setup_coding_system (Fcheck_coding_system (Vw32_system_coding_system),
                        &coding);
+  coding.src_multibyte = 0;
+  coding.dst_multibyte = 1;
   coding.mode |= CODING_MODE_LAST_BLOCK;
   bufsz = decoding_buffer_size (&coding, LF_FACESIZE);
 
@@ -5851,6 +5853,8 @@ x_to_w32_font (lpxstr, lplogfont)
 
           setup_coding_system
             (Fcheck_coding_system (Vw32_system_coding_system), &coding);
+	  coding.src_multibyte = 1;
+	  coding.dst_multibyte = 1;
 	  bufsize = encoding_buffer_size (&coding, strlen (name));
 	  buf = (unsigned char *) alloca (bufsize);
           coding.mode |= CODING_MODE_LAST_BLOCK;
