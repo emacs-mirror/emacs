@@ -1,3 +1,10 @@
+2003-11-25  Stephen Eglen  <stephen@bushmills.inf.ed.ac.uk>
+
+	* iswitchb.el (iswitchb-read-buffer,iswitchb-exit-minibuffer):
+	iswitchb-exit is set to 'usefirst when user selects buffer at head
+	of list using RET.  (Selecting buffers at the head of the list was
+	broken if the substring was also a complete buffername.)
+
 2003-11-23  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/compile.el (grep-command, grep-use-null-device)
