@@ -1,3 +1,12 @@
+2002-04-15  Francesco Potorti`  <pot@gnu.org>
+
+	* etags.c (get_language_from_filename): Add one argument.
+	(strcaseeq): New function.
+	(get_language_from_filename): Use it to do a case insenstitive
+	comparison if called with appropriate args.
+	(find_entries): Try with case insensitive match.
+	(process_file): Bug fixed.
+
 2002-04-13  Francesco Potorti`  <pot@gnu.org>
 
 	* etags.c (find_entries): Delete tags previously obtained from
