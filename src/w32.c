@@ -2131,7 +2131,6 @@ term_ntproc ()
 #endif
 }
 
-extern BOOL restrict_dos_process;
 extern BOOL dos_process_running;
 
 void
@@ -2212,19 +2211,18 @@ init_ntproc ()
     fdopen (2, "w");
   }
 
-  /* On Windows 95 only, restrict Emacs to running only one DOS program
-     at a time (with any number of Win32 programs).  This is to prevent
-     the user from running into problems with DOS programs being run in
-     the same VDM under Win95.
+  /* Restrict Emacs to running only one DOS program at a time (with any
+     number of Win32 programs).  This is to prevent the user from
+     running into problems with DOS programs being run in the same VDM
+     under both Windows 95 and Windows NT.
 
      Note that it is possible for Emacs to run DOS programs in separate
-     VDMs under Win95, but unfortunately the pipe implementation then
+     VDMs, but unfortunately the pipe implementation on Windows 95 then
      fails to report when the DOS process exits (which is supposed to
      break the pipe).  Until this bug is fixed, or we can devise a
      work-around, we must try to avoid letting the user start more than
      one DOS program if possible.  */
 
-  restrict_dos_process = (GetVersion () & 0x80000000);
   dos_process_running = FALSE;
 
   /* unfortunately, atexit depends on implementation of malloc */
