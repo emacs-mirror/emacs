@@ -1,3 +1,27 @@
+2000-10-21  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* progmodes/sh-script.el (sh-mode-map): Remove bindings for
+	sh-electric-rparen, sh-electric-less and sh-electric-hash.
+	(sh-st-punc, sh-here-doc-syntax): Use string-to-syntax.
+	(sh-font-lock-heredoc, sh-font-lock-paren): New funs.
+	(sh-font-lock-syntactic-keywords): Use them.
+	(sh-heredoc-face, sh-st-face, sh-special-syntax): Remove.
+	(sh-mkword-regexp, sh-electric-rparen-needed-here): Remove.
+	(sh-mode): Don't override font-lock-unfontify-region-function.
+	Use a copy of sh-font-lock-syntactic-keywords.
+	(sh-set-shell): Don't set sh-electric-rparen-needed-here.
+	Don't call sh-scan-buffer since font-lock does it on the fly.
+	(sh-get-indent-info): Use `face' rather than `syntax-table'
+	text-property to detect here-documents.
+	Replace sh-special-syntax with sh-st-punc.
+	(sh-prev-line): Use `face' rather than `syntax-table'
+	text-property to skip over here-documents.
+	(sh-font-lock-unfontify-region-function, sh-check-paren-in-case)
+	(sh-set-char-syntax, sh-electric-rparen, sh-electric-hash)
+	(sh-electric-less, sh-set-here-doc-region)
+	(sh-remove-our-text-properties, sh-search-word, sh-scan-case) 
+	(sh-scan-buffer, sh-rescan-buffer): Remove.
+
 2000-10-21  Andrew Innes  <andrewi@gnu.org>
 
 	* w32-fns.el (make-auto-save-file-name): Don't apply conversion to
