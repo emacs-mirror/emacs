@@ -785,8 +785,10 @@ Recommended as a parent keymap for modes using widgets.")
     (define-key map "\C-k" 'widget-kill-line)
     (define-key map "\M-\t" 'widget-complete)
     (define-key map "\C-m" 'widget-field-activate)
-    (define-key map "\C-a" 'widget-beginning-of-line)
-    (define-key map "\C-e" 'widget-end-of-line)
+    ;; Since the widget code uses a `field' property to identify fields,
+    ;; ordinary beginning-of-line/end-of-line do the right thing.
+    ;;  (define-key map "\C-a" 'widget-beginning-of-line)
+    ;;  (define-key map "\C-e" 'widget-end-of-line)
     (set-keymap-parent map global-map)
     map)
   "Keymap used inside an editable field.")
@@ -795,8 +797,10 @@ Recommended as a parent keymap for modes using widgets.")
   (let ((map (copy-keymap widget-keymap)))
     (define-key map [menu-bar] nil)
     (define-key map [tool-bar] nil)
-    (define-key map "\C-a" 'widget-beginning-of-line)
-    (define-key map "\C-e" 'widget-end-of-line)
+    ;; Since the widget code uses a `field' property to identify fields,
+    ;; ordinary beginning-of-line/end-of-line do the right thing.
+    ;;  (define-key map "\C-a" 'widget-beginning-of-line)
+    ;;  (define-key map "\C-e" 'widget-end-of-line)
     (set-keymap-parent map global-map)
     map)
   "Keymap used inside a text field.")
@@ -974,23 +978,10 @@ With optional ARG, move across that many fields."
   (run-hooks 'widget-backward-hook)
   (widget-move (- arg)))
 
-(defun widget-beginning-of-line ()
-  "Go to beginning of field or beginning of line, whichever is first."
-  (interactive)
-  (let* ((field (widget-field-find (point)))
-	 (start (and field (widget-field-start field))))
-    (goto-char (if start
-                   (max start (line-beginning-position))
-                 (line-beginning-position)))))
-
-(defun widget-end-of-line ()
-  "Go to end of field or end of line, whichever is first."
-  (interactive)
-  (let* ((field (widget-field-find (point)))
-	 (end (and field (widget-field-end field))))
-    (goto-char (if end
-                   (min end (line-end-position))
-                 (line-end-position)))))
+;; Since the widget code uses a `field' property to identify fields,
+;; ordinary beginning-of-line/end-of-line do the right thing.
+(defalias 'widget-beginning-of-line 'beginning-of-line)
+(defalias 'widget-end-of-line 'end-of-line)
 
 (defun widget-kill-line ()
   "Kill to end of field or end of line, whichever is first."
