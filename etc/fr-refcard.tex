@@ -6,7 +6,7 @@
 % This file can be printed with 1, 2, or 3 columns per page (see below).
 % Specify how many you want here.  Nothing else needs to be changed.
 
-\columnsperpage=2
+\columnsperpage=1
 
 % Copyright (c) 1987, 1993, 1996, 1997 Free Software Foundation, Inc.
 
@@ -217,7 +217,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 % beginexample...endexample - surrounds literal text, such a code example.
 % typeset in a typewriter font with line breaks preserved
 \def\beginexample{\par\leavevmode\begingroup
-  \obeylines\obeyspaces\parskip0pt\tt}
+  \obeylines\obeyspaces\parskip0pt\tt\tolerance=10000}
 {\obeyspaces\global\let =\ }
 \def\endexample{\endgroup}
 
@@ -225,9 +225,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 % \key{description of key}{key-name}
 % prints the description left-justified, and the key-name in a \kbd
 % form near the right margin.
-\def\key#1#2{\leavevmode\hbox to \hsize{\vtop
-  {\hsize=.75\hsize\rightskip=1em
-  \hskip\keyindent\relax#1}\kbd{#2}\hfil}}
+\def\key#1#2{\leavevmode\hbox to \hsize{\vbox
+  {\hsize=.75\hsize\rightskip=1em \tolerance=20000
+   \raggedright
+   \hskip\keyindent\hangindent=1em\strut#1\strut}\kbd{\quad#2}\hss}}
 
 \newbox\metaxbox
 \setbox\metaxbox\hbox{\kbd{M-x }}
@@ -238,10 +239,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 % \metax{description of command}{M-x command-name}
 % Tries to justify the beginning of the command name at the same place
 % as \key starts the key name.  (The "M-x " sticks out to the left.)
-\def\metax#1#2{\leavevmode\hbox to \hsize{\hbox to .75\hsize
-  {\hskip\keyindent\relax#1\hfil}%
-  \hskip -\metaxwidth minus 1fil
-  \kbd{#2}\hfil}}
+\def\metax#1#2{\leavevmode\hbox to \hsize{\vbox
+  {\hsize=.74\hsize\rightskip=1em
+   \raggedright \tolerance=20000
+   \hskip\keyindent\hangindent=1em\strut#1\strut\par}%
+   %\hskip-\metaxwidth minus 1fil
+   \kbd{#2}\hss}}
 
 % threecol - like "key" but with two key names.
 % for example, one for doing the action backward, and one for forward.
