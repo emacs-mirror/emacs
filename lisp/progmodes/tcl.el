@@ -1,18 +1,18 @@
 ;; tcl.el --- Tcl code editing commands for Emacs
 
-;; Copyright (C) 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1998 Free Software Foundation, Inc.
 
 ;; Maintainer: Tom Tromey <tromey@busco.lanl.gov>
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.50 $
+;; Version: $Revision: 1.51 $
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 1, or (at your option)
+;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1996/03/23 05:14:50 $|$Revision: 1.50 $|~/modes/tcl.el.Z|
+;; $Date: 1996/09/12 17:02:52 $|$Revision: 1.51 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+;; Revision 1.51  1996/09/12 17:02:52  tromey
+;; (tcl-indent-command): Use insert-tab, not self-insert-command.
+;;
 ;; Revision 1.50  1996/03/23  05:14:50  tromey
 ;; (tcl-using-emacs-19): Work with XEmacs 20.0.  From Ben Wing.
 ;;
@@ -370,7 +373,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.50 $")
+(defconst tcl-version "$Revision: 1.51 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@drip.colorado.edu>")
 
 ;;
@@ -653,7 +656,7 @@ Emacs 18 users must use `setq':
   "Hook for customizing Inferior Tcl mode.")
 
 (defvar tcl-proc-list
-  '("proc" "method" "itcl_class")
+  '("proc" "method" "itcl_class" "body" "configbody" "class")
   "List of commands whose first argument defines something.
 This exists because some people (eg, me) use \"defvar\" et al.
 Call `tcl-set-proc-regexp' and `tcl-set-font-lock-keywords'
@@ -663,7 +666,8 @@ after changing this list.")
   "Regexp to use when matching proc headers.")
 
 (defvar tcl-typeword-list
-  '("global" "upvar" "inherit" "public" "protected" "common")
+  '("global" "upvar" "inherit" "public" "protected" "private"
+    "common" "itk_option")
   "List of Tcl keywords denoting \"type\".  Used only for highlighting.
 Call `tcl-set-font-lock-keywords' after changing this list.")
 
