@@ -2553,7 +2553,8 @@ to switch between two values."
 		custom-face-attributes))
 
 (defun custom-face-edit-fix-value (widget value)
-  "Ignoring WIDGET, convert :bold and :italic in VALUE to new form."
+  "Ignoring WIDGET, convert :bold and :italic in VALUE to new form.
+Also change :reverse-video to :inverse-video."
   (if (listp value)
       (let (result)
 	(while value
@@ -2565,6 +2566,9 @@ to switch between two values."
 		  ((eq key :bold)
 		   (push :weight result)
 		   (push (if val 'bold 'normal) result))
+		  ((eq key :reverse-video)
+		   (push :inverse-video result)
+		   (push val result))
 		  (t 
 		   (push key result)
 		   (push val result))))
