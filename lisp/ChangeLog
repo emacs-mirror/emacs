@@ -1,3 +1,31 @@
+2003-04-04  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/etags.el (find-file-of-tag-noselect, find-file-of-tag):
+	New helper functions.
+	(snarf-tag-function): Doc string is changed.  Explained about new
+	optional argument, `use-explicit'.
+	(etags-snarf-tag): Added one optional argument `use-explicit'.
+	(file-of-tag-function): Doc string is changed.  Explained about new
+	optional argument, `relative'.
+	(file-of-tag): Doc string is changed.  Explained about new optional
+	argument, `relative'.  Pass `relative' to `file-of-tag-function'.
+	(etags-file-of-tag): Added new argument `relative`.
+	(list-tags): Set `buffer-read-only' to t after making the major mode
+	apropos-mode.
+	(etags-list-tags): Used `make-text-button' instead of
+	`add-text-properties'.  Used `snarf-tag-function',
+	`goto-tag-location-function' and `find-file-of-tag' instead of
+	`find-tag-other-window' (it's too simple).
+	(find-tag-in-order): Used `find-file-of-tag-noselect' instead of
+	`find-file'.
+	(etags-tags-apropos): Used `find-file-of-tag-noselect' instead of
+	`find-file'.  Do not use `etags-goto-tag-location` directly; use
+	`goto-tag-location-function' instead.  Print relative file paths
+	instead of complete ones in *Tags List* buffer, so lines in the
+	buffer become shorter.
+	(etags-tags-apropos-additional): Use `make-text-button' instead of
+	`add-text-properties'.
+
 2003-04-04  Andreas Schwab  <schwab@suse.de>
 
 	* net/tramp.el (tramp-send-string): Handle empty string.
