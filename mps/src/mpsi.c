@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM INTERFACE LAYER
  *
- * $HopeName: !mpsi.c(trunk.6) $
+ * $HopeName: MMsrc!mpsi.c(trunk.7) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .thread-safety: Most calls through this interface lock the space
@@ -25,14 +25,30 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-SRCID("$HopeName: !mpsi.c(trunk.6) $");
+SRCID("$HopeName: MMsrc!mpsi.c(trunk.7) $");
 
 
 /* Check consistency of interface mappings. */
 
+#define CHECKLVALUE(lv1, lv2) \
+  (sizeof((lv1) = (lv2)), sizeof((lv2) = (lv1)), TRUE)
+
+#define CHECKTYPE(t1, t2) \
+  (sizeof(t1) == sizeof(t2) && \
+   CHECKLVALUE(*((t1 *)0), *((t2 *)0)))
+
+#define CHECKFIELDAPPROX(s1, f1, s2, f2) \
+  (sizeof(((s1 *)0)->f1) == sizeof(((s2 *)0)->f2) && \
+   offsetof(s1, f1) == offsetof(s2, f2))
+
+#define CHECKFIELD(s1, f1, s2, f2) \
+  (CHECKFIELDAPPROX(s1, f1, s2, f2) && \
+   CHECKLVALUE(((s1 *)0)->f1, ((s2 *)0)->f2))
+
 static Bool mpsi_check(void)
 {
   /* Check that external and internal result codes match. */
+  AVER(CHECKTYPE(mps_res_t, Error));
   AVER(MPS_RES_OK == ErrSUCCESS);
   AVER(MPS_RES_FAIL == ErrFAILURE);
   AVER(MPS_RES_RESOURCE == ErrRESOURCE);
@@ -42,6 +58,7 @@ static Bool mpsi_check(void)
   AVER(MPS_RES_IO == ErrIO);
 
   /* Check that external and internal rank numbers match. */
+  AVER(CHECKTYPE(mps_rank_t, RefRank));
   AVER(MPS_RANK_AMBIG == RefRankAMBIG);
   AVER(MPS_RANK_EXACT == RefRankEXACT);
   AVER(MPS_RANK_WEAK == RefRankWEAK);
@@ -51,20 +68,21 @@ static Bool mpsi_check(void)
   /* had better match. */
   AVER(MPS_WORD_WIDTH == ADDRWIDTH);
   AVER(sizeof(mps_word_t) == sizeof(void *));
-  AVER(sizeof(mps_word_t) == sizeof(Addr));
+  AVER(CHECKTYPE(mps_word_t, Addr));
 
   /* Check ap_s/ApStruct compatibility by hand */
+  /* .check.ap: See also impl.h.buffer.ap. */
   AVER(sizeof(mps_ap_s) == sizeof(ApStruct));
-  AVER(offsetof(mps_ap_s, init) == offsetof(ApStruct, init));
-  AVER(offsetof(mps_ap_s, alloc) == offsetof(ApStruct, alloc));
-  AVER(offsetof(mps_ap_s, limit) == offsetof(ApStruct, limit));
+  AVER(CHECKFIELDAPPROX(mps_ap_s, init,  ApStruct, init));
+  AVER(CHECKFIELDAPPROX(mps_ap_s, alloc, ApStruct, alloc));
+  AVER(CHECKFIELDAPPROX(mps_ap_s, limit, ApStruct, limit));
 
   /* Check ss_s/ScanStateStruct compatibility by hand */
-  AVER(sizeof(mps_ss_s) == sizeof(ScanStateStruct));
-  AVER(offsetof(mps_ss_s, fix) == offsetof(ScanStateStruct, fix));
-  AVER(offsetof(mps_ss_s, w0) == offsetof(ScanStateStruct, zoneShift));
-  AVER(offsetof(mps_ss_s, w1) == offsetof(ScanStateStruct, condemned));
-  AVER(offsetof(mps_ss_s, w2) == offsetof(ScanStateStruct, summary));
+  /* .check.ss: See also impl.h.trace.ss. */
+  AVER(CHECKFIELDAPPROX(mps_ss_s, fix, ScanStateStruct, fix));
+  AVER(CHECKFIELD(mps_ss_s, w0, ScanStateStruct, zoneShift));
+  AVER(CHECKFIELD(mps_ss_s, w1, ScanStateStruct, condemned));
+  AVER(CHECKFIELD(mps_ss_s, w2, ScanStateStruct, summary));
 
   return TRUE;
 }
@@ -113,7 +131,8 @@ mps_res_t mps_fmt_create_A(mps_fmt_t *mps_fmt_o,
                    (FormatSkipMethod)mps_fmt_A->skip,
                    (FormatMoveMethod)mps_fmt_A->fwd,
                    (FormatIsMovedMethod)mps_fmt_A->isfwd,
-                   (FormatCopyMethod)mps_fmt_A->copy);
+                   (FormatCopyMethod)mps_fmt_A->copy,
+                   (FormatPadMethod)mps_fmt_A->pad);
   SpaceLockRelease(space);
   return e;
 }
@@ -197,6 +216,9 @@ mps_res_t mps_alloc(mps_addr_t *p_o,
 
   SpaceLockClaim(space);
 
+  /* Give the space the opportunity to steal CPU time. */
+  SpacePoll(space);
+  
   AVER(p_o != NULL);
   AVER(ISVALID(Pool, pool));
   AVER(size > 0);
@@ -205,7 +227,7 @@ mps_res_t mps_alloc(mps_addr_t *p_o,
   /* Varargs are ignored at the moment -- none of the pool */
   /* implementations use them, and they're not passed through. */
   e = PoolAlloc((Addr *)p_o, pool, size);
-  
+
   SpaceLockRelease(space);
   return e;
 }
@@ -220,6 +242,9 @@ mps_res_t mps_alloc_v(mps_addr_t *p_o,
 
   SpaceLockClaim(space);
 
+  /* Give the space the opportunity to steal CPU time. */
+  SpacePoll(space);
+  
   AVER(p_o != NULL);
   AVER(ISVALID(Pool, pool));
   AVER(size > 0);
@@ -314,37 +339,37 @@ void mps_ap_destroy(mps_ap_t mps_ap)
 
 mps_res_t (mps_reserve)(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
 {
-  Buffer buf = BufferOfAp((Ap)mps_ap);
-  Space space = BufferSpace(buf);
-  Error e;
+  mps_res_t res;
 
-  SpaceLockClaim(space);
+  /* mps_reserve does not call BufferReserve, but instead uses the */
+  /* in-line macro from impl.h.mps.  This is so that it calls mps_ap_fill */
+  /* and thence SpacePoll.  The consistency checks here are the ones */
+  /* which can be done outside the interface. */
 
   AVER(p_o != NULL);
-  AVER(ISVALID(Buffer, buf));
   AVER(size > 0);
-  AVER(IsAligned(BufferPool(buf)->alignment, size));
-    
-  e = (BufferReserve)((Addr *)p_o, buf, size);
-  SpaceLockRelease(space);
-  return e;
+  AVER(mps_ap != NULL);
+  AVER(mps_ap->init == mps_ap->alloc);
+
+  MPS_RESERVE_BLOCK(res, *p_o, mps_ap, size);
+
+  return res;
 }
 
 mps_bool_t (mps_commit)(mps_ap_t mps_ap, mps_addr_t p, size_t size)
 {
-  Buffer buf = BufferOfAp((Ap)mps_ap);
-  Space space = BufferSpace(buf);
-  Bool b;
+  /* mps_commit does not call BufferCommit, but instead uses the */
+  /* in-line commit macro from impl.h.mps.  This is so that it calls */
+  /* mps_ap_trip.  The consistency checks here are the ones which can be */
+  /* done outside the interface. */
 
-  SpaceLockClaim(space);
-
-  AVER(ISVALID(Buffer, buf));
+  AVER(mps_ap != NULL);
+  AVER(p != NULL);
   AVER(size > 0);
-  AVER(IsAligned(BufferPool(buf)->alignment, size));
+  AVER(p == mps_ap->init);
+  AVER((void *)((char *)mps_ap->init + size) == mps_ap->alloc);
 
-  b = (BufferCommit)(buf, (Addr)p, size);
-  SpaceLockRelease(space);
-  return b;
+  return mps_commit(mps_ap, p, size);
 }
 
 mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
@@ -355,12 +380,16 @@ mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
 
   SpaceLockClaim(space);
 
+  /* Give the space the opportunity to steal CPU time. */
+  SpacePoll(space);
+
   AVER(p_o != NULL);
   AVER(ISVALID(Buffer, buf));
   AVER(size > 0);
   AVER(IsAligned(BufferPool(buf)->alignment, size));
 
   e = BufferFill((Addr *)p_o, buf, size);
+
   SpaceLockRelease(space);
   return e;
 }
