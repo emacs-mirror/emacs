@@ -1418,7 +1418,9 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		      /* Skip any number of invisible lines all at once */
 		      do
 			{
-			  pos = find_before_next_newline (pos, to, 1) + 1;
+			  pos = find_before_next_newline (pos, to, 1);
+			  if (pos < to)
+			    pos++;
 			  pos_byte = CHAR_TO_BYTE (pos);
 			}
 		      while (pos < to
