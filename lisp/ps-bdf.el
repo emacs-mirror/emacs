@@ -104,7 +104,12 @@ If BDFNAME doesn't exist, return nil."
 	     (insert-file-contents file-name)
 	     buf)))))
 
-(defvar bdf-cache-file (convert-standard-filename "~/.bdfcache.el")
+(defvar bdf-cache-file (if (eq system-type 'ms-dos)
+			   ;; convert-standard-filename doesn't
+			   ;; guarantee that the .el extension will be
+			   ;; preserved.
+			   "~/_bdfcache.el"
+			 (convert-standard-filename "~/.bdfcache.el"))
   "Name of cache file which contains information of `BDF' font files.")
 
 (defvar bdf-cache nil
