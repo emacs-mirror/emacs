@@ -1,3 +1,17 @@
+2002-03-08  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* mpuz.el (mpuz-unsolved-face, mpuz-solved-face)
+	(mpuz-trivial-face, mpuz-text-face, mpuz-solve-when-trivial)
+	(mpuz-allow-double-multiplicator): New options for nicer look and
+	new features.
+	(mpuz-put-number-on-board, mpuz-paint-number, mpuz-solve): New
+	functions.
+	(mpuz-check-all-solved, mpuz-random-puzzle)
+	(mpuz-paint-statistics, mpuz-paint-digit, mpuz-close-game)
+	(mpuz-show-solution): Functions streamlined and removed french
+	style space before punctuation, added face support and optional
+	solving of trivial results.
+
 2002-03-07  Colin Walters  <walters@verbum.org>
 
 	* ibuf-macs.el (define-ibuffer-column): Add :summarizer property.
