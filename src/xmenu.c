@@ -1609,7 +1609,7 @@ set_frame_menubar (f, first_time, deep_p)
 	 really recompute the menubar from the value.  */
       if (! NILP (Vlucid_menu_bar_dirty_flag))
 	call0 (Qrecompute_lucid_menubar);
-      call1 (Vrun_hooks, Qmenu_bar_update_hook);
+      safe_run_hooks (Qmenu_bar_update_hook);
       FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
 
       items = FRAME_MENU_BAR_ITEMS (f);
