@@ -5762,8 +5762,8 @@ Lisp_Object
 marginal_area_string (w, x, y, area, charpos)
      struct window *w;
      int x, y;
-     int *charpos;
      int area;
+     int *charpos;
 {
   struct glyph_row *row = w->current_matrix->rows;
   struct glyph *glyph, *end;
