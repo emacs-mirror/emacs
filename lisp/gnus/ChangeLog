@@ -2,6 +2,11 @@
 
 	* nnimap.el (nnimap-retrieve-headers-from-server): Fix last change.
 
+2005-03-10  Arne J,Ax(Brgensen <arne@arnested.dk>  (tiny change)
+
+	* nnimap.el (nnimap-retrieve-headers-from-server): Fix off-by-one
+	flaw.
+
 2005-03-08  Bjorn Solberg <bjorn_ding@hekneby.org>  (tiny change)
 
 	* nnimap.el (nnimap-retrieve-headers-from-server): Sort NOV
