@@ -1,5 +1,7 @@
 2002-01-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* tempo.el (tempo-define-template): Doc fix.
+
 	* scroll-bar.el (scroll-bar-mode): Make argument optional.
 
 2002-01-20  Jason Rumney  <jasonr@gnu.org>
