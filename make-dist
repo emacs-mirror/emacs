@@ -199,7 +199,8 @@ echo "Making links to \`lib-src'."
 echo "Making links to \`oldXMenu'."
 (cd oldXMenu
  ln *.c *.h ../${tempdir}/oldXMenu
- ln README Makefile Imakefile ChangeLog ../${tempdir}/oldXMenu)
+ ln README Makefile Imakefile ChangeLog ../${tempdir}/oldXMenu
+ ln compile.mms descrip.mms ../${tempdir}/oldXMenu)
 
 echo "Making links to \`etc'."
 ### Don't distribute = files, TAGS, DOC files, backups, autosaves, or tex litter.
