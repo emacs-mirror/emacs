@@ -4645,6 +4645,7 @@ code_convert_region1 (start, end, coding_system, encodep)
   coding.mode |= CODING_MODE_LAST_BLOCK;
   code_convert_region (from, CHAR_TO_BYTE (from), to, CHAR_TO_BYTE (to),
 		       &coding, encodep, 1);
+  Vlast_coding_system_used = coding.symbol;
   return make_number (coding.produced_char);
 }
 
@@ -4653,7 +4654,10 @@ DEFUN ("decode-coding-region", Fdecode_coding_region, Sdecode_coding_region,
   "Decode the current region by specified coding system.\n\
 When called from a program, takes three arguments:\n\
 START, END, and CODING-SYSTEM.  START and END are buffer positions.\n\
-Return length of decoded text.")
+This function sets `last-coding-system-used' to the precise coding system\n\
+used (which may be different from CODING-SYSTEM if CODING-SYSTEM is\n\
+not fully specified.)\n\
+It returns the length of the decoded text.")
   (start, end, coding_system)
      Lisp_Object start, end, coding_system;
 {
@@ -4665,7 +4669,10 @@ DEFUN ("encode-coding-region", Fencode_coding_region, Sencode_coding_region,
   "Encode the current region by specified coding system.\n\
 When called from a program, takes three arguments:\n\
 START, END, and CODING-SYSTEM.  START and END are buffer positions.\n\
-Return length of encoded text.")
+This function sets `last-coding-system-used' to the precise coding system\n\
+used (which may be different from CODING-SYSTEM if CODING-SYSTEM is\n\
+not fully specified.)\n\
+It returns the length of the encoded text.")
   (start, end, coding_system)
      Lisp_Object start, end, coding_system;
 {
@@ -4689,6 +4696,7 @@ code_convert_string1 (string, coding_system, nocopy, encodep)
     error ("Invalid coding system: %s", XSYMBOL (coding_system)->name->data);
 
   coding.mode |= CODING_MODE_LAST_BLOCK;
+  Vlast_coding_system_used = coding.symbol;
   return code_convert_string (string, &coding, encodep, !NILP (nocopy));
 }
 
@@ -4696,22 +4704,28 @@ DEFUN ("decode-coding-string", Fdecode_coding_string, Sdecode_coding_string,
        2, 3, 0,
   "Decode STRING which is encoded in CODING-SYSTEM, and return the result.\n\
 Optional arg NOCOPY non-nil means it is ok to return STRING itself\n\
-if the decoding operation is trivial.")
+if the decoding operation is trivial.\n\
+This function sets `last-coding-system-used' to the precise coding system\n\
+used (which may be different from CODING-SYSTEM if CODING-SYSTEM is\n\
+not fully specified.)")
   (string, coding_system, nocopy)
      Lisp_Object string, coding_system, nocopy;
 {
-  return code_convert_string1(string, coding_system, nocopy, 0);
+  return code_convert_string1 (string, coding_system, nocopy, 0);
 }
 
 DEFUN ("encode-coding-string", Fencode_coding_string, Sencode_coding_string,
        2, 3, 0,
   "Encode STRING to CODING-SYSTEM, and return the result.\n\
 Optional arg NOCOPY non-nil means it is ok to return STRING itself\n\
-if the encoding operation is trivial.")
+if the encoding operation is trivial.\n\
+This function sets `last-coding-system-used' to the precise coding system\n\
+used (which may be different from CODING-SYSTEM if CODING-SYSTEM is\n\
+not fully specified.)")
   (string, coding_system, nocopy)
      Lisp_Object string, coding_system, nocopy;
 {
-  return code_convert_string1(string, coding_system, nocopy, 1);
+  return code_convert_string1 (string, coding_system, nocopy, 1);
 }
 
 
