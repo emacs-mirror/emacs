@@ -1,3 +1,9 @@
+2000-08-28  Miles Bader  <miles@gnu.org>
+
+	* xfaces.c (merge_face_vectors): Clear TO's :font attribute if
+	made inconsistent by a font-related attribute in FROM.
+	(merge_face_inheritance): Add function comment.
+
 2000-08-28  Kenichi Handa  <handa@etl.go.jp>
 
 	* keyboard.c (read_char_minibuf_menu_prompt): Call read_char with
