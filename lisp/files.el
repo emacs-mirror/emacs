@@ -1248,52 +1248,53 @@ unless NOMODES is non-nil."
       nil
     (let* (not-serious
 	   (msg
-	    (cond ((and error (file-attributes buffer-file-name))
-		   (setq buffer-read-only t)
-		   "File exists, but cannot be read")
-		  ((not buffer-read-only)
-		   (if (and warn
-			    ;; No need to warn if buffer is auto-saved
-			    ;; under the name of the visited file.
-			    (not (and buffer-file-name
-				      auto-save-visited-file-name))
-			    (file-newer-than-file-p (or buffer-auto-save-file-name
-							(make-auto-save-file-name))
-						    buffer-file-name))
-		       (format "%s has auto save data; consider M-x recover-file"
-			       (file-name-nondirectory buffer-file-name))
-		     (setq not-serious t)
-		     (if (and warn error) "(New file)" nil)))
-		  ((not error)
-		   (setq not-serious t)
-		   "Note: file is write protected")
-		  ((file-attributes (directory-file-name default-directory))
-		   "File not found and directory write-protected")
-		  ((file-exists-p (file-name-directory buffer-file-name))
-		   (setq buffer-read-only nil))
-		  (t
-		   (setq buffer-read-only nil)
-		   (if (file-exists-p (file-name-directory (directory-file-name (file-name-directory buffer-file-name))))
-		       "Use M-x make-directory RET RET to create the directory"
-		     "Use C-u M-x make-directory RET RET to create directory and its parents")))))
-      (if msg
-	  (progn
-	    (message msg)
-	    (or not-serious (sit-for 1 nil t)))))
-    (if (and auto-save-default (not noauto))
-	(auto-save-mode t)))
+	    (cond
+	     ((not warn) nil)
+	     ((and error (file-attributes buffer-file-name))
+	      (setq buffer-read-only t)
+	      "File exists, but cannot be read")
+	     ((not buffer-read-only)
+	      (if (and warn
+		       ;; No need to warn if buffer is auto-saved
+		       ;; under the name of the visited file.
+		       (not (and buffer-file-name
+				 auto-save-visited-file-name))
+		       (file-newer-than-file-p (or buffer-auto-save-file-name
+						   (make-auto-save-file-name))
+					       buffer-file-name))
+		  (format "%s has auto save data; consider M-x recover-file"
+			  (file-name-nondirectory buffer-file-name))
+		(setq not-serious t)
+		(if error "(New file)" nil)))
+	     ((not error)
+	      (setq not-serious t)
+	      "Note: file is write protected")
+	     ((file-attributes (directory-file-name default-directory))
+	      "File not found and directory write-protected")
+	     ((file-exists-p (file-name-directory buffer-file-name))
+	      (setq buffer-read-only nil))
+	     (t
+	      (setq buffer-read-only nil)
+	      (if (file-exists-p (file-name-directory (directory-file-name (file-name-directory buffer-file-name))))
+		  "Use M-x make-directory RET RET to create the directory"
+		"Use C-u M-x make-directory RET RET to create directory and its parents")))))
+      (when msg
+	(message msg)
+	(or not-serious (sit-for 1 nil t))))
+    (when (and auto-save-default (not noauto))
+      (auto-save-mode t)))
   ;; Make people do a little extra work (C-x C-q)
   ;; before altering a backup file.
-  (if (backup-file-name-p buffer-file-name)
-      (setq buffer-read-only t))
-  (if nomodes
-      nil
-    (and view-read-only view-mode
-	 (view-mode-disable))
+  (when (backup-file-name-p buffer-file-name)
+    (setq buffer-read-only t))
+  (unless nomodes
+    (when (and view-read-only view-mode)
+      (view-mode-disable))
     (normal-mode t)
-    (if (and buffer-read-only view-read-only
-	     (not (eq (get major-mode 'mode-class) 'special)))
-	(view-mode-enter))
+    (when (and buffer-read-only
+	       view-read-only
+	       (not (eq (get major-mode 'mode-class) 'special)))
+      (view-mode-enter))
     (run-hooks 'find-file-hooks)))
 
 (defun normal-mode (&optional find-file)
