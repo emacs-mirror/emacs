@@ -148,7 +148,7 @@ quote_file_name (name)
 
 /* Like malloc but get fatal error if memory is exhausted.  */
 
-char *
+long *
 xmalloc (size)
      unsigned int size;
 {
