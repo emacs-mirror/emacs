@@ -99,6 +99,14 @@ nil for default sorting by visited order.")
 (defvar Buffer-menu-mode-map nil
   "Local keymap for `Buffer-menu-mode' buffers.")
 
+(defvar Buffer-menu-files-only nil
+  "Non-nil if the current buffer-menu lists only file buffers.
+This variable determines whether reverting the buffer lists only
+file buffers.  It affects both manual reverting and reverting by
+Auto Revert Mode.")
+
+(make-variable-buffer-local 'Buffer-menu-files-only)
+
 (if Buffer-menu-mode-map
     ()
   (setq Buffer-menu-mode-map (make-keymap))
@@ -131,6 +139,7 @@ nil for default sorting by visited order.")
   (define-key Buffer-menu-mode-map "b" 'Buffer-menu-bury)
   (define-key Buffer-menu-mode-map "g" 'Buffer-menu-revert)
   (define-key Buffer-menu-mode-map "V" 'Buffer-menu-view)
+  (define-key Buffer-menu-mode-map "T" 'Buffer-menu-toggle-files-only)
   (define-key Buffer-menu-mode-map [mouse-2] 'Buffer-menu-mouse-select)
 )
 
@@ -167,13 +176,16 @@ Letters do not insert themselves; instead, they are commands.
 \\[Buffer-menu-backup-unmark] -- back up a line and remove marks.
 \\[Buffer-menu-toggle-read-only] -- toggle read-only status of buffer on this line.
 \\[Buffer-menu-revert] -- update the list of buffers.
+\\[Buffer-menu-toggle-files-only] -- toggle whether the menu displays only file buffers.
 \\[Buffer-menu-bury] -- bury the buffer listed on this line."
   (kill-all-local-variables)
   (use-local-map Buffer-menu-mode-map)
   (setq major-mode 'Buffer-menu-mode)
   (setq mode-name "Buffer Menu")
-  (make-local-variable 'revert-buffer-function)
-  (setq revert-buffer-function 'Buffer-menu-revert-function)
+  (set (make-local-variable 'revert-buffer-function)
+       'Buffer-menu-revert-function)
+  (set (make-local-variable 'buffer-stale-function)
+       #'(lambda (&optional noconfirm) t))
   (setq truncate-lines t)
   (setq buffer-read-only t)
   (run-hooks 'buffer-menu-mode-hook))
@@ -184,7 +196,21 @@ Letters do not insert themselves; instead, they are commands.
   (revert-buffer))
 
 (defun Buffer-menu-revert-function (ignore1 ignore2)
-  (list-buffers))
+  ;; We can not use save-excursion here.  The buffer gets erased.
+  (let ((old-point (point)))
+    (list-buffers-noselect Buffer-menu-files-only)
+    (goto-char old-point)))
+
+(defun Buffer-menu-toggle-files-only (arg)
+  "Toggle whether the current buffer-menu displays only file buffers.
+With a positive ARG display only file buffers.  With zero or
+negative ARG, display other buffers as well."
+  (interactive "P")
+  (setq Buffer-menu-files-only
+	(cond ((not arg) (not Buffer-menu-files-only))
+	      ((> (prefix-numeric-value arg) 0) t)))
+  (revert-buffer))
+
 
 (defun Buffer-menu-buffer (error-if-non-existent-p)
   "Return buffer described by this line of buffer menu."
@@ -681,6 +707,8 @@ For more information, see the function `buffer-menu'."
       ;; current buffer is not displayed for some reason.
       (and desired-point
 	   (goto-char desired-point))
+      (setq Buffer-menu-files-only files-only)
+      (set-buffer-modified-p nil)
       (current-buffer))))
 
 ;;; arch-tag: e7dfcfc9-6cb2-46e4-bf55-8ef1936d83c6
