@@ -2659,7 +2659,7 @@ WIth prefix argument N, move N items (negative N means move backward)."
     (if (and (not (eobp)) (get-text-property (point) 'mouse-face))
 	(setq end (point) beg (1+ (point))))
     (if (and (not (bobp)) (get-text-property (1- (point)) 'mouse-face))
-	(setq end (1- (point)) beg(point)))
+	(setq end (1- (point)) beg (point)))
     (if (null beg)
 	(error "No completion here"))
     (setq beg (previous-single-property-change beg 'mouse-face))
@@ -2737,11 +2737,13 @@ Use \\<completion-list-mode-map>\\[mouse-choose-completion] to select one\
 
 (defun completion-setup-function ()
   (save-excursion
-    (let ((mainbuf (current-buffer)))
+    (let ((mainbuf (current-buffer))
+	  (base-size (- (point-max) (point-min))))
       (set-buffer standard-output)
       (completion-list-mode)
       (make-local-variable 'completion-reference-buffer)
       (setq completion-reference-buffer mainbuf)
+      (setq completion-base-size base-size)
       (goto-char (point-min))
       (if window-system
 	  (insert (substitute-command-keys
