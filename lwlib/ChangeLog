@@ -17,8 +17,7 @@
 	* xrdb.c, xrdb-cpp.c, Imakefile, dispatch.c, dispatch.h:
 	Remove unused file.
 
-	* lwlib.c (instantiate_widget_instance): Remove duplicated
-	prototype.
+	* lwlib.c (instantiate_widget_instance): Remove duplicated prototype.
 
 2002-04-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
@@ -45,9 +44,9 @@
 2002-04-19  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	These changes allow moving in menu via keyboard.
-	
-	* xlwmenu.c (xlwMenuTranslations, xlwMenuActionsList): Add
-	translations for cursor keys and RET.
+
+	* xlwmenu.c (xlwMenuTranslations, xlwMenuActionsList):
+	Add translations for cursor keys and RET.
 	(find_next_selectable, find_prev_selectable): New functions used
 	for finding menu-items.
 	(Down, Up, Left, Right): New functions.
@@ -77,8 +76,7 @@
 
 2001-12-18  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* lwlib.c (separator_names): Add missing braces around
-	initializers.
+	* lwlib.c (separator_names): Add missing braces around initializers.
 
 2001-12-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
@@ -150,13 +148,11 @@
 
 	* lwlib-Xm.c (xm_update_radiobox, update_one_menu_entry)
 	(xm_update_one_widget): Use XtSetSensitive instead of setting the
-	value of XmNsensitive.  From Rick Scott
-	<rwscott@alumni.uwaterloo.ca>.
+	value of XmNsensitive.  From Rick Scott <rwscott@alumni.uwaterloo.ca>.
 
 2000-12-14  Dave Love  <fx@gnu.org>
 
-	* xlwmenu.c (gray_bitmap_bits): Remove `unsigned' from
-	declaration.
+	* xlwmenu.c (gray_bitmap_bits): Remove `unsigned' from declaration.
 
 2000-12-11  Dave Love  <fx@gnu.org>
 
@@ -253,8 +249,7 @@
 	* xlwmenu.c (x_alloc_nearest_color_for_widget, x_catch_errors)
 	(x_uncatch_errors, x_had_errors_p, x_clear_errors): Add prototypes
 	-- should be moved into separate header.
-	(make_shadow_gcs) <x_alloc_nearest_color_for_widget>: Cast first
-	arg.
+	(make_shadow_gcs) <x_alloc_nearest_color_for_widget>: Cast first arg.
 	(Start) <pop_up_menu>: Cast second arg.
 
 	* lwlib.c (P_): Use PROTOTYPES.
@@ -331,8 +326,8 @@
 	* lwlib.c (copy_widget_value_tree): Copy help string.
 	(free_widget_value_tree): Free help string.
 	(merge_widget_value): Handle help string.
-	(allocate_widget_info, lw_register_widget, lw_create_widget): Add
-	parameter HIGHLIGHT_CB.
+	(allocate_widget_info, lw_register_widget, lw_create_widget):
+	Add parameter HIGHLIGHT_CB.
 	(lw_get_widget_instance): New function.
 
 	* lwlib-int.h: Add prototype for lw_get_widget_instance.
@@ -359,8 +354,8 @@
 
 1999-10-07  Gerd Moellmann  <gerd@gnu.org>
 
-	* lwlib-Xm.c (make_menu_in_widget, update_one_menu_entry): Use
-	widgets instead of gadgets to be able to set colors.
+	* lwlib-Xm.c (make_menu_in_widget, update_one_menu_entry):
+	Use widgets instead of gadgets to be able to set colors.
 
 1999-09-17  Richard Stallman  <rms@gnu.org>
 
@@ -369,8 +364,7 @@
 
 1999-09-14  Gerd Moellmann  <gerd@gnu.org>
 
-	* lwlib.c (lw_separator_p): Check for new-style separators
-	differently.
+	* lwlib.c (lw_separator_p): Check for new-style separators differently.
 
 1999-09-10  Gerd Moellmann  <gerd@gnu.org>
 
@@ -383,8 +377,7 @@
 
 1999-09-03  Gerd Moellmann  <gerd@gnu.org>
 
-	* xlwmenu.c (make_shadow_gcs): Call
-	x_alloc_nearest_color_for_widget.
+	* xlwmenu.c (make_shadow_gcs): Call x_alloc_nearest_color_for_widget.
 
 1999-07-12  Gerd Moellmann  <gerd@gnu.org>
 
@@ -406,8 +399,7 @@
 	(size_menu_item): Call it.
 
 	* lwlib-Xm.c (all_dashes_p): Removed.
-	(make_menu_in_widget): Use lw_separator_p.  Set Motif separator
-	type.
+	(make_menu_in_widget): Use lw_separator_p.  Set Motif separator type.
 
 	* lwlib.c (lw_separator_p): New.
 
@@ -755,7 +747,7 @@
 1995-02-15  Paul Reilly  <pmr@geech.gnu.ai.mit.edu>
 
 	* Makefile.in (ALL_CFLAGS): Allow include files to be found in
-        `srcdir'.
+	`srcdir'.
 
 1995-02-07  Richard Stallman  <rms@pogo.gnu.ai.mit.edu>
 
@@ -807,7 +799,7 @@
 1994-10-02  Paul Reilly  <pmr@geech.gnu.ai.mit.edu>
 
 	* xlwmenu.c (display_menu_item): Add support for displaying the
-        title in pop up menus.
+	title in pop up menus.
 
 	* lwlib.c (lw_set_main_areas): Use xm_set_main_areas().
 	(lw_manage_resizing): Use xm_manage_resizing() for Emacs/Motif.
@@ -815,10 +807,10 @@
 1994-09-25  Paul Reilly  <pmr@geech.gnu.ai.mit.edu>
 
 	* lwlib-Xaw.c (xaw_create_main): New function to support the
-        toolkit independent creation of the main Emacs widget.  *
-        lwlib-Xlw.c (xlw_create_menubar): When compiling under Emacs, set
-        resizing resources to disable showGrip and to enable both
-        resizeToPreferred and allowShellResize.
+	toolkit independent creation of the main Emacs widget.  *
+	lwlib-Xlw.c (xlw_create_menubar): When compiling under Emacs, set
+	resizing resources to disable showGrip and to enable both
+	resizeToPreferred and allowShellResize.
 
 	* lwlib-Xm.h: Declare xm_set_main_areas, xm_manage_resizing.
 
@@ -838,13 +830,13 @@
 1994-09-16  Paul Reilly <pmr@geech.gnu.ai.mit.edu>
 
 	* lwlib-Xm.c (make_main): New function to support toolkit
-        independent creation of the main Emacs widget.
+	independent creation of the main Emacs widget.
 	(make_destroyed_instance): Use safe_strdup() instead of strdup().
 
 	* lwlib-int.h: Declare safe_strdup.
 
 	* lwlib.c (lw_refigure_widget): New function.  Handle geometry
-        management inside lwlib instead of in Emacs.
+	management inside lwlib instead of in Emacs.
 	(lw_window_is_in_menubar): New function.  Determine if the pointer
 	is in a menubar.
 	(lw_set_main_areas): New function.  Set the main window widgets for
@@ -857,8 +849,7 @@
 	Xt{Na,CA}llowResize.
 
 	* xlwmenu.c (Start): Use pop_up_menu() to post the submenus.
-	(Select): Remove the pointer grab when popping down a menubar
-	submenu.
+	(Select): Remove the pointer grab when popping down a menubar submenu.
 	(pop_up_menu): Handle popping up submenus from a menubar, i.e. when
 	the menu widget parent is not a shell widget.
 
@@ -1100,8 +1091,8 @@
 	* Makefile (xrdb-cpp.o, lwlib.o): Use $(srcdir) and file name
 	instead of $*.
 	(dispatch.o, xrdb.o, lwlib-Xm.o): Rules removed; they were
-	superfluous and didn't work when configured outside srcdir.  The
-	implicit .c.o rule works fine.
+	superfluous and didn't work when configured outside srcdir.
+	The implicit .c.o rule works fine.
 
 1994-01-21  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -1124,6 +1115,6 @@
 ;; End:
 
     Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001, 2002
-	Free Software Foundation, Inc.
+        Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
