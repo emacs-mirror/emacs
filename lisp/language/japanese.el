@@ -47,7 +47,9 @@
  nil
  '((safe-charsets ascii japanese-jisx0208 japanese-jisx0208-1978
 		  latin-jisx0201 katakana-jisx0201)
-   (mime-charset . shift_jis)))
+   (mime-charset . shift_jis)
+   (charset-origin-alist (japanese-jisx0208 "SJIS" encode-sjis-char)
+			 (katakana-jisx0201 "SJIS" encode-sjis-char))))
 
 (define-coding-system-alias 'shift_jis 'japanese-shift-jis)
 (define-coding-system-alias 'sjis 'japanese-shift-jis)
