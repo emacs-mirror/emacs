@@ -1769,7 +1769,7 @@ created."
 
 
 (defface minibuffer-prompt '((((background dark)) (:foreground "cyan"))
-			     (((type pc)) (:foreground "white"))
+			     (((type pc)) (:foreground "magenta"))
 			     (t (:foreground "dark blue")))
   "Face for minibuffer prompts."
   :version "21.3"
