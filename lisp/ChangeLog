@@ -1,3 +1,21 @@
+
+2004-05-07  Juanma Barranquero  <lektu@terra.es>
+
+	* emacs-lisp/byte-run.el (make-obsolete, make-obsolete-variable):
+	Make argument names match their use in docstring.
+
+	* subr.el (lambda): Add arglist description to docstring.
+	(declare): Fix typo in docstring.
+	(open-network-stream): Fix docstring.
+	(process-kill-without-query): Fix docstring and add obsolescence
+	info.
+	(last, butlast, nbutlast): Make arguments match their use in docstring.
+	(insert-buffer-substring-no-properties): Likewise.
+	(insert-buffer-substring-as-yank): Likewise.
+	(split-string): Fix docstring.
+
+	* emacs-lisp/re-builder.el (reb-auto-update): Fix typo in docstring.
+
 2004-05-06  Nick Roberts  <nickrob@gnu.org>
 
 	* progmodes/gdb-ui.el: Improve/extend documentation strings.
