@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1993/11/26 22:20:23 $|$Revision: 1.55 $
+;; |$Date: 1993/12/23 03:28:10 $|$Revision: 1.56 $
 
 ;; This file is part of GNU Emacs.
 
@@ -547,7 +547,8 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 	(if isearch-other-end
 	    (if (< isearch-other-end (point)) ; isearch-forward?
 		(isearch-highlight isearch-other-end (point))
-	      (isearch-highlight (point) isearch-other-end)))
+	      (isearch-highlight (point) isearch-other-end))
+	  (isearch-dehighlight nil))
 	))
   (setq ;; quit-flag nil  not for isearch-mode
    isearch-adjusted nil
