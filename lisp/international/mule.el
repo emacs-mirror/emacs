@@ -2015,6 +2015,34 @@ the table in `translation-table-vector'."
     (put symbol 'translation-table-id id)
     id))
 
+(defun translate-region (start end table)
+  "From START to END, translate characters according to TABLE.
+TABLE is a string or a char-table.
+If TABLE is a string, the Nth character in it is the mapping
+for the character with code N.
+If TABLE is a char-table, the element for character N is the mapping
+for the character with code N.
+It returns the number of characters changed."
+  (interactive
+   (list (region-beginning)
+	 (region-end)
+	 (let (table l)
+	   (dotimes (i (length translation-table-vector))
+	     (if (consp (aref translation-table-vector i))
+		 (push (list (symbol-name
+			      (car (aref translation-table-vector i)))) l)))
+	   (if (not l)
+	       (error "No translation table defined"))
+	   (while (not table)
+	     (setq table (completing-read "Translation table: " l nil t)))
+	   (intern table))))
+  (if (symbolp table)
+      (let ((val (get table 'translation-table)))
+	(or (char-table-p val)
+	    (error "Invalid translation table name: %s" table))
+	(setq table val)))
+  (translate-region-internal start end table))
+
 (put 'with-category-table 'lisp-indent-function 1)
 
 (defmacro with-category-table (table &rest body)
