@@ -22,7 +22,7 @@ s/^ /	/
 s/\.h\.in/.h-in/
 /^	LC_ALL=C \.\/temacs/i\
 	stubedit temacs.exe minstack=100k
-/^	LC_ALL=C \.\/temacs/s/LC_ALL=C/set &;/
+/^	LC_ALL=C.*temacs/s/LC_ALL=C/set &;/
 /^MAKE *=/s/^/# /
 /^SHELL *=/s/^/# /
 /^srcdir *=/s/@[^@\n]*@/./
@@ -50,3 +50,14 @@ s/\.h\.in/.h-in/
 	command.com /c if exist .gdbinit rm -f _gdbinit
 /^	else mv \.\/\.gdbinit/d
 /^	#/d
+s/bootstrap-emacs/b-emacs/
+s/bootstrap-temacs/b-temacs/
+s/bootstrap-doc/b-doc/
+/rm -f bootstrap-emacs/s/b-emacs/b-emacs b-emacs.exe/
+/^	els=/c\
+	${libsrc}make-docfile -o ${etc}DOC -d ${srcdir} ${SOME_MACHINE_LISP:.elc=.el} ${shortlisp:.elc=.el} ${SOME_MACHINE_OBJECTS} ${obj}
+/^	mv -f emacs/a\
+	stubify emacs\
+	stubedit emacs.exe minstack=1024k\
+	mv -f emacs.exe b-emacs.exe\
+	rm -f temacs.exe
