@@ -236,7 +236,7 @@ C-h v fill-column @key{RET}
 displays something like this:
 
 @smallexample
-fill-column's value is 75
+fill-column's value is 70
 
 Documentation:
 *Column beyond which automatic line-wrapping should happen.
@@ -320,6 +320,10 @@ under it.  It looks like this, in part:
    Customization of the One True Editor.
    See also [Manual].
 
+Confirm Kill Emacs: [Hide] [Value Menu] Don't confirm
+   [State]: this option is unchanged from its standard setting.
+How to ask for confirmation when leaving Emacs. [More]
+
 Editing group: [Go to Group] 
 Basic text editing facilities.
 
@@ -354,12 +358,12 @@ Group]} field for a group creates a new customization buffer, which
 shows that group and its contents.  This field is a kind of hypertext
 link to another group.
 
-  The @code{Emacs} group does not include any user options itself, but
-other groups do.  By examining various groups, you will eventually find
-the options and faces that belong to the feature you are interested in
-customizing.  Then you can use the customization buffer to set them.
-You can go straight to a particular group by name using the command
-@kbd{M-x customize-group}.
+  The @code{Emacs} group includes a few user options itself, but most
+of them are in other groups.  By examining various groups, you will
+eventually find the options and faces that belong to the feature you
+are interested in customizing.  Then you can use the customization
+buffer to set them.  You can go straight to a particular group by name
+using the command @kbd{M-x customize-group}.
 
 @findex customize-browse
   You can view the structure of customization groups on a larger scale
@@ -384,12 +388,12 @@ This is the way to set values in it.
 customization buffer:
 
 @smallexample
-Kill Ring Max: [Hide] 30
+Kill Ring Max: [Hide] 60
    [State]: this option is unchanged from its standard setting.
 Maximum length of kill ring before oldest elements are thrown away.
 @end smallexample
 
-  The text following @samp{[Hide]}, @samp{30} in this case, indicates
+  The text following @samp{[Hide]}, @samp{60} in this case, indicates
 the current value of the option.  If you see @samp{[Show]} instead of
 @samp{[Hide]}, it means that the value is hidden; the customization
 buffer initially hides values that take up several lines.  Invoke
@@ -459,8 +463,8 @@ File Coding System Alist: [Hide]
             Encoding: emacs-mule
 [INS] [DEL] File regexp: \(\`\|/\)loaddefs.el\'
             Choice: [Value Menu] Encoding/decoding pair:
-            Decoding: no-conversion
-            Encoding: no-conversion
+            Decoding: raw-text
+            Encoding: raw-text-unix
 [INS] [DEL] File regexp: \.tar\'
             Choice: [Value Menu] Encoding/decoding pair:
             Decoding: no-conversion
@@ -595,11 +599,12 @@ Attributes: [ ] Font family: [Value Menu] *
             [ ] Underline: [Value Menu] *
             [ ] Overline: [Value Menu] *
             [ ] Strike-through: [Value Menu] *
-            [ ] Box around text: [Value Menu] Off
+            [ ] Box around text: [Value Menu] *
             [ ] Inverse-video: [Value Menu] *
             [X] Foreground: [Value Menu] Color: white       (sample)
             [X] Background: [Value Menu] Color: blue        (sample)
             [ ] Stipple: [Value Menu] *
+            [ ] Inherit:
 @end smallexample
 
   Each face attribute has its own line.  The @samp{[@var{x}]} field
@@ -619,7 +624,7 @@ options (@pxref{Changing an Option}).
   A face can specify different appearances for different types of
 display.  For example, a face can make text red on a color display, but
 use a bold font on a monochrome display.  To specify multiple
-appearances for a face, select @samp{Show Display Types} in the menu you
+appearances for a face, select @samp{Show all display specs} in the menu you
 get from invoking @samp{[State]}.
 
 @findex modify-face
@@ -697,7 +702,7 @@ definitions have been changed since the specified version.
 @findex customize-customized
   If you change option values and then decide the change was a mistake,
 you can use two special commands to revisit your previous changes.  Use
-@kbd{customize-saved} to look at the options and faces that you have
+@kbd{M-x customize-saved} to look at the options and faces that you have
 saved.  Use @kbd{M-x customize-customized} to look at the options and
 faces that you have set but not saved.
 
@@ -1652,7 +1657,7 @@ Other cursor repositioning keys.
 
 @item @code{select}, @code{print}, @code{execute}, @code{backtab}
 @itemx @code{insert}, @code{undo}, @code{redo}, @code{clearline}
-@itemx @code{insertline}, @code{deleteline}, @code{insertchar}, @code{deletechar},
+@itemx @code{insertline}, @code{deleteline}, @code{insertchar}, @code{deletechar}
 Miscellaneous function keys.
 
 @item @code{f1}, @code{f2}, @dots{} @code{f35}
@@ -1922,8 +1927,9 @@ some instructions on what to do immediately; then Emacs asks for input
 saying whether to execute the command as requested, enable it and
 execute it, or cancel.  If you decide to enable the command, you are
 asked whether to do this permanently or just for the current session.
-Enabling permanently works by automatically editing your @file{.emacs}
-file.
+(Enabling permanently works by automatically editing your @file{.emacs}
+file.)  You can also type @kbd{!} to enable @emph{all} commands,
+for the current session only.
 
   The direct mechanism for disabling a command is to put a
 non-@code{nil} @code{disabled} property on the Lisp symbol for the
