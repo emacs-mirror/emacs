@@ -632,7 +632,8 @@ internal_with_output_to_temp_buffer (bufname, function, args)
   return unbind_to (count, val);
 }
 
-DEFUN ("with-output-to-temp-buffer", Fwith_output_to_temp_buffer, Swith_output_to_temp_buffer,
+DEFUN ("with-output-to-temp-buffer",
+       Fwith_output_to_temp_buffer, Swith_output_to_temp_buffer,
        1, UNEVALLED, 0,
        doc: /* Bind `standard-output' to buffer BUFNAME, eval BODY, then show that buffer.
 The buffer is cleared out initially, and marked as unmodified when done.
@@ -649,7 +650,9 @@ to display it temporarily selected.
 
 If variable `temp-buffer-show-function' is non-nil, call it at the end
 to get the buffer displayed instead of just displaying the non-selected
-buffer and calling the hook.  It gets one argument, the buffer to display.  */)
+buffer and calling the hook.  It gets one argument, the buffer to display.  
+
+usage: (with-output-to-temp-buffer BUFFNAME BODY ...)  */)
      (args)
      Lisp_Object args;
 {
