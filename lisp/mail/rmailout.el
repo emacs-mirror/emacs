@@ -59,12 +59,13 @@ starting with the current one.  Deleted messages are skipped and don't count."
 		 (setq tail (cdr tail))))
 	     ;; If not suggestions, use same file as last time.
 	     (or answer rmail-last-rmail-file))))
-     (list (read-file-name
-	    (concat "Output message to Rmail file: (default "
-		    (file-name-nondirectory default-file)
-		    ") ")
-	    (file-name-directory rmail-last-rmail-file)
-	    default-file)
+     (list (setq rmail-last-rmail-file
+		 (read-file-name
+			    (concat "Output message to Rmail file: (default "
+				    (file-name-nondirectory default-file)
+				    ") ")
+			    (file-name-directory default-file)
+			    default-file))
 	   (prefix-numeric-value current-prefix-arg))))
   (or count (setq count 1))
   (setq file-name
@@ -72,7 +73,6 @@ starting with the current one.  Deleted messages are skipped and don't count."
 			  (file-name-directory rmail-last-rmail-file)))
   (if (and (file-readable-p file-name) (not (rmail-file-p file-name)))
       (rmail-output file-name count)
-    (setq rmail-last-rmail-file file-name)
     (rmail-maybe-set-message-counters)
     (setq file-name (abbreviate-file-name file-name))
     (or (get-file-buffer file-name)
@@ -154,15 +154,16 @@ A prefix argument N says to output N consecutive messages
 starting with the current one.  Deleted messages are skipped and don't count.
 When called from lisp code, N may be omitted."
   (interactive
-   (list (read-file-name
-	  (concat "Output message to Unix mail file"
-		  (if rmail-last-file
-		      (concat " (default "
-			      (file-name-nondirectory rmail-last-file)
-			      "): " )
-		    ": "))			
-	  (and rmail-last-file (file-name-directory rmail-last-file))
-	  rmail-last-file)
+   (list (setq rmail-last-file
+	       (read-file-name
+		(concat "Output message to Unix mail file"
+			(if rmail-last-file
+			    (concat " (default "
+				    (file-name-nondirectory rmail-last-file)
+				    "): " )
+			  ": "))			
+		(and rmail-last-file (file-name-directory rmail-last-file))
+		rmail-last-file))
 	 (prefix-numeric-value current-prefix-arg)))
   (or count (setq count 1))
   (setq file-name
@@ -171,7 +172,6 @@ When called from lisp code, N may be omitted."
 			       (file-name-directory rmail-last-file))))
   (if (and (file-readable-p file-name) (rmail-file-p file-name))
       (rmail-output-to-rmail-file file-name count)
-    (setq rmail-last-file file-name)
     (while (> count 0)
       (let ((rmailbuf (current-buffer))
 	    (tembuf (get-buffer-create " rmail-output"))
