@@ -1,5 +1,11 @@
 2000-04-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* frame.h (SELECTED_FRAME): Change definition to compile cleanly
+	on 64-bit systems where NULL is defined as `0'.
+
+	* xdisp.c (with_echo_area_buffer): Add more `int' parameters for
+	the `variable argument list' to make it work on Alpha.
+
 	* m/alpha.h (_LP64) [!_LP64]: Define.
 	(ORDINARY_LINK): Define for NetBSD.
 

@@ -1,3 +1,8 @@
+2000-04-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* emacs-lisp/gulp.el (gulp-maintainer): Use expand-file-name
+	instead of concat.
+
 2000-04-18  Gerd Moellmann  <gerd@gnu.org>
 
 	* mail/sendmail.el (mail-do-fcc): Prevent inserting a newline

@@ -1,3 +1,7 @@
+2000-04-19  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in: Add support for `powerpc-*-netbsd*'.
+
 2000-04-19  Dave Love  <fx@gnu.org>
 
 	* configure.in: Don't use AC_FUNC_GETLOADAVG.
