@@ -1,3 +1,7 @@
+2003-04-20  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (kill-line): Doc fix.
+
 2003-04-20  Sam Steingold  <sds@gnu.org>
 
 	* pcvs.el (cvs-examine): Respect `find-file-visit-truename'.
