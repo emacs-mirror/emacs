@@ -1368,8 +1368,7 @@ become unmarked."
 		       #'byte-compile
 		     #'identity)
 		   (nconc (list 'lambda '(buffer mark))
-			  `((let ,(append '(pt)
-					  (when str-used
+			  `((let ,(append (when str-used
 					    '(str))
 					  (when global-strlen-used
 					    '(strlen))
