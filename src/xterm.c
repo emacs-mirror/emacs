@@ -2376,9 +2376,7 @@ x_get_glyph_string_clip_rect (s, r)
 	    r->x -= width;
 	}
       
-      /* If row should not extend over internal borders, adjust x.  */
-      if (!s->row->internal_border_p)
-	r->x += FRAME_INTERNAL_BORDER_WIDTH (s->f);
+      r->x += FRAME_INTERNAL_BORDER_WIDTH (s->f);
       
       /* Unless displaying a mode or menu bar line, which are always
 	 fully visible, clip to the visible part of the row.  */
@@ -4266,13 +4264,8 @@ x_draw_glyphs (w, x, row, area, start, end, hl, real_start, real_end)
 	    x -= width;
 	}
 
-      /* If row should extend over internal borders, adjust x and
-         width accordingly.  */
-      if (!row->internal_border_p)
-	{
-	  x += FRAME_INTERNAL_BORDER_WIDTH (f);
-	  last_x -= FRAME_INTERNAL_BORDER_WIDTH (f);
-	}
+      x += FRAME_INTERNAL_BORDER_WIDTH (f);
+      last_x -= FRAME_INTERNAL_BORDER_WIDTH (f);
     }
   else
     {
