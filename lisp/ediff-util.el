@@ -105,6 +105,10 @@ to invocation.")
   (define-key ediff-mode-map [delete] 'ediff-previous-difference)
   (define-key ediff-mode-map "\C-h" (if ediff-no-emacs-help-in-control-buffer
 					'ediff-previous-difference nil))
+  (define-key ediff-mode-map [f1] (if ediff-no-emacs-help-in-control-buffer
+				      'ediff-previous-difference nil))
+  (define-key ediff-mode-map [help] (if ediff-no-emacs-help-in-control-buffer
+					'ediff-previous-difference nil))
   (define-key ediff-mode-map "n" 'ediff-next-difference)
   (define-key ediff-mode-map " " 'ediff-next-difference)
   (define-key ediff-mode-map "j" 'ediff-jump-to-difference)
