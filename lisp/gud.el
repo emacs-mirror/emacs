@@ -80,7 +80,8 @@ This association list has elements of the form
 		(or doc "")
 		'(interactive "p")
 		(list 'gud-call cstr))
-	  (list 'define-key 'gud-mode-map key  (list 'quote func)))))
+	  (if key
+	      (list 'define-key 'gud-mode-map key  (list 'quote func))))))
 
 ;; All debugger-specific information is collected here
 ;; Here's how it works, in case you ever need to add a debugger to the table.
