@@ -1,8 +1,8 @@
 /* impl.c.locv: Leaf Object Pool Class Coverage Test
  *
- * $HopeName: MMsrc!locv.c(trunk.13) $
+ * $HopeName: MMsrc!locv.c(trunk.14) $
  *
- * Copyright (C) 1996,1997 Harlequin Group, all rights reserved
+ * Copyright (C) 1996,1997, 1998 Harlequin Group, all rights reserved
  *
  * This is (not much of) a coverage test for the Leaf Object
  * pool (PoolClassLO).
@@ -15,12 +15,15 @@
 #include "testlib.h"
 #include "mps.h"
 #include "mpsclo.h"
+#include "mpsavm.h"
 
 #include <assert.h>
 #ifdef MPS_PF_SUS8LC
 #include <stdio.h>	/* .hack.stdio */
 #endif
 
+
+#define testArenaSIZE   ((size_t)16<<20)
 
 static mps_res_t scan(mps_ss_t ss, mps_addr_t base, mps_addr_t limit);
 static mps_addr_t skip(mps_addr_t object);
@@ -45,7 +48,7 @@ static mps_addr_t roots[4];
 
 int main(void)
 {
-  mps_space_t space;
+  mps_arena_t arena;
   mps_pool_t pool;
   mps_fmt_t format;
   mps_ap_t ap;
@@ -53,15 +56,16 @@ int main(void)
   mps_bool_t b;
   mps_root_t root;
 
-  die(mps_space_create(&space), "SpaceCreate");
-  die(mps_root_create_table(&root, space, MPS_RANK_EXACT,
-                        (mps_rm_t)0,
-                        roots, (sizeof(roots)/sizeof(*roots))),
+  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE),
+      "mps_arena_create");
+  die(mps_root_create_table(&root, arena, MPS_RANK_EXACT,
+                            (mps_rm_t)0,
+                            roots, (sizeof(roots)/sizeof(*roots))),
       "RootCreate");
 
-  die(mps_fmt_create_A(&format, space, &locv_fmt), "FormatCreate");
+  die(mps_fmt_create_A(&format, arena, &locv_fmt), "FormatCreate");
 
-  die(mps_pool_create(&pool, space, mps_class_lo(), format), "LOCreate");
+  die(mps_pool_create(&pool, arena, mps_class_lo(), format), "LOCreate");
 
   die(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "APCreate");
 
@@ -87,7 +91,7 @@ int main(void)
   mps_pool_destroy(pool);
   mps_fmt_destroy(format);
   mps_root_destroy(root);
-  mps_space_destroy(space);
+  mps_arena_destroy(arena);
 
   return 0;
 }
