@@ -1703,15 +1703,9 @@ If END is omitted, it defaults to the length of LIST."
       (widget-apply widget :value-to-external answer))))
 
 (defun widget-field-action (widget &optional event)
-  ;; Edit the value in the minibuffer.
-  (let ((invalid (widget-apply widget :validate)))
-    (let ((prompt (concat (widget-apply widget :menu-tag-get) ": "))
-	  (value (unless invalid 
-		   (widget-value widget))))
-      (let ((answer (widget-apply widget :prompt-value prompt value invalid) ))
-	(widget-value-set widget answer)))
-    (widget-setup)
-    (widget-apply widget :notify widget event)))
+  ;; Move to next field.
+  (widget-forward 1)
+  (message "To set this variable or face, invoke [State] and choose Set"))
 
 (defun widget-field-validate (widget)
   ;; Valid if the content matches `:valid-regexp'.
@@ -1901,12 +1895,20 @@ when he invoked the menu."
 				     current)
 			       choices)))
 		 (widget-choose tag (reverse choices) event))))
-    (when current
-      (widget-value-set widget 
-			(widget-apply current :value-to-external
-				      (widget-get current :value)))
-      (widget-setup)
-      (widget-apply widget :notify widget event))))
+    ;; Try to preserve point even if it is within the widget.
+    (let* ((old-pos (point))
+	   (from (copy-marker (widget-get widget :from)))
+	   (to (copy-marker (widget-get widget :to)))
+	   (offset (if (and (<= from old-pos) (<= old-pos to))
+		       (- old-pos from))))
+      (when current
+	(widget-value-set widget 
+			  (widget-apply current :value-to-external
+					(widget-get current :value)))
+	(widget-setup)
+	(widget-apply widget :notify widget event))
+      (if offset
+	  (goto-char (min (+ from offset) to))))))
 
 (defun widget-choice-validate (widget)
   ;; Valid if we have made a valid choice.
@@ -1960,8 +1962,16 @@ when he invoked the menu."
 
 (defun widget-toggle-action (widget &optional event)
   ;; Toggle value.
-  (widget-value-set widget (not (widget-value widget)))
-  (widget-apply widget :notify widget event))
+  ;; Try to preserve point even if it is within the widget.
+  (let* ((old-pos (point))
+	 (from (copy-marker (widget-get widget :from)))
+	 (to (copy-marker (widget-get widget :to)))
+	 (offset (if (and (<= from old-pos) (<= old-pos to))
+		     (- old-pos from))))
+    (widget-value-set widget (not (widget-value widget)))
+    (widget-apply widget :notify widget event)
+    (if offset
+	(goto-char (min (+ from offset) to)))))
 
 ;;; The `checkbox' Widget.
 
@@ -2621,17 +2631,9 @@ when he invoked the menu."
 	(widget-glyph-insert widget on "down" "down-pushed")
       (widget-glyph-insert widget off "right" "right-pushed"))))
 
-(define-widget 'group-visibility 'item
+(define-widget 'group-visibility 'visibility
   "An indicator and manipulator for hidden group contents."
-  :format "%[%v%]"
-  :create 'widget-group-visibility-create
-  :button-prefix ""
-  :button-suffix ""
-  :on "Hide"
-  :off "Show"
-  :value-create 'widget-visibility-value-create
-  :action 'widget-toggle-action
-  :match (lambda (widget value) t))
+  :create 'widget-group-visibility-create)
 
 (defun widget-group-visibility-create (widget)
   (let ((visible (widget-value widget)))
@@ -2822,10 +2824,36 @@ link for that string."
 (define-widget 'file 'string
   "A file widget.  
 It will read a file name from the minibuffer when invoked."
+  :complete-function 'widget-file-complete
   :prompt-value 'widget-file-prompt-value
   :format "%{%t%}: %v"
-  :tag "File"
-  :action 'widget-file-action)
+  :tag "File")
+
+(defun widget-file-complete ()
+  "Perform completion on file name preceding point."
+  (interactive)
+  (let* ((end (point))
+	 (beg (save-excursion
+		(skip-chars-backward "^ ")
+		(point)))
+	 (pattern (buffer-substring beg end))
+	 (name-part (file-name-nondirectory pattern))
+	 (directory (file-name-directory pattern))
+	 (completion (file-name-completion name-part directory)))
+    (cond ((eq completion t))
+	  ((null completion)
+	   (message "Can't find completion for \"%s\"" pattern)
+	   (ding))
+	  ((not (string= name-part completion))
+	   (delete-region beg end)
+	   (insert (expand-file-name completion directory)))
+	  (t
+	   (message "Making completion list...")
+	   (let ((list (file-name-all-completions name-part directory)))
+	     (setq list (sort list 'string<))
+	     (with-output-to-temp-buffer "*Completions*"
+	       (display-completion-list list)))
+	   (message "Making completion list...%s" "done")))))
 
 (defun widget-file-prompt-value (widget prompt value unbound)
   ;; Read file from minibuffer.
@@ -2838,18 +2866,18 @@ It will read a file name from the minibuffer when invoked."
 	   (must-match (widget-get widget :must-match)))
        (read-file-name prompt2 dir nil must-match file)))))
 
-(defun widget-file-action (widget &optional event)
-  ;; Read a file name from the minibuffer.
-  (let* ((value (widget-value widget))
-	 (dir (file-name-directory value))
-	 (file (file-name-nondirectory value))
-	 (menu-tag (widget-apply widget :menu-tag-get))
-	 (must-match (widget-get widget :must-match))
-	 (answer (read-file-name (concat menu-tag ": (default `" value "') ")
-				 dir nil must-match file)))
-    (widget-value-set widget (abbreviate-file-name answer))
-    (widget-setup)
-    (widget-apply widget :notify widget event)))
+;;;(defun widget-file-action (widget &optional event)
+;;;  ;; Read a file name from the minibuffer.
+;;;  (let* ((value (widget-value widget))
+;;;	 (dir (file-name-directory value))
+;;;	 (file (file-name-nondirectory value))
+;;;	 (menu-tag (widget-apply widget :menu-tag-get))
+;;;	 (must-match (widget-get widget :must-match))
+;;;	 (answer (read-file-name (concat menu-tag ": (default `" value "') ")
+;;;				 dir nil must-match file)))
+;;;    (widget-value-set widget (abbreviate-file-name answer))
+;;;    (widget-setup)
+;;;    (widget-apply widget :notify widget event)))
 
 (define-widget 'directory 'file
   "A directory widget.  
@@ -2865,6 +2893,7 @@ It will read a directory name from the minibuffer when invoked."
   :tag "Symbol"
   :format "%{%t%}: %v"
   :match (lambda (widget value) (symbolp value))
+  :complete-function 'lisp-complete-symbol
   :prompt-internal 'widget-symbol-prompt-internal
   :prompt-match 'symbolp
   :prompt-history 'widget-symbol-prompt-value-history
