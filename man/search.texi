@@ -746,7 +746,7 @@ matches any character that is not a word-constituent.
 matches the empty string, but only at the beginning of a symbol.
 A symbol is a sequence of one or more symbol-constituent characters.
 A symbol-constituent character is a character whose syntax is either
-@vsamp{w} or @samp{_}.  @samp{\_<} matches at the beginning of the
+@samp{w} or @samp{_}.  @samp{\_<} matches at the beginning of the
 buffer only if a symbol-constituent character follows.
 
 @item \_>
