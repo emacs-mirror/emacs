@@ -2112,8 +2112,11 @@ Give a blank topic name to go to the Index node itself."
 		 (search-forward
 		  (format "`%s'" (substring name 0 (match-beginning 1)))
 		  nil t))
-	    (search-forward name nil t))
-	(beginning-of-line)
+	    (search-forward name nil t)
+	    ;; Try again without the " <1>" makeinfo can append
+            (and (string-match "\\`\\(.*\\) <[0-9]+>\\'" name)
+                 (Info-find-index-name (match-string 1 name))))
+	(progn (beginning-of-line) t)  ;; non-nil for recursive call
       (goto-char (point-min)))))
 
 (defun Info-undefined ()
