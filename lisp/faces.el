@@ -1245,7 +1245,7 @@ If FRAME is omitted or nil, use the selected frame."
 	      (princ (concat " (" customize-label ")\n"))
 	      (insert "Documentation: "
 		      (or (face-documentation f)
-			  "not documented as a face.")
+			  "Not documented as a face.")
 		      "\n\n")
 	      (with-current-buffer standard-output
 		(save-excursion
