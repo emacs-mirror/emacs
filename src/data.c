@@ -1962,9 +1962,9 @@ In this case,  zeros are shifted in on the left.")
   CHECK_NUMBER (num2, 1);
 
   if (XINT (num2) > 0)
-    XSETINT (val, (unsigned) XFASTINT (num1) << XFASTINT (num2));
+    XSETINT (val, (EMACS_UINT) XUINT (num1) << XFASTINT (num2));
   else
-    XSETINT (val, (unsigned) XFASTINT (num1) >> -XINT (num2));
+    XSETINT (val, (EMACS_UINT) XUINT (num1) >> -XINT (num2));
   return val;
 }
 
@@ -1983,7 +1983,7 @@ Markers are converted to integers.")
   CHECK_NUMBER_COERCE_MARKER (num, 0);
 #endif /* LISP_FLOAT_TYPE */
 
-  XSETINT (num, XFASTINT (num) + 1);
+  XSETINT (num, XINT (num) + 1);
   return num;
 }
 
@@ -2002,7 +2002,7 @@ Markers are converted to integers.")
   CHECK_NUMBER_COERCE_MARKER (num, 0);
 #endif /* LISP_FLOAT_TYPE */
 
-  XSETINT (num, XFASTINT (num) - 1);
+  XSETINT (num, XINT (num) - 1);
   return num;
 }
 
@@ -2012,7 +2012,7 @@ DEFUN ("lognot", Flognot, Slognot, 1, 1, 0,
      register Lisp_Object num;
 {
   CHECK_NUMBER (num, 0);
-  XSETINT (num, ~XFASTINT (num));
+  XSETINT (num, ~XINT (num));
   return num;
 }
 
