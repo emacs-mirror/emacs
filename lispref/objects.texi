@@ -409,7 +409,8 @@ represents the shifted-control-o character.
 @cindex hyper characters
 @cindex super characters
 @cindex alt characters
-  The X Window System defines three other modifier bits that can be set
+  The X Window System defines three other @anchor{modifier bits}
+modifier bits that can be set
 in a character: @dfn{hyper}, @dfn{super} and @dfn{alt}.  The syntaxes
 for these bits are @samp{\H-}, @samp{\s-} and @samp{\A-}.  (Case is
 significant in these prefixes.)  Thus, @samp{?\H-\M-\A-x} represents
