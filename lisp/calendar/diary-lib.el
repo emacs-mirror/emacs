@@ -176,7 +176,7 @@ The holidays are those in the list `calendar-holidays'."
   "Ethiopic calendar equivalent of date diary entry."
   t)
 
-(autoload 'diary-persian-date "cal-persian"
+(autoload 'diary-persian-date "cal-persia"
   "Persian calendar equivalent of date diary entry."
   t)
 

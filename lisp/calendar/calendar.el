@@ -61,7 +61,7 @@
 ;;       cal-mayan.el                  Mayan calendars
 ;;       cal-menu.el                   Menu support
 ;;       cal-move.el                   Movement in the calendar
-;;       cal-persian.el                Perisan calendar
+;;       cal-persia.el                 Persian calendar
 ;;       cal-tex.el                    Calendars in LaTeX
 ;;       cal-x.el                      X-windows dedicated frame functions
 ;;       diary.el                      Diary functions
@@ -1394,15 +1394,15 @@ Driven by the variable `calendar-date-display-form'."
   "String of Ethiopic date of Gregorian date."
   t)
 
-(autoload 'calendar-goto-persian-date "cal-persian"
+(autoload 'calendar-goto-persian-date "cal-persia"
    "Move cursor to Persian date date."
    t)
 
-(autoload 'calendar-print-persian-date "cal-persian"
+(autoload 'calendar-print-persian-date "cal-persia"
  "Show the Persian date equivalents of date."
  t)
 
-(autoload 'calendar-persian-date-string "cal-persian"
+(autoload 'calendar-persian-date-string "cal-persia"
   "String of Persian date of Gregorian date."
   t)
 
