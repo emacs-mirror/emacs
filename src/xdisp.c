@@ -5071,6 +5071,8 @@ move_it_vertically (it, dy)
 }
 
 
+#if 0 /* Currently not used.  */
+
 /* Return non-zero if some text between buffer positions START_CHARPOS
    and END_CHARPOS is invisible.  IT->window is the window for text
    property lookup.  */
@@ -5100,6 +5102,8 @@ invisible_text_between_p (it, start_charpos, end_charpos)
 
   return invisible_found_p;
 }
+
+#endif /* 0 */
 
 
 /* Move IT by a specified number DVPOS of screen lines down.  DVPOS
@@ -5136,80 +5140,12 @@ move_it_by_lines (it, dvpos, need_y_p)
       xassert (it->current_x == 0 && it->hpos == 0);
     }
   else if (dvpos > 0)
-    {
-      /* If there are no continuation lines, and if there is no
-	 selective display, try the simple method of moving forward
-	 DVPOS newlines, then see where we are.  */
-      if (!need_y_p && it->truncate_lines_p && it->selective == 0)
-	{
-	  int shortage = 0, charpos;
-
-	  if (FETCH_BYTE (IT_BYTEPOS (*it)) == '\n')
-	    charpos = IT_CHARPOS (*it) + 1;
-	  else
-	    charpos = scan_buffer ('\n', IT_CHARPOS (*it), 0, dvpos,
-				   &shortage, 0);
-	  
-	  if (!invisible_text_between_p (it, IT_CHARPOS (*it), charpos))
-	    {
-	      struct text_pos pos;
-	      CHARPOS (pos) = charpos;
-	      BYTEPOS (pos) = CHAR_TO_BYTE (charpos);
-	      reseat (it, pos, 1);
-	      it->vpos += dvpos - shortage;
-	      it->hpos = it->current_x = 0;
-	      return;
-	    }
-	}
-
-      move_it_to (it, -1, -1, -1, it->vpos + dvpos, MOVE_TO_VPOS);
-    }
+    move_it_to (it, -1, -1, -1, it->vpos + dvpos, MOVE_TO_VPOS);
   else
     {
       struct it it2;
       int start_charpos, i;
-
-      /* If there are no continuation lines, and if there is no
-	 selective display, try the simple method of moving backward
-	 -DVPOS newlines.  */
-      if (!need_y_p && it->truncate_lines_p && it->selective == 0)
-	{
-	  int shortage;
-	  int charpos = IT_CHARPOS (*it);
-	  int bytepos = IT_BYTEPOS (*it);
-
-	  /* If in the middle of a line, go to its start.  */
-	  if (charpos > BEGV && FETCH_BYTE (bytepos - 1) != '\n')
-	    {
-	      charpos = find_next_newline_no_quit (charpos, -1);
-	      bytepos = CHAR_TO_BYTE (charpos);
-	    }
-
-	  if (charpos == BEGV)
-	    {
-	      struct text_pos pos;
-	      CHARPOS (pos) = charpos;
-	      BYTEPOS (pos) = bytepos;
-	      reseat (it, pos, 1);
-	      it->hpos = it->current_x = 0;
-	      return;
-	    }
-	  else
-	    {
-	      charpos = scan_buffer ('\n', charpos - 1, 0, dvpos, &shortage, 0);
-	      if (!invisible_text_between_p (it, charpos, IT_CHARPOS (*it)))
-		{
-		  struct text_pos pos;
-		  CHARPOS (pos) = charpos;
-		  BYTEPOS (pos) = CHAR_TO_BYTE (charpos);
-		  reseat (it, pos, 1);
-		  it->vpos += dvpos + (shortage ? shortage - 1 : 0);
-		  it->hpos = it->current_x = 0;
-		  return;
-		}
-	    }
-	}
-
+      
       /* Go back -DVPOS visible lines and reseat the iterator there.  */
       start_charpos = IT_CHARPOS (*it);
       for (i = -dvpos; i && IT_CHARPOS (*it) > BEGV; --i)
