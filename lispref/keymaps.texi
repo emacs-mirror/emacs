@@ -597,6 +597,16 @@ typically do this anyway; normally they respond to events that they do
 not handle by ``unreading'' them and exiting.
 @end defvar
 
+@defvar overriding-terminal-local-map
+If non-@code{nil}, this variable holds a keymap to use instead of
+@code{overriding-local-map}, the buffer's local keymap and all the minor
+mode keymaps.
+
+This variable is always local to the current terminal and cannot be
+buffer-local.  @xref{Multiple Displays}.  It is used to implement
+incremental search mode.
+@end defvar
+
 @node Key Lookup
 @section Key Lookup
 @cindex key lookup
