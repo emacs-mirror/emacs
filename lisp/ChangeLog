@@ -1,3 +1,10 @@
+2004-11-01  John Paul Wallington  <jpw@gnu.org>
+
+	* files.el (large-file-warning-threshold): Add :version keyword.
+	(kill-some-buffers): Doc fix.
+
+	* thumbs.el (group thumbs): Add :version keyword.
+
 2004-11-01  Richard M. Stallman  <rms@gnu.org>
 
 	* allout.el (allout group): Add :version.
