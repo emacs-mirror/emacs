@@ -708,6 +708,10 @@ Return t if file exists.")
 	return call5 (handler, Qload, found, noerror, nomessage, Qt);
     }
 
+#if 0 /* This is a good idea, but it doesn't quite work.
+	 While compiling files, `provide's seem to not be evaluated.
+	 Let's come back to this when there's more time.  */
+	 
   /* Check if we're loading this file again while another load
      of the same file is already in progress.  */
   if (!NILP (Fmember (found, Vloads_in_progress)))
@@ -715,6 +719,7 @@ Return t if file exists.")
 			    Fcons (found, Vloads_in_progress)));
   record_unwind_protect (record_load_unwind, Vloads_in_progress);
   Vloads_in_progress = Fcons (found, Vloads_in_progress);
+#endif /* 0 */
 
   /* Load .elc files directly, but not when they are
      remote and have no handler!  */
