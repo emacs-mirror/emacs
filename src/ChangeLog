@@ -1,5 +1,7 @@
 2002-02-15  Andreas Schwab  <schwab@suse.de>
 
+	* puresize.h (BASE_PURESIZE): Increase to 9/5.
+
 	* alloc.c (NSTATICS): Increase to 1280.
 
 2002-02-15  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
