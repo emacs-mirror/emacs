@@ -240,6 +240,10 @@
  "Emacs internal format used in buffer and string")
 
 (make-coding-system
+ 'raw-text 5 ?t
+ "Raw text, which means text contains random 8-bit codes.")
+
+(make-coding-system
  'iso-2022-7bit 2 ?J
  "ISO 2022 based 7-bit encoding using only G0"
  '((ascii t) nil nil nil
@@ -317,6 +321,7 @@
       coding-category-iso-7-else	'iso-2022-7bit-lock
       coding-category-iso-8-else	'iso-2022-8bit-ss2
       coding-category-big5		'chinese-big5
+      coding-category-raw-text		'raw-text
       coding-category-binary		'no-conversion)
 
 (set-coding-priority
@@ -324,10 +329,11 @@
    coding-category-iso-8-1
    coding-category-iso-8-2
    coding-category-iso-7-else
+   coding-category-iso-8-else
    coding-category-emacs-mule
+   coding-category-raw-text
    coding-category-sjis 
    coding-category-big5
-   coding-category-iso-8-else
    coding-category-binary))
 
 
