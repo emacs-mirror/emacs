@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; 1987 Dave Detlefs  <dld@cs.cmu.edu> 
+;; 1987 Dave Detlefs  <dld@cs.cmu.edu>
 ;; and  Stewart Clamen <clamen@cs.cmu.edu>.
 ;; Done by fairly faithful modification of:
 
@@ -33,18 +33,18 @@
 ;; Feb, 1990 (Dave Detlefs, dld@cs.cmu.edu)
 ;;   Fixed electric-c++-terminator to handle double colons, at the
 ;;   request of John Hagerman.
-;; 
+;;
 ;; Jan, 1990 (Doug Lea, dl@oswego.edu)
 ;;   Replaced c++-comment-region and c++-uncomment-region with
 ;;     versions from Igor Metz that avoid potential infinite loops.
 ;;
 ;; Oct, 1989 (Dave Detlefs, dld@cs.cmu.edu)
 ;;   Added contribution from Igor Metz <metz@iam.unibe.ch>:
-;;     functions c++-comment-region and c++-uncomment-region and 
+;;     functions c++-comment-region and c++-uncomment-region and
 ;;     corresponding key-binding.
 ;;   Also fixed bug in indentation of second line after an empty
 ;;   arglist with empty-arglist non-null.
-;;   
+;;
 ;; Sept, 1989 (Glen Ditchfield, gjditchfield@violet.uwaterloo.ca):
 ;;   Textual changes to more closely imitate Emacs 18.55's c-mode.
 ;;   Fixed handling of "default:", where ":" was the last character in the
@@ -168,28 +168,28 @@ with the colon on the first line."
   :type 'boolean
   :group 'old-c++)
 (defcustom c++-empty-arglist-indent nil
-  "*Indicates how far to indent an line following an empty argument
+  "*Indicates how far to indent a line following an empty argument
 list.  Nil indicates to just after the paren."
   :type '(choice (const nil) integer)
   :group 'old-c++)
 
 (defvar c++-imenu-generic-expression
-  (` 
+  (`
    ((nil
-     (, 
+     (,
       (concat
        "^"				  ; beginning of line is required
        "\\(template[ \t]*<[^>]+>[ \t]*\\)?" ; there may be a "template <...>"
        "\\([a-zA-Z0-9_:]+[ \t]+\\)?"	  ; type specs; there can be no
        "\\([a-zA-Z0-9_:]+[ \t]+\\)?"	  ; more than 3 tokens, right?
-       
+
        "\\("				  ; last type spec including */&
        "[a-zA-Z0-9_:]+"
        "\\([ \t]*[*&]+[ \t]*\\|[ \t]+\\)"	  ; either pointer/ref sign or whitespace
        "\\)?"				  ; if there is a last type spec
        "\\("			      ; name; take that into the imenu entry
        "[a-zA-Z0-9_:~]+"		      ; member function, ctor or dtor...
-					; (may not contain * because then 
+					; (may not contain * because then
 					; "a::operator char*" would become "char*"!)
        "\\|"
        "\\([a-zA-Z0-9_:~]*::\\)?operator"
@@ -200,10 +200,10 @@ list.  Nil indicates to just after the paren."
 					; catch cases with () inside the parentheses
 					; surrounding the parameters
 					; (like "int foo(int a=bar()) {...}"
-       
-       )) 6)    
-    ("Class" 
-     (, (concat 
+
+       )) 6)
+    ("Class"
+     (, (concat
 	 "^"				   ; beginning of line is required
 	 "\\(template[ \t]*<[^>]+>[ \t]*\\)?" ; there may be a "template <...>"
 	 "class[ \t]+"
@@ -214,20 +214,20 @@ list.  Nil indicates to just after the paren."
 ;; Uncomment if you want to find these too.  It will be a bit slower gathering
 ;; the indexes.
 ;    ("Prototypes"
-;     (, 
+;     (,
 ;      (concat
 ;       "^"				  ; beginning of line is required
 ;       "\\(template[ \t]*<[^>]+>[ \t]*\\)?" ; there may be a "template <...>"
 ;       "\\([a-zA-Z0-9_:]+[ \t]+\\)?"	  ; type specs; there can be no
 ;       "\\([a-zA-Z0-9_:]+[ \t]+\\)?"	  ; more than 3 tokens, right?
-       
+
 ;       "\\("				  ; last type spec including */&
 ;       "[a-zA-Z0-9_:]+"
 ;       "\\([ \t]*[*&]+[ \t]*\\|[ \t]+\\)"	  ; either pointer/ref sign or whitespace
 ;       "\\)?"				  ; if there is a last type spec
 ;       "\\("			      ; name; take that into the imenu entry
 ;       "[a-zA-Z0-9_:~]+"		      ; member function, ctor or dtor...
-;					; (may not contain * because then 
+;					; (may not contain * because then
 ;					; "a::operator char*" would become "char*"!)
 ;       "\\|"
 ;       "\\([a-zA-Z0-9_:~]*::\\)?operator"
@@ -237,8 +237,8 @@ list.  Nil indicates to just after the paren."
 ;					; the (...) Can't
 ;					; catch cases with () inside the parentheses
 ;					; surrounding the parameters
-;					; (like "int foo(int a=bar());"       
-;       )) 6)    
+;					; (like "int foo(int a=bar());"
+;       )) 6)
 ;    ("Struct"
 ;     (, (concat
 ;	 "^"				; beginning of line is required
@@ -690,7 +690,7 @@ Returns nil if line starts inside a string, t if in a comment."
 		     ;; The first following code counts
 		     ;; if it is before the line we want to indent.
 		     (and (< (point) indent-point)
-			  (- 
+			  (-
 			   (if (> colon-line-end (point))
 			       (- (current-indentation) c-label-offset)
 			     (current-column))
@@ -943,10 +943,10 @@ The fill lines remain a comment."
 ;; (defvar c++-match-header-strongly nil
 ;;   "*If nil, use `c++-defun-header-weak' to identify beginning of definitions.
 ;; If non-nil, use `c++-defun-header-strong'.")
-;; 
+;;
 ;; (defvar c++-defun-header-strong-struct-equivs "\\(class\\|struct\\|enum\\)"
 ;;   "Regexp to match names of structure declaration blocks in C++.")
-;; 
+;;
 ;; (defconst c++-defun-header-strong
 ;;   (let*
 ;;       (; valid identifiers
@@ -955,12 +955,12 @@ The fill lines remain a comment."
 ;;        ;; to be
 ;;        ;; (id "\\(_\\|\\w\\)+")
 ;;        ;; things no longer work right.  Try it and see!
-;; 
+;;
 ;;        ; overloadable operators
 ;;        (op-sym1
 ;; 	 "[-+*/%^&|~!=<>]\\|[-+*/%^&|<>=!]=\\|<<=?\\|>>=?")
 ;;        (op-sym2
-;; 	 "&&\\|||\\|\\+\\+\\|--\\|()\\|\\[\\]")	 
+;; 	 "&&\\|||\\|\\+\\+\\|--\\|()\\|\\[\\]")
 ;;        (op-sym (concat "\\(" op-sym1 "\\|" op-sym2 "\\)"))
 ;;        ; whitespace
 ;;        (middle "[^\\*]*\\(\\*+[^/\\*][^\\*]*\\)*")
@@ -995,20 +995,20 @@ The fill lines remain a comment."
 ;; 		    wh-nec id wh-opt inherit "?" wh-opt "{")))
 ;;     (concat "^\\(" func-header "\\|" cs-header "\\)"))
 ;;   "Strongly-defined regexp to match beginning of structure or function def.")
-;; 
-;; 
+;;
+;;
 ;; ;; This part has to do with recognizing defuns.
-;; 
+;;
 ;; ;; The weak convention we will use is that a defun begins any time
 ;; ;; there is a left curly brace, or some identifier on the left margin,
 ;; ;; followed by a left curly somewhere on the line.  (This will also
 ;; ;; incorrectly match some continued strings, but this is after all
 ;; ;; just a weak heuristic.)  Suggestions for improvement (short of the
 ;; ;; strong scheme shown above) are welcomed.
-;; 
+;;
 ;; (defconst c++-defun-header-weak "^{\\|^[_a-zA-Z].*{"
 ;;   "Weakly-defined regexp to match beginning of structure or function def.")
-;; 
+;;
 ;; (defun c++-beginning-of-defun (arg)
 ;;   (interactive "p")
 ;;   (let ((c++-defun-header (if c++-match-header-strongly
@@ -1035,8 +1035,8 @@ The fill lines remain a comment."
 ;; 		(forward-char (if (< arg 0) 1 -1)))
 ;; 	    (and (re-search-backward c++-defun-header nil 'move (or arg 1))
 ;; 		 (goto-char (match-beginning 0)))))))
-;; 
-;; 
+;;
+;;
 ;; (defun c++-end-of-defun (arg)
 ;;   (interactive "p")
 ;;   (let ((c++-defun-header (if c++-match-header-strongly
@@ -1046,7 +1046,7 @@ The fill lines remain a comment."
 ;; 	nil
 ;;       (if (and (> arg 0) (looking-at c++-defun-header)) (forward-char 1))
 ;;       (let ((pos (point)))
-;; 	(c++-beginning-of-defun 
+;; 	(c++-beginning-of-defun
 ;; 	  (if (< arg 0)
 ;; 	      (- (- arg (if (eobp) 0 1)))
 ;; 	    arg))
@@ -1056,11 +1056,11 @@ The fill lines remain a comment."
 ;; 	      (progn (forward-char -1)
 ;; 		     (forward-sexp)
 ;; 		     (beginning-of-line 2)))
-;; 	  (if (and (= pos (point)) 
+;; 	  (if (and (= pos (point))
 ;; 		   (re-search-forward c++-defun-header nil 'move))
 ;; 	      (c++-end-of-defun 1))))
 ;;       t)))
-;; 
+;;
 ;; (defun c++-indent-defun ()
 ;;   "Indents the current function definition, struct or class declaration."
 ;;   (interactive)
