@@ -287,36 +287,39 @@ to read a file name from the minibuffer."
   (if Info-dir-contents
       (insert Info-dir-contents)
     (let ((dirs Info-directory-list)
-	  buffers buffer others nodes)
+	  buffers buffer others nodes dirs-done)
 
       ;; Search the directory list for the directory file.
       (while dirs
-	;; Try several variants of specified name.
-	;; Try upcasing, appending `.info', or both.
-	(let* (temp
-	       (buffer
-		(cond
-		 ((progn (setq temp (expand-file-name "DIR" (car dirs)))
-			 (file-exists-p temp))
-		  (find-file-noselect temp))
-		 ((progn (setq temp (expand-file-name "dir" (car dirs)))
-			 (file-exists-p temp))
-		  (find-file-noselect temp))
-		 ((progn (setq temp (expand-file-name "DIR.INFO" (car dirs)))
-			 (file-exists-p temp))
-		  (find-file-noselect temp))
-		 ((progn (setq temp (expand-file-name "dir.info" (car dirs)))
-			 (file-exists-p temp))
-		  (find-file-noselect temp)))))
-	  (if buffer (setq buffers (cons buffer buffers)))
-	  (setq dirs (cdr dirs))))
+	(or (member (file-truename (expand-file-name (car dirs))) dirs-done)
+	    (member (directory-file-name (file-truename (expand-file-name (car dirs))))
+		    dirs-done)
+	    ;; Try several variants of specified name.
+	    ;; Try upcasing, appending `.info', or both.
+	    (let* (temp
+		   (buffer
+		    (cond
+		     ((progn (setq temp (expand-file-name "DIR" (car dirs)))
+			     (file-exists-p temp))
+		      (find-file-noselect temp))
+		     ((progn (setq temp (expand-file-name "dir" (car dirs)))
+			     (file-exists-p temp))
+		      (find-file-noselect temp))
+		     ((progn (setq temp (expand-file-name "DIR.INFO" (car dirs)))
+			     (file-exists-p temp))
+		      (find-file-noselect temp))
+		     ((progn (setq temp (expand-file-name "dir.info" (car dirs)))
+			     (file-exists-p temp))
+		      (find-file-noselect temp)))))
+	      (setq dirs-done
+		    (cons (file-truename (expand-file-name (car dirs)))
+			  dirs-done))
+	      (if buffer (setq buffers (cons buffer buffers)))))
+	(setq dirs (cdr dirs)))
 
       ;; Distinguish the dir file that comes with Emacs from all the
-      ;; others.  [This sounds like baloney - who knows what order
-      ;; Info-directory-list is in, especially after checking the
-      ;; INFOPATH variable, and why should Emacs's dir be special?  If
-      ;; you understand what this comment should have said, please
-      ;; change it.]
+      ;; others.  Yes, that is really what this is supposed to do.
+      ;; If it doesn't work, fix it.
       (setq buffer (car buffers)
 	    others (cdr buffers))
 
