@@ -3314,10 +3314,14 @@ readdirver (dirp)
 /*
  * Make a directory.
  */
+#ifdef MKDIR_PROTOTYPE
+MKDIR_PROTOTYPE
+#else
 int
 mkdir (dpath, dmode)
      char *dpath;
      int dmode;
+#endif
 {
   int cpid, status, fd;
   struct stat statbuf;
