@@ -274,7 +274,7 @@ Can be overwritten by `cperl-hairy' if nil."
 (defcustom cperl-lazy-help-time nil
   "*Not-nil (and non-null) means to show lazy help after given idle time.
 Can be overwritten by `cperl-hairy' to be 5 sec if nil."
-  :type '(choice (const null) integer)
+  :type '(choice (const null) (const nil) integer)
   :group 'cperl-affected-by-hairy)
 
 (defcustom cperl-pod-face 'font-lock-comment-face
