@@ -924,17 +924,22 @@ coding_set_destination (coding)
 {
   if (BUFFERP (coding->dst_object))
     {
-      /* We are sure that coding->dst_pos_byte is before the gap of the
-	 buffer. */
-      coding->destination = (BUF_BEG_ADDR (XBUFFER (coding->dst_object))
-			     + coding->dst_pos_byte - 1);
       if (coding->src_pos < 0)
-	coding->dst_bytes = (GAP_END_ADDR
-			     - (coding->src_bytes - coding->consumed)
-			     - coding->destination);
+	{
+	  coding->destination = BEG_ADDR + coding->dst_pos_byte - 1;
+	  coding->dst_bytes = (GAP_END_ADDR
+			       - (coding->src_bytes - coding->consumed)
+			       - coding->destination);
+	}
       else
-	coding->dst_bytes = (BUF_GAP_END_ADDR (XBUFFER (coding->dst_object))
-			     - coding->destination);
+	{
+	  /* We are sure that coding->dst_pos_byte is before the gap
+	     of the buffer. */
+	  coding->destination = (BUF_BEG_ADDR (XBUFFER (coding->dst_object))
+				 + coding->dst_pos_byte - 1);
+	  coding->dst_bytes = (BUF_GAP_END_ADDR (XBUFFER (coding->dst_object))
+			       - coding->destination);
+	}
     }
   else
     /* Otherwise, the destination is C string and is never relocated
@@ -1223,9 +1228,17 @@ encode_coding_utf_8 (coding)
 	  
 	  ASSURE_DESTINATION (safe_room);
 	  c = *charbuf++;
-	  CHAR_STRING_ADVANCE (c, pend);
-	  for (p = str; p < pend; p++)
-	    EMIT_ONE_BYTE (*p);
+	  if (CHAR_BYTE8_P (c))
+	    {
+	      c = CHAR_TO_BYTE8 (c);
+	      EMIT_ONE_BYTE (c);
+	    }
+	  else
+	    {
+	      CHAR_STRING_ADVANCE (c, pend);
+	      for (p = str; p < pend; p++)
+		EMIT_ONE_BYTE (*p);
+	    }
 	}
     }
   else
@@ -6115,8 +6128,16 @@ encode_coding_object (coding, src_object, from, from_byte, to, to_byte,
   if (BUFFERP (dst_object))
     {
       coding->dst_object = dst_object;
-      coding->dst_pos = BUF_PT (XBUFFER (dst_object));
-      coding->dst_pos_byte = BUF_PT_BYTE (XBUFFER (dst_object));
+      if (EQ (src_object, dst_object))
+	{
+	  coding->dst_pos = from;
+	  coding->dst_pos_byte = from_byte;
+	}
+      else
+	{
+	  coding->dst_pos = BUF_PT (XBUFFER (dst_object));
+	  coding->dst_pos_byte = BUF_PT_BYTE (XBUFFER (dst_object));
+	}
       coding->dst_multibyte
 	= ! NILP (XBUFFER (dst_object)->enable_multibyte_characters);
     }
