@@ -5921,17 +5921,14 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
  ***********************************************************************/
 
 DEFUN ("internal-show-cursor", Finternal_show_cursor,
-       Sinternal_show_cursor, 0, 2, 0,
-  "Change visibility flag of the text cursor of WINDOW.\n\
-ON_P nil means toggle the flag.  Otherwise, ON_P must be an integer,\n\
-and the flag is set according to the value of ON_P.  WINDOW nil or\n\
-omitted means use the selected window.  The new cursor state takes effect\n\
-with the next redisplay.")
-  (on_p, window)
-     Lisp_Object on_p, window;
+       Sinternal_show_cursor, 2, 2, 0,
+  "Set the cursor-visibility flag of WINDOW to SHOW.\n\
+WINDOW nil means use the selected window.  SHOW non-nil means\n\
+show a cursor in WINDOW in the next redisplay.  SHOW nil means\n\
+don't show a cursor.")
+  (window, show)
+     Lisp_Object window, show;
 {
-  struct window *w;
-
   /* Don't change cursor state while redisplaying.  This could confuse
      output routines.  */
   if (!redisplaying_p)
@@ -5940,20 +5937,31 @@ with the next redisplay.")
 	window = selected_window;
       else
 	CHECK_WINDOW (window, 2);
-      w = XWINDOW (window);
       
-      if (NILP (on_p))
-	w->cursor_off_p = !w->cursor_off_p;
-      else
-	{
-	  CHECK_NUMBER (on_p, 1);
-	  w->cursor_off_p = XINT (on_p) != 0;
-	}
+      XWINDOW (window)->cursor_off_p = NILP (show);
     }
 
   return Qnil;
 }
 
+
+DEFUN ("internal-show-cursor-p", Finternal_show_cursor_p,
+       Sinternal_show_cursor_p, 0, 1, 0,
+  "Value is non-nil if next redisplay will display a cursor in WINDOW.
+WINDOW nil or omitted means report on the selected window.")
+  (window)
+     Lisp_Object window;
+{
+  struct window *w;
+  
+  if (NILP (window))
+    window = selected_window;
+  else
+    CHECK_WINDOW (window, 2);
+  
+  w = XWINDOW (window);
+  return w->cursor_off_p ? Qnil : Qt;    
+}
 
 
 /***********************************************************************
@@ -5972,6 +5980,7 @@ syms_of_display ()
   defsubr (&Ssleep_for);
   defsubr (&Ssend_string_to_terminal);
   defsubr (&Sinternal_show_cursor);
+  defsubr (&Sinternal_show_cursor_p);
 
   frame_and_buffer_state = Fmake_vector (make_number (20), Qlambda);
   staticpro (&frame_and_buffer_state);
