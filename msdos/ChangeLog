@@ -1,3 +1,9 @@
+2001-04-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* sedleim.inp (srcdir=): Edit @srcdir@ into an absolute file name
+	of the leim subdirectory, so that EMACSLOADPATH doesn't break when
+	titdic-convert chdirs into leim/quail.
+
 2001-03-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* sedleim.inp: Adapt to changes in leim/Makefile.in's $(TIT)

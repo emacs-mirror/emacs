@@ -1,3 +1,8 @@
+2001-04-02  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* international/titdic-cnv.el (miscdic-convert): Fix a typo in the
+	last change.
+
 2001-04-02  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Line and paragraph spacing feature.  Region to cut
