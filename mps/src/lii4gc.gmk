@@ -1,6 +1,6 @@
 # impl.gmk.lii4gc: BUILD FOR LINUX/INTEL/GCC PLATFORM
 #
-# $HopeName: MMsrc!lii4gc.gmk(trunk.3) $
+# $HopeName: MMsrc!lii4gc.gmk(trunk.4) $
 # Copyright (C) 2000 Harlequin Limited.  All rights reserved.
 
 PFM = lii4gc
@@ -12,7 +12,7 @@ PFMDEFS = -D_REENTRANT
 
 MPMPF = mpsliban.c mpsioan.c ${THREADSRC} vmli.c \
         protli.c protlii3.c proti3.c prmci3li.c sslii3.c span.c
-SWPF = lockan.c than.c vmli.c protsw.c prmcan.c ssan.c
+SWPF = than.c vmli.c protsw.c prmcan.c ssan.c
 
 LIBS = -lm ${THREADLIB}
 
