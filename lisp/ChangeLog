@@ -1,3 +1,9 @@
+1999-12-07  Dave Love  <fx@gnu.org>
+
+	* help.el (view-emacs-problems): New command, bound to C-h P.
+
+	* menu-bar.el (menu-bar-manuals-menu): Add view-emacs-problems.
+
 1999-12-07  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* diff-mode.el (diff-mode-shared-map): fset'd and doc change.
