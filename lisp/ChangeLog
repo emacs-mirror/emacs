@@ -1,3 +1,9 @@
+2000-07-30  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* files.el (shell-quote-wildcard-pattern): New function.
+	(insert-directory): Call it.  Only prepend "\" to command on Unix
+	and GNU/Linux systems.
+
 2000-07-30  Gerd Moellmann  <gerd@gnu.org>
 
 	* eshell/esh-groups.el: Change custom :link file names
