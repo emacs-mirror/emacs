@@ -11074,7 +11074,7 @@ XTread_socket (sd, bufp, numchars, expected)
 /* Notice if the text cursor of window W has been overwritten by a
    drawing operation that outputs N glyphs starting at START_X and
    ending at END_X in the line given by output_cursor.vpos.
-   Coordinates are area-relative.  END_X < 0 means means all the rest
+   Coordinates are area-relative.  END_X < 0 means all the rest
    of the line after START_X has been written.  */
 
 static void
