@@ -990,6 +990,16 @@ clear_glyph_row (row)
   row->glyphs[TEXT_AREA] = p[TEXT_AREA];
   row->glyphs[RIGHT_MARGIN_AREA] = p[RIGHT_MARGIN_AREA];
   row->glyphs[LAST_AREA] = p[LAST_AREA];
+
+#if 0 /* At some point, some bit-fields of struct glyph were not set,
+	 which made glyphs unequal when compared with GLYPH_EQUAL_P.
+	 Redisplay outputs such glyphs, and flickering effects were
+	 the result.  This also depended on the contents of memory
+	 returned by xmalloc.  If flickering happens again, activate
+	 the code below If the flickering is gone with that, chances
+	 are that the flickering has the same reason as here.  */
+  bzero (p[0], (char *) p[LAST_AREA] - (char *) p[0]);
+#endif
 }
 
 
