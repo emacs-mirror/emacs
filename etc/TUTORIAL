@@ -992,6 +992,10 @@ Here are some other useful C-h options:
    This prints all the information Emacs has about the
    function which implements the C-p command.
 
+A similar command C-h v prints the documentation of variables whose
+values you can set to customize Emacs behavior.  You need to type in
+the name of the variable when Emacs prompts for it.
+
    C-h a	Command Apropos.  Type in a keyword and Emacs will list
 		all the commands whose names contain that keyword.
 		These commands can all be invoked with Meta-x.
@@ -1007,6 +1011,16 @@ beside the corresponding command names such as find-file.
 >> Type C-M-v to scroll the help window.  Do this a few times.
 
 >> Type C-x 1 to delete the help window.
+
+   C-h i	Read On-line Manuals (a.k.a. Info).  This command puts
+		you into a special buffer called `*info*' where you
+		can read on-line manuals for the packages installed on
+		your system.  Type m emacs <Return> to read the Emacs
+		manual.  If you have never before used Info, type ?
+		and Emacs will take you on a guided tour of Info mode
+		facilities.  Once you are through with this tutorial,
+		you should consult the Emacs Info manual as your
+		primary documentation.
 
 
 * CONCLUSION
