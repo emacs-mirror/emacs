@@ -1,10 +1,9 @@
 ;;; idlw-toolbar.el --- A debugging toolbar for IDLWAVE
-;; Copyright (c) 1999 Carsten Dominik
 ;; Copyright (c) 1999, 2000 Free Software Foundation
 
 ;; Author: Carsten Dominik <dominik@strw.leidenuniv.nl>
 ;; Version: 4.7
-;; Date: $Date: 2000/06/06 10:40:52 $
+;; Date: $Date: 2000/12/11 12:44:44 $
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
