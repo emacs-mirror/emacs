@@ -939,6 +939,7 @@ run `normal-mode' explicitly."
     ("\\.ad[abs]\\'" . ada-mode)
     ("\\.icn\\'" . icon-mode)
     ("\\.pl\\'" . perl-mode)
+    ("\\.pm\\'" . perl-mode)
     ("\\.cc\\'" . c++-mode)
     ("\\.hh\\'" . c++-mode)
     ("\\.C\\'" . c++-mode)
