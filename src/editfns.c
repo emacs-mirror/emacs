@@ -1767,9 +1767,13 @@ The other arguments are substituted into it to make the result, a string.\n\
 It may contain %-sequences meaning to substitute the next argument.\n\
 %s means print a string argument.  Actually, prints any object, with `princ'.\n\
 %d means print as number in decimal (%o octal, %x hex).\n\
+%e means print a number in exponential notation.\n\
+%f means print a number in decimal-point notation.\n\
+%g means print a number in exponential notation\n\
+  or decimal-point notation, whichever uses fewer characters.\n\
 %c means print a number as a single character.\n\
 %S means print any object as an s-expression (using prin1).\n\
-  The argument used for %d, %o, %x or %c must be a number.\n\
+  The argument used for %d, %o, %x, %e, %f, %g or %c must be a number.\n\
 Use %% to put a single % into the output.")
   (nargs, args)
      int nargs;
