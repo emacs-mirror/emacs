@@ -721,15 +721,15 @@ pos_tab_offset (w, pos)
      struct window *w;
      register int pos;
 {
-  int opoint = point;
+  int opoint = PT;
   int col;
   int width = window_internal_width (w) - 1;
 
   if (pos == BEGV || FETCH_CHAR (pos - 1) == '\n')
     return 0;
-  SET_PT (pos);
+  TEMP_SET_PT (pos);
   col = current_column ();
-  SET_PT (opoint);
+  TEMP_SET_PT (opoint);
   return col - (col % width);
 }
 
