@@ -1175,12 +1175,14 @@ put_entries (node)
       if (node->rewritten)
 	{
 	  fprintf (outf, "%s\177%s\001%d,%d\n",
-		   node->name, node->pat, node->lno, node->cno);
+		   node->pat, node->name,
+		   node->lno, node->cno);
 	}
       else
 	{
 	  fprintf (outf, "%s\177%d,%d\n",
-		   node->pat, node->lno, node->cno);
+		   node->pat,
+		   node->lno, node->cno);
 	}
     }
   else if (!cxref_style)
