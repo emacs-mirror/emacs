@@ -213,32 +213,70 @@ Boston, MA 02111-1307, USA.  */
 
 #define LISP_FLOAT_TYPE
 
+#undef  HAVE_SYS_SELECT_H
 #define HAVE_SYS_TIMEB_H
 #define HAVE_SYS_TIME_H
 #define HAVE_UNISTD_H
-#define STDC_HEADERS
+#undef  HAVE_UTIME_H
+#undef  HAVE_LINUX_VERSION_H
+#undef  HAVE_SYS_SYSTEMINFO_H
+#undef  HAVE_TERMIOS_H
+#define HAVE_LIMITS_H 1
+#define STDC_HEADERS 1
 #define TIME_WITH_SYS_TIME
 
 #define HAVE_GETTIMEOFDAY
 #define HAVE_GETHOSTNAME
+#undef  HAVE_GETDOMAINNAME
 #define HAVE_DUP2
 #define HAVE_RENAME
 #define HAVE_CLOSEDIR
 
-#define HAVE_TZNAME
+#undef  TM_IN_SYS_TIME
+#undef  HAVE_TM_ZONE
+#define HAVE_TZNAME 1
 
 #define HAVE_LONG_FILE_NAMES
 
 #define HAVE_MKDIR
 #define HAVE_RMDIR
 #define HAVE_RANDOM
+#undef  HAVE_SYSINFO
+#undef  HAVE_LRAND48
 #define HAVE_BCOPY
 #define HAVE_BCMP
 #define HAVE_LOGB
 #define HAVE_FREXP
 #define HAVE_FMOD
+#undef  HAVE_RINT
+#undef  HAVE_CBRT
 #define HAVE_FTIME
-#define HAVE_MKTIME
+#undef  HAVE_RES_INIT /* For -lresolv on Suns.  */
+#undef  HAVE_SETSID
+#undef  HAVE_FPATHCONF
+#undef  HAVE_SELECT
+#define HAVE_MKTIME 1
+#undef  HAVE_EUIDACCESS
+#define HAVE_GETPAGESIZE
+#define HAVE_TZSET 1
+#define HAVE_SETLOCALE
+#undef  HAVE_UTIMES
+#undef  HAVE_SETRLIMIT
+#undef  HAVE_SETPGID
+#undef  HAVE_GETCWD
+#define HAVE_SHUTDOWN
+
+#undef  LOCALTIME_CACHE
+#undef  HAVE_INET_SOCKETS
+
+#undef  HAVE_AIX_SMT_EXP
+
+/* Define if you have the ANSI `strerror' function.
+   Otherwise you must have the variable `char *sys_errlist[]'.  */
+#define HAVE_STRERROR
+
+/* Define if `struct utimbuf' is declared by <utime.h>.  */
+#undef  HAVE_STRUCT_UTIMBUF
 
 #define HAVE_MOUSE
 #define HAVE_H_ERRNO
@@ -246,6 +284,7 @@ Boston, MA 02111-1307, USA.  */
 #ifdef HAVE_NTGUI
 #define HAVE_WINDOW_SYSTEM
 #define HAVE_FACES
+#define HAVE_MENUS
 #endif
 
 #define MODE_LINE_BINARY_TEXT(_b_) (NILP ((_b_)->buffer_file_type) ? "T" : "B")
@@ -369,6 +408,6 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 /* We need a little extra space, see ../../lisp/loadup.el */
-#define SYSTEM_PURESIZE_EXTRA 15000
+#define SYSTEM_PURESIZE_EXTRA 25000
 
 /* ============================================================ */
