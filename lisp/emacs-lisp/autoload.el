@@ -360,11 +360,14 @@ are used."
     (message "Generating autoloads for %s...done" file)))
 
 ;;;###autoload
-(defun update-file-autoloads (file)
+(defun update-file-autoloads (file &optional save-after)
   "Update the autoloads for FILE in `generated-autoload-file'
 \(which FILE might bind in its local variables).
-Return FILE if there was no autoload cookie in it."
-  (interactive "fUpdate autoloads for file: ")
+If SAVE-AFTER is non-nil (which is always, when called interactively),
+save the buffer too.
+
+Return FILE if there was no autoload cookie in it, else nil."
+  (interactive "fUpdate autoloads for file: \np")
   (let ((load-name (let ((name (file-name-nondirectory file)))
 		     (if (string-match "\\.elc?\\(\\.\\|$\\)" name)
 			 (substring name 0 (match-beginning 0))
@@ -464,7 +467,7 @@ Autoload section for %s is up to date."
 			   (or existing-buffer
 			       (kill-buffer (current-buffer))))))))
 	      (generate-file-autoloads file))))
-      (and (interactive-p)
+      (and save-after
 	   (buffer-modified-p)
 	   (save-buffer))
 
