@@ -1553,7 +1553,7 @@ no_switch_window (window)
   if (EQ (minibuf_window, window))
     return "Cannot switch buffers in minibuffer window";
   tem = Fwindow_dedicated_p (window);
-  if (!NILP (tem))
+  if (EQ (tem, Qt))
     return "Cannot switch buffers in a dedicated window";
   return NULL;
 }
@@ -5226,7 +5226,7 @@ nil here means use current buffer's major mode.  */);
 		     doc: /* Symbol for current buffer's major mode.  */);
 
   DEFVAR_PER_BUFFER ("mode-name", &current_buffer->mode_name,
-                     make_number (Lisp_String),
+                     Qnil,
 		     doc: /* Pretty name of current buffer's major mode (a string).  */);
 
   DEFVAR_PER_BUFFER ("abbrev-mode", &current_buffer->abbrev_mode, Qnil,
