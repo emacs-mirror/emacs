@@ -447,7 +447,7 @@ ALL_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_MACHINE LD_SWITCH_SITE $(LDFLAGS)
 /* lastfile must follow all files
    whose initialized data areas should be dumped as pure by dump-emacs. */
 obj=    dispnew.o frame.o scroll.o xdisp.o window.o \
-	term.o cm.o $(XOBJ) \
+	cm.o term.o $(XOBJ) \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
 	buffer.o filelock.o insdel.o marker.o INTERVAL_OBJ \
 	minibuf.o fileio.o dired.o filemode.o \
