@@ -1016,7 +1016,15 @@ print (obj, printcharfun, escapeflag)
 	if (p != end && (*p == '-' || *p == '+')) p++;
 	if (p == end)
 	  confusing = 0;
-	else
+	/* If symbol name begins with a digit, and ends with a digit,
+	   and contains nothing but digits and `e', it could be treated
+	   as a number.  So set CONFUSING.
+
+	   Symbols that contain periods could also be taken as numbers,
+	   but periods are always escaped, so we don't have to worry
+	   about them here.  */
+	else if (*p >= '0' && *p <= '9'
+		 && end[-1] >= '0' && end[-1] <= '9')
 	  {
 	    while (p != end && ((*p >= '0' && *p <= '9')
 				/* Needed for \2e10.  */
@@ -1024,6 +1032,8 @@ print (obj, printcharfun, escapeflag)
 	      p++;
 	    confusing = (end == p);
 	  }
+	else
+	  confusing = 0;
 
 	/* If we print an uninterned symbol as part of a complex object and
 	   the flag print-gensym is non-nil, prefix it with #n= to read the
