@@ -725,11 +725,11 @@ as follows.
 
 (quail-define-package
  "cyrillic-translit" "Cyrillic" ",L6(Bt" nil
- "Intuitively transliterated keybooard layout.
+ "Intuitively transliterated keyboard layout.
 Most convenient for entering Russian but all cyrillic characters are included.
 Should handle most cases. However:
   for ,Lf(B (TSE) use \"c\", never \"ts\"
-  ,Li(B (SHCHA = Bulgarian SHT) = \"shch\", \"sj\", \"\\sht\" or \"\\t\",
+  ,Li(B (SHCHA = Bulgarian SHT) = \"shch\", \"sj\", \"/sht\" or \"/t\",
   ,Lm(B (REVERSE ROUNDED E) = \"e'\" or \"e`\"
   ,Le(B (KHA) when after ,La(B (S) = \"x\" or \"kh\"
   ,Lj(B (HARD SIGN) = \"~\", ,LJ(B (CAPITAL HARD SIGN) = \"~~\",
@@ -737,14 +737,14 @@ Should handle most cases. However:
   ,Lo(B (YA) = \"ya\", \"ja\" or \"q\".
 
 Russian alphabet: a b v=w g d e yo=jo zh z i j=j' k l m n o p r s t
-u f h=kh=x c ch sh shch=sj=\\s=\\sht ~ y ' yu=ju ya=ja=q
+u f h=kh=x c ch sh shch=sj=/s=/sht ~ y ' e' yu=ju ya=ja=q
 
-Also included are Ukranian ,Lt(B (YE) = \"\\e\" and ,Lw(B (YI) = \"yi\", 
+Also included are Ukrainian ,Lt(B (YE) = \"/e\" and ,Lw(B (YI) = \"yi\", 
 Belorussian ,L~(B (SHORT U) = \"u'\",
-Serbocroatian ,Lr(B (DJE) = \"\\d\", ,L{(B (CHJE)= \"\\ch\", 
-Macedonian ,Ls(B (GJE) = \"\\g\", ,Lu(B (DZE) = \"\\s\", ,L|(B (KJE) = \"\\k\",
-cyrillic ,Lv(B (I DECIMAL) = \"\\i\", ,Lx(B (JE) = \"\\j\", 
-,Ly(B (LJE) = \"\\l\", ,Lz(B (NJE) = \"\\n\" and ,L(B (DZE) =\"\\z\"."
+Serbo-Croatian ,Lr(B (DJE) = \"/d\", ,L{(B (CHJE)= \"/ch\", 
+Macedonian ,Ls(B (GJE) = \"/g\", ,Lu(B (DZE) = \"/s\", ,L|(B (KJE) = \"/k\",
+cyrillic ,Lv(B (I DECIMAL) = \"/i\", ,Lx(B (JE) = \"/j\", 
+,Ly(B (LJE) = \"/l\", ,Lz(B (NJE) = \"/n\" and ,L(B (DZE) =\"/z\"."
  nil t t t t)
 
 (quail-define-rules
@@ -758,7 +758,7 @@ cyrillic ,Lv(B (I DECIMAL) = \"\\i\", ,Lx(B (JE) = \"\\j\",
  ("c" ?,Lf(B) ("ch" ?,Lg(B)
  ("sh" ?,Lh(B) 
  ("shch" ?,Li(B) ("sj" ?,Li(B) 
- ("\\sht" ?,Li(B) ("\\t" ?,Li(B) 
+ ("/sht" ?,Li(B) ("/t" ?,Li(B) 
  ("~" ?,Lj(B) ("y" ?,Lk(B) ("'" ?,Ll(B) ("`" ?,Ll(B) 
  ("e'" ?,Lm(B) ("e`" ?,Lm(B) ("@" ?,Lm(B) 
  ("yu" ?,Ln(B) ("ju" ?,Ln(B) 
@@ -774,19 +774,19 @@ cyrillic ,Lv(B (I DECIMAL) = \"\\i\", ,Lx(B (JE) = \"\\j\",
  ("C" ?,LF(B) ("Ch" ?,LG(B) ("CH" ?,LG(B) 
  ("Sh" ?,LH(B) ("SH" ?,LH(B) 
  ("Shch" ?,LI(B) ("SHCH" ?,LI(B) ("Sj" ?,LI(B) ("SJ" ?,LI(B) 
- ("\\Sht" ?,LI(B) ("\\SHT" ?,LI(B) ("\\T" ?,LI(B) 
+ ("/Sht" ?,LI(B) ("/SHT" ?,LI(B) ("/T" ?,LI(B) 
  ("~~" ",LJ(B") ("Y" ?,LK(B) ("''" ",LL(B") ("E'" ?,LM(B) ("E`" ?,LM(B) 
  ("Yu" ?,LN(B) ("YU" ?,LN(B) ("Ju" ?,LN(B) ("JU" ?,LN(B) 
  ("Ya" ?,LO(B) ("YA" ?,LO(B) ("Ja" ?,LO(B) ("JA" ?,LO(B) ("Q" ?,LO(B)
 
- ("\\e" ?,Lt(B) ("yi" ?,Lw(B) ("u'" ?,L~(B)
- ("\\d" ?,Lr(B) ("\\ch" ?,L{(B)
- ("\\g" ?,Ls(B) ("\\s" ?,Lu(B) ("\\k" ?,L|(B)
- ("\\i" ?,Lv(B) ("\\j" ?,Lx(B) ("\\l" ?,Ly(B) ("\\n" ?,Lz(B) ("\\z" ?,L(B)
- ("\\E" ?,L$(B) ("YE" ?,L$(B) ("Yi" ?,L'(B) ("YI" ?,L'(B) ("U'" ?,L.(B) 
- ("\\D" ?,L"(B) ("\\Ch" ?,L+(B) ("\\CH" ?,L+(B)
- ("\\G" ?,L#(B) ("\\S" ?,L%(B) ("\\K" ?,L,(B) 
- ("\\I" ?,L&(B) ("\\J" ?,L((B) ("\\L" ?,L)(B) ("\\N" ?,L*(B) ("\\Z" ?,L/(B)
+ ("/e" ?,Lt(B) ("yi" ?,Lw(B) ("u'" ?,L~(B)
+ ("/d" ?,Lr(B) ("/ch" ?,L{(B)
+ ("/g" ?,Ls(B) ("/s" ?,Lu(B) ("/k" ?,L|(B)
+ ("/i" ?,Lv(B) ("/j" ?,Lx(B) ("/l" ?,Ly(B) ("/n" ?,Lz(B) ("/z" ?,L(B)
+ ("/E" ?,L$(B) ("YE" ?,L$(B) ("Yi" ?,L'(B) ("YI" ?,L'(B) ("U'" ?,L.(B) 
+ ("/D" ?,L"(B) ("/Ch" ?,L+(B) ("/CH" ?,L+(B)
+ ("/G" ?,L#(B) ("/S" ?,L%(B) ("/K" ?,L,(B) 
+ ("/I" ?,L&(B) ("/J" ?,L((B) ("/L" ?,L)(B) ("/N" ?,L*(B) ("/Z" ?,L/(B)
 )
 
 ;; Local Variables:
