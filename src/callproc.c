@@ -103,9 +103,8 @@ extern char **environ;
 #endif
 #endif
 
-#define max(a, b) ((a) > (b) ? (a) : (b))
-
-Lisp_Object Vexec_path, Vexec_directory, Vdata_directory, Vdoc_directory;
+Lisp_Object Vexec_path, Vexec_directory, Vexec_suffixes;
+Lisp_Object Vdata_directory, Vdoc_directory;
 Lisp_Object Vconfigure_info_directory;
 Lisp_Object Vtemp_file_name_pattern;
 
@@ -380,7 +379,7 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
     struct gcpro gcpro1;
 
     GCPRO1 (current_dir);
-    openp (Vexec_path, args[0], EXEC_SUFFIXES, &path, 1);
+    openp (Vexec_path, args[0], Vexec_suffixes, &path, 1);
     UNGCPRO;
   }
   if (NILP (path))
@@ -1571,6 +1570,28 @@ set_process_environment ()
 				    Vprocess_environment);
 }
 
+static Lisp_Object
+decode_suffixes (string)
+     char *string;
+{
+  char *p;
+  Lisp_Object suffixes;
+
+  suffixes = Qnil;
+  while (1)
+    {
+      p = index (string, ':');
+      if (!p) p = string + strlen (string);
+      suffixes = Fcons (make_string (string, p - string),
+                        suffixes);
+      if (*p)
+	string = p + 1;
+      else
+	break;
+    }
+  return Fnreverse (suffixes);
+}
+
 void
 syms_of_callproc ()
 {
@@ -1586,6 +1607,11 @@ Initialized from the SHELL environment variable.");
   DEFVAR_LISP ("exec-path", &Vexec_path,
     "*List of directories to search programs to run in subprocesses.\n\
 Each element is a string (directory name) or nil (try default directory).");
+
+  DEFVAR_LISP ("exec-suffixes", &Vexec_suffixes,
+    "*List of suffixes to try to find executable file names.\n\
+Each element is a string");
+  Vexec_suffixes = decode_suffixes (EXEC_SUFFIXES);
 
   DEFVAR_LISP ("exec-directory", &Vexec_directory,
     "Directory for executables for Emacs to invoke.\n\
