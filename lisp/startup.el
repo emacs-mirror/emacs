@@ -361,7 +361,11 @@ and any subdirectory that contains a file named `.nosearch'."
 	  (setq contents (cdr contents)))))
     (normal-top-level-add-to-load-path (cdr (nreverse dirs)))))
 
-;; This function is called from the subdirs.el file.
+;; This function is called from a subdirs.el file.
+;; It assumes that default-directory is the directory
+;; in which the subdirs.el file exists,
+;; and it adds to load-path the subdirs of that directory
+;; as specified in DIRS.  Normally the elements of DIRS are relative.
 (defun normal-top-level-add-to-load-path (dirs)
   (let ((tail load-path)
 	(thisdir (directory-file-name default-directory)))
