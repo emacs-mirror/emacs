@@ -770,7 +770,8 @@ own buffer, and thus you can use this command to specify translation to
 and from a particular subprocess by giving the command in the
 corresponding buffer.
 
-  By default, process input and output are not translated at all.
+  The default for translation of process input and output depends on the
+current language environment.
 
 @vindex file-name-coding-system
   The variable @code{file-name-coding-system} specifies a coding system
