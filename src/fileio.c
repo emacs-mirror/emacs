@@ -5845,7 +5845,7 @@ static Lisp_Object
 read_file_name_cleanup (arg)
      Lisp_Object arg;
 {
-  current_buffer->directory = arg;
+  return (current_buffer->directory = arg);
 }
 
 DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_internal,
