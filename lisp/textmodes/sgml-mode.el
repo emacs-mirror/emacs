@@ -889,7 +889,7 @@ If nil, start from a preceding tag at indentation."
                     (unless (search-forward "]]>" pos 'move)
                       (list 0 nil nil 'cdata nil nil nil nil cdata-start))))
                  (t
-                  ;; We've reached a tag.  Parse it. 
+                  ;; We've reached a tag.  Parse it.
                   ;; FIXME: Handle net-enabling start-tags
                   (parse-partial-sexp (point) pos 0))))))
       (cond
@@ -1031,7 +1031,7 @@ immediately enclosing the current position."
     ;;   enclosing start-tags we'll have to ignore.
     (skip-chars-backward " \t\n")      ; Make sure we're not at indentation.
     (while
-	(and (or ignore 
+	(and (or ignore
                  (not (if full (eq full 'empty) context))
 		 (not (sgml-at-indentation-p))
 		 (and context
@@ -1104,7 +1104,7 @@ If FULL is non-nil, parse back to the beginning of the buffer."
     (text
      (let ((context (save-excursion (sgml-get-context))))
        (if context
-           (progn 
+           (progn
              (insert "</" (sgml-tag-name (car (last context))) ">")
              (indent-according-to-mode)))))
     (otherwise
@@ -1226,6 +1226,21 @@ If FULL is non-nil, parse back to the beginning of the buffer."
     (if savep
 	(save-excursion (indent-line-to indent-col))
       (indent-line-to indent-col))))
+
+(defun sgml-guess-indent ()
+  "Guess an appropriate value for `sgml-basic-offset'.
+Base the guessed identation level on the first indented tag in the buffer.
+Add this to `sgml-mode-hook' for convenience."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (if (re-search-forward "^\\([ \t]+\\)<" 100 'noerror)
+        (progn
+          (set (make-local-variable 'sgml-basic-offset)
+               (length (match-string 1)))
+          (message "Guessed sgml-basic-offset = %d"
+                   sgml-basic-offset)
+          ))))
 
 (defun sgml-parse-dtd ()
   "Simplistic parse of the current buffer as a DTD.
