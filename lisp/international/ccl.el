@@ -1446,7 +1446,12 @@ MAP-IDs := MAP-ID ...
 MAP-SET := MAP-IDs | (MAP-IDs) MAP-SET
 MAP-ID := integer
 "
-  `(let ((prog ,(ccl-compile (eval ccl-program))))
+  `(let ((prog ,(unwind-protect
+		    (progn
+		      ;; To make ,(charset-id CHARSET) works well.
+		      (fset 'charset-id 'charset-id-internal)
+		      (ccl-compile (eval ccl-program)))
+		  (fmakunbound 'charset-id))))
      (defconst ,name prog ,doc)
      (put ',name 'ccl-program-idx (register-ccl-program ',name prog))
      nil))
