@@ -172,6 +172,9 @@ struct buffer
     int modtime;
     /* the value of text.modiff at the last auto-save. */
     int auto_save_modified;
+    /* The time at which we detected a failure to auto-save,
+       Or -1 if we didn't have a failure.  */
+    int auto_save_failure_time;
     /* Position in buffer at which display started
        the last time this buffer was displayed */
     int last_window_start;
