@@ -768,6 +768,7 @@ struct font_info *w32_load_bdf_font (struct frame *f, char *fontname,
 
   /* Now fill in the slots of *FONTP.  */
   BLOCK_INPUT;
+  bzero (fontp, sizeof (*fontp));
   fontp->font = font;
   fontp->font_idx = dpyinfo->n_fonts;
   fontp->name = (char *) xmalloc (strlen (fontname) + 1);

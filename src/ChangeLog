@@ -1,3 +1,10 @@
+2003-10-02  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_load_system_font): Clear all members of FONTP before
+	filling them.
+
+	* w32bdf.c (w32_load_bdf_font): Likewise.
+
 2003-09-30  Richard M. Stallman  <rms@gnu.org>
 
 	* term.c (set_tty_color_mode): Calculate current_mode_spec
