@@ -1959,6 +1959,12 @@ Return non-nil iff we received any output before the timeout expired.")
    when not inside wait_reading_process_input.  */
 static int waiting_for_user_input_p;
 
+/* This is here so breakpoints can be put on it.  */
+static
+wait_reading_process_input_1 ()
+{
+}
+
 /* Read and dispose of subprocess output while waiting for timeout to
    elapse and/or keyboard input to be available.
 
@@ -2079,10 +2085,19 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
       if (1)
 	{
 	  EMACS_TIME timer_delay;
-	  int old_timers_run = timers_run;
+	  int old_timers_run;
+
+	retry:
+	  old_timers_run = timers_run;
 	  timer_delay = timer_check (1);
 	  if (timers_run != old_timers_run && do_display)
-	    redisplay_preserve_echo_area ();
+	    {
+	      redisplay_preserve_echo_area ();
+	      /* We must retry, since a timer may have requeued itself
+		 and that could alter the time_delay.  */
+	      goto retry;
+	    }
+
 	  if (! EMACS_TIME_NEG_P (timer_delay) && time_limit != -1)
 	    {
 	      EMACS_TIME difference;
@@ -2092,6 +2107,11 @@ wait_reading_process_input (time_limit, microsecs, read_kbd, do_display)
 		  timeout = timer_delay;
 		  timeout_reduced_for_timers = 1;
 		}
+	    }
+	  else
+	    {
+	      /* This is so a breakpoint can be put here.  */
+	      wait_reading_process_input_1 ();
 	    }
 	}
 
