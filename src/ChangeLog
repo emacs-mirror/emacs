@@ -1,3 +1,7 @@
+2001-12-09  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* s/hpux10.h (srand48): Don't undefine.
+
 2001-12-09  Jason Rumney  <jasonr@gnu.org>
 
 	* w32menu.c (_widget_value): Make `help' field a Lisp_Object. Add
