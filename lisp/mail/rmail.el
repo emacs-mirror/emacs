@@ -1636,16 +1636,18 @@ Otherwise, delete all header fields whose names match `rmail-ignored-headers'."
 	(if (and rmail-displayed-headers (null ignored-headers))
 	    (save-restriction
 	      (narrow-to-region (point-min) (point))
-	      (let (lim)
+	      (let (lim next)
 		(goto-char (point-min))
-		(while (save-excursion
-			 (re-search-forward "\n[^ \t]")
-			 (and (not (eobp))
-			      (setq lim (1- (point)))))
+		(while (and (not (eobp))
+			    (save-excursion
+			      (if (re-search-forward "\n[^ \t]" nil t)
+				  (setq lim (match-beginning 0)
+					next (1+ lim))
+				(setq lim nil next (point-max)))))
 		  (if (save-excursion
 			(re-search-forward rmail-displayed-headers lim t))
-		      (goto-char lim)
-		    (delete-region (point) lim))))
+		      (goto-char next)
+		    (delete-region (point) next))))
 	      (goto-char (point-min)))
 	  (or ignored-headers (setq ignored-headers rmail-ignored-headers))
 	  (save-restriction
