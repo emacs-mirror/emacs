@@ -60,13 +60,8 @@
 ;; Determining this information may take some experimentation. Setting
 ;; the variable 'dirtrack-debug' may help; it causes the directory-tracking
 ;; filter to log messages to the buffer 'dirtrack-debug-buffer'.
-;;
-;; 3) Autoload directory tracking by adding the following to your .emacs:
 ;; 
-;; (autoload 'dirtrack "dirtrack"
-;;  "Directory tracking by watching the prompt")
-;; 
-;; 4) Add a hook to shell-mode to enable the directory tracking:
+;; 3) Add a hook to shell-mode to enable the directory tracking:
 ;;
 ;; (add-hook 'shell-mode-hook
 ;;   (function (lambda ()
