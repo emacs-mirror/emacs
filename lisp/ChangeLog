@@ -5,6 +5,9 @@
 
 	* progmodes/ebnf-abn.el (ebnf-abn-parser): Handle initial comments.
 
+	* progmodes/ebnf-ebx.el: New file, implement a parser for EBNF used to
+	specify XML (EBNFX).
+
 2004-03-28  Nick Roberts  <nick@nick.uklinux.net>
 
 	* progmodes/gdb-ui.el (gdb-ann3, gdb-send-item)
