@@ -1,7 +1,7 @@
 2004-01-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* compile.texi (Compilation Functions): Expand descriptions of
-	`compile-defun', `byte-compile-file', byte-recompile-directory'
+	`compile-defun', `byte-compile-file', `byte-recompile-directory'
 	and `batch-byte-compile'.  In particular, mention and describe
 	all optional arguments.
 	(Disassembly): Correct and clarify the description of `disassemble'.
