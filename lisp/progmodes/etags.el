@@ -1461,7 +1461,7 @@ see the doc of that variable if you want to add names to the list."
 	  (prin1 tags-file-name (current-buffer)) ;invisible
 	  (insert "\n")))
     (setq set-list (delete tags-file-name
-			   (apply 'nconc (cons tags-table-list
+			   (apply 'nconc (cons (copy-sequence tags-table-list)
 					       (mapcar 'copy-sequence
 						       tags-table-set-list)))))
     (while set-list
