@@ -59,7 +59,7 @@ The headers are be delimited by a line which is `mail-header-separator'.")
 Do not use an rmail file here!  Instead, use its inbox file.")
 
 ;;;###autoload
-(defvar mail-default-reply-to nil
+(defvar mail-default-reply-to t
   "*Address to insert as default Reply-to field of outgoing messages.")
 
 ;;;###autoload
@@ -174,6 +174,8 @@ actually occur.")
 	      mail-aliases t))))
 
 (defun mail-setup (to subject in-reply-to cc replybuffer actions)
+  (if (eq mail-default-reply-to t)
+      (setq mail-default-reply-to (getenv "REPLYTO")))
   (synch-mail-aliases)
   (if (eq mail-aliases t)
       (progn
