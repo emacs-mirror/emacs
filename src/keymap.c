@@ -2707,17 +2707,16 @@ where_is_internal_2 (args, key, binding)
       int from = XINT (XCAR (key)), to = XINT (XCDR (key));
       Lisp_Object k;
 
-      for (; from <= to; from++)
+      for (; from <= to; to--)
 	{
-	  k = make_number (from);
+	  k = make_number (to);
 	  sequence = where_is_internal_1 (binding, k, definition, noindirect,
 					  this, last, nomenus, last_is_meta);
 	  if (!NILP (sequence))
 	    result = Fcons (sequence, result);
-	  if (from >= 128 && from < to)
-	    from = to - 1;
+	  if (to > 129)
+	    to = 129;
 	}
-      result = Fnreverse (result);
     }
   else
     {
