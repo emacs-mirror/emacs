@@ -839,9 +839,13 @@ of the environment variables @code{NAME}, if that is set.
 @end group
 @end example
 
-If @var{uid} is non-@code{nil}, then it should be an integer, a user-id,
-or a string, a login name.  Then @code{user-full-name} returns the full
-name corresponding to that user-id or login name.
+If the Emacs job's user-id does not correspond to any known user (and
+provided @code{NAME} is not set), the value is @code{"unknown"}.
+
+If @var{uid} is non-@code{nil}, then it should be an integer (a user-id)
+or a string (a login name).  Then @code{user-full-name} returns the full
+name corresponding to that user-id or login name.  If you specify a
+user-id or login name that isn't defined, it returns @code{nil}.
 @end defun
 
 @vindex user-full-name
