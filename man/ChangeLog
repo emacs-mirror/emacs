@@ -1,3 +1,7 @@
+2004-09-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (../info/gnus, gnus.dvi): Depend on gnus-faq.texi
+
 2004-09-09  Kim F. Storm  <storm@cua.dk>
 
 	* kmacro.texi (Save Keyboard Macro): Replace `name-last-kbd-macro'
