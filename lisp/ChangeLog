@@ -1,5 +1,8 @@
 2000-08-24  Dave Love  <fx@gnu.org>
 
+	* disp-table.el (standard-display-default): Make the test of `l'
+	useful.
+
 	* language/european.el ("Latin-8", "Latin-9"): Add input methods,
 	mod sample text.
 
