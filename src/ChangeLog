@@ -1,3 +1,9 @@
+2004-11-09  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (update_window_fringes): Update fringe bitmaps if
+	cur and row ends_at_zv_p differs.  If bitmaps of a row is updated,
+	also update previous row to get rid of misc. artifacts.
+
 2004-11-08  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (fast_find_position): Fix start pos if header line present.
