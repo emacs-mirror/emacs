@@ -50,6 +50,15 @@ int print_depth;
 #define PRINT_CIRCLE 200
 Lisp_Object being_printed[PRINT_CIRCLE];
 
+/* When printing into a buffer, first we put the text in this
+   block, then insert it all at once.  */
+char *print_buffer;
+
+/* Size allocated in print_buffer.  */
+int print_buffer_size;
+/* Size used in print_buffer.  */
+int print_buffer_pos;
+
 /* Maximum length of list to print in full; noninteger means
    effectively infinity */
 
@@ -158,9 +167,20 @@ glyph_to_str_cpy (glyphs, str)
        old_point = point;					\
        SET_PT (marker_position (printcharfun));			\
        start_point = point;					\
-       printcharfun = Qnil;}
+       printcharfun = Qnil;}					\
+   if (NILP (printcharfun))					\
+     {								\
+       print_buffer_pos = 0;					\
+       print_buffer_size = 1000;				\
+       print_buffer = (char *) xmalloc (print_buffer_size);	\
+     }								\
+   else								\
+     print_buffer = 0;
 
 #define PRINTFINISH					\
+   if (NILP (printcharfun))				\
+     insert (print_buffer, print_buffer_pos);		\
+   if (print_buffer) free (print_buffer);		\
    if (MARKERP (original))				\
      Fset_marker (original, make_number (point), Qnil);	\
    if (old_point >= 0)					\
@@ -189,7 +209,10 @@ printchar (ch, fun)
   if (EQ (fun, Qnil))
     {
       QUIT;
-      insert (&ch, 1);
+      if (print_buffer_pos == print_buffer_size)
+	print_buffer = (char *) xrealloc (print_buffer,
+					  print_buffer_size *= 2);
+      print_buffer[print_buffer_pos++] = ch;
       return;
     }
 
@@ -239,10 +262,21 @@ strout (ptr, size, printcharfun)
 
   if (EQ (printcharfun, Qnil))
     {
-      insert (ptr, size >= 0 ? size : strlen (ptr));
+      if (size < 0)
+	size = strlen (ptr);
+
+      if (print_buffer_pos + size > print_buffer_size)
+	{
+	  print_buffer_size = print_buffer_size * 2 + size;
+	  print_buffer = (char *) xrealloc (print_buffer,
+					    print_buffer_size);
+	}
+      bcopy (ptr, print_buffer + print_buffer_pos, size);
+      print_buffer_pos += size;
+
 #ifdef MAX_PRINT_CHARS
       if (max_print)
-        print_chars += size >= 0 ? size : strlen(ptr);
+        print_chars += size;
 #endif /* MAX_PRINT_CHARS */
       return;
     }
@@ -301,17 +335,9 @@ print_string (string, printcharfun)
      Lisp_Object string;
      Lisp_Object printcharfun;
 {
-  if (EQ (printcharfun, Qt))
-    /* strout is safe for output to a frame (echo area).  */
+  if (EQ (printcharfun, Qt) || NILP (printcharfun))
+    /* strout is safe for output to a frame (echo area) or to print_buffer.  */
     strout (XSTRING (string)->data, XSTRING (string)->size, printcharfun);
-  else if (EQ (printcharfun, Qnil))
-    {
-#ifdef MAX_PRINT_CHARS
-      if (max_print)
-        print_chars += XSTRING (string)->size;
-#endif /* MAX_PRINT_CHARS */
-      insert_from_string (string, 0, XSTRING (string)->size, 1);
-    }
   else
     {
       /* Otherwise, fetch the string address for each character.  */
