@@ -183,6 +183,10 @@ of[ \t]+\"?\\([^\":\n]+\\)\"?:" 3 2)
     ;; foo.adb:2:1: Unit name does not match file name
     ("\n\\([^ \n\t:]+\\):\\([0-9]+\\):\\([0-9]+\\)[: \t]" 1 2 3)
 
+    ;; SGI Irix 5.2 compiler warnings
+    ;; cfe: Warning 835: vpr_tiff.c, line 65: No prototype for the call to rint
+    ("ning [0-9]+: \\([^,\" \n\t]+\\)[,:] \\(line \\)?\\([0-9]+\\):" 1 3)
+
     ;; GNU message with program name and column number.
     ("\n\\([^ \n\t:]+\\):\\([^ \n\t:]+\\):\
 \\([0-9]+\\):\\([0-9]+\\)[: \t]" 2 3 4)
