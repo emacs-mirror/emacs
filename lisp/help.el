@@ -577,18 +577,6 @@ Argument is a command definition, usually a symbol with a function definition."
       (message "%s is not on any key" definition)))
   nil)
 
-(defun command-apropos (string)
-  "Like apropos but lists only symbols that are names of commands
-\(interactively callable functions).  Argument REGEXP is a regular expression
-that is matched against command symbol names.  Returns list of symbols and
-documentation found."
-  (interactive "sCommand apropos (regexp): ")
-  (let ((message
-	 (let ((standard-output (get-buffer-create "*Help*")))
-	   (print-help-return-message 'identity))))
-    (if (apropos string t 'commandp t)
-	(and message (message message)))))
-
 (defun locate-library (library &optional nosuffix)
   "Show the full path name of Emacs library LIBRARY.
 This command searches the directories in `load-path' like `M-x load-library'
