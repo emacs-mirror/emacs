@@ -5,7 +5,7 @@
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-cvs.el,v 1.7 2000/10/27 11:37:17 spiegel Exp $
+;; $Id: vc-cvs.el,v 1.8 2000/10/27 15:06:27 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -649,10 +649,11 @@ REV is the revision to check out into WORKFILE."
 	(vc-mode-line file)
 	(message "Checking out %s...done" filename)))))
 
-(defun vc-cvs-annotate-command (file buffer)
-  "Execute \"cvs annotate\" on FILE.
-Use `call-process' and insert the contents in BUFFER."
-  (call-process "cvs" nil buffer nil "annotate" file))
+(defun vc-cvs-annotate-command (file buffer &optional version)
+  "Execute \"cvs annotate\" on FILE, inserting the contents in BUFFER.
+Optional arg VERSION is a version to annotate from."
+  (vc-do-command buffer 0 "cvs" file "annotate" (if version
+                                                    (concat "-r" version))))
 
 (defvar vc-cvs-local-month-numbers
   '(("Jan" . 1) ("Feb" .  2) ("Mar" .  3) ("Apr" .  4)
