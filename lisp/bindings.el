@@ -249,6 +249,7 @@ Keymap to display on major and minor modes.")
      'mode-line-buffer-identification
      (propertize "   " 'help-echo help-echo)
      'global-mode-string
+     `(global-mode-string ,(propertize "   " 'help-echo help-echo))
      'mode-line-position
      '(vc-mode vc-mode)
      (propertize "   " 'help-echo help-echo)
