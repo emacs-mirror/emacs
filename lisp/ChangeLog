@@ -1,3 +1,10 @@
+2001-10-18  Sam Steingold  <sds@gnu.org>
+
+	Put the *Compile-Log* buffer in `compilation-mode'.
+	* emacs-lisp/bytecomp.el (byte-goto-log-buffer): New function.
+	(byte-compile-log-1, byte-compile-log-file)
+	(displaying-byte-compile-warnings): use it
+
 2001-10-18  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* mail/smtpmail.el (smtpmail-via-smtp): Use mail-envelope-from if set.

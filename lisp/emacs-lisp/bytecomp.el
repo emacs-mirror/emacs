@@ -10,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.89 $")
+(defconst byte-compile-version "$Revision: 2.90 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -178,11 +178,11 @@
 ;;     (progn
 ;;       ;; emacs-18 compatibility.
 ;;       (defvar baud-rate (baud-rate))	;Define baud-rate if it's undefined
-;; 
+;;
 ;;       (if (byte-compile-single-version)
 ;; 	  (defmacro byte-code-function-p (x) "Emacs 18 doesn't have these." nil)
 ;; 	(defun byte-code-function-p (x) "Emacs 18 doesn't have these." nil))
-;; 
+;;
 ;;       (or (and (fboundp 'member)
 ;; 	       ;; avoid using someone else's possibly bogus definition of this.
 ;; 	       (subrp (symbol-function 'member)))
@@ -826,6 +826,10 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 		(not (eq byte-compile-current-form
 			 byte-compile-last-warned-form))))))
 
+(defun byte-goto-log-buffer ()
+  (set-buffer (get-buffer-create "*Compile-Log*"))
+  (unless (eq major-mode 'compilation-mode)
+    (compilation-mode)))
 
 ;; Log a message STRING in *Compile-Log*.
 ;; Also log the current function and file if not already done.
@@ -833,10 +837,10 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
   (let* ((file (cond ((stringp byte-compile-current-file)
 		      (format "%s:" byte-compile-current-file))
 		     ((bufferp byte-compile-current-file)
-		      (format "Buffer %s:" 
+		      (format "Buffer %s:"
 			      (buffer-name byte-compile-current-file)))
 		     (t "")))
-	 (pos (if (and byte-compile-current-file 
+	 (pos (if (and byte-compile-current-file
 		       (integerp byte-compile-last-line))
 		  (format "%d:" byte-compile-last-line)
 		""))
@@ -847,7 +851,7 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 	   (message "%s%s %s" file pos string))
 	  (t
 	   (save-excursion
-	     (set-buffer (get-buffer-create "*Compile-Log*"))
+             (byte-goto-log-buffer)
 	     (goto-char (point-max))
 	     (when (byte-compile-display-log-head-p)
 	       (insert (format "\nIn %s" form)))
@@ -865,7 +869,7 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
        (not (equal byte-compile-current-file byte-compile-last-logged-file))
        (not noninteractive)
        (save-excursion
-	 (set-buffer (get-buffer-create "*Compile-Log*"))
+	 (byte-goto-log-buffer)
 	 (goto-char (point-max))
 	 (insert "\n\^L\nCompiling "
 		 (if (stringp byte-compile-current-file)
@@ -1110,7 +1114,7 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 		    (byte-compile-arglist-signature-string sig)
 		    (if (equal sig '(1 . 1)) " arg" " args")
 		    (byte-compile-arglist-signature-string (cons min max))))
-	      
+
 	      (setq byte-compile-unresolved-functions
 		    (delq calls byte-compile-unresolved-functions)))))
       )))
@@ -1129,14 +1133,14 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
 		     L (+ (length s) 4))))
 	   (byte-compile-warn "%s" str)))
 	((cdr syms)
-	 (byte-compile-warn "%s %s" 
+	 (byte-compile-warn "%s %s"
 			    strn
 			    (mapconcat #'symbol-name syms ", ")))
 
 	(syms
 	 (byte-compile-warn str1 (car syms)))))
 
-;; If we have compiled any calls to functions which are not known to be 
+;; If we have compiled any calls to functions which are not known to be
 ;; defined, issue a warning enumerating them.
 ;; `unresolved' in the list `byte-compile-warnings' disables this.
 (defun byte-compile-warn-about-unresolved-functions ()
@@ -1214,17 +1218,15 @@ Each function's symbol gets marked with the `byte-compile-noruntime' property."
      ;; before the end of BODY.
      (unless byte-compile-warnings-point-max
        (save-excursion
-	 (set-buffer (get-buffer-create "*Compile-Log*"))
+	 (byte-goto-log-buffer)
 	 (setq byte-compile-warnings-point-max (point-max))))
      (unwind-protect
 	 (condition-case error-info
 	     (progn ,@body)
 	   (error (byte-compile-report-error error-info)))
-       (save-excursion
+       (with-current-buffer "*Compile-Log*"
 	 ;; If there were compilation warnings, display them.
-	 (set-buffer "*Compile-Log*")
-	 (if (= byte-compile-warnings-point-max (point-max))
-	     nil
+	 (unless (= byte-compile-warnings-point-max (point-max))
 	   (select-window
 	    (prog1 (selected-window)
 	      (select-window (display-buffer (current-buffer)))
@@ -2138,7 +2140,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
   (let (vars)
     (while list
       (let ((arg (car list)))
-	(cond ((or (not (symbolp arg)) 
+	(cond ((or (not (symbolp arg))
 		   (keywordp arg)
 		   (memq arg '(t nil)))
 	       (error "Invalid lambda variable %s" arg))
@@ -2152,7 +2154,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 		 (error "Variable name missing after &optional")))
 	      ((memq arg vars)
 	       (byte-compile-warn "repeated variable %s in lambda-list" arg))
-	      (t 
+	      (t
 	       (push arg vars))))
       (setq list (cdr list)))))
 
@@ -2302,7 +2304,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
   (if (memq byte-optimize '(t byte))
       (setq byte-compile-output
 	    (byte-optimize-lapcode byte-compile-output for-effect)))
-  
+
   ;; Decompile trivial functions:
   ;; only constants and variables, or a single funcall except in lambdas.
   ;; Except for Lisp_Compiled objects, forms like (foo "hi")
