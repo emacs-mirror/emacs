@@ -1,6 +1,6 @@
 /* impl.c.mpsi: MEMORY POOL SYSTEM INTERFACE LAYER
  *
- * $HopeName: MMsrc!mpsi.c(trunk.5) $
+ * $HopeName: !mpsi.c(trunk.6) $
  * Copyright (C) 1996 Harlequin Group, all rights reserved.
  *
  * .thread-safety: Most calls through this interface lock the space
@@ -25,7 +25,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-SRCID("$HopeName: MMsrc!mpsi.c(trunk.5) $");
+SRCID("$HopeName: !mpsi.c(trunk.6) $");
 
 
 /* Check consistency of interface mappings. */
@@ -102,7 +102,9 @@ mps_res_t mps_fmt_create_A(mps_fmt_t *mps_fmt_o,
                            mps_fmt_A_t mps_fmt_A)
 {
   Format *formatReturn = (Format *)mps_fmt_o;
+  Space space = (Space)mps_space;
   Error e;
+  SpaceLockClaim(space);
   AVER(mps_fmt_A != NULL);
   e = FormatCreate(formatReturn,
                    (Space)mps_space,
@@ -112,12 +114,18 @@ mps_res_t mps_fmt_create_A(mps_fmt_t *mps_fmt_o,
                    (FormatMoveMethod)mps_fmt_A->fwd,
                    (FormatIsMovedMethod)mps_fmt_A->isfwd,
                    (FormatCopyMethod)mps_fmt_A->copy);
+  SpaceLockRelease(space);
   return e;
 }
 
 void mps_fmt_destroy(mps_fmt_t mps_fmt)
 {
+  Format format = (Format)mps_fmt;
+  Space space = FormatSpace(format);
+  SpaceLockClaim(space);
+  AVER(ISVALID(Format, format));
   FormatDestroy((Format)mps_fmt);
+  SpaceLockRelease(space);
 }
 
 mps_res_t mps_pool_create(mps_pool_t *mps_pool_o,
@@ -130,6 +138,8 @@ mps_res_t mps_pool_create(mps_pool_t *mps_pool_o,
   va_list args;
   Error e;
 
+  SpaceLockClaim(space);
+
   AVER(poolReturn != NULL);
   AVER(ISVALID(Space, space));
   AVER(ISVALID(PoolClass, class));
@@ -138,6 +148,7 @@ mps_res_t mps_pool_create(mps_pool_t *mps_pool_o,
   e = PoolCreateV(poolReturn, class, space, args);
   va_end(args);
 
+  SpaceLockRelease(space);
   return e;
 }
 
@@ -151,20 +162,29 @@ mps_res_t mps_pool_create_v(mps_pool_t *mps_pool_o,
   PoolClass class = (PoolClass)mps_class;
   Error e;
 
+  SpaceLockClaim(space);
+
   AVER(poolReturn != NULL);
   AVER(ISVALID(Space, space));
   AVER(ISVALID(PoolClass, class));
 
   e = PoolCreateV(poolReturn, class, space, args);
 
+  SpaceLockRelease(space);
   return e;
 }
 
 void mps_pool_destroy(mps_pool_t mps_pool)
 {
   Pool pool = (Pool)mps_pool;
+  Space space = PoolSpace(pool);
+
+  SpaceLockClaim(space);
+
   AVER(ISVALID(Pool, pool));
   PoolDestroy(pool);
+
+  SpaceLockRelease(space);
 }
 
 mps_res_t mps_alloc(mps_addr_t *p_o,
@@ -172,7 +192,10 @@ mps_res_t mps_alloc(mps_addr_t *p_o,
                     size_t size, ...)
 {
   Pool pool = (Pool)mps_pool;
+  Space space = PoolSpace(pool);
   Error e;
+
+  SpaceLockClaim(space);
 
   AVER(p_o != NULL);
   AVER(ISVALID(Pool, pool));
@@ -183,6 +206,7 @@ mps_res_t mps_alloc(mps_addr_t *p_o,
   /* implementations use them, and they're not passed through. */
   e = PoolAlloc((Addr *)p_o, pool, size);
   
+  SpaceLockRelease(space);
   return e;
 }
 
@@ -191,7 +215,10 @@ mps_res_t mps_alloc_v(mps_addr_t *p_o,
                       size_t size, va_list args)
 {
   Pool pool = (Pool)mps_pool;
+  Space space = PoolSpace(pool);
   Error e;
+
+  SpaceLockClaim(space);
 
   AVER(p_o != NULL);
   AVER(ISVALID(Pool, pool));
@@ -202,26 +229,35 @@ mps_res_t mps_alloc_v(mps_addr_t *p_o,
   /* Varargs are ignored at the moment -- none of the pool */
   /* implementations use them, and they're not passed through. */
   e = PoolAlloc((Addr *)p_o, pool, size);
+
+  SpaceLockRelease(space);
   return e;
 }
 
 void mps_free(mps_pool_t mps_pool, mps_addr_t p, size_t size)
 {
   Pool pool = (Pool)mps_pool;
+  Space space = PoolSpace(pool);
+
+  SpaceLockClaim(space);
 
   AVER(ISVALID(Pool, pool));
   AVER(size > 0);
   /* Note: class may allow unaligned size. */
 
   PoolFree(pool, (Addr)p, size);
+  SpaceLockRelease(space);
 }
 
 mps_res_t mps_ap_create(mps_ap_t *mps_ap_o, mps_pool_t mps_pool, ...)
 {
   Ap *apReturn = (Ap *)mps_ap_o;
   Pool pool = (Pool)mps_pool;
+  Space space = PoolSpace(pool);
   Buffer buf;
   Error e;
+
+  SpaceLockClaim(space);
 
   AVER(apReturn != NULL);
   AVER(ISVALID(Pool, pool));
@@ -233,6 +269,7 @@ mps_res_t mps_ap_create(mps_ap_t *mps_ap_o, mps_pool_t mps_pool, ...)
     return e;
 
   *apReturn = BufferAp(buf);
+  SpaceLockRelease(space);
   return MPS_RES_OK;
 }
 
@@ -242,8 +279,11 @@ mps_res_t mps_ap_create_v(mps_ap_t *mps_ap_o,
 {
   Ap *apReturn = (Ap *)mps_ap_o;
   Pool pool = (Pool)mps_pool;
+  Space space = PoolSpace(pool);
   Buffer buf;
   Error e;
+
+  SpaceLockClaim(space);
 
   AVER(apReturn != NULL);
   AVER(ISVALID(Pool, pool));
@@ -256,43 +296,64 @@ mps_res_t mps_ap_create_v(mps_ap_t *mps_ap_o,
     return e;
 
   *apReturn = BufferAp(buf);
+  SpaceLockRelease(space);
   return MPS_RES_OK;
 }
 
 void mps_ap_destroy(mps_ap_t mps_ap)
 {
   Buffer buf = BufferOfAp((Ap)mps_ap);
+  Space space = BufferSpace(buf);
+
+  SpaceLockClaim(space);
+
   AVER(ISVALID(Buffer, buf));
   BufferDestroy(buf);
+  SpaceLockRelease(space);
 }
 
 mps_res_t (mps_reserve)(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
 {
   Buffer buf = BufferOfAp((Ap)mps_ap);
+  Space space = BufferSpace(buf);
+  Error e;
+
+  SpaceLockClaim(space);
 
   AVER(p_o != NULL);
   AVER(ISVALID(Buffer, buf));
   AVER(size > 0);
   AVER(IsAligned(BufferPool(buf)->alignment, size));
     
-  return (BufferReserve)((Addr *)p_o, buf, size);
+  e = (BufferReserve)((Addr *)p_o, buf, size);
+  SpaceLockRelease(space);
+  return e;
 }
 
 mps_bool_t (mps_commit)(mps_ap_t mps_ap, mps_addr_t p, size_t size)
 {
   Buffer buf = BufferOfAp((Ap)mps_ap);
+  Space space = BufferSpace(buf);
+  Bool b;
+
+  SpaceLockClaim(space);
 
   AVER(ISVALID(Buffer, buf));
   AVER(size > 0);
   AVER(IsAligned(BufferPool(buf)->alignment, size));
 
-  return (BufferCommit)(buf, (Addr)p, size);
+  b = (BufferCommit)(buf, (Addr)p, size);
+  SpaceLockRelease(space);
+  return b;
 }
 
 mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
 {
   Buffer buf = BufferOfAp((Ap)mps_ap);
+  Space space = BufferSpace(buf);
   Error e;
+
+  SpaceLockClaim(space);
 
   AVER(p_o != NULL);
   AVER(ISVALID(Buffer, buf));
@@ -300,19 +361,24 @@ mps_res_t mps_ap_fill(mps_addr_t *p_o, mps_ap_t mps_ap, size_t size)
   AVER(IsAligned(BufferPool(buf)->alignment, size));
 
   e = BufferFill((Addr *)p_o, buf, size);
+  SpaceLockRelease(space);
   return e;
 }
 
 mps_bool_t mps_ap_trip(mps_ap_t mps_ap, mps_addr_t p, size_t size)
 {
   Buffer buf = BufferOfAp((Ap)mps_ap);
+  Space space = BufferSpace(buf);
   Bool b;
+
+  SpaceLockClaim(space);
 
   AVER(ISVALID(Buffer, buf));
   AVER(size > 0);
   AVER(IsAligned(BufferPool(buf)->alignment, size));
 
   b = BufferTrip(buf, (Addr)p, size);
+  SpaceLockRelease(space);
   return b;
 }
 
@@ -326,6 +392,9 @@ mps_res_t mps_root_create(mps_root_t *mps_root_o,
   Root *rootReturn = (Root *)mps_root_o;
   Space space = (Space)mps_space;
   RefRank rank = (RefRank)mps_rank;
+  Error e;
+
+  SpaceLockClaim(space);
 
   AVER(rootReturn != NULL);
   AVER(ISVALID(Space, space));
@@ -333,8 +402,10 @@ mps_res_t mps_root_create(mps_root_t *mps_root_o,
   AVER(mps_rm = (mps_rm_t)0);
 
   /* The root mode is ignored. */
-  return RootCreate(rootReturn, space, rank,
-                    (RootScanMethod)mps_root_scan, p, s);
+  e = RootCreate(rootReturn, space, rank,
+                 (RootScanMethod)mps_root_scan, p, s);
+  SpaceLockRelease(space);
+  return e;
 }
 
 mps_res_t mps_root_create_table(mps_root_t *mps_root_o,
@@ -346,6 +417,9 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o,
   Root *rootReturn = (Root *)mps_root_o;
   Space space = (Space)mps_space;
   RefRank rank = (RefRank)mps_rank;
+  Error e;
+
+  SpaceLockClaim(space);
 
   AVER(mps_root_o != NULL);
   AVER(ISVALID(Space, space));
@@ -355,8 +429,10 @@ mps_res_t mps_root_create_table(mps_root_t *mps_root_o,
   /* the size in bytes.  However, RootCreateTable expects */
   /* base and limit pointers.  Be careful. */
   /* The root mode is ignored. */
-  return RootCreateTable(rootReturn, space, rank,
-                         (Addr *)base, (Addr *)base + size);
+  e = RootCreateTable(rootReturn, space, rank,
+                      (Addr *)base, (Addr *)base + size);
+  SpaceLockRelease(space);
+  return e;
 }
 
 mps_res_t mps_root_create_fmt(mps_root_t *mps_root_o,
@@ -394,6 +470,9 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o,
   Space space = (Space)mps_space;
   RefRank rank = (RefRank)mps_rank;
   Thread thread = (Thread)mps_thr;
+  Error e;
+
+  SpaceLockClaim(space);
 
   AVER(mps_root_o != NULL);
   AVER(ISVALID(Space, space));
@@ -407,9 +486,11 @@ mps_res_t mps_root_create_reg(mps_root_t *mps_root_o,
   AVER(rank == MPS_RANK_AMBIG);
   AVER(mps_rm == (mps_rm_t)0);
 
-  return RootCreateReg(rootReturn, space, rank, thread,
-                       (RootScanRegMethod)mps_reg_scan,
-                       reg_scan_p);
+  e = RootCreateReg(rootReturn, space, rank, thread,
+                    (RootScanRegMethod)mps_reg_scan,
+                    reg_scan_p);
+  SpaceLockRelease(space);
+  return e;
 }
 
 mps_res_t mps_stack_scan_ambig(mps_ss_t mps_ss,
@@ -423,8 +504,11 @@ mps_res_t mps_stack_scan_ambig(mps_ss_t mps_ss,
 void mps_root_destroy(mps_root_t mps_root)
 {
   Root root = (Root)mps_root;
+  Space space = RootSpace(root);
+  SpaceLockClaim(space);
   AVER(ISVALID(Root, root));
   RootDestroy(root);
+  SpaceLockRelease(space);
 }
 
 void (mps_tramp)(void **r_o,
@@ -440,16 +524,25 @@ mps_res_t mps_thread_reg(mps_thr_t *mps_thr_o,
 {
   Thread *threadReturn = (Thread *)mps_thr_o;
   Space space = (Space)mps_space;
+  Error e;
+
+  SpaceLockClaim(space);
+
   AVER(mps_thr_o != NULL);
   AVER(ISVALID(Space, space));
-  return ThreadRegister(threadReturn, space);
+
+  e = ThreadRegister(threadReturn, space);
+  SpaceLockRelease(space);
+  return e;
 }
 
 void mps_thread_dereg(mps_thr_t mps_thr)
 {
   Thread thread = (Thread)mps_thr;
   Space space = ThreadSpace(thread);
+  SpaceLockClaim(space);
   ThreadDeregister(thread, space);
+  SpaceLockRelease(space);
 }
 
 /* @@@@ not done from here on */
