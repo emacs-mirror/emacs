@@ -1,6 +1,6 @@
 ;;; startup.el --- process Emacs shell arguments
 
-;; Copyright (C) 1985, 86, 92, 94, 95, 96, 97, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 92, 94, 95, 96, 97, 1998, 1999 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -675,7 +675,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (let (debug-on-error-from-init-file
 	debug-on-error-should-be-set
 	(debug-on-error-initial
-	 (if (eq init-file-debug t) 'startup init-file-debug)))
+	 (if (eq init-file-debug t) 'startup init-file-debug))
+	(orig-enable-multibyte default-enable-multibyte-characters))
     (let ((debug-on-error debug-on-error-initial)
 	  ;; This function actually reads the init files.
 	  (inner
@@ -721,7 +722,22 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	  (setq debug-on-error-should-be-set t
 		debug-on-error-from-init-file debug-on-error)))
     (if debug-on-error-should-be-set
-	(setq debug-on-error debug-on-error-from-init-file)))
+	(setq debug-on-error debug-on-error-from-init-file))
+    (unless (or default-enable-multibyte-characters
+		(eq orig-enable-multibyte default-enable-multibyte-characters))
+      ;; Init file changed to unibyte.  Reset existing multibyte
+      ;; buffers (probably *scratch*, *Messages*, *Minibuff-0*).
+      ;; Arguably this should only be done if they're free of
+      ;; multibyte characters.
+      (mapcar (lambda (buffer)
+		(with-current-buffer buffer
+		  (if enable-multibyte-characters
+		      (set-buffer-multibyte nil))))
+	      (buffer-list))
+      ;; Also re-set the language environment in case it was
+      ;; originally done before unibyte was set and is sensitive to
+      ;; unibyte (display table, terminal coding system &c).
+      (set-language-environment current-language-environment)))
 
   ;; Do this here in case the init file sets mail-host-address.
   (or user-mail-address
