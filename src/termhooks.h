@@ -71,6 +71,8 @@ struct display_method
 #define FRAME_SCROLL_REGION_COST(f) ((f)->display_method->scroll_region_cost)
 #define FRAME_MEMORY_BELOW_FRAME(f) ((f)->display_method->memory_below_frame)
 
+#define FRAME_RIF(f) ((f)->display_method->rif)
+
 /* Text display hooks.  */
 
 extern void (*cursor_to_hook) P_ ((int vpos, int hpos));

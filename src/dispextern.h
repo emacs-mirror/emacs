@@ -2011,16 +2011,16 @@ struct it
 /* Call produce_glyphs or produce_glyphs_hook, if set.  Shortcut to
    avoid the function call overhead.  */
 
-#define PRODUCE_GLYPHS(IT) 			\
-     do {					\
-       extern int inhibit_free_realized_faces;	\
-       if (rif != NULL)				\
-	 rif->produce_glyphs ((IT));		\
-       else					\
-	 produce_glyphs ((IT));			\
-       if ((IT)->glyph_row != NULL)		\
-	 inhibit_free_realized_faces = 1;	\
-     } while (0)
+#define PRODUCE_GLYPHS(IT)                              \
+  do {                                                  \
+    extern int inhibit_free_realized_faces;             \
+    if (FRAME_RIF ((IT)->f) != NULL)                    \
+      FRAME_RIF ((IT)->f)->produce_glyphs ((IT));       \
+    else                                                \
+      produce_glyphs ((IT));                            \
+    if ((IT)->glyph_row != NULL)                        \
+      inhibit_free_realized_faces = 1;                  \
+  } while (0)
 
 /* Bit-flags indicating what operation move_it_to should perform.  */
 
@@ -2188,10 +2188,6 @@ struct redisplay_interface
 
 #endif /* HAVE_WINDOW_SYSTEM */
 };
-
-/* The current interface for window-based redisplay.  */
-
-extern struct redisplay_interface *rif;
 
 
 /***********************************************************************

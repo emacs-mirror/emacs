@@ -2009,9 +2009,6 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
   it->w = w;
   it->f = XFRAME (w->frame);
   
-  /* XXX rif hack: Make sure the redisplay interface is correctly set. */
-  rif = it->f->display_method->rif;
-
   /* Extra space between lines (on window systems only).  */
   if (base_face_id == DEFAULT_FACE_ID
       && FRAME_WINDOW_P (it->f))
@@ -7674,7 +7671,7 @@ echo_area_display (update_frame_p)
 		 Can do with a display update of the echo area,
 		 unless we displayed some mode lines.  */
 	      update_single_window (w, 1);
-	      rif->flush_display (f);
+	      FRAME_RIF (f)->flush_display (f);
 	    }
 	  else
 	    update_frame (f, 1, 1);
@@ -8135,8 +8132,8 @@ x_cursor_to (vpos, hpos, y, x)
     {
       BLOCK_INPUT;
       display_and_set_cursor (w, 1, hpos, vpos, x, y);
-      if (rif->flush_display_optional)
-	rif->flush_display_optional (SELECTED_FRAME ());
+      if (FRAME_RIF (SELECTED_FRAME ())->flush_display_optional)
+	FRAME_RIF (SELECTED_FRAME ())->flush_display_optional (SELECTED_FRAME ());
       UNBLOCK_INPUT;
     }
 }
@@ -9029,7 +9026,7 @@ draw_fringe_bitmap (w, row, which, left_p)
   /* Adjust y to the offset in the row to start drawing the bitmap.  */
   p.y += (row->height - p.h) / 2;
 
-  rif->draw_fringe_bitmap (w, row, &p);
+  FRAME_RIF (f)->draw_fringe_bitmap (w, row, &p);
 }
 
 /* Draw fringe bitmaps for glyph row ROW on window W.  Call this
@@ -12303,10 +12300,10 @@ try_window_reusing_current_matrix (w)
 	  if (run.height > 0 && run.current_y != run.desired_y)
 	    {
 	      update_begin (f);
-	      rif->update_window_begin_hook (w);
-	      rif->clear_window_mouse_face (w);
-	      rif->scroll_run_hook (w, &run);
-	      rif->update_window_end_hook (w, 0, 0);
+	      FRAME_RIF (f)->update_window_begin_hook (w);
+	      FRAME_RIF (f)->clear_window_mouse_face (w);
+	      FRAME_RIF (f)->scroll_run_hook (w, &run);
+	      FRAME_RIF (f)->update_window_end_hook (w, 0, 0);
 	      update_end (f);
 	    }
 
@@ -12476,10 +12473,10 @@ try_window_reusing_current_matrix (w)
 	{
 	  struct frame *f = XFRAME (WINDOW_FRAME (w));
 	  update_begin (f);
-	  rif->update_window_begin_hook (w);
-	  rif->clear_window_mouse_face (w);
-	  rif->scroll_run_hook (w, &run);
-	  rif->update_window_end_hook (w, 0, 0);
+	  FRAME_RIF (f)->update_window_begin_hook (w);
+	  FRAME_RIF (f)->clear_window_mouse_face (w);
+	  FRAME_RIF (f)->scroll_run_hook (w, &run);
+	  FRAME_RIF (f)->update_window_end_hook (w, 0, 0);
 	  update_end (f);
 	}
 
@@ -13310,10 +13307,10 @@ try_window_id (w)
 
       if (FRAME_WINDOW_P (f))
 	{
-	  rif->update_window_begin_hook (w);
-	  rif->clear_window_mouse_face (w);
-	  rif->scroll_run_hook (w, &run);
-	  rif->update_window_end_hook (w, 0, 0);
+	  FRAME_RIF (f)->update_window_begin_hook (w);
+	  FRAME_RIF (f)->clear_window_mouse_face (w);
+	  FRAME_RIF (f)->scroll_run_hook (w, &run);
+	  FRAME_RIF (f)->update_window_end_hook (w, 0, 0);
 	}
       else
 	{
@@ -16818,7 +16815,7 @@ get_glyph_face_and_encoding (f, glyph, char2b, two_byte_p)
 	    = FONT_INFO_FROM_ID (f, face->font_info_id);
 	  if (font_info)
 	    glyph->font_type
-	      = rif->encode_char (glyph->u.ch, char2b, font_info, two_byte_p);
+	      = FRAME_RIF (f)->encode_char (glyph->u.ch, char2b, font_info, two_byte_p);
 	}
     }
 
@@ -17048,7 +17045,7 @@ x_get_glyph_overhangs (glyph, f, left, right)
       font = face->font;
       font_info = FONT_INFO_FROM_ID (f, face->font_info_id);
       if (font  /* ++KFS: Should this be font_info ?  */
-	  && (pcm = rif->per_char_metric (font, &char2b, glyph->font_type)))
+	  && (pcm = FRAME_RIF (f)->per_char_metric (font, &char2b, glyph->font_type)))
 	{
 	  if (pcm->rbearing > pcm->width)
 	    *right = pcm->rbearing - pcm->width;
@@ -17216,7 +17213,7 @@ get_char_face_and_encoding (f, c, face_id, char2b, multibyte_p, display_p)
 	  struct font_info *font_info
 	    = FONT_INFO_FROM_ID (f, face->font_info_id);
 	  if (font_info)
-	    rif->encode_char (c, char2b, font_info, 0);
+	    FRAME_RIF (f)->encode_char (c, char2b, font_info, 0);
 	}
     }
 
@@ -17283,8 +17280,8 @@ compute_overhangs_and_x (s, x, backward_p)
     {
       while (s)
 	{
-	  if (rif->compute_glyph_string_overhangs)
-	    rif->compute_glyph_string_overhangs (s);
+	  if (FRAME_RIF (s->f)->compute_glyph_string_overhangs)
+	    FRAME_RIF (s->f)->compute_glyph_string_overhangs (s);
 	  x -= s->width;
 	  s->x = x;
 	  s = s->prev;
@@ -17294,8 +17291,8 @@ compute_overhangs_and_x (s, x, backward_p)
     {
       while (s)
 	{
-	  if (rif->compute_glyph_string_overhangs)
-	    rif->compute_glyph_string_overhangs (s);
+	  if (FRAME_RIF (s->f)->compute_glyph_string_overhangs)
+	    FRAME_RIF (s->f)->compute_glyph_string_overhangs (s);
 	  s->x = x;
 	  x += s->width;
 	  s = s->next;
@@ -17576,9 +17573,9 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
       struct glyph_string *h, *t;
 
       /* Compute overhangs for all glyph strings.  */
-      if (rif->compute_glyph_string_overhangs)
+      if (FRAME_RIF (f)->compute_glyph_string_overhangs)
 	for (s = head; s; s = s->next)
-	  rif->compute_glyph_string_overhangs (s);
+	  FRAME_RIF (f)->compute_glyph_string_overhangs (s);
 
       /* Prepend glyph strings for glyphs in front of the first glyph
 	 string that are overwritten because of the first glyph
@@ -17646,7 +17643,7 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
 
   /* Draw all strings.  */
   for (s = head; s; s = s->next)
-    rif->draw_glyph_string (s);
+    FRAME_RIF (f)->draw_glyph_string (s);
 
   if (area == TEXT_AREA
       && !row->full_width_p
@@ -18334,8 +18331,8 @@ x_produce_glyphs (it)
 
 	  it->nglyphs = 1;
 
-	  pcm = rif->per_char_metric (font, &char2b,
-				      FONT_TYPE_FOR_UNIBYTE (font, it->char_to_display));
+	  pcm = FRAME_RIF (it->f)->per_char_metric (font, &char2b,
+                                                    FONT_TYPE_FOR_UNIBYTE (font, it->char_to_display));
 	  it->ascent = FONT_BASE (font) + boff;
 	  it->descent = FONT_DESCENT (font) - boff;
 
@@ -18459,8 +18456,8 @@ x_produce_glyphs (it)
 	     from the charset width; this is what old redisplay code
 	     did.  */
 
-	  pcm = rif->per_char_metric (font, &char2b,
-				      FONT_TYPE_FOR_MULTIBYTE (font, it->c));
+	  pcm = FRAME_RIF (it->f)->per_char_metric (font, &char2b,
+                                                    FONT_TYPE_FOR_MULTIBYTE (font, it->c));
 
 	  if (font_not_found_p || !pcm)
 	    {
@@ -18591,8 +18588,8 @@ x_produce_glyphs (it)
 
 	  /* Initialize the bounding box.  */
 	  if (font_info
-	      && (pcm = rif->per_char_metric (font, &char2b,
-					      FONT_TYPE_FOR_MULTIBYTE (font, it->c))))
+	      && (pcm = FRAME_RIF (it->f)->per_char_metric (font, &char2b,
+                                                            FONT_TYPE_FOR_MULTIBYTE (font, it->c))))
 	    {
 	      width = pcm->width;
 	      ascent = pcm->ascent;
@@ -18650,8 +18647,8 @@ x_produce_glyphs (it)
 		}
 
 	      if (font_info
-		  && (pcm = rif->per_char_metric (font, &char2b,
-						  FONT_TYPE_FOR_MULTIBYTE (font, ch))))
+		  && (pcm = FRAME_RIF (it->f)->per_char_metric (font, &char2b,
+                                                                FONT_TYPE_FOR_MULTIBYTE (font, ch))))
 		{
 		  width = pcm->width;
 		  ascent = pcm->ascent;
@@ -18886,8 +18883,8 @@ x_insert_glyphs (start, len)
   frame_x = window_box_left (w, updated_area) + output_cursor.x;
   frame_y = WINDOW_TO_FRAME_PIXEL_Y (w, output_cursor.y);
 
-  rif->shift_glyphs_for_insert (f, frame_x, frame_y, shifted_region_width,
-				line_height, shift_by_width);
+  FRAME_RIF (f)->shift_glyphs_for_insert (f, frame_x, frame_y, shifted_region_width,
+                                          line_height, shift_by_width);
 
   /* Write the glyphs.  */
   hpos = start - row->glyphs[updated_area];
@@ -18969,8 +18966,8 @@ x_clear_end_of_line (to_x)
   if (to_x > from_x && to_y > from_y)
     {
       BLOCK_INPUT;
-      rif->clear_frame_area (f, from_x, from_y,
-			     to_x - from_x, to_y - from_y);
+      FRAME_RIF (f)->clear_frame_area (f, from_x, from_y,
+                                       to_x - from_x, to_y - from_y);
       UNBLOCK_INPUT;
     }
 }
@@ -19407,8 +19404,8 @@ erase_phys_cursor (w)
       x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
       y = WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height, cursor_row->y));
 
-      rif->clear_frame_area (f, x, y,
-			     cursor_glyph->pixel_width, cursor_row->visible_height);
+      FRAME_RIF (f)->clear_frame_area (f, x, y,
+                                       cursor_glyph->pixel_width, cursor_row->visible_height);
     }
 
   /* Erase the cursor by redrawing the character underneath it.  */
@@ -19504,9 +19501,9 @@ display_and_set_cursor (w, on, hpos, vpos, x, y)
       w->phys_cursor.vpos = vpos;
     }
 
-  rif->draw_window_cursor (w, glyph_row, x, y,
-			   new_cursor_type, new_cursor_width,
-			   on, active_cursor);
+  FRAME_RIF (f)->draw_window_cursor (w, glyph_row, x, y,
+                                     new_cursor_type, new_cursor_width,
+                                     on, active_cursor);
 }
 
 
@@ -19651,11 +19648,11 @@ show_mouse_face (dpyinfo, draw)
 
   /* Change the mouse cursor.  */
   if (draw == DRAW_NORMAL_TEXT)
-    rif->define_frame_cursor (f, FRAME_X_OUTPUT (f)->text_cursor);
+    FRAME_RIF (f)->define_frame_cursor (f, FRAME_X_OUTPUT (f)->text_cursor);
   else if (draw == DRAW_MOUSE_FACE)
-    rif->define_frame_cursor (f, FRAME_X_OUTPUT (f)->hand_cursor);
+    FRAME_RIF (f)->define_frame_cursor (f, FRAME_X_OUTPUT (f)->hand_cursor);
   else
-    rif->define_frame_cursor (f, FRAME_X_OUTPUT (f)->nontext_cursor);
+    FRAME_RIF (f)->define_frame_cursor (f, FRAME_X_OUTPUT (f)->nontext_cursor);
 }
 
 /* EXPORT:
@@ -20152,7 +20149,7 @@ define_frame_cursor1 (f, cursor, pointer)
 #else
   if (bcmp (&cursor, &No_Cursor, sizeof (Cursor)))
 #endif
-    rif->define_frame_cursor (f, cursor);
+    FRAME_RIF (f)->define_frame_cursor (f, cursor);
 }
 
 /* Take proper action when mouse has moved to the mode or header line
@@ -20987,6 +20984,8 @@ void
 x_draw_vertical_border (w)
      struct window *w;
 {
+  struct frame *f = XFRAME (WINDOW_FRAME (w));
+  
   /* We could do better, if we knew what type of scroll-bar the adjacent
      windows (on either side) have...  But we don't :-( 
      However, I think this works ok.  ++KFS 2003-04-25 */
@@ -21003,7 +21002,7 @@ x_draw_vertical_border (w)
       window_box_edges (w, -1, &x0, &y0, &x1, &y1);
       y1 -= 1;
 
-      rif->draw_vertical_window_border (w, x1, y0, y1);
+      FRAME_RIF (f)->draw_vertical_window_border (w, x1, y0, y1);
     }
   else if (!WINDOW_LEFTMOST_P (w)
 	   && !WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w))
@@ -21013,7 +21012,7 @@ x_draw_vertical_border (w)
       window_box_edges (w, -1, &x0, &y0, &x1, &y1);
       y1 -= 1;
 
-      rif->draw_vertical_window_border (w, x0, y0, y1);
+      FRAME_RIF (f)->draw_vertical_window_border (w, x0, y0, y1);
     }
 }
 
@@ -21197,9 +21196,6 @@ expose_frame (f, x, y, w, h)
 
   TRACE ((stderr, "expose_frame "));
 
-  /* XXX rif hack: Make sure redisplay interface is updated. */
-  rif = f->display_method->rif;
-  
   /* No need to redraw if frame will be redrawn soon.  */
   if (FRAME_GARBAGED_P (f))
     {

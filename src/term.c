@@ -374,8 +374,6 @@ update_begin (f)
      struct frame *f;
 {
   updating_frame = f;
-  /* XXX rif hack */
-  rif = f->display_method->rif;
   if (!FRAME_TERMCAP_P (f))
     update_begin_hook (f);
 }

@@ -2807,8 +2807,8 @@ x_set_frame_parameters (f, alist)
 	      if (NATNUMP (param_index)
 		  && (XFASTINT (param_index)
 		      < sizeof (frame_parms)/sizeof (frame_parms[0]))
-		  && rif->frame_parm_handlers[XINT (param_index)])
-		(*(rif->frame_parm_handlers[XINT (param_index)])) (f, val, old_value);
+                  && FRAME_RIF (f)->frame_parm_handlers[XINT (param_index)])
+                (*(FRAME_RIF (f)->frame_parm_handlers[XINT (param_index)])) (f, val, old_value);
 	    }
 	}
     }
@@ -2851,8 +2851,8 @@ x_set_frame_parameters (f, alist)
 	  if (NATNUMP (param_index)
 	      && (XFASTINT (param_index)
 		  < sizeof (frame_parms)/sizeof (frame_parms[0]))
-	      && rif->frame_parm_handlers[XINT (param_index)])
-	    (*(rif->frame_parm_handlers[XINT (param_index)])) (f, val, old_value);
+	      && FRAME_RIF (f)->frame_parm_handlers[XINT (param_index)])
+	    (*(FRAME_RIF (f)->frame_parm_handlers[XINT (param_index)])) (f, val, old_value);
 	}
     }
 

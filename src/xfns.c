@@ -3191,9 +3191,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   check_x ();
 
-  /* XXX rif hack:Make sure rif is set to the right value. */
-  rif = x_display_method.rif;
-  
   /* Use this general default value to start with
      until we know if this frame has a specified name.  */
   Vx_resource_name = Vinvocation_name;

@@ -9874,8 +9874,12 @@ detect_input_pending_run_timers (do_display)
 	 from an idle timer function.  The symptom of the bug is that
 	 the cursor sometimes doesn't become visible until the next X
 	 event is processed.  --gerd.  */
-      if (rif)
-	rif->flush_display (NULL);
+      {
+        Lisp_Object tail, frame;
+        FOR_EACH_FRAME (tail, frame)
+          if (FRAME_RIF (XFRAME (frame)))
+            FRAME_RIF (XFRAME (frame))->flush_display (XFRAME (frame));
+      }
     }
 
   return input_pending;

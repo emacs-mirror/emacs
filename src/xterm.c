@@ -3062,9 +3062,6 @@ static void
 frame_highlight (f)
      struct frame *f;
 {
-  /* XXX hack: make sure rif is right. */
-  rif = f->display_method->rif;
-  
   /* We used to only do this if Vx_no_window_manager was non-nil, but
      the ICCCM (section 4.1.6) says that the window's border pixmap
      and border pixel are window attributes which are "private to the
@@ -3080,9 +3077,6 @@ static void
 frame_unhighlight (f)
      struct frame *f;
 {
-  /* XXX hack: make sure rif is right. */
-  rif = f->display_method->rif;
-  
   /* We used to only do this if Vx_no_window_manager was non-nil, but
      the ICCCM (section 4.1.6) says that the window's border pixmap
      and border pixel are window attributes which are "private to the

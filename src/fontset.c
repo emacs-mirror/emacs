@@ -45,6 +45,7 @@ Boston, MA 02111-1307, USA.  */
 #ifdef MAC_OS
 #include "macterm.h"
 #endif
+#include "termhooks.h"
 
 #ifdef FONTSET_DEBUG
 #undef xassert
@@ -1279,7 +1280,7 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
       STORE_XCHAR2B (&char2b, c1, c2);
     else
       STORE_XCHAR2B (&char2b, 0, c1);
-    rif->encode_char (c, &char2b, fontp, NULL);
+    FRAME_RIF (f)->encode_char (c, &char2b, fontp, NULL);
     code = (XCHAR2B_BYTE1 (&char2b) << 8) | XCHAR2B_BYTE2 (&char2b);
   }
   return Fcons (build_string (face->font_name), make_number (code));

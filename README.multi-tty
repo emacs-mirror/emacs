@@ -127,9 +127,8 @@ See arch logs.
 THINGS TO DO
 ------------
 
-** Fix rif issue with X-tty combo sessions.  IMHO the best thing to do
-   is to get rid of that global variable (and use the value value in
-   display_method, which is guaranteed to be correct).
+** Something with (maybe) multi-keyboard support broke function keys
+   and arrows on ttys during X+tty combo sessions.  Debug this.
 
 ** Fix faces on tty frames during X-tty combo sessions.
 
@@ -429,5 +428,12 @@ DIARY OF CHANGES
    (Done.  In fact, there was no need to rewrite anything, I just
    added a kboard member to tty_display_info, and initialized the
    frame's kboard from there.)
+
+-- Fix rif issue with X-tty combo sessions.  IMHO the best thing to do
+   is to get rid of that global variable (and use the value value in
+   display_method, which is guaranteed to be correct).
+
+   (Done, did exactly that.  Core dumps during combo sessions became
+   much rarer.  In fact, I have not yet met a single one.)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d

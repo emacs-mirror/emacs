@@ -297,13 +297,6 @@ int glyph_pool_count;
 
 static struct frame *frame_matrix_frame;
 
-/* Current interface for window-based redisplay.  Set from
-   update_begin.  A null value means we are not using window-based
-   redisplay.  */
-/* XXX this variable causes frequent coredumps */
-
-struct redisplay_interface *rif;
-
 /* Non-zero means that fonts have been loaded since the last glyph
    matrix adjustments.  Redisplay must stop, and glyph matrices must
    be adjusted when this flag becomes non-zero during display.  The
@@ -3610,17 +3603,17 @@ direct_output_for_insert (g)
   updated_row = glyph_row;
   updated_area = TEXT_AREA;
   update_begin (f);
-  if (rif)
+  if (FRAME_RIF (f))
     {
-      rif->update_window_begin_hook (w);
+      FRAME_RIF (f)->update_window_begin_hook (w);
 
       if (glyphs == end - n
 	  /* In front of a space added by append_space.  */
 	  || (glyphs == end - n - 1
 	      && (end - n)->charpos <= 0))
-	rif->write_glyphs (glyphs, n);
+	FRAME_RIF (f)->write_glyphs (glyphs, n);
       else
-	rif->insert_glyphs (glyphs, n);
+	FRAME_RIF (f)->insert_glyphs (glyphs, n);
     }
   else
     {
@@ -3640,8 +3633,8 @@ direct_output_for_insert (g)
      a frame matrix is used, cursor_to expects frame coordinates,
      and the X and Y parameters are not used.  */
   if (window_redisplay_p)
-    rif->cursor_to (w->cursor.vpos, w->cursor.hpos,
-		    w->cursor.y, w->cursor.x);
+    FRAME_RIF (f)->cursor_to (w->cursor.vpos, w->cursor.hpos,
+                              w->cursor.y, w->cursor.x);
   else
     {
       int x, y;
@@ -3653,8 +3646,8 @@ direct_output_for_insert (g)
       cursor_to (y, x);
     }
 
-  if (rif)
-    rif->update_window_end_hook (w, 1, 0);
+  if (FRAME_RIF (f))
+    FRAME_RIF (f)->update_window_end_hook (w, 1, 0);
   update_end (f);
   updated_row = NULL;
   if (FRAME_TERMCAP_P (f))
@@ -3736,8 +3729,8 @@ direct_output_forward_char (n)
 	   && w->cursor.hpos < w->desired_matrix->matrix_w);
 
   if (FRAME_WINDOW_P (f))
-    rif->cursor_to (w->cursor.vpos, w->cursor.hpos,
-		    w->cursor.y, w->cursor.x);
+    FRAME_RIF (f)->cursor_to (w->cursor.vpos, w->cursor.hpos,
+                              w->cursor.y, w->cursor.x);
   else
     {
       int x, y;
@@ -3824,7 +3817,7 @@ update_frame (f, force_p, inhibit_hairy_id_p)
 
 #if 0 /* This flush is a performance bottleneck under X,
 	 and it doesn't seem to be necessary anyway.  */
-      rif->flush_display (f);
+      FRAME_RIF (f)->flush_display (f);
 #endif
     }
   else
@@ -3926,7 +3919,8 @@ redraw_overlapped_rows (w, yb)
      int yb;
 {
   int i;
-
+  struct frame *f = XFRAME (WINDOW_FRAME (w));
+  
   /* If rows overlapping others have been changed, the rows being
      overlapped have to be redrawn.  This won't draw lines that have
      already been drawn in update_window_line because overlapped_p in
@@ -3949,10 +3943,12 @@ redraw_overlapped_rows (w, yb)
 	    {
 	      updated_row = row;
 	      updated_area = area;
-	      rif->cursor_to (i, 0, row->y, area == TEXT_AREA ? row->x : 0);
+	      FRAME_RIF (f)->cursor_to (i, 0, row->y,
+                                        area == TEXT_AREA ? row->x : 0);
 	      if (row->used[area])
-		rif->write_glyphs (row->glyphs[area], row->used[area]);
-	      rif->clear_end_of_line (-1);
+		FRAME_RIF (f)->write_glyphs (row->glyphs[area],
+                                             row->used[area]);
+	      FRAME_RIF (f)->clear_end_of_line (-1);
 	    }
 
 	  row->overlapped_p = 0;
@@ -3974,7 +3970,8 @@ redraw_overlapping_rows (w, yb)
 {
   int i, bottom_y;
   struct glyph_row *row;
-
+  struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
+  
   for (i = 0; i < w->current_matrix->nrows; ++i)
     {
       row = w->current_matrix->rows + i;
@@ -4054,6 +4051,7 @@ update_window (w, force_p)
 #if GLYPH_DEBUG
   struct frame *f = XFRAME (WINDOW_FRAME (w));
 #endif
+  struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
 
   /* Check that W's frame doesn't have glyph matrices.  */
   xassert (FRAME_WINDOW_P (f));
@@ -4221,6 +4219,7 @@ update_marginal_area (w, area, vpos)
      int area, vpos;
 {
   struct glyph_row *desired_row = MATRIX_ROW (w->desired_matrix, vpos);
+  struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
 
   /* Let functions in xterm.c know what area subsequent X positions
      will be relative to.  */
@@ -4246,6 +4245,7 @@ update_text_area (w, vpos)
 {
   struct glyph_row *current_row = MATRIX_ROW (w->current_matrix, vpos);
   struct glyph_row *desired_row = MATRIX_ROW (w->desired_matrix, vpos);
+  struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
   int changed_p = 0;
 
   /* Let functions in xterm.c know what area subsequent X positions
@@ -4467,6 +4467,7 @@ update_window_line (w, vpos, mouse_face_overwritten_p)
 {
   struct glyph_row *current_row = MATRIX_ROW (w->current_matrix, vpos);
   struct glyph_row *desired_row = MATRIX_ROW (w->desired_matrix, vpos);
+  struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
   int changed_p = 0;
 
   /* Set the row being updated.  This is important to let xterm.c
@@ -4537,6 +4538,7 @@ set_window_cursor_after_update (w)
      struct window *w;
 {
   struct frame *f = XFRAME (w->frame);
+  struct redisplay_interface *rif = FRAME_RIF (f);
   int cx, cy, vpos, hpos;
 
   /* Not intended for frame matrix updates.  */
@@ -4760,6 +4762,7 @@ scrolling_window (w, header_line_p)
   int i, j, first_old, first_new, last_old, last_new;
   int nruns, nbytes, n, run_idx;
   struct row_entry *entry;
+  struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
 
   /* Skip over rows equal at the start.  */
   for (i = header_line_p ? 1 : 0; i < current_matrix->nrows - 1; ++i)
