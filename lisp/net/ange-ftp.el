@@ -4897,9 +4897,9 @@ Other orders of $ and _ seem to all work just fine.")
 		    ;; versions left. If not, then delete the
 		    ;; root entry.
 		    (mapatoms
-		     '(lambda (sym)
-			(and (string-match regexp (get sym 'key))
-			     (setq versions t)))
+		     (lambda (sym)
+		       (and (string-match regexp (get sym 'key))
+			    (setq versions t)))
 		     files)
 		    (or versions
 			(ange-ftp-del-hash-entry root files))))))))))
@@ -4929,15 +4929,15 @@ Other orders of $ and _ seem to all work just fine.")
 				      ";\\([0-9]+\\)$"))
 		      (version 0))
 		  (mapatoms
-		   '(lambda (sym)
-		      (let ((name (get sym 'key)))
-			(and (string-match regexp name)
-			     (setq version
-				   (max version
-					(string-to-int
-					 (substring name
-						    (match-beginning 1)
-						    (match-end 1))))))))
+		   (lambda (sym)
+		     (let ((name (get sym 'key)))
+		       (and (string-match regexp name)
+			    (setq version
+				  (max version
+				       (string-to-int
+					(substring name
+						   (match-beginning 1)
+						   (match-end 1))))))))
 		   files)
 		  (setq version (1+ version))
 		  (ange-ftp-put-hash-entry
