@@ -228,14 +228,17 @@ we're in the GUD buffer)."
 
     output))
 
+(defun gud-new-keymap (map)
+  "Return a new keymap which inherits from MAP and has name `Gud'."
+  (nconc (make-sparse-keymap "Gud") map))
+
 (defun gud-gdb-find-file (f)
   (save-excursion
     (let ((buf (find-file-noselect f)))
       (set-buffer buf)
+      (use-local-map (gud-new-keymap (current-local-map)))
       (define-key (current-local-map) [menu-bar debug]
-	;; The copy-keymap here avoids redefining the gud-menu-map
-	;; items in other buffers.
-	(cons "Gud" (copy-keymap gud-menu-map)))
+	(cons "Gud" (gud-new-keymap gud-menu-map)))
       (local-set-key [menu-bar debug tbreak]
 		     '("Temporary breakpoint" . gud-tbreak))
       (local-set-key [menu-bar debug finish] '("Finish function" . gud-finish))
@@ -269,7 +272,7 @@ and source-file directory for your debugger."
 
   (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
   (gud-def gud-tbreak "tbreak %f:%l" "\C-t" "Set temporary breakpoint at current line.")
-  (gud-def gud-remove "clear %l"     "\C-d" "Remove breakpoint at current line")
+  (gud-def gud-remove "clear %f:%l"  "\C-d" "Remove breakpoint at current line")
   (gud-def gud-step   "step %p"      "\C-s" "Step one source line with display.")
   (gud-def gud-stepi  "stepi %p"     "\C-i" "Step one instruction with display.")
   (gud-def gud-next   "next %p"      "\C-n" "Step one line (skip functions).")
@@ -455,7 +458,9 @@ available with older versions of GDB."
 		   (find-tag-noselect f)
 		 (find-file-noselect f))))
       (set-buffer buf)
-      (define-key (current-local-map) [menu-bar debug] (cons "Gud" (copy-keymap gud-menu-map)))
+      (use-local-map (gud-new-keymap (current-local-map)))
+      (define-key (current-local-map) [menu-bar debug]
+	(cons "Gud" (gud-new-keymap gud-menu-map)))
       (local-set-key [menu-bar debug tbreak] '("Temporary breakpoint" . gud-tbreak))
       buf)))
 
@@ -687,7 +692,9 @@ This works in IRIX 4, 5 and 6.")
   (save-excursion
     (let ((buf (find-file-noselect f)))
       (set-buffer buf)
-      (local-set-key [menu-bar debug] (cons "Gud" (copy-keymap gud-menu-map)))
+      (use-local-map (gud-new-keymap (current-local-map)))
+      (define-key (current-local-map) [menu-bar debug]
+	(cons "Gud" (gud-new-keymap gud-menu-map)))
       (local-set-key [menu-bar debug up] '("Up stack" . gud-up))
       (local-set-key [menu-bar debug down] '("Down stack" . gud-down))
       buf)))
@@ -817,7 +824,9 @@ containing the executable being debugged.")
       (if realf
 	  (let ((buf (find-file-noselect realf)))
 	    (set-buffer buf)
-	    (local-set-key [menu-bar debug] (cons "Gud" (copy-keymap gud-menu-map)))
+	    (use-local-map (gud-new-keymap (current-local-map)))
+	    (define-key (current-local-map) [menu-bar debug]
+	      (cons "Gud" (gud-new-keymap gud-menu-map)))
 	    (local-set-key [menu-bar debug tbreak]
 			   '("Temporary breakpoint" . gud-tbreak))
 	    (local-set-key [menu-bar debug finish]
@@ -1072,10 +1081,10 @@ comint mode, which see."
   (setq major-mode 'gud-mode)
   (setq mode-name "Debugger")
   (setq mode-line-process '(":%s"))
-  (use-local-map (copy-keymap comint-mode-map))
+  (use-local-map (gud-new-keymap comint-mode-map))
   (define-key (current-local-map) "\C-c\C-l" 'gud-refresh)
   (define-key (current-local-map) [menu-bar debug]
-    (cons "Gud" gud-menu-map))
+    (cons "Gud" (gud-new-keymap gud-menu-map)))
   (make-local-variable 'gud-last-frame)
   (setq gud-last-frame nil)
   (make-local-variable 'comint-prompt-regexp)
