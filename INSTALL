@@ -473,7 +473,7 @@ Strictly speaking, not all of the executables in `./lib-src' need be copied.
     and `yow' are used by Emacs; they do need to be copied.
 - The programs `etags', `ctags', `emacsclient', `b2m', and `rcs-checkin'
     are intended to be run by users; they are handled below.
-- The programs `make-docfile', `make-path', and `test-distrib' were
+- The programs `make-docfile' and `test-distrib' were
     used in building Emacs, and are not needed any more.
 - The programs `digest-doc' and `sorted-doc' convert a `DOC' file into
     a file for users to read.  There is no important reason to move them.
