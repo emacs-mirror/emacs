@@ -6,7 +6,7 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id: vc.el,v 1.335 2002/07/22 18:52:04 spiegel Exp $
+;; $Id: vc.el,v 1.336 2002/09/04 20:47:08 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2486,13 +2486,14 @@ allowed and simply skipped)."
 	    (delete-char (- (match-end 0) (match-beginning 0))))
 	(shrink-window-if-larger-than-buffer)
 	;; move point to the log entry for the current version
-	(if (fboundp 'log-view-goto-rev)
-	    (log-view-goto-rev ',(vc-workfile-version file))
-	  (if (vc-find-backend-function ',(vc-backend file) 'show-log-entry)
-	      (vc-call-backend ',(vc-backend file)
-			       'show-log-entry
-			       ',(vc-workfile-version file))))
+	(vc-call-backend ',(vc-backend file)
+			 'show-log-entry
+			 ',(vc-workfile-version file))
         (set-buffer-modified-p nil)))))
+
+(defun vc-default-show-log-entry (backend ver)
+  (if (fboundp 'log-view-goto-rev)
+      (log-view-goto-rev rev)))
 
 (defun vc-default-comment-history (backend file)
   "Return a string with all log entries stored in BACKEND for FILE."
