@@ -256,7 +256,7 @@ the associated section number."
 	    "(\\(" Man-section-regexp "\\))\\).*\\1"))
   "Regular expression describing the heading of a page.")
 
-(defvar Man-heading-regexp "^\\([A-Z][A-Z ]+\\)$"
+(defvar Man-heading-regexp "^\\([A-Z][A-Z -]+\\)$"
   "Regular expression describing a manpage heading entry.")
 
 (defvar Man-see-also-regexp "SEE ALSO"
