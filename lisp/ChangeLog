@@ -1,3 +1,7 @@
+1999-11-11  Gerd Moellmann  <gerd@gnu.org>
+
+	* isearch.el: Add lazy-highlighting feature.
+
 1999-11-10  Peter Kleiweg  <kleiweg@let.rug.nl>
 
 	* progmodes/ps-mode.el (ps-mode-maintainer-address): New
