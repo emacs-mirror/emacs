@@ -1,5 +1,5 @@
 /* Declarations having to do with GNU Emacs syntax tables.
-   Copyright (C) 1985, 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1993, 1994, 1997 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,6 +21,7 @@ Boston, MA 02111-1307, USA.  */
 
 extern Lisp_Object Qsyntax_table_p;
 extern Lisp_Object Fsyntax_table_p (), Fsyntax_table (), Fset_syntax_table ();
+extern void update_syntax_table ();
 
 /* The standard syntax table is stored where it will automatically
    be used in all new buffers.  */
@@ -42,12 +43,16 @@ enum syntaxcode
     Sclose,      /* for an ending delimiter */
     Squote,	 /* for a prefix character like Lisp ' */
     Sstring,	 /* for a string-grouping character like Lisp " */
-    Smath,	 /* for delimiters like $ in Tex. */
+    Smath,	 /* for delimiters like $ in Tex.  */
     Sescape,	 /* for a character that begins a C-style escape */
     Scharquote,  /* for a character that quotes the following character */
     Scomment,    /* for a comment-starting character */
     Sendcomment, /* for a comment-ending character */
     Sinherit,    /* use the standard syntax table for this character */
+    Scomment_fence, /* Starts/ends comment which is delimited on the
+		       other side by a char with the same syntaxcode.  */
+    Sstring_fence,  /* Starts/ends string which is delimited on the
+		       other side by a char with the same syntaxcode.  */
     Smax	 /* Upper bound on codes that are meaningful */
   };
 
@@ -85,16 +90,27 @@ extern Lisp_Object syntax_parent_lookup ();
     : syntax_temp))
 #endif
 
-/* Fetch the syntax entry for char C in the current syntax table.
-   This returns the whole entry (normally a cons cell).
-   Do Inheritance.  */
+/* SYNTAX_ENTRY fetches the information from the entry for character C
+   in syntax table TABLE, or from globally kept data (gl_state).  
+   Does inheritance.  */
+/* CURRENT_SYNTAX_TABLE gives the syntax table valid for current
+   position, it is either the buffer's syntax table, or syntax table
+   found in text properties.  */
 
-#define SYNTAX_ENTRY(c)						\
+#ifdef SYNTAX_ENTRY_VIA_PROPERTY
+#  define SYNTAX_ENTRY(c)                                             \
+    (gl_state.use_global ? gl_state.global_code : SYNTAX_ENTRY_INT (c))
+#  define CURRENT_SYNTAX_TABLE gl_state.current_syntax_table
+#else
+#  define SYNTAX_ENTRY SYNTAX_ENTRY_INT
+#  define CURRENT_SYNTAX_TABLE current_buffer->syntax_table
+#endif
+
+#define SYNTAX_ENTRY_INT(c)						\
   ((c) < CHAR_TABLE_SINGLE_BYTE_SLOTS				\
-   ? SYNTAX_ENTRY_FOLLOW_PARENT (current_buffer->syntax_table,	\
+   ? SYNTAX_ENTRY_FOLLOW_PARENT (CURRENT_SYNTAX_TABLE,	\
 				 (unsigned char) (c))		\
-   : Faref (current_buffer->syntax_table, make_number ((c))))
-
+   : Faref (CURRENT_SYNTAX_TABLE, make_number ((c))))
 
 /* Extract the information from the entry for character C
    in the current syntax table.  */
@@ -152,7 +168,7 @@ extern Lisp_Object syntax_parent_lookup ();
   bit 6 is used to discriminate between two different comment styles.
   Languages such as C++ allow two orthogonal syntax start/end pairs
   and bit 6 is used to determine whether a comment-end or Scommentend
-  ends style a or b. Comment start sequences can start style a or b.
+  ends style a or b.  Comment start sequences can start style a or b.
   Style a is always the default.
   */
 
@@ -171,10 +187,98 @@ extern Lisp_Object syntax_parent_lookup ();
 
 /* This array, indexed by a character, contains the syntax code which that
  character signifies (as a char).  For example,
- (enum syntaxcode) syntax_spec_code['w'] is Sword. */
+ (enum syntaxcode) syntax_spec_code['w'] is Sword.  */
 
 extern unsigned char syntax_spec_code[0400];
 
-/* Indexed by syntax code, give the letter that describes it. */
+/* Indexed by syntax code, give the letter that describes it.  */
 
-extern char syntax_code_spec[14];
+extern char syntax_code_spec[16];
+
+/* Make syntax table state (gl_state) good for POS, assuming it is
+   currently good for a position before POS.  */
+#define UPDATE_SYNTAX_TABLE_FORWARD(pos)				\
+		((pos) >= gl_state.e_property ?				\
+		 ( update_syntax_table ((pos), 1, 0), 1 ) : 0)
+
+
+/* Make syntax table state (gl_state) good for POS, assuming it is
+   currently good for a position after POS.  */
+#define UPDATE_SYNTAX_TABLE_BACKWARD(pos)				\
+		((pos) <= gl_state.b_property ?				\
+		 ( update_syntax_table ((pos), -1, 0), 1 ) : 0)
+
+/* Make syntax table good for POS. */
+#define UPDATE_SYNTAX_TABLE(pos)					\
+		((pos) <= gl_state.b_property ?				\
+		 ( update_syntax_table ((pos), -1, 0), 1 ) :		\
+		 ( (pos) >= gl_state.e_property ?			\
+		   ( update_syntax_table ((pos), 1, 0), 1 ) : 0))
+
+/* This macro should be called with FROM at the start of forward
+   search, or after the last position of the backward search.  It
+   makes sure that the first char is picked up with correct table, so
+   one does not need to call UPDATE_SYNTAX_TABLE immediately after the
+   call. 
+   Sign of COUNT gives the direction of the search.
+ */
+
+#define SETUP_SYNTAX_TABLE(from,count)					\
+  gl_state.b_property = BEGV - 1;					\
+  gl_state.e_property = ZV + 1;						\
+  gl_state.use_global = 0;						\
+  gl_state.current_syntax_table = current_buffer->syntax_table;		\
+  if (parse_sexp_lookup_properties) 					\
+      update_syntax_table ((count) > 0 ? (from) : (from) - 1, (count), 1, Qnil);
+
+/* Same as above, but in OBJECT.  If OBJECT is nil, use current buffer.
+   If it is t, ignore properties altogether. */
+
+#define SETUP_SYNTAX_TABLE_FOR_OBJECT(object, from, count)		\
+  if (BUFFERP (object))							\
+    {									\
+      gl_state.b_property = BEGV - 1;					\
+      gl_state.e_property = ZV;						\
+    }									\
+  else if (EQ (object, Qt))						\
+    {									\
+      gl_state.b_property = - 1;					\
+      gl_state.e_property = 1500000000;					\
+    }									\
+  else									\
+    {									\
+      gl_state.b_property = -1;						\
+      gl_state.e_property = 1 + XSTRING (object)->size;			\
+    }									\
+  gl_state.use_global = 0;						\
+  gl_state.current_syntax_table = current_buffer->syntax_table;		\
+  if (parse_sexp_lookup_properties) 					\
+      update_syntax_table (count > 0 ? (from) : (from) - 1, count, 1, object);
+
+struct gl_state_s
+{
+  int start;				/* Where to stop. */
+  int stop;				/* Where to stop. */
+  int use_global;			/* Whether to use global_code
+					   or c_s_t. */
+  Lisp_Object global_code;		/* Syntax code of current char. */
+  Lisp_Object current_syntax_table;	/* Syntax table for current pos. */
+  Lisp_Object old_prop;			/* Syntax-table prop at prev pos. */
+  int b_property;			/* Last index where c_s_t is 
+					   not valid. */
+  int e_property;			/* First index where c_s_t is
+					   not valid. */
+  INTERVAL forward_i;			/* Where to start lookup on forward */
+  INTERVAL backward_i;			/* or backward movement.  The
+					   data in c_s_t is valid
+					   between these intervals,
+					   and possibly at the
+					   intervals too, depending
+					   on: */
+  char left_ok;
+  char right_ok;
+};
+
+extern struct gl_state_s gl_state;
+extern int parse_sexp_lookup_properties;
+extern INTERVAL interval_of();
