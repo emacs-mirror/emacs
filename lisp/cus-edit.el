@@ -3633,8 +3633,10 @@ or (if there were none) at the end of the buffer."
       (unless (bolp)
 	(princ "\n"))
       (princ "(custom-set-variables
-  ;; custom-set-variables was added by Custom -- don't edit or cut/paste it!
-  ;; Your init file should contain only one such instance.\n")
+  ;; custom-set-variables was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.\n")
       (mapcar
        (lambda (symbol)
 	 (let ((value (get symbol 'saved-value))
@@ -3697,8 +3699,10 @@ or (if there were none) at the end of the buffer."
       (unless (bolp)
 	(princ "\n"))
       (princ "(custom-set-faces
-  ;; custom-set-faces was added by Custom -- don't edit or cut/paste it!
-  ;; Your init file should contain only one such instance.\n")
+  ;; custom-set-faces was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.\n")
       (mapcar
        (lambda (symbol)
 	 (let ((value (get symbol 'saved-face))
