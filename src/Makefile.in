@@ -681,7 +681,8 @@ buffer.o : buffer.c syntax.h buffer.h commands.h window.h \
    INTERVAL_SRC blockinput.h $(config_h) 
 callint.o : callint.c window.h commands.h buffer.h mocklisp.h \
    keyboard.h $(config_h)
-callproc.o : callproc.c paths.h buffer.h commands.h $(config_h) process.h
+callproc.o : callproc.c paths.h buffer.h commands.h $(config_h) \
+	process.h systty.h syssignal.h
 casefiddle.o : casefiddle.c syntax.h commands.h buffer.h $(config_h) 
 casetab.o : casetab.c buffer.h $(config_h)
 cm.o : cm.c cm.h termhooks.h $(config_h)
