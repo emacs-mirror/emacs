@@ -156,9 +156,9 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.\n\
 	 compile_pattern to do the work for us.  */
 #ifdef VMS
       bufp = compile_pattern (match, 0,
-			      buffer_defaults.downcase_table->contents);
+			      buffer_defaults.downcase_table->contents, 0);
 #else
-      bufp = compile_pattern (match, 0, 0);
+      bufp = compile_pattern (match, 0, 0, 0);
 #endif
     }
 
