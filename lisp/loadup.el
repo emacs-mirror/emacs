@@ -31,7 +31,9 @@
 ;; add subdirectories to the load-path for files that might
 ;; get autoloaded when bootstrapping
 (if (or (equal (nth 3 command-line-args) "bootstrap")
-	(equal (nth 4 command-line-args) "bootstrap"))
+	(equal (nth 4 command-line-args) "bootstrap")
+	;; in case CANNOT_DUMP
+	(equal (nth 0 command-line-args) "../src/bootstrap-emacs"))
     (let ((path (car load-path)))
       (setq load-path (list path
 			    (expand-file-name "emacs-lisp" path)

@@ -1,3 +1,9 @@
+2000-10-31  Ken Raeburn  <raeburn@gnu.org>
+
+	* loadup.el (top level): Adjust load path if program name is
+	"../src/bootstrap-emacs", in case it's not dumped and thus the
+	load path adjustment hasn't already been done.
+
 2000-10-31  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el: Fix bug on selected pages for printing.  Use
