@@ -1,8 +1,8 @@
 ;;; forms.el -- Forms mode: edit a file as a form to fill in.
-;;; Copyright (C) 1991, 1993 Free Software Foundation, Inc.
+;;; Copyright (C) 1991, 1995 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans <jv@nl.net>
-;; Version: $Revision: 2.11 $
+;; Version: $Revision: 2.12 $
 
 ;; This file is part of GNU Emacs.
 
@@ -281,10 +281,10 @@
 (provide 'forms)			;;; official
 (provide 'forms-mode)			;;; for compatibility
 
-(defconst forms-version (substring "$Revision: 2.11 $" 11 -2)
+(defconst forms-version (substring "$Revision: 2.12 $" 11 -2)
   "The version number of forms-mode (as string).  The complete RCS id is:
 
-  $Id: forms.el,v 2.11 1995/01/05 11:54:18 jvromans Exp jvromans $")
+  $Id: forms.el,v 2.12 1995/01/05 12:32:28 jvromans Exp jvromans $")
 
 (defvar forms-mode-hooks nil
   "Hook functions to be run upon entering Forms mode.")
