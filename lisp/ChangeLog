@@ -1,3 +1,10 @@
+2002-03-03  Richard M. Stallman  <rms@gnu.org>
+
+	* play/snake.el (snake-score-file): Put in home dir, not in /tmp.
+
+	* play/gamegrid.el (gamegrid-set-font, gamegrid-setup-face) 
+	(gamegrid-make-mono-tty-face): Fix usage of condition-case.
+
 2002-03-03  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* calendar/diary-lib.el (list-diary-entries): Use
