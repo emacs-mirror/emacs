@@ -2670,7 +2670,7 @@ x_window (f, window_prompting, minibuffer_only)
   {
     int len;
     char *tem, shell_position[32];
-    Arg al[2];
+    Arg al[10];
     int ac = 0;
     int extra_borders = 0;
     int menubar_size
@@ -2722,9 +2722,19 @@ x_window (f, window_prompting, minibuffer_only)
 		 (xneg ? '-' : '+'), left,
 		 (yneg ? '-' : '+'), top);
       else
-	sprintf (shell_position, "=%dx%d",
-		 FRAME_PIXEL_WIDTH (f) + extra_borders,
-		 FRAME_PIXEL_HEIGHT (f) + menubar_size + extra_borders);
+        {
+          sprintf (shell_position, "=%dx%d",
+                   FRAME_PIXEL_WIDTH (f) + extra_borders,
+                   FRAME_PIXEL_HEIGHT (f) + menubar_size + extra_borders);
+
+          /* Setting x and y when the position is not specified in
+             the geometry string will set program position in the WM hints.
+             If Emacs had just one program position, we could set it in
+             fallback resources, but since each make-frame call can specify
+             different program positions, this is easier.  */
+          XtSetArg (al[ac], XtNx, left); ac++;
+          XtSetArg (al[ac], XtNy, top); ac++;
+        }
     }
 
     len = strlen (shell_position) + 1;
