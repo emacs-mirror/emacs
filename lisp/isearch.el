@@ -4,7 +4,7 @@
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 
-;; |$Date: 1995/04/07 01:23:30 $|$Revision: 1.87 $
+;; |$Date: 1995/04/14 17:59:59 $|$Revision: 1.88 $
 
 ;; This file is part of GNU Emacs.
 
@@ -595,17 +595,17 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
 REGEXP says which ring to use."
   (if regexp 
       (if (or (null regexp-search-ring)
-	      (not (string= isearch-string (car regexp-search-ring))))
+	      (not (string= string (car regexp-search-ring))))
 	  (progn
 	    (setq regexp-search-ring
-		  (cons isearch-string regexp-search-ring))
+		  (cons string regexp-search-ring))
 	    (if (> (length regexp-search-ring) regexp-search-ring-max)
 		(setcdr (nthcdr (1- search-ring-max) regexp-search-ring)
 			nil))))
     (if (or (null search-ring)
-	    (not (string= isearch-string (car search-ring))))
+	    (not (string= string (car search-ring))))
 	(progn
-	  (setq search-ring (cons isearch-string search-ring))
+	  (setq search-ring (cons string search-ring))
 	  (if (> (length search-ring) search-ring-max)
 	      (setcdr (nthcdr (1- search-ring-max) search-ring) nil))))))
 
