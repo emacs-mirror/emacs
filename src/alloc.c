@@ -237,7 +237,7 @@ memory_full ()
   /* This used to call error, but if we've run out of memory, we could get
      infinite recursion trying to build the string.  */
   while (1)
-    Fsignal (Qerror, memory_signal_data);
+    Fsignal (Qnil, memory_signal_data);
 }
 
 /* Called if we can't allocate relocatable space for a buffer.  */
@@ -514,7 +514,7 @@ mark_interval_tree (tree)
 #define MARK_INTERVAL_TREE(i)				\
   do {							\
     if (!NULL_INTERVAL_P (i)				\
-	&& ! XMARKBIT ((Lisp_Object) i->parent))	\
+	&& ! XMARKBIT (*(Lisp_Object *) &i->parent))	\
       mark_interval_tree (i);				\
   } while (0)
 
@@ -2264,7 +2264,7 @@ gc_sweep ()
 	      case Lisp_Misc_Free:
 		/* If the object was already free, keep it
 		   on the free list.  */
-		markword = &already_free;
+		markword = (Lisp_Object *) &already_free;
 		break;
 	      default:
 		markword = 0;
