@@ -1318,6 +1318,12 @@ This returns @code{t} if @var{variable} is buffer-local in buffer
 @code{nil}.
 @end defun
 
+@defun buffer-local-value variable buffer
+This returns the value of @var{variable} that is currently in
+effect in @var{buffer}.  If it has no buffer-local binding in
+@var{buffer}, this function returns the default value.
+@end defun
+
 @defun buffer-local-variables &optional buffer
 This function returns a list describing the buffer-local variables in
 buffer @var{buffer}.  (If @var{buffer} is omitted, the current buffer is
@@ -1666,15 +1672,15 @@ chosen, or because its meaning has partly changed---it can be useful
 to keep the old name as an @emph{alias} of the new one for
 compatibility.  You can do this with @code{defvaralias}.
 
-@defun defvaralias alias-var base-var [docstring]
+@defun defvaralias alias-var base-var &optional docstring
 This function defines the symbol @var{alias-var} as a variable alias
 for symbol @var{base-var}. This means that retrieving the value of
 @var{alias-var} returns the value of @var{base-var}, and changing the
 value of @var{alias-var} changes the value of @var{base-var}.
 
-If the @var{docstring} argument is present, it specifies the documentation for
-@var{alias-var}; otherwise, it has the same documentation as @var{base-var},
-if any.
+If the @var{docstring} argument is non-@code{nil}, it specifies the
+documentation for @var{alias-var}; otherwise, the alias gets the same
+documentation as @var{base-var} has, if any.
 @end defun
 
 @defun indirect-variable variable
