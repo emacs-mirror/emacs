@@ -129,7 +129,7 @@ xlwMenuTranslations [] =
 
 /* FIXME: Should ESC close one level of menu structure or the complete menu?  */
 
-/* FIXME: Should F10 enter to menu?  Which one?  File?  */
+/* FIXME: F10 should enter the menu, the first one in the menu-bar.  */
 
 #define offset(field) XtOffset(XlwMenuWidget, field)
 static XtResource
@@ -142,17 +142,17 @@ xlwMenuResources[] =
   {XtNbuttonForeground, XtCButtonForeground, XtRPixel, sizeof(Pixel),
      offset(menu.button_foreground), XtRString, "XtDefaultForeground"},
   {XtNmargin, XtCMargin, XtRDimension,  sizeof(Dimension),
-     offset(menu.margin), XtRImmediate, (XtPointer) 4},
+     offset(menu.margin), XtRImmediate, (XtPointer)1},
   {XtNhorizontalSpacing, XtCMargin, XtRDimension,  sizeof(Dimension),
      offset(menu.horizontal_spacing), XtRImmediate, (XtPointer)3},
   {XtNverticalSpacing, XtCMargin, XtRDimension,  sizeof(Dimension),
-     offset(menu.vertical_spacing), XtRImmediate, (XtPointer)1},
+     offset(menu.vertical_spacing), XtRImmediate, (XtPointer)2},
   {XtNarrowSpacing, XtCMargin, XtRDimension,  sizeof(Dimension),
      offset(menu.arrow_spacing), XtRImmediate, (XtPointer)10},
 
   {XmNshadowThickness, XmCShadowThickness, XtRDimension,
      sizeof (Dimension), offset (menu.shadow_thickness),
-     XtRImmediate, (XtPointer) 2},
+     XtRImmediate, (XtPointer)1},
   {XmNtopShadowColor, XmCTopShadowColor, XtRPixel, sizeof (Pixel),
      offset (menu.top_shadow_color), XtRImmediate, (XtPointer)-1},
   {XmNbottomShadowColor, XmCBottomShadowColor, XtRPixel, sizeof (Pixel),
