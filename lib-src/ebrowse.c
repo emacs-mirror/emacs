@@ -537,9 +537,7 @@ yyerror (format, a1, a2, a3, a4, a5)
 
 
 /* Like malloc but print an error and exit if not enough memory is
-   available.  This isn't called `xmalloc' because src/m/alpha.h,
-   and maybe others, contain an incompatible prototype for xmalloc
-   and xrealloc.  */
+   available.  */
 
 void *
 xmalloc (nbytes)
