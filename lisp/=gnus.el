@@ -5928,7 +5928,9 @@ configuration list is got from the variable gnus-window-configuration."
 	 (height nil)
 	 (grpheight 0)
 	 (subheight 0)
-	 (artheight 0))
+	 (artheight 0)
+	 ;; Make split-window-vertically leave focus in upper window.
+	 (split-window-keep-point t))
     (if (or (null windows)		;No configuration is specified.
 	    (and (eq (null grpwin)
 		     (zerop (nth 0 windows)))
