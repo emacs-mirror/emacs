@@ -5,6 +5,12 @@
 
 2002-04-26  Richard M. Stallman  <rms@gnu.org>
 
+	* loadup.el: Explicitly load cus-face and timer.
+
+	* isearch.el: Don't require timer.
+
+	* faces.el: Don't require cus-face.
+
 	* cus-edit.el (customize-face): Use read-face-name
 	and handle multiple faces.
 	(customize-face-other-window): Make it work similarly.
