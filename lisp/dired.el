@@ -1788,21 +1788,24 @@ regardless of the language.")
 	  nil				; return nil if not found
 	(error "%s directory" (if (> arg 0) "Last" "First"))))))
 
-(defun dired-build-subdir-alist ()
+(defun dired-build-subdir-alist (&optional switches)
   "Build `dired-subdir-alist' by parsing the buffer.
-Returns the new value of the alist."
+Returns the new value of the alist.
+If optional arg SWITCHES is non-nil, use its value
+instead of `dired-actual-switches'."
   (interactive)
   (dired-clear-alist)
   (save-excursion
-    (let ((count 0)
-	  (buffer-read-only nil)
-	  new-dir-name
-	  (R-ftp-base-dir-regex
-	   ;; Used to expand subdirectory names correctly in recursive
-	   ;; ange-ftp listings.
-	   (and (string-match "R" dired-actual-switches)
-		(string-match "\\`/.*:\\(/.*\\)" default-directory)
-		(concat "\\`" (match-string 1 default-directory)))))
+    (let* ((count 0)
+	   (buffer-read-only nil)
+	   (switches (or switches dired-actual-switches))
+	   new-dir-name
+	   (R-ftp-base-dir-regex
+	    ;; Used to expand subdirectory names correctly in recursive
+	    ;; ange-ftp listings.
+	    (and (string-match "R" switches)
+		 (string-match "\\`/.*:\\(/.*\\)" default-directory)
+		 (concat "\\`" (match-string 1 default-directory)))))
       (goto-char (point-min))
       (setq dired-subdir-alist nil)
       (while (and (re-search-forward dired-subdir-regexp nil t)
