@@ -3,7 +3,7 @@
 ;; Copyright (C) 1990, 1993, 1995, 1997 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
-;; Keywords: abbrev
+;; Keywords: abbrev convenience
 ;; Author: Jim Salem <alem@bbnplanet.com> of Thinking Machines Inc.
 ;;  (ideas suggested by Brewster Kahle)
 
@@ -281,7 +281,8 @@
 
 (defgroup completion nil
   "Dynamic word-completion code."
-  :group 'matching)
+  :group 'matching
+  :group 'convenience)
 
 
 (defcustom enable-completion t

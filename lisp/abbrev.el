@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
 
-;; Keywords: abbrev
+;; Keywords: abbrev convenience
 
 ;; This file is part of GNU Emacs.
 
@@ -32,7 +32,8 @@
 This makes the commands that normally define mode-specific abbrevs
 define global abbrevs instead."
   :type 'boolean
-  :group 'abbrev-mode)
+  :group 'abbrev-mode
+  :group 'convenience)
 
 (defun abbrev-mode (arg)
   "Toggle abbrev mode.

@@ -3,7 +3,7 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
-;; Keywords: abbrev
+;; Keywords: abbrev convenience
 ;; Version: 2.03
 ;; Special thanks to Hallvard Furuseth for his many ideas and contributions.
 
@@ -101,7 +101,8 @@
 (defgroup partial-completion nil
   "Partial Completion of items."
   :prefix "pc-"
-  :group 'minibuffer)
+  :group 'minibuffer
+  :group 'convenience)
 
 (defcustom partial-completion-mode nil
   "Toggle Partial Completion mode.

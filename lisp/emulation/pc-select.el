@@ -5,6 +5,7 @@
 ;; Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author: Michael Staats <michael@thp.Uni-Duisburg.DE>
+;; Keywords: convenience 
 ;; Created: 26 Sep 1995
 
 ;; This file is part of GNU Emacs.
@@ -80,7 +81,8 @@
 (defgroup pc-select nil
   "Emulate pc bindings."
   :prefix "pc-select"
-  :group 'editing-basics)
+  :group 'editing-basics
+  :group 'convenience)
 
 (defcustom pc-select-override-scroll-error t
   "*Non-nil means don't generate error on scrolling past edge of buffer.

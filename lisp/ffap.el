@@ -4,7 +4,7 @@
 ;;
 ;; Author: Michelangelo Grigni <mic@mathcs.emory.edu>
 ;; Created: 29 Mar 1993
-;; Keywords: files, hypermedia, matching, mouse
+;; Keywords: files, hypermedia, matching, mouse, convenience
 ;; X-URL: ftp://ftp.mathcs.emory.edu/pub/mic/emacs/
 
 ;; This file is part of GNU Emacs.
@@ -105,7 +105,8 @@
 (defgroup ffap nil
   "Find file or URL at point."
   :link '(url-link :tag "URL" "ftp://ftp.mathcs.emory.edu/pub/mic/emacs/")
-  :group 'matching)
+  :group 'matching
+  :group 'convenience)
 
 ;; The code is organized in pages, separated by formfeed characters.
 ;; See the next two pages for standard customization ideas.

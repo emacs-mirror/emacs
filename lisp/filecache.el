@@ -2,7 +2,7 @@
 ;;
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 10 1996
-;; Keywords: 
+;; Keywords: convenience
 ;; Time-stamp: <1998-04-29 22:38:56 pbreton>
 ;;
 ;; Copyright (C) 1996 Free Software Foundation, Inc.
@@ -142,6 +142,7 @@
 (defgroup file-cache nil
   "Find files using a pre-loaded cache."
   :group 'files
+  :group 'convenience
   :prefix "file-cache-")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

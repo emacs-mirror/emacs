@@ -6,7 +6,7 @@
 ;; Maintainer: Lars Lindberg <Lars.Lindberg@sypro.cap.se>
 ;; Created: 16 Mars 1992
 ;; Lindberg's last update version: 5.7
-;; Keywords: abbrev expand completion
+;; Keywords: abbrev expand completion convenience
 
 ;; This file is part of GNU Emacs.
 
@@ -101,7 +101,8 @@
 (defgroup dabbrev nil
   "Dynamic Abbreviations"
   :tag "Dynamic Abbreviations"
-  :group 'abbrev)
+  :group 'abbrev
+  :group 'convenience)
 
 (defcustom dabbrev-backward-only nil
   "*If non-nil, `dabbrev-expand' only looks backwards."

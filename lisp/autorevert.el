@@ -3,6 +3,7 @@
 ;; Copyright (C) 1997, 1998 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren <andersl@csd.uu.se>
+;; Keywords: convenience
 ;; Created: 1 Jun 1997
 ;; Date: 3 Jul 1997
 
@@ -82,7 +83,8 @@
 
 Auto-Revert Mode can be activated for individual buffer.
 Global Auto-Revert Mode applies to all buffers."
-  :group 'files)
+  :group 'files
+  :group 'convenience)
 
 
 ;; Variables:

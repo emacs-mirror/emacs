@@ -6,7 +6,7 @@
 ;;         Lars Lindberg <lli@sypro.cap.se>
 ;; Maintainer: FSF
 ;; Created: 8 Feb 1994
-;; Keywords: tools
+;; Keywords: tools convenience
 
 ;; This file is part of GNU Emacs.
 
@@ -73,6 +73,7 @@
   "Mode-specific buffer indexes."
   :group 'matching
   :group 'frames
+  :group 'convenience
   :link '(custom-manual "(elisp)Imenu"))
 
 (defcustom imenu-use-markers t

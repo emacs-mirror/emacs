@@ -6,7 +6,7 @@
 ;; Maintainer: Anders Lindgren <andersl@csd.uu.se>
 ;; Created: 25 May 1995
 ;; Version: 1.7
-;; Keywords: display, window, minor-mode
+;; Keywords: display, window, minor-mode, convenience
 ;; Date: 4 Jun 1997
 
 ;; This file is part of GNU Emacs.
@@ -281,7 +281,8 @@
 (defgroup follow nil
   "Synchronize windows showing the same buffer."
   :prefix "follow-"
-  :group 'windows)
+  :group 'windows
+  :group 'convenience)
 
 (defvar follow-mode nil
   "Variable indicating if Follow mode is active.")

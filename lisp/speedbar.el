@@ -4,7 +4,7 @@
 ;;
 ;; Author: Eric M. Ludlam <zappo@gnu.ai.mit.edu>
 ;; Version: 0.6.2
-;; Keywords: file, tags, tools
+;; Keywords: file, tags, tools, convenience
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -346,6 +346,7 @@
   "File and tag browser frame."
   :group 'tags
   :group 'tools
+  :group 'convenience
   :version "20.3")
 
 (defgroup speedbar-faces nil

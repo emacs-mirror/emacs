@@ -5,7 +5,7 @@
 ;; Author: Anders Holst <aho@sans.kth.se>
 ;; Last change: 3 March 1998
 ;; Version: 1.6
-;; Keywords: abbrev
+;; Keywords: abbrev convenience
 
 ;; This file is part of GNU Emacs.
 
@@ -170,7 +170,8 @@
 
 (defgroup hippie-expand nil
   "Expand text trying various ways to find its expansion."
-  :group 'abbrev)
+  :group 'abbrev
+  :group 'convenience)
 
 (defvar he-num -1)
 

@@ -4,7 +4,7 @@
 
 ;; Author: Stephen Eglen <stephen@cns.ed.ac.uk>
 ;; Maintainer: Stephen Eglen <stephen@cns.ed.ac.uk>
-;; Keywords: extensions
+;; Keywords: extensions convenience
 ;; location: http://www.cns.ed.ac.uk/people/stephen/emacs/
 
 ;; This file is part of GNU Emacs.
@@ -213,6 +213,7 @@
 (defgroup iswitchb nil
   "Switch between buffers using substrings."
   :group 'extensions
+  :group 'convenience
   ;; These links are to be added in later versions of custom and
   ;; so are currently commented out.
   :link '(emacs-commentary-link :tag "Commentary" "iswitchb.el")
