@@ -286,6 +286,7 @@ time saver for large mailboxes.")
     ;; 1997/8/14 by MORIOKA Tomohiko
     ;;    for XEmacs/mule.
     (let ((nnmail-file-coding-system nnmail-active-file-coding-system)
+	  (file-name-coding-system 'binary) ; for Emacs 20
 	  (pathname-coding-system 'binary)) ; for XEmacs/mule
       (nnmail-find-file nnfolder-active-file)
       (setq nnfolder-group-alist (nnmail-get-active)))
@@ -509,7 +510,8 @@ time saver for large mailboxes.")
   ;; Change group.
   (when (and group
 	     (not (equal group nnfolder-current-group)))
-    (let ((pathname-coding-system 'binary))
+    (let ((file-name-coding-system 'binary)
+	  (pathname-coding-system 'binary))
       (nnmail-activate 'nnfolder)
       (when (and (not (assoc group nnfolder-group-alist))
 		 (not (file-exists-p
