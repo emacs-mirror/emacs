@@ -1,5 +1,5 @@
 ;;; nndoc.el --- single file access for Gnus
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -58,9 +58,16 @@ from the document.")
   `((mmdf
      (article-begin .  "^\^A\^A\^A\^A\n")
      (body-end .  "^\^A\^A\^A\^A\n"))
-    (exim-bounce
-     (article-begin . "^------ This is a copy of the message, including all the headers. ------\n\n")
-     (body-end-function . nndoc-exim-bounce-body-end-function))
+    (mime-digest
+     (article-begin . "")
+     (head-begin . "^ ?\n")
+     (head-end . "^ ?$")
+     (body-end . "")
+     (file-end . "")
+     (subtype digest guess))
+    (mime-parts
+     (generate-head-function . nndoc-generate-mime-parts-head)
+     (article-transform-function . nndoc-transform-mime-parts))
     (nsmail
      (article-begin .  "^From - "))
     (news
@@ -76,6 +83,9 @@ from the document.")
      (body-end . "\^_")
      (body-begin-function . nndoc-babyl-body-begin)
      (head-begin-function . nndoc-babyl-head-begin))
+    (exim-bounce
+     (article-begin . "^------ This is a copy of the message, including all the headers. ------\n\n")
+     (body-end-function . nndoc-exim-bounce-body-end-function))
     (rfc934
      (article-begin . "^--.*\n+")
      (body-end . "^--.*$")
@@ -91,16 +101,7 @@ from the document.")
      (head-end . "^\t")
      (generate-head-function . nndoc-generate-clari-briefs-head)
      (article-transform-function . nndoc-transform-clari-briefs))
-    (mime-digest
-     (article-begin . "")
-     (head-begin . "^ ?\n")
-     (head-end . "^ ?$")
-     (body-end . "")
-     (file-end . "")
-     (subtype digest guess))
-    (mime-parts
-     (generate-head-function . nndoc-generate-mime-parts-head)
-     (article-transform-function . nndoc-transform-mime-parts))
+    
     (standard-digest
      (first-article . ,(concat "^" (make-string 70 ?-) "\n *\n+"))
      (article-begin . ,(concat "^\n" (make-string 30 ?-) "\n *\n+"))
@@ -393,7 +394,7 @@ from the document.")
       (error "Document is not of any recognized type"))
     (if result
 	(car entry)
-      (cadar (sort results 'car-less-than-car)))))
+      (cadar (last (sort results 'car-less-than-car))))))
 
 ;;;
 ;;; Built-in type predicates and functions
@@ -771,7 +772,7 @@ from the document.")
   "Go through the document and partition it into heads/bodies/articles."
   (let ((i 0)
 	(first t)
-	head-begin head-end body-begin body-end)
+	art-begin head-begin head-end body-begin body-end)
     (setq nndoc-dissection-alist nil)
     (save-excursion
       (set-buffer nndoc-current-buffer)
@@ -787,8 +788,11 @@ from the document.")
 	;; Go through the file.
 	(while (if (and first nndoc-first-article)
 		   (nndoc-search nndoc-first-article)
-		 (nndoc-article-begin))
-	  (setq first nil)
+		 (if art-begin
+		     (goto-char art-begin)
+		   (nndoc-article-begin)))
+	  (setq first nil
+		art-begin nil)
 	  (cond (nndoc-head-begin-function
 		 (funcall nndoc-head-begin-function))
 		(nndoc-head-begin
@@ -808,7 +812,8 @@ from the document.")
 		     (funcall nndoc-body-end-function))
 		(and nndoc-body-end
 		     (nndoc-search nndoc-body-end))
-		(nndoc-article-begin)
+		(and (nndoc-article-begin)
+		     (setq art-begin (point)))
 		(progn
 		  (goto-char (point-max))
 		  (when nndoc-file-end
@@ -890,7 +895,7 @@ PARENT is the message-ID of the parent summary line, or nil for none."
 	    subtype "plain"))
     ;; Prepare the article and summary inserts.
     (unless article-insert
-      (setq article-insert (buffer-substring (point-min) (point-max))
+      (setq article-insert (buffer-string)
 	    head-end head-begin))
     ;; Fix MIME-Version
     (unless (string-match "MIME-Version:" article-insert)

@@ -1,5 +1,5 @@
 ;;; gnus-eform.el --- a mode for editing forms for Gnus
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -114,7 +114,9 @@ of the buffer."
   "Update changes and kill the current buffer."
   (interactive)
   (goto-char (point-min))
-  (let ((form (read (current-buffer)))
+  (let ((form (condition-case nil
+		  (read (current-buffer))
+		(end-of-file nil)))
 	(func gnus-edit-form-done-function))
     (gnus-edit-form-exit)
     (funcall func form)))

@@ -1,5 +1,6 @@
-;;; nnultimate.el --- interfacing with the Ultimate Bulletin Board system -*- coding: iso-latin-1 -*-
-;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+;;; nnultimate.el --- interfacing with the Ultimate Bulletin Board system
+
+;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -36,11 +37,9 @@
 (require 'gnus)
 (require 'nnmail)
 (require 'mm-util)
-(eval-when-compile
-  (ignore-errors
-    (require 'nnweb)))
-;; Report failure to find w3 at load time if appropriate.
-(eval '(require 'nnweb))
+(require 'mm-url)
+(require 'nnweb)
+(autoload 'w3-parse-buffer "w3-parse")
 
 (nnoo-declare nnultimate)
 
@@ -107,7 +106,7 @@
 		    fetchers))
 	    (pop articles)
 	    (setq article (car articles)))))
-   ;; Now we have the mapping from/to Gnus/nnultimate article numbers,
+      ;; Now we have the mapping from/to Gnus/nnultimate article numbers,
       ;; so we start fetching the topics that we need to satisfy the
       ;; request.
       (if (not fetchers)
@@ -125,9 +124,9 @@
 	      (setq subject (nth 2 (assq (car elem) topics)))
 	      (setq href (nth 3 (assq (car elem) topics)))
 	      (if (= current-page 1)
-		  (nnweb-insert href)
+		  (mm-url-insert href)
 		(string-match "\\.html$" href)
-		(nnweb-insert (concat (substring href 0 (match-beginning 0))
+		(mm-url-insert (concat (substring href 0 (match-beginning 0))
 				      "-" (number-to-string current-page)
 				      (match-string 0 href))))
 	      (goto-char (point-min))
@@ -173,25 +172,25 @@
 		    datel nil))
 	    (pop datel))
 	  (when date
-	    (setq date (delete "" (split-string
-				   date "[-, \n\t\r    ]")))
-	    (if (or (member "AM" date)
-		    (member "PM" date))
-		(setq date (format
-			    "%s %s %s %s"
-			    (nth 1 date)
-			    (if (and (>= (length (nth 0 date)) 3)
-				     (assoc (downcase
-					     (substring (nth 0 date) 0 3))
-					    parse-time-months))
-				(substring (nth 0 date) 0 3)
-			      (car (rassq (string-to-number (nth 0 date))
-					  parse-time-months)))
-			    (nth 2 date) (nth 3 date)))
-	      (setq date (format "%s %s %s %s"
-				 (car (rassq (string-to-number (nth 1 date))
-					     parse-time-months))
-				 (nth 0 date) (nth 2 date) (nth 3 date)))))
+	    (setq date (delete "" (split-string date "[-, \n\t\r    ]")))
+	    (setq date
+		  (if (or (member "AM" date)
+			  (member "PM" date))
+		      (format
+		       "%s %s %s %s"
+		       (nth 1 date)
+		       (if (and (>= (length (nth 0 date)) 3)
+				(assoc (downcase
+					(substring (nth 0 date) 0 3))
+				       parse-time-months))
+			   (substring (nth 0 date) 0 3)
+			 (car (rassq (string-to-number (nth 0 date))
+				     parse-time-months)))
+		       (nth 2 date) (nth 3 date))
+		    (format "%s %s %s %s"
+			    (car (rassq (string-to-number (nth 1 date))
+					parse-time-months))
+			    (nth 0 date) (nth 2 date) (nth 3 date)))))
 	  (push
 	   (cons
 	    article
@@ -269,7 +268,7 @@
 (deffoo nnultimate-request-list (&optional server)
   (nnultimate-possibly-change-server nil server)
   (mm-with-unibyte-buffer
-    (nnweb-insert
+    (mm-url-insert
      (if (string-match "/$" nnultimate-address)
 	 (concat nnultimate-address "Ultimate.cgi")
        nnultimate-address))
@@ -334,7 +333,7 @@
     (mm-with-unibyte-buffer
       (while furls
 	(erase-buffer)
-	(nnweb-insert (pop furls))
+	(mm-url-insert (pop furls))
 	(goto-char (point-min))
 	(setq parse (w3-parse-buffer (current-buffer)))
 	(setq contents

@@ -1,11 +1,11 @@
 ;;; nnheader.el --- header access macros for Gnus and its backends
 
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1993, 1994, 1995, 1996,
-;;        1997, 1998, 2000, 2001
+;;        1997, 1998, 2000, 2001, 2002, 2003
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
-;; 	Lars Magne Ingebrigtsen <larsi@gnus.org>
+;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
 
 ;; This file is part of GNU Emacs.
@@ -33,28 +33,60 @@
 
 ;; Requiring `gnus-util' at compile time creates a circular
 ;; dependency between nnheader.el and gnus-util.el.
-;(eval-when-compile (require 'gnus-util))
+;;(eval-when-compile (require 'gnus-util))
 
 (require 'mail-utils)
 (require 'mm-util)
+(require 'gnus-util)
 (eval-and-compile
+  (autoload 'gnus-sorted-intersection "gnus-range")
   (autoload 'gnus-intersection "gnus-range")
-  (autoload 'gnus-sorted-complement "gnus-range"))
+  (autoload 'gnus-sorted-complement "gnus-range")
+  (autoload 'gnus-sorted-difference "gnus-range"))
+
+(defcustom gnus-verbose-backends 7
+  "Integer that says how verbose the Gnus backends should be.
+The higher the number, the more messages the Gnus backends will flash
+to say what it's doing.  At zero, the Gnus backends will be totally
+mute; at five, they will display most important messages; and at ten,
+they will keep on jabbering all the time."
+  :group 'gnus-start
+  :type 'integer)
+
+(defcustom gnus-nov-is-evil nil
+  "If non-nil, Gnus backends will never output headers in the NOV format."
+  :group 'gnus-server
+  :type 'boolean)
 
 (defvar nnheader-max-head-length 4096
-  "*Max length of the head of articles.")
+  "*Max length of the head of articles.
+
+Value is an integer, nil, or t.  nil means read in chunks of a file
+indefinitely until a complete head is found\; t means always read the
+entire file immediately, disregarding `nnheader-head-chop-length'.
+
+Integer values will in effect be rounded up to the nearest multiple of
+`nnheader-head-chop-length'.")
 
 (defvar nnheader-head-chop-length 2048
   "*Length of each read operation when trying to fetch HEAD headers.")
 
+(defvar nnheader-read-timeout
+  (if (string-match "windows-nt\\|os/2\\|emx\\|cygwin"
+		    (symbol-name system-type))
+      1.0				; why?
+    0.1)
+  "How long nntp should wait between checking for the end of output.
+Shorter values mean quicker response, but are more CPU intensive.")
+
 (defvar nnheader-file-name-translation-alist
   (let ((case-fold-search t))
     (cond
-     ((string-match "windows-nt\\|os/2\\|emx\\|cygwin32"
+     ((string-match "windows-nt\\|os/2\\|emx\\|cygwin"
 		    (symbol-name system-type))
       (append (mapcar (lambda (c) (cons c ?_))
 		      '(?: ?* ?\" ?< ?> ??))
-	      (if (string-match "windows-nt\\|cygwin32"
+	      (if (string-match "windows-nt\\|cygwin"
 				(symbol-name system-type))
 		  nil
 		'((?+ . ?-)))))
@@ -65,12 +97,15 @@ on your system, you could say something like:
 
 \(setq nnheader-file-name-translation-alist '((?: . ?_)))")
 
+(defvar nnheader-directory-separator-character
+  (string-to-char (substring (file-name-as-directory ".") -1))
+  "*A character used to a directory separator.")
+
 (eval-and-compile
   (autoload 'nnmail-message-id "nnmail")
   (autoload 'mail-position-on-field "sendmail")
   (autoload 'message-remove-header "message")
   (autoload 'gnus-point-at-eol "gnus-util")
-  (autoload 'gnus-delete-line "gnus-util" nil nil 'macro)
   (autoload 'gnus-buffer-live-p "gnus-util"))
 
 ;;; Header access macros.
@@ -186,125 +221,140 @@ on your system, you could say something like:
   (concat "fake+none+" (int-to-string (incf nnheader-fake-message-id))))
 
 (defsubst nnheader-fake-message-id-p (id)
-  (save-match-data			; regular message-id's are <.*>
+  (save-match-data		       ; regular message-id's are <.*>
     (string-match "\\`fake\\+none\\+[0-9]+\\'" id)))
 
 ;; Parsing headers and NOV lines.
 
+(defsubst nnheader-remove-cr-followed-by-lf ()
+  (goto-char (point-max))
+  (while (search-backward "\r\n" nil t)
+    (delete-char 1)))
+
 (defsubst nnheader-header-value ()
-  (buffer-substring (match-end 0) (gnus-point-at-eol)))
+  (skip-chars-forward " \t")
+  (buffer-substring (point) (gnus-point-at-eol)))
+
+(defun nnheader-parse-naked-head (&optional number)
+  ;; This function unfolds continuation lines in this buffer
+  ;; destructively.  When this side effect is unwanted, use
+  ;; `nnheader-parse-head' instead of this function.
+  (let ((case-fold-search t)
+	(buffer-read-only nil)
+	(cur (current-buffer))
+	(p (point-min))
+	in-reply-to lines ref)
+    (nnheader-remove-cr-followed-by-lf)
+    (ietf-drums-unfold-fws)
+    (subst-char-in-region (point-min) (point-max) ?\t ? )
+    (goto-char p)
+    (insert "\n")
+    (prog1
+	;; This implementation of this function, with nine
+	;; search-forwards instead of the one re-search-forward and a
+	;; case (which basically was the old function) is actually
+	;; about twice as fast, even though it looks messier.  You
+	;; can't have everything, I guess.  Speed and elegance don't
+	;; always go hand in hand.
+	(vector
+	 ;; Number.
+	 (or number 0)
+	 ;; Subject.
+	 (progn
+	   (goto-char p)
+	   (if (search-forward "\nsubject:" nil t)
+	       (nnheader-header-value) "(none)"))
+	 ;; From.
+	 (progn
+	   (goto-char p)
+	   (if (search-forward "\nfrom:" nil t)
+	       (nnheader-header-value) "(nobody)"))
+	 ;; Date.
+	 (progn
+	   (goto-char p)
+	   (if (search-forward "\ndate:" nil t)
+	       (nnheader-header-value) ""))
+	 ;; Message-ID.
+	 (progn
+	   (goto-char p)
+	   (if (search-forward "\nmessage-id:" nil t)
+	       (buffer-substring
+		(1- (or (search-forward "<" (gnus-point-at-eol) t)
+			(point)))
+		(or (search-forward ">" (gnus-point-at-eol) t) (point)))
+	     ;; If there was no message-id, we just fake one to make
+	     ;; subsequent routines simpler.
+	     (nnheader-generate-fake-message-id)))
+	 ;; References.
+	 (progn
+	   (goto-char p)
+	   (if (search-forward "\nreferences:" nil t)
+	       (nnheader-header-value)
+	     ;; Get the references from the in-reply-to header if
+	     ;; there were no references and the in-reply-to header
+	     ;; looks promising.
+	     (if (and (search-forward "\nin-reply-to:" nil t)
+		      (setq in-reply-to (nnheader-header-value))
+		      (string-match "<[^\n>]+>" in-reply-to))
+		 (let (ref2)
+		   (setq ref (substring in-reply-to (match-beginning 0)
+					(match-end 0)))
+		   (while (string-match "<[^\n>]+>"
+					in-reply-to (match-end 0))
+		     (setq ref2 (substring in-reply-to (match-beginning 0)
+					   (match-end 0)))
+		     (when (> (length ref2) (length ref))
+		       (setq ref ref2)))
+		   ref)
+	       nil)))
+	 ;; Chars.
+	 0
+	 ;; Lines.
+	 (progn
+	   (goto-char p)
+	   (if (search-forward "\nlines: " nil t)
+	       (if (numberp (setq lines (read cur)))
+		   lines 0)
+	     0))
+	 ;; Xref.
+	 (progn
+	   (goto-char p)
+	   (and (search-forward "\nxref:" nil t)
+		(nnheader-header-value)))
+	 ;; Extra.
+	 (when nnmail-extra-headers
+	   (let ((extra nnmail-extra-headers)
+		 out)
+	     (while extra
+	       (goto-char p)
+	       (when (search-forward
+		      (concat "\n" (symbol-name (car extra)) ":") nil t)
+		 (push (cons (car extra) (nnheader-header-value))
+		       out))
+	       (pop extra))
+	     out)))
+      (goto-char p)
+      (delete-char 1))))
 
 (defun nnheader-parse-head (&optional naked)
-  (let ((case-fold-search t)
-	(cur (current-buffer))
-	(buffer-read-only nil)
-	in-reply-to lines p ref)
-    (goto-char (point-min))
-    (when naked
-      (insert "\n"))
-    ;; Search to the beginning of the next header.  Error messages
-    ;; do not begin with 2 or 3.
-    (prog1
-	(when (or naked (re-search-forward "^[23][0-9]+ " nil t))
-	  ;; This implementation of this function, with nine
-	  ;; search-forwards instead of the one re-search-forward and
-	  ;; a case (which basically was the old function) is actually
-	  ;; about twice as fast, even though it looks messier.	 You
-	  ;; can't have everything, I guess.  Speed and elegance
-	  ;; don't always go hand in hand.
-	  (vector
-	   ;; Number.
-	   (if naked
-	       (progn
-		 (setq p (point-min))
-		 0)
-	     (prog1
-		 (read cur)
-	       (end-of-line)
-	       (setq p (point))
-	       (narrow-to-region (point)
-				 (or (and (search-forward "\n.\n" nil t)
-					  (- (point) 2))
-				     (point)))))
-	   ;; Subject.
-	   (progn
-	     (goto-char p)
-	     (if (search-forward "\nsubject: " nil t)
-		 (nnheader-header-value) "(none)"))
-	   ;; From.
-	   (progn
-	     (goto-char p)
-	     (if (or (search-forward "\nfrom: " nil t)
-		     (search-forward "\nfrom:" nil t))
-		 (nnheader-header-value) "(nobody)"))
-	   ;; Date.
-	   (progn
-	     (goto-char p)
-	     (if (search-forward "\ndate: " nil t)
-		 (nnheader-header-value) ""))
-	   ;; Message-ID.
-	   (progn
-	     (goto-char p)
-	     (if (search-forward "\nmessage-id:" nil t)
-		 (buffer-substring
-		  (1- (or (search-forward "<" (gnus-point-at-eol) t)
-			  (point)))
-		  (or (search-forward ">" (gnus-point-at-eol) t) (point)))
-	       ;; If there was no message-id, we just fake one to make
-	       ;; subsequent routines simpler.
-	       (nnheader-generate-fake-message-id)))
-	   ;; References.
-	   (progn
-	     (goto-char p)
-	     (if (search-forward "\nreferences: " nil t)
-		 (nnheader-header-value)
-	       ;; Get the references from the in-reply-to header if there
-	       ;; were no references and the in-reply-to header looks
-	       ;; promising.
-	       (if (and (search-forward "\nin-reply-to: " nil t)
-			(setq in-reply-to (nnheader-header-value))
-			(string-match "<[^\n>]+>" in-reply-to))
-		   (let (ref2)
-		     (setq ref (substring in-reply-to (match-beginning 0)
-					  (match-end 0)))
-		     (while (string-match "<[^\n>]+>"
-					  in-reply-to (match-end 0))
-		       (setq ref2 (substring in-reply-to (match-beginning 0)
-					     (match-end 0)))
-		       (when (> (length ref2) (length ref))
-			 (setq ref ref2)))
-                     ref)
-		 nil)))
-	   ;; Chars.
-	   0
-	   ;; Lines.
-	   (progn
-	     (goto-char p)
-	     (if (search-forward "\nlines: " nil t)
-		 (if (numberp (setq lines (read cur)))
-		     lines 0)
-	       0))
-	   ;; Xref.
-	   (progn
-	     (goto-char p)
-	     (and (search-forward "\nxref: " nil t)
-		  (nnheader-header-value)))
-
-	   ;; Extra.
-	   (when nnmail-extra-headers
-	     (let ((extra nnmail-extra-headers)
-		   out)
-	       (while extra
-		 (goto-char p)
-		 (when (search-forward
-			(concat "\n" (symbol-name (car extra)) ": ") nil t)
-		   (push (cons (car extra) (nnheader-header-value))
-			 out))
-		 (pop extra))
-	       out))))
-      (when naked
-	(goto-char (point-min))
-	(delete-char 1)))))
+  (let ((cur (current-buffer)) num beg end)
+    (when (if naked
+	      (setq num 0
+		    beg (point-min)
+		    end (point-max))
+	    (goto-char (point-min))
+	    ;; Search to the beginning of the next header.  Error
+	    ;; messages do not begin with 2 or 3.
+	    (when (re-search-forward "^[23][0-9]+ " nil t)
+	      (end-of-line)
+	      (setq num (read cur)
+		    beg (point)
+		    end (if (search-forward "\n.\n" nil t)
+			    (- (point) 2)
+			  (point)))))
+      (with-temp-buffer
+	(insert-buffer-substring cur beg end)
+	(nnheader-parse-naked-head num)))))
 
 (defmacro nnheader-nov-skip-field ()
   '(search-forward "\t" eol 'move))
@@ -389,6 +439,22 @@ on your system, you could say something like:
       (delete-char 1))
     (forward-line 1)))
 
+(defun nnheader-parse-overview-file (file)
+  "Parse FILE and return a list of headers."
+  (mm-with-unibyte-buffer
+    (nnheader-insert-file-contents file)
+    (goto-char (point-min))
+    (let (headers)
+      (while (not (eobp))
+	(push (nnheader-parse-nov) headers)
+	(forward-line 1))
+      (nreverse headers))))
+
+(defun nnheader-write-overview-file (file headers)
+  "Write HEADERS to FILE."
+  (with-temp-file file
+    (mapcar 'nnheader-insert-nov headers)))
+
 (defun nnheader-insert-header (header)
   (insert
    "Subject: " (or (mail-header-subject header) "(none)") "\n"
@@ -432,7 +498,7 @@ the line could be found."
 	(prev (point-min))
 	num found)
     (while (not found)
-      (goto-char (/ (+ max min) 2))
+      (goto-char (+ min (/ (- max min) 2)))
       (beginning-of-line)
       (if (or (= (point) prev)
 	      (eobp))
@@ -471,10 +537,7 @@ the line could be found."
 ;; Various cruft the backends and Gnus need to communicate.
 
 (defvar nntp-server-buffer nil)
-(defvar gnus-verbose-backends 7
-  "*A number that says how talkative the Gnus backends should be.")
-(defvar gnus-nov-is-evil nil
-  "If non-nil, Gnus backends will never output headers in the NOV format.")
+(defvar nntp-process-response nil)
 (defvar news-reply-yank-from nil)
 (defvar news-reply-yank-message-id nil)
 
@@ -490,6 +553,7 @@ the line could be found."
     (erase-buffer)
     (kill-all-local-variables)
     (setq case-fold-search t)		;Should ignore case.
+    (set (make-local-variable 'nntp-process-response) nil)
     t))
 
 ;;; Various functions the backends use.
@@ -544,7 +608,7 @@ the line could be found."
       ;; This is invalid, but not all articles have Message-IDs.
       ()
     (mail-position-on-field "References")
-    (let ((begin (save-excursion (beginning-of-line) (point)))
+    (let ((begin (gnus-point-at-bol))
 	  (fill-column 78)
 	  (fill-prefix "\t"))
       (when references
@@ -578,6 +642,12 @@ the line could be found."
      (point-max)))
   (goto-char (point-min)))
 
+(defun nnheader-remove-body ()
+  "Remove the body from an article in this current buffer."
+  (goto-char (point-min))
+  (when (re-search-forward "\n\r?\n" nil t)
+    (delete-region (point) (point-max))))
+
 (defun nnheader-set-temp-buffer (name &optional noerase)
   "Set-buffer to an empty (possibly new) buffer called NAME with undo disabled."
   (set-buffer (get-buffer-create name))
@@ -609,11 +679,17 @@ the line could be found."
     (string-match nnheader-numerical-short-files file)
     (string-to-int (match-string 0 file))))
 
+(defvar nnheader-directory-files-is-safe
+  (or (eq system-type 'windows-nt)
+      (and (not (featurep 'xemacs))
+	   (> emacs-major-version 20)))
+  "If non-nil, Gnus believes `directory-files' is safe.
+It has been reported numerous times that `directory-files' fails with
+an alarming frequency on NFS mounted file systems. If it is nil,
+`nnheader-directory-files-safe' is used.")
+
 (defun nnheader-directory-files-safe (&rest args)
-  ;; It has been reported numerous times that `directory-files'
-  ;; fails with an alarming frequency on NFS mounted file systems.
-  ;; This function executes that function twice and returns
-  ;; the longest result.
+  "Execute `directory-files' twice and returns the longer result."
   (let ((first (apply 'directory-files args))
 	(second (apply 'directory-files args)))
     (if (> (length first) (length second))
@@ -623,14 +699,20 @@ the line could be found."
 (defun nnheader-directory-articles (dir)
   "Return a list of all article files in directory DIR."
   (mapcar 'nnheader-file-to-number
-	  (nnheader-directory-files-safe
-	   dir nil nnheader-numerical-short-files t)))
+	  (if nnheader-directory-files-is-safe
+	      (directory-files
+	       dir nil nnheader-numerical-short-files t)
+	    (nnheader-directory-files-safe
+	     dir nil nnheader-numerical-short-files t))))
 
 (defun nnheader-article-to-file-alist (dir)
   "Return an alist of article/file pairs in DIR."
   (mapcar (lambda (file) (cons (nnheader-file-to-number file) file))
-	  (nnheader-directory-files-safe
-	   dir nil nnheader-numerical-short-files t)))
+	  (if nnheader-directory-files-is-safe
+	      (directory-files
+	       dir nil nnheader-numerical-short-files t)
+	    (nnheader-directory-files-safe
+	     dir nil nnheader-numerical-short-files t))))
 
 (defun nnheader-fold-continuation-lines ()
   "Fold continuation lines in the current buffer."
@@ -653,7 +735,8 @@ If FULL, translate everything."
 	;; We translate -- but only the file name.  We leave the directory
 	;; alone.
 	(if (and (featurep 'xemacs)
-		 (memq system-type '(win32 w32 mswindows windows-nt cygwin)))
+		 (memq system-type '(cygwin32 win32 w32 mswindows windows-nt
+					      cygwin)))
 	    ;; This is needed on NT and stuff, because
 	    ;; file-name-nondirectory is not enough to split
 	    ;; file names, containing ':', e.g.
@@ -710,21 +793,8 @@ without formatting."
       (apply 'insert format args))
     t))
 
-(eval-and-compile
-  (if (fboundp 'subst-char-in-string)
-      (defsubst nnheader-replace-chars-in-string (string from to)
-	(subst-char-in-string from to string))
-    (defun nnheader-replace-chars-in-string (string from to)
-      "Replace characters in STRING from FROM to TO."
-      (let ((string (substring string 0)) ;Copy string.
-	    (len (length string))
-	    (idx 0))
-	;; Replace all occurrences of FROM with TO.
-	(while (< idx len)
-	  (when (= (aref string idx) from)
-	    (aset string idx to))
-	  (setq idx (1+ idx)))
-	string))))
+(defsubst nnheader-replace-chars-in-string (string from to)
+  (mm-subst-char-in-string from to string))
 
 (defun nnheader-replace-duplicate-chars-in-string (string from to)
   "Replace characters in STRING from FROM to TO."
@@ -752,7 +822,7 @@ without formatting."
 		     (expand-file-name
 		      (file-name-as-directory top))))
        (error "")))
-   ?/ ?.))
+   nnheader-directory-separator-character ?.))
 
 (defun nnheader-message (level &rest args)
   "Message if the Gnus backends are talkative."
@@ -766,8 +836,8 @@ without formatting."
   (or (not (numberp gnus-verbose-backends))
       (<= level gnus-verbose-backends)))
 
-(defvar nnheader-pathname-coding-system 'binary
-  "*Coding system for file names.")
+(defvar nnheader-pathname-coding-system 'iso-8859-1
+  "*Coding system for file name.")
 
 (defun nnheader-group-pathname (group dir &optional file)
   "Make file name for GROUP."
@@ -780,16 +850,11 @@ without formatting."
 	;; If not, we translate dots into slashes.
 	(expand-file-name (mm-encode-coding-string
 			   (nnheader-replace-chars-in-string group ?. ?/)
-			  nnheader-pathname-coding-system)
+			   nnheader-pathname-coding-system)
 			  dir))))
    (cond ((null file) "")
 	 ((numberp file) (int-to-string file))
 	 (t file))))
-
-(defun nnheader-functionp (form)
-  "Return non-nil if FORM is funcallable."
-  (or (and (symbolp form) (fboundp form))
-      (and (listp form) (eq (car form) 'lambda))))
 
 (defun nnheader-concat (dir &rest files)
   "Concat DIR as directory to FILES."
@@ -798,19 +863,21 @@ without formatting."
 (defun nnheader-ms-strip-cr ()
   "Strip ^M from the end of all lines."
   (save-excursion
-    (goto-char (point-min))
-    (while (re-search-forward "\r$" nil t)
-      (delete-backward-char 1))))
+    (nnheader-remove-cr-followed-by-lf)))
 
 (defun nnheader-file-size (file)
   "Return the file size of FILE or 0."
   (or (nth 7 (file-attributes file)) 0))
 
-(defun nnheader-find-etc-directory (package &optional file)
-  "Go through the path and find the \".../etc/PACKAGE\" directory.
-If FILE, find the \".../etc/PACKAGE\" file instead."
+(defun nnheader-find-etc-directory (package &optional file first)
+  "Go through `load-path' and find the \"../etc/PACKAGE\" directory.
+This function will look in the parent directory of each `load-path'
+entry, and look for the \"etc\" directory there.
+If FILE, find the \".../etc/PACKAGE\" file instead.
+If FIRST is non-nil, return the directory or the file found at the
+first.  Otherwise, find the newest one, though it may take a time."
   (let ((path load-path)
-	dir result)
+	dir results)
     ;; We try to find the dir by looking at the load path,
     ;; stripping away the last component and adding "etc/".
     (while path
@@ -822,10 +889,14 @@ If FILE, find the \".../etc/PACKAGE\" file instead."
 			   "etc/" package
 			   (if file "" "/"))))
 	       (or file (file-directory-p dir)))
-	  (setq result dir
-		path nil)
+	  (progn
+	    (or (member dir results)
+		(push dir results))
+	    (setq path (if first nil (cdr path))))
 	(setq path (cdr path))))
-    result))
+    (if (or first (not (cdr results)))
+	(car results)
+      (car (sort results 'file-newer-than-file-p)))))
 
 (eval-when-compile
   (defvar ange-ftp-path-format)
@@ -851,12 +922,32 @@ find-file-hooks, etc.
   (let ((coding-system-for-read nnheader-file-coding-system))
     (mm-insert-file-contents filename visit beg end replace)))
 
+(defun nnheader-insert-nov-file (file first)
+  (let ((size (nth 7 (file-attributes file)))
+	(cutoff (* 32 1024)))
+    (when size
+      (if (< size cutoff)
+          ;; If the file is small, we just load it.
+          (nnheader-insert-file-contents file)
+        ;; We start on the assumption that FIRST is pretty recent.  If
+        ;; not, we just insert the rest of the file as well.
+        (let (current)
+          (nnheader-insert-file-contents file nil (- size cutoff) size)
+          (goto-char (point-min))
+          (delete-region (point) (or (search-forward "\n" nil 'move) (point)))
+          (setq current (ignore-errors (read (current-buffer))))
+          (if (and (numberp current)
+                   (< current first))
+              t
+            (delete-region (point-min) (point-max))
+            (nnheader-insert-file-contents file)))))))
+
 (defun nnheader-find-file-noselect (&rest args)
   (let ((format-alist nil)
 	(auto-mode-alist (mm-auto-mode-alist))
 	(default-major-mode 'fundamental-mode)
 	(enable-local-variables nil)
-        (after-insert-file-functions nil)
+	(after-insert-file-functions nil)
 	(enable-local-eval nil)
 	(find-file-hooks nil)
 	(coding-system-for-read nnheader-file-coding-system))
@@ -917,6 +1008,15 @@ find-file-hooks, etc.
 (defalias 'nnheader-run-at-time 'run-at-time)
 (defalias 'nnheader-cancel-timer 'cancel-timer)
 (defalias 'nnheader-cancel-function-timers 'cancel-function-timers)
+(defalias 'nnheader-string-as-multibyte 'string-as-multibyte)
+
+(defun nnheader-accept-process-output (process)
+  (accept-process-output
+   process
+   (truncate nnheader-read-timeout)
+   (truncate (* (- nnheader-read-timeout
+		   (truncate nnheader-read-timeout))
+		1000))))
 
 (when (featurep 'xemacs)
   (require 'nnheaderxm))

@@ -1,5 +1,5 @@
-;;; message.el --- composing mail and news messages  -*- coding: iso-latin-1 -*-
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2004
+;;; message.el --- composing mail and news messages
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -32,14 +32,25 @@
 
 (eval-when-compile
   (require 'cl)
-  (defvar gnus-list-identifiers))	; gnus-sum is required where necessary
+  (defvar gnus-message-group-art)
+  (defvar gnus-list-identifiers)) ; gnus-sum is required where necessary
+(require 'canlock)
 (require 'mailheader)
 (require 'nnheader)
-;; This is apparently necessary even though things are autoloaded:
+;; This is apparently necessary even though things are autoloaded.
+;; Because we dynamically bind mail-abbrev-mode-regexp, we'd better
+;; require mailabbrev here.
 (if (featurep 'xemacs)
-    (require 'mail-abbrevs))
+    (require 'mail-abbrevs)
+  (require 'mailabbrev))
 (require 'mail-parse)
 (require 'mml)
+(require 'rfc822)
+(eval-and-compile
+  (autoload 'sha1 "sha1-el")
+  (autoload 'gnus-find-method-for-group "gnus")
+  (autoload 'nnvirtual-find-group-art "nnvirtual")
+  (autoload 'gnus-group-decoded-name "gnus-group"))
 
 (defgroup message '((user-mail-address custom-variable)
 		    (user-full-name custom-variable))
@@ -123,6 +134,11 @@ mailbox format."
 		(function :tag "Other"))
   :group 'message-sending)
 
+(defcustom message-fcc-externalize-attachments nil
+  "If non-nil, attachments are included as external parts in Fcc copies."
+  :type 'boolean
+  :group 'message-sending)
+
 (defcustom message-courtesy-message
   "The following message is a courtesy copy of an article\nthat has been posted to %s as well.\n\n"
   "*This is inserted at the start of a mailed copy of a posted message.
@@ -130,9 +146,10 @@ If the string contains the format spec \"%s\", the Newsgroups
 the article has been posted to will be inserted there.
 If this variable is nil, no such courtesy message will be added."
   :group 'message-sending
-  :type 'string)
+  :type '(radio (string :format "%t: %v\n" :size 0) (const nil)))
 
-(defcustom message-ignored-bounced-headers "^\\(Received\\|Return-Path\\):"
+(defcustom message-ignored-bounced-headers
+  "^\\(Received\\|Return-Path\\|Delivered-To\\):"
   "*Regexp that matches headers to be removed in resent bounced mail."
   :group 'message-interface
   :type 'regexp)
@@ -156,7 +173,14 @@ Otherwise, most addresses look like `angles', but they look like
 		 (const default))
   :group 'message-headers)
 
-(defcustom message-syntax-checks nil
+(defcustom message-insert-canlock t
+  "Whether to insert a Cancel-Lock header in news postings."
+  :version "21.3"
+  :group 'message-headers
+  :type 'boolean)
+
+(defcustom message-syntax-checks
+  (if message-insert-canlock '((sender . disabled)) nil)
   ;; Guess this one shouldn't be easy to customize...
   "*Controls what syntax checks should not be performed on outgoing posts.
 To disable checking of long signatures, for instance, add
@@ -169,13 +193,32 @@ Checks include `subject-cmsg', `multiple-headers', `sendsys',
 `new-text', `quoting-style', `redirected-followup', `signature',
 `approved', `sender', `empty', `empty-headers', `message-id', `from',
 `subject', `shorten-followup-to', `existing-newsgroups',
-`buffer-file-name', `unchanged', `newsgroups'."
+`buffer-file-name', `unchanged', `newsgroups', `reply-to',
+`continuation-headers', `long-header-lines', `invisible-text' and
+`illegible-text'."
   :group 'message-news
   :type '(repeat sexp))			; Fixme: improve this
 
+(defcustom message-required-headers '((optional . References)
+				      From)
+  "*Headers to be generated or prompted for when sending a message.
+Also see `message-required-news-headers' and
+`message-required-mail-headers'."
+  :group 'message-news
+  :group 'message-headers
+  :link '(custom-manual "(message)Message Headers")
+  :type '(repeat sexp))
+
+(defcustom message-draft-headers '(References From)
+  "*Headers to be generated when saving a draft message."
+  :group 'message-news
+  :group 'message-headers
+  :link '(custom-manual "(message)Message Headers")
+  :type '(repeat sexp))
+
 (defcustom message-required-news-headers
   '(From Newsgroups Subject Date Message-ID
-	 (optional . Organization) Lines
+	 (optional . Organization)
 	 (optional . User-Agent))
   "*Headers to be generated or prompted for when posting an article.
 RFC977 and RFC1036 require From, Date, Newsgroups, Subject,
@@ -184,64 +227,200 @@ User-Agent are optional.  If don't you want message to insert some
 header, remove it from this list."
   :group 'message-news
   :group 'message-headers
+  :link '(custom-manual "(message)Message Headers")
   :type '(repeat sexp))
 
 (defcustom message-required-mail-headers
-  '(From Subject Date (optional . In-Reply-To) Message-ID Lines
+  '(From Subject Date (optional . In-Reply-To) Message-ID
 	 (optional . User-Agent))
   "*Headers to be generated or prompted for when mailing a message.
-RFC822 required that From, Date, To, Subject and Message-ID be
-included.  Organization, Lines and User-Agent are optional."
+It is recommended that From, Date, To, Subject and Message-ID be
+included.  Organization and User-Agent are optional."
   :group 'message-mail
   :group 'message-headers
+  :link '(custom-manual "(message)Message Headers")
   :type '(repeat sexp))
 
 (defcustom message-deletable-headers '(Message-ID Date Lines)
   "Headers to be deleted if they already exist and were generated by message previously."
   :group 'message-headers
+  :link '(custom-manual "(message)Message Headers")
   :type 'sexp)
 
 (defcustom message-ignored-news-headers
-  "^NNTP-Posting-Host:\\|^Xref:\\|^[BGF]cc:\\|^Resent-Fcc:"
+  "^NNTP-Posting-Host:\\|^Xref:\\|^[BGF]cc:\\|^Resent-Fcc:\\|^X-Draft-From:\\|^X-Gnus-Agent-Meta-Information:"
   "*Regexp of headers to be removed unconditionally before posting."
   :group 'message-news
   :group 'message-headers
+  :link '(custom-manual "(message)Message Headers")
   :type 'regexp)
 
-(defcustom message-ignored-mail-headers "^[GF]cc:\\|^Resent-Fcc:\\|^Xref:"
+(defcustom message-ignored-mail-headers
+  "^[GF]cc:\\|^Resent-Fcc:\\|^Xref:\\|^X-Draft-From:\\|^X-Gnus-Agent-Meta-Information:"
   "*Regexp of headers to be removed unconditionally before mailing."
   :group 'message-mail
   :group 'message-headers
+  :link '(custom-manual "(message)Mail Headers")
   :type 'regexp)
 
-(defcustom message-ignored-supersedes-headers "^Path:\\|^Date\\|^NNTP-Posting-Host:\\|^Xref:\\|^Lines:\\|^Received:\\|^X-From-Line:\\|^X-Trace:\\|^X-Complaints-To:\\|Return-Path:\\|^Supersedes:\\|^NNTP-Posting-Date:\\|^X-Trace:\\|^X-Complaints-To:"
+(defcustom message-ignored-supersedes-headers "^Path:\\|^Date\\|^NNTP-Posting-Host:\\|^Xref:\\|^Lines:\\|^Received:\\|^X-From-Line:\\|^X-Trace:\\|^X-Complaints-To:\\|Return-Path:\\|^Supersedes:\\|^NNTP-Posting-Date:\\|^X-Trace:\\|^X-Complaints-To:\\|^Cancel-Lock:\\|^Cancel-Key:\\|^X-Hashcash:\\|^X-Payment:"
   "*Header lines matching this regexp will be deleted before posting.
 It's best to delete old Path and Date headers before posting to avoid
 any confusion."
   :group 'message-interface
+  :link '(custom-manual "(message)Superseding")
   :type 'regexp)
 
-(defcustom message-subject-re-regexp "^[ \t]*\\([Rr][Ee]:[ \t]*\\)*[ \t]*"
+(defcustom message-subject-re-regexp
+  "^[ \t]*\\([Rr][Ee]\\(\\[[0-9]*\\]\\)*:[ \t]*\\)*[ \t]*"
   "*Regexp matching \"Re: \" in the subject line."
   :group 'message-various
+  :link '(custom-manual "(message)Message Headers")
   :type 'regexp)
+
+;;; Start of variables adopted from `message-utils.el'.
+
+(defcustom message-subject-trailing-was-query 'ask
+  "*What to do with trailing \"(was: <old subject>)\" in subject lines.
+If nil, leave the subject unchanged.  If it is the symbol `ask', query
+the user what do do.  In this case, the subject is matched against
+`message-subject-trailing-was-ask-regexp'.  If
+`message-subject-trailing-was-query' is t, always strip the trailing
+old subject.  In this case, `message-subject-trailing-was-regexp' is
+used."
+  :type '(choice (const :tag "never" nil)
+		 (const :tag "always strip" t)
+                 (const ask))
+  :link '(custom-manual "(message)Message Headers")
+  :group 'message-various)
+
+(defcustom message-subject-trailing-was-ask-regexp
+  "[ \t]*\\([[(]+[Ww][Aa][Ss][ \t]*.*[\])]+\\)"
+  "*Regexp matching \"(was: <old subject>)\" in the subject line.
+
+The function `message-strip-subject-trailing-was' uses this regexp if
+`message-subject-trailing-was-query' is set to the symbol `ask'.  If
+the variable is t instead of `ask', use
+`message-subject-trailing-was-regexp' instead.
+
+It is okay to create some false positives here, as the user is asked."
+  :group 'message-various
+  :link '(custom-manual "(message)Message Headers")
+  :type 'regexp)
+
+(defcustom message-subject-trailing-was-regexp
+  "[ \t]*\\((*[Ww][Aa][Ss]:[ \t]*.*)\\)"
+  "*Regexp matching \"(was: <old subject>)\" in the subject line.
+
+If `message-subject-trailing-was-query' is set to t, the subject is
+matched against `message-subject-trailing-was-regexp' in
+`message-strip-subject-trailing-was'.  You should use a regexp creating very
+few false positives here."
+  :group 'message-various
+  :link '(custom-manual "(message)Message Headers")
+  :type 'regexp)
+
+;; Fixme: Why are all these things autoloaded?
+
+;;; marking inserted text
+
+;;;###autoload
+(defcustom message-mark-insert-begin
+  "--8<---------------cut here---------------start------------->8---\n"
+  "How to mark the beginning of some inserted text."
+  :type 'string
+  :link '(custom-manual "(message)Insertion Variables")
+  :group 'message-various)
+
+;;;###autoload
+(defcustom message-mark-insert-end
+  "--8<---------------cut here---------------end--------------->8---\n"
+  "How to mark the end of some inserted text."
+  :type 'string
+  :link '(custom-manual "(message)Insertion Variables")
+  :group 'message-various)
+
+;;;###autoload
+(defcustom message-archive-header
+  "X-No-Archive: Yes\n"
+  "Header to insert when you don't want your article to be archived.
+Archives \(such as groups.google.com\) respect this header."
+  :type 'string
+  :link '(custom-manual "(message)Header Commands")
+  :group 'message-various)
+
+;;;###autoload
+(defcustom message-archive-note
+  "X-No-Archive: Yes - save http://groups.google.com/"
+  "Note to insert why you wouldn't want this posting archived.
+If nil, don't insert any text in the body."
+  :type '(radio (string :format "%t: %v\n" :size 0)
+		(const nil))
+  :link '(custom-manual "(message)Header Commands")
+  :group 'message-various)
+
+;;; Crossposts and Followups
+;; inspired by JoH-followup-to by Jochem Huhman <joh  at gmx.de>
+;; new suggestions by R. Weikusat <rw at another.de>
+
+(defvar message-cross-post-old-target nil
+  "Old target for cross-posts or follow-ups.")
+(make-variable-buffer-local 'message-cross-post-old-target)
+
+;;;###autoload
+(defcustom message-cross-post-default t
+  "When non-nil `message-cross-post-followup-to' will perform a crosspost.
+If nil, `message-cross-post-followup-to' will only do a followup.  Note that
+you can explicitly override this setting by calling
+`message-cross-post-followup-to' with a prefix."
+  :type 'boolean
+  :group 'message-various)
+
+;;;###autoload
+(defcustom message-cross-post-note
+  "Crosspost & Followup-To: "
+  "Note to insert before signature to notify of cross-post and follow-up."
+  :type 'string
+  :group 'message-various)
+
+;;;###autoload
+(defcustom message-followup-to-note
+  "Followup-To: "
+  "Note to insert before signature to notify of follow-up only."
+  :type 'string
+  :group 'message-various)
+
+;;;###autoload
+(defcustom message-cross-post-note-function
+  'message-cross-post-insert-note
+  "Function to use to insert note about Crosspost or Followup-To.
+The function will be called with four arguments.  The function should not only
+insert a note, but also ensure old notes are deleted.  See the documentation
+for `message-cross-post-insert-note'."
+  :type 'function
+  :group 'message-various)
+
+;;; End of variables adopted from `message-utils.el'.
 
 ;;;###autoload
 (defcustom message-signature-separator "^-- *$"
   "Regexp matching the signature separator."
   :type 'regexp
+  :link '(custom-manual "(message)Various Message Variables")
   :group 'message-various)
 
 (defcustom message-elide-ellipsis "\n[...]\n\n"
   "*The string which is inserted for elided text."
   :type 'string
+  :link '(custom-manual "(message)Various Commands")
   :group 'message-various)
 
-(defcustom message-interactive nil
+(defcustom message-interactive t
   "Non-nil means when sending a message wait for and display errors.
 nil means let mailer mail back a message to report errors."
   :group 'message-sending
   :group 'message-mail
+  :link '(custom-manual "(message)Sending Variables")
   :type 'boolean)
 
 (defcustom message-generate-new-buffers 'unique
@@ -250,6 +429,7 @@ If this is a function, call that function with three parameters:  The type,
 the to address and the group name.  (Any of these may be nil.)  The function
 should return the new buffer name."
   :group 'message-buffers
+  :link '(custom-manual "(message)Message Buffers")
   :type '(choice (const :tag "off" nil)
 		 (const :tag "unique" unique)
 		 (const :tag "unsent" unsent)
@@ -258,6 +438,7 @@ should return the new buffer name."
 (defcustom message-kill-buffer-on-exit nil
   "*Non-nil means that the message buffer will be killed after sending a message."
   :group 'message-buffers
+  :link '(custom-manual "(message)Message Buffers")
   :type 'boolean)
 
 (eval-when-compile
@@ -278,50 +459,68 @@ If t, use `message-user-organization-file'."
 (defcustom message-user-organization-file "/usr/lib/news/organization"
   "*Local news organization file."
   :type 'file
+  :link '(custom-manual "(message)News Headers")
   :group 'message-headers)
 
 (defcustom message-make-forward-subject-function
-  'message-forward-subject-author-subject
+  #'message-forward-subject-name-subject
   "*List of functions called to generate subject headers for forwarded messages.
 The subject generated by the previous function is passed into each
 successive function.
 
 The provided functions are:
 
-* `message-forward-subject-author-subject' (Source of article (author or
-      newsgroup)), in brackets followed by the subject
-* `message-forward-subject-fwd' (Subject of article with 'Fwd:' prepended
+* `message-forward-subject-author-subject' Source of article (author or
+      newsgroup), in brackets followed by the subject
+* `message-forward-subject-name-subject' Source of article (name of author
+      or newsgroup), in brackets followed by the subject
+* `message-forward-subject-fwd' Subject of article with 'Fwd:' prepended
       to it."
   :group 'message-forwarding
+  :link '(custom-manual "(message)Forwarding")
   :type '(radio (function-item message-forward-subject-author-subject)
 		(function-item message-forward-subject-fwd)
+		(function-item message-forward-subject-name-subject)
 		(repeat :tag "List of functions" function)))
 
 (defcustom message-forward-as-mime t
-  "*If non-nil, forward messages as an inline/rfc822 MIME section.  Otherwise, directly inline the old message in the forwarded message."
+  "*Non-nil means forward messages as an inline/rfc822 MIME section.
+Otherwise, directly inline the old message in the forwarded message."
   :version "21.1"
   :group 'message-forwarding
+  :link '(custom-manual "(message)Forwarding")
   :type 'boolean)
 
-(defcustom message-forward-show-mml t
-  "*If non-nil, forward messages are shown as mml.  Otherwise, forward messages are unchanged."
+(defcustom message-forward-show-mml 'best
+  "*Non-nil means show forwarded messages as MML (decoded from MIME).
+Otherwise, forwarded messages are unchanged.
+Can also be the symbol `best' to indicate that MML should be
+used, except when it is a bad idea to use MML.  One example where
+it is a bad idea is when forwarding a signed or encrypted
+message, because converting MIME to MML would invalidate the
+digital signature."
   :version "21.1"
   :group 'message-forwarding
-  :type 'boolean)
+  :type '(choice (const :tag "use MML" t)
+		 (const :tag "don't use MML " nil)
+		 (const :tag "use MML when appropriate" best)))
 
 (defcustom message-forward-before-signature t
-  "*If non-nil, put forwarded message before signature, else after."
+  "*Non-nil means put forwarded message before signature, else after."
   :group 'message-forwarding
   :type 'boolean)
 
 (defcustom message-wash-forwarded-subjects nil
-  "*If non-nil, try to remove as much old cruft as possible from the subject of messages before generating the new subject of a forward."
+  "*Non-nil means try to remove as much cruft as possible from the subject.
+Done before generating the new subject of a forward."
   :group 'message-forwarding
+  :link '(custom-manual "(message)Forwarding")
   :type 'boolean)
 
-(defcustom message-ignored-resent-headers "^Return-receipt\\|^X-Gnus\\|^Gnus-Warning:"
+(defcustom message-ignored-resent-headers "^Return-receipt\\|^X-Gnus\\|^Gnus-Warning:\\|^>?From "
   "*All headers that match this regexp will be deleted when resending a message."
   :group 'message-interface
+  :link '(custom-manual "(message)Resending")
   :type 'regexp)
 
 (defcustom message-forward-ignored-headers "^Content-Transfer-Encoding:\\|^X-Gnus"
@@ -334,11 +533,36 @@ The provided functions are:
 (defcustom message-ignored-cited-headers "."
   "*Delete these headers from the messages you yank."
   :group 'message-insertion
+  :link '(custom-manual "(message)Insertion Variables")
+  :type 'regexp)
+
+(defcustom message-cite-prefix-regexp
+  (if (string-match "[[:digit:]]" "1") ;; support POSIX?
+      "\\([ \t]*[-_.[:word:]]+>+\\|[ \t]*[]>|}+]\\)+"
+    ;; ?-, ?_ or ?. MUST NOT be in syntax entry w.
+    (let ((old-table (syntax-table))
+	  non-word-constituents)
+      (set-syntax-table text-mode-syntax-table)
+      (setq non-word-constituents
+	    (concat
+	     (if (string-match "\\w" "-")  "" "-")
+	     (if (string-match "\\w" "_")  "" "_")
+	     (if (string-match "\\w" ".")  "" ".")))
+      (set-syntax-table old-table)
+      (if (equal non-word-constituents "")
+	  "\\([ \t]*\\(\\w\\)+>+\\|[ \t]*[]>|}+]\\)+"
+	(concat "\\([ \t]*\\(\\w\\|["
+		non-word-constituents
+		"]\\)+>+\\|[ \t]*[]>|}+]\\)+"))))
+  "*Regexp matching the longest possible citation prefix on a line."
+  :group 'message-insertion
+  :link '(custom-manual "(message)Insertion Variables")
   :type 'regexp)
 
 (defcustom message-cancel-message "I am canceling my own article.\n"
   "Message to be inserted in the cancel message."
   :group 'message-interface
+  :link '(custom-manual "(message)Canceling News")
   :type 'string)
 
 ;; Useful to set in site-init.el
@@ -350,16 +574,18 @@ variable `mail-header-separator'.
 
 Valid values include `message-send-mail-with-sendmail' (the default),
 `message-send-mail-with-mh', `message-send-mail-with-qmail',
-`smtpmail-send-it' and `feedmail-send-it'.
+`message-smtpmail-send-it', `smtpmail-send-it' and `feedmail-send-it'.
 
 See also `send-mail-function'."
   :type '(radio (function-item message-send-mail-with-sendmail)
 		(function-item message-send-mail-with-mh)
 		(function-item message-send-mail-with-qmail)
+		(function-item message-smtpmail-send-it)
 		(function-item smtpmail-send-it)
 		(function-item feedmail-send-it)
 		(function :tag "Other"))
   :group 'message-sending
+  :link '(custom-manual "(message)Mail Variables")
   :group 'message-mail)
 
 (defcustom message-send-news-function 'message-send-news
@@ -368,6 +594,7 @@ The headers should be delimited by a line whose contents match the
 variable `mail-header-separator'."
   :group 'message-sending
   :group 'message-news
+  :link '(custom-manual "(message)News Variables")
   :type 'function)
 
 (defcustom message-reply-to-function nil
@@ -375,6 +602,7 @@ variable `mail-header-separator'."
 This function should pick out addresses from the To, Cc, and From headers
 and respond with new To and Cc headers."
   :group 'message-interface
+  :link '(custom-manual "(message)Reply")
   :type '(choice function (const nil)))
 
 (defcustom message-wide-reply-to-function nil
@@ -382,6 +610,7 @@ and respond with new To and Cc headers."
 This function should pick out addresses from the To, Cc, and From headers
 and respond with new To and Cc headers."
   :group 'message-interface
+  :link '(custom-manual "(message)Wide Reply")
   :type '(choice function (const nil)))
 
 (defcustom message-followup-to-function nil
@@ -389,6 +618,7 @@ and respond with new To and Cc headers."
 This function should pick out addresses from the To, Cc, and From headers
 and respond with new To and Cc headers."
   :group 'message-interface
+  :link '(custom-manual "(message)Followup")
   :type '(choice function (const nil)))
 
 (defcustom message-use-followup-to 'ask
@@ -398,31 +628,108 @@ query before using the \"poster\" value.  If it is the symbol `ask',
 always query the user whether to use the value.  If it is the symbol
 `use', always use the value."
   :group 'message-interface
+  :link '(custom-manual "(message)Followup")
+  :type '(choice (const :tag "ignore" nil)
+		 (const :tag "use & query" t)
+		 (const use)
+		 (const ask)))
+
+(defcustom message-use-mail-followup-to 'use
+  "*Specifies what to do with Mail-Followup-To header.
+If nil, always ignore the header.  If it is the symbol `ask', always
+query the user whether to use the value.  If it is the symbol `use',
+always use the value."
+  :group 'message-interface
+  :link '(custom-manual "(message)Mailing Lists")
   :type '(choice (const :tag "ignore" nil)
 		 (const use)
+		 (const ask)))
+
+(defcustom message-subscribed-address-functions nil
+  "*Specifies functions for determining list subscription.
+If nil, do not attempt to determine list subscription with functions.
+If non-nil, this variable contains a list of functions which return
+regular expressions to match lists.  These functions can be used in
+conjunction with `message-subscribed-regexps' and
+`message-subscribed-addresses'."
+  :group 'message-interface
+  :link '(custom-manual "(message)Mailing Lists")
+  :type '(repeat sexp))
+
+(defcustom message-subscribed-address-file nil
+  "*A file containing addresses the user is subscribed to.
+If nil, do not look at any files to determine list subscriptions.  If
+non-nil, each line of this file should be a mailing list address."
+  :group 'message-interface
+  :link '(custom-manual "(message)Mailing Lists")
+  :type '(radio (file :format "%t: %v\n" :size 0)
+		(const nil)))
+
+(defcustom message-subscribed-addresses nil
+  "*Specifies a list of addresses the user is subscribed to.
+If nil, do not use any predefined list subscriptions.  This list of
+addresses can be used in conjunction with
+`message-subscribed-address-functions' and `message-subscribed-regexps'."
+  :group 'message-interface
+  :link '(custom-manual "(message)Mailing Lists")
+  :type '(repeat string))
+
+(defcustom message-subscribed-regexps nil
+  "*Specifies a list of addresses the user is subscribed to.
+If nil, do not use any predefined list subscriptions.  This list of
+regular expressions can be used in conjunction with
+`message-subscribed-address-functions' and `message-subscribed-addresses'."
+  :group 'message-interface
+  :link '(custom-manual "(message)Mailing Lists")
+  :type '(repeat regexp))
+
+(defcustom message-allow-no-recipients 'ask
+  "Specifies what to do when there are no recipients other than Gcc/Fcc.
+If it is the symbol `always', the posting is allowed.  If it is the
+symbol `never', the posting is not allowed.  If it is the symbol
+`ask', you are prompted."
+  :group 'message-interface
+  :link '(custom-manual "(message)Message Headers")
+  :type '(choice (const always)
+		 (const never)
 		 (const ask)))
 
 (defcustom message-sendmail-f-is-evil nil
   "*Non-nil means don't add \"-f username\" to the sendmail command line.
 Doing so would be even more evil than leaving it out."
   :group 'message-sending
+  :link '(custom-manual "(message)Mail Variables")
   :type 'boolean)
+
+(defcustom message-sendmail-envelope-from nil
+  "*Envelope-from when sending mail with sendmail.
+If this is nil, use `user-mail-address'.  If it is the symbol
+`header', use the From: header of the message."
+  :type '(choice (string :tag "From name")
+		 (const :tag "Use From: header from message" header)
+		 (const :tag "Use `user-mail-address'" nil))
+  :link '(custom-manual "(message)Mail Variables")
+  :group 'message-sending)
 
 ;; qmail-related stuff
 (defcustom message-qmail-inject-program "/var/qmail/bin/qmail-inject"
   "Location of the qmail-inject program."
   :group 'message-sending
+  :link '(custom-manual "(message)Mail Variables")
   :type 'file)
 
 (defcustom message-qmail-inject-args nil
   "Arguments passed to qmail-inject programs.
-This should be a list of strings, one string for each argument.
+This should be a list of strings, one string for each argument.  It
+may also be a function.
 
 For e.g., if you wish to set the envelope sender address so that bounces
 go to the right place or to deal with listserv's usage of that address, you
 might set this variable to '(\"-f\" \"you@some.where\")."
   :group 'message-sending
-  :type '(repeat string))
+  :link '(custom-manual "(message)Mail Variables")
+  :type '(choice (function)
+		 (repeat string)))
 
 (defvar message-cater-to-broken-inn t
   "Non-nil means Gnus should not fold the `References' header.
@@ -449,20 +756,37 @@ variable isn't used."
   ;; create a dependence to `gnus.el'.
   :type 'sexp)
 
-(defcustom message-generate-headers-first nil
-  "*If non-nil, generate all possible headers before composing."
+;; FIXME: This should be a temporary workaround until someone implements a
+;; proper solution.  If a crash happens while replying, the auto-save file
+;; will *not* have a `References:' header if `message-generate-headers-first'
+;; is nil.  See: http://article.gmane.org/gmane.emacs.gnus.general/51138
+(defcustom message-generate-headers-first '(references)
+  "Which headers should be generated before starting to compose a message.
+If `t', generate all required headers.  This can also be a list of headers to
+generate.  The variables `message-required-news-headers' and
+`message-required-mail-headers' specify which headers to generate.
+
+Note that the variable `message-deletable-headers' specifies headers which
+are to be deleted and then re-generated before sending, so this variable
+will not have a visible effect for those headers."
   :group 'message-headers
-  :type 'boolean)
+  :link '(custom-manual "(message)Message Headers")
+  :type '(choice (const :tag "None" nil)
+                 (const :tag "References" '(references))
+                 (const :tag "All" t)
+                 (repeat (sexp :tag "Header"))))
 
 (defcustom message-setup-hook nil
   "Normal hook, run each time a new outgoing message is initialized.
 The function `message-setup' runs this hook."
   :group 'message-various
+  :link '(custom-manual "(message)Various Message Variables")
   :type 'hook)
 
 (defcustom message-cancel-hook nil
   "Hook run when cancelling articles."
   :group 'message-various
+  :link '(custom-manual "(message)Various Message Variables")
   :type 'hook)
 
 (defcustom message-signature-setup-hook nil
@@ -470,6 +794,7 @@ The function `message-setup' runs this hook."
 It is run after the headers have been inserted and before
 the signature is inserted."
   :group 'message-various
+  :link '(custom-manual "(message)Various Message Variables")
   :type 'hook)
 
 (defcustom message-mode-hook nil
@@ -485,24 +810,49 @@ the signature is inserted."
 (defcustom message-header-setup-hook nil
   "Hook called narrowed to the headers when setting up a message buffer."
   :group 'message-various
+  :link '(custom-manual "(message)Various Message Variables")
   :type 'hook)
+
+(defcustom message-minibuffer-local-map
+  (let ((map (make-sparse-keymap 'message-minibuffer-local-map)))
+    (set-keymap-parent map minibuffer-local-map)
+    map)
+  "Keymap for `message-read-from-minibuffer'.")
 
 ;;;###autoload
 (defcustom message-citation-line-function 'message-insert-citation-line
-  "*Function called to insert the \"Whomever writes:\" line."
+  "*Function called to insert the \"Whomever writes:\" line.
+
+Note that Gnus provides a feature where the reader can click on
+`writes:' to hide the cited text.  If you change this line too much,
+people who read your message will have to change their Gnus
+configuration.  See the variable `gnus-cite-attribution-suffix'."
   :type 'function
+  :link '(custom-manual "(message)Insertion Variables")
   :group 'message-insertion)
 
 ;;;###autoload
 (defcustom message-yank-prefix "> "
-  "*Prefix inserted on the lines of yanked messages."
+  "*Prefix inserted on the lines of yanked messages.
+Fix `message-cite-prefix-regexp' if it is set to an abnormal value.
+See also `message-yank-cited-prefix'."
   :type 'string
+  :link '(custom-manual "(message)Insertion Variables")
+  :group 'message-insertion)
+
+(defcustom message-yank-cited-prefix ">"
+  "*Prefix inserted on cited or empty lines of yanked messages.
+Fix `message-cite-prefix-regexp' if it is set to an abnormal value.
+See also `message-yank-prefix'."
+  :type 'string
+  :link '(custom-manual "(message)Insertion Variables")
   :group 'message-insertion)
 
 (defcustom message-indentation-spaces 3
   "*Number of spaces to insert at the beginning of each cited line.
 Used by `message-yank-original' via `message-yank-cite'."
   :group 'message-insertion
+  :link '(custom-manual "(message)Insertion Variables")
   :type 'integer)
 
 ;;;###autoload
@@ -515,6 +865,7 @@ Note that `message-cite-original' uses `mail-citation-hook' if that is non-nil."
 		(function-item message-cite-original-without-signature)
 		(function-item sc-cite-original)
 		(function :tag "Other"))
+  :link '(custom-manual "(message)Insertion Variables")
   :group 'message-insertion)
 
 ;;;###autoload
@@ -524,9 +875,8 @@ This can also be a list of functions.  Each function can find the
 citation between (point) and (mark t).  And each function should leave
 point and mark around the citation text as modified."
   :type 'function
+  :link '(custom-manual "(message)Insertion Variables")
   :group 'message-insertion)
-
-(defvar message-abbrevs-loaded nil)
 
 ;;;###autoload
 (defcustom message-signature t
@@ -535,6 +885,7 @@ If t, the `message-signature-file' file will be inserted instead.
 If a function, the result from the function will be used instead.
 If a form, the result from the form will be used instead."
   :type 'sexp
+  :link '(custom-manual "(message)Insertion Variables")
   :group 'message-insertion)
 
 ;;;###autoload
@@ -543,12 +894,21 @@ If a form, the result from the form will be used instead."
 Ignored if the named file doesn't exist.
 If nil, don't insert a signature."
   :type '(choice file (const :tags "None" nil))
+  :link '(custom-manual "(message)Insertion Variables")
+  :group 'message-insertion)
+
+;;;###autoload
+(defcustom message-signature-insert-empty-line t
+  "*If non-nil, insert an empty line before the signature separator."
+  :type 'boolean
+  :link '(custom-manual "(message)Insertion Variables")
   :group 'message-insertion)
 
 (defcustom message-distribution-function nil
   "*Function called to return a Distribution header."
   :group 'message-news
   :group 'message-headers
+  :link '(custom-manual "(message)News Headers")
   :type '(choice function (const nil)))
 
 (defcustom message-expires 14
@@ -569,7 +929,10 @@ If stringp, use this; if non-nil, use no host name (user name only)."
 		 (sexp :tag "none" :format "%t" t)))
 
 (defvar message-reply-buffer nil)
-(defvar message-reply-headers nil)
+(defvar message-reply-headers nil
+  "The headers of the current replied article.
+It is a vector of the following headers:
+\[number subject from date id references chars lines xref extra].")
 (defvar message-newsreader nil)
 (defvar message-mailer nil)
 (defvar message-sent-message-via nil)
@@ -594,18 +957,21 @@ If stringp, use this; if non-nil, use no host name (user name only)."
 It is inserted before you edit the message, so you can edit or delete
 these lines."
   :group 'message-headers
+  :link '(custom-manual "(message)Message Headers")
   :type 'message-header-lines)
 
 (defcustom message-default-mail-headers ""
   "*A string of header lines to be inserted in outgoing mails."
   :group 'message-headers
   :group 'message-mail
+  :link '(custom-manual "(message)Mail Headers")
   :type 'message-header-lines)
 
 (defcustom message-default-news-headers ""
   "*A string of header lines to be inserted in outgoing news articles."
   :group 'message-headers
   :group 'message-news
+  :link '(custom-manual "(message)News Headers")
   :type 'message-header-lines)
 
 ;; Note: could use /usr/ucb/mail instead of sendmail;
@@ -633,6 +999,7 @@ these lines."
 The value should be an expression to test whether the problem will
 actually occur."
   :group 'message-sending
+  :link '(custom-manual "(message)Mail Variables")
   :type 'sexp)
 
 ;;;###autoload
@@ -671,15 +1038,8 @@ mail aliases off."
   "*Directory where Message auto-saves buffers if Gnus isn't running.
 If nil, Message won't auto-save."
   :group 'message-buffers
+  :link '(custom-manual "(message)Various Message Variables")
   :type '(choice directory (const :tag "Don't auto-save" nil)))
-
-(defcustom message-buffer-naming-style 'unique
-  "*The way new message buffers are named.
-Valid values are `unique' and `unsent'."
-  :version "21.1"
-  :group 'message-buffers
-  :type '(choice (const :tag "unique" unique)
-		 (const :tag "unsent" unsent)))
 
 (defcustom message-default-charset
   (and (not (mm-multibyte-p)) 'iso-8859-1)
@@ -687,16 +1047,42 @@ Valid values are `unique' and `unsent'."
 If nil, you might be asked to input the charset."
   :version "21.1"
   :group 'message
+  :link '(custom-manual "(message)Various Message Variables")
   :type 'symbol)
 
 (defcustom message-dont-reply-to-names
   (and (boundp 'rmail-dont-reply-to-names) rmail-dont-reply-to-names)
-  "*A regexp specifying names to prune when doing wide replies.
-A value of nil means exclude your own name only."
+  "*A regexp specifying addresses to prune when doing wide replies.
+A value of nil means exclude your own user name only."
   :version "21.1"
   :group 'message
+  :link '(custom-manual "(message)Wide Reply")
   :type '(choice (const :tag "Yourself" nil)
 		 regexp))
+
+(defvar message-shoot-gnksa-feet nil
+  "*A list of GNKSA feet you are allowed to shoot.
+Gnus gives you all the opportunity you could possibly want for
+shooting yourself in the foot.  Also, Gnus allows you to shoot the
+feet of Good Net-Keeping Seal of Approval.  The following are foot
+candidates:
+`empty-article'     Allow you to post an empty article;
+`quoted-text-only'  Allow you to post quoted text only;
+`multiple-copies'   Allow you to post multiple copies;
+`cancel-messages'   Allow you to cancel or supersede messages from
+                    your other email addresses.")
+
+(defsubst message-gnksa-enable-p (feature)
+  (or (not (listp message-shoot-gnksa-feet))
+      (memq feature message-shoot-gnksa-feet)))
+
+(defcustom message-hidden-headers nil
+  "Regexp of headers to be hidden when composing new messages.
+This can also be a list of regexps to match headers.  Or a list
+starting with `not' and followed by regexps."
+  :group 'message
+  :link '(custom-manual "(message)Message Headers")
+  :type '(repeat regexp))
 
 ;;; Internal variables.
 ;;; Well, not really internal.
@@ -709,31 +1095,27 @@ A value of nil means exclude your own name only."
     table)
   "Syntax table used while in Message mode.")
 
-(defvar message-mode-abbrev-table text-mode-abbrev-table
-  "Abbrev table used in Message mode buffers.
-Defaults to `text-mode-abbrev-table'.")
-
 (defface message-header-to-face
   '((((class color)
       (background dark))
-     (:foreground "green2" :weight bold))
+     (:foreground "green2" :bold t))
     (((class color)
       (background light))
-     (:foreground "MidnightBlue" :weight bold))
+     (:foreground "MidnightBlue" :bold t))
     (t
-     (:weight bold :slant italic)))
+     (:bold t :italic t)))
   "Face used for displaying From headers."
   :group 'message-faces)
 
 (defface message-header-cc-face
   '((((class color)
       (background dark))
-     (:foreground "green4" :weight bold))
+     (:foreground "green4" :bold t))
     (((class color)
       (background light))
      (:foreground "MidnightBlue"))
     (t
-     (:weight bold)))
+     (:bold t)))
   "Face used for displaying Cc headers."
   :group 'message-faces)
 
@@ -743,21 +1125,21 @@ Defaults to `text-mode-abbrev-table'.")
      (:foreground "green3"))
     (((class color)
       (background light))
-     (:foreground "navy blue" :weight bold))
+     (:foreground "navy blue" :bold t))
     (t
-     (:weight bold)))
+     (:bold t)))
   "Face used for displaying subject headers."
   :group 'message-faces)
 
 (defface message-header-newsgroups-face
   '((((class color)
       (background dark))
-     (:foreground "yellow" :weight bold :slant italic))
+     (:foreground "yellow" :bold t :italic t))
     (((class color)
       (background light))
-     (:foreground "blue4" :weight bold :slant italic))
+     (:foreground "blue4" :bold t :italic t))
     (t
-     (:weight bold :slant italic)))
+     (:bold t :italic t)))
   "Face used for displaying newsgroups headers."
   :group 'message-faces)
 
@@ -769,7 +1151,7 @@ Defaults to `text-mode-abbrev-table'.")
       (background light))
      (:foreground "steel blue"))
     (t
-     (:weight bold :slant italic)))
+     (:bold t :italic t)))
   "Face used for displaying newsgroups headers."
   :group 'message-faces)
 
@@ -781,7 +1163,7 @@ Defaults to `text-mode-abbrev-table'.")
       (background light))
      (:foreground "cornflower blue"))
     (t
-     (:weight bold)))
+     (:bold t)))
   "Face used for displaying header names."
   :group 'message-faces)
 
@@ -793,7 +1175,7 @@ Defaults to `text-mode-abbrev-table'.")
       (background light))
      (:foreground "blue"))
     (t
-     (:weight bold)))
+     (:bold t)))
   "Face used for displaying X-Header headers."
   :group 'message-faces)
 
@@ -805,7 +1187,7 @@ Defaults to `text-mode-abbrev-table'.")
       (background light))
      (:foreground "brown"))
     (t
-     (:weight bold)))
+     (:bold t)))
   "Face used for displaying the separator."
   :group 'message-faces)
 
@@ -817,7 +1199,7 @@ Defaults to `text-mode-abbrev-table'.")
       (background light))
      (:foreground "red"))
     (t
-     (:weight bold)))
+     (:bold t)))
   "Face used for displaying cited text names."
   :group 'message-faces)
 
@@ -829,30 +1211,52 @@ Defaults to `text-mode-abbrev-table'.")
       (background light))
      (:foreground "ForestGreen"))
     (t
-     (:weight bold)))
+     (:bold t)))
   "Face used for displaying MML."
   :group 'message-faces)
 
+(defun message-font-lock-make-header-matcher (regexp)
+  (let ((form
+	 `(lambda (limit)
+	    (let ((start (point)))
+	      (save-restriction
+		(widen)
+		(goto-char (point-min))
+		(if (re-search-forward
+		     (concat "^" (regexp-quote mail-header-separator) "$")
+		     nil t)
+		    (setq limit (min limit (match-beginning 0))))
+		(goto-char start))
+	      (and (< start limit)
+		   (re-search-forward ,regexp limit t))))))
+    (if (featurep 'bytecomp)
+	(byte-compile form)
+      form)))
+
 (defvar message-font-lock-keywords
-  (let* ((cite-prefix "[:alpha:]")
-	 (cite-suffix (concat cite-prefix "0-9_.@-"))
-	 (content "[ \t]*\\(.+\\(\n[ \t].*\\)*\\)\n?"))
-    `((,(concat "^\\([Tt]o:\\)" content)
+  (let ((content "[ \t]*\\(.+\\(\n[ \t].*\\)*\\)\n?"))
+    `((,(message-font-lock-make-header-matcher
+	 (concat "^\\([Tt]o:\\)" content))
        (1 'message-header-name-face)
        (2 'message-header-to-face nil t))
-      (,(concat "^\\(^[GBF]?[Cc][Cc]:\\|^[Rr]eply-[Tt]o:\\)" content)
+      (,(message-font-lock-make-header-matcher
+	 (concat "^\\(^[GBF]?[Cc][Cc]:\\|^[Rr]eply-[Tt]o:\\)" content))
        (1 'message-header-name-face)
        (2 'message-header-cc-face nil t))
-      (,(concat "^\\([Ss]ubject:\\)" content)
+      (,(message-font-lock-make-header-matcher
+	 (concat "^\\([Ss]ubject:\\)" content))
        (1 'message-header-name-face)
        (2 'message-header-subject-face nil t))
-      (,(concat "^\\([Nn]ewsgroups:\\|Followup-[Tt]o:\\)" content)
+      (,(message-font-lock-make-header-matcher
+	 (concat "^\\([Nn]ewsgroups:\\|Followup-[Tt]o:\\)" content))
        (1 'message-header-name-face)
        (2 'message-header-newsgroups-face nil t))
-      (,(concat "^\\([A-Z][^: \n\t]+:\\)" content)
+      (,(message-font-lock-make-header-matcher
+	 (concat "^\\([A-Z][^: \n\t]+:\\)" content))
        (1 'message-header-name-face)
        (2 'message-header-other-face nil t))
-      (,(concat "^\\(X-[A-Za-z0-9-]+\\|In-Reply-To\\):" content)
+      (,(message-font-lock-make-header-matcher
+	 (concat "^\\(X-[A-Za-z0-9-]+:\\|In-Reply-To:\\)" content))
        (1 'message-header-name-face)
        (2 'message-header-name-face))
       ,@(if (and mail-header-separator
@@ -860,13 +1264,16 @@ Defaults to `text-mode-abbrev-table'.")
 	    `((,(concat "^\\(" (regexp-quote mail-header-separator) "\\)$")
 	       1 'message-separator-face))
 	  nil)
-      (,(concat "^[ \t]*"
-		"\\([" cite-prefix "]+[" cite-suffix "]*\\)?"
-		"[:>|}].*")
+      ((lambda (limit)
+	 (re-search-forward (concat "^\\("
+				    message-cite-prefix-regexp
+				    "\\).*")
+			    limit t))
        (0 'message-cited-text-face))
-      ("<#/?\\(multipart\\|part\\|external\\|mml\\).*>"
+      ("<#/?\\(multipart\\|part\\|external\\|mml\\|secure\\)[^>]*>"
        (0 'message-mml-face))))
   "Additional expressions to highlight in Message mode.")
+
 
 ;; XEmacs does it like this.  For Emacs, we have to set the
 ;; `font-lock-defaults' buffer-local variable.
@@ -882,19 +1289,27 @@ Defaults to `text-mode-abbrev-table'.")
 The cdr of each entry is a function for applying the face to a region.")
 
 (defcustom message-send-hook nil
-  "Hook run before sending messages."
+  "Hook run before sending messages.
+This hook is run quite early when sending."
   :group 'message-various
   :options '(ispell-message)
+  :link '(custom-manual "(message)Various Message Variables")
   :type 'hook)
 
 (defcustom message-send-mail-hook nil
-  "Hook run before sending mail messages."
+  "Hook run before sending mail messages.
+This hook is run very late -- just before the message is sent as
+mail."
   :group 'message-various
+  :link '(custom-manual "(message)Various Message Variables")
   :type 'hook)
 
 (defcustom message-send-news-hook nil
-  "Hook run before sending news messages."
+  "Hook run before sending news messages.
+This hook is run very late -- just before the message is sent as
+news."
   :group 'message-various
+  :link '(custom-manual "(message)Various Message Variables")
   :type 'hook)
 
 (defcustom message-sent-hook nil
@@ -907,7 +1322,10 @@ The cdr of each entry is a function for applying the face to a region.")
 
 (defvar message-draft-coding-system
   mm-auto-save-coding-system
-  "Coding system to compose mail.")
+  "*Coding system to compose mail.
+If you'd like to make it possible to share draft files between XEmacs
+and Emacs, you may use `iso-2022-7bit' for this value at your own risk.
+Note that the coding-system `iso-2022-7bit' isn't suitable to all data.")
 
 (defcustom message-send-mail-partially-limit 1000000
   "The limitation of messages sent as message/partial.
@@ -915,6 +1333,7 @@ The lower bound of message size in characters, beyond which the message
 should be sent in several parts.  If it is nil, the size is unlimited."
   :version "21.1"
   :group 'message-buffers
+  :link '(custom-manual "(message)Mail Variables")
   :type '(choice (const :tag "unlimited" nil)
 		 (integer 1000000)))
 
@@ -922,8 +1341,22 @@ should be sent in several parts.  If it is nil, the size is unlimited."
   "A regexp to match the alternative email addresses.
 The first matched address (not primary one) is used in the From field."
   :group 'message-headers
+  :link '(custom-manual "(message)Message Headers")
   :type '(choice (const :tag "Always use primary" nil)
 		 regexp))
+
+(defcustom message-hierarchical-addresses nil
+  "A list of hierarchical mail address definitions.
+
+Inside each entry, the first address is the \"top\" address, and
+subsequent addresses are subaddresses; this is used to indicate that
+mail sent to the first address will automatically be delivered to the
+subaddresses.  So if the first address appears in the recipient list
+for a message, the subaddresses will be removed (if present) before
+the mail is sent.  All addresses in this structure should be
+downcased."
+  :group 'message-headers
+  :type '(repeat (repeat string)))
 
 (defcustom message-mail-user-agent nil
   "Like `mail-user-agent'.
@@ -945,6 +1378,37 @@ Except if it is nil, use Gnus native MUA; if it is t, use
   :version "21.1"
   :group 'message)
 
+(defcustom message-wide-reply-confirm-recipients nil
+  "Whether to confirm a wide reply to multiple email recipients.
+If this variable is nil, don't ask whether to reply to all recipients.
+If this variable is non-nil, pose the question \"Reply to all
+recipients?\" before a wide reply to multiple recipients.  If the user
+answers yes, reply to all recipients as usual.  If the user answers
+no, only reply back to the author."
+  :version "21.3"
+  :group 'message-headers
+  :link '(custom-manual "(message)Wide Reply")
+  :type 'boolean)
+
+(defcustom message-user-fqdn nil
+  "*Domain part of Messsage-Ids."
+  :group 'message-headers
+  :link '(custom-manual "(message)News Headers")
+  :type '(radio (const :format "%v  " nil)
+		(string :format "FQDN: %v\n" :size 0)))
+
+(defcustom message-use-idna (and (condition-case nil (require 'idna)
+				   (file-error))
+				 (mm-coding-system-p 'utf-8)
+				 (executable-find idna-program)
+				 'ask)
+  "Whether to encode non-ASCII in domain names into ASCII according to IDNA."
+  :group 'message-headers
+  :link '(custom-manual "(message)IDNA")
+  :type '(choice (const :tag "Ask" ask)
+		 (const :tag "Never" nil)
+		 (const :tag "Always" t)))
+
 ;;; Internal variables.
 
 (defvar message-sending-message "Sending...")
@@ -954,6 +1418,7 @@ Except if it is nil, use Gnus native MUA; if it is t, use
 (defvar message-draft-article nil)
 (defvar message-mime-part nil)
 (defvar message-posting-charset nil)
+(defvar message-inserted-headers nil)
 
 ;; Byte-compiler warning
 (eval-when-compile
@@ -979,7 +1444,7 @@ Except if it is nil, use Gnus native MUA; if it is t, use
      ;; can be removed, e.g.
      ;;		From: joe@y.z (Joe	K
      ;;			User)
-     ;; can yield `From joe@y.z (Joe 	K Fri Mar 22 08:11:15 1996', and
+     ;; can yield `From joe@y.z (Joe	K Fri Mar 22 08:11:15 1996', and
      ;;		From: Joe User
      ;;			<joe@y.z>
      ;; can yield `From Joe User Fri Mar 22 08:11:15 1996'.
@@ -991,7 +1456,7 @@ Except if it is nil, use Gnus native MUA; if it is t, use
      ;; We want to match the results of any of these manglings.
      ;; The following regexp rejects names whose first characters are
      ;; obviously bogus, but after that anything goes.
-     "\\([^\0-\b\n-\r\^?].*\\)? "
+     "\\([^\0-\b\n-\r\^?].*\\)?"
 
      ;; The time the message was sent.
      "\\([^\0-\r \^?]+\\) +"		; day of the week
@@ -1044,6 +1509,28 @@ Except if it is nil, use Gnus native MUA; if it is t, use
     (User-Agent))
   "Alist used for formatting headers.")
 
+(defvar	message-options nil
+  "Some saved answers when sending message.")
+
+(defvar message-send-mail-real-function nil
+  "Internal send mail function.")
+
+(defvar message-bogus-system-names "^localhost\\."
+  "The regexp of bogus system names.")
+
+(defcustom message-valid-fqdn-regexp
+  (concat "[a-z0-9][-.a-z0-9]+\\." ;; [hostname.subdomain.]domain.
+	  ;; valid TLDs:
+	  "\\([a-z][a-z]" ;; two letter country TDLs
+	  "\\|biz\\|com\\|edu\\|gov\\|int\\|mil\\|net\\|org"
+	  "\\|aero\\|coop\\|info\\|name\\|museum"
+	  "\\|arpa\\|pro\\|uucp\\|bitnet\\|bofh" ;; old style?
+	  "\\)")
+  "Regular expression that matches a valid FQDN."
+  ;; see also: gnus-button-valid-fqdn-regexp
+  :group 'message-headers
+  :type 'regexp)
+
 (eval-and-compile
   (autoload 'message-setup-toolbar "messagexmas")
   (autoload 'mh-new-draft-name "mh-comp")
@@ -1052,14 +1539,19 @@ Except if it is nil, use Gnus native MUA; if it is t, use
   (autoload 'gnus-point-at-bol "gnus-util")
   (autoload 'gnus-output-to-rmail "gnus-util")
   (autoload 'gnus-output-to-mail "gnus-util")
-  (autoload 'mail-abbrev-in-expansion-header-p "mailabbrev")
   (autoload 'nndraft-request-associate-buffer "nndraft")
   (autoload 'nndraft-request-expire-articles "nndraft")
   (autoload 'gnus-open-server "gnus-int")
   (autoload 'gnus-request-post "gnus-int")
   (autoload 'gnus-alive-p "gnus-util")
+  (autoload 'gnus-server-string "gnus")
   (autoload 'gnus-group-name-charset "gnus-group")
-  (autoload 'rmail-output "rmailout"))
+  (autoload 'gnus-group-name-decode "gnus-group")
+  (autoload 'gnus-groups-from-server "gnus")
+  (autoload 'rmail-output "rmailout")
+  (autoload 'gnus-delay-article "gnus-delay")
+  (autoload 'gnus-make-local-hook "gnus-util")
+  (autoload 'gnus-extract-address-components "gnus-util"))
 
 
 
@@ -1076,14 +1568,18 @@ Except if it is nil, use Gnus native MUA; if it is t, use
   `(delete-region (progn (beginning-of-line) (point))
 		  (progn (forward-line ,(or n 1)) (point))))
 
+(defun message-mark-active-p ()
+  "Non-nil means the mark and region are currently active in this buffer."
+  mark-active)
+
 (defun message-unquote-tokens (elems)
   "Remove double quotes (\") from strings in list ELEMS."
   (mapcar (lambda (item)
-            (while (string-match "^\\(.*\\)\"\\(.*\\)$" item)
-              (setq item (concat (match-string 1 item)
-                                 (match-string 2 item))))
-            item)
-          elems))
+	    (while (string-match "^\\(.*\\)\"\\(.*\\)$" item)
+	      (setq item (concat (match-string 1 item)
+				 (match-string 2 item))))
+	    item)
+	  elems))
 
 (defun message-tokenize-header (header &optional separator)
   "Split HEADER into a list of header elements.
@@ -1095,8 +1591,8 @@ is used by default."
 	  (beg 1)
 	  (first t)
 	  quoted elems paren)
-      (save-excursion
-	(message-set-work-buffer)
+      (with-temp-buffer
+	(mm-enable-multibyte)
 	(insert header)
 	(goto-char (point-min))
 	(while (not (eobp))
@@ -1118,7 +1614,7 @@ is used by default."
 		((and (eq (char-after) ?\))
 		      (not quoted))
 		 (setq paren nil))))
-        (nreverse elems)))))
+	(nreverse elems)))))
 
 (defun message-mail-file-mbox-p (file)
   "Say whether FILE looks like a Unix mbox file."
@@ -1131,7 +1627,9 @@ is used by default."
       (looking-at message-unix-mail-delimiter))))
 
 (defun message-fetch-field (header &optional not-all)
-  "The same as `mail-fetch-field', only remove all newlines."
+  "The same as `mail-fetch-field', only remove all newlines.
+The buffer is expected to be narrowed to just the header of the message;
+see `message-narrow-to-headers-or-head'."
   (let* ((inhibit-point-motion-hooks t)
 	 (case-fold-search t)
 	 (value (mail-fetch-field header nil (not not-all))))
@@ -1140,6 +1638,13 @@ is used by default."
 	(setq value (replace-match " " t t value)))
       (set-text-properties 0 (length value) nil value)
       value)))
+
+(defun message-field-value (header &optional not-all)
+  "The same as `message-fetch-field', only narrow to the headers first."
+  (save-excursion
+    (save-restriction
+      (message-narrow-to-headers-or-head)
+      (message-fetch-field header not-all))))
 
 (defun message-narrow-to-field ()
   "Narrow the buffer to the header on the current line."
@@ -1165,32 +1670,29 @@ is used by default."
       (save-restriction
 	(message-narrow-to-headers)
 	(unless (re-search-forward (concat "^" (regexp-quote hclean) ":") nil t)
-	  (insert (car headers) ?\n))))
+	  (goto-char (point-max))
+	  (if (string-match "\n$" (car headers))
+	      (insert (car headers))
+	    (insert (car headers) ?\n)))))
     (setq headers (cdr headers))))
 
+(defmacro message-with-reply-buffer (&rest forms)
+  "Evaluate FORMS in the reply buffer, if it exists."
+  `(when (and message-reply-buffer
+	      (buffer-name message-reply-buffer))
+     (save-excursion
+       (set-buffer message-reply-buffer)
+       ,@forms)))
+
+(put 'message-with-reply-buffer 'lisp-indent-function 0)
+(put 'message-with-reply-buffer 'edebug-form-spec '(body))
 
 (defun message-fetch-reply-field (header)
   "Fetch field HEADER from the message we're replying to."
-  (when (and message-reply-buffer
-	     (buffer-name message-reply-buffer))
-    (save-excursion
-      (set-buffer message-reply-buffer)
+  (message-with-reply-buffer
+    (save-restriction
+      (mail-narrow-to-head)
       (message-fetch-field header))))
-
-(defun message-set-work-buffer ()
-  (if (get-buffer " *message work*")
-      (progn
-	(set-buffer " *message work*")
-	(erase-buffer))
-    (set-buffer (get-buffer-create " *message work*"))
-    (kill-all-local-variables)
-    (mm-enable-multibyte)))
-
-(defun message-functionp (form)
-  "Return non-nil if FORM is funcallable."
-  (or (and (symbolp form) (fboundp form))
-      (and (listp form) (eq (car form) 'lambda))
-      (byte-code-function-p form)))
 
 (defun message-strip-list-identifiers (subject)
   "Remove list identifiers in `gnus-list-identifiers' from string SUBJECT."
@@ -1199,7 +1701,7 @@ is used by default."
 		    gnus-list-identifiers
 		  (mapconcat 'identity gnus-list-identifiers " *\\|"))))
     (if (string-match (concat "\\(\\(\\(Re: +\\)?\\(" regexp
-				" *\\)\\)+\\(Re: +\\)?\\)") subject)
+			      " *\\)\\)+\\(Re: +\\)?\\)") subject)
 	(concat (substring subject 0 (match-beginning 1))
 		(or (match-string 3 subject)
 		    (match-string 5 subject))
@@ -1212,6 +1714,265 @@ is used by default."
   (if (string-match message-subject-re-regexp subject)
       (substring subject (match-end 0))
     subject))
+
+;;; Start of functions adopted from `message-utils.el'.
+
+(defun message-strip-subject-trailing-was (subject)
+  "Remove trailing \"(Was: <old subject>)\" from SUBJECT lines.
+Leading \"Re: \" is not stripped by this function.  Use the function
+`message-strip-subject-re' for this."
+  (let* ((query message-subject-trailing-was-query)
+	 (new) (found))
+    (setq found
+	  (string-match
+	   (if (eq query 'ask)
+	       message-subject-trailing-was-ask-regexp
+	     message-subject-trailing-was-regexp)
+	   subject))
+    (if found
+	(setq new (substring subject 0 (match-beginning 0))))
+    (if (or (not found) (eq query nil))
+	subject
+      (if (eq query 'ask)
+	  (if (message-y-or-n-p
+	       "Strip `(was: <old subject>)' in subject? " t
+	       (concat
+		"Strip `(was: <old subject>)' in subject "
+		"and use the new one instead?\n\n"
+		"Current subject is:   \""
+		subject "\"\n\n"
+		"New subject would be: \""
+		new "\"\n\n"
+		"See the variable `message-subject-trailing-was-query' "
+		"to get rid of this query."
+		))
+	      new subject)
+	new))))
+
+;;; Suggested by Jonas Steverud  @  www.dtek.chalmers.se/~d4jonas/
+
+;;;###autoload
+(defun message-change-subject (new-subject)
+  "Ask for NEW-SUBJECT header, append (was: <Old Subject>)."
+  ;; <URL:http://www.landfield.com/usefor/drafts/draft-ietf-usefor-useage--1.02.unpaged>
+  (interactive
+   (list
+    (read-from-minibuffer "New subject: ")))
+  (cond ((and (not (or (null new-subject) ; new subject not empty
+		       (zerop (string-width new-subject))
+		       (string-match "^[ \t]*$" new-subject))))
+	 (save-excursion
+	   (let ((old-subject
+		  (save-restriction
+		    (message-narrow-to-headers)
+		    (message-fetch-field "Subject"))))
+	     (cond ((not old-subject)
+		    (error "No current subject"))
+		   ((not (string-match
+			  (concat "^[ \t]*"
+				  (regexp-quote new-subject)
+				  " \t]*$")
+			  old-subject))  ; yes, it really is a new subject
+		    ;; delete eventual Re: prefix
+		    (setq old-subject
+			  (message-strip-subject-re old-subject))
+		    (message-goto-subject)
+		    (message-delete-line)
+		    (insert (concat "Subject: "
+				    new-subject
+				    " (was: "
+				    old-subject ")\n")))))))))
+
+;;;###autoload
+(defun message-mark-inserted-region (beg end)
+  "Mark some region in the current article with enclosing tags.
+See `message-mark-insert-begin' and `message-mark-insert-end'."
+  (interactive "r")
+  (save-excursion
+    ;; add to the end of the region first, otherwise end would be invalid
+    (goto-char end)
+    (insert message-mark-insert-end)
+    (goto-char beg)
+    (insert message-mark-insert-begin)))
+
+;;;###autoload
+(defun message-mark-insert-file (file)
+  "Insert FILE at point, marking it with enclosing tags.
+See `message-mark-insert-begin' and `message-mark-insert-end'."
+  (interactive "fFile to insert: ")
+    ;; reverse insertion to get correct result.
+  (let ((p (point)))
+    (insert message-mark-insert-end)
+    (goto-char p)
+    (insert-file-contents file)
+    (goto-char p)
+    (insert message-mark-insert-begin)))
+
+;;;###autoload
+(defun message-add-archive-header ()
+  "Insert \"X-No-Archive: Yes\" in the header and a note in the body.
+The note can be customized using `message-archive-note'.  When called with a
+prefix argument, ask for a text to insert.  If you don't want the note in the
+body, set  `message-archive-note' to nil."
+  (interactive)
+  (if current-prefix-arg
+      (setq message-archive-note
+	    (read-from-minibuffer "Reason for No-Archive: "
+				  (cons message-archive-note 0))))
+    (save-excursion
+      (if (message-goto-signature)
+	  (re-search-backward message-signature-separator))
+      (when message-archive-note
+	(insert message-archive-note)
+	(newline))
+      (message-add-header message-archive-header)
+      (message-sort-headers)))
+
+;;;###autoload
+(defun message-cross-post-followup-to-header (target-group)
+  "Mangles FollowUp-To and Newsgroups header to point to TARGET-GROUP.
+With prefix-argument just set Follow-Up, don't cross-post."
+  (interactive
+   (list ; Completion based on Gnus
+    (completing-read "Followup To: "
+		     (if (boundp 'gnus-newsrc-alist)
+			 gnus-newsrc-alist)
+		     nil nil '("poster" . 0)
+		     (if (boundp 'gnus-group-history)
+			 'gnus-group-history))))
+  (message-remove-header "Follow[Uu]p-[Tt]o" t)
+  (message-goto-newsgroups)
+  (beginning-of-line)
+  ;; if we already did a crosspost before, kill old target
+  (if (and message-cross-post-old-target
+	   (re-search-forward
+	    (regexp-quote (concat "," message-cross-post-old-target))
+	    nil t))
+      (replace-match ""))
+  ;; unless (followup is to poster or user explicitly asked not
+  ;; to cross-post, or target-group is already in Newsgroups)
+  ;; add target-group to Newsgroups line.
+  (cond ((and (or
+	       ;; def: cross-post, req:no
+	       (and message-cross-post-default (not current-prefix-arg))
+	       ;; def: no-cross-post, req:yes
+	       (and (not message-cross-post-default) current-prefix-arg))
+	      (not (string-match "poster" target-group))
+	      (not (string-match (regexp-quote target-group)
+				 (message-fetch-field "Newsgroups"))))
+	 (end-of-line)
+	 (insert (concat "," target-group))))
+  (end-of-line) ; ensure Followup: comes after Newsgroups:
+  ;; unless new followup would be identical to Newsgroups line
+  ;; make a new Followup-To line
+  (if (not (string-match (concat "^[ \t]*"
+				 target-group
+				 "[ \t]*$")
+			 (message-fetch-field "Newsgroups")))
+      (insert (concat "\nFollowup-To: " target-group)))
+  (setq message-cross-post-old-target target-group))
+
+;;;###autoload
+(defun message-cross-post-insert-note (target-group cross-post in-old
+						    old-groups)
+  "Insert a in message body note about a set Followup or Crosspost.
+If there have been previous notes, delete them.  TARGET-GROUP specifies the
+group to Followup-To.  When CROSS-POST is t, insert note about
+crossposting.  IN-OLD specifies whether TARGET-GROUP is a member of
+OLD-GROUPS.  OLD-GROUPS lists the old-groups the posting would have
+been made to before the user asked for a Crosspost."
+  ;; start scanning body for previous uses
+  (message-goto-signature)
+  (let ((head (re-search-backward
+	       (concat "^" mail-header-separator)
+	       nil t))) ; just search in body
+    (message-goto-signature)
+    (while (re-search-backward
+	    (concat "^" (regexp-quote message-cross-post-note) ".*")
+	    head t)
+      (message-delete-line))
+    (message-goto-signature)
+    (while (re-search-backward
+	    (concat "^" (regexp-quote message-followup-to-note) ".*")
+	    head t)
+      (message-delete-line))
+    ;; insert new note
+    (if (message-goto-signature)
+	(re-search-backward message-signature-separator))
+    (if (or in-old
+	    (not cross-post)
+	    (string-match "^[ \t]*poster[ \t]*$" target-group))
+	(insert (concat message-followup-to-note target-group "\n"))
+      (insert (concat message-cross-post-note target-group "\n")))))
+
+;;;###autoload
+(defun message-cross-post-followup-to (target-group)
+  "Crossposts message and set Followup-To to TARGET-GROUP.
+With prefix-argument just set Follow-Up, don't cross-post."
+  (interactive
+   (list ; Completion based on Gnus
+    (completing-read "Followup To: "
+		     (if (boundp 'gnus-newsrc-alist)
+			 gnus-newsrc-alist)
+		     nil nil '("poster" . 0)
+		     (if (boundp 'gnus-group-history)
+			 'gnus-group-history))))
+  (cond ((not (or (null target-group) ; new subject not empty
+		  (zerop (string-width target-group))
+		  (string-match "^[ \t]*$" target-group)))
+	 (save-excursion
+	   (let* ((old-groups (message-fetch-field "Newsgroups"))
+		  (in-old (string-match
+			   (regexp-quote target-group)
+			   (or old-groups ""))))
+	     ;; check whether target exactly matches old Newsgroups
+	     (cond ((not old-groups)
+		    (error "No current newsgroup"))
+		   ((or (not in-old)
+			(not (string-match
+			      (concat "^[ \t]*"
+				      (regexp-quote target-group)
+				      "[ \t]*$")
+			      old-groups)))
+		    ;; yes, Newsgroups line must change
+		    (message-cross-post-followup-to-header target-group)
+		    ;; insert note whether we do cross-post or followup-to
+		    (funcall message-cross-post-note-function
+			     target-group
+			     (if (or (and message-cross-post-default
+					  (not current-prefix-arg))
+				     (and (not message-cross-post-default)
+					  current-prefix-arg)) t)
+			     in-old old-groups))))))))
+
+;;; Reduce To: to Cc: or Bcc: header
+
+;;;###autoload
+(defun message-reduce-to-to-cc ()
+ "Replace contents of To: header with contents of Cc: or Bcc: header."
+ (interactive)
+ (let ((cc-content
+	(save-restriction (message-narrow-to-headers)
+			  (message-fetch-field "cc")))
+       (bcc nil))
+   (if (and (not cc-content)
+	    (setq cc-content
+		  (save-restriction
+		    (message-narrow-to-headers)
+		    (message-fetch-field "bcc"))))
+       (setq bcc t))
+   (cond (cc-content
+	  (save-excursion
+	    (message-goto-to)
+	    (message-delete-line)
+	    (insert (concat "To: " cc-content "\n"))
+	    (save-restriction
+	      (message-narrow-to-headers)
+	      (message-remove-header (if bcc
+					 "bcc"
+				       "cc"))))))))
+
+;;; End of functions adopted from `message-utils.el'.
 
 (defun message-remove-header (header &optional is-regexp first reverse)
   "Remove HEADER in the narrowed buffer.
@@ -1321,6 +2082,13 @@ Point is left at the beginning of the narrowed-to region."
 		   (message-fetch-field "cc")
 		   (message-fetch-field "bcc")))))))
 
+(defun message-subscribed-p ()
+  "Say whether we need to insert a MFT header."
+  (or message-subscribed-regexps
+      message-subscribed-addresses
+      message-subscribed-address-file
+      message-subscribed-address-functions))
+
 (defun message-next-header ()
   "Go to the beginning of the next header."
   (beginning-of-line)
@@ -1364,6 +2132,7 @@ Point is left at the beginning of the narrowed-to region."
 	     (1+ max)))))
       (message-sort-headers-1))))
 
+
 
 
 ;;;
@@ -1380,6 +2149,7 @@ Point is left at the beginning of the narrowed-to region."
   (define-key message-mode-map "\C-c?" 'describe-mode)
 
   (define-key message-mode-map "\C-c\C-f\C-t" 'message-goto-to)
+  (define-key message-mode-map "\C-c\C-f\C-o" 'message-goto-from)
   (define-key message-mode-map "\C-c\C-f\C-b" 'message-goto-bcc)
   (define-key message-mode-map "\C-c\C-f\C-w" 'message-goto-fcc)
   (define-key message-mode-map "\C-c\C-f\C-c" 'message-goto-cc)
@@ -1388,13 +2158,36 @@ Point is left at the beginning of the narrowed-to region."
   (define-key message-mode-map "\C-c\C-f\C-n" 'message-goto-newsgroups)
   (define-key message-mode-map "\C-c\C-f\C-d" 'message-goto-distribution)
   (define-key message-mode-map "\C-c\C-f\C-f" 'message-goto-followup-to)
+  (define-key message-mode-map "\C-c\C-f\C-m" 'message-goto-mail-followup-to)
   (define-key message-mode-map "\C-c\C-f\C-k" 'message-goto-keywords)
   (define-key message-mode-map "\C-c\C-f\C-u" 'message-goto-summary)
+  (define-key message-mode-map "\C-c\C-f\C-i"
+    'message-insert-or-toggle-importance)
+  (define-key message-mode-map "\C-c\C-f\C-a"
+    'message-generate-unsubscribed-mail-followup-to)
+
+  ;; modify headers (and insert notes in body)
+  (define-key message-mode-map "\C-c\C-fs"    'message-change-subject)
+  ;;
+  (define-key message-mode-map "\C-c\C-fx"    'message-cross-post-followup-to)
+  ;; prefix+message-cross-post-followup-to = same w/o cross-post
+  (define-key message-mode-map "\C-c\C-ft"    'message-reduce-to-to-cc)
+  (define-key message-mode-map "\C-c\C-fa"    'message-add-archive-header)
+  ;; mark inserted text
+  (define-key message-mode-map "\C-c\M-m" 'message-mark-inserted-region)
+  (define-key message-mode-map "\C-c\M-f" 'message-mark-insert-file)
+
   (define-key message-mode-map "\C-c\C-b" 'message-goto-body)
   (define-key message-mode-map "\C-c\C-i" 'message-goto-signature)
 
   (define-key message-mode-map "\C-c\C-t" 'message-insert-to)
+  (define-key message-mode-map "\C-c\C-fw" 'message-insert-wide-reply)
   (define-key message-mode-map "\C-c\C-n" 'message-insert-newsgroups)
+  (define-key message-mode-map "\C-c\C-l" 'message-to-list-only)
+
+  (define-key message-mode-map "\C-c\C-u" 'message-insert-or-toggle-importance)
+  (define-key message-mode-map "\C-c\M-n"
+    'message-insert-disposition-notification-to)
 
   (define-key message-mode-map "\C-c\C-y" 'message-yank-original)
   (define-key message-mode-map "\C-c\M-\C-y" 'message-yank-buffer)
@@ -1409,67 +2202,187 @@ Point is left at the beginning of the narrowed-to region."
   (define-key message-mode-map "\C-c\C-s" 'message-send)
   (define-key message-mode-map "\C-c\C-k" 'message-kill-buffer)
   (define-key message-mode-map "\C-c\C-d" 'message-dont-send)
+  (define-key message-mode-map "\C-c\n" 'gnus-delay-article)
 
   (define-key message-mode-map "\C-c\C-e" 'message-elide-region)
   (define-key message-mode-map "\C-c\C-v" 'message-delete-not-region)
   (define-key message-mode-map "\C-c\C-z" 'message-kill-to-signature)
   (define-key message-mode-map "\M-\r" 'message-newline-and-reformat)
+  ;;(define-key message-mode-map "\M-q" 'message-fill-paragraph)
   (define-key message-mode-map [remap split-line]  'message-split-line)
 
   (define-key message-mode-map "\C-c\C-a" 'mml-attach-file)
 
-  (define-key message-mode-map "\t" 'message-tab))
+  (define-key message-mode-map "\C-a" 'message-beginning-of-line)
+  (define-key message-mode-map "\t" 'message-tab)
+  (define-key message-mode-map "\M-;" 'comment-region))
 
 (easy-menu-define
- message-mode-menu message-mode-map "Message Menu."
- '("Message"
-   ["Sort Headers" message-sort-headers t]
-   ["Yank Original" message-yank-original t]
-   ["Fill Yanked Message" message-fill-yanked-message t]
-   ["Insert Signature" message-insert-signature t]
-   ["Caesar (rot13) Message" message-caesar-buffer-body t]
-   ["Caesar (rot13) Region" message-caesar-region (mark t)]
-   ["Elide Region" message-elide-region (mark t)]
-   ["Delete Outside Region" message-delete-not-region (mark t)]
-   ["Kill To Signature" message-kill-to-signature t]
-   ["Newline and Reformat" message-newline-and-reformat t]
-   ["Rename buffer" message-rename-buffer t]
-   ["Spellcheck" ispell-message
-    :help "Spellcheck this message"]
-   ["Attach file as MIME" mml-attach-file
-    :help "Attach a file at point"]
-   "----"
-   ["Send Message" message-send-and-exit
-    :help "Send this message"]
-   ["Abort Message" message-dont-send
-    :help "File this draft message and exit"]
-   ["Kill Message" message-kill-buffer
-    :help "Delete this message without sending"]))
+  message-mode-menu message-mode-map "Message Menu."
+  `("Message"
+    ["Yank Original" message-yank-original message-reply-buffer]
+    ["Fill Yanked Message" message-fill-yanked-message t]
+    ["Insert Signature" message-insert-signature t]
+    ["Caesar (rot13) Message" message-caesar-buffer-body t]
+    ["Caesar (rot13) Region" message-caesar-region (message-mark-active-p)]
+    ["Elide Region" message-elide-region
+     :active (message-mark-active-p)
+     ,@(if (featurep 'xemacs) nil
+	 '(:help "Replace text in region with an ellipsis"))]
+    ["Delete Outside Region" message-delete-not-region
+     :active (message-mark-active-p)
+     ,@(if (featurep 'xemacs) nil
+	 '(:help "Delete all quoted text outside region"))]
+    ["Kill To Signature" message-kill-to-signature t]
+    ["Newline and Reformat" message-newline-and-reformat t]
+    ["Rename buffer" message-rename-buffer t]
+    ["Spellcheck" ispell-message
+     ,@(if (featurep 'xemacs) '(t)
+	 '(:help "Spellcheck this message"))]
+    "----"
+    ["Insert Region Marked" message-mark-inserted-region
+     :active (message-mark-active-p)
+     ,@(if (featurep 'xemacs) nil
+	 '(:help "Mark region with enclosing tags"))]
+    ["Insert File Marked..." message-mark-insert-file
+     ,@(if (featurep 'xemacs) '(t)
+	 '(:help "Insert file at point marked with enclosing tags"))]
+    "----"
+    ["Send Message" message-send-and-exit
+     ,@(if (featurep 'xemacs) '(t)
+	 '(:help "Send this message"))]
+    ["Postpone Message" message-dont-send
+     ,@(if (featurep 'xemacs) '(t)
+	 '(:help "File this draft message and exit"))]
+    ["Send at Specific Time..." gnus-delay-article
+     ,@(if (featurep 'xemacs) '(t)
+	 '(:help "Ask, then arrange to send message at that time"))]
+    ["Kill Message" message-kill-buffer
+     ,@(if (featurep 'xemacs) '(t)
+	 '(:help "Delete this message without sending"))]))
 
 (easy-menu-define
- message-mode-field-menu message-mode-map ""
- '("Field"
-   ["Fetch To" message-insert-to t]
-   ["Fetch Newsgroups" message-insert-newsgroups t]
-   "----"
-   ["To" message-goto-to t]
-   ["Subject" message-goto-subject t]
-   ["Cc" message-goto-cc t]
-   ["Reply-To" message-goto-reply-to t]
-   ["Summary" message-goto-summary t]
-   ["Keywords" message-goto-keywords t]
-   ["Newsgroups" message-goto-newsgroups t]
-   ["Followup-To" message-goto-followup-to t]
-   ["Distribution" message-goto-distribution t]
-   ["Body" message-goto-body t]
-   ["Signature" message-goto-signature t]))
+  message-mode-field-menu message-mode-map ""
+  `("Field"
+    ["To" message-goto-to t]
+    ["From" message-goto-from t]
+    ["Subject" message-goto-subject t]
+    ["Change subject..." message-change-subject t]
+    ["Cc" message-goto-cc t]
+    ["Bcc" message-goto-bcc t]
+    ["Fcc" message-goto-fcc t]
+    ["Reply-To" message-goto-reply-to t]
+    ["Flag As Important" message-insert-importance-high
+     ,@(if (featurep 'xemacs) '(t)
+	 '(:help "Mark this message as important"))]
+    ["Flag As Unimportant" message-insert-importance-low
+     ,@(if (featurep 'xemacs) '(t)
+	 '(:help "Mark this message as unimportant"))]
+    ["Request Receipt"
+     message-insert-disposition-notification-to
+     ,@(if (featurep 'xemacs) '(t)
+	 '(:help "Request a receipt notification"))]
+    "----"
+    ;; (typical) news stuff
+    ["Summary" message-goto-summary t]
+    ["Keywords" message-goto-keywords t]
+    ["Newsgroups" message-goto-newsgroups t]
+    ["Fetch Newsgroups" message-insert-newsgroups t]
+    ["Followup-To" message-goto-followup-to t]
+    ;; ["Followup-To (with note in body)" message-cross-post-followup-to t]
+    ["Crosspost / Followup-To..." message-cross-post-followup-to t]
+    ["Distribution" message-goto-distribution t]
+    ["X-No-Archive:" message-add-archive-header t ]
+    "----"
+    ;; (typical) mailing-lists stuff
+    ["Fetch To" message-insert-to
+     ,@(if (featurep 'xemacs) '(t)
+	 '(:help "Insert a To header that points to the author."))]
+    ["Fetch To and Cc" message-insert-wide-reply
+     ,@(if (featurep 'xemacs) '(t)
+	 '(:help
+	   "Insert To and Cc headers as if you were doing a wide reply."))]
+    "----"
+    ["Send to list only" message-to-list-only t]
+    ["Mail-Followup-To" message-goto-mail-followup-to t]
+    ["Unsubscribed list post" message-generate-unsubscribed-mail-followup-to
+     ,@(if (featurep 'xemacs) '(t)
+	 '(:help "Insert a reasonable `Mail-Followup-To:' header."))]
+    ["Reduce To: to Cc:" message-reduce-to-to-cc t]
+    "----"
+    ["Sort Headers" message-sort-headers t]
+    ["Encode non-ASCII domain names" message-idna-to-ascii-rhs t]
+    ["Goto Body" message-goto-body t]
+    ["Goto Signature" message-goto-signature t]))
+
+(defvar message-tool-bar-map nil)
 
 (eval-when-compile
   (defvar facemenu-add-face-function)
   (defvar facemenu-remove-face-function))
 
+;;; Forbidden properties
+;;
+;; We use `after-change-functions' to keep special text properties
+;; that interfer with the normal function of message mode out of the
+;; buffer.
+
+(defcustom message-strip-special-text-properties t
+  "Strip special properties from the message buffer.
+
+Emacs has a number of special text properties which can break message
+composing in various ways.  If this option is set, message will strip
+these properties from the message composition buffer.  However, some
+packages requires these properties to be present in order to work.
+If you use one of these packages, turn this option off, and hope the
+message composition doesn't break too bad."
+  :group 'message-various
+  :link '(custom-manual "(message)Various Message Variables")
+  :type 'boolean)
+
+(defconst message-forbidden-properties
+  ;; No reason this should be clutter up customize.  We make it a
+  ;; property list (rather than a list of property symbols), to be
+  ;; directly useful for `remove-text-properties'.
+  '(field nil read-only nil invisible nil intangible nil
+	  mouse-face nil modification-hooks nil insert-in-front-hooks nil
+	  insert-behind-hooks nil point-entered nil point-left nil)
+  ;; Other special properties:
+  ;; category, face, display: probably doesn't do any harm.
+  ;; fontified: is used by font-lock.
+  ;; syntax-table, local-map: I dunno.
+  ;; We need to add XEmacs names to the list.
+  "Property list of with properties.forbidden in message buffers.
+The values of the properties are ignored, only the property names are used.")
+
+(defun message-tamago-not-in-use-p (pos)
+  "Return t when tamago version 4 is not in use at the cursor position.
+Tamago version 4 is a popular input method for writing Japanese text.
+It uses the properties `intangible', `invisible', `modification-hooks'
+and `read-only' when translating ascii or kana text to kanji text.
+These properties are essential to work, so we should never strip them."
+  (not (and (boundp 'egg-modefull-mode)
+	    (symbol-value 'egg-modefull-mode)
+	    (or (memq (get-text-property pos 'intangible)
+		      '(its-part-1 its-part-2))
+		(get-text-property pos 'egg-end)
+		(get-text-property pos 'egg-lang)
+		(get-text-property pos 'egg-start)))))
+
+(defun message-strip-forbidden-properties (begin end &optional old-length)
+  "Strip forbidden properties between BEGIN and END, ignoring the third arg.
+This function is intended to be called from `after-change-functions'.
+See also `message-forbidden-properties'."
+  (when (and message-strip-special-text-properties
+	     (message-tamago-not-in-use-p begin))
+    (while (not (= begin end))
+      (when (not (get-text-property begin 'message-hidden))
+	(remove-text-properties begin (1+ begin)
+				message-forbidden-properties))
+      (incf begin))))
+
 ;;;###autoload
-(defun message-mode ()
+(define-derived-mode message-mode text-mode "Message"
   "Major mode for editing mail and news to be sent.
 Like Text Mode but with these additional commands:\\<message-mode-map>
 C-c C-s  `message-send' (send the message)  C-c C-c  `message-send-and-exit'
@@ -1480,8 +2393,16 @@ C-c C-f  move to a header field (and create it if there isn't):
 	 C-c C-f C-w  move to Fcc	C-c C-f C-r  move to Reply-To
 	 C-c C-f C-u  move to Summary	C-c C-f C-n  move to Newsgroups
 	 C-c C-f C-k  move to Keywords	C-c C-f C-d  move to Distribution
+         C-c C-f C-o  move to From (\"Originator\")
 	 C-c C-f C-f  move to Followup-To
+	 C-c C-f C-m  move to Mail-Followup-To
+	 C-c C-f C-i  cycle through Importance values
+	 C-c C-f s    change subject and append \"(was: <Old Subject>)\"
+	 C-c C-f x    crossposting with FollowUp-To header and note in body
+	 C-c C-f t    replace To: header with contents of Cc: or Bcc:
+	 C-c C-f a    Insert X-No-Archive: header and a note in the body
 C-c C-t  `message-insert-to' (add a To header to a news followup)
+C-c C-l  `message-to-list-only' (removes all but list address in to/cc)
 C-c C-n  `message-insert-newsgroups' (add a Newsgroup header to a news reply)
 C-c C-b  `message-goto-body' (move to beginning of message text).
 C-c C-i  `message-goto-signature' (move to the beginning of the signature).
@@ -1493,36 +2414,29 @@ C-c C-v  `message-delete-not-region' (remove the text outside the region).
 C-c C-z  `message-kill-to-signature' (kill the text up to the signature).
 C-c C-r  `message-caesar-buffer-body' (rot13 the message body).
 C-c C-a  `mml-attach-file' (attach a file as MIME).
+C-c C-u  `message-insert-or-toggle-importance'  (insert or cycle importance).
+C-c M-n  `message-insert-disposition-notification-to'  (request receipt).
+C-c M-m  `message-mark-inserted-region' (mark region with enclosing tags).
+C-c M-f  `message-mark-insert-file' (insert file marked with enclosing tags).
 M-RET    `message-newline-and-reformat' (break the line and reformat)."
-  (interactive)
-  (if (local-variable-p 'mml-buffer-list (current-buffer))
-      (mml-destroy-buffers))
-  (kill-all-local-variables)
+  (setq local-abbrev-table text-mode-abbrev-table)
   (set (make-local-variable 'message-reply-buffer) nil)
-  (make-local-variable 'message-send-actions)
-  (make-local-variable 'message-exit-actions)
-  (make-local-variable 'message-kill-actions)
-  (make-local-variable 'message-postpone-actions)
-  (make-local-variable 'message-draft-article)
-  (make-local-hook 'kill-buffer-hook)
-  (set-syntax-table message-mode-syntax-table)
-  (use-local-map message-mode-map)
-  (setq local-abbrev-table message-mode-abbrev-table)
-  (setq major-mode 'message-mode)
-  (setq mode-name "Message")
+  (set (make-local-variable 'message-inserted-headers) nil)
+  (set (make-local-variable 'message-send-actions) nil)
+  (set (make-local-variable 'message-exit-actions) nil)
+  (set (make-local-variable 'message-kill-actions) nil)
+  (set (make-local-variable 'message-postpone-actions) nil)
+  (set (make-local-variable 'message-draft-article) nil)
   (setq buffer-offer-save t)
-  (make-local-variable 'facemenu-add-face-function)
-  (make-local-variable 'facemenu-remove-face-function)
-  (setq facemenu-add-face-function
-	(lambda (face end)
-	  (let ((face-fun (cdr (assq face message-face-alist))))
-	    (if face-fun
-		(funcall face-fun (point) end)
-	      (error "Face %s not configured for %s mode" face mode-name)))
-	  "")
-	facemenu-remove-face-function t)
-  (make-local-variable 'message-reply-headers)
-  (setq message-reply-headers nil)
+  (set (make-local-variable 'facemenu-add-face-function)
+       (lambda (face end)
+	 (let ((face-fun (cdr (assq face message-face-alist))))
+	   (if face-fun
+	       (funcall face-fun (point) end)
+	     (error "Face %s not configured for %s mode" face mode-name)))
+	 ""))
+  (set (make-local-variable 'facemenu-remove-face-function) t)
+  (set (make-local-variable 'message-reply-headers) nil)
   (make-local-variable 'message-newsreader)
   (make-local-variable 'message-mailer)
   (make-local-variable 'message-post-method)
@@ -1530,66 +2444,81 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
   (set (make-local-variable 'message-checksum) nil)
   (set (make-local-variable 'message-mime-part) 0)
   (message-setup-fill-variables)
+  (set
+   (make-local-variable 'paragraph-separate)
+   (format "\\(%s\\)\\|\\(%s\\)"
+	   paragraph-separate
+	   "<#!*/?\\(multipart\\|part\\|external\\|mml\\|secure\\)"))
   ;; Allow using comment commands to add/remove quoting.
-  (when message-yank-prefix
-    (set (make-local-variable 'comment-start) message-yank-prefix)
-    (set (make-local-variable 'comment-start-skip)
-	 (concat "^" (regexp-quote message-yank-prefix) "[ \t]*")))
-  ;;(when (fboundp 'mail-hist-define-keys)
-  ;;  (mail-hist-define-keys))
+  (set (make-local-variable 'comment-start) message-yank-prefix)
   (if (featurep 'xemacs)
       (message-setup-toolbar)
     (set (make-local-variable 'font-lock-defaults)
 	 '(message-font-lock-keywords t))
-    (if (boundp 'message-tool-bar-map)
-	(set (make-local-variable 'tool-bar-map) message-tool-bar-map)))
+    (if (boundp 'tool-bar-map)
+	(set (make-local-variable 'tool-bar-map) (message-tool-bar-map))))
   (easy-menu-add message-mode-menu message-mode-map)
   (easy-menu-add message-mode-field-menu message-mode-map)
+  (gnus-make-local-hook 'after-change-functions)
+  ;; Mmmm... Forbidden properties...
+  (add-hook 'after-change-functions 'message-strip-forbidden-properties
+	    nil 'local)
   ;; Allow mail alias things.
   (when (eq message-mail-alias-type 'abbrev)
     (if (fboundp 'mail-abbrevs-setup)
 	(mail-abbrevs-setup)
-      (mail-aliases-setup)))
+      (if (fboundp 'mail-aliases-setup)	; warning avoidance
+	  (mail-aliases-setup))))
   (unless buffer-file-name
     (message-set-auto-save-file-name))
-  (mm-enable-multibyte)
-  (make-local-variable 'indent-tabs-mode) ;Turn off tabs for indentation.
-  (setq indent-tabs-mode nil)
-  (mml-mode)
-  (run-hooks 'text-mode-hook 'message-mode-hook))
+  (unless (buffer-base-buffer)
+    ;; Don't enable multibyte on an indirect buffer.  Maybe enabling
+    ;; multibyte is not necessary at all. -- zsh
+    (mm-enable-multibyte))
+  (set (make-local-variable 'indent-tabs-mode) nil) ;No tabs for indentation.
+  (mml-mode))
 
 (defun message-setup-fill-variables ()
   "Setup message fill variables."
+  (set (make-local-variable 'fill-paragraph-function)
+       'message-fill-paragraph)
   (make-local-variable 'paragraph-separate)
   (make-local-variable 'paragraph-start)
   (make-local-variable 'adaptive-fill-regexp)
   (unless (boundp 'adaptive-fill-first-line-regexp)
     (setq adaptive-fill-first-line-regexp nil))
   (make-local-variable 'adaptive-fill-first-line-regexp)
-  (make-local-variable 'auto-fill-inhibit-regexp)
   (let ((quote-prefix-regexp
-         (concat
-          "[ \t]*"                      ; possible initial space
-          "\\(\\(" (regexp-quote message-yank-prefix) "\\|" ; user's prefix
-          "\\w+>\\|"                    ; supercite-style prefix
-          "[|:>]"                       ; standard prefix
-          "\\)[ \t]*\\)+")))            ; possible space after each prefix
+	 ;; User should change message-cite-prefix-regexp if
+	 ;; message-yank-prefix is set to an abnormal value.
+	 (concat "\\(" message-cite-prefix-regexp "\\)[ \t]*")))
     (setq paragraph-start
-          (concat
-           (regexp-quote mail-header-separator) "$\\|"
-           "[ \t]*$\\|"                 ; blank lines
-           "-- $\\|"                    ; signature delimiter
-           "---+$\\|"                   ; delimiters for forwarded messages
-           page-delimiter "$\\|"        ; spoiler warnings
-           ".*wrote:$\\|"               ; attribution lines
-           quote-prefix-regexp "$"))    ; empty lines in quoted text
+	  (concat
+	   (regexp-quote mail-header-separator) "$\\|"
+	   "[ \t]*$\\|"			; blank lines
+	   "-- $\\|"			; signature delimiter
+	   "---+$\\|"		   ; delimiters for forwarded messages
+	   page-delimiter "$\\|"	; spoiler warnings
+	   ".*wrote:$\\|"		; attribution lines
+	   quote-prefix-regexp "$"))	; empty lines in quoted text
     (setq paragraph-separate paragraph-start)
     (setq adaptive-fill-regexp
-          (concat quote-prefix-regexp "\\|" adaptive-fill-regexp))
+	  (concat quote-prefix-regexp "\\|" adaptive-fill-regexp))
     (setq adaptive-fill-first-line-regexp
-          (concat quote-prefix-regexp "\\|"
-                  adaptive-fill-first-line-regexp))
-    (setq auto-fill-inhibit-regexp "^[A-Z][^: \n\t]+:")))
+	  (concat quote-prefix-regexp "\\|"
+		  adaptive-fill-first-line-regexp)))
+  (make-local-variable 'auto-fill-inhibit-regexp)
+  ;;(setq auto-fill-inhibit-regexp "^[A-Z][^: \n\t]+:")
+  (setq auto-fill-inhibit-regexp nil)
+  (make-local-variable 'normal-auto-fill-function)
+  (setq normal-auto-fill-function 'message-do-auto-fill)
+  ;; KLUDGE: auto fill might already be turned on in `text-mode-hook'.
+  ;; In that case, ensure that it uses the right function.  The real
+  ;; solution would be not to use `define-derived-mode', and run
+  ;; `text-mode-hook' ourself at the end of the mode.
+  ;; -- Per Abrahamsen <abraham@dina.kvl.dk> Date: 2001-10-19.
+  (when auto-fill-function
+    (setq auto-fill-function normal-auto-fill-function)))
 
 
 
@@ -1603,6 +2532,11 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
   "Move point to the To header."
   (interactive)
   (message-position-on-field "To"))
+
+(defun message-goto-from ()
+  "Move point to the From header."
+  (interactive)
+  (message-position-on-field "From"))
 
 (defun message-goto-subject ()
   "Move point to the Subject header."
@@ -1644,6 +2578,11 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
   (interactive)
   (message-position-on-field "Followup-To" "Newsgroups"))
 
+(defun message-goto-mail-followup-to ()
+  "Move point to the Mail-Followup-To header."
+  (interactive)
+  (message-position-on-field "Mail-Followup-To" "From"))
+
 (defun message-goto-keywords ()
   "Move point to the Keywords header."
   (interactive)
@@ -1654,13 +2593,15 @@ M-RET    `message-newline-and-reformat' (break the line and reformat)."
   (interactive)
   (message-position-on-field "Summary" "Subject"))
 
-(defun message-goto-body ()
+(defun message-goto-body (&optional interactivep)
   "Move point to the beginning of the message body."
-  (interactive)
-  (if (looking-at "[ \t]*\n") (expand-abbrev))
+  (interactive (list t))
+  (when (and interactivep
+	     (looking-at "[ \t]*\n"))
+    (expand-abbrev))
   (goto-char (point-min))
   (or (search-forward (concat "\n" mail-header-separator "\n") nil t)
-      (search-forward "\n\n" nil t)))
+      (search-forward-regexp "[^:]+:\\([^\n]\\|\n[ \t]\\)+\n\n" nil t)))
 
 (defun message-goto-eoh ()
   "Move point to the end of the headers."
@@ -1679,26 +2620,93 @@ return nil."
     (goto-char (point-max))
     nil))
 
+(defun message-generate-unsubscribed-mail-followup-to (&optional include-cc)
+  "Insert a reasonable MFT header in a post to an unsubscribed list.
+When making original posts to a mailing list you are not subscribed to,
+you have to type in a MFT header by hand.  The contents, usually, are
+the addresses of the list and your own address.  This function inserts
+such a header automatically.  It fetches the contents of the To: header
+in the current mail buffer, and appends the current `user-mail-address'.
+
+If the optional argument INCLUDE-CC is non-nil, the addresses in the
+Cc: header are also put into the MFT."
+
+  (interactive "P")
+  (let* (cc tos)
+    (save-restriction
+      (message-narrow-to-headers)
+      (message-remove-header "Mail-Followup-To")
+      (setq cc (and include-cc (message-fetch-field "Cc")))
+      (setq tos (if cc
+		    (concat (message-fetch-field "To") "," cc)
+		  (message-fetch-field "To"))))
+    (message-goto-mail-followup-to)
+    (insert (concat tos ", " user-mail-address))))
+
 
 
 (defun message-insert-to (&optional force)
   "Insert a To header that points to the author of the article being replied to.
-If the original author requested not to be sent mail, the function signals
-an error.
-With the prefix argument FORCE, insert the header anyway."
+If the original author requested not to be sent mail, don't insert unless the
+prefix FORCE is given."
   (interactive "P")
-  (let ((co (message-fetch-reply-field "mail-copies-to")))
-    (when (and (null force)
-	       co
-	       (or (equal (downcase co) "never")
-		   (equal (downcase co) "nobody")))
-      (error "The user has requested not to have copies sent via mail")))
-  (when (and (message-position-on-field "To")
-	     (mail-fetch-field "to")
-	     (not (string-match "\\` *\\'" (mail-fetch-field "to"))))
-    (insert ", "))
-  (insert (or (message-fetch-reply-field "reply-to")
-	      (message-fetch-reply-field "from") "")))
+  (let* ((mct (message-fetch-reply-field "mail-copies-to"))
+         (dont (and mct (or (equal (downcase mct) "never")
+			    (equal (downcase mct) "nobody"))))
+         (to (or (message-fetch-reply-field "mail-reply-to")
+                 (message-fetch-reply-field "reply-to")
+                 (message-fetch-reply-field "from"))))
+    (when (and dont to)
+      (message
+       (if force
+	   "Ignoring the user request not to have copies sent via mail"
+	 "Complying with the user request not to have copies sent via mail")))
+    (when (and force (not to))
+      (error "No mail address in the article"))
+    (when (and to (or force (not dont)))
+      (message-carefully-insert-headers (list (cons 'To to))))))
+
+(defun message-insert-wide-reply ()
+  "Insert To and Cc headers as if you were doing a wide reply."
+  (interactive)
+  (let ((headers (message-with-reply-buffer
+		   (message-get-reply-headers t))))
+    (message-carefully-insert-headers headers)))
+
+(defcustom message-header-synonyms
+  '((To Cc Bcc))
+  "List of lists of header synonyms.
+E.g., if this list contains a member list with elements `Cc' and `To',
+then `message-carefully-insert-headers' will not insert a `To' header
+when the message is already `Cc'ed to the recipient."
+  :group 'message-headers
+  :link '(custom-manual "(message)Message Headers")
+  :type '(repeat sexp))
+
+(defun message-carefully-insert-headers (headers)
+  "Insert the HEADERS, an alist, into the message buffer.
+Does not insert the headers when they are already present there
+or in the synonym headers, defined by `message-header-synonyms'."
+  ;; FIXME: Should compare only the address and not the full name.  Comparison
+  ;; should be done case-folded (and with `string=' rather than
+  ;; `string-match').
+  (dolist (header headers)
+    (let* ((header-name (symbol-name (car header)))
+           (new-header (cdr header))
+           (synonyms (loop for synonym in message-header-synonyms
+			   when (memq (car header) synonym) return synonym))
+           (old-header
+            (loop for synonym in synonyms
+		  for old-header = (mail-fetch-field (symbol-name synonym))
+		  when (and old-header (string-match new-header old-header))
+		  return synonym)))
+      (if old-header
+          (message "already have `%s' in `%s'" new-header old-header)
+	(when (and (message-position-on-field header-name)
+                   (setq old-header (mail-fetch-field header-name))
+                   (not (string-match "\\` *\\'" old-header)))
+	  (insert ", "))
+        (insert new-header)))))
 
 (defun message-widen-reply ()
   "Widen the reply to include maximum recipients."
@@ -1734,17 +2742,25 @@ With the prefix argument FORCE, insert the header anyway."
 (defun message-delete-not-region (beg end)
   "Delete everything in the body of the current message outside of the region."
   (interactive "r")
-  (save-excursion
-    (goto-char end)
-    (delete-region (point) (if (not (message-goto-signature))
-			       (point)
-			     (forward-line -2)
-			     (point)))
-    (insert "\n")
-    (goto-char beg)
-    (delete-region beg (progn (message-goto-body)
-			      (forward-line 2)
-			      (point))))
+  (let (citeprefix)
+    (save-excursion
+      (goto-char beg)
+      ;; snarf citation prefix, if appropriate
+      (unless (eq (point) (progn (beginning-of-line) (point)))
+	(when (looking-at message-cite-prefix-regexp)
+	  (setq citeprefix (match-string 0))))
+      (goto-char end)
+      (delete-region (point) (if (not (message-goto-signature))
+				 (point)
+			       (forward-line -2)
+			       (point)))
+      (insert "\n")
+      (goto-char beg)
+      (delete-region beg (progn (message-goto-body)
+				(forward-line 2)
+				(point)))
+      (when citeprefix
+	(insert citeprefix))))
   (when (message-goto-signature)
     (forward-line -2)))
 
@@ -1754,39 +2770,121 @@ With the prefix argument FORCE, insert the header anyway."
   (let ((point (point)))
     (message-goto-signature)
     (unless (eobp)
-      (forward-line -2))
+      (end-of-line -1))
     (kill-region point (point))
     (unless (bolp)
       (insert "\n"))))
 
-(defun message-newline-and-reformat ()
-  "Insert four newlines, and then reformat if inside quoted text."
-  (interactive)
-  ;; The Latin-1 angle quote looks pretty dubious.  -- fx
-  (let ((prefix "[]>»|:}+ \t]*")
-	(supercite-thing "[-._[:alnum:]]*[>]+[ \t]*")
-	quoted point)
-    (unless (bolp)
-      (save-excursion
-	(beginning-of-line)
-	(when (looking-at (concat prefix
-				  supercite-thing))
-	  (setq quoted (match-string 0))))
-      (insert "\n"))
+(defun message-newline-and-reformat (&optional arg not-break)
+  "Insert four newlines, and then reformat if inside quoted text.
+Prefix arg means justify as well."
+  (interactive (list (if current-prefix-arg 'full)))
+  (let (quoted point beg end leading-space bolp)
     (setq point (point))
-    (insert "\n\n\n")
-    (delete-region (point) (re-search-forward "[ \t]*"))
-    (when quoted
-      (insert quoted))
-    (fill-paragraph nil)
+    (beginning-of-line)
+    (setq beg (point))
+    (setq bolp (= beg point))
+    ;; Find first line of the paragraph.
+    (if not-break
+	(while (and (not (eobp))
+		    (not (looking-at message-cite-prefix-regexp))
+		    (looking-at paragraph-start))
+	  (forward-line 1)))
+    ;; Find the prefix
+    (when (looking-at message-cite-prefix-regexp)
+      (setq quoted (match-string 0))
+      (goto-char (match-end 0))
+      (looking-at "[ \t]*")
+      (setq leading-space (match-string 0)))
+    (if (and quoted
+	     (not not-break)
+	     (not bolp)
+	     (< (- point beg) (length quoted)))
+	;; break inside the cite prefix.
+	(setq quoted nil
+	      end nil))
+    (if quoted
+	(progn
+	  (forward-line 1)
+	  (while (and (not (eobp))
+		      (not (looking-at paragraph-separate))
+		      (looking-at message-cite-prefix-regexp)
+		      (equal quoted (match-string 0)))
+	    (goto-char (match-end 0))
+	    (looking-at "[ \t]*")
+	    (if (> (length leading-space) (length (match-string 0)))
+		(setq leading-space (match-string 0)))
+	    (forward-line 1))
+	  (setq end (point))
+	  (goto-char beg)
+	  (while (and (if (bobp) nil (forward-line -1) t)
+		      (not (looking-at paragraph-start))
+		      (looking-at message-cite-prefix-regexp)
+		      (equal quoted (match-string 0)))
+	    (setq beg (point))
+	    (goto-char (match-end 0))
+	    (looking-at "[ \t]*")
+	    (if (> (length leading-space) (length (match-string 0)))
+		(setq leading-space (match-string 0)))))
+      (while (and (not (eobp))
+		  (not (looking-at paragraph-separate))
+		  (not (looking-at message-cite-prefix-regexp)))
+	(forward-line 1))
+      (setq end (point))
+      (goto-char beg)
+      (while (and (if (bobp) nil (forward-line -1) t)
+		  (not (looking-at paragraph-start))
+		  (not (looking-at message-cite-prefix-regexp)))
+	(setq beg (point))))
     (goto-char point)
-    (forward-line 1)))
+    (save-restriction
+      (narrow-to-region beg end)
+      (if not-break
+	  (setq point nil)
+	(if bolp
+	    (newline)
+	  (newline)
+	  (newline))
+	(setq point (point))
+	;; (newline 2) doesn't mark both newline's as hard, so call
+	;; newline twice. -jas
+	(newline)
+	(newline)
+	(delete-region (point) (re-search-forward "[ \t]*"))
+	(when (and quoted (not bolp))
+	  (insert quoted leading-space)))
+      (undo-boundary)
+      (if quoted
+	  (let* ((adaptive-fill-regexp
+		  (regexp-quote (concat quoted leading-space)))
+		 (adaptive-fill-first-line-regexp
+		  adaptive-fill-regexp ))
+	    (fill-paragraph arg))
+	(fill-paragraph arg))
+      (if point (goto-char point)))))
 
-(defun message-split-line ()
-  "Split current line, moving portion beyond point vertically down.
-If the current line has `message-yank-prefix', insert it on the new line."
-  (interactive "*")
-  (split-line message-yank-prefix))
+(defun message-fill-paragraph (&optional arg)
+  "Like `fill-paragraph'."
+  (interactive (list (if current-prefix-arg 'full)))
+  (if (if (boundp 'filladapt-mode) filladapt-mode)
+      nil
+    (message-newline-and-reformat arg t)
+    t))
+
+;; Is it better to use `mail-header-end'?
+(defun message-point-in-header-p ()
+  "Return t if point is in the header."
+  (save-excursion
+    (let ((p (point)))
+      (goto-char (point-min))
+      (not (re-search-forward
+	    (concat "^" (regexp-quote mail-header-separator) "\n")
+	    p t)))))
+
+(defun message-do-auto-fill ()
+  "Like `do-auto-fill', but don't fill in message header."
+  (unless (message-point-in-header-p)
+    (do-auto-fill)))
 
 (defun message-insert-signature (&optional force)
   "Insert a signature.  See documentation for variable `message-signature'."
@@ -1801,7 +2899,7 @@ If the current line has `message-yank-prefix', insert it on the new line."
 	   ((and (null message-signature)
 		 force)
 	    t)
-	   ((message-functionp message-signature)
+	   ((functionp message-signature)
 	    (funcall message-signature))
 	   ((listp message-signature)
 	    (eval message-signature))
@@ -1818,12 +2916,70 @@ If the current line has `message-yank-prefix', insert it on the new line."
       ;; Insert the signature.
       (unless (bolp)
 	(insert "\n"))
-      (insert "\n-- \n")
+      (when message-signature-insert-empty-line
+	(insert "\n"))
+      (insert "-- \n")
       (if (eq signature t)
 	  (insert-file-contents message-signature-file)
 	(insert signature))
       (goto-char (point-max))
       (or (bolp) (insert "\n")))))
+
+(defun message-insert-importance-high ()
+  "Insert header to mark message as important."
+  (interactive)
+  (save-excursion
+    (save-restriction
+      (message-narrow-to-headers)
+      (message-remove-header "Importance"))
+    (message-goto-eoh)
+    (insert "Importance: high\n")))
+
+(defun message-insert-importance-low ()
+  "Insert header to mark message as unimportant."
+  (interactive)
+  (save-excursion
+    (save-restriction
+      (message-narrow-to-headers)
+      (message-remove-header "Importance"))
+    (message-goto-eoh)
+    (insert "Importance: low\n")))
+
+(defun message-insert-or-toggle-importance ()
+  "Insert a \"Importance: high\" header, or cycle through the header values.
+The three allowed values according to RFC 1327 are `high', `normal'
+and `low'."
+  (interactive)
+  (save-excursion
+    (let ((valid '("high" "normal" "low"))
+	  (new "high")
+	  cur)
+      (save-restriction
+	(message-narrow-to-headers)
+	(when (setq cur (message-fetch-field "Importance"))
+	  (message-remove-header "Importance")
+	  (setq new (cond ((string= cur "high")
+			   "low")
+			  ((string= cur "low")
+			   "normal")
+			  (t
+			   "high")))))
+      (message-goto-eoh)
+      (insert (format "Importance: %s\n" new)))))
+
+(defun message-insert-disposition-notification-to ()
+  "Request a disposition notification (return receipt) to this message.
+Note that this should not be used in newsgroups."
+  (interactive)
+  (save-excursion
+    (save-restriction
+      (message-narrow-to-headers)
+      (message-remove-header "Disposition-Notification-To"))
+    (message-goto-eoh)
+    (insert (format "Disposition-Notification-To: %s\n"
+		    (or (message-field-value "Reply-to")
+			(message-field-value "From")
+			(message-make-from))))))
 
 (defun message-elide-region (b e)
   "Elide the text in the region.
@@ -1845,7 +3001,7 @@ text was killed."
       (prefix-numeric-value current-prefix-arg))))
 
   (setq n (if (numberp n) (mod n 26) 13)) ;canonize N
-  (unless (or (zerop n)			; no action needed for a rot of 0
+  (unless (or (zerop n)		        ; no action needed for a rot of 0
 	      (= b e))			; no region to rotate
     ;; We build the table, if necessary.
     (when (or (not message-caesar-translation-table)
@@ -1888,7 +3044,7 @@ Mail and USENET news headers are not rotated."
   (save-excursion
     (save-restriction
       (when (message-goto-body)
-        (narrow-to-region (point) (point-max)))
+	(narrow-to-region (point) (point-max)))
       (shell-command-on-region
        (point-min) (point-max) program nil t))))
 
@@ -1968,7 +3124,9 @@ However, if `message-yank-prefix' is non-nil, insert that prefix on each line."
       (save-excursion
 	(goto-char start)
 	(while (< (point) (mark t))
-	  (insert message-yank-prefix)
+	  (if (or (looking-at ">") (looking-at "^$"))
+	      (insert message-yank-cited-prefix)
+	    (insert message-yank-prefix))
 	  (forward-line 1))))
     (goto-char start)))
 
@@ -1999,7 +3157,7 @@ prefix, and don't delete any headers."
 (defun message-yank-buffer (buffer)
   "Insert BUFFER into the current buffer and quote it."
   (interactive "bYank buffer: ")
-  (let ((message-reply-buffer buffer))
+  (let ((message-reply-buffer (get-buffer buffer)))
     (save-window-excursion
       (message-yank-original))))
 
@@ -2016,13 +3174,27 @@ prefix, and don't delete any headers."
 
 (defun message-cite-original-without-signature ()
   "Cite function in the standard Message manner."
-  (let ((start (point))
-	(end (mark t))
-	(functions
-	 (when message-indent-citation-function
-	   (if (listp message-indent-citation-function)
-	       message-indent-citation-function
-	     (list message-indent-citation-function)))))
+  (let* ((start (point))
+	 (end (mark t))
+	 (functions
+	  (when message-indent-citation-function
+	    (if (listp message-indent-citation-function)
+		message-indent-citation-function
+	      (list message-indent-citation-function))))
+	 ;; This function may be called by `gnus-summary-yank-message' and
+	 ;; may insert a different article from the original.  So, we will
+	 ;; modify the value of `message-reply-headers' with that article.
+	 (message-reply-headers
+	  (save-restriction
+	    (narrow-to-region start end)
+	    (message-narrow-to-head-1)
+	    (vector 0
+		    (or (message-fetch-field "subject") "none")
+		    (message-fetch-field "from")
+		    (message-fetch-field "date")
+		    (message-fetch-field "message-id" t)
+		    (message-fetch-field "references")
+		    0 0 ""))))
     (mml-quote-region start end)
     ;; Allow undoing.
     (undo-boundary)
@@ -2045,19 +3217,33 @@ prefix, and don't delete any headers."
 	(insert "\n"))
       (funcall message-citation-line-function))))
 
-(eval-when-compile (defvar mail-citation-hook))		;Compiler directive
+(eval-when-compile (defvar mail-citation-hook))	;Compiler directive
 (defun message-cite-original ()
   "Cite function in the standard Message manner."
   (if (and (boundp 'mail-citation-hook)
 	   mail-citation-hook)
       (run-hooks 'mail-citation-hook)
-    (let ((start (point))
-	  (end (mark t))
-	  (functions
-	   (when message-indent-citation-function
-	     (if (listp message-indent-citation-function)
-		 message-indent-citation-function
-	       (list message-indent-citation-function)))))
+    (let* ((start (point))
+	   (end (mark t))
+	   (functions
+	    (when message-indent-citation-function
+	      (if (listp message-indent-citation-function)
+		  message-indent-citation-function
+		(list message-indent-citation-function))))
+	   ;; This function may be called by `gnus-summary-yank-message' and
+	   ;; may insert a different article from the original.  So, we will
+	   ;; modify the value of `message-reply-headers' with that article.
+	   (message-reply-headers
+	    (save-restriction
+	      (narrow-to-region start end)
+	      (message-narrow-to-head-1)
+	      (vector 0
+		      (or (message-fetch-field "subject") "none")
+		      (message-fetch-field "from")
+		      (message-fetch-field "date")
+		      (message-fetch-field "message-id" t)
+		      (message-fetch-field "references")
+		      0 0 ""))))
       (mml-quote-region start end)
       (goto-char start)
       (while functions
@@ -2144,7 +3330,8 @@ The text will also be indented the normal way."
       t)))
 
 (defun message-dont-send ()
-  "Don't send the message you have been editing."
+  "Don't send the message you have been editing.
+Instead, just auto-save the buffer and then bury it."
   (interactive)
   (set-buffer-modified-p t)
   (save-buffer)
@@ -2157,9 +3344,23 @@ The text will also be indented the normal way."
   (interactive)
   (when (or (not (buffer-modified-p))
 	    (yes-or-no-p "Message modified; kill anyway? "))
-    (let ((actions message-kill-actions))
+    (let ((actions message-kill-actions)
+	  (draft-article message-draft-article)
+	  (auto-save-file-name buffer-auto-save-file-name)
+	  (file-name buffer-file-name)
+	  (modified (buffer-modified-p)))
       (setq buffer-file-name nil)
       (kill-buffer (current-buffer))
+      (when (and (or (and auto-save-file-name
+			  (file-exists-p auto-save-file-name))
+		     (and file-name
+			  (file-exists-p file-name)))
+	       (yes-or-no-p (format "Remove the backup file%s? "
+				    (if modified " too" ""))))
+	(ignore-errors
+	  (delete-file auto-save-file-name))
+	(let ((message-draft-article draft-article))
+	  (message-disassociate-draft)))
       (message-do-actions actions))))
 
 (defun message-bury (buffer)
@@ -2190,21 +3391,40 @@ It should typically alter the sending method in some way or other."
   (message message-sending-message)
   (let ((alist message-send-method-alist)
 	(success t)
-	elem sent)
+	elem sent dont-barf-on-no-method
+	(message-options message-options))
+    (message-options-set-recipient)
     (while (and success
 		(setq elem (pop alist)))
       (when (funcall (cadr elem))
 	(when (and (or (not (memq (car elem)
 				  message-sent-message-via))
-		       (y-or-n-p
-			(format
-			 "Already sent message via %s; resend? "
-			 (car elem))))
+		       (message-fetch-field "supersedes")
+		       (if (or (message-gnksa-enable-p 'multiple-copies)
+			       (not (eq (car elem) 'news)))
+			   (y-or-n-p
+			    (format
+			     "Already sent message via %s; resend? "
+			     (car elem)))
+			 (error "Denied posting -- multiple copies")))
 		   (setq success (funcall (caddr elem) arg)))
 	  (setq sent t))))
-    (unless (or sent (not success))
+    (unless (or sent
+		(not success)
+		(let ((fcc (message-fetch-field "Fcc"))
+		      (gcc (message-fetch-field "Gcc")))
+		  (when (or fcc gcc)
+		    (or (eq message-allow-no-recipients 'always)
+			(and (not (eq message-allow-no-recipients 'never))
+			     (setq dont-barf-on-no-method
+				   (gnus-y-or-n-p
+				    (format "No receiver, perform %s anyway? "
+					    (cond ((and fcc gcc) "Fcc and Gcc")
+						  (fcc "Fcc")
+						  (t "Gcc"))))))))))
       (error "No methods specified to send by"))
-    (when (and success sent)
+    (when (or dont-barf-on-no-method
+	      (and success sent))
       (message-do-fcc)
       (save-excursion
 	(run-hooks 'message-sent-hook))
@@ -2236,26 +3456,106 @@ It should typically alter the sending method in some way or other."
 (put 'message-check 'lisp-indent-function 1)
 (put 'message-check 'edebug-form-spec '(form body))
 
+(defun message-text-with-property (prop)
+  "Return a list of all points where the text has PROP."
+  (let ((points nil)
+	(point (point-min)))
+    (save-excursion
+      (while (< point (point-max))
+	(when (get-text-property point prop)
+	  (push point points))
+	(incf point)))
+    (nreverse points)))
+
 (defun message-fix-before-sending ()
   "Do various things to make the message nice before sending it."
   ;; Make sure there's a newline at the end of the message.
   (goto-char (point-max))
   (unless (bolp)
     (insert "\n"))
-  ;; Delete all invisible text.
+  ;; Make the hidden headers visible.
+  (let ((points (message-text-with-property 'message-hidden)))
+    (when points
+      (goto-char (car points))
+      (dolist (point points)
+	(add-text-properties point (1+ point)
+			     '(invisible nil intangible nil)))))
+  ;; Make invisible text visible.
+  ;; It doesn't seem as if this is useful, since the invisible property
+  ;; is clobbered by an after-change hook anyhow.
   (message-check 'invisible-text
-    (when (text-property-any (point-min) (point-max) 'invisible t)
-      (put-text-property (point-min) (point-max) 'invisible nil)
-      (unless (yes-or-no-p
-	       "Invisible text found and made visible; continue posting? ")
-	(error "Invisible text found and made visible")))))
+    (let ((points (message-text-with-property 'invisible)))
+      (when points
+	(goto-char (car points))
+	(dolist (point points)
+	  (put-text-property point (1+ point) 'invisible nil)
+	  (message-overlay-put (message-make-overlay point (1+ point))
+			       'face 'highlight))
+	(unless (yes-or-no-p
+		 "Invisible text found and made visible; continue sending? ")
+	  (error "Invisible text found and made visible")))))
+  (message-check 'illegible-text
+    (let (found choice)
+      (message-goto-body)
+      (skip-chars-forward mm-7bit-chars)
+      (while (not (eobp))
+	(when (let ((char (char-after)))
+		(or (< (mm-char-int char) 128)
+		    (and (mm-multibyte-p)
+			 (memq (char-charset char)
+			       '(eight-bit-control eight-bit-graphic
+						   control-1))
+			 (not (get-text-property
+			       (point) 'untranslated-utf-8)))))
+	  (message-overlay-put (message-make-overlay (point) (1+ (point)))
+			       'face 'highlight)
+	  (setq found t))
+	(forward-char)
+	(skip-chars-forward mm-7bit-chars))
+      (when found
+	(setq choice
+	      (gnus-multiple-choice
+	       "Non-printable characters found.  Continue sending?"
+	       '((?d "Remove non-printable characters and send")
+		 (?r "Replace non-printable characters with dots and send")
+		 (?i "Ignore non-printable characters and send")
+		 (?e "Continue editing"))))
+	(if (eq choice ?e)
+	  (error "Non-printable characters"))
+	(message-goto-body)
+	(skip-chars-forward mm-7bit-chars)
+	(while (not (eobp))
+	  (when (let ((char (char-after)))
+		  (or (< (mm-char-int char) 128)
+		      (and (mm-multibyte-p)
+			   ;; Fixme: Wrong for Emacs 22 and for things
+			   ;; like undecable utf-8.  Should at least
+			   ;; use find-coding-systems-region.
+			   (memq (char-charset char)
+				 '(eight-bit-control eight-bit-graphic
+						     control-1))
+			   (not (get-text-property
+				 (point) 'untranslated-utf-8)))))
+	    (if (eq choice ?i)
+		(message-kill-all-overlays)
+	      (delete-char 1)
+	      (when (eq choice ?r)
+		(insert "."))))
+	  (forward-char)
+	  (skip-chars-forward mm-7bit-chars))))))
 
 (defun message-add-action (action &rest types)
   "Add ACTION to be performed when doing an exit of type TYPES."
+  (while types
+    (add-to-list (intern (format "message-%s-actions" (pop types)))
+		 action)))
+
+(defun message-delete-action (action &rest types)
+  "Delete ACTION from lists of actions performed when doing an exit of type TYPES."
   (let (var)
     (while types
       (set (setq var (intern (format "message-%s-actions" (pop types))))
-	   (nconc (symbol-value var) (list action))))))
+	   (delq action (symbol-value var))))))
 
 (defun message-do-actions (actions)
   "Perform all actions in ACTIONS."
@@ -2264,7 +3564,7 @@ It should typically alter the sending method in some way or other."
     (ignore-errors
       (cond
        ;; A simple function.
-       ((message-functionp (car actions))
+       ((functionp (car actions))
 	(funcall (car actions)))
        ;; Something to be evaled.
        (t
@@ -2272,7 +3572,7 @@ It should typically alter the sending method in some way or other."
     (pop actions)))
 
 (defun message-send-mail-partially ()
-  "Sendmail as message/partial."
+  "Send mail as message/partial."
   ;; replace the header delimiter with a blank line
   (goto-char (point-min))
   (re-search-forward
@@ -2320,24 +3620,23 @@ It should typically alter the sending method in some way or other."
 	      (message-remove-header "Lines")
 	      (goto-char (point-max))
 	      (insert "Mime-Version: 1.0\n")
-	      (setq header (buffer-substring (point-min) (point-max))))
+	      (setq header (buffer-string)))
 	    (goto-char (point-max))
-	    (insert (format "Content-Type: message/partial; id=\"%s\"; number=%d; total=%d\n"
+	    (insert (format "Content-Type: message/partial; id=\"%s\"; number=%d; total=%d\n\n"
 			    id n total))
+	    (forward-char -1)
 	    (let ((mail-header-separator ""))
 	      (when (memq 'Message-ID message-required-mail-headers)
 		(insert "Message-ID: " (message-make-message-id) "\n"))
 	      (when (memq 'Lines message-required-mail-headers)
-		(let ((mail-header-separator ""))
-		  (insert "Lines: " (message-make-lines) "\n")))
+		(insert "Lines: " (message-make-lines) "\n"))
 	      (message-goto-subject)
 	      (end-of-line)
 	      (insert (format " (%d/%d)" n total))
-	      (goto-char (point-max))
-	      (insert "\n")
 	      (widen)
 	      (mm-with-unibyte-current-buffer
-		(funcall message-send-mail-function)))
+		(funcall (or message-send-mail-real-function
+			     message-send-mail-function))))
 	    (setq n (+ n 1))
 	    (setq p (pop plist))
 	    (erase-buffer)))
@@ -2353,22 +3652,34 @@ It should typically alter the sending method in some way or other."
 	 (message-posting-charset
 	  (if (fboundp 'gnus-setup-posting-charset)
 	      (gnus-setup-posting-charset nil)
-	    message-posting-charset)))
+	    message-posting-charset))
+	 (headers message-required-mail-headers))
     (save-restriction
       (message-narrow-to-headers)
+      ;; Generate the Mail-Followup-To header if the header is not there...
+      (if (and (message-subscribed-p)
+	       (not (mail-fetch-field "mail-followup-to")))
+	  (setq headers
+		(cons
+		 (cons "Mail-Followup-To" (message-make-mail-followup-to))
+		 message-required-mail-headers))
+	;; otherwise, delete the MFT header if the field is empty
+	(when (equal "" (mail-fetch-field "mail-followup-to"))
+	  (message-remove-header "^Mail-Followup-To:")))
       ;; Insert some headers.
       (let ((message-deletable-headers
 	     (if news nil message-deletable-headers)))
-	(message-generate-headers message-required-mail-headers))
+	(message-generate-headers headers))
       ;; Let the user do all of the above.
       (run-hooks 'message-header-hook))
     (unwind-protect
 	(save-excursion
 	  (set-buffer tembuf)
 	  (erase-buffer)
-	  ;; Avoid copying text props.
+	  ;; Avoid copying text props (except hard newlines).
 	  (insert (with-current-buffer mailbuf
-		    (buffer-substring-no-properties (point-min) (point-max))))
+		    (mml-buffer-substring-no-properties-except-hard-newlines
+		     (point-min) (point-max))))
 	  ;; Remove some headers.
 	  (message-encode-message-body)
 	  (save-restriction
@@ -2384,25 +3695,59 @@ It should typically alter the sending method in some way or other."
 	  ;; require one newline at the end.
 	  (or (= (preceding-char) ?\n)
 	      (insert ?\n))
+	  (message-cleanup-headers)
+	  ;; FIXME: we're inserting the courtesy copy after encoding.
+	  ;; This is wrong if the courtesy copy string contains
+	  ;; non-ASCII characters. -- jh
 	  (when
 	      (save-restriction
 		(message-narrow-to-headers)
 		(and news
 		     (or (message-fetch-field "cc")
+			 (message-fetch-field "bcc")
 			 (message-fetch-field "to"))
-		     (let ((content-type (message-fetch-field "content-type")))
-		       (or
-			(not content-type)
-			(string= "text/plain"
-				 (car
-				  (mail-header-parse-content-type
-				   content-type)))))))
+		     (let ((content-type (message-fetch-field
+					  "content-type")))
+		       (and
+			(or
+			 (not content-type)
+			 (string= "text/plain"
+				  (car
+				   (mail-header-parse-content-type
+				    content-type))))
+			(not
+			 (string= "base64"
+				  (message-fetch-field
+				   "content-transfer-encoding")))))))
 	    (message-insert-courtesy-copy))
 	  (if (or (not message-send-mail-partially-limit)
 		  (< (point-max) message-send-mail-partially-limit)
-		  (not (y-or-n-p "The message size is too large, should it be sent partially? ")))
+		  (not (message-y-or-n-p
+			"The message size is too large, split? "
+			t
+			"\
+The message size, "
+			(/ (point-max) 1000) "KB, is too large.
+
+Some mail gateways (MTA's) bounce large messages.  To avoid the
+problem, answer `y', and the message will be split into several
+smaller pieces, the size of each is about "
+			(/ message-send-mail-partially-limit 1000)
+			"KB except the last
+one.
+
+However, some mail readers (MUA's) can't read split messages, i.e.,
+mails in message/partially format. Answer `n', and the message will be
+sent in one piece.
+
+The size limit is controlled by `message-send-mail-partially-limit'.
+If you always want Gnus to send messages in one piece, set
+`message-send-mail-partially-limit' to nil.
+")))
 	      (mm-with-unibyte-current-buffer
-		(funcall message-send-mail-function))
+		(message "Sending via mail...")
+		(funcall (or message-send-mail-real-function
+			     message-send-mail-function)))
 	    (message-send-mail-partially)))
       (kill-buffer tembuf))
     (set-buffer mailbuf)
@@ -2415,61 +3760,67 @@ It should typically alter the sending method in some way or other."
 		     " sendmail errors")
 		  0))
 	resend-to-addresses delimline)
-    (let ((case-fold-search t))
-      (save-restriction
-	(message-narrow-to-headers)
-	(setq resend-to-addresses (message-fetch-field "resent-to")))
-      ;; Change header-delimiter to be what sendmail expects.
-      (goto-char (point-min))
-      (re-search-forward
-       (concat "^" (regexp-quote mail-header-separator) "\n"))
-      (replace-match "\n")
-      (backward-char 1)
-      (setq delimline (point-marker))
-      (run-hooks 'message-send-mail-hook)
-      ;; Insert an extra newline if we need it to work around
-      ;; Sun's bug that swallows newlines.
-      (goto-char (1+ delimline))
-      (when (eval message-mailer-swallows-blank-line)
-	(newline))
-      (when message-interactive
-	(save-excursion
-	  (set-buffer errbuf)
-	  (erase-buffer))))
-    (let ((default-directory "/")
-	  (coding-system-for-write message-send-coding-system))
-      (apply 'call-process-region
-	     (append (list (point-min) (point-max)
-			   (if (boundp 'sendmail-program)
-			       sendmail-program
-			     "/usr/lib/sendmail")
-			   nil errbuf nil "-oi")
-		     ;; Always specify who from,
-		     ;; since some systems have broken sendmails.
-		     ;; But some systems are more broken with -f, so
-		     ;; we'll let users override this.
-		     (if (null message-sendmail-f-is-evil)
-			 (list "-f" (message-make-address)))
-		     ;; These mean "report errors by mail"
-		     ;; and "deliver in background".
-		     (if (null message-interactive) '("-oem" "-odb"))
-		     ;; Get the addresses from the message
-		     ;; unless this is a resend.
-		     ;; We must not do that for a resend
-		     ;; because we would find the original addresses.
-		     ;; For a resend, include the specific addresses.
-		     (if resend-to-addresses
-			 (list resend-to-addresses)
-		       '("-t")))))
-    (when message-interactive
-      (save-excursion
-	(set-buffer errbuf)
-	(goto-char (point-min))
-	(while (re-search-forward "\n\n* *" nil t)
-	  (replace-match "; "))
-	(if (not (zerop (buffer-size)))
-	    (error "Sending...failed to %s"
-		   (buffer-substring (point-min) (point-max)))))
+    (unwind-protect
+	(progn
+	  (let ((case-fold-search t))
+	    (save-restriction
+	      (message-narrow-to-headers)
+	      (setq resend-to-addresses (message-fetch-field "resent-to")))
+	    ;; Change header-delimiter to be what sendmail expects.
+	    (goto-char (point-min))
+	    (re-search-forward
+	     (concat "^" (regexp-quote mail-header-separator) "\n"))
+	    (replace-match "\n")
+	    (backward-char 1)
+	    (setq delimline (point-marker))
+	    (run-hooks 'message-send-mail-hook)
+	    ;; Insert an extra newline if we need it to work around
+	    ;; Sun's bug that swallows newlines.
+	    (goto-char (1+ delimline))
+	    (when (eval message-mailer-swallows-blank-line)
+	      (newline))
+	    (when message-interactive
+	      (save-excursion
+		(set-buffer errbuf)
+		(erase-buffer))))
+	  (let* ((default-directory "/")
+		 (coding-system-for-write message-send-coding-system)
+		 (cpr (apply
+		       'call-process-region
+		       (append
+			(list (point-min) (point-max)
+			      (if (boundp 'sendmail-program)
+				  sendmail-program
+				"/usr/lib/sendmail")
+			      nil errbuf nil "-oi")
+			;; Always specify who from,
+			;; since some systems have broken sendmails.
+			;; But some systems are more broken with -f, so
+			;; we'll let users override this.
+			(if (null message-sendmail-f-is-evil)
+			    (list "-f" (message-sendmail-envelope-from)))
+			;; These mean "report errors by mail"
+			;; and "deliver in background".
+			(if (null message-interactive) '("-oem" "-odb"))
+			;; Get the addresses from the message
+			;; unless this is a resend.
+			;; We must not do that for a resend
+			;; because we would find the original addresses.
+			;; For a resend, include the specific addresses.
+			(if resend-to-addresses
+			    (list resend-to-addresses)
+			  '("-t"))))))
+	    (unless (or (null cpr) (and (numberp cpr) (zerop cpr)))
+	      (error "Sending...failed with exit value %d" cpr)))
+	  (when message-interactive
+	    (save-excursion
+	      (set-buffer errbuf)
+	      (goto-char (point-min))
+	      (while (re-search-forward "\n\n* *" nil t)
+		(replace-match "; "))
+	      (if (not (zerop (buffer-size)))
+		  (error "Sending...failed to %s"
+			 (buffer-string))))))
       (when (bufferp errbuf)
 	(kill-buffer errbuf)))))
 
@@ -2506,11 +3857,13 @@ to find out how to use this."
 	 ;; free for -inject-arguments -- a big win for the user and for us
 	 ;; since we don't have to play that double-guessing game and the user
 	 ;; gets full control (no gestapo'ish -f's, for instance).  --sj
-	 message-qmail-inject-args))
+         (if (functionp message-qmail-inject-args)
+             (funcall message-qmail-inject-args)
+           message-qmail-inject-args)))
     ;; qmail-inject doesn't say anything on it's stdout/stderr,
     ;; we have to look at the retval instead
     (0 nil)
-    (1   (error "qmail-inject reported permanent failure"))
+    (100 (error "qmail-inject reported permanent failure"))
     (111 (error "qmail-inject reported transient failure"))
     ;; should never happen
     (t   (error "qmail-inject reported unknown failure"))))
@@ -2533,29 +3886,74 @@ to find out how to use this."
     ;; Pass it on to mh.
     (mh-send-letter)))
 
+(defun message-smtpmail-send-it ()
+  "Send the prepared message buffer with `smtpmail-send-it'.
+This only differs from `smtpmail-send-it' that this command evaluates
+`message-send-mail-hook' just before sending a message.  It is useful
+if your ISP requires the POP-before-SMTP authentication.  See the
+documentation for the function `mail-source-touch-pop'."
+  (run-hooks 'message-send-mail-hook)
+  (smtpmail-send-it))
+
+(defun message-canlock-generate ()
+  "Return a string that is non-trivial to guess.
+Do not use this for anything important, it is cryptographically weak."
+  (let (sha1-maximum-internal-length)
+    (sha1 (concat (message-unique-id)
+		  (format "%x%x%x" (random) (random t) (random))
+		  (prin1-to-string (recent-keys))
+		  (prin1-to-string (garbage-collect))))))
+
+(defun message-canlock-password ()
+  "The password used by message for cancel locks.
+This is the value of `canlock-password', if that option is non-nil.
+Otherwise, generate and save a value for `canlock-password' first."
+  (unless canlock-password
+    (customize-save-variable 'canlock-password (message-canlock-generate))
+    (setq canlock-password-for-verify canlock-password))
+  canlock-password)
+
+(defun message-insert-canlock ()
+  (when message-insert-canlock
+    (message-canlock-password)
+    (canlock-insert-header)))
+
 (defun message-send-news (&optional arg)
   (let* ((tembuf (message-generate-new-buffer-clone-locals " *message temp*"))
 	 (case-fold-search nil)
-	 (method (if (message-functionp message-post-method)
+	 (method (if (functionp message-post-method)
 		     (funcall message-post-method arg)
 		   message-post-method))
-	 (group-name-charset (gnus-group-name-charset method ""))
+	 (newsgroups-field (save-restriction
+			    (message-narrow-to-headers-or-head)
+			    (message-fetch-field "Newsgroups")))
+	 (followup-field (save-restriction
+			   (message-narrow-to-headers-or-head)
+			   (message-fetch-field "Followup-To")))
+	 ;; BUG: We really need to get the charset for each name in the
+	 ;; Newsgroups and Followup-To lines to allow crossposting
+	 ;; between group namess with incompatible character sets.
+	 ;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2001-10-08.
+	 (group-field-charset
+	  (gnus-group-name-charset method newsgroups-field))
+	 (followup-field-charset
+	  (gnus-group-name-charset method (or followup-field "")))
 	 (rfc2047-header-encoding-alist
-	  (if group-name-charset
-	      (cons (cons "Newsgroups" group-name-charset)
-		    rfc2047-header-encoding-alist)
-	    rfc2047-header-encoding-alist))
+	  (append (when group-field-charset
+		    (list (cons "Newsgroups" group-field-charset)))
+		  (when followup-field-charset
+		    (list (cons "Followup-To" followup-field-charset)))
+		  rfc2047-header-encoding-alist))
 	 (messbuf (current-buffer))
 	 (message-syntax-checks
-	  (if arg
+	  (if (and arg
+		   (listp message-syntax-checks))
 	      (cons '(existing-newsgroups . disabled)
 		    message-syntax-checks)
 	    message-syntax-checks))
 	 (message-this-is-news t)
-	 (message-posting-charset (gnus-setup-posting-charset
-				   (save-restriction
-				     (message-narrow-to-headers-or-head)
-				     (message-fetch-field "Newsgroups"))))
+	 (message-posting-charset
+	  (gnus-setup-posting-charset newsgroups-field))
 	 result)
     (if (not (message-check-news-body-syntax))
 	nil
@@ -2563,24 +3961,30 @@ to find out how to use this."
 	(message-narrow-to-headers)
 	;; Insert some headers.
 	(message-generate-headers message-required-news-headers)
+	(message-insert-canlock)
 	;; Let the user do all of the above.
 	(run-hooks 'message-header-hook))
-      (if group-name-charset
-	  (setq message-syntax-checks
+      ;; Note: This check will be disabled by the ".*" default value for
+      ;; gnus-group-name-charset-group-alist. -- Pa 2001-10-07.
+      (when (and group-field-charset
+		 (listp message-syntax-checks))
+	(setq message-syntax-checks
 	      (cons '(valid-newsgroups . disabled)
 		    message-syntax-checks)))
       (message-cleanup-headers)
-      (if (not (message-check-news-syntax))
+      (if (not (let ((message-post-method method))
+		 (message-check-news-syntax)))
 	  nil
 	(unwind-protect
 	    (save-excursion
 	      (set-buffer tembuf)
 	      (buffer-disable-undo)
 	      (erase-buffer)
-	      ;; Avoid copying text props.
-	      (insert (with-current-buffer messbuf
-			(buffer-substring-no-properties
-			 (point-min) (point-max))))
+	      ;; Avoid copying text props (except hard newlines).
+	      (insert
+	       (with-current-buffer messbuf
+		 (mml-buffer-substring-no-properties-except-hard-newlines
+		  (point-min) (point-max))))
 	      (message-encode-message-body)
 	      ;; Remove some headers.
 	      (save-restriction
@@ -2605,6 +4009,7 @@ to find out how to use this."
 		(backward-char 1))
 	      (run-hooks 'message-send-news-hook)
 	      (gnus-open-server method)
+	      (message "Sending news via %s..." (gnus-server-string method))
 	      (setq result (let ((mail-header-separator ""))
 			     (gnus-request-post method))))
 	  (kill-buffer tembuf))
@@ -2665,6 +4070,24 @@ to find out how to use this."
 	 (y-or-n-p
 	  "The control code \"cmsg\" is in the subject.  Really post? ")
        t))
+   ;; Check long header lines.
+   (message-check 'long-header-lines
+     (let ((start (point))
+	   (header nil)
+	   (length 0)
+	   found)
+       (while (and (not found)
+		   (re-search-forward "^\\([^ \t:]+\\): " nil t))
+	 (if (> (- (point) (match-beginning 0)) 998)
+	     (setq found t
+		   length (- (point) (match-beginning 0)))
+	   (setq header (match-string-no-properties 1)))
+	 (setq start (match-beginning 0))
+	 (forward-line 1))
+       (if found
+	   (y-or-n-p (format "Your %s header is too long (%d).  Really post? "
+			     header length))
+	 t)))
    ;; Check for multiple identical headers.
    (message-check 'multiple-headers
      (let (found)
@@ -2703,8 +4126,8 @@ to find out how to use this."
 		   (zerop
 		    (length
 		     (setq to (completing-read
-			       "Followups to: (default all groups) "
-			       (mapcar (lambda (g) (list g))
+			       "Followups to (default: no Followup-To header) "
+			       (mapcar #'list
 				       (cons "poster"
 					     (message-tokenize-header
 					      newsgroups)))))))))
@@ -2714,7 +4137,7 @@ to find out how to use this."
    ;; Check "Shoot me".
    (message-check 'shoot
      (if (re-search-forward
-	  "Message-ID.*.i-did-not-set--mail-host-address--so-shoot-me" nil t)
+	  "Message-ID.*.i-did-not-set--mail-host-address--so-tickle-me" nil t)
 	 (y-or-n-p "You appear to have a misconfigured system.  Really post? ")
        t))
    ;; Check for Approved.
@@ -2745,27 +4168,72 @@ to find out how to use this."
 		     (if followup-to
 			 (concat newsgroups "," followup-to)
 		       newsgroups)))
-	    (hashtb (and (boundp 'gnus-active-hashtb)
-			 gnus-active-hashtb))
+	    (post-method (if (functionp message-post-method)
+			     (funcall message-post-method)
+			   message-post-method))
+	    ;; KLUDGE to handle nnvirtual groups.  Doing this right
+	    ;; would probably involve a new nnoo function.
+	    ;; -- Per Abrahamsen <abraham@dina.kvl.dk>, 2001-10-17.
+	    (method (if (and (consp post-method)
+			     (eq (car post-method) 'nnvirtual)
+			     gnus-message-group-art)
+			(let ((group (car (nnvirtual-find-group-art
+					   (car gnus-message-group-art)
+					   (cdr gnus-message-group-art)))))
+			  (gnus-find-method-for-group group))
+		      post-method))
+	    (known-groups
+	     (mapcar (lambda (n)
+		       (gnus-group-name-decode
+			(gnus-group-real-name n)
+			(gnus-group-name-charset method n)))
+		     (gnus-groups-from-server method)))
 	    errors)
-       (if (or (not hashtb)
-	       (not (boundp 'gnus-read-active-file))
-	       (not gnus-read-active-file)
-	       (eq gnus-read-active-file 'some))
-	   t
-	 (while groups
-	   (when (and (not (boundp (intern (car groups) hashtb)))
-		      (not (equal (car groups) "poster")))
-	     (push (car groups) errors))
-	   (pop groups))
-	 (if (not errors)
-	     t
-	   (y-or-n-p
-	    (format
-	     "Really post to %s unknown group%s: %s? "
-	     (if (= (length errors) 1) "this" "these")
-	     (if (= (length errors) 1) "" "s")
-	     (mapconcat 'identity errors ", ")))))))
+       (while groups
+	 (when (and (not (equal (car groups) "poster"))
+		    (not (member (car groups) known-groups))
+		    (not (member (car groups) errors)))
+	   (push (car groups) errors))
+	 (pop groups))
+       (cond
+	;; Gnus is not running.
+	((or (not (and (boundp 'gnus-active-hashtb)
+		       gnus-active-hashtb))
+	     (not (boundp 'gnus-read-active-file)))
+	 t)
+	;; We don't have all the group names.
+	((and (or (not gnus-read-active-file)
+		  (eq gnus-read-active-file 'some))
+	      errors)
+	 (y-or-n-p
+	  (format
+	   "Really use %s possibly unknown group%s: %s? "
+	   (if (= (length errors) 1) "this" "these")
+	   (if (= (length errors) 1) "" "s")
+	   (mapconcat 'identity errors ", "))))
+	;; There were no errors.
+	((not errors)
+	 t)
+	;; There are unknown groups.
+	(t
+	 (y-or-n-p
+	  (format
+	   "Really post to %s unknown group%s: %s? "
+	   (if (= (length errors) 1) "this" "these")
+	   (if (= (length errors) 1) "" "s")
+	   (mapconcat 'identity errors ", ")))))))
+   ;; Check continuation headers.
+   (message-check 'continuation-headers
+     (goto-char (point-min))
+     (let ((do-posting t))
+       (while (re-search-forward "^[^ \t\n][^:\n]*$" nil t)
+	 (if (y-or-n-p "Fix continuation lines? ")
+	     (progn
+	       (goto-char (match-beginning 0))
+	       (insert " "))
+	   (unless (y-or-n-p "Send anyway? ")
+	     (setq do-posting nil))))
+       do-posting))
    ;; Check the Newsgroups & Followup-To headers for syntax errors.
    (message-check 'valid-newsgroups
      (let ((case-fold-search t)
@@ -2820,7 +4288,7 @@ to find out how to use this."
 		   "@[^\\.]*\\."
 		   (setq ad (nth 1 (mail-extract-address-components
 				    from))))) ;larsi@ifi
-	     (string-match "\\.\\." ad) ;larsi@ifi..uio
+	     (string-match "\\.\\." ad)	;larsi@ifi..uio
 	     (string-match "@\\." ad)	;larsi@.ifi.uio
 	     (string-match "\\.$" ad)	;larsi@ifi.uio.
 	     (not (string-match "^[^@]+@[^@]+$" ad)) ;larsi.ifi.uio
@@ -2828,6 +4296,40 @@ to find out how to use this."
 	 (message
 	  "Denied posting -- the From looks strange: \"%s\"." from)
 	 nil)
+	((let ((addresses (rfc822-addresses from)))
+	   (while (and addresses
+		       (not (eq (string-to-char (car addresses)) ?\()))
+	     (setq addresses (cdr addresses)))
+	   addresses)
+	 (message
+	  "Denied posting -- bad From address: \"%s\"." from)
+	 nil)
+	(t t))))
+   ;; Check the Reply-To header.
+   (message-check 'reply-to
+     (let* ((case-fold-search t)
+	    (reply-to (message-fetch-field "reply-to"))
+	    ad)
+       (cond
+	((not reply-to)
+	 t)
+	((string-match "," reply-to)
+	 (y-or-n-p
+	  (format "Multiple Reply-To addresses: \"%s\". Really post? "
+		  reply-to)))
+	((or (not (string-match
+		   "@[^\\.]*\\."
+		   (setq ad (nth 1 (mail-extract-address-components
+				    reply-to))))) ;larsi@ifi
+	     (string-match "\\.\\." ad)	;larsi@ifi..uio
+	     (string-match "@\\." ad)	;larsi@.ifi.uio
+	     (string-match "\\.$" ad)	;larsi@ifi.uio.
+	     (not (string-match "^[^@]+@[^@]+$" ad)) ;larsi.ifi.uio
+	     (string-match "(.*).*(.*)" reply-to)) ;(lars) (lars)
+	 (y-or-n-p
+	  (format
+	   "The Reply-To looks strange: \"%s\". Really post? "
+	   reply-to)))
 	(t t))))))
 
 (defun message-check-news-body-syntax ()
@@ -2837,10 +4339,13 @@ to find out how to use this."
      (goto-char (point-min))
      (re-search-forward
       (concat "^" (regexp-quote mail-header-separator) "$"))
+     (forward-line 1)
      (while (and
-	     (progn
-	       (end-of-line)
-	       (< (current-column) 80))
+	     (or (looking-at
+		  "<#\\(/\\)?\\(multipart\\|part\\|external\\|mml\\)")
+		 (let ((p (point)))
+		   (end-of-line)
+		   (< (- (point) p) 80)))
 	     (zerop (forward-line 1))))
      (or (bolp)
 	 (eobp)
@@ -2857,7 +4362,10 @@ to find out how to use this."
        (re-search-backward message-signature-separator nil t)
        (beginning-of-line)
        (or (re-search-backward "[^ \n\t]" b t)
-	   (y-or-n-p "Empty article.  Really post? "))))
+	   (if (message-gnksa-enable-p 'empty-article)
+	       (y-or-n-p "Empty article.  Really post? ")
+	     (message "Denied posting -- Empty article.")
+	     nil))))
    ;; Check for control characters.
    (message-check 'control-chars
      (if (re-search-forward "[\000-\007\013\015-\032\034-\037\200-\237]" nil t)
@@ -2876,8 +4384,11 @@ to find out how to use this."
      (or
       (not message-checksum)
       (not (eq (message-checksum) message-checksum))
-      (y-or-n-p
-       "It looks like no new text has been added.  Really post? ")))
+      (if (message-gnksa-enable-p 'quoted-text-only)
+	  (y-or-n-p
+	   "It looks like no new text has been added.  Really post? ")
+	(message "Denied posting -- no new text has been added.")
+	nil)))
    ;; Check the length of the signature.
    (message-check 'signature
      (goto-char (point-max))
@@ -2891,15 +4402,20 @@ to find out how to use this."
    (message-check 'quoting-style
      (goto-char (point-max))
      (let ((no-problem t))
-       (when (search-backward-regexp "^>[^\n]*\n>" nil t)
-	 (setq no-problem nil)
-	 (while (not (eobp))
-	   (when (and (not (eolp)) (looking-at "[^> \t]"))
-	     (setq no-problem t))
-	   (forward-line)))
+       (when (search-backward-regexp "^>[^\n]*\n" nil t)
+	 (setq no-problem (search-forward-regexp "^[ \t]*[^>\n]" nil t)))
        (if no-problem
 	   t
-	 (y-or-n-p "Your text should follow quoted text.  Really post? "))))))
+	 (if (message-gnksa-enable-p 'quoted-text-only)
+	     (y-or-n-p "Your text should follow quoted text.  Really post? ")
+	   ;; Ensure that
+	   (goto-char (point-min))
+	   (re-search-forward
+	    (concat "^" (regexp-quote mail-header-separator) "$"))
+	   (if (search-forward-regexp "^[ \t]*[^>\n]" nil t)
+	       (y-or-n-p "Your text should follow quoted text.  Really post? ")
+	     (message "Denied posting -- only quoted text.")
+	     nil)))))))
 
 (defun message-checksum ()
   "Return a \"checksum\" for the current buffer."
@@ -2910,8 +4426,8 @@ to find out how to use this."
        (concat "^" (regexp-quote mail-header-separator) "$"))
       (while (not (eobp))
 	(when (not (looking-at "[ \t\n]"))
- 	  (setq sum (logxor (ash sum 1) (if (natnump sum) 0 1)
- 			    (char-after))))
+	  (setq sum (logxor (ash sum 1) (if (natnump sum) 0 1)
+			    (char-after))))
 	(forward-char 1)))
     sum))
 
@@ -2919,49 +4435,52 @@ to find out how to use this."
   "Process Fcc headers in the current buffer."
   (let ((case-fold-search t)
 	(buf (current-buffer))
-	list file)
+	list file
+	(mml-externalize-attachments message-fcc-externalize-attachments))
     (save-excursion
-      (set-buffer (get-buffer-create " *message temp*"))
-      (erase-buffer)
-      (insert-buffer-substring buf)
       (save-restriction
 	(message-narrow-to-headers)
-	(while (setq file (message-fetch-field "fcc"))
-	  (push file list)
-	  (message-remove-header "fcc" nil t)))
-      (message-encode-message-body)
-      (save-restriction
-	(message-narrow-to-headers)
-	(let ((mail-parse-charset message-default-charset)
-	      (rfc2047-header-encoding-alist
-	       (cons '("Newsgroups" . default)
-		     rfc2047-header-encoding-alist)))
-	  (mail-encode-encoded-word-buffer)))
-      (goto-char (point-min))
-      (when (re-search-forward
-	     (concat "^" (regexp-quote mail-header-separator) "$")
-	     nil t)
-	(replace-match "" t t ))
-      ;; Process FCC operations.
-      (while list
-	(setq file (pop list))
-	(if (string-match "^[ \t]*|[ \t]*\\(.*\\)[ \t]*$" file)
-	    ;; Pipe the article to the program in question.
-	    (call-process-region (point-min) (point-max) shell-file-name
-				 nil nil nil shell-command-switch
-				 (match-string 1 file))
-	  ;; Save the article.
-	  (setq file (expand-file-name file))
-	  (unless (file-exists-p (file-name-directory file))
-	    (make-directory (file-name-directory file) t))
-	  (if (and message-fcc-handler-function
-		   (not (eq message-fcc-handler-function 'rmail-output)))
-	      (funcall message-fcc-handler-function file)
-	    (if (and (file-readable-p file) (mail-file-babyl-p file))
-		(rmail-output file 1 nil t)
-	      (let ((mail-use-rfc822 t))
-		(rmail-output file 1 t t))))))
-      (kill-buffer (current-buffer)))))
+	(setq file (message-fetch-field "fcc" t)))
+      (when file
+	(set-buffer (get-buffer-create " *message temp*"))
+	(erase-buffer)
+	(insert-buffer-substring buf)
+	(message-encode-message-body)
+	(save-restriction
+	  (message-narrow-to-headers)
+	  (while (setq file (message-fetch-field "fcc" t))
+	    (push file list)
+	    (message-remove-header "fcc" nil t))
+	  (let ((mail-parse-charset message-default-charset)
+		(rfc2047-header-encoding-alist
+		 (cons '("Newsgroups" . default)
+		       rfc2047-header-encoding-alist)))
+	    (mail-encode-encoded-word-buffer)))
+	(goto-char (point-min))
+	(when (re-search-forward
+	       (concat "^" (regexp-quote mail-header-separator) "$")
+	       nil t)
+	  (replace-match "" t t ))
+	;; Process FCC operations.
+	(while list
+	  (setq file (pop list))
+	  (if (string-match "^[ \t]*|[ \t]*\\(.*\\)[ \t]*$" file)
+	      ;; Pipe the article to the program in question.
+	      (call-process-region (point-min) (point-max) shell-file-name
+				   nil nil nil shell-command-switch
+				   (match-string 1 file))
+	    ;; Save the article.
+	    (setq file (expand-file-name file))
+	    (unless (file-exists-p (file-name-directory file))
+	      (make-directory (file-name-directory file) t))
+	    (if (and message-fcc-handler-function
+		     (not (eq message-fcc-handler-function 'rmail-output)))
+		(funcall message-fcc-handler-function file)
+	      (if (and (file-readable-p file) (mail-file-babyl-p file))
+		  (rmail-output file 1 nil t)
+		(let ((mail-use-rfc822 t))
+		  (rmail-output file 1 t t))))))
+	(kill-buffer (current-buffer))))))
 
 (defun message-output (filename)
   "Append this article to Unix/babyl mail file FILENAME."
@@ -2993,7 +4512,7 @@ to find out how to use this."
 	   (point)))
 	(goto-char (point-min))
 	(while (re-search-forward "\n[ \t]+" nil t)
-	  (replace-match " " t t))	;No line breaks (too confusing)
+	  (replace-match " " t t))     ;No line breaks (too confusing)
 	(goto-char (point-min))
 	(while (re-search-forward "[ \t\n]*,[ \t\n]*\\|[ \t]+" nil t)
 	  (replace-match "," t t))
@@ -3012,6 +4531,9 @@ If NOW, use that time instead."
       (setq sign "-")
       (setq zone (- zone)))
     (concat
+     ;; The day name of the %a spec is locale-specific.  Pfff.
+     (format "%s, " (capitalize (car (rassoc (nth 6 (decode-time now))
+					     parse-time-weekdays))))
      (format-time-string "%d" now)
      ;; The month name of the %b spec is locale-specific.  Pfff.
      (format " %s "
@@ -3063,13 +4585,13 @@ If NOW, use that time instead."
 	     (aset user (match-beginning 0) ?_))
 	   user)
        (message-number-base36 (user-uid) -1))
-     (message-number-base36 (+ (car   tm)
+     (message-number-base36 (+ (car tm)
 			       (lsh (% message-unique-id-char 25) 16)) 4)
      (message-number-base36 (+ (nth 1 tm)
 			       (lsh (/ message-unique-id-char 25) 16)) 4)
-     ;; Append the newsreader name, because while the generated
-     ;; ID is unique to this newsreader, other newsreaders might
-     ;; otherwise generate the same ID via another algorithm.
+     ;; Append a given name, because while the generated ID is unique
+     ;; to this newsreader, other newsreaders might otherwise generate
+     ;; the same ID via another algorithm.
      ".fsf")))
 
 (defun message-number-base36 (num len)
@@ -3085,11 +4607,11 @@ If NOW, use that time instead."
   "Make an Organization header."
   (let* ((organization
 	  (when message-user-organization
-	    (if (message-functionp message-user-organization)
+	    (if (functionp message-user-organization)
 		(funcall message-user-organization)
 	      message-user-organization))))
-    (save-excursion
-      (message-set-work-buffer)
+    (with-temp-buffer
+      (mm-enable-multibyte)
       (cond ((stringp organization)
 	     (insert organization))
 	    ((and (eq t organization)
@@ -3107,21 +4629,40 @@ If NOW, use that time instead."
   (save-excursion
     (save-restriction
       (widen)
-      (goto-char (point-min))
-      (re-search-forward
-       (concat "^" (regexp-quote mail-header-separator) "$"))
-      (forward-line 1)
+      (message-goto-body)
       (int-to-string (count-lines (point) (point-max))))))
+
+(defun message-make-references ()
+  "Return the References header for this message."
+  (when message-reply-headers
+    (let ((message-id (mail-header-message-id message-reply-headers))
+	  (references (mail-header-references message-reply-headers))
+	  new-references)
+      (if (or references message-id)
+	  (concat (or references "") (and references " ")
+		  (or message-id ""))
+	nil))))
 
 (defun message-make-in-reply-to ()
   "Return the In-Reply-To header for this message."
   (when message-reply-headers
-    (mail-header-message-id message-reply-headers)))
+    (let ((from (mail-header-from message-reply-headers))
+	  (date (mail-header-date message-reply-headers))
+	  (msg-id (mail-header-message-id message-reply-headers)))
+      (when from
+	(let ((name (mail-extract-address-components from)))
+	  (concat msg-id (if msg-id " (")
+		  (or (car name)
+		      (nth 1 name))
+		  "'s message of \""
+		  (if (or (not date) (string= date ""))
+		      "(unknown date)" date)
+		  "\"" (if msg-id ")")))))))
 
 (defun message-make-distribution ()
   "Make a Distribution header."
   (let ((orig-distribution (message-fetch-reply-field "distribution")))
-    (cond ((message-functionp message-distribution-function)
+    (cond ((functionp message-distribution-function)
 	   (funcall message-distribution-function))
 	  (t orig-distribution))))
 
@@ -3154,8 +4695,8 @@ If NOW, use that time instead."
 	      (user-full-name))))
     (when (string= fullname "&")
       (setq fullname (user-login-name)))
-    (save-excursion
-      (message-set-work-buffer)
+    (with-temp-buffer
+      (mm-enable-multibyte)
       (cond
        ((or (null style)
 	    (equal fullname ""))
@@ -3172,15 +4713,15 @@ If NOW, use that time instead."
 		       (string-match "[\\()]" tmp)))))
 	(insert fullname)
 	(goto-char (point-min))
-	;; Look for a character that cannot appear unquoted
-	;; according to RFC 822.
-	(when (re-search-forward "[^- !#-'*+/-9=?A-Z^-~]" nil 1)
-	  ;; Quote fullname, escaping specials.
-	  (goto-char (point-min))
-	  (insert "\"")
-	  (while (re-search-forward "[\"\\]" nil 1)
-	    (replace-match "\\\\\\&" t))
-	  (insert "\""))
+ 	;; Look for a character that cannot appear unquoted
+ 	;; according to RFC 822.
+ 	(when (re-search-forward "[^- !#-'*+/-9=?A-Z^-~]" nil 1)
+ 	  ;; Quote fullname, escaping specials.
+ 	  (goto-char (point-min))
+ 	  (insert "\"")
+ 	  (while (re-search-forward "[\"\\]" nil 1)
+ 	    (replace-match "\\\\\\&" t))
+ 	  (insert "\""))
 	(insert " <" login ">"))
        (t				; 'parens or default
 	(insert login " (")
@@ -3216,32 +4757,58 @@ give as trustworthy answer as possible."
 
 (defun message-user-mail-address ()
   "Return the pertinent part of `user-mail-address'."
-  (when user-mail-address
+  (when (and user-mail-address
+	     (string-match "@.*\\." user-mail-address))
     (if (string-match " " user-mail-address)
 	(nth 1 (mail-extract-address-components user-mail-address))
       user-mail-address)))
 
+(defun message-sendmail-envelope-from ()
+  "Return the envelope from."
+  (cond ((eq message-sendmail-envelope-from 'header)
+	 (nth 1 (mail-extract-address-components
+		 (message-fetch-field "from"))))
+	((stringp message-sendmail-envelope-from)
+	 message-sendmail-envelope-from)
+	(t
+	 (message-make-address))))
+
 (defun message-make-fqdn ()
   "Return user's fully qualified domain name."
-  (let ((system-name (system-name))
-	(user-mail (message-user-mail-address)))
+  (let* ((system-name (system-name))
+	 (user-mail (message-user-mail-address))
+	 (user-domain
+	  (if (and user-mail
+		   (string-match "@\\(.*\\)\\'" user-mail))
+	      (match-string 1 user-mail)))
+	 (case-fold-search t))
     (cond
-     ((string-match "[^.]\\.[^.]" system-name)
+     ((and message-user-fqdn
+	   (stringp message-user-fqdn)
+	   (string-match message-valid-fqdn-regexp message-user-fqdn)
+	   (not (string-match message-bogus-system-names message-user-fqdn)))
+      message-user-fqdn)
+     ;; `message-user-fqdn' seems to be valid
+     ((and (string-match message-valid-fqdn-regexp system-name)
+	   (not (string-match message-bogus-system-names system-name)))
       ;; `system-name' returned the right result.
       system-name)
      ;; Try `mail-host-address'.
      ((and (boundp 'mail-host-address)
 	   (stringp mail-host-address)
-	   (string-match "\\." mail-host-address))
+	   (string-match message-valid-fqdn-regexp mail-host-address)
+	   (not (string-match message-bogus-system-names mail-host-address)))
       mail-host-address)
      ;; We try `user-mail-address' as a backup.
-     ((and user-mail
-	   (string-match "\\." user-mail)
-	   (string-match "@\\(.*\\)\\'" user-mail))
-      (match-string 1 user-mail))
+     ((and user-domain
+	   (stringp user-domain)
+	   (string-match message-valid-fqdn-regexp user-domain)
+	   (not (string-match message-bogus-system-names user-domain)))
+      user-domain)
      ;; Default to this bogus thing.
      (t
-      (concat system-name ".i-did-not-set--mail-host-address--so-shoot-me")))))
+      (concat system-name
+	      ".i-did-not-set--mail-host-address--so-tickle-me")))))
 
 (defun message-make-host-name ()
   "Return the name of the host."
@@ -3254,9 +4821,130 @@ give as trustworthy answer as possible."
   (or mail-host-address
       (message-make-fqdn)))
 
+(defun message-to-list-only ()
+  "Send a message to the list only.
+Remove all addresses but the list address from To and Cc headers."
+  (interactive)
+  (let ((listaddr (message-make-mail-followup-to t)))
+    (when listaddr
+      (save-excursion
+	(message-remove-header "to")
+	(message-remove-header "cc")
+	(message-position-on-field "To" "X-Draft-From")
+	(insert listaddr)))))
+
+(defun message-make-mail-followup-to (&optional only-show-subscribed)
+  "Return the Mail-Followup-To header.
+If passed the optional argument ONLY-SHOW-SUBSCRIBED only return the
+subscribed address (and not the additional To and Cc header contents)."
+  (let* ((case-fold-search t)
+	 (to (message-fetch-field "To"))
+	 (cc (message-fetch-field "cc"))
+	 (msg-recipients (concat to (and to cc ", ") cc))
+	 (recipients
+	  (mapcar 'mail-strip-quoted-names
+		  (message-tokenize-header msg-recipients)))
+	 (file-regexps
+	  (if message-subscribed-address-file
+	      (let (begin end item re)
+		(save-excursion
+		  (with-temp-buffer
+		    (insert-file-contents message-subscribed-address-file)
+		    (while (not (eobp))
+		      (setq begin (point))
+		      (forward-line 1)
+		      (setq end (point))
+		      (if (bolp) (setq end (1- end)))
+		      (setq item (regexp-quote (buffer-substring begin end)))
+		      (if re (setq re (concat re "\\|" item))
+			(setq re (concat "\\`\\(" item))))
+		    (and re (list (concat re "\\)\\'"))))))))
+	 (mft-regexps (apply 'append message-subscribed-regexps
+			     (mapcar 'regexp-quote
+				     message-subscribed-addresses)
+			     file-regexps
+			     (mapcar 'funcall
+				     message-subscribed-address-functions))))
+    (save-match-data
+      (let ((subscribed-lists nil)
+	    (list
+	     (loop for recipient in recipients
+	       when (loop for regexp in mft-regexps
+		      when (string-match regexp recipient) return t)
+	       return recipient)))
+	(when list
+	  (if only-show-subscribed
+	      list
+	    msg-recipients))))))
+
+(defun message-idna-inside-rhs-p ()
+  "Return t iff point is inside a RHS (heuristically).
+Only works properly if header contains mailbox-list or address-list.
+I.e., calling it on a Subject: header is useless."
+  (save-restriction
+    (narrow-to-region (save-excursion (or (re-search-backward "^[^ \t]" nil t)
+					  (point-min)))
+		      (save-excursion (or (re-search-forward "^[^ \t]" nil t)
+					  (point-max))))
+    (if (re-search-backward "[\\\n\r\t ]"
+			    (save-excursion (search-backward "@" nil t)) t)
+	;; whitespace between @ and point
+	nil
+      (let ((dquote 1) (paren 1))
+	(while (save-excursion (re-search-backward "[^\\]\"" nil t dquote))
+	  (incf dquote))
+	(while (save-excursion (re-search-backward "[^\\]\(" nil t paren))
+	  (incf paren))
+	(and (= (% dquote 2) 1) (= (% paren 2) 1))))))
+
+(autoload 'idna-to-ascii "idna")
+
+(defun message-idna-to-ascii-rhs-1 (header)
+  "Interactively potentially IDNA encode domain names in HEADER."
+  (let (rhs ace start startpos endpos ovl)
+    (goto-char (point-min))
+    (while (re-search-forward (concat "^" header) nil t)
+      (while (re-search-forward "@\\([^ \t\r\n>,]+\\)"
+				(or (save-excursion
+				      (re-search-forward "^[^ \t]" nil t))
+				    (point-max))
+				t)
+	(setq rhs (match-string-no-properties 1)
+	      startpos (match-beginning 1)
+	      endpos (match-end 1))
+	(when (save-match-data
+		(and (message-idna-inside-rhs-p)
+		     (setq ace (idna-to-ascii rhs))
+		     (not (string= rhs ace))
+		     (if (eq message-use-idna 'ask)
+			 (unwind-protect
+			     (progn
+			       (setq ovl (message-make-overlay startpos
+							       endpos))
+			       (message-overlay-put ovl 'face 'highlight)
+			       (y-or-n-p
+				(format "Replace with `%s'? " ace)))
+			   (message "")
+			   (message-delete-overlay ovl))
+		       message-use-idna)))
+	  (replace-match (concat "@" ace)))))))
+
+(defun message-idna-to-ascii-rhs ()
+  "Possibly IDNA encode non-ASCII domain names in From:, To: and Cc: headers.
+See `message-idna-encode'."
+  (interactive)
+  (when message-use-idna
+    (save-excursion
+      (save-restriction
+	(message-narrow-to-head)
+	(message-idna-to-ascii-rhs-1 "From")
+	(message-idna-to-ascii-rhs-1 "To")
+	(message-idna-to-ascii-rhs-1 "Cc")))))
+
 (defun message-generate-headers (headers)
   "Prepare article HEADERS.
 Headers already prepared in the buffer are not modified."
+  (setq headers (append headers message-required-headers))
   (save-restriction
     (message-narrow-to-headers)
     (let* ((Date (message-make-date))
@@ -3267,13 +4955,15 @@ Headers already prepared in the buffer are not modified."
 	   (Subject nil)
 	   (Newsgroups nil)
 	   (In-Reply-To (message-make-in-reply-to))
+	   (References (message-make-references))
 	   (To nil)
 	   (Distribution (message-make-distribution))
 	   (Lines (message-make-lines))
 	   (User-Agent message-newsreader)
 	   (Expires (message-make-expires))
 	   (case-fold-search t)
-	   header value elem)
+	   (optionalp nil)
+	   header value elem header-string)
       ;; First we remove any old generated headers.
       (let ((headers message-deletable-headers))
 	(unless (buffer-modified-p)
@@ -3294,42 +4984,49 @@ Headers already prepared in the buffer are not modified."
 	(setq elem (pop headers))
 	(if (consp elem)
 	    (if (eq (car elem) 'optional)
-		(setq header (cdr elem))
+		(setq header (cdr elem)
+		      optionalp t)
 	      (setq header (car elem)))
 	  (setq header elem))
+	(setq header-string  (if (stringp header)
+				 header
+			       (symbol-name header)))
 	(when (or (not (re-search-forward
 			(concat "^"
-				(regexp-quote
-				 (downcase
-				  (if (stringp header)
-				      header
-				    (symbol-name header))))
+				(regexp-quote (downcase header-string))
 				":")
 			nil t))
 		  (progn
 		    ;; The header was found.  We insert a space after the
 		    ;; colon, if there is none.
 		    (if (/= (char-after) ? ) (insert " ") (forward-char 1))
-		    ;; Find out whether the header is empty...
+		    ;; Find out whether the header is empty.
 		    (looking-at "[ \t]*\n[^ \t]")))
 	  ;; So we find out what value we should insert.
 	  (setq value
 		(cond
-		 ((and (consp elem) (eq (car elem) 'optional))
+		 ((and (consp elem)
+		       (eq (car elem) 'optional)
+		       (not (member header-string message-inserted-headers)))
 		  ;; This is an optional header.  If the cdr of this
 		  ;; is something that is nil, then we do not insert
 		  ;; this header.
 		  (setq header (cdr elem))
-		  (or (and (fboundp (cdr elem)) (funcall (cdr elem)))
-		      (and (boundp (cdr elem)) (symbol-value (cdr elem)))))
+		  (or (and (functionp (cdr elem))
+			   (funcall (cdr elem)))
+		      (and (boundp (cdr elem))
+			   (symbol-value (cdr elem)))))
 		 ((consp elem)
 		  ;; The element is a cons.  Either the cdr is a
 		  ;; string to be inserted verbatim, or it is a
 		  ;; function, and we insert the value returned from
 		  ;; this function.
-		  (or (and (stringp (cdr elem)) (cdr elem))
-		      (and (fboundp (cdr elem)) (funcall (cdr elem)))))
-		 ((and (boundp header) (symbol-value header))
+		  (or (and (stringp (cdr elem))
+			   (cdr elem))
+		      (and (functionp (cdr elem))
+			   (funcall (cdr elem)))))
+		 ((and (boundp header)
+		       (symbol-value header))
 		  ;; The element is a symbol.  We insert the value
 		  ;; of this symbol, if any.
 		  (symbol-value header))
@@ -3346,13 +5043,24 @@ Headers already prepared in the buffer are not modified."
 		  (progn
 		    ;; This header didn't exist, so we insert it.
 		    (goto-char (point-max))
-		    (insert (if (stringp header) header (symbol-name header))
-			    ": " value "\n")
-		    (forward-line -1))
+		    (let ((formatter
+			   (cdr (assq header message-header-format-alist))))
+		      (if formatter
+			  (funcall formatter header value)
+			(insert header-string ": " value))
+		      ;; We check whether the value was ended by a
+		      ;; newline.  If now, we insert one.
+		      (unless (bolp)
+			(insert "\n"))
+		      (forward-line -1)))
 		;; The value of this header was empty, so we clear
 		;; totally and insert the new value.
 		(delete-region (point) (gnus-point-at-eol))
-		(insert value))
+		;; If the header is optional, and the header was
+		;; empty, we con't insert it anyway.
+		(unless optionalp
+		  (push header-string message-inserted-headers)
+		  (insert value)))
 	      ;; Add the deletable property to the headers that require it.
 	      (and (memq header message-deletable-headers)
 		   (progn (beginning-of-line) (looking-at "[^:]+: "))
@@ -3383,7 +5091,9 @@ Headers already prepared in the buffer are not modified."
 	    (beginning-of-line))
 	  (when (or (message-news-p)
 		    (string-match "@.+\\.." secure-sender))
-	    (insert "Sender: " secure-sender "\n")))))))
+	    (insert "Sender: " secure-sender "\n"))))
+      ;; Check for IDNA
+      (message-idna-to-ascii-rhs))))
 
 (defun message-insert-courtesy-copy ()
   "Insert a courtesy message in mail copies of combined messages."
@@ -3436,6 +5146,15 @@ Headers already prepared in the buffer are not modified."
     (widen)
     (forward-line 1)))
 
+(defun message-split-line ()
+  "Split current line, moving portion beyond point vertically down.
+If the current line has `message-yank-prefix', insert it on the new line."
+  (interactive "*")
+  (condition-case nil
+      (split-line message-yank-prefix) ;; Emacs 21.3.50+ supports arg.
+    (error
+     (split-line))))
+     
 (defun message-fill-header (header value)
   (let ((begin (point))
 	(fill-column 78)
@@ -3463,12 +5182,12 @@ Headers already prepared in the buffer are not modified."
 	  (nthcdr (+ (- cut 2) surplus 1) list)))
 
 (defun message-shorten-references (header references)
-  "Trim REFERENCES to be less than 31 Message-ID long, and fold them.
+  "Trim REFERENCES to be 21 Message-ID long or less, and fold them.
 If folding is disallowed, also check that the REFERENCES are less
 than 988 characters long, and if they are not, trim them until they are."
-  (let ((maxcount 31)
+  (let ((maxcount 21)
 	(count 0)
-	(cut 6)
+	(cut 2)
 	refs)
     (with-temp-buffer
       (insert references)
@@ -3534,6 +5253,41 @@ than 988 characters long, and if they are not, trim them until they are."
       (forward-line 2)))
    (sit-for 0)))
 
+(defcustom message-beginning-of-line t
+  "Whether \\<message-mode-map>\\[message-beginning-of-line]\
+ goes to beginning of header values."
+  :group 'message-buffers
+  :link '(custom-manual "(message)Movement")
+  :type 'boolean)
+
+(defun message-beginning-of-line (&optional n)
+  "Move point to beginning of header value or to beginning of line.
+The prefix argument N is passed directly to `beginning-of-line'.
+
+This command is identical to `beginning-of-line' if point is
+outside the message header or if the option `message-beginning-of-line'
+is nil.
+
+If point is in the message header and on a (non-continued) header
+line, move point to the beginning of the header value.  If point
+is already there, move point to beginning of line.  Therefore,
+repeated calls will toggle point between beginning of field and
+beginning of line."
+  (interactive "p")
+  (let ((zrs 'zmacs-region-stays))
+    (when (and (interactive-p) (boundp zrs))
+      (set zrs t)))
+  (if (and message-beginning-of-line
+	   (message-point-in-header-p))
+      (let* ((here (point))
+	     (bol (progn (beginning-of-line n) (point)))
+	     (eol (gnus-point-at-eol))
+	     (eoh (re-search-forward ": *" eol t)))
+	(if (or (not eoh) (equal here eoh))
+	    (goto-char bol)
+	  (goto-char eoh)))
+    (beginning-of-line n)))
+
 (defun message-buffer-name (type &optional to group)
   "Return a new (unique) buffer name based on TYPE and TO."
   (cond
@@ -3550,7 +5304,7 @@ than 988 characters long, and if they are not, trim them until they are."
 	     "*")))
    ;; Check whether `message-generate-new-buffers' is a function,
    ;; and if so, call it.
-   ((message-functionp message-generate-new-buffers)
+   ((functionp message-generate-new-buffers)
     (funcall message-generate-new-buffers type to group))
    ((eq message-generate-new-buffers 'unsent)
     (generate-new-buffer-name
@@ -3587,7 +5341,7 @@ than 988 characters long, and if they are not, trim them until they are."
   ;; list of buffers.
   (setq message-buffer-list (delq (current-buffer) message-buffer-list))
   (while (and message-max-buffers
-              message-buffer-list
+	      message-buffer-list
 	      (>= (length message-buffer-list) message-max-buffers))
     ;; Kill the oldest buffer -- unless it has been changed.
     (let ((buffer (pop message-buffer-list)))
@@ -3597,9 +5351,30 @@ than 988 characters long, and if they are not, trim them until they are."
   ;; Rename the buffer.
   (if message-send-rename-function
       (funcall message-send-rename-function)
-    (when (string-match "\\`\\*\\(unsent \\)?" (buffer-name))
-      (rename-buffer
-       (concat "*sent " (substring (buffer-name) (match-end 0))) t)))
+    ;; Note: mail-abbrevs of XEmacs renames buffer name behind Gnus.
+    (when (string-match
+	   "\\`\\*\\(sent \\|unsent \\)?\\(.+\\)\\*[^\\*]*\\|\\`mail to "
+	   (buffer-name))
+      (let ((name (match-string 2 (buffer-name)))
+	    to group)
+	(if (not (or (null name)
+		     (string-equal name "mail")
+		     (string-equal name "posting")))
+	    (setq name (concat "*sent " name "*"))
+	  (message-narrow-to-headers)
+	  (setq to (message-fetch-field "to"))
+	  (setq group (message-fetch-field "newsgroups"))
+	  (widen)
+	  (setq name
+		(cond
+		 (to (concat "*sent mail to "
+			     (or (car (mail-extract-address-components to))
+				 to) "*"))
+		 ((and group (not (string= group "")))
+		  (concat "*sent posting on " group "*"))
+		 (t "*sent mail*"))))
+	(unless (string-equal name (buffer-name))
+	  (rename-buffer name t)))))
   ;; Push the current buffer onto the list.
   (when message-max-buffers
     (setq message-buffer-list
@@ -3639,13 +5414,32 @@ than 988 characters long, and if they are not, trim them until they are."
 			      headers)
 		      nil switch-function yank-action actions)))))
 
-(eval-when-compile (defvar mc-modes-alist))
+(defun message-headers-to-generate (headers included-headers excluded-headers)
+  "Return a list that includes all headers from HEADERS.
+If INCLUDED-HEADERS is a list, just include those headers.  If if is
+t, include all headers.  In any case, headers from EXCLUDED-HEADERS
+are not included."
+  (let ((result nil)
+	header-name)
+    (dolist (header headers)
+      (setq header-name (cond
+			 ((and (consp header)
+			       (eq (car header) 'optional))
+			  ;; On the form (optional . Header)
+			  (cdr header))
+			 ((consp header)
+			  ;; On the form (Header . function)
+			  (car header))
+			 (t
+			  ;; Just a Header.
+			  header)))
+      (when (and (not (memq header-name excluded-headers))
+		 (or (eq included-headers t)
+		     (memq header-name included-headers)))
+	(push header result)))
+    (nreverse result)))
+
 (defun message-setup-1 (headers &optional replybuffer actions)
-  (when (and (boundp 'mc-modes-alist)
-	     (not (assq 'message-mode mc-modes-alist)))
-    (push '(message-mode (encrypt . mc-encrypt-message)
-			 (sign . mc-sign-message))
-	  mc-modes-alist))
   (dolist (action actions)
     (condition-case nil
 	(add-to-list 'message-send-actions
@@ -3679,24 +5473,30 @@ than 988 characters long, and if they are not, trim them until they are."
       (or (bolp) (insert ?\n)))
     (when message-generate-headers-first
       (message-generate-headers
-       (delq 'Lines
-	     (delq 'Subject
-		   (copy-sequence message-required-news-headers))))))
+       (message-headers-to-generate
+	(append message-required-news-headers
+		message-required-headers)
+	message-generate-headers-first
+	'(Lines Subject)))))
   (when (message-mail-p)
     (when message-default-mail-headers
       (insert message-default-mail-headers)
       (or (bolp) (insert ?\n)))
+    (save-restriction
+      (message-narrow-to-headers)
+      (if message-alternative-emails
+	  (message-use-alternative-email-as-from)))
     (when message-generate-headers-first
       (message-generate-headers
-       (delq 'Lines
-	     (delq 'Subject
-		   (copy-sequence message-required-mail-headers))))))
+       (message-headers-to-generate
+	(append message-required-mail-headers
+		message-required-headers)
+	message-generate-headers-first
+	'(Lines Subject)))))
   (run-hooks 'message-signature-setup-hook)
   (message-insert-signature)
   (save-restriction
     (message-narrow-to-headers)
-    (if message-alternative-emails
-	(message-use-alternative-email-as-from))
     (run-hooks 'message-header-setup-hook))
   (set-buffer-modified-p nil)
   (setq buffer-undo-list nil)
@@ -3713,8 +5513,14 @@ than 988 characters long, and if they are not, trim them until they are."
     (if (gnus-alive-p)
 	(setq message-draft-article
 	      (nndraft-request-associate-buffer "drafts"))
-      (setq buffer-file-name (expand-file-name "*message*"
-					       message-auto-save-directory))
+      (setq buffer-file-name (expand-file-name
+			      (if (memq system-type
+					'(ms-dos ms-windows windows-nt
+						 cygwin cygwin32 win32 w32
+						 mswindows))
+				  "message"
+				"*message*")
+			      message-auto-save-directory))
       (setq buffer-auto-save-file-name (make-auto-save-file-name)))
     (clear-visited-file-modtime)
     (setq buffer-file-coding-system message-draft-coding-system)))
@@ -3775,18 +5581,30 @@ OTHER-HEADERS is an alist of header/value pairs."
   "Start editing a news article to be sent."
   (interactive)
   (let ((message-this-is-news t))
-    (message-pop-to-buffer (message-buffer-name "news" nil newsgroups))
+    (message-pop-to-buffer (message-buffer-name "posting" nil newsgroups))
     (message-setup `((Newsgroups . ,(or newsgroups ""))
 		     (Subject . ,(or subject ""))))))
 
-(defun message-get-reply-headers (wide &optional to-address)
-  (let (follow-to mct never-mct from to cc reply-to ccalist)
+(defun message-get-reply-headers (wide &optional to-address address-headers)
+  (let (follow-to mct never-mct to cc author mft recipients)
     ;; Find all relevant headers we need.
-    (setq from (message-fetch-field "from")
-	  to (message-fetch-field "to")
-	  cc (message-fetch-field "cc")
-	  mct (message-fetch-field "mail-copies-to")
-	  reply-to (message-fetch-field "reply-to"))
+    (save-restriction
+      (message-narrow-to-headers-or-head)
+      ;; Gmane renames "To".  Look at "Original-To", too, if it is present in
+      ;; message-header-synonyms.
+      (setq to (or (message-fetch-field "to")
+		   (and (loop for synonym in message-header-synonyms
+			      when (memq 'Original-To synonym)
+			      return t)
+			(message-fetch-field "original-to")))
+	    cc (message-fetch-field "cc")
+	    mct (message-fetch-field "mail-copies-to")
+	    author (or (message-fetch-field "mail-reply-to")
+		       (message-fetch-field "reply-to")
+		       (message-fetch-field "from")
+		       "")
+	    mft (and message-use-mail-followup-to
+		     (message-fetch-field "mail-followup-to"))))
 
     ;; Handle special values of Mail-Copies-To.
     (when mct
@@ -3796,50 +5614,104 @@ OTHER-HEADERS is an alist of header/value pairs."
 	     (setq mct nil))
 	    ((or (equal (downcase mct) "always")
 		 (equal (downcase mct) "poster"))
-	     (setq mct (or reply-to from)))))
+	     (setq mct author))))
 
-    (if (or (not wide)
-	    to-address)
-	(progn
-	  (setq follow-to (list (cons 'To (or to-address reply-to from))))
-	  (when (and wide mct)
-	    (push (cons 'Cc mct) follow-to)))
-      (let (ccalist)
-	(save-excursion
-	  (message-set-work-buffer)
-	  (unless never-mct
-	    (insert (or reply-to from "")))
-	  (insert (if to (concat (if (bolp) "" ", ") to "") ""))
-	  (insert (if mct (concat (if (bolp) "" ", ") mct) ""))
-	  (insert (if cc (concat (if (bolp) "" ", ") cc) ""))
-	  (goto-char (point-min))
-	  (while (re-search-forward "[ \t]+" nil t)
-	    (replace-match " " t t))
-	  ;; Remove addresses that match `rmail-dont-reply-to-names'.
-	  (let ((rmail-dont-reply-to-names message-dont-reply-to-names))
-	    (insert (prog1 (rmail-dont-reply-to (buffer-string))
-		      (erase-buffer))))
-	  (goto-char (point-min))
-	  ;; Perhaps "Mail-Copies-To: never" removed the only address?
-	  (when (eobp)
-	    (insert (or reply-to from "")))
-	  (setq ccalist
-		(mapcar
-		 (lambda (addr)
-		   (cons (mail-strip-quoted-names addr) addr))
-		 (message-tokenize-header (buffer-string))))
-	  (let ((s ccalist))
-	    (while s
-	      (setq ccalist (delq (assoc (car (pop s)) s) ccalist)))))
-	(setq follow-to (list (cons 'To (cdr (pop ccalist)))))
-	(when ccalist
-	  (let ((ccs (cons 'Cc (mapconcat
-				(lambda (addr) (cdr addr)) ccalist ", "))))
-	    (when (string-match "^ +" (cdr ccs))
-	      (setcdr ccs (substring (cdr ccs) (match-end 0))))
-	    (push ccs follow-to)))))
+    (save-match-data
+      ;; Build (textual) list of new recipient addresses.
+      (cond
+       ((not wide)
+	(setq recipients (concat ", " author)))
+       (address-headers
+	(dolist (header address-headers)
+	  (let ((value (message-fetch-field header)))
+	    (when value
+	      (setq recipients (concat recipients ", " value))))))
+       ((and mft
+	     (string-match "[^ \t,]" mft)
+	     (or (not (eq message-use-mail-followup-to 'ask))
+		 (message-y-or-n-p "Obey Mail-Followup-To? " t "\
+You should normally obey the Mail-Followup-To: header.  In this
+article, it has the value of
+
+" mft "
+
+which directs your response to " (if (string-match "," mft)
+				     "the specified addresses"
+				   "that address only") ".
+
+Most commonly, Mail-Followup-To is used by a mailing list poster to
+express that responses should be sent to just the list, and not the
+poster as well.
+
+If a message is posted to several mailing lists, Mail-Followup-To may
+also be used to direct the following discussion to one list only,
+because discussions that are spread over several lists tend to be
+fragmented and very difficult to follow.
+
+Also, some source/announcement lists are not intended for discussion;
+responses here are directed to other addresses.")))
+	(setq recipients (concat ", " mft)))
+       (to-address
+	(setq recipients (concat ", " to-address))
+	;; If the author explicitly asked for a copy, we don't deny it to them.
+	(if mct (setq recipients (concat recipients ", " mct))))
+       (t
+	(setq recipients (if never-mct "" (concat ", " author)))
+	(if to  (setq recipients (concat recipients ", " to)))
+	(if cc  (setq recipients (concat recipients ", " cc)))
+	(if mct (setq recipients (concat recipients ", " mct)))))
+      (if (>= (length recipients) 2)
+	  ;; Strip the leading ", ".
+	  (setq recipients (substring recipients 2)))
+      ;; Squeeze whitespace.
+      (while (string-match "[ \t][ \t]+" recipients)
+	(setq recipients (replace-match " " t t recipients)))
+      ;; Remove addresses that match `rmail-dont-reply-to-names'.
+      (let ((rmail-dont-reply-to-names message-dont-reply-to-names))
+	(setq recipients (rmail-dont-reply-to recipients)))
+      ;; Perhaps "Mail-Copies-To: never" removed the only address?
+      (if (string-equal recipients "")
+	  (setq recipients author))
+      ;; Convert string to a list of (("foo@bar" . "Name <Foo@BAR>") ...).
+      (setq recipients
+	    (mapcar
+	     (lambda (addr)
+	       (cons (downcase (mail-strip-quoted-names addr)) addr))
+	     (message-tokenize-header recipients)))
+      ;; Remove first duplicates.  (Why not all duplicates?  Is this a bug?)
+      (let ((s recipients))
+	(while s
+	  (setq recipients (delq (assoc (car (pop s)) s) recipients))))
+
+      ;; Remove hierarchical lists that are contained within each other,
+      ;; if message-hierarchical-addresses is defined.
+      (when message-hierarchical-addresses
+	(let ((plain-addrs (mapcar 'car recipients))
+	      subaddrs recip)
+	  (while plain-addrs
+	    (setq subaddrs (assoc (car plain-addrs)
+				  message-hierarchical-addresses)
+		  plain-addrs (cdr plain-addrs))
+	    (when subaddrs
+	      (setq subaddrs (cdr subaddrs))
+	      (while subaddrs
+		(setq recip (assoc (car subaddrs) recipients)
+		      subaddrs (cdr subaddrs))
+		(if recip
+		    (setq recipients (delq recip recipients))))))))
+
+      ;; Build the header alist.  Allow the user to be asked whether
+      ;; or not to reply to all recipients in a wide reply.
+      (setq follow-to (list (cons 'To (cdr (pop recipients)))))
+      (when (and recipients
+		 (or (not message-wide-reply-confirm-recipients)
+		     (y-or-n-p "Reply to all recipients? ")))
+	(setq recipients (mapconcat
+			  (lambda (addr) (cdr addr)) recipients ", "))
+	(if (string-match "^ +" recipients)
+	    (setq recipients (substring recipients (match-end 0))))
+	(push (cons 'Cc recipients) follow-to)))
     follow-to))
-
 
 ;;;###autoload
 (defun message-reply (&optional to-address wide)
@@ -3857,28 +5729,31 @@ OTHER-HEADERS is an alist of header/value pairs."
       ;; Allow customizations to have their say.
       (if (not wide)
 	  ;; This is a regular reply.
-	  (if (message-functionp message-reply-to-function)
-	      (setq follow-to (funcall message-reply-to-function)))
-	;; This is a followup.
-	(if (message-functionp message-wide-reply-to-function)
+	  (when (functionp message-reply-to-function)
 	    (save-excursion
-	      (setq follow-to
-		    (funcall message-wide-reply-to-function)))))
+	      (setq follow-to (funcall message-reply-to-function))))
+	;; This is a followup.
+	(when (functionp message-wide-reply-to-function)
+	  (save-excursion
+	    (setq follow-to
+		  (funcall message-wide-reply-to-function)))))
       (setq message-id (message-fetch-field "message-id" t)
 	    references (message-fetch-field "references")
 	    date (message-fetch-field "date")
 	    from (message-fetch-field "from")
 	    subject (or (message-fetch-field "subject") "none"))
-    (if gnus-list-identifiers
+      (when gnus-list-identifiers
 	(setq subject (message-strip-list-identifiers subject)))
-    (setq subject (concat "Re: " (message-strip-subject-re subject)))
+      (setq subject (concat "Re: " (message-strip-subject-re subject)))
+      (when message-subject-trailing-was-query
+	(setq subject (message-strip-subject-trailing-was subject)))
 
-    (when (and (setq gnus-warning (message-fetch-field "gnus-warning"))
-	       (string-match "<[^>]+>" gnus-warning))
-      (setq message-id (match-string 0 gnus-warning)))
+      (when (and (setq gnus-warning (message-fetch-field "gnus-warning"))
+		 (string-match "<[^>]+>" gnus-warning))
+	(setq message-id (match-string 0 gnus-warning)))
 
-    (unless follow-to
-      (setq follow-to (message-get-reply-headers wide to-address))))
+      (unless follow-to
+	(setq follow-to (message-get-reply-headers wide to-address))))
 
     (unless (message-mail-user-agent)
       (message-pop-to-buffer
@@ -3891,11 +5766,7 @@ OTHER-HEADERS is an alist of header/value pairs."
 
     (message-setup
      `((Subject . ,subject)
-       ,@follow-to
-       ,@(if (or references message-id)
-	     `((References . ,(concat (or references "") (and references " ")
-				      (or message-id ""))))
-	   nil))
+       ,@follow-to)
      cur)))
 
 ;;;###autoload
@@ -3911,7 +5782,7 @@ If TO-NEWSGROUPS, use that as the new Newsgroups line."
   (interactive)
   (require 'gnus-sum)			; for gnus-list-identifiers
   (let ((cur (current-buffer))
-	from subject date reply-to mct
+	from subject date reply-to mrt mct
 	references message-id follow-to
 	(inhibit-point-motion-hooks t)
 	(message-this-is-news t)
@@ -3922,7 +5793,7 @@ If TO-NEWSGROUPS, use that as the new Newsgroups line."
        (if (search-forward "\n\n" nil t)
 	   (1- (point))
 	 (point-max)))
-      (when (message-functionp message-followup-to-function)
+      (when (functionp message-followup-to-function)
 	(setq follow-to
 	      (funcall message-followup-to-function)))
       (setq from (message-fetch-field "from")
@@ -3934,6 +5805,7 @@ If TO-NEWSGROUPS, use that as the new Newsgroups line."
 	    newsgroups (message-fetch-field "newsgroups")
 	    posted-to (message-fetch-field "posted-to")
 	    reply-to (message-fetch-field "reply-to")
+	    mrt (message-fetch-field "mail-reply-to")
 	    distribution (message-fetch-field "distribution")
 	    mct (message-fetch-field "mail-copies-to"))
       (when (and (setq gnus-warning (message-fetch-field "gnus-warning"))
@@ -3947,9 +5819,14 @@ If TO-NEWSGROUPS, use that as the new Newsgroups line."
       (if gnus-list-identifiers
 	  (setq subject (message-strip-list-identifiers subject)))
       (setq subject (concat "Re: " (message-strip-subject-re subject)))
+      (when message-subject-trailing-was-query
+	(setq subject (message-strip-subject-trailing-was subject)))
       (widen))
 
     (message-pop-to-buffer (message-buffer-name "followup" from newsgroups))
+
+    (setq message-reply-headers
+	  (vector 0 subject from date message-id references 0 0 ""))
 
     (message-setup
      `((Subject . ,subject)
@@ -3971,7 +5848,7 @@ A typical situation where `Followup-To: poster' is used is when the poster
 does not read the newsgroup, so he wouldn't see any replies sent to it."))
 		  (progn
 		    (setq message-this-is-news nil)
-		    (cons 'To (or reply-to from "")))
+		    (cons 'To (or mrt reply-to from "")))
 		(cons 'Newsgroups newsgroups)))
 	     (t
 	      (if (or (equal followup-to newsgroups)
@@ -3990,7 +5867,7 @@ used to direct the following discussion to one newsgroup only,
 because discussions that are spread over several newsgroup tend to
 be fragmented and very difficult to follow.
 
-Also, some source/announcement newsgroups are not indented for discussion;
+Also, some source/announcement newsgroups are not intended for discussion;
 responses here are directed to other newsgroups."))
 		  (cons 'Newsgroups followup-to)
 		(cons 'Newsgroups newsgroups))))))
@@ -3999,22 +5876,58 @@ responses here are directed to other newsgroups."))
 	  (t
 	   `((Newsgroups . ,newsgroups))))
        ,@(and distribution (list (cons 'Distribution distribution)))
-       ,@(if (or references message-id)
-	     `((References . ,(concat (or references "") (and references " ")
-				      (or message-id "")))))
        ,@(when (and mct
 		    (not (or (equal (downcase mct) "never")
 			     (equal (downcase mct) "nobody"))))
 	   (list (cons 'Cc (if (or (equal (downcase mct) "always")
 				   (equal (downcase mct) "poster"))
-			       (or reply-to from "")
+			       (or mrt reply-to from "")
 			     mct)))))
 
-     cur)
+     cur)))
 
-    (setq message-reply-headers
-	  (vector 0 subject from date message-id references 0 0 ""))))
-
+(defun message-is-yours-p ()
+  "Non-nil means current article is yours.
+If you have added 'cancel-messages to 'message-shoot-gnksa-feet', all articles
+are yours except those that have Cancel-Lock header not belonging to you.
+Instead of shooting GNKSA feet, you should modify 'message-alternative-emails'
+regexp to match all of yours addresses."
+  ;; Canlock-logic as suggested by Per Abrahamsen
+  ;; <abraham@dina.kvl.dk>
+  ;;
+  ;; IF article has cancel-lock THEN
+  ;;   IF we can verify it THEN
+  ;;     issue cancel
+  ;;   ELSE
+  ;;     error: cancellock: article is not yours
+  ;; ELSE
+  ;;   Use old rules, comparing sender...
+  (save-excursion
+    (save-restriction
+      (message-narrow-to-head-1)
+      (if (message-fetch-field "Cancel-Lock")
+	  (if (null (canlock-verify))
+	      t
+	    (error "Failed to verify Cancel-lock: This article is not yours"))
+	(let (sender from)
+	  (or
+	   (message-gnksa-enable-p 'cancel-messages)
+	   (and (setq sender (message-fetch-field "sender"))
+		(string-equal (downcase sender)
+			      (downcase (message-make-sender))))
+	   ;; Email address in From field equals to our address
+	   (and (setq from (message-fetch-field "from"))
+		(string-equal
+		 (downcase (cadr (mail-extract-address-components from)))
+		 (downcase (cadr (mail-extract-address-components
+				  (message-make-from))))))
+	   ;; Email address in From field matches
+	   ;; 'message-alternative-emails' regexp
+	   (and from
+		message-alternative-emails
+		(string-match
+		 message-alternative-emails
+		 (cadr (mail-extract-address-components from))))))))))
 
 ;;;###autoload
 (defun message-cancel-news (&optional arg)
@@ -4023,34 +5936,26 @@ If ARG, allow editing of the cancellation message."
   (interactive "P")
   (unless (message-news-p)
     (error "This is not a news article; canceling is impossible"))
-  (when (yes-or-no-p "Do you really want to cancel this article? ")
-    (let (from newsgroups message-id distribution buf sender)
-      (save-excursion
-	;; Get header info from original article.
-	(save-restriction
-	  (message-narrow-to-head-1)
-	  (setq from (message-fetch-field "from")
-		sender (message-fetch-field "sender")
-		newsgroups (message-fetch-field "newsgroups")
-		message-id (message-fetch-field "message-id" t)
-		distribution (message-fetch-field "distribution")))
-	;; Make sure that this article was written by the user.
-	(unless (or (and sender
-			 (string-equal
-			  (downcase sender)
-			  (downcase (message-make-sender))))
-		    (string-equal
-		     (downcase (cadr (mail-extract-address-components from)))
-		     (downcase (cadr (mail-extract-address-components
-				      (message-make-from))))))
-	  (error "This article is not yours"))
+  (let (from newsgroups message-id distribution buf)
+    (save-excursion
+      ;; Get header info from original article.
+      (save-restriction
+	(message-narrow-to-head-1)
+	(setq from (message-fetch-field "from")
+	      newsgroups (message-fetch-field "newsgroups")
+	      message-id (message-fetch-field "message-id" t)
+	      distribution (message-fetch-field "distribution")))
+      ;; Make sure that this article was written by the user.
+      (unless (message-is-yours-p)
+	(error "This article is not yours"))
+      (when (yes-or-no-p "Do you really want to cancel this article? ")
 	;; Make control message.
 	(if arg
 	    (message-news)
 	  (setq buf (set-buffer (get-buffer-create " *message cancel*"))))
 	(erase-buffer)
 	(insert "Newsgroups: " newsgroups "\n"
-               "From: " from "\n"
+		"From: " from "\n"
 		"Subject: cmsg cancel " message-id "\n"
 		"Control: cancel " message-id "\n"
 		(if distribution
@@ -4073,18 +5978,9 @@ If ARG, allow editing of the cancellation message."
 This is done simply by taking the old article and adding a Supersedes
 header line with the old Message-ID."
   (interactive)
-  (let ((cur (current-buffer))
-	(sender (message-fetch-field "sender"))
-	(from (message-fetch-field "from")))
+  (let ((cur (current-buffer)))
     ;; Check whether the user owns the article that is to be superseded.
-    (unless (or (and sender
-		     (string-equal
-		      (downcase sender)
-		      (downcase (message-make-sender))))
-		(string-equal
-		 (downcase (cadr (mail-extract-address-components from)))
-		 (downcase (cadr (mail-extract-address-components
-				  (message-make-from))))))
+    (unless (message-is-yours-p)
       (error "This article is not yours"))
     ;; Get a normal message buffer.
     (message-pop-to-buffer (message-buffer-name "supersede"))
@@ -4161,26 +6057,48 @@ Previous forwarders, replyers, etc. may add it."
 (defvar message-forward-decoded-p nil
   "Non-nil means the original message is decoded.")
 
+(defun message-forward-subject-name-subject (subject)
+  "Generate a SUBJECT for a forwarded message.
+The form is: [Source] Subject, where if the original message was mail,
+Source is the name of the sender, and if the original message was
+news, Source is the list of newsgroups is was posted to."
+  (let* ((group (message-fetch-field "newsgroups"))
+	 (from (message-fetch-field "from"))
+	 (prefix
+	  (if group
+	      (gnus-group-decoded-name group)
+	    (or (and from (car (gnus-extract-address-components from)))
+		"(nowhere)"))))
+    (concat "["
+	    (if message-forward-decoded-p
+		prefix
+	      (mail-decode-encoded-word-string prefix))
+	    "] " subject)))
+
 (defun message-forward-subject-author-subject (subject)
   "Generate a SUBJECT for a forwarded message.
 The form is: [Source] Subject, where if the original message was mail,
 Source is the sender, and if the original message was news, Source is
 the list of newsgroups is was posted to."
-  (concat "["
-	   (let ((prefix
-		  (or (message-fetch-field "newsgroups")
-		      (message-fetch-field "from")
-		      "(nowhere)")))
-	     (if message-forward-decoded-p
-		 prefix
-	       (mail-decode-encoded-word-string prefix)))
-	  "] " subject))
+  (let* ((group (message-fetch-field "newsgroups"))
+	 (prefix
+	  (if group
+	      (gnus-group-decoded-name group)
+	    (or (message-fetch-field "from")
+		"(nowhere)"))))
+    (concat "["
+	    (if message-forward-decoded-p
+		prefix
+	      (mail-decode-encoded-word-string prefix))
+	    "] " subject)))
 
 (defun message-forward-subject-fwd (subject)
   "Generate a SUBJECT for a forwarded message.
 The form is: Fwd: Subject, where Subject is the original subject of
 the message."
-  (concat "Fwd: " subject))
+  (if (string-match "^Fwd: " subject)
+      subject
+    (concat "Fwd: " subject)))
 
 (defun message-make-forward-subject ()
   "Return a Subject header suitable for the message in the current buffer."
@@ -4204,7 +6122,7 @@ the message."
 	;; Apply funcs in order, passing subject generated by previous
 	;; func to the next one.
 	(while funcs
-	  (when (message-functionp (car funcs))
+	  (when (functionp (car funcs))
 	    (setq subject (funcall (car funcs) subject)))
 	  (setq funcs (cdr funcs)))
 	subject))))
@@ -4230,6 +6148,108 @@ Optional DIGEST will use digest to forward."
       (message-mail nil subject))
     (message-forward-make-body cur digest)))
 
+(defun message-forward-make-body-plain (forward-buffer)
+  (insert
+   "\n-------------------- Start of forwarded message --------------------\n")
+  (let ((b (point)) e)
+    (insert
+     (with-temp-buffer
+       (mm-disable-multibyte)
+       (insert
+	(with-current-buffer forward-buffer
+	  (mm-with-unibyte-current-buffer (buffer-string))))
+       (mm-enable-multibyte)
+       (mime-to-mml)
+       (goto-char (point-min))
+       (when (looking-at "From ")
+	 (replace-match "X-From-Line: "))
+       (buffer-string)))
+    (setq e (point))
+    (insert
+     "\n-------------------- End of forwarded message --------------------\n")
+    (when (and (not current-prefix-arg)
+	       message-forward-ignored-headers)
+      (save-restriction
+	(narrow-to-region b e)
+	(goto-char b)
+	(narrow-to-region (point)
+			  (or (search-forward "\n\n" nil t) (point)))
+	(message-remove-header message-forward-ignored-headers t)))))
+
+(defun message-forward-make-body-mime (forward-buffer)
+  (insert "\n\n<#part type=message/rfc822 disposition=inline raw=t>\n")
+  (let ((b (point)) e)
+    (save-restriction
+      (narrow-to-region (point) (point))
+      (mml-insert-buffer forward-buffer)
+      (goto-char (point-min))
+      (when (looking-at "From ")
+	(replace-match "X-From-Line: "))
+      (goto-char (point-max)))
+    (setq e (point))
+    (insert "<#/part>\n")))
+
+(defun message-forward-make-body-mml (forward-buffer)
+  (insert "\n\n<#mml type=message/rfc822 disposition=inline>\n")
+  (let ((b (point)) e)
+    (if (not message-forward-decoded-p)
+	(insert
+	 (with-temp-buffer
+	   (mm-disable-multibyte)
+	   (insert
+	    (with-current-buffer forward-buffer
+	      (mm-with-unibyte-current-buffer (buffer-string))))
+	   (mm-enable-multibyte)
+	   (mime-to-mml)
+	   (goto-char (point-min))
+	   (when (looking-at "From ")
+	     (replace-match "X-From-Line: "))
+	   (buffer-string)))
+      (save-restriction
+	(narrow-to-region (point) (point))
+	(mml-insert-buffer forward-buffer)
+	(goto-char (point-min))
+	(when (looking-at "From ")
+	  (replace-match "X-From-Line: "))
+	(goto-char (point-max))))
+    (setq e (point))
+    (insert "<#/mml>\n")
+    (when (and (not current-prefix-arg)
+	       message-forward-ignored-headers)
+      (save-restriction
+	(narrow-to-region b e)
+	(goto-char b)
+	(narrow-to-region (point)
+			  (or (search-forward "\n\n" nil t) (point)))
+	(message-remove-header message-forward-ignored-headers t)))))
+
+(defun message-forward-make-body-digest-plain (forward-buffer)
+  (insert
+   "\n-------------------- Start of forwarded message --------------------\n")
+  (let ((b (point)) e)
+    (mml-insert-buffer forward-buffer)
+    (setq e (point))
+    (insert
+     "\n-------------------- End of forwarded message --------------------\n")))
+
+(defun message-forward-make-body-digest-mime (forward-buffer)
+  (insert "\n<#multipart type=digest>\n")
+  (let ((b (point)) e)
+    (insert-buffer-substring forward-buffer)
+    (setq e (point))
+    (insert "<#/multipart>\n")
+    (save-restriction
+      (narrow-to-region b e)
+      (goto-char b)
+      (narrow-to-region (point)
+			(or (search-forward "\n\n" nil t) (point)))
+      (delete-region (point-min) (point-max)))))
+
+(defun message-forward-make-body-digest (forward-buffer)
+  (if message-forward-as-mime
+      (message-forward-make-body-digest-mime forward-buffer)
+    (message-forward-make-body-digest-plain forward-buffer)))
+
 ;;;###autoload
 (defun message-forward-make-body (forward-buffer &optional digest)
   ;; Put point where we want it before inserting the forwarded
@@ -4237,75 +6257,37 @@ Optional DIGEST will use digest to forward."
   (if message-forward-before-signature
       (message-goto-body)
     (goto-char (point-max)))
-  (if message-forward-as-mime
-      (if digest
-	  (insert "\n<#multipart type=digest>\n")
-	(if message-forward-show-mml
-	    (insert "\n\n<#mml type=message/rfc822 disposition=inline>\n")
-	  (insert "\n\n<#part type=message/rfc822 disposition=inline raw=t>\n")))
-    (insert "\n-------------------- Start of forwarded message --------------------\n"))
-  (let ((b (point)) e)
-    (if digest
-	(if message-forward-as-mime
-	    (insert-buffer-substring forward-buffer)
-	  (mml-insert-buffer forward-buffer))
-      (if (and message-forward-show-mml
-	       (not message-forward-decoded-p))
-	  (insert
-	   (with-temp-buffer
-	     (mm-disable-multibyte) ;; Must copy buffer in unibyte mode
-	       (insert
-		(with-current-buffer forward-buffer
-		  (mm-string-as-unibyte (buffer-string))))
-	       (mm-enable-multibyte)
-	       (mime-to-mml)
-	       (goto-char (point-min))
-	       (when (looking-at "From ")
-		 (replace-match "X-From-Line: "))
-	       (buffer-string)))
-	(save-restriction
-	  (narrow-to-region (point) (point))
-	  (mml-insert-buffer forward-buffer)
-	  (goto-char (point-min))
-	  (when (looking-at "From ")
-	    (replace-match "X-From-Line: "))
-	  (goto-char (point-max)))))
-    (setq e (point))
+  (if digest
+      (message-forward-make-body-digest forward-buffer)
     (if message-forward-as-mime
-	(if digest
-	    (insert "<#/multipart>\n")
-	  (if message-forward-show-mml
-	      (insert "<#/mml>\n")
-	    (insert "<#/part>\n")))
-      (insert "\n-------------------- End of forwarded message --------------------\n"))
-    (if (and digest message-forward-as-mime)
-	(save-restriction
-	  (narrow-to-region b e)
-	  (goto-char b)
-	  (narrow-to-region (point)
-			    (or (search-forward "\n\n" nil t) (point)))
-	  (delete-region (point-min) (point-max)))
-      (when (and (not current-prefix-arg)
-		 message-forward-ignored-headers)
-	(save-restriction
-	  (narrow-to-region b e)
-	  (goto-char b)
-	  (narrow-to-region (point)
-			    (or (search-forward "\n\n" nil t) (point)))
-	  (message-remove-header message-forward-ignored-headers t)))))
+	(if (and message-forward-show-mml
+		 (not (and (eq message-forward-show-mml 'best)
+			   (with-current-buffer forward-buffer
+			     (goto-char (point-min))
+			     (re-search-forward
+			      "Content-Type: *multipart/\\(signed\\|encrypted\\)"
+			      nil t)))))
+	    (message-forward-make-body-mml forward-buffer)
+	  (message-forward-make-body-mime forward-buffer))
+      (message-forward-make-body-plain forward-buffer)))
   (message-position-point))
 
 ;;;###autoload
 (defun message-forward-rmail-make-body (forward-buffer)
   (save-window-excursion
     (set-buffer forward-buffer)
+    ;; Rmail doesn't have rmail-msg-restore-non-pruned-header in Emacs
+    ;; 20.  FIXIT, or we drop support for rmail in Emacs 20.
     (if (rmail-msg-is-pruned)
 	(rmail-msg-restore-non-pruned-header)))
   (message-forward-make-body forward-buffer))
 
+(eval-when-compile (defvar rmail-enable-mime-composing))
+
+;; Fixme: Should have defcustom.
 ;;;###autoload
 (defun message-insinuate-rmail ()
-  "Let RMAIL uses message to forward."
+  "Let RMAIL use message to forward."
   (interactive)
   (setq rmail-enable-mime-composing t)
   (setq rmail-insert-mime-forwarded-message-function
@@ -4324,12 +6306,16 @@ Optional DIGEST will use digest to forward."
       (unless (message-mail-user-agent)
 	(set-buffer (get-buffer-create " *message resend*"))
 	(erase-buffer))
-      (let ((message-this-is-mail t))
+      (let ((message-this-is-mail t)
+	    message-setup-hook)
 	(message-setup `((To . ,address))))
       ;; Insert our usual headers.
-      (message-generate-headers '(From Date To))
+      (message-generate-headers '(From Date To Message-ID))
       (message-narrow-to-headers)
+      ;; Remove X-Draft-From header etc.
+      (message-remove-header message-ignored-mail-headers t)
       ;; Rename them all to "Resent-*".
+      (goto-char (point-min))
       (while (re-search-forward "^[A-Za-z]" nil t)
 	(forward-char -1)
 	(insert "Resent-"))
@@ -4380,18 +6366,23 @@ you."
       (mm-insert-part handles)
       (undo-boundary)
       (goto-char (point-min))
-      (search-forward "\n\n" nil t)
-      (or (and (re-search-forward message-unsent-separator nil t)
-	       (forward-line 1))
-	  (re-search-forward "^Return-Path:.*\n" nil t))
+      (re-search-forward "\n\n+" nil t)
+      (setq boundary (point))
       ;; We remove everything before the bounced mail.
-      (delete-region
-       (point-min)
-       (if (re-search-forward "^[^ \n\t]+:" nil t)
-	   (match-beginning 0)
-	 (point))))
+      (if (or (re-search-forward message-unsent-separator nil t)
+	      (progn
+		(search-forward "\n\n" nil 'move)
+		(re-search-backward "^Return-Path:.*\n" boundary t)))
+	  (progn
+	    (forward-line 1)
+	    (delete-region (point-min)
+			   (if (re-search-forward "^[^ \n\t]+:" nil t)
+			       (match-beginning 0)
+			     (point))))
+	(goto-char boundary)
+	(when (re-search-backward "^.?From .*\n" nil t)
+	  (delete-region (match-beginning 0) (match-end 0)))))
     (mm-enable-multibyte)
-    (mime-to-mml)
     (save-restriction
       (message-narrow-to-head-1)
       (message-remove-header message-ignored-bounced-headers t)
@@ -4442,7 +6433,7 @@ you."
 	(special-display-regexps nil)
 	(same-window-buffer-names nil)
 	(same-window-regexps nil))
-    (message-pop-to-buffer (message-buffer-name "news" nil newsgroups)))
+    (message-pop-to-buffer (message-buffer-name "posting" nil newsgroups)))
   (let ((message-this-is-news t))
     (message-setup `((Newsgroups . ,(or newsgroups ""))
 		     (Subject . ,(or subject ""))))))
@@ -4456,7 +6447,7 @@ you."
 	(special-display-regexps nil)
 	(same-window-buffer-names nil)
 	(same-window-regexps nil))
-    (message-pop-to-buffer (message-buffer-name "news" nil newsgroups)))
+    (message-pop-to-buffer (message-buffer-name "posting" nil newsgroups)))
   (let ((message-this-is-news t))
     (message-setup `((Newsgroups . ,(or newsgroups ""))
 		     (Subject . ,(or subject ""))))))
@@ -4496,48 +6487,105 @@ which specify the range to operate on."
 	    (delete-char -2))))))
 
 (defalias 'message-exchange-point-and-mark 'exchange-point-and-mark)
+(defalias 'message-make-overlay 'make-overlay)
+(defalias 'message-delete-overlay 'delete-overlay)
+(defalias 'message-overlay-put 'overlay-put)
+(defun message-kill-all-overlays ()
+  (if (featurep 'xemacs)
+      (map-extents (lambda (extent ignore) (delete-extent extent)))
+    (mapcar #'delete-overlay (overlays-in (point-min) (point-max)))))
 
 ;; Support for toolbar
-(eval-when-compile (defvar tool-bar-map))
-(if (featurep 'xemacs)
-    (require 'messagexmas)
-  (when (and
-	 (condition-case nil (require 'tool-bar) (error nil))
-	 (fboundp 'tool-bar-add-item-from-menu)
-	 tool-bar-mode)
-    (defvar message-tool-bar-map
-      (let ((tool-bar-map (copy-keymap tool-bar-map)))
- 	;; Zap some items which aren't so relevant and take up space.
- 	(dolist (key '(print-buffer kill-buffer save-buffer write-file
- 				    dired open-file))
- 	  (define-key tool-bar-map (vector key) nil))
+(eval-when-compile
+  (defvar tool-bar-map)
+  (defvar tool-bar-mode))
 
- 	(tool-bar-add-item-from-menu
- 	 'message-send-and-exit "mail_send" message-mode-map)
- 	(tool-bar-add-item-from-menu
- 	 'message-kill-buffer "close" message-mode-map)
- 	(tool-bar-add-item-from-menu
- 	 'message-dont-send "cancel" message-mode-map)
- 	(tool-bar-add-item-from-menu
- 	 'mml-attach-file "attach" message-mode-map)
- 	(tool-bar-add-item-from-menu
- 	 'ispell-message "spell" message-mode-map)
- 	tool-bar-map))))
+(defun message-tool-bar-local-item-from-menu (command icon in-map &optional from-map &rest props)
+  ;; We need to make tool bar entries in local keymaps with
+  ;; `tool-bar-local-item-from-menu' in Emacs > 21.3
+  (if (fboundp 'tool-bar-local-item-from-menu)
+      ;; This is for Emacs 21.3
+      (tool-bar-local-item-from-menu command icon in-map from-map props)
+    (tool-bar-add-item-from-menu command icon from-map props)))
+
+(defun message-tool-bar-map ()
+  (or message-tool-bar-map
+      (setq message-tool-bar-map
+	    (and
+	     (condition-case nil (require 'tool-bar) (error nil))
+	     (fboundp 'tool-bar-add-item-from-menu)
+	     tool-bar-mode
+	     (let ((tool-bar-map (copy-keymap tool-bar-map))
+		   (load-path (mm-image-load-path)))
+	       ;; Zap some items which aren't so relevant and take
+	       ;; up space.
+	       (dolist (key '(print-buffer kill-buffer save-buffer
+					   write-file dired open-file))
+		 (define-key tool-bar-map (vector key) nil))
+	       (message-tool-bar-local-item-from-menu
+		'message-send-and-exit "mail_send" tool-bar-map message-mode-map)
+	       (message-tool-bar-local-item-from-menu
+		'message-kill-buffer "close" tool-bar-map message-mode-map)
+	       (message-tool-bar-local-item-from-menu
+		    'message-dont-send "cancel" tool-bar-map message-mode-map)
+	       (message-tool-bar-local-item-from-menu
+		'mml-attach-file "attach" tool-bar-map mml-mode-map)
+	       (message-tool-bar-local-item-from-menu
+		'ispell-message "spell" tool-bar-map message-mode-map)
+	       (message-tool-bar-local-item-from-menu
+		'mml-preview "preview"
+		tool-bar-map mml-mode-map)
+	       (message-tool-bar-local-item-from-menu
+		'message-insert-importance-high "important"
+		tool-bar-map message-mode-map)
+	       (message-tool-bar-local-item-from-menu
+		'message-insert-importance-low "unimportant"
+		tool-bar-map message-mode-map)
+	       (message-tool-bar-local-item-from-menu
+		'message-insert-disposition-notification-to "receipt"
+		tool-bar-map message-mode-map)
+	       tool-bar-map)))))
 
 ;;; Group name completion.
 
-(defvar message-newgroups-header-regexp
+(defcustom message-newgroups-header-regexp
   "^\\(Newsgroups\\|Followup-To\\|Posted-To\\|Gcc\\):"
-  "Regexp that match headers that lists groups.")
+  "Regexp that match headers that lists groups."
+  :group 'message
+  :type 'regexp)
+
+(defcustom message-completion-alist
+  (list (cons message-newgroups-header-regexp 'message-expand-group)
+	'("^\\(Resent-\\)?\\(To\\|B?Cc\\):" . message-expand-name)
+	'("^\\(Reply-To\\|From\\|Mail-Followup-To\\|Mail-Copies-To\\):"
+	  . message-expand-name)
+	'("^\\(Disposition-Notification-To\\|Return-Receipt-To\\):"
+	  . message-expand-name))
+  "Alist of (RE . FUN).  Use FUN for completion on header lines matching RE."
+  :group 'message
+  :type '(alist :key-type regexp :value-type function))
+
+(defcustom message-tab-body-function nil
+  "*Function to execute when `message-tab' (TAB) is executed in the body.
+If nil, the function bound in `text-mode-map' or `global-map' is executed."
+  :group 'message
+  :link '(custom-manual "(message)Various Commands")
+  :type 'function)
 
 (defun message-tab ()
-  "Expand group names in Newsgroups and Followup-To headers.
-Do a `tab-to-tab-stop' if not in those headers."
+  "Complete names according to `message-completion-alist'.
+Execute function specified by `message-tab-body-function' when not in
+those headers."
   (interactive)
-  (if (let ((mail-abbrev-mode-regexp message-newgroups-header-regexp))
-	(mail-abbrev-in-expansion-header-p))
-      (message-expand-group)
-    (tab-to-tab-stop)))
+  (let ((alist message-completion-alist))
+    (while (and alist
+		(let ((mail-abbrev-mode-regexp (caar alist)))
+		  (not (mail-abbrev-in-expansion-header-p))))
+      (setq alist (cdr alist)))
+    (funcall (or (cdar alist) message-tab-body-function
+		 (lookup-key text-mode-map "\t")
+		 (lookup-key global-map "\t")
+		 'indent-relative))))
 
 (defun message-expand-group ()
   "Expand the group name under point."
@@ -4581,6 +6629,11 @@ Do a `tab-to-tab-stop' if not in those headers."
 	    (goto-char (point-min))
 	    (delete-region (point) (progn (forward-line 3) (point))))))))))
 
+(defun message-expand-name ()
+  (if (fboundp 'bbdb-complete-name)
+      (bbdb-complete-name)
+    (expand-abbrev)))
+
 ;;; Help stuff.
 
 (defun message-talkative-question (ask question show &rest text)
@@ -4610,10 +6663,10 @@ The following arguments may contain lists of values."
 	 (list list))))
 
 (defun message-generate-new-buffer-clone-locals (name &optional varstr)
-  "Create and return a buffer with name based on NAME using `generate-new-buffer.'
+  "Create and return a buffer with name based on NAME using `generate-new-buffer'.
 Then clone the local variables and values from the old buffer to the
 new one, cloning only the locals having a substring matching the
-regexp varstr."
+regexp VARSTR."
   (let ((oldbuf (current-buffer)))
     (save-excursion
       (set-buffer (generate-new-buffer name))
@@ -4671,16 +6724,17 @@ regexp varstr."
 	(when lines
 	  (insert lines))
 	(setq content-type-p
-	      (re-search-backward "^Content-Type:" nil t)))
+	      (or mml-boundary
+		  (re-search-backward "^Content-Type:" nil t))))
       (save-restriction
 	(message-narrow-to-headers-or-head)
 	(message-remove-first-header "Content-Type")
 	(message-remove-first-header "Content-Transfer-Encoding"))
-      ;; We always make sure that the message has a Content-Type header.
-      ;; This is because some broken MTAs and MUAs get awfully confused
-      ;; when confronted with a message with a MIME-Version header and
-      ;; without a Content-Type header.  For instance, Solaris'
-      ;; /usr/bin/mail.
+      ;; We always make sure that the message has a Content-Type
+      ;; header.  This is because some broken MTAs and MUAs get
+      ;; awfully confused when confronted with a message with a
+      ;; MIME-Version header and without a Content-Type header.  For
+      ;; instance, Solaris' /usr/bin/mail.
       (unless content-type-p
 	(goto-char (point-min))
 	;; For unknown reason, MIME-Version doesn't exist.
@@ -4688,14 +6742,16 @@ regexp varstr."
 	  (forward-line 1)
 	  (insert "Content-Type: text/plain; charset=us-ascii\n"))))))
 
-(defun message-read-from-minibuffer (prompt)
+(defun message-read-from-minibuffer (prompt &optional initial-contents)
   "Read from the minibuffer while providing abbrev expansion."
   (if (fboundp 'mail-abbrevs-setup)
       (let ((mail-abbrev-mode-regexp "")
-	    (minibuffer-setup-hook 'mail-abbrevs-setup))
-	(read-from-minibuffer prompt))
-    (let ((minibuffer-setup-hook 'mail-abbrev-minibuffer-setup-hook))
-      (read-string prompt))))
+	    (minibuffer-setup-hook 'mail-abbrevs-setup)
+	    (minibuffer-local-map message-minibuffer-local-map))
+	(read-from-minibuffer prompt initial-contents))
+    (let ((minibuffer-setup-hook 'mail-abbrev-minibuffer-setup-hook)
+	  (minibuffer-local-map message-minibuffer-local-map))
+      (read-string prompt initial-contents))))
 
 (defun message-use-alternative-email-as-from ()
   (require 'mail-utils)
@@ -4714,6 +6770,74 @@ regexp varstr."
     (unless (or (not email) (equal email user-mail-address))
       (goto-char (point-max))
       (insert "From: " email "\n"))))
+
+(defun message-options-get (symbol)
+  (cdr (assq symbol message-options)))
+
+(defun message-options-set (symbol value)
+  (let ((the-cons (assq symbol message-options)))
+    (if the-cons
+	(if value
+	    (setcdr the-cons value)
+	  (setq message-options (delq the-cons message-options)))
+      (and value
+	   (push (cons symbol value) message-options))))
+  value)
+
+(defun message-options-set-recipient ()
+  (save-restriction
+    (message-narrow-to-headers-or-head)
+    (message-options-set 'message-sender
+			 (mail-strip-quoted-names
+			  (message-fetch-field "from")))
+    (message-options-set 'message-recipients
+			 (mail-strip-quoted-names
+			  (let ((to (message-fetch-field "to"))
+				(cc (message-fetch-field "cc"))
+				(bcc (message-fetch-field "bcc")))
+			    (concat
+			     (or to "")
+			     (if (and to cc) ", ")
+			     (or cc "")
+			     (if (and (or to cc) bcc) ", ")
+			     (or bcc "")))))))
+
+(defun message-hide-headers ()
+  "Hide headers based on the `message-hidden-headers' variable."
+  (let ((regexps (if (stringp message-hidden-headers)
+		     (list message-hidden-headers)
+		   message-hidden-headers))
+	(inhibit-point-motion-hooks t)
+	(after-change-functions nil))
+    (when regexps
+      (save-excursion
+	(save-restriction
+	  (message-narrow-to-headers)
+	  (goto-char (point-min))
+	  (while (not (eobp))
+	    (if (not (message-hide-header-p regexps))
+		(message-next-header)
+	      (let ((begin (point)))
+		(message-next-header)
+		(add-text-properties
+		 begin (point)
+		 '(invisible t message-hidden t))))))))))
+
+(defun message-hide-header-p (regexps)
+  (let ((result nil)
+	(reverse nil))
+    (when (eq (car regexps) 'not)
+      (setq reverse t)
+      (pop regexps))
+    (dolist (regexp regexps)
+      (setq result (or result (looking-at regexp))))
+    (if reverse
+	(not result)
+      result)))
+
+(when (featurep 'xemacs)
+  (require 'messagexmas)
+  (message-xmas-redefine))
 
 (provide 'message)
 

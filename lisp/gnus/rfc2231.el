@@ -1,6 +1,6 @@
-;;; rfc2231.el --- functions for decoding rfc2231 headers
+;;; rfc2231.el --- Functions for decoding rfc2231 headers
 
-;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -26,10 +26,19 @@
 
 (eval-when-compile (require 'cl))
 (require 'ietf-drums)
+(require 'rfc2047)
+(autoload 'mm-encode-body "mm-bodies")
+(autoload 'mail-header-remove-whitespace "mail-parse")
+(autoload 'mail-header-remove-comments "mail-parse")
 
 (defun rfc2231-get-value (ct attribute)
   "Return the value of ATTRIBUTE from CT."
   (cdr (assq attribute (cdr ct))))
+
+(defun rfc2231-parse-qp-string (string)
+  "Parse QP-encoded string using `rfc2231-parse-string'.
+N.B.  This is in violation with RFC2047, but it seem to be in common use."
+  (rfc2231-parse-string (rfc2047-decode-string string)))
 
 (defun rfc2231-parse-string (string)
   "Parse STRING and return a list.
@@ -47,6 +56,7 @@ The list will be on the form
 			(mail-header-remove-comments string)))
       (let ((table (copy-syntax-table ietf-drums-syntax-table)))
 	(modify-syntax-entry ?\' "w" table)
+	(modify-syntax-entry ?= " " table)
 	;; The following isn't valid, but one should be liberal
 	;; in what one receives.
 	(modify-syntax-entry ?\: "w" table)
@@ -79,7 +89,9 @@ The list will be on the form
 	    (when (eq c ?*)
 	      (forward-char 1)
 	      (setq c (char-after))
-	      (when (memq c ntoken)
+	      (if (not (memq c ntoken))
+		  (setq encoded t
+			number nil)
 		(setq number
 		      (string-to-number
 		       (buffer-substring
@@ -104,10 +116,11 @@ The list will be on the form
 	      (setq value
 		    (buffer-substring (1+ (point))
 				      (progn (forward-sexp 1) (1- (point))))))
-	     ((and (memq c ttoken)
+	     ((and (or (memq c ttoken)
+		       (> c ?\177)) ;; EXTENSION: Support non-ascii chars.
 		   (not (memq c stoken)))
 	      (setq value (buffer-substring
-			   (point) (progn (forward-sexp 1) (point)))))
+			   (point) (progn (forward-sexp) (point)))))
 	     (t
 	      (error "Invalid header: %s" string)))
 	    (when encoded
@@ -140,10 +153,11 @@ These look like \"us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A\"."
 	     (string-to-number (buffer-substring (point) (+ (point) 2)) 16)
 	   (delete-region (1- (point)) (+ (point) 2)))))
       ;; Encode using the charset, if any.
-      (when (and (< (length elems) 1)
-		 (not (equal (intern (car elems)) 'us-ascii)))
+      (when (and (mm-multibyte-p)
+		 (> (length elems) 1)
+		 (not (equal (intern (downcase (car elems))) 'us-ascii)))
 	(mm-decode-coding-region (point-min) (point-max)
-				 (intern (car elems))))
+				 (intern (downcase (car elems)))))
       (buffer-string))))
 
 (defun rfc2231-encode-string (param value)
@@ -175,7 +189,7 @@ These look like \"us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A\"."
 	(goto-char (point-min))
 	(while (not (eobp))
 	  (when (> (current-column) 60)
-	    (insert "\n")
+	    (insert ";\n")
 	    (setq broken t))
 	  (if (or (not (memq (following-char) ascii))
 		  (memq (following-char) control)
@@ -187,12 +201,13 @@ These look like \"us-ascii'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A\"."
 		(delete-char 1))
 	    (forward-char 1)))
 	(goto-char (point-min))
-	(insert (or charset "ascii") "''")
+	(insert (symbol-name (or charset 'us-ascii)) "''")
 	(goto-char (point-min))
 	(if (not broken)
 	    (insert param "*=")
 	  (while (not (eobp))
-	    (insert param "*" (format "%d" (incf num)) "*=")
+	    (insert (if (>= num 0) " " "\n ")
+		    param "*" (format "%d" (incf num)) "*=")
 	    (forward-line 1))))
        (spacep
 	(goto-char (point-min))

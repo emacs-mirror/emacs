@@ -1,6 +1,6 @@
 ;;; nnlistserv.el --- retrieving articles via web mailing list archives
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -24,18 +24,13 @@
 
 ;;; Commentary:
 
-;; Note: You need to have `url' and `w3' installed for this
-;; backend to work.
-
 ;;; Code:
 
 (eval-when-compile (require 'cl))
 
 (require 'nnoo)
-(eval-when-compile
-  (ignore-errors
-   (require 'nnweb))			; requires W3
-  (autoload 'url-insert-file-contents "nnweb"))
+(require 'mm-url)
+(require 'nnweb)
 
 (nnoo-declare nnlistserv
   nnweb)
@@ -98,7 +93,7 @@
 	(when (funcall (nnweb-definition 'search) page)
 	  ;; Go through all the article hits on this page.
 	  (goto-char (point-min))
-	  (nnweb-decode-entities)
+	  (mm-url-decode-entities)
 	  (goto-char (point-min))
 	  (while (re-search-forward "^<li> *<a href=\"\\([^\"]+\\)\"><b>\\([^\\>]+\\)</b></a> *<[^>]+><i>\\([^>]+\\)<" nil t)
 	    (setq url (match-string 1)
@@ -124,10 +119,10 @@
   (let ((case-fold-search t)
 	(headers '(sent name email subject id))
 	sent name email subject id)
-    (nnweb-decode-entities)
+    (mm-url-decode-entities)
     (while headers
       (goto-char (point-min))
-      (re-search-forward (format "<!-- %s=\"\\([^\"]+\\)" (car headers)) nil t)
+      (re-search-forward (format "<!-- %s=\"\\([^\"]+\\)" (car headers) nil t))
       (set (pop headers) (match-string 1)))
     (goto-char (point-min))
     (search-forward "<!-- body" nil t)
@@ -135,7 +130,7 @@
     (goto-char (point-max))
     (search-backward "<!-- body" nil t)
     (delete-region (point-max) (progn (beginning-of-line) (point)))
-    (nnweb-remove-markup)
+    (mm-url-remove-markup)
     (goto-char (point-min))
     (insert (format "From: %s <%s>\n" name email)
 	    (format "Subject: %s\n" subject)
@@ -143,7 +138,7 @@
 	    (format "Date: %s\n\n" sent))))
 
 (defun nnlistserv-kk-search (search)
-  (url-insert-file-contents
+  (mm-url-insert
    (concat (format (nnweb-definition 'address) search)
 	   (nnweb-definition 'index)))
   t)

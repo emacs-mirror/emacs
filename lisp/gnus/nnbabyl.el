@@ -1,10 +1,10 @@
 ;;; nnbabyl.el --- rmail mbox access for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1099, 2000
+;; Copyright (C) 1995, 1996, 1997, 1998, 1099, 2000, 2001
 ;;	Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
-;; 	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
+;;	Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;; Keywords: news, mail
 
 ;; This file is part of GNU Emacs.
@@ -50,6 +50,7 @@
 
 (defvoo nnbabyl-get-new-mail t
   "If non-nil, nnbabyl will check the incoming mail file and split the mail.")
+
 
 (defvoo nnbabyl-prepare-save-mail-hook nil
   "Hook run narrowed to an article before saving.")
@@ -287,7 +288,8 @@
 					     (current-buffer))
 		    (let ((nnml-current-directory nil))
 		      (nnmail-expiry-target-group
-		       nnmail-expiry-target newsgroup))))
+		       nnmail-expiry-target newsgroup)))
+		  (nnbabyl-possibly-change-newsgroup newsgroup server))
 		(nnheader-message 5 "Deleting article %d in %s..."
 				  (car articles) newsgroup)
 		(nnbabyl-delete-mail))
@@ -347,7 +349,10 @@
 	 (while (re-search-backward "^X-Gnus-Newsgroup: " beg t)
 	   (delete-region (point) (progn (forward-line 1) (point)))))
        (when nnmail-cache-accepted-message-ids
-	 (nnmail-cache-insert (nnmail-fetch-field "message-id")))
+	 (nnmail-cache-insert (nnmail-fetch-field "message-id") 
+			      group
+			      (nnmail-fetch-field "subject")
+			      (nnmail-fetch-field "from")))
        (setq result
 	     (if (stringp group)
 		 (list (cons group (nnbabyl-active-number group)))
@@ -363,7 +368,10 @@
        (insert-buffer-substring buf)
        (when last
 	 (when nnmail-cache-accepted-message-ids
-	   (nnmail-cache-insert (nnmail-fetch-field "message-id")))
+	   (nnmail-cache-insert (nnmail-fetch-field "message-id") 
+				group
+				(nnmail-fetch-field "subject")
+				(nnmail-fetch-field "from")))
 	 (save-buffer)
 	 (nnmail-save-active nnbabyl-group-alist nnbabyl-active-file))
        result))))

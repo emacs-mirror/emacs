@@ -1,3 +1,7 @@
+2004-07-22  Andreas Schwab  <schwab@suse.de>
+
+	Import Gnus 5.10 from the v5_10 branch of the Gnus repository.
+
 2004-06-29  Kim F. Storm  <storm@cua.dk>
 
 	* nntp.el (nntp-authinfo-file): Add :group 'nntp.
