@@ -831,13 +831,13 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
 
     (cond ((and is-current diff-num)	; current diff region
 	   (format "Difference region %S -- current" (1+ diff-num)))
-;; This doesn't DTRT because we may have got it from the wrong goverlay.
-;; Fixme.
+	  ;; This doesn't DTRT because we may have got it from the wrong
+	  ;; goverlay.  Fixme.
 ;;;	  (face-help)			; refinement of current diff region
 	  (diff-num			; non-current
 	   (format "Difference region %S -- non-current" (1+ diff-num)))
 	  (t ""))			; none
-    )))
+    ))
 
 
 (defun ediff-set-face-pixmap (face pixmap)
