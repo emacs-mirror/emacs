@@ -395,7 +395,125 @@ XTcursor_to (row, col)
    WINDOW is the x-window to output to.  LEFT and TOP are starting coords.
    HL is 1 if this text is highlighted, 2 if the cursor is on it.
 
-   FONT is the default font to use (for glyphs whose font-code is 0).  */
+   FONT is the default font to use (for glyphs whose font-code is 0).
+
+   Since the display generation code is responsible for calling
+   compute_char_face and compute_glyph_face on everything it puts in
+   the display structure, we can assume that the face code on each
+   glyph is a valid index into FRAME_FACES (f), and the one to which
+   we can actually apply intern_face.  */
+
+#if 1
+/* This is the multi-face code.  */
+
+static void
+dumpglyphs (f, left, top, gp, n, hl)
+     struct frame *f;
+     int left, top;
+     register GLYPH *gp; /* Points to first GLYPH. */
+     register int n;  /* Number of glyphs to display. */
+     int hl;
+{
+  /* Holds characters to be displayed. */
+  char *buf = (char *) alloca (f->width * sizeof (*buf));
+  register char *cp;		/* Steps through buf[]. */
+  register int tlen = GLYPH_TABLE_LENGTH;
+  register Lisp_Object *tbase = GLYPH_TABLE_BASE;
+  Window window = FRAME_X_WINDOW (f);
+
+  extern struct face *intern_face (/* FRAME_PTR, struct face * */);
+
+  while (n > 0)
+    {
+      /* Get the face-code of the next GLYPH.  */
+      int cf, len;
+      int g = *gp;
+
+      GLYPH_FOLLOW_ALIASES (tbase, tlen, g);
+      cf = GLYPH_FACE (g);
+
+      /* Find the run of consecutive glyphs with the same face-code.
+	 Extract their character codes into BUF.  */
+      cp = buf;
+      while (n > 0)
+	{
+	  g = *gp;
+	  GLYPH_FOLLOW_ALIASES (tbase, tlen, g);
+	  if (GLYPH_FACE (g) != cf)
+	    break;
+
+	  *cp++ = GLYPH_CHAR (g);
+	  --n;
+	  ++gp;
+	}
+
+      /* LEN gets the length of the run.  */
+      len = cp - buf;
+
+      /* Now output this run of chars, with the font and pixel values
+	 determined by the face code CF.  */
+      {
+	struct face *face = FRAME_DEFAULT_FACE (f);
+	FONT_TYPE *font = FACE_FONT (face);
+	GC gc = FACE_GC (face);
+
+	if (cf != 0)
+	  {
+	    /* The face codes on the glyphs must be valid indices into the
+	       frame's face table.  */
+	    if (cf < 0 || cf >= FRAME_N_FACES (f))
+	      abort ();
+
+	    if (cf == 1)
+	      face = FRAME_MODE_LINE_FACE (f);
+	    else
+	      face = intern_face (FRAME_FACES (f) [cf]);
+	    font = FACE_FONT (face);
+	    gc = FACE_GC (face);
+	  }
+	else if (hl == 0)
+	  ;
+	else if (hl == 1)
+	  {
+	    face = FRAME_MODE_LINE_FACE (f);
+	    font = FACE_FONT (face);
+	    gc   = FACE_GC   (face);
+	  }
+	else if (hl == 2)
+	  {
+	    gc   = (f->display.x->cursor_gc);
+	  }
+
+	XDrawImageString (x_current_display, window, gc,
+			  left, top + FONT_BASE (font), buf, len);
+	left += len * FONT_WIDTH (font);
+
+	/* We should probably check for XA_UNDERLINE_POSITION and
+	   XA_UNDERLINE_THICKNESS properties on the font, but let's
+	   just get the thing working, and come back to that.  */
+	{
+	  int underline_position = 2;
+
+	  if (font->descent < underline_position)
+	    underline_position = font->descent;
+
+	  if (face->underline)
+	    XFillRectangle (x_current_display, FRAME_X_WINDOW (f),
+			    FACE_GC (face),
+			    left, (top
+				   + FONT_BASE (font)
+				   + underline_position),
+			    len * FONT_WIDTH (font), 1);
+	}
+
+	left += len * FONT_WIDTH (font);
+      }
+    }
+}
+#endif /* 1 */
+
+#if 0
+/* This is the old single-face code.  */
 
 static void
 dumpglyphs (f, left, top, gp, n, hl, font)
@@ -423,118 +541,7 @@ dumpglyphs (f, left, top, gp, n, hl, font)
        draw them?  */
     abort ();
 }
-
-#if 0
-static void
-dumpglyphs (f, left, top, gp, n, hl, font)
-     struct frame *f;
-     int left, top;
-     register GLYPH *gp; /* Points to first GLYPH. */
-     register int n;  /* Number of glyphs to display. */
-     int hl;
-     FONT_TYPE *font;
-{
-  char buf[f->width]; /* Holds characters to be displayed. */
-  register char *cp;		/* Steps through buf[]. */
-  register int tlen = GLYPH_TABLE_LENGTH;
-  register Lisp_Object *tbase = GLYPH_TABLE_BASE;
-  Window window = FRAME_X_WINDOW (f);
-  int cursor_pixel = f->display.x->cursor_pixel;
-  int fg_pixel = f->display.x->foreground_pixel;
-  int bg_pixel = f->display.x->background_pixel;
-  int intborder = f->display.x->internal_border_width;
-
-  while (n)
-    {
-      /* Get the face-code of the next GLYPH.  */
-      int cf, len;
-      int g = *gp;
-
-      while (GLYPH_ALIAS_P (tbase, tlen, g))
-	g = GLYPH_ALIAS (tbase, g);
-	
-      cf = g >> 8;
-
-      /* Find the run of consecutive glyphs with the same face-code.
-	 Extract their character codes into BUF.  */
-      cp = buf;
-      while (n > 0)
-	{
-	  g = *gp;
-	  while (GLYPH_ALIAS_P (tbase, tlen, g))
-	    g = GLYPH_ALIAS (tbase, g);
-	  if ((g >> 8) != cf)
-	    break;
-
-	  *cp++ = 0377 & g;
-	  --n;
-	  ++gp;
-	}
-
-      /* LEN gets the length of the run.  */
-      len = cp - buf;
-
-      /* Now output this run of chars, with the font and pixel values
-	 determined by the face code CF.  */
-      if (cf == 0)
-	{
-#ifdef HAVE_X11
-	  GC GC_cursor = f->display.x->cursor_gc;
-	  GC GC_reverse = f->display.x->reverse_gc;
-	  GC GC_normal = f->display.x->normal_gc;
-
-	  XDrawImageString (x_current_display, window,
-			    (hl == 2
-			     ? GC_cursor
-			     : (hl ? GC_reverse : GC_normal)),
-			    left, top + FONT_BASE (font), buf, len);
-#else /* ! defined (HAVE_X11) */
-	  XText (window, left, top,
-		 buf,
-		 len,
-		 font->id,
-		 (hl == 2
-		  ? (cursor_pixel == fg_pixel ? bg_pixel : fg_pixel)
-		  : hl ? bg_pixel : fg_pixel),
-		 (hl == 2 ? cursor_pixel
-		  : hl ? fg_pixel : bg_pixel));
-#endif /* ! defined (HAVE_X11) */
-	}
-      else
-	{
-#ifdef HAVE_X11
-	  if (FACE_IS_FONT (cf))
-	    XDrawImageString (x_current_display, FRAME_X_WINDOW (f),
-			      FACE_GC (cf),
-			      left, top + FONT_BASE (FACE_FONT (cf)),
-			      buf, len);
-	  else if (FACE_IS_IMAGE (cf))
-	    XCopyPlane (x_current_display, FACE_IMAGE (cf),
-			FRAME_X_WINDOW (f),
-			f->display.x->normal_gc,
-			0, 0,
-			FACE_IMAGE_WIDTH (cf),
-			FACE_IMAGE_HEIGHT (cf), left, top);
-	  else
-	    abort ();
-#else /* ! defined (HAVE_X11) */
-	  register struct face *fp = x_face_table[cf];
-
-	  XText (window, left, top,
-		 buf,
-		 len,
-		 fp->font->id,
-		 (hl == 2
-		  ? (cursor_pixel == fp->fg ? fp->bg : fp->fg)
-		  : hl ? fp->bg : fp->fg),
-		 (hl == 2 ? cursor_pixel
-		  : hl ? fp->fg : fp->bg));
-#endif /* ! defined (HAVE_X11) */
-	}
-      left += len * FONT_WIDTH (font);
-    }
-}
-#endif /* ! 0 */
+#endif
 
 /* Output some text at the nominal frame cursor position.
    Advance the cursor over the text.
@@ -567,7 +574,7 @@ XTwrite_glyphs (start, len)
   dumpglyphs (f,
 	      CHAR_TO_PIXEL_COL (f, curs_x),
 	      CHAR_TO_PIXEL_ROW (f, curs_y),
-	      start, len, highlight, f->display.x->font);
+	      start, len, highlight);
 
   /* If we drew on top of the cursor, note that it is turned off.  */
   if (curs_y == f->phys_cursor_y
@@ -1081,7 +1088,7 @@ dumprectangle (f, left, top, cols, rows)
 		  CHAR_TO_PIXEL_COL (f, left),
 		  CHAR_TO_PIXEL_ROW (f, y),
 		  line, min (cols, active_frame->used[y] - left),
-		  active_frame->highlight[y], f->display.x->font);
+		  active_frame->highlight[y]);
     }
 
   /* Turn the cursor on if we turned it off.  */
@@ -3312,7 +3319,7 @@ x_draw_single_glyph (f, row, column, glyph, highlight)
   dumpglyphs (f,
 	      CHAR_TO_PIXEL_COL (f, column),
 	      CHAR_TO_PIXEL_ROW (f, row),
-	      &glyph, 1, highlight, f->display.x->font);
+	      &glyph, 1, highlight);
 }
 
 static void
@@ -4278,6 +4285,7 @@ x_destroy_window (f)
   if (f->display.x->icon_desc != 0)
     XDestroyWindow (XDISPLAY f->display.x->icon_desc);
   XDestroyWindow (XDISPLAY f->display.x->window_desc);
+  free_frame_faces (f);
   XFlushQueue ();
 
   xfree (f->display.x);
