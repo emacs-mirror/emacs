@@ -2082,9 +2082,29 @@ a repetition of this command will exit.  */)
   if (XINT (Fminibuffer_prompt_end ()) == ZV)
     goto exit;
 
-  if (!NILP (Ftest_completion (Fminibuffer_contents (),
+  val = Fminibuffer_contents ();
+  if (!NILP (Ftest_completion (val,
 			       Vminibuffer_completion_table,
 			       Vminibuffer_completion_predicate)))
+    {
+      if (completion_ignore_case)
+	{ /* Fixup case of the field, if necessary. */
+	  Lisp_Object compl
+	    = Ftry_completion (val,
+			       Vminibuffer_completion_table,
+			       Vminibuffer_completion_predicate);
+	  if (STRINGP (compl)
+	      /* If it weren't for this piece of paranoia, I'd replace
+		 the whole thing with a call to do_completion. */
+	      && EQ (Flength (val), Flength (compl)))
+	    {
+	      del_range (XINT (Fminibuffer_prompt_end ()), ZV);
+	      Finsert (1, &compl);
+	    }
+	}
+      goto exit;
+    }
+
     goto exit;
 
   /* Call do_completion, but ignore errors.  */
