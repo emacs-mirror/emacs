@@ -2,11 +2,15 @@
 
         * vc.el (vc-revert-buffer): Ask for confirmation if file seems 
 	up-to-date.
+	(vc-do-command): In the asynchronous case, output messages only if 
+	the minibuffer is not active.
 	* vc-cvs.el (vc-cvs-revert): Use `cvs unedit' only if 
 	`vc-cvs-use-edit' is on.
 	(vc-cvs-checkout): When this is used for reverting the workfile, 
 	make a backup of the original contents and revert to that in case 
 	of error.
+	(vc-cvs-print-log, vc-cvs-diff): Use asynchronous mode only for 
+	remote repositories.
 	
 	* vc.el (vc-annotate): Changed handling of prefix arg; now asks
 	for both version and ratio in the minibuffer.
