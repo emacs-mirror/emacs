@@ -1,3 +1,16 @@
+2004-03-19  David Ponce  <david@dponce.com>
+
+	* ruler-mode.el (ruler-mode-header-line-format-old): Don't
+	`make-variable-buffer-local'.
+	(ruler-mode-ruler-function): Default to `ruler-mode-ruler'.
+	(ruler-mode-header-line-format): Simply funcall the above.
+	(ruler-mode): Use `make-local-variable' and `kill-local-variable'
+	to save/restore a previous header line format.
+	(ruler-mode-space): Don't depend on a numeric WIDTH value.
+	(ruler-mode-ruler): Use symbolic display elements for scrollbar,
+	fringes and margins width.
+	(ruler-mode-ruler-function): Default to ruler-mode-ruler
+
 2004-03-19  Kim F. Storm  <storm@cua.dk>
 
 	* hexl.el (hexl-mode-ruler): Adapt to new :align-to semantics.
