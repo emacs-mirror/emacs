@@ -1,5 +1,8 @@
 2002-07-03  Juanma Barranquero  <lektu@terra.es>
 
+	* net/tramp.el (tramp-send-eof): Fix typo.
+	(tramp-kill-process): Likewise.
+
 	* subr.el (chars-in-region): Add obsolescence declaration for
 	`chars-in-region'.
 
