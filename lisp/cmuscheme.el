@@ -117,7 +117,7 @@
 
 (cond ((not inferior-scheme-mode-map)
        (setq inferior-scheme-mode-map
-	     (full-copy-sparse-keymap comint-mode-map))
+	     (copy-keymap comint-mode-map))
        (define-key inferior-scheme-mode-map "\M-\C-x" ;gnu convention
 	           'scheme-send-definition)
        (define-key inferior-scheme-mode-map "\C-x\C-e" 'scheme-send-last-sexp)
