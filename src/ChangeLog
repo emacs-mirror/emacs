@@ -1,7 +1,12 @@
+1999-12-22  Gerd Moellmann  <gerd@gnu.org>
+
+	* xfaces.c (clear_font_table): Don't use uninitialized local
+	variable in xassert.
+
 1999-12-22  Kenichi Handa  <handa@etl.go.jp>
 
 	* xfaces.c (face_color_supported_p): Check by tty_defined_color
-	only when the frame is not window.
+	only when the frame is not for a window system.
 
 1999-12-22  Gerd Moellmann  <gerd@gnu.org>
 
