@@ -568,6 +568,12 @@ typedef unsigned char UCHAR;
 #define COMPILED_STACK_DEPTH 3
 #define COMPILED_DOC_STRING 4
 #define COMPILED_INTERACTIVE 5
+
+/* Flag bits in a character.  */
+
+#define CHAR_META 0x800000
+#define CHAR_CTL  0x400000
+#define CHAR_SHIFT 0x200000
 
 /* Data type checking */
 
@@ -995,7 +1001,7 @@ extern Lisp_Object Vpurify_flag;
 extern Lisp_Object Fcons (), Flist(), Fmake_list ();
 extern Lisp_Object Fmake_vector (), Fvector (), Fmake_symbol (), Fmake_marker ();
 extern Lisp_Object Fmake_string (), build_string (), make_string ();
-extern Lisp_Object make_array (), make_uninit_string ();
+extern Lisp_Object make_event_array (), make_uninit_string ();
 extern Lisp_Object Fpurecopy (), make_pure_string ();
 extern Lisp_Object pure_cons (), make_pure_vector ();
 extern Lisp_Object Fgarbage_collect ();
