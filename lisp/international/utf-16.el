@@ -1,6 +1,6 @@
 ;;; utf-16.el --- UTF-16 encoding/decoding
 
-;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: Unicode, UTF-16, i18n
@@ -25,11 +25,11 @@
 ;;; Commentary:
 
 ;; Support for UTF-16, which is a two-byte encoding (modulo
-;; surrogates) of Unicode, written either in little or big endian
-;; order and either with or without the leading BOM (a two-byte
-;; signature which identifies their byte sex)a.
+;; surrogates) of Unicode, defined in RFC 2781.  It is written either
+;; in little or big endian order and either with or without the
+;; leading BOM (a two-byte signature which identifies their byte sex).
 ;;
-;; We provides these base coding systems.
+;; We provide these base coding systems.
 ;;	name					endian	BOM
 ;;	----					------	---
 ;;	mule-utf-16le				little	no
@@ -346,6 +346,7 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."))
       mule-unicode-2500-33ff
       mule-unicode-e000-ffff)
      (mime-charset . utf-16le)
+     (mime-text-unsuitable . t)
      (valid-codes (0 . 255))
      (dependency unify-8859-on-encoding-mode
 		 unify-8859-on-decoding-mode
@@ -390,6 +391,7 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."))
       mule-unicode-e000-ffff)
      (coding-category . coding-category-utf-16-le)
      (mime-charset . utf-16)
+     (mime-text-unsuitable . t)
      (valid-codes (0 . 255))
      (dependency unify-8859-on-encoding-mode
 		 unify-8859-on-decoding-mode
@@ -435,6 +437,7 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER)."))
       mule-unicode-e000-ffff)
      (coding-category . coding-category-utf-16-be)
      (mime-charset . utf-16)
+     (mime-text-unsuitable . t)
      (valid-codes (0 . 255))
      (dependency unify-8859-on-encoding-mode
 		 unify-8859-on-decoding-mode
