@@ -1083,6 +1083,8 @@
 ;;; This de-compiler is used for inline expansion of compiled functions,
 ;;; and by the disassembler.
 ;;;
+;;; This list contains numbers, which are pc values,
+;;; before each instruction.
 (defun byte-decompile-bytecode (bytes constvec)
   "Turns BYTECODE into lapcode, referring to CONSTVEC."
   (let ((byte-compile-constants nil)
@@ -1101,6 +1103,7 @@
 	endtag
 	(retcount 0))
     (while (not (= ptr length))
+      (setq lap (cons ptr lap))
       (setq op (aref bytes ptr)
 	    optr ptr
 	    offset (disassemble-offset)) ; this does dynamic-scope magic
@@ -1135,7 +1138,8 @@
     ;; take off the dummy nil op that we replaced a trailing "return" with.
     (let ((rest lap))
       (while rest
-	(cond ((setq tmp (assq (car (car rest)) tags))
+	(cond ((numberp (car rest)))
+	      ((setq tmp (assq (car (car rest)) tags))
 	       ;; this addr is jumped to
 	       (setcdr rest (cons (cons nil (cdr tmp))
 				  (cdr rest)))
@@ -1148,7 +1152,11 @@
     (if endtag
 	(setq lap (cons (cons nil endtag) lap)))
     ;; remove addrs, lap = ( [ (op . arg) | (TAG tagno) ]* )
-    (mapcar 'cdr (nreverse lap))))
+    (mapcar (function (lambda (elt)
+			(if (numberp elt)
+			    elt
+			  (cdr elt))))
+	    (nreverse lap))))
 
 
 ;;; peephole optimizer
