@@ -1,7 +1,6 @@
 /* news-risc.h is for the "RISC News".  */
 
 #include "mips.h"
-#undef LIBS_MACHINE
 
 /* The following line tells the configuration script what sort of 
    operating system this machine is likely to run.
@@ -23,5 +22,6 @@
 /* We have no mode_t.  */
 #define NO_MODE_T
 
-/* Don't use the definitoion in m/mips.h.  */
+/* Don't use the definitions in m/mips.h.  */
 #undef LINKER
+#undef LIBS_MACHINE
