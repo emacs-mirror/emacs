@@ -29,14 +29,14 @@ void incR(unsigned long i)
     }
   } else {
     incR(i>>1);
-    incR(i+1>>1);
+    incR((i+1)>>1);
   }
   LockReleaseRecursive(lock);
 }
 
 void inc(unsigned long i)
 {
-  incR(i+1>>1);
+  incR((i+1)>>1);
   i>>=1;
   while(i){
     LockClaim(lock);

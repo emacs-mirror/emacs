@@ -26,7 +26,7 @@ extern void mps_SEH_handler(void *, size_t);
     mps_tramp_t _f = (f); \
     void *_p = (p); \
     size_t _s = (s); \
-    void *_hp; size_t _hs; \
+    void *_hp = NULL; size_t _hs = 0; \
     __try { \
       *_r_o = (*_f)(_p, _s); \
     } __except(mps_SEH_filter(GetExceptionInformation(), \
