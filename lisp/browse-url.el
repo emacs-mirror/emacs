@@ -224,7 +224,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Variables
 
-;;;###autoload
 (defgroup browse-url nil
   "Use a web browser to look at a URL."
   :group 'hypermedia)
