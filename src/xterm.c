@@ -2435,6 +2435,11 @@ Atom Xatom_wm_delete_window;
 Atom Xatom_wm_configure_denied;	  /* When our config request is denied */
 Atom Xatom_wm_window_moved;	  /* When the WM moves us. */
 
+/* Record the last 100 characters stored
+   to help debug the loss-of-chars-during-GC problem.  */
+int temp_index;
+short temp_buffer[100];
+
 /* Read events coming from the X server.
    This routine is called by the SIGIO handler.
    We return as soon as there are no more events to be read.
@@ -2749,6 +2754,9 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		      || IsKeypadKey (keysym)       /* 0xff80 <= x < 0xffbe */
 		      || IsFunctionKey (keysym))    /* 0xffbe <= x < 0xffe1 */
 		    {
+		      if (temp_index == sizeof temp_buffer / sizeof (short))
+			temp_index = 0;
+		      temp_buffer[temp_index++] = keysym;
 		      bufp->kind = non_ascii_keystroke;
 		      XSET (bufp->code, Lisp_Int, (unsigned) keysym - 0xff00);
 		      XSET (bufp->frame_or_window, Lisp_Frame, f);
@@ -2762,30 +2770,27 @@ XTread_socket (sd, bufp, numchars, waitp, expected)
 		    {
 		      register int i;
 
-		      if (nbytes == 1)
+		      for (i = 0; i < nbytes; i++)
 			{
+			  if (temp_index == sizeof temp_buffer / sizeof (short))
+			    temp_index = 0;
+			  temp_buffer[temp_index++] = copy_buffer[i];
 			  bufp->kind = ascii_keystroke;
-			  XSET (bufp->code, Lisp_Int, *copy_buffer);
+			  XSET (bufp->code, Lisp_Int, copy_buffer[i]);
 			  XSET (bufp->frame_or_window, Lisp_Frame, f);
 			  bufp->modifiers = x_convert_modifiers (modifiers);
 			  bufp->timestamp = event.xkey.time;
 			  bufp++;
 			}
-		      else
-			for (i = nbytes - 1; i > 1; i--)
-			  {
-			    bufp->kind = ascii_keystroke;
-			    XSET (bufp->code, Lisp_Int, copy_buffer[i]);
-			    XSET (bufp->frame_or_window, Lisp_Frame, f);
-			    bufp->modifiers = x_convert_modifiers (modifiers);
-			    bufp->timestamp = event.xkey.time;
-			    bufp++;
-			  }
 
 		      count += nbytes;
 		      numchars -= nbytes;
 		    }
+		  else
+		    abort ();
 		}
+	      else
+		abort ();
 	    }
 	  break;
 #else /* ! defined (HAVE_X11) */
