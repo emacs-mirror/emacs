@@ -1538,7 +1538,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       c = Faref (Vexecuting_macro, make_number (executing_macro_index));
       if (STRINGP (Vexecuting_macro)
 	  && (XINT (c) & 0x80))
-	XFASTINT (c) = CHAR_META | (XINT (c) & ~0x80);
+	XSETFASTINT (c, CHAR_META | (XINT (c) & ~0x80));
 
       executing_macro_index++;
 
@@ -2575,7 +2575,7 @@ make_lispy_event (event)
 	      & (meta_modifier | alt_modifier
 		 | hyper_modifier | super_modifier));
 	button_down_time = 0;
-	XFASTINT (lispy_c) = c;
+	XSETFASTINT (lispy_c, c);
 	return lispy_c;
       }
 
@@ -2935,8 +2935,8 @@ make_lispy_movement (frame, bar_window, part, x, y, time)
 	{
 	  window = Qnil;
 	  posn = Qnil;
-	  XFASTINT (x) = 0;
-	  XFASTINT (y) = 0;
+	  XSETFASTINT (x, 0);
+	  XSETFASTINT (y, 0);
 	}
 
       return Fcons (Qmouse_movement,
@@ -3182,7 +3182,7 @@ parse_modifiers (symbol)
 
       if (modifiers & ~((1<<VALBITS) - 1))
 	abort ();
-      XFASTINT (mask) = modifiers;
+      XSETFASTINT (mask, modifiers);
       elements = Fcons (unmodified, Fcons (mask, Qnil));
 
       /* Cache the parsing results on SYMBOL.  */
@@ -3221,7 +3221,7 @@ apply_modifiers (modifiers, base)
 
   /* The click modifier never figures into cache indices.  */
   cache = Fget (base, Qmodifier_cache);
-  XFASTINT (index) = (modifiers & ~click_modifier);
+  XSETFASTINT (index, (modifiers & ~click_modifier));
   entry = assq_no_quit (index, cache);
 
   if (CONSP (entry))
@@ -3238,7 +3238,7 @@ apply_modifiers (modifiers, base)
       Fput (base, Qmodifier_cache, Fcons (entry, cache));
 
       /* We have the parsing info now for free, so add it to the caches.  */
-      XFASTINT (index) = modifiers;
+      XSETFASTINT (index, modifiers);
       Fput (new_symbol, Qevent_symbol_element_mask,
 	    Fcons (base, Fcons (index, Qnil)));
       Fput (new_symbol, Qevent_symbol_elements,
@@ -3350,7 +3350,7 @@ modify_event_symbol (symbol_num, modifiers, symbol_kind, name_alist,
 	{
 	  Lisp_Object size;
 
-	  XFASTINT (size) = table_size;
+	  XSETFASTINT (size, table_size);
 	  *symbol_table = Fmake_vector (size, Qnil);
 	}
 
@@ -3889,7 +3889,7 @@ menu_bar_one_keymap (keymap)
 	  for (c = 0; c < len; c++)
 	    {
 	      Lisp_Object character;
-	      XFASTINT (character) = c;
+	      XSETFASTINT (character, c);
 	      binding = XVECTOR (item)->contents[c];
 	      if (CONSP (binding))
 		{
@@ -4935,7 +4935,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 		      (get_keyelt
 		       (access_keymap (fkey_map, meta_prefix_char, 1, 0)),
 		       0, 1);
-		  XFASTINT (key) = XFASTINT (key) & ~meta_modifier;
+		  XSETFASTINT (key, XFASTINT (key) & ~meta_modifier);
 		}
 	      else
 		fkey_next = fkey_map;
@@ -4996,8 +4996,8 @@ read_key_sequence (keybuf, bufsize, prompt)
 		      int i;
 
 		      for (i = 0; i < len; i++)
-			XFASTINT (keybuf[fkey_start + i])
-			  = XSTRING (fkey_next)->data[i];
+			XSETFASTINT (keybuf[fkey_start + i],
+				     XSTRING (fkey_next)->data[i]);
 		    }
 		  
 		  mock_input = t;
@@ -5039,7 +5039,7 @@ read_key_sequence (keybuf, bufsize, prompt)
 		    (get_keyelt
 		     (access_keymap (keytran_map, meta_prefix_char, 1, 0)),
 		     0, 1);
-		XFASTINT (key) = XFASTINT (key) & ~meta_modifier;
+		XSETFASTINT (key, XFASTINT (key) & ~meta_modifier);
 	      }
 	    else
 	      keytran_next = keytran_map;
@@ -5090,8 +5090,8 @@ read_key_sequence (keybuf, bufsize, prompt)
 		    int i;
 
 		    for (i = 0; i < len; i++)
-		      XFASTINT (keybuf[keytran_start + i])
-			= XSTRING (keytran_next)->data[i];
+		      XSETFASTINT (keybuf[keytran_start + i],
+				   XSTRING (keytran_next)->data[i]);
 		  }
 
 		mock_input = t;
@@ -5353,11 +5353,11 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
     str = XSTRING (function);
     for (i = 0; i < str->size; i++)
       {
-	XFASTINT (tem) = str->data[i];
+	XSETFASTINT (tem, str->data[i]);
 	add_command_key (tem);
       }
 
-    XFASTINT (tem) = '\015';
+    XSETFASTINT (tem, '\015');
     add_command_key (tem);
   }
 
@@ -5434,7 +5434,7 @@ DEFUN ("recursion-depth", Frecursion_depth, Srecursion_depth, 0, 0, 0,
   ()
 {
   Lisp_Object temp;
-  XFASTINT (temp) = command_loop_level + minibuf_level;
+  XSETFASTINT (temp, command_loop_level + minibuf_level);
   return temp;
 }
 
@@ -5824,7 +5824,7 @@ The elements of this list correspond to the arguments of\n\
   val[0] = interrupt_input ? Qt : Qnil;
   val[1] = flow_control ? Qt : Qnil;
   val[2] = meta_key == 2 ? make_number (0) : meta_key == 1 ? Qt : Qnil;
-  XFASTINT (val[3]) = quit_char;
+  XSETFASTINT (val[3], quit_char);
 
   return Flist (sizeof (val) / sizeof (val[0]), val);
 }
@@ -6113,7 +6113,7 @@ Zero means disable autosaving due to number of characters typed.");
 Zero or nil means disable auto-saving due to idleness.\n\
 After auto-saving due to this many seconds of idle time,\n\
 Emacs also does a garbage collection if that seems to be warranted.");
-  XFASTINT (Vauto_save_timeout) = 30;
+  XSETFASTINT (Vauto_save_timeout, 30);
 
   DEFVAR_INT ("echo-keystrokes", &echo_keystrokes,
     "*Nonzero means echo unfinished commands after this many seconds of pause.");
