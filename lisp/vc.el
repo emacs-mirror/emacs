@@ -1035,8 +1035,8 @@ level to check it in under.  COMMENT, if specified, is the checkin comment."
     (if rev
 	(setq file-description (format "%s:%s" file rev))
       (setq file-description file))
-    (if (not (y-or-n-p (format "Take the lock on %s from %s? "
-			       file-description owner)))
+    (if (not (yes-or-no-p (format "Steal the lock on %s from %s? "
+				  file-description owner)))
 	(error "Steal cancelled"))
     (pop-to-buffer (get-buffer-create "*VC-mail*"))
     (setq default-directory (expand-file-name "~/"))
