@@ -1,3 +1,13 @@
+2003-11-23  Kim F. Storm  <storm@cua.dk>
+
+	* commands.texi (Click Events): Describe enhancements to event
+	position lists, including new text-pos and (col . row) items.
+	Mention left-fringe and right-fringe area events.
+	(Accessing Events): New functions posn-area, posn-object, and
+	posn-actual-col-row.  Mention posn-timestamp.  Mention that
+	posn-point in non-text area still returns buffer position.
+	Clarify posn-col-row.
+
 2003-11-21  Lars Hansen  <larsh@math.ku.dk>
 
 	* files.texi (File Attributes): Describe new parameter ID-FORMAT.
