@@ -232,7 +232,7 @@ compile: subdirs.el doit
 # Compile all Lisp files, except those from DONTCOMPILE.  This
 # is like `compile' but compiles files unconditionally.
 compile-always: subdirs.el doit
-	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1; \
+	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1 || true; \
 	wd=$(lisp); $(setwins);	\
 	elpat=`echo $$wins | tr ' 	' '\012\012' | \
 		sed -e 's|\(.\)$$|\1/|' -e 's|^\./||' -e 's|$$|*.el|'`;	\
