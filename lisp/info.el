@@ -1124,7 +1124,7 @@ If FORK is a string, it is the name to use for the new buffer."
 			    (cons (list (match-string-no-properties 1))
 				  compl))))))))
 	(setq compl (cons '("*") compl))
-	(setq Info-current-file-completions compl))))
+	(set (make-local-variable 'Info-current-file-completions) compl))))
 
 (defun Info-restore-point (hl)
   "If this node has been visited, restore the point value when we left."
