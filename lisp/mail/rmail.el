@@ -227,7 +227,9 @@ and the value of the environment variable MAIL overrides it)."
 
 ;;;###autoload
 (defcustom rmail-mail-new-frame nil
-  "*Non-nil means Rmail makes a new frame for composing outgoing mail."
+  "*Non-nil means Rmail makes a new frame for composing outgoing mail.
+This is handy if you want to preserve the window configuration of
+the frame where you have the RMAIL buffer displayed."
   :type 'boolean
   :group 'rmail-reply)
 
@@ -1666,7 +1668,15 @@ It returns t if it got any new messages."
 (defun rmail-decode-region (from to coding)
   (if (or (not coding) (not (coding-system-p coding)))
       (setq coding 'undecided))
-  (decode-coding-region from to coding))
+  ;; Use -dos decoding, to remove ^M characters left from base64 or
+  ;; rogue qp-encoded text.
+  (decode-coding-region from to
+			(coding-system-change-eol-conversion coding 1))
+  ;; Don't reveal the fact we used -dos decoding, as users generally
+  ;; will not expect the RMAIL buffer to use DOS EOL format.
+  (setq buffer-file-coding-system
+	(setq last-coding-system-used
+	      (coding-system-change-eol-conversion coding 0))))
 
 ;; the  rmail-break-forwarded-messages  feature is not implemented
 (defun rmail-convert-to-babyl-format ()
@@ -1751,9 +1761,6 @@ It returns t if it got any new messages."
 			       (error nil))
 			   ;; Change "base64" to "8bit", to reflect the
 			   ;; decoding we just did.
-			   (goto-char (1+ header-end))
-			   (while (search-forward "\r\n" (point-max) t)
-			     (replace-match "\n"))
 			   (goto-char base64-header-field-end)
 			   (delete-region (point) (search-backward ":"))
 			   (insert ": 8bit"))))
@@ -1901,9 +1908,6 @@ It returns t if it got any new messages."
 				    (point)))
 				 t)
 			     (error nil))
-			 (goto-char header-end)
-			 (while (search-forward "\r\n" (point-max) t)
-			   (replace-match "\n"))
 			 ;; Change "base64" to "8bit", to reflect the
 			 ;; decoding we just did.
 			 (goto-char base64-header-field-end)
@@ -3167,7 +3171,7 @@ See also user-option `rmail-confirm-expunge'."
 	(compose-mail to subject others
 		      noerase nil
 		      yank-action sendactions)
-      (if (and (display-multi-frame-p) rmail-mail-new-frame)
+      (if rmail-mail-new-frame
 	  (prog1
 	      (compose-mail to subject others
 			    noerase 'switch-to-buffer-other-frame
