@@ -50,8 +50,8 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
    does not define it automatically:
    Ones defined so far include vax, m68000, ns16000, pyramid,
    orion, tahoe, APOLLO and many others */
-#ifndef hp800
-#	define hp800
+#ifndef hp9000s800
+#	define hp9000s800
 #endif
 
 /* Use type int rather than a union, to represent Lisp_Object */
