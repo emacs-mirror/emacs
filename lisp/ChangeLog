@@ -1,3 +1,8 @@
+2003-02-24  Ramakrishnan M  <rama@gnu.org>  (tiny change)
+
+	* language/mlm-util.el (mlm-char-glyph): Fix several composing
+	rules.
+
 2003-02-24  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el: Fix syntaxes of gb2312 and big5.
