@@ -29,3 +29,10 @@
    if it was a control character like tab, enter, backspace, or ESC.
    Bill_Mann @ PraxisInt.com   */
 /* #undef X11R5_INHIBIT_I18N */
+
+#ifndef HAVE_LIBXMU
+#define LIBXMU
+
+/* Unfortunately without libXmu we cannot support EditRes.  */
+#define NO_EDITRES
+#endif
