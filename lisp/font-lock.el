@@ -365,13 +365,16 @@ can use \\[font-lock-fontify-buffer]."
     (set (make-local-variable 'font-lock-mode) on-p)
     (cond (on-p
 	   (font-lock-set-defaults)
+	   (make-local-variable 'after-revert-hook)
+	   ;;if buffer is reverted, must repeat fontification. 
+	   (setq after-revert-hook 'font-lock-fontify-buffer)
 	   (run-hooks 'font-lock-mode-hook)
 	   (or font-lock-fontified (font-lock-fontify-buffer)))
 	  (font-lock-fontified
 	   (setq font-lock-fontified nil)
+	   (setq after-revert-hook nil)
 	   (font-lock-unfontify-region (point-min) (point-max))))
     (force-mode-line-update)))
-
 
 (defun font-lock-fontify-buffer ()
   "Fontify the current buffer the way `font-lock-mode' would:
