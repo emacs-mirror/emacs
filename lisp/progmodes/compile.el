@@ -34,7 +34,7 @@
   "*List of hook functions run by `compilation-mode' (see `run-hooks').")
 
 ;;;###autoload
-(defconst compilation-window-height nil
+(defvar compilation-window-height nil
   "*Number of lines in a compilation window.  If nil, use Emacs default.")
 
 (defvar compilation-error-list nil
@@ -208,14 +208,14 @@ You might also use mode hooks to specify it in certain modes, like this:
 				    (concat \"make -k \"
 					    buffer-file-name))))))")
 
-(defconst compilation-enter-directory-regexp
+(defvar compilation-enter-directory-regexp
   ": Entering directory `\\(.*\\)'$"
   "Regular expression matching lines that indicate a new current directory.
 This must contain one \\(, \\) pair around the directory name.
 
 The default value matches lines printed by the `-w' option of GNU Make.")
 
-(defconst compilation-leave-directory-regexp
+(defvar compilation-leave-directory-regexp
   ": Leaving directory `\\(.*\\)'$"
   "Regular expression matching lines that indicate restoring current directory.
 This may contain one \\(, \\) pair around the name of the directory
