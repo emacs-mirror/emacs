@@ -1,3 +1,8 @@
+2004-12-01  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/prolog.el (prolog-mode-variables):
+	Fix imenu-generic-expression.
+
 2004-12-01  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* faces.el (glyph): New face.
