@@ -1,3 +1,8 @@
+2001-12-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* xterm.c (x_draw_image_relief): Use predefined macro instead of
+	constant when the value of `tool_bar_button_relief' is negative.
+
 2001-12-02  Richard M. Stallman  <rms@gnu.org>
 
 	* xmenu.c (menu_highlight_callback): Use `help' field as Lisp_Object.
