@@ -1175,9 +1175,15 @@ count_children:
       return 0;
     }
   
-  /* Wait for input or child death to be signalled.  */
   start_time = GetTickCount ();
-  active = WaitForMultipleObjects (nh + nc, wait_hnd, FALSE, timeout_ms);
+
+  /* Wait for input or child death to be signalled.  If user input is
+     allowed, then also accept window messages.  */
+  if (FD_ISSET (0, &orfds))
+    active = MsgWaitForMultipleObjects (nh + nc, wait_hnd, FALSE, timeout_ms,
+					QS_ALLINPUT);
+  else
+    active = WaitForMultipleObjects (nh + nc, wait_hnd, FALSE, timeout_ms);
 
   if (active == WAIT_FAILED)
     {
@@ -1213,7 +1219,26 @@ count_children:
      processed - otherwise higher numbered channels could be starved. */
   do
     {
-      if (active >= nh)
+      if (active == nh + nc)
+	{
+	  /* There are messages in the lisp thread's queue; we must
+             drain the queue now to ensure they are processed promptly,
+             because if we don't do so, we will not be woken again until
+             further messages arrive.
+
+	     NB. If ever we allow window message procedures to callback
+	     into lisp, we will need to ensure messages are dispatched
+	     at a safe time for lisp code to be run (*), and we may also
+	     want to provide some hooks in the dispatch loop to cater
+	     for modeless dialogs created by lisp (ie. to register
+	     window handles to pass to IsDialogMessage).
+
+	     (*) Note that MsgWaitForMultipleObjects above is an
+	     internal dispatch point for messages that are sent to
+	     windows created by this thread.  */
+	  drain_message_queue ();
+	}
+      else if (active >= nh)
 	{
 	  cp = cps[active - nh];
 
