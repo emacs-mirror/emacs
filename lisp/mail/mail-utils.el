@@ -247,7 +247,7 @@ Usenet paths ending in an element that matches are removed also."
     (if (setq pos (string-match "[ ,\t\n]*\\'" userids))
 	(setq userids (substring userids 0 pos)))
     ;; remove leading spaces. they bother me.
-    (if (string-match "\\s *" userids)
+    (if (string-match "\\(\\s \\|,\\)*" userids)
 	(substring userids (match-end 0))
       userids)))
 
