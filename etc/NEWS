@@ -1020,8 +1020,8 @@ file names.
 ** Tooltips.
 
 Tooltips are small X windows displaying a help string at the current
-mouse position.  To use them, use the Lisp package `tooltip' which you
-can access via the user option `tooltip-mode'.
+mouse position.  The Lisp package `tooltip' implements them.  You can
+turn them off via the user option `tooltip-mode'.
 
 Tooltips also provides support for GUD debugging.  If activated,
 variable values can be displayed in tooltips by pointing at them with
@@ -1975,6 +1975,22 @@ functionality with aliases for the mldrag functions.
 *** ph.el has been obsoleted by EUDC and removed.
 
 
+* Incompatible Lisp changes
+
+There are a few Lisp changes which are not backwards-compatible and
+may require changes to existing code. Here is a list for reference.
+
+** Since `format' preserves text properties, the idiom 
+`(format %s foo)' no longer works to remove properties.
+
+** Since the `keymap' text property now has significance, some code
+which uses both `local-map' and `keymap' properties (for portability)
+may, for instance, give rise to duplicate menus when the keymaps from
+these properties are active.
+
+** The change in the treatment of non_ASCII characters in search
+ranges may affect some code.
+
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
@@ -2824,7 +2840,15 @@ may be present, but not both.
 VOLUME must be an integer in the range 0..100 or a float in the range
 0..1.  This property is optional.
 
+- `:device DEVICE'
+
+DEVICE is a string specifying the system device on which to play the
+sound.  The default device is system-dependent.
+
 Other properties are ignored.
+
+An alternative interface is called as
+(play-sound-file FILE &optional VOLUME DEVICE).
 
 ** `multimedia' is a new Finder keyword and Custom group.
 
