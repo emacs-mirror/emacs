@@ -10,6 +10,9 @@
 
 2003-03-24  John Paul Wallington  <jpw@gnu.org>
 
+	* emacs-lisp/easymenu.el (easy-menu-add-item): Don't default to
+	the global map.
+
 	* emerge.el (emerge-show-file-name): Read event irrespective of
 	whether minibuffer window is resized.  Clear minibuffer when done.
 
