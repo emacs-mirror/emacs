@@ -7159,7 +7159,7 @@ just as brace-else-brace says to put ...} else {... on one line.
 
 ** VC Changes [new]
 
-** In vc-retrieve-snapshot (C-x v r), if you don't specify a snapshot
+*** In vc-retrieve-snapshot (C-x v r), if you don't specify a snapshot
 name, it retrieves the *latest* versions of all files in the current
 directory and its subdirectories (aside from files already locked).
 
@@ -7180,9 +7180,17 @@ version numbers, based on the current state of the file.
 
 ** Calendar changes.
 
-A new function, list-holidays, allows you list holidays or subclasses
-of holidays for ranges of years.  Related menu items allow you do this
-for the year of the selected date, or the following/previous years.
+*** A new function, list-holidays, allows you list holidays or
+subclasses of holidays for ranges of years.  Related menu items allow
+you do this for the year of the selected date, or the
+following/previous years.
+
+*** There is now support for the Baha'i calendar system.  Use `pb' in
+the *Calendar* buffer to display the current Baha'i date.  The Baha'i
+calendar, or "Badi calendar" is a system of 19 months with 19 days
+each, and 4 intercalary days (5 during a Gregorian leap year).  The
+calendar begins May 23, 1844, with each of the months named after a
+supposed attribute of God.
 
 ** ps-print changes
 
