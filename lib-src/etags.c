@@ -1512,10 +1512,10 @@ put_entries (node)
   if (!CTAGS)
     {
       if (node->name != NULL)
-	fprintf (tagf, "%s\177%s\001%d,%d\n",
+	fprintf (tagf, "%s\177%s\001%d,%ld\n",
 		 node->pat, node->name, node->lno, node->cno);
       else
-	fprintf (tagf, "%s\177%d,%d\n",
+	fprintf (tagf, "%s\177%d,%ld\n",
 		 node->pat, node->lno, node->cno);
     }
   else
