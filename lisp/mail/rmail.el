@@ -1014,6 +1014,9 @@ It returns t if it got any new messages."
       ;; Don't leave the buffer screwed up if we get a disk-full error.
       (rmail-show-message))))
 
+(defvar rmail-file-coding-system 'coding-system-iso2022-7
+  "Coding system used in RMAIL file.")
+
 (defun rmail-insert-inbox-text (files renamep)
   ;; Detect a locked file now, so that we avoid moving mail
   ;; out of the real inbox file.  (That could scare people.)
@@ -1143,7 +1146,27 @@ It returns t if it got any new messages."
       (if (file-exists-p tofile)
 	  (let (size)
 	    (goto-char (point-max))
-	    (setq size (nth 1 (insert-file-contents tofile)))
+	    ;; At first, read the file as is (i.e. no decoding).
+	    (setq size (nth 1 (let ((coding-system-for-read 'no-conversion))
+				(insert-file-contents tofile))))
+	    ;; Then, decode the contents one by one.
+	    (let ((pos (point)))
+	      (cond ((looking-at "^From ") ; new mails.
+		     (forward-line 1)
+		     (while (not (eobp))
+		       (setq pos (point))
+		       (search-forward "\nFrom " nil 'move)
+		       (decode-coding-region pos (point)
+					     'automatic-conversion)))
+		    ((looking-at "BABYL OPTIONS:\\|\^L") ; Babyl format
+		     (while (not (eobp))
+		       (setq pos (point))
+		       (search-forward "\n^_" nil 'move)
+		       (decode-coding-region pos (point)
+					     rmail-file-coding-system)))
+		    (t ; Perhaps MMDF format.  Convert all data at once.
+		     (decode-coding-region (point) (point-max)
+					   'automatic-conversion))))
 	    (goto-char (point-max))
 	    (or (= (preceding-char) ?\n)
 		(zerop size)
@@ -2178,7 +2201,7 @@ Deleted messages stay in the file until the \\[rmail-expunge] command is given."
 	  (narrow-to-region (- (buffer-size) omin) (- (buffer-size) omax)))
       (rmail-show-message
        (if (zerop rmail-current-message) 1 nil))
-      (forward-char opoint))))
+      (goto-char (+ (point) opoint)))))
 
 (defun rmail-expunge ()
   "Erase deleted messages from Rmail file and summary buffer."
