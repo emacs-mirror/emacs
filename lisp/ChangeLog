@@ -4,6 +4,11 @@
 
 2000-10-23  Dave Love  <fx@gnu.org>
 
+	* imenu.el (imenu--create-keymap-2): Build menu with menu-item
+	using :key-sequence, making it much more usable.  Use nconc, not
+	append.
+	(imenu--create-keymap-1): Avoid append.
+
 	* textmodes/refill.el: Remove bits redundant with define-minor-mode.
  
 2000-10-23  Miles Bader  <miles@lsi.nec.co.jp>
