@@ -1,3 +1,7 @@
+2001-04-17  Gerd Moellmann  <gerd@gnu.org>
+
+	* frame.el (delete-other-frames): Handle minibuffer-only frames.
+
 2001-04-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* vc-cvs.el (vc-cvs-print-log, vc-cvs-diff): Don't invoke CVS as
