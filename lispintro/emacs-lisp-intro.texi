@@ -126,17 +126,8 @@
 @c   create a major mode, with keymaps
 @c   run an asynchronous process, like grep or diff
 
-@c For smallbook format, use smaller than normal amounts of
-@c whitespace between chapters, sections, and paragraphs.
-@tex
-\global\chapheadingskip = 15pt plus 4pt minus 2pt
-\global\secheadingskip = 12pt plus 3pt minus 2pt
-\global\subsecheadingskip = 9pt plus 2pt minus 2pt \global\parskip 2pt
-plus 1pt
-@end tex
-
 @c For 8.5 by 11 inch format: do not use such a small amount of
-@c whitespace between paragraphs as above:
+@c whitespace between paragraphs as smallbook format
 @ifset largebook
 @tex
 \global\parskip 6pt plus 1pt
