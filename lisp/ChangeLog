@@ -1,5 +1,9 @@
 2000-09-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
+	* international/titdic-cnv.el (quail-cxterm-package-ext-info): Fix
+	doc strings of chinese-py-b5, chinese-py, and chinese-tonepy input
+	methods.
+
 	* menu-bar.el (read-mail-item-name): New function.
 	(menu-bar-tools-menu): Use it to compute and display the package
 	used to read email.
