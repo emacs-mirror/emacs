@@ -2463,6 +2463,7 @@ syms_of_frame ()
   defsubr (&Sframe_width);
   Ffset (intern ("screen-width"), intern ("frame-width"));
   defsubr (&Smouse_position);
+  Ffset (intern ("mouse-pixel-position"), intern ("mouse-position"));
   defsubr (&Sframe_parameters);
   defsubr (&Smodify_frame_parameters);
   defsubr (&Sframe_live_p);
