@@ -77,9 +77,8 @@ Is processed with `substitute-command-keys' first.")
 (xscheme-evaluation-commands scheme-mode-map)
 (xscheme-interrupt-commands scheme-mode-map)
 
-;;;###autoload
 (defun run-scheme (command-line)
-  "Run an inferior Scheme process.
+  "Run MIT Scheme in an inferior process.
 Output goes to the buffer `*scheme*'.
 With argument, asks for a command line."
   (interactive
