@@ -348,35 +348,74 @@ scan_c_file (filename)
 /* Read a file of Lisp code, compiled or interpreted.
  Looks for
   (defun NAME ARGS DOCSTRING ...)
-  (autoload 'NAME FILE DOCSTRING ...)
+  (defmacro NAME ARGS DOCSTRING ...)
+  (autoload (quote NAME) FILE DOCSTRING ...)
   (defvar NAME VALUE DOCSTRING)
   (defconst NAME VALUE DOCSTRING)
-  (fset (quote NAME) (make-byte-code (quote ARGS) ... "\
-      DOCSTRING")
+  (fset (quote NAME) (make-byte-code ... DOCSTRING ...))
+  (fset (quote NAME) #[... DOCSTRING ...])
  starting in column zero.
- ARGS, FILE or VALUE is ignored.  We do not know how to parse Lisp code
- so we use a kludge to skip them:
-  In a function definition, the form of ARGS of FILE is known, and we
-  can skip it.
-  In a variable definition, we use a formatting convention:
-  the DOCSTRING, if present, must be followed by a closeparen and a newline,
-  and no newline must appear between the defvar or defconst and the docstring,
-  The only source file that must follow this convention is loaddefs.el;
-  aside from that, it is always the .elc file that we look at, and
-  they are no problem because byte-compiler output follows this convention.
+ (quote NAME) may appear as 'NAME as well.
+ For defun, defmacro, and autoload, we know how to skip over the arglist.
+ For defvar, defconst, and fset we skip to the docstring with a klugey 
+ formatting convention: all docstrings must appear on the same line as the
+ initial open-paren (the one in column zero) and must contain a backslash 
+ and a double-quote immediately after the initial double-quote.  No newlines
+ must appear between the beginning of the form and the first double-quote.
+ The only source file that must follow this convention is loaddefs.el; aside
+ from that, it is always the .elc file that we look at, and they are no
+ problem because byte-compiler output follows this convention.
  The NAME and DOCSTRING are output.
  NAME is preceded by `F' for a function or `V' for a variable.
  An entry is output only if DOCSTRING has \ newline just after the opening "
  */
+
+void
+skip_white (infile)
+     FILE *infile;
+{
+  char c = ' ';
+  while (c == ' ' || c == '\t' || c == '\n')
+    c = getc (infile);
+  ungetc (c, infile);
+}
+
+void
+read_lisp_symbol (infile, buffer)
+     FILE *infile;
+     char *buffer;
+{
+  char c;
+  char *fillp = buffer;
+
+  skip_white (infile);
+  while (1)
+    {
+      c = getc (infile);
+      if (c == '\\')
+	*(++fillp) = getc (infile);
+      else if (c == ' ' || c == '\t' || c == '\n' || c == '(' || c == ')')
+	{
+	  ungetc (c, infile);
+	  *fillp = 0;
+	  break;
+	}
+      else
+	*fillp++ = c;
+    }
+
+  if (! buffer[0])
+    fprintf (stderr, "## expected a symbol, got '%c'\n", c);
+  
+  skip_white (infile);
+}
+
 
 scan_lisp_file (filename)
      char *filename;
 {
   FILE *infile;
   register int c;
-  register int commas;
-  register char *p;
-  int defvarflag;
 
   infile = fopen (filename, "r");
   if (infile == NULL)
@@ -388,6 +427,10 @@ scan_lisp_file (filename)
   c = '\n';
   while (!feof (infile))
     {
+      char buffer [BUFSIZ];
+      char *fillp = buffer;
+      char type;
+
       if (c != '\n')
 	{
 	  c = getc (infile);
@@ -397,382 +440,213 @@ scan_lisp_file (filename)
       if (c != '(')
 	continue;
 
-      /* Handle an autoload.  */
-      c = getc (infile);
-      if (c == 'a')
+      read_lisp_symbol (infile, buffer);
+
+      if (! strcmp (buffer, "defun") ||
+	  ! strcmp (buffer, "defmacro"))
 	{
-	  c = getc (infile);
-	  if (c != 'u')
-	    continue;
-	  c = getc (infile);
-	  if (c != 't')
-	    continue;
-	  c = getc (infile);
-	  if (c != 'o')
-	    continue;
-	  c = getc (infile);
-	  if (c != 'l')
-	    continue;
-	  c = getc (infile);
-	  if (c != 'o')
-	    continue;
-	  c = getc (infile);
-	  if (c != 'a')
-	    continue;
-	  c = getc (infile);
-	  if (c != 'd')
-	    continue;
+	  type = 'F';
+	  read_lisp_symbol (infile, buffer);
+
+	  /* Skip the arguments: either "nil" or a list in parens */
 
 	  c = getc (infile);
-	  while (c == ' ')
-	    c = getc (infile);
-
-	  if (c == '\'')
+	  if (c == 'n') /* nil */
 	    {
-	      c = getc (infile);
+	      if ((c = getc (infile)) != 'i' ||
+		  (c = getc (infile)) != 'l')
+		{
+		  fprintf (stderr, "## unparsable arglist in %s (%s)\n",
+			   buffer, filename);
+		  continue;
+		}
+	    }
+	  else if (c != '(')
+	    {
+	      fprintf (stderr, "## unparsable arglist in %s (%s)\n",
+		       buffer, filename);
+	      continue;
 	    }
 	  else
+	    while (c != ')')
+	      c = getc (infile);
+	  skip_white (infile);
+
+	  /* If the next three characters aren't `dquote bslash newline'
+	     then we're not reading a docstring.
+	   */
+	  if ((c = getc (infile)) != '"' ||
+	      (c = getc (infile)) != '\\' ||
+	      (c = getc (infile)) != '\n')
 	    {
-	      if (c != '(')
-		continue;
-	      c = getc (infile);
-	      if (c != 'q')
-		continue;
-	      c = getc (infile);
-	      if (c != 'u')
-		continue;
-	      c = getc (infile);
-	      if (c != 'o')
-		continue;
-	      c = getc (infile);
-	      if (c != 't')
-		continue;
-	      c = getc (infile);
-	      if (c != 'e')
-		continue;
-	      c = getc (infile);
-	      if (c != ' ')
-		continue;
-	      while (c == ' ')
-		c = getc (infile);
-	    }
-
-	  p = buf;
-	  while (c != ' ' && c != ')')
-	    {
-	      if (c == EOF)
-		return 1;
-	      if (c == '\\')
-		c = getc (infile);
-	      *p++ = c;
-	      c = getc (infile);
-	    }
-	  *p = 0;
-
-	  while (c != '"')
-	    {
-	      if (c == EOF)
-		return 1;
-	      c = getc (infile);
-	    }
-	  c = read_c_string (infile, 0);
-	}
-
-      /* Handle def* clauses.  */
-      else if (c == 'd')
-	{
-	  c = getc (infile);
-	  if (c != 'e')
-	    continue;
-	  c = getc (infile);
-	  if (c != 'f')
-	    continue;
-	  c = getc (infile);
-
-	  /* Is this a defun?  */
-	  if (c == 'u')
-	    {
-	      c = getc (infile);
-	      if (c != 'n')
-		continue;
-	      defvarflag = 0;
-	    }
-
-	  /* Or a defvar?  */
-	  else if (c == 'v')
-	    {
-	      c = getc (infile);
-	      if (c != 'a')
-		continue;
-	      c = getc (infile);
-	      if (c != 'r')
-		continue;
-	      defvarflag = 1;
-	    }
-
-	  /* Or a defconst?  */
-	  else if (c == 'c')
-	    {
-	      c = getc (infile);
-	      if (c != 'o')
-		continue;
-	      c = getc (infile);
-	      if (c != 'n')
-		continue;
-	      c = getc (infile);
-	      if (c != 's')
-		continue;
-	      c = getc (infile);
-	      if (c != 't')
-		continue;
-	      defvarflag = 1;
-	    }
-	  else
-	    continue;
-
-	  /* Now we have seen "defun" or "defvar" or "defconst".  */
-
-	  while (c != ' ' && c != '\n' && c != '\t')
-	    c = getc (infile);
-
-	  while (c == ' ' || c == '\n' || c == '\t')
-	    c = getc (infile);
-
-	  /* Read and store name of function or variable being defined
-	     Discard backslashes that are for quoting.  */
-	  p = buf;
-	  while (c != ' ' && c != '\n' && c != '\t')
-	    {
-	      if (c == '\\')
-		c = getc (infile);
-	      *p++ = c;
-	      c = getc (infile);
-	    }
-	  *p = 0;
-
-	  while (c == ' ' || c == '\n' || c == '\t')
-	    c = getc (infile);
-
-	  if (! defvarflag)
-	    {
-	      /* A function: */
-	      /* Skip the arguments: either "nil" or a list in parens */
-	      if (c == 'n')
-		{
-		  while (c != ' ' && c != '\n' && c != '\t')
-		    c = getc (infile);
-		}
-	      else
-		{
-		  while (c != '(')
-		    c = getc (infile);
-		  while (c != ')')
-		    c = getc (infile);
-		}
-	      c = getc (infile);
-	    }
-	  else
-	    {
-	      /* A variable:  */
-
-	      /* Skip until the first newline; remember
-		 the two previous characters.  */
-	      char c1 = 0, c2 = 0;
-
-	      while (c != '\n' && c >= 0)
-		{
-		  c2 = c1;
-		  c1 = c;
-		  c = getc (infile);
-		}
-
-	      /* If two previous characters were " and \,
-		 this is a doc string.  Otherwise, there is none.  */
-	      if (c2 == '"' && c1 == '\\')
-		{
-		  putc (037, outfile);
-		  putc ('V', outfile);
-		  fprintf (outfile, "%s\n", buf);
-		  read_c_string (infile, 1);
-		}
+#ifdef DEBUG
+	      fprintf (stderr, "## non-docstring in %s (%s)\n",
+		       buffer, filename);
+#endif
 	      continue;
 	    }
 	}
-      
-      /* Handle an fset clause.  */
-      else if (c == 'f') 
+
+      else if (! strcmp (buffer, "defvar") ||
+	       ! strcmp (buffer, "defconst"))
 	{
-	  c = getc (infile);
-	  if (c != 's')
-	    continue;
-	  c = getc (infile);
-	  if (c != 'e')
-	    continue;
-	  c = getc (infile);
-	  if (c != 't')
-	    continue;
+	  char c1 = 0, c2 = 0;
+	  type = 'V';
+	  read_lisp_symbol (infile, buffer);
 
-	  /* Skip white space */
-	  do
-	    c = getc (infile);
-	  while (c == ' ' || c == '\n' || c == '\t');
-
-	  /* Recognize "(quote".  */
-	  if (c != '(')
-	    continue;
-	  c = getc (infile);
-	  if (c != 'q')
-	    continue;
-	  c = getc (infile);
-	  if (c != 'u')
-	    continue;
-	  c = getc (infile);
-	  if (c != 'o')
-	    continue;
-	  c = getc (infile);
-	  if (c != 't')
-	    continue;
-	  c = getc (infile);
-	  if (c != 'e')
-	    continue;
-	  
-	  /* Skip white space */
-	  do
-	    c = getc (infile);
-	  while (c == ' ' || c == '\n' || c == '\t');
-
-	  /* Read and store name of function or variable being defined
-	     Discard backslashes that are for quoting.  */
-	  p = buf;
-	  while (c != ')' && c != ' ' && c != '\n' && c != '\t')
+	  /* Skip until the first newline; remember the two previous chars. */
+	  while (c != '\n' && c >= 0)
 	    {
-	      if (c == '\\')
-		c = getc (infile);
-	      *p++ = c;
+	      c2 = c1;
+	      c1 = c;
 	      c = getc (infile);
 	    }
-	  *p = '\0';
-
-	  /* Skip white space */
-	  do
-	    c = getc (infile);
-	  while (c == ' ' || c == '\n' || c == '\t');
-
-	  /* Recognize "(make-byte-code".  */
-	  if (c != '(')
-	    continue;
-	  c = getc (infile);
-	  if (c != 'm')
-	    continue;
-	  c = getc (infile);
-	  if (c != 'a')
-	    continue;
-	  c = getc (infile);
-	  if (c != 'k')
-	    continue;
-	  c = getc (infile);
-	  if (c != 'e')
-	    continue;
-	  c = getc (infile);
-	  if (c != '-')
-	    continue;
-	  c = getc (infile);
-	  if (c != 'b')
-	    continue;
-	  c = getc (infile);
-	  if (c != 'y')
-	    continue;
-	  c = getc (infile);
-	  if (c != 't')
-	    continue;
-	  c = getc (infile);
-	  if (c != 'e')
-	    continue;
-	  c = getc (infile);
-	  if (c != '-')
-	    continue;
-	  c = getc (infile);
-	  if (c != 'c')
-	    continue;
-	  c = getc (infile);
-	  if (c != 'o')
-	    continue;
-	  c = getc (infile);
-	  if (c != 'd')
-	    continue;
-	  c = getc (infile);
-	  if (c != 'e')
-	    continue;
-
-	  /* Scan for a \" followed by a newline, or for )) followed by
-	     a newline.  If we find the latter first, this function has
-	     no docstring.  */
-	  {
-	    char c1 = 0, c2 = 0;
-
-	    for (;;)
-	      {
-
-		/* Find newlines, and remember the two previous characters.  */
-		for (;;)
-		  {
-		    c = getc (infile);
-
-		    if (c == '\n' || c < 0)
-		      break;
-
-		    c2 = c1;
-		    c1 = c;
-		  }
-		
-		/* If we've hit eof, quit.  */
-		if (c == EOF)
-		  break;
-
-		/* If the last two characters were \", this is a docstring.  */
-		else if (c2 == '"' && c1 == '\\')
-		  {
-		    putc (037, outfile);
-		    putc ('F', outfile);
-		    fprintf (outfile, "%s\n", buf);
-		    read_c_string (infile, 1);
-		    break;
-		  }
-		
-		/* If the last two characters were )), there is no
-		   docstring.  */
-		else if (c2 == ')' && c1 == ')')
-		  break;
-	      }
-	    continue;
-	  }
+	  
+	  /* If two previous characters were " and \,
+	     this is a doc string.  Otherwise, there is none.  */
+	  if (c2 != '"' || c1 != '\\')
+	    {
+#ifdef DEBUG
+	      fprintf (stderr, "## non-docstring in %s (%s)\n",
+		       buffer, filename);
+#endif
+	      continue;
+	    }
 	}
+
+      else if (! strcmp (buffer, "fset"))
+	{
+	  char c1 = 0, c2 = 0;
+	  type = 'F';
+
+	  c = getc (infile);
+	  if (c == '\'')
+	    read_lisp_symbol (infile, buffer);
+	  else
+	    {
+	      if (c != '(')
+		{
+		  fprintf (stderr, "## unparsable name in fset in %s\n",
+			   filename);
+		  continue;
+		}
+	      read_lisp_symbol (infile, buffer);
+	      if (strcmp (buffer, "quote"))
+		{
+		  fprintf (stderr, "## unparsable name in fset in %s\n",
+			   filename);
+		  continue;
+		}
+	      read_lisp_symbol (infile, buffer);
+	      c = getc (infile);
+	      if (c != ')')
+		{
+		  fprintf (stderr,
+			   "## unparsable quoted name in fset in %s\n",
+			   filename);
+		  continue;
+		}
+	    }
+
+	  /* Skip until the first newline; remember the two previous chars. */
+	  while (c != '\n' && c >= 0)
+	    {
+	      c2 = c1;
+	      c1 = c;
+	      c = getc (infile);
+	    }
+	  
+	  /* If two previous characters were " and \,
+	     this is a doc string.  Otherwise, there is none.  */
+	  if (c2 != '"' || c1 != '\\')
+	    {
+#ifdef DEBUG
+	      fprintf (stderr, "## non-docstring in %s (%s)\n",
+		       buffer, filename);
+#endif
+	      continue;
+	    }
+	}
+
+      else if (! strcmp (buffer, "autoload"))
+	{
+	  type = 'F';
+	  c = getc (infile);
+	  if (c == '\'')
+	    read_lisp_symbol (infile, buffer);
+	  else
+	    {
+	      if (c != '(')
+		{
+		  fprintf (stderr, "## unparsable name in autoload in %s\n",
+			   filename);
+		  continue;
+		}
+	      read_lisp_symbol (infile, buffer);
+	      if (strcmp (buffer, "quote"))
+		{
+		  fprintf (stderr, "## unparsable name in autoload in %s\n",
+			   filename);
+		  continue;
+		}
+	      read_lisp_symbol (infile, buffer);
+	      c = getc (infile);
+	      if (c != ')')
+		{
+		  fprintf (stderr,
+			   "## unparsable quoted name in autoload in %s\n",
+			   filename);
+		  continue;
+		}
+	    }
+	  skip_white (infile);
+	  if ((c = getc (infile)) != '\"')
+	    {
+	      fprintf (stderr, "## autoload of %s unparsable (%s)\n",
+		       buffer, filename);
+	      continue;
+	    }
+	  read_c_string (infile, 0);
+	  skip_white (infile);
+
+	  /* If the next three characters aren't `dquote bslash newline'
+	     then we're not reading a docstring.
+	   */
+	  if ((c = getc (infile)) != '"' ||
+	      (c = getc (infile)) != '\\' ||
+	      (c = getc (infile)) != '\n')
+	    {
+#ifdef DEBUG
+	      fprintf (stderr, "## non-docstring in %s (%s)\n",
+		       buffer, filename);
+#endif
+	      continue;
+	    }
+	}
+
+#ifdef DEBUG
+      else if (! strcmp (buffer, "if") ||
+	       ! strcmp (buffer, "byte-code"))
+	;
+#endif
+
       else
-	continue;
+	{
+#ifdef DEBUG
+	  fprintf (stderr, "## unrecognised top-level form, %s (%s)\n",
+		   buffer, filename);
+#endif
+	  continue;
+	}
 
-      /* Here for a function definition.
-	 We have skipped the file name or arguments
-	 and arrived at where the doc string is,
-	 if there is a doc string.  */
-
-      /* Skip whitespace */
-
-      while (c == ' ' || c == '\n' || c == '\t')
-	c = getc (infile);
-
-      /* " followed by \ and newline means a doc string we should gobble */
-      if (c != '"')
-	continue;
-      c = getc (infile);
-      if (c != '\\')
-	continue;
-      c = getc (infile);
-      if (c != '\n')
-	continue;
-
+      /* At this point, there is a docstring that we should gobble.
+	 The opening quote (and leading backslash-newline) have already
+	 been read.
+       */
+      putc ('\n', outfile);
       putc (037, outfile);
-      putc ('F', outfile);
-      fprintf (outfile, "%s\n", buf);
+      putc (type, outfile);
+      fprintf (outfile, "%s\n", buffer);
       read_c_string (infile, 1);
     }
   fclose (infile);

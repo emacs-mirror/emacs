@@ -743,6 +743,7 @@ definitions to shadow the loaded ones for use in file byte-compilation.")
      register Lisp_Object form;
      Lisp_Object env;
 {
+  /* With cleanups from Hallvard Furuseth.  */
   register Lisp_Object expander, sym, def, tem;
 
   while (1)
@@ -751,42 +752,23 @@ definitions to shadow the loaded ones for use in file byte-compilation.")
 	 in case it expands into another macro call.  */
       if (XTYPE (form) != Lisp_Cons)
 	break;
-      sym = XCONS (form)->car;
-      /* Detect  ((macro lambda ...) ...)  */
-      if (XTYPE (sym) == Lisp_Cons
-	  && EQ (XCONS (sym)->car, Qmacro))
-	{
-	  expander = XCONS (sym)->cdr;
-	  goto explicit;
-	}
-      if (XTYPE (sym) != Lisp_Symbol)
-	break;
+      /* Set SYM, give DEF and TEM right values in case SYM is not a symbol. */
+      def = sym = XCONS (form)->car;
+      tem = Qnil;
       /* Trace symbols aliases to other symbols
 	 until we get a symbol that is not an alias.  */
-      while (1)
+      while (XTYPE (def) == Lisp_Symbol)
 	{
 	  QUIT;
+	  sym = def;
 	  tem = Fassq (sym, env);
 	  if (NILP (tem))
 	    {
 	      def = XSYMBOL (sym)->function;
-	      if (XTYPE (def) == Lisp_Symbol && !EQ (def, Qunbound))
-		sym = def;
-	      else
-		break;
+	      if (!EQ (def, Qunbound))
+		continue;
 	    }
-	  else
-	    {
-#if 0  /* This is turned off because it caused an element (foo . bar)
-	  to have the effect of defining foo as an alias for the macro bar.
-	  That is inconsistent; bar should be a function to expand foo.  */
-	      if (XTYPE (tem) == Lisp_Cons
-		  && XTYPE (XCONS (tem)->cdr) == Lisp_Symbol)
-		sym = XCONS (tem)->cdr;
-	      else
-#endif
-		break;
-	    }
+	  break;
 	}
       /* Right now TEM is the result from SYM in ENV,
 	 and if TEM is nil then DEF is SYM's function definition.  */
@@ -818,7 +800,6 @@ definitions to shadow the loaded ones for use in file byte-compilation.")
 	  if (NILP (expander))
 	    break;
 	}
-    explicit:
       form = apply1 (expander, XCONS (form)->cdr);
     }
   return form;
