@@ -1,3 +1,22 @@
+2003-06-05  Takaaki Ota  <Takaaki.Ota@am.sony.com>
+
+	* textmodes/table.el (table-cell-horizontal-chars): Renamed from
+	table-cell-horizontal-char. Now a string value instead of a
+	character.  ?= is allowed for horizontal boundary as well as ?-.
+	(table-command-remap-alist, table-command-list): Changed defconst to
+	defvar because the value is modified.
+	(table-insert, table-insert-row, table-insert-column)
+	(table-recognize, table-recognize-region, table-widen-cell)
+	(table-span-cell, table-split-cell-vertically): Change due to
+	table-cell-horizontal-chars.
+	(table--cell-horizontal-char-p): New function.
+	(table--generate-source-scan-lines, table-delete-row)
+	(table-delete-column, table--spacify-frame)
+	(table--find-row-column, table--probe-cell-left-up)
+	(table--probe-cell-right-bottom, table--probe-cell): Change due to
+	table-cell-horizontal-chars.  From David Abrahams
+	<dave@boost-consulting.com>
+
 2003-06-05  Juanma Barranquero  <lektu@terra.es>
 
 	* gud.el: Moved to progmodes.
