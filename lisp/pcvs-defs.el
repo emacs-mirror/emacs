@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-defs.el,v 1.11 2001/03/07 00:18:27 monnier Exp $
+;; Revision: $Id: pcvs-defs.el,v 1.12 2001/04/13 15:19:50 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -313,12 +313,12 @@ This variable is buffer local and only used in the *cvs* buffer.")
 (easy-mmode-defmap cvs-mode-map
   ;;(define-prefix-command 'cvs-mode-map-diff-prefix)
   ;;(define-prefix-command 'cvs-mode-map-control-c-prefix)
-  `(;; simulate `suppress-keymap'
+  '(;; simulate `suppress-keymap'
     (self-insert-command . undefined)
     (("0" "1" "2" "3" "4" "5" "6" "7" "8" "9") . digit-argument)
     ("-" .	negative-argument)
     ;; various
-    (undo .	cvs-mode-undo)
+    ;; (undo .	cvs-mode-undo)
     ("?" .	cvs-help)
     ("h" .	cvs-help)
     ("q" .	cvs-bury-buffer)
