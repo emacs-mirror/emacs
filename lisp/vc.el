@@ -1,11 +1,11 @@
-;;; vc.el --- drive a version-control system from within Emacs
+;; vc.el --- drive a version-control system from within Emacs
 
 ;; Copyright (C) 1992,93,94,95,96,97,98,2000  Free Software Foundation, Inc.
 
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc.el,v 1.285 2000/10/27 12:13:19 spiegel Exp $
+;; $Id: vc.el,v 1.286 2000/11/16 13:39:10 spiegel Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -2187,6 +2187,9 @@ changes found in the master file; use \\[universal-argument] \\[vc-next-action] 
 	(vc-suppress-confirm nil)
 	(obuf (current-buffer))
 	status)
+    (if (vc-up-to-date-p file)
+        (unless (yes-or-no-p "File seems up-to-date.  Revert anyway? ")
+          (error "Revert canceled")))
     (unless (vc-workfile-unchanged-p file)
       ;; vc-diff selects the new window, which is not what we want:
       ;; if the new window is on another frame, that'd require the user
@@ -2800,8 +2803,7 @@ Global user options:
 	`vc-keep-workfiles'	Non-nil value prevents workfiles from being
 				deleted when changes are checked in
 
-        `vc-suppress-confirm'	Suppresses some confirmation prompts,
-				notably for reversions.
+        `vc-suppress-confirm'	Suppresses some confirmation prompts.
 
 	vc-BACKEND-header	Which keywords to insert when adding headers
 				with \\[vc-insert-headers].  Defaults to
