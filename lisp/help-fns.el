@@ -45,10 +45,10 @@ If there's no tutorial in that language, `TUTORIAL' is selected.
 With ARG, you are asked to choose which language."
   (interactive "P")
   (let ((lang (if arg
-		    (let ((minibuffer-setup-hook minibuffer-setup-hook))
-		      (add-hook 'minibuffer-setup-hook
-				'minibuffer-completion-help)
-		      (read-language-name 'tutorial "Language: " "English"))
+                  (let ((minibuffer-setup-hook minibuffer-setup-hook))
+                    (add-hook 'minibuffer-setup-hook
+                              'minibuffer-completion-help)
+                    (read-language-name 'tutorial "Language: " "English"))
 		(if (get-language-info current-language-environment 'tutorial)
 		    current-language-environment
 		  "English")))
@@ -253,17 +253,16 @@ KIND should be `var' for a variable or `subr' for a subroutine."
 
 (defun help-highlight-arguments (usage doc &rest args)
   (when usage
-    (let ((case-fold-search nil)
-          (next (not args))
-          (opt nil))
-      ;; Make a list of all arguments
-      (with-temp-buffer
-        (insert usage)
-        (goto-char (point-min))
+    (with-temp-buffer
+      (insert usage)
+      (goto-char (point-min))
+      (let ((case-fold-search nil)
+            (next (not (or args (looking-at "\\["))))
+            (opt nil))
         ;; Make a list of all arguments
         (while next
           (or opt (not (looking-at " &")) (setq opt t))
-          (if (not (re-search-forward " \\([\\[(]?\\)\\([^] &)\.]+\\)" nil t))
+          (if (not (re-search-forward " \\([\\[(]*\\)\\([^] &)\.]+\\)" nil t))
               (setq next nil)
             (setq args (cons (match-string 2) args))
             (when (and opt (string= (match-string 1) "("))
@@ -272,11 +271,11 @@ KIND should be `var' for a variable or `subr' for a subroutine."
               (search-backward "(")
               (goto-char (scan-sexps (point) 1)))))
         ;; Highlight aguments in the USAGE string
-        (setq usage (help-do-arg-highlight (buffer-string) args)))
-      ;; Highlight arguments in the DOC string
-      (setq doc (and doc (help-do-arg-highlight doc args)))
-      ;; Return value is like the one from help-split-fundoc, but highlighted
-      (cons usage doc))))
+        (setq usage (help-do-arg-highlight (buffer-string) args))))
+    ;; Highlight arguments in the DOC string
+    (setq doc (and doc (help-do-arg-highlight doc args)))
+    ;; Return value is like the one from help-split-fundoc, but highlighted
+    (cons usage doc)))
 
 ;;;###autoload
 (defun describe-function-1 (function)
