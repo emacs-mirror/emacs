@@ -1,3 +1,9 @@
+2002-03-29  Richard M. Stallman  <rms@gnu.org>
+
+	* subr.el (play-sound-file): Moved to simple.el.
+
+	* simple.el (play-sound-file): Moved from subr.el, made unconditional.
+
 2002-03-29  Colin Walters  <walters@verbum.org>
 
 	* ibuffer.el (ibuffer-mark-interactive): Use
