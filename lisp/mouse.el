@@ -707,15 +707,17 @@ is to prevent accidents."
 
 (defun mouse-secondary-save-then-kill (click)
   "Save text to point in kill ring; the second time, kill the text.
-If the text between point and the mouse is the same as what's
-at the front of the kill ring, this deletes the text.
+You must use this in a buffer where you have recently done \\[mouse-start-secondary].
+If the text between where you did \\[mouse-start-secondary] and where
+you use this command matches the text at the front of the kill ring,
+this command deletes the text.
 Otherwise, it adds the text to the kill ring, like \\[kill-ring-save],
-which prepares for a second click to delete the text.
+which prepares for a second click with this command to delete the text.
 
-If you have selected words or lines, this command extends the
-selection through the word or line clicked on.  If you do this
-again in a different position, it extends the selection again.
-If you do this twice in the same position, the selection is killed." 
+If you have already made a secondary selection in that buffer,
+this command extends or retracts the selection to where you click.
+If you do this again in a different position, it extends or retracts
+again.  If you do this twice in the same position, it kills the selection."
   (interactive "e")
   (mouse-minibuffer-check click)
   (let ((posn (event-start click))
