@@ -1600,7 +1600,7 @@ If there is no completion possible, say so and continue searching."
 		       (concat " [" current-input-method-title "]: ")
 		     ": ")
 		   )))
-    (concat (upcase (substring m 0 1)) (substring m 1))))
+    (propertize (concat (upcase (substring m 0 1)) (substring m 1)) 'face 'minibuffer-prompt)))
 
 
 (defun isearch-message-suffix (&optional c-q-hack ellipsis)
