@@ -1,3 +1,8 @@
+2002-04-28  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* international/mule-cmds.el (read-language-name): Take of
+	non-list values.
+
 2002-04-27  Richard M. Stallman  <rms@gnu.org>
 
 	* info.el (Info-header-line): Mark it as risky-local-variable.
