@@ -1385,15 +1385,15 @@ Does NOT find the source line like \\[next-error]."
   (interactive "p")
   (compilation-next-file (- n)))
 
-
 (defun kill-compilation ()
-  "Kill the process made by the \\[compile] command."
+  "Kill the process made by the \\[compile] or \\[grep] commands."
   (interactive)
   (let ((buffer (compilation-find-buffer)))
     (if (get-buffer-process buffer)
 	(interrupt-process (get-buffer-process buffer))
       (error "The compilation process is not running"))))
 
+(defalias 'kill-grep 'kill-compilation)
 
 ;; Parse any new errors in the compilation buffer,
 ;; or reparse from the beginning if the user has asked for that.
