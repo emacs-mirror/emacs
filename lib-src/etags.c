@@ -308,8 +308,8 @@ static char *absolute_dirname P_((char *, char *));
 static bool filename_is_absolute P_((char *f));
 static void canonicalize_filename P_((char *));
 static void grow_linebuffer P_((linebuffer *, int));
-static long *xmalloc P_((unsigned int));
-static long *xrealloc P_((char *, unsigned int));
+long *xmalloc P_((unsigned int));
+long *xrealloc P_((char *, unsigned int));
 
 
 char searchar = '/';		/* use /.../ searches */
@@ -5508,7 +5508,7 @@ grow_linebuffer (lbp, toksize)
 }
 
 /* Like malloc but get fatal error if memory is exhausted.  */
-static long *
+long *
 xmalloc (size)
      unsigned int size;
 {
@@ -5518,7 +5518,7 @@ xmalloc (size)
   return result;
 }
 
-static long *
+long *
 xrealloc (ptr, size)
      char *ptr;
      unsigned int size;
