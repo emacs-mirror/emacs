@@ -4195,7 +4195,7 @@ the front of the list of recently selected ones."
     (set-buffer buffer)
     (clone-indirect-buffer nil t norecord)))
 
-(define-key ctl-x-4-map "c" 'display-buffer)
+(define-key ctl-x-4-map "c" 'clone-indirect-buffer-other-window)
 
 
 ;;; Syntax stuff.
