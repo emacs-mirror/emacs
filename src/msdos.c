@@ -53,29 +53,49 @@ int have_mouse;          /* Mouse present?		*/
 static int mouse_last_x;
 static int mouse_last_y;
 
+#define DO_TERMSCRIPT	/* define if you want open-termscript to work on msdos */
+
+/* Standard putchar may call _flsbuf which doesn't go through
+   fflush's overlayed internal_flush routine. */
+#undef putchar
+#define putchar(x) \
+  (--(stdout)->_cnt>=0? \
+  ((int)((unsigned char)((*(stdout)->_ptr++=(unsigned)(x))))): \
+  (internal_flush (stdout), --(stdout)->_cnt, *(stdout)->_ptr++=(unsigned)(x)))
+
+static void
+mouse_get_xy (int *x, int *y);
+
 /*  Turn off Dos' Ctrl-C checking and inhibit interpretation of control chars
     by Dos.  Determine the keyboard type.  */
 int
 dos_ttraw ()
 {
   union REGS inregs, outregs;
-
-  inregs.h.ah = 0xc0;
-  int86 (0x15, &inregs, &outregs);
-  extended_kbd = (!outregs.x.cflag) && (outregs.h.ah == 0);
-
+  static int only_once = 1;
+  
+  if (only_once) {
+    inregs.h.ah = 0xc0;
+    int86 (0x15, &inregs, &outregs);
+    extended_kbd = (!outregs.x.cflag) && (outregs.h.ah == 0);
+  }
+  
   break_stat = getcbrk ();
   setcbrk (0);
   install_ctrl_break_check ();
-  have_mouse = mouse_init1 ();
 
-  inregs.x.ax = 0x4400;	/* Get IOCTL status. */
-  inregs.x.bx = 0x00;	/* 0 = stdin. */
+  if (only_once)
+    have_mouse = mouse_init1 ();
+
+  inregs.x.ax = 0x4400;		/* Get IOCTL status. */
+  inregs.x.bx = 0x00;		/* 0 = stdin. */
   intdos (&inregs, &outregs);
   stdin_stat = outregs.h.dl;
 
-  inregs.x.dx = (outregs.x.dx | 0x0020) & 0x0027; /* raw mode */
-  inregs.h.al = 0x01;
+  only_once = 0;
+  
+  inregs.x.dx = stdin_stat | 0x0020; /* raw mode */
+  inregs.x.ax = 0x4401;		/* Set IOCTL status */
   intdos (&inregs, &outregs);
   return !outregs.x.cflag;
 }
@@ -87,13 +107,31 @@ dos_ttcooked ()
   union REGS inregs, outregs;
 
   setcbrk (break_stat);
-  if (have_mouse) mouse_off ();
+  mouse_off ();
 
   inregs.x.ax = 0x4401;	/* Set IOCTL status.	*/
   inregs.x.bx = 0x00;	/* 0 = stdin.		*/
   inregs.x.dx = stdin_stat;
   intdos (&inregs, &outregs);
   return !outregs.x.cflag;
+}
+
+/* generate a reliable event timestamp, KFS 1995-07-06 */
+
+static unsigned long
+event_timestamp ()
+{
+  struct time t;
+  unsigned long s;
+	
+  gettime (&t);
+  s = t.ti_min;
+  s *= 60;
+  s += t.ti_sec;
+  s *= 1000;
+  s += t.ti_hund * 10;
+	
+  return s;
 }
 
 static unsigned short
@@ -254,10 +292,9 @@ static int
 dos_rawgetc ()
 {
   struct input_event event;
-  struct timeval tv;
   union REGS regs;
   int ctrl_p, alt_p, shift_p;
-
+  
   /* Calculate modifier bits */
   regs.h.ah = extended_kbd ? 0x12 : 0x02;
   int86 (0x16, &regs, &regs);
@@ -288,14 +325,14 @@ dos_rawgetc ()
 	sc = (c == '0') ? 0xb : (c - '0' + 1), c = 0;
       else if (sc == 0x53 && c != 0xe0)
 	{
-	  code = 0xffae; /* Keypad decimal point/comma.  */
+	  code = 0xffae;	/* Keypad decimal point/comma.  */
 	  goto nonascii;
 	}
       else if (sc == 0xe0)
 	{
 	  switch (c)
 	    {
-	    case 10: /* Ctrl Enter */
+	    case 10:		/* Ctrl Enter */
 	    case 13:
 	      sc = 0x1c;
 	      break;
@@ -312,62 +349,61 @@ dos_rawgetc ()
 	  || c == ' '
 	  || alt_p
 	  || (ctrl_p && shift_p)
-	  || (c == 0xe0 && sc != 0)     /* Pseudo-key */
-	  || sc == 0x37                 /* Grey * */
-	  || sc == 0x4a                 /* Grey - */
-	  || sc == 0x4e                 /* Grey + */
-	  || sc == 0x0e)                /* Back space *key*, not Ctrl-h */
-      {
-	if (sc >= (sizeof (ibmpc_translate_map) / sizeof (short)))
-	  code = 0;
-	else
-	  code = ibmpc_translate_map[sc];
-	if (code != 0)
-	  {
-	    if (code >= 0x100)
-	      {
-	      nonascii:
-		event.kind = non_ascii_keystroke;
-		event.code = (code & 0xff) + 0xff00;
-	      }
-	    else
-	      {
-		/* Don't return S- if we don't have to.  `shifted' is
-		   supposed to be the shifted versions of the characters
-		   in `unshifted'.  Unfortunately, this is only true for
-		   US keyboard layout.  If anyone knows how to do this
-		   right, please tell us.  */
-		static char *unshifted
-		  = "abcdefghijklmnopqrstuvwxyz,./=;[\\]'-`0123456789";
-		static char *shifted
-		  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ<>?+:{|}\"_~)!@#$%^&*(";
-		char *pos;
+	  || (c == 0xe0 && sc != 0) /* Pseudo-key */
+	  || sc == 0x37		/* Grey * */
+	  || sc == 0x4a		/* Grey - */
+	  || sc == 0x4e		/* Grey + */
+	  || sc == 0x0e)	/* Back space *key*, not Ctrl-h */
+	{
+	  if (sc >= (sizeof (ibmpc_translate_map) / sizeof (short)))
+	    code = 0;
+	  else
+	    code = ibmpc_translate_map[sc];
+	  if (code != 0)
+	    {
+	      if (code >= 0x100)
+		{
+		nonascii:
+		  event.kind = non_ascii_keystroke;
+		  event.code = (code & 0xff) + 0xff00;
+		}
+	      else
+		{
+		  /* Don't return S- if we don't have to.  `shifted' is
+		     supposed to be the shifted versions of the characters
+		     in `unshifted'.  Unfortunately, this is only true for
+		     US keyboard layout.  If anyone knows how to do this
+		     right, please tell us.  */
+		  static char *unshifted
+		    = "abcdefghijklmnopqrstuvwxyz,./=;[\\]'-`0123456789";
+		  static char *shifted
+		    = "ABCDEFGHIJKLMNOPQRSTUVWXYZ<>?+:{|}\"_~)!@#$%^&*(";
+		  char *pos;
 
-		if (shift_p && (pos = strchr (unshifted, code)))
-		  {
-		    c = shifted[pos - unshifted];
-		    shift_p = 0;
-		  }
-		else
-		  if (c == 0) c = code;
-		event.kind = ascii_keystroke;
-		event.code = c;
-	      }
-	    event.modifiers
-	      = (shift_p ? shift_modifier : 0)
-		+ (ctrl_p ? ctrl_modifier : 0)
-		  + (alt_p ? meta_modifier : 0);
-	    /* EMACS == Enter Meta Alt Control Shift */
-	    XSETFRAME (event.frame_or_window, selected_frame);
-	    gettimeofday (&tv, NULL);
-	    event.timestamp = tv.tv_usec;
-	    kbd_buffer_store_event (&event);
-	  }
-      } else
-	return c;
+		  if (shift_p && (pos = strchr (unshifted, code)))
+		    {
+		      c = shifted[pos - unshifted];
+		      shift_p = 0;
+		    }
+		  else
+		    if (c == 0) c = code;
+		  event.kind = ascii_keystroke;
+		  event.code = c;
+		}
+	      event.modifiers
+		= (shift_p ? shift_modifier : 0)
+		  + (ctrl_p ? ctrl_modifier : 0)
+		    + (alt_p ? meta_modifier : 0);
+	      /* EMACS == Enter Meta Alt Control Shift */
+	      XSETFRAME (event.frame_or_window, selected_frame);
+	      event.timestamp = event_timestamp ();
+	      kbd_buffer_store_event (&event);
+	    }
+	} else
+	  return c;
     }
 
-  if (have_mouse)
+  if (have_mouse > 0)
     {
       int but, press, x, y, ok;
 
@@ -393,8 +429,7 @@ dos_rawgetc ()
 		event.x = x;
 		event.y = y;
 		XSETFRAME (event.frame_or_window, selected_frame);
-		gettimeofday (&tv, NULL);
-		event.timestamp = tv.tv_usec;
+		event.timestamp = event_timestamp ();
 		kbd_buffer_store_event (&event);
 	      }
 	  }
@@ -523,6 +558,7 @@ run_msdos_command (argv, dir, tempin, tempout)
   char oldwd[MAXPATHLEN + 1]; /* Fixed size is safe on MSDOS.  */
   int msshell, result = -1;
   int in, out, inbak, outbak, errbak;
+  int x, y;
   Lisp_Object cmd;
 
   /* Get current directory as MSDOS cwd is not per-process.  */
@@ -579,16 +615,33 @@ run_msdos_command (argv, dir, tempin, tempout)
   errbak = dup (2);
   if (inbak < 0 || outbak < 0 || errbak < 0)
     goto done; /* Allocation might fail due to lack of descriptors.  */
+
+  if (have_mouse > 0)
+    {
+      mouse_get_xy (&x, &y);
+      mouse_off ();
+    }
+  dos_ttcooked();	/* do it here while 0 = stdin */
+  
   dup2 (tempin, 0);
   dup2 (tempout, 1);
   dup2 (tempout, 2);
-  dos_ttcooked ();
+
   result = spawnve (P_WAIT, argv[0], argv, envv);
-  dos_ttraw ();
+
   dup2 (inbak, 0);
   dup2 (outbak, 1);
   dup2 (errbak, 2);
+  close (inbak);
+  close (outbak);
+  close (errbak);
 
+  dos_ttraw();
+  if (have_mouse > 0) {
+    mouse_init ();
+    mouse_moveto (x, y);
+  }
+  
  done:
   chdir (oldwd);
   if (msshell)
@@ -629,40 +682,86 @@ sys_chdir (path)
      const char* path;
 {
   int len = strlen (path);
-  char *tmp = (char *) alloca (len + 1);
+  char *tmp = (char *)path;
   /* Gotta do this extern here due to the corresponding #define: */
   extern int chdir ();
 
-  if (*path && path[1] == ':' && (getdisk () != tolower (path[0]) - 'a'))
-    setdisk (tolower (path[0]) - 'a');
-
-  strcpy (tmp, path);
-  if (strcmp (path, "/") && strcmp (path + 1, ":/") && (path[len - 1] == '/'))
-    tmp[len - 1] = 0;
+  if (*tmp && tmp[1] == ':')
+    {
+      if (getdisk () != tolower (tmp[0]) - 'a')
+	setdisk (tolower (tmp[0]) - 'a');
+      tmp += 2;			/* strip drive: KFS 1995-07-06 */
+      len -= 2;
+    }
+  
+  if (len > 1 && (tmp[len - 1] == '/'))
+    {
+      char *tmp1 = (char *) alloca (len + 1);
+      strcpy (tmp1, tmp);
+      tmp1[len - 1] = 0;
+      tmp = tmp1;
+    }
   return chdir (tmp);
 }
 
-/* Sleep SECS.  If KBDOK also return immediately if a key is pressed.  */
-void
-sleep_or_kbd_hit (secs, kbdok)
-     int secs, kbdok;
+#ifndef HAVE_SELECT
+#include "sysselect.h"
+
+/* Only event queue is checked.  */
+int
+sys_select (nfds, rfds, wfds, efds, timeout)
+     int nfds;
+     SELECT_TYPE *rfds, *wfds, *efds;
+     EMACS_TIME *timeout;
 {
-  long clnow, clthen;
-  struct timeval t;
+  SELECT_TYPE orfds;
+  long timeoutval, clnow, cllast;
+  struct time t;
 
-  gettimeofday (&t, NULL);
-  clnow = t.tv_sec * 100 + t.tv_usec / 10000;
-  clthen = clnow + (100 * secs);
-
-  do
+  FD_ZERO (&orfds);
+  if (rfds)
     {
-      gettimeofday (&t, NULL);
-      clnow = t.tv_sec * 100 + t.tv_usec / 10000;
-      if (kbdok && detect_input_pending ())
-	return;
+      orfds = *rfds;
+      FD_ZERO (rfds);
     }
-  while (clnow < clthen);
+  if (wfds)
+    FD_ZERO (wfds);
+  if (efds)
+    FD_ZERO (efds);
+
+  if (nfds != 1 || !FD_ISSET (0, &orfds))
+    abort ();
+  
+  /* If we are looking only for the terminal, with no timeout,
+     just read it and wait -- that's more efficient.  */
+  if (!timeout)
+    {
+      while (! detect_input_pending ());
+    }
+  else
+    {
+      timeoutval = EMACS_SECS (*timeout) * 100 + EMACS_USECS (*timeout) / 10000;
+      gettime (&t);
+      cllast = t.ti_sec * 100 + t.ti_hund;
+
+      while (!detect_input_pending ())
+	{
+	  gettime (&t);
+	  clnow = t.ti_sec * 100 + t.ti_hund;
+	  if (clnow < cllast) /* time wrap */
+	    timeoutval -= clnow + 6000 - cllast;
+	  else
+	    timeoutval -= clnow - cllast;
+	  if (timeoutval <= 0)  /* Stop on timer being cleared */
+	    return 0;
+	  cllast = clnow;
+	}
+    }
+  
+  FD_SET (0, rfds);
+  return 1;
 }
+#endif
 
 /* The Emacs root directory as determined by init_environment.  */
 static char emacsroot[MAXPATHLEN];
@@ -836,6 +935,13 @@ output_string (x, y, s, c, a)
      unsigned char a;
 {
   char *t = (char *)ScreenPrimary + 2 * (x + ScreenCols () * y);
+#ifdef DO_TERMSCRIPT
+  if (termscript)
+    {
+      fprintf (termscript, "<%d@%dx%d>", c, x, y);
+      fwrite (s, sizeof (unsigned char), c, termscript);
+    }
+#endif  
   asm volatile
     ("  movl   %1,%%eax
         call   dosmemsetup
@@ -850,9 +956,9 @@ output_string1:
         incl   %%esi
         decl   %%ecx
         jne    output_string1"
-     : /* no output */
+     :				/* no output */
      : "m" (a), "g" (t), "g" (c), "g" (s)
-     : "%eax", "%ecx", /* "%gs",*/ "%esi", "%edi");
+     : "%eax", "%ecx",		/* "%gs",*/ "%esi", "%edi");
 }
 
 static int internal_terminal = 0;
@@ -860,108 +966,189 @@ static int highlight;
 
 #undef fflush
 
+static int	/* number of characters used by escape; -1 if incomplete */
+flush_escape (resume, cp, count, xp, yp)
+     int resume;
+     unsigned char *cp;
+     int count;
+     int *xp;
+     int *yp;
+{
+  static char spaces[] = "                                                                                ";
+  static unsigned char esc_cmd[8];
+  static int esc_count = 0;
+  int esc_needed;
+  int i, j, used = 0;
+  
+  if (!resume)
+    {
+      esc_cmd[0] = '\e';
+      esc_count = 1;
+      used++;
+    }
+  
+  while (esc_count < 2)
+    {
+      if (used == count)
+	return -1;
+      esc_cmd[esc_count++] = *cp++;
+      used++;
+    }
+
+  switch (esc_cmd[1])
+    {
+    case '@':
+      esc_needed = 4;
+      break;
+    case 'A':
+    case 'B':
+    case 'X':
+      esc_needed = 3;
+      break;
+    default:
+      esc_needed = 2;
+      break;
+    }
+
+  while (esc_count < esc_needed)
+    {
+      if (used == count)
+	return -1;
+      esc_cmd[esc_count++] = *cp++;
+      used++;
+    }
+  
+  switch (esc_cmd[1])
+    {
+    case '@':
+      *yp = esc_cmd[2];
+      *xp = esc_cmd[3];
+      break;
+    case 'A':
+      ScreenAttrib = esc_cmd[2];
+      break;
+    case 'B':
+      do_visible_bell (esc_cmd[2]);
+      break;
+    case 'C':
+      ScreenClear ();
+      *xp = *yp = 0;
+      break;
+    case 'E':
+      i = ScreenCols () - *xp;
+      j = *xp;
+      while (i >= sizeof spaces)
+	{
+	  output_string (j, *yp, spaces, sizeof spaces, ScreenAttrib);
+	  j += sizeof spaces;
+	  i -= sizeof spaces;
+	}
+      if (i > 0)
+	output_string (j, *yp, spaces, i, ScreenAttrib);
+      break;
+    case 'R':
+      ++*xp;
+      break;
+    case 'U':
+      --*yp;
+      break;
+    case 'X':
+      ScreenAttrib ^= esc_cmd[2];
+      break;
+    case '\e':
+      output_string (*xp, *yp, &esc_cmd[1], 1, ScreenAttrib);
+      ++*xp;
+      break;
+    }
+
+  esc_count = 0;
+  return used;
+}
+
 int
 internal_flush (f)
      FILE *f;
 {
-  static char spaces[] = "                                                                                ";
   static int x;
   static int y;
+  static int resume_esc = 0;
   unsigned char *cp, *cp0;
-  int count, i, j;
+  int count, i;
 
-  if (internal_terminal && f == stdout)
+  if (!internal_terminal || f != stdout)
     {
-      if (have_mouse) mouse_off ();
-      cp = stdout->_base;
-      count = stdout->_ptr - stdout->_base;
-      while (count > 0)
-	{
-	  switch (*cp++)
-	    {
-	    case 27:
-	      switch (*cp++)
-		{
-		case '@':
-		  y = *cp++;
-		  x = *cp++;
-		  count -= 4;
-		  break;
-		case 'A':
-		  ScreenAttrib = *cp++;
-		  count -= 3;
-		  break;
-		case 'B':
-		  do_visible_bell (*cp++);
-		  count -= 3;
-		  break;
-		case 'C':
-		  ScreenClear ();
-		  x = y = 0;
-		  count -= 2;
-		  break;
-		case 'E':
-		  i = ScreenCols () - x;
-		  j = x;
-		  while (i >= sizeof spaces)
-		    {
-		      output_string (j, y, spaces, sizeof spaces,
-				     ScreenAttrib);
-		      j += sizeof spaces;
-		      i -= sizeof spaces;
-		    }
-		  if (i > 0)
-		    output_string (j, y, spaces, i, ScreenAttrib);
-		  count -= 2;
-		  break;
-		case 'R':
-		  x++;
-		  count -= 2;
-		  break;
-		case 'U':
-		  y--;
-		  count -= 2;
-		  break;
-		case 'X':
-		  ScreenAttrib ^= *cp++;
-		  count -= 3;
-		  break;
-		default:
-		  count -= 2;
-		}
-	      break;
-	    case 7:
-	      write (1, "\007", 1);
-	      count--;
-	      break;
-	    case 8:
-	      x--;
-	      count--;
-	      break;
-	    case 13:
-	      x = 0;
-	      count--;
-	      break;
-	    case 10:
-	      y++;
-	      count--;
-	      break;
-	    default:
-	      cp0 = cp - 1;
-	      count--;
-	      while (count > 0 && *cp >= ' ')
-		cp++, count--;
-	      output_string (x, y, cp0, cp - cp0, ScreenAttrib);
-	      x += (cp - cp0);
-	    }
-	}
-      fpurge (stdout);
-      ScreenSetCursor (y, x);
-      if (have_mouse) mouse_on ();
+      /* This is a call to the original fflush.  */
+      fflush (f);
+      return;
     }
-  else
-    /* This is a call to the original fflush.  */
-    fflush (f);
+  
+  mouse_off ();
+  cp = stdout->_base;
+  count = stdout->_ptr - stdout->_base;
+
+#ifdef DO_TERMSCRIPT
+  if (termscript)
+    fprintf (termscript, "\n<FLUSH%s %d>\n", resume_esc ? " RESUME" : "", count);
+#endif
+  
+  if (resume_esc)
+    {
+      i = flush_escape (1, cp, count, &x, &y);
+      if (i < 0)
+	count = 0;
+      else
+	{
+	  resume_esc = 0;
+	  count -= i;
+	  cp += i;
+	}
+    }
+  
+  while (count > 0)
+    {
+      switch (*cp++)
+	{
+	case 27:
+	  i = flush_escape (0, cp, count, &x, &y);
+	  if (i < 0)
+	    {
+	      resume_esc = 1;
+	      count = 0;
+	    }
+	  else
+	    {
+	      count -= i;
+	      cp += i - 1;
+	    }
+	  break;
+	case 7:
+	  write (1, "\007", 1);
+	  count--;
+	  break;
+	case 8:
+	  x--;
+	  count--;
+	  break;
+	case 13:
+	  x = 0;
+	  count--;
+	  break;
+	case 10:
+	  y++;
+	  count--;
+	  break;
+	default:
+	  cp0 = cp - 1;
+	  count--;
+	  while (count > 0 && *cp >= ' ')
+	    cp++, count--;
+	  output_string (x, y, cp0, cp - cp0, ScreenAttrib);
+	  x += (cp - cp0);
+	}
+    }
+  fpurge (stdout);
+  ScreenSetCursor (y, x);
+  mouse_on ();
 }
 
 #ifndef HAVE_X_WINDOWS
@@ -978,11 +1165,11 @@ IT_ring_bell ()
     {
       /* This creates an xor-mask that will swap the default fore- and
 	 background colors.  */
-      if (have_mouse) mouse_off ();
+      mouse_off ();
       do_visible_bell (((the_only_x_display.foreground_pixel
 			 ^ the_only_x_display.background_pixel)
 			* 0x11) & 0x7f);
-      if (have_mouse) mouse_on ();
+      mouse_on ();
     }
   else
     /* Write it directly to ms-dos -- don't let it go through our terminal
@@ -1002,6 +1189,10 @@ IT_set_face (int face)
     fp = FRAME_DEFAULT_FACE (foo);
   else
     fp = intern_face (selected_frame, FRAME_COMPUTED_FACES (foo)[face]);
+#ifdef DO_TERMSCRIPT
+  if (termscript)
+    fprintf (termscript, "<FACE:%d:%d>", FACE_FOREGROUND (fp), FACE_BACKGROUND (fp));
+#endif
   putchar ('\e');
   putchar ('A');
   putchar ((FACE_BACKGROUND (fp) << 4) | FACE_FOREGROUND (fp));
@@ -1012,13 +1203,20 @@ IT_write_glyphs (GLYPH *str, int len)
 {
   int face = -1;
   int newface;
-
+  int ch;
+  
   while (len > 0)
     {
       newface = FAST_GLYPH_FACE (*str);
       if (newface != face)
 	IT_set_face ((face = newface));
-      putchar (FAST_GLYPH_CHAR (*str));
+      ch = FAST_GLYPH_CHAR (*str);
+#ifdef DO_TERMSCRIPT
+      if (termscript)
+	fputc (ch, termscript);
+#endif      
+      if (ch == '\e') putchar (ch);	/* allow esc to be printed */
+      putchar (ch);
       str++, len--;
     }
 }
@@ -1026,6 +1224,11 @@ IT_write_glyphs (GLYPH *str, int len)
 static
 IT_clear_end_of_line (first_unused)
 {
+  IT_set_face (0);
+#ifdef DO_TERMSCRIPT
+  if (termscript)
+    fprintf (termscript, "<CLR:EOL>");
+#endif
   putchar ('\e');
   putchar ('E');
 }
@@ -1033,6 +1236,10 @@ IT_clear_end_of_line (first_unused)
 static
 IT_cursor_to (int y, int x)
 {
+#ifdef DO_TERMSCRIPT
+  if (termscript)
+    fprintf (termscript, "\n<XY=%dx%d>", x, y);
+#endif
   putchar ('\e');
   putchar ('@');
   putchar (y);
@@ -1157,7 +1364,8 @@ void
 internal_terminal_init ()
 {
   char *term = getenv ("TERM");
-
+  char *colors;
+  
 #ifdef HAVE_X_WINDOWS
   if (!inhibit_window_system)
     return;
@@ -1175,6 +1383,12 @@ internal_terminal_init ()
       bzero (&the_only_x_display, sizeof the_only_x_display);
       the_only_x_display.background_pixel = 7; /* White */
       the_only_x_display.foreground_pixel = 0; /* Black */
+      colors = getenv ("EMACSCOLORS");
+      if (colors && strlen (colors) >=2)
+	{
+	  the_only_x_display.foreground_pixel = colors[0] & 0x07;
+	  the_only_x_display.background_pixel = colors[1] & 0x07;
+	}
       the_only_x_display.line_height = 1;
       the_only_frame.display.x = &the_only_x_display;
       the_only_frame.output_method = output_msdos_raw;
@@ -1312,8 +1526,11 @@ mouse_on ()
 {
   union REGS regs;
 
-  regs.x.ax = 0x0001;
-  int86 (0x33, &regs, &regs);
+  if (have_mouse > 0)
+    {
+      regs.x.ax = 0x0001;
+      int86 (0x33, &regs, &regs);
+    }
 }
 
 void
@@ -1321,8 +1538,11 @@ mouse_off ()
 {
   union REGS regs;
 
-  regs.x.ax = 0x0002;
-  int86 (0x33, &regs, &regs);
+  if (have_mouse > 0)
+    {
+      regs.x.ax = 0x0002;
+      int86 (0x33, &regs, &regs);
+    }
 }
 
 void
@@ -1364,6 +1584,10 @@ mouse_released (b, xp, yp)
   regs.x.ax = 0x0006;
   regs.x.bx = mouse_button_translate[b];
   int86 (0x33, &regs, &regs);
+#if 0
+  if (regs.x.ax & (1 << mouse_button_translate[b]))
+    regs.x.bx = 0;	/* if mouse is still pressed, ignore release */
+#endif
   if (regs.x.bx)
     *xp = regs.x.cx / 8, *yp = regs.x.dx / 8;
   return (regs.x.bx != 0);
@@ -1390,18 +1614,16 @@ mouse_get_pos (f, insist, bar_window, part, x, y, time)
 {
   int ix, iy;
   union REGS regs;
-  struct timeval tv;
 
   regs.x.ax = 0x0003;
   int86 (0x33, &regs, &regs);
   *f = selected_frame;
   *bar_window = Qnil;
-  gettimeofday (&tv, NULL);
   mouse_get_xy (&ix, &iy);
   selected_frame->mouse_moved = 0;
   *x = make_number (ix);
   *y = make_number (iy);
-  *time = tv.tv_usec;
+  *time = event_timestamp ();
 }
 
 void
@@ -1458,7 +1680,7 @@ mouse_init1 ()
 	}
       mouse_position_hook = &mouse_get_pos;
       mouse_init ();
-   }
+    }
   return present;
 }
 
@@ -1510,6 +1732,7 @@ IT_menu_create ()
 
 /* Allocate some (more) memory for MENU ensuring that there is room for one
    for item.  */
+
 static void
 IT_menu_make_room (XMenu *menu)
 {
@@ -1533,6 +1756,7 @@ IT_menu_make_room (XMenu *menu)
 }
 
 /* Search the given menu structure for a given pane number.  */
+
 static XMenu *
 IT_menu_search_pane (XMenu *menu, int pane)
 {
@@ -1541,15 +1765,17 @@ IT_menu_search_pane (XMenu *menu, int pane)
 
   for (i = 0; i < menu->count; i++)
     if (menu->submenu[i])
-      if (pane == menu->panenumber[i])
-	return menu->submenu[i];
-      else
-	if ((try = IT_menu_search_pane (menu->submenu[i], pane)))
+      {
+	if (pane == menu->panenumber[i])
+	  return menu->submenu[i];
+	else if ((try = IT_menu_search_pane (menu->submenu[i], pane)))
 	  return try;
+      }
   return (XMenu *) 0;
 }
 
 /* Determine how much screen space a given menu needs.  */
+
 static void
 IT_menu_calc_size (XMenu *menu, int *width, int *height)
 {
@@ -1571,6 +1797,7 @@ IT_menu_calc_size (XMenu *menu, int *width, int *height)
 }
 
 /* Display MENU at (X,Y) using FACES. */
+
 static void
 IT_menu_display (XMenu *menu, int y, int x, int *faces)
 {
@@ -1611,6 +1838,7 @@ IT_menu_display (XMenu *menu, int y, int x, int *faces)
 }
 
 /* Create a brand new menu structure.  */
+
 XMenu *
 XMenuCreate (Display *foo1, Window foo2, char *foo3)
 {
@@ -1620,6 +1848,7 @@ XMenuCreate (Display *foo1, Window foo2, char *foo3)
 /* Create a new pane and place it on the outer-most level.  It is not
    clear that it should be placed out there, but I don't know what else
    to do.  */
+
 int
 XMenuAddPane (Display *foo, XMenu *menu, char *txt, int enable)
 {
@@ -1633,11 +1862,13 @@ XMenuAddPane (Display *foo, XMenu *menu, char *txt, int enable)
   menu->text[menu->count] = txt;
   menu->panenumber[menu->count] = ++menu->panecount;
   menu->count++;
-  if ((len = strlen (txt)) > menu->width) menu->width = len;
+  if ((len = strlen (txt)) > menu->width)
+    menu->width = len;
   return menu->panecount;
 }
 
 /* Create a new item in a menu pane.  */
+
 int
 XMenuAddSelection (Display *bar, XMenu *menu, int pane,
 		   int foo, char *txt, int enable)
@@ -1652,11 +1883,13 @@ XMenuAddSelection (Display *bar, XMenu *menu, int pane,
   menu->text[menu->count] = txt;
   menu->panenumber[menu->count] = enable;
   menu->count++;
-  if ((len = strlen (txt)) > menu->width) menu->width = len;
+  if ((len = strlen (txt)) > menu->width)
+    menu->width = len;
   return XM_SUCCESS;
 }
 
 /* Decide where the menu would be placed if requested at (X,Y).  */
+
 void
 XMenuLocate (Display *foo0, XMenu *menu, int foo1, int foo2, int x, int y,
 	     int *ulx, int *uly, int *width, int *height)
@@ -1671,21 +1904,22 @@ XMenuLocate (Display *foo0, XMenu *menu, int foo1, int foo2, int x, int y,
   *width += 2;
 }
 
-typedef struct
+struct IT_menu_state
 {
   void *screen_behind;
   XMenu *menu;
   int pane;
   int x, y;
-} IT_menu_state;
+};
 
 
 /* Display menu, wait for user's response, and return that response.  */
+
 int
 XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
 	       int x0, int y0, unsigned ButtonMask, char **txt)
 {
-  IT_menu_state *state;
+  struct IT_menu_state *state;
   int statecount;
   int x, y, i, b;
   int screensize;
@@ -1693,10 +1927,10 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   int leave, result, onepane;
 
   /* Just in case we got here without a mouse present...  */
-  if (!have_mouse)
+  if (have_mouse <= 0)
     return XM_IA_SELECT;
 
-  state = alloca (menu->panecount * sizeof (IT_menu_state));
+  state = alloca (menu->panecount * sizeof (struct IT_menu_state));
   screensize = ScreenRows () * ScreenCols () * 2;
   faces[0]
     = compute_glyph_face (&the_only_frame,
@@ -1810,6 +2044,7 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
 }
 
 /* Dispose of a menu.  */
+
 void
 XMenuDestroy (Display *foo, XMenu *menu)
 {
@@ -1826,14 +2061,16 @@ XMenuDestroy (Display *foo, XMenu *menu)
   xfree (menu);
 }
 
-int x_pixel_width (struct frame *f)
+int
+x_pixel_width (struct frame *f)
 {
-  return FRAME_WIDTH(f);
+  return FRAME_WIDTH (f);
 }
 
-int x_pixel_height (struct frame *f)
+int
+x_pixel_height (struct frame *f)
 {
-  return FRAME_HEIGHT(f);
+  return FRAME_HEIGHT (f);
 }
 #endif /* !HAVE_X_WINDOWS */
 
