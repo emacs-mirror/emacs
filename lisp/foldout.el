@@ -531,11 +531,12 @@ Valid modifiers are shift, control, meta, alt, hyper and super.")
     ()
   (define-key outline-mode-map "\C-c\C-z" 'foldout-zoom-subtree)
   (define-key outline-mode-map "\C-c\C-x" 'foldout-exit-fold)
-  (define-key outline-minor-mode-map
-    (concat outline-minor-mode-prefix "\C-z") 'foldout-zoom-subtree)
-  (define-key outline-minor-mode-map
-    (concat outline-minor-mode-prefix "\C-x") 'foldout-exit-fold)
-
+  (let ((map (lookup-key outline-minor-mode-map outline-minor-mode-prefix)))
+    (unless map
+      (setq map (make-sparse-keymap))
+      (define-key outline-minor-mode-map outline-minor-mode-prefix map))
+    (define-key map "\C-z" 'foldout-zoom-subtree)
+    (define-key map "\C-x" 'foldout-exit-fold))
   (let* ((modifiers (apply 'concat
 			   (mapcar (function
 				    (lambda (modifier)
